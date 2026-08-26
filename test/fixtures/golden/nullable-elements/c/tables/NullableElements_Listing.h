@@ -39,7 +39,7 @@ struct NullableElements_ListingRecord_t {
   int32_t* holes;
   int32_t holes_count;
   /* Which of holes's elements have a value, one bool per element, or NULL where
-   * the file did not carry the column. spec/nullable-array-elements.md. */
+   * the file did not carry the column. spec/types/nullable-array-elements.md. */
   const bool* has_holes_at;
   /* either may be */
   int32_t* both;
@@ -48,13 +48,13 @@ struct NullableElements_ListingRecord_t {
    * holds the type's empty value when the row had none; this says which it was. */
   bool has_both;
   /* Which of both's elements have a value, one bool per element, or NULL where
-   * the file did not carry the column. spec/nullable-array-elements.md. */
+   * the file did not carry the column. spec/types/nullable-array-elements.md. */
   const bool* has_both_at;
   /* where a value comparison cannot see it */
   const char** words;
   int32_t words_count;
   /* Which of words's elements have a value, one bool per element, or NULL where
-   * the file did not carry the column. spec/nullable-array-elements.md. */
+   * the file did not carry the column. spec/types/nullable-array-elements.md. */
   const bool* has_words_at;
 };
 

@@ -13,7 +13,7 @@
   // that still refuses.
   //
   // Nothing here is optional at the row level, so what the target meets is the element
-  // refusal rather than the one beside it. spec/nullable-array-elements.md.
+  // refusal rather than the one beside it. spec/types/nullable-array-elements.md.
 
   "Sources": {
     "Xlsx": [

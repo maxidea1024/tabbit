@@ -4,7 +4,7 @@
   //
   // The same columns as an array of records and the same wire - a record has always been
   // stored one column per member - so what this fixture pins is the shape assembled out of
-  // them, in the JSON and in all thirteen generated APIs. spec/nested-multi-level.md.
+  // them, in the JSON and in all thirteen generated APIs. spec/types/nested-multi-level.md.
   //
   // Every target, because the difference is entirely in the declaration and there are
   // thirteen declarations.

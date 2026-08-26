@@ -16,7 +16,7 @@ namespace Tabbit.Tests;
 /// converts, and the two ways that could happen - a bare name resolving elsewhere, and a
 /// recipe replacing `css` - are both refused here.
 ///
-/// spec/composite-value-types.md section 4.4.
+/// spec/types/composite-value-types.md section 4.4.
 /// </remarks>
 public class ColorPaletteTests : System.IDisposable
 {

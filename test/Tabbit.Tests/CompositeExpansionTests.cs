@@ -16,7 +16,7 @@ namespace Tabbit.Tests;
 /// A fold that did not happen fails here, and so does a notation read as the wrong number.
 /// Neither would need an assertion written for it.
 ///
-/// spec/composite-value-types.md section 6.
+/// spec/types/composite-value-types.md section 6.
 /// </remarks>
 public class CompositeExpansionTests
 {

@@ -43,12 +43,12 @@ public class ConversionGoldenTests
     // What a cell says about having nothing: a blank read as the type's own empty value, `-`
     // read as no value at all, and `\-` as the character itself. JSON holds the three side by
     // side and the binary tree says which of them the presence bit follows.
-    // spec/blank-and-null-cells.md.
+    // spec/types/blank-and-null-cells.md.
     [InlineData("blank-and-null")]
     // The four spellings of an array's optionality, in one table: `int[]`, `int[]?`, `int?[]`
     // and `int?[]?`, with a `string?[]` beside them where an empty element and an absent one
     // look the same to a value comparison. JSON only - the format cannot say it yet.
-    // spec/nullable-array-elements.md.
+    // spec/types/nullable-array-elements.md.
     [InlineData("nullable-elements")]
     // A record array whose length is each row's: trailing empty elements dropped, a gap in
     // the middle kept, and an authored zero left alone.
@@ -57,7 +57,7 @@ public class ConversionGoldenTests
     // A record whose member is itself a record, with a value beside that record at the same
     // level. C# and binary, because what is worth pinning is the pair: a struct per level in
     // the generated page, and the fixed-array column per leaf in the file. The wire is what
-    // says the depth cost the format nothing. spec/nested-multi-level.md.
+    // says the depth cost the format nothing. spec/types/nested-multi-level.md.
     [InlineData("nested-deep")]
     // A primary index that is a string, beside an `int` secondary one - so the golden shows
     // the generated lookup keyed by the field's own type in both languages.
@@ -75,14 +75,14 @@ public class ConversionGoldenTests
     // The three tables ask three things: an int-and-enum pair, two strings holding
     // `("a b", "c")` beside `("a", "b c")` so the key's encoding is pinned rather than
     // assumed, and a key of three columns. Recording it found PHP casting an enum object to
-    // an int. spec/primary-layout.md section 3.5.
+    // an int. spec/layout/primary-layout.md section 3.5.
     [InlineData("composite-key")]
     // The other half of that: a table pointing *at* those keys. One table holds a `string`, a
     // `bigint` and a `uuid` reference at once, so a mixture is pinned as well as each on its
     // own. What travels is the key, and `int32` used to be written in for it - in the
     // exporters, in the format's element mapping, in the read switches and in the templates'
     // member declarations - so the whole tree is the record that every one of those now asks
-    // the target instead. spec/reference-key-types.md.
+    // the target instead. spec/references/reference-key-types.md.
     [InlineData("reference-keys")]
     // Columns typed `text`: gathered files beside the ordinary exports. Both halves are in
     // the tree on purpose - the gathered files are the new output, and the JSON, the binary
@@ -95,16 +95,16 @@ public class ConversionGoldenTests
     // JSON nests, the file holds one column per component, and three languages declare the
     // struct their own way. `CompositeExpansionTests` holds the other half, which is that the
     // same table written with `Pos.X` columns produces the same bytes.
-    // spec/composite-value-types.md.
+    // spec/types/composite-value-types.md.
     [InlineData("composite")]
     // A `bitset` column beside a `bigint` one holding the same values. What this tree pins is
     // an absence: the type exists for as long as parsing lasts, and the cooker folds it to a
     // 64-bit integer once every cell has been read - so no artifact here may be able to tell
     // the two columns apart. Three languages, because each picks its own spelling for the
-    // width and `long`, `bigint` and `int64_t` are three of them. spec/bitset.md.
+    // width and `long`, `bigint` and `int64_t` are three of them. spec/types/bitset.md.
     [InlineData("bitset")]
     // A table given its rows twice. What the tree has to show is one type for `Colour` and
-    // none for `Colour_alt`, and one data file each - spec/table-row-sets.md.
+    // none for `Colour_alt`, and one data file each - spec/layout/table-row-sets.md.
     [InlineData("row-sets")]
     // A reference that is a member of a record group, in every shape a record group has: an
     // array of records, one record, one record of arrays, a reference two levels in, a target
@@ -113,27 +113,27 @@ public class ConversionGoldenTests
     // stored one column per member, and a reference member is a column carrying its target's
     // key like any other, so a diff in the binary here would be a defect rather than a
     // feature. `Loadout` carries two references to one table in each element, which is what
-    // decided that the key lives inside the element. spec/references-in-records.md.
+    // decided that the key lives inside the element. spec/references/references-in-records.md.
     [InlineData("record-ref")]
     // An array of references: numbered reference columns folded into one array, in both forms
     // a reference takes - a whole row and one of that row's values. Every language,
     // because this is the shape `foreign[]`'s refusal points at and no fixture held one: every
     // generator emitted code for it that nothing ever read, and two of them wrote the sheet's
-    // column count into the linking pass. spec/nullable-array-elements.md.
+    // column count into the linking pass. spec/types/nullable-array-elements.md.
     [InlineData("serial-ref")]
     // An array of references written as one cell, in both forms a reference takes. What the
     // tree pins is that this is `serial-ref`'s surface: the fold makes a delimited cell and a
     // group of numbered columns the same group, so the generated page holds one array of rows
     // and one array of a target's values, each allocated from the row's own element count.
     // The refusal this replaced said the readers had no shape for it; the tree is what says
-    // they did. spec/polymorphism.md section 4.
+    // they did. spec/types/polymorphism.md section 4.
     [InlineData("array-foreign")]
     // A polymorphic record group: the discriminator, the abstract type's own field, and the
     // union of the variants' members. What the tree pins is the claim of section 6 - that the
     // format did not move - because every column here is a shape the encoder already wrote,
     // and the one thing that would show a new one is the bytes. It also pins the row order:
     // the fixture is written with the variants interleaved and the file has them gathered.
-    // spec/polymorphism.md sections 5.2 and 6.3.
+    // spec/types/polymorphism.md sections 5.2 and 6.3.
     [InlineData("polymorphism")]
     public void Fixture_matches_golden(string scenario)
     {

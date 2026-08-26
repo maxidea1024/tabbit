@@ -72,7 +72,7 @@ public class ConformanceTests
         // And a reference per element, whose length is the row's. The one column whose
         // reader has to allocate the resolved slots rather than assign into a record it
         // already sized - which is the whole of what `ForeignRecordArray` costs a target.
-        // spec/polymorphism.md section 4.
+        // spec/types/polymorphism.md section 4.
         { "owners", "int[]" },
     };
 
@@ -261,7 +261,7 @@ public class ConformanceTests
     /// platforms and from that package everywhere else. That the same output also compiles
     /// with no package at all is `Generated_swift_compiles_without_a_crypto_package`, and
     /// the pair is what keeps the reader's three crypto states from quietly becoming two.
-    /// spec/swift-language-support.md.
+    /// spec/targets/swift-language-support.md.
     /// </remarks>
     [Fact]
     public void Generated_swift_reader_matches_the_corpus()
@@ -314,7 +314,7 @@ public class ConformanceTests
     /// </summary>
     /// <remarks>
     /// The corpus is signed and the harness sets the key, so this run verifies the MAC
-    /// through the native module on every read. spec/lua-language-support.md.
+    /// through the native module on every read. spec/targets/lua-language-support.md.
     /// </remarks>
     [Fact]
     public void Generated_lua_reader_matches_the_corpus()
@@ -369,7 +369,7 @@ public class ConformanceTests
     /// Opt-in like the Unreal gate: set `TABBIT_LUAJIT` to a luajit executable. Keyless,
     /// because a keyed run needs the native module built against that LuaJIT's own
     /// import library - a consumer's build system's job. The FFI backend's int64
-    /// arithmetic is exactly what this compares. spec/lua-language-support.md.
+    /// arithmetic is exactly what this compares. spec/targets/lua-language-support.md.
     /// </remarks>
     [Fact]
     public void Generated_lua_reader_matches_the_corpus_on_luajit()

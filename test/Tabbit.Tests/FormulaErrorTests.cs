@@ -14,7 +14,7 @@ namespace Tabbit.Tests;
 /// The stage that reads a workbook records the error and says nothing, because whether a broken
 /// formula matters depends on whether anything reads the cell - and which columns of a named
 /// rectangle carry data is the layout's answer, given later. So the report happens where the
-/// cell is read as a value. spec/formula-errors.md.
+/// cell is read as a value. spec/types/formula-errors.md.
 /// </remarks>
 public class FormulaErrorTests
 {

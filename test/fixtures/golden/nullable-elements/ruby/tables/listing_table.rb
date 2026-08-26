@@ -79,7 +79,7 @@ module NullableElements
       # hold - which is nil unless the project set them. A file that is neither encrypted
       # nor signed comes back from this untouched, so the load path is the same either way
       # and there is no condition here that could be the wrong way round.
-      # spec/tcb-mac-and-signature.md.
+      # spec/wire/tcb-mac-and-signature.md.
       reader = Tabbit::Reader.new(
         Tabbit.open(Tabbit.read_all_bytes(filename), Tables.encryption_key,
                       Tables.mac_key, verify_mac: Tables.verify_mac)
@@ -145,7 +145,7 @@ module NullableElements
         when 5
           Tabbit.check_column(column, 'Listing.Holes', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_I32, Tabbit::ELEMENT_VARINT], true)
           # Behind the row bitmap and in front of the values, walked with a counter that
-          # steps once per element of every row. spec/nullable-array-elements.md.
+          # steps once per element of every row. spec/types/nullable-array-elements.md.
           element_presence = Tabbit.read_element_presence(reader, column)
           element_at = 0
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Listing.Holes')
@@ -164,7 +164,7 @@ module NullableElements
           # below stay as they are.
           presence = Tabbit.read_presence(reader, column, count)
           # Behind the row bitmap and in front of the values, walked with a counter that
-          # steps once per element of every row. spec/nullable-array-elements.md.
+          # steps once per element of every row. spec/types/nullable-array-elements.md.
           element_presence = Tabbit.read_element_presence(reader, column)
           element_at = 0
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Listing.Both')
@@ -188,7 +188,7 @@ module NullableElements
         when 7
           Tabbit.check_column(column, 'Listing.Words', Tabbit::KIND_ARRAY, false, [Tabbit::ELEMENT_STRING], true)
           # Behind the row bitmap and in front of the values, walked with a counter that
-          # steps once per element of every row. spec/nullable-array-elements.md.
+          # steps once per element of every row. spec/types/nullable-array-elements.md.
           element_presence = Tabbit.read_element_presence(reader, column)
           element_at = 0
           cursor = Tabbit::ColumnCursor.new(reader, column, count, 'Listing.Words')

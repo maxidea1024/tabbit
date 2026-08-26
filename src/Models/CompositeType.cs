@@ -14,7 +14,7 @@ namespace Tabbit.Models;
 ///
 /// So nothing below the cooker ever sees these members, and this table is what the parser and
 /// the expansion agree on: how many components, what they are called, and what type each one
-/// is. spec/composite-value-types.md.
+/// is. spec/types/composite-value-types.md.
 /// </remarks>
 public sealed class CompositeType
 {
@@ -55,7 +55,7 @@ public sealed class CompositeType
     /// <remarks>
     /// The vectors only. A colour is left out because `one` would mean "every component 1" to
     /// one of the two colour types and "white" to the other, and those are different colours -
-    /// see spec/composite-value-types.md section 4.2. Colours have unambiguous names already.
+    /// see spec/types/composite-value-types.md section 4.2. Colours have unambiguous names already.
     /// </remarks>
     public bool TakesZeroAndOne { get; init; }
 
@@ -118,7 +118,7 @@ public static class CompositeTypes
             // Named after the axes rather than pitch/yaw/roll, because which axis each of
             // those is differs between engines and this type does not pick one. What it holds
             // is three angles in degrees; the order they compose in is the consumer's
-            // convention. spec/composite-value-types.md section 5.
+            // convention. spec/types/composite-value-types.md section 5.
             Components = new[] { "X", "Y", "Z" },
             ComponentType = ValueType.Float,
             EmptyComponents = new object[] { 0f, 0f, 0f },

@@ -68,7 +68,7 @@ class TrimKitTable {
     // - which is null unless the project set them. A file that is neither encrypted nor
     // signed comes back from this untouched, so the load path is the same either way and
     // there is no condition here that could be the wrong way round.
-    // spec/tcb-mac-and-signature.md.
+    // spec/wire/tcb-mac-and-signature.md.
     final reader = TcbReader(open(readAllBytes(filename), Tables.encryptionKey,
         Tables.macKey, Tables.verifyMac));
     final header = readTableHeader(reader);
@@ -102,7 +102,7 @@ class TrimKitTable {
         case 2:
           checkColumn(column, 'TrimKit.Slot', kindArray, false, [elementI32], true);
           // Behind the row bitmap and in front of the values, walked with a counter that
-          // steps once per element of every row. spec/nullable-array-elements.md.
+          // steps once per element of every row. spec/types/nullable-array-elements.md.
           elementPresence = readElementPresence(reader, column);
           elementAt = 0;
           cursor = TcbColumnCursor(reader, column, count, 'TrimKit.Slot');
@@ -118,7 +118,7 @@ class TrimKitTable {
         case 3:
           checkColumn(column, 'TrimKit.Tier', kindArray, false, [elementI32], true);
           // Behind the row bitmap and in front of the values, walked with a counter that
-          // steps once per element of every row. spec/nullable-array-elements.md.
+          // steps once per element of every row. spec/types/nullable-array-elements.md.
           elementPresence = readElementPresence(reader, column);
           elementAt = 0;
           cursor = TcbColumnCursor(reader, column, count, 'TrimKit.Tier');

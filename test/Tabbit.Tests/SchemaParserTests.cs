@@ -67,7 +67,7 @@ public class SchemaParserTests
     }
 
     /// <summary>
-    /// The three things polymorphism adds to a `struct` line - spec/polymorphism.md section 5.
+    /// The three things polymorphism adds to a `struct` line - spec/types/polymorphism.md section 5.
     /// </summary>
     [Fact]
     public void A_struct_line_carries_abstract_extends_and_a_discriminator()
@@ -513,7 +513,7 @@ public class SchemaParserTests
         => Assert.Contains("written on the `struct` line", Refusal("extends Effect"));
 
     /// <summary>
-    /// One level, enforced by the grammar - spec/polymorphism.md section 5.1.
+    /// One level, enforced by the grammar - spec/types/polymorphism.md section 5.1.
     /// </summary>
     [Fact]
     public void A_variant_that_is_itself_abstract_is_refused()
@@ -536,7 +536,7 @@ public class SchemaParserTests
     /// <remarks>
     /// The number is the whole of what it holds, and the fields left below it are what makes
     /// the notation an editing gesture rather than a rewrite: `(removed)` goes on the line and
-    /// nothing else moves. spec/polymorphism.md section 5.1.1.
+    /// nothing else moves. spec/types/polymorphism.md section 5.1.1.
     /// </remarks>
     [Fact]
     public void A_dropped_variant_is_written_with_removed()

@@ -8,7 +8,7 @@ namespace Mabbit;
 /// The judgement as a page to open in a browser.
 /// </summary>
 /// <remarks>
-/// spec/workbook-merge.md section 6. The shape a conflict has is three values and a cell, and
+/// spec/import/workbook-merge.md section 6. The shape a conflict has is three values and a cell, and
 /// on a terminal those three lines are the same size as everything else on the screen. Here
 /// they are the thing the page is made of, and what the merge decided on its own is folded
 /// underneath.

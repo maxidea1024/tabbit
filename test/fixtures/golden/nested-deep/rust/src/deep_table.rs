@@ -92,7 +92,7 @@ impl DeepTable {
         // unset unless the project set them. A file that is neither encrypted nor signed
         // comes back from this untouched, so the load path is the same either way and there
         // is no condition here that could be the wrong way round.
-        // spec/tcb-mac-and-signature.md.
+        // spec/wire/tcb-mac-and-signature.md.
         let key: &[u8] = crate::ENCRYPTION_KEY.get().map(Vec::as_slice).unwrap_or(&[]);
         let mac_key: &[u8] = crate::MAC_KEY.get().map(Vec::as_slice).unwrap_or(&[]);
 

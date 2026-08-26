@@ -30,7 +30,7 @@ public enum NameKind
 /// than as a verdict about whichever name reached it first - the same reason the sheet
 /// import settings are read per entry instead of per sheet.
 ///
-/// spec/naming-conventions.md.
+/// spec/targets/naming-conventions.md.
 /// </remarks>
 public sealed class NamingRules
 {

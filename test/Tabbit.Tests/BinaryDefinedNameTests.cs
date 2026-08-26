@@ -12,7 +12,7 @@ namespace Tabbit.Tests;
 /// <remarks>
 /// The fixture pair is one workbook saved twice - `binary-names.xlsx` and `binary-names.xlsb`,
 /// written together by `make.ps1` beside them - so every difference between the two readings
-/// is the binary reader's. The shapes it holds are the ones spec/xlsb-defined-names.md
+/// is the binary reader's. The shapes it holds are the ones spec/import/xlsb-defined-names.md
 /// section 6 asks for: several workbook-scoped names, a sheet whose name holds a space, a
 /// single cell, and one each of the shapes that are skipped - a union, a whole column, a
 /// deleted target - plus a sheet-scoped name neither side may surface.

@@ -17,7 +17,7 @@ namespace Tabbit.Tests;
 /// exported JSON - reading it into the model means the check happens where the cell is, and
 /// a diagnostic can name it.
 ///
-/// spec/column-constraints.md.
+/// spec/layout/column-constraints.md.
 /// </remarks>
 public class ColumnConstraintTests
 {

@@ -36,7 +36,7 @@ public class Cell
     /// both. The length is the array's own, so an element and its answer are found at the
     /// same index.
     ///
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     /// </remarks>
     public bool[]? ElementHasValue { get; set; }
 }

@@ -26,7 +26,7 @@ public static class StagingFiles
     ///
     /// One lock rather than one per list: what these hold is small, the appends are short, and
     /// several locks over state this interrelated is how a deadlock gets written. Nothing is
-    /// held across file I/O - see <see cref="Write"/>. spec/conversion-time.md section 5.
+    /// held across file I/O - see <see cref="Write"/>. spec/ops/conversion-time.md section 5.
     /// </remarks>
     static readonly object Gate = new object();
 
@@ -143,7 +143,7 @@ public static class StagingFiles
     /// Sorted, because these reach the build cache's seal - a file on disk - and the order
     /// they were declared in is now the order the output entries happened to finish in. What
     /// they are is a set of directories, so putting them in one order costs nothing and keeps
-    /// two identical runs writing an identical seal. spec/conversion-time.md section 5.
+    /// two identical runs writing an identical seal. spec/ops/conversion-time.md section 5.
     /// </remarks>
     public static IReadOnlyList<string> DeclaredSweepRoots
     {
@@ -327,7 +327,7 @@ public static class StagingFiles
     ///
     /// Null is not a failure. It means the caller has to take its sequential path, where the
     /// rule about a destination claimed twice lives - identical text is allowed through, and
-    /// that comparison needs a file to compare against. spec/conversion-time.md section 5.
+    /// that comparison needs a file to compare against. spec/ops/conversion-time.md section 5.
     /// </remarks>
     /// <returns>
     /// The staging file for each destination, in the order given, or null when one of them
@@ -450,7 +450,7 @@ public static class StagingFiles
         // within one volume, so it looks like latency against the filesystem - the shape that
         // parallelises. It is not: NTFS serialises on the directory metadata these all share,
         // and moving them across every core took this run's commit from 6.2 s to 9.5 s. The
-        // sequential loop is the fast one. spec/conversion-time.md section 7.
+        // sequential loop is the fast one. spec/ops/conversion-time.md section 7.
         //
         // The list used to be drained with RemoveAt(0) per file, which moves every remaining
         // entry down one - quadratic in the number of files, and this run commits thousands.
@@ -634,7 +634,7 @@ public static class StagingFiles
     /// The newline is appended as a byte after the text rather than by building a second
     /// copy of the string to carry it. That is not a micro-optimization at this size: a
     /// table's JSON reaches hundreds of megabytes, and `text + "\n"` copies all of it.
-    /// spec/conversion-time.md section 4.
+    /// spec/ops/conversion-time.md section 4.
     /// </remarks>
     private static string WriteText(
         string filename, string text, bool withByteOrderMark, bool trailingNewline)
@@ -787,7 +787,7 @@ public static class StagingFiles
     /// The one thing this does not do is the check <see cref="WriteText"/> makes when a
     /// destination has been claimed twice. That rule - identical text is allowed through -
     /// belongs to the sequential path, and a target whose plan finds two of its tables
-    /// wanting one file takes that path instead. spec/conversion-time.md section 5.
+    /// wanting one file takes that path instead. spec/ops/conversion-time.md section 5.
     /// </remarks>
     public static void WriteJsonInto(string stagingFilename, object obj, bool indented)
     {
@@ -810,7 +810,7 @@ public static class StagingFiles
 
         // Asked before it is done. Replace copies the whole string, and the unindented form -
         // which is what a data export uses - holds no line ending at all, so the copy was of
-        // hundreds of megabytes in order to change nothing. spec/conversion-time.md section 4.
+        // hundreds of megabytes in order to change nothing. spec/ops/conversion-time.md section 4.
         if (json.Contains('\r'))
             json = json.Replace("\r\n", "\n");
 

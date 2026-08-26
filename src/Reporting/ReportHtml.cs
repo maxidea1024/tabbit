@@ -36,7 +36,7 @@ namespace Tabbit.Reporting;
 /// the generated documentation pages keep - and the same colour tokens, so the two look like
 /// output of one tool.
 ///
-/// spec/build-report.md §4.
+/// spec/ops/build-report.md §4.
 /// </remarks>
 internal static class ReportHtml
 {

@@ -79,7 +79,7 @@ public sealed class LuaRecipe : IOutputRecipe
 /// field is an error at the access instead of a silent nil; a keyword-named field keeps
 /// its name and is reached with bracket syntax; and nothing is global - every file
 /// returns a table and finds its siblings through a relative require prefix.
-/// spec/lua-language-support.md.
+/// spec/targets/lua-language-support.md.
 /// </summary>
 [TabbitTarget("lua", TargetKind.CodeGeneration, Order = 87)]
 public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
@@ -136,7 +136,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             RootPattern = RootPatternTop,
             // And the discriminator of every column reaching several tables: linking compares
             // against it, so the accessor names that module as well as the table ones.
-            // spec/multi-target-accessors.md.
+            // spec/references/multi-target-accessors.md.
             Requires = _model.Tables.Select(TableRequire).ToList(),
             Accessor = view.Accessor,
         });
@@ -151,7 +151,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                 {
                     RootPattern = RootPatternDeep,
                     // And the abstract types its groups are, each a module of its own.
-                    // spec/polymorphism.md section 7.1.
+                    // spec/types/polymorphism.md section 7.1.
                     Requires = TypeDependencies.EnumsNamedBy(pair.model)
                                                    .Select(EnumRequire)
                                                    .Concat(PolymorphicRequires(pair.model))
@@ -173,7 +173,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         }
 
         // A struct is an entity beside a table and an enum, so it gets a module of its own -
-        // one per declaration however many tables named it. spec/polymorphism.md section 7.1.
+        // one per declaration however many tables named it. spec/types/polymorphism.md section 7.1.
         foreach (var declared in _model.PolymorphicTypes)
         {
             var structure = BuildStruct(declared);
@@ -221,7 +221,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
     ///
     /// The metatables are the point. A misspelled member in a dynamic language is a nil that
     /// compares false with everything, and this target refuses that everywhere else.
-    /// spec/polymorphism.md section 7 and spec/lua-language-support.md.
+    /// spec/types/polymorphism.md section 7 and spec/targets/lua-language-support.md.
     /// </remarks>
     private LuaPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
     {
@@ -244,7 +244,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                         Members = own,
                         // Both names of a reference member, because both are fields and the
                         // strict metatable refuses anything not on this list.
-                        // spec/reference-surface-naming.md sections 4 and 5.
+                        // spec/references/reference-surface-naming.md sections 4 and 5.
                         FieldNames = string.Join(
                             ", ",
                             new[] { "\"kind\"" }
@@ -263,7 +263,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
     /// **A reference member is two of these**, as a reference is anywhere: the declared name is
     /// the key's and the row it resolves to takes the derived one. A variant carrying only the
     /// key would hand a consumer a key where the declaration promised a row.
-    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     private LuaStructMemberView StructMember(Models.Field field)
     {
@@ -390,7 +390,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                 // Two fields: the keys off the wire, and what the linking pass resolved
                 // them to. A dotted reference hands back a value rather than a row, so
                 // there the column's own name stays on the value and the keys take the
-                // `Index` one. spec/reference-surface-naming.md sections 4, 5 and 9.
+                // `Index` one. spec/references/reference-surface-naming.md sections 4, 5 and 9.
                 string keyName = RefIndexName(sf.FirstField!, sf.Name);
                 string rowName = RefRowName(sf.FirstField!, sf.Name);
 
@@ -514,7 +514,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
     /// <remarks>
     /// The key type's empty value means "points at nothing", and a multi-target column honours
     /// it in every language: the discriminator is a value a consumer reads.
-    /// spec/reference-optionality.md.
+    /// spec/references/reference-optionality.md.
     /// </remarks>
     private static string KeyIsSetSuffix(ValueType keyType)
         => keyType switch
@@ -597,7 +597,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
     private LuaFieldView BuildRecordField(Table table, SerialField sf)
     {
         // Which abstract type this group is, if it is one. One per declaration however many
-        // tables named it. spec/polymorphism.md section 7.1.
+        // tables named it. spec/types/polymorphism.md section 7.1.
         var declaredType = sf.Members
                 .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
                 ?.FirstField?.AbstractTypeName is { } abstractName
@@ -625,7 +625,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         // A list with its elements already made, where the length is the sheet's column
         // count. A trimmed group starts empty, because its length is the row's. An array
         // of arrays needs no element type: the outer level has no name for one to belong
-        // to, so an inner list is what an element is. spec/nested-multi-level.md.
+        // to, so an inner list is what an element is. spec/types/nested-multi-level.md.
         string initializer;
 
         if (sf.MembersAreAnonymous)
@@ -725,7 +725,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
             // A reference array reads keys, so what the read fills is the key list and the
             // value list is cleared for the linking pass. Trimmed or not, only the length
-            // differs. spec/variable-length-record-arrays.md.
+            // differs. spec/types/variable-length-record-arrays.md.
             "serial_ref" or "var_array_ref" => "record" + Access(RefIndexName(wire.TagCarrier, wire.Group.Name)),
             _ => "",
         };
@@ -742,7 +742,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             ElementTarget = elementTarget,
             ValuesTarget = valuesTarget,
             // The rows the linking pass fills go under the derived name; the keys read
-            // above wear the column's own. spec/reference-surface-naming.md sections 4 and 9.
+            // above wear the column's own. spec/references/reference-surface-naming.md sections 4 and 9.
             SecondaryClear = kind is "serial_ref" or "var_array_ref"
                 ? $"record{Access(RefRowName(wire.TagCarrier, wire.Group.Name))} = {{}}"
                 : "",
@@ -779,7 +779,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
     /// <remarks>
     /// The column's name is the key's, because the key is what the cell holds - the row is
     /// linked after loading and takes a derived name.
-    /// spec/reference-surface-naming.md sections 4 and 5. Never bracketed: the name
+    /// spec/references/reference-surface-naming.md sections 4 and 5. Never bracketed: the name
     /// out of keyword-hood, so the composite is always a plain identifier.
     /// </remarks>
     private string RefIndexName(Models.Field field, string name)
@@ -788,7 +788,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
     /// <summary>
     /// The field a reference resolves into: the derived name for a whole row, and the
     /// column's own for a dotted reference - which hands back a value, so the name the
-    /// sheet wrote is what it belongs on. spec/reference-surface-naming.md section 9.
+    /// sheet wrote is what it belongs on. spec/references/reference-surface-naming.md section 9.
     /// </summary>
     private string RefRowName(Models.Field field, string name)
         => ResolvesToRow(field)
@@ -806,7 +806,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
             // The resolved row starts nil - a nil table entry is no entry, so only the
             // key gets a line; the strict metatable's declared list is what keeps the
-            // value field readable. spec/references-in-records.md.
+            // value field readable. spec/references/references-in-records.md.
             string rowKey = Key(RefRowName(member.FirstField!, member.Name));
 
             return member.IsArray
@@ -841,7 +841,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         var refTable = wire.TagCarrier.ResolvedRefTable;
 
         // The member's own name is the key's; the row takes the derived one.
-        // spec/reference-surface-naming.md sections 4 and 5.
+        // spec/references/reference-surface-naming.md sections 4 and 5.
         string memberKey = string.Concat(
             path.Take(path.Count - 1).Select(part => Access(LuaName(part))))
             + (path.Count > 0 ? Access(RefIndexName(wire.TagCarrier, path[^1])) : "");
@@ -1086,7 +1086,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             // key list gets a line, and the strict metatable's declared list is what
             // keeps `row.owner` a nil rather than an error.
             // The column's own name is the key's, and the row it resolves to takes the
-            // derived one. spec/reference-surface-naming.md sections 4 and 5.
+            // derived one. spec/references/reference-surface-naming.md sections 4 and 5.
             string rowKey = Key(RefRowName(sf.FirstField!, sf.Name));
 
             return sf.IsArray
@@ -1184,7 +1184,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             // the resolved rows belong, and the linking pass then found nothing to resolve -
             // silently, because this language does not type them apart. Nothing held the shape:
             // `foreign[]` is refused, so it is only reachable through a folded group with
-            // trimming on. spec/variable-length-record-arrays.md.
+            // trimming on. spec/types/variable-length-record-arrays.md.
             return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
@@ -1266,7 +1266,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
     ///
     /// A constant never reaches the file, so there is no wire question here: what a language
     /// needs is an expression its compiler accepts in the place a constant is declared.
-    /// spec/primary-layout.md section 8.5.
+    /// spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     private string RenderConstantValue(ConstantSet.Constant constant)
     {
@@ -1382,7 +1382,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         {
             // A dotted reference hands back one of the target's values rather than the row,
             // so what this column holds is that value's type.
-            // spec/reference-surface-naming.md section 9.
+            // spec/references/reference-surface-naming.md section 9.
             if (!ResolvesToRow(sf.FirstField!))
             {
                 string value = ScalarAnnotation(sf.FirstField!.ResolvedRefField!.Type);
@@ -1411,7 +1411,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         }
 
         // The member's own name is the key's; the row takes the derived one.
-        // spec/reference-surface-naming.md sections 4 and 5.
+        // spec/references/reference-surface-naming.md sections 4 and 5.
         string keyName = RefIndexName(member.FirstField!, member.Name);
         string rowName = RefRowName(member.FirstField!, member.Name);
         bool toRow = ResolvesToRow(member.FirstField!);

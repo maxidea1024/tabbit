@@ -81,7 +81,7 @@ public final class TrimKitTable {
     /// The keys are parameters rather than properties of a shared object, because Swift's
     /// concurrency checking makes mutable global state an error and because the accessor
     /// holding them is an instance - which is what lets two loads of two data sets exist at
-    /// once. Tables passes its own. spec/accessor-instances.md.
+    /// once. Tables passes its own. spec/targets/accessor-instances.md.
     public func read(
         _ filename: String,
         key: [UInt8]? = nil,
@@ -91,7 +91,7 @@ public final class TrimKitTable {
         // Opened unconditionally, and with whatever the caller holds - which is nil unless
         // the project set it. A file that is neither encrypted nor signed comes back from
         // this untouched, so the load path is the same either way and there is no condition
-        // here that could be the wrong way round. spec/tcb-mac-and-signature.md.
+        // here that could be the wrong way round. spec/wire/tcb-mac-and-signature.md.
         let bytes = try Tcb.openTable(
             try Tcb.readAllBytes(filename), key: key, macKey: macKey, verifyMac: verifyMac)
 
@@ -130,7 +130,7 @@ public final class TrimKitTable {
                 try Tcb.checkColumnWithElements(column, "TrimKit.Slot", Tcb.kindArray, false, Tcb.elementI32)
                 // Behind the row bitmap and in front of the values, walked with a counter
                 // that steps once per element of every row.
-                // spec/nullable-array-elements.md.
+                // spec/types/nullable-array-elements.md.
                 let elementPresence = try Tcb.readElementPresence(reader, column)
                 var elementAt = 0
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "TrimKit.Slot")
@@ -152,7 +152,7 @@ public final class TrimKitTable {
                 try Tcb.checkColumnWithElements(column, "TrimKit.Tier", Tcb.kindArray, false, Tcb.elementI32)
                 // Behind the row bitmap and in front of the values, walked with a counter
                 // that steps once per element of every row.
-                // spec/nullable-array-elements.md.
+                // spec/types/nullable-array-elements.md.
                 let elementPresence = try Tcb.readElementPresence(reader, column)
                 var elementAt = 0
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "TrimKit.Tier")

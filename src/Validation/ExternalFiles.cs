@@ -13,7 +13,7 @@ namespace Tabbit.Validation;
 /// <remarks>
 /// For the rules that check a value names something that exists - a texture, a map, a sound.
 /// Whether an asset is there is not a question this tool can answer for itself: it does not know
-/// what an asset is, which is why spec/column-constraints.md leaves the sheets' `:asset` row
+/// what an asset is, which is why spec/layout/column-constraints.md leaves the sheets' `:asset` row
 /// alone. What it can do is hand over a scanned folder and let the project's own rule decide -
 /// the core never learns which extension matters.
 ///

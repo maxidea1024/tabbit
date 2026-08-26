@@ -11,7 +11,7 @@ namespace Mabbit;
 /// Everything the merge needs to know about a workbook's structure, and nothing else. What a
 /// column's type is, what an enum label means, what a reference points at - none of that
 /// changes which row is which, and resolving any of it needs workbooks other than the one
-/// being merged. spec/workbook-merge.md section 4.1.
+/// being merged. spec/import/workbook-merge.md section 4.1.
 /// </remarks>
 internal sealed record TableRegion(
     string Name,

@@ -188,7 +188,7 @@ public sealed class Diagnostics
     /// right answer where there is no unit order to appeal to - the rule files, whose order
     /// on disk is not the order anything else in the run uses. Where there is one, the
     /// merge preserves it and the sort would replace it.
-    /// spec/conversion-time.md section 5.
+    /// spec/ops/conversion-time.md section 5.
     /// </remarks>
     public void Absorb(Diagnostics other)
     {
@@ -273,7 +273,7 @@ public sealed class Diagnostics
     ///
     /// Applied in one pass after every check has run rather than as reports arrive, because
     /// counting is the point and a count is only right once the counting has finished.
-    /// spec/known-problems.md.
+    /// spec/ops/known-problems.md.
     /// </remarks>
     public void ApplyKnownProblems(IReadOnlyList<Recipe.KnownProblemRecipe> known)
     {

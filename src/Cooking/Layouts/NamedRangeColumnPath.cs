@@ -60,7 +60,7 @@ public static class UwoColumnPath
     ///
     /// That is the whole grammar. `character[0]["Id"]` and `guideBattleSkill["BattleSkill"][0]`
     /// fall out of it as the same two levels numbered in different places, and
-    /// `a[0]["p"]["x"]` needs no case of its own. See spec/nested-multi-level.md.
+    /// `a[0]["p"]["x"]` needs no case of its own. See spec/types/nested-multi-level.md.
     /// </remarks>
     public static bool TrySplit(string rawName, out List<Models.FieldPathStep> path, out string? problem)
     {

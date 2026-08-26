@@ -4,10 +4,10 @@
    are re-exported side by side, which is why the name carries the table's. ##~}}
 {{~ for field in table.fields ~}}
 {{~## An array of arrays declares no element type: its outer level has no name, so there is
-   nothing for a struct to be. spec/nested-multi-level.md. ##~}}
+   nothing for a struct to be. spec/types/nested-multi-level.md. ##~}}
 {{~ if field.is_record && !field.members_are_anonymous ~}}
 {{~## One struct per level, innermost first - the view flattened the nesting so this loop does
-   not have to know how deep it went. spec/nested-multi-level.md. ##~}}
+   not have to know how deep it went. spec/types/nested-multi-level.md. ##~}}
 {{~ for rt in field.record_types ~}}
 {{~ if rt.is_outermost ~}}
 /// One element of [`{{ rt.owner }}`].
@@ -61,7 +61,7 @@ impl {{ table.record_name }} {
    value is built from it here - which is why the read path and the wire are untouched.
 
    Built rather than cached: this language has no interior mutability here and a `&mut self`
-   accessor would be worse than a clone of a small struct. spec/polymorphism.md section 7.2. ##~}}
+   accessor would be worse than a clone of a small struct. spec/types/polymorphism.md section 7.2. ##~}}
 
     /// What this row's [`{{ field.abstract_type_name }}`] is. `match` over it is exhaustive.
 {{~ if field.variants_are_array ~}}
@@ -86,7 +86,7 @@ impl {{ table.record_name }} {
 {{~ for member in field.base_members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
                     {{ member.name }}: entry.{{ member.name }}.clone(),
                     {{ member.row_name }}: entry.{{ member.row_name }}.clone(),
 {{~ else ~}}
@@ -96,7 +96,7 @@ impl {{ table.record_name }} {
 {{~ for member in variant.members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
                     {{ member.name }}: entry.{{ member.name }}.clone(),
                     {{ member.row_name }}: entry.{{ member.row_name }}.clone(),
 {{~ else ~}}
@@ -133,7 +133,7 @@ impl {{ table.table_name }} {
 {{~## A key of several columns is held as the text they make. Each part carries its own
    length, so no two combinations can make the same text - joined by a separator alone,
    ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
-   spec/primary-layout.md section 3.5. ##~}}
+   spec/layout/primary-layout.md section 3.5. ##~}}
 {{~ if index.is_composite ~}}
     /// Joins the columns of the {{ index.field_name }} key into the text the map is keyed by.
     fn key_of_{{ index.suffix }}({{ index.params }}) -> String {
@@ -201,7 +201,7 @@ impl {{ table.table_name }} {
         // unset unless the project set them. A file that is neither encrypted nor signed
         // comes back from this untouched, so the load path is the same either way and there
         // is no condition here that could be the wrong way round.
-        // spec/tcb-mac-and-signature.md.
+        // spec/wire/tcb-mac-and-signature.md.
         let key: &[u8] = crate::ENCRYPTION_KEY.get().map(Vec::as_slice).unwrap_or(&[]);
         let mac_key: &[u8] = crate::MAC_KEY.get().map(Vec::as_slice).unwrap_or(&[]);
 
@@ -259,7 +259,7 @@ impl {{ table.table_name }} {
 {{~ end ~}}
 {{~ if column_view.has_optional_elements ~}}
 {{~## Behind the row bitmap and in front of the values, walked with a counter that steps
-      once per element of every row. spec/nullable-array-elements.md. ##~}}
+      once per element of every row. spec/types/nullable-array-elements.md. ##~}}
                     let element_presence = tabbit::read_element_presence(&mut reader, column)?;
                     let mut element_at: usize = 0;
 {{~ end ~}}
@@ -335,7 +335,7 @@ impl {{ table.table_name }} {
                         }
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner vector. Which outer element it is, is which column this is - so that index
-   is fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
+   is fixed and the loop runs the inner length. spec/types/nested-multi-level.md. ##~}}
                         let element_count = {{ column_view.length_read }}.max(0) as usize;
                         record.{{ column_view.name }}[{{ column_view.member_at }}] =
                             Vec::with_capacity(element_count.min(65536));
@@ -345,7 +345,7 @@ impl {{ table.table_name }} {
                         }
 {{~ else if column_view.kind == 'record_member_var' ~}}
 {{~## The member is the vector: the index goes after its name rather than before. Same
-   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+   columns and same loop as the case below - see spec/types/nested-multi-level.md. ##~}}
                         let element_count = {{ column_view.length_read }}.max(0) as usize;
                         record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} =
                             Vec::with_capacity(element_count.min(65536));
@@ -355,7 +355,7 @@ impl {{ table.table_name }} {
                         }
 {{~ else if column_view.kind == 'var_array_ref' ~}}
 {{~## A trimmed array of references. The keys are the vector this row's length fills - Rust
-   links nothing, so the keys are all there is. spec/variable-length-record-arrays.md. ##~}}
+   links nothing, so the keys are all there is. spec/types/variable-length-record-arrays.md. ##~}}
                         let element_count = {{ column_view.length_read }}.max(0) as usize;
                         record.{{ column_view.name }} = Vec::with_capacity(element_count.min(65536));
 {{~ if column_view.has_optional_elements ~}}

@@ -21,7 +21,7 @@ namespace Tabbit.Recipe;
 /// not on a source entry: the same name is written in several workbooks by several
 /// people, and that is exactly the case worth reporting.
 ///
-/// spec/naming-conventions.md.
+/// spec/targets/naming-conventions.md.
 /// </remarks>
 public class NamingRecipe
 {

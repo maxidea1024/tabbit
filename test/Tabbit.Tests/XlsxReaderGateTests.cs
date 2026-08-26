@@ -20,7 +20,7 @@ namespace Tabbit.Tests;
 /// count of what was read and a hash of the values, per workbook.
 ///
 /// It exists because the reader is a dependency that may be swapped again - the candidates
-/// and the measurements are in `spec/streaming-workbook-reader.md`, and one of them was
+/// and the measurements are in `spec/import/streaming-workbook-reader.md`, and one of them was
 /// rejected for a defect this comparison is what found. The counts matter as much as the
 /// hash: a reader that is fast because it read less is not faster.
 ///

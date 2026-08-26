@@ -13,7 +13,7 @@ namespace Tabbit.CodeGeneration;
 /// Read once per run, before anything is generated, so a bad value is reported on its own
 /// rather than as a verdict about whichever member reached it first.
 ///
-/// spec/naming-conventions.md.
+/// spec/targets/naming-conventions.md.
 /// </remarks>
 internal static class MemberCasing
 {

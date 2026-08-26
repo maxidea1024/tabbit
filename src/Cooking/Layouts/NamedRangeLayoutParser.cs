@@ -206,7 +206,7 @@ public sealed class UwoLayoutParser : ILayoutParser
             // field: the name is the other axis's id. Rewritten to the array notation this
             // layout already has, so the folding, the type and the `:required` row all reach
             // it by the paths they always took - and the ids come back out beside the table.
-            // spec/matrix-tables.md.
+            // spec/layout/matrix-tables.md.
             if (long.TryParse(rawFieldName, NumberStyles.Integer, CultureInfo.InvariantCulture,
                               out long axisId))
             {
@@ -507,7 +507,7 @@ public sealed class UwoLayoutParser : ILayoutParser
                 // A flag set. What is this layout's own is the notation - a bare run of
                 // digits is base 2, so `1111111` is 127 - and the cell reader states that by
                 // prefixing `0b`. The type itself is the core's, which is where the width,
-                // the refusals and the wire element belong. spec/bitset.md.
+                // the refusals and the wire element belong. spec/types/bitset.md.
                 field.TypeName = "bitset";
                 field.Type = Models.ValueType.Bitset;
                 isBinaryText = true;
@@ -694,7 +694,7 @@ public sealed class UwoLayoutParser : ILayoutParser
 
         // A broken formula before the blank below, because a cell whose formula failed reads as
         // blank and this layout reports a blank as an author's omission - which it is not. The
-        // core applies the policy and says which error it was. spec/formula-errors.md.
+        // core applies the policy and says which error it was. spec/types/formula-errors.md.
         if (rawCell.FormulaError.Length > 0)
         {
             var broken = _context.ReadCell(
@@ -715,7 +715,7 @@ public sealed class UwoLayoutParser : ILayoutParser
 
         // `-` is no value, and the original exporter answers it by leaving the property out
         // of the row altogether. The judgment itself is the core's, so that one spelling
-        // cannot come to mean two things in two layouts - spec/blank-and-null-cells.md - and
+        // cannot come to mean two things in two layouts - spec/types/blank-and-null-cells.md - and
         // what this layout keeps deciding is what a blank means, below.
         if (CookingContext.SaysNoValue(text))
             return EmptyCell(column, rawCell, arrayDelimiter);
@@ -853,7 +853,7 @@ public sealed class UwoLayoutParser : ILayoutParser
     ///
     /// A reference band is left as it is written: `:min`/`:max` on a column that points at
     /// another table state the id range it points into, which the model checks by resolving
-    /// the reference rather than by comparing numbers. spec/column-constraints.md.
+    /// the reference rather than by comparing numbers. spec/layout/column-constraints.md.
     /// </remarks>
     private void ReadConstraintRows(
         Field field, RawSheet sheet, RawNamedRange named, int col)
@@ -949,7 +949,7 @@ public sealed class UwoLayoutParser : ILayoutParser
     /// check that an id exists somewhere; nothing about the value, the file it is written to
     /// or the code generated from it depends on the declaration. Reading it as a `foreign`
     /// would give it a meaning it never had, and would owe every language a sum type for
-    /// the several-table case. spec/multi-target-references.md.
+    /// the several-table case. spec/references/multi-target-references.md.
     /// </remarks>
     private static void ReadReferencedTables(
         Field field, RawSheet sheet, RawNamedRange named, int col)
@@ -1151,7 +1151,7 @@ public sealed class UwoLayoutParser : ILayoutParser
     /// </summary>
     /// <remarks>
     /// The design and the two shapes turned down on the way to this one are in
-    /// spec/matrix-tables.md.
+    /// spec/layout/matrix-tables.md.
     /// </remarks>
     private void PrepareMatrix(
         Models.Table table, List<(long Id, RawCell NameCell)> columns, RawSheet sheet)
@@ -1181,14 +1181,14 @@ public sealed class UwoLayoutParser : ILayoutParser
         // onto its columns by name. A locale with fewer columns of this axis would then be
         // shifted from its first missing id onwards - measured, and it was: two elements of a
         // 735-column grid read another town's value. So each element says what to match it by,
-        // and that is the column id. spec/table-row-sets.md ~ spec/matrix-tables.md.
+        // and that is the column id. spec/layout/table-row-sets.md ~ spec/layout/matrix-tables.md.
         for (int position = 0; position < columns.Count && position < elements.Count; position++)
             elements[position].SetAlignName = $"{MatrixValueField}#{columns[position].Id}";
 
         // A sheet that is another set of some table's rows makes no column table of its own.
         // Once folded, the positions are the table's, so this one would state positions that
         // nothing holds any more. Which sheets those are is the source's own setting, and this
-        // layout can read it. spec/table-row-sets.md.
+        // layout can read it. spec/layout/table-row-sets.md.
         if (IsAnotherSetsRows(table, sheet))
         {
             Log.Information(
@@ -1288,7 +1288,7 @@ public sealed class UwoLayoutParser : ILayoutParser
     /// <remarks>
     /// The same pattern the folding uses, read from the same place - the source's own setting.
     /// Asked here because a grid decides one thing differently when it is a set, and the
-    /// answer is available before the folding runs. spec/table-row-sets.md.
+    /// answer is available before the folding runs. spec/layout/table-row-sets.md.
     /// </remarks>
     private static bool IsAnotherSetsRows(Models.Table table, RawSheet sheet)
     {

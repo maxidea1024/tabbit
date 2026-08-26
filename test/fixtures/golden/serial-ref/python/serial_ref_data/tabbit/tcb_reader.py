@@ -62,7 +62,7 @@ KIND_SCALAR = 0
 KIND_ARRAY = 1
 
 # How a block's values are laid out. Raw is the layout 101 had; the others compress
-# a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
+# a column that repeats itself. spec/wire/tcb-v102-column-encoding.md is the contract.
 ENCODING_RAW = 0
 ENCODING_VARINT = 1
 ENCODING_DELTA = 2
@@ -90,7 +90,7 @@ ENCODING_DICT_SEGMENT_RLE = 12
 ENCODING_BITPACK = 13
 
 # The file header, at fixed offsets whether or not the file is encrypted and whether or not
-# it carries a MAC. spec/tcb-mac-and-signature.md.
+# it carries a MAC. spec/wire/tcb-mac-and-signature.md.
 MAGIC_OFFSET = 0
 VERSION_OFFSET = 4
 FLAGS_OFFSET = 8
@@ -145,7 +145,7 @@ class Column:
 
         # Whether the block states, per element, which of an array's places hold a value.
         # Independent of `nullable`: a column may say either, or both.
-        # spec/nullable-array-elements.md.
+        # spec/types/nullable-array-elements.md.
         self.element_nullable = element_nullable
 
 
@@ -1125,7 +1125,7 @@ def read_element_presence(reader, column):
     Empty for a column that does not carry one. Its length is written ahead of it as a
     counter32, because a variable-length column's total is the sum of its row lengths and
     those live inside the value block - a reader meeting the bitmap first would have nothing
-    to size it by. spec/nullable-array-elements.md.
+    to size it by. spec/types/nullable-array-elements.md.
     """
     if not column.element_nullable:
         return b""
@@ -1152,7 +1152,7 @@ def check_column(column, field_name, kind, nullable, accepted,
     Refusal is by name and both types, never by reading anyway.
     """
     # The same statement about the other bitmap: code not expecting one would read it as
-    # values. spec/nullable-array-elements.md.
+    # values. spec/types/nullable-array-elements.md.
     if column.element_nullable != element_nullable:
         raise TcbError(
             "%s: the file and the generated member disagree about whether this column's "
@@ -1171,7 +1171,7 @@ def check_column(column, field_name, kind, nullable, accepted,
 
     # A negative count says the member claims no length: how many elements a row holds is
     # what the file states. The kind is still the member's claim.
-    # spec/nullable-array-elements.md.
+    # spec/types/nullable-array-elements.md.
     if column.kind != kind:
         raise TcbError(
             "%s: the file's column (kind %d) does not match the generated member "

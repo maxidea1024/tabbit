@@ -20,7 +20,7 @@ namespace Tabbit;
 /// Carried rather than read off disk, because a self-contained single-file publish has no path to
 /// read an assembly from: they live inside the executable. That was the whole reason validation
 /// refused to run in that shape.
-/// spec/validation-usability-and-assembly-output.md sections 4 and 7.
+/// spec/validation/validation-usability-and-assembly-output.md sections 4 and 7.
 /// </remarks>
 internal static class CarriedReferences
 {

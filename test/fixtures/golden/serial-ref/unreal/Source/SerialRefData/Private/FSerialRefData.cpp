@@ -50,7 +50,7 @@ bool FPieceTable::Read(const FString& Filename)
     // FSerialRefData::MacKey hold - empty unless the project set them. A file that is
     // neither encrypted nor signed comes back from this untouched, so the load path is the
     // same either way and there is no condition here that could be the wrong way round.
-    // spec/tcb-mac-and-signature.md.
+    // spec/wire/tcb-mac-and-signature.md.
     //
     // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
     // what has to stay alive for as long as the reader below is used.
@@ -254,7 +254,7 @@ bool FKitTable::Read(const FString& Filename)
     // FSerialRefData::MacKey hold - empty unless the project set them. A file that is
     // neither encrypted nor signed comes back from this untouched, so the load path is the
     // same either way and there is no condition here that could be the wrong way round.
-    // spec/tcb-mac-and-signature.md.
+    // spec/wire/tcb-mac-and-signature.md.
     //
     // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
     // what has to stay alive for as long as the reader below is used.
@@ -448,7 +448,7 @@ bool FBitTable::Read(const FString& Filename)
     // FSerialRefData::MacKey hold - empty unless the project set them. A file that is
     // neither encrypted nor signed comes back from this untouched, so the load path is the
     // same either way and there is no condition here that could be the wrong way round.
-    // spec/tcb-mac-and-signature.md.
+    // spec/wire/tcb-mac-and-signature.md.
     //
     // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
     // what has to stay alive for as long as the reader below is used.
@@ -652,7 +652,7 @@ bool FTrimKitTable::Read(const FString& Filename)
     // FSerialRefData::MacKey hold - empty unless the project set them. A file that is
     // neither encrypted nor signed comes back from this untouched, so the load path is the
     // same either way and there is no condition here that could be the wrong way round.
-    // spec/tcb-mac-and-signature.md.
+    // spec/wire/tcb-mac-and-signature.md.
     //
     // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
     // what has to stay alive for as long as the reader below is used.
@@ -737,7 +737,7 @@ bool FTrimKitTable::Read(const FString& Filename)
         case 2:
             Tabbit::CheckColumn(Reader, Column, TEXT("TrimKit.Slot"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
             // Behind the row bitmap and in front of the values, walked with a counter that
-            // steps once per element of every row. spec/nullable-array-elements.md.
+            // steps once per element of every row. spec/types/nullable-array-elements.md.
             Tabbit::ReadElementPresence(Reader, Column, ElementPresence);
             ElementAt = 0;
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("TrimKit.Slot"));
@@ -770,7 +770,7 @@ bool FTrimKitTable::Read(const FString& Filename)
         case 3:
             Tabbit::CheckColumn(Reader, Column, TEXT("TrimKit.Tier"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
             // Behind the row bitmap and in front of the values, walked with a counter that
-            // steps once per element of every row. spec/nullable-array-elements.md.
+            // steps once per element of every row. spec/types/nullable-array-elements.md.
             Tabbit::ReadElementPresence(Reader, Column, ElementPresence);
             ElementAt = 0;
             Cursor.Open(Reader, Column, Header.RowCount, TEXT("TrimKit.Tier"));

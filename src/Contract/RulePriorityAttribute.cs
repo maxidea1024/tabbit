@@ -23,7 +23,7 @@ namespace Tabbit.Validation;
 /// attribute on one is refused rather than ignored, because ignoring it silently would leave the
 /// author believing it took.
 ///
-/// spec/rule-priority.md.
+/// spec/validation/rule-priority.md.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
 public sealed class RulePriorityAttribute : Attribute

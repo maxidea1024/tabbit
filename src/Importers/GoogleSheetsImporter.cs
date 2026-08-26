@@ -61,7 +61,7 @@ public class GoogleSheetsImporter
     ///
     /// Asking for it does not break a machine that has not granted it: the sheets themselves
     /// are read under the first scope, and the version request failing means the document is
-    /// imported the way it always was. spec/build-cache.md §6.5.
+    /// imported the way it always was. spec/ops/build-cache.md §6.5.
     /// </remarks>
     static string[] Scopes = [SheetsService.Scope.SpreadsheetsReadonly, GoogleSheetsVersion.Scope];
 

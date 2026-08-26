@@ -107,7 +107,7 @@ function TemplateTable:readBytes(data)
 
   -- Opened unconditionally, with whatever keys the accessor holds - nil unless the
   -- project set them. A file that is neither encrypted nor signed comes back untouched,
-  -- so the load path is the same either way. spec/tcb-mac-and-signature.md.
+  -- so the load path is the same either way. spec/wire/tcb-mac-and-signature.md.
   local reader = tcb.newReader(tcb.open(
     data, accessor.encryptionKey, accessor.macKey, accessor.verifyMac))
   local count, columns = tcb.readTableHeader(reader)

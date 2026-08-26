@@ -27,13 +27,13 @@ import { {{ accessor_name }} } from '../{{ accessor_file }}'
 
 {{~## The element type of each record group, and the shape the JSON export carries it
    in. Two interfaces because a member's exported type is not always its member type -
-   a 64-bit integer travels as a string. See spec/nested-fields.md. ##~}}
+   a 64-bit integer travels as a string. See spec/types/nested-fields.md. ##~}}
 {{~ for field in fields ~}}
 {{~## An array of arrays declares no element interface: its outer level has no name, so
-   there is nothing for one to describe. spec/nested-multi-level.md. ##~}}
+   there is nothing for one to describe. spec/types/nested-multi-level.md. ##~}}
 {{~ if field.is_record && !field.members_are_anonymous ~}}
 {{~## One interface per level, innermost first - the view flattened the nesting so this loop
-   does not have to know how deep it went. spec/nested-multi-level.md. ##~}}
+   does not have to know how deep it went. spec/types/nested-multi-level.md. ##~}}
 {{~ for rt in field.record_types ~}}
 {{~ if rt.is_outermost ~}}
 /** One element of {{ name }}Record.{{ field.prop_name }}. */
@@ -48,7 +48,7 @@ export interface {{ rt.type_name }} {
 {{~ if member.ref_key_type_name != '' ~}}
 {{~## A reference member carries three things: the key that came off the wire under the
    member's own name, the row it resolved to under the derived one, and whether the
-   resolution happened. spec/reference-surface-naming.md sections 4 and 5. ##~}}
+   resolution happened. spec/references/reference-surface-naming.md sections 4 and 5. ##~}}
   {{ member.prop_name }}: {{ member.ref_key_type_name }}
   {{ member.row_prop_name }}: {{ member.field_type }}
   {{ member.prop_name }}_F: {{ member.ref_flag_type_name }}
@@ -62,7 +62,7 @@ export interface {{ rt.type_name }} {
 {{~## The union built from one entry. A `switch` so a variant the file names and this build
    does not have is reported rather than read as a neighbour - unlike a column added later,
    which the reader skips, an unknown variant makes the whole row uninterpretable.
-   spec/polymorphism.md section 7.2. ##~}}
+   spec/types/polymorphism.md section 7.2. ##~}}
 function build{{ field.prop_name | string.capitalize }}(e: {{ rt.type_name }}): {{ field.abstract_type_name }} {
   switch (e.type) {
 {{~ for variant in field.variants ~}}
@@ -117,7 +117,7 @@ interface IDataRow {
 {{~## The per-target accessors of every record member reaching several tables. Functions
    beside the element rather than members of it: this language's element type is an interface,
    and an interface declares no accessor - every other language puts the accessor on the
-   element, which is that language's own convention. spec/multi-target-accessors.md. ##~}}
+   element, which is that language's own convention. spec/references/multi-target-accessors.md. ##~}}
 
 // Generated from {{ location }}
 {{~ for line in comment ~}}
@@ -140,13 +140,13 @@ export class {{ name }}Record {
    the data no longer has to agree with - `length` on the array is the answer and it cannot
    go stale. Where several columns fill one array the length is still a number this code has
    to know, and there it is written into the allocation rather than published.
-   spec/nullable-array-elements.md. ##~}}
+   spec/types/nullable-array-elements.md. ##~}}
 {{~ if field.variants.size > 0 ~}}
 {{~## **The union, built once on first use.** The entry below is what the read filled - one
    assignment per column - and which variant it is only became knowable when the discriminator
    column arrived. Building it here rather than while reading keeps the read path and the wire
    exactly as they were, and a row nobody looks at costs nothing.
-   spec/polymorphism.md section 7.2.
+   spec/types/polymorphism.md section 7.2.
 
    This comes before the array branches on purpose: a polymorphic column is read as entries
    either way, and what a consumer wants is the union - one of it, or a list of it. ##~}}
@@ -165,12 +165,12 @@ export class {{ name }}Record {
 {{~ end ~}}
 {{~ else if field.kind == 'array_of_arrays' ~}}
 {{~## The declared type is already the inner array, so the accessor is that array's array.
-   spec/nested-multi-level.md. ##~}}
+   spec/types/nested-multi-level.md. ##~}}
   public get {{ field.prop_name }}(): {{ field.field_type }}[] { return this.{{ field.field_name }} }
 {{~ else if field.is_array && field.row_prop_name != '' ~}}
 {{~## The column's name is the key's, because the key is what the cell holds. The rows are
    linked after loading and take a derived name.
-   spec/reference-surface-naming.md sections 4 and 5. ##~}}
+   spec/references/reference-surface-naming.md sections 4 and 5. ##~}}
   public get {{ field.prop_name }}(): {{ field.ref_key_type_name }}[] { return this.{{ field.field_name }}_{{ field.ref_table }}_index }
   public get {{ field.row_prop_name }}(): {{ field.field_type }}[] { return this.{{ field.field_name }} }
 {{~ else if field.is_array ~}}
@@ -204,7 +204,7 @@ export class {{ name }}Record {
    One slot behind them all: the targets take separate id bands, so at most one of them ever
    answers and the rest would be permanently undefined. TypeScript can spell the slot as a
    union of the target types, so each getter narrows rather than asserts.
-   spec/multi-target-accessors.md. ##~}}
+   spec/references/multi-target-accessors.md. ##~}}
 {{~## Called by the accessor once every table is read, and by nothing else. Kept away
    from the getters above because a consumer never calls one. ##~}}
 {{~ if reference_fields | array.size > 0 ~}}
@@ -256,7 +256,7 @@ export class {{ name }}Record {
 {{~ end ~}}
 {{~ end ~}}
 {{~## One slot for the resolved row whatever table it came from, typed as the union of those
-   tables' records, and the discriminator that says which. spec/multi-target-accessors.md. ##~}}
+   tables' records, and the discriminator that says which. spec/references/multi-target-accessors.md. ##~}}
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
@@ -328,7 +328,7 @@ export class {{ name }}Table {
    length, so no two combinations can make the same text - joined by a separator alone,
    ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
    The map is private, so what it is keyed by can change without the lookups moving.
-   spec/primary-layout.md section 3.5. ##~}}
+   spec/layout/primary-layout.md section 3.5. ##~}}
   private {{ key.map_name }}: Map<string, {{ name }}Record> = new Map<string, {{ name }}Record>()
 
   /** Joins the columns of the {{ key.field_name }} key into the text the map is keyed by. */
@@ -419,7 +419,7 @@ export class {{ name }}Table {
     // Unconditionally, and with whatever `{{ accessor_name }}.encryptionKey` and `{{ accessor_name }}.macKey` hold -
     // which is null unless the project set them. A file that is neither encrypted nor signed
     // comes back from this untouched, so the load path is the same either way and there is
-    // no condition here that could be the wrong way round. spec/tcb-mac-and-signature.md.
+    // no condition here that could be the wrong way round. spec/wire/tcb-mac-and-signature.md.
     this.readBinaryFrom(tabbit.open(
       tabbit.readAllBytes(filename),
       {{ accessor_name }}.encryptionKey, {{ accessor_name }}.macKey, {{ accessor_name }}.verifyMac))
@@ -460,7 +460,7 @@ export class {{ name }}Table {
       switch (column.tag) {
 {{~## One case per column of the file, not per declared member. The two are the same
    for every table without a record group, and a record group is one column per
-   member - so this loops over `columns`. See spec/nested-fields.md. ##~}}
+   member - so this loops over `columns`. See spec/types/nested-fields.md. ##~}}
 {{~ for column in columns ~}}
         case {{ column.wire_tag }}:
           {{ column.column_check }}
@@ -473,7 +473,7 @@ export class {{ name }}Table {
 {{~ if column.has_optional_elements ~}}
 {{~## Behind the row bitmap and in front of the values, walked with a counter that steps once
    per element of every row - the order the block wrote them in.
-   spec/nullable-array-elements.md. ##~}}
+   spec/types/nullable-array-elements.md. ##~}}
           elementPresence = tabbit.readElementPresence(reader, column)
           elementAt = 0
 {{~ end ~}}
@@ -511,7 +511,7 @@ export class {{ name }}Table {
             }
 {{~ else if column.kind == 'var_array_ref' ~}}
 {{~## The same three arrays as `array_ref` below, at the length this row gave rather than the
-   one the column states. spec/variable-length-record-arrays.md. ##~}}
+   one the column states. spec/types/variable-length-record-arrays.md. ##~}}
             const elementCount = {{ column.length_read }}
             record.{{ column.field_name }} = new Array(elementCount).fill(undefined)
             record.{{ column.field_name }}_F = new Array(elementCount).fill(false)
@@ -549,7 +549,7 @@ export class {{ name }}Table {
               record.{{ column.field_name }}[{{ column.member_at }}][j] = {{ column.binary_read }}
 {{~ else if column.kind == 'record_member_array' ~}}
 {{~## The member is the array: the index goes after its name rather than before, and its
-   length is this row's - see spec/nested-multi-level.md. ##~}}
+   length is this row's - see spec/types/nested-multi-level.md. ##~}}
             const elementCount = {{ column.length_read }}
             record.{{ column.field_name }}{{ column.member_access }}{{ column.member_ref_suffix }} = []
             for (let j = 0; j < elementCount; ++j)

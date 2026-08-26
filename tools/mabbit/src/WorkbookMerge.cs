@@ -50,7 +50,7 @@ internal sealed class TableMerge
 /// A change outside every table, which the merge can see but cannot carry.
 /// </summary>
 /// <remarks>
-/// spec/workbook-merge.md section 4.5. Detecting these is the difference between a merge
+/// spec/import/workbook-merge.md section 4.5. Detecting these is the difference between a merge
 /// that is incomplete and one that silently drops somebody's work.
 /// </remarks>
 internal sealed record OutsideChange(string Sheet, string Reason);
@@ -99,7 +99,7 @@ internal readonly record struct Columns(string Name, int Base, int Mine, int The
 /// which is deliberate, because the judgement is the part that has to be right and the part
 /// that can be checked without risking anybody's workbook.
 ///
-/// The rules are spec/workbook-merge.md sections 4.3 to 4.5, and they are all one shape: a
+/// The rules are spec/import/workbook-merge.md sections 4.3 to 4.5, and they are all one shape: a
 /// side that did not change something has nothing to say about it, and two sides that changed
 /// the same thing differently is the only case a program cannot settle.
 /// </remarks>
@@ -503,7 +503,7 @@ internal static class WorkbookMerge
     /// Whether anything changed outside the tables, and on which side.
     /// </summary>
     /// <remarks>
-    /// spec/workbook-merge.md sections 4.5 and 4.6. A merge writes inside table rectangles
+    /// spec/import/workbook-merge.md sections 4.5 and 4.6. A merge writes inside table rectangles
     /// and nowhere else, so a change the other side made outside one cannot be carried - and
     /// a merge that reported success while dropping it would be worse than one that refuses.
     /// Both "both sides changed it" and "only the other side changed it" are therefore

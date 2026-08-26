@@ -131,7 +131,7 @@ if (tb_update("https://cdn.example.com/data", "./data", &options, &result)) {
 둘로 나옵니다 — `const char** tag_array`와 `int32_t tag_array_count`. 고정 길이 배열을 구조체
 안에 박아 두면 그 크기는 코드를 생성한 시점의 시트가 가졌던 것이 되고, C는 구조체 크기를 데이터에서
 정할 수 없으므로 선택은 그 숫자와 포인터 중 하나입니다. 한 로우가 원소를 몇 개 갖는지는 파일이
-적은 것이므로 포인터입니다 ([설계](../../spec/nullable-array-elements.md#12-딸린-정리--생성-코드의-고정-길이)).
+적은 것이므로 포인터입니다 ([설계](../../spec/types/nullable-array-elements.md#12-딸린-정리--생성-코드의-고정-길이)).
 
 ```c
 int32_t element;

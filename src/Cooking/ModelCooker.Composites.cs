@@ -27,7 +27,7 @@ public partial class ModelCooker
     /// out are stale - a composite is one column at that point and several here - so they are
     /// dropped and reassigned for the tables that changed.
     ///
-    /// spec/composite-value-types.md section 6.
+    /// spec/types/composite-value-types.md section 6.
     /// </remarks>
     private static void ExpandCompositeColumns(
         CookingContext context, Model model, Diagnostics diagnostics)
@@ -229,7 +229,7 @@ public partial class ModelCooker
                 // Recorded so a later revision can give the group a shared type - the
                 // engine's vector rather than a struct per column - without having to work
                 // out from three `float` members that they were one. Nothing reads it yet.
-                // spec/composite-value-types.md section 7.
+                // spec/types/composite-value-types.md section 7.
                 CompositeOrigin = composite.Type,
 
                 Index = 0,

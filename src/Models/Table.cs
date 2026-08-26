@@ -49,7 +49,7 @@ public class Table
     /// Stamped once while cooking, and read everywhere else. That is the whole point: a value
     /// several programs have to agree on is one somebody has to own.
     ///
-    /// spec/naming-conventions.md.
+    /// spec/targets/naming-conventions.md.
     /// </remarks>
     public string DataFileName { get; set; } = "";
 
@@ -73,7 +73,7 @@ public class Table
     /// **Which column it is and where it sits are different questions.** A notation that lets a
     /// sheet name the key moves this and moves nothing else - the columns stay in the order they
     /// were written, so the wire is untouched and only what addresses a row changes.
-    /// spec/primary-layout.md section 3.5.
+    /// spec/layout/primary-layout.md section 3.5.
     /// </remarks>
     [JsonIgnore]
     public Field? PrimaryIndexField
@@ -149,7 +149,7 @@ public class Table
     /// tail on its name, so everything that reads rows without asking about sets reads that
     /// one - which is what keeps this from reaching the generators at all.
     ///
-    /// spec/table-row-sets.md.
+    /// spec/layout/table-row-sets.md.
     /// </remarks>
     [JsonIgnore]
     public List<RowSet> ExtraRowSets { get; set; } = new List<RowSet>();
@@ -203,7 +203,7 @@ public class Table
                 // is a window a second reader can see through, and the output entries now
                 // read this while running beside each other - so what would have been an
                 // odd ordering becomes a column that is optional in one target's output and
-                // required in another's. spec/conversion-time.md section 5.
+                // required in another's. spec/ops/conversion-time.md section 5.
                 var groups = BuildRecordGroupsOnly(Fields);
 
                 foreach (var group in groups)
@@ -230,7 +230,7 @@ public class Table
     /// A layout whose sheets always trim ignores this and trims regardless. That rule lives
     /// in the layout, where the sheets it describes are.
     ///
-    /// spec/variable-length-record-arrays.md has the shape and what it costs on the wire.
+    /// spec/types/variable-length-record-arrays.md has the shape and what it costs on the wire.
     /// </remarks>
     [JsonIgnore]
     public bool TrimTrailingArrayElements { get; set; }
@@ -240,7 +240,7 @@ public class Table
     /// </summary>
     /// <remarks>
     /// Carried onto the table so validation can ask without reaching back to the recipe -
-    /// the same way trimming is. spec/variable-length-record-arrays.md has the rule.
+    /// the same way trimming is. spec/types/variable-length-record-arrays.md has the rule.
     /// </remarks>
     [JsonIgnore]
     public bool AllowArrayGaps { get; set; }
@@ -382,7 +382,7 @@ public class Table
     /// Called once by whoever is about to fan out, rather than guarded here with a lock. A
     /// lock on the getter would be paid by every read for the whole run - and these are read
     /// per row by the exporters - to make safe a window that only exists before the first
-    /// one. spec/conversion-time.md section 5.
+    /// one. spec/ops/conversion-time.md section 5.
     /// </remarks>
     public void BuildDerivedColumns()
     {
@@ -623,7 +623,7 @@ public class Table
         // member per element: there is no word a consumer could write, so it indexes. That
         // is the one shape whose outer level becomes members rather than cells, and it is
         // held this way because the file already holds it this way - one column per outer
-        // element. See spec/nested-multi-level.md.
+        // element. See spec/types/nested-multi-level.md.
         result.MembersAreAnonymous =
             claimed.All(field => field.NamePath!.Count == 2 && field.NamePath![1].IsAnonymous);
 
@@ -839,7 +839,7 @@ public class Table
         // further in. Both are shapes the wire holds, but the second multiplies the cases
         // every generator has to write - the array would sit below a record rather than above
         // it - and no measured sheet uses it. So it is refused by name rather than supported
-        // in some languages and not others. spec/nested-multi-level.md.
+        // in some languages and not others. spec/types/nested-multi-level.md.
         if (group.MembersAreArrays)
         {
             var deep = group.Members.Find(member => !member.IsLeaf);
@@ -857,7 +857,7 @@ public class Table
         // has nowhere to keep the key it came off the wire with: the stored key and the
         // resolution flag are declared beside the member, and here there is no member name to
         // declare them beside. Refused rather than given a name this tool invented, which
-        // consumers would then have to learn. spec/references-in-records.md.
+        // consumers would then have to learn. spec/references/references-in-records.md.
         if (group.MembersAreAnonymous)
         {
             var referencing = leaves.Find(member => member.IsRef);

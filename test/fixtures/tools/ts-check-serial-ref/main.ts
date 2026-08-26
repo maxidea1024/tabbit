@@ -9,7 +9,7 @@
 // values. What is printed is the resolved value, so an element that resolved to the wrong row
 // shows as a different word rather than as an equal key.
 //
-// spec/nullable-array-elements.md · spec/references-in-records.md.
+// spec/types/nullable-array-elements.md · spec/references/references-in-records.md.
 //
 // Prints JSON on stdout for the C# harness to assert against.
 

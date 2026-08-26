@@ -56,7 +56,7 @@ public final class TcbReader {
     public static final int KIND_ARRAY = 1;
 
     // How a block's values are laid out. Raw is the layout 101 had; the others compress
-    // a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
+    // a column that repeats itself. spec/wire/tcb-v102-column-encoding.md is the contract.
     public static final int ENCODING_RAW = 0;
     public static final int ENCODING_VARINT = 1;
     public static final int ENCODING_DELTA = 2;
@@ -84,7 +84,7 @@ public final class TcbReader {
     public static final int ENCODING_BITPACK = 13;
 
     // The file header, at fixed offsets whether or not the file is encrypted and whether or
-    // not it carries a MAC. spec/tcb-mac-and-signature.md.
+    // not it carries a MAC. spec/wire/tcb-mac-and-signature.md.
     public static final int MAGIC_OFFSET = 0;
     public static final int VERSION_OFFSET = 4;
     public static final int FLAGS_OFFSET = 8;
@@ -141,7 +141,7 @@ public final class TcbReader {
          * Whether the block states, per element, which of an array's places hold a value.
          *
          * <p>Independent of {@code nullable}: a column may say either, or both.
-         * spec/nullable-array-elements.md.
+         * spec/types/nullable-array-elements.md.
          */
         public boolean elementNullable;
     }
@@ -1604,7 +1604,7 @@ public final class TcbReader {
      * <p>Null for a column that does not carry one. Its length is written ahead of it as a
      * counter32, because a variable-length column's total is the sum of its row lengths and
      * those live inside the value block - a reader meeting the bitmap first would have
-     * nothing to size it by. spec/nullable-array-elements.md.
+     * nothing to size it by. spec/types/nullable-array-elements.md.
      */
     public static byte[] readElementPresence(TcbReader reader, Column column) {
         if (!column.elementNullable) {
@@ -1647,7 +1647,7 @@ public final class TcbReader {
             Column column, String fieldName, int kind, boolean nullable,
             boolean elementNullable, int... accepted) {
         // The same statement about the other bitmap: code not expecting one would read it as
-        // values. spec/nullable-array-elements.md.
+        // values. spec/types/nullable-array-elements.md.
         if (column.elementNullable != elementNullable) {
             throw new TcbException(
                 fieldName + ": the file and the generated member disagree about whether this "
@@ -1668,7 +1668,7 @@ public final class TcbReader {
 
         // A negative count says the member claims no length: how many elements a row holds
         // is what the file states. The kind is still the member's claim.
-        // spec/nullable-array-elements.md.
+        // spec/types/nullable-array-elements.md.
         if (column.kind != kind) {
             throw new TcbException(
                 fieldName + ": the file's column (kind " + column.kind

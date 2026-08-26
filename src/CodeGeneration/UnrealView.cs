@@ -25,7 +25,7 @@ internal sealed class UnrealFileView
     /// <remarks>
     /// This target writes one header, so they sit in it beside the enums and the row structs -
     /// but still one per declaration, not one per table that named it.
-    /// spec/polymorphism.md section 7.1.
+    /// spec/types/polymorphism.md section 7.1.
     /// </remarks>
     public IReadOnlyList<UnrealPolymorphicTypeView> Structs { get; set; }
         = new List<UnrealPolymorphicTypeView>();
@@ -37,7 +37,7 @@ internal sealed class UnrealFileView
     /// **Not reflected.** A constant is a value the generated code hands over, not a row a
     /// designer edits in the editor, and a `UCLASS` of getters would be a second surface for
     /// every set - so these are plain `static inline const` members, the shape the C++ target
-    /// writes. spec/primary-layout.md section 8.5.
+    /// writes. spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     public IReadOnlyList<UnrealConstantSetView> ConstantSets { get; set; }
         = new List<UnrealConstantSetView>();
@@ -200,7 +200,7 @@ internal sealed class UnrealFieldView
     /// <remarks>
     /// One name for both shapes, so the body that fills a variant is written once. A
     /// polymorphic array's builder takes an element; a scalar group's reads the row.
-    /// spec/polymorphism.md section 5.3.
+    /// spec/types/polymorphism.md section 5.3.
     /// </remarks>
     public string EntryAccess { get; set; } = "";
 
@@ -211,7 +211,7 @@ internal sealed class UnrealFieldView
     /// Asked rather than worked out from the read kind, which is spelled differently in every
     /// generator - and the two shapes differ in more than one line: the accessor loops, and
     /// the value it hands back is an array of the abstract type.
-    /// spec/polymorphism.md section 5.3.
+    /// spec/types/polymorphism.md section 5.3.
     /// </remarks>
     public bool VariantsAreArray { get; set; }
 
@@ -221,7 +221,7 @@ internal sealed class UnrealFieldView
     /// <remarks>
     /// The type itself is declared once, elsewhere; this is what the table needs to build a
     /// value of it - which number means which variant, and which of the entry's fields each
-    /// one carries. spec/polymorphism.md sections 7.1 and 7.2.
+    /// one carries. spec/types/polymorphism.md sections 7.1 and 7.2.
     /// </remarks>
     public IReadOnlyList<UnrealVariantView> Variants { get; set; } = new List<UnrealVariantView>();
 
@@ -250,7 +250,7 @@ internal sealed class UnrealFieldView
 
     /// <summary>
     /// Whether this group is an array of arrays, which declares no element USTRUCT - the
-    /// outer level has no name. See spec/nested-multi-level.md.
+    /// outer level has no name. See spec/types/nested-multi-level.md.
     /// </summary>
     public bool MembersAreAnonymous { get; set; }
 
@@ -273,7 +273,7 @@ internal sealed class UnrealFieldView
     /// <remarks>
     /// Adds a `bHas{Name}` member beside the value. Not `TOptional`, which is not a property
     /// type UHT knows - the engine's own answer to the same problem is the `bOverride_X`
-    /// pair in FPostProcessSettings. spec/optional-fields.md has the reasoning.
+    /// pair in FPostProcessSettings. spec/types/optional-fields.md has the reasoning.
     /// </remarks>
     public required bool IsNullable { get; set; }
 
@@ -386,7 +386,7 @@ internal sealed class UnrealRecordMemberView
 ///
 /// A struct member of a USTRUCT type is a property UHT accepts, unlike a nested container. So
 /// depth costs this target no reflection, which is the opposite of what an array of arrays cost
-/// it. spec/nested-multi-level.md.
+/// it. spec/types/nested-multi-level.md.
 /// </remarks>
 internal sealed class UnrealRecordTypeView
 {
@@ -475,7 +475,7 @@ internal sealed class UnrealColumnView
     /// <remarks>
     /// On the member and before any subscript, because a member that is an array holds one
     /// key per element: `ItemIdIndex[ElementAt]`, not `ItemId[ElementAt]Index`.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     public required string MemberRefSuffix { get; set; }
 
@@ -522,7 +522,7 @@ internal sealed class UnrealColumnView
 /// <remarks>
 /// One per declaration however many tables named it. A struct is an entity beside a table and
 /// an enum, and emitting it inside each table that used it would give them types that share a
-/// name and are not the same type. spec/polymorphism.md section 7.1.
+/// name and are not the same type. spec/types/polymorphism.md section 7.1.
 /// </remarks>
 internal sealed class UnrealPolymorphicTypeView
 {
@@ -568,7 +568,7 @@ internal sealed class UnrealStructMemberView
     /// <remarks>
     /// **A reference member is two fields here, the same two a reference column is anywhere.**
     /// The declared name is the key's - that is what the cell holds - and the row it resolves to
-    /// takes the derived one. spec/reference-surface-naming.md sections 4 and 5.
+    /// takes the derived one. spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     public string RowName { get; set; } = "";
 

@@ -29,7 +29,7 @@ namespace Tabbit.Cooking.Layouts;
 /// order of the header rows is free - so a sheet sorted with its header rows in the selection
 /// is reported at the row that moved rather than read as data.
 ///
-/// The notation is defined in `spec/primary-layout.md`, and the sections below name the part
+/// The notation is defined in `spec/layout/primary-layout.md`, and the sections below name the part
 /// of it each rule comes from.
 /// </remarks>
 [TabbitLayout("tabbit",
@@ -77,7 +77,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
     /// <remarks>
     /// An index and a variant set are both facts about rows, and an enum and a set of
     /// constants have none - so writing either on one is a mistake worth a name rather than a
-    /// key that quietly does nothing. spec/polymorphism.md section 3.
+    /// key that quietly does nothing. spec/types/polymorphism.md section 3.
     /// </remarks>
     private static readonly Dictionary<string, string> TableOnlyMetaKeys =
         new(StringComparer.OrdinalIgnoreCase)
@@ -98,7 +98,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
     /// **`$` rather than `:`, and judged at the path's last step.** `:type` is already a header
     /// row key, so one word would have named two unrelated places; and the discriminator of a
     /// group is written on that group's path - `effect.$type` - which the whole-name comparison
-    /// this used to make never saw. spec/primary-layout.md section 2.
+    /// this used to make never saw. spec/layout/primary-layout.md section 2.
     /// </remarks>
     private static readonly string[] ReservedColumnNames = ["$type", "$key", "$value"];
 
@@ -864,7 +864,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
     /// The last step of the path and nothing above it: `effect.$type` is the discriminator of
     /// `effect`, and a group two levels down writes `rig.core.$type`. Brackets come off first
     /// because an element of a polymorphic array is `effects[].$type`.
-    /// spec/polymorphism.md section 5.2.
+    /// spec/types/polymorphism.md section 5.2.
     /// </remarks>
     private static string? ReservedName(string written)
     {
@@ -1005,7 +1005,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
         // The discriminator is written on its group's path - `effect.$type` - and it is not a
         // member of that group. Taken off here so nothing below has to know the spelling: the
         // step keeps an ordinary name and carries the flag instead.
-        // spec/polymorphism.md section 5.2.
+        // spec/types/polymorphism.md section 5.2.
         var parts = written.Split('.').ToList();
         bool discriminator = parts.Count > 1
             && string.Equals(parts[^1].Trim(), DiscriminatorName, StringComparison.OrdinalIgnoreCase);
@@ -1048,7 +1048,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
             // **A run of brackets is a run of levels.** `grid[0][1]` is element 1 of element 0
             // of `grid`, and the inner level has no name - which is the whole content of an
             // array of arrays: there is no word a consumer could write, so it indexes instead.
-            // Section 5, and spec/nested-multi-level.md for what the shape reaches.
+            // Section 5, and spec/types/nested-multi-level.md for what the shape reaches.
             string levelName = name.ToPascalCase();
 
             foreach (string digits in BracketGroups(text.Substring(open), block, written, cell))
@@ -1387,7 +1387,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
                     // `IsDiscriminator` made each element's `$type` column an ordinary member,
                     // and then the group looked like one naming its struct twice - once from
                     // the discriminator and once from the member it had become.
-                    // spec/polymorphism.md section 5.3.
+                    // spec/types/polymorphism.md section 5.3.
                     var path = member.Path!
                         .Select(step => new FieldPathStep
                         {
@@ -1737,7 +1737,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
     /// <remarks>
     /// **One table.** A value that may be an id of any of several tables is a check and not
     /// a reference - there is no one type for it to resolve to, so it is written `refs=` and
-    /// the column stays the number it was. spec/reference-surface-naming.md section 6.
+    /// the column stays the number it was. spec/references/reference-surface-naming.md section 6.
     /// </remarks>
     private bool ReadReferenceType(
         Field field, string expression, bool isArray, Location at, EntityBlock block)
@@ -1761,7 +1761,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
         // written, and it is refused now: a value that may be an id of any of several
         // tables has no single type to resolve to, so what a sheet is saying there is a
         // check. `refs=Item;CEquip` says it, and the column keeps the type it had.
-        // spec/reference-surface-naming.md section 6.
+        // spec/references/reference-surface-naming.md section 6.
         if (rest.Contains('|'))
         {
             throw new TabbitException(at,
@@ -1811,7 +1811,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
         // converts element by element. What made this refused until now was the belief that no
         // generated reader had a shape for it - and every one of them does, because a folded
         // group of numbered reference columns arrives at the generators as exactly this:
-        // `SerialField.IsRef` and `IsArray` together. spec/polymorphism.md section 4.
+        // `SerialField.IsRef` and `IsArray` together. spec/types/polymorphism.md section 4.
         field.Type = isArray ? Models.ValueType.StringArray : Models.ValueType.String;
 
         field.RefFieldName = member;
@@ -2791,7 +2791,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
             // element's, so `Grade[]` has to be asked about as `Grade` - looking the whole
             // expression up found no enum and left `grade[]` for the type parser, which knows
             // no such element. That was the whole of why an array of an enum could not be
-            // written here while a column could. spec/primary-layout.md section 8.5.
+            // written here while a column could. spec/layout/primary-layout.md section 8.5.
             string elementWritten = typeWritten;
             bool constantIsArray = elementWritten.EndsWith("[]", System.StringComparison.Ordinal);
 

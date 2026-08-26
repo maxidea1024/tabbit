@@ -14,7 +14,7 @@ namespace Tabbit.Tests;
 /// coincidence. TypeScript is the only reader that takes both paths, which is why this check
 /// exists here and not once per language.
 ///
-/// spec/variable-length-record-arrays.md has the rule both paths are implementing. The
+/// spec/types/variable-length-record-arrays.md has the rule both paths are implementing. The
 /// `record-trim` golden pins the bytes and the text; these assert what the numbers are.
 /// </remarks>
 public class RecordTrimTests

@@ -114,7 +114,7 @@ public sealed class CookingContext
     /// </summary>
     /// <remarks>
     /// What leaves this tool is UTC either way - the zone decides what a sheet's `10:30`
-    /// means, not what is stored. spec/datetime-timezone.md.
+    /// means, not what is stored. spec/types/datetime-timezone.md.
     /// </remarks>
     public TimeZoneInfo? TimeZone { get; }
 
@@ -222,7 +222,7 @@ public sealed class CookingContext
     /// sits on the type at all.
     ///
     /// Returns the name with both markers removed, so everything downstream reads the type it
-    /// always read. spec/nullable-array-elements.md.
+    /// always read. spec/types/nullable-array-elements.md.
     /// </remarks>
     public static string SplitOptionalMarkers(
         string typeName, out bool required, out bool elementsRequired)
@@ -464,7 +464,7 @@ public sealed class CookingContext
 
             // Up to 64 flags. A separate name rather than `bigint` because the notation it
             // accepts is narrower, and a type that does not say it holds a pattern has no
-            // ground to refuse a sign. See spec/bitset.md.
+            // ground to refuse a sign. See spec/types/bitset.md.
             case "bitset":
 
             // Strings with a role. What separates these from `string` is what else is done
@@ -481,7 +481,7 @@ public sealed class CookingContext
 
         // One cell holding several named components - a vector, a rotation, a colour. A type
         // for as long as parsing lasts, like `bitset`; the cooker expands a column of one
-        // into a record. See spec/composite-value-types.md.
+        // into a record. See spec/types/composite-value-types.md.
         if (Models.CompositeTypes.ByName(typeName) is not null)
             return true;
 
@@ -661,7 +661,7 @@ public sealed class CookingContext
     /// already reads it as - an empty string, false, an array of no elements - and reading a
     /// blank as absence instead is what left `string?` with no way to hold an empty string.
     ///
-    /// spec/blank-and-null-cells.md.
+    /// spec/types/blank-and-null-cells.md.
     /// </remarks>
     public const string NoValueMark = "-";
 
@@ -734,7 +734,7 @@ public sealed class CookingContext
     /// </param>
     /// <param name="isReference">
     /// Whether the column points at another table's row. A blank one is read as absence for
-    /// the reason spec/reference-optionality.md gives: `int.Parse("")` failing says nothing
+    /// the reason spec/references/reference-optionality.md gives: `int.Parse("")` failing says nothing
     /// about the reference it was, and validation can say all of it.
     /// </param>
     /// <param name="column">
@@ -758,7 +758,7 @@ public sealed class CookingContext
         // a named rectangle holds the columns a layout keeps and whatever the sheet's authors
         // put beside them, and one project's sheets hold 10,263 cells of working formulas in
         // columns with no name. Every one of those was reported before this, and none of them
-        // is in the data. spec/formula-errors.md.
+        // is in the data. spec/types/formula-errors.md.
         if (formulaError.Length > 0)
         {
             if (onFormulaError == FormulaErrorPolicy.Error)
@@ -814,7 +814,7 @@ public sealed class CookingContext
 
         // Temporary. A blank in an optional `string`, `bool` or array column used to mean
         // "no value" and now means the empty string, false, or no elements - the one change in
-        // spec/blank-and-null-cells.md that is quiet, because nothing about it fails. One line
+        // spec/types/blank-and-null-cells.md that is quiet, because nothing about it fails. One line
         // per column for a release, and then it goes.
         if (blank && !required && column is not null)
         {
@@ -1057,7 +1057,7 @@ public sealed class CookingContext
     /// refused by the PostgreSQL writer for a `timestamp` column, and marking it would make
     /// the setting change the shape of exports as well as their values.
     ///
-    /// spec/datetime-timezone.md.
+    /// spec/types/datetime-timezone.md.
     /// </remarks>
     private DateTime ToUtc(DateTime parsed, TimeZoneInfo? zone, Location? location)
     {
@@ -1340,7 +1340,7 @@ public sealed class CookingContext
             // `-` says this element has no value, which only a column typed `T?[]` allows.
             // Refused elsewhere, because in an array of required elements the mark would have
             // nothing to mean and the cell would quietly hold the type's empty value.
-            // spec/nullable-array-elements.md.
+            // spec/types/nullable-array-elements.md.
             if (SaysNoValue(element))
             {
                 if (elementsRequired)
@@ -1396,7 +1396,7 @@ public sealed class CookingContext
     ///
     /// Not `ParseValue` on a rejoined cell: a key holding the delimiter would be split once
     /// and joined back differently, and the point of doing it here is that the elements are
-    /// already the ones the sheet wrote. spec/polymorphism.md section 4.
+    /// already the ones the sheet wrote. spec/types/polymorphism.md section 4.
     /// </remarks>
     public System.Array ParseReferenceKeys(
         Models.ValueType keyType, string?[] parts, Location? at)

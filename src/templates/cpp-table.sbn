@@ -4,14 +4,14 @@
 {{~## The element type of each record group, ahead of the record that holds one. A plain
    struct, so a vector of them needs no per-element allocation and `v[j].member = x` is a
    legal assignment - which is exactly what a member column's read does.
-   See spec/nested-fields.md. ##~}}
+   See spec/types/nested-fields.md. ##~}}
 {{~ for field in table.fields ~}}
 {{~## An array of arrays declares no element type: its outer level has no name, so there is
-   nothing for a struct to be. spec/nested-multi-level.md. ##~}}
+   nothing for a struct to be. spec/types/nested-multi-level.md. ##~}}
 {{~ if field.is_record && !field.members_are_anonymous ~}}
 {{~## One struct per level, innermost first - which C++ requires rather than prefers: a struct
    has to be complete before another declares a member of it. The view flattened the nesting so
-   this loop does not have to know how deep it went. spec/nested-multi-level.md. ##~}}
+   this loop does not have to know how deep it went. spec/types/nested-multi-level.md. ##~}}
 {{~ for rt in field.record_types ~}}
 {{~ if rt.is_outermost ~}}
 /// One element of {{ rt.owner }}.
@@ -29,7 +29,7 @@ struct {{ rt.type_name }} {
 {{~ end ~}}
 {{~## The per-target accessors of every member of this struct that reaches several tables. One
    taking the element number where the member is the array, which is the third place an element
-   number sits. spec/multi-target-accessors.md. ##~}}
+   number sits. spec/references/multi-target-accessors.md. ##~}}
 };
 
 {{~ end ~}}
@@ -49,7 +49,7 @@ struct {{ table.record_name }} {
 {{~ if field.is_nullable ~}}
 {{~## The value member keeps its type and holds the type's empty value when the row had
    none; this says which it was. Not std::optional, so that every language have one
-   shape and C++ does not split from Unreal - see spec/optional-fields.md. ##~}}
+   shape and C++ does not split from Unreal - see spec/types/optional-fields.md. ##~}}
   /// Whether this row has a value for `{{ field.name }}`.
   bool {{ field.presence_member }} = false;
 {{~ end ~}}
@@ -72,7 +72,7 @@ struct {{ table.record_name }} {
    `const void*` because the targets share no base. The cast is safe by construction: the
    discriminator was set by the same assignment that filled the slot, and casting from `void*`
    asks nothing of the target type - the forward header this file already includes is enough.
-   spec/multi-target-accessors.md. ##~}}
+   spec/references/multi-target-accessors.md. ##~}}
 {{~ for field in table.fields ~}}
 {{~ if field.variants.size > 0 }}
 
@@ -81,7 +81,7 @@ struct {{ table.record_name }} {
    value is built from it here - which is why the read path and the wire are untouched.
 
    A `unique_ptr` because the base is what a caller holds and the variant is what was made; the
-   virtual destructor on the base is what makes that safe. spec/polymorphism.md section 7.2. ##~}}
+   virtual destructor on the base is what makes that safe. spec/types/polymorphism.md section 7.2. ##~}}
   /// What this row's {{ field.abstract_type_name }} is. Narrow it with `dynamic_cast`.
 {{~ if field.variants_are_array ~}}
 {{~## **The array shape.** Each element carries its own discriminator - section 5.3 - so the
@@ -113,7 +113,7 @@ struct {{ table.record_name }} {
 {{~ for member in field.base_members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
         built->{{ member.name }} = entry.{{ member.name }};
         built->{{ member.row_name }} = entry.{{ member.row_name }};
 {{~ else ~}}
@@ -123,7 +123,7 @@ struct {{ table.record_name }} {
 {{~ for member in variant.members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
         built->{{ member.name }} = entry.{{ member.name }};
         built->{{ member.row_name }} = entry.{{ member.row_name }};
 {{~ else ~}}
@@ -156,7 +156,7 @@ class {{ table.table_name }} {
 {{~## A key of several columns is held as the text they make. Each part carries its own
    length, so no two combinations can make the same text - joined by a separator alone,
    ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
-   spec/primary-layout.md section 3.5. ##~}}
+   spec/layout/primary-layout.md section 3.5. ##~}}
 {{~ if index.is_composite ~}}
   /// Joins the columns of the {{ index.field_name }} key into the text the map is keyed by.
   static std::string key_of_{{ index.suffix }}({{ index.params }}) {
@@ -225,7 +225,7 @@ class {{ table.table_name }} {
     // Unconditionally, and with whatever `encryption_key` and `mac_key` hold - which is
     // empty unless the project set them. A file that is neither encrypted nor signed comes
     // back from this untouched, so the load path is the same either way and there is no
-    // condition here that could be the wrong way round. spec/tcb-mac-and-signature.md.
+    // condition here that could be the wrong way round. spec/wire/tcb-mac-and-signature.md.
     const std::pair<const std::uint8_t*, std::size_t> bytes =
       tabbit::open(buffer, encryption_key, mac_key, verify_mac);
 
@@ -269,7 +269,7 @@ class {{ table.table_name }} {
 {{~ end ~}}
 {{~ if column_view.has_optional_elements ~}}
 {{~## Behind the row bitmap and in front of the values, walked with a counter that steps
-   once per element of every row. spec/nullable-array-elements.md. ##~}}
+   once per element of every row. spec/types/nullable-array-elements.md. ##~}}
           element_presence = tabbit::read_element_presence(reader, column);
           element_at = 0;
 {{~ end ~}}
@@ -339,19 +339,19 @@ class {{ table.table_name }} {
             }
 {{~ else if column_view.kind == "record_member_var" ~}}
 {{~## The member is the vector: it is sized and indexed rather than the record. Same
-   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+   columns and same loop as the case below - see spec/types/nested-multi-level.md. ##~}}
             {{ column_view.length_read }}
 {{~ if column_view.row_member_access != column_view.member_access ~}}
 {{~## A reference member holds one key per element as well as one row, and the read writes
    into the key - so both are sized. The member's own name is the key's.
-   spec/reference-surface-naming.md sections 4 and 9. ##~}}
+   spec/references/reference-surface-naming.md sections 4 and 9. ##~}}
             record.{{ column_view.name }}{{ column_view.row_member_access }}.assign(
                 static_cast<std::size_t>(element_count), nullptr);
             record.{{ column_view.name }}{{ column_view.member_access }}.resize(
                 static_cast<std::size_t>(element_count));
 {{~ else if column_view.is_reference ~}}
 {{~## A dotted reference member: the column's name stays on the value it hands back and the
-   key keeps the name it had. spec/reference-surface-naming.md section 9. ##~}}
+   key keeps the name it had. spec/references/reference-surface-naming.md section 9. ##~}}
             record.{{ column_view.name }}{{ column_view.member_access }}.assign(
                 static_cast<std::size_t>(element_count), {{ column_view.ref_default }});
             record.{{ column_view.name }}{{ column_view.member_access }}_index.resize(

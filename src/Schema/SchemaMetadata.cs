@@ -36,7 +36,7 @@ internal static class SchemaMetadata
         ["sep"] = MetaKey.Carried,
 
         // A gravestone one level up from a member's: a dropped variant, kept so that its
-        // discriminator is not handed to another one. spec/polymorphism.md section 5.1.1.
+        // discriminator is not handed to another one. spec/types/polymorphism.md section 5.1.1.
         ["removed"] = MetaKey.Carried,
     };
 
@@ -47,7 +47,7 @@ internal static class SchemaMetadata
 
         // The set a `text` column is gathered into is written here rather than as a second
         // value on `text`, because the sheet's brackets write it as its own key and the two
-        // notations state one dictionary - spec/primary-layout.md section 4.2.
+        // notations state one dictionary - spec/layout/primary-layout.md section 4.2.
         ["namespace"] = MetaKey.Carried,
 
         ["asset"] = MetaKey.Carried,
@@ -64,7 +64,7 @@ internal static class SchemaMetadata
         // to that table's key type, while this states where a value may have come from and
         // leaves the type alone. Several tables is what it exists for - "one of these" has
         // no single type to resolve to, so it is a check and not a reference.
-        // spec/reference-surface-naming.md section 6.
+        // spec/references/reference-surface-naming.md section 6.
         ["refs"] = MetaKey.Carried,
 
         ["notDefault"] = MetaKey.Carried,
@@ -134,7 +134,7 @@ internal static class SchemaMetadata
     /// <remarks>
     /// For a layout whose type cells carry the same brackets a declaration does. It checks
     /// against the same dictionary, so a key this build carries in one notation is carried in
-    /// the other and a typo is a typo in both - `spec/primary-layout.md` section 4.2.
+    /// the other and a typo is a typo in both - `spec/layout/primary-layout.md` section 4.2.
     /// </remarks>
     public static void CheckFieldKeys(
         SchemaMeta meta, string where, string owner, Diagnostics diagnostics)
@@ -181,7 +181,7 @@ internal static class SchemaMetadata
     /// **The keys are the notation's, not the declaration's.** A layout whose type cells carry
     /// the same brackets reads them by handing the pairs here, so there is one dictionary of
     /// keys, one meaning for each and one set of checks - rather than a second implementation
-    /// that agrees until it does not. `spec/primary-layout.md` section 4.2 makes that the rule.
+    /// that agrees until it does not. `spec/layout/primary-layout.md` section 4.2 makes that the rule.
     /// </remarks>
     public static void Apply(
         Table table, Field field, SchemaMeta meta, string memberName, string typeName,
@@ -264,7 +264,7 @@ internal static class SchemaMetadata
 
             // **`text` carries a value as well as being a flag.** `(text)` gathers into the
             // default set and `(text=Common)` names one, which is the same pair of readings the
-            // sheet's brackets have - spec/primary-layout.md section 4.2. Reading only the flag
+            // sheet's brackets have - spec/layout/primary-layout.md section 4.2. Reading only the flag
             // accepted `(text=Common)` and dropped the name, which is the shape of quiet loss
             // this tool exists to prevent.
             string? group = meta.Value("text");
@@ -513,7 +513,7 @@ internal static class SchemaMetadata
     /// **A check, and the type is untouched.** `allowed` is a list of values and this is a
     /// list of the places values come from, so it sits in the same brackets, parts on the
     /// same `;`, and narrows the same way when both a declaration and a sheet wrote one.
-    /// spec/reference-surface-naming.md section 6.
+    /// spec/references/reference-surface-naming.md section 6.
     ///
     /// **Not on a column that is already a reference.** `foreign` names one table and
     /// resolves it, which is a stronger statement than "the value is an id of one of

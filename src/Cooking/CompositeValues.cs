@@ -17,7 +17,7 @@ namespace Tabbit.Cooking;
 /// What comes back is a typed array of the component type: `int[]` or `float[]`, of the
 /// arity the type declares. The expansion then hands each element to its own column.
 ///
-/// spec/composite-value-types.md section 4.
+/// spec/types/composite-value-types.md section 4.
 /// </remarks>
 public static class CompositeValues
 {

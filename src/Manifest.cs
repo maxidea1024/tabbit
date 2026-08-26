@@ -42,7 +42,7 @@ public class Manifest
         // has just written, and reading that file back to measure it read every byte of the
         // output a second time - 4.59 s of the `json` target's 13.25 s on the sample
         // project. The fallback stays for a file this run did not write through
-        // StagingFiles. spec/conversion-time.md section 4.
+        // StagingFiles. spec/ops/conversion-time.md section 4.
         if (!StagingFiles.TryWrittenContents(filename, out string hash, out long size))
         {
             size = FileHelper.GetFileSize(filename);

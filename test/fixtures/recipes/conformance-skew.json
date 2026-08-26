@@ -28,7 +28,7 @@
       // holding one refuses a file that carries no MAC. That refusal is what stops the
       // check being removed by zeroing sixteen bytes, so the fixture signs its data
       // rather than the rule making an exception for it.
-      // test/fixtures/keys/readme.md · spec/tcb-mac-and-signature.md.
+      // test/fixtures/keys/readme.md · spec/wire/tcb-mac-and-signature.md.
       "MacKeyFile": "test/fixtures/keys/conformance-mac.key"
     },
     {

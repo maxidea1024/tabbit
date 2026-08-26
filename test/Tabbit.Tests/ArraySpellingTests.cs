@@ -14,7 +14,7 @@ namespace Tabbit.Tests;
 ///
 /// The gate that compared this notation against the one it replaced retired with that
 /// notation: once every fixture is written this way, "the output did not change" is the whole
-/// golden suite rather than one pair. spec/primary-layout.md section 15.
+/// golden suite rather than one pair. spec/layout/primary-layout.md section 15.
 /// </remarks>
 public class ArraySpellingTests
 {

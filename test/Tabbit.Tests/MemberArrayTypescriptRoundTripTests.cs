@@ -19,7 +19,7 @@ namespace Tabbit.Tests;
 /// all; the binary carries one fixed-array column per member and the reader indexes the
 /// member rather than the record. Agreeing is evidence rather than coincidence.
 ///
-/// spec/nested-multi-level.md.
+/// spec/types/nested-multi-level.md.
 /// </remarks>
 public class MemberArrayTypescriptRoundTripTests
 {

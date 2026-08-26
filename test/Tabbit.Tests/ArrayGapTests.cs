@@ -17,7 +17,7 @@ namespace Tabbit.Tests;
 /// refused. Pinning the setting rather than two workbooks is what keeps the two halves about
 /// the same data.
 ///
-/// spec/variable-length-record-arrays.md has the rule and `AllowArrayGaps`.
+/// spec/types/variable-length-record-arrays.md has the rule and `AllowArrayGaps`.
 /// </remarks>
 public class ArrayGapTests
 {

@@ -6,7 +6,7 @@ namespace Mabbit.Tests;
 
 /// <summary>
 /// The three-way judgement, one test per row of the tables in sections 4.3 to 4.5 of
-/// spec/workbook-merge.md.
+/// spec/import/workbook-merge.md.
 ///
 /// Every one of them is about the same distinction: a side that did not change something has
 /// nothing to say about it, and two sides that changed the same thing differently is the only

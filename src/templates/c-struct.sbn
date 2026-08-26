@@ -9,7 +9,7 @@
 
    One struct per variant, each carrying the base fields as well - there is nothing to inherit
    from, so they are repeated in the type rather than in the file. The wire is untouched either
-   way: the base fields are still one column. spec/polymorphism.md section 7.
+   way: the base fields are still one column. spec/types/polymorphism.md section 7.
 ##~}}
 {{ include 'c-header-head.sbn' ~}}
 /** Which shape a {{ structure.name }} value took. */
@@ -29,7 +29,7 @@ typedef struct {{ variant.type_name }} {
 {{~ end ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two fields: the key the cell held under its own name, and the row it
-   resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
   {{ member.key_type_name }} {{ member.name }};
   {{ member.type_name }} {{ member.row_name }};
 {{~ else ~}}
@@ -42,7 +42,7 @@ typedef struct {{ variant.type_name }} {
 {{~ end ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two fields: the key the cell held under its own name, and the row it
-   resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
   {{ member.key_type_name }} {{ member.name }};
   {{ member.type_name }} {{ member.row_name }};
 {{~ else ~}}

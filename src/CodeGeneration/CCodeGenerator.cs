@@ -137,7 +137,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// <summary>
     /// A level below is a struct declared before the element type and held by value, and the
     /// read reaches it with a longer member path. It is the record's own storage, so nothing
-    /// frees it. spec/nested-multi-level.md.
+    /// frees it. spec/types/nested-multi-level.md.
     /// </summary>
     protected override bool SupportsDeepNestedFields => true;
 
@@ -156,7 +156,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
     /// <summary>
     /// The per-element answer beside the value, filled from the element bitmap the file
-    /// carries. spec/nullable-array-elements.md.
+    /// carries. spec/types/nullable-array-elements.md.
     /// </summary>
     protected override bool SupportsOptionalElements => true;
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
@@ -225,7 +225,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         }
 
         // A struct is an entity beside a table and an enum, so it gets a header of its own -
-        // one per declaration however many tables named it. spec/polymorphism.md section 7.1.
+        // one per declaration however many tables named it. spec/types/polymorphism.md section 7.1.
         foreach (var declared in _model.PolymorphicTypes)
         {
             // The complete type of every enum a member is declared with, and the forward
@@ -293,7 +293,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 Guard = Guard(pair.rendered.RawName.ToUpperSnakeCase()),
                 // And the abstract types its groups are: the variant structs are values a
                 // caller owns, so an incomplete type will not do here either.
-                // spec/polymorphism.md section 7.1.
+                // spec/types/polymorphism.md section 7.1.
                 Includes = Includes(
                     reader: true,
                     headers: new[] { ForwardHeader }
@@ -405,7 +405,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// **The discriminator + per-variant accessors shape section 7 named for this language.**
     /// There is no inheritance and no sum type here, so a consumer branches on a number - and
     /// this is the one generator that emits an enum for it, because a number with no name is a
-    /// magic one. spec/polymorphism.md section 7.
+    /// magic one. spec/types/polymorphism.md section 7.
     /// </remarks>
     private CPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
         => new CPolymorphicTypeView
@@ -431,7 +431,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// **A reference member is two fields**, as a reference is anywhere: the declared name is
     /// the key's and the row it resolves to takes the derived one. A row is a pointer here -
     /// `ScalarTypeName` has no answer for one, which is what asking it produced.
-    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     private CStructMemberView StructMember(Models.Field field)
     {
@@ -765,7 +765,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// <remarks>
     /// The key type's empty value means "points at nothing", and a multi-target column honours
     /// it in every language: the discriminator is a value a consumer reads.
-    /// spec/reference-optionality.md.
+    /// spec/references/reference-optionality.md.
     /// </remarks>
     private static string KeyIsSetSuffix(ValueType keyType)
         => keyType switch
@@ -786,7 +786,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     ///
     /// A nested member is the struct by value, so it is the record's own storage and nothing
     /// frees it - the same choice every array member here makes.
-    /// spec/nested-multi-level.md.
+    /// spec/types/nested-multi-level.md.
     /// </remarks>
     private List<CRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, Table table, SerialField group,
@@ -841,7 +841,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         string name = CName(sf.Name);
 
         // Which abstract type this group is, if it is one. One per declaration however many
-        // tables named it. spec/polymorphism.md section 7.1.
+        // tables named it. spec/types/polymorphism.md section 7.1.
         var declaredType = sf.Members
                 .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
                 ?.FirstField?.AbstractTypeName is { } abstractName
@@ -1041,7 +1041,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         {
             // The key the target is addressed by. `TB_ELEMENT_I32` on its own is what a
             // reference accepted back when a key could only be an int, and it stays the
-            // answer for one. spec/reference-key-types.md.
+            // answer for one. spec/references/reference-key-types.md.
             accepted = wire.RefKeyType switch
             {
                 ValueType.String => new[] { "TB_ELEMENT_STRING" },
@@ -1084,7 +1084,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         string nullable = wire.IsNullable ? "true" : "false";
 
         // And the other bitmap, by the same argument. A function of its own because C has
-        // no default arguments. spec/nullable-array-elements.md.
+        // no default arguments. spec/types/nullable-array-elements.md.
         if (wire.HasOptionalElements)
         {
             return $"(void)tb_check_column_elements(reader, column, \"{tableName}.{wire.Name}\", " +
@@ -1116,7 +1116,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
         // A reference reaches the cursor when the key it carries does. An unconditional
         // yes was the same int32 assumption worn differently: a target keyed by `uuid` has
-        // no cursor path any more than a `uuid` column does. spec/reference-key-types.md.
+        // no cursor path any more than a `uuid` column does. spec/references/reference-key-types.md.
         if (wire.IsRef)
             return wire.RefKeyType != ValueType.Uuid;
 
@@ -1175,7 +1175,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             return "";
 
         // A reference runs on the key it carries. `tb_cursor_next_same_i32` was the only
-        // answer while a key could only be an int. spec/reference-key-types.md.
+        // answer while a key could only be an int. spec/references/reference-key-types.md.
         if (wire.IsRef)
         {
             return wire.RefKeyType switch
@@ -1226,7 +1226,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         //
         // A run is one value for many rows, which an array column has none of - so a record
         // member reaching this is a member of a record of one, and its key sits on the member
-        // like every other member's does. spec/references-in-records.md.
+        // like every other member's does. spec/references/references-in-records.md.
         if (wire.IsRef)
         {
             return (wire.Member is null)
@@ -1248,11 +1248,11 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// Where the element number goes is the whole difference between the record shapes - an
     /// array of records indexes the group and then names the member, a record whose members
     /// are arrays names the member and then indexes it, and a record of one indexes nothing.
-    /// spec/nested-multi-level.md.
+    /// spec/types/nested-multi-level.md.
     ///
     /// The two are kept apart because a reference member declares its key on the member
     /// rather than on the element it holds: `slots.item_id[element]`, not
-    /// `slots.item_id[element]_index`. spec/references-in-records.md.
+    /// `slots.item_id[element]_index`. spec/references/references-in-records.md.
     /// </remarks>
     private static (string Path, string Subscript) MemberPlace(
         WireColumn wire, string name, string member, string element)
@@ -1275,12 +1275,12 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// <remarks>
     /// A reference lands in the stored key rather than in the member it resolves to: the
     /// file carries the target's index, and the pointer beside it is filled in once every
-    /// table is loaded. spec/reference-key-types.md.
+    /// table is loaded. spec/references/reference-key-types.md.
     ///
     /// A record member keeps that key inside the element - `main.item_id` rather than
     /// a name built from the group, which nothing declares. A scalar column of a record
     /// group is a group holding one record, so there is no element number here at all.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     private static string ScalarTarget(WireColumn wire, string name, string member)
     {
@@ -1289,7 +1289,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
         // A dotted reference resolves to a value rather than a row, so there the column's own
         // name belongs to the value and the key takes the `_index` one.
-        // spec/reference-surface-naming.md section 9.
+        // spec/references/reference-surface-naming.md section 9.
         string keySuffix = ResolvesToRow(wire.TagCarrier) ? "" : "_index";
 
         return (wire.Member is null)
@@ -1330,7 +1330,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     {
         // An enum's underlying value is an int32. A reference's is whatever key the target
         // is addressed by, so it goes through the switch below on that type rather than
-        // being answered here. spec/reference-key-types.md.
+        // being answered here. spec/references/reference-key-types.md.
         if (wire.ElementType == ValueType.Enum && !wire.IsRef)
             return $"tb_cursor_next_i32(&cursor, {address})";
 
@@ -1391,7 +1391,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
             // A pointer and a count whether or not the table trims: since v107 the file
             // states every array's length per row, so there is no number to build into the
-            // struct. spec/tcb-v107-dynamic-arrays.md.
+            // struct. spec/wire/tcb-v107-dynamic-arrays.md.
             return new[] { $"{entry}* {name};", $"int32_t {name}_count;" };
         }
 
@@ -1417,14 +1417,14 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
             // The stored key, whose type the target decides. `int32_t` was written here as
             // a constant, which is one of the places that kept a table keyed by anything
-            // else from being pointed at. spec/reference-key-types.md.
+            // else from being pointed at. spec/references/reference-key-types.md.
             string keyType = ScalarTypeName(sf.FirstField!.RefKeyType, null);
 
             // A pointer and a count, for the reason below: how many elements a row holds
             // is what the file states. Both arrays are the same length, so one count answers
             // for the pair.
             // The column's name is the key's; the row takes the derived one.
-            // spec/reference-surface-naming.md sections 4 and 5.
+            // spec/references/reference-surface-naming.md sections 4 and 5.
             bool toRow = ResolvesToRow(sf.FirstField!);
             string rowName = toRow
                 ? CName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
@@ -1448,7 +1448,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         // Every array is a pointer and a count. The file writes the length per row since
         // v107, and a length written in here would be the one this sheet had when the code
         // was generated - built into the size of the struct, where the data cannot reach it.
-        // spec/tcb-v107-dynamic-arrays.md.
+        // spec/wire/tcb-v107-dynamic-arrays.md.
         if (sf.IsArray)
         {
             return new[]
@@ -1483,7 +1483,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             // an array beside the resolved rows. Read as a plain `var_array` it allocated one
             // array and wrote keys into a pointer array, which does not compile - and nothing
             // held the shape, because `foreign[]` is refused and this is only reachable through
-            // a folded group with trimming on. spec/variable-length-record-arrays.md.
+            // a folded group with trimming on. spec/types/variable-length-record-arrays.md.
             return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
@@ -1514,7 +1514,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 // A reference that is a member of a record resolves inside the element rather
                 // than beside it, so it is a loop of its own. Read off the wire columns, which
                 // is the same list the read path walks - the two have to agree about where the
-                // key landed. spec/references-in-records.md.
+                // key landed. spec/references/references-in-records.md.
                 RecordFields = table.WireColumns
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
@@ -1542,7 +1542,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// No resolution flag: a pointer says whether it resolved by being NULL, which is how
     /// this output already answers that for a reference outside a record. The loop bound says
     /// which of the three record shapes this is - the group's array, the member's, or neither.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     private CRecordReferenceView BuildRecordReference(WireColumn wire)
     {
@@ -1553,7 +1553,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         var (path, subscript) = MemberPlace(wire, name, member, "element");
 
         // The member's own name is the key's; the row takes the derived one.
-        // spec/reference-surface-naming.md sections 4 and 5.
+        // spec/references/reference-surface-naming.md sections 4 and 5.
         string rowMember = ResolvesToRow(wire.TagCarrier)
             ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
                                 .Select(part => "." + CName(part)))
@@ -1593,7 +1593,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             // The column's name is the key's; the row is written under the derived one. A
             // dotted reference has no row to name, so there the value keeps the column's
             // name and the key takes the `_index` one.
-            // spec/reference-surface-naming.md sections 4, 5 and 9.
+            // spec/references/reference-surface-naming.md sections 4, 5 and 9.
             Name = sf.ElementType == ValueType.ForeignRecord ? name : name + "_index",
 
             RowName = sf.ElementType == ValueType.ForeignRecord
@@ -1615,7 +1615,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             IsArray = sf.IsArray,
 
             // The array's own count either way: a reference array is one column's, so its
-            // length is the file's. spec/nullable-array-elements.md.
+            // length is the file's. spec/types/nullable-array-elements.md.
             CountExpression = $"record->{name}_count",
         };
     }
@@ -1627,7 +1627,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     {
         // The key the target is addressed by, which is not always an int32 - a `uuid` key
         // has no cursor path at all, so this is the only call that reads one.
-        // spec/reference-key-types.md.
+        // spec/references/reference-key-types.md.
         if (wire.IsRef)
             return LanguageProfile.C.ReadCall(wire.RefKeyType, address);
 
@@ -1682,7 +1682,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     ///
     /// No third member for whether the resolution happened - a pointer answers that by being
     /// NULL, which is how this output already answers it for a reference that is not in a
-    /// record. spec/references-in-records.md.
+    /// record. spec/references/references-in-records.md.
     /// </remarks>
     private string MemberDeclaration(RecordMember member)
     {
@@ -1694,7 +1694,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             string key = ScalarTypeName(member.FirstField!.RefKeyType, null);
 
             // The member's own name is the key's; the row takes the derived one.
-            // spec/reference-surface-naming.md sections 4 and 5.
+            // spec/references/reference-surface-naming.md sections 4 and 5.
             bool toRow = ResolvesToRow(member.FirstField!);
                     string rowName = toRow
                         ? CName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
@@ -1731,7 +1731,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     ///
     /// A constant never reaches the file, so there is no wire question here: what a language
     /// needs is an expression its compiler accepts in the place a constant is declared.
-    /// spec/primary-layout.md section 8.5.
+    /// spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     private string RenderConstantValue(ConstantSet.Constant constant)
     {

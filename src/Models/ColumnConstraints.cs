@@ -18,7 +18,7 @@ namespace Tabbit.Models;
 /// Every part carries the cell it came from, because a wrong bound and a wrong value are
 /// different mistakes and a message should say which cell is at fault.
 ///
-/// spec/column-constraints.md.
+/// spec/layout/column-constraints.md.
 /// </remarks>
 public sealed class ColumnConstraints
 {
@@ -48,7 +48,7 @@ public sealed class ColumnConstraints
     /// trimming of a record array already uses, because the two ask the same question.
     ///
     /// Meaningless on a column that is not a record member, and refused there.
-    /// spec/record-member-optionality.md.
+    /// spec/types/record-member-optionality.md.
     /// </remarks>
     public bool RequiredInRecord { get; set; }
 
@@ -84,7 +84,7 @@ public sealed class ColumnConstraints
     /// declare this treat "in this table" and "in any of these" as the same check with a
     /// list of a different length.
     ///
-    /// spec/multi-target-references.md.
+    /// spec/references/multi-target-references.md.
     /// </remarks>
     public IReadOnlyList<string>? ReferencedTables { get; set; }
 

@@ -20,7 +20,7 @@ public final class {{ table.table_name }} {
 {{~## A key of several columns is held as the text they make. Each part carries its own
    length, so no two combinations can make the same text - joined by a separator alone,
    ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
-   spec/primary-layout.md section 3.5. ##~}}
+   spec/layout/primary-layout.md section 3.5. ##~}}
 {{~ if index.is_composite ~}}
     /** Joins the columns of the {{ index.field_name }} key into the text the map is keyed by. */
     private static String keyOf{{ index.suffix }}({{ index.params }}) {
@@ -98,7 +98,7 @@ public final class {{ table.table_name }} {
         // {{ accessor_name }}.macKey hold - which is null unless the project set them. A
         // file that is neither encrypted nor signed comes back from this untouched, so the
         // load path is the same either way and there is no condition here that could be the
-        // wrong way round. spec/tcb-mac-and-signature.md.
+        // wrong way round. spec/wire/tcb-mac-and-signature.md.
         TcbReader reader = new TcbReader(TcbReader.open(
             TcbReader.readAllBytes(filename), {{ accessor_name }}.encryptionKey,
             {{ accessor_name }}.macKey, {{ accessor_name }}.verifyMac));
@@ -143,7 +143,7 @@ public final class {{ table.table_name }} {
 {{~ if column_view.has_optional_elements ~}}
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
-                    // spec/nullable-array-elements.md.
+                    // spec/types/nullable-array-elements.md.
                     elementPresence = TcbReader.readElementPresence(reader, column);
                     elementAt = 0;
 {{~ end ~}}
@@ -183,7 +183,7 @@ public final class {{ table.table_name }} {
 {{~ else if column_view.kind == 'var_array_ref' ~}}
 {{~## A trimmed array of references. Same length as the values - this row's - for the keys
    beside them, which is what `serial_ref` does from the column count.
-   spec/variable-length-record-arrays.md. ##~}}
+   spec/types/variable-length-record-arrays.md. ##~}}
                         int elementCount;
                         {{ column_view.length_read }}
 {{~ if column_view.row_name != '' ~}}
@@ -191,7 +191,7 @@ public final class {{ table.table_name }} {
                         record.{{ column_view.name }} = new {{ column_view.ref_key_type }}[elementCount];
 {{~ else ~}}
 {{~## A dotted reference: the column's name stays on the value it hands back, and the key
-   keeps the name it had. spec/reference-surface-naming.md section 9. ##~}}
+   keeps the name it had. spec/references/reference-surface-naming.md section 9. ##~}}
                         record.{{ column_view.name }} = new {{ column_view.element_type }}[elementCount];
                         record.{{ column_view.name }}Index = new {{ column_view.ref_key_type }}[elementCount];
 {{~ end ~}}
@@ -231,7 +231,7 @@ public final class {{ table.table_name }} {
 {{~ end ~}}
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner array. Which outer element it is, is which column this is - so that index is
-   fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
+   fixed and the loop runs the inner length. spec/types/nested-multi-level.md. ##~}}
                         int elementCount;
                         {{ column_view.length_read }}
                         record.{{ column_view.name }}[{{ column_view.member_at }}] = new {{ column_view.element_type }}[elementCount];
@@ -240,13 +240,13 @@ public final class {{ table.table_name }} {
                         }
 {{~ else if column_view.kind == 'record_member_var' ~}}
 {{~## The member is the array: the index goes after its name rather than before. Same
-   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+   columns and same loop as the case below - see spec/types/nested-multi-level.md. ##~}}
                         int elementCount;
                         {{ column_view.length_read }}
 {{~ if column_view.row_member_access != '' ~}}
 {{~## A reference member holds one key per element as well as one row, and the read writes
    into the key - so both are made. The member's own name is the key's.
-   spec/reference-surface-naming.md section 4. ##~}}
+   spec/references/reference-surface-naming.md section 4. ##~}}
                         record.{{ column_view.name }}{{ column_view.row_member_access }} = new {{ column_view.element_type }}[elementCount];
                         record.{{ column_view.name }}{{ column_view.member_access }} = new {{ column_view.ref_key_type }}[elementCount];
 {{~ else ~}}

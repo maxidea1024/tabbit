@@ -43,7 +43,7 @@ assert($rows[0]->tag === ['a', 'b']);
     /// <remarks>
     /// Read rather than compiled, which is what this gate is for: the bitmap is walked with a
     /// counter that steps once per element of every row, and a reader that stepped per row
-    /// would still run. spec/nullable-array-elements.md.
+    /// would still run. spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void Optional_array_elements_read()
@@ -72,7 +72,7 @@ assert($rows[0]->pos->x === 5 && $rows[0]->pos->y === 6);
     /// <summary>
     /// A record whose members are arrays - one record, and each member holding all of its
     /// elements, out of the same columns an array of records would use.
-    /// spec/nested-multi-level.md.
+    /// spec/types/nested-multi-level.md.
     /// </summary>
     [Fact]
     public void A_record_of_arrays_reads()
@@ -89,7 +89,7 @@ assert($rows[1]->grid === [[7, 8, 9], [10, 11, 12]]);
 
     /// <summary>
     /// A record whose member is itself a record - a value and a record at the same level, read
-    /// out of the binary. spec/nested-multi-level.md.
+    /// out of the binary. spec/types/nested-multi-level.md.
     /// </summary>
     /// <remarks>
     /// Reading rather than linting, for the reason this whole class exists:
@@ -146,7 +146,7 @@ foreach ([$rows[1], $rows[2]] as $row) {
     /// Reading rather than only compiling, because the failure this guards against is code
     /// that runs and leaves every element unresolved. Element 0 and element 1 point at
     /// different rows, so a loop that resolved the first and left the rest shows as the wrong
-    /// value. spec/references-in-records.md.
+    /// value. spec/references/references-in-records.md.
     /// </remarks>
     [Fact]
     public void A_reference_inside_a_record_reads()
@@ -172,7 +172,7 @@ assert($accessor->kit->records[1]->part[0]->itemByItemId->name === 'shield');
     /// runs and resolves nothing: the keys arrive on the wire and the values are written by the
     /// linking pass, which walks the array it was given. Element 0 and element 1 point at
     /// different rows, so a loop that resolved the first and left the rest shows as the wrong
-    /// value. spec/nullable-array-elements.md.
+    /// value. spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void An_array_of_references_reads()

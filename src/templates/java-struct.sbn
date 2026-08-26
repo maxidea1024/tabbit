@@ -7,7 +7,7 @@
 
    Classes and `instanceof`, which is this language's way of narrowing. The read path is
    untouched: the file is still read into the table's flat entry and the variant is built from
-   it, which is why the wire does not move. spec/polymorphism.md section 7.
+   it, which is why the wire does not move. spec/types/polymorphism.md section 7.
 ##~}}
 {{ include 'java-file-head.sbn' ~}}
 /**
@@ -23,7 +23,7 @@ public abstract class {{ structure.name }} {
 {{~ end ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
     public {{ member.key_type_name }} {{ member.name }};
     public {{ member.type_name }} {{ member.row_name }};
 {{~ else ~}}
@@ -46,7 +46,7 @@ public abstract class {{ structure.name }} {
 {{~ end ~}}
     {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
     public {{ member.key_type_name }} {{ member.name }};
     public {{ member.type_name }} {{ member.row_name }};
 {{~ else ~}}

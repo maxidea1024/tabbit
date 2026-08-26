@@ -15,7 +15,7 @@
     refuses to run in that build today. A separate assembly can be embedded as a resource; the tool
     cannot embed a reference to itself in one build, which is the circle this breaks.
 
-    spec/validation-usability-and-assembly-output.md section 5a.
+    spec/validation/validation-usability-and-assembly-output.md section 5a.
   -->
 
   <PropertyGroup>

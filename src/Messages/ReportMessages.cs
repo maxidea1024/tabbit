@@ -15,7 +15,7 @@ namespace Tabbit;
 /// The rest is the build report's own wording. It is in the catalog rather than in the page
 /// writer for one reason: the reports on that page arrive already written in whatever
 /// language the run was asked for, and a page whose headings stayed English around them
-/// would be a page in two languages. spec/build-report.md.
+/// would be a page in two languages. spec/ops/build-report.md.
 /// </remarks>
 [TabbitMessages("report")]
 public static class ReportMessages

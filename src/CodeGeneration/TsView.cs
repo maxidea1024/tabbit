@@ -71,7 +71,7 @@ internal sealed class TsTableSetView
     /// This module imported table classes and nothing else, because linking only ever named
     /// tables and keys. A column reaching several tables is resolved by comparing against the
     /// enumeration that says which one answered, so the type has to be in scope here too.
-    /// spec/multi-target-accessors.md.
+    /// spec/references/multi-target-accessors.md.
     /// </remarks>
     public required IReadOnlyList<string> Imports { get; set; }
 }
@@ -86,7 +86,7 @@ internal sealed class TsCrossReferenceView
 
     /// <summary>
     /// The references that are members of a record, which resolve inside the element rather
-    /// than beside it. spec/references-in-records.md.
+    /// than beside it. spec/references/references-in-records.md.
     /// </summary>
     public required IReadOnlyList<TsRecordReferenceView> RecordFields { get; set; }
 
@@ -159,7 +159,7 @@ internal sealed class TsReferenceFieldView
     /// <remarks>
     /// Zero is the convention for "points at nothing", and it needs a spelling per key type:
     /// a string key has no zero, and a 64-bit one compares against `0n` rather than `0`.
-    /// spec/reference-optionality.md · spec/reference-key-types.md.
+    /// spec/references/reference-optionality.md · spec/references/reference-key-types.md.
     /// </remarks>
     public required string RefIsSet { get; set; }
 }
@@ -283,7 +283,7 @@ internal sealed class TsTableView
 /// <remarks>
 /// Everything here answers "how is this column read". Where the value lands comes along
 /// because the read has to assign somewhere; the shape of the declaration is
-/// <see cref="TsFieldView"/>'s business. spec/nested-fields.md has the split.
+/// <see cref="TsFieldView"/>'s business. spec/types/nested-fields.md has the split.
 /// </remarks>
 internal sealed class TsColumnView
 {
@@ -355,7 +355,7 @@ internal sealed class TsColumnView
     /// <remarks>
     /// On the member and before any subscript, because a member that is an array holds one
     /// key per element: `itemId_index[j]`, not `itemId[j]_index`.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     public required string MemberRefSuffix { get; set; }
 
@@ -414,7 +414,7 @@ internal sealed class TsRecordMemberView
 {
     /// <summary>
     /// What the resolved row is called, where this member is a reference. Empty otherwise.
-    /// spec/reference-surface-naming.md section 5.
+    /// spec/references/reference-surface-naming.md section 5.
     /// </summary>
     public string RowPropName { get; set; } = "";
 
@@ -443,7 +443,7 @@ internal sealed class TsRecordMemberView
     /// it resolved to, the key that came off the wire, and whether the resolution happened.
     /// All three inside the element, because a group may hold more than one reference and a
     /// name built from the group and the target would collide the moment two members point at
-    /// one table. spec/references-in-records.md.
+    /// one table. spec/references/references-in-records.md.
     /// </remarks>
     public string RefKeyTypeName { get; set; } = "";
 
@@ -460,7 +460,7 @@ internal sealed class TsRecordMemberView
     /// <remarks>
     /// `Star1.Position.X` makes `Position` one of these. The interface it names is declared
     /// alongside the others in <see cref="TsFieldView.RecordTypes"/>, so the template does not
-    /// have to know how deep it is. See spec/nested-multi-level.md.
+    /// have to know how deep it is. See spec/types/nested-multi-level.md.
     /// </remarks>
     public bool IsRecord { get; set; }
 
@@ -499,7 +499,7 @@ internal sealed class TsFieldView
     /// <remarks>
     /// One name for both shapes, so the body that fills a variant is written once. A
     /// polymorphic array's builder takes an element; a scalar group's reads the row.
-    /// spec/polymorphism.md section 5.3.
+    /// spec/types/polymorphism.md section 5.3.
     /// </remarks>
     public string EntryAccess { get; set; } = "";
 
@@ -510,7 +510,7 @@ internal sealed class TsFieldView
     /// Asked rather than worked out from the read kind, which is spelled differently in every
     /// generator - and the two shapes differ in more than one line: the accessor loops, and
     /// the value it hands back is an array of the abstract type.
-    /// spec/polymorphism.md section 5.3.
+    /// spec/types/polymorphism.md section 5.3.
     /// </remarks>
     public bool VariantsAreArray { get; set; }
 
@@ -520,7 +520,7 @@ internal sealed class TsFieldView
     /// <remarks>
     /// The union is declared in its own module - one per declaration - and this is what the
     /// table needs to build a value of it: which number means which variant, and which of the
-    /// entry's fields each one carries. spec/polymorphism.md sections 7.1 and 7.2.
+    /// entry's fields each one carries. spec/types/polymorphism.md sections 7.1 and 7.2.
     /// </remarks>
     public IReadOnlyList<TsVariantView> Variants { get; set; } = new List<TsVariantView>();
 
@@ -536,7 +536,7 @@ internal sealed class TsFieldView
 
     /// <summary>
     /// What the resolved row is called, where this column is a reference to a whole row.
-    /// Empty otherwise. spec/reference-surface-naming.md section 5.
+    /// Empty otherwise. spec/references/reference-surface-naming.md section 5.
     /// </summary>
     public string RowPropName { get; set; } = "";
 
@@ -566,7 +566,7 @@ internal sealed class TsFieldView
 
     /// <summary>
     /// Whether this group is an array of arrays, which declares no element interface - the
-    /// outer level has no name. See spec/nested-multi-level.md.
+    /// outer level has no name. See spec/types/nested-multi-level.md.
     /// </summary>
     public bool MembersAreAnonymous { get; set; }
 
@@ -620,7 +620,7 @@ internal sealed class TsFieldView
     /// </summary>
     /// <remarks>
     /// `number` was written into the template, which is one of the places that kept a table
-    /// keyed by anything else from being pointed at. spec/reference-key-types.md.
+    /// keyed by anything else from being pointed at. spec/references/reference-key-types.md.
     /// </remarks>
     public required string RefKeyTypeName { get; set; }
 
@@ -660,7 +660,7 @@ internal sealed class TsFieldView
 /// **A discriminated union, which is this language's sum type.** Classes and `instanceof`
 /// would work and read worse: the rest of this target's row types are interfaces, and a
 /// consumer narrowing with `e.kind === 'DamageEffect'` gets the same exhaustiveness the
-/// compiler already gives every other union here. spec/polymorphism.md section 7.
+/// compiler already gives every other union here. spec/types/polymorphism.md section 7.
 /// </remarks>
 internal sealed class TsPolymorphicTypeView
 {
@@ -708,7 +708,7 @@ internal sealed class TsStructMemberView
     /// <remarks>
     /// **A reference member is two fields here, the same two a reference column is anywhere.**
     /// The declared name is the key's - that is what the cell holds - and the row it resolves to
-    /// takes the derived one. spec/reference-surface-naming.md sections 4 and 5.
+    /// takes the derived one. spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     public string RowName { get; set; } = "";
 

@@ -1,6 +1,6 @@
 {
   // An array whose elements come from the rows below the record - `reward[]`, section 6 of
-  // spec/primary-layout.md.
+  // spec/layout/primary-layout.md.
   //
   // What this tree pins is a sameness. `multirow-columns` holds the same data with the elements
   // in columns beside the record, and the gate requires the produced files to be identical byte

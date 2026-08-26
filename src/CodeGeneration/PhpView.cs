@@ -199,7 +199,7 @@ internal sealed class PhpFieldView
     /// <remarks>
     /// The type itself is declared once, elsewhere; this is what the table needs to build a
     /// value of it - which number means which variant, and which of the entry's fields each
-    /// one carries. spec/polymorphism.md sections 7.1 and 7.2.
+    /// one carries. spec/types/polymorphism.md sections 7.1 and 7.2.
     /// </remarks>
     public IReadOnlyList<PhpVariantView> Variants { get; set; } = new List<PhpVariantView>();
 
@@ -209,7 +209,7 @@ internal sealed class PhpFieldView
     /// <summary>
     /// Whether the polymorphic group is an array, so each element carries its own
     /// discriminator and what a consumer reads is a list of the abstract type.
-    /// spec/polymorphism.md section 5.3.
+    /// spec/types/polymorphism.md section 5.3.
     /// </summary>
     public bool VariantsAreArray { get; set; }
 
@@ -246,7 +246,7 @@ internal sealed class PhpFieldView
     /// Whether this group is an array of arrays, which needs no element type - the outer
     /// level has no name to declare one for.
     /// </summary>
-    /// <remarks>See spec/nested-multi-level.md.</remarks>
+    /// <remarks>See spec/types/nested-multi-level.md.</remarks>
     public bool MembersAreAnonymous { get; set; }
 
     /// <summary>
@@ -296,7 +296,7 @@ internal sealed class PhpRecordMemberView
 /// A flat list rather than a tree: the recursion belongs in the view, because none of these
 /// templates has a recursive include and the one that grew a tree walk would be the only place
 /// where depth had to be reasoned about in template syntax. Innermost first.
-/// spec/nested-multi-level.md.
+/// spec/types/nested-multi-level.md.
 /// </remarks>
 internal sealed class PhpRecordTypeView
 {
@@ -332,13 +332,13 @@ internal sealed class PhpColumnView
 {
     /// <summary>
     /// Where the resolved rows go for a whole-row reference, or the column's own name for a
-    /// dotted one. spec/reference-surface-naming.md sections 5 and 9.
+    /// dotted one. spec/references/reference-surface-naming.md sections 5 and 9.
     /// </summary>
     public string RowName { get; set; } = "";
 
     /// <summary>
     /// Where the keys off the wire go: the column's own name for a whole-row reference, and
-    /// the `Index` one for a dotted reference. spec/reference-surface-naming.md sections 5
+    /// the `Index` one for a dotted reference. spec/references/reference-surface-naming.md sections 5
     /// and 9.
     /// </summary>
     public string KeyName { get; set; } = "";
@@ -408,7 +408,7 @@ internal sealed class PhpColumnView
     /// <remarks>
     /// On the member and before any subscript, because a member that is an array holds one
     /// key per element: `itemId[$j]`, not the member's own name.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     public required string MemberRefSuffix { get; set; }
 
@@ -467,7 +467,7 @@ internal sealed class PhpCrossReferenceView
 
     /// <summary>
     /// The references that are members of a record, which resolve inside the element rather
-    /// than beside it. spec/references-in-records.md.
+    /// than beside it. spec/references/references-in-records.md.
     /// </summary>
     public required IReadOnlyList<PhpRecordReferenceView> RecordFields { get; set; }
 
@@ -507,7 +507,7 @@ internal sealed class PhpReferenceFieldView
     /// <summary>
     /// Where the resolved row goes - the derived name for a whole-row reference, the
     /// column's own name for a dotted one.
-    /// spec/reference-surface-naming.md sections 5 and 9.
+    /// spec/references/reference-surface-naming.md sections 5 and 9.
     /// </summary>
     public string RowName { get; set; } = "";
 
@@ -527,7 +527,7 @@ internal sealed class PhpReferenceFieldView
 /// <remarks>
 /// One per declaration however many tables named it. A struct is an entity beside a table and
 /// an enum, and emitting it inside each table that used it would give them types that share a
-/// name and are not the same type. spec/polymorphism.md section 7.1.
+/// name and are not the same type. spec/types/polymorphism.md section 7.1.
 /// </remarks>
 internal sealed class PhpPolymorphicTypeView
 {
@@ -567,7 +567,7 @@ internal sealed class PhpStructMemberView
     /// <remarks>
     /// **A reference member is two fields here, the same two a reference column is anywhere.**
     /// The declared name is the key's - that is what the cell holds - and the row it resolves to
-    /// takes the derived one. spec/reference-surface-naming.md sections 4 and 5.
+    /// takes the derived one. spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     public string RowName { get; set; } = "";
 

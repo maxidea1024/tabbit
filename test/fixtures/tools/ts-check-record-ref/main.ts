@@ -13,7 +13,7 @@
 // name; the binary carries one column per member; the compact JSON is positional over the
 // wire columns, which is the route most likely to be wrong.
 //
-// spec/references-in-records.md.
+// spec/references/references-in-records.md.
 //
 // Prints JSON on stdout for the C# harness to assert against.
 

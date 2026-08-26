@@ -80,7 +80,7 @@ function TrimKitTable:readBytes(data)
 
   -- Opened unconditionally, with whatever keys the accessor holds - nil unless the
   -- project set them. A file that is neither encrypted nor signed comes back untouched,
-  -- so the load path is the same either way. spec/tcb-mac-and-signature.md.
+  -- so the load path is the same either way. spec/wire/tcb-mac-and-signature.md.
   local reader = tcb.newReader(tcb.open(
     data, accessor.encryptionKey, accessor.macKey, accessor.verifyMac))
   local count, columns = tcb.readTableHeader(reader)
@@ -115,7 +115,7 @@ function TrimKitTable:readBytes(data)
     elseif column.tag == 2 then
       tcb.checkColumn(column, "TrimKit.Slot", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32 }, true)
       -- Behind the row bitmap and in front of the values, walked with a counter that
-      -- steps once per element of every row. spec/nullable-array-elements.md.
+      -- steps once per element of every row. spec/types/nullable-array-elements.md.
       local elementPresence = tcb.readElementPresence(reader, column)
       local elementAt = 0
       local cursor = tcb.newCursor(reader, column, count, "TrimKit.Slot")
@@ -142,7 +142,7 @@ function TrimKitTable:readBytes(data)
     elseif column.tag == 3 then
       tcb.checkColumn(column, "TrimKit.Tier", tcb.KIND_ARRAY, false, { tcb.ELEMENT_I32 }, true)
       -- Behind the row bitmap and in front of the values, walked with a counter that
-      -- steps once per element of every row. spec/nullable-array-elements.md.
+      -- steps once per element of every row. spec/types/nullable-array-elements.md.
       local elementPresence = tcb.readElementPresence(reader, column)
       local elementAt = 0
       local cursor = tcb.newCursor(reader, column, count, "TrimKit.Tier")

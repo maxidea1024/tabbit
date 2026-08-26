@@ -14,7 +14,7 @@ namespace Tabbit;
 /// A run reports its total and nothing else, so every question about where the time goes has
 /// to be answered from outside: run the conversion three times with three different stopping
 /// points, then read the file log's timestamps and subtract. That is how the numbers in
-/// spec/build-cache.md were obtained, and it is not a measurement anybody will repeat often
+/// spec/ops/build-cache.md were obtained, and it is not a measurement anybody will repeat often
 /// enough to notice a regression.
 ///
 /// The steps are measured by wrapping the calls rather than by reading the log, which is the

@@ -10,7 +10,7 @@
 // one the union notation makes easy to get wrong - every row has blank cells that are not
 // its own, and a build that put them on the object would look fine until someone read one.
 //
-// spec/polymorphism.md sections 5.2 and 7.
+// spec/types/polymorphism.md sections 5.2 and 7.
 
 using System;
 using System.Collections.Generic;
@@ -78,7 +78,7 @@ internal static class Program
     /// <remarks>
     /// Pattern matching rather than a discriminator switch, because that is the surface the
     /// spec chose for a language that has it - and a variant type that did not inherit the
-    /// base would not compile here. spec/polymorphism.md section 7.
+    /// base would not compile here. spec/types/polymorphism.md section 7.
     /// </remarks>
     private static string Own(Effect effect)
     {

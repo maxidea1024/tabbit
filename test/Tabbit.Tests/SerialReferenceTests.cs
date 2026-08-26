@@ -21,7 +21,7 @@ namespace Tabbit.Tests;
 ///   slot  `foreign` at `Piece`       resolves to the row
 ///   tier  `foreign` at `Piece.Tier`  resolves to one of that row's values
 ///
-/// spec/nullable-array-elements.md · spec/references-in-records.md.
+/// spec/types/nullable-array-elements.md · spec/references/references-in-records.md.
 /// </remarks>
 public class SerialReferenceTests
 {
@@ -69,7 +69,7 @@ public class SerialReferenceTests
     ///
     /// The keys and the flag are the ones that were missed: their declarations went from a
     /// sized allocation to an empty array when the length left the page, and the read had to
-    /// take over sizing them. spec/nullable-array-elements.md.
+    /// take over sizing them. spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void The_page_sizes_every_array_from_the_file()
@@ -85,7 +85,7 @@ public class SerialReferenceTests
         Assert.Contains("record._slot_F = new bool[elementCount];", cs);
 
         // And no length in the check: the shape is the kind, and the length is the row's.
-        // spec/tcb-v107-dynamic-arrays.md.
+        // spec/wire/tcb-v107-dynamic-arrays.md.
         Assert.Contains("TcbTable.KindArray", cs);
         Assert.DoesNotContain("column.Count", cs);
 

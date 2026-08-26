@@ -1,5 +1,5 @@
 {
-  // spec/reference-optionality.md. The refused half: a blank in a reference column that is
+  // spec/references/reference-optionality.md. The refused half: a blank in a reference column that is
   // declared required. This recipe is expected to fail, so it exports nothing anybody reads -
   // the export entry is here because a recipe needs one.
   "Sources": { "Xlsx": [ { "Path": "test/fixtures/xlsx/reference-required-blank" } ], "GoogleSheets": [] },

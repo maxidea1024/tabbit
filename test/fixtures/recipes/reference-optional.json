@@ -1,5 +1,5 @@
 {
-  // spec/reference-optionality.md. The accepted half: a blank where the column allows one,
+  // spec/references/reference-optionality.md. The accepted half: a blank where the column allows one,
   // and a written zero in both kinds of column. `reference-required-blank` is the other half.
   "Sources": { "Xlsx": [ { "Path": "test/fixtures/xlsx/reference-optional" } ], "GoogleSheets": [] },
   "Targets": [

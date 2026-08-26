@@ -6,7 +6,7 @@
 
    A virtual destructor, because a consumer holds the base and the variant is what was made. The
    read path is untouched: the file is still read into the table's flat entry and the value is
-   built from it. spec/polymorphism.md section 7.
+   built from it. spec/types/polymorphism.md section 7.
 ##~}}
 {{ include 'cpp-file-head.sbn' ~}}
 /// One value of `{{ structure.name }}`, whichever shape it took.
@@ -21,7 +21,7 @@ struct {{ structure.name }} {
 {{~ end ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
   {{ member.key_type_name }} {{ member.name }}{};
   {{ member.type_name }} {{ member.row_name }}{};
 {{~ else ~}}
@@ -42,7 +42,7 @@ struct {{ variant.type_name }} final : {{ structure.name }} {
 {{~ end ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
   {{ member.key_type_name }} {{ member.name }}{};
   {{ member.type_name }} {{ member.row_name }}{};
 {{~ else ~}}

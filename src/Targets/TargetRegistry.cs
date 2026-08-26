@@ -219,7 +219,7 @@ public static class TargetRegistry
         // What each entry staged is attributed by name rather than by counting the ledger
         // before and after, which is what made this sequential: a slice of a shared list is
         // an answer only while one entry is writing to it.
-        // spec/conversion-time.md section 5.
+        // spec/ops/conversion-time.md section 5.
         var byTarget = building.GroupBy(planned => planned.Descriptor).ToList();
 
         System.Threading.Tasks.Parallel.ForEach(byTarget, group =>

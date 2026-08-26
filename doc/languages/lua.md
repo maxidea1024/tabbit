@@ -2,7 +2,7 @@
 
 > [언어별 가이드로](readme.md) · [문서 목록으로](../readme.md)
 >
-> 설계 근거는 [Lua 언어 지원](../../spec/lua-language-support.md)에 있습니다.
+> 설계 근거는 [Lua 언어 지원](../../spec/targets/lua-language-support.md)에 있습니다.
 
 **LuaJIT 2.1과 Lua 5.3 이상**에서 동작합니다. 순수 Lua 5.1·5.2는 지원하지 않습니다 —
 그 숫자는 double이라 `bigint`와 `datetime` 틱이 2⁵³ 너머에서 조용히 바뀝니다. LuaJIT에서는

@@ -98,7 +98,7 @@ public static class Helper
         // hash over the files' bytes in the order given - but reading a file into an array
         // first meant the manifest's master hash allocated the whole of the output it was
         // summarising: on the sample project's `json` target, 288 MB of arrays for a value
-        // sixteen bytes long. spec/conversion-time.md section 4.
+        // sixteen bytes long. spec/ops/conversion-time.md section 4.
         using var digest = IncrementalHash.CreateHash(HashAlgorithmName.MD5);
 
         byte[] buffer = new byte[64 * 1024];

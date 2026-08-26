@@ -7,7 +7,7 @@
 
    The base fields are on the sealed class, so a consumer holding it reads them without
    narrowing. The read path is untouched: the file is still read into the table's flat entry
-   and the value is built from it. spec/polymorphism.md section 7.
+   and the value is built from it. spec/types/polymorphism.md section 7.
 ##~}}
 {{ include 'dart-part-head.sbn' ~}}
 /// One value of [{{ structure.name }}], whichever shape it took.
@@ -20,7 +20,7 @@ sealed class {{ structure.name }} {
 {{~ end ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
   final {{ member.key_type_name }} {{ member.name }};
   final {{ member.type_name }} {{ member.row_name }};
 {{~ else ~}}
@@ -32,7 +32,7 @@ sealed class {{ structure.name }} {
 {{~ for member in structure.base_members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
     required this.{{ member.name }},
     required this.{{ member.row_name }},
 {{~ else ~}}
@@ -54,7 +54,7 @@ final class {{ variant.type_name }} extends {{ structure.name }} {
 {{~ end ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
   final {{ member.key_type_name }} {{ member.name }};
   final {{ member.type_name }} {{ member.row_name }};
 {{~ else ~}}
@@ -66,7 +66,7 @@ final class {{ variant.type_name }} extends {{ structure.name }} {
 {{~ for member in structure.base_members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
     required super.{{ member.name }},
     required super.{{ member.row_name }},
 {{~ else ~}}
@@ -76,7 +76,7 @@ final class {{ variant.type_name }} extends {{ structure.name }} {
 {{~ for member in variant.members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
     required this.{{ member.name }},
     required this.{{ member.row_name }},
 {{~ else ~}}

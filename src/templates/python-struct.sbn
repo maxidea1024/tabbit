@@ -7,7 +7,7 @@
    `__slots__` for the same reason every other generated class here has them: a table of twenty
    thousand rows should not carry a dict per value. The read path is untouched - the file is
    still read into the table's flat entry and the value is built from it.
-   spec/polymorphism.md section 7.
+   spec/types/polymorphism.md section 7.
 ##~}}
 {{ include 'python-file-head.sbn' ~}}
 class {{ structure.name }}:

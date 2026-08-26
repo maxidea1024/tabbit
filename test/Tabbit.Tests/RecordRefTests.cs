@@ -28,7 +28,7 @@ namespace Tabbit.Tests;
 /// decided where the key lives: a name built from the group and the target would be one name
 /// for both, and the second would land in the first one's.
 ///
-/// spec/references-in-records.md.
+/// spec/references/references-in-records.md.
 /// </remarks>
 public class RecordRefTests
 {

@@ -102,7 +102,7 @@ class DropTable:
         # `Tables.mac_key` hold - which is None unless the project set them. A file that is
         # neither encrypted nor signed comes back from this untouched, so the load path is
         # the same either way and there is no condition here that could be the wrong way
-        # round. spec/tcb-mac-and-signature.md.
+        # round. spec/wire/tcb-mac-and-signature.md.
         reader = tabbit.Reader(tabbit.open(
             tabbit.read_all_bytes(filename), Tables.encryption_key,
             Tables.mac_key, Tables.verify_mac))

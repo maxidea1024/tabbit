@@ -130,7 +130,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// <summary>
     /// A level below is a class declared before the element type, and the read reaches it with a
     /// longer member path. The constructor makes it, so every value inside it starts where a
-    /// scalar member would. spec/nested-multi-level.md.
+    /// scalar member would. spec/types/nested-multi-level.md.
     /// </summary>
     protected override bool SupportsDeepNestedFields => true;
 
@@ -141,7 +141,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// Not `None`. Python would let a member simply be None and the check would read
     /// naturally, but `None` is also what an unresolved reference is - and a `str` column
     /// that reads a blank as `""` would then have two ways to say the same nothing.
-    /// spec/optional-fields.md has the reasoning, which is the same one the other targets
+    /// spec/types/optional-fields.md has the reasoning, which is the same one the other targets
     /// follow.
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
@@ -151,7 +151,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
     /// <summary>
     /// The per-element answer beside the value, filled from the element bitmap the file
-    /// carries. spec/nullable-array-elements.md.
+    /// carries. spec/types/nullable-array-elements.md.
     /// </summary>
     protected override bool SupportsOptionalElements => true;
 
@@ -222,7 +222,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         }
 
         // A struct is an entity beside a table and an enum, so it gets a module of its own -
-        // one per declaration however many tables named it. spec/polymorphism.md section 7.1.
+        // one per declaration however many tables named it. spec/types/polymorphism.md section 7.1.
         foreach (var declared in _model.PolymorphicTypes)
         {
             var structure = BuildStruct(declared);
@@ -447,12 +447,12 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         foreach (var sf in table.SerialFields)
         {
             // The column's name is the key's; the row takes the derived one.
-            // spec/reference-surface-naming.md sections 4 and 5.
+            // spec/references/reference-surface-naming.md sections 4 and 5.
             slots.Add(PythonName(sf.Name));
 
             // Where the built variant is kept, so a row read twice builds once. A slot rather
             // than a dict entry, because `__slots__` is what keeps a row from carrying one.
-            // spec/polymorphism.md section 7.2.
+            // spec/types/polymorphism.md section 7.2.
             if (sf.IsRecord && sf.Members.Any(
                     m => m.IsLeaf && m.FirstField is { IsDiscriminator: true }))
             {
@@ -468,7 +468,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                 slots.Add(PresenceMember(sf));
 
             // And the per-element answer, which is a list rather than a flag.
-            // spec/nullable-array-elements.md.
+            // spec/types/nullable-array-elements.md.
             if (sf.ElementMayBeAbsent)
                 slots.Add(ElementPresenceMember(sf));
         }
@@ -567,7 +567,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// The key type's empty value means "points at nothing", and a multi-target column honours
     /// that in every language: the discriminator is a value a consumer reads, so a language
     /// that resolved a zero where another did not would answer a different table for the same
-    /// row. spec/reference-optionality.md.
+    /// row. spec/references/reference-optionality.md.
     /// </remarks>
     private static string KeyIsSetSuffix(ValueType keyType)
         => keyType == ValueType.String ? "!= \"\"" : "!= 0";
@@ -632,7 +632,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// collects the classes it produces. A nested member is constructed in the constructor,
     /// which is how the values inside it reach the empty values a scalar member gets - and it
     /// means the nested class has to be declared first, because that call runs at construction
-    /// against a name resolved at import. spec/nested-multi-level.md.
+    /// against a name resolved at import. spec/types/nested-multi-level.md.
     /// </remarks>
     private List<PythonRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, Table table, SerialField group,
@@ -689,14 +689,14 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// <remarks>
     /// Classes and `isinstance`. This language is not in section 7's third group after all - it
     /// has inheritance, so the same shape C# takes reads naturally here.
-    /// spec/polymorphism.md section 7.
+    /// spec/types/polymorphism.md section 7.
     /// </remarks>
     /// <summary>
     /// The imports a table needs for the abstract types its groups are.
     /// </summary>
     /// <remarks>
     /// The variants and not the base: the built value names each variant, and the base is only
-    /// what they inherit. spec/polymorphism.md section 7.1.
+    /// what they inherit. spec/types/polymorphism.md section 7.1.
     /// </remarks>
     private IEnumerable<string> PolymorphicImports(Table table)
     {
@@ -740,7 +740,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// **A reference member is two of these**, as a reference is anywhere: the declared name is
     /// the key's and the row it resolves to takes the derived one. A variant carrying only the
     /// key would hand a consumer a key where the declaration promised a row.
-    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     private PythonStructMemberView StructMember(Models.Field field)
     {
@@ -763,7 +763,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     private PythonFieldView BuildRecordField(Table table, SerialField sf)
     {
         // Which abstract type this group is, if it is one. One per declaration however many
-        // tables named it. spec/polymorphism.md section 7.1.
+        // tables named it. spec/types/polymorphism.md section 7.1.
         var declaredType = sf.Members
                 .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
                 ?.FirstField?.AbstractTypeName is { } abstractName
@@ -794,7 +794,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         // A list with its elements already made, where the length is the sheet's column
         // count. A trimmed group starts empty, because its length is the row's.
         // An array of arrays needs no element type: the outer level has no name for one to
-        // belong to, so the inner list is what an element is. spec/nested-multi-level.md.
+        // belong to, so the inner list is what an element is. spec/types/nested-multi-level.md.
         string initializer = sf.MembersAreAnonymous
             ? $"self.{name} = [[{MemberDefault(sf.Members[0])}] * {sf.RecordElementCount} "
               + $"for _ in range({sf.Members.Count})]"
@@ -854,7 +854,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// <remarks>
     /// The member it fills is the group's for a scalar column. A record group's member
     /// columns each fill one attribute of the generated element type, which is the whole of
-    /// the difference - see spec/nested-fields.md.
+    /// the difference - see spec/types/nested-fields.md.
     /// </remarks>
     private PythonColumnView BuildColumn(Table table, WireColumn wire)
     {
@@ -873,7 +873,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             MemberAccess = (wire.Member is null) ? "" : string.Concat(wire.MemberPath.Select(part => "." + PythonName(part))),
             // A reference member reads into the key beside the row it will resolve to, and the
             // suffix goes on the member rather than after the subscript, because a member that
-            // is an array holds one key per element. spec/references-in-records.md.
+            // is an array holds one key per element. spec/references/references-in-records.md.
             MemberRefSuffix = "",
 
             KeyName = wire.IsRef && !ResolvesToRow(wire.TagCarrier)
@@ -938,7 +938,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     ///
     /// Nothing for whether it resolved - the row is None until the linking pass fills it, and
     /// that is the same answer a reference outside a record gives.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     private IReadOnlyList<string> MemberInitializers(RecordMember member)
     {
@@ -949,7 +949,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             string key = RefKeyDefault(member.FirstField!.RefKeyType);
 
             // The member's own name is the key's; the row takes the derived one.
-            // spec/reference-surface-naming.md sections 4 and 5.
+            // spec/references/reference-surface-naming.md sections 4 and 5.
             bool toRow = ResolvesToRow(member.FirstField!);
                     string rowName = toRow
                         ? PythonName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
@@ -993,7 +993,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// No resolution flag: an unresolved row stays as it started, which is how this output
     /// already answers that for a reference outside a record. What the loop walks says which
     /// of the three record shapes this is - the group's list, the member's, or neither.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     private PythonRecordReferenceView BuildRecordReference(WireColumn wire)
     {
@@ -1048,7 +1048,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// A reference member is two rather than one: the row it resolved to, and the key that
     /// came off the wire. Built from the same list the initializers are, because a slot list
     /// that is short by one turns an assignment the read makes into an AttributeError - which
-    /// is what `__slots__` is for. spec/references-in-records.md.
+    /// is what `__slots__` is for. spec/references/references-in-records.md.
     /// </remarks>
     private IReadOnlyList<string> MemberSlotNames(IEnumerable<RecordMember> members)
     {
@@ -1130,7 +1130,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
         // was the int32 assumption in another place: a target keyed by `uuid` has no cursor
-        // path any more than a `uuid` column does. spec/reference-key-types.md.
+        // path any more than a `uuid` column does. spec/references/reference-key-types.md.
         if (wire.IsRef)
             return wire.RefKeyType != ValueType.Uuid;
 
@@ -1188,7 +1188,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             return "";
 
         // A reference runs on the key it carries, which is not always an int32. An enum's
-        // underlying value is one. spec/reference-key-types.md.
+        // underlying value is one. spec/references/reference-key-types.md.
         if (wire.IsRef)
         {
             return wire.RefKeyType switch
@@ -1227,12 +1227,12 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         //
         // A run is one value for many rows, which an array column has none of - so a record
         // member reaching this is a member of a record of one, and its key sits on the member
-        // like every other member's does. spec/references-in-records.md.
+        // like every other member's does. spec/references/references-in-records.md.
         if (wire.IsRef)
         {
             // A dotted reference resolves to a value rather than a row, so there the column's
             // own name belongs to the value and the key takes the `_index` one.
-            // spec/reference-surface-naming.md section 9.
+            // spec/references/reference-surface-naming.md section 9.
             string keySuffix = ResolvesToRow(wire.TagCarrier) ? "" : "_index";
 
             return (wire.Member is null)
@@ -1256,7 +1256,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         // every table is loaded.
         // The key the target is addressed by, which is not always an int32. `next_i32` for
         // every reference is what kept a table keyed by anything else from being pointed at
-        // from this language. spec/reference-key-types.md.
+        // from this language. spec/references/reference-key-types.md.
         if (wire.IsRef)
         {
             return wire.RefKeyType switch
@@ -1344,7 +1344,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             // The key the target is addressed by. `tabbit.ELEMENT_I32` alone is what a reference
             // accepted while a key could only be an int, and the writer has meanwhile learned
             // to emit the key's own element - so a reader told only this would refuse a file
-            // this build wrote. spec/reference-key-types.md.
+            // this build wrote. spec/references/reference-key-types.md.
             accepted = wire.RefKeyType switch
             {
                 ValueType.String => "tabbit.ELEMENT_STRING,",
@@ -1421,7 +1421,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             // the resolved rows belong, and the linking pass then found nothing to resolve -
             // silently, because this language does not type them apart. Nothing held the shape:
             // `foreign[]` is refused, so it is only reachable through a folded group with
-            // trimming on. spec/variable-length-record-arrays.md.
+            // trimming on. spec/types/variable-length-record-arrays.md.
             return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
@@ -1450,7 +1450,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                 // A reference that is a member of a record resolves inside the element rather
                 // than beside it, so it is a loop of its own. Read off the wire columns, which
                 // is the same list the read path walks - the two have to agree about where the
-                // key landed. spec/references-in-records.md.
+                // key landed. spec/references/references-in-records.md.
                 RecordFields = table.WireColumns
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
@@ -1498,7 +1498,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
                 // The key the target is addressed by, which is not always an int32 -
                 // that constant is what kept a table keyed by anything else from
-                // being pointed at. spec/reference-key-types.md.
+                // being pointed at. spec/references/reference-key-types.md.
                 case ValueType.ForeignRecord:
                     return LanguageProfile.Python.ReadCall(wire.RefKeyType);
 
@@ -1518,7 +1518,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     ///
     /// A constant never reaches the file, so there is no wire question here: what a language
     /// needs is an expression its compiler accepts in the place a constant is declared.
-    /// spec/primary-layout.md section 8.5.
+    /// spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     private string RenderConstantValue(ConstantSet.Constant constant)
     {

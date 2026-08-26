@@ -38,7 +38,7 @@ public class GoNestedAndOptionalTests
 
     /// <summary>
     /// A record whose members are arrays - the same columns as an array of records, turned
-    /// inside out. spec/nested-multi-level.md.
+    /// inside out. spec/types/nested-multi-level.md.
     /// </summary>
     [Fact]
     public void A_record_of_arrays_compiles() => AssertCompiles("member-array");
@@ -49,7 +49,7 @@ public class GoNestedAndOptionalTests
     /// <remarks>
     /// Go answers more than most here: a struct field of a type declared beside it, and an
     /// assignment through two levels, are both things it refuses to compile if the view got the
-    /// type name or the member path wrong. spec/nested-multi-level.md.
+    /// type name or the member path wrong. spec/types/nested-multi-level.md.
     /// </remarks>
     [Fact]
     public void A_record_inside_a_record_compiles() => AssertCompiles("nested-deep");
@@ -62,7 +62,7 @@ public class GoNestedAndOptionalTests
     /// key that came off the wire - and the read and the linking both have to name them the
     /// way the declaration does. Every shape a record group has is in this fixture, including
     /// the trimmed one and a target keyed by a string.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     [Fact]
     public void A_reference_inside_a_record_compiles() => AssertCompiles("record-ref");
@@ -74,7 +74,7 @@ public class GoNestedAndOptionalTests
     /// The shape `foreign[]`'s refusal points at, and nothing in the corpus held one - so this
     /// page was generated for every language and never compiled. Both forms of a reference
     /// are in the fixture, because they resolve to different types: a whole row and one of that
-    /// row's values. spec/nullable-array-elements.md.
+    /// row's values. spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void An_array_of_references_compiles() => AssertCompiles("serial-ref");
@@ -85,7 +85,7 @@ public class GoNestedAndOptionalTests
     /// <remarks>
     /// The read walks the bitmap with a counter that steps once per element of every row, and
     /// the per-element answer beside the value is a shape the page did not have before.
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void Optional_array_elements_compile()

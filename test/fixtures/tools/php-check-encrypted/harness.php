@@ -20,7 +20,7 @@
  * Two keys, because the two layers are independent: the first seals the file and the second
  * says it is the file that was exported.
  *
- * spec/tcb-v104-composed-encodings.md section 4 · spec/tcb-mac-and-signature.md.
+ * spec/wire/tcb-v104-composed-encodings.md section 4 · spec/wire/tcb-mac-and-signature.md.
  */
 
 declare(strict_types=1);

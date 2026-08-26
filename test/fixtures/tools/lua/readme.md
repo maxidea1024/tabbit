@@ -8,7 +8,7 @@ www.lua.org/ftp/lua-5.4.8.tar.gz 의 `src/` 그대로이고, 빼놓은 것은 �
 임베더(`../conformance/lua/main.c`), 그리고 생성 산출물의 네이티브 모듈 소스를 이미 있는
 C 툴체인으로 한 번에 컴파일합니다 — 그래서 Lua 게이트의 가용성이 C 게이트와 같아지고,
 빌드된 호스트가 곧 소비자(게임 엔진의 임베디드 Lua)와 같은 통합 형태의 증명입니다.
-spec/lua-language-support.md 12절.
+spec/targets/lua-language-support.md 12절.
 
 버전을 올릴 때는 이 디렉터리를 새 타르볼의 `src/`로 갈아끼우고 이 파일의 버전 표기를
 고칩니다. 파일을 손으로 고치지 않습니다.

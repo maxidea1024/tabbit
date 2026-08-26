@@ -4,10 +4,10 @@
    generated type shares one package, which is why the name carries the table's. ##~}}
 {{~ for field in table.fields ~}}
 {{~## An array of arrays declares no element type: its outer level has no name, so there is
-   nothing for a struct to be. spec/nested-multi-level.md. ##~}}
+   nothing for a struct to be. spec/types/nested-multi-level.md. ##~}}
 {{~ if field.is_record && !field.members_are_anonymous ~}}
 {{~## One struct per level, innermost first - the view flattened the nesting so this loop does
-   not have to know how deep it went. spec/nested-multi-level.md. ##~}}
+   not have to know how deep it went. spec/types/nested-multi-level.md. ##~}}
 {{~ for rt in field.record_types ~}}
 {{~ if rt.is_outermost ~}}
 // {{ rt.type_name }} is one element of {{ rt.owner }}.
@@ -26,7 +26,7 @@ type {{ rt.type_name }} struct {
 }
 {{~## The per-target methods of every member of this struct that reaches several tables. One
    taking an element number where the member is the array, which is the third place an element
-   number sits. spec/multi-target-accessors.md. ##~}}
+   number sits. spec/references/multi-target-accessors.md. ##~}}
 
 {{~ end ~}}
 {{~ end ~}}
@@ -57,7 +57,7 @@ type {{ table.record_name }} struct {
 {{~## A column whose value is a row of one of several tables. One slot for the resolved row
    whatever table it came from, and the discriminator saying which - the targets take separate
    id bands, so at most one of them ever answers and a member per target would be permanently
-   nil. spec/multi-target-accessors.md. ##~}}
+   nil. spec/references/multi-target-accessors.md. ##~}}
 }
 {{~ for field in table.fields ~}}
 {{~ if field.variants.size > 0 }}
@@ -67,7 +67,7 @@ type {{ table.record_name }} struct {
    and the value is built from it here - which is why the read path and the wire are untouched.
 
    A method rather than a field, because the group's own name is what a consumer should write
-   and a field already holding the entry cannot share it. spec/polymorphism.md section 7.2. ##~}}
+   and a field already holding the entry cannot share it. spec/types/polymorphism.md section 7.2. ##~}}
 {{~ if field.variants_are_array ~}}
 // {{ field.name }} is what this row's {{ field.abstract_type_name }}s are, one per element.
 //
@@ -151,7 +151,7 @@ func (t *{{ table.table_name }}) Records() []{{ table.record_name }} { return t.
 {{~## A composite key is held as the text its columns make. Each part carries its own length,
    so no two combinations can make the same text - "a b" with "c" and "a" with "b c" joined by
    a separator alone would be one key, and a lookup that answers with the wrong row is worse
-   than one that fails to compile. spec/primary-layout.md section 3.5. ##~}}
+   than one that fails to compile. spec/layout/primary-layout.md section 3.5. ##~}}
 {{~ if index.is_composite ~}}
 // keyOf{{ index.suffix }} joins the columns of the {{ index.field_name }} key into the text the map is keyed by.
 func (t *{{ table.table_name }}) keyOf{{ index.suffix }}({{ index.params }}) string {
@@ -212,7 +212,7 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 	// Unconditionally, and with whatever EncryptionKey and MacKey hold - which is nil
 	// unless the project set them. A file that is neither encrypted nor signed comes back
 	// from this untouched, so the load path is the same either way and there is no
-	// condition here that could be the wrong way round. spec/tcb-mac-and-signature.md.
+	// condition here that could be the wrong way round. spec/wire/tcb-mac-and-signature.md.
 	//
 	// What comes back is a window onto data rather than a copy of it, which is why data
 	// stays in scope for the whole read.
@@ -255,7 +255,7 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 {{~ if member.ref_key_slice_type != '' ~}}
 {{~## A reference member holds one key per element as well as one row, and the read writes
    into the key - so both are made. The member's own name is the key's.
-   spec/reference-surface-naming.md section 4. ##~}}
+   spec/references/reference-surface-naming.md section 4. ##~}}
 		records[i].{{ field.name }}.{{ member.name }} = make({{ member.ref_key_slice_type }}, 0)
 		records[i].{{ field.name }}.{{ member.row_name }} = make({{ member.slice_type }}, 0)
 {{~ else ~}}
@@ -282,7 +282,7 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 {{~ if column_view.has_optional_elements ~}}
 				// Behind the row bitmap and in front of the values, walked with a counter
 				// that steps once per element of every row.
-				// spec/nullable-array-elements.md.
+				// spec/types/nullable-array-elements.md.
 				elementPresence := tabbit.ReadElementPresence(reader, column)
 				elementAt := int32(0)
 {{~ end ~}}
@@ -324,7 +324,7 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 {{~ else if column_view.kind == 'var_array_ref' ~}}
 {{~## A trimmed array of references. Same length as the values - this row's - for the keys
    beside them, which is what `serial_ref` does from the column count.
-   spec/variable-length-record-arrays.md. ##~}}
+   spec/types/variable-length-record-arrays.md. ##~}}
 					{{ column_view.length_read }}
 					r.{{ column_view.row_name }} = make({{ column_view.array_type }}, elementCount)
 					r.{{ column_view.name }} = make([]{{ column_view.ref_key_type }}, elementCount)
@@ -357,7 +357,7 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 					}
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner slice. Which outer element it is, is which column this is - so the outer
-   index is fixed here and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
+   index is fixed here and the loop runs the inner length. spec/types/nested-multi-level.md. ##~}}
 					{{ column_view.length_read }}
 					r.{{ column_view.name }}[{{ column_view.member_at }}] = make({{ column_view.element_slice_type }}, elementCount)
 					for j := 0; j < elementCount; j++ {
@@ -365,12 +365,12 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 					}
 {{~ else if column_view.kind == 'record_member_var' ~}}
 {{~## The member is the array: the index goes after its name rather than before, and its
-   length is this row's - see spec/nested-multi-level.md. ##~}}
+   length is this row's - see spec/types/nested-multi-level.md. ##~}}
 					{{ column_view.length_read }}
 {{~ if column_view.row_member_access != '' ~}}
 {{~## A reference member holds one key per element as well as one row, and the read writes
    into the key - so both are made. The member's own name is the key's.
-   spec/reference-surface-naming.md section 4. ##~}}
+   spec/references/reference-surface-naming.md section 4. ##~}}
 					r.{{ column_view.name }}{{ column_view.member_access }} = make([]{{ column_view.ref_key_type }}, elementCount)
 					r.{{ column_view.name }}{{ column_view.row_member_access }} = make({{ column_view.element_slice_type }}, elementCount)
 {{~ else ~}}

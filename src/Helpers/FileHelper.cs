@@ -70,7 +70,7 @@ public static class FileHelper
     /// removed by something else mid-run would then not be recreated, and that is a trade
     /// worth naming: the alternative is a stat per file for the whole run, and a tool whose
     /// output directory is being deleted underneath it has a larger problem than this.
-    /// spec/conversion-time.md section 5.
+    /// spec/ops/conversion-time.md section 5.
     /// </remarks>
     public static void EnsurePathExists(string filename)
     {

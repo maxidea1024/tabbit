@@ -54,7 +54,7 @@ public class BinaryFormatTests
         // signed: the fields those layers write are reserved here as zeros rather than
         // appearing when they are used. What that costs a plain file is the thirty-seven
         // bytes below; what it buys is one header shape for the readers to agree on.
-        // spec/tcb-mac-and-signature.md.
+        // spec/wire/tcb-mac-and-signature.md.
         expected.Add("signature", 0x54, 0x43, 0x42, 0x00);   // "TCB\0", at offset zero
         expected.Add("version", 0x6b, 0x00, 0x00, 0x00);     // 107, fixed32
         expected.Add("flags", 0x00);                         // no compression, no encryption

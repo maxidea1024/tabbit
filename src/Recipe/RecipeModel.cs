@@ -177,7 +177,7 @@ public class RecipeModel
     /// A name and an offset are not the same answer. The name carries the region's
     /// history, so a date from a summer under daylight saving converts by the offset that
     /// was in force then; a fixed offset is the same all year, which is what sheets
-    /// written to one office's clock usually mean. spec/datetime-timezone.md.
+    /// written to one office's clock usually mean. spec/types/datetime-timezone.md.
     /// </remarks>
     public string TimeZone { get; set; } = "";
 
@@ -215,7 +215,7 @@ public class RecipeModel
     /// Data rather than code, so adding one is a file rather than a build of this tool, and
     /// a project's own palette never reaches this repository. `css` cannot be replaced.
     ///
-    /// spec/composite-value-types.md section 4.4.
+    /// spec/types/composite-value-types.md section 4.4.
     /// </summary>
     public Dictionary<string, string> Palettes { get; set; } = new Dictionary<string, string>();
 
@@ -240,7 +240,7 @@ public class RecipeModel
     /// The command line writes the same thing as `--variant Item.Price=kr`, which is what makes
     /// a one-off build of the other variant possible without editing the recipe.
     ///
-    /// spec/primary-layout.md section 3.6.
+    /// spec/layout/primary-layout.md section 3.6.
     /// </remarks>
     public Dictionary<string, string> Variants { get; set; } = new Dictionary<string, string>();
     #endregion
@@ -323,7 +323,7 @@ public class RecipeModel
     /// opens itself.
     ///
     /// Written whether the run succeeded or not, because a run that stopped is the one
-    /// whose report is worth reading. spec/build-report.md.
+    /// whose report is worth reading. spec/ops/build-report.md.
     /// </summary>
     public ReportRecipe Report { get; set; } = new ReportRecipe();
     #endregion

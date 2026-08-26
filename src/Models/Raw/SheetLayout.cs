@@ -43,7 +43,7 @@ public enum FormulaErrorPolicy
 /// a blank is nothing at all: the numbers, the dates, a uuid, an enum label.
 ///
 /// Saying a row has no value is a different statement, written `-`, and neither setting here
-/// changes that. spec/blank-and-null-cells.md.
+/// changes that. spec/types/blank-and-null-cells.md.
 /// </remarks>
 public enum BlankCellPolicy
 {
@@ -120,7 +120,7 @@ public sealed class SheetLayout
     /// Whether an array may have an empty element between two filled ones.
     /// </summary>
     /// <remarks>
-    /// Off, so a gap stops the conversion and names the cell. spec/variable-length-record-arrays.md
+    /// Off, so a gap stops the conversion and names the cell. spec/types/variable-length-record-arrays.md
     /// says why the strict reading is the default one.
     /// </remarks>
     public bool AllowArrayGaps { get; }

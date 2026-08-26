@@ -42,7 +42,7 @@ public class RustNestedAndOptionalTests
     /// </summary>
     /// <remarks>
     /// Rust answers a good deal here: a field of a type declared beside it, `Default` derived
-    /// through both levels, and an assignment through two of them. spec/nested-multi-level.md.
+    /// through both levels, and an assignment through two of them. spec/types/nested-multi-level.md.
     /// </remarks>
     [Fact]
     public void A_record_inside_a_record_compiles() => AssertCompiles("nested-deep");
@@ -54,7 +54,7 @@ public class RustNestedAndOptionalTests
     /// This output keeps a reference as its key rather than resolving it - a record holding a
     /// borrow of another record is a graph, and Rust will not let one own its neighbours - so
     /// what the member gains here is its name and the type of that key.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     [Fact]
     public void A_reference_inside_a_record_compiles() => AssertCompiles("record-ref");
@@ -66,14 +66,14 @@ public class RustNestedAndOptionalTests
     /// The shape `foreign[]`'s refusal points at, and nothing in the corpus held one - so this
     /// page was generated for every language and never compiled. Both forms of a reference
     /// are in the fixture, because they resolve to different types: a whole row and one of that
-    /// row's values. spec/nullable-array-elements.md.
+    /// row's values. spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void An_array_of_references_compiles() => AssertCompiles("serial-ref");
 
     /// <summary>
     /// A record whose members are arrays - the same columns as an array of records, turned
-    /// inside out. spec/nested-multi-level.md.
+    /// inside out. spec/types/nested-multi-level.md.
     /// </summary>
     [Fact]
     public void A_record_of_arrays_compiles() => AssertCompiles("member-array");
@@ -84,7 +84,7 @@ public class RustNestedAndOptionalTests
     /// <remarks>
     /// The read walks the bitmap with a counter that steps once per element of every row, and
     /// the per-element answer beside the value is a shape the page did not have before.
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void Optional_array_elements_compile()

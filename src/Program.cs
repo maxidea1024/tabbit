@@ -59,7 +59,7 @@ class Program
         // error message, which is what happened before, pushes the error off the top of
         // the terminal: the one thing the reader needed is the one thing scrolled away.
         //
-        // spec/cli-help.md.
+        // spec/ops/cli-help.md.
         if (args.Length == 0)
         {
             HelpScreen.WriteUsageError(Console.Error, "no options given");
@@ -355,7 +355,7 @@ class Program
         {
             // Nothing to work on: no recipe, and none of the options above that run
             // without one. This used to print the whole help screen, which buries the
-            // sentence saying what was missing. spec/cli-help.md section 6.
+            // sentence saying what was missing. spec/ops/cli-help.md section 6.
             HelpScreen.WriteUsageError(
                 Console.Error, "no recipe given, and no option that works without one");
 
@@ -411,7 +411,7 @@ class Program
 
         // Opening the last report is not a conversion either. It reads one file and hands it
         // to a browser, which is the whole point of the report having a fixed path: the run
-        // that wrote it may have been days ago and may have failed. spec/build-report.md §7.
+        // that wrote it may have been days ago and may have failed. spec/ops/build-report.md §7.
         if (options.ShowReport)
         {
             try
@@ -480,7 +480,7 @@ class Program
     /// <remarks>
     /// The report is written here rather than inside <see cref="Convert"/> because that
     /// method has six ways out and the report belongs on all of them - including the one
-    /// that threw, which is the ending the report exists for. spec/build-report.md.
+    /// that threw, which is the ending the report exists for. spec/ops/build-report.md.
     /// </remarks>
     private static int Process(Options options, RecipeModel recipeModel, JObject? recipeDocument)
     {

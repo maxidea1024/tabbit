@@ -15,7 +15,7 @@ namespace Tabbit.Models;
 /// The two questions are independent, and that independence is the whole content of the
 /// type. A level can be named and not repeat (`Pos` in `Pos.X`), repeat and not be named
 /// (the second level of `Grid1.2`), both, or neither. Every shape the tool supports is
-/// some combination of those two bits at each level - see spec/nested-multi-level.md.
+/// some combination of those two bits at each level - see spec/types/nested-multi-level.md.
 /// </remarks>
 public sealed class FieldPathStep
 {
@@ -52,7 +52,7 @@ public sealed class FieldPathStep
     /// one - a sheet writes `effect.$type` and the step is called `Type`. Anything asking
     /// "is this the discriminator" has to ask this, not the name: a group is free to have a
     /// member actually called `type`, and the two are different columns.
-    /// spec/polymorphism.md section 5.2.
+    /// spec/types/polymorphism.md section 5.2.
     /// </remarks>
     public bool IsDiscriminator { get; set; }
 

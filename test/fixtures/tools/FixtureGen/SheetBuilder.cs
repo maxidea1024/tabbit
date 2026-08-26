@@ -9,7 +9,7 @@ namespace Tabbit.FixtureGen;
 /// (column, row) origin, so fixtures read the same way they look in Excel.
 /// </summary>
 /// <remarks>
-/// The notation is the one `doc/sheets-primary.md` describes:
+/// The notation is the one `spec/layout/primary-layout.md` describes:
 ///
 ///     :table Name(side=s) | description
 ///     :field              | columns...

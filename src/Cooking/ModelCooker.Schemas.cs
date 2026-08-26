@@ -85,7 +85,7 @@ public partial class ModelCooker
         // **One cell, not one field per element.** A multi-row group's header is one column and
         // every element's field carries its type cell, so counting fields made a group of two
         // elements look like one naming its struct twice. The location is what says which cell
-        // an author actually wrote. spec/polymorphism.md section 5.3.
+        // an author actually wrote. spec/types/polymorphism.md section 5.3.
         var naming = group
             .Where(field => declarations.FindStruct(field.TypeName) is not null)
             .GroupBy(field => field.TypeLocation?.ToString() ?? field.RawName)
@@ -115,7 +115,7 @@ public partial class ModelCooker
         // An abstract type says the group's rows are not all one shape, and then the columns
         // are the union of its variants' rather than one struct's members. A different pass,
         // because every question below - which member, is it required, is a missing column a
-        // problem - has a different answer there. spec/polymorphism.md section 5.2.
+        // problem - has a different answer there. spec/types/polymorphism.md section 5.2.
         if (declared.IsAbstract)
         {
             BindPolymorphicGroup(

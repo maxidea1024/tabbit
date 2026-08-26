@@ -22,7 +22,7 @@ namespace Tabbit.Tests;
 /// A row says it points at none by writing `-`. A blank cell does not say it - it is a cell
 /// nobody filled in, and it is refused in an optional column as readily as in a required one.
 ///
-/// spec/reference-optionality.md · spec/blank-and-null-cells.md.
+/// spec/references/reference-optionality.md · spec/types/blank-and-null-cells.md.
 /// </remarks>
 public class ReferenceOptionalityTests
 {
@@ -37,7 +37,7 @@ public class ReferenceOptionalityTests
     /// <remarks>
     /// Refused whatever the column declared. A blank is not a way of saying "no target" -
     /// that is `-`, and a column allowing it says so with `?` - so what a blank reference
-    /// cell says is that a row was left unfinished. spec/blank-and-null-cells.md.
+    /// cell says is that a row was left unfinished. spec/types/blank-and-null-cells.md.
     ///
     /// The message names both the key and `-`, because which one belongs there is the
     /// author's to decide and the message is the only place either is offered.

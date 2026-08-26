@@ -9,7 +9,7 @@
 // and `Tier` is one of that row's values. The resolved value is printed rather than the key,
 // so an element that resolved to the wrong row shows as a different word.
 //
-// spec/nullable-array-elements.md · spec/references-in-records.md.
+// spec/types/nullable-array-elements.md · spec/references/references-in-records.md.
 
 using System;
 using System.Collections.Generic;
@@ -46,7 +46,7 @@ internal static class Program
                     // Each element's key and what it resolved to, per element - resolving the
                     // first and leaving the rest is what a loop bounded by the wrong number
                     // produces. The column's name is the key's and the rows are under the
-                    // derived one. spec/reference-surface-naming.md sections 4 and 5.
+                    // derived one. spec/references/reference-surface-naming.md sections 4 and 5.
                     ["slots"] = r.PieceBySlot.Select((piece, at) => new Dictionary<string, object>
                     {
                         ["key"] = r.Slot[at],
@@ -65,7 +65,7 @@ internal static class Program
                 // The same shape with the length trimmed to each row's. What this catches
                 // that the table above cannot: the key array is allocated per row here, and
                 // the read left it empty - so the first element written into it was an index
-                // out of range. spec/variable-length-record-arrays.md.
+                // out of range. spec/types/variable-length-record-arrays.md.
                 ["TrimKit"] = SerialRefAccessor.TrimKit.Records.Select(r => new Dictionary<string, object>
                 {
                     ["index"] = r.Index,

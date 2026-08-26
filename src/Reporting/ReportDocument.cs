@@ -84,7 +84,7 @@ public sealed class ReportEntry
     /// </summary>
     /// <remarks>
     /// What makes a pipeline's filter survive an edit to the wording, and what the comparison
-    /// with the previous run keys on. spec/message-ids.md.
+    /// with the previous run keys on. spec/validation/message-ids.md.
     /// </remarks>
     public string? Id { get; set; }
 
@@ -160,7 +160,7 @@ public sealed class ReportDefect
 /// has is a reader that breaks quietly. The next run reads it too - that is what the new /
 /// still here / fixed columns are made of - and an older shape it does not understand is
 /// simply not compared against, which costs those three columns and nothing else.
-/// spec/build-report.md.
+/// spec/ops/build-report.md.
 /// </remarks>
 public sealed class ReportDocument
 {

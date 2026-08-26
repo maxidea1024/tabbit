@@ -121,7 +121,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// <summary>
     /// A level below is a class declared beside the element type, and the read reaches it with a
     /// longer member path. Its holder's constructor makes it - a typed property left unset is an
-    /// error to read rather than a null. spec/nested-multi-level.md.
+    /// error to read rather than a null. spec/types/nested-multi-level.md.
     /// </summary>
     protected override bool SupportsDeepNestedFields => true;
 
@@ -131,7 +131,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// <remarks>
     /// Not a nullable property. PHP already uses null here for the two things that have no
     /// value - an unresolved reference and a uuid before the read - so a third meaning on the
-    /// same word would be one nobody could tell apart. spec/optional-fields.md has the rest.
+    /// same word would be one nobody could tell apart. spec/types/optional-fields.md has the rest.
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
@@ -140,7 +140,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
     /// <summary>
     /// The per-element answer beside the value, filled from the element bitmap the file
-    /// carries. spec/nullable-array-elements.md.
+    /// carries. spec/types/nullable-array-elements.md.
     /// </summary>
     protected override bool SupportsOptionalElements => true;
 
@@ -212,7 +212,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             // `require_once` marks a file included before it runs it - so the cycle resolves
             // rather than recursing, and a table file stays usable on its own.
             // And the abstract types its groups are. Declared in files of their own - one per
-            // declaration however many tables named it. spec/polymorphism.md section 7.1.
+            // declaration however many tables named it. spec/types/polymorphism.md section 7.1.
             requires.AddRange(pair.model.Fields
                 .Where(field => field.IsDiscriminator && field.AbstractTypeName is not null)
                 .Select(field => field.AbstractTypeName!.ToPascalCase())
@@ -245,7 +245,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         }
 
         // A struct is an entity beside a table and an enum, so it gets a file of its own.
-        // spec/polymorphism.md section 7.1.
+        // spec/types/polymorphism.md section 7.1.
         foreach (var declared in _model.PolymorphicTypes)
         {
             Write(System.IO.Path.Combine("structs", declared.Name + ".php"), "php-struct.sbn",
@@ -505,7 +505,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// <remarks>
     /// The key type's empty value means "points at nothing", and a multi-target column honours
     /// it in every language: the discriminator is a value a consumer reads.
-    /// spec/reference-optionality.md.
+    /// spec/references/reference-optionality.md.
     /// </remarks>
     private static string KeyIsSetSuffix(ValueType keyType)
         => keyType switch
@@ -536,7 +536,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
         // And the per-element answer, empty until the read fills it: an index into an empty
         // array is out of range, and the answer there is that the element has a value.
-        // spec/nullable-array-elements.md.
+        // spec/types/nullable-array-elements.md.
         if (sf.ElementMayBeAbsent)
         {
             declarations.Add("");
@@ -583,7 +583,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// The recursion is here rather than in the template, and <paramref name="declared"/>
     /// collects the classes it produces. A nested member is made in its holder's constructor:
     /// a property initializer has to be a constant expression, and a typed property left unset
-    /// is an error to read rather than a null. spec/nested-multi-level.md.
+    /// is an error to read rather than a null. spec/types/nested-multi-level.md.
     /// </remarks>
     private List<PhpRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, Table table, SerialField group,
@@ -605,7 +605,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
                 // A reference member that is an array starts as a list of nulls, the same
                 // shape a reference array outside a record starts as: the linking pass fills
                 // the positions it resolves, and the ones it does not have to already be
-                // there. spec/references-in-records.md.
+                // there. spec/references/references-in-records.md.
                 if (member.IsRef && member.IsArray)
                 {
                     constructorLines.Add(
@@ -647,7 +647,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// One abstract type and its variants, as the template reads them.
     /// </summary>
     /// <remarks>
-    /// Classes and `instanceof`, which is this language's way of narrowing. spec/polymorphism.md
+    /// Classes and `instanceof`, which is this language's way of narrowing. spec/types/polymorphism.md
     /// section 7.
     /// </remarks>
     private PhpPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
@@ -670,7 +670,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// **A reference member is two properties**, as a reference is anywhere: the declared name
     /// is the key's and the row it resolves to takes the derived one. And `ScalarTypeName` has
     /// no answer for a row, which is what asking it for one used to produce - a defect, not a
-    /// diagnostic. spec/reference-surface-naming.md sections 4 and 5.
+    /// diagnostic. spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     private PhpStructMemberView StructMember(Models.Field field)
     {
@@ -698,7 +698,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     private PhpFieldView BuildRecordField(Table table, SerialField sf)
     {
         // Which abstract type this group is, if it is one. One per declaration however many
-        // tables named it. spec/polymorphism.md section 7.1.
+        // tables named it. spec/types/polymorphism.md section 7.1.
         var declaredType = sf.Members
                 .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
                 ?.FirstField?.AbstractTypeName is { } abstractName
@@ -730,7 +730,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         if (sf.MembersAreAnonymous)
         {
             // An array of arrays needs no element type: the outer level has no name for one
-            // to belong to, so the inner list is what an element is. spec/nested-multi-level.md.
+            // to belong to, so the inner list is what an element is. spec/types/nested-multi-level.md.
             string inner = LanguageProfile.Php.ScalarTypeName(sf.Members[0].ElementType);
 
             declarations.Add($"/** @var list<list<{inner}>> */");
@@ -803,7 +803,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// <remarks>
     /// The member it fills is the group's for a scalar column. A record group's member
     /// columns each fill one property of the generated element type, which is the whole of
-    /// the difference - see spec/nested-fields.md.
+    /// the difference - see spec/types/nested-fields.md.
     /// </remarks>
     private PhpColumnView BuildColumn(Table table, WireColumn wire)
     {
@@ -827,7 +827,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
             // A reference member reads into the key beside the row it will resolve to, and
             // the suffix goes on the member rather than after the subscript - `itemId[$j]`
-            // rather than the member's own name. spec/references-in-records.md.
+            // rather than the member's own name. spec/references/references-in-records.md.
             MemberRefSuffix = "",
 
             RowName = wire.IsRef && wire.TagCarrier.ResolvedRefTable is not null
@@ -888,14 +888,14 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         //
         // No third property for whether it resolved - the resolved one is nullable, and null
         // is what a reference into a row that is not there stays.
-        // spec/references-in-records.md.
+        // spec/references/references-in-records.md.
         if (member.IsRef)
         {
             string row = member.FirstField!.ResolvedRefTable!.Name.ToPascalCase() + "Record";
             string key = LanguageProfile.Php.ScalarTypeName(member.FirstField!.RefKeyType);
 
             // The member's own name is the key's; the row takes the derived one.
-            // spec/reference-surface-naming.md sections 4 and 5.
+            // spec/references/reference-surface-naming.md sections 4 and 5.
             bool toRow = ResolvesToRow(member.FirstField!);
                     string rowName = toRow
                         ? PhpName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
@@ -955,7 +955,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// <remarks>
     /// A uuid is a class here, and PHP will not take a constant expression as a class-typed
     /// property's default - so it is nullable and starts null, exactly as a uuid member of a
-    /// record does. spec/reference-key-types.md.
+    /// record does. spec/references/reference-key-types.md.
     /// </remarks>
     private static string RefKeyDeclaration(ValueType keyType, string typeName)
         => keyType == ValueType.Uuid ? "?" + typeName : typeName;
@@ -1032,7 +1032,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
         // was the int32 assumption in another place: a target keyed by `uuid` has no cursor
-        // path any more than a `uuid` column does. spec/reference-key-types.md.
+        // path any more than a `uuid` column does. spec/references/reference-key-types.md.
         if (wire.IsRef)
             return wire.RefKeyType != ValueType.Uuid;
 
@@ -1091,7 +1091,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             return "";
 
         // A reference runs on the key it carries, which is not always an int32. An enum's
-        // underlying value is one. spec/reference-key-types.md.
+        // underlying value is one. spec/references/reference-key-types.md.
         if (wire.IsRef)
         {
             return wire.RefKeyType switch
@@ -1130,12 +1130,12 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         //
         // A run is one value for many rows, which an array column has none of - so a record
         // member reaching this is a member of a record of one, and its key sits on the member
-        // like every other member's does. spec/references-in-records.md.
+        // like every other member's does. spec/references/references-in-records.md.
         if (wire.IsRef)
         {
             // A dotted reference resolves to a value rather than a row, so there the column's
             // own name belongs to the value and the key takes the derived one.
-            // spec/reference-surface-naming.md section 9.
+            // spec/references/reference-surface-naming.md section 9.
             string keySuffix = ResolvesToRow(wire.TagCarrier) ? "" : "Index";
 
             return (wire.Member is null)
@@ -1167,7 +1167,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             // nullable because a reference into a row that is not there stays null
             // rather than inventing a record.
             // The column's name is the key's; the row takes the derived one.
-            // spec/reference-surface-naming.md sections 4 and 5.
+            // spec/references/reference-surface-naming.md sections 4 and 5.
             bool toRow = ResolvesToRow(sf.FirstField!);
             string rowName = toRow
                 ? PhpName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
@@ -1249,7 +1249,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             // The key the target is addressed by. `TcbReader::ELEMENT_I32` alone is what a reference
             // accepted while a key could only be an int, and the writer has meanwhile learned
             // to emit the key's own element - so a reader told only this would refuse a file
-            // this build wrote. spec/reference-key-types.md.
+            // this build wrote. spec/references/reference-key-types.md.
             accepted = wire.RefKeyType switch
             {
                 ValueType.String => "TcbReader::ELEMENT_STRING",
@@ -1326,7 +1326,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             // the resolved rows belong, and the linking pass then found nothing to resolve -
             // silently, because this language does not type them apart. Nothing held the shape:
             // `foreign[]` is refused, so it is only reachable through a folded group with
-            // trimming on. spec/variable-length-record-arrays.md.
+            // trimming on. spec/types/variable-length-record-arrays.md.
             return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
@@ -1355,7 +1355,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
                 // A reference that is a member of a record resolves inside the element rather
                 // than beside it, so it is a loop of its own. Read off the wire columns, which
                 // is the same list the read path walks - the two have to agree about where the
-                // key landed. spec/references-in-records.md.
+                // key landed. spec/references/references-in-records.md.
                 RecordFields = table.WireColumns
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
@@ -1397,7 +1397,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// Whole expressions rather than the parts to build them from: which of the three record
     /// shapes this is decides where the element number sits - on the group, on the member, or
     /// nowhere - and the template should not be the place that knows.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     private PhpRecordReferenceView BuildRecordReference(WireColumn wire)
     {
@@ -1408,7 +1408,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         bool isArray = wire.IsArray;
 
         // Where the element number goes is the whole difference between the record shapes -
-        // the group's array, the member's, or neither. spec/nested-multi-level.md.
+        // the group's array, the member's, or neither. spec/types/nested-multi-level.md.
         string rowLeaf = wire.Member is not null
             ? PhpName(RowAccessorName(refTable!.Name, wire.MemberPath[^1]))
             : PhpName(RowAccessorName(refTable!.Name, wire.Group.Name));
@@ -1464,7 +1464,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
         // The key the target is addressed by, which is not always an int32. `nextI32` for
         // every reference is what kept a table keyed by anything else from being pointed at
-        // from this language. spec/reference-key-types.md.
+        // from this language. spec/references/reference-key-types.md.
         if (wire.IsRef)
         {
             return wire.RefKeyType switch
@@ -1524,7 +1524,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
                 // The key the target is addressed by, which is not always an int32 -
                 // that constant is what kept a table keyed by anything else from
-                // being pointed at. spec/reference-key-types.md.
+                // being pointed at. spec/references/reference-key-types.md.
                 case ValueType.ForeignRecord:
                     return LanguageProfile.Php.ReadCall(wire.RefKeyType);
 
@@ -1555,7 +1555,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     ///
     /// A constant never reaches the file, so there is no wire question here: what a language
     /// needs is an expression its compiler accepts in the place a constant is declared.
-    /// spec/primary-layout.md section 8.5.
+    /// spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     private string RenderConstantValue(ConstantSet.Constant constant)
     {

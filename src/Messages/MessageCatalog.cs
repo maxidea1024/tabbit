@@ -23,7 +23,7 @@ namespace Tabbit.Messages;
 ///
 /// English is always loaded, and always as the fallback under whatever language was asked
 /// for, because a run should not go silent on a key nobody has translated yet.
-/// spec/message-ids.md §5.
+/// spec/validation/message-ids.md §5.
 /// </remarks>
 public sealed class MessageCatalog
 {
@@ -66,7 +66,7 @@ public sealed class MessageCatalog
     ///
     /// English until something sets it. Not the machine's UI culture: two runners on the
     /// same recipe would then produce logs that differ, and a diff between them would show
-    /// a change on every run. spec/message-ids.md §5.
+    /// a change on every run. spec/validation/message-ids.md §5.
     /// </remarks>
     public static MessageCatalog Current { get; set; } = English;
 

@@ -19,7 +19,7 @@ namespace Tabbit.Validation;
 /// so `nameof(row.MaxStack)` is the field's own name.
 ///
 /// Where the inversion is not exact - a folded array, a record group, a matrix table - the
-/// group's first column is the answer. spec/validation-pipeline.md §10 names that as the
+/// group's first column is the answer. spec/validation/validation-pipeline.md §10 names that as the
 /// deliberate approximation, with an element-aware overload as the way out.
 /// </remarks>
 internal sealed class CellLocator

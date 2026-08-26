@@ -26,7 +26,7 @@ public partial class ModelCooker
 
     /// <param name="report">
     /// Where everything found here is kept so that it survives the run. Null when the recipe
-    /// asked for no report. spec/build-report.md.
+    /// asked for no report. spec/ops/build-report.md.
     /// </param>
     public Model Cook(
         Options options,
@@ -96,7 +96,7 @@ public partial class ModelCooker
         // rather than at the end of parsing so that every mismatched pair is reported
         // together: a project turning this on wants the list, not the first one.
         //
-        // spec/table-row-sets.md.
+        // spec/layout/table-row-sets.md.
         TableRowSets.Fold(context, rawModel.Sheets, diagnostics);
 
         // What each table's data file is called, settled here rather than by each of the
@@ -114,19 +114,19 @@ public partial class ModelCooker
         // A `$type` cell waits for the same reason a reference cell does - which variants
         // exist is not a fact any one sheet carries - so it is settled here, beside it. Then
         // the union's own refusal, which needs each row's variant to be a number already.
-        // spec/polymorphism.md sections 5.2 and 8.
+        // spec/types/polymorphism.md sections 5.2 and 8.
         ConvertDiscriminatorCells(result, diagnostics);
         RefuseValuesOutsideTheRowsVariant(result, diagnostics);
 
         // And the rows are put in discriminator order, so that how the sheet was written stops
         // deciding how the file encodes. Only tables that have such a group move at all.
-        // spec/polymorphism.md section 6.3.
+        // spec/types/polymorphism.md section 6.3.
         SortRowsByDiscriminator(result);
 
         // And the abstract types the sheets used, gathered once. A struct is an entity beside
         // a table and an enum, so the generators get one list rather than finding it again per
         // table - which is also what keeps two tables from each declaring their own `Effect`.
-        // spec/polymorphism.md section 7.1.
+        // spec/types/polymorphism.md section 7.1.
         GatherPolymorphicTypes(result);
 
         // Runs after resolution: validation follows references to check that what
@@ -139,7 +139,7 @@ public partial class ModelCooker
 
         // The reports this recipe has written down stop being reports that end the run, and
         // start being reports that say so. After every check, because an entry states how many
-        // it accounts for and that can only be counted once. spec/known-problems.md.
+        // it accounts for and that can only be counted once. spec/ops/known-problems.md.
         diagnostics.ApplyKnownProblems(recipeModel.Validation?.KnownProblems
                                        ?? (IReadOnlyList<Recipe.KnownProblemRecipe>)System.Array.Empty<Recipe.KnownProblemRecipe>());
 
@@ -181,7 +181,7 @@ public partial class ModelCooker
     /// here. <see cref="Field.TypeName"/> keeps saying `bitset`, because that is what the
     /// sheet says and what a report about that column should call it.
     ///
-    /// spec/bitset.md has the notation and why it is a type rather than a role.
+    /// spec/types/bitset.md has the notation and why it is a type rather than a role.
     /// </remarks>
     private static void FoldBitsetIntoInt64(Model model)
     {
@@ -215,7 +215,7 @@ public partial class ModelCooker
     /// Blank spelling keeps the table's own name, which is what every recipe written before
     /// the setting existed holds - so every data file keeps the name it had.
     ///
-    /// spec/naming-conventions.md.
+    /// spec/targets/naming-conventions.md.
     /// </remarks>
     private static void NameDataFiles(Model model, RecipeModel recipeModel)
     {
@@ -271,7 +271,7 @@ public partial class ModelCooker
     /// <remarks>
     /// The leaf itself does not carry its path - a member knows its own name and nothing
     /// above it - and a name built from the last part alone would collide the moment two
-    /// levels used it. spec/nested-multi-level.md.
+    /// levels used it. spec/types/nested-multi-level.md.
     /// </remarks>
     private static IEnumerable<(IReadOnlyList<string> Path, RecordMember Leaf)> LeavesWithPath(
         SerialField group)
@@ -319,7 +319,7 @@ public partial class ModelCooker
     /// A field whose reference did not resolve is skipped. Its failure is already reported
     /// and the run stops before anything reads these values.
     ///
-    /// spec/reference-key-types.md.
+    /// spec/references/reference-key-types.md.
     /// </remarks>
     private static void ConvertReferenceCells(
         CookingContext context, Model model, Diagnostics diagnostics)
@@ -336,7 +336,7 @@ public partial class ModelCooker
 
                 // Every set of rows the table has, not only its own: a reference cell that
                 // was not converted keeps the text the sheet wrote, and then matches nothing
-                // the target holds. spec/table-row-sets.md.
+                // the target holds. spec/layout/table-row-sets.md.
                 foreach (var rowSet in table.RowSets)
                 foreach (var row in rowSet.Rows)
                 {
@@ -384,7 +384,7 @@ public partial class ModelCooker
                         // blank reference cell read as present holding the key type's empty
                         // value, and a polymorphic group's untouched columns - which are blank
                         // by design - were reported as values the row should not have.
-                        // spec/reference-optionality.md and spec/polymorphism.md section 8.
+                        // spec/references/reference-optionality.md and spec/types/polymorphism.md section 8.
                         if (written.Length == 0)
                             cell.HasValue = false;
 

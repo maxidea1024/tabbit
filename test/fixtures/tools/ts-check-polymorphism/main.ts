@@ -10,7 +10,7 @@
 // one the union notation makes easy to get wrong, because every row has blank cells that are
 // not its own.
 //
-// spec/polymorphism.md sections 5.2 and 7.
+// spec/types/polymorphism.md sections 5.2 and 7.
 //
 // Prints JSON on stdout for the C# harness to assert against.
 
@@ -56,7 +56,7 @@ function main(): void {
 
     // And the array of them, where each element is its own shape. The getter hands back a
     // list of the union, so `own` - which narrows - takes each element unchanged.
-    // spec/polymorphism.md section 5.3.
+    // spec/types/polymorphism.md section 5.3.
     const combos = tables.combo.records.map(row => ({
         name: row.name,
         kinds: row.effects.map(effect => effect.kind).join(','),

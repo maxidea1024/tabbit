@@ -205,7 +205,7 @@ internal sealed class CppFieldView
     /// <remarks>
     /// One name for both shapes, so the body that fills a variant is written once. A
     /// polymorphic array's builder takes an element; a scalar group's reads the row.
-    /// spec/polymorphism.md section 5.3.
+    /// spec/types/polymorphism.md section 5.3.
     /// </remarks>
     public string EntryAccess { get; set; } = "";
 
@@ -216,7 +216,7 @@ internal sealed class CppFieldView
     /// Asked rather than worked out from the read kind, which is spelled differently in every
     /// generator - and the two shapes differ in more than one line: the accessor loops, and
     /// the value it hands back is an array of the abstract type.
-    /// spec/polymorphism.md section 5.3.
+    /// spec/types/polymorphism.md section 5.3.
     /// </remarks>
     public bool VariantsAreArray { get; set; }
 
@@ -226,7 +226,7 @@ internal sealed class CppFieldView
     /// <remarks>
     /// The type itself is declared once, elsewhere; this is what the table needs to build a
     /// value of it - which number means which variant, and which of the entry's fields each
-    /// one carries. spec/polymorphism.md sections 7.1 and 7.2.
+    /// one carries. spec/types/polymorphism.md sections 7.1 and 7.2.
     /// </remarks>
     public IReadOnlyList<CppVariantView> Variants { get; set; } = new List<CppVariantView>();
 
@@ -256,7 +256,7 @@ internal sealed class CppFieldView
 
     /// <summary>
     /// Whether this group is an array of arrays, which declares no element type - the outer
-    /// level has no name. See spec/nested-multi-level.md.
+    /// level has no name. See spec/types/nested-multi-level.md.
     /// </summary>
     public bool MembersAreAnonymous { get; set; }
 
@@ -284,7 +284,7 @@ internal sealed class CppFieldView
     /// </summary>
     /// <remarks>
     /// Adds a `has_{name}` member beside the value. The value member is unchanged and holds
-    /// the type's empty value where a row had none - see spec/optional-fields.md for why
+    /// the type's empty value where a row had none - see spec/types/optional-fields.md for why
     /// this rather than `std::optional`.
     /// </remarks>
     public required bool IsNullable { get; set; }
@@ -337,7 +337,7 @@ internal sealed class CppCrossReferenceView
 
     /// <summary>
     /// The references that are members of a record, which resolve inside the element rather
-    /// than beside it. spec/references-in-records.md.
+    /// than beside it. spec/references/references-in-records.md.
     /// </summary>
     public required IReadOnlyList<CppRecordReferenceView> RecordFields { get; set; }
 
@@ -376,7 +376,7 @@ internal sealed class CppReferenceFieldView
     /// <summary>
     /// Where the resolved row goes - the derived name for a whole-row reference, the
     /// column's own name for a dotted one.
-    /// spec/reference-surface-naming.md sections 5 and 9.
+    /// spec/references/reference-surface-naming.md sections 5 and 9.
     /// </summary>
     public string RowName { get; set; } = "";
 
@@ -410,7 +410,7 @@ internal sealed class CppRecordMemberView
     /// The declaration lines, type and initializer included.
     ///
     /// More than one for a reference member, which holds the row it resolved to as well as
-    /// the key that came off the wire. spec/references-in-records.md.
+    /// the key that came off the wire. spec/references/references-in-records.md.
     /// </summary>
     public required IReadOnlyList<string> Declarations { get; set; }
 }
@@ -424,7 +424,7 @@ internal sealed class CppRecordMemberView
 /// where depth had to be reasoned about in template syntax.
 ///
 /// Innermost first, and here that is not only tidiness - a C++ struct has to be a complete
-/// type before another declares a member of it. spec/nested-multi-level.md.
+/// type before another declares a member of it. spec/types/nested-multi-level.md.
 /// </remarks>
 internal sealed class CppRecordTypeView
 {
@@ -458,7 +458,7 @@ internal sealed class CppColumnView
 
     /// <summary>
     /// Where the resolved rows go for a whole-row reference, and the member access ending in
-    /// that name for a member. spec/reference-surface-naming.md sections 5 and 9.
+    /// that name for a member. spec/references/reference-surface-naming.md sections 5 and 9.
     /// </summary>
     public string RowName { get; set; } = "";
 
@@ -524,7 +524,7 @@ internal sealed class CppColumnView
     /// <summary>
     /// Set where the column is a reference that is a record member, so the sizing knows the
     /// read fills a key vector beside the row one. Empty for everything else.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </summary>
     public string MemberRefSuffix { get; set; } = "";
 
@@ -578,7 +578,7 @@ internal sealed class CppColumnView
 /// <remarks>
 /// One per declaration however many tables named it. A struct is an entity beside a table and
 /// an enum, and emitting it inside each table that used it would give them types that share a
-/// name and are not the same type. spec/polymorphism.md section 7.1.
+/// name and are not the same type. spec/types/polymorphism.md section 7.1.
 /// </remarks>
 internal sealed class CppPolymorphicTypeView
 {
@@ -618,7 +618,7 @@ internal sealed class CppStructMemberView
     /// <remarks>
     /// **A reference member is two fields here, the same two a reference column is anywhere.**
     /// The declared name is the key's - that is what the cell holds - and the row it resolves to
-    /// takes the derived one. spec/reference-surface-naming.md sections 4 and 5.
+    /// takes the derived one. spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     public string RowName { get; set; } = "";
 

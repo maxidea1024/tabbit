@@ -6,7 +6,7 @@
 // matters is that both read paths build the same one. The JSON carries the object; the
 // binary carries one fixed-array column per member and the reader indexes the member.
 //
-// spec/nested-multi-level.md. The `ts-check-nested` driver next door does the same for the
+// spec/types/nested-multi-level.md. The `ts-check-nested` driver next door does the same for the
 // array of records this is the mirror of.
 //
 // Prints JSON on stdout for the C# harness to assert against.
@@ -87,7 +87,7 @@ function main(): number {
         compare('Guide', i, 'tag', j.tag, b.tag)
 
         // The array of arrays: same columns and same wire as the record above, assembled
-        // with the outer level indexed rather than named. spec/nested-multi-level.md.
+        // with the outer level indexed rather than named. spec/types/nested-multi-level.md.
         compare('Guide', i, 'grid', j.grid, b.grid)
         compare('Guide', i, 'grid.length', j.grid.length, b.grid.length)
         compare('Guide', i, 'grid[0].length', j.grid[0].length, b.grid[0].length)

@@ -37,7 +37,7 @@ public class UnrealNestedAndOptionalTests
     /// <remarks>
     /// The header tool is the question here: the per-element answer is a member like any
     /// other, and whether UHT accepts it beside a reflected value is not something a golden
-    /// tree can say. spec/nullable-array-elements.md.
+    /// tree can say. spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void Optional_array_elements_are_types_the_header_tool_accepts()
@@ -51,7 +51,7 @@ public class UnrealNestedAndOptionalTests
     /// member of a USTRUCT type is a property UHT accepts, where the nested container an array
     /// of arrays needs is not - so unlike that shape, nothing had to be dropped from
     /// reflection, and UHT is the only thing that can say whether that is true.
-    /// spec/nested-multi-level.md.
+    /// spec/types/nested-multi-level.md.
     /// </remarks>
     [Fact]
     public void A_record_inside_a_record_is_a_type_the_header_tool_accepts()
@@ -64,7 +64,7 @@ public class UnrealNestedAndOptionalTests
     /// This output keeps a reference as its key rather than resolving it - a raw pointer in a
     /// USTRUCT is not something the garbage collector tracks - so what UHT is being asked here
     /// is whether the key member it declares inside the element type is a property.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     [Fact]
     public void A_reference_inside_a_record_is_a_type_the_header_tool_accepts()
@@ -77,7 +77,7 @@ public class UnrealNestedAndOptionalTests
     /// The shape `foreign[]`'s refusal points at, and nothing in the corpus held one - so this
     /// page was generated for every language and never compiled. Both forms of a reference
     /// are in the fixture, because they resolve to different types: a whole row and one of that
-    /// row's values. spec/nullable-array-elements.md.
+    /// row's values. spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void An_array_of_references_compiles()

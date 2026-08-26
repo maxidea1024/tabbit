@@ -19,7 +19,7 @@ namespace Tabbit.Validation;
 /// what makes a failed run leave no trace - a database target swaps its shadow in while it
 /// runs, so validating afterwards would land a failure on data that has already changed.
 ///
-/// spec/validation-pipeline.md §1.
+/// spec/validation/validation-pipeline.md §1.
 /// </remarks>
 public sealed class ValidationPipeline
 {
@@ -53,7 +53,7 @@ public sealed class ValidationPipeline
     /// <remarks>
     /// Null when the recipe asked for no report. Every stage below hands its whole collector
     /// over where it prints it, so the page holds what the console held rather than only what
-    /// stopped the run. spec/build-report.md.
+    /// stopped the run. spec/ops/build-report.md.
     /// </remarks>
     private readonly Reporting.BuildReport? _report;
 

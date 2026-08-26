@@ -78,7 +78,7 @@ public partial class ModelCooker
         // own - which is then absorbed below in the model's own table order, so the report
         // reads exactly as it did when this loop was sequential. That order is the whole of
         // what a reader of the report relies on, and it is not something a thread schedule
-        // should get to decide. spec/conversion-time.md section 5.
+        // should get to decide. spec/ops/conversion-time.md section 5.
         var perTable = new Diagnostics[model.Tables.Count];
 
         System.Threading.Tasks.Parallel.For(0, model.Tables.Count, at =>
@@ -91,7 +91,7 @@ public partial class ModelCooker
             // Once per set of rows the table has. A table with one set - nearly all of them -
             // runs this once, and every rule below asks its questions of the set rather than
             // of the table, because a second set is data the first knows nothing about.
-            // spec/table-row-sets.md.
+            // spec/layout/table-row-sets.md.
             foreach (var rowSet in table.RowSets)
             {
                 ValidateIndexUniqueness(table, rowSet, found);
@@ -151,7 +151,7 @@ public partial class ModelCooker
     /// Delimited cells are not checked: one cell carries its own list, so a gap there is a
     /// value the author typed rather than a column they left alone.
     ///
-    /// spec/variable-length-record-arrays.md has the rule and `AllowArrayGaps`.
+    /// spec/types/variable-length-record-arrays.md has the rule and `AllowArrayGaps`.
     /// </remarks>
     private static void ValidateArrayGaps(Table table, RowSet rowSet, Diagnostics diagnostics)
     {
@@ -166,7 +166,7 @@ public partial class ModelCooker
             // A column that says its elements may be absent has said what a hole means, and
             // it is not a mistake. What this check exists for is the array whose elements are
             // required, where a hole reads as the type's empty value and nothing in the sheet
-            // asked for it. spec/nullable-array-elements.md.
+            // asked for it. spec/types/nullable-array-elements.md.
             if (group.ElementMayBeAbsent)
                 continue;
 
@@ -209,7 +209,7 @@ public partial class ModelCooker
     /// trimming of a record array uses, because the two ask the same question - one decides
     /// whether to drop the element and the other whether to refuse it.
     ///
-    /// spec/record-member-optionality.md.
+    /// spec/types/record-member-optionality.md.
     /// </remarks>
     /// <remarks>
     /// Internal rather than private so a layout test can hand it one parsed table: what is
@@ -393,7 +393,7 @@ public partial class ModelCooker
     /// find whichever of two rows it happened to reach first.
     ///
     /// Single-column keys are left to `ValidateIndexUniqueness`, which already holds every
-    /// `Indexing` column to this and reports at the cell. spec/primary-layout.md section 3.5.
+    /// `Indexing` column to this and reports at the cell. spec/layout/primary-layout.md section 3.5.
     /// </remarks>
     private void ValidateCompositeKeyUniqueness(Table table, RowSet rowSet, Diagnostics diagnostics)
     {
@@ -505,7 +505,7 @@ public partial class ModelCooker
             // A reference carries the target's primary index whatever its type, so there is
             // no list of accepted key types here - being able to tell rows apart is the one
             // rule, and the index itself is where it is asked. Refusing anything but `int32`
-            // is what used to happen. spec/reference-key-types.md.
+            // is what used to happen. spec/references/reference-key-types.md.
             //
             // `enum` is the one exception, and it is a gap rather than a rule: an enum's
             // value travels zig-zag encoded rather than at a fixed width, so the read is the
@@ -516,7 +516,7 @@ public partial class ModelCooker
             // The target's identity is a combination spread over several columns, and there
             // is no cell shape that holds it - so this is refused rather than guessed at, and
             // the form is decided when a need for it is measured. Secondary keys are not
-            // involved: a reference points at the primary one. spec/primary-layout.md 3.5.
+            // involved: a reference points at the primary one. spec/layout/primary-layout.md 3.5.
             if (field.ResolvedRefTable.Keys.Find(key => key.IsPrimary) is { IsComposite: true } composite)
             {
                 diagnostics.Error(field.DetailTypeLocation,
@@ -552,12 +552,12 @@ public partial class ModelCooker
         // nothing else, so it is asked before the target is read. Asked after, a target
         // with no columns takes the empty cells out with it through the return below -
         // and those used to be stopped by the value parser, so letting them past here
-        // would be a refusal quietly lost. spec/reference-optionality.md.
+        // would be a refusal quietly lost. spec/references/reference-optionality.md.
         // An empty cell in a column typed `foreign Item[]` is an empty array, which is what
         // an empty cell means for every other array type - so the question this asks does not
         // arise. What a row with no targets writes is nothing, not `-`: the mark says one
         // element has no value, and there is no element here to say it of.
-        // spec/polymorphism.md section 4.
+        // spec/types/polymorphism.md section 4.
         if (!field.IsArray)
         {
             bool isArrayElement = arrayElements.TryGetValue(field, out var place);
@@ -579,7 +579,7 @@ public partial class ModelCooker
                 // row's at all. A polymorphic group's columns are every variant's members side
                 // by side, so every row has blank ones by design - and a reference among them
                 // would otherwise be reported as a blank the author left.
-                // spec/polymorphism.md section 5.2.
+                // spec/types/polymorphism.md section 5.2.
                 if (!IsThisRowsVariantColumn(table, row, field))
                     continue;
 
@@ -682,7 +682,7 @@ public partial class ModelCooker
     ///
     /// Keyed by the target itself rather than by its name: two tables with one name is a
     /// finding somewhere else, and this is not the place that should quietly merge them.
-    /// spec/conversion-time.md section 4.
+    /// spec/ops/conversion-time.md section 4.
     /// </remarks>
     /// <remarks>
     /// Concurrent because the tables are checked at the same time, and a popular target is
@@ -720,7 +720,7 @@ public partial class ModelCooker
     ///
     /// **What this asks of whoever loads the files**: a build reading one set has to read
     /// that set of every table that has one. That condition is the whole of what makes this
-    /// check match what happens at runtime, and it is stated in spec/table-row-sets.md.
+    /// check match what happens at runtime, and it is stated in spec/layout/table-row-sets.md.
     /// </remarks>
     private static List<List<Cell>> RowsToMatchAgainst(Table foreignTable, RowSet rowSet)
     {
@@ -746,7 +746,7 @@ public partial class ModelCooker
     /// Several tables is the ordinary case, and one of them holding the id is enough:
     /// which one is deliberately not recorded, because recording it is resolution.
     ///
-    /// spec/multi-target-references.md.
+    /// spec/references/multi-target-references.md.
     /// </remarks>
     /// <remarks>
     /// Internal rather than private so a layout test can hand it a parsed model: what is
@@ -759,7 +759,7 @@ public partial class ModelCooker
     /// <remarks>
     /// True for everything that is not a variant member - a plain column, a base field, a
     /// group that is not polymorphic - so a caller can ask without knowing which it has.
-    /// spec/polymorphism.md section 5.2.
+    /// spec/types/polymorphism.md section 5.2.
     /// </remarks>
     private static bool IsThisRowsVariantColumn(Table table, List<Cell> row, Field field)
     {
@@ -768,7 +768,7 @@ public partial class ModelCooker
 
         // **The discriminator of this element, not of the group.** A multi-row group has one
         // per element, and the one that answers for a member is the one at the same element.
-        // spec/polymorphism.md section 5.3.
+        // spec/types/polymorphism.md section 5.3.
         int? element = field.NamePath is { Count: > 0 } ? field.NamePath[0].Index : null;
 
         var discriminator = table.Fields.FirstOrDefault(
@@ -1046,7 +1046,7 @@ public partial class ModelCooker
     /// reference is the id band it points into rather than a range its own value must sit
     /// in - reporting both would be the same mistake twice.
     ///
-    /// spec/column-constraints.md.
+    /// spec/layout/column-constraints.md.
     /// </remarks>
     internal void ValidateColumnConstraints(Table table, RowSet rowSet, Diagnostics diagnostics)
     {
@@ -1103,7 +1103,7 @@ public partial class ModelCooker
             // unidentifiable - and, since absence parses to the type's empty value, leave
             // every such row sharing one key. `int?` on an index is refused where the column
             // is declared; this is the same refusal against a cell.
-            // spec/blank-and-null-cells.md.
+            // spec/types/blank-and-null-cells.md.
             if (!row[field.Index].HasValue)
             {
                 diagnostics.Error(row[field.Index].RawCell?.Location ?? field.NameLocation,
@@ -1317,7 +1317,7 @@ public partial class ModelCooker
             {
                 // An element the sheet said has no value holds the type's empty one, which is
                 // not a value to hold to a bound - the same answer this check gives a whole
-                // cell with no value. spec/nullable-array-elements.md.
+                // cell with no value. spec/types/nullable-array-elements.md.
                 if (cell.ElementHasValue is { } present && at < present.Length && !present[at])
                     continue;
 

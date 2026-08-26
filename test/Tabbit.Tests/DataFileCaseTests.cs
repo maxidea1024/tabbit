@@ -27,7 +27,7 @@ namespace Tabbit.Tests;
 /// nothing arrives at by accident, whereas a single-word table would differ only in its first
 /// letter's case and a case-insensitive filesystem would open it anyway.
 ///
-/// spec/naming-conventions.md.
+/// spec/targets/naming-conventions.md.
 /// </remarks>
 public class DataFileCaseTests
 {

@@ -19,7 +19,7 @@
 --   client above all - has its own stack already; requiring a second one would be the
 --   cost with no benefit. `options.fetch` is how the transfer comes in: a function
 --   taking a URL and returning the body, or nil, a message, and whether the failure is
---   worth retrying. spec/lua-language-support.md.
+--   worth retrying. spec/targets/lua-language-support.md.
 --
 --   The hash, the directories and the waiting, which come from tabbit.native - the MD5
 --   is a byte loop Lua cannot afford, and mkdir and a sleep are simply not in os.

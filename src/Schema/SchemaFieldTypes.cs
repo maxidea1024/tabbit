@@ -56,7 +56,7 @@ internal static class SchemaFieldTypes
         // variant's member is required within that variant - a `DamageEffect` has a `damage` -
         // and the column is optional all the same, because the rows of the other variants
         // leave it blank. Set before the cells are read, since reading is what needs the
-        // answer. spec/polymorphism.md section 5.2.
+        // answer. spec/types/polymorphism.md section 5.2.
         field.IsRequired = !columnIsOptional && !member.Type.IsOptional;
         field.ElementsRequired = !member.Type.ElementsAreOptional;
 
@@ -230,7 +230,7 @@ internal static class SchemaFieldTypes
             // not the empty value the sheet wrote.** A deferred column arrives as text, so a
             // blank cell is an empty string that reads as present - which is right for a
             // `string` member and wrong for a variant's, where the blank means this row is
-            // another variant. spec/polymorphism.md section 5.2.
+            // another variant. spec/types/polymorphism.md section 5.2.
             if (columnIsOptional && written.Length == 0)
                 cell.HasValue = false;
 

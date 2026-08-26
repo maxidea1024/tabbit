@@ -5,7 +5,7 @@ import * as path from 'path'
 {{~ for table in tables ~}}
 import { {{ table.name }}Table } from './tables/{{ table.file }}'
 {{~ end ~}}
-{{~## The discriminators the linking pass compares against. spec/multi-target-accessors.md. ##~}}
+{{~## The discriminators the linking pass compares against. spec/references/multi-target-accessors.md. ##~}}
 {{~ for line in imports ~}}
 {{ line }}
 {{~ end ~}}
@@ -32,7 +32,7 @@ export class {{ accessor_name }} {
    * be taken back afterwards - so it is read at start-up from wherever this project keeps
    * secrets, not written into a source file and not bundled into anything a browser can
    * fetch. What the layer is for, and therefore what is and is not worth defending, is
-   * spec/tcb-v104-composed-encodings.md section 4.
+   * spec/wire/tcb-v104-composed-encodings.md section 4.
    */
   public static encryptionKey: Uint8Array | null = null
 
@@ -50,7 +50,7 @@ export class {{ accessor_name }} {
    * Setting it makes the reader stricter in a second way: a file that carries no MAC is
    * refused, because otherwise the check could be removed by zeroing sixteen bytes. So the
    * order to turn this on in is data first, key second.
-   * spec/tcb-mac-and-signature.md.
+   * spec/wire/tcb-mac-and-signature.md.
    */
   public static macKey: Uint8Array | null = null
 
@@ -144,7 +144,7 @@ export class {{ accessor_name }} {
 {{~ if field.is_array ~}}
 {{~## The keys' own length rather than the sheet's column count: the read sized this array from
    the file, so a number written in here would leave the last element unresolved on a file with
-   one more. spec/nullable-array-elements.md. ##~}}
+   one more. spec/types/nullable-array-elements.md. ##~}}
       for (let i = 0; i < record.{{ field.field_name }}_{{ field.ref_table_type }}_index.length; i++) {
         if (record.{{ field.field_name }}_{{ field.ref_table_type }}_index[i] {{ field.ref_is_set }}) {
           const target = this._{{ field.ref_table }}.{{ field.ref_lookup }}(
@@ -166,7 +166,7 @@ export class {{ accessor_name }} {
    walked and each element's own key is looked up. Which array that is - the group's or the
    member's - the view decided, and a record of one has neither. Assigned straight into the
    element, because an element is a plain object with nothing private to go around.
-   spec/references-in-records.md. ##~}}
+   spec/references/references-in-records.md. ##~}}
 {{~ for member in reference.record_fields ~}}
 {{~ if member.count != '' ~}}
       for (let i = 0; i < {{ member.count }}; i++) {
@@ -188,10 +188,10 @@ export class {{ accessor_name }} {
 
    Through the lookup that answers with undefined: a miss means the row is in one of the
    others, and a key none of them holds leaves the discriminator at `None`.
-   spec/multi-target-accessors.md. ##~}}
+   spec/references/multi-target-accessors.md. ##~}}
 {{~## A member reaching several tables resolves inside the element, so the array is walked
    and each element's own key is looked up. Which array that is - the group's or the
-   member's - the view decided. spec/multi-target-accessors.md. ##~}}
+   member's - the view decided. spec/references/multi-target-accessors.md. ##~}}
     }
 {{~ end ~}}
 {{~ end ~}}

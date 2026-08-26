@@ -139,7 +139,7 @@ recipe에서 그 타깃을 빼거나, 컬럼에서 `?`를 떼세요.
 
 enum으로 키를 잡은 테이블을 `foreign`으로 가리켰습니다. **다른 키 타입은 전부
 됩니다** — `int`·`bigint`·`string`·`uuid`로 키를 잡은 테이블은 가리킬 수 있고, 참조 컬럼이 그
-키를 그대로 담습니다 ([설계](../spec/reference-key-types.md)).
+키를 그대로 담습니다 ([설계](../spec/references/reference-key-types.md)).
 
 enum만 남은 것은 규칙이 아니라 구멍입니다. enum 값은 고정 폭이 아니라 지그재그 인코딩으로
 실리고, 그 읽기는 언어마다 자기 enum을 쓰기 때문에 공용 읽기 표에 항목이 없습니다. 대상을

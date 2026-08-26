@@ -20,7 +20,7 @@ namespace Tabbit.Tests;
 /// TypeScript is the only language that can be asked this, because it is the only one that
 /// reads JSON as well as binary.
 ///
-/// spec/nested-multi-level.md.
+/// spec/types/nested-multi-level.md.
 /// </remarks>
 public class NestedDeepTypescriptRoundTripTests
 {

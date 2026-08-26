@@ -11,7 +11,7 @@
   // of them gets right while the other emits `number` for a uuid. The binary is here so the
   // element a reference column declares is pinned beside the code that reads it back.
   //
-  // spec/reference-key-types.md.
+  // spec/references/reference-key-types.md.
 
   "Sources": {
     "Xlsx": [

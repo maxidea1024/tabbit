@@ -17,7 +17,7 @@ namespace Tabbit.Tests;
 /// colour belongs, a direction name whose value depends on which engine reads it. A test that
 /// only checked the accepted values would pass against a type that accepted everything.
 ///
-/// spec/composite-value-types.md has the notation tables and the reasoning.
+/// spec/types/composite-value-types.md has the notation tables and the reasoning.
 /// </remarks>
 public class CompositeTypeTests
 {
@@ -101,7 +101,7 @@ public class CompositeTypeTests
     /// </summary>
     /// <remarks>
     /// Refused by the check every unbracketable type is refused by, rather than by a case of
-    /// its own: `ArrayOf` has no answer for a composite. spec/composite-value-types.md
+    /// its own: `ArrayOf` has no answer for a composite. spec/types/composite-value-types.md
     /// section 9 has why the shape is left out.
     /// </remarks>
     [Fact]
@@ -171,7 +171,7 @@ public class CompositeTypeTests
     /// as a thousands-separated 1234, so a two-component cell can arrive here as one number.
     /// It is always caught - every composite has at least two components - but the count
     /// alone would send an author back to a sheet that plainly shows two. Naming the format
-    /// is what makes the report actionable. spec/composite-value-types.md section 8.
+    /// is what makes the report actionable. spec/types/composite-value-types.md section 8.
     /// </remarks>
     [Theory]
     [InlineData("-1234")]
@@ -232,7 +232,7 @@ public class CompositeTypeTests
     /// Unity's up is `+Y` and Unreal's is `+Z`. A core that picked one would be silently
     /// wrong for every project using the other, and three components that are all zero and
     /// one are exactly the kind of value a diff never questions.
-    /// spec/composite-value-types.md section 5.
+    /// spec/types/composite-value-types.md section 5.
     /// </remarks>
     [Theory]
     [InlineData("up")]
@@ -437,7 +437,7 @@ public class CompositeTypeTests
     /// they wrote correctly.
     ///
     /// So the fixture holds both at once, and this asserts which one speaks.
-    /// spec/composite-value-types.md section 6.
+    /// spec/types/composite-value-types.md section 6.
     /// </remarks>
     [Fact]
     public void A_tagged_table_holding_a_composite_column_is_refused_by_name()

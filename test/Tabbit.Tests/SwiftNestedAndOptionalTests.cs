@@ -16,7 +16,7 @@ namespace Tabbit.Tests;
 /// A record element is a struct while a row is a class, so a member column's assignment goes
 /// through a subscript into a value type - `record.slots[j].position.x = v`. That mutates in
 /// place or it does not compile, and which one it is is a compiler's answer rather than a
-/// diff's. spec/swift-language-support.md.
+/// diff's. spec/targets/swift-language-support.md.
 ///
 /// And every one of these fixtures is type-checked in both language modes with warnings as
 /// errors, because generated code lands in somebody else's build and a consumer picks the
@@ -37,7 +37,7 @@ public class SwiftNestedAndOptionalTests
     /// <remarks>
     /// The one place this output deliberately reads unlike Swift: a value property with a
     /// `has` beside it rather than a `T?`. If that shape did not compile there would be no
-    /// argument left for it. spec/optional-fields.md.
+    /// argument left for it. spec/types/optional-fields.md.
     /// </remarks>
     [Fact]
     public void Optional_columns_compile() => AssertCompiles("optional");
@@ -50,7 +50,7 @@ public class SwiftNestedAndOptionalTests
 
     /// <summary>
     /// A record whose members are arrays - the same columns as an array of records, turned
-    /// inside out. spec/nested-multi-level.md.
+    /// inside out. spec/types/nested-multi-level.md.
     /// </summary>
     [Fact]
     public void A_record_of_arrays_compiles() => AssertCompiles("member-array");
@@ -62,7 +62,7 @@ public class SwiftNestedAndOptionalTests
     /// Both structs are nested in the same record, so the nested type name has to carry the
     /// path. And the member is initialized by calling its own struct, which is what lets the
     /// values inside it reach the empty values a scalar member gets.
-    /// spec/nested-multi-level.md.
+    /// spec/types/nested-multi-level.md.
     /// </remarks>
     [Fact]
     public void A_record_inside_a_record_compiles() => AssertCompiles("nested-deep");
@@ -75,7 +75,7 @@ public class SwiftNestedAndOptionalTests
     /// that came off the wire - and the read and the linking both have to name them the way
     /// the declaration does. The resolved row is an optional class reference inside a struct,
     /// which is the shape that makes rows classes in the first place: a copy would duplicate
-    /// the row rather than point at it. spec/references-in-records.md.
+    /// the row rather than point at it. spec/references/references-in-records.md.
     /// </remarks>
     [Fact]
     public void A_reference_inside_a_record_compiles() => AssertCompiles("record-ref");
@@ -85,7 +85,7 @@ public class SwiftNestedAndOptionalTests
     /// </summary>
     /// <remarks>
     /// Both forms of a reference are in the fixture, because they resolve to different types:
-    /// a whole row and one of that row's values. spec/nullable-array-elements.md.
+    /// a whole row and one of that row's values. spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void An_array_of_references_compiles() => AssertCompiles("serial-ref");
@@ -96,7 +96,7 @@ public class SwiftNestedAndOptionalTests
     /// <remarks>
     /// The read walks the bitmap with a counter that steps once per element of every row, and
     /// the per-element answer beside the value is a shape the page did not have before.
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void Optional_array_elements_compile() => AssertCompiles("nullable-elements");

@@ -36,7 +36,7 @@ module RecordTrim
       # and it cannot be taken back afterwards - so it is read at start-up from wherever
       # this project keeps secrets, not written into a source file. What the layer is for,
       # and therefore what is and is not worth defending, is
-      # spec/tcb-v104-composed-encodings.md section 4.
+      # spec/wire/tcb-v104-composed-encodings.md section 4.
       attr_accessor :encryption_key
 
       # The key the table files were signed with, or nil when they were not signed.
@@ -53,7 +53,7 @@ module RecordTrim
       # Setting it makes the reader stricter in a second way: a file that carries no MAC is
       # refused, because otherwise the check could be removed by zeroing sixteen bytes. So
       # the order to turn this on in is data first, key second.
-      # spec/tcb-mac-and-signature.md.
+      # spec/wire/tcb-mac-and-signature.md.
       attr_accessor :mac_key
 
       # Whether to check the MAC at all. True by default.

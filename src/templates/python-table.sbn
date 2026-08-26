@@ -5,12 +5,12 @@
    carries the table's. ##~}}
 {{~ for field in table.fields ~}}
 {{~## An array of arrays declares no element type: its outer level has no name, so there is
-   nothing for a class to be. spec/nested-multi-level.md. ##~}}
+   nothing for a class to be. spec/types/nested-multi-level.md. ##~}}
 {{~ if field.is_record && !field.members_are_anonymous ~}}
 {{~## One class per level, innermost first - which Python requires rather than prefers: the
    constructor names the level below, so that name has to exist by the time it runs. The view
    flattened the nesting so this loop does not have to know how deep it went.
-   spec/nested-multi-level.md. ##~}}
+   spec/types/nested-multi-level.md. ##~}}
 {{~ for rt in field.record_types ~}}
 class {{ rt.type_name }}:
 {{~ if rt.is_outermost ~}}
@@ -30,7 +30,7 @@ class {{ rt.type_name }}:
 {{~## The per-target accessors of every member of this class that reaches several tables. A
    property where the member is one value; a method taking the element number where the member
    is the array, which is the third place an element number sits.
-   spec/multi-target-accessors.md. ##~}}
+   spec/references/multi-target-accessors.md. ##~}}
 
     def __repr__(self):
         return "{{ rt.type_name }}({{ rt.repr_format }})" % ({{ rt.repr_values }})
@@ -60,14 +60,14 @@ class {{ table.record_name }}:
 {{~## A column whose value is a row of one of several tables. One attribute for the resolved
    row whatever table it came from, and the discriminator saying which - the targets take
    separate id bands, so at most one of them ever answers.
-   spec/multi-target-accessors.md. ##~}}
+   spec/references/multi-target-accessors.md. ##~}}
 {{~ for field in table.fields ~}}
 {{~ if field.variants.size > 0 }}
 
 {{~## **The value, built once on first use.** The entry above is what the read filled - one
    assignment per column - and which variant it is only became knowable when the discriminator
    column arrived. Building it here keeps the read path and the wire exactly as they were.
-   spec/polymorphism.md section 7.2. ##~}}
+   spec/types/polymorphism.md section 7.2. ##~}}
 
 {{~ if field.variants_are_array ~}}
 {{~## **The array shape.** Each element carries its own discriminator - section 5.3 - so the
@@ -104,7 +104,7 @@ class {{ table.record_name }}:
 {{~ for member in field.base_members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
             built.{{ member.name }} = entry.{{ member.name }}
             built.{{ member.row_name }} = entry.{{ member.row_name }}
 {{~ else ~}}
@@ -114,7 +114,7 @@ class {{ table.record_name }}:
 {{~ for member in variant.members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
             built.{{ member.name }} = entry.{{ member.name }}
             built.{{ member.row_name }} = entry.{{ member.row_name }}
 {{~ else ~}}
@@ -151,7 +151,7 @@ class {{ table.table_name }}:
 {{~## A key of several columns is held as the text they make. Each part carries its own
    length, so no two combinations can make the same text - joined by a separator alone,
    ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
-   spec/primary-layout.md section 3.5. ##~}}
+   spec/layout/primary-layout.md section 3.5. ##~}}
 {{~ if index.is_composite ~}}
     @staticmethod
     def _key_of_{{ index.suffix }}({{ index.params }}):
@@ -213,7 +213,7 @@ class {{ table.table_name }}:
         # `{{ accessor_name }}.mac_key` hold - which is None unless the project set them. A file that is
         # neither encrypted nor signed comes back from this untouched, so the load path is
         # the same either way and there is no condition here that could be the wrong way
-        # round. spec/tcb-mac-and-signature.md.
+        # round. spec/wire/tcb-mac-and-signature.md.
         reader = tabbit.Reader(tabbit.open(
             tabbit.read_all_bytes(filename), {{ accessor_name }}.encryption_key,
             {{ accessor_name }}.mac_key, {{ accessor_name }}.verify_mac))
@@ -236,7 +236,7 @@ class {{ table.table_name }}:
 {{~ if column_view.has_optional_elements ~}}
                 # Behind the row bitmap and in front of the values, walked with a counter
                 # that steps once per element of every row.
-                # spec/nullable-array-elements.md.
+                # spec/types/nullable-array-elements.md.
                 element_presence = tabbit.read_element_presence(reader, column)
                 element_at = 0
 {{~ end ~}}
@@ -286,14 +286,14 @@ class {{ table.table_name }}:
                         record.{{ column_view.name }}[element]{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = {{ column_view.read_element }}
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner list. Which outer element it is, is which column this is - so that index is
-   fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
+   fixed and the loop runs the inner length. spec/types/nested-multi-level.md. ##~}}
                     {{ column_view.length_read }}
                     record.{{ column_view.name }}[{{ column_view.member_at }}] = [None] * element_count
                     for element in range(element_count):
                         record.{{ column_view.name }}[{{ column_view.member_at }}][element] = {{ column_view.read_element }}
 {{~ else if column_view.kind == 'record_member_var' ~}}
 {{~## The member is the list: the index goes after its name rather than before. Same
-   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+   columns and same loop as the case below - see spec/types/nested-multi-level.md. ##~}}
                     {{ column_view.length_read }}
                     record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = [None] * element_count
                     for element in range(element_count):
@@ -301,7 +301,7 @@ class {{ table.table_name }}:
 {{~ else if column_view.kind == 'var_array_ref' ~}}
 {{~## A trimmed array of references. The keys go in the list beside the values, at this row's
    length - which is what `serial_ref` below does from the column count.
-   spec/variable-length-record-arrays.md. ##~}}
+   spec/types/variable-length-record-arrays.md. ##~}}
                     {{ column_view.length_read }}
                     record.{{ column_view.key_name }} = [{{ column_view.read_element }} for _ in range(element_count)]
                     record.{{ column_view.row_name }} = [None] * element_count

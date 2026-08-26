@@ -198,7 +198,7 @@ public class ReservedWordTests
     /// Lua keeps a keyword-named field's name and reaches it with bracket syntax, so the
     /// question is not whether the file loads but whether `row["function"]` really holds
     /// the sheet's value - a load runs every constructor, and the read runs the column
-    /// dispatch over the bracketed targets. spec/lua-language-support.md.
+    /// dispatch over the bracketed targets. spec/targets/lua-language-support.md.
     /// </summary>
     [Fact]
     public void Generated_lua_reads_keyword_named_fields()

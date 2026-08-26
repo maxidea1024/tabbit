@@ -12,7 +12,7 @@ namespace Tabbit.Tests;
 /// there is nothing to roll back because nothing was produced. Asserting on the absence of the
 /// export is what checks that, and it is the reason these scenarios export anything at all.
 ///
-/// spec/validation-pipeline.md.
+/// spec/validation/validation-pipeline.md.
 /// </remarks>
 public class ValidationPipelineTests
 {

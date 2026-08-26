@@ -19,7 +19,7 @@ namespace Tabbit.Validation;
 ///
 /// One instance per rule file, which is also what makes the report cap per rule and lets the table
 /// stage run in parallel with nothing shared.
-/// spec/validation-usability-and-assembly-output.md and spec/accessor-instances.md section 3.1.
+/// spec/validation/validation-usability-and-assembly-output.md and spec/targets/accessor-instances.md section 3.1.
 /// </remarks>
 public interface IPreContext
 {
@@ -156,7 +156,7 @@ public interface IGlobalContext : IPreContext
     /// `context.Tables.Item` and gets the generated type with every field typed. Which is why this
     /// member is hidden from completion: it is the plumbing, and the typed name is right beside it.
     ///
-    /// spec/accessor-instances.md section 3.2.
+    /// spec/targets/accessor-instances.md section 3.2.
     /// </remarks>
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     object TableSnapshot { get; }

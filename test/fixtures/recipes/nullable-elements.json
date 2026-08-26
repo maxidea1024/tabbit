@@ -4,7 +4,7 @@
   // JSON only. An absent element is `null` in an array and that is the whole of what this
   // format needs to say it; the binary and the readers follow in their own step,
   // and until then they refuse a column of this shape by name.
-  // spec/nullable-array-elements.md.
+  // spec/types/nullable-array-elements.md.
 
   "Sources": {
     "Xlsx": [

@@ -38,7 +38,7 @@ public class UwoLayoutTests
     /// <remarks>
     /// The fold is a separate pass over every layout's output, so a test that wants it has to
     /// run it - and a grid is the one shape whose columns it cannot match by name.
-    /// spec/table-row-sets.md.
+    /// spec/layout/table-row-sets.md.
     /// </remarks>
     private static Model ParseTwoSets(string[][] left, string[][] right)
     {
@@ -283,7 +283,7 @@ public class UwoLayoutTests
     /// <remarks>
     /// `24000000` is not an identifier, and no supported language has a property by that
     /// name - so the choice is a grid or a refusal, and a refusal is what it used to be.
-    /// spec/matrix-tables.md.
+    /// spec/layout/matrix-tables.md.
     /// </remarks>
     [Fact]
     public void Numeric_column_names_become_one_array_and_a_table_of_ids()
@@ -319,7 +319,7 @@ public class UwoLayoutTests
     /// The element names are positional, and another set of the table's rows is laid onto its
     /// columns by name - so a set with fewer columns of that axis would be shifted from its
     /// first missing id onwards. The id is what identifies the column, so the id is what the
-    /// fold matches by. spec/table-row-sets.md.
+    /// fold matches by. spec/layout/table-row-sets.md.
     /// </remarks>
     [Fact]
     public void A_grids_elements_are_matched_by_their_column_id()
@@ -344,7 +344,7 @@ public class UwoLayoutTests
     /// a locale with fewer towns of the other axis. Laid out positionally, its `702` would
     /// land where `701` is and every consumer reading that element would get another column's
     /// value with nothing to say so. Measured on a real grid: two elements of 735.
-    /// spec/table-row-sets.md · spec/matrix-tables.md.
+    /// spec/layout/table-row-sets.md · spec/layout/matrix-tables.md.
     /// </remarks>
     [Fact]
     public void A_grids_sets_line_up_by_column_id()
@@ -384,7 +384,7 @@ public class UwoLayoutTests
     /// <remarks>
     /// Once folded the positions are the table's, so a column table of its own would state
     /// positions nothing holds. Which names are sets is the source's setting, and this layout
-    /// reads it. spec/table-row-sets.md.
+    /// reads it. spec/layout/table-row-sets.md.
     /// </remarks>
     [Fact]
     public void A_grid_that_is_another_sets_rows_declares_no_column_table()
@@ -412,7 +412,7 @@ public class UwoLayoutTests
     /// </summary>
     /// <remarks>
     /// The fold writes `HasValue` false into those cells deliberately, so a required column
-    /// would have validation report the value the fold just wrote. spec/table-row-sets.md.
+    /// would have validation report the value the fold just wrote. spec/layout/table-row-sets.md.
     /// </remarks>
     [Fact]
     public void A_column_a_set_does_not_declare_becomes_optional()
@@ -505,7 +505,7 @@ public class UwoLayoutTests
     /// </summary>
     /// <remarks>
     /// This was refused outright until it turned out to be the shape next door with the
-    /// names taken off. spec/nested-multi-level.md.
+    /// names taken off. spec/types/nested-multi-level.md.
     /// </remarks>
     [Fact]
     public void An_array_of_arrays_folds_into_one_group()
@@ -567,7 +567,7 @@ public class UwoLayoutTests
     /// <remarks>
     /// These sheets declare what a column may hold and check it afterwards with a script
     /// over the exported JSON. Read here, the check happens where the cell is.
-    /// spec/column-constraints.md.
+    /// spec/layout/column-constraints.md.
     /// </remarks>
     [Fact]
     public void The_constraint_rows_become_the_column_s_bounds()
@@ -666,7 +666,7 @@ public class UwoLayoutTests
     /// <remarks>
     /// A validation rule rather than a shape the wire carries: enforcing it means a record
     /// whose required member is blank never reaches a file, so there is nothing left for the
-    /// format to express. spec/record-member-optionality.md.
+    /// format to express. spec/types/record-member-optionality.md.
     ///
     /// The sheets declare this 216 times and nothing read the row until now.
     /// </remarks>

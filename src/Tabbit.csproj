@@ -106,7 +106,7 @@
 
       Deliberately not part of the informational version: that string is the build cache's
       key and the `toolVersion` recorded in every summary, and a value that moved on each
-      build would mean a full conversion every time. spec/cli-help.md section 7.
+      build would mean a full conversion every time. spec/ops/cli-help.md section 7.
     -->
     <AssemblyMetadata Include="BuildTimestamp" Value="$(BuildTimestamp)" />
   </ItemGroup>
@@ -276,7 +276,7 @@
     Reference assemblies are metadata with no code, so they compress to a fraction of their size;
     zipping them keeps this assembly from growing by the eleven megabytes they occupy on disk.
 
-    spec/validation-usability-and-assembly-output.md section 4.
+    spec/validation/validation-usability-and-assembly-output.md section 4.
   -->
   <PropertyGroup>
     <!--
@@ -428,7 +428,7 @@
       rather than "whatever this assembly happens to make public", and rule compilation gets
       something the tool can carry - a single-file publish has no path to read an assembly from,
       and this one cannot embed a reference to itself.
-      spec/validation-usability-and-assembly-output.md section 5a.
+      spec/validation/validation-usability-and-assembly-output.md section 5a.
     -->
     <ProjectReference Include="Contract\Tabbit.Validation.Contract.csproj" />
   </ItemGroup>
@@ -460,7 +460,7 @@
       this one is pre-1.0. What makes that acceptable is that the reader sits behind one
       file and the value gate in `XlsxReaderGateTests` can be re-run against any
       replacement - ExcelDataReader already passes it. Grounds, measurements and the
-      rejected candidates are in `spec/streaming-workbook-reader.md`.
+      rejected candidates are in `spec/import/streaming-workbook-reader.md`.
     -->
     <PackageReference Include="Sylvan.Data.Excel" Version="0.5.8" />
     <PackageReference Include="Serilog" Version="4.4.0" />

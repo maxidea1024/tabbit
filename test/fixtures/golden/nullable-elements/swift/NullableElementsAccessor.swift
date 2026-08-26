@@ -13,7 +13,7 @@ import Foundation
 /// grew into and the only shape available here: Swift's concurrency checking makes mutable
 /// global state an error, so a `static var` table would not compile in a Swift 6 module. What
 /// the instance buys is what it buys elsewhere - test isolation, two data versions open at
-/// once, a hot reload that swaps one for the other. spec/accessor-instances.md.
+/// once, a hot reload that swaps one for the other. spec/targets/accessor-instances.md.
 public final class NullableElementsAccessor {
 
     public init() {}
@@ -41,7 +41,7 @@ public final class NullableElementsAccessor {
     /// cannot be taken back afterwards - so it is read at start-up from wherever this project
     /// keeps secrets, not written into a source file and not left in a resource the app
     /// bundle carries. What the layer is for, and therefore what is and is not worth
-    /// defending, is spec/tcb-v104-composed-encodings.md section 4.
+    /// defending, is spec/wire/tcb-v104-composed-encodings.md section 4.
     public var encryptionKey: [UInt8]? = nil
 
     /// The key the table files were signed with, or nil when they were not signed.
@@ -56,7 +56,7 @@ public final class NullableElementsAccessor {
     ///
     /// Setting it makes the reader stricter in a second way: a file that carries no MAC is
     /// refused, because otherwise the check could be removed by zeroing sixteen bytes. So the
-    /// order to turn this on in is data first, key second. spec/tcb-mac-and-signature.md.
+    /// order to turn this on in is data first, key second. spec/wire/tcb-mac-and-signature.md.
     ///
     /// Verifying one needs CryptoKit or swift-crypto. On Apple platforms the first is already
     /// there; elsewhere the reader says which package to add.

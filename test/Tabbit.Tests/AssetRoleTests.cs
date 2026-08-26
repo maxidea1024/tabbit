@@ -286,7 +286,7 @@ public class AssetRoleTests
 
         // The wording and the id, together, only while the move is in progress. Once every
         // report is named the wording assertions go and this one stays - that is what stops
-        // a message being frozen by the tests that read it. spec/message-ids.md §7.
+        // a message being frozen by the tests that read it. spec/validation/message-ids.md §7.
         Assert.Equal(Tabbit.Cooking.CookingMessages.RoleSpaceNotText, failure.MessageId);
     }
 

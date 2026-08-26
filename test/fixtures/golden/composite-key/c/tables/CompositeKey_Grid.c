@@ -224,7 +224,7 @@ bool CompositeKey_GridLoad(CompositeKey_GridTable_t* table, const char* filename
    * CompositeKey_MacKey hold - NULL unless the project set them. A file that is
    * neither encrypted nor signed comes back from this untouched, so the load path is the
    * same either way and there is no condition here that could be the wrong way round.
-   * spec/tcb-mac-and-signature.md.
+   * spec/wire/tcb-mac-and-signature.md.
    *
    * What comes back is a window onto `bytes` rather than a copy of it, which is why the
    * buffer is still what tb_free_bytes is given below. */

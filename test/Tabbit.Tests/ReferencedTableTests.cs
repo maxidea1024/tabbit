@@ -17,12 +17,12 @@ namespace Tabbit.Tests;
 /// and no generated code learns the column has this on it. What a sheet is saying is
 /// "whatever id this holds, one of these tables has a row for it", and the whole of honouring
 /// that is looking. `refs=` says the same thing in the core notation.
-/// spec/reference-surface-naming.md section 6.
+/// spec/references/reference-surface-naming.md section 6.
 ///
 /// Built as grids rather than workbooks because what is under test is a layout's own rules
 /// plus the check that reads them. Two tables on one sheet, which this layout allows.
 ///
-/// spec/multi-target-references.md.
+/// spec/references/multi-target-references.md.
 /// </remarks>
 public class ReferencedTableTests
 {
@@ -304,7 +304,7 @@ public class ReferencedTableTests
     /// The check asks whether the value is an id of one of the named tables. Nothing narrows
     /// it to a row, so nothing has to choose between two tables that both hold it - and a
     /// project that wants ids kept apart is stating a rule of its own.
-    /// spec/reference-surface-naming.md section 6.
+    /// spec/references/reference-surface-naming.md section 6.
     /// </remarks>
     [Fact]
     public void Targets_sharing_an_id_are_not_a_finding()

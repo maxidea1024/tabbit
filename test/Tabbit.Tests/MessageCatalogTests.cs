@@ -13,7 +13,7 @@ namespace Tabbit.Tests;
 /// Golden does not cover any of this - no golden fixture holds a diagnostic - so nothing
 /// else notices when a report's id and its text stop agreeing. These checks are what stands
 /// in for it, and all of them are static: no conversion has to run for a missing entry or a
-/// dropped placeholder to be found. spec/message-ids.md §8.
+/// dropped placeholder to be found. spec/validation/message-ids.md §8.
 /// </summary>
 public class MessageCatalogTests
 {

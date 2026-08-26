@@ -480,7 +480,7 @@ namespace Tabbit.Binary
         /// </summary>
         /// <remarks>
         /// Independent of <see cref="Nullable"/>: a column may say a row has no array, that
-        /// an element of one has no value, or both. spec/nullable-array-elements.md.
+        /// an element of one has no value, or both. spec/types/nullable-array-elements.md.
         /// </remarks>
         public bool ElementNullable;
 
@@ -1297,7 +1297,7 @@ namespace Tabbit.Binary
 
         // How a block's values are laid out. Raw is the layout 101 had; the others
         // compress a column that repeats itself, which static game data does
-        // relentlessly. spec/tcb-v102-column-encoding.md is the byte-level contract.
+        // relentlessly. spec/wire/tcb-v102-column-encoding.md is the byte-level contract.
         public const byte EncodingRaw = 0;
         public const byte EncodingVarint = 1;
         public const byte EncodingDelta = 2;
@@ -1325,7 +1325,7 @@ namespace Tabbit.Binary
         public const byte EncodingBitpack = 13;
 
         // The file header, at fixed offsets whether or not the file is encrypted and whether
-        // or not it carries a MAC. spec/tcb-mac-and-signature.md.
+        // or not it carries a MAC. spec/wire/tcb-mac-and-signature.md.
         public const int MagicOffset = 0;
         public const int VersionOffset = 4;
         public const int FlagsOffset = 8;

@@ -388,7 +388,7 @@ inline std::vector<std::uint8_t> read_all_bytes(const std::string& filename) {
 constexpr std::uint32_t kBinaryFileFormatVersion = 107;
 
 // How a block's values are laid out. Raw is the layout 101 had; the others compress
-// a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
+// a column that repeats itself. spec/wire/tcb-v102-column-encoding.md is the contract.
 constexpr std::uint8_t kEncodingRaw = 0;
 constexpr std::uint8_t kEncodingVarint = 1;
 constexpr std::uint8_t kEncodingDelta = 2;
@@ -416,7 +416,7 @@ constexpr std::uint8_t kEncodingDictSegmentRle = 12;
 constexpr std::uint8_t kEncodingBitpack = 13;
 
 // The file header, at fixed offsets whether or not the file is encrypted and whether or not
-// it carries a MAC. spec/tcb-mac-and-signature.md.
+// it carries a MAC. spec/wire/tcb-mac-and-signature.md.
 constexpr std::size_t kMagicOffset = 0;
 constexpr std::size_t kVersionOffset = 4;
 constexpr std::size_t kFlagsOffset = 8;
@@ -841,7 +841,7 @@ struct Column {
 
   // Whether the block states, per element, which of an array's places hold a value.
   // Independent of `nullable`: a column may say either, or both.
-  // spec/nullable-array-elements.md.
+  // spec/types/nullable-array-elements.md.
   bool element_nullable;
   // How the block's values are laid out: one of the kEncoding* constants.
   std::uint8_t encoding;
@@ -1111,7 +1111,7 @@ inline void check_column(const Column& column, const char* field_name, std::uint
                          std::initializer_list<std::uint8_t> accepted,
                          bool element_nullable = false) {
   // The same statement about the other bitmap: generated code not expecting one would read
-  // it as values. spec/nullable-array-elements.md.
+  // it as values. spec/types/nullable-array-elements.md.
   if (column.element_nullable != element_nullable) {
     throw TcbError(std::string(field_name) +
                    ": the file and the generated member disagree about whether this column's"

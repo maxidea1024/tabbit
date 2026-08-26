@@ -50,7 +50,7 @@ bool FGuideTable::Read(const FString& Filename)
     // FMemberArray::MacKey hold - empty unless the project set them. A file that is
     // neither encrypted nor signed comes back from this untouched, so the load path is the
     // same either way and there is no condition here that could be the wrong way round.
-    // spec/tcb-mac-and-signature.md.
+    // spec/wire/tcb-mac-and-signature.md.
     //
     // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
     // what has to stay alive for as long as the reader below is used.

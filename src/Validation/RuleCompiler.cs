@@ -64,7 +64,7 @@ internal sealed class CompiledRule
 /// scripting adds - `#r`, `#load`, a globals object - is what a host makes unnecessary.
 /// References arrive as <see cref="MetadataReference"/>s and shared code arrives as another
 /// syntax tree in the same compilation, so a rule file needs no directive of its own.
-/// spec/validation-pipeline.md §3.
+/// spec/validation/validation-pipeline.md §3.
 ///
 /// One compilation per rule file, which is a choice here rather than a language constraint.
 /// Two things follow and both are wanted - shared static state is per file, so a parallel stage

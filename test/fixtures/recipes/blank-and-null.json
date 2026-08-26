@@ -5,7 +5,7 @@
   // Three targets and no more. JSON is where the three answers are visible as `""`, `null`
   // and `"-"`; the binary tree is what says the presence bit follows `-` and not a blank;
   // and C# is one generated page, because the accessors did not change and a diff here
-  // would say they had. spec/blank-and-null-cells.md.
+  // would say they had. spec/types/blank-and-null-cells.md.
 
   "Sources": {
     "Xlsx": [

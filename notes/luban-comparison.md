@@ -105,7 +105,7 @@ CI가 UTC 러너에서 도는데도 통과하는 이유가 이것입니다.
 |—|레이아웃 파서 층 — 다른 규칙으로 쓰인 시트 읽기|**tabbit만**|
 
 > 「테이블 1개 = 입력 파일 여러 개」의 값을 낮게 둔 근거는 tabbit이 워크북 여러 개를 한 번에
-> 읽고 [행 벌](../spec/table-row-sets.md)이 데이터 여러 벌을 담당한다는 점입니다. 다만 **같은 이름의
+> 읽고 [행 벌](../spec/layout/table-row-sets.md)이 데이터 여러 벌을 담당한다는 점입니다. 다만 **같은 이름의
 > 테이블이 두 곳에서 선언될 때의 처리는 확인하지 않았습니다** — `Model.Tables.Add`에 중복
 > 검사가 보이지 않으므로 별도 확인이 필요한 자리입니다.
 
@@ -113,7 +113,7 @@ CI가 UTC 러너에서 도는데도 통과하는 이유가 이것입니다.
 
 |Luban|tabbit|판정|
 |--|--|--|
-|bool · byte · short · int · long · float · double · string|`bool` · `int` · `bigint` · `float` · `double` · `string`|**있음** — byte · short는 없습니다. 크기 목적의 선언은 [컬럼 인코딩](../spec/tcb-v105-bit-width-packing.md)이 대체하나, **생성 코드의 타입을 좁히는 목적은 대체되지 않습니다**|
+|bool · byte · short · int · long · float · double · string|`bool` · `int` · `bigint` · `float` · `double` · `string`|**있음** — byte · short는 없습니다. 크기 목적의 선언은 [컬럼 인코딩](../spec/wire/tcb-v105-bit-width-packing.md)이 대체하나, **생성 코드의 타입을 좁히는 목적은 대체되지 않습니다**|
 |datetime|`datetime`, 100 ns ticks|**있음** — 단 §3의 결함|
 |—|`timespan` · `uuid`|**tabbit만**|
 |text — 번역 대상|`text` 역할|**있음**|
@@ -121,11 +121,11 @@ CI가 UTC 러너에서 도는데도 통과하는 이유가 이것입니다.
 |—|`bitset` 전용 타입과 진법 리터럴|**tabbit만**|
 |nullable `T?`|`T?` · `T?[]` · `T[]?` · `T?[]?`|**있음** — tabbit이 더 넓습니다|
 |array · list · set · map|배열 2종 — 구분자 · 연속 컬럼|**다른 방식** — set · map이 없습니다 → §5.10|
-|bean(중첩 구조) · 다단 헤더|[중첩 필드](../spec/nested-fields.md) · [다중 중첩](../spec/nested-multi-level.md) · [매트릭스 표](../spec/matrix-tables.md)|**있음**|
+|bean(중첩 구조) · 다단 헤더|[중첩 필드](../spec/types/nested-fields.md) · [다중 중첩](../spec/types/nested-multi-level.md) · [매트릭스 표](../spec/layout/matrix-tables.md)|**있음**|
 |다형 — 추상 타입과 `$type` 컬럼|없음|**없음** → §5.2|
 |셀 1개에 json · lua · stream 표기|배열 구분자 · 중첩 컬럼|**다른 방식**|
 |외부 타입 매핑(TypeMapper)|없음|**없음** → §5.10|
-|—|[빈 칸과 없음의 분리](../spec/blank-and-null-cells.md)|**tabbit만**|
+|—|[빈 칸과 없음의 분리](../spec/types/blank-and-null-cells.md)|**tabbit만**|
 
 ### 4.3 테이블의 형태
 
@@ -135,7 +135,7 @@ CI가 UTC 러너에서 도는데도 통과하는 이유가 이것입니다.
 |`ONE` — 단일 행|없음|**없음** → §5.4|
 |`LIST` — 키 없음|없음, 기본 인덱스가 필수입니다|**없음** → §5.5|
 |복합 인덱스 · 다중 인덱스|보조 인덱스 `*`, 컬럼 1개|**다른 방식** — 복합 키가 없습니다 → §5.5|
-|테이블 간 참조|`foreign`과 로드 후 연결(대상 하나) · 목록 검사 `refs=`|**있음** — 같은 자리입니다. Luban의 `ref=` 다중 테이블처럼 우리도 여러 테이블은 **검사에서 멈춥니다** ([참조가 내는 이름 §6](../spec/reference-surface-naming.md))|
+|테이블 간 참조|`foreign`과 로드 후 연결(대상 하나) · 목록 검사 `refs=`|**있음** — 같은 자리입니다. Luban의 `ref=` 다중 테이블처럼 우리도 여러 테이블은 **검사에서 멈춥니다** ([참조가 내는 이름 §6](../spec/references/reference-surface-naming.md))|
 |상수 · enum 선언|상수셋 · enum 엔티티|**있음**|
 
 ### 4.4 선택적 산출 — 무엇을 빼고 무엇을 낼지
@@ -144,14 +144,14 @@ CI가 UTC 러너에서 도는데도 통과하는 이유가 이것입니다.
 |--|--|--|
 |이름 있는 대상 그룹 — client · server · editor …|`TargetSide` — `c` · `s` · `cs` 고정|**다른 방식** → §5.3|
 |행 태그와 `--includeTag` · `--excludeTag`|없음|**없음** → §5.1|
-|필드 변종(variant)|[행 벌](../spec/table-row-sets.md) — 설계 완료 · 구현 대기|**다른 방식** → §5.10|
+|필드 변종(variant)|[행 벌](../spec/layout/table-row-sets.md) — 설계 완료 · 구현 대기|**다른 방식** → §5.10|
 |`--outputTable` 선택 산출|타깃별 경로 · `IncludeSheets`|**다른 방식**|
 
 ### 4.5 검증
 
 |Luban 검증기|tabbit|판정|
 |--|--|--|
-|`ref` — 참조 유효성|[컬럼 제약](../spec/column-constraints.md)의 `ReferencedTables` · `foreign`|**있음**|
+|`ref` — 참조 유효성|[컬럼 제약](../spec/layout/column-constraints.md)의 `ReferencedTables` · `foreign`|**있음**|
 |`path` — 자원 경로, Unity · UE · Godot 패턴|`asset` 역할과 `Assets` 루트, 종류별|**있음**|
 |`range` — 범위|`Minimum` · `Maximum`|**있음**|
 |`set` — 허용값|`AllowedValues`|**있음**|
@@ -162,8 +162,8 @@ CI가 UTC 러너에서 도는데도 통과하는 이유가 이것입니다.
 |`text` — 번역 키 유효성|없음. 수집만 합니다|**없음** → §5.9|
 |`--validationFailAsError`|기본이 오류이고 `--validate-only`도 있습니다|**있음** — tabbit이 더 엄격합니다|
 |위치 보고 — 파일 · 위치 · 필드 경로|셀 위치, 구글 시트는 링크|**있음**|
-|—|[C# 규칙 4단계](../spec/validation-pipeline.md)와 컴파일 · [우선순위](../spec/rule-priority.md)|**tabbit만**|
-|—|시트 표기 규약의 강제 — [이름 표기](../spec/naming-conventions.md)|**tabbit만**|
+|—|[C# 규칙 4단계](../spec/validation/validation-pipeline.md)와 컴파일 · [우선순위](../spec/validation/rule-priority.md)|**tabbit만**|
+|—|시트 표기 규약의 강제 — [이름 표기](../spec/targets/naming-conventions.md)|**tabbit만**|
 
 ### 4.6 산출 형식
 
@@ -201,7 +201,7 @@ CI가 UTC 러너에서 도는데도 통과하는 이유가 이것입니다.
 |`--watch` — 변경 시 재변환|없음|**없음** → §5.10|
 |—|셀 단위 히스토리 · 웹 조회 · 통계|**tabbit만**|
 |—|배포 종류 판정 — 데이터만 또는 코드 함께|**tabbit만**|
-|—|워크북 3-way 의미 병합 — [mabbit](../spec/workbook-merge.md)|**tabbit만**|
+|—|워크북 3-way 의미 병합 — [mabbit](../spec/import/workbook-merge.md)|**tabbit만**|
 |—|`--env` — 환경 라벨과 경로의 단일 선언|**tabbit만**|
 
 ### 4.9 확장
@@ -237,7 +237,7 @@ Luban은 레코드마다 태그를 부여하고 `--includeTag` · `--excludeTag`
 **가치** — 테스트 행 · 작업 중인 행 · 특정 빌드용 행을 **시트를 분리하지 않고** 릴리스에서
 제외할 수 있습니다. tabbit의 제외 수단은 시트 · 테이블 · 컬럼 단위이므로(`TargetSide` ·
 `IncludeSheets` · 필드명의 `#`) 행 단위는 시트를 나누는 것이 유일한 방법입니다. 시트를 나누면
-스키마가 두 벌이 되고, 그것이 [행 벌](../spec/table-row-sets.md)이 이미 기재한 문제입니다.
+스키마가 두 벌이 되고, 그것이 [행 벌](../spec/layout/table-row-sets.md)이 이미 기재한 문제입니다.
 
 **부담** — 산출 형식과 생성 코드는 바뀌지 않습니다. 결정이 필요한 것은 3가지입니다.
 
@@ -268,7 +268,7 @@ Luban은 추상 타입과 하위 타입을 지원하고, 시트에서는 `$type`
 |DB 익스포터|하위 타입마다 컬럼 집합이 다르므로 테이블 매핑을 새로 정해야 합니다|
 |게이트|적합성 코퍼스 확장 · 골든 재기록 · 샘플 재생성|
 
-> **그 스펙이 [다형과 참조 배열](../spec/polymorphism.md)이고, 와이어는 성립합니다** — 판별자
+> **그 스펙이 [다형과 참조 배열](../spec/types/polymorphism.md)이고, 와이어는 성립합니다** — 판별자
 > 컬럼 하나와 변종 멤버 컬럼의 합집합이며, v103·v106의 presence가 「행마다 컬럼 집합이 다른
 > 것」을 이미 담습니다. 위 표의 「형식 개정 1회」 산정이 그 문서 §6에서 없어집니다.
 
@@ -315,7 +315,7 @@ tabbit은 기본 인덱스가 필수이고 인덱스는 컬럼 1개입니다. Lu
 
 **부담** — 인덱스 모델이 「필드 1개」 전제 위에 있고, 조회 생성 코드가 그 전제를 사용합니다.
 복합 키는 조회 시그니처가 다인자가 되므로 **모든 코드 생성 타깃이 변경됩니다.** 그리고 참조가
-복합 키 테이블을 가리키는 경우는 [참조가 키 1개를 담는 현재 구조](../spec/reference-key-types.md)와
+복합 키 테이블을 가리키는 경우는 [참조가 키 1개를 담는 현재 구조](../spec/references/reference-key-types.md)와
 충돌하므로, **그 조합을 거부하는 것으로 시작하는 편이 안전합니다.**
 
 ### 5.6 비엑셀 소스
@@ -355,7 +355,7 @@ Luban의 `res` 타깃은 자원 경로로 표시된 값을 모아 목록으로 �
 
 **부담** — `ColumnConstraints`에 항목 추가와 검증 1곳입니다. 산출 형식과 생성 코드는 변경되지
 않습니다. 정규식은 「어느 방언인가」를 문서에 명시해야 하고, 배열 길이는
-[배열의 옵셔널](../spec/array-optionality.md)이 정한 규칙과의 정합을 확인해야 합니다.
+[배열의 옵셔널](../spec/types/array-optionality.md)이 정한 규칙과의 정합을 확인해야 합니다.
 
 ### 5.9 번역 왕복
 
@@ -363,7 +363,7 @@ tabbit의 `text` 타깃은 수집 방향만 있습니다. Luban은 번역표를 
 파일을 산출**하고, 수집 시점에 **키의 유효성을 검증**합니다.
 
 **가치** — 번역 누락이 변환에서 검출되고, 언어별 산출물이 도구 안에서 산출됩니다. 다만
-[행 벌](../spec/table-row-sets.md)이 지역별 데이터를 담당하도록 이미 설계되어 있어 목적이 겹칩니다.
+[행 벌](../spec/layout/table-row-sets.md)이 지역별 데이터를 담당하도록 이미 설계되어 있어 목적이 겹칩니다.
 
 **부담** — 번역표를 소스로 읽는 경로가 필요하고, 그 자리는 §5.6과 같습니다. **순서상 행 벌
 구현 이후에 판단할 항목입니다** — 그쪽이 먼저 들어오면 이 항목의 필요 범위가 축소됩니다.
@@ -377,7 +377,7 @@ tabbit의 `text` 타깃은 수집 방향만 있습니다. Luban은 번역표를 
 |외부 타입 매핑|엔진 타입을 그대로 사용할 수 있습니다|언어마다 매핑 선언과 변환 코드. **생성 코드가 자립한다는 전제와 충돌합니다** — 매핑된 타입은 소비자 쪽에 있어야 합니다|
 |set · map 컨테이너|테이블 참조로 대체되는 경우가 많아 가치가 낮습니다|배열과 별개의 와이어 표현이 필요합니다|
 |protobuf · FlatBuffers 스키마 산출|미지원 언어와 기존 파이프라인의 연결|지원 언어가 이미 넓어 가치가 낮습니다|
-|필드 변종|지역 · 버전별 값 컬럼을 필드 1개로|[행 벌](../spec/table-row-sets.md)과 목적이 겹칩니다. 그쪽 구현 이후에 판단합니다|
+|필드 변종|지역 · 버전별 값 컬럼을 필드 1개로|[행 벌](../spec/layout/table-row-sets.md)과 목적이 겹칩니다. 그쪽 구현 이후에 판단합니다|
 
 ---
 
@@ -394,7 +394,7 @@ Luban에 있으나 이 저장소가 **이미 판단을 기록해 둔** 항목입
 |XML 스키마 정의 파일|하지 않습니다 — 시트가 스키마입니다. 정의를 두 곳에 두는 비용이 이득보다 큽니다|이 문서|
 
 **참고 1건** — Luban의 이름 표기 설정은 6축(namespace · type · method · property · field ·
-enum item)을 타깃별 옵션으로 지정합니다. [이름 표기 규약](../spec/naming-conventions.md) §5는
+enum item)을 타깃별 옵션으로 지정합니다. [이름 표기 규약](../spec/targets/naming-conventions.md) §5는
 `MemberCase` 1축이고 상수 · enum 라벨 · 타입 이름을 명시적으로 범위 밖에 두었습니다. 그 판단을
 변경할 근거는 아니지만, **다른 도구에서 6축이 요구되었다는 사실은 확장 시점의 참고가 됩니다.**
 

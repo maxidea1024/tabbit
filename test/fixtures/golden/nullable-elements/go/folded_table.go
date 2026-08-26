@@ -79,7 +79,7 @@ func (t *FoldedTable) Read(filename string) error {
 	// Unconditionally, and with whatever EncryptionKey and MacKey hold - which is nil
 	// unless the project set them. A file that is neither encrypted nor signed comes back
 	// from this untouched, so the load path is the same either way and there is no
-	// condition here that could be the wrong way round. spec/tcb-mac-and-signature.md.
+	// condition here that could be the wrong way round. spec/wire/tcb-mac-and-signature.md.
 	//
 	// What comes back is a window onto data rather than a copy of it, which is why data
 	// stays in scope for the whole read.
@@ -119,7 +119,7 @@ func (t *FoldedTable) Read(filename string) error {
 			if tabbit.CheckColumnWithElements(reader, column, "Folded.Tag", tabbit.KindArray, false, tabbit.ElementString) {
 				// Behind the row bitmap and in front of the values, walked with a counter
 				// that steps once per element of every row.
-				// spec/nullable-array-elements.md.
+				// spec/types/nullable-array-elements.md.
 				elementPresence := tabbit.ReadElementPresence(reader, column)
 				elementAt := int32(0)
 				cursor := tabbit.NewColumnCursor(reader, column, count, "Folded.Tag")

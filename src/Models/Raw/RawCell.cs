@@ -35,7 +35,7 @@ public class RawCell
     /// about the data.
     ///
     /// So the value is already empty here, and the policy is applied later against the cells
-    /// that became values. spec/formula-errors.md.
+    /// that became values. spec/types/formula-errors.md.
     /// </remarks>
     public string FormulaError { get; set; } = "";
 

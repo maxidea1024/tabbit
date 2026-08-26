@@ -12,7 +12,7 @@ namespace Tabbit.Cooking;
 /// **A sheet may write one field's value column several times over**, naming each one, and a
 /// build picks. What is picked is not in the produced files - the chosen column becomes the
 /// field and the others are not in the build - so this decides what gets converted rather than
-/// how it is written. spec/primary-layout.md section 3.6.
+/// how it is written. spec/layout/primary-layout.md section 3.6.
 ///
 /// Resolved once here rather than read in two places. The command line overrides the recipe
 /// because that is what a one-off build of the other variant is, and a key written twice on the

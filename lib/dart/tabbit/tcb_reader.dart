@@ -52,7 +52,7 @@ const int kindScalar = 0;
 const int kindArray = 1;
 
 // How a block's values are laid out. Raw is the layout 101 had; the others compress
-// a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
+// a column that repeats itself. spec/wire/tcb-v102-column-encoding.md is the contract.
 const int encodingRaw = 0;
 const int encodingVarint = 1;
 const int encodingDelta = 2;
@@ -80,7 +80,7 @@ const int encodingDictSegmentRle = 12;
 const int encodingBitpack = 13;
 
 // The file header, at fixed offsets whether or not the file is encrypted and whether or not
-// it carries a MAC. spec/tcb-mac-and-signature.md.
+// it carries a MAC. spec/wire/tcb-mac-and-signature.md.
 const int magicOffset = 0;
 const int versionOffset = 4;
 const int flagsOffset = 8;
@@ -139,7 +139,7 @@ class Column {
   /// Whether the block states, per element, which of an array's places hold a value.
   ///
   /// Independent of [nullable]: a column may say either, or both.
-  /// spec/nullable-array-elements.md.
+  /// spec/types/nullable-array-elements.md.
   final bool elementNullable;
 }
 
@@ -1389,7 +1389,7 @@ List<int> readPresence(TcbReader reader, Column column, int rowCount) {
 /// Empty for a column that does not carry one. Its length is written ahead of it as a
 /// counter32, because a variable-length column's total is the sum of its row lengths and
 /// those live inside the value block - a reader meeting the bitmap first would have nothing
-/// to size it by. spec/nullable-array-elements.md.
+/// to size it by. spec/types/nullable-array-elements.md.
 List<int> readElementPresence(TcbReader reader, Column column) {
   if (!column.elementNullable) {
     return const <int>[];
@@ -1413,7 +1413,7 @@ bool isPresent(List<int> presence, int row) =>
 void checkColumn(Column column, String fieldName, int kind, bool nullable,
     List<int> accepted, [bool elementNullable = false]) {
   // The same statement about the other bitmap: code not expecting one would read it as
-  // values. spec/nullable-array-elements.md.
+  // values. spec/types/nullable-array-elements.md.
   if (column.elementNullable != elementNullable) {
     throw TcbException(
         "$fieldName: the file and the generated member disagree about whether this column's "
@@ -1432,7 +1432,7 @@ void checkColumn(Column column, String fieldName, int kind, bool nullable,
 
   // A negative count says the member claims no length: how many elements a row holds is
   // what the file states. The kind is still the member's claim.
-  // spec/nullable-array-elements.md.
+  // spec/types/nullable-array-elements.md.
   if (column.kind != kind) {
     throw TcbException(
         '$fieldName: the file column (kind ${column.kind}) does not match the '

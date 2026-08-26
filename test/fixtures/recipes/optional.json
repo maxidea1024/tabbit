@@ -7,8 +7,8 @@
   //
   // What the goldens watch is that absence reaches the consumer. The file carries a presence
   // bit per row and the generated pages carry a `Has{field}` accessor, so a row saying it has
-  // none is not the same as a row saying zero - spec/optional-fields.md. How a cell says it
-  // is spec/blank-and-null-cells.md, and `blank-and-null` is the fixture for that.
+  // none is not the same as a row saying zero - spec/types/optional-fields.md. How a cell says it
+  // is spec/types/blank-and-null-cells.md, and `blank-and-null` is the fixture for that.
 
   "Sources": {
     "Xlsx": [

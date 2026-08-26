@@ -117,7 +117,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// A level below is a class declared beside the element type, and the read reaches it with
     /// a longer member path. Its member is initialized by calling that class, which is how the
     /// values inside it reach the same empty values a scalar member gets.
-    /// spec/nested-multi-level.md.
+    /// spec/types/nested-multi-level.md.
     /// </summary>
     protected override bool SupportsDeepNestedFields => true;
 
@@ -128,7 +128,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// Not `T?`, which is the shape Dart's null safety would suggest. Every generated
     /// property is initialized rather than nullable for the reason this repeats: a caller
     /// reading a value should not have to answer for a row the read never reached.
-    /// spec/optional-fields.md has the rest.
+    /// spec/types/optional-fields.md has the rest.
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
@@ -137,7 +137,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
     /// <summary>
     /// The per-element answer beside the value, filled from the element bitmap the file
-    /// carries. spec/nullable-array-elements.md.
+    /// carries. spec/types/nullable-array-elements.md.
     /// </summary>
     protected override bool SupportsOptionalElements => true;
 
@@ -209,7 +209,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         }
 
         // A struct is an entity beside a table and an enum, so it gets a part of its own - one
-        // per declaration however many tables named it. spec/polymorphism.md section 7.1.
+        // per declaration however many tables named it. spec/types/polymorphism.md section 7.1.
         foreach (var declared in _model.PolymorphicTypes)
         {
             string name = declared.Name.ToSnakeCase();
@@ -406,7 +406,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// <remarks>
     /// The key type's empty value means "points at nothing", and a multi-target column honours
     /// it in every language: the discriminator is a value a consumer reads.
-    /// spec/reference-optionality.md.
+    /// spec/references/reference-optionality.md.
     /// </remarks>
     private static string KeyIsSetSuffix(ValueType keyType)
         => keyType switch
@@ -434,7 +434,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
         // And the per-element answer, empty until the read fills it: an index into an empty
         // list is out of range, and the answer there is that the element has a value.
-        // spec/nullable-array-elements.md.
+        // spec/types/nullable-array-elements.md.
         if (sf.ElementMayBeAbsent)
             declarations.Add($"List<bool> {ElementPresenceMember(sf)} = const <bool>[];");
 
@@ -473,7 +473,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// The recursion is here rather than in the template, and <paramref name="declared"/>
     /// collects the classes it produces. A nested member is initialized by calling its own
     /// class - which is how every value inside it reaches the empty value a scalar member gets.
-    /// spec/nested-multi-level.md.
+    /// spec/types/nested-multi-level.md.
     /// </remarks>
     private List<DartRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, Table table, SerialField group,
@@ -493,7 +493,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
                 //
                 // No third member for whether it resolved - a null row says so, which is how
                 // this output already answers that outside a record.
-                // spec/references-in-records.md.
+                // spec/references/references-in-records.md.
                 var declarations = new List<string>();
 
                 if (member.IsRef)
@@ -502,7 +502,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
                     string key = ToDartTypeName(member.FirstField!.RefKeyType, null, null);
 
                     // The member's own name is the key's; the row takes the derived one.
-                    // spec/reference-surface-naming.md sections 4 and 5.
+                    // spec/references/reference-surface-naming.md sections 4 and 5.
                     bool toRow = ResolvesToRow(member.FirstField!);
                     string rowName = toRow
                         ? DartName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
@@ -573,7 +573,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// <remarks>
     /// Classes and `is`, which is this language's way of narrowing - and since Dart 3 a
     /// `sealed` base makes a `switch` over it exhaustive, so a variant added to the
-    /// declaration is a compile error at every consumer. spec/polymorphism.md section 7.
+    /// declaration is a compile error at every consumer. spec/types/polymorphism.md section 7.
     /// </remarks>
     private DartPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
         => new DartPolymorphicTypeView
@@ -595,7 +595,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// **A reference member is two of these**, as a reference is anywhere: the declared name is
     /// the key's and the row it resolves to takes the derived one. A variant carrying only the
     /// key would hand a consumer a key where the declaration promised a row.
-    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     private DartStructMemberView StructMember(Models.Field field)
     {
@@ -625,7 +625,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     private DartFieldView BuildRecordField(Table table, SerialField sf)
     {
         // Which abstract type this group is, if it is one. One per declaration however many
-        // tables named it. spec/polymorphism.md section 7.1.
+        // tables named it. spec/types/polymorphism.md section 7.1.
         var declaredType = sf.Members
                 .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
                 ?.FirstField?.AbstractTypeName is { } abstractName
@@ -651,7 +651,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         // A list with its elements already made, where the length is the sheet's column
         // count. A trimmed group starts empty, because its length is the row's.
         // An array of arrays declares no element type: the outer level has no name for one to
-        // belong to, so the inner list is the type. spec/nested-multi-level.md.
+        // belong to, so the inner list is the type. spec/types/nested-multi-level.md.
         string inner = ToDartTypeName(
             sf.Members[0].FirstField!.ElementType, sf.Members[0].FirstField!.EnumOrNull, null);
 
@@ -706,7 +706,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// <remarks>
     /// The member it fills is the group's for a scalar column. A record group's member
     /// columns each fill one property of the generated element type, which is the whole of
-    /// the difference - see spec/nested-fields.md.
+    /// the difference - see spec/types/nested-fields.md.
     /// </remarks>
     private DartColumnView BuildColumn(Table table, WireColumn wire)
     {
@@ -725,7 +725,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             MemberAccess = (wire.Member is null) ? "" : string.Concat(wire.MemberPath.Select(part => "." + DartName(part))),
             // A reference member reads into the key beside the row it will resolve to, and the
             // suffix goes on the member rather than after the subscript, because a member that
-            // is an array holds one key per element. spec/references-in-records.md.
+            // is an array holds one key per element. spec/references/references-in-records.md.
             MemberRefSuffix = "",
 
             RowName = wire.IsRef && wire.TagCarrier.ResolvedRefTable is not null
@@ -775,7 +775,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// <summary>What a stored key holds before a row is read.</summary>
     /// <remarks>
     /// Spelled from the key's own type, because a `string` key has no zero.
-    /// spec/reference-key-types.md.
+    /// spec/references/reference-key-types.md.
     /// </remarks>
     private static string RefKeyDefault(ValueType keyType)
         => keyType switch
@@ -783,7 +783,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             ValueType.String => "''",
 
             // A uuid is a class here, so its empty value is one of those rather than a
-            // literal. spec/reference-key-types.md.
+            // literal. spec/references/reference-key-types.md.
             ValueType.Uuid => "Uuid.empty()",
             _ => "0",
         };
@@ -861,7 +861,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
         // was the int32 assumption in another place: a target keyed by `uuid` has no cursor
-        // path any more than a `uuid` column does. spec/reference-key-types.md.
+        // path any more than a `uuid` column does. spec/references/reference-key-types.md.
         if (wire.IsRef)
             return wire.RefKeyType != ValueType.Uuid;
 
@@ -920,7 +920,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             return "";
 
         // A reference runs on the key it carries, which is not always an int32. An enum's
-        // underlying value is one. spec/reference-key-types.md.
+        // underlying value is one. spec/references/reference-key-types.md.
         if (wire.IsRef)
         {
             return wire.RefKeyType switch
@@ -959,12 +959,12 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         //
         // A run is one value for many rows, which an array column has none of - so a record
         // member reaching this is a member of a record of one, and its key sits on the member
-        // like every other member's does. spec/references-in-records.md.
+        // like every other member's does. spec/references/references-in-records.md.
         if (wire.IsRef)
         {
             // A dotted reference resolves to a value rather than a row, so there the column's
             // own name belongs to the value and the key takes the derived one.
-            // spec/reference-surface-naming.md section 9.
+            // spec/references/reference-surface-naming.md section 9.
             string keySuffix = ResolvesToRow(wire.TagCarrier) ? "" : "Index";
 
             return (wire.Member is null)
@@ -992,7 +992,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         if (sf.IsRef)
         {
             // The column's name is the key's; the row takes the derived one.
-            // spec/reference-surface-naming.md sections 4 and 5.
+            // spec/references/reference-surface-naming.md sections 4 and 5.
             bool toRow = ResolvesToRow(sf.FirstField!);
             string rowName = toRow
                 ? DartName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
@@ -1058,7 +1058,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             // The key the target is addressed by. `elementI32` alone is what a reference
             // accepted while a key could only be an int, and the writer has meanwhile learned
             // to emit the key's own element - so a reader told only this would refuse a file
-            // this build wrote. spec/reference-key-types.md.
+            // this build wrote. spec/references/reference-key-types.md.
             accepted = wire.RefKeyType switch
             {
                 ValueType.String => "elementString",
@@ -1131,7 +1131,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             // in the list beside the values. Read as a plain `var_array` it built the list of
             // rows out of keys, which does not compile - and nothing held the shape, because
             // `foreign[]` is refused and this is only reachable through a folded group with
-            // trimming on. spec/variable-length-record-arrays.md.
+            // trimming on. spec/types/variable-length-record-arrays.md.
             return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
@@ -1159,7 +1159,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
                 // A reference that is a member of a record resolves inside the element rather
                 // than beside it, so it is a loop of its own. Read off the wire columns, which
                 // is the same list the read path walks - the two have to agree about where the
-                // key landed. spec/references-in-records.md.
+                // key landed. spec/references/references-in-records.md.
                 RecordFields = table.WireColumns
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
@@ -1201,7 +1201,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// No resolution flag: a null row says whether it resolved, which is how this output
     /// already answers that for a reference outside a record. The loop bound says which of
     /// the three record shapes this is - the group's list, the member's, or neither.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     private DartRecordReferenceView BuildRecordReference(WireColumn wire)
     {
@@ -1264,7 +1264,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         // table is loaded.
         // The key the target is addressed by, which is not always an int32. `nextI32` for
         // every reference is what kept a table keyed by anything else from being pointed at
-        // from this language. spec/reference-key-types.md.
+        // from this language. spec/references/reference-key-types.md.
         if (wire.IsRef)
         {
             return wire.RefKeyType switch
@@ -1308,7 +1308,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
                 // The key the target is addressed by, which is not always an int32 -
                 // that constant is what kept a table keyed by anything else from
-                // being pointed at. spec/reference-key-types.md.
+                // being pointed at. spec/references/reference-key-types.md.
                 case ValueType.ForeignRecord:
                     return LanguageProfile.Dart.ReadCall(wire.RefKeyType);
 
@@ -1347,7 +1347,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// <remarks>
     /// The type functions answer for an element and let the caller add the brackets, exactly
     /// as a field's do - so an array constant asks for the element and wraps it here.
-    /// spec/primary-layout.md section 8.5.
+    /// spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     private string ConstantTypeName(ConstantSet.Constant constant)
     {
@@ -1366,7 +1366,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     ///
     /// A constant never reaches the file, so there is no wire question here: what a language
     /// needs is an expression its compiler accepts in the place a constant is declared.
-    /// spec/primary-layout.md section 8.5.
+    /// spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     private string RenderConstantValue(ConstantSet.Constant constant)
     {

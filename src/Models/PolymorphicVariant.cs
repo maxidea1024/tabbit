@@ -10,7 +10,7 @@ namespace Tabbit.Models;
 ///
 /// **No enum is generated from this list.** The variant is a declared type, so the type is the
 /// discriminator; the number is what the file carries and most languages never show it.
-/// spec/polymorphism.md section 7.1.
+/// spec/types/polymorphism.md section 7.1.
 /// </remarks>
 public sealed class PolymorphicVariant
 {
@@ -24,7 +24,7 @@ public sealed class PolymorphicVariant
     /// <remarks>
     /// Fixed rather than positional wherever a sheet wrote it, because a number tied to
     /// declaration order makes a deleted variant read as its neighbour - with no error, since
-    /// the value is still one the reader knows. spec/polymorphism.md section 5.1.1.
+    /// the value is still one the reader knows. spec/types/polymorphism.md section 5.1.1.
     /// </remarks>
     public required int Discriminator { get; init; }
 }

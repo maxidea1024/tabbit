@@ -1,7 +1,7 @@
 {
   // `-` in a required column and in an index, both refused by validation. Expected to fail
   // during cooking, so the output below is never reached.
-  // spec/blank-and-null-cells.md.
+  // spec/types/blank-and-null-cells.md.
 
   "Sources": {
     "Xlsx": [

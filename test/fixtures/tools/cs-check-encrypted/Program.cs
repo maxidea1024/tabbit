@@ -17,7 +17,7 @@
 // says it is the file that was exported. A project can use either, both or neither, and the
 // only difference in this code is which of the two statics is set.
 //
-// spec/tcb-v104-composed-encodings.md section 4 · spec/tcb-mac-and-signature.md.
+// spec/wire/tcb-v104-composed-encodings.md section 4 · spec/wire/tcb-mac-and-signature.md.
 
 using System;
 using System.Collections.Generic;

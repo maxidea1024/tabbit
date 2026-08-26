@@ -16,7 +16,7 @@ namespace Tabbit.Models;
 /// declaration fixes what the members are and the binding refuses a group whose columns
 /// disagree, so any group that used the type answers the same - and taking the columns rather
 /// than re-resolving the declaration means every generator keeps using the type names it
-/// already knows how to write. spec/polymorphism.md section 7.1.
+/// already knows how to write. spec/types/polymorphism.md section 7.1.
 /// </remarks>
 public sealed class PolymorphicType
 {

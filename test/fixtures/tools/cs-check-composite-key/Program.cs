@@ -9,7 +9,7 @@
 // both. Nothing about that fails to compile, and nothing about it is visible in a golden -
 // the generated text is the same either way. It shows up here, or it does not show up.
 //
-// spec/primary-layout.md section 3.5.
+// spec/layout/primary-layout.md section 3.5.
 
 using System;
 using System.Collections.Generic;
@@ -64,7 +64,7 @@ internal static class Program
                 // comes from. Each argument is the target's key - a string for one target and
                 // a number for the other - and this call is what says so: a lookup taking the
                 // target's rows would not compile against these.
-                // spec/reference-surface-naming.md sections 4 and 5.
+                // spec/references/reference-surface-naming.md sections 4 and 5.
                 ["link"] = CompositeKeyAccessor.BeastMove.FindByBeastIdAndMoveId("deer", 2)
                     is { } pair
                     ? pair.Power.ToString()

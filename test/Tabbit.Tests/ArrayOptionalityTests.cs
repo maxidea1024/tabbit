@@ -80,7 +80,7 @@ public class ArrayOptionalityTests
     /// What the answer is *about* is the element, not the array. A folded group's type cells
     /// each declare one element and none of them declares the array, so a `?` there says an
     /// element may be absent - and the array itself has no marker, because its columns exist
-    /// in every row. spec/nullable-array-elements.md.
+    /// in every row. spec/types/nullable-array-elements.md.
     /// </remarks>
     [Theory]
     [InlineData(true, false, false)]

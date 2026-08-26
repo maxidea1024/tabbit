@@ -43,7 +43,7 @@ public sealed class SchemaDeclarations
 
     // The tombstones, kept apart from the sets above. A dropped variant is not a member of
     // its set - nothing is generated for it and no column may hold it - and the one thing it
-    // is here for is that its number stays taken. spec/polymorphism.md section 5.1.1.
+    // is here for is that its number stays taken. spec/types/polymorphism.md section 5.1.1.
     private readonly List<SchemaStruct> _removed = [];
 
     /// <summary>Every struct, by the name generated code will spell it with.</summary>
@@ -246,7 +246,7 @@ public sealed class SchemaDeclarations
         // only the first took a set whose first variant carried no number for an unnumbered
         // set and left the rest unexamined, and that is the order that collides: the untagged
         // one takes 1 from its position while a tagged sibling takes 1 from its `@1`.
-        // spec/polymorphism.md section 5.1.1.
+        // spec/types/polymorphism.md section 5.1.1.
         // A tombstone always carries one, which the parser enforces - so a set with one in it
         // is a numbered set, and an unnumbered live variant beside it is the partial case.
         bool numbered = set.Concat(removed).Any(variant => variant.VariantDiscriminator > 0);
@@ -423,7 +423,7 @@ public sealed class SchemaDeclarations
     /// **Here rather than in <see cref="LinkVariants"/>, because a variant need not be a
     /// struct.** A table declares itself one, and the tables are not read until a workbook is
     /// open - so this is the earliest point that can tell an empty set from a set whose
-    /// members are all tables. spec/polymorphism.md section 3.
+    /// members are all tables. spec/types/polymorphism.md section 3.
     /// </remarks>
     private void RefuseEmptyVariantSets(Model model, Diagnostics diagnostics)
     {
@@ -493,7 +493,7 @@ public sealed class SchemaDeclarations
 
         // Refused where it is written rather than left to a later pass, because the notation
         // for it is settled and only what fills a row with it is missing. Value embedding is
-        // stage 4 of spec/polymorphism.md; the reference path in stage 3 reaches the same
+        // stage 4 of spec/types/polymorphism.md; the reference path in stage 3 reaches the same
         // variants through the tables that extend this name.
         if (_structs.TryGetValue(spelled, out var named) && named.IsAbstract)
         {

@@ -80,7 +80,7 @@ public sealed class RuleFile
 /// this repository learns nothing about that rule. What is here is only the layout - which
 /// subfolder means what, and which mistakes in it are reported rather than passed over.
 ///
-/// spec/validation-pipeline.md.
+/// spec/validation/validation-pipeline.md.
 /// </remarks>
 public sealed class RuleFolders
 {

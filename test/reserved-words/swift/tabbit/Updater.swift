@@ -432,7 +432,7 @@ public enum TabbitUpdater {
     /// so the reason to reach for a crypto package is not present, and the reason not to
     /// is: this file would then require one on every platform, for a hundred lines of
     /// arithmetic. The reader's own MAC is the other way round, and
-    /// spec/tcb-mac-and-signature.md says why.
+    /// spec/wire/tcb-mac-and-signature.md says why.
     ///
     /// Every operation wraps. Swift traps on overflow, and MD5 is nothing but wrapping
     /// addition and rotation.

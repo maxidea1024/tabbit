@@ -74,7 +74,7 @@ export const KIND_SCALAR = 0
 export const KIND_ARRAY = 1
 
 // How a block's values are laid out. Raw is the layout 101 had; the others compress
-// a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
+// a column that repeats itself. spec/wire/tcb-v102-column-encoding.md is the contract.
 export const ENCODING_RAW = 0
 export const ENCODING_VARINT = 1
 export const ENCODING_DELTA = 2
@@ -102,7 +102,7 @@ export const ENCODING_DICT_SEGMENT_RLE = 12
 export const ENCODING_BITPACK = 13
 
 // The file header, at fixed offsets whether or not the file is encrypted and whether or not
-// it carries a MAC. spec/tcb-mac-and-signature.md.
+// it carries a MAC. spec/wire/tcb-mac-and-signature.md.
 export const MAGIC_OFFSET = 0
 export const VERSION_OFFSET = 4
 export const FLAGS_OFFSET = 8
@@ -153,7 +153,7 @@ export interface TcbColumn {
   /**
    * Whether the block states, per element, which of an array's places hold a value.
    * Independent of `nullable`: a column may say either, or both.
-   * spec/nullable-array-elements.md.
+   * spec/types/nullable-array-elements.md.
    */
   elementNullable: boolean
   /** How the block's values are laid out: one of the ENCODING_* constants. */
@@ -1317,7 +1317,7 @@ export function checkColumn(
   column: TcbColumn, fieldName: string, kind: number, nullable: boolean,
   accepted: number[], elementNullable = false): void {
   // The same statement about the other bitmap: generated code not expecting one would read
-  // it as values. spec/nullable-array-elements.md.
+  // it as values. spec/types/nullable-array-elements.md.
   if (column.elementNullable !== elementNullable) {
     throw new TcbError(
       `${fieldName}: the file and the generated member disagree about whether this column's elements are optional` +

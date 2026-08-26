@@ -40,7 +40,7 @@ public class CorpusCoverageTests
     /// and resolution, and never survives into a model.
     ///
     /// **`ForeignRecordArray` used to be here and is not any more.** It was excluded on the
-    /// grounds that the cooker refused `foreign[]`, and it does not - spec/polymorphism.md
+    /// grounds that the cooker refused `foreign[]`, and it does not - spec/types/polymorphism.md
     /// section 4 opened it - so the corpus carries an `owners` column and every harness reads
     /// it. That column is the only place a reader has to allocate the resolved slots from the
     /// row's own element count rather than assign into a record it already sized.
@@ -67,13 +67,13 @@ public class CorpusCoverageTests
     ///
     /// What does hold it is a different gate - the `bitset` golden exports the same values as
     /// a `bigint` column beside it and every artifact has to agree, which is the fold itself
-    /// being checked rather than a reader's switch. spec/bitset.md.
+    /// being checked rather than a reader's switch. spec/types/bitset.md.
     ///
     /// The composites are the same argument one step further. A `vec3f` column becomes three
     /// `float` columns before any generator runs, so a corpus column of one would be reading
     /// the `float` path three more times. What holds them is `CompositeExpansionTests`, where
     /// the same table written both ways has to produce the same bytes.
-    /// spec/composite-value-types.md.
+    /// spec/types/composite-value-types.md.
     /// </remarks>
     private static readonly HashSet<ValueType> FoldedBeforeGeneration =
         new HashSet<ValueType>(Tabbit.Models.CompositeTypes.All.Select(entry => entry.Type))

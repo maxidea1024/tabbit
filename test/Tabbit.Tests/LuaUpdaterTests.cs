@@ -15,7 +15,7 @@ namespace Tabbit.Tests;
 /// work directory and required exactly as a consumer's program would require it. The
 /// transfer goes through the injected fetch the updater asks its consumers for; the
 /// driver's is curl to a file, which is an example of the contract and not part of the
-/// updater. spec/lua-language-support.md.
+/// updater. spec/targets/lua-language-support.md.
 /// </summary>
 public class LuaUpdaterTests : IDisposable
 {

@@ -17,7 +17,7 @@ namespace Tabbit.Tests;
 /// nothing writes. A workbook could express these, but reviewing the test would then mean
 /// opening Excel to see whether a column is numbered 2 or 3.
 ///
-/// The notation and the reasons behind it are in spec/nested-fields.md.
+/// The notation and the reasons behind it are in spec/types/nested-fields.md.
 /// </summary>
 public class NestedFieldFoldingTests
 {

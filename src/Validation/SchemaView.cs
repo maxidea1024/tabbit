@@ -15,7 +15,7 @@ namespace Tabbit.Validation;
 /// so "every table" cannot be asked of it at all.
 ///
 /// That is what a convention rule needs: `*ItemId` must be a reference, every table must have a
-/// comment, no two tables may share an id band. spec/validation-pipeline.md §4.
+/// comment, no two tables may share an id band. spec/validation/validation-pipeline.md §4.
 ///
 /// A wrapper rather than the model's own types. Rule files are the long-lived side of this - a
 /// project will have a hundred of them - so what they read has to be a contract rather than

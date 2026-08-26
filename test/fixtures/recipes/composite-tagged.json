@@ -7,7 +7,7 @@
   // ask for them again, and throw about the `#` column reserving a tag while no live field
   // carries one. Both sentences are about tags and only one is about the sheet.
   //
-  // spec/composite-value-types.md section 6.
+  // spec/types/composite-value-types.md section 6.
 
   "Sources": {
     "Xlsx": [

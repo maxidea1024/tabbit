@@ -56,7 +56,7 @@ pub const KIND_SCALAR: u8 = 0;
 pub const KIND_ARRAY: u8 = 1;
 
 // How a block's values are laid out. Raw is the layout 101 had; the others compress
-// a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
+// a column that repeats itself. spec/wire/tcb-v102-column-encoding.md is the contract.
 pub const ENCODING_RAW: u8 = 0;
 pub const ENCODING_VARINT: u8 = 1;
 pub const ENCODING_DELTA: u8 = 2;
@@ -84,7 +84,7 @@ pub const ENCODING_DICT_SEGMENT_RLE: u8 = 12;
 pub const ENCODING_BITPACK: u8 = 13;
 
 // The file header, at fixed offsets whether or not the file is encrypted and whether or not
-// it carries a MAC. spec/tcb-mac-and-signature.md.
+// it carries a MAC. spec/wire/tcb-mac-and-signature.md.
 pub const MAGIC_OFFSET: usize = 0;
 pub const VERSION_OFFSET: usize = 4;
 pub const FLAGS_OFFSET: usize = 8;
@@ -137,7 +137,7 @@ pub struct Column {
     /// Whether the block states, per element, which of an array's places hold a value.
     ///
     /// Independent of `nullable`: a column may say either, or both.
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     pub element_nullable: bool,
 }
 
@@ -1532,7 +1532,7 @@ pub fn read_presence(reader: &mut Reader<'_>, column: &Column, row_count: i32) -
 /// Empty for a column that does not carry one. Its length is written ahead of it as a
 /// counter32, because a variable-length column's total is the sum of its row lengths and
 /// those live inside the value block - a reader meeting the bitmap first would have nothing
-/// to size it by. spec/nullable-array-elements.md.
+/// to size it by. spec/types/nullable-array-elements.md.
 pub fn read_element_presence(reader: &mut Reader<'_>, column: &Column) -> Result<Vec<u8>> {
     if !column.element_nullable {
         return Ok(Vec::new());
@@ -1568,7 +1568,7 @@ pub fn check_column_with_elements(
 /// That the file and the generated member agree about the element bitmap.
 ///
 /// The same statement `check_column` makes about the row one: code not expecting a bitmap
-/// would read it as values. spec/nullable-array-elements.md.
+/// would read it as values. spec/types/nullable-array-elements.md.
 fn check_element_nullable(column: &Column, field: &'static str, expected: bool) -> Result<()> {
     if column.element_nullable != expected {
         return Err(Error::ColumnMismatch {
@@ -1605,7 +1605,7 @@ fn check_column_shape(
 
     // A negative count says the member claims no length: how many elements a row holds is
     // what the file states. The kind is still the member's claim.
-    // spec/nullable-array-elements.md.
+    // spec/types/nullable-array-elements.md.
     if column.kind != kind {
         return Err(Error::ColumnMismatch {
             field,

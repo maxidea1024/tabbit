@@ -26,7 +26,7 @@ public final class {{ accessor_name }} {
      * it cannot be taken back afterwards - so it is read at start-up from wherever this
      * project keeps secrets, not written into a source file and not left in a resource the
      * jar carries. What the layer is for, and therefore what is and is not worth defending,
-     * is spec/tcb-v104-composed-encodings.md section 4.
+     * is spec/wire/tcb-v104-composed-encodings.md section 4.
      */
     public static byte[] encryptionKey = null;
 
@@ -43,7 +43,7 @@ public final class {{ accessor_name }} {
      *
      * <p>Setting it makes the reader stricter in a second way: a file that carries no MAC is
      * refused, because otherwise the check could be removed by zeroing sixteen bytes. So the
-     * order to turn this on in is data first, key second. spec/tcb-mac-and-signature.md.
+     * order to turn this on in is data first, key second. spec/wire/tcb-mac-and-signature.md.
      */
     public static byte[] macKey = null;
 
@@ -120,7 +120,7 @@ public final class {{ accessor_name }} {
 {{~## A reference that is a member of a record resolves inside the element, so the array is
    walked and each element's own key is looked up. Which array that is - the group's or the
    member's - the view decided, and a record of one has neither.
-   spec/references-in-records.md. ##~}}
+   spec/references/references-in-records.md. ##~}}
 {{~ for member in reference.record_fields ~}}
 {{~ if member.count != '' ~}}
             for (int i = 0; i < {{ member.count }}; i++) {
@@ -141,11 +141,11 @@ public final class {{ accessor_name }} {
 {{~## A column reaching several tables that is a member of a record resolves inside the element,
    so the elements are walked and each one's own key is looked up. Which array that is - the
    group's or the member's - the view decided, and a record of one has neither.
-   spec/multi-target-accessors.md ~ spec/references-in-records.md. ##~}}
+   spec/references/multi-target-accessors.md ~ spec/references/references-in-records.md. ##~}}
 {{~## A column reaching several tables is looked up in each of them in the order they were
    named, stopping at the first that has the key. The tables take separate id bands - an id in
    two of them is refused at conversion - so the order only decides which lookup runs.
-   spec/multi-target-accessors.md. ##~}}
+   spec/references/multi-target-accessors.md. ##~}}
         }
 {{~ end ~}}
 {{~ end ~}}

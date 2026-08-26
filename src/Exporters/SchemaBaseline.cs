@@ -95,7 +95,7 @@ public class SchemaBaseline
         /// An element count used to sit beside this. It said how many elements a fixed
         /// array held per row, and a change to it was a breaking change; since v107 there
         /// is no fixed array and a length is per row, so adding an element to a group is
-        /// no longer a schema change at all. spec/tcb-v107-dynamic-arrays.md.
+        /// no longer a schema change at all. spec/wire/tcb-v107-dynamic-arrays.md.
         /// </remarks>
         public byte Kind { get; set; }
 

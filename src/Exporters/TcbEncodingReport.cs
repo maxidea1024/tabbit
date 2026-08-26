@@ -114,7 +114,7 @@ public sealed class TcbEncodingReport
 
         /// <summary>Whether the elements are integers a bit-width layout could carry.</summary>
         /// <remarks>
-        /// Measured, not in the format. spec/bitset.md's sixth section says why the question
+        /// Measured, not in the format. spec/types/bitset.md's sixth section says why the question
         /// is being asked; what settles it is this column and every other one.
         /// </remarks>
         public bool BitpackApplies { get; set; }

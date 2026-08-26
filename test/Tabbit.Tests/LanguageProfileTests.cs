@@ -50,7 +50,7 @@ public class LanguageProfileTests
     /// `Bitset` is absent for a third reason: it does not reach a generator at all. It is a
     /// type for exactly as long as parsing lasts - what makes it one is the notation it
     /// accepts - and the cooker folds it to a 64-bit integer once every cell has been read,
-    /// so a profile entry for it would be a name nothing ever asks for. spec/bitset.md.
+    /// so a profile entry for it would be a name nothing ever asks for. spec/types/bitset.md.
     ///
     /// Everything else is here.
     /// </summary>
@@ -67,7 +67,7 @@ public class LanguageProfileTests
                // long as parsing lasts and the cooker folds them away, so no generator ever
                // sees one. A language that named `vec3f` would be naming a type that cannot
                // reach it - and the fold, not a per-language entry, is what makes that true.
-               // spec/composite-value-types.md.
+               // spec/types/composite-value-types.md.
                .Where(type => !Tabbit.Models.CompositeTypes.IsComposite(type));
 
     [Fact]

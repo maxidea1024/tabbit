@@ -66,7 +66,7 @@ tcb.ELEMENT_UUID = 7
 tcb.KIND_SCALAR = 0
 tcb.KIND_ARRAY = 1
 
--- How a block's values are laid out. spec/tcb-v102-column-encoding.md is the contract.
+-- How a block's values are laid out. spec/wire/tcb-v102-column-encoding.md is the contract.
 tcb.ENCODING_RAW = 0
 tcb.ENCODING_VARINT = 1
 tcb.ENCODING_DELTA = 2
@@ -83,7 +83,7 @@ tcb.ENCODING_DICT_SEGMENT_RLE = 12
 tcb.ENCODING_BITPACK = 13
 
 -- The file header, at fixed offsets whether or not the file is encrypted and whether
--- or not it carries a MAC. spec/tcb-mac-and-signature.md.
+-- or not it carries a MAC. spec/wire/tcb-mac-and-signature.md.
 tcb.MAGIC_OFFSET = 0
 tcb.VERSION_OFFSET = 4
 tcb.FLAGS_OFFSET = 8
@@ -155,7 +155,7 @@ tcb.UUID_EMPTY = "00000000-0000-0000-0000-000000000000"
 -- metatable goes on - so correct reads and writes never reach here. The declared list
 -- still matters for the fields whose value is legitimately nil (an unresolved
 -- reference): those are absent from the table, land in __index, and answer nil instead
--- of the error. spec/lua-language-support.md.
+-- of the error. spec/targets/lua-language-support.md.
 function tcb.strictType(label, fields)
   local known = {}
 
@@ -509,7 +509,7 @@ local UUID_ORDER = { 4, 3, 2, 1, 6, 5, 8, 7, 9, 10, 11, 12, 13, 14, 15, 16 }
 
 -- A uuid as its canonical lower-case hyphenated string. A string rather than a type of
 -- its own: it is the one Lua value that is hashable and comparable by value, which the
--- key indexes and the constants need. spec/lua-language-support.md.
+-- key indexes and the constants need. spec/targets/lua-language-support.md.
 function Reader:readUuid()
   local at = self:take(16)
   local data = self.data
@@ -1187,7 +1187,7 @@ function tcb.readTableHeader(reader)
       nullable = floor(wire / 64) % 2 == 1,
 
       -- Whether the block states, per element, which of an array's places hold a value.
-      -- Independent of `nullable`. spec/nullable-array-elements.md.
+      -- Independent of `nullable`. spec/types/nullable-array-elements.md.
       elementNullable = floor(wire / 128) % 2 == 1,
     }
   end

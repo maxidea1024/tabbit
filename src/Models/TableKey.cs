@@ -9,7 +9,7 @@ namespace Tabbit.Models;
 /// <remarks>
 /// **SQL's key system, which is the one everybody already knows.** The first key a table
 /// declares is its PRIMARY KEY and the rest are UNIQUE keys; either kind may be one column or
-/// several, and a column may take part in more than one key. spec/primary-layout.md section 3.5.
+/// several, and a column may take part in more than one key. spec/layout/primary-layout.md section 3.5.
 ///
 /// A table that declares none is not keyless - its first column is the primary key, which is
 /// what every sheet written before this notation existed relies on. So an empty list means

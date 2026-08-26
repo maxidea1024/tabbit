@@ -14,7 +14,7 @@ namespace Tabbit.Tests;
 /// the binary writes a bit in a bitmap at the front of the column's block - so agreeing is
 /// evidence rather than coincidence. TypeScript is the only reader that takes both paths.
 ///
-/// spec/optional-fields.md has the layout. The `optional` golden pins the bytes and the
+/// spec/types/optional-fields.md has the layout. The `optional` golden pins the bytes and the
 /// generated accessors; this asserts what they mean.
 /// </remarks>
 public class OptionalRoundTripTests

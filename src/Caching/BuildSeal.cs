@@ -92,7 +92,7 @@ public sealed class SealedOutput
 /// The whole point is the comparison, so the parts are kept apart rather than folded into
 /// one number. A single hash of everything answers "something changed" and nothing else,
 /// and a cache that cannot say which workbook changed is a cache nobody believes -
-/// spec/build-cache.md §7.
+/// spec/ops/build-cache.md §7.
 ///
 /// Machine-local by construction: the paths are absolute, because a run's inputs and
 /// outputs are where they are and resolving them against a working directory recorded

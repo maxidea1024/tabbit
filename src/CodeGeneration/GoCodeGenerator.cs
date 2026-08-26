@@ -123,7 +123,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// <summary>
     /// A level below is a struct declared beside the element type, and the read reaches it with
     /// a longer member path. A Go struct zero-initializes, so nothing has to be made for it.
-    /// spec/nested-multi-level.md.
+    /// spec/types/nested-multi-level.md.
     /// </summary>
     protected override bool SupportsDeepNestedFields => true;
 
@@ -133,7 +133,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// <remarks>
     /// Not a pointer. It has to work the same for a `string` as for an `int32`, and making
     /// every optional member a pointer would put an allocation and a nil check between the
-    /// caller and every value - spec/optional-fields.md has the reasoning.
+    /// caller and every value - spec/types/optional-fields.md has the reasoning.
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
@@ -149,7 +149,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
 
     /// <summary>
     /// `HasXAt(i)` beside the value, filled from the element bitmap the file carries.
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     /// </summary>
     protected override bool SupportsOptionalElements => true;
 
@@ -242,7 +242,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         }
 
         // A struct is an entity beside a table and an enum, so it gets a file of its own - one
-        // per declaration however many tables named it. spec/polymorphism.md section 7.1.
+        // per declaration however many tables named it. spec/types/polymorphism.md section 7.1.
         foreach (var declared in _model.PolymorphicTypes)
         {
             Write("struct_" + declared.Name.ToSnakeCase() + ".go", "go-struct.sbn",
@@ -275,7 +275,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// </summary>
     /// <remarks>
     /// The members are columns, so their types come out of the same conversion a table's do.
-    /// spec/polymorphism.md section 7.1.
+    /// spec/types/polymorphism.md section 7.1.
     /// </remarks>
     private GoPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
         => new GoPolymorphicTypeView
@@ -299,7 +299,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// **A reference member is two fields**, as a reference is anywhere: the declared name is
     /// the key's and the row it resolves to takes the derived one. A variant that carried only
     /// the key would hand a consumer a string where the declaration promised a row.
-    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     private GoStructMemberView StructMember(Models.Field field)
     {
@@ -572,7 +572,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// Zero - or the key type's empty value - is the convention for "points at nothing", and a
     /// multi-target column has to honour it in every language: the discriminator it produces is
     /// observable, so a language that resolved a zero where another did not would answer a
-    /// different table for the same row. spec/reference-optionality.md.
+    /// different table for the same row. spec/references/reference-optionality.md.
     /// </remarks>
     private static string KeyIsSetSuffix(ValueType keyType)
         => keyType switch
@@ -618,7 +618,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// The recursion is here rather than in the template, and <paramref name="declared"/>
     /// collects the structs it produces. A nested member needs nothing beyond its declaration
     /// line: a Go struct zero-initializes, so there is no factory to call for it to reach its
-    /// members' empty values. spec/nested-multi-level.md.
+    /// members' empty values. spec/types/nested-multi-level.md.
     /// </remarks>
     private List<GoRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, Table table, SerialField group,
@@ -638,7 +638,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                 //
                 // No third member for whether it resolved - a nil pointer says so, which is
                 // how this output already answers that outside a record.
-                // spec/references-in-records.md.
+                // spec/references/references-in-records.md.
                 string memberType = member.IsRef
                     ? "*" + member.FirstField!.ResolvedRefTable!.Name.ToPascalCase() + "Record"
                     : ToGoTypeName(member.FirstField!.ElementType, member.FirstField!.EnumOrNull, null);
@@ -649,7 +649,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
 
                 // The member's own name is the key's, because the key is what the cell
                 // holds; the row is linked after loading and takes a derived name.
-                // spec/reference-surface-naming.md sections 4 and 5.
+                // spec/references/reference-surface-naming.md sections 4 and 5.
                 var declarations = member.IsRef
                     ? new List<string>
                     {
@@ -723,7 +723,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         string elementType = RecordTypeName(table, sf);
 
         // Which abstract type this group is, if it is one. One per declaration however many
-        // tables named it. spec/polymorphism.md section 7.1.
+        // tables named it. spec/types/polymorphism.md section 7.1.
         var declaredType = sf.Members
                 .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
                 ?.FirstField?.AbstractTypeName is { } abstractName
@@ -732,7 +732,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             : null;
 
         // The entry steps aside for a polymorphic group: the name belongs to the method that
-        // hands back the interface, and a field cannot share it. spec/polymorphism.md 7.2.
+        // hands back the interface, and a field cannot share it. spec/types/polymorphism.md 7.2.
         string entryName = declaredType is null
             ? name
             : char.ToLowerInvariant(name[0]) + name.Substring(1);
@@ -758,7 +758,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             Name = name,
 
             // An array of arrays has no element type to name, so the inner slice is the
-            // type - see spec/nested-multi-level.md.
+            // type - see spec/types/nested-multi-level.md.
             Declarations = new[]
             {
                 sf.MembersAreAnonymous
@@ -810,7 +810,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// <remarks>
     /// The member it fills is the group's for a scalar column. A record group's member
     /// columns each fill one field of the generated element type, which is the whole of the
-    /// difference - see spec/nested-fields.md.
+    /// difference - see spec/types/nested-fields.md.
     /// </remarks>
     /// <summary>
     /// What a group's flat entry is called on the record.
@@ -819,7 +819,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// Unexported for a polymorphic group: there the group's own name belongs to the method
     /// that hands back the interface, and a field cannot share it with a method. Every read
     /// target has to agree with the declaration, so both ask this.
-    /// spec/polymorphism.md section 7.2.
+    /// spec/types/polymorphism.md section 7.2.
     /// </remarks>
     private string EntryName(WireColumn wire)
     {
@@ -860,7 +860,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             MemberAccess = memberAccess,
 
             // The key carries the member's own name now, so nothing is appended.
-            // spec/reference-surface-naming.md section 4.
+            // spec/references/reference-surface-naming.md section 4.
             MemberRefSuffix = "",
 
             RowName = wire.IsRef && wire.TagCarrier.ResolvedRefTable is not null
@@ -952,11 +952,11 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             // The key the target is addressed by, not `int32`. The record-member path next
             // door has always asked; this one wrote the width in, so a reference array whose
             // target is keyed by anything else declared a slice the read could not fill.
-            // spec/reference-key-types.md.
+            // spec/references/reference-key-types.md.
             string keyType = ToGoTypeName(sf.FirstField!.RefKeyType, null, null);
 
             // The column's name is the key's; the row takes the derived one.
-            // spec/reference-surface-naming.md sections 4 and 5.
+            // spec/references/reference-surface-naming.md sections 4 and 5.
             bool toRow = ResolvesToRow(sf.FirstField!);
             string rowName = toRow
                 ? GoName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
@@ -988,7 +988,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             // The key the target is addressed by. `tabbit.ElementI32` alone is what a reference
             // accepted while a key could only be an int, and the writer has meanwhile learned
             // to emit the key's own element - so a reader told only this would refuse a file
-            // this build wrote. spec/reference-key-types.md.
+            // this build wrote. spec/references/reference-key-types.md.
             accepted = wire.RefKeyType switch
             {
                 ValueType.String => "tabbit.ElementString",
@@ -1063,7 +1063,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         // the array beside the values. Read as a plain `var_array` it assigned an int32 into
         // the slice of pointers, which is a page that does not compile - and nothing held the
         // shape, because `foreign[]` is refused and this is only reachable through a folded
-        // group with trimming on. spec/variable-length-record-arrays.md.
+        // group with trimming on. spec/types/variable-length-record-arrays.md.
         if (wire.IsArray)
             return wire.IsRef ? "var_array_ref" : "var_array";
 
@@ -1091,7 +1091,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
         // was the int32 assumption in another place: a target keyed by `uuid` has no cursor
-        // path any more than a `uuid` column does. spec/reference-key-types.md.
+        // path any more than a `uuid` column does. spec/references/reference-key-types.md.
         if (wire.IsRef)
             return wire.RefKeyType != ValueType.Uuid;
 
@@ -1155,7 +1155,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             return "";
 
         // A reference runs on the key it carries, which is not always an int32. An enum's
-        // underlying value is one. spec/reference-key-types.md.
+        // underlying value is one. spec/references/reference-key-types.md.
         if (wire.IsRef)
         {
             return wire.RefKeyType switch
@@ -1194,7 +1194,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         //
         // A run is one value for many rows, which an array column has none of - so a record
         // member reaching this is a member of a record of one, and its key sits on the member
-        // like every other member's does. spec/references-in-records.md.
+        // like every other member's does. spec/references/references-in-records.md.
         if (wire.IsRef)
         {
             return (wire.Member is null)
@@ -1230,7 +1230,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                 // A reference that is a member of a record resolves inside the element rather
                 // than beside it, so it is a loop of its own. Read off the wire columns, which
                 // is the same list the read path walks - the two have to agree about where the
-                // key landed. spec/references-in-records.md.
+                // key landed. spec/references/references-in-records.md.
                 RecordFields = table.WireColumns
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
@@ -1270,7 +1270,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// No resolution flag: a nil pointer says whether it resolved, which is how this output
     /// already answers that for a reference outside a record. What the loop ranges over says
     /// which of the three record shapes this is - the group's slice, the member's, or neither.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     private GoRecordReferenceView BuildRecordReference(WireColumn wire)
     {
@@ -1336,7 +1336,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         // The key the target is addressed by, which is not always an int32. Falling through to
         // the switch below read every reference as one, because a reference's element type is
         // `ForeignRecord` and that is the case the default arm answers.
-        // spec/reference-key-types.md.
+        // spec/references/reference-key-types.md.
         if (wire.IsRef)
         {
             return wire.RefKeyType switch
@@ -1377,7 +1377,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             ValueType.Enum => $"{wire.TagCarrier.Enum.Name.ToPascalCase()}(reader.ReadEnum())",
                 // The key the target is addressed by, which is not always an int32 -
                 // that constant is what kept a table keyed by anything else from
-                // being pointed at. spec/reference-key-types.md.
+                // being pointed at. spec/references/reference-key-types.md.
             ValueType.ForeignRecord => LanguageProfile.Go.ReadCall(wire.RefKeyType),
             // Everything else is a plain call named in the profile, which is where the
             // nine of them live now rather than here and in every other generator.
@@ -1443,7 +1443,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// <remarks>
     /// The type functions answer for an element and let the caller add the brackets, exactly
     /// as a field's do - so an array constant asks for the element and wraps it here.
-    /// spec/primary-layout.md section 8.5.
+    /// spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     private string ConstantTypeName(ConstantSet.Constant constant)
     {
@@ -1462,7 +1462,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     ///
     /// A constant never reaches the file, so there is no wire question here: what a language
     /// needs is an expression its compiler accepts in the place a constant is declared.
-    /// spec/primary-layout.md section 8.5.
+    /// spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     private string RenderConstantValue(ConstantSet.Constant constant)
     {

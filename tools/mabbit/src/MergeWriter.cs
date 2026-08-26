@@ -13,7 +13,7 @@ namespace Mabbit;
 /// be reached by writing cells into the rectangles the tables already occupy. Anything that
 /// would change a table's shape - a row arriving, a column arriving, a whole table - cannot,
 /// because those move the cells below and beside them and take the defined names, merged
-/// ranges and formulas that point at them along. That is stage 4 of spec/workbook-merge.md.
+/// ranges and formulas that point at them along. That is stage 4 of spec/import/workbook-merge.md.
 ///
 /// Refusing is a result, not a failure. A merge that reports success having applied part of
 /// what it decided is the one outcome nobody can recover from.

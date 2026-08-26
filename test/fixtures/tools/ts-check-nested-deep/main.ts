@@ -10,7 +10,7 @@
 // positional over the wire columns: reading one entry per member rather than per leaf would
 // take the first leaf's run and call it the whole record.
 //
-// spec/nested-multi-level.md.
+// spec/types/nested-multi-level.md.
 //
 // Prints JSON on stdout for the C# harness to assert against.
 

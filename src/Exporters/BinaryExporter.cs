@@ -170,7 +170,7 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// array of records is a struct of arrays - and an array column with the member's
     /// element type is exactly that. So no new kind, no version bump, and the column
     /// encodings keep applying per member, which storing a record as one blob would have
-    /// defeated. spec/nested-fields.md has the layout.
+    /// defeated. spec/types/nested-fields.md has the layout.
     /// </remarks>
     /// <summary>Nothing to opt into: this target generates no lookup.</summary>
     /// <remarks>A key is a column like any other in the file, and the file carries no lookup.</remarks>
@@ -183,7 +183,7 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// <see cref="Models.Table.WireColumns"/>, and one wire column is one leaf of the path
     /// however deep that path is. A record inside a record is the same fixed-array columns at
     /// the same widths - only the name reaching a consumer is longer.
-    /// spec/nested-multi-level.md.
+    /// spec/types/nested-multi-level.md.
     /// </summary>
     protected override bool SupportsDeepNestedFields => true;
 
@@ -191,7 +191,7 @@ public class BinaryExporter : Target<BinaryRecipe>
 
     /// <summary>
     /// A second bitmap, one bit per element written, in front of a value block no encoding
-    /// had to learn about. spec/nullable-array-elements.md.
+    /// had to learn about. spec/types/nullable-array-elements.md.
     /// </summary>
     protected override bool SupportsOptionalElements => true;
 
@@ -239,7 +239,7 @@ public class BinaryExporter : Target<BinaryRecipe>
         // A run that asked for the encoding report takes the sequential path. The report is a
         // list in the order the columns were measured and it is written to a file, so a run
         // asking for it is asking a question about the encoding rather than for the fastest
-        // export. spec/conversion-time.md section 5.
+        // export. spec/ops/conversion-time.md section 5.
         var planned = report is null ? Plan(binaryRecipe, context.Model) : null;
 
         if (planned is null)
@@ -299,7 +299,7 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// <remarks>
     /// A table with one set - which is nearly all of them - yields one file, so this is the
     /// ordinary path rather than a branch around it. The schema is the table's and is written
-    /// into each file identically; only the rows differ. spec/table-row-sets.md.
+    /// into each file identically; only the rows differ. spec/layout/table-row-sets.md.
     /// </remarks>
     /// <summary>One file this entry will write, and the staging file it will write it into.</summary>
     private sealed class Job
@@ -436,7 +436,7 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// pays to set up a fan-out that has no core to run on.
     ///
     /// The export takes the tables; the validation pipeline encodes one table at a time and
-    /// takes the columns. spec/conversion-time.md section 5.
+    /// takes the columns. spec/ops/conversion-time.md section 5.
     /// </remarks>
     internal enum Spread
     {
@@ -552,7 +552,7 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// full and the smallest kept, ties going to the lowest encoding number. Encode
     /// time is the one resource this format's design does not care about, and a
     /// measured byte count is the one selector that is never wrong. The candidates
-    /// and their layouts are spec/tcb-v102-column-encoding.md.
+    /// and their layouts are spec/wire/tcb-v102-column-encoding.md.
     /// </summary>
     private static ColumnBlock EncodeColumn(
         Table table, List<List<Cell>> rows, WireColumn column, TcbEncodingReport? report)
@@ -593,7 +593,7 @@ public class BinaryExporter : Target<BinaryRecipe>
             // say it as plainly as the encoded one does. A folded group's is its column
             // count, the same for every row - and it is still written every row, because
             // the descriptor no longer has a place to say it once.
-            // spec/tcb-v107-dynamic-arrays.md.
+            // spec/wire/tcb-v107-dynamic-arrays.md.
             if (column.IsArray)
                 raw.WriteCounter32(column.Cells.Count);
 
@@ -1150,7 +1150,7 @@ public class BinaryExporter : Target<BinaryRecipe>
 
         // After the row bitmap and before the values, which is the order a reader meets them
         // in: whether a row has an array at all, then which of that array's places hold a
-        // value, then the values. spec/nullable-array-elements.md.
+        // value, then the values. spec/types/nullable-array-elements.md.
         if (elementBitmap)
         {
             var bits = ElementPresenceBits(table, rows, column, out int elements);
@@ -1159,7 +1159,7 @@ public class BinaryExporter : Target<BinaryRecipe>
             // How many bits the bitmap holds, ahead of it. A variable-length column's total
             // is the sum of its row lengths, and those lengths are inside the value block -
             // behind the bitmap - so a reader that met the bitmap first could not size it.
-            // Five bytes at most, once per column. spec/nullable-array-elements.md.
+            // Five bytes at most, once per column. spec/types/nullable-array-elements.md.
             payload.WriteCounter32(elements);
 
             payload.Write(encoding);
@@ -1275,7 +1275,7 @@ public class BinaryExporter : Target<BinaryRecipe>
         // A reference is stored as the target's primary index, so what travels is that
         // key's type rather than the record type the field presents. `int32` used to be
         // written here as a constant, which is why a table keyed by anything else could
-        // not be pointed at. spec/reference-key-types.md.
+        // not be pointed at. spec/references/reference-key-types.md.
         if (field.IsRef)
             valueType = field.RefKeyType;
 

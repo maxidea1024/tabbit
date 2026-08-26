@@ -14,7 +14,7 @@ namespace Tabbit.Tests;
 /// conversion wrote and asserts the values, which is the only static-language gate a
 /// dynamic target can be given. Arrays are 1-based - the sheet's `name[0]` is
 /// `row.name[1]` - so every subscript below is one up from its Python twin.
-/// spec/lua-language-support.md.
+/// spec/targets/lua-language-support.md.
 /// </remarks>
 public class LuaNestedAndOptionalTests
 {
@@ -73,7 +73,7 @@ assert(rows[1].pos.x == 5 and rows[1].pos.y == 6)
     /// <summary>
     /// A record whose members are arrays - one record, each member holding all of its
     /// elements, out of the same columns an array of records would use.
-    /// spec/nested-multi-level.md.
+    /// spec/types/nested-multi-level.md.
     /// </summary>
     [Fact]
     public void A_record_of_arrays_reads()
@@ -92,7 +92,7 @@ assert(eq(rows[2].grid[1], {7, 8, 9}) and eq(rows[2].grid[2], {10, 11, 12}))
 
     /// <summary>
     /// A record whose member is itself a record - a value and a record at the same
-    /// level, read out of the binary. spec/nested-multi-level.md.
+    /// level, read out of the binary. spec/types/nested-multi-level.md.
     /// </summary>
     [Fact]
     public void A_record_inside_a_record_reads()
@@ -139,7 +139,7 @@ end
     /// <summary>
     /// A record whose member references another table: the row it resolved to beside
     /// the key that came off the wire, and a linking pass that walks the elements.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </summary>
     [Fact]
     public void A_reference_inside_a_record_reads()
@@ -168,7 +168,7 @@ assert(t.kit.records[2].part[1].itemByItemId.name == 'shield')
     /// The resolved list is asked element by element, and its length is the key list's:
     /// a Lua table cannot hold nil, so an unresolved element is an absent entry and `#`
     /// over the value list stops at the first hole. The keys are what say how many
-    /// elements the row carried. spec/lua-language-support.md.
+    /// elements the row carried. spec/targets/lua-language-support.md.
     /// </remarks>
     [Fact]
     public void An_array_of_references_reads()
@@ -189,7 +189,7 @@ assert(rows[3].tier[2] == nil)
     /// Lookups by every key type - most of all the int64 one, whose map is keyed by the
     /// decimal string because an int64 is FFI cdata under LuaJIT and cdata table keys
     /// compare by identity. The corpus keys sit past 2^53, so a lookup that rounded
-    /// through a double misses. spec/lua-language-support.md.
+    /// through a double misses. spec/targets/lua-language-support.md.
     /// </summary>
     [Fact]
     public void Keys_of_every_type_look_up()
@@ -215,7 +215,7 @@ assert(t.slotting:getByIndexOrThrow(2).capacity == 3)
     /// <remarks>
     /// The strict metatables are the reader's answer to Lua being the one target where
     /// a read typo is not even an error, and this is the gate that keeps them on.
-    /// spec/lua-language-support.md.
+    /// spec/targets/lua-language-support.md.
     /// </remarks>
     [Fact]
     public void Misspelled_fields_are_errors()

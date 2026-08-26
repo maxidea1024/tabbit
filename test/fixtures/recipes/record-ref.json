@@ -5,7 +5,7 @@
   // generated code: resolution makes a stored key and a setter per field, and neither
   // reached `[j].Member`.
   //
-  // spec/references-in-records.md.
+  // spec/references/references-in-records.md.
 
   "Sources": {
     "Xlsx": [

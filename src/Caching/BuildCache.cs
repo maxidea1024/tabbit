@@ -31,7 +31,7 @@ public enum CachePlan
 /// Decides what a run can skip, and records what it did for the next one.
 /// </summary>
 /// <remarks>
-/// The design and its reasoning are in spec/build-cache.md. Three things about this type are
+/// The design and its reasoning are in spec/ops/build-cache.md. Three things about this type are
 /// worth knowing before reading it.
 ///
 /// **It keys on inputs, not on the model.** There is already a content hash of the model -

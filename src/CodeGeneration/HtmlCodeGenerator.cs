@@ -76,7 +76,7 @@ public class HtmlRecipe : IOutputRecipe
 /// decisions about where a page lives are.
 /// </summary>
 // Not deterministic: the page carries the time it was generated, so the same model
-// produces different bytes on every run. spec/build-cache.md §5.
+// produces different bytes on every run. spec/ops/build-cache.md §5.
 [TabbitTarget("html", TargetKind.CodeGeneration, Order = 40, Deterministic = false)]
 public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 {
@@ -2214,7 +2214,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     /// **This used to offer every target and let the reader pick.** That was honest while
     /// nothing knew the answer; the generated code answers it now, and a page that shows
     /// two candidates where the accessors show one is the page being vaguer than the data.
-    /// spec/multi-target-accessors.md.
+    /// spec/references/multi-target-accessors.md.
     /// </remarks>
     private string RefValueMarkup(Models.Field field, object value, string root)
     {
@@ -2267,7 +2267,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     /// is not a boxed `10`.
     ///
     /// Every row, not the shown ones: which target holds a key is a fact about the data, and
-    /// the row cap is about the page. spec/multi-target-accessors.md.
+    /// the row cap is about the page. spec/references/multi-target-accessors.md.
     /// </remarks>
     private HashSet<string> KeysOf(string table)
     {

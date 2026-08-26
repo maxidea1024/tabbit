@@ -100,7 +100,7 @@ recipe의 산출물은 이 설정이 없던 때와 같습니다.
 
 > 데이터는 UTC이고, 지역 시간으로 보여 주는 것은 읽는 쪽의 일입니다. 이 설정은 **시트를 읽는
 > 방법**이지 내보내는 형식이 아닙니다. 자세한 것은
-> [시트의 datetime과 시간대](../spec/datetime-timezone.md).
+> [시트의 datetime과 시간대](../spec/types/datetime-timezone.md).
 
 #### `DataFileCase` — 데이터 파일 이름의 표기
 
@@ -190,7 +190,7 @@ has to know which one it is reading. Settle on `Id` and rewrite the other 1 plac
 목록에 옮기고 `OnViolation`을 `error`로 두면, 그 시점부터 **새 이름만** 규약을 지켜야 합니다.
 기존 이름은 계열 단위로 개명하며 목록에서 지웁니다 — 목록은 줄어드는 방향으로만 관리합니다.
 
-> 설계 배경과 실측은 [이름 표기 규약](../spec/naming-conventions.md)에 있습니다.
+> 설계 배경과 실측은 [이름 표기 규약](../spec/targets/naming-conventions.md)에 있습니다.
 
 ### `Sources` — 무엇을 읽을지
 
@@ -367,7 +367,7 @@ Item_alt      ← 같은 테이블의 다른 한 벌
 |가리키는 테이블이 있어야 합니다|오류. 벌은 테이블을 선언하지 않습니다|
 |소스마다 다른 표기를 적으면|오류. 테이블 이름은 실행 전체가 공유합니다|
 
-자세한 것은 [테이블의 행 벌](../spec/table-row-sets.md)에 있습니다.
+자세한 것은 [테이블의 행 벌](../spec/layout/table-row-sets.md)에 있습니다.
 
 #### `OnFormulaError` — 수식이 오류일 때
 
@@ -376,7 +376,7 @@ Item_alt      ← 같은 테이블의 다른 한 벌
 |`error`|**기본값.** 그 셀들을 검증 보고로 냅니다 — 첫 하나가 아니라 전부입니다.|
 |`empty`|빈 값으로 읽고, **컬럼당 한 번** 경고합니다 (건수와 첫 셀).|
 
-**어느 쪽이든 보고되는 것은 모델이 값으로 든 셀뿐입니다.** 이름 붙은 사각형 안이어도 컬럼 이름이 없어 필드가 되지 않은 셀 — 조회용 수식, 작업용 컬럼 — 은 보고되지 않습니다. 한 프로젝트의 전량 변환에서 그것이 **10,263건**이었고, 그 규모가 기본값을 쓸 수 없게 만들고 있었습니다 ([설계](../spec/formula-errors.md)).
+**어느 쪽이든 보고되는 것은 모델이 값으로 든 셀뿐입니다.** 이름 붙은 사각형 안이어도 컬럼 이름이 없어 필드가 되지 않은 셀 — 조회용 수식, 작업용 컬럼 — 은 보고되지 않습니다. 한 프로젝트의 전량 변환에서 그것이 **10,263건**이었고, 그 규모가 기본값을 쓸 수 없게 만들고 있었습니다 ([설계](../spec/types/formula-errors.md)).
 
 `empty`는 **우리가 관리하지 않는 워크북**을 위한 것입니다. 읽는 컬럼의 깨진 수식 하나 때문에 그 파일의 테이블 전부를 거부하지 않기 위한 것이고, 우리 워크북이라면 기본값이 맞습니다 — 수식 오류는 고칠 수 있는 문제입니다.
 
@@ -399,7 +399,7 @@ Item_alt      ← 같은 테이블의 다른 한 벌
 **없음과는 다른 질문입니다.** 값이 없는 행은 `-`라고 적고, 그것은 컬럼 타입이 `?`로 끝날 때만
 허용됩니다. 이 설정이 무엇이든 필수 컬럼의 `-`는 오류이고, `empty`로 읽힌 빈 칸은 **값이 있는
 셀**입니다. 규칙 전체는 [시트 작성](sheets.md#빈-칸과-없음)과
-[빈 칸과 없음](../spec/blank-and-null-cells.md)에 있습니다.
+[빈 칸과 없음](../spec/types/blank-and-null-cells.md)에 있습니다.
 
 #### `FoldSerialFields` — 연번 컬럼을 접기
 
@@ -423,7 +423,7 @@ Item_alt      ← 같은 테이블의 다른 한 벌
 
 **가운데는 지우지 않습니다.** 뒤에서만 잘라야 인덱스 `k`가 언제나 `Slot{k+1}`입니다. 「값이 없다」는 타입에 `?`가 붙은 컬럼에 `-`를 적은 셀이고, `0`을 적은 셀도 빈 칸도 값입니다. 규칙 전체는 [시트 작성](sheets.md#로우마다-길이가-다른-레코드-배열--옵트인)에 있습니다.
 
-**배열의 컬럼들이 필수 여부를 다르게 적어도 됩니다.** **첫 원소의 표시가 배열 전체의 표시**이고, 뒤 컬럼의 표시는 보지 않습니다 — 타입을 첫 원소에서 가져오는 것과 같습니다. [설계](../spec/array-optionality.md)
+**배열의 컬럼들이 필수 여부를 다르게 적어도 됩니다.** **첫 원소의 표시가 배열 전체의 표시**이고, 뒤 컬럼의 표시는 보지 않습니다 — 타입을 첫 원소에서 가져오는 것과 같습니다. [설계](../spec/types/array-optionality.md)
 
 #### `LayoutOptions` — 레이아웃 전용 설정
 
@@ -550,7 +550,7 @@ Item_alt      ← 같은 테이블의 다른 한 벌
 ### `Report` — 찾은 문제를 고칠 사람에게 보이기
 
 실행이 찾은 것을 HTML 한 장과 JSON 한 장으로 냅니다. **성공한 실행만이 아니라 멈춘 실행도
-씁니다** — 멈춘 실행의 보고가 본론이기 때문입니다. 설계는 「[빌드 리포트](../spec/build-report.md)」에
+씁니다** — 멈춘 실행의 보고가 본론이기 때문입니다. 설계는 「[빌드 리포트](../spec/ops/build-report.md)」에
 있습니다.
 
 ```jsonc
@@ -919,7 +919,7 @@ tabbit --recipe ci-recipe.json --commit $GITHUB_SHA
 
 ### 8. 전부 — 지원하는 언어를 한 번에
 
-`test/reserved-words/reserved-words.json`이 저장소에 있고, 실제로 매번 실행되어 [test/reserved-words/](../test/reserved-words/)에 결과가 커밋됩니다. 언어별 출력이 어떻게 생겼는지 나란히 볼 수 있습니다.
+`test/reserved-words/reserved-words.json`이 저장소에 있고, 실제로 매번 실행되어 [test/reserved-words/](../test/reserved-words)에 결과가 커밋됩니다. 언어별 출력이 어떻게 생겼는지 나란히 볼 수 있습니다.
 
 ```
 dotnet run --project src/Tabbit.csproj -- --recipe test/reserved-words/reserved-words.json
@@ -927,7 +927,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe test/reserved-words/reserved-
 
 ### 실제로 돌아가는 recipe들
 
-[test/fixtures/recipes/](../test/fixtures/recipes/)에 회귀 스위트가 매번 실행하는 recipe가 서른 개 가까이 있습니다. 문서의 예제와 달리 **반드시 최신**입니다 — 낡으면 테스트가 깨지기 때문입니다.
+[test/fixtures/recipes/](../test/fixtures/recipes)에 회귀 스위트가 매번 실행하는 recipe가 서른 개 가까이 있습니다. 문서의 예제와 달리 **반드시 최신**입니다 — 낡으면 테스트가 깨지기 때문입니다.
 
 |파일|내용|
 |--|--|

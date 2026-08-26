@@ -23,7 +23,7 @@ namespace Tabbit;
 /// So the cost of the decision is one test, and the test is the reason the decision is
 /// safe.
 ///
-/// spec/cli-help.md.
+/// spec/ops/cli-help.md.
 /// </remarks>
 internal static class HelpScreen
 {

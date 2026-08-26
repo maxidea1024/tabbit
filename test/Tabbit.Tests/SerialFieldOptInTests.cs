@@ -15,7 +15,7 @@ namespace Tabbit.Tests;
 /// opt-in, and now nothing: a name cannot say whether its number means an array -
 /// `Text1`/`Text2` usually is one array of two, and `Condition_1`/`Condition_2`/`Condition_3`
 /// of one real workbook are three different enums - so the notation says it instead, with
-/// brackets. `spec/primary-layout.md` section 5.
+/// brackets. `spec/layout/primary-layout.md` section 5.
 ///
 /// What is left to check is that no numbering rule survived the removal. The goldens cannot
 /// check it: every fixture that meant an array now writes brackets, so a fold that came back

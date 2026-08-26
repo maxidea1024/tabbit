@@ -59,7 +59,7 @@ public readonly struct Message
     ///
     /// Values are formatted invariantly. The language of a sentence and the notation of a
     /// number are separate questions, and a run whose numbers follow the machine's locale
-    /// produces output that differs between machines. spec/message-ids.md §10.
+    /// produces output that differs between machines. spec/validation/message-ids.md §10.
     ///
     /// `{{` and `}}` write a literal brace, which several messages need: the `text` target's
     /// settings are patterns full of `{group}` and `{namespace}`, and its own reports quote

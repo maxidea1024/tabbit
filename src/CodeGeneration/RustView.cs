@@ -183,7 +183,7 @@ internal sealed class RustFieldView
     /// <remarks>
     /// One name for both shapes, so the body that fills a variant is written once. A
     /// polymorphic array's builder takes an element; a scalar group's reads the row.
-    /// spec/polymorphism.md section 5.3.
+    /// spec/types/polymorphism.md section 5.3.
     /// </remarks>
     public string EntryAccess { get; set; } = "";
 
@@ -194,7 +194,7 @@ internal sealed class RustFieldView
     /// Asked rather than worked out from the read kind, which is spelled differently in every
     /// generator - and the two shapes differ in more than one line: the accessor loops, and
     /// the value it hands back is an array of the abstract type.
-    /// spec/polymorphism.md section 5.3.
+    /// spec/types/polymorphism.md section 5.3.
     /// </remarks>
     public bool VariantsAreArray { get; set; }
 
@@ -204,7 +204,7 @@ internal sealed class RustFieldView
     /// <remarks>
     /// The type itself is declared once, elsewhere; this is what the table needs to build a
     /// value of it - which number means which variant, and which of the entry's fields each
-    /// one carries. spec/polymorphism.md sections 7.1 and 7.2.
+    /// one carries. spec/types/polymorphism.md sections 7.1 and 7.2.
     /// </remarks>
     public IReadOnlyList<RustVariantView> Variants { get; set; } = new List<RustVariantView>();
 
@@ -332,7 +332,7 @@ internal sealed class RustRecordMemberView
 /// A flat list rather than a tree: the recursion belongs in the view, because none of these
 /// templates has a recursive include and the one that grew a tree walk would be the only place
 /// where depth had to be reasoned about in template syntax. Innermost first.
-/// spec/nested-multi-level.md.
+/// spec/types/nested-multi-level.md.
 /// </remarks>
 internal sealed class RustRecordTypeView
 {
@@ -417,7 +417,7 @@ internal sealed class RustColumnView
     /// <remarks>
     /// On the member and before any subscript, because a member that is an array holds one
     /// key per element: `item_id[element]`, not `item_id[element]_index`.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     public required string MemberRefSuffix { get; set; }
 
@@ -471,7 +471,7 @@ internal sealed class RustTableSlotView
 /// <remarks>
 /// One per declaration however many tables named it. A struct is an entity beside a table and
 /// an enum, and emitting it inside each table that used it would give them types that share a
-/// name and are not the same type. spec/polymorphism.md section 7.1.
+/// name and are not the same type. spec/types/polymorphism.md section 7.1.
 /// </remarks>
 internal sealed class RustPolymorphicTypeView
 {
@@ -514,7 +514,7 @@ internal sealed class RustStructMemberView
     /// <remarks>
     /// **A reference member is two fields here, the same two a reference column is anywhere.**
     /// The declared name is the key's - that is what the cell holds - and the row it resolves to
-    /// takes the derived one. spec/reference-surface-naming.md sections 4 and 5.
+    /// takes the derived one. spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     public string RowName { get; set; } = "";
 

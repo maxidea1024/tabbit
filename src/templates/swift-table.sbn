@@ -35,7 +35,7 @@ public final class {{ table.record_name }} {
 {{~## **The value, built once on first use.** The entry above is what the read filled - one
    assignment per column - and which variant it is only became knowable when the discriminator
    column arrived. Building it here keeps the read path and the wire exactly as they were.
-   spec/polymorphism.md section 7.2. ##~}}
+   spec/types/polymorphism.md section 7.2. ##~}}
 {{~ if field.variants_are_array ~}}
 {{~## **The array shape.** Each element carries its own discriminator - section 5.3 - so the
    shapes inside one row may differ, and what a consumer reads is an array of the abstract type.
@@ -81,7 +81,7 @@ public final class {{ table.record_name }} {
 {{~ for member in field.base_members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
                     {{ member.name }}: entry.{{ member.name }},
                     {{ member.row_name }}: entry.{{ member.row_name }},
 {{~ else ~}}
@@ -91,7 +91,7 @@ public final class {{ table.record_name }} {
 {{~ for member in variant.members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
                     {{ member.name }}: entry.{{ member.name }},
                     {{ member.row_name }}: entry.{{ member.row_name }},
 {{~ else ~}}
@@ -113,20 +113,20 @@ public final class {{ table.record_name }} {
 {{~ end ~}}
 {{~## A column whose value is a row of one of several tables. One property for the resolved row
    whatever table it came from, and the discriminator saying which - the targets take separate
-   id bands, so at most one of them ever answers. spec/multi-target-accessors.md. ##~}}
+   id bands, so at most one of them ever answers. spec/references/multi-target-accessors.md. ##~}}
 {{~## The element type of each record group. Nested rather than a second top-level type,
    which Swift would allow in this file - nesting scopes the name, so two tables each
    holding a `Slot` group do not collide in the module they share.
 
    A struct rather than a class: an element has no identity of its own and lives inline in
    the array, so there is no allocation per element and no reference to keep.
-   spec/swift-language-support.md. ##~}}
+   spec/targets/swift-language-support.md. ##~}}
 {{~ for field in table.fields ~}}
 {{~## An array of arrays declares no element type: its outer level has no name, so there is
-   nothing for a struct to be. spec/nested-multi-level.md. ##~}}
+   nothing for a struct to be. spec/types/nested-multi-level.md. ##~}}
 {{~ if field.is_record && !field.members_are_anonymous }}
 {{~## One struct per level, innermost first - the view flattened the nesting so this loop
-   does not have to know how deep it went. spec/nested-multi-level.md. ##~}}
+   does not have to know how deep it went. spec/types/nested-multi-level.md. ##~}}
 {{~ for rt in field.record_types ~}}
 {{~ if rt.is_outermost ~}}
     /// One element of {{ rt.owner }}.
@@ -147,7 +147,7 @@ public final class {{ table.record_name }} {
 {{~## The per-target accessors of every member of this struct that reaches several tables. A
    computed property where the member is one value; a method taking the element number where the
    member is the array, which is the third place an element number sits.
-   spec/multi-target-accessors.md. ##~}}
+   spec/references/multi-target-accessors.md. ##~}}
     }
 {{~ end ~}}
 {{~ end ~}}
@@ -172,7 +172,7 @@ public final class {{ table.table_name }} {
 {{~## A key of several columns is held as the text they make. Each part carries its own
    length, so no two combinations can make the same text - joined by a separator alone,
    ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
-   spec/primary-layout.md section 3.5. ##~}}
+   spec/layout/primary-layout.md section 3.5. ##~}}
 {{~ if index.is_composite ~}}
     /// Joins the columns of the {{ index.field_name }} key into the text the map is keyed by.
     private static func keyOf{{ index.suffix }}({{ index.params }}) -> String {
@@ -244,7 +244,7 @@ public final class {{ table.table_name }} {
     /// The keys are parameters rather than properties of a shared object, because Swift's
     /// concurrency checking makes mutable global state an error and because the accessor
     /// holding them is an instance - which is what lets two loads of two data sets exist at
-    /// once. {{ accessor_name }} passes its own. spec/accessor-instances.md.
+    /// once. {{ accessor_name }} passes its own. spec/targets/accessor-instances.md.
     public func read(
         _ filename: String,
         key: [UInt8]? = nil,
@@ -254,7 +254,7 @@ public final class {{ table.table_name }} {
         // Opened unconditionally, and with whatever the caller holds - which is nil unless
         // the project set it. A file that is neither encrypted nor signed comes back from
         // this untouched, so the load path is the same either way and there is no condition
-        // here that could be the wrong way round. spec/tcb-mac-and-signature.md.
+        // here that could be the wrong way round. spec/wire/tcb-mac-and-signature.md.
         let bytes = try Tcb.openTable(
             try Tcb.readAllBytes(filename), key: key, macKey: macKey, verifyMac: verifyMac)
 
@@ -290,7 +290,7 @@ public final class {{ table.table_name }} {
 {{~ if column_view.has_optional_elements ~}}
                 // Behind the row bitmap and in front of the values, walked with a counter
                 // that steps once per element of every row.
-                // spec/nullable-array-elements.md.
+                // spec/types/nullable-array-elements.md.
                 let elementPresence = try Tcb.readElementPresence(reader, column)
                 var elementAt = 0
 {{~ end ~}}
@@ -358,7 +358,7 @@ public final class {{ table.table_name }} {
                     }
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner array. Which outer element it is, is which column this is - so that index is
-   fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
+   fixed and the loop runs the inner length. spec/types/nested-multi-level.md. ##~}}
                     let elementCount = max(0, {{ column_view.length_read }})
                     record.{{ column_view.name }}[{{ column_view.member_at }}] = []
                     record.{{ column_view.name }}[{{ column_view.member_at }}].reserveCapacity(elementCount)
@@ -367,7 +367,7 @@ public final class {{ table.table_name }} {
                     }
 {{~ else if column_view.kind == 'record_member_var' ~}}
 {{~## The member is the array: the index goes after its name rather than before. Same
-   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+   columns and same loop as the case below - see spec/types/nested-multi-level.md. ##~}}
                     let elementCount = max(0, {{ column_view.length_read }})
                     record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = []
                     record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}.reserveCapacity(elementCount)
@@ -376,7 +376,7 @@ public final class {{ table.table_name }} {
                     }
 {{~ else if column_view.kind == 'var_array_ref' ~}}
 {{~## A trimmed array of references. The keys are the array this row's length fills; the
-   resolved rows are filled by the linking pass. spec/variable-length-record-arrays.md. ##~}}
+   resolved rows are filled by the linking pass. spec/types/variable-length-record-arrays.md. ##~}}
                     let elementCount = max(0, {{ column_view.length_read }})
                     record.{{ column_view.name }} = []
                     record.{{ column_view.name }}.reserveCapacity(elementCount)

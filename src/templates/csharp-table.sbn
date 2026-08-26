@@ -54,12 +54,12 @@
       the columns have to agree on how long it is. Those keep it as a private constant, used
       by the allocation and by nothing else. Where one column owns the array, the length is
       read from that column's descriptor and there is no constant at all.
-      spec/nullable-array-elements.md. ##~}}
+      spec/types/nullable-array-elements.md. ##~}}
 {{~ if field.kind == 'array_of_arrays' ~}}
 {{~## No element type: the outer level has no name to be a property of, so it is an array
       too. `_N` is the outer count, which is how many columns fill this field rather than
       how long any of them is - the inner length is the row's and is read from the file.
-      spec/nested-multi-level.md. ##~}}
+      spec/types/nested-multi-level.md. ##~}}
             public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
             internal const int {{ field.pascal_name }}_N = {{ field.outer_count }};
 {{~ else if field.kind == 'record_var_array' && field.variants.size > 0 ~}}
@@ -67,7 +67,7 @@
       discriminator - section 5.3 - so the shapes inside one row may differ, and the array a
       consumer reads is an array of the abstract type. The entries below are what the read
       filled, element by element, and nothing about the wire changes.
-      spec/polymorphism.md sections 5.3 and 7.2. ##~}}
+      spec/types/polymorphism.md sections 5.3 and 7.2. ##~}}
             public {{ field.abstract_type_name }}[] {{ field.prop_name }}
                 => {{ field.field_name }}_value ?? ({{ field.field_name }}_value = Build{{ field.prop_name }}());
 
@@ -120,7 +120,7 @@
       filled - one assignment per column - and which variant it is only became knowable when
       the discriminator column arrived. Building it here rather than while reading keeps the
       read path and the wire exactly as they were, and a row nobody looks at costs nothing.
-      spec/polymorphism.md section 7. ##~}}
+      spec/types/polymorphism.md section 7. ##~}}
             public {{ field.abstract_type_name }} {{ field.prop_name }}
                 => {{ field.field_name }}_value ?? ({{ field.field_name }}_value = Build{{ field.prop_name }}());
 
@@ -141,7 +141,7 @@
 {{~ if member.row_prop_name != '' ~}}
 {{~## **The row from the row, not the key from the key.** The entry carries both; assigning the
       key into a field declared as a row does not compile, which is what this used to do.
-      spec/reference-surface-naming.md sections 4 and 5. ##~}}
+      spec/references/reference-surface-naming.md sections 4 and 5. ##~}}
                             {{ member.prop_name }} = {{ field.field_name }}.{{ member.prop_name }},
                             {{ member.row_prop_name }} = {{ field.field_name }}.{{ member.row_prop_name }},
 {{~ else ~}}
@@ -162,7 +162,7 @@
 {{~ else if field.kind == 'array_ref' && field.row_prop_name != '' ~}}
 {{~## The column's name is the key's, because the key is what the cell holds. The rows are
       linked after loading and take a derived name.
-      spec/reference-surface-naming.md sections 4 and 5. ##~}}
+      spec/references/reference-surface-naming.md sections 4 and 5. ##~}}
             public {{ field.ref_key_type_name }}[] {{ field.prop_name }} => {{ field.field_name }}_{{ field.ref_table }}_index;
             public {{ field.field_type }}[] {{ field.row_prop_name }} => {{ field.field_name }};
 {{~ else if field.kind == 'array_ref' ~}}
@@ -199,17 +199,17 @@
       One slot behind them all rather than one per target: the tables take separate id
       bands, so at most one target ever answers and the rest would be permanently null.
       The cast is safe by construction - the discriminator was set by the same assignment
-      that filled the slot. spec/multi-target-accessors.md. ##~}}
+      that filled the slot. spec/references/multi-target-accessors.md. ##~}}
             #endregion
 {{~## The element type of each record group. A struct, so an array of them needs no
       per-element allocation and `array[j].Member = x` is a legal assignment - which is
-      exactly what a member column's read does. See spec/nested-fields.md. ##~}}
+      exactly what a member column's read does. See spec/types/nested-fields.md. ##~}}
 {{~ for field in table.fields ~}}
 {{~ if field.kind == 'array_of_arrays' }}
 {{~## The outer level only: each column fills one of its elements and nothing else can
       create it, so its length is how many columns there are. The inner arrays are the
       read's, at whatever length the row gives - empty until then, so a file that does not
-      carry the column leaves something indexable. spec/nested-multi-level.md. ##~}}
+      carry the column leaves something indexable. spec/types/nested-multi-level.md. ##~}}
             private static {{ field.field_type }}[] New{{ field.pascal_name }}()
             {
                 var result = new {{ field.element_type_name }}[{{ field.pascal_name }}_N][];
@@ -220,7 +220,7 @@
 {{~ else if field.is_record }}
 {{~## One struct per level, innermost first - the view flattened the nesting so this loop
       does not have to know how deep it went. The last entry is the group's own element type.
-      spec/nested-multi-level.md. ##~}}
+      spec/types/nested-multi-level.md. ##~}}
 {{~ for rt in field.record_types ~}}
 {{~ if rt.is_outermost ~}}
             /// <summary>One element of <see cref="{{ field.prop_name }}"/>.</summary>
@@ -240,7 +240,7 @@
 {{~ if member.row_prop_name != '' ~}}
 {{~## The member's own name is the key's, because the key is what the cell holds; the row is
       linked after loading and takes a derived name.
-      spec/reference-surface-naming.md sections 4 and 5. ##~}}
+      spec/references/reference-surface-naming.md sections 4 and 5. ##~}}
                 public {{ member.ref_key_type_name }} {{ member.prop_name }};
                 public {{ member.field_type }} {{ member.row_prop_name }};
                 public {{ member.ref_flag_type_name }} {{ member.prop_name }}_F;
@@ -257,7 +257,7 @@
 {{~ end ~}}
 {{~## The per-target accessors of every member that reaches several tables. A property where
    the member is one value; a method taking the element number where the member is the array,
-   which is the third place an element number sits. spec/multi-target-accessors.md. ##~}}
+   which is the third place an element number sits. spec/references/multi-target-accessors.md. ##~}}
 {{~ for member in rt.members ~}}
 {{~ end ~}}
 
@@ -293,7 +293,7 @@
 {{~## A reference member that is an array holds one key and one flag per element, and they
       are allocated with the member for the same reason it is. Where the reference is to a
       whole row the key wears the member's own name.
-      spec/reference-surface-naming.md sections 4 and 9. ##~}}
+      spec/references/reference-surface-naming.md sections 4 and 9. ##~}}
                 result.{{ member.prop_name }}{{ if member.row_prop_name == '' }}_index{{ end }}{{ member.ref_key_initializer }};
                 result.{{ member.prop_name }}_F{{ member.ref_flag_initializer }};
 {{~ end ~}}
@@ -344,7 +344,7 @@
 {{~## A reference member that is an array holds one key and one flag per element, and they
       are allocated with the member for the same reason it is. Where the reference is to a
       whole row the key wears the member's own name.
-      spec/reference-surface-naming.md sections 4 and 9. ##~}}
+      spec/references/reference-surface-naming.md sections 4 and 9. ##~}}
                 result.{{ member.prop_name }}{{ if member.row_prop_name == '' }}_index{{ end }}{{ member.ref_key_initializer }};
                 result.{{ member.prop_name }}_F{{ member.ref_flag_initializer }};
 {{~ end ~}}
@@ -410,7 +410,7 @@
 {{~## One slot for the resolved row whatever table it came from, and the discriminator that
       says which. `object` because the tables have no common type and inventing one would be
       a sum type in every language; the cast back out lives in the property above, where the
-      discriminator has already answered. spec/multi-target-accessors.md. ##~}}
+      discriminator has already answered. spec/references/multi-target-accessors.md. ##~}}
             #endregion
 
             #region ToString
@@ -502,7 +502,7 @@
    length, so no two combinations can make the same text - joined by a separator alone,
    ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
    The map is private, so what it is keyed by can change without the lookups moving.
-   spec/primary-layout.md section 3.5. ##~}}
+   spec/layout/primary-layout.md section 3.5. ##~}}
         private Dictionary<string, Record> {{ key.map_name }} = new Dictionary<string, Record>();
 
         /// <summary>Joins the columns of the `{{ key.field_name }}` key into the text the map is keyed by.</summary>
@@ -568,7 +568,7 @@
             // hold - which is null unless the project set them. A file that is neither
             // encrypted nor signed comes back from this untouched, so the load path is the
             // same either way and there is no condition here that could be the wrong way
-            // round. spec/tcb-mac-and-signature.md.
+            // round. spec/wire/tcb-mac-and-signature.md.
             var reader = new TcbReader(TcbTable.Open(
                 bytes, {{ accessor_name }}.EncryptionKey, {{ accessor_name }}.MacKey, {{ accessor_name }}.VerifyMac));
 
@@ -638,7 +638,7 @@
 {{~ if column.has_optional_elements ~}}
 {{~## Behind the row bitmap and in front of the values, so it is read here and walked with a
       counter that steps once per element of every row - the order the block wrote them in.
-      spec/nullable-array-elements.md. ##~}}
+      spec/types/nullable-array-elements.md. ##~}}
                         elementPresence = TcbTable.ReadElementPresence(reader, column);
                         elementAt = 0;
 {{~ end ~}}
@@ -659,7 +659,7 @@
 {{~## The key and the resolved-flag arrays beside the values, at the length this row gave -
       the same three arrays the fixed-length branch allocates from the column count. Left out
       here, so a trimmed array of references wrote its first key past the end of an empty
-      array. spec/variable-length-record-arrays.md. ##~}}
+      array. spec/types/variable-length-record-arrays.md. ##~}}
 {{~ for line in column.parallel_arrays ~}}
                             {{ line }}
 {{~ end ~}}
@@ -723,7 +723,7 @@
 {{~ if column.member_key_type != '' ~}}
 {{~## A reference member holds one key per element as well as one row, and the read writes
       into the key - so both are made. The member's own name is the key's.
-      spec/reference-surface-naming.md sections 4 and 9. ##~}}
+      spec/references/reference-surface-naming.md sections 4 and 9. ##~}}
                             record.{{ column.field_name }}{{ column.member_access }} =
                                 new {{ column.member_key_type }}[elementCount];
                             record.{{ column.field_name }}{{ column.row_member_access }} =
@@ -742,7 +742,7 @@
 {{~ else if column.read_kind == 'array_of_arrays_member' ~}}
 {{~## One inner array of an array of arrays. The outer index is fixed for this column - it is
       which column this is - and the loop runs over the inner length, which this row states
-      and the outer level does not. spec/nested-multi-level.md. ##~}}
+      and the outer level does not. spec/types/nested-multi-level.md. ##~}}
                         for (int i = 0; i < count; i++)
                         {
                             var record = records[i];

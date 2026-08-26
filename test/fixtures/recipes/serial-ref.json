@@ -9,7 +9,7 @@
   // Both forms of a reference are here, because they resolve to different types: `Slot` is a
   // whole row and `Tier` is one of that row's values.
   //
-  // spec/nullable-array-elements.md · spec/references-in-records.md.
+  // spec/types/nullable-array-elements.md · spec/references/references-in-records.md.
 
   "Sources": {
     "Xlsx": [

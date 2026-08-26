@@ -20,7 +20,7 @@ namespace Tabbit.Validation;
 /// asks - `Validation.EmitIdeProject`. It was on by default once and that was wrong: Visual
 /// Studio finds the loose project, tries to load it, and fails to resolve `Microsoft.NET.Sdk`
 /// when it predates the framework the project targets. An error dialog in exchange for an
-/// autocompletion nobody had confirmed. spec/validation-pipeline.md §11.
+/// autocompletion nobody had confirmed. spec/validation/validation-pipeline.md §11.
 /// </remarks>
 internal static class RuleScaffold
 {

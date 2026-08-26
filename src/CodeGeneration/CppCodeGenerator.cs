@@ -152,7 +152,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// <summary>
     /// A level below is a struct declared before the element type, and the read reaches it with
     /// a longer member path. Its own members carry their initializers, so declaring it is
-    /// enough. spec/nested-multi-level.md.
+    /// enough. spec/types/nested-multi-level.md.
     /// </summary>
     protected override bool SupportsDeepNestedFields => true;
 
@@ -162,7 +162,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// <remarks>
     /// Not `std::optional`, so that one shape covers every language and C++ does not
     /// split from Unreal - where the member is a UPROPERTY and cannot be optional at all.
-    /// spec/optional-fields.md has the reasoning.
+    /// spec/types/optional-fields.md has the reasoning.
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
@@ -171,7 +171,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
     /// <summary>
     /// `has_x_at(i)` beside the value, filled from the element bitmap the file carries.
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     /// </summary>
     protected override bool SupportsOptionalElements => true;
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
@@ -256,7 +256,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         }
 
         // A struct is an entity beside a table and an enum, so it gets a header of its own -
-        // one per declaration however many tables named it. spec/polymorphism.md section 7.1.
+        // one per declaration however many tables named it. spec/types/polymorphism.md section 7.1.
         foreach (var declared in _model.PolymorphicTypes)
         {
             var structure = BuildStruct(declared);
@@ -292,7 +292,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                 // `<memory>` and `<stdexcept>` only where a polymorphic group actually needs
                 // them - the accessor that returns a `unique_ptr` and throws is only emitted
                 // for such a group, and an include nobody needs is a golden that moved for
-                // nothing. spec/polymorphism.md section 7.2.
+                // nothing. spec/types/polymorphism.md section 7.2.
                 new[] { "<cstddef>", "<cstdint>", "<string>", "<unordered_map>", "<vector>" }
                     .Concat(pair.model.Fields.Any(field => field.IsDiscriminator)
                         ? new[] { "<memory>", "<stdexcept>" }
@@ -303,7 +303,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                             .Select(EnumHeaderFor))
                     // And the abstract types its groups are: the base is what the accessor
                     // hands back, so an incomplete type will not do.
-                    // spec/polymorphism.md section 7.1.
+                    // spec/types/polymorphism.md section 7.1.
                     .Concat(PolymorphicHeaders(pair.model)),
                 part => part.Table = pair.rendered));
         }
@@ -367,7 +367,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// <remarks>
     /// Classes and `dynamic_cast`. This language has inheritance, so it is in section 7's first
     /// group rather than the third one C sits in - which is the split that section drew and this
-    /// is the side of it C++ falls on. spec/polymorphism.md section 7.
+    /// is the side of it C++ falls on. spec/types/polymorphism.md section 7.
     /// </remarks>
     private CppPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
         => new CppPolymorphicTypeView
@@ -388,7 +388,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// <remarks>
     /// **A reference member is two fields**, as a reference is anywhere: the declared name is
     /// the key's and the row it resolves to takes the derived one.
-    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     private CppStructMemberView StructMember(Models.Field field)
     {
@@ -684,7 +684,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// <remarks>
     /// The key type's empty value means "points at nothing", and a multi-target column honours
     /// it in every language: the discriminator is a value a consumer reads.
-    /// spec/reference-optionality.md.
+    /// spec/references/reference-optionality.md.
     /// </remarks>
     private static string KeyIsSetSuffix(ValueType keyType)
         => keyType switch
@@ -701,7 +701,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// <remarks>
     /// Declaration only. How a column is read is <see cref="BuildColumn"/>'s business,
     /// and the two are not the same unit - a record group declares one member and is read
-    /// as one column per member of it. spec/nested-fields.md has the split.
+    /// as one column per member of it. spec/types/nested-fields.md has the split.
     /// </remarks>
     /// <summary>
     /// Members of one level of a record, declaring a struct for each member that is itself a
@@ -715,7 +715,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     ///
     /// A nested member takes no initializer. Its own struct's members carry theirs, so
     /// declaring it is enough for every value inside it to start where a scalar member would.
-    /// spec/nested-multi-level.md.
+    /// spec/types/nested-multi-level.md.
     /// </remarks>
     private List<CppRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, Table table, SerialField group,
@@ -772,7 +772,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     ///
     /// No third member for whether the resolution happened - a pointer answers that by being
     /// null, which is how this output already answers it for a reference that is not in a
-    /// record. spec/references-in-records.md.
+    /// record. spec/references/references-in-records.md.
     /// </remarks>
     private IReadOnlyList<string> MemberDeclarations(RecordMember member)
     {
@@ -784,7 +784,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             string key = ToCppTypeName(member.FirstField!.RefKeyType, null);
 
             // The member's own name is the key's; the row takes the derived one.
-            // spec/reference-surface-naming.md sections 4 and 5.
+            // spec/references/reference-surface-naming.md sections 4 and 5.
             bool toRow = ResolvesToRow(member.FirstField!);
                     string rowName = toRow
                         ? CppName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
@@ -819,7 +819,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     private CppFieldView BuildField(Table table, SerialField sf)
     {
         // Which abstract type this group is, if it is one. One per declaration however many
-        // tables named it. spec/polymorphism.md section 7.1.
+        // tables named it. spec/types/polymorphism.md section 7.1.
         var declaredType = sf.Members
                 .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
                 ?.FirstField?.AbstractTypeName is { } abstractName
@@ -935,7 +935,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             // A reference member that is the vector holds one key per element as well as one
             // row, so both are sized before the read - the read writes into the key, and
             // sizing only the row left it writing past the end.
-            // spec/references-in-records.md.
+            // spec/references/references-in-records.md.
             MemberRefSuffix = "",
 
             IsReference = wire.IsRef,
@@ -961,7 +961,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             // element read fills; the value it resolves to is assigned once every table is
             // loaded. A record member keeps that key on the member and before any subscript -
             // `slots.item_id[j]` rather than a name built from the group, which is not an
-            // expression at all. spec/references-in-records.md.
+            // expression at all. spec/references/references-in-records.md.
             ReadElement = ReadElementExpression(wire, ElementTarget(wire, name, member, "j")),
             ReadVarElement = ReadElementExpression(
                 wire, ElementTarget(wire, name, member, "static_cast<std::size_t>(j)")),
@@ -1008,7 +1008,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             string resolved = ResolvedRefTypeName(sf);
 
             // The column's name is the key's; the row takes the derived one.
-            // spec/reference-surface-naming.md sections 4 and 5.
+            // spec/references/reference-surface-naming.md sections 4 and 5.
             bool toRow = ResolvesToRow(sf.FirstField!);
             string rowName = toRow
                 ? CppName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
@@ -1039,7 +1039,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         if (sf.IsRecord)
         {
             // An array of arrays has no element type to name, so the inner vector is the
-            // type - see spec/nested-multi-level.md.
+            // type - see spec/types/nested-multi-level.md.
             if (sf.MembersAreAnonymous)
                 return new[] { $"std::vector<std::vector<{ToCppTypeName(sf.Members[0].FirstField)}>> {name};" };
 
@@ -1110,7 +1110,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                 // A reference that is a member of a record resolves inside the element rather
                 // than beside it, so it is a loop of its own. Read off the wire columns, which
                 // is the same list the read path walks - the two have to agree about where the
-                // key landed. spec/references-in-records.md.
+                // key landed. spec/references/references-in-records.md.
                 RecordFields = table.WireColumns
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
@@ -1151,7 +1151,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// No resolution flag: a pointer says whether it resolved by being null, which is how this
     /// output already answers that for a reference outside a record. The loop bound says which
     /// of the three record shapes this is - the group's vector, the member's, or neither.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     private CppRecordReferenceView BuildRecordReference(WireColumn wire)
     {
@@ -1221,7 +1221,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         // A reference reaches the cursor when the key it carries does. It used to be an
         // unconditional yes, which was the same int32 assumption in another place: a target
         // keyed by `uuid` has no cursor path any more than a `uuid` column does.
-        // spec/reference-key-types.md.
+        // spec/references/reference-key-types.md.
         if (wire.IsRef)
             return wire.RefKeyType != ValueType.Uuid;
 
@@ -1281,7 +1281,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             return "";
 
         // A reference runs on the key it carries. `next_same_i32` was the only answer while
-        // a key could only be an int. spec/reference-key-types.md.
+        // a key could only be an int. spec/references/reference-key-types.md.
         if (wire.IsRef)
         {
             return wire.RefKeyType switch
@@ -1326,12 +1326,12 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         //
         // A run is one value for many rows, which an array column has none of - so a record
         // member reaching this is a member of a record of one, and its key sits on the member
-        // like every other member's does. spec/references-in-records.md.
+        // like every other member's does. spec/references/references-in-records.md.
         if (wire.IsRef)
         {
             // A dotted reference resolves to a value rather than a row, so there the column's
             // own name belongs to the value and the key takes the derived one.
-            // spec/reference-surface-naming.md section 9.
+            // spec/references/reference-surface-naming.md section 9.
             string keySuffix = ResolvesToRow(wire.TagCarrier) ? "" : "_index";
 
             return (wire.Member is null)
@@ -1359,11 +1359,11 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// <remarks>
     /// Where the element number goes is the whole difference between the record shapes - an
     /// array of records indexes the group and then names the member, a record whose members are
-    /// arrays names the member and then indexes it. spec/nested-multi-level.md.
+    /// arrays names the member and then indexes it. spec/types/nested-multi-level.md.
     ///
     /// A reference lands in the key, whose name goes on the member and before the subscript:
     /// one key per element, exactly as there is one row per element.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     private static string ElementTarget(WireColumn wire, string name, string member, string element)
     {
@@ -1388,7 +1388,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
         // The column's own name is the key's now, and the key is what the wire carries. A
         // dotted reference is the exception: the name stays on the value it hands back, so
-        // the key keeps the one it had. spec/reference-surface-naming.md sections 4 and 9.
+        // the key keeps the one it had. spec/references/reference-surface-naming.md sections 4 and 9.
         if (!wire.IsRef)
             return path + subscript;
 
@@ -1470,7 +1470,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             // The key the target is addressed by. `kElementI32` alone is what a reference
             // accepted while a key could only be an int, and the writer meanwhile emits the
             // key's own element - so the reader would refuse a file this build wrote. A
-            // mismatch a compiler cannot see. spec/reference-key-types.md.
+            // mismatch a compiler cannot see. spec/references/reference-key-types.md.
             accepted = wire.RefKeyType switch
             {
                 ValueType.String => "tabbit::kElementString",
@@ -1569,7 +1569,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// <summary>
     /// The C++ type a field's values have. A reference's is the key it carries rather than
     /// the record it presents - the member holding it is `<name>_index`, and what the file
-    /// put there is the target's primary index. spec/reference-key-types.md.
+    /// put there is the target's primary index. spec/references/reference-key-types.md.
     /// </summary>
     private string ToCppTypeName(Field? field)
         => ValueTypes.ElementOf(field!.ElementType) == ValueType.ForeignRecord
@@ -1623,7 +1623,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// <remarks>
     /// Nothing for the types that default-construct themselves: `tabbit::Uuid` is an
     /// aggregate and `= 0` has no conversion to it, which is a compile error rather than a
-    /// wrong value. spec/reference-key-types.md.
+    /// wrong value. spec/references/reference-key-types.md.
     /// </remarks>
     private static string RefKeyInitializer(ValueType keyType)
         => keyType switch
@@ -1651,7 +1651,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// <remarks>
     /// The type functions answer for an element and let the caller add the brackets, exactly
     /// as a field's do - so an array constant asks for the element and wraps it here.
-    /// spec/primary-layout.md section 8.5.
+    /// spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     private string ConstantTypeName(ConstantSet.Constant constant)
     {
@@ -1670,7 +1670,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     ///
     /// A constant never reaches the file, so there is no wire question here: what a language
     /// needs is an expression its compiler accepts in the place a constant is declared.
-    /// spec/primary-layout.md section 8.5.
+    /// spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     private string RenderConstantValue(ConstantSet.Constant constant)
     {

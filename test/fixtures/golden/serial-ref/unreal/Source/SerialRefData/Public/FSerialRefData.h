@@ -101,7 +101,7 @@ struct SERIALREFDATA_API FTrimKitRow
 
     /** Which of Slot's elements have a value. Empty where the file did not carry
      * the column, and then every index is out of range anyway.
-     * spec/nullable-array-elements.md. */
+     * spec/types/nullable-array-elements.md. */
     TArray<bool> bHasSlotAt;
 
     /** element 1 - the target's own value */
@@ -110,7 +110,7 @@ struct SERIALREFDATA_API FTrimKitRow
 
     /** Which of Tier's elements have a value. Empty where the file did not carry
      * the column, and then every index is out of range anyway.
-     * spec/nullable-array-elements.md. */
+     * spec/types/nullable-array-elements.md. */
     TArray<bool> bHasTierAt;
 
 };
@@ -264,7 +264,7 @@ public:
      * cannot be taken back afterwards - so it is read at start-up from wherever this project
      * keeps secrets, not written into a source file or a .ini the packaging step will cook.
      * What the layer is for, and therefore what is and is not worth defending, is
-     * spec/tcb-v104-composed-encodings.md section 4.
+     * spec/wire/tcb-v104-composed-encodings.md section 4.
      */
     static TArray<uint8> EncryptionKey;
 
@@ -281,7 +281,7 @@ public:
      *
      * Setting it makes the reader stricter in a second way: a file that carries no MAC is
      * refused, because otherwise the check could be removed by zeroing sixteen bytes. So the
-     * order to turn this on in is data first, key second. spec/tcb-mac-and-signature.md.
+     * order to turn this on in is data first, key second. spec/wire/tcb-mac-and-signature.md.
      */
     static TArray<uint8> MacKey;
 

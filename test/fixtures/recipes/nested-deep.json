@@ -2,7 +2,7 @@
   // A member that is itself a record - `Star1.Position.X` beside `Star1.Id`. The shape
   // measured in real workbooks, and the one the depth generalization is for: the wire holds
   // it as the same fixed-array columns a record one level deep produces.
-  // spec/nested-multi-level.md.
+  // spec/types/nested-multi-level.md.
 
   "Sources": {
     "Xlsx": [

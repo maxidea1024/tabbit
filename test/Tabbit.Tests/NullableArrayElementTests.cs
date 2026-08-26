@@ -18,7 +18,7 @@ namespace Tabbit.Tests;
 /// The meaning lands in JSON and in the file first. The the runtimes learn the element
 /// bitmap in the step after this one, so a generator still refuses a column of this shape by
 /// name - which is what keeps a partial rollout from losing the distinction quietly.
-/// spec/nullable-array-elements.md.
+/// spec/types/nullable-array-elements.md.
 /// </remarks>
 public class NullableArrayElementTests
 {
@@ -84,7 +84,7 @@ public class NullableArrayElementTests
     /// <remarks>
     /// The cell rule applied to an element. `string?[]` is where it matters: a value
     /// comparison cannot tell an empty string from an absent element, so this is the pair a
-    /// reader has to get right. spec/blank-and-null-cells.md.
+    /// reader has to get right. spec/types/blank-and-null-cells.md.
     /// </remarks>
     [Fact]
     public void A_blank_element_is_a_value_and_the_escape_is_a_character()
@@ -146,7 +146,7 @@ public class NullableArrayElementTests
     /// claim that the two are orthogonal, read off the bytes rather than off the model that
     /// wrote them. Nothing reads the bitmap itself yet; the runtimes learn it in the
     /// step after this one, and the round trip that compares it against the JSON belongs
-    /// there. spec/nullable-array-elements.md.
+    /// there. spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void The_file_declares_the_two_bitmaps_separately()
@@ -222,7 +222,7 @@ public class NullableArrayElementTests
     ///
     /// `words` is a `string?[]`, and it is in the comparison on purpose - an absent element and
     /// an empty string are the same value, so only the bit tells them apart.
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void The_generated_reader_agrees_with_the_json()
@@ -261,7 +261,7 @@ public class NullableArrayElementTests
     /// consistently wrong: the counter steps once per element of every row, and a reader
     /// that stepped per row instead would still be self-consistent. The JSON side is read
     /// from the file rather than through the generated JSON path, so both sides do not go
-    /// through one reader. spec/nullable-array-elements.md.
+    /// through one reader. spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void The_typescript_reader_agrees_with_the_json()
@@ -288,7 +288,7 @@ public class NullableArrayElementTests
     /// one element and none of them declares the array. The reading this replaces took the
     /// first column's `?` for the array's and answered it from that column's cell: a row whose
     /// element 0 was absent had the whole array reported as absent, taking the values after it
-    /// with it. spec/nullable-array-elements.md.
+    /// with it. spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void A_folded_group_answers_per_element()

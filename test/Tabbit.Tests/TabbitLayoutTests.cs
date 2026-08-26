@@ -846,7 +846,7 @@ public class TabbitLayoutTests
     /// A reference names one table and resolves it. A value that may be an id of any of
     /// several has no single type to resolve to, so what a sheet means there is a check -
     /// `refs=`, which leaves the column the type it had.
-    /// spec/reference-surface-naming.md section 6.
+    /// spec/references/reference-surface-naming.md section 6.
     /// </remarks>
     [Fact]
     public void A_reference_naming_several_tables_is_refused_for_refs()
@@ -1071,7 +1071,7 @@ public class TabbitLayoutTests
     /// this says where a value may have come from while leaving the type alone. Several
     /// tables is what it exists for: "one of these" has no single type to resolve to.
     ///
-    /// spec/reference-surface-naming.md section 6.
+    /// spec/references/reference-surface-naming.md section 6.
     /// </remarks>
     [Fact]
     public void Refs_names_the_tables_a_value_has_to_be_an_id_of()
@@ -1098,7 +1098,7 @@ public class TabbitLayoutTests
     /// The check itself has its own gates, but they are written in a layout that reads the
     /// target list out of a project's own row. This one writes the same thing in the core
     /// notation, which is the point of `refs=` - the check no longer needs a project's
-    /// workbook to be exercised. spec/reference-surface-naming.md section 6.
+    /// workbook to be exercised. spec/references/reference-surface-naming.md section 6.
     /// </remarks>
     [Fact]
     public void Refs_reports_a_value_none_of_the_tables_has()
@@ -1725,7 +1725,7 @@ public class TabbitLayoutTests
     /// The discriminator of a group is written on that group's path - `effect.$type` - which is
     /// the form the spec's own examples use, and a whole-name comparison never saw it. Two
     /// levels down and one element of an array are the same judgment.
-    /// spec/polymorphism.md section 5.2.
+    /// spec/types/polymorphism.md section 5.2.
     /// </remarks>
     [Theory]
     [InlineData("prices.$key")]

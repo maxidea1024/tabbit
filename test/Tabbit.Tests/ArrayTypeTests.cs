@@ -123,7 +123,7 @@ public class ArrayTypeTests
     /// They did not until v107. A serial field's length was a constant known at generation
     /// time, which is what made adding a column to a group a code deploy rather than a data
     /// patch - a deployed reader read up to its constant and dropped the rest.
-    /// spec/tcb-v107-dynamic-arrays.md.
+    /// spec/wire/tcb-v107-dynamic-arrays.md.
     /// </remarks>
     [Fact]
     public void Both_array_notations_take_their_length_from_the_row()
@@ -170,8 +170,8 @@ public class ArrayTypeTests
     /// This was refused, on the grounds that the generated readers had no shape for a variable
     /// number of targets per row. They do, and had before the refusal was lifted: a folded
     /// group of numbered reference columns arrives at every generator as the same group, and
-    /// [v107](../../spec/tcb-v107-dynamic-arrays.md) made every array carry its own length -
-    /// so the reader already allocates the slots per row. spec/polymorphism.md section 4.
+    /// [v107](../../spec/wire/tcb-v107-dynamic-arrays.md) made every array carry its own length -
+    /// so the reader already allocates the slots per row. spec/types/polymorphism.md section 4.
     /// </remarks>
     [Fact]
     public void An_array_of_references_written_in_one_cell_resolves_per_element()
@@ -186,7 +186,7 @@ public class ArrayTypeTests
         // A row per element for the whole-row form, and one of that row's values for the
         // dotted one - the same two shapes a scalar reference takes. The column's name is
         // the key's either way; only the whole-row form has a second name for the rows.
-        // spec/reference-surface-naming.md sections 4, 5 and 9.
+        // spec/references/reference-surface-naming.md sections 4, 5 and 9.
         Assert.Contains("public int[] Targets => _targets_Target_index;", cs);
         Assert.Contains("public TargetTable.Record[] TargetByTargets => _targets;", cs);
         Assert.Contains("public string[] Notes => _notes;", cs);
@@ -204,7 +204,7 @@ public class ArrayTypeTests
 
     /// <summary>
     /// Several tables is refused whether or not it is an array, because it is a check and
-    /// not a reference - spec/reference-surface-naming.md section 6.
+    /// not a reference - spec/references/reference-surface-naming.md section 6.
     /// </summary>
     [Fact]
     public void An_array_reaching_several_tables_is_refused_with_what_is_available()

@@ -155,7 +155,7 @@ public class SchemaMetadataTests
     /// </summary>
     /// <remarks>
     /// A check and not a reference - `foreign` names one table and resolves it, which
-    /// changes what the column holds. spec/reference-surface-naming.md section 6.
+    /// changes what the column holds. spec/references/reference-surface-naming.md section 6.
     /// </remarks>
     [Fact]
     public void Refs_names_the_tables_a_value_may_come_from()

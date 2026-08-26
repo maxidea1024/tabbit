@@ -95,7 +95,7 @@ public class Options
     /// a one-off build of the other variant is. It changes what gets converted rather than how
     /// the output is written, so it is part of the cache key like every other such option.
     ///
-    /// spec/primary-layout.md section 3.6.
+    /// spec/layout/primary-layout.md section 3.6.
     /// </remarks>
     [Cache(CacheRelevance.Output)]
     [Option("variant", HelpText =
@@ -431,7 +431,7 @@ public class Options
     /// directory was moved by hand and the recipe that describes it did not change.
     ///
     /// Keeping them apart costs one option and saves the time of reading every source again,
-    /// which is half of a run. spec/build-cache.md §7.1.
+    /// which is half of a run. spec/ops/build-cache.md §7.1.
     /// </remarks>
     [Cache(CacheRelevance.Control)]
     [Option("force-output", HelpText = "Run every output entry, whatever the cache says.")]
@@ -480,7 +480,7 @@ public class Options
     ///
     /// Empty means English, not the machine's locale. A run whose language followed the
     /// machine would produce CI logs that differ between runners, and a log diff that shows a
-    /// change every time is a log nobody reads. spec/message-ids.md §5.
+    /// change every time is a log nobody reads. spec/validation/message-ids.md §5.
     /// </remarks>
     [Cache(CacheRelevance.Irrelevant)]
     [Option("messages", HelpText =

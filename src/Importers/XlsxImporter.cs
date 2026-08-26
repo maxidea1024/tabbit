@@ -35,7 +35,7 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
     /// The sheets it finds are kept locally too, rather than appended to the model as they
     /// arrive. The model's sheet order decides the order tables are cooked and therefore
     /// reported in, so it is put back in the order the recipe listed the workbooks -
-    /// see <see cref="Import"/>. spec/conversion-time.md section 5.
+    /// see <see cref="Import"/>. spec/ops/conversion-time.md section 5.
     /// </remarks>
     private sealed class WorkbookRead
     {
@@ -156,7 +156,7 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
 
         // **Read at the same time.** A workbook is an independent file - inflated, parsed and
         // turned into a cell grid without reference to any other - and that is most of what
-        // the import spends its time on. spec/conversion-time.md section 5.
+        // the import spends its time on. spec/ops/conversion-time.md section 5.
         //
         // What each read produces goes into its own object, and those are folded into the
         // model below in the order the recipe listed them. So the model is the same whatever
@@ -321,7 +321,7 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
                     // Recorded and not reported. A cell outside every rectangle is nothing to
                     // anybody; a cell inside one is only something if the layout turns that
                     // column into a field, and that has not been decided yet.
-                    // spec/formula-errors.md.
+                    // spec/types/formula-errors.md.
                     value = "";
                     formulaError = InsideATable(rectangles, rowIndex, colIndex) ? excelText : "";
                 }
@@ -364,7 +364,7 @@ public class XlsxImporter : Source<RecipeModel.SourceRecipeGroup.XlsxRecipe>
     ///
     /// Said aloud when it happens. A silent correction would take the fact that the reader
     /// has this defect out of the run, and that fact is what decides whether a workbook can
-    /// be trusted to convert. spec/xlsb-short-row-repair.md.
+    /// be trusted to convert. spec/import/xlsb-short-row-repair.md.
     /// </remarks>
     private void FillRecoveredCells(
         SheetGridReader reader, RawSheet rawSheet, string filename, string sheetName)

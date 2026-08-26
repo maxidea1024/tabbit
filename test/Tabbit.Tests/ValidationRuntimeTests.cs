@@ -13,7 +13,7 @@ namespace Tabbit.Tests;
 /// a rule can ask a question of a live store and that an unanswerable question fails the run. A
 /// stub would answer both the same way.
 ///
-/// spec/validation-pipeline.md §6.
+/// spec/validation/validation-pipeline.md §6.
 /// </remarks>
 public class ValidationRuntimeTests
 {

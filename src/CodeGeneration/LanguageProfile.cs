@@ -694,7 +694,7 @@ public sealed class LanguageProfile
     ///
     /// Widths are spelled out - `Int32` rather than `Int` - because nine of the thirteen
     /// languages before it do and because a reference key that lost its width is a defect
-    /// this repository has already had once. spec/reference-key-types.md.
+    /// this repository has already had once. spec/references/reference-key-types.md.
     ///
     /// The reader's names are all under `Tcb`, so this table carries that prefix where a
     /// type is named. A file copied into somebody else's module cannot put thirty constants
@@ -911,7 +911,7 @@ public sealed class LanguageProfile
     /// declarations: Lua declares nothing, and the annotations are where a generated
     /// field's type is written down. int64 is `integer`, which both supported runtimes
     /// hold losslessly - 5.3+ natively, LuaJIT as FFI cdata - and which is why plain
-    /// Lua 5.1 is not a target. spec/lua-language-support.md.
+    /// Lua 5.1 is not a target. spec/targets/lua-language-support.md.
     ///
     /// The escape does not rename: a keyword-named field keeps its name as a table key
     /// and the generated code reaches it with bracket syntax, `row["end"]`. The escape

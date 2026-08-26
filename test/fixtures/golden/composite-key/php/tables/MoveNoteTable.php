@@ -96,7 +96,7 @@ final class MoveNoteTable
         // CompositeKeyAccessor::$macKey hold - which is null unless the project set them. A
         // file that is neither encrypted nor signed comes back from that untouched, so the
         // load path is the same either way and there is no condition here that could be the
-        // wrong way round. spec/tcb-mac-and-signature.md.
+        // wrong way round. spec/wire/tcb-mac-and-signature.md.
         $reader = TcbReader::fromFile(
             $filename, CompositeKeyAccessor::$encryptionKey,
             CompositeKeyAccessor::$macKey, CompositeKeyAccessor::$verifyMac);

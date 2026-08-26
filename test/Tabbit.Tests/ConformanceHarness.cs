@@ -267,7 +267,7 @@ internal static class ConformanceHarness
     /// Whether the Lua host can be built - which is the C toolchain question: nothing
     /// Lua is looked for on PATH. The suite compiles the vendored interpreter, the
     /// embedder and the generated native module into one executable, the way a game
-    /// engine embeds Lua. spec/lua-language-support.md.
+    /// engine embeds Lua. spec/targets/lua-language-support.md.
     /// </summary>
     public static bool LuaIsAvailable(out string reason) => LuaToolchain.IsAvailable(out reason);
 

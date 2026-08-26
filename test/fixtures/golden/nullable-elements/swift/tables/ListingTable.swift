@@ -100,7 +100,7 @@ public final class ListingTable {
     /// The keys are parameters rather than properties of a shared object, because Swift's
     /// concurrency checking makes mutable global state an error and because the accessor
     /// holding them is an instance - which is what lets two loads of two data sets exist at
-    /// once. NullableElementsAccessor passes its own. spec/accessor-instances.md.
+    /// once. NullableElementsAccessor passes its own. spec/targets/accessor-instances.md.
     public func read(
         _ filename: String,
         key: [UInt8]? = nil,
@@ -110,7 +110,7 @@ public final class ListingTable {
         // Opened unconditionally, and with whatever the caller holds - which is nil unless
         // the project set it. A file that is neither encrypted nor signed comes back from
         // this untouched, so the load path is the same either way and there is no condition
-        // here that could be the wrong way round. spec/tcb-mac-and-signature.md.
+        // here that could be the wrong way round. spec/wire/tcb-mac-and-signature.md.
         let bytes = try Tcb.openTable(
             try Tcb.readAllBytes(filename), key: key, macKey: macKey, verifyMac: verifyMac)
 
@@ -203,7 +203,7 @@ public final class ListingTable {
                 try Tcb.checkColumnWithElements(column, "Listing.Holes", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
                 // Behind the row bitmap and in front of the values, walked with a counter
                 // that steps once per element of every row.
-                // spec/nullable-array-elements.md.
+                // spec/types/nullable-array-elements.md.
                 let elementPresence = try Tcb.readElementPresence(reader, column)
                 var elementAt = 0
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Listing.Holes")
@@ -229,7 +229,7 @@ public final class ListingTable {
                 let presence = try Tcb.readPresence(reader, column, count)
                 // Behind the row bitmap and in front of the values, walked with a counter
                 // that steps once per element of every row.
-                // spec/nullable-array-elements.md.
+                // spec/types/nullable-array-elements.md.
                 let elementPresence = try Tcb.readElementPresence(reader, column)
                 var elementAt = 0
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Listing.Both")
@@ -264,7 +264,7 @@ public final class ListingTable {
                 try Tcb.checkColumnWithElements(column, "Listing.Words", Tcb.kindArray, false, Tcb.elementString)
                 // Behind the row bitmap and in front of the values, walked with a counter
                 // that steps once per element of every row.
-                // spec/nullable-array-elements.md.
+                // spec/types/nullable-array-elements.md.
                 let elementPresence = try Tcb.readElementPresence(reader, column)
                 var elementAt = 0
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Listing.Words")

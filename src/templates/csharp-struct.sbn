@@ -10,7 +10,7 @@
    Classes rather than structs, because that is what `is` and pattern matching need, and the
    spec chose that surface for a language that has it. The read path is untouched: the file is
    still read into the table's flat entry struct and the variant is built from it, which is why
-   the wire does not move. spec/polymorphism.md section 7.
+   the wire does not move. spec/types/polymorphism.md section 7.
 ##~}}
 {{ include 'csharp-file-head.sbn' ~}}
     /// <summary>
@@ -31,7 +31,7 @@
 {{~ end ~}}
 {{~ if member.row_prop_name != '' ~}}
 {{~## A reference member is two fields: the key the cell held under its own name, and the row it
-      resolved to under the derived one. spec/reference-surface-naming.md sections 4 and 5. ##~}}
+      resolved to under the derived one. spec/references/reference-surface-naming.md sections 4 and 5. ##~}}
         public {{ member.ref_key_type_name }} {{ member.prop_name }};
         public {{ member.field_type }} {{ member.row_prop_name }};
 {{~ else ~}}

@@ -42,7 +42,7 @@ public class CppNestedAndOptionalTests
 
     /// <summary>
     /// A record whose members are arrays - the same columns as an array of records, turned
-    /// inside out. spec/nested-multi-level.md.
+    /// inside out. spec/types/nested-multi-level.md.
     /// </summary>
     [Fact]
     public void A_record_inside_a_record_compiles()
@@ -56,7 +56,7 @@ public class CppNestedAndOptionalTests
     /// key that came off the wire - and the read and the linking both have to name them the
     /// way the declaration does. Every shape a record group has is in this fixture, including
     /// the trimmed one and a target keyed by a string.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     [Fact]
     public void A_reference_inside_a_record_compiles() => AssertCompiles("record-ref", "RecordRefAccessor");
@@ -68,13 +68,13 @@ public class CppNestedAndOptionalTests
     /// The shape `foreign[]`'s refusal points at, and nothing in the corpus held one - so this
     /// page was generated for every language and never compiled. Both forms of a reference
     /// are in the fixture, because they resolve to different types: a whole row and one of that
-    /// row's values. spec/nullable-array-elements.md.
+    /// row's values. spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void An_array_of_references_compiles() => AssertCompiles("serial-ref", "SerialRefAccessor");
     /// <summary>
     /// A record whose members are arrays - the same columns as an array of records, turned
-    /// inside out. spec/nested-multi-level.md.
+    /// inside out. spec/types/nested-multi-level.md.
     /// </summary>
     [Fact]
     public void A_record_of_arrays_compiles()
@@ -86,7 +86,7 @@ public class CppNestedAndOptionalTests
     /// <remarks>
     /// The read walks the bitmap with a counter that steps once per element of every row, and
     /// the accessor beside the value is a call rather than a field. Both are new shapes in the
-    /// generated page. spec/nullable-array-elements.md.
+    /// generated page. spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void Optional_array_elements_compile()

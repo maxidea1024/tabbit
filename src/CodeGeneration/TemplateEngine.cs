@@ -182,7 +182,7 @@ internal static class TemplateEngine
     /// A parsed template is the syntax tree, and rendering does not write to it - the state a
     /// render accumulates lives in the `TemplateContext` built per call below. So one of
     /// these is safely rendered by several threads, which matters now that the output targets
-    /// run beside each other. spec/conversion-time.md section 4.
+    /// run beside each other. spec/ops/conversion-time.md section 4.
     /// </remarks>
     private static readonly ConcurrentDictionary<string, Template> ParsedTemplates =
         new ConcurrentDictionary<string, Template>(StringComparer.Ordinal);

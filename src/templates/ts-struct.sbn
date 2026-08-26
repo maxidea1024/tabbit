@@ -7,7 +7,7 @@
    classes nothing else in the output uses.
 
    `kind` holds the variant's name rather than its number. The number is what the file carries;
-   this is what a consumer reads, and a name reads better than a 1. spec/polymorphism.md §7.
+   this is what a consumer reads, and a name reads better than a 1. spec/types/polymorphism.md §7.
 ##~}}
 {{ include 'ts-head.sbn' ~}}
 {{~ if imports | array.size > 0 ~}}
@@ -58,7 +58,7 @@ export interface {{ variant.type_name }} extends {{ name }}Base {
 {{~ end ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two properties: the key the cell held under its own name, and the
-   row it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   row it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
   {{ member.prop_name }}: {{ member.key_type_name }}
   {{ member.row_name }}: {{ member.field_type }}
 {{~ else ~}}

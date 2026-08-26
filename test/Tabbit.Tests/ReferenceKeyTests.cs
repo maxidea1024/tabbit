@@ -18,7 +18,7 @@ namespace Tabbit.Tests;
 ///
 /// The refusal these replace lived in `StringIndexTests`.
 ///
-/// spec/reference-key-types.md.
+/// spec/references/reference-key-types.md.
 /// </remarks>
 public class ReferenceKeyTests
 {
@@ -92,7 +92,7 @@ public class ReferenceKeyTests
         string clip = Generated("csharp", "tables", "ClipTable.cs");
 
         // The key is behind a property of the column's own name now, so the storage is
-        // internal. spec/reference-surface-naming.md section 4.
+        // internal. spec/references/reference-surface-naming.md section 4.
         Assert.Contains("internal string _anim_Animation_index;", clip);
         Assert.Contains("internal long _entry_Ledger_index;", clip);
         Assert.Contains("internal System.Guid _cover_Art_index;", clip);
@@ -109,7 +109,7 @@ public class ReferenceKeyTests
     /// Zero is the convention for a reference that points nowhere, and the accessor asked it
     /// as a numeric comparison for every key. A string has no zero and comparing one against
     /// a number does not compile, so each key type needs its own spelling.
-    /// spec/reference-optionality.md.
+    /// spec/references/reference-optionality.md.
     /// </remarks>
     [Fact]
     public void The_points_at_nothing_test_fits_the_key_type()

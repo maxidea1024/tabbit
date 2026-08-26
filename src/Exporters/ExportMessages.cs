@@ -14,7 +14,7 @@ namespace Tabbit.Exporters;
 /// file looks like. What is deliberately not here is the exporters' own invariants - a MAC key
 /// of the wrong length, a wire element the binary writer has no case for. Those are
 /// <see cref="TabbitDefectException"/> and stay in English, because the person who can act on
-/// them is us. spec/message-ids.md §3.
+/// them is us. spec/validation/message-ids.md §3.
 /// </remarks>
 [TabbitMessages("export")]
 public static class ExportMessages

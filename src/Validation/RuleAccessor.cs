@@ -37,7 +37,7 @@ namespace Tabbit.Validation;
 /// encode and one decode, and the by-product is that every run exercises the generated code,
 /// the reader and the format against real data.
 ///
-/// spec/validation-pipeline.md §3.
+/// spec/validation/validation-pipeline.md §3.
 /// </remarks>
 internal sealed class RuleAccessor
 {
@@ -79,7 +79,7 @@ internal sealed class RuleAccessor
     /// language - so Unity's floor does not reach it; this assembly is never shipped to a game.
     ///
     /// The cast cannot fail: the object came from this same assembly's `LoadAsync`.
-    /// spec/accessor-instances.md section 3.2.
+    /// spec/targets/accessor-instances.md section 3.2.
     /// </remarks>
     private const string ContextBridge = """
         namespace Tabbit.Rules;

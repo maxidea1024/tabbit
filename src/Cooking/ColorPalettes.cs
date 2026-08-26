@@ -17,7 +17,7 @@ namespace Tabbit.Cooking;
 /// and it is the representation `color32` takes without arithmetic. A `color` column divides
 /// by 255. Keeping them as floats instead would round `color32` a second time.
 ///
-/// spec/composite-value-types.md section 4.4.
+/// spec/types/composite-value-types.md section 4.4.
 /// </remarks>
 public sealed class ColorPalettes
 {

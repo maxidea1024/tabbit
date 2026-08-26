@@ -28,7 +28,7 @@ struct NullableElements_FoldedRecord_t {
   const char** tag;
   int32_t tag_count;
   /* Which of tag's elements have a value, one bool per element, or NULL where
-   * the file did not carry the column. spec/nullable-array-elements.md. */
+   * the file did not carry the column. spec/types/nullable-array-elements.md. */
   const bool* has_tag_at;
 };
 

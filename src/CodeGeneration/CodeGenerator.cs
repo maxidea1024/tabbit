@@ -52,7 +52,7 @@ public abstract class CodeGenerator<TRecipe> : Target<TRecipe>
     ///
     /// Each generator hands the result through its own casing pass, so `MailByMailId` is
     /// `mail_by_mail_id` where that is the language's spelling.
-    /// spec/reference-surface-naming.md section 5.
+    /// spec/references/reference-surface-naming.md section 5.
     /// </remarks>
     protected static string RowAccessorName(string target, string column)
         => target.ToPascalCase() + "By" + column.ToPascalCase();
@@ -64,7 +64,7 @@ public abstract class CodeGenerator<TRecipe> : Target<TRecipe>
     /// A dotted reference (`foreign Item.Name`) hands back a value out of the target rather
     /// than the row, so the column's name stays on that value and the key keeps the name it
     /// had. There is no row for a derived name to belong to.
-    /// spec/reference-surface-naming.md section 9.
+    /// spec/references/reference-surface-naming.md section 9.
     /// </remarks>
     protected static bool ResolvesToRow(Models.Field field)
         => field.ResolvedRefField is null;

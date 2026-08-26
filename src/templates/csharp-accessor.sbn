@@ -136,7 +136,7 @@
 {{~## The keys' own length rather than the sheet's column count: the read sized this array
       from the file, so a number written in here would leave the last element unresolved on a
       file with one more - and index past the end on a file with one fewer.
-      spec/nullable-array-elements.md. ##~}}
+      spec/types/nullable-array-elements.md. ##~}}
                 for (int i = 0; i < record.{{ field.field_name }}_{{ field.ref_table }}_index.Length; i++)
                 {
 {{~ if field.references_field ~}}
@@ -168,7 +168,7 @@
 {{~## A reference that is a member of a record is resolved per element, so the array is
    walked and each element's own key is looked up. Which array that is - the group's or the
    member's - the view decided, and a record of one has neither.
-   spec/references-in-records.md. ##~}}
+   spec/references/references-in-records.md. ##~}}
 {{~ for ref in table.record_reference_fields ~}}
 {{~ if ref.count != '' ~}}
                 for (int j = 0; j < {{ ref.count }}; j++)
@@ -194,11 +194,11 @@
 
    A miss is not a fault: it means the row belongs to one of the others. So this resolves
    through the non-throwing lookup, and a key none of them holds leaves the discriminator at
-   `None` rather than stopping the load. spec/multi-target-accessors.md. ##~}}
+   `None` rather than stopping the load. spec/references/multi-target-accessors.md. ##~}}
 {{~## A member reaching several tables resolves inside the element, so the array is walked and
    each element's own key is looked up. Which array that is - the group's or the member's -
    the view decided, and a record of one has neither.
-   spec/multi-target-accessors.md · spec/references-in-records.md. ##~}}
+   spec/references/multi-target-accessors.md · spec/references/references-in-records.md. ##~}}
             }
 {{~ end ~}}
         }

@@ -8,7 +8,7 @@
    The base fields are an embedded struct rather than repeated per variant, so `d.Chance` works
    on any variant by promotion. And the interface carries one `Base()` so a consumer holding the
    interface can read them without switching at all - one method rather than one getter per
-   field, because the field list is the declaration's and grows. spec/polymorphism.md section 7.
+   field, because the field list is the declaration's and grows. spec/types/polymorphism.md section 7.
 ##~}}
 {{ include 'go-file-head.sbn' ~}}
 // {{ structure.name }} is one value of the declared type, whichever shape it took.
@@ -35,7 +35,7 @@ type {{ structure.base_name }} struct {
 {{~ end ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two fields: the key the cell held under its own name, and the row it
-   resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
 	{{ member.field_name }} {{ member.key_type_name }}
 	{{ member.row_name }} {{ member.field_type }}
 {{~ else ~}}
@@ -61,7 +61,7 @@ type {{ variant.type_name }} struct {
 {{~ end ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two fields: the key the cell held under its own name, and the row it
-   resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
 	{{ member.field_name }} {{ member.key_type_name }}
 	{{ member.row_name }} {{ member.field_type }}
 {{~ else ~}}

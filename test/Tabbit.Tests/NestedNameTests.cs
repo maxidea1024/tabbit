@@ -9,7 +9,7 @@ namespace Tabbit.Tests;
 /// The split happens before Pascal-casing, which is what makes it safe: the separator is
 /// gone by the time the case conversion sees either part, so no rule about `_` or about
 /// runs of capitals can produce or swallow one. The notation itself is spelled out in
-/// spec/nested-fields.md.
+/// spec/types/nested-fields.md.
 /// </summary>
 public class NestedNameTests
 {
@@ -36,7 +36,7 @@ public class NestedNameTests
 
     [Theory]
     // Depth is what the sheet wrote, not a number this knows. A level further in is read by
-    // the same rule as the one outside it - spec/nested-multi-level.md.
+    // the same rule as the one outside it - spec/types/nested-multi-level.md.
     [InlineData("A.B.C", new[] { "A", "B", "C" })]
     [InlineData("Star1.Position.X", new[] { "Star1", "Position", "X" })]
     [InlineData("A.B.C.D.E", new[] { "A", "B", "C", "D", "E" })]

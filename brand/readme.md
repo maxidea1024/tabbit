@@ -12,7 +12,7 @@
 |`source/brand-sheet.png`|**브랜드 페이지용 배너**와 앱 아이콘 시안이 한 장에 있습니다. 배너에는 워드마크·마스코트·시트 카드·`{}`·격자·`</>` 큐브와, 하단에 Author·Validate·Optimize·Build 4칸과 `TCB — Fast. Compact. Reliable.`이 들어 있습니다|
 |`source/lockup-sheet.png`|**세로 락업**(마스코트+워드마크+태그라인), **아이콘 변형 6종**(두상·마스코트·시트·큐브·TCB·검사), **가로 락업**|
 |`source/app-icon.png`|사각 아이콘 — 마스코트와 워드마크가 함께 들어간 것|
-|`source/mabbit-icon.png`|**병합 도구 `mabbit`의 것**([스펙](../spec/workbook-merge.md)). 같은 마스코트에 가슴 배지가 `M`이고, 시트 2장이 화살표로 수렴합니다 — 계열은 유지하고 역할로 가릅니다|
+|`source/mabbit-icon.png`|**병합 도구 `mabbit`의 것**([스펙](../spec/import/workbook-merge.md)). 같은 마스코트에 가슴 배지가 `M`이고, 시트 2장이 화살표로 수렴합니다 — 계열은 유지하고 역할로 가릅니다|
 |`source/mascot-working.png`|**일하는 장면** — 마스코트가 책상에서 시트를 두드리는 한 장. GIF의 바탕이고, 잘라낼 것이 없는 완성된 구도입니다|
 
 두 시트는 **여러 자산이 한 장에 놓인 시안**입니다. 쓰려면 잘라내야 하고, 그 잘라내기가 파생

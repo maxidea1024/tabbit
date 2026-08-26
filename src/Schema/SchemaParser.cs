@@ -326,7 +326,7 @@ public static class SchemaParser
         /// **One level, and the grammar is what enforces it.** `abstract` and `extends` on one
         /// line is refused here rather than in the resolver, because a variant that is itself
         /// abstract leaves a sheet's `:type` cell with two answers to "what shape is this row" -
-        /// the leaf and the layer above it. spec/polymorphism.md section 5.1.
+        /// the leaf and the layer above it. spec/types/polymorphism.md section 5.1.
         /// </remarks>
         private SchemaStruct? ReadStruct(string comment, bool isAbstract)
         {
@@ -410,7 +410,7 @@ public static class SchemaParser
             // the set the number belongs to and the number. Reported here rather than in the
             // resolver because both are on this line - and a `(removed)` that reserves nothing
             // is worse than no line at all: it reads as a reservation that is not one.
-            // spec/polymorphism.md section 5.1.1.
+            // spec/types/polymorphism.md section 5.1.1.
             if (declared.IsRemoved)
             {
                 if (isAbstract)

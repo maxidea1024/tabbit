@@ -10,7 +10,7 @@ namespace Tabbit.Tests;
 /// through the whole converter, because the point of them is the diagnostic a sheet author
 /// reads: it has to name the cell and say what to change.
 ///
-/// spec/optional-fields.md has the rules. The shapes that do work are pinned by the
+/// spec/types/optional-fields.md has the rules. The shapes that do work are pinned by the
 /// `optional` golden.
 /// </remarks>
 public class OptionalFieldRefusalTests

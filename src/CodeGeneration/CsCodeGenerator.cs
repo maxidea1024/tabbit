@@ -160,7 +160,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// <summary>
     /// A level below is a struct declared beside the element type, and the read reaches it
     /// with a longer member path - `record._star[j].Position.X`. Neither the declaration nor
-    /// the read counts the levels. spec/nested-multi-level.md.
+    /// the read counts the levels. spec/types/nested-multi-level.md.
     /// </summary>
     protected override bool SupportsDeepNestedFields => true;
 
@@ -170,7 +170,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// <remarks>
     /// Not `T?`. It has to work the same for `string` as for `int`, and a nullable
     /// reference type needs a nullable context this output does not have - it compiles as
-    /// the C# 8 Unity 2020.3 accepts. spec/optional-fields.md has the reasoning.
+    /// the C# 8 Unity 2020.3 accepts. spec/types/optional-fields.md has the reasoning.
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
@@ -179,7 +179,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
 
     /// <summary>
     /// `HasXAt(i)` beside the value, filled from the element bitmap the file carries.
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     /// </summary>
     protected override bool SupportsOptionalElements => true;
 
@@ -363,7 +363,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             Write(Path.Combine("enums", enumm.Name + ".cs"), "csharp-enum.sbn", Part(enumm: enumm));
 
         // A struct is an entity beside a table and an enum, so it gets a file of its own and
-        // every table that uses it refers to the one type. spec/polymorphism.md section 7.1.
+        // every table that uses it refers to the one type. spec/types/polymorphism.md section 7.1.
         foreach (var structure in view.Structs)
         {
             Write(Path.Combine("structs", structure.Name + ".cs"), "csharp-struct.sbn",
@@ -398,7 +398,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// <remarks>
     /// The members are columns, so their types come out of the same conversion a table's
     /// members do - which is the point of the model handing over the columns rather than the
-    /// declaration. spec/polymorphism.md section 7.1.
+    /// declaration. spec/types/polymorphism.md section 7.1.
     /// </remarks>
     private IReadOnlyList<CsPolymorphicTypeView> BuildStructs()
         => _model.PolymorphicTypes
@@ -422,7 +422,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// **A reference member is two fields**, as a reference is anywhere: the declared name is
     /// the key's and the row it resolves to takes the derived one. Getting this wrong is not a
     /// naming problem - a builder that assigned the key into a field declared as a row does not
-    /// compile. spec/reference-surface-naming.md sections 4 and 5.
+    /// compile. spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     private CsStructMemberView StructMember(Models.Field field)
     {
@@ -668,7 +668,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             // A reference that is a member of a record resolves per element, so it needs a
             // loop of its own rather than a place in the list above. Read off the wire
             // columns, which is the same list the read path walks - the two have to agree
-            // about where the key landed. spec/references-in-records.md.
+            // about where the key landed. spec/references/references-in-records.md.
             RecordReferenceFields = table.WireColumns
                                          .Where(wire => wire.Member is not null && wire.IsRef)
                                          .Select(BuildRecordReference)
@@ -714,7 +714,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// the tail of a condition so the generated line names the member once.
     ///
     /// The numeric case is `> 0`, which is what the template used to say for every key.
-    /// spec/reference-optionality.md · spec/reference-key-types.md.
+    /// spec/references/reference-optionality.md · spec/references/reference-key-types.md.
     /// </remarks>
     private static string RefIsSetSuffix(Models.ValueType keyType)
         => keyType switch
@@ -735,7 +735,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// <remarks>
     /// What a multi-target column resolves through. A key absent from one of its targets is
     /// the ordinary case - it means the row is in another of them - so the miss has to come
-    /// back as an answer. spec/multi-target-accessors.md.
+    /// back as an answer. spec/references/multi-target-accessors.md.
     /// </remarks>
     private static string PrimaryFind(Table table)
         => "FindBy" + table.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
@@ -748,7 +748,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// <remarks>
     /// The member it fills is the group's for a scalar column. A record group's member
     /// columns each fill one field of the generated element type, which is where these
-    /// three differ from the group's - see spec/nested-fields.md.
+    /// three differ from the group's - see spec/types/nested-fields.md.
     /// </remarks>
     private CsColumnView BuildColumn(Table table, WireColumn wire)
     {
@@ -762,7 +762,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         //
         // The whole path, so a level further in costs nothing here - `.Position.X` reads the
         // same way `.Id` does, and the read switch never learns how deep it is.
-        // spec/nested-multi-level.md.
+        // spec/types/nested-multi-level.md.
         string memberAccess = (wire.Member is null)
             ? ""
             : string.Concat(wire.MemberPath.Select(name => "." + CsName(name)));
@@ -963,7 +963,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             TypeName = sf.Name.ToPascalCase() + "Entry",
             Members = members,
             // And the slot a member reaching several tables holds per element, which a struct
-            // cannot size at its declaration either. spec/multi-target-accessors.md.
+            // cannot size at its declaration either. spec/references/multi-target-accessors.md.
             NeedsInit = members.Any(m => m.Initializer.Length > 0),
             IsOutermost = true,
         });
@@ -971,7 +971,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         // Which abstract type this group is, if it is one. The variants and their members are
         // the shared declaration's - one per declaration however many tables named it - so this
         // looks them up rather than working them out again from the columns.
-        // spec/polymorphism.md section 7.1.
+        // spec/types/polymorphism.md section 7.1.
         var discriminator = sf.Members.FirstOrDefault(
             member => member.IsLeaf && member.FirstField is { IsDiscriminator: true });
 
@@ -1017,7 +1017,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             // The same question the read asks through `RecordNeedsInit`: a record array is
             // allocated by the read now, and if it needs a factory there it has to be
             // declared here. Asking two different things produced a call to a method that
-            // was never emitted. spec/nullable-array-elements.md.
+            // was never emitted. spec/types/nullable-array-elements.md.
             NeedsElementInit = members.Any(m => m.Initializer.Length > 0)
                 || (sf.IsRecord && RecordNeedsFactory(sf)),
 
@@ -1029,7 +1029,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             FieldName = "_" + sf.Name.ToCamelCase(),
 
             // An array of arrays has no element type to name, so the inner array is the
-            // type - see spec/nested-multi-level.md.
+            // type - see spec/types/nested-multi-level.md.
             FieldType = sf.MembersAreAnonymous
                 ? ToCSharpTypeName(sf.Members[0].FirstField) + "[]"
                 : sf.Name.ToPascalCase() + "Entry",
@@ -1060,7 +1060,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         var (path, subscript) = MemberPlace(wire, fieldName, memberAccess);
 
         // The member's own name is the key's; the row takes the derived one.
-        // spec/reference-surface-naming.md sections 4, 5 and 9.
+        // spec/references/reference-surface-naming.md sections 4, 5 and 9.
         bool toRow = ResolvesToRow(wire.TagCarrier);
 
         string rowAccess = toRow
@@ -1121,7 +1121,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// A member that is a record gets the nested struct as its type and that struct's factory
     /// as its initializer. Everything else about a member is what it always was, which is
     /// what makes depth cost nothing here: `Position` is declared exactly as `Id` is, with a
-    /// different type name. spec/nested-multi-level.md.
+    /// different type name. spec/types/nested-multi-level.md.
     /// </remarks>
     private List<CsRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, List<CsRecordTypeView> declared)
@@ -1162,7 +1162,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                     // row it resolved to, all three inside the element - and all three at
                     // the member's own arity, because a record of arrays holds one key per
                     // element just as it holds one row per element.
-                    // spec/references-in-records.md.
+                    // spec/references/references-in-records.md.
                     RefKeyTypeName = member.IsRef
                         ? ToCSharpTypeName(member.FirstField!.RefKeyType, null, null)
                           + (member.IsArray ? "[]" : "")
@@ -1267,7 +1267,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
 
             // One array declaration since v107. Trimming decides how many elements a row
             // carries, not whether the length is known at generation time - the file states
-            // it either way. spec/tcb-v107-dynamic-arrays.md.
+            // it either way. spec/wire/tcb-v107-dynamic-arrays.md.
             return "var_array";
         }
 
@@ -1286,7 +1286,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// <remarks>
     /// A `bool` per element rather than the bitmap the file carries: the row-level answer is
     /// a `bool` per row for the same reason, and a consumer asking `HasCostsAt(2)` should not
-    /// pay for a shift and a mask it did not ask for. spec/nullable-array-elements.md.
+    /// pay for a shift and a mask it did not ask for. spec/types/nullable-array-elements.md.
     /// </remarks>
     private static string ElementPresenceField(SerialField sf)
         => "_" + sf.Name.ToCamelCase() + "HasValueAt";
@@ -1323,7 +1323,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// </summary>
     /// <remarks>
     /// Only where one column owns the array: a member of a record group keeps its key and its
-    /// flag inside the element, which the record allocates. spec/references-in-records.md.
+    /// flag inside the element, which the record allocates. spec/references/references-in-records.md.
     ///
     /// **Both array kinds, from their own length.** A folded group's length is the column count
     /// the file states; a trimmed one's is the row's, read a line earlier. This asked only for
@@ -1331,7 +1331,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// bitmap per row and left the key array at `Array.Empty` - and the first element written
     /// into it was an index out of range. `foreign[]` is refused, so the only way to that shape
     /// is a folded group with trimming turned on for the entry, and no fixture held one.
-    /// spec/variable-length-record-arrays.md.
+    /// spec/types/variable-length-record-arrays.md.
     /// </remarks>
     private IReadOnlyList<string> ParallelArrayLines(
         WireColumn wire, string fieldName, string refTable)
@@ -1382,7 +1382,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             // accepted while a key could only be an int - and the writer had meanwhile
             // learned to emit the key's own element, so the reader would have refused a file
             // this build wrote. A mismatch a compiler cannot see.
-            // spec/reference-key-types.md.
+            // spec/references/reference-key-types.md.
             accepted = wire.RefKeyType switch
             {
                 Models.ValueType.String => "TcbTable.ElementString",
@@ -1462,7 +1462,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
         // was the int32 assumption in another place: a target keyed by `uuid` has no cursor
-        // path any more than a `uuid` column does. spec/reference-key-types.md.
+        // path any more than a `uuid` column does. spec/references/reference-key-types.md.
         if (wire.IsRef)
             return wire.RefKeyType != Models.ValueType.Uuid;
 
@@ -1517,7 +1517,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// Only the types a key may be, because that is the one place this is asked. A `uuid` is
     /// absent for the reason it is absent from the cursor at all - no encoding applies to it,
     /// so <see cref="UsesCursor"/> answers no and the plain read path takes over.
-    /// spec/reference-key-types.md.
+    /// spec/references/reference-key-types.md.
     /// </remarks>
     private static string CursorCallFor(Models.ValueType keyType)
         => keyType switch
@@ -1538,7 +1538,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             return "";
 
         // A reference runs on the key it carries. `NextSameI32` was the only answer while a
-        // key could only be an int. spec/reference-key-types.md.
+        // key could only be an int. spec/references/reference-key-types.md.
         if (wire.IsRef)
         {
             return wire.RefKeyType switch
@@ -1582,13 +1582,13 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             // is only ever reached by a scalar, and a record member reaching it is a member
             // of a record of one. Its key lives on the member like every other member's
             // does; naming the group alone wrote into a field nothing declared.
-            // spec/references-in-records.md.
+            // spec/references/references-in-records.md.
             string key = (wire.Member is null)
                 ? $"record.{fieldName}"
                 : $"record.{fieldName}{memberAccess}";
 
             // The member's own name is the key's, and the row sits beside it under the
-            // derived one. spec/reference-surface-naming.md sections 4, 5 and 9.
+            // derived one. spec/references/reference-surface-naming.md sections 4, 5 and 9.
             string rowAccess = (wire.Member is not null && ResolvesToRow(wire.TagCarrier))
                 ? string.Concat(wire.MemberPath.Take(wire.MemberPath.Count - 1)
                                     .Select(part => "." + CsName(part)))
@@ -1621,11 +1621,11 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// Where the element number goes is the whole difference between the record shapes. An
     /// array of records indexes the group and then names the member; a record whose members
     /// are arrays names the member and then indexes it; a record of one indexes nothing.
-    /// Same columns, same loop, same wire - see spec/nested-multi-level.md.
+    /// Same columns, same loop, same wire - see spec/types/nested-multi-level.md.
     ///
     /// The two are kept apart because a reference member declares its key and its flag on
     /// the member rather than on the element it holds: `Slots.ItemId[j]`, not
-    /// `Slots.ItemId[j]_index`. spec/references-in-records.md.
+    /// `Slots.ItemId[j]_index`. spec/references/references-in-records.md.
     /// </remarks>
     private static (string Path, string Subscript) MemberPlace(
         WireColumn wire, string fieldName, string memberAccess)
@@ -1653,7 +1653,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         // A record member keeps its key and flag inside the element, beside the row they
         // belong to - `record._slot[j].ItemId` rather than a parallel array named
         // after the group, which two members pointing at one table would collide in.
-        // spec/references-in-records.md.
+        // spec/references/references-in-records.md.
         string flag;
         string index;
 
@@ -1662,7 +1662,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             flag = path + "_F" + subscript;
 
             // The member's own name is the key's, and the row it resolves to sits beside it
-            // under the derived one. spec/reference-surface-naming.md sections 4, 5 and 9.
+            // under the derived one. spec/references/reference-surface-naming.md sections 4, 5 and 9.
             if (wire.IsRef && ResolvesToRow(wire.TagCarrier))
             {
                 index = path + subscript;
@@ -1702,7 +1702,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                 // Only the stored key is on the wire; the value is filled in once every
                 // table is loaded, and the flag records whether that happened. The call is
                 // the key's own - `NextI32` for every reference is what kept a table keyed
-                // by anything else from being pointed at. spec/reference-key-types.md.
+                // by anything else from being pointed at. spec/references/reference-key-types.md.
                 return new[]
                 {
                     $"{index} = cursor.{CursorCallFor(wire.RefKeyType)};",
@@ -1835,7 +1835,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// <remarks>
     /// The type functions answer for an element and let the caller add the brackets, exactly
     /// as a field's do - so an array constant asks for the element and wraps it here.
-    /// spec/primary-layout.md section 8.5.
+    /// spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     private string ConstantTypeName(ConstantSet.Constant constant)
         => ToCSharpTypeName(
@@ -1852,7 +1852,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     ///
     /// A constant never reaches the file, so there is no wire question here: what a language
     /// needs is an expression its compiler accepts in the place a constant is declared.
-    /// spec/primary-layout.md section 8.5.
+    /// spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     private string RenderConstantValue(ConstantSet.Constant constant)
     {

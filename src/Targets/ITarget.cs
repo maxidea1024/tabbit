@@ -167,7 +167,7 @@ public abstract class Target<TEntry> : ITarget
     /// exist, or worse, against one that does and means something else.
     ///
     /// The model and the wire are done; the targets are converted one at a time, and one
-    /// that has not been says so by name. spec/nested-multi-level.md.
+    /// that has not been says so by name. spec/types/nested-multi-level.md.
     /// </remarks>
     protected virtual bool SupportsDeepNestedFields => false;
 
@@ -190,7 +190,7 @@ public abstract class Target<TEntry> : ITarget
     /// A second flag rather than a widening of <see cref="SupportsOptionalFields"/>, because
     /// the two are answered by different code: a target that carries a presence bit per row
     /// still has nowhere to put one per element. Opted into as each learns the shape, which
-    /// is the order spec/nullable-array-elements.md sets out.
+    /// is the order spec/types/nullable-array-elements.md sets out.
     /// </remarks>
     protected virtual bool SupportsOptionalElements => false;
 
@@ -250,7 +250,7 @@ public abstract class Target<TEntry> : ITarget
     /// the file carries - its columns are ordinary columns - and everything about what a
     /// generated reader offers: `FindByKey(stage, slot)` rather than `FindByStage(stage)`.
     /// Every language needs its own answer for the map that lookup reads, so each opts in
-    /// when it has one. spec/primary-layout.md section 3.5 and section 16 step 8.
+    /// when it has one. spec/layout/primary-layout.md section 3.5 and section 16 step 8.
     /// </remarks>
     private void RefuseCompositeKeysIfUnsupported(TargetContext context)
     {

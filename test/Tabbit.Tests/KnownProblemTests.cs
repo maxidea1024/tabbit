@@ -13,7 +13,7 @@ namespace Tabbit.Tests;
 /// <remarks>
 /// Every one of these is about the list staying honest rather than about it working: a list
 /// that silences reports is easy, and one that tells you when it has gone out of date is the
-/// feature. spec/known-problems.md.
+/// feature. spec/ops/known-problems.md.
 /// </remarks>
 public class KnownProblemTests
 {

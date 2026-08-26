@@ -23,7 +23,7 @@ namespace Tabbit.Cooking;
 /// carried through as written, because the sheet is the original and a name whose word
 /// boundaries have been lost cannot be recovered, only guessed at.
 ///
-/// spec/naming-conventions.md.
+/// spec/targets/naming-conventions.md.
 /// </remarks>
 public partial class ModelCooker
 {

@@ -4,12 +4,12 @@
    class sits in this one module, which is why the name carries the table's. ##~}}
 {{~ for field in table.fields ~}}
 {{~## An array of arrays declares no element type: its outer level has no name, so there is
-   nothing for a class to be. spec/nested-multi-level.md. ##~}}
+   nothing for a class to be. spec/types/nested-multi-level.md. ##~}}
 {{~ if field.is_record && !field.members_are_anonymous ~}}
 {{~## One class per level, innermost first - which Ruby requires rather than prefers: the
    constructor names the level below and resolves it when it runs. The view flattened the
    nesting so this loop does not have to know how deep it went.
-   spec/nested-multi-level.md. ##~}}
+   spec/types/nested-multi-level.md. ##~}}
 {{~ for rt in field.record_types ~}}
 {{~ if rt.is_outermost ~}}
   # One element of {{ rt.owner }}.
@@ -28,7 +28,7 @@
     end
 {{~## The per-target methods of every member of this class that reaches several tables. One
    taking the element number where the member is the array, which is the third place an element
-   number sits. spec/multi-target-accessors.md. ##~}}
+   number sits. spec/references/multi-target-accessors.md. ##~}}
   end
 
 {{~ end ~}}
@@ -55,7 +55,7 @@
 {{~## **The value, built once on first use.** The entry above is what the read filled - one
    assignment per column - and which variant it is only became knowable when the discriminator
    column arrived. Building it here keeps the read path and the wire exactly as they were.
-   spec/polymorphism.md section 7.2. ##~}}
+   spec/types/polymorphism.md section 7.2. ##~}}
 
 {{~ if field.variants_are_array ~}}
 {{~## **The array shape.** Each element carries its own discriminator - section 5.3 - so the
@@ -93,7 +93,7 @@
 {{~ for member in field.base_members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
         built.{{ member.name }} = entry.{{ member.name }}
         built.{{ member.row_name }} = entry.{{ member.row_name }}
 {{~ else ~}}
@@ -103,7 +103,7 @@
 {{~ for member in variant.members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
         built.{{ member.name }} = entry.{{ member.name }}
         built.{{ member.row_name }} = entry.{{ member.row_name }}
 {{~ else ~}}
@@ -125,7 +125,7 @@
 {{~## A column whose value is a row of one of several tables. One attribute for the resolved
    row whatever table it came from, and the discriminator saying which - the targets take
    separate id bands, so at most one of them ever answers.
-   spec/multi-target-accessors.md. ##~}}
+   spec/references/multi-target-accessors.md. ##~}}
     end
 
   end
@@ -144,7 +144,7 @@
 {{~## A key of several columns is held as the text they make. Each part carries its own
    length, so no two combinations can make the same text - joined by a separator alone,
    ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
-   spec/primary-layout.md section 3.5. ##~}}
+   spec/layout/primary-layout.md section 3.5. ##~}}
 {{~ if index.is_composite ~}}
     # Joins the columns of the {{ index.field_name }} key into the text the map is keyed by.
     def self.key_of_{{ index.suffix }}({{ index.params }})
@@ -202,7 +202,7 @@
       # hold - which is nil unless the project set them. A file that is neither encrypted
       # nor signed comes back from this untouched, so the load path is the same either way
       # and there is no condition here that could be the wrong way round.
-      # spec/tcb-mac-and-signature.md.
+      # spec/wire/tcb-mac-and-signature.md.
       reader = Tabbit::Reader.new(
         Tabbit.open(Tabbit.read_all_bytes(filename), {{ accessor_name }}.encryption_key,
                       {{ accessor_name }}.mac_key, verify_mac: {{ accessor_name }}.verify_mac)
@@ -227,7 +227,7 @@
 {{~ end ~}}
 {{~ if column_view.has_optional_elements ~}}
           # Behind the row bitmap and in front of the values, walked with a counter that
-          # steps once per element of every row. spec/nullable-array-elements.md.
+          # steps once per element of every row. spec/types/nullable-array-elements.md.
           element_presence = Tabbit.read_element_presence(reader, column)
           element_at = 0
 {{~ end ~}}
@@ -280,27 +280,27 @@
             end
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner array. Which outer element it is, is which column this is - so that index is
-   fixed and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
+   fixed and the loop runs the inner length. spec/types/nested-multi-level.md. ##~}}
             {{ column_view.length_read }}
             record.{{ column_view.name }}[{{ column_view.member_at }}] =
               Array.new(element_count) { {{ column_view.read_element }} }
 {{~ else if column_view.kind == 'record_member_var' ~}}
 {{~## The member is the array: the index goes after its name rather than before. Same
-   columns and same loop as the case below - see spec/nested-multi-level.md. ##~}}
+   columns and same loop as the case below - see spec/types/nested-multi-level.md. ##~}}
             {{ column_view.length_read }}
             record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} =
               Array.new(element_count) { {{ column_view.read_element }} }
 {{~ else if column_view.kind == 'var_array_ref' ~}}
 {{~## A trimmed array of references. The keys go in the array beside the values, at this row's
    length - which is what `serial_ref` below does from the column count.
-   spec/variable-length-record-arrays.md. ##~}}
+   spec/types/variable-length-record-arrays.md. ##~}}
             {{ column_view.length_read }}
 {{~ if column_view.row_name != '' ~}}
             record.{{ column_view.name }} = Array.new(element_count) { {{ column_view.read_element }} }
             record.{{ column_view.row_name }} = Array.new(element_count)
 {{~ else ~}}
 {{~## A dotted reference: the column's name stays on the value it hands back, and the key
-   keeps the name it had. spec/reference-surface-naming.md section 9. ##~}}
+   keeps the name it had. spec/references/reference-surface-naming.md section 9. ##~}}
             record.{{ column_view.name }}_index = Array.new(element_count) { {{ column_view.read_element }} }
             record.{{ column_view.name }} = Array.new(element_count)
 {{~ end ~}}

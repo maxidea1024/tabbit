@@ -9,7 +9,7 @@
 // of records indexes the group, a record of one indexes nothing, and a record of arrays
 // indexes the member. The first of them worked while the other two did not compile.
 //
-// spec/references-in-records.md.
+// spec/references/references-in-records.md.
 
 using System;
 using System.Collections.Generic;

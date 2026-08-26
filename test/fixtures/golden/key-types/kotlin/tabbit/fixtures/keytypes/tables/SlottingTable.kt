@@ -119,7 +119,7 @@ class SlottingTable {
         // KeyTypesAccessor.macKey hold - which is null unless the project set them. A
         // file that is neither encrypted nor signed comes back from this untouched, so the
         // load path is the same either way and there is no condition here that could be the
-        // wrong way round. spec/tcb-mac-and-signature.md.
+        // wrong way round. spec/wire/tcb-mac-and-signature.md.
         val reader = TcbReader(open(
             readAllBytes(filename), KeyTypesAccessor.encryptionKey,
             KeyTypesAccessor.macKey, KeyTypesAccessor.verifyMac))

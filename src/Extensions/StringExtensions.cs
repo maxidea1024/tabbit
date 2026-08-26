@@ -102,7 +102,7 @@ public static class StringExtensions
     ///
     /// Concurrent, because the stages that ask are the ones meant to run beside each other.
     /// Never invalidated: a name's camel spelling does not change during a run.
-    /// spec/conversion-time.md section 4.
+    /// spec/ops/conversion-time.md section 4.
     /// </remarks>
     private static readonly ConcurrentDictionary<string, string> CamelCased =
         new ConcurrentDictionary<string, string>(StringComparer.Ordinal);

@@ -29,16 +29,16 @@ public final class {{ table.record_name }} {
 {{~ end ~}}
 {{~## A column whose value is a row of one of several tables. One field for the resolved row
    whatever table it came from, and the discriminator saying which - the targets take separate
-   id bands, so at most one of them ever answers. spec/multi-target-accessors.md. ##~}}
+   id bands, so at most one of them ever answers. spec/references/multi-target-accessors.md. ##~}}
 {{~## The element type of each record group. Nested rather than a file of its own, which is
    what Java would demand of a public top-level type - and nesting scopes the name, so two
    tables each holding a `Slot` group do not collide. ##~}}
 {{~ for field in table.fields ~}}
 {{~## An array of arrays declares no element type: its outer level has no name, so there is
-   nothing for a class to be. spec/nested-multi-level.md. ##~}}
+   nothing for a class to be. spec/types/nested-multi-level.md. ##~}}
 {{~ if field.is_record && !field.members_are_anonymous }}
 {{~## One class per level, innermost first - the view flattened the nesting so this loop does
-   not have to know how deep it went. spec/nested-multi-level.md. ##~}}
+   not have to know how deep it went. spec/types/nested-multi-level.md. ##~}}
 {{~ for rt in field.record_types ~}}
 {{~ if rt.is_outermost ~}}
     /** One element of {{ rt.owner }}. */
@@ -63,7 +63,7 @@ public final class {{ table.record_name }} {
 {{~ end ~}}
 {{~## The per-target methods of every member of this class that reaches several tables. One
    taking the element number where the member is the array, which is the third place an element
-   number sits. spec/multi-target-accessors.md. ##~}}
+   number sits. spec/references/multi-target-accessors.md. ##~}}
     }
 {{~ end ~}}
 {{~ if field.is_fixed_record_array }}
@@ -94,7 +94,7 @@ public final class {{ table.record_name }} {
    assignment per column - and which variant it is only became knowable when the discriminator
    column arrived. Building it here rather than while reading keeps the read path and the wire
    exactly as they were, and a row nobody looks at costs nothing.
-   spec/polymorphism.md section 7.2. ##~}}
+   spec/types/polymorphism.md section 7.2. ##~}}
 {{~ if field.variants_are_array ~}}
 {{~## **The array shape.** Each element carries its own discriminator - section 5.3 - so the
    shapes inside one row may differ, and what a consumer reads is a list of the abstract type.
@@ -146,7 +146,7 @@ public final class {{ table.record_name }} {
 {{~ for member in field.base_members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
                 built.{{ member.name }} = {{ field.entry_access }}.{{ member.name }};
                 built.{{ member.row_name }} = {{ field.entry_access }}.{{ member.row_name }};
 {{~ else ~}}
@@ -156,7 +156,7 @@ public final class {{ table.record_name }} {
 {{~ for member in variant.members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
                 built.{{ member.name }} = {{ field.entry_access }}.{{ member.name }};
                 built.{{ member.row_name }} = {{ field.entry_access }}.{{ member.row_name }};
 {{~ else ~}}

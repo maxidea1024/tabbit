@@ -14,7 +14,7 @@ namespace Tabbit.Importers.Xlsx;
 /// zero tables. The part that replaces it is a stream of records, each `[type][length][body]`
 /// with the type and length as 7-bit variable-length integers; the records this reader cares
 /// about are the ones that carry what `xl/workbook.xml` spells as elements. The format is
-/// Microsoft's published MS-XLSB, and the design note is spec/xlsb-defined-names.md.
+/// Microsoft's published MS-XLSB, and the design note is spec/import/xlsb-defined-names.md.
 ///
 /// Where the XML path parses a reference string like `'Ocean Zone'!$A$1:$IP$100`, here the
 /// reference arrives already tokenized: one `PtgArea3d` token is one rectangle, with the

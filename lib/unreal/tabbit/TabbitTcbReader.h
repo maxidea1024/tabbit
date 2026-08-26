@@ -74,7 +74,7 @@ namespace Tabbit
     static constexpr uint8 KindArray = 1;
 
     // How a block's values are laid out. Raw is the layout 101 had; the others compress
-    // a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
+    // a column that repeats itself. spec/wire/tcb-v102-column-encoding.md is the contract.
     static constexpr uint8 EncodingRaw = 0;
     static constexpr uint8 EncodingVarint = 1;
     static constexpr uint8 EncodingDelta = 2;
@@ -102,7 +102,7 @@ namespace Tabbit
     static constexpr uint8 EncodingBitpack = 13;
 
     // The file header, at fixed offsets whether or not the file is encrypted and whether or
-    // not it carries a MAC. spec/tcb-mac-and-signature.md.
+    // not it carries a MAC. spec/wire/tcb-mac-and-signature.md.
     static constexpr int32 MagicOffset = 0;
     static constexpr int32 VersionOffset = 4;
     static constexpr int32 FlagsOffset = 8;
@@ -158,7 +158,7 @@ namespace Tabbit
          * Whether the block states, per element, which of an array's places hold a value.
          *
          * Independent of bNullable: a column may say either, or both.
-         * spec/nullable-array-elements.md.
+         * spec/types/nullable-array-elements.md.
          */
         bool bElementNullable = false;
 
@@ -1549,7 +1549,7 @@ namespace Tabbit
      * Empty for a column that does not carry one. Its length is written ahead of it as a
      * counter32, because a variable-length column's total is the sum of its row lengths and
      * those live inside the value block - a reader meeting the bitmap first would have
-     * nothing to size it by. spec/nullable-array-elements.md.
+     * nothing to size it by. spec/types/nullable-array-elements.md.
      */
     inline void ReadElementPresence(FTabbitBinaryReader& Reader, const FTabbitColumn& Column,
         TArray<uint8>& OutPresence)
@@ -1597,7 +1597,7 @@ namespace Tabbit
         }
 
         // The same statement about the other bitmap: generated code not expecting one would
-        // read it as values. spec/nullable-array-elements.md.
+        // read it as values. spec/types/nullable-array-elements.md.
         if (Column.bElementNullable != bElementNullable)
         {
             return Reader.FailWith(FString::Printf(
@@ -1620,7 +1620,7 @@ namespace Tabbit
 
         // A negative count says the member claims no length: how many elements a row holds
         // is what the file states, row by row, so a group that grew a column is read
-        // rather than refused. spec/tcb-v107-dynamic-arrays.md.
+        // rather than refused. spec/wire/tcb-v107-dynamic-arrays.md.
         if (Column.Kind != Kind)
         {
             return Reader.FailWith(FString::Printf(

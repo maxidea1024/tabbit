@@ -8,7 +8,7 @@
 // Apple platforms and from swift-crypto everywhere else. The gate that compiles the same
 // output with no package at all is `Swift_compiles_with_no_crypto_package`, and the two
 // together are what keep the reader's three crypto states honest.
-// spec/swift-language-support.md.
+// spec/targets/swift-language-support.md.
 //
 // `path: "."` with an explicit source list, matching what the generator's own manifest does:
 // the output layout is flat so that dropping it into an existing project stays the simple

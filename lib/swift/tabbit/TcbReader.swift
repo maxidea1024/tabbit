@@ -36,7 +36,7 @@
 // the consumer has added it. When neither is there the reader still compiles and still
 // reads every file, encrypted ones included - what it cannot do is verify a MAC, and it
 // says which package to add rather than failing silently.
-// spec/swift-language-support.md has the reasoning.
+// spec/targets/swift-language-support.md has the reasoning.
 
 import Foundation
 
@@ -94,7 +94,7 @@ public enum Tcb {
     public static let kindArray: Int32 = 1
 
     // How a block's values are laid out. Raw is the layout 101 had; the others compress
-    // a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
+    // a column that repeats itself. spec/wire/tcb-v102-column-encoding.md is the contract.
     public static let encodingRaw: Int32 = 0
     public static let encodingVarint: Int32 = 1
     public static let encodingDelta: Int32 = 2
@@ -122,7 +122,7 @@ public enum Tcb {
     public static let encodingBitpack: Int32 = 13
 
     // The file header, at fixed offsets whether or not the file is encrypted and whether
-    // or not it carries a MAC. spec/tcb-mac-and-signature.md.
+    // or not it carries a MAC. spec/wire/tcb-mac-and-signature.md.
     public static let magicOffset = 0
     public static let versionOffset = 4
     public static let flagsOffset = 8
@@ -179,7 +179,7 @@ public enum Tcb {
 
         /// Whether the block states, per element, which of an array's places hold a value.
         /// Independent of `nullable`: a column may say either, or both.
-        /// spec/nullable-array-elements.md.
+        /// spec/types/nullable-array-elements.md.
         public let elementNullable: Bool
     }
 
@@ -195,7 +195,7 @@ public enum Tcb {
     /// and the trailing eight bytes are not, which is what the description accounts for.
     ///
     /// A struct rather than a class: sixteen bytes with no identity of their own, which is
-    /// what every value in a row is. spec/swift-language-support.md.
+    /// what every value in a row is. spec/targets/swift-language-support.md.
     ///
     /// `Sendable`, like the other immutable types here. Not decoration: a generated constant
     /// set holding a `uuid` declares a `static let` of this type, and in the Swift 6 language
@@ -1313,7 +1313,7 @@ public enum Tcb {
         // applying it leaves every byte count as it was and the structural checks hold
         // over the ciphertext unchanged. Written out here because neither CryptoKit nor
         // swift-crypto exposes a bare ChaCha20 - both offer only ChaChaPoly, whose nonce
-        // and tag are a different construction. spec/tcb-v104-composed-encodings.md.
+        // and tag are a different construction. spec/wire/tcb-v104-composed-encodings.md.
         chaCha20Apply(key, &plain, nonceOffset, keyCheckOffset)
 
         if readMagic(plain, keyCheckOffset) != magic {
@@ -1347,7 +1347,7 @@ public enum Tcb {
     /// The tag is HMAC-SHA-256 over every byte but the sixteen it lives in, truncated to
     /// those sixteen. From the platform, unlike the cipher: HMAC-SHA-256 reaches the CPU's
     /// SHA extensions through CryptoKit or swift-crypto, and a hand-written one does not.
-    /// spec/tcb-mac-and-signature.md has the measurement that decided it.
+    /// spec/wire/tcb-mac-and-signature.md has the measurement that decided it.
     ///
     /// What it catches is what the structural checks cannot. A block length that does not
     /// add up is a malformed file and the reader says so; four other bytes in an f32 column
@@ -1401,7 +1401,7 @@ public enum Tcb {
         #else
         // Neither CryptoKit nor swift-crypto is in this build. The reader still reads
         // every file; what it cannot do is tell a good tag from a bad one, and reporting
-        // that beats reporting nothing. spec/swift-language-support.md.
+        // that beats reporting nothing. spec/targets/swift-language-support.md.
         throw TcbError(
             "this file carries a MAC and verifying one needs a SHA-256 implementation, "
             + "which this build has none of - add the swift-crypto package "
@@ -1598,7 +1598,7 @@ public enum Tcb {
     /// Empty for a column that does not carry one. Its length is written ahead of it as a
     /// counter32, because a variable-length column's total is the sum of its row lengths
     /// and those live inside the value block - a reader meeting the bitmap first would
-    /// have nothing to size it by. spec/nullable-array-elements.md.
+    /// have nothing to size it by. spec/types/nullable-array-elements.md.
     public static func readElementPresence(
         _ reader: Reader, _ column: Column
     ) throws -> [UInt8] {
@@ -1659,7 +1659,7 @@ public enum Tcb {
         _ nullable: Bool, _ elementNullable: Bool, _ accepted: [Int32]
     ) throws {
         // The same statement about the other bitmap: code not expecting one would read it
-        // as values. spec/nullable-array-elements.md.
+        // as values. spec/types/nullable-array-elements.md.
         if column.elementNullable != elementNullable {
             throw TcbError(
                 "\(fieldName): the file and the generated member disagree about whether "
@@ -1680,7 +1680,7 @@ public enum Tcb {
 
         // A negative count says the member claims no length: how many elements a row holds
         // is what the file states. The kind is still the member's claim.
-        // spec/nullable-array-elements.md.
+        // spec/types/nullable-array-elements.md.
         if column.kind != kind
  {
             throw TcbError(

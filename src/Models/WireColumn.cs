@@ -21,7 +21,7 @@ namespace Tabbit.Models;
 /// assignment assumed one tag per group, which is right for every table written before
 /// records existed and wrong the moment one is not.
 ///
-/// spec/nested-fields.md has the layout and why it is a struct of arrays.
+/// spec/types/nested-fields.md has the layout and why it is a struct of arrays.
 /// </remarks>
 public sealed class WireColumn
 {
@@ -91,7 +91,7 @@ public sealed class WireColumn
     /// <remarks>
     /// <see cref="ElementType"/> is what the generated code presents - a record - and this is
     /// what the file holds. They differ for exactly this one kind of column, which is why the
-    /// two are not one property. spec/reference-key-types.md.
+    /// two are not one property. spec/references/reference-key-types.md.
     /// </remarks>
     public ValueType RefKeyType => IsRef ? TagCarrier.RefKeyType : ElementType;
 
@@ -115,7 +115,7 @@ public sealed class WireColumn
     /// True when the sheet wrote the marker inside the brackets. Independent of
     /// <see cref="IsNullable"/>: `int?[]?` says both, and each is a bit of its own.
     ///
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     /// </remarks>
     public bool HasOptionalElements { get; init; }
 
@@ -214,7 +214,7 @@ public sealed class WireColumn
                     // Which of the two the group's `?` answers depends on where the array was
                     // written: a delimited cell has a marker for each, and a folded group has
                     // one cell per element and none for the array.
-                    // spec/nullable-array-elements.md.
+                    // spec/types/nullable-array-elements.md.
                     IsNullable = group.RowMayBeAbsent,
                     HasOptionalElements = group.ElementMayBeAbsent,
                 });
@@ -237,7 +237,7 @@ public sealed class WireColumn
     /// One leaf is one wire column, at every depth. That is what keeps the format out of
     /// this: a record has always been stored one column per member, so a member that is
     /// itself a record just means the path to the column is longer - the file holds the
-    /// same fixed-array columns either way. See spec/nested-multi-level.md.
+    /// same fixed-array columns either way. See spec/types/nested-multi-level.md.
     /// </remarks>
     private static void AddLeaves(
         List<WireColumn> result, Table table, SerialField group, RecordMember member,
@@ -290,7 +290,7 @@ public sealed class WireColumn
                     // and "the Id is there but the Count is not" is not a shape its API has.
                     // What a record array does express is how many elements a row filled in,
                     // and that is the length rather than a bitmap - see
-                    // spec/variable-length-record-arrays.md.
+                    // spec/types/variable-length-record-arrays.md.
                     //
                     // Members are still marked `?` in sheets that trim, because that is how a
                     // cell says it holds no value; it just does not reach the wire.
@@ -315,7 +315,7 @@ public sealed class WireColumn
     ///
     /// This used to refuse the disagreement, and an entry could set
     /// `OnMixedOptionality: "first-column"` to get past it. Both are gone: what the sheet
-    /// says is neither ambiguous nor wrong. spec/array-optionality.md has the reasoning
+    /// says is neither ambiguous nor wrong. spec/types/array-optionality.md has the reasoning
     /// and the notation it came from.
     /// </remarks>
 }

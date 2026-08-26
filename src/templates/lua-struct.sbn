@@ -7,7 +7,7 @@
 
    The metatables are the point. A misspelled member in a dynamic language is a nil that compares
    false with everything, and this target refuses that everywhere else.
-   spec/polymorphism.md section 7 and spec/lua-language-support.md.
+   spec/types/polymorphism.md section 7 and spec/targets/lua-language-support.md.
 ##~}}
 {{ include 'lua-file-head.sbn' }}
 local {{ structure.name }} = {}

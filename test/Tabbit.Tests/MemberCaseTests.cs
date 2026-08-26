@@ -27,7 +27,7 @@ namespace Tabbit.Tests;
 /// this is invisible - `label` is `label` in camel and in snake alike, and a presence accessor
 /// only exists where a column may be absent.
 ///
-/// spec/naming-conventions.md.
+/// spec/targets/naming-conventions.md.
 /// </remarks>
 public class MemberCaseTests
 {

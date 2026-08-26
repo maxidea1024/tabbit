@@ -80,7 +80,7 @@ class FoldedTable:
         # `Tables.mac_key` hold - which is None unless the project set them. A file that is
         # neither encrypted nor signed comes back from this untouched, so the load path is
         # the same either way and there is no condition here that could be the wrong way
-        # round. spec/tcb-mac-and-signature.md.
+        # round. spec/wire/tcb-mac-and-signature.md.
         reader = tabbit.Reader(tabbit.open(
             tabbit.read_all_bytes(filename), Tables.encryption_key,
             Tables.mac_key, Tables.verify_mac))
@@ -104,7 +104,7 @@ class FoldedTable:
                 tabbit.check_column(column, "Folded.Tag", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_STRING,), True)
                 # Behind the row bitmap and in front of the values, walked with a counter
                 # that steps once per element of every row.
-                # spec/nullable-array-elements.md.
+                # spec/types/nullable-array-elements.md.
                 element_presence = tabbit.read_element_presence(reader, column)
                 element_at = 0
                 cursor = tabbit.ColumnCursor(reader, column, count, "Folded.Tag")

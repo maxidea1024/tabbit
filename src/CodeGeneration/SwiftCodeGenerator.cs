@@ -70,7 +70,7 @@ public sealed class SwiftRecipe : IOutputRecipe
     /// What it is for is one call - the MAC's HMAC-SHA-256, which reaches the CPU's SHA
     /// extensions through it and does not through a hand-written one. On Apple platforms
     /// CryptoKit answers instead and the package is never fetched.
-    /// spec/swift-language-support.md · doc/languages/swift.md.
+    /// spec/targets/swift-language-support.md · doc/languages/swift.md.
     /// </remarks>
     public string SwiftCryptoVersion { get; set; } = "3.0.0";
 
@@ -111,7 +111,7 @@ public sealed class SwiftRecipe : IOutputRecipe
 /// Rows are classes and record elements are structs, which is the one shape decision this
 /// target makes differently from the languages that have only one kind of type: a resolved
 /// reference has to be a pointer at the row rather than a copy of it, and an element inside
-/// a row has no identity worth an allocation. spec/swift-language-support.md.
+/// a row has no identity worth an allocation. spec/targets/swift-language-support.md.
 ///
 /// The shapes live in templates/swift-*.sbn.
 /// </remarks>
@@ -138,7 +138,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
 
     /// <summary>
     /// A level below is a struct nested in the same record, reached by a longer member path.
-    /// Its member is initialized by calling that struct. spec/nested-multi-level.md.
+    /// Its member is initialized by calling that struct. spec/types/nested-multi-level.md.
     /// </summary>
     protected override bool SupportsDeepNestedFields => true;
 
@@ -149,7 +149,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     /// Not `T?`, which is the shape Swift would suggest. Every generated property is
     /// initialized rather than optional for the reason this repeats: a caller reading a value
     /// should not have to answer for a row the read never reached, and in Swift that answer
-    /// would be an unwrap at every use. spec/optional-fields.md has the rest.
+    /// would be an unwrap at every use. spec/types/optional-fields.md has the rest.
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
@@ -163,7 +163,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     /// A separate flag from <see cref="SupportsOptionalFields"/> because it is a separate
     /// bitmap in the block and a separate member in the output. The element still occupies its
     /// place in the array - what the bitmap changes is what the row says about it.
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     /// </remarks>
     protected override bool SupportsOptionalElements => true;
 
@@ -202,7 +202,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
                   "swift-enum.sbn", Part(enumm: enumm));
 
         // A struct is an entity beside a table and an enum, so it gets a file of its own - one
-        // per declaration however many tables named it. spec/polymorphism.md section 7.1.
+        // per declaration however many tables named it. spec/types/polymorphism.md section 7.1.
         foreach (var declared in _model.PolymorphicTypes)
         {
             Write(System.IO.Path.Combine("structs", declared.Name + ".swift"),
@@ -226,7 +226,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     /// An `enum` with associated values, which is this language's sum type - and like Kotlin's
     /// sealed class it makes a `switch` exhaustive, so a variant added to the declaration is a
     /// compile error at every consumer rather than a silent default.
-    /// spec/polymorphism.md section 7.
+    /// spec/types/polymorphism.md section 7.
     /// </remarks>
     private SwiftPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
         => new SwiftPolymorphicTypeView
@@ -249,7 +249,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     /// **A reference member is two of these**, as a reference is anywhere: the declared name is
     /// the key's and the row it resolves to takes the derived one. A variant carrying only the
     /// key would hand a consumer a key where the declaration promised a row.
-    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     private SwiftStructMemberView StructMember(Models.Field field)
     {
@@ -494,7 +494,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     /// <remarks>
     /// The key type's empty value means "points at nothing", and a multi-target column honours
     /// it in every language: the discriminator is a value a consumer reads.
-    /// spec/reference-optionality.md.
+    /// spec/references/reference-optionality.md.
     /// </remarks>
     private static string KeyIsSetSuffix(ValueType keyType)
         => keyType switch
@@ -535,7 +535,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     /// The recursion is here rather than in the template, and <paramref name="declared"/>
     /// collects the structs it produces. A nested member is initialized by calling its own
     /// struct, which is how the values inside it reach the empty values a scalar member gets.
-    /// spec/nested-multi-level.md.
+    /// spec/types/nested-multi-level.md.
     /// </remarks>
     private List<SwiftRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, SerialField group,
@@ -554,7 +554,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
                 // one table.
                 //
                 // No third member for whether it resolved - a nil row says so.
-                // spec/references-in-records.md.
+                // spec/references/references-in-records.md.
                 var declarations = new List<string>();
 
                 if (member.IsRef)
@@ -563,7 +563,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
                     string key = ToSwiftTypeName(member.FirstField!.RefKeyType, null, null);
 
                     // The member's own name is the key's; the row takes the derived one.
-                    // spec/reference-surface-naming.md sections 4 and 5.
+                    // spec/references/reference-surface-naming.md sections 4 and 5.
                     bool toRow = ResolvesToRow(member.FirstField!);
                     string rowName = toRow
                         ? SwiftName(RowAccessorName(member.FirstField!.ResolvedRefTable!.Name, member.Name))
@@ -634,7 +634,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     private SwiftFieldView BuildRecordField(Table table, SerialField sf)
     {
         // Which abstract type this group is, if it is one. One per declaration however many
-        // tables named it. spec/polymorphism.md section 7.1.
+        // tables named it. spec/types/polymorphism.md section 7.1.
         var declaredType = sf.Members
                 .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
                 ?.FirstField?.AbstractTypeName is { } abstractName
@@ -668,7 +668,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
         string type = sf.IsArray ? $"[{entry}]" : entry;
 
         // An array of arrays declares no element type: the outer level has no name for one to
-        // belong to, so the inner array is the type. spec/nested-multi-level.md.
+        // belong to, so the inner array is the type. spec/types/nested-multi-level.md.
         if (sf.MembersAreAnonymous)
         {
             string inner = ToSwiftTypeName(
@@ -740,7 +740,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
 
             // A reference member reads into the key beside the row it will resolve to, and the
             // suffix goes on the member rather than after the subscript, because a member that
-            // is an array holds one key per element. spec/references-in-records.md.
+            // is an array holds one key per element. spec/references/references-in-records.md.
             MemberRefSuffix = "",
             MemberAt = wire.MemberAt,
 
@@ -773,7 +773,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     /// What a stored key holds before a row is read.
     /// </summary>
     /// <remarks>
-    /// Spelled from the key's own type. spec/reference-key-types.md.
+    /// Spelled from the key's own type. spec/references/reference-key-types.md.
     /// </remarks>
     private static string RefKeyDefault(ValueType keyType)
         => keyType switch
@@ -834,7 +834,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     /// A reference declares the key at the key's own type rather than at `Int32`. That
     /// shortcut is a defect this repository has had once already, in six places per language,
     /// and a table keyed by `bigint` or `string` is what finds it.
-    /// spec/reference-key-types.md.
+    /// spec/references/reference-key-types.md.
     /// </remarks>
     private IReadOnlyList<string> Declarations(SerialField sf, string name)
     {
@@ -845,7 +845,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
             string key = ToSwiftTypeName(sf.FirstField!.RefKeyType, null, null);
 
             // The column's name is the key's; the row takes the derived one.
-            // spec/reference-surface-naming.md sections 4 and 5.
+            // spec/references/reference-surface-naming.md sections 4 and 5.
             bool toRow = ResolvesToRow(sf.FirstField!);
             string rowName = toRow
                 ? SwiftName(RowAccessorName(sf.FirstField!.ResolvedRefTable!.Name, sf.Name))
@@ -898,7 +898,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
         string accepted;
 
         if (wire.IsRef)
-            // The key the target is addressed by. spec/reference-key-types.md.
+            // The key the target is addressed by. spec/references/reference-key-types.md.
             accepted = wire.RefKeyType switch
             {
                 ValueType.String => "Tcb.elementString",
@@ -955,7 +955,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
             return true;
 
         // A reference reaches the cursor when the key it carries does.
-        // spec/reference-key-types.md.
+        // spec/references/reference-key-types.md.
         if (wire.IsRef)
             return wire.RefKeyType != ValueType.Uuid;
 
@@ -1036,14 +1036,14 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
             : string.Concat(wire.MemberPath.Select(part => "." + SwiftName(part)));
 
         // Only the stored index is on the wire; the value is filled in once every table
-        // is loaded. spec/references-in-records.md.
+        // is loaded. spec/references/references-in-records.md.
         if (wire.IsRef)
         {
             string local = wire.RefKeyType == ValueType.String ? "runSameText" : "runSameValue";
 
             // A dotted reference resolves to a value rather than a row, so there the column's
             // own name belongs to the value and the key takes the derived one.
-            // spec/reference-surface-naming.md section 9.
+            // spec/references/reference-surface-naming.md section 9.
             string keySuffix = ResolvesToRow(wire.TagCarrier) ? "" : "Index";
 
             return (wire.Member is null)
@@ -1082,7 +1082,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
             // in the array beside the values. Read as a plain `var_array` it appended the key
             // to the array of rows, which does not compile - and nothing held the shape,
             // because `foreign[]` is refused and this is only reachable through a folded group
-            // with trimming on. spec/variable-length-record-arrays.md.
+            // with trimming on. spec/types/variable-length-record-arrays.md.
             return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
@@ -1108,7 +1108,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
                 Fields = table.SerialFields.Where(sf => sf.IsRef).ToList(),
 
                 // A reference that is a member of a record resolves inside the element rather
-                // than beside it, so it is a loop of its own. spec/references-in-records.md.
+                // than beside it, so it is a loop of its own. spec/references/references-in-records.md.
                 RecordFields = table.WireColumns
                                     .Where(wire => wire.Member is not null && wire.IsRef)
                                     .Select(BuildRecordReference)
@@ -1238,7 +1238,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
                 return $"{wire.TagCarrier.Enum.Name.ToPascalCase()}.of(try reader.readEnum())";
 
             // The key the target is addressed by, which is not always an int32.
-            // spec/reference-key-types.md.
+            // spec/references/reference-key-types.md.
             case ValueType.ForeignRecord:
                 return "try " + LanguageProfile.Swift.ReadCall(wire.RefKeyType);
 
@@ -1275,7 +1275,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     /// <remarks>
     /// The type functions answer for an element and let the caller add the brackets, exactly
     /// as a field's do - so an array constant asks for the element and wraps it here.
-    /// spec/primary-layout.md section 8.5.
+    /// spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     private string ConstantTypeName(ConstantSet.Constant constant)
     {
@@ -1294,7 +1294,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     ///
     /// A constant never reaches the file, so there is no wire question here: what a language
     /// needs is an expression its compiler accepts in the place a constant is declared.
-    /// spec/primary-layout.md section 8.5.
+    /// spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     private string RenderConstantValue(ConstantSet.Constant constant)
     {

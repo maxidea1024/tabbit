@@ -8,7 +8,7 @@ namespace Tabbit.Reporting;
 /// <remarks>
 /// The opening is the feature. A report written to a path and mentioned in a log line is a
 /// log line: the person who can fix the sheet is not watching the console, and the moment a
-/// problem appears is the moment they can be reached. spec/build-report.md §7.
+/// problem appears is the moment they can be reached. spec/ops/build-report.md §7.
 ///
 /// The deciding is separated from the opening so that a test can ask the question without a
 /// browser appearing on whoever is running it. What the gate checks is the decision.

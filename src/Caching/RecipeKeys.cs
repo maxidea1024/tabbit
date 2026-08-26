@@ -16,7 +16,7 @@ namespace Tabbit.Caching;
 /// Three keys rather than one, because the answers they lead to differ. An output entry's
 /// setting changing is no reason to read thirty-six workbooks again; a recipe-wide setting
 /// changing is every reason. Folding them together would make the smaller change cost what
-/// the larger one costs - spec/build-cache.md §2.
+/// the larger one costs - spec/ops/build-cache.md §2.
 ///
 /// What goes into the recipe key is defined by subtraction: the whole document, less the
 /// parts that have keys of their own. So a setting added to the recipe later is in the key

@@ -31,7 +31,7 @@ public class TabbitException : Exception
         /// <remarks>
         /// Carried beside the text rather than instead of it, so that a caller printing
         /// reports needs no catalog and a test can assert on the id without the wording.
-        /// spec/message-ids.md §7.
+        /// spec/validation/message-ids.md §7.
         /// </remarks>
         public string? MessageId { get; set; }
     }

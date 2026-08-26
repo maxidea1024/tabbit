@@ -75,7 +75,7 @@ public final class TrimKitTable {
         // Tables.macKey hold - which is null unless the project set them. A
         // file that is neither encrypted nor signed comes back from this untouched, so the
         // load path is the same either way and there is no condition here that could be the
-        // wrong way round. spec/tcb-mac-and-signature.md.
+        // wrong way round. spec/wire/tcb-mac-and-signature.md.
         TcbReader reader = new TcbReader(TcbReader.open(
             TcbReader.readAllBytes(filename), Tables.encryptionKey,
             Tables.macKey, Tables.verifyMac));
@@ -112,7 +112,7 @@ public final class TrimKitTable {
                     TcbReader.checkColumnWithElements(column, "TrimKit.Slot", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32);
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
-                    // spec/nullable-array-elements.md.
+                    // spec/types/nullable-array-elements.md.
                     elementPresence = TcbReader.readElementPresence(reader, column);
                     elementAt = 0;
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "TrimKit.Slot");
@@ -134,7 +134,7 @@ public final class TrimKitTable {
                     TcbReader.checkColumnWithElements(column, "TrimKit.Tier", TcbReader.KIND_ARRAY, false, TcbReader.ELEMENT_I32);
                     // Behind the row bitmap and in front of the values, walked with a counter
                     // that steps once per element of every row.
-                    // spec/nullable-array-elements.md.
+                    // spec/types/nullable-array-elements.md.
                     elementPresence = TcbReader.readElementPresence(reader, column);
                     elementAt = 0;
                     cursor = new TcbReader.ColumnCursor(reader, column, count, "TrimKit.Tier");

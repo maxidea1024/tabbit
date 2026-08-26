@@ -27,7 +27,7 @@ public enum SerialFieldPattern
 ///
 /// The distinction is what separates `Slot1`/`Slot2` - two numbers folded into one
 /// `int[]` - from `Slot1.Id`/`Slot1.Count`/`Slot2.Id`/`Slot2.Count`, which is an array of
-/// two records. spec/nested-fields.md has the notation and why it looks like that.
+/// two records. spec/types/nested-fields.md has the notation and why it looks like that.
 /// </summary>
 public enum SerialFieldKind
 {
@@ -50,7 +50,7 @@ public enum SerialFieldKind
 /// A member is a leaf or a group, and <see cref="Members"/> is what says which. A leaf
 /// holds the columns; a group holds members that hold columns, as far down as the sheet
 /// wrote. Nothing here counts the levels - depth is a property of the data, not a limit of
-/// the model. See spec/nested-multi-level.md.
+/// the model. See spec/types/nested-multi-level.md.
 /// </remarks>
 public class RecordMember
 {
@@ -164,7 +164,7 @@ public class SerialField
     /// Set from the columns by the folding, which takes it from whichever notation the
     /// layout read. False for every table written before this existed.
     ///
-    /// See spec/nested-multi-level.md.
+    /// See spec/types/nested-multi-level.md.
     /// </remarks>
     public bool MembersAreArrays { get; set; }
 
@@ -298,7 +298,7 @@ public class SerialField
     /// `T[]` in one type cell, so that cell can carry the array's own marker as well as the
     /// element's. A folded group declares one element per column and has **no cell that
     /// stands for the array**, which is what makes the two answer the marker differently.
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     /// </remarks>
     public bool IsFoldedArray => IsArray && !IsVariableLengthArray && !IsRecord;
 

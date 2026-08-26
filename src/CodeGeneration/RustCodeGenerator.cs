@@ -156,7 +156,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// <summary>
     /// A level below is a struct declared beside the element type, and the read reaches it with
     /// a longer member path. The struct derives `Default`, so there is nothing to fill for it.
-    /// spec/nested-multi-level.md.
+    /// spec/types/nested-multi-level.md.
     /// </summary>
     protected override bool SupportsDeepNestedFields => true;
 
@@ -168,7 +168,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// language. The record derives Clone and Default and is read field by field into a row
     /// that already exists, and every generated member is written the same way; making the
     /// optional ones a different shape would mean two read paths and a `match` at every call
-    /// site that only ever wants the value. spec/optional-fields.md has the reasoning, which
+    /// site that only ever wants the value. spec/types/optional-fields.md has the reasoning, which
     /// is the same one the other targets follow.
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
@@ -178,7 +178,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
 
     /// <summary>
     /// `has_x_at(i)` beside the value, filled from the element bitmap the file carries.
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     /// </summary>
     protected override bool SupportsOptionalElements => true;
 
@@ -247,7 +247,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
                 AccessorName = AccessorType,
                 // And the abstract types this table's groups are. Declared in modules of their
                 // own - one per declaration - so the table brings the enum in rather than
-                // declaring its own. spec/polymorphism.md section 7.1.
+                // declaring its own. spec/types/polymorphism.md section 7.1.
                 Uses = Uses(new[] { "std::collections::HashMap", "std::path::Path" }, reader: true)
                     .Concat(TypeDependencies.EnumsNamedBy(pair.model).Select(EnumUse))
                     .Concat(PolymorphicUses(pair.model))
@@ -268,7 +268,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
         }
 
         // A struct is an entity beside a table and an enum, so it gets a module of its own -
-        // one per declaration however many tables named it. spec/polymorphism.md section 7.1.
+        // one per declaration however many tables named it. spec/types/polymorphism.md section 7.1.
         foreach (var declared in _model.PolymorphicTypes)
         {
             var structure = BuildStruct(declared);
@@ -351,7 +351,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// </summary>
     /// <remarks>
     /// Both the enum and every variant, because the built value names all of them.
-    /// spec/polymorphism.md section 7.1.
+    /// spec/types/polymorphism.md section 7.1.
     /// </remarks>
     private IEnumerable<string> PolymorphicUses(Table table)
     {
@@ -426,7 +426,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
 
         // Re-exported the way an enum is, so a consumer writes `gamedata::Effect` and the
         // module the type lives in stays an implementation detail.
-        // spec/polymorphism.md section 7.1.
+        // spec/types/polymorphism.md section 7.1.
         foreach (var declared in _model.PolymorphicTypes)
         {
             string module = "struct_" + declared.Name.ToSnakeCase();
@@ -784,7 +784,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// The recursion is here rather than in the template, and <paramref name="declared"/>
     /// collects the structs it produces. A nested member needs nothing beyond its declaration
     /// line: the struct derives `Default`, so there is nothing to fill for it.
-    /// spec/nested-multi-level.md.
+    /// spec/types/nested-multi-level.md.
     /// </remarks>
     private List<RustRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, Table table, SerialField group,
@@ -801,13 +801,13 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
                 // resolving them, for the reason on the type. So the only thing a member being
                 // a reference changes is its name and the type of its key - and the name has
                 // to say what it holds, because the row is not there beside it.
-                // spec/references-in-records.md.
+                // spec/references/references-in-records.md.
                 string memberType = member.IsRef
                     ? ToRustTypeName(member.FirstField!.RefKeyType, null)
                     : ToRustTypeName(member.FirstField!.ElementType, member.FirstField!.EnumOrNull);
                 // No linking in this language, so a reference column carries the key and
                 // nothing else - and the key wears the column's own name.
-                // spec/reference-surface-naming.md sections 4 and 6.
+                // spec/references/reference-surface-naming.md sections 4 and 6.
                 string memberName = RustName(member.Name);
 
                 result.Add(new RustRecordMemberView
@@ -859,7 +859,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// <remarks>
     /// An `enum`, which is this language's sum type and the shape the spec named for it
     /// outright: a `match` over it that misses a variant does not compile.
-    /// spec/polymorphism.md section 7.
+    /// spec/types/polymorphism.md section 7.
     /// </remarks>
     private RustPolymorphicTypeView BuildStruct(Models.PolymorphicType declared)
         => new RustPolymorphicTypeView
@@ -882,7 +882,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// **A reference member is two of these**, as a reference is anywhere: the declared name is
     /// the key's and the row it resolves to takes the derived one. A variant carrying only the
     /// key would hand a consumer a key where the declaration promised a row.
-    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     private RustStructMemberView StructMember(Models.Field field)
     {
@@ -890,7 +890,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
 
         // **No second name here.** This language does not link, so a reference column is one
         // key wearing the column's own name - the row it would resolve to does not exist to be
-        // carried. spec/reference-surface-naming.md, "링킹이 없는 언어".
+        // carried. spec/references/reference-surface-naming.md, "링킹이 없는 언어".
         const bool toRow = false;
 
         return new RustStructMemberView
@@ -911,7 +911,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     private RustFieldView BuildRecordField(Table table, SerialField sf)
     {
         // Which abstract type this group is, if it is one. One per declaration however many
-        // tables named it. spec/polymorphism.md section 7.1.
+        // tables named it. spec/types/polymorphism.md section 7.1.
         var declaredType = sf.Members
                 .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
                 ?.FirstField?.AbstractTypeName is { } abstractName
@@ -962,7 +962,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             Declarations = new[]
             {
                 // An array of arrays has no element type to name, so the inner vector is
-                // the type - see spec/nested-multi-level.md.
+                // the type - see spec/types/nested-multi-level.md.
                 sf.MembersAreAnonymous
                     ? $"{name}: Vec<Vec<{ToRustTypeName(sf.Members[0].FirstField!.ElementType, sf.Members[0].FirstField!.EnumOrNull)}>>,"
                     : sf.IsArray ? $"{name}: Vec<{elementType}>," : $"{name}: {elementType},",
@@ -996,7 +996,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// <remarks>
     /// The member it fills is the group's for a scalar column. A record group's member
     /// columns each fill one field of the generated element type, which is the whole of the
-    /// difference - see spec/nested-fields.md.
+    /// difference - see spec/types/nested-fields.md.
     /// </remarks>
     private RustColumnView BuildColumn(Table table, WireColumn wire)
     {
@@ -1018,7 +1018,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             // A reference member is declared as the key it holds, so the read names the key -
             // and the suffix goes on the member rather than after the subscript, because a
             // member that is an array holds one key per element.
-            // spec/references-in-records.md.
+            // spec/references/references-in-records.md.
             MemberRefSuffix = "",
             MemberAt = wire.MemberAt,
 
@@ -1095,7 +1095,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             // The key the target is addressed by. `tabbit::ELEMENT_I32` alone is what a reference
             // accepted while a key could only be an int, and the writer has meanwhile learned
             // to emit the key's own element - so a reader told only this would refuse a file
-            // this build wrote. spec/reference-key-types.md.
+            // this build wrote. spec/references/reference-key-types.md.
             accepted = wire.RefKeyType switch
             {
                 ValueType.String => "tabbit::ELEMENT_STRING",
@@ -1171,7 +1171,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             // in the vector beside the values. Read as a plain `var_array` it pushed the key
             // into the vector of rows, which does not compile - and nothing held the shape,
             // because `foreign[]` is refused and this is only reachable through a folded group
-            // with trimming on. spec/variable-length-record-arrays.md.
+            // with trimming on. spec/types/variable-length-record-arrays.md.
             return wire.IsRef ? "var_array_ref" : "var_array";
 
         return wire.IsRef ? "scalar_ref" : "scalar";
@@ -1198,7 +1198,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
         // was the int32 assumption in another place: a target keyed by `uuid` has no cursor
-        // path any more than a `uuid` column does. spec/reference-key-types.md.
+        // path any more than a `uuid` column does. spec/references/reference-key-types.md.
         if (wire.IsRef)
             return wire.RefKeyType != ValueType.Uuid;
 
@@ -1259,7 +1259,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             return "";
 
         // A reference runs on the key it carries, which is not always an int32. An enum's
-        // underlying value is one. spec/reference-key-types.md.
+        // underlying value is one. spec/references/reference-key-types.md.
         if (wire.IsRef)
         {
             return wire.RefKeyType switch
@@ -1302,7 +1302,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
         //
         // A run is one value for many rows, which an array column has none of - so a record
         // member reaching this is a member of a record of one, and its key sits on the member
-        // like every other member's does. spec/references-in-records.md.
+        // like every other member's does. spec/references/references-in-records.md.
         if (wire.IsRef)
         {
             // Cloned where the key is a String: the run's value is assigned once per row it
@@ -1311,7 +1311,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
 
             // No `Index` suffix and no second name: this language does not link, so every
             // reference column is one key wearing the column's own name - dotted or not.
-            // spec/reference-surface-naming.md, "링킹이 없는 언어".
+            // spec/references/reference-surface-naming.md, "링킹이 없는 언어".
             return (wire.Member is null)
                 ? $"records[at].{name} = {spend};"
                 : $"records[at].{name}{memberAccess} = {spend};";
@@ -1344,7 +1344,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
 
         // The key the target is addressed by, which is not always an int32. `next_i32` for
         // every reference is what kept a table keyed by anything else from being pointed at
-        // from this language. spec/reference-key-types.md.
+        // from this language. spec/references/reference-key-types.md.
         if (wire.IsRef)
         {
             return wire.RefKeyType switch
@@ -1391,7 +1391,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
 
                 // The key the target is addressed by, which is not always an int32 -
                 // that constant is what kept a table keyed by anything else from
-                // being pointed at. spec/reference-key-types.md.
+                // being pointed at. spec/references/reference-key-types.md.
                 case ValueType.ForeignRecord:
                     return LanguageProfile.Rust.ReadCall(wire.RefKeyType);
 
@@ -1451,7 +1451,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     ///
     /// A constant never reaches the file, so there is no wire question here: what a language
     /// needs is an expression its compiler accepts in the place a constant is declared.
-    /// spec/primary-layout.md section 8.5.
+    /// spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     private string RenderConstantValue(ConstantSet.Constant constant)
     {

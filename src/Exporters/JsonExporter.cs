@@ -96,7 +96,7 @@ public class JsonExporter : Target<JsonRecipe>
     /// <summary>
     /// An absent element is `null` in an array, which is the whole of what this format needs
     /// to say it. The binary and the readers follow in their own step -
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     /// </summary>
     protected override bool SupportsOptionalElements => true;
 
@@ -120,7 +120,7 @@ public class JsonExporter : Target<JsonRecipe>
         // Planned first, then written at once, then recorded. **The plan is what makes the
         // parallel write a refactoring**: the staging list's order reaches the build cache's
         // seal and the manifest's order is the manifest file, so both are settled here, in
-        // table order, before any thread starts. spec/conversion-time.md section 5.
+        // table order, before any thread starts. spec/ops/conversion-time.md section 5.
         var planned = Plan(recipe, context.Model);
 
         if (planned is null)
@@ -236,7 +236,7 @@ public class JsonExporter : Target<JsonRecipe>
 
         // An array whose elements may be absent: the array is there and some of its places
         // are not, which JSON writes the same way it writes an absent value.
-        // spec/nullable-array-elements.md.
+        // spec/types/nullable-array-elements.md.
         if (cell.ElementHasValue is { } present && cell.Value is Array elements)
         {
             var items = new object?[elements.Length];
@@ -335,7 +335,7 @@ public class JsonExporter : Target<JsonRecipe>
     /// readings of two questions asked at one level: does this level repeat, and does it
     /// have names. Asking them per level is what makes the depth stop mattering.
     ///
-    /// See spec/nested-multi-level.md.
+    /// See spec/types/nested-multi-level.md.
     /// </remarks>
     private static object Compose(List<RecordMember> members, List<Cell> row, int element)
     {
@@ -390,7 +390,7 @@ public class JsonExporter : Target<JsonRecipe>
     /// </summary>
     /// <remarks>
     /// A table with one set - which is nearly all of them - yields one file, so this is the
-    /// ordinary path rather than a branch around it. spec/table-row-sets.md.
+    /// ordinary path rather than a branch around it. spec/layout/table-row-sets.md.
     /// </remarks>
     private void ExportTable(JsonRecipe recipe, Table table)
     {
@@ -420,7 +420,7 @@ public class JsonExporter : Target<JsonRecipe>
     /// Split out from writing them because this half is where the work is - a row becomes a
     /// dictionary or a positional array per column - and it is the half that runs for every
     /// table at once. It touches the model and produces a new object graph, so there is
-    /// nothing in here for two tables to share. spec/conversion-time.md section 5.
+    /// nothing in here for two tables to share. spec/ops/conversion-time.md section 5.
     /// </remarks>
     private static object Composed(JsonRecipe recipe, Table table, RowSet rowSet)
     {
@@ -485,7 +485,7 @@ public class JsonExporter : Target<JsonRecipe>
             // The keys, settled once for the table rather than per row. What a column is
             // called does not depend on which row is being written, and asking per row made
             // the export walk every name once for every row it wrote.
-            // spec/conversion-time.md section 4.
+            // spec/ops/conversion-time.md section 4.
             var serialFields = table.SerialFields;
             var names = new string[serialFields.Count];
 
@@ -554,7 +554,7 @@ public class JsonExporter : Target<JsonRecipe>
                         // stands for the array, so there is nothing here that could say the
                         // array as a whole is absent - and the reading that did say it took
                         // element 0's cell for the array's, losing elements 1..N with it.
-                        // spec/nullable-array-elements.md.
+                        // spec/types/nullable-array-elements.md.
                         dataRow.Add(name, sf.Fields.Take(elements)
                             .Select(f => ForJson(row, f))
                             .ToArray());

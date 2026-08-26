@@ -11,7 +11,7 @@
 // this build wrote, refused by the code this build generated, with nothing to see at compile
 // time.
 //
-// spec/reference-key-types.md.
+// spec/references/reference-key-types.md.
 
 using System;
 using System.Collections.Generic;

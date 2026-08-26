@@ -60,7 +60,7 @@ public sealed class SchemaStruct : SchemaDeclaration
     /// <remarks>
     /// An abstract struct is not a shape a column may hold. It names a set of variants and
     /// the surface they share, and what fills that set is either the structs that `extends`
-    /// it or the tables that do - never both. spec/polymorphism.md sections 3 and 5.
+    /// it or the tables that do - never both. spec/types/polymorphism.md sections 3 and 5.
     /// </remarks>
     public bool IsAbstract { get; init; }
 
@@ -77,7 +77,7 @@ public sealed class SchemaStruct : SchemaDeclaration
     /// The same question a member's wire tag answers, so it is written the same way. A
     /// variant numbered by its position in the file is a variant that changes meaning when
     /// somebody reorders the declarations, and a reader built before that reordering would
-    /// then read one variant as another - spec/polymorphism.md section 5.1.
+    /// then read one variant as another - spec/types/polymorphism.md section 5.1.
     /// </remarks>
     public int VariantDiscriminator { get; init; }
 
@@ -92,7 +92,7 @@ public sealed class SchemaStruct : SchemaDeclaration
     ///
     /// A tombstone declares nothing. It is not a type a column may hold, no code is generated
     /// for it, and it is not a member of its set - all it holds is the number.
-    /// spec/polymorphism.md section 5.1.1.
+    /// spec/types/polymorphism.md section 5.1.1.
     /// </remarks>
     public bool IsRemoved => Meta.Has("removed");
 

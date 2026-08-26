@@ -67,7 +67,7 @@ const (
 	KindArray   uint8 = 1
 
 	// How a block's values are laid out. Raw is the layout 101 had; the others
-	// compress a column that repeats itself. spec/tcb-v102-column-encoding.md is
+	// compress a column that repeats itself. spec/wire/tcb-v102-column-encoding.md is
 	// the contract.
 	EncodingRaw          uint8 = 0
 	EncodingVarint       uint8 = 1
@@ -97,7 +97,7 @@ const (
 	EncodingBitpack uint8 = 13
 
 	// The file header, at fixed offsets whether or not the file is encrypted and
-	// whether or not it carries a MAC. spec/tcb-mac-and-signature.md.
+	// whether or not it carries a MAC. spec/wire/tcb-mac-and-signature.md.
 	MagicOffset    = 0
 	VersionOffset  = 4
 	FlagsOffset    = 8
@@ -152,7 +152,7 @@ type Column struct {
 
 	// ElementNullable says the block states, per element, which of an array's places hold
 	// a value. Independent of Nullable: a column may say either, or both.
-	// spec/nullable-array-elements.md.
+	// spec/types/nullable-array-elements.md.
 	ElementNullable bool
 }
 
@@ -833,7 +833,7 @@ func ReadPresence(r *Reader, col Column, rowCount int32) []byte {
 // Its length is written ahead of it as a counter32: a variable-length column's total is the
 // sum of its row lengths, and those live inside the value block - a reader meeting the
 // bitmap first would have nothing to size it by. One bit per element written, in the order
-// the block wrote them. spec/nullable-array-elements.md.
+// the block wrote them. spec/types/nullable-array-elements.md.
 func ReadElementPresence(r *Reader, col Column) []byte {
 	if !col.ElementNullable || r.err != nil {
 		return nil
@@ -869,7 +869,7 @@ func checkColumn(r *Reader, col Column, fieldName string, kind uint8, nullable b
 	}
 
 	// The same statement about the other bitmap: code not expecting one would read it as
-	// values. spec/nullable-array-elements.md.
+	// values. spec/types/nullable-array-elements.md.
 	if col.ElementNullable != elementNullable {
 		r.err = fmt.Errorf(
 			"tabbit: %s: the file and the generated member disagree about whether this "+
@@ -892,7 +892,7 @@ func checkColumn(r *Reader, col Column, fieldName string, kind uint8, nullable b
 
 	// A negative count says the member claims no length: how many elements a row holds is
 	// what the file states. The kind is still the member's claim.
-	// spec/nullable-array-elements.md.
+	// spec/types/nullable-array-elements.md.
 	if col.Kind != kind {
 		r.err = fmt.Errorf(
 			"tabbit: %s: the file's column (kind %d) does not match the generated "+

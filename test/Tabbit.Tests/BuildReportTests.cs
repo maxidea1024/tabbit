@@ -22,7 +22,7 @@ namespace Tabbit.Tests;
 ///
 /// The browser is never launched. What is checked is whether the run decided to launch one:
 /// a test that actually opened a page would open it on whoever ran the suite.
-/// spec/build-report.md §11.
+/// spec/ops/build-report.md §11.
 /// </remarks>
 public class BuildReportTests : IDisposable
 {

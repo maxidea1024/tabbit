@@ -1,6 +1,6 @@
 {
   // `foreign A|B[]`, which stays refused - the half of an array of references that would
-  // need a discriminator and a narrowing accessor per element. spec/polymorphism.md
+  // need a discriminator and a narrowing accessor per element. spec/types/polymorphism.md
   // section 4.
   //
   // Nothing is compared: the run does not get as far as writing anything. What the fixture

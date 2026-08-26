@@ -22,7 +22,7 @@ enum Element
 /// such a group is one column per member and every element's field carries that same cell, so
 /// the check asking which column named the struct counted the elements: it reported a group
 /// naming its struct twice and then reported every member as a column no group claimed. Both
-/// sentences in one run, and neither true. spec/primary-layout.md section 4.3.
+/// sentences in one run, and neither true. spec/layout/primary-layout.md section 4.3.
 ///
 /// Declared in every schema set that reads `declared.xlsx`, because the workbook is shared.
 struct Bonus

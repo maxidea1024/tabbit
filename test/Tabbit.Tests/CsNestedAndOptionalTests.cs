@@ -42,7 +42,7 @@ public class CsNestedAndOptionalTests
 
     /// <summary>
     /// A record whose members are arrays - the same columns as an array of records, turned
-    /// inside out. spec/nested-multi-level.md.
+    /// inside out. spec/types/nested-multi-level.md.
     /// </summary>
     [Fact]
     public void A_record_of_arrays_compiles()
@@ -57,7 +57,7 @@ public class CsNestedAndOptionalTests
     /// `_star[j].Position.X` all have to be legal in one file. The shape itself is pinned by
     /// `NestedTargetSupportTests` against the exported JSON.
     ///
-    /// spec/nested-multi-level.md.
+    /// spec/types/nested-multi-level.md.
     /// </remarks>
     [Fact]
     public void A_record_inside_a_record_compiles()
@@ -65,7 +65,7 @@ public class CsNestedAndOptionalTests
 
     /// <summary>
     /// A record whose member references another table, which declares the resolved row, the
-    /// key and the flag inside the element type. spec/references-in-records.md.
+    /// key and the flag inside the element type. spec/references/references-in-records.md.
     /// </summary>
     [Fact]
     public void A_reference_inside_a_record_compiles()
@@ -78,7 +78,7 @@ public class CsNestedAndOptionalTests
     /// The shape `foreign[]`'s refusal points at, and nothing in the corpus held one - so this
     /// page was generated for every language and never compiled. Both forms of a reference
     /// are in the fixture, because they resolve to different types: a whole row and one of that
-    /// row's values. spec/nullable-array-elements.md.
+    /// row's values. spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void An_array_of_references_compiles()
@@ -90,7 +90,7 @@ public class CsNestedAndOptionalTests
     /// <remarks>
     /// The read walks the bitmap with a counter that steps once per element of every row, and
     /// the per-element answer beside the value is a shape the page did not have before.
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void Optional_array_elements_compile()
@@ -103,7 +103,7 @@ public class CsNestedAndOptionalTests
     /// The equivalence gate says the file is the same as a hand-written record's, and the
     /// golden says the page looks right. Neither says the page is a program - and the record
     /// here was assembled by a cooker pass rather than by a sheet, so what compiles is the
-    /// part nothing else asks about. spec/composite-value-types.md.
+    /// part nothing else asks about. spec/types/composite-value-types.md.
     /// </remarks>
     [Fact]
     public void Composite_columns_compile()

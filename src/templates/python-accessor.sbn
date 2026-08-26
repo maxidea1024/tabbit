@@ -24,7 +24,7 @@ class {{ accessor_name }}:
     #: It is a secret only until it reaches a repository, a build log or an issue, and it
     #: cannot be taken back afterwards - so it is read at start-up from wherever this project
     #: keeps secrets, not written into a source file. What the layer is for, and therefore
-    #: what is and is not worth defending, is spec/tcb-v104-composed-encodings.md section 4.
+    #: what is and is not worth defending, is spec/wire/tcb-v104-composed-encodings.md section 4.
     encryption_key = None
 
     #: The key the table files were signed with, or None when they were not signed.
@@ -39,7 +39,7 @@ class {{ accessor_name }}:
     #:
     #: Setting it makes the reader stricter in a second way: a file that carries no MAC is
     #: refused, because otherwise the check could be removed by zeroing sixteen bytes. So the
-    #: order to turn this on in is data first, key second. spec/tcb-mac-and-signature.md.
+    #: order to turn this on in is data first, key second. spec/wire/tcb-mac-and-signature.md.
     mac_key = None
 
     #: Whether to check the MAC at all. True by default.
@@ -109,7 +109,7 @@ class {{ accessor_name }}:
 {{~## A reference that is a member of a record resolves inside the element, so the list is
    walked and each element's own key is looked up. Which list that is - the group's or the
    member's - the view decided, and a record of one has neither.
-   spec/references-in-records.md. ##~}}
+   spec/references/references-in-records.md. ##~}}
 {{~ for member in reference.record_fields ~}}
 {{~ if member.range != '' ~}}
             for i in {{ member.range }}:
@@ -129,10 +129,10 @@ class {{ accessor_name }}:
    Guarded on the key being set, which the single-target linking above does not do. It has to
    be: the discriminator is a value a consumer reads, so a language that resolved a zero where
    another did not would answer a different table for the same row.
-   spec/multi-target-accessors.md. ##~}}
+   spec/references/multi-target-accessors.md. ##~}}
 {{~## A column reaching several tables that is a member of a record resolves inside the element,
    so the elements are walked and each one's own key is looked up. Which list that is - the
    group's or the member's - the view decided, and a record of one has neither.
-   spec/multi-target-accessors.md ~ spec/references-in-records.md. ##~}}
+   spec/references/multi-target-accessors.md ~ spec/references/references-in-records.md. ##~}}
 {{~ end ~}}
 {{~ end ~}}

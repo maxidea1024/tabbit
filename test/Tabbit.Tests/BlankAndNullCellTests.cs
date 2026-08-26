@@ -15,7 +15,7 @@ namespace Tabbit.Tests;
 /// a blank as.
 ///
 /// The gates below are the whole of the rule: the three readings, the two places `-` is
-/// refused, the one place an element may not say it, and the escape. spec/blank-and-null-cells.md.
+/// refused, the one place an element may not say it, and the escape. spec/types/blank-and-null-cells.md.
 /// </remarks>
 public class BlankAndNullCellTests
 {
@@ -145,7 +145,7 @@ public class BlankAndNullCellTests
     /// Where the column did not say its elements may be absent. A cell holding `a;-;b` was
     /// written by someone who meant either the mark or the character, so the message names
     /// both - and the third way out, which is to declare the elements optional.
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void An_array_element_refuses_no_value()

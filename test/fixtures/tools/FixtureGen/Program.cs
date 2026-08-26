@@ -373,7 +373,7 @@ internal static class Program
     ///
     /// So this workbook holds both at once - `@N` on every column, a `vec2i` among them, and
     /// a tombstone holding a tag. Only the ordering makes the two tell apart.
-    /// spec/composite-value-types.md section 6.
+    /// spec/types/composite-value-types.md section 6.
     /// </remarks>
     private static void WriteCompositeTagged(string path)
     {
@@ -687,7 +687,7 @@ internal static class Program
     /// them and each has its own path through resolution.
     ///
     /// `foreign A|B[]` is not here: it is refused, and `TabbitLayoutTests` holds that.
-    /// spec/polymorphism.md section 4.
+    /// spec/types/polymorphism.md section 4.
     /// </remarks>
     private static void WriteArrayForeign(string path)
     {
@@ -736,7 +736,7 @@ internal static class Program
     /// may be a row of either table needs a discriminator and a narrowing accessor of its
     /// own, and those exist for a column and for a record member rather than for an array.
     /// Refused rather than emitted as a column of keys nothing can resolve.
-    /// spec/polymorphism.md section 4.
+    /// spec/types/polymorphism.md section 4.
     /// </remarks>
     private static void WriteArrayForeignMulti(string path)
     {
@@ -789,7 +789,7 @@ internal static class Program
     /// Each row writes the same number a different way, ending with the one decimal cannot
     /// reach - every bit set, which a signed 64-bit value spells as -1.
     ///
-    /// spec/bitset.md has the notation table.
+    /// spec/types/bitset.md has the notation table.
     /// </remarks>
     private static void WriteBitset(string path)
     {
@@ -839,7 +839,7 @@ internal static class Program
     /// component like 128/255 would differ in the last bit and the gate would be measuring
     /// the fixture rather than the feature.
     ///
-    /// spec/composite-value-types.md.
+    /// spec/types/composite-value-types.md.
     /// </remarks>
     private static void WriteComposite(string path, bool asComponents)
     {
@@ -933,7 +933,7 @@ internal static class Program
     /// `reference-required-blank` is the other half - the same blank in a column that does
     /// not allow it.
     ///
-    /// spec/reference-optionality.md.
+    /// spec/references/reference-optionality.md.
     /// </remarks>
     private static void WriteReferenceOptional(string path)
     {
@@ -993,7 +993,7 @@ internal static class Program
     /// Two rows, because a required reference has two ways to say nothing and they are not
     /// the same finding: a blank cell is one nobody filled in, refused whatever the column
     /// declared, and `-` is a row saying it points at none, refused because this column says
-    /// every row points at something. spec/blank-and-null-cells.md.
+    /// every row points at something. spec/types/blank-and-null-cells.md.
     /// </remarks>
     private static void WriteReferenceRequiredBlank(string path)
     {
@@ -1072,7 +1072,7 @@ internal static class Program
     /// exists rather than an array: `Slot1.Id` is an int and `Slot1.Label` is a string,
     /// so folding them into one array would have to pick one and be wrong about the other.
     ///
-    /// spec/nested-fields.md has the notation.
+    /// spec/types/nested-fields.md has the notation.
     /// </remarks>
     /// <summary>
     /// A record group typed by a schema file, and the same table typed by its own cells.
@@ -1159,7 +1159,7 @@ internal static class Program
         //
         // Its own table rather than another group on `Loadout`: a continuation row leaves the
         // other columns blank, and `Loadout`'s are declaration-typed - which is a second
-        // question and not this one. spec/primary-layout.md section 4.3.
+        // question and not this one. spec/layout/primary-layout.md section 4.3.
 
         var multi = new TableSpec
         {
@@ -1236,7 +1236,7 @@ internal static class Program
     /// The shapes it holds, which is what the goldens pin: a record whose members are arrays
     /// (`skill.step[0]` - one `skill`, not two), a record that does not repeat (`pos.x`), a
     /// scalar array (`tag[0]`), and an array of arrays where neither level has a name
-    /// (`grid[0][1]`). spec/nested-multi-level.md.
+    /// (`grid[0][1]`). spec/types/nested-multi-level.md.
     /// </remarks>
     private static void WriteMemberArray(string path)
     {
@@ -1538,7 +1538,7 @@ internal static class Program
     /// it is the recipe's, so a fixture written around one project's spelling would be
     /// testing that spelling instead of the mechanism.
     ///
-    /// Four tables, and each is one of the questions in spec/table-row-sets.md:
+    /// Four tables, and each is one of the questions in spec/layout/table-row-sets.md:
     ///
     ///   Colour, Colour_alt      the base case - one type, two files
     ///   Paint,  Paint_alt       a reference; the `_alt` rows point at ids only `Colour_alt`
@@ -1603,7 +1603,7 @@ internal static class Program
         // required column would have validation report the value the fold just wrote.
         // `Dropped` is the same shape already marked optional by the sheet, so the two
         // together say that the rule is about the set and not about the marker.
-        // spec/table-row-sets.md.
+        // spec/layout/table-row-sets.md.
         var narrow = new TableSpec { Name = "Narrow", Comment = "One set holds fewer columns." };
         narrow
             .Field(FieldSpec.Of("index", "int", "primary index"))
@@ -1761,7 +1761,7 @@ internal static class Program
         // One target keyed by a string and one by an int, because that is what separates
         // "wrote the row type" from "wrote the wrong scalar" - a generator hardcoding a
         // number for every key passes a table whose keys are all numbers.
-        // spec/reference-surface-naming.md sections 4 and 5.
+        // spec/references/reference-surface-naming.md sections 4 and 5.
 
         var links = new SheetBuilder(workbook.CreateSheet("Link"));
 
@@ -1821,7 +1821,7 @@ internal static class Program
         // Both spellings are here: `key=` naming the column, and the first column being the
         // index because nothing said otherwise. And both target key types, because a
         // generator that hardcodes a number for every key passes a table whose keys are all
-        // numbers. spec/reference-surface-naming.md sections 4 and 5.
+        // numbers. spec/references/reference-surface-naming.md sections 4 and 5.
 
         var beastNote = new TableSpec
         {
@@ -1876,7 +1876,7 @@ internal static class Program
     /// cooking, so a sheet written in any order has to reach the same file - and a fixture
     /// already in order would never show that.
     ///
-    /// spec/polymorphism.md sections 5.2 and 6.3.
+    /// spec/types/polymorphism.md sections 5.2 and 6.3.
     /// </remarks>
     private static void WritePolymorphism(string path)
     {
@@ -2084,7 +2084,7 @@ internal static class Program
     /// One member beside the reference in each, so the shape being pinned is a record that
     /// holds both and not a record that is only a reference.
     ///
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     /// <summary>
     /// Numbered reference columns folded into one array of references.
@@ -2302,7 +2302,7 @@ internal static class Program
         // A record of one whose members reference a string key and a uuid key. This is the
         // shape that reaches the run-length path - a run is one value for many rows, which an
         // array column has none of - so it is the only place a non-numeric key meets the run
-        // decode. spec/reference-key-types.md.
+        // decode. spec/references/reference-key-types.md.
         var badge = new TableSpec
         {
             Name = "Badge",
@@ -2333,7 +2333,7 @@ internal static class Program
             .Field(FieldSpec.Of("index", "int", "primary index"))
             // Optional on element 1, because element 1 is what decides for the member - the
             // elements of one member share an answer about being optional, and element 2
-            // points at nothing. spec/reference-optionality.md · spec/array-optionality.md.
+            // points at nothing. spec/references/reference-optionality.md · spec/types/array-optionality.md.
             .Field(FieldSpec.Of("Step1.ClipId", "foreign?", "element 1, a string key",
                                 detailType: "Clip"))
             .Field(FieldSpec.Of("Step1.Weight", "int", "element 1, an ordinary member"))
@@ -2343,7 +2343,7 @@ internal static class Program
         rig
             .Row("1", "Idle_01", "1", "Run_01", "2")
             // `-` rather than a zero: a string key has no zero, so this is what "points at
-            // nothing" looks like for one. spec/reference-optionality.md.
+            // nothing" looks like for one. spec/references/reference-optionality.md.
             .Row("2", "Run_01", "3", "-", "0");
 
         b.Table(49, 1, rig);
@@ -2363,7 +2363,7 @@ internal static class Program
     /// A workbook of its own because trimming is a property of the source entry rather than of
     /// a table, and the fixed-length shapes are worth keeping beside it.
     ///
-    /// spec/references-in-records.md · spec/variable-length-record-arrays.md.
+    /// spec/references/references-in-records.md · spec/types/variable-length-record-arrays.md.
     /// </remarks>
     private static void WriteRecordRefTrim(string path)
     {
@@ -2419,7 +2419,7 @@ internal static class Program
     /// is what the deferred conversion buys: the cell is kept as text until the target is
     /// resolved, which is the only point at which its type is known.
     ///
-    /// spec/reference-key-types.md.
+    /// spec/references/reference-key-types.md.
     /// </remarks>
     private static void WriteReferenceKeys(string path)
     {
@@ -2531,7 +2531,7 @@ internal static class Program
             // a blank `string?` is the empty string - a value, which would keep the element.
             // The `Tag` columns beside them stay blank on purpose: that group's first element
             // is required, so every element of it is, and a blank there is the empty string
-            // it has always been. spec/blank-and-null-cells.md · spec/array-optionality.md.
+            // it has always been. spec/types/blank-and-null-cells.md · spec/types/array-optionality.md.
             .Row("2", "two",     "10", "1", "sword", "20", "2", "shield", "-",  "-", "-",   "5", "6", "a", "b", "")
             // A gap in the middle, so this row keeps all three - element 2 stays at index 1
             // holding nothing, because moving it would make the index mean something else on
@@ -2601,7 +2601,7 @@ internal static class Program
                  "01:02:03", "3f2504e0-4f89-11d3-9a0c-0305e82c3301", "Rare", "10;20", "first", "true")
             // Every optional column saying it has no value at once, which is the row the
             // marker exists for. `-` and not a blank cell: a blank is the type's empty value
-            // and this row is about the absence of one. spec/blank-and-null-cells.md.
+            // and this row is about the absence of one. spec/types/blank-and-null-cells.md.
             .Row("2", "100", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-")
             // And a second such row, so each column has a run of equal values for the
             // encodings to find.
@@ -2625,7 +2625,7 @@ internal static class Program
     /// as a whole cell and nowhere else, so a column of ranges or negative numbers reads the
     /// way it always did.
     ///
-    /// spec/blank-and-null-cells.md.
+    /// spec/types/blank-and-null-cells.md.
     /// </remarks>
     private static void WriteBlankAndNull(string path)
     {
@@ -2762,7 +2762,7 @@ internal static class Program
     ///
     /// The elements of one cell are all there or all not, which is why `?` goes after the
     /// brackets: the array is what can be absent, not an element of it.
-    /// spec/optional-fields.md · spec/blank-and-null-cells.md.
+    /// spec/types/optional-fields.md · spec/types/blank-and-null-cells.md.
     /// </remarks>
     private static void WriteNoValueElement(string path)
     {
@@ -2796,7 +2796,7 @@ internal static class Program
     /// because that is where the distinction is invisible to a value comparison: an empty
     /// string element and an absent one look the same until the presence is read.
     ///
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     /// </remarks>
     private static void WriteNullableElements(string path)
     {
@@ -2843,7 +2843,7 @@ internal static class Program
 
             // The `?` is on the element, because that is what the cell declares: a folded
             // group has one type cell per element and none for the array.
-            // spec/nullable-array-elements.md.
+            // spec/types/nullable-array-elements.md.
             .Field(FieldSpec.Numbered("Tag1", "string?", "element 1 - and the group's answer"))
             .Field(FieldSpec.Numbered("Tag2", "string?", "element 2"))
             .Field(FieldSpec.Numbered("Tag3", "string?", "element 3"));
@@ -2869,7 +2869,7 @@ internal static class Program
     /// For the targets that will never carry a bit per element - `html` and the databases,
     /// which refuse an optional column for the same reason. Nothing here is optional at the
     /// row level, so what such a target meets first is the element refusal rather than the
-    /// one beside it. spec/nullable-array-elements.md.
+    /// one beside it. spec/types/nullable-array-elements.md.
     /// </remarks>
     private static void WriteElementOnly(string path)
     {
@@ -2950,7 +2950,7 @@ internal static class Program
     /// level, one a value and one a record, because a level that holds both is what proves
     /// the folding walks the path rather than counting it.
     ///
-    /// spec/nested-multi-level.md.
+    /// spec/types/nested-multi-level.md.
     /// </remarks>
     private static void WriteNestedDeep(string path)
     {
@@ -3384,7 +3384,7 @@ internal static class Program
             // A reference per element, with the length the row's. This is the one column
             // whose reader has to allocate the resolved slots rather than assign into a
             // record it already sized, so it is the only place `ForeignRecordArray` is read.
-            // spec/polymorphism.md section 4.
+            // spec/types/polymorphism.md section 4.
             .Field(FieldSpec.Of("owners", "foreign[]", "a row of another table per element",
                                 detailType: "Owners"))
 
@@ -3443,7 +3443,7 @@ internal static class Program
                  "-2", "upper_wall_small_leg_upper_wall", "south_wall_large_leg_south_wall");
 
         // The encoding rows: enough of each shape that every column encoding of
-        // spec/tcb-v102-column-encoding.md wins somewhere in this corpus, so all
+        // spec/wire/tcb-v102-column-encoding.md wins somewhere in this corpus, so all
         // the readers decode all seven layouts - not just the ones their own
         // fixture data happened to trigger. What wins where is pinned by the
         // encoding-selection test in BinaryFormatTests, so a drift in the writer's
@@ -3808,7 +3808,7 @@ internal static class Program
     /// combination arrived - and the generated C# read allocated the values and the presence
     /// bitmap per row while leaving the key array empty.
     ///
-    /// spec/variable-length-record-arrays.md · spec/references-in-records.md.
+    /// spec/types/variable-length-record-arrays.md · spec/references/references-in-records.md.
     /// </remarks>
     private static void WriteSerialRefTrim(string path)
     {

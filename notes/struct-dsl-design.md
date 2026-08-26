@@ -9,7 +9,7 @@
 > §12에 있습니다.
 >
 > **초판이 합성 값 타입을 「없음」으로 적었는데 그것이 틀렸습니다.** `vec3f` · `quat` · `color`
-> 계열은 브랜치 `worktree-vector-color-types`에 **설계와 구현이 끝나 있습니다**(`spec/composite-value-types.md`).
+> 계열은 브랜치 `worktree-vector-color-types`에 **설계와 구현이 끝나 있습니다**(`spec/types/composite-value-types.md`).
 > **main에 병합되지 않았고 원격에도 없습니다.** 그 개정이 이 설계의 §7.3을 대부분 미리 만들어
 > 두었으므로, 해당 절을 다시 썼습니다.
 
@@ -70,7 +70,7 @@
 > 참조로 바꾸고 접근자까지 냈으므로, `(refs=Item)`은 `foreign Item`을 두 번째 방법으로 적는
 > 것이라는 판단이었습니다.
 >
-> **그 승격을 되돌렸습니다** ([참조가 내는 이름 §6](../spec/reference-surface-naming.md)).
+> **그 승격을 되돌렸습니다** ([참조가 내는 이름 §6](../spec/references/reference-surface-naming.md)).
 > 여러 테이블 중 하나여도 되는 값에는 해석할 타입이 하나가 없어 돌려줄 표면이 없습니다.
 > 그러면 남는 것이 검사이고, `refs`가 그것을 적습니다 — `foreign`은 테이블 하나를 지목해
 > 해석하고, `refs`는 값이 어디서 왔을 수 있는지만 말하며 타입을 그대로 둡니다. 둘은 같은 것을
@@ -115,7 +115,7 @@
 |항목과 정수값|`<var name="RED" value="1"/>`|`value Red = 1`|
 |항목 설명|`comment`|`///`|
 |**별칭**|`alias="红"`|`(alias="빨강")` — **tabbit에 없던 것입니다.** [Luban 대조 §4.2](luban-comparison.md)의 「라벨 조합 표기」와 같은 자리|
-|플래그 enum|`flags=1`|**하지 않습니다** — [`bitset` 타입](../spec/bitset.md)이 그 자리입니다|
+|플래그 enum|`flags=1`|**하지 않습니다** — [`bitset` 타입](../spec/types/bitset.md)이 그 자리입니다|
 |값 유일성|`unique`|기본으로 강제. 끄지 않습니다|
 |외부 타입|`externaltype`|하지 않습니다|
 
@@ -123,7 +123,7 @@
 
 |Luban|tabbit|판정|
 |--|--|--|
-|`byte` · `short` · `fshort` · `fint` · `flong`|없음|**대등하지 않습니다.** 크기 목적은 [컬럼 인코딩](../spec/tcb-v105-bit-width-packing.md)이 대체하나 **생성 코드의 타입을 좁히는 목적은 대체되지 않습니다.** DSL과 무관한 별건입니다|
+|`byte` · `short` · `fshort` · `fint` · `flong`|없음|**대등하지 않습니다.** 크기 목적은 [컬럼 인코딩](../spec/wire/tcb-v105-bit-width-packing.md)이 대체하나 **생성 코드의 타입을 좁히는 목적은 대체되지 않습니다.** DSL과 무관한 별건입니다|
 |`bytes`|없음|같습니다|
 |`vector2` · `vector3` · `vector4`|**`vec2i` · `vec3i` · `vec4i` · `vec2f` · `vec3f` · `vec4f`**|**있습니다**(미병합 브랜치). 성분 타입을 이름에 적으므로 Luban보다 좁게 선언됩니다|
 |—|**`euler` · `quat` · `axisangle` · `color` · `color32`**, 그리고 색 팔레트와 `#3366CC` · `red` 표기|**tabbit만.** 이 영역은 이미 Luban보다 넓습니다|
@@ -383,7 +383,7 @@ wtag가 없으면 나오는 파일이 달라집니다 — 그 둘이 다른 층�
 |`set<T>`|**`T[]`와 같습니다** — `KindVarArray` 컬럼 하나. 다른 것은 중복을 거부하는 검사와 생성 코드의 컨테이너 타입뿐입니다|
 |`map<K,V>`|**컬럼 둘** — `Foo.Key`와 `Foo.Value`, 둘 다 `KindVarArray`이고 길이가 같습니다. **멤버가 2개인 레코드 배열과 완전히 같은 형태입니다**|
 
-[중첩 필드](../spec/nested-fields.md#4-와이어--변경-없음)가 이미 증명한 「API는 AoS, 파일은
+[중첩 필드](../spec/types/nested-fields.md#4-와이어--변경-없음)가 이미 증명한 「API는 AoS, 파일은
 SoA」가 그대로 적용됩니다. **`.tcb` 버전도, 리더도 움직이지 않습니다.**
 
 #### 결정해야 하는 것
@@ -400,7 +400,7 @@ SoA」가 그대로 적용됩니다. **`.tcb` 버전도, 리더도 움직이지 
 #### 비용의 실제 위치
 
 **언어별 생성 코드입니다.** 형식이 안 움직이므로 남는 것은 모든 언어에 컨테이너 타입과 그
-구축 코드를 내는 일이고, **[중첩 필드 확산](../spec/nested-fields.md)과 같은 형태의
+구축 코드를 내는 일이고, **[중첩 필드 확산](../spec/types/nested-fields.md)과 같은 형태의
 작업입니다** — 언어를 하나씩, 컴파일과 되읽기 게이트를 각각. 익스포터 쪽은 `json`의 map
 표현(키가 정수일 때의 문자열화)과 데이터베이스 쪽 매핑이 결정 사항입니다.
 
@@ -427,7 +427,7 @@ struct Character
 ```
 
 확장하면 `Character.Pos.X` 같은 **중첩 레코드**이고, 그것은
-[다중 중첩](../spec/nested-multi-level.md)이 이미 지원하는 형태입니다 — 로드맵 5a″가 「깊이를
+[다중 중첩](../spec/types/nested-multi-level.md)이 이미 지원하는 형태입니다 — 로드맵 5a″가 「깊이를
 지원한 것이 아니라 깊이를 세지 않게 만든 것」이라고 적은 그 자리입니다. **형식도 생성기도
 움직이지 않습니다.**
 
@@ -617,7 +617,7 @@ map은 없으므로 앞의 것인데, **그 성질은 타입이 아니라 사용
 |**(나)** 타입 이름만|같은 컬럼, **타입 칸은 그룹에 `Reward` 하나**|**9**|**반복이 사라집니다**|
 |**(다)** 한 셀 압축|`Reward1` `Reward2` `Reward3`, 셀에 `101,2,아이콘`|**3**|없습니다|
 
-**셋 다 와이어가 동일합니다.** 레코드는 원래 [멤버마다 한 컬럼](../spec/nested-fields.md)으로
+**셋 다 와이어가 동일합니다.** 레코드는 원래 [멤버마다 한 컬럼](../spec/types/nested-fields.md)으로
 실리므로, 달라지는 것은 **읽는 방법뿐이고 형식도 생성 코드도 그대로입니다.**
 
 **(나)를 기본으로, (다)를 옵트인으로 권고합니다.**
@@ -698,7 +698,7 @@ Reward1              Reward2
 
 ### 7.4 recipe
 
-DSL 파일의 자리를 recipe가 지정하고, **[빌드 캐시](../spec/build-cache.md)의 입력에
+DSL 파일의 자리를 recipe가 지정하고, **[빌드 캐시](../spec/ops/build-cache.md)의 입력에
 포함해야 합니다.** 넣지 않으면 스키마만 바뀐 변환이 캐시에 적중합니다.
 
 ```jsonc
@@ -719,9 +719,9 @@ struct HealEffect extends Effect
 
 **이 문법은 지금 확정하지 않습니다.** [검토 §5](struct-dsl-review.md)의 결론대로 **와이어
 설계의 성립 여부가 먼저**이고, 그전에 `abstract` · `extends`를 확정하면 성립하지 않았을 때
-지울 수 없는 문법이 남습니다. **그 확인이 [다형과 참조 배열](../spec/polymorphism.md)이고, 이
+지울 수 없는 문법이 남습니다. **그 확인이 [다형과 참조 배열](../spec/types/polymorphism.md)이고, 이
 절이 남긴 3가지를 그 문서 §5.1이 정합니다.** 다중 대상 참조로 우회하던 길은 **없어졌습니다** —
-그쪽은 검사로 되돌렸습니다([참조가 내는 이름 §6](../spec/reference-surface-naming.md)). 그러므로
+그쪽은 검사로 되돌렸습니다([참조가 내는 이름 §6](../spec/references/reference-surface-naming.md)). 그러므로
 다형은 이 문법이 서기 전까지 컬럼을 나눠 적습니다.
 
 확정할 때 함께 정해야 하는 것이 3가지입니다 — **기반 struct에 필드를 둘 수 있는가**(상속이
@@ -735,7 +735,7 @@ struct HealEffect extends Effect
 ### 9.1 struct · enum · 테이블의 이름 공간
 
 같은 이름 공간인지, 그리고 DSL의 식별자가
-[이름 표기 규약](../spec/naming-conventions.md)과 `NamingRules`를 통과하는지를 정해야
+[이름 표기 규약](../spec/targets/naming-conventions.md)과 `NamingRules`를 통과하는지를 정해야
 생성 코드가 일관됩니다.
 
 ### 9.2 순환

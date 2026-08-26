@@ -219,7 +219,7 @@ public abstract class DatabaseExporterBase<TEntry> : Target<TEntry>
     /// database column holds the target's primary index - there is no record to store - and
     /// the type of that index is the target's to decide. The three exporters each used to
     /// map `ForeignRecord` to their integer type, which is one of the places that kept a
-    /// table keyed by anything else from being pointed at. spec/reference-key-types.md.
+    /// table keyed by anything else from being pointed at. spec/references/reference-key-types.md.
     /// </remarks>
     protected static ValueType ElementTypeOf(SerialField sf)
         => sf.ElementType == ValueType.ForeignRecord && sf.FirstField is not null

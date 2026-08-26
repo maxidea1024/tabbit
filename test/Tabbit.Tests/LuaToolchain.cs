@@ -13,7 +13,7 @@ namespace Tabbit.Tests;
 /// source are compiled into one executable by the same C toolchain every C gate already
 /// finds - so the Lua gates are available exactly where the C ones are, and the host is
 /// the same integration shape a game engine embedding Lua has.
-/// spec/lua-language-support.md.
+/// spec/targets/lua-language-support.md.
 /// </summary>
 internal static class LuaToolchain
 {

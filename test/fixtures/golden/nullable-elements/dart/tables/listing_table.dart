@@ -77,7 +77,7 @@ class ListingTable {
     // - which is null unless the project set them. A file that is neither encrypted nor
     // signed comes back from this untouched, so the load path is the same either way and
     // there is no condition here that could be the wrong way round.
-    // spec/tcb-mac-and-signature.md.
+    // spec/wire/tcb-mac-and-signature.md.
     final reader = TcbReader(open(readAllBytes(filename), Tables.encryptionKey,
         Tables.macKey, Tables.verifyMac));
     final header = readTableHeader(reader);
@@ -155,7 +155,7 @@ class ListingTable {
         case 5:
           checkColumn(column, 'Listing.Holes', kindArray, false, [elementI32, elementVarint], true);
           // Behind the row bitmap and in front of the values, walked with a counter that
-          // steps once per element of every row. spec/nullable-array-elements.md.
+          // steps once per element of every row. spec/types/nullable-array-elements.md.
           elementPresence = readElementPresence(reader, column);
           elementAt = 0;
           cursor = TcbColumnCursor(reader, column, count, 'Listing.Holes');
@@ -174,7 +174,7 @@ class ListingTable {
           // below stay as they are.
           presence = readPresence(reader, column, count);
           // Behind the row bitmap and in front of the values, walked with a counter that
-          // steps once per element of every row. spec/nullable-array-elements.md.
+          // steps once per element of every row. spec/types/nullable-array-elements.md.
           elementPresence = readElementPresence(reader, column);
           elementAt = 0;
           cursor = TcbColumnCursor(reader, column, count, 'Listing.Both');
@@ -202,7 +202,7 @@ class ListingTable {
         case 7:
           checkColumn(column, 'Listing.Words', kindArray, false, [elementString], true);
           // Behind the row bitmap and in front of the values, walked with a counter that
-          // steps once per element of every row. spec/nullable-array-elements.md.
+          // steps once per element of every row. spec/types/nullable-array-elements.md.
           elementPresence = readElementPresence(reader, column);
           elementAt = 0;
           cursor = TcbColumnCursor(reader, column, count, 'Listing.Words');

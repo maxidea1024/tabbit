@@ -11,7 +11,7 @@
 // `words` is a `string?[]`, and it is in the output on purpose - an absent element and an
 // empty string are the same value, so only the presence bit tells them apart.
 //
-// spec/nullable-array-elements.md.
+// spec/types/nullable-array-elements.md.
 
 using System;
 using System.Collections.Generic;

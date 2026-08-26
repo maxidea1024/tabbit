@@ -167,7 +167,7 @@ internal sealed class GoFieldView
     /// Asked rather than worked out from the read kind, which is spelled differently in every
     /// generator - and the two shapes differ in more than one line: the accessor loops, and
     /// the value it hands back is an array of the abstract type.
-    /// spec/polymorphism.md section 5.3.
+    /// spec/types/polymorphism.md section 5.3.
     /// </remarks>
     public bool VariantsAreArray { get; set; }
 
@@ -187,7 +187,7 @@ internal sealed class GoFieldView
     /// <remarks>
     /// The interface is declared in a file of its own - one per declaration - and this is what
     /// the record needs to build a value of it: which number means which variant, and which of
-    /// the entry's fields each one carries. spec/polymorphism.md sections 7.1 and 7.2.
+    /// the entry's fields each one carries. spec/types/polymorphism.md sections 7.1 and 7.2.
     /// </remarks>
     public IReadOnlyList<GoVariantView> Variants { get; set; } = new List<GoVariantView>();
 
@@ -209,7 +209,7 @@ internal sealed class GoFieldView
     /// not what a consumer wants - the method carrying the group's own name is. A field and a
     /// method cannot share a name in this language, so one of the two has to give, and the one
     /// that gives is the one nobody outside the package should be reading.
-    /// spec/polymorphism.md section 7.2.
+    /// spec/types/polymorphism.md section 7.2.
     /// </remarks>
     public string EntryFieldName { get; set; } = "";
 
@@ -302,7 +302,7 @@ internal sealed class GoRecordMemberView
     /// </summary>
     /// <remarks>
     /// The member's own name is the key's - that is what the cell holds - and this is the
-    /// derived name the row takes. spec/reference-surface-naming.md section 5.
+    /// derived name the row takes. spec/references/reference-surface-naming.md section 5.
     /// </remarks>
     public string RowName { get; set; } = "";
 
@@ -312,7 +312,7 @@ internal sealed class GoRecordMemberView
     /// The declaration lines, name and type.
     ///
     /// More than one for a reference member, which holds the row it resolved to as well as
-    /// the key that came off the wire. spec/references-in-records.md.
+    /// the key that came off the wire. spec/references/references-in-records.md.
     /// </summary>
     public required IReadOnlyList<string> Declarations { get; set; }
 
@@ -331,7 +331,7 @@ internal sealed class GoRecordMemberView
     /// <summary>
     /// The slice type of the stored keys, for a reference member that is itself the array -
     /// one key per element, exactly as there is one row per element. Empty otherwise.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </summary>
     public string RefKeySliceType { get; set; } = "";
 
@@ -345,7 +345,7 @@ internal sealed class GoRecordMemberView
 /// A flat list rather than a tree: the recursion belongs in the view, because none of these
 /// templates has a recursive include and the one that grew a tree walk would be the only place
 /// where depth had to be reasoned about in template syntax. Innermost first.
-/// spec/nested-multi-level.md.
+/// spec/types/nested-multi-level.md.
 /// </remarks>
 internal sealed class GoRecordTypeView
 {
@@ -370,13 +370,13 @@ internal sealed class GoColumnView
 {
     /// <summary>
     /// Where the resolved rows go for a whole-row reference, or the key's own name for a
-    /// dotted one. spec/reference-surface-naming.md sections 5 and 9.
+    /// dotted one. spec/references/reference-surface-naming.md sections 5 and 9.
     /// </summary>
     public string RowName { get; set; } = "";
 
     /// <summary>
     /// The member access ending in the row's derived name, where this column is a reference
-    /// member. Empty otherwise. spec/reference-surface-naming.md section 5.
+    /// member. Empty otherwise. spec/references/reference-surface-naming.md section 5.
     /// </summary>
     public string RowMemberAccess { get; set; } = "";
 
@@ -414,7 +414,7 @@ internal sealed class GoColumnView
     /// </summary>
     /// <remarks>
     /// Written into the template as `int32` before, which is the assumption
-    /// spec/reference-key-types.md removed everywhere a scalar reference reads and left
+    /// spec/references/reference-key-types.md removed everywhere a scalar reference reads and left
     /// standing where an array of them allocates. Empty for a column that is not one.
     /// </remarks>
     public required string RefKeyType { get; set; }
@@ -458,7 +458,7 @@ internal sealed class GoColumnView
     /// <remarks>
     /// On the member and before any subscript, because a member that is an array holds one
     /// key per element: `ItemIdIndex[j]`, not `ItemId[j]Index`.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     public required string MemberRefSuffix { get; set; }
 
@@ -523,7 +523,7 @@ internal sealed class GoCrossReferenceView
 
     /// <summary>
     /// The references that are members of a record, which resolve inside the element rather
-    /// than beside it. spec/references-in-records.md.
+    /// than beside it. spec/references/references-in-records.md.
     /// </summary>
     public required IReadOnlyList<GoRecordReferenceView> RecordFields { get; set; }
 
@@ -562,7 +562,7 @@ internal sealed class GoReferenceFieldView
     /// <summary>
     /// Where the resolved row goes - the derived name for a whole-row reference, the
     /// column's own name for a dotted one.
-    /// spec/reference-surface-naming.md sections 5 and 9.
+    /// spec/references/reference-surface-naming.md sections 5 and 9.
     /// </summary>
     public string RowName { get; set; } = "";
 
@@ -588,7 +588,7 @@ internal sealed class GoReferenceFieldView
 /// works on any variant by promotion; and the interface carries one `Base()` method so a
 /// consumer holding the interface can read them without switching at all. One method rather
 /// than one getter per field, because the field list is the declaration's and grows.
-/// spec/polymorphism.md section 7.
+/// spec/types/polymorphism.md section 7.
 /// </remarks>
 internal sealed class GoPolymorphicTypeView
 {
@@ -630,7 +630,7 @@ internal sealed class GoStructMemberView
     /// <remarks>
     /// **A reference member is two fields here, the same two a reference column is anywhere.**
     /// The declared name is the key's - that is what the cell holds - and the row it resolves to
-    /// takes the derived one. spec/reference-surface-naming.md sections 4 and 5.
+    /// takes the derived one. spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     public string RowName { get; set; } = "";
 

@@ -45,7 +45,7 @@ module Tabbit
   KIND_ARRAY = 1
 
   # How a block's values are laid out. Raw is the layout 101 had; the others compress
-  # a column that repeats itself. spec/tcb-v102-column-encoding.md is the contract.
+  # a column that repeats itself. spec/wire/tcb-v102-column-encoding.md is the contract.
   ENCODING_RAW = 0
   ENCODING_VARINT = 1
   ENCODING_DELTA = 2
@@ -73,7 +73,7 @@ module Tabbit
   ENCODING_BITPACK = 13
 
   # The file header, at fixed offsets whether or not the file is encrypted and whether or
-  # not it carries a MAC. spec/tcb-mac-and-signature.md.
+  # not it carries a MAC. spec/wire/tcb-mac-and-signature.md.
   MAGIC_OFFSET = 0
   VERSION_OFFSET = 4
   FLAGS_OFFSET = 8
@@ -112,7 +112,7 @@ module Tabbit
   # refuses a changed kind.
   # `element_nullable` says the block states, per element, which of an array's places hold
   # a value. Independent of `nullable`: a column may say either, or both.
-  # spec/nullable-array-elements.md.
+  # spec/types/nullable-array-elements.md.
   Column = Struct.new(:tag, :element, :kind, :encoding, :byte_length, :nullable,
                       :element_nullable)
 
@@ -1087,7 +1087,7 @@ module Tabbit
   # Empty for a column that does not carry one. Its length is written ahead of it as a
   # counter32, because a variable-length column's total is the sum of its row lengths and
   # those live inside the value block - a reader meeting the bitmap first would have nothing
-  # to size it by. spec/nullable-array-elements.md.
+  # to size it by. spec/types/nullable-array-elements.md.
   def self.read_element_presence(reader, column)
     return [] unless column.element_nullable
 
@@ -1109,7 +1109,7 @@ module Tabbit
   def self.check_column(column, field_name, kind, nullable, accepted,
                         element_nullable = false)
     # The same statement about the other bitmap: code not expecting one would read it as
-    # values. spec/nullable-array-elements.md.
+    # values. spec/types/nullable-array-elements.md.
     if column.element_nullable != element_nullable
       raise TcbError,
             "#{field_name}: the file and the generated member disagree about whether this " \
@@ -1129,7 +1129,7 @@ module Tabbit
 
     # A negative count says the member claims no length: how many elements a row holds is
     # what the file states. The kind is still the member's claim.
-    # spec/nullable-array-elements.md.
+    # spec/types/nullable-array-elements.md.
     if column.kind != kind
       raise TcbError,
             "#{field_name}: the file column (kind #{column.kind}) does not match the " \

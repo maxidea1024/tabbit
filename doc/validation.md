@@ -1,6 +1,6 @@
 # 검증 — 시트로 나타낼 수 없는 규칙을 C#으로
 
-> [문서 목록으로](readme.md) · 설계 근거는 [검증 파이프라인](../spec/validation-pipeline.md)에 있습니다
+> [문서 목록으로](readme.md) · 설계 근거는 [검증 파이프라인](../spec/validation/validation-pipeline.md)에 있습니다
 
 시트에 적을 수 있는 제약은 빌드할 때 이미 검사합니다.
 
@@ -21,7 +21,7 @@
 
 |무엇|어디에 적나|누가 검사하나|
 |--|--|--|
-|타입 · 필수 · 범위 · 허용값 · 참조 · 인덱스 유니크|**시트**|변환기가 내장으로. [컬럼 제약](../spec/column-constraints.md)|
+|타입 · 필수 · 범위 · 허용값 · 참조 · 인덱스 유니크|**시트**|변환기가 내장으로. [컬럼 제약](../spec/layout/column-constraints.md)|
 |그 밖의 모든 규칙|**`.cs` 규칙 파일**|이 문서가 설명하는 검증 파이프라인|
 
 규칙 파일은 프로젝트의 폴더에 있고, 도구가 실행할 때 컴파일해서 돌립니다.
@@ -131,7 +131,7 @@ tabbit --recipe recipe.json --validate-only
 
 > **돌아가는 규칙 폴더가 저장소에 있습니다.**
 >
-> [test/reserved-words/validation/](../test/reserved-words/validation/)이고, `rules/` 아래 `pre`, `tables`,
+> [test/reserved-words/validation/](../test/reserved-words/validation)이고, `rules/` 아래 `pre`, `tables`,
 > `global`, `shared` 각각 한 파일입니다.
 >
 > 같은 디렉터리에 그 시트를 모든 언어로 생성한 결과가 함께 커밋되어 있으므로, 규칙이 읽는
@@ -706,7 +706,7 @@ if (!context.HasOption("ContentRoot"))
 
 이식은 번역이 아니라 대조이고, 대조는 원본이 옆에 있을 때만 됩니다.
 
-[samples/named-range/validation/](../samples/named-range/validation/)이 그 예입니다.
+[samples/named-range/validation/](../samples/named-range/validation)이 그 예입니다.
 규칙마다 원본 Lua가 위에 그대로 있고, 달라진 곳에는 왜 달라졌는지가 붙어 있습니다.
 
 ```csharp
@@ -881,7 +881,7 @@ C# Dev Kit은 워크스페이스에서 솔루션이나 프로젝트를 하나 �
 잘못된 검증은 통과시키거나, 더 나쁘게는 옳은 데이터를 차단합니다.
 
 이 저장소가 쓰는 방법은 픽스처 워크북과 기대 진단을 짝지어 게이트로 두는 것입니다.
-[test/fixtures/validation/](../test/fixtures/validation/)에 그 예가 있고,
+[test/fixtures/validation/](../test/fixtures/validation)에 그 예가 있고,
 [ValidationPipelineTests](../test/Tabbit.Tests/ValidationPipelineTests.cs)와
 [ValidationRuntimeTests](../test/Tabbit.Tests/ValidationRuntimeTests.cs)가 심각도별 동작과
 **산출물이 실제로 없는 것**을 확인합니다.

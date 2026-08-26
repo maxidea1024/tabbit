@@ -18,7 +18,7 @@ namespace Wildling.Authoring;
 /// 것뿐이고, 값을 계산하거나 컬럼을 만들지 않는다. 어느 격자가 어느 워크북 어느 탭이 되는지는
 /// `tools/workbooks.tsv` 가 정한다.
 ///
-/// 팔레트는 `spec/primary-layout-figures.py` 의 것이다 — 워크북이 문서의 그림과 같은 모습이
+/// 팔레트는 `spec/layout/primary-layout-figures.py` 의 것이다 — 워크북이 문서의 그림과 같은 모습이
 /// 되고, 대조표에서 그림과 실물을 나란히 둘 수 있다.
 /// </remarks>
 internal static class Program

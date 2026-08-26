@@ -54,7 +54,7 @@ public enum ValueType
     ///
     /// What separates it from `bigint` is the notation it accepts rather than what it
     /// holds: a bit pattern has no sign and no thousands separator, so it can refuse
-    /// both, and a magnitude cannot. spec/bitset.md says why that makes it a type
+    /// both, and a magnitude cannot. spec/types/bitset.md says why that makes it a type
     /// rather than a role.
     /// </summary>
     Bitset = 13,
@@ -64,7 +64,7 @@ public enum ValueType
     // the cooker expands a column of one into a record before anything downstream sees it.
     // There is deliberately no array counterpart: `ArrayOf` answers None for all of them, so
     // `vec2f[]` is refused by the check every other unbracketable type is refused by.
-    // spec/composite-value-types.md.
+    // spec/types/composite-value-types.md.
 
     /// <summary>`vec2i` - two `int` components, `X` and `Y`.</summary>
     Vec2i = 14,

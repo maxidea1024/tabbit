@@ -1,5 +1,5 @@
 # Writes the binary-names fixture pair: the same workbook as .xlsx and .xlsb, holding
-# every defined-name shape spec/xlsb-defined-names.md section 6 asks for.
+# every defined-name shape spec/import/xlsb-defined-names.md section 6 asks for.
 #
 # Writing an .xlsb needs Excel, so this runs on Windows with Excel installed - once. The
 # pair it writes is committed, and the tests only ever read it; nothing in CI runs this.

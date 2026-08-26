@@ -61,7 +61,7 @@ static bool NullableElements_FoldedParse(NullableElements_FoldedTable_t* table, 
     case 2:
       (void)tb_check_column_elements(reader, column, "Folded.Tag", TB_KIND_ARRAY, false, TB_ELEMENT_MASK(TB_ELEMENT_STRING), true);
       /* Behind the row bitmap and in front of the values, walked with a counter that steps
-       * once per element of every row. spec/nullable-array-elements.md. */
+       * once per element of every row. spec/types/nullable-array-elements.md. */
       (void)tb_read_element_presence(reader, column, &element_presence);
       element_at = 0;
 
@@ -158,7 +158,7 @@ bool NullableElements_FoldedLoad(NullableElements_FoldedTable_t* table, const ch
    * NullableElements_MacKey hold - NULL unless the project set them. A file that is
    * neither encrypted nor signed comes back from this untouched, so the load path is the
    * same either way and there is no condition here that could be the wrong way round.
-   * spec/tcb-mac-and-signature.md.
+   * spec/wire/tcb-mac-and-signature.md.
    *
    * What comes back is a window onto `bytes` rather than a copy of it, which is why the
    * buffer is still what tb_free_bytes is given below. */

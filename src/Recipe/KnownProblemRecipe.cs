@@ -10,7 +10,7 @@ namespace Tabbit.Recipe;
 /// **The report does not go away.** It comes out as <see cref="Severity.Info"/> with
 /// <see cref="Reason"/> beside it, on every run. An entry that matches nothing is an error,
 /// and so is a <see cref="Count"/> that no longer holds - which is what keeps the list from
-/// becoming a switch that lets anything through. spec/known-problems.md.
+/// becoming a switch that lets anything through. spec/ops/known-problems.md.
 /// </remarks>
 public class KnownProblemRecipe
 {

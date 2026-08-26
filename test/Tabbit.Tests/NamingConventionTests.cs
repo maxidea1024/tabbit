@@ -22,7 +22,7 @@ namespace Tabbit.Tests;
 /// spells it which way. In a language without declarations, reading the wrong one of two
 /// spellings is not an error but an absent value.
 ///
-/// spec/naming-conventions.md.
+/// spec/targets/naming-conventions.md.
 /// </remarks>
 public class NamingConventionTests
 {

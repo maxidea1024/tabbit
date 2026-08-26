@@ -50,7 +50,7 @@ public abstract class SheetSourceRecipe
     /// of them keeping a summer clock should not move the other's dates.
     ///
     /// Takes what the recipe-wide setting takes - a zone name or a fixed offset - and wins
-    /// over it for this entry only. spec/datetime-timezone.md.
+    /// over it for this entry only. spec/types/datetime-timezone.md.
     /// </remarks>
     public string TimeZone { get; set; } = "";
 
@@ -163,7 +163,7 @@ public abstract class SheetSourceRecipe
     /// **Neither setting decides what absence is.** A row that has no value writes `-`, and
     /// that is only allowed where the column's type ends in `?`. This setting answers a
     /// different question - whether a cell nobody filled in stops the run - and a blank read
-    /// as empty is a cell with a value, presence bit and all. spec/blank-and-null-cells.md.
+    /// as empty is a cell with a value, presence bit and all. spec/types/blank-and-null-cells.md.
     /// </remarks>
     public string OnBlankCell { get; set; } = "error";
 
@@ -191,7 +191,7 @@ public abstract class SheetSourceRecipe
     /// **What it is not**: a way to make two tables. A matched name contributes rows to the
     /// table it points at, and its schema has to be that table's. It produces no type of its
     /// own, and a name matching this whose table is absent is an error rather than a new
-    /// table - see spec/table-row-sets.md.
+    /// table - see spec/layout/table-row-sets.md.
     /// </remarks>
     public string TableRowSets { get; set; } = "";
 
@@ -228,7 +228,7 @@ public abstract class SheetSourceRecipe
     /// a consumer cannot tell "absent" from "zero".
     ///
     /// Turning it on keeps the middle exactly as
-    /// spec/variable-length-record-arrays.md describes it. The default is the strict one
+    /// spec/types/variable-length-record-arrays.md describes it. The default is the strict one
     /// because a lenient default turns a mistake into data, and a strict default costs the
     /// one line that says the gap was meant.
     ///

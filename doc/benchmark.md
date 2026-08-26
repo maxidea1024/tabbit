@@ -154,7 +154,7 @@ Windows 11 · i5-13600KF(14코어 20스레드) · .NET 10 · 워크스테이션 
 정할 문제였습니다.
 
 무엇이 어떻게 담기는지는 [컬럼 인코딩](binary-format.md#컬럼-인코딩)에, 결정의 근거는
-[TCB v104](../spec/tcb-v104-composed-encodings.md)에 있습니다.
+[TCB v104](../spec/wire/tcb-v104-composed-encodings.md)에 있습니다.
 
 ### 한 테이블을 끝까지: `StatGrowth`
 

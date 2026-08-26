@@ -670,7 +670,7 @@ public sealed class RescueLayoutParser : ILayoutParser
                 };
 
             // `-` is no value and `\-` is the one character `-`, read where every layout
-            // reads them. spec/blank-and-null-cells.md.
+            // reads them. spec/types/blank-and-null-cells.md.
             var reading = _context.ReadCell(
                 field.Type, field.EnumOrNull, rawCell.Value, rawCell.Location,
                 sheet.Layout?.ArrayDelimiter,

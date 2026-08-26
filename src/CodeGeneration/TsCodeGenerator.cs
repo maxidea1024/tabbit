@@ -144,7 +144,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// <remarks>
     /// Both, because this is the one language that reads JSON as well: the binary path
     /// assigns through a longer member path and the JSON path nests one more object. Neither
-    /// counts the levels. spec/nested-multi-level.md.
+    /// counts the levels. spec/types/nested-multi-level.md.
     /// </remarks>
     protected override bool SupportsDeepNestedFields => true;
 
@@ -152,7 +152,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// An optional column becomes a `has{Prop}` accessor beside the value one.
     /// </summary>
     /// <remarks>
-    /// Not `T | null`, for the reason in spec/optional-fields.md: one shape across thirteen
+    /// Not `T | null`, for the reason in spec/types/optional-fields.md: one shape across thirteen
     /// languages beats each language's own, and the value accessor keeps its type.
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
@@ -162,7 +162,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
     /// <summary>
     /// `hasXAt(i)` beside the value, filled from the element bitmap the file carries.
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     /// </summary>
     protected override bool SupportsOptionalElements => true;
 
@@ -213,7 +213,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         // A struct is an entity beside a table and an enum, so it gets a module of its own -
         // one per declaration however many tables named it. Two tables each declaring their
         // own `Effect` would give them types that share a name and are not the same type.
-        // spec/polymorphism.md section 7.1.
+        // spec/types/polymorphism.md section 7.1.
         foreach (var declared in _model.PolymorphicTypes)
         {
             Write($"structs/{TsFileName(declared.Name)}.ts", "ts-struct.sbn",
@@ -262,7 +262,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// </summary>
     /// <remarks>
     /// The members are columns, so their types come out of the same conversion a table's
-    /// members do. spec/polymorphism.md section 7.1.
+    /// members do. spec/types/polymorphism.md section 7.1.
     /// </remarks>
     /// <summary>The imports one abstract type's module needs for the types its members name.</summary>
     private IReadOnlyList<string> StructImports(Models.PolymorphicType declared)
@@ -311,7 +311,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// <remarks>
     /// **A reference member is two properties**, as a reference is anywhere: the declared name
     /// is the key's and the row it resolves to takes the derived one.
-    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     private TsStructMemberView StructMember(Models.Field field)
     {
@@ -460,7 +460,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                      // A reference that is a member of a record resolves inside the element
                      // rather than beside it, so it is a loop of its own. Read off the wire
                      // columns, which is the same list the read path walks - the two have to
-                     // agree about where the key landed. spec/references-in-records.md.
+                     // agree about where the key landed. spec/references/references-in-records.md.
                      RecordFields = table.WireColumns
                                          .Where(wire => wire.Member is not null && wire.IsRef)
                                          .Select(BuildRecordReference)
@@ -488,7 +488,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     ///
     /// Written straight into the member rather than through a `setReference_` method. Those
     /// exist because a table's own members are private to it; an element of a record group is
-    /// a plain object, and there is nothing to go around. spec/references-in-records.md.
+    /// a plain object, and there is nothing to go around. spec/references/references-in-records.md.
     /// </remarks>
     private TsRecordReferenceView BuildRecordReference(WireColumn wire)
     {
@@ -499,7 +499,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         bool isArray = wire.IsArray;
 
         // Where the element number goes is the whole difference between the record shapes -
-        // the group's array, the member's, or neither. spec/nested-multi-level.md.
+        // the group's array, the member's, or neither. spec/types/nested-multi-level.md.
         string rowLeaf = wire.Member is not null
             ? TsName(RowAccessorName(refTable!.Name, wire.MemberPath[^1]))
             : TsName(RowAccessorName(refTable!.Name, wire.Group.Name));
@@ -545,7 +545,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// Zero is the convention for "points at nothing" and its spelling depends on the key:
     /// a 64-bit key is a `bigint` and compares against `0n`, and a string has no zero at all.
     /// The numeric case is `> 0`, which is what the template used to say for every key.
-    /// spec/reference-optionality.md · spec/reference-key-types.md.
+    /// spec/references/reference-optionality.md · spec/references/reference-key-types.md.
     /// </remarks>
     private static string RefIsSetSuffix(ValueType keyType)
         => keyType switch
@@ -609,7 +609,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// <remarks>
     /// What a multi-target column resolves through. A key absent from one of its targets is
     /// the ordinary case - the row is in another of them - so the miss has to be an answer.
-    /// spec/multi-target-accessors.md.
+    /// spec/references/multi-target-accessors.md.
     /// </remarks>
     private static string PrimaryFind(Models.Table refTable)
         => "findBy" + refTable.SerialFields.First(sf => sf.IsIndexer).Name.ToPascalCase();
@@ -683,7 +683,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
             // A reference member reads into the key beside the row it will resolve to, and the
             // suffix goes on the member rather than after the subscript - `itemId_index[j]`
-            // rather than `itemId[j]_index`. spec/references-in-records.md.
+            // rather than `itemId[j]_index`. spec/references/references-in-records.md.
             MemberRefSuffix = "",
             ElementCount = wire.Cells.Count,
             RefTable = wire.TagCarrier.RefTableName.ToPascalCase() ?? "",
@@ -732,7 +732,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         // the array beside the values. Read as a plain `var_array` it pushed a number into the
         // array of rows, which `tsc` refuses - and nothing held the shape, because `foreign[]`
         // is refused and this is only reachable through a folded group with trimming on.
-        // spec/variable-length-record-arrays.md.
+        // spec/types/variable-length-record-arrays.md.
         if (wire.IsArray)
             return wire.IsRef ? "var_array_ref" : "var_array";
 
@@ -754,7 +754,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         // element type of its own - what needs importing is named by a leaf, however deep it
         // sits. Reading the group alone left a record member's target unimported, and the
         // generated module then named a type nothing had brought in.
-        // spec/references-in-records.md.
+        // spec/references/references-in-records.md.
         foreach (var field in table.SerialFields.SelectMany(sf => sf.IsRecord
                                                                 ? sf.Leaves.Select(leaf => leaf.FirstField)
                                                                 : new[] { sf.FirstField }))
@@ -780,7 +780,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
         // The abstract types this table's groups are. Declared in a module of their own -
         // one per declaration however many tables named it - so the table brings the union
-        // in rather than declaring its own. spec/polymorphism.md section 7.1.
+        // in rather than declaring its own. spec/types/polymorphism.md section 7.1.
         foreach (var declared in table.Fields
                      .Where(field => field.IsDiscriminator && field.AbstractTypeName is not null)
                      .Select(field => field.AbstractTypeName!.ToPascalCase())
@@ -928,7 +928,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
         // Which abstract type this group is, if it is one. One per declaration however many
         // tables named it, so this looks the shared entry up rather than working it out again.
-        // spec/polymorphism.md section 7.1.
+        // spec/types/polymorphism.md section 7.1.
         var declaredType = sf.Members
             .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
             ?.FirstField?.AbstractTypeName is { } abstractName
@@ -963,7 +963,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             PascalName = sf.Name.ToPascalCase(),
 
             // An array of arrays has no element type to name, so the inner array is the
-            // type - see spec/nested-multi-level.md.
+            // type - see spec/types/nested-multi-level.md.
             VariantsAreArray = declaredType is not null && sf.IsArray,
             EntryAccess = "e",
             AbstractTypeName = declaredType?.Name ?? "",
@@ -1026,7 +1026,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// The recursion is here rather than in the template, and <paramref name="declared"/>
     /// collects the interfaces it produces. A member that is a record differs from one that is
     /// a value only in the three strings below - its type, its exported type, and its empty
-    /// value - so depth costs nothing past this method. spec/nested-multi-level.md.
+    /// value - so depth costs nothing past this method. spec/types/nested-multi-level.md.
     /// </remarks>
     private List<TsRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, List<TsRecordTypeView> declared)
@@ -1040,7 +1040,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 // A reference member holds the row it resolved to, and the key and the flag
                 // beside it. The row starts undefined, which is what a reference into a row
                 // that is not there stays; the JSON carries only the key, so the exported
-                // type is the key's. spec/references-in-records.md.
+                // type is the key's. spec/references/references-in-records.md.
                 bool isRef = member.IsRef;
                 string keyType = isRef
                     ? ToTypescriptTypename(member.FirstField!.RefKeyType, null, null)
@@ -1137,7 +1137,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// <remarks>
     /// A reference member contributes three entries rather than one - the row, the key and
     /// the flag - because all three are properties of the element and a literal has to give
-    /// every property of the interface it satisfies. spec/references-in-records.md.
+    /// every property of the interface it satisfies. spec/references/references-in-records.md.
     /// </remarks>
     private static string RecordLiteral(IReadOnlyList<TsRecordMemberView> members)
         => "{ " + string.Join(", ", members.SelectMany(MemberLiteralParts)) + " }";
@@ -1146,12 +1146,12 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// <remarks>
     /// A reference member gives three properties and one reaching several tables gives three
     /// as well - the key, the slot and the discriminator - because a literal has to give every
-    /// property of the interface it satisfies. spec/multi-target-accessors.md.
+    /// property of the interface it satisfies. spec/references/multi-target-accessors.md.
     /// </remarks>
     private static IEnumerable<string> MemberLiteralParts(TsRecordMemberView member)
     {
         // The member's own name is the key's, where it is a reference; the row is under the
-        // derived name. spec/reference-surface-naming.md sections 4 and 5.
+        // derived name. spec/references/reference-surface-naming.md sections 4 and 5.
         yield return member.RowPropName.Length > 0
             ? $"{member.RowPropName}: {member.DefaultValue}"
             : $"{member.PropName}: {member.DefaultValue}";
@@ -1206,7 +1206,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             // A reference member: the JSON holds the key under the member's own name, and the
             // row it names is filled in by the linking pass. So the property the JSON matches
             // is the key, and the row starts absent exactly as the binary path leaves it.
-            // spec/references-in-records.md.
+            // spec/references/references-in-records.md.
             if (member.IsRef)
             {
                 string key = FromJsonExpressionOf(member.FirstField!.RefKeyType, "v");
@@ -1271,7 +1271,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 string source = $"{field}_{prop}[k]";
 
                 // A reference member: the entry is the key, and the row it names is filled in
-                // by the linking pass. spec/references-in-records.md.
+                // by the linking pass. spec/references/references-in-records.md.
                 return member.IsRef
                     ? new[]
                     {
@@ -1316,7 +1316,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                              + $"offset + {(at + 1) * sf.RecordElementCount})";
 
                 // A reference member: the run holds the keys, and the rows they name are
-                // filled in by the linking pass. spec/references-in-records.md.
+                // filled in by the linking pass. spec/references/references-in-records.md.
                 if (member.IsRef)
                 {
                     string key = FromJsonExpressionOf(member.FirstField!.RefKeyType, "v");
@@ -1333,7 +1333,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
                 // A member reaching several tables: the run holds its keys, and the slot and
                 // the discriminator are what the linking fills - one of each per element, so
-                // they are sized from the same run. spec/multi-target-accessors.md.
+                // they are sized from the same run. spec/references/multi-target-accessors.md.
                 var field2 = member.FirstField;
 
 
@@ -1378,7 +1378,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 return new[] { $"{prop}: {CompactRowLiteral(member.Members)}" };
 
             // A reference member: the entry is the key, and the row it names is filled in by
-            // the linking pass. spec/references-in-records.md.
+            // the linking pass. spec/references/references-in-records.md.
             if (member.IsRef)
             {
                 return new[]
@@ -1444,7 +1444,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 return new[] { $"{prop}: {CompactZipLiteral(member.Members, field, prefix + prop + "_")}" };
 
             // A reference member: the entry is the key, and the row it names is filled in by
-            // the linking pass. spec/references-in-records.md.
+            // the linking pass. spec/references/references-in-records.md.
             if (member.IsRef)
             {
                 return new[]
@@ -1546,7 +1546,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             // An array of them: the resolved array and the flag are as long as the keys, which
             // is the length the data states. Left to the linking pass they would hold only the
             // elements that resolved, and a row whose second reference points at nothing would
-            // have a one-element array. spec/nullable-array-elements.md.
+            // have a one-element array. spec/types/nullable-array-elements.md.
             return sf.IsArray
                 ? $"{keys}; {SizedFromKeys(field, index)}"
                 : keys;
@@ -1574,7 +1574,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// The values are filled in by the linking pass, and only for the keys that point at
     /// something - so nothing else gives these two arrays their length. Every other language
     /// sizes them where it reads, and a shorter array here is a hole a `for ... of` walks past
-    /// without a sign. spec/nullable-array-elements.md.
+    /// without a sign. spec/types/nullable-array-elements.md.
     /// </remarks>
     private static string SizedFromKeys(string field, string index)
         => $"this.{field} = new Array(this.{index}.length).fill(undefined); "
@@ -1689,7 +1689,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         if (wire.IsRef)
         {
             // The key the target is addressed by. `ELEMENT_I32` alone is what a reference
-            // accepted while a key could only be an int. spec/reference-key-types.md.
+            // accepted while a key could only be an int. spec/references/reference-key-types.md.
             accepted = wire.RefKeyType switch
             {
                 ValueType.String => "tabbit.ELEMENT_STRING",
@@ -1757,7 +1757,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
         // was the int32 assumption in another place: a target keyed by `uuid` has no cursor
-        // path any more than a `uuid` column does. spec/reference-key-types.md.
+        // path any more than a `uuid` column does. spec/references/reference-key-types.md.
         if (wire.IsRef)
             return wire.RefKeyType != ValueType.Uuid;
 
@@ -1816,7 +1816,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             return "";
 
         // A reference runs on the key it carries. `nextSameI32` was the only answer while a
-        // key could only be an int. spec/reference-key-types.md.
+        // key could only be an int. spec/references/reference-key-types.md.
         if (wire.IsRef)
         {
             return wire.RefKeyType switch
@@ -1857,7 +1857,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         //
         // A run is one value for many rows, which an array column has none of - so a record
         // member reaching this is a member of a record of one, and its key sits on the member
-        // like every other member's does. spec/references-in-records.md.
+        // like every other member's does. spec/references/references-in-records.md.
         if (wire.IsRef)
         {
             return (wire.Member is null)
@@ -1884,7 +1884,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             // Only the stored key is on the wire; the value is filled in once every table
             // is loaded. The call is the key's own - `nextI32` for every reference is what
             // kept a table keyed by anything else from being pointed at.
-            // spec/reference-key-types.md.
+            // spec/references/reference-key-types.md.
             if (wire.IsRef)
             {
                 return wire.RefKeyType switch
@@ -1918,7 +1918,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             ValueType.Enum => $"reader.readEnum() as {ToTypescriptTypename(wire.TagCarrier)}",
                 // The key the target is addressed by, which is not always an int32 -
                 // that constant is what kept a table keyed by anything else from
-                // being pointed at. spec/reference-key-types.md.
+                // being pointed at. spec/references/reference-key-types.md.
             ValueType.ForeignRecord => LanguageProfile.Typescript.ReadCall(wire.RefKeyType),
             // Everything else is a plain call named in the profile, which is where the
             // nine of them live now rather than here and in eight other generators.
@@ -1943,7 +1943,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         //
         // The key's own JSON type, not `number`: a `bigint` key is exported as a string for
         // the same reason any 64-bit value is, and a `uuid` or `string` key as itself.
-        // spec/reference-key-types.md.
+        // spec/references/reference-key-types.md.
         if (sf.IsRef)
             return JsonWireTypeOfKey(sf.FirstField!.RefKeyType);
 
@@ -1956,7 +1956,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// <remarks>
     /// The key's own type, not `number`: a `bigint` key is exported as a string for the same
     /// reason any 64-bit value is, and a `uuid` or `string` key as itself.
-    /// spec/reference-key-types.md.
+    /// spec/references/reference-key-types.md.
     /// </remarks>
     private string JsonWireTypeOfKey(ValueType keyType)
         => keyType == ValueType.Int64
@@ -2010,7 +2010,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// <remarks>
     /// The type functions answer for an element and let the caller add the brackets, exactly
     /// as a field's do - so an array constant asks for the element and wraps it here.
-    /// spec/primary-layout.md section 8.5.
+    /// spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     private string ConstantTypeName(ConstantSet.Constant constant)
     {
@@ -2029,7 +2029,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     ///
     /// A constant never reaches the file, so there is no wire question here: what a language
     /// needs is an expression its compiler accepts in the place a constant is declared.
-    /// spec/primary-layout.md section 8.5.
+    /// spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     private string RenderConstantValue(ConstantSet.Constant constant)
     {

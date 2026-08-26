@@ -486,7 +486,7 @@ internal static class TcbColumnEncoder
     /// An estimate, not a limit: the writer grows by doubling, so a short guess costs a copy
     /// and a long one costs nothing but the slack. The floor keeps a tiny column from
     /// paying for a resize on its first value.
-    /// spec/conversion-time.md section 4.
+    /// spec/ops/conversion-time.md section 4.
     /// </remarks>
     private static TcbWriter Candidate(int values, int bytesPerValue = 5)
         => new TcbWriter(Math.Clamp(values * bytesPerValue + 16, 256, 64 * 1024));

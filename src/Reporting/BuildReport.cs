@@ -30,7 +30,7 @@ namespace Tabbit.Reporting;
 /// **It never changes the outcome.** A report that could not be written costs its reader a
 /// list and nothing else, so it is caught and logged. Nothing here touches the exit code.
 ///
-/// spec/build-report.md.
+/// spec/ops/build-report.md.
 /// </remarks>
 public sealed class BuildReport
 {

@@ -28,7 +28,7 @@ tables.encryptionKey = nil
 -- different key from encryptionKey and independent of it. Setting it makes the reader
 -- stricter in a second way: a file that carries no MAC is refused, because otherwise the
 -- check could be removed by zeroing sixteen bytes - so the order to turn this on in is
--- data first, key second. spec/tcb-mac-and-signature.md.
+-- data first, key second. spec/wire/tcb-mac-and-signature.md.
 tables.macKey = nil
 
 -- Whether to check the MAC at all. For tools and for measuring what the check costs; it

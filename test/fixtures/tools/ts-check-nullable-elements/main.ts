@@ -12,7 +12,7 @@
 // `words` is a `string?[]` and it is in the comparison on purpose: an absent element and an
 // empty string are the same value, so only the bit tells them apart.
 //
-// spec/nullable-array-elements.md.
+// spec/types/nullable-array-elements.md.
 
 import * as fs from 'fs'
 

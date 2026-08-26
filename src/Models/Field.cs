@@ -84,7 +84,7 @@ public class Field
     ///
     /// So the layout that renames a column may say what to match it by instead. **Nothing here
     /// knows what a grid is** - only that this column has a name of its own for this one
-    /// purpose. spec/table-row-sets.md · spec/matrix-tables.md.
+    /// purpose. spec/layout/table-row-sets.md · spec/layout/matrix-tables.md.
     /// </remarks>
     public string SetAlignName { get; set; } = "";
 
@@ -100,7 +100,7 @@ public class Field
     /// an element may. A column that is not an array leaves this true; there is nothing for
     /// it to say.
     ///
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     /// </remarks>
     public bool ElementsRequired { get; set; } = true;
 
@@ -116,7 +116,7 @@ public class Field
     ///
     /// One step means the column is an element of a plain array. Two or more mean it sits
     /// inside a record, **however deep** - the folding walks the steps and nothing in it
-    /// counts them. See spec/nested-multi-level.md.
+    /// counts them. See spec/types/nested-multi-level.md.
     ///
     /// <see cref="Name"/> stays a single valid identifier (`Slot1Id`) so duplicate
     /// detection, lookup and every language's spelling rules keep working unchanged; this
@@ -141,7 +141,7 @@ public class Field
     /// <remarks>
     /// The `$type` column. What the cell holds is a variant name and what the file carries is
     /// that variant's `@N`, which is the same relation an enum column has to its labels -
-    /// and the reason no enum is generated for it. spec/polymorphism.md sections 5.2 and 7.1.
+    /// and the reason no enum is generated for it. spec/types/polymorphism.md sections 5.2 and 7.1.
     /// </remarks>
     public bool IsDiscriminator
         => NamePath is not null && NamePath.Count > 0 && NamePath[^1].IsDiscriminator;
@@ -153,7 +153,7 @@ public class Field
     /// **Empty means the abstract type's own field** - a base field, present in every row of
     /// the group, which is why it is a plain column and not an optional one. A member several
     /// variants declare is here once per variant: the column is shared, and a row may fill it
-    /// only if its own variant is in this list. spec/polymorphism.md sections 5.1 and 5.2.
+    /// only if its own variant is in this list. spec/types/polymorphism.md sections 5.1 and 5.2.
     /// </remarks>
     public List<string> VariantsDeclaringThis { get; set; } = new List<string>();
 
@@ -212,7 +212,7 @@ public class Field
     /// Nothing reads it yet. It is what a later revision needs to give the group a shared
     /// type - the engine's own vector rather than a struct per column - without having to
     /// infer from three members that they were a vector.
-    /// spec/composite-value-types.md section 7.
+    /// spec/types/composite-value-types.md section 7.
     /// </remarks>
     [JsonIgnore]
     public ValueType CompositeOrigin { get; set; }
@@ -287,7 +287,7 @@ public class Field
     /// The one table a reference names. `foreign` takes one, so "resolves to exactly one
     /// record" holds for every reference there is - a value that may be an id of any of
     /// several tables is a check and not a reference, written `refs=` and left as the
-    /// number it was. spec/reference-surface-naming.md section 6.
+    /// number it was. spec/references/reference-surface-naming.md section 6.
     /// </remarks>
     public string? RefTableName { get; set; }
 
@@ -326,7 +326,7 @@ public class Field
     /// what lets those places ask instead of assume.
     ///
     /// `Int32` until resolution fills it in, which is both the old behaviour and the common
-    /// case. spec/reference-key-types.md.
+    /// case. spec/references/reference-key-types.md.
     /// </remarks>
     [JsonIgnore]
     public ValueType RefKeyType { get; set; } = ValueType.Int32;
@@ -375,7 +375,7 @@ public class Field
     /// **`WireTag` rather than `Tag`, because "tag" is about to mean something else too** -
     /// the recipe's include/exclude tags, which select what a build carries and have nothing
     /// to do with a column's identity in the file. A variant's `@N` is a third number and is
-    /// called a discriminator for the same reason. spec/polymorphism.md section 5.1.1.
+    /// called a discriminator for the same reason. spec/types/polymorphism.md section 5.1.1.
     /// </remarks>
     public int? WireTag { get; set; }
 

@@ -3,7 +3,7 @@
    Rows are plain tables built whole and then sealed behind a strict metatable, so a
    misspelled field is an error at the access instead of a silent nil - and because every
    declared field is filled before the metatable goes on, correct reads and writes never
-   pay for the check. spec/lua-language-support.md. ##~}}
+   pay for the check. spec/targets/lua-language-support.md. ##~}}
 {{ include 'lua-file-head.sbn' }}
 {{~## The element type of each record group, ahead of the row that holds one. Innermost
    first, which is required rather than tidy: a constructor names the level below, and
@@ -19,7 +19,7 @@
    which is what the per-target accessor needs: it asks the discriminator and then hands back
    the slot. Only such an element - one with none keeps `strictType`, so nothing already
    generated moves. This is the row-level shape one level in.
-   spec/multi-target-accessors.md. ##~}}
+   spec/references/multi-target-accessors.md. ##~}}
 local {{ rt.type_name }}Meta = tcb.strictType("{{ if rt.is_outermost }}an element of{{ else }}a record inside{{ end }} {{ rt.owner }}", { {{ rt.field_names }} })
 
 ---@return {{ rt.type_name }}
@@ -47,7 +47,7 @@ end
 {{~## A row that has methods rather than one that is only data, which is what a column
    reaching several tables needs: the per-target accessor asks the discriminator and then hands
    back the slot. Only such a row - a table with no multi-target column keeps `strictType`, so
-   nothing already generated moves. spec/multi-target-accessors.md. ##~}}
+   nothing already generated moves. spec/references/multi-target-accessors.md. ##~}}
 local {{ table.record_name }}Meta = tcb.strictType("a `{{ table.raw_name }}` row", { {{ table.record_field_names }} })
 
 ---@return {{ table.record_name }}
@@ -60,7 +60,7 @@ local function new{{ table.record_name }}()
 {{~ end ~}}
 {{~## Set here rather than left absent: the discriminator is a value a consumer reads, and a
    row whose key points at nothing has to answer the same thing here as it does in every other
-   language. Absent would answer nil. spec/multi-target-accessors.md. ##~}}
+   language. Absent would answer nil. spec/references/multi-target-accessors.md. ##~}}
   }, {{ table.record_name }}Meta)
 end
 
@@ -82,7 +82,7 @@ end
 {{~## A key of several columns is held as the text they make. Each part carries its own
    length, so no two combinations can make the same text - joined by a separator alone,
    ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
-   spec/primary-layout.md section 3.5. ##~}}
+   spec/layout/primary-layout.md section 3.5. ##~}}
 {{~ if index.is_composite ~}}
 -- Joins the columns of the {{ index.field_name }} key into the text the map is keyed by.
 local function keyOf{{ index.suffix }}({{ index.params }})
@@ -148,7 +148,7 @@ function {{ table.table_name }}:readBytes(data)
 
   -- Opened unconditionally, with whatever keys the accessor holds - nil unless the
   -- project set them. A file that is neither encrypted nor signed comes back untouched,
-  -- so the load path is the same either way. spec/tcb-mac-and-signature.md.
+  -- so the load path is the same either way. spec/wire/tcb-mac-and-signature.md.
   local reader = tcb.newReader(tcb.open(
     data, accessor.encryptionKey, accessor.macKey, accessor.verifyMac))
   local count, columns = tcb.readTableHeader(reader)
@@ -177,7 +177,7 @@ function {{ table.table_name }}:readBytes(data)
 {{~ end ~}}
 {{~ if column_view.has_optional_elements ~}}
       -- Behind the row bitmap and in front of the values, walked with a counter that
-      -- steps once per element of every row. spec/nullable-array-elements.md.
+      -- steps once per element of every row. spec/types/nullable-array-elements.md.
       local elementPresence = tcb.readElementPresence(reader, column)
       local elementAt = 0
 {{~ end ~}}
@@ -214,7 +214,7 @@ function {{ table.table_name }}:readBytes(data)
 {{~ if column_view.kind == 'var_array_ref' ~}}
 {{~## A reference array read its keys above - `values_target` is the key list for it - so the
    list the consumer reads starts empty and the linking pass fills it.
-   spec/variable-length-record-arrays.md. ##~}}
+   spec/types/variable-length-record-arrays.md. ##~}}
         {{ column_view.secondary_clear }}
 {{~ end ~}}
 {{~ if column_view.has_optional_elements ~}}
@@ -246,7 +246,7 @@ function {{ table.table_name }}:readBytes(data)
         end
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner list. Which outer element it is, is which column this is - so that index
-   is written in and the loop runs the inner length. spec/nested-multi-level.md. ##~}}
+   is written in and the loop runs the inner length. spec/types/nested-multi-level.md. ##~}}
         {{ column_view.length_read }}
         {{ column_view.element_container }} = {}
         for element = 1, elementCount do
@@ -321,7 +321,7 @@ end
 
    A function on the table rather than a field on the row, because the row's strict metatable
    declares its fields and a lazily added one would be an error to write.
-   spec/polymorphism.md section 7.2. ##~}}
+   spec/types/polymorphism.md section 7.2. ##~}}
 {{~ if field.variants_are_array ~}}
 {{~## **The array shape.** Each element carries its own discriminator - section 5.3 - so the
    shapes inside one row may differ, and what a consumer reads is a list of the abstract type.
@@ -355,7 +355,7 @@ function {{ table.table_name }}.{{ field.name }}Element(entry)
 {{~ for member in field.base_members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
     built.{{ member.name }} = entry.{{ member.name }}
     built.{{ member.row_name }} = entry.{{ member.row_name }}
 {{~ else ~}}
@@ -365,7 +365,7 @@ function {{ table.table_name }}.{{ field.name }}Element(entry)
 {{~ for member in variant.members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
     built.{{ member.name }} = entry.{{ member.name }}
     built.{{ member.row_name }} = entry.{{ member.row_name }}
 {{~ else ~}}

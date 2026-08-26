@@ -55,7 +55,7 @@ internal sealed class CsFileView
     /// </summary>
     /// <remarks>
     /// One per declaration however many tables named it, which is the whole reason the list is
-    /// here rather than on a table. spec/polymorphism.md section 7.1.
+    /// here rather than on a table. spec/types/polymorphism.md section 7.1.
     /// </remarks>
     public IReadOnlyList<CsPolymorphicTypeView> Structs { get; set; }
         = Array.Empty<CsPolymorphicTypeView>();
@@ -152,7 +152,7 @@ internal sealed class CsTableView
     /// column - and a record group is one column per member.
     ///
     /// Keeping them apart is what makes record support a different list rather than a
-    /// second branch through the read path. See spec/nested-fields.md.
+    /// second branch through the read path. See spec/types/nested-fields.md.
     /// </remarks>
     public required IReadOnlyList<CsColumnView> Columns { get; set; }
 
@@ -171,7 +171,7 @@ internal sealed class CsTableView
     /// <remarks>
     /// Separate from <see cref="ReferenceFields"/> because the loop differs: a reference
     /// that is a member is resolved per element, so the generated code walks the array
-    /// before it looks anything up. spec/references-in-records.md.
+    /// before it looks anything up. spec/references/references-in-records.md.
     /// </remarks>
     public required IReadOnlyList<CsRecordReferenceView> RecordReferenceFields { get; set; }
 
@@ -222,7 +222,7 @@ internal sealed class CsColumnView
 {
     /// <summary>
     /// The member access ending in the row's derived name, for a whole-row reference member.
-    /// The plain access otherwise. spec/reference-surface-naming.md sections 5 and 9.
+    /// The plain access otherwise. spec/references/reference-surface-naming.md sections 5 and 9.
     /// </summary>
     public string RowMemberAccess { get; set; } = "";
 
@@ -284,7 +284,7 @@ internal sealed class CsColumnView
     /// <remarks>
     /// The outer index is which column this is rather than something read per row, so the
     /// read fills that one element and the array itself came with the record.
-    /// spec/nested-multi-level.md.
+    /// spec/types/nested-multi-level.md.
     /// </remarks>
     public int MemberAt { get; set; }
 
@@ -372,7 +372,7 @@ internal sealed class CsRecordMemberView
 {
     /// <summary>
     /// What the resolved row is called, where this member is a whole-row reference. Empty
-    /// otherwise. spec/reference-surface-naming.md sections 5 and 9.
+    /// otherwise. spec/references/reference-surface-naming.md sections 5 and 9.
     /// </summary>
     public string RowPropName { get; set; } = "";
 
@@ -399,7 +399,7 @@ internal sealed class CsRecordMemberView
     /// happened. They live in the element rather than beside it because a group may hold
     /// more than one reference, and a name built from the group and the target would
     /// collide the moment two members point at the same table.
-    /// spec/references-in-records.md.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     public required string RefKeyTypeName { get; set; }
 
@@ -448,7 +448,7 @@ internal sealed class CsRecordMemberView
     /// The array is allocated by the element factory rather than by the read, exactly as
     /// an array of records is. The read then fills `record._g.Member[j]` and never
     /// allocates - which is what lets the members be read in any order without one
-    /// discarding what another wrote. See spec/nested-multi-level.md.
+    /// discarding what another wrote. See spec/types/nested-multi-level.md.
     /// </remarks>
     public required bool IsArray { get; set; }
 
@@ -466,7 +466,7 @@ internal sealed class CsRecordMemberView
     /// `Star1.Position.X` makes `Position` one of these. The template does not need to know
     /// how deep it is: the type it names is declared alongside the others in
     /// <see cref="CsFieldView.RecordTypes"/>, and every level is built the same way.
-    /// See spec/nested-multi-level.md.
+    /// See spec/types/nested-multi-level.md.
     /// </remarks>
     public bool IsRecord { get; set; }
 
@@ -513,7 +513,7 @@ internal sealed class CsFieldView
     /// <summary>The type a lookup on this column takes, where it is an index.</summary>
     /// <remarks>
     /// **A reference column is keyed by the target's key, not the target's row.** Empty on
-    /// a column that is not an index. spec/reference-surface-naming.md sections 4 and 5.
+    /// a column that is not an index. spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     public string IndexKeyType { get; set; } = "";
 
@@ -523,7 +523,7 @@ internal sealed class CsFieldView
     /// <remarks>
     /// Empty on everything else, including a dotted reference: that one hands back a value
     /// out of the target rather than the row, so the column's name stays on it and there is
-    /// no second name to give. spec/reference-surface-naming.md sections 5 and 9.
+    /// no second name to give. spec/references/reference-surface-naming.md sections 5 and 9.
     /// </remarks>
     public string RowPropName { get; set; } = "";
 
@@ -571,7 +571,7 @@ internal sealed class CsFieldView
     /// <remarks>
     /// The last entry is the group's own element type, and <see cref="Members"/> is its
     /// members - kept so the declaration and read paths that only ever look at the outermost
-    /// level read as they did. spec/nested-multi-level.md.
+    /// level read as they did. spec/types/nested-multi-level.md.
     /// </remarks>
     public IReadOnlyList<CsRecordTypeView> RecordTypes { get; set; } = Array.Empty<CsRecordTypeView>();
 
@@ -586,7 +586,7 @@ internal sealed class CsFieldView
     /// always was and the variant object is built from it afterwards, once, on first use.
     ///
     /// That is also why the wire does not move: nothing here is about the file.
-    /// spec/polymorphism.md sections 6 and 7.
+    /// spec/types/polymorphism.md sections 6 and 7.
     /// </remarks>
     public IReadOnlyList<CsVariantView> Variants { get; set; } = Array.Empty<CsVariantView>();
 
@@ -704,7 +704,7 @@ internal sealed class CsFieldView
     /// </summary>
     /// <remarks>
     /// `int` was written into the template, which is one of the places that kept a table
-    /// keyed by anything else from being pointed at. spec/reference-key-types.md.
+    /// keyed by anything else from being pointed at. spec/references/reference-key-types.md.
     /// </remarks>
     public required string RefKeyTypeName { get; set; }
 
@@ -715,7 +715,7 @@ internal sealed class CsFieldView
     /// Zero is the convention for "points at nothing", and it needs a spelling per key type:
     /// a string key has no zero, and comparing one against a number does not compile. Given
     /// as a suffix so the template composes the member name itself.
-    /// spec/reference-optionality.md · spec/reference-key-types.md.
+    /// spec/references/reference-optionality.md · spec/references/reference-key-types.md.
     /// </remarks>
     public required string RefIsSet { get; set; }
 
@@ -774,7 +774,7 @@ internal sealed class CsConstantView
 /// Whole expressions rather than the parts to build them from, because which of the three
 /// record shapes this is decides where the element number sits - on the group, on the
 /// member, or nowhere - and the template should not be the place that knows.
-/// spec/references-in-records.md.
+/// spec/references/references-in-records.md.
 /// </remarks>
 internal sealed class CsRecordReferenceView
 {
@@ -842,7 +842,7 @@ internal sealed class CsStructMemberView
     /// The declared name is the key's - that is what the cell holds - and the row it resolves to
     /// takes the derived one. A variant that carried only the key would hand a consumer a
     /// string where the declaration promised a row, and one that carried only the row would
-    /// lose the key. spec/reference-surface-naming.md sections 4 and 5.
+    /// lose the key. spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     public string RowPropName { get; set; } = "";
 
@@ -856,7 +856,7 @@ internal sealed class CsStructMemberView
 /// <remarks>
 /// **A struct is an entity beside a table and an enum, so it gets a file like one.** Declaring
 /// it inside every table that uses it would give each of them a type of the same name that is
-/// not the same type. spec/polymorphism.md section 7.1.
+/// not the same type. spec/types/polymorphism.md section 7.1.
 /// </remarks>
 internal sealed class CsPolymorphicTypeView
 {

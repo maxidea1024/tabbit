@@ -27,7 +27,7 @@ namespace Tabbit.Cooking;
 /// The pattern itself is the source's, never this program's. What a tail looks like is a
 /// convention of whoever wrote the sheets.
 ///
-/// spec/table-row-sets.md.
+/// spec/layout/table-row-sets.md.
 /// </remarks>
 internal static class TableRowSets
 {
@@ -184,7 +184,7 @@ internal static class TableRowSets
     /// **A column no set of this table declares stays required. One that a set does not
     /// declare becomes optional**, because otherwise validation reports the value written
     /// here - by this method, deliberately - as a violation. What it costs and why the whole
-    /// array turns optional rather than one element of it is in spec/table-row-sets.md 4.2.
+    /// array turns optional rather than one element of it is in spec/layout/table-row-sets.md 4.2.
     ///
     /// **Matched by <see cref="Field.SetAlignName"/> where a field carries one**, which is how
     /// a grid's columns line up by their ids rather than by the positional names the layout
@@ -272,7 +272,7 @@ internal static class TableRowSets
     /// **An element of an array turns the whole array optional.** Requiredness is one answer
     /// per array in this model - element 0 states it and every element takes it - so there is
     /// no room for one element of it to be the optional one. That is stated as the cost in
-    /// spec/table-row-sets.md rather than worked around here.
+    /// spec/layout/table-row-sets.md rather than worked around here.
     ///
     /// The derived views are dropped afterwards, because requiredness is copied to the
     /// elements when they are built and a view built before this ran holds the old answer.

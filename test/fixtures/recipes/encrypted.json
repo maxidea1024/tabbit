@@ -13,7 +13,7 @@
   // The keys are named, never written. `TABBIT_TEST_TCB_KEY` and `TABBIT_TEST_TCB_MAC_KEY`
   // are set by the test that runs this, the same way a build server would set them, and a key
   // written into this file would be a key in the repository's history from then on.
-  // spec/tcb-v104-composed-encodings.md §4 · spec/tcb-mac-and-signature.md.
+  // spec/wire/tcb-v104-composed-encodings.md §4 · spec/wire/tcb-mac-and-signature.md.
 
   "Sources": {
     "Xlsx": [

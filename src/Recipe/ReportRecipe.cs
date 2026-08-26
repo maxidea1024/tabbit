@@ -6,7 +6,7 @@ namespace Tabbit.Recipe;
 /// <remarks>
 /// The report exists because the person who can fix a sheet is not the person watching the
 /// console. Everything here is about reaching them: whether the page opens by itself, and
-/// where it waits when it does not. spec/build-report.md.
+/// where it waits when it does not. spec/ops/build-report.md.
 /// </remarks>
 public class ReportRecipe
 {

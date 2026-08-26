@@ -74,7 +74,7 @@ for row in data.item.records { /* ... */ }
 Swift 6는 가변 전역 상태를 오류로 보므로 `static var` 테이블은 컴파일되지 않습니다.
 
 그리고 인스턴스는 그 자체로 얻는 것이 있습니다. 테스트 격리, 두 버전 동시 로드, 한쪽을 읽는 동안
-다른 쪽으로 바꾸는 핫 리로드입니다([설계](../../spec/accessor-instances.md)).
+다른 쪽으로 바꾸는 핫 리로드입니다([설계](../../spec/targets/accessor-instances.md)).
 
 싱글턴처럼 쓰고 싶으면 `let` 하나를 어디든 두면 됩니다.
 
@@ -104,7 +104,7 @@ do {
 ### 왜 패키지를 쓰는가
 
 MAC은 HMAC-SHA-256이고, 그것을 직접 구현하면 **CPU의 SHA 확장 명령에 닿지 못합니다.**
-[측정](../../spec/tcb-mac-and-signature.md#검증-비용--실측)은 이렇습니다.
+[측정](../../spec/wire/tcb-mac-and-signature.md#검증-비용--실측)은 이렇습니다.
 
 |구현|처리량|
 |--|--|
@@ -254,17 +254,17 @@ throw하지 않습니다. 네트워크·디스크·손상된 파일은 모두 �
 ## 주의사항
 
 **정수는 폭을 적습니다.** `int`는 `Int32`, `bigint`는 `Int64`입니다. `Int`가 아닌 것은 데이터
-충실성 때문이고, 참조 키가 폭을 잃으면 [한 번 났던 결함](../../spec/reference-key-types.md)이
+충실성 때문이고, 참조 키가 폭을 잃으면 [한 번 났던 결함](../../spec/references/reference-key-types.md)이
 다시 납니다. 호출하는 쪽에서 `Int(row.hp)`를 쓰게 되는 비용은 그 대가입니다.
 
 **옵셔널 필드는 `T?`가 아닙니다.** 값 프로퍼티는 언제나 초기화되어 있고, 없음은 `hasHp` 같은
 이웃 프로퍼티가 답합니다. Swift 관용과 어긋나는 유일한 자리이고, 근거는
-[옵셔널 필드](../../spec/optional-fields.md)에 있습니다 — 값을 읽는 모든 자리가 언랩을 지불하지
+[옵셔널 필드](../../spec/types/optional-fields.md)에 있습니다 — 값을 읽는 모든 자리가 언랩을 지불하지
 않게 하려는 것입니다. 참조는 예외로 `T?`입니다(없는 참조가 곧 `nil`입니다).
 
 **로우는 `class`, 레코드 원소는 `struct`입니다.** 해석된 참조가 값이면 가리키는 쪽마다 행이
 복사되므로 로우는 참조 타입이고, 배열 안에 인라인으로 놓이는 원소는 값 타입입니다
-([근거](../../spec/swift-language-support.md#2-결정-1--행은-final-class-레코드-원소는-struct)).
+([근거](../../spec/targets/swift-language-support.md#2-결정-1--행은-final-class-레코드-원소는-struct)).
 
 **키워드는 백틱으로 이스케이프합니다.** 이름을 바꾸지 않고 `` `class` ``로 감싸므로, 생성된
 멤버 이름이 시트의 이름과 그대로 같습니다.

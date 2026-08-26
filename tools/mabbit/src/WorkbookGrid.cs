@@ -15,7 +15,7 @@ namespace Mabbit;
 /// Values are text and nothing else. A merge compares three files read by this same code in
 /// one run, so there is nothing for a canonical form to reconcile - and interpreting a value
 /// would mean resolving the types, which needs workbooks other than the one being merged.
-/// spec/workbook-merge.md section 4.1.
+/// spec/import/workbook-merge.md section 4.1.
 /// </remarks>
 internal sealed class WorkbookGrid
 {

@@ -134,7 +134,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     /// **This one keeps its reflection**, which an array of arrays did not: a struct member of a
     /// USTRUCT type is a property UHT accepts, where a nested container is not. So the depth
     /// generalization costs this target less than the shape before it did.
-    /// spec/nested-multi-level.md.
+    /// spec/types/nested-multi-level.md.
     /// </remarks>
     protected override bool SupportsDeepNestedFields => true;
 
@@ -144,7 +144,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     /// <remarks>
     /// Not `TOptional`: it is not a property type UHT knows before 5.4, and the member has to
     /// stay a UPROPERTY. The engine answers the same problem the same way - `bOverride_X`
-    /// beside `X` in FPostProcessSettings. spec/optional-fields.md has the reasoning.
+    /// beside `X` in FPostProcessSettings. spec/types/optional-fields.md has the reasoning.
     /// </remarks>
     protected override bool SupportsOptionalFields => true;
 
@@ -153,7 +153,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
 
     /// <summary>
     /// The per-element answer beside the value, filled from the element bitmap the file
-    /// carries. spec/nullable-array-elements.md.
+    /// carries. spec/types/nullable-array-elements.md.
     /// </summary>
     protected override bool SupportsOptionalElements => true;
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
@@ -192,7 +192,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     /// **The discriminator + per-variant accessors shape section 7 named.** A `USTRUCT` cannot
     /// take part in inheritance polymorphism the engine's reflection can see, so this target
     /// falls on the same side C does: a `UENUM` says which variant a row is, and one accessor
-    /// per variant fills a caller-owned struct. spec/polymorphism.md section 7.
+    /// per variant fills a caller-owned struct. spec/types/polymorphism.md section 7.
     /// </remarks>
     private IReadOnlyList<UnrealPolymorphicTypeView> BuildStructs()
         => _model.PolymorphicTypes
@@ -217,7 +217,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     /// <remarks>
     /// **A reference member is two properties**, as a reference is anywhere: the declared name
     /// is the key's and the row it resolves to takes the derived one.
-    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     private UnrealStructMemberView StructMember(Models.Field field)
     {
@@ -430,7 +430,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
 
             // No linking in this language, so a reference column carries the key and
             // nothing else - and the key wears the column's own name.
-            // spec/reference-surface-naming.md sections 4 and 6.
+            // spec/references/reference-surface-naming.md sections 4 and 6.
             members.Add(member);
         }
 
@@ -491,7 +491,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
 
         // A reference member is declared as the key it holds, so the read names the key - and
         // the suffix goes on the member rather than after the subscript, because a member that
-        // is an array holds one key per element. spec/references-in-records.md.
+        // is an array holds one key per element. spec/references/references-in-records.md.
         string memberRefSuffix = "";
 
         return new UnrealColumnView
@@ -564,7 +564,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     ///
     /// A struct member of a USTRUCT type is a property UHT accepts, so depth costs this target
     /// no reflection - the opposite of what an array of arrays cost it.
-    /// spec/nested-multi-level.md.
+    /// spec/types/nested-multi-level.md.
     /// </remarks>
     private List<UnrealRecordMemberView> BuildRecordMembers(
         Table table, List<RecordMember> members, string prefix, SerialField group,
@@ -613,7 +613,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     private UnrealFieldView BuildField(Table table, SerialField sf, ICollection<string> members)
     {
         // Which abstract type this group is, if it is one. One per declaration however many
-        // tables named it. spec/polymorphism.md section 7.1.
+        // tables named it. spec/types/polymorphism.md section 7.1.
         var declaredType = sf.Members
                 .FirstOrDefault(m => m.IsLeaf && m.FirstField is { IsDiscriminator: true })
                 ?.FirstField?.AbstractTypeName is { } abstractName
@@ -710,7 +710,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
         // record is here: this output keeps references as indices rather than resolving them.
         // So the only thing a member being a reference changes is its name - which has to say
         // what it holds, because the row is not there beside it - and the type of that key.
-        // spec/references-in-records.md.
+        // spec/references/references-in-records.md.
         string name = MemberName(field, member.Name);
         string type = member.IsRef
             ? ToUnrealTypeName(field!.RefKeyType, null)
@@ -833,7 +833,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
             // The key the target is addressed by. `ElementI32` alone is what a reference
             // accepted while a key could only be an int, and the writer has meanwhile learned
             // to emit the key's own element - so a reader told only this would refuse a file
-            // this build wrote. spec/reference-key-types.md.
+            // this build wrote. spec/references/reference-key-types.md.
             accepted = wire.RefKeyType switch
             {
                 ValueType.String => new[] { "ElementString" },
@@ -901,7 +901,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
 
         // A reference reaches the cursor when the key it carries does. An unconditional yes
         // was the int32 assumption in another place: a target keyed by `uuid` has no cursor
-        // path any more than a `uuid` column does. spec/reference-key-types.md.
+        // path any more than a `uuid` column does. spec/references/reference-key-types.md.
         if (wire.IsRef)
             return wire.RefKeyType != ValueType.Uuid;
 
@@ -958,7 +958,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
             return "";
 
         // A reference runs on the key it carries, which is not always an int32. An enum's
-        // underlying value is one. spec/reference-key-types.md.
+        // underlying value is one. spec/references/reference-key-types.md.
         if (wire.IsRef)
         {
             return wire.RefKeyType switch
@@ -1014,10 +1014,10 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
         //
         // Which local the run decoded into is the key's: a string run fills `RunText`, and
         // assigning `RunValue` to an FString does not compile.
-        // spec/reference-key-types.md.
+        // spec/references/reference-key-types.md.
         // No `Index` suffix and no second name: this language does not link, so every
         // reference column is one key wearing the column's own name - dotted or not.
-        // spec/reference-surface-naming.md, "링킹이 없는 언어".
+        // spec/references/reference-surface-naming.md, "링킹이 없는 언어".
         if (wire.IsRef)
             return $"Loaded[Row].{name} = {RunValueName(wire)};";
 
@@ -1048,7 +1048,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
             return "";
 
         // The key the target is addressed by, which is not always an int32.
-        // spec/reference-key-types.md.
+        // spec/references/reference-key-types.md.
         if (wire.IsRef)
         {
             return wire.RefKeyType switch
@@ -1116,7 +1116,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
         if (sf.IsRecord)
         {
             // An array of arrays declares no element type: the outer level has no name for
-            // one to belong to, so it is a nested TArray. spec/nested-multi-level.md.
+            // one to belong to, so it is a nested TArray. spec/types/nested-multi-level.md.
             if (sf.MembersAreAnonymous)
             {
                 string inner = ToUnrealTypeName(
@@ -1143,7 +1143,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     /// <remarks>
     /// Spelled from the key's own type: `= 0` is a value an int has and an `FString` or an
     /// `FGuid` does not, and both are keys a table may be addressed by.
-    /// spec/reference-key-types.md.
+    /// spec/references/reference-key-types.md.
     /// </remarks>
     private static string RefKeyInitializer(ValueType keyType)
         => keyType switch
@@ -1200,7 +1200,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
 
     /// <summary>
     /// The Unreal type a field's values have. A reference's is the key it carries rather
-    /// than the record it presents. spec/reference-key-types.md.
+    /// than the record it presents. spec/references/reference-key-types.md.
     /// </summary>
     private UnrealConstantSetView BuildConstantSet(ConstantSet set) => new UnrealConstantSetView
     {
@@ -1222,7 +1222,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     /// <remarks>
     /// The type functions answer for an element and let the caller add the brackets, exactly
     /// as a field's do - so an array constant asks for the element and wraps it here.
-    /// spec/primary-layout.md section 8.5.
+    /// spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     private string ConstantTypeName(ConstantSet.Constant constant)
     {
@@ -1243,7 +1243,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     ///
     /// A constant never reaches the file, so there is no wire question here: what a language
     /// needs is an expression its compiler accepts in the place a constant is declared.
-    /// spec/primary-layout.md section 8.5.
+    /// spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     private string RenderConstantValue(ConstantSet.Constant constant)
     {
@@ -1407,7 +1407,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
             // Only reached with no field to ask. A reference carries the target's primary
             // index, whose type the target decides, so the overload taking a field answers
             // instead - and `int32` stays right for a key that is one.
-            // spec/reference-key-types.md.
+            // spec/references/reference-key-types.md.
             case ValueType.ForeignRecord:
                 return "int32";
 

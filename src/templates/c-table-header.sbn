@@ -10,11 +10,11 @@
    namespace for struct tags, which is why the name carries the record's. ##~}}
 {{~ for field in table.fields ~}}
 {{~## An array of arrays declares no element type: its outer level has no name, so there is
-   nothing for a struct to be. spec/nested-multi-level.md. ##~}}
+   nothing for a struct to be. spec/types/nested-multi-level.md. ##~}}
 {{~ if field.is_record && !field.members_are_anonymous ~}}
 {{~## One struct per level, innermost first - which C requires rather than prefers: a struct has
    to be complete before another declares a member of it. The view flattened the nesting so this
-   loop does not have to know how deep it went. spec/nested-multi-level.md. ##~}}
+   loop does not have to know how deep it went. spec/types/nested-multi-level.md. ##~}}
 {{~ for rt in field.record_types ~}}
 {{~ if rt.is_outermost ~}}
 /* One element of {{ rt.owner }}. */
@@ -32,7 +32,7 @@ struct {{ rt.type_name }} {
 {{~## The per-target functions of every member of this struct that reaches several tables. They
    take the element rather than the row - the slot is inside it - and one more argument where
    the member is the array, which is the third place an element number sits.
-   spec/multi-target-accessors.md. ##~}}
+   spec/references/multi-target-accessors.md. ##~}}
 
 {{~ end ~}}
 {{~ end ~}}
@@ -55,7 +55,7 @@ struct {{ table.record_name }} {
 {{~ end ~}}
 {{~ if field.has_optional_elements ~}}
   /* Which of {{ field.name }}'s elements have a value, one bool per element, or NULL where
-   * the file did not carry the column. spec/nullable-array-elements.md. */
+   * the file did not carry the column. spec/types/nullable-array-elements.md. */
   const bool* {{ field.element_presence_member }};
 {{~ end ~}}
 {{~ end ~}}
@@ -65,7 +65,7 @@ struct {{ table.record_name }} {
 
    `const void*` because C has no common type for them. The functions below cast it, having
    asked the discriminator first, and casting from `void*` asks nothing of the target type.
-   spec/multi-target-accessors.md. ##~}}
+   spec/references/multi-target-accessors.md. ##~}}
 };
 
 /* Every row of {{ table.raw_name }}.
@@ -111,7 +111,7 @@ bool {{ table.function_prefix }}Contains{{ index.suffix }}(
    language. There is nothing to narrow to here, so a consumer reads the kind and then asks for
    the variant it named; each ask fills a caller-owned struct and answers whether it was that
    one. The row still carries the flat entry, so the read path and the wire are untouched.
-   spec/polymorphism.md section 7.2. ##~}}
+   spec/types/polymorphism.md section 7.2. ##~}}
 
 {{~ if field.variants_are_array ~}}
 {{~## **The array shape.** Each element carries its own discriminator - section 5.3 - so the

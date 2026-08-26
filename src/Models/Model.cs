@@ -30,7 +30,7 @@ public class Model
     /// one - which is the opposite of what declaring it in one file was for.
     ///
     /// A struct is an entity beside a table and an enum, and this is where it sits.
-    /// spec/polymorphism.md section 7.1.
+    /// spec/types/polymorphism.md section 7.1.
     /// </remarks>
     public List<PolymorphicType> PolymorphicTypes { get; set; } = new List<PolymorphicType>();
 
@@ -265,7 +265,7 @@ public class Model
                 // What the cell actually holds, whatever the field goes on to look like: the
                 // primary index of the table it names. Its type is that table's to decide,
                 // and the places that write and read the value ask here instead of assuming
-                // int32. spec/reference-key-types.md.
+                // int32. spec/references/reference-key-types.md.
                 //
                 // The chain's first hop, not ResolvedRefTable. A chain leaves the latter
                 // holding the table it ends at, and the cell was written against the one it
@@ -279,7 +279,7 @@ public class Model
                     // The value is a row of the referenced table, not its key - and a cell
                     // holding a delimited list of keys is a row each. The array kind is the
                     // one the folded numbered columns already produce, so nothing downstream
-                    // meets a shape it has not seen. spec/polymorphism.md section 4.
+                    // meets a shape it has not seen. spec/types/polymorphism.md section 4.
                     //
                     // Told apart by the deferred marker rather than by `IsArray`: a column a
                     // layout promoted from a constraint row was read as an ordinary number
@@ -298,7 +298,7 @@ public class Model
                     // the resolved row beside the key it came from - and the dotted form
                     // resolves to a value instead, which is a second shape inside the element
                     // that no measured sheet asks for. Refused by name rather than half
-                    // generated. spec/references-in-records.md.
+                    // generated. spec/references/references-in-records.md.
                     if (field.IsRecordMember)
                     {
                         diagnostics.Error(field.DetailTypeLocation,
@@ -363,7 +363,7 @@ public class Model
             // of the same table - which is how a grouping id is written, and 21,261 rows of
             // one live workbook are exactly that. The dotted form does walk on, and there a
             // reference into its own table is the first step of a loop.
-            // spec/multi-target-references.md.
+            // spec/references/multi-target-references.md.
             if (refTable == table && !string.IsNullOrEmpty(fieldNode.RefFieldName))
             {
                 diagnostics.Error(fieldNode.DetailTypeLocation,

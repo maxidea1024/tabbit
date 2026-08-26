@@ -147,7 +147,7 @@ internal sealed class CConstantView
     /// this language's array format is the element pointer, which is what a member of a row
     /// needs and not what a file-scope array of static data is. So a constant carries the
     /// brackets separately, and a count beside it because there is nowhere in the type for
-    /// one. spec/primary-layout.md section 8.5.
+    /// one. spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     public required string NameSuffix { get; set; }
 
@@ -271,7 +271,7 @@ internal sealed class CFieldView
     /// <remarks>
     /// One name for both shapes, so the body that fills a variant is written once. A
     /// polymorphic array's builder takes an element; a scalar group's reads the row.
-    /// spec/polymorphism.md section 5.3.
+    /// spec/types/polymorphism.md section 5.3.
     /// </remarks>
     public string EntryAccess { get; set; } = "";
 
@@ -282,7 +282,7 @@ internal sealed class CFieldView
     /// Asked rather than worked out from the read kind, which is spelled differently in every
     /// generator - and the two shapes differ in more than one line: the accessor loops, and
     /// the value it hands back is an array of the abstract type.
-    /// spec/polymorphism.md section 5.3.
+    /// spec/types/polymorphism.md section 5.3.
     /// </remarks>
     public bool VariantsAreArray { get; set; }
 
@@ -292,7 +292,7 @@ internal sealed class CFieldView
     /// <remarks>
     /// The type itself is declared once, elsewhere; this is what the table needs to build a
     /// value of it - which number means which variant, and which of the entry's fields each
-    /// one carries. spec/polymorphism.md sections 7.1 and 7.2.
+    /// one carries. spec/types/polymorphism.md sections 7.1 and 7.2.
     /// </remarks>
     public IReadOnlyList<CVariantView> Variants { get; set; } = new List<CVariantView>();
 
@@ -348,7 +348,7 @@ internal sealed class CFieldView
 
     /// <summary>
     /// Whether this group is an array of arrays, which declares no element type - the outer
-    /// level has no name. See spec/nested-multi-level.md.
+    /// level has no name. See spec/types/nested-multi-level.md.
     /// </summary>
     public bool MembersAreAnonymous { get; set; }
 
@@ -431,7 +431,7 @@ internal sealed class CCrossReferenceView
 
     /// <summary>
     /// The references that are members of a record, which resolve inside the element rather
-    /// than beside it. spec/references-in-records.md.
+    /// than beside it. spec/references/references-in-records.md.
     /// </summary>
     public required IReadOnlyList<CRecordReferenceView> RecordFields { get; set; }
 
@@ -472,7 +472,7 @@ internal sealed class CReferenceFieldView
 {
     /// <summary>
     /// Where the resolved row is stored - the derived name, where this reference is to a
-    /// whole row. spec/reference-surface-naming.md section 5.
+    /// whole row. spec/references/reference-surface-naming.md section 5.
     /// </summary>
     public string RowName { get; set; } = "";
 
@@ -523,7 +523,7 @@ internal sealed class CRecordMemberView
 /// where depth had to be reasoned about in template syntax.
 ///
 /// Innermost first, and here that is not only tidiness - a struct has to be complete before
-/// another declares a member of it. spec/nested-multi-level.md.
+/// another declares a member of it. spec/types/nested-multi-level.md.
 /// </remarks>
 internal sealed class CRecordTypeView
 {
@@ -548,13 +548,13 @@ internal sealed class CColumnView
 {
     /// <summary>
     /// The member access ending in the row's derived name, for a reference member.
-    /// spec/reference-surface-naming.md section 5.
+    /// spec/references/reference-surface-naming.md section 5.
     /// </summary>
     public string RowMemberAccess { get; set; } = "";
 
     /// <summary>
     /// Where the resolved rows go - the derived name for a whole-row reference, the column's
-    /// own name for a dotted one. spec/reference-surface-naming.md sections 5 and 9.
+    /// own name for a dotted one. spec/references/reference-surface-naming.md sections 5 and 9.
     /// </summary>
     public string RowName { get; set; } = "";
 
@@ -693,7 +693,7 @@ internal sealed class CColumnView
 /// <remarks>
 /// One per declaration however many tables named it. A struct is an entity beside a table and
 /// an enum, and emitting it inside each table that used it would give them types that share a
-/// name and are not the same type. spec/polymorphism.md section 7.1.
+/// name and are not the same type. spec/types/polymorphism.md section 7.1.
 /// </remarks>
 internal sealed class CPolymorphicTypeView
 {
@@ -748,7 +748,7 @@ internal sealed class CStructMemberView
     /// <remarks>
     /// **A reference member is two fields here, the same two a reference column is anywhere.**
     /// The declared name is the key's - that is what the cell holds - and the row it resolves to
-    /// takes the derived one. spec/reference-surface-naming.md sections 4 and 5.
+    /// takes the derived one. spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     public string RowName { get; set; } = "";
 

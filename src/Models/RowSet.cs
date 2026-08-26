@@ -16,7 +16,7 @@ namespace Tabbit.Models;
 /// separator inside the string is what keeps this from being an opinion about notation: the
 /// tail is whatever the source's pattern captured, and this program does not interpret it.
 ///
-/// spec/table-row-sets.md.
+/// spec/layout/table-row-sets.md.
 /// </remarks>
 public sealed class RowSet
 {

@@ -16,12 +16,12 @@ namespace Tabbit.Cooking;
 /// answered by that row's `$type` cell. A member several variants declare is one column, not
 /// one per variant - which is what keeps a sheet with sixteen variants readable, and what
 /// makes "the same name with two types" a refusal rather than a choice.
-/// spec/polymorphism.md section 5.2.
+/// spec/types/polymorphism.md section 5.2.
 ///
 /// **Nothing new reaches the wire.** The discriminator is a plain integer column carrying each
 /// variant's `@N`, base fields are ordinary columns present in every row, and a variant member
 /// is an optional column - which v103 already carries. So this pass writes into the model what
-/// the exporters already know how to write. spec/polymorphism.md section 6.
+/// the exporters already know how to write. spec/types/polymorphism.md section 6.
 /// </remarks>
 public partial class ModelCooker
 {
@@ -64,7 +64,7 @@ public partial class ModelCooker
         // **Every element's discriminator, not only the one that carried the type cell.** A
         // multi-row group's member is one column per element in the model, and the file stores
         // a member as one column with one type - so an element left as text is a member whose
-        // elements disagree. spec/polymorphism.md section 5.3.
+        // elements disagree. spec/types/polymorphism.md section 5.3.
         var discriminators = group
             .Where(field => field.IsDiscriminator)
             .ToList();
@@ -91,7 +91,7 @@ public partial class ModelCooker
     /// Int32 rather than a generated enum. The cell holds a variant name and the file holds
     /// that variant's number, which is the relation an enum column has to its labels - but the
     /// variant is already a declared type, so a second name for it would be a third spelling
-    /// of one thing. spec/polymorphism.md section 7.1.
+    /// of one thing. spec/types/polymorphism.md section 7.1.
     /// </remarks>
     private static void BindDiscriminator(
         CookingContext context,
@@ -129,7 +129,7 @@ public partial class ModelCooker
     /// The abstract type's own fields first, because those are the base fields: present in
     /// every row, so a plain column. Then the variants, and a member that several declare has
     /// to have one type among them - the column is shared, and two types in one column is a
-    /// column that cannot be read. spec/polymorphism.md section 5.2.
+    /// column that cannot be read. spec/types/polymorphism.md section 5.2.
     /// </remarks>
     private static void BindVariantMember(
         CookingContext context,
@@ -158,7 +158,7 @@ public partial class ModelCooker
             // **Except where the group is an array.** There a row with fewer elements has no
             // cell for the ones it does not have, which is what trimming means: the tail is
             // elements the row lacks rather than blanks its author left. The same reason the
-            // trimmed-record fixture types its members optional. spec/polymorphism.md 5.3.
+            // trimmed-record fixture types its members optional. spec/types/polymorphism.md 5.3.
             ApplyMemberType(
                 context, table, field, baseMember, declared, declarations, diagnostics,
                 columnIsOptional: groupIsArray);
@@ -212,7 +212,7 @@ public partial class ModelCooker
         // A row of another variant leaves this blank, so the column carries a presence bit.
         // The generated variant type still declares the member as the declaration wrote it -
         // whether it is there is answered by the variant, not by a `Has` accessor.
-        // spec/polymorphism.md section 7.
+        // spec/types/polymorphism.md section 7.
         ApplyMemberType(
             context, table, field, first.Member!, declared, declarations, diagnostics,
             columnIsOptional: true);
@@ -272,7 +272,7 @@ public partial class ModelCooker
     /// Which variants exist is not a fact any one sheet carries - the declarations hold it, and
     /// a variant may be declared in a file this sheet never mentions. So the layout keeps the
     /// cell as written and this settles it once the binding has put the list on the column.
-    /// spec/polymorphism.md section 5.2.
+    /// spec/types/polymorphism.md section 5.2.
     /// </remarks>
     private static void ConvertDiscriminatorCells(Model model, Diagnostics diagnostics)
     {
@@ -301,7 +301,7 @@ public partial class ModelCooker
                     // ends where the row's values end, and the columns after that are elements
                     // the row does not have - not elements whose kind was left out. The same
                     // skip the reference check makes one level over.
-                    // spec/polymorphism.md section 5.3.
+                    // spec/types/polymorphism.md section 5.3.
                     var serial = table.SerialFields.FirstOrDefault(
                         candidate => candidate.Name == field.GroupName);
 
@@ -319,7 +319,7 @@ public partial class ModelCooker
                     {
                         // A blank one is a row that did not say what it is. Nothing else in
                         // the group can be read then - which member columns apply is exactly
-                        // what this cell answers. spec/polymorphism.md section 8.
+                        // what this cell answers. spec/types/polymorphism.md section 8.
                         if (!cell.HasValue || cell.Value is string)
                         {
                             diagnostics.Error(cell.RawCell?.Location ?? field.NameLocation,
@@ -355,7 +355,7 @@ public partial class ModelCooker
     /// **The refusal the union notation needs most.** The columns are every variant's members
     /// side by side, so a row always has blank cells that are not its own - and a value put in
     /// one of them looks like ordinary data. Nothing would ever read it: the generated variant
-    /// type has no such member. spec/polymorphism.md section 8.
+    /// type has no such member. spec/types/polymorphism.md section 8.
     /// </remarks>
     private static void RefuseValuesOutsideTheRowsVariant(Model model, Diagnostics diagnostics)
     {
@@ -374,7 +374,7 @@ public partial class ModelCooker
 
                 // **The same element, not the whole group.** A multi-row group has one
                 // discriminator per element, and the members it answers for are the ones at
-                // that element. spec/polymorphism.md section 5.3.
+                // that element. spec/types/polymorphism.md section 5.3.
                 int? element = discriminator.NamePath is { Count: > 0 }
                     ? discriminator.NamePath[0].Index
                     : null;
@@ -450,7 +450,7 @@ public partial class ModelCooker
     ///
     /// Stable, so nothing moves inside a variant - the author's order is kept there, which is
     /// all a run needs. Per row set, because each set is its own file with its own rows.
-    /// spec/polymorphism.md section 6.3.
+    /// spec/types/polymorphism.md section 6.3.
     /// </remarks>
     private static void SortRowsByDiscriminator(Model model)
     {
@@ -460,7 +460,7 @@ public partial class ModelCooker
             // together, and an array group has no single variant to sort by - its elements each
             // have their own, the count differs per row, and ordering by the tuple of them
             // reorders rows for no measured gain while losing the author's order. So a
-            // polymorphic array is left where the sheet put it. spec/polymorphism.md 5.3.
+            // polymorphic array is left where the sheet put it. spec/types/polymorphism.md 5.3.
             var discriminators = table.Fields
                 .Where(field => field.IsDiscriminator
                                 && field.Variants.Count > 0
@@ -526,7 +526,7 @@ public partial class ModelCooker
     ///
     /// Nothing is gathered for an abstract type no sheet used. A declaration on its own is not
     /// a type in the output, the same way an enum nobody typed a column with is not.
-    /// spec/polymorphism.md section 7.1.
+    /// spec/types/polymorphism.md section 7.1.
     /// </remarks>
     private static void GatherPolymorphicTypes(Model model)
     {

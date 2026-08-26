@@ -9,7 +9,7 @@
 // the declaration says `Star[j].Position.X` and the file says a fixed-array column called
 // `Deep.Star.Position.X`, and whether those are the same column is only settled by reading.
 //
-// spec/nested-multi-level.md.
+// spec/types/nested-multi-level.md.
 
 using System;
 using System.Collections.Generic;

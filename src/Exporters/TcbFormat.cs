@@ -59,7 +59,7 @@ public static class TcbFormat
     /// and it says so with the last bit the wire byte had left. A 105 reader ignores bit 7,
     /// so it would take the element bitmap for the head of the value block and read the
     /// column wrong rather than refuse it - which is the same reason 103 moved.
-    /// spec/nullable-array-elements.md.
+    /// spec/types/nullable-array-elements.md.
     ///
     /// 107 replaces 106. The fixed-length array kind is gone: every array now carries its
     /// own length per row, so the shape a column can have is scalar or array and nothing
@@ -68,7 +68,7 @@ public static class TcbFormat
     /// coupling wire tags exist to remove. The lengths cost a run apiece, because a column
     /// whose rows are all the same length encodes to one. The descriptor's element count
     /// went with it: it could only say 1 or 0, which the kind already says.
-    /// spec/tcb-v107-dynamic-arrays.md.
+    /// spec/wire/tcb-v107-dynamic-arrays.md.
     /// </summary>
     public const uint Version = 107;
 
@@ -78,7 +78,7 @@ public static class TcbFormat
     // whether or not it carries a MAC. The alternative - fields that appear only when
     // they are used - is four header shapes and an offset calculation in each of the
     // the runtimes, for the thirty-seven bytes a plain file spends on zeros.
-    // spec/tcb-mac-and-signature.md.
+    // spec/wire/tcb-mac-and-signature.md.
 
     /// <summary>
     /// The four bytes every table file starts with, encrypted or not.
@@ -203,7 +203,7 @@ public static class TcbFormat
     //
     // How a column block's values are laid out, chosen per column by measuring every
     // applicable candidate and keeping the smallest (ties go to the lowest number).
-    // The spec is spec/tcb-v102-column-encoding.md; the reason is that a static
+    // The spec is spec/wire/tcb-v102-column-encoding.md; the reason is that a static
     // table's columns repeat themselves - the same string thousands of times, ids
     // that step by one - and one byte per column is all it costs to say so.
 
@@ -326,7 +326,7 @@ public static class TcbFormat
     /// most of the gain is rather than in the packing: packing turns bit-level structure
     /// into byte-level structure, so a mostly-false column becomes a run of zero bytes.
     /// Measured on two datasets that disagree completely about which inner encoding wins,
-    /// which is why it is a choice and not a fixed one. spec/tcb-v105-bit-width-packing.md.
+    /// which is why it is a choice and not a fixed one. spec/wire/tcb-v105-bit-width-packing.md.
     /// </remarks>
     public const byte EncodingBitpack = 13;
 
@@ -385,8 +385,8 @@ public static class TcbFormat
     /// by an order of magnitude, because most optional columns are almost entirely present
     /// or almost entirely absent and a bitmap of those is one run.
     ///
-    /// spec/optional-fields.md has the layout and why the value block is left alone;
-    /// spec/tcb-v105-bit-width-packing.md has the encoding and the measurement.
+    /// spec/types/optional-fields.md has the layout and why the value block is left alone;
+    /// spec/wire/tcb-v105-bit-width-packing.md has the encoding and the measurement.
     /// </remarks>
     public const byte WireNullable = 0x40;
 
@@ -403,7 +403,7 @@ public static class TcbFormat
     ///
     /// The last bit of the byte, which is why the kind stayed two bits: nullability of a row
     /// and of an element are both orthogonal to the kind, and neither would have fitted in
-    /// the one kind value left. spec/nullable-array-elements.md.
+    /// the one kind value left. spec/types/nullable-array-elements.md.
     /// </remarks>
     public const byte WireElementNullable = 0x80;
 
@@ -449,7 +449,7 @@ public static class TcbFormat
         // A reference is stored as the target's primary index, so its element is that key's
         // rather than the record type the column presents. Answered by asking the column
         // instead of returning `ElementI32`, which is what kept a table keyed by anything
-        // else from being pointed at. spec/reference-key-types.md.
+        // else from being pointed at. spec/references/reference-key-types.md.
         switch (column.IsRef ? column.RefKeyType : column.ElementType)
         {
             case ValueType.String: return ElementString;

@@ -64,7 +64,7 @@ public enum AuthorDisclosure
 /// notices, and the answer that is wrong looks exactly like the one that is right.
 /// </summary>
 // Not deterministic: the document records when it was generated, so the same model
-// produces different bytes on every run. spec/build-cache.md §5.
+// produces different bytes on every run. spec/ops/build-cache.md §5.
 [TabbitTarget("summary", TargetKind.Description, Order = 10, Deterministic = false)]
 public class SummaryTarget : Target<SummaryRecipe>
 {

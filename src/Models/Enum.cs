@@ -103,7 +103,7 @@ public class Enum
     ///
     /// Kept so that reports about how the sheets are written can leave it out: holding a
     /// generated name to a naming convention names a spelling nobody chose and offers nobody
-    /// a cell to fix. spec/multi-target-accessors.md.
+    /// a cell to fix. spec/references/multi-target-accessors.md.
     /// </remarks>
     [JsonIgnore]
     public bool Synthesized { get; set; }

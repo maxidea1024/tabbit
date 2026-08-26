@@ -21,7 +21,7 @@ namespace Tabbit.Tests;
 /// what differs is what `key_of_...` writes - so only running it says which happened. The
 /// languages that can be run from here do run it.
 ///
-/// spec/primary-layout.md section 3.5.
+/// spec/layout/primary-layout.md section 3.5.
 /// </remarks>
 public class CompositeKeyTests
 {

@@ -17,7 +17,7 @@ namespace Tabbit.Tests;
 /// touched - and this closes it. Nobody adding an option has to remember these tests; they
 /// remember for them.
 ///
-/// spec/cli-help.md section 8.
+/// spec/ops/cli-help.md section 8.
 /// </summary>
 public class CliHelpTests
 {

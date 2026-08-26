@@ -7,7 +7,7 @@ namespace Tabbit.CodeGeneration;
 ///
 /// Access paths arrive rendered - `.hp` or `["end"]` - because Lua keeps a keyword-named
 /// field's name and reaches it with bracket syntax, and which of the two forms applies is
-/// decided per name here rather than in template syntax. spec/lua-language-support.md.
+/// decided per name here rather than in template syntax. spec/targets/lua-language-support.md.
 /// </summary>
 internal sealed class LuaFileView
 {
@@ -156,7 +156,7 @@ internal sealed class LuaFieldView
     /// <remarks>
     /// One name for both shapes, so the body that fills a variant is written once. A
     /// polymorphic array's builder takes an element; a scalar group's reads the row.
-    /// spec/polymorphism.md section 5.3.
+    /// spec/types/polymorphism.md section 5.3.
     /// </remarks>
     public string EntryAccess { get; set; } = "";
 
@@ -167,7 +167,7 @@ internal sealed class LuaFieldView
     /// Asked rather than worked out from the read kind, which is spelled differently in every
     /// generator - and the two shapes differ in more than one line: the accessor loops, and
     /// the value it hands back is an array of the abstract type.
-    /// spec/polymorphism.md section 5.3.
+    /// spec/types/polymorphism.md section 5.3.
     /// </remarks>
     public bool VariantsAreArray { get; set; }
 
@@ -177,7 +177,7 @@ internal sealed class LuaFieldView
     /// <remarks>
     /// The type itself is declared once, elsewhere; this is what the table needs to build a
     /// value of it - which number means which variant, and which of the entry's fields each
-    /// one carries. spec/polymorphism.md sections 7.1 and 7.2.
+    /// one carries. spec/types/polymorphism.md sections 7.1 and 7.2.
     /// </remarks>
     public IReadOnlyList<LuaVariantView> Variants { get; set; } = new List<LuaVariantView>();
 
@@ -199,7 +199,7 @@ internal sealed class LuaFieldView
     /// </summary>
     /// <remarks>
     /// This view had no name of its own: everything else it feeds is written from the
-    /// initializers, which already carry theirs. spec/polymorphism.md section 7.2.
+    /// initializers, which already carry theirs. spec/types/polymorphism.md section 7.2.
     /// </remarks>
     public string Name { get; set; } = "";
 
@@ -299,7 +299,7 @@ internal sealed class LuaColumnView
     /// <remarks>
     /// Not the group: a member that is itself the array owns its own list, and one inner
     /// level of an array of arrays is a slot of the outer one. Empty for the kinds that do
-    /// not build a list. spec/tcb-v107-dynamic-arrays.md.
+    /// not build a list. spec/wire/tcb-v107-dynamic-arrays.md.
     /// </remarks>
     public required string ElementContainer { get; set; }
 
@@ -396,7 +396,7 @@ internal sealed class LuaReferenceFieldView
 /// One reference that is a member of a record, as the linking pass writes it. Whole
 /// expressions, because which of the three record shapes this is decides where the
 /// element number sits - on the group, on the member, or nowhere.
-/// spec/references-in-records.md.
+/// spec/references/references-in-records.md.
 /// </summary>
 internal sealed class LuaRecordReferenceView
 {
@@ -419,7 +419,7 @@ internal sealed class LuaRecordReferenceView
 /// <remarks>
 /// One per declaration however many tables named it. A struct is an entity beside a table and
 /// an enum, and emitting it inside each table that used it would give them types that share a
-/// name and are not the same type. spec/polymorphism.md section 7.1.
+/// name and are not the same type. spec/types/polymorphism.md section 7.1.
 /// </remarks>
 internal sealed class LuaPolymorphicTypeView
 {
@@ -449,7 +449,7 @@ internal sealed class LuaVariantView
     /// Both the base members and its own, and `kind`. A field left out of this list is an error
     /// to read, which is the whole reason this target declares them at all - a misspelling in a
     /// dynamic language is otherwise a nil that compares false with everything.
-    /// spec/lua-language-support.md.
+    /// spec/targets/lua-language-support.md.
     /// </remarks>
     public required string FieldNames { get; set; }
 
@@ -473,7 +473,7 @@ internal sealed class LuaStructMemberView
     /// <remarks>
     /// **A reference member is two fields here, the same two a reference column is anywhere.**
     /// The declared name is the key's - that is what the cell holds - and the row it resolves to
-    /// takes the derived one. spec/reference-surface-naming.md sections 4 and 5.
+    /// takes the derived one. spec/references/reference-surface-naming.md sections 4 and 5.
     /// </remarks>
     public string RowName { get; set; } = "";
 

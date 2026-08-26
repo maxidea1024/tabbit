@@ -12,7 +12,7 @@ namespace Tabbit.CodeGeneration;
 /// share a plan rather than each generator growing a second loop. A language's table view
 /// carries one entry per key and its template writes one lookup per entry; what a composite
 /// changes is the number of parameters and what the map is keyed by, not the shape of the
-/// surface. spec/primary-layout.md section 3.5.
+/// surface. spec/layout/primary-layout.md section 3.5.
 /// </remarks>
 internal sealed class KeyPlan
 {
@@ -152,7 +152,7 @@ internal sealed class KeyComponentView
     /// lookup nobody can call: what a caller has is the id it read from somewhere else, and
     /// what the map is keyed by is the text those ids make. A link table is where a composite
     /// key most often comes from, and both of its columns are references.
-    /// spec/reference-surface-naming.md sections 4 and 5.
+    /// spec/references/reference-surface-naming.md sections 4 and 5.
     ///
     /// The enum comes from the target's primary index for the same reason: a table keyed by
     /// an enum label is referenced by that label.

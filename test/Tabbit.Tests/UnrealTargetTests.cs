@@ -126,7 +126,7 @@ public class UnrealTargetTests
     ///
     /// Not reflected, deliberately. A constant is a value the generated code hands over, not
     /// a row a designer edits, so a `UCLASS` of getters would be a second surface for every
-    /// set. spec/primary-layout.md section 8.5.
+    /// set. spec/layout/primary-layout.md section 8.5.
     /// </remarks>
     [Fact]
     public void The_constant_sets_reach_the_module()

@@ -21,7 +21,7 @@ namespace Tabbit;
 ///
 /// **It is not translated.** The reports a data owner reads are worth having in their own
 /// language; a defect report is read by us, and a stack trace beside a sentence we cannot
-/// find in our own repository is worse than one we can. spec/message-ids.md §3.
+/// find in our own repository is worse than one we can. spec/validation/message-ids.md §3.
 ///
 /// The stack is what makes one of these actionable, so <c>Program</c> prints it without
 /// being asked - unlike a data problem, where the location in the sheet is the whole story

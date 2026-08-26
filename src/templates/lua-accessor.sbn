@@ -18,7 +18,7 @@ local {{ accessor.name }} = {}
 -- different key from encryptionKey and independent of it. Setting it makes the reader
 -- stricter in a second way: a file that carries no MAC is refused, because otherwise the
 -- check could be removed by zeroing sixteen bytes - so the order to turn this on in is
--- data first, key second. spec/tcb-mac-and-signature.md.
+-- data first, key second. spec/wire/tcb-mac-and-signature.md.
 {{ accessor.name }}.macKey = nil
 
 -- Whether to check the MAC at all. For tools and for measuring what the check costs; it
@@ -87,7 +87,7 @@ function {{ accessor.name }}:readAll(source, fileExtension)
 {{~## A reference that is a member of a record resolves inside the element, so the list
    is walked and each element's own key is looked up. Which list that is - the group's or
    the member's - the view decided, and a record of one has neither.
-   spec/references-in-records.md. ##~}}
+   spec/references/references-in-records.md. ##~}}
 {{~ for member in reference.record_fields ~}}
 {{~ if member.range != '' ~}}
     for i = 1, #{{ member.range }} do
@@ -110,11 +110,11 @@ function {{ accessor.name }}:readAll(source, fileExtension)
 {{~## A column reaching several tables that is a member of a record resolves inside the element,
    so the elements are walked and each one's own key is looked up. Which list that is - the
    group's or the member's - the view decided, and a record of one has neither.
-   spec/multi-target-accessors.md ~ spec/references-in-records.md. ##~}}
+   spec/references/multi-target-accessors.md ~ spec/references/references-in-records.md. ##~}}
 {{~## A column reaching several tables is looked up in each of them in the order they were
    named, stopping at the first that has the key. The tables take separate id bands - an id in
    two of them is refused at conversion - so the order only decides which lookup runs.
-   spec/multi-target-accessors.md. ##~}}
+   spec/references/multi-target-accessors.md. ##~}}
   end
 {{~ end }}
   -- Published, now that every table read and linked.

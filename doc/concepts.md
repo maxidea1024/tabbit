@@ -40,7 +40,7 @@ Tabbit이 읽는 세 가지 엔티티와, 그것이 각각 무엇으로 생성�
 
 아이템이 가리킬 분류입니다.
 
-![테이블 ItemCategory](concepts-item-category.svg)
+![테이블 ItemCategory](figures/concepts-item-category.svg)
 
 ### enum `Grade`
 
@@ -48,7 +48,7 @@ Tabbit이 읽는 세 가지 엔티티와, 그것이 각각 무엇으로 생성�
 
 enum과 상수셋은 컬럼이 정해져 있으므로 `:field` 줄 하나로 끝납니다.
 
-![enum Grade](concepts-enum-grade.svg)
+![enum Grade](figures/concepts-enum-grade.svg)
 
 0 항목이 없습니다. 이런 경우 `None = 0`이 자동으로 추가됩니다.
 
@@ -61,7 +61,7 @@ enum 필드는 값이 대입되기 전에도 무언가를 들고 있는데, 그�
 
 위의 둘을 모두 사용합니다. 폭 때문에 컬럼 다섯만 옮겼습니다. 실제로는 일곱입니다.
 
-![테이블 Item](concepts-item.svg)
+![테이블 Item](figures/concepts-item.svg)
 
 여기서 셋만 봐 두면 나머지는 [시트 작성](sheets.md)이 자세히 설명합니다.
 
@@ -106,7 +106,7 @@ public int Price => _price;                                  // 서버 빌드에
 ```
 
 `CategoryId`는 셀에 적힌 키 그대로이고, 그것이 가리키는 행은 이름이 따로 있습니다 —
-`<대상>By<컬럼>`입니다 ([참조가 내는 이름](../spec/reference-surface-naming.md)).
+`<대상>By<컬럼>`입니다 ([참조가 내는 이름](../spec/references/reference-surface-naming.md)).
 
 파일에는 인덱스로 저장되고, `ReadAllAsync`가 모든 테이블을 읽은 뒤 실제 레코드로 연결합니다.
 

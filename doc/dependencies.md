@@ -10,7 +10,7 @@
 
 |패키지|버전|무엇에|
 |--|--|--|
-|[Sylvan.Data.Excel](https://github.com/MarkPflug/Sylvan)|0.5.8|**엑셀 워크북을 스트리밍으로** 읽습니다. 시트를 행 단위로 흘려 읽으므로 워크북을 객체 모델로 펼치지 않습니다 ([설계와 실측](../spec/streaming-workbook-reader.md))|
+|[Sylvan.Data.Excel](https://github.com/MarkPflug/Sylvan)|0.5.8|**엑셀 워크북을 스트리밍으로** 읽습니다. 시트를 행 단위로 흘려 읽으므로 워크북을 객체 모델로 펼치지 않습니다 ([설계와 실측](../spec/import/streaming-workbook-reader.md))|
 |[Google.Apis.Sheets.v4](https://github.com/googleapis/google-api-dotnet-client)|1.75.0.4178|구글 스프레드시트를 읽습니다|
 |[Scriban](https://github.com/scriban/scriban)|7.2.6|코드 생성 템플릿 엔진. `src/templates/*.sbn`이 모든 언어의 산출물을 만듭니다|
 |[Microsoft.CodeAnalysis.CSharp](https://github.com/dotnet/roslyn)|5.6.0|검증 규칙 `.cs` 파일을 변환 중에 컴파일합니다. `"Output": "assembly"`의 C# 어셈블리 산출도 여기서 나옵니다 ([검증](validation.md))|
@@ -32,7 +32,7 @@
 ## 계약 어셈블리 — `src/Contract`
 
 검증 규칙이 대고 컴파일되는 `Tabbit.Validation.dll`입니다. **여기 있는 것이 곧 규칙이 쓸 수 있는
-것**이므로 목록이 짧은 것 자체가 설계입니다 ([근거](../spec/validation-usability-and-assembly-output.md)).
+것**이므로 목록이 짧은 것 자체가 설계입니다 ([근거](../spec/validation/validation-usability-and-assembly-output.md)).
 
 |패키지|버전|
 |--|--|
@@ -42,7 +42,7 @@
 
 **의존은 억제하지만 금지하지 않습니다.** 기본은 각 언어의 표준 라이브러리이고, **직접 구현이
 성능에서 크게 불리한 자리는 플랫폼이나 외부 패키지가 이미 가진 것을 씁니다.** 판단 기준은
-[v104에 적어 둔 것](../spec/tcb-v104-composed-encodings.md#구현-방침--언어마다-다릅니다)과 같습니다 —
+[v104에 적어 둔 것](../spec/wire/tcb-v104-composed-encodings.md#구현-방침--언어마다-다릅니다)과 같습니다 —
 「그 언어에서 바이트 단위 루프가 수 MB를 감당하는가」.
 
 외부 패키지가 필요한 자리는 아래뿐이고, **전부 기본값에서는 만나지 않습니다.**
@@ -57,7 +57,7 @@
 
 표준 라이브러리로 해결되는 자리는 의존이 아니므로 위에 없습니다 — Java·Kotlin의
 `javax.crypto`, Ruby의 `openssl`, PHP의 ext-openssl이 그렇습니다
-([암호 구현 방침](../spec/tcb-v104-composed-encodings.md#구현-방침--언어마다-다릅니다)).
+([암호 구현 방침](../spec/wire/tcb-v104-composed-encodings.md#구현-방침--언어마다-다릅니다)).
 
 ## 저장소 안에서만 쓰는 것
 

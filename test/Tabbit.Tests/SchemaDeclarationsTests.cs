@@ -305,7 +305,7 @@ public class SchemaDeclarationsTests
 
     /// <summary>
     /// Across files and in either order, the same way every other name resolves here -
-    /// spec/polymorphism.md section 3.
+    /// spec/types/polymorphism.md section 3.
     /// </summary>
     [Fact]
     public void Variants_join_their_base_whichever_file_declared_it()
@@ -412,7 +412,7 @@ public class SchemaDeclarationsTests
     /// **The whole reason the notation exists.** A reader built while the dropped variant was
     /// there still reads that number as that shape, and rows written then still carry it - so
     /// a new variant given the number would be read as the old one, with no error anywhere.
-    /// spec/polymorphism.md section 5.1.1.
+    /// spec/types/polymorphism.md section 5.1.1.
     /// </remarks>
     [Fact]
     public void A_discriminator_a_tombstone_holds_is_refused()
@@ -502,7 +502,7 @@ public class SchemaDeclarationsTests
     /// first variant carries no number was taken for an unnumbered set - and the numbers on the
     /// rest went unexamined. That is the order that collides: `DamageEffect` takes 1 from its
     /// position and `HealEffect` takes 1 from its `@1`, and both are 1.
-    /// spec/polymorphism.md section 5.1.1.
+    /// spec/types/polymorphism.md section 5.1.1.
     /// </remarks>
     [Fact]
     public void A_set_whose_first_variant_carries_no_number_is_refused_too()

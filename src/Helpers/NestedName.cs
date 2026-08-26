@@ -9,7 +9,7 @@ namespace Tabbit.Helpers;
 /// `Pos.X` and `Pos.Y` are one record; `Slot1.Id` and `Slot2.Id` are an array of them,
 /// with the array length coming from the serial number on the group part exactly as it
 /// does for a plain <see cref="Tabbit.Models.SerialField"/>. The rules and the reasons
-/// are in spec/nested-fields.md.
+/// are in spec/types/nested-fields.md.
 ///
 /// Splitting happens before Pascal-casing, so each part is normalized on its own and a
 /// separator can never be produced or consumed by the case conversion.
@@ -34,7 +34,7 @@ public static class NestedName
     /// <param name="parts">
     /// The levels the name names. One entry - the whole name - when it is not nested, and
     /// one per level otherwise. **However many the sheet wrote**: the notation does not cap
-    /// the depth, because the shapes that occur do not (spec/nested-multi-level.md).
+    /// the depth, because the shapes that occur do not (spec/types/nested-multi-level.md).
     /// </param>
     /// <param name="problem">
     /// Why the name uses the separator in a way this does not support, or null when it is

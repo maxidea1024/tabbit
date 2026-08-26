@@ -24,7 +24,7 @@ struct Reward
 /// carries that same cell - so the check asking "which column named the struct" counted the
 /// elements and reported a group naming its struct twice, then reported every member as a
 /// column no group claimed. Both sentences at once, and neither true.
-/// spec/primary-layout.md section 4.3.
+/// spec/layout/primary-layout.md section 4.3.
 struct Bonus
     /// Which stat it raises.
     field statId int

@@ -25,7 +25,7 @@ namespace Tabbit.Importers.Xlsx;
 /// a rewrite whose output would differ from the reader's in ways nobody could attribute.
 /// Only the short rows are read from the file.
 ///
-/// spec/xlsb-short-row-repair.md.
+/// spec/import/xlsb-short-row-repair.md.
 /// </remarks>
 internal sealed class XlsbRowRepair : IDisposable
 {

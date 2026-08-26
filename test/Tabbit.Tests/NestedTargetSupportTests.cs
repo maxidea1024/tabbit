@@ -14,14 +14,14 @@ namespace Tabbit.Tests;
 ///
 /// The second used to be a refusal too, on the grounds that a member could not itself be a
 /// group. It is not one any more - depth is a property of the columns rather than a limit of
-/// the model - so the same fixture now pins the shape it produces. spec/nested-multi-level.md
+/// the model - so the same fixture now pins the shape it produces. spec/types/nested-multi-level.md
 /// has why the wire needed nothing for it.
 ///
 /// A third refusal used to live here - a target that did not understand a record - and it is
 /// gone because all thirteen now do. The check itself stays in `ITarget`, which is what a
 /// fourteenth target would meet before it had learned.
 ///
-/// spec/nested-fields.md has the rules. The shapes one level deep are pinned by the `nested`
+/// spec/types/nested-fields.md has the rules. The shapes one level deep are pinned by the `nested`
 /// golden.
 /// </summary>
 public class NestedTargetSupportTests

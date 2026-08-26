@@ -1,7 +1,7 @@
 {
   // A blank where a number belongs, with the strict default. Expected to fail during
   // cooking, so the output below is never reached. `blank-cell-empty` is the same workbook
-  // read the other way. spec/blank-and-null-cells.md.
+  // read the other way. spec/types/blank-and-null-cells.md.
 
   "Sources": {
     "Xlsx": [

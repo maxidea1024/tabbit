@@ -13,7 +13,7 @@
 {{~## A key of several columns is held as the text they make. Each part carries its own
    length, so no two combinations can make the same text - joined by a separator alone,
    ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
-   spec/primary-layout.md section 3.5.
+   spec/layout/primary-layout.md section 3.5.
 
    One function for the two paths that need the text, because they differ only in where it
    goes: the build path hands an arena and gets memory that lives with the table, the lookup
@@ -156,7 +156,7 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
 {{~ end ~}}
 {{~ if column_view.has_optional_elements ~}}
       /* Behind the row bitmap and in front of the values, walked with a counter that steps
-       * once per element of every row. spec/nullable-array-elements.md. */
+       * once per element of every row. spec/types/nullable-array-elements.md. */
       (void)tb_read_element_presence(reader, column, &element_presence);
       element_at = 0;
 {{~ end ~}}
@@ -298,7 +298,7 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
       }
 {{~ else if column_view.kind == 'record_member_var' }}
 {{~## The member is the array: the index goes after its name rather than before, and its
-   length is this row's - see spec/nested-multi-level.md. ##~}}
+   length is this row's - see spec/types/nested-multi-level.md. ##~}}
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         {{ table.record_name }}* record = &table->records[row];
         int32_t element_count = 0;
@@ -316,7 +316,7 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
         record->{{ column_view.name }}{{ column_view.member_access }}_count = element_count;
 {{~ if column_view.key_type != '' }}
 {{~## A reference member holds one row pointer per element as well as one key, and the read
-   writes into the key - so both are made. spec/references-in-records.md. ##~}}
+   writes into the key - so both are made. spec/references/references-in-records.md. ##~}}
         record->{{ column_view.name }}{{ column_view.row_member_access }} = ({{ column_view.reference_type }}*)tb_arena_alloc(
           &table->arena, (size_t)element_count * sizeof *record->{{ column_view.name }}{{ column_view.row_member_access }});
         record->{{ column_view.name }}{{ column_view.member_access }} = ({{ column_view.key_type }}*)tb_arena_alloc(
@@ -347,7 +347,7 @@ static bool {{ table.function_prefix }}Parse({{ table.table_name }}* table, tb_r
       }
 {{~ else if column_view.kind == 'var_array_ref' }}
 {{~## The same two arrays as `serial_ref` below, at the length this row gave rather than the
-   one the column states. spec/variable-length-record-arrays.md. ##~}}
+   one the column states. spec/types/variable-length-record-arrays.md. ##~}}
       for (row = 0; row < table->count && !tb_failed(reader); ++row) {
         {{ table.record_name }}* record = &table->records[row];
         int32_t element_count = 0;
@@ -501,7 +501,7 @@ bool {{ table.function_prefix }}Load({{ table.table_name }}* table, const char* 
    * {{ accessor.name }}_MacKey hold - NULL unless the project set them. A file that is
    * neither encrypted nor signed comes back from this untouched, so the load path is the
    * same either way and there is no condition here that could be the wrong way round.
-   * spec/tcb-mac-and-signature.md.
+   * spec/wire/tcb-mac-and-signature.md.
    *
    * What comes back is a window onto `bytes` rather than a copy of it, which is why the
    * buffer is still what tb_free_bytes is given below. */
@@ -581,7 +581,7 @@ bool {{ table.function_prefix }}Contains{{ index.suffix }}(
 {{~ end ~}}
 {{~ end ~}}
 {{~## The same for a member of a record, which takes the element rather than the row.
-   spec/multi-target-accessors.md. ##~}}
+   spec/references/multi-target-accessors.md. ##~}}
 {{~ for field in table.fields ~}}
 {{~ if field.is_record && !field.members_are_anonymous ~}}
 {{~ for rt in field.record_types ~}}
@@ -590,7 +590,7 @@ bool {{ table.function_prefix }}Contains{{ index.suffix }}(
 {{~ end ~}}
 {{~## The per-target accessors of a column reaching several tables. The cast is safe by
    construction: the discriminator was set by the same assignment that filled the slot.
-   spec/multi-target-accessors.md. ##~}}
+   spec/references/multi-target-accessors.md. ##~}}
 {{~ for field in table.fields ~}}
 {{~ if field.variants.size > 0 }}
 

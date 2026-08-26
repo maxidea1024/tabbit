@@ -13,7 +13,7 @@ namespace Tabbit.Tests;
 /// integer column, the abstract type's own field is an ordinary one, and a variant's member is
 /// an optional column - three shapes the encoder already wrote. So this reads the produced
 /// files and asserts what is in them rather than asserting on any new wire concept, because
-/// there is no new wire concept to assert on. spec/polymorphism.md section 6.
+/// there is no new wire concept to assert on. spec/types/polymorphism.md section 6.
 /// </remarks>
 public class PolymorphicRecordTests
 {
@@ -38,7 +38,7 @@ public class PolymorphicRecordTests
     /// <remarks>
     /// The numbers are the `@N` the declaration wrote - 1, 2, 3 - and nothing in the file
     /// carries the variant's name. That is what lets a variant be renamed without touching a
-    /// deployed reader. spec/polymorphism.md section 5.1.1.
+    /// deployed reader. spec/types/polymorphism.md section 5.1.1.
     /// </remarks>
     [Fact]
     public void The_discriminator_carries_the_variants_number()
@@ -102,7 +102,7 @@ public class PolymorphicRecordTests
     /// `Cleave` and `Mend` before `Mend2` is the author's order kept inside each variant.
     ///
     /// In the cooking rather than in an exporter, so the JSON and the binary agree row for
-    /// row. spec/polymorphism.md section 6.3.
+    /// row. spec/types/polymorphism.md section 6.3.
     /// </remarks>
     [Fact]
     public void The_rows_come_out_in_discriminator_order()
@@ -125,7 +125,7 @@ public class PolymorphicRecordTests
     ///
     /// The read adds what a compile cannot: that the discriminator picked the right variant
     /// per row, and that a member of another variant is not on the object at all.
-    /// spec/polymorphism.md section 7.
+    /// spec/types/polymorphism.md section 7.
     /// </remarks>
     [Fact]
     public void The_generated_csharp_narrows_to_each_rows_variant()
@@ -180,7 +180,7 @@ public class PolymorphicRecordTests
     /// **The type check is most of this gate.** A discriminated union only means something if
     /// narrowing reaches each variant's own members, and the compiler is what settles that - a
     /// generator emitting the union flat would produce something the harness cannot check
-    /// against. spec/polymorphism.md section 7.
+    /// against. spec/types/polymorphism.md section 7.
     /// </remarks>
     [Fact]
     public void The_generated_typescript_narrows_to_each_rows_variant()
@@ -245,7 +245,7 @@ public class PolymorphicRecordTests
     /// abstract type is an interface sealed by an unexported method and every variant embeds the
     /// base struct - and all of that is a claim the compiler settles. A variant that did not
     /// satisfy the interface, or a base field the embedding did not promote, fails here.
-    /// spec/polymorphism.md section 7.
+    /// spec/types/polymorphism.md section 7.
     /// </remarks>
     /// <summary>
     /// The generated code of every language that has to declare the variants compiles.
@@ -254,7 +254,7 @@ public class PolymorphicRecordTests
     /// **Compiling is the whole of these.** Whichever shape a language takes - classes and
     /// `instanceof`, a sealed interface, a sum type - it is a claim about generated code that
     /// only a compiler settles: a variant that does not belong to the set, or a base field the
-    /// inheritance does not carry, fails here and nowhere else. spec/polymorphism.md section 7.
+    /// inheritance does not carry, fails here and nowhere else. spec/types/polymorphism.md section 7.
     /// </remarks>
     [Theory]
     [InlineData("Go")]
@@ -294,7 +294,7 @@ public class PolymorphicRecordTests
     /// class that was never declared is `false` rather than an error. That is why this one reads
     /// the file and names the class per row: a build that emitted the union flat would report
     /// every row as the base type and nothing else would say so.
-    /// spec/polymorphism.md section 7.
+    /// spec/types/polymorphism.md section 7.
     /// </remarks>
     [Fact]
     public void The_generated_php_reads_each_rows_variant()
@@ -373,7 +373,7 @@ public class PolymorphicRecordTests
     /// <remarks>
     /// Another dynamic language, so this reads the file rather than compiling: the class per row
     /// is what the discriminator picked, and a build that emitted the union flat would report
-    /// every row as the base type. spec/polymorphism.md section 7.
+    /// every row as the base type. spec/types/polymorphism.md section 7.
     /// </remarks>
     [Fact]
     public void The_generated_python_reads_each_rows_variant()
@@ -452,7 +452,7 @@ assert combo['Chain'].effects_of()[2].amount == 3
     /// <remarks>
     /// A dynamic language, so this reads the file: the class per row is what the discriminator
     /// picked, and a build that emitted the union flat would report every row as the base type.
-    /// spec/polymorphism.md section 7.
+    /// spec/types/polymorphism.md section 7.
     /// </remarks>
     [Fact]
     public void The_generated_ruby_reads_each_rows_variant()
@@ -518,7 +518,7 @@ assert combo['Chain'].effects_of()[2].amount == 3
     /// **The language with the least to check and the most to lose.** There is no compile step
     /// and a misspelled member is a nil that compares false with everything, so the variants get
     /// strict metatables like every other generated table here - and the last two assertions are
-    /// what say those are on. spec/polymorphism.md section 7 and spec/lua-language-support.md.
+    /// what say those are on. spec/types/polymorphism.md section 7 and spec/targets/lua-language-support.md.
     /// </remarks>
     [Fact]
     public void The_generated_lua_reads_each_rows_variant()
@@ -601,7 +601,7 @@ assert(comboTable.effectsOf(combo['Chain'])[3].amount == 3)
     /// and the variant structs are reflected at all is what the header tool answers.
     ///
     /// Opt-in like the other Unreal gates: set `TABBIT_UE_ROOT` to an engine and it runs.
-    /// spec/polymorphism.md section 7.
+    /// spec/types/polymorphism.md section 7.
     /// </remarks>
     [Fact]
     public void The_generated_unreal_passes_the_header_tool()
@@ -640,7 +640,7 @@ assert(comboTable.effectsOf(combo['Chain'])[3].amount == 3)
     ///
     /// The fixture's `BurnEffect` holds `@4` and nothing uses 4, which is the whole point:
     /// a reservation is invisible in the output and load-bearing in the schema.
-    /// spec/polymorphism.md section 5.1.1.
+    /// spec/types/polymorphism.md section 5.1.1.
     /// </remarks>
     [Fact]
     public void A_dropped_variant_reaches_no_generated_file()

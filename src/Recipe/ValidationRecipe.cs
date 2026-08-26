@@ -8,7 +8,7 @@ namespace Tabbit.Recipe;
 /// <remarks>
 /// The rules themselves are not here and never will be: they are C# files in the folder
 /// this points at, so a project's rules live with the project rather than in a schema this
-/// repository has to extend. spec/validation-pipeline.md.
+/// repository has to extend. spec/validation/validation-pipeline.md.
 /// </remarks>
 public class ValidationRecipe
 {
@@ -81,7 +81,7 @@ public class ValidationRecipe
     /// <remarks>
     /// For the data somebody else owns. Each entry says where and why, the report comes out as
     /// `Info` rather than disappearing, and an entry that matches nothing - or a count that no
-    /// longer holds - is an error. spec/known-problems.md.
+    /// longer holds - is an error. spec/ops/known-problems.md.
     /// </remarks>
     public List<KnownProblemRecipe> KnownProblems { get; set; } = new List<KnownProblemRecipe>();
 }

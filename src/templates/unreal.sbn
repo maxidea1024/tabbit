@@ -59,7 +59,7 @@ enum class {{ enumm.name }} : {{ enumm.underlying_type }}
 {{~## **The constant sets.** Not reflected: a constant is a value the generated code hands
    over, not a row a designer edits in the editor, and a UCLASS of getters would be a second
    surface for every set. So a plain struct of `static inline const` members, which is the
-   shape the C++ target writes. spec/primary-layout.md section 8.5. ##~}}
+   shape the C++ target writes. spec/layout/primary-layout.md section 8.5. ##~}}
 {{~ for set in constant_sets }}
 
 /* Generated from {{ set.location }} */
@@ -80,7 +80,7 @@ struct {{ set.name }}
    A USTRUCT cannot take part in inheritance polymorphism the engine's reflection can see, so
    this target falls on the same side C does - the discriminator is read and then the variant it
    named is asked for. Each variant carries the base fields in its own struct, since there is
-   nothing to inherit from. spec/polymorphism.md section 7. ##~}}
+   nothing to inherit from. spec/types/polymorphism.md section 7. ##~}}
 {{~ for st in structs }}
 
 /** Which shape a {{ st.name }} value took. */
@@ -90,7 +90,7 @@ enum class {{ st.name }}Kind : uint8
 {{~## **A zero entry, which the header tool requires of every UENUM** - a default-constructed
    value has to name something. No variant is ever numbered 0: `@N` starts at 1 and an
    unnumbered set counts from 1, so this can never collide with a real one.
-   spec/polymorphism.md sections 5.1.1 and 7. ##~}}
+   spec/types/polymorphism.md sections 5.1.1 and 7. ##~}}
     /** No variant. A default-constructed value, which no row ever carries. */
     None = 0 UMETA(DisplayName = "None"),
 {{~ for variant in st.variants ~}}
@@ -118,7 +118,7 @@ struct {{ variant.type_name }}
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "{{ st.name }}")
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
     {{ member.key_type_name }} {{ member.name }} = {};
     {{ member.type_name }} {{ member.row_name }} = nullptr;
 {{~ else ~}}
@@ -133,7 +133,7 @@ struct {{ variant.type_name }}
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "{{ st.name }}")
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
     {{ member.key_type_name }} {{ member.name }} = {};
     {{ member.type_name }} {{ member.row_name }} = nullptr;
 {{~ else ~}}
@@ -149,16 +149,16 @@ struct {{ variant.type_name }}
 // Generated from {{ table.location }}
 {{~## The element type of each record group, ahead of the row that holds one. A USTRUCT so
    that a TArray of it is a property UHT accepts - which is what lets the row's member keep
-   its UPROPERTY. See spec/nested-fields.md. ##~}}
+   its UPROPERTY. See spec/types/nested-fields.md. ##~}}
 {{~ for field in table.fields ~}}
 {{~## An array of arrays declares no element USTRUCT: its outer level has no name, so there
-   is nothing for one to be. spec/nested-multi-level.md. ##~}}
+   is nothing for one to be. spec/types/nested-multi-level.md. ##~}}
 {{~ if field.is_record && !field.members_are_anonymous ~}}
 {{~## One USTRUCT per level, innermost first - which UHT requires rather than prefers: a struct
    member needs its complete type and the header is read in order. A struct member of a USTRUCT
    type is a property UHT accepts, so depth costs no reflection here - the opposite of what an
    array of arrays cost. The view flattened the nesting so this loop does not have to know how
-   deep it went. spec/nested-multi-level.md. ##~}}
+   deep it went. spec/types/nested-multi-level.md. ##~}}
 {{~ for rt in field.record_types ~}}
 {{~ if rt.is_outermost ~}}
 /** One element of {{ rt.owner }}. */
@@ -216,7 +216,7 @@ struct {{ api_macro }} {{ table.record_name }}
 {{~ if field.has_optional_elements ~}}
     /** Which of {{ field.name }}'s elements have a value. Empty where the file did not carry
      * the column, and then every index is out of range anyway.
-     * spec/nullable-array-elements.md. */
+     * spec/types/nullable-array-elements.md. */
     TArray<bool> {{ field.element_presence_member }};
 
 {{~ end ~}}
@@ -244,7 +244,7 @@ public:
 {{~## A key of several columns is held as the text they make. Each part carries its own
    length, so no two combinations can make the same text - joined by a separator alone,
    ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
-   spec/primary-layout.md section 3.5. ##~}}
+   spec/layout/primary-layout.md section 3.5. ##~}}
     /** Joins the columns of the {{ index.field_name }} key into the text the map is keyed by. */
     static FString KeyOf{{ index.suffix }}({{ index.params }});
 {{~ end ~}}
@@ -254,7 +254,7 @@ public:
 {{~## **The discriminator and one accessor per variant** - the shape section 7 named for the
    languages with nothing to narrow to. The row still carries the flat entry, so the read path
    and the wire are untouched; each ask fills a caller-owned struct and answers whether the row
-   was that variant. spec/polymorphism.md section 7.2. ##~}}
+   was that variant. spec/types/polymorphism.md section 7.2. ##~}}
 {{~ if field.variants_are_array ~}}
 {{~## **The array shape.** Each element carries its own discriminator - section 5.3 - so the
    element number is what these take beside the row, and `Num` is how many there are. ##~}}
@@ -301,7 +301,7 @@ public:
 {{~ for member in field.base_members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
         Out.{{ member.name }} = {{ field.entry_access }}.{{ member.name }};
         Out.{{ member.row_name }} = {{ field.entry_access }}.{{ member.row_name }};
 {{~ else ~}}
@@ -311,7 +311,7 @@ public:
 {{~ for member in variant.members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
         Out.{{ member.name }} = {{ field.entry_access }}.{{ member.name }};
         Out.{{ member.row_name }} = {{ field.entry_access }}.{{ member.row_name }};
 {{~ else ~}}
@@ -377,7 +377,7 @@ public:
      * cannot be taken back afterwards - so it is read at start-up from wherever this project
      * keeps secrets, not written into a source file or a .ini the packaging step will cook.
      * What the layer is for, and therefore what is and is not worth defending, is
-     * spec/tcb-v104-composed-encodings.md section 4.
+     * spec/wire/tcb-v104-composed-encodings.md section 4.
      */
     static TArray<uint8> EncryptionKey;
 
@@ -394,7 +394,7 @@ public:
      *
      * Setting it makes the reader stricter in a second way: a file that carries no MAC is
      * refused, because otherwise the check could be removed by zeroing sixteen bytes. So the
-     * order to turn this on in is data first, key second. spec/tcb-mac-and-signature.md.
+     * order to turn this on in is data first, key second. spec/wire/tcb-mac-and-signature.md.
      */
     static TArray<uint8> MacKey;
 

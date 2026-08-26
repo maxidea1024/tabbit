@@ -18,7 +18,7 @@ namespace Tabbit.Tests;
 /// So most of what follows asserts an error and the sentence it comes with. A test that only
 /// checked the accepted values would pass against a type that accepted everything.
 ///
-/// spec/bitset.md has the notation table and why this is a type rather than a role.
+/// spec/types/bitset.md has the notation table and why this is a type rather than a role.
 /// </remarks>
 public class BitsetTests
 {

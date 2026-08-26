@@ -10,7 +10,7 @@ namespace Tabbit.Cooking;
 /// cooking decision: it settles a name the exporter writes and fifteen generated readers
 /// open. Read once per run, before any table is named.
 ///
-/// spec/naming-conventions.md.
+/// spec/targets/naming-conventions.md.
 /// </remarks>
 internal static class DataFileCasing
 {

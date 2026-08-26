@@ -23,7 +23,7 @@ namespace Tabbit.Tests;
 /// downstream could detect - which is what used to happen, by the time zone of whichever
 /// machine ran the conversion.
 ///
-/// spec/datetime-timezone.md.
+/// spec/types/datetime-timezone.md.
 /// </remarks>
 public class DateTimeTimeZoneTests
 {

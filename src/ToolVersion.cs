@@ -70,7 +70,7 @@ public static class ToolVersion
     /// golden that changes when nothing did.
     ///
     /// So a local build has no build time, and the absence is itself the answer: together
-    /// with a version of 0.0.0 it says this binary is not a release. spec/cli-help.md §7.
+    /// with a version of 0.0.0 it says this binary is not a release. spec/ops/cli-help.md §7.
     /// </remarks>
     public static string? Built { get; } = Metadata("BuildTimestamp");
 

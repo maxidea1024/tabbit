@@ -17,7 +17,7 @@ namespace Tabbit.Importers.Xlsx;
 ///
 /// The rendering rules live here so that the two things this reader is asked for - a cell's
 /// text and whether it is a formula error - cannot be answered differently in two places.
-/// Grounds and measurements: `spec/streaming-workbook-reader.md`.
+/// Grounds and measurements: `spec/import/streaming-workbook-reader.md`.
 /// </remarks>
 internal sealed class SheetGridReader : IDisposable
 {
@@ -31,7 +31,7 @@ internal sealed class SheetGridReader : IDisposable
 
     /// <summary>
     /// Gets back the cells this reader drops on a binary workbook, or null for the formats
-    /// where it drops none. spec/xlsb-short-row-repair.md.
+    /// where it drops none. spec/import/xlsb-short-row-repair.md.
     /// </summary>
     private readonly XlsbRowRepair? _repair;
 
@@ -166,7 +166,7 @@ internal sealed class SheetGridReader : IDisposable
     /// <remarks>
     /// The reader's own count, except on a binary workbook where the file says the row
     /// reaches further - there this is how far it really reaches, and the cells past the
-    /// reader's count are read back from the file. spec/xlsb-short-row-repair.md.
+    /// reader's count are read back from the file. spec/import/xlsb-short-row-repair.md.
     /// </remarks>
     public int ColumnCount
         => _repair is null
@@ -331,7 +331,7 @@ internal sealed class SheetGridReader : IDisposable
     ///
     /// A leak with no message. Nothing fails and the numbers are right; what happens is that
     /// unmanaged handles stay open until a collection notices, and objects with finalizers
-    /// survive a generation they had no reason to. spec/conversion-time.md section 4.
+    /// survive a generation they had no reason to. spec/ops/conversion-time.md section 4.
     /// </remarks>
     public void Dispose()
     {

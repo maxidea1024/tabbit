@@ -14,7 +14,7 @@ namespace Tabbit.Tests;
 /// binary as one fixed-array column per member - so agreeing is evidence rather than
 /// coincidence.
 ///
-/// spec/nested-fields.md has the layout both paths are implementing.
+/// spec/types/nested-fields.md has the layout both paths are implementing.
 /// </summary>
 public class NestedTypescriptRoundTripTests
 {

@@ -8,7 +8,7 @@
 
    The base fields are constructor parameters on the sealed class, so a consumer holding the
    base type reads them without narrowing. The read path is untouched: the file is still read
-   into the table's flat entry and the value is built from it. spec/polymorphism.md section 7.
+   into the table's flat entry and the value is built from it. spec/types/polymorphism.md section 7.
 ##~}}
 {{ include 'kotlin-file-head.sbn' ~}}
 /**
@@ -23,7 +23,7 @@ sealed class {{ structure.name }}(
 {{~ end ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
     val {{ member.name }}: {{ member.key_type_name }},
     val {{ member.row_name }}: {{ member.type_name }},
 {{~ else ~}}
@@ -43,7 +43,7 @@ class {{ variant.type_name }}(
 {{~ for member in structure.base_members ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
     {{ member.name }}: {{ member.key_type_name }},
     {{ member.row_name }}: {{ member.type_name }},
 {{~ else ~}}
@@ -56,7 +56,7 @@ class {{ variant.type_name }}(
 {{~ end ~}}
 {{~ if member.row_name != '' ~}}
 {{~## A reference member is two of these: the key the cell held under its own name, and the row
-   it resolved to under the derived one. spec/reference-surface-naming.md 4 and 5. ##~}}
+   it resolved to under the derived one. spec/references/reference-surface-naming.md 4 and 5. ##~}}
     val {{ member.name }}: {{ member.key_type_name }},
     val {{ member.row_name }}: {{ member.type_name }},
 {{~ else ~}}
