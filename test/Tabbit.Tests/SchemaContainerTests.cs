@@ -99,6 +99,53 @@ public class SchemaContainerTests
         Assert.Empty(bag.GetProperty("prices").GetProperty("key").EnumerateArray());
     }
 
+    // ------------------------------------------------------------------ refusals
+
+    /// <summary>
+    /// What a container promises about its values, and what saying so costs a sheet that
+    /// does not keep it.
+    /// </summary>
+    /// <remarks>
+    /// All three in one run rather than the first of them. Correcting a sheet is a matter of
+    /// reading a list, and a run that stopped at the first would make it one run per mistake -
+    /// which is the same reason the binding reports every disagreeing column.
+    ///
+    /// And each one names the cell. "Which cell" is what the column constraints settled as
+    /// the standard for a report about a value, and a container is a report about values.
+    /// </remarks>
+    [Fact]
+    public void A_row_that_breaks_a_container_says_so_for_every_break()
+    {
+        var result = TabbitRunner.Convert("containers-refused");
+
+        Assert.False(result.Succeeded, "Rows that break their containers were accepted.");
+
+        Assert.Contains(
+            "`Shop.Bag.Tags` is a set and this row holds `new` twice - at element 3, "
+            + "and already at element 1",
+            result.StdOut);
+
+        Assert.Contains(
+            "`Shop.Bag.Prices` is a map and this row keys two entries by `10` - element 2, "
+            + "and already element 1",
+            result.StdOut);
+
+        Assert.Contains(
+            "`Shop.Bag.Prices` holds 2 key(s) and 1 value(s) in this row",
+            result.StdOut);
+    }
+
+    /// <summary>Each of them pointing at the cell that holds it.</summary>
+    [Fact]
+    public void Each_break_names_the_cell_it_is_in()
+    {
+        var result = TabbitRunner.Convert("containers-refused");
+
+        Assert.Contains("Containers : D7", result.StdOut);
+        Assert.Contains("Containers : E8", result.StdOut);
+        Assert.Contains("Containers : F9", result.StdOut);
+    }
+
     private static string Json(string scenario)
         => File.ReadAllText(Path.Combine(
             RepoLayout.OutputDir(scenario), "json-named", "Shop.json"));

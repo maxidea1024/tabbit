@@ -59,6 +59,10 @@ internal static class Program
         WriteContainers(
             Prepare(outputDir, "containers-expanded", "containers-expanded.xlsx"),
             fromSchema: false);
+        // The same declarations against rows that break each of the promises a container
+        // makes.
+        WriteContainersRefused(
+            Prepare(outputDir, "containers-refused", "containers-refused.xlsx"));
         // One record, written into one cell and written as its own columns.
         WriteMultiRowEquivalence(
             Prepare(outputDir, "multirow-rows", "multirow-rows.xlsx"), multiRow: true);
@@ -1155,6 +1159,45 @@ internal static class Program
             // A run of equal values, which is what the column encodings read.
             .Row("4", "new;sale",  "10;11;12", "100;120;140")
             .Row("5", "new;sale",  "10;11;12", "100;120;140");
+
+        b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// The rows a container refuses: a repeated element, a repeated key, and a pair that
+    /// does not pair.
+    /// </summary>
+    /// <remarks>
+    /// One row per promise, so a run reports all three rather than stopping at the first -
+    /// correcting a sheet is a matter of reading a list, and a run that stopped would make it
+    /// one run per mistake. spec/types/set-and-map.md section 6.
+    /// </remarks>
+    private static void WriteContainersRefused(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Containers"));
+
+        var spec = new TableSpec
+        {
+            Name = "Shop",
+            Comment = "A group holding a set and a map, with rows that break both.",
+        };
+
+        spec
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Bag.Tags", "Bag", ""))
+            .Field(FieldSpec.Of("Bag.Prices.Key", "", ""))
+            .Field(FieldSpec.Of("Bag.Prices.Value", "", ""));
+
+        spec
+            // A set holding one value twice.
+            .Row("1", "new;sale;new", "10;11", "100;120")
+            // A map keying two entries the same.
+            .Row("2", "new",          "10;10", "100;120")
+            // And a key with no value beside it.
+            .Row("3", "new",          "10;11", "100");
 
         b.Table(1, 1, spec);
 

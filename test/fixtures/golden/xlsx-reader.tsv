@@ -12,6 +12,7 @@ composite/composite.xlsx	sheets=1 rows=9 cells=55 chars=508 names=0 skipped-name
 conformance-skew/conformance-skew.xlsx	sheets=1 rows=67 cells=906 chars=9776 names=0 skipped-names=0 hash=8027633b718d0b09
 conformance/conformance.xlsx	sheets=1 rows=67 cells=866 chars=9559 names=0 skipped-names=0 hash=72213585479d1e5f
 containers-expanded/containers-expanded.xlsx	sheets=1 rows=11 cells=37 chars=267 names=0 skipped-names=0 hash=97ac87f6f59d7a84
+containers-refused/containers-refused.xlsx	sheets=1 rows=9 cells=29 chars=216 names=0 skipped-names=0 hash=68889e39c58bbcab
 containers/containers.xlsx	sheets=1 rows=11 cells=34 chars=223 names=0 skipped-names=0 hash=4799ad592dce605a
 core/core.xlsx	sheets=7 rows=66 cells=421 chars=3579 names=0 skipped-names=0 hash=4de0cbf8fc0f2a71
 declared-expanded/declared-expanded.xlsx	sheets=1 rows=21 cells=98 chars=804 names=0 skipped-names=0 hash=b0429e8605432020

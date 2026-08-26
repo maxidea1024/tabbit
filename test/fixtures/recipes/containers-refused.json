@@ -1,0 +1,30 @@
+{
+  // The `containers` declarations against rows that break each of the promises a container
+  // makes - spec/types/set-and-map.md section 6.
+  //
+  // The same schema file as `containers`, deliberately: what is wrong is in the workbook,
+  // and a declaration written for this alone would let a change to it pass without anybody
+  // noticing the pair had drifted.
+  //
+  // The run fails, so what the targets are does not matter much - binary is here so the
+  // refusal is reached through the ordinary path rather than through a validate-only one.
+
+  "Schemas": [
+    { "Path": "test/fixtures/schemas/containers" }
+  ],
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "test/fixtures/xlsx/containers-refused" }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/containers-refused/binary",
+      "FileExtension": ".tcb"
+    }
+  ]
+}

@@ -111,6 +111,18 @@ public static class SchemaMessages
     /// <summary>`set&lt;T&gt;[]` or `map&lt;K,V&gt;[]` - an array whose elements are containers.</summary>
     public const string ContainerArrayNotSupported = "schema.container-array-not-supported";
 
+    /// <summary>Two elements of one `set` cell holding the same value.</summary>
+    public const string SetDuplicateElement = "schema.set-duplicate-element";
+
+    /// <summary>Two entries of one `map` under the same key.</summary>
+    public const string MapDuplicateKey = "schema.map-duplicate-key";
+
+    /// <summary>A `map` row whose key column and value column hold different counts.</summary>
+    public const string MapLengthMismatch = "schema.map-length-mismatch";
+
+    /// <summary>A `map` group with a key column and no value column, or the other way round.</summary>
+    public const string MapHalfWritten = "schema.map-half-written";
+
     /// <summary>Type arguments on a type that takes none.</summary>
     public const string TypeTakesNoArguments = "schema.type-takes-no-arguments";
 

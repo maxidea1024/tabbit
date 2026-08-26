@@ -82,6 +82,12 @@ public partial class ModelCooker
         // pass reaches its cells while it is one. notes/struct-dsl-design.md section 7.2.
         BindDeclaredStructs(context, result, declarations, diagnostics);
 
+        // What a container promises about its values, now that the binding has read the
+        // cells as the type they were declared. Before the folds, because a set's column
+        // and a map's pair are what the sheet wrote and every pass below meets them as
+        // ordinary array columns. spec/types/set-and-map.md sections 5 and 6.
+        CheckContainers(result, diagnostics);
+
 
         // Every cell has been read, so the two type kinds that existed for the reading are
         // done. Both are folds and neither is visible below this line.

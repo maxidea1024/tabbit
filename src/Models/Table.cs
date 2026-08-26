@@ -673,6 +673,13 @@ public class Table
         {
             var own = byName[member.Name];
 
+            // A container is the level its columns say it is, and the levels below it are
+            // what it holds - `Prices` is the map and `Prices.Value` is a value in one.
+            // Every column at or below the container carries the same mark, so the level is
+            // the whole of the test. spec/types/set-and-map.md section 3.
+            if (own[0].ContainerLevel == level)
+                member.Container = own[0].Container;
+
             // One level cannot be both. `Star1.Position` holding a value in one column and
             // a record in another is not a shape a declaration can have, and saying so here
             // beats generating a member whose type depends on which column was read last.

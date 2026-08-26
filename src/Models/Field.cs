@@ -136,6 +136,30 @@ public class Field
     public bool IsRecordMember => NamePath is not null && NamePath.Count > 1;
 
     /// <summary>
+    /// The container this column is part of, or none for every column of every sheet
+    /// written before containers existed.
+    /// </summary>
+    /// <remarks>
+    /// **A mark, because the columns are the same either way.** A declaration saying
+    /// `set&lt;string&gt;` and a sheet saying `string[]` produce one column of one type, and the
+    /// file they write is the same file - so by the time a generator sees them, this is the
+    /// only thing left that says which was written. spec/types/set-and-map.md section 3.
+    /// </remarks>
+    public ContainerKind Container { get; set; }
+
+    /// <summary>
+    /// Which level of <see cref="NamePath"/> the container sits at, or -1 when there is
+    /// none.
+    /// </summary>
+    /// <remarks>
+    /// A map's two columns are one level below it - `Bag.Prices.Key` marks level 1 - so the
+    /// level is what tells the container's own level from the ones under it. Without it a
+    /// `map&lt;int,Reward&gt;` would have its `Value` group answering yes to being a map as well,
+    /// since every column beneath the container carries the same mark.
+    /// </remarks>
+    public int ContainerLevel { get; set; } = -1;
+
+    /// <summary>
     /// Whether this column carries which variant each row of its group is.
     /// </summary>
     /// <remarks>

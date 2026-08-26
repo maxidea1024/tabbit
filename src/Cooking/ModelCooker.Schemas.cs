@@ -141,7 +141,13 @@ public partial class ModelCooker
         SchemaDeclarations declarations,
         Diagnostics diagnostics)
     {
-        var member = Walk(field, declared, declarations);
+        var member = Walk(field, declared, declarations, out var container, out int containerLevel);
+
+        // Carried on every column at or below the container, with the level saying which of
+        // them the container itself is. A map's `Key` and `Value` are one level further in
+        // and answer for the container rather than being one.
+        field.Container = container;
+        field.ContainerLevel = containerLevel;
 
         if (member is null)
         {
@@ -227,10 +233,27 @@ public partial class ModelCooker
     /// is the whole of the depth rule.
     /// </remarks>
     private static SchemaField? Walk(Field field, SchemaStruct declared, SchemaDeclarations declarations)
+        => Walk(field, declared, declarations, out _, out _);
+
+    /// <param name="containerKind">
+    /// The container this column is under, or none. Reported alongside the member because
+    /// the walk is the one place that knows - by the time a column is a column, a
+    /// `set&lt;string&gt;` and a `string[]` are the same thing.
+    /// </param>
+    /// <param name="containerLevel">Which level of the path that container sits at.</param>
+    private static SchemaField? Walk(
+        Field field,
+        SchemaStruct declared,
+        SchemaDeclarations declarations,
+        out Models.ContainerKind containerKind,
+        out int containerLevel)
     {
         var path = field.NamePath!;
         var here = declared;
         SchemaField? member = null;
+
+        containerKind = Models.ContainerKind.None;
+        containerLevel = -1;
 
         for (int level = 1; level < path.Count; level++)
         {
@@ -260,6 +283,13 @@ public partial class ModelCooker
 
             if (member is null)
                 return null;
+
+            if (SchemaContainers.KindOf(member.Type) is var found
+                && found != Models.ContainerKind.None)
+            {
+                containerKind = found;
+                containerLevel = level;
+            }
 
             here = member.Type.Form == SchemaTypeForm.Named
                 ? declarations.FindStruct(member.Type.Name)

@@ -120,6 +120,16 @@ public class RecordMember
     /// </remarks>
     public bool IsArray { get; set; }
 
+    /// <summary>
+    /// The container this member was declared as, or none.
+    /// </summary>
+    /// <remarks>
+    /// Set by the folding, which is the one place that knows what level a member is at - a
+    /// `map`'s columns all carry the mark, and only the level says that `Prices` is the map
+    /// and `Prices.Value` is what it holds. spec/types/set-and-map.md section 3.
+    /// </remarks>
+    public ContainerKind Container { get; set; }
+
     /// <summary>Whether this level is reached by number rather than by name.</summary>
     /// <remarks>
     /// <see cref="Name"/> still holds the number, because a diagnostic and a column check
