@@ -257,6 +257,10 @@ TestResults/
 # See notes/synthetic-samples.md.
 samples/sprout/xlsx-live/
 samples/sprout/out-live/
+
+# The benchmark's three exports of that corpus. Regenerated in seconds from the recipe, and
+# 20 MB of the same values in three shapes.
+bench/data/
 samples/canopy/xlsx-live/
 samples/canopy/out-live/
 

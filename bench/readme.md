@@ -7,13 +7,16 @@
 저장소 루트에서:
 
 ```
-# 1. 데이터 생성 — rescue 워크북을 세 형식으로 내보냅니다 (bench/data/, 커밋되지 않음)
+# 1. 코퍼스 생성 — 109,218행. 커밋되어 있지 않습니다
+dotnet run --project samples/sprout/gen -- --scale live --out samples/sprout/xlsx-live
+
+# 2. 데이터 생성 — 세 형식으로 내보냅니다 (bench/data/, 커밋되지 않음)
 dotnet run --project src/Tabbit.csproj -- --recipe bench/recipe.jsonc
 
-# 2. 세 형식이 같은 값으로 로드되는지 확인
+# 3. 세 형식이 같은 값으로 로드되는지 확인
 dotnet run --project bench/Tabbit.Bench.csproj -c Release -- verify bench/data
 
-# 3. 측정
+# 4. 측정
 dotnet run --project bench/Tabbit.Bench.csproj -c Release -- sizes bench/data
 dotnet run --project bench/Tabbit.Bench.csproj -c Release -- binary bench/data 30
 dotnet run --project bench/Tabbit.Bench.csproj -c Release -- json bench/data 30
@@ -28,8 +31,8 @@ dotnet run --project bench/Tabbit.Bench.csproj -c Release -- json-compact bench/
 
 |파일|내용|
 |--|--|
-|`recipe.jsonc`|rescue 워크북 → `bench/data/{binary, json, json-compact}`. 한 변환에서 세 형식이 나오므로 내용이 다를 수 없습니다|
+|`recipe.jsonc`|`samples/sprout/xlsx-live` → `bench/data/{binary, json, json-compact}`. 한 변환에서 세 형식이 나오므로 내용이 다를 수 없습니다|
 |`Program.cs`|측정과 검증. 힙 기준선을 어디서 잡는지, 왜 로드를 `await`하지 않는지가 주석에 있습니다|
 |`JsonPath.cs`|JSON 쪽 로더. 생성된 `Record`를 거울처럼 본뜬 DTO 타입을 시작 시 만들어, 데이터셋이 재생성되어도 하네스가 따라갑니다|
 
-바이너리 경로는 [samples/rescue/out/cs](../samples/rescue/out/cs)의 생성된 리더를 그대로 컴파일해 씁니다 — 소비자 프로젝트가 컴파일했을 바로 그 코드입니다.
+바이너리 경로는 [samples/sprout/out/cs](../samples/sprout/out/cs)의 생성된 리더를 그대로 컴파일해 씁니다 — 소비자 프로젝트가 컴파일했을 바로 그 코드입니다. 그쪽은 소규모 코퍼스에서 생성된 것이고, 규모는 행의 수를 바꿀 뿐 행의 형태를 바꾸지 않으므로 스키마가 같습니다.

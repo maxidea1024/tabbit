@@ -104,7 +104,7 @@ internal static class Program
     {
         var plans = JsonPath.BuildPlans(Path.Combine(dataRoot, "json"));
 
-        await Rescue.Tables.Tables.ReadAllAsync(Path.Combine(dataRoot, "binary"));
+        await Sprout.Tables.Tables.ReadAllAsync(Path.Combine(dataRoot, "binary"));
         var named = await JsonPath.LoadAllAsync(plans, Path.Combine(dataRoot, "json"), compact: false);
         var compact = await JsonPath.LoadAllAsync(plans, Path.Combine(dataRoot, "json-compact"), compact: true);
 
@@ -175,7 +175,7 @@ internal static class Program
 
     private static IList BinaryRecords(JsonPath.TablePlan plan)
     {
-        object table = typeof(Rescue.Tables.Tables).GetProperty(plan.Name).GetValue(null);
+        object table = typeof(Sprout.Tables.Tables).GetProperty(plan.Name).GetValue(null);
         return (IList)plan.TableType.GetProperty("Records").GetValue(table);
     }
 
@@ -224,7 +224,7 @@ internal static class Program
             "binary" => () => RunToCompletion(() =>
             {
                 // The accessor's statics hold the load; there is nothing to return.
-                return Rescue.Tables.Tables.ReadAllAsync(Path.Combine(dataRoot, "binary"))
+                return Sprout.Tables.Tables.ReadAllAsync(Path.Combine(dataRoot, "binary"))
                     .ContinueWith<object>(_ => null);
             }),
             _ => LoadJson(format, dataRoot),
@@ -318,13 +318,29 @@ internal static class Program
     private static T RunToCompletion<T>(Func<Task<T>> start)
         => start().GetAwaiter().GetResult();
 
+    /// <summary>
+    /// Drops everything the binary path loaded, so the next iteration measures a load rather
+    /// than the tail of the previous one.
+    /// </summary>
+    /// <remarks>
+    /// One property is enough now: the generated accessor keeps a `Snapshot` and every table
+    /// property forwards to it, so nulling `Current` releases them all. It used to hold one
+    /// static per table, and this walked them.
+    ///
+    /// The setter is private - swapping the whole snapshot is the accessor's own business -
+    /// so it is fetched explicitly rather than through <c>SetValue</c>, which only looks for
+    /// a public one.
+    /// </remarks>
     private static void ClearBinaryStatics()
     {
-        foreach (var tableProp in typeof(Rescue.Tables.Tables).GetProperties(BindingFlags.Public | BindingFlags.Static))
-        {
-            if (tableProp.PropertyType.GetNestedType("Record") != null)
-                tableProp.SetValue(null, null);
-        }
+        var current = typeof(Sprout.Tables.Tables)
+            .GetProperty("Current", BindingFlags.Public | BindingFlags.Static);
+
+        var setter = current?.GetSetMethod(nonPublic: true)
+            ?? throw new InvalidOperationException(
+                "The generated accessor has no `Current` to clear; the benchmark's teardown is stale.");
+
+        setter.Invoke(null, new object[] { null });
     }
 
     private static void FullCollect()

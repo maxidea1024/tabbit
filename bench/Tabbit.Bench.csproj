@@ -13,11 +13,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- The committed rescue code generation: the same generated reader a consumer
-         project would compile. The benchmark's data comes from bench/recipe.jsonc,
-         which converts the same workbooks with the same checkout of the tool, so
-         the two cannot disagree about the schema. -->
-    <Compile Include="..\samples\rescue\out\cs\**\*.cs" LinkBase="rescue-generated" />
+    <!-- The committed `sprout` code generation: the same generated reader a consumer
+         project would compile. The benchmark's data comes from bench/recipe.jsonc, which
+         converts the same grids at the larger scale, so the schema is the one this reader
+         was generated from - scale changes how many rows there are, not what a row is. -->
+    <Compile Include="..\samples\sprout\out\cs\**\*.cs" LinkBase="sprout-generated" />
   </ItemGroup>
 
 </Project>
