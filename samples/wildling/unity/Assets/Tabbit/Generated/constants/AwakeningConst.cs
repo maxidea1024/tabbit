@@ -9,7 +9,7 @@
 
 namespace Wildling.Data
 {
-    // Generated from samples/wildling/기획데이터/Const.xlsx : Const_Growth : A9
+    // Generated from samples/wildling/design-data/xlsx/Const.xlsx : Const_Growth : A9
     /// <summary>
     /// 각성이 늘리는 것이다.
     /// </summary>

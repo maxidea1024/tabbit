@@ -9,7 +9,7 @@
 
 namespace Wildling.Data
 {
-    // Generated from samples/wildling/기획데이터/Enums.xlsx : Enums : A51
+    // Generated from samples/wildling/design-data/xlsx/Enums.xlsx : Enums : A51
     /// <summary>
     /// 기록부 보상의 범위이다.
     /// </summary>

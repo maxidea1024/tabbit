@@ -9,7 +9,7 @@
 
 namespace Wildling.Data
 {
-    // Generated from samples/wildling/기획데이터/Enums.xlsx : Enums : A8
+    // Generated from samples/wildling/design-data/xlsx/Enums.xlsx : Enums : A8
     /// <summary>
     /// 지역의 초기 상태이다.
     /// </summary>

@@ -54,7 +54,7 @@ namespace Wildling.Check
             Debug.Log(report);
 
             string path = Path.GetFullPath(Path.Combine(
-                Application.dataPath, "..", "..", "기획데이터", "out", "unity-check.txt"));
+                Application.dataPath, "..", "..", "design-data", "out", "unity-check.txt"));
 
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             File.WriteAllText(path, (ok ? "OK" : "FAIL") + Environment.NewLine + report);

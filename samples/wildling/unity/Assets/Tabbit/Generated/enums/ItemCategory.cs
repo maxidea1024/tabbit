@@ -9,7 +9,7 @@
 
 namespace Wildling.Data
 {
-    // Generated from samples/wildling/기획데이터/Enums.xlsx : Enums : A18
+    // Generated from samples/wildling/design-data/xlsx/Enums.xlsx : Enums : A18
     /// <summary>
     /// 아이템의 분류이다.
     /// </summary>
