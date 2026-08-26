@@ -44,16 +44,71 @@ public class SchemaContainerTests
     }
 
     /// <summary>
+    /// And a map written as `k:v` pairs in one cell is the same file again.
+    /// </summary>
+    /// <remarks>
+    /// Three workbooks, one file. That is what says the paired cell is a way of writing a
+    /// map rather than a second way of holding one - spec/types/set-and-map.md section 5.2.
+    /// </remarks>
+    [Fact]
+    public void A_map_written_as_pairs_reaches_the_same_file()
+    {
+        Convert("containers");
+        Convert("containers-paired");
+
+        byte[] fromColumns = File.ReadAllBytes(Path.Combine(
+            RepoLayout.OutputDir("containers"), "binary", "Shop.tcb"));
+
+        byte[] fromPairs = File.ReadAllBytes(Path.Combine(
+            RepoLayout.OutputDir("containers-paired"), "binary", "Shop.tcb"));
+
+        Assert.Equal(fromColumns, fromPairs);
+    }
+
+    /// <summary>
     /// The same claim where a difference is readable - two `.tcb` files that differ say so
     /// in an offset.
     /// </summary>
-    [Fact]
-    public void The_two_ways_of_writing_the_containers_produce_the_same_json()
+    [Theory]
+    [InlineData("containers-expanded")]
+    [InlineData("containers-paired")]
+    public void The_ways_of_writing_the_containers_produce_the_same_json(string other)
     {
         Convert("containers");
-        Convert("containers-expanded");
+        Convert(other);
 
-        Assert.Equal(Json("containers-expanded"), Json("containers"));
+        Assert.Equal(Json(other), Json("containers"));
+    }
+
+    /// <summary>
+    /// A map whose value is a struct is a key column beside a group of columns, each holding
+    /// every entry's value of one member.
+    /// </summary>
+    /// <remarks>
+    /// The struct-of-arrays the wire has always written a record as, one level further in -
+    /// spec/types/set-and-map.md section 3. Read out because it is the shape most easily got
+    /// wrong: a member declared `int` becomes a column of `int[]`, and nothing in the
+    /// declaration says so.
+    /// </remarks>
+    [Fact]
+    public void A_map_whose_value_is_a_struct_holds_one_column_per_member()
+    {
+        Convert("containers");
+
+        using var document = JsonDocument.Parse(Json("containers"));
+        var drops = document.RootElement[0].GetProperty("bag").GetProperty("drops");
+
+        Assert.Equal([1, 2], drops.GetProperty("key").EnumerateArray().ToArray().Select(k => k.GetInt32()));
+
+        var value = drops.GetProperty("value");
+
+        Assert.Equal(
+            [101, 102],
+            value.GetProperty("itemId").EnumerateArray().ToArray().Select(v => v.GetInt32()));
+
+        Assert.Equal(
+            [1, 3],
+            value.GetProperty("count").EnumerateArray().ToArray().Select(v => v.GetInt32()));
     }
 
     /// <summary>
@@ -133,6 +188,41 @@ public class SchemaContainerTests
         Assert.Contains(
             "`Shop.Bag.Prices` holds 2 key(s) and 1 value(s) in this row",
             result.StdOut);
+    }
+
+    /// <summary>
+    /// What one cell of pairs cannot be: an entry that is not a pair, and a value that is
+    /// several columns.
+    /// </summary>
+    [Fact]
+    public void What_a_cell_of_pairs_cannot_hold_is_named_where_it_is_written()
+    {
+        var result = TabbitRunner.Convert("containers-refused");
+
+        Assert.Contains(
+            "`Stall.Bag.Prices` writes its map as pairs and this entry has no `:` in it - `10`",
+            result.StdOut);
+
+        Assert.Contains(
+            "`Depot.Crate.Drops` writes its map as pairs in one cell, and `drops` holds "
+            + "`Reward` - a struct",
+            result.StdOut);
+    }
+
+    /// <summary>
+    /// And the column it refused is not reported a second time for the consequence.
+    /// </summary>
+    /// <remarks>
+    /// A column left unfolded still has a member type one column cannot hold, so the binding
+    /// would report that too - a second sentence about a cause the first one already named,
+    /// and one that names a member (`Crate.Value`) nobody wrote.
+    /// </remarks>
+    [Fact]
+    public void A_column_the_pairs_pass_refused_is_not_reported_again()
+    {
+        var result = TabbitRunner.Convert("containers-refused");
+
+        Assert.DoesNotContain("`Crate.Value` is declared", result.StdOut);
     }
 
     /// <summary>Each of them pointing at the cell that holds it.</summary>

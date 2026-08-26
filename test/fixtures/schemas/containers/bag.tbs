@@ -11,3 +11,21 @@ struct Bag
     field tags   set<string>
     /// What each item costs here, by that item's key.
     field prices map<int,int(min=1)>
+    /// What one roll hands out, by the roll's number. The value is a struct, so this map is
+    /// a key column beside a group of them.
+    field drops  map<int,Reward>
+
+/// One thing a row hands out.
+///
+/// Here for the map whose value is a struct, which is the shape one cell of pairs cannot
+/// hold - `containers-refused` writes that and is told so.
+struct Reward
+    /// Which item, as that table's key.
+    field itemId int
+    /// How many of it.
+    field count int
+
+/// What falls out of one crate, by the roll that produced it.
+struct Crate
+    /// The value is a struct, so this map is two columns and not one cell of pairs.
+    field drops map<int,Reward>

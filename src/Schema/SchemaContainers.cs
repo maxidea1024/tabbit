@@ -192,7 +192,10 @@ internal static class SchemaContainers
             // be several, and uniqueness across several columns is what `uniqueBy` is about
             // rather than what a map key is.
             if (!isKey)
-                return true;
+            {
+                return NothingBelowIsAlreadyAList(
+                    declared, member, argument, declaredStruct, declarations, diagnostics, []);
+            }
 
             diagnostics.Error(argument.Location, Message.Of(
                 SchemaMessages.MapKeyTypeNotAllowed,
@@ -238,9 +241,95 @@ internal static class SchemaContainers
         return false;
     }
 
+    /// <summary>
+    /// Whether a struct a container holds has a member that is already several values.
+    /// </summary>
+    /// <remarks>
+    /// **Every member of it becomes one column holding every entry's value of that member.**
+    /// So a member that is itself an array would need a column of lists of lists, which is a
+    /// shape the notation has no cell for - the same wall `set&lt;T&gt;[]` meets.
+    ///
+    /// All the way down, because the member that is an array may be two levels in and the
+    /// column that would have to hold it is a column all the same. `seen` is what stops a
+    /// struct that holds itself from walking forever; a cycle is refused elsewhere and this
+    /// runs before that report.
+    /// </remarks>
+    private static bool NothingBelowIsAlreadyAList(
+        SchemaStruct declared,
+        SchemaField member,
+        SchemaTypeRef argument,
+        SchemaStruct held,
+        SchemaDeclarations declarations,
+        Diagnostics diagnostics,
+        HashSet<string> seen)
+    {
+        if (!seen.Add(held.Name))
+            return true;
+
+        foreach (var inner in held.LiveFields)
+        {
+            if (inner.Type.IsArray || inner.Type.Form == SchemaTypeForm.Container)
+            {
+                diagnostics.Error(argument.Location, Message.Of(
+                    SchemaMessages.ContainerHeldStructIsAList,
+                    ("Struct", declared.Name),
+                    ("Member", member.Name),
+                    ("Type", held.Name),
+                    ("Inner", inner.Name),
+                    ("InnerType", inner.Type.ToString())));
+
+                return false;
+            }
+
+            if (declarations.FindStruct(inner.Type.Name) is { } below
+                && !NothingBelowIsAlreadyAList(
+                    declared, member, argument, below, declarations, diagnostics, seen))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /// <summary>What a key may be, spelled as a sheet spells it, for the report.</summary>
     private static string AllowedKeyTypes()
         => "`int` · `bigint` · `string` · `bool` · `uuid` · enum";
+
+    /// <summary>
+    /// A member of a struct a container holds, as the column that member becomes.
+    /// </summary>
+    /// <remarks>
+    /// **One column per member, holding every entry's value of it.** A `map&lt;int,Reward&gt;` is
+    /// `Key` beside `Value.ItemId` and `Value.Count`, and each of those three holds as many
+    /// values as the map has entries - which is the same struct-of-arrays the wire has always
+    /// written a record as, one level further in.
+    ///
+    /// So the member's declared type is not the column's: `Reward.itemId` is an `int` and the
+    /// column under a map is `int[]`. Nothing else about the member changes.
+    /// </remarks>
+    public static SchemaField Held(SchemaField member)
+        => new SchemaField
+        {
+            Name = member.Name,
+            Location = member.Location,
+            Comment = member.Comment,
+            Meta = member.Meta,
+            WireTag = member.WireTag,
+            DefaultValue = member.DefaultValue,
+            Type = new SchemaTypeRef
+            {
+                Location = member.Type.Location,
+                Form = member.Type.Form,
+                Name = member.Type.Name,
+                ForeignTables = member.Type.ForeignTables,
+                Arguments = member.Type.Arguments,
+                Meta = member.Type.Meta,
+                IsArray = true,
+                IsOptional = member.Type.IsOptional,
+                ElementsAreOptional = member.Type.ElementsAreOptional,
+            },
+        };
 
     /// <summary>
     /// The one column a `set` is, or null when the type is not a set.

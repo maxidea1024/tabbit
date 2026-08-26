@@ -1,0 +1,35 @@
+{
+  // The same table as `containers`, with the map written as `k:v` pairs in one cell -
+  // notation (나) of spec/types/set-and-map.md section 5.2.
+  //
+  // The third half of the pair, held to the same file as the other two. Two notations
+  // producing one file is what says the second is a way of writing a map rather than a
+  // second way of holding one.
+  //
+  // The same schema file, deliberately: what differs is the workbook.
+
+  "Schemas": [
+    { "Path": "test/fixtures/schemas/containers" }
+  ],
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "test/fixtures/xlsx/containers-paired" }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/containers-paired/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/containers-paired/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    }
+  ]
+}

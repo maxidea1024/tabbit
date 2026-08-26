@@ -123,6 +123,18 @@ public static class SchemaMessages
     /// <summary>A `map` group with a key column and no value column, or the other way round.</summary>
     public const string MapHalfWritten = "schema.map-half-written";
 
+    /// <summary>An entry of a paired `map` cell with no `:` in it.</summary>
+    public const string MapPairMalformed = "schema.map-pair-malformed";
+
+    /// <summary>A `map` whose value is a struct, written as pairs in one cell.</summary>
+    public const string MapPairsHoldAStruct = "schema.map-pairs-hold-a-struct";
+
+    /// <summary>A paired `map` cell in a table that writes its own wire tags.</summary>
+    public const string MapPairsTableWritesTags = "schema.map-pairs-table-writes-tags";
+
+    /// <summary>A struct a container holds whose own member is already an array.</summary>
+    public const string ContainerHeldStructIsAList = "schema.container-held-struct-is-a-list";
+
     /// <summary>Type arguments on a type that takes none.</summary>
     public const string TypeTakesNoArguments = "schema.type-takes-no-arguments";
 

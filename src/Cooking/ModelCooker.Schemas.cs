@@ -43,10 +43,20 @@ public partial class ModelCooker
         // second saying of it pointing away from the cause.
         var claimed = new HashSet<Field>();
 
+        // A map written as pairs in one cell becomes the two columns it would have been
+        // written as, before anything below has to know there were ever two notations.
+        // spec/types/set-and-map.md section 5.2.
+        //
+        // A column it refused is left as it was written and named here, so the binding does
+        // not report the consequence of a mistake it has already reported the cause of.
+        var refused = new HashSet<Field>();
+
+        ExpandMapCells(context, model, declarations, refused, diagnostics);
+
         foreach (var table in model.Tables)
         {
             foreach (var group in GroupsOf(table))
-                BindGroup(context, table, group, declarations, claimed, diagnostics);
+                BindGroup(context, table, group, declarations, claimed, refused, diagnostics);
         }
 
         // A whole value written into one cell, folded back into the columns it is made of.
@@ -71,26 +81,35 @@ public partial class ModelCooker
             .GroupBy(field => field.GroupName!)
             .Select(group => group.ToList());
 
+    /// <summary>
+    /// The columns of a group that named a struct in their type cell.
+    /// </summary>
+    /// <remarks>
+    /// **One cell, not one field per element.** A multi-row group's header is one column and
+    /// every element's field carries its type cell, so counting fields made a group of two
+    /// elements look like one naming its struct twice. The location is what says which cell
+    /// an author actually wrote. spec/types/polymorphism.md section 5.3.
+    /// </remarks>
+    private static List<Field> NamingColumnsOf(List<Field> group, SchemaDeclarations declarations)
+        => group
+            .Where(field => declarations.FindStruct(field.TypeName) is not null)
+            .GroupBy(field => field.TypeLocation?.ToString() ?? field.RawName)
+            .Select(byCell => byCell.First())
+            .ToList();
+
     private static void BindGroup(
         CookingContext context,
         Table table,
         List<Field> group,
         SchemaDeclarations declarations,
         HashSet<Field> claimed,
+        HashSet<Field> refused,
         Diagnostics diagnostics)
     {
         // Which column named the struct. Exactly one, and the report says so either way: a
         // group naming none is the ordinary notation and nothing here applies to it, and a
         // group naming two has two answers to what it is.
-        // **One cell, not one field per element.** A multi-row group's header is one column and
-        // every element's field carries its type cell, so counting fields made a group of two
-        // elements look like one naming its struct twice. The location is what says which cell
-        // an author actually wrote. spec/types/polymorphism.md section 5.3.
-        var naming = group
-            .Where(field => declarations.FindStruct(field.TypeName) is not null)
-            .GroupBy(field => field.TypeLocation?.ToString() ?? field.RawName)
-            .Select(byCell => byCell.First())
-            .ToList();
+        var naming = NamingColumnsOf(group, declarations);
 
         if (naming.Count == 0)
             return;
@@ -125,7 +144,14 @@ public partial class ModelCooker
         }
 
         foreach (var field in group)
+        {
+            // Already reported where it was written. A second report about it would sit
+            // between the reader and the cause of the first.
+            if (refused.Contains(field))
+                continue;
+
             BindColumn(context, table, field, declared, declarations, diagnostics);
+        }
 
         RefuseMembersWithNoColumn(table, group, declared, diagnostics);
     }
@@ -295,6 +321,13 @@ public partial class ModelCooker
                 ? declarations.FindStruct(member.Type.Name)
                 : null;
         }
+
+        // A member of a struct that a container holds is one column per entry, so its column
+        // is an array of what the member declares. The container's own two columns are made
+        // that way already; this is every level below them.
+        // spec/types/set-and-map.md section 3.
+        if (member is not null && containerLevel >= 0 && path.Count - 1 > containerLevel + 1)
+            member = SchemaContainers.Held(member);
 
         return member;
     }

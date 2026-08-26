@@ -59,6 +59,9 @@ internal static class Program
         WriteContainers(
             Prepare(outputDir, "containers-expanded", "containers-expanded.xlsx"),
             fromSchema: false);
+        // And the same table a third time, with the map written as pairs in one cell.
+        WriteContainerPairs(
+            Prepare(outputDir, "containers-paired", "containers-paired.xlsx"));
         // The same declarations against rows that break each of the promises a container
         // makes.
         WriteContainersRefused(
@@ -1146,19 +1149,71 @@ internal static class Program
             // A map is two columns of equal length, and the two names are the container's
             // rather than the author's - nobody wrote `Key` in the declaration.
             .Field(FieldSpec.Of("Bag.Prices.Key", Typed("int[]"), ""))
-            .Field(FieldSpec.Of("Bag.Prices.Value", Typed("int[]"), ""));
+            .Field(FieldSpec.Of("Bag.Prices.Value", Typed("int[]"), ""))
+
+            // And a map whose value is a struct, which is the key column beside a group of
+            // them - one column per member, each holding every entry's value of it.
+            .Field(FieldSpec.Of("Bag.Drops.Key", Typed("int[]"), ""))
+            .Field(FieldSpec.Of("Bag.Drops.Value.ItemId", Typed("int[]"), ""))
+            .Field(FieldSpec.Of("Bag.Drops.Value.Count", Typed("int[]"), ""));
 
         spec
             // Lengths that differ between rows, because a map whose rows are all the same
             // length is the shape that hides whether the length is read per row.
-            .Row("1", "new;sale",  "10;11",    "100;120")
-            .Row("2", "sale",      "10",       "90")
-            // Nothing in either container, which is an entry count of zero rather than a
-            // row that has no map.
-            .Row("3", "",          "",         "")
+            .Row("1", "new;sale",  "10;11",    "100;120",    "1;2",   "101;102", "1;3")
+            .Row("2", "sale",      "10",       "90",         "1",     "101",     "5")
+            // Nothing in any container, which is an entry count of zero rather than a row
+            // that has no map.
+            .Row("3", "",          "",         "",           "",      "",        "")
             // A run of equal values, which is what the column encodings read.
-            .Row("4", "new;sale",  "10;11;12", "100;120;140")
-            .Row("5", "new;sale",  "10;11;12", "100;120;140");
+            .Row("4", "new;sale",  "10;11;12", "100;120;140", "1;2;3", "101;102;103", "1;3;5")
+            .Row("5", "new;sale",  "10;11;12", "100;120;140", "1;2;3", "101;102;103", "1;3;5");
+
+        b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// The same map, written as `k:v` pairs in one cell.
+    /// </summary>
+    /// <remarks>
+    /// The third half of the pair, and held to the same file as the other two. A notation
+    /// that folded into different entries would produce a different file, and nothing here
+    /// would have to assert what the difference was.
+    /// spec/types/set-and-map.md section 5.2.
+    /// </remarks>
+    private static void WriteContainerPairs(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Containers"));
+
+        var spec = new TableSpec
+        {
+            Name = "Shop",
+            Comment = "A group holding a set and a map.",
+        };
+
+        spec
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Bag.Tags", "Bag", ""))
+
+            // One column where the other two workbooks write two, and the declaration is
+            // what says it is a map rather than a list of strings.
+            .Field(FieldSpec.Of("Bag.Prices", "", ""))
+
+            // The struct-valued map stays two columns here. One cell of pairs has no room
+            // for a value of several components, which is what this workbook is not about.
+            .Field(FieldSpec.Of("Bag.Drops.Key", "", ""))
+            .Field(FieldSpec.Of("Bag.Drops.Value.ItemId", "", ""))
+            .Field(FieldSpec.Of("Bag.Drops.Value.Count", "", ""));
+
+        spec
+            .Row("1", "new;sale",  "10:100;11:120",         "1;2",   "101;102",     "1;3")
+            .Row("2", "sale",      "10:90",                 "1",     "101",         "5")
+            .Row("3", "",          "",                      "",      "",            "")
+            .Row("4", "new;sale",  "10:100;11:120;12:140",  "1;2;3", "101;102;103", "1;3;5")
+            .Row("5", "new;sale",  "10:100;11:120;12:140",  "1;2;3", "101;102;103", "1;3;5");
 
         b.Table(1, 1, spec);
 
@@ -1189,17 +1244,62 @@ internal static class Program
             .Field(FieldSpec.Of("index", "int", "primary index"))
             .Field(FieldSpec.Of("Bag.Tags", "Bag", ""))
             .Field(FieldSpec.Of("Bag.Prices.Key", "", ""))
-            .Field(FieldSpec.Of("Bag.Prices.Value", "", ""));
+            .Field(FieldSpec.Of("Bag.Prices.Value", "", ""))
+
+            // Correct throughout. The struct is what it is wherever it is used, so a group
+            // that leaves a member out is a different report from the ones this is about.
+            .Field(FieldSpec.Of("Bag.Drops.Key", "", ""))
+            .Field(FieldSpec.Of("Bag.Drops.Value.ItemId", "", ""))
+            .Field(FieldSpec.Of("Bag.Drops.Value.Count", "", ""));
 
         spec
             // A set holding one value twice.
-            .Row("1", "new;sale;new", "10;11", "100;120")
+            .Row("1", "new;sale;new", "10;11", "100;120", "1", "101", "1")
             // A map keying two entries the same.
-            .Row("2", "new",          "10;10", "100;120")
+            .Row("2", "new",          "10;10", "100;120", "1", "101", "1")
             // And a key with no value beside it.
-            .Row("3", "new",          "10;11", "100");
+            .Row("3", "new",          "10;11", "100",     "1", "101", "1");
 
-        b.Table(1, 1, spec);
+        int next = b.Table(1, 1, spec);
+
+        // --- what one cell of pairs cannot hold ------------------------------
+
+        // An entry with no separator in it. The cell is a list of pairs, so a bare value has
+        // no key to be the value of - and reading it as either half would make a typo
+        // indistinguishable from a decision.
+        var malformed = new TableSpec
+        {
+            Name = "Stall",
+            Comment = "A map written as pairs, with an entry that is not one.",
+        };
+
+        malformed
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Bag.Tags", "Bag", ""))
+            .Field(FieldSpec.Of("Bag.Prices", "", ""))
+            .Field(FieldSpec.Of("Bag.Drops.Key", "", ""))
+            .Field(FieldSpec.Of("Bag.Drops.Value.ItemId", "", ""))
+            .Field(FieldSpec.Of("Bag.Drops.Value.Count", "", ""));
+
+        malformed.Row("1", "new", "10;11", "1", "101", "1");
+
+        next = b.Table(1, next + 2, malformed);
+
+        // A value that is a struct. One component of one entry would have to be several
+        // values, which needs a third separator - and settling that is what `sep` is for.
+        var structured = new TableSpec
+        {
+            Name = "Depot",
+            Comment = "A map whose value is a struct, written as pairs.",
+        };
+
+        structured
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Crate.Drops", "Crate", ""));
+
+        structured.Row("1", "1:101");
+
+        b.Table(1, next + 2, structured);
 
         Save(workbook, path);
     }
