@@ -6,6 +6,37 @@
 
 ---
 
+## 한눈에
+
+recipe 하나가 **무엇을 읽어**(`Sources`) **무엇을 낼지**(`Targets`) 적습니다. 그 둘이면
+돌아갑니다 — 나머지는 전부 선택입니다.
+
+```jsonc
+{
+  "Sources": {
+    "Xlsx": [ { "Path": "./sheets", "FileExtensionPatterns": ".xlsx" } ]
+  },
+
+  "Targets": [
+    { "Type": "binary", "Path": "./generated/data" },
+    { "Type": "csharp", "Path": "./generated/cs", "Namespace": "MyGame.Data" }
+  ]
+}
+```
+
+`sheets/`의 워크북을 읽어 `.tcb`와 C# 접근자를 냅니다. `tabbit --new-recipe myrecipe.json`이
+이런 뼈대를 만들어 주고, 경로가 빈 항목은 꺼진 것으로 취급되므로 그대로 실행해도 안전합니다.
+
+|무엇을 하려는가|어디를 볼까|
+|--|--|
+|내 상황에 맞는 것을 베끼고 싶다|[예제](#예제) — 유니티 · 언리얼 · 서버/클라 분리 · 구글 시트 · CI|
+|어디서 읽을지 정한다|[`Sources`](#sources--무엇을-읽을지)|
+|무엇을 낼지 정한다|[`Targets`](#targets--이-변환이-내는-것-전부)|
+|설정 하나의 뜻을 찾는다|[설정 하나하나](#설정-하나하나)|
+|사람마다 경로가 다르다|[환경 변수 `${NAME}`](#환경-변수--name)|
+|시트에 못 적는 규칙을 검사하고 싶다|[`Validation`](#validation--시트에-적을-수-없는-규칙)|
+|찾은 문제를 남에게 보여야 한다|[`Report`](#report--찾은-문제를-고칠-사람에게-보이기)|
+
 ## Recipe 파일 작성
 
 `recipe` 파일은 입력 소스와 출력 대상을 지정하는 `.json` 파일입니다. `//` 주석을 사용할 수 있습니다.
