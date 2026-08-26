@@ -94,7 +94,8 @@ dotnet run --project samples/<샘플>/gen -- --scale live --out xlsx-live   # �
 접두어를 공유하는 경로 풀. 그것이 [바이너리 인코더](../doc/binary-format/encoding.md)가
 상대하는 성질이고, 그래서 벤치마크의 근거가 저장소 안에 있게 됩니다.
 
-경위와 규격은 [합성 샘플](../notes/synthetic-samples.md)에 있습니다.
+어떤 성질을 어떻게 옮겼는지는 각 샘플의 readme에 있습니다 — [sprout](sprout/readme.md#생성-규칙)의
+생성 규칙 표와 [canopy](canopy/readme.md#재현하는-표기)의 표기 표가 그것입니다.
 
 ## 산출물과 게이트
 

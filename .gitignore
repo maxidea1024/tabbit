@@ -222,7 +222,6 @@ TestResults/
 
 # `sprout` at benchmark scale: 109,218 rows, built on demand rather than committed.
 # `--scale small` produces the workbooks that are committed; `--scale live` produces these.
-# See notes/synthetic-samples.md.
 samples/sprout/xlsx-live/
 samples/sprout/out-live/
 

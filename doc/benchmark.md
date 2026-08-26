@@ -34,7 +34,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe bench/recipe.jsonc
 |compact JSON|배열 행(`[1, "…", …]`), 공백 없음. recipe의 `UseCompactRowFormat`|
 
 > **이 수치는 이전 판과 기준이 다릅니다.** 예전 판은 상용 프로젝트의 워크북에서 측정했고,
-> 그 데이터는 저장소에 없습니다([경위](../notes/synthetic-samples.md)). 배율이 그때보다
+> 그 데이터는 저장소에 없습니다([경위](../samples/readme.md#합성인-이유)). 배율이 그때보다
 > 작습니다 — 그쪽 성장 테이블의 값 컬럼이 서로 다른 값을 훨씬 적게 갖고 있었기 때문이고,
 > 합성본을 거기까지 맞추는 것은 **데이터를 도구에 유리하게 짜는 일**이 됩니다.
 

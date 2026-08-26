@@ -105,7 +105,7 @@ internal sealed class Schema
 /// <remarks>
 /// `gen/workbooks.tsv` holds one line per sheet: workbook, tab, grid, and the row count at
 /// each scale. Two scales because the committed corpus and the benchmark corpus are the same
-/// sheets at different sizes - see notes/synthetic-samples.md.
+/// sheets at different sizes - see the sample's readme.
 /// </remarks>
 internal sealed record Placement(string Workbook, string Tab, string Grid, int Small, int Live)
 {

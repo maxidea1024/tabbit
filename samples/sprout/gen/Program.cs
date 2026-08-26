@@ -10,8 +10,7 @@ namespace Sprout.Gen;
 /// <remarks>
 /// Every value here is synthesised. What is reproduced from a real corpus is its *shape* -
 /// table count, row count, column types, and the statistical properties the binary format's
-/// encoders work against. notes/synthetic-samples.md says why that is the thing worth
-/// reproducing and what the targets are.
+/// encoders work against. samples/readme.md says why that is the thing worth reproducing.
 ///
 /// <code>
 ///   dotnet run --project samples/sprout/gen -- --scale small   # the committed corpus

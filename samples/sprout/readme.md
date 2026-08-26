@@ -9,7 +9,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/sprout/recipe.jsonc
 
 **값은 전부 합성입니다.** 재현하는 것은 값이 아니라 규모와 형태입니다 — 테이블 수, 행 수,
 컬럼 타입의 분포, 그리고 [바이너리 인코더](../../doc/binary-format/encoding.md)가 상대하는
-통계적 성질. 근거는 [합성 샘플 규격](../../notes/synthetic-samples.md)에 있습니다.
+통계적 성질. 왜 그것이 옮길 만한 것인지는 [샘플 색인](../readme.md#합성인-이유)에 있습니다.
 
 ## 여기 있는 것
 

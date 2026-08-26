@@ -9,7 +9,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/canopy/recipe.jsonc
 
 **값은 전부 합성입니다.** 재현하는 것은 규모와 **표기**입니다 — 테이블 수, 컬럼 수, 중첩의
 비율, 그리고 이 레이아웃이 시트 안에 선언해 두는 제약의 종류. 근거는
-[합성 샘플 규격](../../notes/synthetic-samples.md)에 있습니다.
+[샘플 색인](../readme.md#합성인-이유)에 있습니다.
 
 ## 여기 있는 것
 

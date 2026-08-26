@@ -11,8 +11,7 @@ namespace Canopy.Gen;
 /// <remarks>
 /// Every value here is synthesised. What is reproduced from a real corpus of this size is its
 /// shape - the table count, the column count, how much of it is nested, and the notation the
-/// sheets are written in. notes/synthetic-samples.md says why that is the thing worth
-/// reproducing.
+/// sheets are written in. samples/readme.md says why that is the thing worth reproducing.
 ///
 /// <code>
 ///   dotnet run --project samples/canopy/gen -- --scale small   # the committed corpus
