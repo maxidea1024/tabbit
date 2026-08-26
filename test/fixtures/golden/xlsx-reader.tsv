@@ -12,8 +12,8 @@ composite/composite.xlsx	sheets=1 rows=9 cells=55 chars=508 names=0 skipped-name
 conformance-skew/conformance-skew.xlsx	sheets=1 rows=67 cells=906 chars=9776 names=0 skipped-names=0 hash=8027633b718d0b09
 conformance/conformance.xlsx	sheets=1 rows=67 cells=866 chars=9559 names=0 skipped-names=0 hash=72213585479d1e5f
 core/core.xlsx	sheets=7 rows=66 cells=421 chars=3579 names=0 skipped-names=0 hash=4de0cbf8fc0f2a71
-declared-expanded/declared-expanded.xlsx	sheets=1 rows=22 cells=100 chars=807 names=0 skipped-names=0 hash=1c00ee45969c44cc
-declared/declared.xlsx	sheets=1 rows=22 cells=89 chars=546 names=0 skipped-names=0 hash=c998f5c2d3053bcf
+declared-expanded/declared-expanded.xlsx	sheets=1 rows=21 cells=98 chars=804 names=0 skipped-names=0 hash=b0429e8605432020
+declared/declared.xlsx	sheets=1 rows=21 cells=86 chars=540 names=0 skipped-names=0 hash=7e517010d0c2ba8d
 double-star/double-star.xlsx	sheets=1 rows=7 cells=21 chars=150 names=0 skipped-names=0 hash=2be8348acef4b44e
 element-only/element-only.xlsx	sheets=1 rows=8 cells=24 chars=216 names=0 skipped-names=0 hash=46193e98a6ccd7fa
 enum-by-value/enum-by-value.xlsx	sheets=1 rows=8 cells=39 chars=247 names=0 skipped-names=0 hash=39798289180da628
