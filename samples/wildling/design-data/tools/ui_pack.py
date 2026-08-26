@@ -32,20 +32,23 @@ URL = ("https://kenney.nl/media/pages/assets/ui-pack/"
 # 테두리는 늘어나지 않는 가장자리입니다. 아래쪽이 두꺼운 것은 버튼의 두께를 남기기
 # 위해서입니다 — 그 부분이 늘어나면 단추가 납작해집니다.
 WANT = [
+    # **밝은 화면용 키트입니다.** 흰 판에 색 테두리, 색 버튼에 흰 글자 — 요즘 모바일 게임의
+    # 기본형입니다. 어둡게 물들이면 광택이 죽으므로 색 그대로 씁니다.
     ("PNG/Grey/Double/button_rectangle_depth_border.png", "panel", (28, 34, 28, 28)),
-    ("PNG/Grey/Double/button_rectangle_border.png", "panel_soft", (28, 28, 28, 28)),
-    ("PNG/Grey/Double/button_rectangle_depth_flat.png", "panel_sunk", (28, 34, 28, 28)),
-    ("PNG/Grey/Double/button_rectangle_depth_gloss.png", "button", (28, 34, 28, 28)),
+    ("PNG/Blue/Double/button_rectangle_depth_border.png", "panel_soft", (28, 34, 28, 28)),
+    ("PNG/Grey/Double/button_rectangle_border.png", "panel_sunk", (28, 28, 28, 28)),
+    ("PNG/Blue/Double/button_rectangle_depth_gloss.png", "button", (28, 34, 28, 28)),
     ("PNG/Green/Double/button_rectangle_depth_gloss.png", "button_accent", (28, 34, 28, 28)),
     ("PNG/Red/Double/button_rectangle_depth_gloss.png", "button_warn", (28, 34, 28, 28)),
+    ("PNG/Grey/Double/button_rectangle_depth_gloss.png", "button_plain", (28, 34, 28, 28)),
     ("PNG/Yellow/Double/star.png", "star", (0, 0, 0, 0)),
     ("PNG/Extra/Double/divider.png", "divider", (16, 0, 16, 0)),
 ]
 
 NOTICE = """이 폴더의 아래 파일들은 Kenney 의 UI Pack 2.0 에서 가져온 것입니다.
 
-    panel · panel_soft · panel_sunk · button · button_accent · button_warn
-    star · divider
+    panel · panel_soft · panel_sunk · button · button_accent · button_warn ·
+    button_plain · star · divider
 
 라이선스는 **Creative Commons Zero (CC0)** 입니다 — 개인·교육·상업 사용이 모두 자유롭고
 표기 의무가 없습니다. 그래서 저장소에 담을 수 있습니다.

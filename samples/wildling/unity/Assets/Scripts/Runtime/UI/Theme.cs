@@ -10,18 +10,29 @@ namespace Wildling.Game
     /// </remarks>
     public static class Theme
     {
-        public static readonly Color Background = Rgb(0x16, 0x17, 0x1D);
-        public static readonly Color Panel = Rgb(0x22, 0x24, 0x2E);
-        public static readonly Color PanelHigh = Rgb(0x2C, 0x2F, 0x3C);
-        public static readonly Color Line = Rgb(0x3A, 0x3E, 0x4E);
+        // **밝은 화면입니다.** 쓰는 UI 팩이 흰 판에 색 테두리, 색 버튼에 흰 글자로
+        // 만들어져 있습니다 — 어둡게 물들이면 광택과 두께가 죽습니다.
+        public static readonly Color Background = Rgb(0xEC, 0xEF, 0xF4);
+        public static readonly Color Panel = Rgb(0xFF, 0xFF, 0xFF);
+        public static readonly Color PanelHigh = Rgb(0xF4, 0xF8, 0xFF);
+        public static readonly Color Line = Rgb(0xD3, 0xD9, 0xE4);
 
         /// <summary>위아래 띠이다. 판이 아니라 화면의 테두리이므로 두께를 주지 않는다.</summary>
-        public static readonly Color Hud = Rgb(0x11, 0x12, 0x18);
-        public static readonly Color Text = Rgb(0xE6, 0xE8, 0xF0);
-        public static readonly Color TextDim = Rgb(0x9A, 0xA0, 0xB4);
-        public static readonly Color Accent = Rgb(0x6C, 0xC6, 0xA0);
-        public static readonly Color Warn = Rgb(0xE0, 0x7A, 0x6C);
-        public static readonly Color Good = Rgb(0x7A, 0xC8, 0x8A);
+        public static readonly Color Hud = Rgb(0xFF, 0xFF, 0xFF);
+        public static readonly Color Text = Rgb(0x24, 0x2A, 0x36);
+        public static readonly Color TextDim = Rgb(0x77, 0x80, 0x92);
+
+        /// <summary>색 버튼 위의 글자이다.</summary>
+        public static readonly Color OnColor = Rgb(0xFF, 0xFF, 0xFF);
+
+        public static readonly Color Accent = Rgb(0x1B, 0xA8, 0x66);
+        public static readonly Color Warn = Rgb(0xE0, 0x33, 0x51);
+        public static readonly Color Good = Rgb(0x18, 0x9E, 0x5E);
+        public static readonly Color Info = Rgb(0x1E, 0x93, 0xD8);
+
+        /// <summary>전투처럼 어두운 그림 위에 얹는 글자이다.</summary>
+        public static readonly Color OnDark = Rgb(0xF2, 0xF4, 0xFA);
+        public static readonly Color OnDarkDim = Rgb(0xC2, 0xC8, 0xD6);
 
         public static Color Element(Element element) => element switch
         {

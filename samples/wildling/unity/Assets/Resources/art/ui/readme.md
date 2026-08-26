@@ -1,7 +1,7 @@
 이 폴더의 아래 파일들은 Kenney 의 UI Pack 2.0 에서 가져온 것입니다.
 
-    panel · panel_soft · panel_sunk · button · button_accent · button_warn
-    star · divider
+    panel · panel_soft · panel_sunk · button · button_accent · button_warn ·
+    button_plain · star · divider
 
 라이선스는 **Creative Commons Zero (CC0)** 입니다 — 개인·교육·상업 사용이 모두 자유롭고
 표기 의무가 없습니다. 그래서 저장소에 담을 수 있습니다.

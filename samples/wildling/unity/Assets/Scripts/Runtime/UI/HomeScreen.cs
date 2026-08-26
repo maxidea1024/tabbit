@@ -50,7 +50,7 @@ namespace Wildling.Game
                 nrt.pivot = new Vector2(0.5f, 0f);
                 nrt.offsetMin = new Vector2(16f, 26f);
                 nrt.offsetMax = new Vector2(-16f, 76f);
-                Ui.Label(name.transform, region.Name, 30);
+                Ui.Label(name.transform, region.Name, 30, Theme.OnDark);
             }
 
             var body = Ui.Node("body", root);

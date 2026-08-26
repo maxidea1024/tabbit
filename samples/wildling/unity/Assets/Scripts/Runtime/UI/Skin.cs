@@ -32,6 +32,7 @@ namespace Wildling.Game
         public static Sprite PanelSoft => Get("panel_soft");
         public static Sprite PanelSunk => Get("panel_sunk");
         public static Sprite Button => Get("button");
+        public static Sprite ButtonPlain => Get("button_plain");
         public static Sprite ButtonAccent => Get("button_accent");
         public static Sprite ButtonWarn => Get("button_warn");
         public static Sprite BarBack => Get("bar_back");
@@ -58,19 +59,17 @@ namespace Wildling.Game
         /// 읽히지 않습니다. 회색이라 곱하기 한 번으로 어떤 색이든 되고, 그러면서 판의 두께와
         /// 광택은 그대로 남습니다.
         /// </remarks>
-        public static Color TintFor(Sprite sprite)
-        {
-            if (sprite == Panel)
-                return new Color(0.255f, 0.270f, 0.335f);
-            if (sprite == PanelSoft)
-                return new Color(0.320f, 0.340f, 0.415f);
-            if (sprite == PanelSunk)
-                return new Color(0.180f, 0.190f, 0.245f);
-            if (sprite == Button)
-                return new Color(0.400f, 0.425f, 0.520f);
-            // 초록과 붉은색은 이미 제 색을 가지고 있습니다.
-            return Color.white;
-        }
+        public static Color TintFor(Sprite sprite) => Color.white;
+
+        /// <summary>그 껍데기 위의 글자가 어느 색이어야 하는가.</summary>
+        /// <remarks>
+        /// 색 버튼 위에서는 흰 글자, 흰 판 위에서는 어두운 글자입니다. 부르는 자리가 이것을
+        /// 하나하나 적으면 한 군데를 빠뜨렸을 때 글자가 사라집니다.
+        /// </remarks>
+        public static Color TextOn(Sprite sprite)
+            => sprite == Button || sprite == ButtonAccent || sprite == ButtonWarn
+                ? Theme.OnColor
+                : Theme.Text;
 
         /// <summary>
         /// 그 색으로 칠하려던 판을 어느 껍데기로 바꿀 것인가.
@@ -97,6 +96,8 @@ namespace Wildling.Game
             // 목록의 줄은 누를 수 있어도 판처럼 보여야 합니다.
             if (Same(color, Theme.Panel))
                 return Panel;
+            if (Same(color, Theme.PanelHigh))
+                return ButtonPlain;
             return Button;
         }
 

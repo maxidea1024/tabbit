@@ -36,7 +36,7 @@ def build(art_dir, emit, folder_meta, unity_meta):
 
     # **이 이름들은 무료 팩에서 옵니다** — `ui_pack.py` 가 넣고, 여기서는 만들지 않습니다.
     from_pack = {"panel", "panel_soft", "panel_sunk", "button", "button_accent",
-                 "button_warn", "star", "divider"}
+                 "button_warn", "button_plain", "star", "divider"}
 
     made = []
 
@@ -87,13 +87,18 @@ def build(art_dir, emit, folder_meta, unity_meta):
     }
     for name, color in grades.items():
         def draw(c, color=color):
-            # 안쪽이 비어 있는 테두리입니다. 아이콘 위에 얹습니다.
-            c.rect(0, 0, UI, UI, shade(color, -0.35), radius=14)
-            c.rect(3, 3, UI - 3, UI - 3, shade(color, 0.25), radius=12)
-            c.rect(6, 6, UI - 6, UI - 6, (0, 0, 0), radius=10, alpha=0.0)
+            # **두툼한 테두리입니다.** 캐주얼 게임의 슬롯은 테두리가 굵어야 등급이 보입니다.
+            # 안쪽은 비어 있어 그림이 그대로 보입니다.
+            edge = 9
+            c.rect(0, 0, UI, UI, shade(color, -0.45), radius=16)
+            c.rect(2, 2, UI - 2, UI - 2, color, radius=15)
+            c.rect(3, 3, UI - 3, UI - 6, shade(color, 0.35), radius=14, alpha=0.55)
+            c.rect(edge - 2, edge - 2, UI - edge + 2, UI - edge + 2,
+                   shade(color, -0.55), radius=11)
+
             # 가운데를 지웁니다 — 알파를 직접 0으로 씁니다.
-            for y in range(6 * 3, (UI - 6) * 3):
-                for x in range(6 * 3, (UI - 6) * 3):
+            for y in range(edge * 3, (UI - edge) * 3):
+                for x in range(edge * 3, (UI - edge) * 3):
                     i = (y * c.w + x) * 4
                     c.buf[i + 3] = 0
         nine("frame_" + name, draw)

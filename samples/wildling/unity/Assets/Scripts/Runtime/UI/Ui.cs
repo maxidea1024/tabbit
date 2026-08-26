@@ -155,9 +155,17 @@ namespace Wildling.Game
             button.colors = colors;
 
             if (onClick != null)
-                button.onClick.AddListener(() => onClick());
+            {
+                // **누르면 그 자리에서 별이 튑니다.** 눌렸다는 것이 화면에 보여야 합니다.
+                button.onClick.AddListener(() =>
+                {
+                    Fx.Tap(go);
+                    onClick();
+                });
+            }
 
-            Label(go.transform, text, size, Theme.Text, TextAnchor.MiddleCenter);
+            Label(go.transform, text, size, Skin.TextOn(image.sprite),
+                  TextAnchor.MiddleCenter);
             Stretch(go);
             return button;
         }

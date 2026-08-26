@@ -205,7 +205,7 @@ namespace Wildling.Game
 
             var image = box.AddComponent<Image>();
             image.color = new Color(0f, 0f, 0f, 0.82f);
-            Ui.Label(box.transform, message, 22, Theme.Text, TextAnchor.MiddleCenter);
+            Ui.Label(box.transform, message, 22, Theme.OnDark, TextAnchor.MiddleCenter);
         }
 
         private void Update()

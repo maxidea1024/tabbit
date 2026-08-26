@@ -180,7 +180,7 @@ namespace Wildling.Game
             Ui.Label(head.transform,
                      $"{region?.Name ?? stage.RegionId} {stage.Index} — "
                      + Theme.Label(stage.StageKind),
-                     24, Theme.Text, TextAnchor.MiddleCenter);
+                     24, Theme.OnDark, TextAnchor.MiddleCenter);
 
             var enemies = Ui.Node("enemies", root);
             Ui.Top(enemies, 200f, 68f);
@@ -229,7 +229,7 @@ namespace Wildling.Game
                          ? "   |   " + string.Join(" · ",
                              _run.Tally.Take(3).Select(Rewards.Describe))
                          : ""),
-                     18, string.IsNullOrEmpty(_run.FellBackTo) ? Theme.TextDim : Theme.Warn);
+                     18, string.IsNullOrEmpty(_run.FellBackTo) ? Theme.OnDarkDim : Theme.Warn);
 
             var buttons = Ui.Node("buttons", root);
             Ui.Bottom(buttons, 64f, 6f);
@@ -336,7 +336,7 @@ namespace Wildling.Game
 
             var item = Ui.Item(_logColumn, detail ? 28f : 32f);
             var line = Ui.Label(item.transform, BattleLog.Rich(_report, beat),
-                                detail ? 20 : 22, Theme.Text);
+                                detail ? 20 : 22, Theme.OnDark);
             line.supportRichText = true;
 
             Fill(_partyCells, _report.Party, beat.PartyHp);
@@ -402,14 +402,20 @@ namespace Wildling.Game
 
             if (beat.Kind == BeatKind.Act)
             {
+                // 차례는 테두리로 알립니다 — 움직이는 것은 그림 하나뿐입니다.
+                MarkTurn(actor);
                 actor?.Nudge();
                 actor?.Banner(beat.Note, ArtLibrary.Icon(beat.Icon));
                 return;
             }
 
+            if (beat.Kind == BeatKind.Status && actor == target)
+                MarkTurn(actor);
+
             // 「패스」처럼 스스로에게 일어난 것은 그 칸 위에 적습니다.
             if (beat.Kind == BeatKind.Line)
             {
+                MarkTurn(actor);
                 if (!string.IsNullOrEmpty(beat.Note))
                     actor?.Float(beat.Note, Theme.TextDim, 22, false);
                 return;
@@ -459,6 +465,15 @@ namespace Wildling.Game
 
             if (stage != null)
                 stage.anchoredPosition = home;
+        }
+
+        /// <summary>그 칸 하나만 차례로 표시한다.</summary>
+        private void MarkTurn(BattleCell active)
+        {
+            foreach (var cell in _partyCells)
+                cell.SetTurn(cell == active);
+            foreach (var cell in _enemyCells)
+                cell.SetTurn(cell == active);
         }
 
         /// <summary>그 칸의 가운데가 효과 층에서 어디인가.</summary>

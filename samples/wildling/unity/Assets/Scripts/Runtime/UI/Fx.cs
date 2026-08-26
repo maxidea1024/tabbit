@@ -73,6 +73,51 @@ namespace Wildling.Game
     /// </remarks>
     public static class Fx
     {
+        /// <summary>
+        /// 누른 자리에서 별이 튀고 버튼이 한 번 눌린다.
+        /// </summary>
+        /// <remarks>
+        /// **모든 버튼에 붙습니다.** 눌렸다는 것이 화면에 남지 않으면 눌린 것인지 알 수
+        /// 없습니다. 효과 층이 없으면 아무것도 하지 않으므로 부르는 자리가 확인할 것이
+        /// 없습니다.
+        /// </remarks>
+        public static void Tap(GameObject button)
+        {
+            if (button == null || App.Current == null)
+                return;
+
+            var layer = App.Current.Effects;
+            if (layer == null)
+                return;
+
+            var at = (Vector2)((RectTransform)layer)
+                .InverseTransformPoint(button.transform.position);
+
+            Sparks(layer, at, new Color(1f, 1f, 1f, 0.9f), 5, 74f);
+            Burst(layer, at, new Color(1f, 1f, 1f, 0.35f), 160f);
+
+            var rt = (RectTransform)button.transform;
+            App.Current.StartCoroutine(Press(rt));
+        }
+
+        private static IEnumerator Press(RectTransform rt)
+        {
+            float time = 0f;
+            const float span = 0.16f;
+            while (time < span && rt != null)
+            {
+                time += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(time / span);
+                float scale = t < 0.5f
+                    ? Mathf.Lerp(1f, 0.94f, t / 0.5f)
+                    : Mathf.Lerp(0.94f, 1f, (t - 0.5f) / 0.5f);
+                rt.localScale = Vector3.one * scale;
+                yield return null;
+            }
+            if (rt != null)
+                rt.localScale = Vector3.one;
+        }
+
         /// <summary>가운데에서 빛이 한 번 퍼진다.</summary>
         public static void Burst(Transform layer, Vector2 at, Color color, float size = 240f)
         {
