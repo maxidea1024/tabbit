@@ -1,29 +1,13 @@
 # 설치
 
-현재는 소스에서 직접 빌드합니다.
-
-릴리즈가 제공되면 내려받아 압축을 푸는 것만으로 끝나며, .NET 런타임도 별도로 설치할 필요가
-없습니다. 런타임이 실행 파일 안에 들어 있기 때문입니다.
+내려받아 압축을 푸는 것으로 끝납니다. .NET 런타임을 따로 설치하지 않아도 됩니다 — 런타임이
+실행 파일 안에 들어 있습니다.
 
 > [문서 목록으로](readme.md)
 
 ---
 
-## 소스에서 빌드하기
-
-`.NET 10 SDK`가 필요합니다. 버전은 저장소 루트의 `global.json`에 고정되어 있습니다.
-
-```bash
-dotnet build Tabbit.slnx -c Release
-```
-
-개발과 테스트 절차는 [아키텍처와 개발](architecture.md#개발--테스트)에 있습니다.
-
 ## 릴리즈로 설치하기
-
-> **아직 릴리즈가 제공되지 않습니다.**
-> 저장소가 비공개인 동안 Actions가 실행되지 않아 릴리즈 워크플로가 동작하지 못합니다.
-> 아래는 릴리즈가 제공된 뒤의 절차입니다.
 
 [릴리즈](https://github.com/maxidea1024/tabbit/releases)에 플랫폼별로 올라갑니다.
 
@@ -91,6 +75,16 @@ VERSION=${VERSION#v}
 curl -fsSLO "https://github.com/maxidea1024/tabbit/releases/download/v$VERSION/SHA256SUMS"
 sha256sum -c SHA256SUMS --ignore-missing
 ```
+
+## 소스에서 빌드하기
+
+`.NET 10 SDK`가 필요합니다. 버전은 저장소 루트의 `global.json`에 고정되어 있습니다.
+
+```bash
+dotnet build Tabbit.slnx -c Release
+```
+
+개발과 테스트 절차는 [아키텍처와 개발](architecture.md#개발--테스트)에 있습니다.
 
 ## 다음
 
