@@ -320,17 +320,18 @@ jobs:
       # as a missing C header rather than as a missing toolchain.
       # doc/languages/swift.md has that trap written down.
       #
-      # v3 rather than the v2 the Linux job uses, and only here. v2's Windows path is broken
-      # upstream in two ways this gate hit in order: it publishes no 6.1 for Windows
-      # (swift-actions/setup-swift#709), and its signature check then fails with no public
-      # key (#798). v3 is where Windows support was rewritten (#715). It is a beta, which is
-      # the cost of having the gate at all - the alternative is no Swift on Windows, and the
-      # trap this gate exists for is Windows-only (doc/languages/swift.md).
+      # The installer rather than `swift-actions/setup-swift`, and only here. That action's
+      # Windows path is broken upstream in both lines: v2 publishes no 6.1 for Windows
+      # (swift-actions/setup-swift#709) and its signature check then fails with no public
+      # key (#798), and v3.0.0-beta.1 crashes in `setupWindows` (#798 again, unresolved).
+      # winget installs the same toolchain in one line, and the harness already looks where
+      # it lands - `WindowsSwiftToolchains` walks `%LOCALAPPDATA%\Programs\Swift\Toolchains`
+      # and puts the runtime on the path itself, which is the reason no PATH step follows.
       - name: Setup Swift
         if: runner.os == 'Windows'
-        uses: swift-actions/setup-swift@v3.0.0-beta.1
-        with:
-          swift-version: '6.1'
+        run: >
+          winget install --id Swift.Toolchain -e
+          --accept-source-agreements --accept-package-agreements --disable-interactivity
 
       # The C and C++ updaters are the only emitted files that link against anything, and
       # neither language has an HTTP client. macOS carries libcurl in its SDK and `-lcurl` is
