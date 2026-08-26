@@ -40,6 +40,7 @@
 - [옵셔널 필드 — 타입 끝의 `?`](types/optional-fields.md)
 - [다형과 참조 배열](types/polymorphism.md) *(3개로 나뉨)*
 - [레코드 멤버별 옵셔널 — `:requiredInObject`](types/record-member-optionality.md)
+- [`set`과 `map` — STRUCT DSL의 컨테이너](types/set-and-map.md)
 - [가변 길이 레코드 배열](types/variable-length-record-arrays.md)
 
 ## 참조
