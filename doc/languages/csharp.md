@@ -27,9 +27,13 @@
 |Unity|**6.0 이상 (Unity 6).** 그 미만은 지원하지 않습니다|
 |외부 패키지|**없음.** UniTask도, Newtonsoft도 필요 없습니다|
 
-**유니티에서 설정할 것이 없습니다.** 생성된 코드가 유니티 내장 정의(`UNITY_5_3_OR_NEWER`, `UNITY_WEBGL`)로 스스로 판별합니다. 별도의 심볼을 프로젝트에 추가할 필요가 없습니다.
+**유니티에서 설정할 것이 없습니다.** 생성된 코드가 유니티 내장 정의(`UNITY_5_3_OR_NEWER`,
+`UNITY_WEBGL`)로 스스로 판별합니다. 별도의 심볼을 프로젝트에 추가할 필요가 없습니다.
 
-**유니티를 아는 파일은 `tabbit/TabbitUnityAdapter.cs` 하나뿐입니다.** 유니티 밖에서는 몸통이 통째로 심볼 뒤에 있어 아무것도 컴파일되지 않고, 유니티 안에서는 첫 씬이 뜨기 전에 스스로 설치됩니다 — Android의 APK 안이나 WebGL의 HTTP처럼 File API로 읽을 수 없는 경로를 `UnityWebRequest`로 읽는 것이 그 내용입니다. 접근자를 비롯한 나머지 파일은 엔진을 모릅니다.
+**유니티를 아는 파일은 `tabbit/TabbitUnityAdapter.cs` 하나뿐입니다.** 유니티 밖에서는 몸통이
+통째로 심볼 뒤에 있어 아무것도 컴파일되지 않고, 유니티 안에서는 첫 씬이 뜨기 전에 스스로
+설치됩니다 — Android의 APK 안이나 WebGL의 HTTP처럼 File API로 읽을 수 없는 경로를
+`UnityWebRequest`로 읽는 것이 그 내용입니다. 접근자를 비롯한 나머지 파일은 엔진을 모릅니다.
 
 ## recipe 설정
 
@@ -127,7 +131,8 @@ GameData.Publish(next);
 
 ### 파일을 어디서 읽을지 바꾸기
 
-`ReadAllBytesAsync`가 교체 가능한 델리게이트입니다. 팩 파일, CDN, Addressables 등에서 읽으려면 `ReadAllAsync`를 부르기 **전에** 자기 것을 넣으세요.
+`ReadAllBytesAsync`가 교체 가능한 델리게이트입니다. 팩 파일, CDN, Addressables 등에서 읽으려면
+`ReadAllAsync`를 부르기 **전에** 자기 것을 넣으세요.
 
 ```csharp
 GameData.ReadAllBytesAsync = async filename =>
@@ -150,7 +155,8 @@ CDN이나 버킷에 올려둔 데이터를 받아 로컬 사본을 최신으로 
 기본값이 `false`인 이유는 네트워크를 쓰기 때문이고, 데이터를 빌드 안에 넣어 배포한다면 필요가
 없기 때문입니다.
 
-익스포터가 데이터 옆에 이미 쓰고 있는 **매니페스트**(`manifest-binary.json` — 파일별 크기와 MD5)가 전부입니다. 서버에는 익스포트 결과를 그대로 올리면 되고, 따로 준비할 것이 없습니다.
+익스포터가 데이터 옆에 이미 쓰고 있는 **매니페스트**(`manifest-binary.json` — 파일별 크기와
+MD5)가 전부입니다. 서버에는 익스포트 결과를 그대로 올리면 되고, 따로 준비할 것이 없습니다.
 
 ```csharp
 var result = await TabbitUpdater.UpdateAsync("https://cdn.example.com/data");
@@ -164,7 +170,9 @@ if (!result.Succeeded)
 await GameData.ReadAllAsync(result.LocalPath);
 ```
 
-업데이터는 **읽지 않습니다.** 디렉터리를 만들어 그 경로를 돌려주고, 로드는 접근자가 합니다. 둘이 서로를 모르는 편이 낫고, 받은 데이터의 스키마가 이 빌드와 달라도 [바이너리 형식](../binary-format.md)의 태그 덕에 안전하게 읽힙니다.
+업데이터는 **읽지 않습니다.** 디렉터리를 만들어 그 경로를 돌려주고, 로드는 접근자가 합니다.
+둘이 서로를 모르는 편이 낫고, 받은 데이터의 스키마가 이 빌드와 달라도
+[바이너리 형식](../binary-format.md)의 태그 덕에 안전하게 읽힙니다.
 
 **무엇을 보장하나.**
 
@@ -194,15 +202,19 @@ var options = new TabbitUpdateOptions
 var result = await TabbitUpdater.UpdateAsync(baseUrl, cacheDirectory: null, options, cancellationToken);
 ```
 
-캐시 위치를 지정하지 않으면 유니티에서는 `Application.persistentDataPath/tabbit-data`, 그 외에서는 실행 파일 옆입니다.
+캐시 위치를 지정하지 않으면 유니티에서는 `Application.persistentDataPath/tabbit-data`, 그
+외에서는 실행 파일 옆입니다.
 
-**예외를 throw하지 않습니다.** 네트워크·디스크·손상된 파일은 전부 호출자가 다뤄야 하는 상황이지 결함이 아니고, 게임 루프 안으로 예외를 throw하는 패처는 이유를 삼키는 try/catch로 감싸이게 됩니다. 실패는 `result.Error`에 문장으로 옵니다.
+**예외를 throw하지 않습니다.** 네트워크·디스크·손상된 파일은 전부 호출자가 다뤄야 하는 상황이지
+결함이 아니고, 게임 루프 안으로 예외를 throw하는 패처는 이유를 삼키는 try/catch로 감싸이게
+됩니다. 실패는 `result.Error`에 문장으로 옵니다.
 
 > 언리얼에도 같은 것이 있습니다 — [언리얼 가이드](unreal.md#데이터만-갱신하기-writeupdater).
 
 ## 주의사항
 
-**유니티 배포 경로.** 어댑터가 컴파일 대상 플랫폼에 맞게 고릅니다. StreamingAssets은 어느 플랫폼에서나 배포되지만, 두 곳에서는 경로가 아니라 URL입니다.
+**유니티 배포 경로.** 어댑터가 컴파일 대상 플랫폼에 맞게 고릅니다. StreamingAssets은 어느
+플랫폼에서나 배포되지만, 두 곳에서는 경로가 아니라 URL입니다.
 
 |플랫폼|`Application.streamingAssetsPath`|어댑터가 하는 일|
 |--|--|--|
@@ -210,13 +222,20 @@ var result = await TabbitUpdater.UpdateAsync(baseUrl, cacheDirectory: null, opti
 |WebGL|웹서버 URL|`UnityWebRequest`|
 |그 외|실제 경로|`File.ReadAllBytesAsync`|
 
-둘 다 `"://"`를 포함하므로 한 번의 검사로 갈립니다. `persistentDataPath`는 어디서나 실제 경로라 파일 API로 갑니다.
+둘 다 `"://"`를 포함하므로 한 번의 검사로 갈립니다. `persistentDataPath`는 어디서나 실제 경로라
+파일 API로 갑니다.
 
-**WebGL에는 스레드가 없습니다.** WebGL 빌드에서는 `File.ReadAllBytes`를 동기로 부릅니다 — `Task.Run`이 동작하지 않기 때문입니다. 에디터에서는 그렇지 않으므로 `UNITY_WEBGL && !UNITY_EDITOR`로 갈립니다.
+**WebGL에는 스레드가 없습니다.** WebGL 빌드에서는 `File.ReadAllBytes`를 동기로 부릅니다 —
+`Task.Run`이 동작하지 않기 때문입니다. 에디터에서는 그렇지 않으므로
+`UNITY_WEBGL && !UNITY_EDITOR`로 갈립니다.
 
-> 어댑터를 지우면 유니티에서도 접근자의 기본 구현(`File.ReadAllBytesAsync`)이 그대로 쓰이므로, Android와 WebGL에서 파일을 읽지 못합니다. 직접 만든 읽기 구현으로 갈아끼웠다면 지워도 되지만, 그 구현이 위 두 경우를 처리해야 합니다.
+> 어댑터를 지우면 유니티에서도 접근자의 기본 구현(`File.ReadAllBytesAsync`)이 그대로 쓰이므로,
+> Android와 WebGL에서 파일을 읽지 못합니다. 직접 만든 읽기 구현으로 갈아끼웠다면 지워도 되지만,
+> 그 구현이 위 두 경우를 처리해야 합니다.
 
-**확장자.** 유니티는 `.bytes`인 파일만 TextAsset으로 포함합니다. `Resources/`나 Addressables로 배포한다면 recipe에서 `"BinaryTableFileExtension": ".bytes"`로 두세요. StreamingAssets은 확장자를 가리지 않으므로 `.tcb` 그대로도 됩니다.
+**확장자.** 유니티는 `.bytes`인 파일만 TextAsset으로 포함합니다. `Resources/`나 Addressables로
+배포한다면 recipe에서 `"BinaryTableFileExtension": ".bytes"`로 두세요. StreamingAssets은
+확장자를 가리지 않으므로 `.tcb` 그대로도 됩니다.
 
 ## 데이터의 배포 위치
 
@@ -270,9 +289,13 @@ Tables.ReadAllBytesAsync = async filename =>
 await Tables.ReadAllAsync("", ".bytes");
 ```
 
-**두 가지를 함께 맞춰야 합니다.** recipe의 `BinaryTableFileExtension`을 `.bytes`로 두어야 유니티가 TextAsset으로 포함하고, 어드레서블 주소를 그 이름과 같게 잡아야 위 코드가 그대로 성립합니다.
+**두 가지를 함께 맞춰야 합니다.** recipe의 `BinaryTableFileExtension`을 `.bytes`로 두어야
+유니티가 TextAsset으로 포함하고, 어드레서블 주소를 그 이름과 같게 잡아야 위 코드가 그대로
+성립합니다.
 
-> **갈아끼우면 어댑터가 하던 일도 함께 사라집니다.** 위 코드는 Addressables가 플랫폼을 알아서 처리하므로 문제가 없지만, 직접 만든 구현으로 바꾸는 경우에는 Android의 APK 안과 WebGL의 URL을 스스로 처리해야 합니다.
+> **갈아끼우면 어댑터가 하던 일도 함께 사라집니다.** 위 코드는 Addressables가 플랫폼을 알아서
+> 처리하므로 문제가 없지만, 직접 만든 구현으로 바꾸는 경우에는 Android의 APK 안과 WebGL의 URL을
+> 스스로 처리해야 합니다.
 
 ## 트러블슈팅
 

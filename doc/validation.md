@@ -1,6 +1,7 @@
 # 검증 — 시트로 나타낼 수 없는 규칙을 C#으로
 
-> [문서 목록으로](readme.md) · 설계 근거는 [검증 파이프라인](../spec/validation/validation-pipeline.md)에 있습니다
+> [문서 목록으로](readme.md) · 설계 근거는
+> [검증 파이프라인](../spec/validation/validation-pipeline.md)에 있습니다
 
 시트에 적을 수 있는 제약은 빌드할 때 이미 검사합니다.
 

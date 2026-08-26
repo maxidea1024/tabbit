@@ -38,7 +38,8 @@
 - **연번 규칙을 새로 만들지 않습니다.** `Text1`/`Text2`를 이미 쓰는 사람이 `Slot1.Id`/`Slot2.Id`를
   적게 됩니다. 배열 길이를 컬럼 수가 정하는 것도, 그룹의 컬럼이 시트에서 붙어 있지 않아도 되는 것도
   [기존 폴딩](../../src/Models/SerialField.cs)의 성질을 그대로 물려받습니다.
-- **`.`은 지금 비어 있는 문법입니다.** 필드 이름은 [`RequiresIdentifier`](../../src/Cooking/CookingContext.cs)를
+- **`.`은 지금 비어 있는 문법입니다.** 필드 이름은
+  [`RequiresIdentifier`](../../src/Cooking/CookingContext.cs)를
   지나므로 `.`이 든 이름은 **현재 오류**입니다. 그래서 기존 시트와 모호해질 여지가 없습니다 —
   새 뜻을 얻는 것이 아니라 오류였던 것이 뜻을 갖습니다.
 - **named-range 표기가 이 모델로 번역됩니다.** `character[0]["Id"]`는 `Character1.Id`와 같은 것을 가리키므로,

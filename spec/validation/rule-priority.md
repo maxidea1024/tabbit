@@ -7,7 +7,8 @@
 
 **세 가지를 정합니다.**
 
-1. **적용 범위는 순차 스테이지뿐입니다** — `rules/pre/` · `rules/global/` · `rules/runtime/`. `rules/tables/`는 병렬
+1. **적용 범위는 순차 스테이지뿐입니다** — `rules/pre/` · `rules/global/` · `rules/runtime/`.
+   `rules/tables/`는 병렬
    실행이고 규칙이 테이블 단위이므로 순서에 의미가 없습니다.
 2. **우선순위는 티어이고, 티어 경계는 차단점입니다** — 앞 티어가 오류를 냈으면 뒤 티어를
    실행하지 않습니다. 기반 규칙이 실패했을 때 그것에 의존하는 규칙들이 파생 오류를 쏟아내는
@@ -40,7 +41,8 @@
 
 ### 2.1 범위
 
-순차 스테이지에만 적용합니다 — `rules/pre/` · `rules/global/` · `rules/runtime/`. `rules/tables/`에 어트리뷰트가
+순차 스테이지에만 적용합니다 — `rules/pre/` · `rules/global/` · `rules/runtime/`.
+`rules/tables/`에 어트리뷰트가
 붙어 있으면 무시가 아니라 **오류로 보고합니다**. 조용히 무시하면 지정한 사람은 그것이
 적용되었다고 읽습니다.
 

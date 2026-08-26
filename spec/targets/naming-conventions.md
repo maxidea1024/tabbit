@@ -178,7 +178,8 @@ if (shop.buffId) { ... }                // 컴파일 통과, 값은 항상 undef
 ### 3.2 검사 시점과 보고
 
 쿠킹이 끝난 모델을 한 번 순회합니다 — `ModelCooker.Naming.cs`의 `ValidateNaming`이고,
-`ValidateModel`이 나머지 검사보다 앞에 부릅니다. 레이아웃 파서 3종은 수정하지 않았습니다. 파서가 이미 모든 이름을
+`ValidateModel`이 나머지 검사보다 앞에 부릅니다. 레이아웃 파서 3종은 수정하지 않았습니다.
+파서가 이미 모든 이름을
 `RawName`(원문)과 `Name`(정규화) 쌍으로 모델에 보존하고, 선언 위치도
 `Field.NameLocation` · `Table.Location` · `Label.Location` · `Constant.Location`으로 남아
 있으므로, 검사에 필요한 재료가 모델에 전부 있습니다.

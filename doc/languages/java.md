@@ -18,7 +18,9 @@
   TabbitUpdater.java    데이터 갱신 (WriteUpdater를 켰을 때만)
 ```
 
-Java는 public 타입이 자기 이름과 같은 파일에 혼자 있어야 하므로 **테이블당 파일이 둘**입니다. 레코드를 테이블 안에 중첩해 `ItemTable.Record`로 부르는 대안도 있었지만, 이름이 나빠지는 값으로 파일 하나를 아끼는 것은 남는 장사가 아닙니다.
+Java는 public 타입이 자기 이름과 같은 파일에 혼자 있어야 하므로 **테이블당 파일이 둘**입니다.
+레코드를 테이블 안에 중첩해 `ItemTable.Record`로 부르는 대안도 있었지만, 이름이 나빠지는 값으로
+파일 하나를 아끼는 것은 남는 장사가 아닙니다.
 
 ## 필요한 것
 
@@ -79,7 +81,8 @@ CDN이나 버킷에 올려둔 데이터를 받아 로컬 사본을 최신으로 
 
 기본값이 `false`인 이유는 네트워크를 쓰는 유일한 생성물이기 때문입니다.
 
-**의존성은 여전히 없습니다.** 전송은 `java.net.http`, 해시는 `MessageDigest`, 매니페스트 JSON은 그 파일 안의 작은 파서입니다 — JDK에 JSON이 없기 때문입니다.
+**의존성은 여전히 없습니다.** 전송은 `java.net.http`, 해시는 `MessageDigest`, 매니페스트 JSON은
+그 파일 안의 작은 파서입니다 — JDK에 JSON이 없기 때문입니다.
 
 ```java
 import tabbit.TabbitUpdater;
@@ -108,13 +111,17 @@ if (result.succeeded) {
 
 ## 주의사항
 
-**전부 한 패키지에 평평하게 놓입니다.** 그래서 생성된 타입끼리 import가 하나도 없습니다. `tables`·`enums` 하위 패키지로 나누면 서로를 import해야 합니다.
+**전부 한 패키지에 평평하게 놓입니다.** 그래서 생성된 타입끼리 import가 하나도 없습니다.
+`tables`·`enums` 하위 패키지로 나누면 서로를 import해야 합니다.
 
-**`datetime`과 `timespan`은 `long`입니다.** .NET 틱이 그대로 들어옵니다. `Instant`나 `Duration`으로 바꾸고 싶으면 직접 변환하세요.
+**`datetime`과 `timespan`은 `long`입니다.** .NET 틱이 그대로 들어옵니다. `Instant`나
+`Duration`으로 바꾸고 싶으면 직접 변환하세요.
 
-**`uuid`는 `TcbReader.Uuid`입니다.** `java.util.UUID`가 아닙니다 — 바이트 순서가 .NET의 것이라 그대로 담습니다.
+**`uuid`는 `TcbReader.Uuid`입니다.** `java.util.UUID`가 아닙니다 — 바이트 순서가 .NET의 것이라
+그대로 담습니다.
 
-**멤버 이름은 camelCase입니다.** Java 키워드는 전부 소문자라 대부분 부딪히지 않지만, 부딪히는 경우는 이스케이프됩니다.
+**멤버 이름은 camelCase입니다.** Java 키워드는 전부 소문자라 대부분 부딪히지 않지만, 부딪히는
+경우는 이스케이프됩니다.
 
 ## 트러블슈팅
 

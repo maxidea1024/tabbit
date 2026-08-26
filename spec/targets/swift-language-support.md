@@ -124,7 +124,8 @@ CryptoKit도 swift-crypto도 `ChaChaPoly`(**AEAD**)만 노출하고 **raw 키스
 
 **이것은 PHP에서 이미 한 번 겪은 실패와 같은 형태입니다.** ext-sodium이 번들되어 있다는 이유로
 그쪽을 적어 두었다가, sodium이 내놓는 것이 nonce 24바이트의 `xchacha20` — **다른 구성**이라
-변환기가 봉인한 파일을 열 수 없다는 것을 실제로 돌려 보고 알았습니다([기록](../wire/tcb-v104-composed-encodings.md#구현-방침--언어마다-다릅니다)).
+변환기가 봉인한 파일을 열 수 없다는 것을 실제로 돌려 보고
+알았습니다([기록](../wire/tcb-v104-composed-encodings.md#구현-방침--언어마다-다릅니다)).
 「그 언어에 ChaCha20이 있다」와 「이 형식이 쓰는 구성이 있다」는 다른 질문이고, Swift는 후자가
 없습니다.
 

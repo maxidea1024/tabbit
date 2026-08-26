@@ -105,7 +105,8 @@ Write one, or type the column `int?` so that a row may say it has none.
 ```
 
 **판정하는 자리는 검증입니다.** 읽는 쪽은 `-`를 없음으로 읽어 `HasValue`를 거짓으로 두고,
-그것이 허용되는지는 컬럼의 선언을 보는 검증이 답합니다 — [참조의 「없음」](../references/reference-optionality.md)이
+그것이 허용되는지는 컬럼의 선언을 보는 검증이 답합니다 —
+[참조의 「없음」](../references/reference-optionality.md)이
 같은 이유로 옮겨 둔 자리이고, 그래야 워크북 전체의 위반이 한 번에 보고됩니다.
 
 **빈 값이 없는 타입은 옵셔널이 될 수 없습니다.** 지금 `EmptyValueOf`가 거부하는 것들이고,

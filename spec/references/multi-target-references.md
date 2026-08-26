@@ -111,7 +111,8 @@ recipe가 고른 워크북만 읽으므로, 선언이 적은 테이블이 **이 
 **거부가 아니라 경고입니다.** 모델은 오타와 「이 빌드가 안 읽는 워크북의 테이블」을 구별할 수
 없고, 거부하면 넓은 빌드를 겨냥한 선언 하나가 좁은 빌드를 전부 멈춥니다. 더 엄격하게 읽고
 싶은 파이프라인에는 이미 `TreatWarningsAsErrors`가 있습니다 —
-[`asset`이 없는 파일을 다루는 방식](../layout/column-constraints.md#asset--제외했다가-되돌린-것)과 같은 <!-- style-exempt -->
+[`asset`이 없는 파일을 다루는 방식](../layout/column-constraints.md#asset--제외했다가-되돌린-것)과
+같은 <!-- style-exempt -->
 자리입니다.
 
 ### 검사의 정의

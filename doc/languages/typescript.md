@@ -43,7 +43,8 @@
 
 ## 쓰는 법
 
-**두 읽기 경로가 모두 생성됩니다.** 배포 상황에 따라 고르고, 두 경로는 **같은 값**을 냅니다 — 회귀 스위트가 같은 테이블을 양쪽으로 읽어 필드 단위로 비교합니다.
+**두 읽기 경로가 모두 생성됩니다.** 배포 상황에 따라 고르고, 두 경로는 **같은 값**을 냅니다 —
+회귀 스위트가 같은 테이블을 양쪽으로 읽어 필드 단위로 비교합니다.
 
 ```typescript
 import { Tables } from './generated'
@@ -70,15 +71,22 @@ const bytes = new Uint8Array(await (await fetch(url)).arrayBuffer())
 tables.item.readBinaryFrom(bytes)
 ```
 
-두 번째 인자로 확장자를 넘길 수 있습니다 (`readAll`은 `.json`, `readAllBinarySync`는 recipe의 `BinaryTableFileExtension`).
+두 번째 인자로 확장자를 넘길 수 있습니다 (`readAll`은 `.json`, `readAllBinarySync`는 recipe의
+`BinaryTableFileExtension`).
 
 ## 주의사항
 
-**`bigint`입니다.** `bigint`·`datetime`·`timespan`은 `number`가 아니라 `BigInt`로 나옵니다. JavaScript의 `number`는 double이라 2^53을 넘는 정수를 **실패하지 않고 바꿔서** 담기 때문입니다. `JSON.stringify`가 `BigInt`를 거부하므로 직렬화할 때는 문자열로 바꾸세요.
+**`bigint`입니다.** `bigint`·`datetime`·`timespan`은 `number`가 아니라 `BigInt`로 나옵니다.
+JavaScript의 `number`는 double이라 2^53을 넘는 정수를 **실패하지 않고 바꿔서** 담기 때문입니다.
+`JSON.stringify`가 `BigInt`를 거부하므로 직렬화할 때는 문자열로 바꾸세요.
 
-**바이너리 리더는 출력에 자동 포함됩니다.** 생성된 테이블이 상대 경로로 import하는데 TypeScript에는 include 경로 개념이 없어 소비자가 다른 곳을 가리킬 방법이 없습니다. 소스는 `lib/ts`와 공유되는 하나뿐이라 어긋날 수 없습니다.
+**바이너리 리더는 출력에 자동 포함됩니다.** 생성된 테이블이 상대 경로로 import하는데
+TypeScript에는 include 경로 개념이 없어 소비자가 다른 곳을 가리킬 방법이 없습니다. 소스는
+`lib/ts`와 공유되는 하나뿐이라 어긋날 수 없습니다.
 
-**테이블 하나만 읽으면 참조가 비어 있습니다.** 참조 연결은 접근자가 전부 읽은 뒤에 하므로, 참조가 필요하면 `readAll` / `readAllSync` / `readAllBinarySync`를 쓰세요. `readBinarySync`로 한 테이블만 읽으면 키(`_<필드>_<테이블>_index`)만 채워집니다.
+**테이블 하나만 읽으면 참조가 비어 있습니다.** 참조 연결은 접근자가 전부 읽은 뒤에 하므로,
+참조가 필요하면 `readAll` / `readAllSync` / `readAllBinarySync`를 쓰세요. `readBinarySync`로 한
+테이블만 읽으면 키(`_<필드>_<테이블>_index`)만 채워집니다.
 
 ## 트러블슈팅
 

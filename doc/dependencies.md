@@ -32,7 +32,8 @@
 ## 계약 어셈블리 — `src/Contract`
 
 검증 규칙이 대고 컴파일되는 `Tabbit.Validation.dll`입니다. **여기 있는 것이 곧 규칙이 쓸 수 있는
-것**이므로 목록이 짧은 것 자체가 설계입니다 ([근거](../spec/validation/validation-usability-and-assembly-output.md)).
+것**이므로 목록이 짧은 것 자체가 설계입니다
+([근거](../spec/validation/validation-usability-and-assembly-output.md)).
 
 |패키지|버전|
 |--|--|

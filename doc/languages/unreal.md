@@ -82,7 +82,9 @@ FGameData::ReadAll(BasePath, TEXT(".bytes"));
 
 ### 블루프린트에서
 
-함수 라이브러리가 함께 생성됩니다. 이름은 `AccessorName` 앞의 `F`를 떼고 `U...Library`를 붙인 것입니다 — `FGameData`면 `UGameDataLibrary`. 언리얼에서 접두사는 타입이 무엇인지 나타내는 것이라, `U`와 `F`를 둘 다 달고 있는 이름이 나오지 않게 합니다.
+함수 라이브러리가 함께 생성됩니다. 이름은 `AccessorName` 앞의 `F`를 떼고 `U...Library`를 붙인
+것입니다 — `FGameData`면 `UGameDataLibrary`. 언리얼에서 접두사는 타입이 무엇인지 나타내는
+것이라, `U`와 `F`를 둘 다 달고 있는 이름이 나오지 않게 합니다.
 
 |노드|하는 일|
 |--|--|
@@ -91,7 +93,8 @@ FGameData::ReadAll(BasePath, TEXT(".bytes"));
 |Get \<Table\> Row Count|행 수|
 |Get \<Table\> Row At|위치로 행 하나|
 
-행을 값으로 돌려주는 이유는 블루프린트가 구조체를 값으로 받기 때문입니다. 배열이나 참조를 돌려주는 시그니처는 UHT가 거부합니다.
+행을 값으로 돌려주는 이유는 블루프린트가 구조체를 값으로 받기 때문입니다. 배열이나 참조를
+돌려주는 시그니처는 UHT가 거부합니다.
 
 ## 데이터만 갱신하기 (`WriteUpdater`)
 
@@ -125,19 +128,28 @@ FTabbitUpdater::Update(
     }));
 ```
 
-**비동기입니다.** 언리얼의 HTTP가 `callback` 방식이므로 델리게이트로 끝을 알립니다. 업데이터는 자기 자신을 살려두므로 반환된 핸들을 붙들고 있지 않아도 되고, 델리게이트는 게임 스레드에서 한 번만 불립니다.
+**비동기입니다.** 언리얼의 HTTP가 `callback` 방식이므로 델리게이트로 끝을 알립니다. 업데이터는
+자기 자신을 살려두므로 반환된 핸들을 붙들고 있지 않아도 되고, 델리게이트는 게임 스레드에서 한
+번만 불립니다.
 
-**무엇을 보장하나** — C#과 같습니다: 바뀐 파일만 받고, 매니페스트의 MD5로 검증하고, `.staging`을 거쳐 마지막에 옮기고, 로컬 매니페스트를 그보다 더 나중에 씁니다. 중간에 실패하거나 앱이 죽어도 **이전 데이터가 그대로** 남습니다. 일시적 장애(연결 실패·408·429·5xx)는 두 배씩 늘어나는 간격으로 재시도하고, 404는 재시도하지 않습니다. 표는 [C# 가이드](csharp.md#데이터만-갱신하기-writeupdater)에 있습니다.
+**무엇을 보장하나** — C#과 같습니다: 바뀐 파일만 받고, 매니페스트의 MD5로 검증하고,
+`.staging`을 거쳐 마지막에 옮기고, 로컬 매니페스트를 그보다 더 나중에 씁니다. 중간에 실패하거나
+앱이 죽어도 **이전 데이터가 그대로** 남습니다. 일시적 장애(연결 실패·408·429·5xx)는 두 배씩
+늘어나는 간격으로 재시도하고, 404는 재시도하지 않습니다. 표는
+[C# 가이드](csharp.md#데이터만-갱신하기-writeupdater)에 있습니다.
 
 **재시도 대기는 `FTicker`(UE5는 `FTSTicker`)로 합니다.** 게임 스레드를 재우지 않습니다.
 
-> 이 코드는 **실제 엔진의 UnrealBuildTool로 빌드·실행하는 게이트**가 있습니다(`TABBIT_UE_ROOT` 지정 시). 스텁으로 컴파일해보는 것과 다릅니다 — 첫 실행에서 `ENGINE_MAJOR_VERSION`이 Program 타깃에 정의되어 있지 않다는 것을 검출했고, 그건 스텁으로는 영원히 검출되지 않았을 종류입니다.
+> 이 코드는 **실제 엔진의 UnrealBuildTool로 빌드·실행하는 게이트**가 있습니다(`TABBIT_UE_ROOT`
+> 지정 시). 스텁으로 컴파일해보는 것과 다릅니다 — 첫 실행에서 `ENGINE_MAJOR_VERSION`이 Program
+> 타깃에 정의되어 있지 않다는 것을 검출했고, 그건 스텁으로는 영원히 검출되지 않았을 종류입니다.
 
 ## 주의사항
 
 ### 패키징 — 빌드 포함 여부
 
-`.tcb`는 애셋이 아니므로 언리얼이 그냥 무시합니다. **Project Settings → Packaging → "Additional Non-Asset Directories to Package"** 에 데이터 폴더를 반드시 등록하세요.
+`.tcb`는 애셋이 아니므로 언리얼이 그냥 무시합니다. **Project Settings → Packaging → "Additional
+Non-Asset Directories to Package"** 에 데이터 폴더를 반드시 등록하세요.
 
 등록하면 `.pak`에 들어갑니다.
 
@@ -149,9 +161,12 @@ FTabbitUpdater::Update(
 
 ### 예외 미사용
 
-언리얼은 `Build.cs`가 따로 요청하지 않으면 모듈을 **예외 비활성**으로 빌드합니다. 그래서 테이블 리더는 손상된 파일을 예외가 아니라 `false` 반환으로 알립니다. 실패는 누적되는 플래그라, 레코드의 필드 20개를 연달아 읽고 마지막에 한 번만 확인합니다.
+언리얼은 `Build.cs`가 따로 요청하지 않으면 모듈을 **예외 비활성**으로 빌드합니다. 그래서 테이블
+리더는 손상된 파일을 예외가 아니라 `false` 반환으로 알립니다. 실패는 누적되는 플래그라,
+레코드의 필드 20개를 연달아 읽고 마지막에 한 번만 확인합니다.
 
-`bEnableExceptions = true`를 넣지 않은 것도 의도입니다 — 넣으면 이 모듈에 의존하는 모든 모듈이 그 비용을 냅니다.
+`bEnableExceptions = true`를 넣지 않은 것도 의도입니다 — 넣으면 이 모듈에 의존하는 모든 모듈이
+그 비용을 냅니다.
 
 같은 이유로 조회 함수가 둘입니다.
 
@@ -163,7 +178,9 @@ FTabbitUpdater::Update(
 
 ### 엔진 타입 전용
 
-`FString`, `TArray`, `FGuid`, `FDateTime`, `FTimespan`입니다. `std::string`도 자체 uuid 구조체도 없습니다. `FDateTime`과 `FTimespan`은 .NET과 같은 100나노초 틱을 세므로 변환이 없습니다.
+`FString`, `TArray`, `FGuid`, `FDateTime`, `FTimespan`입니다. `std::string`도 자체 uuid
+구조체도 없습니다. `FDateTime`과 `FTimespan`은 .NET과 같은 100나노초 틱을 세므로 변환이
+없습니다.
 
 ### uint8을 넘는 enum
 
@@ -179,7 +196,9 @@ FTabbitUpdater::Update(
 
 ### double 프로퍼티
 
-UE4의 UHT는 `double` `UPROPERTY`를 거부하고 UE5는 받습니다. 두 버전에서 모두 빌드되도록 `double` 멤버에는 `UPROPERTY`를 붙이지 않습니다 — C++에서는 읽히고 블루프린트에서만 안 보입니다.
+UE4의 UHT는 `double` `UPROPERTY`를 거부하고 UE5는 받습니다. 두 버전에서 모두 빌드되도록
+`double` 멤버에는 `UPROPERTY`를 붙이지 않습니다 — C++에서는 읽히고 블루프린트에서만 안
+보입니다.
 
 ## 트러블슈팅
 

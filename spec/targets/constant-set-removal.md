@@ -2,7 +2,8 @@
 
 - 상태: **초안.** 결정 대기
 - 날짜: 2026-08-23
-- 관련: [개념](../../doc/concepts.md) · [언어별 가이드](../../doc/languages/readme.md) · [이름 규약](naming-conventions.md)
+- 관련: [개념](../../doc/concepts.md) · [언어별 가이드](../../doc/languages/readme.md) ·
+  [이름 규약](naming-conventions.md)
 
 ---
 
