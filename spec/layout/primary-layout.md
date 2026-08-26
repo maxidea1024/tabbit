@@ -1078,7 +1078,7 @@ struct Reward (sep=",")
 |무엇|얼마|
 |--|--|
 |접미가 실린 골든 트리|**8개** — `core` · `core-client` · `core-server` · `member-array` · `nested` · `nullable-elements` · `record-trim` · `serial-ref`|
-|언어|**전부** — 15개 언어와 `json` · Unreal|
+|언어|**전부** — 모든 언어와 `json` · Unreal|
 |바뀌는 이름|`tagArray` → `tag` · `slotArray` → `slot` · `textEnArray` → `textEn` · `tierArray` → `tier` 계열|
 
 **이것은 소비자에게 보이는 변경입니다.** 옛 표기로 적은 시트를 새 표기로 옮기는 프로젝트는
@@ -1121,7 +1121,7 @@ enum 셋입니다. 그래서 recipe가 답했습니다.
 **공개 표면은 `FindByStageAndSlot(stageKey, slotKey)`이고, 맵이 무엇으로 키가 되는지는
 생성 코드의 사정입니다.** 이 구분이 이 단계 설계의 전부입니다.
 
-15개 언어에 각자의 자연스러운 튜플 키를 쓰게 하면 **일곱 군데에 손으로 쓴 해시가
+언어마다 각자의 자연스러운 튜플 키를 쓰게 하면 **일곱 군데에 손으로 쓴 해시가
 생깁니다.** C · Lua · PHP · TypeScript는 쓸 수 있는 튜플 키가 아예 없고, C++의
 `std::tuple`은 `std::hash`가 없으며, Swift의 튜플은 `Hashable`이 아니고, 언리얼의 `TMap`은
 `GetTypeHash`를 요구합니다. 그 일곱은 「가끔 조회가 빗나간다」로 드러나는 결함의 자리이고,
