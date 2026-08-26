@@ -6,6 +6,10 @@
 
 **Game Data Authoring & Build Tool**
 
+[![.NET](https://github.com/maxidea1024/tabbit/actions/workflows/dotnet.yml/badge.svg)](https://github.com/maxidea1024/tabbit/actions/workflows/dotnet.yml)
+[![Names](https://github.com/maxidea1024/tabbit/actions/workflows/names.yml/badge.svg)](https://github.com/maxidea1024/tabbit/actions/workflows/names.yml)
+[![Docs](https://github.com/maxidea1024/tabbit/actions/workflows/docs.yml/badge.svg)](https://maxidea1024.github.io/tabbit/)
+[![release](https://img.shields.io/github/v/release/maxidea1024/tabbit?sort=semver)](https://github.com/maxidea1024/tabbit/releases)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 엑셀과 구글 스프레드시트에 적은 게임 데이터를 검증하고, 런타임 데이터와 그것을 읽는 코드로
@@ -34,7 +38,7 @@ tabbit --recipe my-recipe.json
 
 ## 문서
 
-[문서 목록](doc/readme.md)이 시작점입니다.
+[문서 목록](doc/readme.md)이 시작점입니다. 사이트로는 <https://maxidea1024.github.io/tabbit/>.
 
 | 문서 | 내용 |
 | --- | --- |
@@ -46,14 +50,12 @@ tabbit --recipe my-recipe.json
 | [트러블슈팅](doc/troubleshooting.md) | 빌드 실패 시 실제 출력 메시지를 기준으로 |
 | [설계 노트](doc/readme.md#설계-노트) | 기능과 형식이 현재 구조가 된 이유 |
 
-저장소가 비공개인 동안은 CI, 문서 사이트, 릴리즈가 서지 않습니다.
-
 ## 기여하기
 
 버그와 제안은 [이슈](https://github.com/maxidea1024/tabbit/issues)로 알려주세요.
 
 - 개발과 테스트 방법은 [아키텍처와 개발](doc/architecture.md)에 있습니다.
-- 생성기나 템플릿을 수정했다면 골든 데이터를 다시 기록하고 diff를 확인해 주세요.
+- 생성기나 템플릿을 수정하였다면 골든 데이터를 다시 기록하고 diff를 확인해 주세요.
 - 보안 문제는 공개 이슈가 아닌 [SECURITY.md](SECURITY.md)의 절차를 따라주세요.
 
 변경 내역은 [CHANGELOG.md](CHANGELOG.md), 사용하는 외부 패키지는
