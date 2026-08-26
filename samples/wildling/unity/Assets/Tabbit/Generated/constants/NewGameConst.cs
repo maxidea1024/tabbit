@@ -30,7 +30,7 @@ namespace Wildling.Data
         static NewGameConst()
         {
             RewardGroup = "rg_start";
-            ExpeditionHours = 4;
+            ExpeditionHours = 8;
         }
     }
 } // namespace Wildling.Data

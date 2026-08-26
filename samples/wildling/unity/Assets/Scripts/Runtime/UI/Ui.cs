@@ -64,11 +64,30 @@ namespace Wildling.Game
             return rt;
         }
 
+        /// <summary>
+        /// 판 하나이다. 색으로 부르면 그에 맞는 껍데기가 입혀진다.
+        /// </summary>
+        /// <remarks>
+        /// **부르는 자리는 여전히 색으로 말합니다.** `Skin` 이 그 색을 9분할 그림으로 바꾸므로,
+        /// 껍데기를 갈아 끼우는 것이 화면 코드를 건드리지 않는 일이 됩니다.
+        /// </remarks>
         public static Image Panel(Transform parent, Color color, string name = "panel")
         {
             var go = Node(name, parent);
             var image = go.AddComponent<Image>();
-            image.color = color;
+
+            var sprite = Skin.PanelFor(color);
+            if (sprite != null)
+            {
+                image.sprite = sprite;
+                image.type = Image.Type.Sliced;
+                image.color = Color.white;
+            }
+            else
+            {
+                image.color = color;
+            }
+
             Stretch(go);
             return image;
         }
@@ -91,6 +110,20 @@ namespace Wildling.Game
             return label;
         }
 
+        /// <summary>등급 테두리를 두른 아이콘이다.</summary>
+        public static Image FramedIcon(Transform parent, Sprite sprite,
+                                       Data.Grade grade)
+        {
+            var image = Icon(parent, sprite);
+            var frame = Node("frame", parent);
+            Stretch(frame);
+            var edge = frame.AddComponent<Image>();
+            edge.sprite = Skin.Frame(grade);
+            edge.type = Image.Type.Sliced;
+            edge.raycastTarget = false;
+            return image;
+        }
+
         public static Image Icon(Transform parent, Sprite sprite, string name = "icon")
         {
             var go = Node(name, parent);
@@ -108,7 +141,10 @@ namespace Wildling.Game
         {
             var go = Node("button", parent);
             var image = go.AddComponent<Image>();
-            image.color = tint ?? Theme.PanelHigh;
+            var want = tint ?? Theme.PanelHigh;
+            image.sprite = Skin.ButtonFor(want);
+            image.type = Image.Type.Sliced;
+            image.color = image.sprite != null ? Color.white : want;
 
             var button = go.AddComponent<Button>();
             button.targetGraphic = image;
@@ -215,11 +251,17 @@ namespace Wildling.Game
         {
             var go = Node("bar", parent);
             var background = go.AddComponent<Image>();
-            background.color = back ?? Theme.Line;
+            background.sprite = Skin.BarBack;
+            background.type = Image.Type.Sliced;
+            background.color = background.sprite != null
+                ? Color.white
+                : (back ?? Theme.Line);
             Stretch(go);
 
             var fillGo = Node("fill", go.transform);
             var fill = fillGo.AddComponent<Image>();
+            fill.sprite = Skin.BarFill;
+            fill.type = Image.Type.Sliced;
             fill.color = color;
             var rt = Rect(fillGo);
             rt.anchorMin = Vector2.zero;

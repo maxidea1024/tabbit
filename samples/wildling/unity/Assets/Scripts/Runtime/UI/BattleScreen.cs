@@ -28,6 +28,7 @@ namespace Wildling.Game
         private static int _speedIndex;
         private readonly List<BattleCell> _partyCells = new();
         private readonly List<BattleCell> _enemyCells = new();
+        private readonly List<(int At, Image Plate)> _speedButtons = new();
 
         public BattleScreen(string stageId, BattleRun run = null)
         {
@@ -213,31 +214,46 @@ namespace Wildling.Game
             strt.offsetMax = new Vector2(-10f, 0f);
             Ui.Label(stripText.transform,
                      $"자동 반복 · {_run.Rounds + 1}판째 · 승 {_run.Wins} 패 {_run.Losses}"
+                     + (string.IsNullOrEmpty(_run.FellBackTo) ? "" : " · 막혀서 물러났습니다")
                      + (_run.Tally.Count > 0
                          ? "   |   " + string.Join(" · ",
                              _run.Tally.Take(3).Select(Rewards.Describe))
                          : ""),
-                     18, Theme.TextDim);
+                     18, string.IsNullOrEmpty(_run.FellBackTo) ? Theme.TextDim : Theme.Warn);
 
             var buttons = Ui.Node("buttons", root);
             Ui.Bottom(buttons, 64f, 6f);
             var row = Ui.Row(buttons.transform, 8f);
 
+            // **배속은 전투 중에 바뀝니다.** 그래서 다시 조립하지 않고 색만 갈아 끼웁니다 —
+            // 화면을 다시 만들면 전투가 처음부터 다시 돌아갑니다.
+            _speedButtons.Clear();
             foreach (var speed in WildlingData.BattleSpeed.Records.OrderBy(s => s.At))
             {
                 int at = speed.At;
-                Ui.Button(row, speed.Label, () =>
+                var button = Ui.Button(row, speed.Label, () =>
                 {
                     _speedIndex = at;
-                    _app.Toast($"{speed.Label} 로 봅니다.");
-                }, _speedIndex == at ? Theme.Accent : Theme.PanelHigh, 20);
+                    PaintSpeed();
+                }, Theme.PanelHigh, 20);
+                _speedButtons.Add((at, button.targetGraphic as Image));
             }
+            PaintSpeed();
 
             Ui.Button(row, "건너뛰기", () =>
             {
                 while (_shown < _report.Beats.Count)
                     AppendLine();
             }, Theme.PanelHigh, 20);
+
+            Ui.Button(row, BattleRun.StopOnLose ? "패배 시 중단" : "패배 시 반복", () =>
+            {
+                BattleRun.StopOnLose = !BattleRun.StopOnLose;
+                _app.Toast(BattleRun.StopOnLose
+                    ? "지면 멈춥니다."
+                    : "지면 깬 자리로 물러나 계속 돕니다.");
+                _app.Rebuild();
+            }, Theme.PanelHigh, 18);
 
             Ui.Button(row, "정지", () =>
             {
@@ -248,19 +264,35 @@ namespace Wildling.Game
 
         // ------------------------------------------------------------ 재생
 
+        /// <summary>고른 배속만 밝게 둔다.</summary>
+        private void PaintSpeed()
+        {
+            foreach (var (at, plate) in _speedButtons)
+            {
+                if (plate == null)
+                    continue;
+                // **색이 아니라 껍데기를 바꿉니다.** 회색 판에 초록을 곱하면 탁해집니다.
+                plate.sprite = at == _speedIndex ? Skin.ButtonAccent : Skin.Button;
+                plate.color = Color.white;
+            }
+        }
+
+        /// <summary>지금 고른 배속이다. 표의 `BattleSpeed` 가 값을 정한다.</summary>
+        private static int Multiplier()
+            => System.Math.Max(1, WildlingData.BattleSpeed.Records
+                .FirstOrDefault(s => s.At == _speedIndex)?.Multiplier ?? 1);
+
         private IEnumerator Play(StageTable.Record stage)
         {
-            var speedRow = WildlingData.BattleSpeed.Records
-                .FirstOrDefault(s => s.At == _speedIndex);
-            int multiplier = System.Math.Max(1, speedRow?.Multiplier ?? 1);
-
             while (_shown < _report.Beats.Count)
             {
                 AppendLine();
-                yield return new WaitForSeconds(0.24f / multiplier);
+                // **매 줄마다 다시 읽습니다.** 시작할 때 한 번만 읽으면 전투 중에 누른 배속이
+                // 그 판에 반영되지 않습니다.
+                yield return new WaitForSeconds(0.24f / Multiplier());
             }
 
-            yield return new WaitForSeconds(0.4f);
+            yield return new WaitForSeconds(0.5f / Multiplier());
             Finish(stage);
         }
 
@@ -274,9 +306,10 @@ namespace Wildling.Game
             var beat = _report.Beats[_shown++];
             bool detail = beat.Text.StartsWith("  ");
 
-            var item = Ui.Item(_logColumn, detail ? 26f : 30f);
-            Ui.Label(item.transform, beat.Text, detail ? 19 : 22,
-                     detail ? Theme.TextDim : Theme.Text);
+            var item = Ui.Item(_logColumn, detail ? 28f : 32f);
+            var line = Ui.Label(item.transform, BattleLog.Rich(_report, beat),
+                                detail ? 20 : 22, Theme.Text);
+            line.supportRichText = true;
 
             Fill(_partyCells, _report.Party, beat.PartyHp);
             Fill(_enemyCells, _report.Enemies, beat.EnemyHp);
@@ -357,14 +390,21 @@ namespace Wildling.Game
             if (target == null)
                 return;
 
-            target.Play(beat.Kind, beat.Amount, beat.Crit, true);
+            target.Play(beat.Kind, beat.Amount, beat.Crit, true, beat.Affinity);
 
             if (!string.IsNullOrEmpty(beat.Note))
                 target.Banner(beat.Note, null);
 
-            // 치명타는 화면 전체가 한 번 흔들립니다.
+            // 치명타는 화면 전체가 흔들리고 별이 튑니다.
             if (beat.Crit && beat.Kind == BeatKind.Damage)
+            {
                 StartStageShake();
+                Fx.Sparks(_app.Effects, CellAnchor(target), new Color(1f, 0.82f, 0.30f), 8, 150f);
+                Fx.Flash(_app.Effects, new Color(1f, 0.95f, 0.75f), 0.16f);
+            }
+
+            if (beat.Kind == BeatKind.Down)
+                Fx.Burst(_app.Effects, CellAnchor(target), new Color(1f, 0.42f, 0.34f), 220f);
         }
 
         /// <summary>화면 전체를 짧게 흔든다. 치명타에만 쓴다.</summary>
@@ -391,6 +431,14 @@ namespace Wildling.Game
 
             if (stage != null)
                 stage.anchoredPosition = home;
+        }
+
+        /// <summary>그 칸의 가운데가 효과 층에서 어디인가.</summary>
+        private Vector2 CellAnchor(BattleCell cell)
+        {
+            if (cell == null || cell.Body == null || _app == null || _app.Effects == null)
+                return Vector2.zero;
+            return ((RectTransform)_app.Effects).InverseTransformPoint(cell.Body.position);
         }
 
         private BattleCell CellAt(bool isEnemy, int index)
@@ -446,7 +494,14 @@ namespace Wildling.Game
 
             _run.Rounds++;
             if (_report.PartyWon)
+            {
                 _run.Wins++;
+                if (firstClear)
+                {
+                    Fx.Flash(_app.Effects, Color.white, 0.30f);
+                    Fx.Shout(_app.Effects, "클리어!", Theme.Accent, 66);
+                }
+            }
             else
                 _run.Losses++;
             _run.Add(report.Applied);
@@ -456,13 +511,25 @@ namespace Wildling.Game
             // **방치형이므로 이긴 동안은 계속 돕니다.** 진 판에서 멈추는 것이 기획서 9.2 의
             // 「패배 시 중단」이고, 사람이 「정지」를 누른 것도 여기서 걸립니다.
             bool carryOn = !_run.Stopped
-                           && (_report.PartyWon || !_run.StopOnLose)
-                           && _run.Rounds < 200;
+                           && (_report.PartyWon || !BattleRun.StopOnLose)
+                           && _run.Rounds < 500;
 
             if (carryOn)
             {
-                string next = BattleRun.NextStage(state, stage);
-                if (!string.IsNullOrEmpty(next))
+                // 이겼으면 앞으로, 졌으면 깬 자리로 물러나 계속 돕니다.
+                string next = _report.PartyWon
+                    ? BattleRun.NextStage(state, stage)
+                    : BattleRun.FallbackStage(state, stage);
+
+                _run.FellBackTo = _report.PartyWon ? "" : next;
+
+                // 같은 자리에서 계속 지면 그 자리가 벽입니다. 사람이 볼 수 있게 멈춥니다.
+                if (!_report.PartyWon && next == stage.StageId && !firstClear
+                    && _run.Losses >= 3)
+                {
+                    carryOn = false;
+                }
+                else if (!string.IsNullOrEmpty(next))
                 {
                     _app.Go(new BattleScreen(next, _run), false);
                     return;
@@ -519,6 +586,16 @@ namespace Wildling.Game
                      + (_firstClear ? " · 첫 클리어" : ""),
                      26, _battle.PartyWon ? Theme.Good : Theme.Warn);
 
+            if (!_battle.PartyWon)
+            {
+                App.Section(column, "진 이유");
+                foreach (string reason in Diagnose.Why(_battle))
+                {
+                    var line = Ui.Item(column, 40f);
+                    Ui.Label(line.transform, reason, 21, Theme.Warn);
+                }
+            }
+
             if (_run != null && _run.Rounds > 1)
             {
                 App.Section(column, $"연속 전투 — {_run.Rounds}판 · 승 {_run.Wins} 패 {_run.Losses}");
@@ -558,15 +635,17 @@ namespace Wildling.Game
             foreach (var beat in _battle.Beats)
             {
                 bool detail = beat.Text.StartsWith("  ");
-                var item = Ui.Item(column, detail ? 26f : 30f);
-                Ui.Label(item.transform, beat.Text, detail ? 19 : 21,
-                         detail ? Theme.TextDim : Theme.Text);
+                var item = Ui.Item(column, detail ? 28f : 32f);
+                var line = Ui.Label(item.transform, BattleLog.Rich(_battle, beat),
+                                    detail ? 20 : 21, Theme.Text);
+                line.supportRichText = true;
             }
 
             var buttons = Ui.Item(column, 70f);
             var buttonRow = Ui.Row(buttons.transform, 8f);
             Ui.Button(buttonRow, "다시", () => app.Go(new BattleScreen(_stage.StageId), false),
                       Theme.Accent);
+            Ui.Button(buttonRow, "파티", () => app.Go(new PartyScreen()), Theme.PanelHigh);
             Ui.Button(buttonRow, "목록으로",
                       () => app.Go(new RegionScreen(_stage.RegionId), false), Theme.Accent);
         }

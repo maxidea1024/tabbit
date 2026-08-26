@@ -163,13 +163,17 @@ namespace Wildling.Game
             Ui.Label(detail.transform, goal.Detail, 19, Theme.TextDim);
 
             var buttons = Ui.Item(inner, 56f);
-            Ui.Button(buttons.transform, goal.Button, () =>
+            var button = Ui.Button(buttons.transform, goal.Button, () =>
             {
                 if (goal.Go is null)
                     HomeScreen.Settle(app);
                 else
                     app.Go(goal.Go());
             }, Theme.Accent);
+
+            // **지금 눌러야 하는 것 하나에만 빛이 지나갑니다.** 전부에 붙이면 아무것도
+            // 눈에 띄지 않습니다.
+            Shine.Attach(button.gameObject, goal.Urgent ? 1.6f : 2.8f);
         }
     }
 }

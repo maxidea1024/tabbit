@@ -328,6 +328,18 @@ namespace Wildling.Game
                 }
             }
 
+            // 받은 것이 있으면 그 자리에서 터집니다.
+            if (_result.Grants.Count > 0)
+            {
+                Fx.Burst(app.Effects, new Vector2(0f, 40f), Theme.Accent, 460f);
+                Fx.Sparks(app.Effects, new Vector2(0f, 40f), Theme.Accent, 12, 240f);
+            }
+            if (_result.Discovered.Count > 0)
+            {
+                Fx.Flash(app.Effects, Color.white, 0.36f);
+                Fx.Shout(app.Effects, "새 기록!", Theme.Accent, 72);
+            }
+
             App.Section(column, "받은 것");
             if (_result.Grants.Count == 0)
             {

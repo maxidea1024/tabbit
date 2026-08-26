@@ -136,6 +136,7 @@ namespace Wildling.Game
             {
                 state.LevelUp(owned);
                 SaveStore.Save(state);
+                Fx.Shout(app.Effects, $"Lv {owned.Level}", Theme.Accent, 62);
                 app.Rebuild();
             }, can ? Theme.Accent : Theme.PanelHigh);
             one.interactable = can;
@@ -149,6 +150,8 @@ namespace Wildling.Game
                     gained++;
                 }
                 SaveStore.Save(state);
+                if (gained > 0)
+                    Fx.Shout(app.Effects, $"+{gained} Lv", Theme.Accent, 68);
                 app.Toast(gained > 0 ? $"{gained} 레벨 올랐습니다." : "재화가 모자랍니다.");
                 app.Rebuild();
             });
@@ -194,6 +197,9 @@ namespace Wildling.Game
             {
                 state.ResonanceUp(owned.SpeciesId);
                 SaveStore.Save(state);
+                Fx.Flash(app.Effects, Theme.Accent, 0.22f);
+                Fx.Shout(app.Effects,
+                         $"공명 {state.Resonance(owned.SpeciesId)}", Theme.Accent, 58);
                 app.Rebuild();
             }, can ? Theme.Accent : Theme.PanelHigh);
             button.interactable = can;
@@ -248,6 +254,8 @@ namespace Wildling.Game
                     return;
                 }
                 SaveStore.Save(state);
+                Fx.Flash(app.Effects, Color.white, 0.42f);
+                Fx.Shout(app.Effects, "각성!", Theme.Accent, 84);
                 app.Toast($"{Korean.Ga(owned.Name)} 되었습니다.");
                 app.Rebuild();
             }, can ? Theme.Accent : Theme.PanelHigh);

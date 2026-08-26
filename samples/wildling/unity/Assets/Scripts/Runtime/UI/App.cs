@@ -34,6 +34,9 @@ namespace Wildling.Game
         private Transform _content;
         private Transform _chrome;
         private Transform _toast;
+
+        /// <summary>터지는 것들이 그려지는 자리이다. 언제나 맨 위이다.</summary>
+        public Transform Effects { get; private set; }
         private Screen _screen;
         private readonly List<Screen> _back = new();
 
@@ -57,6 +60,11 @@ namespace Wildling.Game
             var chrome = Ui.Node("chrome", root);
             Ui.Stretch(chrome);
             _chrome = chrome.transform;
+
+            var effects = Ui.Node("effects", root);
+            Ui.Stretch(effects);
+            effects.AddComponent<CanvasGroup>().blocksRaycasts = false;
+            Effects = effects.transform;
 
             var toast = Ui.Node("toast", root);
             Ui.Stretch(toast);
@@ -221,7 +229,7 @@ namespace Wildling.Game
             irt.pivot = new Vector2(0f, 0.5f);
             irt.sizeDelta = new Vector2(96f, 96f);
             irt.anchoredPosition = new Vector2(8f, 0f);
-            Ui.Icon(icon.transform, ArtLibrary.Icon(row.Icon));
+            Ui.FramedIcon(icon.transform, ArtLibrary.Icon(row.Icon), row.Grade);
 
             var name = Ui.Node("name", item.transform);
             var nrt = Ui.Rect(name);

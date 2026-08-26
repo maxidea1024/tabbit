@@ -115,6 +115,9 @@ namespace Wildling.Game
             /// <summary>그 스킬의 아이콘. 없으면 빈 문자열이다.</summary>
             public string Icon;
 
+            /// <summary>그 한 방의 상성 배수. 만분율이고 0이면 해당 없음이다.</summary>
+            public int Affinity;
+
             public int[] PartyHp;
             public int[] EnemyHp;
         }
@@ -132,9 +135,10 @@ namespace Wildling.Game
         /// </remarks>
         public void Say(string text, BeatKind kind, Combatant actor, Combatant target,
                         int amount = 0, bool crit = false, string note = null,
-                        string icon = null)
+                        string icon = null, int affinity = 0)
             => Beats.Add(new Beat
             {
+                Affinity = affinity,
                 Text = text,
                 Kind = kind,
                 Note = note ?? "",
@@ -401,7 +405,8 @@ namespace Wildling.Game
                         0, MaxMitigation);
                     raw = Numbers.Apply(raw, Numbers.One - mitigation);
 
-                    raw = Numbers.Apply(raw, Affinity(skill, actor, target));
+                    int affinity = Affinity(skill, actor, target);
+                    raw = Numbers.Apply(raw, affinity);
 
                     bool crit = rng.Chance(actor.Stat(StatKind.CritRate));
                     if (crit)
@@ -409,8 +414,10 @@ namespace Wildling.Game
 
                     raw = Math.Max(1, raw);
                     target.Hp = Math.Max(0, target.Hp - raw);
-                    report.Say($"  {target.Name}에게 {raw}{(crit ? " (치명)" : "")}",
-                               BeatKind.Damage, actor, target, raw, crit);
+                    report.Say($"  {target.Name}에게 {raw}{(crit ? " (치명)" : "")}"
+                               + AffinityTag(affinity),
+                               BeatKind.Damage, actor, target, raw, crit,
+                               affinity: affinity);
 
                     if (!target.Alive)
                         report.Say($"  {Korean.Ga(target.Name)} 쓰러졌습니다.",
@@ -452,6 +459,16 @@ namespace Wildling.Game
                     break;
                 }
             }
+        }
+
+        /// <summary>「유리」와 「불리」를 글로 적는다. 없으면 빈 문자열이다.</summary>
+        public static string AffinityTag(int affinity)
+        {
+            if (affinity > BattleConst.NeutralAffinity)
+                return $"  유리 {Numbers.AsMultiplier(affinity)}";
+            if (affinity > 0 && affinity < BattleConst.NeutralAffinity)
+                return $"  불리 {Numbers.AsMultiplier(affinity)}";
+            return "";
         }
 
         /// <summary>속성이 없는 스킬은 상성을 타지 않는다.</summary>

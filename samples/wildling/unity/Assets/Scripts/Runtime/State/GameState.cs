@@ -511,25 +511,75 @@ namespace Wildling.Game
             return true;
         }
 
-        /// <summary>파티가 비어 있으면 설 수 있는 개체로 채운다.</summary>
-        public void AutoFillParty(int partyIndex = -1)
+        /// <summary>
+        /// 열마다 가장 나은 개체로 채운다. 바뀐 자리의 수를 낸다.
+        /// </summary>
+        /// <remarks>
+        /// **공격력만 보면 수호 역할이 뽑히지 않습니다.** 전력은 체력·공격·방어·속도를 함께
+        /// 보고, 상대가 정해져 있으면 **상성까지** 봅니다 — 같은 개체라도 무엇과 싸우느냐에
+        /// 따라 답이 달라집니다. 그래서 진행한 뒤 다시 누르면 다른 답이 나옵니다.
+        /// </remarks>
+        public int AutoFillParty(int partyIndex = -1, StageTable.Record against = null)
         {
             int index = partyIndex < 0 ? ActiveParty : partyIndex;
             var slots = Party(index);
+            var before = slots.ToArray();
+
+            var foes = (against?.MonsterByWaveMonsterIds
+                        ?? Array.Empty<MonsterTable.Record>())
+                .Where(m => m != null)
+                .Select(m => m.Element)
+                .Distinct()
+                .ToList();
+
+            for (int i = 0; i < slots.Length; i++)
+                slots[i] = 0;
 
             for (int column = 0; column < slots.Length; column++)
             {
-                if (slots[column] != 0 && Find(slots[column]) != null)
-                    continue;
-
                 var pick = _owned
                     .Where(o => o.Row != null && ColumnAllows(o.Row.Role, column))
                     .Where(o => !slots.Contains(o.Uid))
-                    .OrderByDescending(o => Stats.Compute(o.Row, o.Level,
-                                                          Resonance(o.SpeciesId)).Attack)
+                    .OrderByDescending(o => Score(o, foes))
+                    .ThenBy(o => o.Uid)
                     .FirstOrDefault();
                 slots[column] = pick?.Uid ?? 0;
             }
+
+            int changed = 0;
+            for (int i = 0; i < slots.Length; i++)
+            {
+                if (slots[i] != before[i])
+                    changed++;
+            }
+            return changed;
+        }
+
+        /// <summary>그 개체가 그 상대에게 얼마나 쓸 만한가.</summary>
+        private long Score(Owned owned, List<Element> foes)
+        {
+            long power = Diagnose.Power(
+                Stats.Compute(owned.Row, owned.Level, Resonance(owned.SpeciesId)));
+
+            if (foes.Count == 0)
+                return power;
+
+            long offense = 0, defense = 0;
+            foreach (var foe in foes)
+            {
+                offense += WildlingData.ElementAffinity
+                    .FindByAttackerAndDefender(owned.Row.Element, foe)?.Factor
+                    ?? BattleConst.NeutralAffinity;
+                defense += WildlingData.ElementAffinity
+                    .FindByAttackerAndDefender(foe, owned.Row.Element)?.Factor
+                    ?? BattleConst.NeutralAffinity;
+            }
+            offense /= foes.Count;
+            defense /= foes.Count;
+
+            // 때리기 좋고 맞기 나쁜 쪽이 높습니다.
+            return power * offense / Numbers.One
+                        * (2L * Numbers.One - defense) / Numbers.One;
         }
 
         // ------------------------------------------------------------ 지역과 스테이지

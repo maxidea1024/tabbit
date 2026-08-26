@@ -25,8 +25,18 @@ namespace Wildling.Game
         public readonly List<string> Opened = new();
         public readonly List<string> NewMonsters = new();
 
-        /// <summary>지면 멈춥니다. 기획서 9.2 의 「패배 시 중단」입니다.</summary>
-        public bool StopOnLose = true;
+        /// <summary>
+        /// 지면 어떻게 하는가.
+        /// </summary>
+        /// <remarks>
+        /// **기본은 물러나서 계속 도는 것입니다.** 방치형에서 벽에 막혔을 때 할 일은 멈추는 것이
+        /// 아니라 넘을 수 있는 자리를 반복해 재화와 조각을 쌓는 것입니다. 기획서 9.2 의
+        /// 「패배 시 중단」은 그것을 끄는 설정으로 두었습니다.
+        /// </remarks>
+        public static bool StopOnLose;
+
+        /// <summary>막혀서 물러난 자리. 없으면 빈 문자열이다.</summary>
+        public string FellBackTo = "";
 
         /// <summary>사람이 멈춘 것인가.</summary>
         public bool Stopped;
@@ -58,6 +68,27 @@ namespace Wildling.Game
                 .FirstOrDefault();
 
             return ahead?.StageId ?? current.StageId;
+        }
+
+        /// <summary>
+        /// 졌을 때 물러날 자리이다.
+        /// </summary>
+        /// <remarks>
+        /// 깬 것 중 가장 뒤가 벌이가 가장 좋습니다. 하나도 못 깼으면 첫 스테이지입니다 —
+        /// 거기서도 지면 파티를 고쳐야 하는 것이고, 그 사실이 결과 화면에 적힙니다.
+        /// </remarks>
+        public static string FallbackStage(GameState state, StageTable.Record current)
+        {
+            if (current is null)
+                return "";
+
+            var stages = WildlingData.Stage.Records
+                .Where(s => s.RegionId == current.RegionId)
+                .OrderBy(s => s.Index)
+                .ToList();
+
+            var cleared = stages.LastOrDefault(s => state.IsCleared(s.StageId));
+            return cleared?.StageId ?? stages.FirstOrDefault()?.StageId ?? current.StageId;
         }
     }
 

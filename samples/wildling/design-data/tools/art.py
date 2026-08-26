@@ -631,22 +631,24 @@ def background(canvas, pal, fog, w=BG_W, h=BG_H):
 
 # ---------------------------------------------------------------- 만들기
 
-def unity_meta(path, guid_seed, is_sprite=True):
+def unity_meta(path, guid_seed, is_sprite=True, border=0):
     """유니티가 애셋마다 요구하는 `.meta` 이다.
 
-    **직접 쓴다.** 에디터가 없는 자리에서 그림을 만들고 커밋해야 하는데, `.meta` 가 없으면
-    유니티가 열릴 때마다 새 `guid` 를 붙여 diff 가 매번 달라진다. `guid` 를 파일 이름에서
-    정하면 다시 만들어도 같은 값이 나온다.
+    **직접 씁니다.** 에디터가 없는 자리에서 그림을 만들고 커밋해야 하는데, `.meta` 가 없으면
+    유니티가 열릴 때마다 새 `guid` 를 붙여 diff 가 매번 달라집니다. `guid` 를 파일 이름에서
+    정하면 다시 만들어도 같은 값이 나옵니다.
+
+    `border` 가 0이 아니면 **9분할**입니다 — 그 폭만큼은 늘어나지 않으므로 버튼 하나를 어떤
+    크기로 써도 모서리가 망가지지 않습니다.
     """
     rng = Rng("wildling-meta:" + guid_seed)
     guid = "".join("%08x" % rng.next() for _ in range(4))
-    filter_mode = 1
     text = (
         "fileFormatVersion: 2\n"
-        "guid: %s\n"
+        "guid: {guid}\n"
         "TextureImporter:\n"
         "  internalIDToNameTable: []\n"
-        "  externalObjects: {}\n"
+        "  externalObjects: {{}}\n"
         "  serializedVersion: 13\n"
         "  mipmaps:\n"
         "    mipMapMode: 0\n"
@@ -657,14 +659,14 @@ def unity_meta(path, guid_seed, is_sprite=True):
         "  streamingMipmaps: 0\n"
         "  alphaTestReferenceValue: 0.5\n"
         "  alphaIsTransparency: 1\n"
-        "  spriteMode: %d\n"
+        "  spriteMode: {mode}\n"
         "  spritePixelsToUnits: 100\n"
-        "  spriteBorder: {x: 0, y: 0, z: 0, w: 0}\n"
-        "  spritePivot: {x: 0.5, y: 0.5}\n"
+        "  spriteBorder: {{x: {b}, y: {b}, z: {b}, w: {b}}}\n"
+        "  spritePivot: {{x: 0.5, y: 0.5}}\n"
         "  spriteGenerateFallbackPhysicsShape: 0\n"
-        "  textureType: %d\n"
+        "  textureType: {kind}\n"
         "  textureShape: 1\n"
-        "  filterMode: %d\n"
+        "  filterMode: 1\n"
         "  wrapU: 1\n"
         "  wrapV: 1\n"
         "  sRGBTexture: 1\n"
@@ -673,7 +675,8 @@ def unity_meta(path, guid_seed, is_sprite=True):
         "  userData: \n"
         "  assetBundleName: \n"
         "  assetBundleVariant: \n"
-    ) % (guid, 1 if is_sprite else 0, 8 if is_sprite else 0, filter_mode)
+    ).format(guid=guid, mode=1 if is_sprite else 0, b=border,
+             kind=8 if is_sprite else 0)
     io.open(path + ".meta", "w", encoding="utf-8", newline="\n").write(text)
 
 
@@ -813,10 +816,14 @@ def main():
     build_backgrounds(model_dir, made, regions)
     print("배경 %d장" % (len(made) - mark))
 
+    # 화면의 껍데기. 아이콘과 같은 규칙으로 만듭니다.
+    import art_ui
+    made.extend(art_ui.build(ART, emit, folder_meta, unity_meta))
+
     # 표가 더는 가리키지 않는 그림을 지운다. 이름이 표에서 나오므로 여기서만 알 수 있다.
     kept = set(os.path.abspath(p) for p in made)
     removed = 0
-    for folder in (icon_dir, model_dir):
+    for folder in (icon_dir, model_dir, os.path.join(ART, "ui")):
         for name in os.listdir(folder):
             if not name.endswith(".png"):
                 continue

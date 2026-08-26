@@ -5,8 +5,8 @@ Totals
   tables    31
   columns   228
   unencoded 248,915
-  encoded   80,984  (32.5 % of unencoded)
-  deflated  38,193  (47.2 % of encoded)  - what a compression layer over the chosen blocks would come to
+  encoded   80,989  (32.5 % of unencoded)
+  deflated  38,199  (47.2 % of encoded)  - what a compression layer over the chosen blocks would come to
 
 By encoding
   encoding        columns        bytes    share
@@ -21,14 +21,14 @@ By encoding
   RLE                 32          779    1.0 %
   DICT_SEG_RLE         3          691    0.9 %
   DELTA                2          639    0.8 %
-  VARINT               9          557    0.7 %
+  VARINT               9          562    0.7 %
   DICT_RLE            12          480    0.6 %
   WHOLE                7           21    0.0 %
 
 By element
   element         columns    unencoded        bytes    share
   string              98      209,756       73,356   90.6 %
-  i32                 91       36,281        7,083    8.7 %
+  i32                 91       36,281        7,088    8.8 %
   varint              24        1,628          354    0.4 %
   f32                 11          808          144    0.2 %
   i64                  1          432           37    0.0 %
@@ -133,8 +133,8 @@ Largest columns (40 of 228)
     candidates RAW 3,403  ·  DICT 847  ·  DICT_RLE 1,093  ·  DICT_FRONT 562  ·  DICT_FRONT_RLE 808  ·  DICT_SEG 521  ·  DICT_SEG_RLE 767
 
   RewardEntry.Reward.Amount  [i32]  374 rows
-    chosen VARINT  512  (34.2 % of unencoded)
-    candidates RAW 1,496  ·  VARINT 512  ·  DELTA 609  ·  RLE 657  ·  DELTA_RLE 760  ·  BITPACK 845
+    chosen VARINT  517  (34.6 % of unencoded)
+    candidates RAW 1,496  ·  VARINT 517  ·  DELTA 615  ·  RLE 659  ·  DELTA_RLE 766  ·  BITPACK 1,172
 
   Stage.RewardGroupId  [string]  90 rows
     chosen DICT_FRONT  492  (22.4 % of unencoded)
@@ -223,9 +223,9 @@ Bit-width packing headroom
   i64               1           37           37            0
   bool              3           10           12           -2
   varint           24          354          509         -155
-  i32              91        7,083       11,541       -4,458
+  i32              91        7,088       11,868       -4,780
 
-  Keeping the smaller of the two per column: 7,484 → 7,380 · saved 104 over 14 of 119 columns.
+  Keeping the smaller of the two per column: 7,489 → 7,385 · saved 104 over 14 of 119 columns.
 
     width            base        today       packed  inner         column
         7               5          189          157  RAW           Stage.WaveLevels

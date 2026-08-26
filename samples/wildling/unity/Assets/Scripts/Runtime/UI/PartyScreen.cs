@@ -78,14 +78,51 @@ namespace Wildling.Game
 
             var actions = Ui.Item(column, 70f);
             var actionRow = Ui.Row(actions.transform, 8f);
+            // 다음에 도전할 스테이지를 상대로 놓고 고릅니다.
+            var target = WildlingData.Stage.Records
+                .Where(s => state.IsStageOpen(s) && !state.IsCleared(s.StageId))
+                .OrderBy(s => s.RegionByRegionId?.Order ?? 99)
+                .ThenBy(s => s.Index)
+                .FirstOrDefault();
+
             Ui.Button(actionRow, "자동 편성", () =>
             {
-                for (int i = 0; i < slots.Length; i++)
-                    slots[i] = 0;
-                state.AutoFillParty();
+                int changed = state.AutoFillParty(state.ActiveParty, target);
                 SaveStore.Save(state);
+                app.Toast(changed > 0
+                    ? $"{changed}자리를 바꾸었습니다."
+                    : "이미 가장 나은 편성입니다.");
                 app.Rebuild();
             }, Theme.Accent);
+
+            // 지금 편성이 다음 상대에게 통하는가.
+            if (target != null)
+            {
+                long ours = Diagnose.PartyPower(state, state.PartyMembers());
+                var verdict = Diagnose.Compare(ours, Diagnose.StagePower(target));
+
+                var gauge = Ui.Item(column, 72f);
+                Ui.Panel(gauge.transform, Theme.Panel);
+                var inner = Ui.Node("t", gauge.transform);
+                var irt = Ui.Stretch(inner);
+                irt.offsetMin = new Vector2(14f, 6f);
+                irt.offsetMax = new Vector2(-14f, -6f);
+                var lines = Ui.Column(inner.transform, 2f);
+
+                var head = Ui.Item(lines, 30f);
+                Ui.Label(head.transform,
+                         $"{target.RegionByRegionId?.Name ?? target.RegionId} {target.Index}번 "
+                         + $"상대 — {verdict.Text}",
+                         21, verdict.Good ? Theme.Good : Theme.Warn);
+
+                var foes = Ui.Item(lines, 26f);
+                var wave = target.MonsterByWaveMonsterIds
+                           ?? System.Array.Empty<MonsterTable.Record>();
+                Ui.Label(foes.transform,
+                         string.Join(" · ", wave.Where(m => m != null)
+                             .Select(m => $"{m.Name}({Theme.Label(m.Element)})")),
+                         19, Theme.TextDim);
+            }
 
             App.Section(column, $"동행 {state.All.Count}마리");
             foreach (var owned in state.All.OrderByDescending(o => o.Level))

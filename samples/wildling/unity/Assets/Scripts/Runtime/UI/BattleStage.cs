@@ -37,6 +37,8 @@ namespace Wildling.Game
         private static readonly Color HealColor = new(0.52f, 0.92f, 0.60f);
         private static readonly Color BuffColor = new(0.62f, 0.80f, 1f);
         private static readonly Color MissColor = new(0.72f, 0.74f, 0.82f);
+        private static readonly Color StrongColor = new(1f, 0.62f, 0.24f);
+        private static readonly Color WeakColor = new(0.62f, 0.70f, 0.86f);
 
         /// <summary>적진이 어느 쪽인가. 위로 돌진할지 아래로 돌진할지 정한다.</summary>
         public float Facing = 1f;
@@ -56,16 +58,27 @@ namespace Wildling.Game
 
         // ------------------------------------------------------------ 박자
 
-        public void Play(BeatKind kind, int amount, bool crit, bool isTarget)
+        public void Play(BeatKind kind, int amount, bool crit, bool isTarget,
+                         int affinity = 0)
         {
             switch (kind)
             {
                 case BeatKind.Damage:
+                {
                     Shake(crit ? 16f : 9f, crit ? 0.34f : 0.22f);
                     Blink(crit ? CritColor : DamageColor, crit ? 0.55f : 0.38f);
-                    Float(amount.ToString(), crit ? CritColor : DamageColor,
-                          crit ? 40 : 30, crit);
+
+                    // **상성이 숫자 옆에 붙습니다.** 왜 크게 들어갔는지 로그를 읽지 않아도
+                    // 보이는 자리입니다.
+                    string mark = affinity > Numbers.One ? "▲"
+                                : affinity > 0 && affinity < Numbers.One ? "▼" : "";
+                    var tint = affinity > Numbers.One ? StrongColor
+                             : affinity > 0 && affinity < Numbers.One ? WeakColor
+                             : crit ? CritColor : DamageColor;
+
+                    Float(amount + mark, tint, crit ? 40 : 30, crit);
                     break;
+                }
 
                 case BeatKind.Heal:
                     Blink(HealColor, 0.30f);
@@ -385,6 +398,20 @@ namespace Wildling.Game
                 brt.offsetMin = new Vector2(6f, 8f);
                 brt.offsetMax = new Vector2(-6f, 22f);
                 cell.HpFill = Ui.Bar(bar.transform, 1f, Theme.Good);
+
+                // **속성 배지.** 편성이 판단이 되려면 무엇과 싸우는지가 보여야 합니다.
+                var badge = Ui.Node("element", body.transform);
+                var brt2 = Ui.Rect(badge);
+                brt2.anchorMin = new Vector2(0f, 1f);
+                brt2.anchorMax = new Vector2(0f, 1f);
+                brt2.pivot = new Vector2(0f, 1f);
+                brt2.sizeDelta = new Vector2(52f, 24f);
+                brt2.anchoredPosition = new Vector2(6f, -6f);
+                var plate = badge.AddComponent<Image>();
+                plate.color = Theme.Element(c.Monster.Element);
+                plate.raycastTarget = false;
+                Ui.Label(badge.transform, Theme.Label(c.Monster.Element), 16,
+                         new Color(0.07f, 0.07f, 0.10f), TextAnchor.MiddleCenter);
 
                 cell.FloatRoot = floatLayer;
                 cell.Facing = facing;
