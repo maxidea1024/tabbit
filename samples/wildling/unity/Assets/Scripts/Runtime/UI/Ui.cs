@@ -81,7 +81,7 @@ namespace Wildling.Game
             {
                 image.sprite = sprite;
                 image.type = Image.Type.Sliced;
-                image.color = Color.white;
+                image.color = Skin.TintFor(sprite);
             }
             else
             {
@@ -144,7 +144,7 @@ namespace Wildling.Game
             var want = tint ?? Theme.PanelHigh;
             image.sprite = Skin.ButtonFor(want);
             image.type = Image.Type.Sliced;
-            image.color = image.sprite != null ? Color.white : want;
+            image.color = image.sprite != null ? Skin.TintFor(image.sprite) : want;
 
             var button = go.AddComponent<Button>();
             button.targetGraphic = image;

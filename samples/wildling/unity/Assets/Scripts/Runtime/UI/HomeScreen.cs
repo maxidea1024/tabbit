@@ -34,8 +34,7 @@ namespace Wildling.Game
                 rt.anchorMax = new Vector2(1f, 1f);
                 rt.pivot = new Vector2(0.5f, 1f);
                 rt.sizeDelta = new Vector2(0f, 360f);
-                var image = Ui.Icon(bg.transform, ArtLibrary.Model(region.Background));
-                image.preserveAspect = false;
+                Parallax.Attach(bg, ArtLibrary.Model(region.Background), 18f);
 
                 var fade = Ui.Node("fade", bg.transform);
                 Ui.Stretch(fade);
@@ -94,10 +93,10 @@ namespace Wildling.Game
                 var note = Ui.Item(inner, 30f);
                 var noteLabel = Ui.Label(note.transform, "", 20, Theme.TextDim);
 
+                // 정산은 「다음 목표」에 이미 있습니다. 같은 버튼을 두 번 두지 않습니다.
                 var buttons = Ui.Item(inner, 62f);
-                var row = Ui.Row(buttons.transform, 8f);
-                Ui.Button(row, "정산", () => Settle(app), Theme.Accent);
-                Ui.Button(row, "탐사지 변경", () => app.Go(new ExpeditionScreen()));
+                Ui.Button(buttons.transform, "탐사지 변경",
+                          () => app.Go(new ExpeditionScreen()));
 
                 // **손대지 않아도 흐릅니다.** 방치형이므로 화면이 멈춰 있으면 진행이 멈춘
                 // 것처럼 보입니다. 화면을 다시 조립하지 않고 이 셋만 갱신합니다.

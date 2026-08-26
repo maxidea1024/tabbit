@@ -139,7 +139,7 @@ namespace Wildling.Game
             var goal = Pick(app.State);
 
             var card = Ui.Item(column, 176f);
-            Ui.Panel(card.transform, goal.Urgent ? new Color(0.16f, 0.26f, 0.22f) : Theme.Panel);
+            Ui.Panel(card.transform, Theme.PanelHigh);
 
             var stripe = Ui.Node("stripe", card.transform);
             var srt = Ui.Rect(stripe);

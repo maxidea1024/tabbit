@@ -14,6 +14,9 @@ namespace Wildling.Game
         public static readonly Color Panel = Rgb(0x22, 0x24, 0x2E);
         public static readonly Color PanelHigh = Rgb(0x2C, 0x2F, 0x3C);
         public static readonly Color Line = Rgb(0x3A, 0x3E, 0x4E);
+
+        /// <summary>위아래 띠이다. 판이 아니라 화면의 테두리이므로 두께를 주지 않는다.</summary>
+        public static readonly Color Hud = Rgb(0x11, 0x12, 0x18);
         public static readonly Color Text = Rgb(0xE6, 0xE8, 0xF0);
         public static readonly Color TextDim = Rgb(0x9A, 0xA0, 0xB4);
         public static readonly Color Accent = Rgb(0x6C, 0xC6, 0xA0);

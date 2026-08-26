@@ -51,6 +51,28 @@ namespace Wildling.Game
         };
 
         /// <summary>
+        /// 그 껍데기를 어떤 색으로 물들일 것인가.
+        /// </summary>
+        /// <remarks>
+        /// **받아 온 그림은 밝은 회색입니다.** 이 게임의 화면은 어두우므로 그대로 얹으면 글자가
+        /// 읽히지 않습니다. 회색이라 곱하기 한 번으로 어떤 색이든 되고, 그러면서 판의 두께와
+        /// 광택은 그대로 남습니다.
+        /// </remarks>
+        public static Color TintFor(Sprite sprite)
+        {
+            if (sprite == Panel)
+                return new Color(0.255f, 0.270f, 0.335f);
+            if (sprite == PanelSoft)
+                return new Color(0.320f, 0.340f, 0.415f);
+            if (sprite == PanelSunk)
+                return new Color(0.180f, 0.190f, 0.245f);
+            if (sprite == Button)
+                return new Color(0.400f, 0.425f, 0.520f);
+            // 초록과 붉은색은 이미 제 색을 가지고 있습니다.
+            return Color.white;
+        }
+
+        /// <summary>
         /// 그 색으로 칠하려던 판을 어느 껍데기로 바꿀 것인가.
         /// </summary>
         /// <remarks>

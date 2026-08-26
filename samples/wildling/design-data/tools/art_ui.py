@@ -34,9 +34,18 @@ def build(art_dir, emit, folder_meta, unity_meta):
     os.makedirs(ui_dir, exist_ok=True)
     folder_meta(ui_dir, "Resources/art/ui")
 
+    # **이 이름들은 무료 팩에서 옵니다** — `ui_pack.py` 가 넣고, 여기서는 만들지 않습니다.
+    from_pack = {"panel", "panel_soft", "panel_sunk", "button", "button_accent",
+                 "button_warn", "star", "divider"}
+
     made = []
 
     def nine(name, draw):
+        if name in from_pack:
+            path = os.path.join(ui_dir, name + ".png")
+            if os.path.exists(path):
+                made.append(path)
+                return
         canvas = Canvas(UI, UI)
         draw(canvas)
         path = os.path.join(ui_dir, name + ".png")
@@ -139,6 +148,12 @@ def build(art_dir, emit, folder_meta, unity_meta):
             c.rect(0, y / 3.0, c.width, (y + 1) / 3.0, (255, 255, 255),
                    alpha=max(0.0, 0.22 * (1.0 - t * 2.2)))
     flat("sheen", 8, 64, sheen)
+
+    # 팩에서 온 것 중 아직 목록에 없는 것을 더합니다 — 지우는 단계가 그것을 남깁니다.
+    for name in sorted(from_pack):
+        path = os.path.join(ui_dir, name + ".png")
+        if os.path.exists(path) and path not in made:
+            made.append(path)
 
     print("껍데기 %d장" % len(made))
     return made

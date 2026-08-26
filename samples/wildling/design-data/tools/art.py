@@ -587,7 +587,11 @@ def currency_glyph(canvas, currency_id, size=ICON):
 # ---------------------------------------------------------------- 배경
 
 def background(canvas, pal, fog, w=BG_W, h=BG_H):
-    """지역 배경이다. 안개 색은 표의 `fog_color` 를 그대로 쓴다."""
+    """지역 배경이다. 안개 색은 표의 `fog_color` 를 그대로 쓴다.
+
+    **좌우가 이어집니다.** 화면에서 옆으로 흘려 보내므로, 오른쪽 끝과 왼쪽 끝이 맞지 않으면
+    한 바퀴마다 이음매가 보입니다.
+    """
     horizon = h * 0.62
     canvas.gradient_rect(0, 0, w, horizon, shade(pal["deep"], 0.10), fog)
     canvas.gradient_rect(0, horizon, w, h, shade(pal["base"], -0.35),
@@ -601,9 +605,11 @@ def background(canvas, pal, fog, w=BG_W, h=BG_H):
         color = mix(mix(pal["deep"], fog, 0.55 - depth * 0.45), pal["base"], depth * 0.35)
         top = horizon - h * (0.20 - layer * 0.05)
         step = w / 7.0
+        heights = [top + rng.float(-0.06, 0.06) * h + layer * h * 0.05 for _ in range(7)]
+        heights.append(heights[0])          # 오른쪽 끝이 왼쪽 끝과 같아야 이어집니다
         pts = [(0.0, h)]
-        for i in range(8):
-            pts.append((i * step, top + rng.float(-0.06, 0.06) * h + layer * h * 0.05))
+        for i, y in enumerate(heights):
+            pts.append((i * step, y))
         pts.append((w, h))
         canvas.poly(pts, color)
 
@@ -612,7 +618,8 @@ def background(canvas, pal, fog, w=BG_W, h=BG_H):
     ink = shade(pal["deep"], -0.55)
     shape = "tree" if pal["base"][1] > pal["base"][2] else "rock"
     for i in range(7):
-        x = rng.float(-0.04, 1.04) * w
+        # 가장자리를 피해 심습니다 — 잘린 나무가 이음매를 드러냅니다.
+        x = rng.float(0.06, 0.94) * w
         th = rng.float(0.12, 0.26) * h
         if shape == "tree":
             canvas.capsule(x, h, x, h - th * 0.62, rng.float(0.008, 0.014) * w, ink)
@@ -639,8 +646,14 @@ def unity_meta(path, guid_seed, is_sprite=True, border=0):
     정하면 다시 만들어도 같은 값이 나옵니다.
 
     `border` 가 0이 아니면 **9분할**입니다 — 그 폭만큼은 늘어나지 않으므로 버튼 하나를 어떤
-    크기로 써도 모서리가 망가지지 않습니다.
+    크기로 써도 모서리가 망가지지 않습니다. 숫자 하나면 사방이 같고, 네 개짜리 튜플이면
+    `(왼쪽, 아래, 오른쪽, 위)` 입니다 — 유니티의 `spriteBorder` 순서 그대로입니다.
     """
+    if isinstance(border, (tuple, list)):
+        left, down, right, up = border
+    else:
+        left = down = right = up = border
+
     rng = Rng("wildling-meta:" + guid_seed)
     guid = "".join("%08x" % rng.next() for _ in range(4))
     text = (
@@ -661,7 +674,7 @@ def unity_meta(path, guid_seed, is_sprite=True, border=0):
         "  alphaIsTransparency: 1\n"
         "  spriteMode: {mode}\n"
         "  spritePixelsToUnits: 100\n"
-        "  spriteBorder: {{x: {b}, y: {b}, z: {b}, w: {b}}}\n"
+        "  spriteBorder: {{x: {bx}, y: {by}, z: {bz}, w: {bw}}}\n"
         "  spritePivot: {{x: 0.5, y: 0.5}}\n"
         "  spriteGenerateFallbackPhysicsShape: 0\n"
         "  textureType: {kind}\n"
@@ -675,7 +688,8 @@ def unity_meta(path, guid_seed, is_sprite=True, border=0):
         "  userData: \n"
         "  assetBundleName: \n"
         "  assetBundleVariant: \n"
-    ).format(guid=guid, mode=1 if is_sprite else 0, b=border,
+    ).format(guid=guid, mode=1 if is_sprite else 0,
+             bx=left, by=down, bz=right, bw=up,
              kind=8 if is_sprite else 0)
     io.open(path + ".meta", "w", encoding="utf-8", newline="\n").write(text)
 

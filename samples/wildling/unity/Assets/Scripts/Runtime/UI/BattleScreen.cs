@@ -29,6 +29,11 @@ namespace Wildling.Game
         private readonly List<BattleCell> _partyCells = new();
         private readonly List<BattleCell> _enemyCells = new();
         private readonly List<(int At, Image Plate)> _speedButtons = new();
+        private Image _losePlate;
+        private Text _loseLabel;
+
+        /// <summary>돌고 있는 재생이다. 화면을 다시 만들 때 멈춰야 두 벌이 겹치지 않는다.</summary>
+        private static Coroutine _playing;
 
         public BattleScreen(string stageId, BattleRun run = null)
         {
@@ -67,7 +72,12 @@ namespace Wildling.Game
                 state.SetCodex(enemy.Monster.MonsterId, CodexState.Sighted);
 
             BuildLayout(root, stage);
-            app.StartCoroutine(Play(stage));
+
+            // **먼저 돌던 재생을 멈춥니다.** 코루틴은 `App` 에 붙어 있으므로 화면을 다시
+            // 만들어도 저절로 멈추지 않고, 그대로 두면 두 벌이 겹쳐 흐릅니다.
+            if (_playing != null)
+                app.StopCoroutine(_playing);
+            _playing = app.StartCoroutine(Play(stage));
         }
 
         // ------------------------------------------------------------ 편성
@@ -158,9 +168,9 @@ namespace Wildling.Game
             {
                 var bg = Ui.Node("bg", root);
                 Ui.Stretch(bg);
-                var image = Ui.Icon(bg.transform, ArtLibrary.Model(region.Background));
-                image.preserveAspect = false;
-                image.color = new Color(0.55f, 0.55f, 0.62f, 1f);
+                // 흐르는 배경. 관전 중에도 화면이 살아 있게 합니다.
+                Parallax.Attach(bg, ArtLibrary.Model(region.Background), 34f,
+                                new Color(0.55f, 0.55f, 0.62f, 1f));
             }
 
             _stage = Ui.Rect(root.gameObject);
@@ -246,14 +256,20 @@ namespace Wildling.Game
                     AppendLine();
             }, Theme.PanelHigh, 20);
 
-            Ui.Button(row, BattleRun.StopOnLose ? "패배 시 중단" : "패배 시 반복", () =>
+            // **여기서 화면을 다시 만들면 전투가 처음부터 다시 돕니다.** 글자와 껍데기만
+            // 갈아 끼웁니다.
+            var lose = Ui.Button(row, "", () =>
             {
                 BattleRun.StopOnLose = !BattleRun.StopOnLose;
+                PaintLose();
                 _app.Toast(BattleRun.StopOnLose
                     ? "지면 멈춥니다."
                     : "지면 깬 자리로 물러나 계속 돕니다.");
-                _app.Rebuild();
             }, Theme.PanelHigh, 18);
+
+            _losePlate = lose.targetGraphic as Image;
+            _loseLabel = lose.GetComponentInChildren<Text>();
+            PaintLose();
 
             Ui.Button(row, "정지", () =>
             {
@@ -264,6 +280,18 @@ namespace Wildling.Game
 
         // ------------------------------------------------------------ 재생
 
+        /// <summary>패배 시 어떻게 하는지를 버튼에 적는다.</summary>
+        private void PaintLose()
+        {
+            if (_loseLabel != null)
+                _loseLabel.text = BattleRun.StopOnLose ? "패배 시 중단" : "패배 시 반복";
+            if (_losePlate != null)
+            {
+                _losePlate.sprite = BattleRun.StopOnLose ? Skin.ButtonWarn : Skin.Button;
+                _losePlate.color = Skin.TintFor(_losePlate.sprite);
+            }
+        }
+
         /// <summary>고른 배속만 밝게 둔다.</summary>
         private void PaintSpeed()
         {
@@ -273,7 +301,7 @@ namespace Wildling.Game
                     continue;
                 // **색이 아니라 껍데기를 바꿉니다.** 회색 판에 초록을 곱하면 탁해집니다.
                 plate.sprite = at == _speedIndex ? Skin.ButtonAccent : Skin.Button;
-                plate.color = Color.white;
+                plate.color = Skin.TintFor(plate.sprite);
             }
         }
 

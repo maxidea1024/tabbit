@@ -126,7 +126,14 @@ namespace Wildling.Game
         {
             var bar = Ui.Node("topbar", _chrome);
             Ui.Top(bar, 150f);
-            Ui.Panel(bar.transform, Theme.Panel);
+            Ui.Panel(bar.transform, Theme.Hud);
+
+            // 아래쪽에 가는 선 하나. 띠와 내용이 나뉘어 보입니다.
+            var edge = Ui.Node("edge", bar.transform);
+            Ui.Bottom(edge, 2f);
+            var rule = edge.AddComponent<Image>();
+            rule.color = Theme.Line;
+            rule.raycastTarget = false;
 
             var title = Ui.Node("title", bar.transform);
             Ui.Top(title, 48f, 8f);
@@ -160,7 +167,7 @@ namespace Wildling.Game
         {
             var bar = Ui.Node("navbar", _chrome);
             Ui.Bottom(bar, 130f);
-            Ui.Panel(bar.transform, Theme.Panel);
+            Ui.Panel(bar.transform, Theme.Hud);
 
             var row = Ui.Row(bar.transform, 6f, 10f);
 
