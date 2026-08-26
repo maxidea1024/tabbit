@@ -320,15 +320,17 @@ jobs:
       # as a missing C header rather than as a missing toolchain.
       # doc/languages/swift.md has that trap written down.
       #
-      # The Windows job asked for 6.1 and the action answered `Version "6.1" is not
-      # available` - it publishes a different set per platform. `6` takes whatever 6.x that
-      # platform has, which is what this gate wants: it checks that the emitted Swift builds
-      # under a current toolchain, not under one exact patch of it.
+      # v3 rather than the v2 the Linux job uses, and only here. v2's Windows path is broken
+      # upstream in two ways this gate hit in order: it publishes no 6.1 for Windows
+      # (swift-actions/setup-swift#709), and its signature check then fails with no public
+      # key (#798). v3 is where Windows support was rewritten (#715). It is a beta, which is
+      # the cost of having the gate at all - the alternative is no Swift on Windows, and the
+      # trap this gate exists for is Windows-only (doc/languages/swift.md).
       - name: Setup Swift
         if: runner.os == 'Windows'
-        uses: swift-actions/setup-swift@v2
+        uses: swift-actions/setup-swift@v3.0.0-beta.1
         with:
-          swift-version: '6'
+          swift-version: '6.1'
 
       # The C and C++ updaters are the only emitted files that link against anything, and
       # neither language has an HTTP client. macOS carries libcurl in its SDK and `-lcurl` is

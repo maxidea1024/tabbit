@@ -333,6 +333,14 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
         text.AppendLine();
         text.AppendLine("let package = Package(");
         text.AppendLine($"    name: \"{_recipe.ModuleName}\",");
+
+        // The MAC's HMAC-SHA-256 comes from CryptoKit on Apple platforms, and CryptoKit
+        // starts at macOS 10.15 / iOS 13. A manifest that says nothing gets SwiftPM's
+        // default floor, which is older - and the package then fails to build with
+        // "'HMAC' is only available in macOS 10.15 or newer" rather than with anything
+        // that names the cause. Declared here so the floor is the reader's, not the
+        // toolchain's default.
+        text.AppendLine("    platforms: [.macOS(.v10_15), .iOS(.v13), .tvOS(.v13), .watchOS(.v6)],");
         text.AppendLine("    products: [");
         text.AppendLine($"        .library(name: \"{_recipe.ModuleName}\", targets: [\"{_recipe.ModuleName}\"])");
         text.AppendLine("    ],");
