@@ -1,12 +1,12 @@
-# 일회용. macOS 에서 Swift 적합성 하네스가 실제로 어떤 매니페스트로 빌드되는지 확인하려고 둔 것이고,
-# 원인을 확인하면 지운다.
+# 일회용. macOS 전체 스위트에서만 Swift 게이트가 실패하는 원인과, Windows 툴체인 설치 경로를
+# 확인하려고 둔 것이고, 확인하면 지운다.
 name: swift-probe
 
 on:
   workflow_dispatch:
 
 jobs:
-  probe:
+  mac:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,17 +15,39 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Swift 적합성 게이트만
-        id: gate
+      - name: 전체 스위트
         continue-on-error: true
-        run: dotnet test --filter "FullyQualifiedName~Generated_swift_reader_matches_the_corpus"
+        run: dotnet test
 
-      - name: 그 자리에 놓인 매니페스트
+      - name: 실패 시점의 매니페스트
         if: always()
         run: |
           root=test/fixtures/output/_lang/conformance/swift
-          ls -la "$root" || true
           echo "===== $root/Package.swift ====="
-          cat "$root/Package.swift" || echo "(없음)"
+          grep -n "platforms\|name:\|sources" "$root/Package.swift" || echo "(없음)"
           echo "===== 트리 안의 다른 Package.swift ====="
           find test/fixtures/output -name Package.swift -not -path '*/.build/*' || true
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: 이미 있는가
+        continue-on-error: true
+        run: swift --version
+
+      - name: winget 으로
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          winget install --id Swift.Toolchain -e --accept-source-agreements --accept-package-agreements --disable-interactivity
+          & "$env:LOCALAPPDATA\Programs\Swift\Toolchains\*\usr\bin\swift.exe" --version
+
+      - name: 공식 설치본을 직접
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $url = 'https://download.swift.org/swift-6.1-release/windows10/swift-6.1-RELEASE/swift-6.1-RELEASE-windows10.exe'
+          Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\swift.exe"
+          Start-Process -FilePath "$env:RUNNER_TEMP\swift.exe" -ArgumentList '-q','-norestart' -Wait -NoNewWindow
+          Get-ChildItem 'C:\Program Files\Swift' -ErrorAction SilentlyContinue | Select-Object -First 10
+          & 'C:\Program Files\Swift\Toolchains\6.1.0+Asserts\usr\bin\swift.exe' --version
