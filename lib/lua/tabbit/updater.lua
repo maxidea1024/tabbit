@@ -222,7 +222,11 @@ end
 -- Creates a path's directories, one level at a time - native.mkdir is one mkdir(2), and
 -- a level that already exists answers an error this ignores.
 local function make_directories(native, path)
-  local built = nil
+  -- An absolute POSIX path begins with the separator, and the piece walk below drops it -
+  -- every level would then be created under the working directory instead, and the first
+  -- write into the staging folder fails with "No such file or directory". Windows keeps its
+  -- root in the first piece (`C:`), which is why this only ever failed off Windows.
+  local built = path:match("^/") and "" or nil
 
   for piece in path:gmatch("[^/\\]+") do
     built = built and (built .. "/" .. piece) or piece
