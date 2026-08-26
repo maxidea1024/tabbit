@@ -112,9 +112,7 @@ namespace Wildling.Game
             var next = Stats.Compute(owned.Row, owned.Level + 1, state.Resonance(owned.SpeciesId));
             var costs = Stats.LevelCost(owned.Row.Grade, owned.Level + 1);
 
-            var card = Ui.Item(column, 150f);
-            Ui.Panel(card.transform, Theme.Panel);
-            var inner = Ui.Column(card.transform, 6f, 12f);
+            var inner = Ui.Card(column, Theme.Panel, 12f);
 
             var delta = Ui.Item(inner, 30f);
             Ui.Label(delta.transform,
@@ -165,9 +163,7 @@ namespace Wildling.Game
             var state = app.State;
             int shards = state.Shards(owned.SpeciesId);
 
-            var card = Ui.Item(column, 146f);
-            Ui.Panel(card.transform, Theme.Panel);
-            var inner = Ui.Column(card.transform, 6f, 12f);
+            var inner = Ui.Card(column, Theme.Panel, 12f);
 
             var have = Ui.Item(inner, 30f);
             Ui.Label(have.transform,
@@ -223,9 +219,7 @@ namespace Wildling.Game
             var to = link.MonsterByToMonsterId;
             bool can = state.CanAwaken(owned, out var checks);
 
-            var card = Ui.Item(column, 120f + checks.Count * 34f);
-            Ui.Panel(card.transform, Theme.Panel);
-            var inner = Ui.Column(card.transform, 4f, 12f);
+            var inner = Ui.Card(column, Theme.Panel, 12f, 4f);
 
             var head = Ui.Item(inner, 34f);
             Ui.Label(head.transform,

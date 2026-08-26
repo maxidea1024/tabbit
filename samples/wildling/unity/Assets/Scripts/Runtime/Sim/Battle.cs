@@ -341,9 +341,34 @@ namespace Wildling.Game
             }
         }
 
-        /// <summary>슬롯 순서대로 순환하고, 재사용 대기 중인 것은 건너뛴다.</summary>
+        /// <summary>
+        /// 슬롯 순서대로 순환하고, 재사용 대기 중인 것은 건너뛴다.
+        /// </summary>
+        /// <remarks>
+        /// **전부 대기 중이면 그 자리에서 가장 빨리 준비되는 것을 앞당깁니다.** 기획서 9.3 은
+        /// 「대기 중인 것은 건너뜁니다」까지만 정했고 하나도 못 쓰는 경우를 다루지 않았습니다.
+        /// 그대로 두면 대기가 긴 스킬만 가진 개체가 턴을 통째로 버리고, 화면에는 「쓸 수 있는
+        /// 스킬이 없어 쉬었습니다」만 되풀이됩니다.
+        ///
+        /// 대기의 **순서는 그대로**입니다 — 남은 시간을 모두 같은 만큼 당기므로, 어느 것이
+        /// 먼저 돌아오는지는 바뀌지 않습니다.
+        /// </remarks>
         private static int PickSlot(Combatant actor)
         {
+            if (actor.Active.Length == 0)
+                return -1;
+
+            for (int step = 0; step < actor.Active.Length; step++)
+            {
+                int slot = (actor.NextSlot + step) % actor.Active.Length;
+                if (actor.Cooldowns[slot] <= 0)
+                    return slot;
+            }
+
+            int soonest = actor.Cooldowns.Min();
+            for (int i = 0; i < actor.Cooldowns.Length; i++)
+                actor.Cooldowns[i] -= soonest;
+
             for (int step = 0; step < actor.Active.Length; step++)
             {
                 int slot = (actor.NextSlot + step) % actor.Active.Length;

@@ -20,9 +20,7 @@ namespace Wildling.Game
             var state = app.State;
             var column = Ui.Scroll(root);
 
-            var head = Ui.Item(column, 84f);
-            Ui.Panel(head.transform, Theme.Panel);
-            var inner = Ui.Column(head.transform, 6f, 12f);
+            var inner = Ui.Card(column, Theme.Panel, 12f);
 
             int completion = state.Completion();
             var line = Ui.Item(inner, 30f);

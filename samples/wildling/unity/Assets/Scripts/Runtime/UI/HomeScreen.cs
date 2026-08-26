@@ -75,10 +75,8 @@ namespace Wildling.Game
             App.Section(column, "탐사");
 
             bool running = !string.IsNullOrEmpty(state.ExpeditionRegionId);
-            var card = Ui.Item(column, running ? 210f : 148f);
-            Ui.Panel(card.transform, Theme.Panel);
-
-            var inner = Ui.Column(card.transform, 8f, 14f);
+            var inner = Ui.Card(column, Theme.Panel, 14f, 8f);
+            var card = inner.gameObject;
 
             if (running)
             {
@@ -194,11 +192,8 @@ namespace Wildling.Game
         {
             App.Section(column, "기록부");
 
-            var card = Ui.Item(column, 96f);
-            Ui.Panel(card.transform, Theme.Panel);
-
             int completion = app.State.Completion();
-            var inner = Ui.Column(card.transform, 8f, 14f);
+            var inner = Ui.Card(column, Theme.Panel, 14f, 8f);
 
             var head = Ui.Item(inner, 30f);
             Ui.Label(head.transform,

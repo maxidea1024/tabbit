@@ -193,6 +193,45 @@ namespace Wildling.Game
             return Stretch(go);
         }
 
+        /// <summary>
+        /// 내용에 맞춰 자라는 카드이다.
+        /// </summary>
+        /// <remarks>
+        /// **높이를 손으로 적지 않습니다.** 적어 두면 글자가 한 줄 늘어날 때마다 버튼이 아래
+        /// 줄을 덮거나 카드 안이 비게 됩니다. 층이 자식의 높이를 합쳐 제 높이로 삼고, 바깥
+        /// 목록이 그 값을 그대로 씁니다.
+        ///
+        /// 판 그림은 카드 자신에게 붙습니다 — 자식으로 두면 층이 그것도 한 줄로 세웁니다.
+        /// </remarks>
+        public static RectTransform Card(Transform parent, Color color,
+                                         float pad = 14f, float spacing = 6f)
+        {
+            var go = Node("card", parent);
+            var image = go.AddComponent<Image>();
+
+            var sprite = Skin.PanelFor(color);
+            if (sprite != null)
+            {
+                image.sprite = sprite;
+                image.type = Image.Type.Sliced;
+                image.color = Skin.TintFor(sprite);
+            }
+            else
+            {
+                image.color = color;
+            }
+
+            var layout = go.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = spacing;
+            layout.padding = new RectOffset((int)pad, (int)pad, (int)pad, (int)pad);
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+
+            return (RectTransform)go.transform;
+        }
+
         /// <summary>목록의 항목 하나이다. 높이를 고정한다.</summary>
         public static GameObject Item(Transform parent, float height, string name = "item")
         {
@@ -232,7 +271,8 @@ namespace Wildling.Game
 
             var layout = content.AddComponent<VerticalLayoutGroup>();
             layout.spacing = spacing;
-            layout.padding = new RectOffset((int)pad, (int)pad, (int)pad, (int)pad);
+            // 아래에 여유를 둡니다 — 마지막 줄이 이동 줄에 잘려 보이지 않게 합니다.
+            layout.padding = new RectOffset((int)pad, (int)pad, (int)pad, (int)pad + 24);
             layout.childControlWidth = true;
             layout.childControlHeight = true;
             layout.childForceExpandWidth = true;

@@ -138,20 +138,7 @@ namespace Wildling.Game
         {
             var goal = Pick(app.State);
 
-            var card = Ui.Item(column, 176f);
-            Ui.Panel(card.transform, Theme.PanelHigh);
-
-            var stripe = Ui.Node("stripe", card.transform);
-            var srt = Ui.Rect(stripe);
-            srt.anchorMin = new Vector2(0f, 0f);
-            srt.anchorMax = new Vector2(0f, 1f);
-            srt.pivot = new Vector2(0f, 0.5f);
-            srt.sizeDelta = new Vector2(6f, 0f);
-            var strip = stripe.AddComponent<Image>();
-            strip.color = goal.Urgent ? Theme.Accent : Theme.Line;
-            strip.raycastTarget = false;
-
-            var inner = Ui.Column(card.transform, 6f, 14f);
+            var inner = Ui.Card(column, Theme.PanelHigh);
 
             var tag = Ui.Item(inner, 26f);
             Ui.Label(tag.transform, "다음 목표", 19, Theme.TextDim);

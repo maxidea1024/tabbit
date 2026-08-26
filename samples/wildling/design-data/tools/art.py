@@ -717,13 +717,32 @@ def emit(canvas, folder, name):
 
 
 def build_monsters(icon_dir, made):
+    """와일드링 아이콘이다.
+
+    **원본이 있으면 그리지 않는다.** `art-source/monster/` 에 그 이름의 그림이 있으면 유니티의
+    `WildlingArtImport` 가 줄여 넣은 것이므로 덮지 않고, 지우는 단계가 남기도록 목록에만
+    더한다. 원본이 없으면 도형으로 그린다 — 그쪽은 의존성이 하나도 없다.
+    """
+    source = os.path.normpath(os.path.join(HERE, "..", "art-source", "monster"))
+    kept = 0
+
     for row in records("Monster.tsv"):
+        path = os.path.join(icon_dir, row["icon"] + ".png")
+        if os.path.exists(os.path.join(source, row["icon"] + ".jpg")) \
+                and os.path.exists(path):
+            made.append(path)
+            kept += 1
+            continue
+
         canvas = Canvas(ICON, ICON)
         pal = palette(row["element"])
         plate(canvas, pal, row["grade"])
         creature(canvas, row["species_id"], pal, row["role"], int(row["stage"]))
         vignette(canvas)
         made.append(emit(canvas, icon_dir, row["icon"]))
+
+    if kept:
+        print("  원본에서 온 것 %d장은 그대로 둡니다." % kept)
 
 
 def build_skills(icon_dir, made):

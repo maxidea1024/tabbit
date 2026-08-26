@@ -101,21 +101,19 @@ namespace Wildling.Game
                 long ours = Diagnose.PartyPower(state, state.PartyMembers());
                 var verdict = Diagnose.Compare(ours, Diagnose.StagePower(target));
 
-                var gauge = Ui.Item(column, 72f);
-                Ui.Panel(gauge.transform, Theme.Panel);
-                var inner = Ui.Node("t", gauge.transform);
-                var irt = Ui.Stretch(inner);
-                irt.offsetMin = new Vector2(14f, 6f);
-                irt.offsetMax = new Vector2(-14f, -6f);
-                var lines = Ui.Column(inner.transform, 2f);
+                var lines = Ui.Card(column, Theme.Panel, 14f, 6f);
 
-                var head = Ui.Item(lines, 30f);
-                Ui.Label(head.transform,
-                         $"{target.RegionByRegionId?.Name ?? target.RegionId} {target.Index}번 "
-                         + $"상대 — {verdict.Text}",
-                         21, verdict.Good ? Theme.Good : Theme.Warn);
+                var where = Ui.Item(lines, 28f);
+                Ui.Label(where.transform,
+                         $"다음 상대 — {target.RegionByRegionId?.Name ?? target.RegionId} "
+                         + $"{target.Index}번",
+                         19, Theme.TextDim);
 
-                var foes = Ui.Item(lines, 26f);
+                var head = Ui.Item(lines, 32f);
+                Ui.Label(head.transform, verdict.Text,
+                         22, verdict.Good ? Theme.Good : Theme.Warn);
+
+                var foes = Ui.Item(lines, 30f);
                 var wave = target.MonsterByWaveMonsterIds
                            ?? System.Array.Empty<MonsterTable.Record>();
                 Ui.Label(foes.transform,
