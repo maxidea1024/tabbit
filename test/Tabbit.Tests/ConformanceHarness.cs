@@ -1677,6 +1677,16 @@ internal static class ConformanceHarness
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, object>
         WorkingDirectoryLocks = new();
 
+    /// <summary>How long any one tool gets before it is taken to have hung.</summary>
+    /// <remarks>
+    /// Longer on Windows, and for one tool. Every other harness here answers in seconds;
+    /// the first SwiftPM build fetches swift-crypto and compiles it from source, and on a
+    /// Windows runner that does not fit in five minutes. What it looked like when it did
+    /// not was the Swift gate timing out with the toolchain and the generated code both
+    /// fine, which is the least useful failure a gate can produce.
+    /// </remarks>
+    private static readonly int ToolTimeout = OnWindows ? 900_000 : 300_000;
+
     private static ToolResult ExecuteHere(
         string fileName,
         string workingDirectory,
@@ -1738,10 +1748,11 @@ internal static class ConformanceHarness
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
 
-        if (!process.WaitForExit(milliseconds: 300_000))
+        if (!process.WaitForExit(ToolTimeout))
         {
             process.Kill(entireProcessTree: true);
-            throw new TimeoutException($"`{fileName}` did not finish within 5 minutes.");
+            throw new TimeoutException(
+                $"`{fileName}` did not finish within {ToolTimeout / 60_000} minutes.");
         }
 
         process.WaitForExit();
