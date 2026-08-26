@@ -56,11 +56,11 @@ build("polymorphism-array", [
 # 8절 — 그 행의 변종에 없는 멤버 칸에 값이 있는 것. 합집합 표기에서 가장 나오기 쉬운
 # 실수이고, 빈 칸이 뜻을 가지는 표에서는 조용히 지나가면 안 되는 자리입니다.
 build("polymorphism-refusal", [
-    [":table Skill", "거절되는 표입니다."],
+    [":table Skill", "거부되는 표입니다."],
     [":field", "id", "effect.$type", "effect.chance", "effect.damage", "effect.amount"],
     [":type", "int", "Effect"],
     ["", "101", "DamageEffect", "30", "50"],
     ["", "102", "HealEffect", "100", "7", "20"],
 ], notes={
-    4: "HealEffect 에 damage 가 없는데 값이 있습니다 — 그 셀을 가리켜 거절합니다",
-}, errors={(4, 4)}, title="거절 — 그 변종에 없는 멤버에 값이 있음")
+    4: "HealEffect 에 damage 가 없는데 값이 있습니다 — 그 셀을 가리켜 거부합니다",
+}, errors={(4, 4)}, title="거부 — 그 변종에 없는 멤버에 값이 있음")

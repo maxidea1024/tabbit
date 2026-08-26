@@ -47,10 +47,10 @@
 { "ServiceAccountKeyVariable": "TABBIT_SHEETS_KEY", "SheetsId": "10NXZ..." }
 ```
 
-- **둘을 함께 적으면 거절합니다.** 서로 다른 신원이므로 하나를 말없이 고르면 그 잡이 자기가
+- **둘을 함께 적으면 거부합니다.** 서로 다른 신원이므로 하나를 말없이 고르면 그 잡이 자기가
   아닌 사람으로 문서를 읽게 되고, 산출물의 어디에도 그 사실이 남지 않습니다.
   `ServiceAccountKeyFile`과 `ServiceAccountKeyVariable`을 함께 적는 것도 같습니다.
-- **키 파일 자리에 클라이언트 비밀을 적으면 그 자리에서 거절합니다.** 구글이 내려주는 두 JSON은
+- **키 파일 자리에 클라이언트 비밀을 적으면 그 자리에서 거부합니다.** 구글이 내려주는 두 JSON은
   서로 바꿔 넣기 쉬운데, 그대로 API에 보내면 권한 오류로 돌아와 문서 공유 문제처럼 읽힙니다.
 - 서비스 계정에는 그 문서의 **뷰어** 권한만 있으면 됩니다. 키에 적힌 `client_email`이 공유할
   주소입니다.
@@ -70,7 +70,6 @@
 |`OnDuplicateIndex`|`"error"`|인덱스 값이 겹칠 때. 겹치는 것을 허용하는 레이아웃에서만 동작합니다.|
 |`OnFormulaError`|`"error"`|`#REF!` 같은 수식 오류 셀을 만났을 때. [아래](#onformulaerror--수식이-오류일-때) 참고.|
 |`OnBlankCell`|`"error"`|숫자·날짜처럼 빈 칸을 읽을 방법이 없는 컬럼의 빈 칸. [아래](#onblankcell--빈-칸을-읽을-수-없는-컬럼에서) 참고.|
-|`FoldSerialFields`|`false`|`Text1`/`Text2`를 배열 하나로 접습니다. [아래](#foldserialfields--연번-컬럼을-접기) 참고.|
 |`TrimTrailingArrayElements`|`false`|배열에서 값이 없는 뒤쪽 원소를 버립니다. [아래](#trimtrailingarrayelements--배열의-빈-꼬리-자르기) 참고.|
 |`TableRowSets`|`""`|한 테이블이 행을 여러 벌 가질 때, 그것을 이름으로 어떻게 말하는지. [아래](#tablerowsets--한-테이블에-데이터-여러-벌) 참고.|
 |`LayoutOptions`|`{}`|그 레이아웃만 아는 설정. [아래](#layoutoptions--레이아웃-전용-설정) 참고.|
@@ -231,20 +230,6 @@ Item_alt      ← 같은 테이블의 다른 한 벌
 허용됩니다. 이 설정이 무엇이든 필수 컬럼의 `-`는 오류이고, `empty`로 읽힌 빈 칸은 **값이 있는
 셀**입니다. 규칙 전체는 [시트 작성](../sheets/types.md#빈-칸과-없음)과
 [빈 칸과 없음](../../spec/types/blank-and-null-cells.md)에 있습니다.
-
-### `FoldSerialFields` — 연번 컬럼을 접기
-
-`Text1`·`Text2`를 `Text_array` 하나로 접습니다. 기본은 **끔**입니다.
-
-**이름의 숫자가 배열을 뜻하는지는 이름으로는 판정할 수 없는 문제이기 때문입니다.**
-`Text1`/`Text2`는 대개 길이 2인 배열이지만, 실제 프로젝트의
-`Condition_1`·`Condition_2`·`Condition_3`은 서로 다른 enum 셋이었습니다. 접으면 더 나은 API가
-아니라 **틀린 API**가 되고, 틀려도 아무 신호가 없습니다 — 세 필드가 하나가 되고 **시트에 없던
-이름**이 붙습니다.
-
-연번 규칙이 없는 시트를 읽는 레이아웃은 이 설정을 **아예 읽지 않습니다.** 거기서는 숫자가
-이름의 일부일 뿐입니다. 자세한 것은
-[시트 작성](../sheets/shapes.md#로우마다-길이가-다른-레코드-배열--옵트인)에 있습니다.
 
 ### `TrimTrailingArrayElements` — 배열의 빈 꼬리 자르기
 

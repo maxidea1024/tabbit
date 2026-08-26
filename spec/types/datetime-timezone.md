@@ -150,22 +150,3 @@ tabbit -r recipe.json --time-zone "+09:00"
 |출력 쪽 시간대 변환|읽는 쪽의 표시 문제입니다. 데이터는 UTC로 두고, 지역 시간은 소비자가 만듭니다|
 |`timespan`|기간이지 시각이 아니므로 시간대와 무관합니다|
 |구글 시트의 `properties.timeZone` 자동 적용|`Spreadsheets.Get` 응답에 이미 들어 있어 추가 호출 없이 기본값으로 쓸 수 있습니다. 다만 **시트가 신고한 값이 조용히 데이터를 옮기는 것**이므로, recipe에 적은 것만 적용하고 이쪽은 나중에 따로 봅니다|
-
-## 4. 손대는 곳
-
-|파일|무엇|
-|--|--|
-|[src/Recipe/RecipeModel.cs](../../src/Recipe/RecipeModel.cs)|recipe 전체 `TimeZone`|
-|[src/Recipe/SheetSourceRecipe.cs](../../src/Recipe/SheetSourceRecipe.cs)|항목별 `TimeZone`|
-|[src/Sources/SheetImportSettings.cs](../../src/Sources/SheetImportSettings.cs)|항목 설정을 시트 읽기 전에 해석|
-|[src/Models/Raw/SheetLayout.cs](../../src/Models/Raw/SheetLayout.cs)|해석된 시간대를 시트에 붙여 나름|
-|[src/Cooking/CookingContext.cs](../../src/Cooking/CookingContext.cs)|파싱 스타일, UTC 변환, DST 보고|
-|[src/Cooking/Layouts](../../src/Cooking/Layouts)|셀을 읽을 때 항목의 시간대를 함께 넘김|
-|[src/Helpers/TimeZones.cs](../../src/Helpers/TimeZones.cs)|이름·오프셋을 읽고, 아니면 후보와 함께 거절|
-|[src/Options.cs](../../src/Options.cs) · [src/Recipe/CommandLineTimeZone.cs](../../src/Recipe/CommandLineTimeZone.cs) · [src/Program.cs](../../src/Program.cs)|`--time-zone`|
-|[doc/recipe.md](../../doc/recipe.md) · [doc/sheets.md](../../doc/sheets.md) · [doc/cli.md](../../doc/cli.md)|설정 표, 값 타입 설명, 옵션|
-|[test/Tabbit.Tests/DateTimeTimeZoneTests.cs](../../test/Tabbit.Tests/DateTimeTimeZoneTests.cs)|위의 표들이 그대로 게이트입니다|
-
-골든은 **바뀌지 않았습니다.** 픽스처 어디에도 시간대를 적지 않았고 오프셋을 적은 셀도 없으므로
-값이 달라질 자리가 없습니다 — 2.2의 첫 줄이 지켜졌다는 것이 그 뜻입니다. 바뀌었다면 지켜지지
-않은 것입니다.

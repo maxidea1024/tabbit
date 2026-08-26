@@ -12,7 +12,7 @@
 거부합니다.
 
 이 형식을 쓰는 이유(파싱이 없다 · 인코딩이 값 크기에 맞는다 · 값이 변하지 않는다)는
-[내보내기](exports.md#바이너리를-쓰는-이유)에 있습니다.
+[내보내기](exports/binary.md#바이너리를-쓰는-이유)에 있습니다.
 
 ---
 
@@ -39,11 +39,11 @@
 |106|컬럼이 「배열의 어느 원소에 값이 있는지」를 담습니다. 와이어 바이트의 마지막 예약 비트인 **비트 7**이 그것을 선언하고, 모르는 리더는 원소 비트맵을 값 블록의 앞부분으로 읽습니다 ([결정](../spec/wire/tcb-v106-element-presence.md))|
 |**107**|**고정 길이 배열 종류를 없앴습니다.** 배열은 하나가 되었고 디스크립터의 원소 개수 필드도 빠졌습니다 — 길이를 파일이 한 번만 말하면 그 길이가 생성 코드에 상수로 굳고, 그러면 컬럼을 하나 더하는 것이 데이터 패치가 아니라 **코드 배포**가 됩니다 ([결정](../spec/wire/tcb-v107-dynamic-arrays.md))|
 
-## 설계의 출처
+## 값 인코딩이 받은 영향
 
-**구글 프로토콜 버퍼의 와이어 포맷입니다.** 값 인코딩은 거의 그대로 가져왔습니다.
+**값 인코딩은 구글 프로토콜 버퍼의 와이어 포맷을 따릅니다.** 거의 그대로 씁니다.
 
-|가져온 것|프로토버프에서|
+|따른 것|프로토버프에서|
 |--|--|
 |바이트당 7비트를 낮은 자리부터 쓰고, 더 있으면 최상위 비트를 세우는 varint|[Base 128 Varints](https://protobuf.dev/programming-guides/encoding/#varints)|
 |부호를 접어 작은 음수도 짧게 만드는 지그재그|[Signed Integers](https://protobuf.dev/programming-guides/encoding/#signed-ints)|
@@ -51,7 +51,7 @@
 |길이를 앞에 적어 내용은 몰라도 건너뛸 수 있게 하는 방식|[Length-Delimited Records](https://protobuf.dev/programming-guides/encoding/#length-types)|
 |**모르는 필드를 건너뛸 수 있으면 스키마가 바뀌어도 읽을 수 있다**는 wire type 개념 자체|[Message Structure](https://protobuf.dev/programming-guides/encoding/#structure)|
 
-바꾼 것은 그 태그를 어디에 붙이느냐 하나입니다.
+차이점은 그 태그를 어디에 붙이느냐 하나입니다.
 
 프로토콜 버퍼는 값마다 붙이고, 이 형식은 컬럼마다 한 번 붙입니다.
 정적 테이블의 행은 동종이라 스키마를 행 수만큼 반복할 이유가 없기 때문입니다.

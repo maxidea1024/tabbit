@@ -1,6 +1,6 @@
 # Lua
 
-> [언어별 가이드로](readme.md) · [문서 목록으로](../readme.md)
+> [「언어별 가이드」로 돌아가기](readme.md) · [문서 목록으로](../readme.md)
 >
 > 설계 근거는 [Lua 언어 지원](../../spec/targets/lua-language-support.md)에 있습니다.
 

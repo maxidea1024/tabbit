@@ -115,7 +115,7 @@ MAC으로 없어집니다.
 있는지는 [TCB v104 §4](../../spec/wire/tcb-v104-composed-encodings.md#4-암호화--구현)와
 [MAC과 파일 시그니처](../../spec/wire/tcb-mac-and-signature.md)에 있습니다.
 
-켜는 방법은 [내보내기](../exports.md#바이너리-익스포트의-recipe-옵션)에 있습니다.
+켜는 방법은 [내보내기](../exports/binary.md#바이너리-익스포트의-recipe-옵션)에 있습니다.
 
 **키 회전도 비대칭 서명도 없습니다.** 키가 샜다고 판단되면 할 일은 하나입니다 — 새 키를 만들고,
 데이터를 다시 내보내고, 클라이언트를 다시 배포합니다.

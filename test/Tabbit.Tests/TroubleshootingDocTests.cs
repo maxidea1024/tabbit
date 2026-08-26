@@ -20,8 +20,25 @@ namespace Tabbit.Tests;
 /// </summary>
 public class TroubleshootingDocTests
 {
+    /// <summary>
+    /// The page is the index plus the files it is split into. Splitting it moved the quoted
+    /// headings out of the index, and reading only the index would leave this gate passing
+    /// over an empty set - which is the one failure a gate must not have.
+    /// </summary>
     private static string Page
-        => File.ReadAllText(Path.Combine(RepoLayout.Root, "doc", "troubleshooting.md"));
+    {
+        get
+        {
+            string index = Path.Combine(RepoLayout.Root, "doc", "troubleshooting.md");
+            string folder = Path.Combine(RepoLayout.Root, "doc", "troubleshooting");
+            var parts = Directory.Exists(folder)
+                ? Directory.GetFiles(folder, "*.md").OrderBy(path => path, StringComparer.Ordinal)
+                : Enumerable.Empty<string>();
+            return string.Join(
+                "\n\n",
+                new[] { index }.Concat(parts).Select(File.ReadAllText));
+        }
+    }
 
     /// <summary>
     /// A heading that is entirely a code span is quoting a message. One that is prose - "갑자기

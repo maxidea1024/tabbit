@@ -281,7 +281,6 @@ dotnet run --project src/Tabbit.csproj -- --recipe test/reserved-words/reserved-
 
         // `Text1`/`Text2`를 배열 하나로 접을지. 기본은 끔 — 이름의 숫자가 배열을 뜻하는지는
         // 이름으로는 판정할 수 없는 문제입니다.
-        "FoldSerialFields": false,
 
         // 레코드 배열에서 값이 없는 뒤쪽 원소를 버릴지. 기본은 끔 — 배열이 짧아지는 것은
         // 아무 말도 하지 않습니다. 가운데는 지우지 않습니다.
@@ -298,7 +297,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe test/reserved-words/reserved-
         "ClientSecretFilename": "./googlesheets-client-secret.json",
 
         // CI라면 이쪽입니다 — 잡 자신으로 접속하므로 개인 계정에 종속되지 않습니다.
-        // 위의 것과 함께 적으면 거절합니다. 셋 다 비우면 이 항목은 꺼집니다.
+        // 위의 것과 함께 적으면 거부합니다. 셋 다 비우면 이 항목은 꺼집니다.
         "ServiceAccountKeyFile": "",
         "ServiceAccountKeyVariable": "",
 

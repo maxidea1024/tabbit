@@ -232,7 +232,7 @@ cache.Wrote(planned.Section!, StagingFiles.PendingSince(before), ...);
 파일 목록을 들게 하면 캐시의 장부가 모든 타깃에 퍼진다는 것이고, 그 판단은 맞습니다. 다만 그
 설계는 **한 번에 한 항목만 돈다**는 것을 전제로 했습니다.
 
-거절되었던 대안은 지금도 거절합니다. 셋째 방법을 씁니다 — **부르는 쪽이 항목을 대고, 장부가
+거부되었던 대안은 지금도 거부합니다. 셋째 방법을 씁니다 — **부르는 쪽이 항목을 대고, 장부가
 도착하는 것에 이름표를 붙입니다.** `StagingFiles.Attributing(section)` 스코프가 그 이름을
 `AsyncLocal`에 걸고, `RegisterStagingFile`이 들어오는 파일에 그것을 붙입니다. `AsyncLocal`인
 것은 타깃이 안에서 또 갈라지기 때문입니다 — binary는 컬럼을 병렬로 인코딩합니다(B2).

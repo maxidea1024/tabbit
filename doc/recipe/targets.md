@@ -19,7 +19,7 @@
 |`Type`|종류|
 |--|--|
 |`binary`, `json`|파일 내보내기|
-|`text`|`text` 컬럼의 값을 그룹마다 파일 하나로 수집 — 「[수집된 텍스트](../exports.md#수집된-텍스트--text-타깃)」|
+|`text`|`text` 컬럼의 값을 그룹마다 파일 하나로 수집 — 「[수집된 텍스트](../exports/text.md#수집된-텍스트--text-타깃)」|
 |`mysql`, `postgresql`, `mongodb`, `redis`|데이터베이스 내보내기|
 |`cpp`, `csharp`, `typescript`, `html`, `c`, `go`, `rust`, `python`, `java`, `kotlin`, `swift`, `lua`, `ruby`, `php`, `dart`|코드 생성 — 설정은 [언어별 가이드](../languages/readme.md)|
 |`unreal`|Unreal 모듈 생성|

@@ -1,6 +1,6 @@
 # PHP
 
-> [언어별 가이드로](readme.md) · [문서 목록으로](../readme.md)
+> [「언어별 가이드」로 돌아가기](readme.md) · [문서 목록으로](../readme.md)
 
 ---
 

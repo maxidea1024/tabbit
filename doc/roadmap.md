@@ -59,7 +59,7 @@ STRUCT DSL 1단계의 조건에 적혀 있었지만 등급이 다릅니다 — �
 
 ### STRUCT DSL의 `set` · `map`
 
-**문법과 모델은 이미 받고 이름을 대고 거절합니다.**
+**문법과 모델은 이미 받고 이름을 대고 거부합니다.**
 
 형식은 무변경입니다 — `set`은 배열 컬럼 하나, `map`은 키·값 컬럼 둘입니다. 남은 것은 모든 언어의
 컨테이너 타입과 그 구축 코드이고, 중첩 필드 확산과 같은 형태의 작업입니다
@@ -145,7 +145,7 @@ STRUCT DSL 1단계의 조건에 적혀 있었지만 등급이 다릅니다 — �
 |**배열 가운데 빈칸**|거부가 기본이고 `AllowArrayGaps`가 되돌립니다 ([설계](../spec/types/variable-length-record-arrays.md))|
 |**옵셔널 필드 2단계**|와이어 비트 6 + presence 비트맵 + v103. 모든 언어와 `json`·`binary` ([설계](../spec/types/optional-fields.md))|
 |**레코드 멤버별 옵셔널**|**형식 무변경** — 제약은 무엇이 참이어야 하는지를 규정하지 무엇이 표현 가능해야 하는지를 규정하지 않습니다 ([설계](../spec/types/record-member-optionality.md))|
-|**`text` 타입**|로컬라이즈 대상 문자열과 그 수집. 생성기도 와이어도 무변경 ([타입](sheets/types.md#text--번역을-위해-수집되는-문자열) · [내보내기](exports.md#수집된-텍스트--text-타깃))|
+|**`text` 타입**|로컬라이즈 대상 문자열과 그 수집. 생성기도 와이어도 무변경 ([타입](sheets/types.md#text--번역을-위해-수집되는-문자열) · [내보내기](exports/text.md#수집된-텍스트--text-타깃))|
 |**`asset` 타입**|파일이 있어야 하는 문자열. 없는 파일은 경고이고 **어느 셀인지 함께** 보고합니다 ([설계](../spec/layout/column-constraints.md#asset--제외했다가-되돌린-것))|
 |**`bitset` 타입**|최대 64개의 플래그. 파일에는 64비트 정수라 **형식·리더 무변경** ([설계](../spec/types/bitset.md))|
 |**합성 값 타입**|벡터·회전·색을 셀 하나에. 접힌 결과가 이미 지원되던 레코드라 **형식·리더·생성기 무변경** ([설계](../spec/types/composite-value-types.md))|
@@ -153,13 +153,13 @@ STRUCT DSL 1단계의 조건에 적혀 있었지만 등급이 다릅니다 — �
 |**컬럼 제약을 정적 검증으로**|필수값 · 최소/최대 · 값 화이트리스트. **어느 셀인지 함께** 보고합니다 ([설계](../spec/layout/column-constraints.md))|
 |**멀티 로우 그룹의 선언 타입**|문서에 적혀 있던 표기가 받아들여지지 않고 있었습니다 ([§4.3](../spec/layout/primary-layout.md))|
 |**지역 변종**|[테이블의 행 벌](../spec/layout/table-row-sets.md)로 — 한 테이블이 데이터를 여러 벌 가지는 것이지 테이블이 둘인 것이 아닙니다|
-|**레코드 안의 참조**|모든 언어, 형식 무변경. 거절이 진단이 아니라 `throw`여서 변환이 통째로 멈췄던 것을 함께 고쳤습니다 ([설계와 결과](../spec/references/references-in-records.md))|
+|**레코드 안의 참조**|모든 언어, 형식 무변경. 거부가 진단이 아니라 `throw`여서 변환이 통째로 멈췄던 것을 함께 고쳤습니다 ([설계와 결과](../spec/references/references-in-records.md))|
 |**참조의 「없음」**|전에도 거부됐지만 자리가 값 파서라 메시지가 「`Int32`로 파싱할 수 없습니다」였습니다 ([설계](../spec/references/reference-optionality.md))|
 |**`foreign[]`**|한 셀에 구분자로 이어 적으면 원소마다 행 하나로. **생성기는 한 줄도 안 바뀌었습니다** ([설계 §4](../spec/types/polymorphism.md))|
 |**다중 대상 참조**|**되돌렸습니다** — 셀렉터는 공통 분모가 없어 돌려줄 타입이 없습니다. 대신 대상별 접근자·판별자·대상 무관 슬롯 셋을 냅니다 ([설계](../spec/references/reference-surface-naming.md))|
 |**STRUCT DSL 1~5단계**|임베딩 오브젝트와 enum을 시트 밖 `.tbs`에서 선언. 형식 무변경 ([설계](../notes/struct-dsl-design.md))|
 |**struct 다형성**|`abstract struct`·`extends`·`$type`. 형식 무변경 — v103이 이미 실을 수 있던 형태였습니다 ([설계](../spec/types/polymorphism.md))|
-|**값 임베딩 다형의 와이어 측정**|**형식 개정이 필요 없습니다.** 변종 개수보다 **행의 순서**가 크게 작용해, 다형 그룹을 가진 테이블은 판별자로 정렬합니다 ([실측](../spec/types/polymorphism.md#61-실측--형식의-수용과-행-순서의-비용))|
+|**값 임베딩 다형의 와이어 측정**|**형식 개정이 필요 없습니다.** 변종 개수보다 **행의 순서**가 크게 작용해, 다형 그룹을 가진 테이블은 판별자로 정렬합니다 ([실측](../spec/types/polymorphism/wire.md#61-실측--형식의-수용과-행-순서의-비용))|
 |**배열 상수**|표기는 받아들여지고 있었는데 **어느 생성기도 내지 못했습니다** ([표기](../spec/layout/primary-layout/entities.md#85-상수셋))|
 |**비트폭 패킹 (v105)**|인코딩 13 `BITPACK`과 presence 비트맵의 인코딩, 모든 런타임 ([설계](../spec/wire/tcb-v105-bit-width-packing.md))|
 |**동적 배열 단일화 (v107)**|배열은 한 종류가 되었고 길이는 언제나 로우가 말합니다 ([설계](../spec/wire/tcb-v107-dynamic-arrays.md))|
@@ -169,7 +169,7 @@ STRUCT DSL 1단계의 조건에 적혀 있었지만 등급이 다릅니다 — �
 |**`.xlsb`의 정의된 이름**|`BrtName`을 XTI 테이블로 풀어 읽어 **사전 변환 단계를 없앴습니다** ([설계](../spec/import/xlsb-defined-names.md))|
 |**Lua 언어 지원**|LuaJIT 2.1과 Lua 5.3+. 형식 무변경 ([설계](../spec/targets/lua-language-support.md) · [가이드](languages/lua.md))|
 |**메시지 ID**|로그·에러의 로컬라이즈 앞단계. 「도구 자신의 결함」이 `TabbitDefectException`으로 갈라졌습니다 ([설계](../spec/validation/message-ids.md))|
-|**검사와 보고가 가리키는 곳**|`Naming` 검사가 **도구가 만든 이름을 판정하고 있었습니다**. 순서가 뒤바뀐 거절도 함께|
+|**검사와 보고가 가리키는 곳**|`Naming` 검사가 **도구가 만든 이름을 판정하고 있었습니다**. 순서가 뒤바뀐 거부도 함께|
 |**검증 파이프라인**|시트에 적을 수 없는 규칙을 프로젝트의 `.cs`로. 게이트가 모든 타깃보다 앞입니다 ([사용법](validation.md) · [설계](../spec/validation/validation-pipeline.md))|
 |**검증의 사용성과 어셈블리 출력**|빌드 경고 0 · 접근자 인스턴스 · 규칙 전용 어셈블리 · 자립 배포본 · `.dll` 출력 · clone 직후 자동 완성 ([설계](../spec/validation/validation-usability-and-assembly-output.md))|
 |**규칙 우선순위 · 파일 명명 · 폴더 템플릿**|`[RulePriority(n)]`로 티어를 나누고, 건너뛴 규칙이 보고에 남습니다 ([설계](../spec/validation/rule-priority.md))|

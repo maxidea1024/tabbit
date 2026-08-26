@@ -182,7 +182,7 @@ Kotlin과 같습니다. 이름을 바꾸지 않고 `` `class` ``로 감쌉니다
 |--|--|--|
 |네임스페이스|`public enum Tcb`에 상수·`Column`·`Header`·`Uuid`·`Reader`·`ColumnCursor`가 들어갑니다. 밖에 남는 것은 호출자가 잡는 `TcbError`와 `RecordNotFoundError` 둘뿐입니다|Swift에는 모듈보다 작은 이름 공간이 없습니다. **소스 복사 통합**(13절 경로 ④)에서 리더를 그냥 넣으면 `magic`·`headerSize`·`formatVersion` 같은 전역이 30개 넘게 소비자 모듈에 풀립니다|
 |`openTable`|봉인을 여는 함수의 이름. `open`이 아닙니다|`import Foundation`이 POSIX `open`을 이미 들여옵니다. 전역 `open`은 그 옆에 서게 되고, 오버로드 해소가 인자에 따라 갈리는 이름을 리더가 만들 이유가 없습니다|
-|`throws`|모든 읽기가 던지고, 생성 코드가 `try`를 붙입니다|이 형식의 계약은 **거절**입니다 — 잘린 파일에서 값을 지어내지 않습니다. Rust의 `Result`와 Go의 `error`가 같은 자리이고, Swift에서 그 자리는 `throws`입니다. 생성 코드가 `try`로 덮이는 것은 그 대가입니다|
+|`throws`|모든 읽기가 던지고, 생성 코드가 `try`를 붙입니다|이 형식의 계약은 **거부**입니다 — 잘린 파일에서 값을 지어내지 않습니다. Rust의 `Result`와 Go의 `error`가 같은 자리이고, Swift에서 그 자리는 `throws`입니다. 생성 코드가 `try`로 덮이는 것은 그 대가입니다|
 
 ### 확인한 것
 
@@ -194,8 +194,8 @@ Kotlin과 같습니다. 이름을 바꾸지 않고 `` `class` ``로 감쌉니다
 |C#이 쓴 HMAC-SHA-256 태그 검증|통과|
 |ChaCha20 복호와 키 체크|통과 — 값이 같은 실행의 평문 JSON과 일치|
 |컬럼 인코딩 raw·varint, 원소 string·f32·i32|통과|
-|**다른 키**|키 체크에서 거절|
-|**한 바이트 변조**|MAC에서 거절|
+|**다른 키**|키 체크에서 거부|
+|**한 바이트 변조**|MAC에서 거부|
 |변조된 파일을 MAC 키 없이|열립니다 — 그 쌍이 [MAC 설계](../wire/tcb-mac-and-signature.md)가 요구하는 확인입니다|
 |의존성 0 빌드(swift-crypto 없음)|컴파일되고 MAC만 못 씁니다 — 5절의 세 번째 상태|
 
@@ -221,7 +221,7 @@ Kotlin과 같습니다. 이름을 바꾸지 않고 `` `class` ``로 감쌉니다
 
 |무엇|비고|
 |--|--|
-|헤더 42바이트·시그니처·버전 거절|—|
+|헤더 42바이트·시그니처·버전 거부|—|
 |[인코딩 14종](../wire/tcb-v104-composed-encodings.md)|raw·varint·delta·rle·delta-rle·dict 4종·array·whole·dict-segment 2종·[bitpack](../wire/tcb-v105-bit-width-packing.md)|
 |[로우 presence](../wire/tcb-v103-presence-bitmap.md)·[원소 presence](../wire/tcb-v106-element-presence.md)|비트맵 자체도 인코딩됩니다|
 |ChaCha20 (RFC 8439)|약 100줄|
@@ -256,7 +256,7 @@ Swift의 `+`·`<<`는 오버플로에서 **트랩합니다.** varint 누적, zig
 |--|--|--|
 |0|툴체인(로컬·CI)과 `SwiftIsAvailable`|**됨.** 로컬은 툴체인 6.3.3 + Windows 11 SDK 10.0.22621로 돌고, CI는 ubuntu·windows에 `setup-swift`를, macOS는 Xcode의 것을 씁니다(14절에 윈도우에서 걸린 것 셋)|
 |1|리더 — 헤더·인코딩 14종·presence 둘·`Uuid`|**됨.** 1,798줄. 적합성 코퍼스로 **인코딩 14종·원소 8종 전부** 확인|
-|2|암호 — ChaCha20 직접, HMAC은 `#if` 분기|**됨.** 봉인된 파일 왕복, 다른 키·변조 거절, 의존성 0 빌드까지 8절에|
+|2|암호 — ChaCha20 직접, HMAC은 `#if` 분기|**됨.** 봉인된 파일 왕복, 다른 키·변조 거부, 의존성 0 빌드까지 8절에|
 |3|생성기·뷰·템플릿·`LanguageProfile.Swift`|**됨.** 생성기 1,181줄·뷰 357줄·템플릿 5개(536줄). 생성물이 **Swift 5·6 두 모드에서 경고 0**으로 컴파일|
 |4|적합성 하네스와 게이트 일곱|**됨.** 적합성·MAC·의존성 0 컴파일·중첩/옵셔널 8종·예약어·키 타입. Python 하네스와 36행 × 20필드 전부 일치|
 |5|업데이터와 그 게이트|**됨.** 545줄, MD5는 직접 구현하고 RFC 1321 벡터 10개로 확인. 게이트는 **실제 HTTP 서버**에 붙습니다 — 바뀐 것만 받기, 손상된 다운로드 거부, 재시도, 404 비재시도|
