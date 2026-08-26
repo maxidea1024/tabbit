@@ -169,7 +169,7 @@ jobs:
       # HMAC-SHA-256 - and a second gate type-checks the same output with no package at
       # all, which is the state a consumer who adds nothing gets.
       - name: Setup Swift
-        uses: swift-actions/setup-swift@v2
+        uses: swift-actions/setup-swift@v3
         with:
           swift-version: '6.1'
 
