@@ -119,7 +119,7 @@ Details:
 - `datetime`과 `timespan`은 틱이라 비교는 정확하지만, 행을 시각으로 찾는 시트가 없어서 받지
   않습니다.
 
-[인덱스 필드](sheets.md#인덱스-필드)를 참고하세요.
+[인덱스 필드](sheets/naming.md#인덱스-필드)를 참고하세요.
 
 보조 인덱스(`*`)도 같은 문장으로 거부됩니다. 두 자리의 규칙이 하나이기 때문입니다.
 
@@ -320,7 +320,7 @@ table format version 103 is not supported (expected 104)
 로드 경로에서 `envelope`을 여는 호출을 먼저 거치세요.
 
 암호화되지 않은 파일은 그 호출에서 그대로 돌아오므로, 키를 쓰는지 여부로 경로를 나눌 필요가
-없습니다. [파일 암호화](binary-format.md#파일-암호화)
+없습니다. [파일 암호화](binary-format/security.md#파일-암호화)
 
 ### `the file did not decrypt to a table - the key is not the one it was written with`
 
@@ -348,7 +348,7 @@ table format version 103 is not supported (expected 104)
 키를 넣습니다.
 
 거절하는 이유는 그렇지 않으면 **16바이트를 0으로 덮는 것만으로 검사가 없어지기** 때문입니다.
-「[변조 검출](binary-format.md#변조-검출--mac)」
+「[변조 검출](binary-format/security.md#변조-검출--mac)」
 
 ### `the file does not begin with the table file signature`
 

@@ -108,7 +108,7 @@ tabbit --recipe recipe.json
 
 recipe가 시간대를 잘못 적고 있는 실행을 위한 것이므로, 덮어쓸 대상이 바로 소스별 설정입니다.
 적용한 값은 실행 로그에 한 줄로 남습니다.
-[시트의 값](recipe.md#timezone--시트의-날짜를-어느-시간대로-읽을지)
+[시트의 값](recipe/settings.md#timezone--시트의-날짜를-어느-시간대로-읽을지)
 
 ### 검증
 

@@ -95,5 +95,5 @@ Slot1.Id   Slot2.Id   Slot3.Id
 파일은 **경고**이고, 빌드는 이미 있는 `Validation.TreatWarningsAsErrors`로 차단합니다. recipe
 하나가 데이터 쓰는 사람과 나가는 빌드를 함께 씁니다.
 
-지금은 [`asset` 타입](../../doc/sheets.md#asset--파일이-있어야-하는-문자열)이 있고, 이 레이아웃의
+지금은 [`asset` 타입](../../doc/sheets/types.md#asset--파일이-있어야-하는-문자열)이 있고, 이 레이아웃의
 `:asset` 행을 그 타입으로 읽는 것은 레이아웃 파일이 할 일로 남아 있습니다.

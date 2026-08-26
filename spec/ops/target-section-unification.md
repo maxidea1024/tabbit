@@ -1,6 +1,6 @@
 # 출력 항목을 `Targets` 하나로
 
-> 상태: **구현 완료** (2026-08-15) · 관련: [recipe 문서](../../doc/recipe.md#targets--이-변환이-내는-것-전부)
+> 상태: **구현 완료** (2026-08-15) · 관련: [recipe 문서](../../doc/recipe/targets.md#targets--이-변환이-내는-것-전부)
 
 `RecipeModel`의 `Exports`·`CodeGenerations` 섹션을 **삭제하고**, 모든 출력 항목을 `Targets`
 목록으로 지정합니다. 외부 사용자가 없고 아직 릴리스 전이므로 **호환 장치를 두지 않습니다** —

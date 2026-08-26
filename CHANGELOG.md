@@ -112,7 +112,7 @@
 
 - **시트의 날짜를 어느 시간대로 읽을지 recipe에 적습니다.** `TimeZone`이 그것이고, 저장되는 값은
   언제나 UTC입니다 — 이 설정이 정하는 것은 시트에 적힌 시각을 어느 시간대의 것으로 읽을지 하나뿐입니다
-  ([설정](doc/recipe.md#timezone--시트의-날짜를-어느-시간대로-읽을지) ·
+  ([설정](doc/recipe/settings.md#timezone--시트의-날짜를-어느-시간대로-읽을지) ·
   [설계](spec/types/datetime-timezone.md)).
   - **지역 이름과 고정 오프셋을 모두 받습니다.** `Asia/Seoul`·`Korea Standard Time` 같은 이름은
     서머타임을 포함한 그 지역의 역사를 따르고, `+09:00`·`+0900`·`+09`·`Z`는 일 년 내내 같습니다.

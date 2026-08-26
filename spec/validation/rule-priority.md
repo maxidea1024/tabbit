@@ -1,6 +1,6 @@
 # 규칙 우선순위 — 티어와 차단점
 
-> 상태: **구현 완료** (2026-08-14) · 사용법은 [검증](../../doc/validation.md#우선순위--티어와-차단점) ·
+> 상태: **구현 완료** (2026-08-14) · 사용법은 [검증](../../doc/validation/running.md#우선순위--티어와-차단점) ·
 > 상위 계획:
 > [검증 사용성과 C# 어셈블리 산출](validation-usability-and-assembly-output.md)의 8단계 ·
 > 선행 설계는 [검증 파이프라인](validation-pipeline.md)
