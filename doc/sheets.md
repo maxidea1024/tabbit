@@ -25,16 +25,16 @@
 |무엇을 하려는가|어디를 볼까|
 |--|--|
 |시트를 처음 만든다|[시트에 엔티티를 배치하는 방법](sheets/layout.md#시트에-엔티티를-배치하는-방법)|
-|컬럼에 무슨 타입을 적을 수 있나|[Supported Data Types](sheets/types.md#supported-data-types)|
+|컬럼에 무슨 타입을 적을 수 있나|[Supported Data Types](sheets/types.md#적을-수-있는-타입)|
 |값을 여러 개 담고 싶다|[배열이 오는 세 자리](sheets/shapes.md#배열이-오는-세-자리--셀--칸--행)|
 |컬럼 여러 개를 한 덩어리로 묶고 싶다|[중첩 필드](sheets/shapes.md#중첩-필드--컬럼-여러-개를-레코드-하나로)|
 |칸을 비워도 되나|[빈 칸의 뜻](sheets/rules-and-pitfalls.md#빈-칸의-뜻--자리별-총정리)|
-|이름을 어떻게 지어야 하나|[Naming Rules](sheets/naming.md#naming-rules)|
+|이름을 어떻게 지어야 하나|[Naming Rules](sheets/naming.md#이름-규칙)|
 |서버와 클라이언트에 다른 것을 주고 싶다|[Target Side](sheets/rules-and-pitfalls.md#target-side-서버클라-분리)|
 |왜 안 읽히는지 모르겠다|[헷갈리는 자리](sheets/rules-and-pitfalls.md#헷갈리는-자리) · [트러블슈팅](troubleshooting.md)|
 |우리가 설계하지 않은 시트를 읽어야 한다|[다른 규칙으로 쓰인 시트](sheets/rules-and-pitfalls.md#다른-규칙으로-쓰인-시트)|
 
-## Terminologies
+## 용어
 
 시작하기에 앞서서 몇가지 용어에 대해서 얘기하겠습니다.
 

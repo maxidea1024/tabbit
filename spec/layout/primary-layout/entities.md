@@ -63,7 +63,7 @@ struct Reward (sep=",")
   표현**이므로 6행처럼 enum 이름을 바로 적습니다 — 기존의 (타입 `enum` + 디테일) 5컬럼
   구조가 4컬럼이 됩니다.
 - 상수는 코드로 나가고 데이터 파일에는 실리지 않는다는
-  [기존 주의](../../../doc/sheets/layout.md#supported-entities)가 그대로 적용됩니다.
+  [기존 주의](../../../doc/sheets/layout.md#적을-수-있는-엔티티)가 그대로 적용됩니다.
 - **배열도 됩니다** — 스칼라 타입들과 **enum**(`Grade[]`)입니다. 상수가 파일에 실리지
   않으므로 여기에 와이어 질문은 없고, 필요한 것은 **그 언어가 상수 자리에서 받아들이는 목록
   표현** 하나입니다. 원소의 표기는 스칼라의 것과 같고 감싸는 방식만 언어마다 갈립니다.
@@ -192,7 +192,7 @@ struct Reward (sep=",")
 
 |영역|그대로인 것|
 |--|--|
-|값 파싱|[파싱 규칙](../../../doc/sheets/layout.md#parsing-rules) 전부 — bool 어휘 · 진법 리터럴 · InvariantCulture · TimeZone|
+|값 파싱|[파싱 규칙](../../../doc/sheets/layout.md#값을-읽는-규칙) 전부 — bool 어휘 · 진법 리터럴 · InvariantCulture · TimeZone|
 |빈 칸과 없음|`-` · `\-` · `OnBlankCell` — [설계](../../types/blank-and-null-cells.md)|
 |배열|셀 구분자(`ArrayDelimiter`) · `TrimTrailingArrayElements` · `AllowArrayGaps`|
 |합성 값 타입|`vec3f` · `quat` · `color` 계열의 셀 표기 전부|

@@ -81,8 +81,8 @@ Luban은 `##` · `*` · `!` · `$` · `[이름…이름]` · `#속성`의 6가�
 
 |무엇|어디|
 |--|--|
-|[3. 시트의 구조](primary/structure.md)|선언 셀 · 마커 열 · 경계 · 헤더 행 — 레이아웃의 뼈대|
-|[헤더 행과 컬럼 경로](primary/rows.md)|`:type` 의 접힌 표현 · `:field` 의 경로 · 멀티 로우 · 예약 컬럼|
-|[엔티티별 레이아웃](primary/entities.md)|테이블 · enum · 상수셋이 각각 어떻게 놓이는지|
-|[대조와 점검](primary/review.md)|다른 도구와의 대조, 취약 사례, 헷갈리는 지점, 남은 결정|
-|[구현](primary/implementation.md)|코어가 바뀌는 범위 · 게이트 · 단계별 구현 순서|
+|[3. 시트의 구조](primary-layout/structure.md)|선언 셀 · 마커 열 · 경계 · 헤더 행 — 레이아웃의 뼈대|
+|[헤더 행과 컬럼 경로](primary-layout/rows.md)|`:type` 의 접힌 표현 · `:field` 의 경로 · 멀티 로우 · 예약 컬럼|
+|[엔티티별 레이아웃](primary-layout/entities.md)|테이블 · enum · 상수셋이 각각 어떻게 놓이는지|
+|[대조와 점검](primary-layout/review.md)|다른 도구와의 대조, 취약 사례, 헷갈리는 지점, 남은 결정|
+|[구현](primary-layout/implementation.md)|코어가 바뀌는 범위 · 게이트 · 단계별 구현 순서|

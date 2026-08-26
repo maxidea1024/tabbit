@@ -4,7 +4,7 @@
 
 ---
 
-## Supported Data Types
+## 적을 수 있는 타입
 
 `Tabbit`에서 지원하는 데이터 타입은 아래와 같습니다.
 

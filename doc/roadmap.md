@@ -160,7 +160,7 @@ STRUCT DSL 1단계의 조건에 적혀 있었지만 등급이 다릅니다 — �
 |**STRUCT DSL 1~5단계**|임베딩 오브젝트와 enum을 시트 밖 `.tbs`에서 선언. 형식 무변경 ([설계](../notes/struct-dsl-design.md))|
 |**struct 다형성**|`abstract struct`·`extends`·`$type`. 형식 무변경 — v103이 이미 실을 수 있던 형태였습니다 ([설계](../spec/types/polymorphism.md))|
 |**값 임베딩 다형의 와이어 측정**|**형식 개정이 필요 없습니다.** 변종 개수보다 **행의 순서**가 크게 작용해, 다형 그룹을 가진 테이블은 판별자로 정렬합니다 ([실측](../spec/types/polymorphism.md#61-실측--형식의-수용과-행-순서의-비용))|
-|**배열 상수**|표기는 받아들여지고 있었는데 **어느 생성기도 내지 못했습니다** ([표기](../spec/layout/primary/entities.md#85-상수셋))|
+|**배열 상수**|표기는 받아들여지고 있었는데 **어느 생성기도 내지 못했습니다** ([표기](../spec/layout/primary-layout/entities.md#85-상수셋))|
 |**비트폭 패킹 (v105)**|인코딩 13 `BITPACK`과 presence 비트맵의 인코딩, 모든 런타임 ([설계](../spec/wire/tcb-v105-bit-width-packing.md))|
 |**동적 배열 단일화 (v107)**|배열은 한 종류가 되었고 길이는 언제나 로우가 말합니다 ([설계](../spec/wire/tcb-v107-dynamic-arrays.md))|
 |**`.tcb` v104**|컬럼 인코딩 9종 → 13종, 파일 암호화(ChaCha20). 크기는 [벤치마크](benchmark.md#v104--배열과-정수인-실수)에 ([설계](../spec/wire/tcb-v104-composed-encodings.md))|

@@ -99,6 +99,6 @@
 
 |무엇|어디|
 |--|--|
-|[3. 스크립트 모델 — 프로젝트 없는 `.cs`](pipeline/script-model.md)|규칙을 프로젝트 없이 `.cs` 로 쓰게 하는 모델|
-|[검증의 범위와 실행](pipeline/scope.md)|전역 룰셋 · recipe 설정 · 런타임 검증 · 실행 · 코어와의 경계|
-|[남은 것과 다시 볼 조건](pipeline/open.md)|구현 순서, 알고 있는 취약점, 그리고 이 결정을 다시 볼 조건|
+|[3. 스크립트 모델 — 프로젝트 없는 `.cs`](validation-pipeline/script-model.md)|규칙을 프로젝트 없이 `.cs` 로 쓰게 하는 모델|
+|[검증의 범위와 실행](validation-pipeline/scope.md)|전역 룰셋 · recipe 설정 · 런타임 검증 · 실행 · 코어와의 경계|
+|[남은 것과 다시 볼 조건](validation-pipeline/open.md)|구현 순서, 알고 있는 취약점, 그리고 이 결정을 다시 볼 조건|

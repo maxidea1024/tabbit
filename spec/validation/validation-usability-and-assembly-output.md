@@ -62,7 +62,7 @@
 
 |무엇|어디|
 |--|--|
-|[1~4단계 — 폴더 · 명명 · 유니티 · 참조 어셈블리](usability/stages.md)|폴더 템플릿 · 파일 명명 · 유니티 어댑터 분리 · 자립 배포본|
-|[5단계 — clone 직후 자동 완성](usability/ide.md)|받은 사람이 변환을 돌리지 않아도 편집기가 오류 0으로 빌드되게|
-|[6~9단계 — 접근자와 출력](usability/outputs.md)|접근자 인스턴스 · `.dll` 출력 · 규칙 우선순위 · 이름 체계|
-|[확정 · 게이트 · 절차](usability/status.md)|무엇이 정해졌고 무엇이 남았는지, 게이트와 절차|
+|[1~4단계 — 폴더 · 명명 · 유니티 · 참조 어셈블리](validation-usability-and-assembly-output/stages.md)|폴더 템플릿 · 파일 명명 · 유니티 어댑터 분리 · 자립 배포본|
+|[5단계 — clone 직후 자동 완성](validation-usability-and-assembly-output/ide.md)|받은 사람이 변환을 돌리지 않아도 편집기가 오류 0으로 빌드되게|
+|[6~9단계 — 접근자와 출력](validation-usability-and-assembly-output/outputs.md)|접근자 인스턴스 · `.dll` 출력 · 규칙 우선순위 · 이름 체계|
+|[확정 · 게이트 · 절차](validation-usability-and-assembly-output/status.md)|무엇이 정해졌고 무엇이 남았는지, 게이트와 절차|
