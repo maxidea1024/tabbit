@@ -479,9 +479,9 @@ namespace Wildling.Game
         /// <summary>그 칸의 가운데가 효과 층에서 어디인가.</summary>
         private Vector2 CellAnchor(BattleCell cell)
         {
-            if (cell == null || cell.Body == null || _app == null || _app.Effects == null)
+            if (cell == null || cell.Actor == null || _app == null || _app.Effects == null)
                 return Vector2.zero;
-            return ((RectTransform)_app.Effects).InverseTransformPoint(cell.Body.position);
+            return ((RectTransform)_app.Effects).InverseTransformPoint(cell.Actor.position);
         }
 
         private BattleCell CellAt(bool isEnemy, int index)
