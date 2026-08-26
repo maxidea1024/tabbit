@@ -1,0 +1,59 @@
+:table MonsterAwakening	각성 관계이다. 연장 행은 소모 재화의 원소이다.
+:field	from_monster_id	to_monster_id	gain.hp	gain.attack	gain.defense	gain.speed	gain.crit_rate	gain.crit_power	requirement_group_id	costs[]
+:type	foreign Monster	foreign Monster	int (min=0)	int (min=0)	int (min=0)	int (min=0)	int (min=0)	int (min=0)	foreign RequirementGroup	Cost
+:desc	각성 전	각성 후	각성으로 더해지는 값	공격 증가분	방어 증가분	행동 순서 증가분	치명타 확률 증가분	치명타 배수 증가분	각성 조건	소모 재화. 셀 하나에 `재화,수량`
+:target	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c,s
+	sprout_deer_1	sprout_deer_2	336	30	26	6	0	0	req_awaken_sprout_deer_2	shard,10
+										gold,8000
+	sprout_deer_2	sprout_deer_3	575	52	43	6	0	0	req_awaken_sprout_deer_3	shard,20
+										gold,16000
+										food,120
+	thorn_beetle_1	thorn_beetle_2	258	57	16	6	0	0	req_awaken_thorn_beetle_2	shard,30
+										gold,8000
+	vine_ape_1	vine_ape_2	386	35	29	6	0	0	req_awaken_vine_ape_2	shard,30
+										gold,8000
+	elder_bark_1	elder_bark_2	413	41	31	6	0	0	req_awaken_elder_bark_2	shard,200
+										gold,8000
+	ember_fox_1	ember_fox_2	258	57	16	6	0	0	req_awaken_ember_fox_2	shard,30
+										gold,8000
+	ember_fox_2	ember_fox_3	441	98	29	6	0	0	req_awaken_ember_fox_3	shard,60
+										gold,16000
+										food,120
+	ash_boar_1	ash_boar_2	336	30	26	6	0	0	req_awaken_ash_boar_2	shard,10
+										gold,8000
+	magma_crab_1	magma_crab_2	444	40	34	6	0	0	req_awaken_magma_crab_2	shard,80
+										gold,8000
+	tide_serpent_1	tide_serpent_2	317	47	23	6	0	0	req_awaken_tide_serpent_2	shard,80
+										gold,8000
+	tide_serpent_2	tide_serpent_3	542	79	40	6	0	0	req_awaken_tide_serpent_3	shard,160
+										gold,16000
+										food,120
+	reef_turtle_1	reef_turtle_2	336	30	26	6	0	0	req_awaken_reef_turtle_2	shard,10
+										gold,8000
+	brine_otter_1	brine_otter_2	258	57	16	6	0	0	req_awaken_brine_otter_2	shard,30
+										gold,8000
+	bolt_lynx_1	bolt_lynx_2	242	54	16	6	0	0	req_awaken_bolt_lynx_2	shard,30
+										gold,8000
+	bolt_lynx_2	bolt_lynx_3	414	91	27	6	0	0	req_awaken_bolt_lynx_3	shard,60
+										gold,16000
+										food,120
+	coil_snake_1	coil_snake_2	260	38	19	6	0	0	req_awaken_coil_snake_2	shard,30
+										gold,8000
+	storm_crane_1	storm_crane_2	298	43	22	6	0	0	req_awaken_storm_crane_2	shard,80
+										gold,8000
+	dusk_weasel_1	dusk_weasel_2	232	52	15	6	0	0	req_awaken_dusk_weasel_2	shard,30
+										gold,8000
+	gloom_spider_1	gloom_spider_2	249	36	18	6	0	0	req_awaken_gloom_spider_2	shard,30
+										gold,8000
+	gloom_spider_2	gloom_spider_3	425	62	31	6	0	0	req_awaken_gloom_spider_3	shard,60
+										gold,16000
+										food,120
+	night_hound_1	night_hound_2	399	36	30	6	0	0	req_awaken_night_hound_2	shard,80
+										gold,8000
+	umbra_owl_1	umbra_owl_2	372	37	28	6	0	0	req_awaken_umbra_owl_2	shard,200
+										gold,8000
+	void_seraph_1	void_seraph_2	353	78	23	6	0	0	req_awaken_void_seraph_2	shard,500
+										gold,8000
+	void_seraph_2	void_seraph_3	604	134	39	6	0	0	req_awaken_void_seraph_3	shard,1000
+										gold,16000
+										food,120

@@ -20,6 +20,8 @@
 #include "tables/CompositeKeyAccessor_beast.h"
 #include "tables/CompositeKeyAccessor_move.h"
 #include "tables/CompositeKeyAccessor_beast_move.h"
+#include "tables/CompositeKeyAccessor_beast_note.h"
+#include "tables/CompositeKeyAccessor_move_note.h"
 /// Every table, loaded together so cross-table references can be resolved.
 class CompositeKeyAccessor {
  public:
@@ -29,6 +31,8 @@ class CompositeKeyAccessor {
   const BeastTable& beast() const { return beast_; }
   const MoveTable& move() const { return move_; }
   const BeastMoveTable& beast_move() const { return beast_move_; }
+  const BeastNoteTable& beast_note() const { return beast_note_; }
+  const MoveNoteTable& move_note() const { return move_note_; }
 
   /// Reads every table from `base_path`, then links the references between them.
   ///
@@ -48,8 +52,12 @@ class CompositeKeyAccessor {
     loaded_move.read(base_path + "/Move" + file_extension);
     BeastMoveTable loaded_beast_move;
     loaded_beast_move.read(base_path + "/BeastMove" + file_extension);
+    BeastNoteTable loaded_beast_note;
+    loaded_beast_note.read(base_path + "/BeastNote" + file_extension);
+    MoveNoteTable loaded_move_note;
+    loaded_move_note.read(base_path + "/MoveNote" + file_extension);
 
-    solve_cross_references(loaded_loadout, loaded_route, loaded_grid, loaded_beast, loaded_move, loaded_beast_move);
+    solve_cross_references(loaded_loadout, loaded_route, loaded_grid, loaded_beast, loaded_move, loaded_beast_move, loaded_beast_note, loaded_move_note);
 
     loadout_ = std::move(loaded_loadout);
     route_ = std::move(loaded_route);
@@ -57,6 +65,8 @@ class CompositeKeyAccessor {
     beast_ = std::move(loaded_beast);
     move_ = std::move(loaded_move);
     beast_move_ = std::move(loaded_beast_move);
+    beast_note_ = std::move(loaded_beast_note);
+    move_note_ = std::move(loaded_move_note);
   }
 
  private:
@@ -68,12 +78,24 @@ class CompositeKeyAccessor {
   /// compiler: the gate builds with `-Wextra -Werror`, and a model where nothing
   /// references anything - which is most of them - otherwise fails to compile on the
   /// unused parameters.
-  void solve_cross_references([[maybe_unused]] LoadoutTable& loaded_loadout, [[maybe_unused]] RouteTable& loaded_route, [[maybe_unused]] GridTable& loaded_grid, [[maybe_unused]] BeastTable& loaded_beast, [[maybe_unused]] MoveTable& loaded_move, [[maybe_unused]] BeastMoveTable& loaded_beast_move) {
+  void solve_cross_references([[maybe_unused]] LoadoutTable& loaded_loadout, [[maybe_unused]] RouteTable& loaded_route, [[maybe_unused]] GridTable& loaded_grid, [[maybe_unused]] BeastTable& loaded_beast, [[maybe_unused]] MoveTable& loaded_move, [[maybe_unused]] BeastMoveTable& loaded_beast_move, [[maybe_unused]] BeastNoteTable& loaded_beast_note, [[maybe_unused]] MoveNoteTable& loaded_move_note) {
     for (auto& record : loaded_beast_move.records_) {
       {
         const auto* target = loaded_beast.find_by_index(record.beast_id);
         if (target != nullptr) record.beast_by_beast_id = target;
       }
+      {
+        const auto* target = loaded_move.find_by_index(record.move_id);
+        if (target != nullptr) record.move_by_move_id = target;
+      }
+    }
+    for (auto& record : loaded_beast_note.records_) {
+      {
+        const auto* target = loaded_beast.find_by_index(record.beast_id);
+        if (target != nullptr) record.beast_by_beast_id = target;
+      }
+    }
+    for (auto& record : loaded_move_note.records_) {
       {
         const auto* target = loaded_move.find_by_index(record.move_id);
         if (target != nullptr) record.move_by_move_id = target;
@@ -87,6 +109,8 @@ class CompositeKeyAccessor {
   BeastTable beast_;
   MoveTable move_;
   BeastMoveTable beast_move_;
+  BeastNoteTable beast_note_;
+  MoveNoteTable move_note_;
 };
 
 #endif  // TABBIT_GENERATED_COMPOSITEKEYACCESSOR_H

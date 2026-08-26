@@ -1,0 +1,205 @@
+{
+  "LastUpdatedDate": "2026-08-26T01:11:51.5725461+09:00",
+  "MasterHash": "c77d749fd9e2ce505a8d87f9db1ad80b",
+  "TotalSize": 83909,
+  "Items": [
+    {
+      "Name": "Skill.bytes",
+      "Size": 1291,
+      "Hash": "50038f1ff73b151f322a565c364a0646",
+      "LastUpdatedDate": "2026-08-25T18:32:53.7620801+09:00"
+    },
+    {
+      "Name": "SkillEffect.bytes",
+      "Size": 681,
+      "Hash": "63f87e5fba8dc61322ca56b4c44b834e",
+      "LastUpdatedDate": "2026-08-25T18:32:53.764183+09:00"
+    },
+    {
+      "Name": "SkillGrowth.bytes",
+      "Size": 3606,
+      "Hash": "368872b5b68edcb472eeffbd1c40bf74",
+      "LastUpdatedDate": "2026-08-25T18:32:53.7782247+09:00"
+    },
+    {
+      "Name": "ElementAffinity.bytes",
+      "Size": 131,
+      "Hash": "a4c51cb1a753c9cb68ead6f3ea6c6ef2",
+      "LastUpdatedDate": "2026-08-25T18:32:53.7786773+09:00"
+    },
+    {
+      "Name": "BattleSpeed.bytes",
+      "Size": 86,
+      "Hash": "e3ab33e50ca86ae083ea3ba7e1e149d8",
+      "LastUpdatedDate": "2026-08-25T18:32:53.7792368+09:00"
+    },
+    {
+      "Name": "Currency.bytes",
+      "Size": 184,
+      "Hash": "1b5314db1c4f871e164fcaedeb0eb0c2",
+      "LastUpdatedDate": "2026-08-25T18:32:53.7800581+09:00"
+    },
+    {
+      "Name": "Item.bytes",
+      "Size": 2018,
+      "Hash": "fb081b9db16667c7e7e4d5e1d47e33ec",
+      "LastUpdatedDate": "2026-08-25T18:32:53.7830628+09:00"
+    },
+    {
+      "Name": "Shop.bytes",
+      "Size": 139,
+      "Hash": "84fb8c14c0f090da358e0c46babf52b5",
+      "LastUpdatedDate": "2026-08-25T18:32:53.7835756+09:00"
+    },
+    {
+      "Name": "ShopSlot.bytes",
+      "Size": 248,
+      "Hash": "55a5c5099b5d3ef1c7b5d57139b7aaef",
+      "LastUpdatedDate": "2026-08-25T18:32:53.7843444+09:00"
+    },
+    {
+      "Name": "ShopSlot_Season.bytes",
+      "Size": 224,
+      "Hash": "bd47092f4d9b6bf75f85c96e4d7665b8",
+      "LastUpdatedDate": "2026-08-25T18:32:53.7850702+09:00"
+    },
+    {
+      "Name": "ShopSlot_Package.bytes",
+      "Size": 211,
+      "Hash": "e9da2a382470cc20a94531b2c0eebe0e",
+      "LastUpdatedDate": "2026-08-25T18:32:53.7857945+09:00"
+    },
+    {
+      "Name": "Package.bytes",
+      "Size": 207,
+      "Hash": "cd09cff6633a5a596bfa388b92a2fc36",
+      "LastUpdatedDate": "2026-08-25T18:32:53.7864024+09:00"
+    },
+    {
+      "Name": "PassBenefit.bytes",
+      "Size": 157,
+      "Hash": "07855c110d99dc56f88312e11774af46",
+      "LastUpdatedDate": "2026-08-25T18:32:53.7872554+09:00"
+    },
+    {
+      "Name": "AdReward.bytes",
+      "Size": 236,
+      "Hash": "afb7790cea8516f524bfed27a3a076b3",
+      "LastUpdatedDate": "2026-08-25T18:32:53.7901127+09:00"
+    },
+    {
+      "Name": "GrowthCurve.bytes",
+      "Size": 2502,
+      "Hash": "f8a5b4ba1de1b3dd93adf3f57aef2116",
+      "LastUpdatedDate": "2026-08-25T18:32:53.7935697+09:00"
+    },
+    {
+      "Name": "ResonanceRank.bytes",
+      "Size": 252,
+      "Hash": "9ee6b914e588843965d517fa60a8b0a2",
+      "LastUpdatedDate": "2026-08-25T18:32:53.7942608+09:00"
+    },
+    {
+      "Name": "CodexReward.bytes",
+      "Size": 538,
+      "Hash": "aa2c479dd46a83f0751b973050ee11f2",
+      "LastUpdatedDate": "2026-08-25T18:32:53.795224+09:00"
+    },
+    {
+      "Name": "Mission.bytes",
+      "Size": 735,
+      "Hash": "9253ec89ef97d78da8c66e769f72ca9c",
+      "LastUpdatedDate": "2026-08-25T18:32:53.7966394+09:00"
+    },
+    {
+      "Name": "Monster.bytes",
+      "Size": 3900,
+      "Hash": "1f5a2bb2d8f1c7d7a9a9aab2dc897459",
+      "LastUpdatedDate": "2026-08-26T00:45:57.159329+09:00"
+    },
+    {
+      "Name": "MonsterSkill.bytes",
+      "Size": 1279,
+      "Hash": "3ecefa9ae72c2e2d5692bde52be3f75c",
+      "LastUpdatedDate": "2026-08-25T18:32:53.8142778+09:00"
+    },
+    {
+      "Name": "MonsterAwakening.bytes",
+      "Size": 1320,
+      "Hash": "c7548caf4d10939a4f06f6aa28e517d9",
+      "LastUpdatedDate": "2026-08-25T18:32:53.8160054+09:00"
+    },
+    {
+      "Name": "RewardGroup.bytes",
+      "Size": 2429,
+      "Hash": "4e6c3883b7a4f5d14de356f94e603527",
+      "LastUpdatedDate": "2026-08-25T18:32:53.8184373+09:00"
+    },
+    {
+      "Name": "RewardEntry.bytes",
+      "Size": 3497,
+      "Hash": "73c1ae5e86e00c742bc0ebab6bd2400e",
+      "LastUpdatedDate": "2026-08-26T01:11:51.5051866+09:00"
+    },
+    {
+      "Name": "RequirementGroup.bytes",
+      "Size": 1152,
+      "Hash": "7c2ecab1b837875cbe855786ad821a42",
+      "LastUpdatedDate": "2026-08-25T18:32:53.8240886+09:00"
+    },
+    {
+      "Name": "RequirementEntry.bytes",
+      "Size": 826,
+      "Hash": "ef5197f7d31dfcea346a699b939936d1",
+      "LastUpdatedDate": "2026-08-25T18:32:53.8255163+09:00"
+    },
+    {
+      "Name": "DropTable.bytes",
+      "Size": 449,
+      "Hash": "ee69e5cef1555cb7da644c3e00c245f1",
+      "LastUpdatedDate": "2026-08-25T18:32:53.8262684+09:00"
+    },
+    {
+      "Name": "StringTable.bytes",
+      "Size": 49956,
+      "Hash": "dc87f0a3eb6da24a2456cb1312948254",
+      "LastUpdatedDate": "2026-08-25T18:32:53.8841927+09:00"
+    },
+    {
+      "Name": "Region.bytes",
+      "Size": 471,
+      "Hash": "dc4acaa2ff7cddba94038d118c74271f",
+      "LastUpdatedDate": "2026-08-25T18:32:53.8861276+09:00"
+    },
+    {
+      "Name": "RegionYield.bytes",
+      "Size": 351,
+      "Hash": "5a30363e7d46848cc886400ee0c4184b",
+      "LastUpdatedDate": "2026-08-25T18:32:53.8870558+09:00"
+    },
+    {
+      "Name": "Stage.bytes",
+      "Size": 1953,
+      "Hash": "7b14d94efff96a0f199daf53810ee453",
+      "LastUpdatedDate": "2026-08-25T18:32:53.88964+09:00"
+    },
+    {
+      "Name": "StageReward.bytes",
+      "Size": 1167,
+      "Hash": "cdfedaa5e40df08188a145fb83885d6b",
+      "LastUpdatedDate": "2026-08-25T18:32:53.8913773+09:00"
+    },
+    {
+      "Name": "EncounterTable.bytes",
+      "Size": 1142,
+      "Hash": "17d31fcbc9e594126c081d84531a8b8f",
+      "LastUpdatedDate": "2026-08-26T01:10:23.7973566+09:00"
+    },
+    {
+      "Name": "Boss.bytes",
+      "Size": 571,
+      "Hash": "6edb417b2b0631d4031120afe607bc17",
+      "LastUpdatedDate": "2026-08-26T01:06:55.2975079+09:00"
+    }
+  ]
+}

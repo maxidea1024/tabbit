@@ -1,0 +1,10 @@
+:table Package	판매 상품이다. 표시 가격만 국가별로 갈린다.
+:field	package_id	name	reward_group_id	price_display	price_display	price_display	sort_order
+:type	string	string (text=Shop)	foreign RewardGroup	string			int (min=0)
+:desc	식별자	표시 이름	지급 내용	표시 가격			표시 순서
+:variant					us	jp
+:target	c,s	c	c,s	c	c	c	c,s
+	pkg_gem_0	원석 꾸러미 1	rg_package_0	1,500원	$1.99	300円	0
+	pkg_gem_1	원석 꾸러미 2	rg_package_1	7,900원	$5.99	900円	1
+	pkg_gem_2	원석 꾸러미 3	rg_package_2	25,000원	$19.99	3,000円	2
+	pkg_gem_3	원석 꾸러미 4	rg_package_3	59,000원	$49.99	7,300円	3

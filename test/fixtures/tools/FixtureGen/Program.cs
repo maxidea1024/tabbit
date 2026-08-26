@@ -1174,18 +1174,20 @@ internal static class Program
                 fromSchema ? "Bonus" : "int",
                 Said("Which stat it raises.")))
 
-            // Typed on both sides, like `Slot1.Count` above: what this group is here to
-            // exercise is the first column naming the struct, not a second blank cell.
-            .Field(FieldSpec.Of("Bonus[].Amount", "int", Said("By how much.")));
+            // **Blank on the declared side, written out on the twin.** A group names its
+            // struct on the first member column and leaves the rest empty - that is the
+            // notation, and it was the one shape this fixture skipped. The pair is what says
+            // the declaration fills those cells: two workbooks, one file.
+            .Field(FieldSpec.Of("Bonus[].Amount", fromSchema ? "" : "int", Said("By how much.")));
 
-        // Every record the same number of rows. A record with fewer would leave the last
-        // element's cells blank, and the declaration says those members are required - which
-        // is a question about variable-length groups and not about this notation.
+        // **Records of different lengths.** Two rows, then one, then two - because the group
+        // is as wide as the longest record and a shorter one has no cells for the elements
+        // past its end. Every record being the same length is the shape that hides whether
+        // the elements a record does have are read from its own rows.
         multi
             .Row("1", "1", "5")
             .Row("", "2", "7")
             .Row("2", "3", "9")
-            .Row("", "4", "11")
             // A run of equal values, which is what the column encodings read.
             .Row("3", "3", "9")
             .Row("", "4", "11");
@@ -1809,6 +1811,48 @@ internal static class Program
             .Row("wolf", "1", "30");
 
         links.Table(13, 1, beastMove);
+        // --- a single index that is a reference ----------------------------
+        //
+        // **One column, and it is the table's identity.** The composite case above already
+        // asks what a key component carries; this asks the same of the single-column path,
+        // which is a different piece of code in every generator - the composite one builds
+        // key text and this one keys the map by the value itself.
+        //
+        // Both spellings are here: `key=` naming the column, and the first column being the
+        // index because nothing said otherwise. And both target key types, because a
+        // generator that hardcodes a number for every key passes a table whose keys are all
+        // numbers. spec/reference-surface-naming.md sections 4 and 5.
+
+        var beastNote = new TableSpec
+        {
+            Name = "BeastNote",
+            Comment = "Indexed by a reference to a string-keyed table, named with `key=`.",
+            Meta = "key=BeastId",
+        };
+        beastNote
+            .Field(FieldSpec.Of("Seq", "int", "not the index, so `key=` has something to move"))
+            .Field(FieldSpec.Of("BeastId", "foreign", "the index, and a reference", detailType: "Beast"))
+            .Field(FieldSpec.Of("Note", "string", "anything"));
+        beastNote
+            .Row("1", "deer", "grazes")
+            .Row("2", "wolf", "hunts");
+
+        links.Table(19, 1, beastNote);
+
+        var moveNote = new TableSpec
+        {
+            Name = "MoveNote",
+            Comment = "First column is the index and it is a reference to an int-keyed table.",
+        };
+        moveNote
+            .Field(FieldSpec.Of("MoveId", "foreign", "the index, and a reference", detailType: "Move"))
+            .Field(FieldSpec.Of("Note", "string", "anything"))
+            .Field(FieldSpec.Of("Pad1", "int", "padding, so every table is one width"));
+        moveNote
+            .Row("1", "shoulder first", "0")
+            .Row("2", "loud", "0");
+
+        links.Table(25, 1, moveNote);
 
         Save(workbook, path);
     }

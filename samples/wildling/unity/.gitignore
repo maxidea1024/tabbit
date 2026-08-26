@@ -1,0 +1,27 @@
+# 이 폴더 안에서만 적용되는 무시 목록입니다.
+#
+# 저장소 루트의 `.gitignore` 는 유니티 템플릿을 담고 있지만 그 패턴이 `/[Ll]ibrary/` 처럼
+# 루트에 앵커되어 있어 **중첩된 프로젝트에는 걸리지 않습니다.** `Library/` 하나가 1.2 GB이므로
+# 그것이 커밋 대상이 되는 것은 사고입니다.
+
+# 에디터가 다시 만드는 것들.
+Library/
+Temp/
+Logs/
+Obj/
+obj/
+UserSettings/
+MemoryCaptures/
+Recordings/
+
+# 편집기 프로젝트 파일. 에디터가 열 때 다시 씁니다.
+*.csproj
+*.sln
+*.user
+*.userprefs
+.vsconfig
+.vs/
+.idea/
+
+# 커밋하는 것 — `Assets/`(`.meta` 포함) · `ProjectSettings/` · `Packages/manifest.json`.
+# `.meta` 는 유니티가 애셋의 신원으로 쓰므로 빠지면 참조가 끊어집니다.

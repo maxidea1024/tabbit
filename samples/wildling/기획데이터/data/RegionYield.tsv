@@ -1,0 +1,45 @@
+:table RegionYield(key="region_id,hour_band")	지역과 시간대별 산출이다. 뒤로 갈수록 줄어든다.
+:field	region_id	hour_band	gold_per_hour	food_per_hour	reward_group_id
+:type	foreign Region	int (min=0, max=7)	int (min=0)	int (min=0)	foreign RewardGroup
+:desc	어느 지역인가	누적 시간대	시간당 골드	시간당 먹이	재료 드랍 묶음
+:target	c,s	c,s	c,s	c,s	c,s
+	weir_forest	0	900	12	rg_weir_forest_material
+	weir_forest	1	846	11	rg_weir_forest_material
+	weir_forest	2	792	10	rg_weir_forest_material
+	weir_forest	3	738	9	rg_weir_forest_material
+	weir_forest	4	684	9	rg_weir_forest_material
+	weir_forest	5	630	8	rg_weir_forest_material
+	weir_forest	6	576	7	rg_weir_forest_material
+	weir_forest	7	522	6	rg_weir_forest_material
+	salt_coast	0	1600	18	rg_salt_coast_material
+	salt_coast	1	1504	16	rg_salt_coast_material
+	salt_coast	2	1408	15	rg_salt_coast_material
+	salt_coast	3	1312	14	rg_salt_coast_material
+	salt_coast	4	1216	13	rg_salt_coast_material
+	salt_coast	5	1120	12	rg_salt_coast_material
+	salt_coast	6	1024	11	rg_salt_coast_material
+	salt_coast	7	928	10	rg_salt_coast_material
+	ashen_crater	0	2300	24	rg_ashen_crater_material
+	ashen_crater	1	2162	22	rg_ashen_crater_material
+	ashen_crater	2	2024	21	rg_ashen_crater_material
+	ashen_crater	3	1886	19	rg_ashen_crater_material
+	ashen_crater	4	1748	18	rg_ashen_crater_material
+	ashen_crater	5	1610	16	rg_ashen_crater_material
+	ashen_crater	6	1472	15	rg_ashen_crater_material
+	ashen_crater	7	1334	13	rg_ashen_crater_material
+	frost_ridge	0	3000	30	rg_frost_ridge_material
+	frost_ridge	1	2820	28	rg_frost_ridge_material
+	frost_ridge	2	2640	26	rg_frost_ridge_material
+	frost_ridge	3	2460	24	rg_frost_ridge_material
+	frost_ridge	4	2280	22	rg_frost_ridge_material
+	frost_ridge	5	2100	21	rg_frost_ridge_material
+	frost_ridge	6	1920	19	rg_frost_ridge_material
+	frost_ridge	7	1740	17	rg_frost_ridge_material
+	sunken_temple	0	3700	36	rg_sunken_temple_material
+	sunken_temple	1	3478	33	rg_sunken_temple_material
+	sunken_temple	2	3256	31	rg_sunken_temple_material
+	sunken_temple	3	3034	29	rg_sunken_temple_material
+	sunken_temple	4	2812	27	rg_sunken_temple_material
+	sunken_temple	5	2590	25	rg_sunken_temple_material
+	sunken_temple	6	2368	23	rg_sunken_temple_material
+	sunken_temple	7	2146	20	rg_sunken_temple_material

@@ -521,7 +521,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
 
                 // A composite key is held as the text its components make, so the map is
                 // keyed by a string whatever the columns are.
-                KeyType = plan.IsComposite ? "string" : ResolvedElementType(plan.Only),
+                KeyType = plan.IsComposite ? "string" : IndexKeyType(plan.Only),
 
                 MapName = "by" + suffix,
                 FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
@@ -535,7 +535,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                 // exactly as it did before this notation existed.
                 Params = plan.IsComposite
                     ? string.Join(", ", components.Select(c => c.Param + " " + c.Type))
-                    : "key " + ResolvedElementType(plan.Only),
+                    : "key " + IndexKeyType(plan.Only),
 
                 // A method rather than a package function: every generated Go file shares one
                 // package, so two tables each keyed by `From,To` would declare the same name.
@@ -1554,6 +1554,20 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         }
 
         return literal.Append('"').ToString();
+    }
+
+    /// <summary>The type a single-column lookup takes.</summary>
+    /// <remarks>
+    /// **A reference column's index is keyed by the target's key, not the target's row.**
+    /// The column's own name holds the key and the derived name holds the row, so a lookup
+    /// typed by the row is one nobody can call - what a caller has is the id it read
+    /// somewhere else. `KeyComponentView.TypeOf` is the one place that decides, and the
+    /// composite path already asks it; this is the single-column path asking the same.
+    /// </remarks>
+    private string IndexKeyType(SerialField only)
+    {
+        var (type, enumm) = KeyComponentView.TypeOf(only);
+        return ToGoTypeName(type, enumm, null);
     }
 
     // ------------------------------------------------------------- helpers

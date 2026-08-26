@@ -1454,7 +1454,9 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     private IReadOnlyList<UnrealIndexView> Indexes(Table table)
         => KeyPlans.Of(table).Select(plan =>
         {
-            string keyType = ToUnrealTypeName(plan.Only.FirstField);
+            // A reference column's index is keyed by the target's key, not its row.
+            var (onlyType, onlyEnum) = KeyComponentView.TypeOf(plan.Only);
+            string keyType = ToUnrealTypeName(onlyType, onlyEnum);
             bool copyCosts = keyType == "FString";
             string suffix = plan.Suffix(name => name.ToPascalCase(), "And");
 

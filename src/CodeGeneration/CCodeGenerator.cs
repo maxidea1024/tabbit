@@ -660,7 +660,14 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             // A composite key is text, so it goes in the family that orders text - the same
             // one a `string` column has always used. What the family decides is how the
             // entries sort and search, and nothing else.
-            string family = plan.IsComposite ? "tb_string_index" : IndexFamily(plan.Only);
+            // **A reference column's index is keyed by the target's key, not its row.**
+            // The component loop below asks `KeyComponentView.TypeOf` too, so the family and
+            // the key text cannot disagree about what the column carries.
+            var (onlyType, onlyEnum) = KeyComponentView.TypeOf(plan.Only);
+
+            // A composite key is text, so it goes in the family that orders text - the same
+            // one a `string` column has always used.
+            string family = plan.IsComposite ? "tb_string_index" : IndexFamily(onlyType);
             string suffix = plan.Suffix(name => name.ToPascalCase(), "And");
 
             // **A component that is a reference carries the target's key, not its row.**
@@ -688,7 +695,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
                 KeyType = plan.IsComposite
                     ? "const char*"
-                    : ScalarTypeName(plan.Only.FirstField!.ElementType, plan.Only.FirstField!.EnumOrNull),
+                    : ScalarTypeName(onlyType, onlyEnum),
 
                 EntryType = family + "_entry",
                 SortCall = family + "_sort",
@@ -700,9 +707,9 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
                 Params = plan.IsComposite
                     ? string.Join(", ", components.Select(c => c.Type + " " + c.Param))
-                    : (plan.Only.FirstField!.ElementType == Models.ValueType.String
+                    : (onlyType == Models.ValueType.String
                         ? "const char*"
-                        : ScalarTypeName(plan.Only.FirstField!.ElementType, plan.Only.FirstField!.EnumOrNull))
+                        : ScalarTypeName(onlyType, onlyEnum))
                       + " key",
 
                 Argument = plan.IsComposite
@@ -722,9 +729,9 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// type is what the lookup takes either way - the family only decides how the
     /// entries are sorted and searched.
     /// </remarks>
-    private static string IndexFamily(SerialField sf)
+    private static string IndexFamily(ValueType elementType)
     {
-        switch (sf.ElementType)
+        switch (elementType)
         {
             case ValueType.String: return "tb_string_index";
             case ValueType.Uuid: return "tb_uuid_index";

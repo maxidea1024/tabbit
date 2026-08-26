@@ -127,6 +127,18 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     /// <inheritdoc cref="SupportsNestedFields"/>
     protected override bool SupportsOptionalElements => true;
 
+    /// <summary>Composite keys, which cost this target nothing.</summary>
+    /// <remarks>
+    /// **The flag exists for a lookup surface, and this target has none.** What the other
+    /// four gate is a shape the page has to draw; what this one gates is `FindByKey(a, b)` -
+    /// a method every language needs its own map for. A page offers no method: a composite
+    /// key is columns, and columns are what it already draws.
+    ///
+    /// Refusing it meant a project with one such table got no documentation for any of its
+    /// tables, over a surface this target was never going to emit.
+    /// </remarks>
+    protected override bool SupportsCompositeKeys => true;
+
     // Set by `Generate` before anything reads them, and they stay set for the whole of one
     // generation. `null!` says that to the compiler, which can only see the declaration.
     private Model _model = null!;

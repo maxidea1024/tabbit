@@ -1,0 +1,7 @@
+:table PassBenefit	월간 통행증과 광고 제거이다.
+:field	benefit_id	name	reward_group_id	idle_hours_bonus	ad_free
+:type	string	string (text=Shop)	foreign RewardGroup?	int (min=0, max=8)	bool
+:desc	식별자	표시 이름	일일 지급	탐사 상한 연장	광고 제거 포함
+:target	c,s	c	c,s	c,s	c,s
+	pass_monthly	월간 통행증	rg_pass_daily	2	TRUE
+	pass_ad_free	광고 제거	-	0	TRUE

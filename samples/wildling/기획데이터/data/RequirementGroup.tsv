@@ -1,0 +1,42 @@
+:table RequirementGroup	조건 묶음이다.
+:field	requirement_group_id	note
+:type	string	string?
+:desc	식별자	이 묶음이 무엇인지
+:target	c,s
+	req_awaken_sprout_deer_2	새싹사슴 2단 각성
+	req_awaken_sprout_deer_3	새싹사슴 3단 각성
+	req_awaken_thorn_beetle_2	가시딱정벌레 2단 각성
+	req_awaken_vine_ape_2	덩굴원숭이 2단 각성
+	req_awaken_elder_bark_2	늙은껍질 2단 각성
+	req_awaken_ember_fox_2	잉걸여우 2단 각성
+	req_awaken_ember_fox_3	잉걸여우 3단 각성
+	req_awaken_ash_boar_2	재멧돼지 2단 각성
+	req_awaken_magma_crab_2	용암게 2단 각성
+	req_awaken_tide_serpent_2	물비늘뱀 2단 각성
+	req_awaken_tide_serpent_3	물비늘뱀 3단 각성
+	req_awaken_reef_turtle_2	산호거북 2단 각성
+	req_awaken_brine_otter_2	소금수달 2단 각성
+	req_awaken_bolt_lynx_2	스파크살쾡이 2단 각성
+	req_awaken_bolt_lynx_3	스파크살쾡이 3단 각성
+	req_awaken_coil_snake_2	감김뱀 2단 각성
+	req_awaken_storm_crane_2	폭풍두루미 2단 각성
+	req_awaken_dusk_weasel_2	해거름족제비 2단 각성
+	req_awaken_gloom_spider_2	그늘거미 2단 각성
+	req_awaken_gloom_spider_3	그늘거미 3단 각성
+	req_awaken_night_hound_2	밤사냥개 2단 각성
+	req_awaken_umbra_owl_2	그늘부엉이 2단 각성
+	req_awaken_void_seraph_2	공허날개 2단 각성
+	req_awaken_void_seraph_3	공허날개 3단 각성
+	req_hidden_weir_forest	여울숲 은둔 슬롯
+	req_region_salt_coast	소금해안 해금
+	req_hidden_salt_coast	소금해안 은둔 슬롯
+	req_region_ashen_crater	재의 화구 해금
+	req_hidden_ashen_crater	재의 화구 은둔 슬롯
+	req_region_frost_ridge	서릿능선 해금
+	req_hidden_frost_ridge	서릿능선 은둔 슬롯
+	req_region_sunken_temple	잠긴 신전 해금
+	req_hidden_sunken_temple	잠긴 신전 은둔 슬롯
+	req_mission_daily_0	Daily 의뢰 조건
+	req_mission_daily_1	Daily 의뢰 조건
+	req_mission_daily_2	Daily 의뢰 조건
+	req_mission_weekly_0	Weekly 의뢰 조건

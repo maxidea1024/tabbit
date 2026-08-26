@@ -568,7 +568,10 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     private IReadOnlyList<CppIndexView> Indexes(Table table)
         => KeyPlans.Of(table).Select(plan =>
         {
-            string keyType = ToCppTypeName(plan.Only.FirstField);
+            // The one place that decides what a key column carries - the component loop below
+            // asks it too, so the two cannot disagree.
+            var (onlyType, onlyEnum) = KeyComponentView.TypeOf(plan.Only);
+            string keyType = ToCppTypeName(onlyType, onlyEnum);
             bool copyCosts = keyType == "std::string";
             string suffix = plan.Suffix(name => name.ToSnakeCase(), "_and_");
 

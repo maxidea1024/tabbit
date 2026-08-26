@@ -1,0 +1,163 @@
+:table RewardGroup	보상 묶음이다. 여러 테이블이 이것을 가리킨다.
+:field	reward_group_id	note
+:type	string	string?
+:desc	식별자	이 묶음이 무엇인지
+:target	c,s
+	rg_weir_forest_material	여울숲의 재료 드랍
+	rg_weir_forest_stage_01	여울숲 1번 스테이지
+	rg_weir_forest_stage_02	여울숲 2번 스테이지
+	rg_weir_forest_stage_03	여울숲 3번 스테이지
+	rg_weir_forest_stage_04	여울숲 4번 스테이지
+	rg_weir_forest_stage_05	여울숲 5번 스테이지
+	rg_weir_forest_stage_06	여울숲 6번 스테이지
+	rg_weir_forest_stage_07	여울숲 7번 스테이지
+	rg_weir_forest_stage_08	여울숲 8번 스테이지
+	rg_weir_forest_stage_09	여울숲 9번 스테이지
+	rg_weir_forest_stage_10	여울숲 10번 스테이지
+	rg_weir_forest_stage_11	여울숲 11번 스테이지
+	rg_weir_forest_stage_12	여울숲 12번 스테이지
+	rg_weir_forest_stage_13	여울숲 13번 스테이지
+	rg_weir_forest_stage_14	여울숲 14번 스테이지
+	rg_weir_forest_stage_15	여울숲 15번 스테이지
+	rg_weir_forest_stage_16	여울숲 16번 스테이지
+	rg_weir_forest_stage_17	여울숲 17번 스테이지
+	rg_weir_forest_stage_18	여울숲 18번 스테이지
+	rg_weir_forest_guardian	여울숲 수호자 격파
+	rg_codex_weir_forest_30	여울숲 기록부 30%
+	rg_codex_weir_forest_60	여울숲 기록부 60%
+	rg_codex_weir_forest_100	여울숲 기록부 100%
+	rg_salt_coast_material	소금해안의 재료 드랍
+	rg_salt_coast_stage_01	소금해안 1번 스테이지
+	rg_salt_coast_stage_02	소금해안 2번 스테이지
+	rg_salt_coast_stage_03	소금해안 3번 스테이지
+	rg_salt_coast_stage_04	소금해안 4번 스테이지
+	rg_salt_coast_stage_05	소금해안 5번 스테이지
+	rg_salt_coast_stage_06	소금해안 6번 스테이지
+	rg_salt_coast_stage_07	소금해안 7번 스테이지
+	rg_salt_coast_stage_08	소금해안 8번 스테이지
+	rg_salt_coast_stage_09	소금해안 9번 스테이지
+	rg_salt_coast_stage_10	소금해안 10번 스테이지
+	rg_salt_coast_stage_11	소금해안 11번 스테이지
+	rg_salt_coast_stage_12	소금해안 12번 스테이지
+	rg_salt_coast_stage_13	소금해안 13번 스테이지
+	rg_salt_coast_stage_14	소금해안 14번 스테이지
+	rg_salt_coast_stage_15	소금해안 15번 스테이지
+	rg_salt_coast_stage_16	소금해안 16번 스테이지
+	rg_salt_coast_stage_17	소금해안 17번 스테이지
+	rg_salt_coast_stage_18	소금해안 18번 스테이지
+	rg_salt_coast_guardian	소금해안 수호자 격파
+	rg_codex_salt_coast_30	소금해안 기록부 30%
+	rg_codex_salt_coast_60	소금해안 기록부 60%
+	rg_codex_salt_coast_100	소금해안 기록부 100%
+	rg_ashen_crater_material	재의 화구의 재료 드랍
+	rg_ashen_crater_stage_01	재의 화구 1번 스테이지
+	rg_ashen_crater_stage_02	재의 화구 2번 스테이지
+	rg_ashen_crater_stage_03	재의 화구 3번 스테이지
+	rg_ashen_crater_stage_04	재의 화구 4번 스테이지
+	rg_ashen_crater_stage_05	재의 화구 5번 스테이지
+	rg_ashen_crater_stage_06	재의 화구 6번 스테이지
+	rg_ashen_crater_stage_07	재의 화구 7번 스테이지
+	rg_ashen_crater_stage_08	재의 화구 8번 스테이지
+	rg_ashen_crater_stage_09	재의 화구 9번 스테이지
+	rg_ashen_crater_stage_10	재의 화구 10번 스테이지
+	rg_ashen_crater_stage_11	재의 화구 11번 스테이지
+	rg_ashen_crater_stage_12	재의 화구 12번 스테이지
+	rg_ashen_crater_stage_13	재의 화구 13번 스테이지
+	rg_ashen_crater_stage_14	재의 화구 14번 스테이지
+	rg_ashen_crater_stage_15	재의 화구 15번 스테이지
+	rg_ashen_crater_stage_16	재의 화구 16번 스테이지
+	rg_ashen_crater_stage_17	재의 화구 17번 스테이지
+	rg_ashen_crater_stage_18	재의 화구 18번 스테이지
+	rg_ashen_crater_guardian	재의 화구 수호자 격파
+	rg_codex_ashen_crater_30	재의 화구 기록부 30%
+	rg_codex_ashen_crater_60	재의 화구 기록부 60%
+	rg_codex_ashen_crater_100	재의 화구 기록부 100%
+	rg_frost_ridge_material	서릿능선의 재료 드랍
+	rg_frost_ridge_stage_01	서릿능선 1번 스테이지
+	rg_frost_ridge_stage_02	서릿능선 2번 스테이지
+	rg_frost_ridge_stage_03	서릿능선 3번 스테이지
+	rg_frost_ridge_stage_04	서릿능선 4번 스테이지
+	rg_frost_ridge_stage_05	서릿능선 5번 스테이지
+	rg_frost_ridge_stage_06	서릿능선 6번 스테이지
+	rg_frost_ridge_stage_07	서릿능선 7번 스테이지
+	rg_frost_ridge_stage_08	서릿능선 8번 스테이지
+	rg_frost_ridge_stage_09	서릿능선 9번 스테이지
+	rg_frost_ridge_stage_10	서릿능선 10번 스테이지
+	rg_frost_ridge_stage_11	서릿능선 11번 스테이지
+	rg_frost_ridge_stage_12	서릿능선 12번 스테이지
+	rg_frost_ridge_stage_13	서릿능선 13번 스테이지
+	rg_frost_ridge_stage_14	서릿능선 14번 스테이지
+	rg_frost_ridge_stage_15	서릿능선 15번 스테이지
+	rg_frost_ridge_stage_16	서릿능선 16번 스테이지
+	rg_frost_ridge_stage_17	서릿능선 17번 스테이지
+	rg_frost_ridge_stage_18	서릿능선 18번 스테이지
+	rg_frost_ridge_guardian	서릿능선 수호자 격파
+	rg_codex_frost_ridge_30	서릿능선 기록부 30%
+	rg_codex_frost_ridge_60	서릿능선 기록부 60%
+	rg_codex_frost_ridge_100	서릿능선 기록부 100%
+	rg_sunken_temple_material	잠긴 신전의 재료 드랍
+	rg_sunken_temple_stage_01	잠긴 신전 1번 스테이지
+	rg_sunken_temple_stage_02	잠긴 신전 2번 스테이지
+	rg_sunken_temple_stage_03	잠긴 신전 3번 스테이지
+	rg_sunken_temple_stage_04	잠긴 신전 4번 스테이지
+	rg_sunken_temple_stage_05	잠긴 신전 5번 스테이지
+	rg_sunken_temple_stage_06	잠긴 신전 6번 스테이지
+	rg_sunken_temple_stage_07	잠긴 신전 7번 스테이지
+	rg_sunken_temple_stage_08	잠긴 신전 8번 스테이지
+	rg_sunken_temple_stage_09	잠긴 신전 9번 스테이지
+	rg_sunken_temple_stage_10	잠긴 신전 10번 스테이지
+	rg_sunken_temple_stage_11	잠긴 신전 11번 스테이지
+	rg_sunken_temple_stage_12	잠긴 신전 12번 스테이지
+	rg_sunken_temple_stage_13	잠긴 신전 13번 스테이지
+	rg_sunken_temple_stage_14	잠긴 신전 14번 스테이지
+	rg_sunken_temple_stage_15	잠긴 신전 15번 스테이지
+	rg_sunken_temple_stage_16	잠긴 신전 16번 스테이지
+	rg_sunken_temple_stage_17	잠긴 신전 17번 스테이지
+	rg_sunken_temple_stage_18	잠긴 신전 18번 스테이지
+	rg_sunken_temple_guardian	잠긴 신전 수호자 격파
+	rg_codex_sunken_temple_30	잠긴 신전 기록부 30%
+	rg_codex_sunken_temple_60	잠긴 신전 기록부 60%
+	rg_codex_sunken_temple_100	잠긴 신전 기록부 100%
+	rg_codex_global_25	전체 기록부 25%
+	rg_codex_global_50	전체 기록부 50%
+	rg_codex_global_75	전체 기록부 75%
+	rg_codex_global_100	전체 기록부 100%
+	rg_mission_daily_0	Daily 의뢰 보상
+	rg_mission_daily_1	Daily 의뢰 보상
+	rg_mission_daily_2	Daily 의뢰 보상
+	rg_mission_weekly_0	Weekly 의뢰 보상
+	rg_ad_idle	광고 보상
+	rg_ad_explore	광고 보상
+	rg_ad_free	광고 보상
+	rg_ad_retry	광고 보상
+	rg_package_0	원석 패키지
+	rg_package_1	원석 패키지
+	rg_package_2	원석 패키지
+	rg_package_3	원석 패키지
+	rg_pass_daily	월간 통행증 일일 지급
+	rg_shop_00	상점 판매 항목
+	rg_shop_01	상점 판매 항목
+	rg_shop_02	상점 판매 항목
+	rg_shop_03	상점 판매 항목
+	rg_shop_04	상점 판매 항목
+	rg_shop_05	상점 판매 항목
+	rg_shop_06	상점 판매 항목
+	rg_shop_07	상점 판매 항목
+	rg_shop_08	상점 판매 항목
+	rg_shop_09	상점 판매 항목
+	rg_shop_10	상점 판매 항목
+	rg_shop_11	상점 판매 항목
+	rg_shop_season_00	시즌 상점 항목
+	rg_shop_season_01	시즌 상점 항목
+	rg_shop_season_02	시즌 상점 항목
+	rg_shop_season_03	시즌 상점 항목
+	rg_shop_season_04	시즌 상점 항목
+	rg_shop_season_05	시즌 상점 항목
+	rg_shop_season_06	시즌 상점 항목
+	rg_shop_season_07	시즌 상점 항목
+	rg_shop_package_00	패키지 상점 항목
+	rg_shop_package_01	패키지 상점 항목
+	rg_shop_package_02	패키지 상점 항목
+	rg_shop_package_03	패키지 상점 항목
+	rg_shop_package_04	패키지 상점 항목
+	rg_shop_package_05	패키지 상점 항목

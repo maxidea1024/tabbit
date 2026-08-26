@@ -1,0 +1,90 @@
+{
+  // 가상 게임 하나로 이 도구의 시트 표현을 전수 확인합니다. 기획과 데이터 설계는 doc/ 에,
+  // 격자의 원본은 기획데이터/data/*.tsv 에 있고, 워크북은 기획데이터/tools/Authoring 이 그것을
+  // 렌더링한 것입니다. 게임의 한 부분이므로 기획 데이터는 폴더 하나에 모아 두었습니다.
+  //
+  //     dotnet run --project src/Tabbit.csproj -- --recipe samples/wildling/기획데이터/recipe.jsonc
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "samples/wildling/기획데이터",
+
+        // 레이아웃은 기본값입니다 — 이 워크북들은 이 도구의 규칙으로 쓰였습니다.
+
+        // 상시 · 시즌 · 패키지가 같은 스키마의 다른 벌입니다. 꼬리표는 구분자까지 잡힌
+        // 그대로 파일 이름에 붙으므로, 코어가 `_` 를 붙이거나 떼는 판단을 하지 않습니다.
+        "TableRowSets": "^(?<table>.+?)(?<set>_(Season|Package))$",
+
+        // 배열 원소의 구분자. 셀 배열과 `foreign X[]` 가 이것을 씁니다.
+        "ArrayDelimiter": ";"
+      }
+    ]
+  },
+
+  // 시트 밖에서 선언한 것들 — 값 묶음 3개, 다형 3계열, enum 4개.
+  "Schemas": [{ "Path": "samples/wildling/기획데이터/schemas" }],
+
+  // 필드만 snake 이고 나머지는 전부 pascal 입니다. 시트에서 「타입과 이름의 자리」와 「값이
+  // 들어가는 자리」가 눈으로 구분됩니다.
+  "Naming": {
+    "Field": "snake",
+    "Entity": "pascal",
+    "Label": "pascal",
+    "Constant": "pascal",
+
+    // **`error` 로 두면 지금 15건이 걸립니다 — 전부 도구가 만든 이름입니다.**
+    // 합성 값 타입의 성분(`fog_color.R` · `model_offset.X`)과 `sep` 형태로 적은 struct 멤버
+    // (`cost.CurrencyId` · `costs[].Amount`)이고, 시트 작성자가 적은 이름이 하나도 없습니다.
+    // enum 쪽에는 이미 `Synthesized` 예외가 있는데 필드 레벨에는 없습니다. 그 예외가 생기면
+    // 이 줄이 `error` 로 돌아갑니다 — doc/변환-기록.md 에 있습니다.
+    "OnViolation": "error"
+  },
+
+  // `asset` 컬럼이 찾을 폴더. 이 섹션이 없으면 검사가 꺼집니다.
+  //
+  // **그림은 기획 데이터가 아니라 게임 애셋이므로 유니티 프로젝트 안에 있습니다.** 그래서
+  // 이 검사는 자리표가 아니라 실제로 게임이 로드할 파일이 있는지를 봅니다.
+  "Assets": {
+    "Roots": [
+      { "Kind": "icon", "Path": "samples/wildling/unity/Assets/Art/icon", "Pattern": "*.png" },
+      { "Kind": "model", "Path": "samples/wildling/unity/Assets/Art/model", "Pattern": "*.prefab" }
+    ],
+    "OnMissing": "error"
+  },
+
+  // 시트로 표현할 수 없는 규칙. 각성이 손실이 되지 않는가, 각성 재료가 2개 지역 이상에서
+  // 나오는가 — 둘 다 기획서가 정한 것이고 타입으로는 표현되지 않습니다.
+  "Validation": {
+    "Path": "samples/wildling/기획데이터/validation",
+
+    // 코어가 모르는 자유 키입니다. `pre/InputsRules.cs` 가 읽고 의미를 줍니다.
+    "Options": { "Locale": "KR" }
+  },
+
+  // 최종 확인 지점이 유니티이므로 코드 생성은 C# 하나이고, 데이터는 유니티가 TextAsset 으로
+  // 포함하는 `.bytes` 입니다.
+  "Targets": [
+    {
+      "Type": "csharp",
+      "Path": "samples/wildling/unity/Assets/Tabbit/Generated",
+      "Namespace": "Wildling.Data",
+      "AccessorName": "WildlingData",
+      "BinaryTableFileExtension": ".bytes",
+      "WriteUpdater": true
+    },
+    {
+      // 값이 제대로 들어갔는지 눈으로 보는 자리. **유니티 애셋이 아니므로 프로젝트 밖입니다** —
+      // 게임이 로드하지 않고 사람이 읽습니다.
+      "Type": "html",
+      "Path": "samples/wildling/기획데이터/out/html"
+    },
+    {
+      "Type": "binary",
+      "Path": "samples/wildling/unity/Assets/StreamingAssets/tables",
+      "FileExtension": ".bytes",
+      "EncodingReport": "samples/wildling/기획데이터/out/encoding-report.txt",
+      "SchemaBaseline": "samples/wildling/기획데이터/out/schema-baseline.json"
+    }
+  ]
+}

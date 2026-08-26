@@ -409,13 +409,15 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             {
                 Member = PhpName(plan.Only.Name),
                 Suffix = suffix,
-                KeyType = plan.IsComposite ? "string" : ResolvedElementType(plan.Only),
+                KeyType = plan.IsComposite ? "string" : IndexKeyType(plan.Only),
 
                 // A PHP array is keyed by int or string and nothing else, so that is what the
                 // docblock can honestly claim whatever the column holds - and which of the two
                 // is decided by the same conversion the subscript uses, not by the declared
                 // parameter type. A uuid is a `Uuid` at the boundary and a string as an offset.
-                KeyDocType = plan.IsComposite ? "string" : OffsetDocType(plan.Only.ElementType),
+                KeyDocType = plan.IsComposite
+                    ? "string"
+                    : OffsetDocType(KeyComponentView.TypeOf(plan.Only).Type),
 
                 KeyOffset = plan.IsComposite
                     ? "self::keyOf" + suffix + "(" + args + ")"
@@ -434,7 +436,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
                 Params = plan.IsComposite
                     ? string.Join(", ", components.Select(c => c.Type + " " + c.Param))
-                    : ResolvedElementType(plan.Only) + " $key",
+                    : IndexKeyType(plan.Only) + " $key",
 
                 Argument = plan.IsComposite
                     ? "self::keyOf" + suffix + "(" + args + ")"
@@ -1652,6 +1654,21 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         var fallback = enumm.Labels.FirstOrDefault(label => label.Value == 0) ?? enumm.Labels[0];
 
         return CaseName(fallback.Name);
+    }
+
+    /// <summary>The type a single-column lookup takes.</summary>
+    /// <remarks>
+    /// **A reference column's index is keyed by the target's key, not the target's row.**
+    /// `KeyComponentView.TypeOf` is the one place that decides, and the composite path
+    /// already asks it; this is the single-column path asking the same.
+    /// </remarks>
+    private string IndexKeyType(SerialField only)
+    {
+        var (type, enumm) = KeyComponentView.TypeOf(only);
+
+        return type == ValueType.Enum
+            ? EnumName(enumm!)
+            : LanguageProfile.Php.ScalarTypeName(type);
     }
 
     /// <summary>A class constant, SCREAMING_SNAKE_CASE as PHP writes them.</summary>

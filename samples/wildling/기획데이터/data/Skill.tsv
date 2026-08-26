@@ -1,0 +1,51 @@
+:table Skill	스킬이다. 효과는 SkillEffect 에 있다.
+:field	skill_id	name	description	element	target_scope	cooldown	icon	#
+:type	string	string (text=Skill)	string (text=Skill)	Element?	TargetScope	int (min=0, max=9)	string (asset=icon)
+:desc	식별자	표시 이름	설명	무속성 스킬은 비운다	대상 범위	재사용 대기 턴	아이콘
+:target	c,s	c	c	c,s	c,s	c,s	c
+	flame_damage	불꽃 물기	불꽃 계열 스킬이다.	Flame	Single	0	sk_flame_damage
+	flame_damage_big	불꽃 일격	불꽃 계열 스킬이다.	Flame	Single	2	sk_flame_damage_big
+	flame_damage_wide	불꽃 파열	불꽃 계열 스킬이다.	Flame	AllEnemy	3	sk_flame_damage_wide
+	flame_buff_def	불꽃 장막	불꽃 계열 스킬이다.	Flame	AllAlly	3	sk_flame_buff_def
+	flame_heal	불꽃 잇기	불꽃 계열 스킬이다.	Flame	OneAlly	2	sk_flame_heal
+	flame_status	불꽃 휘감기	불꽃 계열 스킬이다.	Flame	Single	2	sk_flame_status
+	flame_buff_atk	불꽃 포효	불꽃 계열 스킬이다.	Flame	AllAlly	4	sk_flame_buff_atk
+	flame_damage_2	불꽃 가시	불꽃 계열 스킬이다.	Flame	Single	1	sk_flame_damage_2
+	flame_status_wide	불꽃 부름	불꽃 계열 스킬이다.	Flame	AllEnemy	4	sk_flame_status_wide
+	flame_buff_def_2	불꽃 결계	불꽃 계열 스킬이다.	Flame	AllAlly	4	sk_flame_buff_def_2
+	tide_damage	물결 물기	물결 계열 스킬이다.	Tide	Single	0	sk_tide_damage
+	tide_damage_big	물결 일격	물결 계열 스킬이다.	Tide	Single	2	sk_tide_damage_big
+	tide_damage_wide	물결 파열	물결 계열 스킬이다.	Tide	AllEnemy	3	sk_tide_damage_wide
+	tide_buff_def	물결 장막	물결 계열 스킬이다.	Tide	AllAlly	3	sk_tide_buff_def
+	tide_heal	물결 잇기	물결 계열 스킬이다.	Tide	OneAlly	2	sk_tide_heal
+	tide_status	물결 휘감기	물결 계열 스킬이다.	Tide	Single	2	sk_tide_status
+	tide_buff_atk	물결 포효	물결 계열 스킬이다.	Tide	AllAlly	4	sk_tide_buff_atk
+	tide_damage_2	물결 가시	물결 계열 스킬이다.	Tide	Single	1	sk_tide_damage_2
+	tide_status_wide	물결 부름	물결 계열 스킬이다.	Tide	AllEnemy	4	sk_tide_status_wide
+	leaf_damage	잎새 물기	잎새 계열 스킬이다.	Leaf	Single	0	sk_leaf_damage
+	leaf_damage_big	잎새 일격	잎새 계열 스킬이다.	Leaf	Single	2	sk_leaf_damage_big
+	leaf_damage_wide	잎새 파열	잎새 계열 스킬이다.	Leaf	AllEnemy	3	sk_leaf_damage_wide
+	leaf_buff_def	잎새 장막	잎새 계열 스킬이다.	Leaf	AllAlly	3	sk_leaf_buff_def
+	leaf_heal	잎새 잇기	잎새 계열 스킬이다.	Leaf	OneAlly	2	sk_leaf_heal
+	leaf_status	잎새 휘감기	잎새 계열 스킬이다.	Leaf	Single	2	sk_leaf_status
+	leaf_buff_atk	잎새 포효	잎새 계열 스킬이다.	Leaf	AllAlly	4	sk_leaf_buff_atk
+	leaf_damage_2	잎새 가시	잎새 계열 스킬이다.	Leaf	Single	1	sk_leaf_damage_2
+	leaf_status_wide	잎새 부름	잎새 계열 스킬이다.	Leaf	AllEnemy	4	sk_leaf_status_wide
+	leaf_buff_def_2	잎새 결계	잎새 계열 스킬이다.	Leaf	AllAlly	4	sk_leaf_buff_def_2
+	arc_damage	번개 물기	번개 계열 스킬이다.	Arc	Single	0	sk_arc_damage
+	arc_damage_big	번개 일격	번개 계열 스킬이다.	Arc	Single	2	sk_arc_damage_big
+	arc_damage_wide	번개 파열	번개 계열 스킬이다.	Arc	AllEnemy	3	sk_arc_damage_wide
+	arc_buff_def	번개 장막	번개 계열 스킬이다.	Arc	AllAlly	3	sk_arc_buff_def
+	arc_heal	번개 잇기	번개 계열 스킬이다.	Arc	OneAlly	2	sk_arc_heal
+	arc_status	번개 휘감기	번개 계열 스킬이다.	Arc	Single	2	sk_arc_status
+	arc_buff_atk	번개 포효	번개 계열 스킬이다.	Arc	AllAlly	4	sk_arc_buff_atk
+	arc_damage_2	번개 가시	번개 계열 스킬이다.	Arc	Single	1	sk_arc_damage_2
+	arc_status_wide	번개 부름	번개 계열 스킬이다.	Arc	AllEnemy	4	sk_arc_status_wide
+	umbra_damage	그늘 물기	그늘 계열 스킬이다.	Umbra	Single	0	sk_umbra_damage
+	umbra_damage_big	그늘 일격	그늘 계열 스킬이다.	Umbra	Single	2	sk_umbra_damage_big
+	umbra_damage_wide	그늘 파열	그늘 계열 스킬이다.	Umbra	AllEnemy	3	sk_umbra_damage_wide
+	umbra_buff_def	그늘 장막	그늘 계열 스킬이다.	Umbra	AllAlly	3	sk_umbra_buff_def
+	umbra_heal	그늘 잇기	그늘 계열 스킬이다.	Umbra	OneAlly	2	sk_umbra_heal
+	umbra_status	그늘 휘감기	그늘 계열 스킬이다.	Umbra	Single	2	sk_umbra_status
+	plain_focus	집중	무속성 계열 스킬이다.	-	Self	3	sk_plain_focus
+	plain_guard	방비	무속성 계열 스킬이다.	-	AllAlly	3	sk_plain_guard

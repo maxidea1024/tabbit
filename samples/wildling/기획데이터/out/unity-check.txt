@@ -1,0 +1,22 @@
+OK
+=== 와일드링 데이터 확인 ===
+경로 C:/work/tabbit/.claude/worktrees/wildling/samples/wildling/unity/Assets/StreamingAssets\tables
+  Monster                54행
+  MonsterAwakening       24행
+  Skill                  46행
+  SkillEffect            55행
+  GrowthCurve           350행
+  ElementAffinity        25행
+  Region                  5행
+  Stage                  90행
+  RewardEntry           369행
+  새싹사슴  hp=420 atk=38 element=Leaf grade=Common
+  태그 3개 — 잎새, 사슴, 초기형
+  각성  sprout_deer_1 -> sprout_deer_2 (잎뿔사슴) hp+336
+  보상 변종 — ItemReward 125, CurrencyReward 239, MonsterReward 5
+  아이템 보상 — 여울숲 수액(`mat_weir_forest_resin`) × 3
+  시간당 산출 — 골드 900 · 먹이 12
+  여울숲 출현 28종
+  상수 — 방치 상한 8시간 · 파티 3마리 · 최대 30턴
+
+전부 통과했습니다.

@@ -15,6 +15,8 @@ use crate::grid_table::GridTable;
 use crate::beast_table::BeastTable;
 use crate::move_table::MoveTable;
 use crate::beast_move_table::BeastMoveTable;
+use crate::beast_note_table::BeastNoteTable;
+use crate::move_note_table::MoveNoteTable;
 
 /// The key the table files were sealed with, or unset when they were not sealed.
 ///
@@ -73,6 +75,8 @@ pub struct Tables {
     pub beast: BeastTable,
     pub move_: MoveTable,
     pub beast_move: BeastMoveTable,
+    pub beast_note: BeastNoteTable,
+    pub move_note: MoveNoteTable,
 }
 
 impl Tables {
@@ -105,6 +109,10 @@ impl Tables {
             &base_path.join(format!("Move{}", file_extension)))?;
         loaded.beast_move.read(
             &base_path.join(format!("BeastMove{}", file_extension)))?;
+        loaded.beast_note.read(
+            &base_path.join(format!("BeastNote{}", file_extension)))?;
+        loaded.move_note.read(
+            &base_path.join(format!("MoveNote{}", file_extension)))?;
 
         *self = loaded;
 

@@ -1,0 +1,15 @@
+:const BattleConst	전투 계산의 계수이다.
+:field	name	type	value	desc
+	DefenseFactor	int	60	방어가 피해를 깎는 비율. 만분율
+	MaxTurn	int	30	이 턴에 결착이 없으면 체력 비율로 판정한다
+	SpeedTiebreak	bool	TRUE	속도가 같으면 배치 순서
+	NeutralAffinity	int	10000	상성이 없을 때의 배수
+
+:table BattleSpeed	배속 단계이다. 전투 상수만 쓰는 작은 표라 같은 탭에 둔다.
+:field	at	multiplier	label
+:type	int (min=0, max=3)	int (min=1)	string (text=Battle)
+:desc	자리	배수	표시
+:target	c,s	c,s	c
+	0	1	1배
+	1	2	2배
+	2	4	4배

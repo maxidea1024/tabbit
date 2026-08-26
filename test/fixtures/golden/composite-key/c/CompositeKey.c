@@ -44,6 +44,30 @@ static void CompositeKey_SolveCrossReferences(CompositeKey_t* data) {
         record->move_by_move_id = target;
     }
   }
+
+  for (row = 0; row < data->beast_note.count; ++row) {
+    CompositeKey_BeastNoteRecord_t* record = &data->beast_note.records[row];
+
+    {
+      const CompositeKey_BeastRecord_t* target = CompositeKey_BeastFindByIndex(
+        &data->beast, record->beast_id);
+
+      if (target != NULL)
+        record->beast_by_beast_id = target;
+    }
+  }
+
+  for (row = 0; row < data->move_note.count; ++row) {
+    CompositeKey_MoveNoteRecord_t* record = &data->move_note.records[row];
+
+    {
+      const CompositeKey_MoveRecord_t* target = CompositeKey_MoveFindByIndex(
+        &data->move, record->move_id);
+
+      if (target != NULL)
+        record->move_by_move_id = target;
+    }
+  }
 }
 
 bool CompositeKey_LoadAll(CompositeKey_t* data, const char* base_path,
@@ -148,6 +172,34 @@ bool CompositeKey_LoadAllWithExtension(CompositeKey_t* data, const char* base_pa
     return false;
   }
 
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "BeastNote", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    CompositeKey_Free(&loaded);
+    return false;
+  }
+
+  if (!CompositeKey_BeastNoteLoad(&loaded.beast_note, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    CompositeKey_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "MoveNote", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    CompositeKey_Free(&loaded);
+    return false;
+  }
+
+  if (!CompositeKey_MoveNoteLoad(&loaded.move_note, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    CompositeKey_Free(&loaded);
+    return false;
+  }
+
   /* Linked among the tables of this load, so no row points into the previous one. */
   CompositeKey_SolveCrossReferences(&loaded);
 
@@ -165,4 +217,6 @@ void CompositeKey_Free(CompositeKey_t* data) {
   CompositeKey_BeastFree(&data->beast);
   CompositeKey_MoveFree(&data->move);
   CompositeKey_BeastMoveFree(&data->beast_move);
+  CompositeKey_BeastNoteFree(&data->beast_note);
+  CompositeKey_MoveNoteFree(&data->move_note);
 }

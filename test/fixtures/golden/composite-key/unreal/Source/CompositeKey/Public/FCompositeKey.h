@@ -178,6 +178,50 @@ struct COMPOSITEKEY_API FBeastMoveRow
 };
 
 
+// Generated from test/fixtures/xlsx/composite-key/composite-key.xlsx : Link : T2
+/** Indexed by a reference to a string-keyed table, named with `key=`. */
+USTRUCT(BlueprintType)
+struct COMPOSITEKEY_API FBeastNoteRow
+{
+    GENERATED_BODY()
+
+    /** not the index, so `key=` has something to move */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "BeastNote")
+    int32 Seq = 0;
+
+    /** the index, and a reference */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "BeastNote")
+    FString BeastId;
+
+    /** anything */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "BeastNote")
+    FString Note;
+
+};
+
+
+// Generated from test/fixtures/xlsx/composite-key/composite-key.xlsx : Link : Z2
+/** First column is the index and it is a reference to an int-keyed table. */
+USTRUCT(BlueprintType)
+struct COMPOSITEKEY_API FMoveNoteRow
+{
+    GENERATED_BODY()
+
+    /** the index, and a reference */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MoveNote")
+    int32 MoveId = 0;
+
+    /** anything */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MoveNote")
+    FString Note;
+
+    /** padding, so every table is one width */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MoveNote")
+    int32 Pad1 = 0;
+
+};
+
+
 /** Every row of Loadout. */
 class COMPOSITEKEY_API FLoadoutTable
 {
@@ -358,6 +402,58 @@ private:
 };
 
 
+/** Every row of BeastNote. */
+class COMPOSITEKEY_API FBeastNoteTable
+{
+public:
+    const TArray<FBeastNoteRow>& Records() const { return RecordsStorage; }
+
+    /**
+     * The row with this BeastId, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FBeastNoteRow* FindByBeastId(const FString& Key) const;
+
+    /** Whether the table holds a row with this BeastId. */
+    bool ContainsBeastId(const FString& Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FBeastNoteRow> RecordsStorage;
+    TMap<FString, int32> ByBeastId;
+};
+
+
+/** Every row of MoveNote. */
+class COMPOSITEKEY_API FMoveNoteTable
+{
+public:
+    const TArray<FMoveNoteRow>& Records() const { return RecordsStorage; }
+
+    /**
+     * The row with this MoveId, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FMoveNoteRow* FindByMoveId(int32 Key) const;
+
+    /** Whether the table holds a row with this MoveId. */
+    bool ContainsMoveId(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FMoveNoteRow> RecordsStorage;
+    TMap<int32, int32> ByMoveId;
+};
+
+
 /**
  * Every table, loaded together.
  *
@@ -373,6 +469,8 @@ public:
     static const FBeastTable& Beast() { return BeastStorage; }
     static const FMoveTable& Move() { return MoveStorage; }
     static const FBeastMoveTable& BeastMove() { return BeastMoveStorage; }
+    static const FBeastNoteTable& BeastNote() { return BeastNoteStorage; }
+    static const FMoveNoteTable& MoveNote() { return MoveNoteStorage; }
 
     /**
      * Reads every table from BasePath. Returns false if any of them could not be read.
@@ -441,6 +539,8 @@ private:
     static FBeastTable BeastStorage;
     static FMoveTable MoveStorage;
     static FBeastMoveTable BeastMoveStorage;
+    static FBeastNoteTable BeastNoteStorage;
+    static FMoveNoteTable MoveNoteStorage;
 };
 
 /**
@@ -630,6 +730,62 @@ public:
     UFUNCTION(BlueprintPure, Category = "Tabbit|BeastMove",
               meta = (DisplayName = "Get BeastMove Row At"))
     static FBeastMoveRow GetBeastMoveRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The BeastNote row with the given BeastId.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|BeastNote",
+              meta = (DisplayName = "Get BeastNote Row"))
+    static FBeastNoteRow GetBeastNoteRow(const FString& Key, bool& bFound);
+
+    /** How many BeastNote rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|BeastNote",
+              meta = (DisplayName = "Get BeastNote Row Count"))
+    static int32 GetBeastNoteRowCount();
+
+    /**
+     * The BeastNote row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|BeastNote",
+              meta = (DisplayName = "Get BeastNote Row At"))
+    static FBeastNoteRow GetBeastNoteRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The MoveNote row with the given MoveId.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|MoveNote",
+              meta = (DisplayName = "Get MoveNote Row"))
+    static FMoveNoteRow GetMoveNoteRow(int32 Key, bool& bFound);
+
+    /** How many MoveNote rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|MoveNote",
+              meta = (DisplayName = "Get MoveNote Row Count"))
+    static int32 GetMoveNoteRowCount();
+
+    /**
+     * The MoveNote row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|MoveNote",
+              meta = (DisplayName = "Get MoveNote Row At"))
+    static FMoveNoteRow GetMoveNoteRowAt(int32 Position, bool& bFound);
 
     /**
      * Reads every table from BasePath, as FCompositeKey::ReadAll does.

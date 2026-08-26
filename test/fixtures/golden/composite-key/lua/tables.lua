@@ -13,6 +13,8 @@ local GridTable = require(_root .. "tables.grid_table")
 local BeastTable = require(_root .. "tables.beast_table")
 local MoveTable = require(_root .. "tables.move_table")
 local BeastMoveTable = require(_root .. "tables.beast_move_table")
+local BeastNoteTable = require(_root .. "tables.beast_note_table")
+local MoveNoteTable = require(_root .. "tables.move_note_table")
 
 -- Every table, loaded together so cross-table references can be resolved.
 ---@class tables
@@ -37,7 +39,7 @@ tables.macKey = nil
 -- is not a security boundary.
 tables.verifyMac = true
 
-local instanceMeta = tcb.strictInstance("a `tables` accessor", tables, { "loadout", "route", "grid", "beast", "move", "beastMove" })
+local instanceMeta = tcb.strictInstance("a `tables` accessor", tables, { "loadout", "route", "grid", "beast", "move", "beastMove", "beastNote", "moveNote" })
 
 function tables.new()
   return setmetatable({
@@ -47,6 +49,8 @@ function tables.new()
     beast = BeastTable.new(),
     move = MoveTable.new(),
     beastMove = BeastMoveTable.new(),
+    beastNote = BeastNoteTable.new(),
+    moveNote = MoveNoteTable.new(),
   }, instanceMeta)
 end
 
@@ -88,6 +92,12 @@ function tables:readAll(source, fileExtension)
   local loadedBeastMove = BeastMoveTable.new()
   loadedBeastMove:readBytes(bytesOf(source, "BeastMove", fileExtension))
 
+  local loadedBeastNote = BeastNoteTable.new()
+  loadedBeastNote:readBytes(bytesOf(source, "BeastNote", fileExtension))
+
+  local loadedMoveNote = MoveNoteTable.new()
+  loadedMoveNote:readBytes(bytesOf(source, "MoveNote", fileExtension))
+
   -- Turns loadedBeastMove's stored keys into rows, now that every table is in
   -- memory.
   for _, record in ipairs(loadedBeastMove.records) do
@@ -107,6 +117,30 @@ function tables:readAll(source, fileExtension)
     end
   end
 
+  -- Turns loadedBeastNote's stored keys into rows, now that every table is in
+  -- memory.
+  for _, record in ipairs(loadedBeastNote.records) do
+    do
+      local target = loadedBeast:findByIndex(record.beastId)
+
+      if target ~= nil then
+        record.beastByBeastId = target
+      end
+    end
+  end
+
+  -- Turns loadedMoveNote's stored keys into rows, now that every table is in
+  -- memory.
+  for _, record in ipairs(loadedMoveNote.records) do
+    do
+      local target = loadedMove:findByIndex(record.moveId)
+
+      if target ~= nil then
+        record.moveByMoveId = target
+      end
+    end
+  end
+
   -- Published, now that every table read and linked.
   self.loadout = loadedLoadout
   self.route = loadedRoute
@@ -114,6 +148,8 @@ function tables:readAll(source, fileExtension)
   self.beast = loadedBeast
   self.move = loadedMove
   self.beastMove = loadedBeastMove
+  self.beastNote = loadedBeastNote
+  self.moveNote = loadedMoveNote
 end
 
 return setmetatable(tables, tcb.strictType(

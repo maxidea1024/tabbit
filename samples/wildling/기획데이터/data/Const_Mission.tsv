@@ -1,0 +1,5 @@
+:const MissionConst	의뢰의 개수와 초기화이다.
+:field	name	type	value	desc
+	DailyCount	int	3	일일 의뢰 개수
+	WeeklyCount	int	1	주간 의뢰 개수
+	ResetHour	int	5	초기화 시각

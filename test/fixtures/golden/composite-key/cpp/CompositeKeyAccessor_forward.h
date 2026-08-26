@@ -18,6 +18,8 @@ struct GridRecord;
 struct BeastRecord;
 struct MoveRecord;
 struct BeastMoveRecord;
+struct BeastNoteRecord;
+struct MoveNoteRecord;
 
 /// The key the table files were sealed with, or empty when they were not sealed.
 ///

@@ -461,8 +461,8 @@
         private List<Record> _records = new List<Record>();
 {{~ for field in table.indexed_fields }}
         #region Indexing by '{{ field.prop_name }}'
-        public Dictionary<{{ field.field_type }}, Record> RecordsBy{{ field.pascal_name }} => _recordsBy{{ field.pascal_name }};
-        private Dictionary<{{ field.field_type }}, Record> _recordsBy{{ field.pascal_name }} = new Dictionary<{{ field.field_type }}, Record>();
+        public Dictionary<{{ field.index_key_type }}, Record> RecordsBy{{ field.pascal_name }} => _recordsBy{{ field.pascal_name }};
+        private Dictionary<{{ field.index_key_type }}, Record> _recordsBy{{ field.pascal_name }} = new Dictionary<{{ field.index_key_type }}, Record>();
 
         /// <summary>
         /// The row with this `{{ field.prop_name }}`, or null when the table has none.
@@ -472,7 +472,7 @@
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindBy{{ field.pascal_name }}({{ field.field_type }} key)
+        public Record FindBy{{ field.pascal_name }}({{ field.index_key_type }} key)
             => _recordsBy{{ field.pascal_name }}.TryGetValue(key, out Record record) ? record : null;
 
         /// <summary>
@@ -484,7 +484,7 @@
         /// says it throws, because a caller reading `GetBy{{ field.pascal_name }}(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetBy{{ field.pascal_name }}OrThrow({{ field.field_type }} key)
+        public Record GetBy{{ field.pascal_name }}OrThrow({{ field.index_key_type }} key)
         {
             if (!_recordsBy{{ field.pascal_name }}.TryGetValue(key, out Record record))
                 throw new TabbitException($"There is no record in table `{{ table.raw_name }}` that corresponds to field `{{ field.prop_name }}` value {key}");
@@ -493,7 +493,7 @@
         }
 
         /// <summary>Whether the table holds a row with this `{{ field.prop_name }}`.</summary>
-        public bool Contains{{ field.pascal_name }}({{ field.field_type }} key) => _recordsBy{{ field.pascal_name }}.ContainsKey(key);
+        public bool Contains{{ field.pascal_name }}({{ field.index_key_type }} key) => _recordsBy{{ field.pascal_name }}.ContainsKey(key);
         #endregion // Indexing by `{{ field.prop_name }}`
 {{~ end ~}}
 {{~ for key in table.composite_keys }}
@@ -811,7 +811,7 @@
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
 {{~ for field in table.indexed_fields ~}}
-            var recordsBy{{ field.pascal_name }} = new Dictionary<{{ field.field_type }}, Record>(count);
+            var recordsBy{{ field.pascal_name }} = new Dictionary<{{ field.index_key_type }}, Record>(count);
             foreach (var record in records)
                 recordsBy{{ field.pascal_name }}.Add(record.{{ field.prop_name }}, record);
 {{~ end ~}}

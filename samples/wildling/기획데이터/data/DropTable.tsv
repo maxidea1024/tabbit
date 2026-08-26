@@ -1,0 +1,20 @@
+:table DropTable	지역별 드랍 묶음이다.
+:field	drop_group_id	region_id	reward_group_id	roll_count
+:type	string	foreign Region	foreign RewardGroup	int (min=1, max=8)
+:desc	식별자	어느 지역인가	무엇이 나오는가	한 번에 몇 번 굴리는가
+:target	c,s	c,s	c,s	c,s
+	drop_weir_forest_early	weir_forest	rg_weir_forest_material	1
+	drop_weir_forest_mid	weir_forest	rg_weir_forest_material	2
+	drop_weir_forest_late	weir_forest	rg_weir_forest_material	3
+	drop_salt_coast_early	salt_coast	rg_salt_coast_material	1
+	drop_salt_coast_mid	salt_coast	rg_salt_coast_material	2
+	drop_salt_coast_late	salt_coast	rg_salt_coast_material	3
+	drop_ashen_crater_early	ashen_crater	rg_ashen_crater_material	1
+	drop_ashen_crater_mid	ashen_crater	rg_ashen_crater_material	2
+	drop_ashen_crater_late	ashen_crater	rg_ashen_crater_material	3
+	drop_frost_ridge_early	frost_ridge	rg_frost_ridge_material	1
+	drop_frost_ridge_mid	frost_ridge	rg_frost_ridge_material	2
+	drop_frost_ridge_late	frost_ridge	rg_frost_ridge_material	3
+	drop_sunken_temple_early	sunken_temple	rg_sunken_temple_material	1
+	drop_sunken_temple_mid	sunken_temple	rg_sunken_temple_material	2
+	drop_sunken_temple_late	sunken_temple	rg_sunken_temple_material	3

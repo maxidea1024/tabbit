@@ -1,0 +1,42 @@
+# 어느 격자가 어느 워크북 어느 탭이 되는가. 탭 이름이 엔티티 이름이다.
+#
+# 워크북	탭	격자
+Monster	Monster	Monster
+Monster	MonsterSkill	MonsterSkill
+Monster	MonsterAwakening	MonsterAwakening
+Battle	Skill	Skill
+Battle	SkillEffect	SkillEffect
+Battle	SkillGrowth	SkillGrowth
+Battle	ElementAffinity	ElementAffinity
+Battle	Boss	Boss
+World	Region	Region
+World	RegionYield	RegionYield
+World	Stage	Stage
+World	StageReward	StageReward
+World	EncounterTable	EncounterTable
+Growth	GrowthCurve	GrowthCurve
+Growth	ResonanceRank	ResonanceRank
+Growth	CodexReward	CodexReward
+Growth	Mission	Mission
+Reward	RewardGroup	RewardGroup
+Reward	RewardEntry	RewardEntry
+Reward	RequirementGroup	RequirementGroup
+Reward	RequirementEntry	RequirementEntry
+Reward	DropTable	DropTable
+Economy	Currency	Currency
+Economy	Item	Item
+Economy	Shop	Shop
+Economy	ShopSlot	ShopSlot
+Economy	ShopSlot_Season	ShopSlot_Season
+Economy	ShopSlot_Package	ShopSlot_Package
+Economy	Package	Package
+Economy	PassBenefit	PassBenefit
+Economy	AdReward	AdReward
+Text	StringTable	StringTable
+Enums	Enums	Enums
+Const	Const_Battle	Const_Battle
+Const	Const_Growth	Const_Growth
+Const	Const_Idle	Const_Idle
+Const	Const_Party	Const_Party
+Const	Const_Codex	Const_Codex
+Const	Const_Mission	Const_Mission

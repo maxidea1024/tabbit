@@ -202,6 +202,15 @@ internal static class SchemaFieldTypes
             if (cell.Value is not string written)
                 continue;
 
+            // **A cell the layout already called absent stays absent.** A `[]` group is as
+            // wide as the longest record, so a shorter one has no element at the far columns -
+            // and the layout says so by leaving `HasValue` false. Parsing it anyway asks an
+            // `int` member to read an empty string, and the report then names a cell that
+            // holds the value it was supposed to read: the group is read at the wrong element.
+            // A written-out type cell never reached here, which is why the pair hid it.
+            if (!cell.HasValue && written.Length == 0)
+                continue;
+
             var declaredEnum = field.Type is Models.ValueType.Enum or Models.ValueType.EnumArray
                 ? context.Model.FindEnum(field.TypeName)
                 : null;

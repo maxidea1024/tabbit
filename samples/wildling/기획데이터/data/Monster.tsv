@@ -1,0 +1,59 @@
+:table Monster	종의 한 단계이다. 같은 종의 1단과 2단은 다른 행이다.
+:field	monster_id	*display_code	species_id	stage	name	description	element	grade	role	base.hp	base.attack	base.defense	base.speed	base.crit_rate	base.crit_power	habitat	max_stage	icon	model_offset	tags	#old_grade	#
+:type	string	string (regex="^[a-z]{2}[0-9]{3}$")	string	int (min=1, max=3)	string (text=Monster)	string (text=Monster, namespace=Codex)	Element	Grade	Role	StatBlock						bitset	int (min=1, max=3)	string (asset=icon)	vec3f?	string[]
+:desc	종과 단계를 함께 가리키는 식별자	운영 도구가 쓰는 짧은 코드	같은 종을 묶는 식별자	각성 단계	표시 이름	기록부 설명	속성	희소성. 종의 성질이고 변하지 않는다	전투에서의 역할	1레벨 기준 능력치	공격	방어	행동 순서	치명타 확률. 만분율	치명타 배수. 만분율	서식 지역 플래그	이 종이 도달할 수 있는 최대 단계	기록부와 편성 화면의 아이콘	연출 보정. 대부분의 종은 비운다	검색 태그	등급을 종 단위로 옮기기 전의 컬럼
+:target	c,s	c,s	c,s	c,s	c	c	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c	c	c
+	sprout_deer_1	lf001	sprout_deer	1	새싹사슴	여울숲에 서식하는 잎새 와일드링이다.	Leaf	Common	Vanguard	420	38	32	44	500	15000	0b00011	3	wl_sprout_deer_1	-	잎새;사슴;초기형
+	sprout_deer_2	lf002	sprout_deer	2	잎뿔사슴	여울숲에 서식하는 잎새 와일드링이다.	Leaf	Common	Vanguard	756	68	58	50	500	15000	0b00011	3	wl_sprout_deer_2	-	잎새;사슴
+	sprout_deer_3	lf003	sprout_deer	3	숲지기사슴	여울숲에 서식하는 잎새 와일드링이다.	Leaf	Common	Vanguard	1331	120	101	56	500	15000	0b00011	3	wl_sprout_deer_3	(0,0.2,0)	잎새;사슴
+	moss_toad_1	lf004	moss_toad	1	이끼두꺼비	여울숲에 서식하는 잎새 와일드링이다.	Leaf	Common	Warden	340	34	26	50	500	15000	0b00011	1	wl_moss_toad_1	-	잎새;꺼비;초기형
+	thorn_beetle_1	lf005	thorn_beetle	1	가시딱정벌레	여울숲에 서식하는 잎새 와일드링이다.	Leaf	Rare	Breaker	322	71	21	58	800	17000	0b00011	2	wl_thorn_beetle_1	-	잎새;벌레;초기형
+	thorn_beetle_2	lf006	thorn_beetle	2	창날딱정벌레	여울숲에 서식하는 잎새 와일드링이다.	Leaf	Rare	Breaker	580	128	37	64	800	17000	0b00011	2	wl_thorn_beetle_2	(0,0.2,0)	잎새;벌레
+	vine_ape_1	lf007	vine_ape	1	덩굴원숭이	여울숲에 서식하는 잎새 와일드링이다.	Leaf	Rare	Vanguard	483	44	37	44	500	15000	0b00011	2	wl_vine_ape_1	-	잎새;숭이;초기형
+	vine_ape_2	lf008	vine_ape	2	등나무원숭이	여울숲에 서식하는 잎새 와일드링이다.	Leaf	Rare	Vanguard	869	79	66	50	500	15000	0b00011	2	wl_vine_ape_2	(0,0.2,0)	잎새;숭이
+	bloom_moth_1	lf009	bloom_moth	1	개화나방	여울숲에 서식하는 잎새 와일드링이다.	Leaf	Epic	Tuner	396	58	29	54	600	15000	0b00001	1	wl_bloom_moth_1	-	잎새;나방;초기형
+	elder_bark_1	lf010	elder_bark	1	늙은껍질	여울숲에 서식하는 잎새 와일드링이다.	Leaf	Legendary	Warden	517	52	40	50	500	15000	0b00001	2	wl_elder_bark_1	-	잎새;껍질;초기형
+	elder_bark_2	lf011	elder_bark	2	고목수호자	여울숲에 서식하는 잎새 와일드링이다.	Leaf	Legendary	Warden	930	93	71	56	500	15000	0b00001	2	wl_elder_bark_2	(0,0.2,0)	잎새;호자
+	ember_fox_1	fl001	ember_fox	1	잉걸여우	재의 화구에 서식하는 불꽃 와일드링이다.	Flame	Rare	Breaker	322	71	21	58	800	17000	0b01100	3	wl_ember_fox_1	-	불꽃;여우;초기형
+	ember_fox_2	fl002	ember_fox	2	불꼬리여우	재의 화구에 서식하는 불꽃 와일드링이다.	Flame	Rare	Breaker	580	128	37	64	800	17000	0b01100	3	wl_ember_fox_2	-	불꽃;여우
+	ember_fox_3	fl003	ember_fox	3	화염여우	재의 화구에 서식하는 불꽃 와일드링이다.	Flame	Rare	Breaker	1021	226	66	70	800	17000	0b01100	3	wl_ember_fox_3	(0,0.2,0)	불꽃;여우
+	cinder_pup_1	fl004	cinder_pup	1	불씨강아지	재의 화구에 서식하는 불꽃 와일드링이다.	Flame	Common	Breaker	280	62	18	58	800	17000	0b01100	1	wl_cinder_pup_1	-	불꽃;아지;초기형
+	ash_boar_1	fl005	ash_boar	1	재멧돼지	재의 화구에 서식하는 불꽃 와일드링이다.	Flame	Common	Vanguard	420	38	32	44	500	15000	0b01100	2	wl_ash_boar_1	-	불꽃;돼지;초기형
+	ash_boar_2	fl006	ash_boar	2	화산멧돼지	재의 화구에 서식하는 불꽃 와일드링이다.	Flame	Common	Vanguard	756	68	58	50	500	15000	0b01100	2	wl_ash_boar_2	(0,0.2,0)	불꽃;돼지
+	flare_hawk_1	fl007	flare_hawk	1	섬광매	재의 화구에 서식하는 불꽃 와일드링이다.	Flame	Rare	Breaker	322	71	21	58	800	17000	0b01100	1	wl_flare_hawk_1	-	불꽃;광매;초기형
+	magma_crab_1	fl008	magma_crab	1	용암게	재의 화구에 서식하는 불꽃 와일드링이다.	Flame	Epic	Vanguard	554	50	42	44	500	15000	0b00100	2	wl_magma_crab_1	-	불꽃;암게;초기형
+	magma_crab_2	fl009	magma_crab	2	분화구게	재의 화구에 서식하는 불꽃 와일드링이다.	Flame	Epic	Vanguard	998	90	76	50	500	15000	0b00100	2	wl_magma_crab_2	(0,0.2,0)	불꽃;구게
+	pyre_lion_1	fl010	pyre_lion	1	불길사자	재의 화구에 서식하는 불꽃 와일드링이다.	Flame	Legendary	Breaker	426	94	27	58	800	17000	0b00100	1	wl_pyre_lion_1	-	불꽃;사자;초기형
+	tide_serpent_1	td001	tide_serpent	1	물비늘뱀	소금해안에 서식하는 물결 와일드링이다.	Tide	Epic	Tuner	396	58	29	54	600	15000	0b00010	3	wl_tide_serpent_1	-	물결;늘뱀;초기형
+	tide_serpent_2	td002	tide_serpent	2	조류뱀	소금해안에 서식하는 물결 와일드링이다.	Tide	Epic	Tuner	713	105	52	60	600	15000	0b00010	3	wl_tide_serpent_2	-	물결;류뱀
+	tide_serpent_3	td003	tide_serpent	3	심해뱀	소금해안에 서식하는 물결 와일드링이다.	Tide	Epic	Tuner	1255	184	92	66	600	15000	0b00010	3	wl_tide_serpent_3	(0,0.2,0)	물결;해뱀
+	dew_slug_1	td004	dew_slug	1	이슬달팽이	소금해안에 서식하는 물결 와일드링이다.	Tide	Common	Warden	340	34	26	50	500	15000	0b00110	1	wl_dew_slug_1	-	물결;팽이;초기형
+	reef_turtle_1	td005	reef_turtle	1	산호거북	소금해안에 서식하는 물결 와일드링이다.	Tide	Common	Vanguard	420	38	32	44	500	15000	0b00110	2	wl_reef_turtle_1	-	물결;거북;초기형
+	reef_turtle_2	td006	reef_turtle	2	암초거북	소금해안에 서식하는 물결 와일드링이다.	Tide	Common	Vanguard	756	68	58	50	500	15000	0b00110	2	wl_reef_turtle_2	(0,0.2,0)	물결;거북
+	mist_ray_1	td007	mist_ray	1	안개가오리	소금해안에 서식하는 물결 와일드링이다.	Tide	Rare	Tuner	345	51	25	54	600	15000	0b00110	1	wl_mist_ray_1	-	물결;오리;초기형
+	brine_otter_1	td008	brine_otter	1	소금수달	소금해안에 서식하는 물결 와일드링이다.	Tide	Rare	Breaker	322	71	21	58	800	17000	0b00110	2	wl_brine_otter_1	-	물결;수달;초기형
+	brine_otter_2	td009	brine_otter	2	물살수달	소금해안에 서식하는 물결 와일드링이다.	Tide	Rare	Breaker	580	128	37	64	800	17000	0b00110	2	wl_brine_otter_2	(0,0.2,0)	물결;수달
+	abyss_whale_1	td010	abyss_whale	1	심연고래	소금해안에 서식하는 물결 와일드링이다.	Tide	Legendary	Vanguard	638	58	49	44	500	15000	0b00010	1	wl_abyss_whale_1	-	물결;고래;초기형
+	spark_mouse_1	ar001	spark_mouse	1	스파크쥐	서릿능선에 서식하는 번개 와일드링이다.	Arc	Common	Breaker	263	58	17	58	800	17000	0b11000	1	wl_spark_mouse_1	-	번개;크쥐;초기형
+	bolt_lynx_1	ar002	bolt_lynx	1	스파크살쾡이	서릿능선에 서식하는 번개 와일드링이다.	Arc	Rare	Breaker	303	67	19	58	800	17000	0b11000	3	wl_bolt_lynx_1	-	번개;쾡이;초기형
+	bolt_lynx_2	ar003	bolt_lynx	2	번개살쾡이	서릿능선에 서식하는 번개 와일드링이다.	Arc	Rare	Breaker	545	121	35	64	800	17000	0b11000	3	wl_bolt_lynx_2	-	번개;쾡이
+	bolt_lynx_3	ar004	bolt_lynx	3	뇌전살쾡이	서릿능선에 서식하는 번개 와일드링이다.	Arc	Rare	Breaker	959	212	62	70	800	17000	0b11000	3	wl_bolt_lynx_3	(0,0.2,0)	번개;쾡이
+	coil_snake_1	ar005	coil_snake	1	감김뱀	서릿능선에 서식하는 번개 와일드링이다.	Arc	Rare	Tuner	324	48	24	54	600	15000	0b11000	2	wl_coil_snake_1	-	번개;김뱀;초기형
+	coil_snake_2	ar006	coil_snake	2	나선뱀	서릿능선에 서식하는 번개 와일드링이다.	Arc	Rare	Tuner	584	86	43	60	600	15000	0b11000	2	wl_coil_snake_2	(0,0.2,0)	번개;선뱀
+	storm_crane_1	ar007	storm_crane	1	폭풍두루미	서릿능선에 서식하는 번개 와일드링이다.	Arc	Epic	Tuner	372	55	27	54	600	15000	0b01000	2	wl_storm_crane_1	-	번개;루미;초기형
+	storm_crane_2	ar008	storm_crane	2	뇌운두루미	서릿능선에 서식하는 번개 와일드링이다.	Arc	Epic	Tuner	670	98	49	60	600	15000	0b01000	2	wl_storm_crane_2	(0,0.2,0)	번개;루미
+	volt_golem_1	ar009	volt_golem	1	전압골렘	서릿능선에 서식하는 번개 와일드링이다.	Arc	Epic	Vanguard	521	47	40	44	500	15000	0b01000	1	wl_volt_golem_1	-	번개;골렘;초기형
+	thunder_stag_1	ar010	thunder_stag	1	우레사슴	서릿능선에 서식하는 번개 와일드링이다.	Arc	Legendary	Breaker	400	89	26	58	800	17000	0b01000	1	wl_thunder_stag_1	-	번개;사슴;초기형
+	shade_bat_1	um001	shade_bat	1	그림자박쥐	잠긴 신전에 서식하는 그늘 와일드링이다.	Umbra	Common	Tuner	270	40	20	54	600	15000	0b10001	1	wl_shade_bat_1	-	그늘;박쥐;초기형
+	dusk_weasel_1	um002	dusk_weasel	1	해거름족제비	잠긴 신전에 서식하는 그늘 와일드링이다.	Umbra	Rare	Breaker	290	64	19	58	800	17000	0b10001	2	wl_dusk_weasel_1	-	그늘;제비;초기형
+	dusk_weasel_2	um003	dusk_weasel	2	밤그늘족제비	잠긴 신전에 서식하는 그늘 와일드링이다.	Umbra	Rare	Breaker	522	116	34	64	800	17000	0b10001	2	wl_dusk_weasel_2	(0,0.2,0)	그늘;제비
+	gloom_spider_1	um004	gloom_spider	1	그늘거미	잠긴 신전에 서식하는 그늘 와일드링이다.	Umbra	Rare	Tuner	310	46	23	54	600	15000	0b10001	3	wl_gloom_spider_1	-	그늘;거미;초기형
+	gloom_spider_2	um005	gloom_spider	2	어스름거미	잠긴 신전에 서식하는 그늘 와일드링이다.	Umbra	Rare	Tuner	559	82	41	60	600	15000	0b10001	3	wl_gloom_spider_2	-	그늘;거미
+	gloom_spider_3	um006	gloom_spider	3	심연거미	잠긴 신전에 서식하는 그늘 와일드링이다.	Umbra	Rare	Tuner	984	144	72	66	600	15000	0b10001	3	wl_gloom_spider_3	(0,0.2,0)	그늘;거미
+	night_hound_1	um007	night_hound	1	밤사냥개	잠긴 신전에 서식하는 그늘 와일드링이다.	Umbra	Epic	Vanguard	499	45	38	44	500	15000	0b10000	2	wl_night_hound_1	-	그늘;냥개;초기형
+	night_hound_2	um008	night_hound	2	흑야사냥개	잠긴 신전에 서식하는 그늘 와일드링이다.	Umbra	Epic	Vanguard	898	81	68	50	500	15000	0b10000	2	wl_night_hound_2	(0,0.2,0)	그늘;냥개
+	umbra_owl_1	um009	umbra_owl	1	그늘부엉이	잠긴 신전에 서식하는 그늘 와일드링이다.	Umbra	Legendary	Warden	465	47	36	50	500	15000	0b10000	2	wl_umbra_owl_1	-	그늘;엉이;초기형
+	umbra_owl_2	um010	umbra_owl	2	달그늘부엉이	잠긴 신전에 서식하는 그늘 와일드링이다.	Umbra	Legendary	Warden	837	84	64	56	500	15000	0b10000	2	wl_umbra_owl_2	(0,0.2,0)	그늘;엉이
+	void_seraph_1	um011	void_seraph	1	공허날개	잠긴 신전에 서식하는 그늘 와일드링이다.	Umbra	Mythic	Breaker	441	98	28	58	800	17000	0b10000	3	wl_void_seraph_1	-	그늘;날개;초기형
+	void_seraph_2	um012	void_seraph	2	무광날개	잠긴 신전에 서식하는 그늘 와일드링이다.	Umbra	Mythic	Breaker	794	176	51	64	800	17000	0b10000	3	wl_void_seraph_2	-	그늘;날개
+	void_seraph_3	um013	void_seraph	3	종막날개	잠긴 신전에 서식하는 그늘 와일드링이다.	Umbra	Mythic	Breaker	1398	310	90	70	800	17000	0b10000	3	wl_void_seraph_3	(0,0.2,0)	그늘;날개

@@ -1,0 +1,9 @@
+:table AdReward	선택형 광고 보상이다. 강제 광고는 없다.
+:field	ad_reward_id	name	daily_limit	reward_group_id	doubles_idle
+:type	string	string (text=Shop)	int (min=1, max=10)	foreign RewardGroup	bool
+:desc	식별자	표시 이름	일일 한도	보상	방치 보상을 2배로
+:target	c,s	c	c,s	c,s	c,s
+	ad_idle	방치 보상 2배	3	rg_ad_idle	TRUE
+	ad_explore	추가 탐사	2	rg_ad_explore	FALSE
+	ad_free	무료 보상	5	rg_ad_free	FALSE
+	ad_retry	수호자 즉시 재도전	3	rg_ad_retry	FALSE

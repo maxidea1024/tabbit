@@ -674,8 +674,11 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     private IReadOnlyList<RustIndexView> Indexes(Table table)
         => KeyPlans.Of(table).Select(plan =>
         {
-            string keyType = ToRustTypeName(
-                plan.Only.FirstField!.ElementType, plan.Only.FirstField!.EnumOrNull);
+            // **A reference column's index is keyed by the target's key, not its row.**
+            // `KeyComponentView.TypeOf` is the one place that decides, and the component
+            // loop below asks it too - so the two cannot disagree.
+            var (onlyType, onlyEnum) = KeyComponentView.TypeOf(plan.Only);
+            string keyType = ToRustTypeName(onlyType, onlyEnum);
 
             bool owned = keyType == "String";
             string suffix = plan.Suffix(name => name.ToSnakeCase(), "_and_");
