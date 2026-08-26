@@ -1,8 +1,8 @@
 # 행 키 레이아웃 — 설계
 
-> [문서 목록으로](../../doc/readme.md)
+> [문서 목록으로](../doc/readme.md)
 
-> **[주 시트 레이아웃](primary-layout.md)으로 대체되었습니다.** 이 문서의 분석 — 마커 열,
+> **[주 시트 레이아웃](../spec/layout/primary-layout.md)으로 대체되었습니다.** 이 문서의 분석 — 마커 열,
 > 경계 규칙, 메타 컬럼, 드롭다운, 수식 오류 보고의 지연, 정렬 사고 검출 — 은 그쪽이
 > 계승하고, `[...]` 행 키 표기는 `:` 키로 다시 정의되었습니다. 기록으로 남깁니다.
 
@@ -55,7 +55,7 @@
 
 행 단위의 제외를 마커 열이 담당하는 것이 이 레이아웃의 이점 하나입니다. `rescue` 레이아웃은
 인덱스 셀 앞에 `#`을
-부착하므로([RescueLayoutParser.cs:589](../../src/Cooking/Layouts/RescueLayoutParser.cs#L589))
+부착하므로([RescueLayoutParser.cs:589](../src/Cooking/Layouts/RescueLayoutParser.cs#L589))
 제외와 복원에 인덱스 값 자체의 편집이 수반되지만, 여기에서는 데이터 칸을 수정하지 않습니다.
 
 `tabbit`이 `~~table:Item~~`처럼 앞뒤에 `~~`를 두른 것은 셀을 자유롭게 사용하기 위한
@@ -86,7 +86,7 @@
 계속됩니다.
 
 빈 행은 임포터를 통과한 뒤에도 보존됩니다. 구글 스프레드시트는 중간의 빈 행을 전송하지 않지만
-[RawSheet.Optimize](../../src/Models/Raw/RawSheet.cs)가 간격을 빈 행으로 복원하므로, 두 소스가
+[RawSheet.Optimize](../src/Models/Raw/RawSheet.cs)가 간격을 빈 행으로 복원하므로, 두 소스가
 같은 위치에서 종료합니다.
 
 ### 2.3 메타 컬럼
@@ -229,7 +229,7 @@ float · double · bool · datetime · timespan · uuid · enum · enum[] · for
 대안입니다.** 그때는 두 임포터가 셀 메모를 `RawCell.Note`에 기록하고 있었고 어느 레이아웃도
 사용하지 않는 상태였습니다. 이제는 기록하지도 않습니다 — 폭을 점유하지 않는다는 장점이 곧
 단점이어서, 올려놓지 않으면 보이지 않고 한 컬럼을 한눈에 볼 방법이 없습니다. 결정과 근거는
-[`RawCell`](../../src/Models/Raw/RawCell.cs)에 있습니다.
+[`RawCell`](../src/Models/Raw/RawCell.cs)에 있습니다.
 
 ---
 
@@ -256,7 +256,7 @@ float · double · bool · datetime · timespan · uuid · enum · enum[] · for
 
 이것이 해결하는 것은 named-range 레이아웃의 이중 컬럼 방식입니다. named-range에는 enum 선언이 없고 라벨이
 한국어 표시 텍스트여서 enum이 될 수
-없었으므로([UwoLayoutParser.cs:59](../../src/Cooking/Layouts/UwoLayoutParser.cs#L59)),
+없었으므로([UwoLayoutParser.cs:59](../src/Cooking/Layouts/UwoLayoutParser.cs#L59)),
 값 컬럼은 `number`로 두고 읽을 수 있는 표기는 옆의 메타 컬럼에 별도로 구성한 뒤 수식으로
 연결하였습니다.
 
@@ -372,7 +372,7 @@ float · double · bool · datetime · timespan · uuid · enum · enum[] · for
 ### 8.2 코어에 필요한 변경
 
 **수식 오류 보고의 지연.** 현재 수식 오류의 검사가 레이아웃보다 앞선 임포터 단계에서
-수행됩니다([XlsxImporter.cs:516](../../src/Importers/XlsxImporter.cs#L516)). 편집 중 `VLOOKUP`의
+수행됩니다([XlsxImporter.cs:516](../src/Importers/XlsxImporter.cs#L516)). 편집 중 `VLOOKUP`의
 대상이 일시적으로 어긋나 메타 컬럼에 `#N/A`가 하나 발생하면, 그 셀을 아무도 읽지 않는데
 파일 전체가 거부됩니다. `OnFormulaError: "empty"`로 해제하면 이번에는 실제 데이터 컬럼의
 `#REF!`까지 함께 무시됩니다.
@@ -402,10 +402,10 @@ float · double · bool · datetime · timespan · uuid · enum · enum[] · for
 |`const` 선언의 형태|`[enum]`과 같은 방식으로 설계가 필요합니다|
 |`O` 표기의 수용 여부|레이아웃에서만 수용하면 헤더와 데이터의 어휘가 상이해지고, 코어에 반영하면 모든 레이아웃의 `bool`이 변경됩니다|
 |헤더 행의 셀 병합|병합 영역은 좌상단 셀에만 값이 존재합니다. 금지·경고·좌상단 값 전파 중 선택|
-|구글 스프레드시트의 숨긴 행|xlsx는 숨긴 행도 읽습니다([XlsxImporter.cs:233](../../src/Importers/XlsxImporter.cs#L233)). 구글 쪽은 확인이 필요합니다|
+|구글 스프레드시트의 숨긴 행|xlsx는 숨긴 행도 읽습니다([XlsxImporter.cs:233](../src/Importers/XlsxImporter.cs#L233)). 구글 쪽은 확인이 필요합니다|
 |`@N`의 `[tag]` 행 분리|행은 숨길 수 있으나 셀의 일부는 숨길 수 없습니다. 기획자가 이름을 수정하다 태그를 함께 삭제하는 사고를 방지합니다|
 |이름 카탈로그 출력|6.1의 목록 공급. 별도 타깃|
-|이름에 의한 참조|`foreign`의 셀은 언제나 대상의 인덱스 값을 담습니다([TabbitLayoutParser.cs:612](../../src/Cooking/Layouts/TabbitLayoutParser.cs#L612)). 보조 인덱스 값으로 기재하고 변환 시 해석하면 named-range의 이중 컬럼이 참조에서도 소멸합니다|
+|이름에 의한 참조|`foreign`의 셀은 언제나 대상의 인덱스 값을 담습니다([TabbitLayoutParser.cs:612](../src/Cooking/Layouts/TabbitLayoutParser.cs#L612)). 보조 인덱스 값으로 기재하고 변환 시 해석하면 named-range의 이중 컬럼이 참조에서도 소멸합니다|
 
 ### 9.1 지연할 수 없는 결정
 

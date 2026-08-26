@@ -12,7 +12,7 @@ Tabbit의 **주 작성 레이아웃**의 설계입니다. STRUCT DSL이 들어�
 [Luban 레이아웃 레퍼런스](../../notes/luban-layout-reference.md)(문서 · 소스 교차 검증,
 커밋 `8f7f4e1`)와 [Luban 기능 대조](../../notes/luban-comparison.md)입니다.
 
-> **[행 키 레이아웃](keyed-layout.md)을 대체합니다.** 그 설계의 분석 — 마커 열, 경계 규칙,
+> **[행 키 레이아웃](../../notes/keyed-layout-superseded.md)을 대체합니다.** 그 설계의 분석 — 마커 열, 경계 규칙,
 > 메모 컬럼, 수식 오류 보고의 지연, 정렬 사고 검출 — 은 이 문서가 계승하고, 표기만 `:` 키로
 > 다시 정의합니다. 레이아웃 id는 `tabbit`입니다 — **기존 `tabbit` 레이아웃은 폐기가
 > 결정되었고**, 이 레이아웃이 완성되면 그 id를 승계합니다(§16의 6).

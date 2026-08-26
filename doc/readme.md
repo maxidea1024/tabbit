@@ -108,7 +108,7 @@
 | [`.xlsb`의 정의된 이름](../spec/import/xlsb-defined-names.md) | 이진 워크북에서 이름을 직접 읽어 사전 변환 단계를 없애는 설계 |
 | [`.xlsb`의 잘린 행 복구](../spec/import/xlsb-short-row-repair.md) | 셀 리더가 행을 짧게 보고해 값이 사라지던 결함과 0.31%만 되읽는 설계 |
 | [구글 시트의 정의된 이름](../spec/layout/google-sheets-named-ranges.md) | 임포터 둘 중 하나만 이름을 읽어 테이블이 0개가 되던 조합 |
-| [행 키 레이아웃](../spec/layout/keyed-layout.md) | 이름이 가리키는 사각형을 그대로 격자로 사용하는 레이아웃 |
+| [행 키 레이아웃 (폐기)](../notes/keyed-layout-superseded.md) | 주 레이아웃으로 대체된 설계. 그 분석이 어디로 계승되었는지의 기록 |
 | [수식 오류](../spec/types/formula-errors.md) | `#N/A`를 든 셀을 모델이 값으로 들 때만 보고하는 이유 |
 | [시트의 datetime과 시간대](../spec/types/datetime-timezone.md) | 시트에 적힌 시각을 어느 시간대로 읽을지 recipe가 정하고, 저장은 UTC로 |
 | [알려진 문제 목록](../spec/ops/known-problems.md) | 지금 고칠 수 없는 자리를 적어 두고 빌드를 계속하는 장치 |

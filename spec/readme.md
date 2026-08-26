@@ -14,7 +14,6 @@
 
 - [컬럼 제약 — 타입으로 나타낼 수 없는 것](layout/column-constraints.md)
 - [구글 시트의 정의된 이름](layout/google-sheets-named-ranges.md)
-- [행 키 레이아웃 — 설계](layout/keyed-layout.md)
 - [매트릭스 표 — 컬럼 이름이 행 id인 것](layout/matrix-tables.md)
 - [주 시트 레이아웃 — 설계](layout/primary-layout.md) *(5개로 나뉨)*
 - [테이블의 행 벌 — 한 테이블에 데이터 여러 벌](layout/table-row-sets.md)
