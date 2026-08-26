@@ -22,7 +22,7 @@ namespace Tabbit.Tests;
 /// once and the binary exporter cast it. The parse of a value and the parse of no value had
 /// drifted into two switches, and only one of them knew arrays existed.
 /// </remarks>
-public class UwoLayoutTests
+public class NamedRangeLayoutTests
 {
     /// <summary>
     /// One table, laid out the way this layout wants it: names, types, then `:`-keyed
@@ -99,7 +99,7 @@ public class UwoLayoutTests
         _refusals = new Diagnostics();
 
         var context = new CookingContext(new Model(), new RecipeModel(), _refusals);
-        var parser = new UwoLayoutParser();
+        var parser = new NamedRangeLayoutParser();
 
         parser.ParseDeclarations(context, new[] { sheet });
         parser.ParseTables(context, new[] { sheet });
@@ -145,7 +145,7 @@ public class UwoLayoutTests
         _refusals = new Diagnostics();
 
         var context = new CookingContext(new Model(), new RecipeModel(), _refusals);
-        var parser = new UwoLayoutParser();
+        var parser = new NamedRangeLayoutParser();
 
         parser.ParseDeclarations(context, new[] { sheet });
         parser.ParseTables(context, new[] { sheet });

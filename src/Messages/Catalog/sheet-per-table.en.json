@@ -1,0 +1,16 @@
+{
+  "sheet-per-table.enum-redefined": "Enum `{Enum}` is already defined.",
+  "sheet-per-table.table-redefined": "Table `{Table}` is already defined. In this layout a table is named by its sheet tab, less any trailing `Table`, so two tabs whose names agree once that word is dropped collide.",
+  "sheet-per-table.enum-label-redefined": "Label '{Label}' is already defined in enum '{Enum}'.",
+  "sheet-per-table.column-name-clash": "Table `{Table}` has two columns called `{Field}`: it uses {How}. Names are normalized so that every language gets the same member out of them, and two columns cannot share one. Rename one of them, or put a `#` on the description of the column that is no longer used. (the other is at {Other})",
+  "sheet-per-table.table-has-no-columns": "Table `{Table}` has no usable columns.",
+  "sheet-per-table.enum-name-must-follow-marker": "In case of enum type, the enum name must follow `enum:`.",
+  "sheet-per-table.enum-not-declared": "Column `{Field}` is typed `{Declared}`, but no enum named `{Enum}` was declared. Enums come from the sheet whose name contains `{Marker}`.",
+  "sheet-per-table.type-not-array-element": "type `{Type}` cannot be used as an array element.",
+
+  "sheet-per-table.log-dropping-duplicate-row": "Dropping row {Row} of `{Table}`: `{Field}` is `{Value}`, which an earlier row already used. ({At})",
+  "sheet-per-table.log-replacing-duplicate-row": "Replacing an earlier row of `{Table}` with row {Row}: `{Field}` is `{Value}`, which both use. ({At})",
+  "sheet-per-table.log-skipping-sheet-bad-header": "Skipping sheet `{Sheet}`: row {NameRow} should open with a field name and row {TypeRow} with its type, and they hold `{FirstName}` and `{FirstType}`. ({At})",
+  "sheet-per-table.log-skipping-sheet-no-data": "Skipping sheet `{Sheet}`: it has no data rows under a three-row header. ({At})",
+  "sheet-per-table.log-skipping-unfinished-row": "Skipping row {Row} of `{Table}`: it has no `{Field}` but is not empty, so it is an unfinished row rather than the end of the table. ({At})"
+}

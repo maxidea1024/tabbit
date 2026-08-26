@@ -55,7 +55,7 @@
 
 행 단위의 제외를 마커 열이 담당하는 것이 이 레이아웃의 이점 하나입니다. `rescue` 레이아웃은
 인덱스 셀 앞에 `#`을
-부착하므로([RescueLayoutParser.cs:589](../src/Cooking/Layouts/RescueLayoutParser.cs#L589))
+부착하므로([SheetPerTableLayoutParser.cs:589](../src/Cooking/Layouts/SheetPerTableLayoutParser.cs#L589))
 제외와 복원에 인덱스 값 자체의 편집이 수반되지만, 여기에서는 데이터 칸을 수정하지 않습니다.
 
 `tabbit`이 `~~table:Item~~`처럼 앞뒤에 `~~`를 두른 것은 셀을 자유롭게 사용하기 위한
@@ -256,7 +256,7 @@ float · double · bool · datetime · timespan · uuid · enum · enum[] · for
 
 이것이 해결하는 것은 named-range 레이아웃의 이중 컬럼 방식입니다. named-range에는 enum 선언이 없고 라벨이
 한국어 표시 텍스트여서 enum이 될 수
-없었으므로([UwoLayoutParser.cs:59](../src/Cooking/Layouts/UwoLayoutParser.cs#L59)),
+없었으므로([NamedRangeLayoutParser.cs:59](../src/Cooking/Layouts/NamedRangeLayoutParser.cs#L59)),
 값 컬럼은 `number`로 두고 읽을 수 있는 표기는 옆의 메타 컬럼에 별도로 구성한 뒤 수식으로
 연결하였습니다.
 

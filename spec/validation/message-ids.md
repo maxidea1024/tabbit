@@ -59,7 +59,7 @@
 가장 쉬운 설계는 코어에 `enum MessageId`를 두는 것이고, **이 저장소에서는 그것이 금지된
 형태입니다.** 레이아웃 파서가 자기 메시지를 내려면 코어의 enum을 고쳐야 하고, 그러면
 [CLAUDE.md](../../CLAUDE.md)의 판단 기준이 깨집니다 — 레이아웃 파일 하나를 지웠을 때 코어에
-흔적이 남습니다. `RescueLayoutParser`가 8곳, `UwoLayoutParser`가 9곳에서 보고합니다.
+흔적이 남습니다. `SheetPerTableLayoutParser`가 8곳, `NamedRangeLayoutParser`가 9곳에서 보고합니다.
 
 그래서 `[TabbitLayout("id")]`와 같은 방식을 씁니다. **ID는 문자열이고, 접두어를 선언하는 쪽이
 가집니다.**

@@ -10,7 +10,7 @@
 
 이식은 번역이 아니라 대조이고, 대조는 원본이 옆에 있을 때만 됩니다.
 
-[samples/named-range/validation/](../../samples/named-range/validation)이 그 예입니다.
+검증 폴더/이 그 예입니다.
 규칙마다 원본 Lua가 위에 그대로 있고, 달라진 곳에는 왜 달라졌는지가 붙어 있습니다.
 
 ```csharp

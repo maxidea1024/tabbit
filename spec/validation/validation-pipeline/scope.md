@@ -172,4 +172,4 @@ foreach (var row in Tables.CashShop)
 
 판단 기준도 같습니다: **validation 폴더를 통째로 지웠을 때** 빌드가 깨지거나 코어에 흔적이
 남으면 설계가 잘못된 것입니다. 실제 프로젝트의 검증 141개를 이식해도 이 저장소의 diff는
-`samples/named-range/validation/` 아래에만 생겨야 합니다.
+검증 폴더 아래에만 생겨야 합니다.

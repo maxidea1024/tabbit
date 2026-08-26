@@ -83,11 +83,11 @@
 |`test/fixtures/recipes/*.json`|**61개** (전체 67개 중)|
 |`test/fixtures/output/_baseline/*/recipe.json`|11개|
 |`src/recipes/*.jsonc` (`--template` 원본)|6개 전부|
-|`samples/rescue/` · `samples/named-range/`|6개|
+|`출시 전 소규모 프로젝트/` · 대규모 라이브 서비스의 샘플|6개|
 |`side-by-side/side-by-side.json`|1개|
 |`doc/recipe.md` · `doc/exports.md` · `doc/languages/*`|섹션 표와 예제 전부|
 
-레시피 **85개**입니다. `samples/rescue/doc/`의 분석 문서 1개에도 예제가 있습니다.
+레시피 **85개**입니다. 그 샘플 문서의 분석 문서 1개에도 예제가 있습니다.
 
 > **`test/fixtures/output/_templates/*.json`을 재기록 대상으로 적었던 것은 틀렸습니다.** 그
 > 12개는 커밋되는 골든이 아니라 `.gitignore`된 실행 산출물입니다. 템플릿의 게이트는
@@ -106,7 +106,7 @@
 
 따라서 **골든이 바뀌면 그 diff가 결함입니다.**
 
-> **실측 결과 — 무변경.** 골든 픽스처가 한 바이트도 움직이지 않았습니다. `samples/rescue/out/`을
+> **실측 결과 — 무변경.** 골든 픽스처가 한 바이트도 움직이지 않았습니다. 샘플의 커밋된 산출물을
 > 재생성한 결과도 67개 테이블 · 모든 언어 · 바이너리 · JSON 전부 동일하고, 달라진 것은 HTML의
 > 생성 시각 줄과 summary의 커밋 해시뿐이었습니다.
 
@@ -147,7 +147,7 @@
 2. `RecipeSkeleton`을 레지스트리 순회로 전환.
 3. 레시피 85개 이관. 기계적 변환이고, 5.1의 검출은 이 다음 단계에서 나옵니다.
 4. `--filter`로 관련 게이트부터 — 골든이 움직이지 않는 것을 먼저 확인합니다.
-5. `samples/rescue/out/` 재생성. 게이트가 없으므로 이 단계를 빠뜨려도 스위트는 통과합니다.
+5. 샘플의 커밋된 산출물 재생성. 게이트가 없으므로 이 단계를 빠뜨려도 스위트는 통과합니다.
    **산출물이 같으면 되돌립니다** — 커밋되는 HTML과 summary가 실행 시각과 커밋 해시를 담고 있어,
    내용이 같은 재생성이 diff로는 변경으로 보입니다.
 6. 문서 개정 — `doc/recipe.md`의 섹션 표와 예제, `doc/exports.md`, `doc/languages/*`.

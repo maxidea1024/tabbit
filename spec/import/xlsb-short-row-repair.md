@@ -121,8 +121,8 @@ RowNumber=317  RowFieldCount=66  col70 = (사라짐)
 |무엇|어디|
 |--|--|
 |「이름 사각형 안쪽에는 영향이 없다」|[`.xlsb`의 정의된 이름](xlsb-defined-names.md) §2·§7|
-|`OceanNpc`·`OceanNpcTemplate`을 대상에서 뺀 것|[recipe-all.jsonc](../../samples/named-range/recipe-all.jsonc). 복구되면 그 제외가 없어집니다|
-|`OceanNpc.localBitFlag`의 required 위반 4건|[시트 오류 보고](../../samples/named-range/doc/시트-오류-보고.md)에 시트 문제로 올라가 있지 않은지 확인|
+|`OceanNpc`·`OceanNpcTemplate`을 대상에서 뺀 것|recipe-all.jsonc. 복구되면 그 제외가 없어집니다|
+|`OceanNpc.localBitFlag`의 required 위반 4건|시트 오류 보고에 시트 문제로 올라가 있지 않은지 확인|
 
 ## 6. 상류에 보고할 것
 

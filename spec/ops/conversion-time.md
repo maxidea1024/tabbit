@@ -44,14 +44,14 @@ dotnet tool install --global dotnet-trace
 dotnet build -c Release src/Tabbit.csproj
 dotnet-trace collect --format speedscope -o run.nettrace \
   --providers Microsoft-DotNETCore-SampleProfiler \
-  -- <절대경로>\src\bin\Release\net10.0\tabbit.exe --recipe samples/named-range/recipe-all.jsonc --full
+  -- <절대경로>\src\bin\Release\net10.0\tabbit.exe --recipe <전량 변환 recipe> --full
 ```
 
 경로는 절대경로여야 합니다 — 상대경로를 주면 `dotnet-trace`가 프로세스를 시작하지 못하고
 **종료 코드 0으로** 끝나므로, 실패한 것을 알아채지 못합니다.
 
 speedscope 파일은 `type: "evented"`이므로 프레임별 자기 시간과 포함 시간은 O/C 이벤트로 스택을
-재구성해서 냅니다. 대상은 [`samples/named-range/recipe-all.jsonc`](../../samples/named-range/recipe-all.jsonc),
+재구성해서 냅니다. 대상은 전량 변환 recipe,
 20 논리 코어, `--full`입니다.
 
 ## 2. 139초에서 27초로

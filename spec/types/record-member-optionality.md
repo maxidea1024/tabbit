@@ -18,7 +18,7 @@
 |`:required`|이 컬럼은 값이 있어야 한다|580|
 |**`:requiredInObject`**|**중첩 객체가 존재할 때 그 안에서 필수**|**216**|
 
-[레이아웃 파서](../../src/Cooking/Layouts/UwoLayoutParser.cs)는 이 행을 **읽지 않고 있었습니다.** 216개의
+[레이아웃 파서](../../src/Cooking/Layouts/NamedRangeLayoutParser.cs)는 이 행을 **읽지 않고 있었습니다.** 216개의
 선언이 말없이 버려졌고, 그 규칙을 어긴 시트는 통과했습니다.
 
 ## 2. 로드맵의 전제와 다른 점

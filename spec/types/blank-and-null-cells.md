@@ -78,7 +78,7 @@
 **문자열 `\-`** 입니다. `\\-`를 그 표기로 삼으면 낱말 2개를 특별하게 두는 것에서 이스케이프
 체계로 넘어가고, 그러면 값에 이미 들어 있는 `\`의 뜻이 전부 바뀝니다.
 
-**실측입니다.** 샘플 프로젝트의 문자열 값에는 `\` 문자가 198개 들어 있고, 전부 `\n` 두 글자로
+**실측입니다.** 대규모 라이브 서비스의 문자열 값에는 `\` 문자가 198개 들어 있고, 전부 `\n` 두 글자로
 게임의 텍스트 렌더러가 읽는 줄바꿈 표기입니다. 일반 이스케이프 체계를 도입하면 그 198개가
 전부 다른 값이 됩니다. 표현하지 못하는 값 1개와 뜻이 바뀌는 값 198개 중 앞을 고릅니다.
 
@@ -216,13 +216,13 @@ Write one, or type the column `int?` so that a row may say it has none.
 
 |대상|값이 정확히 `-`인 문자열|
 |--|--|
-|`samples/rescue/out/json`|0개|
-|`samples/named-range/out`|0개|
+|`샘플의 커밋된 산출물json`|0개|
+|`대규모 라이브 서비스의 샘플/out`|0개|
 |`test/fixtures/golden` 전체|0개|
 
 **필수 컬럼에 `-`를 적어 둔 셀은 어느 프로젝트에도 없습니다.** 그래서 위 표 일곱 번째 줄의
-거부는 지금 통과하는 워크북을 하나도 멈추지 않습니다. 데이터셋 B는 이미 `-`를 없음으로 읽고 있으므로
-당연하고, 그 선언이 없는 샘플은 `-`를 문자열로 읽는데도 그렇게 적힌 셀이 없습니다.
+거부는 지금 통과하는 워크북을 하나도 멈추지 않습니다. 대규모 라이브 서비스는 이미 `-`를 없음으로 읽고 있으므로
+당연하고, 출시 전 소규모 프로젝트는 `-`를 문자열로 읽는데도 그렇게 적힌 셀이 없습니다.
 
 ### 골든 — 실측
 
@@ -294,7 +294,7 @@ Write one, or type the column `int?` so that a row may say it has none.
 |`src/Cooking/CookingContext.cs`|셀 텍스트를 「없음 · 값」으로 판정하는 함수 1개와, 값일 때의 `\-` 해제. 배열은 원소마다 같은 판정. 빈 칸에는 `OnBlankCell`을 적용|
 |`src/Recipe/SheetSourceRecipe.cs`|`OnBlankCell` 프로퍼티. 기본 `error`|
 |`src/Cooking/Layouts/TabbitLayoutParser.cs`|`blankIsAbsence`를 제거하고 판정을 코어 함수로 넘깁니다|
-|`src/Cooking/Layouts/UwoLayoutParser.cs`|`text == "-"` 비교를 코어 판정으로 대체합니다. 빈 칸에 대한 이 레이아웃의 경고는 유지합니다|
+|`src/Cooking/Layouts/NamedRangeLayoutParser.cs`|`text == "-"` 비교를 코어 판정으로 대체합니다. 빈 칸에 대한 이 레이아웃의 경고는 유지합니다|
 |`src/Cooking/ModelCooker.Validation.cs`|필수 컬럼·인덱스 컬럼의 `-` 거부, 참조 빈 칸의 새 메시지|
 
 **판정 함수가 한 곳인 것이 요건입니다.** 지금 `-`의 뜻은 한 레이아웃 파일에만 있고, 그래서

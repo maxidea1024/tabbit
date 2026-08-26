@@ -37,9 +37,9 @@ namespace Tabbit.Cooking.Layouts;
 /// column, `;` between the elements of an array cell, and every rule about what a value
 /// means all come from <see cref="CookingContext"/> unchanged.
 /// </remarks>
-[TabbitLayout("rescue",
+[TabbitLayout("sheet-per-table",
     Summary = "One table per sheet, named by the sheet tab less its trailing `Table`, with three header rows.")]
-public sealed class RescueLayoutParser : ILayoutParser
+public sealed class SheetPerTableLayoutParser : ILayoutParser
 {
     /// <summary>Which step of a run this class's log lines belong to.</summary>
     private static Serilog.ILogger Log => LogCategory.Cooking;
@@ -85,7 +85,7 @@ public sealed class RescueLayoutParser : ILayoutParser
                 if (Model.ContainsEnum(enumm.Name))
                 {
                     throw new TabbitException(enumm.Location,
-                        Message.Of(RescueLayoutMessages.EnumRedefined, ("Enum", enumm.Name)));
+                        Message.Of(SheetPerTableLayoutMessages.EnumRedefined, ("Enum", enumm.Name)));
                 }
 
                 Model.Enums.Add(enumm);
@@ -109,7 +109,7 @@ public sealed class RescueLayoutParser : ILayoutParser
             if (Model.ContainsTable(table.Name))
             {
                 throw new TabbitException(table.Location,
-                    Message.Of(RescueLayoutMessages.TableRedefined, ("Table", table.Name)));
+                    Message.Of(SheetPerTableLayoutMessages.TableRedefined, ("Table", table.Name)));
             }
 
             Model.Tables.Add(table);
@@ -222,7 +222,7 @@ public sealed class RescueLayoutParser : ILayoutParser
             if (result.Contains(labelName))
             {
                 throw new TabbitException(labelCell.Location,
-                    Message.Of(RescueLayoutMessages.EnumLabelRedefined,
+                    Message.Of(SheetPerTableLayoutMessages.EnumLabelRedefined,
                         ("Label", labelName), ("Enum", result.Name)));
             }
 
@@ -269,7 +269,7 @@ public sealed class RescueLayoutParser : ILayoutParser
 
         if (sheet.Rows.Count <= FirstDataRow || sheet.ColumnCount == 0)
         {
-            Log.Warning(Message.Of(RescueLayoutMessages.LogSkippingSheetNoData,
+            Log.Warning(Message.Of(SheetPerTableLayoutMessages.LogSkippingSheetNoData,
                 ("Sheet", sheetName), ("At", sheet.Location)).In(MessageCatalog.Current));
             return null;
         }
@@ -284,7 +284,7 @@ public sealed class RescueLayoutParser : ILayoutParser
         // on the unknown type `pc` instead of leaving it alone.
         if (!firstName.ToPascalCase().IsValidIdentifier() || !IsTypeSpelling(firstType))
         {
-            Log.Warning(Message.Of(RescueLayoutMessages.LogSkippingSheetBadHeader,
+            Log.Warning(Message.Of(SheetPerTableLayoutMessages.LogSkippingSheetBadHeader,
                 ("Sheet", sheetName), ("NameRow", NameRow + 1), ("TypeRow", TypeRow + 1),
                 ("FirstName", firstName), ("FirstType", firstType),
                 ("At", sheet.Location)).In(MessageCatalog.Current));
@@ -399,7 +399,7 @@ public sealed class RescueLayoutParser : ILayoutParser
                     : $"`{clash.RawName}` and `{fieldRawName}`, which differ only in punctuation or case";
 
                 throw new TabbitException(nameCell.Location,
-                    Message.Of(RescueLayoutMessages.ColumnNameClash,
+                    Message.Of(SheetPerTableLayoutMessages.ColumnNameClash,
                         ("Table", table.Name), ("Field", fieldName), ("How", how),
                         ("Other", clash.NameLocation)));
             }
@@ -436,7 +436,7 @@ public sealed class RescueLayoutParser : ILayoutParser
 
         if (table.Fields.Count == 0)
             throw new TabbitException(sheet.Location,
-                Message.Of(RescueLayoutMessages.TableHasNoColumns, ("Table", table.Name)));
+                Message.Of(SheetPerTableLayoutMessages.TableHasNoColumns, ("Table", table.Name)));
 
         _context.CheckPrimaryIndexValidity(table.Fields[0]);
 
@@ -470,13 +470,13 @@ public sealed class RescueLayoutParser : ILayoutParser
             if (enumName.Length == 0)
             {
                 throw new TabbitException(typeCell.Location,
-                    Message.Of(RescueLayoutMessages.EnumNameMustFollowMarker));
+                    Message.Of(SheetPerTableLayoutMessages.EnumNameMustFollowMarker));
             }
 
             if (!Model.ContainsEnum(enumName))
             {
                 throw new TabbitException(typeCell.Location,
-                    Message.Of(RescueLayoutMessages.EnumNotDeclared,
+                    Message.Of(SheetPerTableLayoutMessages.EnumNotDeclared,
                         ("Field", field.Name), ("Declared", declared),
                         ("Enum", enumName), ("Marker", EnumSheetMarker)));
             }
@@ -501,7 +501,7 @@ public sealed class RescueLayoutParser : ILayoutParser
         var arrayType = Models.ValueTypes.ArrayOf(elementType);
         if (arrayType == Models.ValueType.None)
             throw new TabbitException(typeCell.Location,
-                Message.Of(RescueLayoutMessages.TypeNotArrayElement, ("Type", spelling.Name)));
+                Message.Of(SheetPerTableLayoutMessages.TypeNotArrayElement, ("Type", spelling.Name)));
 
         field.Type = arrayType;
     }
@@ -592,7 +592,7 @@ public sealed class RescueLayoutParser : ILayoutParser
 
             if (indexText.Length == 0)
             {
-                Log.Warning(Message.Of(RescueLayoutMessages.LogSkippingUnfinishedRow,
+                Log.Warning(Message.Of(SheetPerTableLayoutMessages.LogSkippingUnfinishedRow,
                     ("Row", rowIdx + 1), ("Table", table.Name), ("Field", indexField.Name),
                     ("At", rawRow[0].Location)).In(MessageCatalog.Current));
                 continue;
@@ -630,14 +630,14 @@ public sealed class RescueLayoutParser : ILayoutParser
         switch (policy)
         {
             case DuplicateIndexPolicy.KeepFirst:
-                Log.Warning(Message.Of(RescueLayoutMessages.LogDroppingDuplicateRow,
+                Log.Warning(Message.Of(SheetPerTableLayoutMessages.LogDroppingDuplicateRow,
                     ("Row", sheetRow + 1), ("Table", table.Name), ("Field", indexField.Name),
                     ("Value", indexValue),
                     ("At", row[indexField.Index].RawCell.Location)).In(MessageCatalog.Current));
                 return true;
 
             case DuplicateIndexPolicy.KeepLast:
-                Log.Warning(Message.Of(RescueLayoutMessages.LogReplacingDuplicateRow,
+                Log.Warning(Message.Of(SheetPerTableLayoutMessages.LogReplacingDuplicateRow,
                     ("Table", table.Name), ("Row", sheetRow + 1), ("Field", indexField.Name),
                     ("Value", indexValue),
                     ("At", row[indexField.Index].RawCell.Location)).In(MessageCatalog.Current));

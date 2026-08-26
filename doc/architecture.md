@@ -255,7 +255,7 @@ set TABBIT_UE_ROOT=C:/path/to/UnrealEngine     # 언리얼 게이트를 돌릴 �
 set TABBIT_UPDATE_GOLDEN=1 && dotnet test      # 1. 골든 다시 기록
 dotnet run -c Release --project src/Tabbit.csproj -- --recipe test/reserved-words/reserved-words.json
                                                  # 2. 전 언어 비교본 다시 생성 (커밋 대상입니다)
-dotnet run -c Release --project src/Tabbit.csproj -- --recipe samples/rescue/recipe.jsonc
+dotnet run -c Release --project src/Tabbit.csproj -- --recipe 출시 전 소규모 프로젝트/recipe.jsonc
                                                  # 3. 샘플 산출물 다시 생성 (커밋 대상입니다)
 dotnet test                                      # 4. 기록 없이 검증
 ```
@@ -271,13 +271,13 @@ dotnet test                                      # 4. 기록 없이 검증
 
 3단계를 빼먹어도 스위트는 통과합니다.
 
-`samples/rescue/out/`은 커밋되어 있지만 어떤 게이트도 보지 않기 때문입니다.
+샘플의 커밋된 산출물은 커밋되어 있지만 어떤 게이트도 보지 않기 때문입니다.
 골든 비교의 대상은 `test/fixtures/golden/` 뿐입니다.
 
 그래서 이 단계는 절차에 적혀 있는 것만이 유일한 방어선이고, 실제로 한 번 놓친 적이 있습니다.
 C가 `envelope`을 열게 된 뒤로 샘플의 C 출력만 그 앞 버전에 남아 있었습니다.
 
-다른 샘플은 해당하지 않습니다. `samples/named-range/out/`에 커밋된 것은 바이너리와 JSON뿐이라 생성기와
+다른 샘플은 해당하지 않습니다. `대규모 라이브 서비스의 샘플/out/`에 커밋된 것은 바이너리와 JSON뿐이라 생성기와
 무관합니다.
 
 의도한 출력 변경이 있을 때는 골든을 갱신하고 git diff로 리뷰합니다.

@@ -45,7 +45,7 @@ if (sheet.NamedRanges.Count == 0)
     continue;
 }
 ```
-— [`UwoLayoutParser.cs:69`](../../src/Cooking/Layouts/UwoLayoutParser.cs#L69)
+— [`NamedRangeLayoutParser.cs:69`](../../src/Cooking/Layouts/NamedRangeLayoutParser.cs#L69)
 
 그래서 구글 시트를 이 레이아웃으로 읽으면 **모든 시트가 이 분기로 들어갑니다.** 예외도
 경고도 발생하지 않고, 정보 수준 로그만 시트 수만큼 출력된 뒤 실행이 성공으로 종료합니다.

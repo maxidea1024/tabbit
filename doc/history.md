@@ -26,7 +26,7 @@
 
   { "Type": "history",
     "ConnectionString": "Server=db;Database=tabbit_history;Uid=tabbit;Pwd=${TABBIT_HISTORY_PASSWORD}",
-    "ProjectKey": "named-range" }
+    "ProjectKey": "my-game" }
 ]
 ```
 

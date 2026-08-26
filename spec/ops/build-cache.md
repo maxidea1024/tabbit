@@ -17,7 +17,7 @@
 `--validate-only`는 검증 직후 멈추고, 전체는 끝까지 갑니다. 단계별 세부는 파일 로그의
 카테고리와 타임스탬프에서 읽었습니다.
 
-대상은 [`samples/named-range/recipe-all.jsonc`](../../samples/named-range/recipe-all.jsonc)입니다 — 워크북
+대상은 전량 변환 recipe입니다 — 워크북
 36개(1,149 MB, `.xlsb` 21개 포함), 테이블 548개, 타깃 7개.
 
 |측정|시간|

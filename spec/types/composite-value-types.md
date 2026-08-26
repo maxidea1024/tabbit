@@ -373,7 +373,7 @@ API에 없는 형태라는 것입니다. 결과로 합성 컬럼의 빈 칸과 �
 
 경고인 것은 시트에 손으로 적은 사원수가 반올림 때문에 조금 어긋나는 것이 정상이기 때문입니다.
 빌드를 차단해야 하는 프로젝트는 이미 있는 `TreatWarningsAsErrors`로 차단합니다 —
-[`asset`](../layout/column-constraints.md#asset--제외했다가-되돌린-것)이 같은 자리에서 같은
+[`asset`](../layout/column-constraints.md#에셋-존재-검사--제외했다가-되돌린-것)이 같은 자리에서 같은
 처리를 합니다. <!-- style-exempt -->
 
 ## 9. 담지 않는 것

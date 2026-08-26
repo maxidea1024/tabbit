@@ -180,7 +180,7 @@ recipe가 시간대를 잘못 적고 있는 실행을 위한 것이므로, 덮�
 [I] [Tabbit    ] Tabbit 1.5.0+8b2a884d84bf
 [I] [Tabbit    ] .tcb v106 · .NET 10.0.11 (win-x64)
 
-[I] [Loading   ] Start working with recipe `samples/named-range/recipe-all.jsonc`
+[I] [Loading   ] Start working with recipe 전량 변환 recipe
 ```
 
 두 줄로 나눠 적고 아래에 빈 줄을 둡니다.
@@ -297,7 +297,7 @@ $ tabbit --recipe recipe.jsonc
 같아집니다.
 
 ```
-[I] [Caching   ] Converting everything: 2 input files changed (UWO_교역.xlsx, UWO_경매.xlsb).
+[I] [Caching   ] Converting everything: 2 input files changed (교역.xlsx, 경매.xlsb).
 [I] [Caching   ] Converting everything: the recipe changed, outside its `Validation` and `Targets` sections.
 [I] [Caching   ] Converting everything: this cache was written by a different build (`1.4.0`, now `1.5.0`).
 ```

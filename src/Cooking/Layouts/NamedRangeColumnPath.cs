@@ -22,7 +22,7 @@ namespace Tabbit.Cooking.Layouts;
 /// samples/named-range/doc/레이아웃-분석-20260808.md. Depth one covers 99.5% of them, but the depth is
 /// not capped here - what the name says, this reads.
 /// </remarks>
-public static class UwoColumnPath
+public static class NamedRangeColumnPath
 {
     /// <summary>
     /// `[0]` or `["Id"]`, in order.

@@ -22,7 +22,7 @@ namespace Tabbit.Tests;
 /// as a workbook would mean another .xlsx that has to be opened in Excel to review.
 /// The end-to-end path is covered by converting the real project instead.
 /// </summary>
-public class RescueLayoutTests
+public class SheetPerTableLayoutTests
 {
     #region Building sheets
 
@@ -95,7 +95,7 @@ public class RescueLayoutTests
 
         foreach (var sheet in sheets)
         {
-            sheet.Layout = new SheetLayout("rescue", policy);
+            sheet.Layout = new SheetLayout("sheet-per-table", policy);
             raw.Sheets.Add(sheet);
         }
 
@@ -461,7 +461,7 @@ public class RescueLayoutTests
             new[] { "Id", "Grade" },
             new[] { "int", "enum:GradeType" },
             new[] { "1", "SR" });
-        rescue.Layout = new SheetLayout("rescue", DuplicateIndexPolicy.Error);
+        rescue.Layout = new SheetLayout("sheet-per-table", DuplicateIndexPolicy.Error);
 
         // The declaration-cell form: the declaration and its description, then the `:field`
         // row naming the columns, then the labels. `Sheet` writes rows as given, so the
@@ -493,7 +493,7 @@ public class RescueLayoutTests
             new[] { "int", "stringArray" },
             new[] { "1", "a|b|c" });
 
-        sheet.Layout = new SheetLayout("rescue", DuplicateIndexPolicy.Error, '|');
+        sheet.Layout = new SheetLayout("sheet-per-table", DuplicateIndexPolicy.Error, '|');
 
         var raw = new RawModel();
         raw.Sheets.Add(sheet);
@@ -513,12 +513,12 @@ public class RescueLayoutTests
         var pipes = Sheet("ItemTable",
             new[] { "", "" }, new[] { "Id", "Tags" }, new[] { "int", "stringArray" },
             new[] { "1", "a|b" });
-        pipes.Layout = new SheetLayout("rescue", DuplicateIndexPolicy.Error, '|');
+        pipes.Layout = new SheetLayout("sheet-per-table", DuplicateIndexPolicy.Error, '|');
 
         var semicolons = Sheet("HeroTable",
             new[] { "", "" }, new[] { "Id", "Tags" }, new[] { "int", "stringArray" },
             new[] { "1", "x;y" });
-        semicolons.Layout = new SheetLayout("rescue", DuplicateIndexPolicy.Error);
+        semicolons.Layout = new SheetLayout("sheet-per-table", DuplicateIndexPolicy.Error);
 
         var raw = new RawModel();
         raw.Sheets.Add(pipes);

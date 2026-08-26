@@ -102,12 +102,17 @@ public class MessageCatalogTests
     /// Stated so that a catalog stays greppable and sorts into its owners. The registry
     /// already refuses a constant whose prefix does not match the class it sits in; this is
     /// about the rest of the name.
+    ///
+    /// The prefix takes dashes on the same terms as the rest. The core's own prefixes are
+    /// single words - `cook`, `recipe`, `export` - but a layout's prefix is its id, and an
+    /// id that names the layout's shape rather than a project is often more than one word.
     /// </remarks>
     [Fact]
     public void Ids_are_lower_case_and_dashed()
     {
         var wrong = MessageRegistry.All
-            .Where(declared => !Regex.IsMatch(declared.Id, "^[a-z0-9]+(\\.[a-z0-9]+(-[a-z0-9]+)*)+$"))
+            .Where(declared => !Regex.IsMatch(
+                declared.Id, "^[a-z0-9]+(-[a-z0-9]+)*(\\.[a-z0-9]+(-[a-z0-9]+)*)+$"))
             .Select(declared => declared.Id)
             .ToList();
 

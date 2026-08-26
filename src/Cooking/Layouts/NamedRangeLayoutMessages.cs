@@ -14,7 +14,7 @@ namespace Tabbit.Cooking.Layouts;
 /// gets the report, because they may not be able to change the sheet at all.
 /// </remarks>
 [TabbitMessages("named-range")]
-public static class UwoLayoutMessages
+public static class NamedRangeLayoutMessages
 {
     /// <summary>Two columns of one table with the same name.</summary>
     public const string ColumnNameClash = "named-range.column-name-clash";

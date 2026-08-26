@@ -250,7 +250,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe test/reserved-words/reserved-
         "FileExtensionPatterns": ".xls;.xlsx",
 
         // 시트를 읽는 방식. 기본은 `tabbit` — `:table` 선언 셀로 엔티티를 선언하는 방식입니다.
-        // 다른 규칙으로 작성된 시트를 그대로 읽으려면 `rescue`. 자세한 건 sheets.md 참고.
+        // 다른 규칙으로 작성된 시트를 그대로 읽으려면 `sheet-per-table`. 자세한 건 sheets.md 참고.
         "Layout": "tabbit",
 
         // 읽을 워크북 목록. 비우면 Path 아래 전부. 상대 경로·파일명·확장자를 뗀 이름

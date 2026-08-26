@@ -34,7 +34,7 @@
 
 ```
 [rules/tables/ItemRules.cs] 의뢰서 아이템의 maxStack은 1이어야 합니다.
-    at UWO_테이블.xlsb : Item : AF12
+    at 테이블.xlsb : Item : AF12
 ```
 
 구글 시트라면 그 셀로 가는 링크가 나옵니다.

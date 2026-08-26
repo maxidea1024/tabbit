@@ -73,7 +73,7 @@ guideBattleSkill["BattleSkill"][1]   guideBattleSkill["Order"][1]
 
 |어디|무엇|
 |--|--|
-|`UwoColumnPath`|`["Member"][0]` 순서를 읽고, 경로에 그 사실을 실어 보냅니다. 지금은 「깊이 2」라며 거부합니다 — **거부 문구부터 틀렸습니다**|
+|`NamedRangeColumnPath`|`["Member"][0]` 순서를 읽고, 경로에 그 사실을 실어 보냅니다. 지금은 「깊이 2」라며 거부합니다 — **거부 문구부터 틀렸습니다**|
 |`SerialField`|`MembersAreArrays` 하나. `IsArray`는 이 그룹에 대해 **거짓**입니다 — 배열인 것은 멤버입니다|
 |JSON 익스포터|레코드 배열을 내는 자리에서 오브젝트 하나를 내고, 멤버마다 배열|
 |생성기 13개|**선언만.** 멤버 타입이 `T`에서 `T[]`가 되고, 그룹 자체는 배열이 아닌 레코드 하나|
@@ -165,7 +165,7 @@ voiceTagForAdd[1][0]  voiceTagForAdd[1][1]  voiceTagForAdd[1][2]  voiceTagForAdd
 
 |어디|무엇|
 |--|--|
-|`UwoColumnPath`|`["Member"][0]` 순서를 읽습니다. 「깊이 2」라며 거부하던 자리인데, **거부 문구부터 틀렸었습니다** — 깊이는 같고 순서만 반대였습니다|
+|`NamedRangeColumnPath`|`["Member"][0]` 순서를 읽습니다. 「깊이 2」라며 거부하던 자리인데, **거부 문구부터 틀렸었습니다** — 깊이는 같고 순서만 반대였습니다|
 |`TabbitLayoutParser`|네이티브 표기에도 자리를 냈습니다 — 숫자가 그룹에 붙으면 `Slot1.Id`(레코드의 배열), 멤버에 붙으면 `Pos.X1`(멤버가 배열인 레코드). 양쪽에 붙으면 거부합니다|
 |`Field.MemberIsArray` · `SerialField.MembersAreArrays` · `RecordMember.IsArray`|컬럼이 나타내고, 폴딩이 그룹으로 올리고, 그룹 안에서 멤버가 나타냅니다|
 |`WireColumn.IsFixedArray`|그룹에서만 보던 것을 **멤버에서도** 봅니다. 이걸 놓쳤을 때 멤버 컬럼이 스칼라로 읽혔습니다|
@@ -201,7 +201,7 @@ voiceTagForAdd[0][0]                 →  g[0][j]              이름 대신 번
 
 |어디|무엇|
 |--|--|
-|`UwoColumnPath`|`[0][1]`을 읽습니다. 바깥 인덱스가 멤버 이름 자리에 들어갑니다|
+|`NamedRangeColumnPath`|`[0][1]`을 읽습니다. 바깥 인덱스가 멤버 이름 자리에 들어갑니다|
 |`TabbitLayoutParser`|네이티브 표기도 — `Grid1.2`. 멤버 쪽이 숫자만이면 이름이 없는 것입니다|
 |`SerialField.MembersAreAnonymous` · `RecordMember.IsAnonymous`|`MembersAreArrays`와 같은 자리|
 |`WireColumn.MemberAt`|이름으로 못 닿는 바깥 레벨을 위치로 가리킵니다|
@@ -227,7 +227,7 @@ voiceTagForAdd[0][0]                 →  g[0][j]              이름 대신 번
 ## 임의 깊이 — 상한을 없앤 근거
 
 위의 두 형태를 만들고 나서 남은 것은 **진짜로 더 깊은 형태**였습니다.
-[실측](../../samples/named-range/doc/레이아웃-분석-20260808.md#실제-사용되는-중첩-형태-셋)에서 최대 깊이는
+실측에서 최대 깊이는
 3이고 `배열 > 레코드 > 레코드`가 리프 4개입니다 —
 `ConstellationMiniGame.star[].position.x`.
 
@@ -274,7 +274,7 @@ Star2.Position.X  Star2.Position.Y      각각 셀 2개 (바깥 배열 길이)
 |`FieldPathStep` · `Field.NamePath`|컬럼 이름이 경로가 됐습니다. `MemberName`·`GroupOrdinal`·`MemberIsArray`·`MemberIsAnonymous` 네 개가 이것 하나로 대체됐습니다|
 |`RecordMember.Members`|멤버가 다시 멤버를 갖습니다. `IsLeaf`가 「여기가 컬럼인가」를 나타내고, 아무 곳도 레벨을 세지 않습니다|
 |`Table.BuildMembers`|경로를 따라 내려가며 노드를 만듭니다. 한 레벨이 값과 레코드를 동시에 갖는 것은 거부합니다|
-|`NestedName` · `UwoColumnPath`|세그먼트 N개, 대괄호 N개. 「깊이 2」·「한 레벨 더」 거부 문구가 사라졌습니다|
+|`NestedName` · `NamedRangeColumnPath`|세그먼트 N개, 대괄호 N개. 「깊이 2」·「한 레벨 더」 거부 문구가 사라졌습니다|
 |`WireColumn.Of`|리프 순회. `MemberPath`가 경로를, `AnyLevelIsArray`가 「경로상 어느 레벨이든 배열인가」를 나타냅니다|
 |`JsonExporter`|`RecordElement`·`RecordOfArrays`·`ArrayOfArrays` 세 개가 `Compose`·`MemberValue` **재귀 둘**로 합쳐졌습니다|
 

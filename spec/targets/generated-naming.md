@@ -41,7 +41,7 @@
 커밋되어 있습니다. 골든 픽스처도 같습니다(`golden/key-types/csharp/KeyTypesAccessor.cs`에
 `class Tables`).
 
-**사용자가 이미 우회하고 있습니다.** `samples/rescue/recipe.jsonc`는 java · kotlin · php ·
+**사용자가 이미 우회하고 있습니다.** 어떤 샘플 recipe는 java · kotlin · php ·
 csharp · cpp에 `AccessorName: "Tables"`를, ruby · dart에 `"tables"`를 명시합니다. 하드코딩된
 타입 이름에 파일 이름을 손으로 맞춘 것입니다.
 
@@ -120,7 +120,7 @@ csharp · cpp에 `AccessorName: "Tables"`를, ruby · dart에 `"tables"`를 명�
 
 - **골든·샘플·비교본** — 액세서 파일 이름과 타입 이름이 바뀌므로 전 언어 재기록입니다.
   기본값을 쓰던 산출물이 특히 많이 바뀝니다.
-- **샘플 레시피의 정리** — `samples/rescue`가 손으로 맞추던 `AccessorName` 지정이 기본값과
+- **샘플 레시피의 정리** — 출시 전 소규모 프로젝트가 손으로 맞추던 `AccessorName` 지정이 기본값과
   같아지므로 제거 대상입니다.
 - **문서** — §1.4의 오류 3건 수정, 옵션 설명 갱신.
 - **소비자** — Java·Kotlin·PHP·C·Unreal은 기본값을 쓰던 경우 타입 이름이 바뀝니다. 외부

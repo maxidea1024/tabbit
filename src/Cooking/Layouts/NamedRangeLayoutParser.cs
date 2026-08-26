@@ -33,7 +33,7 @@ namespace Tabbit.Cooking.Layouts;
 [TabbitLayout("named-range",
     Summary = "A table is a workbook's defined name; two header rows and ':'-keyed constraint rows.",
     UsesNamedRanges = true)]
-public sealed class UwoLayoutParser : ILayoutParser
+public sealed class NamedRangeLayoutParser : ILayoutParser
 {
     /// <summary>Which step of a run this class's log lines belong to.</summary>
     private static Serilog.ILogger Log => LogCategory.Cooking;
@@ -115,7 +115,7 @@ public sealed class UwoLayoutParser : ILayoutParser
 
         if (named.Height <= TypeRow + 1)
         {
-            Log.Warning(Message.Of(UwoLayoutMessages.LogSkippingRangeTooShort,
+            Log.Warning(Message.Of(NamedRangeLayoutMessages.LogSkippingRangeTooShort,
                 ("Name", rawName), ("Rows", named.Height),
                 ("At", sheet.Location)).In(MessageCatalog.Current));
             return null;
@@ -235,7 +235,7 @@ public sealed class UwoLayoutParser : ILayoutParser
             if (table.ContainsField(field.Name))
             {
                 throw new TabbitException(nameCell.Location,
-                    Message.Of(UwoLayoutMessages.ColumnNameClash,
+                    Message.Of(NamedRangeLayoutMessages.ColumnNameClash,
                         ("Table", table.Name), ("Field", field.Name)));
             }
 
@@ -246,7 +246,7 @@ public sealed class UwoLayoutParser : ILayoutParser
 
         if (table.Fields.Count == 0)
         {
-            Log.Warning(Message.Of(UwoLayoutMessages.LogSkippingTableNoColumns,
+            Log.Warning(Message.Of(NamedRangeLayoutMessages.LogSkippingTableNoColumns,
                 ("Table", table.RawName)).In(MessageCatalog.Current));
             return null;
         }
@@ -254,7 +254,7 @@ public sealed class UwoLayoutParser : ILayoutParser
         if (!table.Fields[0].Indexing)
         {
             throw new TabbitException(table.Location,
-                Message.Of(UwoLayoutMessages.TableHasNoKeyColumn, ("Table", table.Name)));
+                Message.Of(NamedRangeLayoutMessages.TableHasNoKeyColumn, ("Table", table.Name)));
         }
 
         _context.CheckPrimaryIndexValidity(table.Fields[0]);
@@ -370,7 +370,7 @@ public sealed class UwoLayoutParser : ILayoutParser
         if (roleGroup is not null && typeName != "text" && typeName != "[text]")
         {
             throw new TabbitException(typeCell.Location,
-                Message.Of(UwoLayoutMessages.TypeTakesNoGroup,
+                Message.Of(NamedRangeLayoutMessages.TypeTakesNoGroup,
                     ("Column", nameCell.Value.Trim()), ("Table", table.RawName),
                     ("Type", rawType)));
         }
@@ -394,10 +394,10 @@ public sealed class UwoLayoutParser : ILayoutParser
         // `character[0]["Id"]`: the column name is a path into the row's JSON. Translated
         // into the same record model Tabbit's own `Group.Member` notation produces, so
         // there is one model behind two notations rather than two models.
-        if (!UwoColumnPath.TrySplit(rawFieldName, out var path, out string? problem))
+        if (!NamedRangeColumnPath.TrySplit(rawFieldName, out var path, out string? problem))
         {
             throw new TabbitException(nameCell.Location,
-                Message.Of(UwoLayoutMessages.ColumnNameProblem,
+                Message.Of(NamedRangeLayoutMessages.ColumnNameProblem,
                     ("Column", nameCell.Value.Trim()), ("Table", table.RawName),
                     ("Detail", problem)));
         }
@@ -552,7 +552,7 @@ public sealed class UwoLayoutParser : ILayoutParser
                     if (element == Models.ValueType.None)
                     {
                         throw new TabbitException(typeCell.Location,
-                            Message.Of(UwoLayoutMessages.ListElementTypeUnsupported,
+                            Message.Of(NamedRangeLayoutMessages.ListElementTypeUnsupported,
                                 ("Column", nameCell.Value.Trim()), ("Table", table.RawName),
                                 ("Type", rawType), ("Inner", inner)));
                     }
@@ -582,7 +582,7 @@ public sealed class UwoLayoutParser : ILayoutParser
                 }
 
                 throw new TabbitException(typeCell.Location,
-                    Message.Of(UwoLayoutMessages.TypeUnrecognized,
+                    Message.Of(NamedRangeLayoutMessages.TypeUnrecognized,
                         ("Column", nameCell.Value.Trim()), ("Table", table.RawName),
                         ("Type", rawType)));
         }
@@ -726,7 +726,7 @@ public sealed class UwoLayoutParser : ILayoutParser
             // reports the cell and tells the author to write `-`. Reported rather than
             // refused, because refusing would stop a conversion of six hundred tables over
             // a cell whose intent is not in doubt.
-            Log.Warning(Message.Of(UwoLayoutMessages.LogBlankReadAsEmpty,
+            Log.Warning(Message.Of(NamedRangeLayoutMessages.LogBlankReadAsEmpty,
                 ("Table", column.Field.OwnerTable.Name), ("Field", column.Field.Name),
                 ("At", rawCell.Location)).In(MessageCatalog.Current));
 
@@ -805,7 +805,7 @@ public sealed class UwoLayoutParser : ILayoutParser
         }
 
         throw new TabbitException(sheet.Location,
-            Message.Of(UwoLayoutMessages.NumberTypeOptionUnknown,
+            Message.Of(NamedRangeLayoutMessages.NumberTypeOptionUnknown,
                 ("Option", NumberTypeOption), ("Value", value)));
     }
 
@@ -1167,7 +1167,7 @@ public sealed class UwoLayoutParser : ILayoutParser
                 continue;
 
             throw new TabbitException(element.TypeLocation,
-                Message.Of(UwoLayoutMessages.GridColumnsDifferInType,
+                Message.Of(NamedRangeLayoutMessages.GridColumnsDifferInType,
                     ("Table", table.Name), ("First", elements[0].TypeName),
                     ("Second", element.TypeName)));
         }
@@ -1257,7 +1257,7 @@ public sealed class UwoLayoutParser : ILayoutParser
             if (axisId is < int.MinValue or > int.MaxValue)
             {
                 throw new TabbitException(cell.Location,
-                    Message.Of(UwoLayoutMessages.GridColumnIdNotInt32,
+                    Message.Of(NamedRangeLayoutMessages.GridColumnIdNotInt32,
                         ("Id", axisId), ("Table", table.Name),
                         ("Companion", companion.Name)));
             }

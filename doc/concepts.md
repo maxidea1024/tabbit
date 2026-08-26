@@ -177,7 +177,7 @@ TypeScript는 `tables.item.findByIndex(1)`, Python은 `tables.item.find_by_index
 ```jsonc
 "Xlsx": [
   { "Path": "./sheets",       "Layout": "tabbit" },
-  { "Path": "./other-sheets", "Layout": "rescue" }
+  { "Path": "./other-sheets", "Layout": "sheet-per-table" }
 ]
 ```
 
@@ -188,7 +188,7 @@ TypeScript는 `tables.item.findByIndex(1)`, Python은 `tables.item.find_by_index
 워크북 17개·테이블 67개·103,395행이고, 다른 한쪽은 워크북 36개·테이블 544개·724,336행입니다.
 
 - recipe 설정은 [Recipe 파일 — Layout](recipe/sources.md#layout--시트를-읽는-방식)에 있습니다.
-- 적용 기록은 [다른 규칙으로 쓰인 시트 읽기](../samples/rescue/doc/적용-기록.md)에 있습니다.
+- 적용 기록은 다른 규칙으로 쓰인 시트 읽기에 있습니다.
 - 레이아웃을 새로 만드는 방법은
   [아키텍처와 개발](architecture.md#설계-원칙--코어에-프로젝트-이름-금지)에 있습니다.
 

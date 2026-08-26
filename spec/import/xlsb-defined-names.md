@@ -225,8 +225,8 @@ rgXti 항목      = iSupBook(4)  itabFirst(4)  itabLast(4)
 
 |무엇|
 |--|
-|`samples/named-range/converted/` — 103 MB의 파생 산출물|
-|`samples/named-range/tools/` — **디렉터리 전체.** 안에 `convert-xlsb.ps1` 하나뿐이고, 그 존재 이유가 곧 변환 단계입니다|
+|변환 산출물 폴더 — 103 MB의 파생 산출물|
+|그 도구 폴더 — **디렉터리 전체.** 안에 `convert-xlsb.ps1` 하나뿐이고, 그 존재 이유가 곧 변환 단계입니다|
 |`.gitignore`의 해당 한 줄|
 |recipe 3개의 `Path`가 원본 워크북을 지시하게 됩니다|
 |recipe 주석의 경로 중복 주의사항|
@@ -240,9 +240,9 @@ rgXti 항목      = iSupBook(4)  itabFirst(4)  itabLast(4)
 
 |위치|현재 서술|
 |--|--|
-|`samples/named-range/tools/convert-xlsb.ps1` 머리말|파일과 함께 제거됩니다|
-|`samples/named-range/recipe-guild.jsonc:22`|`.xlsb` 원본을 제외하는 이유로 NPOI를 지시합니다|
-|`samples/named-range/doc/레이아웃-분석-20260808.md:322`|변환을 선택한 경위. **기록이므로 삭제하지 않고**, 뒤에 결론이 바뀐 시점을 부기합니다|
+|사전 변환 스크립트 머리말|파일과 함께 제거됩니다|
+|그 recipe의 주석|`.xlsb` 원본을 제외하는 이유로 NPOI를 지시합니다|
+|`대규모 라이브 서비스의 샘플/doc/레이아웃-분석-20260808.md:322`|변환을 선택한 경위. **기록이므로 삭제하지 않고**, 뒤에 결론이 바뀐 시점을 부기합니다|
 |[워크북 읽기](streaming-workbook-reader.md)의 9절 「문서 정정」·「`.xlsb` 직독」|이 작업으로 두 항목이 함께 종료됩니다|
 
 그리고 **`.xlsb`를 읽는다는 서술이 실제와 일치하게 됩니다.** 지금은 셀만 읽고 이름은 읽지
