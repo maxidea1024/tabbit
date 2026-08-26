@@ -1,0 +1,47 @@
+# 일회용. macOS 에서 Swift 적합성 하네스가 어떤 배포 대상으로 빌드되는지 확인하려고 둔 것이고,
+# 원인을 확인하면 지운다.
+name: swift-probe
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 매니페스트가 선언한 배포 대상
+        run: |
+          set -x
+          mkdir -p /tmp/p/tabbit
+          cp lib/swift/tabbit/*.swift /tmp/p/tabbit/
+          cp test/fixtures/tools/conformance/swift/Package.swift /tmp/p/Package.swift
+          sed -i '' 's/name: "harness"/name: "probe"/g; s/\.executableTarget/.target/' /tmp/p/Package.swift
+          sed -i '' 's/"ConformanceData.swift",//; s/"tables",//; s/"enums",//; s/"constants",//; s/"main.swift",//' /tmp/p/Package.swift
+          cat /tmp/p/Package.swift
+          cd /tmp/p
+          swift package dump-package | python3 -c 'import json,sys; print(json.load(sys.stdin)["platforms"])'
+          swift build -v 2>&1 | grep -o -m 2 -- '-target [^ ]*' || true
+          swift build 2>&1 | tail -20
+
+      - name: '#available 가 경고를 내는가 (경고=오류 게이트 확인)'
+        if: always()
+        run: |
+          cat > /tmp/avail.swift <<'SWIFT'
+          import Foundation
+          #if canImport(CryptoKit)
+          import CryptoKit
+          #endif
+          public enum Probe {
+              public static func f(_ key: [UInt8]) throws {
+                  #if canImport(CryptoKit)
+                  guard #available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *) else { return }
+                  var tag = HMAC<SHA256>(key: SymmetricKey(data: key))
+                  tag.update(data: key[0 ..< 1])
+                  _ = Array(tag.finalize())
+                  #endif
+              }
+          }
+          SWIFT
+          swiftc -typecheck -warnings-as-errors /tmp/avail.swift && echo "경고 없음 - 이 방식 사용 가능" || echo "경고 발생 - 이 방식 불가"
