@@ -47,38 +47,16 @@ jobs:
 
           echo "clean"
 
-      # The two corpora this tool was validated against were company assets and are gone from
-      # the working tree, replaced by the synthetic samples under samples/. Their names leak
-      # back the same way a retired product name does - through a path, a comment, a fixture.
-      #
-      # `rescue` is also a Ruby keyword, so every Ruby file is excluded rather than the word
-      # being made more specific: a generated `rescue` clause is not the sample.
-      - name: No trace of the retired sample corpora
+      # Sample data is synthetic and stays that way - CLAUDE.md says what that means and
+      # where the line is. There is no word list here on purpose: a list of forbidden names
+      # is a list of what used to be in the repository, which is the thing it would protect.
+      # What a gate can see is the shape, and this is the shape that matters.
+      - name: Samples carry no foreign workbooks
         run: |
-          samples='\buwo\b|\brescue\b'
-          exclude=(
-            ':(exclude)*.xlsx' ':(exclude)*.xlsm' ':(exclude)*.xlsb'
-            ':(exclude)*.png' ':(exclude)*.rb' ':(exclude)*.sbn'
-            ':(exclude)website/package-lock.json'
-            ':(exclude).github/workflows/names.yml'
-            ':(exclude)notes/'
-            # `rescue` is an ordinary English verb and a Ruby keyword. These three say so and
-            # are the only places the word survives outside generated Ruby.
-            ':(exclude)CLAUDE.md'
-            ':(exclude)src/CodeGeneration/LanguageProfile.cs'
-            ':(exclude)src/History/HistoryServer.cs'
-          )
-
-          paths="$(git ls-files | grep -Ei 'samples/(named-range|rescue)/' || true)"
-          if [ -n "$paths" ]; then
-            echo "::error::these paths belong to a retired sample corpus"; echo "$paths"; exit 1
-          fi
-
-          files="$(git grep -lEIi "$samples" -- . "${exclude[@]}" || true)"
-          if [ -n "$files" ]; then
-            echo "::error::these files name a retired sample corpus"
-            git grep -nEIi "$samples" -- . "${exclude[@]}"
-            exit 1
+          books="$(git ls-files | grep -Ei '\.(xlsx|xlsm|xlsb)$' | grep -vE '^(test/fixtures/|tools/mabbit/test/fixtures/|samples/(sprout|canopy|wildling)/)' || true)"
+          if [ -n "$books" ]; then
+            echo "::error::these workbooks are outside the synthetic samples and the fixtures"
+            echo "$books"; exit 1
           fi
 
           echo "clean"
