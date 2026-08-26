@@ -1,0 +1,362 @@
+[
+  {
+    "id": 1104000,
+    "nameKey": "BUFF_NAME_0137",
+    "kind": 5,
+    "icon": "Art/Buff/Jasp/Jasp_09",
+    "stackLimit": 5,
+    "dispellable": true
+  },
+  {
+    "id": 1104001,
+    "nameKey": "BUFF_NAME_0013",
+    "kind": 3,
+    "icon": "Art/Buff/Ember/BrightKelvin_60",
+    "stackLimit": 6,
+    "dispellable": true
+  },
+  {
+    "id": 1104002,
+    "nameKey": "BUFF_NAME_0049",
+    "kind": 4,
+    "icon": "Art/Buff/Jasp/KeenVellum_81",
+    "stackLimit": 10,
+    "dispellable": true
+  },
+  {
+    "id": 1104003,
+    "nameKey": "BUFF_NAME_0176",
+    "kind": 3,
+    "icon": "Art/Buff/Harrow/BrightBrack_51",
+    "stackLimit": 10,
+    "dispellable": false
+  },
+  {
+    "id": 1104004,
+    "nameKey": "BUFF_NAME_0113",
+    "kind": 1,
+    "icon": "Art/Buff/Gale/CommonZephyr_54",
+    "stackLimit": 9,
+    "dispellable": false
+  },
+  {
+    "id": 1104005,
+    "nameKey": "BUFF_NAME_0094",
+    "kind": 3,
+    "icon": "Art/Buff/Harrow/BrightBrack_51",
+    "stackLimit": 2,
+    "dispellable": false
+  },
+  {
+    "id": 1104006,
+    "nameKey": "BUFF_NAME_0163",
+    "kind": 3,
+    "icon": "Art/Buff/Fenn/KeenFlint_89",
+    "stackLimit": 7,
+    "dispellable": true
+  },
+  {
+    "id": 1104007,
+    "nameKey": "BUFF_NAME_0086",
+    "kind": 3,
+    "icon": "Art/Buff/Brack/KeenNettle_73",
+    "stackLimit": 8,
+    "dispellable": false
+  },
+  {
+    "id": 1104008,
+    "nameKey": "BUFF_NAME_0037",
+    "kind": 5,
+    "icon": "Art/Buff/Ember/Ember_04",
+    "stackLimit": 8,
+    "dispellable": false
+  },
+  {
+    "id": 1104009,
+    "nameKey": "BUFF_NAME_0064",
+    "kind": 3,
+    "icon": "Art/Buff/Fenn/Fenn_05",
+    "stackLimit": 10,
+    "dispellable": false
+  },
+  {
+    "id": 1104010,
+    "nameKey": "BUFF_NAME_0111",
+    "kind": 5,
+    "icon": "Art/Buff/Brack/WardedThorn_09",
+    "stackLimit": 10,
+    "dispellable": true
+  },
+  {
+    "id": 1104011,
+    "nameKey": "BUFF_NAME_0107",
+    "kind": 3,
+    "icon": "Art/Buff/Brack/HollowBriar_45",
+    "stackLimit": 7,
+    "dispellable": false
+  },
+  {
+    "id": 1104012,
+    "nameKey": "BUFF_NAME_0153",
+    "kind": 2,
+    "icon": "Art/Buff/Harrow/BrightBriar_75",
+    "stackLimit": 1,
+    "dispellable": true
+  },
+  {
+    "id": 1104013,
+    "nameKey": "BUFF_NAME_0142",
+    "kind": 3,
+    "icon": "Art/Buff/Harrow/BrightNettle_63",
+    "stackLimit": 1,
+    "dispellable": true
+  },
+  {
+    "id": 1104014,
+    "nameKey": "BUFF_NAME_0060",
+    "kind": 1,
+    "icon": "Art/Buff/Dorn/HollowPyre_35",
+    "stackLimit": 1,
+    "dispellable": true
+  },
+  {
+    "id": 1104015,
+    "nameKey": "BUFF_NAME_0114",
+    "kind": 2,
+    "icon": "Art/Buff/Isle/CommonCalyx_32",
+    "stackLimit": 7,
+    "dispellable": false
+  },
+  {
+    "id": 1104016,
+    "nameKey": "BUFF_NAME_0176",
+    "kind": 4,
+    "icon": "Art/Buff/Calyx/KeenCinder_86",
+    "stackLimit": 9,
+    "dispellable": false
+  },
+  {
+    "id": 1104017,
+    "nameKey": "BUFF_NAME_0173",
+    "kind": 3,
+    "icon": "Art/Buff/Fenn/KeenFlint_89",
+    "stackLimit": 7,
+    "dispellable": false
+  },
+  {
+    "id": 1104018,
+    "nameKey": "BUFF_NAME_0000",
+    "kind": 5,
+    "icon": "Art/Buff/Kelvin/WardedEmber_94",
+    "stackLimit": 6,
+    "dispellable": true
+  },
+  {
+    "id": 1104019,
+    "nameKey": "BUFF_NAME_0161",
+    "kind": 2,
+    "icon": "Art/Buff/Jasp/HollowJasp_29",
+    "stackLimit": 3,
+    "dispellable": true
+  },
+  {
+    "id": 1104020,
+    "nameKey": "BUFF_NAME_0054",
+    "kind": 1,
+    "icon": "Art/Buff/Lumen/WardedRune_07",
+    "stackLimit": 6,
+    "dispellable": true
+  },
+  {
+    "id": 1104021,
+    "nameKey": "BUFF_NAME_0126",
+    "kind": 2,
+    "icon": "Art/Buff/Dorn/HollowDrift_47",
+    "stackLimit": 5,
+    "dispellable": true
+  },
+  {
+    "id": 1104022,
+    "nameKey": "BUFF_NAME_0134",
+    "kind": 5,
+    "icon": "Art/Buff/Jasp/KeenJasp_69",
+    "stackLimit": 2,
+    "dispellable": true
+  },
+  {
+    "id": 1104023,
+    "nameKey": "BUFF_NAME_0074",
+    "kind": 4,
+    "icon": "Art/Buff/Isle/KeenIsle_68",
+    "stackLimit": 7,
+    "dispellable": true
+  },
+  {
+    "id": 1104024,
+    "nameKey": "BUFF_NAME_0052",
+    "kind": 4,
+    "icon": "Art/Buff/Calyx/Calyx_02",
+    "stackLimit": 5,
+    "dispellable": false
+  },
+  {
+    "id": 1104025,
+    "nameKey": "BUFF_NAME_0008",
+    "kind": 3,
+    "icon": "Art/Buff/Brack/KeenNettle_73",
+    "stackLimit": 5,
+    "dispellable": false
+  },
+  {
+    "id": 1104026,
+    "nameKey": "BUFF_NAME_0175",
+    "kind": 4,
+    "icon": "Art/Buff/Dorn/KeenPyre_75",
+    "stackLimit": 9,
+    "dispellable": false
+  },
+  {
+    "id": 1104027,
+    "nameKey": "BUFF_NAME_0101",
+    "kind": 3,
+    "icon": "Art/Buff/Isle/BrightCalyx_52",
+    "stackLimit": 8,
+    "dispellable": true
+  },
+  {
+    "id": 1104028,
+    "nameKey": "BUFF_NAME_0088",
+    "kind": 1,
+    "icon": "Art/Buff/Jasp/HollowVellum_41",
+    "stackLimit": 5,
+    "dispellable": true
+  },
+  {
+    "id": 1104029,
+    "nameKey": "BUFF_NAME_0116",
+    "kind": 1,
+    "icon": "Art/Buff/Jasp/WardedDrift_17",
+    "stackLimit": 1,
+    "dispellable": true
+  },
+  {
+    "id": 1104030,
+    "nameKey": "BUFF_NAME_0030",
+    "kind": 2,
+    "icon": "Art/Buff/Jasp/BrightDorn_53",
+    "stackLimit": 8,
+    "dispellable": false
+  },
+  {
+    "id": 1104031,
+    "nameKey": "BUFF_NAME_0018",
+    "kind": 1,
+    "icon": "Art/Buff/Isle/Umber_20",
+    "stackLimit": 5,
+    "dispellable": false
+  },
+  {
+    "id": 1104032,
+    "nameKey": "BUFF_NAME_0056",
+    "kind": 3,
+    "icon": "Art/Buff/Alder/BrightGale_56",
+    "stackLimit": 7,
+    "dispellable": true
+  },
+  {
+    "id": 1104033,
+    "nameKey": "BUFF_NAME_0131",
+    "kind": 5,
+    "icon": "Art/Buff/Lumen/BrightFenn_55",
+    "stackLimit": 2,
+    "dispellable": true
+  },
+  {
+    "id": 1104034,
+    "nameKey": "BUFF_NAME_0147",
+    "kind": 2,
+    "icon": "Art/Buff/Isle/CommonCinder_56",
+    "stackLimit": 4,
+    "dispellable": true
+  },
+  {
+    "id": 1104035,
+    "nameKey": "BUFF_NAME_0124",
+    "kind": 5,
+    "icon": "Art/Buff/Calyx/KeenCinder_86",
+    "stackLimit": 9,
+    "dispellable": false
+  },
+  {
+    "id": 1104036,
+    "nameKey": "BUFF_NAME_0005",
+    "kind": 5,
+    "icon": "Art/Buff/Alder/KeenMarrow_72",
+    "stackLimit": 2,
+    "dispellable": false
+  },
+  {
+    "id": 1104037,
+    "nameKey": "BUFF_NAME_0143",
+    "kind": 3,
+    "icon": "Art/Buff/Gale/KeenGale_66",
+    "stackLimit": 1,
+    "dispellable": true
+  },
+  {
+    "id": 1104038,
+    "nameKey": "BUFF_NAME_0175",
+    "kind": 4,
+    "icon": "Art/Buff/Ember/Elm_28",
+    "stackLimit": 3,
+    "dispellable": false
+  },
+  {
+    "id": 1104039,
+    "nameKey": "BUFF_NAME_0117",
+    "kind": 1,
+    "icon": "Art/Buff/Lumen/Lumen_11",
+    "stackLimit": 4,
+    "dispellable": false
+  },
+  {
+    "id": 1104040,
+    "nameKey": "BUFF_NAME_0040",
+    "kind": 5,
+    "icon": "Art/Buff/Calyx/BrightUmber_70",
+    "stackLimit": 6,
+    "dispellable": true
+  },
+  {
+    "id": 1104041,
+    "nameKey": "BUFF_NAME_0097",
+    "kind": 5,
+    "icon": "Art/Buff/Alder/HollowZephyr_44",
+    "stackLimit": 1,
+    "dispellable": true
+  },
+  {
+    "id": 1104042,
+    "nameKey": "BUFF_NAME_0006",
+    "kind": 3,
+    "icon": "Art/Buff/Kelvin/BrightEmber_54",
+    "stackLimit": 1,
+    "dispellable": true
+  },
+  {
+    "id": 1104043,
+    "nameKey": "BUFF_NAME_0031",
+    "kind": 2,
+    "icon": "Art/Buff/Dorn/HollowDorn_23",
+    "stackLimit": 6,
+    "dispellable": true
+  },
+  {
+    "id": 1104044,
+    "nameKey": "BUFF_NAME_0144",
+    "kind": 5,
+    "icon": "Art/Buff/Fenn/HollowFenn_25",
+    "stackLimit": 5,
+    "dispellable": true
+  }
+]

@@ -1,0 +1,7 @@
+@name	id	name	teamSize	ratingWindow	expandPerSecond	timeoutSeconds	crossRegion	state
+@type	key:43000000~43999999	text	number	number	number	number	bool	string
+:required	1	1	1	1	1	1	1	1
+:min	43000000	-	1	10	1	10	-	-
+:max	43999999	-	40	2000	200	900	-	-
+:enum	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+@gen	seq:43000000	text:400	int:1..40:zipf	int:10..2000:zipf	int:1..200:zipf	int:10..900:zipf	bool	pick:draft|review|live|retired

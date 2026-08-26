@@ -1,0 +1,4 @@
+@desc	primary index	draws before the guarantee	guaranteed grade	resets on hit
+@name	id	threshold	grade	resetOnHit
+@type	Int	Int	enum:GradeType	Bool
+@gen	seq:1904000	int:10..200	enum:GradeType	bool

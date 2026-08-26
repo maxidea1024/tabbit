@@ -1,0 +1,4 @@
+@desc	primary index	curve tier	affected stat	tick within the curve	value at the start of the step	increment per step	value at the end of the step	ceiling for this curve	balance revision
+@name	id	tierName	curveStat	tick	baseValue	stepValue	endValue	capValue	revision
+@type	Int	String	enum:StatType	Int	Int	Int	Long	Long	Int
+@gen	seq:1401000	pick:3@/3	enum:StatType@/24	cycle:/800	curve:100:17:/800	curve:4:2:/800	curve:104:19:/800	group:/800	pick:1|2|3@/3

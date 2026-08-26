@@ -1,0 +1,4 @@
+@desc	primary index	effect kind	affected stat	magnitude in permille	duration in turns	chance in permille	# design note
+@name	id	kind	stat	magnitude	duration	chance	note
+@type	Int	enum:BuffKind	enum:StatType	Int	Int	Int	String
+@gen	seq:1103000	enum:BuffKind	enum:StatType	int:-800..1800	int:0..6	int:100..1000	pick:8

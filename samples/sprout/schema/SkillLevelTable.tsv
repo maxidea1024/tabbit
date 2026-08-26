@@ -1,0 +1,4 @@
+@desc	primary index	owning skill	skill level	power in permille	upgrade cost
+@name	id	skillId	level	power	cost
+@type	Int	Int	Int	Int	Long
+@gen	seq:1102000	ref:SkillTable	cycle:15	curve:1000:85:15	curve:2000:4500:15

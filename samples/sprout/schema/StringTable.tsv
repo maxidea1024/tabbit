@@ -1,0 +1,4 @@
+@desc	string key	English	Korean	Japanese	# translation status, not exported
+@name	stringKey	en	ko	ja	status
+@type	String	String	String	String	String
+@gen	key:UI	text:1800	text:1800	text:1800	pick:Draft|Review|Final

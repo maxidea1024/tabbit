@@ -159,7 +159,7 @@ C# 안에서 왕복하면 무엇을 잘못 쓰든 제대로 읽혔습니다.
 ## 개발 / 테스트
 
 ```
-dotnet test            # 전체 회귀 스위트 — 13분 21초, 1,589개 (2026-08-23 실측)
+dotnet test            # 전체 회귀 스위트 — 15분 53초, 1,752개 (2026-08-26 실측)
 ```
 
 **전체는 푸쉬 전 한 번입니다.** 그 시간의 대부분은 아래 표의 언어별 항목 — 모든 언어의 생성 코드를
@@ -169,7 +169,7 @@ dotnet test            # 전체 회귀 스위트 — 13분 21초, 1,589개 (2026
 |무엇을 건드렸나|무엇을 돌리나|
 |--|--|
 |**생성기 · 템플릿 · 와이어 형식**|전체입니다. 그 변경은 정의상 모든 언어에 닿습니다|
-|모델·검증·임포터 — 산출물 형식이 아닌 것|`ConversionGolden` (33초)이 산출물 무변경을 판정하고, 건드린 영역의 게이트를 더합니다|
+|모델·검증·임포터 — 산출물 형식이 아닌 것|`ConversionGolden` (26초)이 산출물 무변경을 판정하고, 건드린 영역의 게이트를 더합니다|
 |**도구가 내는 메시지**|`MessageCatalog` · `TroubleshootingDoc`에 `ConversionGolden`. 메시지는 생성 코드에 실리지 않으므로 툴체인에 도달할 경로가 없습니다|
 |문서|`TroubleshootingDoc` · `DependencyDoc` · `DeploymentAdvice`|
 
@@ -255,7 +255,7 @@ set TABBIT_UE_ROOT=C:/path/to/UnrealEngine     # 언리얼 게이트를 돌릴 �
 set TABBIT_UPDATE_GOLDEN=1 && dotnet test      # 1. 골든 다시 기록
 dotnet run -c Release --project src/Tabbit.csproj -- --recipe test/reserved-words/reserved-words.json
                                                  # 2. 전 언어 비교본 다시 생성 (커밋 대상입니다)
-dotnet run -c Release --project src/Tabbit.csproj -- --recipe 출시 전 소규모 프로젝트/recipe.jsonc
+dotnet run -c Release --project src/Tabbit.csproj -- --recipe samples/sprout/recipe.jsonc
                                                  # 3. 샘플 산출물 다시 생성 (커밋 대상입니다)
 dotnet test                                      # 4. 기록 없이 검증
 ```
@@ -271,13 +271,13 @@ dotnet test                                      # 4. 기록 없이 검증
 
 3단계를 빼먹어도 스위트는 통과합니다.
 
-샘플의 커밋된 산출물은 커밋되어 있지만 어떤 게이트도 보지 않기 때문입니다.
+`samples/*/out/`은 커밋되어 있지만 어떤 게이트도 보지 않기 때문입니다.
 골든 비교의 대상은 `test/fixtures/golden/` 뿐입니다.
 
 그래서 이 단계는 절차에 적혀 있는 것만이 유일한 방어선이고, 실제로 한 번 놓친 적이 있습니다.
 C가 `envelope`을 열게 된 뒤로 샘플의 C 출력만 그 앞 버전에 남아 있었습니다.
 
-다른 샘플은 해당하지 않습니다. `대규모 라이브 서비스의 샘플/out/`에 커밋된 것은 바이너리와 JSON뿐이라 생성기와
+다른 샘플은 해당하지 않습니다. `samples/canopy/out/`에 커밋된 것은 바이너리와 JSON뿐이라 생성기와
 무관합니다.
 
 의도한 출력 변경이 있을 때는 골든을 갱신하고 git diff로 리뷰합니다.

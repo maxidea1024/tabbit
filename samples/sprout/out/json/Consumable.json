@@ -1,0 +1,134 @@
+[
+  {
+    "id": 1204000,
+    "itemId": 1201005,
+    "buffId": 1104016,
+    "cooldown": 15
+  },
+  {
+    "id": 1204001,
+    "itemId": 1201010,
+    "buffId": 1104032,
+    "cooldown": 2869
+  },
+  {
+    "id": 1204002,
+    "itemId": 1201094,
+    "buffId": 1104044,
+    "cooldown": 1916
+  },
+  {
+    "id": 1204003,
+    "itemId": 1201017,
+    "buffId": 1104014,
+    "cooldown": 3392
+  },
+  {
+    "id": 1204004,
+    "itemId": 1201102,
+    "buffId": 1104038,
+    "cooldown": 515
+  },
+  {
+    "id": 1204005,
+    "itemId": 1201096,
+    "buffId": 1104013,
+    "cooldown": 1392
+  },
+  {
+    "id": 1204006,
+    "itemId": 1201118,
+    "buffId": 1104018,
+    "cooldown": 637
+  },
+  {
+    "id": 1204007,
+    "itemId": 1201009,
+    "buffId": 1104015,
+    "cooldown": 2660
+  },
+  {
+    "id": 1204008,
+    "itemId": 1201083,
+    "buffId": 1104024,
+    "cooldown": 3395
+  },
+  {
+    "id": 1204009,
+    "itemId": 1201083,
+    "buffId": 1104014,
+    "cooldown": 2259
+  },
+  {
+    "id": 1204010,
+    "itemId": 1201081,
+    "buffId": 1104012,
+    "cooldown": 828
+  },
+  {
+    "id": 1204011,
+    "itemId": 1201044,
+    "buffId": 1104023,
+    "cooldown": 461
+  },
+  {
+    "id": 1204012,
+    "itemId": 1201020,
+    "buffId": 1104021,
+    "cooldown": 0
+  },
+  {
+    "id": 1204013,
+    "itemId": 1201014,
+    "buffId": 1104002,
+    "cooldown": 340
+  },
+  {
+    "id": 1204014,
+    "itemId": 1201008,
+    "buffId": 1104003,
+    "cooldown": 526
+  },
+  {
+    "id": 1204015,
+    "itemId": 1201061,
+    "buffId": 1104032,
+    "cooldown": 331
+  },
+  {
+    "id": 1204016,
+    "itemId": 1201075,
+    "buffId": 1104005,
+    "cooldown": 2068
+  },
+  {
+    "id": 1204017,
+    "itemId": 1201060,
+    "buffId": 1104043,
+    "cooldown": 1
+  },
+  {
+    "id": 1204018,
+    "itemId": 1201070,
+    "buffId": 1104030,
+    "cooldown": 1
+  },
+  {
+    "id": 1204019,
+    "itemId": 1201022,
+    "buffId": 1104036,
+    "cooldown": 3192
+  },
+  {
+    "id": 1204020,
+    "itemId": 1201028,
+    "buffId": 1104003,
+    "cooldown": 330
+  },
+  {
+    "id": 1204021,
+    "itemId": 1201014,
+    "buffId": 1104022,
+    "cooldown": 408
+  }
+]

@@ -1,0 +1,7 @@
+@name	id	label	value	valueKind	note	state
+@type	strkey	text	number	number	text	string
+:required	1	1	1	1	-	1
+:min	-	-	0	0	-	-
+:max	-	-	2000000000	3	-	-
+:enum	-	-	-	-	-	"draft";"review";"live";"retired"
+@gen	key:CFG	text:400	int:0..2000000000:zipf	pick:0|1|2|3	text:200	pick:draft|review|live|retired

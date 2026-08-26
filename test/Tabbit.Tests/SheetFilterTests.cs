@@ -105,10 +105,10 @@ public class SheetFilterTests
     [Fact]
     public void An_include_list_narrows_to_what_it_names_and_exclude_runs_after_it()
     {
-        var filter = Filter(includeWorkbooks: ["UWO_*"], excludeWorkbooks: ["*.xlsb"]);
+        var filter = Filter(includeWorkbooks: ["World_*"], excludeWorkbooks: ["*.xlsb"]);
 
-        Assert.True(filter.IncludesWorkbook("UWO_TownNpc.xlsx"));
-        Assert.False(filter.IncludesWorkbook("UWO_보상.xlsb"));
+        Assert.True(filter.IncludesWorkbook("World_TownNpc.xlsx"));
+        Assert.False(filter.IncludesWorkbook("World_보상.xlsb"));
         Assert.False(filter.IncludesWorkbook("Items.xlsx"));
     }
 
@@ -133,10 +133,10 @@ public class SheetFilterTests
     [Fact]
     public void A_qualified_pattern_reaches_one_workbooks_sheet_only()
     {
-        var filter = Filter(excludeSheets: ["[UWO_테이블.xlsb]Define"]);
+        var filter = Filter(excludeSheets: ["[World_테이블.xlsb]Define"]);
 
-        Assert.False(filter.Includes("UWO_테이블.xlsb", "Define"));
-        Assert.True(filter.Includes("UWO_TownNpc.xlsx", "Define"));
+        Assert.False(filter.Includes("World_테이블.xlsb", "Define"));
+        Assert.True(filter.Includes("World_TownNpc.xlsx", "Define"));
     }
 
     /// <summary>
@@ -148,8 +148,8 @@ public class SheetFilterTests
     {
         var filter = Filter(excludeSheets: ["Define"]);
 
-        Assert.False(filter.Includes("UWO_테이블.xlsb", "Define"));
-        Assert.False(filter.Includes("UWO_TownNpc.xlsx", "Define"));
+        Assert.False(filter.Includes("World_테이블.xlsb", "Define"));
+        Assert.False(filter.Includes("World_TownNpc.xlsx", "Define"));
     }
 
     /// <summary>
@@ -159,12 +159,12 @@ public class SheetFilterTests
     [Fact]
     public void Both_halves_of_a_qualified_pattern_are_globs()
     {
-        var filter = Filter(excludeSheets: ["[UWO_*.xlsb]Ref*"]);
+        var filter = Filter(excludeSheets: ["[World_*.xlsb]Ref*"]);
 
-        Assert.False(filter.Includes("UWO_보상.xlsb", "RefCharacter"));
-        Assert.False(filter.Includes("UWO_퀘스트.xlsb", "RefTownDialogue"));
-        Assert.True(filter.Includes("UWO_TownNpc.xlsx", "RefCharacter"));
-        Assert.True(filter.Includes("UWO_보상.xlsb", "RewardPath"));
+        Assert.False(filter.Includes("World_보상.xlsb", "RefCharacter"));
+        Assert.False(filter.Includes("World_퀘스트.xlsb", "RefTownDialogue"));
+        Assert.True(filter.Includes("World_TownNpc.xlsx", "RefCharacter"));
+        Assert.True(filter.Includes("World_보상.xlsb", "RewardPath"));
     }
 
     [Fact]

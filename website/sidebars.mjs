@@ -170,10 +170,10 @@ const sidebars = {
       type: 'category',
       label: '사례',
       items: [
-        'samples/rescue/doc/적용-기록',
-        'samples/named-range/doc/레이아웃-분석-20260808',
-        'samples/named-range/doc/검증-이식-견적-20260811',
-        'samples/named-range/doc/시트-확인-요청-20260818',
+        'samples/readme',
+        'samples/sprout/readme',
+        'samples/canopy/readme',
+        'samples/wildling/readme',
       ],
     },
 

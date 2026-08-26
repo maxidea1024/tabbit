@@ -1,0 +1,842 @@
+[
+  {
+    "id": 1103000,
+    "kind": 1,
+    "stat": 2,
+    "magnitude": -66,
+    "duration": 1,
+    "chance": 176
+  },
+  {
+    "id": 1103001,
+    "kind": 3,
+    "stat": 5,
+    "magnitude": 1104,
+    "duration": 2,
+    "chance": 297
+  },
+  {
+    "id": 1103002,
+    "kind": 2,
+    "stat": 7,
+    "magnitude": -740,
+    "duration": 0,
+    "chance": 644
+  },
+  {
+    "id": 1103003,
+    "kind": 3,
+    "stat": 6,
+    "magnitude": 1422,
+    "duration": 3,
+    "chance": 530
+  },
+  {
+    "id": 1103004,
+    "kind": 1,
+    "stat": 7,
+    "magnitude": -675,
+    "duration": 2,
+    "chance": 570
+  },
+  {
+    "id": 1103005,
+    "kind": 5,
+    "stat": 8,
+    "magnitude": 285,
+    "duration": 1,
+    "chance": 562
+  },
+  {
+    "id": 1103006,
+    "kind": 4,
+    "stat": 5,
+    "magnitude": 505,
+    "duration": 6,
+    "chance": 138
+  },
+  {
+    "id": 1103007,
+    "kind": 3,
+    "stat": 3,
+    "magnitude": 171,
+    "duration": 0,
+    "chance": 122
+  },
+  {
+    "id": 1103008,
+    "kind": 3,
+    "stat": 8,
+    "magnitude": 1069,
+    "duration": 0,
+    "chance": 961
+  },
+  {
+    "id": 1103009,
+    "kind": 1,
+    "stat": 1,
+    "magnitude": 115,
+    "duration": 4,
+    "chance": 494
+  },
+  {
+    "id": 1103010,
+    "kind": 5,
+    "stat": 8,
+    "magnitude": 1067,
+    "duration": 4,
+    "chance": 863
+  },
+  {
+    "id": 1103011,
+    "kind": 3,
+    "stat": 4,
+    "magnitude": 1610,
+    "duration": 0,
+    "chance": 643
+  },
+  {
+    "id": 1103012,
+    "kind": 1,
+    "stat": 2,
+    "magnitude": -44,
+    "duration": 6,
+    "chance": 310
+  },
+  {
+    "id": 1103013,
+    "kind": 3,
+    "stat": 1,
+    "magnitude": 513,
+    "duration": 0,
+    "chance": 280
+  },
+  {
+    "id": 1103014,
+    "kind": 1,
+    "stat": 2,
+    "magnitude": 29,
+    "duration": 0,
+    "chance": 158
+  },
+  {
+    "id": 1103015,
+    "kind": 4,
+    "stat": 5,
+    "magnitude": -591,
+    "duration": 3,
+    "chance": 283
+  },
+  {
+    "id": 1103016,
+    "kind": 5,
+    "stat": 1,
+    "magnitude": 1143,
+    "duration": 6,
+    "chance": 246
+  },
+  {
+    "id": 1103017,
+    "kind": 4,
+    "stat": 1,
+    "magnitude": 1276,
+    "duration": 3,
+    "chance": 798
+  },
+  {
+    "id": 1103018,
+    "kind": 1,
+    "stat": 5,
+    "magnitude": 594,
+    "duration": 6,
+    "chance": 681
+  },
+  {
+    "id": 1103019,
+    "kind": 3,
+    "stat": 3,
+    "magnitude": 742,
+    "duration": 5,
+    "chance": 359
+  },
+  {
+    "id": 1103020,
+    "kind": 3,
+    "stat": 5,
+    "magnitude": 1010,
+    "duration": 4,
+    "chance": 116
+  },
+  {
+    "id": 1103021,
+    "kind": 5,
+    "stat": 6,
+    "magnitude": 61,
+    "duration": 6,
+    "chance": 666
+  },
+  {
+    "id": 1103022,
+    "kind": 4,
+    "stat": 2,
+    "magnitude": 1362,
+    "duration": 3,
+    "chance": 938
+  },
+  {
+    "id": 1103023,
+    "kind": 2,
+    "stat": 4,
+    "magnitude": -78,
+    "duration": 1,
+    "chance": 506
+  },
+  {
+    "id": 1103024,
+    "kind": 5,
+    "stat": 6,
+    "magnitude": 1593,
+    "duration": 4,
+    "chance": 343
+  },
+  {
+    "id": 1103025,
+    "kind": 3,
+    "stat": 8,
+    "magnitude": -16,
+    "duration": 4,
+    "chance": 727
+  },
+  {
+    "id": 1103026,
+    "kind": 4,
+    "stat": 5,
+    "magnitude": 281,
+    "duration": 4,
+    "chance": 618
+  },
+  {
+    "id": 1103027,
+    "kind": 4,
+    "stat": 7,
+    "magnitude": 1476,
+    "duration": 6,
+    "chance": 578
+  },
+  {
+    "id": 1103028,
+    "kind": 4,
+    "stat": 4,
+    "magnitude": 887,
+    "duration": 4,
+    "chance": 121
+  },
+  {
+    "id": 1103029,
+    "kind": 1,
+    "stat": 8,
+    "magnitude": 835,
+    "duration": 1,
+    "chance": 762
+  },
+  {
+    "id": 1103030,
+    "kind": 3,
+    "stat": 5,
+    "magnitude": 547,
+    "duration": 4,
+    "chance": 322
+  },
+  {
+    "id": 1103031,
+    "kind": 5,
+    "stat": 4,
+    "magnitude": 266,
+    "duration": 0,
+    "chance": 410
+  },
+  {
+    "id": 1103032,
+    "kind": 1,
+    "stat": 6,
+    "magnitude": 614,
+    "duration": 5,
+    "chance": 323
+  },
+  {
+    "id": 1103033,
+    "kind": 5,
+    "stat": 7,
+    "magnitude": -440,
+    "duration": 1,
+    "chance": 766
+  },
+  {
+    "id": 1103034,
+    "kind": 1,
+    "stat": 7,
+    "magnitude": 1399,
+    "duration": 3,
+    "chance": 317
+  },
+  {
+    "id": 1103035,
+    "kind": 3,
+    "stat": 6,
+    "magnitude": -401,
+    "duration": 3,
+    "chance": 279
+  },
+  {
+    "id": 1103036,
+    "kind": 1,
+    "stat": 3,
+    "magnitude": -755,
+    "duration": 3,
+    "chance": 955
+  },
+  {
+    "id": 1103037,
+    "kind": 1,
+    "stat": 4,
+    "magnitude": -502,
+    "duration": 3,
+    "chance": 403
+  },
+  {
+    "id": 1103038,
+    "kind": 5,
+    "stat": 7,
+    "magnitude": 882,
+    "duration": 1,
+    "chance": 777
+  },
+  {
+    "id": 1103039,
+    "kind": 3,
+    "stat": 6,
+    "magnitude": 1736,
+    "duration": 0,
+    "chance": 514
+  },
+  {
+    "id": 1103040,
+    "kind": 1,
+    "stat": 1,
+    "magnitude": 847,
+    "duration": 0,
+    "chance": 721
+  },
+  {
+    "id": 1103041,
+    "kind": 2,
+    "stat": 2,
+    "magnitude": 799,
+    "duration": 1,
+    "chance": 932
+  },
+  {
+    "id": 1103042,
+    "kind": 5,
+    "stat": 2,
+    "magnitude": 918,
+    "duration": 0,
+    "chance": 776
+  },
+  {
+    "id": 1103043,
+    "kind": 3,
+    "stat": 5,
+    "magnitude": -55,
+    "duration": 3,
+    "chance": 924
+  },
+  {
+    "id": 1103044,
+    "kind": 1,
+    "stat": 4,
+    "magnitude": 1182,
+    "duration": 6,
+    "chance": 340
+  },
+  {
+    "id": 1103045,
+    "kind": 1,
+    "stat": 1,
+    "magnitude": -66,
+    "duration": 5,
+    "chance": 369
+  },
+  {
+    "id": 1103046,
+    "kind": 3,
+    "stat": 5,
+    "magnitude": 1267,
+    "duration": 6,
+    "chance": 559
+  },
+  {
+    "id": 1103047,
+    "kind": 1,
+    "stat": 3,
+    "magnitude": 1069,
+    "duration": 5,
+    "chance": 555
+  },
+  {
+    "id": 1103048,
+    "kind": 5,
+    "stat": 1,
+    "magnitude": 1616,
+    "duration": 6,
+    "chance": 424
+  },
+  {
+    "id": 1103049,
+    "kind": 4,
+    "stat": 5,
+    "magnitude": 1334,
+    "duration": 5,
+    "chance": 393
+  },
+  {
+    "id": 1103050,
+    "kind": 4,
+    "stat": 3,
+    "magnitude": 252,
+    "duration": 2,
+    "chance": 426
+  },
+  {
+    "id": 1103051,
+    "kind": 3,
+    "stat": 6,
+    "magnitude": -63,
+    "duration": 4,
+    "chance": 924
+  },
+  {
+    "id": 1103052,
+    "kind": 2,
+    "stat": 7,
+    "magnitude": 1568,
+    "duration": 4,
+    "chance": 603
+  },
+  {
+    "id": 1103053,
+    "kind": 2,
+    "stat": 1,
+    "magnitude": 1114,
+    "duration": 5,
+    "chance": 485
+  },
+  {
+    "id": 1103054,
+    "kind": 3,
+    "stat": 1,
+    "magnitude": -523,
+    "duration": 2,
+    "chance": 953
+  },
+  {
+    "id": 1103055,
+    "kind": 2,
+    "stat": 5,
+    "magnitude": 600,
+    "duration": 6,
+    "chance": 265
+  },
+  {
+    "id": 1103056,
+    "kind": 2,
+    "stat": 2,
+    "magnitude": -544,
+    "duration": 5,
+    "chance": 988
+  },
+  {
+    "id": 1103057,
+    "kind": 4,
+    "stat": 3,
+    "magnitude": -598,
+    "duration": 1,
+    "chance": 627
+  },
+  {
+    "id": 1103058,
+    "kind": 4,
+    "stat": 2,
+    "magnitude": 1661,
+    "duration": 6,
+    "chance": 795
+  },
+  {
+    "id": 1103059,
+    "kind": 1,
+    "stat": 1,
+    "magnitude": 1528,
+    "duration": 0,
+    "chance": 513
+  },
+  {
+    "id": 1103060,
+    "kind": 1,
+    "stat": 6,
+    "magnitude": 186,
+    "duration": 1,
+    "chance": 169
+  },
+  {
+    "id": 1103061,
+    "kind": 4,
+    "stat": 2,
+    "magnitude": 276,
+    "duration": 0,
+    "chance": 775
+  },
+  {
+    "id": 1103062,
+    "kind": 1,
+    "stat": 3,
+    "magnitude": 995,
+    "duration": 1,
+    "chance": 195
+  },
+  {
+    "id": 1103063,
+    "kind": 2,
+    "stat": 7,
+    "magnitude": 983,
+    "duration": 4,
+    "chance": 599
+  },
+  {
+    "id": 1103064,
+    "kind": 3,
+    "stat": 5,
+    "magnitude": 84,
+    "duration": 6,
+    "chance": 202
+  },
+  {
+    "id": 1103065,
+    "kind": 4,
+    "stat": 6,
+    "magnitude": 1418,
+    "duration": 5,
+    "chance": 191
+  },
+  {
+    "id": 1103066,
+    "kind": 2,
+    "stat": 5,
+    "magnitude": 467,
+    "duration": 5,
+    "chance": 504
+  },
+  {
+    "id": 1103067,
+    "kind": 3,
+    "stat": 7,
+    "magnitude": 1419,
+    "duration": 1,
+    "chance": 265
+  },
+  {
+    "id": 1103068,
+    "kind": 1,
+    "stat": 7,
+    "magnitude": 1364,
+    "duration": 1,
+    "chance": 995
+  },
+  {
+    "id": 1103069,
+    "kind": 2,
+    "stat": 8,
+    "magnitude": -339,
+    "duration": 5,
+    "chance": 722
+  },
+  {
+    "id": 1103070,
+    "kind": 5,
+    "stat": 3,
+    "magnitude": -83,
+    "duration": 2,
+    "chance": 758
+  },
+  {
+    "id": 1103071,
+    "kind": 2,
+    "stat": 5,
+    "magnitude": 51,
+    "duration": 6,
+    "chance": 688
+  },
+  {
+    "id": 1103072,
+    "kind": 2,
+    "stat": 1,
+    "magnitude": 1007,
+    "duration": 3,
+    "chance": 293
+  },
+  {
+    "id": 1103073,
+    "kind": 2,
+    "stat": 3,
+    "magnitude": -679,
+    "duration": 1,
+    "chance": 643
+  },
+  {
+    "id": 1103074,
+    "kind": 5,
+    "stat": 2,
+    "magnitude": 1313,
+    "duration": 5,
+    "chance": 999
+  },
+  {
+    "id": 1103075,
+    "kind": 4,
+    "stat": 1,
+    "magnitude": -134,
+    "duration": 4,
+    "chance": 945
+  },
+  {
+    "id": 1103076,
+    "kind": 3,
+    "stat": 1,
+    "magnitude": 363,
+    "duration": 3,
+    "chance": 827
+  },
+  {
+    "id": 1103077,
+    "kind": 5,
+    "stat": 3,
+    "magnitude": 434,
+    "duration": 6,
+    "chance": 194
+  },
+  {
+    "id": 1103078,
+    "kind": 2,
+    "stat": 3,
+    "magnitude": 1626,
+    "duration": 3,
+    "chance": 331
+  },
+  {
+    "id": 1103079,
+    "kind": 1,
+    "stat": 7,
+    "magnitude": -526,
+    "duration": 0,
+    "chance": 877
+  },
+  {
+    "id": 1103080,
+    "kind": 1,
+    "stat": 8,
+    "magnitude": -275,
+    "duration": 2,
+    "chance": 561
+  },
+  {
+    "id": 1103081,
+    "kind": 1,
+    "stat": 4,
+    "magnitude": 380,
+    "duration": 4,
+    "chance": 728
+  },
+  {
+    "id": 1103082,
+    "kind": 5,
+    "stat": 3,
+    "magnitude": -457,
+    "duration": 3,
+    "chance": 345
+  },
+  {
+    "id": 1103083,
+    "kind": 3,
+    "stat": 3,
+    "magnitude": 887,
+    "duration": 3,
+    "chance": 846
+  },
+  {
+    "id": 1103084,
+    "kind": 3,
+    "stat": 7,
+    "magnitude": 744,
+    "duration": 3,
+    "chance": 299
+  },
+  {
+    "id": 1103085,
+    "kind": 2,
+    "stat": 1,
+    "magnitude": 1723,
+    "duration": 5,
+    "chance": 847
+  },
+  {
+    "id": 1103086,
+    "kind": 4,
+    "stat": 4,
+    "magnitude": 1745,
+    "duration": 5,
+    "chance": 287
+  },
+  {
+    "id": 1103087,
+    "kind": 4,
+    "stat": 4,
+    "magnitude": 1203,
+    "duration": 0,
+    "chance": 914
+  },
+  {
+    "id": 1103088,
+    "kind": 3,
+    "stat": 3,
+    "magnitude": 1612,
+    "duration": 6,
+    "chance": 532
+  },
+  {
+    "id": 1103089,
+    "kind": 3,
+    "stat": 6,
+    "magnitude": -681,
+    "duration": 0,
+    "chance": 133
+  },
+  {
+    "id": 1103090,
+    "kind": 4,
+    "stat": 5,
+    "magnitude": -106,
+    "duration": 4,
+    "chance": 606
+  },
+  {
+    "id": 1103091,
+    "kind": 4,
+    "stat": 3,
+    "magnitude": 1692,
+    "duration": 1,
+    "chance": 618
+  },
+  {
+    "id": 1103092,
+    "kind": 2,
+    "stat": 3,
+    "magnitude": -130,
+    "duration": 4,
+    "chance": 439
+  },
+  {
+    "id": 1103093,
+    "kind": 1,
+    "stat": 1,
+    "magnitude": -667,
+    "duration": 0,
+    "chance": 660
+  },
+  {
+    "id": 1103094,
+    "kind": 1,
+    "stat": 8,
+    "magnitude": 626,
+    "duration": 5,
+    "chance": 412
+  },
+  {
+    "id": 1103095,
+    "kind": 2,
+    "stat": 7,
+    "magnitude": -522,
+    "duration": 2,
+    "chance": 950
+  },
+  {
+    "id": 1103096,
+    "kind": 4,
+    "stat": 4,
+    "magnitude": 69,
+    "duration": 6,
+    "chance": 763
+  },
+  {
+    "id": 1103097,
+    "kind": 2,
+    "stat": 1,
+    "magnitude": 1386,
+    "duration": 0,
+    "chance": 738
+  },
+  {
+    "id": 1103098,
+    "kind": 4,
+    "stat": 4,
+    "magnitude": 569,
+    "duration": 6,
+    "chance": 514
+  },
+  {
+    "id": 1103099,
+    "kind": 5,
+    "stat": 4,
+    "magnitude": 1104,
+    "duration": 4,
+    "chance": 495
+  },
+  {
+    "id": 1103100,
+    "kind": 2,
+    "stat": 8,
+    "magnitude": 140,
+    "duration": 5,
+    "chance": 634
+  },
+  {
+    "id": 1103101,
+    "kind": 4,
+    "stat": 5,
+    "magnitude": 342,
+    "duration": 3,
+    "chance": 608
+  },
+  {
+    "id": 1103102,
+    "kind": 4,
+    "stat": 1,
+    "magnitude": -633,
+    "duration": 3,
+    "chance": 806
+  },
+  {
+    "id": 1103103,
+    "kind": 2,
+    "stat": 3,
+    "magnitude": -93,
+    "duration": 3,
+    "chance": 645
+  },
+  {
+    "id": 1103104,
+    "kind": 1,
+    "stat": 1,
+    "magnitude": 404,
+    "duration": 5,
+    "chance": 661
+  }
+]

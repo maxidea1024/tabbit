@@ -1,0 +1,762 @@
+[
+  {
+    "id": 1602000,
+    "questId": 1601046,
+    "stepOrder": 0,
+    "conditionId": 2401030,
+    "targetCount": 5,
+    "dialogueId": 2301003
+  },
+  {
+    "id": 1602001,
+    "questId": 1601010,
+    "stepOrder": 1,
+    "conditionId": 2401027,
+    "targetCount": 39,
+    "dialogueId": 2301031
+  },
+  {
+    "id": 1602002,
+    "questId": 1601027,
+    "stepOrder": 2,
+    "conditionId": 2401026,
+    "targetCount": 1,
+    "dialogueId": 2301008
+  },
+  {
+    "id": 1602003,
+    "questId": 1601028,
+    "stepOrder": 3,
+    "conditionId": 2401004,
+    "targetCount": 31,
+    "dialogueId": 2301032
+  },
+  {
+    "id": 1602004,
+    "questId": 1601024,
+    "stepOrder": 0,
+    "conditionId": 2401015,
+    "targetCount": 10,
+    "dialogueId": 2301007
+  },
+  {
+    "id": 1602005,
+    "questId": 1601025,
+    "stepOrder": 1,
+    "conditionId": 2401030,
+    "targetCount": 17,
+    "dialogueId": 2301012
+  },
+  {
+    "id": 1602006,
+    "questId": 1601001,
+    "stepOrder": 2,
+    "conditionId": 2401024,
+    "targetCount": 7,
+    "dialogueId": 2301025
+  },
+  {
+    "id": 1602007,
+    "questId": 1601019,
+    "stepOrder": 3,
+    "conditionId": 2401035,
+    "targetCount": 2,
+    "dialogueId": 2301019
+  },
+  {
+    "id": 1602008,
+    "questId": 1601035,
+    "stepOrder": 0,
+    "conditionId": 2401027,
+    "targetCount": 96,
+    "dialogueId": 2301023
+  },
+  {
+    "id": 1602009,
+    "questId": 1601003,
+    "stepOrder": 1,
+    "conditionId": 2401008,
+    "targetCount": 1,
+    "dialogueId": 2301033
+  },
+  {
+    "id": 1602010,
+    "questId": 1601038,
+    "stepOrder": 2,
+    "conditionId": 2401022,
+    "targetCount": 40,
+    "dialogueId": 2301012
+  },
+  {
+    "id": 1602011,
+    "questId": 1601015,
+    "stepOrder": 3,
+    "conditionId": 2401026,
+    "targetCount": 9,
+    "dialogueId": 2301002
+  },
+  {
+    "id": 1602012,
+    "questId": 1601007,
+    "stepOrder": 0,
+    "conditionId": 2401015,
+    "targetCount": 385,
+    "dialogueId": 2301001
+  },
+  {
+    "id": 1602013,
+    "questId": 1601000,
+    "stepOrder": 1,
+    "conditionId": 2401040,
+    "targetCount": 277,
+    "dialogueId": 2301035
+  },
+  {
+    "id": 1602014,
+    "questId": 1601050,
+    "stepOrder": 2,
+    "conditionId": 2401028,
+    "targetCount": 1,
+    "dialogueId": 2301013
+  },
+  {
+    "id": 1602015,
+    "questId": 1601039,
+    "stepOrder": 3,
+    "conditionId": 2401034,
+    "targetCount": 72,
+    "dialogueId": 2301002
+  },
+  {
+    "id": 1602016,
+    "questId": 1601008,
+    "stepOrder": 0,
+    "conditionId": 2401020,
+    "targetCount": 11,
+    "dialogueId": 2301000
+  },
+  {
+    "id": 1602017,
+    "questId": 1601046,
+    "stepOrder": 1,
+    "conditionId": 2401013,
+    "targetCount": 61,
+    "dialogueId": 2301017
+  },
+  {
+    "id": 1602018,
+    "questId": 1601021,
+    "stepOrder": 2,
+    "conditionId": 2401007,
+    "targetCount": 23,
+    "dialogueId": 2301009
+  },
+  {
+    "id": 1602019,
+    "questId": 1601022,
+    "stepOrder": 3,
+    "conditionId": 2401017,
+    "targetCount": 4,
+    "dialogueId": 2301039
+  },
+  {
+    "id": 1602020,
+    "questId": 1601038,
+    "stepOrder": 0,
+    "conditionId": 2401031,
+    "targetCount": 229,
+    "dialogueId": 2301015
+  },
+  {
+    "id": 1602021,
+    "questId": 1601016,
+    "stepOrder": 1,
+    "conditionId": 2401019,
+    "targetCount": 410,
+    "dialogueId": 2301001
+  },
+  {
+    "id": 1602022,
+    "questId": 1601014,
+    "stepOrder": 2,
+    "conditionId": 2401010,
+    "targetCount": 453,
+    "dialogueId": 2301038
+  },
+  {
+    "id": 1602023,
+    "questId": 1601016,
+    "stepOrder": 3,
+    "conditionId": 2401011,
+    "targetCount": 85,
+    "dialogueId": 2301025
+  },
+  {
+    "id": 1602024,
+    "questId": 1601019,
+    "stepOrder": 0,
+    "conditionId": 2401025,
+    "targetCount": 50,
+    "dialogueId": 2301015
+  },
+  {
+    "id": 1602025,
+    "questId": 1601018,
+    "stepOrder": 1,
+    "conditionId": 2401008,
+    "targetCount": 32,
+    "dialogueId": 2301035
+  },
+  {
+    "id": 1602026,
+    "questId": 1601039,
+    "stepOrder": 2,
+    "conditionId": 2401021,
+    "targetCount": 2,
+    "dialogueId": 2301014
+  },
+  {
+    "id": 1602027,
+    "questId": 1601012,
+    "stepOrder": 3,
+    "conditionId": 2401037,
+    "targetCount": 28,
+    "dialogueId": 2301039
+  },
+  {
+    "id": 1602028,
+    "questId": 1601002,
+    "stepOrder": 0,
+    "conditionId": 2401029,
+    "targetCount": 21,
+    "dialogueId": 2301039
+  },
+  {
+    "id": 1602029,
+    "questId": 1601013,
+    "stepOrder": 1,
+    "conditionId": 2401036,
+    "targetCount": 167,
+    "dialogueId": 2301009
+  },
+  {
+    "id": 1602030,
+    "questId": 1601036,
+    "stepOrder": 2,
+    "conditionId": 2401004,
+    "targetCount": 40,
+    "dialogueId": 2301006
+  },
+  {
+    "id": 1602031,
+    "questId": 1601036,
+    "stepOrder": 3,
+    "conditionId": 2401024,
+    "targetCount": 18,
+    "dialogueId": 2301037
+  },
+  {
+    "id": 1602032,
+    "questId": 1601008,
+    "stepOrder": 0,
+    "conditionId": 2401025,
+    "targetCount": 14,
+    "dialogueId": 2301003
+  },
+  {
+    "id": 1602033,
+    "questId": 1601039,
+    "stepOrder": 1,
+    "conditionId": 2401033,
+    "targetCount": 458,
+    "dialogueId": 2301008
+  },
+  {
+    "id": 1602034,
+    "questId": 1601051,
+    "stepOrder": 2,
+    "conditionId": 2401025,
+    "targetCount": 1,
+    "dialogueId": 2301036
+  },
+  {
+    "id": 1602035,
+    "questId": 1601018,
+    "stepOrder": 3,
+    "conditionId": 2401012,
+    "targetCount": 80,
+    "dialogueId": 2301030
+  },
+  {
+    "id": 1602036,
+    "questId": 1601046,
+    "stepOrder": 0,
+    "conditionId": 2401018,
+    "targetCount": 3,
+    "dialogueId": 2301016
+  },
+  {
+    "id": 1602037,
+    "questId": 1601039,
+    "stepOrder": 1,
+    "conditionId": 2401044,
+    "targetCount": 61,
+    "dialogueId": 2301022
+  },
+  {
+    "id": 1602038,
+    "questId": 1601015,
+    "stepOrder": 2,
+    "conditionId": 2401019,
+    "targetCount": 135,
+    "dialogueId": 2301020
+  },
+  {
+    "id": 1602039,
+    "questId": 1601027,
+    "stepOrder": 3,
+    "conditionId": 2401016,
+    "targetCount": 40,
+    "dialogueId": 2301026
+  },
+  {
+    "id": 1602040,
+    "questId": 1601011,
+    "stepOrder": 0,
+    "conditionId": 2401024,
+    "targetCount": 3,
+    "dialogueId": 2301019
+  },
+  {
+    "id": 1602041,
+    "questId": 1601052,
+    "stepOrder": 1,
+    "conditionId": 2401027,
+    "targetCount": 183,
+    "dialogueId": 2301015
+  },
+  {
+    "id": 1602042,
+    "questId": 1601009,
+    "stepOrder": 2,
+    "conditionId": 2401008,
+    "targetCount": 5,
+    "dialogueId": 2301009
+  },
+  {
+    "id": 1602043,
+    "questId": 1601002,
+    "stepOrder": 3,
+    "conditionId": 2401032,
+    "targetCount": 40,
+    "dialogueId": 2301022
+  },
+  {
+    "id": 1602044,
+    "questId": 1601044,
+    "stepOrder": 0,
+    "conditionId": 2401043,
+    "targetCount": 1,
+    "dialogueId": 2301031
+  },
+  {
+    "id": 1602045,
+    "questId": 1601032,
+    "stepOrder": 1,
+    "conditionId": 2401021,
+    "targetCount": 118,
+    "dialogueId": 2301001
+  },
+  {
+    "id": 1602046,
+    "questId": 1601007,
+    "stepOrder": 2,
+    "conditionId": 2401034,
+    "targetCount": 5,
+    "dialogueId": 2301006
+  },
+  {
+    "id": 1602047,
+    "questId": 1601025,
+    "stepOrder": 3,
+    "conditionId": 2401016,
+    "targetCount": 81,
+    "dialogueId": 2301029
+  },
+  {
+    "id": 1602048,
+    "questId": 1601029,
+    "stepOrder": 0,
+    "conditionId": 2401012,
+    "targetCount": 81,
+    "dialogueId": 2301021
+  },
+  {
+    "id": 1602049,
+    "questId": 1601040,
+    "stepOrder": 1,
+    "conditionId": 2401020,
+    "targetCount": 1,
+    "dialogueId": 2301014
+  },
+  {
+    "id": 1602050,
+    "questId": 1601041,
+    "stepOrder": 2,
+    "conditionId": 2401010,
+    "targetCount": 41,
+    "dialogueId": 2301027
+  },
+  {
+    "id": 1602051,
+    "questId": 1601019,
+    "stepOrder": 3,
+    "conditionId": 2401017,
+    "targetCount": 1,
+    "dialogueId": 2301014
+  },
+  {
+    "id": 1602052,
+    "questId": 1601032,
+    "stepOrder": 0,
+    "conditionId": 2401033,
+    "targetCount": 2,
+    "dialogueId": 2301003
+  },
+  {
+    "id": 1602053,
+    "questId": 1601015,
+    "stepOrder": 1,
+    "conditionId": 2401036,
+    "targetCount": 120,
+    "dialogueId": 2301002
+  },
+  {
+    "id": 1602054,
+    "questId": 1601045,
+    "stepOrder": 2,
+    "conditionId": 2401034,
+    "targetCount": 94,
+    "dialogueId": 2301033
+  },
+  {
+    "id": 1602055,
+    "questId": 1601020,
+    "stepOrder": 3,
+    "conditionId": 2401032,
+    "targetCount": 13,
+    "dialogueId": 2301031
+  },
+  {
+    "id": 1602056,
+    "questId": 1601020,
+    "stepOrder": 0,
+    "conditionId": 2401029,
+    "targetCount": 4,
+    "dialogueId": 2301016
+  },
+  {
+    "id": 1602057,
+    "questId": 1601032,
+    "stepOrder": 1,
+    "conditionId": 2401017,
+    "targetCount": 1,
+    "dialogueId": 2301037
+  },
+  {
+    "id": 1602058,
+    "questId": 1601036,
+    "stepOrder": 2,
+    "conditionId": 2401008,
+    "targetCount": 40,
+    "dialogueId": 2301013
+  },
+  {
+    "id": 1602059,
+    "questId": 1601003,
+    "stepOrder": 3,
+    "conditionId": 2401036,
+    "targetCount": 339,
+    "dialogueId": 2301035
+  },
+  {
+    "id": 1602060,
+    "questId": 1601050,
+    "stepOrder": 0,
+    "conditionId": 2401034,
+    "targetCount": 105,
+    "dialogueId": 2301009
+  },
+  {
+    "id": 1602061,
+    "questId": 1601045,
+    "stepOrder": 1,
+    "conditionId": 2401029,
+    "targetCount": 18,
+    "dialogueId": 2301031
+  },
+  {
+    "id": 1602062,
+    "questId": 1601009,
+    "stepOrder": 2,
+    "conditionId": 2401020,
+    "targetCount": 57,
+    "dialogueId": 2301024
+  },
+  {
+    "id": 1602063,
+    "questId": 1601017,
+    "stepOrder": 3,
+    "conditionId": 2401007,
+    "targetCount": 308,
+    "dialogueId": 2301019
+  },
+  {
+    "id": 1602064,
+    "questId": 1601015,
+    "stepOrder": 0,
+    "conditionId": 2401027,
+    "targetCount": 4,
+    "dialogueId": 2301039
+  },
+  {
+    "id": 1602065,
+    "questId": 1601022,
+    "stepOrder": 1,
+    "conditionId": 2401004,
+    "targetCount": 9,
+    "dialogueId": 2301007
+  },
+  {
+    "id": 1602066,
+    "questId": 1601044,
+    "stepOrder": 2,
+    "conditionId": 2401038,
+    "targetCount": 8,
+    "dialogueId": 2301007
+  },
+  {
+    "id": 1602067,
+    "questId": 1601042,
+    "stepOrder": 3,
+    "conditionId": 2401029,
+    "targetCount": 24,
+    "dialogueId": 2301022
+  },
+  {
+    "id": 1602068,
+    "questId": 1601012,
+    "stepOrder": 0,
+    "conditionId": 2401017,
+    "targetCount": 266,
+    "dialogueId": 2301012
+  },
+  {
+    "id": 1602069,
+    "questId": 1601033,
+    "stepOrder": 1,
+    "conditionId": 2401016,
+    "targetCount": 306,
+    "dialogueId": 2301032
+  },
+  {
+    "id": 1602070,
+    "questId": 1601017,
+    "stepOrder": 2,
+    "conditionId": 2401036,
+    "targetCount": 24,
+    "dialogueId": 2301030
+  },
+  {
+    "id": 1602071,
+    "questId": 1601046,
+    "stepOrder": 3,
+    "conditionId": 2401011,
+    "targetCount": 4,
+    "dialogueId": 2301023
+  },
+  {
+    "id": 1602072,
+    "questId": 1601036,
+    "stepOrder": 0,
+    "conditionId": 2401042,
+    "targetCount": 2,
+    "dialogueId": 2301016
+  },
+  {
+    "id": 1602073,
+    "questId": 1601002,
+    "stepOrder": 1,
+    "conditionId": 2401023,
+    "targetCount": 252,
+    "dialogueId": 2301027
+  },
+  {
+    "id": 1602074,
+    "questId": 1601053,
+    "stepOrder": 2,
+    "conditionId": 2401009,
+    "targetCount": 344,
+    "dialogueId": 2301033
+  },
+  {
+    "id": 1602075,
+    "questId": 1601042,
+    "stepOrder": 3,
+    "conditionId": 2401013,
+    "targetCount": 279,
+    "dialogueId": 2301025
+  },
+  {
+    "id": 1602076,
+    "questId": 1601025,
+    "stepOrder": 0,
+    "conditionId": 2401042,
+    "targetCount": 56,
+    "dialogueId": 2301027
+  },
+  {
+    "id": 1602077,
+    "questId": 1601038,
+    "stepOrder": 1,
+    "conditionId": 2401002,
+    "targetCount": 196,
+    "dialogueId": 2301013
+  },
+  {
+    "id": 1602078,
+    "questId": 1601044,
+    "stepOrder": 2,
+    "conditionId": 2401028,
+    "targetCount": 22,
+    "dialogueId": 2301022
+  },
+  {
+    "id": 1602079,
+    "questId": 1601006,
+    "stepOrder": 3,
+    "conditionId": 2401002,
+    "targetCount": 488,
+    "dialogueId": 2301028
+  },
+  {
+    "id": 1602080,
+    "questId": 1601007,
+    "stepOrder": 0,
+    "conditionId": 2401037,
+    "targetCount": 447,
+    "dialogueId": 2301038
+  },
+  {
+    "id": 1602081,
+    "questId": 1601021,
+    "stepOrder": 1,
+    "conditionId": 2401026,
+    "targetCount": 346,
+    "dialogueId": 2301016
+  },
+  {
+    "id": 1602082,
+    "questId": 1601010,
+    "stepOrder": 2,
+    "conditionId": 2401016,
+    "targetCount": 133,
+    "dialogueId": 2301001
+  },
+  {
+    "id": 1602083,
+    "questId": 1601019,
+    "stepOrder": 3,
+    "conditionId": 2401035,
+    "targetCount": 25,
+    "dialogueId": 2301004
+  },
+  {
+    "id": 1602084,
+    "questId": 1601011,
+    "stepOrder": 0,
+    "conditionId": 2401020,
+    "targetCount": 477,
+    "dialogueId": 2301025
+  },
+  {
+    "id": 1602085,
+    "questId": 1601048,
+    "stepOrder": 1,
+    "conditionId": 2401035,
+    "targetCount": 451,
+    "dialogueId": 2301010
+  },
+  {
+    "id": 1602086,
+    "questId": 1601038,
+    "stepOrder": 2,
+    "conditionId": 2401037,
+    "targetCount": 41,
+    "dialogueId": 2301011
+  },
+  {
+    "id": 1602087,
+    "questId": 1601012,
+    "stepOrder": 3,
+    "conditionId": 2401015,
+    "targetCount": 4,
+    "dialogueId": 2301020
+  },
+  {
+    "id": 1602088,
+    "questId": 1601016,
+    "stepOrder": 0,
+    "conditionId": 2401041,
+    "targetCount": 31,
+    "dialogueId": 2301009
+  },
+  {
+    "id": 1602089,
+    "questId": 1601009,
+    "stepOrder": 1,
+    "conditionId": 2401005,
+    "targetCount": 250,
+    "dialogueId": 2301006
+  },
+  {
+    "id": 1602090,
+    "questId": 1601044,
+    "stepOrder": 2,
+    "conditionId": 2401032,
+    "targetCount": 38,
+    "dialogueId": 2301025
+  },
+  {
+    "id": 1602091,
+    "questId": 1601026,
+    "stepOrder": 3,
+    "conditionId": 2401020,
+    "targetCount": 41,
+    "dialogueId": 2301013
+  },
+  {
+    "id": 1602092,
+    "questId": 1601046,
+    "stepOrder": 0,
+    "conditionId": 2401016,
+    "targetCount": 15,
+    "dialogueId": 2301002
+  },
+  {
+    "id": 1602093,
+    "questId": 1601047,
+    "stepOrder": 1,
+    "conditionId": 2401018,
+    "targetCount": 58,
+    "dialogueId": 2301036
+  },
+  {
+    "id": 1602094,
+    "questId": 1601042,
+    "stepOrder": 2,
+    "conditionId": 2401014,
+    "targetCount": 101,
+    "dialogueId": 2301021
+  }
+]

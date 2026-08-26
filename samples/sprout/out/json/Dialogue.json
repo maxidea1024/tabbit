@@ -1,0 +1,242 @@
+[
+  {
+    "id": 2301000,
+    "sceneKey": "SCENE_0075",
+    "cutsceneId": 2303011,
+    "skippable": true
+  },
+  {
+    "id": 2301001,
+    "sceneKey": "SCENE_0001",
+    "cutsceneId": 2303010,
+    "skippable": true
+  },
+  {
+    "id": 2301002,
+    "sceneKey": "SCENE_0098",
+    "cutsceneId": 2303011,
+    "skippable": false
+  },
+  {
+    "id": 2301003,
+    "sceneKey": "SCENE_0058",
+    "cutsceneId": 2303008,
+    "skippable": false
+  },
+  {
+    "id": 2301004,
+    "sceneKey": "SCENE_0153",
+    "cutsceneId": 2303010,
+    "skippable": true
+  },
+  {
+    "id": 2301005,
+    "sceneKey": "SCENE_0030",
+    "cutsceneId": 2303006,
+    "skippable": false
+  },
+  {
+    "id": 2301006,
+    "sceneKey": "SCENE_0092",
+    "cutsceneId": 2303006,
+    "skippable": true
+  },
+  {
+    "id": 2301007,
+    "sceneKey": "SCENE_0057",
+    "cutsceneId": 2303002,
+    "skippable": false
+  },
+  {
+    "id": 2301008,
+    "sceneKey": "SCENE_0049",
+    "cutsceneId": 2303006,
+    "skippable": true
+  },
+  {
+    "id": 2301009,
+    "sceneKey": "SCENE_0041",
+    "cutsceneId": 2303009,
+    "skippable": false
+  },
+  {
+    "id": 2301010,
+    "sceneKey": "SCENE_0054",
+    "cutsceneId": 2303003,
+    "skippable": true
+  },
+  {
+    "id": 2301011,
+    "sceneKey": "SCENE_0089",
+    "cutsceneId": 2303003,
+    "skippable": false
+  },
+  {
+    "id": 2301012,
+    "sceneKey": "SCENE_0119",
+    "cutsceneId": 2303004,
+    "skippable": false
+  },
+  {
+    "id": 2301013,
+    "sceneKey": "SCENE_0117",
+    "cutsceneId": 2303010,
+    "skippable": false
+  },
+  {
+    "id": 2301014,
+    "sceneKey": "SCENE_0013",
+    "cutsceneId": 2303005,
+    "skippable": true
+  },
+  {
+    "id": 2301015,
+    "sceneKey": "SCENE_0148",
+    "cutsceneId": 2303003,
+    "skippable": true
+  },
+  {
+    "id": 2301016,
+    "sceneKey": "SCENE_0061",
+    "cutsceneId": 2303007,
+    "skippable": true
+  },
+  {
+    "id": 2301017,
+    "sceneKey": "SCENE_0129",
+    "cutsceneId": 2303005,
+    "skippable": true
+  },
+  {
+    "id": 2301018,
+    "sceneKey": "SCENE_0116",
+    "cutsceneId": 2303005,
+    "skippable": true
+  },
+  {
+    "id": 2301019,
+    "sceneKey": "SCENE_0125",
+    "cutsceneId": 2303000,
+    "skippable": true
+  },
+  {
+    "id": 2301020,
+    "sceneKey": "SCENE_0150",
+    "cutsceneId": 2303007,
+    "skippable": true
+  },
+  {
+    "id": 2301021,
+    "sceneKey": "SCENE_0065",
+    "cutsceneId": 2303005,
+    "skippable": true
+  },
+  {
+    "id": 2301022,
+    "sceneKey": "SCENE_0073",
+    "cutsceneId": 2303006,
+    "skippable": true
+  },
+  {
+    "id": 2301023,
+    "sceneKey": "SCENE_0102",
+    "cutsceneId": 2303011,
+    "skippable": false
+  },
+  {
+    "id": 2301024,
+    "sceneKey": "SCENE_0008",
+    "cutsceneId": 2303011,
+    "skippable": false
+  },
+  {
+    "id": 2301025,
+    "sceneKey": "SCENE_0007",
+    "cutsceneId": 2303006,
+    "skippable": false
+  },
+  {
+    "id": 2301026,
+    "sceneKey": "SCENE_0151",
+    "cutsceneId": 2303005,
+    "skippable": true
+  },
+  {
+    "id": 2301027,
+    "sceneKey": "SCENE_0057",
+    "cutsceneId": 2303002,
+    "skippable": true
+  },
+  {
+    "id": 2301028,
+    "sceneKey": "SCENE_0075",
+    "cutsceneId": 2303009,
+    "skippable": false
+  },
+  {
+    "id": 2301029,
+    "sceneKey": "SCENE_0025",
+    "cutsceneId": 2303010,
+    "skippable": true
+  },
+  {
+    "id": 2301030,
+    "sceneKey": "SCENE_0089",
+    "cutsceneId": 2303008,
+    "skippable": true
+  },
+  {
+    "id": 2301031,
+    "sceneKey": "SCENE_0084",
+    "cutsceneId": 2303008,
+    "skippable": true
+  },
+  {
+    "id": 2301032,
+    "sceneKey": "SCENE_0028",
+    "cutsceneId": 2303006,
+    "skippable": false
+  },
+  {
+    "id": 2301033,
+    "sceneKey": "SCENE_0055",
+    "cutsceneId": 2303008,
+    "skippable": false
+  },
+  {
+    "id": 2301034,
+    "sceneKey": "SCENE_0016",
+    "cutsceneId": 2303002,
+    "skippable": false
+  },
+  {
+    "id": 2301035,
+    "sceneKey": "SCENE_0007",
+    "cutsceneId": 2303003,
+    "skippable": true
+  },
+  {
+    "id": 2301036,
+    "sceneKey": "SCENE_0055",
+    "cutsceneId": 2303000,
+    "skippable": true
+  },
+  {
+    "id": 2301037,
+    "sceneKey": "SCENE_0141",
+    "cutsceneId": 2303004,
+    "skippable": true
+  },
+  {
+    "id": 2301038,
+    "sceneKey": "SCENE_0031",
+    "cutsceneId": 2303008,
+    "skippable": true
+  },
+  {
+    "id": 2301039,
+    "sceneKey": "SCENE_0095",
+    "cutsceneId": 2303005,
+    "skippable": true
+  }
+]

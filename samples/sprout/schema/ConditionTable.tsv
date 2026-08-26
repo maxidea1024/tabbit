@@ -1,0 +1,4 @@
+@desc	primary index	condition kind	compared value	referenced table row, 0 for none	description key
+@name	id	type	value	targetId	descKey
+@type	Int	enum:ConditionType	Int	Int	String
+@gen	seq:2401000	enum:ConditionType	int:1..5000:zipf	int:0..2000000:zipf	str:COND_DESC:180

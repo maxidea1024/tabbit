@@ -1,0 +1,8 @@
+@name	id	groupId	subjectId	minCount	maxCount	weight	state
+@type	key:18000000~18999999	number	number	number	number	number	string
+:required	1	1	1	1	1	1	1
+:min	18000000	17000000	-	1	200	1	-
+:max	18999999	17999999	-	200	9000	9000	-
+:enum	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:links	-	"Loot"	"Item"\n"Cosmetic"\n"Currency"	-	-	-	-
+@gen	seq:18000000	ref:Loot	ref:Item	int:1..200:zipf	int:200..9000:zipf	int:1..9000:zipf	pick:draft|review|live|retired

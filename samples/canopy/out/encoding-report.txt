@@ -1,0 +1,310 @@
+TCB encoding report
+===================
+
+Totals
+  tables    516
+  columns   4493
+  unencoded 3,478,414
+  encoded   1,052,206  (30.2 % of unencoded)
+  deflated  716,608  (68.1 % of encoded)  - what a compression layer over the chosen blocks would come to
+
+By encoding
+  encoding        columns        bytes    share
+  DICT_SEG           484      411,803   39.1 %
+  ARRAY              269      290,202   27.6 %
+  DICT_FRONT         488      146,369   13.9 %
+  WHOLE             1886      123,970   11.8 %
+  DICT               514       39,650    3.8 %
+  RAW                115       32,478    3.1 %
+  BITPACK            187        4,431    0.4 %
+  DELTA_RLE          514        3,127    0.3 %
+  RLE                 34          136    0.0 %
+  DICT_RLE             2           40    0.0 %
+
+By element
+  element         columns    unencoded        bytes    share
+  string            1521    1,431,634      621,672   59.1 %
+  f64               2229    1,935,891      422,729   40.2 %
+  i32                514       91,644        3,127    0.3 %
+  i64                 34        9,232        2,759    0.3 %
+  bool               195       10,013        1,919    0.2 %
+
+Largest columns (40 of 4493)
+
+  SystemMatrix.Value  [f64[]]  219 rows
+    chosen ARRAY  184,120  (21.8 % of unencoded)
+    candidates RAW 844,902  ·  ARRAY 184,120
+
+  SystemText.En  [string]  900 rows
+    chosen DICT_SEG  13,893  (44.5 % of unencoded)
+    candidates RAW 31,207  ·  DICT 26,833  ·  DICT_RLE 27,730  ·  DICT_FRONT 18,385  ·  DICT_FRONT_RLE 19,283  ·  DICT_SEG 13,893  ·  DICT_SEG_RLE 14,790
+
+  SystemText.Ja  [string]  900 rows
+    chosen DICT_SEG  13,870  (44.2 % of unencoded)
+    candidates RAW 31,367  ·  DICT 27,123  ·  DICT_RLE 28,020  ·  DICT_FRONT 18,431  ·  DICT_FRONT_RLE 19,328  ·  DICT_SEG 13,870  ·  DICT_SEG_RLE 14,767
+
+  SystemText.Zh  [string]  900 rows
+    chosen DICT_SEG  13,556  (43.4 % of unencoded)
+    candidates RAW 31,266  ·  DICT 26,067  ·  DICT_RLE 26,967  ·  DICT_FRONT 17,812  ·  DICT_FRONT_RLE 18,712  ·  DICT_SEG 13,556  ·  DICT_SEG_RLE 14,456
+
+  SystemText.Ko  [string]  900 rows
+    chosen DICT_SEG  13,503  (43.0 % of unencoded)
+    candidates RAW 31,389  ·  DICT 26,244  ·  DICT_RLE 27,142  ·  DICT_FRONT 17,867  ·  DICT_FRONT_RLE 18,764  ·  DICT_SEG 13,503  ·  DICT_SEG_RLE 14,401
+
+  EnchantRecipe3.Material.ItemId  [f64[]]  897 rows
+    chosen ARRAY  11,140  (30.3 % of unencoded)
+    candidates RAW 36,777  ·  ARRAY 11,140
+
+  ProfessionRecipe3.Material.ItemId  [f64[]]  897 rows
+    chosen ARRAY  11,140  (30.3 % of unencoded)
+    candidates RAW 36,777  ·  ARRAY 11,140
+
+  Profile.Name  [string]  897 rows
+    chosen DICT_SEG  8,264  (28.5 % of unencoded)
+    candidates RAW 28,948  ·  DICT 13,165  ·  DICT_RLE 14,053  ·  DICT_FRONT 11,118  ·  DICT_FRONT_RLE 12,007  ·  DICT_SEG 8,264  ·  DICT_SEG_RLE 9,152
+
+  ProfileBCGL.Name  [string]  897 rows
+    chosen DICT_SEG  8,264  (28.5 % of unencoded)
+    candidates RAW 28,948  ·  DICT 13,165  ·  DICT_RLE 14,053  ·  DICT_FRONT 11,118  ·  DICT_FRONT_RLE 12,007  ·  DICT_SEG 8,264  ·  DICT_SEG_RLE 9,152
+
+  Quest3.Step.Label  [string[]]  641 rows
+    chosen ARRAY  8,234  (10.8 % of unencoded)
+    candidates RAW 76,299  ·  ARRAY 8,234
+
+  ArenaLadder3.Name  [string]  897 rows
+    chosen DICT_SEG  8,181  (27.9 % of unencoded)
+    candidates RAW 29,298  ·  DICT 13,119  ·  DICT_RLE 14,013  ·  DICT_FRONT 11,051  ·  DICT_FRONT_RLE 11,945  ·  DICT_SEG 8,181  ·  DICT_SEG_RLE 9,075
+
+  Profile.Summary  [string]  897 rows
+    chosen DICT_SEG  8,174  (28.0 % of unencoded)
+    candidates RAW 29,142  ·  DICT 13,063  ·  DICT_RLE 13,954  ·  DICT_FRONT 10,982  ·  DICT_FRONT_RLE 11,873  ·  DICT_SEG 8,174  ·  DICT_SEG_RLE 9,065
+
+  ProfileBCGL.Summary  [string]  897 rows
+    chosen DICT_SEG  8,174  (28.0 % of unencoded)
+    candidates RAW 29,142  ·  DICT 13,063  ·  DICT_RLE 13,954  ·  DICT_FRONT 10,982  ·  DICT_FRONT_RLE 11,873  ·  DICT_SEG 8,174  ·  DICT_SEG_RLE 9,065
+
+  QuestChainQuest2.Step.Label  [string[]]  587 rows
+    chosen ARRAY  7,870  (11.3 % of unencoded)
+    candidates RAW 69,775  ·  ARRAY 7,870
+
+  Quest3.Title  [string]  641 rows
+    chosen DICT_SEG  7,343  (35.0 % of unencoded)
+    candidates RAW 20,987  ·  DICT 11,837  ·  DICT_RLE 12,475  ·  DICT_FRONT 9,983  ·  DICT_FRONT_RLE 10,621  ·  DICT_SEG 7,343  ·  DICT_SEG_RLE 7,981
+
+  Matchmaking2.Name  [string]  641 rows
+    chosen DICT_SEG  7,257  (35.1 % of unencoded)
+    candidates RAW 20,691  ·  DICT 11,636  ·  DICT_RLE 12,275  ·  DICT_FRONT 9,846  ·  DICT_FRONT_RLE 10,484  ·  DICT_SEG 7,257  ·  DICT_SEG_RLE 7,896
+
+  Leaderboard.Name  [string]  641 rows
+    chosen DICT_SEG  7,238  (34.6 % of unencoded)
+    candidates RAW 20,914  ·  DICT 11,694  ·  DICT_RLE 12,332  ·  DICT_FRONT 9,829  ·  DICT_FRONT_RLE 10,468  ·  DICT_SEG 7,238  ·  DICT_SEG_RLE 7,876
+
+  Quest3.Summary  [string]  641 rows
+    chosen DICT_SEG  7,237  (35.1 % of unencoded)
+    candidates RAW 20,634  ·  DICT 11,631  ·  DICT_RLE 12,263  ·  DICT_FRONT 9,806  ·  DICT_FRONT_RLE 10,440  ·  DICT_SEG 7,237  ·  DICT_SEG_RLE 7,869
+
+  Quest3.Completion  [string]  641 rows
+    chosen DICT_SEG  7,176  (34.5 % of unencoded)
+    candidates RAW 20,793  ·  DICT 11,478  ·  DICT_RLE 12,116  ·  DICT_FRONT 9,708  ·  DICT_FRONT_RLE 10,346  ·  DICT_SEG 7,176  ·  DICT_SEG_RLE 7,814
+
+  SocketCatalogue2.Name  [string]  641 rows
+    chosen DICT_SEG  7,167  (34.2 % of unencoded)
+    candidates RAW 20,968  ·  DICT 11,512  ·  DICT_RLE 12,141  ·  DICT_FRONT 9,722  ·  DICT_FRONT_RLE 10,351  ·  DICT_SEG 7,167  ·  DICT_SEG_RLE 7,796
+
+  SocketCatalogue2BCGL.Name  [string]  641 rows
+    chosen DICT_SEG  7,167  (34.2 % of unencoded)
+    candidates RAW 20,968  ·  DICT 11,512  ·  DICT_RLE 12,141  ·  DICT_FRONT 9,722  ·  DICT_FRONT_RLE 10,351  ·  DICT_SEG 7,167  ·  DICT_SEG_RLE 7,796
+
+  QuestChainQuest2.Title  [string]  587 rows
+    chosen DICT_SEG  7,089  (36.9 % of unencoded)
+    candidates RAW 19,209  ·  DICT 11,405  ·  DICT_RLE 11,989  ·  DICT_FRONT 9,644  ·  DICT_FRONT_RLE 10,228  ·  DICT_SEG 7,089  ·  DICT_SEG_RLE 7,673
+
+  Leaderboard3.Name  [string]  587 rows
+    chosen DICT_SEG  6,921  (36.2 % of unencoded)
+    candidates RAW 19,110  ·  DICT 11,111  ·  DICT_RLE 11,695  ·  DICT_FRONT 9,385  ·  DICT_FRONT_RLE 9,970  ·  DICT_SEG 6,921  ·  DICT_SEG_RLE 7,505
+
+  Matchmaking4.Name  [string]  587 rows
+    chosen DICT_SEG  6,888  (36.4 % of unencoded)
+    candidates RAW 18,916  ·  DICT 11,034  ·  DICT_RLE 11,619  ·  DICT_FRONT 9,318  ·  DICT_FRONT_RLE 9,902  ·  DICT_SEG 6,888  ·  DICT_SEG_RLE 7,473
+
+  Matchmaking4BCGL.Name  [string]  587 rows
+    chosen DICT_SEG  6,888  (36.4 % of unencoded)
+    candidates RAW 18,916  ·  DICT 11,034  ·  DICT_RLE 11,619  ·  DICT_FRONT 9,318  ·  DICT_FRONT_RLE 9,902  ·  DICT_SEG 6,888  ·  DICT_SEG_RLE 7,473
+
+  QuestChainQuest2.Completion  [string]  587 rows
+    chosen DICT_SEG  6,865  (36.1 % of unencoded)
+    candidates RAW 19,011  ·  DICT 10,933  ·  DICT_RLE 11,517  ·  DICT_FRONT 9,271  ·  DICT_FRONT_RLE 9,855  ·  DICT_SEG 6,865  ·  DICT_SEG_RLE 7,449
+
+  QuestChainQuest2.Summary  [string]  587 rows
+    chosen DICT_SEG  6,840  (36.2 % of unencoded)
+    candidates RAW 18,910  ·  DICT 10,946  ·  DICT_RLE 11,524  ·  DICT_FRONT 9,236  ·  DICT_FRONT_RLE 9,816  ·  DICT_SEG 6,840  ·  DICT_SEG_RLE 7,418
+
+  ActorGrowthFormula.Name  [string]  587 rows
+    chosen DICT_SEG  6,808  (35.8 % of unencoded)
+    candidates RAW 19,027  ·  DICT 10,861  ·  DICT_RLE 11,445  ·  DICT_FRONT 9,214  ·  DICT_FRONT_RLE 9,798  ·  DICT_SEG 6,808  ·  DICT_SEG_RLE 7,392
+
+  Cosmetic.Name  [string]  587 rows
+    chosen DICT_SEG  6,757  (35.5 % of unencoded)
+    candidates RAW 19,024  ·  DICT 10,771  ·  DICT_RLE 11,354  ·  DICT_FRONT 9,120  ·  DICT_FRONT_RLE 9,701  ·  DICT_SEG 6,757  ·  DICT_SEG_RLE 7,340
+
+  EnchantRecipe3.Material.Count  [f64[]]  897 rows
+    chosen ARRAY  6,324  (17.2 % of unencoded)
+    candidates RAW 36,777  ·  ARRAY 6,324
+
+  ProfessionRecipe3.Material.Count  [f64[]]  897 rows
+    chosen ARRAY  6,324  (17.2 % of unencoded)
+    candidates RAW 36,777  ·  ARRAY 6,324
+
+  ActorStat2.CritPower  [f64]  641 rows
+    chosen RAW  5,128  (100.0 % of unencoded)
+    candidates RAW 5,128  ·  DICT 5,794  ·  DICT_RLE 6,432
+
+  Profile.Portrait  [string]  897 rows
+    chosen DICT_FRONT  4,921  (23.5 % of unencoded)
+    candidates RAW 20,937  ·  DICT 8,103  ·  DICT_RLE 8,994  ·  DICT_FRONT 4,921  ·  DICT_FRONT_RLE 5,812  ·  DICT_SEG 6,460  ·  DICT_SEG_RLE 7,351
+
+  ProfileBCGL.Portrait  [string]  897 rows
+    chosen DICT_FRONT  4,921  (23.5 % of unencoded)
+    candidates RAW 20,937  ·  DICT 8,103  ·  DICT_RLE 8,994  ·  DICT_FRONT 4,921  ·  DICT_FRONT_RLE 5,812  ·  DICT_SEG 6,460  ·  DICT_SEG_RLE 7,351
+
+  Quest3.Step.Value  [f64[]]  641 rows
+    chosen ARRAY  4,823  (22.8 % of unencoded)
+    candidates RAW 21,153  ·  ARRAY 4,823
+
+  ActorGrowthFormula.CoefficientA  [f64]  587 rows
+    chosen RAW  4,696  (100.0 % of unencoded)
+    candidates RAW 4,696  ·  DICT 5,733  ·  DICT_RLE 6,320
+
+  ActorGrowthFormula.CoefficientB  [f64]  587 rows
+    chosen RAW  4,696  (100.0 % of unencoded)
+    candidates RAW 4,696  ·  DICT 5,676  ·  DICT_RLE 6,263
+
+  ActorGrowthFormula.CoefficientC  [f64]  587 rows
+    chosen RAW  4,696  (100.0 % of unencoded)
+    candidates RAW 4,696  ·  DICT 5,667  ·  DICT_RLE 6,254
+
+  SystemText.Id  [string]  900 rows
+    chosen DICT_FRONT  4,542  (56.1 % of unencoded)
+    candidates RAW 8,100  ·  DICT 9,838  ·  DICT_RLE 10,738  ·  DICT_FRONT 4,542  ·  DICT_FRONT_RLE 5,442  ·  DICT_SEG 8,982  ·  DICT_SEG_RLE 9,882
+
+  ActorStat2.CritRate  [f64]  641 rows
+    chosen DICT  4,422  (86.2 % of unencoded)
+    candidates RAW 5,128  ·  DICT 4,422  ·  DICT_RLE 5,058
+
+Headroom outside the encodings
+  What a column would come to if its rows' lengths and its elements were
+  each encoded, against what it costs today. Nothing here is in the format.
+
+  Array columns (always raw today)
+    columns  269
+    elements 154,979
+    today    290,202
+    encoded  295,654  (101.9 % of today) · saved -5,452
+
+  Float columns (dictionary only today)
+    columns  2229
+    elements 240,702
+    today    422,729
+    encoded  426,898  (101.0 % of today) · saved -4,169
+
+  Of the float columns, 2138 hold whole numbers in every row.
+    today 390,339 · as integers 394,508 · saved -4,169
+
+Bit-width packing headroom
+  What the integer columns would come to at the width their own range
+  needs, against what they cost today. Nothing here is in the format.
+
+  element     columns        today       packed        saved
+  bool            195        1,919        1,889           30
+  i64              34        2,759        2,759            0
+  i32             514        3,127       25,925      -22,798
+
+  Keeping the smaller of the two per column: 7,805 → 7,773 · saved 32 over 8 of 743 columns.
+
+    width            base        today       packed  inner         column
+        1               0           10            6  RAW           Gear.Socket.Locked
+        1               0           24           20  RAW           Gear2.Socket.Locked
+        1               0           12            8  RAW           Gear3.Socket.Locked
+        1               0           10            6  RAW           GearSetGear.Socket.Locked
+        1               0           10            6  RAW           GearSetGear2.Socket.Locked
+        1               0           11            7  RAW           GearSetGear3.Socket.Locked
+        1               0           24           20  RAW           GearSetGear4.Socket.Locked
+        1               0           10            6  RAW           GearSetGear2BCGL.Socket.Locked
+
+Presence bitmaps
+  A bit per row, saying which rows have a value. Encoded by the same choice
+  a bit-packed value block uses; `unencoded` is what a bit a row would cost.
+
+    columns    237
+    unencoded  1,218
+    encoded    1,212  (99.5 % of unencoded) · saved 6
+
+  2 of 237 bitmaps got smaller.
+
+       rows    unencoded      encoded  column
+         78           10            6  AbilityEffect.Floater
+         58            8            6  AbilityEffect3.Floater
+
+String dictionary headroom
+  What the distinct values of a string column cost under each layout. Only
+  `front` is in the format; the rest are measurements, and `deflate` is the
+  floor none of them can pass.
+
+  distinct        plain        front      segment     template        delta      deflate  column
+       730       25,414       16,710       12,161       18,838       18,838        4,041  SystemText.Ja
+       724       25,125       16,673       12,185       18,783       18,783        4,065  SystemText.En
+       705       24,541       16,144       11,800       18,197       18,197        3,948  SystemText.Ko
+       701       24,355       16,096       11,844       18,137       18,137        3,924  SystemText.Zh
+       356       11,570        9,481        6,669       10,487       10,487        2,001  Profile.Name
+       356       11,570        9,481        6,669       10,487       10,487        2,001  ProfileBCGL.Name
+       353       11,534        9,406        6,596       10,403       10,403        1,991  ArenaLadder3.Name
+       353       11,476        9,350        6,587       10,347       10,347        1,979  Profile.Summary
+       353       11,476        9,350        6,587       10,347       10,347        1,979  ProfileBCGL.Summary
+       329       10,721        8,825        6,227        9,750        9,750        1,869  Quest3.Title
+       323       10,510        8,687        6,131        9,594        9,594        1,850  Matchmaking2.Name
+       323       10,565        8,679        6,109        9,586        9,586        1,857  Leaderboard.Name
+       324       10,523        8,652        6,129        9,562        9,562        1,855  Quest3.Summary
+       319       10,387        8,584        6,071        9,479        9,479        1,834  QuestChainQuest2.Title
+       318       10,385        8,576        6,040        9,468        9,468        1,843  SocketCatalogue2.Name
+       318       10,385        8,576        6,040        9,468        9,468        1,843  SocketCatalogue2BCGL.Name
+       319       10,362        8,548        6,060        9,443        9,443        1,849  Quest3.Completion
+       309       10,084        8,342        5,894        9,207        9,207        1,800  Leaderboard3.Name
+       308       10,007        8,263        5,861        9,125        9,125        1,786  Matchmaking4.Name
+       308       10,007        8,263        5,861        9,125        9,125        1,786  Matchmaking4BCGL.Name
+       306        9,916        8,210        5,848        9,066        9,066        1,790  QuestChainQuest2.Completion
+       306        9,937        8,184        5,831        9,040        9,040        1,777  QuestChainQuest2.Summary
+       303        9,853        8,175        5,800        9,022        9,022        1,759  ActorGrowthFormula.Name
+       300        9,752        8,062        5,738        8,900        8,900        1,745  Cosmetic.Name
+       200        5,905        5,153        3,944        5,691        5,691        1,145  Quest3.Step.Label
+       200        5,905        5,153        3,944        5,691        5,691        1,145  QuestChainQuest2.Step.Label
+       280        6,531        3,328        4,888        4,484        4,484        1,813  Profile.Portrait
+       280        6,531        3,328        4,888        4,484        4,484        1,813  ProfileBCGL.Portrait
+       124        3,645        3,203        2,529        3,513        3,513          796  Quest2.Step.Label
+       259        6,038        3,152        4,577        4,220        4,220        1,714  Cosmetic.Thumb
+       259        6,044        3,140        4,564        4,205        4,205        1,708  Cosmetic.Model
+       260        6,070        3,138        4,592        4,211        4,211        1,704  SocketCatalogue2.Icon
+       260        6,070        3,138        4,592        4,211        4,211        1,704  SocketCatalogue2BCGL.Icon
+       900        8,102        2,806        7,246        4,446        3,610        1,821  SystemText.Id
+        75        2,463        2,206        1,741        2,369        2,369          650  SocketItem2.Name
+        74        2,408        2,153        1,736        2,313        2,313          651  RaidInstance2.Name
+        74        2,392        2,143        1,755        2,303        2,303          651  GearSetPerk4.Name
+        74        2,443        2,129        1,805        2,289        2,289          691  Dialogue.Line
+        73        2,346        2,105        1,705        2,262        2,262          643  CraftCatalogue.Name
+        73        2,346        2,105        1,705        2,262        2,262          643  FactionCatalogue.Name
+
+  Over all 1521 string columns:
+    plain      815,742
+    front      645,921  (79.2 % of plain)
+    segment    589,052  (91.2 % of front)
+    template   726,266  (112.4 % of front)
+    delta      722,374  (111.8 % of front)
+    deflate    272,981  (42.3 % of front)
+
+  Best per column, layout chosen per column: 531,247  (82.2 % of front)
+  Headroom against what is in the format today: 114,674
+
+  Where each layout wins, and what it saves against front coding
+    layout      columns       saved
+    segment         519     114,674
+    front          1002           0
+

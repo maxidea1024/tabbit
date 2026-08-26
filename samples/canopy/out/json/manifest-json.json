@@ -1,0 +1,3103 @@
+{
+  "LastUpdatedDate": "2026-08-26T15:12:51.5908671+09:00",
+  "MasterHash": "4ecba0430ec7e5899bb87b166ff45b35",
+  "TotalSize": 2895776,
+  "Items": [
+    {
+      "Name": "Ability.json",
+      "Size": 6831,
+      "Hash": "b489bf6ae278bb2f7473be1a68ff2eaa",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5901895+09:00"
+    },
+    {
+      "Name": "AbilityEffect.json",
+      "Size": 5200,
+      "Hash": "c5c96e7e3890d16c34fe91a2f798136a",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5901921+09:00"
+    },
+    {
+      "Name": "AbilityCatalogue.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5901928+09:00"
+    },
+    {
+      "Name": "AbilityFormula.json",
+      "Size": 658,
+      "Hash": "e7f3c105722d8cb14da50286362879f8",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5901932+09:00"
+    },
+    {
+      "Name": "Ability2.json",
+      "Size": 2010,
+      "Hash": "061a847bc45b3ff8fc3c4a297443e8f5",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5901943+09:00"
+    },
+    {
+      "Name": "AbilityEffect2.json",
+      "Size": 1540,
+      "Hash": "af8841b56167f3dde3c96dd8e79adaed",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5901948+09:00"
+    },
+    {
+      "Name": "AbilityCatalogue2.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5901952+09:00"
+    },
+    {
+      "Name": "AbilityFormula2.json",
+      "Size": 560,
+      "Hash": "64e278ada0d4ca1f41496729ca961a80",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5901959+09:00"
+    },
+    {
+      "Name": "Ability3.json",
+      "Size": 2626,
+      "Hash": "abb5a8970956dec90814b452f124a17e",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5901966+09:00"
+    },
+    {
+      "Name": "AbilityEffect3.json",
+      "Size": 3879,
+      "Hash": "b86d3f3338d15b6b8a1b8be9c50c3b8e",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5901971+09:00"
+    },
+    {
+      "Name": "AbilityCatalogue3.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5901974+09:00"
+    },
+    {
+      "Name": "AbilityCatalogueBCGL.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5901976+09:00"
+    },
+    {
+      "Name": "AbilityCatalogue2BCCN.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5901982+09:00"
+    },
+    {
+      "Name": "AbilityCatalogue3BCGL.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5901988+09:00"
+    },
+    {
+      "Name": "Profile.json",
+      "Size": 128360,
+      "Hash": "a7ea3cf0547c5f9ac74b381d06f47a1b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5901994+09:00"
+    },
+    {
+      "Name": "ActorStat.json",
+      "Size": 337,
+      "Hash": "bb5812f809440138ac7ee9169f7d671d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5901999+09:00"
+    },
+    {
+      "Name": "ActorCurve.json",
+      "Size": 217,
+      "Hash": "4560bce1e91fd11262b1d89e848bfc0b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902007+09:00"
+    },
+    {
+      "Name": "ActorCatalogue.json",
+      "Size": 996,
+      "Hash": "85d7fd17947d0e1b1a55f95ed80576b0",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902012+09:00"
+    },
+    {
+      "Name": "ActorFormula.json",
+      "Size": 1506,
+      "Hash": "1ea451fceb541381eadfcbef5fdd7944",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902017+09:00"
+    },
+    {
+      "Name": "Roster.json",
+      "Size": 1133,
+      "Hash": "d06a69b75798d3794b66ac3208b28ac3",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902022+09:00"
+    },
+    {
+      "Name": "ActorProfile.json",
+      "Size": 6261,
+      "Hash": "4e012db4449e9bc447dd50d3a811c190",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902024+09:00"
+    },
+    {
+      "Name": "ActorStat2.json",
+      "Size": 35750,
+      "Hash": "f2a5de637c41712ab3ebbac473c34352",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902029+09:00"
+    },
+    {
+      "Name": "ActorCurve2.json",
+      "Size": 217,
+      "Hash": "4560bce1e91fd11262b1d89e848bfc0b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902032+09:00"
+    },
+    {
+      "Name": "ActorCatalogue2.json",
+      "Size": 697,
+      "Hash": "5ec746a0e381299143415326efaf7f73",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902036+09:00"
+    },
+    {
+      "Name": "ActorFormula2.json",
+      "Size": 1223,
+      "Hash": "cb24ba1308801c1aa7ef3d437dbf71ce",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902039+09:00"
+    },
+    {
+      "Name": "ProfileBCGL.json",
+      "Size": 128360,
+      "Hash": "a7ea3cf0547c5f9ac74b381d06f47a1b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902044+09:00"
+    },
+    {
+      "Name": "ActorFormulaBCCN.json",
+      "Size": 1506,
+      "Hash": "1ea451fceb541381eadfcbef5fdd7944",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902047+09:00"
+    },
+    {
+      "Name": "ActorCurve2BCGL.json",
+      "Size": 217,
+      "Hash": "4560bce1e91fd11262b1d89e848bfc0b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590205+09:00"
+    },
+    {
+      "Name": "ActorGrowthCurve.json",
+      "Size": 838,
+      "Hash": "41574982881fdd99fa69bf357f9ae350",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902053+09:00"
+    },
+    {
+      "Name": "ActorGrowthStat.json",
+      "Size": 337,
+      "Hash": "bb5812f809440138ac7ee9169f7d671d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902057+09:00"
+    },
+    {
+      "Name": "ActorGrowthFormula.json",
+      "Size": 55445,
+      "Hash": "ac4cbdb2f08cf15b0417272bbc7d7beb",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590206+09:00"
+    },
+    {
+      "Name": "ActorGrowthCatalogue.json",
+      "Size": 1703,
+      "Hash": "b02ca7716cde875217512b559c35d127",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902066+09:00"
+    },
+    {
+      "Name": "ActorGrowthCurve2.json",
+      "Size": 2114,
+      "Hash": "ee6b0878f80a5873f90ad9cccd54dd1d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902069+09:00"
+    },
+    {
+      "Name": "ActorGrowthStat2.json",
+      "Size": 337,
+      "Hash": "bb5812f809440138ac7ee9169f7d671d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902072+09:00"
+    },
+    {
+      "Name": "ActorGrowthFormula2.json",
+      "Size": 560,
+      "Hash": "64e278ada0d4ca1f41496729ca961a80",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902077+09:00"
+    },
+    {
+      "Name": "ActorGrowthCatalogue2.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590208+09:00"
+    },
+    {
+      "Name": "ActorGrowthCurve3.json",
+      "Size": 358,
+      "Hash": "d17395be359602815da373c0b6a4ab7b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902085+09:00"
+    },
+    {
+      "Name": "ActorGrowthStat3.json",
+      "Size": 888,
+      "Hash": "f249fde7bfbc622e3a7c2f4c6b854cde",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902088+09:00"
+    },
+    {
+      "Name": "ActorGrowthFormula3.json",
+      "Size": 2340,
+      "Hash": "5191850fe8aa821fba57a338c82062e3",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902103+09:00"
+    },
+    {
+      "Name": "ActorGrowthStatBCCN.json",
+      "Size": 337,
+      "Hash": "bb5812f809440138ac7ee9169f7d671d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902106+09:00"
+    },
+    {
+      "Name": "ActorGrowthStat2BCGL.json",
+      "Size": 337,
+      "Hash": "bb5812f809440138ac7ee9169f7d671d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902112+09:00"
+    },
+    {
+      "Name": "ActorGrowthStat3BCCN.json",
+      "Size": 888,
+      "Hash": "f249fde7bfbc622e3a7c2f4c6b854cde",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902117+09:00"
+    },
+    {
+      "Name": "ArenaLadder.json",
+      "Size": 479,
+      "Hash": "96fe845338485ea52e954bfbb1d7a9ba",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902121+09:00"
+    },
+    {
+      "Name": "ArenaMatchmaking.json",
+      "Size": 1254,
+      "Hash": "e64955a7063eb5e84cd93d211e62a4f8",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902124+09:00"
+    },
+    {
+      "Name": "ArenaCatalogue.json",
+      "Size": 5795,
+      "Hash": "dc289a3a4ca5334d86d5b897600aa6de",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902127+09:00"
+    },
+    {
+      "Name": "ArenaLadder2.json",
+      "Size": 479,
+      "Hash": "96fe845338485ea52e954bfbb1d7a9ba",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590213+09:00"
+    },
+    {
+      "Name": "ArenaMatchmaking2.json",
+      "Size": 434,
+      "Hash": "c04ab6a68a12940cfa5dcd337f436f7d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902135+09:00"
+    },
+    {
+      "Name": "ArenaCatalogue2.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902138+09:00"
+    },
+    {
+      "Name": "ArenaLadder3.json",
+      "Size": 68557,
+      "Hash": "56d6f1b5b479255278c874b245ce1e64",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902144+09:00"
+    },
+    {
+      "Name": "ArenaMatchmaking3.json",
+      "Size": 1184,
+      "Hash": "49e5241d8cf3a455a03dd81db83ae47e",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902146+09:00"
+    },
+    {
+      "Name": "ArenaCatalogue3.json",
+      "Size": 2515,
+      "Hash": "6f8b5527ea071933f31118de592554c4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590215+09:00"
+    },
+    {
+      "Name": "ArenaLadder4.json",
+      "Size": 3320,
+      "Hash": "a42426d2b8582ecd35e8738b6d10ac55",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902153+09:00"
+    },
+    {
+      "Name": "ArenaLadder2BCGL.json",
+      "Size": 479,
+      "Hash": "96fe845338485ea52e954bfbb1d7a9ba",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902157+09:00"
+    },
+    {
+      "Name": "ArenaMatchmaking3BCCN.json",
+      "Size": 1184,
+      "Hash": "49e5241d8cf3a455a03dd81db83ae47e",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902159+09:00"
+    },
+    {
+      "Name": "BattlePassSeason.json",
+      "Size": 8382,
+      "Hash": "77e739c8517762ef3110105f6d6c8695",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902162+09:00"
+    },
+    {
+      "Name": "BattlePassLoot.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902165+09:00"
+    },
+    {
+      "Name": "BattlePassPerk.json",
+      "Size": 894,
+      "Hash": "93a563704a6429ed4170b5f1448d5816",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902168+09:00"
+    },
+    {
+      "Name": "BattlePassCatalogue.json",
+      "Size": 1298,
+      "Hash": "ca9f74f9342d9a2582449091798ee5c2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902171+09:00"
+    },
+    {
+      "Name": "BattlePassSeason2.json",
+      "Size": 2453,
+      "Hash": "fcdf5f416792fd0e2d77107144138e8c",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902173+09:00"
+    },
+    {
+      "Name": "BattlePassLoot2.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902176+09:00"
+    },
+    {
+      "Name": "BattlePassPerk2.json",
+      "Size": 765,
+      "Hash": "2cc14dabe0408e83496475df7ef32726",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902178+09:00"
+    },
+    {
+      "Name": "BattlePassCatalogue2.json",
+      "Size": 1703,
+      "Hash": "b02ca7716cde875217512b559c35d127",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590218+09:00"
+    },
+    {
+      "Name": "BattlePassSeason3.json",
+      "Size": 6212,
+      "Hash": "cbb739540c1d2c9ca8bab22f9f8a7044",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902184+09:00"
+    },
+    {
+      "Name": "BattlePassLoot3.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590219+09:00"
+    },
+    {
+      "Name": "BattlePassLootBCGL.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902194+09:00"
+    },
+    {
+      "Name": "CombatFormula.json",
+      "Size": 560,
+      "Hash": "64e278ada0d4ca1f41496729ca961a80",
+      "LastUpdatedDate": "2026-08-26T15:12:51.59022+09:00"
+    },
+    {
+      "Name": "CombatEffect.json",
+      "Size": 404,
+      "Hash": "4cc64c156c5bbeb5fa15fb54b099ac70",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902204+09:00"
+    },
+    {
+      "Name": "CombatCurve.json",
+      "Size": 614,
+      "Hash": "11bd262f36ba568d25c64bc7aa2b4f68",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590221+09:00"
+    },
+    {
+      "Name": "CombatCatalogue.json",
+      "Size": 5795,
+      "Hash": "dc289a3a4ca5334d86d5b897600aa6de",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902216+09:00"
+    },
+    {
+      "Name": "CombatFormula2.json",
+      "Size": 560,
+      "Hash": "64e278ada0d4ca1f41496729ca961a80",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902218+09:00"
+    },
+    {
+      "Name": "CombatEffect2.json",
+      "Size": 404,
+      "Hash": "4cc64c156c5bbeb5fa15fb54b099ac70",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902222+09:00"
+    },
+    {
+      "Name": "CombatCurve2.json",
+      "Size": 217,
+      "Hash": "4560bce1e91fd11262b1d89e848bfc0b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902225+09:00"
+    },
+    {
+      "Name": "CombatCatalogue2.json",
+      "Size": 996,
+      "Hash": "85d7fd17947d0e1b1a55f95ed80576b0",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902227+09:00"
+    },
+    {
+      "Name": "CombatFormula3.json",
+      "Size": 1506,
+      "Hash": "1ea451fceb541381eadfcbef5fdd7944",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902231+09:00"
+    },
+    {
+      "Name": "CombatEffect3.json",
+      "Size": 1675,
+      "Hash": "6920c8d8c0b5c79b3d9a1d29ae27eebf",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902238+09:00"
+    },
+    {
+      "Name": "CombatCurve3.json",
+      "Size": 1601,
+      "Hash": "d124614cc5e7bf12d5cb98c4da01b7f7",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902242+09:00"
+    },
+    {
+      "Name": "CombatFormulaBCCN.json",
+      "Size": 560,
+      "Hash": "64e278ada0d4ca1f41496729ca961a80",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902247+09:00"
+    },
+    {
+      "Name": "CombatFormula2BCGL.json",
+      "Size": 560,
+      "Hash": "64e278ada0d4ca1f41496729ca961a80",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902251+09:00"
+    },
+    {
+      "Name": "CombatFormula3BCCN.json",
+      "Size": 1506,
+      "Hash": "1ea451fceb541381eadfcbef5fdd7944",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902253+09:00"
+    },
+    {
+      "Name": "Cosmetic.json",
+      "Size": 68524,
+      "Hash": "88320f589a7fe9c39a18efa5e2d5bf6f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902257+09:00"
+    },
+    {
+      "Name": "CosmeticCatalogue.json",
+      "Size": 5795,
+      "Hash": "dc289a3a4ca5334d86d5b897600aa6de",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902259+09:00"
+    },
+    {
+      "Name": "CosmeticOffer.json",
+      "Size": 634,
+      "Hash": "c0ffa022ed01194fe99fe41466872f8d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902261+09:00"
+    },
+    {
+      "Name": "Cosmetic2.json",
+      "Size": 697,
+      "Hash": "118661706eeb60a483dfad506abef30c",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902264+09:00"
+    },
+    {
+      "Name": "CosmeticCatalogue2.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902268+09:00"
+    },
+    {
+      "Name": "CosmeticOffer2.json",
+      "Size": 1079,
+      "Hash": "48c94fc4865bea0bdc972940ede5a525",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590227+09:00"
+    },
+    {
+      "Name": "Cosmetic3.json",
+      "Size": 1894,
+      "Hash": "957596bae718104b9bd8c0d590c3c67c",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902273+09:00"
+    },
+    {
+      "Name": "CosmeticCatalogue3.json",
+      "Size": 2515,
+      "Hash": "6f8b5527ea071933f31118de592554c4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902275+09:00"
+    },
+    {
+      "Name": "CosmeticOffer3.json",
+      "Size": 4813,
+      "Hash": "d4a719fb4de5c1bf68df9bf6fcda97c2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902278+09:00"
+    },
+    {
+      "Name": "Cosmetic4.json",
+      "Size": 9115,
+      "Hash": "706c14f23baad6ea9a97a67aabf1671b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902281+09:00"
+    },
+    {
+      "Name": "CosmeticCatalogue4.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902284+09:00"
+    },
+    {
+      "Name": "CosmeticOfferBCGL.json",
+      "Size": 634,
+      "Hash": "c0ffa022ed01194fe99fe41466872f8d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902299+09:00"
+    },
+    {
+      "Name": "Cosmetic3BCCN.json",
+      "Size": 1894,
+      "Hash": "957596bae718104b9bd8c0d590c3c67c",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902301+09:00"
+    },
+    {
+      "Name": "CosmeticCatalogue4BCGL.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902308+09:00"
+    },
+    {
+      "Name": "CraftRecipe.json",
+      "Size": 2176,
+      "Hash": "0a87ec70fdde586f3ce72c5cc5ec36d1",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902314+09:00"
+    },
+    {
+      "Name": "CraftItem.json",
+      "Size": 6824,
+      "Hash": "d9868c49e460339770d69a7f75f1c696",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902316+09:00"
+    },
+    {
+      "Name": "CraftCatalogue.json",
+      "Size": 7787,
+      "Hash": "67681993ea34e1654bbb63cc9184d499",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902319+09:00"
+    },
+    {
+      "Name": "CraftRecipe2.json",
+      "Size": 521,
+      "Hash": "a8c23ec9454778e24ef27b26d4f19b7a",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902321+09:00"
+    },
+    {
+      "Name": "CraftItem2.json",
+      "Size": 1074,
+      "Hash": "36809dc72778af09691c623abd32a880",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902324+09:00"
+    },
+    {
+      "Name": "CraftCatalogue2.json",
+      "Size": 1298,
+      "Hash": "ca9f74f9342d9a2582449091798ee5c2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590233+09:00"
+    },
+    {
+      "Name": "CraftRecipe3.json",
+      "Size": 1994,
+      "Hash": "a65d06ff3b32a7c643e2c0075f1dad9d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902333+09:00"
+    },
+    {
+      "Name": "CraftItem3.json",
+      "Size": 929,
+      "Hash": "dcaba3d10e8c847eafd288e95125d3d4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902337+09:00"
+    },
+    {
+      "Name": "CraftCatalogue3.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902339+09:00"
+    },
+    {
+      "Name": "CraftRecipe4.json",
+      "Size": 1478,
+      "Hash": "e645236db3ba96fa5046a3989f049bc9",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902342+09:00"
+    },
+    {
+      "Name": "CraftRecipe2BCGL.json",
+      "Size": 521,
+      "Hash": "a8c23ec9454778e24ef27b26d4f19b7a",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902344+09:00"
+    },
+    {
+      "Name": "CraftItem3BCCN.json",
+      "Size": 929,
+      "Hash": "dcaba3d10e8c847eafd288e95125d3d4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902347+09:00"
+    },
+    {
+      "Name": "Currency.json",
+      "Size": 1354,
+      "Hash": "e53b167f8c775b3044c4784b914be014",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902349+09:00"
+    },
+    {
+      "Name": "CurrencyCatalogue.json",
+      "Size": 2312,
+      "Hash": "c2970fed6fb015cae278ed86dbe380c3",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902351+09:00"
+    },
+    {
+      "Name": "CurrencyOffer.json",
+      "Size": 634,
+      "Hash": "c0ffa022ed01194fe99fe41466872f8d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902354+09:00"
+    },
+    {
+      "Name": "Currency2.json",
+      "Size": 632,
+      "Hash": "28febf6745c8fadd2d4372fb4c04c77c",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902357+09:00"
+    },
+    {
+      "Name": "CurrencyCatalogue2.json",
+      "Size": 1703,
+      "Hash": "b02ca7716cde875217512b559c35d127",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902359+09:00"
+    },
+    {
+      "Name": "CurrencyOffer2.json",
+      "Size": 6346,
+      "Hash": "5c802890c89919ed1ef58b92b86c3a8d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902363+09:00"
+    },
+    {
+      "Name": "Currency3.json",
+      "Size": 632,
+      "Hash": "28febf6745c8fadd2d4372fb4c04c77c",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902366+09:00"
+    },
+    {
+      "Name": "CurrencyCatalogue3.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902368+09:00"
+    },
+    {
+      "Name": "CurrencyOffer3.json",
+      "Size": 634,
+      "Hash": "c0ffa022ed01194fe99fe41466872f8d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902371+09:00"
+    },
+    {
+      "Name": "Currency4.json",
+      "Size": 1043,
+      "Hash": "2baac73122ac1a87f3d8f93559ab0289",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902377+09:00"
+    },
+    {
+      "Name": "CurrencyCatalogue4.json",
+      "Size": 1609,
+      "Hash": "e6d2f0469c86eecc340290fc27d288c6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590238+09:00"
+    },
+    {
+      "Name": "CurrencyOfferBCCN.json",
+      "Size": 634,
+      "Hash": "c0ffa022ed01194fe99fe41466872f8d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902384+09:00"
+    },
+    {
+      "Name": "Currency3BCGL.json",
+      "Size": 632,
+      "Hash": "28febf6745c8fadd2d4372fb4c04c77c",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902389+09:00"
+    },
+    {
+      "Name": "CurrencyCatalogue4BCCN.json",
+      "Size": 1609,
+      "Hash": "e6d2f0469c86eecc340290fc27d288c6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902392+09:00"
+    },
+    {
+      "Name": "CutsceneScene.json",
+      "Size": 442,
+      "Hash": "cba3605a20d511851eaa7e8cedeb8ab8",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902398+09:00"
+    },
+    {
+      "Name": "CutsceneDialogue.json",
+      "Size": 606,
+      "Hash": "9be7e81c2e43a899dfe81b1573908d8e",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902401+09:00"
+    },
+    {
+      "Name": "CutsceneCatalogue.json",
+      "Size": 996,
+      "Hash": "85d7fd17947d0e1b1a55f95ed80576b0",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902405+09:00"
+    },
+    {
+      "Name": "CutsceneScene2.json",
+      "Size": 1162,
+      "Hash": "d247c1ad2e99c58d7ac9633e6f65c765",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902408+09:00"
+    },
+    {
+      "Name": "CutsceneDialogue2.json",
+      "Size": 2475,
+      "Hash": "84c93d50c173fd709d5ed89ae97f511a",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590241+09:00"
+    },
+    {
+      "Name": "CutsceneCatalogue2.json",
+      "Size": 4391,
+      "Hash": "0bae0c893d0937390b9613349081f86a",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902412+09:00"
+    },
+    {
+      "Name": "CutsceneScene3.json",
+      "Size": 5690,
+      "Hash": "f165d7d591ff53eb2c2a3747f0367751",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902414+09:00"
+    },
+    {
+      "Name": "CutsceneDialogue3.json",
+      "Size": 606,
+      "Hash": "9be7e81c2e43a899dfe81b1573908d8e",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902418+09:00"
+    },
+    {
+      "Name": "CutsceneCatalogue3.json",
+      "Size": 697,
+      "Hash": "5ec746a0e381299143415326efaf7f73",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902421+09:00"
+    },
+    {
+      "Name": "CutsceneScene4.json",
+      "Size": 943,
+      "Hash": "8e2e75ffc775b25c6ac55db0debfe477",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902423+09:00"
+    },
+    {
+      "Name": "CutsceneScene2BCCN.json",
+      "Size": 1162,
+      "Hash": "d247c1ad2e99c58d7ac9633e6f65c765",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902426+09:00"
+    },
+    {
+      "Name": "CutsceneDialogue3BCGL.json",
+      "Size": 606,
+      "Hash": "9be7e81c2e43a899dfe81b1573908d8e",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902428+09:00"
+    },
+    {
+      "Name": "DamageFormula.json",
+      "Size": 7318,
+      "Hash": "55b98f6e7f0b8551e22e0d89c3442d9e",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590243+09:00"
+    },
+    {
+      "Name": "DamageCurve.json",
+      "Size": 217,
+      "Hash": "4560bce1e91fd11262b1d89e848bfc0b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902432+09:00"
+    },
+    {
+      "Name": "DamageCatalogue.json",
+      "Size": 697,
+      "Hash": "5ec746a0e381299143415326efaf7f73",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902434+09:00"
+    },
+    {
+      "Name": "DamageFormula2.json",
+      "Size": 1223,
+      "Hash": "cb24ba1308801c1aa7ef3d437dbf71ce",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902437+09:00"
+    },
+    {
+      "Name": "DamageCurve2.json",
+      "Size": 838,
+      "Hash": "41574982881fdd99fa69bf357f9ae350",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590244+09:00"
+    },
+    {
+      "Name": "DamageCatalogue2.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902442+09:00"
+    },
+    {
+      "Name": "DamageFormula3.json",
+      "Size": 560,
+      "Hash": "64e278ada0d4ca1f41496729ca961a80",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902444+09:00"
+    },
+    {
+      "Name": "DamageCurve3.json",
+      "Size": 614,
+      "Hash": "11bd262f36ba568d25c64bc7aa2b4f68",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902446+09:00"
+    },
+    {
+      "Name": "DamageCatalogue3.json",
+      "Size": 5795,
+      "Hash": "dc289a3a4ca5334d86d5b897600aa6de",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902447+09:00"
+    },
+    {
+      "Name": "DamageFormula4.json",
+      "Size": 560,
+      "Hash": "64e278ada0d4ca1f41496729ca961a80",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902452+09:00"
+    },
+    {
+      "Name": "DamageCurve4.json",
+      "Size": 217,
+      "Hash": "4560bce1e91fd11262b1d89e848bfc0b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902454+09:00"
+    },
+    {
+      "Name": "DamageCurveBCGL.json",
+      "Size": 217,
+      "Hash": "4560bce1e91fd11262b1d89e848bfc0b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902458+09:00"
+    },
+    {
+      "Name": "DamageCatalogue2BCCN.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902461+09:00"
+    },
+    {
+      "Name": "DamageFormula4BCGL.json",
+      "Size": 560,
+      "Hash": "64e278ada0d4ca1f41496729ca961a80",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902465+09:00"
+    },
+    {
+      "Name": "Dialogue.json",
+      "Size": 7703,
+      "Hash": "3b5651ef52aa86448f76f6e03e096c2b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902469+09:00"
+    },
+    {
+      "Name": "Scene.json",
+      "Size": 442,
+      "Hash": "cba3605a20d511851eaa7e8cedeb8ab8",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902473+09:00"
+    },
+    {
+      "Name": "DialogueCatalogue.json",
+      "Size": 697,
+      "Hash": "5ec746a0e381299143415326efaf7f73",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902476+09:00"
+    },
+    {
+      "Name": "Dialogue2.json",
+      "Size": 1303,
+      "Hash": "234a95eb006e1265bdf5c02d2efcbdaa",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590248+09:00"
+    },
+    {
+      "Name": "DialogueScene.json",
+      "Size": 1685,
+      "Hash": "5f54ab242912d173e47906c989c2e9dc",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902482+09:00"
+    },
+    {
+      "Name": "DialogueCatalogue2.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902484+09:00"
+    },
+    {
+      "Name": "Dialogue3.json",
+      "Size": 606,
+      "Hash": "9be7e81c2e43a899dfe81b1573908d8e",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902486+09:00"
+    },
+    {
+      "Name": "DialogueScene2.json",
+      "Size": 1234,
+      "Hash": "7a4151329e3cec48037936c65ada64c6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902488+09:00"
+    },
+    {
+      "Name": "DialogueCatalogue3.json",
+      "Size": 5795,
+      "Hash": "dc289a3a4ca5334d86d5b897600aa6de",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902491+09:00"
+    },
+    {
+      "Name": "Dialogue4.json",
+      "Size": 606,
+      "Hash": "9be7e81c2e43a899dfe81b1573908d8e",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902493+09:00"
+    },
+    {
+      "Name": "SceneBCGL.json",
+      "Size": 442,
+      "Hash": "cba3605a20d511851eaa7e8cedeb8ab8",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902495+09:00"
+    },
+    {
+      "Name": "DialogueCatalogue2BCCN.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902498+09:00"
+    },
+    {
+      "Name": "Dialogue4BCGL.json",
+      "Size": 606,
+      "Hash": "9be7e81c2e43a899dfe81b1573908d8e",
+      "LastUpdatedDate": "2026-08-26T15:12:51.59025+09:00"
+    },
+    {
+      "Name": "DungeonInstance.json",
+      "Size": 799,
+      "Hash": "8fb86733c86593e7974a683e514384ae",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902503+09:00"
+    },
+    {
+      "Name": "DungeonLoot.json",
+      "Size": 1434,
+      "Hash": "a92c9da907d84687dbee70f8a1864fc8",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902514+09:00"
+    },
+    {
+      "Name": "DungeonSpawn.json",
+      "Size": 1393,
+      "Hash": "95bd3d9d657f8cc23628f8754531a6fe",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902516+09:00"
+    },
+    {
+      "Name": "DungeonCatalogue.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902518+09:00"
+    },
+    {
+      "Name": "DungeonInstance2.json",
+      "Size": 681,
+      "Hash": "6ed2d72bdf47f0a9edb291b67fb26b83",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902521+09:00"
+    },
+    {
+      "Name": "DungeonLoot2.json",
+      "Size": 1894,
+      "Hash": "9649b7bba94b067259208050f5ae9ffc",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902525+09:00"
+    },
+    {
+      "Name": "DungeonSpawn2.json",
+      "Size": 3541,
+      "Hash": "ef00ee0c35d95e5078ee5df4a27e301f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590253+09:00"
+    },
+    {
+      "Name": "DungeonCatalogue2.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902533+09:00"
+    },
+    {
+      "Name": "DungeonInstance3.json",
+      "Size": 681,
+      "Hash": "6ed2d72bdf47f0a9edb291b67fb26b83",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902537+09:00"
+    },
+    {
+      "Name": "DungeonLoot3.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590254+09:00"
+    },
+    {
+      "Name": "DungeonCatalogueBCCN.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902543+09:00"
+    },
+    {
+      "Name": "DungeonCatalogue2BCGL.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902548+09:00"
+    },
+    {
+      "Name": "DyeCosmetic.json",
+      "Size": 818,
+      "Hash": "6537d5673e499cef56fb96b4fe1ddd5b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902551+09:00"
+    },
+    {
+      "Name": "DyeCatalogue.json",
+      "Size": 1298,
+      "Hash": "ca9f74f9342d9a2582449091798ee5c2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902554+09:00"
+    },
+    {
+      "Name": "DyeCosmetic2.json",
+      "Size": 2708,
+      "Hash": "22582a57ffdbcadfbeb158ca4276dbff",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902557+09:00"
+    },
+    {
+      "Name": "DyeCatalogue2.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902561+09:00"
+    },
+    {
+      "Name": "DyeCosmetic3.json",
+      "Size": 697,
+      "Hash": "118661706eeb60a483dfad506abef30c",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902564+09:00"
+    },
+    {
+      "Name": "DyeCatalogue3.json",
+      "Size": 1703,
+      "Hash": "b02ca7716cde875217512b559c35d127",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902565+09:00"
+    },
+    {
+      "Name": "DyeCosmetic4.json",
+      "Size": 6771,
+      "Hash": "8ba176edce94068f829c4485dc40f130",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902568+09:00"
+    },
+    {
+      "Name": "DyeCatalogue4.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590257+09:00"
+    },
+    {
+      "Name": "DyeCosmetic5.json",
+      "Size": 697,
+      "Hash": "118661706eeb60a483dfad506abef30c",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902572+09:00"
+    },
+    {
+      "Name": "DyeCatalogue5.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902574+09:00"
+    },
+    {
+      "Name": "DyeCosmetic6.json",
+      "Size": 1177,
+      "Hash": "7a53db493cf3a6f0d51937e79953a04f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902577+09:00"
+    },
+    {
+      "Name": "DyeCatalogue2BCCN.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902582+09:00"
+    },
+    {
+      "Name": "DyeCatalogue4BCGL.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902584+09:00"
+    },
+    {
+      "Name": "EnchantPerk.json",
+      "Size": 765,
+      "Hash": "2cc14dabe0408e83496475df7ef32726",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902587+09:00"
+    },
+    {
+      "Name": "EnchantRecipe.json",
+      "Size": 607,
+      "Hash": "0f059d476553b7a2a2b35890ff38fe0f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590259+09:00"
+    },
+    {
+      "Name": "EnchantCatalogue.json",
+      "Size": 1298,
+      "Hash": "ca9f74f9342d9a2582449091798ee5c2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902592+09:00"
+    },
+    {
+      "Name": "EnchantCurve.json",
+      "Size": 838,
+      "Hash": "41574982881fdd99fa69bf357f9ae350",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902594+09:00"
+    },
+    {
+      "Name": "EnchantPerk2.json",
+      "Size": 765,
+      "Hash": "2cc14dabe0408e83496475df7ef32726",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902597+09:00"
+    },
+    {
+      "Name": "EnchantRecipe2.json",
+      "Size": 521,
+      "Hash": "a8c23ec9454778e24ef27b26d4f19b7a",
+      "LastUpdatedDate": "2026-08-26T15:12:51.59026+09:00"
+    },
+    {
+      "Name": "EnchantCatalogue2.json",
+      "Size": 1703,
+      "Hash": "b02ca7716cde875217512b559c35d127",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902606+09:00"
+    },
+    {
+      "Name": "EnchantCurve2.json",
+      "Size": 2114,
+      "Hash": "ee6b0878f80a5873f90ad9cccd54dd1d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902609+09:00"
+    },
+    {
+      "Name": "EnchantPerk3.json",
+      "Size": 765,
+      "Hash": "2cc14dabe0408e83496475df7ef32726",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902612+09:00"
+    },
+    {
+      "Name": "EnchantRecipe3.json",
+      "Size": 78490,
+      "Hash": "243192f29ece6b7620239468d2f8e075",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902616+09:00"
+    },
+    {
+      "Name": "EnchantCatalogue3.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902619+09:00"
+    },
+    {
+      "Name": "EnchantPerkBCGL.json",
+      "Size": 765,
+      "Hash": "2cc14dabe0408e83496475df7ef32726",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902622+09:00"
+    },
+    {
+      "Name": "EnchantPerk2BCCN.json",
+      "Size": 765,
+      "Hash": "2cc14dabe0408e83496475df7ef32726",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902625+09:00"
+    },
+    {
+      "Name": "EnchantPerk3BCGL.json",
+      "Size": 765,
+      "Hash": "2cc14dabe0408e83496475df7ef32726",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902628+09:00"
+    },
+    {
+      "Name": "Faction.json",
+      "Size": 2947,
+      "Hash": "bf374d26b865b93fe0a79c742ce08dc8",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902631+09:00"
+    },
+    {
+      "Name": "FactionRoster.json",
+      "Size": 1988,
+      "Hash": "a3f7bea47390c4b7ce3bb9d6995d28d4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902649+09:00"
+    },
+    {
+      "Name": "FactionCatalogue.json",
+      "Size": 7787,
+      "Hash": "67681993ea34e1654bbb63cc9184d499",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902652+09:00"
+    },
+    {
+      "Name": "Faction2.json",
+      "Size": 720,
+      "Hash": "0609fa1d0054e3502a3b47942d3f15d3",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902654+09:00"
+    },
+    {
+      "Name": "FactionRoster2.json",
+      "Size": 329,
+      "Hash": "aec109756b3ba02745839ec8c9dbcdd5",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902657+09:00"
+    },
+    {
+      "Name": "FactionCatalogue2.json",
+      "Size": 1298,
+      "Hash": "ca9f74f9342d9a2582449091798ee5c2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902659+09:00"
+    },
+    {
+      "Name": "Faction3.json",
+      "Size": 2704,
+      "Hash": "4e5e4130a22ebed6185834749d6a95ca",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902661+09:00"
+    },
+    {
+      "Name": "FactionRoster3.json",
+      "Size": 282,
+      "Hash": "078fac45ab4ef0c30a14cab098d7aeda",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902663+09:00"
+    },
+    {
+      "Name": "FactionCatalogue3.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902665+09:00"
+    },
+    {
+      "Name": "Faction4.json",
+      "Size": 1988,
+      "Hash": "871d9a9c45b7757f0801db03ff0a4871",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902667+09:00"
+    },
+    {
+      "Name": "GatherSpawn.json",
+      "Size": 3541,
+      "Hash": "ef00ee0c35d95e5078ee5df4a27e301f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590267+09:00"
+    },
+    {
+      "Name": "GatherLoot.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902672+09:00"
+    },
+    {
+      "Name": "GatherCatalogue.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902674+09:00"
+    },
+    {
+      "Name": "GatherSpawn2.json",
+      "Size": 365,
+      "Hash": "375b3075a2cc0995a8ef6d511e2cc7f2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902676+09:00"
+    },
+    {
+      "Name": "GatherLoot2.json",
+      "Size": 1106,
+      "Hash": "44a4337802748eb81833fe5e4b0b7def",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902679+09:00"
+    },
+    {
+      "Name": "GatherCatalogue2.json",
+      "Size": 1609,
+      "Hash": "e6d2f0469c86eecc340290fc27d288c6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902681+09:00"
+    },
+    {
+      "Name": "GatherSpawn3.json",
+      "Size": 1517,
+      "Hash": "1bc264818352a8828c169c9981dc4a05",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902683+09:00"
+    },
+    {
+      "Name": "GatherLoot3.json",
+      "Size": 5008,
+      "Hash": "f9d6f097e6f866785e3e2fe52eedf9d3",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902687+09:00"
+    },
+    {
+      "Name": "GatherCatalogue3.json",
+      "Size": 7787,
+      "Hash": "67681993ea34e1654bbb63cc9184d499",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590269+09:00"
+    },
+    {
+      "Name": "GatherSpawn4.json",
+      "Size": 365,
+      "Hash": "375b3075a2cc0995a8ef6d511e2cc7f2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902694+09:00"
+    },
+    {
+      "Name": "GatherLootBCGL.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902697+09:00"
+    },
+    {
+      "Name": "GatherCatalogue2BCCN.json",
+      "Size": 1609,
+      "Hash": "e6d2f0469c86eecc340290fc27d288c6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902701+09:00"
+    },
+    {
+      "Name": "GatherSpawn4BCGL.json",
+      "Size": 365,
+      "Hash": "375b3075a2cc0995a8ef6d511e2cc7f2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902704+09:00"
+    },
+    {
+      "Name": "Gear.json",
+      "Size": 1112,
+      "Hash": "fa7eb186050f8ddd91b1c961f3a712fe",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902706+09:00"
+    },
+    {
+      "Name": "GearCatalogue.json",
+      "Size": 996,
+      "Hash": "85d7fd17947d0e1b1a55f95ed80576b0",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902709+09:00"
+    },
+    {
+      "Name": "GearStat.json",
+      "Size": 888,
+      "Hash": "f249fde7bfbc622e3a7c2f4c6b854cde",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902713+09:00"
+    },
+    {
+      "Name": "GearPerk.json",
+      "Size": 3225,
+      "Hash": "74542baafee96911a7818614ecf11187",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902715+09:00"
+    },
+    {
+      "Name": "Gear2.json",
+      "Size": 8192,
+      "Hash": "6ef6ec5b45b3cfd8687fc93fba297240",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902718+09:00"
+    },
+    {
+      "Name": "GearCatalogue2.json",
+      "Size": 7787,
+      "Hash": "67681993ea34e1654bbb63cc9184d499",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590272+09:00"
+    },
+    {
+      "Name": "GearStat2.json",
+      "Size": 337,
+      "Hash": "bb5812f809440138ac7ee9169f7d671d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902722+09:00"
+    },
+    {
+      "Name": "GearPerk2.json",
+      "Size": 894,
+      "Hash": "93a563704a6429ed4170b5f1448d5816",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902724+09:00"
+    },
+    {
+      "Name": "Gear3.json",
+      "Size": 2412,
+      "Hash": "1b084f8162423e96dc0d53ac61658c35",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902727+09:00"
+    },
+    {
+      "Name": "GearCatalogue3.json",
+      "Size": 2312,
+      "Hash": "c2970fed6fb015cae278ed86dbe380c3",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902729+09:00"
+    },
+    {
+      "Name": "GearStat3.json",
+      "Size": 337,
+      "Hash": "bb5812f809440138ac7ee9169f7d671d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902731+09:00"
+    },
+    {
+      "Name": "GearStatBCCN.json",
+      "Size": 888,
+      "Hash": "f249fde7bfbc622e3a7c2f4c6b854cde",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902733+09:00"
+    },
+    {
+      "Name": "GearStat2BCGL.json",
+      "Size": 337,
+      "Hash": "bb5812f809440138ac7ee9169f7d671d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902735+09:00"
+    },
+    {
+      "Name": "GearStat3BCCN.json",
+      "Size": 337,
+      "Hash": "bb5812f809440138ac7ee9169f7d671d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902738+09:00"
+    },
+    {
+      "Name": "GearSetGear.json",
+      "Size": 1112,
+      "Hash": "fa7eb186050f8ddd91b1c961f3a712fe",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590274+09:00"
+    },
+    {
+      "Name": "GearSetPerk.json",
+      "Size": 2190,
+      "Hash": "0075b34dccd341ba58c3df9390fcabb4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902742+09:00"
+    },
+    {
+      "Name": "GearSetCatalogue.json",
+      "Size": 5795,
+      "Hash": "dc289a3a4ca5334d86d5b897600aa6de",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902745+09:00"
+    },
+    {
+      "Name": "GearSetGear2.json",
+      "Size": 1112,
+      "Hash": "fa7eb186050f8ddd91b1c961f3a712fe",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902749+09:00"
+    },
+    {
+      "Name": "GearSetPerk2.json",
+      "Size": 765,
+      "Hash": "2cc14dabe0408e83496475df7ef32726",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902751+09:00"
+    },
+    {
+      "Name": "GearSetCatalogue2.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902753+09:00"
+    },
+    {
+      "Name": "GearSetGear3.json",
+      "Size": 1873,
+      "Hash": "f740047f1d5b90e3b1e25b60c8ede90b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902756+09:00"
+    },
+    {
+      "Name": "GearSetPerk3.json",
+      "Size": 2062,
+      "Hash": "8426a8ada3bfe6139b0f8700363adc69",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902758+09:00"
+    },
+    {
+      "Name": "GearSetCatalogue3.json",
+      "Size": 2515,
+      "Hash": "6f8b5527ea071933f31118de592554c4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902762+09:00"
+    },
+    {
+      "Name": "GearSetGear4.json",
+      "Size": 8192,
+      "Hash": "6ef6ec5b45b3cfd8687fc93fba297240",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902765+09:00"
+    },
+    {
+      "Name": "GearSetPerk4.json",
+      "Size": 10017,
+      "Hash": "0ca8704535f60be79f374088e76c393e",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902768+09:00"
+    },
+    {
+      "Name": "GearSetGear2BCGL.json",
+      "Size": 1112,
+      "Hash": "fa7eb186050f8ddd91b1c961f3a712fe",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902771+09:00"
+    },
+    {
+      "Name": "GearSetPerk3BCCN.json",
+      "Size": 2062,
+      "Hash": "8426a8ada3bfe6139b0f8700363adc69",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902774+09:00"
+    },
+    {
+      "Name": "Guild.json",
+      "Size": 647,
+      "Hash": "caaa60ba5444668f9bfca7bd24bbfa15",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902776+09:00"
+    },
+    {
+      "Name": "GuildPerk.json",
+      "Size": 765,
+      "Hash": "2cc14dabe0408e83496475df7ef32726",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902779+09:00"
+    },
+    {
+      "Name": "GuildCatalogue.json",
+      "Size": 996,
+      "Hash": "85d7fd17947d0e1b1a55f95ed80576b0",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902782+09:00"
+    },
+    {
+      "Name": "Guild2.json",
+      "Size": 1737,
+      "Hash": "4f73fbba0677688ce203ac6a872b2bcf",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902784+09:00"
+    },
+    {
+      "Name": "GuildPerk2.json",
+      "Size": 3225,
+      "Hash": "74542baafee96911a7818614ecf11187",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902787+09:00"
+    },
+    {
+      "Name": "GuildCatalogue2.json",
+      "Size": 4391,
+      "Hash": "0bae0c893d0937390b9613349081f86a",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590279+09:00"
+    },
+    {
+      "Name": "Guild3.json",
+      "Size": 8730,
+      "Hash": "b2e66d90a16ff6f35349762ee094a51d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902792+09:00"
+    },
+    {
+      "Name": "GuildPerk3.json",
+      "Size": 765,
+      "Hash": "2cc14dabe0408e83496475df7ef32726",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902796+09:00"
+    },
+    {
+      "Name": "GuildCatalogue3.json",
+      "Size": 697,
+      "Hash": "5ec746a0e381299143415326efaf7f73",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902799+09:00"
+    },
+    {
+      "Name": "Guild4.json",
+      "Size": 1404,
+      "Hash": "a1b2dbd6e3960bcf7074855ec610cee8",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902802+09:00"
+    },
+    {
+      "Name": "Guild2BCCN.json",
+      "Size": 1737,
+      "Hash": "4f73fbba0677688ce203ac6a872b2bcf",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902812+09:00"
+    },
+    {
+      "Name": "GuildPerk3BCGL.json",
+      "Size": 765,
+      "Hash": "2cc14dabe0408e83496475df7ef32726",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902815+09:00"
+    },
+    {
+      "Name": "GuildPerkPerk.json",
+      "Size": 2970,
+      "Hash": "b2c2ae86f3b145d99c9abd5917210209",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902817+09:00"
+    },
+    {
+      "Name": "GuildPerkCurve.json",
+      "Size": 217,
+      "Hash": "4560bce1e91fd11262b1d89e848bfc0b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902819+09:00"
+    },
+    {
+      "Name": "GuildPerkCatalogue.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902822+09:00"
+    },
+    {
+      "Name": "GuildPerkPerk2.json",
+      "Size": 2190,
+      "Hash": "0075b34dccd341ba58c3df9390fcabb4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902824+09:00"
+    },
+    {
+      "Name": "GuildPerkCurve2.json",
+      "Size": 2114,
+      "Hash": "ee6b0878f80a5873f90ad9cccd54dd1d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902827+09:00"
+    },
+    {
+      "Name": "GuildPerkCatalogue2.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590283+09:00"
+    },
+    {
+      "Name": "GuildPerkPerk3.json",
+      "Size": 765,
+      "Hash": "2cc14dabe0408e83496475df7ef32726",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902833+09:00"
+    },
+    {
+      "Name": "GuildPerkCurve3.json",
+      "Size": 217,
+      "Hash": "4560bce1e91fd11262b1d89e848bfc0b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902835+09:00"
+    },
+    {
+      "Name": "GuildPerkCatalogue3.json",
+      "Size": 996,
+      "Hash": "85d7fd17947d0e1b1a55f95ed80576b0",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902838+09:00"
+    },
+    {
+      "Name": "GuildPerkPerk4.json",
+      "Size": 2062,
+      "Hash": "8426a8ada3bfe6139b0f8700363adc69",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902846+09:00"
+    },
+    {
+      "Name": "GuildPerkCurveBCCN.json",
+      "Size": 217,
+      "Hash": "4560bce1e91fd11262b1d89e848bfc0b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902849+09:00"
+    },
+    {
+      "Name": "GuildPerkCatalogue2BCGL.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902852+09:00"
+    },
+    {
+      "Name": "GuildPerkPerk4BCCN.json",
+      "Size": 2062,
+      "Hash": "8426a8ada3bfe6139b0f8700363adc69",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902855+09:00"
+    },
+    {
+      "Name": "Housing.json",
+      "Size": 3552,
+      "Hash": "5b5cb6f420a9aee9ecc2ff3b516df920",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902858+09:00"
+    },
+    {
+      "Name": "HousingCatalogue.json",
+      "Size": 4391,
+      "Hash": "0bae0c893d0937390b9613349081f86a",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902861+09:00"
+    },
+    {
+      "Name": "HousingRecipe.json",
+      "Size": 6794,
+      "Hash": "91a7651aec114f3f2d1e35f3d983356e",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902864+09:00"
+    },
+    {
+      "Name": "Housing2.json",
+      "Size": 842,
+      "Hash": "afb92b14e5d5c00094e78699dbe02b00",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902868+09:00"
+    },
+    {
+      "Name": "HousingCatalogue2.json",
+      "Size": 697,
+      "Hash": "5ec746a0e381299143415326efaf7f73",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590287+09:00"
+    },
+    {
+      "Name": "HousingRecipe2.json",
+      "Size": 1128,
+      "Hash": "d97408c2df0ddf1448683a3cf6a3d32f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902875+09:00"
+    },
+    {
+      "Name": "Housing3.json",
+      "Size": 3259,
+      "Hash": "b80e504db0c011a855c244fcb928ecae",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902877+09:00"
+    },
+    {
+      "Name": "HousingCatalogue3.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590288+09:00"
+    },
+    {
+      "Name": "HousingRecipe3.json",
+      "Size": 521,
+      "Hash": "a8c23ec9454778e24ef27b26d4f19b7a",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902882+09:00"
+    },
+    {
+      "Name": "Housing4.json",
+      "Size": 2406,
+      "Hash": "e6f8051238320a60061aa6ec2c66e6cf",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902884+09:00"
+    },
+    {
+      "Name": "Housing2BCGL.json",
+      "Size": 842,
+      "Hash": "afb92b14e5d5c00094e78699dbe02b00",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902887+09:00"
+    },
+    {
+      "Name": "HousingCatalogue3BCCN.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902889+09:00"
+    },
+    {
+      "Name": "Instance.json",
+      "Size": 6563,
+      "Hash": "1b8197f414228618c8be6187ecfedb1a",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902891+09:00"
+    },
+    {
+      "Name": "InstanceLoot.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902894+09:00"
+    },
+    {
+      "Name": "InstanceCatalogue.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902897+09:00"
+    },
+    {
+      "Name": "Instance2.json",
+      "Size": 681,
+      "Hash": "6ed2d72bdf47f0a9edb291b67fb26b83",
+      "LastUpdatedDate": "2026-08-26T15:12:51.59029+09:00"
+    },
+    {
+      "Name": "InstanceLoot2.json",
+      "Size": 1106,
+      "Hash": "44a4337802748eb81833fe5e4b0b7def",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902903+09:00"
+    },
+    {
+      "Name": "InstanceCatalogue2.json",
+      "Size": 1609,
+      "Hash": "e6d2f0469c86eecc340290fc27d288c6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902906+09:00"
+    },
+    {
+      "Name": "Instance3.json",
+      "Size": 2823,
+      "Hash": "e91c99a5a8e3ee870fb1bba13f05ee7d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902909+09:00"
+    },
+    {
+      "Name": "InstanceLoot3.json",
+      "Size": 5008,
+      "Hash": "f9d6f097e6f866785e3e2fe52eedf9d3",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902913+09:00"
+    },
+    {
+      "Name": "InstanceCatalogue3.json",
+      "Size": 7787,
+      "Hash": "67681993ea34e1654bbb63cc9184d499",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902918+09:00"
+    },
+    {
+      "Name": "Instance4.json",
+      "Size": 681,
+      "Hash": "6ed2d72bdf47f0a9edb291b67fb26b83",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902923+09:00"
+    },
+    {
+      "Name": "InstanceLootBCGL.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902927+09:00"
+    },
+    {
+      "Name": "InstanceCatalogue2BCCN.json",
+      "Size": 1609,
+      "Hash": "e6d2f0469c86eecc340290fc27d288c6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590293+09:00"
+    },
+    {
+      "Name": "Instance4BCGL.json",
+      "Size": 681,
+      "Hash": "6ed2d72bdf47f0a9edb291b67fb26b83",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902932+09:00"
+    },
+    {
+      "Name": "Item.json",
+      "Size": 2430,
+      "Hash": "723cc43c2f96368f28f05d97940505c6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902935+09:00"
+    },
+    {
+      "Name": "ItemCatalogue.json",
+      "Size": 2515,
+      "Hash": "6f8b5527ea071933f31118de592554c4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902937+09:00"
+    },
+    {
+      "Name": "Loot.json",
+      "Size": 5008,
+      "Hash": "f9d6f097e6f866785e3e2fe52eedf9d3",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590294+09:00"
+    },
+    {
+      "Name": "ItemLootLine.json",
+      "Size": 3809,
+      "Hash": "6651b82a3513c7b9ad4ab4f72a45a90f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902942+09:00"
+    },
+    {
+      "Name": "Item2.json",
+      "Size": 929,
+      "Hash": "dcaba3d10e8c847eafd288e95125d3d4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902946+09:00"
+    },
+    {
+      "Name": "ItemCatalogue2.json",
+      "Size": 697,
+      "Hash": "5ec746a0e381299143415326efaf7f73",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902948+09:00"
+    },
+    {
+      "Name": "ItemLoot.json",
+      "Size": 1434,
+      "Hash": "a92c9da907d84687dbee70f8a1864fc8",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590295+09:00"
+    },
+    {
+      "Name": "ItemLootLine2.json",
+      "Size": 1127,
+      "Hash": "3eafdbaeda1a73e62690e8aa453929bd",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902952+09:00"
+    },
+    {
+      "Name": "Item3.json",
+      "Size": 929,
+      "Hash": "dcaba3d10e8c847eafd288e95125d3d4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902954+09:00"
+    },
+    {
+      "Name": "ItemCatalogue3.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902956+09:00"
+    },
+    {
+      "Name": "ItemLoot2.json",
+      "Size": 1894,
+      "Hash": "9649b7bba94b067259208050f5ae9ffc",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902958+09:00"
+    },
+    {
+      "Name": "ItemBCCN.json",
+      "Size": 2430,
+      "Hash": "723cc43c2f96368f28f05d97940505c6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902961+09:00"
+    },
+    {
+      "Name": "Item2BCGL.json",
+      "Size": 929,
+      "Hash": "dcaba3d10e8c847eafd288e95125d3d4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902963+09:00"
+    },
+    {
+      "Name": "Item3BCCN.json",
+      "Size": 929,
+      "Hash": "dcaba3d10e8c847eafd288e95125d3d4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902965+09:00"
+    },
+    {
+      "Name": "ItemDropLoot.json",
+      "Size": 6593,
+      "Hash": "0d00c1895004250809ad7a4062bf9bf5",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902967+09:00"
+    },
+    {
+      "Name": "ItemDropLootLine.json",
+      "Size": 297,
+      "Hash": "4dfb944a3a214cd92013cd9f41c3aff3",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590297+09:00"
+    },
+    {
+      "Name": "ItemDropCatalogue.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902974+09:00"
+    },
+    {
+      "Name": "ItemDropLoot2.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902976+09:00"
+    },
+    {
+      "Name": "ItemDropLootLine2.json",
+      "Size": 492,
+      "Hash": "f792cb6da956cc18363ca7e871b9b3ba",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902978+09:00"
+    },
+    {
+      "Name": "ItemDropCatalogue2.json",
+      "Size": 1609,
+      "Hash": "e6d2f0469c86eecc340290fc27d288c6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902981+09:00"
+    },
+    {
+      "Name": "ItemDropLoot3.json",
+      "Size": 2839,
+      "Hash": "a2ffff3c2d8dfbb77a222ecadc8bebfd",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902984+09:00"
+    },
+    {
+      "Name": "ItemDropLootLine3.json",
+      "Size": 2135,
+      "Hash": "cbb0e47dfc4ca5d371e7f21c438530db",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902987+09:00"
+    },
+    {
+      "Name": "ItemDropCatalogue3.json",
+      "Size": 7787,
+      "Hash": "67681993ea34e1654bbb63cc9184d499",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590299+09:00"
+    },
+    {
+      "Name": "ItemDropLoot4.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902993+09:00"
+    },
+    {
+      "Name": "ItemDropLootLine4.json",
+      "Size": 347,
+      "Hash": "d75dbbf9e3f46d3c5cd56d3948d4a811",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5902995+09:00"
+    },
+    {
+      "Name": "ItemDropLootLineBCGL.json",
+      "Size": 297,
+      "Hash": "4dfb944a3a214cd92013cd9f41c3aff3",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903+09:00"
+    },
+    {
+      "Name": "ItemDropCatalogue2BCCN.json",
+      "Size": 1609,
+      "Hash": "e6d2f0469c86eecc340290fc27d288c6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590301+09:00"
+    },
+    {
+      "Name": "ItemDropLoot4BCGL.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903013+09:00"
+    },
+    {
+      "Name": "Leaderboard.json",
+      "Size": 45637,
+      "Hash": "db220525f7df60442ec521ea5272f2f4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903015+09:00"
+    },
+    {
+      "Name": "LeaderboardLadder.json",
+      "Size": 479,
+      "Hash": "96fe845338485ea52e954bfbb1d7a9ba",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903017+09:00"
+    },
+    {
+      "Name": "LeaderboardCatalogue.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590302+09:00"
+    },
+    {
+      "Name": "Leaderboard2.json",
+      "Size": 1206,
+      "Hash": "39b3ad9131d0796dc682b02d764afd98",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903023+09:00"
+    },
+    {
+      "Name": "LeaderboardLadder2.json",
+      "Size": 4421,
+      "Hash": "9738570e5c7392daa0e806f72eb2eba6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903025+09:00"
+    },
+    {
+      "Name": "LeaderboardCatalogue2.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903028+09:00"
+    },
+    {
+      "Name": "Leaderboard3.json",
+      "Size": 41737,
+      "Hash": "56aa59520af80c6e3a5a0425230cc0b9",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903029+09:00"
+    },
+    {
+      "Name": "LeaderboardLadder3.json",
+      "Size": 479,
+      "Hash": "96fe845338485ea52e954bfbb1d7a9ba",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903031+09:00"
+    },
+    {
+      "Name": "LeaderboardCatalogue3.json",
+      "Size": 996,
+      "Hash": "85d7fd17947d0e1b1a55f95ed80576b0",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903034+09:00"
+    },
+    {
+      "Name": "Leaderboard4.json",
+      "Size": 1135,
+      "Hash": "f970e163fa3d545d65d658dba76ef8d7",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903038+09:00"
+    },
+    {
+      "Name": "Login.json",
+      "Size": 248,
+      "Hash": "e8ef214ad8e2d68cceaacfa6bd0de6de",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903041+09:00"
+    },
+    {
+      "Name": "LoginLoot.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903044+09:00"
+    },
+    {
+      "Name": "LoginCatalogue.json",
+      "Size": 996,
+      "Hash": "85d7fd17947d0e1b1a55f95ed80576b0",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903046+09:00"
+    },
+    {
+      "Name": "Login2.json",
+      "Size": 36874,
+      "Hash": "7abbc9ddac3f7c90924b062000b5efbf",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903054+09:00"
+    },
+    {
+      "Name": "LoginLoot2.json",
+      "Size": 2839,
+      "Hash": "a2ffff3c2d8dfbb77a222ecadc8bebfd",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903057+09:00"
+    },
+    {
+      "Name": "LoginCatalogue2.json",
+      "Size": 4391,
+      "Hash": "0bae0c893d0937390b9613349081f86a",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903059+09:00"
+    },
+    {
+      "Name": "Login3.json",
+      "Size": 3212,
+      "Hash": "ec967bd92ed00a4b38092d407ce07f16",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903063+09:00"
+    },
+    {
+      "Name": "LoginLoot3.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903066+09:00"
+    },
+    {
+      "Name": "LoginCatalogue3.json",
+      "Size": 697,
+      "Hash": "5ec746a0e381299143415326efaf7f73",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903069+09:00"
+    },
+    {
+      "Name": "Login4.json",
+      "Size": 537,
+      "Hash": "5d3e00a2c255362a0a72653484df4a76",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903071+09:00"
+    },
+    {
+      "Name": "Mail.json",
+      "Size": 721,
+      "Hash": "a208df1d9e63513d45fb32c9cadd9ee5",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903075+09:00"
+    },
+    {
+      "Name": "MailLoot.json",
+      "Size": 1434,
+      "Hash": "a92c9da907d84687dbee70f8a1864fc8",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590308+09:00"
+    },
+    {
+      "Name": "MailCatalogue.json",
+      "Size": 2312,
+      "Hash": "c2970fed6fb015cae278ed86dbe380c3",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903083+09:00"
+    },
+    {
+      "Name": "Mail2.json",
+      "Size": 623,
+      "Hash": "49b3ed4a408269a6c0b3192fd35544f2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903086+09:00"
+    },
+    {
+      "Name": "MailLoot2.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903088+09:00"
+    },
+    {
+      "Name": "MailCatalogue2.json",
+      "Size": 1703,
+      "Hash": "b02ca7716cde875217512b559c35d127",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903092+09:00"
+    },
+    {
+      "Name": "Mail3.json",
+      "Size": 5976,
+      "Hash": "aaf14c617dc0de3ebd1425fa2850703d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903095+09:00"
+    },
+    {
+      "Name": "MailLoot3.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903097+09:00"
+    },
+    {
+      "Name": "MailCatalogue3.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903099+09:00"
+    },
+    {
+      "Name": "Mail4.json",
+      "Size": 623,
+      "Hash": "49b3ed4a408269a6c0b3192fd35544f2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903102+09:00"
+    },
+    {
+      "Name": "Mail2BCCN.json",
+      "Size": 623,
+      "Hash": "49b3ed4a408269a6c0b3192fd35544f2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903105+09:00"
+    },
+    {
+      "Name": "MailLoot3BCGL.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903108+09:00"
+    },
+    {
+      "Name": "Market.json",
+      "Size": 3225,
+      "Hash": "92c7190e4761404788a76cedd58131c5",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590311+09:00"
+    },
+    {
+      "Name": "MarketItem.json",
+      "Size": 929,
+      "Hash": "dcaba3d10e8c847eafd288e95125d3d4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903113+09:00"
+    },
+    {
+      "Name": "MarketCatalogue.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903116+09:00"
+    },
+    {
+      "Name": "Market2.json",
+      "Size": 336,
+      "Hash": "051f5538799293a744e40c586cb69859",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903118+09:00"
+    },
+    {
+      "Name": "MarketItem2.json",
+      "Size": 1541,
+      "Hash": "cf0007f2221311ad45702bc7070c6d80",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590312+09:00"
+    },
+    {
+      "Name": "MarketCatalogue2.json",
+      "Size": 1609,
+      "Hash": "e6d2f0469c86eecc340290fc27d288c6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903122+09:00"
+    },
+    {
+      "Name": "Market3.json",
+      "Size": 1391,
+      "Hash": "1f199d2eaac53c8c776dd9ee709129f1",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903124+09:00"
+    },
+    {
+      "Name": "MarketItem3.json",
+      "Size": 6824,
+      "Hash": "d9868c49e460339770d69a7f75f1c696",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903128+09:00"
+    },
+    {
+      "Name": "MarketCatalogue3.json",
+      "Size": 7787,
+      "Hash": "67681993ea34e1654bbb63cc9184d499",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903131+09:00"
+    },
+    {
+      "Name": "Market4.json",
+      "Size": 336,
+      "Hash": "051f5538799293a744e40c586cb69859",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903135+09:00"
+    },
+    {
+      "Name": "MarketItemBCGL.json",
+      "Size": 929,
+      "Hash": "dcaba3d10e8c847eafd288e95125d3d4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590314+09:00"
+    },
+    {
+      "Name": "MarketCatalogue2BCCN.json",
+      "Size": 1609,
+      "Hash": "e6d2f0469c86eecc340290fc27d288c6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903144+09:00"
+    },
+    {
+      "Name": "Market4BCGL.json",
+      "Size": 336,
+      "Hash": "051f5538799293a744e40c586cb69859",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903147+09:00"
+    },
+    {
+      "Name": "Matchmaking.json",
+      "Size": 5603,
+      "Hash": "03f0143dba61e06e2977bfd628cdacba",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590315+09:00"
+    },
+    {
+      "Name": "MatchmakingLadder.json",
+      "Size": 479,
+      "Hash": "96fe845338485ea52e954bfbb1d7a9ba",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903154+09:00"
+    },
+    {
+      "Name": "MatchmakingCatalogue.json",
+      "Size": 697,
+      "Hash": "5ec746a0e381299143415326efaf7f73",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903157+09:00"
+    },
+    {
+      "Name": "Matchmaking2.json",
+      "Size": 46111,
+      "Hash": "57b9dad9d5975e54342640cf2e59e93d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903161+09:00"
+    },
+    {
+      "Name": "MatchmakingLadder2.json",
+      "Size": 1738,
+      "Hash": "c303b3e260898bbf43d1f6be47984a1d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903163+09:00"
+    },
+    {
+      "Name": "MatchmakingCatalogue2.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903167+09:00"
+    },
+    {
+      "Name": "Matchmaking3.json",
+      "Size": 434,
+      "Hash": "c04ab6a68a12940cfa5dcd337f436f7d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590317+09:00"
+    },
+    {
+      "Name": "MatchmakingLadder3.json",
+      "Size": 1300,
+      "Hash": "a6171bcafcdcfb556d98dc11d2b0369b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903173+09:00"
+    },
+    {
+      "Name": "MatchmakingCatalogue3.json",
+      "Size": 5795,
+      "Hash": "dc289a3a4ca5334d86d5b897600aa6de",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903175+09:00"
+    },
+    {
+      "Name": "Matchmaking4.json",
+      "Size": 42212,
+      "Hash": "1befeeb457d078354b4f3c08906277be",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903177+09:00"
+    },
+    {
+      "Name": "MatchmakingLadderBCGL.json",
+      "Size": 479,
+      "Hash": "96fe845338485ea52e954bfbb1d7a9ba",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903179+09:00"
+    },
+    {
+      "Name": "MatchmakingCatalogue2BCCN.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903182+09:00"
+    },
+    {
+      "Name": "Matchmaking4BCGL.json",
+      "Size": 42212,
+      "Hash": "1befeeb457d078354b4f3c08906277be",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903186+09:00"
+    },
+    {
+      "Name": "ProfessionPerk.json",
+      "Size": 894,
+      "Hash": "93a563704a6429ed4170b5f1448d5816",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903188+09:00"
+    },
+    {
+      "Name": "ProfessionRecipe.json",
+      "Size": 1128,
+      "Hash": "d97408c2df0ddf1448683a3cf6a3d32f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903191+09:00"
+    },
+    {
+      "Name": "ProfessionCurve.json",
+      "Size": 838,
+      "Hash": "41574982881fdd99fa69bf357f9ae350",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903193+09:00"
+    },
+    {
+      "Name": "ProfessionCatalogue.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903195+09:00"
+    },
+    {
+      "Name": "ProfessionPerk2.json",
+      "Size": 765,
+      "Hash": "2cc14dabe0408e83496475df7ef32726",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903198+09:00"
+    },
+    {
+      "Name": "ProfessionRecipe2.json",
+      "Size": 1478,
+      "Hash": "e645236db3ba96fa5046a3989f049bc9",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903201+09:00"
+    },
+    {
+      "Name": "ProfessionCurve2.json",
+      "Size": 2114,
+      "Hash": "ee6b0878f80a5873f90ad9cccd54dd1d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903203+09:00"
+    },
+    {
+      "Name": "ProfessionCatalogue2.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903206+09:00"
+    },
+    {
+      "Name": "ProfessionPerk3.json",
+      "Size": 765,
+      "Hash": "2cc14dabe0408e83496475df7ef32726",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903209+09:00"
+    },
+    {
+      "Name": "ProfessionRecipe3.json",
+      "Size": 78490,
+      "Hash": "243192f29ece6b7620239468d2f8e075",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903212+09:00"
+    },
+    {
+      "Name": "ProfessionCatalogueBCCN.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903215+09:00"
+    },
+    {
+      "Name": "ProfessionCatalogue2BCGL.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903218+09:00"
+    },
+    {
+      "Name": "Quest.json",
+      "Size": 3082,
+      "Hash": "4f3102d5ac9626877b79b7865752060d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903221+09:00"
+    },
+    {
+      "Name": "QuestCatalogue.json",
+      "Size": 1609,
+      "Hash": "e6d2f0469c86eecc340290fc27d288c6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903226+09:00"
+    },
+    {
+      "Name": "QuestLoot.json",
+      "Size": 2839,
+      "Hash": "a2ffff3c2d8dfbb77a222ecadc8bebfd",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903228+09:00"
+    },
+    {
+      "Name": "Quest2.json",
+      "Size": 13577,
+      "Hash": "6cb12cfce1925c41ffd3d58f56faa168",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903231+09:00"
+    },
+    {
+      "Name": "QuestCatalogue2.json",
+      "Size": 7787,
+      "Hash": "67681993ea34e1654bbb63cc9184d499",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903238+09:00"
+    },
+    {
+      "Name": "QuestLoot2.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590324+09:00"
+    },
+    {
+      "Name": "Quest3.json",
+      "Size": 197373,
+      "Hash": "c19877160e14336a6f9858cea6c8c62f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903243+09:00"
+    },
+    {
+      "Name": "QuestCatalogue3.json",
+      "Size": 1298,
+      "Hash": "ca9f74f9342d9a2582449091798ee5c2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903245+09:00"
+    },
+    {
+      "Name": "QuestLoot3.json",
+      "Size": 2601,
+      "Hash": "8bb241c0e0f69b07a2ff0cf53536b893",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903248+09:00"
+    },
+    {
+      "Name": "Quest4.json",
+      "Size": 1859,
+      "Hash": "ff6fce76a03a54c07385e7502f4794bf",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590325+09:00"
+    },
+    {
+      "Name": "QuestCatalogueBCCN.json",
+      "Size": 1609,
+      "Hash": "e6d2f0469c86eecc340290fc27d288c6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903253+09:00"
+    },
+    {
+      "Name": "QuestLoot2BCGL.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903255+09:00"
+    },
+    {
+      "Name": "Quest4BCCN.json",
+      "Size": 1859,
+      "Hash": "ff6fce76a03a54c07385e7502f4794bf",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903257+09:00"
+    },
+    {
+      "Name": "QuestChainQuest.json",
+      "Size": 1859,
+      "Hash": "ff6fce76a03a54c07385e7502f4794bf",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903259+09:00"
+    },
+    {
+      "Name": "QuestChainCatalogue.json",
+      "Size": 1703,
+      "Hash": "b02ca7716cde875217512b559c35d127",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903262+09:00"
+    },
+    {
+      "Name": "QuestChainQuest2.json",
+      "Size": 180623,
+      "Hash": "2466f6d3a9179325ea9d0ae9d8b0c8ca",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903264+09:00"
+    },
+    {
+      "Name": "QuestChainCatalogue2.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903267+09:00"
+    },
+    {
+      "Name": "QuestChainQuest3.json",
+      "Size": 1859,
+      "Hash": "ff6fce76a03a54c07385e7502f4794bf",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903269+09:00"
+    },
+    {
+      "Name": "QuestChainCatalogue3.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903274+09:00"
+    },
+    {
+      "Name": "QuestChainQuest4.json",
+      "Size": 3082,
+      "Hash": "4f3102d5ac9626877b79b7865752060d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903278+09:00"
+    },
+    {
+      "Name": "QuestChainCatalogue4.json",
+      "Size": 1609,
+      "Hash": "e6d2f0469c86eecc340290fc27d288c6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903282+09:00"
+    },
+    {
+      "Name": "QuestChainQuest5.json",
+      "Size": 7783,
+      "Hash": "aa3988da35e985fe753111cf3375ba8d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903286+09:00"
+    },
+    {
+      "Name": "QuestChainCatalogue5.json",
+      "Size": 4391,
+      "Hash": "0bae0c893d0937390b9613349081f86a",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903288+09:00"
+    },
+    {
+      "Name": "QuestChainCatalogue2BCGL.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903291+09:00"
+    },
+    {
+      "Name": "QuestChainCatalogue4BCCN.json",
+      "Size": 1609,
+      "Hash": "e6d2f0469c86eecc340290fc27d288c6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903293+09:00"
+    },
+    {
+      "Name": "RaidInstance.json",
+      "Size": 1139,
+      "Hash": "e8b66377c4aaed771c86321969f0cd9b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903298+09:00"
+    },
+    {
+      "Name": "RaidLoot.json",
+      "Size": 1780,
+      "Hash": "f498ef341c8eee7fd6ff15a9475ba5c7",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903302+09:00"
+    },
+    {
+      "Name": "RaidFormula.json",
+      "Size": 2340,
+      "Hash": "5191850fe8aa821fba57a338c82062e3",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903306+09:00"
+    },
+    {
+      "Name": "RaidCatalogue.json",
+      "Size": 4391,
+      "Hash": "0bae0c893d0937390b9613349081f86a",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903308+09:00"
+    },
+    {
+      "Name": "RaidInstance2.json",
+      "Size": 8840,
+      "Hash": "a06560f83a647b5c3fe3234eae9370f2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590331+09:00"
+    },
+    {
+      "Name": "RaidLoot2.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903313+09:00"
+    },
+    {
+      "Name": "RaidFormula2.json",
+      "Size": 658,
+      "Hash": "e7f3c105722d8cb14da50286362879f8",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903315+09:00"
+    },
+    {
+      "Name": "RaidCatalogue2.json",
+      "Size": 1298,
+      "Hash": "ca9f74f9342d9a2582449091798ee5c2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903317+09:00"
+    },
+    {
+      "Name": "RaidInstance3.json",
+      "Size": 2587,
+      "Hash": "07d92e0425f6bc4f6efbdb7628504a7e",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903319+09:00"
+    },
+    {
+      "Name": "RaidLoot3.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903321+09:00"
+    },
+    {
+      "Name": "RaidLootBCCN.json",
+      "Size": 1780,
+      "Hash": "f498ef341c8eee7fd6ff15a9475ba5c7",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903323+09:00"
+    },
+    {
+      "Name": "RaidLoot2BCGL.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903325+09:00"
+    },
+    {
+      "Name": "RaidLoot3BCCN.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903357+09:00"
+    },
+    {
+      "Name": "Season.json",
+      "Size": 638,
+      "Hash": "561480930b55d9388a2c2f6a898c1331",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903362+09:00"
+    },
+    {
+      "Name": "SeasonLoot.json",
+      "Size": 1894,
+      "Hash": "9649b7bba94b067259208050f5ae9ffc",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903364+09:00"
+    },
+    {
+      "Name": "SeasonCatalogue.json",
+      "Size": 5795,
+      "Hash": "dc289a3a4ca5334d86d5b897600aa6de",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903366+09:00"
+    },
+    {
+      "Name": "Season2.json",
+      "Size": 638,
+      "Hash": "561480930b55d9388a2c2f6a898c1331",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903368+09:00"
+    },
+    {
+      "Name": "SeasonLoot2.json",
+      "Size": 661,
+      "Hash": "6aa754235390694725f0d5a5ccbf4197",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903371+09:00"
+    },
+    {
+      "Name": "SeasonCatalogue2.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903374+09:00"
+    },
+    {
+      "Name": "Season3.json",
+      "Size": 1063,
+      "Hash": "042475da993d7df755f62c9a19d4e992",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903378+09:00"
+    },
+    {
+      "Name": "SeasonLoot3.json",
+      "Size": 1780,
+      "Hash": "f498ef341c8eee7fd6ff15a9475ba5c7",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903381+09:00"
+    },
+    {
+      "Name": "SeasonCatalogue3.json",
+      "Size": 2515,
+      "Hash": "6f8b5527ea071933f31118de592554c4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903384+09:00"
+    },
+    {
+      "Name": "Season4.json",
+      "Size": 4701,
+      "Hash": "57535a0cbd908a2ec4df082b7e04159d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903387+09:00"
+    },
+    {
+      "Name": "Season2BCGL.json",
+      "Size": 638,
+      "Hash": "561480930b55d9388a2c2f6a898c1331",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903389+09:00"
+    },
+    {
+      "Name": "SeasonLoot3BCCN.json",
+      "Size": 1780,
+      "Hash": "f498ef341c8eee7fd6ff15a9475ba5c7",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903392+09:00"
+    },
+    {
+      "Name": "ShopOffer.json",
+      "Size": 1079,
+      "Hash": "48c94fc4865bea0bdc972940ede5a525",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903396+09:00"
+    },
+    {
+      "Name": "ShopCurrency.json",
+      "Size": 1660,
+      "Hash": "42f01a1528edc30301438a360b9e5790",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903398+09:00"
+    },
+    {
+      "Name": "ShopCatalogue.json",
+      "Size": 2515,
+      "Hash": "6f8b5527ea071933f31118de592554c4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903401+09:00"
+    },
+    {
+      "Name": "ShopOffer2.json",
+      "Size": 4813,
+      "Hash": "d4a719fb4de5c1bf68df9bf6fcda97c2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903405+09:00"
+    },
+    {
+      "Name": "ShopCurrency2.json",
+      "Size": 7974,
+      "Hash": "5e79473cd4667a448bf8aea47216b680",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903408+09:00"
+    },
+    {
+      "Name": "ShopCatalogue2.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903411+09:00"
+    },
+    {
+      "Name": "ShopOffer3.json",
+      "Size": 738,
+      "Hash": "23709d5882890139b5d4ff926e2ed33f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903415+09:00"
+    },
+    {
+      "Name": "ShopCurrency3.json",
+      "Size": 1354,
+      "Hash": "e53b167f8c775b3044c4784b914be014",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903417+09:00"
+    },
+    {
+      "Name": "ShopCatalogue3.json",
+      "Size": 2312,
+      "Hash": "c2970fed6fb015cae278ed86dbe380c3",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903419+09:00"
+    },
+    {
+      "Name": "ShopOffer4.json",
+      "Size": 634,
+      "Hash": "c0ffa022ed01194fe99fe41466872f8d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903421+09:00"
+    },
+    {
+      "Name": "ShopCurrencyBCCN.json",
+      "Size": 1660,
+      "Hash": "42f01a1528edc30301438a360b9e5790",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903424+09:00"
+    },
+    {
+      "Name": "ShopCatalogue2BCGL.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903426+09:00"
+    },
+    {
+      "Name": "ShopOffer4BCCN.json",
+      "Size": 634,
+      "Hash": "c0ffa022ed01194fe99fe41466872f8d",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903428+09:00"
+    },
+    {
+      "Name": "SocketPerk.json",
+      "Size": 1284,
+      "Hash": "b8bffd81546bea967c5ffc3f4da699ed",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903432+09:00"
+    },
+    {
+      "Name": "SocketItem.json",
+      "Size": 2430,
+      "Hash": "723cc43c2f96368f28f05d97940505c6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903434+09:00"
+    },
+    {
+      "Name": "SocketCatalogue.json",
+      "Size": 2515,
+      "Hash": "6f8b5527ea071933f31118de592554c4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903437+09:00"
+    },
+    {
+      "Name": "SocketPerk2.json",
+      "Size": 5684,
+      "Hash": "849134954453b0c42a164c864586e9b9",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903439+09:00"
+    },
+    {
+      "Name": "SocketItem2.json",
+      "Size": 12164,
+      "Hash": "c0252cebeb478c3832bf70318515042c",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903441+09:00"
+    },
+    {
+      "Name": "SocketCatalogue2.json",
+      "Size": 64627,
+      "Hash": "d1d65d55577f5dd68f175acc090ebd70",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903443+09:00"
+    },
+    {
+      "Name": "SocketPerk3.json",
+      "Size": 894,
+      "Hash": "93a563704a6429ed4170b5f1448d5816",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903445+09:00"
+    },
+    {
+      "Name": "SocketItem3.json",
+      "Size": 1966,
+      "Hash": "8a2d4532bd3eda9a32d77a363ca90044",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903447+09:00"
+    },
+    {
+      "Name": "SocketCatalogue3.json",
+      "Size": 2312,
+      "Hash": "c2970fed6fb015cae278ed86dbe380c3",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903453+09:00"
+    },
+    {
+      "Name": "SocketPerk4.json",
+      "Size": 765,
+      "Hash": "2cc14dabe0408e83496475df7ef32726",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903456+09:00"
+    },
+    {
+      "Name": "SocketItem4.json",
+      "Size": 929,
+      "Hash": "dcaba3d10e8c847eafd288e95125d3d4",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903459+09:00"
+    },
+    {
+      "Name": "SocketItemBCCN.json",
+      "Size": 2430,
+      "Hash": "723cc43c2f96368f28f05d97940505c6",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903462+09:00"
+    },
+    {
+      "Name": "SocketCatalogue2BCGL.json",
+      "Size": 64627,
+      "Hash": "d1d65d55577f5dd68f175acc090ebd70",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903464+09:00"
+    },
+    {
+      "Name": "SocketPerk4BCCN.json",
+      "Size": 765,
+      "Hash": "2cc14dabe0408e83496475df7ef32726",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903467+09:00"
+    },
+    {
+      "Name": "Spawn.json",
+      "Size": 1517,
+      "Hash": "1bc264818352a8828c169c9981dc4a05",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903469+09:00"
+    },
+    {
+      "Name": "SpawnProfile.json",
+      "Size": 6261,
+      "Hash": "4e012db4449e9bc447dd50d3a811c190",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903472+09:00"
+    },
+    {
+      "Name": "SpawnCatalogue.json",
+      "Size": 7787,
+      "Hash": "67681993ea34e1654bbb63cc9184d499",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903474+09:00"
+    },
+    {
+      "Name": "Spawn2.json",
+      "Size": 365,
+      "Hash": "375b3075a2cc0995a8ef6d511e2cc7f2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903477+09:00"
+    },
+    {
+      "Name": "SpawnProfile2.json",
+      "Size": 1026,
+      "Hash": "851b1281ae6d47573349e25c8dc10be5",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590348+09:00"
+    },
+    {
+      "Name": "SpawnCatalogue2.json",
+      "Size": 1298,
+      "Hash": "ca9f74f9342d9a2582449091798ee5c2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903482+09:00"
+    },
+    {
+      "Name": "Spawn3.json",
+      "Size": 1393,
+      "Hash": "95bd3d9d657f8cc23628f8754531a6fe",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903485+09:00"
+    },
+    {
+      "Name": "SpawnProfile3.json",
+      "Size": 874,
+      "Hash": "0630e82b08fd9ef7aafecbe596bf3a79",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903487+09:00"
+    },
+    {
+      "Name": "SpawnCatalogue3.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590349+09:00"
+    },
+    {
+      "Name": "Spawn4.json",
+      "Size": 1030,
+      "Hash": "93a0d32c2dfb2eb36eb84da2c4d8b48b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903493+09:00"
+    },
+    {
+      "Name": "Spawn2BCGL.json",
+      "Size": 365,
+      "Hash": "375b3075a2cc0995a8ef6d511e2cc7f2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903496+09:00"
+    },
+    {
+      "Name": "SpawnProfile3BCCN.json",
+      "Size": 874,
+      "Hash": "0630e82b08fd9ef7aafecbe596bf3a79",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903498+09:00"
+    },
+    {
+      "Name": "Status.json",
+      "Size": 604,
+      "Hash": "dced9fba6469ed2cd065fddf4ed68819",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903501+09:00"
+    },
+    {
+      "Name": "StatusEffect.json",
+      "Size": 404,
+      "Hash": "4cc64c156c5bbeb5fa15fb54b099ac70",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903503+09:00"
+    },
+    {
+      "Name": "StatusCatalogue.json",
+      "Size": 996,
+      "Hash": "85d7fd17947d0e1b1a55f95ed80576b0",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903505+09:00"
+    },
+    {
+      "Name": "Status2.json",
+      "Size": 1613,
+      "Hash": "09dc46f7c9f5fd1b393dc27f67d6397b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903508+09:00"
+    },
+    {
+      "Name": "StatusEffect2.json",
+      "Size": 1675,
+      "Hash": "6920c8d8c0b5c79b3d9a1d29ae27eebf",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590351+09:00"
+    },
+    {
+      "Name": "StatusCatalogue2.json",
+      "Size": 4391,
+      "Hash": "0bae0c893d0937390b9613349081f86a",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903513+09:00"
+    },
+    {
+      "Name": "Status3.json",
+      "Size": 7943,
+      "Hash": "0dcbfaabc80c6f389bf27fd21391785e",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903515+09:00"
+    },
+    {
+      "Name": "StatusEffect3.json",
+      "Size": 404,
+      "Hash": "4cc64c156c5bbeb5fa15fb54b099ac70",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903518+09:00"
+    },
+    {
+      "Name": "StatusCatalogue3.json",
+      "Size": 697,
+      "Hash": "5ec746a0e381299143415326efaf7f73",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903521+09:00"
+    },
+    {
+      "Name": "Status4.json",
+      "Size": 1316,
+      "Hash": "b1738e45d8ad8028ba132a3a09b0c130",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903525+09:00"
+    },
+    {
+      "Name": "StatusEffect4.json",
+      "Size": 1540,
+      "Hash": "af8841b56167f3dde3c96dd8e79adaed",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903528+09:00"
+    },
+    {
+      "Name": "Status2BCCN.json",
+      "Size": 1613,
+      "Hash": "09dc46f7c9f5fd1b393dc27f67d6397b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903531+09:00"
+    },
+    {
+      "Name": "StatusEffect3BCGL.json",
+      "Size": 404,
+      "Hash": "4cc64c156c5bbeb5fa15fb54b099ac70",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903534+09:00"
+    },
+    {
+      "Name": "SystemSetting.json",
+      "Size": 999,
+      "Hash": "77867ee6a1a55d979308ac724a429f02",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903537+09:00"
+    },
+    {
+      "Name": "SystemText.json",
+      "Size": 153593,
+      "Hash": "bf803d3b29c8a2e084cce12f060e9b23",
+      "LastUpdatedDate": "2026-08-26T15:12:51.590354+09:00"
+    },
+    {
+      "Name": "SystemTutorial.json",
+      "Size": 453,
+      "Hash": "b712010d947ae459865585b65940b883",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903542+09:00"
+    },
+    {
+      "Name": "SystemNote.json",
+      "Size": 375,
+      "Hash": "b3d39d58ddb6d0c43ee16a66ff9ad114",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903544+09:00"
+    },
+    {
+      "Name": "SystemMatrixColumn.json",
+      "Size": 7122,
+      "Hash": "0a9b1d9243fd1c300373fbb457692ef3",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903546+09:00"
+    },
+    {
+      "Name": "SystemMatrix.json",
+      "Size": 431426,
+      "Hash": "2e429baaa17e00b982fa1ff931440b9b",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903551+09:00"
+    },
+    {
+      "Name": "Zone.json",
+      "Size": 2957,
+      "Hash": "b83a7d30b843ae8e400d194d39a81de3",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903553+09:00"
+    },
+    {
+      "Name": "ZoneSpawn.json",
+      "Size": 365,
+      "Hash": "375b3075a2cc0995a8ef6d511e2cc7f2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903555+09:00"
+    },
+    {
+      "Name": "ZoneCatalogue.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903559+09:00"
+    },
+    {
+      "Name": "Zone2.json",
+      "Size": 2175,
+      "Hash": "1eff3290fde8d4ed09ea0cc60ec5ce69",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903563+09:00"
+    },
+    {
+      "Name": "ZoneSpawn2.json",
+      "Size": 3541,
+      "Hash": "ef00ee0c35d95e5078ee5df4a27e301f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903566+09:00"
+    },
+    {
+      "Name": "ZoneCatalogue2.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903568+09:00"
+    },
+    {
+      "Name": "Zone3.json",
+      "Size": 760,
+      "Hash": "400b8c0fb70fce8a7ff7bd3b0cd5d17f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903572+09:00"
+    },
+    {
+      "Name": "ZoneSpawn3.json",
+      "Size": 365,
+      "Hash": "375b3075a2cc0995a8ef6d511e2cc7f2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903574+09:00"
+    },
+    {
+      "Name": "ZoneCatalogue3.json",
+      "Size": 996,
+      "Hash": "85d7fd17947d0e1b1a55f95ed80576b0",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903576+09:00"
+    },
+    {
+      "Name": "Zone4.json",
+      "Size": 2055,
+      "Hash": "612a803515ad1455c4400de678451ed2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903578+09:00"
+    },
+    {
+      "Name": "ZoneSpawnBCCN.json",
+      "Size": 365,
+      "Hash": "375b3075a2cc0995a8ef6d511e2cc7f2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903588+09:00"
+    },
+    {
+      "Name": "ZoneCatalogue2BCGL.json",
+      "Size": 599,
+      "Hash": "075545aa879413a4213e7718a630c26f",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903591+09:00"
+    },
+    {
+      "Name": "Zone4BCCN.json",
+      "Size": 2055,
+      "Hash": "612a803515ad1455c4400de678451ed2",
+      "LastUpdatedDate": "2026-08-26T15:12:51.5903594+09:00"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+@desc	primary index	backing item	tier	element
+@name	id	itemId	tier	element
+@type	Int	Int	Int	enum:ElementType
+@gen	seq:1203000	ref:ItemTable	int:1..6	enum:ElementType

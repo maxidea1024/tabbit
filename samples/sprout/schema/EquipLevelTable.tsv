@@ -1,0 +1,4 @@
+@desc	primary index	grade	level	stat multiplier in permille	upgrade cost
+@name	id	grade	level	statScale	cost
+@type	Int	enum:GradeType	Int	Int	Long
+@gen	seq:1302000	enum:GradeType	cycle:80	curve:1000:38:80	curve:400:1900:80

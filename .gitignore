@@ -119,6 +119,11 @@ test/**/obj/
 tools/**/bin/
 tools/**/obj/
 
+# Samples have build output too - the authoring and generator tools. This rule was missing
+# until 2026-08-26, and 185.9 MB of it was tracked; `git rm --cached` took it out of the index.
+samples/**/bin/
+samples/**/obj/
+
 # Conversion output produced by the regression suite, plus the scratch areas the
 # TypeScript and C++ gates build in. Regenerated on every run and compared against
 # test/fixtures/golden, which *is* committed.
@@ -152,18 +157,6 @@ target/
 # then read it back on the next run; it now keeps its own under the test's output.)
 /schema-baseline.json
 
-# The main workbook's conversion output: 60 MB of derived JSON from a 61 MB workbook,
-# which is what samples/named-range/recipe-main.jsonc produces. samples/named-range/out/ is committed
-# because it is small enough to read in a diff and the analysis document cites it; this
-# one is a measurement, and the numbers taken from it are in the document instead.
-samples/named-range/out/main/
-
-# The whole project converted - 252 MB across seven targets, from
-# samples/named-range/recipe-all.jsonc. Derived and regenerable in under two minutes; what is
-# worth keeping from it is the comparison against the deployed export, and that is
-# written down in samples/named-range/doc/레이아웃-분석-20260808.md.
-samples/named-range/out/all/
-
 # Byte-compiled Python, which the language gate produces inside whatever package it
 # just checked - including test/reserved-words/, which is a committed directory.
 __pycache__/
@@ -177,26 +170,6 @@ classes/
 # Cargo's lockfile in a generated crate. The crate is generated, so a lockfile
 # committed here would be one nobody chose and nobody updates.
 /test/reserved-words/rust/Cargo.lock
-
-# 설계 근거 문서 — 다른 팀의 데이터 문제를 구체적으로 다루므로 저장소에는 두지 않습니다.
-/doc/rescue-레이아웃-지원-분석-및-계획-20260807.md
-
-# 좁힌 변종의 변환 출력. samples/named-range/recipe-main-narrow.jsonc 가 만들고, out-main 과
-# 같은 이유로 저장소에 두지 않습니다 — 측정값은 문서에 있습니다.
-samples/named-range/out/main-narrow/
-
-# 벤치 하네스가 컴파일하는 곳과, 재는 변종의 생성 코드를 복사해 두는 곳.
-samples/named-range/bench/out/
-samples/named-range/bench/generated/
-
-# 커버리지 조사가 임시로 쓰는 recipe들. 조사 방법은 recipe-coverage.jsonc 에 있습니다.
-samples/named-range/.probe.json
-samples/named-range/.*.json
-samples/named-range/out/coverage/
-
-# 검증만 돌려보는 recipe의 변환 출력. recipe-validation.jsonc 가 만들고 50 MB입니다 —
-# 확인하는 것은 규칙이 통과하는지이지 산출물이 아니므로, 규칙 폴더만 커밋합니다.
-samples/named-range/out/validation/
 
 # Excel lock files. Written beside a workbook while it is open, and never input.
 ~$*
@@ -246,3 +219,18 @@ test/fixtures/validation/*/lib/
 
 # `dotnet test --logger trx` writes here. A test run's own record, not the repository's.
 TestResults/
+
+# `sprout` at benchmark scale: 109,218 rows, built on demand rather than committed.
+# `--scale small` produces the workbooks that are committed; `--scale live` produces these.
+samples/sprout/xlsx-live/
+samples/sprout/out-live/
+
+# The benchmark's three exports of that corpus. Regenerated in seconds from the recipe, and
+# 20 MB of the same values in three shapes.
+bench/data/
+samples/canopy/xlsx-live/
+samples/canopy/out-live/
+
+# `canopy` reads the same corpus twice, once per container; the second run is a comparison
+# rather than an output, so what it writes is not committed.
+samples/canopy/out-xlsb/

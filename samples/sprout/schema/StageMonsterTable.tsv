@@ -1,0 +1,4 @@
+@desc	primary index	name key	model asset	element	attack	defense	health	skill ids
+@name	id	nameKey	model	element	attack	defense	health	skillIds
+@type	Int	String	String	enum:ElementType	Int	Int	Long	IntArray
+@gen	seq:1503000	str:MON_NAME:300	path:300:Art/Monster	enum:ElementType	int:20..9000:zipf	int:10..6000:zipf	int:100..900000:zipf	arr:ref:SkillTable:1..3

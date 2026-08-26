@@ -1,0 +1,4 @@
+@desc	primary index	owning set	pieces required	affected stat	bonus in permille
+@name	id	setId	pieces	stat	bonus
+@type	Int	Int	Int	enum:StatType	Int
+@gen	seq:1305000	ref:EquipSetTable	int:2..6	enum:StatType	int:30..1200:zipf

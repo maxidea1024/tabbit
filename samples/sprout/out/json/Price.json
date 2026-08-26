@@ -1,0 +1,146 @@
+[
+  {
+    "id": 1803000,
+    "currency": 2,
+    "amount": 46069,
+    "discount": 74
+  },
+  {
+    "id": 1803001,
+    "currency": 6,
+    "amount": 10,
+    "discount": 65
+  },
+  {
+    "id": 1803002,
+    "currency": 4,
+    "amount": 11921,
+    "discount": 469
+  },
+  {
+    "id": 1803003,
+    "currency": 5,
+    "amount": 14771,
+    "discount": 254
+  },
+  {
+    "id": 1803004,
+    "currency": 5,
+    "amount": 2573,
+    "discount": 697
+  },
+  {
+    "id": 1803005,
+    "currency": 3,
+    "amount": 1888,
+    "discount": 577
+  },
+  {
+    "id": 1803006,
+    "currency": 6,
+    "amount": 43,
+    "discount": 73
+  },
+  {
+    "id": 1803007,
+    "currency": 6,
+    "amount": 17245,
+    "discount": 277
+  },
+  {
+    "id": 1803008,
+    "currency": 3,
+    "amount": 9572,
+    "discount": 146
+  },
+  {
+    "id": 1803009,
+    "currency": 6,
+    "amount": 10,
+    "discount": 243
+  },
+  {
+    "id": 1803010,
+    "currency": 3,
+    "amount": 12257,
+    "discount": 422
+  },
+  {
+    "id": 1803011,
+    "currency": 2,
+    "amount": 927,
+    "discount": 415
+  },
+  {
+    "id": 1803012,
+    "currency": 4,
+    "amount": 10165,
+    "discount": 537
+  },
+  {
+    "id": 1803013,
+    "currency": 2,
+    "amount": 524,
+    "discount": 627
+  },
+  {
+    "id": 1803014,
+    "currency": 3,
+    "amount": 636,
+    "discount": 409
+  },
+  {
+    "id": 1803015,
+    "currency": 4,
+    "amount": 1664,
+    "discount": 276
+  },
+  {
+    "id": 1803016,
+    "currency": 5,
+    "amount": 43945,
+    "discount": 553
+  },
+  {
+    "id": 1803017,
+    "currency": 2,
+    "amount": 21,
+    "discount": 559
+  },
+  {
+    "id": 1803018,
+    "currency": 5,
+    "amount": 74,
+    "discount": 546
+  },
+  {
+    "id": 1803019,
+    "currency": 5,
+    "amount": 7337,
+    "discount": 554
+  },
+  {
+    "id": 1803020,
+    "currency": 5,
+    "amount": 42167,
+    "discount": 475
+  },
+  {
+    "id": 1803021,
+    "currency": 1,
+    "amount": 13,
+    "discount": 15
+  },
+  {
+    "id": 1803022,
+    "currency": 1,
+    "amount": 23779,
+    "discount": 165
+  },
+  {
+    "id": 1803023,
+    "currency": 4,
+    "amount": 3749,
+    "discount": 272
+  }
+]

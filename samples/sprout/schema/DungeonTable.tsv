@@ -1,0 +1,4 @@
+@desc	primary index	dungeon kind	name key	element	daily entries	unlock condition
+@name	id	type	nameKey	element	dailyEntries	unlockId
+@type	Int	enum:DungeonType	String	enum:ElementType	Int	Int
+@gen	seq:1701000	enum:DungeonType	str:DUNGEON_NAME:36	enum:ElementType	int:1..5	ref:UnlockTable

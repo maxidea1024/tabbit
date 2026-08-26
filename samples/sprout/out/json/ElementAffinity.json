@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1007000,
+    "attacker": 4,
+    "defender": 6,
+    "rate": 1294
+  },
+  {
+    "id": 1007001,
+    "attacker": 5,
+    "defender": 4,
+    "rate": 807
+  },
+  {
+    "id": 1007002,
+    "attacker": 1,
+    "defender": 1,
+    "rate": 1333
+  },
+  {
+    "id": 1007003,
+    "attacker": 4,
+    "defender": 2,
+    "rate": 1473
+  },
+  {
+    "id": 1007004,
+    "attacker": 3,
+    "defender": 2,
+    "rate": 693
+  },
+  {
+    "id": 1007005,
+    "attacker": 1,
+    "defender": 3,
+    "rate": 907
+  },
+  {
+    "id": 1007006,
+    "attacker": 1,
+    "defender": 2,
+    "rate": 1285
+  },
+  {
+    "id": 1007007,
+    "attacker": 2,
+    "defender": 4,
+    "rate": 888
+  },
+  {
+    "id": 1007008,
+    "attacker": 5,
+    "defender": 3,
+    "rate": 952
+  },
+  {
+    "id": 1007009,
+    "attacker": 3,
+    "defender": 5,
+    "rate": 1434
+  },
+  {
+    "id": 1007010,
+    "attacker": 2,
+    "defender": 1,
+    "rate": 669
+  },
+  {
+    "id": 1007011,
+    "attacker": 2,
+    "defender": 4,
+    "rate": 1200
+  }
+]

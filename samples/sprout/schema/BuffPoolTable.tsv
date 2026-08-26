@@ -1,0 +1,4 @@
+@desc	primary index	candidate buffs	weights, one per candidate
+@name	id	buffIds	weights
+@type	Int	IntArray	IntArray
+@gen	seq:1105000	arr:ref:BuffTable:2..5	arr:int:1..100:2..5

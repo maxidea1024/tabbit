@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1303000,
+    "grade": 4,
+    "optionSlots": 4,
+    "frame": "Art/Frame/Ember/Ember_04"
+  },
+  {
+    "id": 1303001,
+    "grade": 2,
+    "optionSlots": 1,
+    "frame": "Art/Frame/Kelvin/Kelvin_10"
+  },
+  {
+    "id": 1303002,
+    "grade": 5,
+    "optionSlots": 0,
+    "frame": "Art/Frame/Fenn/Rune_17"
+  },
+  {
+    "id": 1303003,
+    "grade": 5,
+    "optionSlots": 1,
+    "frame": "Art/Frame/Alder/Marrow_12"
+  },
+  {
+    "id": 1303004,
+    "grade": 2,
+    "optionSlots": 0,
+    "frame": "Art/Frame/Harrow/Thorn_19"
+  },
+  {
+    "id": 1303005,
+    "grade": 1,
+    "optionSlots": 2,
+    "frame": "Art/Frame/Alder/Alder_00"
+  },
+  {
+    "id": 1303006,
+    "grade": 5,
+    "optionSlots": 2,
+    "frame": "Art/Frame/Alder/Marrow_12"
+  },
+  {
+    "id": 1303007,
+    "grade": 1,
+    "optionSlots": 2,
+    "frame": "Art/Frame/Brack/Nettle_13"
+  },
+  {
+    "id": 1303008,
+    "grade": 3,
+    "optionSlots": 1,
+    "frame": "Art/Frame/Calyx/Calyx_02"
+  },
+  {
+    "id": 1303009,
+    "grade": 3,
+    "optionSlots": 1,
+    "frame": "Art/Frame/Isle/Umber_20"
+  },
+  {
+    "id": 1303010,
+    "grade": 2,
+    "optionSlots": 3,
+    "frame": "Art/Frame/Fenn/Rune_17"
+  },
+  {
+    "id": 1303011,
+    "grade": 3,
+    "optionSlots": 0,
+    "frame": "Art/Frame/Dorn/Dorn_03"
+  }
+]

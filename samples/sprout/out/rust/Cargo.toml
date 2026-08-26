@@ -1,0 +1,11 @@
+[package]
+name = "sprout"
+version = "0.0.0"
+edition = "2021"
+
+# One dependency, and only because `WriteUpdater` is on: Rust's standard
+# library has no HTTP client. The manifest parser and the MD5 are written
+# out in src/updater.rs rather than pulled in, so this is the whole of it.
+# Turn the updater off and this section is empty again.
+[dependencies]
+ureq = "2"

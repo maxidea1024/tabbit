@@ -1,0 +1,4 @@
+@desc	primary index	package name key	shop kind	price in hard currency	purchase limit, 0 for none
+@name	id	nameKey	shop	price	limit
+@type	Int	String	enum:ShopType	Int	Int
+@gen	seq:1205000	str:PKG_NAME:70	enum:ShopType	int:0..12000:zipf	int:0..30

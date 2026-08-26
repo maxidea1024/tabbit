@@ -1,0 +1,7 @@
+@name	id	en	ko	ja	zh	stage	state
+@type	strkey	text	text	text	text	number	string
+:required	1	1	1	1	1	1	1
+:min	-	-	-	-	-	0	-
+:max	-	-	-	-	-	2	-
+:enum	-	-	-	-	-	-	"draft";"review";"live";"retired"
+@gen	key:STR	text:1800	text:1800	text:1800	text:1800	pick:0|1|2	pick:draft|review|live|retired

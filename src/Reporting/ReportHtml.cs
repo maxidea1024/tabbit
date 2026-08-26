@@ -531,9 +531,9 @@ internal static class ReportHtml
     /// The folder every place on this page shares, dropped from the rows and said once.
     /// </summary>
     /// <remarks>
-    /// A real page had `samples/named-range/` down the left of fourteen rows: twelve characters of
-    /// the most prominent position on every line, saying the same thing every time, in front
-    /// of the part that differs.
+    /// A real page had one sample's folder down the left of fourteen rows: a dozen characters
+    /// of the most prominent position on every line, saying the same thing every time, in
+    /// front of the part that differs.
     ///
     /// Only a whole folder is dropped, and only when more than one place shares it - cutting
     /// a common run of letters would leave names that are not names. What the copy button

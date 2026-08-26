@@ -1,0 +1,4 @@
+@desc	primary index	owning dialogue	line order	speaker	portrait asset	line key
+@name	id	dialogueId	lineOrder	speaker	portrait	lineKey
+@type	Int	Int	Int	enum:DialogueSpeaker	String	String
+@gen	seq:2302000	ref:DialogueTable	cycle:4	enum:DialogueSpeaker	path:120:Art/Portrait	str:LINE:640

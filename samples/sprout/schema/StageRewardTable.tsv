@@ -1,0 +1,4 @@
+@desc	primary index	owning stage	reward kind	granted item	count	chance in permille
+@name	id	stageId	type	itemId	count	chance
+@type	Int	Int	enum:RewardType	Int	Int	Int
+@gen	seq:1504000	ref:StageTable	enum:RewardType	ref:ItemTable	int:1..200:zipf	int:50..1000

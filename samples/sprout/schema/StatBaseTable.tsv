@@ -1,0 +1,4 @@
+@desc	primary index	role	affected stat	base value
+@name	id	role	stat	baseValue
+@type	Int	enum:RoleType	enum:StatType	Int
+@gen	seq:1402000	enum:RoleType	enum:StatType	int:10..900:zipf

@@ -135,7 +135,7 @@ public sealed class SheetPerTableLayoutParser : ILayoutParser
     /// </remarks>
     private List<Models.Enum> ParseEnumSheet(RawSheet sheet)
     {
-        Log.Information($"Parsing rescue enum sheet `{sheet.Location}`");
+        Log.Information($"Parsing sheet-per-table enum sheet `{sheet.Location}`");
 
         var result = new List<Models.Enum>();
 
@@ -296,7 +296,7 @@ public sealed class SheetPerTableLayoutParser : ILayoutParser
 
         _context.RequiresIdentifier(name, sheet.Location);
 
-        Log.Information($"Parsing rescue table `{name}`. ({sheet.Location})");
+        Log.Information($"Parsing sheet-per-table table `{name}`. ({sheet.Location})");
 
         var table = new Models.Table
         {
@@ -444,7 +444,7 @@ public sealed class SheetPerTableLayoutParser : ILayoutParser
     }
 
     /// <summary>
-    /// Reads a rescue type name onto a field.
+    /// Reads this layout's type name onto a field.
     /// </summary>
     /// <remarks>
     /// The spellings differ from Tabbit's in three ways and no more: case is not
@@ -507,7 +507,7 @@ public sealed class SheetPerTableLayoutParser : ILayoutParser
     }
 
     /// <summary>
-    /// Splits a rescue type spelling into the pieces the shared type reader takes.
+    /// Splits this layout's type spelling into the pieces the shared type reader takes.
     /// </summary>
     /// <returns>
     /// The Tabbit type name, whether the column holds a delimited list, and the enum's

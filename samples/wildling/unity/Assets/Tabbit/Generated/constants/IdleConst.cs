@@ -9,7 +9,7 @@
 
 namespace Wildling.Data
 {
-    // Generated from samples/wildling/기획데이터/Const.xlsx : Const_Idle : A1
+    // Generated from samples/wildling/design-data/xlsx/Const.xlsx : Const_Idle : A1
     /// <summary>
     /// 방치의 상한과 계수이다.
     /// </summary>

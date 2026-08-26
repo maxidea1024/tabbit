@@ -1,0 +1,9 @@
+@name	id	resultId	resultCount	craftSeconds	professionLevel	material[0]["ItemId"]	material[0]["Count"]	material[1]["ItemId"]	material[1]["Count"]	material[2]["ItemId"]	material[2]["Count"]	material[3]["ItemId"]	material[3]["Count"]	material[4]["ItemId"]	material[4]["Count"]	successRate	state
+@type	key:21000000~21999999	number	number	number	number	number	number	number	number	number	number	number	number	number	number	number	string
+:required	1	1	1	1	1	-	-	-	-	-	-	-	-	-	-	1	1
+:min	21000000	19000000	1	1	1	-	-	-	-	-	-	-	-	-	-	1	-
+:max	21999999	19999999	99	86400	300	-	-	-	-	-	-	-	-	-	-	1000	-
+:enum	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:links	-	"Item"	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-
+:requiredInObject	-	-	-	-	-	1	1	1	1	1	1	1	1	1	1	-	-
+@gen	seq:21000000	ref:Item	int:1..99:zipf	int:1..86400:zipf	int:1..300:zipf	int:1..99999:zipf	int:1..300:zipf	int:1..99999:zipf	int:1..300:zipf	int:1..99999:zipf	int:1..300:zipf	int:1..99999:zipf	int:1..300:zipf	int:1..99999:zipf	int:1..300:zipf	int:1..1000:zipf	pick:draft|review|live|retired

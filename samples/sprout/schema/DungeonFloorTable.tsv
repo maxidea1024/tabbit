@@ -1,0 +1,4 @@
+@desc	primary index	owning dungeon	floor	recommended power	stamina cost	reward
+@name	id	dungeonId	floor	power	stamina	rewardId
+@type	Int	Int	Int	Int	Int	Int
+@gen	seq:1702000	ref:DungeonTable	cycle:20	curve:2000:1450:20	int:5..40	ref:DungeonRewardTable

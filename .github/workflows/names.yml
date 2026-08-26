@@ -46,3 +46,54 @@ jobs:
           fi
 
           echo "clean"
+
+      # The two corpora this tool was validated against were company assets and are gone from
+      # the working tree, replaced by the synthetic samples under samples/. Their names leak
+      # back the same way a retired product name does - through a path, a comment, a fixture.
+      #
+      # `rescue` is also a Ruby keyword, so every Ruby file is excluded rather than the word
+      # being made more specific: a generated `rescue` clause is not the sample.
+      - name: No trace of the retired sample corpora
+        run: |
+          samples='\buwo\b|\brescue\b'
+          exclude=(
+            ':(exclude)*.xlsx' ':(exclude)*.xlsm' ':(exclude)*.xlsb'
+            ':(exclude)*.png' ':(exclude)*.rb' ':(exclude)*.sbn'
+            ':(exclude)website/package-lock.json'
+            ':(exclude).github/workflows/names.yml'
+            ':(exclude)notes/'
+            # `rescue` is an ordinary English verb and a Ruby keyword. These three say so and
+            # are the only places the word survives outside generated Ruby.
+            ':(exclude)CLAUDE.md'
+            ':(exclude)src/CodeGeneration/LanguageProfile.cs'
+            ':(exclude)src/History/HistoryServer.cs'
+          )
+
+          paths="$(git ls-files | grep -Ei 'samples/(named-range|rescue)/' || true)"
+          if [ -n "$paths" ]; then
+            echo "::error::these paths belong to a retired sample corpus"; echo "$paths"; exit 1
+          fi
+
+          files="$(git grep -lEIi "$samples" -- . "${exclude[@]}" || true)"
+          if [ -n "$files" ]; then
+            echo "::error::these files name a retired sample corpus"
+            git grep -nEIi "$samples" -- . "${exclude[@]}"
+            exit 1
+          fi
+
+          echo "clean"
+
+      # Folder and file names are ASCII. Prose is Korean throughout and that is deliberate; a
+      # path is not prose - it is typed into shells, URLs and build scripts on three operating
+      # systems, and one of them will get the encoding wrong.
+      #
+      # Any byte outside ASCII, rather than the Hangul ranges: the rule is what a path may
+      # contain, and a range list would be a rule about what it may not.
+      - name: Paths are ASCII
+        run: |
+          paths="$(LC_ALL=C git ls-files | grep -P '[^\x00-\x7F]' || true)"
+          if [ -n "$paths" ]; then
+            echo "::error::these paths are not ASCII"; echo "$paths"; exit 1
+          fi
+
+          echo "clean"

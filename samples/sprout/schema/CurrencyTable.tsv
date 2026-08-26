@@ -1,0 +1,4 @@
+@desc	primary index	currency kind	name key	icon asset	hard cap, 0 for none
+@name	id	type	nameKey	icon	cap
+@type	Int	enum:CurrencyType	String	String	Long
+@gen	seq:1202000	enum:CurrencyType	str:CUR_NAME:24	path:24:Art/Currency	int:0..2000000000:zipf

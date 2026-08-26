@@ -1,0 +1,4 @@
+@desc	primary index	owning character	voice cue	audio asset	subtitle key
+@name	id	characterId	cue	clip	subtitleKey
+@type	Int	Int	String	String	String
+@gen	seq:1005000	ref:CharacterTable	str:VO_CUE:40	path:240:Audio/Voice	str:VO_TEXT:240

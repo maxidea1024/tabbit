@@ -1,0 +1,8 @@
+@name	id	name	rolls	allowDuplicate	entry[0]["ItemId"]	entry[0]["Count"]	entry[0]["Weight"]	entry[1]["ItemId"]	entry[1]["Count"]	entry[1]["Weight"]	entry[2]["ItemId"]	entry[2]["Count"]	entry[2]["Weight"]	entry[3]["ItemId"]	entry[3]["Count"]	entry[3]["Weight"]	state
+@type	key:17000000~17999999	text	number	bool	number	number	number	number	number	number	number	number	number	number	number	number	string
+:required	1	1	1	1	-	-	-	-	-	-	-	-	-	-	-	-	1
+:min	17000000	-	1	-	-	-	-	-	-	-	-	-	-	-	-	-	-
+:max	17999999	-	12	-	-	-	-	-	-	-	-	-	-	-	-	-	-
+:enum	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:requiredInObject	-	-	-	-	1	1	1	1	1	1	1	1	1	1	1	1	-
+@gen	seq:17000000	text:400	int:1..12:zipf	bool	int:1..99999:zipf	int:1..500:zipf	int:1..1000:zipf	int:1..99999:zipf	int:1..500:zipf	int:1..1000:zipf	int:1..99999:zipf	int:1..500:zipf	int:1..1000:zipf	int:1..99999:zipf	int:1..500:zipf	int:1..1000:zipf	pick:draft|review|live|retired

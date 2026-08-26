@@ -1,0 +1,4 @@
+@desc	primary index	collection kind	name key	icon asset	completion reward
+@name	id	type	nameKey	icon	rewardId
+@type	Int	enum:CollectionType	String	String	Int
+@gen	seq:2201000	enum:CollectionType	str:COL_NAME:90	path:90:Art/Collection	ref:RewardTable

@@ -1,0 +1,98 @@
+[
+  {
+    "id": 1701000,
+    "type": 3,
+    "nameKey": "DUNGEON_NAME_0010",
+    "element": 5,
+    "dailyEntries": 3,
+    "unlockId": 2402003
+  },
+  {
+    "id": 1701001,
+    "type": 2,
+    "nameKey": "DUNGEON_NAME_0027",
+    "element": 1,
+    "dailyEntries": 1,
+    "unlockId": 2402020
+  },
+  {
+    "id": 1701002,
+    "type": 3,
+    "nameKey": "DUNGEON_NAME_0009",
+    "element": 1,
+    "dailyEntries": 5,
+    "unlockId": 2402015
+  },
+  {
+    "id": 1701003,
+    "type": 1,
+    "nameKey": "DUNGEON_NAME_0007",
+    "element": 4,
+    "dailyEntries": 3,
+    "unlockId": 2402018
+  },
+  {
+    "id": 1701004,
+    "type": 3,
+    "nameKey": "DUNGEON_NAME_0008",
+    "element": 3,
+    "dailyEntries": 4,
+    "unlockId": 2402000
+  },
+  {
+    "id": 1701005,
+    "type": 3,
+    "nameKey": "DUNGEON_NAME_0029",
+    "element": 6,
+    "dailyEntries": 4,
+    "unlockId": 2402017
+  },
+  {
+    "id": 1701006,
+    "type": 2,
+    "nameKey": "DUNGEON_NAME_0019",
+    "element": 1,
+    "dailyEntries": 2,
+    "unlockId": 2402018
+  },
+  {
+    "id": 1701007,
+    "type": 1,
+    "nameKey": "DUNGEON_NAME_0006",
+    "element": 4,
+    "dailyEntries": 3,
+    "unlockId": 2402011
+  },
+  {
+    "id": 1701008,
+    "type": 1,
+    "nameKey": "DUNGEON_NAME_0030",
+    "element": 4,
+    "dailyEntries": 3,
+    "unlockId": 2402010
+  },
+  {
+    "id": 1701009,
+    "type": 4,
+    "nameKey": "DUNGEON_NAME_0010",
+    "element": 2,
+    "dailyEntries": 1,
+    "unlockId": 2402013
+  },
+  {
+    "id": 1701010,
+    "type": 3,
+    "nameKey": "DUNGEON_NAME_0035",
+    "element": 6,
+    "dailyEntries": 1,
+    "unlockId": 2402005
+  },
+  {
+    "id": 1701011,
+    "type": 2,
+    "nameKey": "DUNGEON_NAME_0028",
+    "element": 6,
+    "dailyEntries": 3,
+    "unlockId": 2402012
+  }
+]

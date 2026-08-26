@@ -1,0 +1,247 @@
+[
+  {
+    "id": 1306000,
+    "stat": 1,
+    "minRoll": 10,
+    "maxRoll": 400,
+    "weight": 500
+  },
+  {
+    "id": 1306001,
+    "stat": 1,
+    "minRoll": 54,
+    "maxRoll": 701,
+    "weight": 8
+  },
+  {
+    "id": 1306002,
+    "stat": 7,
+    "minRoll": 369,
+    "maxRoll": 1264,
+    "weight": 264
+  },
+  {
+    "id": 1306003,
+    "stat": 3,
+    "minRoll": 292,
+    "maxRoll": 1219,
+    "weight": 1
+  },
+  {
+    "id": 1306004,
+    "stat": 6,
+    "minRoll": 43,
+    "maxRoll": 525,
+    "weight": 377
+  },
+  {
+    "id": 1306005,
+    "stat": 2,
+    "minRoll": 238,
+    "maxRoll": 653,
+    "weight": 3
+  },
+  {
+    "id": 1306006,
+    "stat": 2,
+    "minRoll": 313,
+    "maxRoll": 1371,
+    "weight": 104
+  },
+  {
+    "id": 1306007,
+    "stat": 1,
+    "minRoll": 345,
+    "maxRoll": 880,
+    "weight": 1
+  },
+  {
+    "id": 1306008,
+    "stat": 3,
+    "minRoll": 29,
+    "maxRoll": 1393,
+    "weight": 197
+  },
+  {
+    "id": 1306009,
+    "stat": 5,
+    "minRoll": 280,
+    "maxRoll": 1047,
+    "weight": 674
+  },
+  {
+    "id": 1306010,
+    "stat": 7,
+    "minRoll": 392,
+    "maxRoll": 1214,
+    "weight": 705
+  },
+  {
+    "id": 1306011,
+    "stat": 7,
+    "minRoll": 353,
+    "maxRoll": 1202,
+    "weight": 126
+  },
+  {
+    "id": 1306012,
+    "stat": 6,
+    "minRoll": 310,
+    "maxRoll": 776,
+    "weight": 235
+  },
+  {
+    "id": 1306013,
+    "stat": 5,
+    "minRoll": 386,
+    "maxRoll": 1555,
+    "weight": 7
+  },
+  {
+    "id": 1306014,
+    "stat": 8,
+    "minRoll": 332,
+    "maxRoll": 757,
+    "weight": 1
+  },
+  {
+    "id": 1306015,
+    "stat": 4,
+    "minRoll": 105,
+    "maxRoll": 1072,
+    "weight": 857
+  },
+  {
+    "id": 1306016,
+    "stat": 7,
+    "minRoll": 90,
+    "maxRoll": 906,
+    "weight": 31
+  },
+  {
+    "id": 1306017,
+    "stat": 5,
+    "minRoll": 321,
+    "maxRoll": 516,
+    "weight": 648
+  },
+  {
+    "id": 1306018,
+    "stat": 6,
+    "minRoll": 313,
+    "maxRoll": 927,
+    "weight": 229
+  },
+  {
+    "id": 1306019,
+    "stat": 4,
+    "minRoll": 251,
+    "maxRoll": 1028,
+    "weight": 446
+  },
+  {
+    "id": 1306020,
+    "stat": 8,
+    "minRoll": 318,
+    "maxRoll": 929,
+    "weight": 783
+  },
+  {
+    "id": 1306021,
+    "stat": 5,
+    "minRoll": 279,
+    "maxRoll": 1180,
+    "weight": 1
+  },
+  {
+    "id": 1306022,
+    "stat": 6,
+    "minRoll": 256,
+    "maxRoll": 798,
+    "weight": 11
+  },
+  {
+    "id": 1306023,
+    "stat": 5,
+    "minRoll": 194,
+    "maxRoll": 1417,
+    "weight": 21
+  },
+  {
+    "id": 1306024,
+    "stat": 2,
+    "minRoll": 62,
+    "maxRoll": 500,
+    "weight": 46
+  },
+  {
+    "id": 1306025,
+    "stat": 7,
+    "minRoll": 336,
+    "maxRoll": 896,
+    "weight": 41
+  },
+  {
+    "id": 1306026,
+    "stat": 2,
+    "minRoll": 227,
+    "maxRoll": 1152,
+    "weight": 21
+  },
+  {
+    "id": 1306027,
+    "stat": 5,
+    "minRoll": 152,
+    "maxRoll": 1571,
+    "weight": 215
+  },
+  {
+    "id": 1306028,
+    "stat": 2,
+    "minRoll": 28,
+    "maxRoll": 622,
+    "weight": 28
+  },
+  {
+    "id": 1306029,
+    "stat": 3,
+    "minRoll": 378,
+    "maxRoll": 523,
+    "weight": 753
+  },
+  {
+    "id": 1306030,
+    "stat": 7,
+    "minRoll": 348,
+    "maxRoll": 1342,
+    "weight": 172
+  },
+  {
+    "id": 1306031,
+    "stat": 6,
+    "minRoll": 210,
+    "maxRoll": 1542,
+    "weight": 1
+  },
+  {
+    "id": 1306032,
+    "stat": 6,
+    "minRoll": 101,
+    "maxRoll": 929,
+    "weight": 4
+  },
+  {
+    "id": 1306033,
+    "stat": 3,
+    "minRoll": 195,
+    "maxRoll": 930,
+    "weight": 455
+  },
+  {
+    "id": 1306034,
+    "stat": 6,
+    "minRoll": 238,
+    "maxRoll": 1255,
+    "weight": 532
+  }
+]

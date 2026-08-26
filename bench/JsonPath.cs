@@ -80,7 +80,7 @@ internal static class JsonPath
 
     internal static TablePlan[] BuildPlans(string namedJsonDir)
     {
-        var accessor = typeof(Rescue.Tables.Tables);
+        var accessor = typeof(Sprout.Tables.Tables);
         var moduleBuilder = AssemblyBuilder
             .DefineDynamicAssembly(new AssemblyName("Tabbit.Bench.Dtos"), AssemblyBuilderAccess.Run)
             .DefineDynamicModule("dtos");

@@ -1,0 +1,8 @@
+@name	id	factionId	slot	actorId	leader	state
+@type	key:40000000~40999999	number	number	number	bool	string
+:required	1	1	1	1	1	1
+:min	40000000	39000000	1	10000000	-	-
+:max	40999999	39999999	40	10999999	-	-
+:enum	-	-	-	-	-	"draft";"review";"live";"retired"
+:links	-	"Faction"	-	"Profile"	-	-
+@gen	seq:40000000	ref:Faction	int:1..40:zipf	ref:Profile	bool	pick:draft|review|live|retired

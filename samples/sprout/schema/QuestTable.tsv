@@ -1,0 +1,4 @@
+@desc	primary index	quest kind	title key	summary key	reward	unlock condition	repeatable
+@name	id	type	titleKey	summaryKey	rewardId	unlockId	repeatable
+@type	Int	enum:QuestType	String	String	Int	Int	Bool
+@gen	seq:1601000	enum:QuestType	str:QUEST_TITLE:220	str:QUEST_SUMMARY:220	ref:RewardTable	ref:UnlockTable	bool

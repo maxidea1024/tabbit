@@ -1,0 +1,92 @@
+[
+  {
+    "id": 1402000,
+    "role": 1,
+    "stat": 8,
+    "baseValue": 12
+  },
+  {
+    "id": 1402001,
+    "role": 3,
+    "stat": 8,
+    "baseValue": 86
+  },
+  {
+    "id": 1402002,
+    "role": 4,
+    "stat": 1,
+    "baseValue": 384
+  },
+  {
+    "id": 1402003,
+    "role": 1,
+    "stat": 4,
+    "baseValue": 224
+  },
+  {
+    "id": 1402004,
+    "role": 1,
+    "stat": 4,
+    "baseValue": 203
+  },
+  {
+    "id": 1402005,
+    "role": 3,
+    "stat": 4,
+    "baseValue": 55
+  },
+  {
+    "id": 1402006,
+    "role": 2,
+    "stat": 2,
+    "baseValue": 532
+  },
+  {
+    "id": 1402007,
+    "role": 3,
+    "stat": 2,
+    "baseValue": 10
+  },
+  {
+    "id": 1402008,
+    "role": 3,
+    "stat": 4,
+    "baseValue": 347
+  },
+  {
+    "id": 1402009,
+    "role": 2,
+    "stat": 2,
+    "baseValue": 22
+  },
+  {
+    "id": 1402010,
+    "role": 4,
+    "stat": 4,
+    "baseValue": 28
+  },
+  {
+    "id": 1402011,
+    "role": 1,
+    "stat": 3,
+    "baseValue": 432
+  },
+  {
+    "id": 1402012,
+    "role": 3,
+    "stat": 7,
+    "baseValue": 48
+  },
+  {
+    "id": 1402013,
+    "role": 4,
+    "stat": 6,
+    "baseValue": 36
+  },
+  {
+    "id": 1402014,
+    "role": 1,
+    "stat": 5,
+    "baseValue": 216
+  }
+]

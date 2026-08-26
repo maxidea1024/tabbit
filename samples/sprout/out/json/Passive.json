@@ -1,0 +1,247 @@
+[
+  {
+    "id": 1106000,
+    "characterId": 1001009,
+    "unlockStep": 2,
+    "stat": 8,
+    "bonus": 289
+  },
+  {
+    "id": 1106001,
+    "characterId": 1001009,
+    "unlockStep": 5,
+    "stat": 5,
+    "bonus": 23
+  },
+  {
+    "id": 1106002,
+    "characterId": 1001016,
+    "unlockStep": 0,
+    "stat": 5,
+    "bonus": 781
+  },
+  {
+    "id": 1106003,
+    "characterId": 1001002,
+    "unlockStep": 4,
+    "stat": 5,
+    "bonus": 635
+  },
+  {
+    "id": 1106004,
+    "characterId": 1001027,
+    "unlockStep": 1,
+    "stat": 5,
+    "bonus": 70
+  },
+  {
+    "id": 1106005,
+    "characterId": 1001025,
+    "unlockStep": 2,
+    "stat": 6,
+    "bonus": 29
+  },
+  {
+    "id": 1106006,
+    "characterId": 1001017,
+    "unlockStep": 0,
+    "stat": 3,
+    "bonus": 32
+  },
+  {
+    "id": 1106007,
+    "characterId": 1001000,
+    "unlockStep": 4,
+    "stat": 5,
+    "bonus": 20
+  },
+  {
+    "id": 1106008,
+    "characterId": 1001018,
+    "unlockStep": 0,
+    "stat": 4,
+    "bonus": 313
+  },
+  {
+    "id": 1106009,
+    "characterId": 1001018,
+    "unlockStep": 1,
+    "stat": 8,
+    "bonus": 250
+  },
+  {
+    "id": 1106010,
+    "characterId": 1001012,
+    "unlockStep": 2,
+    "stat": 1,
+    "bonus": 652
+  },
+  {
+    "id": 1106011,
+    "characterId": 1001007,
+    "unlockStep": 1,
+    "stat": 8,
+    "bonus": 156
+  },
+  {
+    "id": 1106012,
+    "characterId": 1001000,
+    "unlockStep": 1,
+    "stat": 8,
+    "bonus": 22
+  },
+  {
+    "id": 1106013,
+    "characterId": 1001003,
+    "unlockStep": 5,
+    "stat": 7,
+    "bonus": 249
+  },
+  {
+    "id": 1106014,
+    "characterId": 1001011,
+    "unlockStep": 3,
+    "stat": 3,
+    "bonus": 20
+  },
+  {
+    "id": 1106015,
+    "characterId": 1001026,
+    "unlockStep": 5,
+    "stat": 5,
+    "bonus": 477
+  },
+  {
+    "id": 1106016,
+    "characterId": 1001010,
+    "unlockStep": 1,
+    "stat": 8,
+    "bonus": 495
+  },
+  {
+    "id": 1106017,
+    "characterId": 1001009,
+    "unlockStep": 1,
+    "stat": 1,
+    "bonus": 212
+  },
+  {
+    "id": 1106018,
+    "characterId": 1001014,
+    "unlockStep": 5,
+    "stat": 5,
+    "bonus": 20
+  },
+  {
+    "id": 1106019,
+    "characterId": 1001007,
+    "unlockStep": 4,
+    "stat": 1,
+    "bonus": 70
+  },
+  {
+    "id": 1106020,
+    "characterId": 1001022,
+    "unlockStep": 0,
+    "stat": 8,
+    "bonus": 39
+  },
+  {
+    "id": 1106021,
+    "characterId": 1001009,
+    "unlockStep": 5,
+    "stat": 4,
+    "bonus": 112
+  },
+  {
+    "id": 1106022,
+    "characterId": 1001001,
+    "unlockStep": 4,
+    "stat": 4,
+    "bonus": 710
+  },
+  {
+    "id": 1106023,
+    "characterId": 1001002,
+    "unlockStep": 1,
+    "stat": 1,
+    "bonus": 208
+  },
+  {
+    "id": 1106024,
+    "characterId": 1001006,
+    "unlockStep": 2,
+    "stat": 6,
+    "bonus": 62
+  },
+  {
+    "id": 1106025,
+    "characterId": 1001003,
+    "unlockStep": 1,
+    "stat": 6,
+    "bonus": 48
+  },
+  {
+    "id": 1106026,
+    "characterId": 1001001,
+    "unlockStep": 1,
+    "stat": 7,
+    "bonus": 82
+  },
+  {
+    "id": 1106027,
+    "characterId": 1001023,
+    "unlockStep": 3,
+    "stat": 6,
+    "bonus": 113
+  },
+  {
+    "id": 1106028,
+    "characterId": 1001011,
+    "unlockStep": 4,
+    "stat": 3,
+    "bonus": 102
+  },
+  {
+    "id": 1106029,
+    "characterId": 1001029,
+    "unlockStep": 0,
+    "stat": 7,
+    "bonus": 93
+  },
+  {
+    "id": 1106030,
+    "characterId": 1001002,
+    "unlockStep": 4,
+    "stat": 8,
+    "bonus": 441
+  },
+  {
+    "id": 1106031,
+    "characterId": 1001000,
+    "unlockStep": 0,
+    "stat": 1,
+    "bonus": 446
+  },
+  {
+    "id": 1106032,
+    "characterId": 1001011,
+    "unlockStep": 3,
+    "stat": 3,
+    "bonus": 241
+  },
+  {
+    "id": 1106033,
+    "characterId": 1001023,
+    "unlockStep": 1,
+    "stat": 2,
+    "bonus": 361
+  },
+  {
+    "id": 1106034,
+    "characterId": 1001008,
+    "unlockStep": 1,
+    "stat": 8,
+    "bonus": 20
+  }
+]

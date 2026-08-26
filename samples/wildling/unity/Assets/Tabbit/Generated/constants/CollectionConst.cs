@@ -9,7 +9,7 @@
 
 namespace Wildling.Data
 {
-    // Generated from samples/wildling/기획데이터/Const.xlsx : Const_Codex : A10
+    // Generated from samples/wildling/design-data/xlsx/Const.xlsx : Const_Codex : A10
     /// <summary>
     /// 수집의 계수이다.
     /// </summary>

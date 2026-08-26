@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1506000,
+    "nameKey": "WORLD_NAME_0006",
+    "map": "Art/World/Alder/Alder_00",
+    "themeColour": "Brack"
+  },
+  {
+    "id": 1506001,
+    "nameKey": "WORLD_NAME_0000",
+    "map": "Art/World/Harrow/Harrow_07",
+    "themeColour": "Ember"
+  },
+  {
+    "id": 1506002,
+    "nameKey": "WORLD_NAME_0004",
+    "map": "Art/World/Ember/Ember_04",
+    "themeColour": "Ember"
+  },
+  {
+    "id": 1506003,
+    "nameKey": "WORLD_NAME_0007",
+    "map": "Art/World/Kelvin/Kelvin_10",
+    "themeColour": "Fenn"
+  },
+  {
+    "id": 1506004,
+    "nameKey": "WORLD_NAME_0007",
+    "map": "Art/World/Gale/Gale_06",
+    "themeColour": "Brack"
+  },
+  {
+    "id": 1506005,
+    "nameKey": "WORLD_NAME_0002",
+    "map": "Art/World/Brack/Brack_01",
+    "themeColour": "Calyx"
+  },
+  {
+    "id": 1506006,
+    "nameKey": "WORLD_NAME_0010",
+    "map": "Art/World/Fenn/Fenn_05",
+    "themeColour": "Fenn"
+  },
+  {
+    "id": 1506007,
+    "nameKey": "WORLD_NAME_0006",
+    "map": "Art/World/Isle/Isle_08",
+    "themeColour": "Ember"
+  },
+  {
+    "id": 1506008,
+    "nameKey": "WORLD_NAME_0006",
+    "map": "Art/World/Kelvin/Kelvin_10",
+    "themeColour": "Brack"
+  },
+  {
+    "id": 1506009,
+    "nameKey": "WORLD_NAME_0000",
+    "map": "Art/World/Dorn/Dorn_03",
+    "themeColour": "Calyx"
+  },
+  {
+    "id": 1506010,
+    "nameKey": "WORLD_NAME_0005",
+    "map": "Art/World/Kelvin/Kelvin_10",
+    "themeColour": "Alder"
+  },
+  {
+    "id": 1506011,
+    "nameKey": "WORLD_NAME_0006",
+    "map": "Art/World/Gale/Gale_06",
+    "themeColour": "Ember"
+  }
+]

@@ -1,0 +1,134 @@
+[
+  {
+    "id": 2402000,
+    "type": 1,
+    "conditionId": 2401024,
+    "messageKey": "LOCK_MSG_0054"
+  },
+  {
+    "id": 2402001,
+    "type": 4,
+    "conditionId": 2401014,
+    "messageKey": "LOCK_MSG_0040"
+  },
+  {
+    "id": 2402002,
+    "type": 1,
+    "conditionId": 2401001,
+    "messageKey": "LOCK_MSG_0085"
+  },
+  {
+    "id": 2402003,
+    "type": 1,
+    "conditionId": 2401037,
+    "messageKey": "LOCK_MSG_0032"
+  },
+  {
+    "id": 2402004,
+    "type": 3,
+    "conditionId": 2401003,
+    "messageKey": "LOCK_MSG_0010"
+  },
+  {
+    "id": 2402005,
+    "type": 4,
+    "conditionId": 2401011,
+    "messageKey": "LOCK_MSG_0029"
+  },
+  {
+    "id": 2402006,
+    "type": 4,
+    "conditionId": 2401014,
+    "messageKey": "LOCK_MSG_0084"
+  },
+  {
+    "id": 2402007,
+    "type": 4,
+    "conditionId": 2401031,
+    "messageKey": "LOCK_MSG_0018"
+  },
+  {
+    "id": 2402008,
+    "type": 1,
+    "conditionId": 2401019,
+    "messageKey": "LOCK_MSG_0056"
+  },
+  {
+    "id": 2402009,
+    "type": 2,
+    "conditionId": 2401038,
+    "messageKey": "LOCK_MSG_0081"
+  },
+  {
+    "id": 2402010,
+    "type": 3,
+    "conditionId": 2401011,
+    "messageKey": "LOCK_MSG_0019"
+  },
+  {
+    "id": 2402011,
+    "type": 3,
+    "conditionId": 2401000,
+    "messageKey": "LOCK_MSG_0087"
+  },
+  {
+    "id": 2402012,
+    "type": 2,
+    "conditionId": 2401025,
+    "messageKey": "LOCK_MSG_0021"
+  },
+  {
+    "id": 2402013,
+    "type": 3,
+    "conditionId": 2401000,
+    "messageKey": "LOCK_MSG_0086"
+  },
+  {
+    "id": 2402014,
+    "type": 2,
+    "conditionId": 2401019,
+    "messageKey": "LOCK_MSG_0000"
+  },
+  {
+    "id": 2402015,
+    "type": 4,
+    "conditionId": 2401034,
+    "messageKey": "LOCK_MSG_0044"
+  },
+  {
+    "id": 2402016,
+    "type": 3,
+    "conditionId": 2401022,
+    "messageKey": "LOCK_MSG_0015"
+  },
+  {
+    "id": 2402017,
+    "type": 4,
+    "conditionId": 2401008,
+    "messageKey": "LOCK_MSG_0061"
+  },
+  {
+    "id": 2402018,
+    "type": 1,
+    "conditionId": 2401019,
+    "messageKey": "LOCK_MSG_0017"
+  },
+  {
+    "id": 2402019,
+    "type": 3,
+    "conditionId": 2401015,
+    "messageKey": "LOCK_MSG_0000"
+  },
+  {
+    "id": 2402020,
+    "type": 3,
+    "conditionId": 2401036,
+    "messageKey": "LOCK_MSG_0030"
+  },
+  {
+    "id": 2402021,
+    "type": 2,
+    "conditionId": 2401006,
+    "messageKey": "LOCK_MSG_0077"
+  }
+]

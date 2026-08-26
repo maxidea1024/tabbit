@@ -1,0 +1,90 @@
+[
+  {
+    "id": 1704000,
+    "nameKey": "RAID_NAME_0004",
+    "bossId": 1503001,
+    "bossHealth": "28",
+    "turnLimit": 38,
+    "seasonDays": 14
+  },
+  {
+    "id": 1704001,
+    "nameKey": "RAID_NAME_0002",
+    "bossId": 1503067,
+    "bossHealth": "36",
+    "turnLimit": 19,
+    "seasonDays": 5
+  },
+  {
+    "id": 1704002,
+    "nameKey": "RAID_NAME_0007",
+    "bossId": 1503042,
+    "bossHealth": "24",
+    "turnLimit": 18,
+    "seasonDays": 11
+  },
+  {
+    "id": 1704003,
+    "nameKey": "RAID_NAME_0008",
+    "bossId": 1503071,
+    "bossHealth": "22",
+    "turnLimit": 35,
+    "seasonDays": 4
+  },
+  {
+    "id": 1704004,
+    "nameKey": "RAID_NAME_0003",
+    "bossId": 1503019,
+    "bossHealth": "20",
+    "turnLimit": 34,
+    "seasonDays": 10
+  },
+  {
+    "id": 1704005,
+    "nameKey": "RAID_NAME_0019",
+    "bossId": 1503029,
+    "bossHealth": "99",
+    "turnLimit": 34,
+    "seasonDays": 8
+  },
+  {
+    "id": 1704006,
+    "nameKey": "RAID_NAME_0006",
+    "bossId": 1503014,
+    "bossHealth": "71",
+    "turnLimit": 25,
+    "seasonDays": 10
+  },
+  {
+    "id": 1704007,
+    "nameKey": "RAID_NAME_0017",
+    "bossId": 1503029,
+    "bossHealth": "522",
+    "turnLimit": 22,
+    "seasonDays": 7
+  },
+  {
+    "id": 1704008,
+    "nameKey": "RAID_NAME_0009",
+    "bossId": 1503017,
+    "bossHealth": "2",
+    "turnLimit": 22,
+    "seasonDays": 8
+  },
+  {
+    "id": 1704009,
+    "nameKey": "RAID_NAME_0012",
+    "bossId": 1503055,
+    "bossHealth": "4",
+    "turnLimit": 37,
+    "seasonDays": 10
+  },
+  {
+    "id": 1704010,
+    "nameKey": "RAID_NAME_0011",
+    "bossId": 1503041,
+    "bossHealth": "356",
+    "turnLimit": 32,
+    "seasonDays": 3
+  }
+]

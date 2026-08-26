@@ -1,0 +1,9 @@
+@name	id	name	banner	shopKind	priceAmount	priceCurrency	purchaseCeiling	availableDays	grantId	featured	state
+@type	key:32000000~32999999	text	string	number	number	number	number	number	number	bool	string
+:required	1	1	1	1	1	1	1	1	1	1	1
+:min	32000000	-	-	0	0	0	0	1	17000000	-	-
+:max	32999999	-	-	4	900000	5	999	365	17999999	-	-
+:enum	-	-	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:links	-	-	-	-	-	-	-	-	"Loot"	-	-
+:asset	-	-	1	-	-	-	-	-	-	-	-
+@gen	seq:32000000	text:400	path:300:Art	pick:0|1|2|3|4	int:0..900000:zipf	pick:0|1|2|3|4|5	int:0..999:zipf	int:1..365:zipf	ref:Loot	bool	pick:draft|review|live|retired

@@ -1,0 +1,4 @@
+@desc	primary index	affected stat	weight in permille
+@name	id	stat	weight
+@type	Int	enum:StatType	Int
+@gen	seq:1404000	enum:StatType	int:100..4000:zipf

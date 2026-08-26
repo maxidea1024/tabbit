@@ -1,0 +1,182 @@
+[
+  {
+    "id": 2203000,
+    "codexId": 2201014,
+    "required": 30,
+    "rewardId": 2001024
+  },
+  {
+    "id": 2203001,
+    "codexId": 2201000,
+    "required": 9,
+    "rewardId": 2001046
+  },
+  {
+    "id": 2203002,
+    "codexId": 2201003,
+    "required": 12,
+    "rewardId": 2001035
+  },
+  {
+    "id": 2203003,
+    "codexId": 2201007,
+    "required": 13,
+    "rewardId": 2001031
+  },
+  {
+    "id": 2203004,
+    "codexId": 2201017,
+    "required": 13,
+    "rewardId": 2001018
+  },
+  {
+    "id": 2203005,
+    "codexId": 2201010,
+    "required": 2,
+    "rewardId": 2001064
+  },
+  {
+    "id": 2203006,
+    "codexId": 2201006,
+    "required": 16,
+    "rewardId": 2001017
+  },
+  {
+    "id": 2203007,
+    "codexId": 2201013,
+    "required": 23,
+    "rewardId": 2001033
+  },
+  {
+    "id": 2203008,
+    "codexId": 2201018,
+    "required": 8,
+    "rewardId": 2001014
+  },
+  {
+    "id": 2203009,
+    "codexId": 2201002,
+    "required": 11,
+    "rewardId": 2001048
+  },
+  {
+    "id": 2203010,
+    "codexId": 2201008,
+    "required": 28,
+    "rewardId": 2001055
+  },
+  {
+    "id": 2203011,
+    "codexId": 2201016,
+    "required": 10,
+    "rewardId": 2001004
+  },
+  {
+    "id": 2203012,
+    "codexId": 2201001,
+    "required": 12,
+    "rewardId": 2001029
+  },
+  {
+    "id": 2203013,
+    "codexId": 2201019,
+    "required": 4,
+    "rewardId": 2001036
+  },
+  {
+    "id": 2203014,
+    "codexId": 2201002,
+    "required": 4,
+    "rewardId": 2001004
+  },
+  {
+    "id": 2203015,
+    "codexId": 2201000,
+    "required": 21,
+    "rewardId": 2001000
+  },
+  {
+    "id": 2203016,
+    "codexId": 2201016,
+    "required": 26,
+    "rewardId": 2001023
+  },
+  {
+    "id": 2203017,
+    "codexId": 2201000,
+    "required": 20,
+    "rewardId": 2001036
+  },
+  {
+    "id": 2203018,
+    "codexId": 2201019,
+    "required": 21,
+    "rewardId": 2001012
+  },
+  {
+    "id": 2203019,
+    "codexId": 2201001,
+    "required": 9,
+    "rewardId": 2001034
+  },
+  {
+    "id": 2203020,
+    "codexId": 2201013,
+    "required": 28,
+    "rewardId": 2001012
+  },
+  {
+    "id": 2203021,
+    "codexId": 2201005,
+    "required": 3,
+    "rewardId": 2001053
+  },
+  {
+    "id": 2203022,
+    "codexId": 2201014,
+    "required": 30,
+    "rewardId": 2001046
+  },
+  {
+    "id": 2203023,
+    "codexId": 2201006,
+    "required": 26,
+    "rewardId": 2001054
+  },
+  {
+    "id": 2203024,
+    "codexId": 2201012,
+    "required": 2,
+    "rewardId": 2001028
+  },
+  {
+    "id": 2203025,
+    "codexId": 2201009,
+    "required": 14,
+    "rewardId": 2001008
+  },
+  {
+    "id": 2203026,
+    "codexId": 2201015,
+    "required": 28,
+    "rewardId": 2001050
+  },
+  {
+    "id": 2203027,
+    "codexId": 2201000,
+    "required": 16,
+    "rewardId": 2001038
+  },
+  {
+    "id": 2203028,
+    "codexId": 2201006,
+    "required": 23,
+    "rewardId": 2001036
+  },
+  {
+    "id": 2203029,
+    "codexId": 2201020,
+    "required": 25,
+    "rewardId": 2001033
+  }
+]

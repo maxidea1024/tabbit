@@ -1,0 +1,4 @@
+@desc	primary index	owning offer	granted item	count
+@name	id	offerId	itemId	count
+@type	Int	Int	Int	Int
+@gen	seq:1206000	ref:OfferTable	ref:ItemTable	int:1..500:zipf

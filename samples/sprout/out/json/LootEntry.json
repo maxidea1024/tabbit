@@ -1,0 +1,842 @@
+[
+  {
+    "id": 2003000,
+    "lootGroupId": 2002018,
+    "itemId": 1201094,
+    "minCount": 29,
+    "maxCount": 286,
+    "weight": 282
+  },
+  {
+    "id": 2003001,
+    "lootGroupId": 2002025,
+    "itemId": 1201087,
+    "minCount": 11,
+    "maxCount": 593,
+    "weight": 2256
+  },
+  {
+    "id": 2003002,
+    "lootGroupId": 2002026,
+    "itemId": 1201052,
+    "minCount": 38,
+    "maxCount": 435,
+    "weight": 905
+  },
+  {
+    "id": 2003003,
+    "lootGroupId": 2002004,
+    "itemId": 1201015,
+    "minCount": 10,
+    "maxCount": 848,
+    "weight": 166
+  },
+  {
+    "id": 2003004,
+    "lootGroupId": 2002002,
+    "itemId": 1201073,
+    "minCount": 5,
+    "maxCount": 595,
+    "weight": 357
+  },
+  {
+    "id": 2003005,
+    "lootGroupId": 2002004,
+    "itemId": 1201083,
+    "minCount": 9,
+    "maxCount": 161,
+    "weight": 1619
+  },
+  {
+    "id": 2003006,
+    "lootGroupId": 2002015,
+    "itemId": 1201097,
+    "minCount": 11,
+    "maxCount": 178,
+    "weight": 1505
+  },
+  {
+    "id": 2003007,
+    "lootGroupId": 2002003,
+    "itemId": 1201062,
+    "minCount": 7,
+    "maxCount": 161,
+    "weight": 1729
+  },
+  {
+    "id": 2003008,
+    "lootGroupId": 2002007,
+    "itemId": 1201079,
+    "minCount": 1,
+    "maxCount": 382,
+    "weight": 1100
+  },
+  {
+    "id": 2003009,
+    "lootGroupId": 2002007,
+    "itemId": 1201079,
+    "minCount": 37,
+    "maxCount": 555,
+    "weight": 3474
+  },
+  {
+    "id": 2003010,
+    "lootGroupId": 2002000,
+    "itemId": 1201056,
+    "minCount": 9,
+    "maxCount": 821,
+    "weight": 983
+  },
+  {
+    "id": 2003011,
+    "lootGroupId": 2002011,
+    "itemId": 1201068,
+    "minCount": 9,
+    "maxCount": 820,
+    "weight": 1455
+  },
+  {
+    "id": 2003012,
+    "lootGroupId": 2002030,
+    "itemId": 1201092,
+    "minCount": 13,
+    "maxCount": 345,
+    "weight": 117
+  },
+  {
+    "id": 2003013,
+    "lootGroupId": 2002005,
+    "itemId": 1201111,
+    "minCount": 10,
+    "maxCount": 152,
+    "weight": 17
+  },
+  {
+    "id": 2003014,
+    "lootGroupId": 2002007,
+    "itemId": 1201098,
+    "minCount": 38,
+    "maxCount": 807,
+    "weight": 1695
+  },
+  {
+    "id": 2003015,
+    "lootGroupId": 2002014,
+    "itemId": 1201043,
+    "minCount": 19,
+    "maxCount": 499,
+    "weight": 1259
+  },
+  {
+    "id": 2003016,
+    "lootGroupId": 2002008,
+    "itemId": 1201100,
+    "minCount": 1,
+    "maxCount": 656,
+    "weight": 2087
+  },
+  {
+    "id": 2003017,
+    "lootGroupId": 2002005,
+    "itemId": 1201017,
+    "minCount": 33,
+    "maxCount": 490,
+    "weight": 32
+  },
+  {
+    "id": 2003018,
+    "lootGroupId": 2002013,
+    "itemId": 1201060,
+    "minCount": 38,
+    "maxCount": 243,
+    "weight": 365
+  },
+  {
+    "id": 2003019,
+    "lootGroupId": 2002033,
+    "itemId": 1201045,
+    "minCount": 5,
+    "maxCount": 571,
+    "weight": 731
+  },
+  {
+    "id": 2003020,
+    "lootGroupId": 2002022,
+    "itemId": 1201011,
+    "minCount": 10,
+    "maxCount": 620,
+    "weight": 1036
+  },
+  {
+    "id": 2003021,
+    "lootGroupId": 2002034,
+    "itemId": 1201090,
+    "minCount": 1,
+    "maxCount": 147,
+    "weight": 1022
+  },
+  {
+    "id": 2003022,
+    "lootGroupId": 2002022,
+    "itemId": 1201004,
+    "minCount": 8,
+    "maxCount": 536,
+    "weight": 438
+  },
+  {
+    "id": 2003023,
+    "lootGroupId": 2002019,
+    "itemId": 1201045,
+    "minCount": 31,
+    "maxCount": 576,
+    "weight": 2
+  },
+  {
+    "id": 2003024,
+    "lootGroupId": 2002031,
+    "itemId": 1201117,
+    "minCount": 37,
+    "maxCount": 317,
+    "weight": 2295
+  },
+  {
+    "id": 2003025,
+    "lootGroupId": 2002022,
+    "itemId": 1201109,
+    "minCount": 30,
+    "maxCount": 51,
+    "weight": 17
+  },
+  {
+    "id": 2003026,
+    "lootGroupId": 2002032,
+    "itemId": 1201062,
+    "minCount": 29,
+    "maxCount": 462,
+    "weight": 1728
+  },
+  {
+    "id": 2003027,
+    "lootGroupId": 2002030,
+    "itemId": 1201023,
+    "minCount": 22,
+    "maxCount": 163,
+    "weight": 145
+  },
+  {
+    "id": 2003028,
+    "lootGroupId": 2002016,
+    "itemId": 1201055,
+    "minCount": 15,
+    "maxCount": 584,
+    "weight": 580
+  },
+  {
+    "id": 2003029,
+    "lootGroupId": 2002020,
+    "itemId": 1201069,
+    "minCount": 19,
+    "maxCount": 329,
+    "weight": 571
+  },
+  {
+    "id": 2003030,
+    "lootGroupId": 2002030,
+    "itemId": 1201086,
+    "minCount": 30,
+    "maxCount": 782,
+    "weight": 8
+  },
+  {
+    "id": 2003031,
+    "lootGroupId": 2002028,
+    "itemId": 1201119,
+    "minCount": 2,
+    "maxCount": 95,
+    "weight": 332
+  },
+  {
+    "id": 2003032,
+    "lootGroupId": 2002033,
+    "itemId": 1201030,
+    "minCount": 23,
+    "maxCount": 795,
+    "weight": 493
+  },
+  {
+    "id": 2003033,
+    "lootGroupId": 2002028,
+    "itemId": 1201098,
+    "minCount": 5,
+    "maxCount": 643,
+    "weight": 8
+  },
+  {
+    "id": 2003034,
+    "lootGroupId": 2002011,
+    "itemId": 1201087,
+    "minCount": 12,
+    "maxCount": 698,
+    "weight": 72
+  },
+  {
+    "id": 2003035,
+    "lootGroupId": 2002013,
+    "itemId": 1201011,
+    "minCount": 38,
+    "maxCount": 797,
+    "weight": 920
+  },
+  {
+    "id": 2003036,
+    "lootGroupId": 2002019,
+    "itemId": 1201092,
+    "minCount": 1,
+    "maxCount": 515,
+    "weight": 2919
+  },
+  {
+    "id": 2003037,
+    "lootGroupId": 2002003,
+    "itemId": 1201097,
+    "minCount": 24,
+    "maxCount": 395,
+    "weight": 3947
+  },
+  {
+    "id": 2003038,
+    "lootGroupId": 2002011,
+    "itemId": 1201107,
+    "minCount": 24,
+    "maxCount": 524,
+    "weight": 3108
+  },
+  {
+    "id": 2003039,
+    "lootGroupId": 2002013,
+    "itemId": 1201045,
+    "minCount": 15,
+    "maxCount": 283,
+    "weight": 357
+  },
+  {
+    "id": 2003040,
+    "lootGroupId": 2002000,
+    "itemId": 1201024,
+    "minCount": 25,
+    "maxCount": 480,
+    "weight": 6
+  },
+  {
+    "id": 2003041,
+    "lootGroupId": 2002028,
+    "itemId": 1201008,
+    "minCount": 16,
+    "maxCount": 593,
+    "weight": 3629
+  },
+  {
+    "id": 2003042,
+    "lootGroupId": 2002004,
+    "itemId": 1201085,
+    "minCount": 21,
+    "maxCount": 335,
+    "weight": 56
+  },
+  {
+    "id": 2003043,
+    "lootGroupId": 2002017,
+    "itemId": 1201036,
+    "minCount": 14,
+    "maxCount": 539,
+    "weight": 3285
+  },
+  {
+    "id": 2003044,
+    "lootGroupId": 2002021,
+    "itemId": 1201084,
+    "minCount": 28,
+    "maxCount": 691,
+    "weight": 2668
+  },
+  {
+    "id": 2003045,
+    "lootGroupId": 2002028,
+    "itemId": 1201035,
+    "minCount": 3,
+    "maxCount": 90,
+    "weight": 29
+  },
+  {
+    "id": 2003046,
+    "lootGroupId": 2002027,
+    "itemId": 1201115,
+    "minCount": 36,
+    "maxCount": 293,
+    "weight": 2108
+  },
+  {
+    "id": 2003047,
+    "lootGroupId": 2002021,
+    "itemId": 1201062,
+    "minCount": 5,
+    "maxCount": 533,
+    "weight": 587
+  },
+  {
+    "id": 2003048,
+    "lootGroupId": 2002002,
+    "itemId": 1201035,
+    "minCount": 37,
+    "maxCount": 288,
+    "weight": 177
+  },
+  {
+    "id": 2003049,
+    "lootGroupId": 2002022,
+    "itemId": 1201072,
+    "minCount": 4,
+    "maxCount": 352,
+    "weight": 1
+  },
+  {
+    "id": 2003050,
+    "lootGroupId": 2002031,
+    "itemId": 1201038,
+    "minCount": 3,
+    "maxCount": 622,
+    "weight": 2791
+  },
+  {
+    "id": 2003051,
+    "lootGroupId": 2002016,
+    "itemId": 1201109,
+    "minCount": 3,
+    "maxCount": 625,
+    "weight": 269
+  },
+  {
+    "id": 2003052,
+    "lootGroupId": 2002013,
+    "itemId": 1201109,
+    "minCount": 1,
+    "maxCount": 795,
+    "weight": 542
+  },
+  {
+    "id": 2003053,
+    "lootGroupId": 2002024,
+    "itemId": 1201047,
+    "minCount": 36,
+    "maxCount": 869,
+    "weight": 1
+  },
+  {
+    "id": 2003054,
+    "lootGroupId": 2002000,
+    "itemId": 1201112,
+    "minCount": 28,
+    "maxCount": 377,
+    "weight": 4925
+  },
+  {
+    "id": 2003055,
+    "lootGroupId": 2002021,
+    "itemId": 1201052,
+    "minCount": 14,
+    "maxCount": 834,
+    "weight": 1780
+  },
+  {
+    "id": 2003056,
+    "lootGroupId": 2002001,
+    "itemId": 1201114,
+    "minCount": 35,
+    "maxCount": 689,
+    "weight": 1114
+  },
+  {
+    "id": 2003057,
+    "lootGroupId": 2002014,
+    "itemId": 1201091,
+    "minCount": 9,
+    "maxCount": 880,
+    "weight": 1430
+  },
+  {
+    "id": 2003058,
+    "lootGroupId": 2002029,
+    "itemId": 1201026,
+    "minCount": 12,
+    "maxCount": 786,
+    "weight": 82
+  },
+  {
+    "id": 2003059,
+    "lootGroupId": 2002015,
+    "itemId": 1201027,
+    "minCount": 30,
+    "maxCount": 732,
+    "weight": 3861
+  },
+  {
+    "id": 2003060,
+    "lootGroupId": 2002019,
+    "itemId": 1201118,
+    "minCount": 4,
+    "maxCount": 229,
+    "weight": 1640
+  },
+  {
+    "id": 2003061,
+    "lootGroupId": 2002024,
+    "itemId": 1201027,
+    "minCount": 30,
+    "maxCount": 45,
+    "weight": 615
+  },
+  {
+    "id": 2003062,
+    "lootGroupId": 2002028,
+    "itemId": 1201107,
+    "minCount": 12,
+    "maxCount": 423,
+    "weight": 4434
+  },
+  {
+    "id": 2003063,
+    "lootGroupId": 2002034,
+    "itemId": 1201004,
+    "minCount": 36,
+    "maxCount": 420,
+    "weight": 121
+  },
+  {
+    "id": 2003064,
+    "lootGroupId": 2002031,
+    "itemId": 1201009,
+    "minCount": 17,
+    "maxCount": 837,
+    "weight": 1
+  },
+  {
+    "id": 2003065,
+    "lootGroupId": 2002010,
+    "itemId": 1201021,
+    "minCount": 32,
+    "maxCount": 698,
+    "weight": 1
+  },
+  {
+    "id": 2003066,
+    "lootGroupId": 2002022,
+    "itemId": 1201073,
+    "minCount": 30,
+    "maxCount": 45,
+    "weight": 1
+  },
+  {
+    "id": 2003067,
+    "lootGroupId": 2002031,
+    "itemId": 1201019,
+    "minCount": 38,
+    "maxCount": 507,
+    "weight": 1
+  },
+  {
+    "id": 2003068,
+    "lootGroupId": 2002013,
+    "itemId": 1201094,
+    "minCount": 11,
+    "maxCount": 504,
+    "weight": 523
+  },
+  {
+    "id": 2003069,
+    "lootGroupId": 2002032,
+    "itemId": 1201023,
+    "minCount": 23,
+    "maxCount": 184,
+    "weight": 1199
+  },
+  {
+    "id": 2003070,
+    "lootGroupId": 2002033,
+    "itemId": 1201098,
+    "minCount": 20,
+    "maxCount": 594,
+    "weight": 4274
+  },
+  {
+    "id": 2003071,
+    "lootGroupId": 2002027,
+    "itemId": 1201119,
+    "minCount": 19,
+    "maxCount": 106,
+    "weight": 76
+  },
+  {
+    "id": 2003072,
+    "lootGroupId": 2002013,
+    "itemId": 1201021,
+    "minCount": 6,
+    "maxCount": 247,
+    "weight": 367
+  },
+  {
+    "id": 2003073,
+    "lootGroupId": 2002003,
+    "itemId": 1201027,
+    "minCount": 14,
+    "maxCount": 740,
+    "weight": 3820
+  },
+  {
+    "id": 2003074,
+    "lootGroupId": 2002030,
+    "itemId": 1201067,
+    "minCount": 1,
+    "maxCount": 85,
+    "weight": 3231
+  },
+  {
+    "id": 2003075,
+    "lootGroupId": 2002021,
+    "itemId": 1201104,
+    "minCount": 11,
+    "maxCount": 314,
+    "weight": 979
+  },
+  {
+    "id": 2003076,
+    "lootGroupId": 2002017,
+    "itemId": 1201051,
+    "minCount": 28,
+    "maxCount": 511,
+    "weight": 4046
+  },
+  {
+    "id": 2003077,
+    "lootGroupId": 2002026,
+    "itemId": 1201023,
+    "minCount": 38,
+    "maxCount": 781,
+    "weight": 1065
+  },
+  {
+    "id": 2003078,
+    "lootGroupId": 2002024,
+    "itemId": 1201049,
+    "minCount": 39,
+    "maxCount": 643,
+    "weight": 109
+  },
+  {
+    "id": 2003079,
+    "lootGroupId": 2002022,
+    "itemId": 1201024,
+    "minCount": 25,
+    "maxCount": 869,
+    "weight": 341
+  },
+  {
+    "id": 2003080,
+    "lootGroupId": 2002010,
+    "itemId": 1201002,
+    "minCount": 17,
+    "maxCount": 240,
+    "weight": 439
+  },
+  {
+    "id": 2003081,
+    "lootGroupId": 2002029,
+    "itemId": 1201118,
+    "minCount": 40,
+    "maxCount": 404,
+    "weight": 684
+  },
+  {
+    "id": 2003082,
+    "lootGroupId": 2002010,
+    "itemId": 1201011,
+    "minCount": 30,
+    "maxCount": 748,
+    "weight": 2280
+  },
+  {
+    "id": 2003083,
+    "lootGroupId": 2002007,
+    "itemId": 1201011,
+    "minCount": 15,
+    "maxCount": 608,
+    "weight": 1251
+  },
+  {
+    "id": 2003084,
+    "lootGroupId": 2002003,
+    "itemId": 1201032,
+    "minCount": 36,
+    "maxCount": 223,
+    "weight": 1
+  },
+  {
+    "id": 2003085,
+    "lootGroupId": 2002031,
+    "itemId": 1201026,
+    "minCount": 39,
+    "maxCount": 861,
+    "weight": 2955
+  },
+  {
+    "id": 2003086,
+    "lootGroupId": 2002022,
+    "itemId": 1201055,
+    "minCount": 38,
+    "maxCount": 272,
+    "weight": 2429
+  },
+  {
+    "id": 2003087,
+    "lootGroupId": 2002022,
+    "itemId": 1201000,
+    "minCount": 28,
+    "maxCount": 891,
+    "weight": 671
+  },
+  {
+    "id": 2003088,
+    "lootGroupId": 2002025,
+    "itemId": 1201010,
+    "minCount": 33,
+    "maxCount": 626,
+    "weight": 7
+  },
+  {
+    "id": 2003089,
+    "lootGroupId": 2002033,
+    "itemId": 1201018,
+    "minCount": 29,
+    "maxCount": 62,
+    "weight": 232
+  },
+  {
+    "id": 2003090,
+    "lootGroupId": 2002029,
+    "itemId": 1201073,
+    "minCount": 21,
+    "maxCount": 728,
+    "weight": 540
+  },
+  {
+    "id": 2003091,
+    "lootGroupId": 2002013,
+    "itemId": 1201021,
+    "minCount": 6,
+    "maxCount": 317,
+    "weight": 736
+  },
+  {
+    "id": 2003092,
+    "lootGroupId": 2002005,
+    "itemId": 1201007,
+    "minCount": 8,
+    "maxCount": 811,
+    "weight": 146
+  },
+  {
+    "id": 2003093,
+    "lootGroupId": 2002019,
+    "itemId": 1201051,
+    "minCount": 32,
+    "maxCount": 457,
+    "weight": 2
+  },
+  {
+    "id": 2003094,
+    "lootGroupId": 2002013,
+    "itemId": 1201106,
+    "minCount": 18,
+    "maxCount": 554,
+    "weight": 2497
+  },
+  {
+    "id": 2003095,
+    "lootGroupId": 2002012,
+    "itemId": 1201046,
+    "minCount": 22,
+    "maxCount": 57,
+    "weight": 629
+  },
+  {
+    "id": 2003096,
+    "lootGroupId": 2002014,
+    "itemId": 1201118,
+    "minCount": 8,
+    "maxCount": 744,
+    "weight": 994
+  },
+  {
+    "id": 2003097,
+    "lootGroupId": 2002022,
+    "itemId": 1201032,
+    "minCount": 17,
+    "maxCount": 332,
+    "weight": 1250
+  },
+  {
+    "id": 2003098,
+    "lootGroupId": 2002009,
+    "itemId": 1201116,
+    "minCount": 24,
+    "maxCount": 398,
+    "weight": 3148
+  },
+  {
+    "id": 2003099,
+    "lootGroupId": 2002021,
+    "itemId": 1201013,
+    "minCount": 5,
+    "maxCount": 388,
+    "weight": 203
+  },
+  {
+    "id": 2003100,
+    "lootGroupId": 2002021,
+    "itemId": 1201060,
+    "minCount": 19,
+    "maxCount": 166,
+    "weight": 1
+  },
+  {
+    "id": 2003101,
+    "lootGroupId": 2002007,
+    "itemId": 1201019,
+    "minCount": 16,
+    "maxCount": 595,
+    "weight": 22
+  },
+  {
+    "id": 2003102,
+    "lootGroupId": 2002015,
+    "itemId": 1201057,
+    "minCount": 21,
+    "maxCount": 651,
+    "weight": 4648
+  },
+  {
+    "id": 2003103,
+    "lootGroupId": 2002009,
+    "itemId": 1201008,
+    "minCount": 17,
+    "maxCount": 117,
+    "weight": 438
+  },
+  {
+    "id": 2003104,
+    "lootGroupId": 2002016,
+    "itemId": 1201098,
+    "minCount": 19,
+    "maxCount": 539,
+    "weight": 1704
+  }
+]

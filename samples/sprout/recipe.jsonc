@@ -1,0 +1,200 @@
+{
+  // The `sprout` corpus: a pre-launch mobile title, in a layout this tool did not design.
+  //
+  // Every value in these workbooks is synthesised - `samples/sprout/gen` builds them from the
+  // grids under `schema/`, and `schema/` is where the notation lives. What is reproduced from
+  // a real corpus of this size is its shape: 71 tables, one of them six figures of rows, and
+  // the statistical properties the binary encoders work against.
+  //
+  //     dotnet run --project samples/sprout/gen -- --scale small     # rebuilds these workbooks
+  //     dotnet run --project src/Tabbit.csproj -- --recipe samples/sprout/recipe.jsonc
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "samples/sprout/xlsx",
+
+        // Not `tabbit`: these sheets carry no entity markers. One table per sheet, named by
+        // the sheet tab, three header rows. See doc/sheets.md.
+        "Layout": "sheet-per-table",
+
+        // `EquipOptionTable` opens with three rows carrying one index - a copy-fill mistake,
+        // planted here because a corpus of this age has one. Keeping the first row lets the
+        // rest of the conversion run, and every dropped row is logged.
+        "OnDuplicateIndex": "keep-first",
+
+        // Naming the sheets to read means a sheet that disappears is an error rather than a
+        // silent omission. It also excludes the reference tabs that sit beside the data.
+        "IncludeSheets": [
+
+          // Enums.xlsx
+          "TableEnums",
+
+          // Character.xlsx
+          "CharacterTable",
+          "CharacterStatTable",
+          "CharacterAscendTable",
+          "CharacterSkinTable",
+          "CharacterVoiceTable",
+          "RoleBonusTable",
+          "ElementAffinityTable",
+
+          // Skill.xlsx
+          "SkillTable",
+          "SkillLevelTable",
+          "SkillEffectTable",
+          "BuffTable",
+          "BuffPoolTable",
+          "PassiveTable",
+
+          // Item.xlsx
+          "ItemTable",
+          "CurrencyTable",
+          "MaterialTable",
+          "ConsumableTable",
+          "OfferTable",
+          "OfferItemTable",
+          "ItemGradeTable",
+
+          // Equipment.xlsx
+          "EquipTable",
+          "EquipLevelTable",
+          "EquipGradeTable",
+          "EquipSetTable",
+          "EquipSetBonusTable",
+          "EquipOptionTable",
+
+          // Growth.xlsx
+          "LevelCurveTable",
+          "StatBaseTable",
+          "AscendCurveTable",
+          "PowerScoreTable",
+
+          // Stage.xlsx
+          "StageTable",
+          "StageWaveTable",
+          "StageMonsterTable",
+          "StageRewardTable",
+          "ChapterTable",
+          "WorldTable",
+
+          // Quest.xlsx
+          "QuestTable",
+          "QuestStepTable",
+          "DailyQuestTable",
+          "WeeklyQuestTable",
+          "AchievementTable",
+
+          // Dungeon.xlsx
+          "DungeonTable",
+          "DungeonFloorTable",
+          "DungeonRewardTable",
+          "RaidTable",
+
+          // Shop.xlsx
+          "ShopTable",
+          "ShopSlotTable",
+          "PriceTable",
+          "PromoTable",
+
+          // Gacha.xlsx
+          "GachaTable",
+          "GachaPoolTable",
+          "GachaOddsTable",
+          "PityTable",
+
+          // Reward.xlsx
+          "RewardTable",
+          "LootGroupTable",
+          "LootEntryTable",
+          "MailRewardTable",
+
+          // Offline.xlsx
+          "OfflineRewardTable",
+          "IdleRateTable",
+          "AfkBonusTable",
+
+          // Codex.xlsx
+          "CodexTable",
+          "CodexEntryTable",
+          "CodexTierTable",
+
+          // Dialogue.xlsx
+          "DialogueTable",
+          "DialogueLineTable",
+          "CutsceneTable",
+
+          // Localization.xlsx
+          "StringTable",
+
+          // Setting.xlsx
+          "SettingTable",
+          "ConditionTable",
+          "UnlockTable",
+          "Table"        ]
+      }
+    ]
+  },
+
+  "Targets": [
+    { "Type": "json", "Path": "samples/sprout/out/json", "UseCompactRowFormat": false, "Indented": true },
+
+    // The same data in the other shape - rows as unnamed arrays. Side by side, the choice has
+    // a measurable size, and the generated reader tells the two apart by the first row.
+    { "Type": "json", "Path": "samples/sprout/out/json-compact", "UseCompactRowFormat": true, "Indented": false },
+    {
+      "Type": "binary",
+      "Path": "samples/sprout/out/binary",
+
+      // Per column: the raw size, the encoding chosen, and every candidate's measured size.
+      // The converter encodes them all and keeps the smallest, so these are measurements
+      // rather than estimates.
+      "EncodingReport": "samples/sprout/out/encoding-report.txt",
+
+      // What columns the data was last written with. Committed, and the next run compares
+      // against it to refuse a change an already-shipped reader could not survive.
+      "SchemaBaseline": "samples/sprout/out/schema-baseline.json"
+    },
+    {
+      "Type": "csharp",
+      "Path": "samples/sprout/out/cs",
+      "Namespace": "Sprout.Tables",
+      "AccessorName": "Tables",
+      "WriteUpdater": true
+    },
+    {
+      "Type": "cpp",
+      "Path": "samples/sprout/out/cpp",
+      "Namespace": "sprout",
+      "AccessorName": "Tables",
+      "BinaryTableFileExtension": ".tcb",
+      "WriteUpdater": true
+    },
+    { "Type": "typescript", "Path": "samples/sprout/out/ts", "WriteUpdater": true },
+
+    // For reading: what came out, table by table, without opening a binary.
+    { "Type": "html", "Path": "samples/sprout/out/html" },
+
+    // Every file target this tool has is here, which is what makes this sample the answer to
+    // "what does a conversion actually produce". The four database targets and `history` are
+    // not, and cannot be: each needs a server to write into, so there is no output to commit
+    // and a run would fail on a machine that has none. Those are covered by the suite,
+    // against real engines in containers.
+    { "Type": "go", "Path": "samples/sprout/out/go", "PackageName": "sprout", "ModulePath": "sprout", "WriteUpdater": true },
+    { "Type": "rust", "Path": "samples/sprout/out/rust", "CrateName": "sprout", "WriteUpdater": true },
+    { "Type": "python", "Path": "samples/sprout/out/python", "PackageName": "sprout", "WriteUpdater": true },
+    { "Type": "java", "Path": "samples/sprout/out/java", "PackageName": "sprout", "AccessorName": "Tables", "WriteUpdater": true },
+    { "Type": "kotlin", "Path": "samples/sprout/out/kotlin", "PackageName": "sprout", "AccessorName": "Tables", "WriteUpdater": true },
+    { "Type": "swift", "Path": "samples/sprout/out/swift", "AccessorName": "Tables", "WriteUpdater": true },
+    { "Type": "ruby", "Path": "samples/sprout/out/ruby", "ModuleName": "Sprout", "AccessorName": "tables", "WriteUpdater": true },
+    { "Type": "dart", "Path": "samples/sprout/out/dart", "AccessorName": "tables", "WriteUpdater": true },
+    { "Type": "unreal", "Path": "samples/sprout/out/unreal", "ModuleName": "SproutData", "AccessorName": "FSproutData", "WriteUpdater": true },
+    { "Type": "c", "Path": "samples/sprout/out/c", "AccessorName": "Sprout", "WriteUpdater": true },
+    { "Type": "php", "Path": "samples/sprout/out/php", "Namespace": "Sprout", "AccessorName": "Tables", "WriteUpdater": true },
+
+    // What this conversion produced, as one reviewable document: tables, columns, row counts,
+    // and what changed since the last run. `Author: none` because the output is committed and
+    // handed around, and nothing in this document needs a name or an e-mail address.
+    { "Type": "summary", "Path": "samples/sprout/out/summary", "Author": "none" }
+  ]
+}

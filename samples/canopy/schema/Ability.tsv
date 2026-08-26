@@ -1,0 +1,8 @@
+@name	id	name	detail	icon	targeting	cooldown	cost	channelMask	effectId[0]	effectId[1]	effectId[2]	effectId[3]	interruptible	state
+@type	key:14000000~14999999	text	text	string	number	number	number	bit	number	number	number	number	bool	string
+:required	1	1	1	1	1	1	1	1	-	-	-	-	1	1
+:min	14000000	-	-	-	0	0	0	-	1	1	1	1	-	-
+:max	14999999	-	-	-	5	600	9000	-	99999	99999	99999	99999	-	-
+:enum	-	-	-	-	-	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:asset	-	-	-	1	-	-	-	-	-	-	-	-	-	-
+@gen	seq:14000000	text:400	text:400	path:300:Art	pick:0|1|2|3|4|5	int:0..600:zipf	int:0..9000:zipf	bit:12	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	bool	pick:draft|review|live|retired

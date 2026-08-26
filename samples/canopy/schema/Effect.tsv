@@ -1,0 +1,7 @@
+@name	id	effectKind	statKind	magnitude	duration	chance	floater	state
+@type	key:15000000~15999999	number	number	number	number	number	text	string
+:required	1	1	1	1	1	1	-	1
+:min	15000000	0	0	0	0	1	-	-
+:max	15999999	4	7	90000	1800	1000	-	-
+:enum	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+@gen	seq:15000000	pick:0|1|2|3|4	pick:0|1|2|3|4|5|6|7	int:0..90000:zipf	int:0..1800:zipf	int:1..1000:zipf	text:200	pick:draft|review|live|retired

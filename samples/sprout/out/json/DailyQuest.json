@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1603000,
+    "questId": 1601004,
+    "points": 57,
+    "resetHour": 17
+  },
+  {
+    "id": 1603001,
+    "questId": 1601051,
+    "points": 56,
+    "resetHour": 12
+  },
+  {
+    "id": 1603002,
+    "questId": 1601034,
+    "points": 42,
+    "resetHour": 12
+  },
+  {
+    "id": 1603003,
+    "questId": 1601023,
+    "points": 59,
+    "resetHour": 10
+  },
+  {
+    "id": 1603004,
+    "questId": 1601017,
+    "points": 10,
+    "resetHour": 13
+  },
+  {
+    "id": 1603005,
+    "questId": 1601001,
+    "points": 13,
+    "resetHour": 17
+  },
+  {
+    "id": 1603006,
+    "questId": 1601044,
+    "points": 38,
+    "resetHour": 20
+  },
+  {
+    "id": 1603007,
+    "questId": 1601053,
+    "points": 30,
+    "resetHour": 1
+  },
+  {
+    "id": 1603008,
+    "questId": 1601025,
+    "points": 46,
+    "resetHour": 7
+  },
+  {
+    "id": 1603009,
+    "questId": 1601044,
+    "points": 30,
+    "resetHour": 3
+  },
+  {
+    "id": 1603010,
+    "questId": 1601053,
+    "points": 35,
+    "resetHour": 17
+  },
+  {
+    "id": 1603011,
+    "questId": 1601042,
+    "points": 14,
+    "resetHour": 10
+  }
+]

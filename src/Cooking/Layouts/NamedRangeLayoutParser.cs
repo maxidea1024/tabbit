@@ -28,7 +28,7 @@ namespace Tabbit.Cooking.Layouts;
 ///   then      the data
 ///
 /// The full survey, and what each piece of it is for, is in
-/// samples/named-range/doc/레이아웃-분석-20260808.md.
+/// samples/canopy/readme.md, which lists what the notation covers.
 /// </remarks>
 [TabbitLayout("named-range",
     Summary = "A table is a workbook's defined name; two header rows and ':'-keyed constraint rows.",
@@ -446,7 +446,7 @@ public sealed class NamedRangeLayoutParser : ILayoutParser
                 // straight into a JSON number. A double carries exactly that, so it is what
                 // this reads by default.
                 //
-                // `UwoNumberType: "narrow"` gives each column the smallest type its values
+                // `NumberType: "narrow"` gives each column the smallest type its values
                 // fit instead. Better types and smaller files, at the cost of a type that
                 // depends on the data - and it is type information this tool inferred rather
                 // than information the sheet held, which is worth keeping separable when the

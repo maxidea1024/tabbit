@@ -1,0 +1,5 @@
+@desc	primary index	name key	boss monster	health in millions	turn limit	season length in days
+@name	id	nameKey	bossId	bossHealth	turnLimit	seasonDays
+@type	Int	String	Int	Long	Int	Int
+@gen	seq:1704000	str:RAID_NAME:20	ref:StageMonsterTable	int:1..900:zipf	int:10..40	int:3..14
+	RAID_NAME_0009	1503000	120	20	7

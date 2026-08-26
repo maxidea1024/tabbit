@@ -1,0 +1,362 @@
+[
+  {
+    "id": 1902000,
+    "gachaId": 1901000,
+    "characterId": 1001008,
+    "equipId": 1301018,
+    "grade": 3,
+    "weight": 1
+  },
+  {
+    "id": 1902001,
+    "gachaId": 1901008,
+    "characterId": 1001018,
+    "equipId": 1301062,
+    "grade": 4,
+    "weight": 5396
+  },
+  {
+    "id": 1902002,
+    "gachaId": 1901005,
+    "characterId": 1001014,
+    "equipId": 1301002,
+    "grade": 5,
+    "weight": 737
+  },
+  {
+    "id": 1902003,
+    "gachaId": 1901006,
+    "characterId": 1001008,
+    "equipId": 1301048,
+    "grade": 5,
+    "weight": 9745
+  },
+  {
+    "id": 1902004,
+    "gachaId": 1901003,
+    "characterId": 1001028,
+    "equipId": 1301025,
+    "grade": 3,
+    "weight": 397
+  },
+  {
+    "id": 1902005,
+    "gachaId": 1901011,
+    "characterId": 1001021,
+    "equipId": 1301026,
+    "grade": 2,
+    "weight": 51
+  },
+  {
+    "id": 1902006,
+    "gachaId": 1901007,
+    "characterId": 1001023,
+    "equipId": 1301059,
+    "grade": 1,
+    "weight": 364
+  },
+  {
+    "id": 1902007,
+    "gachaId": 1901008,
+    "characterId": 1001021,
+    "equipId": 1301044,
+    "grade": 2,
+    "weight": 389
+  },
+  {
+    "id": 1902008,
+    "gachaId": 1901006,
+    "characterId": 1001011,
+    "equipId": 1301004,
+    "grade": 3,
+    "weight": 5
+  },
+  {
+    "id": 1902009,
+    "gachaId": 1901001,
+    "characterId": 1001019,
+    "equipId": 1301024,
+    "grade": 2,
+    "weight": 4151
+  },
+  {
+    "id": 1902010,
+    "gachaId": 1901007,
+    "characterId": 1001004,
+    "equipId": 1301013,
+    "grade": 3,
+    "weight": 4861
+  },
+  {
+    "id": 1902011,
+    "gachaId": 1901005,
+    "characterId": 1001018,
+    "equipId": 1301040,
+    "grade": 2,
+    "weight": 351
+  },
+  {
+    "id": 1902012,
+    "gachaId": 1901005,
+    "characterId": 1001000,
+    "equipId": 1301050,
+    "grade": 4,
+    "weight": 214
+  },
+  {
+    "id": 1902013,
+    "gachaId": 1901002,
+    "characterId": 1001027,
+    "equipId": 1301030,
+    "grade": 5,
+    "weight": 1
+  },
+  {
+    "id": 1902014,
+    "gachaId": 1901007,
+    "characterId": 1001006,
+    "equipId": 1301031,
+    "grade": 5,
+    "weight": 144
+  },
+  {
+    "id": 1902015,
+    "gachaId": 1901006,
+    "characterId": 1001000,
+    "equipId": 1301059,
+    "grade": 3,
+    "weight": 1612
+  },
+  {
+    "id": 1902016,
+    "gachaId": 1901006,
+    "characterId": 1001025,
+    "equipId": 1301058,
+    "grade": 2,
+    "weight": 1623
+  },
+  {
+    "id": 1902017,
+    "gachaId": 1901001,
+    "characterId": 1001019,
+    "equipId": 1301002,
+    "grade": 3,
+    "weight": 8547
+  },
+  {
+    "id": 1902018,
+    "gachaId": 1901002,
+    "characterId": 1001028,
+    "equipId": 1301064,
+    "grade": 5,
+    "weight": 4280
+  },
+  {
+    "id": 1902019,
+    "gachaId": 1901011,
+    "characterId": 1001018,
+    "equipId": 1301004,
+    "grade": 5,
+    "weight": 1357
+  },
+  {
+    "id": 1902020,
+    "gachaId": 1901002,
+    "characterId": 1001006,
+    "equipId": 1301039,
+    "grade": 5,
+    "weight": 1695
+  },
+  {
+    "id": 1902021,
+    "gachaId": 1901011,
+    "characterId": 1001010,
+    "equipId": 1301015,
+    "grade": 4,
+    "weight": 6692
+  },
+  {
+    "id": 1902022,
+    "gachaId": 1901007,
+    "characterId": 1001004,
+    "equipId": 1301019,
+    "grade": 5,
+    "weight": 154
+  },
+  {
+    "id": 1902023,
+    "gachaId": 1901000,
+    "characterId": 1001008,
+    "equipId": 1301044,
+    "grade": 4,
+    "weight": 5672
+  },
+  {
+    "id": 1902024,
+    "gachaId": 1901001,
+    "characterId": 1001003,
+    "equipId": 1301060,
+    "grade": 3,
+    "weight": 5119
+  },
+  {
+    "id": 1902025,
+    "gachaId": 1901002,
+    "characterId": 1001013,
+    "equipId": 1301038,
+    "grade": 3,
+    "weight": 481
+  },
+  {
+    "id": 1902026,
+    "gachaId": 1901009,
+    "characterId": 1001013,
+    "equipId": 1301004,
+    "grade": 4,
+    "weight": 844
+  },
+  {
+    "id": 1902027,
+    "gachaId": 1901003,
+    "characterId": 1001022,
+    "equipId": 1301035,
+    "grade": 5,
+    "weight": 2109
+  },
+  {
+    "id": 1902028,
+    "gachaId": 1901010,
+    "characterId": 1001016,
+    "equipId": 1301013,
+    "grade": 5,
+    "weight": 4917
+  },
+  {
+    "id": 1902029,
+    "gachaId": 1901008,
+    "characterId": 1001010,
+    "equipId": 1301034,
+    "grade": 3,
+    "weight": 2
+  },
+  {
+    "id": 1902030,
+    "gachaId": 1901009,
+    "characterId": 1001024,
+    "equipId": 1301039,
+    "grade": 1,
+    "weight": 1
+  },
+  {
+    "id": 1902031,
+    "gachaId": 1901009,
+    "characterId": 1001017,
+    "equipId": 1301005,
+    "grade": 3,
+    "weight": 280
+  },
+  {
+    "id": 1902032,
+    "gachaId": 1901003,
+    "characterId": 1001028,
+    "equipId": 1301059,
+    "grade": 3,
+    "weight": 1954
+  },
+  {
+    "id": 1902033,
+    "gachaId": 1901007,
+    "characterId": 1001004,
+    "equipId": 1301008,
+    "grade": 1,
+    "weight": 9145
+  },
+  {
+    "id": 1902034,
+    "gachaId": 1901000,
+    "characterId": 1001005,
+    "equipId": 1301061,
+    "grade": 1,
+    "weight": 142
+  },
+  {
+    "id": 1902035,
+    "gachaId": 1901006,
+    "characterId": 1001008,
+    "equipId": 1301044,
+    "grade": 1,
+    "weight": 3
+  },
+  {
+    "id": 1902036,
+    "gachaId": 1901002,
+    "characterId": 1001015,
+    "equipId": 1301034,
+    "grade": 2,
+    "weight": 2897
+  },
+  {
+    "id": 1902037,
+    "gachaId": 1901001,
+    "characterId": 1001005,
+    "equipId": 1301022,
+    "grade": 2,
+    "weight": 314
+  },
+  {
+    "id": 1902038,
+    "gachaId": 1901000,
+    "characterId": 1001022,
+    "equipId": 1301017,
+    "grade": 5,
+    "weight": 9920
+  },
+  {
+    "id": 1902039,
+    "gachaId": 1901003,
+    "characterId": 1001002,
+    "equipId": 1301002,
+    "grade": 4,
+    "weight": 396
+  },
+  {
+    "id": 1902040,
+    "gachaId": 1901005,
+    "characterId": 1001019,
+    "equipId": 1301041,
+    "grade": 4,
+    "weight": 1269
+  },
+  {
+    "id": 1902041,
+    "gachaId": 1901011,
+    "characterId": 1001027,
+    "equipId": 1301013,
+    "grade": 5,
+    "weight": 7
+  },
+  {
+    "id": 1902042,
+    "gachaId": 1901008,
+    "characterId": 1001015,
+    "equipId": 1301043,
+    "grade": 1,
+    "weight": 96
+  },
+  {
+    "id": 1902043,
+    "gachaId": 1901006,
+    "characterId": 1001013,
+    "equipId": 1301000,
+    "grade": 1,
+    "weight": 4455
+  },
+  {
+    "id": 1902044,
+    "gachaId": 1901000,
+    "characterId": 1001013,
+    "equipId": 1301038,
+    "grade": 4,
+    "weight": 5266
+  }
+]

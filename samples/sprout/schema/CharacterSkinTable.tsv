@@ -1,0 +1,4 @@
+@desc	primary index	owning character	skin name key	model asset	shop price	default skin
+@name	id	characterId	nameKey	model	price	isDefault
+@type	Int	Int	String	String	Int	Bool
+@gen	seq:1004000	ref:CharacterTable	str:SKIN_NAME:90	path:90:Art/Skin	int:0..2400:zipf	bool

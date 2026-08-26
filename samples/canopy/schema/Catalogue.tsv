@@ -1,0 +1,8 @@
+@name	id	name	code	category	sortOrder	icon	tag	state
+@type	key:11000000~11999999	text	string	number	number	string	number	string
+:required	1	1	1	1	1	1	-	1
+:min	11000000	-	-	0	1	-	0	-
+:max	11999999	-	-	5	9999	-	63	-
+:enum	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:asset	-	-	-	-	-	1	-	-
+@gen	seq:11000000	text:400	str:CODE:900	pick:0|1|2|3|4|5	int:1..9999:zipf	path:300:Art	?20 int:0..63:zipf	pick:draft|review|live|retired

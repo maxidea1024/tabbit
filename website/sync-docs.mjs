@@ -3,9 +3,11 @@
 // 원본을 옮기지 않는 이유: 문서 60여 편이 상대 경로로 촘촘히 엮여 있고, GitHub에서 그대로
 // 읽히는 것이 지금의 사용 방식입니다. 그래서 복사하면서 링크만 새 자리에 맞게 고칩니다.
 //
-//   doc/            → docs/guide/
-//   spec/           → docs/spec/
-//   samples/*/doc/  → docs/samples/*/doc/
+//   doc/                → docs/guide/
+//   spec/               → docs/spec/
+//   samples/readme.md   → docs/samples/readme.md
+//   samples/*/readme.md → docs/samples/*/readme.md
+//   samples/*/doc/      → docs/samples/*/doc/
 //
 // 디렉터리 깊이를 보존하므로 문서끼리의 링크는 대부분 그대로 맞습니다. 실제로 고쳐지는 것은
 // `doc/` 이름이 `guide/` 로 바뀌면서 어긋나는 것들뿐이고, 복사 대상 밖을 가리키는 링크
@@ -36,6 +38,18 @@ for (const sample of await readdir(path.join(repo, 'samples'), { withFileTypes: 
   if (existsSync(path.join(repo, rel))) roots.push({ from: rel, to: rel })
 }
 
+/**
+ * Single files copied as they are. A sample's `readme.md` is its documentation - two of the
+ * three samples have no `doc/` folder at all - and the index beside them says which sample
+ * answers which question.
+ */
+const files = ['samples/readme.md']
+for (const sample of await readdir(path.join(repo, 'samples'), { withFileTypes: true })) {
+  if (!sample.isDirectory()) continue
+  const rel = `samples/${sample.name}/readme.md`
+  if (existsSync(path.join(repo, rel))) files.push(rel)
+}
+
 const posix = (p) => p.split(path.sep).join('/')
 
 async function walk(dir) {
@@ -50,6 +64,7 @@ async function walk(dir) {
 
 // ── 복사 계획. 원본 저장소 경로 → 사이트 안 경로.
 const plan = new Map()
+for (const file of files) plan.set(file, file)
 for (const root of roots) {
   for (const full of await walk(path.join(repo, root.from))) {
     const srcRel = posix(path.relative(repo, full))

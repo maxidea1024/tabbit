@@ -1,0 +1,9 @@
+@name	id	name	banner	lengthDays	tiers	freeRewardId	paidRewardId	pointsPerTier	state
+@type	key:36000000~36999999	text	string	number	number	number	number	number	string
+:required	1	1	1	1	1	1	1	1	1
+:min	36000000	-	-	7	10	17000000	17000000	10	-
+:max	36999999	-	-	180	120	17999999	17999999	9000	-
+:enum	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:links	-	-	-	-	-	"Loot"	"Loot"	-	-
+:asset	-	-	1	-	-	-	-	-	-
+@gen	seq:36000000	text:400	path:300:Art	int:7..180:zipf	int:10..120:zipf	ref:Loot	ref:Loot	int:10..9000:zipf	pick:draft|review|live|retired

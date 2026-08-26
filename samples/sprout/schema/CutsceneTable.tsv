@@ -1,0 +1,4 @@
+@desc	primary index	timeline asset	length in milliseconds	skippable after milliseconds
+@name	id	timeline	lengthMs	skipAfterMs
+@type	Int	String	Int	Int
+@gen	seq:2303000	path:40:Art/Cutscene	int:2000..90000:zipf	int:0..5000

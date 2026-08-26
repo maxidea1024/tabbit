@@ -1,0 +1,9 @@
+@name	id	sceneId	lineOrder	speakerKind	line	voice	emoteId	state
+@type	key:23000000~23999999	number	number	number	text	string	number	string
+:required	1	1	1	1	1	1	-	1
+:min	23000000	24000000	0	0	-	-	1	-
+:max	23999999	24999999	60	4	-	-	400	-
+:enum	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:links	-	"Scene"	-	-	-	-	-	-
+:asset	-	-	-	-	-	1	-	-
+@gen	seq:23000000	ref:Scene	int:0..60:zipf	pick:0|1|2|3|4	text:900	path:300:Audio	?20 int:1..400:zipf	pick:draft|review|live|retired

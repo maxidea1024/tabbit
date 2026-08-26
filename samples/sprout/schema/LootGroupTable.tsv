@@ -1,0 +1,4 @@
+@desc	primary index	name key	draws per open	duplicates allowed
+@name	id	nameKey	draws	allowDuplicate
+@type	Int	String	Int	Bool
+@gen	seq:2002000	str:DROP_NAME:140	int:1..10	bool

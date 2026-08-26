@@ -1,0 +1,396 @@
+# 변환에서 찾은 것 — 도구 쪽에 남은 일
+
+`samples/wildling`을 처음 끝까지 변환하면서 나온 것입니다. **데이터 쪽 문제가 아니라 도구 쪽에
+남은 일**만 적습니다. 데이터를 고쳐 지나간 것은 [적용 기록](applied.md)에 있습니다.
+
+각 항목은 **무엇이 일어났나 → 왜 문제인가 → 지금 무엇으로 지나갔나** 순입니다. 「지금 무엇으로
+지나갔나」가 비어 있으면 우회 없이 설계를 바꾼 것입니다.
+
+|#|무엇|상태|
+|--|--|--|
+|[1](#1-다형-합집합의-빈-참조-칸)|다형 합집합의 빈 참조 칸|**닫힘** — 1,807건이 0건|
+|[2](#2-naming-검사의-판정-범위--도구가-만든-이름)|`Naming` 검사의 판정 범위|**닫힘** — `error` 로 되돌렸습니다|
+|[3](#3-합성-값-타입과-와이어-태그--메시지가-가리키는-곳)|합성 값 타입과 와이어 태그의 메시지|**닫힘** — `cf4e30de`|
+|[4](#4-string-상수의-c-생성-미지원)|`string[]` 상수의 C# 생성|**닫힘** — 상수 6개가 배열로|
+|[5](#5-멀티-로우-그룹의-dsl-struct-이름)|멀티 로우 그룹의 DSL struct 이름|**닫힘** — 이 브랜치에서 고쳤습니다|
+|[6](#6-매트릭스-표의-레이아웃-한정)|매트릭스 표의 레이아웃 한정|**닫힘** — 문서가 한정합니다|
+|[7](#7-생성-c의-컴파일-실패--복합-키의-성분이-참조일-때)|복합 키의 성분이 참조일 때|**닫힘**|
+|[8](#8-생성-c의-컴파일-실패--다형-변종의-참조-멤버)|다형 변종의 참조 멤버|**닫힘**|
+|[9](#9-string-셀-배열의-c-스칼라-판독)|`string[]` 셀 배열|**닫힘** — 스키마 기준선이 잡았습니다|
+|[10](#10-기본-인덱스가-참조일-때의-조회-표면)|기본 인덱스가 참조일 때의 조회 표면|**닫힘** — 이 브랜치에서 고쳤습니다|
+|[11](#11-html-이-복합-키를-거절하던-것)|`html` 이 복합 키를 거절하던 것|**닫힘** — 이 브랜치에서 고쳤습니다|
+
+**11건이 전부 닫혔습니다.** 확인은 `design-data/tools/verify.py` 가 하고,
+지금 **통과 9 · 건너뜀 1**입니다 — 건너뛴 하나는 캐시된 실행이라 검증을 다시 돌지 않은 것입니다. 확인은 `design-data/tools/verify.py` 가 하고, 지금 **통과 10 · 실패 0**입니다.
+---
+
+## 1. 다형 합집합의 빈 참조 칸
+
+**무엇이 일어났나.** `RewardEntry`의 다형 그룹은 컬럼이 모든 변종의 합집합이고, 그 행의 변종이
+갖지 않는 멤버 칸은 비어 있습니다. 그 빈 칸이 전부 `schema.value-outside-the-rows-variant`로
+걸렸습니다 — **1,807건**입니다.
+
+```
+[  3] Column `Reward.CurrencyId` of `RewardEntry` holds a value on a row whose variant is
+      `ItemReward`, and that column belongs to `CurrencyReward`.
+        at samples/wildling/Reward.xlsx : RewardEntry : G6
+```
+
+G6은 비어 있습니다. 셀을 아예 만들지 않아도(빈 문자열 셀이 아니라 **셀 부재**) 같습니다.
+
+**왜 문제인가.** [다형과 참조 배열 §5.2](../../../spec/types/polymorphism.md)가 「그 행의 변종에 없는
+컬럼은 비웁니다」라고 정한 자리이고, 그것이 정상 경로입니다. 걸리는 컬럼은 **참조(`foreign`)와
+enum**이고, 픽스처(`polymorphism.xlsx`)의 합집합 컬럼은 `int`·`bool`이라 이 조합을 지나지
+않습니다. `ModelCooker.Polymorphism.cs`의 검사가 `cell.HasValue`를 보는데, 참조 컬럼의 빈 칸은
+「없음」으로 채워지면서 `HasValue`가 참이 되는 것으로 보입니다.
+
+**실전에서 이것이 뜻하는 것.** 변종마다 자기 카탈로그로의 참조를 갖는 것이 다형 레코드의 가장
+자연스러운 형태입니다 — 「아이템이거나 재화이거나 몬스터」가 그렇습니다. 그 형태가 지금은
+전부 걸립니다.
+
+**지금 무엇으로 지나갔나.** 그 행의 변종이 갖지 않는 멤버 칸에 **`-`(값 없음)을 명시**합니다.
+`tools/seed.py`의 `union` 처리가 그것이고, 통과합니다. 다만 시트 작성자에게 「비우면 안 되고
+`-`를 적어야 한다」를 요구하는 것은 §5.2와 어긋나므로 우회입니다.
+
+**게이트 제안.** `polymorphism` 시나리오의 합집합 컬럼에 `foreign` 하나와 enum 하나를 더하면
+그 자리에서 잡힙니다.
+
+---
+
+## 2. `Naming` 검사의 판정 범위 — 도구가 만든 이름
+
+**무엇이 일어났나.** `Naming.Field`를 `snake`로 두면 15건이 걸리고, **전부 시트 작성자가 적지
+않은 이름**입니다.
+
+|걸린 이름|어디서 온 이름인가|
+|--|--|
+|`model_offset.X` · `.Y` · `.Z`|`vec3f`를 성분 컬럼으로 펼칠 때 도구가 만듭니다|
+|`fog_color.R` · `.G` · `.B` · `.A`|`color`도 같습니다|
+|`cost.CurrencyId` · `cost.Amount`|`sep`으로 셀 하나에 적은 DSL struct의 멤버입니다. 선언에는 `currency_id`로 적혀 있습니다|
+|`costs[].CurrencyId` · `costs[].Amount`|같습니다|
+
+**왜 문제인가.** 검사의 목적은 「시트에 적힌 이름이 규약을 따르는가」입니다. 도구가 만든 이름은
+그 대상이 아니고, **enum 쪽에는 이미 그 예외가 있습니다** —
+`ModelCooker.Naming.cs`가 `enumm.Synthesized`와 `label.Synthesized`를 건너뜁니다. 필드 레벨에
+같은 예외가 없습니다.
+
+그리고 `sep` 쪽은 예외 이전의 문제가 하나 더 있습니다 — **선언에 `currency_id`로 적힌 멤버가
+검사에는 `CurrencyId`로 도착합니다.** 같은 struct를 멤버 컬럼으로 펼쳐 적으면(`costs[0].currency_id`)
+통과하므로, `sep` 경로에서 원본 표기가 유실되는 것으로 보입니다.
+
+**지금 무엇으로 지나갔나.** `design-data/recipe.jsonc`의 `Naming.OnViolation`을 `warn`으로 두었습니다.
+**시트는 고치지 않았습니다** — 고칠 것이 시트에 없습니다.
+
+---
+
+## 3. 합성 값 타입과 와이어 태그 — 메시지가 가리키는 곳
+
+**무엇이 일어났나.** `Monster`의 모든 필드에 `@N`을 달고 묘비에 `#old_grade@7`을 두었더니
+이렇게 나왔습니다.
+
+```
+Table `Monster` has a `#`-excluded column reserving a wire tag, but no live field carries one.
+```
+
+**태그는 모든 살아있는 필드에 있었습니다.** 묘비의 태그만 떼면 그때 진짜 이유가 나옵니다 —
+`model_offset`이 `vec3f`이고, 성분마다 컬럼이 되므로 태그도 성분마다 필요하다는 것입니다.
+
+**왜 문제인가.** 합성 값 타입이 태그를 받을 수 없어서 그 테이블의 태그가 전부 무효가 되고,
+그 상태에서 묘비 검사가 먼저 말하면서 **작성자가 하지 않은 실수를 가리킵니다.** 「태그를 안
+달았다」와 「합성 값 타입에는 달 수 없다」는 고칠 곳이 다릅니다.
+
+**지금 무엇으로 지나갔나.** 와이어 태그와 묘비의 시연을 `Monster`에서 `Item`으로 옮겼습니다 —
+합성 값 타입이 없는 테이블입니다. `Monster`는 `vec3f`를 유지합니다.
+
+---
+
+## 4. `string[]` 상수의 C# 생성 미지원
+
+**무엇이 일어났나.** 바이너리까지 전부 나온 뒤 C# 생성에서 멈춥니다.
+
+```
+One or more errors occurred. (unsupported constant type `StringArray`)
+```
+
+`int[]` 상수는 통과합니다.
+
+**왜 문제인가.** 상수셋의 타입 칸은 [주 레이아웃 §8.5](../../../spec/layout/primary-layout.md)의 접힌
+타입 표현이고, `string[]`은 그 표현에 있는 타입입니다. 시트가 받아들이는 것을 생성기가 내지
+못하면, 그 조합은 **변환의 마지막 단계에서야** 드러납니다 — 이 실행이 그랬습니다.
+
+**지금 무엇으로 지나갔나.** 해당 상수 7개를 `string`으로 두고 값에 `;`를 남겼습니다.
+읽는 쪽이 쪼개야 하므로 우회입니다.
+
+---
+
+## 5. 멀티 로우 그룹의 DSL struct 이름
+
+**무엇이 일어났나.** `EncounterTable.entries[]`의 첫 멤버 컬럼 타입 칸에 `EncounterEntry`를
+적었더니 이렇게 나왔습니다.
+
+```
+`EncounterTable.entries[].monster_id` is typed `EncounterEntry`, which is a declared struct,
+and the column is not part of a group.
+```
+
+**그 컬럼은 그룹의 일부입니다** — `entries[]` 멀티 로우 그룹의 첫 멤버입니다. 그리고 같은
+실행이 「한 컬럼이 struct를 이름하고 다른 컬럼도 이름한다」고도 말하는데, struct를 이름한
+컬럼은 하나입니다.
+
+**왜 문제인가.** [주 레이아웃 §4.3](../../../spec/layout/primary-layout.md)이 「멀티 로우 그룹도 위
+두 규칙과 같습니다 — 그룹의 정본은 첫 멤버 컬럼」이라고 적어 두었습니다. 그 표기가 지금
+받아들여지지 않습니다.
+
+**지금 무엇으로 지나갔나.** `entries[]`의 멤버를 인라인으로 적고(멤버마다 타입 기재)
+`EncounterEntry` 선언을 지웠습니다. `.tbs`의 반복 기재 제거가 이 자리에서는 적용되지 않습니다.
+
+---
+
+## 6. 매트릭스 표의 레이아웃 한정
+
+**무엇이 일어났나.** 속성 상성을 격자로 적었더니 정수 컬럼 이름이 식별자가 아니라고 거절
+되었습니다.
+
+**왜 문제인가.** [매트릭스 표](../../../spec/layout/matrix-tables.md)는 「격자를 이미 있는 형태로 읽는
+법」을 정한 문서이고 레이아웃을 한정하지 않습니다. 구현은 `NamedRangeLayoutParser`에만 있습니다 —
+**이름 기반 레이아웃의 기능**입니다. 문서를 읽고 주 레이아웃에서 쓰려 하면 이 자리에서 막힙니다.
+
+**지금 무엇으로 지나갔나.** `ElementAffinity`를 `key="attacker,defender"` 복합 키 표로
+적었습니다. 25행이고, 매트릭스보다 넓지만 그 대신 복합 키 조회가 나옵니다.
+
+---
+
+## 7. 생성 C#의 컴파일 실패 — 복합 키의 성분이 참조일 때
+
+**무엇이 일어났나.** 변환은 「성공」으로 끝나고 C# 61개 파일이 나오는데, **그 코드가
+컴파일되지 않습니다.** 검증이 그것을 먼저 말했습니다 — 규칙을 컴파일하려면 액세서를 먼저
+컴파일해야 하기 때문입니다.
+
+```
+[F] The accessor generated for validation does not compile.
+    MonsterSkillTable.cs(123,30): error CS1501: 'ToString' 에 인수 1개 오버로드가 없습니다
+    MonsterSkillTable.cs(293,75): error CS1503: 'string' 에서 'MonsterTable.Record' 로 변환할 수 없습니다
+[F] This is a defect in tabbit, not a problem with the data or the recipe.
+```
+
+생성된 코드입니다.
+
+```csharp
+private static string KeyOfMonsterIdAndSkillId(
+    MonsterTable.Record monsterIdKey, SkillTable.Record skillIdKey)
+{
+    var parts = new string[]
+    {
+        monsterIdKey.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        ...
+    };
+}
+...
+recordsByMonsterIdAndSkillId.Add(
+    KeyOfMonsterIdAndSkillId(record.MonsterId, record.SkillId), record);
+```
+
+**매개변수 타입이 키 타입(`string`)이 아니라 참조 레코드 타입**입니다. 그래서 두 곳이
+동시에 깨집니다 — `Record` 에 `ToString(IFormatProvider)` 가 없고, 호출부는 `string` 인
+`record.MonsterId` 를 넘깁니다.
+
+**왜 문제인가.** 복합 키의 성분이 참조인 것은 흔한 형태입니다 — `MonsterSkill(monster_id,
+skill_id)` 처럼 둘 다 다른 테이블을 가리키는 연결 테이블이 그렇습니다. 이 데이터에서 그런
+테이블이 5개입니다 — `MonsterSkill` · `SkillEffect` · `SkillGrowth` · `RegionYield` ·
+`RewardEntry`.
+
+**지금 무엇으로 지나갔나.** 없습니다. 검증도 유니티도 이것 때문에 막혀 있습니다.
+
+### 7.1 언어별 대조 — 8개 언어로 내서 확인
+
+**C# 하나의 문제가 아닙니다.** 같은 데이터를 8개 언어로 내고 그 함수를 나란히 놓았습니다.
+
+|언어|매개변수 타입|사전 구축이 넘기는 것|판정|
+|--|--|--|--|
+|C#|`MonsterTable.Record`|`record.MonsterId`(`string`)|**컴파일 실패** — CS1501과 CS1503이 함께|
+|TypeScript|`MonsterRecord`|`record.monsterId`(`string`)|**컴파일 실패.** 조회 쪽은 `String(record)` 라 통과해도 키가 `[object Object]` 입니다|
+|Go|`*MonsterRecord`|`records[i].MonsterId`(`string`)|**컴파일 실패**|
+|Java|`MonsterRecord`|`record.monsterId`(`String`)|**컴파일 실패**|
+|Rust|**`i32`**|`record.monster_id`(`String`)|**컴파일 실패.** 키 타입이 `string` 인데 `i32` 로 적습니다|
+|Python|(타입 없음) `str(int(key))`|`record.monster_id`|**런타임 실패.** 키가 `sprout_deer_1` 이므로 `int()` 가 던집니다 — 테이블 로드 자체가 실패합니다|
+|C++|**`const std::string&`**|`records[i].monster_id`|**정상**|
+|C|—|—|생성 자체가 던집니다(§7.2)|
+
+**C++가 옳게 내고 있습니다** — 키 타입을 그대로 받아 이어 붙입니다. 그래서 이것은 모델의 문제가
+아니라 **생성기마다 「참조가 내는 두 이름」 중 어느 쪽을 고르는가의 문제**이고, C++의 형태가
+정답입니다.
+
+Rust와 Python은 한 걸음 더 갔습니다 — 참조의 키 타입을 `int` 로 가정합니다. 문자열 키를 쓰는
+프로젝트에서는 그 가정이 **Rust에서는 컴파일 실패, Python에서는 로드 실패**가 됩니다.
+
+### 7.2 C 생성기의 렌더링 실패
+
+```
+[F] One or more errors occurred. (The c generator cannot render type `ForeignRecord`.)
+```
+
+참조를 멤버로 가진 다형 변종을 C 생성기가 렌더링하지 못하고, 변환이 그 자리에서 멈춥니다.
+거절 메시지가 아니라 내부 오류입니다.
+
+**게이트 제안.** `composite-key` 시나리오의 성분 하나를 `foreign` 으로 바꾸면 7개 언어에서
+동시에 잡힙니다. 지금은 성분이 전부 스칼라입니다.
+
+---
+
+## 8. 생성 C#의 컴파일 실패 — 다형 변종의 참조 멤버
+
+**무엇이 일어났나.** 같은 컴파일에서 나온 두 번째 갈래입니다.
+
+```csharp
+case 1:
+    return new ItemReward
+    {
+        Amount = _reward.Amount,
+        ItemId = _reward.ItemId,      // ItemId 는 ItemTable.Record, _reward.ItemId 는 string
+    };
+```
+
+**변종을 만드는 코드가 참조를 연결하지 않고 키 문자열을 그대로 대입합니다.** 변종의 멤버는
+`ItemTable.Record` 로 선언되어 있으므로 CS0029입니다. `RewardEntry` 에서 4건,
+`RequirementEntry` 에서 2건입니다.
+
+**왜 문제인가.** [7절](#7-생성-c의-컴파일-실패--복합-키의-성분이-참조일-때)과 같은
+빈자리입니다 — **참조와 다형이 만나는 조합에 게이트가 없습니다.** 그리고 변종마다 자기
+카탈로그로의 참조를 갖는 것은 [1절](#1-다형-합집합의-빈-참조-칸)에 적은 대로 가장 자연스러운
+형태입니다. 그 형태가 시트에서도 걸리고 생성 코드에서도 걸립니다.
+
+**언어별 대조.** 다형 변종을 내는 언어는 지금 셋이고, **셋 다 같습니다.**
+
+|언어|변종의 선언|대입하는 것|판정|
+|--|--|--|--|
+|C#|`ItemTable.Record ItemId`|`_reward.ItemId`(`string`)|**컴파일 실패** — CS0029|
+|TypeScript|`itemId: ItemRecord`|`e.itemId`(`string`)|**컴파일 실패**|
+|Go|`ItemId *ItemRecord`|`r.reward.ItemId`(`string`)|**컴파일 실패**|
+|Java · Rust · C++ · Python|—|—|아직 변종 타입을 내지 않습니다|
+
+셋 다 **연결된 행이 바로 옆에 있습니다** — C#은 `_reward.ItemByItemId`, TypeScript는
+`e.itemByItemId`, Go는 `r.reward.ItemByItemId` 입니다. 쓰지 않고 키를 대입합니다.
+
+**지금 무엇으로 지나갔나.** 없습니다.
+
+**게이트 제안.** `polymorphism` 시나리오의 변종 하나에 `foreign` 멤버를 더하고, 그 시나리오를
+**컴파일까지** 하는 언어 게이트에 넣는 것입니다. 지금 그 시나리오의 변종 멤버는 `int` 와
+`bool` 뿐입니다.
+
+---
+
+## 9. `string[]` 셀 배열의 C# 스칼라 판독
+
+**무엇이 일어났나.** `Monster.tags` 의 타입 칸이 `string[]` 입니다. 같은 데이터를 여러 언어로
+내고 리더가 그 컬럼을 무엇으로 검사하는지 맞춰 보았습니다.
+
+|언어|리더가 검사하는 것|
+|--|--|
+|Go|`tabbit.KindArray` · `ElementString`|
+|C++|`tabbit::kKindArray`|
+|TypeScript|`tabbit.KIND_ARRAY`|
+|**C#**|**`TcbTable.KindScalar`**, 그리고 액세서는 `public string Tags`|
+
+`json` 산출도 배열입니다 — `["잎새", "사슴", "초기형"]`. **와이어도 배열이고 모델도 배열인데
+C# 생성기만 스칼라로 봅니다.**
+
+**왜 문제인가.** 조용하지 않습니다 — 더 나쁩니다. 생성된 C# 리더가 `KindArray` 로 쓰인 컬럼을
+`KindScalar` 로 검사하므로 `CheckShape` 가 던집니다. **유니티에서 `Monster` 테이블 로드가 그
+자리에서 실패합니다.** 컴파일 오류가 아니라 런타임이고, 그래서 §7 · §8을 고친 뒤에야 드러납니다.
+
+**정정.** 이 절은 처음에 「셀 배열이 스칼라로 읽힌다」고 적었습니다. 근거가 C# 생성 코드
+하나였고, 다른 언어와 `json` 을 맞춰 본 뒤 **모델과 와이어는 정상이고 C# 생성기만 틀렸다**로
+좁혀졌습니다.
+
+**지금 무엇으로 지나갔나.** 없습니다 — 시트는 `string[]` 그대로 두었습니다.
+
+**게이트 제안.** `string[]` 컬럼을 가진 시나리오를 C# 되읽기 게이트에 넣는 것입니다. 지금
+골든에 `string[]` 컬럼이 있어도 **C#이 그것을 되읽는 자리가 없으면 잡히지 않습니다.**
+
+---
+
+## 10. 기본 인덱스가 참조일 때의 조회 표면
+
+**무엇이 일어났나.** §7 · §8이 고쳐진 뒤 남은 컴파일 오류입니다. 두 곳이고 둘 다 같은 형태입니다.
+
+```csharp
+var recordsByFromMonsterId = new Dictionary<MonsterTable.Record, Record>(count);
+foreach (var record in records)
+    recordsByFromMonsterId.Add(record.FromMonsterId, record);   // string 을 Record 자리에
+```
+
+`MonsterAwakening` 의 기본 인덱스는 `from_monster_id foreign Monster` 이고, `StageReward` 는
+`stage_id foreign Stage` 입니다.
+
+**왜 문제인가. 컴파일보다 조회 표면이 더 문제입니다.**
+
+```csharp
+public Record FindByFromMonsterId(MonsterTable.Record key)
+public Dictionary<MonsterTable.Record, Record> RecordsByFromMonsterId
+```
+
+**id로 찾을 수 없습니다** — 찾으려는 행을 이미 들고 있어야 그것으로 조회하게 되므로 순환입니다.
+컴파일이 통과하더라도 이 API는 쓸 수 없습니다.
+
+**언어별 대조.** §7과 같은 분포입니다.
+
+|언어|사전의 키 타입 · 조회 매개변수|판정|
+|--|--|--|
+|C#|`MonsterTable.Record`|**컴파일 실패** — CS1503|
+|TypeScript|`MonsterRecord`|같음|
+|Go|`map[*MonsterRecord]int`|같음|
+|Java|`Map<MonsterRecord, …>`|같음|
+|Rust|`HashMap<i32, …>` · `key: i32`|키가 `string` 인데 `i32`|
+|**C++**|**`const std::string&`**|**정상**|
+
+**§7의 수정이 복합 키와 변종 멤버에는 닿았고 단일 기본 인덱스에는 닿지 않았습니다.** 같은
+「참조가 내는 두 이름 중 어느 쪽인가」이고, 자리가 하나 더 있었습니다.
+
+**고친 것 — 이 브랜치.** 단일 인덱스의 키 타입을 `KeyComponentView.TypeOf` 에서 받게 했습니다.
+복합 키 경로가 이미 묻던 그 한 자리이고, 그래서 둘이 어긋날 수 없습니다. 11개 생성기를 고쳤고
+(C#·TypeScript는 뷰와 템플릿, 나머지는 생성기), **C 생성기의 두 자리도 함께** 고쳤습니다 —
+그쪽은 렌더링하지 못하고 던지던 자리입니다.
+
+**게이트를 채웠습니다.** `composite-key` 시나리오에 `BeastNote`(`key=BeastId`, 문자열 키 대상)와
+`MoveNote`(첫 컬럼이 인덱스이고 정수 키 대상)를 더했습니다. 두 표기와 두 키 타입을 함께
+덮습니다 — 정수만 있는 데이터는 「수를 박아 둔 생성기」를 통과시키기 때문입니다.
+
+**기존 골든 25개가 한 바이트도 움직이지 않았습니다** — 인덱스가 참조인 테이블이 시나리오에
+하나도 없었다는 증거이고, 그것이 이 결함이 남아 있던 이유입니다. 연결
+테이블에서 흔한 형태입니다 — 「이 각성은 어느 단계에서 시작하는가」가 그 테이블의 신원입니다.
+
+---
+
+## 11. `html` 이 복합 키를 거절하던 것
+
+**무엇이 일어났나.** `html` 타깃을 켰더니 변환이 멈춥니다.
+
+```
+[F] Target `html` does not support keys of several columns yet.
+```
+
+이 데이터에는 복합 키가 10개 있으므로 **문서가 한 장도 나오지 않습니다.**
+
+**왜 문제인가.** 그 거절이 막는 것은 **조회 표면**입니다 — `FindByKey(a, b)` 는 언어마다
+자기 맵이 필요하고, 그래서 타깃마다 옵트인합니다. **그런데 `html` 은 리더를 내지 않습니다.**
+페이지가 내는 것은 문서이고, 복합 키는 컬럼이며 컬럼은 이미 그리고 있습니다. 옵트인하지 않은
+생성기가 `html` 하나뿐이었습니다.
+
+**고친 것.** `SupportsCompositeKeys => true`. 근거를 그 자리에 적었습니다 — 다른 네 플래그가
+막는 것은 페이지가 그려야 하는 형태이고, 이 플래그가 막는 것은 페이지가 내지 않는 메서드입니다.
+
+**산출물의 자리.** `html` 은 유니티 애셋이 아니므로 `design-data/out/html` 입니다. 게임이
+로드하지 않고 사람이 읽습니다.
+
+---
+
+## 5단계와 함께 돌아오는 것
+
+|무엇|왜 지금 없나|
+|--|--|
+|`Boss` 테이블|`effects[].$type`이 **멀티 로우 다형 배열**이고 그 조합이 아직 없습니다([다형 §11](../../../spec/types/polymorphism.md)의 5단계). `design-data/recipe.jsonc`의 `ExcludeSheets`에 있습니다|
+|`Stage.boss_id`|위가 없으면 가리킬 테이블이 없습니다. 함께 돌아옵니다|
+
+---
+
+EOD

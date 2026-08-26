@@ -1,0 +1,4 @@
+@desc	primary index	grade	option slots	frame asset
+@name	id	grade	optionSlots	frame
+@type	Int	enum:GradeType	Int	String
+@gen	seq:1303000	enum:GradeType	int:0..4	path:24:Art/Frame

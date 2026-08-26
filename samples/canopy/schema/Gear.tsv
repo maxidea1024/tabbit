@@ -1,0 +1,9 @@
+@name	id	name	model	iconSmall	slot	grade	levelRequired	attack	defence	optionId[0]	optionId[1]	optionId[2]	optionId[3]	optionId[4]	optionId[5]	setId	socket[0]["Kind"]	socket[0]["Locked"]	socket[1]["Kind"]	socket[1]["Locked"]	socket[2]["Kind"]	socket[2]["Locked"]	state
+@type	key:20000000~20999999	text	string	string	number	number	number	number	number	number	number	number	number	number	number	number	number	bool	number	bool	number	bool	string
+:required	1	1	1	1	1	1	1	1	1	-	-	-	-	-	-	-	-	-	-	-	-	-	1
+:min	20000000	-	-	-	0	1	1	0	0	1	1	1	1	1	1	1	-	-	-	-	-	-	-
+:max	20999999	-	-	-	7	5	120	90000	90000	99999	99999	99999	99999	99999	99999	9999	-	-	-	-	-	-	-
+:enum	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:requiredInObject	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	1	1	1	1	1	1	-
+:asset	-	-	1	1	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-
+@gen	seq:20000000	text:400	path:300:Art	path:300:Art	pick:0|1|2|3|4|5|6|7	pick:1|2|3|4|5	int:1..120:zipf	int:0..90000:zipf	int:0..90000:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?20 int:1..9999:zipf	pick:0|1|2	bool	pick:0|1|2	bool	pick:0|1|2	bool	pick:draft|review|live|retired

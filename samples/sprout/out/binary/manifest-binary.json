@@ -1,0 +1,433 @@
+{
+  "LastUpdatedDate": "2026-08-26T14:48:54.8984491+09:00",
+  "MasterHash": "e18099bdd0b46dd1bc4cd1ad5a7cf212",
+  "TotalSize": 67434,
+  "Items": [
+    {
+      "Name": "Character.tcb",
+      "Size": 916,
+      "Hash": "df65fb07afab461a14285461f5d0b419",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1917824+09:00"
+    },
+    {
+      "Name": "CharacterStat.tcb",
+      "Size": 1076,
+      "Hash": "582628678119489d6bd559ae3e4f8333",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1956117+09:00"
+    },
+    {
+      "Name": "CharacterAscend.tcb",
+      "Size": 667,
+      "Hash": "7663335b572bc2d3aa813a051bd53969",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1986926+09:00"
+    },
+    {
+      "Name": "CharacterSkin.tcb",
+      "Size": 584,
+      "Hash": "70a31c01870de3778d05381c8de6e855",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2003028+09:00"
+    },
+    {
+      "Name": "CharacterVoice.tcb",
+      "Size": 1449,
+      "Hash": "1aa682b715465aa615e25eea82c98f25",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2205836+09:00"
+    },
+    {
+      "Name": "RoleBonus.tcb",
+      "Size": 108,
+      "Hash": "2c02a600a071fb00fa39292c1beefadc",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2212247+09:00"
+    },
+    {
+      "Name": "ElementAffinity.tcb",
+      "Size": 112,
+      "Hash": "f1039471fc4b4eb4d863879827c62778",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2217476+09:00"
+    },
+    {
+      "Name": "Codex.tcb",
+      "Size": 593,
+      "Hash": "10297703721cde62057e66d962e8c90d",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2228463+09:00"
+    },
+    {
+      "Name": "CodexEntry.tcb",
+      "Size": 362,
+      "Hash": "5213fe9ab487a4eed4eef05657b64024",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2237931+09:00"
+    },
+    {
+      "Name": "CodexTier.tcb",
+      "Size": 158,
+      "Hash": "d81e538a0ddedce3f8d8d0d693562144",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2244259+09:00"
+    },
+    {
+      "Name": "Dialogue.tcb",
+      "Size": 282,
+      "Hash": "8b7667f7dd6a4e8893f18f63558d8a19",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2259266+09:00"
+    },
+    {
+      "Name": "DialogueLine.tcb",
+      "Size": 2365,
+      "Hash": "ddc9c666599e791afac0be9126671c67",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2309603+09:00"
+    },
+    {
+      "Name": "Cutscene.tcb",
+      "Size": 317,
+      "Hash": "a27ddc4473007f2c2b4ea38f12ff53bf",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2330536+09:00"
+    },
+    {
+      "Name": "Dungeon.tcb",
+      "Size": 193,
+      "Hash": "d0de29e5c0089241f79bc24c4d13643e",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2434844+09:00"
+    },
+    {
+      "Name": "DungeonFloor.tcb",
+      "Size": 404,
+      "Hash": "0f68f89e042d0145fda5878929b193d8",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2456693+09:00"
+    },
+    {
+      "Name": "DungeonReward.tcb",
+      "Size": 282,
+      "Hash": "779cb850840112faff0e19aa143d5fbe",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2475999+09:00"
+    },
+    {
+      "Name": "Raid.tcb",
+      "Size": 202,
+      "Hash": "b2ed0b3b13a05014bd7b4e527cfdbb45",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2534046+09:00"
+    },
+    {
+      "Name": "Equip.tcb",
+      "Size": 1664,
+      "Hash": "2cec1721e528886dedc3eb9c7d6706cf",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2567328+09:00"
+    },
+    {
+      "Name": "EquipLevel.tcb",
+      "Size": 485,
+      "Hash": "111ca3090a2ad667cd1e2227bafc2e0a",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2604709+09:00"
+    },
+    {
+      "Name": "EquipGrade.tcb",
+      "Size": 271,
+      "Hash": "d860a5ebc4ca2f14662ca66e5874ede2",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2625468+09:00"
+    },
+    {
+      "Name": "EquipSet.tcb",
+      "Size": 185,
+      "Hash": "636ee812ce56c1f2f1f68f83350ace4c",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2639801+09:00"
+    },
+    {
+      "Name": "EquipSetBonus.tcb",
+      "Size": 163,
+      "Hash": "9c3dad0d45aa45e7d19824b77ad78a56",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2665062+09:00"
+    },
+    {
+      "Name": "EquipOption.tcb",
+      "Size": 245,
+      "Hash": "a9dfd01c7d4fba74ef425f9bb7c6eb8a",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2680638+09:00"
+    },
+    {
+      "Name": "Gacha.tcb",
+      "Size": 353,
+      "Hash": "bfde0ae5a0ef0f56627d2789899b2f7d",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2693962+09:00"
+    },
+    {
+      "Name": "GachaPool.tcb",
+      "Size": 303,
+      "Hash": "230282d81535e7d8ec1b79e1f95bdef9",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2856534+09:00"
+    },
+    {
+      "Name": "GachaOdds.tcb",
+      "Size": 166,
+      "Hash": "3ad7b3e3bda402f6269f396bb48b847a",
+      "LastUpdatedDate": "2026-08-26T14:48:54.294385+09:00"
+    },
+    {
+      "Name": "Pity.tcb",
+      "Size": 104,
+      "Hash": "3ae06c65023d9c524a75dc48510c1630",
+      "LastUpdatedDate": "2026-08-26T14:48:54.2996511+09:00"
+    },
+    {
+      "Name": "LevelCurve.tcb",
+      "Size": 2285,
+      "Hash": "bec6160827d702b6a87a2a69927ea17d",
+      "LastUpdatedDate": "2026-08-26T14:48:54.4323752+09:00"
+    },
+    {
+      "Name": "StatBase.tcb",
+      "Size": 116,
+      "Hash": "ef8ae67f6139b179b219e4f8ba700508",
+      "LastUpdatedDate": "2026-08-26T14:48:54.4361307+09:00"
+    },
+    {
+      "Name": "AscendCurve.tcb",
+      "Size": 150,
+      "Hash": "d96301d48ed54cc1037852b310a94047",
+      "LastUpdatedDate": "2026-08-26T14:48:54.4406863+09:00"
+    },
+    {
+      "Name": "PowerScore.tcb",
+      "Size": 101,
+      "Hash": "f1332be68055a782bfb9525e3ce8abf8",
+      "LastUpdatedDate": "2026-08-26T14:48:54.4476395+09:00"
+    },
+    {
+      "Name": "Item.tcb",
+      "Size": 2748,
+      "Hash": "5b201b0308ef5fc55b155157cf009089",
+      "LastUpdatedDate": "2026-08-26T14:48:54.4571452+09:00"
+    },
+    {
+      "Name": "Currency.tcb",
+      "Size": 380,
+      "Hash": "2b9319d4c6a97edaece325c3fb4b3a8c",
+      "LastUpdatedDate": "2026-08-26T14:48:54.4633746+09:00"
+    },
+    {
+      "Name": "Material.tcb",
+      "Size": 155,
+      "Hash": "3539a00c6c3a4ebf8dbcdc2a7894da75",
+      "LastUpdatedDate": "2026-08-26T14:48:54.4690017+09:00"
+    },
+    {
+      "Name": "Consumable.tcb",
+      "Size": 163,
+      "Hash": "66d0502800f9a631fbaf2695da7bb953",
+      "LastUpdatedDate": "2026-08-26T14:48:54.4739774+09:00"
+    },
+    {
+      "Name": "Offer.tcb",
+      "Size": 230,
+      "Hash": "9db177d4a7c90f19364a7f54b5c95b2b",
+      "LastUpdatedDate": "2026-08-26T14:48:54.4892779+09:00"
+    },
+    {
+      "Name": "OfferItem.tcb",
+      "Size": 231,
+      "Hash": "5e2a58e9947dd1135ba3156bd73a7b36",
+      "LastUpdatedDate": "2026-08-26T14:48:54.4915164+09:00"
+    },
+    {
+      "Name": "ItemGrade.tcb",
+      "Size": 247,
+      "Hash": "3e8ca35191465bf110141510d9863762",
+      "LastUpdatedDate": "2026-08-26T14:48:54.4959923+09:00"
+    },
+    {
+      "Name": "String.tcb",
+      "Size": 28385,
+      "Hash": "48b063e91f2a90400b0a089f02c1a94d",
+      "LastUpdatedDate": "2026-08-26T14:48:54.5654292+09:00"
+    },
+    {
+      "Name": "OfflineReward.tcb",
+      "Size": 188,
+      "Hash": "b82e354cdf110fff9a374641d7b7eb09",
+      "LastUpdatedDate": "2026-08-26T14:48:54.5783133+09:00"
+    },
+    {
+      "Name": "IdleRate.tcb",
+      "Size": 126,
+      "Hash": "538966107a3c76a287dd9f275fe7a63a",
+      "LastUpdatedDate": "2026-08-26T14:48:54.5853488+09:00"
+    },
+    {
+      "Name": "AfkBonus.tcb",
+      "Size": 93,
+      "Hash": "7d0f139b1a98a6b673323c4209fab68b",
+      "LastUpdatedDate": "2026-08-26T14:48:54.5881447+09:00"
+    },
+    {
+      "Name": "Quest.tcb",
+      "Size": 725,
+      "Hash": "abd42fc742f06093c51308b7d9c87bc7",
+      "LastUpdatedDate": "2026-08-26T14:48:54.5975834+09:00"
+    },
+    {
+      "Name": "QuestStep.tcb",
+      "Size": 446,
+      "Hash": "af736f76805a550cfefcb377d11ddf7a",
+      "LastUpdatedDate": "2026-08-26T14:48:54.6068963+09:00"
+    },
+    {
+      "Name": "DailyQuest.tcb",
+      "Size": 116,
+      "Hash": "d7ed1b0587aeaca73a2c195ffff91d3d",
+      "LastUpdatedDate": "2026-08-26T14:48:54.6133064+09:00"
+    },
+    {
+      "Name": "WeeklyQuest.tcb",
+      "Size": 116,
+      "Hash": "48fa2f048b1864ad82f67e1aed33b91e",
+      "LastUpdatedDate": "2026-08-26T14:48:54.6143943+09:00"
+    },
+    {
+      "Name": "Achievement.tcb",
+      "Size": 854,
+      "Hash": "4e18a374a92004cd2769b13d19c9a2ec",
+      "LastUpdatedDate": "2026-08-26T14:48:54.6285589+09:00"
+    },
+    {
+      "Name": "Reward.tcb",
+      "Size": 654,
+      "Hash": "eee3af1d96d092088ce311a2577006bc",
+      "LastUpdatedDate": "2026-08-26T14:48:54.6360124+09:00"
+    },
+    {
+      "Name": "LootGroup.tcb",
+      "Size": 264,
+      "Hash": "c5ab147323da2db0372f798afccfb8d4",
+      "LastUpdatedDate": "2026-08-26T14:48:54.6415478+09:00"
+    },
+    {
+      "Name": "LootEntry.tcb",
+      "Size": 668,
+      "Hash": "6ef97c060e437db5ce135f162623f01f",
+      "LastUpdatedDate": "2026-08-26T14:48:54.657511+09:00"
+    },
+    {
+      "Name": "MailReward.tcb",
+      "Size": 266,
+      "Hash": "86fccf31c3a2ab650a3b1867712abc6e",
+      "LastUpdatedDate": "2026-08-26T14:48:54.6605422+09:00"
+    },
+    {
+      "Name": "Setting.tcb",
+      "Size": 286,
+      "Hash": "aff0a9fa033c301ba1d6665b8bae2ba2",
+      "LastUpdatedDate": "2026-08-26T14:48:54.6679523+09:00"
+    },
+    {
+      "Name": "Condition.tcb",
+      "Size": 497,
+      "Hash": "3ea4b4d53f6a4d7e4078f05913972cd5",
+      "LastUpdatedDate": "2026-08-26T14:48:54.6731456+09:00"
+    },
+    {
+      "Name": "Unlock.tcb",
+      "Size": 216,
+      "Hash": "798dec43e85ce95650e976478f221e70",
+      "LastUpdatedDate": "2026-08-26T14:48:54.6756024+09:00"
+    },
+    {
+      "Name": "Table.tcb",
+      "Size": 146,
+      "Hash": "8cf7cd068776acba530c6fb8b2b66457",
+      "LastUpdatedDate": "2026-08-26T14:48:54.6825158+09:00"
+    },
+    {
+      "Name": "Shop.tcb",
+      "Size": 161,
+      "Hash": "b96d2ed3f07409ffef9c993c9831b4da",
+      "LastUpdatedDate": "2026-08-26T14:48:54.6902505+09:00"
+    },
+    {
+      "Name": "ShopSlot.tcb",
+      "Size": 286,
+      "Hash": "24960f32d21545629541eb5331aa0026",
+      "LastUpdatedDate": "2026-08-26T14:48:54.6985665+09:00"
+    },
+    {
+      "Name": "Price.tcb",
+      "Size": 174,
+      "Hash": "fdc120c96ccacf9973d24349d28c2371",
+      "LastUpdatedDate": "2026-08-26T14:48:54.7097376+09:00"
+    },
+    {
+      "Name": "Promo.tcb",
+      "Size": 316,
+      "Hash": "e5d1003ab1a04b5f87f3e27a1164a7b1",
+      "LastUpdatedDate": "2026-08-26T14:48:54.717578+09:00"
+    },
+    {
+      "Name": "Skill.tcb",
+      "Size": 2312,
+      "Hash": "da9165fbf1d38d324b3414a9ad761377",
+      "LastUpdatedDate": "2026-08-26T14:48:54.767464+09:00"
+    },
+    {
+      "Name": "SkillLevel.tcb",
+      "Size": 781,
+      "Hash": "ad14f601aae411e44b9046b294efcc4e",
+      "LastUpdatedDate": "2026-08-26T14:48:54.7750697+09:00"
+    },
+    {
+      "Name": "SkillEffect.tcb",
+      "Size": 521,
+      "Hash": "687c43d170b339a142b2e50ac3cb7d87",
+      "LastUpdatedDate": "2026-08-26T14:48:54.7838598+09:00"
+    },
+    {
+      "Name": "Buff.tcb",
+      "Size": 1021,
+      "Hash": "19931e3d1ac4faa29aea8350226b04dc",
+      "LastUpdatedDate": "2026-08-26T14:48:54.792166+09:00"
+    },
+    {
+      "Name": "BuffPool.tcb",
+      "Size": 262,
+      "Hash": "fe9b7bd52658273999170620e517d823",
+      "LastUpdatedDate": "2026-08-26T14:48:54.8008259+09:00"
+    },
+    {
+      "Name": "Passive.tcb",
+      "Size": 193,
+      "Hash": "e0241c767d6992052e7dec5618eb5e3f",
+      "LastUpdatedDate": "2026-08-26T14:48:54.8146759+09:00"
+    },
+    {
+      "Name": "Stage.tcb",
+      "Size": 1688,
+      "Hash": "c41dcfb6d269f96c4e058f528d7a4d44",
+      "LastUpdatedDate": "2026-08-26T14:48:54.8344918+09:00"
+    },
+    {
+      "Name": "StageWave.tcb",
+      "Size": 1645,
+      "Hash": "b3e34fe374ffb93cc9ce4d580b408a8b",
+      "LastUpdatedDate": "2026-08-26T14:48:54.8613971+09:00"
+    },
+    {
+      "Name": "StageMonster.tcb",
+      "Size": 2191,
+      "Hash": "b4d007f49440e6bdaccef8c1cdbde2b0",
+      "LastUpdatedDate": "2026-08-26T14:48:54.8657839+09:00"
+    },
+    {
+      "Name": "StageReward.tcb",
+      "Size": 511,
+      "Hash": "bb77885bdc7298c305034501a1151235",
+      "LastUpdatedDate": "2026-08-26T14:48:54.8693571+09:00"
+    },
+    {
+      "Name": "Chapter.tcb",
+      "Size": 179,
+      "Hash": "464e70634288cf6f45c6b8ae067bde36",
+      "LastUpdatedDate": "2026-08-26T14:48:54.8725375+09:00"
+    },
+    {
+      "Name": "World.tcb",
+      "Size": 332,
+      "Hash": "d7e0086d2e0f5339b7fa9a0cb8eb9a47",
+      "LastUpdatedDate": "2026-08-26T14:48:54.8984417+09:00"
+    }
+  ]
+}

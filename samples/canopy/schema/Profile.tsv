@@ -1,0 +1,9 @@
+@name	id	name	summary	portrait	grade	rank		power	released	factionId	retireBuild	state
+@type	key:10000000~10999999	text	text	string	number	number	-	number	bool	number	number	string
+:required	1	1	1	1	1	1	-	1	1	1	-	1
+:min	10000000	-	-	-	1	1	-	100	-	39000000	1	-
+:max	10999999	-	-	-	5	60	-	900000	-	39999999	9999	-
+:enum	-	-	-	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:links	-	-	-	-	-	-	-	-	-	"Faction"	-	-
+:asset	-	-	-	1	-	-	-	-	-	-	-	-
+@gen	seq:10000000	text:400	text:400	path:300:Art	pick:1|2|3|4|5	int:1..60:zipf	const:-	int:100..900000:zipf	bool	ref:Faction	?20 int:1..9999:zipf	pick:draft|review|live|retired

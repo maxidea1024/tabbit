@@ -1,0 +1,4 @@
+@desc	primary index	grade	frame asset	sell multiplier in permille
+@name	id	grade	frame	sellScale
+@type	Int	enum:GradeType	String	Int
+@gen	seq:1207000	enum:GradeType	path:18:Art/Frame	int:800..4000

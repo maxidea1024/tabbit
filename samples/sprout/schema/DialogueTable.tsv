@@ -1,0 +1,4 @@
+@desc	primary index	scene key	cutscene, 0 for none	skippable
+@name	id	sceneKey	cutsceneId	skippable
+@type	Int	String	Int	Bool
+@gen	seq:2301000	str:SCENE:160	ref:CutsceneTable	bool

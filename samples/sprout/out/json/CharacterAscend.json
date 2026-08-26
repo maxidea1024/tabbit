@@ -1,0 +1,680 @@
+[
+  {
+    "id": 1003000,
+    "characterId": 1001028,
+    "step": 0,
+    "materialIds": [
+      1203005
+    ],
+    "materialCounts": [
+      30
+    ],
+    "goldCost": "5000",
+    "statScale": 2.734
+  },
+  {
+    "id": 1003001,
+    "characterId": 1001018,
+    "step": 1,
+    "materialIds": [
+      1203020,
+      1203013,
+      1203035
+    ],
+    "materialCounts": [
+      20,
+      21
+    ],
+    "goldCost": "17000",
+    "statScale": 1.651
+  },
+  {
+    "id": 1003002,
+    "characterId": 1001022,
+    "step": 2,
+    "materialIds": [
+      1203000
+    ],
+    "materialCounts": [
+      21,
+      24,
+      17
+    ],
+    "goldCost": "29001",
+    "statScale": 1.677
+  },
+  {
+    "id": 1003003,
+    "characterId": 1001005,
+    "step": 3,
+    "materialIds": [
+      1203019,
+      1203005,
+      1203039
+    ],
+    "materialCounts": [
+      27
+    ],
+    "goldCost": "41002",
+    "statScale": 2.757
+  },
+  {
+    "id": 1003004,
+    "characterId": 1001002,
+    "step": 4,
+    "materialIds": [
+      1203036
+    ],
+    "materialCounts": [
+      29
+    ],
+    "goldCost": "53004",
+    "statScale": 2.301
+  },
+  {
+    "id": 1003005,
+    "characterId": 1001019,
+    "step": 5,
+    "materialIds": [
+      1203030,
+      1203014
+    ],
+    "materialCounts": [
+      24,
+      18,
+      15
+    ],
+    "goldCost": "65006",
+    "statScale": 2.67
+  },
+  {
+    "id": 1003006,
+    "characterId": 1001001,
+    "step": 0,
+    "materialIds": [
+      1203039,
+      1203002
+    ],
+    "materialCounts": [
+      18,
+      18,
+      1
+    ],
+    "goldCost": "5000",
+    "statScale": 2.774
+  },
+  {
+    "id": 1003007,
+    "characterId": 1001005,
+    "step": 1,
+    "materialIds": [
+      1203026
+    ],
+    "materialCounts": [
+      5,
+      17,
+      22
+    ],
+    "goldCost": "17000",
+    "statScale": 2.371
+  },
+  {
+    "id": 1003008,
+    "characterId": 1001026,
+    "step": 2,
+    "materialIds": [
+      1203018
+    ],
+    "materialCounts": [
+      27
+    ],
+    "goldCost": "29001",
+    "statScale": 3.183
+  },
+  {
+    "id": 1003009,
+    "characterId": 1001010,
+    "step": 3,
+    "materialIds": [
+      1203025,
+      1203036,
+      1203031
+    ],
+    "materialCounts": [
+      15,
+      2
+    ],
+    "goldCost": "41002",
+    "statScale": 2.05
+  },
+  {
+    "id": 1003010,
+    "characterId": 1001008,
+    "step": 4,
+    "materialIds": [
+      1203032
+    ],
+    "materialCounts": [
+      28,
+      9
+    ],
+    "goldCost": "53004",
+    "statScale": 2.509
+  },
+  {
+    "id": 1003011,
+    "characterId": 1001017,
+    "step": 5,
+    "materialIds": [
+      1203029,
+      1203027,
+      1203003
+    ],
+    "materialCounts": [
+      18,
+      22
+    ],
+    "goldCost": "65006",
+    "statScale": 1.21
+  },
+  {
+    "id": 1003012,
+    "characterId": 1001004,
+    "step": 0,
+    "materialIds": [
+      1203023
+    ],
+    "materialCounts": [
+      8
+    ],
+    "goldCost": "5000",
+    "statScale": 1.512
+  },
+  {
+    "id": 1003013,
+    "characterId": 1001000,
+    "step": 1,
+    "materialIds": [
+      1203015
+    ],
+    "materialCounts": [
+      32
+    ],
+    "goldCost": "17000",
+    "statScale": 1.453
+  },
+  {
+    "id": 1003014,
+    "characterId": 1001016,
+    "step": 2,
+    "materialIds": [
+      1203034
+    ],
+    "materialCounts": [
+      17,
+      15,
+      35
+    ],
+    "goldCost": "29001",
+    "statScale": 2.26
+  },
+  {
+    "id": 1003015,
+    "characterId": 1001004,
+    "step": 3,
+    "materialIds": [
+      1203036
+    ],
+    "materialCounts": [
+      35
+    ],
+    "goldCost": "41002",
+    "statScale": 1.728
+  },
+  {
+    "id": 1003016,
+    "characterId": 1001018,
+    "step": 4,
+    "materialIds": [
+      1203002
+    ],
+    "materialCounts": [
+      34,
+      12,
+      8
+    ],
+    "goldCost": "53004",
+    "statScale": 1.441
+  },
+  {
+    "id": 1003017,
+    "characterId": 1001007,
+    "step": 5,
+    "materialIds": [
+      1203020,
+      1203020
+    ],
+    "materialCounts": [
+      14
+    ],
+    "goldCost": "65006",
+    "statScale": 2.124
+  },
+  {
+    "id": 1003018,
+    "characterId": 1001020,
+    "step": 0,
+    "materialIds": [
+      1203026
+    ],
+    "materialCounts": [
+      36
+    ],
+    "goldCost": "5000",
+    "statScale": 2.414
+  },
+  {
+    "id": 1003019,
+    "characterId": 1001004,
+    "step": 1,
+    "materialIds": [
+      1203034
+    ],
+    "materialCounts": [
+      7,
+      20
+    ],
+    "goldCost": "17000",
+    "statScale": 1.805
+  },
+  {
+    "id": 1003020,
+    "characterId": 1001018,
+    "step": 2,
+    "materialIds": [
+      1203007,
+      1203020,
+      1203038
+    ],
+    "materialCounts": [
+      32,
+      22,
+      28
+    ],
+    "goldCost": "29001",
+    "statScale": 2.617
+  },
+  {
+    "id": 1003021,
+    "characterId": 1001003,
+    "step": 3,
+    "materialIds": [
+      1203017,
+      1203026,
+      1203027
+    ],
+    "materialCounts": [
+      11,
+      32,
+      38
+    ],
+    "goldCost": "41002",
+    "statScale": 2.057
+  },
+  {
+    "id": 1003022,
+    "characterId": 1001027,
+    "step": 4,
+    "materialIds": [
+      1203011,
+      1203034
+    ],
+    "materialCounts": [
+      35,
+      14
+    ],
+    "goldCost": "53004",
+    "statScale": 1.57
+  },
+  {
+    "id": 1003023,
+    "characterId": 1001003,
+    "step": 5,
+    "materialIds": [
+      1203035,
+      1203034,
+      1203024
+    ],
+    "materialCounts": [
+      27,
+      12
+    ],
+    "goldCost": "65006",
+    "statScale": 2.446
+  },
+  {
+    "id": 1003024,
+    "characterId": 1001010,
+    "step": 0,
+    "materialIds": [
+      1203006,
+      1203005
+    ],
+    "materialCounts": [
+      15,
+      22,
+      1
+    ],
+    "goldCost": "5000",
+    "statScale": 1.793
+  },
+  {
+    "id": 1003025,
+    "characterId": 1001013,
+    "step": 1,
+    "materialIds": [
+      1203027,
+      1203022
+    ],
+    "materialCounts": [
+      31,
+      23,
+      28
+    ],
+    "goldCost": "17000",
+    "statScale": 1.606
+  },
+  {
+    "id": 1003026,
+    "characterId": 1001019,
+    "step": 2,
+    "materialIds": [
+      1203029,
+      1203026
+    ],
+    "materialCounts": [
+      9,
+      4
+    ],
+    "goldCost": "29001",
+    "statScale": 3.391
+  },
+  {
+    "id": 1003027,
+    "characterId": 1001005,
+    "step": 3,
+    "materialIds": [
+      1203021,
+      1203016
+    ],
+    "materialCounts": [
+      27,
+      23
+    ],
+    "goldCost": "41002",
+    "statScale": 1.611
+  },
+  {
+    "id": 1003028,
+    "characterId": 1001016,
+    "step": 4,
+    "materialIds": [
+      1203023,
+      1203031,
+      1203008
+    ],
+    "materialCounts": [
+      8,
+      25
+    ],
+    "goldCost": "53004",
+    "statScale": 1.78
+  },
+  {
+    "id": 1003029,
+    "characterId": 1001026,
+    "step": 5,
+    "materialIds": [
+      1203019,
+      1203038
+    ],
+    "materialCounts": [
+      17,
+      18,
+      20
+    ],
+    "goldCost": "65006",
+    "statScale": 1.068
+  },
+  {
+    "id": 1003030,
+    "characterId": 1001015,
+    "step": 0,
+    "materialIds": [
+      1203015,
+      1203016
+    ],
+    "materialCounts": [
+      13
+    ],
+    "goldCost": "5000",
+    "statScale": 2.061
+  },
+  {
+    "id": 1003031,
+    "characterId": 1001023,
+    "step": 1,
+    "materialIds": [
+      1203037
+    ],
+    "materialCounts": [
+      25
+    ],
+    "goldCost": "17000",
+    "statScale": 2.791
+  },
+  {
+    "id": 1003032,
+    "characterId": 1001018,
+    "step": 2,
+    "materialIds": [
+      1203015
+    ],
+    "materialCounts": [
+      2,
+      29,
+      8
+    ],
+    "goldCost": "29001",
+    "statScale": 3.233
+  },
+  {
+    "id": 1003033,
+    "characterId": 1001018,
+    "step": 3,
+    "materialIds": [
+      1203023,
+      1203018,
+      1203030
+    ],
+    "materialCounts": [
+      21,
+      11,
+      5
+    ],
+    "goldCost": "41002",
+    "statScale": 1.966
+  },
+  {
+    "id": 1003034,
+    "characterId": 1001009,
+    "step": 4,
+    "materialIds": [
+      1203002,
+      1203013,
+      1203000
+    ],
+    "materialCounts": [
+      16,
+      11
+    ],
+    "goldCost": "53004",
+    "statScale": 3.177
+  },
+  {
+    "id": 1003035,
+    "characterId": 1001018,
+    "step": 5,
+    "materialIds": [
+      1203020
+    ],
+    "materialCounts": [
+      11
+    ],
+    "goldCost": "65006",
+    "statScale": 2.009
+  },
+  {
+    "id": 1003036,
+    "characterId": 1001017,
+    "step": 0,
+    "materialIds": [
+      1203003
+    ],
+    "materialCounts": [
+      2,
+      40,
+      24
+    ],
+    "goldCost": "5000",
+    "statScale": 2.529
+  },
+  {
+    "id": 1003037,
+    "characterId": 1001002,
+    "step": 1,
+    "materialIds": [
+      1203005,
+      1203024,
+      1203024
+    ],
+    "materialCounts": [
+      38,
+      17,
+      24
+    ],
+    "goldCost": "17000",
+    "statScale": 1.048
+  },
+  {
+    "id": 1003038,
+    "characterId": 1001012,
+    "step": 2,
+    "materialIds": [
+      1203021,
+      1203021,
+      1203027
+    ],
+    "materialCounts": [
+      16,
+      34,
+      27
+    ],
+    "goldCost": "29001",
+    "statScale": 1.772
+  },
+  {
+    "id": 1003039,
+    "characterId": 1001015,
+    "step": 3,
+    "materialIds": [
+      1203004
+    ],
+    "materialCounts": [
+      2,
+      8
+    ],
+    "goldCost": "41002",
+    "statScale": 2.289
+  },
+  {
+    "id": 1003040,
+    "characterId": 1001020,
+    "step": 4,
+    "materialIds": [
+      1203033,
+      1203008,
+      1203012
+    ],
+    "materialCounts": [
+      17,
+      11
+    ],
+    "goldCost": "53004",
+    "statScale": 1.288
+  },
+  {
+    "id": 1003041,
+    "characterId": 1001010,
+    "step": 5,
+    "materialIds": [
+      1203001,
+      1203029,
+      1203005
+    ],
+    "materialCounts": [
+      6,
+      23
+    ],
+    "goldCost": "65006",
+    "statScale": 3.044
+  },
+  {
+    "id": 1003042,
+    "characterId": 1001020,
+    "step": 0,
+    "materialIds": [
+      1203038,
+      1203034,
+      1203019
+    ],
+    "materialCounts": [
+      24,
+      31
+    ],
+    "goldCost": "5000",
+    "statScale": 3.399
+  },
+  {
+    "id": 1003043,
+    "characterId": 1001001,
+    "step": 1,
+    "materialIds": [
+      1203005,
+      1203006,
+      1203012
+    ],
+    "materialCounts": [
+      27,
+      12,
+      16
+    ],
+    "goldCost": "17000",
+    "statScale": 1.594
+  },
+  {
+    "id": 1003044,
+    "characterId": 1001017,
+    "step": 2,
+    "materialIds": [
+      1203010,
+      1203021
+    ],
+    "materialCounts": [
+      34,
+      39
+    ],
+    "goldCost": "29001",
+    "statScale": 2.452
+  }
+]

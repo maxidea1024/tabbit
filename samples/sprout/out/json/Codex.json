@@ -1,0 +1,156 @@
+[
+  {
+    "id": 2201000,
+    "type": 3,
+    "nameKey": "COL_NAME_0042",
+    "icon": "Art/Collection/Brack/CommonThorn_49",
+    "rewardId": 2001022
+  },
+  {
+    "id": 2201001,
+    "type": 2,
+    "nameKey": "COL_NAME_0010",
+    "icon": "Art/Collection/Brack/Nettle_13",
+    "rewardId": 2001038
+  },
+  {
+    "id": 2201002,
+    "type": 2,
+    "nameKey": "COL_NAME_0073",
+    "icon": "Art/Collection/Calyx/Cinder_26",
+    "rewardId": 2001030
+  },
+  {
+    "id": 2201003,
+    "type": 4,
+    "nameKey": "COL_NAME_0083",
+    "icon": "Art/Collection/Dorn/Drift_27",
+    "rewardId": 2001010
+  },
+  {
+    "id": 2201004,
+    "type": 2,
+    "nameKey": "COL_NAME_0027",
+    "icon": "Art/Collection/Jasp/KeenJasp_69",
+    "rewardId": 2001007
+  },
+  {
+    "id": 2201005,
+    "type": 2,
+    "nameKey": "COL_NAME_0005",
+    "icon": "Art/Collection/Alder/CommonSalt_48",
+    "rewardId": 2001061
+  },
+  {
+    "id": 2201006,
+    "type": 1,
+    "nameKey": "COL_NAME_0075",
+    "icon": "Art/Collection/Gale/KeenGale_66",
+    "rewardId": 2001060
+  },
+  {
+    "id": 2201007,
+    "type": 3,
+    "nameKey": "COL_NAME_0077",
+    "icon": "Art/Collection/Calyx/KeenOchre_74",
+    "rewardId": 2001034
+  },
+  {
+    "id": 2201008,
+    "type": 2,
+    "nameKey": "COL_NAME_0023",
+    "icon": "Art/Collection/Ember/Elm_28",
+    "rewardId": 2001000
+  },
+  {
+    "id": 2201009,
+    "type": 3,
+    "nameKey": "COL_NAME_0057",
+    "icon": "Art/Collection/Harrow/CommonBriar_55",
+    "rewardId": 2001057
+  },
+  {
+    "id": 2201010,
+    "type": 4,
+    "nameKey": "COL_NAME_0078",
+    "icon": "Art/Collection/Ember/Ember_04",
+    "rewardId": 2001012
+  },
+  {
+    "id": 2201011,
+    "type": 2,
+    "nameKey": "COL_NAME_0014",
+    "icon": "Art/Collection/Jasp/Vellum_21",
+    "rewardId": 2001052
+  },
+  {
+    "id": 2201012,
+    "type": 2,
+    "nameKey": "COL_NAME_0000",
+    "icon": "Art/Collection/Harrow/CommonNettle_43",
+    "rewardId": 2001032
+  },
+  {
+    "id": 2201013,
+    "type": 1,
+    "nameKey": "COL_NAME_0024",
+    "icon": "Art/Collection/Gale/CommonMarrow_42",
+    "rewardId": 2001020
+  },
+  {
+    "id": 2201014,
+    "type": 1,
+    "nameKey": "COL_NAME_0049",
+    "icon": "Art/Collection/Harrow/KeenThorn_79",
+    "rewardId": 2001010
+  },
+  {
+    "id": 2201015,
+    "type": 4,
+    "nameKey": "COL_NAME_0038",
+    "icon": "Art/Collection/Alder/Alder_00",
+    "rewardId": 2001023
+  },
+  {
+    "id": 2201016,
+    "type": 1,
+    "nameKey": "COL_NAME_0074",
+    "icon": "Art/Collection/Dorn/KeenDrift_87",
+    "rewardId": 2001038
+  },
+  {
+    "id": 2201017,
+    "type": 1,
+    "nameKey": "COL_NAME_0044",
+    "icon": "Art/Collection/Isle/CommonCinder_56",
+    "rewardId": 2001057
+  },
+  {
+    "id": 2201018,
+    "type": 4,
+    "nameKey": "COL_NAME_0057",
+    "icon": "Art/Collection/Ember/KeenElm_88",
+    "rewardId": 2001014
+  },
+  {
+    "id": 2201019,
+    "type": 4,
+    "nameKey": "COL_NAME_0023",
+    "icon": "Art/Collection/Dorn/CommonVellum_51",
+    "rewardId": 2001056
+  },
+  {
+    "id": 2201020,
+    "type": 1,
+    "nameKey": "COL_NAME_0063",
+    "icon": "Art/Collection/Brack/Briar_25",
+    "rewardId": 2001047
+  },
+  {
+    "id": 2201021,
+    "type": 2,
+    "nameKey": "COL_NAME_0061",
+    "icon": "Art/Collection/Jasp/CommonPyre_45",
+    "rewardId": 2001013
+  }
+]

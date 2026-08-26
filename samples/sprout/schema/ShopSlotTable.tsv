@@ -1,0 +1,4 @@
+@desc	primary index	owning shop	slot order	sold item	count	price	appearance weight
+@name	id	shopId	slotOrder	itemId	count	priceId	weight
+@type	Int	Int	Int	Int	Int	Int	Int
+@gen	seq:1802000	ref:ShopTable	cycle:8	ref:ItemTable	int:1..100:zipf	ref:PriceTable	int:1..1000:zipf

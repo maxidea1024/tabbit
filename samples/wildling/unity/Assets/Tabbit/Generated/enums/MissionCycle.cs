@@ -9,7 +9,7 @@
 
 namespace Wildling.Data
 {
-    // Generated from samples/wildling/기획데이터/Enums.xlsx : Enums : A13
+    // Generated from samples/wildling/design-data/xlsx/Enums.xlsx : Enums : A13
     /// <summary>
     /// 의뢰의 주기이다.
     /// </summary>

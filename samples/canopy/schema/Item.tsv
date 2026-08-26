@@ -1,0 +1,8 @@
+@name	id	name	flavour	icon	itemKind	grade	stackCeiling	vendorPrice	tradable	bindOnPickup	setId		lootTag	state
+@type	key:19000000~19999999	text	text	string	number	number	number	number	bool	bool	number	-	string	string
+:required	1	1	1	1	1	1	1	1	1	1	-	-	1	1
+:min	19000000	-	-	-	0	1	1	0	-	-	1	-	-	-
+:max	19999999	-	-	-	5	5	9999	900000	-	-	9999	-	-	-
+:enum	-	-	-	-	-	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:asset	-	-	-	1	-	-	-	-	-	-	-	-	-	-
+@gen	seq:19000000	text:400	text:400	path:300:Art	pick:0|1|2|3|4|5	pick:1|2|3|4|5	int:1..9999:zipf	int:0..900000:zipf	bool	bool	?20 int:1..9999:zipf	const:-	str:TAG:400	pick:draft|review|live|retired

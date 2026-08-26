@@ -3,10 +3,10 @@ using Tabbit.Messages;
 namespace Tabbit.Cooking.Layouts;
 
 /// <summary>
-/// The reports the `rescue` layout writes.
+/// The reports the `sheet-per-table` layout writes.
 /// </summary>
 /// <remarks>
-/// Prefixed with the layout's id, and its text is in `Messages/Catalog/rescue.en.json`. See
+/// Prefixed with the layout's id, and its text is in `Messages/Catalog/sheet-per-table.en.json`. See
 /// <see cref="TabbitLayoutMessages"/> for why the ids and the file are named after the layout
 /// rather than gathered anywhere central.
 ///

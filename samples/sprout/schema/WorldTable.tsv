@@ -1,0 +1,4 @@
+@desc	primary index	name key	map asset	theme colour
+@name	id	nameKey	map	themeColour
+@type	Int	String	String	String
+@gen	seq:1506000	str:WORLD_NAME:12	path:12:Art/World	pick:6

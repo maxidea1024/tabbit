@@ -1,22 +1,22 @@
 # wildling — 가상 게임으로 만든 기능 전수 샘플
 
-`rescue`와 `named-range`는 **남의 규칙으로 쓰인 시트를 읽어낸다**의 증거입니다. 그래서 시트 표현력은
-그쪽 원본이 쓴 만큼만 나옵니다.
+[`sprout`](../sprout)과 [`canopy`](../canopy)는 **남의 규칙으로 쓰인 시트를 읽어낸다**의
+증거입니다. 그래서 시트 표현력은 그쪽 시트가 쓴 만큼만 나옵니다.
 
 `wildling`은 **우리 규칙으로 쓰면 무엇을 적을 수 있나**의 증거입니다. 게임을 하나 기획하고,
 그 기획이 요구하는 데이터를 이 도구의 표기로 적었습니다.
 
 ```
-dotnet run --project src/Tabbit.csproj -- --recipe samples/wildling/기획데이터/recipe.jsonc
+dotnet run --project src/Tabbit.csproj -- --recipe samples/wildling/design-data/recipe.jsonc
 ```
 
 ## 여기 있는 것
 
 |무엇|어디|
 |--|--|
-|기획 데이터 전부|[기획데이터/](기획데이터) — 워크북 9개 · 격자 40개 · `.tbs` 3개 · 검증 규칙 8개 · recipe|
+|기획 데이터 전부|[design-data/](design-data) — 워크북 9개 · 격자 40개 · `.tbs` 3개 · 검증 규칙 8개 · recipe|
 |유니티 프로젝트|[unity/](unity) — 생성 C#, `.bytes`, 그리고 그림|
-|읽는 산출물|[기획데이터/out/](기획데이터/out) — HTML 문서 · 인코딩 보고서 · 스키마 기준선. **유니티 애셋이 아닌 것들**|
+|읽는 산출물|[design-data/out/](design-data/out) — HTML 문서 · 인코딩 보고서 · 스키마 기준선. **유니티 애셋이 아닌 것들**|
 |문서|[doc/](doc)|
 
 기획 데이터를 폴더 하나에 모은 것은 **그것이 게임의 한 부분**이기 때문입니다. 그림은 기획
@@ -27,11 +27,11 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/wildling/기획데이
 
 |문서|내용|
 |--|--|
-|[기획서](doc/기획서.md)|시스템 기획서 20절. **데이터가 왜 그 형태여야 하는지의 근거**입니다|
-|[데이터 설계](doc/데이터-설계.md)|테이블 40개 · `.tbs` 선언 · **기능 배치표**|
-|[대조표](doc/대조표.md)|**기능 하나가 어디에 어떻게 쓰였고 무엇이 나왔는가.** 이 폴더의 목적입니다|
-|[도구 보고](doc/도구-보고.md)|변환에서 찾은 것 **11건**과 그 결말. **전부 닫혔습니다**|
-|[적용 기록](doc/적용-기록.md)|데이터 쪽에서 고친 9건. 전부 규격을 잘못 읽은 것입니다|
+|[기획서](doc/game-design.md)|시스템 기획서 20절. **데이터가 왜 그 형태여야 하는지의 근거**입니다|
+|[데이터 설계](doc/data-design.md)|테이블 40개 · `.tbs` 선언 · **기능 배치표**|
+|[대조표](doc/coverage.md)|**기능 하나가 어디에 어떻게 쓰였고 무엇이 나왔는가.** 이 폴더의 목적입니다|
+|[도구 보고](doc/tool-findings.md)|변환에서 찾은 것 **11건**과 그 결말. **전부 닫혔습니다**|
+|[적용 기록](doc/applied.md)|데이터 쪽에서 고친 9건. 전부 규격을 잘못 읽은 것입니다|
 
 ## 이 샘플의 목적
 
@@ -39,31 +39,31 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/wildling/기획데이
 나왔고, 그중 둘은 **생성 C#이 컴파일되지 않는 것**입니다. `csharp` 타깃은 파일을 쓰기만 하고
 컴파일하지 않으므로 그 자리에서는 성공으로 보입니다.
 
-그래서 [대조표](doc/대조표.md)에 빈 칸이 없는 것이 이 폴더의 값입니다 —
+그래서 [대조표](doc/coverage.md)에 빈 칸이 없는 것이 이 폴더의 값입니다 —
 기능 하나가 실전 데이터 안에 자리를 가지면, 그 자리가 다음 회귀의 게이트가 됩니다.
 
 ## 데이터의 흐름
 
 ```
-기획데이터/data/*.tsv      격자. 사람이 고치는 정본
-        ↓  기획데이터/tools/Authoring     서식만 얹습니다
-기획데이터/*.xlsx           워크북 9개 · 탭 39개
+design-data/data/*.tsv      격자. 사람이 고치는 정본
+        ↓  design-data/tools/Authoring     서식만 얹습니다
+design-data/*.xlsx           워크북 9개 · 탭 39개
         ↓  recipe.jsonc
 unity/Assets/Tabbit/Generated       C#
 unity/Assets/StreamingAssets/tables `.bytes`
-기획데이터/out/html                  사람이 읽는 문서
+design-data/out/html                  사람이 읽는 문서
 ```
 
 `.tsv` 하나가 **시트 하나의 격자 그대로**입니다. 저작기는 값을 계산하지 않으므로 밸런스 수정이
-`.tsv` 하나의 diff로 남습니다. 형식은 [기획데이터/data/readme.md](기획데이터/data/readme.md)에
+`.tsv` 하나의 diff로 남습니다. 형식은 [design-data/data/readme.md](design-data/data/readme.md)에
 있습니다.
 
 ## 다시 만들기
 
 ```
-python samples/wildling/기획데이터/tools/seed.py        # 격자를 처음 만들 때만
-dotnet run --project samples/wildling/기획데이터/tools/Authoring   # 격자 → 워크북
-dotnet run --project src/Tabbit.csproj -- --recipe samples/wildling/기획데이터/recipe.jsonc
+python samples/wildling/design-data/tools/seed.py        # 격자를 처음 만들 때만
+dotnet run --project samples/wildling/design-data/tools/Authoring   # 격자 → 워크북
+dotnet run --project src/Tabbit.csproj -- --recipe samples/wildling/design-data/recipe.jsonc
 ```
 
 **`seed.py`는 처음 한 번만입니다.** 다시 돌리면 손으로 고친 값이 사라집니다 — 정본은 `.tsv`
@@ -77,7 +77,7 @@ Unity.exe -batchmode -quit -projectPath samples/wildling/unity \
 ```
 
 에디터에서는 `Wildling ▸ 데이터 확인` 입니다. **보고는 파일로 나갑니다** —
-[기획데이터/out/unity-check.txt](기획데이터/out/unity-check.txt) 이고 첫 줄이 `OK` 또는
+[design-data/out/unity-check.txt](design-data/out/unity-check.txt) 이고 첫 줄이 `OK` 또는
 `FAIL` 입니다. 종료 코드에 맡기지 않는 이유는 그 스크립트에 적어 두었습니다.
 
 |보는 것|무엇이 확인되는가|
@@ -98,7 +98,7 @@ Unity.exe -batchmode -quit -projectPath samples/wildling/unity \
 ## 재검증 절차
 
 ```
-python samples/wildling/기획데이터/tools/verify.py
+python samples/wildling/design-data/tools/verify.py
 ```
 
 **되는지가 아니라 맞는지를 봅니다.** 변환이 성공으로 끝나도 확인되지 않는 것이 있습니다 —
@@ -112,7 +112,7 @@ python samples/wildling/기획데이터/tools/verify.py
 |생성 코드|**C#이 컴파일되는가** · C# 리더가 배열을 배열로 보는가|
 |우회|§2 · §1 · §4 · 5단계의 우회가 남아 있는가|
 
-**우회는 결함의 자리표입니다.** 지워지면 그 검사가 통과로 바뀌고 [도구 보고](doc/도구-보고.md)의
+**우회는 결함의 자리표입니다.** 지워지면 그 검사가 통과로 바뀌고 [도구 보고](doc/tool-findings.md)의
 그 항목이 닫힙니다.
 
 ### 지금의 기준선 — 2026-08-25
@@ -122,7 +122,7 @@ python samples/wildling/기획데이터/tools/verify.py
 |통과|**10**|
 |실패|**0**|
 
-**우회가 하나도 남지 않았습니다.** [도구 보고](doc/도구-보고.md)의 **11건이 전부 닫혔습니다.**
+**우회가 하나도 남지 않았습니다.** [도구 보고](doc/tool-findings.md)의 **11건이 전부 닫혔습니다.**
 
 ---
 

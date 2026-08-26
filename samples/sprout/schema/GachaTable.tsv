@@ -1,0 +1,4 @@
+@desc	primary index	gacha kind	name key	banner asset	cost	pity counter
+@name	id	type	nameKey	banner	priceId	pityId
+@type	Int	enum:GachaType	String	String	Int	Int
+@gen	seq:1901000	enum:GachaType	str:GACHA_NAME:30	path:30:Art/Banner	ref:PriceTable	ref:PityTable

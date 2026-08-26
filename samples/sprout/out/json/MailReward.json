@@ -1,0 +1,107 @@
+[
+  {
+    "id": 2004000,
+    "titleKey": "MAIL_TITLE_0007",
+    "bodyKey": "MAIL_BODY_0035",
+    "rewardId": 2001021,
+    "expiryDays": 11
+  },
+  {
+    "id": 2004001,
+    "titleKey": "MAIL_TITLE_0008",
+    "bodyKey": "MAIL_BODY_0018",
+    "rewardId": 2001035,
+    "expiryDays": 23
+  },
+  {
+    "id": 2004002,
+    "titleKey": "MAIL_TITLE_0005",
+    "bodyKey": "MAIL_BODY_0040",
+    "rewardId": 2001028,
+    "expiryDays": 14
+  },
+  {
+    "id": 2004003,
+    "titleKey": "MAIL_TITLE_0020",
+    "bodyKey": "MAIL_BODY_0029",
+    "rewardId": 2001001,
+    "expiryDays": 21
+  },
+  {
+    "id": 2004004,
+    "titleKey": "MAIL_TITLE_0004",
+    "bodyKey": "MAIL_BODY_0005",
+    "rewardId": 2001011,
+    "expiryDays": 15
+  },
+  {
+    "id": 2004005,
+    "titleKey": "MAIL_TITLE_0034",
+    "bodyKey": "MAIL_BODY_0059",
+    "rewardId": 2001052,
+    "expiryDays": 15
+  },
+  {
+    "id": 2004006,
+    "titleKey": "MAIL_TITLE_0028",
+    "bodyKey": "MAIL_BODY_0048",
+    "rewardId": 2001033,
+    "expiryDays": 3
+  },
+  {
+    "id": 2004007,
+    "titleKey": "MAIL_TITLE_0043",
+    "bodyKey": "MAIL_BODY_0043",
+    "rewardId": 2001042,
+    "expiryDays": 22
+  },
+  {
+    "id": 2004008,
+    "titleKey": "MAIL_TITLE_0040",
+    "bodyKey": "MAIL_BODY_0002",
+    "rewardId": 2001033,
+    "expiryDays": 24
+  },
+  {
+    "id": 2004009,
+    "titleKey": "MAIL_TITLE_0003",
+    "bodyKey": "MAIL_BODY_0011",
+    "rewardId": 2001045,
+    "expiryDays": 21
+  },
+  {
+    "id": 2004010,
+    "titleKey": "MAIL_TITLE_0049",
+    "bodyKey": "MAIL_BODY_0050",
+    "rewardId": 2001022,
+    "expiryDays": 3
+  },
+  {
+    "id": 2004011,
+    "titleKey": "MAIL_TITLE_0054",
+    "bodyKey": "MAIL_BODY_0047",
+    "rewardId": 2001053,
+    "expiryDays": 15
+  },
+  {
+    "id": 2004012,
+    "titleKey": "MAIL_TITLE_0019",
+    "bodyKey": "MAIL_BODY_0005",
+    "rewardId": 2001043,
+    "expiryDays": 18
+  },
+  {
+    "id": 2004013,
+    "titleKey": "MAIL_TITLE_0044",
+    "bodyKey": "MAIL_BODY_0026",
+    "rewardId": 2001023,
+    "expiryDays": 4
+  },
+  {
+    "id": 2004014,
+    "titleKey": "MAIL_TITLE_0004",
+    "bodyKey": "MAIL_BODY_0059",
+    "rewardId": 2001049,
+    "expiryDays": 18
+  }
+]

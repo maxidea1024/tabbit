@@ -1,0 +1,1282 @@
+[
+  {
+    "id": 2302000,
+    "dialogueId": 2301031,
+    "lineOrder": 0,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Isle/WardedOchre_04",
+    "lineKey": "LINE_0417"
+  },
+  {
+    "id": 2302001,
+    "dialogueId": 2301005,
+    "lineOrder": 1,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Ember/KeenEmber_64",
+    "lineKey": "LINE_0030"
+  },
+  {
+    "id": 2302002,
+    "dialogueId": 2301003,
+    "lineOrder": 2,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Jasp/Jasp_09",
+    "lineKey": "LINE_0566"
+  },
+  {
+    "id": 2302003,
+    "dialogueId": 2301016,
+    "lineOrder": 3,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Brack/WardedThorn_09",
+    "lineKey": "LINE_0235"
+  },
+  {
+    "id": 2302004,
+    "dialogueId": 2301035,
+    "lineOrder": 0,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Fenn/Fenn_05",
+    "lineKey": "LINE_0027"
+  },
+  {
+    "id": 2302005,
+    "dialogueId": 2301032,
+    "lineOrder": 1,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Harrow/Harrow_07",
+    "lineKey": "LINE_0621"
+  },
+  {
+    "id": 2302006,
+    "dialogueId": 2301028,
+    "lineOrder": 2,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Brack/KeenNettle_73",
+    "lineKey": "LINE_0390"
+  },
+  {
+    "id": 2302007,
+    "dialogueId": 2301015,
+    "lineOrder": 3,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Isle/CommonCinder_56",
+    "lineKey": "LINE_0627"
+  },
+  {
+    "id": 2302008,
+    "dialogueId": 2301030,
+    "lineOrder": 0,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Dorn/WardedVellum_11",
+    "lineKey": "LINE_0466"
+  },
+  {
+    "id": 2302009,
+    "dialogueId": 2301039,
+    "lineOrder": 1,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Jasp/KeenJasp_69",
+    "lineKey": "LINE_0189"
+  },
+  {
+    "id": 2302010,
+    "dialogueId": 2301022,
+    "lineOrder": 2,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Lumen/WardedFenn_95",
+    "lineKey": "LINE_0461"
+  },
+  {
+    "id": 2302011,
+    "dialogueId": 2301013,
+    "lineOrder": 3,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Jasp/CommonDorn_33",
+    "lineKey": "LINE_0047"
+  },
+  {
+    "id": 2302012,
+    "dialogueId": 2301012,
+    "lineOrder": 0,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Harrow/Harrow_07",
+    "lineKey": "LINE_0049"
+  },
+  {
+    "id": 2302013,
+    "dialogueId": 2301020,
+    "lineOrder": 1,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Gale/CommonAlder_30",
+    "lineKey": "LINE_0106"
+  },
+  {
+    "id": 2302014,
+    "dialogueId": 2301009,
+    "lineOrder": 2,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Brack/CommonThorn_49",
+    "lineKey": "LINE_0096"
+  },
+  {
+    "id": 2302015,
+    "dialogueId": 2301026,
+    "lineOrder": 3,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Alder/KeenZephyr_84",
+    "lineKey": "LINE_0554"
+  },
+  {
+    "id": 2302016,
+    "dialogueId": 2301022,
+    "lineOrder": 0,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Calyx/WardedUmber_10",
+    "lineKey": "LINE_0380"
+  },
+  {
+    "id": 2302017,
+    "dialogueId": 2301038,
+    "lineOrder": 1,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Lumen/KeenYarrow_83",
+    "lineKey": "LINE_0422"
+  },
+  {
+    "id": 2302018,
+    "dialogueId": 2301003,
+    "lineOrder": 2,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Isle/WardedCinder_16",
+    "lineKey": "LINE_0159"
+  },
+  {
+    "id": 2302019,
+    "dialogueId": 2301030,
+    "lineOrder": 3,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Alder/WardedGale_96",
+    "lineKey": "LINE_0111"
+  },
+  {
+    "id": 2302020,
+    "dialogueId": 2301006,
+    "lineOrder": 0,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Brack/CommonThorn_49",
+    "lineKey": "LINE_0539"
+  },
+  {
+    "id": 2302021,
+    "dialogueId": 2301024,
+    "lineOrder": 1,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Brack/KeenBriar_85",
+    "lineKey": "LINE_0314"
+  },
+  {
+    "id": 2302022,
+    "dialogueId": 2301026,
+    "lineOrder": 2,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Brack/WardedHarrow_97",
+    "lineKey": "LINE_0376"
+  },
+  {
+    "id": 2302023,
+    "dialogueId": 2301026,
+    "lineOrder": 3,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Calyx/WardedIsle_98",
+    "lineKey": "LINE_0430"
+  },
+  {
+    "id": 2302024,
+    "dialogueId": 2301000,
+    "lineOrder": 0,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Kelvin/Kelvin_10",
+    "lineKey": "LINE_0626"
+  },
+  {
+    "id": 2302025,
+    "dialogueId": 2301027,
+    "lineOrder": 1,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Lumen/Yarrow_23",
+    "lineKey": "LINE_0257"
+  },
+  {
+    "id": 2302026,
+    "dialogueId": 2301002,
+    "lineOrder": 2,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Dorn/WardedVellum_11",
+    "lineKey": "LINE_0330"
+  },
+  {
+    "id": 2302027,
+    "dialogueId": 2301016,
+    "lineOrder": 3,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Ember/WardedWick_12",
+    "lineKey": "LINE_0545"
+  },
+  {
+    "id": 2302028,
+    "dialogueId": 2301028,
+    "lineOrder": 0,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Alder/KeenMarrow_72",
+    "lineKey": "LINE_0308"
+  },
+  {
+    "id": 2302029,
+    "dialogueId": 2301025,
+    "lineOrder": 1,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Fenn/Rune_17",
+    "lineKey": "LINE_0153"
+  },
+  {
+    "id": 2302030,
+    "dialogueId": 2301001,
+    "lineOrder": 2,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Ember/KeenEmber_64",
+    "lineKey": "LINE_0562"
+  },
+  {
+    "id": 2302031,
+    "dialogueId": 2301010,
+    "lineOrder": 3,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Alder/CommonGale_36",
+    "lineKey": "LINE_0146"
+  },
+  {
+    "id": 2302032,
+    "dialogueId": 2301004,
+    "lineOrder": 0,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Calyx/CommonUmber_50",
+    "lineKey": "LINE_0119"
+  },
+  {
+    "id": 2302033,
+    "dialogueId": 2301035,
+    "lineOrder": 1,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Lumen/Yarrow_23",
+    "lineKey": "LINE_0025"
+  },
+  {
+    "id": 2302034,
+    "dialogueId": 2301024,
+    "lineOrder": 2,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Lumen/CommonRune_47",
+    "lineKey": "LINE_0289"
+  },
+  {
+    "id": 2302035,
+    "dialogueId": 2301025,
+    "lineOrder": 3,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Ember/Elm_28",
+    "lineKey": "LINE_0388"
+  },
+  {
+    "id": 2302036,
+    "dialogueId": 2301021,
+    "lineOrder": 0,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Alder/KeenZephyr_84",
+    "lineKey": "LINE_0593"
+  },
+  {
+    "id": 2302037,
+    "dialogueId": 2301014,
+    "lineOrder": 1,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Kelvin/WardedElm_18",
+    "lineKey": "LINE_0055"
+  },
+  {
+    "id": 2302038,
+    "dialogueId": 2301024,
+    "lineOrder": 2,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Lumen/WardedFenn_95",
+    "lineKey": "LINE_0321"
+  },
+  {
+    "id": 2302039,
+    "dialogueId": 2301032,
+    "lineOrder": 3,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Isle/KeenIsle_68",
+    "lineKey": "LINE_0112"
+  },
+  {
+    "id": 2302040,
+    "dialogueId": 2301027,
+    "lineOrder": 0,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Lumen/Lumen_11",
+    "lineKey": "LINE_0339"
+  },
+  {
+    "id": 2302041,
+    "dialogueId": 2301016,
+    "lineOrder": 1,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Brack/WardedThorn_09",
+    "lineKey": "LINE_0086"
+  },
+  {
+    "id": 2302042,
+    "dialogueId": 2301018,
+    "lineOrder": 2,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Fenn/Flint_29",
+    "lineKey": "LINE_0274"
+  },
+  {
+    "id": 2302043,
+    "dialogueId": 2301037,
+    "lineOrder": 3,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Isle/CommonCalyx_32",
+    "lineKey": "LINE_0377"
+  },
+  {
+    "id": 2302044,
+    "dialogueId": 2301031,
+    "lineOrder": 0,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Gale/Gale_06",
+    "lineKey": "LINE_0232"
+  },
+  {
+    "id": 2302045,
+    "dialogueId": 2301036,
+    "lineOrder": 1,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Calyx/KeenOchre_74",
+    "lineKey": "LINE_0294"
+  },
+  {
+    "id": 2302046,
+    "dialogueId": 2301007,
+    "lineOrder": 2,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Isle/CommonCalyx_32",
+    "lineKey": "LINE_0239"
+  },
+  {
+    "id": 2302047,
+    "dialogueId": 2301037,
+    "lineOrder": 3,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Gale/Gale_06",
+    "lineKey": "LINE_0114"
+  },
+  {
+    "id": 2302048,
+    "dialogueId": 2301032,
+    "lineOrder": 0,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Brack/Briar_25",
+    "lineKey": "LINE_0483"
+  },
+  {
+    "id": 2302049,
+    "dialogueId": 2301027,
+    "lineOrder": 1,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Jasp/CommonDorn_33",
+    "lineKey": "LINE_0574"
+  },
+  {
+    "id": 2302050,
+    "dialogueId": 2301023,
+    "lineOrder": 2,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Fenn/KeenRune_77",
+    "lineKey": "LINE_0497"
+  },
+  {
+    "id": 2302051,
+    "dialogueId": 2301010,
+    "lineOrder": 3,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Jasp/KeenJasp_69",
+    "lineKey": "LINE_0198"
+  },
+  {
+    "id": 2302052,
+    "dialogueId": 2301013,
+    "lineOrder": 0,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Gale/WardedMarrow_02",
+    "lineKey": "LINE_0349"
+  },
+  {
+    "id": 2302053,
+    "dialogueId": 2301027,
+    "lineOrder": 1,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Brack/WardedThorn_09",
+    "lineKey": "LINE_0499"
+  },
+  {
+    "id": 2302054,
+    "dialogueId": 2301035,
+    "lineOrder": 2,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Isle/WardedCinder_16",
+    "lineKey": "LINE_0047"
+  },
+  {
+    "id": 2302055,
+    "dialogueId": 2301018,
+    "lineOrder": 3,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Dorn/WardedJasp_99",
+    "lineKey": "LINE_0599"
+  },
+  {
+    "id": 2302056,
+    "dialogueId": 2301026,
+    "lineOrder": 0,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Brack/Brack_01",
+    "lineKey": "LINE_0497"
+  },
+  {
+    "id": 2302057,
+    "dialogueId": 2301017,
+    "lineOrder": 1,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Brack/Briar_25",
+    "lineKey": "LINE_0576"
+  },
+  {
+    "id": 2302058,
+    "dialogueId": 2301022,
+    "lineOrder": 2,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Dorn/Drift_27",
+    "lineKey": "LINE_0344"
+  },
+  {
+    "id": 2302059,
+    "dialogueId": 2301021,
+    "lineOrder": 3,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Ember/Elm_28",
+    "lineKey": "LINE_0102"
+  },
+  {
+    "id": 2302060,
+    "dialogueId": 2301020,
+    "lineOrder": 0,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Fenn/WardedYarrow_13",
+    "lineKey": "LINE_0633"
+  },
+  {
+    "id": 2302061,
+    "dialogueId": 2301027,
+    "lineOrder": 1,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Brack/WardedThorn_09",
+    "lineKey": "LINE_0572"
+  },
+  {
+    "id": 2302062,
+    "dialogueId": 2301006,
+    "lineOrder": 2,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Isle/CommonCalyx_32",
+    "lineKey": "LINE_0469"
+  },
+  {
+    "id": 2302063,
+    "dialogueId": 2301007,
+    "lineOrder": 3,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Dorn/KeenPyre_75",
+    "lineKey": "LINE_0047"
+  },
+  {
+    "id": 2302064,
+    "dialogueId": 2301024,
+    "lineOrder": 0,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Dorn/KeenDrift_87",
+    "lineKey": "LINE_0540"
+  },
+  {
+    "id": 2302065,
+    "dialogueId": 2301036,
+    "lineOrder": 1,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Dorn/KeenPyre_75",
+    "lineKey": "LINE_0193"
+  },
+  {
+    "id": 2302066,
+    "dialogueId": 2301012,
+    "lineOrder": 2,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Kelvin/KeenWick_82",
+    "lineKey": "LINE_0615"
+  },
+  {
+    "id": 2302067,
+    "dialogueId": 2301038,
+    "lineOrder": 3,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Jasp/Vellum_21",
+    "lineKey": "LINE_0350"
+  },
+  {
+    "id": 2302068,
+    "dialogueId": 2301022,
+    "lineOrder": 0,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Calyx/Ochre_14",
+    "lineKey": "LINE_0527"
+  },
+  {
+    "id": 2302069,
+    "dialogueId": 2301017,
+    "lineOrder": 1,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Jasp/CommonPyre_45",
+    "lineKey": "LINE_0237"
+  },
+  {
+    "id": 2302070,
+    "dialogueId": 2301038,
+    "lineOrder": 2,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Lumen/Yarrow_23",
+    "lineKey": "LINE_0622"
+  },
+  {
+    "id": 2302071,
+    "dialogueId": 2301013,
+    "lineOrder": 3,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Gale/Gale_06",
+    "lineKey": "LINE_0445"
+  },
+  {
+    "id": 2302072,
+    "dialogueId": 2301010,
+    "lineOrder": 0,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Jasp/CommonDorn_33",
+    "lineKey": "LINE_0064"
+  },
+  {
+    "id": 2302073,
+    "dialogueId": 2301025,
+    "lineOrder": 1,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Jasp/KeenVellum_81",
+    "lineKey": "LINE_0172"
+  },
+  {
+    "id": 2302074,
+    "dialogueId": 2301010,
+    "lineOrder": 2,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Lumen/WardedFlint_19",
+    "lineKey": "LINE_0579"
+  },
+  {
+    "id": 2302075,
+    "dialogueId": 2301017,
+    "lineOrder": 3,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Jasp/Jasp_09",
+    "lineKey": "LINE_0309"
+  },
+  {
+    "id": 2302076,
+    "dialogueId": 2301025,
+    "lineOrder": 0,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Jasp/WardedDrift_17",
+    "lineKey": "LINE_0570"
+  },
+  {
+    "id": 2302077,
+    "dialogueId": 2301028,
+    "lineOrder": 1,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Ember/KeenElm_88",
+    "lineKey": "LINE_0458"
+  },
+  {
+    "id": 2302078,
+    "dialogueId": 2301038,
+    "lineOrder": 2,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Gale/KeenGale_66",
+    "lineKey": "LINE_0288"
+  },
+  {
+    "id": 2302079,
+    "dialogueId": 2301017,
+    "lineOrder": 3,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Dorn/CommonVellum_51",
+    "lineKey": "LINE_0132"
+  },
+  {
+    "id": 2302080,
+    "dialogueId": 2301028,
+    "lineOrder": 0,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Fenn/KeenFlint_89",
+    "lineKey": "LINE_0388"
+  },
+  {
+    "id": 2302081,
+    "dialogueId": 2301010,
+    "lineOrder": 1,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Harrow/WardedNettle_03",
+    "lineKey": "LINE_0591"
+  },
+  {
+    "id": 2302082,
+    "dialogueId": 2301009,
+    "lineOrder": 2,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Gale/CommonAlder_30",
+    "lineKey": "LINE_0491"
+  },
+  {
+    "id": 2302083,
+    "dialogueId": 2301035,
+    "lineOrder": 3,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Fenn/Fenn_05",
+    "lineKey": "LINE_0015"
+  },
+  {
+    "id": 2302084,
+    "dialogueId": 2301007,
+    "lineOrder": 0,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Isle/WardedOchre_04",
+    "lineKey": "LINE_0180"
+  },
+  {
+    "id": 2302085,
+    "dialogueId": 2301006,
+    "lineOrder": 1,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Fenn/CommonYarrow_53",
+    "lineKey": "LINE_0535"
+  },
+  {
+    "id": 2302086,
+    "dialogueId": 2301003,
+    "lineOrder": 2,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Gale/CommonZephyr_54",
+    "lineKey": "LINE_0326"
+  },
+  {
+    "id": 2302087,
+    "dialogueId": 2301023,
+    "lineOrder": 3,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Harrow/WardedBrack_91",
+    "lineKey": "LINE_0171"
+  },
+  {
+    "id": 2302088,
+    "dialogueId": 2301005,
+    "lineOrder": 0,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Harrow/KeenHarrow_67",
+    "lineKey": "LINE_0492"
+  },
+  {
+    "id": 2302089,
+    "dialogueId": 2301023,
+    "lineOrder": 1,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Lumen/WardedFenn_95",
+    "lineKey": "LINE_0432"
+  },
+  {
+    "id": 2302090,
+    "dialogueId": 2301001,
+    "lineOrder": 2,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Ember/CommonWick_52",
+    "lineKey": "LINE_0347"
+  },
+  {
+    "id": 2302091,
+    "dialogueId": 2301034,
+    "lineOrder": 3,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Brack/WardedThorn_09",
+    "lineKey": "LINE_0077"
+  },
+  {
+    "id": 2302092,
+    "dialogueId": 2301030,
+    "lineOrder": 0,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Ember/CommonKelvin_40",
+    "lineKey": "LINE_0074"
+  },
+  {
+    "id": 2302093,
+    "dialogueId": 2301002,
+    "lineOrder": 1,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Ember/Quill_16",
+    "lineKey": "LINE_0148"
+  },
+  {
+    "id": 2302094,
+    "dialogueId": 2301033,
+    "lineOrder": 2,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Jasp/CommonDorn_33",
+    "lineKey": "LINE_0097"
+  },
+  {
+    "id": 2302095,
+    "dialogueId": 2301013,
+    "lineOrder": 3,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Alder/WardedGale_96",
+    "lineKey": "LINE_0210"
+  },
+  {
+    "id": 2302096,
+    "dialogueId": 2301006,
+    "lineOrder": 0,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Kelvin/Wick_22",
+    "lineKey": "LINE_0184"
+  },
+  {
+    "id": 2302097,
+    "dialogueId": 2301009,
+    "lineOrder": 1,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Ember/KeenQuill_76",
+    "lineKey": "LINE_0024"
+  },
+  {
+    "id": 2302098,
+    "dialogueId": 2301007,
+    "lineOrder": 2,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Kelvin/Kelvin_10",
+    "lineKey": "LINE_0002"
+  },
+  {
+    "id": 2302099,
+    "dialogueId": 2301021,
+    "lineOrder": 3,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Gale/CommonZephyr_54",
+    "lineKey": "LINE_0609"
+  },
+  {
+    "id": 2302100,
+    "dialogueId": 2301014,
+    "lineOrder": 0,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Calyx/KeenOchre_74",
+    "lineKey": "LINE_0406"
+  },
+  {
+    "id": 2302101,
+    "dialogueId": 2301028,
+    "lineOrder": 1,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Jasp/CommonDrift_57",
+    "lineKey": "LINE_0353"
+  },
+  {
+    "id": 2302102,
+    "dialogueId": 2301011,
+    "lineOrder": 2,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Harrow/Thorn_19",
+    "lineKey": "LINE_0583"
+  },
+  {
+    "id": 2302103,
+    "dialogueId": 2301013,
+    "lineOrder": 3,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Jasp/CommonDrift_57",
+    "lineKey": "LINE_0178"
+  },
+  {
+    "id": 2302104,
+    "dialogueId": 2301017,
+    "lineOrder": 0,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Dorn/CommonJasp_39",
+    "lineKey": "LINE_0392"
+  },
+  {
+    "id": 2302105,
+    "dialogueId": 2301000,
+    "lineOrder": 1,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Ember/KeenElm_88",
+    "lineKey": "LINE_0454"
+  },
+  {
+    "id": 2302106,
+    "dialogueId": 2301025,
+    "lineOrder": 2,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Fenn/KeenFenn_65",
+    "lineKey": "LINE_0233"
+  },
+  {
+    "id": 2302107,
+    "dialogueId": 2301032,
+    "lineOrder": 3,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Calyx/CommonUmber_50",
+    "lineKey": "LINE_0316"
+  },
+  {
+    "id": 2302108,
+    "dialogueId": 2301022,
+    "lineOrder": 0,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Isle/CommonCinder_56",
+    "lineKey": "LINE_0490"
+  },
+  {
+    "id": 2302109,
+    "dialogueId": 2301003,
+    "lineOrder": 1,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Gale/CommonMarrow_42",
+    "lineKey": "LINE_0495"
+  },
+  {
+    "id": 2302110,
+    "dialogueId": 2301008,
+    "lineOrder": 2,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Harrow/Thorn_19",
+    "lineKey": "LINE_0351"
+  },
+  {
+    "id": 2302111,
+    "dialogueId": 2301014,
+    "lineOrder": 3,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Lumen/CommonFlint_59",
+    "lineKey": "LINE_0285"
+  },
+  {
+    "id": 2302112,
+    "dialogueId": 2301032,
+    "lineOrder": 0,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Jasp/Vellum_21",
+    "lineKey": "LINE_0212"
+  },
+  {
+    "id": 2302113,
+    "dialogueId": 2301035,
+    "lineOrder": 1,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Brack/CommonHarrow_37",
+    "lineKey": "LINE_0216"
+  },
+  {
+    "id": 2302114,
+    "dialogueId": 2301039,
+    "lineOrder": 2,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Lumen/WardedRune_07",
+    "lineKey": "LINE_0433"
+  },
+  {
+    "id": 2302115,
+    "dialogueId": 2301033,
+    "lineOrder": 3,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Lumen/CommonRune_47",
+    "lineKey": "LINE_0271"
+  },
+  {
+    "id": 2302116,
+    "dialogueId": 2301038,
+    "lineOrder": 0,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Isle/Isle_08",
+    "lineKey": "LINE_0193"
+  },
+  {
+    "id": 2302117,
+    "dialogueId": 2301018,
+    "lineOrder": 1,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Gale/CommonZephyr_54",
+    "lineKey": "LINE_0324"
+  },
+  {
+    "id": 2302118,
+    "dialogueId": 2301027,
+    "lineOrder": 2,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Dorn/KeenPyre_75",
+    "lineKey": "LINE_0178"
+  },
+  {
+    "id": 2302119,
+    "dialogueId": 2301029,
+    "lineOrder": 3,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Gale/Gale_06",
+    "lineKey": "LINE_0148"
+  },
+  {
+    "id": 2302120,
+    "dialogueId": 2301025,
+    "lineOrder": 0,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Kelvin/KeenWick_82",
+    "lineKey": "LINE_0011"
+  },
+  {
+    "id": 2302121,
+    "dialogueId": 2301014,
+    "lineOrder": 1,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Fenn/WardedYarrow_13",
+    "lineKey": "LINE_0074"
+  },
+  {
+    "id": 2302122,
+    "dialogueId": 2301036,
+    "lineOrder": 2,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Ember/WardedKelvin_00",
+    "lineKey": "LINE_0443"
+  },
+  {
+    "id": 2302123,
+    "dialogueId": 2301028,
+    "lineOrder": 3,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Isle/CommonCinder_56",
+    "lineKey": "LINE_0462"
+  },
+  {
+    "id": 2302124,
+    "dialogueId": 2301004,
+    "lineOrder": 0,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Harrow/WardedBrack_91",
+    "lineKey": "LINE_0586"
+  },
+  {
+    "id": 2302125,
+    "dialogueId": 2301018,
+    "lineOrder": 1,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Kelvin/CommonEmber_34",
+    "lineKey": "LINE_0616"
+  },
+  {
+    "id": 2302126,
+    "dialogueId": 2301035,
+    "lineOrder": 2,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Calyx/CommonUmber_50",
+    "lineKey": "LINE_0174"
+  },
+  {
+    "id": 2302127,
+    "dialogueId": 2301019,
+    "lineOrder": 3,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Lumen/CommonRune_47",
+    "lineKey": "LINE_0460"
+  },
+  {
+    "id": 2302128,
+    "dialogueId": 2301028,
+    "lineOrder": 0,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Gale/CommonZephyr_54",
+    "lineKey": "LINE_0477"
+  },
+  {
+    "id": 2302129,
+    "dialogueId": 2301015,
+    "lineOrder": 1,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Alder/CommonSalt_48",
+    "lineKey": "LINE_0546"
+  },
+  {
+    "id": 2302130,
+    "dialogueId": 2301012,
+    "lineOrder": 2,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Calyx/Cinder_26",
+    "lineKey": "LINE_0226"
+  },
+  {
+    "id": 2302131,
+    "dialogueId": 2301037,
+    "lineOrder": 3,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Lumen/WardedRune_07",
+    "lineKey": "LINE_0247"
+  },
+  {
+    "id": 2302132,
+    "dialogueId": 2301006,
+    "lineOrder": 0,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Harrow/CommonBrack_31",
+    "lineKey": "LINE_0103"
+  },
+  {
+    "id": 2302133,
+    "dialogueId": 2301003,
+    "lineOrder": 1,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Fenn/KeenRune_77",
+    "lineKey": "LINE_0537"
+  },
+  {
+    "id": 2302134,
+    "dialogueId": 2301007,
+    "lineOrder": 2,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Fenn/KeenFlint_89",
+    "lineKey": "LINE_0405"
+  },
+  {
+    "id": 2302135,
+    "dialogueId": 2301021,
+    "lineOrder": 3,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Kelvin/CommonElm_58",
+    "lineKey": "LINE_0335"
+  },
+  {
+    "id": 2302136,
+    "dialogueId": 2301022,
+    "lineOrder": 0,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Lumen/WardedFlint_19",
+    "lineKey": "LINE_0237"
+  },
+  {
+    "id": 2302137,
+    "dialogueId": 2301033,
+    "lineOrder": 1,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Harrow/WardedNettle_03",
+    "lineKey": "LINE_0265"
+  },
+  {
+    "id": 2302138,
+    "dialogueId": 2301026,
+    "lineOrder": 2,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Harrow/Harrow_07",
+    "lineKey": "LINE_0470"
+  },
+  {
+    "id": 2302139,
+    "dialogueId": 2301001,
+    "lineOrder": 3,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Fenn/Rune_17",
+    "lineKey": "LINE_0097"
+  },
+  {
+    "id": 2302140,
+    "dialogueId": 2301036,
+    "lineOrder": 0,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Isle/WardedOchre_04",
+    "lineKey": "LINE_0399"
+  },
+  {
+    "id": 2302141,
+    "dialogueId": 2301028,
+    "lineOrder": 1,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Calyx/Calyx_02",
+    "lineKey": "LINE_0466"
+  },
+  {
+    "id": 2302142,
+    "dialogueId": 2301016,
+    "lineOrder": 2,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Jasp/KeenVellum_81",
+    "lineKey": "LINE_0132"
+  },
+  {
+    "id": 2302143,
+    "dialogueId": 2301037,
+    "lineOrder": 3,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Ember/WardedWick_12",
+    "lineKey": "LINE_0279"
+  },
+  {
+    "id": 2302144,
+    "dialogueId": 2301031,
+    "lineOrder": 0,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Dorn/Drift_27",
+    "lineKey": "LINE_0081"
+  },
+  {
+    "id": 2302145,
+    "dialogueId": 2301003,
+    "lineOrder": 1,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Dorn/CommonVellum_51",
+    "lineKey": "LINE_0623"
+  },
+  {
+    "id": 2302146,
+    "dialogueId": 2301014,
+    "lineOrder": 2,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Kelvin/Wick_22",
+    "lineKey": "LINE_0594"
+  },
+  {
+    "id": 2302147,
+    "dialogueId": 2301031,
+    "lineOrder": 3,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Brack/WardedHarrow_97",
+    "lineKey": "LINE_0501"
+  },
+  {
+    "id": 2302148,
+    "dialogueId": 2301027,
+    "lineOrder": 0,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Kelvin/WardedElm_18",
+    "lineKey": "LINE_0484"
+  },
+  {
+    "id": 2302149,
+    "dialogueId": 2301018,
+    "lineOrder": 1,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Ember/KeenElm_88",
+    "lineKey": "LINE_0253"
+  },
+  {
+    "id": 2302150,
+    "dialogueId": 2301005,
+    "lineOrder": 2,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Fenn/KeenRune_77",
+    "lineKey": "LINE_0430"
+  },
+  {
+    "id": 2302151,
+    "dialogueId": 2301036,
+    "lineOrder": 3,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Kelvin/Kelvin_10",
+    "lineKey": "LINE_0562"
+  },
+  {
+    "id": 2302152,
+    "dialogueId": 2301010,
+    "lineOrder": 0,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Kelvin/KeenKelvin_70",
+    "lineKey": "LINE_0575"
+  },
+  {
+    "id": 2302153,
+    "dialogueId": 2301007,
+    "lineOrder": 1,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Kelvin/Kelvin_10",
+    "lineKey": "LINE_0036"
+  },
+  {
+    "id": 2302154,
+    "dialogueId": 2301030,
+    "lineOrder": 2,
+    "speaker": 3,
+    "portrait": "Art/Portrait/Alder/KeenMarrow_72",
+    "lineKey": "LINE_0080"
+  },
+  {
+    "id": 2302155,
+    "dialogueId": 2301030,
+    "lineOrder": 3,
+    "speaker": 2,
+    "portrait": "Art/Portrait/Kelvin/WardedQuill_06",
+    "lineKey": "LINE_0157"
+  },
+  {
+    "id": 2302156,
+    "dialogueId": 2301003,
+    "lineOrder": 0,
+    "speaker": 5,
+    "portrait": "Art/Portrait/Harrow/CommonBrack_31",
+    "lineKey": "LINE_0176"
+  },
+  {
+    "id": 2302157,
+    "dialogueId": 2301019,
+    "lineOrder": 1,
+    "speaker": 4,
+    "portrait": "Art/Portrait/Lumen/CommonFlint_59",
+    "lineKey": "LINE_0267"
+  },
+  {
+    "id": 2302158,
+    "dialogueId": 2301029,
+    "lineOrder": 2,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Brack/Briar_25",
+    "lineKey": "LINE_0206"
+  },
+  {
+    "id": 2302159,
+    "dialogueId": 2301007,
+    "lineOrder": 3,
+    "speaker": 1,
+    "portrait": "Art/Portrait/Jasp/KeenJasp_69",
+    "lineKey": "LINE_0584"
+  }
+]

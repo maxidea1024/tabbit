@@ -1,0 +1,67 @@
+{
+  // The `canopy` corpus: a live-service title's workbooks, in a layout this tool did not
+  // design. A table here is a workbook's defined name, not a marked-up sheet.
+  //
+  // Every value is synthesised - `samples/canopy/gen` builds the workbooks from the grids
+  // under `schema/`. What is reproduced from a real corpus of this size is its shape: 42
+  // workbooks, 549 tables, and the notation the sheets are written in.
+  //
+  //     dotnet run --project samples/canopy/gen -- --scale small
+  //     dotnet run --project src/Tabbit.csproj -- --recipe samples/canopy/recipe.jsonc
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "samples/canopy/xlsx",
+
+        // A table is a defined name. Sheets no name covers are working sheets, and the
+        // layout logs each one and moves on - there are twelve of them here on purpose.
+        "Layout": "named-range",
+
+        // `Tile.xlsx` holds 34 integer grids with no header and no key. Their own editor
+        // writes them and their own exporter reads them; this layout has no reading for
+        // that shape, so the workbook is named here rather than left to fail. Saying it
+        // out loud is the point - a grid that quietly stopped converting would not be
+        // noticed, and a defined name appearing in it one day would be.
+        "ExcludeWorkbooks": [ "Tile" ],
+
+        // This layout's `[number]` delimiter. The sheets do not say what it is, so the
+        // recipe does. Tabbit's default is `;`, and these sheets use `,`.
+        "ArrayDelimiter": ",",
+
+        // Scalar arrays here are written `slot[0]`..`slot[5]` with optional members, so a
+        // filled slot after an empty one is ordinary rather than a mistake. The original
+        // corpus of this shape had 2,475 of them.
+        "AllowArrayGaps": true
+      }
+    ]
+  },
+
+  // Two of the outputs this tool has, not all of them. `sprout` is the sample that answers
+  // "what does a conversion produce in every language"; this one answers "what happens at
+  // 549 tables", and committing seventeen languages of that would be a hundred megabytes of
+  // the same answer.
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "samples/canopy/out/binary",
+
+      // Per column: the raw size, the encoding chosen, and every candidate's measured size.
+      "EncodingReport": "samples/canopy/out/encoding-report.txt",
+
+      // What columns the data was last written with. Committed, and the next run compares
+      // against it to refuse a change an already-shipped reader could not survive.
+      "SchemaBaseline": "samples/canopy/out/schema-baseline.json"
+    },
+
+    // Rows as unnamed arrays, no whitespace. The named form of a corpus this size is several
+    // times larger and says nothing extra.
+    { "Type": "json", "Path": "samples/canopy/out/json", "UseCompactRowFormat": true, "Indented": false }
+
+    // Two targets missing on purpose. `html` renders every row and comes to 84 MB for this
+    // corpus, which is the same answer `sprout` gives in a readable size. `summary` refuses a
+    // model with nested fields, and a tenth of the columns here are nested - which is the
+    // point of this sample rather than a fault in it.
+
+  ]
+}

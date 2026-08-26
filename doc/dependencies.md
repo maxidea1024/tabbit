@@ -66,9 +66,10 @@
 
 |패키지|버전|어디|
 |--|--|--|
-|[NPOI](https://github.com/nissl-lab/npoi)|2.8.0|`test/fixtures/tools/FixtureGen` — 테스트 픽스처 `.xlsx`를 **씁니다**. 변환기는 더 이상 NPOI로 읽지 않습니다|
+|[NPOI](https://github.com/nissl-lab/npoi)|2.8.0|`.xlsx`를 **씁니다** — `test/fixtures/tools/FixtureGen`과 샘플의 생성기들. 변환기는 더 이상 NPOI로 읽지 않습니다|
+|[SkiaSharp](https://github.com/mono/SkiaSharp)|3.119.2|NPOI의 스트리밍 작성기가 컬럼 폭을 재는 경로에서 요구합니다. 샘플 생성기는 시트 하나가 여섯 자리 행이라 그 작성기를 씁니다|
 |xunit|2.9.2|테스트. 러너는 `xunit.runner.visualstudio` 2.8.2, 호스트는 `Microsoft.NET.Test.Sdk` 17.11.1|
-|System.Security.Cryptography.Xml|10.0.10|테스트와 픽스처 도구|
+|System.Security.Cryptography.Xml|10.0.10|테스트와 픽스처 도구, 그리고 샘플 생성기. NPOI 자신의 의존이 가리키는 버전에 남은 권고를 지나쳐 고정한 것입니다|
 
 ---
 
