@@ -143,6 +143,9 @@ internal sealed class CppTableView
 
     /// <summary>Whether any column of this table carries an element bitmap.</summary>
     public bool NeedsElementPresence { get; set; }
+
+    /// <summary>Whether any column walks the element bitmap, rather than only consuming it.</summary>
+    public bool NeedsElementCursor { get; set; }
 }
 
 /// <summary>
@@ -564,6 +567,9 @@ internal sealed class CppColumnView
 
     /// <summary>Whether the column states which of an array's elements hold a value.</summary>
     public bool HasOptionalElements { get; set; }
+
+    /// <summary>Whether this column walks the element bitmap. <see cref="NeedsElementCursor"/>.</summary>
+    public bool StepsElementCursor { get; set; }
 
     /// <summary>The member holding that answer per element, or blank when there is none.</summary>
     public string ElementPresenceMember { get; set; } = "";

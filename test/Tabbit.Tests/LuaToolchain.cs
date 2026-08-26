@@ -80,7 +80,17 @@ internal static class LuaToolchain
         }
         else
         {
-            var arguments = new List<string> { "-std=gnu99", "-O2", "-I", includeDir };
+            // `LUA_USE_POSIX` is what gives the interpreter `io.popen`, and the updater's
+            // driver shells out to curl through it. Without the define the same sources build
+            // and the same tests fail with `'popen' not supported` - which is how the Linux
+            // and macOS runners answered the first time they ever ran this suite.
+            //
+            // Not `LUA_USE_LINUX`: that adds dlopen and readline, and this host loads nothing
+            // and reads no console.
+            var arguments = new List<string>
+            {
+                "-std=gnu99", "-O2", "-DLUA_USE_POSIX", "-I", includeDir,
+            };
 
             arguments.AddRange(sources);
             arguments.Add("-o");

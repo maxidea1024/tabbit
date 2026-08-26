@@ -559,6 +559,13 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         Columns = table.WireColumns.Select(wire => BuildColumn(table, wire)).ToList(),
         NeedsPresence = table.WireColumns.Any(wire => wire.IsNullable),
         NeedsElementPresence = table.WireColumns.Any(wire => wire.HasOptionalElements),
+
+        // The counter, separately from the bitmap. The bitmap is read whenever a column
+        // declares optional elements, because that read is what consumes its block - but
+        // only the plain array shape walks it, and a table whose optional elements all sit
+        // in record groups would declare a counter nothing touches. GCC calls that
+        // `-Wunused-but-set-variable`, and the C++ gate builds with warnings as errors.
+        NeedsElementCursor = table.WireColumns.Any(StepsElementCursor),
     };
 
     /// <summary>
@@ -969,6 +976,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             RecordTypeName = wire.Group.IsRecord ? RecordEntryName(table, wire.Group) : "",
             IsNullable = wire.IsNullable,
             HasOptionalElements = wire.HasOptionalElements,
+            StepsElementCursor = StepsElementCursor(wire),
             PresenceMember = "has_" + name,
             ElementPresenceMember = "has_" + name + "_at_",
             EmptyValue = EmptyValueOf(wire),
@@ -1087,6 +1095,23 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
         return wire.IsRef ? "scalar_ref" : "scalar";
     }
+
+    /// <summary>
+    /// Whether this column walks the element bitmap, rather than only consuming its block.
+    /// </summary>
+    /// <remarks>
+    /// **Only the plain array shape does.** A record group's members and an array of
+    /// references read the bitmap - that read is what advances the reader past it - and then
+    /// never look at what it said. For the record group that is by design; for the reference
+    /// array it is an open question, written down in spec/types/nullable-array-elements.md.
+    ///
+    /// This exists because the two used to be conflated: the counter was declared whenever
+    /// any column had optional elements, so a table like `serial-ref` declared one nothing
+    /// stepped. GCC calls that `-Wunused-but-set-variable` and the C++ gate builds warnings
+    /// as errors - which is how the first run of this suite on Linux found it.
+    /// </remarks>
+    private static bool StepsElementCursor(WireColumn wire)
+        => wire.HasOptionalElements && wire.Member is null && wire.IsArray && !wire.IsRef;
 
     private CppAccessorView BuildAccessor() => new CppAccessorView
     {

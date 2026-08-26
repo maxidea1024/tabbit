@@ -249,6 +249,12 @@ class {{ table.table_name }} {
 {{~ end ~}}
 {{~ if table.needs_element_presence ~}}
     std::vector<std::uint8_t> element_presence;
+{{~ end ~}}
+{{~## The counter only where something walks the bitmap. Reading the bitmap is what consumes
+   its block, so that read happens for every column that declares optional elements - but a
+   table whose optional elements all sit in record groups never steps the counter, and an
+   untouched one is `-Wunused-but-set-variable`. ##~}}
+{{~ if table.needs_element_cursor ~}}
     std::size_t element_at = 0;
 {{~ end ~}}
 
@@ -271,7 +277,9 @@ class {{ table.table_name }} {
 {{~## Behind the row bitmap and in front of the values, walked with a counter that steps
    once per element of every row. spec/types/nullable-array-elements.md. ##~}}
           element_presence = tabbit::read_element_presence(reader, column);
+{{~ if column_view.steps_element_cursor ~}}
           element_at = 0;
+{{~ end ~}}
 {{~ end ~}}
 {{~## Opened here, ahead of every read shape, because an array's elements read through it
    as well: its block states an encoding for them and one for the row lengths, and the

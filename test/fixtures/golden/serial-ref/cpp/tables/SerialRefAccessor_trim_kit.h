@@ -110,7 +110,6 @@ class TrimKitTable {
     std::vector<TrimKitRecord> records;
     records.resize(row_count);
     std::vector<std::uint8_t> element_presence;
-    std::size_t element_at = 0;
 
     for (const tabbit::Column& column : header.columns) {
       const std::size_t block_end = reader.position() + static_cast<std::size_t>(column.byte_length);
@@ -132,7 +131,6 @@ class TrimKitTable {
         case 2: {
           tabbit::check_column(column, "TrimKit.Slot", tabbit::kKindArray, false, {tabbit::kElementI32}, true);
           element_presence = tabbit::read_element_presence(reader, column);
-          element_at = 0;
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "TrimKit.Slot");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];
@@ -149,7 +147,6 @@ class TrimKitTable {
         case 3: {
           tabbit::check_column(column, "TrimKit.Tier", tabbit::kKindArray, false, {tabbit::kElementI32}, true);
           element_presence = tabbit::read_element_presence(reader, column);
-          element_at = 0;
           tabbit::TcbColumnCursor cursor(reader, column, header.row_count, "TrimKit.Tier");
           for (std::size_t i = 0; i < row_count; ++i) {
             auto& record = records[i];

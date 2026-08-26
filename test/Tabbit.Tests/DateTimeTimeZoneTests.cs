@@ -214,16 +214,32 @@ public class DateTimeTimeZoneTests
     // --------------------------------------------------- what a setting refuses
 
     /// <summary>
-    /// A name no zone answers to is refused with the names that nearly match. The spelling
-    /// that gets written is the city, and it is nowhere near an edit distance from the id.
+    /// A name no zone answers to is refused, and the refusal names the setting.
     /// </summary>
+    /// <remarks>
+    /// **Which refusal depends on the platform's database, not on this code.** Windows ids
+    /// carry no city (`Korea Standard Time`), so nothing holds the spelling and there is
+    /// nothing to suggest; the IANA database that Linux and macOS carry has `Asia/Seoul`,
+    /// and there the refusal offers it. Asserting one of the two was a Windows assumption,
+    /// and it failed the first time this suite ran anywhere else.
+    /// </remarks>
     [Fact]
     public void An_unknown_name_is_answered_with_the_names_that_hold_it()
     {
         var refusal = Assert.Throws<TabbitException>(() => TimeZones.OfRecipe("Seoul"));
 
-        Assert.Equal(Tabbit.Recipe.RecipeMessages.TimeZoneUnknown, refusal.MessageId);
+        Assert.Contains(refusal.MessageId, new[]
+        {
+            Tabbit.Recipe.RecipeMessages.TimeZoneUnknown,
+            Tabbit.Recipe.RecipeMessages.TimeZoneUnknownWithSuggestions,
+        });
+
         Assert.Contains("TimeZone", refusal.Message);
+
+        // Where the database does hold the spelling, the refusal has to say so - that is the
+        // whole value of the suggesting form.
+        if (refusal.MessageId == Tabbit.Recipe.RecipeMessages.TimeZoneUnknownWithSuggestions)
+            Assert.Contains("Seoul", refusal.Message);
     }
 
     /// <summary>
