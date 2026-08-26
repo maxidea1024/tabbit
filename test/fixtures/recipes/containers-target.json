@@ -1,0 +1,30 @@
+{
+  // The `containers` workbook handed to a target that has no container type yet.
+  //
+  // **The boundary of stage 1, written down.** The model and the file carry a `set` and a
+  // `map`; what no language has yet is the container and its lookup - spec/types/set-and-map.md
+  // section 7. A target in that state names itself and refuses, rather than emitting a list
+  // and a pair of lists that a consumer would never learn were meant to be either.
+  //
+  // When C# grows them, this recipe stops failing and becomes the C# gate.
+
+  "Schemas": [
+    { "Path": "test/fixtures/schemas/containers" }
+  ],
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "test/fixtures/xlsx/containers" }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/containers-target/csharp",
+      "Namespace": "Tabbit.Fixtures.Containers",
+      "AccessorName": "ContainersAccessor"
+    }
+  ]
+}

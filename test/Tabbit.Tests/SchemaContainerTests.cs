@@ -146,6 +146,30 @@ public class SchemaContainerTests
         Assert.Contains("Containers : F9", result.StdOut);
     }
 
+    /// <summary>
+    /// A target with no container type names itself rather than writing a list.
+    /// </summary>
+    /// <remarks>
+    /// **This is the boundary of the stage, and it has to be a refusal rather than a gap.**
+    /// The file carries a set and a map without changing, so a generator that has not learned
+    /// them emits something that compiles - an array, and two arrays side by side - and
+    /// nothing downstream ever finds out the tool was told these were distinct elements and
+    /// keyed entries. spec/types/set-and-map.md section 7.
+    ///
+    /// The exporters that write what the file holds carry them today, which is why the two
+    /// gates above run at all.
+    /// </remarks>
+    [Fact]
+    public void A_target_with_no_container_type_refuses_by_name()
+    {
+        var result = TabbitRunner.Convert("containers-target");
+
+        Assert.False(result.Succeeded, "A target with no container type was handed one.");
+
+        Assert.Contains("Target `csharp` does not support set columns yet.", result.StdOut);
+        Assert.Contains("Table `Shop` field `Bag.Tags` is declared a `set`.", result.StdOut);
+    }
+
     private static string Json(string scenario)
         => File.ReadAllText(Path.Combine(
             RepoLayout.OutputDir(scenario), "json-named", "Shop.json"));

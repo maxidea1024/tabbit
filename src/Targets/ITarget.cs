@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using Tabbit.History;
 using Tabbit.Models;
@@ -204,6 +205,22 @@ public abstract class Target<TEntry> : ITarget
     /// </remarks>
     protected virtual bool SupportsCompositeKeys => false;
 
+    /// <summary>
+    /// Whether this target has a container type for a `set` and a `map`.
+    /// </summary>
+    /// <remarks>
+    /// **The file is the same either way, which is exactly why this flag has to exist.** A
+    /// set is an array column and a map is two of equal length, so a target that has not
+    /// learned them writes something plausible - a list, and a pair of lists side by side -
+    /// and the consumer never finds out that the tool was told these were distinct elements
+    /// and keyed entries.
+    ///
+    /// True for the targets that carry no surface of their own: they write what the file
+    /// holds, and what the file holds is right. The languages opt in one at a time as each
+    /// grows the container and its lookup. spec/types/set-and-map.md section 7.
+    /// </remarks>
+    protected virtual bool SupportsContainers => false;
+
     Type ITarget.EntryType => typeof(TEntry);
 
     void ITarget.Run(TargetContext context)
@@ -213,6 +230,7 @@ public abstract class Target<TEntry> : ITarget
         RefuseOptionalFieldsIfUnsupported(context);
         RefuseOptionalElementsIfUnsupported(context);
         RefuseCompositeKeysIfUnsupported(context);
+        RefuseContainersIfUnsupported(context);
 
         Run(context, (TEntry)context.Entry);
     }
@@ -323,6 +341,38 @@ public abstract class Target<TEntry> : ITarget
                         ("Count", group.Members.Count),
                         ("Separator", Helpers.NestedName.MemberSeparator)));
             }
+        }
+    }
+
+    /// <summary>
+    /// Stops before a target with no container type is handed a `set` or a `map`.
+    /// </summary>
+    private void RefuseContainersIfUnsupported(TargetContext context)
+    {
+        if (SupportsContainers)
+            return;
+
+        foreach (var table in context.Model.Tables)
+        {
+            // The first column of the first container is enough: what a target is being told
+            // is that it has no answer for the shape, and listing every column of every one
+            // would say that once per column. A `map` marks its `Key` and `Value` too, so
+            // the report is built from the container's own level of the path rather than
+            // from the column's name.
+            var found = table.Fields.Find(
+                field => field.Container != Models.ContainerKind.None && field.NamePath is not null);
+
+            if (found is null)
+                continue;
+
+            string id = GetType().GetCustomAttribute<TabbitTargetAttribute>()?.Id ?? GetType().Name;
+
+            throw new TabbitException(found.NameLocation,
+                Messages.Message.Of(Exporters.ExportMessages.TargetNoContainers,
+                    ("Target", id), ("Table", table.Name),
+                    ("Column", Models.FieldPath.Describe(
+                        found.NamePath!.Take(found.ContainerLevel + 1).ToList())),
+                    ("What", found.Container == Models.ContainerKind.Set ? "set" : "map")));
         }
     }
 

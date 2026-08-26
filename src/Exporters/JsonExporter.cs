@@ -91,6 +91,14 @@ public class JsonExporter : Target<JsonRecipe>
     /// </summary>
     protected override bool SupportsDeepNestedFields => true;
 
+    /// <summary>
+    /// What this writes is what the file holds - a set as its array, a map as the two arrays
+    /// it is - so there is no container surface here to get wrong. Writing a map as a JSON
+    /// object instead is a decision of its own, and it is stage 3 of
+    /// spec/types/set-and-map.md rather than a condition of carrying one.
+    /// </summary>
+    protected override bool SupportsContainers => true;
+
     protected override bool SupportsOptionalFields => true;
 
     /// <summary>

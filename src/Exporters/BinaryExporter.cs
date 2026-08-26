@@ -187,6 +187,13 @@ public class BinaryExporter : Target<BinaryRecipe>
     /// </summary>
     protected override bool SupportsDeepNestedFields => true;
 
+    /// <summary>
+    /// A container has nothing for the file to carry that it does not carry already: a set
+    /// is one array column and a map is two of equal length. What a target opts out of is a
+    /// surface, and this one has none. spec/types/set-and-map.md section 4.
+    /// </summary>
+    protected override bool SupportsContainers => true;
+
     protected override bool SupportsOptionalFields => true;
 
     /// <summary>

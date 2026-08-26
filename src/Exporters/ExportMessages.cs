@@ -117,6 +117,9 @@ public static class ExportMessages
     /// <summary>A target that does not carry a record inside a record yet.</summary>
     public const string TargetNoRecordInRecord = "export.target-no-record-in-record";
 
+    /// <summary>A target that has no container type for a `set` or a `map` yet.</summary>
+    public const string TargetNoContainers = "export.target-no-containers";
+
     /// <summary>Two model entities whose names reduce to one file name.</summary>
     public const string GeneratedFileNameClash = "export.generated-file-name-clash";
 

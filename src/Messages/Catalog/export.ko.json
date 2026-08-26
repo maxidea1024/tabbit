@@ -31,6 +31,7 @@
   "export.target-no-composite-keys": "타깃 `{Target}`은 컬럼 여럿으로 된 키를 아직 지원하지 않습니다.\n  테이블 `{Table}`의 키가 `{Key}`인데, 리더는 그것을 값 여럿으로 한 번에 찾습니다.\n  그 조회는 언어마다 형태가 다르므로 타깃마다 따로 담습니다 — recipe에서 그 타깃을 빼거나, 테이블을 컬럼 하나로 키 잡으십시오.",
   "export.target-no-optional-elements": "타깃 `{Target}`은 아직 원소가 없을 수 있는 배열을 지원하지 않습니다.\n  테이블 `{Table}`의 컬럼 `{Column}`이 `{Type}?[]` 타입이라, 원소에 값이 없을 수 있습니다.\n  recipe에서 그 타깃을 빼거나, `?`를 대괄호 밖으로 옮겨 모든 원소가 값을 갖게 하십시오.",
   "export.target-no-nested-fields": "타깃 `{Target}`은 아직 중첩 필드를 지원하지 않습니다.\n  테이블 `{Table}`의 필드 `{Field}`이 멤버 {Count}개인 레코드 그룹입니다.\n  recipe에서 그 타깃을 빼거나, `{Separator}` 없이 컬럼을 평평하게 적으십시오.",
+  "export.target-no-containers": "타깃 `{Target}`은 아직 {What} 컬럼을 지원하지 않습니다.\n  테이블 `{Table}`의 필드 `{Column}`{Column:이} `{What}`(으)로 선언되어 있습니다.\n  파일은 그대로여도 됩니다 — set은 배열 컬럼 하나이고 map은 길이가 같은 둘입니다. 없는 것은 이 언어의 컨테이너 타입입니다.\n  recipe에서 그 타깃을 빼거나, 멤버를 그것이 만들어진 컬럼들로 선언하십시오.",
   "export.target-no-record-in-record": "타깃 `{Target}`은 아직 레코드 안의 레코드를 지원하지 않습니다.\n  테이블 `{Table}`의 필드 `{Field}`에 멤버 `{Member}`가 있고, 그것이 값이 아니라 멤버 {Count}개인 레코드입니다.\n  recipe에서 그 타깃을 빼거나, 그 레벨을 펴십시오 — `{Field}{Separator}{Member}{Separator}{Inner}` 대신 `{Field}{Separator}{Member}{Inner}`입니다.",
   "export.generated-file-name-clash": "`{Path}`에 대해 서로 다른 파일 둘이 생성되었습니다. 생성 파일의 이름은 테이블·enum·상수 집합의 이름에서 오고, 그중 둘의 이름이 같은 파일 이름으로 줄어듭니다. 시트에서 하나를 개명하십시오.",
   "export.log-mongodb-cleanup-failed": "MongoDB 그림자 컬렉션을 정리하지 못했습니다: {Detail}",
