@@ -335,9 +335,9 @@ public class SchemaParserTests
     }
 
     /// <summary>
-    /// `set` and `map` are read all the way into the declarations and refused further down,
-    /// by name - design section 4.7. The parser is not where the container list lives, so it
-    /// reads any name with arguments and leaves what that name means to resolution.
+    /// The parser is not where the container list lives - design section 4.7. It reads any
+    /// name with arguments, and which names are containers, how many arguments each takes and
+    /// what may fill them are settled where the types are.
     /// </summary>
     [Fact]
     public void A_container_type_is_read_with_its_arguments()
@@ -349,6 +349,60 @@ public class SchemaParserTests
         Assert.Equal(["int", "Reward"], type.Arguments.Select(argument => argument.Name));
         Assert.True(type.IsArray);
         Assert.Equal("map<int,Reward>[]", type.ToString());
+    }
+
+    /// <summary>
+    /// A container's arguments carry brackets of their own, which is the one place a type
+    /// does - spec/types/set-and-map.md section 2.2. `map` has two element positions and the
+    /// key names that tell an array's element from the array itself reach neither of them.
+    /// </summary>
+    [Fact]
+    public void A_container_argument_carries_its_own_metadata()
+    {
+        var member = Parse(
+            "struct S\n    field prices map<int(min=1),int(min=0,max=99)>(size=3)\n")
+            .Structs[0].Fields[0];
+
+        Assert.Equal("1", member.Type.Arguments[0].Meta.Value("min"));
+        Assert.Equal("99", member.Type.Arguments[1].Meta.Value("max"));
+
+        // The member's own brackets are still the member's. Reading them as the type's would
+        // take the metadata off every field in every schema file.
+        Assert.Equal("3", member.Meta.Value("size"));
+        Assert.Null(member.Type.Meta.Value("size"));
+    }
+
+    /// <summary>The notation a report has to be able to say back, brackets included.</summary>
+    [Fact]
+    public void A_container_argument_rebuilds_with_its_metadata()
+        => Assert.Equal(
+            "map<int(min=1),string(regex=^a$)>",
+            Parse("struct S\n    field p map<int(min=1),string(regex=\"^a$\")>\n")
+                .Structs[0].Fields[0].Type.ToString());
+
+    /// <summary>
+    /// Section 2.2: an array's element constraints go in the declaration's own brackets, told
+    /// from the array's by the key name. Leaving `int(min=1)[]` legal as well would be two
+    /// spellings of one thing.
+    /// </summary>
+    [Theory]
+    [InlineData("struct S\n    field costs int(min=1)[]\n")]
+    [InlineData("struct S\n    field costs int(min=1)?\n")]
+    public void Metadata_between_a_type_and_its_array_marker_is_refused(string source)
+        => Assert.Contains("go in the declaration's own brackets", Refusal(source));
+
+    /// <summary>
+    /// The refusal above must not reach the ordinary spelling, which is every schema file
+    /// written today.
+    /// </summary>
+    [Fact]
+    public void Metadata_after_an_array_type_is_the_declarations()
+    {
+        var member = Parse("struct S\n    field costs int[] (min=1, size=3)\n").Structs[0].Fields[0];
+
+        Assert.True(member.Type.IsArray);
+        Assert.Equal("1", member.Meta.Value("min"));
+        Assert.Equal("3", member.Meta.Value("size"));
     }
 
     // ----------------------------------------------------------------- wire tags

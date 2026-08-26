@@ -474,15 +474,11 @@ public sealed class SchemaDeclarations
             case SchemaTypeForm.Foreign:
                 return;
 
-            // Read all the way into the declarations and refused here, by name. The wire needs
-            // no change for either of them - a set is an array column and a map is two - so
-            // what is missing is the container type in every generated language, and refusing
-            // at this point means the notation will not have to be settled twice.
-            // Section 4.7 of the design.
+            // What a container may be written as is a question about types rather than about
+            // this member, so it lives beside the two container names themselves.
+            // spec/types/set-and-map.md sections 2 and 6.
             case SchemaTypeForm.Container:
-                diagnostics.Error(type.Location, Message.Of(
-                    SchemaMessages.ContainerNotSupported,
-                    ("Struct", declared.Name), ("Member", member.Name), ("Type", type.ToString())));
+                SchemaContainers.Check(context, declared, member, this, diagnostics);
                 return;
         }
 

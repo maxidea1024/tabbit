@@ -212,6 +212,18 @@ public sealed class SchemaTypeRef
     /// </summary>
     public IReadOnlyList<SchemaTypeRef> Arguments { get; init; } = [];
 
+    /// <summary>
+    /// The brackets written on this type itself, which only a container's argument has.
+    /// </summary>
+    /// <remarks>
+    /// Everywhere else the brackets after a type belong to the declaration. A container is
+    /// the exception because `map` has two element positions, and the key names that tell an
+    /// array's element from the array itself have nothing to say about which of the two a
+    /// `min` is for - so that one goes by position instead.
+    /// Section 2.2 of spec/types/set-and-map.md.
+    /// </remarks>
+    public SchemaMeta Meta { get; init; } = SchemaMeta.Empty;
+
     /// <summary>Whether the type was written as an array.</summary>
     public bool IsArray { get; init; }
 
@@ -246,6 +258,16 @@ public sealed class SchemaTypeRef
 
         if (IsOptional)
             written += "?";
+
+        // A container's argument, rebuilt with its brackets - a report that says what was
+        // written has to include what the constraints were written on.
+        if (Meta.Entries.Count > 0)
+        {
+            written += "("
+                + string.Join(",", Meta.Entries.Select(
+                    entry => entry.Value is null ? entry.Key : entry.Key + "=" + entry.Value))
+                + ")";
+        }
 
         return written;
     }

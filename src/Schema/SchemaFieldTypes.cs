@@ -109,8 +109,14 @@ internal static class SchemaFieldTypes
     {
         resolved = default;
 
+        // A set is one column and resolves as the array it is. A map is two, so a path that
+        // stopped at it has named the group rather than a column - the same answer a struct
+        // member gives, and for the same reason.
         if (written.Form == SchemaTypeForm.Container)
-            return false;
+        {
+            return SchemaContainers.ColumnOfSet(written) is { } column
+                && Resolve(context, column, declarations, out resolved);
+        }
 
         if (written.Form == SchemaTypeForm.Foreign)
         {

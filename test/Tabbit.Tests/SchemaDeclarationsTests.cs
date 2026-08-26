@@ -199,18 +199,85 @@ public class SchemaDeclarationsTests
             string.Join("\n", diagnostics.Entries.Select(entry => entry.Detail.Message)));
     }
 
+    // ---------------------------------------------------------------- the containers
+
     /// <summary>
-    /// Read all the way into the declarations and refused by name, so that the notation does
-    /// not have to be settled a second time when the containers are carried - design section
-    /// 4.7.
+    /// The shapes a container may be written in - spec/types/set-and-map.md sections 2 and 6.
+    /// A struct is a value and not a key: its columns are several, and uniqueness across
+    /// several columns is a different question from what a key is.
     /// </summary>
     [Theory]
     [InlineData("set<int>")]
-    [InlineData("map<int,Reward>")]
-    public void A_container_is_read_and_then_refused_by_name(string written)
+    [InlineData("set<string>")]
+    [InlineData("set<Element>")]
+    [InlineData("map<int,int>")]
+    [InlineData("map<string,Reward>")]
+    [InlineData("map<Element,int>")]
+    [InlineData("map<int(min=1),int(max=99)>(size=1..3)")]
+    [InlineData("map<int,int>?")]
+    public void A_container_a_column_can_hold_is_accepted(string written)
+        => Accepted(Around(written));
+
+    /// <summary>
+    /// A key has to be a type whose equality is in the value itself - section 6.1. Floating
+    /// point is spelling-dependent, `datetime` reaches a value through a timezone reading,
+    /// and a `bitset` is a list of flag names the same set can be written several orders of.
+    /// </summary>
+    [Theory]
+    [InlineData("map<float,int>")]
+    [InlineData("map<double,int>")]
+    [InlineData("map<datetime,int>")]
+    [InlineData("map<timespan,int>")]
+    [InlineData("map<bitset,int>")]
+    [InlineData("map<Reward,int>")]
+    public void A_key_whose_equality_is_not_in_the_value_is_refused(string written)
+        => Assert.Contains("equality is in the value itself", Refusal(Around(written)));
+
+    [Theory]
+    [InlineData("set<int,int>")]
+    [InlineData("map<int>")]
+    public void A_container_given_the_wrong_number_of_arguments_is_refused(string written)
+        => Assert.Contains("type argument", Refusal(Around(written)));
+
+    /// <summary>
+    /// Section 10: the file could hold each of these and the cell notation could not, so the
+    /// first release names them rather than half-reading them.
+    /// </summary>
+    [Theory]
+    [InlineData("map<int,set<int>>", "container")]
+    [InlineData("map<int,foreign Reward>", "reference")]
+    [InlineData("map<int,int[]>", "array")]
+    [InlineData("map<int,int?>", "optional")]
+    public void An_argument_shape_the_first_release_leaves_out_is_named(
+        string written, string what)
+        => Assert.Contains(what, Refusal(Around(written)));
+
+    [Theory]
+    [InlineData("set<int>[]")]
+    [InlineData("map<int,int>[]")]
+    public void An_array_of_containers_is_refused(string written)
         => Assert.Contains(
-            "does not carry it yet",
-            Refusal($"struct Reward\n    field x int\nstruct S\n    field c {written}\n"));
+            "array whose elements are containers", Refusal(Around(written)));
+
+    /// <summary>
+    /// Section 2.2. `map` has two element positions and `min` does not say which one it is
+    /// for, so the constraint goes on the argument rather than on the member.
+    /// </summary>
+    [Fact]
+    public void An_element_constraint_written_outside_a_container_is_refused()
+        => Assert.Contains(
+            "go on the argument they are about",
+            Refusal(Around("map<int,int>(min=1)")));
+
+    [Fact]
+    public void A_name_that_is_not_a_container_taking_arguments_is_refused()
+        => Assert.Contains("takes no type arguments", Refusal(Around("list<int>")));
+
+    /// <summary>One member of the given type, with a struct and an enum to point at.</summary>
+    private static string Around(string written)
+        => "enum Element\n    value Fire = 1\n"
+           + "struct Reward\n    field x int\n"
+           + $"struct S\n    field c {written}\n";
 
     // -------------------------------------------------------------------- the graph
 

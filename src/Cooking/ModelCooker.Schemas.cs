@@ -234,7 +234,25 @@ public partial class ModelCooker
 
         for (int level = 1; level < path.Count; level++)
         {
-            if (here is null || path[level].IsAnonymous)
+            if (path[level].IsAnonymous)
+                return null;
+
+            // One level below a `map` are its two columns, and the declaration named
+            // neither - so the step is taken against the container rather than against a
+            // struct's members. spec/types/set-and-map.md section 3.
+            if (member is not null
+                && SchemaContainers.KindOf(member.Type) != Models.ContainerKind.None)
+            {
+                member = SchemaContainers.SlotOf(member, path[level].Name);
+
+                if (member is null)
+                    return null;
+
+                here = declarations.FindStruct(member.Type.Name);
+                continue;
+            }
+
+            if (here is null)
                 return null;
 
             member = here.LiveFields.FirstOrDefault(

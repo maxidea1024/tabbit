@@ -616,7 +616,13 @@ public static class SchemaParser
         /// them would put the list of container types in this file - where adding one would
         /// mean editing the parser rather than the resolver that knows about types.
         /// </remarks>
-        private SchemaTypeRef? ReadType()
+        /// <param name="asArgument">
+        /// Whether this type is one of a container's arguments, which is the only place a
+        /// type of its own carries metadata. Section 2.2 of spec/types/set-and-map.md says
+        /// why it is only there: `map` has two element positions and the key names that
+        /// separate an array's element from the array itself cannot reach either of them.
+        /// </param>
+        private SchemaTypeRef? ReadType(bool asArgument = false)
         {
             if (Current.Kind != SchemaTokenKind.Word)
             {
@@ -668,7 +674,7 @@ public static class SchemaParser
 
                     while (true)
                     {
-                        var argument = ReadType();
+                        var argument = ReadType(asArgument: true);
                         if (argument is null)
                             return null;
 
@@ -723,6 +729,16 @@ public static class SchemaParser
 
             bool secondQuestion = array && Take(SchemaTokenKind.Question);
 
+            // Only an argument's own brackets are read here. Everywhere else the brackets
+            // after a type belong to the declaration that wrote it, and reading them as the
+            // type's would take the metadata off every field in every schema file.
+            var meta = SchemaMeta.Empty;
+
+            if (asArgument)
+                meta = ReadMeta();
+            else
+                RefuseMetaBeforeArrayMarkers();
+
             return new SchemaTypeRef
             {
                 Location = Where(start),
@@ -730,10 +746,59 @@ public static class SchemaParser
                 Name = name,
                 ForeignTables = targets,
                 Arguments = arguments,
+                Meta = meta,
                 IsArray = array,
                 ElementsAreOptional = array && firstQuestion,
                 IsOptional = array ? secondQuestion : firstQuestion,
             };
+        }
+
+        /// <summary>
+        /// Reports `int(min=1)[]`, where the brackets sit between a type and its array marker.
+        /// </summary>
+        /// <remarks>
+        /// **The notation for this is settled and it is not this one** - an array's element
+        /// constraints go in the declaration's own brackets, told apart from the array's by
+        /// the key name. Section 2.2 of spec/types/set-and-map.md: leaving both spellings
+        /// legal would be two ways of writing one thing.
+        ///
+        /// Without this the metadata is read as the declaration's, the `[]` after it is the
+        /// next token nobody expected, and the report points at a bracket rather than at what
+        /// the author did.
+        /// </remarks>
+        private void RefuseMetaBeforeArrayMarkers()
+        {
+            if (Current.Kind != SchemaTokenKind.OpenParen)
+                return;
+
+            var open = Current;
+            int at = _at;
+            int depth = 0;
+
+            for (; at < _tokens.Count; at++)
+            {
+                if (_tokens[at].Kind == SchemaTokenKind.OpenParen)
+                {
+                    depth++;
+                }
+                else if (_tokens[at].Kind == SchemaTokenKind.CloseParen)
+                {
+                    depth--;
+                    if (depth == 0)
+                    {
+                        at++;
+                        break;
+                    }
+                }
+            }
+
+            if (at >= _tokens.Count)
+                return;
+
+            var next = _tokens[at].Kind;
+
+            if (next is SchemaTokenKind.OpenBracket or SchemaTokenKind.Question)
+                Report(SchemaMessages.TypeMetaBeforeArray, open);
         }
 
         /// <summary>Reads `( … )` if it is there, and nothing if it is not.</summary>

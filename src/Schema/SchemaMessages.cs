@@ -96,6 +96,21 @@ public static class SchemaMessages
     /// <summary>A container type given the wrong number of arguments.</summary>
     public const string ContainerArity = "schema.container-arity";
 
+    /// <summary>`int(min=1)[]` - metadata brackets between a type and its array marker.</summary>
+    public const string TypeMetaBeforeArray = "schema.type-meta-before-array";
+
+    /// <summary>An element constraint written on a container rather than on its argument.</summary>
+    public const string ContainerElementMetaOutside = "schema.container-element-meta-outside";
+
+    /// <summary>A shape a container's argument cannot be: another container, a reference, an array, optional.</summary>
+    public const string ContainerArgumentUnsupported = "schema.container-argument-unsupported";
+
+    /// <summary>A `map` key whose equality is not in the value itself.</summary>
+    public const string MapKeyTypeNotAllowed = "schema.map-key-type-not-allowed";
+
+    /// <summary>`set&lt;T&gt;[]` or `map&lt;K,V&gt;[]` - an array whose elements are containers.</summary>
+    public const string ContainerArrayNotSupported = "schema.container-array-not-supported";
+
     /// <summary>Type arguments on a type that takes none.</summary>
     public const string TypeTakesNoArguments = "schema.type-takes-no-arguments";
 
