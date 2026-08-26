@@ -119,6 +119,11 @@ test/**/obj/
 tools/**/bin/
 tools/**/obj/
 
+# Samples have build output too - the authoring and generator tools. This rule was missing
+# until 2026-08-26, and 185.9 MB of it was tracked; `git rm --cached` took it out of the index.
+samples/**/bin/
+samples/**/obj/
+
 # Conversion output produced by the regression suite, plus the scratch areas the
 # TypeScript and C++ gates build in. Regenerated on every run and compared against
 # test/fixtures/golden, which *is* committed.
@@ -246,3 +251,9 @@ test/fixtures/validation/*/lib/
 
 # `dotnet test --logger trx` writes here. A test run's own record, not the repository's.
 TestResults/
+
+# `sprout` at benchmark scale: 109,218 rows, built on demand rather than committed.
+# `--scale small` produces the workbooks that are committed; `--scale live` produces these.
+# See notes/synthetic-samples.md.
+samples/sprout/live/
+samples/sprout/live-out/

@@ -1,0 +1,4 @@
+@desc	primary index	owning character	unlock ascension step	affected stat	bonus in permille
+@name	id	characterId	unlockStep	stat	bonus
+@type	Int	Int	Int	enum:StatType	Int
+@gen	seq:1106000	ref:CharacterTable	int:0..5	enum:StatType	int:20..900:zipf

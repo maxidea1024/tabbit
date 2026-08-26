@@ -1,0 +1,142 @@
+[
+  {
+    "id": 2101000,
+    "accountLevel": 1,
+    "goldPerHour": "1200",
+    "expPerHour": "600",
+    "lootGroupId": 2002033
+  },
+  {
+    "id": 2101001,
+    "accountLevel": 2,
+    "goldPerHour": "2100",
+    "expPerHour": "1020",
+    "lootGroupId": 2002015
+  },
+  {
+    "id": 2101002,
+    "accountLevel": 3,
+    "goldPerHour": "3001",
+    "expPerHour": "1441",
+    "lootGroupId": 2002004
+  },
+  {
+    "id": 2101003,
+    "accountLevel": 4,
+    "goldPerHour": "3902",
+    "expPerHour": "1862",
+    "lootGroupId": 2002018
+  },
+  {
+    "id": 2101004,
+    "accountLevel": 5,
+    "goldPerHour": "4804",
+    "expPerHour": "2284",
+    "lootGroupId": 2002030
+  },
+  {
+    "id": 2101005,
+    "accountLevel": 6,
+    "goldPerHour": "5706",
+    "expPerHour": "2706",
+    "lootGroupId": 2002000
+  },
+  {
+    "id": 2101006,
+    "accountLevel": 7,
+    "goldPerHour": "6609",
+    "expPerHour": "3129",
+    "lootGroupId": 2002000
+  },
+  {
+    "id": 2101007,
+    "accountLevel": 8,
+    "goldPerHour": "7512",
+    "expPerHour": "3552",
+    "lootGroupId": 2002002
+  },
+  {
+    "id": 2101008,
+    "accountLevel": 9,
+    "goldPerHour": "8416",
+    "expPerHour": "3976",
+    "lootGroupId": 2002014
+  },
+  {
+    "id": 2101009,
+    "accountLevel": 10,
+    "goldPerHour": "9320",
+    "expPerHour": "4400",
+    "lootGroupId": 2002006
+  },
+  {
+    "id": 2101010,
+    "accountLevel": 11,
+    "goldPerHour": "10225",
+    "expPerHour": "4825",
+    "lootGroupId": 2002013
+  },
+  {
+    "id": 2101011,
+    "accountLevel": 12,
+    "goldPerHour": "11130",
+    "expPerHour": "5250",
+    "lootGroupId": 2002020
+  },
+  {
+    "id": 2101012,
+    "accountLevel": 13,
+    "goldPerHour": "12036",
+    "expPerHour": "5676",
+    "lootGroupId": 2002027
+  },
+  {
+    "id": 2101013,
+    "accountLevel": 14,
+    "goldPerHour": "12942",
+    "expPerHour": "6102",
+    "lootGroupId": 2002017
+  },
+  {
+    "id": 2101014,
+    "accountLevel": 15,
+    "goldPerHour": "13849",
+    "expPerHour": "6529",
+    "lootGroupId": 2002003
+  },
+  {
+    "id": 2101015,
+    "accountLevel": 16,
+    "goldPerHour": "14756",
+    "expPerHour": "6956",
+    "lootGroupId": 2002004
+  },
+  {
+    "id": 2101016,
+    "accountLevel": 17,
+    "goldPerHour": "15664",
+    "expPerHour": "7384",
+    "lootGroupId": 2002012
+  },
+  {
+    "id": 2101017,
+    "accountLevel": 18,
+    "goldPerHour": "16572",
+    "expPerHour": "7812",
+    "lootGroupId": 2002002
+  },
+  {
+    "id": 2101018,
+    "accountLevel": 19,
+    "goldPerHour": "17481",
+    "expPerHour": "8241",
+    "lootGroupId": 2002009
+  },
+  {
+    "id": 2101019,
+    "accountLevel": 20,
+    "goldPerHour": "18390",
+    "expPerHour": "8670",
+    "lootGroupId": 2002000
+  }
+]

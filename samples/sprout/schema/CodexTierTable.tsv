@@ -1,0 +1,4 @@
+@desc	primary index	owning codex	entries required	reward
+@name	id	codexId	required	rewardId
+@type	Int	Int	Int	Int
+@gen	seq:2203000	ref:CodexTable	int:1..30	ref:RewardTable

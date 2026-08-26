@@ -1,0 +1,4 @@
+@desc	primary index	owning group	granted item	lowest count	highest count	weight
+@name	id	lootGroupId	itemId	minCount	maxCount	weight
+@type	Int	Int	Int	Int	Int	Int
+@gen	seq:2003000	ref:LootGroupTable	ref:ItemTable	int:1..40	int:40..900	int:1..5000:zipf

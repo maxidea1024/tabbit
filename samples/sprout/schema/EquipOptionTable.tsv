@@ -1,0 +1,7 @@
+@desc	primary index	affected stat	lowest roll in permille	highest roll in permille	weight
+@name	id	stat	minRoll	maxRoll	weight
+@type	Int	enum:StatType	Int	Int	Int
+@gen	seq:1306000	enum:StatType	int:10..400	int:400..1600	int:1..1000:zipf
+1306000	Attack	10	400	500
+1306000	Defense	10	400	500
+1306000	Health	10	400	500

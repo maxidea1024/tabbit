@@ -1,0 +1,86 @@
+[
+  {
+    "id": 1505000,
+    "worldId": 1506000,
+    "nameKey": "CHAPTER_NAME_0030",
+    "sortOrder": 1,
+    "unlockId": 2402001
+  },
+  {
+    "id": 1505001,
+    "worldId": 1506002,
+    "nameKey": "CHAPTER_NAME_0013",
+    "sortOrder": 2,
+    "unlockId": 2402019
+  },
+  {
+    "id": 1505002,
+    "worldId": 1506007,
+    "nameKey": "CHAPTER_NAME_0009",
+    "sortOrder": 3,
+    "unlockId": 2402011
+  },
+  {
+    "id": 1505003,
+    "worldId": 1506004,
+    "nameKey": "CHAPTER_NAME_0031",
+    "sortOrder": 4,
+    "unlockId": 2402003
+  },
+  {
+    "id": 1505004,
+    "worldId": 1506003,
+    "nameKey": "CHAPTER_NAME_0022",
+    "sortOrder": 5,
+    "unlockId": 2402000
+  },
+  {
+    "id": 1505005,
+    "worldId": 1506002,
+    "nameKey": "CHAPTER_NAME_0000",
+    "sortOrder": 6,
+    "unlockId": 2402021
+  },
+  {
+    "id": 1505006,
+    "worldId": 1506011,
+    "nameKey": "CHAPTER_NAME_0025",
+    "sortOrder": 7,
+    "unlockId": 2402003
+  },
+  {
+    "id": 1505007,
+    "worldId": 1506009,
+    "nameKey": "CHAPTER_NAME_0028",
+    "sortOrder": 8,
+    "unlockId": 2402020
+  },
+  {
+    "id": 1505008,
+    "worldId": 1506003,
+    "nameKey": "CHAPTER_NAME_0027",
+    "sortOrder": 9,
+    "unlockId": 2402011
+  },
+  {
+    "id": 1505009,
+    "worldId": 1506000,
+    "nameKey": "CHAPTER_NAME_0019",
+    "sortOrder": 10,
+    "unlockId": 2402002
+  },
+  {
+    "id": 1505010,
+    "worldId": 1506007,
+    "nameKey": "CHAPTER_NAME_0020",
+    "sortOrder": 11,
+    "unlockId": 2402010
+  },
+  {
+    "id": 1505011,
+    "worldId": 1506009,
+    "nameKey": "CHAPTER_NAME_0027",
+    "sortOrder": 12,
+    "unlockId": 2402002
+  }
+]

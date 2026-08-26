@@ -1,0 +1,433 @@
+{
+  "LastUpdatedDate": "2026-08-26T14:48:54.1916315+09:00",
+  "MasterHash": "00b3b2e6399e434217cbc7769cc37ade",
+  "TotalSize": 834398,
+  "Items": [
+    {
+      "Name": "Character.json",
+      "Size": 8632,
+      "Hash": "87446be4039e63bc062f8ce2d9d2423a",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1911905+09:00"
+    },
+    {
+      "Name": "CharacterStat.json",
+      "Size": 23929,
+      "Hash": "1cb8af2ece9e4e210c395bde4e714fc6",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912333+09:00"
+    },
+    {
+      "Name": "CharacterAscend.json",
+      "Size": 10161,
+      "Hash": "f6e4a5474f57abe7d45a6a5435f65356",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912344+09:00"
+    },
+    {
+      "Name": "CharacterSkin.json",
+      "Size": 3791,
+      "Hash": "975b7673b567076cbbac063cf917f857",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912347+09:00"
+    },
+    {
+      "Name": "CharacterVoice.json",
+      "Size": 9721,
+      "Hash": "c1e043cb4f09d8418de80e1b949a3a99",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912359+09:00"
+    },
+    {
+      "Name": "RoleBonus.json",
+      "Size": 901,
+      "Hash": "748df46a113d648168da9789ab1d1850",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912363+09:00"
+    },
+    {
+      "Name": "ElementAffinity.json",
+      "Size": 993,
+      "Hash": "a219add1a0ebdbaed56828969a94e2c7",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912365+09:00"
+    },
+    {
+      "Name": "Codex.json",
+      "Size": 3236,
+      "Hash": "749ed920ca7ad08385f066715b129b9a",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912368+09:00"
+    },
+    {
+      "Name": "CodexEntry.json",
+      "Size": 9906,
+      "Hash": "03cebd04867f52181b1481c2cb50fd8e",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912378+09:00"
+    },
+    {
+      "Name": "CodexTier.json",
+      "Size": 2875,
+      "Hash": "dcc1d06e8acdeeeeb5b99559cb16fece",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912381+09:00"
+    },
+    {
+      "Name": "Dialogue.json",
+      "Size": 4298,
+      "Hash": "4b55e0b5ac424ec1fe751fc206a6dadf",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912383+09:00"
+    },
+    {
+      "Name": "DialogueLine.json",
+      "Size": 27304,
+      "Hash": "1a2a02dc004c837844e45d624fad9ddc",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912387+09:00"
+    },
+    {
+      "Name": "Cutscene.json",
+      "Size": 1469,
+      "Hash": "21ad129198588415b2b5fd9d6a677090",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912388+09:00"
+    },
+    {
+      "Name": "Dungeon.json",
+      "Size": 1731,
+      "Hash": "4520f22420ea30972587519a0bca86fa",
+      "LastUpdatedDate": "2026-08-26T14:48:54.191239+09:00"
+    },
+    {
+      "Name": "DungeonFloor.json",
+      "Size": 9982,
+      "Hash": "fb35ff5b14eb7db6b005b7b6ceac0948",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912392+09:00"
+    },
+    {
+      "Name": "DungeonReward.json",
+      "Size": 4930,
+      "Hash": "3714dc3ed7c3700c870355d5631f7668",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912395+09:00"
+    },
+    {
+      "Name": "Raid.json",
+      "Size": 1647,
+      "Hash": "d0b33d9bc3c81a922f1d5119d4cedbfd",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912397+09:00"
+    },
+    {
+      "Name": "Equip.json",
+      "Size": 13843,
+      "Hash": "bdb709acba13cf5216652ff12b087944",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912399+09:00"
+    },
+    {
+      "Name": "EquipLevel.json",
+      "Size": 10396,
+      "Hash": "775eff1022e410f11b9c0f5198e46f11",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912402+09:00"
+    },
+    {
+      "Name": "EquipGrade.json",
+      "Size": 1274,
+      "Hash": "78c536cfa218188127ae7e9a35a8ffe3",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912404+09:00"
+    },
+    {
+      "Name": "EquipSet.json",
+      "Size": 1791,
+      "Hash": "c7b5f1f14fda23e1af5131973075b20a",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912405+09:00"
+    },
+    {
+      "Name": "EquipSetBonus.json",
+      "Size": 2368,
+      "Hash": "9a2a599bd97efc5a8b909e46fcf5d2f7",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912407+09:00"
+    },
+    {
+      "Name": "EquipOption.json",
+      "Size": 3523,
+      "Hash": "7ddfecad071e529b56a8ab6b04d04023",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912408+09:00"
+    },
+    {
+      "Name": "Gacha.json",
+      "Size": 1984,
+      "Hash": "c286cc2b755230373ec28539cc49ce48",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912409+09:00"
+    },
+    {
+      "Name": "GachaPool.json",
+      "Size": 6219,
+      "Hash": "2541a515d9301653a4a9aae865dabcb8",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912411+09:00"
+    },
+    {
+      "Name": "GachaOdds.json",
+      "Size": 2517,
+      "Hash": "72f3ff027153e39ae8efd7a22badd90e",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912414+09:00"
+    },
+    {
+      "Name": "Pity.json",
+      "Size": 1074,
+      "Hash": "50217e013503ff47d2dca67ce6d4aa3b",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912415+09:00"
+    },
+    {
+      "Name": "LevelCurve.json",
+      "Size": 291393,
+      "Hash": "07fc6786b10c40f3b447c9bc339b4540",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912418+09:00"
+    },
+    {
+      "Name": "StatBase.json",
+      "Size": 1180,
+      "Hash": "5b52494385d5c74c3cfe00cbaf2945d8",
+      "LastUpdatedDate": "2026-08-26T14:48:54.191242+09:00"
+    },
+    {
+      "Name": "AscendCurve.json",
+      "Size": 2313,
+      "Hash": "f57af9b1e730a1d82d325d43eb94467d",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912422+09:00"
+    },
+    {
+      "Name": "PowerScore.json",
+      "Size": 742,
+      "Hash": "2f737e2d47e25b1e874a297a0dc3aac1",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912424+09:00"
+    },
+    {
+      "Name": "Item.json",
+      "Size": 24312,
+      "Hash": "75c261c6ed3c85a87431c3542b26d340",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912425+09:00"
+    },
+    {
+      "Name": "Currency.json",
+      "Size": 1675,
+      "Hash": "9911156b443d3d63055622d7bd4be9bb",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912426+09:00"
+    },
+    {
+      "Name": "Material.json",
+      "Size": 3323,
+      "Hash": "506dbd8b6a141182d001d9c13073ec90",
+      "LastUpdatedDate": "2026-08-26T14:48:54.191243+09:00"
+    },
+    {
+      "Name": "Consumable.json",
+      "Size": 2073,
+      "Hash": "b10d783ab52ef8cd3db98eb3064f5416",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912433+09:00"
+    },
+    {
+      "Name": "Offer.json",
+      "Size": 1962,
+      "Hash": "851b723ea46442a015dbe5434769b18a",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912435+09:00"
+    },
+    {
+      "Name": "OfferItem.json",
+      "Size": 4746,
+      "Hash": "2cf1a60d7477e7befd3c22d41d90e268",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912438+09:00"
+    },
+    {
+      "Name": "ItemGrade.json",
+      "Size": 1276,
+      "Hash": "a44cf209823f418dd5fdfe68a8b04448",
+      "LastUpdatedDate": "2026-08-26T14:48:54.191244+09:00"
+    },
+    {
+      "Name": "String.json",
+      "Size": 80635,
+      "Hash": "3b5a79a1021d0e8e70e1b2aec2767ce0",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912482+09:00"
+    },
+    {
+      "Name": "OfflineReward.json",
+      "Size": 2643,
+      "Hash": "f39870ee81a4a26ad0f0186c9b79efad",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912484+09:00"
+    },
+    {
+      "Name": "IdleRate.json",
+      "Size": 1329,
+      "Hash": "df256e6fa38f551eb3ba94ae558ae9f7",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912486+09:00"
+    },
+    {
+      "Name": "AfkBonus.json",
+      "Size": 750,
+      "Hash": "663ec75cc550a71b1ae7c3428b59ccb4",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912489+09:00"
+    },
+    {
+      "Name": "Quest.json",
+      "Size": 10590,
+      "Hash": "059e15ad273e07fb3c8b5d1181b5d45c",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912491+09:00"
+    },
+    {
+      "Name": "QuestStep.json",
+      "Size": 14160,
+      "Hash": "4f5fdf1c57bbbf7ff47d65c017558a1b",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912494+09:00"
+    },
+    {
+      "Name": "DailyQuest.json",
+      "Size": 1080,
+      "Hash": "c136d298a5779940d96b9d10c71f69c6",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912496+09:00"
+    },
+    {
+      "Name": "WeeklyQuest.json",
+      "Size": 1113,
+      "Hash": "a9c72f74ff0c316f92549daf39ab2254",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912499+09:00"
+    },
+    {
+      "Name": "Achievement.json",
+      "Size": 5853,
+      "Hash": "773a76e911429cf5d31b485889c5706d",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912502+09:00"
+    },
+    {
+      "Name": "Reward.json",
+      "Size": 12108,
+      "Hash": "f8b76e53568e84fcb38a77e1ba04c284",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912504+09:00"
+    },
+    {
+      "Name": "LootGroup.json",
+      "Size": 3667,
+      "Hash": "dd351432061f93882d7330e33a687075",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912508+09:00"
+    },
+    {
+      "Name": "LootEntry.json",
+      "Size": 14465,
+      "Hash": "22a948135dca74238de249d43e562559",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912509+09:00"
+    },
+    {
+      "Name": "MailReward.json",
+      "Size": 2130,
+      "Hash": "8fa93576dd0181469c9642c29254e67c",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912511+09:00"
+    },
+    {
+      "Name": "Setting.json",
+      "Size": 1371,
+      "Hash": "91ed4ff7e7e54251618e8dff34a1f4fc",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912514+09:00"
+    },
+    {
+      "Name": "Condition.json",
+      "Size": 5262,
+      "Hash": "5fdb66df12642a3fbb25b9413c87d668",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912516+09:00"
+    },
+    {
+      "Name": "Unlock.json",
+      "Size": 2313,
+      "Hash": "0b18d1dc7f173eeba4ecc420c23de382",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912517+09:00"
+    },
+    {
+      "Name": "Table.json",
+      "Size": 873,
+      "Hash": "9e696c1f498682113958bc3a7c3eb588",
+      "LastUpdatedDate": "2026-08-26T14:48:54.191252+09:00"
+    },
+    {
+      "Name": "Shop.json",
+      "Size": 1338,
+      "Hash": "9674126fa9b00afecb9c039553613c27",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912523+09:00"
+    },
+    {
+      "Name": "ShopSlot.json",
+      "Size": 5318,
+      "Hash": "2d4555518d58f36869b77bf2aa9d8e36",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912524+09:00"
+    },
+    {
+      "Name": "Price.json",
+      "Size": 2081,
+      "Hash": "a5b121f84aead29424c10c428fab9ad5",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912526+09:00"
+    },
+    {
+      "Name": "Promo.json",
+      "Size": 1842,
+      "Hash": "b631feba6db625fe4c41a07ad923a83f",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912528+09:00"
+    },
+    {
+      "Name": "Skill.json",
+      "Size": 20058,
+      "Hash": "415e4ca2766a2e696796238fd2a03c64",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912531+09:00"
+    },
+    {
+      "Name": "SkillLevel.json",
+      "Size": 17151,
+      "Hash": "ec85c823f8348f378f4d587b97283b84",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912532+09:00"
+    },
+    {
+      "Name": "SkillEffect.json",
+      "Size": 12340,
+      "Hash": "5c75380a68c3c97dcf8d194cf2833e94",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912535+09:00"
+    },
+    {
+      "Name": "Buff.json",
+      "Size": 7410,
+      "Hash": "083dcbd5fe3593b7a784962138ecf245",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912536+09:00"
+    },
+    {
+      "Name": "BuffPool.json",
+      "Size": 3780,
+      "Hash": "315908796f667cd63bbb605a5cbc5e1e",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912537+09:00"
+    },
+    {
+      "Name": "Passive.json",
+      "Size": 3803,
+      "Hash": "9c9caeb160c13ba5395b5ea08445b4fd",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912539+09:00"
+    },
+    {
+      "Name": "Stage.json",
+      "Size": 24408,
+      "Hash": "44ab3b93be4b741ebc5b360bb2e3191a",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912542+09:00"
+    },
+    {
+      "Name": "StageWave.json",
+      "Size": 36632,
+      "Hash": "eb5a07625966377af38281a573f4a32f",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912544+09:00"
+    },
+    {
+      "Name": "StageMonster.json",
+      "Size": 18036,
+      "Hash": "30bdb9274275db89deebe427f61897fd",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912546+09:00"
+    },
+    {
+      "Name": "StageReward.json",
+      "Size": 11244,
+      "Hash": "0ed0a6adff0c6aec1bba3ae873ca17c5",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912547+09:00"
+    },
+    {
+      "Name": "Chapter.json",
+      "Size": 1590,
+      "Hash": "c80d5ba4c2864fef5c580eafc2d8cf6f",
+      "LastUpdatedDate": "2026-08-26T14:48:54.191255+09:00"
+    },
+    {
+      "Name": "World.json",
+      "Size": 1535,
+      "Hash": "e1c8223d2d1c33582b586184bf5d6c5d",
+      "LastUpdatedDate": "2026-08-26T14:48:54.1912552+09:00"
+    }
+  ]
+}

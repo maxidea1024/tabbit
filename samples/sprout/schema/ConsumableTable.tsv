@@ -1,0 +1,4 @@
+@desc	primary index	backing item	granted buff	cooldown in seconds
+@name	id	itemId	buffId	cooldown
+@type	Int	Int	Int	Int
+@gen	seq:1204000	ref:ItemTable	ref:BuffTable	int:0..3600:zipf

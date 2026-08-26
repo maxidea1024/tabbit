@@ -1,0 +1,602 @@
+[
+  {
+    "id": 1702000,
+    "dungeonId": 1701009,
+    "floor": 0,
+    "power": 2000,
+    "stamina": 32,
+    "rewardId": 1703021
+  },
+  {
+    "id": 1702001,
+    "dungeonId": 1701005,
+    "floor": 1,
+    "power": 3450,
+    "stamina": 23,
+    "rewardId": 1703012
+  },
+  {
+    "id": 1702002,
+    "dungeonId": 1701002,
+    "floor": 2,
+    "power": 4901,
+    "stamina": 15,
+    "rewardId": 1703039
+  },
+  {
+    "id": 1702003,
+    "dungeonId": 1701005,
+    "floor": 3,
+    "power": 6352,
+    "stamina": 32,
+    "rewardId": 1703025
+  },
+  {
+    "id": 1702004,
+    "dungeonId": 1701003,
+    "floor": 4,
+    "power": 7804,
+    "stamina": 18,
+    "rewardId": 1703022
+  },
+  {
+    "id": 1702005,
+    "dungeonId": 1701011,
+    "floor": 5,
+    "power": 9256,
+    "stamina": 36,
+    "rewardId": 1703021
+  },
+  {
+    "id": 1702006,
+    "dungeonId": 1701002,
+    "floor": 6,
+    "power": 10709,
+    "stamina": 31,
+    "rewardId": 1703033
+  },
+  {
+    "id": 1702007,
+    "dungeonId": 1701008,
+    "floor": 7,
+    "power": 12162,
+    "stamina": 39,
+    "rewardId": 1703019
+  },
+  {
+    "id": 1702008,
+    "dungeonId": 1701005,
+    "floor": 8,
+    "power": 13616,
+    "stamina": 37,
+    "rewardId": 1703019
+  },
+  {
+    "id": 1702009,
+    "dungeonId": 1701009,
+    "floor": 9,
+    "power": 15070,
+    "stamina": 14,
+    "rewardId": 1703025
+  },
+  {
+    "id": 1702010,
+    "dungeonId": 1701003,
+    "floor": 10,
+    "power": 16525,
+    "stamina": 20,
+    "rewardId": 1703016
+  },
+  {
+    "id": 1702011,
+    "dungeonId": 1701010,
+    "floor": 11,
+    "power": 17980,
+    "stamina": 14,
+    "rewardId": 1703043
+  },
+  {
+    "id": 1702012,
+    "dungeonId": 1701005,
+    "floor": 12,
+    "power": 19436,
+    "stamina": 40,
+    "rewardId": 1703008
+  },
+  {
+    "id": 1702013,
+    "dungeonId": 1701007,
+    "floor": 13,
+    "power": 20892,
+    "stamina": 15,
+    "rewardId": 1703006
+  },
+  {
+    "id": 1702014,
+    "dungeonId": 1701011,
+    "floor": 14,
+    "power": 22349,
+    "stamina": 19,
+    "rewardId": 1703028
+  },
+  {
+    "id": 1702015,
+    "dungeonId": 1701009,
+    "floor": 15,
+    "power": 23806,
+    "stamina": 25,
+    "rewardId": 1703010
+  },
+  {
+    "id": 1702016,
+    "dungeonId": 1701010,
+    "floor": 16,
+    "power": 25264,
+    "stamina": 10,
+    "rewardId": 1703033
+  },
+  {
+    "id": 1702017,
+    "dungeonId": 1701006,
+    "floor": 17,
+    "power": 26722,
+    "stamina": 23,
+    "rewardId": 1703010
+  },
+  {
+    "id": 1702018,
+    "dungeonId": 1701008,
+    "floor": 18,
+    "power": 28181,
+    "stamina": 26,
+    "rewardId": 1703044
+  },
+  {
+    "id": 1702019,
+    "dungeonId": 1701002,
+    "floor": 19,
+    "power": 29640,
+    "stamina": 15,
+    "rewardId": 1703031
+  },
+  {
+    "id": 1702020,
+    "dungeonId": 1701002,
+    "floor": 0,
+    "power": 2000,
+    "stamina": 40,
+    "rewardId": 1703015
+  },
+  {
+    "id": 1702021,
+    "dungeonId": 1701001,
+    "floor": 1,
+    "power": 3450,
+    "stamina": 22,
+    "rewardId": 1703044
+  },
+  {
+    "id": 1702022,
+    "dungeonId": 1701011,
+    "floor": 2,
+    "power": 4901,
+    "stamina": 22,
+    "rewardId": 1703017
+  },
+  {
+    "id": 1702023,
+    "dungeonId": 1701005,
+    "floor": 3,
+    "power": 6352,
+    "stamina": 29,
+    "rewardId": 1703044
+  },
+  {
+    "id": 1702024,
+    "dungeonId": 1701004,
+    "floor": 4,
+    "power": 7804,
+    "stamina": 34,
+    "rewardId": 1703022
+  },
+  {
+    "id": 1702025,
+    "dungeonId": 1701011,
+    "floor": 5,
+    "power": 9256,
+    "stamina": 12,
+    "rewardId": 1703005
+  },
+  {
+    "id": 1702026,
+    "dungeonId": 1701001,
+    "floor": 6,
+    "power": 10709,
+    "stamina": 23,
+    "rewardId": 1703015
+  },
+  {
+    "id": 1702027,
+    "dungeonId": 1701007,
+    "floor": 7,
+    "power": 12162,
+    "stamina": 19,
+    "rewardId": 1703031
+  },
+  {
+    "id": 1702028,
+    "dungeonId": 1701005,
+    "floor": 8,
+    "power": 13616,
+    "stamina": 27,
+    "rewardId": 1703034
+  },
+  {
+    "id": 1702029,
+    "dungeonId": 1701000,
+    "floor": 9,
+    "power": 15070,
+    "stamina": 13,
+    "rewardId": 1703037
+  },
+  {
+    "id": 1702030,
+    "dungeonId": 1701000,
+    "floor": 10,
+    "power": 16525,
+    "stamina": 21,
+    "rewardId": 1703010
+  },
+  {
+    "id": 1702031,
+    "dungeonId": 1701006,
+    "floor": 11,
+    "power": 17980,
+    "stamina": 18,
+    "rewardId": 1703044
+  },
+  {
+    "id": 1702032,
+    "dungeonId": 1701007,
+    "floor": 12,
+    "power": 19436,
+    "stamina": 37,
+    "rewardId": 1703036
+  },
+  {
+    "id": 1702033,
+    "dungeonId": 1701002,
+    "floor": 13,
+    "power": 20892,
+    "stamina": 24,
+    "rewardId": 1703011
+  },
+  {
+    "id": 1702034,
+    "dungeonId": 1701009,
+    "floor": 14,
+    "power": 22349,
+    "stamina": 15,
+    "rewardId": 1703002
+  },
+  {
+    "id": 1702035,
+    "dungeonId": 1701001,
+    "floor": 15,
+    "power": 23806,
+    "stamina": 32,
+    "rewardId": 1703016
+  },
+  {
+    "id": 1702036,
+    "dungeonId": 1701004,
+    "floor": 16,
+    "power": 25264,
+    "stamina": 13,
+    "rewardId": 1703005
+  },
+  {
+    "id": 1702037,
+    "dungeonId": 1701000,
+    "floor": 17,
+    "power": 26722,
+    "stamina": 5,
+    "rewardId": 1703005
+  },
+  {
+    "id": 1702038,
+    "dungeonId": 1701008,
+    "floor": 18,
+    "power": 28181,
+    "stamina": 27,
+    "rewardId": 1703016
+  },
+  {
+    "id": 1702039,
+    "dungeonId": 1701005,
+    "floor": 19,
+    "power": 29640,
+    "stamina": 22,
+    "rewardId": 1703034
+  },
+  {
+    "id": 1702040,
+    "dungeonId": 1701006,
+    "floor": 0,
+    "power": 2000,
+    "stamina": 32,
+    "rewardId": 1703014
+  },
+  {
+    "id": 1702041,
+    "dungeonId": 1701004,
+    "floor": 1,
+    "power": 3450,
+    "stamina": 5,
+    "rewardId": 1703007
+  },
+  {
+    "id": 1702042,
+    "dungeonId": 1701007,
+    "floor": 2,
+    "power": 4901,
+    "stamina": 15,
+    "rewardId": 1703012
+  },
+  {
+    "id": 1702043,
+    "dungeonId": 1701008,
+    "floor": 3,
+    "power": 6352,
+    "stamina": 37,
+    "rewardId": 1703032
+  },
+  {
+    "id": 1702044,
+    "dungeonId": 1701003,
+    "floor": 4,
+    "power": 7804,
+    "stamina": 18,
+    "rewardId": 1703040
+  },
+  {
+    "id": 1702045,
+    "dungeonId": 1701009,
+    "floor": 5,
+    "power": 9256,
+    "stamina": 28,
+    "rewardId": 1703010
+  },
+  {
+    "id": 1702046,
+    "dungeonId": 1701008,
+    "floor": 6,
+    "power": 10709,
+    "stamina": 30,
+    "rewardId": 1703038
+  },
+  {
+    "id": 1702047,
+    "dungeonId": 1701008,
+    "floor": 7,
+    "power": 12162,
+    "stamina": 12,
+    "rewardId": 1703039
+  },
+  {
+    "id": 1702048,
+    "dungeonId": 1701011,
+    "floor": 8,
+    "power": 13616,
+    "stamina": 32,
+    "rewardId": 1703005
+  },
+  {
+    "id": 1702049,
+    "dungeonId": 1701008,
+    "floor": 9,
+    "power": 15070,
+    "stamina": 12,
+    "rewardId": 1703033
+  },
+  {
+    "id": 1702050,
+    "dungeonId": 1701008,
+    "floor": 10,
+    "power": 16525,
+    "stamina": 8,
+    "rewardId": 1703006
+  },
+  {
+    "id": 1702051,
+    "dungeonId": 1701004,
+    "floor": 11,
+    "power": 17980,
+    "stamina": 12,
+    "rewardId": 1703039
+  },
+  {
+    "id": 1702052,
+    "dungeonId": 1701002,
+    "floor": 12,
+    "power": 19436,
+    "stamina": 28,
+    "rewardId": 1703040
+  },
+  {
+    "id": 1702053,
+    "dungeonId": 1701007,
+    "floor": 13,
+    "power": 20892,
+    "stamina": 7,
+    "rewardId": 1703023
+  },
+  {
+    "id": 1702054,
+    "dungeonId": 1701004,
+    "floor": 14,
+    "power": 22349,
+    "stamina": 32,
+    "rewardId": 1703025
+  },
+  {
+    "id": 1702055,
+    "dungeonId": 1701002,
+    "floor": 15,
+    "power": 23806,
+    "stamina": 35,
+    "rewardId": 1703042
+  },
+  {
+    "id": 1702056,
+    "dungeonId": 1701010,
+    "floor": 16,
+    "power": 25264,
+    "stamina": 11,
+    "rewardId": 1703035
+  },
+  {
+    "id": 1702057,
+    "dungeonId": 1701009,
+    "floor": 17,
+    "power": 26722,
+    "stamina": 26,
+    "rewardId": 1703011
+  },
+  {
+    "id": 1702058,
+    "dungeonId": 1701001,
+    "floor": 18,
+    "power": 28181,
+    "stamina": 22,
+    "rewardId": 1703026
+  },
+  {
+    "id": 1702059,
+    "dungeonId": 1701006,
+    "floor": 19,
+    "power": 29640,
+    "stamina": 10,
+    "rewardId": 1703042
+  },
+  {
+    "id": 1702060,
+    "dungeonId": 1701009,
+    "floor": 0,
+    "power": 2000,
+    "stamina": 20,
+    "rewardId": 1703009
+  },
+  {
+    "id": 1702061,
+    "dungeonId": 1701007,
+    "floor": 1,
+    "power": 3450,
+    "stamina": 5,
+    "rewardId": 1703036
+  },
+  {
+    "id": 1702062,
+    "dungeonId": 1701009,
+    "floor": 2,
+    "power": 4901,
+    "stamina": 29,
+    "rewardId": 1703039
+  },
+  {
+    "id": 1702063,
+    "dungeonId": 1701004,
+    "floor": 3,
+    "power": 6352,
+    "stamina": 5,
+    "rewardId": 1703028
+  },
+  {
+    "id": 1702064,
+    "dungeonId": 1701009,
+    "floor": 4,
+    "power": 7804,
+    "stamina": 12,
+    "rewardId": 1703012
+  },
+  {
+    "id": 1702065,
+    "dungeonId": 1701008,
+    "floor": 5,
+    "power": 9256,
+    "stamina": 27,
+    "rewardId": 1703012
+  },
+  {
+    "id": 1702066,
+    "dungeonId": 1701001,
+    "floor": 6,
+    "power": 10709,
+    "stamina": 19,
+    "rewardId": 1703013
+  },
+  {
+    "id": 1702067,
+    "dungeonId": 1701000,
+    "floor": 7,
+    "power": 12162,
+    "stamina": 25,
+    "rewardId": 1703022
+  },
+  {
+    "id": 1702068,
+    "dungeonId": 1701008,
+    "floor": 8,
+    "power": 13616,
+    "stamina": 31,
+    "rewardId": 1703016
+  },
+  {
+    "id": 1702069,
+    "dungeonId": 1701006,
+    "floor": 9,
+    "power": 15070,
+    "stamina": 7,
+    "rewardId": 1703036
+  },
+  {
+    "id": 1702070,
+    "dungeonId": 1701002,
+    "floor": 10,
+    "power": 16525,
+    "stamina": 16,
+    "rewardId": 1703030
+  },
+  {
+    "id": 1702071,
+    "dungeonId": 1701001,
+    "floor": 11,
+    "power": 17980,
+    "stamina": 39,
+    "rewardId": 1703034
+  },
+  {
+    "id": 1702072,
+    "dungeonId": 1701008,
+    "floor": 12,
+    "power": 19436,
+    "stamina": 11,
+    "rewardId": 1703032
+  },
+  {
+    "id": 1702073,
+    "dungeonId": 1701008,
+    "floor": 13,
+    "power": 20892,
+    "stamina": 20,
+    "rewardId": 1703035
+  },
+  {
+    "id": 1702074,
+    "dungeonId": 1701001,
+    "floor": 14,
+    "power": 22349,
+    "stamina": 29,
+    "rewardId": 1703011
+  }
+]

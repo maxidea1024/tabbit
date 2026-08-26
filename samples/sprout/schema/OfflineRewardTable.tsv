@@ -1,0 +1,4 @@
+@desc	primary index	account level	soft currency per hour	experience per hour	drop group
+@name	id	accountLevel	goldPerHour	expPerHour	lootGroupId
+@type	Int	Int	Long	Long	Int
+@gen	seq:2101000	seq:1	curve:1200:900:80	curve:600:420:80	ref:LootGroupTable

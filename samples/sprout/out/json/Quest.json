@@ -1,0 +1,497 @@
+[
+  {
+    "id": 1601000,
+    "type": 2,
+    "titleKey": "QUEST_TITLE_0159",
+    "summaryKey": "QUEST_SUMMARY_0061",
+    "rewardId": 2001013,
+    "unlockId": 2402020,
+    "repeatable": true
+  },
+  {
+    "id": 1601001,
+    "type": 5,
+    "titleKey": "QUEST_TITLE_0041",
+    "summaryKey": "QUEST_SUMMARY_0202",
+    "rewardId": 2001020,
+    "unlockId": 2402018,
+    "repeatable": true
+  },
+  {
+    "id": 1601002,
+    "type": 3,
+    "titleKey": "QUEST_TITLE_0005",
+    "summaryKey": "QUEST_SUMMARY_0179",
+    "rewardId": 2001058,
+    "unlockId": 2402000,
+    "repeatable": false
+  },
+  {
+    "id": 1601003,
+    "type": 2,
+    "titleKey": "QUEST_TITLE_0146",
+    "summaryKey": "QUEST_SUMMARY_0110",
+    "rewardId": 2001013,
+    "unlockId": 2402001,
+    "repeatable": false
+  },
+  {
+    "id": 1601004,
+    "type": 3,
+    "titleKey": "QUEST_TITLE_0132",
+    "summaryKey": "QUEST_SUMMARY_0034",
+    "rewardId": 2001055,
+    "unlockId": 2402019,
+    "repeatable": false
+  },
+  {
+    "id": 1601005,
+    "type": 3,
+    "titleKey": "QUEST_TITLE_0108",
+    "summaryKey": "QUEST_SUMMARY_0016",
+    "rewardId": 2001039,
+    "unlockId": 2402012,
+    "repeatable": true
+  },
+  {
+    "id": 1601006,
+    "type": 3,
+    "titleKey": "QUEST_TITLE_0016",
+    "summaryKey": "QUEST_SUMMARY_0200",
+    "rewardId": 2001016,
+    "unlockId": 2402019,
+    "repeatable": true
+  },
+  {
+    "id": 1601007,
+    "type": 4,
+    "titleKey": "QUEST_TITLE_0186",
+    "summaryKey": "QUEST_SUMMARY_0177",
+    "rewardId": 2001045,
+    "unlockId": 2402017,
+    "repeatable": true
+  },
+  {
+    "id": 1601008,
+    "type": 4,
+    "titleKey": "QUEST_TITLE_0135",
+    "summaryKey": "QUEST_SUMMARY_0094",
+    "rewardId": 2001008,
+    "unlockId": 2402001,
+    "repeatable": true
+  },
+  {
+    "id": 1601009,
+    "type": 5,
+    "titleKey": "QUEST_TITLE_0098",
+    "summaryKey": "QUEST_SUMMARY_0199",
+    "rewardId": 2001022,
+    "unlockId": 2402021,
+    "repeatable": false
+  },
+  {
+    "id": 1601010,
+    "type": 4,
+    "titleKey": "QUEST_TITLE_0201",
+    "summaryKey": "QUEST_SUMMARY_0192",
+    "rewardId": 2001044,
+    "unlockId": 2402013,
+    "repeatable": false
+  },
+  {
+    "id": 1601011,
+    "type": 1,
+    "titleKey": "QUEST_TITLE_0145",
+    "summaryKey": "QUEST_SUMMARY_0168",
+    "rewardId": 2001034,
+    "unlockId": 2402008,
+    "repeatable": false
+  },
+  {
+    "id": 1601012,
+    "type": 5,
+    "titleKey": "QUEST_TITLE_0060",
+    "summaryKey": "QUEST_SUMMARY_0180",
+    "rewardId": 2001007,
+    "unlockId": 2402021,
+    "repeatable": false
+  },
+  {
+    "id": 1601013,
+    "type": 1,
+    "titleKey": "QUEST_TITLE_0103",
+    "summaryKey": "QUEST_SUMMARY_0187",
+    "rewardId": 2001052,
+    "unlockId": 2402020,
+    "repeatable": false
+  },
+  {
+    "id": 1601014,
+    "type": 4,
+    "titleKey": "QUEST_TITLE_0012",
+    "summaryKey": "QUEST_SUMMARY_0173",
+    "rewardId": 2001049,
+    "unlockId": 2402008,
+    "repeatable": true
+  },
+  {
+    "id": 1601015,
+    "type": 5,
+    "titleKey": "QUEST_TITLE_0087",
+    "summaryKey": "QUEST_SUMMARY_0157",
+    "rewardId": 2001018,
+    "unlockId": 2402018,
+    "repeatable": true
+  },
+  {
+    "id": 1601016,
+    "type": 5,
+    "titleKey": "QUEST_TITLE_0158",
+    "summaryKey": "QUEST_SUMMARY_0122",
+    "rewardId": 2001036,
+    "unlockId": 2402007,
+    "repeatable": false
+  },
+  {
+    "id": 1601017,
+    "type": 1,
+    "titleKey": "QUEST_TITLE_0142",
+    "summaryKey": "QUEST_SUMMARY_0041",
+    "rewardId": 2001058,
+    "unlockId": 2402000,
+    "repeatable": true
+  },
+  {
+    "id": 1601018,
+    "type": 3,
+    "titleKey": "QUEST_TITLE_0216",
+    "summaryKey": "QUEST_SUMMARY_0110",
+    "rewardId": 2001045,
+    "unlockId": 2402012,
+    "repeatable": true
+  },
+  {
+    "id": 1601019,
+    "type": 5,
+    "titleKey": "QUEST_TITLE_0212",
+    "summaryKey": "QUEST_SUMMARY_0159",
+    "rewardId": 2001043,
+    "unlockId": 2402017,
+    "repeatable": true
+  },
+  {
+    "id": 1601020,
+    "type": 4,
+    "titleKey": "QUEST_TITLE_0036",
+    "summaryKey": "QUEST_SUMMARY_0184",
+    "rewardId": 2001037,
+    "unlockId": 2402007,
+    "repeatable": false
+  },
+  {
+    "id": 1601021,
+    "type": 3,
+    "titleKey": "QUEST_TITLE_0106",
+    "summaryKey": "QUEST_SUMMARY_0031",
+    "rewardId": 2001056,
+    "unlockId": 2402020,
+    "repeatable": true
+  },
+  {
+    "id": 1601022,
+    "type": 5,
+    "titleKey": "QUEST_TITLE_0033",
+    "summaryKey": "QUEST_SUMMARY_0166",
+    "rewardId": 2001060,
+    "unlockId": 2402008,
+    "repeatable": false
+  },
+  {
+    "id": 1601023,
+    "type": 1,
+    "titleKey": "QUEST_TITLE_0076",
+    "summaryKey": "QUEST_SUMMARY_0132",
+    "rewardId": 2001014,
+    "unlockId": 2402005,
+    "repeatable": false
+  },
+  {
+    "id": 1601024,
+    "type": 3,
+    "titleKey": "QUEST_TITLE_0195",
+    "summaryKey": "QUEST_SUMMARY_0216",
+    "rewardId": 2001011,
+    "unlockId": 2402007,
+    "repeatable": true
+  },
+  {
+    "id": 1601025,
+    "type": 2,
+    "titleKey": "QUEST_TITLE_0148",
+    "summaryKey": "QUEST_SUMMARY_0064",
+    "rewardId": 2001025,
+    "unlockId": 2402020,
+    "repeatable": false
+  },
+  {
+    "id": 1601026,
+    "type": 5,
+    "titleKey": "QUEST_TITLE_0056",
+    "summaryKey": "QUEST_SUMMARY_0114",
+    "rewardId": 2001031,
+    "unlockId": 2402014,
+    "repeatable": false
+  },
+  {
+    "id": 1601027,
+    "type": 1,
+    "titleKey": "QUEST_TITLE_0160",
+    "summaryKey": "QUEST_SUMMARY_0212",
+    "rewardId": 2001000,
+    "unlockId": 2402018,
+    "repeatable": false
+  },
+  {
+    "id": 1601028,
+    "type": 3,
+    "titleKey": "QUEST_TITLE_0076",
+    "summaryKey": "QUEST_SUMMARY_0197",
+    "rewardId": 2001022,
+    "unlockId": 2402011,
+    "repeatable": false
+  },
+  {
+    "id": 1601029,
+    "type": 3,
+    "titleKey": "QUEST_TITLE_0069",
+    "summaryKey": "QUEST_SUMMARY_0032",
+    "rewardId": 2001011,
+    "unlockId": 2402017,
+    "repeatable": false
+  },
+  {
+    "id": 1601030,
+    "type": 5,
+    "titleKey": "QUEST_TITLE_0107",
+    "summaryKey": "QUEST_SUMMARY_0090",
+    "rewardId": 2001017,
+    "unlockId": 2402010,
+    "repeatable": true
+  },
+  {
+    "id": 1601031,
+    "type": 5,
+    "titleKey": "QUEST_TITLE_0151",
+    "summaryKey": "QUEST_SUMMARY_0069",
+    "rewardId": 2001056,
+    "unlockId": 2402004,
+    "repeatable": true
+  },
+  {
+    "id": 1601032,
+    "type": 1,
+    "titleKey": "QUEST_TITLE_0210",
+    "summaryKey": "QUEST_SUMMARY_0004",
+    "rewardId": 2001017,
+    "unlockId": 2402009,
+    "repeatable": true
+  },
+  {
+    "id": 1601033,
+    "type": 4,
+    "titleKey": "QUEST_TITLE_0136",
+    "summaryKey": "QUEST_SUMMARY_0049",
+    "rewardId": 2001033,
+    "unlockId": 2402013,
+    "repeatable": true
+  },
+  {
+    "id": 1601034,
+    "type": 2,
+    "titleKey": "QUEST_TITLE_0023",
+    "summaryKey": "QUEST_SUMMARY_0206",
+    "rewardId": 2001061,
+    "unlockId": 2402019,
+    "repeatable": false
+  },
+  {
+    "id": 1601035,
+    "type": 3,
+    "titleKey": "QUEST_TITLE_0090",
+    "summaryKey": "QUEST_SUMMARY_0154",
+    "rewardId": 2001042,
+    "unlockId": 2402009,
+    "repeatable": false
+  },
+  {
+    "id": 1601036,
+    "type": 3,
+    "titleKey": "QUEST_TITLE_0155",
+    "summaryKey": "QUEST_SUMMARY_0074",
+    "rewardId": 2001035,
+    "unlockId": 2402012,
+    "repeatable": false
+  },
+  {
+    "id": 1601037,
+    "type": 3,
+    "titleKey": "QUEST_TITLE_0128",
+    "summaryKey": "QUEST_SUMMARY_0116",
+    "rewardId": 2001045,
+    "unlockId": 2402005,
+    "repeatable": true
+  },
+  {
+    "id": 1601038,
+    "type": 3,
+    "titleKey": "QUEST_TITLE_0168",
+    "summaryKey": "QUEST_SUMMARY_0115",
+    "rewardId": 2001011,
+    "unlockId": 2402008,
+    "repeatable": false
+  },
+  {
+    "id": 1601039,
+    "type": 2,
+    "titleKey": "QUEST_TITLE_0020",
+    "summaryKey": "QUEST_SUMMARY_0195",
+    "rewardId": 2001022,
+    "unlockId": 2402019,
+    "repeatable": true
+  },
+  {
+    "id": 1601040,
+    "type": 2,
+    "titleKey": "QUEST_TITLE_0187",
+    "summaryKey": "QUEST_SUMMARY_0170",
+    "rewardId": 2001045,
+    "unlockId": 2402009,
+    "repeatable": true
+  },
+  {
+    "id": 1601041,
+    "type": 4,
+    "titleKey": "QUEST_TITLE_0199",
+    "summaryKey": "QUEST_SUMMARY_0024",
+    "rewardId": 2001055,
+    "unlockId": 2402016,
+    "repeatable": true
+  },
+  {
+    "id": 1601042,
+    "type": 2,
+    "titleKey": "QUEST_TITLE_0021",
+    "summaryKey": "QUEST_SUMMARY_0191",
+    "rewardId": 2001020,
+    "unlockId": 2402018,
+    "repeatable": false
+  },
+  {
+    "id": 1601043,
+    "type": 3,
+    "titleKey": "QUEST_TITLE_0070",
+    "summaryKey": "QUEST_SUMMARY_0039",
+    "rewardId": 2001050,
+    "unlockId": 2402015,
+    "repeatable": false
+  },
+  {
+    "id": 1601044,
+    "type": 2,
+    "titleKey": "QUEST_TITLE_0126",
+    "summaryKey": "QUEST_SUMMARY_0088",
+    "rewardId": 2001036,
+    "unlockId": 2402001,
+    "repeatable": true
+  },
+  {
+    "id": 1601045,
+    "type": 1,
+    "titleKey": "QUEST_TITLE_0028",
+    "summaryKey": "QUEST_SUMMARY_0162",
+    "rewardId": 2001014,
+    "unlockId": 2402002,
+    "repeatable": true
+  },
+  {
+    "id": 1601046,
+    "type": 4,
+    "titleKey": "QUEST_TITLE_0116",
+    "summaryKey": "QUEST_SUMMARY_0117",
+    "rewardId": 2001058,
+    "unlockId": 2402021,
+    "repeatable": true
+  },
+  {
+    "id": 1601047,
+    "type": 3,
+    "titleKey": "QUEST_TITLE_0126",
+    "summaryKey": "QUEST_SUMMARY_0079",
+    "rewardId": 2001041,
+    "unlockId": 2402017,
+    "repeatable": true
+  },
+  {
+    "id": 1601048,
+    "type": 3,
+    "titleKey": "QUEST_TITLE_0055",
+    "summaryKey": "QUEST_SUMMARY_0191",
+    "rewardId": 2001053,
+    "unlockId": 2402000,
+    "repeatable": false
+  },
+  {
+    "id": 1601049,
+    "type": 5,
+    "titleKey": "QUEST_TITLE_0057",
+    "summaryKey": "QUEST_SUMMARY_0025",
+    "rewardId": 2001009,
+    "unlockId": 2402021,
+    "repeatable": true
+  },
+  {
+    "id": 1601050,
+    "type": 4,
+    "titleKey": "QUEST_TITLE_0006",
+    "summaryKey": "QUEST_SUMMARY_0024",
+    "rewardId": 2001020,
+    "unlockId": 2402021,
+    "repeatable": true
+  },
+  {
+    "id": 1601051,
+    "type": 5,
+    "titleKey": "QUEST_TITLE_0043",
+    "summaryKey": "QUEST_SUMMARY_0105",
+    "rewardId": 2001058,
+    "unlockId": 2402003,
+    "repeatable": false
+  },
+  {
+    "id": 1601052,
+    "type": 1,
+    "titleKey": "QUEST_TITLE_0196",
+    "summaryKey": "QUEST_SUMMARY_0126",
+    "rewardId": 2001018,
+    "unlockId": 2402020,
+    "repeatable": false
+  },
+  {
+    "id": 1601053,
+    "type": 2,
+    "titleKey": "QUEST_TITLE_0214",
+    "summaryKey": "QUEST_SUMMARY_0052",
+    "rewardId": 2001026,
+    "unlockId": 2402008,
+    "repeatable": false
+  },
+  {
+    "id": 1601054,
+    "type": 2,
+    "titleKey": "QUEST_TITLE_0068",
+    "summaryKey": "QUEST_SUMMARY_0037",
+    "rewardId": 2001059,
+    "unlockId": 2402009,
+    "repeatable": true
+  }
+]

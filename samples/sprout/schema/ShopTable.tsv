@@ -1,0 +1,6 @@
+@desc	primary index	shop kind	name key	refresh hours	free refreshes per day
+@name	id	type	nameKey	refreshHours	freeRefresh
+@type	Int	enum:ShopType	String	Int	Int
+@gen	seq:1801000	enum:ShopType	str:SHOP_NAME:18	int:6..168	int:0..5
+# retired at the closed beta	Daily	SHOP_NAME_0000	24	1
+// the guild shop moved to its own table	Guild	SHOP_NAME_0001	48	0

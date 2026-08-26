@@ -1,0 +1,4 @@
+@desc	primary index	owning gacha	grade	rate in ten-thousandths
+@name	id	gachaId	grade	rate
+@type	Int	Int	enum:GradeType	Int
+@gen	seq:1903000	ref:GachaTable	enum:GradeType	int:1..9000:zipf

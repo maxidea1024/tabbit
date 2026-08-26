@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1604000,
+    "questId": 1601053,
+    "points": 294,
+    "resetWeekday": 3
+  },
+  {
+    "id": 1604001,
+    "questId": 1601047,
+    "points": 162,
+    "resetWeekday": 0
+  },
+  {
+    "id": 1604002,
+    "questId": 1601040,
+    "points": 237,
+    "resetWeekday": 3
+  },
+  {
+    "id": 1604003,
+    "questId": 1601051,
+    "points": 96,
+    "resetWeekday": 4
+  },
+  {
+    "id": 1604004,
+    "questId": 1601035,
+    "points": 48,
+    "resetWeekday": 2
+  },
+  {
+    "id": 1604005,
+    "questId": 1601010,
+    "points": 95,
+    "resetWeekday": 1
+  },
+  {
+    "id": 1604006,
+    "questId": 1601022,
+    "points": 89,
+    "resetWeekday": 2
+  },
+  {
+    "id": 1604007,
+    "questId": 1601009,
+    "points": 140,
+    "resetWeekday": 3
+  },
+  {
+    "id": 1604008,
+    "questId": 1601044,
+    "points": 88,
+    "resetWeekday": 4
+  },
+  {
+    "id": 1604009,
+    "questId": 1601014,
+    "points": 223,
+    "resetWeekday": 2
+  },
+  {
+    "id": 1604010,
+    "questId": 1601016,
+    "points": 157,
+    "resetWeekday": 6
+  },
+  {
+    "id": 1604011,
+    "questId": 1601044,
+    "points": 46,
+    "resetWeekday": 4
+  }
+]

@@ -1,0 +1,422 @@
+[
+  {
+    "id": 1005000,
+    "characterId": 1001022,
+    "cue": "VO_CUE_0017",
+    "clip": "Audio/Voice/Isle/GraveIsle_88",
+    "subtitleKey": "VO_TEXT_0194"
+  },
+  {
+    "id": 1005001,
+    "characterId": 1001026,
+    "cue": "VO_CUE_0000",
+    "clip": "Audio/Voice/Calyx/Calyx_02",
+    "subtitleKey": "VO_TEXT_0169"
+  },
+  {
+    "id": 1005002,
+    "characterId": 1001008,
+    "cue": "VO_CUE_0022",
+    "clip": "Audio/Voice/Gale/BrightMarrow_62",
+    "subtitleKey": "VO_TEXT_0090"
+  },
+  {
+    "id": 1005003,
+    "characterId": 1001011,
+    "cue": "VO_CUE_0004",
+    "clip": "Audio/Voice/Ember/GraveQuill_96",
+    "subtitleKey": "VO_TEXT_0056"
+  },
+  {
+    "id": 1005004,
+    "characterId": 1001024,
+    "cue": "VO_CUE_0003",
+    "clip": "Audio/Voice/Dorn/SwiftVellum_31",
+    "subtitleKey": "VO_TEXT_0130"
+  },
+  {
+    "id": 1005005,
+    "characterId": 1001022,
+    "cue": "VO_CUE_0039",
+    "clip": "Audio/Voice/Brack/Brack_01",
+    "subtitleKey": "VO_TEXT_0162"
+  },
+  {
+    "id": 1005006,
+    "characterId": 1001003,
+    "cue": "VO_CUE_0013",
+    "clip": "Audio/Voice/Gale/SwiftMarrow_22",
+    "subtitleKey": "VO_TEXT_0065"
+  },
+  {
+    "id": 1005007,
+    "characterId": 1001017,
+    "cue": "VO_CUE_0007",
+    "clip": "Audio/Voice/Ember/SwiftWick_32",
+    "subtitleKey": "VO_TEXT_0215"
+  },
+  {
+    "id": 1005008,
+    "characterId": 1001009,
+    "cue": "VO_CUE_0023",
+    "clip": "Audio/Voice/Harrow/WardedBrack_91",
+    "subtitleKey": "VO_TEXT_0013"
+  },
+  {
+    "id": 1005009,
+    "characterId": 1001016,
+    "cue": "VO_CUE_0006",
+    "clip": "Audio/Voice/Ember/KeenEmber_64",
+    "subtitleKey": "VO_TEXT_0143"
+  },
+  {
+    "id": 1005010,
+    "characterId": 1001028,
+    "cue": "VO_CUE_0007",
+    "clip": "Audio/Voice/Gale/Salt_18",
+    "subtitleKey": "VO_TEXT_0200"
+  },
+  {
+    "id": 1005011,
+    "characterId": 1001007,
+    "cue": "VO_CUE_0019",
+    "clip": "Audio/Voice/Lumen/Yarrow_23",
+    "subtitleKey": "VO_TEXT_0223"
+  },
+  {
+    "id": 1005012,
+    "characterId": 1001029,
+    "cue": "VO_CUE_0030",
+    "clip": "Audio/Voice/Calyx/SwiftUmber_30",
+    "subtitleKey": "VO_TEXT_0041"
+  },
+  {
+    "id": 1005013,
+    "characterId": 1001004,
+    "cue": "VO_CUE_0029",
+    "clip": "Audio/Voice/Alder/Zephyr_24",
+    "subtitleKey": "VO_TEXT_0160"
+  },
+  {
+    "id": 1005014,
+    "characterId": 1001017,
+    "cue": "VO_CUE_0019",
+    "clip": "Audio/Voice/Alder/WardedSalt_08",
+    "subtitleKey": "VO_TEXT_0000"
+  },
+  {
+    "id": 1005015,
+    "characterId": 1001002,
+    "cue": "VO_CUE_0038",
+    "clip": "Audio/Voice/Kelvin/WardedEmber_94",
+    "subtitleKey": "VO_TEXT_0023"
+  },
+  {
+    "id": 1005016,
+    "characterId": 1001008,
+    "cue": "VO_CUE_0033",
+    "clip": "Audio/Voice/Kelvin/WardedQuill_06",
+    "subtitleKey": "VO_TEXT_0110"
+  },
+  {
+    "id": 1005017,
+    "characterId": 1001020,
+    "cue": "VO_CUE_0037",
+    "clip": "Audio/Voice/Alder/SwiftGale_16",
+    "subtitleKey": "VO_TEXT_0177"
+  },
+  {
+    "id": 1005018,
+    "characterId": 1001026,
+    "cue": "VO_CUE_0034",
+    "clip": "Audio/Voice/Gale/BrightZephyr_74",
+    "subtitleKey": "VO_TEXT_0045"
+  },
+  {
+    "id": 1005019,
+    "characterId": 1001008,
+    "cue": "VO_CUE_0008",
+    "clip": "Audio/Voice/Harrow/CommonBrack_31",
+    "subtitleKey": "VO_TEXT_0188"
+  },
+  {
+    "id": 1005020,
+    "characterId": 1001025,
+    "cue": "VO_CUE_0004",
+    "clip": "Audio/Voice/Kelvin/Kelvin_10",
+    "subtitleKey": "VO_TEXT_0151"
+  },
+  {
+    "id": 1005021,
+    "characterId": 1001022,
+    "cue": "VO_CUE_0005",
+    "clip": "Audio/Voice/Brack/KeenBriar_85",
+    "subtitleKey": "VO_TEXT_0124"
+  },
+  {
+    "id": 1005022,
+    "characterId": 1001015,
+    "cue": "VO_CUE_0005",
+    "clip": "Audio/Voice/Calyx/HollowCalyx_22",
+    "subtitleKey": "VO_TEXT_0228"
+  },
+  {
+    "id": 1005023,
+    "characterId": 1001000,
+    "cue": "VO_CUE_0035",
+    "clip": "Audio/Voice/Brack/KeenNettle_73",
+    "subtitleKey": "VO_TEXT_0005"
+  },
+  {
+    "id": 1005024,
+    "characterId": 1001015,
+    "cue": "VO_CUE_0034",
+    "clip": "Audio/Voice/Harrow/WardedNettle_03",
+    "subtitleKey": "VO_TEXT_0180"
+  },
+  {
+    "id": 1005025,
+    "characterId": 1001001,
+    "cue": "VO_CUE_0030",
+    "clip": "Audio/Voice/Ember/HollowQuill_36",
+    "subtitleKey": "VO_TEXT_0127"
+  },
+  {
+    "id": 1005026,
+    "characterId": 1001023,
+    "cue": "VO_CUE_0007",
+    "clip": "Audio/Voice/Jasp/CommonPyre_45",
+    "subtitleKey": "VO_TEXT_0033"
+  },
+  {
+    "id": 1005027,
+    "characterId": 1001022,
+    "cue": "VO_CUE_0011",
+    "clip": "Audio/Voice/Jasp/BrightPyre_65",
+    "subtitleKey": "VO_TEXT_0120"
+  },
+  {
+    "id": 1005028,
+    "characterId": 1001001,
+    "cue": "VO_CUE_0006",
+    "clip": "Audio/Voice/Gale/CommonMarrow_42",
+    "subtitleKey": "VO_TEXT_0120"
+  },
+  {
+    "id": 1005029,
+    "characterId": 1001015,
+    "cue": "VO_CUE_0015",
+    "clip": "Audio/Voice/Dorn/BrightJasp_59",
+    "subtitleKey": "VO_TEXT_0132"
+  },
+  {
+    "id": 1005030,
+    "characterId": 1001017,
+    "cue": "VO_CUE_0010",
+    "clip": "Audio/Voice/Calyx/Cinder_26",
+    "subtitleKey": "VO_TEXT_0063"
+  },
+  {
+    "id": 1005031,
+    "characterId": 1001028,
+    "cue": "VO_CUE_0013",
+    "clip": "Audio/Voice/Ember/CommonWick_52",
+    "subtitleKey": "VO_TEXT_0096"
+  },
+  {
+    "id": 1005032,
+    "characterId": 1001004,
+    "cue": "VO_CUE_0027",
+    "clip": "Audio/Voice/Isle/WardedCalyx_92",
+    "subtitleKey": "VO_TEXT_0053"
+  },
+  {
+    "id": 1005033,
+    "characterId": 1001011,
+    "cue": "VO_CUE_0020",
+    "clip": "Audio/Voice/Calyx/KeenCalyx_62",
+    "subtitleKey": "VO_TEXT_0216"
+  },
+  {
+    "id": 1005034,
+    "characterId": 1001026,
+    "cue": "VO_CUE_0012",
+    "clip": "Audio/Voice/Isle/WardedCalyx_92",
+    "subtitleKey": "VO_TEXT_0156"
+  },
+  {
+    "id": 1005035,
+    "characterId": 1001021,
+    "cue": "VO_CUE_0011",
+    "clip": "Audio/Voice/Dorn/Pyre_15",
+    "subtitleKey": "VO_TEXT_0151"
+  },
+  {
+    "id": 1005036,
+    "characterId": 1001018,
+    "cue": "VO_CUE_0021",
+    "clip": "Audio/Voice/Brack/Briar_25",
+    "subtitleKey": "VO_TEXT_0239"
+  },
+  {
+    "id": 1005037,
+    "characterId": 1001024,
+    "cue": "VO_CUE_0030",
+    "clip": "Audio/Voice/Brack/GraveBriar_05",
+    "subtitleKey": "VO_TEXT_0172"
+  },
+  {
+    "id": 1005038,
+    "characterId": 1001005,
+    "cue": "VO_CUE_0013",
+    "clip": "Audio/Voice/Dorn/GravePyre_95",
+    "subtitleKey": "VO_TEXT_0217"
+  },
+  {
+    "id": 1005039,
+    "characterId": 1001029,
+    "cue": "VO_CUE_0036",
+    "clip": "Audio/Voice/Kelvin/Wick_22",
+    "subtitleKey": "VO_TEXT_0197"
+  },
+  {
+    "id": 1005040,
+    "characterId": 1001016,
+    "cue": "VO_CUE_0037",
+    "clip": "Audio/Voice/Lumen/SwiftFlint_39",
+    "subtitleKey": "VO_TEXT_0014"
+  },
+  {
+    "id": 1005041,
+    "characterId": 1001018,
+    "cue": "VO_CUE_0014",
+    "clip": "Audio/Voice/Jasp/KeenJasp_69",
+    "subtitleKey": "VO_TEXT_0149"
+  },
+  {
+    "id": 1005042,
+    "characterId": 1001016,
+    "cue": "VO_CUE_0030",
+    "clip": "Audio/Voice/Dorn/SwiftJasp_19",
+    "subtitleKey": "VO_TEXT_0004"
+  },
+  {
+    "id": 1005043,
+    "characterId": 1001027,
+    "cue": "VO_CUE_0008",
+    "clip": "Audio/Voice/Alder/BrightSalt_68",
+    "subtitleKey": "VO_TEXT_0078"
+  },
+  {
+    "id": 1005044,
+    "characterId": 1001029,
+    "cue": "VO_CUE_0035",
+    "clip": "Audio/Voice/Harrow/CommonNettle_43",
+    "subtitleKey": "VO_TEXT_0115"
+  },
+  {
+    "id": 1005045,
+    "characterId": 1001007,
+    "cue": "VO_CUE_0027",
+    "clip": "Audio/Voice/Isle/BrightOchre_64",
+    "subtitleKey": "VO_TEXT_0152"
+  },
+  {
+    "id": 1005046,
+    "characterId": 1001029,
+    "cue": "VO_CUE_0018",
+    "clip": "Audio/Voice/Brack/GraveBrack_81",
+    "subtitleKey": "VO_TEXT_0053"
+  },
+  {
+    "id": 1005047,
+    "characterId": 1001016,
+    "cue": "VO_CUE_0031",
+    "clip": "Audio/Voice/Isle/Isle_08",
+    "subtitleKey": "VO_TEXT_0044"
+  },
+  {
+    "id": 1005048,
+    "characterId": 1001023,
+    "cue": "VO_CUE_0031",
+    "clip": "Audio/Voice/Dorn/CommonJasp_39",
+    "subtitleKey": "VO_TEXT_0023"
+  },
+  {
+    "id": 1005049,
+    "characterId": 1001029,
+    "cue": "VO_CUE_0030",
+    "clip": "Audio/Voice/Harrow/GraveThorn_99",
+    "subtitleKey": "VO_TEXT_0218"
+  },
+  {
+    "id": 1005050,
+    "characterId": 1001004,
+    "cue": "VO_CUE_0038",
+    "clip": "Audio/Voice/Lumen/SwiftRune_27",
+    "subtitleKey": "VO_TEXT_0204"
+  },
+  {
+    "id": 1005051,
+    "characterId": 1001026,
+    "cue": "VO_CUE_0029",
+    "clip": "Audio/Voice/Jasp/GraveVellum_01",
+    "subtitleKey": "VO_TEXT_0221"
+  },
+  {
+    "id": 1005052,
+    "characterId": 1001011,
+    "cue": "VO_CUE_0008",
+    "clip": "Audio/Voice/Kelvin/CommonQuill_46",
+    "subtitleKey": "VO_TEXT_0128"
+  },
+  {
+    "id": 1005053,
+    "characterId": 1001001,
+    "cue": "VO_CUE_0035",
+    "clip": "Audio/Voice/Isle/WardedCalyx_92",
+    "subtitleKey": "VO_TEXT_0230"
+  },
+  {
+    "id": 1005054,
+    "characterId": 1001025,
+    "cue": "VO_CUE_0015",
+    "clip": "Audio/Voice/Fenn/GraveFenn_85",
+    "subtitleKey": "VO_TEXT_0150"
+  },
+  {
+    "id": 1005055,
+    "characterId": 1001023,
+    "cue": "VO_CUE_0034",
+    "clip": "Audio/Voice/Dorn/BrightVellum_71",
+    "subtitleKey": "VO_TEXT_0001"
+  },
+  {
+    "id": 1005056,
+    "characterId": 1001003,
+    "cue": "VO_CUE_0016",
+    "clip": "Audio/Voice/Ember/SwiftKelvin_20",
+    "subtitleKey": "VO_TEXT_0071"
+  },
+  {
+    "id": 1005057,
+    "characterId": 1001012,
+    "cue": "VO_CUE_0019",
+    "clip": "Audio/Voice/Fenn/KeenFenn_65",
+    "subtitleKey": "VO_TEXT_0023"
+  },
+  {
+    "id": 1005058,
+    "characterId": 1001010,
+    "cue": "VO_CUE_0012",
+    "clip": "Audio/Voice/Dorn/Pyre_15",
+    "subtitleKey": "VO_TEXT_0066"
+  },
+  {
+    "id": 1005059,
+    "characterId": 1001007,
+    "cue": "VO_CUE_0004",
+    "clip": "Audio/Voice/Kelvin/SwiftQuill_26",
+    "subtitleKey": "VO_TEXT_0199"
+  }
+]

@@ -1,0 +1,4 @@
+@desc	primary index	owning stage	wave order	monster ids	monster levels
+@name	id	stageId	waveOrder	monsterIds	monsterLevels
+@type	Int	Int	Int	IntArray	IntArray
+@gen	seq:1502000	ref:StageTable	cycle:3	arr:ref:StageMonsterTable:1..5	arr:int:1..120:1..5

@@ -1,0 +1,4 @@
+@desc	primary index	owning quest	step order	completion condition	target count	dialogue shown on completion
+@name	id	questId	stepOrder	conditionId	targetCount	dialogueId
+@type	Int	Int	Int	Int	Int	Int
+@gen	seq:1602000	ref:QuestTable	cycle:4	ref:ConditionTable	int:1..500:zipf	ref:DialogueTable

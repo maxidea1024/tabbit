@@ -1,0 +1,4 @@
+@desc	primary index	attacking element	defending element	damage rate in permille
+@name	id	attacker	defender	rate
+@type	Int	enum:ElementType	enum:ElementType	Int
+@gen	seq:1007000	enum:ElementType	enum:ElementType	int:600..1600

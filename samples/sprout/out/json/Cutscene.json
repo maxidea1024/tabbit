@@ -1,0 +1,74 @@
+[
+  {
+    "id": 2303000,
+    "timeline": "Art/Cutscene/Brack/Nettle_13",
+    "lengthMs": 11888,
+    "skipAfterMs": 4963
+  },
+  {
+    "id": 2303001,
+    "timeline": "Art/Cutscene/Brack/Brack_01",
+    "lengthMs": 19286,
+    "skipAfterMs": 4372
+  },
+  {
+    "id": 2303002,
+    "timeline": "Art/Cutscene/Alder/Zephyr_24",
+    "lengthMs": 35551,
+    "skipAfterMs": 2353
+  },
+  {
+    "id": 2303003,
+    "timeline": "Art/Cutscene/Ember/Ember_04",
+    "lengthMs": 79543,
+    "skipAfterMs": 2897
+  },
+  {
+    "id": 2303004,
+    "timeline": "Art/Cutscene/Brack/Brack_01",
+    "lengthMs": 20077,
+    "skipAfterMs": 3642
+  },
+  {
+    "id": 2303005,
+    "timeline": "Art/Cutscene/Kelvin/CommonEmber_34",
+    "lengthMs": 34525,
+    "skipAfterMs": 257
+  },
+  {
+    "id": 2303006,
+    "timeline": "Art/Cutscene/Dorn/Drift_27",
+    "lengthMs": 70342,
+    "skipAfterMs": 594
+  },
+  {
+    "id": 2303007,
+    "timeline": "Art/Cutscene/Isle/Isle_08",
+    "lengthMs": 11484,
+    "skipAfterMs": 2996
+  },
+  {
+    "id": 2303008,
+    "timeline": "Art/Cutscene/Alder/Marrow_12",
+    "lengthMs": 2035,
+    "skipAfterMs": 2368
+  },
+  {
+    "id": 2303009,
+    "timeline": "Art/Cutscene/Ember/Quill_16",
+    "lengthMs": 8104,
+    "skipAfterMs": 3144
+  },
+  {
+    "id": 2303010,
+    "timeline": "Art/Cutscene/Brack/Briar_25",
+    "lengthMs": 5692,
+    "skipAfterMs": 3596
+  },
+  {
+    "id": 2303011,
+    "timeline": "Art/Cutscene/Harrow/Harrow_07",
+    "lengthMs": 2096,
+    "skipAfterMs": 578
+  }
+]

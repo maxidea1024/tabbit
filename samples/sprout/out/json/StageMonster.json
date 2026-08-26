@@ -1,0 +1,977 @@
+[
+  {
+    "id": 1503000,
+    "nameKey": "MON_NAME_0178",
+    "model": "Art/Monster/Alder/StillAlder_40",
+    "element": 3,
+    "attack": 22,
+    "defense": 59,
+    "health": "288976",
+    "skillIds": [
+      1101022,
+      1101008,
+      1101044
+    ]
+  },
+  {
+    "id": 1503001,
+    "nameKey": "MON_NAME_0166",
+    "model": "Art/Monster/Fenn/SwiftLumen_21",
+    "element": 5,
+    "attack": 1260,
+    "defense": 113,
+    "health": "42762",
+    "skillIds": [
+      1101069
+    ]
+  },
+  {
+    "id": 1503002,
+    "nameKey": "MON_NAME_0022",
+    "model": "Art/Monster/Calyx/BrightIsle_58",
+    "element": 2,
+    "attack": 23,
+    "defense": 983,
+    "health": "125247",
+    "skillIds": [
+      1101015,
+      1101037,
+      1101077
+    ]
+  },
+  {
+    "id": 1503003,
+    "nameKey": "MON_NAME_0066",
+    "model": "Art/Monster/Ember/GraveQuill_96",
+    "element": 3,
+    "attack": 299,
+    "defense": 161,
+    "health": "12795",
+    "skillIds": [
+      1101059
+    ]
+  },
+  {
+    "id": 1503004,
+    "nameKey": "MON_NAME_0149",
+    "model": "Art/Monster/Alder/WardedSalt_08",
+    "element": 4,
+    "attack": 21,
+    "defense": 5060,
+    "health": "32108",
+    "skillIds": [
+      1101019,
+      1101042,
+      1101070
+    ]
+  },
+  {
+    "id": 1503005,
+    "nameKey": "MON_NAME_0246",
+    "model": "Art/Monster/Harrow/GraveHarrow_87",
+    "element": 5,
+    "attack": 2171,
+    "defense": 2037,
+    "health": "191206",
+    "skillIds": [
+      1101039
+    ]
+  },
+  {
+    "id": 1503006,
+    "nameKey": "MON_NAME_0054",
+    "model": "Art/Monster/Brack/GraveBrack_81",
+    "element": 5,
+    "attack": 178,
+    "defense": 10,
+    "health": "27572",
+    "skillIds": [
+      1101073,
+      1101009,
+      1101077
+    ]
+  },
+  {
+    "id": 1503007,
+    "nameKey": "MON_NAME_0155",
+    "model": "Art/Monster/Jasp/VastDrift_97",
+    "element": 6,
+    "attack": 3966,
+    "defense": 5106,
+    "health": "505732",
+    "skillIds": [
+      1101072,
+      1101032,
+      1101018
+    ]
+  },
+  {
+    "id": 1503008,
+    "nameKey": "MON_NAME_0104",
+    "model": "Art/Monster/Calyx/WardedUmber_10",
+    "element": 4,
+    "attack": 1238,
+    "defense": 3537,
+    "health": "55960",
+    "skillIds": [
+      1101034,
+      1101024,
+      1101037
+    ]
+  },
+  {
+    "id": 1503009,
+    "nameKey": "MON_NAME_0102",
+    "model": "Art/Monster/Fenn/WardedYarrow_13",
+    "element": 4,
+    "attack": 6480,
+    "defense": 1267,
+    "health": "131396",
+    "skillIds": [
+      1101047,
+      1101031
+    ]
+  },
+  {
+    "id": 1503010,
+    "nameKey": "MON_NAME_0252",
+    "model": "Art/Monster/Lumen/GraveYarrow_03",
+    "element": 5,
+    "attack": 21,
+    "defense": 5097,
+    "health": "6537",
+    "skillIds": [
+      1101005,
+      1101078,
+      1101005
+    ]
+  },
+  {
+    "id": 1503011,
+    "nameKey": "MON_NAME_0249",
+    "model": "Art/Monster/Fenn/KeenRune_77",
+    "element": 2,
+    "attack": 1447,
+    "defense": 10,
+    "health": "42720",
+    "skillIds": [
+      1101041,
+      1101059,
+      1101069
+    ]
+  },
+  {
+    "id": 1503012,
+    "nameKey": "MON_NAME_0278",
+    "model": "Art/Monster/Harrow/HollowThorn_39",
+    "element": 4,
+    "attack": 241,
+    "defense": 12,
+    "health": "310207",
+    "skillIds": [
+      1101071
+    ]
+  },
+  {
+    "id": 1503013,
+    "nameKey": "MON_NAME_0264",
+    "model": "Art/Monster/Gale/CommonMarrow_42",
+    "element": 4,
+    "attack": 4022,
+    "defense": 1484,
+    "health": "230441",
+    "skillIds": [
+      1101037
+    ]
+  },
+  {
+    "id": 1503014,
+    "nameKey": "MON_NAME_0221",
+    "model": "Art/Monster/Kelvin/GraveKelvin_90",
+    "element": 3,
+    "attack": 2067,
+    "defense": 881,
+    "health": "26447",
+    "skillIds": [
+      1101007
+    ]
+  },
+  {
+    "id": 1503015,
+    "nameKey": "MON_NAME_0109",
+    "model": "Art/Monster/Lumen/WardedRune_07",
+    "element": 4,
+    "attack": 2851,
+    "defense": 4309,
+    "health": "5075",
+    "skillIds": [
+      1101022
+    ]
+  },
+  {
+    "id": 1503016,
+    "nameKey": "MON_NAME_0279",
+    "model": "Art/Monster/Fenn/SwiftYarrow_33",
+    "element": 4,
+    "attack": 4546,
+    "defense": 59,
+    "health": "569",
+    "skillIds": [
+      1101025
+    ]
+  },
+  {
+    "id": 1503017,
+    "nameKey": "MON_NAME_0289",
+    "model": "Art/Monster/Lumen/KeenLumen_71",
+    "element": 1,
+    "attack": 6336,
+    "defense": 3007,
+    "health": "57183",
+    "skillIds": [
+      1101022,
+      1101023
+    ]
+  },
+  {
+    "id": 1503018,
+    "nameKey": "MON_NAME_0109",
+    "model": "Art/Monster/Harrow/SwiftNettle_23",
+    "element": 5,
+    "attack": 20,
+    "defense": 85,
+    "health": "6130",
+    "skillIds": [
+      1101026,
+      1101053,
+      1101072
+    ]
+  },
+  {
+    "id": 1503019,
+    "nameKey": "MON_NAME_0100",
+    "model": "Art/Monster/Calyx/WardedUmber_10",
+    "element": 4,
+    "attack": 43,
+    "defense": 2662,
+    "health": "29338",
+    "skillIds": [
+      1101035
+    ]
+  },
+  {
+    "id": 1503020,
+    "nameKey": "MON_NAME_0225",
+    "model": "Art/Monster/Dorn/KeenDrift_87",
+    "element": 1,
+    "attack": 2103,
+    "defense": 952,
+    "health": "214353",
+    "skillIds": [
+      1101053
+    ]
+  },
+  {
+    "id": 1503021,
+    "nameKey": "MON_NAME_0043",
+    "model": "Art/Monster/Calyx/KeenCinder_86",
+    "element": 3,
+    "attack": 8530,
+    "defense": 4883,
+    "health": "1929",
+    "skillIds": [
+      1101025
+    ]
+  },
+  {
+    "id": 1503022,
+    "nameKey": "MON_NAME_0287",
+    "model": "Art/Monster/Gale/KeenSalt_78",
+    "element": 5,
+    "attack": 229,
+    "defense": 2969,
+    "health": "32104",
+    "skillIds": [
+      1101044
+    ]
+  },
+  {
+    "id": 1503023,
+    "nameKey": "MON_NAME_0193",
+    "model": "Art/Monster/Fenn/VastLumen_81",
+    "element": 4,
+    "attack": 374,
+    "defense": 26,
+    "health": "45286",
+    "skillIds": [
+      1101013
+    ]
+  },
+  {
+    "id": 1503024,
+    "nameKey": "MON_NAME_0160",
+    "model": "Art/Monster/Harrow/SwiftBriar_35",
+    "element": 6,
+    "attack": 3190,
+    "defense": 144,
+    "health": "38735",
+    "skillIds": [
+      1101063
+    ]
+  },
+  {
+    "id": 1503025,
+    "nameKey": "MON_NAME_0170",
+    "model": "Art/Monster/Calyx/GraveOchre_94",
+    "element": 4,
+    "attack": 82,
+    "defense": 861,
+    "health": "246983",
+    "skillIds": [
+      1101065,
+      1101056,
+      1101075
+    ]
+  },
+  {
+    "id": 1503026,
+    "nameKey": "MON_NAME_0209",
+    "model": "Art/Monster/Gale/VastAlder_70",
+    "element": 1,
+    "attack": 2184,
+    "defense": 1104,
+    "health": "221",
+    "skillIds": [
+      1101027,
+      1101019,
+      1101055
+    ]
+  },
+  {
+    "id": 1503027,
+    "nameKey": "MON_NAME_0076",
+    "model": "Art/Monster/Kelvin/Wick_22",
+    "element": 6,
+    "attack": 1206,
+    "defense": 2350,
+    "health": "29583",
+    "skillIds": [
+      1101071,
+      1101027,
+      1101043
+    ]
+  },
+  {
+    "id": 1503028,
+    "nameKey": "MON_NAME_0298",
+    "model": "Art/Monster/Isle/BrightCinder_76",
+    "element": 2,
+    "attack": 2496,
+    "defense": 300,
+    "health": "244",
+    "skillIds": [
+      1101001
+    ]
+  },
+  {
+    "id": 1503029,
+    "nameKey": "MON_NAME_0208",
+    "model": "Art/Monster/Isle/KeenIsle_68",
+    "element": 5,
+    "attack": 20,
+    "defense": 620,
+    "health": "3897",
+    "skillIds": [
+      1101053,
+      1101033
+    ]
+  },
+  {
+    "id": 1503030,
+    "nameKey": "MON_NAME_0196",
+    "model": "Art/Monster/Fenn/SwiftLumen_21",
+    "element": 5,
+    "attack": 83,
+    "defense": 1197,
+    "health": "10111",
+    "skillIds": [
+      1101015,
+      1101025,
+      1101066
+    ]
+  },
+  {
+    "id": 1503031,
+    "nameKey": "MON_NAME_0291",
+    "model": "Art/Monster/Dorn/Pyre_15",
+    "element": 6,
+    "attack": 25,
+    "defense": 1420,
+    "health": "315495",
+    "skillIds": [
+      1101006,
+      1101006,
+      1101042
+    ]
+  },
+  {
+    "id": 1503032,
+    "nameKey": "MON_NAME_0223",
+    "model": "Art/Monster/Gale/KeenSalt_78",
+    "element": 1,
+    "attack": 384,
+    "defense": 950,
+    "health": "103651",
+    "skillIds": [
+      1101072
+    ]
+  },
+  {
+    "id": 1503033,
+    "nameKey": "MON_NAME_0189",
+    "model": "Art/Monster/Gale/KeenGale_66",
+    "element": 5,
+    "attack": 137,
+    "defense": 1774,
+    "health": "743568",
+    "skillIds": [
+      1101037,
+      1101075,
+      1101037
+    ]
+  },
+  {
+    "id": 1503034,
+    "nameKey": "MON_NAME_0210",
+    "model": "Art/Monster/Dorn/KeenPyre_75",
+    "element": 3,
+    "attack": 24,
+    "defense": 134,
+    "health": "4333",
+    "skillIds": [
+      1101013,
+      1101075,
+      1101023
+    ]
+  },
+  {
+    "id": 1503035,
+    "nameKey": "MON_NAME_0054",
+    "model": "Art/Monster/Kelvin/SwiftElm_38",
+    "element": 6,
+    "attack": 1737,
+    "defense": 67,
+    "health": "570",
+    "skillIds": [
+      1101032,
+      1101042
+    ]
+  },
+  {
+    "id": 1503036,
+    "nameKey": "MON_NAME_0196",
+    "model": "Art/Monster/Jasp/Vellum_21",
+    "element": 5,
+    "attack": 4163,
+    "defense": 349,
+    "health": "697543",
+    "skillIds": [
+      1101000
+    ]
+  },
+  {
+    "id": 1503037,
+    "nameKey": "MON_NAME_0216",
+    "model": "Art/Monster/Kelvin/KeenWick_82",
+    "element": 1,
+    "attack": 568,
+    "defense": 154,
+    "health": "177911",
+    "skillIds": [
+      1101062,
+      1101045
+    ]
+  },
+  {
+    "id": 1503038,
+    "nameKey": "MON_NAME_0157",
+    "model": "Art/Monster/Lumen/BrightFlint_79",
+    "element": 4,
+    "attack": 20,
+    "defense": 2084,
+    "health": "675685",
+    "skillIds": [
+      1101069,
+      1101042
+    ]
+  },
+  {
+    "id": 1503039,
+    "nameKey": "MON_NAME_0150",
+    "model": "Art/Monster/Fenn/GraveFlint_09",
+    "element": 1,
+    "attack": 337,
+    "defense": 412,
+    "health": "9188",
+    "skillIds": [
+      1101007
+    ]
+  },
+  {
+    "id": 1503040,
+    "nameKey": "MON_NAME_0049",
+    "model": "Art/Monster/Gale/Salt_18",
+    "element": 6,
+    "attack": 601,
+    "defense": 3715,
+    "health": "359685",
+    "skillIds": [
+      1101023,
+      1101076
+    ]
+  },
+  {
+    "id": 1503041,
+    "nameKey": "MON_NAME_0125",
+    "model": "Art/Monster/Alder/SwiftGale_16",
+    "element": 6,
+    "attack": 20,
+    "defense": 334,
+    "health": "11533",
+    "skillIds": [
+      1101073,
+      1101073
+    ]
+  },
+  {
+    "id": 1503042,
+    "nameKey": "MON_NAME_0207",
+    "model": "Art/Monster/Harrow/BrightBriar_75",
+    "element": 5,
+    "attack": 879,
+    "defense": 10,
+    "health": "885124",
+    "skillIds": [
+      1101078
+    ]
+  },
+  {
+    "id": 1503043,
+    "nameKey": "MON_NAME_0299",
+    "model": "Art/Monster/Ember/StillQuill_56",
+    "element": 1,
+    "attack": 1983,
+    "defense": 16,
+    "health": "112282",
+    "skillIds": [
+      1101029,
+      1101065
+    ]
+  },
+  {
+    "id": 1503044,
+    "nameKey": "MON_NAME_0043",
+    "model": "Art/Monster/Ember/SwiftKelvin_20",
+    "element": 3,
+    "attack": 75,
+    "defense": 248,
+    "health": "30363",
+    "skillIds": [
+      1101024,
+      1101077
+    ]
+  },
+  {
+    "id": 1503045,
+    "nameKey": "MON_NAME_0088",
+    "model": "Art/Monster/Gale/GraveGale_86",
+    "element": 2,
+    "attack": 114,
+    "defense": 1185,
+    "health": "500593",
+    "skillIds": [
+      1101070,
+      1101043
+    ]
+  },
+  {
+    "id": 1503046,
+    "nameKey": "MON_NAME_0257",
+    "model": "Art/Monster/Calyx/Calyx_02",
+    "element": 1,
+    "attack": 1593,
+    "defense": 188,
+    "health": "196196",
+    "skillIds": [
+      1101043,
+      1101016,
+      1101067
+    ]
+  },
+  {
+    "id": 1503047,
+    "nameKey": "MON_NAME_0105",
+    "model": "Art/Monster/Calyx/StillOchre_54",
+    "element": 6,
+    "attack": 4939,
+    "defense": 5432,
+    "health": "714249",
+    "skillIds": [
+      1101039,
+      1101029,
+      1101057
+    ]
+  },
+  {
+    "id": 1503048,
+    "nameKey": "MON_NAME_0083",
+    "model": "Art/Monster/Harrow/BrightBrack_51",
+    "element": 6,
+    "attack": 7402,
+    "defense": 10,
+    "health": "5126",
+    "skillIds": [
+      1101040,
+      1101065,
+      1101061
+    ]
+  },
+  {
+    "id": 1503049,
+    "nameKey": "MON_NAME_0159",
+    "model": "Art/Monster/Ember/CommonWick_52",
+    "element": 4,
+    "attack": 8779,
+    "defense": 505,
+    "health": "765120",
+    "skillIds": [
+      1101007,
+      1101003
+    ]
+  },
+  {
+    "id": 1503050,
+    "nameKey": "MON_NAME_0257",
+    "model": "Art/Monster/Fenn/BrightLumen_61",
+    "element": 2,
+    "attack": 173,
+    "defense": 654,
+    "health": "601",
+    "skillIds": [
+      1101042,
+      1101041,
+      1101024
+    ]
+  },
+  {
+    "id": 1503051,
+    "nameKey": "MON_NAME_0145",
+    "model": "Art/Monster/Harrow/HollowThorn_39",
+    "element": 5,
+    "attack": 517,
+    "defense": 10,
+    "health": "502588",
+    "skillIds": [
+      1101064,
+      1101050,
+      1101028
+    ]
+  },
+  {
+    "id": 1503052,
+    "nameKey": "MON_NAME_0221",
+    "model": "Art/Monster/Jasp/HollowVellum_41",
+    "element": 4,
+    "attack": 50,
+    "defense": 10,
+    "health": "2274",
+    "skillIds": [
+      1101032,
+      1101074
+    ]
+  },
+  {
+    "id": 1503053,
+    "nameKey": "MON_NAME_0176",
+    "model": "Art/Monster/Calyx/HollowOchre_34",
+    "element": 5,
+    "attack": 41,
+    "defense": 2342,
+    "health": "19613",
+    "skillIds": [
+      1101038
+    ]
+  },
+  {
+    "id": 1503054,
+    "nameKey": "MON_NAME_0189",
+    "model": "Art/Monster/Isle/Umber_20",
+    "element": 1,
+    "attack": 26,
+    "defense": 1334,
+    "health": "167066",
+    "skillIds": [
+      1101064
+    ]
+  },
+  {
+    "id": 1503055,
+    "nameKey": "MON_NAME_0027",
+    "model": "Art/Monster/Isle/VastCinder_96",
+    "element": 5,
+    "attack": 1302,
+    "defense": 1165,
+    "health": "836279",
+    "skillIds": [
+      1101032,
+      1101047
+    ]
+  },
+  {
+    "id": 1503056,
+    "nameKey": "MON_NAME_0235",
+    "model": "Art/Monster/Calyx/CommonUmber_50",
+    "element": 5,
+    "attack": 90,
+    "defense": 2023,
+    "health": "83861",
+    "skillIds": [
+      1101011,
+      1101005,
+      1101027
+    ]
+  },
+  {
+    "id": 1503057,
+    "nameKey": "MON_NAME_0259",
+    "model": "Art/Monster/Dorn/Pyre_15",
+    "element": 4,
+    "attack": 27,
+    "defense": 3610,
+    "health": "263910",
+    "skillIds": [
+      1101014,
+      1101030
+    ]
+  },
+  {
+    "id": 1503058,
+    "nameKey": "MON_NAME_0158",
+    "model": "Art/Monster/Alder/KeenAlder_60",
+    "element": 3,
+    "attack": 216,
+    "defense": 66,
+    "health": "48866",
+    "skillIds": [
+      1101043,
+      1101016
+    ]
+  },
+  {
+    "id": 1503059,
+    "nameKey": "MON_NAME_0084",
+    "model": "Art/Monster/Isle/Umber_20",
+    "element": 2,
+    "attack": 5866,
+    "defense": 172,
+    "health": "514044",
+    "skillIds": [
+      1101061
+    ]
+  },
+  {
+    "id": 1503060,
+    "nameKey": "MON_NAME_0226",
+    "model": "Art/Monster/Calyx/Ochre_14",
+    "element": 3,
+    "attack": 657,
+    "defense": 1085,
+    "health": "65546",
+    "skillIds": [
+      1101012,
+      1101074
+    ]
+  },
+  {
+    "id": 1503061,
+    "nameKey": "MON_NAME_0240",
+    "model": "Art/Monster/Fenn/Fenn_05",
+    "element": 5,
+    "attack": 24,
+    "defense": 3212,
+    "health": "96711",
+    "skillIds": [
+      1101026,
+      1101031
+    ]
+  },
+  {
+    "id": 1503062,
+    "nameKey": "MON_NAME_0093",
+    "model": "Art/Monster/Jasp/KeenVellum_81",
+    "element": 5,
+    "attack": 206,
+    "defense": 567,
+    "health": "57526",
+    "skillIds": [
+      1101019,
+      1101009,
+      1101008
+    ]
+  },
+  {
+    "id": 1503063,
+    "nameKey": "MON_NAME_0040",
+    "model": "Art/Monster/Isle/WardedCalyx_92",
+    "element": 5,
+    "attack": 1132,
+    "defense": 5437,
+    "health": "825764",
+    "skillIds": [
+      1101036,
+      1101034,
+      1101012
+    ]
+  },
+  {
+    "id": 1503064,
+    "nameKey": "MON_NAME_0010",
+    "model": "Art/Monster/Ember/StillEmber_44",
+    "element": 4,
+    "attack": 1172,
+    "defense": 3247,
+    "health": "324986",
+    "skillIds": [
+      1101024,
+      1101043
+    ]
+  },
+  {
+    "id": 1503065,
+    "nameKey": "MON_NAME_0084",
+    "model": "Art/Monster/Fenn/WardedYarrow_13",
+    "element": 3,
+    "attack": 7966,
+    "defense": 32,
+    "health": "191080",
+    "skillIds": [
+      1101062
+    ]
+  },
+  {
+    "id": 1503066,
+    "nameKey": "MON_NAME_0059",
+    "model": "Art/Monster/Kelvin/Kelvin_10",
+    "element": 1,
+    "attack": 173,
+    "defense": 80,
+    "health": "52028",
+    "skillIds": [
+      1101027,
+      1101010
+    ]
+  },
+  {
+    "id": 1503067,
+    "nameKey": "MON_NAME_0123",
+    "model": "Art/Monster/Harrow/KeenThorn_79",
+    "element": 3,
+    "attack": 102,
+    "defense": 110,
+    "health": "459",
+    "skillIds": [
+      1101053
+    ]
+  },
+  {
+    "id": 1503068,
+    "nameKey": "MON_NAME_0015",
+    "model": "Art/Monster/Ember/GraveQuill_96",
+    "element": 3,
+    "attack": 583,
+    "defense": 1548,
+    "health": "326086",
+    "skillIds": [
+      1101044,
+      1101056
+    ]
+  },
+  {
+    "id": 1503069,
+    "nameKey": "MON_NAME_0218",
+    "model": "Art/Monster/Dorn/SwiftVellum_31",
+    "element": 2,
+    "attack": 2965,
+    "defense": 4526,
+    "health": "185",
+    "skillIds": [
+      1101058,
+      1101025
+    ]
+  },
+  {
+    "id": 1503070,
+    "nameKey": "MON_NAME_0260",
+    "model": "Art/Monster/Calyx/CommonIsle_38",
+    "element": 3,
+    "attack": 3995,
+    "defense": 32,
+    "health": "73706",
+    "skillIds": [
+      1101007
+    ]
+  },
+  {
+    "id": 1503071,
+    "nameKey": "MON_NAME_0023",
+    "model": "Art/Monster/Gale/VastMarrow_82",
+    "element": 6,
+    "attack": 963,
+    "defense": 4145,
+    "health": "11511",
+    "skillIds": [
+      1101041,
+      1101054
+    ]
+  },
+  {
+    "id": 1503072,
+    "nameKey": "MON_NAME_0104",
+    "model": "Art/Monster/Isle/GraveIsle_88",
+    "element": 4,
+    "attack": 265,
+    "defense": 1199,
+    "health": "6669",
+    "skillIds": [
+      1101041
+    ]
+  },
+  {
+    "id": 1503073,
+    "nameKey": "MON_NAME_0188",
+    "model": "Art/Monster/Ember/HollowQuill_36",
+    "element": 3,
+    "attack": 500,
+    "defense": 3387,
+    "health": "538253",
+    "skillIds": [
+      1101030,
+      1101019,
+      1101006
+    ]
+  },
+  {
+    "id": 1503074,
+    "nameKey": "MON_NAME_0099",
+    "model": "Art/Monster/Isle/GraveUmber_00",
+    "element": 4,
+    "attack": 20,
+    "defense": 13,
+    "health": "31069",
+    "skillIds": [
+      1101035,
+      1101077,
+      1101048
+    ]
+  }
+]

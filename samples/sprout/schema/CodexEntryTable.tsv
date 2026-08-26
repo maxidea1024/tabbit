@@ -1,0 +1,4 @@
+@desc	primary index	owning codex	entry order	registration condition	affected stat	bonus in permille
+@name	id	codexId	entryOrder	conditionId	stat	bonus
+@type	Int	Int	Int	Int	enum:StatType	Int
+@gen	seq:2202000	ref:CodexTable	cycle:6	ref:ConditionTable	enum:StatType	int:5..300:zipf

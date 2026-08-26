@@ -1,0 +1,4 @@
+@desc	primary index	owning gacha	granted character, 0 for none	granted equipment, 0 for none	grade	weight
+@name	id	gachaId	characterId	equipId	grade	weight
+@type	Int	Int	Int	Int	enum:GradeType	Int
+@gen	seq:1902000	ref:GachaTable	ref:CharacterTable	ref:EquipTable	enum:GradeType	int:1..10000:zipf

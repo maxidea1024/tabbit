@@ -1,0 +1,4 @@
+@desc	primary index	skill name key	description key	icon asset	target rule	cooldown in turns	effect ids	maximum skill level
+@name	id	nameKey	descKey	icon	target	cooldown	effectIds	maxLevel
+@type	Int	String	String	String	enum:TargetType	Int	IntArray	Int
+@gen	seq:1101000	str:SKILL_NAME:320	str:SKILL_DESC:320	path:320:Art/Skill	enum:TargetType	int:0..9	arr:ref:SkillEffectTable:1..3	int:5..15

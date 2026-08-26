@@ -1,0 +1,2702 @@
+[
+  {
+    "stringKey": "UI_0000",
+    "en": "BrightThorn of the brightcalyx reach",
+    "ko": "GraveEmber of the keenjasp reach",
+    "ja": "StillEmber of the commonember reach"
+  },
+  {
+    "stringKey": "UI_0001",
+    "en": "CommonJasp of the swiftjasp reach",
+    "ko": "BrightRune of the yarrow reach",
+    "ja": "BrightThorn of the swiftelm reach"
+  },
+  {
+    "stringKey": "UI_0002",
+    "en": "LesserFenn of the keencinder reach",
+    "ko": "SwiftAlder of the gravevellum reach",
+    "ja": "KeenBrack of the commonvellum reach"
+  },
+  {
+    "stringKey": "UI_0003",
+    "en": "LesserFenn of the hollowjasp reach",
+    "ko": "StillRune of the commongale reach",
+    "ja": "LesserBrack of the brightvellum reach"
+  },
+  {
+    "stringKey": "UI_0004",
+    "en": "CommonOchre of the gale reach",
+    "ko": "VastFlint of the swiftember reach",
+    "ja": "SwiftCalyx of the keennettle reach"
+  },
+  {
+    "stringKey": "UI_0005",
+    "en": "HollowQuill of the swiftyarrow reach",
+    "ko": "LesserBriar of the keenflint reach",
+    "ja": "GraveFlint of the gravevellum reach"
+  },
+  {
+    "stringKey": "UI_0006",
+    "en": "CommonZephyr of the wardeddorn reach",
+    "ko": "VastThorn of the brightthorn reach",
+    "ja": "GraveYarrow of the stilldorn reach"
+  },
+  {
+    "stringKey": "UI_0007",
+    "en": "WardedOchre of the hollowyarrow reach",
+    "ko": "GraveBrack of the brightember reach",
+    "ja": "GraveDrift of the brightisle reach"
+  },
+  {
+    "stringKey": "UI_0008",
+    "en": "KeenMarrow of the hollowsalt reach",
+    "ko": "Yarrow of the dorn reach",
+    "ja": "LesserKelvin of the swiftfenn reach"
+  },
+  {
+    "stringKey": "UI_0009",
+    "en": "Gale of the alder reach",
+    "ko": "SwiftRune of the keenpyre reach",
+    "ja": "WardedLumen of the ochre reach"
+  },
+  {
+    "stringKey": "UI_0010",
+    "en": "Briar of the dorn reach",
+    "ko": "WardedFenn of the commoncinder reach",
+    "ja": "WardedWick of the wardedlumen reach"
+  },
+  {
+    "stringKey": "UI_0011",
+    "en": "Dorn of the alder reach",
+    "ko": "LesserYarrow of the keenflint reach",
+    "ja": "HollowGale of the salt reach"
+  },
+  {
+    "stringKey": "UI_0012",
+    "en": "KeenNettle of the commonyarrow reach",
+    "ko": "LesserBrack of the hollowisle reach",
+    "ja": "StillLumen of the keensalt reach"
+  },
+  {
+    "stringKey": "UI_0013",
+    "en": "SwiftVellum of the commondorn reach",
+    "ko": "StillMarrow of the brightochre reach",
+    "ja": "VastLumen of the swiftbrack reach"
+  },
+  {
+    "stringKey": "UI_0014",
+    "en": "WardedEmber of the hollowwick reach",
+    "ko": "WardedLumen of the swiftsalt reach",
+    "ja": "StillJasp of the hollowbrack reach"
+  },
+  {
+    "stringKey": "UI_0015",
+    "en": "KeenBrack of the gravealder reach",
+    "ko": "BrightBriar of the swiftflint reach",
+    "ja": "CommonYarrow of the swiftlumen reach"
+  },
+  {
+    "stringKey": "UI_0016",
+    "en": "SwiftFlint of the wardedflint reach",
+    "ko": "GraveCalyx of the brightember reach",
+    "ja": "StillUmber of the graveelm reach"
+  },
+  {
+    "stringKey": "UI_0017",
+    "en": "KeenThorn of the lumen reach",
+    "ko": "VastZephyr of the stillquill reach",
+    "ja": "SwiftGale of the keennettle reach"
+  },
+  {
+    "stringKey": "UI_0018",
+    "en": "StillRune of the commongale reach",
+    "ko": "SwiftPyre of the keenpyre reach",
+    "ja": "KeenEmber of the gravealder reach"
+  },
+  {
+    "stringKey": "UI_0019",
+    "en": "CommonIsle of the swiftjasp reach",
+    "ko": "CommonZephyr of the hollowquill reach",
+    "ja": "KeenCinder of the gravedorn reach"
+  },
+  {
+    "stringKey": "UI_0020",
+    "en": "GraveElm of the gravevellum reach",
+    "ko": "HollowDrift of the keendorn reach",
+    "ja": "CommonEmber of the ember reach"
+  },
+  {
+    "stringKey": "UI_0021",
+    "en": "WardedJasp of the wardedjasp reach",
+    "ko": "StillCinder of the keenumber reach",
+    "ja": "HollowEmber of the keenalder reach"
+  },
+  {
+    "stringKey": "UI_0022",
+    "en": "GraveKelvin of the wardedwick reach",
+    "ko": "WardedZephyr of the commonflint reach",
+    "ja": "GraveDorn of the cinder reach"
+  },
+  {
+    "stringKey": "UI_0023",
+    "en": "HollowQuill of the swiftyarrow reach",
+    "ko": "StillRune of the graveelm reach",
+    "ja": "StillQuill of the brightpyre reach"
+  },
+  {
+    "stringKey": "UI_0024",
+    "en": "GraveAlder of the keenisle reach",
+    "ko": "KeenDrift of the wardedisle reach",
+    "ja": "SwiftFenn of the brightjasp reach"
+  },
+  {
+    "stringKey": "UI_0025",
+    "en": "VastJasp of the hollowfenn reach",
+    "ko": "GraveKelvin of the wardedwick reach",
+    "ja": "LesserHarrow of the commonnettle reach"
+  },
+  {
+    "stringKey": "UI_0026",
+    "en": "VastElm of the keenbriar reach",
+    "ko": "WardedBriar of the wardedmarrow reach",
+    "ja": "WardedElm of the swiftvellum reach"
+  },
+  {
+    "stringKey": "UI_0027",
+    "en": "LesserDorn of the hollowjasp reach",
+    "ko": "WardedRune of the hollowyarrow reach",
+    "ja": "GraveIsle of the wardedwick reach"
+  },
+  {
+    "stringKey": "UI_0028",
+    "en": "GraveKelvin of the keenkelvin reach",
+    "ko": "SwiftThorn of the gravezephyr reach",
+    "ja": "CommonOchre of the commonthorn reach"
+  },
+  {
+    "stringKey": "UI_0029",
+    "en": "KeenSalt of the commonzephyr reach",
+    "ko": "HollowThorn of the hollowelm reach",
+    "ja": "CommonCalyx of the commonrune reach"
+  },
+  {
+    "stringKey": "UI_0030",
+    "en": "HollowWick of the hollowelm reach",
+    "ko": "KeenBrack of the wardedember reach",
+    "ja": "KeenIsle of the wardedfenn reach"
+  },
+  {
+    "stringKey": "UI_0031",
+    "en": "SwiftNettle of the graveyarrow reach",
+    "ko": "BrightFlint of the brightember reach",
+    "ja": "WardedEmber of the commoncinder reach"
+  },
+  {
+    "stringKey": "UI_0032",
+    "en": "VastFlint of the stillrune reach",
+    "ko": "BrightVellum of the brightdorn reach",
+    "ja": "WardedWick of the hollowzephyr reach"
+  },
+  {
+    "stringKey": "UI_0033",
+    "en": "VastMarrow of the brightsalt reach",
+    "ko": "VastUmber of the keenzephyr reach",
+    "ja": "WardedThorn of the commonelm reach"
+  },
+  {
+    "stringKey": "UI_0034",
+    "en": "VastHarrow of the keenwick reach",
+    "ko": "LesserKelvin of the brightwick reach",
+    "ja": "StillDrift of the stillmarrow reach"
+  },
+  {
+    "stringKey": "UI_0035",
+    "en": "SwiftSalt of the commoncalyx reach",
+    "ko": "CommonKelvin of the hollowochre reach",
+    "ja": "BrightAlder of the keenember reach"
+  },
+  {
+    "stringKey": "UI_0036",
+    "en": "GraveVellum of the keenlumen reach",
+    "ko": "VastWick of the keenzephyr reach",
+    "ja": "BrightWick of the gravequill reach"
+  },
+  {
+    "stringKey": "UI_0037",
+    "en": "VastDorn of the brightrune reach",
+    "ko": "KeenYarrow of the gravedorn reach",
+    "ja": "VastYarrow of the stillquill reach"
+  },
+  {
+    "stringKey": "UI_0038",
+    "en": "SwiftRune of the keenpyre reach",
+    "ko": "StillKelvin of the keensalt reach",
+    "ja": "WardedPyre of the swiftthorn reach"
+  },
+  {
+    "stringKey": "UI_0039",
+    "en": "Drift of the dorn reach",
+    "ko": "SwiftElm of the gravebriar reach",
+    "ja": "LesserFenn of the hollowjasp reach"
+  },
+  {
+    "stringKey": "UI_0040",
+    "en": "BrightMarrow of the brightbrack reach",
+    "ko": "KeenDrift of the swiftquill reach",
+    "ja": "KeenMarrow of the gravebrack reach"
+  },
+  {
+    "stringKey": "UI_0041",
+    "en": "WardedCinder of the graveisle reach",
+    "ko": "Elm of the ember reach",
+    "ja": "KeenFlint of the wardedisle reach"
+  },
+  {
+    "stringKey": "UI_0042",
+    "en": "VastDrift of the swiftdorn reach",
+    "ko": "LesserElm of the hollowmarrow reach",
+    "ja": "StillLumen of the brightochre reach"
+  },
+  {
+    "stringKey": "UI_0043",
+    "en": "BrightGale of the wardedsalt reach",
+    "ko": "LesserHarrow of the keencinder reach",
+    "ja": "KeenMarrow of the commonyarrow reach"
+  },
+  {
+    "stringKey": "UI_0044",
+    "en": "KeenSalt of the commonzephyr reach",
+    "ko": "CommonLumen of the hollowochre reach",
+    "ja": "VastLumen of the swiftbrack reach"
+  },
+  {
+    "stringKey": "UI_0045",
+    "en": "KeenUmber of the gravecalyx reach",
+    "ko": "GraveThorn of the stillcalyx reach",
+    "ja": "BrightHarrow of the keenfenn reach"
+  },
+  {
+    "stringKey": "UI_0046",
+    "en": "GraveMarrow of the drift reach",
+    "ko": "WardedFenn of the wardedjasp reach",
+    "ja": "KeenPyre of the swiftpyre reach"
+  },
+  {
+    "stringKey": "UI_0047",
+    "en": "KeenKelvin of the wardedfenn reach",
+    "ko": "BrightVellum of the gravepyre reach",
+    "ja": "KeenVellum of the swiftpyre reach"
+  },
+  {
+    "stringKey": "UI_0048",
+    "en": "BrightWick of the keenharrow reach",
+    "ko": "VastCalyx of the swiftalder reach",
+    "ja": "BrightJasp of the wardedsalt reach"
+  },
+  {
+    "stringKey": "UI_0049",
+    "en": "LesserDrift of the commonquill reach",
+    "ko": "VastFenn of the swiftalder reach",
+    "ja": "LesserLumen of the keendrift reach"
+  },
+  {
+    "stringKey": "UI_0050",
+    "en": "SwiftWick of the stillharrow reach",
+    "ko": "LesserDorn of the brightvellum reach",
+    "ja": "SwiftRune of the graveyarrow reach"
+  },
+  {
+    "stringKey": "UI_0051",
+    "en": "SwiftYarrow of the stillharrow reach",
+    "ko": "LesserAlder of the keenbriar reach",
+    "ja": "LesserBrack of the hollowisle reach"
+  },
+  {
+    "stringKey": "UI_0052",
+    "en": "KeenGale of the swiftnettle reach",
+    "ko": "LesserIsle of the brightwick reach",
+    "ja": "VastPyre of the commonkelvin reach"
+  },
+  {
+    "stringKey": "UI_0053",
+    "en": "StillPyre of the commongale reach",
+    "ko": "KeenFlint of the hollowvellum reach",
+    "ja": "VastElm of the hollowisle reach"
+  },
+  {
+    "stringKey": "UI_0054",
+    "en": "WardedSalt of the wardedlumen reach",
+    "ko": "WardedVellum of the graveharrow reach",
+    "ja": "HollowThorn of the keencalyx reach"
+  },
+  {
+    "stringKey": "UI_0055",
+    "en": "WardedMarrow of the hollowyarrow reach",
+    "ko": "GraveKelvin of the stillbrack reach",
+    "ja": "StillElm of the keenvellum reach"
+  },
+  {
+    "stringKey": "UI_0056",
+    "en": "StillPyre of the stillkelvin reach",
+    "ko": "CommonPyre of the hollowpyre reach",
+    "ja": "VastMarrow of the hollowgale reach"
+  },
+  {
+    "stringKey": "UI_0057",
+    "en": "SwiftFlint of the keenrune reach",
+    "ko": "StillVellum of the stilllumen reach",
+    "ja": "SwiftBriar of the gravebriar reach"
+  },
+  {
+    "stringKey": "UI_0058",
+    "en": "GraveFenn of the stillalder reach",
+    "ko": "StillLumen of the stillkelvin reach",
+    "ja": "HollowDorn of the wardednettle reach"
+  },
+  {
+    "stringKey": "UI_0059",
+    "en": "VastFenn of the stillnettle reach",
+    "ko": "CommonYarrow of the brightflint reach",
+    "ja": "VastNettle of the hollowgale reach"
+  },
+  {
+    "stringKey": "UI_0060",
+    "en": "GraveHarrow of the wardedwick reach",
+    "ko": "StillNettle of the commongale reach",
+    "ja": "VastPyre of the swiftcalyx reach"
+  },
+  {
+    "stringKey": "UI_0061",
+    "en": "GraveZephyr of the flint reach",
+    "ko": "StillMarrow of the stillkelvin reach",
+    "ja": "SwiftCalyx of the gravevellum reach"
+  },
+  {
+    "stringKey": "UI_0062",
+    "en": "VastElm of the stillquill reach",
+    "ko": "WardedAlder of the marrow reach",
+    "ja": "CommonOchre of the gale reach"
+  },
+  {
+    "stringKey": "UI_0063",
+    "en": "StillYarrow of the brightquill reach",
+    "ko": "HollowElm of the vellum reach",
+    "ja": "Salt of the calyx reach"
+  },
+  {
+    "stringKey": "UI_0064",
+    "en": "LesserPyre of the commonpyre reach",
+    "ko": "HollowJasp of the hollowdrift reach",
+    "ja": "GraveCalyx of the stillalder reach"
+  },
+  {
+    "stringKey": "UI_0065",
+    "en": "SwiftWick of the keenquill reach",
+    "ko": "SwiftBriar of the commondorn reach",
+    "ja": "HollowElm of the keenember reach"
+  },
+  {
+    "stringKey": "UI_0066",
+    "en": "CommonPyre of the swiftkelvin reach",
+    "ko": "VastCalyx of the commonisle reach",
+    "ja": "GraveYarrow of the graveumber reach"
+  },
+  {
+    "stringKey": "UI_0067",
+    "en": "KeenZephyr of the gravedorn reach",
+    "ko": "CommonJasp of the wardedbrack reach",
+    "ja": "KeenHarrow of the wardedfenn reach"
+  },
+  {
+    "stringKey": "UI_0068",
+    "en": "GraveMarrow of the keenkelvin reach",
+    "ko": "GraveRune of the keenlumen reach",
+    "ja": "SwiftKelvin of the gravewick reach"
+  },
+  {
+    "stringKey": "UI_0069",
+    "en": "KeenGale of the commonwick reach",
+    "ko": "StillDorn of the keenrune reach",
+    "ja": "SwiftFlint of the wardedflint reach"
+  },
+  {
+    "stringKey": "UI_0070",
+    "en": "SwiftEmber of the gravewick reach",
+    "ko": "VastDrift of the brightvellum reach",
+    "ja": "LesserFenn of the swiftfenn reach"
+  },
+  {
+    "stringKey": "UI_0071",
+    "en": "SwiftElm of the stillisle reach",
+    "ko": "KeenLumen of the wardedfenn reach",
+    "ja": "HollowLumen of the wardedochre reach"
+  },
+  {
+    "stringKey": "UI_0072",
+    "en": "KeenFlint of the commonbriar reach",
+    "ko": "GraveCinder of the stilldorn reach",
+    "ja": "BrightKelvin of the wick reach"
+  },
+  {
+    "stringKey": "UI_0073",
+    "en": "WardedQuill of the wardedkelvin reach",
+    "ko": "SwiftDrift of the stillisle reach",
+    "ja": "GraveFlint of the brightisle reach"
+  },
+  {
+    "stringKey": "UI_0074",
+    "en": "SwiftZephyr of the keenquill reach",
+    "ko": "KeenOchre of the gravecalyx reach",
+    "ja": "BrightEmber of the wick reach"
+  },
+  {
+    "stringKey": "UI_0075",
+    "en": "SwiftBriar of the stillharrow reach",
+    "ko": "BrightAlder of the vellum reach",
+    "ja": "HollowKelvin of the keenbrack reach"
+  },
+  {
+    "stringKey": "UI_0076",
+    "en": "VastSalt of the hollowgale reach",
+    "ko": "LesserCalyx of the swiftember reach",
+    "ja": "VastJasp of the swiftbrack reach"
+  },
+  {
+    "stringKey": "UI_0077",
+    "en": "SwiftLumen of the commonbrack reach",
+    "ko": "KeenLumen of the gravebrack reach",
+    "ja": "BrightOchre of the graveochre reach"
+  },
+  {
+    "stringKey": "UI_0078",
+    "en": "KeenElm of the swiftquill reach",
+    "ko": "VastFenn of the brightrune reach",
+    "ja": "BrightFlint of the brightember reach"
+  },
+  {
+    "stringKey": "UI_0079",
+    "en": "VastJasp of the commonjasp reach",
+    "ko": "GraveUmber of the brightharrow reach",
+    "ja": "GraveDorn of the keenjasp reach"
+  },
+  {
+    "stringKey": "UI_0080",
+    "en": "BrightAlder of the vellum reach",
+    "ko": "CommonElm of the wardedember reach",
+    "ja": "LesserJasp of the swiftfenn reach"
+  },
+  {
+    "stringKey": "UI_0081",
+    "en": "GraveElm of the wardedbriar reach",
+    "ko": "LesserBriar of the swiftharrow reach",
+    "ja": "BrightJasp of the graveochre reach"
+  },
+  {
+    "stringKey": "UI_0082",
+    "en": "HollowSalt of the hollowelm reach",
+    "ko": "LesserWick of the keenelm reach",
+    "ja": "HollowBrack of the graveisle reach"
+  },
+  {
+    "stringKey": "UI_0083",
+    "en": "LesserWick of the hollowlumen reach",
+    "ko": "SwiftKelvin of the stillfenn reach",
+    "ja": "CommonLumen of the commonsalt reach"
+  },
+  {
+    "stringKey": "UI_0084",
+    "en": "BrightRune of the gravepyre reach",
+    "ko": "StillGale of the brightnettle reach",
+    "ja": "KeenLumen of the gravebrack reach"
+  },
+  {
+    "stringKey": "UI_0085",
+    "en": "StillDorn of the gravecinder reach",
+    "ko": "HollowKelvin of the swiftwick reach",
+    "ja": "LesserDorn of the commonnettle reach"
+  },
+  {
+    "stringKey": "UI_0086",
+    "en": "LesserDorn of the hollowjasp reach",
+    "ko": "CommonYarrow of the brightflint reach",
+    "ja": "SwiftKelvin of the wardeddrift reach"
+  },
+  {
+    "stringKey": "UI_0087",
+    "en": "WardedJasp of the hollowwick reach",
+    "ko": "KeenUmber of the gravecalyx reach",
+    "ja": "CommonMarrow of the brightdrift reach"
+  },
+  {
+    "stringKey": "UI_0088",
+    "en": "GraveZephyr of the wardedzephyr reach",
+    "ko": "CommonDrift of the wardeddorn reach",
+    "ja": "WardedDorn of the commoncinder reach"
+  },
+  {
+    "stringKey": "UI_0089",
+    "en": "SwiftJasp of the gravewick reach",
+    "ko": "HollowBrack of the graveisle reach",
+    "ja": "SwiftQuill of the keenpyre reach"
+  },
+  {
+    "stringKey": "UI_0090",
+    "en": "KeenNettle of the swiftochre reach",
+    "ko": "GraveSalt of the brightgale reach",
+    "ja": "StillUmber of the keenumber reach"
+  },
+  {
+    "stringKey": "UI_0091",
+    "en": "Ember of the alder reach",
+    "ko": "LesserElm of the keenflint reach",
+    "ja": "VastQuill of the commonkelvin reach"
+  },
+  {
+    "stringKey": "UI_0092",
+    "en": "CommonGale of the hollownettle reach",
+    "ko": "BrightCinder of the wardedumber reach",
+    "ja": "CommonFlint of the hollowrune reach"
+  },
+  {
+    "stringKey": "UI_0093",
+    "en": "SwiftSalt of the stillgale reach",
+    "ko": "HollowCinder of the keendorn reach",
+    "ja": "LesserElm of the brightbriar reach"
+  },
+  {
+    "stringKey": "UI_0094",
+    "en": "SwiftIsle of the gravewick reach",
+    "ko": "KeenDrift of the hollowvellum reach",
+    "ja": "GraveGale of the wardedwick reach"
+  },
+  {
+    "stringKey": "UI_0095",
+    "en": "WardedNettle of the ochre reach",
+    "ko": "KeenKelvin of the hollowsalt reach",
+    "ja": "KeenElm of the wardedisle reach"
+  },
+  {
+    "stringKey": "UI_0096",
+    "en": "LesserDrift of the swiftisle reach",
+    "ko": "CommonOchre of the hollowochre reach",
+    "ja": "WardedBrack of the commonbriar reach"
+  },
+  {
+    "stringKey": "UI_0097",
+    "en": "Elm of the ember reach",
+    "ko": "VastKelvin of the hollowfenn reach",
+    "ja": "StillCinder of the hollowdorn reach"
+  },
+  {
+    "stringKey": "UI_0098",
+    "en": "CommonLumen of the wardedbrack reach",
+    "ko": "SwiftDrift of the commondorn reach",
+    "ja": "StillBriar of the brightquill reach"
+  },
+  {
+    "stringKey": "UI_0099",
+    "en": "BrightHarrow of the gravenettle reach",
+    "ko": "KeenGale of the hollowsalt reach",
+    "ja": "GraveOchre of the drift reach"
+  },
+  {
+    "stringKey": "UI_0100",
+    "en": "WardedRune of the gravegale reach",
+    "ko": "GraveGale of the cinder reach",
+    "ja": "CommonSalt of the hollowpyre reach"
+  },
+  {
+    "stringKey": "UI_0101",
+    "en": "GraveCinder of the brightisle reach",
+    "ko": "WardedFlint of the rune reach",
+    "ja": "StillDorn of the gravecinder reach"
+  },
+  {
+    "stringKey": "UI_0102",
+    "en": "WardedBrack of the wardedisle reach",
+    "ko": "LesserCinder of the brightbriar reach",
+    "ja": "CommonCalyx of the swiftisle reach"
+  },
+  {
+    "stringKey": "UI_0103",
+    "en": "StillUmber of the brightpyre reach",
+    "ko": "SwiftCinder of the gravebriar reach",
+    "ja": "SwiftThorn of the wardedelm reach"
+  },
+  {
+    "stringKey": "UI_0104",
+    "en": "CommonZephyr of the wardeddorn reach",
+    "ko": "CommonIsle of the wardedbrack reach",
+    "ja": "KeenRune of the hollowthorn reach"
+  },
+  {
+    "stringKey": "UI_0105",
+    "en": "VastEmber of the brightrune reach",
+    "ko": "KeenNettle of the commonyarrow reach",
+    "ja": "HollowWick of the hollowelm reach"
+  },
+  {
+    "stringKey": "UI_0106",
+    "en": "CommonElm of the commonvellum reach",
+    "ko": "BrightBriar of the swiftflint reach",
+    "ja": "GraveBriar of the graveumber reach"
+  },
+  {
+    "stringKey": "UI_0107",
+    "en": "Quill of the calyx reach",
+    "ko": "HollowBrack of the swiftvellum reach",
+    "ja": "CommonVellum of the harrow reach"
+  },
+  {
+    "stringKey": "UI_0108",
+    "en": "SwiftOchre of the stillgale reach",
+    "ko": "WardedWick of the graveharrow reach",
+    "ja": "HollowAlder of the graveisle reach"
+  },
+  {
+    "stringKey": "UI_0109",
+    "en": "StillGale of the brightnettle reach",
+    "ko": "LesserDrift of the keenflint reach",
+    "ja": "KeenGale of the commonwick reach"
+  },
+  {
+    "stringKey": "UI_0110",
+    "en": "LesserGale of the commonnettle reach",
+    "ko": "BrightBrack of the gravenettle reach",
+    "ja": "HollowBrack of the wardednettle reach"
+  },
+  {
+    "stringKey": "UI_0111",
+    "en": "SwiftThorn of the gravezephyr reach",
+    "ko": "StillUmber of the keenumber reach",
+    "ja": "VastOchre of the keenyarrow reach"
+  },
+  {
+    "stringKey": "UI_0112",
+    "en": "CommonVellum of the harrow reach",
+    "ko": "LesserNettle of the commonochre reach",
+    "ja": "HollowLumen of the gravekelvin reach"
+  },
+  {
+    "stringKey": "UI_0113",
+    "en": "KeenYarrow of the hollowumber reach",
+    "ko": "BrightPyre of the keengale reach",
+    "ja": "Brack of the alder reach"
+  },
+  {
+    "stringKey": "UI_0114",
+    "en": "VastSalt of the commonlumen reach",
+    "ko": "StillBrack of the commonember reach",
+    "ja": "StillZephyr of the stillmarrow reach"
+  },
+  {
+    "stringKey": "UI_0115",
+    "en": "SwiftQuill of the brightkelvin reach",
+    "ko": "KeenThorn of the commonzephyr reach",
+    "ja": "WardedJasp of the gravefenn reach"
+  },
+  {
+    "stringKey": "UI_0116",
+    "en": "VastDrift of the swiftdorn reach",
+    "ko": "SwiftBrack of the wardedbriar reach",
+    "ja": "LesserCinder of the swiftisle reach"
+  },
+  {
+    "stringKey": "UI_0117",
+    "en": "WardedWick of the wardedlumen reach",
+    "ko": "LesserVellum of the keenelm reach",
+    "ja": "HollowThorn of the keencalyx reach"
+  },
+  {
+    "stringKey": "UI_0118",
+    "en": "CommonPyre of the gale reach",
+    "ko": "HollowFenn of the gravejasp reach",
+    "ja": "KeenUmber of the gravecalyx reach"
+  },
+  {
+    "stringKey": "UI_0119",
+    "en": "HollowLumen of the salt reach",
+    "ko": "WardedMarrow of the ochre reach",
+    "ja": "KeenUmber of the lumen reach"
+  },
+  {
+    "stringKey": "UI_0120",
+    "en": "VastUmber of the commonlumen reach",
+    "ko": "BrightHarrow of the keenfenn reach",
+    "ja": "BrightGale of the keenfenn reach"
+  },
+  {
+    "stringKey": "UI_0121",
+    "en": "VastGale of the brightsalt reach",
+    "ko": "LesserHarrow of the hollowjasp reach",
+    "ja": "CommonJasp of the fenn reach"
+  },
+  {
+    "stringKey": "UI_0122",
+    "en": "CommonKelvin of the swiftkelvin reach",
+    "ko": "VastThorn of the brightthorn reach",
+    "ja": "CommonDorn of the brightcinder reach"
+  },
+  {
+    "stringKey": "UI_0123",
+    "en": "CommonIsle of the brightcinder reach",
+    "ko": "KeenCalyx of the wardedember reach",
+    "ja": "SwiftThorn of the commoncalyx reach"
+  },
+  {
+    "stringKey": "UI_0124",
+    "en": "GraveEmber of the keenjasp reach",
+    "ko": "WardedIsle of the hollowwick reach",
+    "ja": "VastYarrow of the hollowharrow reach"
+  },
+  {
+    "stringKey": "UI_0125",
+    "en": "SwiftLumen of the brightkelvin reach",
+    "ko": "LesserHarrow of the keencinder reach",
+    "ja": "CommonIsle of the swiftjasp reach"
+  },
+  {
+    "stringKey": "UI_0126",
+    "en": "WardedZephyr of the graveharrow reach",
+    "ko": "SwiftZephyr of the commondorn reach",
+    "ja": "VastFenn of the brightrune reach"
+  },
+  {
+    "stringKey": "UI_0127",
+    "en": "WardedThorn of the hollowzephyr reach",
+    "ko": "LesserIsle of the commonochre reach",
+    "ja": "WardedZephyr of the quill reach"
+  },
+  {
+    "stringKey": "UI_0128",
+    "en": "SwiftQuill of the graveyarrow reach",
+    "ko": "GraveDrift of the wardedbriar reach",
+    "ja": "KeenUmber of the commonzephyr reach"
+  },
+  {
+    "stringKey": "UI_0129",
+    "en": "GraveHarrow of the wardedwick reach",
+    "ko": "VastFlint of the brightvellum reach",
+    "ja": "WardedYarrow of the swiftumber reach"
+  },
+  {
+    "stringKey": "UI_0130",
+    "en": "KeenJasp of the jasp reach",
+    "ko": "StillElm of the hollowember reach",
+    "ja": "BrightKelvin of the graveochre reach"
+  },
+  {
+    "stringKey": "UI_0131",
+    "en": "CommonFlint of the hollowrune reach",
+    "ko": "KeenRune of the gravecalyx reach",
+    "ja": "SwiftKelvin of the keenochre reach"
+  },
+  {
+    "stringKey": "UI_0132",
+    "en": "StillDrift of the graveflint reach",
+    "ko": "WardedFlint of the hollowbriar reach",
+    "ja": "VastZephyr of the stillquill reach"
+  },
+  {
+    "stringKey": "UI_0133",
+    "en": "BrightRune of the brightcalyx reach",
+    "ko": "SwiftCalyx of the stillember reach",
+    "ja": "StillBrack of the gravebriar reach"
+  },
+  {
+    "stringKey": "UI_0134",
+    "en": "SwiftFlint of the keenrune reach",
+    "ko": "SwiftBrack of the gravevellum reach",
+    "ja": "BrightSalt of the swiftelm reach"
+  },
+  {
+    "stringKey": "UI_0135",
+    "en": "SwiftHarrow of the brightjasp reach",
+    "ko": "WardedDrift of the graveisle reach",
+    "ja": "CommonElm of the wardedember reach"
+  },
+  {
+    "stringKey": "UI_0136",
+    "en": "WardedJasp of the gravefenn reach",
+    "ko": "KeenPyre of the hollowthorn reach",
+    "ja": "GravePyre of the stillcalyx reach"
+  },
+  {
+    "stringKey": "UI_0137",
+    "en": "KeenJasp of the commonwick reach",
+    "ko": "GraveHarrow of the cinder reach",
+    "ja": "BrightBriar of the gravequill reach"
+  },
+  {
+    "stringKey": "UI_0138",
+    "en": "SwiftCalyx of the keennettle reach",
+    "ko": "CommonWick of the brightelm reach",
+    "ja": "StillIsle of the commonfenn reach"
+  },
+  {
+    "stringKey": "UI_0139",
+    "en": "HollowDorn of the hollowcinder reach",
+    "ko": "CommonCinder of the isle reach",
+    "ja": "GraveOchre of the brightgale reach"
+  },
+  {
+    "stringKey": "UI_0140",
+    "en": "Nettle of the brack reach",
+    "ko": "VastThorn of the keenzephyr reach",
+    "ja": "SwiftUmber of the stillharrow reach"
+  },
+  {
+    "stringKey": "UI_0141",
+    "en": "VastVellum of the stillpyre reach",
+    "ko": "BrightZephyr of the keenharrow reach",
+    "ja": "WardedDrift of the commonflint reach"
+  },
+  {
+    "stringKey": "UI_0142",
+    "en": "VastOchre of the stillochre reach",
+    "ko": "BrightVellum of the brightdorn reach",
+    "ja": "HollowBriar of the keendorn reach"
+  },
+  {
+    "stringKey": "UI_0143",
+    "en": "HollowBrack of the graveisle reach",
+    "ko": "GraveFlint of the brightisle reach",
+    "ja": "WardedLumen of the commondrift reach"
+  },
+  {
+    "stringKey": "UI_0144",
+    "en": "VastUmber of the swiftcalyx reach",
+    "ko": "CommonCalyx of the ember reach",
+    "ja": "BrightUmber of the brightcalyx reach"
+  },
+  {
+    "stringKey": "UI_0145",
+    "en": "BrightZephyr of the swiftflint reach",
+    "ko": "Zephyr of the dorn reach",
+    "ja": "SwiftQuill of the graveyarrow reach"
+  },
+  {
+    "stringKey": "UI_0146",
+    "en": "GraveGale of the keenjasp reach",
+    "ko": "VastQuill of the commonkelvin reach",
+    "ja": "KeenCalyx of the isle reach"
+  },
+  {
+    "stringKey": "UI_0147",
+    "en": "KeenEmber of the jasp reach",
+    "ko": "StillEmber of the hollowalder reach",
+    "ja": "GraveDrift of the gravevellum reach"
+  },
+  {
+    "stringKey": "UI_0148",
+    "en": "HollowPyre of the keencalyx reach",
+    "ko": "CommonKelvin of the hollowochre reach",
+    "ja": "SwiftEmber of the wardedcinder reach"
+  },
+  {
+    "stringKey": "UI_0149",
+    "en": "WardedDrift of the wardedmarrow reach",
+    "ko": "BrightDrift of the briar reach",
+    "ja": "CommonEmber of the commonrune reach"
+  },
+  {
+    "stringKey": "UI_0150",
+    "en": "CommonPyre of the brightdrift reach",
+    "ko": "GraveLumen of the stillbrack reach",
+    "ja": "BrightVellum of the wardedumber reach"
+  },
+  {
+    "stringKey": "UI_0151",
+    "en": "SwiftWick of the stillharrow reach",
+    "ko": "StillZephyr of the keenumber reach",
+    "ja": "StillJasp of the brightochre reach"
+  },
+  {
+    "stringKey": "UI_0152",
+    "en": "HollowMarrow of the swiftyarrow reach",
+    "ko": "LesserFenn of the swiftfenn reach",
+    "ja": "StillBriar of the graveflint reach"
+  },
+  {
+    "stringKey": "UI_0153",
+    "en": "WardedPyre of the hollowyarrow reach",
+    "ko": "StillIsle of the commonfenn reach",
+    "ja": "StillMarrow of the stillkelvin reach"
+  },
+  {
+    "stringKey": "UI_0154",
+    "en": "KeenDrift of the commonbriar reach",
+    "ko": "HollowElm of the vellum reach",
+    "ja": "WardedVellum of the commonelm reach"
+  },
+  {
+    "stringKey": "UI_0155",
+    "en": "BrightFenn of the gravenettle reach",
+    "ko": "HollowGale of the wardednettle reach",
+    "ja": "GraveHarrow of the cinder reach"
+  },
+  {
+    "stringKey": "UI_0156",
+    "en": "WardedEmber of the graveember reach",
+    "ko": "BrightIsle of the wardedsalt reach",
+    "ja": "BrightNettle of the brightbrack reach"
+  },
+  {
+    "stringKey": "UI_0157",
+    "en": "HollowOchre of the gravekelvin reach",
+    "ko": "HollowFlint of the swiftbriar reach",
+    "ja": "Marrow of the brack reach"
+  },
+  {
+    "stringKey": "UI_0158",
+    "en": "KeenHarrow of the swiftnettle reach",
+    "ko": "LesserIsle of the hollowjasp reach",
+    "ja": "CommonYarrow of the wardeddorn reach"
+  },
+  {
+    "stringKey": "UI_0159",
+    "en": "GraveThorn of the elm reach",
+    "ko": "CommonZephyr of the commonumber reach",
+    "ja": "CommonMarrow of the hollowochre reach"
+  },
+  {
+    "stringKey": "UI_0160",
+    "en": "WardedPyre of the hollowyarrow reach",
+    "ko": "KeenAlder of the swiftmarrow reach",
+    "ja": "GraveThorn of the elm reach"
+  },
+  {
+    "stringKey": "UI_0161",
+    "en": "GraveEmber of the keenjasp reach",
+    "ko": "CommonBriar of the hollowquill reach",
+    "ja": "CommonVellum of the hollowpyre reach"
+  },
+  {
+    "stringKey": "UI_0162",
+    "en": "GraveVellum of the keenlumen reach",
+    "ko": "HollowNettle of the wardedochre reach",
+    "ja": "CommonDrift of the isle reach"
+  },
+  {
+    "stringKey": "UI_0163",
+    "en": "WardedKelvin of the swiftsalt reach",
+    "ko": "KeenIsle of the commonwick reach",
+    "ja": "CommonMarrow of the swiftkelvin reach"
+  },
+  {
+    "stringKey": "UI_0164",
+    "en": "VastPyre of the hollowgale reach",
+    "ko": "WardedElm of the wardedmarrow reach",
+    "ja": "SwiftFenn of the wardedcinder reach"
+  },
+  {
+    "stringKey": "UI_0165",
+    "en": "CommonEmber of the ember reach",
+    "ko": "HollowPyre of the wardedpyre reach",
+    "ja": "SwiftBriar of the stillharrow reach"
+  },
+  {
+    "stringKey": "UI_0166",
+    "en": "KeenDorn of the wardedember reach",
+    "ko": "BrightUmber of the brightcalyx reach",
+    "ja": "BrightZephyr of the zephyr reach"
+  },
+  {
+    "stringKey": "UI_0167",
+    "en": "LesserVellum of the swiftharrow reach",
+    "ko": "KeenCalyx of the swiftnettle reach",
+    "ja": "GraveBriar of the brightharrow reach"
+  },
+  {
+    "stringKey": "UI_0168",
+    "en": "CommonCalyx of the hollownettle reach",
+    "ko": "CommonCinder of the brightflint reach",
+    "ja": "KeenCinder of the wardedisle reach"
+  },
+  {
+    "stringKey": "UI_0169",
+    "en": "BrightGale of the keenfenn reach",
+    "ko": "GravePyre of the stillcalyx reach",
+    "ja": "KeenQuill of the kelvin reach"
+  },
+  {
+    "stringKey": "UI_0170",
+    "en": "KeenBrack of the swiftnettle reach",
+    "ko": "GravePyre of the stillcalyx reach",
+    "ja": "BrightQuill of the yarrow reach"
+  },
+  {
+    "stringKey": "UI_0171",
+    "en": "WardedThorn of the pyre reach",
+    "ko": "HollowEmber of the wardednettle reach",
+    "ja": "WardedKelvin of the hollowwick reach"
+  },
+  {
+    "stringKey": "UI_0172",
+    "en": "StillEmber of the stilljasp reach",
+    "ko": "KeenAlder of the gravealder reach",
+    "ja": "StillVellum of the brightpyre reach"
+  },
+  {
+    "stringKey": "UI_0173",
+    "en": "StillJasp of the stilljasp reach",
+    "ko": "BrightDrift of the briar reach",
+    "ja": "WardedCinder of the quill reach"
+  },
+  {
+    "stringKey": "UI_0174",
+    "en": "SwiftFenn of the wardedcinder reach",
+    "ko": "HollowElm of the swiftbriar reach",
+    "ja": "SwiftJasp of the commonbrack reach"
+  },
+  {
+    "stringKey": "UI_0175",
+    "en": "HollowAlder of the graveisle reach",
+    "ko": "KeenGale of the jasp reach",
+    "ja": "SwiftFenn of the brightjasp reach"
+  },
+  {
+    "stringKey": "UI_0176",
+    "en": "GraveCinder of the flint reach",
+    "ko": "HollowIsle of the swiftwick reach",
+    "ja": "CommonEmber of the brightcinder reach"
+  },
+  {
+    "stringKey": "UI_0177",
+    "en": "WardedCalyx of the nettle reach",
+    "ko": "LesserGale of the swiftfenn reach",
+    "ja": "BrightElm of the swiftflint reach"
+  },
+  {
+    "stringKey": "UI_0178",
+    "en": "VastWick of the keenzephyr reach",
+    "ko": "CommonVellum of the brightelm reach",
+    "ja": "HollowRune of the gravelumen reach"
+  },
+  {
+    "stringKey": "UI_0179",
+    "en": "VastKelvin of the brightsalt reach",
+    "ko": "BrightElm of the wardedvellum reach",
+    "ja": "Ember of the alder reach"
+  },
+  {
+    "stringKey": "UI_0180",
+    "en": "HollowKelvin of the wardedochre reach",
+    "ko": "StillLumen of the brightochre reach",
+    "ja": "KeenFenn of the jasp reach"
+  },
+  {
+    "stringKey": "UI_0181",
+    "en": "WardedVellum of the swiftumber reach",
+    "ko": "StillWick of the brightquill reach",
+    "ja": "WardedCinder of the graveisle reach"
+  },
+  {
+    "stringKey": "UI_0182",
+    "en": "CommonDrift of the wardeddorn reach",
+    "ko": "StillUmber of the brightpyre reach",
+    "ja": "KeenAlder of the swiftmarrow reach"
+  },
+  {
+    "stringKey": "UI_0183",
+    "en": "StillVellum of the hollowdorn reach",
+    "ko": "VastPyre of the stillpyre reach",
+    "ja": "LesserWick of the swiftharrow reach"
+  },
+  {
+    "stringKey": "UI_0184",
+    "en": "CommonIsle of the swiftjasp reach",
+    "ko": "WardedIsle of the ochre reach",
+    "ja": "KeenZephyr of the wardedharrow reach"
+  },
+  {
+    "stringKey": "UI_0185",
+    "en": "CommonPyre of the commonthorn reach",
+    "ko": "CommonFenn of the brightcinder reach",
+    "ja": "GraveYarrow of the keenlumen reach"
+  },
+  {
+    "stringKey": "UI_0186",
+    "en": "HollowKelvin of the swiftwick reach",
+    "ko": "CommonQuill of the swiftkelvin reach",
+    "ja": "HollowCalyx of the rune reach"
+  },
+  {
+    "stringKey": "UI_0187",
+    "en": "LesserKelvin of the hollowkelvin reach",
+    "ko": "BrightEmber of the brightalder reach",
+    "ja": "StillCinder of the commonisle reach"
+  },
+  {
+    "stringKey": "UI_0188",
+    "en": "CommonDrift of the isle reach",
+    "ko": "HollowElm of the wardedquill reach",
+    "ja": "GraveElm of the keenmarrow reach"
+  },
+  {
+    "stringKey": "UI_0189",
+    "en": "GraveZephyr of the graveumber reach",
+    "ko": "StillQuill of the commongale reach",
+    "ja": "HollowSalt of the gravelumen reach"
+  },
+  {
+    "stringKey": "UI_0190",
+    "en": "CommonPyre of the brightdrift reach",
+    "ko": "VastYarrow of the swiftdorn reach",
+    "ja": "BrightKelvin of the graveochre reach"
+  },
+  {
+    "stringKey": "UI_0191",
+    "en": "BrightPyre of the gravepyre reach",
+    "ko": "CommonMarrow of the gale reach",
+    "ja": "HollowYarrow of the hollowflint reach"
+  },
+  {
+    "stringKey": "UI_0192",
+    "en": "LesserGale of the keencinder reach",
+    "ko": "GraveDorn of the wardedvellum reach",
+    "ja": "CommonAlder of the hollowmarrow reach"
+  },
+  {
+    "stringKey": "UI_0193",
+    "en": "HollowGale of the keenalder reach",
+    "ko": "GraveJasp of the stillbrack reach",
+    "ja": "LesserYarrow of the keenflint reach"
+  },
+  {
+    "stringKey": "UI_0194",
+    "en": "KeenMarrow of the commonyarrow reach",
+    "ko": "WardedPyre of the swiftthorn reach",
+    "ja": "HollowUmber of the wardedpyre reach"
+  },
+  {
+    "stringKey": "UI_0195",
+    "en": "LesserFlint of the brightbriar reach",
+    "ko": "SwiftDorn of the wardedcinder reach",
+    "ja": "BrightFlint of the brightember reach"
+  },
+  {
+    "stringKey": "UI_0196",
+    "en": "KeenFenn of the swiftnettle reach",
+    "ko": "WardedZephyr of the commonflint reach",
+    "ja": "LesserCalyx of the hollowisle reach"
+  },
+  {
+    "stringKey": "UI_0197",
+    "en": "StillPyre of the brightpyre reach",
+    "ko": "VastJasp of the hollowfenn reach",
+    "ja": "HollowIsle of the salt reach"
+  },
+  {
+    "stringKey": "UI_0198",
+    "en": "LesserVellum of the swiftharrow reach",
+    "ko": "GraveKelvin of the keenkelvin reach",
+    "ja": "VastThorn of the hollowharrow reach"
+  },
+  {
+    "stringKey": "UI_0199",
+    "en": "LesserAlder of the swiftember reach",
+    "ko": "GraveGale of the stillalder reach",
+    "ja": "HollowThorn of the swiftzephyr reach"
+  },
+  {
+    "stringKey": "UI_0200",
+    "en": "VastIsle of the commonjasp reach",
+    "ko": "GraveOchre of the brightgale reach",
+    "ja": "GraveElm of the wardedbriar reach"
+  },
+  {
+    "stringKey": "UI_0201",
+    "en": "SwiftCinder of the wardedflint reach",
+    "ko": "StillCinder of the keenumber reach",
+    "ja": "SwiftMarrow of the stillgale reach"
+  },
+  {
+    "stringKey": "UI_0202",
+    "en": "StillIsle of the stilljasp reach",
+    "ko": "StillVellum of the hollowdorn reach",
+    "ja": "VastBriar of the hollowharrow reach"
+  },
+  {
+    "stringKey": "UI_0203",
+    "en": "KeenGale of the wardedfenn reach",
+    "ko": "KeenPyre of the hollowthorn reach",
+    "ja": "WardedPyre of the commondrift reach"
+  },
+  {
+    "stringKey": "UI_0204",
+    "en": "BrightPyre of the brightcalyx reach",
+    "ko": "VastHarrow of the hollowfenn reach",
+    "ja": "StillYarrow of the hollowdorn reach"
+  },
+  {
+    "stringKey": "UI_0205",
+    "en": "HollowEmber of the wardednettle reach",
+    "ko": "HollowAlder of the rune reach",
+    "ja": "CommonFlint of the isle reach"
+  },
+  {
+    "stringKey": "UI_0206",
+    "en": "GraveJasp of the wardedwick reach",
+    "ko": "CommonElm of the hollowquill reach",
+    "ja": "Wick of the dorn reach"
+  },
+  {
+    "stringKey": "UI_0207",
+    "en": "VastDrift of the commonmarrow reach",
+    "ko": "StillThorn of the keenthorn reach",
+    "ja": "GraveIsle of the cinder reach"
+  },
+  {
+    "stringKey": "UI_0208",
+    "en": "VastFlint of the swiftember reach",
+    "ko": "StillVellum of the brightpyre reach",
+    "ja": "WardedMarrow of the gravegale reach"
+  },
+  {
+    "stringKey": "UI_0209",
+    "en": "GraveNettle of the wardedyarrow reach",
+    "ko": "GraveZephyr of the flint reach",
+    "ja": "CommonJasp of the hollowochre reach"
+  },
+  {
+    "stringKey": "UI_0210",
+    "en": "BrightAlder of the wardedrune reach",
+    "ko": "GraveBriar of the graveumber reach",
+    "ja": "CommonBrack of the brightbriar reach"
+  },
+  {
+    "stringKey": "UI_0211",
+    "en": "LesserElm of the swiftisle reach",
+    "ko": "LesserSalt of the keenelm reach",
+    "ja": "KeenSalt of the hollowthorn reach"
+  },
+  {
+    "stringKey": "UI_0212",
+    "en": "CommonMarrow of the brightdrift reach",
+    "ko": "LesserJasp of the keendrift reach",
+    "ja": "KeenYarrow of the swiftquill reach"
+  },
+  {
+    "stringKey": "UI_0213",
+    "en": "StillYarrow of the commonharrow reach",
+    "ko": "KeenPyre of the kelvin reach",
+    "ja": "BrightAlder of the wardedrune reach"
+  },
+  {
+    "stringKey": "UI_0214",
+    "en": "SwiftRune of the keenpyre reach",
+    "ko": "StillNettle of the gravedrift reach",
+    "ja": "GraveThorn of the wardedzephyr reach"
+  },
+  {
+    "stringKey": "UI_0215",
+    "en": "GraveQuill of the stillcalyx reach",
+    "ko": "KeenHarrow of the hollowsalt reach",
+    "ja": "HollowDrift of the swiftbriar reach"
+  },
+  {
+    "stringKey": "UI_0216",
+    "en": "CommonCinder of the swiftmarrow reach",
+    "ko": "CommonPyre of the swiftkelvin reach",
+    "ja": "LesserElm of the commonquill reach"
+  },
+  {
+    "stringKey": "UI_0217",
+    "en": "SwiftJasp of the keenochre reach",
+    "ko": "VastAlder of the stillmarrow reach",
+    "ja": "SwiftRune of the keenpyre reach"
+  },
+  {
+    "stringKey": "UI_0218",
+    "en": "BrightOchre of the graveochre reach",
+    "ko": "LesserElm of the brightbriar reach",
+    "ja": "LesserBrack of the keenbriar reach"
+  },
+  {
+    "stringKey": "UI_0219",
+    "en": "SwiftRune of the brightlumen reach",
+    "ko": "HollowIsle of the keenbrack reach",
+    "ja": "BrightThorn of the brightcalyx reach"
+  },
+  {
+    "stringKey": "UI_0220",
+    "en": "VastPyre of the brightthorn reach",
+    "ko": "CommonDorn of the swiftjasp reach",
+    "ja": "KeenRune of the gravecalyx reach"
+  },
+  {
+    "stringKey": "UI_0221",
+    "en": "GraveCinder of the graveumber reach",
+    "ko": "HollowPyre of the gravekelvin reach",
+    "ja": "VastKelvin of the hollowfenn reach"
+  },
+  {
+    "stringKey": "UI_0222",
+    "en": "HollowFlint of the vellum reach",
+    "ko": "LesserQuill of the hollowkelvin reach",
+    "ja": "StillCalyx of the commonember reach"
+  },
+  {
+    "stringKey": "UI_0223",
+    "en": "KeenVellum of the swiftpyre reach",
+    "ko": "HollowFenn of the wardednettle reach",
+    "ja": "GraveLumen of the brightfenn reach"
+  },
+  {
+    "stringKey": "UI_0224",
+    "en": "CommonMarrow of the hollowochre reach",
+    "ko": "KeenAlder of the gravealder reach",
+    "ja": "BrightLumen of the wardedsalt reach"
+  },
+  {
+    "stringKey": "UI_0225",
+    "en": "GraveWick of the brightharrow reach",
+    "ko": "CommonFlint of the isle reach",
+    "ja": "WardedGale of the swiftsalt reach"
+  },
+  {
+    "stringKey": "UI_0226",
+    "en": "BrightWick of the zephyr reach",
+    "ko": "VastZephyr of the swiftdorn reach",
+    "ja": "BrightOchre of the wardedthorn reach"
+  },
+  {
+    "stringKey": "UI_0227",
+    "en": "KeenDrift of the commonbriar reach",
+    "ko": "StillElm of the graveflint reach",
+    "ja": "GraveHarrow of the gravesalt reach"
+  },
+  {
+    "stringKey": "UI_0228",
+    "en": "StillKelvin of the stillkelvin reach",
+    "ko": "WardedDorn of the swiftrune reach",
+    "ja": "HollowSalt of the hollowelm reach"
+  },
+  {
+    "stringKey": "UI_0229",
+    "en": "CommonSalt of the brightelm reach",
+    "ko": "StillIsle of the hollowbrack reach",
+    "ja": "WardedZephyr of the commonflint reach"
+  },
+  {
+    "stringKey": "UI_0230",
+    "en": "GraveLumen of the brightfenn reach",
+    "ko": "WardedFlint of the swiftvellum reach",
+    "ja": "CommonBrack of the brightbriar reach"
+  },
+  {
+    "stringKey": "UI_0231",
+    "en": "SwiftJasp of the brightjasp reach",
+    "ko": "HollowAlder of the wardedmarrow reach",
+    "ja": "StillBriar of the graveflint reach"
+  },
+  {
+    "stringKey": "UI_0232",
+    "en": "StillKelvin of the commonfenn reach",
+    "ko": "SwiftDorn of the wardedcinder reach",
+    "ja": "CommonYarrow of the commonumber reach"
+  },
+  {
+    "stringKey": "UI_0233",
+    "en": "HollowLumen of the gravekelvin reach",
+    "ko": "CommonHarrow of the brightcinder reach",
+    "ja": "KeenQuill of the commonyarrow reach"
+  },
+  {
+    "stringKey": "UI_0234",
+    "en": "LesserBriar of the commonquill reach",
+    "ko": "Wick of the dorn reach",
+    "ja": "LesserJasp of the commonochre reach"
+  },
+  {
+    "stringKey": "UI_0235",
+    "en": "KeenBriar of the commonbriar reach",
+    "ko": "HollowDrift of the hollowflint reach",
+    "ja": "GraveQuill of the wardedyarrow reach"
+  },
+  {
+    "stringKey": "UI_0236",
+    "en": "BrightEmber of the brightalder reach",
+    "ko": "LesserZephyr of the brightzephyr reach",
+    "ja": "VastGale of the brightsalt reach"
+  },
+  {
+    "stringKey": "UI_0237",
+    "en": "VastMarrow of the hollowgale reach",
+    "ko": "VastJasp of the stillochre reach",
+    "ja": "StillDrift of the stillmarrow reach"
+  },
+  {
+    "stringKey": "UI_0238",
+    "en": "LesserCalyx of the keencinder reach",
+    "ko": "KeenMarrow of the wardedgale reach",
+    "ja": "LesserIsle of the commonochre reach"
+  },
+  {
+    "stringKey": "UI_0239",
+    "en": "LesserCinder of the keenflint reach",
+    "ko": "BrightPyre of the swiftdrift reach",
+    "ja": "HollowHarrow of the salt reach"
+  },
+  {
+    "stringKey": "UI_0240",
+    "en": "GraveRune of the keenlumen reach",
+    "ko": "GraveUmber of the elm reach",
+    "ja": "LesserHarrow of the hollowjasp reach"
+  },
+  {
+    "stringKey": "UI_0241",
+    "en": "LesserGale of the brightwick reach",
+    "ko": "CommonCinder of the swiftmarrow reach",
+    "ja": "LesserYarrow of the brightzephyr reach"
+  },
+  {
+    "stringKey": "UI_0242",
+    "en": "StillFlint of the stillmarrow reach",
+    "ko": "CommonVellum of the brightelm reach",
+    "ja": "GraveWick of the elm reach"
+  },
+  {
+    "stringKey": "UI_0243",
+    "en": "CommonZephyr of the commonumber reach",
+    "ko": "SwiftWick of the commondorn reach",
+    "ja": "HollowWick of the umber reach"
+  },
+  {
+    "stringKey": "UI_0244",
+    "en": "LesserZephyr of the swiftharrow reach",
+    "ko": "BrightBrack of the keenember reach",
+    "ja": "HollowUmber of the wardedpyre reach"
+  },
+  {
+    "stringKey": "UI_0245",
+    "en": "LesserIsle of the hollowjasp reach",
+    "ko": "BrightCinder of the swiftflint reach",
+    "ja": "HollowUmber of the umber reach"
+  },
+  {
+    "stringKey": "UI_0246",
+    "en": "HollowCalyx of the keenalder reach",
+    "ko": "KeenCalyx of the commonvellum reach",
+    "ja": "CommonLumen of the fenn reach"
+  },
+  {
+    "stringKey": "UI_0247",
+    "en": "VastDrift of the commonmarrow reach",
+    "ko": "KeenDrift of the swiftquill reach",
+    "ja": "WardedSalt of the hollowzephyr reach"
+  },
+  {
+    "stringKey": "UI_0248",
+    "en": "SwiftOchre of the graveyarrow reach",
+    "ko": "SwiftThorn of the brightlumen reach",
+    "ja": "KeenNettle of the kelvin reach"
+  },
+  {
+    "stringKey": "UI_0249",
+    "en": "StillQuill of the keenthorn reach",
+    "ko": "WardedThorn of the commonelm reach",
+    "ja": "StillJasp of the stilljasp reach"
+  },
+  {
+    "stringKey": "UI_0250",
+    "en": "StillZephyr of the hollowdorn reach",
+    "ko": "VastIsle of the hollowfenn reach",
+    "ja": "GraveFlint of the keenmarrow reach"
+  },
+  {
+    "stringKey": "UI_0251",
+    "en": "VastPyre of the brightthorn reach",
+    "ko": "SwiftMarrow of the wardeddrift reach",
+    "ja": "HollowCinder of the hollowflint reach"
+  },
+  {
+    "stringKey": "UI_0252",
+    "en": "HollowGale of the swiftwick reach",
+    "ko": "WardedPyre of the gravegale reach",
+    "ja": "KeenDrift of the gravedorn reach"
+  },
+  {
+    "stringKey": "UI_0253",
+    "en": "CommonZephyr of the hollowquill reach",
+    "ko": "BrightRune of the keengale reach",
+    "ja": "WardedCalyx of the swiftrune reach"
+  },
+  {
+    "stringKey": "UI_0254",
+    "en": "SwiftCalyx of the gravevellum reach",
+    "ko": "CommonMarrow of the swiftkelvin reach",
+    "ja": "GraveElm of the flint reach"
+  },
+  {
+    "stringKey": "UI_0255",
+    "en": "LesserOchre of the brightyarrow reach",
+    "ko": "VastLumen of the commonkelvin reach",
+    "ja": "CommonWick of the hollowquill reach"
+  },
+  {
+    "stringKey": "UI_0256",
+    "en": "CommonBrack of the ember reach",
+    "ko": "LesserBrack of the hollowisle reach",
+    "ja": "BrightPyre of the swiftdrift reach"
+  },
+  {
+    "stringKey": "UI_0257",
+    "en": "CommonPyre of the swiftkelvin reach",
+    "ko": "WardedPyre of the swiftthorn reach",
+    "ja": "GraveNettle of the drift reach"
+  },
+  {
+    "stringKey": "UI_0258",
+    "en": "KeenYarrow of the commonzephyr reach",
+    "ko": "SwiftAlder of the keenmarrow reach",
+    "ja": "BrightMarrow of the yarrow reach"
+  },
+  {
+    "stringKey": "UI_0259",
+    "en": "KeenDorn of the jasp reach",
+    "ko": "HollowCalyx of the hollowcinder reach",
+    "ja": "HollowAlder of the graveisle reach"
+  },
+  {
+    "stringKey": "UI_0260",
+    "en": "StillCalyx of the stillisle reach",
+    "ko": "HollowJasp of the wardedochre reach",
+    "ja": "VastPyre of the commonkelvin reach"
+  },
+  {
+    "stringKey": "UI_0261",
+    "en": "GraveEmber of the stillalder reach",
+    "ko": "WardedElm of the graveisle reach",
+    "ja": "LesserOchre of the hollowkelvin reach"
+  },
+  {
+    "stringKey": "UI_0262",
+    "en": "WardedThorn of the swiftthorn reach",
+    "ko": "GraveMarrow of the wardedyarrow reach",
+    "ja": "VastYarrow of the commonlumen reach"
+  },
+  {
+    "stringKey": "UI_0263",
+    "en": "KeenElm of the wardedisle reach",
+    "ko": "HollowThorn of the swiftzephyr reach",
+    "ja": "StillKelvin of the keensalt reach"
+  },
+  {
+    "stringKey": "UI_0264",
+    "en": "CommonYarrow of the brightflint reach",
+    "ko": "HollowDrift of the gravemarrow reach",
+    "ja": "HollowOchre of the hollowdrift reach"
+  },
+  {
+    "stringKey": "UI_0265",
+    "en": "KeenPyre of the hollowthorn reach",
+    "ko": "CommonDorn of the wardedalder reach",
+    "ja": "LesserFlint of the swiftisle reach"
+  },
+  {
+    "stringKey": "UI_0266",
+    "en": "GraveLumen of the keenkelvin reach",
+    "ko": "SwiftFenn of the keennettle reach",
+    "ja": "LesserElm of the brightbriar reach"
+  },
+  {
+    "stringKey": "UI_0267",
+    "en": "BrightDrift of the briar reach",
+    "ko": "CommonCinder of the brightflint reach",
+    "ja": "GraveVellum of the stilldorn reach"
+  },
+  {
+    "stringKey": "UI_0268",
+    "en": "SwiftFenn of the gravewick reach",
+    "ko": "HollowKelvin of the gravekelvin reach",
+    "ja": "CommonJasp of the brightdrift reach"
+  },
+  {
+    "stringKey": "UI_0269",
+    "en": "StillNettle of the hollowbrack reach",
+    "ko": "WardedHarrow of the gravefenn reach",
+    "ja": "KeenNettle of the kelvin reach"
+  },
+  {
+    "stringKey": "UI_0270",
+    "en": "WardedElm of the graveisle reach",
+    "ko": "SwiftDorn of the gravevellum reach",
+    "ja": "LesserThorn of the commonpyre reach"
+  },
+  {
+    "stringKey": "UI_0271",
+    "en": "WardedRune of the commonelm reach",
+    "ko": "CommonHarrow of the swiftjasp reach",
+    "ja": "StillCalyx of the hollowalder reach"
+  },
+  {
+    "stringKey": "UI_0272",
+    "en": "SwiftQuill of the commoncalyx reach",
+    "ko": "HollowUmber of the hollowelm reach",
+    "ja": "KeenBrack of the swiftnettle reach"
+  },
+  {
+    "stringKey": "UI_0273",
+    "en": "LesserLumen of the brightyarrow reach",
+    "ko": "CommonRune of the brightelm reach",
+    "ja": "BrightMarrow of the swiftdrift reach"
+  },
+  {
+    "stringKey": "UI_0274",
+    "en": "HollowPyre of the keencalyx reach",
+    "ko": "KeenOchre of the gravecalyx reach",
+    "ja": "BrightMarrow of the swiftdrift reach"
+  },
+  {
+    "stringKey": "UI_0275",
+    "en": "VastJasp of the commonjasp reach",
+    "ko": "GraveNettle of the drift reach",
+    "ja": "BrightElm of the swiftflint reach"
+  },
+  {
+    "stringKey": "UI_0276",
+    "en": "WardedVellum of the pyre reach",
+    "ko": "CommonMarrow of the gale reach",
+    "ja": "Ochre of the calyx reach"
+  },
+  {
+    "stringKey": "UI_0277",
+    "en": "SwiftCinder of the stillisle reach",
+    "ko": "GraveElm of the brightisle reach",
+    "ja": "WardedZephyr of the commonflint reach"
+  },
+  {
+    "stringKey": "UI_0278",
+    "en": "KeenGale of the wardedfenn reach",
+    "ko": "SwiftRune of the graveyarrow reach",
+    "ja": "KeenVellum of the commonzephyr reach"
+  },
+  {
+    "stringKey": "UI_0279",
+    "en": "GraveDorn of the graverune reach",
+    "ko": "WardedRune of the hollowyarrow reach",
+    "ja": "WardedDrift of the swiftvellum reach"
+  },
+  {
+    "stringKey": "UI_0280",
+    "en": "WardedDorn of the commoncinder reach",
+    "ko": "VastElm of the brightvellum reach",
+    "ja": "WardedUmber of the wardedlumen reach"
+  },
+  {
+    "stringKey": "UI_0281",
+    "en": "HollowVellum of the umber reach",
+    "ko": "CommonWick of the hollowquill reach",
+    "ja": "StillMarrow of the gravedrift reach"
+  },
+  {
+    "stringKey": "UI_0282",
+    "en": "BrightFenn of the wardedrune reach",
+    "ko": "HollowCinder of the umber reach",
+    "ja": "WardedGale of the commoncinder reach"
+  },
+  {
+    "stringKey": "UI_0283",
+    "en": "HollowIsle of the hollowcinder reach",
+    "ko": "WardedDorn of the graveember reach",
+    "ja": "BrightHarrow of the wick reach"
+  },
+  {
+    "stringKey": "UI_0284",
+    "en": "VastKelvin of the commonkelvin reach",
+    "ko": "VastGale of the stillnettle reach",
+    "ja": "StillWick of the stilllumen reach"
+  },
+  {
+    "stringKey": "UI_0285",
+    "en": "WardedOchre of the gravegale reach",
+    "ko": "LesserDorn of the keencinder reach",
+    "ja": "KeenHarrow of the jasp reach"
+  },
+  {
+    "stringKey": "UI_0286",
+    "en": "LesserGale of the swiftfenn reach",
+    "ko": "CommonVellum of the hollowpyre reach",
+    "ja": "KeenNettle of the gravebrack reach"
+  },
+  {
+    "stringKey": "UI_0287",
+    "en": "VastGale of the stillnettle reach",
+    "ko": "WardedCalyx of the wardedisle reach",
+    "ja": "VastGale of the commonjasp reach"
+  },
+  {
+    "stringKey": "UI_0288",
+    "en": "BrightWick of the wardedumber reach",
+    "ko": "VastGale of the swiftalder reach",
+    "ja": "SwiftOchre of the wardeddrift reach"
+  },
+  {
+    "stringKey": "UI_0289",
+    "en": "GraveMarrow of the drift reach",
+    "ko": "BrightGale of the wick reach",
+    "ja": "CommonHarrow of the brightcinder reach"
+  },
+  {
+    "stringKey": "UI_0290",
+    "en": "BrightCinder of the keenisle reach",
+    "ko": "BrightBrack of the vellum reach",
+    "ja": "WardedDrift of the quill reach"
+  },
+  {
+    "stringKey": "UI_0291",
+    "en": "GraveVellum of the wardedzephyr reach",
+    "ko": "WardedGale of the hollowwick reach",
+    "ja": "KeenUmber of the lumen reach"
+  },
+  {
+    "stringKey": "UI_0292",
+    "en": "WardedYarrow of the commonflint reach",
+    "ko": "SwiftElm of the brightmarrow reach",
+    "ja": "GraveCinder of the stilldorn reach"
+  },
+  {
+    "stringKey": "UI_0293",
+    "en": "BrightJasp of the keenfenn reach",
+    "ko": "WardedThorn of the commonelm reach",
+    "ja": "HollowYarrow of the gravelumen reach"
+  },
+  {
+    "stringKey": "UI_0294",
+    "en": "StillUmber of the graveelm reach",
+    "ko": "StillDorn of the stilljasp reach",
+    "ja": "SwiftKelvin of the commonbrack reach"
+  },
+  {
+    "stringKey": "UI_0295",
+    "en": "BrightIsle of the graveochre reach",
+    "ko": "KeenCalyx of the wardedember reach",
+    "ja": "HollowSalt of the keencalyx reach"
+  },
+  {
+    "stringKey": "UI_0296",
+    "en": "BrightNettle of the wardedthorn reach",
+    "ko": "StillDorn of the hollowalder reach",
+    "ja": "CommonFlint of the wardedember reach"
+  },
+  {
+    "stringKey": "UI_0297",
+    "en": "VastJasp of the swiftbrack reach",
+    "ko": "WardedDrift of the wardedmarrow reach",
+    "ja": "HollowLumen of the wardedochre reach"
+  },
+  {
+    "stringKey": "UI_0298",
+    "en": "VastZephyr of the swiftdorn reach",
+    "ko": "StillCinder of the keenumber reach",
+    "ja": "SwiftLumen of the wardeddrift reach"
+  },
+  {
+    "stringKey": "UI_0299",
+    "en": "VastZephyr of the swiftdorn reach",
+    "ko": "LesserDorn of the hollowjasp reach",
+    "ja": "CommonIsle of the fenn reach"
+  },
+  {
+    "stringKey": "UI_0300",
+    "en": "LesserIsle of the brightwick reach",
+    "ko": "GraveDorn of the cinder reach",
+    "ja": "WardedUmber of the pyre reach"
+  },
+  {
+    "stringKey": "UI_0301",
+    "en": "LesserAlder of the brightvellum reach",
+    "ko": "SwiftBriar of the brightmarrow reach",
+    "ja": "KeenDorn of the commonvellum reach"
+  },
+  {
+    "stringKey": "UI_0302",
+    "en": "HollowAlder of the rune reach",
+    "ko": "WardedLumen of the ochre reach",
+    "ja": "CommonDorn of the wardedalder reach"
+  },
+  {
+    "stringKey": "UI_0303",
+    "en": "KeenOchre of the hollowthorn reach",
+    "ko": "StillEmber of the gravecinder reach",
+    "ja": "HollowUmber of the wardedpyre reach"
+  },
+  {
+    "stringKey": "UI_0304",
+    "en": "VastFenn of the swiftalder reach",
+    "ko": "GraveZephyr of the graveumber reach",
+    "ja": "HollowJasp of the wardedochre reach"
+  },
+  {
+    "stringKey": "UI_0305",
+    "en": "BrightFlint of the graverune reach",
+    "ko": "HollowDrift of the swiftbriar reach",
+    "ja": "VastBrack of the hollowember reach"
+  },
+  {
+    "stringKey": "UI_0306",
+    "en": "LesserEmber of the swiftember reach",
+    "ko": "CommonElm of the brightflint reach",
+    "ja": "SwiftHarrow of the gravewick reach"
+  },
+  {
+    "stringKey": "UI_0307",
+    "en": "CommonEmber of the ember reach",
+    "ko": "GraveFlint of the keenmarrow reach",
+    "ja": "GraveNettle of the wardedyarrow reach"
+  },
+  {
+    "stringKey": "UI_0308",
+    "en": "HollowSalt of the swiftzephyr reach",
+    "ko": "LesserDrift of the hollowmarrow reach",
+    "ja": "BrightMarrow of the brightbrack reach"
+  },
+  {
+    "stringKey": "UI_0309",
+    "en": "KeenSalt of the hollowthorn reach",
+    "ko": "HollowKelvin of the swiftwick reach",
+    "ja": "KeenLumen of the hollowsalt reach"
+  },
+  {
+    "stringKey": "UI_0310",
+    "en": "HollowFlint of the swiftbriar reach",
+    "ko": "WardedHarrow of the gravefenn reach",
+    "ja": "KeenKelvin of the commonwick reach"
+  },
+  {
+    "stringKey": "UI_0311",
+    "en": "BrightYarrow of the wardedumber reach",
+    "ko": "KeenDorn of the commonvellum reach",
+    "ja": "HollowOchre of the wardedochre reach"
+  },
+  {
+    "stringKey": "UI_0312",
+    "en": "StillYarrow of the hollowdorn reach",
+    "ko": "HollowCalyx of the rune reach",
+    "ja": "KeenThorn of the gravecalyx reach"
+  },
+  {
+    "stringKey": "UI_0313",
+    "en": "VastWick of the commonlumen reach",
+    "ko": "CommonIsle of the commonsalt reach",
+    "ja": "CommonPyre of the brightdrift reach"
+  },
+  {
+    "stringKey": "UI_0314",
+    "en": "BrightPyre of the brightcalyx reach",
+    "ko": "GraveElm of the brightisle reach",
+    "ja": "SwiftGale of the keennettle reach"
+  },
+  {
+    "stringKey": "UI_0315",
+    "en": "KeenFenn of the jasp reach",
+    "ko": "GraveKelvin of the wardedwick reach",
+    "ja": "BrightGale of the brightalder reach"
+  },
+  {
+    "stringKey": "UI_0316",
+    "en": "VastDrift of the brightvellum reach",
+    "ko": "KeenDorn of the gravealder reach",
+    "ja": "HollowVellum of the gravelumen reach"
+  },
+  {
+    "stringKey": "UI_0317",
+    "en": "LesserFlint of the keenflint reach",
+    "ko": "LesserEmber of the brightwick reach",
+    "ja": "BrightAlder of the keenember reach"
+  },
+  {
+    "stringKey": "UI_0318",
+    "en": "BrightZephyr of the wardedumber reach",
+    "ko": "StillSalt of the stilllumen reach",
+    "ja": "HollowSalt of the wardedpyre reach"
+  },
+  {
+    "stringKey": "UI_0319",
+    "en": "HollowPyre of the swiftyarrow reach",
+    "ko": "SwiftBrack of the gravevellum reach",
+    "ja": "StillGale of the brightnettle reach"
+  },
+  {
+    "stringKey": "UI_0320",
+    "en": "VastGale of the keenwick reach",
+    "ko": "HollowMarrow of the swiftyarrow reach",
+    "ja": "SwiftFenn of the keennettle reach"
+  },
+  {
+    "stringKey": "UI_0321",
+    "en": "GraveOchre of the wardedyarrow reach",
+    "ko": "VastDrift of the keenbriar reach",
+    "ja": "LesserLumen of the brightyarrow reach"
+  },
+  {
+    "stringKey": "UI_0322",
+    "en": "StillPyre of the keenthorn reach",
+    "ko": "KeenOchre of the hollowthorn reach",
+    "ja": "HollowCalyx of the hollowcinder reach"
+  },
+  {
+    "stringKey": "UI_0323",
+    "en": "WardedGale of the commoncinder reach",
+    "ko": "SwiftDrift of the wardedflint reach",
+    "ja": "HollowVellum of the wardedpyre reach"
+  },
+  {
+    "stringKey": "UI_0324",
+    "en": "SwiftBrack of the brightisle reach",
+    "ko": "KeenRune of the swiftpyre reach",
+    "ja": "VastZephyr of the keenzephyr reach"
+  },
+  {
+    "stringKey": "UI_0325",
+    "en": "GraveHarrow of the gravesalt reach",
+    "ko": "LesserOchre of the brightyarrow reach",
+    "ja": "GraveDorn of the keenjasp reach"
+  },
+  {
+    "stringKey": "UI_0326",
+    "en": "Flint of the ember reach",
+    "ko": "StillAlder of the keenrune reach",
+    "ja": "SwiftElm of the gravebriar reach"
+  },
+  {
+    "stringKey": "UI_0327",
+    "en": "StillFenn of the commonfenn reach",
+    "ko": "GraveVellum of the keenlumen reach",
+    "ja": "CommonHarrow of the fenn reach"
+  },
+  {
+    "stringKey": "UI_0328",
+    "en": "KeenGale of the gravealder reach",
+    "ko": "StillQuill of the brightpyre reach",
+    "ja": "SwiftBrack of the gravevellum reach"
+  },
+  {
+    "stringKey": "UI_0329",
+    "en": "SwiftYarrow of the brightlumen reach",
+    "ko": "StillHarrow of the stilljasp reach",
+    "ja": "KeenZephyr of the hollowumber reach"
+  },
+  {
+    "stringKey": "UI_0330",
+    "en": "CommonNettle of the hollowochre reach",
+    "ko": "LesserKelvin of the keendrift reach",
+    "ja": "SwiftCinder of the commondorn reach"
+  },
+  {
+    "stringKey": "UI_0331",
+    "en": "CommonPyre of the brightdrift reach",
+    "ko": "GraveBrack of the stillalder reach",
+    "ja": "BrightMarrow of the brightbrack reach"
+  },
+  {
+    "stringKey": "UI_0332",
+    "en": "CommonDorn of the swiftjasp reach",
+    "ko": "SwiftIsle of the keenochre reach",
+    "ja": "WardedDrift of the commonflint reach"
+  },
+  {
+    "stringKey": "UI_0333",
+    "en": "SwiftKelvin of the gravewick reach",
+    "ko": "KeenElm of the marrow reach",
+    "ja": "WardedHarrow of the wardedjasp reach"
+  },
+  {
+    "stringKey": "UI_0334",
+    "en": "VastNettle of the swiftbrack reach",
+    "ko": "BrightBrack of the vellum reach",
+    "ja": "Elm of the ember reach"
+  },
+  {
+    "stringKey": "UI_0335",
+    "en": "StillNettle of the commongale reach",
+    "ko": "WardedFenn of the swiftrune reach",
+    "ja": "KeenUmber of the wardedharrow reach"
+  },
+  {
+    "stringKey": "UI_0336",
+    "en": "WardedRune of the hollowyarrow reach",
+    "ko": "BrightQuill of the gravepyre reach",
+    "ja": "KeenBriar of the wardedharrow reach"
+  },
+  {
+    "stringKey": "UI_0337",
+    "en": "CommonAlder of the brightbriar reach",
+    "ko": "VastFlint of the swiftember reach",
+    "ja": "StillElm of the brightquill reach"
+  },
+  {
+    "stringKey": "UI_0338",
+    "en": "HollowAlder of the hollowbriar reach",
+    "ko": "KeenEmber of the gravealder reach",
+    "ja": "BrightQuill of the brightcalyx reach"
+  },
+  {
+    "stringKey": "UI_0339",
+    "en": "KeenGale of the jasp reach",
+    "ko": "BrightDorn of the brightalder reach",
+    "ja": "WardedHarrow of the hollowwick reach"
+  },
+  {
+    "stringKey": "UI_0340",
+    "en": "WardedBriar of the wardedmarrow reach",
+    "ko": "StillCalyx of the hollowalder reach",
+    "ja": "WardedElm of the swiftvellum reach"
+  },
+  {
+    "stringKey": "UI_0341",
+    "en": "BrightGale of the wick reach",
+    "ko": "CommonAlder of the ember reach",
+    "ja": "CommonBrack of the wardedalder reach"
+  },
+  {
+    "stringKey": "UI_0342",
+    "en": "BrightHarrow of the brightbrack reach",
+    "ko": "KeenOchre of the gravecalyx reach",
+    "ja": "SwiftSalt of the stillgale reach"
+  },
+  {
+    "stringKey": "UI_0343",
+    "en": "LesserCinder of the hollowmarrow reach",
+    "ko": "SwiftYarrow of the keenquill reach",
+    "ja": "CommonEmber of the commonrune reach"
+  },
+  {
+    "stringKey": "UI_0344",
+    "en": "VastVellum of the brightumber reach",
+    "ko": "VastCinder of the keenbriar reach",
+    "ja": "VastIsle of the stillochre reach"
+  },
+  {
+    "stringKey": "UI_0345",
+    "en": "WardedBrack of the hollowvellum reach",
+    "ko": "BrightUmber of the wardedumber reach",
+    "ja": "BrightZephyr of the keenharrow reach"
+  },
+  {
+    "stringKey": "UI_0346",
+    "en": "StillThorn of the stilllumen reach",
+    "ko": "CommonEmber of the hollownettle reach",
+    "ja": "BrightOchre of the brightcalyx reach"
+  },
+  {
+    "stringKey": "UI_0347",
+    "en": "CommonPyre of the hollowpyre reach",
+    "ko": "LesserRune of the keenelm reach",
+    "ja": "LesserJasp of the brightwick reach"
+  },
+  {
+    "stringKey": "UI_0348",
+    "en": "KeenEmber of the hollowrune reach",
+    "ko": "BrightQuill of the wardedthorn reach",
+    "ja": "WardedFenn of the commoncinder reach"
+  },
+  {
+    "stringKey": "UI_0349",
+    "en": "WardedYarrow of the swiftumber reach",
+    "ko": "KeenSalt of the gravecalyx reach",
+    "ja": "VastBriar of the swiftdorn reach"
+  },
+  {
+    "stringKey": "UI_0350",
+    "en": "StillCalyx of the brightnettle reach",
+    "ko": "HollowIsle of the hollowcinder reach",
+    "ja": "GraveAlder of the briar reach"
+  },
+  {
+    "stringKey": "UI_0351",
+    "en": "KeenOchre of the wardedgale reach",
+    "ko": "CommonKelvin of the fenn reach",
+    "ja": "LesserDrift of the brightbriar reach"
+  },
+  {
+    "stringKey": "UI_0352",
+    "en": "GraveJasp of the stillbrack reach",
+    "ko": "SwiftFenn of the gravewick reach",
+    "ja": "StillHarrow of the gravecinder reach"
+  },
+  {
+    "stringKey": "UI_0353",
+    "en": "BrightElm of the swiftflint reach",
+    "ko": "BrightNettle of the graveochre reach",
+    "ja": "KeenIsle of the wardedfenn reach"
+  },
+  {
+    "stringKey": "UI_0354",
+    "en": "CommonWick of the brightelm reach",
+    "ko": "KeenDorn of the swiftnettle reach",
+    "ja": "VastPyre of the hollowgale reach"
+  },
+  {
+    "stringKey": "UI_0355",
+    "en": "WardedZephyr of the wardedmarrow reach",
+    "ko": "SwiftCinder of the commondorn reach",
+    "ja": "BrightVellum of the wardedumber reach"
+  },
+  {
+    "stringKey": "UI_0356",
+    "en": "WardedWick of the quill reach",
+    "ko": "GraveMarrow of the keenkelvin reach",
+    "ja": "HollowRune of the hollowelm reach"
+  },
+  {
+    "stringKey": "UI_0357",
+    "en": "WardedElm of the quill reach",
+    "ko": "KeenAlder of the swiftmarrow reach",
+    "ja": "BrightCinder of the swiftflint reach"
+  },
+  {
+    "stringKey": "UI_0358",
+    "en": "CommonCinder of the brightflint reach",
+    "ko": "BrightCalyx of the wardedrune reach",
+    "ja": "HollowWick of the hollowelm reach"
+  },
+  {
+    "stringKey": "UI_0359",
+    "en": "SwiftIsle of the stillfenn reach",
+    "ko": "SwiftIsle of the brightjasp reach",
+    "ja": "HollowKelvin of the gravekelvin reach"
+  },
+  {
+    "stringKey": "UI_0360",
+    "en": "VastEmber of the commonjasp reach",
+    "ko": "Drift of the dorn reach",
+    "ja": "StillGale of the commonfenn reach"
+  },
+  {
+    "stringKey": "UI_0361",
+    "en": "VastZephyr of the swiftdorn reach",
+    "ko": "LesserLumen of the commonochre reach",
+    "ja": "SwiftEmber of the stillember reach"
+  },
+  {
+    "stringKey": "UI_0362",
+    "en": "Ember of the alder reach",
+    "ko": "LesserFlint of the brightbriar reach",
+    "ja": "WardedGale of the hollowwick reach"
+  },
+  {
+    "stringKey": "UI_0363",
+    "en": "WardedSalt of the wardedlumen reach",
+    "ko": "KeenVellum of the gravedorn reach",
+    "ja": "SwiftYarrow of the gravezephyr reach"
+  },
+  {
+    "stringKey": "UI_0364",
+    "en": "WardedDrift of the graveisle reach",
+    "ko": "HollowUmber of the umber reach",
+    "ja": "BrightLumen of the yarrow reach"
+  },
+  {
+    "stringKey": "UI_0365",
+    "en": "WardedZephyr of the quill reach",
+    "ko": "StillBrack of the hollowalder reach",
+    "ja": "HollowCinder of the keendorn reach"
+  },
+  {
+    "stringKey": "UI_0366",
+    "en": "WardedQuill of the wardedkelvin reach",
+    "ko": "VastThorn of the stillpyre reach",
+    "ja": "HollowAlder of the wardedmarrow reach"
+  },
+  {
+    "stringKey": "UI_0367",
+    "en": "GraveDrift of the keenmarrow reach",
+    "ko": "GraveGale of the stillalder reach",
+    "ja": "VastLumen of the swiftbrack reach"
+  },
+  {
+    "stringKey": "UI_0368",
+    "en": "WardedAlder of the hollowvellum reach",
+    "ko": "VastKelvin of the brightsalt reach",
+    "ja": "WardedAlder of the swiftrune reach"
+  },
+  {
+    "stringKey": "UI_0369",
+    "en": "SwiftQuill of the brightkelvin reach",
+    "ko": "LesserIsle of the commonochre reach",
+    "ja": "CommonElm of the wardedember reach"
+  },
+  {
+    "stringKey": "UI_0370",
+    "en": "StillFenn of the gravecinder reach",
+    "ko": "LesserMarrow of the keendrift reach",
+    "ja": "WardedElm of the quill reach"
+  },
+  {
+    "stringKey": "UI_0371",
+    "en": "GravePyre of the gravethorn reach",
+    "ko": "SwiftEmber of the brightjasp reach",
+    "ja": "WardedGale of the hollowwick reach"
+  },
+  {
+    "stringKey": "UI_0372",
+    "en": "VastThorn of the commonlumen reach",
+    "ko": "Nettle of the brack reach",
+    "ja": "WardedFenn of the nettle reach"
+  },
+  {
+    "stringKey": "UI_0373",
+    "en": "KeenSalt of the gravecalyx reach",
+    "ko": "LesserVellum of the swiftharrow reach",
+    "ja": "StillFenn of the gravecinder reach"
+  },
+  {
+    "stringKey": "UI_0374",
+    "en": "SwiftRune of the commoncalyx reach",
+    "ko": "SwiftElm of the stillisle reach",
+    "ja": "LesserFlint of the brightbriar reach"
+  },
+  {
+    "stringKey": "UI_0375",
+    "en": "CommonZephyr of the commonumber reach",
+    "ko": "StillMarrow of the gravedrift reach",
+    "ja": "SwiftBrack of the gravevellum reach"
+  },
+  {
+    "stringKey": "UI_0376",
+    "en": "LesserOchre of the commonochre reach",
+    "ko": "StillDorn of the hollowalder reach",
+    "ja": "BrightThorn of the gravepyre reach"
+  },
+  {
+    "stringKey": "UI_0377",
+    "en": "SwiftGale of the wardedcinder reach",
+    "ko": "HollowLumen of the wardedochre reach",
+    "ja": "WardedKelvin of the commondrift reach"
+  },
+  {
+    "stringKey": "UI_0378",
+    "en": "StillLumen of the stillkelvin reach",
+    "ko": "VastDorn of the stillnettle reach",
+    "ja": "StillNettle of the gravedrift reach"
+  },
+  {
+    "stringKey": "UI_0379",
+    "en": "WardedJasp of the hollowwick reach",
+    "ko": "StillZephyr of the keenumber reach",
+    "ja": "CommonBrack of the wardedalder reach"
+  },
+  {
+    "stringKey": "UI_0380",
+    "en": "HollowNettle of the keenbrack reach",
+    "ko": "WardedUmber of the commonelm reach",
+    "ja": "CommonZephyr of the brightflint reach"
+  },
+  {
+    "stringKey": "UI_0381",
+    "en": "BrightThorn of the keenharrow reach",
+    "ko": "GraveUmber of the graveumber reach",
+    "ja": "HollowDrift of the swiftbriar reach"
+  },
+  {
+    "stringKey": "UI_0382",
+    "en": "WardedNettle of the ochre reach",
+    "ko": "KeenLumen of the kelvin reach",
+    "ja": "LesserUmber of the keenelm reach"
+  },
+  {
+    "stringKey": "UI_0383",
+    "en": "CommonLumen of the brightdrift reach",
+    "ko": "LesserQuill of the commonpyre reach",
+    "ja": "KeenGale of the swiftnettle reach"
+  },
+  {
+    "stringKey": "UI_0384",
+    "en": "GraveRune of the stillcalyx reach",
+    "ko": "StillLumen of the commonfenn reach",
+    "ja": "WardedAlder of the hollowvellum reach"
+  },
+  {
+    "stringKey": "UI_0385",
+    "en": "HollowDorn of the gravejasp reach",
+    "ko": "SwiftUmber of the commoncalyx reach",
+    "ja": "KeenOchre of the gravecalyx reach"
+  },
+  {
+    "stringKey": "UI_0386",
+    "en": "SwiftCinder of the brightmarrow reach",
+    "ko": "VastBrack of the stillnettle reach",
+    "ja": "SwiftMarrow of the commonbrack reach"
+  },
+  {
+    "stringKey": "UI_0387",
+    "en": "VastNettle of the brightthorn reach",
+    "ko": "HollowBriar of the gravemarrow reach",
+    "ja": "WardedBriar of the hollowbriar reach"
+  },
+  {
+    "stringKey": "UI_0388",
+    "en": "StillGale of the stilljasp reach",
+    "ko": "VastVellum of the hollowharrow reach",
+    "ja": "HollowNettle of the gravekelvin reach"
+  },
+  {
+    "stringKey": "UI_0389",
+    "en": "CommonThorn of the wardedcalyx reach",
+    "ko": "SwiftEmber of the wardedcinder reach",
+    "ja": "LesserRune of the keenelm reach"
+  },
+  {
+    "stringKey": "UI_0390",
+    "en": "VastIsle of the keenwick reach",
+    "ko": "GraveLumen of the stillbrack reach",
+    "ja": "LesserHarrow of the brightwick reach"
+  },
+  {
+    "stringKey": "UI_0391",
+    "en": "StillJasp of the keensalt reach",
+    "ko": "BrightPyre of the gravepyre reach",
+    "ja": "KeenThorn of the wardedharrow reach"
+  },
+  {
+    "stringKey": "UI_0392",
+    "en": "KeenGale of the commonwick reach",
+    "ko": "CommonVellum of the commonumber reach",
+    "ja": "SwiftEmber of the brightjasp reach"
+  },
+  {
+    "stringKey": "UI_0393",
+    "en": "BrightBrack of the swiftbriar reach",
+    "ko": "KeenBriar of the marrow reach",
+    "ja": "SwiftKelvin of the stillfenn reach"
+  },
+  {
+    "stringKey": "UI_0394",
+    "en": "KeenBriar of the hollowumber reach",
+    "ko": "StillUmber of the brightpyre reach",
+    "ja": "SwiftRune of the wardedelm reach"
+  },
+  {
+    "stringKey": "UI_0395",
+    "en": "SwiftBriar of the wardedflint reach",
+    "ko": "GraveFenn of the wardedwick reach",
+    "ja": "WardedNettle of the gravegale reach"
+  },
+  {
+    "stringKey": "UI_0396",
+    "en": "StillFlint of the brightrune reach",
+    "ko": "CommonJasp of the wardedbrack reach",
+    "ja": "GraveBrack of the briar reach"
+  },
+  {
+    "stringKey": "UI_0397",
+    "en": "CommonYarrow of the brightflint reach",
+    "ko": "CommonZephyr of the hollowquill reach",
+    "ja": "LesserFlint of the commonrune reach"
+  },
+  {
+    "stringKey": "UI_0398",
+    "en": "VastPyre of the brightthorn reach",
+    "ko": "SwiftBriar of the gravebriar reach",
+    "ja": "KeenRune of the hollowthorn reach"
+  },
+  {
+    "stringKey": "UI_0399",
+    "en": "HollowCinder of the hollowflint reach",
+    "ko": "WardedBriar of the quill reach",
+    "ja": "BrightThorn of the gravepyre reach"
+  },
+  {
+    "stringKey": "UI_0400",
+    "en": "BrightHarrow of the keenfenn reach",
+    "ko": "LesserYarrow of the swiftharrow reach",
+    "ja": "HollowUmber of the swiftzephyr reach"
+  },
+  {
+    "stringKey": "UI_0401",
+    "en": "HollowFlint of the gravemarrow reach",
+    "ko": "VastHarrow of the commonjasp reach",
+    "ja": "BrightBrack of the swiftbriar reach"
+  },
+  {
+    "stringKey": "UI_0402",
+    "en": "GraveUmber of the stillcalyx reach",
+    "ko": "StillSalt of the brightpyre reach",
+    "ja": "StillFlint of the commonisle reach"
+  },
+  {
+    "stringKey": "UI_0403",
+    "en": "GraveCalyx of the graverune reach",
+    "ko": "WardedHarrow of the commoncinder reach",
+    "ja": "LesserThorn of the hollowlumen reach"
+  },
+  {
+    "stringKey": "UI_0404",
+    "en": "HollowAlder of the graveisle reach",
+    "ko": "HollowKelvin of the gravekelvin reach",
+    "ja": "LesserElm of the hollowmarrow reach"
+  },
+  {
+    "stringKey": "UI_0405",
+    "en": "StillHarrow of the brightnettle reach",
+    "ko": "GraveLumen of the drift reach",
+    "ja": "StillYarrow of the hollowdorn reach"
+  },
+  {
+    "stringKey": "UI_0406",
+    "en": "LesserIsle of the keencinder reach",
+    "ko": "WardedCalyx of the hollowvellum reach",
+    "ja": "BrightThorn of the brightcalyx reach"
+  },
+  {
+    "stringKey": "UI_0407",
+    "en": "KeenIsle of the wardedfenn reach",
+    "ko": "VastJasp of the brightsalt reach",
+    "ja": "VastBriar of the keenbriar reach"
+  },
+  {
+    "stringKey": "UI_0408",
+    "en": "KeenDrift of the marrow reach",
+    "ko": "SwiftHarrow of the brightjasp reach",
+    "ja": "HollowYarrow of the gravelumen reach"
+  },
+  {
+    "stringKey": "UI_0409",
+    "en": "WardedGale of the gravefenn reach",
+    "ko": "GraveHarrow of the stillbrack reach",
+    "ja": "KeenGale of the wardedfenn reach"
+  },
+  {
+    "stringKey": "UI_0410",
+    "en": "VastMarrow of the commonkelvin reach",
+    "ko": "VastNettle of the stillochre reach",
+    "ja": "CommonWick of the commonumber reach"
+  },
+  {
+    "stringKey": "UI_0411",
+    "en": "KeenZephyr of the swiftquill reach",
+    "ko": "VastYarrow of the keenzephyr reach",
+    "ja": "BrightAlder of the keenember reach"
+  },
+  {
+    "stringKey": "UI_0412",
+    "en": "SwiftZephyr of the keenquill reach",
+    "ko": "SwiftEmber of the gravewick reach",
+    "ja": "CommonMarrow of the swiftkelvin reach"
+  },
+  {
+    "stringKey": "UI_0413",
+    "en": "GraveHarrow of the cinder reach",
+    "ko": "CommonBriar of the harrow reach",
+    "ja": "Fenn of the alder reach"
+  },
+  {
+    "stringKey": "UI_0414",
+    "en": "StillPyre of the hollowcalyx reach",
+    "ko": "BrightLumen of the keenfenn reach",
+    "ja": "WardedLumen of the commondrift reach"
+  },
+  {
+    "stringKey": "UI_0415",
+    "en": "LesserLumen of the swiftfenn reach",
+    "ko": "HollowQuill of the gravekelvin reach",
+    "ja": "CommonThorn of the brightelm reach"
+  },
+  {
+    "stringKey": "UI_0416",
+    "en": "StillElm of the graveflint reach",
+    "ko": "GraveIsle of the brightfenn reach",
+    "ja": "VastQuill of the hollowgale reach"
+  },
+  {
+    "stringKey": "UI_0417",
+    "en": "VastMarrow of the swiftbrack reach",
+    "ko": "GraveCalyx of the wardedvellum reach",
+    "ja": "LesserFlint of the keenflint reach"
+  },
+  {
+    "stringKey": "UI_0418",
+    "en": "HollowCinder of the hollowflint reach",
+    "ko": "BrightGale of the wick reach",
+    "ja": "WardedDorn of the nettle reach"
+  },
+  {
+    "stringKey": "UI_0419",
+    "en": "HollowGale of the hollowcinder reach",
+    "ko": "CommonIsle of the commonsalt reach",
+    "ja": "GraveThorn of the gravethorn reach"
+  },
+  {
+    "stringKey": "UI_0420",
+    "en": "GraveMarrow of the wardedyarrow reach",
+    "ko": "StillSalt of the stilllumen reach",
+    "ja": "GraveOchre of the stillcalyx reach"
+  },
+  {
+    "stringKey": "UI_0421",
+    "en": "LesserPyre of the hollowkelvin reach",
+    "ko": "KeenYarrow of the lumen reach",
+    "ja": "KeenNettle of the gravebrack reach"
+  },
+  {
+    "stringKey": "UI_0422",
+    "en": "WardedThorn of the swiftthorn reach",
+    "ko": "WardedVellum of the swiftumber reach",
+    "ja": "HollowOchre of the keencalyx reach"
+  },
+  {
+    "stringKey": "UI_0423",
+    "en": "SwiftIsle of the wardedcinder reach",
+    "ko": "BrightQuill of the keengale reach",
+    "ja": "WardedQuill of the hollowyarrow reach"
+  },
+  {
+    "stringKey": "UI_0424",
+    "en": "VastNettle of the swiftbrack reach",
+    "ko": "StillHarrow of the commonfenn reach",
+    "ja": "CommonQuill of the commonthorn reach"
+  },
+  {
+    "stringKey": "UI_0425",
+    "en": "CommonHarrow of the fenn reach",
+    "ko": "HollowAlder of the wardedmarrow reach",
+    "ja": "Dorn of the alder reach"
+  },
+  {
+    "stringKey": "UI_0426",
+    "en": "StillSalt of the keenthorn reach",
+    "ko": "WardedLumen of the commondrift reach",
+    "ja": "SwiftFlint of the stillisle reach"
+  },
+  {
+    "stringKey": "UI_0427",
+    "en": "HollowQuill of the keencalyx reach",
+    "ko": "StillGale of the brightnettle reach",
+    "ja": "LesserThorn of the keenelm reach"
+  },
+  {
+    "stringKey": "UI_0428",
+    "en": "CommonAlder of the commonrune reach",
+    "ko": "SwiftBriar of the brightmarrow reach",
+    "ja": "GraveHarrow of the brightfenn reach"
+  },
+  {
+    "stringKey": "UI_0429",
+    "en": "BrightBriar of the keenharrow reach",
+    "ko": "GraveThorn of the brightharrow reach",
+    "ja": "WardedRune of the swiftthorn reach"
+  },
+  {
+    "stringKey": "UI_0430",
+    "en": "KeenRune of the lumen reach",
+    "ko": "GraveZephyr of the wardedzephyr reach",
+    "ja": "StillHarrow of the keensalt reach"
+  },
+  {
+    "stringKey": "UI_0431",
+    "en": "KeenBriar of the swiftquill reach",
+    "ko": "SwiftNettle of the stillgale reach",
+    "ja": "WardedThorn of the graveharrow reach"
+  },
+  {
+    "stringKey": "UI_0432",
+    "en": "HollowSalt of the thorn reach",
+    "ko": "HollowCinder of the swiftbriar reach",
+    "ja": "VastAlder of the stillmarrow reach"
+  },
+  {
+    "stringKey": "UI_0433",
+    "en": "CommonBriar of the commonumber reach",
+    "ko": "SwiftPyre of the wardeddrift reach",
+    "ja": "SwiftMarrow of the brightkelvin reach"
+  },
+  {
+    "stringKey": "UI_0434",
+    "en": "KeenBrack of the commonvellum reach",
+    "ko": "GraveAlder of the keenisle reach",
+    "ja": "SwiftHarrow of the keennettle reach"
+  },
+  {
+    "stringKey": "UI_0435",
+    "en": "VastDrift of the keenbriar reach",
+    "ko": "HollowCalyx of the rune reach",
+    "ja": "HollowVellum of the wardedpyre reach"
+  },
+  {
+    "stringKey": "UI_0436",
+    "en": "CommonKelvin of the brightdrift reach",
+    "ko": "GraveAlder of the wardedvellum reach",
+    "ja": "CommonJasp of the hollowochre reach"
+  },
+  {
+    "stringKey": "UI_0437",
+    "en": "StillBriar of the hollowdorn reach",
+    "ko": "HollowElm of the vellum reach",
+    "ja": "CommonPyre of the swiftkelvin reach"
+  },
+  {
+    "stringKey": "UI_0438",
+    "en": "BrightZephyr of the brightdorn reach",
+    "ko": "GraveDorn of the stillalder reach",
+    "ja": "SwiftUmber of the wardedelm reach"
+  },
+  {
+    "stringKey": "UI_0439",
+    "en": "LesserCinder of the hollowmarrow reach",
+    "ko": "LesserThorn of the swiftharrow reach",
+    "ja": "SwiftHarrow of the gravewick reach"
+  },
+  {
+    "stringKey": "UI_0440",
+    "en": "WardedUmber of the swiftumber reach",
+    "ko": "VastAlder of the swiftalder reach",
+    "ja": "CommonVellum of the harrow reach"
+  },
+  {
+    "stringKey": "UI_0441",
+    "en": "VastWick of the stillquill reach",
+    "ko": "SwiftThorn of the gravezephyr reach",
+    "ja": "GraveBriar of the graveumber reach"
+  },
+  {
+    "stringKey": "UI_0442",
+    "en": "VastFlint of the commonmarrow reach",
+    "ko": "LesserIsle of the swiftfenn reach",
+    "ja": "GraveQuill of the stillcalyx reach"
+  },
+  {
+    "stringKey": "UI_0443",
+    "en": "BrightYarrow of the keenharrow reach",
+    "ko": "KeenLumen of the kelvin reach",
+    "ja": "HollowLumen of the hollowdrift reach"
+  },
+  {
+    "stringKey": "UI_0444",
+    "en": "KeenBriar of the marrow reach",
+    "ko": "StillBrack of the commonember reach",
+    "ja": "CommonCalyx of the swiftisle reach"
+  },
+  {
+    "stringKey": "UI_0445",
+    "en": "HollowElm of the hollowflint reach",
+    "ko": "SwiftAlder of the stillember reach",
+    "ja": "VastEmber of the keenwick reach"
+  },
+  {
+    "stringKey": "UI_0446",
+    "en": "GraveFenn of the keenjasp reach",
+    "ko": "CommonFenn of the swiftjasp reach",
+    "ja": "VastElm of the brightvellum reach"
+  },
+  {
+    "stringKey": "UI_0447",
+    "en": "HollowFlint of the gravemarrow reach",
+    "ko": "CommonWick of the wardeddorn reach",
+    "ja": "SwiftUmber of the stillharrow reach"
+  },
+  {
+    "stringKey": "UI_0448",
+    "en": "SwiftKelvin of the wardeddrift reach",
+    "ko": "CommonBrack of the wardedalder reach",
+    "ja": "WardedEmber of the commoncinder reach"
+  },
+  {
+    "stringKey": "UI_0449",
+    "en": "KeenFlint of the hollowvellum reach",
+    "ko": "SwiftDrift of the gravebriar reach",
+    "ja": "Kelvin of the brack reach"
+  }
+]

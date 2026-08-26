@@ -1,0 +1,4 @@
+@desc	primary index	unlock kind	condition	locked message key
+@name	id	type	conditionId	messageKey
+@type	Int	enum:UnlockType	Int	String
+@gen	seq:2402000	enum:UnlockType	ref:ConditionTable	str:LOCK_MSG:90

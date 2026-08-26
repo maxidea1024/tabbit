@@ -1,0 +1,2733 @@
+[
+  {
+    "id": 1502000,
+    "stageId": 1501030,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503059,
+      1503064,
+      1503022,
+      1503062
+    ],
+    "monsterLevels": [
+      101,
+      40,
+      8
+    ]
+  },
+  {
+    "id": 1502001,
+    "stageId": 1501055,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503038,
+      1503067
+    ],
+    "monsterLevels": [
+      84,
+      60,
+      112,
+      45
+    ]
+  },
+  {
+    "id": 1502002,
+    "stageId": 1501016,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503047
+    ],
+    "monsterLevels": [
+      4,
+      36,
+      22
+    ]
+  },
+  {
+    "id": 1502003,
+    "stageId": 1501071,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503043,
+      1503015
+    ],
+    "monsterLevels": [
+      16,
+      57,
+      37
+    ]
+  },
+  {
+    "id": 1502004,
+    "stageId": 1501078,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503025,
+      1503001,
+      1503016,
+      1503004,
+      1503053
+    ],
+    "monsterLevels": [
+      111,
+      105,
+      36,
+      67,
+      33
+    ]
+  },
+  {
+    "id": 1502005,
+    "stageId": 1501005,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503002,
+      1503052
+    ],
+    "monsterLevels": [
+      116,
+      101,
+      119
+    ]
+  },
+  {
+    "id": 1502006,
+    "stageId": 1501048,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503069,
+      1503005,
+      1503004,
+      1503073
+    ],
+    "monsterLevels": [
+      60,
+      2
+    ]
+  },
+  {
+    "id": 1502007,
+    "stageId": 1501002,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503002,
+      1503064,
+      1503004,
+      1503047
+    ],
+    "monsterLevels": [
+      101
+    ]
+  },
+  {
+    "id": 1502008,
+    "stageId": 1501048,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503025,
+      1503062,
+      1503015,
+      1503013
+    ],
+    "monsterLevels": [
+      111,
+      59,
+      23
+    ]
+  },
+  {
+    "id": 1502009,
+    "stageId": 1501028,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503048,
+      1503018,
+      1503064,
+      1503042,
+      1503059
+    ],
+    "monsterLevels": [
+      113,
+      67,
+      76,
+      108,
+      81
+    ]
+  },
+  {
+    "id": 1502010,
+    "stageId": 1501086,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503013,
+      1503019,
+      1503040
+    ],
+    "monsterLevels": [
+      48,
+      69
+    ]
+  },
+  {
+    "id": 1502011,
+    "stageId": 1501061,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503063,
+      1503043,
+      1503036,
+      1503028,
+      1503059
+    ],
+    "monsterLevels": [
+      19,
+      86
+    ]
+  },
+  {
+    "id": 1502012,
+    "stageId": 1501084,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503000
+    ],
+    "monsterLevels": [
+      62,
+      5,
+      48,
+      14,
+      42
+    ]
+  },
+  {
+    "id": 1502013,
+    "stageId": 1501009,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503036,
+      1503010,
+      1503042
+    ],
+    "monsterLevels": [
+      79,
+      80,
+      54,
+      104
+    ]
+  },
+  {
+    "id": 1502014,
+    "stageId": 1501073,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503008,
+      1503021,
+      1503000,
+      1503049,
+      1503015
+    ],
+    "monsterLevels": [
+      22,
+      85
+    ]
+  },
+  {
+    "id": 1502015,
+    "stageId": 1501054,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503005,
+      1503021
+    ],
+    "monsterLevels": [
+      108,
+      3
+    ]
+  },
+  {
+    "id": 1502016,
+    "stageId": 1501080,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503032,
+      1503018,
+      1503033,
+      1503029,
+      1503035
+    ],
+    "monsterLevels": [
+      17,
+      77,
+      106,
+      2,
+      52
+    ]
+  },
+  {
+    "id": 1502017,
+    "stageId": 1501059,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503036,
+      1503001,
+      1503007,
+      1503035,
+      1503071
+    ],
+    "monsterLevels": [
+      57,
+      22,
+      23,
+      47,
+      102
+    ]
+  },
+  {
+    "id": 1502018,
+    "stageId": 1501063,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503000,
+      1503034,
+      1503023,
+      1503051
+    ],
+    "monsterLevels": [
+      87,
+      60,
+      89,
+      114,
+      77
+    ]
+  },
+  {
+    "id": 1502019,
+    "stageId": 1501066,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503048
+    ],
+    "monsterLevels": [
+      21,
+      99,
+      75
+    ]
+  },
+  {
+    "id": 1502020,
+    "stageId": 1501013,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503001,
+      1503059,
+      1503069,
+      1503052,
+      1503072
+    ],
+    "monsterLevels": [
+      110
+    ]
+  },
+  {
+    "id": 1502021,
+    "stageId": 1501012,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503046,
+      1503008,
+      1503028
+    ],
+    "monsterLevels": [
+      23,
+      15,
+      109,
+      112,
+      92
+    ]
+  },
+  {
+    "id": 1502022,
+    "stageId": 1501000,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503067,
+      1503064
+    ],
+    "monsterLevels": [
+      75,
+      21,
+      85,
+      40
+    ]
+  },
+  {
+    "id": 1502023,
+    "stageId": 1501034,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503006,
+      1503052,
+      1503041,
+      1503067,
+      1503011
+    ],
+    "monsterLevels": [
+      56,
+      20
+    ]
+  },
+  {
+    "id": 1502024,
+    "stageId": 1501083,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503033,
+      1503064,
+      1503060,
+      1503058,
+      1503037
+    ],
+    "monsterLevels": [
+      64,
+      114
+    ]
+  },
+  {
+    "id": 1502025,
+    "stageId": 1501079,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503072,
+      1503040,
+      1503008
+    ],
+    "monsterLevels": [
+      49
+    ]
+  },
+  {
+    "id": 1502026,
+    "stageId": 1501083,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503011,
+      1503024,
+      1503000,
+      1503067,
+      1503026
+    ],
+    "monsterLevels": [
+      99
+    ]
+  },
+  {
+    "id": 1502027,
+    "stageId": 1501065,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503049
+    ],
+    "monsterLevels": [
+      27,
+      42,
+      21
+    ]
+  },
+  {
+    "id": 1502028,
+    "stageId": 1501032,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503005,
+      1503003
+    ],
+    "monsterLevels": [
+      77,
+      56
+    ]
+  },
+  {
+    "id": 1502029,
+    "stageId": 1501087,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503071,
+      1503026
+    ],
+    "monsterLevels": [
+      68,
+      116,
+      107
+    ]
+  },
+  {
+    "id": 1502030,
+    "stageId": 1501048,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503008,
+      1503027,
+      1503037
+    ],
+    "monsterLevels": [
+      17,
+      4,
+      57
+    ]
+  },
+  {
+    "id": 1502031,
+    "stageId": 1501072,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503053,
+      1503036,
+      1503052
+    ],
+    "monsterLevels": [
+      2,
+      49
+    ]
+  },
+  {
+    "id": 1502032,
+    "stageId": 1501044,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503013,
+      1503031,
+      1503013
+    ],
+    "monsterLevels": [
+      12,
+      28,
+      54
+    ]
+  },
+  {
+    "id": 1502033,
+    "stageId": 1501074,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503060,
+      1503065,
+      1503026,
+      1503049
+    ],
+    "monsterLevels": [
+      42,
+      81
+    ]
+  },
+  {
+    "id": 1502034,
+    "stageId": 1501064,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503024,
+      1503066,
+      1503044,
+      1503053,
+      1503061
+    ],
+    "monsterLevels": [
+      63
+    ]
+  },
+  {
+    "id": 1502035,
+    "stageId": 1501053,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503023,
+      1503014,
+      1503067,
+      1503025,
+      1503032
+    ],
+    "monsterLevels": [
+      58,
+      93,
+      34,
+      68
+    ]
+  },
+  {
+    "id": 1502036,
+    "stageId": 1501028,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503033,
+      1503065,
+      1503019
+    ],
+    "monsterLevels": [
+      43,
+      100,
+      45,
+      48
+    ]
+  },
+  {
+    "id": 1502037,
+    "stageId": 1501055,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503044
+    ],
+    "monsterLevels": [
+      2,
+      68,
+      104
+    ]
+  },
+  {
+    "id": 1502038,
+    "stageId": 1501025,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503025
+    ],
+    "monsterLevels": [
+      3,
+      65,
+      20,
+      48,
+      20
+    ]
+  },
+  {
+    "id": 1502039,
+    "stageId": 1501073,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503001,
+      1503070,
+      1503017,
+      1503041,
+      1503059
+    ],
+    "monsterLevels": [
+      102
+    ]
+  },
+  {
+    "id": 1502040,
+    "stageId": 1501005,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503040,
+      1503055
+    ],
+    "monsterLevels": [
+      38,
+      74
+    ]
+  },
+  {
+    "id": 1502041,
+    "stageId": 1501076,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503015
+    ],
+    "monsterLevels": [
+      77,
+      60,
+      9
+    ]
+  },
+  {
+    "id": 1502042,
+    "stageId": 1501023,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503027,
+      1503042
+    ],
+    "monsterLevels": [
+      79,
+      34,
+      69
+    ]
+  },
+  {
+    "id": 1502043,
+    "stageId": 1501058,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503027,
+      1503048,
+      1503064,
+      1503032
+    ],
+    "monsterLevels": [
+      65,
+      78,
+      50,
+      93
+    ]
+  },
+  {
+    "id": 1502044,
+    "stageId": 1501060,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503038,
+      1503060
+    ],
+    "monsterLevels": [
+      31,
+      63,
+      7,
+      33
+    ]
+  },
+  {
+    "id": 1502045,
+    "stageId": 1501013,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503011
+    ],
+    "monsterLevels": [
+      83,
+      37
+    ]
+  },
+  {
+    "id": 1502046,
+    "stageId": 1501064,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503045,
+      1503068
+    ],
+    "monsterLevels": [
+      74,
+      112,
+      117
+    ]
+  },
+  {
+    "id": 1502047,
+    "stageId": 1501069,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503043,
+      1503031
+    ],
+    "monsterLevels": [
+      30,
+      112
+    ]
+  },
+  {
+    "id": 1502048,
+    "stageId": 1501001,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503056,
+      1503046,
+      1503034,
+      1503040,
+      1503044
+    ],
+    "monsterLevels": [
+      75,
+      79,
+      57,
+      109,
+      100
+    ]
+  },
+  {
+    "id": 1502049,
+    "stageId": 1501045,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503034,
+      1503056,
+      1503066
+    ],
+    "monsterLevels": [
+      107,
+      93
+    ]
+  },
+  {
+    "id": 1502050,
+    "stageId": 1501021,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503028,
+      1503050,
+      1503029,
+      1503063,
+      1503045
+    ],
+    "monsterLevels": [
+      19,
+      82,
+      22,
+      117
+    ]
+  },
+  {
+    "id": 1502051,
+    "stageId": 1501018,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503019,
+      1503030,
+      1503040
+    ],
+    "monsterLevels": [
+      97
+    ]
+  },
+  {
+    "id": 1502052,
+    "stageId": 1501070,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503022
+    ],
+    "monsterLevels": [
+      36,
+      102
+    ]
+  },
+  {
+    "id": 1502053,
+    "stageId": 1501007,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503026,
+      1503054
+    ],
+    "monsterLevels": [
+      112,
+      48,
+      28,
+      51,
+      6
+    ]
+  },
+  {
+    "id": 1502054,
+    "stageId": 1501052,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503058,
+      1503058,
+      1503043
+    ],
+    "monsterLevels": [
+      37,
+      1,
+      15,
+      74
+    ]
+  },
+  {
+    "id": 1502055,
+    "stageId": 1501051,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503064
+    ],
+    "monsterLevels": [
+      38,
+      94,
+      103,
+      7,
+      15
+    ]
+  },
+  {
+    "id": 1502056,
+    "stageId": 1501077,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503035,
+      1503007,
+      1503042
+    ],
+    "monsterLevels": [
+      20,
+      98,
+      2,
+      6
+    ]
+  },
+  {
+    "id": 1502057,
+    "stageId": 1501084,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503002,
+      1503059,
+      1503022
+    ],
+    "monsterLevels": [
+      58,
+      100,
+      19,
+      109
+    ]
+  },
+  {
+    "id": 1502058,
+    "stageId": 1501089,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503008
+    ],
+    "monsterLevels": [
+      6,
+      89,
+      54
+    ]
+  },
+  {
+    "id": 1502059,
+    "stageId": 1501073,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503006,
+      1503027,
+      1503006
+    ],
+    "monsterLevels": [
+      109,
+      102,
+      5
+    ]
+  },
+  {
+    "id": 1502060,
+    "stageId": 1501067,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503033,
+      1503034,
+      1503073,
+      1503042,
+      1503039
+    ],
+    "monsterLevels": [
+      116
+    ]
+  },
+  {
+    "id": 1502061,
+    "stageId": 1501029,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503013,
+      1503007,
+      1503025,
+      1503056,
+      1503031
+    ],
+    "monsterLevels": [
+      82,
+      4,
+      101,
+      88,
+      116
+    ]
+  },
+  {
+    "id": 1502062,
+    "stageId": 1501063,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503049,
+      1503006
+    ],
+    "monsterLevels": [
+      108,
+      40,
+      110,
+      104,
+      1
+    ]
+  },
+  {
+    "id": 1502063,
+    "stageId": 1501043,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503031,
+      1503058,
+      1503006,
+      1503001
+    ],
+    "monsterLevels": [
+      114,
+      47,
+      75
+    ]
+  },
+  {
+    "id": 1502064,
+    "stageId": 1501081,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503035,
+      1503042,
+      1503053,
+      1503062
+    ],
+    "monsterLevels": [
+      27,
+      47,
+      109
+    ]
+  },
+  {
+    "id": 1502065,
+    "stageId": 1501018,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503069,
+      1503073,
+      1503040,
+      1503066,
+      1503023
+    ],
+    "monsterLevels": [
+      48,
+      10,
+      43,
+      67
+    ]
+  },
+  {
+    "id": 1502066,
+    "stageId": 1501027,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503023
+    ],
+    "monsterLevels": [
+      43,
+      100,
+      100,
+      71,
+      2
+    ]
+  },
+  {
+    "id": 1502067,
+    "stageId": 1501038,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503054,
+      1503070
+    ],
+    "monsterLevels": [
+      116
+    ]
+  },
+  {
+    "id": 1502068,
+    "stageId": 1501081,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503027,
+      1503044
+    ],
+    "monsterLevels": [
+      98,
+      97,
+      102
+    ]
+  },
+  {
+    "id": 1502069,
+    "stageId": 1501030,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503058,
+      1503037,
+      1503060,
+      1503028
+    ],
+    "monsterLevels": [
+      53,
+      65,
+      81,
+      50,
+      7
+    ]
+  },
+  {
+    "id": 1502070,
+    "stageId": 1501058,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503029,
+      1503018,
+      1503047,
+      1503068,
+      1503063
+    ],
+    "monsterLevels": [
+      46,
+      67,
+      37,
+      101
+    ]
+  },
+  {
+    "id": 1502071,
+    "stageId": 1501031,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503069,
+      1503021,
+      1503006,
+      1503011
+    ],
+    "monsterLevels": [
+      6,
+      90,
+      120
+    ]
+  },
+  {
+    "id": 1502072,
+    "stageId": 1501037,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503045
+    ],
+    "monsterLevels": [
+      88,
+      95,
+      88,
+      70,
+      26
+    ]
+  },
+  {
+    "id": 1502073,
+    "stageId": 1501083,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503054,
+      1503033,
+      1503062
+    ],
+    "monsterLevels": [
+      84,
+      96,
+      38
+    ]
+  },
+  {
+    "id": 1502074,
+    "stageId": 1501048,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503066,
+      1503040,
+      1503042
+    ],
+    "monsterLevels": [
+      81,
+      91,
+      118,
+      12,
+      114
+    ]
+  },
+  {
+    "id": 1502075,
+    "stageId": 1501048,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503072,
+      1503019
+    ],
+    "monsterLevels": [
+      5,
+      14,
+      36
+    ]
+  },
+  {
+    "id": 1502076,
+    "stageId": 1501073,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503019,
+      1503050,
+      1503071,
+      1503001
+    ],
+    "monsterLevels": [
+      30,
+      19,
+      53,
+      105,
+      64
+    ]
+  },
+  {
+    "id": 1502077,
+    "stageId": 1501063,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503021,
+      1503004,
+      1503031,
+      1503019,
+      1503036
+    ],
+    "monsterLevels": [
+      105,
+      6,
+      94
+    ]
+  },
+  {
+    "id": 1502078,
+    "stageId": 1501034,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503064
+    ],
+    "monsterLevels": [
+      91,
+      109,
+      106
+    ]
+  },
+  {
+    "id": 1502079,
+    "stageId": 1501025,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503040,
+      1503066,
+      1503033,
+      1503072
+    ],
+    "monsterLevels": [
+      55,
+      49
+    ]
+  },
+  {
+    "id": 1502080,
+    "stageId": 1501035,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503063
+    ],
+    "monsterLevels": [
+      81,
+      58,
+      15
+    ]
+  },
+  {
+    "id": 1502081,
+    "stageId": 1501003,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503047,
+      1503033
+    ],
+    "monsterLevels": [
+      88,
+      70,
+      49,
+      47,
+      13
+    ]
+  },
+  {
+    "id": 1502082,
+    "stageId": 1501026,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503068,
+      1503000,
+      1503008,
+      1503010
+    ],
+    "monsterLevels": [
+      20,
+      84,
+      15
+    ]
+  },
+  {
+    "id": 1502083,
+    "stageId": 1501054,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503067,
+      1503001,
+      1503004
+    ],
+    "monsterLevels": [
+      74
+    ]
+  },
+  {
+    "id": 1502084,
+    "stageId": 1501089,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503061,
+      1503047,
+      1503053
+    ],
+    "monsterLevels": [
+      43,
+      120,
+      55,
+      17
+    ]
+  },
+  {
+    "id": 1502085,
+    "stageId": 1501088,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503048
+    ],
+    "monsterLevels": [
+      65,
+      63,
+      74
+    ]
+  },
+  {
+    "id": 1502086,
+    "stageId": 1501015,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503000,
+      1503036,
+      1503054,
+      1503002
+    ],
+    "monsterLevels": [
+      56
+    ]
+  },
+  {
+    "id": 1502087,
+    "stageId": 1501002,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503044,
+      1503028,
+      1503054,
+      1503003,
+      1503022
+    ],
+    "monsterLevels": [
+      51,
+      57
+    ]
+  },
+  {
+    "id": 1502088,
+    "stageId": 1501049,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503007,
+      1503052,
+      1503013
+    ],
+    "monsterLevels": [
+      61
+    ]
+  },
+  {
+    "id": 1502089,
+    "stageId": 1501027,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503044,
+      1503041,
+      1503021,
+      1503062
+    ],
+    "monsterLevels": [
+      8,
+      3,
+      79,
+      109
+    ]
+  },
+  {
+    "id": 1502090,
+    "stageId": 1501060,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503073
+    ],
+    "monsterLevels": [
+      118,
+      20
+    ]
+  },
+  {
+    "id": 1502091,
+    "stageId": 1501000,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503072,
+      1503072,
+      1503039,
+      1503025,
+      1503060
+    ],
+    "monsterLevels": [
+      48,
+      21,
+      5,
+      23
+    ]
+  },
+  {
+    "id": 1502092,
+    "stageId": 1501061,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503012,
+      1503059
+    ],
+    "monsterLevels": [
+      23,
+      105
+    ]
+  },
+  {
+    "id": 1502093,
+    "stageId": 1501070,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503013,
+      1503017,
+      1503063,
+      1503005,
+      1503031
+    ],
+    "monsterLevels": [
+      34
+    ]
+  },
+  {
+    "id": 1502094,
+    "stageId": 1501017,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503056,
+      1503065
+    ],
+    "monsterLevels": [
+      76,
+      65
+    ]
+  },
+  {
+    "id": 1502095,
+    "stageId": 1501072,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503054,
+      1503007,
+      1503033,
+      1503036
+    ],
+    "monsterLevels": [
+      16,
+      90
+    ]
+  },
+  {
+    "id": 1502096,
+    "stageId": 1501017,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503035,
+      1503047,
+      1503005,
+      1503018
+    ],
+    "monsterLevels": [
+      3,
+      49,
+      62,
+      97,
+      27
+    ]
+  },
+  {
+    "id": 1502097,
+    "stageId": 1501088,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503043,
+      1503031,
+      1503045,
+      1503011
+    ],
+    "monsterLevels": [
+      70,
+      109,
+      62
+    ]
+  },
+  {
+    "id": 1502098,
+    "stageId": 1501052,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503053,
+      1503052,
+      1503063,
+      1503055,
+      1503046
+    ],
+    "monsterLevels": [
+      55,
+      61,
+      25,
+      8
+    ]
+  },
+  {
+    "id": 1502099,
+    "stageId": 1501065,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503061,
+      1503042,
+      1503056,
+      1503063
+    ],
+    "monsterLevels": [
+      67,
+      19,
+      109
+    ]
+  },
+  {
+    "id": 1502100,
+    "stageId": 1501026,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503058,
+      1503001,
+      1503053,
+      1503058
+    ],
+    "monsterLevels": [
+      68,
+      58,
+      23,
+      87
+    ]
+  },
+  {
+    "id": 1502101,
+    "stageId": 1501078,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503069,
+      1503039,
+      1503073,
+      1503009
+    ],
+    "monsterLevels": [
+      58
+    ]
+  },
+  {
+    "id": 1502102,
+    "stageId": 1501001,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503073,
+      1503026,
+      1503036,
+      1503032,
+      1503045
+    ],
+    "monsterLevels": [
+      81,
+      17,
+      89,
+      64,
+      66
+    ]
+  },
+  {
+    "id": 1502103,
+    "stageId": 1501074,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503063,
+      1503062,
+      1503045
+    ],
+    "monsterLevels": [
+      18,
+      17,
+      97,
+      96
+    ]
+  },
+  {
+    "id": 1502104,
+    "stageId": 1501041,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503032,
+      1503046,
+      1503002
+    ],
+    "monsterLevels": [
+      49,
+      14,
+      32
+    ]
+  },
+  {
+    "id": 1502105,
+    "stageId": 1501071,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503044,
+      1503037,
+      1503017
+    ],
+    "monsterLevels": [
+      12,
+      66,
+      66
+    ]
+  },
+  {
+    "id": 1502106,
+    "stageId": 1501055,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503036,
+      1503037,
+      1503071,
+      1503042,
+      1503006
+    ],
+    "monsterLevels": [
+      88,
+      41,
+      105
+    ]
+  },
+  {
+    "id": 1502107,
+    "stageId": 1501028,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503010,
+      1503015
+    ],
+    "monsterLevels": [
+      111,
+      118,
+      31,
+      99,
+      29
+    ]
+  },
+  {
+    "id": 1502108,
+    "stageId": 1501080,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503016
+    ],
+    "monsterLevels": [
+      40,
+      31,
+      28,
+      7
+    ]
+  },
+  {
+    "id": 1502109,
+    "stageId": 1501001,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503052,
+      1503009
+    ],
+    "monsterLevels": [
+      56
+    ]
+  },
+  {
+    "id": 1502110,
+    "stageId": 1501034,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503050,
+      1503058,
+      1503047,
+      1503041,
+      1503000
+    ],
+    "monsterLevels": [
+      5,
+      73,
+      3,
+      70,
+      52
+    ]
+  },
+  {
+    "id": 1502111,
+    "stageId": 1501083,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503018
+    ],
+    "monsterLevels": [
+      27,
+      112,
+      29,
+      17
+    ]
+  },
+  {
+    "id": 1502112,
+    "stageId": 1501073,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503041,
+      1503030,
+      1503004,
+      1503038
+    ],
+    "monsterLevels": [
+      64,
+      82,
+      51
+    ]
+  },
+  {
+    "id": 1502113,
+    "stageId": 1501064,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503044,
+      1503058
+    ],
+    "monsterLevels": [
+      73,
+      114,
+      104,
+      119
+    ]
+  },
+  {
+    "id": 1502114,
+    "stageId": 1501070,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503023,
+      1503023
+    ],
+    "monsterLevels": [
+      4,
+      19
+    ]
+  },
+  {
+    "id": 1502115,
+    "stageId": 1501004,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503013,
+      1503033,
+      1503050
+    ],
+    "monsterLevels": [
+      102,
+      76,
+      112,
+      29,
+      71
+    ]
+  },
+  {
+    "id": 1502116,
+    "stageId": 1501055,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503038,
+      1503061
+    ],
+    "monsterLevels": [
+      66,
+      44,
+      60,
+      59,
+      34
+    ]
+  },
+  {
+    "id": 1502117,
+    "stageId": 1501065,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503065,
+      1503025,
+      1503069,
+      1503018
+    ],
+    "monsterLevels": [
+      47
+    ]
+  },
+  {
+    "id": 1502118,
+    "stageId": 1501020,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503068,
+      1503059,
+      1503002
+    ],
+    "monsterLevels": [
+      28,
+      51
+    ]
+  },
+  {
+    "id": 1502119,
+    "stageId": 1501002,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503018,
+      1503011,
+      1503054
+    ],
+    "monsterLevels": [
+      2,
+      10
+    ]
+  },
+  {
+    "id": 1502120,
+    "stageId": 1501064,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503071,
+      1503072,
+      1503062
+    ],
+    "monsterLevels": [
+      58,
+      61,
+      111
+    ]
+  },
+  {
+    "id": 1502121,
+    "stageId": 1501043,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503046
+    ],
+    "monsterLevels": [
+      88,
+      34
+    ]
+  },
+  {
+    "id": 1502122,
+    "stageId": 1501066,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503013,
+      1503062,
+      1503055,
+      1503038,
+      1503000
+    ],
+    "monsterLevels": [
+      110,
+      18
+    ]
+  },
+  {
+    "id": 1502123,
+    "stageId": 1501067,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503028,
+      1503066,
+      1503026,
+      1503030
+    ],
+    "monsterLevels": [
+      14,
+      47,
+      66,
+      116,
+      50
+    ]
+  },
+  {
+    "id": 1502124,
+    "stageId": 1501031,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503068,
+      1503016,
+      1503002,
+      1503042,
+      1503022
+    ],
+    "monsterLevels": [
+      84,
+      26,
+      48
+    ]
+  },
+  {
+    "id": 1502125,
+    "stageId": 1501030,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503068,
+      1503061
+    ],
+    "monsterLevels": [
+      71
+    ]
+  },
+  {
+    "id": 1502126,
+    "stageId": 1501005,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503006
+    ],
+    "monsterLevels": [
+      117,
+      45,
+      13,
+      3
+    ]
+  },
+  {
+    "id": 1502127,
+    "stageId": 1501005,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503006,
+      1503048,
+      1503046
+    ],
+    "monsterLevels": [
+      46,
+      99
+    ]
+  },
+  {
+    "id": 1502128,
+    "stageId": 1501005,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503067,
+      1503047,
+      1503032
+    ],
+    "monsterLevels": [
+      85,
+      37,
+      38
+    ]
+  },
+  {
+    "id": 1502129,
+    "stageId": 1501036,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503029,
+      1503044,
+      1503048,
+      1503064,
+      1503011
+    ],
+    "monsterLevels": [
+      99,
+      57
+    ]
+  },
+  {
+    "id": 1502130,
+    "stageId": 1501044,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503008,
+      1503064
+    ],
+    "monsterLevels": [
+      106,
+      114,
+      37,
+      3,
+      64
+    ]
+  },
+  {
+    "id": 1502131,
+    "stageId": 1501070,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503062,
+      1503055,
+      1503062,
+      1503021,
+      1503007
+    ],
+    "monsterLevels": [
+      17,
+      52,
+      76,
+      51
+    ]
+  },
+  {
+    "id": 1502132,
+    "stageId": 1501043,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503027
+    ],
+    "monsterLevels": [
+      3,
+      120,
+      94
+    ]
+  },
+  {
+    "id": 1502133,
+    "stageId": 1501058,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503036,
+      1503042,
+      1503008,
+      1503033,
+      1503037
+    ],
+    "monsterLevels": [
+      100,
+      36,
+      76
+    ]
+  },
+  {
+    "id": 1502134,
+    "stageId": 1501081,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503039,
+      1503059,
+      1503019,
+      1503051,
+      1503051
+    ],
+    "monsterLevels": [
+      15
+    ]
+  },
+  {
+    "id": 1502135,
+    "stageId": 1501032,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503053,
+      1503029,
+      1503028,
+      1503018,
+      1503028
+    ],
+    "monsterLevels": [
+      50,
+      58,
+      42,
+      71
+    ]
+  },
+  {
+    "id": 1502136,
+    "stageId": 1501032,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503024
+    ],
+    "monsterLevels": [
+      18
+    ]
+  },
+  {
+    "id": 1502137,
+    "stageId": 1501044,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503060,
+      1503041,
+      1503054,
+      1503021
+    ],
+    "monsterLevels": [
+      115,
+      115
+    ]
+  },
+  {
+    "id": 1502138,
+    "stageId": 1501007,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503013,
+      1503044,
+      1503066,
+      1503025,
+      1503034
+    ],
+    "monsterLevels": [
+      80,
+      45,
+      117
+    ]
+  },
+  {
+    "id": 1502139,
+    "stageId": 1501016,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503008,
+      1503046,
+      1503064,
+      1503044
+    ],
+    "monsterLevels": [
+      57,
+      108
+    ]
+  },
+  {
+    "id": 1502140,
+    "stageId": 1501049,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503031,
+      1503072,
+      1503061,
+      1503020
+    ],
+    "monsterLevels": [
+      107,
+      8,
+      106
+    ]
+  },
+  {
+    "id": 1502141,
+    "stageId": 1501009,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503001,
+      1503074,
+      1503056
+    ],
+    "monsterLevels": [
+      47,
+      110,
+      46
+    ]
+  },
+  {
+    "id": 1502142,
+    "stageId": 1501057,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503062,
+      1503041,
+      1503028
+    ],
+    "monsterLevels": [
+      120
+    ]
+  },
+  {
+    "id": 1502143,
+    "stageId": 1501059,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503014,
+      1503058,
+      1503012
+    ],
+    "monsterLevels": [
+      89,
+      36
+    ]
+  },
+  {
+    "id": 1502144,
+    "stageId": 1501045,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503000,
+      1503032,
+      1503050,
+      1503022
+    ],
+    "monsterLevels": [
+      42,
+      58,
+      51,
+      82
+    ]
+  },
+  {
+    "id": 1502145,
+    "stageId": 1501056,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503041,
+      1503051,
+      1503051,
+      1503069
+    ],
+    "monsterLevels": [
+      18,
+      81
+    ]
+  },
+  {
+    "id": 1502146,
+    "stageId": 1501019,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503074
+    ],
+    "monsterLevels": [
+      21
+    ]
+  },
+  {
+    "id": 1502147,
+    "stageId": 1501036,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503069,
+      1503048,
+      1503062
+    ],
+    "monsterLevels": [
+      73,
+      54,
+      96,
+      17
+    ]
+  },
+  {
+    "id": 1502148,
+    "stageId": 1501012,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503024,
+      1503038
+    ],
+    "monsterLevels": [
+      47,
+      120,
+      32,
+      117
+    ]
+  },
+  {
+    "id": 1502149,
+    "stageId": 1501017,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503071,
+      1503074
+    ],
+    "monsterLevels": [
+      13,
+      106,
+      72,
+      82,
+      34
+    ]
+  },
+  {
+    "id": 1502150,
+    "stageId": 1501076,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503034,
+      1503054,
+      1503061,
+      1503002
+    ],
+    "monsterLevels": [
+      69,
+      26
+    ]
+  },
+  {
+    "id": 1502151,
+    "stageId": 1501023,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503058,
+      1503037,
+      1503074
+    ],
+    "monsterLevels": [
+      110,
+      17,
+      104
+    ]
+  },
+  {
+    "id": 1502152,
+    "stageId": 1501075,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503036,
+      1503037,
+      1503017,
+      1503032
+    ],
+    "monsterLevels": [
+      84,
+      18,
+      114,
+      26,
+      11
+    ]
+  },
+  {
+    "id": 1502153,
+    "stageId": 1501070,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503056
+    ],
+    "monsterLevels": [
+      7,
+      102,
+      106
+    ]
+  },
+  {
+    "id": 1502154,
+    "stageId": 1501042,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503067,
+      1503030
+    ],
+    "monsterLevels": [
+      81,
+      25,
+      112,
+      92
+    ]
+  },
+  {
+    "id": 1502155,
+    "stageId": 1501061,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503059,
+      1503058,
+      1503026,
+      1503044
+    ],
+    "monsterLevels": [
+      57,
+      14,
+      101,
+      59,
+      102
+    ]
+  },
+  {
+    "id": 1502156,
+    "stageId": 1501062,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503069,
+      1503033,
+      1503047
+    ],
+    "monsterLevels": [
+      118,
+      39,
+      79
+    ]
+  },
+  {
+    "id": 1502157,
+    "stageId": 1501038,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503065,
+      1503006,
+      1503049,
+      1503016,
+      1503014
+    ],
+    "monsterLevels": [
+      23
+    ]
+  },
+  {
+    "id": 1502158,
+    "stageId": 1501008,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503016
+    ],
+    "monsterLevels": [
+      109,
+      3,
+      37,
+      93,
+      83
+    ]
+  },
+  {
+    "id": 1502159,
+    "stageId": 1501063,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503004,
+      1503009,
+      1503026
+    ],
+    "monsterLevels": [
+      113
+    ]
+  },
+  {
+    "id": 1502160,
+    "stageId": 1501047,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503010,
+      1503056,
+      1503011
+    ],
+    "monsterLevels": [
+      120,
+      91,
+      13,
+      61
+    ]
+  },
+  {
+    "id": 1502161,
+    "stageId": 1501078,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503001
+    ],
+    "monsterLevels": [
+      91,
+      101,
+      62,
+      112,
+      19
+    ]
+  },
+  {
+    "id": 1502162,
+    "stageId": 1501061,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503028,
+      1503010,
+      1503055
+    ],
+    "monsterLevels": [
+      1,
+      4
+    ]
+  },
+  {
+    "id": 1502163,
+    "stageId": 1501064,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503060
+    ],
+    "monsterLevels": [
+      90,
+      60,
+      86,
+      106,
+      10
+    ]
+  },
+  {
+    "id": 1502164,
+    "stageId": 1501011,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503013,
+      1503072
+    ],
+    "monsterLevels": [
+      50,
+      78,
+      95,
+      35,
+      13
+    ]
+  },
+  {
+    "id": 1502165,
+    "stageId": 1501089,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503054,
+      1503058
+    ],
+    "monsterLevels": [
+      15,
+      62,
+      40,
+      120,
+      13
+    ]
+  },
+  {
+    "id": 1502166,
+    "stageId": 1501055,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503035,
+      1503020,
+      1503002,
+      1503002,
+      1503051
+    ],
+    "monsterLevels": [
+      48,
+      68,
+      82,
+      110,
+      69
+    ]
+  },
+  {
+    "id": 1502167,
+    "stageId": 1501071,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503019,
+      1503021,
+      1503018,
+      1503044
+    ],
+    "monsterLevels": [
+      26
+    ]
+  },
+  {
+    "id": 1502168,
+    "stageId": 1501079,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503014,
+      1503065
+    ],
+    "monsterLevels": [
+      77
+    ]
+  },
+  {
+    "id": 1502169,
+    "stageId": 1501063,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503056,
+      1503044,
+      1503028,
+      1503055,
+      1503035
+    ],
+    "monsterLevels": [
+      3,
+      80
+    ]
+  },
+  {
+    "id": 1502170,
+    "stageId": 1501015,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503063,
+      1503050,
+      1503070
+    ],
+    "monsterLevels": [
+      16,
+      58,
+      78,
+      86
+    ]
+  },
+  {
+    "id": 1502171,
+    "stageId": 1501023,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503031
+    ],
+    "monsterLevels": [
+      97
+    ]
+  },
+  {
+    "id": 1502172,
+    "stageId": 1501008,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503021
+    ],
+    "monsterLevels": [
+      94,
+      63
+    ]
+  },
+  {
+    "id": 1502173,
+    "stageId": 1501059,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503008
+    ],
+    "monsterLevels": [
+      4,
+      69
+    ]
+  },
+  {
+    "id": 1502174,
+    "stageId": 1501020,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503073,
+      1503038,
+      1503014,
+      1503057
+    ],
+    "monsterLevels": [
+      37,
+      7,
+      54,
+      78,
+      25
+    ]
+  },
+  {
+    "id": 1502175,
+    "stageId": 1501055,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503023,
+      1503007
+    ],
+    "monsterLevels": [
+      25,
+      94,
+      38
+    ]
+  },
+  {
+    "id": 1502176,
+    "stageId": 1501044,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503011,
+      1503067,
+      1503002,
+      1503013,
+      1503051
+    ],
+    "monsterLevels": [
+      114,
+      90,
+      66,
+      37,
+      91
+    ]
+  },
+  {
+    "id": 1502177,
+    "stageId": 1501013,
+    "waveOrder": 0,
+    "monsterIds": [
+      1503007,
+      1503062
+    ],
+    "monsterLevels": [
+      45,
+      81,
+      75
+    ]
+  },
+  {
+    "id": 1502178,
+    "stageId": 1501026,
+    "waveOrder": 1,
+    "monsterIds": [
+      1503001
+    ],
+    "monsterLevels": [
+      81,
+      103
+    ]
+  },
+  {
+    "id": 1502179,
+    "stageId": 1501048,
+    "waveOrder": 2,
+    "monsterIds": [
+      1503040,
+      1503033,
+      1503063,
+      1503020
+    ],
+    "monsterLevels": [
+      54,
+      8
+    ]
+  }
+]

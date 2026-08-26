@@ -1,0 +1,4 @@
+@desc	primary index	role	stat	bonus in permille
+@name	id	role	stat	bonus
+@type	Int	enum:RoleType	enum:StatType	Int
+@gen	seq:1006000	enum:RoleType	enum:StatType	int:10..320

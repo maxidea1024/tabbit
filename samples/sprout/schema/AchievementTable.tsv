@@ -1,0 +1,4 @@
+@desc	primary index	title key	completion condition	target count	reward	badge asset
+@name	id	titleKey	conditionId	targetCount	rewardId	badge
+@type	Int	String	Int	Int	Int	String
+@gen	seq:1605000	str:ACH_TITLE:130	ref:ConditionTable	int:1..10000:zipf	ref:RewardTable	path:130:Art/Badge

@@ -1,0 +1,178 @@
+[
+  {
+    "id": 1004000,
+    "characterId": 1001009,
+    "nameKey": "SKIN_NAME_0024",
+    "model": "Art/Skin/Jasp/Jasp_09",
+    "price": 66,
+    "isDefault": true
+  },
+  {
+    "id": 1004001,
+    "characterId": 1001016,
+    "nameKey": "SKIN_NAME_0075",
+    "model": "Art/Skin/Gale/CommonMarrow_42",
+    "price": 357,
+    "isDefault": true
+  },
+  {
+    "id": 1004002,
+    "characterId": 1001018,
+    "nameKey": "SKIN_NAME_0042",
+    "model": "Art/Skin/Ember/Ember_04",
+    "price": 0,
+    "isDefault": false
+  },
+  {
+    "id": 1004003,
+    "characterId": 1001005,
+    "nameKey": "SKIN_NAME_0045",
+    "model": "Art/Skin/Harrow/Thorn_19",
+    "price": 251,
+    "isDefault": true
+  },
+  {
+    "id": 1004004,
+    "characterId": 1001019,
+    "nameKey": "SKIN_NAME_0073",
+    "model": "Art/Skin/Lumen/CommonRune_47",
+    "price": 2125,
+    "isDefault": true
+  },
+  {
+    "id": 1004005,
+    "characterId": 1001021,
+    "nameKey": "SKIN_NAME_0080",
+    "model": "Art/Skin/Kelvin/KeenKelvin_70",
+    "price": 37,
+    "isDefault": true
+  },
+  {
+    "id": 1004006,
+    "characterId": 1001019,
+    "nameKey": "SKIN_NAME_0024",
+    "model": "Art/Skin/Harrow/CommonBrack_31",
+    "price": 612,
+    "isDefault": false
+  },
+  {
+    "id": 1004007,
+    "characterId": 1001013,
+    "nameKey": "SKIN_NAME_0012",
+    "model": "Art/Skin/Fenn/Fenn_05",
+    "price": 183,
+    "isDefault": false
+  },
+  {
+    "id": 1004008,
+    "characterId": 1001019,
+    "nameKey": "SKIN_NAME_0085",
+    "model": "Art/Skin/Calyx/Ochre_14",
+    "price": 313,
+    "isDefault": true
+  },
+  {
+    "id": 1004009,
+    "characterId": 1001008,
+    "nameKey": "SKIN_NAME_0075",
+    "model": "Art/Skin/Harrow/CommonBrack_31",
+    "price": 1393,
+    "isDefault": false
+  },
+  {
+    "id": 1004010,
+    "characterId": 1001006,
+    "nameKey": "SKIN_NAME_0087",
+    "model": "Art/Skin/Calyx/Ochre_14",
+    "price": 73,
+    "isDefault": false
+  },
+  {
+    "id": 1004011,
+    "characterId": 1001025,
+    "nameKey": "SKIN_NAME_0021",
+    "model": "Art/Skin/Dorn/Dorn_03",
+    "price": 848,
+    "isDefault": false
+  },
+  {
+    "id": 1004012,
+    "characterId": 1001013,
+    "nameKey": "SKIN_NAME_0086",
+    "model": "Art/Skin/Isle/Umber_20",
+    "price": 2,
+    "isDefault": false
+  },
+  {
+    "id": 1004013,
+    "characterId": 1001029,
+    "nameKey": "SKIN_NAME_0049",
+    "model": "Art/Skin/Brack/CommonHarrow_37",
+    "price": 1828,
+    "isDefault": false
+  },
+  {
+    "id": 1004014,
+    "characterId": 1001024,
+    "nameKey": "SKIN_NAME_0000",
+    "model": "Art/Skin/Isle/CommonCinder_56",
+    "price": 1054,
+    "isDefault": true
+  },
+  {
+    "id": 1004015,
+    "characterId": 1001008,
+    "nameKey": "SKIN_NAME_0041",
+    "model": "Art/Skin/Isle/KeenIsle_68",
+    "price": 1138,
+    "isDefault": true
+  },
+  {
+    "id": 1004016,
+    "characterId": 1001022,
+    "nameKey": "SKIN_NAME_0086",
+    "model": "Art/Skin/Alder/KeenAlder_60",
+    "price": 70,
+    "isDefault": true
+  },
+  {
+    "id": 1004017,
+    "characterId": 1001009,
+    "nameKey": "SKIN_NAME_0052",
+    "model": "Art/Skin/Harrow/CommonBriar_55",
+    "price": 387,
+    "isDefault": true
+  },
+  {
+    "id": 1004018,
+    "characterId": 1001013,
+    "nameKey": "SKIN_NAME_0073",
+    "model": "Art/Skin/Fenn/KeenFlint_89",
+    "price": 66,
+    "isDefault": false
+  },
+  {
+    "id": 1004019,
+    "characterId": 1001024,
+    "nameKey": "SKIN_NAME_0002",
+    "model": "Art/Skin/Brack/KeenBrack_61",
+    "price": 174,
+    "isDefault": true
+  },
+  {
+    "id": 1004020,
+    "characterId": 1001022,
+    "nameKey": "SKIN_NAME_0024",
+    "model": "Art/Skin/Isle/CommonCinder_56",
+    "price": 0,
+    "isDefault": false
+  },
+  {
+    "id": 1004021,
+    "characterId": 1001005,
+    "nameKey": "SKIN_NAME_0055",
+    "model": "Art/Skin/Alder/Zephyr_24",
+    "price": 639,
+    "isDefault": false
+  }
+]

@@ -1,0 +1,4 @@
+@desc	primary index	owning world	name key	order	unlock condition
+@name	id	worldId	nameKey	sortOrder	unlockId
+@type	Int	Int	String	Int	Int
+@gen	seq:1505000	ref:WorldTable	str:CHAPTER_NAME:40	seq:1	ref:UnlockTable

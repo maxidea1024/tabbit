@@ -1,0 +1,4 @@
+@desc	primary index	backing quest	points awarded	reset hour, server time
+@name	id	questId	points	resetHour
+@type	Int	Int	Int	Int
+@gen	seq:1603000	ref:QuestTable	int:5..60	int:0..23

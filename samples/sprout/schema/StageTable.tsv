@@ -1,0 +1,4 @@
+@desc	primary index	owning chapter	stage kind	name key	background asset	stamina cost	recommended power	first clear reward	repeat reward	unlock condition
+@name	id	chapterId	type	nameKey	background	stamina	power	firstReward	repeatReward	unlockId
+@type	Int	Int	enum:StageType	String	String	Int	Int	Int	Int	Int
+@gen	seq:1501000	ref:ChapterTable	enum:StageType	str:STAGE_NAME:360	path:60:Art/Stage	int:3..40	curve:1200:340:360	ref:RewardTable	ref:RewardTable	ref:UnlockTable

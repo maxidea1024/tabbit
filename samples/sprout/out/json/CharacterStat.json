@@ -1,0 +1,1352 @@
+[
+  {
+    "id": 1002000,
+    "characterId": 1001006,
+    "level": 0,
+    "requiredExp": "120",
+    "attack": 42,
+    "defense": 28,
+    "health": 310
+  },
+  {
+    "id": 1002001,
+    "characterId": 1001013,
+    "level": 1,
+    "requiredExp": "760",
+    "attack": 51,
+    "defense": 34,
+    "health": 384
+  },
+  {
+    "id": 1002002,
+    "characterId": 1001005,
+    "level": 2,
+    "requiredExp": "1401",
+    "attack": 61,
+    "defense": 41,
+    "health": 459
+  },
+  {
+    "id": 1002003,
+    "characterId": 1001016,
+    "level": 3,
+    "requiredExp": "2042",
+    "attack": 71,
+    "defense": 48,
+    "health": 534
+  },
+  {
+    "id": 1002004,
+    "characterId": 1001023,
+    "level": 4,
+    "requiredExp": "2684",
+    "attack": 82,
+    "defense": 56,
+    "health": 610
+  },
+  {
+    "id": 1002005,
+    "characterId": 1001023,
+    "level": 5,
+    "requiredExp": "3326",
+    "attack": 93,
+    "defense": 64,
+    "health": 686
+  },
+  {
+    "id": 1002006,
+    "characterId": 1001013,
+    "level": 6,
+    "requiredExp": "3969",
+    "attack": 105,
+    "defense": 73,
+    "health": 763
+  },
+  {
+    "id": 1002007,
+    "characterId": 1001027,
+    "level": 7,
+    "requiredExp": "4612",
+    "attack": 117,
+    "defense": 82,
+    "health": 840
+  },
+  {
+    "id": 1002008,
+    "characterId": 1001029,
+    "level": 8,
+    "requiredExp": "5256",
+    "attack": 130,
+    "defense": 92,
+    "health": 918
+  },
+  {
+    "id": 1002009,
+    "characterId": 1001005,
+    "level": 9,
+    "requiredExp": "5900",
+    "attack": 143,
+    "defense": 102,
+    "health": 996
+  },
+  {
+    "id": 1002010,
+    "characterId": 1001007,
+    "level": 10,
+    "requiredExp": "6545",
+    "attack": 157,
+    "defense": 113,
+    "health": 1075
+  },
+  {
+    "id": 1002011,
+    "characterId": 1001017,
+    "level": 11,
+    "requiredExp": "7190",
+    "attack": 171,
+    "defense": 124,
+    "health": 1154
+  },
+  {
+    "id": 1002012,
+    "characterId": 1001012,
+    "level": 12,
+    "requiredExp": "7836",
+    "attack": 186,
+    "defense": 136,
+    "health": 1234
+  },
+  {
+    "id": 1002013,
+    "characterId": 1001029,
+    "level": 13,
+    "requiredExp": "8482",
+    "attack": 201,
+    "defense": 148,
+    "health": 1314
+  },
+  {
+    "id": 1002014,
+    "characterId": 1001024,
+    "level": 14,
+    "requiredExp": "9129",
+    "attack": 217,
+    "defense": 161,
+    "health": 1395
+  },
+  {
+    "id": 1002015,
+    "characterId": 1001029,
+    "level": 15,
+    "requiredExp": "9776",
+    "attack": 233,
+    "defense": 174,
+    "health": 1476
+  },
+  {
+    "id": 1002016,
+    "characterId": 1001024,
+    "level": 16,
+    "requiredExp": "10424",
+    "attack": 250,
+    "defense": 188,
+    "health": 1558
+  },
+  {
+    "id": 1002017,
+    "characterId": 1001028,
+    "level": 17,
+    "requiredExp": "11072",
+    "attack": 267,
+    "defense": 202,
+    "health": 1640
+  },
+  {
+    "id": 1002018,
+    "characterId": 1001020,
+    "level": 18,
+    "requiredExp": "11721",
+    "attack": 285,
+    "defense": 217,
+    "health": 1723
+  },
+  {
+    "id": 1002019,
+    "characterId": 1001005,
+    "level": 19,
+    "requiredExp": "12370",
+    "attack": 303,
+    "defense": 232,
+    "health": 1806
+  },
+  {
+    "id": 1002020,
+    "characterId": 1001009,
+    "level": 20,
+    "requiredExp": "13020",
+    "attack": 322,
+    "defense": 248,
+    "health": 1890
+  },
+  {
+    "id": 1002021,
+    "characterId": 1001016,
+    "level": 21,
+    "requiredExp": "13670",
+    "attack": 341,
+    "defense": 264,
+    "health": 1974
+  },
+  {
+    "id": 1002022,
+    "characterId": 1001009,
+    "level": 22,
+    "requiredExp": "14321",
+    "attack": 361,
+    "defense": 281,
+    "health": 2059
+  },
+  {
+    "id": 1002023,
+    "characterId": 1001020,
+    "level": 23,
+    "requiredExp": "14972",
+    "attack": 381,
+    "defense": 298,
+    "health": 2144
+  },
+  {
+    "id": 1002024,
+    "characterId": 1001026,
+    "level": 24,
+    "requiredExp": "15624",
+    "attack": 402,
+    "defense": 316,
+    "health": 2230
+  },
+  {
+    "id": 1002025,
+    "characterId": 1001021,
+    "level": 25,
+    "requiredExp": "16276",
+    "attack": 423,
+    "defense": 334,
+    "health": 2316
+  },
+  {
+    "id": 1002026,
+    "characterId": 1001019,
+    "level": 26,
+    "requiredExp": "16929",
+    "attack": 445,
+    "defense": 353,
+    "health": 2403
+  },
+  {
+    "id": 1002027,
+    "characterId": 1001022,
+    "level": 27,
+    "requiredExp": "17582",
+    "attack": 467,
+    "defense": 372,
+    "health": 2490
+  },
+  {
+    "id": 1002028,
+    "characterId": 1001019,
+    "level": 28,
+    "requiredExp": "18236",
+    "attack": 490,
+    "defense": 392,
+    "health": 2578
+  },
+  {
+    "id": 1002029,
+    "characterId": 1001025,
+    "level": 29,
+    "requiredExp": "18890",
+    "attack": 513,
+    "defense": 412,
+    "health": 2666
+  },
+  {
+    "id": 1002030,
+    "characterId": 1001017,
+    "level": 30,
+    "requiredExp": "19545",
+    "attack": 537,
+    "defense": 433,
+    "health": 2755
+  },
+  {
+    "id": 1002031,
+    "characterId": 1001023,
+    "level": 31,
+    "requiredExp": "20200",
+    "attack": 561,
+    "defense": 454,
+    "health": 2844
+  },
+  {
+    "id": 1002032,
+    "characterId": 1001006,
+    "level": 32,
+    "requiredExp": "20856",
+    "attack": 586,
+    "defense": 476,
+    "health": 2934
+  },
+  {
+    "id": 1002033,
+    "characterId": 1001005,
+    "level": 33,
+    "requiredExp": "21512",
+    "attack": 611,
+    "defense": 498,
+    "health": 3024
+  },
+  {
+    "id": 1002034,
+    "characterId": 1001025,
+    "level": 34,
+    "requiredExp": "22169",
+    "attack": 637,
+    "defense": 521,
+    "health": 3115
+  },
+  {
+    "id": 1002035,
+    "characterId": 1001022,
+    "level": 35,
+    "requiredExp": "22826",
+    "attack": 663,
+    "defense": 544,
+    "health": 3206
+  },
+  {
+    "id": 1002036,
+    "characterId": 1001027,
+    "level": 36,
+    "requiredExp": "23484",
+    "attack": 690,
+    "defense": 568,
+    "health": 3298
+  },
+  {
+    "id": 1002037,
+    "characterId": 1001029,
+    "level": 37,
+    "requiredExp": "24142",
+    "attack": 717,
+    "defense": 592,
+    "health": 3390
+  },
+  {
+    "id": 1002038,
+    "characterId": 1001025,
+    "level": 38,
+    "requiredExp": "24801",
+    "attack": 745,
+    "defense": 617,
+    "health": 3483
+  },
+  {
+    "id": 1002039,
+    "characterId": 1001005,
+    "level": 39,
+    "requiredExp": "25460",
+    "attack": 773,
+    "defense": 642,
+    "health": 3576
+  },
+  {
+    "id": 1002040,
+    "characterId": 1001019,
+    "level": 40,
+    "requiredExp": "26120",
+    "attack": 802,
+    "defense": 668,
+    "health": 3670
+  },
+  {
+    "id": 1002041,
+    "characterId": 1001011,
+    "level": 41,
+    "requiredExp": "26780",
+    "attack": 831,
+    "defense": 694,
+    "health": 3764
+  },
+  {
+    "id": 1002042,
+    "characterId": 1001003,
+    "level": 42,
+    "requiredExp": "27441",
+    "attack": 861,
+    "defense": 721,
+    "health": 3859
+  },
+  {
+    "id": 1002043,
+    "characterId": 1001009,
+    "level": 43,
+    "requiredExp": "28102",
+    "attack": 891,
+    "defense": 748,
+    "health": 3954
+  },
+  {
+    "id": 1002044,
+    "characterId": 1001008,
+    "level": 44,
+    "requiredExp": "28764",
+    "attack": 922,
+    "defense": 776,
+    "health": 4050
+  },
+  {
+    "id": 1002045,
+    "characterId": 1001016,
+    "level": 45,
+    "requiredExp": "29426",
+    "attack": 953,
+    "defense": 804,
+    "health": 4146
+  },
+  {
+    "id": 1002046,
+    "characterId": 1001006,
+    "level": 46,
+    "requiredExp": "30089",
+    "attack": 985,
+    "defense": 833,
+    "health": 4243
+  },
+  {
+    "id": 1002047,
+    "characterId": 1001023,
+    "level": 47,
+    "requiredExp": "30752",
+    "attack": 1017,
+    "defense": 862,
+    "health": 4340
+  },
+  {
+    "id": 1002048,
+    "characterId": 1001020,
+    "level": 48,
+    "requiredExp": "31416",
+    "attack": 1050,
+    "defense": 892,
+    "health": 4438
+  },
+  {
+    "id": 1002049,
+    "characterId": 1001016,
+    "level": 49,
+    "requiredExp": "32080",
+    "attack": 1083,
+    "defense": 922,
+    "health": 4536
+  },
+  {
+    "id": 1002050,
+    "characterId": 1001019,
+    "level": 50,
+    "requiredExp": "32745",
+    "attack": 1117,
+    "defense": 953,
+    "health": 4635
+  },
+  {
+    "id": 1002051,
+    "characterId": 1001007,
+    "level": 51,
+    "requiredExp": "33410",
+    "attack": 1151,
+    "defense": 984,
+    "health": 4734
+  },
+  {
+    "id": 1002052,
+    "characterId": 1001004,
+    "level": 52,
+    "requiredExp": "34076",
+    "attack": 1186,
+    "defense": 1016,
+    "health": 4834
+  },
+  {
+    "id": 1002053,
+    "characterId": 1001021,
+    "level": 53,
+    "requiredExp": "34742",
+    "attack": 1221,
+    "defense": 1048,
+    "health": 4934
+  },
+  {
+    "id": 1002054,
+    "characterId": 1001012,
+    "level": 54,
+    "requiredExp": "35409",
+    "attack": 1257,
+    "defense": 1081,
+    "health": 5035
+  },
+  {
+    "id": 1002055,
+    "characterId": 1001007,
+    "level": 55,
+    "requiredExp": "36076",
+    "attack": 1293,
+    "defense": 1114,
+    "health": 5136
+  },
+  {
+    "id": 1002056,
+    "characterId": 1001028,
+    "level": 56,
+    "requiredExp": "36744",
+    "attack": 1330,
+    "defense": 1148,
+    "health": 5238
+  },
+  {
+    "id": 1002057,
+    "characterId": 1001001,
+    "level": 57,
+    "requiredExp": "37412",
+    "attack": 1367,
+    "defense": 1182,
+    "health": 5340
+  },
+  {
+    "id": 1002058,
+    "characterId": 1001019,
+    "level": 58,
+    "requiredExp": "38081",
+    "attack": 1405,
+    "defense": 1217,
+    "health": 5443
+  },
+  {
+    "id": 1002059,
+    "characterId": 1001006,
+    "level": 59,
+    "requiredExp": "38750",
+    "attack": 1443,
+    "defense": 1252,
+    "health": 5546
+  },
+  {
+    "id": 1002060,
+    "characterId": 1001028,
+    "level": 60,
+    "requiredExp": "39420",
+    "attack": 1482,
+    "defense": 1288,
+    "health": 5650
+  },
+  {
+    "id": 1002061,
+    "characterId": 1001023,
+    "level": 61,
+    "requiredExp": "40090",
+    "attack": 1521,
+    "defense": 1324,
+    "health": 5754
+  },
+  {
+    "id": 1002062,
+    "characterId": 1001001,
+    "level": 62,
+    "requiredExp": "40761",
+    "attack": 1561,
+    "defense": 1361,
+    "health": 5859
+  },
+  {
+    "id": 1002063,
+    "characterId": 1001028,
+    "level": 63,
+    "requiredExp": "41432",
+    "attack": 1601,
+    "defense": 1398,
+    "health": 5964
+  },
+  {
+    "id": 1002064,
+    "characterId": 1001006,
+    "level": 64,
+    "requiredExp": "42104",
+    "attack": 1642,
+    "defense": 1436,
+    "health": 6070
+  },
+  {
+    "id": 1002065,
+    "characterId": 1001013,
+    "level": 65,
+    "requiredExp": "42776",
+    "attack": 1683,
+    "defense": 1474,
+    "health": 6176
+  },
+  {
+    "id": 1002066,
+    "characterId": 1001017,
+    "level": 66,
+    "requiredExp": "43449",
+    "attack": 1725,
+    "defense": 1513,
+    "health": 6283
+  },
+  {
+    "id": 1002067,
+    "characterId": 1001012,
+    "level": 67,
+    "requiredExp": "44122",
+    "attack": 1767,
+    "defense": 1552,
+    "health": 6390
+  },
+  {
+    "id": 1002068,
+    "characterId": 1001012,
+    "level": 68,
+    "requiredExp": "44796",
+    "attack": 1810,
+    "defense": 1592,
+    "health": 6498
+  },
+  {
+    "id": 1002069,
+    "characterId": 1001028,
+    "level": 69,
+    "requiredExp": "45470",
+    "attack": 1853,
+    "defense": 1632,
+    "health": 6606
+  },
+  {
+    "id": 1002070,
+    "characterId": 1001019,
+    "level": 70,
+    "requiredExp": "46145",
+    "attack": 1897,
+    "defense": 1673,
+    "health": 6715
+  },
+  {
+    "id": 1002071,
+    "characterId": 1001019,
+    "level": 71,
+    "requiredExp": "46820",
+    "attack": 1941,
+    "defense": 1714,
+    "health": 6824
+  },
+  {
+    "id": 1002072,
+    "characterId": 1001002,
+    "level": 72,
+    "requiredExp": "47496",
+    "attack": 1986,
+    "defense": 1756,
+    "health": 6934
+  },
+  {
+    "id": 1002073,
+    "characterId": 1001023,
+    "level": 73,
+    "requiredExp": "48172",
+    "attack": 2031,
+    "defense": 1798,
+    "health": 7044
+  },
+  {
+    "id": 1002074,
+    "characterId": 1001017,
+    "level": 74,
+    "requiredExp": "48849",
+    "attack": 2077,
+    "defense": 1841,
+    "health": 7155
+  },
+  {
+    "id": 1002075,
+    "characterId": 1001024,
+    "level": 75,
+    "requiredExp": "49526",
+    "attack": 2123,
+    "defense": 1884,
+    "health": 7266
+  },
+  {
+    "id": 1002076,
+    "characterId": 1001007,
+    "level": 76,
+    "requiredExp": "50204",
+    "attack": 2170,
+    "defense": 1928,
+    "health": 7378
+  },
+  {
+    "id": 1002077,
+    "characterId": 1001029,
+    "level": 77,
+    "requiredExp": "50882",
+    "attack": 2217,
+    "defense": 1972,
+    "health": 7490
+  },
+  {
+    "id": 1002078,
+    "characterId": 1001025,
+    "level": 78,
+    "requiredExp": "51561",
+    "attack": 2265,
+    "defense": 2017,
+    "health": 7603
+  },
+  {
+    "id": 1002079,
+    "characterId": 1001017,
+    "level": 79,
+    "requiredExp": "52240",
+    "attack": 2313,
+    "defense": 2062,
+    "health": 7716
+  },
+  {
+    "id": 1002080,
+    "characterId": 1001001,
+    "level": 80,
+    "requiredExp": "52920",
+    "attack": 2362,
+    "defense": 2108,
+    "health": 7830
+  },
+  {
+    "id": 1002081,
+    "characterId": 1001012,
+    "level": 81,
+    "requiredExp": "53600",
+    "attack": 2411,
+    "defense": 2154,
+    "health": 7944
+  },
+  {
+    "id": 1002082,
+    "characterId": 1001021,
+    "level": 82,
+    "requiredExp": "54281",
+    "attack": 2461,
+    "defense": 2201,
+    "health": 8059
+  },
+  {
+    "id": 1002083,
+    "characterId": 1001022,
+    "level": 83,
+    "requiredExp": "54962",
+    "attack": 2511,
+    "defense": 2248,
+    "health": 8174
+  },
+  {
+    "id": 1002084,
+    "characterId": 1001004,
+    "level": 84,
+    "requiredExp": "55644",
+    "attack": 2562,
+    "defense": 2296,
+    "health": 8290
+  },
+  {
+    "id": 1002085,
+    "characterId": 1001026,
+    "level": 85,
+    "requiredExp": "56326",
+    "attack": 2613,
+    "defense": 2344,
+    "health": 8406
+  },
+  {
+    "id": 1002086,
+    "characterId": 1001020,
+    "level": 86,
+    "requiredExp": "57009",
+    "attack": 2665,
+    "defense": 2393,
+    "health": 8523
+  },
+  {
+    "id": 1002087,
+    "characterId": 1001019,
+    "level": 87,
+    "requiredExp": "57692",
+    "attack": 2717,
+    "defense": 2442,
+    "health": 8640
+  },
+  {
+    "id": 1002088,
+    "characterId": 1001019,
+    "level": 88,
+    "requiredExp": "58376",
+    "attack": 2770,
+    "defense": 2492,
+    "health": 8758
+  },
+  {
+    "id": 1002089,
+    "characterId": 1001005,
+    "level": 89,
+    "requiredExp": "59060",
+    "attack": 2823,
+    "defense": 2542,
+    "health": 8876
+  },
+  {
+    "id": 1002090,
+    "characterId": 1001015,
+    "level": 90,
+    "requiredExp": "59745",
+    "attack": 2877,
+    "defense": 2593,
+    "health": 8995
+  },
+  {
+    "id": 1002091,
+    "characterId": 1001000,
+    "level": 91,
+    "requiredExp": "60430",
+    "attack": 2931,
+    "defense": 2644,
+    "health": 9114
+  },
+  {
+    "id": 1002092,
+    "characterId": 1001007,
+    "level": 92,
+    "requiredExp": "61116",
+    "attack": 2986,
+    "defense": 2696,
+    "health": 9234
+  },
+  {
+    "id": 1002093,
+    "characterId": 1001021,
+    "level": 93,
+    "requiredExp": "61802",
+    "attack": 3041,
+    "defense": 2748,
+    "health": 9354
+  },
+  {
+    "id": 1002094,
+    "characterId": 1001001,
+    "level": 94,
+    "requiredExp": "62489",
+    "attack": 3097,
+    "defense": 2801,
+    "health": 9475
+  },
+  {
+    "id": 1002095,
+    "characterId": 1001010,
+    "level": 95,
+    "requiredExp": "63176",
+    "attack": 3153,
+    "defense": 2854,
+    "health": 9596
+  },
+  {
+    "id": 1002096,
+    "characterId": 1001027,
+    "level": 96,
+    "requiredExp": "63864",
+    "attack": 3210,
+    "defense": 2908,
+    "health": 9718
+  },
+  {
+    "id": 1002097,
+    "characterId": 1001010,
+    "level": 97,
+    "requiredExp": "64552",
+    "attack": 3267,
+    "defense": 2962,
+    "health": 9840
+  },
+  {
+    "id": 1002098,
+    "characterId": 1001007,
+    "level": 98,
+    "requiredExp": "65241",
+    "attack": 3325,
+    "defense": 3017,
+    "health": 9963
+  },
+  {
+    "id": 1002099,
+    "characterId": 1001006,
+    "level": 99,
+    "requiredExp": "65930",
+    "attack": 3383,
+    "defense": 3072,
+    "health": 10086
+  },
+  {
+    "id": 1002100,
+    "characterId": 1001026,
+    "level": 100,
+    "requiredExp": "66620",
+    "attack": 3442,
+    "defense": 3128,
+    "health": 10210
+  },
+  {
+    "id": 1002101,
+    "characterId": 1001002,
+    "level": 101,
+    "requiredExp": "67310",
+    "attack": 3501,
+    "defense": 3184,
+    "health": 10334
+  },
+  {
+    "id": 1002102,
+    "characterId": 1001022,
+    "level": 102,
+    "requiredExp": "68001",
+    "attack": 3561,
+    "defense": 3241,
+    "health": 10459
+  },
+  {
+    "id": 1002103,
+    "characterId": 1001024,
+    "level": 103,
+    "requiredExp": "68692",
+    "attack": 3621,
+    "defense": 3298,
+    "health": 10584
+  },
+  {
+    "id": 1002104,
+    "characterId": 1001010,
+    "level": 104,
+    "requiredExp": "69384",
+    "attack": 3682,
+    "defense": 3356,
+    "health": 10710
+  },
+  {
+    "id": 1002105,
+    "characterId": 1001010,
+    "level": 105,
+    "requiredExp": "70076",
+    "attack": 3743,
+    "defense": 3414,
+    "health": 10836
+  },
+  {
+    "id": 1002106,
+    "characterId": 1001002,
+    "level": 106,
+    "requiredExp": "70769",
+    "attack": 3805,
+    "defense": 3473,
+    "health": 10963
+  },
+  {
+    "id": 1002107,
+    "characterId": 1001017,
+    "level": 107,
+    "requiredExp": "71462",
+    "attack": 3867,
+    "defense": 3532,
+    "health": 11090
+  },
+  {
+    "id": 1002108,
+    "characterId": 1001009,
+    "level": 108,
+    "requiredExp": "72156",
+    "attack": 3930,
+    "defense": 3592,
+    "health": 11218
+  },
+  {
+    "id": 1002109,
+    "characterId": 1001025,
+    "level": 109,
+    "requiredExp": "72850",
+    "attack": 3993,
+    "defense": 3652,
+    "health": 11346
+  },
+  {
+    "id": 1002110,
+    "characterId": 1001016,
+    "level": 110,
+    "requiredExp": "73545",
+    "attack": 4057,
+    "defense": 3713,
+    "health": 11475
+  },
+  {
+    "id": 1002111,
+    "characterId": 1001020,
+    "level": 111,
+    "requiredExp": "74240",
+    "attack": 4121,
+    "defense": 3774,
+    "health": 11604
+  },
+  {
+    "id": 1002112,
+    "characterId": 1001005,
+    "level": 112,
+    "requiredExp": "74936",
+    "attack": 4186,
+    "defense": 3836,
+    "health": 11734
+  },
+  {
+    "id": 1002113,
+    "characterId": 1001009,
+    "level": 113,
+    "requiredExp": "75632",
+    "attack": 4251,
+    "defense": 3898,
+    "health": 11864
+  },
+  {
+    "id": 1002114,
+    "characterId": 1001015,
+    "level": 114,
+    "requiredExp": "76329",
+    "attack": 4317,
+    "defense": 3961,
+    "health": 11995
+  },
+  {
+    "id": 1002115,
+    "characterId": 1001021,
+    "level": 115,
+    "requiredExp": "77026",
+    "attack": 4383,
+    "defense": 4024,
+    "health": 12126
+  },
+  {
+    "id": 1002116,
+    "characterId": 1001028,
+    "level": 116,
+    "requiredExp": "77724",
+    "attack": 4450,
+    "defense": 4088,
+    "health": 12258
+  },
+  {
+    "id": 1002117,
+    "characterId": 1001012,
+    "level": 117,
+    "requiredExp": "78422",
+    "attack": 4517,
+    "defense": 4152,
+    "health": 12390
+  },
+  {
+    "id": 1002118,
+    "characterId": 1001011,
+    "level": 118,
+    "requiredExp": "79121",
+    "attack": 4585,
+    "defense": 4217,
+    "health": 12523
+  },
+  {
+    "id": 1002119,
+    "characterId": 1001008,
+    "level": 119,
+    "requiredExp": "79820",
+    "attack": 4653,
+    "defense": 4282,
+    "health": 12656
+  },
+  {
+    "id": 1002120,
+    "characterId": 1001002,
+    "level": 0,
+    "requiredExp": "120",
+    "attack": 42,
+    "defense": 28,
+    "health": 310
+  },
+  {
+    "id": 1002121,
+    "characterId": 1001026,
+    "level": 1,
+    "requiredExp": "760",
+    "attack": 51,
+    "defense": 34,
+    "health": 384
+  },
+  {
+    "id": 1002122,
+    "characterId": 1001007,
+    "level": 2,
+    "requiredExp": "1401",
+    "attack": 61,
+    "defense": 41,
+    "health": 459
+  },
+  {
+    "id": 1002123,
+    "characterId": 1001000,
+    "level": 3,
+    "requiredExp": "2042",
+    "attack": 71,
+    "defense": 48,
+    "health": 534
+  },
+  {
+    "id": 1002124,
+    "characterId": 1001019,
+    "level": 4,
+    "requiredExp": "2684",
+    "attack": 82,
+    "defense": 56,
+    "health": 610
+  },
+  {
+    "id": 1002125,
+    "characterId": 1001020,
+    "level": 5,
+    "requiredExp": "3326",
+    "attack": 93,
+    "defense": 64,
+    "health": 686
+  },
+  {
+    "id": 1002126,
+    "characterId": 1001018,
+    "level": 6,
+    "requiredExp": "3969",
+    "attack": 105,
+    "defense": 73,
+    "health": 763
+  },
+  {
+    "id": 1002127,
+    "characterId": 1001014,
+    "level": 7,
+    "requiredExp": "4612",
+    "attack": 117,
+    "defense": 82,
+    "health": 840
+  },
+  {
+    "id": 1002128,
+    "characterId": 1001000,
+    "level": 8,
+    "requiredExp": "5256",
+    "attack": 130,
+    "defense": 92,
+    "health": 918
+  },
+  {
+    "id": 1002129,
+    "characterId": 1001019,
+    "level": 9,
+    "requiredExp": "5900",
+    "attack": 143,
+    "defense": 102,
+    "health": 996
+  },
+  {
+    "id": 1002130,
+    "characterId": 1001003,
+    "level": 10,
+    "requiredExp": "6545",
+    "attack": 157,
+    "defense": 113,
+    "health": 1075
+  },
+  {
+    "id": 1002131,
+    "characterId": 1001026,
+    "level": 11,
+    "requiredExp": "7190",
+    "attack": 171,
+    "defense": 124,
+    "health": 1154
+  },
+  {
+    "id": 1002132,
+    "characterId": 1001020,
+    "level": 12,
+    "requiredExp": "7836",
+    "attack": 186,
+    "defense": 136,
+    "health": 1234
+  },
+  {
+    "id": 1002133,
+    "characterId": 1001002,
+    "level": 13,
+    "requiredExp": "8482",
+    "attack": 201,
+    "defense": 148,
+    "health": 1314
+  },
+  {
+    "id": 1002134,
+    "characterId": 1001008,
+    "level": 14,
+    "requiredExp": "9129",
+    "attack": 217,
+    "defense": 161,
+    "health": 1395
+  },
+  {
+    "id": 1002135,
+    "characterId": 1001011,
+    "level": 15,
+    "requiredExp": "9776",
+    "attack": 233,
+    "defense": 174,
+    "health": 1476
+  },
+  {
+    "id": 1002136,
+    "characterId": 1001028,
+    "level": 16,
+    "requiredExp": "10424",
+    "attack": 250,
+    "defense": 188,
+    "health": 1558
+  },
+  {
+    "id": 1002137,
+    "characterId": 1001015,
+    "level": 17,
+    "requiredExp": "11072",
+    "attack": 267,
+    "defense": 202,
+    "health": 1640
+  },
+  {
+    "id": 1002138,
+    "characterId": 1001024,
+    "level": 18,
+    "requiredExp": "11721",
+    "attack": 285,
+    "defense": 217,
+    "health": 1723
+  },
+  {
+    "id": 1002139,
+    "characterId": 1001015,
+    "level": 19,
+    "requiredExp": "12370",
+    "attack": 303,
+    "defense": 232,
+    "health": 1806
+  },
+  {
+    "id": 1002140,
+    "characterId": 1001023,
+    "level": 20,
+    "requiredExp": "13020",
+    "attack": 322,
+    "defense": 248,
+    "health": 1890
+  },
+  {
+    "id": 1002141,
+    "characterId": 1001012,
+    "level": 21,
+    "requiredExp": "13670",
+    "attack": 341,
+    "defense": 264,
+    "health": 1974
+  },
+  {
+    "id": 1002142,
+    "characterId": 1001011,
+    "level": 22,
+    "requiredExp": "14321",
+    "attack": 361,
+    "defense": 281,
+    "health": 2059
+  },
+  {
+    "id": 1002143,
+    "characterId": 1001016,
+    "level": 23,
+    "requiredExp": "14972",
+    "attack": 381,
+    "defense": 298,
+    "health": 2144
+  },
+  {
+    "id": 1002144,
+    "characterId": 1001027,
+    "level": 24,
+    "requiredExp": "15624",
+    "attack": 402,
+    "defense": 316,
+    "health": 2230
+  },
+  {
+    "id": 1002145,
+    "characterId": 1001004,
+    "level": 25,
+    "requiredExp": "16276",
+    "attack": 423,
+    "defense": 334,
+    "health": 2316
+  },
+  {
+    "id": 1002146,
+    "characterId": 1001001,
+    "level": 26,
+    "requiredExp": "16929",
+    "attack": 445,
+    "defense": 353,
+    "health": 2403
+  },
+  {
+    "id": 1002147,
+    "characterId": 1001008,
+    "level": 27,
+    "requiredExp": "17582",
+    "attack": 467,
+    "defense": 372,
+    "health": 2490
+  },
+  {
+    "id": 1002148,
+    "characterId": 1001006,
+    "level": 28,
+    "requiredExp": "18236",
+    "attack": 490,
+    "defense": 392,
+    "health": 2578
+  },
+  {
+    "id": 1002149,
+    "characterId": 1001028,
+    "level": 29,
+    "requiredExp": "18890",
+    "attack": 513,
+    "defense": 412,
+    "health": 2666
+  }
+]

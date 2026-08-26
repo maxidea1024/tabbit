@@ -1,0 +1,4 @@
+@desc	primary index	display name key	portrait asset	combat role	element	initial grade	base rarity	skill ids, ';' between	# internal balance memo, not exported	maximum level	released
+@name	id	nameKey	portrait	role	element	grade	rarity	skillIds	balanceMemo	maxLevel	released
+@type	Int	String	String	enum:RoleType	enum:ElementType	enum:GradeType	enum:RarityType	IntArray	String	Int	Bool
+@gen	seq:1001000	str:CHAR_NAME:120	path:120:Art/Portrait	enum:RoleType	enum:ElementType	enum:GradeType	enum:RarityType	arr:ref:SkillTable:2..4	pick:6	int:60..120	bool

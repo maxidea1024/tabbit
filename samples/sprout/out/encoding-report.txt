@@ -1,0 +1,300 @@
+TCB encoding report
+===================
+
+Totals
+  tables    71
+  columns   369
+  unencoded 224,527
+  encoded   61,708  (27.5 % of unencoded)
+  deflated  38,424  (62.3 % of encoded)  - what a compression layer over the chosen blocks would come to
+
+By encoding
+  encoding        columns        bytes    share
+  DICT_SEG             3       26,070   42.2 %
+  DICT_FRONT          54       19,481   31.6 %
+  BITPACK            193       10,639   17.2 %
+  ARRAY               12        2,885    4.7 %
+  DELTA_RLE           81        1,284    2.1 %
+  DICT                 3          417    0.7 %
+  DELTA               10          321    0.5 %
+  RAW                  2          258    0.4 %
+  VARINT               5          256    0.4 %
+  RLE                  5           69    0.1 %
+  DICT_RLE             1           28    0.0 %
+
+By element
+  element         columns    unencoded        bytes    share
+  string              60      105,641       45,699   74.1 %
+  i32                241       86,013       11,454   18.6 %
+  i64                 11       28,744        3,338    5.4 %
+  varint              48        3,590          966    1.6 %
+  f32                  1          180          180    0.3 %
+  bool                 8          359           71    0.1 %
+
+Largest columns (40 of 369)
+
+  String.En  [string]  450 rows
+    chosen DICT_SEG  8,771  (56.2 % of unencoded)
+    candidates RAW 15,600  ·  DICT 14,855  ·  DICT_RLE 15,302  ·  DICT_FRONT 11,064  ·  DICT_FRONT_RLE 11,511  ·  DICT_SEG 8,771  ·  DICT_SEG_RLE 9,218
+
+  String.Ja  [string]  450 rows
+    chosen DICT_SEG  8,680  (55.5 % of unencoded)
+    candidates RAW 15,632  ·  DICT 14,616  ·  DICT_RLE 15,063  ·  DICT_FRONT 10,869  ·  DICT_FRONT_RLE 11,317  ·  DICT_SEG 8,680  ·  DICT_SEG_RLE 9,127
+
+  String.Ko  [string]  450 rows
+    chosen DICT_SEG  8,619  (55.1 % of unencoded)
+    candidates RAW 15,650  ·  DICT 14,586  ·  DICT_RLE 15,033  ·  DICT_FRONT 10,931  ·  DICT_FRONT_RLE 11,378  ·  DICT_SEG 8,619  ·  DICT_SEG_RLE 9,066
+
+  String.StringKey  [string]  450 rows
+    chosen DICT_FRONT  2,242  (62.3 % of unencoded)
+    candidates RAW 3,600  ·  DICT 4,438  ·  DICT_RLE 4,888  ·  DICT_FRONT 2,242  ·  DICT_FRONT_RLE 2,692  ·  DICT_SEG 4,432  ·  DICT_SEG_RLE 4,882
+
+  LevelCurve.CapValue  [i64]  1500 rows
+    chosen BITPACK  2,066  (17.2 % of unencoded)
+    candidates RAW 12,000  ·  DICT 14,938  ·  DICT_RLE 16,438  ·  BITPACK 2,066
+
+  Item.Icon  [string]  120 rows
+    chosen DICT_FRONT  1,548  (45.4 % of unencoded)
+    candidates RAW 3,413  ·  DICT 2,941  ·  DICT_RLE 3,061  ·  DICT_FRONT 1,548  ·  DICT_FRONT_RLE 1,668  ·  DICT_SEG 2,264  ·  DICT_SEG_RLE 2,384
+
+  DialogueLine.Portrait  [string]  160 rows
+    chosen DICT_FRONT  1,316  (26.0 % of unencoded)
+    candidates RAW 5,061  ·  DICT 2,917  ·  DICT_RLE 3,077  ·  DICT_FRONT 1,316  ·  DICT_FRONT_RLE 1,476  ·  DICT_SEG 2,052  ·  DICT_SEG_RLE 2,212
+
+  Skill.Icon  [string]  80 rows
+    chosen DICT_FRONT  1,165  (50.1 % of unencoded)
+    candidates RAW 2,324  ·  DICT 2,214  ·  DICT_RLE 2,294  ·  DICT_FRONT 1,165  ·  DICT_FRONT_RLE 1,245  ·  DICT_SEG 1,720  ·  DICT_SEG_RLE 1,800
+
+  StageMonster.Model  [string]  75 rows
+    chosen DICT_FRONT  1,068  (46.0 % of unencoded)
+    candidates RAW 2,323  ·  DICT 2,160  ·  DICT_RLE 2,235  ·  DICT_FRONT 1,068  ·  DICT_FRONT_RLE 1,143  ·  DICT_SEG 1,509  ·  DICT_SEG_RLE 1,584
+
+  Equip.Model  [string]  65 rows
+    chosen DICT_FRONT  914  (46.8 % of unencoded)
+    candidates RAW 1,953  ·  DICT 1,685  ·  DICT_RLE 1,750  ·  DICT_FRONT 914  ·  DICT_FRONT_RLE 979  ·  DICT_SEG 1,231  ·  DICT_SEG_RLE 1,296
+
+  CharacterVoice.Clip  [string]  60 rows
+    chosen DICT_FRONT  892  (48.0 % of unencoded)
+    candidates RAW 1,858  ·  DICT 1,830  ·  DICT_RLE 1,890  ·  DICT_FRONT 892  ·  DICT_FRONT_RLE 952  ·  DICT_SEG 1,257  ·  DICT_SEG_RLE 1,317
+
+  DialogueLine.LineKey  [string]  160 rows
+    chosen DICT_FRONT  760  (47.5 % of unencoded)
+    candidates RAW 1,600  ·  DICT 1,710  ·  DICT_RLE 1,870  ·  DICT_FRONT 760  ·  DICT_FRONT_RLE 920  ·  DICT_SEG 1,431  ·  DICT_SEG_RLE 1,591
+
+  StageWave.MonsterIds  [i32[]]  180 rows
+    chosen ARRAY  674  (28.1 % of unencoded)
+    candidates RAW 2,400  ·  ARRAY 674
+
+  StageWave.MonsterLevels  [i32[]]  180 rows
+    chosen ARRAY  672  (28.0 % of unencoded)
+    candidates RAW 2,404  ·  ARRAY 672
+
+  Buff.Icon  [string]  45 rows
+    chosen DICT_FRONT  669  (52.9 % of unencoded)
+    candidates RAW 1,264  ·  DICT 1,194  ·  DICT_RLE 1,239  ·  DICT_FRONT 669  ·  DICT_FRONT_RLE 714  ·  DICT_SEG 876  ·  DICT_SEG_RLE 921
+
+  Stage.Background  [string]  90 rows
+    chosen DICT_FRONT  664  (26.7 % of unencoded)
+    candidates RAW 2,483  ·  DICT 1,308  ·  DICT_RLE 1,394  ·  DICT_FRONT 664  ·  DICT_FRONT_RLE 750  ·  DICT_SEG 1,003  ·  DICT_SEG_RLE 1,089
+
+  Item.NameKey  [string]  120 rows
+    chosen DICT_FRONT  552  (30.7 % of unencoded)
+    candidates RAW 1,800  ·  DICT 1,789  ·  DICT_RLE 1,909  ·  DICT_FRONT 552  ·  DICT_FRONT_RLE 672  ·  DICT_SEG 1,249  ·  DICT_SEG_RLE 1,369
+
+  Achievement.Badge  [string]  32 rows
+    chosen DICT_FRONT  492  (53.8 % of unencoded)
+    candidates RAW 914  ·  DICT 860  ·  DICT_RLE 892  ·  DICT_FRONT 492  ·  DICT_FRONT_RLE 524  ·  DICT_SEG 642  ·  DICT_SEG_RLE 674
+
+  Character.Portrait  [string]  30 rows
+    chosen DICT_FRONT  461  (47.8 % of unencoded)
+    candidates RAW 965  ·  DICT 868  ·  DICT_RLE 896  ·  DICT_FRONT 461  ·  DICT_FRONT_RLE 489  ·  DICT_SEG 580  ·  DICT_SEG_RLE 608
+
+  Stage.NameKey  [string]  90 rows
+    chosen DICT_FRONT  384  (26.7 % of unencoded)
+    candidates RAW 1,440  ·  DICT 1,337  ·  DICT_RLE 1,427  ·  DICT_FRONT 384  ·  DICT_FRONT_RLE 474  ·  DICT_SEG 864  ·  DICT_SEG_RLE 954
+
+  Codex.Icon  [string]  22 rows
+    chosen DICT_FRONT  373  (51.4 % of unencoded)
+    candidates RAW 725  ·  DICT 748  ·  DICT_RLE 770  ·  DICT_FRONT 373  ·  DICT_FRONT_RLE 395  ·  DICT_SEG 484  ·  DICT_SEG_RLE 506
+
+  Skill.DescKey  [string]  80 rows
+    chosen DICT_FRONT  344  (26.9 % of unencoded)
+    candidates RAW 1,280  ·  DICT 1,208  ·  DICT_RLE 1,288  ·  DICT_FRONT 344  ·  DICT_FRONT_RLE 424  ·  DICT_SEG 776  ·  DICT_SEG_RLE 856
+
+  Skill.NameKey  [string]  80 rows
+    chosen DICT_FRONT  342  (26.7 % of unencoded)
+    candidates RAW 1,280  ·  DICT 1,208  ·  DICT_RLE 1,288  ·  DICT_FRONT 342  ·  DICT_FRONT_RLE 422  ·  DICT_SEG 774  ·  DICT_SEG_RLE 854
+
+  CharacterSkin.Model  [string]  22 rows
+    chosen DICT_FRONT  339  (57.2 % of unencoded)
+    candidates RAW 593  ·  DICT 531  ·  DICT_RLE 553  ·  DICT_FRONT 339  ·  DICT_FRONT_RLE 361  ·  DICT_SEG 449  ·  DICT_SEG_RLE 471
+
+  CharacterStat.RequiredExp  [i64]  150 rows
+    chosen BITPACK  323  (26.9 % of unencoded)
+    candidates RAW 1,200  ·  DICT 1,168  ·  DICT_RLE 1,318  ·  BITPACK 323
+
+  StageMonster.NameKey  [string]  75 rows
+    chosen DICT_FRONT  316  (30.1 % of unencoded)
+    candidates RAW 1,050  ·  DICT 1,003  ·  DICT_RLE 1,078  ·  DICT_FRONT 316  ·  DICT_FRONT_RLE 391  ·  DICT_SEG 720  ·  DICT_SEG_RLE 795
+
+  Equip.NameKey  [string]  65 rows
+    chosen DICT_FRONT  281  (27.0 % of unencoded)
+    candidates RAW 1,040  ·  DICT 994  ·  DICT_RLE 1,059  ·  DICT_FRONT 281  ·  DICT_FRONT_RLE 346  ·  DICT_SEG 518  ·  DICT_SEG_RLE 583
+
+  SkillLevel.Cost  [i64]  160 rows
+    chosen DICT  281  (22.0 % of unencoded)
+    candidates RAW 1,280  ·  DICT 281  ·  DICT_RLE 441  ·  BITPACK 324
+
+  Reward.ItemCounts  [i32[]]  65 rows
+    chosen ARRAY  261  (35.2 % of unencoded)
+    candidates RAW 741  ·  ARRAY 261
+
+  CharacterVoice.SubtitleKey  [string]  60 rows
+    chosen DICT_FRONT  260  (33.3 % of unencoded)
+    candidates RAW 780  ·  DICT 776  ·  DICT_RLE 834  ·  DICT_FRONT 260  ·  DICT_FRONT_RLE 318  ·  DICT_SEG 485  ·  DICT_SEG_RLE 543
+
+  Quest.TitleKey  [string]  55 rows
+    chosen DICT_FRONT  252  (27.0 % of unencoded)
+    candidates RAW 935  ·  DICT 957  ·  DICT_RLE 1,012  ·  DICT_FRONT 252  ·  DICT_FRONT_RLE 307  ·  DICT_SEG 469  ·  DICT_SEG_RLE 524
+
+  Quest.SummaryKey  [string]  55 rows
+    chosen DICT_FRONT  251  (24.0 % of unencoded)
+    candidates RAW 1,045  ·  DICT 1,044  ·  DICT_RLE 1,099  ·  DICT_FRONT 251  ·  DICT_FRONT_RLE 306  ·  DICT_SEG 464  ·  DICT_SEG_RLE 519
+
+  Skill.EffectIds  [i32[]]  80 rows
+    chosen ARRAY  234  (31.5 % of unencoded)
+    candidates RAW 744  ·  ARRAY 234
+
+  CharacterStat.Health  [i32]  150 rows
+    chosen DELTA_RLE  231  (38.5 % of unencoded)
+    candidates RAW 600  ·  VARINT 336  ·  DELTA 301  ·  RLE 486  ·  DELTA_RLE 231  ·  BITPACK 267
+
+  EquipLevel.Cost  [i64]  100 rows
+    chosen BITPACK  229  (28.6 % of unencoded)
+    candidates RAW 800  ·  DICT 758  ·  DICT_RLE 858  ·  BITPACK 229
+
+  SkillLevel.Power  [i32]  160 rows
+    chosen BITPACK  224  (35.0 % of unencoded)
+    candidates RAW 640  ·  VARINT 320  ·  DELTA 320  ·  RLE 480  ·  DELTA_RLE 287  ·  BITPACK 224
+
+  Reward.ItemIds  [i32[]]  65 rows
+    chosen ARRAY  223  (29.8 % of unencoded)
+    candidates RAW 749  ·  ARRAY 223
+
+  StageMonster.SkillIds  [i32[]]  75 rows
+    chosen ARRAY  215  (31.9 % of unencoded)
+    candidates RAW 675  ·  ARRAY 215
+
+  Item.SellPrice  [i32]  120 rows
+    chosen BITPACK  213  (44.4 % of unencoded)
+    candidates RAW 480  ·  VARINT 228  ·  DELTA 244  ·  RLE 344  ·  DELTA_RLE 363  ·  BITPACK 213
+
+  Item.StackLimit  [i32]  120 rows
+    chosen BITPACK  213  (44.4 % of unencoded)
+    candidates RAW 480  ·  VARINT 227  ·  DELTA 235  ·  RLE 343  ·  DELTA_RLE 354  ·  BITPACK 213
+
+Headroom outside the encodings
+  What a column would come to if its rows' lengths and its elements were
+  each encoded, against what it costs today. Nothing here is in the format.
+
+  Array columns (always raw today)
+    columns  12
+    elements 2,249
+    today    2,885
+    encoded  4,942  (171.3 % of today) · saved -2,057
+
+  Float columns (dictionary only today)
+    columns  1
+    elements 45
+    today    180
+    encoded  180  (100.0 % of today) · saved 0
+
+Bit-width packing headroom
+  What the integer columns would come to at the width their own range
+  needs, against what they cost today. Nothing here is in the format.
+
+  element     columns        today       packed        saved
+  bool              8           71           71            0
+  i64              11        3,338        3,381          -43
+  varint           48          966        1,482         -516
+  i32             241       11,454       15,067       -3,613
+
+  Keeping the smaller of the two per column: 15,829 → 14,980 · saved 849 over 12 of 308 columns.
+
+    width            base        today       packed  inner         column
+        7         1503000          674          492  RAW           StageWave.MonsterIds
+        7               1          672          490  RAW           StageWave.MonsterLevels
+        7         1103000          234          152  RAW           Skill.EffectIds
+        7         1101000          215          138  RAW           StageMonster.SkillIds
+        7         1201000          223          156  RAW           Reward.ItemIds
+        9               2          261          194  RAW           Reward.ItemCounts
+        6         1203000          119           72  RAW           CharacterAscend.MaterialIds
+        6               1          122           75  RAW           CharacterAscend.MaterialCounts
+        7         1101000          115           83  RAW           Character.SkillIds
+        6         1104000           97           71  RAW           BuffPool.BuffIds
+        7               1           94           68  RAW           BuffPool.Weights
+        6         1301002           59           45  RAW           EquipSet.MemberIds
+
+String dictionary headroom
+  What the distinct values of a string column cost under each layout. Only
+  `front` is in the format; the rest are measurements, and `deflate` is the
+  floor none of them can pass.
+
+  distinct        plain        front      segment     template        delta      deflate  column
+       405       14,032       10,233        7,948       11,386       11,386        2,618  String.En
+       396       13,768       10,105        7,801       11,231       11,231        2,554  String.Ko
+       398       13,792       10,049        7,856       11,181       11,181        2,580  String.Ja
+       450        3,602        1,406        3,596        2,195        1,809          826  String.StringKey
+        98        2,784        1,382        2,107        1,743        1,743          830  Item.Icon
+        86        2,729        1,114        1,864        1,423        1,423          708  DialogueLine.Portrait
+        73        2,125        1,075        1,631        1,336        1,336          685  Skill.Icon
+        67        2,082          990        1,431        1,223        1,223          625  StageMonster.Model
+        54        1,620          849        1,166        1,026        1,026          543  Equip.Model
+        57        1,770          832        1,197        1,023        1,023          547  CharacterVoice.Clip
+        41        1,149          624          831          760          760          424  Buff.Icon
+        44        1,218          574          913          707          707          411  Stage.Background
+       146        1,462          513        1,183          730          595          333  DialogueLine.LineKey
+        29          828          460          610          557          557          335  Achievement.Badge
+        26          838          431          550          521          521          320  Character.Portrait
+       108        1,622          384        1,082          548          448          267  Item.NameKey
+        22          726          351          462          424          424          268  Codex.Icon
+        19          509          317          427          378          378          242  CharacterSkin.Model
+        77        1,234          280          761          385          325          199  Stage.NameKey
+        70        1,122          258          690          349          297          183  Skill.DescKey
+        70        1,122          256          688          350          297          186  Skill.NameKey
+        66          926          239          643          335          279          166  StageMonster.NameKey
+        58          929          216          453          293          248          157  Equip.NameKey
+        55          716          200          425          274          233          148  CharacterVoice.SubtitleKey
+        53          902          197          414          266          229          153  Quest.TitleKey
+        52          989          196          409          266          227          155  Quest.SummaryKey
+        12          357          194          272          231          231          166  Promo.Banner
+        11          318          173          250          207          207          156  Cutscene.Timeline
+        11          301          171          245          205          205          146  Currency.Icon
+        10          251          165          234          196          196          142  EquipGrade.Frame
+        43          646          160          337          215          187          122  Buff.NameKey
+        10          254          155          227          186          186          137  Gacha.Banner
+         9          222          151          195          179          179          118  World.Map
+        39          586          148          309          199          171          118  Condition.DescKey
+        35          386          130          238          170          151          102  Dialogue.SceneKey
+         8          195          127          181          152          152          113  ItemGrade.Frame
+        32          481          122          255          164          143          104  LootGroup.NameKey
+        31          466          119          248          151          139          103  Achievement.TitleKey
+        32          385          110          243          140          140           91  CharacterVoice.Cue
+        26          391          102          211          131          119           92  Character.NameKey
+
+  Over all 60 string columns:
+    plain      83,113
+    front      46,642  (56.1 % of plain)
+    segment    52,643  (112.9 % of front)
+    template   54,736  (117.4 % of front)
+    delta      53,592  (114.9 % of front)
+    deflate    19,271  (41.3 % of front)
+
+  Best per column, layout chosen per column: 39,860  (85.5 % of front)
+  Headroom against what is in the format today: 6,782
+
+  Where each layout wins, and what it saves against front coding
+    layout      columns       saved
+    segment           3       6,782
+    front            57           0
+

@@ -1,0 +1,4 @@
+@desc	primary index	hours away	bonus in permille
+@name	id	hours	bonus
+@type	Int	Int	Int
+@gen	seq:2103000	seq:1	curve:1000:65:30

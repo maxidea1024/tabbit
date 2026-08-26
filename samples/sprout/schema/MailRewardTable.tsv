@@ -1,0 +1,4 @@
+@desc	primary index	title key	body key	reward	expiry in days
+@name	id	titleKey	bodyKey	rewardId	expiryDays
+@type	Int	String	String	Int	Int
+@gen	seq:2004000	str:MAIL_TITLE:60	str:MAIL_BODY:60	ref:RewardTable	int:1..30

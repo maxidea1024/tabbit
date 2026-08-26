@@ -1,0 +1,4 @@
+@desc	primary index	owning character	level	required experience	attack at this level	defense at this level	health at this level
+@name	id	characterId	level	requiredExp	attack	defense	health
+@type	Int	Int	Int	Long	Int	Int	Int
+@gen	seq:1002000	ref:CharacterTable	cycle:120	curve:120:640:120	curve:42:9:120	curve:28:6:120	curve:310:74:120

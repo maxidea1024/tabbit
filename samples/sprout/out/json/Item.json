@@ -1,0 +1,1202 @@
+[
+  {
+    "id": 1201000,
+    "nameKey": "ITEM_NAME_0431",
+    "type": 4,
+    "grade": 2,
+    "icon": "Art/Item/Isle/LesserUmber_20",
+    "stackLimit": 1,
+    "sellPrice": 9316,
+    "tradable": false
+  },
+  {
+    "id": 1201001,
+    "nameKey": "ITEM_NAME_0350",
+    "type": 3,
+    "grade": 3,
+    "icon": "Art/Item/Calyx/LesserOchre_14",
+    "stackLimit": 10,
+    "sellPrice": 148,
+    "tradable": false
+  },
+  {
+    "id": 1201002,
+    "nameKey": "ITEM_NAME_0280",
+    "type": 2,
+    "grade": 1,
+    "icon": "Art/Item/Dorn/Dorn_03",
+    "stackLimit": 3672,
+    "sellPrice": 565,
+    "tradable": false
+  },
+  {
+    "id": 1201003,
+    "nameKey": "ITEM_NAME_0455",
+    "type": 2,
+    "grade": 4,
+    "icon": "Art/Item/Jasp/SwiftPyre_25",
+    "stackLimit": 168,
+    "sellPrice": 2814,
+    "tradable": true
+  },
+  {
+    "id": 1201004,
+    "nameKey": "ITEM_NAME_0426",
+    "type": 5,
+    "grade": 5,
+    "icon": "Art/Item/Alder/CommonSalt_48",
+    "stackLimit": 2580,
+    "sellPrice": 586,
+    "tradable": false
+  },
+  {
+    "id": 1201005,
+    "nameKey": "ITEM_NAME_0188",
+    "type": 2,
+    "grade": 5,
+    "icon": "Art/Item/Alder/SwiftSalt_28",
+    "stackLimit": 4274,
+    "sellPrice": 1422,
+    "tradable": false
+  },
+  {
+    "id": 1201006,
+    "nameKey": "ITEM_NAME_0283",
+    "type": 1,
+    "grade": 4,
+    "icon": "Art/Item/Alder/KeenAlder_60",
+    "stackLimit": 26,
+    "sellPrice": 276,
+    "tradable": true
+  },
+  {
+    "id": 1201007,
+    "nameKey": "ITEM_NAME_0410",
+    "type": 6,
+    "grade": 3,
+    "icon": "Art/Item/Harrow/SwiftNettle_23",
+    "stackLimit": 317,
+    "sellPrice": 2,
+    "tradable": true
+  },
+  {
+    "id": 1201008,
+    "nameKey": "ITEM_NAME_0332",
+    "type": 3,
+    "grade": 4,
+    "icon": "Art/Item/Brack/BrightHarrow_57",
+    "stackLimit": 791,
+    "sellPrice": 2,
+    "tradable": false
+  },
+  {
+    "id": 1201009,
+    "nameKey": "ITEM_NAME_0180",
+    "type": 5,
+    "grade": 3,
+    "icon": "Art/Item/Isle/KeenIsle_68",
+    "stackLimit": 1286,
+    "sellPrice": 483,
+    "tradable": false
+  },
+  {
+    "id": 1201010,
+    "nameKey": "ITEM_NAME_0023",
+    "type": 4,
+    "grade": 5,
+    "icon": "Art/Item/Kelvin/CommonEmber_34",
+    "stackLimit": 4,
+    "sellPrice": 7201,
+    "tradable": true
+  },
+  {
+    "id": 1201011,
+    "nameKey": "ITEM_NAME_0081",
+    "type": 6,
+    "grade": 2,
+    "icon": "Art/Item/Brack/Briar_25",
+    "stackLimit": 1,
+    "sellPrice": 6,
+    "tradable": true
+  },
+  {
+    "id": 1201012,
+    "nameKey": "ITEM_NAME_0397",
+    "type": 1,
+    "grade": 3,
+    "icon": "Art/Item/Dorn/StillPyre_55",
+    "stackLimit": 3927,
+    "sellPrice": 2038,
+    "tradable": false
+  },
+  {
+    "id": 1201013,
+    "nameKey": "ITEM_NAME_0407",
+    "type": 6,
+    "grade": 2,
+    "icon": "Art/Item/Dorn/HollowDrift_47",
+    "stackLimit": 1587,
+    "sellPrice": 4077,
+    "tradable": true
+  },
+  {
+    "id": 1201014,
+    "nameKey": "ITEM_NAME_0374",
+    "type": 4,
+    "grade": 3,
+    "icon": "Art/Item/Alder/WardedSalt_08",
+    "stackLimit": 4654,
+    "sellPrice": 1,
+    "tradable": false
+  },
+  {
+    "id": 1201015,
+    "nameKey": "ITEM_NAME_0070",
+    "type": 6,
+    "grade": 1,
+    "icon": "Art/Item/Alder/WardedGale_96",
+    "stackLimit": 7518,
+    "sellPrice": 2,
+    "tradable": true
+  },
+  {
+    "id": 1201016,
+    "nameKey": "ITEM_NAME_0079",
+    "type": 2,
+    "grade": 1,
+    "icon": "Art/Item/Alder/HollowZephyr_44",
+    "stackLimit": 7067,
+    "sellPrice": 24,
+    "tradable": false
+  },
+  {
+    "id": 1201017,
+    "nameKey": "ITEM_NAME_0134",
+    "type": 3,
+    "grade": 4,
+    "icon": "Art/Item/Alder/CommonGale_36",
+    "stackLimit": 26,
+    "sellPrice": 0,
+    "tradable": false
+  },
+  {
+    "id": 1201018,
+    "nameKey": "ITEM_NAME_0047",
+    "type": 2,
+    "grade": 1,
+    "icon": "Art/Item/Ember/Quill_16",
+    "stackLimit": 193,
+    "sellPrice": 413,
+    "tradable": false
+  },
+  {
+    "id": 1201019,
+    "nameKey": "ITEM_NAME_0225",
+    "type": 6,
+    "grade": 4,
+    "icon": "Art/Item/Brack/KeenBrack_61",
+    "stackLimit": 2250,
+    "sellPrice": 24,
+    "tradable": true
+  },
+  {
+    "id": 1201020,
+    "nameKey": "ITEM_NAME_0205",
+    "type": 3,
+    "grade": 1,
+    "icon": "Art/Item/Jasp/BrightPyre_65",
+    "stackLimit": 3084,
+    "sellPrice": 102,
+    "tradable": true
+  },
+  {
+    "id": 1201021,
+    "nameKey": "ITEM_NAME_0189",
+    "type": 1,
+    "grade": 1,
+    "icon": "Art/Item/Brack/BrightThorn_69",
+    "stackLimit": 310,
+    "sellPrice": 111,
+    "tradable": false
+  },
+  {
+    "id": 1201022,
+    "nameKey": "ITEM_NAME_0114",
+    "type": 6,
+    "grade": 5,
+    "icon": "Art/Item/Calyx/GraveOchre_94",
+    "stackLimit": 1,
+    "sellPrice": 10170,
+    "tradable": true
+  },
+  {
+    "id": 1201023,
+    "nameKey": "ITEM_NAME_0382",
+    "type": 4,
+    "grade": 4,
+    "icon": "Art/Item/Alder/Marrow_12",
+    "stackLimit": 1774,
+    "sellPrice": 2646,
+    "tradable": false
+  },
+  {
+    "id": 1201024,
+    "nameKey": "ITEM_NAME_0256",
+    "type": 6,
+    "grade": 1,
+    "icon": "Art/Item/Alder/StillMarrow_52",
+    "stackLimit": 4800,
+    "sellPrice": 3051,
+    "tradable": true
+  },
+  {
+    "id": 1201025,
+    "nameKey": "ITEM_NAME_0124",
+    "type": 6,
+    "grade": 3,
+    "icon": "Art/Item/Calyx/StillOchre_54",
+    "stackLimit": 3860,
+    "sellPrice": 1745,
+    "tradable": true
+  },
+  {
+    "id": 1201026,
+    "nameKey": "ITEM_NAME_0238",
+    "type": 5,
+    "grade": 2,
+    "icon": "Art/Item/Dorn/GraveDorn_83",
+    "stackLimit": 1,
+    "sellPrice": 261,
+    "tradable": false
+  },
+  {
+    "id": 1201027,
+    "nameKey": "ITEM_NAME_0027",
+    "type": 2,
+    "grade": 1,
+    "icon": "Art/Item/Jasp/BrightDrift_77",
+    "stackLimit": 1077,
+    "sellPrice": 2267,
+    "tradable": false
+  },
+  {
+    "id": 1201028,
+    "nameKey": "ITEM_NAME_0267",
+    "type": 6,
+    "grade": 3,
+    "icon": "Art/Item/Gale/BrightZephyr_74",
+    "stackLimit": 8685,
+    "sellPrice": 558,
+    "tradable": false
+  },
+  {
+    "id": 1201029,
+    "nameKey": "ITEM_NAME_0119",
+    "type": 2,
+    "grade": 3,
+    "icon": "Art/Item/Lumen/CommonFlint_59",
+    "stackLimit": 376,
+    "sellPrice": 1038,
+    "tradable": true
+  },
+  {
+    "id": 1201030,
+    "nameKey": "ITEM_NAME_0476",
+    "type": 2,
+    "grade": 3,
+    "icon": "Art/Item/Alder/GraveAlder_80",
+    "stackLimit": 124,
+    "sellPrice": 22,
+    "tradable": true
+  },
+  {
+    "id": 1201031,
+    "nameKey": "ITEM_NAME_0410",
+    "type": 2,
+    "grade": 5,
+    "icon": "Art/Item/Ember/KeenElm_88",
+    "stackLimit": 5643,
+    "sellPrice": 7542,
+    "tradable": false
+  },
+  {
+    "id": 1201032,
+    "nameKey": "ITEM_NAME_0450",
+    "type": 1,
+    "grade": 5,
+    "icon": "Art/Item/Fenn/HollowFlint_49",
+    "stackLimit": 3041,
+    "sellPrice": 9417,
+    "tradable": false
+  },
+  {
+    "id": 1201033,
+    "nameKey": "ITEM_NAME_0027",
+    "type": 2,
+    "grade": 1,
+    "icon": "Art/Item/Jasp/HollowJasp_29",
+    "stackLimit": 8548,
+    "sellPrice": 809,
+    "tradable": true
+  },
+  {
+    "id": 1201034,
+    "nameKey": "ITEM_NAME_0317",
+    "type": 3,
+    "grade": 2,
+    "icon": "Art/Item/Alder/VastSalt_88",
+    "stackLimit": 4042,
+    "sellPrice": 856,
+    "tradable": true
+  },
+  {
+    "id": 1201035,
+    "nameKey": "ITEM_NAME_0208",
+    "type": 6,
+    "grade": 3,
+    "icon": "Art/Item/Lumen/WardedFenn_95",
+    "stackLimit": 279,
+    "sellPrice": 2412,
+    "tradable": false
+  },
+  {
+    "id": 1201036,
+    "nameKey": "ITEM_NAME_0478",
+    "type": 4,
+    "grade": 1,
+    "icon": "Art/Item/Gale/HollowGale_26",
+    "stackLimit": 230,
+    "sellPrice": 11378,
+    "tradable": true
+  },
+  {
+    "id": 1201037,
+    "nameKey": "ITEM_NAME_0112",
+    "type": 5,
+    "grade": 2,
+    "icon": "Art/Item/Alder/CommonGale_36",
+    "stackLimit": 9339,
+    "sellPrice": 363,
+    "tradable": false
+  },
+  {
+    "id": 1201038,
+    "nameKey": "ITEM_NAME_0414",
+    "type": 3,
+    "grade": 4,
+    "icon": "Art/Item/Fenn/WardedYarrow_13",
+    "stackLimit": 988,
+    "sellPrice": 7842,
+    "tradable": false
+  },
+  {
+    "id": 1201039,
+    "nameKey": "ITEM_NAME_0135",
+    "type": 4,
+    "grade": 1,
+    "icon": "Art/Item/Jasp/StillVellum_61",
+    "stackLimit": 556,
+    "sellPrice": 1311,
+    "tradable": true
+  },
+  {
+    "id": 1201040,
+    "nameKey": "ITEM_NAME_0120",
+    "type": 3,
+    "grade": 3,
+    "icon": "Art/Item/Jasp/BrightDrift_77",
+    "stackLimit": 4964,
+    "sellPrice": 11804,
+    "tradable": false
+  },
+  {
+    "id": 1201041,
+    "nameKey": "ITEM_NAME_0337",
+    "type": 3,
+    "grade": 1,
+    "icon": "Art/Item/Gale/KeenGale_66",
+    "stackLimit": 5729,
+    "sellPrice": 1756,
+    "tradable": true
+  },
+  {
+    "id": 1201042,
+    "nameKey": "ITEM_NAME_0176",
+    "type": 6,
+    "grade": 4,
+    "icon": "Art/Item/Gale/CommonMarrow_42",
+    "stackLimit": 259,
+    "sellPrice": 11425,
+    "tradable": true
+  },
+  {
+    "id": 1201043,
+    "nameKey": "ITEM_NAME_0082",
+    "type": 2,
+    "grade": 2,
+    "icon": "Art/Item/Dorn/SwiftVellum_31",
+    "stackLimit": 7555,
+    "sellPrice": 4519,
+    "tradable": false
+  },
+  {
+    "id": 1201044,
+    "nameKey": "ITEM_NAME_0477",
+    "type": 3,
+    "grade": 1,
+    "icon": "Art/Item/Fenn/WardedLumen_01",
+    "stackLimit": 7813,
+    "sellPrice": 0,
+    "tradable": false
+  },
+  {
+    "id": 1201045,
+    "nameKey": "ITEM_NAME_0023",
+    "type": 3,
+    "grade": 2,
+    "icon": "Art/Item/Alder/BrightSalt_68",
+    "stackLimit": 8417,
+    "sellPrice": 1113,
+    "tradable": false
+  },
+  {
+    "id": 1201046,
+    "nameKey": "ITEM_NAME_0082",
+    "type": 5,
+    "grade": 3,
+    "icon": "Art/Item/Ember/CommonWick_52",
+    "stackLimit": 7499,
+    "sellPrice": 2963,
+    "tradable": true
+  },
+  {
+    "id": 1201047,
+    "nameKey": "ITEM_NAME_0360",
+    "type": 5,
+    "grade": 4,
+    "icon": "Art/Item/Harrow/BrightNettle_63",
+    "stackLimit": 2664,
+    "sellPrice": 0,
+    "tradable": false
+  },
+  {
+    "id": 1201048,
+    "nameKey": "ITEM_NAME_0303",
+    "type": 4,
+    "grade": 5,
+    "icon": "Art/Item/Harrow/CommonNettle_43",
+    "stackLimit": 1161,
+    "sellPrice": 0,
+    "tradable": true
+  },
+  {
+    "id": 1201049,
+    "nameKey": "ITEM_NAME_0290",
+    "type": 2,
+    "grade": 4,
+    "icon": "Art/Item/Kelvin/BrightEmber_54",
+    "stackLimit": 4076,
+    "sellPrice": 979,
+    "tradable": false
+  },
+  {
+    "id": 1201050,
+    "nameKey": "ITEM_NAME_0068",
+    "type": 2,
+    "grade": 5,
+    "icon": "Art/Item/Gale/HollowSalt_38",
+    "stackLimit": 185,
+    "sellPrice": 1302,
+    "tradable": false
+  },
+  {
+    "id": 1201051,
+    "nameKey": "ITEM_NAME_0384",
+    "type": 3,
+    "grade": 1,
+    "icon": "Art/Item/Jasp/BrightDrift_77",
+    "stackLimit": 353,
+    "sellPrice": 618,
+    "tradable": false
+  },
+  {
+    "id": 1201052,
+    "nameKey": "ITEM_NAME_0380",
+    "type": 3,
+    "grade": 5,
+    "icon": "Art/Item/Dorn/WardedVellum_11",
+    "stackLimit": 3751,
+    "sellPrice": 4097,
+    "tradable": true
+  },
+  {
+    "id": 1201053,
+    "nameKey": "ITEM_NAME_0167",
+    "type": 2,
+    "grade": 1,
+    "icon": "Art/Item/Ember/LesserEmber_04",
+    "stackLimit": 26,
+    "sellPrice": 31,
+    "tradable": false
+  },
+  {
+    "id": 1201054,
+    "nameKey": "ITEM_NAME_0372",
+    "type": 3,
+    "grade": 1,
+    "icon": "Art/Item/Jasp/HollowJasp_29",
+    "stackLimit": 601,
+    "sellPrice": 30,
+    "tradable": true
+  },
+  {
+    "id": 1201055,
+    "nameKey": "ITEM_NAME_0407",
+    "type": 6,
+    "grade": 4,
+    "icon": "Art/Item/Harrow/BrightNettle_63",
+    "stackLimit": 4386,
+    "sellPrice": 10012,
+    "tradable": true
+  },
+  {
+    "id": 1201056,
+    "nameKey": "ITEM_NAME_0299",
+    "type": 3,
+    "grade": 3,
+    "icon": "Art/Item/Gale/HollowGale_26",
+    "stackLimit": 1,
+    "sellPrice": 7305,
+    "tradable": false
+  },
+  {
+    "id": 1201057,
+    "nameKey": "ITEM_NAME_0425",
+    "type": 2,
+    "grade": 1,
+    "icon": "Art/Item/Fenn/Flint_29",
+    "stackLimit": 1036,
+    "sellPrice": 12,
+    "tradable": true
+  },
+  {
+    "id": 1201058,
+    "nameKey": "ITEM_NAME_0151",
+    "type": 1,
+    "grade": 5,
+    "icon": "Art/Item/Isle/GraveIsle_88",
+    "stackLimit": 2717,
+    "sellPrice": 774,
+    "tradable": true
+  },
+  {
+    "id": 1201059,
+    "nameKey": "ITEM_NAME_0277",
+    "type": 5,
+    "grade": 5,
+    "icon": "Art/Item/Kelvin/CommonElm_58",
+    "stackLimit": 381,
+    "sellPrice": 235,
+    "tradable": false
+  },
+  {
+    "id": 1201060,
+    "nameKey": "ITEM_NAME_0308",
+    "type": 4,
+    "grade": 5,
+    "icon": "Art/Item/Gale/BrightAlder_50",
+    "stackLimit": 1,
+    "sellPrice": 29,
+    "tradable": true
+  },
+  {
+    "id": 1201061,
+    "nameKey": "ITEM_NAME_0136",
+    "type": 5,
+    "grade": 1,
+    "icon": "Art/Item/Fenn/KeenFenn_65",
+    "stackLimit": 1,
+    "sellPrice": 1911,
+    "tradable": true
+  },
+  {
+    "id": 1201062,
+    "nameKey": "ITEM_NAME_0315",
+    "type": 4,
+    "grade": 2,
+    "icon": "Art/Item/Isle/GraveIsle_88",
+    "stackLimit": 17,
+    "sellPrice": 138,
+    "tradable": true
+  },
+  {
+    "id": 1201063,
+    "nameKey": "ITEM_NAME_0019",
+    "type": 6,
+    "grade": 2,
+    "icon": "Art/Item/Alder/BrightSalt_68",
+    "stackLimit": 3552,
+    "sellPrice": 3193,
+    "tradable": false
+  },
+  {
+    "id": 1201064,
+    "nameKey": "ITEM_NAME_0446",
+    "type": 3,
+    "grade": 1,
+    "icon": "Art/Item/Kelvin/CommonQuill_46",
+    "stackLimit": 1337,
+    "sellPrice": 1128,
+    "tradable": true
+  },
+  {
+    "id": 1201065,
+    "nameKey": "ITEM_NAME_0230",
+    "type": 4,
+    "grade": 4,
+    "icon": "Art/Item/Brack/CommonHarrow_37",
+    "stackLimit": 309,
+    "sellPrice": 3685,
+    "tradable": false
+  },
+  {
+    "id": 1201066,
+    "nameKey": "ITEM_NAME_0336",
+    "type": 5,
+    "grade": 3,
+    "icon": "Art/Item/Brack/SwiftHarrow_17",
+    "stackLimit": 3255,
+    "sellPrice": 409,
+    "tradable": true
+  },
+  {
+    "id": 1201067,
+    "nameKey": "ITEM_NAME_0104",
+    "type": 1,
+    "grade": 3,
+    "icon": "Art/Item/Fenn/WardedYarrow_13",
+    "stackLimit": 2102,
+    "sellPrice": 4142,
+    "tradable": false
+  },
+  {
+    "id": 1201068,
+    "nameKey": "ITEM_NAME_0239",
+    "type": 3,
+    "grade": 2,
+    "icon": "Art/Item/Alder/LesserAlder_00",
+    "stackLimit": 1011,
+    "sellPrice": 4081,
+    "tradable": false
+  },
+  {
+    "id": 1201069,
+    "nameKey": "ITEM_NAME_0234",
+    "type": 6,
+    "grade": 1,
+    "icon": "Art/Item/Jasp/BrightDorn_53",
+    "stackLimit": 5097,
+    "sellPrice": 1253,
+    "tradable": true
+  },
+  {
+    "id": 1201070,
+    "nameKey": "ITEM_NAME_0422",
+    "type": 1,
+    "grade": 3,
+    "icon": "Art/Item/Dorn/Dorn_03",
+    "stackLimit": 37,
+    "sellPrice": 48,
+    "tradable": true
+  },
+  {
+    "id": 1201071,
+    "nameKey": "ITEM_NAME_0377",
+    "type": 4,
+    "grade": 3,
+    "icon": "Art/Item/Fenn/KeenRune_77",
+    "stackLimit": 5797,
+    "sellPrice": 465,
+    "tradable": true
+  },
+  {
+    "id": 1201072,
+    "nameKey": "ITEM_NAME_0290",
+    "type": 1,
+    "grade": 4,
+    "icon": "Art/Item/Brack/KeenNettle_73",
+    "stackLimit": 925,
+    "sellPrice": 3402,
+    "tradable": false
+  },
+  {
+    "id": 1201073,
+    "nameKey": "ITEM_NAME_0285",
+    "type": 1,
+    "grade": 5,
+    "icon": "Art/Item/Alder/HollowMarrow_32",
+    "stackLimit": 4277,
+    "sellPrice": 7028,
+    "tradable": true
+  },
+  {
+    "id": 1201074,
+    "nameKey": "ITEM_NAME_0469",
+    "type": 4,
+    "grade": 3,
+    "icon": "Art/Item/Dorn/WardedVellum_11",
+    "stackLimit": 4210,
+    "sellPrice": 62,
+    "tradable": true
+  },
+  {
+    "id": 1201075,
+    "nameKey": "ITEM_NAME_0144",
+    "type": 5,
+    "grade": 1,
+    "icon": "Art/Item/Harrow/CommonNettle_43",
+    "stackLimit": 3727,
+    "sellPrice": 6066,
+    "tradable": false
+  },
+  {
+    "id": 1201076,
+    "nameKey": "ITEM_NAME_0338",
+    "type": 2,
+    "grade": 4,
+    "icon": "Art/Item/Jasp/VastPyre_85",
+    "stackLimit": 2206,
+    "sellPrice": 0,
+    "tradable": true
+  },
+  {
+    "id": 1201077,
+    "nameKey": "ITEM_NAME_0369",
+    "type": 3,
+    "grade": 5,
+    "icon": "Art/Item/Calyx/Calyx_02",
+    "stackLimit": 3822,
+    "sellPrice": 11874,
+    "tradable": true
+  },
+  {
+    "id": 1201078,
+    "nameKey": "ITEM_NAME_0441",
+    "type": 3,
+    "grade": 3,
+    "icon": "Art/Item/Dorn/Pyre_15",
+    "stackLimit": 5555,
+    "sellPrice": 2270,
+    "tradable": false
+  },
+  {
+    "id": 1201079,
+    "nameKey": "ITEM_NAME_0013",
+    "type": 5,
+    "grade": 1,
+    "icon": "Art/Item/Kelvin/KeenWick_82",
+    "stackLimit": 2,
+    "sellPrice": 9618,
+    "tradable": false
+  },
+  {
+    "id": 1201080,
+    "nameKey": "ITEM_NAME_0376",
+    "type": 2,
+    "grade": 5,
+    "icon": "Art/Item/Fenn/HollowRune_37",
+    "stackLimit": 1053,
+    "sellPrice": 7020,
+    "tradable": true
+  },
+  {
+    "id": 1201081,
+    "nameKey": "ITEM_NAME_0273",
+    "type": 5,
+    "grade": 1,
+    "icon": "Art/Item/Ember/VastKelvin_80",
+    "stackLimit": 7148,
+    "sellPrice": 56,
+    "tradable": true
+  },
+  {
+    "id": 1201082,
+    "nameKey": "ITEM_NAME_0225",
+    "type": 6,
+    "grade": 2,
+    "icon": "Art/Item/Jasp/VastPyre_85",
+    "stackLimit": 103,
+    "sellPrice": 8487,
+    "tradable": true
+  },
+  {
+    "id": 1201083,
+    "nameKey": "ITEM_NAME_0172",
+    "type": 6,
+    "grade": 2,
+    "icon": "Art/Item/Kelvin/WardedEmber_94",
+    "stackLimit": 7816,
+    "sellPrice": 7472,
+    "tradable": false
+  },
+  {
+    "id": 1201084,
+    "nameKey": "ITEM_NAME_0479",
+    "type": 1,
+    "grade": 2,
+    "icon": "Art/Item/Lumen/WardedFlint_19",
+    "stackLimit": 1465,
+    "sellPrice": 19,
+    "tradable": false
+  },
+  {
+    "id": 1201085,
+    "nameKey": "ITEM_NAME_0127",
+    "type": 4,
+    "grade": 5,
+    "icon": "Art/Item/Lumen/BrightFlint_79",
+    "stackLimit": 4688,
+    "sellPrice": 60,
+    "tradable": false
+  },
+  {
+    "id": 1201086,
+    "nameKey": "ITEM_NAME_0207",
+    "type": 6,
+    "grade": 3,
+    "icon": "Art/Item/Harrow/StillHarrow_47",
+    "stackLimit": 571,
+    "sellPrice": 7,
+    "tradable": false
+  },
+  {
+    "id": 1201087,
+    "nameKey": "ITEM_NAME_0088",
+    "type": 1,
+    "grade": 2,
+    "icon": "Art/Item/Jasp/GraveVellum_01",
+    "stackLimit": 8351,
+    "sellPrice": 4012,
+    "tradable": true
+  },
+  {
+    "id": 1201088,
+    "nameKey": "ITEM_NAME_0102",
+    "type": 5,
+    "grade": 5,
+    "icon": "Art/Item/Ember/VastWick_92",
+    "stackLimit": 6406,
+    "sellPrice": 545,
+    "tradable": false
+  },
+  {
+    "id": 1201089,
+    "nameKey": "ITEM_NAME_0153",
+    "type": 4,
+    "grade": 3,
+    "icon": "Art/Item/Dorn/Drift_27",
+    "stackLimit": 8928,
+    "sellPrice": 8118,
+    "tradable": true
+  },
+  {
+    "id": 1201090,
+    "nameKey": "ITEM_NAME_0273",
+    "type": 6,
+    "grade": 5,
+    "icon": "Art/Item/Alder/GraveZephyr_04",
+    "stackLimit": 7227,
+    "sellPrice": 5715,
+    "tradable": true
+  },
+  {
+    "id": 1201091,
+    "nameKey": "ITEM_NAME_0307",
+    "type": 1,
+    "grade": 1,
+    "icon": "Art/Item/Gale/KeenGale_66",
+    "stackLimit": 492,
+    "sellPrice": 7400,
+    "tradable": true
+  },
+  {
+    "id": 1201092,
+    "nameKey": "ITEM_NAME_0252",
+    "type": 2,
+    "grade": 1,
+    "icon": "Art/Item/Ember/KeenQuill_76",
+    "stackLimit": 3576,
+    "sellPrice": 7659,
+    "tradable": false
+  },
+  {
+    "id": 1201093,
+    "nameKey": "ITEM_NAME_0305",
+    "type": 4,
+    "grade": 1,
+    "icon": "Art/Item/Isle/CommonCalyx_32",
+    "stackLimit": 3345,
+    "sellPrice": 341,
+    "tradable": false
+  },
+  {
+    "id": 1201094,
+    "nameKey": "ITEM_NAME_0460",
+    "type": 3,
+    "grade": 1,
+    "icon": "Art/Item/Gale/Salt_18",
+    "stackLimit": 391,
+    "sellPrice": 1025,
+    "tradable": false
+  },
+  {
+    "id": 1201095,
+    "nameKey": "ITEM_NAME_0132",
+    "type": 4,
+    "grade": 1,
+    "icon": "Art/Item/Kelvin/BrightElm_78",
+    "stackLimit": 74,
+    "sellPrice": 2744,
+    "tradable": false
+  },
+  {
+    "id": 1201096,
+    "nameKey": "ITEM_NAME_0039",
+    "type": 5,
+    "grade": 4,
+    "icon": "Art/Item/Calyx/KeenCalyx_62",
+    "stackLimit": 1,
+    "sellPrice": 6751,
+    "tradable": false
+  },
+  {
+    "id": 1201097,
+    "nameKey": "ITEM_NAME_0351",
+    "type": 5,
+    "grade": 5,
+    "icon": "Art/Item/Calyx/WardedIsle_98",
+    "stackLimit": 1,
+    "sellPrice": 19,
+    "tradable": false
+  },
+  {
+    "id": 1201098,
+    "nameKey": "ITEM_NAME_0097",
+    "type": 4,
+    "grade": 1,
+    "icon": "Art/Item/Ember/Elm_28",
+    "stackLimit": 390,
+    "sellPrice": 3123,
+    "tradable": false
+  },
+  {
+    "id": 1201099,
+    "nameKey": "ITEM_NAME_0252",
+    "type": 5,
+    "grade": 5,
+    "icon": "Art/Item/Ember/HollowElm_48",
+    "stackLimit": 4,
+    "sellPrice": 222,
+    "tradable": true
+  },
+  {
+    "id": 1201100,
+    "nameKey": "ITEM_NAME_0440",
+    "type": 3,
+    "grade": 5,
+    "icon": "Art/Item/Alder/SwiftSalt_28",
+    "stackLimit": 4303,
+    "sellPrice": 4512,
+    "tradable": true
+  },
+  {
+    "id": 1201101,
+    "nameKey": "ITEM_NAME_0414",
+    "type": 4,
+    "grade": 1,
+    "icon": "Art/Item/Ember/HollowElm_48",
+    "stackLimit": 3545,
+    "sellPrice": 2477,
+    "tradable": true
+  },
+  {
+    "id": 1201102,
+    "nameKey": "ITEM_NAME_0456",
+    "type": 1,
+    "grade": 2,
+    "icon": "Art/Item/Brack/HollowNettle_33",
+    "stackLimit": 3249,
+    "sellPrice": 137,
+    "tradable": true
+  },
+  {
+    "id": 1201103,
+    "nameKey": "ITEM_NAME_0048",
+    "type": 2,
+    "grade": 5,
+    "icon": "Art/Item/Isle/CommonCalyx_32",
+    "stackLimit": 6249,
+    "sellPrice": 11570,
+    "tradable": false
+  },
+  {
+    "id": 1201104,
+    "nameKey": "ITEM_NAME_0420",
+    "type": 4,
+    "grade": 2,
+    "icon": "Art/Item/Calyx/BrightIsle_58",
+    "stackLimit": 3232,
+    "sellPrice": 1817,
+    "tradable": true
+  },
+  {
+    "id": 1201105,
+    "nameKey": "ITEM_NAME_0076",
+    "type": 5,
+    "grade": 5,
+    "icon": "Art/Item/Alder/KeenAlder_60",
+    "stackLimit": 115,
+    "sellPrice": 4035,
+    "tradable": false
+  },
+  {
+    "id": 1201106,
+    "nameKey": "ITEM_NAME_0423",
+    "type": 6,
+    "grade": 4,
+    "icon": "Art/Item/Dorn/VastJasp_79",
+    "stackLimit": 146,
+    "sellPrice": 2182,
+    "tradable": false
+  },
+  {
+    "id": 1201107,
+    "nameKey": "ITEM_NAME_0223",
+    "type": 2,
+    "grade": 2,
+    "icon": "Art/Item/Calyx/GraveOchre_94",
+    "stackLimit": 139,
+    "sellPrice": 6201,
+    "tradable": false
+  },
+  {
+    "id": 1201108,
+    "nameKey": "ITEM_NAME_0376",
+    "type": 3,
+    "grade": 3,
+    "icon": "Art/Item/Kelvin/StillWick_62",
+    "stackLimit": 6944,
+    "sellPrice": 632,
+    "tradable": true
+  },
+  {
+    "id": 1201109,
+    "nameKey": "ITEM_NAME_0117",
+    "type": 6,
+    "grade": 5,
+    "icon": "Art/Item/Brack/WardedHarrow_97",
+    "stackLimit": 899,
+    "sellPrice": 3689,
+    "tradable": false
+  },
+  {
+    "id": 1201110,
+    "nameKey": "ITEM_NAME_0030",
+    "type": 4,
+    "grade": 5,
+    "icon": "Art/Item/Calyx/LesserCalyx_02",
+    "stackLimit": 7854,
+    "sellPrice": 44,
+    "tradable": false
+  },
+  {
+    "id": 1201111,
+    "nameKey": "ITEM_NAME_0227",
+    "type": 6,
+    "grade": 5,
+    "icon": "Art/Item/Dorn/WardedJasp_99",
+    "stackLimit": 778,
+    "sellPrice": 1,
+    "tradable": false
+  },
+  {
+    "id": 1201112,
+    "nameKey": "ITEM_NAME_0390",
+    "type": 5,
+    "grade": 2,
+    "icon": "Art/Item/Harrow/BrightNettle_63",
+    "stackLimit": 866,
+    "sellPrice": 4375,
+    "tradable": false
+  },
+  {
+    "id": 1201113,
+    "nameKey": "ITEM_NAME_0255",
+    "type": 2,
+    "grade": 4,
+    "icon": "Art/Item/Gale/WardedMarrow_02",
+    "stackLimit": 25,
+    "sellPrice": 438,
+    "tradable": true
+  },
+  {
+    "id": 1201114,
+    "nameKey": "ITEM_NAME_0371",
+    "type": 3,
+    "grade": 3,
+    "icon": "Art/Item/Calyx/BrightUmber_70",
+    "stackLimit": 2697,
+    "sellPrice": 3103,
+    "tradable": true
+  },
+  {
+    "id": 1201115,
+    "nameKey": "ITEM_NAME_0246",
+    "type": 6,
+    "grade": 4,
+    "icon": "Art/Item/Dorn/SwiftVellum_31",
+    "stackLimit": 4414,
+    "sellPrice": 7,
+    "tradable": false
+  },
+  {
+    "id": 1201116,
+    "nameKey": "ITEM_NAME_0133",
+    "type": 4,
+    "grade": 3,
+    "icon": "Art/Item/Jasp/CommonDrift_57",
+    "stackLimit": 2169,
+    "sellPrice": 9837,
+    "tradable": true
+  },
+  {
+    "id": 1201117,
+    "nameKey": "ITEM_NAME_0379",
+    "type": 3,
+    "grade": 3,
+    "icon": "Art/Item/Ember/SwiftKelvin_20",
+    "stackLimit": 2458,
+    "sellPrice": 11882,
+    "tradable": true
+  },
+  {
+    "id": 1201118,
+    "nameKey": "ITEM_NAME_0290",
+    "type": 4,
+    "grade": 5,
+    "icon": "Art/Item/Kelvin/CommonQuill_46",
+    "stackLimit": 9254,
+    "sellPrice": 8544,
+    "tradable": false
+  },
+  {
+    "id": 1201119,
+    "nameKey": "ITEM_NAME_0166",
+    "type": 1,
+    "grade": 1,
+    "icon": "Art/Item/Fenn/StillRune_57",
+    "stackLimit": 16,
+    "sellPrice": 8262,
+    "tradable": false
+  }
+]

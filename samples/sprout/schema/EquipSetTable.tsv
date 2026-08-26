@@ -1,0 +1,4 @@
+@desc	primary index	set name key	member equipment ids
+@name	id	nameKey	memberIds
+@type	Int	String	IntArray
+@gen	seq:1304000	str:SET_NAME:48	arr:ref:EquipTable:2..6

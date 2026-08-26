@@ -1,0 +1,77 @@
+[
+  {
+    "settingKey": "CFG_0000",
+    "value": "3267",
+    "descKey": "CFG_DESC_0048"
+  },
+  {
+    "settingKey": "CFG_0001",
+    "value": "64467",
+    "descKey": "CFG_DESC_0023"
+  },
+  {
+    "settingKey": "CFG_0002",
+    "value": "17",
+    "descKey": "CFG_DESC_0021"
+  },
+  {
+    "settingKey": "CFG_0003",
+    "value": "3658",
+    "descKey": "CFG_DESC_0017"
+  },
+  {
+    "settingKey": "CFG_0004",
+    "value": "56948",
+    "descKey": "CFG_DESC_0049"
+  },
+  {
+    "settingKey": "CFG_0005",
+    "value": "7115",
+    "descKey": "CFG_DESC_0015"
+  },
+  {
+    "settingKey": "CFG_0006",
+    "value": "64010",
+    "descKey": "CFG_DESC_0058"
+  },
+  {
+    "settingKey": "CFG_0007",
+    "value": "60762",
+    "descKey": "CFG_DESC_0003"
+  },
+  {
+    "settingKey": "CFG_0008",
+    "value": "61304",
+    "descKey": "CFG_DESC_0016"
+  },
+  {
+    "settingKey": "CFG_0009",
+    "value": "72",
+    "descKey": "CFG_DESC_0025"
+  },
+  {
+    "settingKey": "CFG_0010",
+    "value": "61856",
+    "descKey": "CFG_DESC_0046"
+  },
+  {
+    "settingKey": "CFG_0011",
+    "value": "848",
+    "descKey": "CFG_DESC_0028"
+  },
+  {
+    "settingKey": "CFG_0012",
+    "value": "84153",
+    "descKey": "CFG_DESC_0004"
+  },
+  {
+    "settingKey": "CFG_0013",
+    "value": "12757",
+    "descKey": "CFG_DESC_0023"
+  },
+  {
+    "settingKey": "CFG_0014",
+    "value": "1585",
+    "descKey": "CFG_DESC_0005"
+  }
+]

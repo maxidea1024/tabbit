@@ -1,0 +1,317 @@
+[
+  {
+    "id": 1802000,
+    "shopId": 1801010,
+    "slotOrder": 0,
+    "itemId": 1201074,
+    "count": 65,
+    "priceId": 1803011,
+    "weight": 32
+  },
+  {
+    "id": 1802001,
+    "shopId": 1801001,
+    "slotOrder": 1,
+    "itemId": 1201045,
+    "count": 72,
+    "priceId": 1803010,
+    "weight": 385
+  },
+  {
+    "id": 1802002,
+    "shopId": 1801004,
+    "slotOrder": 2,
+    "itemId": 1201078,
+    "count": 46,
+    "priceId": 1803010,
+    "weight": 13
+  },
+  {
+    "id": 1802003,
+    "shopId": 1801001,
+    "slotOrder": 3,
+    "itemId": 1201062,
+    "count": 1,
+    "priceId": 1803012,
+    "weight": 341
+  },
+  {
+    "id": 1802004,
+    "shopId": 1801007,
+    "slotOrder": 4,
+    "itemId": 1201071,
+    "count": 96,
+    "priceId": 1803001,
+    "weight": 262
+  },
+  {
+    "id": 1802005,
+    "shopId": 1801004,
+    "slotOrder": 5,
+    "itemId": 1201116,
+    "count": 11,
+    "priceId": 1803021,
+    "weight": 1
+  },
+  {
+    "id": 1802006,
+    "shopId": 1801010,
+    "slotOrder": 6,
+    "itemId": 1201076,
+    "count": 25,
+    "priceId": 1803011,
+    "weight": 161
+  },
+  {
+    "id": 1802007,
+    "shopId": 1801002,
+    "slotOrder": 7,
+    "itemId": 1201021,
+    "count": 1,
+    "priceId": 1803013,
+    "weight": 590
+  },
+  {
+    "id": 1802008,
+    "shopId": 1801003,
+    "slotOrder": 0,
+    "itemId": 1201049,
+    "count": 1,
+    "priceId": 1803015,
+    "weight": 495
+  },
+  {
+    "id": 1802009,
+    "shopId": 1801007,
+    "slotOrder": 1,
+    "itemId": 1201029,
+    "count": 7,
+    "priceId": 1803000,
+    "weight": 459
+  },
+  {
+    "id": 1802010,
+    "shopId": 1801007,
+    "slotOrder": 2,
+    "itemId": 1201080,
+    "count": 24,
+    "priceId": 1803022,
+    "weight": 33
+  },
+  {
+    "id": 1802011,
+    "shopId": 1801005,
+    "slotOrder": 3,
+    "itemId": 1201036,
+    "count": 31,
+    "priceId": 1803011,
+    "weight": 257
+  },
+  {
+    "id": 1802012,
+    "shopId": 1801003,
+    "slotOrder": 4,
+    "itemId": 1201008,
+    "count": 1,
+    "priceId": 1803001,
+    "weight": 299
+  },
+  {
+    "id": 1802013,
+    "shopId": 1801006,
+    "slotOrder": 5,
+    "itemId": 1201049,
+    "count": 20,
+    "priceId": 1803019,
+    "weight": 585
+  },
+  {
+    "id": 1802014,
+    "shopId": 1801003,
+    "slotOrder": 6,
+    "itemId": 1201085,
+    "count": 32,
+    "priceId": 1803007,
+    "weight": 984
+  },
+  {
+    "id": 1802015,
+    "shopId": 1801010,
+    "slotOrder": 7,
+    "itemId": 1201013,
+    "count": 1,
+    "priceId": 1803018,
+    "weight": 804
+  },
+  {
+    "id": 1802016,
+    "shopId": 1801000,
+    "slotOrder": 0,
+    "itemId": 1201034,
+    "count": 43,
+    "priceId": 1803006,
+    "weight": 76
+  },
+  {
+    "id": 1802017,
+    "shopId": 1801001,
+    "slotOrder": 1,
+    "itemId": 1201023,
+    "count": 18,
+    "priceId": 1803000,
+    "weight": 17
+  },
+  {
+    "id": 1802018,
+    "shopId": 1801001,
+    "slotOrder": 2,
+    "itemId": 1201067,
+    "count": 1,
+    "priceId": 1803013,
+    "weight": 4
+  },
+  {
+    "id": 1802019,
+    "shopId": 1801002,
+    "slotOrder": 3,
+    "itemId": 1201041,
+    "count": 33,
+    "priceId": 1803017,
+    "weight": 2
+  },
+  {
+    "id": 1802020,
+    "shopId": 1801005,
+    "slotOrder": 4,
+    "itemId": 1201018,
+    "count": 1,
+    "priceId": 1803008,
+    "weight": 6
+  },
+  {
+    "id": 1802021,
+    "shopId": 1801005,
+    "slotOrder": 5,
+    "itemId": 1201052,
+    "count": 97,
+    "priceId": 1803000,
+    "weight": 43
+  },
+  {
+    "id": 1802022,
+    "shopId": 1801006,
+    "slotOrder": 6,
+    "itemId": 1201042,
+    "count": 2,
+    "priceId": 1803002,
+    "weight": 298
+  },
+  {
+    "id": 1802023,
+    "shopId": 1801004,
+    "slotOrder": 7,
+    "itemId": 1201076,
+    "count": 4,
+    "priceId": 1803009,
+    "weight": 19
+  },
+  {
+    "id": 1802024,
+    "shopId": 1801002,
+    "slotOrder": 0,
+    "itemId": 1201083,
+    "count": 9,
+    "priceId": 1803013,
+    "weight": 53
+  },
+  {
+    "id": 1802025,
+    "shopId": 1801009,
+    "slotOrder": 1,
+    "itemId": 1201104,
+    "count": 17,
+    "priceId": 1803023,
+    "weight": 1
+  },
+  {
+    "id": 1802026,
+    "shopId": 1801004,
+    "slotOrder": 2,
+    "itemId": 1201040,
+    "count": 41,
+    "priceId": 1803008,
+    "weight": 517
+  },
+  {
+    "id": 1802027,
+    "shopId": 1801008,
+    "slotOrder": 3,
+    "itemId": 1201024,
+    "count": 1,
+    "priceId": 1803005,
+    "weight": 286
+  },
+  {
+    "id": 1802028,
+    "shopId": 1801009,
+    "slotOrder": 4,
+    "itemId": 1201003,
+    "count": 4,
+    "priceId": 1803008,
+    "weight": 100
+  },
+  {
+    "id": 1802029,
+    "shopId": 1801006,
+    "slotOrder": 5,
+    "itemId": 1201080,
+    "count": 16,
+    "priceId": 1803011,
+    "weight": 122
+  },
+  {
+    "id": 1802030,
+    "shopId": 1801010,
+    "slotOrder": 6,
+    "itemId": 1201050,
+    "count": 98,
+    "priceId": 1803012,
+    "weight": 157
+  },
+  {
+    "id": 1802031,
+    "shopId": 1801002,
+    "slotOrder": 7,
+    "itemId": 1201068,
+    "count": 1,
+    "priceId": 1803022,
+    "weight": 17
+  },
+  {
+    "id": 1802032,
+    "shopId": 1801004,
+    "slotOrder": 0,
+    "itemId": 1201041,
+    "count": 1,
+    "priceId": 1803023,
+    "weight": 4
+  },
+  {
+    "id": 1802033,
+    "shopId": 1801010,
+    "slotOrder": 1,
+    "itemId": 1201055,
+    "count": 8,
+    "priceId": 1803011,
+    "weight": 16
+  },
+  {
+    "id": 1802034,
+    "shopId": 1801002,
+    "slotOrder": 2,
+    "itemId": 1201003,
+    "count": 81,
+    "priceId": 1803006,
+    "weight": 2
+  }
+]

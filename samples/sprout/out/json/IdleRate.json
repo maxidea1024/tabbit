@@ -1,0 +1,92 @@
+[
+  {
+    "id": 2102000,
+    "stageId": 1501044,
+    "rate": 1000,
+    "capHours": 7
+  },
+  {
+    "id": 2102001,
+    "stageId": 1501081,
+    "rate": 1022,
+    "capHours": 5
+  },
+  {
+    "id": 2102002,
+    "stageId": 1501009,
+    "rate": 1045,
+    "capHours": 3
+  },
+  {
+    "id": 2102003,
+    "stageId": 1501053,
+    "rate": 1068,
+    "capHours": 2
+  },
+  {
+    "id": 2102004,
+    "stageId": 1501064,
+    "rate": 1092,
+    "capHours": 10
+  },
+  {
+    "id": 2102005,
+    "stageId": 1501012,
+    "rate": 1116,
+    "capHours": 8
+  },
+  {
+    "id": 2102006,
+    "stageId": 1501016,
+    "rate": 1141,
+    "capHours": 10
+  },
+  {
+    "id": 2102007,
+    "stageId": 1501063,
+    "rate": 1166,
+    "capHours": 14
+  },
+  {
+    "id": 2102008,
+    "stageId": 1501043,
+    "rate": 1192,
+    "capHours": 2
+  },
+  {
+    "id": 2102009,
+    "stageId": 1501044,
+    "rate": 1218,
+    "capHours": 21
+  },
+  {
+    "id": 2102010,
+    "stageId": 1501037,
+    "rate": 1245,
+    "capHours": 4
+  },
+  {
+    "id": 2102011,
+    "stageId": 1501087,
+    "rate": 1272,
+    "capHours": 9
+  },
+  {
+    "id": 2102012,
+    "stageId": 1501048,
+    "rate": 1300,
+    "capHours": 13
+  },
+  {
+    "id": 2102013,
+    "stageId": 1501004,
+    "rate": 1328,
+    "capHours": 3
+  },
+  {
+    "id": 2102014,
+    "stageId": 1501056,
+    "rate": 1357,
+    "capHours": 24
+  }
+]

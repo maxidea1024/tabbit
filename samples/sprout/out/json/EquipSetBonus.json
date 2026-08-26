@@ -1,0 +1,170 @@
+[
+  {
+    "id": 1305000,
+    "setId": 1304008,
+    "pieces": 2,
+    "stat": 6,
+    "bonus": 121
+  },
+  {
+    "id": 1305001,
+    "setId": 1304004,
+    "pieces": 6,
+    "stat": 7,
+    "bonus": 371
+  },
+  {
+    "id": 1305002,
+    "setId": 1304011,
+    "pieces": 4,
+    "stat": 8,
+    "bonus": 684
+  },
+  {
+    "id": 1305003,
+    "setId": 1304005,
+    "pieces": 6,
+    "stat": 2,
+    "bonus": 472
+  },
+  {
+    "id": 1305004,
+    "setId": 1304007,
+    "pieces": 5,
+    "stat": 8,
+    "bonus": 40
+  },
+  {
+    "id": 1305005,
+    "setId": 1304000,
+    "pieces": 5,
+    "stat": 8,
+    "bonus": 118
+  },
+  {
+    "id": 1305006,
+    "setId": 1304001,
+    "pieces": 3,
+    "stat": 7,
+    "bonus": 41
+  },
+  {
+    "id": 1305007,
+    "setId": 1304011,
+    "pieces": 4,
+    "stat": 8,
+    "bonus": 47
+  },
+  {
+    "id": 1305008,
+    "setId": 1304005,
+    "pieces": 4,
+    "stat": 5,
+    "bonus": 747
+  },
+  {
+    "id": 1305009,
+    "setId": 1304000,
+    "pieces": 5,
+    "stat": 8,
+    "bonus": 821
+  },
+  {
+    "id": 1305010,
+    "setId": 1304006,
+    "pieces": 3,
+    "stat": 3,
+    "bonus": 187
+  },
+  {
+    "id": 1305011,
+    "setId": 1304000,
+    "pieces": 4,
+    "stat": 2,
+    "bonus": 289
+  },
+  {
+    "id": 1305012,
+    "setId": 1304003,
+    "pieces": 6,
+    "stat": 7,
+    "bonus": 31
+  },
+  {
+    "id": 1305013,
+    "setId": 1304011,
+    "pieces": 5,
+    "stat": 4,
+    "bonus": 88
+  },
+  {
+    "id": 1305014,
+    "setId": 1304007,
+    "pieces": 3,
+    "stat": 6,
+    "bonus": 169
+  },
+  {
+    "id": 1305015,
+    "setId": 1304002,
+    "pieces": 6,
+    "stat": 7,
+    "bonus": 36
+  },
+  {
+    "id": 1305016,
+    "setId": 1304003,
+    "pieces": 2,
+    "stat": 3,
+    "bonus": 83
+  },
+  {
+    "id": 1305017,
+    "setId": 1304001,
+    "pieces": 5,
+    "stat": 5,
+    "bonus": 30
+  },
+  {
+    "id": 1305018,
+    "setId": 1304011,
+    "pieces": 3,
+    "stat": 5,
+    "bonus": 40
+  },
+  {
+    "id": 1305019,
+    "setId": 1304006,
+    "pieces": 4,
+    "stat": 3,
+    "bonus": 32
+  },
+  {
+    "id": 1305020,
+    "setId": 1304001,
+    "pieces": 6,
+    "stat": 1,
+    "bonus": 1188
+  },
+  {
+    "id": 1305021,
+    "setId": 1304000,
+    "pieces": 3,
+    "stat": 4,
+    "bonus": 39
+  },
+  {
+    "id": 1305022,
+    "setId": 1304010,
+    "pieces": 3,
+    "stat": 4,
+    "bonus": 270
+  },
+  {
+    "id": 1305023,
+    "setId": 1304003,
+    "pieces": 2,
+    "stat": 7,
+    "bonus": 30
+  }
+]

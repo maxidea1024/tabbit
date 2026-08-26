@@ -1,0 +1,4 @@
+@desc	primary index	reward kind	drop group, 0 for a fixed reward	fixed item ids	fixed item counts
+@name	id	type	lootGroupId	itemIds	itemCounts
+@type	Int	enum:RewardType	Int	IntArray	IntArray
+@gen	seq:2001000	enum:RewardType	ref:LootGroupTable	arr:ref:ItemTable:1..4	arr:int:1..300:1..4

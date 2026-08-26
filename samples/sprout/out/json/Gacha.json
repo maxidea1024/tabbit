@@ -1,0 +1,98 @@
+[
+  {
+    "id": 1901000,
+    "type": 3,
+    "nameKey": "GACHA_NAME_0004",
+    "banner": "Art/Banner/Brack/Briar_25",
+    "priceId": 1803007,
+    "pityId": 1904002
+  },
+  {
+    "id": 1901001,
+    "type": 3,
+    "nameKey": "GACHA_NAME_0014",
+    "banner": "Art/Banner/Jasp/Jasp_09",
+    "priceId": 1803000,
+    "pityId": 1904010
+  },
+  {
+    "id": 1901002,
+    "type": 3,
+    "nameKey": "GACHA_NAME_0006",
+    "banner": "Art/Banner/Isle/Umber_20",
+    "priceId": 1803011,
+    "pityId": 1904003
+  },
+  {
+    "id": 1901003,
+    "type": 1,
+    "nameKey": "GACHA_NAME_0012",
+    "banner": "Art/Banner/Calyx/Calyx_02",
+    "priceId": 1803019,
+    "pityId": 1904005
+  },
+  {
+    "id": 1901004,
+    "type": 4,
+    "nameKey": "GACHA_NAME_0028",
+    "banner": "Art/Banner/Ember/Elm_28",
+    "priceId": 1803009,
+    "pityId": 1904001
+  },
+  {
+    "id": 1901005,
+    "type": 2,
+    "nameKey": "GACHA_NAME_0007",
+    "banner": "Art/Banner/Alder/Marrow_12",
+    "priceId": 1803016,
+    "pityId": 1904003
+  },
+  {
+    "id": 1901006,
+    "type": 2,
+    "nameKey": "GACHA_NAME_0008",
+    "banner": "Art/Banner/Harrow/Thorn_19",
+    "priceId": 1803001,
+    "pityId": 1904002
+  },
+  {
+    "id": 1901007,
+    "type": 3,
+    "nameKey": "GACHA_NAME_0009",
+    "banner": "Art/Banner/Isle/Isle_08",
+    "priceId": 1803011,
+    "pityId": 1904002
+  },
+  {
+    "id": 1901008,
+    "type": 1,
+    "nameKey": "GACHA_NAME_0011",
+    "banner": "Art/Banner/Ember/Elm_28",
+    "priceId": 1803021,
+    "pityId": 1904002
+  },
+  {
+    "id": 1901009,
+    "type": 3,
+    "nameKey": "GACHA_NAME_0029",
+    "banner": "Art/Banner/Gale/Gale_06",
+    "priceId": 1803020,
+    "pityId": 1904011
+  },
+  {
+    "id": 1901010,
+    "type": 2,
+    "nameKey": "GACHA_NAME_0021",
+    "banner": "Art/Banner/Isle/Isle_08",
+    "priceId": 1803014,
+    "pityId": 1904010
+  },
+  {
+    "id": 1901011,
+    "type": 1,
+    "nameKey": "GACHA_NAME_0006",
+    "banner": "Art/Banner/Jasp/Vellum_21",
+    "priceId": 1803020,
+    "pityId": 1904003
+  }
+]

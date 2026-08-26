@@ -1,0 +1,4 @@
+@desc	primary index	buff name key	kind	icon asset	stacks allowed	dispellable
+@name	id	nameKey	kind	icon	stackLimit	dispellable
+@type	Int	String	enum:BuffKind	String	Int	Bool
+@gen	seq:1104000	str:BUFF_NAME:180	enum:BuffKind	path:180:Art/Buff	int:1..10	bool

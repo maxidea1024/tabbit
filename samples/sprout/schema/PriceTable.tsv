@@ -1,0 +1,4 @@
+@desc	primary index	currency	amount	discount in permille
+@name	id	currency	amount	discount
+@type	Int	enum:CurrencyType	Int	Int
+@gen	seq:1803000	enum:CurrencyType	int:10..50000:zipf	int:0..700

@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1207000,
+    "grade": 3,
+    "frame": "Art/Frame/Isle/Isle_08",
+    "sellScale": 1744
+  },
+  {
+    "id": 1207001,
+    "grade": 5,
+    "frame": "Art/Frame/Brack/Nettle_13",
+    "sellScale": 1223
+  },
+  {
+    "id": 1207002,
+    "grade": 5,
+    "frame": "Art/Frame/Dorn/Dorn_03",
+    "sellScale": 3408
+  },
+  {
+    "id": 1207003,
+    "grade": 5,
+    "frame": "Art/Frame/Brack/Brack_01",
+    "sellScale": 1075
+  },
+  {
+    "id": 1207004,
+    "grade": 4,
+    "frame": "Art/Frame/Dorn/Dorn_03",
+    "sellScale": 3547
+  },
+  {
+    "id": 1207005,
+    "grade": 2,
+    "frame": "Art/Frame/Fenn/Fenn_05",
+    "sellScale": 1163
+  },
+  {
+    "id": 1207006,
+    "grade": 4,
+    "frame": "Art/Frame/Dorn/Dorn_03",
+    "sellScale": 2337
+  },
+  {
+    "id": 1207007,
+    "grade": 1,
+    "frame": "Art/Frame/Alder/Marrow_12",
+    "sellScale": 1781
+  },
+  {
+    "id": 1207008,
+    "grade": 3,
+    "frame": "Art/Frame/Ember/Quill_16",
+    "sellScale": 1524
+  },
+  {
+    "id": 1207009,
+    "grade": 3,
+    "frame": "Art/Frame/Alder/Marrow_12",
+    "sellScale": 3318
+  },
+  {
+    "id": 1207010,
+    "grade": 2,
+    "frame": "Art/Frame/Fenn/Fenn_05",
+    "sellScale": 2593
+  },
+  {
+    "id": 1207011,
+    "grade": 3,
+    "frame": "Art/Frame/Jasp/Jasp_09",
+    "sellScale": 1826
+  }
+]

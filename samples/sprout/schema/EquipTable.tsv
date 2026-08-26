@@ -1,0 +1,4 @@
+@desc	primary index	equipment name key	slot	grade	model asset	set, 0 for none	base attack	base defense	maximum level
+@name	id	nameKey	slot	grade	model	setId	attack	defense	maxLevel
+@type	Int	String	enum:EquipSlot	enum:GradeType	String	Int	Int	Int	Int
+@gen	seq:1301000	str:EQUIP_NAME:260	enum:EquipSlot	enum:GradeType	path:260:Art/Equip	int:0..48	int:0..1800:zipf	int:0..1200:zipf	int:10..80

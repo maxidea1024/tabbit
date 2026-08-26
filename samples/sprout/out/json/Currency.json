@@ -1,0 +1,86 @@
+[
+  {
+    "id": 1202000,
+    "type": 4,
+    "nameKey": "CUR_NAME_0005",
+    "icon": "Art/Currency/Gale/Salt_18",
+    "cap": "225663074"
+  },
+  {
+    "id": 1202001,
+    "type": 2,
+    "nameKey": "CUR_NAME_0009",
+    "icon": "Art/Currency/Alder/Marrow_12",
+    "cap": "705369174"
+  },
+  {
+    "id": 1202002,
+    "type": 3,
+    "nameKey": "CUR_NAME_0022",
+    "icon": "Art/Currency/Alder/Alder_00",
+    "cap": "303170725"
+  },
+  {
+    "id": 1202003,
+    "type": 3,
+    "nameKey": "CUR_NAME_0000",
+    "icon": "Art/Currency/Jasp/Jasp_09",
+    "cap": "69394987"
+  },
+  {
+    "id": 1202004,
+    "type": 5,
+    "nameKey": "CUR_NAME_0006",
+    "icon": "Art/Currency/Harrow/Harrow_07",
+    "cap": "5391650"
+  },
+  {
+    "id": 1202005,
+    "type": 4,
+    "nameKey": "CUR_NAME_0021",
+    "icon": "Art/Currency/Fenn/Rune_17",
+    "cap": "463836"
+  },
+  {
+    "id": 1202006,
+    "type": 4,
+    "nameKey": "CUR_NAME_0011",
+    "icon": "Art/Currency/Dorn/Dorn_03",
+    "cap": "1025910496"
+  },
+  {
+    "id": 1202007,
+    "type": 5,
+    "nameKey": "CUR_NAME_0014",
+    "icon": "Art/Currency/Isle/Isle_08",
+    "cap": "971884365"
+  },
+  {
+    "id": 1202008,
+    "type": 6,
+    "nameKey": "CUR_NAME_0015",
+    "icon": "Art/Currency/Gale/Gale_06",
+    "cap": "189220188"
+  },
+  {
+    "id": 1202009,
+    "type": 3,
+    "nameKey": "CUR_NAME_0015",
+    "icon": "Art/Currency/Ember/Quill_16",
+    "cap": "19049006"
+  },
+  {
+    "id": 1202010,
+    "type": 6,
+    "nameKey": "CUR_NAME_0011",
+    "icon": "Art/Currency/Jasp/Jasp_09",
+    "cap": "158156"
+  },
+  {
+    "id": 1202011,
+    "type": 4,
+    "nameKey": "CUR_NAME_0022",
+    "icon": "Art/Currency/Brack/Nettle_13",
+    "cap": "41738993"
+  }
+]

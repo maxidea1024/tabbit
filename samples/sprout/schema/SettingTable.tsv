@@ -1,0 +1,4 @@
+@desc	setting key	value as written	description key
+@name	settingKey	value	descKey
+@type	String	String	String
+@gen	key:CFG	int:0..100000:zipf	str:CFG_DESC:60

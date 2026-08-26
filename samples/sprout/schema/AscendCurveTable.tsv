@@ -1,0 +1,4 @@
+@desc	primary index	grade	ascension step	multiplier in permille
+@name	id	grade	step	scale
+@type	Int	enum:GradeType	Int	Int
+@gen	seq:1403000	enum:GradeType	cycle:6	curve:1000:180:6

@@ -1,0 +1,79 @@
+[
+  {
+    "id": 1801000,
+    "type": 4,
+    "nameKey": "SHOP_NAME_0015",
+    "refreshHours": 128,
+    "freeRefresh": 0
+  },
+  {
+    "id": 1801001,
+    "type": 1,
+    "nameKey": "SHOP_NAME_0011",
+    "refreshHours": 95,
+    "freeRefresh": 4
+  },
+  {
+    "id": 1801002,
+    "type": 1,
+    "nameKey": "SHOP_NAME_0015",
+    "refreshHours": 53,
+    "freeRefresh": 0
+  },
+  {
+    "id": 1801003,
+    "type": 2,
+    "nameKey": "SHOP_NAME_0016",
+    "refreshHours": 44,
+    "freeRefresh": 5
+  },
+  {
+    "id": 1801004,
+    "type": 3,
+    "nameKey": "SHOP_NAME_0013",
+    "refreshHours": 63,
+    "freeRefresh": 3
+  },
+  {
+    "id": 1801005,
+    "type": 2,
+    "nameKey": "SHOP_NAME_0005",
+    "refreshHours": 78,
+    "freeRefresh": 5
+  },
+  {
+    "id": 1801006,
+    "type": 5,
+    "nameKey": "SHOP_NAME_0002",
+    "refreshHours": 66,
+    "freeRefresh": 4
+  },
+  {
+    "id": 1801007,
+    "type": 3,
+    "nameKey": "SHOP_NAME_0015",
+    "refreshHours": 143,
+    "freeRefresh": 0
+  },
+  {
+    "id": 1801008,
+    "type": 3,
+    "nameKey": "SHOP_NAME_0016",
+    "refreshHours": 140,
+    "freeRefresh": 3
+  },
+  {
+    "id": 1801009,
+    "type": 3,
+    "nameKey": "SHOP_NAME_0010",
+    "refreshHours": 99,
+    "freeRefresh": 5
+  },
+  {
+    "id": 1801010,
+    "type": 4,
+    "nameKey": "SHOP_NAME_0005",
+    "refreshHours": 139,
+    "freeRefresh": 5
+  }
+]

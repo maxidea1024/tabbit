@@ -1,0 +1,4 @@
+@desc	primary index	granted item	lowest count	highest count	chance in permille
+@name	id	itemId	minCount	maxCount	chance
+@type	Int	Int	Int	Int	Int
+@gen	seq:1703000	ref:ItemTable	int:1..50	int:50..400	int:20..1000

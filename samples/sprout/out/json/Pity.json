@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1904000,
+    "threshold": 129,
+    "grade": 3,
+    "resetOnHit": true
+  },
+  {
+    "id": 1904001,
+    "threshold": 151,
+    "grade": 2,
+    "resetOnHit": true
+  },
+  {
+    "id": 1904002,
+    "threshold": 178,
+    "grade": 4,
+    "resetOnHit": false
+  },
+  {
+    "id": 1904003,
+    "threshold": 116,
+    "grade": 5,
+    "resetOnHit": false
+  },
+  {
+    "id": 1904004,
+    "threshold": 60,
+    "grade": 2,
+    "resetOnHit": false
+  },
+  {
+    "id": 1904005,
+    "threshold": 12,
+    "grade": 4,
+    "resetOnHit": false
+  },
+  {
+    "id": 1904006,
+    "threshold": 44,
+    "grade": 4,
+    "resetOnHit": false
+  },
+  {
+    "id": 1904007,
+    "threshold": 42,
+    "grade": 3,
+    "resetOnHit": false
+  },
+  {
+    "id": 1904008,
+    "threshold": 181,
+    "grade": 4,
+    "resetOnHit": false
+  },
+  {
+    "id": 1904009,
+    "threshold": 115,
+    "grade": 5,
+    "resetOnHit": false
+  },
+  {
+    "id": 1904010,
+    "threshold": 10,
+    "grade": 3,
+    "resetOnHit": true
+  },
+  {
+    "id": 1904011,
+    "threshold": 96,
+    "grade": 5,
+    "resetOnHit": false
+  }
+]

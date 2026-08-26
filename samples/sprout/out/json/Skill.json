@@ -1,0 +1,1048 @@
+[
+  {
+    "id": 1101000,
+    "nameKey": "SKILL_NAME_0226",
+    "descKey": "SKILL_DESC_0278",
+    "icon": "Art/Skill/Gale/LesserGale_06",
+    "target": 2,
+    "cooldown": 0,
+    "effectIds": [
+      1103053
+    ],
+    "maxLevel": 12
+  },
+  {
+    "id": 1101001,
+    "nameKey": "SKILL_NAME_0005",
+    "descKey": "SKILL_DESC_0115",
+    "icon": "Art/Skill/Dorn/GravePyre_95",
+    "target": 5,
+    "cooldown": 6,
+    "effectIds": [
+      1103026,
+      1103047,
+      1103027
+    ],
+    "maxLevel": 8
+  },
+  {
+    "id": 1101002,
+    "nameKey": "SKILL_NAME_0094",
+    "descKey": "SKILL_DESC_0045",
+    "icon": "Art/Skill/Gale/BrightMarrow_62",
+    "target": 6,
+    "cooldown": 3,
+    "effectIds": [
+      1103071
+    ],
+    "maxLevel": 14
+  },
+  {
+    "id": 1101003,
+    "nameKey": "SKILL_NAME_0055",
+    "descKey": "SKILL_DESC_0278",
+    "icon": "Art/Skill/Isle/VastCalyx_72",
+    "target": 5,
+    "cooldown": 2,
+    "effectIds": [
+      1103001,
+      1103095
+    ],
+    "maxLevel": 14
+  },
+  {
+    "id": 1101004,
+    "nameKey": "SKILL_NAME_0161",
+    "descKey": "SKILL_DESC_0238",
+    "icon": "Art/Skill/Alder/WardedGale_96",
+    "target": 6,
+    "cooldown": 2,
+    "effectIds": [
+      1103054,
+      1103072,
+      1103048
+    ],
+    "maxLevel": 6
+  },
+  {
+    "id": 1101005,
+    "nameKey": "SKILL_NAME_0037",
+    "descKey": "SKILL_DESC_0210",
+    "icon": "Art/Skill/Fenn/Flint_29",
+    "target": 4,
+    "cooldown": 9,
+    "effectIds": [
+      1103035
+    ],
+    "maxLevel": 5
+  },
+  {
+    "id": 1101006,
+    "nameKey": "SKILL_NAME_0194",
+    "descKey": "SKILL_DESC_0174",
+    "icon": "Art/Skill/Gale/HollowGale_26",
+    "target": 2,
+    "cooldown": 7,
+    "effectIds": [
+      1103070,
+      1103077
+    ],
+    "maxLevel": 6
+  },
+  {
+    "id": 1101007,
+    "nameKey": "SKILL_NAME_0032",
+    "descKey": "SKILL_DESC_0032",
+    "icon": "Art/Skill/Isle/HollowUmber_40",
+    "target": 2,
+    "cooldown": 1,
+    "effectIds": [
+      1103040,
+      1103061,
+      1103020
+    ],
+    "maxLevel": 8
+  },
+  {
+    "id": 1101008,
+    "nameKey": "SKILL_NAME_0182",
+    "descKey": "SKILL_DESC_0245",
+    "icon": "Art/Skill/Alder/Zephyr_24",
+    "target": 1,
+    "cooldown": 7,
+    "effectIds": [
+      1103084
+    ],
+    "maxLevel": 11
+  },
+  {
+    "id": 1101009,
+    "nameKey": "SKILL_NAME_0040",
+    "descKey": "SKILL_DESC_0027",
+    "icon": "Art/Skill/Isle/SwiftOchre_24",
+    "target": 1,
+    "cooldown": 5,
+    "effectIds": [
+      1103051,
+      1103015,
+      1103099
+    ],
+    "maxLevel": 8
+  },
+  {
+    "id": 1101010,
+    "nameKey": "SKILL_NAME_0280",
+    "descKey": "SKILL_DESC_0279",
+    "icon": "Art/Skill/Calyx/CommonIsle_38",
+    "target": 6,
+    "cooldown": 0,
+    "effectIds": [
+      1103021,
+      1103020
+    ],
+    "maxLevel": 13
+  },
+  {
+    "id": 1101011,
+    "nameKey": "SKILL_NAME_0179",
+    "descKey": "SKILL_DESC_0114",
+    "icon": "Art/Skill/Fenn/GraveFlint_09",
+    "target": 3,
+    "cooldown": 1,
+    "effectIds": [
+      1103045,
+      1103073,
+      1103081
+    ],
+    "maxLevel": 7
+  },
+  {
+    "id": 1101012,
+    "nameKey": "SKILL_NAME_0298",
+    "descKey": "SKILL_DESC_0037",
+    "icon": "Art/Skill/Lumen/SwiftFlint_39",
+    "target": 6,
+    "cooldown": 2,
+    "effectIds": [
+      1103069,
+      1103076,
+      1103077
+    ],
+    "maxLevel": 15
+  },
+  {
+    "id": 1101013,
+    "nameKey": "SKILL_NAME_0098",
+    "descKey": "SKILL_DESC_0150",
+    "icon": "Art/Skill/Fenn/GraveFenn_85",
+    "target": 3,
+    "cooldown": 6,
+    "effectIds": [
+      1103085,
+      1103055,
+      1103073
+    ],
+    "maxLevel": 14
+  },
+  {
+    "id": 1101014,
+    "nameKey": "SKILL_NAME_0139",
+    "descKey": "SKILL_DESC_0257",
+    "icon": "Art/Skill/Harrow/KeenThorn_79",
+    "target": 1,
+    "cooldown": 0,
+    "effectIds": [
+      1103064,
+      1103061,
+      1103011
+    ],
+    "maxLevel": 11
+  },
+  {
+    "id": 1101015,
+    "nameKey": "SKILL_NAME_0104",
+    "descKey": "SKILL_DESC_0315",
+    "icon": "Art/Skill/Isle/CommonOchre_44",
+    "target": 2,
+    "cooldown": 8,
+    "effectIds": [
+      1103003
+    ],
+    "maxLevel": 12
+  },
+  {
+    "id": 1101016,
+    "nameKey": "SKILL_NAME_0095",
+    "descKey": "SKILL_DESC_0308",
+    "icon": "Art/Skill/Isle/Umber_20",
+    "target": 6,
+    "cooldown": 9,
+    "effectIds": [
+      1103095,
+      1103042,
+      1103053
+    ],
+    "maxLevel": 14
+  },
+  {
+    "id": 1101017,
+    "nameKey": "SKILL_NAME_0202",
+    "descKey": "SKILL_DESC_0155",
+    "icon": "Art/Skill/Gale/KeenSalt_78",
+    "target": 3,
+    "cooldown": 6,
+    "effectIds": [
+      1103018
+    ],
+    "maxLevel": 12
+  },
+  {
+    "id": 1101018,
+    "nameKey": "SKILL_NAME_0173",
+    "descKey": "SKILL_DESC_0250",
+    "icon": "Art/Skill/Alder/VastSalt_88",
+    "target": 6,
+    "cooldown": 2,
+    "effectIds": [
+      1103088,
+      1103076
+    ],
+    "maxLevel": 11
+  },
+  {
+    "id": 1101019,
+    "nameKey": "SKILL_NAME_0000",
+    "descKey": "SKILL_DESC_0017",
+    "icon": "Art/Skill/Isle/BrightCinder_76",
+    "target": 2,
+    "cooldown": 9,
+    "effectIds": [
+      1103072,
+      1103047,
+      1103072
+    ],
+    "maxLevel": 11
+  },
+  {
+    "id": 1101020,
+    "nameKey": "SKILL_NAME_0117",
+    "descKey": "SKILL_DESC_0051",
+    "icon": "Art/Skill/Jasp/GraveVellum_01",
+    "target": 1,
+    "cooldown": 1,
+    "effectIds": [
+      1103014
+    ],
+    "maxLevel": 7
+  },
+  {
+    "id": 1101021,
+    "nameKey": "SKILL_NAME_0253",
+    "descKey": "SKILL_DESC_0273",
+    "icon": "Art/Skill/Brack/StillBriar_65",
+    "target": 5,
+    "cooldown": 2,
+    "effectIds": [
+      1103049
+    ],
+    "maxLevel": 12
+  },
+  {
+    "id": 1101022,
+    "nameKey": "SKILL_NAME_0123",
+    "descKey": "SKILL_DESC_0192",
+    "icon": "Art/Skill/Brack/GraveBriar_05",
+    "target": 3,
+    "cooldown": 6,
+    "effectIds": [
+      1103102
+    ],
+    "maxLevel": 15
+  },
+  {
+    "id": 1101023,
+    "nameKey": "SKILL_NAME_0121",
+    "descKey": "SKILL_DESC_0270",
+    "icon": "Art/Skill/Kelvin/KeenKelvin_70",
+    "target": 3,
+    "cooldown": 8,
+    "effectIds": [
+      1103021,
+      1103059
+    ],
+    "maxLevel": 10
+  },
+  {
+    "id": 1101024,
+    "nameKey": "SKILL_NAME_0098",
+    "descKey": "SKILL_DESC_0214",
+    "icon": "Art/Skill/Dorn/KeenPyre_75",
+    "target": 1,
+    "cooldown": 2,
+    "effectIds": [
+      1103037,
+      1103077,
+      1103082
+    ],
+    "maxLevel": 9
+  },
+  {
+    "id": 1101025,
+    "nameKey": "SKILL_NAME_0158",
+    "descKey": "SKILL_DESC_0165",
+    "icon": "Art/Skill/Alder/GraveAlder_80",
+    "target": 6,
+    "cooldown": 6,
+    "effectIds": [
+      1103078,
+      1103053
+    ],
+    "maxLevel": 14
+  },
+  {
+    "id": 1101026,
+    "nameKey": "SKILL_NAME_0114",
+    "descKey": "SKILL_DESC_0117",
+    "icon": "Art/Skill/Harrow/VastBrack_71",
+    "target": 4,
+    "cooldown": 0,
+    "effectIds": [
+      1103038,
+      1103008
+    ],
+    "maxLevel": 8
+  },
+  {
+    "id": 1101027,
+    "nameKey": "SKILL_NAME_0179",
+    "descKey": "SKILL_DESC_0101",
+    "icon": "Art/Skill/Lumen/WardedFlint_19",
+    "target": 4,
+    "cooldown": 8,
+    "effectIds": [
+      1103038,
+      1103017
+    ],
+    "maxLevel": 10
+  },
+  {
+    "id": 1101028,
+    "nameKey": "SKILL_NAME_0098",
+    "descKey": "SKILL_DESC_0127",
+    "icon": "Art/Skill/Calyx/CommonUmber_50",
+    "target": 3,
+    "cooldown": 0,
+    "effectIds": [
+      1103083,
+      1103020,
+      1103050
+    ],
+    "maxLevel": 13
+  },
+  {
+    "id": 1101029,
+    "nameKey": "SKILL_NAME_0213",
+    "descKey": "SKILL_DESC_0038",
+    "icon": "Art/Skill/Kelvin/KeenKelvin_70",
+    "target": 6,
+    "cooldown": 2,
+    "effectIds": [
+      1103104
+    ],
+    "maxLevel": 6
+  },
+  {
+    "id": 1101030,
+    "nameKey": "SKILL_NAME_0227",
+    "descKey": "SKILL_DESC_0077",
+    "icon": "Art/Skill/Harrow/Harrow_07",
+    "target": 4,
+    "cooldown": 3,
+    "effectIds": [
+      1103010,
+      1103070
+    ],
+    "maxLevel": 9
+  },
+  {
+    "id": 1101031,
+    "nameKey": "SKILL_NAME_0014",
+    "descKey": "SKILL_DESC_0047",
+    "icon": "Art/Skill/Gale/WardedZephyr_14",
+    "target": 6,
+    "cooldown": 2,
+    "effectIds": [
+      1103035,
+      1103037
+    ],
+    "maxLevel": 12
+  },
+  {
+    "id": 1101032,
+    "nameKey": "SKILL_NAME_0061",
+    "descKey": "SKILL_DESC_0253",
+    "icon": "Art/Skill/Lumen/KeenYarrow_83",
+    "target": 3,
+    "cooldown": 9,
+    "effectIds": [
+      1103040,
+      1103088,
+      1103058
+    ],
+    "maxLevel": 14
+  },
+  {
+    "id": 1101033,
+    "nameKey": "SKILL_NAME_0183",
+    "descKey": "SKILL_DESC_0153",
+    "icon": "Art/Skill/Fenn/GraveRune_97",
+    "target": 6,
+    "cooldown": 8,
+    "effectIds": [
+      1103088
+    ],
+    "maxLevel": 14
+  },
+  {
+    "id": 1101034,
+    "nameKey": "SKILL_NAME_0036",
+    "descKey": "SKILL_DESC_0004",
+    "icon": "Art/Skill/Gale/StillGale_46",
+    "target": 3,
+    "cooldown": 2,
+    "effectIds": [
+      1103096,
+      1103102,
+      1103017
+    ],
+    "maxLevel": 6
+  },
+  {
+    "id": 1101035,
+    "nameKey": "SKILL_NAME_0274",
+    "descKey": "SKILL_DESC_0297",
+    "icon": "Art/Skill/Fenn/VastLumen_81",
+    "target": 3,
+    "cooldown": 8,
+    "effectIds": [
+      1103062,
+      1103035,
+      1103057
+    ],
+    "maxLevel": 5
+  },
+  {
+    "id": 1101036,
+    "nameKey": "SKILL_NAME_0144",
+    "descKey": "SKILL_DESC_0312",
+    "icon": "Art/Skill/Dorn/VastVellum_91",
+    "target": 3,
+    "cooldown": 6,
+    "effectIds": [
+      1103061,
+      1103032,
+      1103062
+    ],
+    "maxLevel": 13
+  },
+  {
+    "id": 1101037,
+    "nameKey": "SKILL_NAME_0124",
+    "descKey": "SKILL_DESC_0269",
+    "icon": "Art/Skill/Fenn/GraveFenn_85",
+    "target": 4,
+    "cooldown": 6,
+    "effectIds": [
+      1103008,
+      1103056
+    ],
+    "maxLevel": 8
+  },
+  {
+    "id": 1101038,
+    "nameKey": "SKILL_NAME_0297",
+    "descKey": "SKILL_DESC_0014",
+    "icon": "Art/Skill/Harrow/StillHarrow_47",
+    "target": 6,
+    "cooldown": 7,
+    "effectIds": [
+      1103015,
+      1103062
+    ],
+    "maxLevel": 9
+  },
+  {
+    "id": 1101039,
+    "nameKey": "SKILL_NAME_0052",
+    "descKey": "SKILL_DESC_0150",
+    "icon": "Art/Skill/Dorn/BrightVellum_71",
+    "target": 6,
+    "cooldown": 1,
+    "effectIds": [
+      1103072,
+      1103081
+    ],
+    "maxLevel": 8
+  },
+  {
+    "id": 1101040,
+    "nameKey": "SKILL_NAME_0141",
+    "descKey": "SKILL_DESC_0232",
+    "icon": "Art/Skill/Isle/LesserIsle_08",
+    "target": 6,
+    "cooldown": 3,
+    "effectIds": [
+      1103083,
+      1103016
+    ],
+    "maxLevel": 8
+  },
+  {
+    "id": 1101041,
+    "nameKey": "SKILL_NAME_0047",
+    "descKey": "SKILL_DESC_0289",
+    "icon": "Art/Skill/Fenn/KeenFenn_65",
+    "target": 3,
+    "cooldown": 9,
+    "effectIds": [
+      1103087,
+      1103047,
+      1103008
+    ],
+    "maxLevel": 9
+  },
+  {
+    "id": 1101042,
+    "nameKey": "SKILL_NAME_0167",
+    "descKey": "SKILL_DESC_0251",
+    "icon": "Art/Skill/Dorn/LesserPyre_15",
+    "target": 6,
+    "cooldown": 2,
+    "effectIds": [
+      1103084
+    ],
+    "maxLevel": 10
+  },
+  {
+    "id": 1101043,
+    "nameKey": "SKILL_NAME_0162",
+    "descKey": "SKILL_DESC_0216",
+    "icon": "Art/Skill/Jasp/WardedDorn_93",
+    "target": 6,
+    "cooldown": 7,
+    "effectIds": [
+      1103000
+    ],
+    "maxLevel": 15
+  },
+  {
+    "id": 1101044,
+    "nameKey": "SKILL_NAME_0244",
+    "descKey": "SKILL_DESC_0018",
+    "icon": "Art/Skill/Kelvin/KeenWick_82",
+    "target": 3,
+    "cooldown": 7,
+    "effectIds": [
+      1103033,
+      1103062
+    ],
+    "maxLevel": 12
+  },
+  {
+    "id": 1101045,
+    "nameKey": "SKILL_NAME_0180",
+    "descKey": "SKILL_DESC_0151",
+    "icon": "Art/Skill/Alder/BrightGale_56",
+    "target": 5,
+    "cooldown": 4,
+    "effectIds": [
+      1103067,
+      1103002
+    ],
+    "maxLevel": 10
+  },
+  {
+    "id": 1101046,
+    "nameKey": "SKILL_NAME_0176",
+    "descKey": "SKILL_DESC_0042",
+    "icon": "Art/Skill/Ember/HollowQuill_36",
+    "target": 1,
+    "cooldown": 8,
+    "effectIds": [
+      1103051,
+      1103095,
+      1103035
+    ],
+    "maxLevel": 11
+  },
+  {
+    "id": 1101047,
+    "nameKey": "SKILL_NAME_0030",
+    "descKey": "SKILL_DESC_0056",
+    "icon": "Art/Skill/Brack/StillNettle_53",
+    "target": 6,
+    "cooldown": 4,
+    "effectIds": [
+      1103056,
+      1103058,
+      1103052
+    ],
+    "maxLevel": 11
+  },
+  {
+    "id": 1101048,
+    "nameKey": "SKILL_NAME_0071",
+    "descKey": "SKILL_DESC_0106",
+    "icon": "Art/Skill/Ember/KeenEmber_64",
+    "target": 6,
+    "cooldown": 4,
+    "effectIds": [
+      1103071,
+      1103059,
+      1103023
+    ],
+    "maxLevel": 7
+  },
+  {
+    "id": 1101049,
+    "nameKey": "SKILL_NAME_0047",
+    "descKey": "SKILL_DESC_0299",
+    "icon": "Art/Skill/Kelvin/VastElm_98",
+    "target": 1,
+    "cooldown": 8,
+    "effectIds": [
+      1103024
+    ],
+    "maxLevel": 8
+  },
+  {
+    "id": 1101050,
+    "nameKey": "SKILL_NAME_0185",
+    "descKey": "SKILL_DESC_0273",
+    "icon": "Art/Skill/Alder/SwiftGale_16",
+    "target": 4,
+    "cooldown": 7,
+    "effectIds": [
+      1103098
+    ],
+    "maxLevel": 13
+  },
+  {
+    "id": 1101051,
+    "nameKey": "SKILL_NAME_0247",
+    "descKey": "SKILL_DESC_0262",
+    "icon": "Art/Skill/Harrow/SwiftNettle_23",
+    "target": 1,
+    "cooldown": 9,
+    "effectIds": [
+      1103006
+    ],
+    "maxLevel": 9
+  },
+  {
+    "id": 1101052,
+    "nameKey": "SKILL_NAME_0187",
+    "descKey": "SKILL_DESC_0038",
+    "icon": "Art/Skill/Alder/Marrow_12",
+    "target": 1,
+    "cooldown": 6,
+    "effectIds": [
+      1103086,
+      1103027
+    ],
+    "maxLevel": 10
+  },
+  {
+    "id": 1101053,
+    "nameKey": "SKILL_NAME_0032",
+    "descKey": "SKILL_DESC_0201",
+    "icon": "Art/Skill/Harrow/SwiftBriar_35",
+    "target": 5,
+    "cooldown": 5,
+    "effectIds": [
+      1103085
+    ],
+    "maxLevel": 14
+  },
+  {
+    "id": 1101054,
+    "nameKey": "SKILL_NAME_0083",
+    "descKey": "SKILL_DESC_0122",
+    "icon": "Art/Skill/Brack/WardedThorn_09",
+    "target": 1,
+    "cooldown": 6,
+    "effectIds": [
+      1103023
+    ],
+    "maxLevel": 6
+  },
+  {
+    "id": 1101055,
+    "nameKey": "SKILL_NAME_0179",
+    "descKey": "SKILL_DESC_0170",
+    "icon": "Art/Skill/Brack/StillBriar_65",
+    "target": 6,
+    "cooldown": 9,
+    "effectIds": [
+      1103064,
+      1103084
+    ],
+    "maxLevel": 9
+  },
+  {
+    "id": 1101056,
+    "nameKey": "SKILL_NAME_0142",
+    "descKey": "SKILL_DESC_0042",
+    "icon": "Art/Skill/Lumen/WardedFenn_95",
+    "target": 3,
+    "cooldown": 4,
+    "effectIds": [
+      1103084,
+      1103081,
+      1103069
+    ],
+    "maxLevel": 13
+  },
+  {
+    "id": 1101057,
+    "nameKey": "SKILL_NAME_0055",
+    "descKey": "SKILL_DESC_0120",
+    "icon": "Art/Skill/Jasp/CommonPyre_45",
+    "target": 5,
+    "cooldown": 9,
+    "effectIds": [
+      1103008,
+      1103073,
+      1103057
+    ],
+    "maxLevel": 7
+  },
+  {
+    "id": 1101058,
+    "nameKey": "SKILL_NAME_0076",
+    "descKey": "SKILL_DESC_0078",
+    "icon": "Art/Skill/Isle/Umber_20",
+    "target": 3,
+    "cooldown": 0,
+    "effectIds": [
+      1103014,
+      1103012,
+      1103062
+    ],
+    "maxLevel": 6
+  },
+  {
+    "id": 1101059,
+    "nameKey": "SKILL_NAME_0089",
+    "descKey": "SKILL_DESC_0090",
+    "icon": "Art/Skill/Kelvin/BrightQuill_66",
+    "target": 5,
+    "cooldown": 0,
+    "effectIds": [
+      1103008,
+      1103074,
+      1103073
+    ],
+    "maxLevel": 8
+  },
+  {
+    "id": 1101060,
+    "nameKey": "SKILL_NAME_0248",
+    "descKey": "SKILL_DESC_0008",
+    "icon": "Art/Skill/Ember/LesserEmber_04",
+    "target": 5,
+    "cooldown": 2,
+    "effectIds": [
+      1103091,
+      1103044
+    ],
+    "maxLevel": 6
+  },
+  {
+    "id": 1101061,
+    "nameKey": "SKILL_NAME_0192",
+    "descKey": "SKILL_DESC_0017",
+    "icon": "Art/Skill/Harrow/CommonNettle_43",
+    "target": 1,
+    "cooldown": 0,
+    "effectIds": [
+      1103001,
+      1103036,
+      1103103
+    ],
+    "maxLevel": 8
+  },
+  {
+    "id": 1101062,
+    "nameKey": "SKILL_NAME_0160",
+    "descKey": "SKILL_DESC_0147",
+    "icon": "Art/Skill/Jasp/KeenJasp_69",
+    "target": 6,
+    "cooldown": 0,
+    "effectIds": [
+      1103050,
+      1103103,
+      1103090
+    ],
+    "maxLevel": 11
+  },
+  {
+    "id": 1101063,
+    "nameKey": "SKILL_NAME_0223",
+    "descKey": "SKILL_DESC_0026",
+    "icon": "Art/Skill/Jasp/GraveJasp_89",
+    "target": 2,
+    "cooldown": 9,
+    "effectIds": [
+      1103031
+    ],
+    "maxLevel": 14
+  },
+  {
+    "id": 1101064,
+    "nameKey": "SKILL_NAME_0116",
+    "descKey": "SKILL_DESC_0137",
+    "icon": "Art/Skill/Gale/VastAlder_70",
+    "target": 3,
+    "cooldown": 1,
+    "effectIds": [
+      1103029,
+      1103052,
+      1103013
+    ],
+    "maxLevel": 7
+  },
+  {
+    "id": 1101065,
+    "nameKey": "SKILL_NAME_0187",
+    "descKey": "SKILL_DESC_0013",
+    "icon": "Art/Skill/Gale/HollowSalt_38",
+    "target": 3,
+    "cooldown": 5,
+    "effectIds": [
+      1103028,
+      1103092,
+      1103090
+    ],
+    "maxLevel": 7
+  },
+  {
+    "id": 1101066,
+    "nameKey": "SKILL_NAME_0001",
+    "descKey": "SKILL_DESC_0066",
+    "icon": "Art/Skill/Harrow/Thorn_19",
+    "target": 5,
+    "cooldown": 4,
+    "effectIds": [
+      1103005
+    ],
+    "maxLevel": 14
+  },
+  {
+    "id": 1101067,
+    "nameKey": "SKILL_NAME_0026",
+    "descKey": "SKILL_DESC_0165",
+    "icon": "Art/Skill/Calyx/Calyx_02",
+    "target": 1,
+    "cooldown": 8,
+    "effectIds": [
+      1103086,
+      1103084,
+      1103064
+    ],
+    "maxLevel": 10
+  },
+  {
+    "id": 1101068,
+    "nameKey": "SKILL_NAME_0241",
+    "descKey": "SKILL_DESC_0029",
+    "icon": "Art/Skill/Isle/StillUmber_60",
+    "target": 3,
+    "cooldown": 9,
+    "effectIds": [
+      1103060,
+      1103004,
+      1103047
+    ],
+    "maxLevel": 6
+  },
+  {
+    "id": 1101069,
+    "nameKey": "SKILL_NAME_0035",
+    "descKey": "SKILL_DESC_0101",
+    "icon": "Art/Skill/Kelvin/HollowKelvin_30",
+    "target": 4,
+    "cooldown": 4,
+    "effectIds": [
+      1103059,
+      1103077
+    ],
+    "maxLevel": 12
+  },
+  {
+    "id": 1101070,
+    "nameKey": "SKILL_NAME_0022",
+    "descKey": "SKILL_DESC_0184",
+    "icon": "Art/Skill/Gale/Salt_18",
+    "target": 4,
+    "cooldown": 1,
+    "effectIds": [
+      1103100,
+      1103104
+    ],
+    "maxLevel": 11
+  },
+  {
+    "id": 1101071,
+    "nameKey": "SKILL_NAME_0088",
+    "descKey": "SKILL_DESC_0078",
+    "icon": "Art/Skill/Ember/KeenQuill_76",
+    "target": 1,
+    "cooldown": 9,
+    "effectIds": [
+      1103017
+    ],
+    "maxLevel": 9
+  },
+  {
+    "id": 1101072,
+    "nameKey": "SKILL_NAME_0193",
+    "descKey": "SKILL_DESC_0093",
+    "icon": "Art/Skill/Brack/GraveBriar_05",
+    "target": 2,
+    "cooldown": 3,
+    "effectIds": [
+      1103026
+    ],
+    "maxLevel": 5
+  },
+  {
+    "id": 1101073,
+    "nameKey": "SKILL_NAME_0047",
+    "descKey": "SKILL_DESC_0130",
+    "icon": "Art/Skill/Harrow/VastBrack_71",
+    "target": 1,
+    "cooldown": 9,
+    "effectIds": [
+      1103100,
+      1103086,
+      1103049
+    ],
+    "maxLevel": 5
+  },
+  {
+    "id": 1101074,
+    "nameKey": "SKILL_NAME_0019",
+    "descKey": "SKILL_DESC_0281",
+    "icon": "Art/Skill/Jasp/GraveJasp_89",
+    "target": 5,
+    "cooldown": 3,
+    "effectIds": [
+      1103052
+    ],
+    "maxLevel": 6
+  },
+  {
+    "id": 1101075,
+    "nameKey": "SKILL_NAME_0179",
+    "descKey": "SKILL_DESC_0148",
+    "icon": "Art/Skill/Jasp/VastDorn_73",
+    "target": 4,
+    "cooldown": 1,
+    "effectIds": [
+      1103034,
+      1103074
+    ],
+    "maxLevel": 9
+  },
+  {
+    "id": 1101076,
+    "nameKey": "SKILL_NAME_0222",
+    "descKey": "SKILL_DESC_0233",
+    "icon": "Art/Skill/Jasp/StillJasp_49",
+    "target": 5,
+    "cooldown": 6,
+    "effectIds": [
+      1103035
+    ],
+    "maxLevel": 13
+  },
+  {
+    "id": 1101077,
+    "nameKey": "SKILL_NAME_0269",
+    "descKey": "SKILL_DESC_0153",
+    "icon": "Art/Skill/Kelvin/StillWick_62",
+    "target": 4,
+    "cooldown": 5,
+    "effectIds": [
+      1103049
+    ],
+    "maxLevel": 5
+  },
+  {
+    "id": 1101078,
+    "nameKey": "SKILL_NAME_0272",
+    "descKey": "SKILL_DESC_0022",
+    "icon": "Art/Skill/Dorn/WardedJasp_99",
+    "target": 1,
+    "cooldown": 6,
+    "effectIds": [
+      1103057
+    ],
+    "maxLevel": 15
+  },
+  {
+    "id": 1101079,
+    "nameKey": "SKILL_NAME_0206",
+    "descKey": "SKILL_DESC_0217",
+    "icon": "Art/Skill/Gale/CommonMarrow_42",
+    "target": 1,
+    "cooldown": 5,
+    "effectIds": [
+      1103062,
+      1103061,
+      1103084
+    ],
+    "maxLevel": 7
+  }
+]

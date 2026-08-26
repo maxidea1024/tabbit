@@ -1,0 +1,12 @@
+@desc	labels for GradeType	labels for ElementType	labels for RoleType	labels for RarityType	labels for CurrencyType	labels for ItemType	labels for EquipSlot	labels for StatType	labels for TargetType	labels for ConditionType	labels for RewardType	labels for StageType	labels for DungeonType	labels for ShopType	labels for GachaType	labels for QuestType	labels for DialogueSpeaker	labels for UnlockType	labels for BuffKind	labels for CollectionType
+@name	GradeType	ElementType	RoleType	RarityType	CurrencyType	ItemType	EquipSlot	StatType	TargetType	ConditionType	RewardType	StageType	DungeonType	ShopType	GachaType	QuestType	DialogueSpeaker	UnlockType	BuffKind	CollectionType
+@type																				
+@gen	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-
+Normal	Neutral	Vanguard	One	Soft	Material	Weapon	Attack	SelfOnly	Level	Item	Story	Material	Daily	Standard	Main	Narrator	Chapter	Buff	Character
+Rare	Flame	Skirmish	Two	Hard	Consumable	Armor	Defense	Ally	StageClear	Currency	Elite	Gold	Weekly	Limited	Sub	Hero	Level	Debuff	Equip
+Epic	Tide	Support	Three	Stamina	Equip	Helm	Health	AllyAll	ItemOwned	Character	Event	Element	Guild	Beginner	Daily	Ally	Quest	Shield	Monster
+Unique	Gale	Arcane	Four	Ticket	Currency	Boots	Crit	Enemy	QuestDone	Equip	Trial	Boss	Event	Step	Weekly	Villain	Item	Dot	Region
+Legend	Stone		Five	Shard	Chest	Ring	CritDamage	EnemyAll	Collection	Buff			Cash		Event	System		Hot	
+	Gloom			Token	Fragment	Amulet	Speed	Random	Login										
+							Evasion												
+							Accuracy												

@@ -1,0 +1,4 @@
+@desc	primary index	backing quest	points awarded	reset weekday, Monday is 0
+@name	id	questId	points	resetWeekday
+@type	Int	Int	Int	Int
+@gen	seq:1604000	ref:QuestTable	int:20..300	int:0..6

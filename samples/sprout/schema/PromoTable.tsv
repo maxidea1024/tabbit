@@ -1,0 +1,4 @@
+@desc	primary index	backing offer	banner asset	available days
+@name	id	offerId	banner	availableDays
+@type	Int	Int	String	Int
+@gen	seq:1804000	ref:OfferTable	path:60:Art/Banner	int:1..30

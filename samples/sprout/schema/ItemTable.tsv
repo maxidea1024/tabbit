@@ -1,0 +1,4 @@
+@desc	primary index	item name key	item kind	grade	icon asset	stack ceiling	sell price	tradable
+@name	id	nameKey	type	grade	icon	stackLimit	sellPrice	tradable
+@type	Int	String	enum:ItemType	enum:GradeType	String	Int	Int	Bool
+@gen	seq:1201000	str:ITEM_NAME:480	enum:ItemType	enum:GradeType	path:480:Art/Item	int:1..9999:zipf	int:0..12000:zipf	bool

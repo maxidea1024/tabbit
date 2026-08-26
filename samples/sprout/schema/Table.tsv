@@ -1,0 +1,4 @@
+@desc	primary index	name key	value
+@name	id	nameKey	value
+@type	Int	String	Int
+@gen	seq:2403000	str:MISC:45	int:0..1000

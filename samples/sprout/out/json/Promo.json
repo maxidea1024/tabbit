@@ -1,0 +1,92 @@
+[
+  {
+    "id": 1804000,
+    "offerId": 1205009,
+    "banner": "Art/Banner/Calyx/Cinder_26",
+    "availableDays": 27
+  },
+  {
+    "id": 1804001,
+    "offerId": 1205003,
+    "banner": "Art/Banner/Isle/CommonCinder_56",
+    "availableDays": 3
+  },
+  {
+    "id": 1804002,
+    "offerId": 1205013,
+    "banner": "Art/Banner/Gale/CommonMarrow_42",
+    "availableDays": 6
+  },
+  {
+    "id": 1804003,
+    "offerId": 1205006,
+    "banner": "Art/Banner/Calyx/CommonIsle_38",
+    "availableDays": 12
+  },
+  {
+    "id": 1804004,
+    "offerId": 1205009,
+    "banner": "Art/Banner/Fenn/Rune_17",
+    "availableDays": 6
+  },
+  {
+    "id": 1804005,
+    "offerId": 1205002,
+    "banner": "Art/Banner/Harrow/CommonBriar_55",
+    "availableDays": 8
+  },
+  {
+    "id": 1804006,
+    "offerId": 1205015,
+    "banner": "Art/Banner/Kelvin/CommonEmber_34",
+    "availableDays": 16
+  },
+  {
+    "id": 1804007,
+    "offerId": 1205015,
+    "banner": "Art/Banner/Isle/CommonCinder_56",
+    "availableDays": 1
+  },
+  {
+    "id": 1804008,
+    "offerId": 1205005,
+    "banner": "Art/Banner/Kelvin/CommonEmber_34",
+    "availableDays": 14
+  },
+  {
+    "id": 1804009,
+    "offerId": 1205013,
+    "banner": "Art/Banner/Gale/Gale_06",
+    "availableDays": 14
+  },
+  {
+    "id": 1804010,
+    "offerId": 1205015,
+    "banner": "Art/Banner/Gale/CommonAlder_30",
+    "availableDays": 6
+  },
+  {
+    "id": 1804011,
+    "offerId": 1205008,
+    "banner": "Art/Banner/Isle/CommonOchre_44",
+    "availableDays": 9
+  },
+  {
+    "id": 1804012,
+    "offerId": 1205000,
+    "banner": "Art/Banner/Harrow/CommonBrack_31",
+    "availableDays": 13
+  },
+  {
+    "id": 1804013,
+    "offerId": 1205001,
+    "banner": "Art/Banner/Gale/CommonAlder_30",
+    "availableDays": 1
+  },
+  {
+    "id": 1804014,
+    "offerId": 1205017,
+    "banner": "Art/Banner/Isle/Umber_20",
+    "availableDays": 27
+  }
+]

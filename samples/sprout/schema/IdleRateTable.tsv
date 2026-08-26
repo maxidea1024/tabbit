@@ -1,0 +1,4 @@
+@desc	primary index	highest stage cleared	rate in permille	accumulation cap in hours
+@name	id	stageId	rate	capHours
+@type	Int	Int	Int	Int
+@gen	seq:2102000	ref:StageTable	curve:1000:22:60	int:2..24

@@ -1,0 +1,479 @@
+[
+  {
+    "id": 1001000,
+    "nameKey": "CHAR_NAME_0045",
+    "portrait": "Art/Portrait/Jasp/CommonDorn_33",
+    "role": 4,
+    "element": 6,
+    "grade": 5,
+    "rarity": 2,
+    "skillIds": [
+      1101049,
+      1101028,
+      1101024
+    ],
+    "maxLevel": 75,
+    "released": false
+  },
+  {
+    "id": 1001001,
+    "nameKey": "CHAR_NAME_0094",
+    "portrait": "Art/Portrait/Alder/Marrow_12",
+    "role": 4,
+    "element": 4,
+    "grade": 2,
+    "rarity": 4,
+    "skillIds": [
+      1101058,
+      1101000
+    ],
+    "maxLevel": 106,
+    "released": true
+  },
+  {
+    "id": 1001002,
+    "nameKey": "CHAR_NAME_0044",
+    "portrait": "Art/Portrait/Harrow/Harrow_07",
+    "role": 2,
+    "element": 1,
+    "grade": 5,
+    "rarity": 4,
+    "skillIds": [
+      1101006,
+      1101036,
+      1101074,
+      1101046
+    ],
+    "maxLevel": 92,
+    "released": true
+  },
+  {
+    "id": 1001003,
+    "nameKey": "CHAR_NAME_0054",
+    "portrait": "Art/Portrait/Gale/CommonZephyr_54",
+    "role": 1,
+    "element": 5,
+    "grade": 5,
+    "rarity": 4,
+    "skillIds": [
+      1101021,
+      1101056,
+      1101065
+    ],
+    "maxLevel": 70,
+    "released": false
+  },
+  {
+    "id": 1001004,
+    "nameKey": "CHAR_NAME_0065",
+    "portrait": "Art/Portrait/Harrow/KeenThorn_79",
+    "role": 4,
+    "element": 1,
+    "grade": 2,
+    "rarity": 4,
+    "skillIds": [
+      1101037,
+      1101060
+    ],
+    "maxLevel": 111,
+    "released": false
+  },
+  {
+    "id": 1001005,
+    "nameKey": "CHAR_NAME_0084",
+    "portrait": "Art/Portrait/Gale/KeenSalt_78",
+    "role": 3,
+    "element": 1,
+    "grade": 4,
+    "rarity": 1,
+    "skillIds": [
+      1101034,
+      1101008
+    ],
+    "maxLevel": 83,
+    "released": false
+  },
+  {
+    "id": 1001006,
+    "nameKey": "CHAR_NAME_0035",
+    "portrait": "Art/Portrait/Lumen/CommonFenn_35",
+    "role": 3,
+    "element": 6,
+    "grade": 2,
+    "rarity": 3,
+    "skillIds": [
+      1101066,
+      1101010,
+      1101058,
+      1101013
+    ],
+    "maxLevel": 78,
+    "released": false
+  },
+  {
+    "id": 1001007,
+    "nameKey": "CHAR_NAME_0057",
+    "portrait": "Art/Portrait/Ember/KeenElm_88",
+    "role": 4,
+    "element": 2,
+    "grade": 4,
+    "rarity": 4,
+    "skillIds": [
+      1101008,
+      1101003,
+      1101005
+    ],
+    "maxLevel": 96,
+    "released": false
+  },
+  {
+    "id": 1001008,
+    "nameKey": "CHAR_NAME_0017",
+    "portrait": "Art/Portrait/Isle/CommonCinder_56",
+    "role": 3,
+    "element": 3,
+    "grade": 2,
+    "rarity": 5,
+    "skillIds": [
+      1101018,
+      1101046,
+      1101046
+    ],
+    "maxLevel": 62,
+    "released": false
+  },
+  {
+    "id": 1001009,
+    "nameKey": "CHAR_NAME_0032",
+    "portrait": "Art/Portrait/Dorn/WardedJasp_99",
+    "role": 1,
+    "element": 1,
+    "grade": 2,
+    "rarity": 4,
+    "skillIds": [
+      1101028,
+      1101017
+    ],
+    "maxLevel": 91,
+    "released": true
+  },
+  {
+    "id": 1001010,
+    "nameKey": "CHAR_NAME_0102",
+    "portrait": "Art/Portrait/Calyx/WardedUmber_10",
+    "role": 4,
+    "element": 6,
+    "grade": 1,
+    "rarity": 1,
+    "skillIds": [
+      1101025,
+      1101060
+    ],
+    "maxLevel": 102,
+    "released": false
+  },
+  {
+    "id": 1001011,
+    "nameKey": "CHAR_NAME_0029",
+    "portrait": "Art/Portrait/Isle/KeenIsle_68",
+    "role": 4,
+    "element": 6,
+    "grade": 5,
+    "rarity": 3,
+    "skillIds": [
+      1101074,
+      1101033,
+      1101064
+    ],
+    "maxLevel": 90,
+    "released": true
+  },
+  {
+    "id": 1001012,
+    "nameKey": "CHAR_NAME_0038",
+    "portrait": "Art/Portrait/Lumen/KeenYarrow_83",
+    "role": 2,
+    "element": 2,
+    "grade": 4,
+    "rarity": 2,
+    "skillIds": [
+      1101030,
+      1101038,
+      1101016
+    ],
+    "maxLevel": 72,
+    "released": false
+  },
+  {
+    "id": 1001013,
+    "nameKey": "CHAR_NAME_0044",
+    "portrait": "Art/Portrait/Kelvin/CommonQuill_46",
+    "role": 4,
+    "element": 2,
+    "grade": 1,
+    "rarity": 3,
+    "skillIds": [
+      1101047,
+      1101017
+    ],
+    "maxLevel": 96,
+    "released": false
+  },
+  {
+    "id": 1001014,
+    "nameKey": "CHAR_NAME_0044",
+    "portrait": "Art/Portrait/Alder/KeenZephyr_84",
+    "role": 1,
+    "element": 4,
+    "grade": 1,
+    "rarity": 2,
+    "skillIds": [
+      1101016,
+      1101074
+    ],
+    "maxLevel": 101,
+    "released": true
+  },
+  {
+    "id": 1001015,
+    "nameKey": "CHAR_NAME_0095",
+    "portrait": "Art/Portrait/Ember/WardedKelvin_00",
+    "role": 4,
+    "element": 5,
+    "grade": 2,
+    "rarity": 1,
+    "skillIds": [
+      1101027,
+      1101022
+    ],
+    "maxLevel": 118,
+    "released": false
+  },
+  {
+    "id": 1001016,
+    "nameKey": "CHAR_NAME_0089",
+    "portrait": "Art/Portrait/Calyx/KeenOchre_74",
+    "role": 4,
+    "element": 1,
+    "grade": 4,
+    "rarity": 1,
+    "skillIds": [
+      1101030,
+      1101000,
+      1101025,
+      1101060
+    ],
+    "maxLevel": 114,
+    "released": true
+  },
+  {
+    "id": 1001017,
+    "nameKey": "CHAR_NAME_0085",
+    "portrait": "Art/Portrait/Calyx/WardedIsle_98",
+    "role": 3,
+    "element": 1,
+    "grade": 2,
+    "rarity": 4,
+    "skillIds": [
+      1101030,
+      1101043
+    ],
+    "maxLevel": 60,
+    "released": true
+  },
+  {
+    "id": 1001018,
+    "nameKey": "CHAR_NAME_0021",
+    "portrait": "Art/Portrait/Ember/Elm_28",
+    "role": 1,
+    "element": 1,
+    "grade": 3,
+    "rarity": 2,
+    "skillIds": [
+      1101054,
+      1101045,
+      1101014
+    ],
+    "maxLevel": 65,
+    "released": false
+  },
+  {
+    "id": 1001019,
+    "nameKey": "CHAR_NAME_0073",
+    "portrait": "Art/Portrait/Lumen/WardedFlint_19",
+    "role": 3,
+    "element": 1,
+    "grade": 3,
+    "rarity": 1,
+    "skillIds": [
+      1101062,
+      1101078,
+      1101060
+    ],
+    "maxLevel": 72,
+    "released": false
+  },
+  {
+    "id": 1001020,
+    "nameKey": "CHAR_NAME_0069",
+    "portrait": "Art/Portrait/Alder/WardedSalt_08",
+    "role": 4,
+    "element": 4,
+    "grade": 1,
+    "rarity": 5,
+    "skillIds": [
+      1101003,
+      1101062,
+      1101010
+    ],
+    "maxLevel": 79,
+    "released": false
+  },
+  {
+    "id": 1001021,
+    "nameKey": "CHAR_NAME_0082",
+    "portrait": "Art/Portrait/Dorn/WardedJasp_99",
+    "role": 1,
+    "element": 6,
+    "grade": 2,
+    "rarity": 1,
+    "skillIds": [
+      1101010,
+      1101031,
+      1101031
+    ],
+    "maxLevel": 107,
+    "released": false
+  },
+  {
+    "id": 1001022,
+    "nameKey": "CHAR_NAME_0023",
+    "portrait": "Art/Portrait/Alder/WardedGale_96",
+    "role": 3,
+    "element": 3,
+    "grade": 5,
+    "rarity": 3,
+    "skillIds": [
+      1101061,
+      1101036,
+      1101023,
+      1101006
+    ],
+    "maxLevel": 116,
+    "released": true
+  },
+  {
+    "id": 1001023,
+    "nameKey": "CHAR_NAME_0099",
+    "portrait": "Art/Portrait/Ember/KeenElm_88",
+    "role": 1,
+    "element": 4,
+    "grade": 5,
+    "rarity": 1,
+    "skillIds": [
+      1101046,
+      1101006,
+      1101051
+    ],
+    "maxLevel": 112,
+    "released": false
+  },
+  {
+    "id": 1001024,
+    "nameKey": "CHAR_NAME_0071",
+    "portrait": "Art/Portrait/Brack/KeenBriar_85",
+    "role": 1,
+    "element": 5,
+    "grade": 2,
+    "rarity": 5,
+    "skillIds": [
+      1101047,
+      1101053,
+      1101030
+    ],
+    "maxLevel": 98,
+    "released": true
+  },
+  {
+    "id": 1001025,
+    "nameKey": "CHAR_NAME_0042",
+    "portrait": "Art/Portrait/Lumen/Lumen_11",
+    "role": 4,
+    "element": 5,
+    "grade": 4,
+    "rarity": 5,
+    "skillIds": [
+      1101006,
+      1101074,
+      1101029,
+      1101046
+    ],
+    "maxLevel": 60,
+    "released": false
+  },
+  {
+    "id": 1001026,
+    "nameKey": "CHAR_NAME_0017",
+    "portrait": "Art/Portrait/Harrow/WardedNettle_03",
+    "role": 1,
+    "element": 6,
+    "grade": 5,
+    "rarity": 4,
+    "skillIds": [
+      1101035,
+      1101015,
+      1101045,
+      1101031
+    ],
+    "maxLevel": 91,
+    "released": true
+  },
+  {
+    "id": 1001027,
+    "nameKey": "CHAR_NAME_0020",
+    "portrait": "Art/Portrait/Harrow/WardedNettle_03",
+    "role": 3,
+    "element": 4,
+    "grade": 1,
+    "rarity": 3,
+    "skillIds": [
+      1101039,
+      1101022,
+      1101066,
+      1101010
+    ],
+    "maxLevel": 88,
+    "released": true
+  },
+  {
+    "id": 1001028,
+    "nameKey": "CHAR_NAME_0011",
+    "portrait": "Art/Portrait/Gale/KeenSalt_78",
+    "role": 3,
+    "element": 3,
+    "grade": 5,
+    "rarity": 4,
+    "skillIds": [
+      1101030,
+      1101046
+    ],
+    "maxLevel": 90,
+    "released": false
+  },
+  {
+    "id": 1001029,
+    "nameKey": "CHAR_NAME_0038",
+    "portrait": "Art/Portrait/Lumen/WardedRune_07",
+    "role": 4,
+    "element": 4,
+    "grade": 3,
+    "rarity": 1,
+    "skillIds": [
+      1101050,
+      1101047,
+      1101010
+    ],
+    "maxLevel": 117,
+    "released": false
+  }
+]

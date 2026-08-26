@@ -1,0 +1,4 @@
+@desc	primary index	owning character	ascension step	material item ids	material counts	soft currency cost	stat multiplier
+@name	id	characterId	step	materialIds	materialCounts	goldCost	statScale
+@type	Int	Int	Int	IntArray	IntArray	Long	Float
+@gen	seq:1003000	ref:CharacterTable	cycle:6	arr:ref:MaterialTable:1..3	arr:int:1..40:1..3	curve:5000:12000:6	float:1.0..3.4:3

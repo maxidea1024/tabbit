@@ -1,0 +1,702 @@
+[
+  {
+    "id": 1302000,
+    "grade": 5,
+    "level": 0,
+    "statScale": 1000,
+    "cost": "400"
+  },
+  {
+    "id": 1302001,
+    "grade": 2,
+    "level": 1,
+    "statScale": 1038,
+    "cost": "2300"
+  },
+  {
+    "id": 1302002,
+    "grade": 4,
+    "level": 2,
+    "statScale": 1077,
+    "cost": "4201"
+  },
+  {
+    "id": 1302003,
+    "grade": 3,
+    "level": 3,
+    "statScale": 1116,
+    "cost": "6102"
+  },
+  {
+    "id": 1302004,
+    "grade": 3,
+    "level": 4,
+    "statScale": 1156,
+    "cost": "8004"
+  },
+  {
+    "id": 1302005,
+    "grade": 4,
+    "level": 5,
+    "statScale": 1196,
+    "cost": "9906"
+  },
+  {
+    "id": 1302006,
+    "grade": 1,
+    "level": 6,
+    "statScale": 1237,
+    "cost": "11809"
+  },
+  {
+    "id": 1302007,
+    "grade": 5,
+    "level": 7,
+    "statScale": 1278,
+    "cost": "13712"
+  },
+  {
+    "id": 1302008,
+    "grade": 2,
+    "level": 8,
+    "statScale": 1320,
+    "cost": "15616"
+  },
+  {
+    "id": 1302009,
+    "grade": 1,
+    "level": 9,
+    "statScale": 1362,
+    "cost": "17520"
+  },
+  {
+    "id": 1302010,
+    "grade": 3,
+    "level": 10,
+    "statScale": 1405,
+    "cost": "19425"
+  },
+  {
+    "id": 1302011,
+    "grade": 1,
+    "level": 11,
+    "statScale": 1448,
+    "cost": "21330"
+  },
+  {
+    "id": 1302012,
+    "grade": 2,
+    "level": 12,
+    "statScale": 1492,
+    "cost": "23236"
+  },
+  {
+    "id": 1302013,
+    "grade": 1,
+    "level": 13,
+    "statScale": 1536,
+    "cost": "25142"
+  },
+  {
+    "id": 1302014,
+    "grade": 3,
+    "level": 14,
+    "statScale": 1581,
+    "cost": "27049"
+  },
+  {
+    "id": 1302015,
+    "grade": 3,
+    "level": 15,
+    "statScale": 1626,
+    "cost": "28956"
+  },
+  {
+    "id": 1302016,
+    "grade": 3,
+    "level": 16,
+    "statScale": 1672,
+    "cost": "30864"
+  },
+  {
+    "id": 1302017,
+    "grade": 2,
+    "level": 17,
+    "statScale": 1718,
+    "cost": "32772"
+  },
+  {
+    "id": 1302018,
+    "grade": 1,
+    "level": 18,
+    "statScale": 1765,
+    "cost": "34681"
+  },
+  {
+    "id": 1302019,
+    "grade": 1,
+    "level": 19,
+    "statScale": 1812,
+    "cost": "36590"
+  },
+  {
+    "id": 1302020,
+    "grade": 3,
+    "level": 20,
+    "statScale": 1860,
+    "cost": "38500"
+  },
+  {
+    "id": 1302021,
+    "grade": 1,
+    "level": 21,
+    "statScale": 1908,
+    "cost": "40410"
+  },
+  {
+    "id": 1302022,
+    "grade": 1,
+    "level": 22,
+    "statScale": 1957,
+    "cost": "42321"
+  },
+  {
+    "id": 1302023,
+    "grade": 4,
+    "level": 23,
+    "statScale": 2006,
+    "cost": "44232"
+  },
+  {
+    "id": 1302024,
+    "grade": 2,
+    "level": 24,
+    "statScale": 2056,
+    "cost": "46144"
+  },
+  {
+    "id": 1302025,
+    "grade": 4,
+    "level": 25,
+    "statScale": 2106,
+    "cost": "48056"
+  },
+  {
+    "id": 1302026,
+    "grade": 2,
+    "level": 26,
+    "statScale": 2157,
+    "cost": "49969"
+  },
+  {
+    "id": 1302027,
+    "grade": 2,
+    "level": 27,
+    "statScale": 2208,
+    "cost": "51882"
+  },
+  {
+    "id": 1302028,
+    "grade": 2,
+    "level": 28,
+    "statScale": 2260,
+    "cost": "53796"
+  },
+  {
+    "id": 1302029,
+    "grade": 5,
+    "level": 29,
+    "statScale": 2312,
+    "cost": "55710"
+  },
+  {
+    "id": 1302030,
+    "grade": 5,
+    "level": 30,
+    "statScale": 2365,
+    "cost": "57625"
+  },
+  {
+    "id": 1302031,
+    "grade": 1,
+    "level": 31,
+    "statScale": 2418,
+    "cost": "59540"
+  },
+  {
+    "id": 1302032,
+    "grade": 2,
+    "level": 32,
+    "statScale": 2472,
+    "cost": "61456"
+  },
+  {
+    "id": 1302033,
+    "grade": 5,
+    "level": 33,
+    "statScale": 2526,
+    "cost": "63372"
+  },
+  {
+    "id": 1302034,
+    "grade": 3,
+    "level": 34,
+    "statScale": 2581,
+    "cost": "65289"
+  },
+  {
+    "id": 1302035,
+    "grade": 3,
+    "level": 35,
+    "statScale": 2636,
+    "cost": "67206"
+  },
+  {
+    "id": 1302036,
+    "grade": 2,
+    "level": 36,
+    "statScale": 2692,
+    "cost": "69124"
+  },
+  {
+    "id": 1302037,
+    "grade": 2,
+    "level": 37,
+    "statScale": 2748,
+    "cost": "71042"
+  },
+  {
+    "id": 1302038,
+    "grade": 3,
+    "level": 38,
+    "statScale": 2805,
+    "cost": "72961"
+  },
+  {
+    "id": 1302039,
+    "grade": 1,
+    "level": 39,
+    "statScale": 2862,
+    "cost": "74880"
+  },
+  {
+    "id": 1302040,
+    "grade": 5,
+    "level": 40,
+    "statScale": 2920,
+    "cost": "76800"
+  },
+  {
+    "id": 1302041,
+    "grade": 5,
+    "level": 41,
+    "statScale": 2978,
+    "cost": "78720"
+  },
+  {
+    "id": 1302042,
+    "grade": 2,
+    "level": 42,
+    "statScale": 3037,
+    "cost": "80641"
+  },
+  {
+    "id": 1302043,
+    "grade": 4,
+    "level": 43,
+    "statScale": 3096,
+    "cost": "82562"
+  },
+  {
+    "id": 1302044,
+    "grade": 3,
+    "level": 44,
+    "statScale": 3156,
+    "cost": "84484"
+  },
+  {
+    "id": 1302045,
+    "grade": 3,
+    "level": 45,
+    "statScale": 3216,
+    "cost": "86406"
+  },
+  {
+    "id": 1302046,
+    "grade": 3,
+    "level": 46,
+    "statScale": 3277,
+    "cost": "88329"
+  },
+  {
+    "id": 1302047,
+    "grade": 3,
+    "level": 47,
+    "statScale": 3338,
+    "cost": "90252"
+  },
+  {
+    "id": 1302048,
+    "grade": 4,
+    "level": 48,
+    "statScale": 3400,
+    "cost": "92176"
+  },
+  {
+    "id": 1302049,
+    "grade": 1,
+    "level": 49,
+    "statScale": 3462,
+    "cost": "94100"
+  },
+  {
+    "id": 1302050,
+    "grade": 2,
+    "level": 50,
+    "statScale": 3525,
+    "cost": "96025"
+  },
+  {
+    "id": 1302051,
+    "grade": 5,
+    "level": 51,
+    "statScale": 3588,
+    "cost": "97950"
+  },
+  {
+    "id": 1302052,
+    "grade": 3,
+    "level": 52,
+    "statScale": 3652,
+    "cost": "99876"
+  },
+  {
+    "id": 1302053,
+    "grade": 4,
+    "level": 53,
+    "statScale": 3716,
+    "cost": "101802"
+  },
+  {
+    "id": 1302054,
+    "grade": 5,
+    "level": 54,
+    "statScale": 3781,
+    "cost": "103729"
+  },
+  {
+    "id": 1302055,
+    "grade": 2,
+    "level": 55,
+    "statScale": 3846,
+    "cost": "105656"
+  },
+  {
+    "id": 1302056,
+    "grade": 3,
+    "level": 56,
+    "statScale": 3912,
+    "cost": "107584"
+  },
+  {
+    "id": 1302057,
+    "grade": 1,
+    "level": 57,
+    "statScale": 3978,
+    "cost": "109512"
+  },
+  {
+    "id": 1302058,
+    "grade": 4,
+    "level": 58,
+    "statScale": 4045,
+    "cost": "111441"
+  },
+  {
+    "id": 1302059,
+    "grade": 5,
+    "level": 59,
+    "statScale": 4112,
+    "cost": "113370"
+  },
+  {
+    "id": 1302060,
+    "grade": 2,
+    "level": 60,
+    "statScale": 4180,
+    "cost": "115300"
+  },
+  {
+    "id": 1302061,
+    "grade": 4,
+    "level": 61,
+    "statScale": 4248,
+    "cost": "117230"
+  },
+  {
+    "id": 1302062,
+    "grade": 5,
+    "level": 62,
+    "statScale": 4317,
+    "cost": "119161"
+  },
+  {
+    "id": 1302063,
+    "grade": 2,
+    "level": 63,
+    "statScale": 4386,
+    "cost": "121092"
+  },
+  {
+    "id": 1302064,
+    "grade": 4,
+    "level": 64,
+    "statScale": 4456,
+    "cost": "123024"
+  },
+  {
+    "id": 1302065,
+    "grade": 4,
+    "level": 65,
+    "statScale": 4526,
+    "cost": "124956"
+  },
+  {
+    "id": 1302066,
+    "grade": 2,
+    "level": 66,
+    "statScale": 4597,
+    "cost": "126889"
+  },
+  {
+    "id": 1302067,
+    "grade": 5,
+    "level": 67,
+    "statScale": 4668,
+    "cost": "128822"
+  },
+  {
+    "id": 1302068,
+    "grade": 3,
+    "level": 68,
+    "statScale": 4740,
+    "cost": "130756"
+  },
+  {
+    "id": 1302069,
+    "grade": 4,
+    "level": 69,
+    "statScale": 4812,
+    "cost": "132690"
+  },
+  {
+    "id": 1302070,
+    "grade": 1,
+    "level": 70,
+    "statScale": 4885,
+    "cost": "134625"
+  },
+  {
+    "id": 1302071,
+    "grade": 2,
+    "level": 71,
+    "statScale": 4958,
+    "cost": "136560"
+  },
+  {
+    "id": 1302072,
+    "grade": 3,
+    "level": 72,
+    "statScale": 5032,
+    "cost": "138496"
+  },
+  {
+    "id": 1302073,
+    "grade": 5,
+    "level": 73,
+    "statScale": 5106,
+    "cost": "140432"
+  },
+  {
+    "id": 1302074,
+    "grade": 3,
+    "level": 74,
+    "statScale": 5181,
+    "cost": "142369"
+  },
+  {
+    "id": 1302075,
+    "grade": 5,
+    "level": 75,
+    "statScale": 5256,
+    "cost": "144306"
+  },
+  {
+    "id": 1302076,
+    "grade": 5,
+    "level": 76,
+    "statScale": 5332,
+    "cost": "146244"
+  },
+  {
+    "id": 1302077,
+    "grade": 3,
+    "level": 77,
+    "statScale": 5408,
+    "cost": "148182"
+  },
+  {
+    "id": 1302078,
+    "grade": 3,
+    "level": 78,
+    "statScale": 5485,
+    "cost": "150121"
+  },
+  {
+    "id": 1302079,
+    "grade": 2,
+    "level": 79,
+    "statScale": 5562,
+    "cost": "152060"
+  },
+  {
+    "id": 1302080,
+    "grade": 2,
+    "level": 0,
+    "statScale": 1000,
+    "cost": "400"
+  },
+  {
+    "id": 1302081,
+    "grade": 2,
+    "level": 1,
+    "statScale": 1038,
+    "cost": "2300"
+  },
+  {
+    "id": 1302082,
+    "grade": 2,
+    "level": 2,
+    "statScale": 1077,
+    "cost": "4201"
+  },
+  {
+    "id": 1302083,
+    "grade": 4,
+    "level": 3,
+    "statScale": 1116,
+    "cost": "6102"
+  },
+  {
+    "id": 1302084,
+    "grade": 1,
+    "level": 4,
+    "statScale": 1156,
+    "cost": "8004"
+  },
+  {
+    "id": 1302085,
+    "grade": 4,
+    "level": 5,
+    "statScale": 1196,
+    "cost": "9906"
+  },
+  {
+    "id": 1302086,
+    "grade": 2,
+    "level": 6,
+    "statScale": 1237,
+    "cost": "11809"
+  },
+  {
+    "id": 1302087,
+    "grade": 1,
+    "level": 7,
+    "statScale": 1278,
+    "cost": "13712"
+  },
+  {
+    "id": 1302088,
+    "grade": 2,
+    "level": 8,
+    "statScale": 1320,
+    "cost": "15616"
+  },
+  {
+    "id": 1302089,
+    "grade": 2,
+    "level": 9,
+    "statScale": 1362,
+    "cost": "17520"
+  },
+  {
+    "id": 1302090,
+    "grade": 1,
+    "level": 10,
+    "statScale": 1405,
+    "cost": "19425"
+  },
+  {
+    "id": 1302091,
+    "grade": 4,
+    "level": 11,
+    "statScale": 1448,
+    "cost": "21330"
+  },
+  {
+    "id": 1302092,
+    "grade": 4,
+    "level": 12,
+    "statScale": 1492,
+    "cost": "23236"
+  },
+  {
+    "id": 1302093,
+    "grade": 5,
+    "level": 13,
+    "statScale": 1536,
+    "cost": "25142"
+  },
+  {
+    "id": 1302094,
+    "grade": 3,
+    "level": 14,
+    "statScale": 1581,
+    "cost": "27049"
+  },
+  {
+    "id": 1302095,
+    "grade": 4,
+    "level": 15,
+    "statScale": 1626,
+    "cost": "28956"
+  },
+  {
+    "id": 1302096,
+    "grade": 4,
+    "level": 16,
+    "statScale": 1672,
+    "cost": "30864"
+  },
+  {
+    "id": 1302097,
+    "grade": 4,
+    "level": 17,
+    "statScale": 1718,
+    "cost": "32772"
+  },
+  {
+    "id": 1302098,
+    "grade": 5,
+    "level": 18,
+    "statScale": 1765,
+    "cost": "34681"
+  },
+  {
+    "id": 1302099,
+    "grade": 1,
+    "level": 19,
+    "statScale": 1812,
+    "cost": "36590"
+  }
+]
