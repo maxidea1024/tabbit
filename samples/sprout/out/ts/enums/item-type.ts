@@ -7,7 +7,7 @@
 // </auto-generated>
 // ------------------------------------------------------------------------------
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : F2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : F2
 /** labels for ItemType */
 export enum ItemType {
   /** None (automatically inserted by Tabbit) */

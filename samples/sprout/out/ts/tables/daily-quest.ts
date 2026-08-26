@@ -23,7 +23,7 @@ interface IDataRow {
   resetHour: number
 }
 
-// Generated from samples/sprout/Quest.xlsx : DailyQuestTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : DailyQuestTable : A1
 export class DailyQuestRecord {
   /** Default constructor */
   constructor() {
@@ -64,7 +64,7 @@ export class DailyQuestRecord {
   }
 }
 
-// Generated from samples/sprout/Quest.xlsx : DailyQuestTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : DailyQuestTable : A1
 export class DailyQuestTable {
   /** Default constructor. */
   constructor() {

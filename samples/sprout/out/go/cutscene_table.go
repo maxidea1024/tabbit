@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// CutsceneRecord was generated from samples/sprout/Dialogue.xlsx : CutsceneTable : A1.
+// CutsceneRecord was generated from samples/sprout/xlsx/Dialogue.xlsx : CutsceneTable : A1.
 type CutsceneRecord struct {
 	// primary index
 	Id int32

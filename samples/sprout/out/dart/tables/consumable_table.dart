@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Item.xlsx : ConsumableTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : ConsumableTable : A1
 class ConsumableRecord {
   /// primary index
   int id = 0;

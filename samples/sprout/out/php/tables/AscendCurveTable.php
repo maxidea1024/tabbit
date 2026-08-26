@@ -21,7 +21,7 @@ use Tabbit\RecordNotFoundException;
 use Tabbit\Uuid;
 
 /**
- * Generated from samples/sprout/Growth.xlsx : AscendCurveTable : A1
+ * Generated from samples/sprout/xlsx/Growth.xlsx : AscendCurveTable : A1
  */
 final class AscendCurveRecord
 {

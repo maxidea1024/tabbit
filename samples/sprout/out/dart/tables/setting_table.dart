@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Setting.xlsx : SettingTable : A1
+// Generated from samples/sprout/xlsx/Setting.xlsx : SettingTable : A1
 class SettingRecord {
   /// setting key
   String settingKey = '';

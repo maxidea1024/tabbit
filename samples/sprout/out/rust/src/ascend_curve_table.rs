@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_grade_type::GradeType;
 
-// Generated from samples/sprout/Growth.xlsx : AscendCurveTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : AscendCurveTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct AscendCurveRecord {
     /// primary index

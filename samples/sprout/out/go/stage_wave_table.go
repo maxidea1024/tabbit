@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// StageWaveRecord was generated from samples/sprout/Stage.xlsx : StageWaveTable : A1.
+// StageWaveRecord was generated from samples/sprout/xlsx/Stage.xlsx : StageWaveTable : A1.
 type StageWaveRecord struct {
 	// primary index
 	Id int32

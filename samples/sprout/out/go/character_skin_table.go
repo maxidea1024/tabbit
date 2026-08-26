@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// CharacterSkinRecord was generated from samples/sprout/Character.xlsx : CharacterSkinTable : A1.
+// CharacterSkinRecord was generated from samples/sprout/xlsx/Character.xlsx : CharacterSkinTable : A1.
 type CharacterSkinRecord struct {
 	// primary index
 	Id int32

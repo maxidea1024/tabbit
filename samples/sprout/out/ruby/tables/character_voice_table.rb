@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Character.xlsx : CharacterVoiceTable : A1
+  # Generated from samples/sprout/xlsx/Character.xlsx : CharacterVoiceTable : A1
   class CharacterVoiceRecord
     attr_accessor :id, :character_id, :cue, :clip, :subtitle_key
 

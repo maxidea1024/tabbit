@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Character.xlsx : CharacterAscendTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterAscendTable : A1
 public final class CharacterAscendRecord {
 
     public init() {}

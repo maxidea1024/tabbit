@@ -7,7 +7,7 @@
 
 
 module Sprout
-  # Generated from samples/sprout/Enums.xlsx : TableEnums : T2
+  # Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : T2
   # labels for CollectionType
   module CollectionType
     # None (automatically inserted by Tabbit)

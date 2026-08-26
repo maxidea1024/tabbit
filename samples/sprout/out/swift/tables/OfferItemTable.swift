@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Item.xlsx : OfferItemTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : OfferItemTable : A1
 public final class OfferItemRecord {
 
     public init() {}

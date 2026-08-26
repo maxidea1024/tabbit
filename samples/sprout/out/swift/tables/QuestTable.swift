@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Quest.xlsx : QuestTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : QuestTable : A1
 public final class QuestRecord {
 
     public init() {}

@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// EquipOptionRecord was generated from samples/sprout/Equipment.xlsx : EquipOptionTable : A1.
+// EquipOptionRecord was generated from samples/sprout/xlsx/Equipment.xlsx : EquipOptionTable : A1.
 type EquipOptionRecord struct {
 	// primary index
 	Id int32

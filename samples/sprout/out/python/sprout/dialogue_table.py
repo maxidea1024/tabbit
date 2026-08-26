@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class DialogueRecord:
-    """Generated from samples/sprout/Dialogue.xlsx : DialogueTable : A1.
+    """Generated from samples/sprout/xlsx/Dialogue.xlsx : DialogueTable : A1.
     """
 
     __slots__ = ("id", "scene_key", "cutscene_id", "skippable")

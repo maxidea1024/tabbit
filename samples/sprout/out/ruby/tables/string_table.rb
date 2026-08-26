@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Localization.xlsx : StringTable : A1
+  # Generated from samples/sprout/xlsx/Localization.xlsx : StringTable : A1
   class StringRecord
     attr_accessor :string_key, :en, :ko, :ja
 

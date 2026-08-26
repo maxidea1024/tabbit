@@ -9,7 +9,7 @@ package sprout;
 
 import tabbit.TcbReader;
 
-// Generated from samples/sprout/Skill.xlsx : PassiveTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : PassiveTable : A1
 public final class PassiveRecord {
     /** primary index */
     public int id;

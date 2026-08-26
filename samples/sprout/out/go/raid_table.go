@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// RaidRecord was generated from samples/sprout/Dungeon.xlsx : RaidTable : A1.
+// RaidRecord was generated from samples/sprout/xlsx/Dungeon.xlsx : RaidTable : A1.
 type RaidRecord struct {
 	// primary index
 	Id int32

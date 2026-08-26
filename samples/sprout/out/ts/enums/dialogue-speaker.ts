@@ -7,7 +7,7 @@
 // </auto-generated>
 // ------------------------------------------------------------------------------
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : Q2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : Q2
 /** labels for DialogueSpeaker */
 export enum DialogueSpeaker {
   /** None (automatically inserted by Tabbit) */

@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class GachaType(enum.IntEnum):
-    """Generated from samples/sprout/Enums.xlsx : TableEnums : O2.
+    """Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : O2.
 
     labels for GachaType
     """

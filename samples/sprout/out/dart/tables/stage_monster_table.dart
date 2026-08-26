@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Stage.xlsx : StageMonsterTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : StageMonsterTable : A1
 class StageMonsterRecord {
   /// primary index
   int id = 0;

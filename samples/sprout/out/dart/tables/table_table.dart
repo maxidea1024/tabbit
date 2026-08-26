@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Setting.xlsx : Table : A1
+// Generated from samples/sprout/xlsx/Setting.xlsx : Table : A1
 class TableRecord {
   /// primary index
   int id = 0;

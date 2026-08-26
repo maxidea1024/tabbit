@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Dialogue.xlsx : DialogueTable : A1
+// Generated from samples/sprout/xlsx/Dialogue.xlsx : DialogueTable : A1
 class DialogueRecord {
     /** primary index */
     var id: Int = 0

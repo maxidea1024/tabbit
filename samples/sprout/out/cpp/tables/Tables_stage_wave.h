@@ -20,7 +20,7 @@
 #include "Tables_forward.h"
 
 namespace sprout {
-// Generated from samples/sprout/Stage.xlsx : StageWaveTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : StageWaveTable : A1
 struct StageWaveRecord {
   /// primary index
   std::int32_t id = 0;

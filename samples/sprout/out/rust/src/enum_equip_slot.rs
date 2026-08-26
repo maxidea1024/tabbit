@@ -5,7 +5,7 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : G2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : G2
 /// labels for EquipSlot
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 #[repr(i32)]

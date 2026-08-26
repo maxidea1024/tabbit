@@ -24,7 +24,7 @@ interface IDataRow {
   lootGroupId: number
 }
 
-// Generated from samples/sprout/Offline.xlsx : OfflineRewardTable : A1
+// Generated from samples/sprout/xlsx/Offline.xlsx : OfflineRewardTable : A1
 export class OfflineRewardRecord {
   /** Default constructor */
   constructor() {
@@ -71,7 +71,7 @@ export class OfflineRewardRecord {
   }
 }
 
-// Generated from samples/sprout/Offline.xlsx : OfflineRewardTable : A1
+// Generated from samples/sprout/xlsx/Offline.xlsx : OfflineRewardTable : A1
 export class OfflineRewardTable {
   /** Default constructor. */
   constructor() {

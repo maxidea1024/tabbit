@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// QuestStepRecord was generated from samples/sprout/Quest.xlsx : QuestStepTable : A1.
+// QuestStepRecord was generated from samples/sprout/xlsx/Quest.xlsx : QuestStepTable : A1.
 type QuestStepRecord struct {
 	// primary index
 	Id int32

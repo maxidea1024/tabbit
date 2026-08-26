@@ -11,7 +11,7 @@ use crate::tabbit;
 use crate::enum_dungeon_type::DungeonType;
 use crate::enum_element_type::ElementType;
 
-// Generated from samples/sprout/Dungeon.xlsx : DungeonTable : A1
+// Generated from samples/sprout/xlsx/Dungeon.xlsx : DungeonTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct DungeonRecord {
     /// primary index

@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_grade_type::GradeType;
 
-// Generated from samples/sprout/Gacha.xlsx : PityTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : PityTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct PityRecord {
     /// primary index

@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// ItemType was generated from samples/sprout/Enums.xlsx : TableEnums : F2.
+// ItemType was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : F2.
 // labels for ItemType
 type ItemType int32
 

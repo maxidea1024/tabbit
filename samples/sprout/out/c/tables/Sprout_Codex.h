@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Codex.xlsx : CodexTable : A1
+/* Generated from samples/sprout/xlsx/Codex.xlsx : CodexTable : A1
  */
 struct Sprout_CodexRecord_t {
   /* primary index */

@@ -7,7 +7,7 @@
 
 package sprout;
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : C2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : C2
 /** labels for RoleType */
 public enum RoleType {
     /** None (automatically inserted by Tabbit) */

@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// ElementType was generated from samples/sprout/Enums.xlsx : TableEnums : B2.
+// ElementType was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : B2.
 // labels for ElementType
 type ElementType int32
 

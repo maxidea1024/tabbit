@@ -21,7 +21,7 @@ use Tabbit\RecordNotFoundException;
 use Tabbit\Uuid;
 
 /**
- * Generated from samples/sprout/Item.xlsx : MaterialTable : A1
+ * Generated from samples/sprout/xlsx/Item.xlsx : MaterialTable : A1
  */
 final class MaterialRecord
 {

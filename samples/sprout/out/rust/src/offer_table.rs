@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_shop_type::ShopType;
 
-// Generated from samples/sprout/Item.xlsx : OfferTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : OfferTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct OfferRecord {
     /// primary index

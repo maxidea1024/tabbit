@@ -39,7 +39,7 @@ internal static class Program
             return 1;
         }
 
-        string outDir = Argument(args, "--out") ?? root;
+        string outDir = Argument(args, "--out") ?? Path.Combine(root, "xlsx");
         Directory.CreateDirectory(outDir);
 
         var plan = Placement.Read(Path.Combine(root, "gen", "workbooks.tsv"));

@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// RewardType was generated from samples/sprout/Enums.xlsx : TableEnums : K2.
+// RewardType was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : K2.
 // labels for RewardType
 type RewardType int32
 

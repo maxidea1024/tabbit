@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class MailRewardRecord:
-    """Generated from samples/sprout/Reward.xlsx : MailRewardTable : A1.
+    """Generated from samples/sprout/xlsx/Reward.xlsx : MailRewardTable : A1.
     """
 
     __slots__ = ("id", "title_key", "body_key", "reward_id", "expiry_days")

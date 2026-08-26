@@ -22,7 +22,7 @@
 #include "enums/Tables_enum_stat_type.h"
 
 namespace sprout {
-// Generated from samples/sprout/Character.xlsx : RoleBonusTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : RoleBonusTable : A1
 struct RoleBonusRecord {
   /// primary index
   std::int32_t id = 0;

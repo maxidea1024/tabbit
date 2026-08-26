@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// EquipSlot was generated from samples/sprout/Enums.xlsx : TableEnums : G2.
+// EquipSlot was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : G2.
 // labels for EquipSlot
 type EquipSlot int32
 

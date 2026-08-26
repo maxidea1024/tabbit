@@ -21,7 +21,7 @@ use Tabbit\RecordNotFoundException;
 use Tabbit\Uuid;
 
 /**
- * Generated from samples/sprout/Character.xlsx : ElementAffinityTable : A1
+ * Generated from samples/sprout/xlsx/Character.xlsx : ElementAffinityTable : A1
  */
 final class ElementAffinityRecord
 {

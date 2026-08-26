@@ -1,0 +1,8 @@
+@name	id	zoneId	actorId	x	y	respawnSeconds	count	patrolId	state
+@type	key:26000000~26999999	number	number	number	number	number	number	number	string
+:required	1	1	1	1	1	1	1	-	1
+:min	26000000	25000000	10000000	-32000	-32000	5	1	1	-
+:max	26999999	25999999	10999999	32000	32000	7200	40	9999	-
+:enum	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:links	-	"Zone"	"Profile"	-	-	-	-	-	-
+@gen	seq:26000000	ref:Zone	ref:Profile	int:-32000..32000	int:-32000..32000	int:5..7200:zipf	int:1..40:zipf	?20 int:1..9999:zipf	pick:draft|review|live|retired

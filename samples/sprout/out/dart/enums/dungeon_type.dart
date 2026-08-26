@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Enums.xlsx : TableEnums : M2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : M2
 /// labels for DungeonType
 enum DungeonType {
   /// None (automatically inserted by Tabbit)

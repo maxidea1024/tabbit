@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// EquipLevelRecord was generated from samples/sprout/Equipment.xlsx : EquipLevelTable : A1.
+// EquipLevelRecord was generated from samples/sprout/xlsx/Equipment.xlsx : EquipLevelTable : A1.
 type EquipLevelRecord struct {
 	// primary index
 	Id int32

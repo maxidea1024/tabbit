@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Dialogue.xlsx : DialogueLineTable : A1
+// Generated from samples/sprout/xlsx/Dialogue.xlsx : DialogueLineTable : A1
 public final class DialogueLineRecord {
 
     public init() {}

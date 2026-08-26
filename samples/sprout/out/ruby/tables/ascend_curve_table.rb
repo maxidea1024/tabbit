@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Growth.xlsx : AscendCurveTable : A1
+  # Generated from samples/sprout/xlsx/Growth.xlsx : AscendCurveTable : A1
   class AscendCurveRecord
     attr_accessor :id, :grade, :step, :scale
 

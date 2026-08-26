@@ -27,7 +27,7 @@ interface IDataRow {
   freeRefresh: number
 }
 
-// Generated from samples/sprout/Shop.xlsx : ShopTable : A1
+// Generated from samples/sprout/xlsx/Shop.xlsx : ShopTable : A1
 export class ShopRecord {
   /** Default constructor */
   constructor() {
@@ -74,7 +74,7 @@ export class ShopRecord {
   }
 }
 
-// Generated from samples/sprout/Shop.xlsx : ShopTable : A1
+// Generated from samples/sprout/xlsx/Shop.xlsx : ShopTable : A1
 export class ShopTable {
   /** Default constructor. */
   constructor() {

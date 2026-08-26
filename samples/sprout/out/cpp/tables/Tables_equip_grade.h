@@ -21,7 +21,7 @@
 #include "enums/Tables_enum_grade_type.h"
 
 namespace sprout {
-// Generated from samples/sprout/Equipment.xlsx : EquipGradeTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipGradeTable : A1
 struct EquipGradeRecord {
   /// primary index
   std::int32_t id = 0;

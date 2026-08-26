@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Equipment.xlsx : EquipLevelTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipLevelTable : A1
 public final class EquipLevelRecord {
 
     public init() {}

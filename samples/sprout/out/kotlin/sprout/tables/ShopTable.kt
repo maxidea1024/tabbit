@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Shop.xlsx : ShopTable : A1
+// Generated from samples/sprout/xlsx/Shop.xlsx : ShopTable : A1
 class ShopRecord {
     /** primary index */
     var id: Int = 0

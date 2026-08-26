@@ -9,7 +9,7 @@
 #ifndef SPROUT_ENUM_BUFF_KIND_H
 #define SPROUT_ENUM_BUFF_KIND_H
 
-/* Generated from samples/sprout/Enums.xlsx : TableEnums : S2
+/* Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : S2
  *
  * labels for BuffKind
  */

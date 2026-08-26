@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Quest.xlsx : AchievementTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : AchievementTable : A1
 class AchievementRecord {
   /// primary index
   int id = 0;

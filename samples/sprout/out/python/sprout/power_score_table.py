@@ -13,7 +13,7 @@ from .enum_stat_type import StatType
 
 
 class PowerScoreRecord:
-    """Generated from samples/sprout/Growth.xlsx : PowerScoreTable : A1.
+    """Generated from samples/sprout/xlsx/Growth.xlsx : PowerScoreTable : A1.
     """
 
     __slots__ = ("id", "stat", "weight")

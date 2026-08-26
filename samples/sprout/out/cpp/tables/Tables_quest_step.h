@@ -20,7 +20,7 @@
 #include "Tables_forward.h"
 
 namespace sprout {
-// Generated from samples/sprout/Quest.xlsx : QuestStepTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : QuestStepTable : A1
 struct QuestStepRecord {
   /// primary index
   std::int32_t id = 0;

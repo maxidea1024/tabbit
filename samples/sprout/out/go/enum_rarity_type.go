@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// RarityType was generated from samples/sprout/Enums.xlsx : TableEnums : D2.
+// RarityType was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : D2.
 // labels for RarityType
 type RarityType int32
 

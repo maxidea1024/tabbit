@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// CurrencyRecord was generated from samples/sprout/Item.xlsx : CurrencyTable : A1.
+// CurrencyRecord was generated from samples/sprout/xlsx/Item.xlsx : CurrencyTable : A1.
 type CurrencyRecord struct {
 	// primary index
 	Id int32

@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Skill.xlsx : PassiveTable : A1
+/* Generated from samples/sprout/xlsx/Skill.xlsx : PassiveTable : A1
  */
 struct Sprout_PassiveRecord_t {
   /* primary index */

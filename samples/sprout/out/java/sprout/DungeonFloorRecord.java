@@ -9,7 +9,7 @@ package sprout;
 
 import tabbit.TcbReader;
 
-// Generated from samples/sprout/Dungeon.xlsx : DungeonFloorTable : A1
+// Generated from samples/sprout/xlsx/Dungeon.xlsx : DungeonFloorTable : A1
 public final class DungeonFloorRecord {
     /** primary index */
     public int id;

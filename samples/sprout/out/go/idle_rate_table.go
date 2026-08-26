@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// IdleRateRecord was generated from samples/sprout/Offline.xlsx : IdleRateTable : A1.
+// IdleRateRecord was generated from samples/sprout/xlsx/Offline.xlsx : IdleRateTable : A1.
 type IdleRateRecord struct {
 	// primary index
 	Id int32

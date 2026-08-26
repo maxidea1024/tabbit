@@ -22,7 +22,7 @@ interface IDataRow {
   bonus: number
 }
 
-// Generated from samples/sprout/Offline.xlsx : AfkBonusTable : A1
+// Generated from samples/sprout/xlsx/Offline.xlsx : AfkBonusTable : A1
 export class AfkBonusRecord {
   /** Default constructor */
   constructor() {
@@ -57,7 +57,7 @@ export class AfkBonusRecord {
   }
 }
 
-// Generated from samples/sprout/Offline.xlsx : AfkBonusTable : A1
+// Generated from samples/sprout/xlsx/Offline.xlsx : AfkBonusTable : A1
 export class AfkBonusTable {
   /** Default constructor. */
   constructor() {

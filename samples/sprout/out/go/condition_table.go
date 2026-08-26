@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// ConditionRecord was generated from samples/sprout/Setting.xlsx : ConditionTable : A1.
+// ConditionRecord was generated from samples/sprout/xlsx/Setting.xlsx : ConditionTable : A1.
 type ConditionRecord struct {
 	// primary index
 	Id int32

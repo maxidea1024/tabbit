@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// CurrencyType was generated from samples/sprout/Enums.xlsx : TableEnums : E2.
+// CurrencyType was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : E2.
 // labels for CurrencyType
 type CurrencyType int32
 

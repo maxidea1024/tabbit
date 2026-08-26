@@ -9,7 +9,7 @@ package sprout;
 
 import tabbit.TcbReader;
 
-// Generated from samples/sprout/Dialogue.xlsx : DialogueTable : A1
+// Generated from samples/sprout/xlsx/Dialogue.xlsx : DialogueTable : A1
 public final class DialogueRecord {
     /** primary index */
     public int id;

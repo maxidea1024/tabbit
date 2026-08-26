@@ -23,7 +23,7 @@ interface IDataRow {
   capHours: number
 }
 
-// Generated from samples/sprout/Offline.xlsx : IdleRateTable : A1
+// Generated from samples/sprout/xlsx/Offline.xlsx : IdleRateTable : A1
 export class IdleRateRecord {
   /** Default constructor */
   constructor() {
@@ -64,7 +64,7 @@ export class IdleRateRecord {
   }
 }
 
-// Generated from samples/sprout/Offline.xlsx : IdleRateTable : A1
+// Generated from samples/sprout/xlsx/Offline.xlsx : IdleRateTable : A1
 export class IdleRateTable {
   /** Default constructor. */
   constructor() {

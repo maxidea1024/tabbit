@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Reward.xlsx : MailRewardTable : A1
+  # Generated from samples/sprout/xlsx/Reward.xlsx : MailRewardTable : A1
   class MailRewardRecord
     attr_accessor :id, :title_key, :body_key, :reward_id, :expiry_days
 

@@ -13,7 +13,7 @@ from .enum_grade_type import GradeType
 
 
 class AscendCurveRecord:
-    """Generated from samples/sprout/Growth.xlsx : AscendCurveTable : A1.
+    """Generated from samples/sprout/xlsx/Growth.xlsx : AscendCurveTable : A1.
     """
 
     __slots__ = ("id", "grade", "step", "scale")

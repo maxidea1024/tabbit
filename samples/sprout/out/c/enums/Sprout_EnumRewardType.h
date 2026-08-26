@@ -9,7 +9,7 @@
 #ifndef SPROUT_ENUM_REWARD_TYPE_H
 #define SPROUT_ENUM_REWARD_TYPE_H
 
-/* Generated from samples/sprout/Enums.xlsx : TableEnums : K2
+/* Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : K2
  *
  * labels for RewardType
  */

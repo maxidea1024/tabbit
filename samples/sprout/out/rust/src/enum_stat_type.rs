@@ -5,7 +5,7 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : H2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : H2
 /// labels for StatType
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 #[repr(i32)]

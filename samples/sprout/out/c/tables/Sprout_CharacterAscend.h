@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Character.xlsx : CharacterAscendTable : A1
+/* Generated from samples/sprout/xlsx/Character.xlsx : CharacterAscendTable : A1
  */
 struct Sprout_CharacterAscendRecord_t {
   /* primary index */

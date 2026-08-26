@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Stage.xlsx : ChapterTable : A1
+  # Generated from samples/sprout/xlsx/Stage.xlsx : ChapterTable : A1
   class ChapterRecord
     attr_accessor :id, :world_id, :name_key, :sort_order, :unlock_id
 

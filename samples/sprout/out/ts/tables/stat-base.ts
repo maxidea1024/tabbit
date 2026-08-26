@@ -27,7 +27,7 @@ interface IDataRow {
   baseValue: number
 }
 
-// Generated from samples/sprout/Growth.xlsx : StatBaseTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : StatBaseTable : A1
 export class StatBaseRecord {
   /** Default constructor */
   constructor() {
@@ -68,7 +68,7 @@ export class StatBaseRecord {
   }
 }
 
-// Generated from samples/sprout/Growth.xlsx : StatBaseTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : StatBaseTable : A1
 export class StatBaseTable {
   /** Default constructor. */
   constructor() {

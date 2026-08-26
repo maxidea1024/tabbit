@@ -9,7 +9,7 @@ package sprout;
 
 import tabbit.TcbReader;
 
-// Generated from samples/sprout/Reward.xlsx : LootGroupTable : A1
+// Generated from samples/sprout/xlsx/Reward.xlsx : LootGroupTable : A1
 public final class LootGroupRecord {
     /** primary index */
     public int id;

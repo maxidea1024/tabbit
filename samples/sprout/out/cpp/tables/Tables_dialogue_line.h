@@ -21,7 +21,7 @@
 #include "enums/Tables_enum_dialogue_speaker.h"
 
 namespace sprout {
-// Generated from samples/sprout/Dialogue.xlsx : DialogueLineTable : A1
+// Generated from samples/sprout/xlsx/Dialogue.xlsx : DialogueLineTable : A1
 struct DialogueLineRecord {
   /// primary index
   std::int32_t id = 0;

@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class SettingRecord:
-    """Generated from samples/sprout/Setting.xlsx : SettingTable : A1.
+    """Generated from samples/sprout/xlsx/Setting.xlsx : SettingTable : A1.
     """
 
     __slots__ = ("setting_key", "value", "desc_key")

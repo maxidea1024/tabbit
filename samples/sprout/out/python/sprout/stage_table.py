@@ -13,7 +13,7 @@ from .enum_stage_type import StageType
 
 
 class StageRecord:
-    """Generated from samples/sprout/Stage.xlsx : StageTable : A1.
+    """Generated from samples/sprout/xlsx/Stage.xlsx : StageTable : A1.
     """
 
     __slots__ = ("id", "chapter_id", "type_", "name_key", "background", "stamina", "power", "first_reward", "repeat_reward", "unlock_id")

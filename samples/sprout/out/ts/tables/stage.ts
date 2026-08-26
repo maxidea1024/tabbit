@@ -32,7 +32,7 @@ interface IDataRow {
   unlockId: number
 }
 
-// Generated from samples/sprout/Stage.xlsx : StageTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : StageTable : A1
 export class StageRecord {
   /** Default constructor */
   constructor() {
@@ -109,7 +109,7 @@ export class StageRecord {
   }
 }
 
-// Generated from samples/sprout/Stage.xlsx : StageTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : StageTable : A1
 export class StageTable {
   /** Default constructor. */
   constructor() {

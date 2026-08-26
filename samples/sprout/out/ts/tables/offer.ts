@@ -27,7 +27,7 @@ interface IDataRow {
   limit: number
 }
 
-// Generated from samples/sprout/Item.xlsx : OfferTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : OfferTable : A1
 export class OfferRecord {
   /** Default constructor */
   constructor() {
@@ -74,7 +74,7 @@ export class OfferRecord {
   }
 }
 
-// Generated from samples/sprout/Item.xlsx : OfferTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : OfferTable : A1
 export class OfferTable {
   /** Default constructor. */
   constructor() {

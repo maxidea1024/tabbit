@@ -13,7 +13,7 @@ from .enum_shop_type import ShopType
 
 
 class OfferRecord:
-    """Generated from samples/sprout/Item.xlsx : OfferTable : A1.
+    """Generated from samples/sprout/xlsx/Item.xlsx : OfferTable : A1.
     """
 
     __slots__ = ("id", "name_key", "shop", "price", "limit")

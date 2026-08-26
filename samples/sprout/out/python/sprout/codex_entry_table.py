@@ -13,7 +13,7 @@ from .enum_stat_type import StatType
 
 
 class CodexEntryRecord:
-    """Generated from samples/sprout/Codex.xlsx : CodexEntryTable : A1.
+    """Generated from samples/sprout/xlsx/Codex.xlsx : CodexEntryTable : A1.
     """
 
     __slots__ = ("id", "codex_id", "entry_order", "condition_id", "stat", "bonus")

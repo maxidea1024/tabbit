@@ -21,7 +21,7 @@ use Tabbit\RecordNotFoundException;
 use Tabbit\Uuid;
 
 /**
- * Generated from samples/sprout/Gacha.xlsx : GachaOddsTable : A1
+ * Generated from samples/sprout/xlsx/Gacha.xlsx : GachaOddsTable : A1
  */
 final class GachaOddsRecord
 {

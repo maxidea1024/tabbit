@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Dungeon.xlsx : DungeonFloorTable : A1
+// Generated from samples/sprout/xlsx/Dungeon.xlsx : DungeonFloorTable : A1
 class DungeonFloorRecord {
     /** primary index */
     var id: Int = 0

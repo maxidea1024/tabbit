@@ -1,0 +1,8 @@
+@name	id	name	seasonDays	bracketLow	bracketHigh	rewardId	decayPerDay	state
+@type	key:28000000~28999999	text	number	number	number	number	number	string
+:required	1	1	1	1	1	1	1	1
+:min	28000000	-	1	0	0	17000000	0	-
+:max	28999999	-	120	4000	4000	17999999	200	-
+:enum	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:links	-	-	-	-	-	"Loot"	-	-
+@gen	seq:28000000	text:400	int:1..120:zipf	int:0..4000:zipf	int:0..4000:zipf	ref:Loot	int:0..200:zipf	pick:draft|review|live|retired

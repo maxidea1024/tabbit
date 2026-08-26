@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Localization.xlsx : StringTable : A1
+// Generated from samples/sprout/xlsx/Localization.xlsx : StringTable : A1
 public final class StringRecord {
 
     public init() {}

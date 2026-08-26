@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class DailyQuestRecord:
-    """Generated from samples/sprout/Quest.xlsx : DailyQuestTable : A1.
+    """Generated from samples/sprout/xlsx/Quest.xlsx : DailyQuestTable : A1.
     """
 
     __slots__ = ("id", "quest_id", "points", "reset_hour")

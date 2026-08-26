@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Growth.xlsx : AscendCurveTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : AscendCurveTable : A1
 class AscendCurveRecord {
   /// primary index
   int id = 0;

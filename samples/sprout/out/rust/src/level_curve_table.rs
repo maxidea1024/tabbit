@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_stat_type::StatType;
 
-// Generated from samples/sprout/Growth.xlsx : LevelCurveTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : LevelCurveTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct LevelCurveRecord {
     /// primary index

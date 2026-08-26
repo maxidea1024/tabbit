@@ -13,7 +13,7 @@
 #include <cstdint>
 
 namespace sprout {
-// Generated from samples/sprout/Enums.xlsx : TableEnums : E2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : E2
 /// labels for CurrencyType
 enum class CurrencyType : std::int32_t {
   /// None (automatically inserted by Tabbit)

@@ -7,7 +7,7 @@
 
 
 module Sprout
-  # Generated from samples/sprout/Enums.xlsx : TableEnums : I2
+  # Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : I2
   # labels for TargetType
   module TargetType
     # None (automatically inserted by Tabbit)

@@ -9,7 +9,7 @@
 #ifndef SPROUT_ENUM_CURRENCY_TYPE_H
 #define SPROUT_ENUM_CURRENCY_TYPE_H
 
-/* Generated from samples/sprout/Enums.xlsx : TableEnums : E2
+/* Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : E2
  *
  * labels for CurrencyType
  */

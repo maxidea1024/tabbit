@@ -23,7 +23,7 @@ interface IDataRow {
   availableDays: number
 }
 
-// Generated from samples/sprout/Shop.xlsx : PromoTable : A1
+// Generated from samples/sprout/xlsx/Shop.xlsx : PromoTable : A1
 export class PromoRecord {
   /** Default constructor */
   constructor() {
@@ -64,7 +64,7 @@ export class PromoRecord {
   }
 }
 
-// Generated from samples/sprout/Shop.xlsx : PromoTable : A1
+// Generated from samples/sprout/xlsx/Shop.xlsx : PromoTable : A1
 export class PromoTable {
   /** Default constructor. */
   constructor() {

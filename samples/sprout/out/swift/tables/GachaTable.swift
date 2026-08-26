@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Gacha.xlsx : GachaTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : GachaTable : A1
 public final class GachaRecord {
 
     public init() {}

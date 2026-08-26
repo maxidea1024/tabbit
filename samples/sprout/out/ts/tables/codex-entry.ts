@@ -28,7 +28,7 @@ interface IDataRow {
   bonus: number
 }
 
-// Generated from samples/sprout/Codex.xlsx : CodexEntryTable : A1
+// Generated from samples/sprout/xlsx/Codex.xlsx : CodexEntryTable : A1
 export class CodexEntryRecord {
   /** Default constructor */
   constructor() {
@@ -81,7 +81,7 @@ export class CodexEntryRecord {
   }
 }
 
-// Generated from samples/sprout/Codex.xlsx : CodexEntryTable : A1
+// Generated from samples/sprout/xlsx/Codex.xlsx : CodexEntryTable : A1
 export class CodexEntryTable {
   /** Default constructor. */
   constructor() {

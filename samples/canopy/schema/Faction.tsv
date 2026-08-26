@@ -1,0 +1,9 @@
+@name	id	name	crest	standingCeiling	hostileFactionId[0]	hostileFactionId[1]	hostileFactionId[2]	hostileFactionId[3]	legacyRosterId	state
+@type	key:39000000~39999999	text	string	number	number	number	number	number	number	string
+:required	1	1	1	1	-	-	-	-	1	1
+:min	39000000	-	-	0	1	1	1	1	-	-
+:max	39999999	-	-	90000	99999	99999	99999	99999	-	-
+:enum	-	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:link	-	-	-	-	-	-	-	-	Json/Roster	-
+:asset	-	-	1	-	-	-	-	-	-	-
+@gen	seq:39000000	text:400	path:300:Art	int:0..90000:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	ref:Roster	pick:draft|review|live|retired

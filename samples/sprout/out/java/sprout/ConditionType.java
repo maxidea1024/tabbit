@@ -7,7 +7,7 @@
 
 package sprout;
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : J2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : J2
 /** labels for ConditionType */
 public enum ConditionType {
     /** None (automatically inserted by Tabbit) */

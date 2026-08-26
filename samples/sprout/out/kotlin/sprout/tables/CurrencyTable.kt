@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Item.xlsx : CurrencyTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : CurrencyTable : A1
 class CurrencyRecord {
     /** primary index */
     var id: Int = 0

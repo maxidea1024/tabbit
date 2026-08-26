@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_gacha_type::GachaType;
 
-// Generated from samples/sprout/Gacha.xlsx : GachaTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : GachaTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct GachaRecord {
     /// primary index

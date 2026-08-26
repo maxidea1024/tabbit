@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Gacha.xlsx : PityTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : PityTable : A1
 class PityRecord {
   /// primary index
   int id = 0;

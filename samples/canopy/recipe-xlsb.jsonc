@@ -1,0 +1,33 @@
+{
+  // The same corpus in the other container. `gen/to-xlsb.ps1` rewrites every workbook of
+  // `xlsx/` as a `.xlsb`, so the two folders hold the same values in two file formats and the
+  // importer reads them by two entirely separate paths - a zip of XML on one side, BIFF12
+  // records and `xl/workbook.bin` on the other (spec/import/xlsb-defined-names.md).
+  //
+  // That makes this a gate rather than a demonstration. Convert both and compare:
+  //
+  //     dotnet run --project src/Tabbit.csproj -- --recipe samples/canopy/recipe.jsonc
+  //     dotnet run --project src/Tabbit.csproj -- --recipe samples/canopy/recipe-xlsb.jsonc
+  //     diff -r samples/canopy/out/json samples/canopy/out-xlsb/json
+  //
+  // Nothing but the container differs, so a difference is a fault in the reader. The output
+  // is not committed; `out/` from the `.xlsx` side is the committed answer.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "samples/canopy/xlsb",
+        "FileExtensionPatterns": ".xlsb",
+        "Layout": "named-range",
+        "ExcludeWorkbooks": [ "Tile" ],
+        "ArrayDelimiter": ",",
+        "AllowArrayGaps": true
+      }
+    ]
+  },
+
+  "Targets": [
+    { "Type": "binary", "Path": "samples/canopy/out-xlsb/binary" },
+    { "Type": "json", "Path": "samples/canopy/out-xlsb/json", "UseCompactRowFormat": true, "Indented": false }
+  ]
+}

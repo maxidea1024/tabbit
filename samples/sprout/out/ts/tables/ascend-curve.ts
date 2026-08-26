@@ -26,7 +26,7 @@ interface IDataRow {
   scale: number
 }
 
-// Generated from samples/sprout/Growth.xlsx : AscendCurveTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : AscendCurveTable : A1
 export class AscendCurveRecord {
   /** Default constructor */
   constructor() {
@@ -67,7 +67,7 @@ export class AscendCurveRecord {
   }
 }
 
-// Generated from samples/sprout/Growth.xlsx : AscendCurveTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : AscendCurveTable : A1
 export class AscendCurveTable {
   /** Default constructor. */
   constructor() {

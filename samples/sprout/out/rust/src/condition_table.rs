@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_condition_type::ConditionType;
 
-// Generated from samples/sprout/Setting.xlsx : ConditionTable : A1
+// Generated from samples/sprout/xlsx/Setting.xlsx : ConditionTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct ConditionRecord {
     /// primary index

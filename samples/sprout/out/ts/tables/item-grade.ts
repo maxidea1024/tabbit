@@ -26,7 +26,7 @@ interface IDataRow {
   sellScale: number
 }
 
-// Generated from samples/sprout/Item.xlsx : ItemGradeTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : ItemGradeTable : A1
 export class ItemGradeRecord {
   /** Default constructor */
   constructor() {
@@ -67,7 +67,7 @@ export class ItemGradeRecord {
   }
 }
 
-// Generated from samples/sprout/Item.xlsx : ItemGradeTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : ItemGradeTable : A1
 export class ItemGradeTable {
   /** Default constructor. */
   constructor() {

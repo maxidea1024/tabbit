@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Item.xlsx : OfferTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : OfferTable : A1
 class OfferRecord {
     /** primary index */
     var id: Int = 0

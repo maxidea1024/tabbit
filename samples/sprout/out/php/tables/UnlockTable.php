@@ -21,7 +21,7 @@ use Tabbit\RecordNotFoundException;
 use Tabbit\Uuid;
 
 /**
- * Generated from samples/sprout/Setting.xlsx : UnlockTable : A1
+ * Generated from samples/sprout/xlsx/Setting.xlsx : UnlockTable : A1
  */
 final class UnlockRecord
 {

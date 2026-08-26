@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class OfferItemRecord:
-    """Generated from samples/sprout/Item.xlsx : OfferItemTable : A1.
+    """Generated from samples/sprout/xlsx/Item.xlsx : OfferItemTable : A1.
     """
 
     __slots__ = ("id", "offer_id", "item_id", "count")

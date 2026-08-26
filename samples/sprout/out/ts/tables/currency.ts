@@ -27,7 +27,7 @@ interface IDataRow {
   cap: string
 }
 
-// Generated from samples/sprout/Item.xlsx : CurrencyTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : CurrencyTable : A1
 export class CurrencyRecord {
   /** Default constructor */
   constructor() {
@@ -74,7 +74,7 @@ export class CurrencyRecord {
   }
 }
 
-// Generated from samples/sprout/Item.xlsx : CurrencyTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : CurrencyTable : A1
 export class CurrencyTable {
   /** Default constructor. */
   constructor() {

@@ -24,7 +24,7 @@ interface IDataRow {
   subtitleKey: string
 }
 
-// Generated from samples/sprout/Character.xlsx : CharacterVoiceTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterVoiceTable : A1
 export class CharacterVoiceRecord {
   /** Default constructor */
   constructor() {
@@ -71,7 +71,7 @@ export class CharacterVoiceRecord {
   }
 }
 
-// Generated from samples/sprout/Character.xlsx : CharacterVoiceTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterVoiceTable : A1
 export class CharacterVoiceTable {
   /** Default constructor. */
   constructor() {

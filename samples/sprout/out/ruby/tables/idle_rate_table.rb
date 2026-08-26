@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Offline.xlsx : IdleRateTable : A1
+  # Generated from samples/sprout/xlsx/Offline.xlsx : IdleRateTable : A1
   class IdleRateRecord
     attr_accessor :id, :stage_id, :rate, :cap_hours
 

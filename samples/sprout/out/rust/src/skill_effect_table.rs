@@ -11,7 +11,7 @@ use crate::tabbit;
 use crate::enum_buff_kind::BuffKind;
 use crate::enum_stat_type::StatType;
 
-// Generated from samples/sprout/Skill.xlsx : SkillEffectTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : SkillEffectTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct SkillEffectRecord {
     /// primary index

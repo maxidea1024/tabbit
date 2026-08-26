@@ -22,7 +22,7 @@
 #include "enums/Tables_enum_element_type.h"
 
 namespace sprout {
-// Generated from samples/sprout/Dungeon.xlsx : DungeonTable : A1
+// Generated from samples/sprout/xlsx/Dungeon.xlsx : DungeonTable : A1
 struct DungeonRecord {
   /// primary index
   std::int32_t id = 0;

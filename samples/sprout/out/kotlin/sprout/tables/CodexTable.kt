@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Codex.xlsx : CodexTable : A1
+// Generated from samples/sprout/xlsx/Codex.xlsx : CodexTable : A1
 class CodexRecord {
     /** primary index */
     var id: Int = 0

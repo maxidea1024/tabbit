@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// DialogueSpeaker was generated from samples/sprout/Enums.xlsx : TableEnums : Q2.
+// DialogueSpeaker was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : Q2.
 // labels for DialogueSpeaker
 type DialogueSpeaker int32
 

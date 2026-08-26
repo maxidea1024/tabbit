@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// WorldRecord was generated from samples/sprout/Stage.xlsx : WorldTable : A1.
+// WorldRecord was generated from samples/sprout/xlsx/Stage.xlsx : WorldTable : A1.
 type WorldRecord struct {
 	// primary index
 	Id int32

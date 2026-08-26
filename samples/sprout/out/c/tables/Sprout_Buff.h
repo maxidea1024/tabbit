@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Skill.xlsx : BuffTable : A1
+/* Generated from samples/sprout/xlsx/Skill.xlsx : BuffTable : A1
  */
 struct Sprout_BuffRecord_t {
   /* primary index */

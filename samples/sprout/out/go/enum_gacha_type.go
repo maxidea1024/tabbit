@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// GachaType was generated from samples/sprout/Enums.xlsx : TableEnums : O2.
+// GachaType was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : O2.
 // labels for GachaType
 type GachaType int32
 

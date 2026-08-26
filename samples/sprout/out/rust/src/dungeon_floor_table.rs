@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use crate::tabbit;
 
-// Generated from samples/sprout/Dungeon.xlsx : DungeonFloorTable : A1
+// Generated from samples/sprout/xlsx/Dungeon.xlsx : DungeonFloorTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct DungeonFloorRecord {
     /// primary index

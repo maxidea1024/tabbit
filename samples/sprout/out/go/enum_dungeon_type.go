@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// DungeonType was generated from samples/sprout/Enums.xlsx : TableEnums : M2.
+// DungeonType was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : M2.
 // labels for DungeonType
 type DungeonType int32
 

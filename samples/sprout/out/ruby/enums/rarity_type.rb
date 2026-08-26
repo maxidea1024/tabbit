@@ -7,7 +7,7 @@
 
 
 module Sprout
-  # Generated from samples/sprout/Enums.xlsx : TableEnums : D2
+  # Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : D2
   # labels for RarityType
   module RarityType
     # None (automatically inserted by Tabbit)

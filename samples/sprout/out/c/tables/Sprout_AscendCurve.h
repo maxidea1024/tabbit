@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Growth.xlsx : AscendCurveTable : A1
+/* Generated from samples/sprout/xlsx/Growth.xlsx : AscendCurveTable : A1
  */
 struct Sprout_AscendCurveRecord_t {
   /* primary index */

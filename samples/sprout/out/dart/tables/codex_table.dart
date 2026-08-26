@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Codex.xlsx : CodexTable : A1
+// Generated from samples/sprout/xlsx/Codex.xlsx : CodexTable : A1
 class CodexRecord {
   /// primary index
   int id = 0;

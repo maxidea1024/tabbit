@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Item.xlsx : MaterialTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : MaterialTable : A1
 public final class MaterialRecord {
 
     public init() {}

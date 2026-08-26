@@ -14,7 +14,7 @@ from .enum_grade_type import GradeType
 
 
 class ItemRecord:
-    """Generated from samples/sprout/Item.xlsx : ItemTable : A1.
+    """Generated from samples/sprout/xlsx/Item.xlsx : ItemTable : A1.
     """
 
     __slots__ = ("id", "name_key", "type_", "grade", "icon", "stack_limit", "sell_price", "tradable")

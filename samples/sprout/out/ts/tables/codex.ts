@@ -27,7 +27,7 @@ interface IDataRow {
   rewardId: number
 }
 
-// Generated from samples/sprout/Codex.xlsx : CodexTable : A1
+// Generated from samples/sprout/xlsx/Codex.xlsx : CodexTable : A1
 export class CodexRecord {
   /** Default constructor */
   constructor() {
@@ -74,7 +74,7 @@ export class CodexRecord {
   }
 }
 
-// Generated from samples/sprout/Codex.xlsx : CodexTable : A1
+// Generated from samples/sprout/xlsx/Codex.xlsx : CodexTable : A1
 export class CodexTable {
   /** Default constructor. */
   constructor() {

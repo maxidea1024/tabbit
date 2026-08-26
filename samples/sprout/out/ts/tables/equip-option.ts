@@ -27,7 +27,7 @@ interface IDataRow {
   weight: number
 }
 
-// Generated from samples/sprout/Equipment.xlsx : EquipOptionTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipOptionTable : A1
 export class EquipOptionRecord {
   /** Default constructor */
   constructor() {
@@ -74,7 +74,7 @@ export class EquipOptionRecord {
   }
 }
 
-// Generated from samples/sprout/Equipment.xlsx : EquipOptionTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipOptionTable : A1
 export class EquipOptionTable {
   /** Default constructor. */
   constructor() {

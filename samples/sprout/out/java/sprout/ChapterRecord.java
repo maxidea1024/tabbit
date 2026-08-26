@@ -9,7 +9,7 @@ package sprout;
 
 import tabbit.TcbReader;
 
-// Generated from samples/sprout/Stage.xlsx : ChapterTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : ChapterTable : A1
 public final class ChapterRecord {
     /** primary index */
     public int id;

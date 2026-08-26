@@ -21,7 +21,7 @@
 #include "enums/Tables_enum_shop_type.h"
 
 namespace sprout {
-// Generated from samples/sprout/Shop.xlsx : ShopTable : A1
+// Generated from samples/sprout/xlsx/Shop.xlsx : ShopTable : A1
 struct ShopRecord {
   /// primary index
   std::int32_t id = 0;

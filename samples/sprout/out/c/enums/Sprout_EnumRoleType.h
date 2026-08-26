@@ -9,7 +9,7 @@
 #ifndef SPROUT_ENUM_ROLE_TYPE_H
 #define SPROUT_ENUM_ROLE_TYPE_H
 
-/* Generated from samples/sprout/Enums.xlsx : TableEnums : C2
+/* Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : C2
  *
  * labels for RoleType
  */

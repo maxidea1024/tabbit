@@ -7,7 +7,7 @@
 
 package sprout;
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : G2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : G2
 /** labels for EquipSlot */
 public enum EquipSlot {
     /** None (automatically inserted by Tabbit) */

@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Skill.xlsx : PassiveTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : PassiveTable : A1
 class PassiveRecord {
   /// primary index
   int id = 0;

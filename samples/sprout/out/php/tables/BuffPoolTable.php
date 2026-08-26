@@ -20,7 +20,7 @@ use Tabbit\RecordNotFoundException;
 use Tabbit\Uuid;
 
 /**
- * Generated from samples/sprout/Skill.xlsx : BuffPoolTable : A1
+ * Generated from samples/sprout/xlsx/Skill.xlsx : BuffPoolTable : A1
  */
 final class BuffPoolRecord
 {

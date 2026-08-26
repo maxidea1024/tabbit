@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_currency_type::CurrencyType;
 
-// Generated from samples/sprout/Shop.xlsx : PriceTable : A1
+// Generated from samples/sprout/xlsx/Shop.xlsx : PriceTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct PriceRecord {
     /// primary index

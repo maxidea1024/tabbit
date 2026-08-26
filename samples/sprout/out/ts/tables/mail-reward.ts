@@ -24,7 +24,7 @@ interface IDataRow {
   expiryDays: number
 }
 
-// Generated from samples/sprout/Reward.xlsx : MailRewardTable : A1
+// Generated from samples/sprout/xlsx/Reward.xlsx : MailRewardTable : A1
 export class MailRewardRecord {
   /** Default constructor */
   constructor() {
@@ -71,7 +71,7 @@ export class MailRewardRecord {
   }
 }
 
-// Generated from samples/sprout/Reward.xlsx : MailRewardTable : A1
+// Generated from samples/sprout/xlsx/Reward.xlsx : MailRewardTable : A1
 export class MailRewardTable {
   /** Default constructor. */
   constructor() {

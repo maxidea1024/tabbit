@@ -9,7 +9,7 @@ package sprout;
 
 import tabbit.TcbReader;
 
-// Generated from samples/sprout/Shop.xlsx : PromoTable : A1
+// Generated from samples/sprout/xlsx/Shop.xlsx : PromoTable : A1
 public final class PromoRecord {
     /** primary index */
     public int id;

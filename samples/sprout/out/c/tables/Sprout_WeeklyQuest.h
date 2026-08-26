@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Quest.xlsx : WeeklyQuestTable : A1
+/* Generated from samples/sprout/xlsx/Quest.xlsx : WeeklyQuestTable : A1
  */
 struct Sprout_WeeklyQuestRecord_t {
   /* primary index */

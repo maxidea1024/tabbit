@@ -21,7 +21,7 @@ use Tabbit\RecordNotFoundException;
 use Tabbit\Uuid;
 
 /**
- * Generated from samples/sprout/Equipment.xlsx : EquipSetBonusTable : A1
+ * Generated from samples/sprout/xlsx/Equipment.xlsx : EquipSetBonusTable : A1
  */
 final class EquipSetBonusRecord
 {

@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// ItemRecord was generated from samples/sprout/Item.xlsx : ItemTable : A1.
+// ItemRecord was generated from samples/sprout/xlsx/Item.xlsx : ItemTable : A1.
 type ItemRecord struct {
 	// primary index
 	Id int32

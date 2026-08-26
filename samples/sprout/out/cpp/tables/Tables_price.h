@@ -21,7 +21,7 @@
 #include "enums/Tables_enum_currency_type.h"
 
 namespace sprout {
-// Generated from samples/sprout/Shop.xlsx : PriceTable : A1
+// Generated from samples/sprout/xlsx/Shop.xlsx : PriceTable : A1
 struct PriceRecord {
   /// primary index
   std::int32_t id = 0;

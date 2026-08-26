@@ -5,7 +5,7 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : R2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : R2
 /// labels for UnlockType
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 #[repr(i32)]

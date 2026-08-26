@@ -9,7 +9,7 @@
 #ifndef SPROUT_ENUM_RARITY_TYPE_H
 #define SPROUT_ENUM_RARITY_TYPE_H
 
-/* Generated from samples/sprout/Enums.xlsx : TableEnums : D2
+/* Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : D2
  *
  * labels for RarityType
  */

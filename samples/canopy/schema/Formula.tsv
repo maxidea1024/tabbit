@@ -1,0 +1,7 @@
+@name	id	name	coefficientA	coefficientB	coefficientC	clampLow	clampHigh	appliesMask	state
+@type	key:41000000~41999999	text	float	float	float	number	number	bit	string
+:required	1	1	1	1	1	1	1	1	1
+:min	41000000	-	-	-	-	0	0	-	-
+:max	41999999	-	-	-	-	90000	2000000000	-	-
+:enum	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+@gen	seq:41000000	text:400	float:0.001..9.999:3	float:0.001..9.999:3	float:0.001..9.999:3	int:0..90000:zipf	int:0..2000000000:zipf	bit:20	pick:draft|review|live|retired

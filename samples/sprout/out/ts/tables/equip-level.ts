@@ -27,7 +27,7 @@ interface IDataRow {
   cost: string
 }
 
-// Generated from samples/sprout/Equipment.xlsx : EquipLevelTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipLevelTable : A1
 export class EquipLevelRecord {
   /** Default constructor */
   constructor() {
@@ -74,7 +74,7 @@ export class EquipLevelRecord {
   }
 }
 
-// Generated from samples/sprout/Equipment.xlsx : EquipLevelTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipLevelTable : A1
 export class EquipLevelTable {
   /** Default constructor. */
   constructor() {

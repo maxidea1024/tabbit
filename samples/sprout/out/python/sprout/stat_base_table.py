@@ -14,7 +14,7 @@ from .enum_stat_type import StatType
 
 
 class StatBaseRecord:
-    """Generated from samples/sprout/Growth.xlsx : StatBaseTable : A1.
+    """Generated from samples/sprout/xlsx/Growth.xlsx : StatBaseTable : A1.
     """
 
     __slots__ = ("id", "role", "stat", "base_value")

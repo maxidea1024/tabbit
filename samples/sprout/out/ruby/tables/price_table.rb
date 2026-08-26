@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Shop.xlsx : PriceTable : A1
+  # Generated from samples/sprout/xlsx/Shop.xlsx : PriceTable : A1
   class PriceRecord
     attr_accessor :id, :currency, :amount, :discount
 

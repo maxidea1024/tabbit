@@ -23,7 +23,7 @@ interface IDataRow {
   count: number
 }
 
-// Generated from samples/sprout/Item.xlsx : OfferItemTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : OfferItemTable : A1
 export class OfferItemRecord {
   /** Default constructor */
   constructor() {
@@ -64,7 +64,7 @@ export class OfferItemRecord {
   }
 }
 
-// Generated from samples/sprout/Item.xlsx : OfferItemTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : OfferItemTable : A1
 export class OfferItemTable {
   /** Default constructor. */
   constructor() {

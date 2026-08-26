@@ -1,0 +1,7 @@
+@name	id	name	level	memberCeiling	upkeepPerDay	perkId[0]	perkId[1]	perkId[2]	perkId[3]	perkId[4]	perkId[5]	perkId[6]	perkId[7]	emblemId	state
+@type	key:29000000~29999999	text	number	number	number	number	number	number	number	number	number	number	number	number	string
+:required	1	1	1	1	1	-	-	-	-	-	-	-	-	-	1
+:min	29000000	-	1	5	0	1	1	1	1	1	1	1	1	1	-
+:max	29999999	-	60	500	900000	99999	99999	99999	99999	99999	99999	99999	99999	999	-
+:enum	-	-	-	-	-	-	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+@gen	seq:29000000	text:400	int:1..60:zipf	int:5..500:zipf	int:0..900000:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?20 int:1..999:zipf	pick:draft|review|live|retired

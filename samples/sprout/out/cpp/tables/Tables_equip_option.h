@@ -21,7 +21,7 @@
 #include "enums/Tables_enum_stat_type.h"
 
 namespace sprout {
-// Generated from samples/sprout/Equipment.xlsx : EquipOptionTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipOptionTable : A1
 struct EquipOptionRecord {
   /// primary index
   std::int32_t id = 0;

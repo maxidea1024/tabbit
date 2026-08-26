@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// DialogueLineRecord was generated from samples/sprout/Dialogue.xlsx : DialogueLineTable : A1.
+// DialogueLineRecord was generated from samples/sprout/xlsx/Dialogue.xlsx : DialogueLineTable : A1.
 type DialogueLineRecord struct {
 	// primary index
 	Id int32

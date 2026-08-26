@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Character.xlsx : ElementAffinityTable : A1
+/* Generated from samples/sprout/xlsx/Character.xlsx : ElementAffinityTable : A1
  */
 struct Sprout_ElementAffinityRecord_t {
   /* primary index */

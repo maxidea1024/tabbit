@@ -23,7 +23,7 @@ interface IDataRow {
   resetWeekday: number
 }
 
-// Generated from samples/sprout/Quest.xlsx : WeeklyQuestTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : WeeklyQuestTable : A1
 export class WeeklyQuestRecord {
   /** Default constructor */
   constructor() {
@@ -64,7 +64,7 @@ export class WeeklyQuestRecord {
   }
 }
 
-// Generated from samples/sprout/Quest.xlsx : WeeklyQuestTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : WeeklyQuestTable : A1
 export class WeeklyQuestTable {
   /** Default constructor. */
   constructor() {

@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Growth.xlsx : PowerScoreTable : A1
+  # Generated from samples/sprout/xlsx/Growth.xlsx : PowerScoreTable : A1
   class PowerScoreRecord
     attr_accessor :id, :stat, :weight
 

@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_stat_type::StatType;
 
-// Generated from samples/sprout/Skill.xlsx : PassiveTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : PassiveTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct PassiveRecord {
     /// primary index

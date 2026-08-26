@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class CharacterVoiceRecord:
-    """Generated from samples/sprout/Character.xlsx : CharacterVoiceTable : A1.
+    """Generated from samples/sprout/xlsx/Character.xlsx : CharacterVoiceTable : A1.
     """
 
     __slots__ = ("id", "character_id", "cue", "clip", "subtitle_key")

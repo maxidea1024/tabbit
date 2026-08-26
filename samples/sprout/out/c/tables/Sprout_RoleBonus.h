@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Character.xlsx : RoleBonusTable : A1
+/* Generated from samples/sprout/xlsx/Character.xlsx : RoleBonusTable : A1
  */
 struct Sprout_RoleBonusRecord_t {
   /* primary index */

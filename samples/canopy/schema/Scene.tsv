@@ -1,0 +1,8 @@
+@name	id	sceneKey	timeline	lengthMs	skippable	skipAfterMs	state
+@type	key:24000000~24999999	string	string	number	bool	number	string
+:required	1	1	1	1	1	1	1
+:min	24000000	-	-	1000	-	0	-
+:max	24999999	-	-	240000	-	9000	-
+:enum	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:asset	-	-	1	-	-	-	-
+@gen	seq:24000000	str:SCENE:600	path:300:Art	int:1000..240000:zipf	bool	int:0..9000:zipf	pick:draft|review|live|retired

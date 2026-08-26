@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Skill.xlsx : SkillTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : SkillTable : A1
 public final class SkillRecord {
 
     public init() {}

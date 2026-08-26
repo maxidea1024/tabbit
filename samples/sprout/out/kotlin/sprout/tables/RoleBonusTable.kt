@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Character.xlsx : RoleBonusTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : RoleBonusTable : A1
 class RoleBonusRecord {
     /** primary index */
     var id: Int = 0

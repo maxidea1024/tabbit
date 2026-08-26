@@ -9,7 +9,7 @@
 #ifndef SPROUT_ENUM_QUEST_TYPE_H
 #define SPROUT_ENUM_QUEST_TYPE_H
 
-/* Generated from samples/sprout/Enums.xlsx : TableEnums : P2
+/* Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : P2
  *
  * labels for QuestType
  */

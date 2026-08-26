@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Skill.xlsx : PassiveTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : PassiveTable : A1
 class PassiveRecord {
     /** primary index */
     var id: Int = 0

@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : M2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : M2
 /** labels for DungeonType */
 enum class DungeonType(val value: Int) {
     /** None (automatically inserted by Tabbit) */

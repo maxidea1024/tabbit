@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Growth.xlsx : PowerScoreTable : A1
+/* Generated from samples/sprout/xlsx/Growth.xlsx : PowerScoreTable : A1
  */
 struct Sprout_PowerScoreRecord_t {
   /* primary index */

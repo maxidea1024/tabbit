@@ -12,7 +12,7 @@
   "Sources": {
     "Xlsx": [
       {
-        "Path": "samples/sprout",
+        "Path": "samples/sprout/xlsx",
 
         // Not `tabbit`: these sheets carry no entity markers. One table per sheet, named by
         // the sheet tab, three header rows. See doc/sheets.md.

@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Shop.xlsx : ShopSlotTable : A1
+  # Generated from samples/sprout/xlsx/Shop.xlsx : ShopSlotTable : A1
   class ShopSlotRecord
     attr_accessor :id, :shop_id, :slot_order, :item_id, :count, :price_id, :weight
 

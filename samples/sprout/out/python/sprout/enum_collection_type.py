@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class CollectionType(enum.IntEnum):
-    """Generated from samples/sprout/Enums.xlsx : TableEnums : T2.
+    """Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : T2.
 
     labels for CollectionType
     """

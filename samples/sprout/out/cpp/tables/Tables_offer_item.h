@@ -20,7 +20,7 @@
 #include "Tables_forward.h"
 
 namespace sprout {
-// Generated from samples/sprout/Item.xlsx : OfferItemTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : OfferItemTable : A1
 struct OfferItemRecord {
   /// primary index
   std::int32_t id = 0;

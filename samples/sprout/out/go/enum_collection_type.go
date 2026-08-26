@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// CollectionType was generated from samples/sprout/Enums.xlsx : TableEnums : T2.
+// CollectionType was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : T2.
 // labels for CollectionType
 type CollectionType int32
 

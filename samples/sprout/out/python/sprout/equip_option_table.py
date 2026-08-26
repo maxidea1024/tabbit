@@ -13,7 +13,7 @@ from .enum_stat_type import StatType
 
 
 class EquipOptionRecord:
-    """Generated from samples/sprout/Equipment.xlsx : EquipOptionTable : A1.
+    """Generated from samples/sprout/xlsx/Equipment.xlsx : EquipOptionTable : A1.
     """
 
     __slots__ = ("id", "stat", "min_roll", "max_roll", "weight")

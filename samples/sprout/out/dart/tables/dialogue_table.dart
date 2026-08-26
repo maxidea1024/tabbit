@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Dialogue.xlsx : DialogueTable : A1
+// Generated from samples/sprout/xlsx/Dialogue.xlsx : DialogueTable : A1
 class DialogueRecord {
   /// primary index
   int id = 0;

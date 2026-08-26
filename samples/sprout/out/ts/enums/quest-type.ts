@@ -7,7 +7,7 @@
 // </auto-generated>
 // ------------------------------------------------------------------------------
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : P2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : P2
 /** labels for QuestType */
 export enum QuestType {
   /** None (automatically inserted by Tabbit) */

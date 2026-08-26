@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Offline.xlsx : AfkBonusTable : A1
+// Generated from samples/sprout/xlsx/Offline.xlsx : AfkBonusTable : A1
 public final class AfkBonusRecord {
 
     public init() {}

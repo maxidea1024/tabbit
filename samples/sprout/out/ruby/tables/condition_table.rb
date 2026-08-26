@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Setting.xlsx : ConditionTable : A1
+  # Generated from samples/sprout/xlsx/Setting.xlsx : ConditionTable : A1
   class ConditionRecord
     attr_accessor :id, :type, :value, :target_id, :desc_key
 

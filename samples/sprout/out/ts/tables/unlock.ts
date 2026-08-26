@@ -26,7 +26,7 @@ interface IDataRow {
   messageKey: string
 }
 
-// Generated from samples/sprout/Setting.xlsx : UnlockTable : A1
+// Generated from samples/sprout/xlsx/Setting.xlsx : UnlockTable : A1
 export class UnlockRecord {
   /** Default constructor */
   constructor() {
@@ -67,7 +67,7 @@ export class UnlockRecord {
   }
 }
 
-// Generated from samples/sprout/Setting.xlsx : UnlockTable : A1
+// Generated from samples/sprout/xlsx/Setting.xlsx : UnlockTable : A1
 export class UnlockTable {
   /** Default constructor. */
   constructor() {

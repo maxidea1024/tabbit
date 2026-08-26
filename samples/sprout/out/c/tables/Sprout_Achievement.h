@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Quest.xlsx : AchievementTable : A1
+/* Generated from samples/sprout/xlsx/Quest.xlsx : AchievementTable : A1
  */
 struct Sprout_AchievementRecord_t {
   /* primary index */

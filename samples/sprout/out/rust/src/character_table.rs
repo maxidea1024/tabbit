@@ -13,7 +13,7 @@ use crate::enum_element_type::ElementType;
 use crate::enum_grade_type::GradeType;
 use crate::enum_rarity_type::RarityType;
 
-// Generated from samples/sprout/Character.xlsx : CharacterTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct CharacterRecord {
     /// primary index

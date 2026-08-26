@@ -22,7 +22,7 @@
 #include "enums/Tables_enum_stat_type.h"
 
 namespace sprout {
-// Generated from samples/sprout/Skill.xlsx : SkillEffectTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : SkillEffectTable : A1
 struct SkillEffectRecord {
   /// primary index
   std::int32_t id = 0;

@@ -14,7 +14,7 @@ from .enum_stat_type import StatType
 
 
 class SkillEffectRecord:
-    """Generated from samples/sprout/Skill.xlsx : SkillEffectTable : A1.
+    """Generated from samples/sprout/xlsx/Skill.xlsx : SkillEffectTable : A1.
     """
 
     __slots__ = ("id", "kind", "stat", "magnitude", "duration", "chance")

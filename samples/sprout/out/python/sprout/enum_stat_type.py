@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class StatType(enum.IntEnum):
-    """Generated from samples/sprout/Enums.xlsx : TableEnums : H2.
+    """Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : H2.
 
     labels for StatType
     """

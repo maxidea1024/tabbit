@@ -1,0 +1,8 @@
+@name	id	name	icon	hardCeiling	tradable	weeklyEarnCeiling	state
+@type	key:33000000~33999999	text	string	number	bool	number	string
+:required	1	1	1	1	1	1	1
+:min	33000000	-	-	0	-	0	-
+:max	33999999	-	-	2000000000	-	9000000	-
+:enum	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:asset	-	-	1	-	-	-	-
+@gen	seq:33000000	text:400	path:300:Art	int:0..2000000000:zipf	bool	int:0..9000000:zipf	pick:draft|review|live|retired

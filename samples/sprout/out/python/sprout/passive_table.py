@@ -13,7 +13,7 @@ from .enum_stat_type import StatType
 
 
 class PassiveRecord:
-    """Generated from samples/sprout/Skill.xlsx : PassiveTable : A1.
+    """Generated from samples/sprout/xlsx/Skill.xlsx : PassiveTable : A1.
     """
 
     __slots__ = ("id", "character_id", "unlock_step", "stat", "bonus")

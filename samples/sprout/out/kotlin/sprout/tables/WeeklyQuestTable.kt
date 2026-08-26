@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Quest.xlsx : WeeklyQuestTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : WeeklyQuestTable : A1
 class WeeklyQuestRecord {
     /** primary index */
     var id: Int = 0

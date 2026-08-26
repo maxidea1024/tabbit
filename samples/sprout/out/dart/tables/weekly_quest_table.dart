@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Quest.xlsx : WeeklyQuestTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : WeeklyQuestTable : A1
 class WeeklyQuestRecord {
   /// primary index
   int id = 0;

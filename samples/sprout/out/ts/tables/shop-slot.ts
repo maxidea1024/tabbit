@@ -26,7 +26,7 @@ interface IDataRow {
   weight: number
 }
 
-// Generated from samples/sprout/Shop.xlsx : ShopSlotTable : A1
+// Generated from samples/sprout/xlsx/Shop.xlsx : ShopSlotTable : A1
 export class ShopSlotRecord {
   /** Default constructor */
   constructor() {
@@ -85,7 +85,7 @@ export class ShopSlotRecord {
   }
 }
 
-// Generated from samples/sprout/Shop.xlsx : ShopSlotTable : A1
+// Generated from samples/sprout/xlsx/Shop.xlsx : ShopSlotTable : A1
 export class ShopSlotTable {
   /** Default constructor. */
   constructor() {

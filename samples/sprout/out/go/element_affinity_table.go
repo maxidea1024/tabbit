@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// ElementAffinityRecord was generated from samples/sprout/Character.xlsx : ElementAffinityTable : A1.
+// ElementAffinityRecord was generated from samples/sprout/xlsx/Character.xlsx : ElementAffinityTable : A1.
 type ElementAffinityRecord struct {
 	// primary index
 	Id int32

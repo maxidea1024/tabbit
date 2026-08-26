@@ -13,7 +13,7 @@ from .enum_grade_type import GradeType
 
 
 class PityRecord:
-    """Generated from samples/sprout/Gacha.xlsx : PityTable : A1.
+    """Generated from samples/sprout/xlsx/Gacha.xlsx : PityTable : A1.
     """
 
     __slots__ = ("id", "threshold", "grade", "reset_on_hit")

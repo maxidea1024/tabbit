@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : H2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : H2
 /// labels for StatType
 public enum StatType: Int32, CaseIterable, Sendable {
     /// None (automatically inserted by Tabbit)

@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Equipment.xlsx : EquipOptionTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipOptionTable : A1
 class EquipOptionRecord {
     /** primary index */
     var id: Int = 0

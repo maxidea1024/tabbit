@@ -11,7 +11,7 @@ use crate::tabbit;
 use crate::enum_item_type::ItemType;
 use crate::enum_grade_type::GradeType;
 
-// Generated from samples/sprout/Item.xlsx : ItemTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : ItemTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct ItemRecord {
     /// primary index

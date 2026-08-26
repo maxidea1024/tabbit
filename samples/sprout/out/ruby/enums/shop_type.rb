@@ -7,7 +7,7 @@
 
 
 module Sprout
-  # Generated from samples/sprout/Enums.xlsx : TableEnums : N2
+  # Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : N2
   # labels for ShopType
   module ShopType
     # None (automatically inserted by Tabbit)

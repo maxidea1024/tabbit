@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Quest.xlsx : AchievementTable : A1
+  # Generated from samples/sprout/xlsx/Quest.xlsx : AchievementTable : A1
   class AchievementRecord
     attr_accessor :id, :title_key, :condition_id, :target_count, :reward_id, :badge
 

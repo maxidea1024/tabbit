@@ -21,7 +21,7 @@
 #include "enums/Tables_enum_grade_type.h"
 
 namespace sprout {
-// Generated from samples/sprout/Growth.xlsx : AscendCurveTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : AscendCurveTable : A1
 struct AscendCurveRecord {
   /// primary index
   std::int32_t id = 0;

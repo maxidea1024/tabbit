@@ -20,7 +20,7 @@ use Tabbit\RecordNotFoundException;
 use Tabbit\Uuid;
 
 /**
- * Generated from samples/sprout/Stage.xlsx : WorldTable : A1
+ * Generated from samples/sprout/xlsx/Stage.xlsx : WorldTable : A1
  */
 final class WorldRecord
 {

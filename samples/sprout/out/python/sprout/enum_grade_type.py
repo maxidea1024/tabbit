@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class GradeType(enum.IntEnum):
-    """Generated from samples/sprout/Enums.xlsx : TableEnums : A2.
+    """Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : A2.
 
     labels for GradeType
     """

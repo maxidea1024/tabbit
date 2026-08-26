@@ -20,7 +20,7 @@
 #include "Tables_forward.h"
 
 namespace sprout {
-// Generated from samples/sprout/Codex.xlsx : CodexTierTable : A1
+// Generated from samples/sprout/xlsx/Codex.xlsx : CodexTierTable : A1
 struct CodexTierRecord {
   /// primary index
   std::int32_t id = 0;

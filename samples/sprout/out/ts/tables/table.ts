@@ -22,7 +22,7 @@ interface IDataRow {
   value: number
 }
 
-// Generated from samples/sprout/Setting.xlsx : Table : A1
+// Generated from samples/sprout/xlsx/Setting.xlsx : Table : A1
 export class TableRecord {
   /** Default constructor */
   constructor() {
@@ -57,7 +57,7 @@ export class TableRecord {
   }
 }
 
-// Generated from samples/sprout/Setting.xlsx : Table : A1
+// Generated from samples/sprout/xlsx/Setting.xlsx : Table : A1
 export class TableTable {
   /** Default constructor. */
   constructor() {

@@ -14,7 +14,7 @@ from .enum_element_type import ElementType
 
 
 class DungeonRecord:
-    """Generated from samples/sprout/Dungeon.xlsx : DungeonTable : A1.
+    """Generated from samples/sprout/xlsx/Dungeon.xlsx : DungeonTable : A1.
     """
 
     __slots__ = ("id", "type_", "name_key", "element", "daily_entries", "unlock_id")

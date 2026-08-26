@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// SettingRecord was generated from samples/sprout/Setting.xlsx : SettingTable : A1.
+// SettingRecord was generated from samples/sprout/xlsx/Setting.xlsx : SettingTable : A1.
 type SettingRecord struct {
 	// setting key
 	SettingKey string

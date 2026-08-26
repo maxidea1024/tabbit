@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Item.xlsx : MaterialTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : MaterialTable : A1
 class MaterialRecord {
     /** primary index */
     var id: Int = 0

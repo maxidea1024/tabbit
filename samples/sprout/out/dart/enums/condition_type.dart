@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Enums.xlsx : TableEnums : J2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : J2
 /// labels for ConditionType
 enum ConditionType {
   /// None (automatically inserted by Tabbit)

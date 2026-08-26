@@ -13,7 +13,7 @@ from .enum_quest_type import QuestType
 
 
 class QuestRecord:
-    """Generated from samples/sprout/Quest.xlsx : QuestTable : A1.
+    """Generated from samples/sprout/xlsx/Quest.xlsx : QuestTable : A1.
     """
 
     __slots__ = ("id", "type_", "title_key", "summary_key", "reward_id", "unlock_id", "repeatable")

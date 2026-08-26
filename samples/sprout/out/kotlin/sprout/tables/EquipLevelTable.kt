@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Equipment.xlsx : EquipLevelTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipLevelTable : A1
 class EquipLevelRecord {
     /** primary index */
     var id: Int = 0

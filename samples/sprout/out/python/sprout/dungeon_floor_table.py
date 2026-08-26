@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class DungeonFloorRecord:
-    """Generated from samples/sprout/Dungeon.xlsx : DungeonFloorTable : A1.
+    """Generated from samples/sprout/xlsx/Dungeon.xlsx : DungeonFloorTable : A1.
     """
 
     __slots__ = ("id", "dungeon_id", "floor", "power", "stamina", "reward_id")

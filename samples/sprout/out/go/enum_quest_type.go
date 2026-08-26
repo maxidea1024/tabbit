@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// QuestType was generated from samples/sprout/Enums.xlsx : TableEnums : P2.
+// QuestType was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : P2.
 // labels for QuestType
 type QuestType int32
 

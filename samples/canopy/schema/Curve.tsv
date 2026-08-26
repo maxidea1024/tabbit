@@ -1,0 +1,7 @@
+@name	id	curveKind	step	baseValue	gainValue	endValue	ceiling	state
+@type	key:13000000~13999999	number	number	number	number	number	number	string
+:required	1	1	1	1	1	1	1	1
+:min	13000000	0	0	1	1	1	0	-
+:max	13999999	3	750	900000	900000	900000	900000	-
+:enum	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+@gen	seq:13000000	pick:0|1|2|3	cycle:/240	curve:100:17:/240	curve:4:2:/240	curve:104:19:/240	group:/240	pick:draft|review|live|retired

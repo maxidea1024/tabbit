@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// ChapterRecord was generated from samples/sprout/Stage.xlsx : ChapterTable : A1.
+// ChapterRecord was generated from samples/sprout/xlsx/Stage.xlsx : ChapterTable : A1.
 type ChapterRecord struct {
 	// primary index
 	Id int32

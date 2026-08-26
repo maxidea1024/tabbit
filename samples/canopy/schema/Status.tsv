@@ -1,0 +1,8 @@
+@name	id	name	icon	statusKind	maxStacks	dispellable	persistsOnDeath	immunityMask	state
+@type	key:16000000~16999999	text	string	number	number	bool	bool	bit	string
+:required	1	1	1	1	1	1	1	1	1
+:min	16000000	-	-	0	1	-	-	-	-
+:max	16999999	-	-	4	99	-	-	-	-
+:enum	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:asset	-	-	1	-	-	-	-	-	-
+@gen	seq:16000000	text:400	path:300:Art	pick:0|1|2|3|4	int:1..99:zipf	bool	bool	bit:16	pick:draft|review|live|retired

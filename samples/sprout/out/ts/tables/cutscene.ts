@@ -23,7 +23,7 @@ interface IDataRow {
   skipAfterMs: number
 }
 
-// Generated from samples/sprout/Dialogue.xlsx : CutsceneTable : A1
+// Generated from samples/sprout/xlsx/Dialogue.xlsx : CutsceneTable : A1
 export class CutsceneRecord {
   /** Default constructor */
   constructor() {
@@ -64,7 +64,7 @@ export class CutsceneRecord {
   }
 }
 
-// Generated from samples/sprout/Dialogue.xlsx : CutsceneTable : A1
+// Generated from samples/sprout/xlsx/Dialogue.xlsx : CutsceneTable : A1
 export class CutsceneTable {
   /** Default constructor. */
   constructor() {

@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Offline.xlsx : AfkBonusTable : A1
+  # Generated from samples/sprout/xlsx/Offline.xlsx : AfkBonusTable : A1
   class AfkBonusRecord
     attr_accessor :id, :hours, :bonus
 

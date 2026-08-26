@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Item.xlsx : ItemGradeTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : ItemGradeTable : A1
 public final class ItemGradeRecord {
 
     public init() {}

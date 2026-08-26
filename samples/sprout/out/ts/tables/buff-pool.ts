@@ -22,7 +22,7 @@ interface IDataRow {
   weights: number[]
 }
 
-// Generated from samples/sprout/Skill.xlsx : BuffPoolTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : BuffPoolTable : A1
 export class BuffPoolRecord {
   /** Default constructor */
   constructor() {
@@ -57,7 +57,7 @@ export class BuffPoolRecord {
   }
 }
 
-// Generated from samples/sprout/Skill.xlsx : BuffPoolTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : BuffPoolTable : A1
 export class BuffPoolTable {
   /** Default constructor. */
   constructor() {

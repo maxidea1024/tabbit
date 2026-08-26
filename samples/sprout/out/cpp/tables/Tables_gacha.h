@@ -21,7 +21,7 @@
 #include "enums/Tables_enum_gacha_type.h"
 
 namespace sprout {
-// Generated from samples/sprout/Gacha.xlsx : GachaTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : GachaTable : A1
 struct GachaRecord {
   /// primary index
   std::int32_t id = 0;

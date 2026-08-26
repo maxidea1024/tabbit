@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Enums.xlsx : TableEnums : D2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : D2
 /// labels for RarityType
 enum RarityType {
   /// None (automatically inserted by Tabbit)

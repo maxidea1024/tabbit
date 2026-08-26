@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Skill.xlsx : BuffPoolTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : BuffPoolTable : A1
 class BuffPoolRecord {
   /// primary index
   int id = 0;

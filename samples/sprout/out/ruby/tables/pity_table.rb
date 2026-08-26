@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Gacha.xlsx : PityTable : A1
+  # Generated from samples/sprout/xlsx/Gacha.xlsx : PityTable : A1
   class PityRecord
     attr_accessor :id, :threshold, :grade, :reset_on_hit
 

@@ -30,7 +30,7 @@ interface IDataRow {
   maxLevel: number
 }
 
-// Generated from samples/sprout/Skill.xlsx : SkillTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : SkillTable : A1
 export class SkillRecord {
   /** Default constructor */
   constructor() {
@@ -95,7 +95,7 @@ export class SkillRecord {
   }
 }
 
-// Generated from samples/sprout/Skill.xlsx : SkillTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : SkillTable : A1
 export class SkillTable {
   /** Default constructor. */
   constructor() {

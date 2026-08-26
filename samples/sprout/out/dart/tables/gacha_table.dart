@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Gacha.xlsx : GachaTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : GachaTable : A1
 class GachaRecord {
   /// primary index
   int id = 0;

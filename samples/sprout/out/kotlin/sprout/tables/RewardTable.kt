@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Reward.xlsx : RewardTable : A1
+// Generated from samples/sprout/xlsx/Reward.xlsx : RewardTable : A1
 class RewardRecord {
     /** primary index */
     var id: Int = 0

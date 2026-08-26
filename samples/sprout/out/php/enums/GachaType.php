@@ -17,7 +17,7 @@ use Tabbit\RecordNotFoundException;
 use Tabbit\Uuid;
 
 /**
- * Generated from samples/sprout/Enums.xlsx : TableEnums : O2
+ * Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : O2
  *
  * labels for GachaType
  */

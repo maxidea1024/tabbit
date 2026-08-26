@@ -9,7 +9,7 @@ package sprout;
 
 import tabbit.TcbReader;
 
-// Generated from samples/sprout/Quest.xlsx : WeeklyQuestTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : WeeklyQuestTable : A1
 public final class WeeklyQuestRecord {
     /** primary index */
     public int id;

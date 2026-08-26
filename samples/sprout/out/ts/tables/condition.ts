@@ -27,7 +27,7 @@ interface IDataRow {
   descKey: string
 }
 
-// Generated from samples/sprout/Setting.xlsx : ConditionTable : A1
+// Generated from samples/sprout/xlsx/Setting.xlsx : ConditionTable : A1
 export class ConditionRecord {
   /** Default constructor */
   constructor() {
@@ -74,7 +74,7 @@ export class ConditionRecord {
   }
 }
 
-// Generated from samples/sprout/Setting.xlsx : ConditionTable : A1
+// Generated from samples/sprout/xlsx/Setting.xlsx : ConditionTable : A1
 export class ConditionTable {
   /** Default constructor. */
   constructor() {

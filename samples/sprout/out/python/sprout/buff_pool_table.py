@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class BuffPoolRecord:
-    """Generated from samples/sprout/Skill.xlsx : BuffPoolTable : A1.
+    """Generated from samples/sprout/xlsx/Skill.xlsx : BuffPoolTable : A1.
     """
 
     __slots__ = ("id", "buff_ids", "weights")

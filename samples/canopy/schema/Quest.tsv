@@ -1,0 +1,9 @@
+@name	id	title	summary	completion	questKind	levelRequired	rewardId	nextId	repeatable	step[0]["Kind"]	step[0]["Value"]	step[0]["Label"]	step[1]["Kind"]	step[1]["Value"]	step[1]["Label"]	step[2]["Kind"]	step[2]["Value"]	step[2]["Label"]	step[3]["Kind"]	step[3]["Value"]	step[3]["Label"]	state
+@type	key:22000000~22999999	text	text	text	number	number	number	number	bool	number	number	text	number	number	text	number	number	text	number	number	text	string
+:required	1	1	1	1	1	1	1	1	1	-	-	-	-	-	-	-	-	-	-	-	-	1
+:min	22000000	-	-	-	0	1	17000000	22000000	-	-	-	-	-	-	-	-	-	-	-	-	-	-
+:max	22999999	-	-	-	4	120	17999999	22999999	-	-	-	-	-	-	-	-	-	-	-	-	-	-
+:enum	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:links	-	-	-	-	-	-	"Loot"	"Quest"	-	-	-	-	-	-	-	-	-	-	-	-	-	-
+:requiredInObject	-	-	-	-	-	-	-	-	-	1	1	1	1	1	1	1	1	1	1	1	1	-
+@gen	seq:22000000	text:400	text:400	text:400	pick:0|1|2|3|4	int:1..120:zipf	ref:Loot	ref:Quest	bool	pick:0|1|2|3	int:1..9999:zipf	text:200	pick:0|1|2|3	int:1..9999:zipf	text:200	pick:0|1|2|3	int:1..9999:zipf	text:200	pick:0|1|2|3	int:1..9999:zipf	text:200	pick:draft|review|live|retired

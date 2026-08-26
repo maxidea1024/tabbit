@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Equipment.xlsx : EquipSetTable : A1
+/* Generated from samples/sprout/xlsx/Equipment.xlsx : EquipSetTable : A1
  */
 struct Sprout_EquipSetRecord_t {
   /* primary index */

@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Offline.xlsx : IdleRateTable : A1
+// Generated from samples/sprout/xlsx/Offline.xlsx : IdleRateTable : A1
 class IdleRateRecord {
     /** primary index */
     var id: Int = 0

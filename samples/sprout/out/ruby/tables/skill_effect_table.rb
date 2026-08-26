@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Skill.xlsx : SkillEffectTable : A1
+  # Generated from samples/sprout/xlsx/Skill.xlsx : SkillEffectTable : A1
   class SkillEffectRecord
     attr_accessor :id, :kind, :stat, :magnitude, :duration, :chance
 

@@ -13,7 +13,7 @@ from .enum_gacha_type import GachaType
 
 
 class GachaRecord:
-    """Generated from samples/sprout/Gacha.xlsx : GachaTable : A1.
+    """Generated from samples/sprout/xlsx/Gacha.xlsx : GachaTable : A1.
     """
 
     __slots__ = ("id", "type_", "name_key", "banner", "price_id", "pity_id")

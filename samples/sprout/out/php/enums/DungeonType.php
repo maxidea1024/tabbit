@@ -17,7 +17,7 @@ use Tabbit\RecordNotFoundException;
 use Tabbit\Uuid;
 
 /**
- * Generated from samples/sprout/Enums.xlsx : TableEnums : M2
+ * Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : M2
  *
  * labels for DungeonType
  */

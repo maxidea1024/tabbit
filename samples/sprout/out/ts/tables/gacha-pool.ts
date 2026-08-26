@@ -28,7 +28,7 @@ interface IDataRow {
   weight: number
 }
 
-// Generated from samples/sprout/Gacha.xlsx : GachaPoolTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : GachaPoolTable : A1
 export class GachaPoolRecord {
   /** Default constructor */
   constructor() {
@@ -81,7 +81,7 @@ export class GachaPoolRecord {
   }
 }
 
-// Generated from samples/sprout/Gacha.xlsx : GachaPoolTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : GachaPoolTable : A1
 export class GachaPoolTable {
   /** Default constructor. */
   constructor() {

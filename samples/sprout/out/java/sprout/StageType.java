@@ -7,7 +7,7 @@
 
 package sprout;
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : L2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : L2
 /** labels for StageType */
 public enum StageType {
     /** None (automatically inserted by Tabbit) */

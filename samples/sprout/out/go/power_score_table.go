@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// PowerScoreRecord was generated from samples/sprout/Growth.xlsx : PowerScoreTable : A1.
+// PowerScoreRecord was generated from samples/sprout/xlsx/Growth.xlsx : PowerScoreTable : A1.
 type PowerScoreRecord struct {
 	// primary index
 	Id int32

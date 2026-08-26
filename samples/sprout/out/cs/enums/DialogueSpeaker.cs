@@ -9,7 +9,7 @@
 
 namespace Sprout.Tables
 {
-    // Generated from samples/sprout/Enums.xlsx : TableEnums : Q2
+    // Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : Q2
     /// <summary>
     /// labels for DialogueSpeaker
     /// </summary>

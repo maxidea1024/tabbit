@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// StatType was generated from samples/sprout/Enums.xlsx : TableEnums : H2.
+// StatType was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : H2.
 // labels for StatType
 type StatType int32
 

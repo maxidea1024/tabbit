@@ -26,7 +26,7 @@ interface IDataRow {
   discount: number
 }
 
-// Generated from samples/sprout/Shop.xlsx : PriceTable : A1
+// Generated from samples/sprout/xlsx/Shop.xlsx : PriceTable : A1
 export class PriceRecord {
   /** Default constructor */
   constructor() {
@@ -67,7 +67,7 @@ export class PriceRecord {
   }
 }
 
-// Generated from samples/sprout/Shop.xlsx : PriceTable : A1
+// Generated from samples/sprout/xlsx/Shop.xlsx : PriceTable : A1
 export class PriceTable {
   /** Default constructor. */
   constructor() {

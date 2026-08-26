@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Setting.xlsx : UnlockTable : A1
+/* Generated from samples/sprout/xlsx/Setting.xlsx : UnlockTable : A1
  */
 struct Sprout_UnlockRecord_t {
   /* primary index */

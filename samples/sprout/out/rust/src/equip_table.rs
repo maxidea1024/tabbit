@@ -11,7 +11,7 @@ use crate::tabbit;
 use crate::enum_equip_slot::EquipSlot;
 use crate::enum_grade_type::GradeType;
 
-// Generated from samples/sprout/Equipment.xlsx : EquipTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct EquipRecord {
     /// primary index

@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class QuestStepRecord:
-    """Generated from samples/sprout/Quest.xlsx : QuestStepTable : A1.
+    """Generated from samples/sprout/xlsx/Quest.xlsx : QuestStepTable : A1.
     """
 
     __slots__ = ("id", "quest_id", "step_order", "condition_id", "target_count", "dialogue_id")

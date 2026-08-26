@@ -21,7 +21,7 @@
 #include "enums/Tables_enum_stat_type.h"
 
 namespace sprout {
-// Generated from samples/sprout/Codex.xlsx : CodexEntryTable : A1
+// Generated from samples/sprout/xlsx/Codex.xlsx : CodexEntryTable : A1
 struct CodexEntryRecord {
   /// primary index
   std::int32_t id = 0;

@@ -21,7 +21,7 @@
 #include "enums/Tables_enum_grade_type.h"
 
 namespace sprout {
-// Generated from samples/sprout/Gacha.xlsx : GachaPoolTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : GachaPoolTable : A1
 struct GachaPoolRecord {
   /// primary index
   std::int32_t id = 0;

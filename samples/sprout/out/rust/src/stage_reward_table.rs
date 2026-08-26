@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_reward_type::RewardType;
 
-// Generated from samples/sprout/Stage.xlsx : StageRewardTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : StageRewardTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct StageRewardRecord {
     /// primary index

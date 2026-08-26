@@ -20,7 +20,7 @@ use Tabbit\RecordNotFoundException;
 use Tabbit\Uuid;
 
 /**
- * Generated from samples/sprout/Character.xlsx : CharacterAscendTable : A1
+ * Generated from samples/sprout/xlsx/Character.xlsx : CharacterAscendTable : A1
  */
 final class CharacterAscendRecord
 {

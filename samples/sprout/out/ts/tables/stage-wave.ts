@@ -24,7 +24,7 @@ interface IDataRow {
   monsterLevels: number[]
 }
 
-// Generated from samples/sprout/Stage.xlsx : StageWaveTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : StageWaveTable : A1
 export class StageWaveRecord {
   /** Default constructor */
   constructor() {
@@ -71,7 +71,7 @@ export class StageWaveRecord {
   }
 }
 
-// Generated from samples/sprout/Stage.xlsx : StageWaveTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : StageWaveTable : A1
 export class StageWaveTable {
   /** Default constructor. */
   constructor() {

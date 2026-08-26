@@ -1,0 +1,7 @@
+@name	id	body	revision	state
+@type	strkey	text	number	string
+:required	1	1	1	1
+:min	-	-	1	-
+:max	-	-	40	-
+:enum	-	-	-	"draft";"review";"live";"retired"
+@gen	key:NOTE	text:400	int:1..40:zipf	pick:draft|review|live|retired

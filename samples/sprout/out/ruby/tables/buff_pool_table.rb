@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Skill.xlsx : BuffPoolTable : A1
+  # Generated from samples/sprout/xlsx/Skill.xlsx : BuffPoolTable : A1
   class BuffPoolRecord
     attr_accessor :id, :buff_ids, :weights
 

@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Codex.xlsx : CodexTable : A1
+  # Generated from samples/sprout/xlsx/Codex.xlsx : CodexTable : A1
   class CodexRecord
     attr_accessor :id, :type, :name_key, :icon, :reward_id
 

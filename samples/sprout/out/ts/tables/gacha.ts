@@ -28,7 +28,7 @@ interface IDataRow {
   pityId: number
 }
 
-// Generated from samples/sprout/Gacha.xlsx : GachaTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : GachaTable : A1
 export class GachaRecord {
   /** Default constructor */
   constructor() {
@@ -81,7 +81,7 @@ export class GachaRecord {
   }
 }
 
-// Generated from samples/sprout/Gacha.xlsx : GachaTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : GachaTable : A1
 export class GachaTable {
   /** Default constructor. */
   constructor() {

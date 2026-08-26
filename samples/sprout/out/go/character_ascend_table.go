@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// CharacterAscendRecord was generated from samples/sprout/Character.xlsx : CharacterAscendTable : A1.
+// CharacterAscendRecord was generated from samples/sprout/xlsx/Character.xlsx : CharacterAscendTable : A1.
 type CharacterAscendRecord struct {
 	// primary index
 	Id int32

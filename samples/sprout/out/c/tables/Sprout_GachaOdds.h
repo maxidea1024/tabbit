@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Gacha.xlsx : GachaOddsTable : A1
+/* Generated from samples/sprout/xlsx/Gacha.xlsx : GachaOddsTable : A1
  */
 struct Sprout_GachaOddsRecord_t {
   /* primary index */

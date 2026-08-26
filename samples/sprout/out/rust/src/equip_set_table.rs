@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use crate::tabbit;
 
-// Generated from samples/sprout/Equipment.xlsx : EquipSetTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipSetTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct EquipSetRecord {
     /// primary index

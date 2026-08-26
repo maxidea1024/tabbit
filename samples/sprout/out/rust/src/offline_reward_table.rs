@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use crate::tabbit;
 
-// Generated from samples/sprout/Offline.xlsx : OfflineRewardTable : A1
+// Generated from samples/sprout/xlsx/Offline.xlsx : OfflineRewardTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct OfflineRewardRecord {
     /// primary index

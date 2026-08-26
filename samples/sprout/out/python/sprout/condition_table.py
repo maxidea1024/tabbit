@@ -13,7 +13,7 @@ from .enum_condition_type import ConditionType
 
 
 class ConditionRecord:
-    """Generated from samples/sprout/Setting.xlsx : ConditionTable : A1.
+    """Generated from samples/sprout/xlsx/Setting.xlsx : ConditionTable : A1.
     """
 
     __slots__ = ("id", "type_", "value", "target_id", "desc_key")

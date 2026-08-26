@@ -27,7 +27,7 @@ interface IDataRow {
   bonus: number
 }
 
-// Generated from samples/sprout/Character.xlsx : RoleBonusTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : RoleBonusTable : A1
 export class RoleBonusRecord {
   /** Default constructor */
   constructor() {
@@ -68,7 +68,7 @@ export class RoleBonusRecord {
   }
 }
 
-// Generated from samples/sprout/Character.xlsx : RoleBonusTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : RoleBonusTable : A1
 export class RoleBonusTable {
   /** Default constructor. */
   constructor() {

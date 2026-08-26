@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_element_type::ElementType;
 
-// Generated from samples/sprout/Item.xlsx : MaterialTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : MaterialTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct MaterialRecord {
     /// primary index

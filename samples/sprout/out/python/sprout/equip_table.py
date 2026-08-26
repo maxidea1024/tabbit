@@ -14,7 +14,7 @@ from .enum_grade_type import GradeType
 
 
 class EquipRecord:
-    """Generated from samples/sprout/Equipment.xlsx : EquipTable : A1.
+    """Generated from samples/sprout/xlsx/Equipment.xlsx : EquipTable : A1.
     """
 
     __slots__ = ("id", "name_key", "slot", "grade", "model", "set_id", "attack", "defense", "max_level")

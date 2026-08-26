@@ -20,7 +20,7 @@ use Tabbit\RecordNotFoundException;
 use Tabbit\Uuid;
 
 /**
- * Generated from samples/sprout/Shop.xlsx : ShopSlotTable : A1
+ * Generated from samples/sprout/xlsx/Shop.xlsx : ShopSlotTable : A1
  */
 final class ShopSlotRecord
 {

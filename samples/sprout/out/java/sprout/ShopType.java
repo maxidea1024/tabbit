@@ -7,7 +7,7 @@
 
 package sprout;
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : N2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : N2
 /** labels for ShopType */
 public enum ShopType {
     /** None (automatically inserted by Tabbit) */

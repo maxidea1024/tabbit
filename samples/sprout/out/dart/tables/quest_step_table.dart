@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Quest.xlsx : QuestStepTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : QuestStepTable : A1
 class QuestStepRecord {
   /// primary index
   int id = 0;

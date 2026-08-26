@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Offline.xlsx : OfflineRewardTable : A1
+// Generated from samples/sprout/xlsx/Offline.xlsx : OfflineRewardTable : A1
 public final class OfflineRewardRecord {
 
     public init() {}

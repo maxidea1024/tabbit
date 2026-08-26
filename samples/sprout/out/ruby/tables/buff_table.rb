@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Skill.xlsx : BuffTable : A1
+  # Generated from samples/sprout/xlsx/Skill.xlsx : BuffTable : A1
   class BuffRecord
     attr_accessor :id, :name_key, :kind, :icon, :stack_limit, :dispellable
 

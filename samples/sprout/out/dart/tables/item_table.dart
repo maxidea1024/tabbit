@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Item.xlsx : ItemTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : ItemTable : A1
 class ItemRecord {
   /// primary index
   int id = 0;

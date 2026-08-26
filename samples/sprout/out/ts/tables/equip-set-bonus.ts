@@ -27,7 +27,7 @@ interface IDataRow {
   bonus: number
 }
 
-// Generated from samples/sprout/Equipment.xlsx : EquipSetBonusTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipSetBonusTable : A1
 export class EquipSetBonusRecord {
   /** Default constructor */
   constructor() {
@@ -74,7 +74,7 @@ export class EquipSetBonusRecord {
   }
 }
 
-// Generated from samples/sprout/Equipment.xlsx : EquipSetBonusTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipSetBonusTable : A1
 export class EquipSetBonusTable {
   /** Default constructor. */
   constructor() {

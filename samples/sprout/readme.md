@@ -15,7 +15,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/sprout/recipe.jsonc
 
 |무엇|어디|
 |--|--|
-|워크북 17개|이 폴더 (`.xlsx`) — **생성물입니다.** 손으로 고치지 않습니다|
+|워크북 17개|[xlsx/](xlsx) — **생성물입니다.** 손으로 고치지 않습니다|
 |격자 72개|[schema/](schema) — **정본.** 시트 하나가 파일 하나입니다|
 |생성기|[gen/](gen) — 격자를 워크북으로|
 |변환 설정|[recipe.jsonc](recipe.jsonc)|
@@ -36,12 +36,12 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/sprout/recipe.jsonc
 
 |규모|행|워크북|어디|
 |--|--|--|--|
-|`small`|5,008행|17개 · 0.3 MB|이 폴더. **커밋됩니다**|
-|`live`|109,218행|17개 · 4.5 MB|`live/`. 커밋하지 않습니다|
+|`small`|5,008행|17개 · 0.3 MB|`xlsx/`. **커밋됩니다**|
+|`live`|109,218행|17개 · 4.5 MB|`xlsx-live/`. 커밋하지 않습니다|
 
 ```
 dotnet run --project samples/sprout/gen -- --scale small              # 커밋된 것을 다시 만듭니다
-dotnet run --project samples/sprout/gen -- --scale live --out live    # 벤치마크 코퍼스
+dotnet run --project samples/sprout/gen -- --scale live --out xlsx-live   # 벤치마크 코퍼스
 ```
 
 `live`의 109,218행 중 95,490행이 `LevelCurveTable` 하나입니다. **한 테이블이 코퍼스의

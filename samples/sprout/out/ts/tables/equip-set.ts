@@ -22,7 +22,7 @@ interface IDataRow {
   memberIds: number[]
 }
 
-// Generated from samples/sprout/Equipment.xlsx : EquipSetTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipSetTable : A1
 export class EquipSetRecord {
   /** Default constructor */
   constructor() {
@@ -57,7 +57,7 @@ export class EquipSetRecord {
   }
 }
 
-// Generated from samples/sprout/Equipment.xlsx : EquipSetTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipSetTable : A1
 export class EquipSetTable {
   /** Default constructor. */
   constructor() {

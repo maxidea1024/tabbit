@@ -23,7 +23,7 @@ interface IDataRow {
   skippable: boolean
 }
 
-// Generated from samples/sprout/Dialogue.xlsx : DialogueTable : A1
+// Generated from samples/sprout/xlsx/Dialogue.xlsx : DialogueTable : A1
 export class DialogueRecord {
   /** Default constructor */
   constructor() {
@@ -64,7 +64,7 @@ export class DialogueRecord {
   }
 }
 
-// Generated from samples/sprout/Dialogue.xlsx : DialogueTable : A1
+// Generated from samples/sprout/xlsx/Dialogue.xlsx : DialogueTable : A1
 export class DialogueTable {
   /** Default constructor. */
   constructor() {

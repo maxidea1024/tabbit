@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Setting.xlsx : ConditionTable : A1
+/* Generated from samples/sprout/xlsx/Setting.xlsx : ConditionTable : A1
  */
 struct Sprout_ConditionRecord_t {
   /* primary index */

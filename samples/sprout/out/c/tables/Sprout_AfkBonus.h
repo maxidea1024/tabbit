@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Offline.xlsx : AfkBonusTable : A1
+/* Generated from samples/sprout/xlsx/Offline.xlsx : AfkBonusTable : A1
  */
 struct Sprout_AfkBonusRecord_t {
   /* primary index */

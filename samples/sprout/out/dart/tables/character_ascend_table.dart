@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Character.xlsx : CharacterAscendTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterAscendTable : A1
 class CharacterAscendRecord {
   /// primary index
   int id = 0;

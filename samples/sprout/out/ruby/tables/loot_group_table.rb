@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Reward.xlsx : LootGroupTable : A1
+  # Generated from samples/sprout/xlsx/Reward.xlsx : LootGroupTable : A1
   class LootGroupRecord
     attr_accessor :id, :name_key, :draws, :allow_duplicate
 

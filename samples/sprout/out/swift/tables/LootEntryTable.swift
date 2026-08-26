@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Reward.xlsx : LootEntryTable : A1
+// Generated from samples/sprout/xlsx/Reward.xlsx : LootEntryTable : A1
 public final class LootEntryRecord {
 
     public init() {}

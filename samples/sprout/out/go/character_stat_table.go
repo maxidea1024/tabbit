@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// CharacterStatRecord was generated from samples/sprout/Character.xlsx : CharacterStatTable : A1.
+// CharacterStatRecord was generated from samples/sprout/xlsx/Character.xlsx : CharacterStatTable : A1.
 type CharacterStatRecord struct {
 	// primary index
 	Id int32

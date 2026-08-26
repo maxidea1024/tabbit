@@ -9,7 +9,7 @@
 
 namespace Sprout.Tables
 {
-    // Generated from samples/sprout/Enums.xlsx : TableEnums : R2
+    // Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : R2
     /// <summary>
     /// labels for UnlockType
     /// </summary>

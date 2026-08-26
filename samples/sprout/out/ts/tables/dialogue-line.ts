@@ -28,7 +28,7 @@ interface IDataRow {
   lineKey: string
 }
 
-// Generated from samples/sprout/Dialogue.xlsx : DialogueLineTable : A1
+// Generated from samples/sprout/xlsx/Dialogue.xlsx : DialogueLineTable : A1
 export class DialogueLineRecord {
   /** Default constructor */
   constructor() {
@@ -81,7 +81,7 @@ export class DialogueLineRecord {
   }
 }
 
-// Generated from samples/sprout/Dialogue.xlsx : DialogueLineTable : A1
+// Generated from samples/sprout/xlsx/Dialogue.xlsx : DialogueLineTable : A1
 export class DialogueLineTable {
   /** Default constructor. */
   constructor() {

@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// UnlockType was generated from samples/sprout/Enums.xlsx : TableEnums : R2.
+// UnlockType was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : R2.
 // labels for UnlockType
 type UnlockType int32
 

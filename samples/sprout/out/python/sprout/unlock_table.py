@@ -13,7 +13,7 @@ from .enum_unlock_type import UnlockType
 
 
 class UnlockRecord:
-    """Generated from samples/sprout/Setting.xlsx : UnlockTable : A1.
+    """Generated from samples/sprout/xlsx/Setting.xlsx : UnlockTable : A1.
     """
 
     __slots__ = ("id", "type_", "condition_id", "message_key")

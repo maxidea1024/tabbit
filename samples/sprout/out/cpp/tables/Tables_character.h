@@ -24,7 +24,7 @@
 #include "enums/Tables_enum_rarity_type.h"
 
 namespace sprout {
-// Generated from samples/sprout/Character.xlsx : CharacterTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterTable : A1
 struct CharacterRecord {
   /// primary index
   std::int32_t id = 0;

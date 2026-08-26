@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Item.xlsx : ConsumableTable : A1
+  # Generated from samples/sprout/xlsx/Item.xlsx : ConsumableTable : A1
   class ConsumableRecord
     attr_accessor :id, :item_id, :buff_id, :cooldown
 

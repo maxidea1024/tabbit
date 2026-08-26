@@ -29,7 +29,7 @@ interface IDataRow {
   repeatable: boolean
 }
 
-// Generated from samples/sprout/Quest.xlsx : QuestTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : QuestTable : A1
 export class QuestRecord {
   /** Default constructor */
   constructor() {
@@ -88,7 +88,7 @@ export class QuestRecord {
   }
 }
 
-// Generated from samples/sprout/Quest.xlsx : QuestTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : QuestTable : A1
 export class QuestTable {
   /** Default constructor. */
   constructor() {

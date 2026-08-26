@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// StatBaseRecord was generated from samples/sprout/Growth.xlsx : StatBaseTable : A1.
+// StatBaseRecord was generated from samples/sprout/xlsx/Growth.xlsx : StatBaseTable : A1.
 type StatBaseRecord struct {
 	// primary index
 	Id int32

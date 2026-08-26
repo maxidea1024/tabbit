@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Gacha.xlsx : GachaOddsTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : GachaOddsTable : A1
 class GachaOddsRecord {
     /** primary index */
     var id: Int = 0

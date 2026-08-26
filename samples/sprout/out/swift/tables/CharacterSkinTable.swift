@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Character.xlsx : CharacterSkinTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterSkinTable : A1
 public final class CharacterSkinRecord {
 
     public init() {}

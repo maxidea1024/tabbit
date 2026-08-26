@@ -21,7 +21,7 @@
 #include "enums/Tables_enum_buff_kind.h"
 
 namespace sprout {
-// Generated from samples/sprout/Skill.xlsx : BuffTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : BuffTable : A1
 struct BuffRecord {
   /// primary index
   std::int32_t id = 0;

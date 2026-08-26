@@ -1,0 +1,9 @@
+@name	id	name	zoneId	partySize	levelRequired	dailyEntries	lootId	wing[0]["BossId"]	wing[0]["TimeLimit"]	wing[1]["BossId"]	wing[1]["TimeLimit"]	wing[2]["BossId"]	wing[2]["TimeLimit"]	state
+@type	key:27000000~27999999	text	number	number	number	number	number	number	number	number	number	number	number	string
+:required	1	1	1	1	1	1	1	-	-	-	-	-	-	1
+:min	27000000	-	25000000	1	1	0	17000000	-	-	-	-	-	-	-
+:max	27999999	-	25999999	40	120	10	17999999	-	-	-	-	-	-	-
+:enum	-	-	-	-	-	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:links	-	-	"Zone"	-	-	-	"Loot"	-	-	-	-	-	-	-
+:requiredInObject	-	-	-	-	-	-	-	1	1	1	1	1	1	-
+@gen	seq:27000000	text:400	ref:Zone	int:1..40:zipf	int:1..120:zipf	int:0..10:zipf	ref:Loot	int:1..99999:zipf	int:60..7200	int:1..99999:zipf	int:60..7200	int:1..99999:zipf	int:60..7200	pick:draft|review|live|retired

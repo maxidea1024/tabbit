@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Stage.xlsx : StageWaveTable : A1
+  # Generated from samples/sprout/xlsx/Stage.xlsx : StageWaveTable : A1
   class StageWaveRecord
     attr_accessor :id, :stage_id, :wave_order, :monster_ids, :monster_levels
 

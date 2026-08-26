@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Growth.xlsx : LevelCurveTable : A1
+/* Generated from samples/sprout/xlsx/Growth.xlsx : LevelCurveTable : A1
  */
 struct Sprout_LevelCurveRecord_t {
   /* primary index */

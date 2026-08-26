@@ -21,7 +21,7 @@
 #include "enums/Tables_enum_element_type.h"
 
 namespace sprout {
-// Generated from samples/sprout/Item.xlsx : MaterialTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : MaterialTable : A1
 struct MaterialRecord {
   /// primary index
   std::int32_t id = 0;

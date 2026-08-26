@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : K2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : K2
 /** labels for RewardType */
 enum class RewardType(val value: Int) {
     /** None (automatically inserted by Tabbit) */

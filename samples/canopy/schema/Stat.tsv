@@ -1,0 +1,8 @@
+@name	id	ownerId	level	health	attack	defence	critRate	critPower	speed	state
+@type	key:12000000~12999999	number	number	number	number	number	float	float	number	string
+:required	1	1	1	1	1	1	1	1	1	1
+:min	12000000	10000000	0	100	10	10	-	-	60	-
+:max	12999999	10999999	119	900000	90000	90000	-	-	320	-
+:enum	-	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:links	-	"Profile"	-	-	-	-	-	-	-	-
+@gen	seq:12000000	ref:Profile	cycle:/120	curve:400:120:/120	curve:40:11:/120	curve:26:8:/120	float:0.01..0.65:3	float:1.2..3.8:3	int:60..320:zipf	pick:draft|review|live|retired

@@ -13,7 +13,7 @@ from .enum_reward_type import RewardType
 
 
 class RewardRecord:
-    """Generated from samples/sprout/Reward.xlsx : RewardTable : A1.
+    """Generated from samples/sprout/xlsx/Reward.xlsx : RewardTable : A1.
     """
 
     __slots__ = ("id", "type_", "loot_group_id", "item_ids", "item_counts")

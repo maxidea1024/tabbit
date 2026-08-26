@@ -20,7 +20,7 @@
 #include "Tables_forward.h"
 
 namespace sprout {
-// Generated from samples/sprout/Character.xlsx : CharacterVoiceTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterVoiceTable : A1
 struct CharacterVoiceRecord {
   /// primary index
   std::int32_t id = 0;

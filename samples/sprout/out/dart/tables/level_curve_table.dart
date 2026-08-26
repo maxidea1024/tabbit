@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Growth.xlsx : LevelCurveTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : LevelCurveTable : A1
 class LevelCurveRecord {
   /// primary index
   int id = 0;

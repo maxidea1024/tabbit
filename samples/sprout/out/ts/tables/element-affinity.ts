@@ -26,7 +26,7 @@ interface IDataRow {
   rate: number
 }
 
-// Generated from samples/sprout/Character.xlsx : ElementAffinityTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : ElementAffinityTable : A1
 export class ElementAffinityRecord {
   /** Default constructor */
   constructor() {
@@ -67,7 +67,7 @@ export class ElementAffinityRecord {
   }
 }
 
-// Generated from samples/sprout/Character.xlsx : ElementAffinityTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : ElementAffinityTable : A1
 export class ElementAffinityTable {
   /** Default constructor. */
   constructor() {

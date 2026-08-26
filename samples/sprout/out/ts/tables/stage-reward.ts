@@ -28,7 +28,7 @@ interface IDataRow {
   chance: number
 }
 
-// Generated from samples/sprout/Stage.xlsx : StageRewardTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : StageRewardTable : A1
 export class StageRewardRecord {
   /** Default constructor */
   constructor() {
@@ -81,7 +81,7 @@ export class StageRewardRecord {
   }
 }
 
-// Generated from samples/sprout/Stage.xlsx : StageRewardTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : StageRewardTable : A1
 export class StageRewardTable {
   /** Default constructor. */
   constructor() {

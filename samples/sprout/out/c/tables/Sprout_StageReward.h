@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Stage.xlsx : StageRewardTable : A1
+/* Generated from samples/sprout/xlsx/Stage.xlsx : StageRewardTable : A1
  */
 struct Sprout_StageRewardRecord_t {
   /* primary index */

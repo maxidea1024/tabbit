@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Setting.xlsx : ConditionTable : A1
+// Generated from samples/sprout/xlsx/Setting.xlsx : ConditionTable : A1
 public final class ConditionRecord {
 
     public init() {}

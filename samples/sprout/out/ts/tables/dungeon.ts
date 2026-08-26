@@ -29,7 +29,7 @@ interface IDataRow {
   unlockId: number
 }
 
-// Generated from samples/sprout/Dungeon.xlsx : DungeonTable : A1
+// Generated from samples/sprout/xlsx/Dungeon.xlsx : DungeonTable : A1
 export class DungeonRecord {
   /** Default constructor */
   constructor() {
@@ -82,7 +82,7 @@ export class DungeonRecord {
   }
 }
 
-// Generated from samples/sprout/Dungeon.xlsx : DungeonTable : A1
+// Generated from samples/sprout/xlsx/Dungeon.xlsx : DungeonTable : A1
 export class DungeonTable {
   /** Default constructor. */
   constructor() {

@@ -23,7 +23,7 @@ interface IDataRow {
   allowDuplicate: boolean
 }
 
-// Generated from samples/sprout/Reward.xlsx : LootGroupTable : A1
+// Generated from samples/sprout/xlsx/Reward.xlsx : LootGroupTable : A1
 export class LootGroupRecord {
   /** Default constructor */
   constructor() {
@@ -64,7 +64,7 @@ export class LootGroupRecord {
   }
 }
 
-// Generated from samples/sprout/Reward.xlsx : LootGroupTable : A1
+// Generated from samples/sprout/xlsx/Reward.xlsx : LootGroupTable : A1
 export class LootGroupTable {
   /** Default constructor. */
   constructor() {

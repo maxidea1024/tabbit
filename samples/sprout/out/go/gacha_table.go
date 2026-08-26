@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// GachaRecord was generated from samples/sprout/Gacha.xlsx : GachaTable : A1.
+// GachaRecord was generated from samples/sprout/xlsx/Gacha.xlsx : GachaTable : A1.
 type GachaRecord struct {
 	// primary index
 	Id int32

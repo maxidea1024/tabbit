@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Setting.xlsx : UnlockTable : A1
+  # Generated from samples/sprout/xlsx/Setting.xlsx : UnlockTable : A1
   class UnlockRecord
     attr_accessor :id, :type, :condition_id, :message_key
 

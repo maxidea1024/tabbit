@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class AchievementRecord:
-    """Generated from samples/sprout/Quest.xlsx : AchievementTable : A1.
+    """Generated from samples/sprout/xlsx/Quest.xlsx : AchievementTable : A1.
     """
 
     __slots__ = ("id", "title_key", "condition_id", "target_count", "reward_id", "badge")

@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Skill.xlsx : SkillEffectTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : SkillEffectTable : A1
 class SkillEffectRecord {
   /// primary index
   int id = 0;

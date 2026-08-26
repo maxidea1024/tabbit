@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// OfferItemRecord was generated from samples/sprout/Item.xlsx : OfferItemTable : A1.
+// OfferItemRecord was generated from samples/sprout/xlsx/Item.xlsx : OfferItemTable : A1.
 type OfferItemRecord struct {
 	// primary index
 	Id int32

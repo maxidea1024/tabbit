@@ -21,7 +21,7 @@
 #include "enums/Tables_enum_quest_type.h"
 
 namespace sprout {
-// Generated from samples/sprout/Quest.xlsx : QuestTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : QuestTable : A1
 struct QuestRecord {
   /// primary index
   std::int32_t id = 0;

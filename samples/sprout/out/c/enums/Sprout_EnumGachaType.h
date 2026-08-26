@@ -9,7 +9,7 @@
 #ifndef SPROUT_ENUM_GACHA_TYPE_H
 #define SPROUT_ENUM_GACHA_TYPE_H
 
-/* Generated from samples/sprout/Enums.xlsx : TableEnums : O2
+/* Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : O2
  *
  * labels for GachaType
  */

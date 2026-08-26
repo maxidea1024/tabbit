@@ -21,7 +21,7 @@
 #include "enums/Tables_enum_grade_type.h"
 
 namespace sprout {
-// Generated from samples/sprout/Gacha.xlsx : PityTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : PityTable : A1
 struct PityRecord {
   /// primary index
   std::int32_t id = 0;

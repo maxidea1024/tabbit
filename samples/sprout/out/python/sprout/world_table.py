@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class WorldRecord:
-    """Generated from samples/sprout/Stage.xlsx : WorldTable : A1.
+    """Generated from samples/sprout/xlsx/Stage.xlsx : WorldTable : A1.
     """
 
     __slots__ = ("id", "name_key", "map", "theme_colour")

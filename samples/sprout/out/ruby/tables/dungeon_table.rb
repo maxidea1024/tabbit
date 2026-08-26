@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Dungeon.xlsx : DungeonTable : A1
+  # Generated from samples/sprout/xlsx/Dungeon.xlsx : DungeonTable : A1
   class DungeonRecord
     attr_accessor :id, :type, :name_key, :element, :daily_entries, :unlock_id
 

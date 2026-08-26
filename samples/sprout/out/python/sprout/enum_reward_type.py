@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class RewardType(enum.IntEnum):
-    """Generated from samples/sprout/Enums.xlsx : TableEnums : K2.
+    """Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : K2.
 
     labels for RewardType
     """

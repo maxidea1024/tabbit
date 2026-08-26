@@ -25,7 +25,7 @@ interface IDataRow {
   badge: string
 }
 
-// Generated from samples/sprout/Quest.xlsx : AchievementTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : AchievementTable : A1
 export class AchievementRecord {
   /** Default constructor */
   constructor() {
@@ -78,7 +78,7 @@ export class AchievementRecord {
   }
 }
 
-// Generated from samples/sprout/Quest.xlsx : AchievementTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : AchievementTable : A1
 export class AchievementTable {
   /** Default constructor. */
   constructor() {

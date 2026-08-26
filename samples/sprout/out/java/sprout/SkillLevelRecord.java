@@ -9,7 +9,7 @@ package sprout;
 
 import tabbit.TcbReader;
 
-// Generated from samples/sprout/Skill.xlsx : SkillLevelTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : SkillLevelTable : A1
 public final class SkillLevelRecord {
     /** primary index */
     public int id;

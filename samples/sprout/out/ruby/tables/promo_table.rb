@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Shop.xlsx : PromoTable : A1
+  # Generated from samples/sprout/xlsx/Shop.xlsx : PromoTable : A1
   class PromoRecord
     attr_accessor :id, :offer_id, :banner, :available_days
 

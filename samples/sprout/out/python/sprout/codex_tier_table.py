@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class CodexTierRecord:
-    """Generated from samples/sprout/Codex.xlsx : CodexTierTable : A1.
+    """Generated from samples/sprout/xlsx/Codex.xlsx : CodexTierTable : A1.
     """
 
     __slots__ = ("id", "codex_id", "required", "reward_id")

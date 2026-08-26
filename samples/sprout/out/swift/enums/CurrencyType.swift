@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : E2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : E2
 /// labels for CurrencyType
 public enum CurrencyType: Int32, CaseIterable, Sendable {
     /// None (automatically inserted by Tabbit)

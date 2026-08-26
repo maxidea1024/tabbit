@@ -22,7 +22,7 @@ use Tabbit\RecordNotFoundException;
 use Tabbit\Uuid;
 
 /**
- * Generated from samples/sprout/Character.xlsx : RoleBonusTable : A1
+ * Generated from samples/sprout/xlsx/Character.xlsx : RoleBonusTable : A1
  */
 final class RoleBonusRecord
 {

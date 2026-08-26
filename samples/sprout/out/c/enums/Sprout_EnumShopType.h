@@ -9,7 +9,7 @@
 #ifndef SPROUT_ENUM_SHOP_TYPE_H
 #define SPROUT_ENUM_SHOP_TYPE_H
 
-/* Generated from samples/sprout/Enums.xlsx : TableEnums : N2
+/* Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : N2
  *
  * labels for ShopType
  */

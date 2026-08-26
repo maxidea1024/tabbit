@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Stage.xlsx : ChapterTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : ChapterTable : A1
 class ChapterRecord {
     /** primary index */
     var id: Int = 0

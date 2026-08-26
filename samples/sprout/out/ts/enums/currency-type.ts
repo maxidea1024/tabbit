@@ -7,7 +7,7 @@
 // </auto-generated>
 // ------------------------------------------------------------------------------
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : E2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : E2
 /** labels for CurrencyType */
 export enum CurrencyType {
   /** None (automatically inserted by Tabbit) */

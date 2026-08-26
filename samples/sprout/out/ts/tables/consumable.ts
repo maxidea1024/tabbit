@@ -23,7 +23,7 @@ interface IDataRow {
   cooldown: number
 }
 
-// Generated from samples/sprout/Item.xlsx : ConsumableTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : ConsumableTable : A1
 export class ConsumableRecord {
   /** Default constructor */
   constructor() {
@@ -64,7 +64,7 @@ export class ConsumableRecord {
   }
 }
 
-// Generated from samples/sprout/Item.xlsx : ConsumableTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : ConsumableTable : A1
 export class ConsumableTable {
   /** Default constructor. */
   constructor() {

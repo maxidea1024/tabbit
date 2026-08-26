@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Setting.xlsx : SettingTable : A1
+// Generated from samples/sprout/xlsx/Setting.xlsx : SettingTable : A1
 public final class SettingRecord {
 
     public init() {}

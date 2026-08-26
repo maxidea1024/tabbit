@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Dungeon.xlsx : DungeonFloorTable : A1
+// Generated from samples/sprout/xlsx/Dungeon.xlsx : DungeonFloorTable : A1
 public final class DungeonFloorRecord {
 
     public init() {}

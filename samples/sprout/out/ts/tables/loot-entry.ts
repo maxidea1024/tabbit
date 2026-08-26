@@ -25,7 +25,7 @@ interface IDataRow {
   weight: number
 }
 
-// Generated from samples/sprout/Reward.xlsx : LootEntryTable : A1
+// Generated from samples/sprout/xlsx/Reward.xlsx : LootEntryTable : A1
 export class LootEntryRecord {
   /** Default constructor */
   constructor() {
@@ -78,7 +78,7 @@ export class LootEntryRecord {
   }
 }
 
-// Generated from samples/sprout/Reward.xlsx : LootEntryTable : A1
+// Generated from samples/sprout/xlsx/Reward.xlsx : LootEntryTable : A1
 export class LootEntryTable {
   /** Default constructor. */
   constructor() {

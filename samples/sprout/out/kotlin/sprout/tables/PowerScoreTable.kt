@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Growth.xlsx : PowerScoreTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : PowerScoreTable : A1
 class PowerScoreRecord {
     /** primary index */
     var id: Int = 0

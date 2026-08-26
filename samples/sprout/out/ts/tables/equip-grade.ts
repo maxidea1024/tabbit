@@ -26,7 +26,7 @@ interface IDataRow {
   frame: string
 }
 
-// Generated from samples/sprout/Equipment.xlsx : EquipGradeTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipGradeTable : A1
 export class EquipGradeRecord {
   /** Default constructor */
   constructor() {
@@ -67,7 +67,7 @@ export class EquipGradeRecord {
   }
 }
 
-// Generated from samples/sprout/Equipment.xlsx : EquipGradeTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipGradeTable : A1
 export class EquipGradeTable {
   /** Default constructor. */
   constructor() {

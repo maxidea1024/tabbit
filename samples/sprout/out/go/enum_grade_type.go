@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// GradeType was generated from samples/sprout/Enums.xlsx : TableEnums : A2.
+// GradeType was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : A2.
 // labels for GradeType
 type GradeType int32
 

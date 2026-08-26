@@ -1,0 +1,8 @@
+@name	id	day	rewardId	premiumOnly	bonusPermille	state
+@type	key:37000000~37999999	number	number	bool	number	string
+:required	1	1	1	1	-	1
+:min	37000000	1	17000000	-	0	-
+:max	37999999	365	17999999	-	3000	-
+:enum	-	-	-	-	-	"draft";"review";"live";"retired"
+:links	-	-	"Loot"	-	-	-
+@gen	seq:37000000	int:1..365:zipf	ref:Loot	bool	?20 int:0..3000:zipf	pick:draft|review|live|retired

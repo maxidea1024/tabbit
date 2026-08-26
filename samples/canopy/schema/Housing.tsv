@@ -1,0 +1,9 @@
+@name	id	name	model	footprintX	footprintY	upkeep	placeableOutdoors	slot[0]["Kind"]	slot[0]["OffsetX"]	slot[0]["OffsetY"]	slot[1]["Kind"]	slot[1]["OffsetX"]	slot[1]["OffsetY"]	slot[2]["Kind"]	slot[2]["OffsetX"]	slot[2]["OffsetY"]	slot[3]["Kind"]	slot[3]["OffsetX"]	slot[3]["OffsetY"]	state
+@type	key:31000000~31999999	text	string	number	number	number	bool	number	number	number	number	number	number	number	number	number	number	number	number	string
+:required	1	1	1	1	1	1	1	-	-	-	-	-	-	-	-	-	-	-	-	1
+:min	31000000	-	-	1	1	0	-	-	-	-	-	-	-	-	-	-	-	-	-	-
+:max	31999999	-	-	40	40	90000	-	-	-	-	-	-	-	-	-	-	-	-	-	-
+:enum	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:requiredInObject	-	-	-	-	-	-	-	1	1	1	1	1	1	1	1	1	1	1	1	-
+:asset	-	-	1	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-
+@gen	seq:31000000	text:400	path:300:Art	int:1..40:zipf	int:1..40:zipf	int:0..90000:zipf	bool	pick:0|1|2|3	int:-400..400	int:-400..400	pick:0|1|2|3	int:-400..400	int:-400..400	pick:0|1|2|3	int:-400..400	int:-400..400	pick:0|1|2|3	int:-400..400	int:-400..400	pick:draft|review|live|retired

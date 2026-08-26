@@ -9,7 +9,7 @@
 
 namespace Sprout.Tables
 {
-    // Generated from samples/sprout/Enums.xlsx : TableEnums : O2
+    // Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : O2
     /// <summary>
     /// labels for GachaType
     /// </summary>

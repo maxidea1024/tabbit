@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : Q2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : Q2
 /// labels for DialogueSpeaker
 public enum DialogueSpeaker: Int32, CaseIterable, Sendable {
     /// None (automatically inserted by Tabbit)

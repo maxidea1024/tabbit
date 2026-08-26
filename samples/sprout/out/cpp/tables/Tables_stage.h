@@ -21,7 +21,7 @@
 #include "enums/Tables_enum_stage_type.h"
 
 namespace sprout {
-// Generated from samples/sprout/Stage.xlsx : StageTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : StageTable : A1
 struct StageRecord {
   /// primary index
   std::int32_t id = 0;

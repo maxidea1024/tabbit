@@ -13,7 +13,7 @@ from .enum_reward_type import RewardType
 
 
 class StageRewardRecord:
-    """Generated from samples/sprout/Stage.xlsx : StageRewardTable : A1.
+    """Generated from samples/sprout/xlsx/Stage.xlsx : StageRewardTable : A1.
     """
 
     __slots__ = ("id", "stage_id", "type_", "item_id", "count", "chance")

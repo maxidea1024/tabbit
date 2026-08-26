@@ -13,7 +13,7 @@ from .enum_shop_type import ShopType
 
 
 class ShopRecord:
-    """Generated from samples/sprout/Shop.xlsx : ShopTable : A1.
+    """Generated from samples/sprout/xlsx/Shop.xlsx : ShopTable : A1.
     """
 
     __slots__ = ("id", "type_", "name_key", "refresh_hours", "free_refresh")

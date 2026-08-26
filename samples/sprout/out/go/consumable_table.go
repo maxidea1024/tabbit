@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// ConsumableRecord was generated from samples/sprout/Item.xlsx : ConsumableTable : A1.
+// ConsumableRecord was generated from samples/sprout/xlsx/Item.xlsx : ConsumableTable : A1.
 type ConsumableRecord struct {
 	// primary index
 	Id int32

@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use crate::tabbit;
 
-// Generated from samples/sprout/Dialogue.xlsx : DialogueTable : A1
+// Generated from samples/sprout/xlsx/Dialogue.xlsx : DialogueTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct DialogueRecord {
     /// primary index

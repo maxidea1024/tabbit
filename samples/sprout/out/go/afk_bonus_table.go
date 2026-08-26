@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// AfkBonusRecord was generated from samples/sprout/Offline.xlsx : AfkBonusTable : A1.
+// AfkBonusRecord was generated from samples/sprout/xlsx/Offline.xlsx : AfkBonusTable : A1.
 type AfkBonusRecord struct {
 	// primary index
 	Id int32

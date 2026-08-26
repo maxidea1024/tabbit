@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// LootGroupRecord was generated from samples/sprout/Reward.xlsx : LootGroupTable : A1.
+// LootGroupRecord was generated from samples/sprout/xlsx/Reward.xlsx : LootGroupTable : A1.
 type LootGroupRecord struct {
 	// primary index
 	Id int32

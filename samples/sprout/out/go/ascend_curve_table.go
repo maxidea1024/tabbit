@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// AscendCurveRecord was generated from samples/sprout/Growth.xlsx : AscendCurveTable : A1.
+// AscendCurveRecord was generated from samples/sprout/xlsx/Growth.xlsx : AscendCurveTable : A1.
 type AscendCurveRecord struct {
 	// primary index
 	Id int32

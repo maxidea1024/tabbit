@@ -9,7 +9,7 @@ package sprout;
 
 import tabbit.TcbReader;
 
-// Generated from samples/sprout/Skill.xlsx : BuffPoolTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : BuffPoolTable : A1
 public final class BuffPoolRecord {
     /** primary index */
     public int id;

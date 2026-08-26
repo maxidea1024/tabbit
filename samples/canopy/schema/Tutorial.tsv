@@ -1,0 +1,7 @@
+@name	id	stepKey	prompt	stepOrder	highlightId	skippable	state
+@type	key:38000000~38999999	string	text	number	number	bool	string
+:required	1	1	1	1	-	1	1
+:min	38000000	-	-	1	1	-	-
+:max	38999999	-	-	200	9999	-	-
+:enum	-	-	-	-	-	-	"draft";"review";"live";"retired"
+@gen	seq:38000000	str:TUT:300	text:400	int:1..200:zipf	?20 int:1..9999:zipf	bool	pick:draft|review|live|retired

@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// OfflineRewardRecord was generated from samples/sprout/Offline.xlsx : OfflineRewardTable : A1.
+// OfflineRewardRecord was generated from samples/sprout/xlsx/Offline.xlsx : OfflineRewardTable : A1.
 type OfflineRewardRecord struct {
 	// primary index
 	Id int32

@@ -25,7 +25,7 @@ interface IDataRow {
   dialogueId: number
 }
 
-// Generated from samples/sprout/Quest.xlsx : QuestStepTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : QuestStepTable : A1
 export class QuestStepRecord {
   /** Default constructor */
   constructor() {
@@ -78,7 +78,7 @@ export class QuestStepRecord {
   }
 }
 
-// Generated from samples/sprout/Quest.xlsx : QuestStepTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : QuestStepTable : A1
 export class QuestStepTable {
   /** Default constructor. */
   constructor() {

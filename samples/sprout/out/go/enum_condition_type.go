@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// ConditionType was generated from samples/sprout/Enums.xlsx : TableEnums : J2.
+// ConditionType was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : J2.
 // labels for ConditionType
 type ConditionType int32
 

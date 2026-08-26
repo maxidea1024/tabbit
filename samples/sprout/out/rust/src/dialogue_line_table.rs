@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_dialogue_speaker::DialogueSpeaker;
 
-// Generated from samples/sprout/Dialogue.xlsx : DialogueLineTable : A1
+// Generated from samples/sprout/xlsx/Dialogue.xlsx : DialogueLineTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct DialogueLineRecord {
     /// primary index

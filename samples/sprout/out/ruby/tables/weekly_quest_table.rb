@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Quest.xlsx : WeeklyQuestTable : A1
+  # Generated from samples/sprout/xlsx/Quest.xlsx : WeeklyQuestTable : A1
   class WeeklyQuestRecord
     attr_accessor :id, :quest_id, :points, :reset_weekday
 

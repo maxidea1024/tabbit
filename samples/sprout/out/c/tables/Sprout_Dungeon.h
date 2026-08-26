@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Dungeon.xlsx : DungeonTable : A1
+/* Generated from samples/sprout/xlsx/Dungeon.xlsx : DungeonTable : A1
  */
 struct Sprout_DungeonRecord_t {
   /* primary index */

@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class EquipSlot(enum.IntEnum):
-    """Generated from samples/sprout/Enums.xlsx : TableEnums : G2.
+    """Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : G2.
 
     labels for EquipSlot
     """

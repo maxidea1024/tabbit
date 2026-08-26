@@ -13,7 +13,7 @@
 #include <cstdint>
 
 namespace sprout {
-// Generated from samples/sprout/Enums.xlsx : TableEnums : Q2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : Q2
 /// labels for DialogueSpeaker
 enum class DialogueSpeaker : std::int32_t {
   /// None (automatically inserted by Tabbit)

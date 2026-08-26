@@ -7,7 +7,7 @@
 
 package sprout;
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : D2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : D2
 /** labels for RarityType */
 public enum RarityType {
     /** None (automatically inserted by Tabbit) */

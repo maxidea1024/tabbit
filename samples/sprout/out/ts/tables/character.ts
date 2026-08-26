@@ -35,7 +35,7 @@ interface IDataRow {
   released: boolean
 }
 
-// Generated from samples/sprout/Character.xlsx : CharacterTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterTable : A1
 export class CharacterRecord {
   /** Default constructor */
   constructor() {
@@ -112,7 +112,7 @@ export class CharacterRecord {
   }
 }
 
-// Generated from samples/sprout/Character.xlsx : CharacterTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterTable : A1
 export class CharacterTable {
   /** Default constructor. */
   constructor() {

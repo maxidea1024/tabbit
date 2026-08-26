@@ -21,7 +21,7 @@
 #include "enums/Tables_enum_condition_type.h"
 
 namespace sprout {
-// Generated from samples/sprout/Setting.xlsx : ConditionTable : A1
+// Generated from samples/sprout/xlsx/Setting.xlsx : ConditionTable : A1
 struct ConditionRecord {
   /// primary index
   std::int32_t id = 0;

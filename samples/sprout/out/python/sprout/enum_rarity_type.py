@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class RarityType(enum.IntEnum):
-    """Generated from samples/sprout/Enums.xlsx : TableEnums : D2.
+    """Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : D2.
 
     labels for RarityType
     """

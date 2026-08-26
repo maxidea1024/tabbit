@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// CodexRecord was generated from samples/sprout/Codex.xlsx : CodexTable : A1.
+// CodexRecord was generated from samples/sprout/xlsx/Codex.xlsx : CodexTable : A1.
 type CodexRecord struct {
 	// primary index
 	Id int32

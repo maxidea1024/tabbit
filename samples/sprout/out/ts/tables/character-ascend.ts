@@ -26,7 +26,7 @@ interface IDataRow {
   statScale: number
 }
 
-// Generated from samples/sprout/Character.xlsx : CharacterAscendTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterAscendTable : A1
 export class CharacterAscendRecord {
   /** Default constructor */
   constructor() {
@@ -85,7 +85,7 @@ export class CharacterAscendRecord {
   }
 }
 
-// Generated from samples/sprout/Character.xlsx : CharacterAscendTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterAscendTable : A1
 export class CharacterAscendTable {
   /** Default constructor. */
   constructor() {

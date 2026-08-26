@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Offline.xlsx : OfflineRewardTable : A1
+  # Generated from samples/sprout/xlsx/Offline.xlsx : OfflineRewardTable : A1
   class OfflineRewardRecord
     attr_accessor :id, :account_level, :gold_per_hour, :exp_per_hour, :loot_group_id
 

@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_quest_type::QuestType;
 
-// Generated from samples/sprout/Quest.xlsx : QuestTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : QuestTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct QuestRecord {
     /// primary index

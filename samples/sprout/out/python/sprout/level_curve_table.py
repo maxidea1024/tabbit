@@ -13,7 +13,7 @@ from .enum_stat_type import StatType
 
 
 class LevelCurveRecord:
-    """Generated from samples/sprout/Growth.xlsx : LevelCurveTable : A1.
+    """Generated from samples/sprout/xlsx/Growth.xlsx : LevelCurveTable : A1.
     """
 
     __slots__ = ("id", "tier_name", "curve_stat", "tick", "base_value", "step_value", "end_value", "cap_value", "revision")

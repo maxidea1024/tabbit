@@ -24,7 +24,7 @@ interface IDataRow {
   unlockId: number
 }
 
-// Generated from samples/sprout/Stage.xlsx : ChapterTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : ChapterTable : A1
 export class ChapterRecord {
   /** Default constructor */
   constructor() {
@@ -71,7 +71,7 @@ export class ChapterRecord {
   }
 }
 
-// Generated from samples/sprout/Stage.xlsx : ChapterTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : ChapterTable : A1
 export class ChapterTable {
   /** Default constructor. */
   constructor() {

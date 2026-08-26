@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Equipment.xlsx : EquipSetBonusTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipSetBonusTable : A1
 class EquipSetBonusRecord {
   /// primary index
   int id = 0;

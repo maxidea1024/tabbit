@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_shop_type::ShopType;
 
-// Generated from samples/sprout/Shop.xlsx : ShopTable : A1
+// Generated from samples/sprout/xlsx/Shop.xlsx : ShopTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct ShopRecord {
     /// primary index

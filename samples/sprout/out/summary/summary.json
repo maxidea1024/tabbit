@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-26T14:48:55.5651282+09:00",
+    "generatedAt": "2026-08-26T14:57:50.4005609+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "recipe.jsonc",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "a82fe521418b606454dd95ab1b3e58ac96142083",
-      "shortHash": "a82fe521418b",
+      "hash": "2d6549e346f84b5ed8049ac517e52a17b124dbd9",
+      "shortHash": "2d6549e346f8",
       "branch": "synthetic-samples",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-26T14:27:40.0000000+09:00",
-      "subject": "docs: 합성 샘플 규격 — sprout · canopy 로 회사 자산 워크북을 대체한다",
+      "committedAt": "2026-08-26T14:52:35.0000000+09:00",
+      "subject": "docs: 합성 샘플 규격에 sprout 실측과 식별자 대조 결과를 적음",
       "origin": "git",
       "dirty": true,
       "attributable": false
@@ -67,97 +67,97 @@
     },
     "sources": [
       {
-        "file": "samples/sprout/Character.xlsx",
+        "file": "samples/sprout/xlsx/Character.xlsx",
         "sheets": 7,
         "tables": 7,
         "rows": 331
       },
       {
-        "file": "samples/sprout/Codex.xlsx",
+        "file": "samples/sprout/xlsx/Codex.xlsx",
         "sheets": 3,
         "tables": 3,
         "rows": 127
       },
       {
-        "file": "samples/sprout/Dialogue.xlsx",
+        "file": "samples/sprout/xlsx/Dialogue.xlsx",
         "sheets": 3,
         "tables": 3,
         "rows": 212
       },
       {
-        "file": "samples/sprout/Dungeon.xlsx",
+        "file": "samples/sprout/xlsx/Dungeon.xlsx",
         "sheets": 4,
         "tables": 4,
         "rows": 143
       },
       {
-        "file": "samples/sprout/Equipment.xlsx",
+        "file": "samples/sprout/xlsx/Equipment.xlsx",
         "sheets": 6,
         "tables": 6,
         "rows": 248
       },
       {
-        "file": "samples/sprout/Gacha.xlsx",
+        "file": "samples/sprout/xlsx/Gacha.xlsx",
         "sheets": 4,
         "tables": 4,
         "rows": 99
       },
       {
-        "file": "samples/sprout/Growth.xlsx",
+        "file": "samples/sprout/xlsx/Growth.xlsx",
         "sheets": 4,
         "tables": 4,
         "rows": 1557
       },
       {
-        "file": "samples/sprout/Item.xlsx",
+        "file": "samples/sprout/xlsx/Item.xlsx",
         "sheets": 7,
         "tables": 7,
         "rows": 276
       },
       {
-        "file": "samples/sprout/Localization.xlsx",
+        "file": "samples/sprout/xlsx/Localization.xlsx",
         "sheets": 1,
         "tables": 1,
         "rows": 450
       },
       {
-        "file": "samples/sprout/Offline.xlsx",
+        "file": "samples/sprout/xlsx/Offline.xlsx",
         "sheets": 3,
         "tables": 3,
         "rows": 47
       },
       {
-        "file": "samples/sprout/Quest.xlsx",
+        "file": "samples/sprout/xlsx/Quest.xlsx",
         "sheets": 5,
         "tables": 5,
         "rows": 206
       },
       {
-        "file": "samples/sprout/Reward.xlsx",
+        "file": "samples/sprout/xlsx/Reward.xlsx",
         "sheets": 4,
         "tables": 4,
         "rows": 220
       },
       {
-        "file": "samples/sprout/Setting.xlsx",
+        "file": "samples/sprout/xlsx/Setting.xlsx",
         "sheets": 4,
         "tables": 4,
         "rows": 94
       },
       {
-        "file": "samples/sprout/Shop.xlsx",
+        "file": "samples/sprout/xlsx/Shop.xlsx",
         "sheets": 4,
         "tables": 4,
         "rows": 85
       },
       {
-        "file": "samples/sprout/Skill.xlsx",
+        "file": "samples/sprout/xlsx/Skill.xlsx",
         "sheets": 6,
         "tables": 6,
         "rows": 449
       },
       {
-        "file": "samples/sprout/Stage.xlsx",
+        "file": "samples/sprout/xlsx/Stage.xlsx",
         "sheets": 6,
         "tables": 6,
         "rows": 459
@@ -172,7 +172,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Character.xlsx",
+          "file": "samples/sprout/xlsx/Character.xlsx",
           "sheet": "CharacterTable",
           "cell": "A1",
           "url": null
@@ -191,7 +191,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterTable",
               "cell": "A2",
               "url": null
@@ -214,7 +214,7 @@
             "targetSide": "cs",
             "comment": "display name key",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterTable",
               "cell": "B2",
               "url": null
@@ -237,7 +237,7 @@
             "targetSide": "cs",
             "comment": "portrait asset",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterTable",
               "cell": "C2",
               "url": null
@@ -260,7 +260,7 @@
             "targetSide": "cs",
             "comment": "combat role",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterTable",
               "cell": "D2",
               "url": null
@@ -283,7 +283,7 @@
             "targetSide": "cs",
             "comment": "element",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterTable",
               "cell": "E2",
               "url": null
@@ -306,7 +306,7 @@
             "targetSide": "cs",
             "comment": "initial grade",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterTable",
               "cell": "F2",
               "url": null
@@ -329,7 +329,7 @@
             "targetSide": "cs",
             "comment": "base rarity",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterTable",
               "cell": "G2",
               "url": null
@@ -352,7 +352,7 @@
             "targetSide": "cs",
             "comment": "skill ids, ';' between",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterTable",
               "cell": "H2",
               "url": null
@@ -375,7 +375,7 @@
             "targetSide": "cs",
             "comment": "maximum level",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterTable",
               "cell": "J2",
               "url": null
@@ -398,7 +398,7 @@
             "targetSide": "cs",
             "comment": "released",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterTable",
               "cell": "K2",
               "url": null
@@ -425,7 +425,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Character.xlsx",
+          "file": "samples/sprout/xlsx/Character.xlsx",
           "sheet": "CharacterStatTable",
           "cell": "A1",
           "url": null
@@ -444,7 +444,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterStatTable",
               "cell": "A2",
               "url": null
@@ -467,7 +467,7 @@
             "targetSide": "cs",
             "comment": "owning character",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterStatTable",
               "cell": "B2",
               "url": null
@@ -490,7 +490,7 @@
             "targetSide": "cs",
             "comment": "level",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterStatTable",
               "cell": "C2",
               "url": null
@@ -513,7 +513,7 @@
             "targetSide": "cs",
             "comment": "required experience",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterStatTable",
               "cell": "D2",
               "url": null
@@ -536,7 +536,7 @@
             "targetSide": "cs",
             "comment": "attack at this level",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterStatTable",
               "cell": "E2",
               "url": null
@@ -559,7 +559,7 @@
             "targetSide": "cs",
             "comment": "defense at this level",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterStatTable",
               "cell": "F2",
               "url": null
@@ -582,7 +582,7 @@
             "targetSide": "cs",
             "comment": "health at this level",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterStatTable",
               "cell": "G2",
               "url": null
@@ -609,7 +609,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Character.xlsx",
+          "file": "samples/sprout/xlsx/Character.xlsx",
           "sheet": "CharacterAscendTable",
           "cell": "A1",
           "url": null
@@ -628,7 +628,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterAscendTable",
               "cell": "A2",
               "url": null
@@ -651,7 +651,7 @@
             "targetSide": "cs",
             "comment": "owning character",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterAscendTable",
               "cell": "B2",
               "url": null
@@ -674,7 +674,7 @@
             "targetSide": "cs",
             "comment": "ascension step",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterAscendTable",
               "cell": "C2",
               "url": null
@@ -697,7 +697,7 @@
             "targetSide": "cs",
             "comment": "material item ids",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterAscendTable",
               "cell": "D2",
               "url": null
@@ -720,7 +720,7 @@
             "targetSide": "cs",
             "comment": "material counts",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterAscendTable",
               "cell": "E2",
               "url": null
@@ -743,7 +743,7 @@
             "targetSide": "cs",
             "comment": "soft currency cost",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterAscendTable",
               "cell": "F2",
               "url": null
@@ -766,7 +766,7 @@
             "targetSide": "cs",
             "comment": "stat multiplier",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterAscendTable",
               "cell": "G2",
               "url": null
@@ -793,7 +793,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Character.xlsx",
+          "file": "samples/sprout/xlsx/Character.xlsx",
           "sheet": "CharacterSkinTable",
           "cell": "A1",
           "url": null
@@ -812,7 +812,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterSkinTable",
               "cell": "A2",
               "url": null
@@ -835,7 +835,7 @@
             "targetSide": "cs",
             "comment": "owning character",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterSkinTable",
               "cell": "B2",
               "url": null
@@ -858,7 +858,7 @@
             "targetSide": "cs",
             "comment": "skin name key",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterSkinTable",
               "cell": "C2",
               "url": null
@@ -881,7 +881,7 @@
             "targetSide": "cs",
             "comment": "model asset",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterSkinTable",
               "cell": "D2",
               "url": null
@@ -904,7 +904,7 @@
             "targetSide": "cs",
             "comment": "shop price",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterSkinTable",
               "cell": "E2",
               "url": null
@@ -927,7 +927,7 @@
             "targetSide": "cs",
             "comment": "default skin",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterSkinTable",
               "cell": "F2",
               "url": null
@@ -954,7 +954,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Character.xlsx",
+          "file": "samples/sprout/xlsx/Character.xlsx",
           "sheet": "CharacterVoiceTable",
           "cell": "A1",
           "url": null
@@ -973,7 +973,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterVoiceTable",
               "cell": "A2",
               "url": null
@@ -996,7 +996,7 @@
             "targetSide": "cs",
             "comment": "owning character",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterVoiceTable",
               "cell": "B2",
               "url": null
@@ -1019,7 +1019,7 @@
             "targetSide": "cs",
             "comment": "voice cue",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterVoiceTable",
               "cell": "C2",
               "url": null
@@ -1042,7 +1042,7 @@
             "targetSide": "cs",
             "comment": "audio asset",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterVoiceTable",
               "cell": "D2",
               "url": null
@@ -1065,7 +1065,7 @@
             "targetSide": "cs",
             "comment": "subtitle key",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "CharacterVoiceTable",
               "cell": "E2",
               "url": null
@@ -1092,7 +1092,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Character.xlsx",
+          "file": "samples/sprout/xlsx/Character.xlsx",
           "sheet": "RoleBonusTable",
           "cell": "A1",
           "url": null
@@ -1111,7 +1111,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "RoleBonusTable",
               "cell": "A2",
               "url": null
@@ -1134,7 +1134,7 @@
             "targetSide": "cs",
             "comment": "role",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "RoleBonusTable",
               "cell": "B2",
               "url": null
@@ -1157,7 +1157,7 @@
             "targetSide": "cs",
             "comment": "stat",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "RoleBonusTable",
               "cell": "C2",
               "url": null
@@ -1180,7 +1180,7 @@
             "targetSide": "cs",
             "comment": "bonus in permille",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "RoleBonusTable",
               "cell": "D2",
               "url": null
@@ -1207,7 +1207,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Character.xlsx",
+          "file": "samples/sprout/xlsx/Character.xlsx",
           "sheet": "ElementAffinityTable",
           "cell": "A1",
           "url": null
@@ -1226,7 +1226,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "ElementAffinityTable",
               "cell": "A2",
               "url": null
@@ -1249,7 +1249,7 @@
             "targetSide": "cs",
             "comment": "attacking element",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "ElementAffinityTable",
               "cell": "B2",
               "url": null
@@ -1272,7 +1272,7 @@
             "targetSide": "cs",
             "comment": "defending element",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "ElementAffinityTable",
               "cell": "C2",
               "url": null
@@ -1295,7 +1295,7 @@
             "targetSide": "cs",
             "comment": "damage rate in permille",
             "location": {
-              "file": "samples/sprout/Character.xlsx",
+              "file": "samples/sprout/xlsx/Character.xlsx",
               "sheet": "ElementAffinityTable",
               "cell": "D2",
               "url": null
@@ -1322,7 +1322,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Codex.xlsx",
+          "file": "samples/sprout/xlsx/Codex.xlsx",
           "sheet": "CodexTable",
           "cell": "A1",
           "url": null
@@ -1341,7 +1341,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Codex.xlsx",
+              "file": "samples/sprout/xlsx/Codex.xlsx",
               "sheet": "CodexTable",
               "cell": "A2",
               "url": null
@@ -1364,7 +1364,7 @@
             "targetSide": "cs",
             "comment": "collection kind",
             "location": {
-              "file": "samples/sprout/Codex.xlsx",
+              "file": "samples/sprout/xlsx/Codex.xlsx",
               "sheet": "CodexTable",
               "cell": "B2",
               "url": null
@@ -1387,7 +1387,7 @@
             "targetSide": "cs",
             "comment": "name key",
             "location": {
-              "file": "samples/sprout/Codex.xlsx",
+              "file": "samples/sprout/xlsx/Codex.xlsx",
               "sheet": "CodexTable",
               "cell": "C2",
               "url": null
@@ -1410,7 +1410,7 @@
             "targetSide": "cs",
             "comment": "icon asset",
             "location": {
-              "file": "samples/sprout/Codex.xlsx",
+              "file": "samples/sprout/xlsx/Codex.xlsx",
               "sheet": "CodexTable",
               "cell": "D2",
               "url": null
@@ -1433,7 +1433,7 @@
             "targetSide": "cs",
             "comment": "completion reward",
             "location": {
-              "file": "samples/sprout/Codex.xlsx",
+              "file": "samples/sprout/xlsx/Codex.xlsx",
               "sheet": "CodexTable",
               "cell": "E2",
               "url": null
@@ -1460,7 +1460,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Codex.xlsx",
+          "file": "samples/sprout/xlsx/Codex.xlsx",
           "sheet": "CodexEntryTable",
           "cell": "A1",
           "url": null
@@ -1479,7 +1479,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Codex.xlsx",
+              "file": "samples/sprout/xlsx/Codex.xlsx",
               "sheet": "CodexEntryTable",
               "cell": "A2",
               "url": null
@@ -1502,7 +1502,7 @@
             "targetSide": "cs",
             "comment": "owning codex",
             "location": {
-              "file": "samples/sprout/Codex.xlsx",
+              "file": "samples/sprout/xlsx/Codex.xlsx",
               "sheet": "CodexEntryTable",
               "cell": "B2",
               "url": null
@@ -1525,7 +1525,7 @@
             "targetSide": "cs",
             "comment": "entry order",
             "location": {
-              "file": "samples/sprout/Codex.xlsx",
+              "file": "samples/sprout/xlsx/Codex.xlsx",
               "sheet": "CodexEntryTable",
               "cell": "C2",
               "url": null
@@ -1548,7 +1548,7 @@
             "targetSide": "cs",
             "comment": "registration condition",
             "location": {
-              "file": "samples/sprout/Codex.xlsx",
+              "file": "samples/sprout/xlsx/Codex.xlsx",
               "sheet": "CodexEntryTable",
               "cell": "D2",
               "url": null
@@ -1571,7 +1571,7 @@
             "targetSide": "cs",
             "comment": "affected stat",
             "location": {
-              "file": "samples/sprout/Codex.xlsx",
+              "file": "samples/sprout/xlsx/Codex.xlsx",
               "sheet": "CodexEntryTable",
               "cell": "E2",
               "url": null
@@ -1594,7 +1594,7 @@
             "targetSide": "cs",
             "comment": "bonus in permille",
             "location": {
-              "file": "samples/sprout/Codex.xlsx",
+              "file": "samples/sprout/xlsx/Codex.xlsx",
               "sheet": "CodexEntryTable",
               "cell": "F2",
               "url": null
@@ -1621,7 +1621,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Codex.xlsx",
+          "file": "samples/sprout/xlsx/Codex.xlsx",
           "sheet": "CodexTierTable",
           "cell": "A1",
           "url": null
@@ -1640,7 +1640,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Codex.xlsx",
+              "file": "samples/sprout/xlsx/Codex.xlsx",
               "sheet": "CodexTierTable",
               "cell": "A2",
               "url": null
@@ -1663,7 +1663,7 @@
             "targetSide": "cs",
             "comment": "owning codex",
             "location": {
-              "file": "samples/sprout/Codex.xlsx",
+              "file": "samples/sprout/xlsx/Codex.xlsx",
               "sheet": "CodexTierTable",
               "cell": "B2",
               "url": null
@@ -1686,7 +1686,7 @@
             "targetSide": "cs",
             "comment": "entries required",
             "location": {
-              "file": "samples/sprout/Codex.xlsx",
+              "file": "samples/sprout/xlsx/Codex.xlsx",
               "sheet": "CodexTierTable",
               "cell": "C2",
               "url": null
@@ -1709,7 +1709,7 @@
             "targetSide": "cs",
             "comment": "reward",
             "location": {
-              "file": "samples/sprout/Codex.xlsx",
+              "file": "samples/sprout/xlsx/Codex.xlsx",
               "sheet": "CodexTierTable",
               "cell": "D2",
               "url": null
@@ -1736,7 +1736,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Dialogue.xlsx",
+          "file": "samples/sprout/xlsx/Dialogue.xlsx",
           "sheet": "DialogueTable",
           "cell": "A1",
           "url": null
@@ -1755,7 +1755,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Dialogue.xlsx",
+              "file": "samples/sprout/xlsx/Dialogue.xlsx",
               "sheet": "DialogueTable",
               "cell": "A2",
               "url": null
@@ -1778,7 +1778,7 @@
             "targetSide": "cs",
             "comment": "scene key",
             "location": {
-              "file": "samples/sprout/Dialogue.xlsx",
+              "file": "samples/sprout/xlsx/Dialogue.xlsx",
               "sheet": "DialogueTable",
               "cell": "B2",
               "url": null
@@ -1801,7 +1801,7 @@
             "targetSide": "cs",
             "comment": "cutscene, 0 for none",
             "location": {
-              "file": "samples/sprout/Dialogue.xlsx",
+              "file": "samples/sprout/xlsx/Dialogue.xlsx",
               "sheet": "DialogueTable",
               "cell": "C2",
               "url": null
@@ -1824,7 +1824,7 @@
             "targetSide": "cs",
             "comment": "skippable",
             "location": {
-              "file": "samples/sprout/Dialogue.xlsx",
+              "file": "samples/sprout/xlsx/Dialogue.xlsx",
               "sheet": "DialogueTable",
               "cell": "D2",
               "url": null
@@ -1851,7 +1851,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Dialogue.xlsx",
+          "file": "samples/sprout/xlsx/Dialogue.xlsx",
           "sheet": "DialogueLineTable",
           "cell": "A1",
           "url": null
@@ -1870,7 +1870,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Dialogue.xlsx",
+              "file": "samples/sprout/xlsx/Dialogue.xlsx",
               "sheet": "DialogueLineTable",
               "cell": "A2",
               "url": null
@@ -1893,7 +1893,7 @@
             "targetSide": "cs",
             "comment": "owning dialogue",
             "location": {
-              "file": "samples/sprout/Dialogue.xlsx",
+              "file": "samples/sprout/xlsx/Dialogue.xlsx",
               "sheet": "DialogueLineTable",
               "cell": "B2",
               "url": null
@@ -1916,7 +1916,7 @@
             "targetSide": "cs",
             "comment": "line order",
             "location": {
-              "file": "samples/sprout/Dialogue.xlsx",
+              "file": "samples/sprout/xlsx/Dialogue.xlsx",
               "sheet": "DialogueLineTable",
               "cell": "C2",
               "url": null
@@ -1939,7 +1939,7 @@
             "targetSide": "cs",
             "comment": "speaker",
             "location": {
-              "file": "samples/sprout/Dialogue.xlsx",
+              "file": "samples/sprout/xlsx/Dialogue.xlsx",
               "sheet": "DialogueLineTable",
               "cell": "D2",
               "url": null
@@ -1962,7 +1962,7 @@
             "targetSide": "cs",
             "comment": "portrait asset",
             "location": {
-              "file": "samples/sprout/Dialogue.xlsx",
+              "file": "samples/sprout/xlsx/Dialogue.xlsx",
               "sheet": "DialogueLineTable",
               "cell": "E2",
               "url": null
@@ -1985,7 +1985,7 @@
             "targetSide": "cs",
             "comment": "line key",
             "location": {
-              "file": "samples/sprout/Dialogue.xlsx",
+              "file": "samples/sprout/xlsx/Dialogue.xlsx",
               "sheet": "DialogueLineTable",
               "cell": "F2",
               "url": null
@@ -2012,7 +2012,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Dialogue.xlsx",
+          "file": "samples/sprout/xlsx/Dialogue.xlsx",
           "sheet": "CutsceneTable",
           "cell": "A1",
           "url": null
@@ -2031,7 +2031,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Dialogue.xlsx",
+              "file": "samples/sprout/xlsx/Dialogue.xlsx",
               "sheet": "CutsceneTable",
               "cell": "A2",
               "url": null
@@ -2054,7 +2054,7 @@
             "targetSide": "cs",
             "comment": "timeline asset",
             "location": {
-              "file": "samples/sprout/Dialogue.xlsx",
+              "file": "samples/sprout/xlsx/Dialogue.xlsx",
               "sheet": "CutsceneTable",
               "cell": "B2",
               "url": null
@@ -2077,7 +2077,7 @@
             "targetSide": "cs",
             "comment": "length in milliseconds",
             "location": {
-              "file": "samples/sprout/Dialogue.xlsx",
+              "file": "samples/sprout/xlsx/Dialogue.xlsx",
               "sheet": "CutsceneTable",
               "cell": "C2",
               "url": null
@@ -2100,7 +2100,7 @@
             "targetSide": "cs",
             "comment": "skippable after milliseconds",
             "location": {
-              "file": "samples/sprout/Dialogue.xlsx",
+              "file": "samples/sprout/xlsx/Dialogue.xlsx",
               "sheet": "CutsceneTable",
               "cell": "D2",
               "url": null
@@ -2127,7 +2127,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Dungeon.xlsx",
+          "file": "samples/sprout/xlsx/Dungeon.xlsx",
           "sheet": "DungeonTable",
           "cell": "A1",
           "url": null
@@ -2146,7 +2146,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "DungeonTable",
               "cell": "A2",
               "url": null
@@ -2169,7 +2169,7 @@
             "targetSide": "cs",
             "comment": "dungeon kind",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "DungeonTable",
               "cell": "B2",
               "url": null
@@ -2192,7 +2192,7 @@
             "targetSide": "cs",
             "comment": "name key",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "DungeonTable",
               "cell": "C2",
               "url": null
@@ -2215,7 +2215,7 @@
             "targetSide": "cs",
             "comment": "element",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "DungeonTable",
               "cell": "D2",
               "url": null
@@ -2238,7 +2238,7 @@
             "targetSide": "cs",
             "comment": "daily entries",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "DungeonTable",
               "cell": "E2",
               "url": null
@@ -2261,7 +2261,7 @@
             "targetSide": "cs",
             "comment": "unlock condition",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "DungeonTable",
               "cell": "F2",
               "url": null
@@ -2288,7 +2288,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Dungeon.xlsx",
+          "file": "samples/sprout/xlsx/Dungeon.xlsx",
           "sheet": "DungeonFloorTable",
           "cell": "A1",
           "url": null
@@ -2307,7 +2307,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "DungeonFloorTable",
               "cell": "A2",
               "url": null
@@ -2330,7 +2330,7 @@
             "targetSide": "cs",
             "comment": "owning dungeon",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "DungeonFloorTable",
               "cell": "B2",
               "url": null
@@ -2353,7 +2353,7 @@
             "targetSide": "cs",
             "comment": "floor",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "DungeonFloorTable",
               "cell": "C2",
               "url": null
@@ -2376,7 +2376,7 @@
             "targetSide": "cs",
             "comment": "recommended power",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "DungeonFloorTable",
               "cell": "D2",
               "url": null
@@ -2399,7 +2399,7 @@
             "targetSide": "cs",
             "comment": "stamina cost",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "DungeonFloorTable",
               "cell": "E2",
               "url": null
@@ -2422,7 +2422,7 @@
             "targetSide": "cs",
             "comment": "reward",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "DungeonFloorTable",
               "cell": "F2",
               "url": null
@@ -2449,7 +2449,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Dungeon.xlsx",
+          "file": "samples/sprout/xlsx/Dungeon.xlsx",
           "sheet": "DungeonRewardTable",
           "cell": "A1",
           "url": null
@@ -2468,7 +2468,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "DungeonRewardTable",
               "cell": "A2",
               "url": null
@@ -2491,7 +2491,7 @@
             "targetSide": "cs",
             "comment": "granted item",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "DungeonRewardTable",
               "cell": "B2",
               "url": null
@@ -2514,7 +2514,7 @@
             "targetSide": "cs",
             "comment": "lowest count",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "DungeonRewardTable",
               "cell": "C2",
               "url": null
@@ -2537,7 +2537,7 @@
             "targetSide": "cs",
             "comment": "highest count",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "DungeonRewardTable",
               "cell": "D2",
               "url": null
@@ -2560,7 +2560,7 @@
             "targetSide": "cs",
             "comment": "chance in permille",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "DungeonRewardTable",
               "cell": "E2",
               "url": null
@@ -2587,7 +2587,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Dungeon.xlsx",
+          "file": "samples/sprout/xlsx/Dungeon.xlsx",
           "sheet": "RaidTable",
           "cell": "A1",
           "url": null
@@ -2606,7 +2606,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "RaidTable",
               "cell": "A2",
               "url": null
@@ -2629,7 +2629,7 @@
             "targetSide": "cs",
             "comment": "name key",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "RaidTable",
               "cell": "B2",
               "url": null
@@ -2652,7 +2652,7 @@
             "targetSide": "cs",
             "comment": "boss monster",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "RaidTable",
               "cell": "C2",
               "url": null
@@ -2675,7 +2675,7 @@
             "targetSide": "cs",
             "comment": "health in millions",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "RaidTable",
               "cell": "D2",
               "url": null
@@ -2698,7 +2698,7 @@
             "targetSide": "cs",
             "comment": "turn limit",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "RaidTable",
               "cell": "E2",
               "url": null
@@ -2721,7 +2721,7 @@
             "targetSide": "cs",
             "comment": "season length in days",
             "location": {
-              "file": "samples/sprout/Dungeon.xlsx",
+              "file": "samples/sprout/xlsx/Dungeon.xlsx",
               "sheet": "RaidTable",
               "cell": "F2",
               "url": null
@@ -2748,7 +2748,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Equipment.xlsx",
+          "file": "samples/sprout/xlsx/Equipment.xlsx",
           "sheet": "EquipTable",
           "cell": "A1",
           "url": null
@@ -2767,7 +2767,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipTable",
               "cell": "A2",
               "url": null
@@ -2790,7 +2790,7 @@
             "targetSide": "cs",
             "comment": "equipment name key",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipTable",
               "cell": "B2",
               "url": null
@@ -2813,7 +2813,7 @@
             "targetSide": "cs",
             "comment": "slot",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipTable",
               "cell": "C2",
               "url": null
@@ -2836,7 +2836,7 @@
             "targetSide": "cs",
             "comment": "grade",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipTable",
               "cell": "D2",
               "url": null
@@ -2859,7 +2859,7 @@
             "targetSide": "cs",
             "comment": "model asset",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipTable",
               "cell": "E2",
               "url": null
@@ -2882,7 +2882,7 @@
             "targetSide": "cs",
             "comment": "set, 0 for none",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipTable",
               "cell": "F2",
               "url": null
@@ -2905,7 +2905,7 @@
             "targetSide": "cs",
             "comment": "base attack",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipTable",
               "cell": "G2",
               "url": null
@@ -2928,7 +2928,7 @@
             "targetSide": "cs",
             "comment": "base defense",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipTable",
               "cell": "H2",
               "url": null
@@ -2951,7 +2951,7 @@
             "targetSide": "cs",
             "comment": "maximum level",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipTable",
               "cell": "I2",
               "url": null
@@ -2978,7 +2978,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Equipment.xlsx",
+          "file": "samples/sprout/xlsx/Equipment.xlsx",
           "sheet": "EquipLevelTable",
           "cell": "A1",
           "url": null
@@ -2997,7 +2997,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipLevelTable",
               "cell": "A2",
               "url": null
@@ -3020,7 +3020,7 @@
             "targetSide": "cs",
             "comment": "grade",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipLevelTable",
               "cell": "B2",
               "url": null
@@ -3043,7 +3043,7 @@
             "targetSide": "cs",
             "comment": "level",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipLevelTable",
               "cell": "C2",
               "url": null
@@ -3066,7 +3066,7 @@
             "targetSide": "cs",
             "comment": "stat multiplier in permille",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipLevelTable",
               "cell": "D2",
               "url": null
@@ -3089,7 +3089,7 @@
             "targetSide": "cs",
             "comment": "upgrade cost",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipLevelTable",
               "cell": "E2",
               "url": null
@@ -3116,7 +3116,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Equipment.xlsx",
+          "file": "samples/sprout/xlsx/Equipment.xlsx",
           "sheet": "EquipGradeTable",
           "cell": "A1",
           "url": null
@@ -3135,7 +3135,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipGradeTable",
               "cell": "A2",
               "url": null
@@ -3158,7 +3158,7 @@
             "targetSide": "cs",
             "comment": "grade",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipGradeTable",
               "cell": "B2",
               "url": null
@@ -3181,7 +3181,7 @@
             "targetSide": "cs",
             "comment": "option slots",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipGradeTable",
               "cell": "C2",
               "url": null
@@ -3204,7 +3204,7 @@
             "targetSide": "cs",
             "comment": "frame asset",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipGradeTable",
               "cell": "D2",
               "url": null
@@ -3231,7 +3231,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Equipment.xlsx",
+          "file": "samples/sprout/xlsx/Equipment.xlsx",
           "sheet": "EquipSetTable",
           "cell": "A1",
           "url": null
@@ -3250,7 +3250,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipSetTable",
               "cell": "A2",
               "url": null
@@ -3273,7 +3273,7 @@
             "targetSide": "cs",
             "comment": "set name key",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipSetTable",
               "cell": "B2",
               "url": null
@@ -3296,7 +3296,7 @@
             "targetSide": "cs",
             "comment": "member equipment ids",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipSetTable",
               "cell": "C2",
               "url": null
@@ -3323,7 +3323,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Equipment.xlsx",
+          "file": "samples/sprout/xlsx/Equipment.xlsx",
           "sheet": "EquipSetBonusTable",
           "cell": "A1",
           "url": null
@@ -3342,7 +3342,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipSetBonusTable",
               "cell": "A2",
               "url": null
@@ -3365,7 +3365,7 @@
             "targetSide": "cs",
             "comment": "owning set",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipSetBonusTable",
               "cell": "B2",
               "url": null
@@ -3388,7 +3388,7 @@
             "targetSide": "cs",
             "comment": "pieces required",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipSetBonusTable",
               "cell": "C2",
               "url": null
@@ -3411,7 +3411,7 @@
             "targetSide": "cs",
             "comment": "affected stat",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipSetBonusTable",
               "cell": "D2",
               "url": null
@@ -3434,7 +3434,7 @@
             "targetSide": "cs",
             "comment": "bonus in permille",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipSetBonusTable",
               "cell": "E2",
               "url": null
@@ -3461,7 +3461,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Equipment.xlsx",
+          "file": "samples/sprout/xlsx/Equipment.xlsx",
           "sheet": "EquipOptionTable",
           "cell": "A1",
           "url": null
@@ -3480,7 +3480,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipOptionTable",
               "cell": "A2",
               "url": null
@@ -3503,7 +3503,7 @@
             "targetSide": "cs",
             "comment": "affected stat",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipOptionTable",
               "cell": "B2",
               "url": null
@@ -3526,7 +3526,7 @@
             "targetSide": "cs",
             "comment": "lowest roll in permille",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipOptionTable",
               "cell": "C2",
               "url": null
@@ -3549,7 +3549,7 @@
             "targetSide": "cs",
             "comment": "highest roll in permille",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipOptionTable",
               "cell": "D2",
               "url": null
@@ -3572,7 +3572,7 @@
             "targetSide": "cs",
             "comment": "weight",
             "location": {
-              "file": "samples/sprout/Equipment.xlsx",
+              "file": "samples/sprout/xlsx/Equipment.xlsx",
               "sheet": "EquipOptionTable",
               "cell": "E2",
               "url": null
@@ -3599,7 +3599,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Gacha.xlsx",
+          "file": "samples/sprout/xlsx/Gacha.xlsx",
           "sheet": "GachaTable",
           "cell": "A1",
           "url": null
@@ -3618,7 +3618,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "GachaTable",
               "cell": "A2",
               "url": null
@@ -3641,7 +3641,7 @@
             "targetSide": "cs",
             "comment": "gacha kind",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "GachaTable",
               "cell": "B2",
               "url": null
@@ -3664,7 +3664,7 @@
             "targetSide": "cs",
             "comment": "name key",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "GachaTable",
               "cell": "C2",
               "url": null
@@ -3687,7 +3687,7 @@
             "targetSide": "cs",
             "comment": "banner asset",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "GachaTable",
               "cell": "D2",
               "url": null
@@ -3710,7 +3710,7 @@
             "targetSide": "cs",
             "comment": "cost",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "GachaTable",
               "cell": "E2",
               "url": null
@@ -3733,7 +3733,7 @@
             "targetSide": "cs",
             "comment": "pity counter",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "GachaTable",
               "cell": "F2",
               "url": null
@@ -3760,7 +3760,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Gacha.xlsx",
+          "file": "samples/sprout/xlsx/Gacha.xlsx",
           "sheet": "GachaPoolTable",
           "cell": "A1",
           "url": null
@@ -3779,7 +3779,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "GachaPoolTable",
               "cell": "A2",
               "url": null
@@ -3802,7 +3802,7 @@
             "targetSide": "cs",
             "comment": "owning gacha",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "GachaPoolTable",
               "cell": "B2",
               "url": null
@@ -3825,7 +3825,7 @@
             "targetSide": "cs",
             "comment": "granted character, 0 for none",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "GachaPoolTable",
               "cell": "C2",
               "url": null
@@ -3848,7 +3848,7 @@
             "targetSide": "cs",
             "comment": "granted equipment, 0 for none",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "GachaPoolTable",
               "cell": "D2",
               "url": null
@@ -3871,7 +3871,7 @@
             "targetSide": "cs",
             "comment": "grade",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "GachaPoolTable",
               "cell": "E2",
               "url": null
@@ -3894,7 +3894,7 @@
             "targetSide": "cs",
             "comment": "weight",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "GachaPoolTable",
               "cell": "F2",
               "url": null
@@ -3921,7 +3921,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Gacha.xlsx",
+          "file": "samples/sprout/xlsx/Gacha.xlsx",
           "sheet": "GachaOddsTable",
           "cell": "A1",
           "url": null
@@ -3940,7 +3940,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "GachaOddsTable",
               "cell": "A2",
               "url": null
@@ -3963,7 +3963,7 @@
             "targetSide": "cs",
             "comment": "owning gacha",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "GachaOddsTable",
               "cell": "B2",
               "url": null
@@ -3986,7 +3986,7 @@
             "targetSide": "cs",
             "comment": "grade",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "GachaOddsTable",
               "cell": "C2",
               "url": null
@@ -4009,7 +4009,7 @@
             "targetSide": "cs",
             "comment": "rate in ten-thousandths",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "GachaOddsTable",
               "cell": "D2",
               "url": null
@@ -4036,7 +4036,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Gacha.xlsx",
+          "file": "samples/sprout/xlsx/Gacha.xlsx",
           "sheet": "PityTable",
           "cell": "A1",
           "url": null
@@ -4055,7 +4055,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "PityTable",
               "cell": "A2",
               "url": null
@@ -4078,7 +4078,7 @@
             "targetSide": "cs",
             "comment": "draws before the guarantee",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "PityTable",
               "cell": "B2",
               "url": null
@@ -4101,7 +4101,7 @@
             "targetSide": "cs",
             "comment": "guaranteed grade",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "PityTable",
               "cell": "C2",
               "url": null
@@ -4124,7 +4124,7 @@
             "targetSide": "cs",
             "comment": "resets on hit",
             "location": {
-              "file": "samples/sprout/Gacha.xlsx",
+              "file": "samples/sprout/xlsx/Gacha.xlsx",
               "sheet": "PityTable",
               "cell": "D2",
               "url": null
@@ -4151,7 +4151,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Growth.xlsx",
+          "file": "samples/sprout/xlsx/Growth.xlsx",
           "sheet": "LevelCurveTable",
           "cell": "A1",
           "url": null
@@ -4170,7 +4170,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "LevelCurveTable",
               "cell": "A2",
               "url": null
@@ -4193,7 +4193,7 @@
             "targetSide": "cs",
             "comment": "curve tier",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "LevelCurveTable",
               "cell": "B2",
               "url": null
@@ -4216,7 +4216,7 @@
             "targetSide": "cs",
             "comment": "affected stat",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "LevelCurveTable",
               "cell": "C2",
               "url": null
@@ -4239,7 +4239,7 @@
             "targetSide": "cs",
             "comment": "tick within the curve",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "LevelCurveTable",
               "cell": "D2",
               "url": null
@@ -4262,7 +4262,7 @@
             "targetSide": "cs",
             "comment": "value at the start of the step",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "LevelCurveTable",
               "cell": "E2",
               "url": null
@@ -4285,7 +4285,7 @@
             "targetSide": "cs",
             "comment": "increment per step",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "LevelCurveTable",
               "cell": "F2",
               "url": null
@@ -4308,7 +4308,7 @@
             "targetSide": "cs",
             "comment": "value at the end of the step",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "LevelCurveTable",
               "cell": "G2",
               "url": null
@@ -4331,7 +4331,7 @@
             "targetSide": "cs",
             "comment": "ceiling for this curve",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "LevelCurveTable",
               "cell": "H2",
               "url": null
@@ -4354,7 +4354,7 @@
             "targetSide": "cs",
             "comment": "balance revision",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "LevelCurveTable",
               "cell": "I2",
               "url": null
@@ -4381,7 +4381,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Growth.xlsx",
+          "file": "samples/sprout/xlsx/Growth.xlsx",
           "sheet": "StatBaseTable",
           "cell": "A1",
           "url": null
@@ -4400,7 +4400,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "StatBaseTable",
               "cell": "A2",
               "url": null
@@ -4423,7 +4423,7 @@
             "targetSide": "cs",
             "comment": "role",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "StatBaseTable",
               "cell": "B2",
               "url": null
@@ -4446,7 +4446,7 @@
             "targetSide": "cs",
             "comment": "affected stat",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "StatBaseTable",
               "cell": "C2",
               "url": null
@@ -4469,7 +4469,7 @@
             "targetSide": "cs",
             "comment": "base value",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "StatBaseTable",
               "cell": "D2",
               "url": null
@@ -4496,7 +4496,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Growth.xlsx",
+          "file": "samples/sprout/xlsx/Growth.xlsx",
           "sheet": "AscendCurveTable",
           "cell": "A1",
           "url": null
@@ -4515,7 +4515,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "AscendCurveTable",
               "cell": "A2",
               "url": null
@@ -4538,7 +4538,7 @@
             "targetSide": "cs",
             "comment": "grade",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "AscendCurveTable",
               "cell": "B2",
               "url": null
@@ -4561,7 +4561,7 @@
             "targetSide": "cs",
             "comment": "ascension step",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "AscendCurveTable",
               "cell": "C2",
               "url": null
@@ -4584,7 +4584,7 @@
             "targetSide": "cs",
             "comment": "multiplier in permille",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "AscendCurveTable",
               "cell": "D2",
               "url": null
@@ -4611,7 +4611,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Growth.xlsx",
+          "file": "samples/sprout/xlsx/Growth.xlsx",
           "sheet": "PowerScoreTable",
           "cell": "A1",
           "url": null
@@ -4630,7 +4630,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "PowerScoreTable",
               "cell": "A2",
               "url": null
@@ -4653,7 +4653,7 @@
             "targetSide": "cs",
             "comment": "affected stat",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "PowerScoreTable",
               "cell": "B2",
               "url": null
@@ -4676,7 +4676,7 @@
             "targetSide": "cs",
             "comment": "weight in permille",
             "location": {
-              "file": "samples/sprout/Growth.xlsx",
+              "file": "samples/sprout/xlsx/Growth.xlsx",
               "sheet": "PowerScoreTable",
               "cell": "C2",
               "url": null
@@ -4703,7 +4703,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Item.xlsx",
+          "file": "samples/sprout/xlsx/Item.xlsx",
           "sheet": "ItemTable",
           "cell": "A1",
           "url": null
@@ -4722,7 +4722,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "ItemTable",
               "cell": "A2",
               "url": null
@@ -4745,7 +4745,7 @@
             "targetSide": "cs",
             "comment": "item name key",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "ItemTable",
               "cell": "B2",
               "url": null
@@ -4768,7 +4768,7 @@
             "targetSide": "cs",
             "comment": "item kind",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "ItemTable",
               "cell": "C2",
               "url": null
@@ -4791,7 +4791,7 @@
             "targetSide": "cs",
             "comment": "grade",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "ItemTable",
               "cell": "D2",
               "url": null
@@ -4814,7 +4814,7 @@
             "targetSide": "cs",
             "comment": "icon asset",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "ItemTable",
               "cell": "E2",
               "url": null
@@ -4837,7 +4837,7 @@
             "targetSide": "cs",
             "comment": "stack ceiling",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "ItemTable",
               "cell": "F2",
               "url": null
@@ -4860,7 +4860,7 @@
             "targetSide": "cs",
             "comment": "sell price",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "ItemTable",
               "cell": "G2",
               "url": null
@@ -4883,7 +4883,7 @@
             "targetSide": "cs",
             "comment": "tradable",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "ItemTable",
               "cell": "H2",
               "url": null
@@ -4910,7 +4910,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Item.xlsx",
+          "file": "samples/sprout/xlsx/Item.xlsx",
           "sheet": "CurrencyTable",
           "cell": "A1",
           "url": null
@@ -4929,7 +4929,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "CurrencyTable",
               "cell": "A2",
               "url": null
@@ -4952,7 +4952,7 @@
             "targetSide": "cs",
             "comment": "currency kind",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "CurrencyTable",
               "cell": "B2",
               "url": null
@@ -4975,7 +4975,7 @@
             "targetSide": "cs",
             "comment": "name key",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "CurrencyTable",
               "cell": "C2",
               "url": null
@@ -4998,7 +4998,7 @@
             "targetSide": "cs",
             "comment": "icon asset",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "CurrencyTable",
               "cell": "D2",
               "url": null
@@ -5021,7 +5021,7 @@
             "targetSide": "cs",
             "comment": "hard cap, 0 for none",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "CurrencyTable",
               "cell": "E2",
               "url": null
@@ -5048,7 +5048,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Item.xlsx",
+          "file": "samples/sprout/xlsx/Item.xlsx",
           "sheet": "MaterialTable",
           "cell": "A1",
           "url": null
@@ -5067,7 +5067,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "MaterialTable",
               "cell": "A2",
               "url": null
@@ -5090,7 +5090,7 @@
             "targetSide": "cs",
             "comment": "backing item",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "MaterialTable",
               "cell": "B2",
               "url": null
@@ -5113,7 +5113,7 @@
             "targetSide": "cs",
             "comment": "tier",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "MaterialTable",
               "cell": "C2",
               "url": null
@@ -5136,7 +5136,7 @@
             "targetSide": "cs",
             "comment": "element",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "MaterialTable",
               "cell": "D2",
               "url": null
@@ -5163,7 +5163,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Item.xlsx",
+          "file": "samples/sprout/xlsx/Item.xlsx",
           "sheet": "ConsumableTable",
           "cell": "A1",
           "url": null
@@ -5182,7 +5182,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "ConsumableTable",
               "cell": "A2",
               "url": null
@@ -5205,7 +5205,7 @@
             "targetSide": "cs",
             "comment": "backing item",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "ConsumableTable",
               "cell": "B2",
               "url": null
@@ -5228,7 +5228,7 @@
             "targetSide": "cs",
             "comment": "granted buff",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "ConsumableTable",
               "cell": "C2",
               "url": null
@@ -5251,7 +5251,7 @@
             "targetSide": "cs",
             "comment": "cooldown in seconds",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "ConsumableTable",
               "cell": "D2",
               "url": null
@@ -5278,7 +5278,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Item.xlsx",
+          "file": "samples/sprout/xlsx/Item.xlsx",
           "sheet": "OfferTable",
           "cell": "A1",
           "url": null
@@ -5297,7 +5297,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "OfferTable",
               "cell": "A2",
               "url": null
@@ -5320,7 +5320,7 @@
             "targetSide": "cs",
             "comment": "package name key",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "OfferTable",
               "cell": "B2",
               "url": null
@@ -5343,7 +5343,7 @@
             "targetSide": "cs",
             "comment": "shop kind",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "OfferTable",
               "cell": "C2",
               "url": null
@@ -5366,7 +5366,7 @@
             "targetSide": "cs",
             "comment": "price in hard currency",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "OfferTable",
               "cell": "D2",
               "url": null
@@ -5389,7 +5389,7 @@
             "targetSide": "cs",
             "comment": "purchase limit, 0 for none",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "OfferTable",
               "cell": "E2",
               "url": null
@@ -5416,7 +5416,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Item.xlsx",
+          "file": "samples/sprout/xlsx/Item.xlsx",
           "sheet": "OfferItemTable",
           "cell": "A1",
           "url": null
@@ -5435,7 +5435,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "OfferItemTable",
               "cell": "A2",
               "url": null
@@ -5458,7 +5458,7 @@
             "targetSide": "cs",
             "comment": "owning offer",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "OfferItemTable",
               "cell": "B2",
               "url": null
@@ -5481,7 +5481,7 @@
             "targetSide": "cs",
             "comment": "granted item",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "OfferItemTable",
               "cell": "C2",
               "url": null
@@ -5504,7 +5504,7 @@
             "targetSide": "cs",
             "comment": "count",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "OfferItemTable",
               "cell": "D2",
               "url": null
@@ -5531,7 +5531,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Item.xlsx",
+          "file": "samples/sprout/xlsx/Item.xlsx",
           "sheet": "ItemGradeTable",
           "cell": "A1",
           "url": null
@@ -5550,7 +5550,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "ItemGradeTable",
               "cell": "A2",
               "url": null
@@ -5573,7 +5573,7 @@
             "targetSide": "cs",
             "comment": "grade",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "ItemGradeTable",
               "cell": "B2",
               "url": null
@@ -5596,7 +5596,7 @@
             "targetSide": "cs",
             "comment": "frame asset",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "ItemGradeTable",
               "cell": "C2",
               "url": null
@@ -5619,7 +5619,7 @@
             "targetSide": "cs",
             "comment": "sell multiplier in permille",
             "location": {
-              "file": "samples/sprout/Item.xlsx",
+              "file": "samples/sprout/xlsx/Item.xlsx",
               "sheet": "ItemGradeTable",
               "cell": "D2",
               "url": null
@@ -5646,7 +5646,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Localization.xlsx",
+          "file": "samples/sprout/xlsx/Localization.xlsx",
           "sheet": "StringTable",
           "cell": "A1",
           "url": null
@@ -5665,7 +5665,7 @@
             "targetSide": "cs",
             "comment": "string key",
             "location": {
-              "file": "samples/sprout/Localization.xlsx",
+              "file": "samples/sprout/xlsx/Localization.xlsx",
               "sheet": "StringTable",
               "cell": "A2",
               "url": null
@@ -5688,7 +5688,7 @@
             "targetSide": "cs",
             "comment": "English",
             "location": {
-              "file": "samples/sprout/Localization.xlsx",
+              "file": "samples/sprout/xlsx/Localization.xlsx",
               "sheet": "StringTable",
               "cell": "B2",
               "url": null
@@ -5711,7 +5711,7 @@
             "targetSide": "cs",
             "comment": "Korean",
             "location": {
-              "file": "samples/sprout/Localization.xlsx",
+              "file": "samples/sprout/xlsx/Localization.xlsx",
               "sheet": "StringTable",
               "cell": "C2",
               "url": null
@@ -5734,7 +5734,7 @@
             "targetSide": "cs",
             "comment": "Japanese",
             "location": {
-              "file": "samples/sprout/Localization.xlsx",
+              "file": "samples/sprout/xlsx/Localization.xlsx",
               "sheet": "StringTable",
               "cell": "D2",
               "url": null
@@ -5761,7 +5761,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Offline.xlsx",
+          "file": "samples/sprout/xlsx/Offline.xlsx",
           "sheet": "OfflineRewardTable",
           "cell": "A1",
           "url": null
@@ -5780,7 +5780,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Offline.xlsx",
+              "file": "samples/sprout/xlsx/Offline.xlsx",
               "sheet": "OfflineRewardTable",
               "cell": "A2",
               "url": null
@@ -5803,7 +5803,7 @@
             "targetSide": "cs",
             "comment": "account level",
             "location": {
-              "file": "samples/sprout/Offline.xlsx",
+              "file": "samples/sprout/xlsx/Offline.xlsx",
               "sheet": "OfflineRewardTable",
               "cell": "B2",
               "url": null
@@ -5826,7 +5826,7 @@
             "targetSide": "cs",
             "comment": "soft currency per hour",
             "location": {
-              "file": "samples/sprout/Offline.xlsx",
+              "file": "samples/sprout/xlsx/Offline.xlsx",
               "sheet": "OfflineRewardTable",
               "cell": "C2",
               "url": null
@@ -5849,7 +5849,7 @@
             "targetSide": "cs",
             "comment": "experience per hour",
             "location": {
-              "file": "samples/sprout/Offline.xlsx",
+              "file": "samples/sprout/xlsx/Offline.xlsx",
               "sheet": "OfflineRewardTable",
               "cell": "D2",
               "url": null
@@ -5872,7 +5872,7 @@
             "targetSide": "cs",
             "comment": "drop group",
             "location": {
-              "file": "samples/sprout/Offline.xlsx",
+              "file": "samples/sprout/xlsx/Offline.xlsx",
               "sheet": "OfflineRewardTable",
               "cell": "E2",
               "url": null
@@ -5899,7 +5899,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Offline.xlsx",
+          "file": "samples/sprout/xlsx/Offline.xlsx",
           "sheet": "IdleRateTable",
           "cell": "A1",
           "url": null
@@ -5918,7 +5918,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Offline.xlsx",
+              "file": "samples/sprout/xlsx/Offline.xlsx",
               "sheet": "IdleRateTable",
               "cell": "A2",
               "url": null
@@ -5941,7 +5941,7 @@
             "targetSide": "cs",
             "comment": "highest stage cleared",
             "location": {
-              "file": "samples/sprout/Offline.xlsx",
+              "file": "samples/sprout/xlsx/Offline.xlsx",
               "sheet": "IdleRateTable",
               "cell": "B2",
               "url": null
@@ -5964,7 +5964,7 @@
             "targetSide": "cs",
             "comment": "rate in permille",
             "location": {
-              "file": "samples/sprout/Offline.xlsx",
+              "file": "samples/sprout/xlsx/Offline.xlsx",
               "sheet": "IdleRateTable",
               "cell": "C2",
               "url": null
@@ -5987,7 +5987,7 @@
             "targetSide": "cs",
             "comment": "accumulation cap in hours",
             "location": {
-              "file": "samples/sprout/Offline.xlsx",
+              "file": "samples/sprout/xlsx/Offline.xlsx",
               "sheet": "IdleRateTable",
               "cell": "D2",
               "url": null
@@ -6014,7 +6014,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Offline.xlsx",
+          "file": "samples/sprout/xlsx/Offline.xlsx",
           "sheet": "AfkBonusTable",
           "cell": "A1",
           "url": null
@@ -6033,7 +6033,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Offline.xlsx",
+              "file": "samples/sprout/xlsx/Offline.xlsx",
               "sheet": "AfkBonusTable",
               "cell": "A2",
               "url": null
@@ -6056,7 +6056,7 @@
             "targetSide": "cs",
             "comment": "hours away",
             "location": {
-              "file": "samples/sprout/Offline.xlsx",
+              "file": "samples/sprout/xlsx/Offline.xlsx",
               "sheet": "AfkBonusTable",
               "cell": "B2",
               "url": null
@@ -6079,7 +6079,7 @@
             "targetSide": "cs",
             "comment": "bonus in permille",
             "location": {
-              "file": "samples/sprout/Offline.xlsx",
+              "file": "samples/sprout/xlsx/Offline.xlsx",
               "sheet": "AfkBonusTable",
               "cell": "C2",
               "url": null
@@ -6106,7 +6106,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Quest.xlsx",
+          "file": "samples/sprout/xlsx/Quest.xlsx",
           "sheet": "QuestTable",
           "cell": "A1",
           "url": null
@@ -6125,7 +6125,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "QuestTable",
               "cell": "A2",
               "url": null
@@ -6148,7 +6148,7 @@
             "targetSide": "cs",
             "comment": "quest kind",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "QuestTable",
               "cell": "B2",
               "url": null
@@ -6171,7 +6171,7 @@
             "targetSide": "cs",
             "comment": "title key",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "QuestTable",
               "cell": "C2",
               "url": null
@@ -6194,7 +6194,7 @@
             "targetSide": "cs",
             "comment": "summary key",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "QuestTable",
               "cell": "D2",
               "url": null
@@ -6217,7 +6217,7 @@
             "targetSide": "cs",
             "comment": "reward",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "QuestTable",
               "cell": "E2",
               "url": null
@@ -6240,7 +6240,7 @@
             "targetSide": "cs",
             "comment": "unlock condition",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "QuestTable",
               "cell": "F2",
               "url": null
@@ -6263,7 +6263,7 @@
             "targetSide": "cs",
             "comment": "repeatable",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "QuestTable",
               "cell": "G2",
               "url": null
@@ -6290,7 +6290,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Quest.xlsx",
+          "file": "samples/sprout/xlsx/Quest.xlsx",
           "sheet": "QuestStepTable",
           "cell": "A1",
           "url": null
@@ -6309,7 +6309,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "QuestStepTable",
               "cell": "A2",
               "url": null
@@ -6332,7 +6332,7 @@
             "targetSide": "cs",
             "comment": "owning quest",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "QuestStepTable",
               "cell": "B2",
               "url": null
@@ -6355,7 +6355,7 @@
             "targetSide": "cs",
             "comment": "step order",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "QuestStepTable",
               "cell": "C2",
               "url": null
@@ -6378,7 +6378,7 @@
             "targetSide": "cs",
             "comment": "completion condition",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "QuestStepTable",
               "cell": "D2",
               "url": null
@@ -6401,7 +6401,7 @@
             "targetSide": "cs",
             "comment": "target count",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "QuestStepTable",
               "cell": "E2",
               "url": null
@@ -6424,7 +6424,7 @@
             "targetSide": "cs",
             "comment": "dialogue shown on completion",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "QuestStepTable",
               "cell": "F2",
               "url": null
@@ -6451,7 +6451,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Quest.xlsx",
+          "file": "samples/sprout/xlsx/Quest.xlsx",
           "sheet": "DailyQuestTable",
           "cell": "A1",
           "url": null
@@ -6470,7 +6470,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "DailyQuestTable",
               "cell": "A2",
               "url": null
@@ -6493,7 +6493,7 @@
             "targetSide": "cs",
             "comment": "backing quest",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "DailyQuestTable",
               "cell": "B2",
               "url": null
@@ -6516,7 +6516,7 @@
             "targetSide": "cs",
             "comment": "points awarded",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "DailyQuestTable",
               "cell": "C2",
               "url": null
@@ -6539,7 +6539,7 @@
             "targetSide": "cs",
             "comment": "reset hour, server time",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "DailyQuestTable",
               "cell": "D2",
               "url": null
@@ -6566,7 +6566,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Quest.xlsx",
+          "file": "samples/sprout/xlsx/Quest.xlsx",
           "sheet": "WeeklyQuestTable",
           "cell": "A1",
           "url": null
@@ -6585,7 +6585,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "WeeklyQuestTable",
               "cell": "A2",
               "url": null
@@ -6608,7 +6608,7 @@
             "targetSide": "cs",
             "comment": "backing quest",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "WeeklyQuestTable",
               "cell": "B2",
               "url": null
@@ -6631,7 +6631,7 @@
             "targetSide": "cs",
             "comment": "points awarded",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "WeeklyQuestTable",
               "cell": "C2",
               "url": null
@@ -6654,7 +6654,7 @@
             "targetSide": "cs",
             "comment": "reset weekday, Monday is 0",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "WeeklyQuestTable",
               "cell": "D2",
               "url": null
@@ -6681,7 +6681,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Quest.xlsx",
+          "file": "samples/sprout/xlsx/Quest.xlsx",
           "sheet": "AchievementTable",
           "cell": "A1",
           "url": null
@@ -6700,7 +6700,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "AchievementTable",
               "cell": "A2",
               "url": null
@@ -6723,7 +6723,7 @@
             "targetSide": "cs",
             "comment": "title key",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "AchievementTable",
               "cell": "B2",
               "url": null
@@ -6746,7 +6746,7 @@
             "targetSide": "cs",
             "comment": "completion condition",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "AchievementTable",
               "cell": "C2",
               "url": null
@@ -6769,7 +6769,7 @@
             "targetSide": "cs",
             "comment": "target count",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "AchievementTable",
               "cell": "D2",
               "url": null
@@ -6792,7 +6792,7 @@
             "targetSide": "cs",
             "comment": "reward",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "AchievementTable",
               "cell": "E2",
               "url": null
@@ -6815,7 +6815,7 @@
             "targetSide": "cs",
             "comment": "badge asset",
             "location": {
-              "file": "samples/sprout/Quest.xlsx",
+              "file": "samples/sprout/xlsx/Quest.xlsx",
               "sheet": "AchievementTable",
               "cell": "F2",
               "url": null
@@ -6842,7 +6842,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Reward.xlsx",
+          "file": "samples/sprout/xlsx/Reward.xlsx",
           "sheet": "RewardTable",
           "cell": "A1",
           "url": null
@@ -6861,7 +6861,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "RewardTable",
               "cell": "A2",
               "url": null
@@ -6884,7 +6884,7 @@
             "targetSide": "cs",
             "comment": "reward kind",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "RewardTable",
               "cell": "B2",
               "url": null
@@ -6907,7 +6907,7 @@
             "targetSide": "cs",
             "comment": "drop group, 0 for a fixed reward",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "RewardTable",
               "cell": "C2",
               "url": null
@@ -6930,7 +6930,7 @@
             "targetSide": "cs",
             "comment": "fixed item ids",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "RewardTable",
               "cell": "D2",
               "url": null
@@ -6953,7 +6953,7 @@
             "targetSide": "cs",
             "comment": "fixed item counts",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "RewardTable",
               "cell": "E2",
               "url": null
@@ -6980,7 +6980,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Reward.xlsx",
+          "file": "samples/sprout/xlsx/Reward.xlsx",
           "sheet": "LootGroupTable",
           "cell": "A1",
           "url": null
@@ -6999,7 +6999,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "LootGroupTable",
               "cell": "A2",
               "url": null
@@ -7022,7 +7022,7 @@
             "targetSide": "cs",
             "comment": "name key",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "LootGroupTable",
               "cell": "B2",
               "url": null
@@ -7045,7 +7045,7 @@
             "targetSide": "cs",
             "comment": "draws per open",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "LootGroupTable",
               "cell": "C2",
               "url": null
@@ -7068,7 +7068,7 @@
             "targetSide": "cs",
             "comment": "duplicates allowed",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "LootGroupTable",
               "cell": "D2",
               "url": null
@@ -7095,7 +7095,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Reward.xlsx",
+          "file": "samples/sprout/xlsx/Reward.xlsx",
           "sheet": "LootEntryTable",
           "cell": "A1",
           "url": null
@@ -7114,7 +7114,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "LootEntryTable",
               "cell": "A2",
               "url": null
@@ -7137,7 +7137,7 @@
             "targetSide": "cs",
             "comment": "owning group",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "LootEntryTable",
               "cell": "B2",
               "url": null
@@ -7160,7 +7160,7 @@
             "targetSide": "cs",
             "comment": "granted item",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "LootEntryTable",
               "cell": "C2",
               "url": null
@@ -7183,7 +7183,7 @@
             "targetSide": "cs",
             "comment": "lowest count",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "LootEntryTable",
               "cell": "D2",
               "url": null
@@ -7206,7 +7206,7 @@
             "targetSide": "cs",
             "comment": "highest count",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "LootEntryTable",
               "cell": "E2",
               "url": null
@@ -7229,7 +7229,7 @@
             "targetSide": "cs",
             "comment": "weight",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "LootEntryTable",
               "cell": "F2",
               "url": null
@@ -7256,7 +7256,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Reward.xlsx",
+          "file": "samples/sprout/xlsx/Reward.xlsx",
           "sheet": "MailRewardTable",
           "cell": "A1",
           "url": null
@@ -7275,7 +7275,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "MailRewardTable",
               "cell": "A2",
               "url": null
@@ -7298,7 +7298,7 @@
             "targetSide": "cs",
             "comment": "title key",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "MailRewardTable",
               "cell": "B2",
               "url": null
@@ -7321,7 +7321,7 @@
             "targetSide": "cs",
             "comment": "body key",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "MailRewardTable",
               "cell": "C2",
               "url": null
@@ -7344,7 +7344,7 @@
             "targetSide": "cs",
             "comment": "reward",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "MailRewardTable",
               "cell": "D2",
               "url": null
@@ -7367,7 +7367,7 @@
             "targetSide": "cs",
             "comment": "expiry in days",
             "location": {
-              "file": "samples/sprout/Reward.xlsx",
+              "file": "samples/sprout/xlsx/Reward.xlsx",
               "sheet": "MailRewardTable",
               "cell": "E2",
               "url": null
@@ -7394,7 +7394,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Setting.xlsx",
+          "file": "samples/sprout/xlsx/Setting.xlsx",
           "sheet": "SettingTable",
           "cell": "A1",
           "url": null
@@ -7413,7 +7413,7 @@
             "targetSide": "cs",
             "comment": "setting key",
             "location": {
-              "file": "samples/sprout/Setting.xlsx",
+              "file": "samples/sprout/xlsx/Setting.xlsx",
               "sheet": "SettingTable",
               "cell": "A2",
               "url": null
@@ -7436,7 +7436,7 @@
             "targetSide": "cs",
             "comment": "value as written",
             "location": {
-              "file": "samples/sprout/Setting.xlsx",
+              "file": "samples/sprout/xlsx/Setting.xlsx",
               "sheet": "SettingTable",
               "cell": "B2",
               "url": null
@@ -7459,7 +7459,7 @@
             "targetSide": "cs",
             "comment": "description key",
             "location": {
-              "file": "samples/sprout/Setting.xlsx",
+              "file": "samples/sprout/xlsx/Setting.xlsx",
               "sheet": "SettingTable",
               "cell": "C2",
               "url": null
@@ -7486,7 +7486,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Setting.xlsx",
+          "file": "samples/sprout/xlsx/Setting.xlsx",
           "sheet": "ConditionTable",
           "cell": "A1",
           "url": null
@@ -7505,7 +7505,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Setting.xlsx",
+              "file": "samples/sprout/xlsx/Setting.xlsx",
               "sheet": "ConditionTable",
               "cell": "A2",
               "url": null
@@ -7528,7 +7528,7 @@
             "targetSide": "cs",
             "comment": "condition kind",
             "location": {
-              "file": "samples/sprout/Setting.xlsx",
+              "file": "samples/sprout/xlsx/Setting.xlsx",
               "sheet": "ConditionTable",
               "cell": "B2",
               "url": null
@@ -7551,7 +7551,7 @@
             "targetSide": "cs",
             "comment": "compared value",
             "location": {
-              "file": "samples/sprout/Setting.xlsx",
+              "file": "samples/sprout/xlsx/Setting.xlsx",
               "sheet": "ConditionTable",
               "cell": "C2",
               "url": null
@@ -7574,7 +7574,7 @@
             "targetSide": "cs",
             "comment": "referenced table row, 0 for none",
             "location": {
-              "file": "samples/sprout/Setting.xlsx",
+              "file": "samples/sprout/xlsx/Setting.xlsx",
               "sheet": "ConditionTable",
               "cell": "D2",
               "url": null
@@ -7597,7 +7597,7 @@
             "targetSide": "cs",
             "comment": "description key",
             "location": {
-              "file": "samples/sprout/Setting.xlsx",
+              "file": "samples/sprout/xlsx/Setting.xlsx",
               "sheet": "ConditionTable",
               "cell": "E2",
               "url": null
@@ -7624,7 +7624,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Setting.xlsx",
+          "file": "samples/sprout/xlsx/Setting.xlsx",
           "sheet": "UnlockTable",
           "cell": "A1",
           "url": null
@@ -7643,7 +7643,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Setting.xlsx",
+              "file": "samples/sprout/xlsx/Setting.xlsx",
               "sheet": "UnlockTable",
               "cell": "A2",
               "url": null
@@ -7666,7 +7666,7 @@
             "targetSide": "cs",
             "comment": "unlock kind",
             "location": {
-              "file": "samples/sprout/Setting.xlsx",
+              "file": "samples/sprout/xlsx/Setting.xlsx",
               "sheet": "UnlockTable",
               "cell": "B2",
               "url": null
@@ -7689,7 +7689,7 @@
             "targetSide": "cs",
             "comment": "condition",
             "location": {
-              "file": "samples/sprout/Setting.xlsx",
+              "file": "samples/sprout/xlsx/Setting.xlsx",
               "sheet": "UnlockTable",
               "cell": "C2",
               "url": null
@@ -7712,7 +7712,7 @@
             "targetSide": "cs",
             "comment": "locked message key",
             "location": {
-              "file": "samples/sprout/Setting.xlsx",
+              "file": "samples/sprout/xlsx/Setting.xlsx",
               "sheet": "UnlockTable",
               "cell": "D2",
               "url": null
@@ -7739,7 +7739,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Setting.xlsx",
+          "file": "samples/sprout/xlsx/Setting.xlsx",
           "sheet": "Table",
           "cell": "A1",
           "url": null
@@ -7758,7 +7758,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Setting.xlsx",
+              "file": "samples/sprout/xlsx/Setting.xlsx",
               "sheet": "Table",
               "cell": "A2",
               "url": null
@@ -7781,7 +7781,7 @@
             "targetSide": "cs",
             "comment": "name key",
             "location": {
-              "file": "samples/sprout/Setting.xlsx",
+              "file": "samples/sprout/xlsx/Setting.xlsx",
               "sheet": "Table",
               "cell": "B2",
               "url": null
@@ -7804,7 +7804,7 @@
             "targetSide": "cs",
             "comment": "value",
             "location": {
-              "file": "samples/sprout/Setting.xlsx",
+              "file": "samples/sprout/xlsx/Setting.xlsx",
               "sheet": "Table",
               "cell": "C2",
               "url": null
@@ -7831,7 +7831,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Shop.xlsx",
+          "file": "samples/sprout/xlsx/Shop.xlsx",
           "sheet": "ShopTable",
           "cell": "A1",
           "url": null
@@ -7850,7 +7850,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "ShopTable",
               "cell": "A2",
               "url": null
@@ -7873,7 +7873,7 @@
             "targetSide": "cs",
             "comment": "shop kind",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "ShopTable",
               "cell": "B2",
               "url": null
@@ -7896,7 +7896,7 @@
             "targetSide": "cs",
             "comment": "name key",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "ShopTable",
               "cell": "C2",
               "url": null
@@ -7919,7 +7919,7 @@
             "targetSide": "cs",
             "comment": "refresh hours",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "ShopTable",
               "cell": "D2",
               "url": null
@@ -7942,7 +7942,7 @@
             "targetSide": "cs",
             "comment": "free refreshes per day",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "ShopTable",
               "cell": "E2",
               "url": null
@@ -7969,7 +7969,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Shop.xlsx",
+          "file": "samples/sprout/xlsx/Shop.xlsx",
           "sheet": "ShopSlotTable",
           "cell": "A1",
           "url": null
@@ -7988,7 +7988,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "ShopSlotTable",
               "cell": "A2",
               "url": null
@@ -8011,7 +8011,7 @@
             "targetSide": "cs",
             "comment": "owning shop",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "ShopSlotTable",
               "cell": "B2",
               "url": null
@@ -8034,7 +8034,7 @@
             "targetSide": "cs",
             "comment": "slot order",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "ShopSlotTable",
               "cell": "C2",
               "url": null
@@ -8057,7 +8057,7 @@
             "targetSide": "cs",
             "comment": "sold item",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "ShopSlotTable",
               "cell": "D2",
               "url": null
@@ -8080,7 +8080,7 @@
             "targetSide": "cs",
             "comment": "count",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "ShopSlotTable",
               "cell": "E2",
               "url": null
@@ -8103,7 +8103,7 @@
             "targetSide": "cs",
             "comment": "price",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "ShopSlotTable",
               "cell": "F2",
               "url": null
@@ -8126,7 +8126,7 @@
             "targetSide": "cs",
             "comment": "appearance weight",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "ShopSlotTable",
               "cell": "G2",
               "url": null
@@ -8153,7 +8153,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Shop.xlsx",
+          "file": "samples/sprout/xlsx/Shop.xlsx",
           "sheet": "PriceTable",
           "cell": "A1",
           "url": null
@@ -8172,7 +8172,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "PriceTable",
               "cell": "A2",
               "url": null
@@ -8195,7 +8195,7 @@
             "targetSide": "cs",
             "comment": "currency",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "PriceTable",
               "cell": "B2",
               "url": null
@@ -8218,7 +8218,7 @@
             "targetSide": "cs",
             "comment": "amount",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "PriceTable",
               "cell": "C2",
               "url": null
@@ -8241,7 +8241,7 @@
             "targetSide": "cs",
             "comment": "discount in permille",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "PriceTable",
               "cell": "D2",
               "url": null
@@ -8268,7 +8268,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Shop.xlsx",
+          "file": "samples/sprout/xlsx/Shop.xlsx",
           "sheet": "PromoTable",
           "cell": "A1",
           "url": null
@@ -8287,7 +8287,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "PromoTable",
               "cell": "A2",
               "url": null
@@ -8310,7 +8310,7 @@
             "targetSide": "cs",
             "comment": "backing offer",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "PromoTable",
               "cell": "B2",
               "url": null
@@ -8333,7 +8333,7 @@
             "targetSide": "cs",
             "comment": "banner asset",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "PromoTable",
               "cell": "C2",
               "url": null
@@ -8356,7 +8356,7 @@
             "targetSide": "cs",
             "comment": "available days",
             "location": {
-              "file": "samples/sprout/Shop.xlsx",
+              "file": "samples/sprout/xlsx/Shop.xlsx",
               "sheet": "PromoTable",
               "cell": "D2",
               "url": null
@@ -8383,7 +8383,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Skill.xlsx",
+          "file": "samples/sprout/xlsx/Skill.xlsx",
           "sheet": "SkillTable",
           "cell": "A1",
           "url": null
@@ -8402,7 +8402,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "SkillTable",
               "cell": "A2",
               "url": null
@@ -8425,7 +8425,7 @@
             "targetSide": "cs",
             "comment": "skill name key",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "SkillTable",
               "cell": "B2",
               "url": null
@@ -8448,7 +8448,7 @@
             "targetSide": "cs",
             "comment": "description key",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "SkillTable",
               "cell": "C2",
               "url": null
@@ -8471,7 +8471,7 @@
             "targetSide": "cs",
             "comment": "icon asset",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "SkillTable",
               "cell": "D2",
               "url": null
@@ -8494,7 +8494,7 @@
             "targetSide": "cs",
             "comment": "target rule",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "SkillTable",
               "cell": "E2",
               "url": null
@@ -8517,7 +8517,7 @@
             "targetSide": "cs",
             "comment": "cooldown in turns",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "SkillTable",
               "cell": "F2",
               "url": null
@@ -8540,7 +8540,7 @@
             "targetSide": "cs",
             "comment": "effect ids",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "SkillTable",
               "cell": "G2",
               "url": null
@@ -8563,7 +8563,7 @@
             "targetSide": "cs",
             "comment": "maximum skill level",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "SkillTable",
               "cell": "H2",
               "url": null
@@ -8590,7 +8590,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Skill.xlsx",
+          "file": "samples/sprout/xlsx/Skill.xlsx",
           "sheet": "SkillLevelTable",
           "cell": "A1",
           "url": null
@@ -8609,7 +8609,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "SkillLevelTable",
               "cell": "A2",
               "url": null
@@ -8632,7 +8632,7 @@
             "targetSide": "cs",
             "comment": "owning skill",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "SkillLevelTable",
               "cell": "B2",
               "url": null
@@ -8655,7 +8655,7 @@
             "targetSide": "cs",
             "comment": "skill level",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "SkillLevelTable",
               "cell": "C2",
               "url": null
@@ -8678,7 +8678,7 @@
             "targetSide": "cs",
             "comment": "power in permille",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "SkillLevelTable",
               "cell": "D2",
               "url": null
@@ -8701,7 +8701,7 @@
             "targetSide": "cs",
             "comment": "upgrade cost",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "SkillLevelTable",
               "cell": "E2",
               "url": null
@@ -8728,7 +8728,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Skill.xlsx",
+          "file": "samples/sprout/xlsx/Skill.xlsx",
           "sheet": "SkillEffectTable",
           "cell": "A1",
           "url": null
@@ -8747,7 +8747,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "SkillEffectTable",
               "cell": "A2",
               "url": null
@@ -8770,7 +8770,7 @@
             "targetSide": "cs",
             "comment": "effect kind",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "SkillEffectTable",
               "cell": "B2",
               "url": null
@@ -8793,7 +8793,7 @@
             "targetSide": "cs",
             "comment": "affected stat",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "SkillEffectTable",
               "cell": "C2",
               "url": null
@@ -8816,7 +8816,7 @@
             "targetSide": "cs",
             "comment": "magnitude in permille",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "SkillEffectTable",
               "cell": "D2",
               "url": null
@@ -8839,7 +8839,7 @@
             "targetSide": "cs",
             "comment": "duration in turns",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "SkillEffectTable",
               "cell": "E2",
               "url": null
@@ -8862,7 +8862,7 @@
             "targetSide": "cs",
             "comment": "chance in permille",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "SkillEffectTable",
               "cell": "F2",
               "url": null
@@ -8889,7 +8889,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Skill.xlsx",
+          "file": "samples/sprout/xlsx/Skill.xlsx",
           "sheet": "BuffTable",
           "cell": "A1",
           "url": null
@@ -8908,7 +8908,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "BuffTable",
               "cell": "A2",
               "url": null
@@ -8931,7 +8931,7 @@
             "targetSide": "cs",
             "comment": "buff name key",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "BuffTable",
               "cell": "B2",
               "url": null
@@ -8954,7 +8954,7 @@
             "targetSide": "cs",
             "comment": "kind",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "BuffTable",
               "cell": "C2",
               "url": null
@@ -8977,7 +8977,7 @@
             "targetSide": "cs",
             "comment": "icon asset",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "BuffTable",
               "cell": "D2",
               "url": null
@@ -9000,7 +9000,7 @@
             "targetSide": "cs",
             "comment": "stacks allowed",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "BuffTable",
               "cell": "E2",
               "url": null
@@ -9023,7 +9023,7 @@
             "targetSide": "cs",
             "comment": "dispellable",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "BuffTable",
               "cell": "F2",
               "url": null
@@ -9050,7 +9050,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Skill.xlsx",
+          "file": "samples/sprout/xlsx/Skill.xlsx",
           "sheet": "BuffPoolTable",
           "cell": "A1",
           "url": null
@@ -9069,7 +9069,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "BuffPoolTable",
               "cell": "A2",
               "url": null
@@ -9092,7 +9092,7 @@
             "targetSide": "cs",
             "comment": "candidate buffs",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "BuffPoolTable",
               "cell": "B2",
               "url": null
@@ -9115,7 +9115,7 @@
             "targetSide": "cs",
             "comment": "weights, one per candidate",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "BuffPoolTable",
               "cell": "C2",
               "url": null
@@ -9142,7 +9142,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Skill.xlsx",
+          "file": "samples/sprout/xlsx/Skill.xlsx",
           "sheet": "PassiveTable",
           "cell": "A1",
           "url": null
@@ -9161,7 +9161,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "PassiveTable",
               "cell": "A2",
               "url": null
@@ -9184,7 +9184,7 @@
             "targetSide": "cs",
             "comment": "owning character",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "PassiveTable",
               "cell": "B2",
               "url": null
@@ -9207,7 +9207,7 @@
             "targetSide": "cs",
             "comment": "unlock ascension step",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "PassiveTable",
               "cell": "C2",
               "url": null
@@ -9230,7 +9230,7 @@
             "targetSide": "cs",
             "comment": "affected stat",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "PassiveTable",
               "cell": "D2",
               "url": null
@@ -9253,7 +9253,7 @@
             "targetSide": "cs",
             "comment": "bonus in permille",
             "location": {
-              "file": "samples/sprout/Skill.xlsx",
+              "file": "samples/sprout/xlsx/Skill.xlsx",
               "sheet": "PassiveTable",
               "cell": "E2",
               "url": null
@@ -9280,7 +9280,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Stage.xlsx",
+          "file": "samples/sprout/xlsx/Stage.xlsx",
           "sheet": "StageTable",
           "cell": "A1",
           "url": null
@@ -9299,7 +9299,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageTable",
               "cell": "A2",
               "url": null
@@ -9322,7 +9322,7 @@
             "targetSide": "cs",
             "comment": "owning chapter",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageTable",
               "cell": "B2",
               "url": null
@@ -9345,7 +9345,7 @@
             "targetSide": "cs",
             "comment": "stage kind",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageTable",
               "cell": "C2",
               "url": null
@@ -9368,7 +9368,7 @@
             "targetSide": "cs",
             "comment": "name key",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageTable",
               "cell": "D2",
               "url": null
@@ -9391,7 +9391,7 @@
             "targetSide": "cs",
             "comment": "background asset",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageTable",
               "cell": "E2",
               "url": null
@@ -9414,7 +9414,7 @@
             "targetSide": "cs",
             "comment": "stamina cost",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageTable",
               "cell": "F2",
               "url": null
@@ -9437,7 +9437,7 @@
             "targetSide": "cs",
             "comment": "recommended power",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageTable",
               "cell": "G2",
               "url": null
@@ -9460,7 +9460,7 @@
             "targetSide": "cs",
             "comment": "first clear reward",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageTable",
               "cell": "H2",
               "url": null
@@ -9483,7 +9483,7 @@
             "targetSide": "cs",
             "comment": "repeat reward",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageTable",
               "cell": "I2",
               "url": null
@@ -9506,7 +9506,7 @@
             "targetSide": "cs",
             "comment": "unlock condition",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageTable",
               "cell": "J2",
               "url": null
@@ -9533,7 +9533,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Stage.xlsx",
+          "file": "samples/sprout/xlsx/Stage.xlsx",
           "sheet": "StageWaveTable",
           "cell": "A1",
           "url": null
@@ -9552,7 +9552,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageWaveTable",
               "cell": "A2",
               "url": null
@@ -9575,7 +9575,7 @@
             "targetSide": "cs",
             "comment": "owning stage",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageWaveTable",
               "cell": "B2",
               "url": null
@@ -9598,7 +9598,7 @@
             "targetSide": "cs",
             "comment": "wave order",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageWaveTable",
               "cell": "C2",
               "url": null
@@ -9621,7 +9621,7 @@
             "targetSide": "cs",
             "comment": "monster ids",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageWaveTable",
               "cell": "D2",
               "url": null
@@ -9644,7 +9644,7 @@
             "targetSide": "cs",
             "comment": "monster levels",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageWaveTable",
               "cell": "E2",
               "url": null
@@ -9671,7 +9671,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Stage.xlsx",
+          "file": "samples/sprout/xlsx/Stage.xlsx",
           "sheet": "StageMonsterTable",
           "cell": "A1",
           "url": null
@@ -9690,7 +9690,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageMonsterTable",
               "cell": "A2",
               "url": null
@@ -9713,7 +9713,7 @@
             "targetSide": "cs",
             "comment": "name key",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageMonsterTable",
               "cell": "B2",
               "url": null
@@ -9736,7 +9736,7 @@
             "targetSide": "cs",
             "comment": "model asset",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageMonsterTable",
               "cell": "C2",
               "url": null
@@ -9759,7 +9759,7 @@
             "targetSide": "cs",
             "comment": "element",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageMonsterTable",
               "cell": "D2",
               "url": null
@@ -9782,7 +9782,7 @@
             "targetSide": "cs",
             "comment": "attack",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageMonsterTable",
               "cell": "E2",
               "url": null
@@ -9805,7 +9805,7 @@
             "targetSide": "cs",
             "comment": "defense",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageMonsterTable",
               "cell": "F2",
               "url": null
@@ -9828,7 +9828,7 @@
             "targetSide": "cs",
             "comment": "health",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageMonsterTable",
               "cell": "G2",
               "url": null
@@ -9851,7 +9851,7 @@
             "targetSide": "cs",
             "comment": "skill ids",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageMonsterTable",
               "cell": "H2",
               "url": null
@@ -9878,7 +9878,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Stage.xlsx",
+          "file": "samples/sprout/xlsx/Stage.xlsx",
           "sheet": "StageRewardTable",
           "cell": "A1",
           "url": null
@@ -9897,7 +9897,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageRewardTable",
               "cell": "A2",
               "url": null
@@ -9920,7 +9920,7 @@
             "targetSide": "cs",
             "comment": "owning stage",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageRewardTable",
               "cell": "B2",
               "url": null
@@ -9943,7 +9943,7 @@
             "targetSide": "cs",
             "comment": "reward kind",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageRewardTable",
               "cell": "C2",
               "url": null
@@ -9966,7 +9966,7 @@
             "targetSide": "cs",
             "comment": "granted item",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageRewardTable",
               "cell": "D2",
               "url": null
@@ -9989,7 +9989,7 @@
             "targetSide": "cs",
             "comment": "count",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageRewardTable",
               "cell": "E2",
               "url": null
@@ -10012,7 +10012,7 @@
             "targetSide": "cs",
             "comment": "chance in permille",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "StageRewardTable",
               "cell": "F2",
               "url": null
@@ -10039,7 +10039,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Stage.xlsx",
+          "file": "samples/sprout/xlsx/Stage.xlsx",
           "sheet": "ChapterTable",
           "cell": "A1",
           "url": null
@@ -10058,7 +10058,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "ChapterTable",
               "cell": "A2",
               "url": null
@@ -10081,7 +10081,7 @@
             "targetSide": "cs",
             "comment": "owning world",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "ChapterTable",
               "cell": "B2",
               "url": null
@@ -10104,7 +10104,7 @@
             "targetSide": "cs",
             "comment": "name key",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "ChapterTable",
               "cell": "C2",
               "url": null
@@ -10127,7 +10127,7 @@
             "targetSide": "cs",
             "comment": "order",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "ChapterTable",
               "cell": "D2",
               "url": null
@@ -10150,7 +10150,7 @@
             "targetSide": "cs",
             "comment": "unlock condition",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "ChapterTable",
               "cell": "E2",
               "url": null
@@ -10177,7 +10177,7 @@
         "targetSide": "cs",
         "comment": null,
         "location": {
-          "file": "samples/sprout/Stage.xlsx",
+          "file": "samples/sprout/xlsx/Stage.xlsx",
           "sheet": "WorldTable",
           "cell": "A1",
           "url": null
@@ -10196,7 +10196,7 @@
             "targetSide": "cs",
             "comment": "primary index",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "WorldTable",
               "cell": "A2",
               "url": null
@@ -10219,7 +10219,7 @@
             "targetSide": "cs",
             "comment": "name key",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "WorldTable",
               "cell": "B2",
               "url": null
@@ -10242,7 +10242,7 @@
             "targetSide": "cs",
             "comment": "map asset",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "WorldTable",
               "cell": "C2",
               "url": null
@@ -10265,7 +10265,7 @@
             "targetSide": "cs",
             "comment": "theme colour",
             "location": {
-              "file": "samples/sprout/Stage.xlsx",
+              "file": "samples/sprout/xlsx/Stage.xlsx",
               "sheet": "WorldTable",
               "cell": "D2",
               "url": null
@@ -10291,7 +10291,7 @@
         "comment": "labels for GradeType",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "A2",
           "url": null
@@ -10346,7 +10346,7 @@
         "comment": "labels for ElementType",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "B2",
           "url": null
@@ -10402,7 +10402,7 @@
         "comment": "labels for RoleType",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "C2",
           "url": null
@@ -10445,7 +10445,7 @@
         "comment": "labels for RarityType",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "D2",
           "url": null
@@ -10491,7 +10491,7 @@
         "comment": "labels for CurrencyType",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "E2",
           "url": null
@@ -10543,7 +10543,7 @@
         "comment": "labels for ItemType",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "F2",
           "url": null
@@ -10594,7 +10594,7 @@
         "comment": "labels for EquipSlot",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "G2",
           "url": null
@@ -10645,7 +10645,7 @@
         "comment": "labels for StatType",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "H2",
           "url": null
@@ -10714,7 +10714,7 @@
         "comment": "labels for TargetType",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "I2",
           "url": null
@@ -10765,7 +10765,7 @@
         "comment": "labels for ConditionType",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "J2",
           "url": null
@@ -10816,7 +10816,7 @@
         "comment": "labels for RewardType",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "K2",
           "url": null
@@ -10863,7 +10863,7 @@
         "comment": "labels for StageType",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "L2",
           "url": null
@@ -10904,7 +10904,7 @@
         "comment": "labels for DungeonType",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "M2",
           "url": null
@@ -10945,7 +10945,7 @@
         "comment": "labels for ShopType",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "N2",
           "url": null
@@ -10992,7 +10992,7 @@
         "comment": "labels for GachaType",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "O2",
           "url": null
@@ -11033,7 +11033,7 @@
         "comment": "labels for QuestType",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "P2",
           "url": null
@@ -11079,7 +11079,7 @@
         "comment": "labels for DialogueSpeaker",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "Q2",
           "url": null
@@ -11125,7 +11125,7 @@
         "comment": "labels for UnlockType",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "R2",
           "url": null
@@ -11166,7 +11166,7 @@
         "comment": "labels for BuffKind",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "S2",
           "url": null
@@ -11213,7 +11213,7 @@
         "comment": "labels for CollectionType",
         "targetSide": "cs",
         "location": {
-          "file": "samples/sprout/Enums.xlsx",
+          "file": "samples/sprout/xlsx/Enums.xlsx",
           "sheet": "TableEnums",
           "cell": "T2",
           "url": null

@@ -23,7 +23,7 @@ interface IDataRow {
   themeColour: string
 }
 
-// Generated from samples/sprout/Stage.xlsx : WorldTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : WorldTable : A1
 export class WorldRecord {
   /** Default constructor */
   constructor() {
@@ -64,7 +64,7 @@ export class WorldRecord {
   }
 }
 
-// Generated from samples/sprout/Stage.xlsx : WorldTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : WorldTable : A1
 export class WorldTable {
   /** Default constructor. */
   constructor() {

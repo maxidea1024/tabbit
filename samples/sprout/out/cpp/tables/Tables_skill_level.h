@@ -20,7 +20,7 @@
 #include "Tables_forward.h"
 
 namespace sprout {
-// Generated from samples/sprout/Skill.xlsx : SkillLevelTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : SkillLevelTable : A1
 struct SkillLevelRecord {
   /// primary index
   std::int32_t id = 0;

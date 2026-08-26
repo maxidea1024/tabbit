@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Growth.xlsx : AscendCurveTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : AscendCurveTable : A1
 public final class AscendCurveRecord {
 
     public init() {}

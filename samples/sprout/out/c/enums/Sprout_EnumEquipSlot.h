@@ -9,7 +9,7 @@
 #ifndef SPROUT_ENUM_EQUIP_SLOT_H
 #define SPROUT_ENUM_EQUIP_SLOT_H
 
-/* Generated from samples/sprout/Enums.xlsx : TableEnums : G2
+/* Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : G2
  *
  * labels for EquipSlot
  */

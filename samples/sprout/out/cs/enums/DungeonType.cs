@@ -9,7 +9,7 @@
 
 namespace Sprout.Tables
 {
-    // Generated from samples/sprout/Enums.xlsx : TableEnums : M2
+    // Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : M2
     /// <summary>
     /// labels for DungeonType
     /// </summary>

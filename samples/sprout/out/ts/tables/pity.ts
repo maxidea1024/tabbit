@@ -26,7 +26,7 @@ interface IDataRow {
   resetOnHit: boolean
 }
 
-// Generated from samples/sprout/Gacha.xlsx : PityTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : PityTable : A1
 export class PityRecord {
   /** Default constructor */
   constructor() {
@@ -67,7 +67,7 @@ export class PityRecord {
   }
 }
 
-// Generated from samples/sprout/Gacha.xlsx : PityTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : PityTable : A1
 export class PityTable {
   /** Default constructor. */
   constructor() {

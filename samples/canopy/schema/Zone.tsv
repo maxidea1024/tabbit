@@ -1,0 +1,8 @@
+@name	id	name	map	levelLow	levelHigh	pvpEnabled	weatherMask	adjacentZoneId[0]	adjacentZoneId[1]	adjacentZoneId[2]	adjacentZoneId[3]	adjacentZoneId[4]	adjacentZoneId[5]	state
+@type	key:25000000~25999999	text	string	number	number	bool	bit	number	number	number	number	number	number	string
+:required	1	1	1	1	1	1	1	-	-	-	-	-	-	1
+:min	25000000	-	-	1	1	-	-	1	1	1	1	1	1	-
+:max	25999999	-	-	120	120	-	-	99999	99999	99999	99999	99999	99999	-
+:enum	-	-	-	-	-	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:asset	-	-	1	-	-	-	-	-	-	-	-	-	-	-
+@gen	seq:25000000	text:400	path:300:Art	int:1..120:zipf	int:1..120:zipf	bool	bit:8	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	?10 int:1..99999:zipf	pick:draft|review|live|retired

@@ -20,7 +20,7 @@ use Tabbit\RecordNotFoundException;
 use Tabbit\Uuid;
 
 /**
- * Generated from samples/sprout/Stage.xlsx : ChapterTable : A1
+ * Generated from samples/sprout/xlsx/Stage.xlsx : ChapterTable : A1
  */
 final class ChapterRecord
 {

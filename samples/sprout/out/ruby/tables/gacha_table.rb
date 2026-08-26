@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Gacha.xlsx : GachaTable : A1
+  # Generated from samples/sprout/xlsx/Gacha.xlsx : GachaTable : A1
   class GachaRecord
     attr_accessor :id, :type, :name_key, :banner, :price_id, :pity_id
 

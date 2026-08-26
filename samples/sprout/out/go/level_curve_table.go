@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// LevelCurveRecord was generated from samples/sprout/Growth.xlsx : LevelCurveTable : A1.
+// LevelCurveRecord was generated from samples/sprout/xlsx/Growth.xlsx : LevelCurveTable : A1.
 type LevelCurveRecord struct {
 	// primary index
 	Id int32

@@ -26,7 +26,7 @@ interface IDataRow {
   health: number
 }
 
-// Generated from samples/sprout/Character.xlsx : CharacterStatTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterStatTable : A1
 export class CharacterStatRecord {
   /** Default constructor */
   constructor() {
@@ -85,7 +85,7 @@ export class CharacterStatRecord {
   }
 }
 
-// Generated from samples/sprout/Character.xlsx : CharacterStatTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterStatTable : A1
 export class CharacterStatTable {
   /** Default constructor. */
   constructor() {

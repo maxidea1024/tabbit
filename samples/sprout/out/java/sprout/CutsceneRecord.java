@@ -9,7 +9,7 @@ package sprout;
 
 import tabbit.TcbReader;
 
-// Generated from samples/sprout/Dialogue.xlsx : CutsceneTable : A1
+// Generated from samples/sprout/xlsx/Dialogue.xlsx : CutsceneTable : A1
 public final class CutsceneRecord {
     /** primary index */
     public int id;

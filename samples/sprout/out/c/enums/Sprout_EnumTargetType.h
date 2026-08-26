@@ -9,7 +9,7 @@
 #ifndef SPROUT_ENUM_TARGET_TYPE_H
 #define SPROUT_ENUM_TARGET_TYPE_H
 
-/* Generated from samples/sprout/Enums.xlsx : TableEnums : I2
+/* Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : I2
  *
  * labels for TargetType
  */

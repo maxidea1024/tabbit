@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use crate::tabbit;
 
-// Generated from samples/sprout/Skill.xlsx : BuffPoolTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : BuffPoolTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct BuffPoolRecord {
     /// primary index

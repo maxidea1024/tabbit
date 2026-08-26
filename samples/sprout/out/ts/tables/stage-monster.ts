@@ -30,7 +30,7 @@ interface IDataRow {
   skillIds: number[]
 }
 
-// Generated from samples/sprout/Stage.xlsx : StageMonsterTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : StageMonsterTable : A1
 export class StageMonsterRecord {
   /** Default constructor */
   constructor() {
@@ -95,7 +95,7 @@ export class StageMonsterRecord {
   }
 }
 
-// Generated from samples/sprout/Stage.xlsx : StageMonsterTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : StageMonsterTable : A1
 export class StageMonsterTable {
   /** Default constructor. */
   constructor() {

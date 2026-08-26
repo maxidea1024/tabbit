@@ -9,7 +9,7 @@
 #ifndef SPROUT_ENUM_COLLECTION_TYPE_H
 #define SPROUT_ENUM_COLLECTION_TYPE_H
 
-/* Generated from samples/sprout/Enums.xlsx : TableEnums : T2
+/* Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : T2
  *
  * labels for CollectionType
  */

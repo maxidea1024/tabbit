@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class StageWaveRecord:
-    """Generated from samples/sprout/Stage.xlsx : StageWaveTable : A1.
+    """Generated from samples/sprout/xlsx/Stage.xlsx : StageWaveTable : A1.
     """
 
     __slots__ = ("id", "stage_id", "wave_order", "monster_ids", "monster_levels")

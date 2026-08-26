@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : S2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : S2
 /** labels for BuffKind */
 enum class BuffKind(val value: Int) {
     /** None (automatically inserted by Tabbit) */

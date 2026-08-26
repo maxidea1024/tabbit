@@ -26,7 +26,7 @@ interface IDataRow {
   rate: number
 }
 
-// Generated from samples/sprout/Gacha.xlsx : GachaOddsTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : GachaOddsTable : A1
 export class GachaOddsRecord {
   /** Default constructor */
   constructor() {
@@ -67,7 +67,7 @@ export class GachaOddsRecord {
   }
 }
 
-// Generated from samples/sprout/Gacha.xlsx : GachaOddsTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : GachaOddsTable : A1
 export class GachaOddsTable {
   /** Default constructor. */
   constructor() {

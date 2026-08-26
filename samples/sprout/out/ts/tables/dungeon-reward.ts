@@ -24,7 +24,7 @@ interface IDataRow {
   chance: number
 }
 
-// Generated from samples/sprout/Dungeon.xlsx : DungeonRewardTable : A1
+// Generated from samples/sprout/xlsx/Dungeon.xlsx : DungeonRewardTable : A1
 export class DungeonRewardRecord {
   /** Default constructor */
   constructor() {
@@ -71,7 +71,7 @@ export class DungeonRewardRecord {
   }
 }
 
-// Generated from samples/sprout/Dungeon.xlsx : DungeonRewardTable : A1
+// Generated from samples/sprout/xlsx/Dungeon.xlsx : DungeonRewardTable : A1
 export class DungeonRewardTable {
   /** Default constructor. */
   constructor() {

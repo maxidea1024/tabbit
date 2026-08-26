@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class LootGroupRecord:
-    """Generated from samples/sprout/Reward.xlsx : LootGroupTable : A1.
+    """Generated from samples/sprout/xlsx/Reward.xlsx : LootGroupTable : A1.
     """
 
     __slots__ = ("id", "name_key", "draws", "allow_duplicate")

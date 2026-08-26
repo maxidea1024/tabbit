@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// PityRecord was generated from samples/sprout/Gacha.xlsx : PityTable : A1.
+// PityRecord was generated from samples/sprout/xlsx/Gacha.xlsx : PityTable : A1.
 type PityRecord struct {
 	// primary index
 	Id int32

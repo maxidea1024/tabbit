@@ -20,7 +20,7 @@ use Tabbit\RecordNotFoundException;
 use Tabbit\Uuid;
 
 /**
- * Generated from samples/sprout/Quest.xlsx : WeeklyQuestTable : A1
+ * Generated from samples/sprout/xlsx/Quest.xlsx : WeeklyQuestTable : A1
  */
 final class WeeklyQuestRecord
 {

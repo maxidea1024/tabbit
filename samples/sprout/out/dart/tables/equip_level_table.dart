@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Equipment.xlsx : EquipLevelTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipLevelTable : A1
 class EquipLevelRecord {
   /// primary index
   int id = 0;

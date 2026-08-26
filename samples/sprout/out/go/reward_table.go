@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// RewardRecord was generated from samples/sprout/Reward.xlsx : RewardTable : A1.
+// RewardRecord was generated from samples/sprout/xlsx/Reward.xlsx : RewardTable : A1.
 type RewardRecord struct {
 	// primary index
 	Id int32

@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_target_type::TargetType;
 
-// Generated from samples/sprout/Skill.xlsx : SkillTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : SkillTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct SkillRecord {
     /// primary index

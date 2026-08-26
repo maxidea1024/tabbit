@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Item.xlsx : ItemTable : A1
+  # Generated from samples/sprout/xlsx/Item.xlsx : ItemTable : A1
   class ItemRecord
     attr_accessor :id, :name_key, :type, :grade, :icon, :stack_limit, :sell_price, :tradable
 

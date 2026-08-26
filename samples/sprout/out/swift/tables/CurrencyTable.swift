@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Item.xlsx : CurrencyTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : CurrencyTable : A1
 public final class CurrencyRecord {
 
     public init() {}

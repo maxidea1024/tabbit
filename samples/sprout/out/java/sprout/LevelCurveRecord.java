@@ -9,7 +9,7 @@ package sprout;
 
 import tabbit.TcbReader;
 
-// Generated from samples/sprout/Growth.xlsx : LevelCurveTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : LevelCurveTable : A1
 public final class LevelCurveRecord {
     /** primary index */
     public int id;

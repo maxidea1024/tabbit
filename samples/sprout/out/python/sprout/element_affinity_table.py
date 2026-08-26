@@ -13,7 +13,7 @@ from .enum_element_type import ElementType
 
 
 class ElementAffinityRecord:
-    """Generated from samples/sprout/Character.xlsx : ElementAffinityTable : A1.
+    """Generated from samples/sprout/xlsx/Character.xlsx : ElementAffinityTable : A1.
     """
 
     __slots__ = ("id", "attacker", "defender", "rate")

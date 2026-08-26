@@ -24,7 +24,7 @@ interface IDataRow {
   cost: string
 }
 
-// Generated from samples/sprout/Skill.xlsx : SkillLevelTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : SkillLevelTable : A1
 export class SkillLevelRecord {
   /** Default constructor */
   constructor() {
@@ -71,7 +71,7 @@ export class SkillLevelRecord {
   }
 }
 
-// Generated from samples/sprout/Skill.xlsx : SkillLevelTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : SkillLevelTable : A1
 export class SkillLevelTable {
   /** Default constructor. */
   constructor() {

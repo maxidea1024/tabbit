@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class UnlockType(enum.IntEnum):
-    """Generated from samples/sprout/Enums.xlsx : TableEnums : R2.
+    """Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : R2.
 
     labels for UnlockType
     """

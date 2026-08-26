@@ -13,7 +13,7 @@
 #include <cstdint>
 
 namespace sprout {
-// Generated from samples/sprout/Enums.xlsx : TableEnums : N2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : N2
 /// labels for ShopType
 enum class ShopType : std::int32_t {
   /// None (automatically inserted by Tabbit)

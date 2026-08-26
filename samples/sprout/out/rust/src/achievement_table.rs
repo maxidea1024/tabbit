@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use crate::tabbit;
 
-// Generated from samples/sprout/Quest.xlsx : AchievementTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : AchievementTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct AchievementRecord {
     /// primary index

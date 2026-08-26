@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class IdleRateRecord:
-    """Generated from samples/sprout/Offline.xlsx : IdleRateTable : A1.
+    """Generated from samples/sprout/xlsx/Offline.xlsx : IdleRateTable : A1.
     """
 
     __slots__ = ("id", "stage_id", "rate", "cap_hours")

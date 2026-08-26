@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_element_type::ElementType;
 
-// Generated from samples/sprout/Character.xlsx : ElementAffinityTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : ElementAffinityTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct ElementAffinityRecord {
     /// primary index

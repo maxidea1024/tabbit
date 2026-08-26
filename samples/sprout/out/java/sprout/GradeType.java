@@ -7,7 +7,7 @@
 
 package sprout;
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : A2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : A2
 /** labels for GradeType */
 public enum GradeType {
     /** None (automatically inserted by Tabbit) */

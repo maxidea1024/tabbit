@@ -9,7 +9,7 @@ package sprout;
 
 import tabbit.TcbReader;
 
-// Generated from samples/sprout/Codex.xlsx : CodexTable : A1
+// Generated from samples/sprout/xlsx/Codex.xlsx : CodexTable : A1
 public final class CodexRecord {
     /** primary index */
     public int id;

@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : S2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : S2
 /// labels for BuffKind
 public enum BuffKind: Int32, CaseIterable, Sendable {
     /// None (automatically inserted by Tabbit)

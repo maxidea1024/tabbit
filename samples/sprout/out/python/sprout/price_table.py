@@ -13,7 +13,7 @@ from .enum_currency_type import CurrencyType
 
 
 class PriceRecord:
-    """Generated from samples/sprout/Shop.xlsx : PriceTable : A1.
+    """Generated from samples/sprout/xlsx/Shop.xlsx : PriceTable : A1.
     """
 
     __slots__ = ("id", "currency", "amount", "discount")

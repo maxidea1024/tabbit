@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Item.xlsx : CurrencyTable : A1
+  # Generated from samples/sprout/xlsx/Item.xlsx : CurrencyTable : A1
   class CurrencyRecord
     attr_accessor :id, :type, :name_key, :icon, :cap
 

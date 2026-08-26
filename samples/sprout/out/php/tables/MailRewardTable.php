@@ -20,7 +20,7 @@ use Tabbit\RecordNotFoundException;
 use Tabbit\Uuid;
 
 /**
- * Generated from samples/sprout/Reward.xlsx : MailRewardTable : A1
+ * Generated from samples/sprout/xlsx/Reward.xlsx : MailRewardTable : A1
  */
 final class MailRewardRecord
 {

@@ -13,7 +13,7 @@ from .enum_grade_type import GradeType
 
 
 class EquipGradeRecord:
-    """Generated from samples/sprout/Equipment.xlsx : EquipGradeTable : A1.
+    """Generated from samples/sprout/xlsx/Equipment.xlsx : EquipGradeTable : A1.
     """
 
     __slots__ = ("id", "grade", "option_slots", "frame")

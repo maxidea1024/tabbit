@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Skill.xlsx : BuffPoolTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : BuffPoolTable : A1
 public final class BuffPoolRecord {
 
     public init() {}

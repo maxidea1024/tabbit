@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Dialogue.xlsx : CutsceneTable : A1
+/* Generated from samples/sprout/xlsx/Dialogue.xlsx : CutsceneTable : A1
  */
 struct Sprout_CutsceneRecord_t {
   /* primary index */

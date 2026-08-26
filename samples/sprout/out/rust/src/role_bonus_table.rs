@@ -11,7 +11,7 @@ use crate::tabbit;
 use crate::enum_role_type::RoleType;
 use crate::enum_stat_type::StatType;
 
-// Generated from samples/sprout/Character.xlsx : RoleBonusTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : RoleBonusTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct RoleBonusRecord {
     /// primary index

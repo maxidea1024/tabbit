@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class AfkBonusRecord:
-    """Generated from samples/sprout/Offline.xlsx : AfkBonusTable : A1.
+    """Generated from samples/sprout/xlsx/Offline.xlsx : AfkBonusTable : A1.
     """
 
     __slots__ = ("id", "hours", "bonus")

@@ -21,7 +21,7 @@ use Tabbit\RecordNotFoundException;
 use Tabbit\Uuid;
 
 /**
- * Generated from samples/sprout/Stage.xlsx : StageTable : A1
+ * Generated from samples/sprout/xlsx/Stage.xlsx : StageTable : A1
  */
 final class StageRecord
 {

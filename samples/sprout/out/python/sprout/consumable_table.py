@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class ConsumableRecord:
-    """Generated from samples/sprout/Item.xlsx : ConsumableTable : A1.
+    """Generated from samples/sprout/xlsx/Item.xlsx : ConsumableTable : A1.
     """
 
     __slots__ = ("id", "item_id", "buff_id", "cooldown")

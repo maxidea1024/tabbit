@@ -1,0 +1,8 @@
+@name	id	subject	body	attachmentId	expiryDays	senderKind	state
+@type	key:34000000~34999999	text	text	number	number	number	string
+:required	1	1	1	1	1	1	1
+:min	34000000	-	-	17000000	1	0	-
+:max	34999999	-	-	17999999	90	2	-
+:enum	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:links	-	-	-	"Loot"	-	-	-
+@gen	seq:34000000	text:400	text:900	ref:Loot	int:1..90:zipf	pick:0|1|2	pick:draft|review|live|retired

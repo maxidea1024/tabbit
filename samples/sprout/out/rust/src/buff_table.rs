@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_buff_kind::BuffKind;
 
-// Generated from samples/sprout/Skill.xlsx : BuffTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : BuffTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct BuffRecord {
     /// primary index

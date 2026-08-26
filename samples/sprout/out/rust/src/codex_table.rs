@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_collection_type::CollectionType;
 
-// Generated from samples/sprout/Codex.xlsx : CodexTable : A1
+// Generated from samples/sprout/xlsx/Codex.xlsx : CodexTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct CodexRecord {
     /// primary index

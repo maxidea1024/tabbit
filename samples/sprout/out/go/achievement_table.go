@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// AchievementRecord was generated from samples/sprout/Quest.xlsx : AchievementTable : A1.
+// AchievementRecord was generated from samples/sprout/xlsx/Quest.xlsx : AchievementTable : A1.
 type AchievementRecord struct {
 	// primary index
 	Id int32

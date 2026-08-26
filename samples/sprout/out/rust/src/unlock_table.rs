@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_unlock_type::UnlockType;
 
-// Generated from samples/sprout/Setting.xlsx : UnlockTable : A1
+// Generated from samples/sprout/xlsx/Setting.xlsx : UnlockTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct UnlockRecord {
     /// primary index

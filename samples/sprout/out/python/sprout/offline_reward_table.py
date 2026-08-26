@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class OfflineRewardRecord:
-    """Generated from samples/sprout/Offline.xlsx : OfflineRewardTable : A1.
+    """Generated from samples/sprout/xlsx/Offline.xlsx : OfflineRewardTable : A1.
     """
 
     __slots__ = ("id", "account_level", "gold_per_hour", "exp_per_hour", "loot_group_id")

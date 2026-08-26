@@ -9,7 +9,7 @@
 #ifndef SPROUT_ENUM_GRADE_TYPE_H
 #define SPROUT_ENUM_GRADE_TYPE_H
 
-/* Generated from samples/sprout/Enums.xlsx : TableEnums : A2
+/* Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : A2
  *
  * labels for GradeType
  */

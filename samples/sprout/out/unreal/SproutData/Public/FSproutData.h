@@ -18,7 +18,7 @@
 #include "FSproutData.generated.h"
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : A2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : A2
 /** labels for GradeType */
 UENUM(BlueprintType)
 enum class EGradeType : uint8
@@ -33,7 +33,7 @@ enum class EGradeType : uint8
 };
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : B2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : B2
 /** labels for ElementType */
 UENUM(BlueprintType)
 enum class EElementType : uint8
@@ -49,7 +49,7 @@ enum class EElementType : uint8
 };
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : C2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : C2
 /** labels for RoleType */
 UENUM(BlueprintType)
 enum class ERoleType : uint8
@@ -63,7 +63,7 @@ enum class ERoleType : uint8
 };
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : D2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : D2
 /** labels for RarityType */
 UENUM(BlueprintType)
 enum class ERarityType : uint8
@@ -78,7 +78,7 @@ enum class ERarityType : uint8
 };
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : E2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : E2
 /** labels for CurrencyType */
 UENUM(BlueprintType)
 enum class ECurrencyType : uint8
@@ -94,7 +94,7 @@ enum class ECurrencyType : uint8
 };
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : F2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : F2
 /** labels for ItemType */
 UENUM(BlueprintType)
 enum class EItemType : uint8
@@ -110,7 +110,7 @@ enum class EItemType : uint8
 };
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : G2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : G2
 /** labels for EquipSlot */
 UENUM(BlueprintType)
 enum class EEquipSlot : uint8
@@ -126,7 +126,7 @@ enum class EEquipSlot : uint8
 };
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : H2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : H2
 /** labels for StatType */
 UENUM(BlueprintType)
 enum class EStatType : uint8
@@ -144,7 +144,7 @@ enum class EStatType : uint8
 };
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : I2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : I2
 /** labels for TargetType */
 UENUM(BlueprintType)
 enum class ETargetType : uint8
@@ -160,7 +160,7 @@ enum class ETargetType : uint8
 };
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : J2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : J2
 /** labels for ConditionType */
 UENUM(BlueprintType)
 enum class EConditionType : uint8
@@ -176,7 +176,7 @@ enum class EConditionType : uint8
 };
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : K2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : K2
 /** labels for RewardType */
 UENUM(BlueprintType)
 enum class ERewardType : uint8
@@ -191,7 +191,7 @@ enum class ERewardType : uint8
 };
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : L2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : L2
 /** labels for StageType */
 UENUM(BlueprintType)
 enum class EStageType : uint8
@@ -205,7 +205,7 @@ enum class EStageType : uint8
 };
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : M2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : M2
 /** labels for DungeonType */
 UENUM(BlueprintType)
 enum class EDungeonType : uint8
@@ -219,7 +219,7 @@ enum class EDungeonType : uint8
 };
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : N2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : N2
 /** labels for ShopType */
 UENUM(BlueprintType)
 enum class EShopType : uint8
@@ -234,7 +234,7 @@ enum class EShopType : uint8
 };
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : O2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : O2
 /** labels for GachaType */
 UENUM(BlueprintType)
 enum class EGachaType : uint8
@@ -248,7 +248,7 @@ enum class EGachaType : uint8
 };
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : P2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : P2
 /** labels for QuestType */
 UENUM(BlueprintType)
 enum class EQuestType : uint8
@@ -263,7 +263,7 @@ enum class EQuestType : uint8
 };
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : Q2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : Q2
 /** labels for DialogueSpeaker */
 UENUM(BlueprintType)
 enum class EDialogueSpeaker : uint8
@@ -278,7 +278,7 @@ enum class EDialogueSpeaker : uint8
 };
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : R2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : R2
 /** labels for UnlockType */
 UENUM(BlueprintType)
 enum class EUnlockType : uint8
@@ -292,7 +292,7 @@ enum class EUnlockType : uint8
 };
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : S2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : S2
 /** labels for BuffKind */
 UENUM(BlueprintType)
 enum class EBuffKind : uint8
@@ -307,7 +307,7 @@ enum class EBuffKind : uint8
 };
 
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : T2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : T2
 /** labels for CollectionType */
 UENUM(BlueprintType)
 enum class ECollectionType : uint8
@@ -321,7 +321,7 @@ enum class ECollectionType : uint8
 };
 
 
-// Generated from samples/sprout/Character.xlsx : CharacterTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FCharacterRow
 {
@@ -370,7 +370,7 @@ struct SPROUTDATA_API FCharacterRow
 };
 
 
-// Generated from samples/sprout/Character.xlsx : CharacterStatTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterStatTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FCharacterStatRow
 {
@@ -407,7 +407,7 @@ struct SPROUTDATA_API FCharacterStatRow
 };
 
 
-// Generated from samples/sprout/Character.xlsx : CharacterAscendTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterAscendTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FCharacterAscendRow
 {
@@ -444,7 +444,7 @@ struct SPROUTDATA_API FCharacterAscendRow
 };
 
 
-// Generated from samples/sprout/Character.xlsx : CharacterSkinTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterSkinTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FCharacterSkinRow
 {
@@ -477,7 +477,7 @@ struct SPROUTDATA_API FCharacterSkinRow
 };
 
 
-// Generated from samples/sprout/Character.xlsx : CharacterVoiceTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterVoiceTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FCharacterVoiceRow
 {
@@ -506,7 +506,7 @@ struct SPROUTDATA_API FCharacterVoiceRow
 };
 
 
-// Generated from samples/sprout/Character.xlsx : RoleBonusTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : RoleBonusTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FRoleBonusRow
 {
@@ -531,7 +531,7 @@ struct SPROUTDATA_API FRoleBonusRow
 };
 
 
-// Generated from samples/sprout/Character.xlsx : ElementAffinityTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : ElementAffinityTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FElementAffinityRow
 {
@@ -556,7 +556,7 @@ struct SPROUTDATA_API FElementAffinityRow
 };
 
 
-// Generated from samples/sprout/Codex.xlsx : CodexTable : A1
+// Generated from samples/sprout/xlsx/Codex.xlsx : CodexTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FCodexRow
 {
@@ -585,7 +585,7 @@ struct SPROUTDATA_API FCodexRow
 };
 
 
-// Generated from samples/sprout/Codex.xlsx : CodexEntryTable : A1
+// Generated from samples/sprout/xlsx/Codex.xlsx : CodexEntryTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FCodexEntryRow
 {
@@ -618,7 +618,7 @@ struct SPROUTDATA_API FCodexEntryRow
 };
 
 
-// Generated from samples/sprout/Codex.xlsx : CodexTierTable : A1
+// Generated from samples/sprout/xlsx/Codex.xlsx : CodexTierTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FCodexTierRow
 {
@@ -643,7 +643,7 @@ struct SPROUTDATA_API FCodexTierRow
 };
 
 
-// Generated from samples/sprout/Dialogue.xlsx : DialogueTable : A1
+// Generated from samples/sprout/xlsx/Dialogue.xlsx : DialogueTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FDialogueRow
 {
@@ -668,7 +668,7 @@ struct SPROUTDATA_API FDialogueRow
 };
 
 
-// Generated from samples/sprout/Dialogue.xlsx : DialogueLineTable : A1
+// Generated from samples/sprout/xlsx/Dialogue.xlsx : DialogueLineTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FDialogueLineRow
 {
@@ -701,7 +701,7 @@ struct SPROUTDATA_API FDialogueLineRow
 };
 
 
-// Generated from samples/sprout/Dialogue.xlsx : CutsceneTable : A1
+// Generated from samples/sprout/xlsx/Dialogue.xlsx : CutsceneTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FCutsceneRow
 {
@@ -726,7 +726,7 @@ struct SPROUTDATA_API FCutsceneRow
 };
 
 
-// Generated from samples/sprout/Dungeon.xlsx : DungeonTable : A1
+// Generated from samples/sprout/xlsx/Dungeon.xlsx : DungeonTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FDungeonRow
 {
@@ -759,7 +759,7 @@ struct SPROUTDATA_API FDungeonRow
 };
 
 
-// Generated from samples/sprout/Dungeon.xlsx : DungeonFloorTable : A1
+// Generated from samples/sprout/xlsx/Dungeon.xlsx : DungeonFloorTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FDungeonFloorRow
 {
@@ -792,7 +792,7 @@ struct SPROUTDATA_API FDungeonFloorRow
 };
 
 
-// Generated from samples/sprout/Dungeon.xlsx : DungeonRewardTable : A1
+// Generated from samples/sprout/xlsx/Dungeon.xlsx : DungeonRewardTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FDungeonRewardRow
 {
@@ -821,7 +821,7 @@ struct SPROUTDATA_API FDungeonRewardRow
 };
 
 
-// Generated from samples/sprout/Dungeon.xlsx : RaidTable : A1
+// Generated from samples/sprout/xlsx/Dungeon.xlsx : RaidTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FRaidRow
 {
@@ -854,7 +854,7 @@ struct SPROUTDATA_API FRaidRow
 };
 
 
-// Generated from samples/sprout/Equipment.xlsx : EquipTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FEquipRow
 {
@@ -899,7 +899,7 @@ struct SPROUTDATA_API FEquipRow
 };
 
 
-// Generated from samples/sprout/Equipment.xlsx : EquipLevelTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipLevelTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FEquipLevelRow
 {
@@ -928,7 +928,7 @@ struct SPROUTDATA_API FEquipLevelRow
 };
 
 
-// Generated from samples/sprout/Equipment.xlsx : EquipGradeTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipGradeTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FEquipGradeRow
 {
@@ -953,7 +953,7 @@ struct SPROUTDATA_API FEquipGradeRow
 };
 
 
-// Generated from samples/sprout/Equipment.xlsx : EquipSetTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipSetTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FEquipSetRow
 {
@@ -974,7 +974,7 @@ struct SPROUTDATA_API FEquipSetRow
 };
 
 
-// Generated from samples/sprout/Equipment.xlsx : EquipSetBonusTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipSetBonusTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FEquipSetBonusRow
 {
@@ -1003,7 +1003,7 @@ struct SPROUTDATA_API FEquipSetBonusRow
 };
 
 
-// Generated from samples/sprout/Equipment.xlsx : EquipOptionTable : A1
+// Generated from samples/sprout/xlsx/Equipment.xlsx : EquipOptionTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FEquipOptionRow
 {
@@ -1032,7 +1032,7 @@ struct SPROUTDATA_API FEquipOptionRow
 };
 
 
-// Generated from samples/sprout/Gacha.xlsx : GachaTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : GachaTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FGachaRow
 {
@@ -1065,7 +1065,7 @@ struct SPROUTDATA_API FGachaRow
 };
 
 
-// Generated from samples/sprout/Gacha.xlsx : GachaPoolTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : GachaPoolTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FGachaPoolRow
 {
@@ -1098,7 +1098,7 @@ struct SPROUTDATA_API FGachaPoolRow
 };
 
 
-// Generated from samples/sprout/Gacha.xlsx : GachaOddsTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : GachaOddsTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FGachaOddsRow
 {
@@ -1123,7 +1123,7 @@ struct SPROUTDATA_API FGachaOddsRow
 };
 
 
-// Generated from samples/sprout/Gacha.xlsx : PityTable : A1
+// Generated from samples/sprout/xlsx/Gacha.xlsx : PityTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FPityRow
 {
@@ -1148,7 +1148,7 @@ struct SPROUTDATA_API FPityRow
 };
 
 
-// Generated from samples/sprout/Growth.xlsx : LevelCurveTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : LevelCurveTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FLevelCurveRow
 {
@@ -1193,7 +1193,7 @@ struct SPROUTDATA_API FLevelCurveRow
 };
 
 
-// Generated from samples/sprout/Growth.xlsx : StatBaseTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : StatBaseTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FStatBaseRow
 {
@@ -1218,7 +1218,7 @@ struct SPROUTDATA_API FStatBaseRow
 };
 
 
-// Generated from samples/sprout/Growth.xlsx : AscendCurveTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : AscendCurveTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FAscendCurveRow
 {
@@ -1243,7 +1243,7 @@ struct SPROUTDATA_API FAscendCurveRow
 };
 
 
-// Generated from samples/sprout/Growth.xlsx : PowerScoreTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : PowerScoreTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FPowerScoreRow
 {
@@ -1264,7 +1264,7 @@ struct SPROUTDATA_API FPowerScoreRow
 };
 
 
-// Generated from samples/sprout/Item.xlsx : ItemTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : ItemTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FItemRow
 {
@@ -1305,7 +1305,7 @@ struct SPROUTDATA_API FItemRow
 };
 
 
-// Generated from samples/sprout/Item.xlsx : CurrencyTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : CurrencyTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FCurrencyRow
 {
@@ -1334,7 +1334,7 @@ struct SPROUTDATA_API FCurrencyRow
 };
 
 
-// Generated from samples/sprout/Item.xlsx : MaterialTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : MaterialTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FMaterialRow
 {
@@ -1359,7 +1359,7 @@ struct SPROUTDATA_API FMaterialRow
 };
 
 
-// Generated from samples/sprout/Item.xlsx : ConsumableTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : ConsumableTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FConsumableRow
 {
@@ -1384,7 +1384,7 @@ struct SPROUTDATA_API FConsumableRow
 };
 
 
-// Generated from samples/sprout/Item.xlsx : OfferTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : OfferTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FOfferRow
 {
@@ -1413,7 +1413,7 @@ struct SPROUTDATA_API FOfferRow
 };
 
 
-// Generated from samples/sprout/Item.xlsx : OfferItemTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : OfferItemTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FOfferItemRow
 {
@@ -1438,7 +1438,7 @@ struct SPROUTDATA_API FOfferItemRow
 };
 
 
-// Generated from samples/sprout/Item.xlsx : ItemGradeTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : ItemGradeTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FItemGradeRow
 {
@@ -1463,7 +1463,7 @@ struct SPROUTDATA_API FItemGradeRow
 };
 
 
-// Generated from samples/sprout/Localization.xlsx : StringTable : A1
+// Generated from samples/sprout/xlsx/Localization.xlsx : StringTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FStringRow
 {
@@ -1488,7 +1488,7 @@ struct SPROUTDATA_API FStringRow
 };
 
 
-// Generated from samples/sprout/Offline.xlsx : OfflineRewardTable : A1
+// Generated from samples/sprout/xlsx/Offline.xlsx : OfflineRewardTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FOfflineRewardRow
 {
@@ -1517,7 +1517,7 @@ struct SPROUTDATA_API FOfflineRewardRow
 };
 
 
-// Generated from samples/sprout/Offline.xlsx : IdleRateTable : A1
+// Generated from samples/sprout/xlsx/Offline.xlsx : IdleRateTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FIdleRateRow
 {
@@ -1542,7 +1542,7 @@ struct SPROUTDATA_API FIdleRateRow
 };
 
 
-// Generated from samples/sprout/Offline.xlsx : AfkBonusTable : A1
+// Generated from samples/sprout/xlsx/Offline.xlsx : AfkBonusTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FAfkBonusRow
 {
@@ -1563,7 +1563,7 @@ struct SPROUTDATA_API FAfkBonusRow
 };
 
 
-// Generated from samples/sprout/Quest.xlsx : QuestTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : QuestTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FQuestRow
 {
@@ -1600,7 +1600,7 @@ struct SPROUTDATA_API FQuestRow
 };
 
 
-// Generated from samples/sprout/Quest.xlsx : QuestStepTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : QuestStepTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FQuestStepRow
 {
@@ -1633,7 +1633,7 @@ struct SPROUTDATA_API FQuestStepRow
 };
 
 
-// Generated from samples/sprout/Quest.xlsx : DailyQuestTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : DailyQuestTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FDailyQuestRow
 {
@@ -1658,7 +1658,7 @@ struct SPROUTDATA_API FDailyQuestRow
 };
 
 
-// Generated from samples/sprout/Quest.xlsx : WeeklyQuestTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : WeeklyQuestTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FWeeklyQuestRow
 {
@@ -1683,7 +1683,7 @@ struct SPROUTDATA_API FWeeklyQuestRow
 };
 
 
-// Generated from samples/sprout/Quest.xlsx : AchievementTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : AchievementTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FAchievementRow
 {
@@ -1716,7 +1716,7 @@ struct SPROUTDATA_API FAchievementRow
 };
 
 
-// Generated from samples/sprout/Reward.xlsx : RewardTable : A1
+// Generated from samples/sprout/xlsx/Reward.xlsx : RewardTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FRewardRow
 {
@@ -1745,7 +1745,7 @@ struct SPROUTDATA_API FRewardRow
 };
 
 
-// Generated from samples/sprout/Reward.xlsx : LootGroupTable : A1
+// Generated from samples/sprout/xlsx/Reward.xlsx : LootGroupTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FLootGroupRow
 {
@@ -1770,7 +1770,7 @@ struct SPROUTDATA_API FLootGroupRow
 };
 
 
-// Generated from samples/sprout/Reward.xlsx : LootEntryTable : A1
+// Generated from samples/sprout/xlsx/Reward.xlsx : LootEntryTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FLootEntryRow
 {
@@ -1803,7 +1803,7 @@ struct SPROUTDATA_API FLootEntryRow
 };
 
 
-// Generated from samples/sprout/Reward.xlsx : MailRewardTable : A1
+// Generated from samples/sprout/xlsx/Reward.xlsx : MailRewardTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FMailRewardRow
 {
@@ -1832,7 +1832,7 @@ struct SPROUTDATA_API FMailRewardRow
 };
 
 
-// Generated from samples/sprout/Setting.xlsx : SettingTable : A1
+// Generated from samples/sprout/xlsx/Setting.xlsx : SettingTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FSettingRow
 {
@@ -1853,7 +1853,7 @@ struct SPROUTDATA_API FSettingRow
 };
 
 
-// Generated from samples/sprout/Setting.xlsx : ConditionTable : A1
+// Generated from samples/sprout/xlsx/Setting.xlsx : ConditionTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FConditionRow
 {
@@ -1882,7 +1882,7 @@ struct SPROUTDATA_API FConditionRow
 };
 
 
-// Generated from samples/sprout/Setting.xlsx : UnlockTable : A1
+// Generated from samples/sprout/xlsx/Setting.xlsx : UnlockTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FUnlockRow
 {
@@ -1907,7 +1907,7 @@ struct SPROUTDATA_API FUnlockRow
 };
 
 
-// Generated from samples/sprout/Setting.xlsx : Table : A1
+// Generated from samples/sprout/xlsx/Setting.xlsx : Table : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FTableRow
 {
@@ -1928,7 +1928,7 @@ struct SPROUTDATA_API FTableRow
 };
 
 
-// Generated from samples/sprout/Shop.xlsx : ShopTable : A1
+// Generated from samples/sprout/xlsx/Shop.xlsx : ShopTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FShopRow
 {
@@ -1957,7 +1957,7 @@ struct SPROUTDATA_API FShopRow
 };
 
 
-// Generated from samples/sprout/Shop.xlsx : ShopSlotTable : A1
+// Generated from samples/sprout/xlsx/Shop.xlsx : ShopSlotTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FShopSlotRow
 {
@@ -1994,7 +1994,7 @@ struct SPROUTDATA_API FShopSlotRow
 };
 
 
-// Generated from samples/sprout/Shop.xlsx : PriceTable : A1
+// Generated from samples/sprout/xlsx/Shop.xlsx : PriceTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FPriceRow
 {
@@ -2019,7 +2019,7 @@ struct SPROUTDATA_API FPriceRow
 };
 
 
-// Generated from samples/sprout/Shop.xlsx : PromoTable : A1
+// Generated from samples/sprout/xlsx/Shop.xlsx : PromoTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FPromoRow
 {
@@ -2044,7 +2044,7 @@ struct SPROUTDATA_API FPromoRow
 };
 
 
-// Generated from samples/sprout/Skill.xlsx : SkillTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : SkillTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FSkillRow
 {
@@ -2085,7 +2085,7 @@ struct SPROUTDATA_API FSkillRow
 };
 
 
-// Generated from samples/sprout/Skill.xlsx : SkillLevelTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : SkillLevelTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FSkillLevelRow
 {
@@ -2114,7 +2114,7 @@ struct SPROUTDATA_API FSkillLevelRow
 };
 
 
-// Generated from samples/sprout/Skill.xlsx : SkillEffectTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : SkillEffectTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FSkillEffectRow
 {
@@ -2147,7 +2147,7 @@ struct SPROUTDATA_API FSkillEffectRow
 };
 
 
-// Generated from samples/sprout/Skill.xlsx : BuffTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : BuffTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FBuffRow
 {
@@ -2180,7 +2180,7 @@ struct SPROUTDATA_API FBuffRow
 };
 
 
-// Generated from samples/sprout/Skill.xlsx : BuffPoolTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : BuffPoolTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FBuffPoolRow
 {
@@ -2201,7 +2201,7 @@ struct SPROUTDATA_API FBuffPoolRow
 };
 
 
-// Generated from samples/sprout/Skill.xlsx : PassiveTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : PassiveTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FPassiveRow
 {
@@ -2230,7 +2230,7 @@ struct SPROUTDATA_API FPassiveRow
 };
 
 
-// Generated from samples/sprout/Stage.xlsx : StageTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : StageTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FStageRow
 {
@@ -2279,7 +2279,7 @@ struct SPROUTDATA_API FStageRow
 };
 
 
-// Generated from samples/sprout/Stage.xlsx : StageWaveTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : StageWaveTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FStageWaveRow
 {
@@ -2308,7 +2308,7 @@ struct SPROUTDATA_API FStageWaveRow
 };
 
 
-// Generated from samples/sprout/Stage.xlsx : StageMonsterTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : StageMonsterTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FStageMonsterRow
 {
@@ -2349,7 +2349,7 @@ struct SPROUTDATA_API FStageMonsterRow
 };
 
 
-// Generated from samples/sprout/Stage.xlsx : StageRewardTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : StageRewardTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FStageRewardRow
 {
@@ -2382,7 +2382,7 @@ struct SPROUTDATA_API FStageRewardRow
 };
 
 
-// Generated from samples/sprout/Stage.xlsx : ChapterTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : ChapterTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FChapterRow
 {
@@ -2411,7 +2411,7 @@ struct SPROUTDATA_API FChapterRow
 };
 
 
-// Generated from samples/sprout/Stage.xlsx : WorldTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : WorldTable : A1
 USTRUCT(BlueprintType)
 struct SPROUTDATA_API FWorldRow
 {

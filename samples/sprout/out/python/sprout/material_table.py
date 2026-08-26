@@ -13,7 +13,7 @@ from .enum_element_type import ElementType
 
 
 class MaterialRecord:
-    """Generated from samples/sprout/Item.xlsx : MaterialTable : A1.
+    """Generated from samples/sprout/xlsx/Item.xlsx : MaterialTable : A1.
     """
 
     __slots__ = ("id", "item_id", "tier", "element")

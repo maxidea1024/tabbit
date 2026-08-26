@@ -13,7 +13,7 @@ from .enum_grade_type import GradeType
 
 
 class GachaPoolRecord:
-    """Generated from samples/sprout/Gacha.xlsx : GachaPoolTable : A1.
+    """Generated from samples/sprout/xlsx/Gacha.xlsx : GachaPoolTable : A1.
     """
 
     __slots__ = ("id", "gacha_id", "character_id", "equip_id", "grade", "weight")

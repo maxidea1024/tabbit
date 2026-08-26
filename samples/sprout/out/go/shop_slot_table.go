@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// ShopSlotRecord was generated from samples/sprout/Shop.xlsx : ShopSlotTable : A1.
+// ShopSlotRecord was generated from samples/sprout/xlsx/Shop.xlsx : ShopSlotTable : A1.
 type ShopSlotRecord struct {
 	// primary index
 	Id int32

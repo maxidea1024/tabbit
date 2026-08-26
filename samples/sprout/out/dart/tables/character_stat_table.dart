@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Character.xlsx : CharacterStatTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : CharacterStatTable : A1
 class CharacterStatRecord {
   /// primary index
   int id = 0;

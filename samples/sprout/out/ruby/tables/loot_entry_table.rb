@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Reward.xlsx : LootEntryTable : A1
+  # Generated from samples/sprout/xlsx/Reward.xlsx : LootEntryTable : A1
   class LootEntryRecord
     attr_accessor :id, :loot_group_id, :item_id, :min_count, :max_count, :weight
 

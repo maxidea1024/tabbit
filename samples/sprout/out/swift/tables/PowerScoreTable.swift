@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Growth.xlsx : PowerScoreTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : PowerScoreTable : A1
 public final class PowerScoreRecord {
 
     public init() {}

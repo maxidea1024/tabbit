@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Character.xlsx : CharacterTable : A1
+  # Generated from samples/sprout/xlsx/Character.xlsx : CharacterTable : A1
   class CharacterRecord
     attr_accessor :id, :name_key, :portrait, :role, :element, :grade, :rarity, :skill_ids, :max_level, :released
 

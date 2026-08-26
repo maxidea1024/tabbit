@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Skill.xlsx : SkillTable : A1
+  # Generated from samples/sprout/xlsx/Skill.xlsx : SkillTable : A1
   class SkillRecord
     attr_accessor :id, :name_key, :desc_key, :icon, :target, :cooldown, :effect_ids, :max_level
 

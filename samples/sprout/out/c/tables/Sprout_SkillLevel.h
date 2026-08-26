@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Skill.xlsx : SkillLevelTable : A1
+/* Generated from samples/sprout/xlsx/Skill.xlsx : SkillLevelTable : A1
  */
 struct Sprout_SkillLevelRecord_t {
   /* primary index */

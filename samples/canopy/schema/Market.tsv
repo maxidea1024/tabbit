@@ -1,0 +1,8 @@
+@name	id	itemId	feePermille	listingHours	priceFloor	priceCeiling	stackable	state
+@type	key:35000000~35999999	number	number	number	number	number	bool	string
+:required	1	1	1	1	1	1	1	1
+:min	35000000	19000000	0	1	1	1	-	-
+:max	35999999	19999999	300	336	900000	2000000000	-	-
+:enum	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:links	-	"Item"	-	-	-	-	-	-
+@gen	seq:35000000	ref:Item	int:0..300:zipf	int:1..336:zipf	int:1..900000:zipf	int:1..2000000000:zipf	bool	pick:draft|review|live|retired

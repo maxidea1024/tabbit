@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// DailyQuestRecord was generated from samples/sprout/Quest.xlsx : DailyQuestTable : A1.
+// DailyQuestRecord was generated from samples/sprout/xlsx/Quest.xlsx : DailyQuestTable : A1.
 type DailyQuestRecord struct {
 	// primary index
 	Id int32

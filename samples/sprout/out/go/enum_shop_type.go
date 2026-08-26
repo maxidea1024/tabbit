@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// ShopType was generated from samples/sprout/Enums.xlsx : TableEnums : N2.
+// ShopType was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : N2.
 // labels for ShopType
 type ShopType int32
 

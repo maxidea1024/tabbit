@@ -1,0 +1,8 @@
+@name	id	name	detail	icon	perkKind	tier	magnitude	cost	state
+@type	key:30000000~30999999	text	text	string	number	number	number	number	string
+:required	1	1	1	1	1	1	1	1	1
+:min	30000000	-	-	-	0	1	1	0	-
+:max	30999999	-	-	-	5	10	9000	900000	-
+:enum	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:asset	-	-	-	1	-	-	-	-	-
+@gen	seq:30000000	text:400	text:400	path:300:Art	pick:0|1|2|3|4|5	int:1..10:zipf	int:1..9000:zipf	int:0..900000:zipf	pick:draft|review|live|retired

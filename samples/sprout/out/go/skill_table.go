@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// SkillRecord was generated from samples/sprout/Skill.xlsx : SkillTable : A1.
+// SkillRecord was generated from samples/sprout/xlsx/Skill.xlsx : SkillTable : A1.
 type SkillRecord struct {
 	// primary index
 	Id int32

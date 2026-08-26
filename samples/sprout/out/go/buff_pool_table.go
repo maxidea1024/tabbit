@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// BuffPoolRecord was generated from samples/sprout/Skill.xlsx : BuffPoolTable : A1.
+// BuffPoolRecord was generated from samples/sprout/xlsx/Skill.xlsx : BuffPoolTable : A1.
 type BuffPoolRecord struct {
 	// primary index
 	Id int32

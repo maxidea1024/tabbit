@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// RoleType was generated from samples/sprout/Enums.xlsx : TableEnums : C2.
+// RoleType was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : C2.
 // labels for RoleType
 type RoleType int32
 

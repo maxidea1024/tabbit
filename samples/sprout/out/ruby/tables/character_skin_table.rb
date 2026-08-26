@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Character.xlsx : CharacterSkinTable : A1
+  # Generated from samples/sprout/xlsx/Character.xlsx : CharacterSkinTable : A1
   class CharacterSkinRecord
     attr_accessor :id, :character_id, :name_key, :model, :price, :is_default
 

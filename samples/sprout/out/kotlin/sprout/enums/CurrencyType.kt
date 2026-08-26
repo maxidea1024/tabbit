@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Enums.xlsx : TableEnums : E2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : E2
 /** labels for CurrencyType */
 enum class CurrencyType(val value: Int) {
     /** None (automatically inserted by Tabbit) */

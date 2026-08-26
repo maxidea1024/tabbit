@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Setting.xlsx : Table : A1
+  # Generated from samples/sprout/xlsx/Setting.xlsx : Table : A1
   class TableRecord
     attr_accessor :id, :name_key, :value
 

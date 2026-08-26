@@ -13,7 +13,7 @@ from .enum_dialogue_speaker import DialogueSpeaker
 
 
 class DialogueLineRecord:
-    """Generated from samples/sprout/Dialogue.xlsx : DialogueLineTable : A1.
+    """Generated from samples/sprout/xlsx/Dialogue.xlsx : DialogueLineTable : A1.
     """
 
     __slots__ = ("id", "dialogue_id", "line_order", "speaker", "portrait", "line_key")

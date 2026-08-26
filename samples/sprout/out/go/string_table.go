@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// StringRecord was generated from samples/sprout/Localization.xlsx : StringTable : A1.
+// StringRecord was generated from samples/sprout/xlsx/Localization.xlsx : StringTable : A1.
 type StringRecord struct {
 	// string key
 	StringKey string

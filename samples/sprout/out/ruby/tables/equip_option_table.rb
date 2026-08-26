@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Equipment.xlsx : EquipOptionTable : A1
+  # Generated from samples/sprout/xlsx/Equipment.xlsx : EquipOptionTable : A1
   class EquipOptionRecord
     attr_accessor :id, :stat, :min_roll, :max_roll, :weight
 

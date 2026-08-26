@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Character.xlsx : RoleBonusTable : A1
+  # Generated from samples/sprout/xlsx/Character.xlsx : RoleBonusTable : A1
   class RoleBonusRecord
     attr_accessor :id, :role, :stat, :bonus
 

@@ -23,7 +23,7 @@ interface IDataRow {
   ja: string
 }
 
-// Generated from samples/sprout/Localization.xlsx : StringTable : A1
+// Generated from samples/sprout/xlsx/Localization.xlsx : StringTable : A1
 export class StringRecord {
   /** Default constructor */
   constructor() {
@@ -64,7 +64,7 @@ export class StringRecord {
   }
 }
 
-// Generated from samples/sprout/Localization.xlsx : StringTable : A1
+// Generated from samples/sprout/xlsx/Localization.xlsx : StringTable : A1
 export class StringTable {
   /** Default constructor. */
   constructor() {

@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// PromoRecord was generated from samples/sprout/Shop.xlsx : PromoTable : A1.
+// PromoRecord was generated from samples/sprout/xlsx/Shop.xlsx : PromoTable : A1.
 type PromoRecord struct {
 	// primary index
 	Id int32

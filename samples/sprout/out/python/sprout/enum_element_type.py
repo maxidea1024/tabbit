@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class ElementType(enum.IntEnum):
-    """Generated from samples/sprout/Enums.xlsx : TableEnums : B2.
+    """Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : B2.
 
     labels for ElementType
     """

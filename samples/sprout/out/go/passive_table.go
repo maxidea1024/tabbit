@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// PassiveRecord was generated from samples/sprout/Skill.xlsx : PassiveTable : A1.
+// PassiveRecord was generated from samples/sprout/xlsx/Skill.xlsx : PassiveTable : A1.
 type PassiveRecord struct {
 	// primary index
 	Id int32

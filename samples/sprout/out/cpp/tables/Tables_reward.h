@@ -21,7 +21,7 @@
 #include "enums/Tables_enum_reward_type.h"
 
 namespace sprout {
-// Generated from samples/sprout/Reward.xlsx : RewardTable : A1
+// Generated from samples/sprout/xlsx/Reward.xlsx : RewardTable : A1
 struct RewardRecord {
   /// primary index
   std::int32_t id = 0;

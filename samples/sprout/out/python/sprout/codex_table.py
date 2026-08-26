@@ -13,7 +13,7 @@ from .enum_collection_type import CollectionType
 
 
 class CodexRecord:
-    """Generated from samples/sprout/Codex.xlsx : CodexTable : A1.
+    """Generated from samples/sprout/xlsx/Codex.xlsx : CodexTable : A1.
     """
 
     __slots__ = ("id", "type_", "name_key", "icon", "reward_id")

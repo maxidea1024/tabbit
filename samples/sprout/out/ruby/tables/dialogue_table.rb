@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Dialogue.xlsx : DialogueTable : A1
+  # Generated from samples/sprout/xlsx/Dialogue.xlsx : DialogueTable : A1
   class DialogueRecord
     attr_accessor :id, :scene_key, :cutscene_id, :skippable
 

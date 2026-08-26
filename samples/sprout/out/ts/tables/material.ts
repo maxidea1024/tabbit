@@ -26,7 +26,7 @@ interface IDataRow {
   element: ElementType
 }
 
-// Generated from samples/sprout/Item.xlsx : MaterialTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : MaterialTable : A1
 export class MaterialRecord {
   /** Default constructor */
   constructor() {
@@ -67,7 +67,7 @@ export class MaterialRecord {
   }
 }
 
-// Generated from samples/sprout/Item.xlsx : MaterialTable : A1
+// Generated from samples/sprout/xlsx/Item.xlsx : MaterialTable : A1
 export class MaterialTable {
   /** Default constructor. */
   constructor() {

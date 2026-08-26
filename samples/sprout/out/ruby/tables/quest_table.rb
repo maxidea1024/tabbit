@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Quest.xlsx : QuestTable : A1
+  # Generated from samples/sprout/xlsx/Quest.xlsx : QuestTable : A1
   class QuestRecord
     attr_accessor :id, :type, :title_key, :summary_key, :reward_id, :unlock_id, :repeatable
 

@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// StageType was generated from samples/sprout/Enums.xlsx : TableEnums : L2.
+// StageType was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : L2.
 // labels for StageType
 type StageType int32
 

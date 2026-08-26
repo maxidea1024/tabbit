@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// MaterialRecord was generated from samples/sprout/Item.xlsx : MaterialTable : A1.
+// MaterialRecord was generated from samples/sprout/xlsx/Item.xlsx : MaterialTable : A1.
 type MaterialRecord struct {
 	// primary index
 	Id int32

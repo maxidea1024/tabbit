@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Codex.xlsx : CodexTable : A1
+// Generated from samples/sprout/xlsx/Codex.xlsx : CodexTable : A1
 public final class CodexRecord {
 
     public init() {}

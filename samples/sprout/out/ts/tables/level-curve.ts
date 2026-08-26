@@ -31,7 +31,7 @@ interface IDataRow {
   revision: number
 }
 
-// Generated from samples/sprout/Growth.xlsx : LevelCurveTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : LevelCurveTable : A1
 export class LevelCurveRecord {
   /** Default constructor */
   constructor() {
@@ -102,7 +102,7 @@ export class LevelCurveRecord {
   }
 }
 
-// Generated from samples/sprout/Growth.xlsx : LevelCurveTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : LevelCurveTable : A1
 export class LevelCurveTable {
   /** Default constructor. */
   constructor() {

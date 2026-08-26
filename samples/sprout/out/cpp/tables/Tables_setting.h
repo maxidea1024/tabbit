@@ -20,7 +20,7 @@
 #include "Tables_forward.h"
 
 namespace sprout {
-// Generated from samples/sprout/Setting.xlsx : SettingTable : A1
+// Generated from samples/sprout/xlsx/Setting.xlsx : SettingTable : A1
 struct SettingRecord {
   /// setting key
   std::string setting_key;

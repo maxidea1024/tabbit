@@ -29,7 +29,7 @@ interface IDataRow {
   chance: number
 }
 
-// Generated from samples/sprout/Skill.xlsx : SkillEffectTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : SkillEffectTable : A1
 export class SkillEffectRecord {
   /** Default constructor */
   constructor() {
@@ -82,7 +82,7 @@ export class SkillEffectRecord {
   }
 }
 
-// Generated from samples/sprout/Skill.xlsx : SkillEffectTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : SkillEffectTable : A1
 export class SkillEffectTable {
   /** Default constructor. */
   constructor() {

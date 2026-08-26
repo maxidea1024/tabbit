@@ -13,7 +13,7 @@ from .enum_target_type import TargetType
 
 
 class SkillRecord:
-    """Generated from samples/sprout/Skill.xlsx : SkillTable : A1.
+    """Generated from samples/sprout/xlsx/Skill.xlsx : SkillTable : A1.
     """
 
     __slots__ = ("id", "name_key", "desc_key", "icon", "target", "cooldown", "effect_ids", "max_level")

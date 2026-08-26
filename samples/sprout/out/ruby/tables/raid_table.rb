@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Dungeon.xlsx : RaidTable : A1
+  # Generated from samples/sprout/xlsx/Dungeon.xlsx : RaidTable : A1
   class RaidRecord
     attr_accessor :id, :name_key, :boss_id, :boss_health, :turn_limit, :season_days
 

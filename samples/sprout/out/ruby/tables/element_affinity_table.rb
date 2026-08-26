@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Character.xlsx : ElementAffinityTable : A1
+  # Generated from samples/sprout/xlsx/Character.xlsx : ElementAffinityTable : A1
   class ElementAffinityRecord
     attr_accessor :id, :attacker, :defender, :rate
 

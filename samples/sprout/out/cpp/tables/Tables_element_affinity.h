@@ -21,7 +21,7 @@
 #include "enums/Tables_enum_element_type.h"
 
 namespace sprout {
-// Generated from samples/sprout/Character.xlsx : ElementAffinityTable : A1
+// Generated from samples/sprout/xlsx/Character.xlsx : ElementAffinityTable : A1
 struct ElementAffinityRecord {
   /// primary index
   std::int32_t id = 0;

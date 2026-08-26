@@ -9,7 +9,7 @@
 #ifndef SPROUT_ENUM_STAGE_TYPE_H
 #define SPROUT_ENUM_STAGE_TYPE_H
 
-/* Generated from samples/sprout/Enums.xlsx : TableEnums : L2
+/* Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : L2
  *
  * labels for StageType
  */

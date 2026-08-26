@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// TargetType was generated from samples/sprout/Enums.xlsx : TableEnums : I2.
+// TargetType was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : I2.
 // labels for TargetType
 type TargetType int32
 

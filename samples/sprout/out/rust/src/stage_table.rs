@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_stage_type::StageType;
 
-// Generated from samples/sprout/Stage.xlsx : StageTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : StageTable : A1
 #[derive(Clone, Debug, Default)]
 pub struct StageRecord {
     /// primary index

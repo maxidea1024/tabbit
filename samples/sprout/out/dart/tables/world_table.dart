@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Stage.xlsx : WorldTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : WorldTable : A1
 class WorldRecord {
   /// primary index
   int id = 0;

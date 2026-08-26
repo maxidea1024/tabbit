@@ -9,7 +9,7 @@
 #ifndef SPROUT_ENUM_ELEMENT_TYPE_H
 #define SPROUT_ENUM_ELEMENT_TYPE_H
 
-/* Generated from samples/sprout/Enums.xlsx : TableEnums : B2
+/* Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : B2
  *
  * labels for ElementType
  */

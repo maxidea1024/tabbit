@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Stage.xlsx : WorldTable : A1
+// Generated from samples/sprout/xlsx/Stage.xlsx : WorldTable : A1
 public final class WorldRecord {
 
     public init() {}

@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// UnlockRecord was generated from samples/sprout/Setting.xlsx : UnlockTable : A1.
+// UnlockRecord was generated from samples/sprout/xlsx/Setting.xlsx : UnlockTable : A1.
 type UnlockRecord struct {
 	// primary index
 	Id int32

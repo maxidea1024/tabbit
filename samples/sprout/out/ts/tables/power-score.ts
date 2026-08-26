@@ -25,7 +25,7 @@ interface IDataRow {
   weight: number
 }
 
-// Generated from samples/sprout/Growth.xlsx : PowerScoreTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : PowerScoreTable : A1
 export class PowerScoreRecord {
   /** Default constructor */
   constructor() {
@@ -60,7 +60,7 @@ export class PowerScoreRecord {
   }
 }
 
-// Generated from samples/sprout/Growth.xlsx : PowerScoreTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : PowerScoreTable : A1
 export class PowerScoreTable {
   /** Default constructor. */
   constructor() {

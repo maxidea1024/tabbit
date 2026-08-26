@@ -13,7 +13,7 @@
 #include <cstdint>
 
 namespace sprout {
-// Generated from samples/sprout/Enums.xlsx : TableEnums : J2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : J2
 /// labels for ConditionType
 enum class ConditionType : std::int32_t {
   /// None (automatically inserted by Tabbit)

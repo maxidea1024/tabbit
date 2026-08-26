@@ -27,7 +27,7 @@ interface IDataRow {
   bonus: number
 }
 
-// Generated from samples/sprout/Skill.xlsx : PassiveTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : PassiveTable : A1
 export class PassiveRecord {
   /** Default constructor */
   constructor() {
@@ -74,7 +74,7 @@ export class PassiveRecord {
   }
 }
 
-// Generated from samples/sprout/Skill.xlsx : PassiveTable : A1
+// Generated from samples/sprout/xlsx/Skill.xlsx : PassiveTable : A1
 export class PassiveTable {
   /** Default constructor. */
   constructor() {

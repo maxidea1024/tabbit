@@ -9,7 +9,7 @@ package sprout;
 
 import tabbit.TcbReader;
 
-// Generated from samples/sprout/Offline.xlsx : IdleRateTable : A1
+// Generated from samples/sprout/xlsx/Offline.xlsx : IdleRateTable : A1
 public final class IdleRateRecord {
     /** primary index */
     public int id;

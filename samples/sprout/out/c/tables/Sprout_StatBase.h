@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Growth.xlsx : StatBaseTable : A1
+/* Generated from samples/sprout/xlsx/Growth.xlsx : StatBaseTable : A1
  */
 struct Sprout_StatBaseRecord_t {
   /* primary index */

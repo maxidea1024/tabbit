@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Growth.xlsx : StatBaseTable : A1
+// Generated from samples/sprout/xlsx/Growth.xlsx : StatBaseTable : A1
 public final class StatBaseRecord {
 
     public init() {}

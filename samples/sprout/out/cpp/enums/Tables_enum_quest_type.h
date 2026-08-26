@@ -13,7 +13,7 @@
 #include <cstdint>
 
 namespace sprout {
-// Generated from samples/sprout/Enums.xlsx : TableEnums : P2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : P2
 /// labels for QuestType
 enum class QuestType : std::int32_t {
   /// None (automatically inserted by Tabbit)

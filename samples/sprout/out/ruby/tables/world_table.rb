@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Stage.xlsx : WorldTable : A1
+  # Generated from samples/sprout/xlsx/Stage.xlsx : WorldTable : A1
   class WorldRecord
     attr_accessor :id, :name_key, :map, :theme_colour
 

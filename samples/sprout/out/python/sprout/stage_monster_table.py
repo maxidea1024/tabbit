@@ -13,7 +13,7 @@ from .enum_element_type import ElementType
 
 
 class StageMonsterRecord:
-    """Generated from samples/sprout/Stage.xlsx : StageMonsterTable : A1.
+    """Generated from samples/sprout/xlsx/Stage.xlsx : StageMonsterTable : A1.
     """
 
     __slots__ = ("id", "name_key", "model", "element", "attack", "defense", "health", "skill_ids")

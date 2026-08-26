@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from samples/sprout/Localization.xlsx : StringTable : A1
+// Generated from samples/sprout/xlsx/Localization.xlsx : StringTable : A1
 class StringRecord {
     /** string key */
     var stringKey: String = ""

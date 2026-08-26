@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class ChapterRecord:
-    """Generated from samples/sprout/Stage.xlsx : ChapterTable : A1.
+    """Generated from samples/sprout/xlsx/Stage.xlsx : ChapterTable : A1.
     """
 
     __slots__ = ("id", "world_id", "name_key", "sort_order", "unlock_id")

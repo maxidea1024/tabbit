@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Character.xlsx : CharacterAscendTable : A1
+  # Generated from samples/sprout/xlsx/Character.xlsx : CharacterAscendTable : A1
   class CharacterAscendRecord
     attr_accessor :id, :character_id, :step, :material_ids, :material_counts, :gold_cost, :stat_scale
 

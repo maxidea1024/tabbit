@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Growth.xlsx : StatBaseTable : A1
+  # Generated from samples/sprout/xlsx/Growth.xlsx : StatBaseTable : A1
   class StatBaseRecord
     attr_accessor :id, :role, :stat, :base_value
 

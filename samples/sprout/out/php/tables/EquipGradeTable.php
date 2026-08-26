@@ -21,7 +21,7 @@ use Tabbit\RecordNotFoundException;
 use Tabbit\Uuid;
 
 /**
- * Generated from samples/sprout/Equipment.xlsx : EquipGradeTable : A1
+ * Generated from samples/sprout/xlsx/Equipment.xlsx : EquipGradeTable : A1
  */
 final class EquipGradeRecord
 {

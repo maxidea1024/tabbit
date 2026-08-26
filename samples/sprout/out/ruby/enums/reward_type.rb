@@ -7,7 +7,7 @@
 
 
 module Sprout
-  # Generated from samples/sprout/Enums.xlsx : TableEnums : K2
+  # Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : K2
   # labels for RewardType
   module RewardType
     # None (automatically inserted by Tabbit)

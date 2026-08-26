@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-// BuffKind was generated from samples/sprout/Enums.xlsx : TableEnums : S2.
+// BuffKind was generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : S2.
 // labels for BuffKind
 type BuffKind int32
 

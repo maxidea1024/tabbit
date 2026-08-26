@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Skill.xlsx : PassiveTable : A1
+  # Generated from samples/sprout/xlsx/Skill.xlsx : PassiveTable : A1
   class PassiveRecord
     attr_accessor :id, :character_id, :unlock_step, :stat, :bonus
 

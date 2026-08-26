@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class SkillLevelRecord:
-    """Generated from samples/sprout/Skill.xlsx : SkillLevelTable : A1.
+    """Generated from samples/sprout/xlsx/Skill.xlsx : SkillLevelTable : A1.
     """
 
     __slots__ = ("id", "skill_id", "level", "power", "cost")

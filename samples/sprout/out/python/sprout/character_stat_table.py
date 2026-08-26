@@ -12,7 +12,7 @@ from . import tabbit
 
 
 class CharacterStatRecord:
-    """Generated from samples/sprout/Character.xlsx : CharacterStatTable : A1.
+    """Generated from samples/sprout/xlsx/Character.xlsx : CharacterStatTable : A1.
     """
 
     __slots__ = ("id", "character_id", "level", "required_exp", "attack", "defense", "health")

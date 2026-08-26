@@ -25,7 +25,7 @@ interface IDataRow {
   rewardId: number
 }
 
-// Generated from samples/sprout/Dungeon.xlsx : DungeonFloorTable : A1
+// Generated from samples/sprout/xlsx/Dungeon.xlsx : DungeonFloorTable : A1
 export class DungeonFloorRecord {
   /** Default constructor */
   constructor() {
@@ -78,7 +78,7 @@ export class DungeonFloorRecord {
   }
 }
 
-// Generated from samples/sprout/Dungeon.xlsx : DungeonFloorTable : A1
+// Generated from samples/sprout/xlsx/Dungeon.xlsx : DungeonFloorTable : A1
 export class DungeonFloorTable {
   /** Default constructor. */
   constructor() {

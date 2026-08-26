@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Stage.xlsx : StageMonsterTable : A1
+  # Generated from samples/sprout/xlsx/Stage.xlsx : StageMonsterTable : A1
   class StageMonsterRecord
     attr_accessor :id, :name_key, :model, :element, :attack, :defense, :health, :skill_ids
 

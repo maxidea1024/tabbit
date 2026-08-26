@@ -6,7 +6,7 @@
 // ------------------------------------------------------------------------------
 
 part of '../tables.dart';
-// Generated from samples/sprout/Enums.xlsx : TableEnums : N2
+// Generated from samples/sprout/xlsx/Enums.xlsx : TableEnums : N2
 /// labels for ShopType
 enum ShopType {
   /// None (automatically inserted by Tabbit)

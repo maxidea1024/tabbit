@@ -13,7 +13,7 @@ import (
 	"sprout/tabbit"
 )
 
-// ItemGradeRecord was generated from samples/sprout/Item.xlsx : ItemGradeTable : A1.
+// ItemGradeRecord was generated from samples/sprout/xlsx/Item.xlsx : ItemGradeTable : A1.
 type ItemGradeRecord struct {
 	// primary index
 	Id int32

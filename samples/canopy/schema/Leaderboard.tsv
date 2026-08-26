@@ -1,0 +1,8 @@
+@name	id	name	scoreKind	resetDays	visibleRanks	rewardId	state
+@type	key:44000000~44999999	text	number	number	number	number	string
+:required	1	1	1	1	1	1	1
+:min	44000000	-	0	1	10	17000000	-
+:max	44999999	-	4	90	1000	17999999	-
+:enum	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:links	-	-	-	-	-	"Loot"	-
+@gen	seq:44000000	text:400	pick:0|1|2|3|4	int:1..90:zipf	int:10..1000:zipf	ref:Loot	pick:draft|review|live|retired

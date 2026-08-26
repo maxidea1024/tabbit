@@ -1,0 +1,8 @@
+@name	id	name	model	thumb	cosmeticKind	grade	dyeChannelMask	seasonal	state
+@type	key:42000000~42999999	text	string	string	number	number	number	bool	string
+:required	1	1	1	1	1	1	-	1	1
+:min	42000000	-	-	-	0	1	0	-	-
+:max	42999999	-	-	-	5	5	7	-	-
+:enum	-	-	-	-	-	-	-	-	"draft";"review";"live";"retired"
+:asset	-	-	1	1	-	-	-	-	-
+@gen	seq:42000000	text:400	path:300:Art	path:300:Art	pick:0|1|2|3|4|5	pick:1|2|3|4|5	?20 int:0..7:zipf	bool	pick:draft|review|live|retired

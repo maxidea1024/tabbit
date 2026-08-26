@@ -7,7 +7,7 @@
 
 import Foundation
 
-// Generated from samples/sprout/Quest.xlsx : AchievementTable : A1
+// Generated from samples/sprout/xlsx/Quest.xlsx : AchievementTable : A1
 public final class AchievementRecord {
 
     public init() {}

@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-/* Generated from samples/sprout/Offline.xlsx : OfflineRewardTable : A1
+/* Generated from samples/sprout/xlsx/Offline.xlsx : OfflineRewardTable : A1
  */
 struct Sprout_OfflineRewardRecord_t {
   /* primary index */

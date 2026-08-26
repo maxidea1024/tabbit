@@ -9,7 +9,7 @@ require_relative '../tabbit/tcb_reader'
 
 
 module Sprout
-  # Generated from samples/sprout/Dialogue.xlsx : DialogueLineTable : A1
+  # Generated from samples/sprout/xlsx/Dialogue.xlsx : DialogueLineTable : A1
   class DialogueLineRecord
     attr_accessor :id, :dialogue_id, :line_order, :speaker, :portrait, :line_key
 
