@@ -65,6 +65,19 @@ namespace Wildling.Game
         }
     }
 
+    /// <summary>한 박자가 무엇인가. 화면이 이것으로 연출을 고른다.</summary>
+    public enum BeatKind
+    {
+        Line,
+        Act,
+        Damage,
+        Heal,
+        Buff,
+        Status,
+        Down,
+        Miss,
+    }
+
     /// <summary>전투 한 판의 기록이다.</summary>
     /// <remarks>
     /// **글과 그 시점의 체력을 함께 듭니다.** 화면이 기록을 순서대로 재생하면서 막대도 그때의
@@ -83,18 +96,65 @@ namespace Wildling.Game
         public struct Beat
         {
             public string Text;
+            public BeatKind Kind;
+
+            /// <summary>움직인 쪽. 없으면 -1 이다.</summary>
+            public bool ActorIsEnemy;
+            public int ActorIndex;
+
+            /// <summary>받은 쪽. 없으면 -1 이다.</summary>
+            public bool TargetIsEnemy;
+            public int TargetIndex;
+
+            public int Amount;
+            public bool Crit;
+
+            /// <summary>무엇을 했는가. 스킬 이름이거나 「패스」 같은 짧은 말이다.</summary>
+            public string Note;
+
+            /// <summary>그 스킬의 아이콘. 없으면 빈 문자열이다.</summary>
+            public string Icon;
+
             public int[] PartyHp;
             public int[] EnemyHp;
         }
 
         /// <summary>한 줄을 남기고 그 순간의 체력을 함께 담는다.</summary>
-        public void Say(string text)
+        public void Say(string text) => Say(text, BeatKind.Line, null, null);
+
+        /// <summary>
+        /// 누가 누구에게 무엇을 했는지까지 남긴다.
+        /// </summary>
+        /// <remarks>
+        /// **화면이 이것으로 연출합니다.** 글만 흐르면 무엇이 일어났는지 읽어야 알 수 있으므로,
+        /// 맞은 쪽이 흔들리고 피해 숫자가 뜨도록 자리와 수치를 함께 답니다. 계산에는 영향이
+        /// 없습니다 — 기록에 칸이 늘었을 뿐입니다.
+        /// </remarks>
+        public void Say(string text, BeatKind kind, Combatant actor, Combatant target,
+                        int amount = 0, bool crit = false, string note = null,
+                        string icon = null)
             => Beats.Add(new Beat
             {
                 Text = text,
+                Kind = kind,
+                Note = note ?? "",
+                Icon = icon ?? "",
+                ActorIsEnemy = actor?.IsEnemy ?? false,
+                ActorIndex = IndexOf(actor),
+                TargetIsEnemy = target?.IsEnemy ?? false,
+                TargetIndex = IndexOf(target),
+                Amount = amount,
+                Crit = crit,
                 PartyHp = Party.Select(c => c.Hp).ToArray(),
                 EnemyHp = Enemies.Select(c => c.Hp).ToArray(),
             });
+
+        private int IndexOf(Combatant c)
+        {
+            if (c is null)
+                return -1;
+            return c.IsEnemy ? Enemies.IndexOf(c) : Party.IndexOf(c);
+        }
     }
 
     /// <summary>
@@ -227,17 +287,20 @@ namespace Wildling.Game
             {
                 int burn = Math.Max(1, actor.MaxHp / 20);
                 actor.Hp = Math.Max(0, actor.Hp - burn);
-                report.Say($"{Korean.Ga(actor.Name)} 화상으로 {burn} 을 잃었습니다.");
+                report.Say($"{Korean.Ga(actor.Name)} 화상으로 {burn} 을 잃었습니다.",
+                           BeatKind.Damage, actor, actor, burn, note: "화상");
                 if (!actor.Alive)
                 {
-                    report.Say($"{Korean.Ga(actor.Name)} 쓰러졌습니다.");
+                    report.Say($"{Korean.Ga(actor.Name)} 쓰러졌습니다.",
+                               BeatKind.Down, null, actor);
                     return;
                 }
             }
 
             if (actor.Statuses.ContainsKey(StatusKind.Stun))
             {
-                report.Say($"{Korean.Ga(actor.Name)} 기절해 움직이지 못했습니다.");
+                report.Say($"{Korean.Ga(actor.Name)} 기절해 움직이지 못했습니다.",
+                           BeatKind.Status, actor, actor, note: "기절!");
                 return;
             }
 
@@ -250,7 +313,8 @@ namespace Wildling.Game
             int slot = PickSlot(actor);
             if (slot < 0)
             {
-                report.Say($"{Korean.Ga(actor.Name)} 쓸 수 있는 스킬이 없어 쉬었습니다.");
+                report.Say($"{Korean.Ga(actor.Name)} 쓸 수 있는 스킬이 없어 쉬었습니다.",
+                           BeatKind.Line, actor, actor, note: "패스");
                 return;
             }
 
@@ -262,7 +326,8 @@ namespace Wildling.Game
             if (targets.Count == 0)
                 return;
 
-            report.Say($"{actor.Name} — {skill.Name}");
+            report.Say($"{actor.Name} — {skill.Name}", BeatKind.Act, actor, null,
+                       note: skill.Name, icon: skill.Icon);
 
             int growth = SkillPowerFactor(skill, SkillLevelOf(actor, slot));
             foreach (var effect in EffectsOf(skill))
@@ -323,7 +388,8 @@ namespace Wildling.Game
                 {
                     if (actor.Statuses.ContainsKey(StatusKind.Blind) && rng.Chance(5000))
                     {
-                        report.Say($"  {Korean.Eul(target.Name)} 빗맞혔습니다.");
+                        report.Say($"  {Korean.Eul(target.Name)} 빗맞혔습니다.",
+                                   BeatKind.Miss, actor, target);
                         return;
                     }
 
@@ -343,10 +409,12 @@ namespace Wildling.Game
 
                     raw = Math.Max(1, raw);
                     target.Hp = Math.Max(0, target.Hp - raw);
-                    report.Say($"  {target.Name}에게 {raw}{(crit ? " (치명)" : "")}");
+                    report.Say($"  {target.Name}에게 {raw}{(crit ? " (치명)" : "")}",
+                               BeatKind.Damage, actor, target, raw, crit);
 
                     if (!target.Alive)
-                        report.Say($"  {Korean.Ga(target.Name)} 쓰러졌습니다.");
+                        report.Say($"  {Korean.Ga(target.Name)} 쓰러졌습니다.",
+                                   BeatKind.Down, actor, target);
                     break;
                 }
 
@@ -356,7 +424,8 @@ namespace Wildling.Game
                                                Numbers.Apply(heal.Power, growth));
                     int before = target.Hp;
                     target.Hp = Math.Min(target.MaxHp, target.Hp + amount);
-                    report.Say($"  {Korean.Ga(target.Name)} {target.Hp - before} 회복했습니다.");
+                    report.Say($"  {Korean.Ga(target.Name)} {target.Hp - before} 회복했습니다.",
+                               BeatKind.Heal, actor, target, target.Hp - before);
                     break;
                 }
 
@@ -369,15 +438,17 @@ namespace Wildling.Game
                         Turns = buff.Duration,
                     });
                     report.Say($"  {Korean.Ui(target.Name)} {Label(buff.Stat)} "
-                                   + $"{(buff.Ratio >= 0 ? "+" : "")}{Numbers.AsPercent(buff.Ratio)} "
-                                   + $"{buff.Duration}턴");
+                               + $"{(buff.Ratio >= 0 ? "+" : "")}{Numbers.AsPercent(buff.Ratio)} "
+                               + $"{buff.Duration}턴",
+                               BeatKind.Buff, actor, target, buff.Ratio);
                     break;
                 }
 
                 case StatusEffect status:
                 {
                     target.Statuses[status.Status] = status.Duration;
-                    report.Say($"  {Korean.Ga(target.Name)} {Label(status.Status)} 되었습니다.");
+                    report.Say($"  {Korean.Ga(target.Name)} {Label(status.Status)} 되었습니다.",
+                               BeatKind.Status, actor, target);
                     break;
                 }
             }

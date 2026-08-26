@@ -372,3 +372,8 @@
 	rg_shop_package_03	0	CurrencyReward	300		gold		10000	-
 	rg_shop_package_04	0	CurrencyReward	300		gold		10000	-
 	rg_shop_package_05	0	CurrencyReward	300		gold		10000	-
+	rg_start	0	CurrencyReward	240000		gold		10000	100
+	rg_start	1	CurrencyReward	1200		food		10000	100
+	rg_start	2	CurrencyReward	600		gem		10000	100
+	rg_start	3	ItemReward	40	mat_weir_forest_resin			10000	100
+	rg_start	4	ItemReward	12	mat_weir_forest_core			10000	100

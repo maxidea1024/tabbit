@@ -18,16 +18,22 @@ namespace Wildling.Game
     public sealed class BattleScreen : Screen
     {
         private readonly string _stageId;
+        private readonly BattleRun _run;
         private BattleReport _report;
-        private Transform _logRoot;
         private RectTransform _logColumn;
+        private ScrollRect _logScroll;
+        private RectTransform _stage;
         private App _app;
         private int _shown;
         private static int _speedIndex;
-        private readonly List<Image> _partyBars = new();
-        private readonly List<Image> _enemyBars = new();
+        private readonly List<BattleCell> _partyCells = new();
+        private readonly List<BattleCell> _enemyCells = new();
 
-        public BattleScreen(string stageId) => _stageId = stageId;
+        public BattleScreen(string stageId, BattleRun run = null)
+        {
+            _stageId = stageId;
+            _run = run ?? new BattleRun();
+        }
 
         public override string Title => "전투";
 
@@ -131,7 +137,7 @@ namespace Wildling.Game
                     Placement = i,
                     IsEnemy = true,
                     BossStatFactor = boss?.StatFactor.Attack ?? Numbers.One,
-                    Active = skills.Where(r => r.SlotKind == SlotKind.Active)
+                    Active = Stats.BasicFirst(skills.Where(r => r.SlotKind == SlotKind.Active))
                         .Take(Stats.ActiveSlots(monster.Stage))
                         .Select(r => r.SkillBySkillId).Where(s => s != null).ToArray(),
                     Passive = skills.Where(r => r.SlotKind == SlotKind.Passive)
@@ -156,6 +162,8 @@ namespace Wildling.Game
                 image.color = new Color(0.55f, 0.55f, 0.62f, 1f);
             }
 
+            _stage = Ui.Rect(root.gameObject);
+
             var head = Ui.Node("head", root);
             Ui.Top(head, 64f);
             Ui.Label(head.transform,
@@ -165,22 +173,51 @@ namespace Wildling.Game
 
             var enemies = Ui.Node("enemies", root);
             Ui.Top(enemies, 200f, 68f);
-            Side(enemies.transform, _report.Enemies, _enemyBars);
 
             var party = Ui.Node("party", root);
             Ui.Top(party, 200f, 276f);
-            Side(party.transform, _report.Party, _partyBars);
 
             var logBox = Ui.Node("log", root);
             var rt = Ui.Rect(logBox);
             rt.anchorMin = Vector2.zero;
             rt.anchorMax = Vector2.one;
-            rt.offsetMin = new Vector2(10f, 76f);
+            rt.offsetMin = new Vector2(10f, 116f);   // 아래에 연속 전투 띠가 들어갑니다
             rt.offsetMax = new Vector2(-10f, -486f);
             var panel = logBox.AddComponent<Image>();
             panel.color = new Color(0f, 0f, 0f, 0.55f);
-            _logRoot = logBox.transform;
             _logColumn = Ui.Scroll(logBox.transform, 2f, 8f);
+            // **`ScrollRect` 는 `Ui.Scroll` 이 만든 안쪽 오브젝트에 있습니다.** 바깥에서
+            // 찾으면 `null` 이 나오고 기록이 새 줄을 따라가지 않습니다.
+            _logScroll = _logColumn.GetComponentInParent<ScrollRect>();
+
+            // **뜨는 것들의 층은 맨 마지막에 만듭니다.** uGUI 는 자식 순서대로 그리므로
+            // 나중에 만든 것이 위에 옵니다.
+            var floats = Ui.Node("floats", root);
+            var floatLayer = Ui.Stretch(floats);
+            floats.AddComponent<CanvasGroup>().blocksRaycasts = false;
+
+            _enemyCells.AddRange(
+                BattleStage.Build(enemies.transform, _report.Enemies, -1f, floatLayer));
+            _partyCells.AddRange(
+                BattleStage.Build(party.transform, _report.Party, 1f, floatLayer));
+
+            // 지금까지 몇 판을 돌았고 무엇이 쌓였는가.
+            var strip = Ui.Node("strip", root);
+            Ui.Bottom(strip, 34f, 72f);
+            var stripPanel = strip.AddComponent<Image>();
+            stripPanel.color = new Color(0f, 0f, 0f, 0.55f);
+            stripPanel.raycastTarget = false;
+            var stripText = Ui.Node("t", strip.transform);
+            var strt = Ui.Stretch(stripText);
+            strt.offsetMin = new Vector2(10f, 0f);
+            strt.offsetMax = new Vector2(-10f, 0f);
+            Ui.Label(stripText.transform,
+                     $"자동 반복 · {_run.Rounds + 1}판째 · 승 {_run.Wins} 패 {_run.Losses}"
+                     + (_run.Tally.Count > 0
+                         ? "   |   " + string.Join(" · ",
+                             _run.Tally.Take(3).Select(Rewards.Describe))
+                         : ""),
+                     18, Theme.TextDim);
 
             var buttons = Ui.Node("buttons", root);
             Ui.Bottom(buttons, 64f, 6f);
@@ -201,45 +238,12 @@ namespace Wildling.Game
                 while (_shown < _report.Beats.Count)
                     AppendLine();
             }, Theme.PanelHigh, 20);
-        }
 
-        private static void Side(Transform parent, List<Combatant> side, List<Image> bars)
-        {
-            var row = Ui.Row(parent, 8f, 8f);
-            foreach (var c in side)
+            Ui.Button(row, "정지", () =>
             {
-                var cell = Ui.Node(c.Monster.MonsterId, row);
-                Ui.Panel(cell.transform, new Color(0f, 0f, 0f, 0.35f));
-
-                var icon = Ui.Node("icon", cell.transform);
-                var irt = Ui.Rect(icon);
-                irt.anchorMin = new Vector2(0.5f, 1f);
-                irt.anchorMax = new Vector2(0.5f, 1f);
-                irt.pivot = new Vector2(0.5f, 1f);
-                irt.sizeDelta = new Vector2(104f, 104f);
-                irt.anchoredPosition = new Vector2(0f, -6f);
-                Ui.Icon(icon.transform, ArtLibrary.Icon(c.Monster.Icon));
-
-                var name = Ui.Node("name", cell.transform);
-                var nrt = Ui.Rect(name);
-                nrt.anchorMin = new Vector2(0f, 0f);
-                nrt.anchorMax = new Vector2(1f, 0f);
-                nrt.pivot = new Vector2(0.5f, 0f);
-                nrt.offsetMin = new Vector2(4f, 30f);
-                nrt.offsetMax = new Vector2(-4f, 54f);
-                Ui.Label(name.transform, $"{c.Name} Lv{c.Level}", 17, Theme.Text,
-                         TextAnchor.MiddleCenter);
-
-                var bar = Ui.Node("hp", cell.transform);
-                var brt = Ui.Rect(bar);
-                brt.anchorMin = new Vector2(0f, 0f);
-                brt.anchorMax = new Vector2(1f, 0f);
-                brt.pivot = new Vector2(0.5f, 0f);
-                brt.offsetMin = new Vector2(6f, 8f);
-                brt.offsetMax = new Vector2(-6f, 22f);
-                // 재생이 그 시점의 값으로 채웁니다. 처음에는 가득입니다.
-                bars.Add(Ui.Bar(bar.transform, 1f, Theme.Good));
-            }
+                _run.Stopped = true;
+                _app.Toast("이 판이 끝나면 멈춥니다.");
+            }, Theme.Warn, 20);
         }
 
         // ------------------------------------------------------------ 재생
@@ -265,6 +269,8 @@ namespace Wildling.Game
             if (_shown >= _report.Beats.Count || _logColumn == null)
                 return;
 
+            bool atBottom = AtBottom();
+
             var beat = _report.Beats[_shown++];
             bool detail = beat.Text.StartsWith("  ");
 
@@ -272,29 +278,125 @@ namespace Wildling.Game
             Ui.Label(item.transform, beat.Text, detail ? 19 : 22,
                      detail ? Theme.TextDim : Theme.Text);
 
-            Fill(_partyBars, _report.Party, beat.PartyHp);
-            Fill(_enemyBars, _report.Enemies, beat.EnemyHp);
+            Fill(_partyCells, _report.Party, beat.PartyHp);
+            Fill(_enemyCells, _report.Enemies, beat.EnemyHp);
+            Perform(beat);
 
-            var scroll = _logRoot.GetComponent<ScrollRect>();
-            if (scroll != null)
-                scroll.verticalNormalizedPosition = 0f;
+            if (atBottom && _logScroll != null)
+            {
+                // 층이 새 줄의 높이를 반영한 뒤라야 맨 아래가 맨 아래입니다.
+                Canvas.ForceUpdateCanvases();
+                LayoutRebuilder.ForceRebuildLayoutImmediate(_logColumn);
+                _logScroll.verticalNormalizedPosition = 0f;
+            }
+        }
+
+        /// <summary>
+        /// 지금 맨 아래를 보고 있는가.
+        /// </summary>
+        /// <remarks>
+        /// **위로 올려 둔 것을 끌어내리지 않습니다.** 지난 줄을 읽고 있는데 새 줄마다 아래로
+        /// 튀면 읽을 수 없습니다. 내용이 화면보다 짧으면 그것도 맨 아래로 봅니다.
+        /// </remarks>
+        private bool AtBottom()
+        {
+            if (_logScroll == null || _logScroll.content == null || _logScroll.viewport == null)
+                return true;
+            if (_logScroll.content.rect.height <= _logScroll.viewport.rect.height)
+                return true;
+            return _logScroll.verticalNormalizedPosition <= 0.02f;
         }
 
         /// <summary>그 박자의 체력으로 막대를 채운다.</summary>
-        private static void Fill(List<Image> bars, List<Combatant> side, int[] hp)
+        private static void Fill(List<BattleCell> cells, List<Combatant> side, int[] hp)
         {
             if (hp is null)
                 return;
 
-            for (int i = 0; i < bars.Count && i < side.Count && i < hp.Length; i++)
+            for (int i = 0; i < cells.Count && i < side.Count && i < hp.Length; i++)
             {
-                if (bars[i] is null)
+                var cell = cells[i];
+                if (cell == null || cell.HpFill == null)
                     continue;
+
                 float ratio = side[i].MaxHp <= 0 ? 0f : Mathf.Clamp01(hp[i] / (float)side[i].MaxHp);
-                var rt = (RectTransform)bars[i].transform;
+                var rt = (RectTransform)cell.HpFill.transform;
                 rt.anchorMax = new Vector2(ratio, 1f);
-                bars[i].color = hp[i] > 0 ? Theme.Good : Theme.Warn;
+                cell.HpFill.color = hp[i] > 0 ? Theme.Good : Theme.Warn;
+                cell.SetDown(hp[i] <= 0);
             }
+        }
+
+        /// <summary>
+        /// 그 박자를 눈에 보이게 한다.
+        /// </summary>
+        /// <remarks>
+        /// 움직인 쪽이 한 걸음 나가고, 맞은 쪽이 흔들리며 번쩍이고, 숫자가 떠오릅니다.
+        /// **어느 칸인지는 기록이 들고 있습니다** — 화면이 글을 다시 읽어 알아내지 않습니다.
+        /// </remarks>
+        private void Perform(BattleReport.Beat beat)
+        {
+            var actor = CellAt(beat.ActorIsEnemy, beat.ActorIndex);
+            var target = CellAt(beat.TargetIsEnemy, beat.TargetIndex);
+
+            if (beat.Kind == BeatKind.Act)
+            {
+                actor?.Nudge();
+                actor?.Banner(beat.Note, ArtLibrary.Icon(beat.Icon));
+                return;
+            }
+
+            // 「패스」처럼 스스로에게 일어난 것은 그 칸 위에 적습니다.
+            if (beat.Kind == BeatKind.Line)
+            {
+                if (!string.IsNullOrEmpty(beat.Note))
+                    actor?.Float(beat.Note, Theme.TextDim, 22, false);
+                return;
+            }
+
+            if (target == null)
+                return;
+
+            target.Play(beat.Kind, beat.Amount, beat.Crit, true);
+
+            if (!string.IsNullOrEmpty(beat.Note))
+                target.Banner(beat.Note, null);
+
+            // 치명타는 화면 전체가 한 번 흔들립니다.
+            if (beat.Crit && beat.Kind == BeatKind.Damage)
+                StartStageShake();
+        }
+
+        /// <summary>화면 전체를 짧게 흔든다. 치명타에만 쓴다.</summary>
+        private void StartStageShake()
+        {
+            if (_stage == null || _app == null)
+                return;
+            _app.StartCoroutine(StageShake(_stage));
+        }
+
+        private static IEnumerator StageShake(RectTransform stage)
+        {
+            Vector2 home = stage.anchoredPosition;
+            float time = 0f;
+            const float span = 0.20f;
+
+            while (time < span && stage != null)
+            {
+                time += Time.deltaTime;
+                float fade = 1f - Mathf.Clamp01(time / span);
+                stage.anchoredPosition = home + new Vector2(Mathf.Sin(time * 74f) * 9f * fade, 0f);
+                yield return null;
+            }
+
+            if (stage != null)
+                stage.anchoredPosition = home;
+        }
+
+        private BattleCell CellAt(bool isEnemy, int index)
+        {
+            var list = isEnemy ? _enemyCells : _partyCells;
+            return index >= 0 && index < list.Count ? list[index] : null;
         }
 
         /// <summary>
@@ -342,7 +444,33 @@ namespace Wildling.Game
             var report = state.Apply(Rewards.Merge(grants));
             SaveStore.Save(state);
 
-            _app.Go(new BattleResultScreen(_report, stage, report, firstClear, opened), false);
+            _run.Rounds++;
+            if (_report.PartyWon)
+                _run.Wins++;
+            else
+                _run.Losses++;
+            _run.Add(report.Applied);
+            _run.NewMonsters.AddRange(report.NewMonsters);
+            _run.Opened.AddRange(opened.Select(r => r.Name));
+
+            // **방치형이므로 이긴 동안은 계속 돕니다.** 진 판에서 멈추는 것이 기획서 9.2 의
+            // 「패배 시 중단」이고, 사람이 「정지」를 누른 것도 여기서 걸립니다.
+            bool carryOn = !_run.Stopped
+                           && (_report.PartyWon || !_run.StopOnLose)
+                           && _run.Rounds < 200;
+
+            if (carryOn)
+            {
+                string next = BattleRun.NextStage(state, stage);
+                if (!string.IsNullOrEmpty(next))
+                {
+                    _app.Go(new BattleScreen(next, _run), false);
+                    return;
+                }
+            }
+
+            _app.Go(new BattleResultScreen(_report, stage, report, firstClear, opened, _run),
+                    false);
         }
 
         private static void SightOneUnknown(GameState state, string regionId)
@@ -364,11 +492,13 @@ namespace Wildling.Game
         private readonly GrantReport _report;
         private readonly bool _firstClear;
         private readonly List<RegionTable.Record> _opened;
+        private readonly BattleRun _run;
 
         public BattleResultScreen(BattleReport battle, StageTable.Record stage,
                                   GrantReport report, bool firstClear,
-                                  List<RegionTable.Record> opened)
+                                  List<RegionTable.Record> opened, BattleRun run = null)
         {
+            _run = run;
             _battle = battle;
             _stage = stage;
             _report = report;
@@ -388,6 +518,13 @@ namespace Wildling.Game
                      + (_battle.DecidedByHealth ? " · 체력 비율로 판정" : "")
                      + (_firstClear ? " · 첫 클리어" : ""),
                      26, _battle.PartyWon ? Theme.Good : Theme.Warn);
+
+            if (_run != null && _run.Rounds > 1)
+            {
+                App.Section(column, $"연속 전투 — {_run.Rounds}판 · 승 {_run.Wins} 패 {_run.Losses}");
+                foreach (var grant in _run.Tally)
+                    App.GrantRow(column, grant);
+            }
 
             if (_opened.Count > 0)
             {
@@ -429,7 +566,7 @@ namespace Wildling.Game
             var buttons = Ui.Item(column, 70f);
             var buttonRow = Ui.Row(buttons.transform, 8f);
             Ui.Button(buttonRow, "다시", () => app.Go(new BattleScreen(_stage.StageId), false),
-                      Theme.PanelHigh);
+                      Theme.Accent);
             Ui.Button(buttonRow, "목록으로",
                       () => app.Go(new RegionScreen(_stage.RegionId), false), Theme.Accent);
         }

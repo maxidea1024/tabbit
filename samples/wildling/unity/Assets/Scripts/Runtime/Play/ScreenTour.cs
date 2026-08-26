@@ -68,9 +68,10 @@ namespace Wildling.Game
                 state.SetCodex(first.MonsterId, CodexState.Studied);
             }
 
+            // 등장이 여럿인 스테이지라야 광역기와 피해가 함께 보입니다.
             var stage = WildlingData.Stage.Records
                 .FirstOrDefault(s => s.RegionId == state.UnlockedRegions.First()
-                                     && s.Index == 1);
+                                     && s.Index == 7);
 
             var steps = new (string Name, Func<Screen> Make)[]
             {
@@ -98,14 +99,19 @@ namespace Wildling.Game
                 yield return new WaitForSeconds(0.6f);
             }
 
-            // 전투는 재생이 있으므로 조금 기다렸다가 담습니다.
+            // **전투는 여러 번 담습니다.** 재생이 흐르므로 한 장으로는 무엇이 일어나는지
+            // 보이지 않습니다.
             if (stage != null)
             {
                 _app.Go(new BattleScreen(stage.StageId), false);
-                yield return new WaitForSeconds(1.6f);
-                ScreenCapture.CaptureScreenshot(Path.Combine(_folder, "09-battle.png"));
-                Debug.Log("화면 09-battle 을 남겼습니다.");
-                yield return new WaitForSeconds(1.2f);
+                for (int i = 0; i < 8; i++)
+                {
+                    yield return new WaitForSeconds(i == 0 ? 1.4f : 2.2f);
+                    string name = $"09-battle-{i + 1}";
+                    ScreenCapture.CaptureScreenshot(Path.Combine(_folder, name + ".png"));
+                    Debug.Log($"화면 {name} 을 남겼습니다.");
+                }
+                yield return new WaitForSeconds(1.0f);
             }
 
             yield return new WaitForSeconds(0.8f);

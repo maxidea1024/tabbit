@@ -310,8 +310,9 @@ namespace Wildling.Game
                 .Where(r => r.MonsterId == owned.MonsterId && r.UnlockStage <= row.Stage)
                 .ToList();
 
-            var actives = usable.Where(r => r.SlotKind == SlotKind.Active)
-                                .Select(r => r.SkillId).ToList();
+            // 대기 없는 스킬이 앞에 오게 합니다 — 그래야 슬롯이 전부 대기에 걸리지 않습니다.
+            var actives = Stats.BasicFirst(usable.Where(r => r.SlotKind == SlotKind.Active))
+                               .Select(r => r.SkillId).ToList();
             var passives = usable.Where(r => r.SlotKind == SlotKind.Passive)
                                  .Select(r => r.SkillId).ToList();
 
@@ -591,13 +592,19 @@ namespace Wildling.Game
 
         // ------------------------------------------------------------ 세이브
 
+        /// <summary>
+        /// 새 판을 연다.
+        /// </summary>
+        /// <remarks>
+        /// **첫 지급도 표에 있습니다.** `NewGameConst.RewardGroup` 이 가리키는 묶음을 그대로
+        /// 지급하므로, 시작 재화를 바꾸는 것이 시트 수정으로 끝납니다 — 코드에 숫자가 없습니다.
+        ///
+        /// **탐사도 이미 돌고 있습니다.** 새 판을 열자마자 정산할 것이 있어야 루프의 첫 바퀴가
+        /// 「기다리기」로 시작하지 않습니다. 그 시간도 `NewGameConst.ExpeditionHours` 입니다.
+        /// </remarks>
         public static GameState NewGame(long nowUtc)
         {
             var state = new GameState { LastSeenUtc = nowUtc };
-
-            state.AddCurrency("gold", 2000);
-            state.AddCurrency("food", 40);
-            state.AddCurrency("gem", 100);
 
             // 첫 지역과 그 지역의 시작 동행입니다.
             foreach (var region in WildlingData.Region.Records)
@@ -621,6 +628,18 @@ namespace Wildling.Game
                 state.Own(starter.MonsterId);
 
             state.AutoFillParty();
+
+            state.Apply(Rewards.Certain(NewGameConst.RewardGroup));
+
+            // 탐사가 이미 돌고 있습니다. 열자마자 정산할 것이 있습니다.
+            state.ExpeditionRegionId = WildlingData.Region.Records
+                .Where(r => state.IsUnlocked(r.RegionId))
+                .OrderBy(r => r.Order)
+                .Select(r => r.RegionId)
+                .FirstOrDefault() ?? "";
+            if (!string.IsNullOrEmpty(state.ExpeditionRegionId))
+                state.ExpeditionStartedUtc = nowUtc - NewGameConst.ExpeditionHours * 3600L;
+
             return state;
         }
 

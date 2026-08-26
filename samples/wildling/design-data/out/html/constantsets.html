@@ -511,16 +511,17 @@ tbody [data-pick] { cursor: pointer; }
 <li><a href="#constantset_GrowthConst"><svg class="i"><use href="#i-const"></use></svg>GrowthConst</a></li>
 <li><a href="#constantset_IdleConst"><svg class="i"><use href="#i-const"></use></svg>IdleConst</a></li>
 <li><a href="#constantset_MissionConst"><svg class="i"><use href="#i-const"></use></svg>MissionConst</a></li>
+<li><a href="#constantset_NewGameConst"><svg class="i"><use href="#i-const"></use></svg>NewGameConst</a></li>
 <li><a href="#constantset_PartyConst"><svg class="i"><use href="#i-const"></use></svg>PartyConst</a></li>
 </ul>
 </aside>
 <main>
 <h1>상수 세트</h1>
-<p class="lead">상수 세트 8개 · 상수 35개</p>
+<p class="lead">상수 세트 9개 · 상수 37개</p>
 <div data-table>
 <div class="tools">
 <input type="search" data-filter="rows" placeholder="상수 세트 필터">
-<span class="hint" data-shown>8행 중 8행</span>
+<span class="hint" data-shown>9행 중 9행</span>
 <span class="hint">제목을 누르면 정렬됩니다.</span>
 </div>
 <div class="scroll">
@@ -538,6 +539,7 @@ tbody [data-pick] { cursor: pointer; }
 <tr><td><a href="constantsets.html#constantset_GrowthConst"><svg class="i"><use href="#i-const"></use></svg>GrowthConst</a></td><td class="num">5</td><td><span class="book" title="samples/wildling/design-data/xlsx/Const.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Const.xlsx</span> <span class="hint">&middot;</span> Const_Growth</td><td>성장 상한이다.</td></tr>
 <tr><td><a href="constantsets.html#constantset_IdleConst"><svg class="i"><use href="#i-const"></use></svg>IdleConst</a></td><td class="num">3</td><td><span class="book" title="samples/wildling/design-data/xlsx/Const.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Const.xlsx</span> <span class="hint">&middot;</span> Const_Idle</td><td>방치의 상한과 계수이다.</td></tr>
 <tr><td><a href="constantsets.html#constantset_MissionConst"><svg class="i"><use href="#i-const"></use></svg>MissionConst</a></td><td class="num">3</td><td><span class="book" title="samples/wildling/design-data/xlsx/Const.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Const.xlsx</span> <span class="hint">&middot;</span> Const_Mission</td><td>의뢰의 개수와 초기화이다.</td></tr>
+<tr><td><a href="constantsets.html#constantset_NewGameConst"><svg class="i"><use href="#i-const"></use></svg>NewGameConst</a></td><td class="num">2</td><td><span class="book" title="samples/wildling/design-data/xlsx/Const.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Const.xlsx</span> <span class="hint">&middot;</span> Const_Idle</td><td>새 판이 시작할 때 주는 것이다.</td></tr>
 <tr><td><a href="constantsets.html#constantset_PartyConst"><svg class="i"><use href="#i-const"></use></svg>PartyConst</a></td><td class="num">7</td><td><span class="book" title="samples/wildling/design-data/xlsx/Const.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Const.xlsx</span> <span class="hint">&middot;</span> Const_Party</td><td>파티의 규격이다.</td></tr>
 </tbody>
 </table>
@@ -823,6 +825,32 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
+<h2 id="constantset_NewGameConst"><svg class="i"><use href="#i-const"></use></svg>NewGameConst<span class="count">상수 2개</span></h2>
+<p class="lead">NewGameConst <span class="hint"><span class="book" title="samples/wildling/design-data/xlsx/Const.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Const.xlsx</span> &middot; <svg class="i"><use href="#i-sheet"></use></svg>Const_Idle : A7</span></p>
+<p class="comment">새 판이 시작할 때 주는 것이다.</p>
+<div class="scroll">
+<table>
+<thead>
+<tr class="names"><th>번호</th><th>이름</th><th>타입</th><th>값</th><th>설명</th></tr>
+</thead>
+<tbody>
+<tr>
+<td class="num">1</td>
+<td id="const_NewGameConst.RewardGroup">RewardGroup</td>
+<td><span class="type">string</span></td>
+<td>rg_start</td>
+<td>새 판에 지급하는 보상 묶음</td>
+</tr>
+<tr>
+<td class="num">2</td>
+<td id="const_NewGameConst.ExpeditionHours">ExpeditionHours</td>
+<td><span class="type">int</span></td>
+<td>4</td>
+<td>새 판을 열었을 때 이미 쌓여 있는 탐사 시간</td>
+</tr>
+</tbody>
+</table>
+</div>
 <h2 id="constantset_PartyConst"><svg class="i"><use href="#i-const"></use></svg>PartyConst<span class="count">상수 7개</span></h2>
 <p class="lead">PartyConst <span class="hint"><span class="book" title="samples/wildling/design-data/xlsx/Const.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Const.xlsx</span> &middot; <svg class="i"><use href="#i-sheet"></use></svg>Const_Party : A1</span></p>
 <p class="comment">파티의 규격이다.</p>
@@ -886,7 +914,7 @@ tbody [data-pick] { cursor: pointer; }
 </div>
 </main>
 </div>
-<p class="foot">생성 시각 2026-08-26 19:58:13</p>
+<p class="foot">생성 시각 2026-08-26 20:17:51</p>
 <script>
 (function () {
   "use strict";

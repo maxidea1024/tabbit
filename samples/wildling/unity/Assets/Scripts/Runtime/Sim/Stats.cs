@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Wildling.Data;
 
 namespace Wildling.Game
@@ -109,6 +110,23 @@ namespace Wildling.Game
 
         /// <summary>표를 다시 읽었으면 계산해 둔 것을 버린다.</summary>
         public static void Forget() => BonusCache.Clear();
+
+        /// <summary>
+        /// 재사용 대기가 없는 스킬이 앞에 오게 한다.
+        /// </summary>
+        /// <remarks>
+        /// **슬롯이 전부 대기 중이면 그 턴을 버립니다.** 기획서 9.3 은 「재사용 대기 중인 것은
+        /// 건너뜁니다」까지만 정했고 하나도 못 쓰는 경우를 다루지 않았습니다. 대기가 0인 스킬을
+        /// 반드시 한 자리 넣으면 그 상태가 생기지 않습니다.
+        /// </remarks>
+        public static List<MonsterSkillTable.Record> BasicFirst(
+            IEnumerable<MonsterSkillTable.Record> candidates)
+            => candidates
+                .Select((row, order) => (row, order))
+                .OrderBy(p => (p.row.SkillBySkillId?.Cooldown ?? 9) == 0 ? 0 : 1)
+                .ThenBy(p => p.order)
+                .Select(p => p.row)
+                .ToList();
 
         /// <summary>레벨 하나를 올리는 데 드는 재화이다.</summary>
         public static GrowthCurveTable.Record.CostsEntry[] LevelCost(Grade grade, int nextLevel)

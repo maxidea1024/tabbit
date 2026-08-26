@@ -62,6 +62,7 @@ namespace Wildling.Game
             brt.offsetMax = new Vector2(0f, -368f);
             var column = Ui.Scroll(body.transform);
 
+            NextGoal.Build(column, app);
             BuildExpedition(column, app, region);
             BuildParty(column, app);
             BuildProgress(column, app);
@@ -82,31 +83,48 @@ namespace Wildling.Game
 
             if (running)
             {
-                long now = Clock.NowUtc;
-                int elapsed = (int)Math.Max(0, now - state.ExpeditionStartedUtc);
                 int cap = IdleConst.CapHours * 3600;
-                int capped = Math.Min(elapsed, cap);
 
                 var head = Ui.Item(inner, 34f);
-                Ui.Label(head.transform,
-                         $"{region?.Name ?? state.ExpeditionRegionId} 에서 "
-                         + $"{Expedition.Elapsed(capped)} 누적", 24);
+                var headLabel = Ui.Label(head.transform, "", 24);
 
                 var bar = Ui.Item(inner, 16f);
-                Ui.Bar(bar.transform, capped / (float)cap,
-                       capped >= cap ? Theme.Warn : Theme.Accent);
+                var fill = Ui.Bar(bar.transform, 0f, Theme.Accent);
 
                 var note = Ui.Item(inner, 30f);
-                Ui.Label(note.transform,
-                         capped >= cap
-                             ? $"상한 {IdleConst.CapHours}시간에 도달해 누적이 멈추었습니다."
-                             : $"상한은 {IdleConst.CapHours}시간입니다.",
-                         20, capped >= cap ? Theme.Warn : Theme.TextDim);
+                var noteLabel = Ui.Label(note.transform, "", 20, Theme.TextDim);
 
                 var buttons = Ui.Item(inner, 62f);
                 var row = Ui.Row(buttons.transform, 8f);
                 Ui.Button(row, "정산", () => Settle(app), Theme.Accent);
                 Ui.Button(row, "탐사지 변경", () => app.Go(new ExpeditionScreen()));
+
+                // **손대지 않아도 흐릅니다.** 방치형이므로 화면이 멈춰 있으면 진행이 멈춘
+                // 것처럼 보입니다. 화면을 다시 조립하지 않고 이 셋만 갱신합니다.
+                var ticker = card.AddComponent<Ticker>();
+                ticker.Interval = 1f;
+                ticker.Tick = () =>
+                {
+                    if (headLabel == null || fill == null || noteLabel == null)
+                        return;
+
+                    int elapsed = (int)Math.Max(0, Clock.NowUtc - state.ExpeditionStartedUtc);
+                    int capped = Math.Min(elapsed, cap);
+                    bool full = capped >= cap;
+
+                    headLabel.text = $"{region?.Name ?? state.ExpeditionRegionId} 에서 "
+                                     + $"{Expedition.Elapsed(capped)} 누적";
+
+                    var frt = (RectTransform)fill.transform;
+                    frt.anchorMax = new Vector2(capped / (float)cap, 1f);
+                    fill.color = full ? Theme.Warn : Theme.Accent;
+
+                    noteLabel.text = full
+                        ? $"상한 {IdleConst.CapHours}시간에 도달해 누적이 멈추었습니다."
+                        : $"상한은 {IdleConst.CapHours}시간입니다. 접속하지 않아도 쌓입니다.";
+                    noteLabel.color = full ? Theme.Warn : Theme.TextDim;
+                };
+                ticker.Tick();
             }
             else
             {

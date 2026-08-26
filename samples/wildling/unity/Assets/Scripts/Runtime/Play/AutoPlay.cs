@@ -384,7 +384,8 @@ namespace Wildling.Game
                     Level = i < stage.WaveLevels.Length ? stage.WaveLevels[i] : 1,
                     Placement = i,
                     IsEnemy = true,
-                    Active = skills.Where(r => r.SlotKind == SlotKind.Active)
+                    Active = Stats.BasicFirst(skills.Where(r => r.SlotKind == SlotKind.Active))
+                        .Take(Stats.ActiveSlots(wave[i].Stage))
                         .Select(r => r.SkillBySkillId).Where(s => s != null).ToArray(),
                     Passive = skills.Where(r => r.SlotKind == SlotKind.Passive)
                         .Select(r => r.SkillBySkillId).Where(s => s != null).ToArray(),
