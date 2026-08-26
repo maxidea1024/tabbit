@@ -1,8 +1,8 @@
 :table RequirementEntry(key="requirement_group_id,order")	묶음 하나의 조건이다.
-:field	requirement_group_id	order	req.$type	req.level	req.codex_state	req.item_id	req.amount	req.stage_id
+:field	requirement_group_id	order	req.$type	req.level	req.codex_state	req.item_id	req.amount	req.stage_id	req.percent
 :type	foreign RequirementGroup	int (min=0, max=7)	Requirement
-:desc	어느 묶음인가	검사 순서	이 행의 조건이 어떤 형태인가	요구 레벨	요구 기록 상태	요구 아이템	요구 수량	요구 스테이지
-:target	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c,s
+:desc	어느 묶음인가	검사 순서	이 행의 조건이 어떤 형태인가	요구 레벨	요구 기록 상태	요구 아이템	요구 수량	요구 스테이지	요구 완성률. 백분율
+:target	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c,s	c,s
 	req_awaken_sprout_deer_2	0	LevelRequirement	20
 	req_awaken_sprout_deer_2	1	CodexRequirement		Studied
 	req_awaken_sprout_deer_3	0	LevelRequirement	40
@@ -65,16 +65,15 @@
 	req_awaken_void_seraph_3	3	ItemRequirement			mat_ashen_crater_core	4
 	req_hidden_weir_forest	0	CodexRequirement		Studied
 	req_region_salt_coast	0	StageRequirement					weir_forest_18
-	req_region_salt_coast	1	CodexRequirement		Recorded
 	req_hidden_salt_coast	0	CodexRequirement		Studied
 	req_region_ashen_crater	0	StageRequirement					salt_coast_18
-	req_region_ashen_crater	1	CodexRequirement		Recorded
+	req_region_ashen_crater	1	CodexCompletionRequirement						25
 	req_hidden_ashen_crater	0	CodexRequirement		Studied
 	req_region_frost_ridge	0	StageRequirement					ashen_crater_18
-	req_region_frost_ridge	1	CodexRequirement		Recorded
+	req_region_frost_ridge	1	CodexCompletionRequirement						40
 	req_hidden_frost_ridge	0	CodexRequirement		Studied
 	req_region_sunken_temple	0	StageRequirement					frost_ridge_18
-	req_region_sunken_temple	1	CodexRequirement		Recorded
+	req_region_sunken_temple	1	CodexCompletionRequirement						60
 	req_hidden_sunken_temple	0	CodexRequirement		Studied
 	req_mission_daily_0	0	LevelRequirement	5
 	req_mission_daily_1	0	LevelRequirement	10

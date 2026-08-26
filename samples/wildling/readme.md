@@ -15,7 +15,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/wildling/design-data/
 |무엇|어디|
 |--|--|
 |기획 데이터 전부|[design-data/](design-data) — 워크북 9개 · 격자 40개 · `.tbs` 3개 · 검증 규칙 8개 · recipe|
-|유니티 프로젝트|[unity/](unity) — 생성 C#, `.bytes`, 그리고 그림|
+|**플레이되는 게임**|[unity/](unity) — 생성 C#, `.bytes`, 그림 201장, 그리고 그것을 읽어 도는 게임|
 |읽는 산출물|[design-data/out/](design-data/out) — HTML 문서 · 인코딩 보고서 · 스키마 기준선. **유니티 애셋이 아닌 것들**|
 |문서|[doc/](doc)|
 
@@ -32,15 +32,21 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/wildling/design-data/
 |[대조표](doc/coverage.md)|**기능 하나가 어디에 어떻게 쓰였고 무엇이 나왔는가.** 이 폴더의 목적입니다|
 |[도구 보고](doc/tool-findings.md)|변환에서 찾은 것 **11건**과 그 결말. **전부 닫혔습니다**|
 |[적용 기록](doc/applied.md)|데이터 쪽에서 고친 9건. 전부 규격을 잘못 읽은 것입니다|
+|[유니티 게임](doc/unity-game.md)|**화면 · 규칙 · 그림 · 확인 절차.** 게임 쪽의 규격입니다|
+|[게임 보고](doc/game-findings.md)|**게임을 돌렸을 때 나온 것 6건.** 변환도 검증도 잡지 못한 갈래입니다|
 
 ## 이 샘플의 목적
 
-**되게 만드는 것이 아니라 대조하는 것입니다.** 처음 끝까지 변환하면서 도구 쪽 결함 9건이
-나왔고, 그중 둘은 **생성 C#이 컴파일되지 않는 것**입니다. `csharp` 타깃은 파일을 쓰기만 하고
-컴파일하지 않으므로 그 자리에서는 성공으로 보입니다.
+**표기를 대조하는 것과, 그 표로 실제로 게임을 돌리는 것 둘입니다.**
 
-그래서 [대조표](doc/coverage.md)에 빈 칸이 없는 것이 이 폴더의 값입니다 —
-기능 하나가 실전 데이터 안에 자리를 가지면, 그 자리가 다음 회귀의 게이트가 됩니다.
+처음 끝까지 변환하면서 도구 쪽 결함 11건이 나왔습니다. 그중 둘은 **생성 C#이 컴파일되지 않는
+것**이었고, `csharp` 타깃은 파일을 쓰기만 하므로 그 자리에서는 성공으로 보였습니다. 그래서
+[대조표](doc/coverage.md)에 빈 칸이 없는 것이 이 폴더의 첫째 값입니다.
+
+**둘째 값은 그 다음 질문의 답입니다** — 생성된 조회 표면이 쓸 만한가. 표를 읽어 게임을
+만들었더니 6건이 더 나왔고, **그중 하나는 지역 2가 열리지 않아 게임이 첫 지역에서 끝나는
+것**이었습니다. 변환은 끝까지 돌았고 값도 시트대로였으므로 어느 검사에도 걸리지 않았습니다.
+[게임 보고](doc/game-findings.md)에 전부 있습니다.
 
 ## 데이터의 흐름
 
@@ -93,7 +99,37 @@ Unity.exe -batchmode -quit -projectPath samples/wildling/unity \
 |출현 28종|멀티 로우가 원소로 쌓였는가|
 |상수셋|코드로 나갔는가|
 
-**게임이 아니라 확인입니다.** 자동 전투도 화면도 없습니다 — 그 자리까지가 이 샘플의 범위입니다.
+### 규칙의 확인
+
+값이 맞는 것과 그 값으로 게임이 도는 것은 다릅니다. 그래서 검사가 하나 더 있습니다.
+
+```
+Unity.exe -batchmode -quit -nographics -projectPath samples/wildling/unity           -executeMethod Wildling.Check.WildlingPlayCheck.RunFromCommandLine -logFile -
+```
+
+에디터에서는 `Wildling ▸ 자동 플레이 검사` 이고, 보고는
+[design-data/out/unity-play.txt](design-data/out/unity-play.txt) 입니다.
+
+**사람 없이 핵심 루프를 한 바퀴 돕니다** — 새 판을 만들고, 파티를 세우고, 키우고, 탐사를
+8시간 정산하고, 각성하고, **막히면 다시 키워서** 스테이지 18개와 수호자를 넘고, 다음 지역을
+열고, 세이브를 되읽습니다. 기획서 2.1 의 한 바퀴가 그대로 검사입니다.
+
+### 화면의 확인
+
+빌드가 스스로 화면을 돌며 그림을 남깁니다. **마우스를 쓰지 않습니다.**
+
+```
+wildling.exe -screen-width 540 -screen-height 960 -screen-fullscreen 0 -shots <폴더>
+```
+
+## 게임 만들기
+
+```
+Unity.exe -batchmode -quit -nographics -projectPath samples/wildling/unity           -executeMethod Wildling.Check.WildlingBuild.BuildFromCommandLine -logFile -
+```
+
+씬도 이 진입점이 만듭니다 — 씬 파일에는 부트 오브젝트 하나만 들어 있고 화면은 실행 중에
+코드가 조립합니다. 자세한 것은 [유니티 게임](doc/unity-game.md)에 있습니다.
 
 ## 재검증 절차
 
@@ -115,14 +151,18 @@ python samples/wildling/design-data/tools/verify.py
 **우회는 결함의 자리표입니다.** 지워지면 그 검사가 통과로 바뀌고 [도구 보고](doc/tool-findings.md)의
 그 항목이 닫힙니다.
 
-### 지금의 기준선 — 2026-08-25
+### 지금의 기준선 — 2026-08-26
 
-|  |수|
+|검사|결과|
 |--|--|
-|통과|**10**|
-|실패|**0**|
+|`verify.py`|통과 **9** · 실패 **0** · 건너뜀 1|
+|`unity-check.txt`|**OK**|
+|`unity-play.txt`|**OK**|
+|`unity-build.txt`|**OK** — 96 MB · 오류 0|
 
-**우회가 하나도 남지 않았습니다.** [도구 보고](doc/tool-findings.md)의 **11건이 전부 닫혔습니다.**
+**우회가 하나도 남지 않았습니다.** [도구 보고](doc/tool-findings.md)의 **11건이 전부 닫혔고**,
+[게임 보고](doc/game-findings.md)의 6건 중 넷을 고쳤습니다. 남은 둘은 읽는 법을 적은 것과
+밸런스 결정을 기다리는 것입니다.
 
 ---
 

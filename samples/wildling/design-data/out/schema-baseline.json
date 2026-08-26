@@ -1259,6 +1259,13 @@
         "Kind": 0,
         "Retired": false,
         "ExplicitTag": false
+      },
+      "9": {
+        "Name": "Req.Percent",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
       }
     },
     "DropTable": {

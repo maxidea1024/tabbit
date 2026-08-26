@@ -1,6 +1,6 @@
 OK
 === 와일드링 데이터 확인 ===
-경로 C:/work/tabbit/.claude/worktrees/wildling/samples/wildling/unity/Assets/StreamingAssets\tables
+경로 C:/work/tabbit/.claude/worktrees/wildling-game/samples/wildling/unity/Assets/StreamingAssets\tables
   Monster                54행
   MonsterAwakening       24행
   Skill                  46행

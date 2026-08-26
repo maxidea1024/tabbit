@@ -1,0 +1,5 @@
+OK
+결과 Succeeded
+크기 96 MB
+오류 0 · 경고 2
+산출 C:/work/tabbit/.claude/worktrees/wildling-game/samples/wildling/unity/build/windows/wildling.exe

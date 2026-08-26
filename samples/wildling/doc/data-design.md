@@ -167,8 +167,16 @@ struct ItemRequirement extends Requirement @3
 /// 스테이지 클리어.
 struct StageRequirement extends Requirement @4
     field stage_id    foreign Stage
+
+/// 기록부 완성률. 주어가 없습니다.
+struct CodexCompletionRequirement extends Requirement @5
+    field percent     int (min=1, max=100)
 ```
 
+- **`CodexRequirement`와 `CodexCompletionRequirement`가 나뉘어 있습니다.** 앞은 「그 개체의
+  기록 상태」이고 뒤는 「기록부 전체의 비율」입니다 — 주어가 있고 없고가 다르므로 변종도
+  다릅니다. 뒤엣것이 없어서 지역 해금이 평가되지 않던 것이
+  [게임 보고 §1](game-findings.md#1-완성률을-적을-requirement-변종의-부재)입니다.
 - **`Reward`의 `amount`가 기반에 있습니다.** 와이어에서 컬럼 하나이고 모든 행에 값이
   있습니다. 변종마다 복제하면 컬럼이 4개가 되고 그중 하나만 채워집니다.
 - **`MonsterReward`와 `ShardReward`가 `monster_id`를 공유합니다.** 같은 이름 · 같은 타입이므로

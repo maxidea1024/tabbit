@@ -3,22 +3,22 @@ TCB encoding report
 
 Totals
   tables    31
-  columns   227
-  unencoded 248,409
-  encoded   80,858  (32.6 % of unencoded)
-  deflated  38,102  (47.1 % of encoded)  - what a compression layer over the chosen blocks would come to
+  columns   228
+  unencoded 248,672
+  encoded   80,851  (32.5 % of unencoded)
+  deflated  38,106  (47.1 % of encoded)  - what a compression layer over the chosen blocks would come to
 
 By encoding
   encoding        columns        bytes    share
-  DICT_FRONT          45       61,275   75.8 %
+  DICT_FRONT          45       61,274   75.8 %
   ARRAY               22        7,100    8.8 %
   DICT_SEG             8        3,885    4.8 %
   RAW                 23        1,443    1.8 %
-  DICT_FRONT_RLE       6        1,279    1.6 %
-  BITPACK             37        1,013    1.3 %
+  DICT_FRONT_RLE       6        1,280    1.6 %
+  BITPACK             35          975    1.2 %
   DICT                 4          964    1.2 %
   DELTA_RLE           20          791    1.0 %
-  RLE                 29          734    0.9 %
+  RLE                 32          765    0.9 %
   DICT_SEG_RLE         3          691    0.9 %
   DELTA                2          634    0.8 %
   VARINT               9          548    0.7 %
@@ -27,14 +27,14 @@ By encoding
 
 By element
   element         columns    unencoded        bytes    share
-  string              98      209,637       73,299   90.7 %
-  i32                 90       35,893        7,005    8.7 %
-  varint              24        1,629          363    0.4 %
+  string              98      209,613       73,299   90.7 %
+  i32                 91       36,181        7,007    8.7 %
+  varint              24        1,628          354    0.4 %
   f32                 11          808          144    0.2 %
   i64                  1          432           37    0.0 %
   bool                 3           10           10    0.0 %
 
-Largest columns (40 of 227)
+Largest columns (40 of 228)
 
   StringTable.StringId  [string]  2305 rows
     chosen DICT_FRONT  13,114  (37.8 % of unencoded)
@@ -124,9 +124,9 @@ Largest columns (40 of 227)
     chosen DICT_FRONT  532  (74.4 % of unencoded)
     candidates RAW 715  ·  DICT 770  ·  DICT_RLE 824  ·  DICT_FRONT 532  ·  DICT_FRONT_RLE 586  ·  DICT_SEG 679  ·  DICT_SEG_RLE 733
 
-  RequirementEntry.RequirementGroupId  [string]  77 rows
-    chosen DICT_FRONT  526  (28.4 % of unencoded)
-    candidates RAW 1,854  ·  DICT 956  ·  DICT_RLE 1,033  ·  DICT_FRONT 526  ·  DICT_FRONT_RLE 603  ·  DICT_SEG 662  ·  DICT_SEG_RLE 739
+  RequirementEntry.RequirementGroupId  [string]  76 rows
+    chosen DICT_FRONT  525  (28.7 % of unencoded)
+    candidates RAW 1,832  ·  DICT 955  ·  DICT_RLE 1,031  ·  DICT_FRONT 525  ·  DICT_FRONT_RLE 601  ·  DICT_SEG 661  ·  DICT_SEG_RLE 737
 
   MonsterSkill.SkillId  [string]  246 rows
     chosen DICT_SEG  521  (15.3 % of unencoded)
@@ -222,10 +222,10 @@ Bit-width packing headroom
   element     columns        today       packed        saved
   i64               1           37           37            0
   bool              3           10           12           -2
-  varint           24          363          512         -149
-  i32              90        7,005       11,195       -4,190
+  varint           24          354          509         -155
+  i32              91        7,007       11,221       -4,214
 
-  Keeping the smaller of the two per column: 7,415 → 7,311 · saved 104 over 14 of 118 columns.
+  Keeping the smaller of the two per column: 7,408 → 7,304 · saved 104 over 14 of 119 columns.
 
     width            base        today       packed  inner         column
         7               5          189          157  RAW           Stage.WaveLevels
