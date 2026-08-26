@@ -1,6 +1,7 @@
 import Layout from '@theme/Layout'
 import Link from '@docusaurus/Link'
 import useBaseUrl from '@docusaurus/useBaseUrl'
+import Targets from '@site/src/components/Targets'
 import styles from './index.module.css'
 
 // 아래 시트와 코드는 doc/concepts.md 가 처음부터 끝까지 따라가는 예제이고, 그 문서의 그림은
@@ -41,12 +42,6 @@ const REASONS = [
     title: '쓰던 시트를 그대로 가져옵니다',
     body: '이 도구를 몰랐던 시트도 읽습니다. 이미 몇 년치가 쌓인 시트를 다시 쓰는 것은 현실적이지 않으니, 읽는 규칙을 시트마다 지정하고 새 것과 옛 것을 한 번에 변환합니다.',
   },
-]
-
-const TARGETS = [
-  'binary', 'json', 'mysql', 'postgresql', 'mongodb', 'redis',
-  'csharp', 'typescript', 'cpp', 'c', 'unreal', 'go', 'rust',
-  'python', 'java', 'kotlin', 'ruby', 'php', 'dart', 'html', 'summary', 'history',
 ]
 
 export default function Home() {
@@ -138,11 +133,7 @@ sword.GradeField;                          // Common`}
               변환이 멈추고 어느 셀인지 알려줍니다.
             </p>
 
-            <div className={styles.targets}>
-              {TARGETS.map((t) => (
-                <span className={styles.chip} key={t}>{t}</span>
-              ))}
-            </div>
+            <Targets />
           </div>
         </section>
 
@@ -161,7 +152,10 @@ sword.GradeField;                          // Common`}
           <div className={styles.section}>
             <div className={styles.sectionHead}>
               <h2>왜 이걸 쓰나</h2>
-              <p>데이터가 틀렸다는 걸 게임에서 알게 되는 대신, 변환에서 알게 됩니다.</p>
+              <p>
+                데이터가 잘못됐다는 것을 게임을 띄우고 나서 알게 되면, 그때는 이미 재현 경로를
+                찾고 있습니다. 빌드하는 자리에서 걸러낼 수 있는 것은 최대한 걸러냅니다.
+              </p>
             </div>
             <div className={styles.cards}>
               {REASONS.map((r) => (
@@ -175,9 +169,10 @@ sword.GradeField;                          // Common`}
         </section>
 
         <section className={styles.closing}>
-          <h2>형식이 왜 지금처럼 되었는지도 적어 두었습니다</h2>
+          <h2>먼저 둘러보셔도 좋습니다</h2>
           <p>
-            무엇을 얻고 무엇을 포기했는지, 무엇을 거절했는지, 그리고 예측이 어디서 틀렸는지까지.
+            시트 한 장으로 시작해 코드가 나오는 데까지, 예제를 따라가며 읽을 수 있게 써
+            두었습니다. 쓰다가 막히는 자리에 대한 답도 대체로 그 안에 있습니다.
           </p>
           <Link className="button button--primary button--lg" to="/docs/guide">
             문서 읽기

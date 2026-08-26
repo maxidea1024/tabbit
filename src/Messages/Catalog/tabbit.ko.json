@@ -33,7 +33,7 @@
   "tabbit.variant-not-found": "이 빌드가 {Entity}.{Column}의 변형 {Variant:를} 요청했는데, 그 이름의 컬럼이 없습니다. 있는 변형은 {Known}입니다.",
   "tabbit.variant-not-chosen": "{Entity}.{Column}의 모든 컬럼이 변형 이름을 갖고 있어, 빌드가 돌아갈 기본 변형이 없습니다. 하나를 지정하십시오 — `--variant {Entity}.{Column}=…` 또는 recipe의 `Variants`이고, 있는 것은 {Known}입니다.",
   "tabbit.variant-header-disagrees": "{Entity}.{Column}의 변형 {Variant:은} {Written} 타입인데, 그 필드는 {Canonical} 타입입니다. 어느 변형을 고르든 필드는 하나이므로 타입도 하나입니다 — 기본 변형 컬럼에 한 번만 적거나, 같은 것을 적으십시오.",
-  "tabbit.variant-on-key-column": "{Entity}의 컬럼 {Column:이} 변형을 갖는데, 이 컬럼은 행을 가리키는 자리입니다. 행의 신원이 빌드마다 달라지면 참조도 히스토리도 배포 판정도 「같은 행」을 말할 수 없게 됩니다.",
+  "tabbit.variant-on-key-column": "{Entity}의 컬럼 {Column:이} 변형을 갖는데, 이 컬럼은 행을 가리키는 자리입니다. 행을 가리키는 값이 빌드마다 달라지면 참조도 히스토리도 배포 판정도 「같은 행」을 말할 수 없게 됩니다.",
   "tabbit.variant-on-group-column": "{Entity}의 컬럼 {Column:이} 변형을 갖는데, 이 컬럼은 그룹의 일부입니다. 그룹의 변형은 컬럼 집합 전체가 변형마다 복제되는 형태라 이 빌드는 읽지 않습니다 — 변형을 별도 필드로 적으십시오.",
   "tabbit.reserved-column-not-yet-supported": "{Entity}의 컬럼 {Column:은} {Name:으로} 끝나는데, 이 레이아웃이 예약한 이름입니다. `$type`은 다형 레코드의 변종을, `$key`는 map의 키를, `$value`는 셀 하나에 압축한 변종의 값을 가리킵니다 — 각자 그 뜻을 정하는 설계를 기다리고 있고 아직 아무것도 읽지 않습니다. 예약 이름은 경로의 마지막 마디에서 판정하므로 `effect.{Name}`도 예약입니다. 예약된 이름은 {Reserved}입니다.",
   "tabbit.column-meta-unclosed": "{Entity}의 컬럼 {Column:이} {Written} 타입인데, 여는 괄호만 있고 닫는 괄호가 없습니다. 첫 `(`부터가 컬럼 메타입니다 — `int (min=0, max=100)`처럼.",

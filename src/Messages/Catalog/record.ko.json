@@ -25,7 +25,7 @@
   "record.log-branch-has-no-snapshots": "프로젝트 `{Project}`의 브랜치 `{Branch}`에 스냅샷이 없습니다.",
   "record.log-commit-is-behind": "커밋 {Commit:이} {Head}보다 뒤에 있고, 히스토리는 브랜치 `{Branch}`에 대해 이미 {Head:를} 담고 있습니다. 이것을 기록하면 그 커밋의 작업이 이 커밋의 저자에 의해 되돌려진 것으로 보고됩니다. 아무것도 기록되지 않았습니다. 더 새 커밋을 변환하거나, 정말로 체인이 이렇게 간다면 AllowOutOfOrder를 지정하십시오.",
   "record.log-next-snapshot-covers-this": "다음에 기록되는 스냅샷이 이 커밋의 변경까지 함께 담게 됩니다.",
-  "record.log-no-commit-identity": "이 변환에는 커밋 신원이 없어서, 변경을 누구에게도 귀속시킬 수 없습니다. --commit을 주거나, 시트가 있는 작업 사본 안에서 변환을 돌리십시오.",
+  "record.log-no-commit-identity": "이 변환에는 커밋 작성자가 없어서, 변경을 누구에게도 귀속시킬 수 없습니다. --commit을 주거나, 시트가 있는 작업 사본 안에서 변환을 돌리십시오.",
   "record.log-no-snapshot-at": "히스토리에 브랜치 `{Branch}`의 `{At}` 스냅샷이 없습니다.",
   "record.log-nothing-recorded": "이 변환에 대해 히스토리에 아무것도 기록되지 않았습니다.",
   "record.log-nothing-recorded-dirty": "이 변환에 대해 히스토리에 아무것도 기록되지 않았습니다. 시트를 커밋하고 다시 변환하거나, RecordDirty를 지정해 {Commit} 아래에 그대로 기록하십시오 — 그러면 그 커밋의 깨끗한 빌드는 영구히 기록할 수 없게 됩니다.",

@@ -24,4 +24,4 @@ Recordings/
 .idea/
 
 # 커밋하는 것 — `Assets/`(`.meta` 포함) · `ProjectSettings/` · `Packages/manifest.json`.
-# `.meta` 는 유니티가 애셋의 신원으로 쓰므로 빠지면 참조가 끊어집니다.
+# `.meta` 는 유니티가 애셋을 가리키는 값으로 쓰므로 빠지면 참조가 끊어집니다.
