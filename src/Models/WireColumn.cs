@@ -142,6 +142,24 @@ public sealed class WireColumn
     /// </remarks>
     public bool IsVariableLengthArray { get; init; }
 
+    /// <summary>
+    /// Whether one cell holds the whole list, rather than the group's columns holding one
+    /// element each.
+    /// </summary>
+    /// <remarks>
+    /// Both are variable length and the file writes them the same way, so
+    /// <see cref="IsVariableLengthArray"/> cannot tell a writer where to read the elements
+    /// from - one reads a cell that already parsed into an array, the other reads as many of
+    /// the group's columns as the row filled.
+    ///
+    /// The question used to be asked as "is the group itself delimited", which answered for
+    /// a scalar group and was wrong the moment a record's member was: `Bag.Tags` typed
+    /// `string[]` is one delimited cell under a group that is not one.
+    /// spec/types/set-and-map.md section 4.
+    /// </remarks>
+    public bool LengthIsInTheCell
+        => Member is null ? Group.IsVariableLengthArray : ValueTypes.IsArray(Member.Type);
+
     /// <summary>Whether every row holds the same number of elements, known at generation time.</summary>
     /// <remarks>
     /// Asks the group rather than counting cells, because a group of one element can still be
@@ -275,16 +293,22 @@ public sealed class WireColumn
                     ElementType = member.ElementType,
                     Type = member.Type,
 
-                    // What varies is how many elements the row has, and only when the table
-                    // trims an array of them. A group that is one record has nothing to
-                    // trim: `Pos.X`/`Pos.Y` is not a list whose end could be missing.
+                    // Two ways a leaf's length is the row's. Its own cell is delimited, so
+                    // the author typed the length; or the table trims an array of elements,
+                    // so the row decides how many of its columns were filled.
                     //
-                    // That covers a record whose members are arrays too, and it is why this
-                    // shape needed nothing here. The member's own columns are the array, and
-                    // they are the same columns at the same width they would be in an array
-                    // of records - the wire has stored records as one column per member all
-                    // along, so a record of arrays is what it already writes.
-                    IsVariableLengthArray = table.TrimTrailingArrayElements && group.IsArray,
+                    // **The first is what a `map` and a `set` inside a group are.** A member
+                    // typed `int[]` holds one cell per row and that cell holds a list -
+                    // which is a column the file already writes, and describing it as a
+                    // scalar here handed the encoder an array where it expected one value.
+                    // spec/types/set-and-map.md section 4.
+                    //
+                    // A group whose element number is on the group needs neither: its
+                    // member's columns are the array, at the same width they would be in an
+                    // array of records - the wire has stored records as one column per
+                    // member all along.
+                    IsVariableLengthArray = ValueTypes.IsArray(member.Type)
+                        || (table.TrimTrailingArrayElements && group.IsArray),
 
                     // Never, for a record's member. A record is one thing to its consumer,
                     // and "the Id is there but the Count is not" is not a shape its API has.

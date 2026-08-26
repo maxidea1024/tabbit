@@ -53,6 +53,12 @@ internal static class Program
         WriteDeclared(Prepare(outputDir, "declared", "declared.xlsx"), fromSchema: true);
         WriteDeclared(
             Prepare(outputDir, "declared-expanded", "declared-expanded.xlsx"), fromSchema: false);
+        // The same table twice: once with a `set` and a `map` declared, and once with the
+        // columns each of them is written out as arrays.
+        WriteContainers(Prepare(outputDir, "containers", "containers.xlsx"), fromSchema: true);
+        WriteContainers(
+            Prepare(outputDir, "containers-expanded", "containers-expanded.xlsx"),
+            fromSchema: false);
         // One record, written into one cell and written as its own columns.
         WriteMultiRowEquivalence(
             Prepare(outputDir, "multirow-rows", "multirow-rows.xlsx"), multiRow: true);
@@ -1097,6 +1103,64 @@ internal static class Program
     ///
     /// notes/struct-dsl-design.md section 7.2.
     /// </remarks>
+    /// <summary>
+    /// A `set` and a `map` declared, against the array columns they are written out as.
+    /// </summary>
+    /// <remarks>
+    /// **The pair is the whole claim of spec/types/set-and-map.md section 4.** A set is an
+    /// array column and a map is two of equal length, so a run that declares them and a run
+    /// that writes the arrays out have to reach the same file - and if they do, the wire
+    /// needed no change for either.
+    ///
+    /// The declared side leaves the member type cells empty, which is notation (나): the
+    /// group's first column names the struct and the declaration answers for the rest.
+    /// </remarks>
+    private static void WriteContainers(string path, bool fromSchema)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Containers"));
+
+        var spec = new TableSpec
+        {
+            Name = "Shop",
+            Comment = "A group holding a set and a map.",
+        };
+
+        string Typed(string written) => fromSchema ? "" : written;
+        string Said(string written) => fromSchema ? "" : written;
+
+        spec
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+
+            // The group's first column names the struct, which is the one cell the declared
+            // side writes.
+            .Field(FieldSpec.Of(
+                "Bag.Tags",
+                fromSchema ? "Bag" : "string[]",
+                Said("What this row is filed under.")))
+
+            // A map is two columns of equal length, and the two names are the container's
+            // rather than the author's - nobody wrote `Key` in the declaration.
+            .Field(FieldSpec.Of("Bag.Prices.Key", Typed("int[]"), ""))
+            .Field(FieldSpec.Of("Bag.Prices.Value", Typed("int[]"), ""));
+
+        spec
+            // Lengths that differ between rows, because a map whose rows are all the same
+            // length is the shape that hides whether the length is read per row.
+            .Row("1", "new;sale",  "10;11",    "100;120")
+            .Row("2", "sale",      "10",       "90")
+            // Nothing in either container, which is an entry count of zero rather than a
+            // row that has no map.
+            .Row("3", "",          "",         "")
+            // A run of equal values, which is what the column encodings read.
+            .Row("4", "new;sale",  "10;11;12", "100;120;140")
+            .Row("5", "new;sale",  "10;11;12", "100;120;140");
+
+        b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
     private static void WriteDeclared(string path, bool fromSchema)
     {
         var workbook = new XSSFWorkbook();

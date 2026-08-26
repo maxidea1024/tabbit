@@ -568,7 +568,7 @@ public class BinaryExporter : Target<BinaryRecipe>
             //
             // Ahead of the delimited-cell case because both are variable-length and only this
             // one gets its length from the group rather than from its own cell.
-            if (column.IsVariableLengthArray && !column.Group.IsVariableLengthArray)
+            if (column.IsVariableLengthArray && !column.LengthIsInTheCell)
             {
                 int elements = table.ElementCountIn(column.Group, row);
 
@@ -961,7 +961,7 @@ public class BinaryExporter : Target<BinaryRecipe>
 
         foreach (var row in rows)
         {
-            if (column.IsVariableLengthArray && !column.Group.IsVariableLengthArray)
+            if (column.IsVariableLengthArray && !column.LengthIsInTheCell)
             {
                 int elements = table.ElementCountIn(column.Group, row);
                 lengths.Add(elements);
@@ -1208,7 +1208,7 @@ public class BinaryExporter : Target<BinaryRecipe>
         {
             // A group whose length the row decides. Every element is a column of its own, so
             // its own cell answers.
-            if (column.IsVariableLengthArray && !column.Group.IsVariableLengthArray)
+            if (column.IsVariableLengthArray && !column.LengthIsInTheCell)
             {
                 int filled = table.ElementCountIn(column.Group, row);
 

@@ -457,7 +457,7 @@ public class JsonExporter : Target<JsonRecipe>
 
                 foreach (var wire in table.WireColumns)
                 {
-                    if (wire.IsVariableLengthArray && !wire.Group.IsVariableLengthArray)
+                    if (wire.IsVariableLengthArray && !wire.LengthIsInTheCell)
                     {
                         int elements = table.ElementCountIn(wire.Group, row);
                         var values = new object[elements];

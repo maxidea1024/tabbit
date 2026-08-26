@@ -1,0 +1,13 @@
+// The declarations the `containers` fixture's sheet leaves its type cells empty for.
+//
+// The pair with `containers-expanded` is the gate: that workbook writes the same table with
+// `string[]` and two `int[]` columns in its own cells, and the two runs must produce the same
+// file. So nothing here may say anything about a value that the other workbook does not also
+// say. spec/types/set-and-map.md section 9.
+
+/// What one row of the shop carries.
+struct Bag
+    /// What this row is filed under. No two the same.
+    field tags   set<string>
+    /// What each item costs here, by that item's key.
+    field prices map<int,int(min=1)>

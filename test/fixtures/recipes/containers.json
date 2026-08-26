@@ -1,0 +1,39 @@
+{
+  // A group holding a `set` and a `map`, both declared - spec/types/set-and-map.md.
+  //
+  // The pair with `containers-expanded` is the gate: the same table written both ways must
+  // produce the same file, byte for byte. That is the whole claim about the wire - a set is
+  // an array column and a map is two of equal length, so neither needs a format change.
+  //
+  // Binary and named JSON. The first is the claim; the second is where a difference is
+  // readable, since two `.tcb` files that differ say so in an offset.
+  //
+  // No generated language here. The containers reach the model and the file, and the
+  // container type in each language is the stage after this one - a target asked for one
+  // today names it and refuses.
+
+  "Schemas": [
+    { "Path": "test/fixtures/schemas/containers" }
+  ],
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "test/fixtures/xlsx/containers" }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/containers/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/containers/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    }
+  ]
+}

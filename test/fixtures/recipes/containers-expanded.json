@@ -1,0 +1,37 @@
+{
+  // The same table as `containers`, with the columns each container is written out as typed
+  // in their own cells - `string[]` for the set, two `int[]` for the map.
+  //
+  // The control half of the pair. It reads the same schema file, and its group names no
+  // struct - so the binding pass does not touch it and these columns are typed the way they
+  // always were, which is the point: what a declaration produces is what a sheet could have
+  // written.
+  //
+  // Everything else about the two recipes is identical on purpose. A difference here would
+  // be a difference the gate would report as a difference in the notation.
+
+  "Schemas": [
+    { "Path": "test/fixtures/schemas/containers" }
+  ],
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "test/fixtures/xlsx/containers-expanded" }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/containers-expanded/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/containers-expanded/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    }
+  ]
+}
