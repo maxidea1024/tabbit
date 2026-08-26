@@ -185,7 +185,7 @@ v1.2.0 is 4f2a9c1b8e33, which no conversion ever ran on. Using 8b1d7e40a2f5, the
 ### `--format text` 출력
 
 ```
-demo-named-range / main
+demo-atlas / main
   c001 .. (head)
 
 c002  2026-07-22 14:03  박밸런스 <park@example.com>
@@ -227,7 +227,7 @@ CLI와 API가 같은 문서를 같은 직렬화기로 내보냅니다.
 {
   "schemaVersion": 1,
   "query": {
-    "project": "demo-named-range", "branch": "main", "from": "c003", "to": "c004",
+    "project": "demo-atlas", "branch": "main", "from": "c003", "to": "c004",
     "table": null, "field": null, "author": null,
     "limit": 5000, "truncated": false, "omitted": 0,
     "notes": []
@@ -392,8 +392,8 @@ API는 `/api/v1` 아래에 있고 전부 GET, 전부 읽기 전용입니다.
 `from`, `to`, `at`은 CLI와 똑같이 태그와 리비전 표현식을 받습니다.
 
 ```
-/api/v1/diff?project=named-range&from=v1.2.0&to=v1.3.0&table=Item
-/api/v1/dashboard?project=named-range&from=v1.2.0
+/api/v1/diff?project=atlas&from=v1.2.0&to=v1.3.0&table=Item
+/api/v1/dashboard?project=atlas&from=v1.2.0
 ```
 
 응답은 `--format json`과 같은 문서를 같은 직렬화기로 내보냅니다.

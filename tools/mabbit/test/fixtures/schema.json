@@ -14,7 +14,7 @@
     },
     {
       "name": "Collection",
-      "workbook": "samples/rescue/CollectionData.xlsx",
+      "workbook": "samples/sprout/xlsx/Codex.xlsx",
       "sheet": "CollectionTable",
       "headerRow": 1,
       "firstDataRow": 3,

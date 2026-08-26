@@ -597,7 +597,7 @@ public class BuildReportTests : IDisposable
     /// A folder every place shares is said once, not down the left of every row.
     /// </summary>
     /// <remarks>
-    /// A real page had `samples/named-range/` on fourteen rows: the most prominent position on every
+    /// A real page had one sample's folder on fourteen rows: the most prominent position on every
     /// line, saying the same thing every time, in front of the part that differs. What the
     /// copy button carries keeps the whole path - that goes to somebody who does not have
     /// this page in front of them.

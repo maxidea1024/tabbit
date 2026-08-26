@@ -13,7 +13,7 @@ using ValueType = Tabbit.Models.ValueType;
 namespace Tabbit.Tests;
 
 /// <summary>
-/// The `rescue` sheet layout: one table per sheet, named by the sheet tab less its
+/// The `sheet-per-table` layout: one table per sheet, named by the sheet tab less its
 /// trailing `Table`, with three header rows and no entity markers.
 ///
 /// Written against raw sheets built here rather than against a committed workbook. The
@@ -27,7 +27,7 @@ public class SheetPerTableLayoutTests
     #region Building sheets
 
     /// <summary>
-    /// A sheet in the rescue layout: descriptions, names, types, then data.
+    /// A sheet in this layout: descriptions, names, types, then data.
     /// </summary>
     private static RawSheet Sheet(
         string sheetName, string[] comments, string[] names, string[] types, params string[][] rows)
@@ -456,12 +456,12 @@ public class SheetPerTableLayoutTests
         // The case this is all for: a project part-way through being converted has some
         // workbooks in each layout, and a table in one may be typed with an enum declared
         // in the other.
-        var rescue = Sheet("HeroTable",
+        var perSheet = Sheet("HeroTable",
             new[] { "", "" },
             new[] { "Id", "Grade" },
             new[] { "int", "enum:GradeType" },
             new[] { "1", "SR" });
-        rescue.Layout = new SheetLayout("sheet-per-table", DuplicateIndexPolicy.Error);
+        perSheet.Layout = new SheetLayout("sheet-per-table", DuplicateIndexPolicy.Error);
 
         // The declaration-cell form: the declaration and its description, then the `:field`
         // row naming the columns, then the labels. `Sheet` writes rows as given, so the
@@ -474,7 +474,7 @@ public class SheetPerTableLayoutTests
         tabbit.Layout = SheetLayout.Default;
 
         var raw = new RawModel();
-        raw.Sheets.Add(rescue);
+        raw.Sheets.Add(perSheet);
         raw.Sheets.Add(tabbit);
 
         var model = new ModelCooker().Cook(new Options(), new RecipeModel(), raw);

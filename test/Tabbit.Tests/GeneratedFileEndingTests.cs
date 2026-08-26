@@ -51,7 +51,7 @@ public class GeneratedFileEndingTests
     /// it, and without a mark MSVC reads the file in the system codepage - where a comment
     /// carried over from a Korean sheet can end in a byte that is a backslash, which
     /// continues the comment over the declaration below and reports a syntax error on a
-    /// line that is correct. The rescue sample's C++ did exactly that.
+    /// line that is correct. A sample's generated C++ did exactly that.
     ///
     /// The other targets are checked for the absence of the mark, because it is not
     /// free: it shows up in diffs, and a shell that reads a generated file expecting it to

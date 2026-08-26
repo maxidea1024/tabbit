@@ -176,7 +176,7 @@ public class SweepTests
     /// wrote it. What stands in for it is the manifest - the ledger the exporter already
     /// keeps of what it put in that directory - and being in the ledger is the permission.
     ///
-    /// This is not hypothetical tidiness. A rescue project renamed its tables and left
+    /// This is not hypothetical tidiness. A converted project renamed its tables and left
     /// sixty-seven `.tcb` files behind in the old format; nothing read them, they were
     /// committed, they would have shipped, and a person reading the folder concluded the
     /// data had barely been compressed at all.
