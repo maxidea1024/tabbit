@@ -100,7 +100,7 @@ export default function Home() {
               <span className={styles.entryWho}>시트에 데이터를 적는다면</span>
               <strong>기획자용 빠른 시작</strong>
               <span className={styles.entryWhat}>
-                엑셀만 있으면 됩니다. 배울 특수문자는 두 개이고, 표 하나를 그 자리에서
+                엑셀만 있으면 됩니다. 알아야 하는 특수문자는 두 개이고, 표 하나를 그 자리에서
                 만들어 봅니다.
               </span>
             </Link>
