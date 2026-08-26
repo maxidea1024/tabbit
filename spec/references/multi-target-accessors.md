@@ -68,7 +68,7 @@
 |13|1|
 |**합계**|**31**|
 
-넓은 것부터 `ChoiceBox.ChoiceBoxId`(13) · `CashShop.CeilingCashShopBoxIconId`(11) ·
+넓은 것부터 `ChoiceBox.ChoiceBoxId`(13) · `Offer.CeilingCashShopBoxIconId`(11) ·
 `DrawGameReward.RewardId`(10) · `EventShop.ProductId`(8)입니다.
 
 ### 막혀 있는 것 — 레코드 그룹의 멤버
@@ -106,12 +106,12 @@
 슬롯.** 그 열여섯이 무엇인지 보면 왜 이런 형태인지 알 수 있습니다.
 
 ```
-Point, Item, DepartSupply, TradeGoods, CEquip, Ship, Mate, ShipBlueprint,
-ShipSlot, Shield, TaxFreePermit, IllustSkin, ShipCamouflage, UserTitle, Pet,
-RewardSeasonItems
+Point, Item, ExpeditionSupply, Market, CharGear, Ship, Roster, Recipe,
+GearSlot, Shield, TaxFreePermit, PortraitSkin, CosmeticSkin, Emblem, Pet,
+SeasonReward
 ```
 
-**「보상 종류」 다형성입니다.** 같은 목록이 `RewardDropPool` · `CashShopBanner` ·
+**「보상 종류」 다형성입니다.** 같은 목록이 `LootPool` · `CashShopBanner` ·
 `SalvageRewardGroup`에서 되풀이됩니다. 대상이 둘인 컬럼과 열여섯인 컬럼은 개수만 다른 것이
 아니라 **쓰임이 다른 선언**이고, 설계가 뒤쪽을 견뎌야 합니다.
 
@@ -217,11 +217,11 @@ foreign   Weapon.Name            대상의 필드 — 지금 그대로
 
 ## 5. 생성되는 것
 
-`Shop.ItemId`가 `CEquip`과 `Item`을 적었을 때, C#입니다.
+`Shop.ItemId`가 `CharGear`과 `Item`을 적었을 때, C#입니다.
 
 ```csharp
 shopRow.ItemId              // int — 키. 지금도 있는 것
-shopRow.ItemIdTarget        // ShopItemIdTarget.CEquip 또는 .Item 또는 .None
+shopRow.ItemIdTarget        // ShopItemIdTarget.CharGear 또는 .Item 또는 .None
 shopRow.CEquipByItemId      // CEquipTable.Record 또는 null
 shopRow.ItemByItemId        // ItemTable.Record 또는 null
 ```

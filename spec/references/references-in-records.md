@@ -16,7 +16,7 @@
 ## 1. 문제 — 「아직」이라고 적힌 거부
 
 ```
-Record group `ShipSlot.MaterialItem` member `Id` references another table. A reference
+Record group `GearSlot.MaterialItem` member `Id` references another table. A reference
 inside a record group is not supported yet. Move the column out of the group, or carry
 the key as a plain `int` for now.
 ```
@@ -214,7 +214,7 @@ Rust와 Unreal에 링킹이 없는 것은 이 개정의 미완이 아니라 그 
 개정과 무관한 시트 문제가 남아 있어 전 세트가 변환되지 않습니다. 검증은 픽스처로 충분하고,
 계측은 시트가 정리된 뒤에 하는 편이 정확합니다. 지금까지 확인된 것은 주요 10개 테이블
 빌드에서 **12개 선언이 승격**되었다는 것이고, 그중 하나가 1절의 거부 메시지가 지목한
-`ShipSlot`입니다.
+`GearSlot`입니다.
 
 ### 형식
 

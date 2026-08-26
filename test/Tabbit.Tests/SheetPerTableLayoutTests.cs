@@ -371,11 +371,11 @@ public class SheetPerTableLayoutTests
         // convention, and one real table numbers three columns that are three different
         // enums. Folding them is not a nicer API but a conversion that refuses to run.
         var model = Cook(
-            EnumSheet(("JobType", new[] { "Melee" }), ("GradeType", new[] { "N" })),
+            EnumSheet(("RoleKind", new[] { "Melee" }), ("GradeType", new[] { "N" })),
             Sheet("T",
                 new[] { "", "", "" },
                 new[] { "Id", "Condition_1", "Condition_2" },
-                new[] { "int", "enum:JobType", "enum:GradeType" },
+                new[] { "int", "enum:RoleKind", "enum:GradeType" },
                 new[] { "1", "Melee", "N" }));
 
         var table = model.Tables[0];
@@ -389,7 +389,7 @@ public class SheetPerTableLayoutTests
     {
         var error = Assert.Throws<TabbitException>(() => Cook(Sheet("T",
             new[] { "", "아이콘", "아이콘 경로" },
-            new[] { "Id", "IconPath", "Icon_Path" },
+            new[] { "Id", "ArtPath", "Art_Path" },
             new[] { "int", "String", "String" },
             new[] { "1", "", "a" })));
 
@@ -397,8 +397,8 @@ public class SheetPerTableLayoutTests
 
         // Both as the sheet spells them: the author is looking at two headings that do
         // not match, and a message naming only the normalized one sends them hunting.
-        Assert.Contains("IconPath", message);
-        Assert.Contains("Icon_Path", message);
+        Assert.Contains("ArtPath", message);
+        Assert.Contains("Art_Path", message);
     }
 
     [Fact]
@@ -414,7 +414,7 @@ public class SheetPerTableLayoutTests
                 new[] { "1", "sword" }),
             Sheet("캐릭터 리스트참고용",
                 new[] { "", "" },
-                new[] { "CharacterType", "CharacterID" },
+                new[] { "ActorKind", "CharacterID" },
                 new[] { "PC", "10101" },
                 new[] { "PC", "10201" }));
 
@@ -427,10 +427,10 @@ public class SheetPerTableLayoutTests
         var error = Assert.Throws<TabbitException>(() => Cook(Sheet("T",
             new[] { "", "" },
             new[] { "Id", "Channel" },
-            new[] { "int", "enum:ChannelType" },
+            new[] { "int", "enum:FeedKind" },
             new[] { "1", "All" })));
 
-        Assert.Contains("ChannelType", error.ToString());
+        Assert.Contains("FeedKind", error.ToString());
         Assert.Contains("TableEnums", error.ToString());
     }
 

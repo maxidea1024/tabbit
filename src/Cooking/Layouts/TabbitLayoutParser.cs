@@ -1760,7 +1760,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
         // **Several tables is not a reference.** A bar was once how "a row of either" was
         // written, and it is refused now: a value that may be an id of any of several
         // tables has no single type to resolve to, so what a sheet is saying there is a
-        // check. `refs=Item;CEquip` says it, and the column keeps the type it had.
+        // check. `refs=Item;CharGear` says it, and the column keeps the type it had.
         // spec/references/reference-surface-naming.md section 6.
         if (rest.Contains('|'))
         {

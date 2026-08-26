@@ -140,7 +140,7 @@ index 필드를 서버나 클라 한쪽으로 보낼 수 없습니다. 양쪽 �
 
 `foreign` 뒤에 가리킬 테이블을 적습니다 — `foreign Item`, 또는 그 테이블의 값 하나를
 가리키려면 `foreign Owners.rank`입니다. 여러 테이블 중 하나여도 되는 값은 참조가
-아니라 검사이고 `int (refs=Item;CEquip)`으로 적습니다.
+아니라 검사이고 `int (refs=Item;CharGear)`으로 적습니다.
 
 **세부타입 칸은 없습니다.** 타입 하나가 셀 하나에 들어가므로 enum도 이름을 바로 적습니다 —
 `Grade`.

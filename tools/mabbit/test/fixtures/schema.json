@@ -13,9 +13,9 @@
       "keyColumn": 0
     },
     {
-      "name": "Collection",
+      "name": "Codex",
       "workbook": "samples/sprout/xlsx/Codex.xlsx",
-      "sheet": "CollectionTable",
+      "sheet": "CodexTable",
       "headerRow": 1,
       "firstDataRow": 3,
       "lastDataRow": 2081,

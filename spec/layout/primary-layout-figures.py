@@ -310,7 +310,7 @@ build("primary-layout-nested", [
 build("primary-layout-multiref", [
     [":table Shop", "보상 상점입니다."],
     [":field", "id", "itemId", "count"],
-    [":type", "int", "int (refs=Item;CEquip)", "int"],
+    [":type", "int", "int (refs=Item;CharGear)", "int"],
     ["", "1", "1001", "1"],
     ["", "2", "9001", "2"],
 ], notes={

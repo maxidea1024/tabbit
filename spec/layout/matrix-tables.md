@@ -57,14 +57,14 @@ key:11000000~11999999     number    number    number
 
 |나오는 것|형태|
 |--|--|
-|`TradeGoodsTownMatrix`|`{ id, value: number[482] }` × 219행|
-|`TradeGoodsTownMatrixColumn`|`{ id, at: int }` × 482행|
+|`SystemMatrix`|`{ id, value: number[482] }` × 219행|
+|`SystemMatrixColumn`|`{ id, at: int }` × 482행|
 
-이름이 이름인 컬럼은 그대로 남습니다 — `BattleFaction`은 `{ id, name, value: number[7] }`입니다.
+이름이 이름인 컬럼은 그대로 남습니다 — `CombatFaction`은 `{ id, name, value: number[7] }`입니다.
 
 ```csharp
-var at   = Data.TradeGoodsTownMatrixColumn.FindById(goodsId).At;
-var cost = Data.TradeGoodsTownMatrix.FindById(townId).Value[at];
+var at   = Data.SystemMatrixColumn.FindById(goodsId).At;
+var cost = Data.SystemMatrix.FindById(townId).Value[at];
 ```
 
 **코어는 한 줄도 바뀌지 않습니다.** 배열 컬럼도 기본 인덱스도 이미 있는 것이고, 매트릭스는
@@ -115,7 +115,7 @@ id가 원본의 부분집합이지만 접두사가 아닙니다.** 규칙과 실
 **이름이 정수인 컬럼이 하나라도 있을 때**입니다. 그 컬럼들만 배열이 되고, **이름이 이름인
 컬럼은 지금까지대로 보통 필드로 남습니다.**
 
-「나머지 전부가 정수여야 한다」로 두면 실제 시트가 걸립니다 — `BattleFaction`은 `id` 다음에
+「나머지 전부가 정수여야 한다」로 두면 실제 시트가 걸립니다 — `CombatFaction`은 `id` 다음에
 `name`이 오고 그 뒤부터 id 컬럼입니다. 격자에 설명 컬럼이 하나 붙어 있는 것이지 격자가 아닌
 것이 아닙니다.
 

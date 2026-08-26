@@ -34,7 +34,7 @@
 
 ```
 :link     "Mail"                단일 — 대상 하나를 적는 행
-:links    "CEquip"⏎"Item"       다중 — 둘 중 하나
+:links    "CharGear"⏎"Item"       다중 — 둘 중 하나
 ```
 
 선언이 576개 있고, 이 도구가 그 행을 읽지 않아 **그 규칙이 전혀 검사되지 않았습니다.**
@@ -46,8 +46,8 @@
 규칙은 **카탈로그를 손으로 나열**합니다. 로드맵이 이 항목에 「검증 이식이 이것을 기다립니다」라고
 적어 둔 것이 그 뜻입니다.
 
-> **카탈로그는 둘입니다.** 앞선 조사가 `ShipSlot`·`CEquip`·`Item` 셋이라고 적었는데, 시트를
-> 읽어 보니 `Shop.ItemId`의 선언은 `"CEquip"`과 `"Item"` 둘입니다. 셋으로 적힌 문서들은 이
+> **카탈로그는 둘입니다.** 앞선 조사가 `GearSlot`·`CharGear`·`Item` 셋이라고 적었는데, 시트를
+> 읽어 보니 `Shop.ItemId`의 선언은 `"CharGear"`과 `"Item"` 둘입니다. 셋으로 적힌 문서들은 이
 > 개정에서 함께 고쳤습니다.
 
 ## 2. 결정 — 검사와 해석의 분리
@@ -155,8 +155,8 @@ recipe가 고른 워크북만 읽으므로, 선언이 적은 테이블이 **이 
 
 같은 항목에 묶여 있지만 **다른 문제**입니다.
 
-한 레이아웃은 같은 테이블의 지역별 대체본을 이름의 접미사로 적습니다 — `Admiral_BCGL`,
-`SailCrest_BCCN`. 산출물 615개 중 95개가 그 짝이고, 고르는 것은 로드 시점의 지역 코드입니다.
+한 레이아웃은 같은 테이블의 지역별 대체본을 이름의 접미사로 적습니다 — `Profile_BCGL`,
+`Crest_BCCN`. 산출물 615개 중 95개가 그 짝이고, 고르는 것은 로드 시점의 지역 코드입니다.
 
 **`TargetSide`와 같은 축이 아닙니다.** 서버/클라는 **한 테이블을 좁히는 것**이고, 변종은
 **여러 테이블 중 하나를 고르는 것**입니다.
@@ -169,7 +169,7 @@ recipe가 고른 워크북만 읽으므로, 선언이 적은 테이블이 **이 
 - **고르는 시점이 빌드가 아니라 로드입니다.** 이 도구가 고르면 산출물이 지역마다 갈라지고,
   그것은 그쪽이 지금 하는 방식이 아닙니다. 한 번 내보내고 클라이언트가 고르는 구조라면 이
   도구가 할 일은 **둘 다 내보내는 것**이고, 그것은 이미 되고 있습니다.
-- **표현을 정하려면 소비하는 쪽을 봐야 합니다.** 생성 코드가 `Admiral`이라는 이름 하나로
+- **표현을 정하려면 소비하는 쪽을 봐야 합니다.** 생성 코드가 `Profile`이라는 이름 하나로
   지역에 맞는 것을 돌려주려면 로드 시점의 선택을 모든 런타임이 알아야 합니다. 3절의 검사와
   달리 이것은 **런타임의 일**이고, 요구가 확인되기 전에는 정할 것이 아닙니다.
 
@@ -262,7 +262,7 @@ recipe가 고른 워크북만 읽으므로, 선언이 적은 테이블이 **이 
 
 ```
 shopRow.ItemId              id — 지금도 있는 것
-shopRow.ItemIdAsCEquip      CEquip 레코드 또는 없음
+shopRow.ItemIdAsCEquip      CharGear 레코드 또는 없음
 shopRow.ItemIdAsItem        Item 레코드 또는 없음
 ```
 
@@ -309,7 +309,7 @@ shopRow.ItemIdAsItem        Item 레코드 또는 없음
 
 #### 자기 참조를 여는 근거
 
-`EventShop.PreviousId` · `WorldPassive.GroupNo` · `WorldBuff.GroupNo` · `WorldBuff.AddBuff0Id` ·
+`EventShop.PriorId` · `ZonePerk.GroupNo` · `WorldBuff.GroupNo` · `WorldBuff.AddBuff0Id` ·
 `Character.VoiceOverride`. 전부 정상적인 자기 참조입니다 — `GroupNo`는 그룹 대표 행을
 가리키고, 21,261행이 전부 유효한 id입니다.
 
@@ -386,8 +386,8 @@ shopRow.ItemIdAsItem        Item 레코드 또는 없음
 |--|--|
 |이전 소규모 코퍼스|**무변경.** 그 선언이 없습니다|
 |이전 대규모 코퍼스의 부분 빌드|**값 무변경.** JSON 한 줄도 안 바뀝니다|
-|이전 대규모 코퍼스의 부분 빌드 바이너리|`GuildEmblemImage.tcb` **544 → 543바이트**|
-|레코드 프로퍼티|`Mate.characterId`가 `CharacterRecord`를 돌려줍니다|
+|이전 대규모 코퍼스의 부분 빌드 바이너리|`GuildCrest.tcb` **544 → 543바이트**|
+|레코드 프로퍼티|`Roster.characterId`가 `CharacterRecord`를 돌려줍니다|
 
 **값이 같고 폭만 줄어드는 것**이 예측대로 나왔습니다. 승격된 컬럼은 `double`로 실리던 것이
 대상의 키 타입으로 실립니다.

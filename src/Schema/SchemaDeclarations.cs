@@ -27,7 +27,7 @@ public sealed class SchemaDeclarations
 {
     // Case-insensitive, and that is not a convenience. A sheet's type cell reaches here
     // through a layout, and one of them lowers the cell before anything looks at it - so
-    // `CEquip` arrives as `cequip` and an exact lookup would miss the struct it names. Two
+    // `CharGear` arrives as `cequip` and an exact lookup would miss the struct it names. Two
     // declarations differing only in case are refused below, so nothing is ambiguous.
     private readonly Dictionary<string, SchemaStruct> _structs =
         new(System.StringComparer.OrdinalIgnoreCase);

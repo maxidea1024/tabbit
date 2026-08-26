@@ -4,7 +4,7 @@
 
 한 테이블이 **데이터를 여러 벌** 가지는 것에 대한 설계입니다. 스키마는 하나이고 행만 갈립니다.
 
-지금은 그것을 **별개의 테이블로 읽고 있습니다.** `Admiral`과 `Admiral_BCCN`이 서로 다른 타입
+지금은 그것을 **별개의 테이블로 읽고 있습니다.** `Profile`과 `Profile_BCCN`이 서로 다른 타입
 두 개가 되어, 모든 언어에 `AdmiralBccn` 클래스가 하나씩 더 생깁니다. 그 클래스는
 **누구도 선언한 적이 없는 타입**입니다 — 시트가 말한 것은 「이 테이블의 중국 데이터」이지
 「중국용 테이블」이 아닙니다.
@@ -18,25 +18,25 @@
 `named-range` 레이아웃은 정의된 이름의 접미사로 지역을 표시합니다.
 
 ```
-Admiral            ← 원본
-Admiral_BCCN       ← 같은 테이블의 다른 지역 데이터
+Profile            ← 원본
+Profile_BCCN       ← 같은 테이블의 다른 지역 데이터
 ```
 
 |규칙|내용|
 |--|--|
 |**같은 테이블입니다**|스키마가 하나이고 행만 두 벌입니다|
 |**스키마가 같아야 합니다**|다르면 오류입니다. 지금은 조용히 다른 타입 두 개가 됩니다|
-|**파일은 두 개**|`Admiral.tcb`와 `Admiral_BCCN.tcb`. **접미사의 구분자를 유지합니다** — 지금은 `AdmiralBCCN.tcb`로 나가고 있어 이름에서 변종임이 사라집니다|
+|**파일은 두 개**|`Profile.tcb`와 `Profile_BCCN.tcb`. **접미사의 구분자를 유지합니다** — 지금은 `ProfileBCCN.tcb`로 나가고 있어 이름에서 변종임이 사라집니다|
 |**고르는 것은 읽는 쪽**|프로그램이 접미사를 지정해 그 파일을 읽습니다|
 
 원본 익스포터도 같습니다 — 파일 이름은 정의된 이름 그대로이고, 파일 **안**의 테이블 이름은
 `_BC` 이후를 잘라낸 것입니다.
 
 ```jsonc
-// Admiral_BCCN.json — 파일 이름에는 접미사가, 안에는 원본 이름이
-{ ":Admiral": { … }, "Admiral": { … 38행 … } }
-// Admiral.json
-{ ":Admiral": { … }, "Admiral": { … 41행 … } }
+// Profile_BCCN.json — 파일 이름에는 접미사가, 안에는 원본 이름이
+{ ":Profile": { … }, "Profile": { … 38행 … } }
+// Profile.json
+{ ":Profile": { … }, "Profile": { … 41행 … } }
 ```
 
 ## 2. 실측
@@ -58,14 +58,14 @@ Admiral_BCCN       ← 같은 테이블의 다른 지역 데이터
 
 |테이블|원본에만 있는 컬럼|변종에만 있는 컬럼|
 |--|--|--|
-|`Admiral`|`recruitingPointDiscountBaseValue`|`recruitingPointDiscountValue`|
-|`CashShopTab`|`cashShopBannerId` · `useShowBuff`|—|
-|`Mate`|`autoMateTranscendencePassiveId`|—|
-|`ShipCamouflage`|`statEffect`|—|
-|`TradeGoods`|`unpopularTarget`|—|
-|`UserTitle`|`childStatEffect` · `statEffect`|—|
+|`Profile`|`recruitCostBaseValue`|`recruitCostValue`|
+|`OfferTab`|`offerBannerId` · `showsStatus`|—|
+|`Roster`|`autoRosterAscendPerkId`|—|
+|`CosmeticSkin`|`statBonus`|—|
+|`Market`|`demandModifier`|—|
+|`Emblem`|`childStatBonus` · `statBonus`|—|
 
-`Admiral`이 특히 볼 만합니다 — **이름이 다른 같은 컬럼**으로 보입니다. 나머지 다섯은 변종이
+`Profile`이 특히 볼 만합니다 — **이름이 다른 같은 컬럼**으로 보입니다. 나머지 다섯은 변종이
 원본을 따라가지 못한 형태입니다. 전부 시트 오류 보고로
 갑니다.
 
@@ -75,9 +75,9 @@ Admiral_BCCN       ← 같은 테이블의 다른 지역 데이터
 참조」가 잡히는데, 실측하면 그 대부분이 가짜입니다.
 
 ```
-CashShop_BCCN.subProductCategory = 1402
-  CashShopTab        (80행)  → 1402 없음   ← 우리가 여기를 봅니다
-  CashShopTab_BCCN   (49행)  → 1402 있음   ← 시트가 뜻한 곳
+Offer_BCCN.bundleCategory = 1402
+  OfferTab        (80행)  → 1402 없음   ← 우리가 여기를 봅니다
+  OfferTab_BCCN   (49행)  → 1402 있음   ← 시트가 뜻한 곳
 ```
 
 **93건이 이 하나의 원인**입니다. 변종의 행은 변종의 세계에서 해석되어야 하고, 그것이 이
@@ -113,7 +113,7 @@ CashShop_BCCN.subProductCategory = 1402
 **모든 레이아웃이 파싱을 끝낸 뒤, 진단 수집기가 생긴 다음입니다.**
 
 레이아웃 안에서 하지 않는 이유는 위와 같고, 파싱 중에 하지 않는 이유는 **이름이 도착하는
-순서가 워크북의 것**이기 때문입니다 — `Admiral_BCCN`이 `Admiral`보다 먼저 읽힐 수 있습니다.
+순서가 워크북의 것**이기 때문입니다 — `Profile_BCCN`이 `Profile`보다 먼저 읽힐 수 있습니다.
 
 진단 수집기 뒤인 이유는 **어긋난 짝을 한 번에 보고**하기 위해서입니다. 첫 짝에서 멈추면
 목록을 얻을 수 없고, 이 기능을 켜는 프로젝트가 원하는 것이 그 목록입니다.
@@ -136,7 +136,7 @@ CashShop_BCCN.subProductCategory = 1402
 
 위의 규칙이 그 자리에 「값 없음」을 씁니다. 그런데 컬럼이 required로 선언되어 있으면 검사가
 **접기가 방금 쓴 그 값을 위반으로 보고합니다** — 한 모델 안에서 두 규칙이 서로를 부정하는
-자리이고, 실측 733건이 그것입니다(`TradeGoods_BCCN`에 `unpopularTarget`이 없습니다).
+자리이고, 실측 733건이 그것입니다(`Market_BCCN`에 `demandModifier`이 없습니다).
 
 그래서 **벌 하나가 어떤 컬럼을 선언하지 않으면 그 컬럼은 테이블 전체에서 optional입니다.**
 
@@ -158,7 +158,7 @@ CashShop_BCCN.subProductCategory = 1402
 `Value[722]`처럼 **위치로 다시 이름 붙입니다.** 그래서 「위치가 아니라 이름으로」라는 위의
 규칙이 격자에서만 무력해집니다 — 그 이름이 곧 위치이기 때문입니다.
 
-실측이 그 결과를 보여줍니다. `TradeGoodsTownMatrix`는 마을 735개이고 그 벌은 724개인데,
+실측이 그 결과를 보여줍니다. `SystemMatrix`는 마을 735개이고 그 벌은 724개인데,
 **벌의 마을 id가 원본의 부분집합이지만 접두사가 아닙니다.**
 
 |원소|721|722|723|724~734|
@@ -195,7 +195,7 @@ CashShop_BCCN.subProductCategory = 1402
 ### 4.4 검증
 
 벌마다 원본과 같은 검사를 돌립니다. **벌끼리 키가 겹치는 것은 정상입니다** — 같은 테이블의
-다른 판이므로 `Admiral` 1번과 그 벌의 1번은 같은 행의 두 판입니다.
+다른 판이므로 `Profile` 1번과 그 벌의 1번은 같은 행의 두 판입니다.
 
 ## 5. 하지 않는 것
 
@@ -240,8 +240,8 @@ CashShop_BCCN.subProductCategory = 1402
 |무엇|왜|지금|
 |--|--|--|
 |`TradeGoodsTownMatrix_BCCN`|**매트릭스라 컬럼이 곧 다른 축의 마을 id**입니다. 지역마다 마을 수가 다르니 컬럼 집합이 다릅니다|**접힙니다** — 4.2의 「격자는 컬럼 id로」|
-|`TradeGoods_BCCN`|벌에 `unpopularTarget`이 없는데 그 컬럼이 required입니다|**접힙니다** — 4.2의 「벌이 선언하지 않은 컬럼은 optional」|
-|`Admiral_BCCN`|벌에만 있는 컬럼 `defaultTowns[5]`. 원본이 5개, 벌이 6개입니다|시트의 문제. 생성 타입이 테이블에서 나오므로 해결할 수 없는 쪽입니다|
+|`Market_BCCN`|벌에 `demandModifier`이 없는데 그 컬럼이 required입니다|**접힙니다** — 4.2의 「벌이 선언하지 않은 컬럼은 optional」|
+|`Profile_BCCN`|벌에만 있는 컬럼 `defaultRegions[5]`. 원본이 5개, 벌이 6개입니다|시트의 문제. 생성 타입이 테이블에서 나오므로 해결할 수 없는 쪽입니다|
 |`AutoMatePassive_BCCN`|벌의 행이 시트의 `:requiredInObject`를 어깁니다 (6곳)|시트의 문제|
 
 **앞의 둘이 규칙이 된 이유가 같습니다.** 둘 다 「벌마다 컬럼 집합이 다를 수 있다」는 한 가지

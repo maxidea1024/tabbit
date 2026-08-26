@@ -128,7 +128,7 @@ if (orphans.Count > 0)
 ### 합계
 
 ```csharp
-foreach (var pool in Tables.RewardDropPool.Records.GroupBy(row => row.PoolId))
+foreach (var pool in Tables.LootPool.Records.GroupBy(row => row.PoolId))
 {
     int total = pool.Sum(row => row.Rate);
 

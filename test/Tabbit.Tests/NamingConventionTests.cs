@@ -126,7 +126,7 @@ public class NamingConventionTests
             ModelOfFields(
                 ("Item", ["Id", "maxHitPoints"]),
                 ("Ship", ["Id", "maxhitpoints"]),
-                ("Mate", ["Id", "maxhitPoints"])),
+                ("Roster", ["Id", "maxhitPoints"])),
             Rules());
 
         var conflict = Assert.Single(found, f => f.Message.Contains("is written"));
@@ -224,7 +224,7 @@ public class NamingConventionTests
             ModelOfFields(
                 ("Item", ["Id", "maxHitPoints"]),
                 ("Ship", ["Id", "maxHitPoints"]),
-                ("Mate", ["Id", "maxHitPoints"])),
+                ("Roster", ["Id", "maxHitPoints"])),
             Rules());
 
         Assert.Empty(found);
@@ -652,7 +652,7 @@ public class NamingConventionTests
                 "Constant": "upper-snake",
                 "OnViolation": "warn",
                 "OnConsecutiveUnderscores": "error",
-                "Exempt": [ "Icon_Path", "IconPath" ]
+                "Exempt": [ "Art_Path", "ArtPath" ]
               }
             }
             """);
@@ -669,7 +669,7 @@ public class NamingConventionTests
         // Not written in the document, so it holds its default rather than being switched off.
         Assert.Equal(Severity.Warning, rules.OnSpellingConflict);
 
-        Assert.True(rules.IsExempt("Icon_Path"));
+        Assert.True(rules.IsExempt("Art_Path"));
         Assert.False(rules.IsExempt("icon_path"));
     }
 

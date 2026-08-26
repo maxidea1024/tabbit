@@ -13,7 +13,7 @@
 
 ## 1. 무엇이 잘못되었는가 — 엑셀을 기준으로 판정
 
-`<워크북>.xlsb`의 `OceanNpc` 시트, **엑셀 317행**입니다.
+`<워크북>.xlsb`의 `WorldNpc` 시트, **엑셀 317행**입니다.
 
 |누가|무엇이라고 하는가|
 |--|--|
@@ -68,7 +68,7 @@ RowNumber=317  RowFieldCount=66  col70 = (사라짐)
 |`<워크북>.xlsb`|24|
 |나머지 11개|각 25개 이하|
 
-> **0.31%가 작아 보이는 것이 이 결함의 성질입니다.** `OceanNpc`에서 잃은 것은 4행뿐인데,
+> **0.31%가 작아 보이는 것이 이 결함의 성질입니다.** `WorldNpc`에서 잃은 것은 4행뿐인데,
 > 그 4행이 `:required` 컬럼을 비게 만들어 **79,181행짜리 테이블 전체가 변환 대상에서
 > 빠졌습니다.** 잃은 양이 아니라 잃었다는 사실이 비용입니다.
 
@@ -121,11 +121,11 @@ RowNumber=317  RowFieldCount=66  col70 = (사라짐)
 |무엇|어디|
 |--|--|
 |「이름 사각형 안쪽에는 영향이 없다」|[`.xlsb`의 정의된 이름](xlsb-defined-names.md) §2·§7|
-|`OceanNpc`·`OceanNpcTemplate`을 대상에서 뺀 것|recipe-all.jsonc. 복구되면 그 제외가 없어집니다|
-|`OceanNpc.localBitFlag`의 required 위반 4건|시트 오류 보고에 시트 문제로 올라가 있지 않은지 확인|
+|`WorldNpc`·`OceanNpcTemplate`을 대상에서 뺀 것|recipe-all.jsonc. 복구되면 그 제외가 없어집니다|
+|`WorldNpc.regionBitFlag`의 required 위반 4건|시트 오류 보고에 시트 문제로 올라가 있지 않은지 확인|
 
 ## 6. 상류에 보고할 것
 
-최소 재현이 있습니다 — `<워크북>.xlsb`의 `OceanNpc` 시트 317행. 파일에 `BrtCellRk`가
+최소 재현이 있습니다 — `<워크북>.xlsb`의 `WorldNpc` 시트 317행. 파일에 `BrtCellRk`가
 있고 행 헤더가 `colspan (0,70)`을 선언하는데 `RowFieldCount`가 66입니다. 방아쇠를 모르므로
 **재현 파일과 함께** 넘깁니다.

@@ -72,7 +72,7 @@ public class MabbitSchemaTests
         // Being handed another project's schema is the likely mistake, and "no tables" would
         // read as "this workbook is empty".
         Assert.Contains("Nothing.xlsx", error.Message);
-        Assert.Contains("CollectionData.xlsx", error.Message);
+        Assert.Contains("Codex.xlsx", error.Message);
     }
 
     [Fact]

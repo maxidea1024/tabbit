@@ -58,7 +58,7 @@ public static class NamedRangeColumnPath
     ///     numbered already, in which case it opens a new level with no name of its own -
     ///     which is what an array of arrays is.
     ///
-    /// That is the whole grammar. `character[0]["Id"]` and `guideBattleSkill["BattleSkill"][0]`
+    /// That is the whole grammar. `character[0]["Id"]` and `guideBattleSkill["CombatAbility"][0]`
     /// fall out of it as the same two levels numbered in different places, and
     /// `a[0]["p"]["x"]` needs no case of its own. See spec/types/nested-multi-level.md.
     /// </remarks>

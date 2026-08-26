@@ -8,7 +8,7 @@ namespace Tabbit.Tests;
 ///
 /// The cases that matter are the ones with an acronym in them, because that is where
 /// splitting on every capital and splitting on words disagree - and the disagreement is
-/// invisible in Pascal case, which is where it went unnoticed. `SFXCategoryType` comes
+/// invisible in Pascal case, which is where it went unnoticed. `CSVExportType` comes
 /// back out of Pascal casing as itself whichever rule is used; it is snake and kebab that
 /// show `s_f_x_category_type`.
 /// </summary>
@@ -16,7 +16,7 @@ public class NameCaseTests
 {
     [Theory]
     // The bug this fixes: an acronym at the front, then ordinary words.
-    [InlineData("SFXCategoryType", "sfx_category_type")]
+    [InlineData("CSVExportType", "csv_export_type")]
     [InlineData("HTTPServer", "http_server")]
     // Acronyms as the author wrote them in a real sheet.
     [InlineData("ATK_Growth", "atk_growth")]
@@ -37,7 +37,7 @@ public class NameCaseTests
     }
 
     [Theory]
-    [InlineData("SFXCategoryType", "sfx-category-type")]
+    [InlineData("CSVExportType", "csv-export-type")]
     [InlineData("Name_KR", "name-kr")]
     [InlineData("ItemTable", "item-table")]
     public void Kebab_case_splits_the_same_way(string source, string expected)
@@ -47,7 +47,7 @@ public class NameCaseTests
 
     [Theory]
     // Pascal casing is where the old rule hid: both rules give this answer.
-    [InlineData("SFXCategoryType", "SFXCategoryType")]
+    [InlineData("CSVExportType", "CSVExportType")]
     [InlineData("Name_KR", "NameKR")]
     [InlineData("HP", "HP")]
     [InlineData("item_table", "ItemTable")]
@@ -68,7 +68,7 @@ public class NameCaseTests
     }
 
     [Theory]
-    [InlineData("SFXCategoryType", "SFX_CATEGORY_TYPE")]
+    [InlineData("CSVExportType", "CSV_EXPORT_TYPE")]
     [InlineData("HTTPServer", "HTTP_SERVER")]
     [InlineData("Name_KR", "NAME_KR")]
     [InlineData("ItemTable", "ITEM_TABLE")]
@@ -93,7 +93,7 @@ public class NameCaseTests
     /// splitting cannot quietly move one and not the other.
     /// </remarks>
     [Theory]
-    [InlineData("SFXCategoryType")]
+    [InlineData("CSVExportType")]
     [InlineData("HTTPServer")]
     [InlineData("ATK_Growth")]
     [InlineData("Name_KR")]

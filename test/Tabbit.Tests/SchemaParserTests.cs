@@ -318,10 +318,10 @@ public class SchemaParserTests
     [Fact]
     public void A_reference_names_the_tables_it_may_point_at()
     {
-        var type = Parse("struct S\n    field itemId foreign Item|CEquip\n").Structs[0].Fields[0].Type;
+        var type = Parse("struct S\n    field itemId foreign Item|CharGear\n").Structs[0].Fields[0].Type;
 
         Assert.Equal(SchemaTypeForm.Foreign, type.Form);
-        Assert.Equal(["Item", "CEquip"], type.ForeignTables);
+        Assert.Equal(["Item", "CharGear"], type.ForeignTables);
     }
 
     [Fact]
@@ -440,7 +440,7 @@ public class SchemaParserTests
     /// </summary>
     [Theory]
     [InlineData("regex=^[a-z]+$", "regex", "^[a-z]+$")]
-    [InlineData("refs=Item;CEquip", "refs", "Item;CEquip")]
+    [InlineData("refs=Item;CharGear", "refs", "Item;CharGear")]
     [InlineData("allowed=1;2;3", "allowed", "1;2;3")]
     [InlineData("size=1..3", "size", "1..3")]
     [InlineData("x.path=art/icons", "x.path", "art/icons")]

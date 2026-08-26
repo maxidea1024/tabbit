@@ -12,7 +12,7 @@
 **기존 검증에는 이 자리가 없었습니다.** `Perform(tables)`가 JSON 파일 단위이고 워커가 파일을
 나눠 가지므로, 스크립트 사이에 상태를 둘 방법이 없었습니다. 그래서 교차 확인은 「내 테이블
 스크립트에서 남의 JSON을 읽는」 방향으로만 성립하였고, **규칙 하나가 여러 파일에 흩어졌습니다** —
-`RewardTypeValidator`를 7개 스크립트가 각자 부르던 것이 그 형태입니다. 규칙은 한 군데
+`LootKindValidator`를 7개 스크립트가 각자 부르던 것이 그 형태입니다. 규칙은 한 군데
 있어야 하고, 그것이 이 폴더입니다.
 
 ### 두 가지 뷰 — 이름을 알 때와 모를 때
@@ -35,7 +35,7 @@ bool Exists(int type, int id) => type switch
 {
     2 => Tables.Item.Contains(id),
     6 => Tables.Ship.Contains(id),
-    7 => Tables.Mate.Contains(id),
+    7 => Tables.Roster.Contains(id),
     _ => true,                       // 대상 테이블이 없는 보상 타입
 };
 
@@ -130,11 +130,11 @@ diff에 남는 — 행동이어야 합니다.
 게이트웨이를 열어 교차 확인합니다.
 
 ```csharp
-// validation/rules/runtime/CashShop.cs
+// validation/rules/runtime/Offer.cs
 var live = context.Db("GameDb").Column<int>("SELECT product_id FROM live_products");
 context.Info($"라이브 상품 {live.Count}건과 대조합니다.");
 
-foreach (var row in Tables.CashShop)
+foreach (var row in Tables.Offer)
 {
     if (row.OnSale == 1 && !live.Contains(row.ProductId))
         context.Error(row, nameof(row.ProductId), "판매 중으로 표시되었지만 라이브 상품 테이블에 없습니다.");

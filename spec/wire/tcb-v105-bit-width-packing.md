@@ -78,10 +78,10 @@ RLE 페어는 `counter32 런` + `optimalint 값`이므로 2~3바이트이고, `b
 한쪽 데이터셋은 base가 전부 0이라 필요 없어 보였는데, 다른 쪽이 반대였습니다.
 
 ```
-   41             500   CharacterLevel.CharacterEXP
+   41             500   ActorStat.Experience
     8          120101   Stage.SpawnIds
     4              -1   Equip.MaxClass
-    3               1   Character.AttributeType
+    3               1   Character.StatKind
 ```
 
 base 없이는 이 컬럼들이 폭 17·폭 41이 되어 아무것도 벌지 못합니다.

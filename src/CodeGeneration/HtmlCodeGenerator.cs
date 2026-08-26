@@ -1112,8 +1112,8 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         var shown = ShownRows(table);
 
         // The page's columns are the table's entries, not the sheet's columns. A record
-        // array is written across a column per member per element - `statEffect[0]["Id"]`,
-        // `statEffect[0]["Value"]`, `statEffect[1]["Id"]` - and drawn that way it is a wall
+        // array is written across a column per member per element - `statBonus[0]["Id"]`,
+        // `statBonus[0]["Value"]`, `statBonus[1]["Id"]` - and drawn that way it is a wall
         // of numbers with the structure taken out of it. One column per entry puts the
         // structure back: a record array is one column whose cells hold objects.
         var columns = table.SerialFields
@@ -1829,7 +1829,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     /// What an entry is called, in the sheet's own spelling where the sheet has one.
     /// </summary>
     /// <remarks>
-    /// A column name carries the element it holds - `worldBuffId[0]`, `statEffect[0]["Id"]` -
+    /// A column name carries the element it holds - `worldBuffId[0]`, `statBonus[0]["Id"]` -
     /// because a sheet has one column per element and nowhere else to write which. The page
     /// has one column for the whole entry, so everything from the first bracket on names a
     /// part rather than the entry, and the heading drops it. Where the sheet spread an array
@@ -1874,7 +1874,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             notes.Add("기본 인덱스");
 
         // The name the generated code uses, when the sheet spells the column differently -
-        // `statEffect[0]["Id"]` is one column of a record array and `StatEffect0Id` is what
+        // `statBonus[0]["Id"]` is one column of a record array and `StatEffect0Id` is what
         // a reader will find in the generated type.
         if (field.RawName != field.Name)
             notes.Add($"생성 이름 {field.Name}");
@@ -1892,7 +1892,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         string title = notes.Count > 0 ? $" title=\"{Esc(string.Join(" · ", notes))}\"" : "";
 
         // The sheet's spelling rather than the normalized one: this page documents the
-        // workbook, and a record array written `statEffect[0]["Id"]` flattened to
+        // workbook, and a record array written `statBonus[0]["Id"]` flattened to
         // `StatEffect0Id` loses the one thing that says it is an array of records.
         string caption = string.IsNullOrEmpty(field.RawName) ? field.Name : field.RawName;
 

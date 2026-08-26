@@ -278,7 +278,7 @@ public sealed class SheetPerTableLayoutParser : ILayoutParser
         string firstType = sheet.Rows[TypeRow][0].Value;
 
         // The type has to be one this layout recognizes, not merely present. A reference
-        // tab in these workbooks reads `CharacterType` over `PC` in its first column -
+        // tab in these workbooks reads `ActorKind` over `PC` in its first column -
         // a perfectly good identifier over a cell that is simply data - so a check that
         // only asked whether the type cell was filled took the tab for a table and failed
         // on the unknown type `pc` instead of leaving it alone.
@@ -390,7 +390,7 @@ public sealed class SheetPerTableLayoutParser : ILayoutParser
             if (clash is not null)
             {
                 // Named in full because the two columns usually do not look alike in the
-                // sheet: `IconPath` and `Icon_Path` are different headings to whoever
+                // sheet: `ArtPath` and `Art_Path` are different headings to whoever
                 // typed them, and only become the same name here. Saying just the
                 // normalized name leaves the author hunting for a duplicate that, as far
                 // as the sheet is concerned, is not there.

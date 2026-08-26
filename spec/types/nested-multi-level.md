@@ -17,7 +17,7 @@
 
 |테이블|컬럼|JSON에서의 형태|
 |--|--|--|
-|`<워크북> : BossRaidGuideInfo`|`guideBattleSkill["BattleSkill"][0]`|`{ "BattleSkill": [a,b], "Order": [c,d] }`|
+|`<워크북> : BossRaidGuideInfo`|`guideBattleSkill["CombatAbility"][0]`|`{ "CombatAbility": [a,b], "Order": [c,d] }`|
 |`<워크북> : TownText`|`voiceTagForAdd[0][0]`|`[ [a,b,c,d], [e,f,g,h] ]`|
 
 컬럼 이름은 **로우 안으로 들어가는 경로**입니다 — 원본 익스포터가 그 경로대로 JSON을
@@ -46,8 +46,8 @@
 ## 1. 멤버가 배열인 레코드 — 컬럼이 이미 같은 형태
 
 ```
-guideBattleSkill["BattleSkill"][0]   guideBattleSkill["Order"][0]
-guideBattleSkill["BattleSkill"][1]   guideBattleSkill["Order"][1]
+guideBattleSkill["CombatAbility"][0]   guideBattleSkill["Order"][0]
+guideBattleSkill["CombatAbility"][1]   guideBattleSkill["Order"][1]
 ```
 
 이 컬럼 넷은 **레코드 배열의 컬럼 넷과 완전히 같습니다.** `Slot[0]["Id"]`·`Slot[0]["Label"]`·
@@ -57,14 +57,14 @@ guideBattleSkill["BattleSkill"][1]   guideBattleSkill["Order"][1]
 그런데 이 형태는 **원래부터 SoA**입니다. 그러니 와이어에 새로 필요한 것이 없습니다. 없는
 정도가 아니라, 레코드 배열보다 더 곧이곧대로 실립니다.
 
-**모델에도 새 구조가 필요 없습니다.** `SerialField{Kind=Record, Members=[BattleSkill, Order]}`
+**모델에도 새 구조가 필요 없습니다.** `SerialField{Kind=Record, Members=[CombatAbility, Order]}`
 이고 각 `RecordMember.Fields`가 컬럼 둘을 갖습니다 — **지금 그대로입니다.** 달라지는 것은
 그 컬럼 둘을 무엇으로 읽느냐 하나뿐입니다.
 
 |같은 컬럼, 다른 답|배열 길이|레코드 개수|
 |--|--|--|
 |`Slot[0]["Id"]` — 레코드의 배열|멤버는 스칼라|**2**|
-|`guideBattleSkill["BattleSkill"][0]` — 멤버가 배열인 레코드|**2**|1|
+|`guideBattleSkill["CombatAbility"][0]` — 멤버가 배열인 레코드|**2**|1|
 
 그래서 필요한 것은 **그룹에 붙는 비트 하나**입니다 — 「이 그룹의 배열성은 그룹이 아니라
 멤버에 있다」. 이름은 `MembersAreArrays`.
@@ -190,7 +190,7 @@ voiceTagForAdd[1][0]  voiceTagForAdd[1][1]  voiceTagForAdd[1][2]  voiceTagForAdd
 다릅니다.
 
 ```
-guideBattleSkill["BattleSkill"][0]   →  g.BattleSkill[j]     바깥에 이름이 있음
+guideBattleSkill["CombatAbility"][0]   →  g.CombatAbility[j]     바깥에 이름이 있음
 voiceTagForAdd[0][0]                 →  g[0][j]              이름 대신 번호
 ```
 
@@ -249,7 +249,7 @@ voiceTagForAdd[0][0]                 →  g[0][j]              이름 대신 번
 
 그 표기의 문법도 규칙 둘로 줄었습니다 — 이름이 든 대괄호는 **새 레벨을 엽니다**, 숫자가 든
 대괄호는 **왼쪽 레벨에 번호를 붙입니다**(이미 붙어 있으면 이름 없는 새 레벨을 엽니다).
-`character[0]["Id"]`와 `guideBattleSkill["BattleSkill"][0]`이 이 규칙에서 저절로 갈리고,
+`character[0]["Id"]`와 `guideBattleSkill["CombatAbility"][0]`이 이 규칙에서 저절로 갈리고,
 `a[0]["p"]["x"]`는 케이스를 따로 두지 않아도 읽힙니다.
 
 ### 형식 무변경 — 리프 하나가 와이어 컬럼 하나

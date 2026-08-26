@@ -191,12 +191,12 @@ var policy = context.Json(context.Option("ContentRoot") + "/policy.json");
 `rules/runtime/` 폴더의 규칙만 외부 저장소를 열 수 있습니다.
 
 ```csharp
-// validation/rules/runtime/CashShop.cs
+// validation/rules/runtime/Offer.cs
 var live = context.Db("Live").Set<int>("SELECT product_id FROM live_products");
 
 context.Info($"라이브 상품 {live.Count}건과 대조합니다.");
 
-foreach (var row in Tables.CashShop.Records)
+foreach (var row in Tables.Offer.Records)
 {
     if (row.OnSale == 1 && !live.Contains(row.ProductId))
         context.Error(row, nameof(row.ProductId), "판매 중인데 라이브 상품 테이블에 없습니다.");

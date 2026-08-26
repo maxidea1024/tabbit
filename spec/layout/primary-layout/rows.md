@@ -37,7 +37,7 @@ int? (min=0, max=100)
 string (text)
 string (text=Common)
 string (asset=icon)
-foreign Item|CEquip
+foreign Item|CharGear
 Reward
 int[] (size=1..4)
 ```
@@ -237,7 +237,7 @@ Luban에서 확인해 둔 것 중 이 자리의 설계에 물려받을 판정 2�
 |Luban의 대응물|`ref=`의 다중 테이블(검사만)|`$type`|
 
 「보상이 아이템일 수도 장비일 수도 있다」는 참조의 문제이지만 **행에 닿는 참조는 아닙니다** —
-`int (refs=Item;CEquip)`으로 적어 값이 어느 쪽의 id인지 검사하고, 행에 닿아야 하면 테이블마다
+`int (refs=Item;CharGear)`으로 적어 값이 어느 쪽의 id인지 검사하고, 행에 닿아야 하면 테이블마다
 컬럼을 둡니다. 「효과 레코드의 필드 구성이 행마다 다르다」가 다형의 문제이고, 그것은 여전히
 설계 단계입니다([Luban 대조 §5.2](../../../notes/luban-comparison.md)).
 

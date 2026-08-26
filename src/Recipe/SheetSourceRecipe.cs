@@ -180,7 +180,7 @@ public abstract class SheetSourceRecipe
     ///
     ///     "TableRowSets": "^(?&lt;table&gt;.+?)(?&lt;set&gt;_BC[A-Z]+)$"
     ///
-    /// reads `Admiral_BCCN` as another set of `Admiral`'s rows, named `_BCCN`. The `set` group
+    /// reads `Profile_BCCN` as another set of `Profile`'s rows, named `_BCCN`. The `set` group
     /// is captured rather than composed, so the separator is whatever the sheets wrote and
     /// the file comes out spelled the way the rest of that project spells it.
     ///

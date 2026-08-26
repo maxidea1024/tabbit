@@ -380,14 +380,14 @@ public static class StringExtensions
     /// </summary>
     /// <remarks>
     /// A run of capitals is one word, not one word per letter. Every uppercase character
-    /// used to start one, which is invisible in Pascal case - `SFXCategoryType` comes back
+    /// used to start one, which is invisible in Pascal case - `CSVExportType` comes back
     /// out as itself either way - and wrong everywhere else: the snake-case languages were
     /// given `enum_s_f_x_category_type.py`, and fields written `ATK_Growth` or `Name_KR` in
     /// the sheet reached Python as `a_t_k_growth` and `name_k_r`.
     ///
     /// So a capital opens a word when the character before it is not one, and a capital
     /// inside a run opens one only when the character after it is lowercase - that being
-    /// where the acronym stops and the next word starts. `SFXCategoryType` is SFX, Category
+    /// where the acronym stops and the next word starts. `CSVExportType` is SFX, Category
     /// and Type; `HTTPServer` is HTTP and Server; `HP` and `KR` stay whole.
     /// </remarks>
     private static bool StartsNewWord(string source, int index)

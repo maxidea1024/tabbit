@@ -79,7 +79,7 @@ recipe의 산출물은 이 설정이 없던 때와 같습니다.
   "Label": "pascal",             // enum 라벨
   "Constant": "upper-snake",     // 상수 이름
   "OnViolation": "error",
-  "Exempt": [ "Icon_Path" ]      // 아직 못 고친 기존 이름
+  "Exempt": [ "Art_Path" ]      // 아직 못 고친 기존 이름
 }
 ```
 
@@ -124,7 +124,7 @@ reads as one word boundary, so this name and `a_b` both reach the generated code
 
 ```
 One field name is written 2 ways: `Id` (66 places, first at Collection.xlsx : GroupTable : A2),
-`ID` (1 place, first at Master.xlsx : ShortCutTable : A2). These do not normalize to one
+`ID` (1 place, first at Master.xlsx : HotbarTable : A2). These do not normalize to one
 name, so the generated code carries a separate member for each spelling and every consumer
 has to know which one it is reading. Settle on `Id` and rewrite the other 1 place.
 ```
