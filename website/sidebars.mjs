@@ -11,6 +11,10 @@ const sidebars = {
       label: '시작하기',
       collapsed: false,
       items: [
+        // 빠른 시작 둘이 맨 위입니다. 처음 온 사람이 자기 자리를 먼저 찾아야 하고,
+        // 그 둘이 목록 안쪽에 있으면 없는 것과 같습니다 — 실제로 그랬습니다.
+        'guide/quickstart-designer',
+        'guide/quickstart-developer',
         'guide/install',
         'guide/concepts',
         'guide/glossary',

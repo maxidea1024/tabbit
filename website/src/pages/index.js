@@ -89,6 +89,32 @@ export default function Home() {
           </div>
         </header>
 
+        {/*
+          히어로 바로 다음입니다. 이 도구를 처음 보는 사람이 하는 일은 「이게 뭔가」가
+          아니라 「내가 뭘 하면 되나」이고, 그 답이 두 갈래입니다. 목록 안쪽에 두면
+          없는 것과 같습니다 — 실제로 그랬습니다.
+        */}
+        <section className={styles.entry}>
+          <div className={styles.entryGrid}>
+            <Link className={styles.entryCard} to="/docs/guide/quickstart-designer">
+              <span className={styles.entryWho}>시트에 데이터를 적는다면</span>
+              <strong>기획자용 빠른 시작</strong>
+              <span className={styles.entryWhat}>
+                엑셀만 있으면 됩니다. 배울 특수문자는 두 개이고, 표 하나를 그 자리에서
+                만들어 봅니다.
+              </span>
+            </Link>
+
+            <Link className={styles.entryCard} to="/docs/guide/quickstart-developer">
+              <span className={styles.entryWho}>도구를 붙인다면</span>
+              <strong>개발자용 빠른 시작</strong>
+              <span className={styles.entryWhat}>
+                설치하고, recipe를 하나 쓰고, 생성된 코드로 값을 읽는 데까지.
+              </span>
+            </Link>
+          </div>
+        </section>
+
         <section className={styles.flow}>
           <div className={styles.section}>
             <div className={styles.sectionHead}>
