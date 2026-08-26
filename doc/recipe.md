@@ -29,10 +29,10 @@ recipe 하나가 **무엇을 읽어**(`Sources`) **무엇을 낼지**(`Targets`)
 
 |무엇을 하려는가|어디를 볼까|
 |--|--|
-|내 상황에 맞는 것을 베끼고 싶다|[예제](recipe/examples.md#예제) — 유니티 · 언리얼 · 서버/클라 분리 · 구글 시트 · CI|
-|어디서 읽을지 정한다|[`Sources`](recipe/sources.md#sources--무엇을-읽을지)|
+|내 상황에 맞는 것을 베끼고 싶다|[예제](recipe/examples.md) — 유니티 · 언리얼 · 서버/클라 분리 · 구글 시트 · CI|
+|어디서 읽을지 정한다|[`Sources`](recipe/sources.md)|
 |무엇을 낼지 정한다|[`Targets`](recipe/targets.md#targets--이-변환이-내는-것-전부)|
-|설정 하나의 뜻을 찾는다|[설정 하나하나](recipe/settings.md#설정-하나하나)|
+|설정 하나의 뜻을 찾는다|[설정 하나하나](recipe/settings.md)|
 |사람마다 경로가 다르다|[환경 변수 `${NAME}`](recipe/settings.md#환경-변수--name)|
 |시트에 못 적는 규칙을 검사하고 싶다|[`Validation`](recipe/checks.md#validation--시트에-적을-수-없는-규칙)|
 |찾은 문제를 남에게 보여야 한다|[`Report`](recipe/checks.md#report--찾은-문제를-고칠-사람에게-보이기)|

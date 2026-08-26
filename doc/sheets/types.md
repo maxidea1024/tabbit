@@ -251,7 +251,7 @@ int (refs=Item;Mount)     값이 Item이나 Mount의 행 id인지 검사합니�
 ```
 
 같은 문자열을 `.textset` · `.csv` · `.tsv` · `.xml` · `.json` 무엇으로도 뽑을 수 있고,
-**이스케이프는 확장자가 정합니다.** 자세한 것은 [내보내기](../exports/text.md#수집된-텍스트--text-타깃)에
+**이스케이프는 확장자가 정합니다.** 자세한 것은 [내보내기](../exports/text.md)에
 있습니다.
 
 ### `asset` — 파일이 있어야 하는 문자열

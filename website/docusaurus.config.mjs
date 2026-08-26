@@ -101,7 +101,7 @@ const config = {
       items: [
         { type: 'doc', docId: 'guide/readme', position: 'left', label: '문서' },
         { to: '/docs/guide/install', position: 'left', label: '설치' },
-        { to: '/docs/spec/tcb-column-oriented-rationale', position: 'left', label: '설계 노트' },
+        { to: '/docs/spec/wire/tcb-column-oriented-rationale', position: 'left', label: '설계 노트' },
         { href: `${repo}/releases`, label: '릴리즈', position: 'right' },
         { href: repo, label: 'GitHub', position: 'right' },
       ],
@@ -121,7 +121,7 @@ const config = {
           title: '형식',
           items: [
             { label: '바이너리 형식', to: '/docs/guide/binary-format' },
-            { label: '왜 컬럼 지향인가', to: '/docs/spec/tcb-column-oriented-rationale' },
+            { label: '왜 컬럼 지향인가', to: '/docs/spec/wire/tcb-column-oriented-rationale' },
             { label: '벤치마크', to: '/docs/guide/benchmark' },
           ],
         },

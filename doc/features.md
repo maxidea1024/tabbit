@@ -94,7 +94,7 @@ MySQL, PostgreSQL, MongoDB, Redis입니다. [내보내기](exports.md)
 
 **컬럼마다 데이터 특성에 맞는 인코딩을 선택합니다.**
 
-사전, RLE, 델타, 비트폭 패킹입니다. [바이너리 형식](binary-format/encoding.md#컬럼-인코딩)
+사전, RLE, 델타, 비트폭 패킹입니다. [바이너리 형식](binary-format/encoding.md)
 
 **로드된 데이터를 HTML로 확인할 수 있습니다.**
 

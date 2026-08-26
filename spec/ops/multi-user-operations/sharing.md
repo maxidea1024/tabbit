@@ -9,7 +9,7 @@
 ### 2.1 병합이 불가능한 이유
 
 **산출물은 결정적입니다.** 같은 커밋의 같은 시트를 두 번 변환하면 바이트가 동일합니다
-([근거](../../../doc/binary-format/encoding.md#컬럼-인코딩) · `SummaryDocument`의 `Run`/`Data` 분리).
+([근거](../../../doc/binary-format/encoding.md) · `SummaryDocument`의 `Run`/`Data` 분리).
 그래서 충돌이 발생한다면 그것은 잡음이 아니라 **실제로 서로 다른 입력에서 나온 두 결과**입니다.
 
 문제는 그 충돌을 해소할 수단이 없다는 점입니다.

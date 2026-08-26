@@ -113,7 +113,7 @@ STRUCT DSL 1단계의 조건에 적혀 있었지만 등급이 다릅니다 — �
 뒤에도 Deflate가 35.8%를 더 줄입니다.
 
 다만 그것은 **모든 런타임에 압축 해제기를 들이는 값**이고,
-[컬럼 인코딩](binary-format/encoding.md#컬럼-인코딩)만으로 gzip한 JSON보다 작아진 데다 v104가 같은 파일을
+[컬럼 인코딩](binary-format/encoding.md)만으로 gzip한 JSON보다 작아진 데다 v104가 같은 파일을
 이미 35.5%로 만든 뒤라, 그 판단은 이 뒤에 남는 것을 보고 합니다.
 
 ## 하지 않기로 함
@@ -145,7 +145,7 @@ STRUCT DSL 1단계의 조건에 적혀 있었지만 등급이 다릅니다 — �
 |**배열 가운데 빈칸**|거부가 기본이고 `AllowArrayGaps`가 되돌립니다 ([설계](../spec/types/variable-length-record-arrays.md))|
 |**옵셔널 필드 2단계**|와이어 비트 6 + presence 비트맵 + v103. 모든 언어와 `json`·`binary` ([설계](../spec/types/optional-fields.md))|
 |**레코드 멤버별 옵셔널**|**형식 무변경** — 제약은 무엇이 참이어야 하는지를 규정하지 무엇이 표현 가능해야 하는지를 규정하지 않습니다 ([설계](../spec/types/record-member-optionality.md))|
-|**`text` 타입**|로컬라이즈 대상 문자열과 그 수집. 생성기도 와이어도 무변경 ([타입](sheets/types.md#text--번역을-위해-수집되는-문자열) · [내보내기](exports/text.md#수집된-텍스트--text-타깃))|
+|**`text` 타입**|로컬라이즈 대상 문자열과 그 수집. 생성기도 와이어도 무변경 ([타입](sheets/types.md#text--번역을-위해-수집되는-문자열) · [내보내기](exports/text.md))|
 |**`asset` 타입**|파일이 있어야 하는 문자열. 없는 파일은 경고이고 **어느 셀인지 함께** 보고합니다 ([설계](../spec/layout/column-constraints.md#에셋-존재-검사--제외했다가-되돌린-것))|
 |**`bitset` 타입**|최대 64개의 플래그. 파일에는 64비트 정수라 **형식·리더 무변경** ([설계](../spec/types/bitset.md))|
 |**합성 값 타입**|벡터·회전·색을 셀 하나에. 접힌 결과가 이미 지원되던 레코드라 **형식·리더·생성기 무변경** ([설계](../spec/types/composite-value-types.md))|
@@ -163,7 +163,7 @@ STRUCT DSL 1단계의 조건에 적혀 있었지만 등급이 다릅니다 — �
 |**배열 상수**|표기는 받아들여지고 있었는데 **어느 생성기도 내지 못했습니다** ([표기](../spec/layout/primary-layout/entities.md#85-상수셋))|
 |**비트폭 패킹 (v105)**|인코딩 13 `BITPACK`과 presence 비트맵의 인코딩, 모든 런타임 ([설계](../spec/wire/tcb-v105-bit-width-packing.md))|
 |**동적 배열 단일화 (v107)**|배열은 한 종류가 되었고 길이는 언제나 로우가 말합니다 ([설계](../spec/wire/tcb-v107-dynamic-arrays.md))|
-|**`.tcb` v104**|컬럼 인코딩 9종 → 13종, 파일 암호화(ChaCha20). 크기는 [벤치마크](benchmark.md#v104--배열과-정수인-실수)에 ([설계](../spec/wire/tcb-v104-composed-encodings.md))|
+|**`.tcb` v104**|컬럼 인코딩 9종 → 13종, 파일 암호화(ChaCha20). 크기는 [벤치마크](benchmark.md#데이터셋에-따른-차이)에 ([설계](../spec/wire/tcb-v104-composed-encodings.md))|
 |**변조 검출(MAC)과 파일 시그니처**|모든 런타임과 **게이트도 전부**. 버전은 105 그대로입니다 ([설계](../spec/wire/tcb-mac-and-signature.md))|
 |**큰 워크북의 메모리**|객체 모델을 걷어내고 스트리밍으로. peak이 GB 대에서 **2,757 MB**로 ([설계와 실측](../spec/import/streaming-workbook-reader.md))|
 |**`.xlsb`의 정의된 이름**|`BrtName`을 XTI 테이블로 풀어 읽어 **사전 변환 단계를 없앴습니다** ([설계](../spec/import/xlsb-defined-names.md))|
