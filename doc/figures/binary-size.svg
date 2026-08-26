@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" width="760" height="300"     role="img" aria-label="같은 테이블을 세 형식으로 냈을 때의 크기. 이름 있는 JSON 이 가장 크고, compact JSON 이 그 절반이며, 바이너리가 다시 그 절반입니다. 이름 있는 쪽이 큰 이유는 행마다 키를 다시 적기 때문이고, 행이 늘수록 그 비용도 함께 늡니다.">
+  <title>같은 데이터, 세 형식의 크기</title>
+  <desc>적합성 픽스처 TestFieldTypes 를 세 형식으로 낸 크기입니다. 이름 있는 JSON 이 1,015 바이트, compact JSON 이 541 바이트, 바이너리가 278 바이트입니다. 이름 있는 JSON 이 큰 이유는 컬럼 이름을 행마다 다시 적기 때문이고, 바이너리는 컬럼 이름을 디스크립터에 한 번만 적습니다. 3행짜리 픽스처라 디스크립터 88 바이트가 눈에 띄지만, 그것은 테이블당 한 번이므로 행이 늘면 비율이 0 으로 갑니다.</desc>
+
+  <style>
+    /*
+      막대 셋보다 중요한 것은 아래 한 줄입니다 - 이름 있는 JSON 은 행마다 키를 다시
+      적으므로, 행이 늘수록 격차가 벌어집니다. 3행짜리 그림에서 보이는 비율이 하한입니다.
+
+      Colours are GitHub's own, with a dark override.
+    */
+    .j1    { fill: #ffebe9; stroke: #ff8182; }
+    .j2    { fill: #fff8c5; stroke: #d4a72c; }
+    .bin   { fill: #dafbe1; stroke: #4ac26b; }
+    .desc  { fill: #ddf4ff; stroke: #54aeff; }
+    .step  { fill: #1f2328; font-weight: 600; }
+    .note  { fill: #59636e; }
+    .axis  { stroke: #d1d9e0; }
+
+    @media (prefers-color-scheme: dark) {
+      .j1    { fill: #4c1a1a; stroke: #f85149; }
+      .j2    { fill: #3a2d0b; stroke: #d29922; }
+      .bin   { fill: #0f2f1a; stroke: #3fb950; }
+      .desc  { fill: #0c2d6b; stroke: #388bfd; }
+      .step  { fill: #f0f6fc; }
+      .note  { fill: #9198a1; }
+      .axis  { stroke: #3d444d; }
+    }
+
+    text {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+                   "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      text-anchor: middle;
+    }
+    .t13 { font-size: 13px; }
+    .t12 { font-size: 12px; }
+    .t11 { font-size: 11px; }
+    .t10 { font-size: 10px; }
+    .left { text-anchor: start; }
+    .mono { font-family: ui-monospace, SFMono-Regular, "Cascadia Mono", Consolas, monospace; }
+  </style>
+
+  <text x="380" y="24" class="t13 step">같은 테이블 하나 — <tspan class="mono">TestFieldTypes</tspan> · 11컬럼 · 3행</text>
+
+
+  <!-- 이름 있는 JSON : 1015 B -->
+  <text x="150" y="70" class="t11 note left">이름 있는 JSON</text>
+  <rect x="150" y="80" width="550" height="34" rx="6" class="j1" stroke-width="1.5"/>
+  <text x="425" y="102" class="t12 step">1,015 B</text>
+
+  <!-- compact JSON : 541 B -->
+  <text x="150" y="140" class="t11 note left">compact JSON</text>
+  <rect x="150" y="150" width="293" height="34" rx="6" class="j2" stroke-width="1.5"/>
+  <text x="296" y="172" class="t12 step">541 B</text>
+
+  <!-- 바이너리 : 278 B (그중 디스크립터 88 B) -->
+  <text x="150" y="210" class="t11 note left">바이너리 <tspan class="mono">.tcb</tspan></text>
+  <rect x="150" y="220" width="151" height="34" rx="6" class="bin" stroke-width="1.5"/>
+  <rect x="150" y="220" width="48" height="34" rx="6" class="desc" stroke-width="1.5"/>
+  <text x="240" y="242" class="t12 step">278 B</text>
+  <text x="174" y="273" class="t10 note">88 B</text>
+  <text x="174" y="287" class="t10 note">디스크립터</text>
+
+  <text x="470" y="277" class="t11 note">이름 있는 쪽이 큰 이유는 <tspan class="step">행마다 키를 다시 적기</tspan> 때문입니다 —</text>
+  <text x="470" y="292" class="t11 note">행이 늘수록 격차가 벌어지고, 디스크립터 몫은 0 으로 갑니다</text>
+</svg>

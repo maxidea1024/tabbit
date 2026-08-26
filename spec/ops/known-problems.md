@@ -38,12 +38,12 @@
 "Validation": {
   "KnownProblems": [
     {
-      "At": "UWO_전투.xlsb : AutoMatePassive_BCCN",
+      "At": "<워크북>.xlsb : AutoMatePassive_BCCN",
       "Count": 6,
       "Reason": "레코드 원소가 있는데 required 멤버가 빔. 시트 오류 보고 §16"
     },
     {
-      "At": "UWO_보상.xlsb : RewardFixed : I25178",
+      "At": "<워크북>.xlsb : RewardFixed : I25178",
       "Reason": "required인데 값이 없음"
     }
   ]
@@ -82,9 +82,9 @@
 
 |`At`|맞추는 것|
 |--|--|
-|`UWO_전투.xlsb`|그 파일의 모든 보고|
-|`UWO_전투.xlsb : BattleBuff`|그 시트의 모든 보고|
-|`UWO_전투.xlsb : BattleBuff : AC1`|그 셀의 보고|
+|`<워크북>.xlsb`|그 파일의 모든 보고|
+|`<워크북>.xlsb : BattleBuff`|그 시트의 모든 보고|
+|`<워크북>.xlsb : BattleBuff : AC1`|그 셀의 보고|
 
 파일은 **경로의 끝부분 일치**입니다. recipe가 폴더를 읽으므로 항목마다 전체 경로를 적게 하면
 같은 목록이 기계마다 달라집니다.

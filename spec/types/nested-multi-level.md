@@ -17,8 +17,8 @@
 
 |테이블|컬럼|JSON에서의 형태|
 |--|--|--|
-|`UWO_토벌 : BossRaidGuideInfo`|`guideBattleSkill["BattleSkill"][0]`|`{ "BattleSkill": [a,b], "Order": [c,d] }`|
-|`UWO_대사 : TownText`|`voiceTagForAdd[0][0]`|`[ [a,b,c,d], [e,f,g,h] ]`|
+|`<워크북> : BossRaidGuideInfo`|`guideBattleSkill["BattleSkill"][0]`|`{ "BattleSkill": [a,b], "Order": [c,d] }`|
+|`<워크북> : TownText`|`voiceTagForAdd[0][0]`|`[ [a,b,c,d], [e,f,g,h] ]`|
 
 컬럼 이름은 **로우 안으로 들어가는 경로**입니다 — 원본 익스포터가 그 경로대로 JSON을
 만듭니다. 그래서 대괄호 안이 숫자냐 이름이냐, 그리고 **어느 쪽이 먼저냐**가 산출물의 형태를
@@ -214,7 +214,7 @@ voiceTagForAdd[0][0]                 →  g[0][j]              이름 대신 번
 
 게이트는 `member-array` 픽스처 하나가 두 형태를 같이 들고 있습니다 — 골든 트리, 컴파일 8개,
 읽기 3개, UHT, 그리고 **TypeScript 왕복**. 실제 워크북에서도 확인했습니다:
-`UWO_대사.xlsx : TownText` 2,344행이 `[[대사 4개], [대사 4개]]`로 나옵니다.
+`<워크북>.xlsx : TownText` 2,344행이 `[[대사 4개], [대사 4개]]`로 나옵니다.
 
 ### 남은 교훈
 
@@ -247,7 +247,7 @@ voiceTagForAdd[0][0]                 →  g[0][j]              이름 대신 번
 배열은 **같은 두 질문을 다른 레벨에서 답한 것**이고, 그래서 세 케이스가 아니라 규칙 하나로
 줄어듭니다. `FieldPathStep`이 그 두 비트이고, 두 표기가 만나는 지점입니다.
 
-`named-range` 표기의 문법도 규칙 둘로 줄었습니다 — 이름이 든 대괄호는 **새 레벨을 엽니다**, 숫자가 든
+그 표기의 문법도 규칙 둘로 줄었습니다 — 이름이 든 대괄호는 **새 레벨을 엽니다**, 숫자가 든
 대괄호는 **왼쪽 레벨에 번호를 붙입니다**(이미 붙어 있으면 이름 없는 새 레벨을 엽니다).
 `character[0]["Id"]`와 `guideBattleSkill["BattleSkill"][0]`이 이 규칙에서 저절로 갈리고,
 `a[0]["p"]["x"]`는 케이스를 따로 두지 않아도 읽힙니다.

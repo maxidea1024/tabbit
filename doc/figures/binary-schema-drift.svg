@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 320" width="760" height="320"
+     role="img" aria-label="행 지향이고 스키마가 파일에 없으면, 컬럼이 하나 늘었을 때 구 리더가 한 칸씩 밀려 조용히 다른 값을 읽습니다. 컬럼 지향에 태그가 있으면 모르는 컬럼을 길이만큼 건너뛰므로 나머지가 그대로 도착합니다.">
+  <title>컬럼이 하나 늘었을 때 — 조용히 어긋나는가</title>
+  <desc>구 클라이언트가 새 데이터를 읽는 상황입니다. 행 지향이고 스키마가 파일에 없으면 리더는 생성 시점에 알던 순서대로 읽는 수밖에 없어서, 가운데에 컬럼이 하나 늘면 그 뒤가 전부 한 칸씩 밀립니다. 실패가 아니라 조용히 다른 값입니다. TCB 는 컬럼마다 태그와 길이를 앞에 적어 두므로, 모르는 태그를 만나면 그 길이만큼 건너뛰고 나머지는 제자리에 도착합니다.</desc>
+
+  <style>
+    /*
+      이 그림이 무서운 이유는 왼쪽이 "실패"가 아니라 "성공"이라는 데 있습니다.
+      값이 들어오고 게임이 돕니다 - 다만 가격이 레벨입니다.
+
+      Colours are GitHub's own, with a dark override.
+    */
+    .old   { fill: #ffffff; stroke: #d1d9e0; }
+    .new   { fill: #ddf4ff; stroke: #54aeff; }
+    .bad   { fill: #ffebe9; stroke: #ff8182; }
+    .ok    { fill: #dafbe1; stroke: #4ac26b; }
+    .skip  { fill: #f6f8fa; stroke: #d1d9e0; stroke-dasharray: 3 2; }
+    .step  { fill: #1f2328; font-weight: 600; }
+    .note  { fill: #59636e; }
+    .lane  { fill: #59636e; font-weight: 600; }
+    .flow  { stroke: #9aa4b2; fill: none; }
+    .arrow { fill: #9aa4b2; }
+    .warn  { fill: #cf222e; font-weight: 600; }
+    .good  { fill: #1a7f37; font-weight: 600; }
+
+    @media (prefers-color-scheme: dark) {
+      .old   { fill: #151b23; stroke: #3d444d; }
+      .new   { fill: #0c2d6b; stroke: #388bfd; }
+      .bad   { fill: #4c1a1a; stroke: #f85149; }
+      .ok    { fill: #0f2f1a; stroke: #3fb950; }
+      .skip  { fill: #0d1117; stroke: #3d444d; }
+      .step  { fill: #f0f6fc; }
+      .note  { fill: #9198a1; }
+      .lane  { fill: #9198a1; }
+      .flow  { stroke: #6a7381; }
+      .arrow { fill: #6a7381; }
+      .warn  { fill: #ff7b72; }
+      .good  { fill: #3fb950; }
+    }
+
+    text {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+                   "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      text-anchor: middle;
+    }
+    .t13 { font-size: 13px; }
+    .t12 { font-size: 12px; }
+    .t11 { font-size: 11px; }
+    .t10 { font-size: 10px; }
+    .left { text-anchor: start; }
+    .mono { font-family: ui-monospace, SFMono-Regular, "Cascadia Mono", Consolas, monospace; }
+  </style>
+
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="8" refY="5"
+            markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M 0.5 1 L 9 5 L 0.5 9 z" class="arrow"/>
+    </marker>
+  </defs>
+
+  <text x="380" y="22" class="t13 step">구 클라이언트가 새 데이터를 읽습니다 — 가운데에 컬럼이 하나 늘었습니다</text>
+
+  <!-- 위: 행 지향, 스키마 없음 -->
+  <text x="20" y="62" class="t11 lane left">행 지향 · 스키마가 파일에 없음</text>
+
+  <rect x="240" y="46" width="86" height="34" rx="6" class="old" stroke-width="1.4"/>
+  <text x="283" y="68" class="t11 step mono">id</text>
+  <rect x="332" y="46" width="86" height="34" rx="6" class="new" stroke-width="1.4"/>
+  <text x="375" y="62" class="t10 step mono">grade</text>
+  <text x="375" y="76" class="t10 note">새 컬럼</text>
+  <rect x="424" y="46" width="86" height="34" rx="6" class="old" stroke-width="1.4"/>
+  <text x="467" y="68" class="t11 step mono">price</text>
+  <rect x="516" y="46" width="86" height="34" rx="6" class="old" stroke-width="1.4"/>
+  <text x="559" y="68" class="t11 step mono">level</text>
+
+  <text x="140" y="112" class="t11 note left">구 리더가 읽는 것</text>
+  <rect x="240" y="96" width="86" height="34" rx="6" class="ok" stroke-width="1.4"/>
+  <text x="283" y="118" class="t11 step mono">id</text>
+  <rect x="332" y="96" width="86" height="34" rx="6" class="bad" stroke-width="1.4"/>
+  <text x="375" y="112" class="t10 step mono">price 자리</text>
+  <text x="375" y="125" class="t10 note mono">grade 가 옵니다</text>
+  <rect x="424" y="96" width="86" height="34" rx="6" class="bad" stroke-width="1.4"/>
+  <text x="467" y="112" class="t10 step mono">level 자리</text>
+  <text x="467" y="125" class="t10 note mono">price 가 옵니다</text>
+  <rect x="516" y="96" width="86" height="34" rx="6" class="skip" stroke-width="1.4"/>
+  <text x="559" y="112" class="t10 note">읽지 않습니다</text>
+  <text x="559" y="125" class="t10 note">컬럼이 셋뿐이라</text>
+
+  <text x="640" y="112" class="t11 warn left">한 칸씩 밀립니다</text>
+  <text x="380" y="152" class="t11 warn">실패가 아닙니다 — 값이 들어오고 게임이 그대로 돕니다. <tspan class="mono">price</tspan> 가 등급이고 <tspan class="mono">level</tspan> 이 가격일 뿐입니다</text>
+
+  <line x1="20" y1="176" x2="740" y2="176" class="flow" stroke-width="1" stroke-dasharray="4 3"/>
+
+  <!-- 아래: 컬럼 지향 + 태그 -->
+  <text x="20" y="212" class="t11 lane left">컬럼 지향 · 태그와 길이가 앞에</text>
+
+  <rect x="240" y="196" width="86" height="34" rx="6" class="old" stroke-width="1.4"/>
+  <text x="283" y="212" class="t10 step mono">@1 id</text>
+  <text x="283" y="225" class="t10 note">12 B</text>
+  <rect x="332" y="196" width="86" height="34" rx="6" class="new" stroke-width="1.4"/>
+  <text x="375" y="212" class="t10 step mono">@4 grade</text>
+  <text x="375" y="225" class="t10 note">9 B</text>
+  <rect x="424" y="196" width="86" height="34" rx="6" class="old" stroke-width="1.4"/>
+  <text x="467" y="212" class="t10 step mono">@2 price</text>
+  <text x="467" y="225" class="t10 note">12 B</text>
+  <rect x="516" y="196" width="86" height="34" rx="6" class="old" stroke-width="1.4"/>
+  <text x="559" y="212" class="t10 step mono">@3 level</text>
+  <text x="559" y="225" class="t10 note">8 B</text>
+
+  <text x="140" y="262" class="t11 note left">구 리더가 읽는 것</text>
+  <rect x="240" y="246" width="86" height="34" rx="6" class="ok" stroke-width="1.4"/>
+  <text x="283" y="268" class="t11 step mono">id</text>
+  <rect x="332" y="246" width="86" height="34" rx="6" class="skip" stroke-width="1.4"/>
+  <text x="375" y="262" class="t10 note">모르는 태그</text>
+  <text x="375" y="276" class="t10 note">9 B 건너뜀</text>
+  <rect x="424" y="246" width="86" height="34" rx="6" class="ok" stroke-width="1.4"/>
+  <text x="467" y="268" class="t11 step mono">price</text>
+  <rect x="516" y="246" width="86" height="34" rx="6" class="ok" stroke-width="1.4"/>
+  <text x="559" y="268" class="t11 step mono">level</text>
+
+  <text x="640" y="262" class="t11 good left">제자리입니다</text>
+  <text x="380" y="304" class="t11 note">길이가 앞에 있으므로 <tspan class="step">내용을 몰라도 건너뛸 수 있습니다</tspan></text>
+</svg>

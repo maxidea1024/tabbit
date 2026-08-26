@@ -24,7 +24,7 @@
 전체 실행이 된 경우에는 **그 이유를 함께 보고합니다.**
 
 ```
-[I] [Caching   ] Full run: 2 workbooks changed (UWO_교역.xlsx, UWO_경매.xlsb).
+[I] [Caching   ] Full run: 2 workbooks changed (<워크북 A>.xlsx, <워크북 B>.xlsb).
 [I] [Caching   ] Full run: the recipe's Sources section changed.
 [I] [Caching   ] Full run: a different build of Tabbit wrote this cache (1.4.0).
 [I] [Caching   ] Full run: 3 output files are missing.

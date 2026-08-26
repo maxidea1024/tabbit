@@ -79,7 +79,7 @@
 
 시트로 나타낼 수 없는 규칙, 그리고 그것을 쓰고 돌리는 환경
 
-- [메시지 ID — 보고에 신분증을 주고, 그 뒤에 언어를 붙이기](validation/message-ids.md)
+- [메시지 ID — 메시지를 식별할 수 있게 하고, 그 뒤에 언어를 붙이기](validation/message-ids.md)
 - [규칙 우선순위 — 티어와 차단점](validation/rule-priority.md)
 - [검증 파이프라인 — 시트로 나타낼 수 없는 규칙](validation/validation-pipeline.md) *(3개로 나뉨)*
 - [검증 사용성과 C# 어셈블리 산출](validation/validation-usability-and-assembly-output.md) *(4개로 나뉨)*

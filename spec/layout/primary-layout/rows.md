@@ -94,7 +94,7 @@ int[] (size=1..4)
 
 ## 5. `:field` 행 — 컬럼 경로 표기
 
-**경로의 정본은 대괄호 원소 번호와 점 멤버입니다.** named-range 레이아웃의
+**경로의 정본은 대괄호 원소 번호와 점 멤버입니다.** 다른 레이아웃의
 `character[0]["Id"]`([UwoColumnPath](../../../src/Cooking/Layouts/UwoColumnPath.cs))와 기존
 tabbit의 `Slot1.Id`가 이 표기 하나로 합류합니다.
 

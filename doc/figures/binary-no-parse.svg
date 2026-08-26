@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 268" width="760" height="268"
+     role="img" aria-label="JSON 은 텍스트를 토큰으로 쪼개고 객체 트리를 만든 뒤에야 값에 닿습니다. TCB 는 디스크립터가 말한 자리로 바로 갑니다. 없어지는 것은 단계 하나가 아니라 행 수만큼 반복되던 할당입니다.">
+  <title>파싱 단계가 없습니다</title>
+  <desc>JSON 을 읽으려면 텍스트를 토큰으로 쪼개고, 그 토큰으로 객체 트리를 만들고, 그 트리에서 값을 꺼내야 합니다. 가운데 두 단계가 행마다 되풀이되고 그때마다 객체가 생깁니다. TCB 는 파일 앞의 디스크립터가 각 컬럼 블록이 어디서 시작해 몇 바이트인지 말해 두므로, 읽는 쪽은 그 자리로 바로 가서 값을 꺼냅니다.</desc>
+
+  <style>
+    /*
+      「빠르다」가 아니라 「그 일을 하지 않는다」가 요점입니다. 가운데 두 상자는 행마다
+      되풀이되고 그때마다 객체가 생깁니다 - 없어지는 것은 시간이 아니라 할당입니다.
+
+      Colours are GitHub's own, with a dark override - served as an image, so the query
+      follows the viewer's system theme.
+    */
+    .slow  { fill: #fff8c5; stroke: #d4a72c; }
+    .drop  { fill: #ffebe9; stroke: #ff8182; }
+    .fast  { fill: #dafbe1; stroke: #4ac26b; }
+    .file  { fill: #ffffff; stroke: #d1d9e0; }
+    .step  { fill: #1f2328; font-weight: 600; }
+    .note  { fill: #59636e; }
+    .flow  { stroke: #9aa4b2; fill: none; }
+    .arrow { fill: #9aa4b2; }
+    .lane  { fill: #59636e; font-weight: 600; }
+
+    @media (prefers-color-scheme: dark) {
+      .slow  { fill: #3a2d0b; stroke: #d29922; }
+      .drop  { fill: #4c1a1a; stroke: #f85149; }
+      .fast  { fill: #0f2f1a; stroke: #3fb950; }
+      .file  { fill: #151b23; stroke: #3d444d; }
+      .step  { fill: #f0f6fc; }
+      .note  { fill: #9198a1; }
+      .flow  { stroke: #6a7381; }
+      .arrow { fill: #6a7381; }
+      .lane  { fill: #9198a1; }
+    }
+
+    text {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+                   "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      text-anchor: middle;
+    }
+    .t13 { font-size: 13px; }
+    .t12 { font-size: 12px; }
+    .t11 { font-size: 11px; }
+    .t10 { font-size: 10px; }
+    .left { text-anchor: start; }
+    .mono { font-family: ui-monospace, SFMono-Regular, "Cascadia Mono", Consolas, monospace; }
+  </style>
+
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="8" refY="5"
+            markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M 0.5 1 L 9 5 L 0.5 9 z" class="arrow"/>
+    </marker>
+  </defs>
+
+  <text x="380" y="22" class="t13 step">가운데 두 단계가 행마다 되풀이됩니다</text>
+
+  <!-- JSON 레인 -->
+  <text x="46" y="76" class="t12 lane left">JSON</text>
+
+  <rect x="118" y="52" width="118" height="48" rx="9" class="file" stroke-width="1.5"/>
+  <text x="177" y="72" class="t11 step">텍스트</text>
+  <text x="177" y="90" class="t10 note mono">{"id":1,"name":…}</text>
+
+  <rect x="272" y="52" width="118" height="48" rx="9" class="drop" stroke-width="1.5"/>
+  <text x="331" y="72" class="t11 step">토큰으로 쪼갬</text>
+  <text x="331" y="90" class="t10 note">문자 단위 스캔</text>
+
+  <rect x="426" y="52" width="118" height="48" rx="9" class="drop" stroke-width="1.5"/>
+  <text x="485" y="72" class="t11 step">객체 트리</text>
+  <text x="485" y="90" class="t10 note">행마다 할당</text>
+
+  <rect x="580" y="52" width="118" height="48" rx="9" class="slow" stroke-width="1.5"/>
+  <text x="639" y="78" class="t11 step">값</text>
+
+  <path d="M 236 76 L 266 76" class="flow" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M 390 76 L 420 76" class="flow" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M 544 76 L 574 76" class="flow" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <text x="408" y="122" class="t10 note">이 둘이 없어집니다 — 시간이 아니라 <tspan class="step">할당</tspan>이 없어지는 것입니다</text>
+
+  <!-- TCB 레인 -->
+  <text x="46" y="186" class="t12 lane left">.tcb</text>
+
+  <rect x="118" y="156" width="272" height="60" rx="9" class="file" stroke-width="1.5"/>
+  <text x="254" y="178" class="t11 step">디스크립터 + 값 블록</text>
+  <text x="254" y="196" class="t10 note">각 컬럼이 <tspan class="mono">어디서 시작해 몇 바이트</tspan>인지 앞에 적혀 있습니다</text>
+  <text x="254" y="211" class="t10 note">컬럼당 8바이트, 테이블당 한 번</text>
+
+  <rect x="580" y="162" width="118" height="48" rx="9" class="fast" stroke-width="1.5"/>
+  <text x="639" y="188" class="t11 step">값</text>
+
+  <path d="M 390 186 L 574 186" class="flow" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="482" y="178" class="t10 note">그 자리로 바로</text>
+
+  <text x="380" y="248" class="t11 note">읽는 쪽이 하는 일은 <tspan class="step">주소를 더하고 바이트를 해석하는 것</tspan>뿐입니다</text>
+</svg>

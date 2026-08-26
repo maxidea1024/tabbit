@@ -12,6 +12,15 @@
 
 ---
 
+## 빠른 시작
+
+**긴 문서를 읽기 전에 여기부터.** 10분이면 엑셀 하나가 게임 코드에 도착합니다.
+
+| 누가 | 문서 |
+| --- | --- |
+| 데이터를 쓰는 사람 | [기획자용 빠른 시작](quickstart-designer.md) — 배울 특수문자는 두 개입니다 |
+| 도구를 붙이는 사람 | [개발자용 빠른 시작](quickstart-developer.md) — 설치부터 코드에서 읽기까지 |
+
 ## 시작하기
 
 | 문서 | 내용 |
@@ -133,7 +142,7 @@
 | 문서 | 내용 |
 | --- | --- |
 | [상수 세트 제거](../spec/targets/constant-set-removal.md) | 초안. 엔티티를 테이블과 enum 둘로 줄이고 상수셋은 한 행 테이블이 맡는 안 |
-| [도구가 내는 메시지의 ID](../spec/validation/message-ids.md) | 번역이 아니라 메시지에 정체성을 주는 작업 |
+| [도구가 내는 메시지의 ID](../spec/validation/message-ids.md) | 번역이 아니라 메시지를 식별할 수 있게 하는 것이 먼저입니다 |
 | [`--help`가 내놓는 것](../spec/ops/cli-help.md) | 옵션 44개의 평면 목록을 도구 설명부터 시작하게 하는 설계 |
 | [내보내기 형식 늘리기](../spec/targets/export-formats.md) | 파일 형식을 2개에서 6개로. 형식마다 답이 갈리는 값 표현 |
 | [HTML 문서의 규격](../spec/targets/html-documentation.md) | 데이터를 사람이 확인하는 산출물의 페이지 구성, 페이지 이동, 통계 |

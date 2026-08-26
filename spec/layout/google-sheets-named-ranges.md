@@ -52,7 +52,7 @@ if (sheet.NamedRanges.Count == 0)
 [`.xlsb`의 정의된 이름](../import/xlsb-defined-names.md) 1절이 기재한 것과 같은 종류의 결함이며,
 원인만 다릅니다 — 그쪽은 파트를 찾지 못하는 것이고 이쪽은 조회 자체가 없는 것입니다.
 
-**현재 이 조합을 사용하는 recipe는 없습니다.** 이름을 쓰는 레이아웃은 `named-range` 하나이고
+**현재 이 조합을 사용하는 recipe는 없습니다.** 정의된 이름을 쓰는 레이아웃이 하나 있고
 워크북 파일을 입력으로 받으며, `GoogleSheets` 항목을 채운 recipe는
 [`src/recipes/web.jsonc`](../../src/recipes/web.jsonc) 하나입니다. 즉 이것은 회귀가 아니라
 **미구현이며, 구현되지 않았다는 사실이 표시되지 않는 상태**입니다.
