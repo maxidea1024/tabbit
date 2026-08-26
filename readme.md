@@ -1,4 +1,4 @@
-<a href="doc/readme.md">
+<a href="https://maxidea1024.github.io/tabbit/">
   <img src="brand/dist/readme-header.jpg" alt="Tabbit — Game Data Authoring & Build Tool" width="100%">
 </a>
 
@@ -33,12 +33,12 @@ tabbit --new-recipe my-recipe.json --template unity
 tabbit --recipe my-recipe.json
 ```
 
-시트 한 장이 실제 코드로 어떻게 변하는지는
-[시트에 무엇을 적을 수 있나](doc/concepts.md)에서 처음부터 끝까지 따라갈 수 있습니다.
+[시트 한 장으로 시작하는 예제](doc/concepts.md)가 그다음입니다.
 
 ## 문서
 
-[문서 목록](doc/readme.md)이 시작점입니다. 사이트로는 <https://maxidea1024.github.io/tabbit/>.
+[문서 사이트](https://maxidea1024.github.io/tabbit/)에 전부 있습니다.
+저장소에서는 [문서 목록](doc/readme.md)이 같은 자리입니다.
 
 | 문서 | 내용 |
 | --- | --- |

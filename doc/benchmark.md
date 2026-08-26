@@ -116,7 +116,7 @@ compact JSON 대비 12.4배, 이름 있는 JSON 대비 36.7배입니다. 컬럼�
 |--|--|--|--|--|
 |`EndValue`|i64|DICT|140,554 B|서로 다른 값이 많아 사전이 가장 작았습니다 — 18.4%|
 |`BaseValue`|i32|DELTA_RLE|109,126 B|구간마다 등차. 델타를 다시 런으로 접습니다|
-|`StepValue`|i32|DELTA|96,292 B|등차이되 런이 서지 않아 델타만|
+|`StepValue`|i32|DELTA|96,292 B|등차이되 런이 생기지 않아 델타만|
 |`CapValue`|i64|DICT_RLE|9,573 B|곡선 하나에 값 하나. **1.3%**|
 |`Tick`|i32|DELTA_RLE|4,815 B|0부터 118까지 800번 반복. **1.3%**|
 |`Id` · `TierName` · `CurveStat` · `Revision` + 헤더|—|—|**234 B**|아래|
