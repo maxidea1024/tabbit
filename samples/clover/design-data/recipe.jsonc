@@ -36,11 +36,14 @@
   //
   // 그림은 `web/public/art/` 에 있습니다. 웹이 그대로 서빙하는 자리이고, 유니티는
   // 임포트할 때 거기서 가져갑니다 — 한 벌을 두 곳에 두지 않기 위해서입니다.
+  //
+  // 202장이 전부 들어왔으므로 `error` 입니다. 이 검사가 자리표가 아니라 게임이
+  // 띄우는 파일을 보고 있고, 그림 하나가 빠지면 변환이 그 자리에서 멈춥니다.
   "Assets": {
     "Roots": [
       { "Kind": "joker", "Path": "samples/clover/web/public/art/joker", "Pattern": "*.png" }
     ],
-    "OnMissing": "warn"
+    "OnMissing": "error"
   },
 
   // 시트의 타입으로 표현되지 않는 규칙. 희귀도 분포와 효과 행의 존재와 `Custom` 목록이

@@ -1,7 +1,7 @@
 {
-  "LastUpdatedDate": "2026-08-27T16:15:35.7582191+09:00",
-  "MasterHash": "3c1a423925e9f161db760cb67516db4c",
-  "TotalSize": 52858,
+  "LastUpdatedDate": "2026-08-28T01:18:49.5391469+09:00",
+  "MasterHash": "78ad3e1cc4ff07e33661a58b116fae50",
+  "TotalSize": 52714,
   "Items": [
     {
       "Name": "Rank.tcb",
@@ -107,9 +107,9 @@
     },
     {
       "Name": "Joker.tcb",
-      "Size": 5213,
-      "Hash": "6e43d13d35caae075ff3fa7d60f8d01e",
-      "LastUpdatedDate": "2026-08-27T10:55:50.2327007+09:00"
+      "Size": 5069,
+      "Hash": "e2189cc6f9624783896ce006c801758a",
+      "LastUpdatedDate": "2026-08-28T01:18:49.4301611+09:00"
     },
     {
       "Name": "JokerRarityWeight.tcb",

@@ -454,7 +454,7 @@ def seed():
          'string (text=Joker)', 'string (asset=joker)', 'bool', 'int (min=1, max=150)'],
         ['식별자', '희귀도', '상점에서의 값', '표시 이름', '그림',
          '복사 조커가 복사할 수 있는가', '수집 목록에서의 순서'],
-        [[e[0], e[3], e[4], e[1], 'joker_' + e[0], e[5], i + 1]
+        [[e[0], e[3], e[4], e[1], e[0], e[5], i + 1]
          for i, e in enumerate(JOKERS)]))
 
     write('JokerRarityWeight', table(
