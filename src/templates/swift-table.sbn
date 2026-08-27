@@ -148,6 +148,12 @@ public final class {{ table.record_name }} {
    computed property where the member is one value; a method taking the element number where the
    member is the array, which is the third place an element number sits.
    spec/references/multi-target-accessors.md. ##~}}
+{{~## The second layer of a container's surface. The arrays above are the file's order; these
+   are the lookup, and neither of this language's hash containers keeps one.
+   spec/types/set-and-map.md section 7. ##~}}
+{{~ for line in rt.lookups ~}}
+        {{ line }}
+{{~ end ~}}
     }
 {{~ end ~}}
 {{~ end ~}}
@@ -425,6 +431,17 @@ public final class {{ table.table_name }} {
 
             try Tcb.checkBlockEnd(reader, column, blockEnd)
         }
+{{~ if table.container_fill | array.size > 0 }}
+{{~## The lookups a `set` and a `map` publish beside their arrays. By index, because an
+   element of an array of structs is a copy - mutating `record` would throw the answer away.
+   Here rather than on the way through: a map needs its key column and how long it is, and
+   the columns arrive one at a time. spec/types/set-and-map.md section 7.3. ##~}}
+        for i in 0..<loaded.count {
+{{~ for line in table.container_fill ~}}
+            {{ line }}
+{{~ end ~}}
+        }
+{{~ end ~}}
 {{~ if table.indexes | array.size > 0 }}
         for record in loaded {
 {{~ for index in table.indexes ~}}

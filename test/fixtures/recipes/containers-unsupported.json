@@ -22,10 +22,8 @@
 
   "Targets": [
     {
-      "Type": "rust",
-      "Path": "test/fixtures/output/containers-unsupported/rust",
-      "CrateName": "containers",
-      "BinaryTableFileExtension": ".tcb"
+      "Type": "lua",
+      "Path": "test/fixtures/output/containers-unsupported/lua"
     }
   ]
 }

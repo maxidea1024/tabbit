@@ -57,6 +57,9 @@ internal static class ContainerHarness
             "go" => RunGo(),
             "java" => RunJava(),
             "kotlin" => RunKotlin(),
+            "dart" => RunDart(),
+            "swift" => RunSwift(),
+            "rust" => RunRust(),
             _ => throw new ArgumentException($"No container driver for `{language}`."),
         };
 
@@ -149,5 +152,70 @@ internal static class ContainerHarness
             return build;
 
         return ConformanceHarness.Execute("java", root, "-jar", jar, BinaryDir());
+    }
+
+    // ----------------------------------------------------------------- dart
+
+    private static ToolResult RunDart()
+    {
+        Assert.True(ConformanceHarness.DartIsAvailable(out string why),
+            $"Dart toolchain required. {why}");
+
+        // Beside the generated library, whose import of the reader is relative.
+        string root = Generated("dart");
+
+        File.Copy(Driver("dart", "harness.dart"),
+                  Path.Combine(root, "harness.dart"), overwrite: true);
+
+        return ConformanceHarness.RunDartScript(root, "harness.dart", BinaryDir());
+    }
+
+    // ---------------------------------------------------------------- swift
+
+    private static ToolResult RunSwift()
+    {
+        Assert.True(ConformanceHarness.SwiftIsAvailable(out string why),
+            $"Swift toolchain required. {why}");
+
+        string root = Generated("swift");
+
+        // The entry point has to be in a file called `main.swift`; Swift allows top-level
+        // statements nowhere else.
+        File.Copy(Driver("swift", "main.swift"),
+                  Path.Combine(root, "main.swift"), overwrite: true);
+
+        var sources = Directory
+            .EnumerateFiles(root, "*.swift", SearchOption.AllDirectories)
+            .ToArray();
+
+        var build = ConformanceHarness.CompileSwiftProgram(
+            root, "containers-check", sources);
+
+        if (!build.Succeeded)
+            return build;
+
+        return ConformanceHarness.RunSwiftProgram(root, "containers-check", BinaryDir());
+    }
+
+    // ----------------------------------------------------------------- rust
+
+    private static ToolResult RunRust()
+    {
+        Assert.True(ConformanceHarness.RustIsAvailable(out string why),
+            $"Rust toolchain required. {why}");
+
+        // A binary inside the generated crate, for the same reason the Go driver is a
+        // package inside the generated module: that is the only place the generated types
+        // are importable from.
+        string crateDir = Generated("rust");
+        string binDir = Path.Combine(crateDir, "src", "bin");
+
+        Directory.CreateDirectory(binDir);
+
+        File.Copy(Driver("rust", "harness.rs"),
+                  Path.Combine(binDir, "harness.rs"), overwrite: true);
+
+        return ConformanceHarness.Execute(
+            "cargo", crateDir, "run", "--quiet", "--bin", "harness", "--", BinaryDir());
     }
 }

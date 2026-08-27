@@ -63,6 +63,21 @@
       "PackageName": "containers",
       "AccessorName": "ContainersData",
       "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "dart",
+      "Path": "test/fixtures/output/containers-target/dart"
+    },
+    {
+      "Type": "swift",
+      "Path": "test/fixtures/output/containers-target/swift",
+      "ModuleName": "Containers"
+    },
+    {
+      "Type": "rust",
+      "Path": "test/fixtures/output/containers-target/rust",
+      "CrateName": "containers",
+      "BinaryTableFileExtension": ".tcb"
     }
   ]
 }

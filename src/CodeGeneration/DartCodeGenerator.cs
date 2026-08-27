@@ -122,6 +122,13 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     protected override bool SupportsDeepNestedFields => true;
 
     /// <summary>
+    /// `Map` and `Set`, whose default implementations keep insertion order here - so the
+    /// lookup and the list agree on what the second entry is.
+    /// spec/types/set-and-map.md section 7.
+    /// </summary>
+    protected override bool SupportsContainers => true;
+
+    /// <summary>
     /// An optional column becomes a `has{Field}` property beside the value one.
     /// </summary>
     /// <remarks>
@@ -312,6 +319,85 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         }).ToList(),
     };
 
+    /// <summary>
+    /// The lookups one record class declares beside its lists.
+    /// </summary>
+    /// <remarks>
+    /// The language's own `Map` and `Set`, whose defaults are insertion-ordered - and the
+    /// insertion order is the file's, so iterating a lookup gives back what the sheet wrote.
+    /// spec/types/set-and-map.md section 7.2.
+    /// </remarks>
+    private List<string> LookupLines(
+        List<RecordMember> members, Models.ContainerKind own, SerialField group)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(members, own, group))
+        {
+            if (plan.IsMap)
+            {
+                string keyType = ElementTypeOf(plan.Source);
+                string valueType = plan.ValueIsOneColumn ? ElementTypeOf(plan.Value!) : "int";
+                string name = plan.ValueIsOneColumn ? "byKey" : "indexByKey";
+
+                lines.Add(plan.ValueIsOneColumn
+                    ? "/// What each key is mapped to. Insertion order, which is the file's."
+                    : "/// Where each key sits among the entries - this map's value is a "
+                      + "class, which is a field per column, so there is no one value to "
+                      + "answer with.");
+
+                lines.Add($"Map<{keyType}, {valueType}> {name} = {{}};");
+
+                continue;
+            }
+
+            lines.Add($"/// The elements of {DartName(plan.Source.Name)}, for asking whether "
+                      + "one is there.");
+            lines.Add($"Set<{ElementTypeOf(plan.Source)}> {DartName(plan.Source.Name)}Set = {{}};");
+        }
+
+        return lines;
+    }
+
+    /// <summary>The statements filling every lookup in a table, once the rows are read.</summary>
+    private List<string> ContainerFillLines(Table table)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(table))
+        {
+            string access = "record." + DartName(plan.Group.Name)
+                + string.Concat(plan.Path.Select(name => "." + DartName(name)));
+
+            string source = access + "." + DartName(plan.Source.Name);
+
+            if (plan.IsMap)
+            {
+                string name = access + "." + (plan.ValueIsOneColumn ? "byKey" : "indexByKey");
+
+                string stored = plan.ValueIsOneColumn
+                    ? access + "." + DartName(plan.Value!.Name) + "[j]"
+                    : "j";
+
+                lines.Add($"for (var j = 0; j < {source}.length; j++) {{");
+                lines.Add($"  {name}[{source}[j]] = {stored};");
+                lines.Add("}");
+
+                continue;
+            }
+
+            lines.Add($"for (var j = 0; j < {source}.length; j++) {{");
+            lines.Add($"  {access}.{DartName(plan.Source.Name)}Set.add({source}[j]);");
+            lines.Add("}");
+        }
+
+        return lines;
+    }
+
+    /// <summary>One value's type, as a generic argument names it.</summary>
+    private string ElementTypeOf(RecordMember member)
+        => ToDartTypeName(member.FirstField!.ElementType, member.FirstField!.EnumOrNull, null);
+
     private DartTableView BuildTable(Table table) => new DartTableView
     {
         RawName = table.Name,
@@ -320,6 +406,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        ContainerFill = ContainerFillLines(table),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
         // A separate list, because declaring a property is per field and reading is per
@@ -524,13 +611,19 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
                 {
                     // The list is the member's when the group is one record - same columns,
                     // same wire, and only which of the two owns it differs.
-                    declarations.Add((member.IsArray
+                    // Or the member's own cell holding the list, which is what a `set` and
+                    // a `map` are. Growable and empty there: no declaration knows how long a
+                    // row's list is, and the read makes what it fills.
+                    // spec/types/set-and-map.md section 4.
+                    declarations.Add((member.HoldsList
                                     ? $"List<{ToDartTypeName(member.FirstField!.ElementType, member.FirstField!.EnumOrNull, null)}>"
                                     : ToDartTypeName(member.FirstField!.ElementType, member.FirstField!.EnumOrNull, null))
                                 + $" {DartName(member.Name)} = "
-                                + (member.IsArray
-                                    ? $"List.filled({member.Fields.Count}, {MemberDefault(member)})"
-                                    : MemberDefault(member))
+                                + (member.ListIsInTheCell
+                                    ? "[]"
+                                    : member.IsArray
+                                        ? $"List.filled({member.Fields.Count}, {MemberDefault(member)})"
+                                        : MemberDefault(member))
                                 + ";");
                 }
 
@@ -555,6 +648,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
                 Members = nested,
                 IsOutermost = false,
                 Owner = $"{table.Name.ToPascalCase()}Record.{DartName(group.Name)}",
+                Lookups = LookupLines(member.Members, member.Container, group),
             });
 
             result.Add(new DartRecordMemberView
@@ -645,6 +739,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             TypeName = entry,
             Members = members,
             IsOutermost = true,
+            Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf),
             Owner = $"{table.Name.ToPascalCase()}Record.{name}",
         });
 

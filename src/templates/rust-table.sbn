@@ -22,6 +22,13 @@ pub struct {{ rt.type_name }} {
 {{~ end ~}}
     pub {{ member.declaration }}
 {{~ end ~}}
+{{~## The second layer of a container's surface. The vectors above are the file's order;
+   these are the lookup, and neither of this language's hash containers keeps one. Empty in
+   a defaulted record, which is what `Default` already gives them.
+   spec/types/set-and-map.md section 7. ##~}}
+{{~ for line in rt.lookups ~}}
+    {{ line }}
+{{~ end ~}}
 }
 
 {{~ end ~}}
@@ -401,6 +408,17 @@ impl {{ table.table_name }} {
             tabbit::check_block_end(&reader, column, block_end)?;
         }
 
+{{~ if table.container_fill | array.size > 0 ~}}
+{{~## The lookups a `set` and a `map` publish beside their vectors. Here rather than on the
+   way through: a map needs its key column and how long it is, and the columns arrive one at
+   a time. spec/types/set-and-map.md section 7.3. ##~}}
+        for record in records.iter_mut() {
+{{~ for line in table.container_fill ~}}
+            {{ line }}
+{{~ end ~}}
+        }
+
+{{~ end ~}}
 {{~ for index in table.indexes ~}}
 {{~ if index.is_composite ~}}
         let {{ index.map_name }} = records

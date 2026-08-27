@@ -161,6 +161,12 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     protected override bool SupportsDeepNestedFields => true;
 
     /// <summary>
+    /// `HashMap` and `HashSet`, with the vectors beside them holding the file's order - this
+    /// language's hash containers have none. spec/types/set-and-map.md section 7.
+    /// </summary>
+    protected override bool SupportsContainers => true;
+
+    /// <summary>
     /// An optional column becomes a `has_{field}` member beside the value one.
     /// </summary>
     /// <remarks>
@@ -648,6 +654,93 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
         }).ToList(),
     };
 
+    /// <summary>
+    /// The lookups one record struct declares beside its vectors.
+    /// </summary>
+    /// <remarks>
+    /// Neither of this language's hash containers keeps an order, which is what the vector
+    /// beside it is for. spec/types/set-and-map.md section 7.2.
+    /// </remarks>
+    private List<string> LookupLines(
+        List<RecordMember> members, Models.ContainerKind own, SerialField group)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(members, own, group))
+        {
+            if (plan.IsMap)
+            {
+                string keyType = ElementTypeOf(plan.Source);
+                string valueType = plan.ValueIsOneColumn ? ElementTypeOf(plan.Value!) : "usize";
+                string name = plan.ValueIsOneColumn ? "by_key" : "index_by_key";
+
+                lines.Add(plan.ValueIsOneColumn
+                    ? "/// What each key is mapped to. The vectors hold the file's order."
+                    : "/// Where each key sits among the entries - this map's value is a "
+                      + "struct, which is a field per column, so there is no one value to "
+                      + "answer with.");
+
+                lines.Add($"pub {name}: std::collections::HashMap<{keyType}, {valueType}>,");
+
+                continue;
+            }
+
+            lines.Add($"/// The elements of {RustName(plan.Source.Name)}, for asking whether "
+                      + "one is there.");
+            lines.Add($"pub {RustName(plan.Source.Name)}_set: "
+                      + $"std::collections::HashSet<{ElementTypeOf(plan.Source)}>,");
+        }
+
+        return lines;
+    }
+
+    /// <summary>The statements filling every lookup in a table, once the rows are read.</summary>
+    private List<string> ContainerFillLines(Table table)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(table))
+        {
+            string access = "record." + RustName(plan.Group.Name)
+                + string.Concat(plan.Path.Select(name => "." + RustName(name)));
+
+            string source = access + "." + RustName(plan.Source.Name);
+
+            if (plan.IsMap)
+            {
+                string name = access + "."
+                    + (plan.ValueIsOneColumn ? "by_key" : "index_by_key");
+
+                // Into locals before the insert: the vector keeps the file's order and
+                // stays the owner, so what goes in is a copy - and reading one field while
+                // writing another of the same struct is two borrows at once unless the read
+                // has already finished.
+                string stored = plan.ValueIsOneColumn
+                    ? access + "." + RustName(plan.Value!.Name) + "[j].clone()"
+                    : "j";
+
+                lines.Add($"for j in 0..{source}.len() {{");
+                lines.Add($"    let key = {source}[j].clone();");
+                lines.Add($"    let value = {stored};");
+                lines.Add($"    {name}.insert(key, value);");
+                lines.Add("}");
+
+                continue;
+            }
+
+            lines.Add($"for j in 0..{source}.len() {{");
+            lines.Add($"    let element = {source}[j].clone();");
+            lines.Add($"    {access}.{RustName(plan.Source.Name)}_set.insert(element);");
+            lines.Add("}");
+        }
+
+        return lines;
+    }
+
+    /// <summary>One value's type, as a generic argument names it.</summary>
+    private string ElementTypeOf(RecordMember member)
+        => ToRustTypeName(member.FirstField!.ElementType, member.FirstField!.EnumOrNull);
+
     private RustTableView BuildTable(Table table) => new RustTableView
     {
         RawName = table.Name,
@@ -656,6 +749,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        ContainerFill = ContainerFillLines(table),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
         // A separate list, because declaring a member is per field and reading is per
@@ -816,12 +910,18 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
 
                     // The vector is the member's when the group is one record - same columns,
                     // same wire, and only which of the two owns it differs.
+                    // Or the member's own cell holding the list, which is what a `set` and
+                    // a `map` are. spec/types/set-and-map.md section 4.
                     Declaration = $"{memberName}: "
-                                + (member.IsArray ? $"Vec<{memberType}>" : memberType)
+                                + (member.HoldsList ? $"Vec<{memberType}>" : memberType)
                                 + ",",
                     Name = memberName,
-                    ElementType = member.IsArray ? memberType : "",
-                    ElementCount = member.IsArray ? member.Fields.Count : 0,
+                    ElementType = member.HoldsList ? memberType : "",
+
+                    // Zero where the member's own cell is the list: no declaration knows how
+                    // long a row's list is, so the read makes the vector it fills.
+                    ElementCount = member.ListIsInTheCell ? 0
+                        : member.IsArray ? member.Fields.Count : 0,
                 });
 
                 continue;
@@ -838,6 +938,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
                 Members = nested,
                 IsOutermost = false,
                 Owner = $"{table.Name.ToPascalCase()}Record::{RustName(group.Name)}",
+                Lookups = LookupLines(member.Members, member.Container, group),
             });
 
             result.Add(new RustRecordMemberView
@@ -931,6 +1032,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             TypeName = elementType,
             Members = members,
             IsOutermost = true,
+            Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf),
             Owner = $"{table.Name.ToPascalCase()}Record::{name}",
         });
 

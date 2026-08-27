@@ -24,6 +24,9 @@ public class ContainerLanguageTests
     [InlineData("go")]
     [InlineData("java")]
     [InlineData("kotlin")]
+    [InlineData("dart")]
+    [InlineData("swift")]
+    [InlineData("rust")]
     public void The_generated_reader_fills_both_layers(string language)
     {
         var values = ContainerHarness.Run(language);
@@ -56,6 +59,9 @@ public class ContainerLanguageTests
     [InlineData("go")]
     [InlineData("java")]
     [InlineData("kotlin")]
+    [InlineData("dart")]
+    [InlineData("swift")]
+    [InlineData("rust")]
     public void A_row_with_no_entries_reads_as_empty(string language)
     {
         var values = ContainerHarness.Run(language);

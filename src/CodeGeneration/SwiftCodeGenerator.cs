@@ -143,6 +143,12 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     protected override bool SupportsDeepNestedFields => true;
 
     /// <summary>
+    /// `Dictionary` and `Set`, with the arrays beside them holding the file's order - this
+    /// language's hash containers have none. spec/types/set-and-map.md section 7.
+    /// </summary>
+    protected override bool SupportsContainers => true;
+
+    /// <summary>
     /// An optional column becomes a `has{Field}` property beside the value one.
     /// </summary>
     /// <remarks>
@@ -419,6 +425,85 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
         }).ToList(),
     };
 
+    /// <summary>
+    /// The lookups one record struct declares beside its arrays.
+    /// </summary>
+    /// <remarks>
+    /// Neither of this language's hash containers keeps an order, which is what the array
+    /// beside it is for. spec/types/set-and-map.md section 7.2.
+    /// </remarks>
+    private List<string> LookupLines(
+        List<RecordMember> members, Models.ContainerKind own, SerialField group)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(members, own, group))
+        {
+            if (plan.IsMap)
+            {
+                string keyType = ElementTypeOf(plan.Source);
+                string valueType = plan.ValueIsOneColumn ? ElementTypeOf(plan.Value!) : "Int";
+                string name = plan.ValueIsOneColumn ? "byKey" : "indexByKey";
+
+                lines.Add(plan.ValueIsOneColumn
+                    ? "/// What each key is mapped to. The arrays hold the file's order."
+                    : "/// Where each key sits among the entries - this map's value is a "
+                      + "struct, which is a property per column, so there is no one value to "
+                      + "answer with.");
+
+                lines.Add($"public var {name}: [{keyType}: {valueType}] = [:]");
+
+                continue;
+            }
+
+            lines.Add($"/// The elements of {SwiftName(plan.Source.Name)}, for asking whether "
+                      + "one is there.");
+            lines.Add($"public var {SwiftName(plan.Source.Name)}Set: "
+                      + $"Set<{ElementTypeOf(plan.Source)}> = []");
+        }
+
+        return lines;
+    }
+
+    /// <summary>The statements filling every lookup in a table, once the rows are read.</summary>
+    private List<string> ContainerFillLines(Table table)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(table))
+        {
+            string access = "loaded[i]." + SwiftName(plan.Group.Name)
+                + string.Concat(plan.Path.Select(name => "." + SwiftName(name)));
+
+            string source = access + "." + SwiftName(plan.Source.Name);
+
+            if (plan.IsMap)
+            {
+                string name = access + "." + (plan.ValueIsOneColumn ? "byKey" : "indexByKey");
+
+                string stored = plan.ValueIsOneColumn
+                    ? access + "." + SwiftName(plan.Value!.Name) + "[j]"
+                    : "j";
+
+                lines.Add($"for j in 0..<{source}.count {{");
+                lines.Add($"    {name}[{source}[j]] = {stored}");
+                lines.Add("}");
+
+                continue;
+            }
+
+            lines.Add($"for j in 0..<{source}.count {{");
+            lines.Add($"    {access}.{SwiftName(plan.Source.Name)}Set.insert({source}[j])");
+            lines.Add("}");
+        }
+
+        return lines;
+    }
+
+    /// <summary>One value's type, as a generic argument names it.</summary>
+    private string ElementTypeOf(RecordMember member)
+        => ToSwiftTypeName(member.FirstField!.ElementType, member.FirstField!.EnumOrNull, null);
+
     private SwiftTableView BuildTable(Table table) => new SwiftTableView
     {
         RawName = table.Name,
@@ -427,6 +512,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        ContainerFill = ContainerFillLines(table),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
         // A separate list, because declaring a property is per field and reading is per
@@ -597,13 +683,18 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
                     string elementType = ToSwiftTypeName(
                         member.FirstField!.ElementType, member.FirstField!.EnumOrNull, null);
 
+                    // Or the member's own cell holding the list, which is what a `set` and
+                    // a `map` are. Empty rather than sized there: no declaration knows how
+                    // long a row's list is. spec/types/set-and-map.md section 4.
                     declarations.Add($"public var {SwiftName(member.Name)}: "
-                                + (member.IsArray ? $"[{elementType}]" : elementType)
+                                + (member.HoldsList ? $"[{elementType}]" : elementType)
                                 + " = "
-                                + (member.IsArray
-                                    ? $"[{elementType}](repeating: {MemberDefault(member)}, "
-                                      + $"count: {member.Fields.Count})"
-                                    : MemberDefault(member)));
+                                + (member.ListIsInTheCell
+                                    ? "[]"
+                                    : member.IsArray
+                                        ? $"[{elementType}](repeating: {MemberDefault(member)}, "
+                                          + $"count: {member.Fields.Count})"
+                                        : MemberDefault(member)));
                 }
 
 
@@ -626,6 +717,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
+                Lookups = LookupLines(member.Members, member.Container, group),
                 Owner = SwiftName(group.Name),
             });
 
@@ -662,6 +754,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
             TypeName = entry,
             Members = members,
             IsOutermost = true,
+            Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf),
             Owner = name,
         });
 
