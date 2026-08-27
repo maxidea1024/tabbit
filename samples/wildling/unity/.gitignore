@@ -6,6 +6,7 @@
 
 # 에디터가 다시 만드는 것들.
 Library/
+build/
 Temp/
 Logs/
 Obj/

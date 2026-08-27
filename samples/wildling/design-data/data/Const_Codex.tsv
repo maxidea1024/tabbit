@@ -11,3 +11,4 @@
 :field	name	type	value	desc
 	UnrecordedBoost	int	16000	미기록 종의 가중치 보정. 만분율
 	ShardCap	int	9999	조각 보유 상한
+	ShardCurrency	string	shard	조각의 재화 식별자. 이 재화의 비용은 종 단위로 치릅니다

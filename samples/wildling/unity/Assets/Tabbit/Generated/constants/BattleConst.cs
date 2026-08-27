@@ -20,7 +20,7 @@ namespace Wildling.Data
         /// </summary>
         public static int DefenseFactor { get; }
         /// <summary>
-        /// 이 턴에 결착이 없으면 체력 비율로 판정한다
+        /// 이 턴에 결착이 없으면 체력 비율로 판정한다. 한 턴은 개체 하나의 행동 한 번이다
         /// </summary>
         public static int MaxTurn { get; }
         /// <summary>
@@ -38,7 +38,7 @@ namespace Wildling.Data
         static BattleConst()
         {
             DefenseFactor = 60;
-            MaxTurn = 30;
+            MaxTurn = 90;
             SpeedTiebreak = true;
             NeutralAffinity = 10000;
         }

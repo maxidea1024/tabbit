@@ -23,6 +23,10 @@ namespace Wildling.Data
         /// 조각 보유 상한
         /// </summary>
         public static int ShardCap { get; }
+        /// <summary>
+        /// 조각의 재화 식별자. 이 재화의 비용은 종 단위로 치릅니다
+        /// </summary>
+        public static string ShardCurrency { get; }
 
         /// <summary>
         /// Static constructor for initialize static variables.
@@ -31,6 +35,7 @@ namespace Wildling.Data
         {
             UnrecordedBoost = 16000;
             ShardCap = 9999;
+            ShardCurrency = "shard";
         }
     }
 } // namespace Wildling.Data

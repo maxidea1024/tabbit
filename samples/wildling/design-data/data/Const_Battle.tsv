@@ -1,7 +1,7 @@
 :const BattleConst	전투 계산의 계수이다.
 :field	name	type	value	desc
 	DefenseFactor	int	60	방어가 피해를 깎는 비율. 만분율
-	MaxTurn	int	30	이 턴에 결착이 없으면 체력 비율로 판정한다
+	MaxTurn	int	90	이 턴에 결착이 없으면 체력 비율로 판정한다. 한 턴은 개체 하나의 행동 한 번이다
 	SpeedTiebreak	bool	TRUE	속도가 같으면 배치 순서
 	NeutralAffinity	int	10000	상성이 없을 때의 배수
 
