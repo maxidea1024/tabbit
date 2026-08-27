@@ -276,8 +276,25 @@
 {{~ end ~}}
 {{~ end ~}}
 {{~ if rt.is_map ~}}
+{{~ if rt.map_value_type != '' ~}}
 
-                internal Dictionary<{{ rt.map_key_type }}, int> _at;
+                internal Dictionary<{{ rt.map_key_type }}, {{ rt.map_value_type }}> _byKey;
+
+                /// <summary>How many entries this map holds.</summary>
+                public int Count => Key == null ? 0 : Key.Length;
+
+                /// <summary>What <paramref name="key"/> is mapped to, if anything.</summary>
+                public bool TryGetValue({{ rt.map_key_type }} key, out {{ rt.map_value_type }} value)
+                {
+                    if (_byKey != null)
+                        return _byKey.TryGetValue(key, out value);
+
+                    value = default({{ rt.map_value_type }});
+                    return false;
+                }
+{{~ else ~}}
+
+                internal Dictionary<{{ rt.map_key_type }}, int> _byKey;
 
                 /// <summary>How many entries this map holds.</summary>
                 public int Count => Key == null ? 0 : Key.Length;
@@ -287,30 +304,18 @@
                 /// not one of them.
                 /// </summary>
                 /// <remarks>
-                /// The position rather than the value, because a map whose value is a struct
-                /// holds a member per column and has no single object to hand back - there
-                /// the entry is read as <c>Value.Member[index]</c>.
+                /// **The position rather than the value, and only here.** This map's value is
+                /// a struct, which is a member per column - so there is no single object to
+                /// hand back and the entry is read as <c>Value.Member[index]</c>. A map whose
+                /// value is one column answers with the value, under a different name so that
+                /// neither can be mistaken for the other.
                 /// </remarks>
                 public bool TryGetIndex({{ rt.map_key_type }} key, out int index)
                 {
-                    if (_at != null)
-                        return _at.TryGetValue(key, out index);
+                    if (_byKey != null)
+                        return _byKey.TryGetValue(key, out index);
 
                     index = -1;
-                    return false;
-                }
-{{~ if rt.map_value_type != '' ~}}
-
-                /// <summary>What <paramref name="key"/> is mapped to, if anything.</summary>
-                public bool TryGetValue({{ rt.map_key_type }} key, out {{ rt.map_value_type }} value)
-                {
-                    if (TryGetIndex(key, out int at))
-                    {
-                        value = Value[at];
-                        return true;
-                    }
-
-                    value = default({{ rt.map_value_type }});
                     return false;
                 }
 {{~ end ~}}
@@ -880,7 +885,8 @@
                 {
 {{~ if container.is_map ~}}
                     record{{ container.access }}.{{ container.lookup_field }}[
-                        record{{ container.access }}.{{ container.source_field }}[j]] = j;
+                        record{{ container.access }}.{{ container.source_field }}[j]] =
+                        {{ if container.stored_value == 'j' }}j{{ else }}record{{ container.access }}.{{ container.stored_value }}{{ end }};
 {{~ else ~}}
                     record{{ container.access }}.{{ container.lookup_field }}.Add(
                         record{{ container.access }}.{{ container.source_field }}[j]);

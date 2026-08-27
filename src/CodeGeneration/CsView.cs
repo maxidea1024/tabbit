@@ -540,10 +540,12 @@ internal sealed class CsRecordTypeView
     /// The value type where a map's value is one column, and empty where it is a struct.
     /// </summary>
     /// <remarks>
-    /// **A struct-valued map has no single object to hand back.** Its value is a member per
-    /// column, each holding every entry's value of that member, so what a lookup can answer
-    /// with is the entry's position - and `Value.ItemId[at]` is how the entry is read. The
-    /// position lookup is generated for both, and this is what adds the value one on top.
+    /// **The lookup answers with the value, and a struct-valued map is the exception.** Its
+    /// value is a member per column, each holding every entry's value of that member, so
+    /// there is no single object to hand back - there the lookup answers with the entry's
+    /// position and `Value.ItemId[at]` is how the entry is read. The two are named
+    /// differently so that neither can be mistaken for the other.
+    /// spec/types/set-and-map.md section 7.1.
     /// </remarks>
     public string MapValueType { get; set; } = "";
 }
@@ -575,6 +577,12 @@ internal sealed class CsContainerView
 
     /// <summary>The lookup's own type, ready to be `new`ed.</summary>
     public required string LookupType { get; set; }
+
+    /// <summary>
+    /// What a map's lookup stores against each key: the value column, or the entry's
+    /// position where the value is a struct and there is no one column to store.
+    /// </summary>
+    public string StoredValue { get; set; } = "";
 }
 
 /// <summary>

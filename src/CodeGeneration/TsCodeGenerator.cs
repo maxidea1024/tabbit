@@ -149,6 +149,12 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     protected override bool SupportsDeepNestedFields => true;
 
     /// <summary>
+    /// `Map` and `Set`, which keep insertion order - so the lookup and the array agree on
+    /// what the second entry is. spec/types/set-and-map.md section 7.
+    /// </summary>
+    protected override bool SupportsContainers => true;
+
+    /// <summary>
     /// An optional column becomes a `has{Prop}` accessor beside the value one.
     /// </summary>
     /// <remarks>
@@ -510,15 +516,15 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             : "";
 
         string rowPath = wire.Member is not null
-            ? (!isArray || wire.Group.MembersAreArrays
+            ? (!isArray || wire.MemberOwnsTheArray
                 ? $"record.{field}{rowMember}"
                 : $"record.{field}[i]{rowMember}")
             : $"record.{field}";
 
-        string path = !isArray || wire.Group.MembersAreArrays
+        string path = !isArray || wire.MemberOwnsTheArray
             ? $"record.{field}{member}"
             : $"record.{field}[i]{member}";
-        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
+        string subscript = (isArray && wire.MemberOwnsTheArray) ? "[i]" : "";
 
         return new TsRecordReferenceView
         {
@@ -529,7 +535,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             // Whichever array holds the elements. `length` rather than the column count,
             // because a trimming group's rows differ in how many they carry.
             Count = isArray
-                ? (wire.Group.MembersAreArrays ? $"{path}.length" : $"record.{field}.length")
+                ? (wire.MemberOwnsTheArray ? $"{path}.length" : $"record.{field}.length")
                 : "",
 
             RefTable = TsName(refTable!.Name),
@@ -638,6 +644,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                                  .ToList(),
 
             CompositeKeys = CompositeKeys(table),
+            Containers = ContainersOf(table),
 
             ReferenceFields = table.SerialFields
                                    .Select((sf, i) => new { sf, view = fields[i] })
@@ -723,7 +730,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays
+            return wire.MemberOwnsTheArray
                 ? "record_member_array"
                 : "record_var_array_member";
         }
@@ -924,6 +931,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             TypeName = typeName,
             Members = members,
             IsOutermost = true,
+            Lookups = LookupsOf(sf.Members, Models.ContainerKind.None),
         });
 
         // Which abstract type this group is, if it is one. One per declaration however many
@@ -992,7 +1000,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 ? $"Array.from({{ length: {sf.Members.Count} }}, () => [])"
                 : sf.IsArray
                     ? "[]"
-                    : RecordLiteral(members),
+                    : RecordLiteral(members, LookupsOf(sf.Members, Models.ContainerKind.None)),
 
             // The JSON shape gets an interface of its own, because a member's exported
             // type is not always its member type - a 64-bit integer arrives as a string.
@@ -1053,7 +1061,9 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                     ? (member.IsArray
                         ? $"({ToTypescriptTypename(member.FirstField)} | undefined)[]"
                         : $"{ToTypescriptTypename(member.FirstField)} | undefined")
-                    : ToTypescriptTypename(member.FirstField) + (member.IsArray ? "[]" : "");
+                    // Or the member's own cell holding the list, which is what a `set` and
+                    // a `map` are - spec/types/set-and-map.md section 4.
+                    : ToTypescriptTypename(member.FirstField) + (member.HoldsList ? "[]" : "");
 
                 result.Add(new TsRecordMemberView
                 {
@@ -1070,12 +1080,16 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                     FieldType = rowType,
                     JsonWireType = (isRef ? JsonWireTypeOfKey(member.FirstField!.RefKeyType)
                                           : JsonWireTypeOfMember(member))
-                                   + (member.IsArray ? "[]" : ""),
+                                   + (member.HoldsList ? "[]" : ""),
                     DefaultValue = isRef
                         ? (member.IsArray
                             ? "[" + string.Join(", ",
                                 Enumerable.Repeat("undefined", member.Fields.Count)) + "]"
                             : "undefined")
+                        // Empty rather than sized: no declaration knows how long a row's
+                        // list is, and the read makes the array it fills.
+                        : member.ListIsInTheCell
+                            ? "[]"
                         : member.IsArray
                             ? "[" + string.Join(", ",
                                 Enumerable.Repeat(DefaultValueOf(member.ElementType, member.FirstField),
@@ -1109,6 +1123,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
+                Lookups = LookupsOf(member.Members, member.Container),
             });
 
             result.Add(new TsRecordMemberView
@@ -1124,13 +1139,116 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 JsonWireType = typeName + "Json",
 
                 // The level below's own literal, which is how a record reaches its members'
-                // empty values without a constructor.
-                DefaultValue = RecordLiteral(nested),
+                // empty values without a constructor. Its lookups are properties of the
+                // interface, so the literal has to give them too - empty, and filled where
+                // the rows are published.
+                DefaultValue = RecordLiteral(nested, LookupsOf(member.Members, member.Container)),
                 IsRecord = true,
             });
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// The lookups one record type declares beside its arrays.
+    /// </summary>
+    /// <remarks>
+    /// A map's own lookup, because a map is a record and this is that record; and one per
+    /// member that is a set, because a set is one array and has no type of its own to hang
+    /// anything on. spec/types/set-and-map.md section 7.
+    /// </remarks>
+    private List<TsLookupView> LookupsOf(List<RecordMember> members, Models.ContainerKind own)
+    {
+        var result = new List<TsLookupView>();
+
+        if (own == Models.ContainerKind.Map
+            && members.Find(m => m.Name == Models.ContainerMembers.Key) is { } key)
+        {
+            var held = members.Find(m => m.Name == Models.ContainerMembers.Value);
+            bool storesValue = held is { IsLeaf: true };
+
+            string valueType = storesValue ? ToTypescriptTypename(held!.FirstField) : "number";
+            string mapType = $"Map<{ToTypescriptTypename(key.FirstField)}, {valueType}>";
+
+            result.Add(new TsLookupView
+            {
+                // The value where there is one column to store it, and the entry's position
+                // where the value is a struct - under a name that says which.
+                PropName = storesValue ? "byKey" : "indexByKey",
+                TypeName = mapType,
+                Empty = "new " + mapType + "()",
+                SourceProp = TsName(Models.ContainerMembers.Key),
+                StoredValue = storesValue ? TsName(Models.ContainerMembers.Value) + "[j]" : "j",
+                IsMap = true,
+            });
+        }
+
+        foreach (var member in members.Where(m => m.Container == Models.ContainerKind.Set))
+        {
+            string setType = $"Set<{ToTypescriptTypename(member.FirstField)}>";
+
+            result.Add(new TsLookupView
+            {
+                PropName = TsName(member.Name) + "Set",
+                TypeName = setType,
+                Empty = "new " + setType + "()",
+                SourceProp = TsName(member.Name),
+                StoredValue = "",
+                IsMap = false,
+            });
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Every lookup in a table, with what reaches it from a record.
+    /// </summary>
+    /// <remarks>
+    /// Filled where the rows are published, which is what both reading paths end at - a map
+    /// built only on the binary path would be empty for a project reading the JSON.
+    /// </remarks>
+    private List<TsLookupView> ContainersOf(Table table)
+    {
+        var result = new List<TsLookupView>();
+
+        foreach (var group in table.SerialFields.Where(group => group.IsRecord))
+        {
+            string root = "." + TsName(group.Name);
+
+            foreach (var lookup in LookupsOf(group.Members, Models.ContainerKind.None))
+                result.Add(At(lookup, root));
+
+            foreach (var member in group.Members)
+                Collect(member, root);
+        }
+
+        return result;
+
+        void Collect(RecordMember member, string path)
+        {
+            string here = path + "." + TsName(member.Name);
+
+            // A map's lookup sits on the map; a set's sits on the record holding it, which
+            // is the level this member is a part of.
+            foreach (var lookup in LookupsOf(member.Members, member.Container))
+                result.Add(At(lookup, lookup.IsMap ? here : here));
+
+            foreach (var below in member.Members)
+                Collect(below, here);
+        }
+
+        static TsLookupView At(TsLookupView lookup, string access) => new TsLookupView
+        {
+            PropName = lookup.PropName,
+            TypeName = lookup.TypeName,
+            Empty = lookup.Empty,
+            SourceProp = lookup.SourceProp,
+            StoredValue = lookup.StoredValue,
+            IsMap = lookup.IsMap,
+            Access = access,
+        };
     }
 
     /// <summary>An object literal of every member's empty value.</summary>
@@ -1139,8 +1257,14 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// the flag - because all three are properties of the element and a literal has to give
     /// every property of the interface it satisfies. spec/references/references-in-records.md.
     /// </remarks>
-    private static string RecordLiteral(IReadOnlyList<TsRecordMemberView> members)
-        => "{ " + string.Join(", ", members.SelectMany(MemberLiteralParts)) + " }";
+    private static string RecordLiteral(
+        IReadOnlyList<TsRecordMemberView> members,
+        IReadOnlyList<TsLookupView>? lookups = null)
+        => "{ " + string.Join(", ",
+               members.SelectMany(MemberLiteralParts)
+                   .Concat((lookups ?? System.Array.Empty<TsLookupView>())
+                       .Select(lookup => lookup.PropName + ": " + lookup.Empty)))
+           + " }";
 
     /// <summary>What one member contributes to that literal.</summary>
     /// <remarks>
@@ -1183,7 +1307,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             return $"this.{field} = dataRow.{prop}.map((inner: any) => inner.map((v: any) => {each}))";
         }
 
-        string literal = NamedRowLiteral(sf.Members, "e");
+        string literal = NamedRowLiteral(sf.Members, "e", Models.ContainerKind.None);
 
         return sf.IsArray
             ? $"this.{field} = dataRow.{prop}.map(e => ({literal}))"
@@ -1191,7 +1315,8 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     }
 
 
-    private string NamedRowLiteral(List<RecordMember> members, string accessor)
+    private string NamedRowLiteral(
+        List<RecordMember> members, string accessor, Models.ContainerKind own)
     {
         var parts = members.SelectMany(member =>
         {
@@ -1201,7 +1326,12 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 : prop;
 
             if (!member.IsLeaf)
-                return new[] { $"{prop}: {NamedRowLiteral(member.Members, $"{accessor}.{prop}")}" };
+            {
+                return new[]
+                {
+                    $"{prop}: {NamedRowLiteral(member.Members, $"{accessor}.{prop}", member.Container)}",
+                };
+            }
 
             // A reference member: the JSON holds the key under the member's own name, and the
             // row it names is filled in by the linking pass. So the property the JSON matches
@@ -1238,7 +1368,13 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             };
         });
 
-        return "{ " + string.Join(", ", parts) + " }";
+        // The lookups the interface declares, empty. The JSON has no property for one - it
+        // is built from the arrays where the rows are published - and a literal has to give
+        // every property of the interface it satisfies.
+        return "{ " + string.Join(", ",
+                   parts.Concat(LookupsOf(members, own)
+                       .Select(lookup => lookup.PropName + ": " + lookup.Empty)))
+               + " }";
     }
 
     /// <summary>
@@ -1365,7 +1501,8 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     }
 
 
-    private string CompactRowLiteral(List<RecordMember> members)
+    private string CompactRowLiteral(
+        List<RecordMember> members, Models.ContainerKind own = Models.ContainerKind.None)
     {
         var parts = members.SelectMany(member =>
         {
@@ -1375,7 +1512,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 : prop;
 
             if (!member.IsLeaf)
-                return new[] { $"{prop}: {CompactRowLiteral(member.Members)}" };
+                return new[] { $"{prop}: {CompactRowLiteral(member.Members, member.Container)}" };
 
             // A reference member: the entry is the key, and the row it names is filled in by
             // the linking pass. spec/references/references-in-records.md.
@@ -1396,7 +1533,12 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             };
         });
 
-        return "{ " + string.Join(", ", parts) + " }";
+        // The lookups the interface declares, empty - built from the arrays where the rows
+        // are published, and a literal has to give every property of its interface.
+        return "{ " + string.Join(", ",
+                   parts.Concat(LookupsOf(members, own)
+                       .Select(lookup => lookup.PropName + ": " + lookup.Empty)))
+               + " }";
     }
 
     /// <summary>

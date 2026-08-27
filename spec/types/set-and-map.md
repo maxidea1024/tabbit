@@ -237,6 +237,11 @@ Duplicate key `2` in map column `Prices` of table `Shop`.
 이름의 정확한 철자는 언어마다 [`AccessorName`](../targets/generated-naming.md)의 규칙을
 따릅니다.
 
+> **언어마다 조회가 놓이는 자리는 그 언어의 관례를 따릅니다.** C#은 레코드 타입의 메서드이고,
+> TypeScript는 **인터페이스의 프로퍼티**입니다 — 인터페이스는 메서드를 선언하지 않으므로,
+> 다른 언어가 원소 타입에 다는 것을 이 언어는 컨테이너 자체로 답니다. 다중 대상 참조의
+> 접근자가 같은 이유로 같은 갈래를 겪었습니다.
+
 > **조회가 자리를 돌려주는 이유.** 값이 struct인 map은 멤버마다 컬럼 하나이고, 항목 하나에
 > 해당하는 객체가 없습니다 — 돌려줄 것이 없으므로 **몇 번째 항목인가**를 돌려주고,
 > `Value.ItemId[at]`으로 읽습니다. 값이 스칼라일 때는 그 위에 `TryGetValue`를 하나 더 얹습니다.
@@ -248,7 +253,7 @@ Duplicate key `2` in map column `Prices` of table `Shop`.
 |--|--|--|--|
 |**C#** — **됨**|`Dictionary<K,int>`|`HashSet<T>`|아니오 — 배열이 순서를 답니다|
 |Java · Kotlin|`LinkedHashMap`|`LinkedHashSet`|**예**|
-|TypeScript|`Map`|`Set`|**예**|
+|**TypeScript** — **됨**|`Map`|`Set`|**예**|
 |Python|`dict`|`set`|`dict`는 **예**, `set`은 아니오|
 |Ruby|`Hash`|`Set`|**예**|
 |PHP|연관 배열|배열|**예**|
@@ -322,5 +327,6 @@ DSL의 (나)·(다) 표기도 그것으로 확인했습니다.
 |**`map<K,V?>`** — 값이 없을 수 있는 map|[원소 옵셔널](nullable-array-elements.md)의 비트맵이 값 컬럼에 붙으면 되지만, **참조 배열이 그 비트맵을 읽고 버리는 것**이 아직 열려 있습니다. 그 답이 나온 뒤가 맞습니다|
 |**중첩 컨테이너** — `map<int,set<int>>`|형식은 [배열의 배열](nested-multi-level.md)로 실을 수 있습니다. 막는 것은 셀 표기입니다 — 구분자가 세 겹이 되고, 그 자리는 `sep`이 푸는 문제와 같습니다|
 |**`foreign` 키**|참조의 키 타입이 이 패스보다 뒤에서 정해집니다. 쓸모는 분명하므로(`map<foreign Item,int>`) **이름을 대고 거절하고**, 참조 해석 순서를 손볼 때 다시 봅니다|
+|**컨테이너의 배열** — 번호 붙은 그룹 안의 컨테이너(`Bag1.Prices.Key`)|`set<T>[]`{:을} 거부하는 것과 같은 형태입니다. 컬럼 하나가 원소마다 목록을 담아야 합니다. **시트 쪽에서 닿는 같은 벽**이므로 거기서도 거부합니다|
 |**정렬**|§4|
 |**`uniqueBy`**|`map`의 키 중복 검사가 그 일부를 하지만 같은 것이 아닙니다. struct 배열의 유일성은 [로드맵](../../doc/roadmap.md#uniqueby)에 있고 **먼저 정할 것**이 남아 있습니다|

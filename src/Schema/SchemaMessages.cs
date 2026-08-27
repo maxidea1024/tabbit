@@ -135,6 +135,9 @@ public static class SchemaMessages
     /// <summary>A struct a container holds whose own member is already an array.</summary>
     public const string ContainerHeldStructIsAList = "schema.container-held-struct-is-a-list";
 
+    /// <summary>A container inside a numbered group, which is an array of containers.</summary>
+    public const string ContainerInsideAnArray = "schema.container-inside-an-array";
+
     /// <summary>Type arguments on a type that takes none.</summary>
     public const string TypeTakesNoArguments = "schema.type-takes-no-arguments";
 

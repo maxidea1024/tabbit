@@ -801,8 +801,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             // `Pos["M"][0]` - and a member whose own cell is delimited, which is what a
             // `set` and a `map` are: `Bag.Tags` typed `string[]` is one cell holding the
             // list. spec/types/set-and-map.md section 4.
-            not null when wire.IsArray
-                          && (wire.Group.MembersAreArrays || wire.LengthIsInTheCell)
+            not null when wire.IsArray && wire.MemberOwnsTheArray
                 => "record_member_var",
 
             not null when wire.IsArray => "record_var",
@@ -1185,13 +1184,23 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             if (member.Container == Models.ContainerKind.Map
                 && member.Members.Find(below => below.Name == Models.ContainerMembers.Key) is { } key)
             {
+                var held = member.Members.Find(
+                    below => below.Name == Models.ContainerMembers.Value);
+
+                // The value where there is one column to store, and the entry's position
+                // where the value is a struct. Section 7.1.
+                bool storesValue = held is { IsLeaf: true };
+
                 result.Add(new CsContainerView
                 {
                     IsMap = true,
                     Access = here,
-                    LookupField = "_at",
+                    LookupField = "_byKey",
                     SourceField = Models.ContainerMembers.Key,
-                    LookupType = $"Dictionary<{ToCSharpTypeName(key.FirstField)}, int>",
+                    LookupType = "Dictionary<"
+                        + ToCSharpTypeName(key.FirstField) + ", "
+                        + (storesValue ? ToCSharpTypeName(held!.FirstField) : "int") + ">",
+                    StoredValue = storesValue ? Models.ContainerMembers.Value + "[j]" : "j",
                 });
             }
 
@@ -1752,7 +1761,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         // `_bag.Tags[j]`, not `_bag[j].Tags`. A group whose element number is on a level
         // below it says so, and so does a member whose own cell holds the list.
         // spec/types/set-and-map.md section 4.
-        if (wire.Group.MembersAreArrays || wire.LengthIsInTheCell)
+        if (wire.MemberOwnsTheArray)
             return ($"record.{fieldName}{memberAccess}", "[j]");
 
         return ($"record.{fieldName}[j]{memberAccess}", "");

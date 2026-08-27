@@ -29,6 +29,9 @@ public partial class ModelCooker
         {
             foreach (var container in ContainersOf(table))
             {
+                if (!RefuseAContainerInsideAnArray(table, container, diagnostics))
+                    continue;
+
                 if (container.Kind == ContainerKind.Set)
                     CheckSet(table, container, diagnostics);
                 else
@@ -59,6 +62,40 @@ public partial class ModelCooker
                     field.NamePath!.Take(field.ContainerLevel + 1).Select(step => step.Name))))
             .Select(found => new Container(
                 found.Key.Container, found.Key.Path, found.Key.ContainerLevel, found.ToList()));
+
+    /// <summary>
+    /// Refuses a container that sits inside a numbered group, which is an array of them.
+    /// </summary>
+    /// <remarks>
+    /// **The same wall `set&lt;T&gt;[]` meets, reached from the sheet's side.** A group written
+    /// `Bag1.Prices.Key` and `Bag2.Prices.Key` is an array of records each holding a map, so
+    /// one column would have to carry a list per element - a list of lists, which the
+    /// notation has no cell for. Refused here rather than left to a generator, because what
+    /// a generator would emit is code that compiles and reads the wrong place.
+    /// spec/types/set-and-map.md section 2.1.
+    /// </remarks>
+    /// <returns>False when it was reported.</returns>
+    private static bool RefuseAContainerInsideAnArray(
+        Table table, Container container, Diagnostics diagnostics)
+    {
+        var field = container.Columns[0];
+
+        for (int level = 0; level <= container.Level; level++)
+        {
+            if (field.NamePath![level].Index is null)
+                continue;
+
+            diagnostics.Error(field.NameLocation, Message.Of(
+                SchemaMessages.ContainerInsideAnArray,
+                ("Table", table.Name),
+                ("Column", container.Path),
+                ("Group", field.NamePath![level].Name)));
+
+            return false;
+        }
+
+        return true;
+    }
 
     /// <summary>
     /// A set is one column, and no two of its elements may be equal.

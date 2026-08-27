@@ -56,6 +56,24 @@ export interface {{ rt.type_name }} {
   {{ member.prop_name }}: {{ member.field_type }}
 {{~ end ~}}
 {{~ end ~}}
+{{~## The second layer of a container's surface. Properties rather than accessors, which is
+   this language's own convention - an interface declares no method, so where every other
+   language puts a lookup on the element type this puts the container itself. `Map` and `Set`
+   keep insertion order here, so iterating one gives the file's order back.
+   spec/types/set-and-map.md section 7.2. ##~}}
+{{~ for lookup in rt.lookups ~}}
+{{~ if lookup.is_map ~}}
+{{~ if lookup.prop_name == 'byKey' ~}}
+  /** What each key is mapped to. Insertion order, which is the file's. */
+{{~ else ~}}
+  /** Where each key sits among the entries - this map's value is a struct, which is a
+      property per column, so what a lookup can answer with is the position. */
+{{~ end ~}}
+{{~ else ~}}
+  /** The elements of `{{ lookup.source_prop }}`, for asking whether one is there. */
+{{~ end ~}}
+  {{ lookup.prop_name }}: {{ lookup.type_name }}
+{{~ end ~}}
 }
 
 {{~ if field.variants.size > 0 ~}}
@@ -601,6 +619,26 @@ export class {{ name }}Table {
    * in one step. Whoever took `records` before still has the previous load, whole.
    */
   private publish(records: {{ name }}Record[]): void {
+{{~ if containers | array.size > 0 ~}}
+{{~## The lookups a `set` and a `map` publish beside their arrays. Here rather than in either
+   reading path, because both end at this method - a map built only on the binary path would
+   be empty for a project reading the .json. spec/types/set-and-map.md section 7.3. ##~}}
+    for (const record of records) {
+{{~ for container in containers ~}}
+      record{{ container.access }}.{{ container.prop_name }}.clear()
+      for (let j = 0; j < record{{ container.access }}.{{ container.source_prop }}.length; j++)
+{{~ if container.is_map ~}}
+        record{{ container.access }}.{{ container.prop_name }}.set(
+          record{{ container.access }}.{{ container.source_prop }}[j],
+          {{ if container.stored_value == 'j' }}j{{ else }}record{{ container.access }}.{{ container.stored_value }}{{ end }})
+{{~ else ~}}
+        record{{ container.access }}.{{ container.prop_name }}.add(
+          record{{ container.access }}.{{ container.source_prop }}[j])
+{{~ end ~}}
+{{~ end ~}}
+    }
+
+{{~ end ~}}
 {{~ for field in indexed_fields ~}}
     const recordsBy{{ field.pascal_name }} = new Map<{{ field.field_type }}, {{ name }}Record>()
 {{~ end ~}}

@@ -263,6 +263,16 @@ internal sealed class TsTableView
     public required IReadOnlyList<CompositeKeyView> CompositeKeys { get; set; }
 
     /// <summary>
+    /// Every `set` and `map` lookup in the table, with what reaches it from a record.
+    /// </summary>
+    /// <remarks>
+    /// Filled where the rows are published, which both reading paths end at - a map built
+    /// only on the binary path would be empty for a project reading the JSON.
+    /// spec/types/set-and-map.md section 7.3.
+    /// </remarks>
+    public IReadOnlyList<TsLookupView> Containers { get; set; } = System.Array.Empty<TsLookupView>();
+
+    /// <summary>
     /// Whether the read declares the column cursor: true when any scalar column can
     /// arrive encoded, which is what the cursor exists to decode.
     /// </summary>
@@ -485,6 +495,43 @@ internal sealed class TsRecordTypeView
 
     /// <summary>Whether this is the group's own element type rather than a level below it.</summary>
     public required bool IsOutermost { get; set; }
+
+    /// <summary>
+    /// The lookups this interface declares beside its arrays, for a `set` or a `map`.
+    /// </summary>
+    /// <remarks>
+    /// **Properties rather than accessors, which is this language's own convention.** An
+    /// interface declares no method, so where every other language puts a lookup on the
+    /// element type TypeScript puts the container itself - and `Map` and `Set` keep insertion
+    /// order here, so iterating one gives the file's order back.
+    /// spec/types/set-and-map.md section 7.2.
+    /// </remarks>
+    public IReadOnlyList<TsLookupView> Lookups { get; set; } = System.Array.Empty<TsLookupView>();
+}
+
+/// <summary>One `Set` or `Map` declared beside the arrays it is built from.</summary>
+internal sealed class TsLookupView
+{
+    /// <summary>Property name on the interface.</summary>
+    public required string PropName { get; set; }
+
+    /// <summary>Its declared type.</summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>What an empty one is, for the record literal.</summary>
+    public required string Empty { get; set; }
+
+    /// <summary>The array this is built from, as a property of the same interface.</summary>
+    public required string SourceProp { get; set; }
+
+    /// <summary>What is stored against each entry: a value property, or `j`.</summary>
+    public required string StoredValue { get; set; }
+
+    /// <summary>Whether this is a `Map` rather than a `Set`.</summary>
+    public required bool IsMap { get; set; }
+
+    /// <summary>What reaches this container from a record, once the record exists.</summary>
+    public string Access { get; set; } = "";
 }
 
 /// <summary>

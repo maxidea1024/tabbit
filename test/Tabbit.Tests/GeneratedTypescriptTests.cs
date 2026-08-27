@@ -29,6 +29,10 @@ public class GeneratedTypescriptTests
     // imports and record shapes differ from the unfiltered one.
     [InlineData("core-client")]
     [InlineData("core-server")]
+    // A `set` and two `map`s, whose lookups are properties of an interface here rather than
+    // accessors on it - so the record literals every reading path builds have to give them.
+    // spec/types/set-and-map.md section 7.2.
+    [InlineData("containers-target")]
     public void Generated_typescript_type_checks(string scenario)
     {
         // Deliberately a hard failure rather than a skip. A gate that quietly

@@ -160,6 +160,21 @@ public sealed class WireColumn
     public bool LengthIsInTheCell
         => Member is null ? Group.IsVariableLengthArray : ValueTypes.IsArray(Member.Type);
 
+    /// <summary>
+    /// Whether the member holds the elements, rather than the group holding one record per
+    /// element.
+    /// </summary>
+    /// <remarks>
+    /// **The question every generator asks about a record column.** It decides where the
+    /// element number goes - `g.M[j]` against `g[j].M` - and nothing else about the read
+    /// differs between the two.
+    ///
+    /// Two notations reach it: a group whose element number is on a level below it, and a
+    /// member whose own cell is delimited. The second is what a `set` and a `map` are.
+    /// spec/types/set-and-map.md section 4.
+    /// </remarks>
+    public bool MemberOwnsTheArray => Group.MembersAreArrays || LengthIsInTheCell;
+
     /// <summary>Whether every row holds the same number of elements, known at generation time.</summary>
     /// <remarks>
     /// Asks the group rather than counting cells, because a group of one element can still be
