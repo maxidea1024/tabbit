@@ -157,6 +157,12 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     protected override bool SupportsDeepNestedFields => true;
 
     /// <summary>
+    /// `std::unordered_map` and `std::unordered_set`, with the vectors beside them holding
+    /// the file's order - neither of them has one. spec/types/set-and-map.md section 7.
+    /// </summary>
+    protected override bool SupportsContainers => true;
+
+    /// <summary>
     /// An optional column becomes a `has_{name}` member beside the value.
     /// </summary>
     /// <remarks>
@@ -296,6 +302,10 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                 new[] { "<cstddef>", "<cstdint>", "<string>", "<unordered_map>", "<vector>" }
                     .Concat(pair.model.Fields.Any(field => field.IsDiscriminator)
                         ? new[] { "<memory>", "<stdexcept>" }
+                        : Array.Empty<string>())
+                    .Concat(pair.model.Fields.Any(
+                                field => field.Container == Models.ContainerKind.Set)
+                        ? new[] { "<unordered_set>" }
                         : Array.Empty<string>())
                     .Append(ReaderInclude)
                     .Append(ForwardHeader)
@@ -547,6 +557,88 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         }).ToList(),
     };
 
+    /// <summary>
+    /// The lookups one record struct declares beside its vectors.
+    /// </summary>
+    /// <remarks>
+    /// Neither of this language's hash containers keeps an order, which is what the vector
+    /// beside it is for. spec/types/set-and-map.md section 7.2.
+    /// </remarks>
+    private List<string> LookupLines(
+        List<RecordMember> members, Models.ContainerKind own, SerialField group)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(members, own, group))
+        {
+            if (plan.IsMap)
+            {
+                string keyType = ToCppTypeName(plan.Source.FirstField);
+
+                string valueType = plan.ValueIsOneColumn
+                    ? ToCppTypeName(plan.Value!.FirstField)
+                    : "std::size_t";
+
+                string name = plan.ValueIsOneColumn ? "by_key" : "index_by_key";
+
+                lines.Add(plan.ValueIsOneColumn
+                    ? "/// What each key is mapped to. The vectors hold the file's order."
+                    : "/// Where each key sits among the entries - this map's value is a "
+                      + "struct, which is a member per column, so there is no one value to "
+                      + "answer with.");
+
+                lines.Add($"std::unordered_map<{keyType}, {valueType}> {name};");
+
+                continue;
+            }
+
+            lines.Add($"/// The elements of {CppName(plan.Source.Name)}, for asking whether "
+                      + "one is there.");
+            lines.Add($"std::unordered_set<{ToCppTypeName(plan.Source.FirstField)}> "
+                      + $"{CppName(plan.Source.Name)}_set;");
+        }
+
+        return lines;
+    }
+
+    /// <summary>The statements filling every lookup in a table, once the rows are read.</summary>
+    private List<string> ContainerFillLines(Table table)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(table))
+        {
+            string access = "record." + CppName(plan.Group.Name)
+                + string.Concat(plan.Path.Select(name => "." + CppName(name)));
+
+            string source = access + "." + CppName(plan.Source.Name);
+
+            if (plan.IsMap)
+            {
+                string name = access + "."
+                    + (plan.ValueIsOneColumn ? "by_key" : "index_by_key");
+
+                string stored = plan.ValueIsOneColumn
+                    ? access + "." + CppName(plan.Value!.Name) + "[j]"
+                    : "j";
+
+                lines.Add($"for (std::size_t j = 0; j < {source}.size(); ++j)");
+                lines.Add("{");
+                lines.Add($"    {name}[{source}[j]] = {stored};");
+                lines.Add("}");
+
+                continue;
+            }
+
+            lines.Add($"for (std::size_t j = 0; j < {source}.size(); ++j)");
+            lines.Add("{");
+            lines.Add($"    {access}.{CppName(plan.Source.Name)}_set.insert({source}[j]);");
+            lines.Add("}");
+        }
+
+        return lines;
+    }
+
     private CppTableView BuildTable(Table table) => new CppTableView
     {
         RawName = table.Name,
@@ -555,6 +647,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        ContainerFill = ContainerFillLines(table),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
         Columns = table.WireColumns.Select(wire => BuildColumn(table, wire)).ToList(),
         NeedsPresence = table.WireColumns.Any(wire => wire.IsNullable),
@@ -754,6 +847,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
+                Lookups = LookupLines(member.Members, member.Container, group),
                 Owner = $"{table.Name.ToPascalCase()}Record::{CppName(group.Name)}",
             });
 
@@ -813,8 +907,9 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
 
         // The vector is the member's when the group is one record - same columns, same wire,
-        // and only which of the two owns it differs.
-        return member.IsArray
+        // and only which of the two owns it differs. Or its own cell holds the list, which
+        // is what a `set` and a `map` are. spec/types/set-and-map.md section 4.
+        return member.HoldsList
             ? new[] { $"std::vector<{ToCppTypeName(member.FirstField)}> {name};" }
             : new[]
             {
@@ -849,6 +944,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                 TypeName = RecordEntryName(table, sf),
                 Members = members,
                 IsOutermost = true,
+                Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf),
                 Owner = $"{table.Name.ToPascalCase()}Record::{name}",
             });
         }

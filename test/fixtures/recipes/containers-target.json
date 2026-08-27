@@ -90,6 +90,17 @@
     {
       "Type": "php",
       "Path": "test/fixtures/output/containers-target/php"
+    },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/containers-target/cpp",
+      "Namespace": "containers"
+    },
+    {
+      "Type": "c",
+      "Path": "test/fixtures/output/containers-target/c",
+      "AccessorName": "ContainersData",
+      "BinaryTableFileExtension": ".tcb"
     }
   ]
 }

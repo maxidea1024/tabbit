@@ -30,6 +30,8 @@ public class ContainerLanguageTests
     [InlineData("python")]
     [InlineData("ruby")]
     [InlineData("php")]
+    [InlineData("cpp")]
+    [InlineData("c")]
     public void The_generated_reader_fills_both_layers(string language)
     {
         var values = ContainerHarness.Run(language);
@@ -68,6 +70,8 @@ public class ContainerLanguageTests
     [InlineData("python")]
     [InlineData("ruby")]
     [InlineData("php")]
+    [InlineData("cpp")]
+    [InlineData("c")]
     public void A_row_with_no_entries_reads_as_empty(string language)
     {
         var values = ContainerHarness.Run(language);

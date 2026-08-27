@@ -539,6 +539,17 @@ internal sealed class CRecordTypeView
     /// <summary>What the struct belongs to, for its comment.</summary>
     public required string Owner { get; set; }
 
+    /// <summary>
+    /// The lookup functions this struct publishes for a `set` or a `map`.
+    /// </summary>
+    /// <remarks>
+    /// **Functions rather than containers, because this language has neither.** The arrays
+    /// are already there and already in the file's order, so what a lookup needs is a way to
+    /// ask - and a scan over a row's entries needs no second structure and no allocation.
+    /// spec/types/set-and-map.md section 7.2.
+    /// </remarks>
+    public IReadOnlyList<string> Lookups { get; set; } = System.Array.Empty<string>();
+
 }
 
 /// <summary>

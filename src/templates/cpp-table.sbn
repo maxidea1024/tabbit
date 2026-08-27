@@ -30,6 +30,12 @@ struct {{ rt.type_name }} {
 {{~## The per-target accessors of every member of this struct that reaches several tables. One
    taking the element number where the member is the array, which is the third place an element
    number sits. spec/references/multi-target-accessors.md. ##~}}
+{{~## The second layer of a container's surface. The vectors above are the file's order; these
+   are the lookup, and neither of this language's hash containers keeps one.
+   spec/types/set-and-map.md section 7. ##~}}
+{{~ for line in rt.lookups ~}}
+  {{ line }}
+{{~ end ~}}
 };
 
 {{~ end ~}}
@@ -422,6 +428,17 @@ class {{ table.table_name }} {
   /// with the rows: a table holding this load's rows and the last one's index would
   /// answer a lookup with a row that is no longer at that position.
   void publish(std::vector<{{ table.record_name }}>&& records) {
+{{~ if table.container_fill | array.size > 0 ~}}
+{{~## The lookups a `set` and a `map` publish beside their vectors. Here rather than on the
+   way through: a map needs its key column and how long it is, and the columns arrive one at
+   a time. spec/types/set-and-map.md section 7.3. ##~}}
+    for (auto& record : records) {
+{{~ for line in table.container_fill ~}}
+      {{ line }}
+{{~ end ~}}
+    }
+
+{{~ end ~}}
 {{~ for index in table.indexes ~}}
     std::unordered_map<{{ index.key_type }}, std::size_t> {{ index.suffix }}_map;
     {{ index.suffix }}_map.reserve(records.size());

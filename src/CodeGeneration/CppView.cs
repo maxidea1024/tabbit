@@ -126,6 +126,15 @@ internal sealed class CppTableView
     /// </summary>
     public required IReadOnlyList<CppIndexView> Indexes { get; set; }
 
+    /// <summary>
+    /// The statements filling every `set` and `map` lookup in the table, ready to paste.
+    /// </summary>
+    /// <remarks>
+    /// Once every column is in: a map needs its key column and how long it is, and the
+    /// columns arrive one at a time. spec/types/set-and-map.md section 7.3.
+    /// </remarks>
+    public IReadOnlyList<string> ContainerFill { get; set; } = System.Array.Empty<string>();
+
     public required IReadOnlyList<CppFieldView> Fields { get; set; }
 
     /// <summary>
@@ -442,6 +451,15 @@ internal sealed class CppRecordTypeView
 
     /// <summary>What the struct belongs to, for its doc comment.</summary>
     public required string Owner { get; set; }
+
+    /// <summary>
+    /// The lookups this struct declares beside its vectors, for a `set` or a `map`.
+    /// </summary>
+    /// <remarks>
+    /// The second layer of a container's surface - the vector is the file's order and this
+    /// is the lookup. spec/types/set-and-map.md section 7.1.
+    /// </remarks>
+    public IReadOnlyList<string> Lookups { get; set; } = System.Array.Empty<string>();
 
 }
 

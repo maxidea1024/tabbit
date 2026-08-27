@@ -63,6 +63,8 @@ internal static class ContainerHarness
             "python" => RunPython(),
             "ruby" => RunRuby(),
             "php" => RunPhp(),
+            "cpp" => RunCpp(),
+            "c" => RunC(),
             _ => throw new ArgumentException($"No container driver for `{language}`."),
         };
 
@@ -271,5 +273,59 @@ internal static class ContainerHarness
                   Path.Combine(root, "harness.php"), overwrite: true);
 
         return ConformanceHarness.RunPhpScript(root, "harness.php", BinaryDir());
+    }
+
+    // ------------------------------------------------------------------ c++
+
+    private static ToolResult RunCpp()
+    {
+        Assert.True(CppToolchain.IsAvailable(out string why),
+            $"C++ toolchain required. {why}");
+
+        string includeDir = Generated("cpp");
+        string workDir = Path.Combine(RepoLayout.OutputDir("_cppcheck"), "containers");
+
+        if (Directory.Exists(workDir))
+            Directory.Delete(workDir, recursive: true);
+
+        Directory.CreateDirectory(workDir);
+
+        var build = CppToolchain.CompileHarness(
+            workDir, includeDir, Driver("cpp", "main.cpp"), "Tables", "containers-check");
+
+        if (!build.Succeeded)
+            return build;
+
+        return CppToolchain.RunHarness(workDir, "containers-check", BinaryDir());
+    }
+
+    // -------------------------------------------------------------------- c
+
+    private static ToolResult RunC()
+    {
+        Assert.True(CToolchain.IsAvailable(out string why),
+            $"C toolchain required. {why}");
+
+        string generated = Generated("c");
+        string workDir = Path.Combine(RepoLayout.OutputDir("_ccheck"), "containers");
+
+        if (Directory.Exists(workDir))
+            Directory.Delete(workDir, recursive: true);
+
+        // Every generated .c, not a named one: the target writes a source per table and one
+        // for the reader, and a list of names here would quietly stop covering them.
+        var build = CToolchain.CompileHarness(
+            workDir,
+            includeDir: generated,
+            source: Driver("c", "main.c"),
+            accessorHeader: "ContainersData.h",
+            sources: Directory.GetFiles(generated, "*.c", SearchOption.AllDirectories)
+                              .OrderBy(path => path).ToArray(),
+            exeName: "containers-check");
+
+        if (!build.Succeeded)
+            return build;
+
+        return CToolchain.RunHarness(workDir, "containers-check", BinaryDir());
     }
 }

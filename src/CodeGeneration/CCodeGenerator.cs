@@ -141,6 +141,14 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// </summary>
     protected override bool SupportsDeepNestedFields => true;
 
+    /// <summary>
+    /// The arrays, and a function that scans one. This language has neither a map nor a set,
+    /// and the arrays are already in the file's order - so what is missing is a way to ask,
+    /// which is a function rather than a second structure.
+    /// spec/types/set-and-map.md section 7.2.
+    /// </summary>
+    protected override bool SupportsContainers => true;
+
     /// <summary>An optional column becomes a `has_{name}` member beside the value.</summary>
     protected override bool SupportsOptionalFields => true;
 
@@ -299,7 +307,13 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                     headers: new[] { ForwardHeader }
                         .Concat(TypeDependencies.EnumsNamedBy(pair.model)
                                 .Select(EnumHeaderFor))
-                        .Concat(PolymorphicHeaders(pair.model))),
+                        .Concat(PolymorphicHeaders(pair.model)),
+
+                    // A container keyed by text generates a lookup that compares with
+                    // `strcmp`, which is the one thing in these headers that reaches the C
+                    // library. spec/types/set-and-map.md section 7.2.
+                    comparesText: ContainerPlan.Of(pair.model).Any(
+                        plan => plan.Source.ElementType == ValueType.String)),
                 Forwards = Array.Empty<string>(),
                 ExternC = true,
                 Table = pair.rendered,
@@ -479,12 +493,19 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// on anything here - which is the whole of the ordering, the graph being a DAG once the
     /// table-to-table edges are forward declarations instead of includes.
     /// </remarks>
-    private static IReadOnlyList<string> Includes(bool reader, IEnumerable<string> headers)
+    private static IReadOnlyList<string> Includes(
+        bool reader, IEnumerable<string> headers, bool comparesText = false)
     {
         var lines = new List<string>();
 
         if (reader)
             lines.Add("#include \"tabbit/tabbit_tcb_reader.h\"");
+
+        // Only where a lookup compares strings. An include a file does not need is a golden
+        // that moved for nothing, which is what the note beside `<memory>` in the C++ target
+        // says for the same reason. spec/types/set-and-map.md section 7.2.
+        if (comparesText)
+            lines.Add("#include <string.h>");
 
         var own = headers.Distinct().ToList();
 
@@ -823,6 +844,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
+                Lookups = LookupLines(member.Members, member.Container, group, typeName),
                 Owner = $"{RecordName(table)}::{CName(group.Name)}",
             });
 
@@ -863,6 +885,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 TypeName = RecordEntryName(table, sf),
                 Members = members,
                 IsOutermost = true,
+                Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf, RecordEntryName(table, sf)),
                 Owner = $"{RecordName(table)}::{name}",
             });
         }
@@ -1708,11 +1731,74 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
         string type = ScalarTypeName(member.ElementType, member.FirstField!.EnumOrNull);
 
-        return member.IsArray
+        // Or the member's own cell holds the list, which is what a `set` and a `map` are -
+        // the same pointer and count either way. spec/types/set-and-map.md section 4.
+        return member.HoldsList
             ? $"{type}* {name}; int32_t {name}_count;"
             : $"{type} {name};";
     }
 
+
+    /// <summary>
+    /// The lookup functions one record struct publishes for its containers.
+    /// </summary>
+    /// <remarks>
+    /// **A scan, and deliberately.** A row's container holds the entries somebody typed into
+    /// one cell, and building a hash of those to ask one question would cost more than the
+    /// question. Nothing is stored, so nothing has to be freed and the read path is untouched.
+    /// spec/types/set-and-map.md section 7.2.
+    /// </remarks>
+    private List<string> LookupLines(
+        List<RecordMember> members,
+        Models.ContainerKind own,
+        SerialField group,
+        string typeName)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(members, own, group))
+        {
+            string source = CName(plan.Source.Name);
+            string keyType = ScalarTypeName(plan.Source.ElementType, plan.Source.FirstField!.EnumOrNull);
+            bool keyIsText = plan.Source.ElementType == ValueType.String;
+            string compare = keyIsText ? "strcmp(self->{0}[j], key) == 0" : "self->{0}[j] == key";
+
+            if (plan.IsMap)
+            {
+                string name = typeName + "_index_of";
+
+                lines.Add("/* Where `key` sits among the entries, or -1 when it is not one of");
+                lines.Add(" * them. A scan: a row's map holds what somebody typed into one");
+                lines.Add(" * cell, and hashing that to ask once would cost more than asking. */");
+                lines.Add($"static inline int32_t {name}(const struct {typeName}* self, "
+                          + $"{keyType} key) {{");
+                lines.Add($"  for (int32_t j = 0; j < self->{source}_count; ++j) {{");
+                lines.Add("    if (" + string.Format(compare, source) + ") {");
+                lines.Add("      return j;");
+                lines.Add("    }");
+                lines.Add("  }");
+                lines.Add("  return -1;");
+                lines.Add("}");
+
+                continue;
+            }
+
+            string contains = typeName + "_contains_" + source;
+
+            lines.Add($"/* Whether `value` is one of the elements of `{source}`. */");
+            lines.Add($"static inline bool {contains}(const struct {typeName}* self, "
+                      + $"{keyType} key) {{");
+            lines.Add($"  for (int32_t j = 0; j < self->{source}_count; ++j) {{");
+            lines.Add("    if (" + string.Format(compare, source) + ") {");
+            lines.Add("      return true;");
+            lines.Add("    }");
+            lines.Add("  }");
+            lines.Add("  return false;");
+            lines.Add("}");
+        }
+
+        return lines;
+    }
 
     private string ScalarTypeName(ValueType type, Models.Enum? enumm)
     {
