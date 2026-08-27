@@ -186,6 +186,17 @@ public class SerialField
     public bool IsRecord => Kind == SerialFieldKind.Record;
 
     /// <summary>
+    /// The container this whole group was declared as, or none.
+    /// </summary>
+    /// <remarks>
+    /// **The group rather than a member of it**, which is what a container written in the
+    /// sheet's own type cell is: `map&lt;int,int&gt;` on a column called `Prices` makes `Prices`
+    /// the map. A container declared as a struct member is one level in and marks a
+    /// <see cref="RecordMember"/> instead. spec/types/set-and-map.md section 2.3.
+    /// </remarks>
+    public ContainerKind Container { get; set; }
+
+    /// <summary>
     /// Whether this group is one record whose members are arrays, rather than an array of
     /// records.
     /// </summary>

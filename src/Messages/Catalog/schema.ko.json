@@ -31,6 +31,7 @@
   "schema.set-duplicate-element": "`{Table}.{Column}`{Column:은} set인데 이 행이 `{Value}`{Value:을} 두 번 담고 있습니다 — {Element}번째 원소이고, {First}번째에 이미 있습니다. set은 원소가 서로 다르다는 것을 말하므로, 둘째 것이 잘못 적힌 값이거나 이 컬럼이 그냥 배열입니다.",
   "schema.map-duplicate-key": "`{Table}.{Column}`{Column:은} map인데 이 행이 `{Value}`{Value:을} 키로 하는 항목을 둘 가집니다 — {Element}번째 원소이고, {First}번째에 이미 있습니다. 조회가 둘 중 어느 것을 답할지는 파일이 말할 수 있는 것이 아닙니다.",
   "schema.map-length-mismatch": "`{Table}.{Column}`의 이 행에 키가 {Keys}개, 값이 {Values}개 있습니다 — `{Member}`. map은 쌍이므로, 옆에 값이 없는 키는 무엇의 키도 아닙니다.",
+  "schema.set-in-a-type-cell": "`{Table}.{Column}`의 타입 칸에 `{Type}`{Type:이} 적혀 있습니다. 타입 칸의 `map`은 컬럼 둘이 되므로 조회를 얹을 레코드가 생기는데, `set`은 컬럼 하나여서 그런 레코드가 없습니다 — 생성 코드가 배열만 갖고 물을 것을 갖지 못하며, 그것은 반쪽짜리 컨테이너입니다. `.tbs` 파일에 멤버로 선언하거나, 컬럼을 `{Element}[]`로 적어 그냥 배열로 두십시오.",
   "schema.container-inside-an-array": "`{Table}.{Column}`{Column:은} `{Group}` 안의 컨테이너인데, 시트가 `{Group}`에 번호를 붙였으므로 컨테이너의 배열입니다. 컬럼 하나가 원소마다 목록을 담아야 하고, 목록의 목록은 시트에 적을 표기가 없습니다 — 그룹을 레코드 하나로 적거나, 멤버를 그냥 배열로 두십시오.",
   "schema.container-held-struct-is-a-list":"`{Struct}.{Member}`{Member:이} `{Type}`{Type:을} 담는데 `{Type}.{Inner}`{Inner:이} `{InnerType}`입니다. 담긴 struct의 멤버는 저마다 컬럼 하나가 되어 모든 항목의 그 멤버 값을 담으므로, 이미 목록인 멤버는 목록의 목록을 담는 컬럼이 필요해집니다 — `set<T>[]`{:을} 거부하는 것과 같은 형태입니다.",
   "schema.map-pair-malformed":"`{Table}.{Column}`{Column:은} map을 쌍으로 적는데 이 항목에 `{Separator}`{Separator:이} 없습니다 — `{Written}`. 항목은 키 · 구분자 · 값이고, 값이 구분자 자체를 담아야 하면 `\\{Separator}`(으)로 적습니다.",

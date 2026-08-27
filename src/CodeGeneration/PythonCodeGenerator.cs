@@ -863,9 +863,9 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             TypeName = entry,
             Members = members,
             IsOutermost = true,
-            Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf),
+            Lookups = LookupLines(sf.Members, sf.Container, sf),
             Owner = $"{table.Name.ToPascalCase()}Record.{name}",
-            SlotNames = Tuple(MemberSlotNames(sf.Members)),
+            SlotNames = Tuple(MemberSlotNames(sf.Members, sf.Container)),
             ReprFormat = string.Join(", ", sf.Members.Select(m => PythonName(m.Name) + "=%r")),
             ReprValues = Tuple(
                 sf.Members.Select(m => "self." + PythonName(m.Name)).ToList(), quote: false),
@@ -915,7 +915,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             RecordTypeName = entry,
             Members = members,
             RecordTypes = recordTypes,
-            RecordSlotNames = Tuple(MemberSlotNames(sf.Members)),
+            RecordSlotNames = Tuple(MemberSlotNames(sf.Members, sf.Container)),
             RecordReprFormat = string.Join(", ", sf.Members.Select(m => PythonName(m.Name) + "=%r")),
             RecordReprValues = Tuple(
                 sf.Members.Select(m => "self." + PythonName(m.Name)).ToList(), quote: false),

@@ -44,6 +44,29 @@ public static class SchemaParser
         return new Reader(tokens, path, diagnostics).ReadFile();
     }
 
+    /// <summary>
+    /// Reads one type expression on its own, for a notation that writes one outside a file.
+    /// </summary>
+    /// <remarks>
+    /// **This is what keeps the type grammar in one place.** A sheet's type cell may spell a
+    /// container - `map&lt;int,int&gt;` - and the alternative was to teach the cell reader the
+    /// angle brackets, the arguments and the metadata that go with them. Two parsers for one
+    /// grammar agree until they do not, which is the reason
+    /// `SchemaMetadata.Apply` already has one dictionary of keys for both notations.
+    ///
+    /// Null when the text does not read as a type, or when something follows the type that
+    /// is not part of it - the caller reports that, because only the caller knows where the
+    /// text came from. spec/types/set-and-map.md section 2.3.
+    /// </remarks>
+    public static SchemaTypeRef? ParseTypeExpression(
+        string text, Location where, Diagnostics diagnostics)
+    {
+        var tokens = SchemaLexer.Read(text, where.ToString(), diagnostics);
+        var reader = new Reader(tokens, where.ToString(), diagnostics);
+
+        return reader.ReadWholeType(where);
+    }
+
     private sealed class Reader
     {
         private readonly List<SchemaToken> _tokens;
@@ -64,6 +87,34 @@ public static class SchemaParser
 
         private Location Where(SchemaToken token)
             => Location.OfTextFile(_path, token.Line, token.Column);
+
+        /// <summary>
+        /// One type and nothing after it, with the location the caller knows rather than the
+        /// one inside a text this reader was handed on its own.
+        /// </summary>
+        public SchemaTypeRef? ReadWholeType(Location where)
+        {
+            var read = ReadType(asArgument: true);
+
+            if (read is null)
+                return null;
+
+            // A lexer built for files ends a line before it ends the text, and a type cell is
+            // one line with nothing after it - so both mean the same thing here.
+            if (Current.Kind == SchemaTokenKind.EndOfLine)
+                Advance();
+
+            if (Current.Kind != SchemaTokenKind.EndOfFile)
+            {
+                _diagnostics.Error(where, Message.Of(
+                    SchemaMessages.UnexpectedToken,
+                    ("Written", Current.ToString()), ("Expected", "the end of the type")));
+
+                return null;
+            }
+
+            return read;
+        }
 
         public SchemaFile ReadFile()
         {

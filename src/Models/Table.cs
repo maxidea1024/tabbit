@@ -619,6 +619,11 @@ public class Table
         // layout reads the notation.
         result.MembersAreArrays = repeating > 0;
 
+        // A container written in the sheet's own type cell is the group itself - level zero
+        // of the path - rather than a member of one. spec/types/set-and-map.md section 2.3.
+        if (claimed[0].ContainerLevel == 0)
+            result.Container = claimed[0].Container;
+
         // An anonymous level is reached by number, so the level **above** it turns into one
         // member per element: there is no word a consumer could write, so it indexes. That
         // is the one shape whose outer level becomes members rather than cells, and it is

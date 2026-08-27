@@ -828,7 +828,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             TypeName = entry,
             Members = members,
             IsOutermost = true,
-            Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf),
+            Lookups = LookupLines(sf.Members, sf.Container, sf),
             Owner = name,
         });
 

@@ -431,6 +431,12 @@ public sealed class CookingContext
         if (IsDeferredTypeName(typeName))
             return true;
 
+        // And a container, for the third reason of the same kind: a `map` is two columns, so
+        // what it means is not a type this could hand back. The pass that expands it reads
+        // the spelling with the notation's own parser. spec/types/set-and-map.md section 2.3.
+        if (IsContainerTypeName(typeName))
+            return true;
+
         // `int?`: the optional marker is not part of the type's name, so it comes off before
         // the name is recognized. Callers that want to know about it use SplitOptionalMarker.
         typeName = SplitOptionalMarker(typeName, out _);
@@ -566,6 +572,11 @@ public sealed class CookingContext
         if (IsDeferredTypeName(typeName))
             return DeferredType;
 
+        // Kept as text until the container pass expands it, which is what a deferred column
+        // is for. spec/types/set-and-map.md section 2.3.
+        if (IsContainerTypeName(typeName))
+            return DeferredType;
+
         throw new TabbitException(location,
             Message.Of(CookingMessages.UnsupportedType, ("Type", typeName)));
     }
@@ -582,6 +593,30 @@ public sealed class CookingContext
     /// this once every group has been bound.
     /// </remarks>
     public const Models.ValueType DeferredType = Models.ValueType.String;
+
+    /// <summary>
+    /// Whether a type cell spells a container - `set&lt;T&gt;` or `map&lt;K,V&gt;`.
+    /// </summary>
+    /// <remarks>
+    /// **Recognised here and parsed nowhere near here.** All this asks is whether the cell
+    /// begins with one of the two names and opens a bracket; what the arguments are, whether
+    /// they are allowed and what metadata they carry is the notation's own parser's, and
+    /// keeping it there is what stops one grammar being written twice.
+    /// spec/types/set-and-map.md section 2.3.
+    /// </remarks>
+    public static bool IsContainerTypeName(string? typeName)
+    {
+        if (string.IsNullOrEmpty(typeName))
+            return false;
+
+        string text = typeName.TrimStart();
+
+        int angle = text.IndexOf('<');
+
+        return angle > 0
+            && Schema.SchemaContainers.KindOf(text.Substring(0, angle).TrimEnd())
+                != Models.ContainerKind.None;
+    }
 
     /// <summary>
     /// Whether a type cell is one this cannot answer on its own.

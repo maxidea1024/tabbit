@@ -138,6 +138,9 @@ public static class SchemaMessages
     /// <summary>A container inside a numbered group, which is an array of containers.</summary>
     public const string ContainerInsideAnArray = "schema.container-inside-an-array";
 
+    /// <summary>`set&lt;T&gt;` in a sheet's own type cell, which has nowhere to put the lookup.</summary>
+    public const string SetInATypeCell = "schema.set-in-a-type-cell";
+
     /// <summary>Type arguments on a type that takes none.</summary>
     public const string TypeTakesNoArguments = "schema.type-takes-no-arguments";
 

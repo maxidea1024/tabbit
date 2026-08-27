@@ -931,7 +931,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             TypeName = typeName,
             Members = members,
             IsOutermost = true,
-            Lookups = LookupsOf(sf.Members, Models.ContainerKind.None),
+            Lookups = LookupsOf(sf.Members, sf.Container),
         });
 
         // Which abstract type this group is, if it is one. One per declaration however many
@@ -1000,7 +1000,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 ? $"Array.from({{ length: {sf.Members.Count} }}, () => [])"
                 : sf.IsArray
                     ? "[]"
-                    : RecordLiteral(members, LookupsOf(sf.Members, Models.ContainerKind.None)),
+                    : RecordLiteral(members, LookupsOf(sf.Members, sf.Container)),
 
             // The JSON shape gets an interface of its own, because a member's exported
             // type is not always its member type - a 64-bit integer arrives as a string.
@@ -1217,7 +1217,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         {
             string root = "." + TsName(group.Name);
 
-            foreach (var lookup in LookupsOf(group.Members, Models.ContainerKind.None))
+            foreach (var lookup in LookupsOf(group.Members, group.Container))
                 result.Add(At(lookup, root));
 
             foreach (var member in group.Members)
@@ -1307,7 +1307,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             return $"this.{field} = dataRow.{prop}.map((inner: any) => inner.map((v: any) => {each}))";
         }
 
-        string literal = NamedRowLiteral(sf.Members, "e", Models.ContainerKind.None);
+        string literal = NamedRowLiteral(sf.Members, "e", sf.Container);
 
         return sf.IsArray
             ? $"this.{field} = dataRow.{prop}.map(e => ({literal}))"
@@ -1485,7 +1485,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         {
             // One element, so one entry per leaf and no slicing. The literal reads them in
             // source order, which is the order the exporter wrote them.
-            lines.Add($"this.{field} = {CompactRowLiteral(sf.Members)}");
+            lines.Add($"this.{field} = {CompactRowLiteral(sf.Members, sf.Container)}");
             return lines;
         }
 

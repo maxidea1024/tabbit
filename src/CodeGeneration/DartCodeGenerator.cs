@@ -739,7 +739,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             TypeName = entry,
             Members = members,
             IsOutermost = true,
-            Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf),
+            Lookups = LookupLines(sf.Members, sf.Container, sf),
             Owner = $"{table.Name.ToPascalCase()}Record.{name}",
         });
 

@@ -567,7 +567,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         {
             string root = "." + GoName(group.Name);
 
-            foreach (var lookup in LookupsOf(group.Members, Models.ContainerKind.None))
+            foreach (var lookup in LookupsOf(group.Members, group.Container))
                 result.Add(At(lookup, root));
 
             foreach (var member in group.Members)
@@ -861,7 +861,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             TypeName = elementType,
             Members = members,
             IsOutermost = true,
-            Lookups = LookupsOf(sf.Members, Models.ContainerKind.None),
+            Lookups = LookupsOf(sf.Members, sf.Container),
             Owner = $"{table.Name.ToPascalCase()}Record.{name}",
         });
 

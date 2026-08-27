@@ -80,6 +80,13 @@ public partial class ModelCooker
         // Before the extra row sets are folded as well, and that is not a gap: a set that has
         // not been folded yet is still a table of its own, with the same columns, so this
         // pass reaches its cells while it is one. notes/struct-dsl-design.md section 7.2.
+
+        // A container written in a sheet's own type cell, ahead of the binding: the columns
+        // it becomes are ordinary columns from there on, and a sheet with no `.tbs` file at
+        // all reaches this - which the binding, by definition, does not.
+        // spec/types/set-and-map.md section 2.3.
+        ExpandSheetContainers(context, result, declarations, diagnostics);
+
         BindDeclaredStructs(context, result, declarations, diagnostics);
 
         // What a container promises about its values, now that the binding has read the

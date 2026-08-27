@@ -1,0 +1,39 @@
+{
+  // A `set` and a `map` written in the sheet's own type cells - spec/types/set-and-map.md
+  // section 2.3.
+  //
+  // **No `Schemas` entry at all, and that is the point.** The declared notation needs a
+  // `.tbs` file and puts every column under the struct's group; a project that wants one map
+  // column should not have to take either. The type cell says what the column is and the
+  // notation's own parser reads it, so there is still one type grammar.
+  //
+  // Binary and named JSON, and C# for the container surface - the same three questions the
+  // declared fixtures ask, of a table that declared nothing.
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "test/fixtures/xlsx/containers-sheet" }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/containers-sheet/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/containers-sheet/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/containers-sheet/csharp",
+      "Namespace": "Tabbit.Fixtures.ContainersSheet",
+      "AccessorName": "ContainersSheetAccessor"
+    }
+  ]
+}

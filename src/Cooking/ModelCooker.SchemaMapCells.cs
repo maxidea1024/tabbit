@@ -182,6 +182,13 @@ public partial class ModelCooker
     /// </remarks>
     private static IEnumerable<Field> SplitIntoKeyAndValue(Field field, SchemaField member)
     {
+        // A column inside a group already has a path; a plain column - which is what a sheet
+        // writing the container in its own type cell has - gets one, because the two columns
+        // it becomes are a record group and a group is what a path is.
+        var basePath = field.NamePath is null
+            ? new List<FieldPathStep> { new FieldPathStep { Name = field.Name, Index = null } }
+            : new List<FieldPathStep>(field.NamePath);
+
         foreach (string slot in new[] { SchemaContainers.KeyMember, SchemaContainers.ValueMember })
         {
             bool first = slot == SchemaContainers.KeyMember;
@@ -200,7 +207,7 @@ public partial class ModelCooker
 
                 RawName = $"{field.RawName}.{slot}",
                 Name = field.Name + slot,
-                NamePath = [.. field.NamePath!, new FieldPathStep { Name = slot, Index = null }],
+                NamePath = [.. basePath, new FieldPathStep { Name = slot, Index = null }],
 
                 TargetSide = field.TargetSide,
                 Comment = first ? field.Comment : "",

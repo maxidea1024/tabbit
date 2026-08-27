@@ -885,7 +885,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 TypeName = RecordEntryName(table, sf),
                 Members = members,
                 IsOutermost = true,
-                Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf, RecordEntryName(table, sf)),
+                Lookups = LookupLines(sf.Members, sf.Container, sf, RecordEntryName(table, sf)),
                 Owner = $"{RecordName(table)}::{name}",
             });
         }

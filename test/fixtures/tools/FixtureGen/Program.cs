@@ -59,6 +59,12 @@ internal static class Program
         WriteContainers(
             Prepare(outputDir, "containers-expanded", "containers-expanded.xlsx"),
             fromSchema: false);
+        // A container written in the sheet's own type cell, with no declarations at all.
+        WriteSheetContainers(
+            Prepare(outputDir, "containers-sheet", "containers-sheet.xlsx"));
+        // And the one a type cell cannot carry, which is refused there by name.
+        WriteSheetSet(
+            Prepare(outputDir, "containers-sheet-set", "containers-sheet-set.xlsx"));
         // And the same table a third time, with the map written as pairs in one cell.
         WriteContainerPairs(
             Prepare(outputDir, "containers-paired", "containers-paired.xlsx"));
@@ -1168,6 +1174,79 @@ internal static class Program
             // A run of equal values, which is what the column encodings read.
             .Row("4", "new;sale",  "10;11;12", "100;120;140", "1;2;3", "101;102;103", "1;3;5")
             .Row("5", "new;sale",  "10;11;12", "100;120;140", "1;2;3", "101;102;103", "1;3;5");
+
+        b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// A `set` and a `map` written in the sheet's own type cells, with no `.tbs` file.
+    /// </summary>
+    /// <remarks>
+    /// **This is what the sheet-side notation is for.** Declaring a struct to hold one map
+    /// puts a level of nesting on every column that nobody asked for - here the columns are
+    /// what the author wrote and the type cell says what they are.
+    /// spec/types/set-and-map.md section 2.3.
+    /// </remarks>
+    private static void WriteSheetContainers(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Containers"));
+
+        var spec = new TableSpec
+        {
+            Name = "Stall",
+            Comment = "A set and a map, typed by the sheet itself.",
+        };
+
+        spec
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            // A plain array beside it, because a `set` in a type cell is refused - there is
+            // no record for its lookup to sit on. spec/types/set-and-map.md section 2.3.
+            .Field(FieldSpec.Of("Tags", "string[]", "what this row is filed under"))
+
+            // A map is two columns, and the type cell is one - so the cell holds the pairs.
+            .Field(FieldSpec.Of("Prices", "map<int,int>", "what each item costs here"));
+
+        spec
+            .Row("1", "new;sale", "10:100;11:120")
+            .Row("2", "sale",     "10:90")
+            // Nothing in either, which is an entry count of zero rather than no container.
+            .Row("3", "",         "")
+            // A run of equal values, which is what the column encodings read.
+            .Row("4", "new;sale", "10:100;11:120;12:140")
+            .Row("5", "new;sale", "10:100;11:120;12:140");
+
+        b.Table(1, 1, spec);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// A `set` in a type cell, which is the one container a cell cannot carry.
+    /// </summary>
+    /// <remarks>
+    /// A map there becomes two columns and so becomes a record, which is a type a lookup can
+    /// sit on. A set stays one column and there is no such type, so what would come out is
+    /// the array and nothing to ask with. spec/types/set-and-map.md section 2.3.
+    /// </remarks>
+    private static void WriteSheetSet(string path)
+    {
+        var workbook = new XSSFWorkbook();
+        var b = new SheetBuilder(workbook.CreateSheet("Containers"));
+
+        var spec = new TableSpec
+        {
+            Name = "Booth",
+            Comment = "A set written in the sheet's own type cell.",
+        };
+
+        spec
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Tags", "set<string>", "what this row is filed under"));
+
+        spec.Row("1", "new;sale");
 
         b.Table(1, 1, spec);
 

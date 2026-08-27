@@ -984,6 +984,17 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             // cannot size at its declaration either. spec/references/multi-target-accessors.md.
             NeedsInit = members.Any(m => m.Initializer.Length > 0),
             IsOutermost = true,
+
+            // A container written in the sheet's own type cell is the group itself rather
+            // than a member of one, so the group's element type is where its lookup sits.
+            // spec/types/set-and-map.md section 2.3.
+            IsMap = MapKeyOf(sf.Members, sf.Container) is not null,
+            MapKeyType = MapKeyOf(sf.Members, sf.Container) is { } groupKey
+                ? ToCSharpTypeName(groupKey.FirstField)
+                : "",
+            MapValueType = MapValueOf(sf.Members, sf.Container) is { IsLeaf: true } groupValue
+                ? ToCSharpTypeName(groupValue.FirstField)
+                : "",
         });
 
         // Which abstract type this group is, if it is one. The variants and their members are
@@ -1141,6 +1152,18 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// what makes depth cost nothing here: `Position` is declared exactly as `Id` is, with a
     /// different type name. spec/types/nested-multi-level.md.
     /// </remarks>
+    /// <summary>The key member of a map, or null when the type is not one.</summary>
+    private static RecordMember? MapKeyOf(List<RecordMember> members, Models.ContainerKind own)
+        => own == Models.ContainerKind.Map
+            ? members.Find(member => member.Name == Models.ContainerMembers.Key)
+            : null;
+
+    /// <summary>And what its entries hold.</summary>
+    private static RecordMember? MapValueOf(List<RecordMember> members, Models.ContainerKind own)
+        => own == Models.ContainerKind.Map
+            ? members.Find(member => member.Name == Models.ContainerMembers.Value)
+            : null;
+
     /// <summary>
     /// Every container in a table, with what reaches it from a record.
     /// </summary>
@@ -1158,6 +1181,25 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         foreach (var group in table.SerialFields.Where(group => group.IsRecord))
         {
             string root = "._" + group.Name.ToCamelCase();
+
+            // The group itself, where the sheet's own type cell said what it is.
+            if (MapKeyOf(group.Members, group.Container) is { } key)
+            {
+                var held = MapValueOf(group.Members, group.Container);
+                bool storesValue = held is { IsLeaf: true };
+
+                result.Add(new CsContainerView
+                {
+                    IsMap = true,
+                    Access = root,
+                    LookupField = "_byKey",
+                    SourceField = Models.ContainerMembers.Key,
+                    LookupType = "Dictionary<"
+                        + ToCSharpTypeName(key.FirstField) + ", "
+                        + (storesValue ? ToCSharpTypeName(held!.FirstField) : "int") + ">",
+                    StoredValue = storesValue ? Models.ContainerMembers.Value + "[j]" : "j",
+                });
+            }
 
             foreach (var member in group.Members)
                 Collect(member, root);

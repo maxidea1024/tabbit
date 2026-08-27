@@ -1032,7 +1032,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             TypeName = elementType,
             Members = members,
             IsOutermost = true,
-            Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf),
+            Lookups = LookupLines(sf.Members, sf.Container, sf),
             Owner = $"{table.Name.ToPascalCase()}Record::{name}",
         });
 

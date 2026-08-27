@@ -716,10 +716,10 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             TypeName = entry,
             Members = members,
             IsOutermost = true,
-            Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf),
-            LookupAnnotations = LookupAnnotationLines(sf.Members, Models.ContainerKind.None, sf),
+            Lookups = LookupLines(sf.Members, sf.Container, sf),
+            LookupAnnotations = LookupAnnotationLines(sf.Members, sf.Container, sf),
             Owner = $"{table.Name.ToPascalCase()}Record{Access(LuaName(sf.Name))}",
-            FieldNames = QuotedList(MemberFieldNames(sf.Members)),
+            FieldNames = QuotedList(MemberFieldNames(sf.Members, sf.Container)),
             Annotations = sf.Members.SelectMany(m => MemberAnnotations(m, entry)).ToList(),
         });
 

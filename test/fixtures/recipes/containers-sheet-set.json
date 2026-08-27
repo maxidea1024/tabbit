@@ -1,0 +1,27 @@
+{
+  // A `set` written in the sheet's own type cell, which is refused - spec/types/set-and-map.md
+  // section 2.3.
+  //
+  // **A map there works and a set does not, and the difference is not arbitrary.** A map
+  // becomes two columns and so becomes a record, which is a type the generated code can
+  // publish a lookup on. A set stays one column, the group it makes is a plain array, and
+  // there is no such type - so what would come out is the array and nothing to ask with.
+  //
+  // That is the half surface `SupportsContainers` exists to keep out, met from the other
+  // side: not a target that has not learned, but a notation with nowhere to put the answer.
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "test/fixtures/xlsx/containers-sheet-set" }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/containers-sheet-set/binary",
+      "FileExtension": ".tcb"
+    }
+  ]
+}

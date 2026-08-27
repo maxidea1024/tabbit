@@ -624,9 +624,9 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             TypeName = entry,
             Members = members,
             IsOutermost = true,
-            Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf),
+            Lookups = LookupLines(sf.Members, sf.Container, sf),
             Owner = $"{table.Name.ToPascalCase()}Record#{name}",
-            AccessorNames = Symbols(MemberAccessorNames(sf.Members)),
+            AccessorNames = Symbols(MemberAccessorNames(sf.Members, sf.Container)),
         });
 
         // An array with its elements already made, where the length is the sheet's column
@@ -671,7 +671,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             IsRecord = true,
             MembersAreAnonymous = sf.MembersAreAnonymous,
             RecordTypeName = entry,
-            RecordAccessorNames = Symbols(MemberAccessorNames(sf.Members)),
+            RecordAccessorNames = Symbols(MemberAccessorNames(sf.Members, sf.Container)),
 
             Members = members,
             RecordTypes = recordTypes,

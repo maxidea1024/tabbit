@@ -731,7 +731,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
                 TypeName = RecordEntryName(table, sf),
                 Members = recordMembers,
                 IsOutermost = true,
-                Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf),
+                Lookups = LookupLines(sf.Members, sf.Container, sf),
                 Owner = $"{RecordName(table)}::{name}",
             });
         }
