@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="895" height="174" viewBox="0 0 895 174" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>매트릭스 선언의 시트 배치</title>
+<rect x="0" y="0" width="572.1875" height="166" fill="#FFFFFF"/>
+<rect x="0" y="0" width="571.1875" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="166" fill="#E9ECEF"/>
+<rect x="30" y="22" width="541.1875" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="541.1875" height="24" fill="#F1F6FB"/>
+<rect x="30" y="70" width="541.1875" height="24" fill="#F1F6FB"/>
+<rect x="30" y="94" width="541.1875" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="162.0625" y1="22" x2="162.0625" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="310.3125" y1="22" x2="310.3125" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="426.1875" y1="22" x2="426.1875" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="498.6875" y1="22" x2="498.6875" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="571.1875" y1="22" x2="571.1875" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="571.1875" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="571.1875" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="571.1875" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="571.1875" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="571.1875" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="571.1875" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="166" x2="571.1875" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="571.1875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="166" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="162.0625" y1="0" x2="162.0625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="310.3125" y1="0" x2="310.3125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="426.1875" y1="0" x2="426.1875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="498.6875" y1="0" x2="498.6875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="571.1875" y1="0" x2="571.1875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="166" x2="30" y2="166" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="570.6875" height="165.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="96.0" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="236.2" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="368.2" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="462.4" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="534.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">E</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="15.0" y="157.8" font-size="10.5" fill="#5B6570" text-anchor="middle">6</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:matrix TownPrice</text>
+<text x="169.0625" y="38.5" font-size="12.5" fill="#1F2328">지역별 교역품 보정치입니다.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="169.0625" y="62.5" font-size="12.5" fill="#1F2328">town</text>
+<text x="317.3125" y="62.5" font-size="12.5" fill="#1F2328">value</text>
+<text x="37" y="86.5" font-size="12.5" fill="#1A5FA8">:type</text>
+<text x="169.0625" y="86.5" font-size="12.5" fill="#1F2328">foreign Town</text>
+<text x="317.3125" y="86.5" font-size="12.5" fill="#1F2328">int? (min=-100)</text>
+<text x="37" y="110.5" font-size="12.5" fill="#1A5FA8">:col</text>
+<text x="169.0625" y="110.5" font-size="12.5" fill="#1F2328">goods foreign Goods</text>
+<text x="317.3125" y="110.5" font-size="12.5" fill="#1F2328">11000001</text>
+<text x="433.1875" y="110.5" font-size="12.5" fill="#1F2328">11000002</text>
+<text x="505.6875" y="110.5" font-size="12.5" fill="#1F2328">11000003</text>
+<text x="169.0625" y="134.5" font-size="12.5" fill="#1F2328">21000001</text>
+<text x="317.3125" y="134.5" font-size="12.5" fill="#1F2328">0</text>
+<text x="433.1875" y="134.5" font-size="12.5" fill="#1F2328">-25</text>
+<text x="505.6875" y="134.5" font-size="12.5" fill="#1F2328">-125</text>
+<text x="169.0625" y="158.5" font-size="12.5" fill="#1F2328">21000002</text>
+<text x="317.3125" y="158.5" font-size="12.5" fill="#1F2328">10</text>
+<text x="433.1875" y="158.5" font-size="12.5" fill="#1F2328">0</text>
+<text x="505.6875" y="158.5" font-size="12.5" fill="#1F2328">-40</text>
+<text x="581.1875" y="38.0" font-size="11" fill="#8A929B" font-style="italic">◀ 선언 셀은 A1 한 칸 — B1이 설명</text>
+<text x="581.1875" y="62.0" font-size="11" fill="#8A929B" font-style="italic">◀ B는 행 축의 이름, C 한 칸이 격자 전체의 이름</text>
+<text x="581.1875" y="86.0" font-size="11" fill="#8A929B" font-style="italic">◀ 타입도 같은 자리 — D 이후는 비어 있어야 합니다</text>
+<text x="581.1875" y="110.0" font-size="11" fill="#8A929B" font-style="italic">◀ B는 열 축의 이름과 타입, C부터가 열 축의 키</text>
+<text x="581.1875" y="134.0" font-size="11" fill="#8A929B" font-style="italic">◀ B는 행 축의 키, C부터가 값</text>
+</svg>

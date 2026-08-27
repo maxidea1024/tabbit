@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""primary-layout.md 8절의 예시를 엑셀 격자 모습의 SVG로 생성한다.
+"""primary-layout.md 8절과 matrix-declaration.md 의 예시를 엑셀 격자 모습의 SVG로 생성한다.
 
-같은 폴더에 primary-layout-*.svg 를 다시 씁니다. 예시를 고치면 이 파일을 고치고
+같은 폴더에 primary-layout-*.svg 와 matrix-declaration*.svg 를 다시 씁니다. 예시를 고치면 이 파일을 고치고
 다시 실행한 뒤, PNG로 렌더해 눈으로 확인하고 커밋합니다."""
 import html
 import os
@@ -374,3 +374,32 @@ build("primary-layout-variant", [
     2: "빈 칸이 기본 변형 — kr · jp 가 변형 이름",
     4: "빌드가 price 하나를 고릅니다 — 나머지 컬럼은 그 빌드에 없음",
 }, title="필드 변형의 시트 배치")
+
+
+build("matrix-declaration", [
+    [":matrix TownPrice", "지역별 교역품 보정치입니다."],
+    [":field", "town", "value"],
+    [":type", "foreign Town", "int? (min=-100)"],
+    [":col", "goods foreign Goods", "11000001", "11000002", "11000003"],
+    ["", "21000001", "0", "-25", "-125"],
+    ["", "21000002", "10", "0", "-40"],
+], notes={
+    0: "선언 셀은 A1 한 칸 — B1이 설명",
+    1: "B는 행 축의 이름, C 한 칸이 격자 전체의 이름",
+    2: "타입도 같은 자리 — D 이후는 비어 있어야 합니다",
+    3: "B는 열 축의 이름과 타입, C부터가 열 축의 키",
+    4: "B는 행 축의 키, C부터가 값",
+}, title="매트릭스 선언의 시트 배치")
+
+build("matrix-declaration-enum", [
+    [":matrix ElementChart", "속성 상성표입니다."],
+    [":field", "attacker", "rate"],
+    [":type", "Element", "float"],
+    [":col", "defender Element", "Fire", "Water", "Wind", "Earth"],
+    ["", "Fire", "1.0", "0.5", "2.0", "1.0"],
+    ["", "Water", "2.0", "1.0", "1.0", "0.5"],
+    ["", "Wind", "0.5", "1.0", "1.0", "2.0"],
+], notes={
+    3: "열 축의 키가 enum 라벨입니다",
+    4: "두 축이 같은 enum이어도 축은 둘입니다",
+}, title="축이 enum인 격자")
