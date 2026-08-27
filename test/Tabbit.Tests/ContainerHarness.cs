@@ -60,6 +60,9 @@ internal static class ContainerHarness
             "dart" => RunDart(),
             "swift" => RunSwift(),
             "rust" => RunRust(),
+            "python" => RunPython(),
+            "ruby" => RunRuby(),
+            "php" => RunPhp(),
             _ => throw new ArgumentException($"No container driver for `{language}`."),
         };
 
@@ -217,5 +220,56 @@ internal static class ContainerHarness
 
         return ConformanceHarness.Execute(
             "cargo", crateDir, "run", "--quiet", "--bin", "harness", "--", BinaryDir());
+    }
+
+    // --------------------------------------------------------------- python
+
+    private static ToolResult RunPython()
+    {
+        Assert.True(ConformanceHarness.PythonIsAvailable(out string why),
+            $"Python interpreter required. {why}");
+
+        // Beside the generated package rather than inside it, so the package's own
+        // directory holds only generated files and the import reads as a consumer's would.
+        string root = Generated("python");
+
+        File.Copy(Driver("python", "harness.py"),
+                  Path.Combine(root, "harness.py"), overwrite: true);
+
+        return ConformanceHarness.RunPythonHere(root, "harness.py", BinaryDir());
+    }
+
+    // ----------------------------------------------------------------- ruby
+
+    private static ToolResult RunRuby()
+    {
+        Assert.True(ConformanceHarness.RubyIsAvailable(out string why),
+            $"Ruby interpreter required. {why}");
+
+        // Beside the generated file, because `require_relative` resolves against the
+        // requiring file and that is the import a consumer would write.
+        string root = Generated("ruby");
+
+        File.Copy(Driver("ruby", "harness.rb"),
+                  Path.Combine(root, "harness.rb"), overwrite: true);
+
+        return ConformanceHarness.RunRubyHere(root, "harness.rb", BinaryDir());
+    }
+
+    // ------------------------------------------------------------------ php
+
+    private static ToolResult RunPhp()
+    {
+        Assert.True(ConformanceHarness.PhpIsAvailable(out string why),
+            $"PHP interpreter required. {why}");
+
+        // Beside the generated files, whose `require_once` resolves against the requiring
+        // file - which is the import a consumer would write.
+        string root = Generated("php");
+
+        File.Copy(Driver("php", "harness.php"),
+                  Path.Combine(root, "harness.php"), overwrite: true);
+
+        return ConformanceHarness.RunPhpScript(root, "harness.php", BinaryDir());
     }
 }

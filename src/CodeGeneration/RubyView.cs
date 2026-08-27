@@ -99,6 +99,15 @@ internal sealed class RubyTableView
     /// </summary>
     public required IReadOnlyList<RubyIndexView> Indexes { get; set; }
 
+    /// <summary>
+    /// The statements filling every `set` and `map` lookup in the table, ready to paste.
+    /// </summary>
+    /// <remarks>
+    /// Once every column is in: a map needs its key column and how long it is, and the
+    /// columns arrive one at a time. spec/types/set-and-map.md section 7.3.
+    /// </remarks>
+    public IReadOnlyList<string> ContainerFill { get; set; } = System.Array.Empty<string>();
+
     /// <summary>The `attr_accessor` list, already as symbols and comma separated.</summary>
     public required string AccessorNames { get; set; }
 
@@ -288,6 +297,15 @@ internal sealed class RubyRecordTypeView
 
     /// <summary>Whether this is the group's own element type rather than a level below it.</summary>
     public required bool IsOutermost { get; set; }
+
+    /// <summary>
+    /// The lookups this class initializes beside its arrays, for a `set` or a `map`.
+    /// </summary>
+    /// <remarks>
+    /// The second layer of a container's surface - the array is the file's order and this is
+    /// the lookup. spec/types/set-and-map.md section 7.1.
+    /// </remarks>
+    public IReadOnlyList<string> Lookups { get; set; } = System.Array.Empty<string>();
 
     /// <summary>What the class belongs to, for its comment.</summary>
     public required string Owner { get; set; }

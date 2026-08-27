@@ -135,6 +135,12 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     protected override bool SupportsDeepNestedFields => true;
 
     /// <summary>
+    /// `dict` and `set`. The first keeps insertion order in this language; the second does
+    /// not, which is what the list beside it is for. spec/types/set-and-map.md section 7.
+    /// </summary>
+    protected override bool SupportsContainers => true;
+
+    /// <summary>
     /// An optional column becomes a `has_{field}` attribute beside the value one.
     /// </summary>
     /// <remarks>
@@ -437,6 +443,77 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         }).ToList(),
     };
 
+    /// <summary>
+    /// The lookups one record class declares beside its lists.
+    /// </summary>
+    /// <remarks>
+    /// A `dict` keeps insertion order here and a `set` does not, which is the whole of why
+    /// the list stays beside them. spec/types/set-and-map.md section 7.2.
+    /// </remarks>
+    private List<string> LookupLines(
+        List<RecordMember> members, Models.ContainerKind own, SerialField group)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(members, own, group))
+        {
+            if (plan.IsMap)
+            {
+                string name = plan.ValueIsOneColumn ? "by_key" : "index_by_key";
+
+                lines.Add(plan.ValueIsOneColumn
+                    ? "# What each key is mapped to. Insertion order, which is the file's."
+                    : "# Where each key sits among the entries - this map's value is an "
+                      + "object, which is an attribute per column, so there is no one value "
+                      + "to answer with.");
+
+                lines.Add($"self.{name} = {{}}");
+
+                continue;
+            }
+
+            lines.Add($"# The elements of {PythonName(plan.Source.Name)}, for asking whether "
+                      + "one is there.");
+            lines.Add($"self.{PythonName(plan.Source.Name)}_set = set()");
+        }
+
+        return lines;
+    }
+
+    /// <summary>The statements filling every lookup in a table, once the rows are read.</summary>
+    private List<string> ContainerFillLines(Table table)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(table))
+        {
+            string access = "record." + PythonName(plan.Group.Name)
+                + string.Concat(plan.Path.Select(name => "." + PythonName(name)));
+
+            string source = access + "." + PythonName(plan.Source.Name);
+
+            if (plan.IsMap)
+            {
+                string name = access + "."
+                    + (plan.ValueIsOneColumn ? "by_key" : "index_by_key");
+
+                string stored = plan.ValueIsOneColumn
+                    ? access + "." + PythonName(plan.Value!.Name) + "[j]"
+                    : "j";
+
+                lines.Add($"for j in range(len({source})):");
+                lines.Add($"    {name}[{source}[j]] = {stored}");
+
+                continue;
+            }
+
+            lines.Add($"for j in range(len({source})):");
+            lines.Add($"    {access}.{PythonName(plan.Source.Name)}_set.add({source}[j])");
+        }
+
+        return lines;
+    }
+
     private PythonTableView BuildTable(Table table)
     {
         var fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList();
@@ -482,6 +559,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             Location = DocText(table.Location.ToString()),
             Comment = CommentLines(table.Comment),
             Indexes = Indexes(table),
+            ContainerFill = ContainerFillLines(table),
             TableSlotNames = Tuple(
                 new[] { "records" }.Concat(Indexes(table).Select(index => index.MapName)).ToList()),
             SlotNames = Tuple(slots),
@@ -666,8 +744,9 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
+                Lookups = LookupLines(member.Members, member.Container, group),
                 Owner = $"{table.Name.ToPascalCase()}Record.{PythonName(group.Name)}",
-                SlotNames = Tuple(MemberSlotNames(member.Members)),
+                SlotNames = Tuple(MemberSlotNames(member.Members, member.Container)),
                 ReprFormat = string.Join(", ", member.Members.Select(m => PythonName(m.Name) + "=%r")),
                 ReprValues = Tuple(
                     member.Members.Select(m => "self." + PythonName(m.Name)).ToList(), quote: false),
@@ -784,6 +863,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             TypeName = entry,
             Members = members,
             IsOutermost = true,
+            Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf),
             Owner = $"{table.Name.ToPascalCase()}Record.{name}",
             SlotNames = Tuple(MemberSlotNames(sf.Members)),
             ReprFormat = string.Join(", ", sf.Members.Select(m => PythonName(m.Name) + "=%r")),
@@ -971,10 +1051,14 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
 
         // The list is the member's when the group is one record - same columns, same wire,
-        // and only which of the two owns it differs.
-        return member.IsArray
-            ? new[] { $"self.{name} = [{MemberDefault(member)}] * {member.Fields.Count}" }
-            : new[] { $"self.{name} = {MemberDefault(member)}" };
+        // and only which of the two owns it differs. Or its own cell holds the list, which
+        // is what a `set` and a `map` are: empty then, because no declaration knows how long
+        // a row's list is. spec/types/set-and-map.md section 4.
+        return member.ListIsInTheCell
+            ? new[] { $"self.{name} = []" }
+            : member.IsArray
+                ? new[] { $"self.{name} = [{MemberDefault(member)}] * {member.Fields.Count}" }
+                : new[] { $"self.{name} = {MemberDefault(member)}" };
     }
 
 
@@ -1050,11 +1134,13 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// that is short by one turns an assignment the read makes into an AttributeError - which
     /// is what `__slots__` is for. spec/references/references-in-records.md.
     /// </remarks>
-    private IReadOnlyList<string> MemberSlotNames(IEnumerable<RecordMember> members)
+    private IReadOnlyList<string> MemberSlotNames(
+        IEnumerable<RecordMember> members, Models.ContainerKind own = Models.ContainerKind.None)
     {
         var result = new List<string>();
+        var listed = members.ToList();
 
-        foreach (var member in members)
+        foreach (var member in listed)
         {
             result.Add(PythonName(member.Name));
 
@@ -1064,8 +1150,24 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                     : PythonName(member.Name) + "_index");
         }
 
+        // A lookup is an attribute like any other, and `__slots__` naming none of them would
+        // make assigning to one raise. From the same plan the declarations come from, so the
+        // two cannot drift. spec/types/set-and-map.md section 7.
+        foreach (var plan in ContainerPlan.Of(listed, own, EmptyGroup))
+        {
+            result.Add(plan.IsMap
+                ? (plan.ValueIsOneColumn ? "by_key" : "index_by_key")
+                : PythonName(plan.Source.Name) + "_set");
+        }
+
         return result;
     }
+
+    /// <summary>
+    /// A stand-in for the group, where what is being asked about is one record type rather
+    /// than where in the table it sits.
+    /// </summary>
+    private static readonly SerialField EmptyGroup = new SerialField();
 
     private string MemberDefault(RecordMember member)
     {

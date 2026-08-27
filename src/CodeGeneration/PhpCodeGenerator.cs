@@ -126,6 +126,12 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     protected override bool SupportsDeepNestedFields => true;
 
     /// <summary>
+    /// An associative array for both - this language has no set type, and its arrays keep
+    /// insertion order. spec/types/set-and-map.md section 7.
+    /// </summary>
+    protected override bool SupportsContainers => true;
+
+    /// <summary>
     /// An optional column becomes a `has{Field}` property beside the value one.
     /// </summary>
     /// <remarks>
@@ -351,6 +357,84 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         }).ToList(),
     };
 
+    /// <summary>
+    /// The lookups one record class declares beside its lists.
+    /// </summary>
+    /// <remarks>
+    /// Associative arrays for both, because this language has no set type - and they keep
+    /// insertion order, so iterating a lookup gives back what the sheet wrote.
+    /// spec/types/set-and-map.md section 7.2.
+    /// </remarks>
+    private List<string> LookupLines(
+        List<RecordMember> members, Models.ContainerKind own, SerialField group)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(members, own, group))
+        {
+            if (plan.IsMap)
+            {
+                string keyType = MemberTypeName(plan.Source);
+                string valueType = plan.ValueIsOneColumn ? MemberTypeName(plan.Value!) : "int";
+                string name = plan.ValueIsOneColumn ? "byKey" : "indexByKey";
+
+                lines.Add(plan.ValueIsOneColumn
+                    ? "/** What each key is mapped to. Insertion order, which is the file's."
+                    : "/** Where each key sits among the entries - this map's value is an "
+                      + "object, which is a property per column, so there is no one value to "
+                      + "answer with.");
+
+                lines.Add($" * @var array<{keyType}, {valueType}> */");
+                lines.Add($"public array ${name} = [];");
+
+                continue;
+            }
+
+            lines.Add($"/** The elements of {PhpName(plan.Source.Name)}, for asking whether "
+                      + "one is there.");
+            lines.Add($" * @var array<{MemberTypeName(plan.Source)}, bool> */");
+            lines.Add($"public array ${PhpName(plan.Source.Name)}Set = [];");
+        }
+
+        return lines;
+    }
+
+    /// <summary>The statements filling every lookup in a table, once the rows are read.</summary>
+    private List<string> ContainerFillLines(Table table)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(table))
+        {
+            string access = "$record->" + PhpName(plan.Group.Name)
+                + string.Concat(plan.Path.Select(name => "->" + PhpName(name)));
+
+            string source = access + "->" + PhpName(plan.Source.Name);
+
+            if (plan.IsMap)
+            {
+                string name = access + "->"
+                    + (plan.ValueIsOneColumn ? "byKey" : "indexByKey");
+
+                string stored = plan.ValueIsOneColumn
+                    ? access + "->" + PhpName(plan.Value!.Name) + "[$j]"
+                    : "$j";
+
+                lines.Add($"for ($j = 0; $j < count({source}); $j++) {{");
+                lines.Add($"    {name}[{source}[$j]] = {stored};");
+                lines.Add("}");
+
+                continue;
+            }
+
+            lines.Add($"for ($j = 0; $j < count({source}); $j++) {{");
+            lines.Add($"    {access}->{PhpName(plan.Source.Name)}Set[{source}[$j]] = true;");
+            lines.Add("}");
+        }
+
+        return lines;
+    }
+
     private PhpTableView BuildTable(Table table) => new PhpTableView
     {
         RawName = table.Name,
@@ -359,6 +443,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        ContainerFill = ContainerFillLines(table),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
         // A separate list, because declaring a property is per field and reading is per
@@ -627,6 +712,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
+                Lookups = LookupLines(member.Members, member.Container, group),
                 Owner = $"{table.Name.ToPascalCase()}Record::${PhpName(group.Name)}",
                 ConstructorLines = nestedConstructor,
             });
@@ -720,6 +806,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             TypeName = entry,
             Members = members,
             IsOutermost = true,
+            Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf),
             Owner = $"{table.Name.ToPascalCase()}Record::${name}",
             ConstructorLines = entryConstructor,
         });
@@ -932,7 +1019,11 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         // The array is the member's when the group is one record - same columns, same wire,
         // and only which of the two owns it differs. `array_fill` is not a constant
         // expression either, so the length is spelled out; the constructor fills it.
-        if (member.IsArray)
+        //
+        // Or the member's own cell holds the list, which is what a `set` and a `map` are -
+        // and there it starts empty and stays empty until the read.
+        // spec/types/set-and-map.md section 4.
+        if (member.HoldsList)
         {
             return new[]
             {

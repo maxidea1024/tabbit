@@ -864,6 +864,16 @@ internal static class ConformanceHarness
         return Execute(DartExecutable, workingDirectory, arguments.ToArray());
     }
 
+    /// <summary>Runs a Ruby script from a directory of its own, for the gates beside this one.</summary>
+    internal static ToolResult RunRubyHere(
+        string workingDirectory, string script, params string[] arguments)
+    {
+        var all = new List<string> { script };
+        all.AddRange(arguments);
+
+        return Execute(RubyExecutable, workingDirectory, all.ToArray());
+    }
+
     public static ToolResult RunRuby(string scenario, string dataScenario = null)
     {
         // Beside the generated file, because `require_relative` resolves against the
@@ -1147,6 +1157,24 @@ internal static class ConformanceHarness
     /// <param name="arguments">
     /// Passed on as `sys.argv[1]` and up, for a snippet that has to be told a path.
     /// </param>
+    /// <summary>
+    /// Runs a Python script from a directory of its own, for the gates beside this one.
+    /// </summary>
+    /// <remarks>
+    /// Through the same environment the conformance harness uses: Python writes its own
+    /// standard output through an encoding of its choosing, which on Windows is the console
+    /// codepage and mangles anything non-ASCII.
+    /// </remarks>
+    internal static ToolResult RunPythonHere(
+        string workingDirectory, string script, params string[] arguments)
+    {
+        var environment = new Dictionary<string, string> { { "PYTHONIOENCODING", "utf-8" } };
+        var all = new List<string> { script };
+        all.AddRange(arguments);
+
+        return Execute(PythonExecutable, workingDirectory, environment, all.ToArray());
+    }
+
     public static ToolResult RunPythonSnippet(string scenario, string snippet, params string[] arguments)
         => Execute(PythonExecutable, Generated(scenario, "python"),
                    new[] { "-c", snippet }.Concat(arguments).ToArray());

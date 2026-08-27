@@ -27,6 +27,12 @@ final class {{ rt.type_name }}
     {{ line }}
 {{~ end ~}}
 {{~ end ~}}
+{{~## The second layer of a container's surface. The lists above are the file's order; these
+   are the lookup, and an associative array keeps insertion order so the two agree.
+   spec/types/set-and-map.md section 7. ##~}}
+{{~ for line in rt.lookups ~}}
+    {{ line }}
+{{~ end ~}}
 {{~ if rt.constructor_lines | array.size > 0 }}
     /**
      * What cannot be built at a declaration: the levels below, and the lists whose positions
@@ -430,6 +436,17 @@ final class {{ table.table_name }}
             $reader->checkBlockEnd($column, $blockEnd);
         }
 
+{{~ if table.container_fill | array.size > 0 ~}}
+{{~## The lookups a `set` and a `map` publish beside their lists. Here rather than on the way
+   through: a map needs its key column and how long it is, and the columns arrive one at a
+   time. spec/types/set-and-map.md section 7.3. ##~}}
+        foreach ($records as $record) {
+{{~ for line in table.container_fill ~}}
+            {{ line }}
+{{~ end ~}}
+        }
+
+{{~ end ~}}
         foreach ($records as $record) {
 {{~ for index in table.indexes ~}}
             {{ index.local_name }}[{{ index.member_offset }}] = $record;

@@ -78,6 +78,18 @@
       "Path": "test/fixtures/output/containers-target/rust",
       "CrateName": "containers",
       "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "python",
+      "Path": "test/fixtures/output/containers-target/python"
+    },
+    {
+      "Type": "ruby",
+      "Path": "test/fixtures/output/containers-target/ruby"
+    },
+    {
+      "Type": "php",
+      "Path": "test/fixtures/output/containers-target/php"
     }
   ]
 }

@@ -27,6 +27,11 @@ class {{ rt.type_name }}:
         {{ line }}
 {{~ end ~}}
 {{~ end ~}}
+{{~## The second layer of a container's surface. The lists above are the file's order; these
+   are the lookup. spec/types/set-and-map.md section 7. ##~}}
+{{~ for line in rt.lookups ~}}
+        {{ line }}
+{{~ end ~}}
 {{~## The per-target accessors of every member of this class that reaches several tables. A
    property where the member is one value; a method taking the element number where the member
    is the array, which is the third place an element number sits.
@@ -335,6 +340,16 @@ class {{ table.table_name }}:
 
             tabbit.check_block_end(reader, column, block_end)
 
+{{~ if table.container_fill | array.size > 0 ~}}
+{{~## The lookups a `set` and a `map` publish beside their lists. Here rather than on the way
+   through: a map needs its key column and how long it is, and the columns arrive one at a
+   time. spec/types/set-and-map.md section 7.3. ##~}}
+        for record in records:
+{{~ for line in table.container_fill ~}}
+            {{ line }}
+{{~ end ~}}
+
+{{~ end ~}}
 {{~ for index in table.indexes ~}}
 {{~ if index.is_composite ~}}
         {{ index.map_name }} = {

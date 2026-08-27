@@ -1,5 +1,11 @@
 {{~## One table: its record class and its table class. ##~}}
 {{ include 'ruby-file-head.sbn' ~}}
+{{~ if table.container_fill | array.size > 0 ~}}
+{{~## `Set` is part of the standard library rather than the language, and only a table with a
+   `set` in it needs one. spec/types/set-and-map.md section 7.2. ##~}}
+require 'set'
+
+{{~ end ~}}
 {{~## The element type of each record group, ahead of the row that holds one. Every generated
    class sits in this one module, which is why the name carries the table's. ##~}}
 {{~ for field in table.fields ~}}
@@ -24,6 +30,12 @@
 {{~ for line in member.initializers ~}}
       {{ line }}
 {{~ end ~}}
+{{~ end ~}}
+{{~## The second layer of a container's surface. The arrays above are the file's order; these
+   are the lookup, and both of this language's keep insertion order so the two agree.
+   spec/types/set-and-map.md section 7. ##~}}
+{{~ for line in rt.lookups ~}}
+      {{ line }}
 {{~ end ~}}
     end
 {{~## The per-target methods of every member of this class that reaches several tables. One
@@ -336,6 +348,17 @@
         Tabbit.check_block_end(reader, column, block_end)
       end
 
+{{~ if table.container_fill | array.size > 0 ~}}
+{{~## The lookups a `set` and a `map` publish beside their arrays. Here rather than on the way
+   through: a map needs its key column and how long it is, and the columns arrive one at a
+   time. spec/types/set-and-map.md section 7.3. ##~}}
+      records.each do |record|
+{{~ for line in table.container_fill ~}}
+        {{ line }}
+{{~ end ~}}
+      end
+
+{{~ end ~}}
 {{~ for index in table.indexes ~}}
 {{~ if index.is_composite ~}}
       by_{{ index.suffix }} = records.to_h do |record|

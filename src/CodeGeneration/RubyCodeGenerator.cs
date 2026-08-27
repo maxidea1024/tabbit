@@ -121,6 +121,12 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     protected override bool SupportsDeepNestedFields => true;
 
     /// <summary>
+    /// `Hash` and `Set`, both of which keep insertion order here - so the lookup and the
+    /// array agree on what the second entry is. spec/types/set-and-map.md section 7.
+    /// </summary>
+    protected override bool SupportsContainers => true;
+
+    /// <summary>
     /// An optional column becomes a `has_{field}` attribute beside the value one.
     /// </summary>
     /// <remarks>
@@ -358,6 +364,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             Location = table.Location.ToString(),
             Comment = CommentLines(table.Comment),
             Indexes = Indexes(table),
+            ContainerFill = ContainerFillLines(table),
             AccessorNames = Symbols(accessors),
             Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
@@ -532,8 +539,9 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
+                Lookups = LookupLines(member.Members, member.Container, group),
                 Owner = $"{table.Name.ToPascalCase()}Record#{RubyName(group.Name)}",
-                AccessorNames = Symbols(MemberAccessorNames(member.Members)),
+                AccessorNames = Symbols(MemberAccessorNames(member.Members, member.Container)),
             });
 
             result.Add(new RubyRecordMemberView
@@ -616,6 +624,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             TypeName = entry,
             Members = members,
             IsOutermost = true,
+            Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf),
             Owner = $"{table.Name.ToPascalCase()}Record#{name}",
             AccessorNames = Symbols(MemberAccessorNames(sf.Members)),
         });
@@ -796,10 +805,14 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
 
         // The array is the member's when the group is one record - same columns, same wire,
-        // and only which of the two owns it differs.
-        return member.IsArray
-            ? new[] { $"@{name} = Array.new({member.Fields.Count}) {{ {MemberDefault(member)} }}" }
-            : new[] { $"@{name} = {MemberDefault(member)}" };
+        // and only which of the two owns it differs. Or its own cell holds the list, which
+        // is what a `set` and a `map` are: empty then, because no declaration knows how long
+        // a row's list is. spec/types/set-and-map.md section 4.
+        return member.ListIsInTheCell
+            ? new[] { $"@{name} = []" }
+            : member.IsArray
+                ? new[] { $"@{name} = Array.new({member.Fields.Count}) {{ {MemberDefault(member)} }}" }
+                : new[] { $"@{name} = {MemberDefault(member)}" };
     }
 
 
@@ -874,11 +887,13 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     /// came off the wire. Built from the same list the initializers are, so a member cannot be
     /// assigned by the read and left without a writer. spec/references/references-in-records.md.
     /// </remarks>
-    private IReadOnlyList<string> MemberAccessorNames(IEnumerable<RecordMember> members)
+    private IReadOnlyList<string> MemberAccessorNames(
+        IEnumerable<RecordMember> members, Models.ContainerKind own = Models.ContainerKind.None)
     {
         var result = new List<string>();
+        var listed = members.ToList();
 
-        foreach (var member in members)
+        foreach (var member in listed)
         {
             result.Add(RubyName(member.Name));
 
@@ -888,7 +903,96 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                     : RubyName(member.Name) + "_index");
         }
 
+        // A lookup is read from outside the class, so it needs an accessor like any other
+        // member. From the same plan the initializers come from, so the two cannot drift.
+        // spec/types/set-and-map.md section 7.
+        foreach (var plan in ContainerPlan.Of(listed, own, EmptyGroup))
+        {
+            result.Add(plan.IsMap
+                ? (plan.ValueIsOneColumn ? "by_key" : "index_by_key")
+                : RubyName(plan.Source.Name) + "_set");
+        }
+
         return result;
+    }
+
+    /// <summary>
+    /// A stand-in for the group, where what is being asked about is one record type rather
+    /// than where in the table it sits.
+    /// </summary>
+    private static readonly SerialField EmptyGroup = new SerialField();
+
+    /// <summary>
+    /// The lookups one record class initializes beside its arrays.
+    /// </summary>
+    /// <remarks>
+    /// A `Hash` keeps insertion order here and so does a `Set`, so iterating a lookup gives
+    /// back what the sheet wrote. spec/types/set-and-map.md section 7.2.
+    /// </remarks>
+    private List<string> LookupLines(
+        List<RecordMember> members, Models.ContainerKind own, SerialField group)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(members, own, group))
+        {
+            if (plan.IsMap)
+            {
+                string name = plan.ValueIsOneColumn ? "by_key" : "index_by_key";
+
+                lines.Add(plan.ValueIsOneColumn
+                    ? "# What each key is mapped to. Insertion order, which is the file's."
+                    : "# Where each key sits among the entries - this map's value is an "
+                      + "object, which is an attribute per column, so there is no one value "
+                      + "to answer with.");
+
+                lines.Add($"@{name} = {{}}");
+
+                continue;
+            }
+
+            lines.Add($"# The elements of {RubyName(plan.Source.Name)}, for asking whether "
+                      + "one is there.");
+            lines.Add($"@{RubyName(plan.Source.Name)}_set = Set.new");
+        }
+
+        return lines;
+    }
+
+    /// <summary>The statements filling every lookup in a table, once the rows are read.</summary>
+    private List<string> ContainerFillLines(Table table)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(table))
+        {
+            string access = "record." + RubyName(plan.Group.Name)
+                + string.Concat(plan.Path.Select(name => "." + RubyName(name)));
+
+            string source = access + "." + RubyName(plan.Source.Name);
+
+            if (plan.IsMap)
+            {
+                string name = access + "."
+                    + (plan.ValueIsOneColumn ? "by_key" : "index_by_key");
+
+                string stored = plan.ValueIsOneColumn
+                    ? access + "." + RubyName(plan.Value!.Name) + "[j]"
+                    : "j";
+
+                lines.Add($"(0...{source}.length).each do |j|");
+                lines.Add($"  {name}[{source}[j]] = {stored}");
+                lines.Add("end");
+
+                continue;
+            }
+
+            lines.Add($"(0...{source}.length).each do |j|");
+            lines.Add($"  {access}.{RubyName(plan.Source.Name)}_set.add({source}[j])");
+            lines.Add("end");
+        }
+
+        return lines;
     }
 
     private string MemberDefault(RecordMember member)
