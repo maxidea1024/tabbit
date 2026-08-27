@@ -198,6 +198,19 @@ def core_checks():
     check('리플레이가 같은 해시를 다시 냅니다', same == len(replays),
           '%d / %d' % (same, len(replays)))
 
+    built = npm('run', 'build')
+    check('웹 번들이 나옵니다', built.returncode == 0)
+
+    shot = subprocess.run(
+        ['npx', 'tsx', 'tools/shoot.ts'], cwd=WEB, capture_output=True, text=True,
+        encoding='utf-8', errors='replace', shell=(os.name == 'nt'))
+    out = (shot.stdout or '') + (shot.stderr or '')
+    check('브라우저가 오류 없이 그립니다', shot.returncode == 0 and '오류 없음' in out)
+
+    shots = [f for f in os.listdir(os.path.join(DESIGN, 'out', 'shot'))
+             if f.endswith('.png')] if os.path.isdir(os.path.join(DESIGN, 'out', 'shot')) else []
+    check('구운 화면이 있습니다', len(shots) >= 5, '%d장' % len(shots))
+
 
 def main():
     print('데이터')

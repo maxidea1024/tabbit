@@ -353,3 +353,15 @@
 	achievement.every_deck.name	모든 덱	Every Deck
 	achievement.gold_stake.name	황금	Gold Stake
 	achievement.collector.name	수집가	Collector
+	hand.HighCard.name	하이 카드	High Card
+	hand.Pair.name	페어	Pair
+	hand.TwoPair.name	투 페어	Two Pair
+	hand.ThreeOfAKind.name	트리플	Three of a Kind
+	hand.Straight.name	스트레이트	Straight
+	hand.Flush.name	플러시	Flush
+	hand.FullHouse.name	풀 하우스	Full House
+	hand.FourOfAKind.name	포 카드	Four of a Kind
+	hand.StraightFlush.name	스트레이트 플러시	Straight Flush
+	hand.FiveOfAKind.name	파이브 오브 어 카인드	Five of a Kind
+	hand.FlushHouse.name	플러시 하우스	Flush House
+	hand.FlushFive.name	플러시 파이브	Flush Five

@@ -112,6 +112,22 @@ SOUND_CUE = [
     ('run_lose', '패배할 때', False),
 ]
 
+# 족보의 표시 이름. **포커의 이름이므로 영어는 그대로이고 한국어는 관용 표기입니다.**
+HAND_NAMES = [
+    ('HighCard', '하이 카드', 'High Card'),
+    ('Pair', '페어', 'Pair'),
+    ('TwoPair', '투 페어', 'Two Pair'),
+    ('ThreeOfAKind', '트리플', 'Three of a Kind'),
+    ('Straight', '스트레이트', 'Straight'),
+    ('Flush', '플러시', 'Flush'),
+    ('FullHouse', '풀 하우스', 'Full House'),
+    ('FourOfAKind', '포 카드', 'Four of a Kind'),
+    ('StraightFlush', '스트레이트 플러시', 'Straight Flush'),
+    ('FiveOfAKind', '파이브 오브 어 카인드', 'Five of a Kind'),
+    ('FlushHouse', '플러시 하우스', 'Flush House'),
+    ('FlushFive', '플러시 파이브', 'Flush Five'),
+]
+
 ACHIEVEMENT = [
     # 식별자, 표시 이름, 조건
     ('first_blood', '첫 관문', '스몰 블라인드를 처음 격파합니다'),
@@ -172,6 +188,8 @@ def strings():
         add('edition', e[0].lower(), e[1], e[0])
     for a in ACHIEVEMENT:
         add('achievement', a[0], a[1], a[0].replace('_', ' ').title())
+    for kind, ko, en in HAND_NAMES:
+        add('hand', kind, ko, en)
     return rows
 
 

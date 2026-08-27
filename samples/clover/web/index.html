@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>clover</title>
+    <style>
+      /* 화면은 캔버스 하나입니다. 나머지는 그 캔버스를 가운데 두는 것뿐입니다. */
+      :root { color-scheme: dark; }
+
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: #0b1410;
+        overflow: hidden;
+        font-family: 'Pretendard', 'Noto Sans KR', system-ui, sans-serif;
+      }
+
+      #stage { display: block; width: 100%; height: 100%; touch-action: none; }
+
+      #boot {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        color: #cfe8d6;
+        letter-spacing: 0.1em;
+        font-size: 14px;
+        transition: opacity 240ms ease;
+      }
+
+      #boot.gone { opacity: 0; pointer-events: none; }
+    </style>
+  </head>
+  <body>
+    <canvas id="stage"></canvas>
+    <div id="boot">데이터를 읽는 중입니다</div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

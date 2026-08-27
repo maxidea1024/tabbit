@@ -300,6 +300,13 @@ function winRound(vm: Vm): void {
   runTrigger(vm, Trigger.OnRoundEnd)
   ageJokers(vm)
 
+  // 라운드가 끝나면 패를 치웁니다. **여기서 비우지 않으면 상점에 카드가 남습니다** —
+  // 화면이 `state.hand` 를 그대로 그리기 때문입니다.
+  state.hand = []
+  state.drawPile = []
+  state.played = []
+  state.discarded = []
+
   state.phase = 'shop'
   runTrigger(vm, Trigger.OnShopEnter)
   state.shop.rerollsUsed = 0
