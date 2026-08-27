@@ -1594,6 +1594,9 @@ internal static class ConformanceHarness
     /// <summary>
     /// The Kotlin compiler jar, found beside whichever launcher is here.
     /// </summary>
+    /// <summary>The compiler jar, for the container gate beside this one.</summary>
+    internal static string KotlinCompiler() => KotlinCompilerJar();
+
     private static string KotlinCompilerJar()
     {
         foreach (string home in KotlinHomes())

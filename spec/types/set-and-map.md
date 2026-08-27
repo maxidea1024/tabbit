@@ -252,7 +252,7 @@ Duplicate key `2` in map column `Prices` of table `Shop`.
 |언어|`map`|`set`|순서를 지키는가|
 |--|--|--|--|
 |**C#** — **됨**|`Dictionary<K,int>`|`HashSet<T>`|아니오 — 배열이 순서를 답니다|
-|Java · Kotlin|`LinkedHashMap`|`LinkedHashSet`|**예**|
+|**Java · Kotlin** — **됨**|`LinkedHashMap`|`LinkedHashSet`|**예**|
 |**TypeScript** — **됨**|`Map`|`Set`|**예**|
 |Python|`dict`|`set`|`dict`는 **예**, `set`은 아니오|
 |Ruby|`Hash`|`Set`|**예**|
@@ -302,7 +302,7 @@ Duplicate key `2` in map column `Prices` of table `Shop`.
 |단계|무엇|골든|
 |--|--|--|
 |**1**|거절을 걷어내고 **모델까지** — `.tbs` 멤버, 컬럼 확장, 셀 파싱, 중복·키 타입 검사. **생성기는 아직 이름을 대고 거절합니다**|**무변경.** 컨테이너를 쓰는 픽스처가 아직 없습니다|
-|**2**|**언어를 하나씩.** 컴파일과 되읽기 게이트를 각각. **C# · TypeScript · Go 끝남**|그 언어의 골든|
+|**2**|**언어를 하나씩.** 컴파일과 되읽기 게이트를 각각. **C# · TypeScript · Go · Java · Kotlin 끝남**|그 언어의 골든|
 |**3**|`json` · `text` · SQL 계열|해당 골든|
 |**4**|시트의 타입 칸(§2.3)|—|
 

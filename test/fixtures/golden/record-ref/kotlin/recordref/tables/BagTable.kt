@@ -141,7 +141,7 @@ class BagTable {
                         record.slots.itemId =
                             ArrayList(elementCount.coerceAtLeast(0))
                         for (element in 0 until elementCount) {
-                            record.slots.itemId[element] = cursor.nextI32()
+                            record.slots.itemId.add(cursor.nextI32())
                         }
                     }
                 }
@@ -153,7 +153,7 @@ class BagTable {
                         record.slots.count =
                             ArrayList(elementCount.coerceAtLeast(0))
                         for (element in 0 until elementCount) {
-                            record.slots.count[element] = cursor.nextI32()
+                            record.slots.count.add(cursor.nextI32())
                         }
                     }
                 }

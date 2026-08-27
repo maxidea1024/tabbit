@@ -121,6 +121,12 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     protected override bool SupportsDeepNestedFields => true;
 
     /// <summary>
+    /// `LinkedHashMap` and `LinkedHashSet`, which keep insertion order - so the lookup and
+    /// the list agree on what the second entry is. spec/types/set-and-map.md section 7.
+    /// </summary>
+    protected override bool SupportsContainers => true;
+
+    /// <summary>
     /// An optional column becomes a `has{Field}` property beside the value one.
     /// </summary>
     /// <remarks>
@@ -347,6 +353,84 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
         }).ToList(),
     };
 
+    /// <summary>
+    /// The lookups one record class declares beside its lists.
+    /// </summary>
+    /// <remarks>
+    /// The ordered implementations rather than the plain ones: they keep insertion order,
+    /// and the insertion order is the file's - so iterating a lookup gives back what the
+    /// sheet wrote. spec/types/set-and-map.md section 7.2.
+    /// </remarks>
+    private List<string> LookupLines(
+        List<RecordMember> members, Models.ContainerKind own, SerialField group)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(members, own, group))
+        {
+            if (plan.IsMap)
+            {
+                string keyType = ElementTypeOf(plan.Source);
+                string valueType = plan.ValueIsOneColumn ? ElementTypeOf(plan.Value!) : "Int";
+                string name = plan.ValueIsOneColumn ? "byKey" : "indexByKey";
+
+                lines.Add(plan.ValueIsOneColumn
+                    ? "/** What each key is mapped to. Insertion order, which is the file's. */"
+                    : "/** Where each key sits among the entries - this map's value is a "
+                      + "struct, which is a property per column, so there is no one value to "
+                      + "answer with. */");
+
+                lines.Add($"var {name}: LinkedHashMap<{keyType}, {valueType}> = LinkedHashMap()");
+
+                continue;
+            }
+
+            lines.Add($"/** The elements of {KotlinName(plan.Source.Name)}, for asking whether "
+                      + "one is there. */");
+            lines.Add($"var {KotlinName(plan.Source.Name)}Set: "
+                      + $"LinkedHashSet<{ElementTypeOf(plan.Source)}> = LinkedHashSet()");
+        }
+
+        return lines;
+    }
+
+    /// <summary>The statements filling every lookup in a table, once the rows are read.</summary>
+    private List<string> ContainerFillLines(Table table)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(table))
+        {
+            string access = "record." + KotlinName(plan.Group.Name)
+                + string.Concat(plan.Path.Select(name => "." + KotlinName(name)));
+
+            string source = access + "." + KotlinName(plan.Source.Name);
+
+            if (plan.IsMap)
+            {
+                string name = access + "." + (plan.ValueIsOneColumn ? "byKey" : "indexByKey");
+
+                string stored = plan.ValueIsOneColumn
+                    ? access + "." + KotlinName(plan.Value!.Name) + "[j]"
+                    : "j";
+
+                lines.Add($"for (j in {source}.indices)");
+                lines.Add($"    {name}[{source}[j]] = {stored}");
+
+                continue;
+            }
+
+            lines.Add($"for (j in {source}.indices)");
+            lines.Add($"    {access}.{KotlinName(plan.Source.Name)}Set.add({source}[j])");
+        }
+
+        return lines;
+    }
+
+    /// <summary>One value's type, as a generic argument names it.</summary>
+    private string ElementTypeOf(RecordMember member)
+        => ToKotlinTypeName(member.FirstField!.ElementType, member.FirstField!.EnumOrNull, null);
+
     private KotlinTableView BuildTable(Table table) => new KotlinTableView
     {
         RawName = table.Name,
@@ -355,6 +439,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        ContainerFill = ContainerFillLines(table),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
         // A separate list, because declaring a property is per field and reading is per
@@ -538,14 +623,19 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
                 {
                     // The list is the member's when the group is one record - same columns,
                     // same wire, and only which of the two owns it differs.
+                    // Or the member's own cell holding the list, which is what a `set` and
+                    // a `map` are. Empty rather than sized there: no declaration knows how
+                    // long a row's list is. spec/types/set-and-map.md section 4.
                     declarations.Add($"var {KotlinName(member.Name)}: "
-                                + (member.IsArray
+                                + (member.HoldsList
                                     ? $"MutableList<{ToKotlinTypeName(member.FirstField!.ElementType, member.FirstField!.EnumOrNull, null)}>"
                                     : ToKotlinTypeName(member.FirstField!.ElementType, member.FirstField!.EnumOrNull, null))
                                 + " = "
-                                + (member.IsArray
-                                    ? $"MutableList({member.Fields.Count}) {{ {MemberDefault(member)} }}"
-                                    : MemberDefault(member)));
+                                + (member.ListIsInTheCell
+                                    ? "mutableListOf()"
+                                    : member.IsArray
+                                        ? $"MutableList({member.Fields.Count}) {{ {MemberDefault(member)} }}"
+                                        : MemberDefault(member)));
                 }
 
 
@@ -569,6 +659,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
                 Members = nested,
                 IsOutermost = false,
                 Owner = KotlinName(group.Name),
+                Lookups = LookupLines(member.Members, member.Container, group),
             });
 
             result.Add(new KotlinRecordMemberView
@@ -604,6 +695,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
             TypeName = entry,
             Members = members,
             IsOutermost = true,
+            Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf),
             Owner = name,
         });
 
@@ -1083,7 +1175,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
+            return wire.MemberOwnsTheArray ? "record_member_var" : "record_var";
         }
 
         if (wire.IsArray)
@@ -1181,15 +1273,15 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
             : "";
 
         string rowPath = wire.Member is not null
-            ? (!isArray || wire.Group.MembersAreArrays
+            ? (!isArray || wire.MemberOwnsTheArray
                 ? $"record.{name}{rowMember}"
                 : $"record.{name}[i]{rowMember}")
             : $"record.{rowLeaf}";
 
-        string path = !isArray || wire.Group.MembersAreArrays
+        string path = !isArray || wire.MemberOwnsTheArray
             ? $"record.{name}{member}"
             : $"record.{name}[i]{member}";
-        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
+        string subscript = (isArray && wire.MemberOwnsTheArray) ? "[i]" : "";
 
         return new KotlinRecordReferenceView
         {
@@ -1199,7 +1291,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
             // Whichever list holds the elements. Its own size rather than the column count,
             // because a trimming group's rows differ in how many they carry.
             Count = isArray
-                ? (wire.Group.MembersAreArrays ? $"{path}.size" : $"record.{name}.size")
+                ? (wire.MemberOwnsTheArray ? $"{path}.size" : $"record.{name}.size")
                 : "",
 
             RefTable = KotlinName(refTable!.Name),

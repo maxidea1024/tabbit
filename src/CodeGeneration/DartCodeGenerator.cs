@@ -1123,7 +1123,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
+            return wire.MemberOwnsTheArray ? "record_member_var" : "record_var";
         }
 
         if (wire.IsArray)
@@ -1221,15 +1221,15 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             : "";
 
         string rowPath = wire.Member is not null
-            ? (!isArray || wire.Group.MembersAreArrays
+            ? (!isArray || wire.MemberOwnsTheArray
                 ? $"record.{name}{rowMember}"
                 : $"record.{name}[i]{rowMember}")
             : $"record.{rowLeaf}";
 
-        string path = !isArray || wire.Group.MembersAreArrays
+        string path = !isArray || wire.MemberOwnsTheArray
             ? $"record.{name}{member}"
             : $"record.{name}[i]{member}";
-        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
+        string subscript = (isArray && wire.MemberOwnsTheArray) ? "[i]" : "";
 
         return new DartRecordReferenceView
         {
@@ -1239,7 +1239,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
             // Whichever list holds the elements. Its own length rather than the column count,
             // because a trimming group's rows differ in how many they carry.
             Count = isArray
-                ? (wire.Group.MembersAreArrays ? $"{path}.length" : $"record.{name}.length")
+                ? (wire.MemberOwnsTheArray ? $"{path}.length" : $"record.{name}.length")
                 : "",
 
             RefTable = DartName(refTable!.Name),

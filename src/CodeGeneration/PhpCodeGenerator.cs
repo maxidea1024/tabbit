@@ -1317,7 +1317,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
+            return wire.MemberOwnsTheArray ? "record_member_var" : "record_var";
         }
 
         if (wire.IsArray)
@@ -1419,15 +1419,15 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             : "";
 
         string rowPath = wire.Member is not null
-            ? (!isArray || wire.Group.MembersAreArrays
+            ? (!isArray || wire.MemberOwnsTheArray
                 ? $"$record->{name}{rowMember}"
                 : $"$record->{name}[$j]{rowMember}")
             : $"$record->{rowLeaf}";
 
-        string path = !isArray || wire.Group.MembersAreArrays
+        string path = !isArray || wire.MemberOwnsTheArray
             ? $"$record->{name}{member}"
             : $"$record->{name}[$j]{member}";
-        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[$j]" : "";
+        string subscript = (isArray && wire.MemberOwnsTheArray) ? "[$j]" : "";
 
         return new PhpRecordReferenceView
         {
@@ -1437,7 +1437,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             // Whichever list holds the elements. `count` rather than the column count,
             // because a trimming group's rows differ in how many they carry.
             Count = isArray
-                ? (wire.Group.MembersAreArrays ? $"\\count({path})" : $"\\count($record->{name})")
+                ? (wire.MemberOwnsTheArray ? $"\\count({path})" : $"\\count($record->{name})")
                 : "",
 
             RefTable = PhpName(refTable!.Name),

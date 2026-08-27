@@ -1263,7 +1263,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         if (wire.Group.MembersAreAnonymous)
             return ($"record->{name}[{wire.MemberAt}]", $"[{element}]");
 
-        if (wire.Group.MembersAreArrays)
+        if (wire.MemberOwnsTheArray)
             return ($"record->{name}{member}", $"[{element}]");
 
         return ($"record->{name}[{element}]{member}", "");
@@ -1475,7 +1475,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
+            return wire.MemberOwnsTheArray ? "record_member_var" : "record_var";
         }
 
         if (wire.IsArray)
@@ -1572,7 +1572,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             // number is on the member - and the count is a sibling of whichever that is.
             Count = !wire.IsArray
                 ? ""
-                : wire.Group.MembersAreArrays
+                : wire.MemberOwnsTheArray
                     ? $"record->{name}{member}_count"
                     : $"record->{name}_count",
 

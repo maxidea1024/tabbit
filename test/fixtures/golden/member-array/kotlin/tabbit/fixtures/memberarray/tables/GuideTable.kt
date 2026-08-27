@@ -170,7 +170,7 @@ class GuideTable {
                         record.skill.step =
                             ArrayList(elementCount.coerceAtLeast(0))
                         for (element in 0 until elementCount) {
-                            record.skill.step[element] = cursor.nextI32()
+                            record.skill.step.add(cursor.nextI32())
                         }
                     }
                 }
@@ -182,7 +182,7 @@ class GuideTable {
                         record.skill.order =
                             ArrayList(elementCount.coerceAtLeast(0))
                         for (element in 0 until elementCount) {
-                            record.skill.order[element] = cursor.nextString()
+                            record.skill.order.add(cursor.nextString())
                         }
                     }
                 }

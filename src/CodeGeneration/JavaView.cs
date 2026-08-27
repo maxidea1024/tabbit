@@ -113,6 +113,17 @@ internal sealed class JavaTableView
     /// </summary>
     public required IReadOnlyList<JavaIndexView> Indexes { get; set; }
 
+    /// <summary>
+    /// The statements filling every `set` and `map` lookup in the table, ready to paste.
+    /// </summary>
+    /// <remarks>
+    /// Written out here rather than shaped in the template, which is how a record member's
+    /// own declaration already reaches it. Filled once every column is in: a map needs its
+    /// key column and how long it is, and the columns arrive one at a time.
+    /// spec/types/set-and-map.md section 7.3.
+    /// </remarks>
+    public IReadOnlyList<string> ContainerFill { get; set; } = System.Array.Empty<string>();
+
     /// <summary>Whether any column reads through the cursor, and so whether the read
     /// method declares its one cursor variable.</summary>
     public required bool NeedsCursor { get; set; }
@@ -324,6 +335,15 @@ internal sealed class JavaRecordTypeView
     /// <summary>What the class belongs to, for its doc comment.</summary>
     public required string Owner { get; set; }
 
+    /// <summary>
+    /// The lookups this class declares beside its arrays, for a `set` or a `map`.
+    /// </summary>
+    /// <remarks>
+    /// The second layer of a container's surface - the array is the file's order and this is
+    /// the lookup. Both, because sorting is not this tool's to do.
+    /// spec/types/set-and-map.md section 7.1.
+    /// </remarks>
+    public IReadOnlyList<string> Lookups { get; set; } = System.Array.Empty<string>();
 }
 
 /// <summary>

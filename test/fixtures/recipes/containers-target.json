@@ -49,6 +49,20 @@
       "Path": "test/fixtures/output/containers-target/go",
       "PackageName": "containers",
       "ModulePath": "containers"
+    },
+    {
+      "Type": "java",
+      "Path": "test/fixtures/output/containers-target/java",
+      "PackageName": "containers",
+      "AccessorName": "ContainersData",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "kotlin",
+      "Path": "test/fixtures/output/containers-target/kotlin",
+      "PackageName": "containers",
+      "AccessorName": "ContainersData",
+      "BinaryTableFileExtension": ".tcb"
     }
   ]
 }

@@ -856,13 +856,13 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
         bool isArray = wire.IsArray;
 
-        string access = !isArray || wire.Group.MembersAreArrays
+        string access = !isArray || wire.MemberOwnsTheArray
             ? $"record{groupRow}{memberRow}"
             : $"record{groupRow}[i]{memberRow}";
-        string key = !isArray || wire.Group.MembersAreArrays
+        string key = !isArray || wire.MemberOwnsTheArray
             ? $"record{group}{memberKey}"
             : $"record{group}[i]{memberKey}";
-        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
+        string subscript = (isArray && wire.MemberOwnsTheArray) ? "[i]" : "";
 
         return new LuaRecordReferenceView
         {
@@ -872,7 +872,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             // Whichever list holds the elements. Its own length rather than the column
             // count, because a trimming group's rows differ in how many they carry.
             Range = isArray
-                ? (wire.Group.MembersAreArrays ? key : $"record{group}")
+                ? (wire.MemberOwnsTheArray ? key : $"record{group}")
                 : "",
 
             RefTable = "loaded" + refTable!.Name.ToPascalCase(),
@@ -1175,7 +1175,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
+            return wire.MemberOwnsTheArray ? "record_member_var" : "record_var";
         }
 
         if (wire.IsArray)

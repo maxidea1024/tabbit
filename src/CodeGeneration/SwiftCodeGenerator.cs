@@ -1082,7 +1082,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
+            return wire.MemberOwnsTheArray ? "record_member_var" : "record_var";
         }
 
         if (wire.IsArray)
@@ -1170,15 +1170,15 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
             : "";
 
         string rowPath = wire.Member is not null
-            ? (!isArray || wire.Group.MembersAreArrays
+            ? (!isArray || wire.MemberOwnsTheArray
                 ? $"record.{name}{rowMember}"
                 : $"record.{name}[i]{rowMember}")
             : $"record.{rowLeaf}";
 
-        string path = !isArray || wire.Group.MembersAreArrays
+        string path = !isArray || wire.MemberOwnsTheArray
             ? $"record.{name}{member}"
             : $"record.{name}[i]{member}";
-        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
+        string subscript = (isArray && wire.MemberOwnsTheArray) ? "[i]" : "";
 
         return new SwiftRecordReferenceView
         {
@@ -1188,7 +1188,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
             // Whichever array holds the elements. Its own size rather than the column count,
             // because a trimming group's rows differ in how many they carry.
             Count = isArray
-                ? (wire.Group.MembersAreArrays ? $"{path}.count" : $"record.{name}.count")
+                ? (wire.MemberOwnsTheArray ? $"{path}.count" : $"record.{name}.count")
                 : "",
 
             RefTable = SwiftName(refTable!.Name),

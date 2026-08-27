@@ -288,6 +288,17 @@ public final class {{ table.table_name }} {
             TcbReader.checkBlockEnd(reader, column, blockEnd);
         }
 
+{{~ if table.container_fill | array.size > 0 ~}}
+{{~## The lookups a `set` and a `map` publish beside their arrays. Here rather than on the
+   way through: a map needs its key column and how long it is, and the columns arrive one at
+   a time. spec/types/set-and-map.md section 7.3. ##~}}
+        for ({{ table.record_name }} record : loaded) {
+{{~ for line in table.container_fill ~}}
+            {{ line }}
+{{~ end ~}}
+        }
+
+{{~ end ~}}
         for ({{ table.record_name }} record : loaded) {
 {{~ for index in table.indexes ~}}
 {{~ if index.is_composite ~}}

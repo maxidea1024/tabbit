@@ -130,6 +130,12 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
     protected override bool SupportsDeepNestedFields => true;
 
     /// <summary>
+    /// `LinkedHashMap` and `LinkedHashSet`, which keep insertion order - so the lookup and
+    /// the array agree on what the second entry is. spec/types/set-and-map.md section 7.
+    /// </summary>
+    protected override bool SupportsContainers => true;
+
+    /// <summary>
     /// An optional column becomes a `has{Field}` field beside the value one.
     /// </summary>
     /// <remarks>
@@ -423,6 +429,104 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
         }).ToList(),
     };
 
+    /// <summary>
+    /// The lookups one record class declares beside its arrays.
+    /// </summary>
+    /// <remarks>
+    /// `LinkedHashMap` and `LinkedHashSet` rather than the plain ones: they keep insertion
+    /// order, and the insertion order is the file's - so iterating a lookup gives back what
+    /// the sheet wrote. spec/types/set-and-map.md section 7.2.
+    /// </remarks>
+    private List<string> LookupLines(
+        List<RecordMember> members, Models.ContainerKind own, SerialField group)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(members, own, group))
+        {
+            if (plan.IsMap)
+            {
+                string keyType = Boxed(plan.Source);
+
+                string valueType = plan.ValueIsOneColumn ? Boxed(plan.Value!) : "Integer";
+                string name = plan.ValueIsOneColumn ? "byKey" : "indexByKey";
+
+                lines.Add(plan.ValueIsOneColumn
+                    ? "/** What each key is mapped to. Insertion order, which is the file's. */"
+                    : "/** Where each key sits among the entries - this map's value is a "
+                      + "struct, which is a field per column, so there is no one value to "
+                      + "answer with. */");
+
+                lines.Add($"public java.util.LinkedHashMap<{keyType}, {valueType}> {name} = "
+                          + $"new java.util.LinkedHashMap<>();");
+
+                continue;
+            }
+
+            string element = Boxed(plan.Source);
+            string set = JavaName(plan.Source.Name) + "Set";
+
+            lines.Add($"/** The elements of {JavaName(plan.Source.Name)}, for asking whether "
+                      + "one is there. */");
+            lines.Add($"public java.util.LinkedHashSet<{element}> {set} = "
+                      + $"new java.util.LinkedHashSet<>();");
+        }
+
+        return lines;
+    }
+
+    /// <summary>
+    /// The statements filling every lookup in a table, once the rows are read.
+    /// </summary>
+    private List<string> ContainerFillLines(Table table)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(table))
+        {
+            string access = "record." + JavaName(plan.Group.Name)
+                + string.Concat(plan.Path.Select(name => "." + JavaName(name)));
+
+            string source = access + "." + JavaName(plan.Source.Name);
+
+            if (plan.IsMap)
+            {
+                string name = access + "." + (plan.ValueIsOneColumn ? "byKey" : "indexByKey");
+
+                string stored = plan.ValueIsOneColumn
+                    ? access + "." + JavaName(plan.Value!.Name) + "[j]"
+                    : "j";
+
+                lines.Add($"for (int j = 0; j < {source}.length; j++)");
+                lines.Add($"    {name}.put({source}[j], {stored});");
+
+                continue;
+            }
+
+            lines.Add($"for (int j = 0; j < {source}.length; j++)");
+            lines.Add($"    {access}.{JavaName(plan.Source.Name)}Set.add({source}[j]);");
+        }
+
+        return lines;
+    }
+
+    /// <summary>
+    /// A member's type as a generic argument, where the language has no primitive one.
+    /// </summary>
+    private string Boxed(RecordMember member)
+        => MemberTypeName(member) switch
+        {
+            "int" => "Integer",
+            "long" => "Long",
+            "float" => "Float",
+            "double" => "Double",
+            "boolean" => "Boolean",
+            "short" => "Short",
+            "byte" => "Byte",
+            "char" => "Character",
+            var other => other,
+        };
+
     private JavaTableView BuildTable(Table table) => new JavaTableView
     {
         RawName = table.Name,
@@ -431,6 +535,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        ContainerFill = ContainerFillLines(table),
 
         // One cursor variable for the whole read method, assigned per column before its
         // row loop rather than declared once per case. Asked of the columns, because that
@@ -630,11 +735,17 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
                 }
                 else
                 {
+                    // Or the member's own cell holding the list, which is what a `set` and
+                    // a `map` are. Empty rather than sized there: no declaration knows how
+                    // long a row's list is, and the read makes the array it fills.
+                    // spec/types/set-and-map.md section 4.
                     declarations.Add(
-                        memberType + (member.IsArray ? "[] " : " ") + JavaName(member.Name)
-                            + (member.IsArray
-                                ? $" = new {memberType}[{member.Fields.Count}]"
-                                : MemberInitializer(member))
+                        memberType + (member.HoldsList ? "[] " : " ") + JavaName(member.Name)
+                            + (member.ListIsInTheCell
+                                ? $" = new {memberType}[0]"
+                                : member.IsArray
+                                    ? $" = new {memberType}[{member.Fields.Count}]"
+                                    : MemberInitializer(member))
                             + ";");
                 }
 
@@ -666,6 +777,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
                 Members = nested,
                 IsOutermost = false,
                 Owner = JavaName(group.Name),
+                Lookups = LookupLines(member.Members, member.Container, group),
             });
 
             result.Add(new JavaRecordMemberView
@@ -716,6 +828,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             TypeName = entry,
             Members = members,
             IsOutermost = true,
+            Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf),
             Owner = name,
         });
 
@@ -1195,7 +1308,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
+            return wire.MemberOwnsTheArray ? "record_member_var" : "record_var";
         }
 
         // A trimmed array of references: the length is the row's, and the key still goes in the
@@ -1294,17 +1407,17 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
                                 .Select(part => "." + JavaName(part))) + "." + rowLeaf
             : "";
 
-        string path = !isArray || wire.Group.MembersAreArrays
+        string path = !isArray || wire.MemberOwnsTheArray
             ? $"record.{name}{member}"
             : $"record.{name}[i]{member}";
 
         string rowPath = wire.Member is not null
-            ? (!isArray || wire.Group.MembersAreArrays
+            ? (!isArray || wire.MemberOwnsTheArray
                 ? $"record.{name}{rowMember}"
                 : $"record.{name}[i]{rowMember}")
             : $"record.{rowLeaf}";
 
-        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
+        string subscript = (isArray && wire.MemberOwnsTheArray) ? "[i]" : "";
 
         return new JavaRecordReferenceView
         {
@@ -1314,7 +1427,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             // Whichever array holds the elements. Its own length rather than the column
             // count, because a trimming group's rows differ in how many they carry.
             Count = isArray
-                ? (wire.Group.MembersAreArrays ? $"{path}.length" : $"record.{name}.length")
+                ? (wire.MemberOwnsTheArray ? $"{path}.length" : $"record.{name}.length")
                 : "",
 
             RefTable = JavaName(refTable!.Name),

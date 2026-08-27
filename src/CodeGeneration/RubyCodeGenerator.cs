@@ -838,15 +838,15 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             : "";
 
         string rowPath = wire.Member is not null
-            ? (!isArray || wire.Group.MembersAreArrays
+            ? (!isArray || wire.MemberOwnsTheArray
                 ? $"record.{name}{rowMember}"
                 : $"record.{name}[i]{rowMember}")
             : $"record.{rowLeaf}";
 
-        string path = !isArray || wire.Group.MembersAreArrays
+        string path = !isArray || wire.MemberOwnsTheArray
             ? $"record.{name}{member}"
             : $"record.{name}[i]{member}";
-        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[i]" : "";
+        string subscript = (isArray && wire.MemberOwnsTheArray) ? "[i]" : "";
 
         return new RubyRecordReferenceView
         {
@@ -856,7 +856,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             // Whichever array holds the elements. Its own length rather than the column count,
             // because a trimming group's rows differ in how many they carry.
             Range = isArray
-                ? (wire.Group.MembersAreArrays
+                ? (wire.MemberOwnsTheArray
                     ? $"{path}.each_index"
                     : $"record.{name}.each_index")
                 : "",
@@ -1052,7 +1052,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
+            return wire.MemberOwnsTheArray ? "record_member_var" : "record_var";
         }
 
         if (wire.IsArray)
