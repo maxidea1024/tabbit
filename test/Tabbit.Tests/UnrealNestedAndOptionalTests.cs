@@ -83,6 +83,20 @@ public class UnrealNestedAndOptionalTests
     public void An_array_of_references_compiles()
         => AssertHeaderToolAccepts("serial-ref", "SerialRefData", "FSerialRefData.h");
 
+    /// <summary>
+    /// A record with a `set` and two `map`s, which declare `TSet` and `TMap` members with no
+    /// UPROPERTY on them.
+    /// </summary>
+    /// <remarks>
+    /// **That is the question here.** The header tool has no property type for a map keyed by
+    /// anything a sheet may key by, so the lookups are plain members - and a plain member in
+    /// a USTRUCT is only legal if the tool is willing to walk past it.
+    /// spec/types/set-and-map.md section 7.2.
+    /// </remarks>
+    [Fact]
+    public void Containers_compile()
+        => AssertHeaderToolAccepts("containers-target", "Containers", "FTables.h");
+
     private static void AssertHeaderToolAccepts(string scenario, string module, string header)
     {
         string engineRoot = Environment.GetEnvironmentVariable("TABBIT_UE_ROOT");

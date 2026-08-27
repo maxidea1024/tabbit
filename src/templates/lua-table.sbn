@@ -15,6 +15,12 @@
 {{~ for line in rt.annotations ~}}
 {{ line }}
 {{~ end ~}}
+{{~## The second layer of a container's surface. The arrays above are the file's order; these
+   are the lookup, and a table has no order of its own.
+   spec/types/set-and-map.md section 7. ##~}}
+{{~ for line in rt.lookup_annotations ~}}
+{{ line }}
+{{~ end ~}}
 {{~## An element with a member reaching several tables has methods rather than being only data,
    which is what the per-target accessor needs: it asks the discriminator and then hands back
    the slot. Only such an element - one with none keeps `strictType`, so nothing already
@@ -29,6 +35,9 @@ local function new{{ rt.type_name }}()
 {{~ for line in member.initializers ~}}
     {{ line }}
 {{~ end ~}}
+{{~ end ~}}
+{{~ for line in rt.lookups ~}}
+    {{ line }}
 {{~ end ~}}
   }, {{ rt.type_name }}Meta)
 end
@@ -288,6 +297,17 @@ function {{ table.table_name }}:readBytes(data)
 
     tcb.checkBlockEnd(reader, column, blockEnd)
   end
+{{~ if table.container_fill | array.size > 0 }}
+{{~## The lookups a `set` and a `map` publish beside their arrays. Here rather than on the way
+   through: a map needs its key column and how long it is, and the columns arrive one at a
+   time. spec/types/set-and-map.md section 7.3. ##~}}
+  for i = 1, #records do
+    local record = records[i]
+{{~ for line in table.container_fill ~}}
+    {{ line }}
+{{~ end ~}}
+  end
+{{~ end ~}}
 {{~ for index in table.indexes }}
   local {{ index.map_name }} = {}
 

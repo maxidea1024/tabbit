@@ -181,6 +181,15 @@ struct {{ api_macro }} {{ rt.type_name }}
 {{~ end ~}}
     {{ member.declaration }}
 
+{{~ end ~}}
+{{~## The second layer of a container's surface. The arrays above are the file's order; these
+   are the lookup, and neither of the engine's containers keeps one. No UPROPERTY: the header
+   tool has no property type for a map keyed by anything a sheet may key by, and what a
+   Blueprint reads is the array. spec/types/set-and-map.md section 7. ##~}}
+{{~ for line in rt.lookups ~}}
+    {{ line }}
+{{~ end ~}}
+{{~ if rt.lookups | array.size > 0 }}
 {{~ end ~}}};
 
 {{~ end ~}}

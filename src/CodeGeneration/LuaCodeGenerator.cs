@@ -98,6 +98,13 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
     protected override bool SupportsNestedFields => true;
     protected override bool SupportsDeepNestedFields => true;
+
+    /// <summary>
+    /// Tables for both, which is all this language has - and a table has no order, so the
+    /// array beside it is what says what the file held.
+    /// spec/types/set-and-map.md section 7.
+    /// </summary>
+    protected override bool SupportsContainers => true;
     protected override bool SupportsOptionalFields => true;
 
     /// <summary>`findByStageAndSlot(stageKey, slotKey)`. See <see cref="KeyPlans"/>.</summary>
@@ -373,6 +380,95 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         }).ToList(),
     };
 
+    /// <summary>
+    /// The lookups one record declares beside its arrays.
+    /// </summary>
+    /// <remarks>
+    /// Tables keyed by the value, which is what a set is here: `t[v]` answers `true` or
+    /// nothing. A table has no order of its own, so the array beside it is what says what
+    /// the file held. spec/types/set-and-map.md section 7.2.
+    /// </remarks>
+    private List<string> LookupLines(
+        List<RecordMember> members, Models.ContainerKind own, SerialField group)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(members, own, group))
+        {
+            lines.Add(plan.IsMap
+                ? Key(plan.ValueIsOneColumn ? "byKey" : "indexByKey") + " = {},"
+                : Key(LuaName(plan.Source.Name) + "Set") + " = {},");
+        }
+
+        return lines;
+    }
+
+    /// <summary>The annotations for those, so the language server knows them.</summary>
+    private List<string> LookupAnnotationLines(
+        List<RecordMember> members, Models.ContainerKind own, SerialField group)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(members, own, group))
+        {
+            string keyType = ScalarAnnotation(plan.Source.ElementType);
+
+            if (plan.IsMap)
+            {
+                string valueType = plan.ValueIsOneColumn
+                    ? ScalarAnnotation(plan.Value!.ElementType)
+                    : "integer";
+
+                lines.Add($"---@field {(plan.ValueIsOneColumn ? "byKey" : "indexByKey")} "
+                          + $"table<{keyType}, {valueType}>");
+
+                continue;
+            }
+
+            lines.Add($"---@field {LuaName(plan.Source.Name)}Set table<{keyType}, boolean>");
+        }
+
+        return lines;
+    }
+
+    /// <summary>The statements filling every lookup in a table, once the rows are read.</summary>
+    private List<string> ContainerFillLines(Table table)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(table))
+        {
+            string access = "record." + LuaName(plan.Group.Name)
+                + string.Concat(plan.Path.Select(name => "." + LuaName(name)));
+
+            string source = access + "." + LuaName(plan.Source.Name);
+
+            if (plan.IsMap)
+            {
+                string name = access + "."
+                    + (plan.ValueIsOneColumn ? "byKey" : "indexByKey");
+
+                // One-based here, and the position a lookup answers with is the one an
+                // index into the array beside it takes.
+                string stored = plan.ValueIsOneColumn
+                    ? access + "." + LuaName(plan.Value!.Name) + "[j]"
+                    : "j";
+
+                lines.Add($"for j = 1, #{source} do");
+                lines.Add($"  {name}[{source}[j]] = {stored}");
+                lines.Add("end");
+
+                continue;
+            }
+
+            lines.Add($"for j = 1, #{source} do");
+            lines.Add($"  {access}.{LuaName(plan.Source.Name)}Set[{source}[j]] = true");
+            lines.Add("end");
+        }
+
+        return lines;
+    }
+
     private LuaTableView BuildTable(Table table)
     {
         var fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList();
@@ -430,6 +526,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             Location = table.Location.ToString(),
             Comment = CommentLines(table.Comment),
             Indexes = Indexes(table),
+            ContainerFill = ContainerFillLines(table),
             RecordFieldNames = QuotedList(known),
             TableFieldNames = QuotedList(
                 new[] { "records" }.Concat(Indexes(table).Select(index => index.MapName)).ToList()),
@@ -579,8 +676,10 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
+                Lookups = LookupLines(member.Members, member.Container, group),
+                LookupAnnotations = LookupAnnotationLines(member.Members, member.Container, group),
                 Owner = $"{table.Name.ToPascalCase()}Record{Access(LuaName(group.Name))}",
-                FieldNames = QuotedList(MemberFieldNames(member.Members)),
+                FieldNames = QuotedList(MemberFieldNames(member.Members, member.Container)),
                 Annotations = member.Members.SelectMany(m => MemberAnnotations(m, typeName)).ToList(),
             });
 
@@ -617,6 +716,8 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             TypeName = entry,
             Members = members,
             IsOutermost = true,
+            Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf),
+            LookupAnnotations = LookupAnnotationLines(sf.Members, Models.ContainerKind.None, sf),
             Owner = $"{table.Name.ToPascalCase()}Record{Access(LuaName(sf.Name))}",
             FieldNames = QuotedList(MemberFieldNames(sf.Members)),
             Annotations = sf.Members.SelectMany(m => MemberAnnotations(m, entry)).ToList(),
@@ -819,9 +920,14 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         }
 
 
-        return member.IsArray
-            ? new[] { $"{key} = tcb.repeated({member.Fields.Count}, {MemberDefault(member)})," }
-            : new[] { $"{key} = {MemberDefault(member)}," };
+        // Or the member's own cell holds the list, which is what a `set` and a `map` are:
+        // an empty table then, because no declaration knows how long a row's list is.
+        // spec/types/set-and-map.md section 4.
+        return member.ListIsInTheCell
+            ? new[] { $"{key} = {{}}," }
+            : member.IsArray
+                ? new[] { $"{key} = tcb.repeated({member.Fields.Count}, {MemberDefault(member)})," }
+                : new[] { $"{key} = {MemberDefault(member)}," };
     }
 
 
@@ -880,11 +986,13 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         };
     }
 
-    private IReadOnlyList<string> MemberFieldNames(IEnumerable<RecordMember> members)
+    private IReadOnlyList<string> MemberFieldNames(
+        IEnumerable<RecordMember> members, Models.ContainerKind own = Models.ContainerKind.None)
     {
         var result = new List<string>();
+        var listed = members.ToList();
 
-        foreach (var member in members)
+        foreach (var member in listed)
         {
             if (member.IsLeaf && member.IsRef)
             {
@@ -897,8 +1005,24 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             }
         }
 
+        // A lookup is a field like any other, and the strict metatable refuses a write to a
+        // name it was not given. From the same plan the initializers come from, so the two
+        // cannot drift. spec/types/set-and-map.md section 7.
+        foreach (var plan in ContainerPlan.Of(listed, own, EmptyGroup))
+        {
+            result.Add(plan.IsMap
+                ? (plan.ValueIsOneColumn ? "byKey" : "indexByKey")
+                : LuaName(plan.Source.Name) + "Set");
+        }
+
         return result;
     }
+
+    /// <summary>
+    /// A stand-in for the group, where what is being asked about is one record type rather
+    /// than where in the table it sits.
+    /// </summary>
+    private static readonly SerialField EmptyGroup = new SerialField();
 
     private string MemberDefault(RecordMember member)
     {
@@ -1447,7 +1571,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
         string scalar = ScalarAnnotation(member.ElementType);
 
-        return $"---@field {name} {(member.IsArray ? scalar + "[]" : scalar)}";
+        return $"---@field {name} {(member.HoldsList ? scalar + "[]" : scalar)}";
     }
 
     private string ScalarAnnotation(ValueType type)

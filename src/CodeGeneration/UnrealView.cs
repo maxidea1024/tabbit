@@ -115,6 +115,15 @@ internal sealed class UnrealTableView
     /// </summary>
     public required IReadOnlyList<UnrealIndexView> Indexes { get; set; }
 
+    /// <summary>
+    /// The statements filling every `set` and `map` lookup in the table, ready to paste.
+    /// </summary>
+    /// <remarks>
+    /// Once every column is in: a map needs its key column and how long it is, and the
+    /// columns arrive one at a time. spec/types/set-and-map.md section 7.3.
+    /// </remarks>
+    public IReadOnlyList<string> ContainerFill { get; set; } = System.Array.Empty<string>();
+
     public required IReadOnlyList<UnrealFieldView> Fields { get; set; }
 
     /// <summary>
@@ -401,6 +410,17 @@ internal sealed class UnrealRecordTypeView
 
     /// <summary>What the struct belongs to, for its doc comment.</summary>
     public required string Owner { get; set; }
+
+    /// <summary>
+    /// The lookups this struct declares beside its arrays, for a `set` or a `map`.
+    /// </summary>
+    /// <remarks>
+    /// The engine's own containers, and neither keeps an order - the array beside it is what
+    /// says what the file held. No UPROPERTY on them: the header tool has no property type
+    /// for a map keyed by anything, and what a Blueprint reads is the array.
+    /// spec/types/set-and-map.md section 7.1.
+    /// </remarks>
+    public IReadOnlyList<string> Lookups { get; set; } = System.Array.Empty<string>();
 }
 
 /// <summary>

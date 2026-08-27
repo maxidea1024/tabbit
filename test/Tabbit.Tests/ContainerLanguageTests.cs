@@ -32,6 +32,7 @@ public class ContainerLanguageTests
     [InlineData("php")]
     [InlineData("cpp")]
     [InlineData("c")]
+    [InlineData("lua")]
     public void The_generated_reader_fills_both_layers(string language)
     {
         var values = ContainerHarness.Run(language);
@@ -72,6 +73,7 @@ public class ContainerLanguageTests
     [InlineData("php")]
     [InlineData("cpp")]
     [InlineData("c")]
+    [InlineData("lua")]
     public void A_row_with_no_entries_reads_as_empty(string language)
     {
         var values = ContainerHarness.Run(language);

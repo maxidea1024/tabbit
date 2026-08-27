@@ -90,6 +90,15 @@ internal sealed class LuaTableView
     public required IReadOnlyList<LuaIndexView> Indexes { get; set; }
 
     /// <summary>
+    /// The statements filling every `set` and `map` lookup in the table, ready to paste.
+    /// </summary>
+    /// <remarks>
+    /// Once every column is in: a map needs its key column and how long it is, and the
+    /// columns arrive one at a time. spec/types/set-and-map.md section 7.3.
+    /// </remarks>
+    public IReadOnlyList<string> ContainerFill { get; set; } = System.Array.Empty<string>();
+
+    /// <summary>
     /// The record's declared field names, quoted and comma separated, for the strict
     /// metatable - the same list Python's `__slots__` carries, for the same reason:
     /// a name outside it is a typo, and here that is enforced at run time.
@@ -240,6 +249,18 @@ internal sealed class LuaRecordTypeView
     /// <summary>The lua-language-server `---@field` lines of the element class.</summary>
     public required IReadOnlyList<string> Annotations { get; set; }
 
+    /// <summary>
+    /// The lookups this record declares beside its arrays, for a `set` or a `map`.
+    /// </summary>
+    /// <remarks>
+    /// Tables keyed by the value, which is what this language has instead of either - and a
+    /// table has no order, so the array beside it is what says what the file held.
+    /// spec/types/set-and-map.md section 7.1.
+    /// </remarks>
+    public IReadOnlyList<string> Lookups { get; set; } = System.Array.Empty<string>();
+
+    /// <summary>Their `---@field` lines, so the language server knows them too.</summary>
+    public IReadOnlyList<string> LookupAnnotations { get; set; } = System.Array.Empty<string>();
 }
 
 internal sealed class LuaRecordMemberView

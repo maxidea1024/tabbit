@@ -240,14 +240,15 @@ public class SchemaContainerTests
     /// A target with no container type names itself rather than writing a list.
     /// </summary>
     /// <remarks>
-    /// **This is the boundary of the stage, and it has to be a refusal rather than a gap.**
-    /// The file carries a set and a map without changing, so a generator that has not learned
-    /// them emits something that compiles - an array, and two arrays side by side - and
-    /// nothing downstream ever finds out the tool was told these were distinct elements and
-    /// keyed entries. spec/types/set-and-map.md section 7.
+    /// **This is the boundary of the rollout, and it has to be a refusal rather than a gap.**
+    /// The file carries a set and a map without changing, so a target that has not learned
+    /// them writes something plausible - an array, and two arrays side by side - and nothing
+    /// downstream ever finds out the tool was told these were distinct elements and keyed
+    /// entries. spec/types/set-and-map.md section 7.
     ///
-    /// The exporters that write what the file holds carry them today, which is why the two
-    /// gates above run at all.
+    /// Every generated language carries them now, so what is left is the exporters that have
+    /// a spelling of their own to settle: `text` and the database targets, which are stage 3.
+    /// Repoint this as each lands.
     /// </remarks>
     [Fact]
     public void A_target_with_no_container_type_refuses_by_name()
@@ -256,7 +257,7 @@ public class SchemaContainerTests
 
         Assert.False(result.Succeeded, "A target with no container type was handed one.");
 
-        Assert.Contains("Target `lua` does not support set columns yet.", result.StdOut);
+        Assert.Contains("Target `text` does not support set columns yet.", result.StdOut);
         Assert.Contains("Table `Shop` field `Bag.Tags` is declared a `set`.", result.StdOut);
     }
 

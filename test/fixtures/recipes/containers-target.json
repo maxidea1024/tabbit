@@ -101,6 +101,19 @@
       "Path": "test/fixtures/output/containers-target/c",
       "AccessorName": "ContainersData",
       "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "lua",
+      "Path": "test/fixtures/output/containers-target/lua"
+    },
+    {
+      "Type": "unreal",
+      "Path": "test/fixtures/output/containers-target/unreal",
+      "ModuleName": "Containers"
+    },
+    {
+      "Type": "html",
+      "Path": "test/fixtures/output/containers-target/html"
     }
   ]
 }

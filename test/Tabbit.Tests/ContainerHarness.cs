@@ -65,6 +65,7 @@ internal static class ContainerHarness
             "php" => RunPhp(),
             "cpp" => RunCpp(),
             "c" => RunC(),
+            "lua" => RunLua(),
             _ => throw new ArgumentException($"No container driver for `{language}`."),
         };
 
@@ -327,5 +328,19 @@ internal static class ContainerHarness
             return build;
 
         return CToolchain.RunHarness(workDir, "containers-check", BinaryDir());
+    }
+
+    // ------------------------------------------------------------------ lua
+
+    private static ToolResult RunLua()
+    {
+        Assert.True(ConformanceHarness.LuaIsAvailable(out string why),
+            $"Lua host required. {why}");
+
+        // From the generated output directory, so `require("tables")` resolves through the
+        // default package.path; the driver itself stays where it is.
+        return ConformanceHarness.Execute(
+            LuaToolchain.HostExecutable, Generated("lua"),
+            Driver("lua", "harness.lua"), BinaryDir());
     }
 }

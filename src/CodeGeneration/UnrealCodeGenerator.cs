@@ -139,6 +139,12 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     protected override bool SupportsDeepNestedFields => true;
 
     /// <summary>
+    /// `TMap` and `TSet`, with the arrays beside them holding the file's order - neither of
+    /// the engine's containers keeps one. spec/types/set-and-map.md section 7.
+    /// </summary>
+    protected override bool SupportsContainers => true;
+
+    /// <summary>
     /// An optional column becomes a `bHas{Name}` property beside the value.
     /// </summary>
     /// <remarks>
@@ -413,6 +419,91 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     };
     }
 
+    /// <summary>
+    /// The lookups one record struct declares beside its arrays.
+    /// </summary>
+    /// <remarks>
+    /// **No UPROPERTY on them.** The header tool has no property type for a map keyed by
+    /// anything a sheet may key by, and what a Blueprint reads is the array - which keeps
+    /// the file's order and is what the lookup was built from.
+    /// spec/types/set-and-map.md section 7.2.
+    /// </remarks>
+    private List<string> LookupLines(
+        List<RecordMember> members, Models.ContainerKind own, SerialField group)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(members, own, group))
+        {
+            string keyType = ToUnrealTypeName(
+                plan.Source.FirstField!.ElementType, plan.Source.FirstField!.EnumOrNull);
+
+            if (plan.IsMap)
+            {
+                string valueType = plan.ValueIsOneColumn
+                    ? ToUnrealTypeName(
+                        plan.Value!.FirstField!.ElementType, plan.Value!.FirstField!.EnumOrNull)
+                    : "int32";
+
+                string name = plan.ValueIsOneColumn ? "ByKey" : "IndexByKey";
+
+                lines.Add(plan.ValueIsOneColumn
+                    ? "/** What each key is mapped to. The arrays hold the file's order. */"
+                    : "/** Where each key sits among the entries - this map's value is a "
+                      + "struct, which is a member per column, so there is no one value to "
+                      + "answer with. */");
+
+                lines.Add($"TMap<{keyType}, {valueType}> {name};");
+
+                continue;
+            }
+
+            lines.Add($"/** The elements of {MemberName(plan.Source.FirstField, plan.Source.Name)}, for asking whether "
+                      + "one is there. */");
+            lines.Add($"TSet<{keyType}> {MemberName(plan.Source.FirstField, plan.Source.Name)}Set;");
+        }
+
+        return lines;
+    }
+
+    /// <summary>The statements filling every lookup in a table, once the rows are read.</summary>
+    private List<string> ContainerFillLines(Table table)
+    {
+        var lines = new List<string>();
+
+        foreach (var plan in ContainerPlan.Of(table))
+        {
+            string access = "Record." + MemberName(plan.Group.IsRecord ? plan.Group.Members[0].FirstField : plan.Group.FirstField, plan.Group.Name)
+                + string.Concat(plan.Path.Select(name => "." + name.ToPascalCase()));
+
+            string source = access + "." + MemberName(plan.Source.FirstField, plan.Source.Name);
+
+            if (plan.IsMap)
+            {
+                string name = access + "."
+                    + (plan.ValueIsOneColumn ? "ByKey" : "IndexByKey");
+
+                string stored = plan.ValueIsOneColumn
+                    ? access + "." + MemberName(plan.Value!.FirstField, plan.Value!.Name) + "[J]"
+                    : "J";
+
+                lines.Add($"for (int32 J = 0; J < {source}.Num(); ++J)");
+                lines.Add("{");
+                lines.Add($"    {name}.Add({source}[J], {stored});");
+                lines.Add("}");
+
+                continue;
+            }
+
+            lines.Add($"for (int32 J = 0; J < {source}.Num(); ++J)");
+            lines.Add("{");
+            lines.Add($"    {access}.{MemberName(plan.Source.FirstField, plan.Source.Name)}Set.Add({source}[J]);");
+            lines.Add("}");
+        }
+
+        return lines;
+    }
+
     private UnrealTableView BuildTable(Table table)
     {
         // Worked out before the fields, because a local the generated code declares
@@ -442,6 +533,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
             Location = table.Location.ToString(),
             Comment = CommentLines(table.Comment),
             Indexes = Indexes(table),
+            ContainerFill = ContainerFillLines(table),
             Fields = table.SerialFields.Select(sf => BuildField(table, sf, members)).ToList(),
 
             // One cursor variable for the whole read: switch cases share a scope, and
@@ -591,6 +683,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
                 TypeName = typeName,
                 Members = nested,
                 IsOutermost = false,
+                Lookups = LookupLines(member.Members, member.Container, group),
                 Owner = $"{RecordName(table)}::{MemberName(group.AnyField, group.Name)}",
             });
 
@@ -638,6 +731,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
                 TypeName = RecordEntryName(table, sf),
                 Members = recordMembers,
                 IsOutermost = true,
+                Lookups = LookupLines(sf.Members, Models.ContainerKind.None, sf),
                 Owner = $"{RecordName(table)}::{name}",
             });
         }
@@ -722,7 +816,9 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
             Name = name,
             // The array is the member's when the group is one record - same columns, same
             // wire, and only which of the two owns it differs.
-            Declaration = member.IsArray
+            // Or the member's own cell holds the list, which is what a `set` and a `map`
+            // are. spec/types/set-and-map.md section 4.
+            Declaration = member.HoldsList
                 ? $"TArray<{type}> {name};"
                 : $"{type} {name}{(member.IsRef ? RefKeyInitializer(field!.RefKeyType) : DefaultInitializer(field))};",
 

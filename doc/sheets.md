@@ -28,6 +28,7 @@
 |컬럼에 무슨 타입을 적을 수 있나|[Supported Data Types](sheets/types.md#적을-수-있는-타입)|
 |값을 여러 개 담고 싶다|[배열이 오는 세 자리](sheets/shapes.md#배열이-오는-세-자리--셀--칸--행)|
 |컬럼 여러 개를 한 덩어리로 묶고 싶다|[중첩 필드](sheets/shapes.md#중첩-필드--컬럼-여러-개를-레코드-하나로)|
+|중복 없는 목록이나 키·값 쌍을 담고 싶다|[`set`과 `map`](sheets/containers.md)|
 |칸을 비워도 되나|[빈 칸의 뜻](sheets/rules-and-pitfalls.md#빈-칸의-뜻--자리별-총정리)|
 |이름을 어떻게 지어야 하나|[Naming Rules](sheets/naming.md#이름-규칙)|
 |서버와 클라이언트에 다른 것을 주고 싶다|[Target Side](sheets/rules-and-pitfalls.md#target-side-서버클라-분리)|
@@ -54,4 +55,5 @@
 |[이름과 태그](sheets/naming.md)|이름 규칙, 기본·보조 인덱스, 그리고 컬럼에 번호를 못 박는 `@N`|
 |[컬럼에 적을 수 있는 타입](sheets/types.md)|스칼라 · 문자열 · 날짜 · `bitset` · 합성 값 · `text` · `asset` · 참조|
 |[값이 여러 개일 때 — 배열과 레코드](sheets/shapes.md)|셀 안의 배열 · 칸으로 나눈 배열 · 멀티 로우, 그리고 컬럼 묶음을 레코드로|
+|[`set`과 `map`](sheets/containers.md)|`.tbs` 선언의 컨테이너. 시트 표기 · 거부되는 것, 그리고 **조회의 순서가 보장되지 않는 것**|
 |[그 밖에 정해지는 것과 헷갈리는 자리](sheets/rules-and-pitfalls.md)|서버/클라 분리 · 검증 · **빈 칸이 자리마다 뜻하는 것** · 자주 걸리는 곳|

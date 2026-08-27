@@ -121,6 +121,13 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     /// <inheritdoc cref="SupportsNestedFields"/>
     protected override bool SupportsDeepNestedFields => true;
 
+    /// <summary>
+    /// The values as a table, which is what this target writes of everything. A container is
+    /// an array column and two of them, and the page shows what a row holds - there is no
+    /// lookup for a page to publish. spec/types/set-and-map.md section 7.2.
+    /// </summary>
+    protected override bool SupportsContainers => true;
+
     /// <inheritdoc cref="SupportsNestedFields"/>
     protected override bool SupportsOptionalFields => true;
 
@@ -1770,7 +1777,15 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                 var field = member.Fields[element];
                 var cell = row[field.Index];
 
-                value = cell.HasValue ? ScalarValueMarkup(field, cell.Value, root) : Absent();
+                // A member whose own cell holds the list - which is what a `set` and a `map`
+                // are - is several values under one name. Drawn as the list it is rather
+                // than handed to the scalar path, which would be given an array where it
+                // expects one value. spec/types/set-and-map.md section 7.2.
+                value = !cell.HasValue
+                    ? Absent()
+                    : cell.Value is Array held
+                        ? ListMarkup(field, held, root)
+                        : ScalarValueMarkup(field, cell.Value, root);
             }
             else
             {
@@ -1784,6 +1799,27 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         }
 
         return string.Join("<span class=\"sep\">, </span>", parts);
+    }
+
+    /// <summary>
+    /// One member's whole list, drawn as the list it is.
+    /// </summary>
+    /// <remarks>
+    /// A member typed `string[]` is one cell holding every element, which is what a `set` and
+    /// a `map` are made of. The page shows what the row holds; there is no lookup for it to
+    /// publish, because a page is read rather than called.
+    /// spec/types/set-and-map.md section 7.2.
+    /// </remarks>
+    private string ListMarkup(Models.Field field, Array elements, string root)
+    {
+        var parts = new List<string>();
+
+        foreach (var element in elements)
+            parts.Add(ScalarValueMarkup(field, element, root));
+
+        return "<span class=\"obj\"><span class=\"sep\">[</span>"
+             + string.Join("<span class=\"sep\">, </span>", parts)
+             + "<span class=\"sep\">]</span></span>";
     }
 
     /// <summary>

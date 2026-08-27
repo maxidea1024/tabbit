@@ -1,13 +1,15 @@
 {
-  // The `containers` workbook handed to a language that has no container type yet.
+  // The `containers` workbook handed to a target that has no answer for a container yet.
   //
-  // **The boundary of the rollout, kept honest as it moves.** Every language opts in one at
-  // a time - spec/types/set-and-map.md section 9 - and one that has not says so by name
-  // rather than writing a list and a pair of lists a consumer would never learn were meant
-  // to be a set and a map.
+  // **The boundary of the rollout, kept honest as it moves.** Every target opts in one at a
+  // time - spec/types/set-and-map.md section 9 - and one that has not says so by name rather
+  // than writing a list and a pair of lists a consumer would never learn were meant to be a
+  // set and a map.
   //
-  // Point it at whichever language is still waiting. When the last one lands, this recipe
-  // has nothing left to be about and goes with it.
+  // Every generated language carries them now, so this points at an exporter: stage 3 is
+  // `text` and the database targets, and each of those has a spelling of its own to settle.
+  // Point it at whichever is still waiting; when the last one lands, this recipe has nothing
+  // left to be about and goes with it.
 
   "Schemas": [
     { "Path": "test/fixtures/schemas/containers" }
@@ -22,8 +24,9 @@
 
   "Targets": [
     {
-      "Type": "lua",
-      "Path": "test/fixtures/output/containers-unsupported/lua"
+      "Type": "text",
+      "Path": "test/fixtures/output/containers-unsupported/text",
+      "Format": "{index}"
     }
   ]
 }
