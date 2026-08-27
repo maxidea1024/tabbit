@@ -128,6 +128,12 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     protected override bool SupportsDeepNestedFields => true;
 
     /// <summary>
+    /// `map` for both, with the slices beside them holding the file's order - Go's map has
+    /// none of its own. spec/types/set-and-map.md section 7.
+    /// </summary>
+    protected override bool SupportsContainers => true;
+
+    /// <summary>
     /// An optional column becomes a `Has{Field}` member beside the value one.
     /// </summary>
     /// <remarks>
@@ -474,6 +480,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        Containers = ContainersOf(table),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
 
@@ -490,6 +497,107 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// The indexed fields of a table: the sheet's first column, plus every one marked
     /// with a `*`.
     /// </summary>
+    /// <summary>
+    /// The lookups one struct declares beside its slices.
+    /// </summary>
+    /// <remarks>
+    /// A map's own, because a map is a record and this is that record; and one per member
+    /// that is a set, because a set is one slice and has no type of its own to hang anything
+    /// on. Both are Go maps - the language has no set - and neither has an order, which is
+    /// what the slice beside it is for. spec/types/set-and-map.md section 7.
+    /// </remarks>
+    private List<GoLookupView> LookupsOf(List<RecordMember> members, Models.ContainerKind own)
+    {
+        var result = new List<GoLookupView>();
+
+        if (own == Models.ContainerKind.Map
+            && members.Find(m => m.Name == Models.ContainerMembers.Key) is { } key)
+        {
+            var held = members.Find(m => m.Name == Models.ContainerMembers.Value);
+            bool storesValue = held is { IsLeaf: true };
+
+            string keyType = ToGoTypeName(
+                key.FirstField!.ElementType, key.FirstField!.EnumOrNull, null);
+
+            string valueType = storesValue
+                ? ToGoTypeName(held!.FirstField!.ElementType, held!.FirstField!.EnumOrNull, null)
+                : "int";
+
+            result.Add(new GoLookupView
+            {
+                // The value where there is one column to store it, and the entry's position
+                // where the value is a struct - under a name that says which.
+                Name = storesValue ? "ByKey" : "IndexByKey",
+                TypeName = $"map[{keyType}]{valueType}",
+                Source = GoName(Models.ContainerMembers.Key),
+                StoredValue = storesValue ? GoName(Models.ContainerMembers.Value) + "[j]" : "j",
+                Comment = storesValue
+                    ? "ByKey answers what each key is mapped to. The slices hold the file's order."
+                    : "IndexByKey answers where each key sits among the entries - this map's "
+                      + "value is a struct, which is a field per column, so there is no one "
+                      + "value to answer with.",
+            });
+        }
+
+        foreach (var member in members.Where(m => m.Container == Models.ContainerKind.Set))
+        {
+            string element = ToGoTypeName(
+                member.FirstField!.ElementType, member.FirstField!.EnumOrNull, null);
+
+            result.Add(new GoLookupView
+            {
+                Name = GoName(member.Name) + "Set",
+                TypeName = $"map[{element}]bool",
+                Source = GoName(member.Name),
+                StoredValue = "",
+                Comment = $"{GoName(member.Name)}Set answers whether a value is one of the "
+                          + $"elements of {GoName(member.Name)}.",
+            });
+        }
+
+        return result;
+    }
+
+    /// <summary>Every lookup in a table, with what reaches it from a record.</summary>
+    private List<GoLookupView> ContainersOf(Table table)
+    {
+        var result = new List<GoLookupView>();
+
+        foreach (var group in table.SerialFields.Where(group => group.IsRecord))
+        {
+            string root = "." + GoName(group.Name);
+
+            foreach (var lookup in LookupsOf(group.Members, Models.ContainerKind.None))
+                result.Add(At(lookup, root));
+
+            foreach (var member in group.Members)
+                Collect(member, root);
+        }
+
+        return result;
+
+        void Collect(RecordMember member, string path)
+        {
+            string here = path + "." + GoName(member.Name);
+
+            foreach (var lookup in LookupsOf(member.Members, member.Container))
+                result.Add(At(lookup, here));
+
+            foreach (var below in member.Members)
+                Collect(below, here);
+        }
+
+        static GoLookupView At(GoLookupView lookup, string access) => new GoLookupView
+        {
+            Name = lookup.Name,
+            TypeName = lookup.TypeName,
+            Source = lookup.Source,
+            StoredValue = lookup.StoredValue,
+            Comment = lookup.Comment,
+            Access = access,
+        };
+    }
+
     private IReadOnlyList<GoIndexView> Indexes(Table table)
         => KeyPlans.Of(table).Select(plan =>
         {
@@ -645,7 +753,9 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                 string keyType = member.IsRef
                     ? ToGoTypeName(member.FirstField!.RefKeyType, null, null)
                     : "";
-                string slice = member.IsArray ? "[]" : "";
+                // Or the member's own cell holding the list, which is what a `set` and a
+                // `map` are - spec/types/set-and-map.md section 4.
+                string slice = member.HoldsList ? "[]" : "";
 
                 // The member's own name is the key's, because the key is what the cell
                 // holds; the row is linked after loading and takes a derived name.
@@ -667,8 +777,12 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                     // same wire, and only which of the two owns the slice differs.
                     Declarations = declarations,
                     Name = GoName(member.Name),
-                    SliceType = member.IsArray ? "[]" + memberType : "",
-                    ElementCount = member.IsArray ? member.Fields.Count : 0,
+                    SliceType = member.HoldsList ? "[]" + memberType : "",
+
+                    // Zero where the member's own cell is the list: no declaration knows how
+                    // long a row's list is, so the read makes the slice it fills.
+                    ElementCount = member.ListIsInTheCell ? 0
+                        : member.IsArray ? member.Fields.Count : 0,
                     RefKeySliceType = (member.IsRef && member.IsArray) ? "[]" + keyType : "",
 
                     RowName = member.IsRef && ResolvesToRow(member.FirstField!)
@@ -690,6 +804,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                 Members = nested,
                 IsOutermost = false,
                 Owner = $"{table.Name.ToPascalCase()}Record.{GoName(group.Name)}",
+                Lookups = LookupsOf(member.Members, member.Container),
             });
 
             result.Add(new GoRecordMemberView
@@ -746,6 +861,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             TypeName = elementType,
             Members = members,
             IsOutermost = true,
+            Lookups = LookupsOf(sf.Members, Models.ContainerKind.None),
             Owner = $"{table.Name.ToPascalCase()}Record.{name}",
         });
 
@@ -1056,7 +1172,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             if (wire.Group.MembersAreAnonymous)
                 return "array_of_arrays_member";
 
-            return wire.Group.MembersAreArrays ? "record_member_var" : "record_var";
+            return wire.MemberOwnsTheArray ? "record_member_var" : "record_var";
         }
 
         // A trimmed array of references: the length is the row's and the key still goes in
@@ -1289,17 +1405,17 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                                 .Select(part => "." + GoName(part))) + "." + rowLeaf
             : "";
 
-        string keyPath = !isArray || wire.Group.MembersAreArrays
+        string keyPath = !isArray || wire.MemberOwnsTheArray
             ? $"record.{name}{member}"
             : $"record.{name}[k]{member}";
 
         string rowPath = wire.Member is not null
-            ? (!isArray || wire.Group.MembersAreArrays
+            ? (!isArray || wire.MemberOwnsTheArray
                 ? $"record.{name}{rowMember}"
                 : $"record.{name}[k]{rowMember}")
             : $"record.{rowLeaf}";
 
-        string subscript = (isArray && wire.Group.MembersAreArrays) ? "[k]" : "";
+        string subscript = (isArray && wire.MemberOwnsTheArray) ? "[k]" : "";
 
         return new GoRecordReferenceView
         {
@@ -1309,7 +1425,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             // Whichever slice holds the elements - ranged rather than counted, because a
             // trimming group's rows differ in how many they carry.
             Range = isArray
-                ? (wire.Group.MembersAreArrays ? keyPath : $"record.{name}")
+                ? (wire.MemberOwnsTheArray ? keyPath : $"record.{name}")
                 : "",
 
             RefTable = GoName(refTable!.Name),

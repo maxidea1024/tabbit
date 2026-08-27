@@ -256,7 +256,7 @@ public class SchemaContainerTests
 
         Assert.False(result.Succeeded, "A target with no container type was handed one.");
 
-        Assert.Contains("Target `go` does not support set columns yet.", result.StdOut);
+        Assert.Contains("Target `rust` does not support set columns yet.", result.StdOut);
         Assert.Contains("Table `Shop` field `Bag.Tags` is declared a `set`.", result.StdOut);
     }
 

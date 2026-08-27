@@ -1643,7 +1643,11 @@ internal static class ConformanceHarness
         return dir;
     }
 
-    private static ToolResult Execute(string fileName, string workingDirectory, params string[] args)
+    /// <summary>
+    /// Runs a tool and gathers what it wrote. Reachable from the per-language gates beside
+    /// this one, which run the same toolchains over a fixture of their own.
+    /// </summary>
+    internal static ToolResult Execute(string fileName, string workingDirectory, params string[] args)
         => Execute(fileName, workingDirectory, null, args);
 
     /// <summary>

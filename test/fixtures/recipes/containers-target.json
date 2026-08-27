@@ -43,6 +43,12 @@
     {
       "Type": "typescript",
       "Path": "test/fixtures/output/containers-target/typescript"
+    },
+    {
+      "Type": "go",
+      "Path": "test/fixtures/output/containers-target/go",
+      "PackageName": "containers",
+      "ModulePath": "containers"
     }
   ]
 }

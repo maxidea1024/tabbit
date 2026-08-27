@@ -23,6 +23,14 @@ type {{ rt.type_name }} struct {
 	{{ line }}
 {{~ end ~}}
 {{~ end ~}}
+{{~## The second layer of a container's surface. Maps for both - Go has no set - and neither
+   has an order of its own, which is what the slice above it is for.
+   spec/types/set-and-map.md section 7. ##~}}
+{{~ for lookup in rt.lookups ~}}
+
+	// {{ lookup.comment }}
+	{{ lookup.name }} {{ lookup.type_name }}
+{{~ end ~}}
 }
 {{~## The per-target methods of every member of this struct that reaches several tables. One
    taking an element number where the member is the array, which is the third place an element
@@ -413,6 +421,29 @@ func (t *{{ table.table_name }}) Read(filename string) error {
 		return fmt.Errorf("{{ table.raw_name }}: %w", err)
 	}
 
+{{~ if table.containers | array.size > 0 ~}}
+{{~## The lookups a `set` and a `map` publish beside their slices. Here rather than on the way
+   through: a map needs its key column and how long it is, and the columns arrive one at a
+   time. spec/types/set-and-map.md section 7.3. ##~}}
+	for i := range records {
+		r := &records[i]
+{{~ for container in table.containers ~}}
+		r{{ container.access }}.{{ container.name }} =
+			make({{ container.type_name }}, len(r{{ container.access }}.{{ container.source }}))
+		for j := range r{{ container.access }}.{{ container.source }} {
+{{~ if container.stored_value == '' ~}}
+			r{{ container.access }}.{{ container.name }}[r{{ container.access }}.{{ container.source }}[j]] = true
+{{~ else if container.stored_value == 'j' ~}}
+			r{{ container.access }}.{{ container.name }}[r{{ container.access }}.{{ container.source }}[j]] = j
+{{~ else ~}}
+			r{{ container.access }}.{{ container.name }}[r{{ container.access }}.{{ container.source }}[j]] =
+				r{{ container.access }}.{{ container.stored_value }}
+{{~ end ~}}
+		}
+{{~ end ~}}
+	}
+
+{{~ end ~}}
 {{~ for index in table.indexes ~}}
 	{{ index.map_name }} := make(map[{{ index.key_type }}]int, len(records))
 	for i := range records {

@@ -97,6 +97,16 @@ internal sealed class GoTableView
     /// </summary>
     public required IReadOnlyList<GoIndexView> Indexes { get; set; }
 
+    /// <summary>
+    /// Every `set` and `map` lookup in the table, with what reaches it from a record.
+    /// </summary>
+    /// <remarks>
+    /// Built where the indexes are, once every column is in: a map needs its key column and
+    /// how long it is, and the columns arrive one at a time.
+    /// spec/types/set-and-map.md section 7.3.
+    /// </remarks>
+    public IReadOnlyList<GoLookupView> Containers { get; set; } = System.Array.Empty<GoLookupView>();
+
     public required IReadOnlyList<GoFieldView> Fields { get; set; }
 
 
@@ -361,6 +371,37 @@ internal sealed class GoRecordTypeView
     /// <summary>What the struct is called in its doc comment.</summary>
     public required string Owner { get; set; }
 
+    /// <summary>
+    /// The lookups this struct declares beside its slices, for a `set` or a `map`.
+    /// </summary>
+    /// <remarks>
+    /// Maps, both of them - Go has no set type and its map has no order of its own, which is
+    /// why the slice beside it is what says what the file held.
+    /// spec/types/set-and-map.md section 7.
+    /// </remarks>
+    public IReadOnlyList<GoLookupView> Lookups { get; set; } = System.Array.Empty<GoLookupView>();
+}
+
+/// <summary>One `map` declared beside the slice it is built from.</summary>
+internal sealed class GoLookupView
+{
+    /// <summary>Field name on the struct.</summary>
+    public required string Name { get; set; }
+
+    /// <summary>Its declared type.</summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>The slice this is built from, as a field of the same struct.</summary>
+    public required string Source { get; set; }
+
+    /// <summary>What is stored against each entry: a value field, or the position.</summary>
+    public required string StoredValue { get; set; }
+
+    /// <summary>What reaches this container from a record, once the record exists.</summary>
+    public string Access { get; set; } = "";
+
+    /// <summary>What one line of the doc comment says about it.</summary>
+    public required string Comment { get; set; }
 }
 
 /// <summary>

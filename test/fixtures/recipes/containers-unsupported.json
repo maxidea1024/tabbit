@@ -22,10 +22,10 @@
 
   "Targets": [
     {
-      "Type": "go",
-      "Path": "test/fixtures/output/containers-unsupported/go",
-      "PackageName": "containers",
-      "ModulePath": "containers"
+      "Type": "rust",
+      "Path": "test/fixtures/output/containers-unsupported/rust",
+      "CrateName": "containers",
+      "BinaryTableFileExtension": ".tcb"
     }
   ]
 }
