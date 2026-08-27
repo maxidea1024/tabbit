@@ -81,6 +81,7 @@
 - [Lua 언어 지원](targets/lua-language-support.md) *(3개로 나뉨)*
 - [이름 표기 규약](targets/naming-conventions.md) *(3개로 나뉨)*
 - [Swift 언어 지원](targets/swift-language-support.md)
+- [테이블의 컬렉션 표면 — 개수 · 순회 · 첨자](targets/table-collection-surface.md)
 
 ## 검증
 

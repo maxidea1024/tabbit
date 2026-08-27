@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-28T00:56:49.1395356+09:00",
+    "generatedAt": "2026-08-28T01:36:55.2517846+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "recipe.jsonc",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "f080021d33772a7d397dc75c375a751bcb20b0d2",
-      "shortHash": "f080021d3377",
+      "hash": "b919c88cd5baa041a5aa2f202e7b13e610654613",
+      "shortHash": "b919c88cd5ba",
       "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-28T00:35:09.0000000+09:00",
-      "subject": "Create yarn.lock",
+      "committedAt": "2026-08-28T01:20:20.0000000+09:00",
+      "subject": "fix: clover 조커의 그림 이름이 파일과 어긋나 150장 전부 경고이던 것",
       "origin": "git",
       "dirty": true,
       "attributable": false
