@@ -10,10 +10,9 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
 
-import { PokerHandKind } from './generated/enums/poker-hand-kind'
 import { ShopItemKind } from './generated/enums/shop-item-kind'
 import type { Data } from './core/data'
-import { evaluate } from './core/hand'
+import { bestHand } from './core/suggest'
 import { loadFromDisk } from './core/load-node'
 import { snapshotHash } from './core/hash'
 import { apply, newRun, type Action } from './core/run'
@@ -186,7 +185,7 @@ function roundMove(data: Data, state: RunState): Action | undefined {
     .map(uid => state.deck.find(card => card.uid === uid))
     .filter((card): card is CardInstance => card !== undefined)
 
-  const best = bestPlay(data, state, held)
+  const best = bestHand(data, state, held)
   if (!best) return undefined
 
   // 아직 여유가 있고 지금 패가 시원찮으면 한 번 버립니다.
@@ -199,38 +198,6 @@ function roundMove(data: Data, state: RunState): Action | undefined {
   }
 
   return { t: 'play', cards: best.cards.map(card => card.uid) }
-}
-
-/** 패에서 고를 수 있는 조합을 전부 보고 가장 좋은 것을 돌려줍니다. */
-function bestPlay(data: Data, state: RunState, held: CardInstance[]) {
-  let best: { cards: CardInstance[]; value: number } | undefined
-
-  for (const subset of subsets(held, Math.min(5, data.run.maxPlayedCards))) {
-    const { hand } = evaluate(subset, state.rules)
-    const row = data.tables.pokerHand.findByHand(hand)
-    if (!row) continue
-
-    const level = state.handLevels[PokerHandKind[hand]] ?? 1
-    const chips = row.baseChips + row.chipsPerLevel * (level - 1)
-    const mult = row.baseMult + row.multPerLevel * (level - 1)
-    const value = chips * mult
-
-    if (!best || value > best.value) best = { cards: subset, value }
-  }
-
-  return best
-}
-
-/** 1장에서 `max` 장까지의 조합. 패가 8장이므로 218가지입니다. */
-function* subsets(cards: CardInstance[], max: number): Generator<CardInstance[]> {
-  const total = 1 << cards.length
-  for (let mask = 1; mask < total; mask++) {
-    const chosen: CardInstance[] = []
-    for (let i = 0; i < cards.length; i++) {
-      if (mask & (1 << i)) chosen.push(cards[i])
-    }
-    if (chosen.length <= max) yield chosen
-  }
 }
 
 function main(argv: string[]): number {

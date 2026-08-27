@@ -95,6 +95,8 @@ const SHAPE: Record<string, Shape> = {
   blind_clear: { wave: 'triangle', offset: 24, length: 0.45, gain: 0.38, glide: 12 },
   blind_fail: { wave: 'sawtooth', offset: 3, length: 0.55, gain: 0.30, glide: -12 },
   card_draw: { wave: 'sine', offset: 20, length: 0.05, gain: 0.14, glide: 0 },
+  // 카드가 자리에 달라붙는 소리. 짧고 낮게.
+  card_slam: { wave: 'square', offset: 6, length: 0.045, gain: 0.20, glide: -6 },
   card_select: { wave: 'sine', offset: 26, length: 0.04, gain: 0.16, glide: 0 },
   card_destroy: { wave: 'sawtooth', offset: 8, length: 0.16, gain: 0.24, glide: -8 },
   // 동전이 꽂히는 소리. **음이 하나씩 올라가는 것이 이 연출의 절반입니다.**

@@ -14,6 +14,27 @@ export class Spring {
   constructor(value = 0, private stiffness = 260, private damping = 22) {
     this.value = value
     this.target = value
+    this.homeStiffness = stiffness
+    this.homeDamping = damping
+  }
+
+  private readonly homeStiffness: number
+  private readonly homeDamping: number
+
+  /**
+   * 이번 한 번만 세게.
+   *
+   * **자리에 「짝」 달라붙는 느낌은 강성에서 나옵니다** — 부드러운 용수철은 미끄러져 들어오고,
+   * 강성이 높고 감쇠가 큰 용수철은 빠르게 가서 멈춥니다. 자리에 닿으면 원래 값으로 돌아옵니다.
+   */
+  hard(stiffness: number, damping: number): void {
+    this.stiffness = stiffness
+    this.damping = damping
+  }
+
+  soft(): void {
+    this.stiffness = this.homeStiffness
+    this.damping = this.homeDamping
   }
 
   /** 곧바로 그 값이 됩니다. 판이 바뀔 때 씁니다. */
@@ -65,6 +86,19 @@ export class Motion {
     this.x.target = x
     this.y.target = y
     this.rotation.target = rotation
+  }
+
+  /** 이번 이동만 세게. 낸 카드가 자리에 달라붙는 것이 이것입니다. */
+  hard(): void {
+    this.x.hard(1_400, 62)
+    this.y.hard(1_400, 62)
+    this.rotation.hard(900, 44)
+  }
+
+  soft(): void {
+    this.x.soft()
+    this.y.soft()
+    this.rotation.soft()
   }
 
   advance(seconds: number): void {

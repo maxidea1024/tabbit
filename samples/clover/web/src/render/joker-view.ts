@@ -11,6 +11,7 @@ import { Container, Graphics, Text } from 'pixi.js'
 import { EditionKind } from '../generated/enums/edition-kind'
 import type { JokerInstance } from '../core/state'
 import { EditionFilter, type EditionShader } from '../shader/editions'
+import { drawGlyph, glyphFor, hashOf, hsl, shade, tintUp } from './glyph'
 import { Motion, sway } from './motion'
 import { COLOR, rarityColor, SIZE } from './theme'
 import type { EditionLook } from './card-view'
@@ -22,21 +23,9 @@ const EDITION_SHADER: Partial<Record<EditionKind, EditionShader>> = {
   [EditionKind.Negative]: 'negative',
 }
 
-/** 식별자에서 색 하나. 같은 조커는 언제나 같은 색입니다. */
+/** 식별자에서 색상 하나. 같은 조커는 언제나 같은 색입니다. */
 function hueOf(text: string): number {
-  let hash = 0
-  for (let i = 0; i < text.length; i++) hash = (hash * 31 + text.charCodeAt(i)) >>> 0
-  return hash % 360
-}
-
-function hsl(hue: number, saturation: number, lightness: number): number {
-  const a = saturation * Math.min(lightness, 1 - lightness)
-  const channel = (n: number) => {
-    const k = (n + hue / 30) % 12
-    const value = lightness - a * Math.max(-1, Math.min(k - 3, Math.min(9 - k, 1)))
-    return Math.round(value * 255)
-  }
-  return (channel(0) << 16) | (channel(8) << 8) | channel(4)
+  return hashOf(text) % 360
 }
 
 export interface JokerLook {
@@ -89,28 +78,44 @@ export class JokerView extends Container {
     this.shadow.roundRect(3, 5, w, h, 9).fill({ color: 0x000000, alpha: 0.4 })
 
     this.plate.clear()
-    this.plate.roundRect(0, 0, w, h, 9).fill(hsl(hue, 0.4, 0.20))
-    this.plate.roundRect(0, 0, w, 30, 9).fill({ color: hsl(hue, 0.5, 0.32), alpha: 0.7 })
+    this.plate.roundRect(0, 0, w, h, 9).fill(hsl(hue, 0.35, 0.16))
+    // 이름 띠. 희귀도 색을 옅게 깔아 어느 등급인지 얼굴에서 읽힙니다.
+    this.plate.roundRect(0, h - 32, w, 32, 9).fill({ color: shade(edge, 0.62), alpha: 0.9 })
+    this.plate.roundRect(0, 0, w, 26, 9).fill({ color: 0xffffff, alpha: 0.06 })
     this.plate.roundRect(1.5, 1.5, w - 3, h - 3, 9).stroke({ color: edge, width: 2.5 })
     this.plate.roundRect(4, 4, w - 8, h - 8, 7)
       .stroke({ color: 0xffffff, width: 1, alpha: 0.12 })
 
-    // 문양 — 식별자에서 만든 도형 셋입니다.
+    // 문양.
+    //
+    // **그림 파일이 아직 없습니다.** 그때까지 도형 셋으로 두면 무엇을 사는 것인지 알 수
+    // 없으므로, 뜻이 읽히는 문양 스물 중 하나를 식별자로 골라 그립니다 — 같은 조커는 언제나
+    // 같은 문양입니다.
     this.emblem.clear()
-    const seed = hueOf(joker.jokerId + 'e')
-    for (let i = 0; i < 3; i++) {
-      const t = ((seed + i * 97) % 100) / 100
-      const cx = w / 2 + (t - 0.5) * (w * 0.5)
-      const cy = 56 + ((seed + i * 53) % 26) - 13
-      const radius = 7 + ((seed + i * 29) % 13)
-      this.emblem.circle(cx, cy, radius)
-        .fill({ color: hsl((hue + i * 47) % 360, 0.7, 0.62), alpha: 0.8 })
-    }
-    this.emblem.circle(w / 2, 56, 26).stroke({ color: 0xffffff, width: 1, alpha: 0.15 })
+
+    const plateTop = hsl(hue, 0.55, 0.30)
+    const plateBottom = hsl((hue + 22) % 360, 0.6, 0.14)
+    const glyphInk = tintUp(hsl(hue, 0.7, 0.62), 0.25)
+
+    // 문양이 앉는 창. 액자 안의 그림처럼 보이게 합니다.
+    const frameX = 7
+    const frameY = 30
+    const frameW = w - 14
+    const frameH = 52
+    this.emblem.roundRect(frameX, frameY, frameW, frameH, 6).fill(plateBottom)
+    this.emblem.roundRect(frameX, frameY, frameW, frameH * 0.55, 6)
+      .fill({ color: plateTop, alpha: 0.75 })
+    this.emblem.roundRect(frameX + 0.75, frameY + 0.75, frameW - 1.5, frameH - 1.5, 5)
+      .stroke({ color: shade(edge, 0.25), width: 1.5 })
+
+    drawGlyph(this.emblem, glyphFor(joker.jokerId), w / 2, frameY + frameH / 2, 40, {
+      fill: glyphInk,
+      line: shade(glyphInk, 0.62),
+    })
 
     this.nameText.text = look.name
     this.nameText.anchor.set(0.5, 0)
-    this.nameText.position.set(w / 2, h - 34)
+    this.nameText.position.set(w / 2, h - 27)
 
     // 누적값을 얼굴에 적습니다 — 늘어나는 조커는 그것이 전부이기 때문입니다.
     const { chips, multAdd, multMul } = joker.counters

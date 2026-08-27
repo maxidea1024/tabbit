@@ -24,6 +24,9 @@ const PIP: Record<SuitKind, string> = {
   [SuitKind.Diamond]: '♦',
 }
 
+/** 족보 도움의 색. **고른 카드의 초록과 달라야 헷갈리지 않습니다.** */
+const HINT_COLOR = 0xffc53d
+
 const RANK_TEXT: Record<number, string> = {
   2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10',
   11: 'J', 12: 'Q', 13: 'K', 14: 'A',
@@ -90,6 +93,13 @@ export class CardView extends Container {
     text: '', style: { fontSize: 10, fill: 0x3a3226, fontWeight: '700' },
   })
   private readonly seal = new Graphics()
+  /**
+   * 족보 도움의 외곽선.
+   *
+   * **필터가 아니라 그린 선입니다.** 필터를 걸면 카드가 매 프레임 그림으로 구워져 글씨가
+   * 흐려지고, 알파의 기울기로 만든 테두리는 그림자 색이 바뀐 것으로 보입니다.
+   */
+  private readonly hintRing = new Graphics()
   private edition?: EditionFilter
   /**
    * 고름 표시.
@@ -100,6 +110,8 @@ export class CardView extends Container {
   private readonly pick = new PickFilter()
   /** 1 고름 · -1 고르지 않음 · 0 그대로. */
   private pickMode = 0
+  /** 지금 자리로 달라붙는 중인가. 닿으면 용수철을 원래대로 돌립니다. */
+  private slamming = false
 
   /** 마우스가 올라와 있는가. 기울기와 크기가 이것을 봅니다. */
   hovered = false
@@ -113,7 +125,8 @@ export class CardView extends Container {
     super()
     this.uid = card.uid
     this.addChild(this.shadow, this.paper, this.pip, this.cornerTop, this.cornerBottom,
-      this.mark, this.seal)
+      this.mark, this.seal, this.hintRing)
+    this.drawHintRing()
     this.pivot.set(SIZE.cardWidth / 2, SIZE.cardHeight / 2)
     this.set(card, look)
   }
@@ -226,6 +239,29 @@ export class CardView extends Container {
     this.filters = stack
   }
 
+  /** 족보 도움. 이것도 고르면 더 높은 족보가 되는 카드입니다. */
+  set hint(value: boolean) {
+    this.hintRing.visible = value
+  }
+
+  get hint(): boolean {
+    return this.hintRing.visible
+  }
+
+  private drawHintRing(): void {
+    const w = SIZE.cardWidth
+    const h = SIZE.cardHeight
+    const g = this.hintRing
+    g.clear()
+    g.visible = false
+    // 두 겹입니다 — 카드에 붙은 선 하나와 그 밖의 옅은 선 하나. 밖의 것이 있어야 선이
+    // 종이의 무늬가 아니라 카드를 두른 것으로 읽힙니다.
+    g.roundRect(-4.5, -4.5, w + 9, h + 9, SIZE.cardRadius + 4)
+      .stroke({ color: HINT_COLOR, width: 2, alpha: 0.4 })
+    g.roundRect(-1.5, -1.5, w + 3, h + 3, SIZE.cardRadius + 1)
+      .stroke({ color: HINT_COLOR, width: 3 })
+  }
+
   /** 1 고름 · -1 고르지 않음 · 0 그대로. */
   setPick(mode: number, tint: [number, number, number]): void {
     this.pick.setTint(tint[0], tint[1], tint[2])
@@ -238,6 +274,20 @@ export class CardView extends Container {
   /** 이 카드가 지금 있어야 할 자리. 용수철이 따라갑니다. */
   place(x: number, y: number, rotation: number): void {
     this.motion.to(x, y, rotation)
+  }
+
+  /**
+   * 자리에 「짝」 달라붙습니다.
+   *
+   * 용수철을 세게 만들어 빠르게 가서 멈추고, 닿으면 원래 강성으로 돌아옵니다. 닿는 순간에
+   * 살짝 눌립니다 — 그 한 번의 눌림이 「붙었다」로 읽힙니다.
+   */
+  slam(x: number, y: number): void {
+    this.motion.hard()
+    this.motion.to(x, y, 0)
+    this.motion.scale.snap(1.16)
+    this.motion.scale.target = 1
+    this.slamming = true
   }
 
   placeNow(x: number, y: number): void {
@@ -272,10 +322,20 @@ export class CardView extends Container {
 
   advance(seconds: number, time: number): void {
     this.motion.advance(seconds)
+    if (this.slamming && this.motion.x.settled && this.motion.y.settled) {
+      this.slamming = false
+      this.motion.soft()
+    }
     this.edition?.advance(seconds, this.pointer)
     if (this.pickMode !== 0) this.pick.time = time
 
-    const lift = this.hovered ? 16 : this.selected ? 26 : 0
+    // 숨쉬듯 밝아집니다. **한 번에 다 밝으면 눈이 가지 않고, 깜빡이면 거슬립니다.**
+    if (this.hintRing.visible) {
+      this.hintRing.alpha = 0.42 + 0.42 * (0.5 + 0.5 * Math.sin(time * 3.4))
+    }
+
+    // 도움을 받는 카드는 조금만 들립니다. **고른 카드만큼 들리면 이미 고른 것으로 보입니다.**
+    const lift = this.hovered ? 16 : this.selected ? 26 : this.hintRing.visible ? 7 : 0
     const wobble = sway(time, this.motion.phase, 1.6 * this.idle, 1.4)
     const bob = sway(time, this.motion.phase * 1.7, 2.2 * this.idle, 0.9)
 

@@ -31,6 +31,8 @@ interface Peek {
   packs: number
   played: number
   coins: boolean
+  cleared: boolean
+  consumables: number
   hand: { rank: number; suit: number }[]
 }
 
@@ -55,13 +57,15 @@ async function main(): Promise<number> {
 
   let shotPack = false
   let shotCoins = false
+  let shotClear = false
+  let shotToast = false
   const problems: string[] = []
   page.on('console', message => {
     if (message.type() === 'error') problems.push(message.text())
   })
   page.on('pageerror', error => problems.push(String(error)))
 
-  await page.goto('http://localhost:5177/?seed=CLOVER-SHOT', { waitUntil: 'networkidle' })
+  await page.goto('http://localhost:5177/?seed=CLOVER-SHOT7', { waitUntil: 'networkidle' })
   await page.waitForTimeout(1500)
 
   const shoot = async (name: string) => {
@@ -79,6 +83,10 @@ async function main(): Promise<number> {
   await clickPrimary(page)
   await page.waitForTimeout(700)
   await shoot('2-round')
+
+  // **족보 도움.** 고른 것이 없을 때 어느 카드가 권해지는지를 찍습니다.
+  await page.waitForTimeout(500)
+  await shoot('2a-hint')
 
   // **고른 카드와 고르지 않은 카드가 구분되는지**를 봅니다. 셋 중 둘만 골라 찍습니다.
   const picks = chooseFive((await peek(page)).hand)
@@ -119,6 +127,20 @@ async function main(): Promise<number> {
       } else {
         await playHand(page, picks)
       }
+      // 「넘겼습니다」 가 튀어나오는 순간.
+      if (!shotClear) {
+        for (let wait = 0; wait < 60; wait++) {
+          const now = await peek(page)
+          if (now.cleared) {
+            shotClear = true
+            await shoot('4b-cleared')
+            break
+          }
+          if (!now.busy && now.phase !== 'round') break
+          await page.waitForTimeout(50)
+        }
+      }
+
       // **격파 보상이 들어오는 순간.** 동전이 날아가는 것을 여기서 잡습니다.
       for (let wait = 0; wait < 80; wait++) {
         const now = await peek(page)
@@ -159,6 +181,22 @@ async function main(): Promise<number> {
     await shoot('7-tooltip')
     await page.mouse.move(10, 10)
 
+    // 소모품이 손에 들어오면 써서 토스트를 찍습니다. 상점의 남은 칸을 사 봅니다.
+    for (let slot = 0; slot < 2 && (await peek(page)).consumables === 0; slot++) {
+      const spot = await at(page, BOARD_X - 86 + slot * 172, SHOP_CARD_Y + 81)
+      await page.mouse.click(spot.x, spot.y)
+      await page.waitForTimeout(400)
+    }
+    if ((await peek(page)).consumables > 0) {
+      shotToast = true
+      const spot = await at(page, 962, 108)
+      await page.mouse.click(spot.x, spot.y)
+      await page.waitForTimeout(340)
+      await shoot('15-toast')
+      await page.mouse.move(10, 10)
+      await page.waitForTimeout(300)
+    }
+
     // 조커를 데리고 다음 판으로. **조커가 발동하는 장면이 이 게임의 얼굴입니다.**
     await clickPrimary(page)
     await settle(page)
@@ -183,9 +221,17 @@ async function main(): Promise<number> {
       if (!shotPack) {
         shotPack = true
         await shoot('9-pack')
-        const first = await at(page, BOARD_X - 78, 322 + 79)
-        await page.mouse.click(first.x, first.y)
-        await page.waitForTimeout(700)
+
+        // **소모품이 손에 들어오게 고릅니다.** 자리마다 눌러 보고 소모품이 늘면 멈춥니다 —
+        // 토스트를 찍으려면 쓸 것이 있어야 합니다.
+        const before = (await peek(page)).consumables
+        for (let slot = 0; slot < 5; slot++) {
+          if (!(await peek(page)).packOpen) break
+          const spot = await at(page, BOARD_X - 78 + slot * 156, 322 + 79)
+          await page.mouse.click(spot.x, spot.y)
+          await page.waitForTimeout(500)
+          if ((await peek(page)).consumables > before) break
+        }
         await shoot('10-pack-picked')
       }
       if ((await peek(page)).packOpen) {
@@ -196,7 +242,29 @@ async function main(): Promise<number> {
       continue
     }
 
+    if (turn % 8 === 0) {
+      console.log(`  [${turn}] ${state.phase} 소모품 ${state.consumables} 팩 ${state.packs}`)
+    }
+
+    // 소모품을 써서 토스트를 띄웁니다. **무엇을 썼는지가 글로 남아야 합니다.**
+    if (!shotToast && state.consumables > 0 && state.phase !== 'round') {
+      shotToast = true
+      const spot = await at(page, 962, 108)
+      await page.mouse.click(spot.x, spot.y)
+      await page.waitForTimeout(320)
+      await shoot('15-toast')
+      await page.mouse.move(10, 10)
+      await page.waitForTimeout(400)
+      continue
+    }
+
     if (state.phase === 'shop') {
+      // 소모품이 아직 없으면 상점의 칸을 사 봅니다. **여러 상점을 지나면 타로나 행성이
+      // 나옵니다** — 토스트를 찍으려면 쓸 것이 있어야 합니다.
+      if (!shotToast && state.consumables === 0) {
+        await buyFirstAffordable(page)
+        await page.waitForTimeout(300)
+      }
       if (!shotPack && state.packs > 0) await buyAffordablePack(page)
       if (!(await peek(page)).packOpen) await clickPrimary(page)
     } else if (state.phase === 'blind-select') {
@@ -231,6 +299,8 @@ async function main(): Promise<number> {
 
   if (!shotPack) console.log('팩을 뜯지 못했습니다 — 돈이 모자랍니다')
   if (!shotCoins) console.log('동전이 날아가는 장면을 잡지 못했습니다')
+  if (!shotClear) console.log('「넘겼습니다」 장면을 잡지 못했습니다')
+  if (!shotToast) console.log('소모품을 쓰지 못했습니다')
 
   await browser.close()
   await server.close()
@@ -259,7 +329,7 @@ async function buyAffordablePack(page: Page): Promise<void> {
   const spacing = 176
   for (let slot = 0; slot < 2; slot++) {
     if ((await peek(page)).packs <= slot) return
-    const spot = await at(page, BOARD_X - spacing / 2 + slot * spacing, 452 + 39)
+    const spot = await at(page, BOARD_X - spacing / 2 + slot * spacing, 424 + 39)
     await page.mouse.click(spot.x, spot.y)
     await page.waitForTimeout(600)
     if ((await peek(page)).packOpen) return
@@ -270,7 +340,7 @@ async function buyAffordablePack(page: Page): Promise<void> {
 async function buyFirstAffordable(page: Page): Promise<void> {
   const spacing = 172
   for (let slot = 0; slot < 2; slot++) {
-    const spot = await at(page, BOARD_X - spacing / 2 + slot * spacing, 276 + 81)
+    const spot = await at(page, BOARD_X - spacing / 2 + slot * spacing, SHOP_CARD_Y + 81)
     await page.mouse.click(spot.x, spot.y)
     await page.waitForTimeout(500)
     if ((await peek(page)).jokers > 0) return
@@ -298,9 +368,10 @@ async function at(page: Page, x: number, y: number): Promise<{ x: number; y: num
 const STAGE_W = 1280
 const STAGE_H = 800
 const BOARD_X = (16 + 264 + 20 + STAGE_W) / 2
-const HAND_Y = 646
+const HAND_Y = 620
 const CARD_SPACING = 100
 const BUTTON_Y = 742
+const SHOP_CARD_Y = 252
 
 /**
  * 가운데 큰 버튼. 블라인드 선택과 상점이 씁니다.
@@ -309,7 +380,7 @@ const BUTTON_Y = 742
  */
 async function clickPrimary(page: Page): Promise<void> {
   const shop = (await peek(page)).phase === 'shop'
-  const spot = await at(page, BOARD_X, shop ? 703 : 545)
+  const spot = await at(page, BOARD_X, shop ? 657 : 545)
   await page.mouse.click(spot.x, spot.y)
 }
 
@@ -331,7 +402,7 @@ async function pickCards(page: Page, picks: number[]): Promise<void> {
 }
 
 async function pressPlay(page: Page): Promise<void> {
-  const play = await at(page, BOARD_X - 152 + 64, BUTTON_Y + 23)
+  const play = await at(page, BOARD_X - 176 + 64, BUTTON_Y + 23)
   await page.mouse.click(play.x, play.y)
 }
 
@@ -352,7 +423,7 @@ async function clickCards(page: Page, picks: number[], held: number): Promise<vo
 async function discardHand(page: Page, picks: number[]): Promise<void> {
   const held = (await peek(page)).hand.length
   await clickCards(page, picks, held)
-  const discard = await at(page, BOARD_X + 24 + 64, BUTTON_Y + 23)
+  const discard = await at(page, BOARD_X + 48 + 64, BUTTON_Y + 23)
   await page.mouse.click(discard.x, discard.y)
 }
 

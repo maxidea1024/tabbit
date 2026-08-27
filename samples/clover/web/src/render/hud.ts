@@ -28,6 +28,8 @@ export class Slot extends Container {
   /** 값이 바뀌었을 때의 튐. **툭 바뀌는 숫자는 아무 느낌도 주지 않습니다.** */
   private pop = 0
   private lastText = ''
+  /** 이미 조용한 모습으로 돌려놓았는가. 매 프레임 다시 그리지 않기 위한 것입니다. */
+  private settledLook = true
 
   constructor(caption: string, private readonly boxWidth: number,
               private readonly boxHeight: number, private readonly ink: number) {
@@ -77,17 +79,40 @@ export class Slot extends Container {
 
   get settled(): boolean { return this.shown === this.wanted }
 
-  /** 남은 거리의 일부씩 좁힙니다. 큰 수일수록 오래 굴러갑니다. */
+  /**
+   * 남은 거리의 일부씩 좁힙니다. 큰 수일수록 오래 굴러갑니다.
+   *
+   * **굴러가는 동안 숫자가 떱니다.** 값이 매끄럽게 올라가기만 하면 「바뀌었다」로 읽히고,
+   * 흔들리면서 올라가면 「쌓이고 있다」로 읽힙니다. 흔드는 세기는 남은 거리에 따릅니다 —
+   * 큰 수가 굴러갈 때 크게 떨고, 다 굴러가면 조용히 제자리에 섭니다.
+   */
   advance(deltaMs: number): void {
-    if (this.pop > 0) {
-      this.pop = Math.max(0, this.pop - deltaMs / 260)
-      const ease = this.pop * this.pop
-      this.value.scale.set(1 + ease * 0.35)
-      this.value.y = this.boxHeight / 2 + 6 - ease * 4
-      this.draw(ease)
-    }
+    const rolling = this.numeric && this.shown !== this.wanted
+    const heat = rolling
+      ? Math.min(1, Math.abs(this.wanted - this.shown) / 240 + 0.4)
+      : 0
 
-    if (!this.numeric || this.shown === this.wanted) return
+    if (this.pop > 0) this.pop = Math.max(0, this.pop - deltaMs / 260)
+
+    const ease = this.pop * this.pop
+    const shake = Math.max(heat, ease)
+    if (shake > 0.002) {
+      // 튀는 것과 떠는 것을 같이 얹습니다.
+      this.value.scale.set(1 + ease * 0.42 + heat * 0.14)
+      this.value.x = this.boxWidth / 2 + (Math.random() - 0.5) * 7 * shake
+      this.value.y = this.boxHeight / 2 + 6 - ease * 5 + (Math.random() - 0.5) * 6 * shake
+      this.value.rotation = (Math.random() - 0.5) * 0.13 * shake
+      this.draw(Math.min(1, shake))
+    } else if (this.settledLook !== true) {
+      this.settledLook = true
+      this.value.scale.set(1)
+      this.value.position.set(this.boxWidth / 2, this.boxHeight / 2 + 6)
+      this.value.rotation = 0
+      this.draw()
+    }
+    if (shake > 0.002) this.settledLook = false
+
+    if (!rolling) return
     const gap = this.wanted - this.shown
     const step = Math.max(1, Math.abs(gap) * (deltaMs / 130))
     this.shown = gap > 0
