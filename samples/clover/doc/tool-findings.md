@@ -9,9 +9,13 @@
 
 |  |수|
 |--|--|
-|찾은 것|**3**|
+|찾은 것|**6**|
 |닫힌 것|0|
-|우회한 것|**3**|
+|우회한 것|**6**|
+
+앞의 셋은 [데이터 저작](progress.md#p2--데이터-저작-끝)에서, 뒤의 셋은
+[코어](progress.md#p3--코어-typescript-끝)에서 나왔습니다. **뒤의 셋은 생성 코드를 실제로
+읽고 돌려 보아야 나오는 것들입니다** — 변환은 셋 다 성공으로 끝납니다.
 
 ## 1. 배열인 변종 멤버에서의 C# 생성 예외
 
@@ -99,6 +103,113 @@ Column `Operation.Value` of `JokerEffect` is declared `int?` by `OpPerUnit` and 
 
 **변종별 제약을 컬럼이 담을 수 없다는 것 자체는 옳습니다.** 다만 선언을 읽을 때 그 사실이
 보이면 데이터를 만들기 전에 알 수 있습니다.
+
+## 4. 다형 변종의 옵셔널 멤버에서 사라지는 「비었음」
+
+시트의 옵셔널 컬럼은 생성 레코드에 `hasChanceNum` 같은 짝을 가집니다. **변종의 멤버에는 그
+짝이 없습니다.**
+
+```ts
+export interface OpAddMoney extends OperationBase {
+  readonly kind: 'OpAddMoney'
+  money: number
+  /** 상한. 없으면 비웁니다. */
+  cap: number          // ← 비어 있던 행도 0 으로 옵니다
+}
+```
+
+`cap` 이 `int?` 로 선언되어 있고 시트에서 비어 있어도, 읽는 쪽에는 `0` 이 옵니다. **「상한이
+없다」와 「상한이 0 이다」가 같은 값입니다.**
+
+대부분의 칸에서는 문제가 되지 않습니다 — enum 의 0 은 `None` 이고, `count` 의 0 은 뜻이
+없기 때문입니다. 문제가 되는 것은 **0 이 정당한 값인 칸**이고, 지금 그런 칸이 셋입니다.
+
+|칸|0 이 뜻할 수 있는 것|우리가 정한 것|
+|--|--|--|
+|`cap`|상한 없음 · 상한 0|**0 은 상한 없음.** 0 으로 막는 효과가 없습니다|
+|`floor`|하한 없음 · 하한 0|**감소하는 효과에서만 봅니다.** 늘기만 하는 것은 하한을 보지 않습니다|
+|`baseValue`|기본값 없음 · 기본값 0|규격이 이미 「비우면 0」이므로 같습니다|
+
+### 우회
+
+위의 표가 우회입니다 — **0 을 무엇으로 읽을지를 정하고 코드와 문서에 적었습니다.**
+`operations.ts` 의 `op.cap || null` 이 그것입니다.
+
+**닫히는 방법은 변종에도 `hasX` 를 내는 것**입니다. 그러면 이 표가 없어집니다.
+
+## 5. `strict` 에서 컴파일되지 않는 `typescript` 산출물
+
+**결함입니다.** wildling 이 C# 에서 찾은 것과 같은 자리입니다 — 타깃이 파일을 쓰기만 하고
+컴파일하지 않으므로, 변환은 성공으로 끝나고 코드는 컴파일되지 않습니다.
+
+`strict: true` 로 검사하면 열 곳이 걸립니다. 두 갈래입니다.
+
+```
+src/generated/tables/joker-effect.ts(687,10): error TS2564:
+  Property '_owner' has no initializer and is not definitely assigned in the constructor.
+
+src/generated/tables/voucher.ts(241,15): error TS2322:
+  Type 'undefined' is not assignable to type 'VoucherRecord'.
+```
+
+|갈래|무엇|
+|--|--|
+|`foreign` 필드의 초기화|`_owner` 가 선언만 되고 대입이 없습니다. `strictPropertyInitialization` 이 잡습니다|
+|**옵셔널 `foreign` 의 타입**|`foreign Voucher?` 가 `_upgradesFrom: VoucherRecord` 로 선언되고, 값이 없는 행에서 `undefined` 가 대입됩니다. **타입이 사실과 다릅니다** — `strict` 를 꺼도 이 자리는 남습니다|
+
+둘째가 더 무겁습니다. 컴파일이 통과하더라도 **읽는 쪽이 `undefined` 를 받을 수 있는 자리를
+타입이 가려 줍니다.**
+
+### 우회
+
+프로젝트를 둘로 나눴습니다. `src/generated/tsconfig.json` 이 생성 코드만 `strict: false` 로
+검사하고, 우리 코드는 `strict: true` 로 남습니다. `tsc -b` 가 둘을 함께 봅니다.
+
+**우회가 지워지면**(그 `tsconfig.json` 이 없어지면) 이 항목이 닫힙니다.
+
+## 6. ESM 에서 돌지 않는 `readAllBytes`
+
+**결함입니다.** 생성된 `tcb-reader.ts` 가 파일을 이렇게 엽니다.
+
+```ts
+declare function require(moduleName: string): any
+
+export function readAllBytes(filename: string): Uint8Array {
+  const fs = require('fs')
+  return new Uint8Array(fs.readFileSync(filename))
+}
+```
+
+주석이 적어 둔 의도는 **「브라우저에서도 모듈이 로드되도록 지연 해석한다」입니다.** 그 의도는
+맞습니다. 다만 `require` 는 CommonJS 의 것이고 **ESM 모듈에는 존재하지 않습니다.**
+
+```
+ReferenceError: require is not defined in ES module scope
+    at Module.readAllBytes (src/generated/tabbit/tcb-reader.ts:1490:14)
+    at RankTable.readBinarySync (src/generated/tables/rank.ts:159:14)
+    at CloverData.readAllBinarySync (src/generated/clover-data.ts:416:10)
+```
+
+`package.json` 에 `"type": "module"` 을 적은 프로젝트에서는 `readBinarySync` 와
+`readAllBinarySync` 가 **전부** 이 자리에서 멈춥니다. 요즘 만드는 TypeScript 프로젝트의
+기본값이 그것입니다.
+
+### 우회
+
+Node 전용 로더(`src/core/load-node.ts`)에서 `require` 를 하나 놓아 줍니다.
+
+```ts
+import { createRequire } from 'module'
+const shim = globalThis as unknown as { require?: unknown }
+if (typeof shim.require === 'undefined') shim.require = createRequire(import.meta.url)
+```
+
+**브라우저 쪽과 파일이 갈린 이유가 이것입니다** — 이 한 줄을 공용 로더에 두면 브라우저
+번들이 `module` 을 끌어옵니다. 결함이 닫히면 파일 둘이 하나가 됩니다.
+
+**닫는 방법**은 `import { readFileSync } from 'node:fs'` 를 쓰거나, 파일에서 읽는 것을
+생성 코드에서 빼고 호출자가 바이트를 넘기게 하는 것입니다. 후자는 이미 `readBinaryFrom`
+으로 있습니다.
 
 ---
 

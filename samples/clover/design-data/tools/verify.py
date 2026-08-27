@@ -8,6 +8,7 @@
 """
 
 import io
+import json
 import os
 import shutil
 import subprocess
@@ -117,6 +118,11 @@ def workaround_checks():
     check('§1 우회 — 배열이 변종 밖에 있습니다',
           "SHARED_FIELDS = ['ranks', 'suits']" in grid)
 
+    check('§5 우회 — 생성 코드가 자기 프로젝트에서 검사됩니다',
+          os.path.exists(os.path.join(SAMPLE, 'web', 'src', 'generated', 'tsconfig.json')))
+    check('§6 우회 — Node 로더가 따로 있습니다',
+          os.path.exists(os.path.join(SAMPLE, 'web', 'src', 'core', 'load-node.ts')))
+
     consumables = read(os.path.join(HERE, 'seedlib', 'consumables.py'))
     check('§2 우회 — `Planet.hand` 가 `foreign` 이 아닙니다',
           "'PokerHandKind'" in consumables)
@@ -147,12 +153,60 @@ def doc_checks():
     check('조건 41종 · 연산 36종', conds == 41 and ops == 36, '%d · %d' % (conds, ops))
 
 
+# ---------------------------------------------------------------------------
+# 코어
+# ---------------------------------------------------------------------------
+
+WEB = os.path.join(SAMPLE, 'web')
+
+
+def npm(*args):
+    cmd = 'npm.cmd' if os.name == 'nt' else 'npm'
+    return subprocess.run([cmd, *args], cwd=WEB, capture_output=True, text=True,
+                          encoding='utf-8', errors='replace', shell=False)
+
+
+def core_checks():
+    if not os.path.isdir(os.path.join(WEB, 'node_modules')):
+        check('웹 의존성이 설치되어 있습니다', False, 'npm install 을 먼저 돌리십시오')
+        return
+
+    built = npm('run', 'check')
+    check('두 프로젝트가 타입 검사를 통과합니다', built.returncode == 0)
+
+    tested = npm('test')
+    out = (tested.stdout or '') + (tested.stderr or '')
+    check('테스트가 통과합니다', tested.returncode == 0,
+          next((line.strip() for line in out.splitlines() if 'Tests ' in line), ''))
+
+    replays = [f for f in os.listdir(os.path.join(DESIGN, 'out', 'replay'))
+               if f.endswith('.json')]
+    check('구운 리플레이가 있습니다', len(replays) >= 10, '%d개' % len(replays))
+
+    # 리플레이가 같은 해시를 다시 냅니다. **여기가 유니티와 대조할 자리입니다.**
+    same = 0
+    for name in sorted(replays):
+        path = os.path.join(DESIGN, 'out', 'replay', name)
+        replay = json.loads(read(path))
+        result = subprocess.run(
+            ['npx', 'tsx', 'src/headless.ts', '--replay', path],
+            cwd=WEB, capture_output=True, text=True, encoding='utf-8',
+            errors='replace', shell=(os.name == 'nt'))
+        if result.returncode == 0 and replay['hashes'][-1] in (result.stdout or ''):
+            same += 1
+
+    check('리플레이가 같은 해시를 다시 냅니다', same == len(replays),
+          '%d / %d' % (same, len(replays)))
+
+
 def main():
     print('데이터')
     data_checks()
     print('\n변환')
     convert()
     output_checks()
+    print('\n코어')
+    core_checks()
     print('\n문서')
     doc_checks()
     print('\n우회')

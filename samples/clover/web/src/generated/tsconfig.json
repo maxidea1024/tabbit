@@ -1,0 +1,30 @@
+{
+  // 생성 코드만의 프로젝트입니다.
+  //
+  // **`strict` 를 끄는 것이 우회입니다.** 지금의 `typescript` 타깃 산출물은 `strict` 에서
+  // 컴파일되지 않습니다 — 자세한 것은 `doc/tool-findings.md` §5 에 있습니다. 프로젝트를
+  // 나눈 이유는 **우리 코드는 `strict` 로 두기 위해서**이고, 결함이 닫히면 이 파일이
+  // 없어집니다.
+  //
+  // 이 파일은 Tabbit 이 쓰지 않습니다. 손으로 둔 것이고, 다시 변환해도 지워지지 않습니다.
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "declarationMap": false,
+    "outDir": "../../.tsbuild/generated",
+    "rootDir": ".",
+    "tsBuildInfoFile": "../../.tsbuild/generated.tsbuildinfo",
+
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"],
+
+    "strict": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "isolatedModules": true
+  },
+  "include": ["**/*.ts"]
+}

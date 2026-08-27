@@ -1,0 +1,122 @@
+{
+  "seed": "CLOVER-0002",
+  "deck": "red_deck",
+  "stake": "White",
+  "actions": [
+    {
+      "t": "select_blind"
+    },
+    {
+      "t": "play",
+      "cards": [
+        14,
+        31,
+        27,
+        40,
+        44
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        51,
+        17,
+        4,
+        38
+      ]
+    },
+    {
+      "t": "buy",
+      "slot": 0
+    },
+    {
+      "t": "leave_shop"
+    },
+    {
+      "t": "select_blind"
+    },
+    {
+      "t": "discard",
+      "cards": [
+        12,
+        27,
+        5,
+        42,
+        15
+      ]
+    },
+    {
+      "t": "discard",
+      "cards": [
+        47,
+        6,
+        48,
+        37
+      ]
+    },
+    {
+      "t": "discard",
+      "cards": [
+        51,
+        29,
+        8,
+        45
+      ]
+    },
+    {
+      "t": "discard",
+      "cards": [
+        18,
+        23,
+        22,
+        52
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        46,
+        17,
+        43,
+        7
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        10
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        31,
+        44
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        38,
+        25
+      ]
+    }
+  ],
+  "hashes": [
+    "a5c52e5d",
+    "e075af75",
+    "ffd21014",
+    "8c862c4e",
+    "25b57850",
+    "dc75d5c7",
+    "7fe7c975",
+    "7b2e1a9f",
+    "210fe7c3",
+    "5dd2ee8e",
+    "94d4efb4",
+    "32fdb4a5",
+    "0940d3e6",
+    "ec0f5a70",
+    "fa20b4d7"
+  ]
+}
