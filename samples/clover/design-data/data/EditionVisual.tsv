@@ -1,0 +1,9 @@
+:table EditionVisual(key=edition)	에디션 셰이더의 파라미터입니다. 웹 GLSL과 유니티 HLSL이 같은 수식에 이 값을 넣습니다.
+:field	edition	shader	strength	flow_speed	noise
+:type	EditionKind	string	int (min=0)	int (min=0)	int (min=0)
+:desc	에디션	셰이더 이름	세기. 만분율	흐르는 속도. 만분율	노이즈. 만분율
+	Base	none	0	0	0
+	Foil	foil	8000	3000	0
+	Holographic	holo	10000	2000	3500
+	Polychrome	poly	12000	1500	2000
+	Negative	negative	10000	800	0

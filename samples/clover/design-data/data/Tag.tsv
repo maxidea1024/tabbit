@@ -1,0 +1,28 @@
+:table Tag(key=tag_id)	블라인드를 스킵하면 받는 것입니다. 즉시 발동하거나 다음 상점까지 기다립니다.
+:field	tag_id	name	min_ante	sort_order
+:type	string (regex="^[a-z][a-z0-9]*$")	string (text=Tag)	int (min=1, max=8)	int (min=1, max=24)
+:desc	식별자	표시 이름	나올 수 있는 가장 이른 안테	수집 목록에서의 순서
+	uncommon	언커먼 태그	1	1
+	rare	레어 태그	1	2
+	negative	네거티브 태그	2	3
+	foil	포일 태그	1	4
+	holographic	홀로그래픽 태그	1	5
+	polychrome	폴리크롬 태그	1	6
+	investment	투자 태그	1	7
+	voucher	바우처 태그	1	8
+	boss	보스 태그	1	9
+	standard	스탠다드 태그	2	10
+	charm	부적 태그	1	11
+	meteor	유성 태그	2	12
+	buffoon	어릿광대 태그	2	13
+	ethereal	무형 태그	2	14
+	handy	손재주 태그	2	15
+	garbage	쓰레기 태그	2	16
+	coupon	쿠폰 태그	1	17
+	d6	D6 태그	1	18
+	double	더블 태그	1	19
+	juggle	저글 태그	1	20
+	economy	경제 태그	1	21
+	speed	속도 태그	1	22
+	orbital	궤도 태그	2	23
+	topup	보충 태그	2	24

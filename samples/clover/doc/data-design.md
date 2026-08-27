@@ -6,57 +6,67 @@
 
 원작의 규칙을 [대조표](parity.md)가 적었고, 그것을 시트로 옮기는 방법이 여기 있습니다.
 
-## 워크북 9개 · 테이블 38개
+## 워크북 9개 · 테이블 40개
 
 |워크북|테이블|행 수 대략|
 |--|--|--|
-|`Cards.xlsx`|`Rank` · `Suit` · `BaseDeckCard` · `Enhancement` · `Seal` · `Edition` · `PokerHand`|13 · 4 · 52 · 8 · 4 · 5 · 12|
-|`Jokers.xlsx`|`Joker` · `JokerEffect` · `JokerRarityWeight`|150 · 260 남짓 · 4|
-|`Consumables.xlsx`|`Tarot` · `Planet` · `Spectral` · `ConsumableEffect`|22 · 12 · 18 · 70 남짓|
-|`Progression.xlsx`|`Ante` · `Blind` · `BossBlind` · `BossEffect`|12 · 3 · 28 · 30 남짓|
-|`Shop.xlsx`|`ShopSlotWeight` · `BoosterPack` · `Voucher` · `VoucherEffect` · `RerollCost`|5 · 15 · 32 · 35 남짓 · 10|
-|`Setup.xlsx`|`Deck` · `DeckEffect` · `Stake` · `Tag` · `TagEffect` · `Challenge`|15 · 25 남짓 · 8 · 24 · 26 남짓 · 20|
-|`Const.xlsx`|`Const_Run` · `Const_Score` · `Const_Economy` · `RngStream`|상수셋 3개 · 9|
-|`Feel.xlsx`|`Const_Feel` · `EditionVisual` · `SoundCue`|상수셋 1개 · 5 · 20 남짓|
-|`Text.xlsx`|`StringTable` · `Achievement`|900 남짓 · 40|
+|`Cards.xlsx`|`Rank` · `Suit` · `BaseDeckCard` · `PokerHand` · `Enhancement` · `EnhancementEffect` · `Seal` · `SealEffect` · `Edition`|13 · 4 · 52 · 12 · 9 · 12 · 5 · 4 · 5|
+|`Jokers.xlsx`|`Joker` · `JokerRarityWeight` · `JokerEffect`|150 · 4 · **178**|
+|`Consumables.xlsx`|`Tarot` · `TarotEffect` · `Planet` · `Spectral` · `SpectralEffect`|22 · 22 · 12 · 18 · 27|
+|`Progression.xlsx`|`Ante` · `Blind` · `BossBlind` · `BossEffect`|9 · 3 · 28 · 26|
+|`Shop.xlsx`|`ShopSlotWeight` · `BoosterPack` · `Voucher` · `VoucherEffect` · `RerollCost`|5 · 15 · 32 · 34 · 10|
+|`Setup.xlsx`|`Deck` · `DeckEffect` · `Stake` · `Tag` · `TagEffect`|15 · 25 · 8 · 24 · 24|
+|`Const.xlsx`|`Const_Run` · `Const_Score` · `Const_Economy` · `RngStream`|상수셋 3개 · 10|
+|`Feel.xlsx`|`Const_Feel` · `EditionVisual` · `SoundCue`|상수셋 1개 · 5 · 20|
+|`Text.xlsx`|`StringTable` · `Achievement`|351 · 20|
 
 워크북을 갈래로 나눈 이유는 **한 사람이 한 갈래를 고치는 동안 다른 갈래가 잠기지 않게** 하는
 것입니다. 조커 밸런스를 만지는 사람과 상점 확률을 만지는 사람이 같은 파일을 열지 않습니다.
 
-## 효과 테이블 6개의 공통 계열
+## 효과 테이블 9개의 공통 계열
 
-`JokerEffect` · `ConsumableEffect` · `BossEffect` · `VoucherEffect` · `TagEffect` ·
-`DeckEffect`가 **같은 컬럼 구성**입니다. 다른 것은 `owner`가 무엇을 가리키는가뿐입니다.
+`JokerEffect` · `TarotEffect` · `SpectralEffect` · `BossEffect` · `VoucherEffect` ·
+`TagEffect` · `DeckEffect` · `EnhancementEffect` · `SealEffect` 가 **같은 컬럼 구성**입니다.
+다른 것은 `owner` 가 무엇을 가리키는가뿐입니다.
 
 ```
-:field  owner  order  trigger  condition.$type  condition.…  operation.$type  operation.…  scope  scope_count
-:type   foreign Joker  int  Trigger  Condition  …  Operation  …  Scope  int?
+:field  owner  order  trigger  chance_num  chance_den  first_only  ranks  suits
+        scope  scope_count  condition.$type  condition.…  operation.$type  operation.…
+:type   foreign Joker  int  Trigger  int?  int?  bool?  RankKind[]?  SuitKind[]?
+        Scope  int?  Condition  …  Operation  …
 ```
+
+컬럼이 60개 남짓입니다. 변종의 멤버가 전부 나란히 놓이고 한 행이 그중 서넛만 쓰기 때문이며,
+**그것이 다형 컬럼의 모양입니다.**
 
 이것이 [선언된 그룹의 타입 공유](../../../doc/roadmap.md#선언된-그룹의-타입-공유)와 닿습니다 —
 지금은 `Condition`이 테이블마다 따로 선언되고, 그 항목이 끝나면 하나가 됩니다. **끝나기를
 기다리지 않고 진행합니다.** 형식은 무변경이므로 데이터는 그대로입니다.
 
-## `.tbs` 4개
+## `.tbs` 3개
 
 |파일|무엇|
 |--|--|
-|`card.tbs`|`Suit` · `Rank` · `EnhancementKind` · `SealKind` · `EditionKind` · `PokerHandKind` enum|
-|`effect.tbs`|`Trigger` · `Scope` · `RuleKind` · `UnitKind` enum, `Condition` 계열 30 남짓, `Operation` 계열 25 남짓|
-|`run.tbs`|`Rarity` · `StickerKind` · `BlindKind` · `PackKind` · `ConsumableKind` enum|
-|`common.tbs`|`Fraction` (분자·분모) · `MoneyAmount` (값·상한) 값 묶음|
+|`card.tbs`|`SuitKind` · `RankKind` · `PokerHandKind` · `EnhancementKind` · `SealKind` · `EditionKind` enum|
+|`effect.tbs`|`Trigger` · `Scope` · `RuleKind` · `UnitKind` 등 enum 15개, **조건 41종 · 연산 36종**|
+|`run.tbs`|`Rarity` · `StickerKind` · `BlindKind` · `PackKind` · `PackSize` · `ConsumableKind` · `StakeKind` · `ShopItemKind` · `RngStreamKind` enum|
 
-**enum이 `.tbs`에 있는 이유**는 규격입니다 — 선언된 struct의 멤버 타입은 `.tbs` 안에서 찾을 수
-있어야 하고, `Condition`이 `Suit`를 멤버로 가지므로 `Suit`가 시트의 enum이면 안 됩니다.
+**enum 이 `.tbs` 에 있는 이유**는 규격입니다 — 선언된 struct 의 멤버 타입은 `.tbs` 안에서
+찾을 수 있어야 하고, `Condition` 이 `SuitKind` 를 멤버로 가지므로 그것이 시트의 enum이면
+안 됩니다.
 
-그래서 `Suit`는 두 자리에 있습니다.
+그래서 무늬는 두 자리에 있습니다.
 
 |어디|무엇|
 |--|--|
-|`card.tbs` 의 `enum Suit`|**값의 목록.** 효과가 이것을 가리킵니다|
-|`Cards.xlsx` 의 `Suit` 테이블|무늬마다의 **데이터** — 표시 이름 · 색 · 정렬 순서 · 아이콘|
+|`card.tbs` 의 `enum SuitKind`|**값의 목록.** 효과가 이것을 가리킵니다|
+|`Cards.xlsx` 의 `Suit` 테이블|무늬마다의 **데이터** — 표시 이름 · 색 · 정렬 순서 · 글자|
 
-테이블의 키가 enum입니다. **목록은 한 곳에 있고 데이터는 다른 곳에 있습니다.**
+이름이 갈린 것은 그래야 하기 때문입니다 — 같은 이름이면 「타입 셀이 어느 쪽을 가리키는가」에
+답이 없어서 변환이 거부합니다. **목록은 `.tbs` 에 있고 데이터는 시트에 있습니다.**
+
+테이블의 키가 enum 이면 그 테이블을 `foreign` 으로 가리킬 수 없습니다 —
+[도구 보고 §2](tool-findings.md#2-enum-이-키인-테이블에-대한-foreign-의-제약) 입니다.
 
 ## 조커 테이블
 

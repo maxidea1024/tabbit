@@ -1,0 +1,38 @@
+:table VoucherEffect(key="owner,order")	바우처가 바꾸는 규칙입니다. 런 전체에 남습니다.
+:field	owner	order	trigger	chance_num	chance_den	first_only	ranks	suits	scope	scope_count	condition.$type	condition.hand	condition.suit	condition.enhancement	condition.seal	condition.edition	condition.blind	condition.consumable	condition.target	condition.counter	condition.consume	condition.n	condition.compare	condition.num	condition.den	operation.$type	operation.chips	operation.mult	operation.money	operation.cap	operation.unit	operation.mode	operation.value	operation.base_value	operation.min	operation.max	operation.times	operation.counter	operation.step	operation.init	operation.floor	operation.reset	operation.hand_pick	operation.levels	operation.create	operation.count	operation.card_class	operation.edition	operation.rarity	operation.enhancement	operation.seal	operation.suit	operation.modify	operation.trait	operation.debuff	operation.pick	operation.rule	operation.absolute	operation.duration	operation.free	operation.random	operation.ref_id	operation.handler
+:type	foreign Voucher	int (min=0, max=15)	Trigger	int?	int?	bool?	RankKind[]?	SuitKind[]?	Scope	int?	Condition															Operation																																					
+:desc	이 효과를 가진 것	같은 소유자 안의 순서	언제 보는가	확률의 분자	확률의 분모	조건을 만족한 첫 대상만	어느 랭크들인가	어느 무늬들인가	누구에게	대상 개수	무엇이 참이어야 하는가															무엇을 하는가																																					
+	overstock	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								ShopCardSlots						
+	overstock_plus	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								ShopCardSlots						
+	clearance_sale	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							25																								ShopDiscount	true					
+	liquidation	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							50																								ShopDiscount	true					
+	hone	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							2																								EditionWeightScale	true					
+	glow_up	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							4																								EditionWeightScale	true					
+	reroll_surplus	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-2																								RerollCostDelta						
+	reroll_glut	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-2																								RerollCostDelta						
+	crystal_ball	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								ConsumableSlots						
+	omen_globe	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								SpectralInArcanaPacks						
+	telescope	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								CelestialHasMostPlayed						
+	observatory	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							15000																								PlanetGivesMult	true					
+	grabber	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								HandsPerRound						
+	nacho_tong	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								HandsPerRound						
+	wasteful	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								DiscardsPerRound						
+	recyclomancy	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								DiscardsPerRound						
+	tarot_merchant	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							2																								ShopWeightTarot	true					
+	tarot_tycoon	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							4																								ShopWeightTarot	true					
+	planet_merchant	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							2																								ShopWeightPlanet	true					
+	planet_tycoon	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							4																								ShopWeightPlanet	true					
+	seed_money	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							10																								InterestCap	true					
+	money_tree	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							20																								InterestCap	true					
+	blank	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpNothing																																					
+	antimatter	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								JokerSlots						
+	magic_trick	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								ShopAllowsPlayingCards						
+	illusion	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								ShopCardsHaveModifiers						
+	hieroglyph	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-1																								AnteDelta						
+	hieroglyph	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-1																								HandsPerRound						
+	petroglyph	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-1																								AnteDelta						
+	petroglyph	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-1																								DiscardsPerRound						
+	directors_cut	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								BossRerollsPerAnte	true					
+	retcon	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							99																								BossRerollsPerAnte	true					
+	paint_brush	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								HandSize						
+	palette	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								HandSize						

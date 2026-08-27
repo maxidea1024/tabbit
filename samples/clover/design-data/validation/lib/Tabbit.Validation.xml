@@ -1,0 +1,415 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Tabbit.Validation</name>
+    </assembly>
+    <members>
+        <member name="T:Tabbit.Validation.IPreContext">
+             <summary>
+             The verbs a rule calls before a single sheet has been read.
+             </summary>
+             <remarks>
+             A `pre` rule receives one: `public static void Validate(IPreContext context)`. What it can ask
+             about is what exists before the data does - file names, settings, the environment.
+            
+             **There is no `Tables` and no `Schema` here, and that is the point.** A rule in the wrong
+             folder used to compile and then fail at run time with a message naming the folder to move to.
+             Now the name it reaches for is not there, so an editor says so while it is being typed.
+            
+             **Handed over rather than ambient.** An earlier version was a static class opened with a
+             synthesized `global using static`, so `Error` arrived from a file the author never saw. An
+             editor cannot resolve a name like that until it has compiled the generated file that supplies
+             it, which is precisely how completion failed the first three times it was attempted. A
+             parameter is visible in the signature and needs nothing.
+            
+             One instance per rule file, which is also what makes the report cap per rule and lets the table
+             stage run in parallel with nothing shared.
+             spec/validation/validation-usability-and-assembly-output.md and spec/targets/accessor-instances.md section 3.1.
+             </remarks>
+        </member>
+        <member name="M:Tabbit.Validation.IPreContext.Error(System.String)">
+            <summary>Reports a problem that stops the run.</summary>
+            <remarks>
+            With no cell to point at, so the report names the rule file and nothing narrower. In the
+            stages that have a model, prefer the overloads that take a row or a column: those name the
+            cell an author has to open, which is the whole reason validation moved inside the converter.
+            </remarks>
+        </member>
+        <member name="M:Tabbit.Validation.IPreContext.Warn(System.String)">
+            <summary>Reports something worth seeing that does not stop the run on its own.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.IPreContext.Info(System.String)">
+            <summary>Records what the validation did. Never stops the run, and never promoted.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.IPreContext.Option(System.String)">
+             <summary>
+             A value the recipe's `Validation.Options` carries.
+             </summary>
+             <remarks>
+             Throws when the key is absent, listing the ones that are there. A rule reading a setting that
+             nobody configured is a mistake in one of the two, and quietly answering with an empty string
+             turns it into a rule that checks the wrong thing - a locale comparison against `""` matches
+             nothing and reports nothing.
+            
+             Use <see cref="M:Tabbit.Validation.IPreContext.Option(System.String,System.String)"/> where absence is a legitimate case.
+             </remarks>
+        </member>
+        <member name="M:Tabbit.Validation.IPreContext.Option(System.String,System.String)">
+            <summary>The same, answering <paramref name="fallback"/> when the recipe is silent.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.IPreContext.HasOption(System.String)">
+            <summary>Whether the recipe sets this option at all.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.IPreContext.Files(System.String,System.String)">
+             <summary>
+             The files under a folder, by name.
+             </summary>
+             <remarks>
+             Whether an asset a sheet names exists is not a question this tool can answer - it does not
+             know what an asset is. What it can do is hand over the folder: the rule decides which
+             extension matters and what a missing one means.
+            
+             Scanned once per folder and pattern, and shared by every rule, because a content tree is
+             large and a rule asks about it per row.
+             </remarks>
+        </member>
+        <member name="M:Tabbit.Validation.IPreContext.Json(System.String)">
+            <summary>
+            A JSON document that is not a table.
+            </summary>
+            <remarks>
+            Tables come from the accessor, typed. This is for the data a project keeps beside its
+            sheets. Parsed once per path.
+            </remarks>
+        </member>
+        <member name="T:Tabbit.Validation.IGlobalContext">
+             <summary>
+             The verbs a rule calls once there is a model: everything a `pre` rule has, and the data.
+             </summary>
+             <remarks>
+             A `global` rule receives one: `public static void Validate(IGlobalContext context)`. Its
+             subject is more than one table - a reference that crosses them, a convention over all of them -
+             which is what the enumerating <see cref="P:Tabbit.Validation.IGlobalContext.Schema"/> is for.
+            
+             The tables themselves come from the generated accessor, named by an ordinary `using` line in
+             the rule file. They cannot come through here because its members are static.
+             </remarks>
+        </member>
+        <member name="M:Tabbit.Validation.IGlobalContext.Error(System.Object,System.String,System.String,System.Int32)">
+             <summary>
+             Reports a problem against one field of one row, naming the cell it came from.
+             </summary>
+             <remarks>
+             This is the call a rule should make. The cell is what an author opens, and pointing at it is
+             the difference between this pipeline and one that reads the exported files: a report says
+             `workbook : sheet : AF12` rather than the 1,847th entry of a JSON array.
+            
+             The field is passed as `nameof(row.Field)` rather than a literal so the compiler checks it.
+             A name that does not invert to one column - a folded array, a record group - points at the
+             group's first column; pass <paramref name="at"/> to name an element.
+             </remarks>
+        </member>
+        <member name="M:Tabbit.Validation.IGlobalContext.Warn(System.Object,System.String,System.String,System.Int32)">
+            <summary>The same, at a severity that does not stop the run on its own.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.IGlobalContext.Info(System.Object,System.String,System.String,System.Int32)">
+            <summary>The same, as a record of what was seen rather than a judgement.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.IGlobalContext.ErrorAtRow(System.Object,System.String)">
+            <summary>
+            Reports against a whole row, when no single column is the one at fault.
+            </summary>
+            <remarks>
+            Points at the row's primary index cell, which is where a reader looking for the row would
+            start. A combination of columns being wrong together is the case for this.
+            </remarks>
+        </member>
+        <member name="M:Tabbit.Validation.IGlobalContext.WarnAtRow(System.Object,System.String)">
+            <summary>The same, at warning severity.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.IGlobalContext.Schema">
+            <summary>
+            The tables and columns as something to walk, for a rule whose subject is not one table.
+            </summary>
+            <remarks>
+            The counterpart to the accessor: that one is typed and needs a name, this one enumerates and
+            does not. A convention over every table can only be written against this.
+            </remarks>
+        </member>
+        <member name="P:Tabbit.Validation.IGlobalContext.TableSnapshot">
+             <summary>
+             The accessor's snapshot for this run, untyped. **Rules use `context.Tables` instead.**
+             </summary>
+             <remarks>
+             The one bridge in this contract, and it exists because of an ordering: this assembly is
+             compiled and shipped long before the accessor, which is generated from somebody's sheets
+             while the tool runs - so there is no type here to declare `Tables` as.
+            
+             The generated assembly closes the gap from its own side. It declares an extension property
+             on this interface that casts this to the snapshot type it does know, so a rule writes
+             `context.Tables.Item` and gets the generated type with every field typed. Which is why this
+             member is hidden from completion: it is the plumbing, and the typed name is right beside it.
+            
+             spec/targets/accessor-instances.md section 3.2.
+             </remarks>
+        </member>
+        <member name="M:Tabbit.Validation.IGlobalContext.Error(Tabbit.Validation.IFieldSchema,System.String)">
+            <summary>Reports against a column, naming the header cell it was declared in.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.IGlobalContext.Warn(Tabbit.Validation.IFieldSchema,System.String)">
+            <summary>The same, at a severity that does not stop the run on its own.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.IGlobalContext.Info(Tabbit.Validation.IFieldSchema,System.String)">
+            <summary>The same, as a record rather than a judgement.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.IGlobalContext.Error(Tabbit.Validation.ITableSchema,System.String)">
+            <summary>Reports against a table, naming the cell its marker is in.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.IGlobalContext.Warn(Tabbit.Validation.ITableSchema,System.String)">
+            <summary>The same, at a severity that does not stop the run on its own.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.IGlobalContext.Info(Tabbit.Validation.ITableSchema,System.String)">
+            <summary>The same, as a record rather than a judgement.</summary>
+        </member>
+        <member name="T:Tabbit.Validation.ITableContext">
+            <summary>
+            The same, for a rule about one table - which it is told rather than having to name.
+            </summary>
+            <remarks>
+            A `tables` rule receives one: `public static void Validate(ITableContext context)`. The file
+            name already says which table it is for, and <see cref="P:Tabbit.Validation.ITableContext.Table"/> is that table - so a rule
+            checking its own columns does not repeat the name a rename would leave behind.
+            </remarks>
+        </member>
+        <member name="P:Tabbit.Validation.ITableContext.Table">
+            <summary>
+            The table this rule file is about, as the file name declares it.
+            </summary>
+            <remarks>
+            `ItemRules.cs` gets `Item`. Reaching for it rather than writing `Schema.Table("Item")` is
+            one fewer place a renamed table has to be found - the file name is already checked against
+            the model, so this cannot be a name nothing has.
+            </remarks>
+        </member>
+        <member name="T:Tabbit.Validation.IRuntimeContext">
+             <summary>
+             The same as a global rule, plus the stores outside the sheets.
+             </summary>
+             <remarks>
+             A `runtime` rule receives one: `public static void Validate(IRuntimeContext context)`. What a
+             sheet points at is sometimes outside the sheets, and a coupon code already issued or a product
+             already listed can only be checked against the store that holds it.
+            
+             **Only this stage has them**, and the type is how that is said. `runtime` is the folder
+             `--skip-runtime-validation` leaves out, and that only works if the rules needing a store are
+             in it.
+             </remarks>
+        </member>
+        <member name="M:Tabbit.Validation.IRuntimeContext.Db(System.String)">
+            <summary>A read-only SQL store, by the name the recipe's `Validation.Connections` gave it.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.IRuntimeContext.Redis(System.String)">
+            <summary>A read-only Redis store, by the name the recipe gave it.</summary>
+        </member>
+        <member name="T:Tabbit.Validation.ISchemaView">
+            <summary>
+            The tables and columns as something to walk, for a rule whose subject is not one table.
+            </summary>
+            <remarks>
+            The counterpart to the generated accessor: that one is typed and needs a name, this one
+            enumerates and does not. A convention over every table can only be written against this.
+            </remarks>
+        </member>
+        <member name="P:Tabbit.Validation.ISchemaView.Tables">
+            <summary>Every table of the model, in the order it was read.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.ISchemaView.Table(System.String)">
+            <summary>One table by name, or null when the model has none.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.ISchemaView.Has(System.String)">
+            <summary>Whether the model has a table of this name.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.ISchemaView.Fields">
+            <summary>Every column of every table, flattened.</summary>
+        </member>
+        <member name="T:Tabbit.Validation.ITableSchema">
+            <summary>One table, as much of it as a rule about conventions needs.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.ITableSchema.Name">
+            <summary>Name as the generated code spells it.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.ITableSchema.RawName">
+            <summary>Name as the sheet spells it, which is also what the data file is called.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.ITableSchema.Comment">
+            <summary>The comment the sheet carries, or empty.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.ITableSchema.RowCount">
+            <summary>How many rows were read.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.ITableSchema.TargetSide">
+            <summary>Which side this table is built for: `c`, `s`, or both.</summary>
+            <remarks>
+            A string rather than the model's own enum, so a rule reads a value it can compare
+            without the tool's types being in scope.
+            </remarks>
+        </member>
+        <member name="P:Tabbit.Validation.ITableSchema.Fields">
+            <summary>Every column, in sheet order.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.ITableSchema.Index">
+            <summary>The primary index column, or null for a table with no columns.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.ITableSchema.Field(System.String)">
+            <summary>One column by name, or null.</summary>
+        </member>
+        <member name="T:Tabbit.Validation.IFieldSchema">
+            <summary>One column.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.IFieldSchema.Table">
+            <summary>The table it belongs to.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.IFieldSchema.Name">
+            <summary>Name as the generated code spells it.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.IFieldSchema.TypeName">
+            <summary>The declared type, as the sheet spells it.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.IFieldSchema.IsRequired">
+            <summary>Whether a blank is refused.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.IFieldSchema.IsIndex">
+            <summary>Whether this is an index column.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.IFieldSchema.IsArray">
+            <summary>Whether the column holds an array.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.IFieldSchema.IsReference">
+            <summary>Whether the column points at another table.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.IFieldSchema.References">
+            <summary>The table it points at, or null when it points at nothing.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.IFieldSchema.TargetSide">
+            <summary>Which side this column is built for: `c`, `s`, or both.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.IFieldSchema.Comment">
+            <summary>The comment the sheet carries, or empty.</summary>
+        </member>
+        <member name="T:Tabbit.Validation.IFileMap">
+            <summary>
+            The files under a folder, by name.
+            </summary>
+            <remarks>
+            Whether an asset a sheet names exists is not a question this tool can answer - it does not know
+            what an asset is. What it can do is hand over the folder: the rule decides which extension
+            matters and what a missing one means.
+            </remarks>
+        </member>
+        <member name="P:Tabbit.Validation.IFileMap.Root">
+            <summary>The folder that was scanned.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.IFileMap.Pattern">
+            <summary>The pattern it was scanned with.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.IFileMap.Count">
+            <summary>How many files matched.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.IFileMap.Has(System.String)">
+            <summary>Whether a file of this name is there. Extension and case are ignored.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.IFileMap.PathOf(System.String)">
+            <summary>The full path of one file, or null.</summary>
+        </member>
+        <member name="P:Tabbit.Validation.IFileMap.Names">
+            <summary>Every name that matched, extension left off.</summary>
+        </member>
+        <member name="T:Tabbit.Validation.ISqlStore">
+             <summary>
+             A read-only SQL store, by the name the recipe's `Validation.Connections` gave it.
+             </summary>
+             <remarks>
+             Statements that are not queries are refused, but treat that as a convenience rather than the
+             boundary. **The boundary is a read-only account.**
+            
+             The driver is not in this surface: every member answers with a BCL collection, so a rule
+             compiles against this without MySqlConnector or Npgsql being in scope.
+             </remarks>
+        </member>
+        <member name="M:Tabbit.Validation.ISqlStore.Column``1(System.String)">
+            <summary>One column of a query, as a list.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.ISqlStore.Set``1(System.String)">
+            <summary>The same, as a set - which is what a membership check wants.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.ISqlStore.Scalar``1(System.String)">
+            <summary>The first cell of the first row.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.ISqlStore.Rows(System.String)">
+            <summary>Every row, each as a name-to-value map.</summary>
+        </member>
+        <member name="T:Tabbit.Validation.IRedisStore">
+            <summary>A read-only Redis store, by the name the recipe gave it.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.IRedisStore.Exists(System.String)">
+            <summary>Whether the key is there.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.IRedisStore.Get(System.String)">
+            <summary>The value of a string key, or null.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.IRedisStore.Field(System.String,System.String)">
+            <summary>One field of a hash, or null.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.IRedisStore.Members(System.String)">
+            <summary>The members of a set.</summary>
+        </member>
+        <member name="T:Tabbit.Validation.RulePriorityAttribute">
+             <summary>
+             Which tier a rule belongs to, and therefore what it runs before.
+             </summary>
+             <remarks>
+             **This is a barrier rather than an ordering.** Rule files are already collected in a settled
+             order - by name - so putting one before another was never the missing part. What was missing is
+             "if this one failed, do not run the rest": a rule that checks an invariant everything else
+             assumes, failing, and fifty rules after it reporting the consequences rather than the cause.
+            
+             Rules sharing a value are one tier and run as they always did. A tier that reported an error is
+             where the stage stops, and what did not run is counted in the report - a gate that is skipped
+             has to say so, or a run that skipped it reads exactly like a run that passed it.
+            
+             Lower runs first. A rule with no attribute is in the default tier, so a folder that says nothing
+             behaves as it did before: one tier, and no barrier in it.
+            
+             **Sequential stages only** - `pre`, `global` and `runtime`. Table rules run at the same time as
+             each other and each is about one table, so there is no order among them to speak of; the
+             attribute on one is refused rather than ignored, because ignoring it silently would leave the
+             author believing it took.
+            
+             spec/validation/rule-priority.md.
+             </remarks>
+        </member>
+        <member name="P:Tabbit.Validation.RulePriorityAttribute.Tier">
+            <summary>The tier this rule is in. Lower runs first.</summary>
+        </member>
+        <member name="M:Tabbit.Validation.RulePriorityAttribute.#ctor(System.Int32)">
+            <param name="tier">Lower runs first. Rules sharing a value are one tier.</param>
+        </member>
+        <member name="T:Tabbit.Validation.RuleStage">
+            <summary>
+            When a folder's rules run, and what they are given.
+            </summary>
+        </member>
+        <member name="F:Tabbit.Validation.RuleStage.Pre">
+            <summary>Before anything is read: file names, settings, environment.</summary>
+        </member>
+        <member name="F:Tabbit.Validation.RuleStage.Table">
+            <summary>One table each, named by the file.</summary>
+        </member>
+        <member name="F:Tabbit.Validation.RuleStage.Global">
+            <summary>The whole model: rules across tables, and conventions over all of them.</summary>
+        </member>
+        <member name="F:Tabbit.Validation.RuleStage.Runtime">
+            <summary>The same, plus read-only access to an external store.</summary>
+        </member>
+    </members>
+</doc>

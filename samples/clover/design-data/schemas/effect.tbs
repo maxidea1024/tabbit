@@ -1,0 +1,648 @@
+// 효과 VM. 조커 · 소모품 · 바우처 · 태그 · 보스 · 덱 · 강화 · 인장이 전부 이 계열로 효과를
+// 적습니다.
+//
+// **규격은 doc/effect-vm.md 이고 이 파일은 그 규격의 선언입니다.** 웹과 유니티는 이 선언을
+// 읽는 서로 독립된 두 구현이고, 여기 없는 것은 두 구현에도 없어야 합니다.
+//
+// 효과 행 하나는 이렇게 생겼습니다.
+//
+//     owner · order · trigger · chance_num · chance_den · first_only ·
+//     condition(다형) · operation(다형) · scope · scope_count
+//
+// **랭크 집합과 무늬 집합도 행의 칸입니다.** 조건이든 연산이든 「어느 랭크」를 묻는 것은
+// 하나뿐이므로 한 칸을 나눠 씁니다. 변종의 멤버로 두지 않은 이유는 그것이 되지 않기
+// 때문이고, `doc/tool-findings.md` 에 적어 두었습니다.
+//
+// **확률과 「첫 대상만」은 조건이 아니라 행의 칸입니다.** 조건과 직교하기 때문입니다 —
+// 「8 을 낼 때마다 1/4 확률로」는 조건이 랭크이고 확률이 그 위에 얹힌 것이지, 조건 두 개가
+// 아닙니다. 조건을 하나로 유지하는 것이 이 설계의 규칙이고, 그 규칙을 지키려면 직교하는
+// 것들이 조건 밖에 있어야 합니다.
+//
+// 변종의 필드 이름을 되도록 겹치게 지었습니다. 겹치면 시트의 컬럼이 하나로 합쳐집니다.
+
+// ---------------------------------------------------------------------------
+// 축이 되는 enum
+// ---------------------------------------------------------------------------
+
+/// 효과를 언제 보는가.
+enum Trigger
+    /// 상시. 값을 더하지 않고 규칙을 바꾸는 것들입니다.
+    value Passive           = 1
+    /// 득점 카드 한 장마다.
+    value OnCardScored      = 2
+    /// 패에 든 카드 한 장마다.
+    value OnCardHeld        = 3
+    /// 족보가 판정된 뒤, 곱하기 전.
+    value OnHandPlayed      = 4
+    value OnHandDiscarded   = 5
+    value OnCardDiscarded   = 6
+    value OnRoundStart      = 7
+    value OnRoundEnd        = 8
+    value OnBlindSelect     = 9
+    value OnBossDefeated    = 10
+    value OnShopEnter       = 11
+    value OnShopExit        = 12
+    value OnReroll          = 13
+    value OnPackSkipped     = 14
+    value OnPackOpened      = 15
+    value OnCardAdded       = 16
+    value OnCardDestroyed   = 17
+    value OnJokerSold       = 18
+    value OnConsumableUsed  = 19
+    /// 이것 자신을 팔 때.
+    value OnSell            = 20
+    /// 이것 자신을 쓸 때. 소모품이 전부 이것입니다.
+    value OnUse             = 21
+    /// 점수가 확정된 뒤, 패배 판정 전. **득점 뒤의 누적이 여기 있습니다** — 득점 중에
+    /// 늘리면 그 핸드의 점수가 달라집니다.
+    value OnScoreResolved   = 22
+    /// 런이 시작할 때. 덱이 씁니다.
+    value OnRunStart        = 23
+    /// `Lucky Card` 가 실제로 발동했을 때.
+    value OnLuckyTriggered  = 24
+
+/// 연산을 누구에게 하는가.
+enum Scope
+    value Run                = 1
+    value SelfTarget         = 2
+    value ScoredCard         = 3
+    value HeldCard           = 4
+    /// 플레이어가 고른 카드. 개수는 `scope_count` 에 적습니다.
+    value Selected           = 5
+    value RandomInHand       = 6
+    value AllInHand          = 7
+    value RandomInDeck       = 8
+    value AllInDeck          = 9
+    value RandomJoker        = 10
+    value JokerRight         = 11
+    value JokerLeftmost      = 12
+    value AllOtherJokers     = 13
+    value AllJokers          = 14
+    value RandomConsumable   = 15
+    value AllConsumables     = 16
+
+/// 수 비교의 방향.
+enum Compare
+    value AtLeast = 1
+    value AtMost  = 2
+    value Exactly = 3
+
+/// 누적하는 값의 칸. **소유자마다 이름이 다르지 않습니다** — 칸을 고정해야 세이브의 모양이
+/// 조커 목록에 따라 달라지지 않습니다.
+///
+/// `Chips` · `MultAdd` · `MultMul` 은 **득점할 때 자동으로 적용됩니다.** 따로 더하는 효과 행을
+/// 두지 않습니다. `MultMul` 의 기본값은 10000(×1)이고 나머지는 0 입니다.
+enum CounterField
+    value Chips     = 1
+    value MultAdd   = 2
+    value MultMul   = 3
+    /// 라운드 종료 시 지급할 금액. `PerUnit` 의 `SelfCounterMoney` 가 읽습니다.
+    value Money     = 4
+    value SellValue = 5
+    /// 남은 횟수나 세는 수. `fizz_bottle` 의 10핸드, `gravebloom` 의 23장.
+    value Charge    = 6
+    /// 지나간 라운드 수. `faint_outline` 의 2라운드.
+    value Tick      = 7
+
+/// 누적값이 언제 저절로 초기화되는가.
+enum ResetKind
+    value Never = 0
+    value Round = 1
+    value Boss  = 2
+
+/// 「무엇마다」의 단위. `PerUnit` 이 이 개수만큼 값을 넣습니다.
+enum UnitKind
+    value JokerCount            = 1
+    value EmptyJokerSlots       = 2
+    value DeckRemaining         = 3
+    value DeckDeficit           = 4
+    value Money                 = 5
+    value MoneyPer5             = 6
+    value DiscardsLeft          = 7
+    value HandsLeft             = 8
+    value BlindsSkipped         = 9
+    value TarotUsed             = 10
+    value UniquePlanetUsed      = 11
+    /// 덱에서 그 랭크인 카드의 수. `ranks` 가 어느 랭크인지 적습니다.
+    value DeckRankCount         = 12
+    /// 덱에서 그 강화인 카드의 수. `enhancement` 가 어느 강화인지 적습니다.
+    value DeckEnhancementCount  = 13
+    /// 그 희귀도인 조커의 수. `rarity` 가 어느 희귀도인지 적습니다.
+    value JokerRarityCount      = 14
+    value HandPlayCount         = 15
+    value OtherJokerSellValue   = 16
+    /// 패의 최저 랭크 카드의 칩값.
+    value LowestHeldRankChips   = 17
+    /// 이번 핸드에 낸 카드의 장수.
+    value CardsPlayed           = 18
+    /// 자기 `Money` 카운터.
+    value SelfCounterMoney      = 19
+    value HandsPlayedThisRun    = 20
+    value DiscardsUnusedThisRun = 21
+
+/// `PerUnit` 과 `RandomRange` 가 어느 칸에 넣는가.
+enum PerUnitMode
+    value AddChips = 1
+    value AddMult  = 2
+    /// 결과는 `base_value + value × 개수` 입니다.
+    value MulMult  = 3
+    value AddMoney = 4
+    /// 개수만큼 **되풀이해서 곱합니다.** `rookie_card` 하나입니다.
+    value MulEach  = 5
+
+/// 어느 족보를 가리키는가.
+enum HandPick
+    value Played         = 1
+    value FirstDiscarded = 2
+    value MostPlayed     = 3
+    value Random         = 4
+    value All            = 5
+
+/// 무엇을 만드는가.
+enum CreateKind
+    value Tarot           = 1
+    value Planet          = 2
+    value Spectral        = 3
+    value Joker           = 4
+    value PlayingCard     = 5
+    value Tag             = 6
+    /// 이번 런에서 마지막으로 쓴 소모품. `The Fool` 하나입니다.
+    value LastUsed        = 7
+    /// 지금 득점한 카드의 사본. `graft` 하나입니다.
+    value CopyOfScored    = 8
+    /// 고른 카드의 사본. `Cryptid` 하나입니다.
+    value CopyOfSelected  = 9
+    /// 팩. `ref_id` 가 어느 팩인지 적습니다.
+    value Pack            = 10
+    /// 바우처. `ref_id` 가 어느 바우처인지 적습니다.
+    value Voucher         = 11
+
+/// 만들거나 더하는 플레잉 카드의 갈래.
+enum CardClass
+    value Any      = 0
+    value Face     = 1
+    value Ace      = 2
+    value Numbered = 3
+
+/// 카드의 무엇을 바꾸는가.
+enum ModifyKind
+    value Enhancement = 1
+    value Seal        = 2
+    value Edition     = 3
+    value Suit        = 4
+    /// 랭크를 `value` 만큼 올립니다.
+    value RankStep    = 5
+    /// 영구 칩을 `value` 만큼 더합니다.
+    value BonusChips  = 6
+    /// 왼쪽 카드를 오른쪽 카드와 같게 만듭니다. `Death` 하나입니다.
+    value CopyRight   = 7
+    /// 랭크를 그 값으로 정합니다. `Ouija` 하나입니다.
+    value RankTo      = 8
+
+/// 어느 조커를 가리키는가.
+enum JokerPick
+    value Right     = 1
+    value Leftmost  = 2
+    value Random    = 3
+    value AllOther  = 4
+    value SelfPick  = 5
+
+/// 무엇을 무력화하는가. 보스가 씁니다.
+enum DebuffKind
+    value BySuit         = 1
+    value FaceCards      = 2
+    value PlayedThisAnte = 3
+    value AllCards       = 4
+
+/// 라운드마다 바뀌는 지정 대상.
+enum TargetKind
+    value Hand = 1
+    value Rank = 2
+    value Suit = 3
+    value Card = 4
+
+/// 규칙 변경이 얼마나 오래 가는가.
+enum Duration
+    value Permanent = 0
+    value ThisRound = 1
+    value NextRound = 2
+
+/// 바꿀 수 있는 규칙. **목록이 여기 있는 것이 요점입니다** — 자유 문자열이면 오타가
+/// 통과합니다.
+enum RuleKind
+    value HandSize                 = 1
+    value HandsPerRound            = 2
+    value DiscardsPerRound         = 3
+    value JokerSlots               = 4
+    value ConsumableSlots          = 5
+    value DebtLimit                = 6
+    value FreeRerolls              = 7
+    value RerollCostDelta          = 8
+    value RerollStartsFree         = 9
+    value InterestPer5             = 10
+    value InterestCap              = 11
+    value ShopCardSlots            = 12
+    value ShopDiscount             = 13
+    value ShopAllowsPlayingCards   = 14
+    value ShopAllowsSpectral       = 15
+    value ShopWeightTarot          = 16
+    value ShopWeightPlanet         = 17
+    value FreePlanets              = 18
+    value AllCardsScore            = 19
+    value AllCardsAreFace          = 20
+    value FlushStraightCards       = 21
+    value StraightGap              = 22
+    value SuitsMerged              = 23
+    value ProbabilityScale         = 24
+    value AllowDuplicates          = 25
+    value BalanceChipsAndMult      = 26
+    value BossRerollsPerAnte       = 27
+    value AnteDelta                = 28
+    value EditionWeightScale       = 29
+    value PlanetGivesMult          = 30
+    value StartingMoney            = 31
+    value NoInterest               = 32
+    value MoneyPerHandLeft         = 33
+    value MoneyPerDiscardLeft      = 34
+    value RandomizeDeck            = 35
+    value DoubleTagOnBossDefeat    = 36
+    value BlindSizeScale           = 37
+    value SetDiscardsZero          = 38
+    value SpectralInArcanaPacks    = 39
+    value CelestialHasMostPlayed   = 40
+    value ShopCardsHaveModifiers   = 41
+    value NoRepeatHandTypes        = 42
+    value SingleHandTypeOnly       = 43
+    value MustPlayFiveCards        = 44
+    value AlwaysDrawThree          = 45
+    value HalveBaseChipsAndMult    = 46
+    value DebuffUntilJokerSold     = 47
+    value ForceCardSelected        = 48
+    value RemoveFaceCards          = 49
+    /// 시작 덱을 그 무늬들로만 채웁니다. `suits` 가 어느 무늬인지 적습니다.
+    value SuitsOnly                = 50
+    /// 다음 상점의 처음 카드와 팩이 무료입니다. `Coupon Tag`.
+    value NextShopFree             = 51
+
+// ---------------------------------------------------------------------------
+// 조건 — 무엇이 참이어야 하는가
+// ---------------------------------------------------------------------------
+//
+// **조건은 하나만 적습니다.** 둘이 필요하면 그 조합에 이름을 주어 변종 하나로 만듭니다 —
+// `SuitPair` 와 `HandContainsRankAndHand` 가 그렇게 생긴 것입니다. 논리곱을 시트에서
+// 조립하게 하면 시트가 프로그램이 됩니다.
+//
+// 확률과 「첫 대상만」은 여기 없습니다. 효과 행의 칸입니다.
+
+/// 효과가 성립하는 조건.
+abstract struct Condition
+
+/// 항상. 조건이 없는 효과는 빈 칸이 아니라 이것을 적습니다.
+struct CondAlways extends Condition @1
+
+/// 낸 족보가 그것을 포함하는가.
+struct CondHandContains extends Condition @2
+    field hand PokerHandKind
+
+/// 낸 족보가 정확히 그것인가.
+struct CondHandIs extends Condition @3
+    field hand PokerHandKind
+
+/// 이 카드의 무늬.
+struct CondCardSuit extends Condition @4
+    field suit SuitKind
+
+/// 이 카드의 랭크가 집합에 드는가.
+struct CondCardRankSet extends Condition @5
+
+/// 그림 카드인가. `face_pattern` 이 이 판정을 바꿉니다.
+struct CondCardIsFace extends Condition @6
+
+struct CondCardEnhancement extends Condition @7
+    field enhancement EnhancementKind
+
+struct CondCardSeal extends Condition @8
+    field seal SealKind
+
+struct CondCardEdition extends Condition @9
+    field edition EditionKind
+
+/// 낸 카드의 장수.
+struct CondCardCount extends Condition @10
+    field n       int
+    field compare Compare
+
+/// 득점 카드에 네 무늬가 다 있는가.
+struct CondAllSuitsPresent extends Condition @11
+
+/// 그 무늬 하나와 다른 무늬 하나가 득점하는가.
+struct CondSuitPair extends Condition @12
+    field suit SuitKind
+
+/// 패의 모든 카드가 그 무늬들에 드는가.
+struct CondAllHeldSuit extends Condition @13
+
+/// 지금 무슨 블라인드인가.
+struct CondBlindKind extends Condition @14
+    field blind BlindKind
+
+struct CondMoney extends Condition @15
+    field n       int
+    field compare Compare
+
+struct CondDiscardsLeft extends Condition @16
+    field n       int
+    field compare Compare
+
+struct CondHandsLeft extends Condition @17
+    field n       int
+    field compare Compare
+
+/// 이번 라운드에 버리기를 하나도 쓰지 않았는가.
+struct CondDiscardsUnused extends Condition @18
+
+/// 이번 라운드에 이미 낸 족보인가.
+struct CondHandRepeated extends Condition @19
+
+struct CondFirstHand extends Condition @20
+
+struct CondLastHand extends Condition @21
+
+/// 이번 런에서 가장 많이 낸 족보인가.
+struct CondIsMostPlayedHand extends Condition @22
+
+struct CondFirstDiscard extends Condition @23
+
+/// `n` 핸드마다.
+struct CondEveryNHands extends Condition @24
+    field n int
+
+/// 누적 카운터가 문턱을 넘었는가. `consume` 이 참이면 넘은 만큼 뺍니다.
+struct CondCounterAtLeast extends Condition @25
+    field counter CounterField
+    field n       int
+    field consume bool?
+
+/// 남은 횟수가 있는가.
+struct CondChargeLeft extends Condition @26
+
+/// 라운드마다 바뀌는 지정 대상과 맞는가.
+struct CondTargetMatch extends Condition @27
+    field target TargetKind
+
+/// 덱의 강화 카드 수가 그만큼 되는가.
+struct CondDeckEnhancedAtLeast extends Condition @28
+    field n int
+
+/// 이번 핸드가 보스 능력을 발동시켰는가.
+struct CondBossTriggered extends Condition @29
+
+/// 점수가 요구의 비율을 넘었는가.
+struct CondScoreRatioAtLeast extends Condition @30
+    field num int (min=1)
+    field den int (min=1)
+
+/// 이번 핸드에 그림 카드가 하나도 득점하지 않았는가.
+struct CondNoFaceScored extends Condition @31
+
+/// 이번 핸드에 그림 카드가 득점했는가.
+struct CondFaceScored extends Condition @32
+
+/// 누적 카운터가 그 값 이하인가. 0 이 되면 사라지는 조커들이 씁니다.
+struct CondCounterAtMost extends Condition @33
+    field counter CounterField
+    field n       int
+
+/// 한 번에 버린 그림 카드가 그만큼 되는가.
+struct CondDiscardedFaceAtLeast extends Condition @34
+    field n int
+
+/// 낸 족보가 그 족보를 포함하고, 그 랭크도 함께 있는가. `twin_state` 하나입니다.
+struct CondHandContainsRankAndHand extends Condition @35
+    field hand PokerHandKind
+
+/// 라운드의 첫 핸드가 카드 한 장인가.
+struct CondFirstHandSingleCard extends Condition @36
+
+/// 라운드의 첫 핸드가 그 랭크 한 장인가.
+struct CondFirstHandSingleRank extends Condition @37
+
+/// 라운드의 첫 버리기가 카드 한 장인가.
+struct CondFirstDiscardSingleCard extends Condition @38
+
+/// 이번 런에서 가장 많이 낸 족보가 **아닌가.**
+struct CondNotMostPlayedHand extends Condition @39
+
+/// 이 카드가 강화를 가지고 있는가. 어느 강화인지는 묻지 않습니다.
+struct CondCardEnhanced extends Condition @40
+
+/// 쓴 소모품의 갈래.
+struct CondConsumableKind extends Condition @41
+    field consumable ConsumableKind
+
+// ---------------------------------------------------------------------------
+// 연산 — 무엇을 하는가
+// ---------------------------------------------------------------------------
+//
+// **배수는 만분율입니다.** `AddMult` 의 `mult = 40000` 이 「배수 +4」이고, `MulMult` 의
+// `mult = 15000` 이 「×1.5」입니다. 칩과 금액은 정수 그대로입니다.
+
+/// 효과가 하는 일.
+abstract struct Operation
+
+struct OpAddChips extends Operation @1
+    field chips int
+
+struct OpAddMult extends Operation @2
+    field mult int
+
+struct OpMulMult extends Operation @3
+    field mult int
+
+struct OpAddMoney extends Operation @4
+    field money int
+    /// 상한. 없으면 비웁니다.
+    field cap   int?
+
+/// 금액을 대입합니다. `Wraith` 와 `The Ox` 입니다.
+struct OpSetMoney extends Operation @5
+    field money int
+
+/// 단위 개수만큼 값을 넣습니다. `MulMult` 의 결과는 `base_value + value × 개수` 이고,
+/// `base_value` 를 비우면 0 입니다 — 빈 슬롯마다 ×1 은 0 이고 강철 카드마다 ×0.2 는
+/// 10000 입니다. 나머지 모드는 `value × 개수` 입니다.
+struct OpPerUnit extends Operation @6
+    field unit        UnitKind
+    field mode        PerUnitMode
+    field value       int?
+    field base_value  int?
+    field cap         int?
+    /// `DeckEnhancementCount` 가 어느 강화를 세는가.
+    field enhancement EnhancementKind?
+    /// `JokerRarityCount` 가 어느 희귀도를 세는가.
+    field rarity      Rarity?
+
+/// 난수를 그 칸에 더합니다. `smudge` 하나입니다.
+struct OpRandomRange extends Operation @7
+    field mode PerUnitMode
+    field min  int
+    field max  int
+
+/// 대상을 그 자리에서 다시 발동합니다.
+struct OpRetrigger extends Operation @8
+    field times int (min=1)
+
+/// 자기 누적값을 늘립니다. `step` 은 음수가 됩니다.
+struct OpGrowSelf extends Operation @9
+    field counter CounterField
+    field step    int
+    /// 시작값. 비우면 `MultMul` 은 10000 이고 나머지는 0 입니다.
+    field init    int?
+    field cap     int?
+    field floor   int?
+    field reset   ResetKind
+
+/// 누적값을 시작값으로 되돌립니다.
+struct OpResetSelf extends Operation @10
+    field counter CounterField
+
+/// 다른 것의 값을 늘립니다. `gift_tag` 하나입니다.
+struct OpGrowOthers extends Operation @11
+    field counter CounterField
+    field step    int
+
+/// 족보의 레벨. `levels` 는 음수가 됩니다 — `The Arm` 이 내립니다.
+struct OpLevelUpHand extends Operation @12
+    field hand_pick HandPick?
+    field levels    int
+
+/// 소모품이나 조커를 만듭니다.
+struct OpCreateCard extends Operation @13
+    field create    CreateKind
+    field count     int (min=1)
+    field edition   EditionKind?
+    field rarity    Rarity?
+    /// 족보를 가리키는 것을 만들 때. `Blue Seal` 이 씁니다.
+    field hand_pick HandPick?
+    /// 특정 행을 가리킬 때의 식별자. 팩과 바우처와 태그가 씁니다.
+    field ref_id    string?
+    /// 정하지 않은 성질을 무작위로 채웁니다.
+    field random    bool?
+
+/// 덱이나 패에 플레잉 카드를 더합니다.
+struct OpAddCard extends Operation @14
+    field create      CreateKind
+    field count       int (min=1)
+    field card_class  CardClass?
+    field enhancement EnhancementKind?
+    field seal        SealKind?
+    /// 정하지 않은 성질을 무작위로 채웁니다.
+    field random      bool?
+
+struct OpDestroyCard extends Operation @15
+    field count int (min=1)
+
+/// 카드의 무엇을 바꿉니다. `random` 이 참이면 `scope` 안에서 **한 번 뽑아 전부에 같은 값**을
+/// 씁니다 — `Sigil` 이 패 전체를 한 무늬로 만드는 것이 그것입니다.
+struct OpModifyCard extends Operation @16
+    field modify      ModifyKind
+    field enhancement EnhancementKind?
+    field seal        SealKind?
+    field edition     EditionKind?
+    field suit        SuitKind?
+    field value       int?
+    field random      bool?
+
+/// 조커의 에디션을 바꿉니다.
+struct OpModifyJoker extends Operation @17
+    field edition EditionKind?
+    field random  bool?
+
+struct OpDestroyJoker extends Operation @18
+    field pick JokerPick
+
+struct OpCopyJoker extends Operation @19
+    field pick JokerPick
+
+/// 무력화합니다. 보스가 씁니다.
+struct OpDebuff extends Operation @20
+    field debuff DebuffKind
+    field suit   SuitKind?
+
+/// 보스 효과를 끕니다.
+struct OpDisableBoss extends Operation @21
+
+/// 패배를 막습니다.
+struct OpPreventLoss extends Operation @22
+
+/// 규칙 하나를 바꿉니다. `absolute` 가 참이면 더하지 않고 그 값으로 정합니다.
+struct OpChangeRule extends Operation @23
+    field rule     RuleKind
+    field value    int?
+    field absolute bool?
+    field duration Duration?
+
+/// 규칙을 누적값만큼 바꿉니다. 값이 라운드마다 줄어드는 것들이 씁니다.
+struct OpChangeRuleByCounter extends Operation @24
+    field rule    RuleKind
+    field counter CounterField
+
+/// 이 카드가 무엇으로 취급되는지를 바꿉니다.
+struct OpCardTrait extends Operation @25
+    field trait CardTrait
+
+/// 금액을 곱합니다. `The Hermit` 과 `Economy Tag` 입니다.
+struct OpMulMoney extends Operation @26
+    field value int?
+    field cap   int?
+
+/// 다음 상점에 무언가를 놓습니다. 태그가 씁니다.
+struct OpShopGift extends Operation @27
+    field create  CreateKind
+    field rarity  Rarity?
+    field edition EditionKind?
+    field free    bool?
+    field count   int
+
+/// 다음에 고르는 태그를 복제합니다. `Double Tag` 하나입니다.
+struct OpDuplicateNextTag extends Operation @28
+
+/// 보스 블라인드를 다시 뽑습니다.
+struct OpRerollBoss extends Operation @29
+
+/// 패에서 카드를 강제로 버립니다. `The Hook` 하나입니다.
+struct OpForceDiscard extends Operation @30
+    field count int (min=1)
+
+/// 카드를 뒤집힌 채로 뽑게 합니다. 확률은 효과 행의 `chance_num` · `chance_den` 입니다.
+struct OpDrawFaceDown extends Operation @31
+    field card_class CardClass?
+
+/// 조커를 뒤집고 순서를 섞습니다. `Amber Acorn` 하나입니다.
+struct OpFlipJokers extends Operation @32
+
+/// 무작위 조커 하나를 이번 핸드 동안 끕니다. `Crimson Heart` 하나입니다.
+struct OpDisableRandomJoker extends Operation @33
+
+/// 런을 시작할 때 무언가를 줍니다. 덱이 씁니다.
+struct OpGrant extends Operation @34
+    field create CreateKind
+    field count  int (min=1)
+    field ref_id string?
+
+/// 아무것도 하지 않습니다. `Blank` 바우처가 씁니다 — 상위를 열기 위한 자리이므로 결함이
+/// 아닙니다.
+struct OpNothing extends Operation @35
+
+/// 선언으로 적히지 않는 것. **개수가 이 샘플의 지표입니다** — 지워지면 그 자리가 닫힙니다.
+struct OpCustom extends Operation @36
+    field handler string (regex="^[a-z][a-z0-9_]*$")
+
+/// 카드가 가지는 성질. 값을 더하지 않고 그 카드가 무엇으로 취급되는지를 바꿉니다.
+enum CardTrait
+    /// 모든 무늬로 취급합니다. `Wild Card`.
+    value AnySuit      = 1
+    /// 랭크와 무늬가 없습니다. `Stone Card`.
+    value NoRankSuit   = 2
+    /// 족보를 이루지 않아도 항상 득점합니다. `Stone Card`.
+    value AlwaysScores = 3

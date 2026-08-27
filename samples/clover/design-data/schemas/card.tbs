@@ -1,0 +1,76 @@
+// 카드를 이루는 값들. 시트의 컬럼 타입이 되고, 효과의 조건과 연산도 이것들을 가리킵니다.
+//
+// **목록은 여기 있고 데이터는 시트에 있습니다.** `Suit` 가 무엇무엇인지는 이 파일이 정하고,
+// 무늬마다의 표시 이름과 색은 `Cards.xlsx` 의 `Suit` 테이블이 가집니다. 선언된 struct 의
+// 멤버 타입은 이 파일들 안에서 찾을 수 있어야 하므로, 시트의 enum 으로 둘 수 없습니다.
+
+/// 무늬. 값은 정렬 순서입니다.
+enum SuitKind
+    value Spade   = 1
+    value Heart   = 2
+    value Club    = 3
+    value Diamond = 4
+
+/// 랭크. 값은 크기 순서이고 칩값이 아닙니다 — 칩값은 `Rank` 테이블에 있습니다.
+enum RankKind
+    value Two   = 2
+    value Three = 3
+    value Four  = 4
+    value Five  = 5
+    value Six   = 6
+    value Seven = 7
+    value Eight = 8
+    value Nine  = 9
+    value Ten   = 10
+    value Jack  = 11
+    value Queen = 12
+    value King  = 13
+    value Ace   = 14
+
+/// 족보. 로열 플러시는 별도 족보가 아니므로 여기 없습니다 — 스트레이트 플러시와 값을
+/// 공유하고 표시만 다릅니다.
+enum PokerHandKind
+    value HighCard      = 1
+    value Pair          = 2
+    value TwoPair       = 3
+    value ThreeOfAKind  = 4
+    value Straight      = 5
+    value Flush         = 6
+    value FullHouse     = 7
+    value FourOfAKind   = 8
+    value StraightFlush = 9
+    /// 한 번 낸 뒤에 목록에 보입니다.
+    value FiveOfAKind   = 10
+    /// 한 번 낸 뒤에 목록에 보입니다.
+    value FlushHouse    = 11
+    /// 한 번 낸 뒤에 목록에 보입니다.
+    value FlushFive     = 12
+
+/// 카드 한 장의 강화. 한 장에 하나만 붙습니다.
+enum EnhancementKind
+    value None  = 0
+    value Bonus = 1
+    value Mult  = 2
+    value Wild  = 3
+    value Glass = 4
+    value Steel = 5
+    value Stone = 6
+    value Gold  = 7
+    value Lucky = 8
+
+/// 인장. 강화와 별개의 축이고, 한 장에 하나만 붙습니다.
+enum SealKind
+    value None   = 0
+    value Red    = 1
+    value Blue   = 2
+    value Gold   = 3
+    value Purple = 4
+
+/// 에디션. 카드와 조커 양쪽에 붙습니다.
+enum EditionKind
+    value Base         = 0
+    value Foil         = 1
+    value Holographic  = 2
+    value Polychrome   = 3
+    /// 조커에 붙으면 슬롯 +1, 소모품에 붙으면 소모품 슬롯 +1 입니다.
+    value Negative     = 4

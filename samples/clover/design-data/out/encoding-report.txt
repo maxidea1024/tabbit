@@ -1,0 +1,320 @@
+TCB encoding report
+===================
+
+Totals
+  tables    36
+  columns   680
+  unencoded 81,080
+  encoded   31,957  (39.4 % of unencoded)
+  deflated  23,061  (72.2 % of encoded)  - what a compression layer over the chosen blocks would come to
+
+By encoding
+  encoding        columns        bytes    share
+  RAW                 48       15,198   47.6 %
+  DICT_FRONT           9       10,591   33.1 %
+  RLE                477        2,283    7.1 %
+  DICT_SEG             5        1,413    4.4 %
+  BITPACK             67        1,310    4.1 %
+  DICT                 3          391    1.2 %
+  ARRAY               16          210    0.7 %
+  VARINT              17          181    0.6 %
+  DICT_RLE            15          175    0.5 %
+  DELTA_RLE           17          128    0.4 %
+  DELTA                6           77    0.2 %
+
+By element
+  element         columns    unencoded        bytes    share
+  string              65       31,543       27,702   86.7 %
+  i32                254       35,792        2,147    6.7 %
+  varint             309       11,707        1,872    5.9 %
+  bool                52        2,038          236    0.7 %
+
+Largest columns (40 of 680)
+
+  StringTable.StringId  [string]  351 rows
+    chosen DICT_FRONT  5,699  (76.4 % of unencoded)
+    candidates RAW 7,455  ·  DICT 8,095  ·  DICT_RLE 8,446  ·  DICT_FRONT 5,699  ·  DICT_FRONT_RLE 6,050  ·  DICT_SEG 6,222  ·  DICT_SEG_RLE 6,573
+
+  StringTable.Ko  [string]  351 rows
+    chosen RAW  3,925  (100.0 % of unencoded)
+    candidates RAW 3,925  ·  DICT 4,551  ·  DICT_RLE 4,902  ·  DICT_FRONT 3,974  ·  DICT_FRONT_RLE 4,325  ·  DICT_SEG 4,795  ·  DICT_SEG_RLE 5,146
+
+  StringTable.En  [string]  351 rows
+    chosen RAW  3,540  (100.0 % of unencoded)
+    candidates RAW 3,540  ·  DICT 4,159  ·  DICT_RLE 4,510  ·  DICT_FRONT 3,624  ·  DICT_FRONT_RLE 3,975  ·  DICT_SEG 4,611  ·  DICT_SEG_RLE 4,962
+
+  Joker.Name  [string]  150 rows
+    chosen RAW  1,824  (100.0 % of unencoded)
+    candidates RAW 1,824  ·  DICT 2,062  ·  DICT_RLE 2,212  ·  DICT_FRONT 1,929  ·  DICT_FRONT_RLE 2,079  ·  DICT_SEG 2,328  ·  DICT_SEG_RLE 2,478
+
+  JokerEffect.Owner  [string]  178 rows
+    chosen DICT_FRONT  1,694  (93.6 % of unencoded)
+    candidates RAW 1,809  ·  DICT 1,795  ·  DICT_RLE 1,944  ·  DICT_FRONT 1,694  ·  DICT_FRONT_RLE 1,847  ·  DICT_SEG 2,165  ·  DICT_SEG_RLE 2,314
+
+  Joker.Art  [string]  150 rows
+    chosen DICT_FRONT  1,663  (68.7 % of unencoded)
+    candidates RAW 2,419  ·  DICT 2,657  ·  DICT_RLE 2,807  ·  DICT_FRONT 1,663  ·  DICT_FRONT_RLE 1,813  ·  DICT_SEG 2,434  ·  DICT_SEG_RLE 2,584
+
+  Joker.JokerId  [string]  150 rows
+    chosen RAW  1,519  (100.0 % of unencoded)
+    candidates RAW 1,519  ·  DICT 1,757  ·  DICT_RLE 1,907  ·  DICT_FRONT 1,657  ·  DICT_FRONT_RLE 1,807  ·  DICT_SEG 2,127  ·  DICT_SEG_RLE 2,277
+
+  Achievement.Condition  [string]  20 rows
+    chosen DICT_SEG  691  (91.6 % of unencoded)
+    candidates RAW 754  ·  DICT 775  ·  DICT_RLE 795  ·  DICT_FRONT 745  ·  DICT_FRONT_RLE 765  ·  DICT_SEG 691  ·  DICT_SEG_RLE 711
+
+  SoundCue.Note  [string]  20 rows
+    chosen DICT_FRONT  436  (93.0 % of unencoded)
+    candidates RAW 469  ·  DICT 490  ·  DICT_RLE 510  ·  DICT_FRONT 436  ·  DICT_FRONT_RLE 456  ·  DICT_SEG 450  ·  DICT_SEG_RLE 470
+
+  VoucherEffect.Owner  [string]  34 rows
+    chosen RAW  382  (100.0 % of unencoded)
+    candidates RAW 382  ·  DICT 395  ·  DICT_RLE 425  ·  DICT_FRONT 383  ·  DICT_FRONT_RLE 413  ·  DICT_SEG 452  ·  DICT_SEG_RLE 482
+
+  Voucher.Name  [string]  32 rows
+    chosen RAW  361  (100.0 % of unencoded)
+    candidates RAW 361  ·  DICT 394  ·  DICT_RLE 426  ·  DICT_FRONT 362  ·  DICT_FRONT_RLE 394  ·  DICT_SEG 411  ·  DICT_SEG_RLE 443
+
+  Voucher.VoucherId  [string]  32 rows
+    chosen RAW  360  (100.0 % of unencoded)
+    candidates RAW 360  ·  DICT 393  ·  DICT_RLE 425  ·  DICT_FRONT 381  ·  DICT_FRONT_RLE 413  ·  DICT_SEG 450  ·  DICT_SEG_RLE 482
+
+  Tag.Name  [string]  24 rows
+    chosen DICT_SEG  343  (91.0 % of unencoded)
+    candidates RAW 377  ·  DICT 402  ·  DICT_RLE 426  ·  DICT_FRONT 401  ·  DICT_FRONT_RLE 425  ·  DICT_SEG 343  ·  DICT_SEG_RLE 367
+
+  BossBlind.BossId  [string]  28 rows
+    chosen DICT_FRONT  246  (84.2 % of unencoded)
+    candidates RAW 292  ·  DICT 321  ·  DICT_RLE 349  ·  DICT_FRONT 246  ·  DICT_FRONT_RLE 274  ·  DICT_SEG 334  ·  DICT_SEG_RLE 362
+
+  BossBlind.Name  [string]  28 rows
+    chosen RAW  228  (100.0 % of unencoded)
+    candidates RAW 228  ·  DICT 257  ·  DICT_RLE 285  ·  DICT_FRONT 252  ·  DICT_FRONT_RLE 280  ·  DICT_SEG 316  ·  DICT_SEG_RLE 344
+
+  BossEffect.Owner  [string]  26 rows
+    chosen DICT_FRONT  226  (84.0 % of unencoded)
+    candidates RAW 269  ·  DICT 296  ·  DICT_RLE 322  ·  DICT_FRONT 226  ·  DICT_FRONT_RLE 252  ·  DICT_SEG 308  ·  DICT_SEG_RLE 334
+
+  RngStream.Note  [string]  10 rows
+    chosen RAW  226  (100.0 % of unencoded)
+    candidates RAW 226  ·  DICT 237  ·  DICT_RLE 247  ·  DICT_FRONT 236  ·  DICT_FRONT_RLE 246  ·  DICT_SEG 276  ·  DICT_SEG_RLE 286
+
+  Tarot.TarotId  [string]  22 rows
+    chosen DICT_FRONT  218  (87.2 % of unencoded)
+    candidates RAW 250  ·  DICT 273  ·  DICT_RLE 295  ·  DICT_FRONT 218  ·  DICT_FRONT_RLE 240  ·  DICT_SEG 285  ·  DICT_SEG_RLE 307
+
+  TarotEffect.Owner  [string]  22 rows
+    chosen DICT_FRONT  218  (87.2 % of unencoded)
+    candidates RAW 250  ·  DICT 273  ·  DICT_RLE 295  ·  DICT_FRONT 218  ·  DICT_FRONT_RLE 240  ·  DICT_SEG 285  ·  DICT_SEG_RLE 307
+
+  Achievement.Name  [string]  20 rows
+    chosen RAW  217  (100.0 % of unencoded)
+    candidates RAW 217  ·  DICT 238  ·  DICT_RLE 258  ·  DICT_FRONT 242  ·  DICT_FRONT_RLE 262  ·  DICT_SEG 292  ·  DICT_SEG_RLE 312
+
+  DeckEffect.Owner  [string]  25 rows
+    chosen DICT  207  (69.7 % of unencoded)
+    candidates RAW 297  ·  DICT 207  ·  DICT_RLE 216  ·  DICT_FRONT 217  ·  DICT_FRONT_RLE 226  ·  DICT_SEG 209  ·  DICT_SEG_RLE 218
+
+  ShopSlotWeight.Note  [string]  5 rows
+    chosen RAW  204  (100.0 % of unencoded)
+    candidates RAW 204  ·  DICT 210  ·  DICT_RLE 215  ·  DICT_FRONT 213  ·  DICT_FRONT_RLE 218  ·  DICT_SEG 209  ·  DICT_SEG_RLE 214
+
+  Voucher.UpgradesFrom  [string?]  32 rows
+    chosen RAW  202  (102.0 % of unencoded)
+    candidates RAW 198  ·  DICT 216  ·  DICT_RLE 248  ·  DICT_FRONT 229  ·  DICT_FRONT_RLE 261  ·  DICT_SEG 270  ·  DICT_SEG_RLE 302
+
+  Achievement.AchievementId  [string]  20 rows
+    chosen RAW  197  (100.0 % of unencoded)
+    candidates RAW 197  ·  DICT 218  ·  DICT_RLE 238  ·  DICT_FRONT 222  ·  DICT_FRONT_RLE 242  ·  DICT_SEG 288  ·  DICT_SEG_RLE 308
+
+  Deck.Name  [string]  15 rows
+    chosen RAW  195  (100.0 % of unencoded)
+    candidates RAW 195  ·  DICT 211  ·  DICT_RLE 226  ·  DICT_FRONT 214  ·  DICT_FRONT_RLE 229  ·  DICT_SEG 219  ·  DICT_SEG_RLE 234
+
+  Deck.Unlock  [string]  15 rows
+    chosen DICT_SEG  194  (66.7 % of unencoded)
+    candidates RAW 291  ·  DICT 307  ·  DICT_RLE 322  ·  DICT_FRONT 269  ·  DICT_FRONT_RLE 284  ·  DICT_SEG 194  ·  DICT_SEG_RLE 209
+
+  SoundCue.CueId  [string]  20 rows
+    chosen DICT_FRONT  191  (87.2 % of unencoded)
+    candidates RAW 219  ·  DICT 240  ·  DICT_RLE 260  ·  DICT_FRONT 191  ·  DICT_FRONT_RLE 211  ·  DICT_SEG 250  ·  DICT_SEG_RLE 270
+
+  Tarot.Name  [string]  22 rows
+    chosen RAW  184  (100.0 % of unencoded)
+    candidates RAW 184  ·  DICT 207  ·  DICT_RLE 229  ·  DICT_FRONT 206  ·  DICT_FRONT_RLE 228  ·  DICT_SEG 254  ·  DICT_SEG_RLE 276
+
+  Deck.DeckId  [string]  15 rows
+    chosen RAW  181  (100.0 % of unencoded)
+    candidates RAW 181  ·  DICT 197  ·  DICT_RLE 212  ·  DICT_FRONT 207  ·  DICT_FRONT_RLE 222  ·  DICT_SEG 199  ·  DICT_SEG_RLE 214
+
+  Tag.TagId  [string]  24 rows
+    chosen RAW  180  (100.0 % of unencoded)
+    candidates RAW 180  ·  DICT 205  ·  DICT_RLE 229  ·  DICT_FRONT 223  ·  DICT_FRONT_RLE 247  ·  DICT_SEG 275  ·  DICT_SEG_RLE 299
+
+  TagEffect.Owner  [string]  24 rows
+    chosen RAW  180  (100.0 % of unencoded)
+    candidates RAW 180  ·  DICT 205  ·  DICT_RLE 229  ·  DICT_FRONT 223  ·  DICT_FRONT_RLE 247  ·  DICT_SEG 275  ·  DICT_SEG_RLE 299
+
+  SpectralEffect.Owner  [string]  27 rows
+    chosen DICT  165  (80.9 % of unencoded)
+    candidates RAW 204  ·  DICT 165  ·  DICT_RLE 192  ·  DICT_FRONT 179  ·  DICT_FRONT_RLE 206  ·  DICT_SEG 223  ·  DICT_SEG_RLE 250
+
+  BaseDeckCard.CardId  [string]  52 rows
+    chosen RAW  160  (100.0 % of unencoded)
+    candidates RAW 160  ·  DICT 213  ·  DICT_RLE 265  ·  DICT_FRONT 217  ·  DICT_FRONT_RLE 269  ·  DICT_SEG 282  ·  DICT_SEG_RLE 334
+
+  JokerEffect.Operation.Mult  [i32]  178 rows
+    chosen RLE  159  (22.3 % of unencoded)
+    candidates RAW 712  ·  VARINT 256  ·  DELTA 266  ·  RLE 159  ·  DELTA_RLE 198  ·  BITPACK 252
+
+  Spectral.Name  [string]  18 rows
+    chosen RAW  141  (100.0 % of unencoded)
+    candidates RAW 141  ·  DICT 160  ·  DICT_RLE 178  ·  DICT_FRONT 158  ·  DICT_FRONT_RLE 176  ·  DICT_SEG 195  ·  DICT_SEG_RLE 213
+
+  JokerEffect.Operation.Type  [i32]  178 rows
+    chosen BITPACK  137  (19.2 % of unencoded)
+    candidates RAW 712  ·  VARINT 178  ·  DELTA 178  ·  RLE 158  ·  DELTA_RLE 195  ·  BITPACK 137
+
+  Spectral.SpectralId  [string]  18 rows
+    chosen RAW  137  (100.0 % of unencoded)
+    candidates RAW 137  ·  DICT 156  ·  DICT_RLE 174  ·  DICT_FRONT 170  ·  DICT_FRONT_RLE 188  ·  DICT_SEG 214  ·  DICT_SEG_RLE 232
+
+  BoosterPack.PackId  [string]  15 rows
+    chosen DICT_SEG  135  (61.6 % of unencoded)
+    candidates RAW 219  ·  DICT 235  ·  DICT_RLE 250  ·  DICT_FRONT 163  ·  DICT_FRONT_RLE 178  ·  DICT_SEG 135  ·  DICT_SEG_RLE 150
+
+  JokerEffect.Trigger  [varint]  178 rows
+    chosen BITPACK  115  (64.6 % of unencoded)
+    candidates RAW 178  ·  RLE 168  ·  BITPACK 115
+
+  JokerEffect.Operation.Step  [i32]  178 rows
+    chosen RLE  114  (16.0 % of unencoded)
+    candidates RAW 712  ·  VARINT 207  ·  DELTA 223  ·  RLE 114  ·  DELTA_RLE 153  ·  BITPACK 384
+
+Headroom outside the encodings
+  What a column would come to if its rows' lengths and its elements were
+  each encoded, against what it costs today. Nothing here is in the format.
+
+  Array columns (always raw today)
+    columns  18
+    elements 40
+    today    222
+    encoded  201  (90.5 % of today) · saved 21
+
+Bit-width packing headroom
+  What the integer columns would come to at the width their own range
+  needs, against what they cost today. Nothing here is in the format.
+
+  element     columns        today       packed        saved
+  bool             52          236          348         -112
+  varint          294        1,769        2,416         -647
+  i32             254        2,147        3,664       -1,517
+
+  Keeping the smaller of the two per column: 4,152 → 4,096 · saved 56 over 3 of 600 columns.
+
+    width            base        today       packed  inner         column
+        4               2           86           43  RAW           JokerEffect.Ranks
+        2               1           18           11  RAW           JokerEffect.Suits
+        1               1           15            9  RAW           DeckEffect.Suits
+
+Presence bitmaps
+  A bit per row, saying which rows have a value. Encoded by the same choice
+  a bit-packed value block uses; `unencoded` is what a bit a row would cost.
+
+    columns    55
+    unencoded  298
+    encoded    217  (72.8 % of unencoded) · saved 81
+
+  26 of 55 bitmaps got smaller.
+
+       rows    unencoded      encoded  column
+        178           23            3  JokerEffect.ScopeCount
+        178           23            7  JokerEffect.Suits
+        178           23           11  JokerEffect.FirstOnly
+        178           23           20  JokerEffect.ChanceNum
+        178           23           20  JokerEffect.ChanceDen
+         34            5            3  VoucherEffect.ChanceNum
+         34            5            3  VoucherEffect.ChanceDen
+         34            5            3  VoucherEffect.FirstOnly
+         34            5            3  VoucherEffect.Ranks
+         34            5            3  VoucherEffect.Suits
+         34            5            3  VoucherEffect.ScopeCount
+         27            4            3  SpectralEffect.ChanceNum
+         27            4            3  SpectralEffect.ChanceDen
+         27            4            3  SpectralEffect.FirstOnly
+         27            4            3  SpectralEffect.Ranks
+         27            4            3  SpectralEffect.Suits
+        178           23           22  JokerEffect.Ranks
+         26            4            3  BossEffect.FirstOnly
+         26            4            3  BossEffect.Ranks
+         26            4            3  BossEffect.Suits
+         26            4            3  BossEffect.ScopeCount
+         25            4            3  DeckEffect.ChanceNum
+         25            4            3  DeckEffect.ChanceDen
+         25            4            3  DeckEffect.FirstOnly
+         25            4            3  DeckEffect.Ranks
+         25            4            3  DeckEffect.ScopeCount
+
+String dictionary headroom
+  What the distinct values of a string column cost under each layout. Only
+  `front` is in the format; the rest are measurements, and `deflate` is the
+  floor none of them can pass.
+
+  distinct        plain        front      segment     template        delta      deflate  column
+       351        7,457        5,061        5,584        6,054        6,054        2,498  StringTable.StringId
+       349        3,913        3,336        4,157        4,323        4,323        2,376  StringTable.Ko
+       348        3,521        2,986        3,973        3,970        3,970        2,159  StringTable.En
+       150        1,826        1,693        2,092        2,081        2,081        1,225  Joker.Name
+       150        2,421        1,427        2,198        1,815        1,815          996  Joker.Art
+       150        1,521        1,421        1,891        1,809        1,809          954  Joker.JokerId
+       150        1,521        1,421        1,891        1,809        1,809          954  JokerEffect.Owner
+        20          755          725          671          757          757          411  Achievement.Condition
+        20          470          416          430          457          457          281  SoundCue.Note
+        24          378          377          319          428          428          217  Tag.Name
+        32          361          349          418          414          414          255  Voucher.VoucherId
+        32          361          349          418          414          414          255  VoucherEffect.Owner
+        32          362          330          379          395          395          274  Voucher.Name
+        15          292          254          179          272          272          143  Deck.Unlock
+        10          227          226          266          247          247          210  RngStream.Note
+        28          229          224          288          281          281          216  BossBlind.Name
+        20          218          222          272          263          263          202  Achievement.Name
+        28          293          218          306          275          275          180  BossBlind.BossId
+         5          205          208          204          219          219          157  ShopSlotWeight.Note
+        20          198          202          268          243          243          161  Achievement.AchievementId
+        26          270          200          282          253          253          167  BossEffect.Owner
+        15          196          199          204          230          230          147  Deck.Name
+        24          181          199          251          250          250          158  Tag.TagId
+        24          181          199          251          250          250          158  TagEffect.Owner
+        17          184          197          238          232          232          155  Voucher.UpgradesFrom
+        22          251          196          263          241          241          163  Tarot.TarotId
+        22          251          196          263          241          241          163  TarotEffect.Owner
+        15          182          192          184          223          223          118  Deck.DeckId
+        15          182          192          184          223          223          118  DeckEffect.Owner
+        22          185          184          232          229          229          171  Tarot.Name
+        20          220          171          230          212          212          144  SoundCue.CueId
+        52          161          165          230          242          242          106  BaseDeckCard.CardId
+        18          138          152          196          189          189          128  Spectral.SpectralId
+        18          138          152          196          189          189          128  SpectralEffect.Owner
+        15          220          148          120          179          179          101  BoosterPack.PackId
+        18          142          140          177          177          177          134  Spectral.Name
+        12          105          108          136          133          133           97  Planet.Name
+        12           82           90          118          115          115           82  Planet.PlanetId
+         8           79           85          101          102          102           79  DeckEffect.Operation.RefId
+         8           78           82           99           99           99           69  Stake.Name
+
+  Over all 65 string columns:
+    plain      30,384
+    front      25,179  (82.9 % of plain)
+    segment    30,740  (122.1 % of front)
+    template   31,180  (123.8 % of front)
+    delta      31,180  (123.8 % of front)
+    deflate    17,255  (68.5 % of front)
+
+  Best per column, layout chosen per column: 24,931  (99.0 % of front)
+  Headroom against what is in the format today: 248
+
+  Where each layout wins, and what it saves against front coding
+    layout      columns       saved
+    segment           8         248
+    front            57           0
+

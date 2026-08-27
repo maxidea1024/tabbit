@@ -1,0 +1,16 @@
+:table Planet(key=planet_id)	행성 12종입니다. **증분은 여기 없습니다** — 어느 족보를 올리는지만 있고 값은 `PokerHand` 에 있습니다.
+:field	planet_id	name	hand	sort_order
+:type	string (regex="^[a-z][a-z0-9_]*$")	string (text=Planet)	PokerHandKind	int (min=1, max=12)
+:desc	식별자	표시 이름	올리는 족보	수집 목록에서의 순서
+	pluto	명왕성	HighCard	1
+	mercury	수성	Pair	2
+	uranus	천왕성	TwoPair	3
+	venus	금성	ThreeOfAKind	4
+	saturn	토성	Straight	5
+	jupiter	목성	Flush	6
+	earth	지구	FullHouse	7
+	mars	화성	FourOfAKind	8
+	neptune	해왕성	StraightFlush	9
+	planet_x	플래닛 X	FiveOfAKind	10
+	ceres	세레스	FlushHouse	11
+	eris	에리스	FlushFive	12

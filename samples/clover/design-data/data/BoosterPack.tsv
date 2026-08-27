@@ -1,0 +1,19 @@
+:table BoosterPack(key=pack_id)	팩 15종입니다. 갈래 5종과 크기 3종의 조합입니다.
+:field	pack_id	kind	size	cost	cards	picks
+:type	string (regex="^[a-z_]+$")	PackKind	PackSize	int (min=1)	int (min=1, max=5)	int (min=1, max=2)
+:desc	식별자	갈래	크기	값	들어 있는 장수	고르는 장수
+	arcana_normal	Arcana	Normal	4	3	1
+	arcana_jumbo	Arcana	Jumbo	6	5	1
+	arcana_mega	Arcana	Mega	8	5	2
+	celestial_normal	Celestial	Normal	4	3	1
+	celestial_jumbo	Celestial	Jumbo	6	5	1
+	celestial_mega	Celestial	Mega	8	5	2
+	standard_normal	Standard	Normal	4	3	1
+	standard_jumbo	Standard	Jumbo	6	5	1
+	standard_mega	Standard	Mega	8	5	2
+	buffoon_normal	Buffoon	Normal	4	2	1
+	buffoon_jumbo	Buffoon	Jumbo	6	4	1
+	buffoon_mega	Buffoon	Mega	8	4	2
+	spectral_normal	Spectral	Normal	4	2	1
+	spectral_jumbo	Spectral	Jumbo	6	4	1
+	spectral_mega	Spectral	Mega	8	4	2

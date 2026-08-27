@@ -1,0 +1,128 @@
+<!--
+  Written by Tabbit for an editor, on every run. Nothing builds it and nothing at
+  run time reads it: the validation host compiles the accessor and the rules itself.
+  `Validation.EmitIdeProject: false` in the recipe stops it being written.
+
+  **Commit it, along with lib/.** Everything it names is either in this folder or
+  beside it, so a clone gets completion without running anything first. Do not edit
+  it - the next run overwrites it, and it is rewritten only when its contents change.
+-->
+<Project>
+
+  <!--
+    Where the build puts its scratch. One hidden folder rather than `bin/` and `obj/`
+    beside the rules: this folder is meant to be opened and read, and two build folders
+    at the top of the listing are two thirds of what somebody sees first.
+
+    It has to be set before the SDK is imported, which is why this project imports it by
+    hand rather than with `<Project Sdk="...">`. Set afterwards, the property moves the
+    compiler's output and leaves restore writing `obj/` anyway.
+  -->
+  <PropertyGroup>
+    <BaseIntermediateOutputPath>.build/obj/</BaseIntermediateOutputPath>
+    <BaseOutputPath>.build/bin/</BaseOutputPath>
+  </PropertyGroup>
+
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <!--
+      The same names the host opens for every rule. `Tables` and `Context` are not among
+      them: a rule file names those with ordinary `using` lines, so what an editor sees
+      is what the run compiles and nothing arrives from a file nobody opened.
+    -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>Tabbit.Rules.Data</AssemblyName>
+    <RootNamespace>Tabbit.Rules</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <NoWarn>CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      The accessor as an assembly. It used to be the hundred sources it is compiled
+      from, which an editor read and nobody edited - so a validation folder carried
+      a generated file per table for the sake of completion on one name.
+    -->
+    <Reference Include="Tabbit.Rules.Data">
+      <HintPath>lib/Tabbit.Rules.Data.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+
+    <!--
+      The rules themselves, and the code they share. Listing them here is what makes an
+      editor able to complete `Tables.` and `context.` at all.
+
+      Which is also why a rule file is a class with a `Validate` method rather than a
+      list of statements. Top-level statements are allowed in one compilation unit, so
+      several such files in one project bind none of them - measured: three files each
+      holding an undefined symbol report CS8802 and not one CS0103.
+
+      One glob rather than one per stage: which stage a file belongs to is decided by
+      the folder it sits in, and this project does not need to know.
+    -->
+    <Compile Include="rules/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Where Error, Warn, Info, Option, Files and Db come from - and, beside it, the one
+      package the contract's own surface exposes. `Json` answers with a `JToken`, so a
+      rule calling it needs that assembly named here or the project reports CS0012 on
+      a method the contract advertises.
+    -->
+      <Reference Include="Tabbit.Validation">
+        <HintPath>lib/Tabbit.Validation.dll</HintPath>
+        <Private>false</Private>
+      </Reference>
+      <Reference Include="Newtonsoft.Json">
+        <HintPath>lib/Newtonsoft.Json.dll</HintPath>
+        <Private>false</Private>
+      </Reference>
+  </ItemGroup>
+  <!--
+    Building this project validates. The compiler checks the rules - a column that is
+    not there, an enum label that is not there - and then the tool runs them against
+    the data, so one keystroke in an editor answers both halves.
+
+    An `Exec` rather than an entry point, deliberately: a `Program.cs` in a folder of
+    rules is a file that belongs to neither, and nothing in it would do more than this
+    line. Build the project (Ctrl+Shift+B in most editors) rather than run it.
+
+    `tabbit` is taken from PATH, which is where the install instructions put it. The
+    alternative would be this file naming wherever the tool sat on the machine that
+    wrote it, and that is exactly what stopped this project being committable.
+
+    Set `TabbitValidate=false` to build without running - useful while a rule is
+    half-written and the data would only report the obvious.
+  -->
+  <Target Name="Validate" AfterTargets="Build" Condition="'$(TabbitValidate)' != 'false'">
+    <Exec Command="tabbit --recipe &quot;samples/clover/design-data/recipe.jsonc&quot; --validate-only"
+          WorkingDirectory="../../../.."
+          ContinueOnError="true">
+      <Output TaskParameter="ExitCode" PropertyName="TabbitExitCode" />
+    </Exec>
+
+    <!--
+      A missing tool and a failed validation are different answers and must not look
+      alike. 9009 on Windows and 127 elsewhere are the shell saying it found nothing
+      to run - that is a warning about this machine. Anything else non-zero is the
+      data being wrong, which is what this project is for, so it stops the build.
+    -->
+    <Warning Condition="'$(TabbitExitCode)' == '9009' or '$(TabbitExitCode)' == '127'"
+             Text="The rules compiled, but `tabbit` is not on PATH so they were not run against the data. Add it - see the install instructions - or set TabbitValidate=false to stop asking." />
+
+    <Error Condition="'$(TabbitExitCode)' != '0' and '$(TabbitExitCode)' != '9009' and '$(TabbitExitCode)' != '127'"
+           Text="Validation did not pass. The reports are above, each naming the cell it is about." />
+  </Target>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+
+</Project>

@@ -1,0 +1,12 @@
+:const RunConst	런 하나의 시작값과 상한입니다.
+:field	name	type	value	desc
+	StartingMoney	int	4	런을 시작할 때의 금액
+	HandsPerRound	int	4	라운드마다 낼 수 있는 핸드
+	DiscardsPerRound	int	3	라운드마다 버릴 수 있는 횟수
+	HandSize	int	8	패에 드는 카드
+	JokerSlots	int	5	조커 슬롯
+	ConsumableSlots	int	2	소모품 슬롯
+	MaxPlayedCards	int	5	한 번에 낼 수 있는 카드
+	WinAnte	int	8	이 안테를 넘기면 승리
+	ShowdownEvery	int	8	최종 보스가 나오는 안테의 주기
+	EndlessGrowthBp	int	26000	안테 9 이상의 요구 점수 증가율. 만분율. **원작의 값을 수집하지 못했으므로 우리 값입니다**

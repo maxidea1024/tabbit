@@ -1,0 +1,355 @@
+:table StringTable(key=string_id)	번역 대조본입니다. 시트의 표시 이름이 한국어이고 영어가 여기 있습니다.
+:field	string_id	ko	en
+:type	string	string	string
+:desc	식별자	한국어	영어
+	joker.twig.name	둥근 잔가지	Twig
+	joker.quartz_bloom.name	석영꽃	Quartz Bloom
+	joker.poppy_bloom.name	양귀비꽃	Poppy Bloom
+	joker.nettle_bloom.name	쐐기풀꽃	Nettle Bloom
+	joker.clover_bloom.name	클로버꽃	Clover Bloom
+	joker.warbler.name	휘파람새	Warbler
+	joker.starling.name	찌르레기	Starling
+	joker.magpie.name	까치	Magpie
+	joker.swallow.name	제비	Swallow
+	joker.finch.name	되새	Finch
+	joker.cricket.name	귀뚜라미	Cricket
+	joker.mantis.name	사마귀	Mantis
+	joker.beetle.name	딱정벌레	Beetle
+	joker.centipede.name	그리마	Centipede
+	joker.firefly.name	개똥벌레	Firefly
+	joker.half_pot.name	반쪽 화분	Half Pot
+	joker.ledger_note.name	외상 장부	Ledger Note
+	joker.bunting.name	깃발천	Bunting
+	joker.last_ridge.name	마지막 능선	Last Ridge
+	joker.eight_bell.name	여덟째 종	Eight Bell
+	joker.smudge.name	번짐	Smudge
+	joker.low_branch.name	낮은 가지	Low Branch
+	joker.muddle.name	헝클림	Muddle
+	joker.grim_mask.name	무서운 가면	Grim Mask
+	joker.tangle.name	엉킴	Tangle
+	joker.slow_pot.name	더딘 항아리	Slow Pot
+	joker.windfall_pear.name	바람 맞은 배	Windfall Pear
+	joker.even_ivy.name	짝수 담쟁이	Even Ivy
+	joker.odd_alder.name	홀수 오리나무	Odd Alder
+	joker.almanac.name	낡은 연감	Almanac
+	joker.trade_card.name	거래 명함	Trade Card
+	joker.nova_bud.name	새로 뜬 별	Nova Bud
+	joker.long_path.name	긴 길	Long Path
+	joker.seed_pod.name	씨주머니	Seed Pod
+	joker.creeper.name	덩굴손	Creeper
+	joker.frost_pane.name	서린 유리	Frost Pane
+	joker.downpour.name	소나기	Downpour
+	joker.blue_lantern.name	파란 등	Blue Lantern
+	joker.blank_mask.name	빈 가면	Blank Mask
+	joker.green_shoot.name	초록 싹	Green Shoot
+	joker.twin_state.name	겹친 상태	Twin State
+	joker.chore_list.name	할 일 목록	Chore List
+	joker.orchard_pear.name	과수원 배	Orchard Pear
+	joker.red_ticket.name	붉은 표	Red Ticket
+	joker.square_trellis.name	네모 격자	Square Trellis
+	joker.rabble.name	잡것들	Rabble
+	joker.tintype.name	은판 사진	Tintype
+	joker.garden_bench.name	정원 벤치	Garden Bench
+	joker.rebate_slip.name	환급 전표	Rebate Slip
+	joker.daydream.name	백일몽	Daydream
+	joker.palm_reader.name	손금 읽는 이	Palm Reader
+	joker.spinner.name	던지는 이	Spinner
+	joker.tippler.name	한잔하는 이	Tippler
+	joker.gilt_coin.name	금박 동전	Gilt Coin
+	joker.puffball.name	먼지버섯	Puffball
+	joker.tin_horn.name	양철 나팔	Tin Horn
+	joker.glad_mask.name	웃는 가면	Glad Mask
+	joker.gilt_stub.name	금박 표	Gilt Stub
+	joker.bramble_blade.name	가시 칼	Bramble Blade
+	joker.moonshot.name	달 겨눔	Moonshot
+	joker.torn_tab.name	찢긴 쪽지	Torn Tab
+	joker.empty_frame.name	빈 액자	Empty Frame
+	joker.four_knuckles.name	네 마디	Four Knuckles
+	joker.mummer.name	무언극배우	Mummer
+	joker.pruning_shears.name	전정 가위	Pruning Shears
+	joker.pebble_jar.name	자갈 항아리	Pebble Jar
+	joker.punch_card.name	도장 카드	Punch Card
+	joker.twilight.name	해거름	Twilight
+	joker.spiral_shell.name	나선 껍질	Spiral Shell
+	joker.steel_trellis.name	강철 격자	Steel Trellis
+	joker.notch.name	눈금	Notch
+	joker.face_pattern.name	얼굴 무늬	Face Pattern
+	joker.comet_tail.name	혜성 꼬리	Comet Tail
+	joker.night_thief.name	밤손님	Night Thief
+	joker.slate_board.name	점판암 판	Slate Board
+	joker.hunch.name	예감	Hunch
+	joker.star_chart.name	별자리표	Star Chart
+	joker.wanderer.name	나그네	Wanderer
+	joker.sharper.name	타짜	Sharper
+	joker.fever.name	열병	Fever
+	joker.vigil.name	밤샘	Vigil
+	joker.leech_vine.name	거머리 덩굴	Leech Vine
+	joker.stepping_stone.name	디딤돌	Stepping Stone
+	joker.glass_ghost.name	유리 그림자	Glass Ghost
+	joker.ninth_cloud.name	아홉째 구름	Ninth Cloud
+	joker.sky_rocket.name	불화살	Sky Rocket
+	joker.gilt_mask.name	금박 가면	Gilt Mask
+	joker.ring_fighter.name	링의 투사	Ring Fighter
+	joker.gift_tag.name	선물 꼬리표	Gift Tag
+	joker.broad_bean.name	넓은 콩	Broad Bean
+	joker.washout.name	씻김	Washout
+	joker.moon_ladder.name	달 사다리	Moon Ladder
+	joker.cairn.name	돌무지	Cairn
+	joker.lucky_toad.name	복 두꺼비	Lucky Toad
+	joker.soda_cap.name	음료 뚜껑	Soda Cap
+	joker.swap_note.name	교환 쪽지	Swap Note
+	joker.flash_note.name	섬광 쪽지	Flash Note
+	joker.spare_gloves.name	여벌 장갑	Spare Gloves
+	joker.noodle_pot.name	국수 냄비	Noodle Pot
+	joker.fizz_bottle.name	탄산병	Fizz Bottle
+	joker.stone_keep.name	돌 성채	Stone Keep
+	joker.tumbler.name	곡예사	Tumbler
+	joker.two_masks.name	두 가면	Two Masks
+	joker.fiddler.name	악사	Fiddler
+	joker.deed_stamp.name	증서 도장	Deed Stamp
+	joker.smudged_pane.name	번진 유리	Smudged Pane
+	joker.old_route.name	옛 길	Old Route
+	joker.raw_gem.name	원석	Raw Gem
+	joker.heartstone.name	피돌	Heartstone
+	joker.arrow_flint.name	화살 부싯돌	Arrow Flint
+	joker.onyx_leaf.name	검은 잎	Onyx Leaf
+	joker.shard_jar.name	파편 항아리	Shard Jar
+	joker.barker.name	호객꾼	Barker
+	joker.four_beds.name	네 화단	Four Beds
+	joker.glad_fool.name	즐거운 광대	Glad Fool
+	joker.loaded_dice.name	납 주사위	Loaded Dice
+	joker.the_effigy.name	목각 인형	The Effigy
+	joker.double_sight.name	겹보임	Double Sight
+	joker.bullfighter.name	투우사	Bullfighter
+	joker.orbit_dish.name	접시 안테나	Orbit Dish
+	joker.card_reader.name	카드 읽는 이	Card Reader
+	joker.stargazer.name	별 보는 이	Stargazer
+	joker.bootlace.name	구두끈	Bootlace
+	joker.ox_yoke.name	황소 멍에	Ox Yoke
+	joker.old_bones.name	낡은 뼈	Old Bones
+	joker.graft.name	접붙임	Graft
+	joker.drifter.name	떠돌이	Drifter
+	joker.steward.name	집사	Steward
+	joker.standing_stone.name	선돌	Standing Stone
+	joker.rookie_card.name	신인 카드	Rookie Card
+	joker.old_sigil.name	옛 인장	Old Sigil
+	joker.bonfire.name	모닥불	Bonfire
+	joker.tracing.name	덧그림	Tracing
+	joker.tiny_tot.name	꼬맹이	Tiny Tot
+	joker.open_road.name	열린 길	Open Road
+	joker.the_bond.name	맺음	The Bond
+	joker.the_braid.name	세 갈래	The Braid
+	joker.the_brood.name	한 배	The Brood
+	joker.the_march.name	행렬	The March
+	joker.the_flock.name	무리	The Flock
+	joker.deadweight.name	짐덩이	Deadweight
+	joker.faint_outline.name	희미한 윤곽	Faint Outline
+	joker.mirror_note.name	거울 쪽지	Mirror Note
+	joker.road_permit.name	통행 허가	Road Permit
+	joker.scorch_mark.name	그을음	Scorch Mark
+	joker.verdigris.name	녹빛	Verdigris
+	joker.coronet.name	작은 관	Coronet
+	joker.gravebloom.name	무덤꽃	Gravebloom
+	joker.hushbell.name	잠잠종	Hushbell
+	joker.echoseed.name	메아리씨	Echoseed
+	tarot.the_fool.name	바보	The Fool
+	tarot.the_magician.name	마법사	The Magician
+	tarot.the_high_priestess.name	고위 여사제	The High Priestess
+	tarot.the_empress.name	여제	The Empress
+	tarot.the_emperor.name	황제	The Emperor
+	tarot.the_hierophant.name	교황	The Hierophant
+	tarot.the_lovers.name	연인	The Lovers
+	tarot.the_chariot.name	전차	The Chariot
+	tarot.justice.name	정의	Justice
+	tarot.the_hermit.name	은둔자	The Hermit
+	tarot.the_wheel_of_fortune.name	운명의 수레바퀴	The Wheel of Fortune
+	tarot.strength.name	힘	Strength
+	tarot.the_hanged_man.name	매달린 사람	The Hanged Man
+	tarot.death.name	죽음	Death
+	tarot.temperance.name	절제	Temperance
+	tarot.the_devil.name	악마	The Devil
+	tarot.the_tower.name	탑	The Tower
+	tarot.the_star.name	별	The Star
+	tarot.the_moon.name	달	The Moon
+	tarot.the_sun.name	태양	The Sun
+	tarot.judgement.name	심판	Judgement
+	tarot.the_world.name	세계	The World
+	planet.pluto.name	명왕성	Pluto
+	planet.mercury.name	수성	Mercury
+	planet.uranus.name	천왕성	Uranus
+	planet.venus.name	금성	Venus
+	planet.saturn.name	토성	Saturn
+	planet.jupiter.name	목성	Jupiter
+	planet.earth.name	지구	Earth
+	planet.mars.name	화성	Mars
+	planet.neptune.name	해왕성	Neptune
+	planet.planet_x.name	플래닛 X	Planet X
+	planet.ceres.name	세레스	Ceres
+	planet.eris.name	에리스	Eris
+	spectral.familiar.name	사역마	Familiar
+	spectral.grim.name	암울	Grim
+	spectral.incantation.name	주문	Incantation
+	spectral.talisman.name	부적	Talisman
+	spectral.aura.name	아우라	Aura
+	spectral.wraith.name	망령	Wraith
+	spectral.sigil.name	상징	Sigil
+	spectral.ouija.name	점판	Ouija
+	spectral.ectoplasm.name	심령체	Ectoplasm
+	spectral.immolate.name	화형	Immolate
+	spectral.ankh.name	앙크	Ankh
+	spectral.deja_vu.name	데자뷰	Deja Vu
+	spectral.hex.name	주술	Hex
+	spectral.trance.name	최면	Trance
+	spectral.medium.name	영매	Medium
+	spectral.cryptid.name	괴물	Cryptid
+	spectral.the_soul.name	영혼	The Soul
+	spectral.black_hole.name	블랙홀	Black Hole
+	voucher.overstock.name	재고 과잉	Overstock
+	voucher.overstock_plus.name	재고 과잉 플러스	Overstock Plus
+	voucher.clearance_sale.name	떨이	Clearance Sale
+	voucher.liquidation.name	창고 정리	Liquidation
+	voucher.hone.name	갈기	Hone
+	voucher.glow_up.name	광내기	Glow Up
+	voucher.reroll_surplus.name	리롤 여유	Reroll Surplus
+	voucher.reroll_glut.name	리롤 과잉	Reroll Glut
+	voucher.crystal_ball.name	수정 구슬	Crystal Ball
+	voucher.omen_globe.name	조짐 구슬	Omen Globe
+	voucher.telescope.name	망원경	Telescope
+	voucher.observatory.name	천문대	Observatory
+	voucher.grabber.name	집게	Grabber
+	voucher.nacho_tong.name	나초 집게	Nacho Tong
+	voucher.wasteful.name	낭비	Wasteful
+	voucher.recyclomancy.name	재활용술	Recyclomancy
+	voucher.tarot_merchant.name	타로 상인	Tarot Merchant
+	voucher.tarot_tycoon.name	타로 거상	Tarot Tycoon
+	voucher.planet_merchant.name	행성 상인	Planet Merchant
+	voucher.planet_tycoon.name	행성 거상	Planet Tycoon
+	voucher.seed_money.name	종잣돈	Seed Money
+	voucher.money_tree.name	돈나무	Money Tree
+	voucher.blank.name	백지	Blank
+	voucher.antimatter.name	반물질	Antimatter
+	voucher.magic_trick.name	요술	Magic Trick
+	voucher.illusion.name	착시	Illusion
+	voucher.hieroglyph.name	상형문자	Hieroglyph
+	voucher.petroglyph.name	암각화	Petroglyph
+	voucher.directors_cut.name	감독판	Director's Cut
+	voucher.retcon.name	설정 변경	Retcon
+	voucher.paint_brush.name	붓	Paint Brush
+	voucher.palette.name	팔레트	Palette
+	tag.uncommon.name	언커먼 태그	Uncommon Tag
+	tag.rare.name	레어 태그	Rare Tag
+	tag.negative.name	네거티브 태그	Negative Tag
+	tag.foil.name	포일 태그	Foil Tag
+	tag.holographic.name	홀로그래픽 태그	Holographic Tag
+	tag.polychrome.name	폴리크롬 태그	Polychrome Tag
+	tag.investment.name	투자 태그	Investment Tag
+	tag.voucher.name	바우처 태그	Voucher Tag
+	tag.boss.name	보스 태그	Boss Tag
+	tag.standard.name	스탠다드 태그	Standard Tag
+	tag.charm.name	부적 태그	Charm Tag
+	tag.meteor.name	유성 태그	Meteor Tag
+	tag.buffoon.name	어릿광대 태그	Buffoon Tag
+	tag.ethereal.name	무형 태그	Ethereal Tag
+	tag.handy.name	손재주 태그	Handy Tag
+	tag.garbage.name	쓰레기 태그	Garbage Tag
+	tag.coupon.name	쿠폰 태그	Coupon Tag
+	tag.d6.name	D6 태그	D6 Tag
+	tag.double.name	더블 태그	Double Tag
+	tag.juggle.name	저글 태그	Juggle Tag
+	tag.economy.name	경제 태그	Economy Tag
+	tag.speed.name	속도 태그	Speed Tag
+	tag.orbital.name	궤도 태그	Orbital Tag
+	tag.topup.name	보충 태그	Top-up Tag
+	deck.red_deck.name	붉은 덱	Red Deck
+	deck.blue_deck.name	파란 덱	Blue Deck
+	deck.yellow_deck.name	노란 덱	Yellow Deck
+	deck.green_deck.name	초록 덱	Green Deck
+	deck.black_deck.name	검은 덱	Black Deck
+	deck.magic_deck.name	마법 덱	Magic Deck
+	deck.nebula_deck.name	성운 덱	Nebula Deck
+	deck.ghost_deck.name	유령 덱	Ghost Deck
+	deck.abandoned_deck.name	버려진 덱	Abandoned Deck
+	deck.checkered_deck.name	체크무늬 덱	Checkered Deck
+	deck.zodiac_deck.name	황도대 덱	Zodiac Deck
+	deck.painted_deck.name	물감 덱	Painted Deck
+	deck.anaglyph_deck.name	입체사진 덱	Anaglyph Deck
+	deck.plasma_deck.name	플라스마 덱	Plasma Deck
+	deck.erratic_deck.name	불규칙한 덱	Erratic Deck
+	boss.the_hook.name	갈고리	The Hook
+	boss.the_club.name	클럽	The Club
+	boss.the_psychic.name	심령술사	The Psychic
+	boss.the_goad.name	자극	The Goad
+	boss.the_window.name	창문	The Window
+	boss.the_manacle.name	수갑	The Manacle
+	boss.the_pillar.name	기둥	The Pillar
+	boss.the_head.name	머리	The Head
+	boss.the_house.name	집	The House
+	boss.the_wall.name	벽	The Wall
+	boss.the_wheel.name	바퀴	The Wheel
+	boss.the_arm.name	팔	The Arm
+	boss.the_fish.name	물고기	The Fish
+	boss.the_water.name	물	The Water
+	boss.the_mouth.name	입	The Mouth
+	boss.the_needle.name	바늘	The Needle
+	boss.the_flint.name	부싯돌	The Flint
+	boss.the_mark.name	표적	The Mark
+	boss.the_eye.name	눈	The Eye
+	boss.the_tooth.name	이빨	The Tooth
+	boss.the_plant.name	초목	The Plant
+	boss.the_serpent.name	뱀	The Serpent
+	boss.the_ox.name	황소	The Ox
+	boss.amber_acorn.name	호박 도토리	Amber Acorn
+	boss.verdant_leaf.name	푸른 잎	Verdant Leaf
+	boss.violet_vessel.name	자주색 그릇	Violet Vessel
+	boss.crimson_heart.name	진홍 심장	Crimson Heart
+	boss.cerulean_bell.name	하늘빛 종	Cerulean Bell
+	blind.small.name	스몰 블라인드	Small Blind
+	blind.big.name	빅 블라인드	Big Blind
+	blind.boss.name	보스 블라인드	Boss Blind
+	stake.white.name	흰색	White Stake
+	stake.red.name	붉은색	Red Stake
+	stake.green.name	초록색	Green Stake
+	stake.black.name	검은색	Black Stake
+	stake.blue.name	파란색	Blue Stake
+	stake.purple.name	보라색	Purple Stake
+	stake.orange.name	주황색	Orange Stake
+	stake.gold.name	황금색	Gold Stake
+	enhancement.none.name	없음	None
+	enhancement.bonus.name	보너스	Bonus
+	enhancement.mult.name	배수	Mult
+	enhancement.wild.name	와일드	Wild
+	enhancement.glass.name	유리	Glass
+	enhancement.steel.name	강철	Steel
+	enhancement.stone.name	석재	Stone
+	enhancement.gold.name	황금	Gold
+	enhancement.lucky.name	행운	Lucky
+	seal.none.name	없음	None
+	seal.red.name	붉은	Red
+	seal.blue.name	파란	Blue
+	seal.gold.name	금색	Gold
+	seal.purple.name	보라	Purple
+	edition.base.name	기본	Base
+	edition.foil.name	포일	Foil
+	edition.holographic.name	홀로그래픽	Holographic
+	edition.polychrome.name	폴리크롬	Polychrome
+	edition.negative.name	네거티브	Negative
+	achievement.first_blood.name	첫 관문	First Blood
+	achievement.ante_four.name	중반	Ante Four
+	achievement.ante_eight.name	완주	Ante Eight
+	achievement.endless.name	그 너머	Endless
+	achievement.ten_thousand.name	만 점	Ten Thousand
+	achievement.million.name	백만 점	Million
+	achievement.royal.name	로열	Royal
+	achievement.five_of_a_kind.name	다섯 장	Five Of A Kind
+	achievement.flush_five.name	한 장으로 다섯	Flush Five
+	achievement.full_tray.name	가득 찬 줄	Full Tray
+	achievement.legendary.name	전설	Legendary
+	achievement.all_tarot.name	대아르카나	All Tarot
+	achievement.all_planet.name	태양계	All Planet
+	achievement.no_discard.name	군더더기 없이	No Discard
+	achievement.broke.name	빈손	Broke
+	achievement.rich.name	부자	Rich
+	achievement.skipper.name	건너뛰기	Skipper
+	achievement.every_deck.name	모든 덱	Every Deck
+	achievement.gold_stake.name	황금	Gold Stake
+	achievement.collector.name	수집가	Collector

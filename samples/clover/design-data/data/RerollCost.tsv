@@ -1,0 +1,14 @@
+:table RerollCost(key=times)	상점 하나 안에서 리롤한 횟수마다의 값입니다. 상점을 나가면 처음으로 돌아갑니다.
+:field	times	cost
+:type	int (min=0, max=9)	int (min=0)
+:desc	이 상점에서 이미 리롤한 횟수	다음 리롤의 값
+	0	5
+	1	6
+	2	7
+	3	8
+	4	9
+	5	10
+	6	11
+	7	12
+	8	13
+	9	14

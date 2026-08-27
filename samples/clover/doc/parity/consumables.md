@@ -107,9 +107,9 @@
 |무엇|테이블|
 |--|--|
 |타로 22종|`Tarot`|
-|행성 12종|`Planet` — `PokerHand` 을 `foreign` 으로 가리킵니다|
+|행성 12종|`Planet` — 족보를 `PokerHandKind` 로 들고 있습니다|
 |유령 18종|`Spectral`|
-|셋의 효과|`ConsumableEffect` — 멀티 로우. 조커와 같은 계열|
+|타로와 유령의 효과|`TarotEffect` · `SpectralEffect` — 조커와 같은 계열|
 
 ---
 

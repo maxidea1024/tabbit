@@ -1,0 +1,12 @@
+:table Stake(key=stake)	난이도입니다. **누적이므로 뒤의 것은 앞의 것을 전부 포함합니다** — 이 표의 값은 그 스테이크에서의 최종값입니다.
+:field	stake	name	ante_column	small_blind_reward	discards_delta	sticker	sticker_percent
+:type	StakeKind	string (text=Stake)	int (min=1, max=3)	int (min=0)	int	StickerKind	int (min=0, max=100)
+:desc	스테이크	표시 이름	`Ante` 의 어느 열을 읽는가	스몰 블라인드 격파 보상	버리기 증감	조커에 붙는 스티커	스티커가 붙을 확률
+	White	흰색	1	3	0	None	0
+	Red	붉은색	1	0	0	None	0
+	Green	초록색	2	0	0	None	0
+	Black	검은색	2	0	0	Eternal	30
+	Blue	파란색	2	0	-1	Eternal	30
+	Purple	보라색	3	0	-1	Eternal	30
+	Orange	주황색	3	0	-1	Perishable	30
+	Gold	황금색	3	0	-1	Rental	30

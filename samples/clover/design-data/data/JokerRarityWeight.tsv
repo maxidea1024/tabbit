@@ -1,0 +1,8 @@
+:table JokerRarityWeight(key=rarity)	상점에 조커가 왔을 때 희귀도를 정하는 추첨입니다. 전설은 상점에 나오지 않습니다.
+:field	rarity	weight	count
+:type	Rarity	int (min=0, max=100)	int (min=1)
+:desc	희귀도	백분율 가중치	이 희귀도의 종수
+	Common	70	61
+	Uncommon	25	64
+	Rare	5	20
+	Legendary	0	5

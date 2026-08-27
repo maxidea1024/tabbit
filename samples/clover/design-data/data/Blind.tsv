@@ -1,0 +1,7 @@
+:table Blind(key=blind)	안테 하나의 세 라운드입니다. 보스는 배율을 `BossBlind` 가 덮어씁니다.
+:field	blind	name	score_mul	reward	skippable
+:type	BlindKind	string (text=Blind)	int (min=1)	int (min=0)	bool
+:desc	블라인드	표시 이름	기준 점수의 배율. 만분율	격파 보상	스킵할 수 있는가
+	Small	스몰 블라인드	10000	3	true
+	Big	빅 블라인드	15000	4	true
+	Boss	보스 블라인드	20000	5	false

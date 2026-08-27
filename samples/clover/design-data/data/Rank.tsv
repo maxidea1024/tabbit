@@ -1,0 +1,17 @@
+:table Rank(key=rank)	랭크 하나의 값입니다. 크기 순서는 enum 이 정하고 칩값이 여기 있습니다.
+:field	rank	chips	is_face	display
+:type	RankKind	int (min=2, max=11)	bool	string
+:desc	랭크	득점할 때의 칩값	그림 카드인가	카드에 적히는 글자
+	Two	2	false	2
+	Three	3	false	3
+	Four	4	false	4
+	Five	5	false	5
+	Six	6	false	6
+	Seven	7	false	7
+	Eight	8	false	8
+	Nine	9	false	9
+	Ten	10	false	10
+	Jack	10	true	J
+	Queen	10	true	Q
+	King	10	true	K
+	Ace	11	false	A

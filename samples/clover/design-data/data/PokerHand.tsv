@@ -1,0 +1,16 @@
+:table PokerHand(key=hand)	족보 하나의 값 넷입니다. 레벨 N 의 값은 기본값에 증분을 N-1 번 더한 것입니다.
+:field	hand	base_chips	base_mult	chips_per_level	mult_per_level	visible_from_start	sort_order
+:type	PokerHandKind	int (min=1)	int (min=1)	int (min=1)	int (min=1)	bool	int (min=1, max=12)
+:desc	족보	레벨 1의 칩	레벨 1의 배수	레벨당 칩 증분	레벨당 배수 증분	처음부터 목록에 보이는가	표시 순서
+	HighCard	5	1	10	1	true	1
+	Pair	10	2	15	1	true	2
+	TwoPair	20	2	20	1	true	3
+	ThreeOfAKind	30	3	20	2	true	4
+	Straight	30	4	30	3	true	5
+	Flush	35	4	15	2	true	6
+	FullHouse	40	4	25	2	true	7
+	FourOfAKind	60	7	30	3	true	8
+	StraightFlush	100	8	40	4	true	9
+	FiveOfAKind	120	12	35	3	false	10
+	FlushHouse	140	14	40	4	false	11
+	FlushFive	160	16	50	3	false	12

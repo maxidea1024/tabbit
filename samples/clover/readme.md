@@ -17,7 +17,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/clover/design-data/re
 
 |무엇|어디|
 |--|--|
-|기획 데이터 전부|`design-data/` — 워크북 9개 · 테이블 38개 · `.tbs` 4개 · 검증 규칙 8개 · recipe|
+|기획 데이터 전부|`design-data/` — 워크북 9개 · 테이블 40개 · `.tbs` 3개 · 검증 규칙 3개 · recipe|
 |웹 게임|`web/` — PixiJS v8 · Vite · TypeScript|
 |유니티 게임|`unity/` — URP 2D|
 |문서|[doc/](doc/readme.md)|
@@ -64,7 +64,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/clover/design-data/re
 |--|--|
 |P0 규격 — 원작 수치와 대조표|**끝**|
 |P1 데이터 설계 — VM 규격과 테이블 배치|**끝**|
-|P2 데이터 저작|대기|
+|P2 데이터 저작|**끝**|
 |P3 코어 (TypeScript)|대기|
 |P4 웹 게임|대기|
 |P5 유니티|대기|

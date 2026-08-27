@@ -1,0 +1,9 @@
+:table ShopSlotWeight(key=item)	카드 칸 하나에 무엇이 오는가의 추첨입니다. 가중치의 합으로 나눈 것이 확률입니다.
+:field	item	weight	note
+:type	ShopItemKind	int (min=0)	string
+:desc	무엇이	가중치	언제 바뀌는가
+	Joker	20	희귀도는 `JokerRarityWeight` 가 다시 뽑습니다
+	Tarot	4	`Tarot Merchant` 계열이 배로 늘립니다
+	Planet	4	`Planet Merchant` 계열이 배로 늘립니다
+	PlayingCard	0	`Magic Trick` 이 켭니다
+	Spectral	0	유령 덱이 켭니다

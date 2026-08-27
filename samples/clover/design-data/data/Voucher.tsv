@@ -1,0 +1,36 @@
+:table Voucher(key=voucher_id)	바우처 32종입니다. 16쌍이고, 상위는 자기 하위를 산 뒤에만 상점에 나옵니다.
+:field	voucher_id	name	cost	upgrades_from	sort_order
+:type	string (regex="^[a-z][a-z0-9_]*$")	string (text=Voucher)	int (min=1)	foreign Voucher?	int (min=1, max=32)
+:desc	식별자	표시 이름	값	이것이 잇는 하위 바우처	수집 목록에서의 순서
+	overstock	재고 과잉	10	-	1
+	overstock_plus	재고 과잉 플러스	10	overstock	2
+	clearance_sale	떨이	10	-	3
+	liquidation	창고 정리	10	clearance_sale	4
+	hone	갈기	10	-	5
+	glow_up	광내기	10	hone	6
+	reroll_surplus	리롤 여유	10	-	7
+	reroll_glut	리롤 과잉	10	reroll_surplus	8
+	crystal_ball	수정 구슬	10	-	9
+	omen_globe	조짐 구슬	10	crystal_ball	10
+	telescope	망원경	10	-	11
+	observatory	천문대	10	telescope	12
+	grabber	집게	10	-	13
+	nacho_tong	나초 집게	10	grabber	14
+	wasteful	낭비	10	-	15
+	recyclomancy	재활용술	10	wasteful	16
+	tarot_merchant	타로 상인	10	-	17
+	tarot_tycoon	타로 거상	10	tarot_merchant	18
+	planet_merchant	행성 상인	10	-	19
+	planet_tycoon	행성 거상	10	planet_merchant	20
+	seed_money	종잣돈	10	-	21
+	money_tree	돈나무	10	seed_money	22
+	blank	백지	10	-	23
+	antimatter	반물질	10	blank	24
+	magic_trick	요술	10	-	25
+	illusion	착시	10	magic_trick	26
+	hieroglyph	상형문자	10	-	27
+	petroglyph	암각화	10	hieroglyph	28
+	directors_cut	감독판	10	-	29
+	retcon	설정 변경	10	directors_cut	30
+	paint_brush	붓	10	-	31
+	palette	팔레트	10	paint_brush	32

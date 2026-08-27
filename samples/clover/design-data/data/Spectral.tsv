@@ -1,0 +1,22 @@
+:table Spectral(key=spectral_id)	유령 18종입니다. 상점에는 기본적으로 나오지 않습니다.
+:field	spectral_id	name	sort_order
+:type	string (regex="^[a-z][a-z0-9_]*$")	string (text=Spectral)	int (min=1, max=18)
+:desc	식별자	표시 이름	수집 목록에서의 순서
+	familiar	사역마	1
+	grim	암울	2
+	incantation	주문	3
+	talisman	부적	4
+	aura	아우라	5
+	wraith	망령	6
+	sigil	상징	7
+	ouija	점판	8
+	ectoplasm	심령체	9
+	immolate	화형	10
+	ankh	앙크	11
+	deja_vu	데자뷰	12
+	hex	주술	13
+	trance	최면	14
+	medium	영매	15
+	cryptid	괴물	16
+	the_soul	영혼	17
+	black_hole	블랙홀	18
