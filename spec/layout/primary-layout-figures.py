@@ -315,7 +315,7 @@ build("primary-layout-multiref", [
     ["", "2", "9001", "2"],
 ], notes={
     3: "1001은 Item에 있습니다",
-    4: "9001은 CEquip에 — 둘 중 어디에도 없으면 그 셀을 가리켜 보고합니다",
+    4: "9001은 CharGear에 — 둘 중 어디에도 없으면 그 셀을 가리켜 보고합니다",
 }, title="여러 테이블 중 하나여도 되는 값")
 
 build("primary-layout-pairing", [
