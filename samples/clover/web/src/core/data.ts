@@ -116,6 +116,9 @@ export interface EconomyConstants {
   spectralCost: number
   playingCardCost: number
   voucherCost: number
+  packEnhanceChanceBp: number
+  packSealChanceBp: number
+  packEditionChanceBp: number
   shopCardSlots: number
   shopPackSlots: number
   soulChanceNum: number

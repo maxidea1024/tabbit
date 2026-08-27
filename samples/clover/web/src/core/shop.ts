@@ -5,6 +5,9 @@
 // 여기 있는 것은 그 표들을 읽는 순서뿐입니다.
 
 import { EditionKind } from '../generated/enums/edition-kind'
+import { EnhancementKind } from '../generated/enums/enhancement-kind'
+import { PackKind } from '../generated/enums/pack-kind'
+import { SealKind } from '../generated/enums/seal-kind'
 import { ShopItemKind } from '../generated/enums/shop-item-kind'
 import { Rarity } from '../generated/enums/rarity'
 import type { Data } from './data'
@@ -17,6 +20,25 @@ export interface ShopItem {
   id: string
   cost: number
   edition: EditionKind
+  /** 플레잉 카드에만 붙습니다. 표준 팩에서 나온 카드가 강화와 인장을 달고 옵니다. */
+  enhancement?: EnhancementKind
+  seal?: SealKind
+}
+
+/**
+ * 뜯은 팩.
+ *
+ * **산 순간 물건이 손에 들어오지 않습니다** — 몇 장 중에서 고르는 것이 팩이고, 그 고르는
+ * 동안의 상태가 이것입니다. 고를 것을 다 골랐거나 건너뛰면 사라집니다.
+ */
+export interface PackOpen {
+  packId: string
+  kind: PackKind
+  /** 앞으로 몇 장 더 고를 수 있는가. */
+  picksLeft: number
+  options: ShopItem[]
+  /** 이미 가져간 자리. 화면이 이것을 보고 비워 그립니다. */
+  taken: boolean[]
 }
 
 export interface ShopState {
@@ -26,6 +48,90 @@ export interface ShopState {
   rerollsUsed: number
   /** 이 안테에서 바우처를 이미 샀는가. 바우처 칸은 안테마다 한 번입니다. */
   voucherBought: boolean
+}
+
+/**
+ * 팩 하나를 뜯습니다.
+ *
+ * **갈래가 무엇이 들어 있는지를 정합니다** — 표는 장수와 고르는 수만 정하고, 어느 표에서
+ * 뽑을지는 갈래가 정합니다. 확률은 `Const_Economy` 이므로 여기 숫자가 없습니다.
+ */
+export function openPack(vm: Vm, packId: string): PackOpen | undefined {
+  const data = vm.data
+  const row = data.tables.boosterPack.findByPackId(packId)
+  if (!row) return undefined
+
+  const options: ShopItem[] = []
+  for (let i = 0; i < row.cards; i++) {
+    const item = rollPackCard(vm, row.kind)
+    if (item) options.push(item)
+  }
+  if (options.length === 0) return undefined
+
+  return {
+    packId,
+    kind: row.kind,
+    picksLeft: Math.min(row.picks, options.length),
+    options,
+    taken: options.map(() => false),
+  }
+}
+
+/** 팩 한 장. 값은 0입니다 — 팩을 살 때 이미 냈습니다. */
+function rollPackCard(vm: Vm, kind: PackKind): ShopItem | undefined {
+  const data = vm.data
+  const rng = vm.state.rng.Pack
+
+  switch (kind) {
+    case PackKind.Arcana: {
+      const pool = data.tables.tarot.records
+      return { kind: ShopItemKind.Tarot, id: pool[rng.below(pool.length)].tarotId, cost: 0, edition: EditionKind.Base }
+    }
+
+    case PackKind.Celestial: {
+      const pool = data.tables.planet.records
+      return { kind: ShopItemKind.Planet, id: pool[rng.below(pool.length)].planetId, cost: 0, edition: EditionKind.Base }
+    }
+
+    case PackKind.Spectral: {
+      const pool = data.tables.spectral.records
+      return { kind: ShopItemKind.Spectral, id: pool[rng.below(pool.length)].spectralId, cost: 0, edition: EditionKind.Base }
+    }
+
+    case PackKind.Buffoon: {
+      const rarity = rng.pickWeighted(
+        data.tables.jokerRarityWeight.records, row => row.weight)?.rarity ?? Rarity.Common
+      const pool = data.tables.joker.records.filter(row => row.rarity === rarity)
+      if (pool.length === 0) return undefined
+      return { kind: ShopItemKind.Joker, id: pool[rng.below(pool.length)].jokerId, cost: 0, edition: rollEdition(vm) }
+    }
+
+    case PackKind.Standard: {
+      const pool = data.tables.baseDeckCard.records
+      const base = pool[rng.below(pool.length)]
+      const economy = data.economy
+
+      const enhancements = data.tables.enhancement.records
+        .filter(row => row.enhancement !== EnhancementKind.None)
+      const seals = data.tables.seal.records.filter(row => row.seal !== SealKind.None)
+
+      return {
+        kind: ShopItemKind.PlayingCard,
+        id: base.cardId,
+        cost: 0,
+        edition: rng.below(10_000) < economy.packEditionChanceBp ? rollEdition(vm) : EditionKind.Base,
+        enhancement: rng.below(10_000) < economy.packEnhanceChanceBp
+          ? enhancements[rng.below(enhancements.length)].enhancement
+          : EnhancementKind.None,
+        seal: rng.below(10_000) < economy.packSealChanceBp
+          ? seals[rng.below(seals.length)].seal
+          : SealKind.None,
+      }
+    }
+
+    default:
+      return undefined
+  }
 }
 
 export function emptyShop(): ShopState {

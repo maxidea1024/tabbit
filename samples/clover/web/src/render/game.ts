@@ -10,6 +10,8 @@ import { Container, Graphics, Sprite, Text, Texture, type Application } from 'pi
 
 import { BlindKind } from '../generated/enums/blind-kind'
 import { EditionKind } from '../generated/enums/edition-kind'
+import { PackKind } from '../generated/enums/pack-kind'
+import { PackSize } from '../generated/enums/pack-size'
 import { PokerHandKind } from '../generated/enums/poker-hand-kind'
 import { ShopItemKind } from '../generated/enums/shop-item-kind'
 import type { Data } from '../core/data'
@@ -50,6 +52,11 @@ const PREVIEW_Y = 500
 const HAND_Y = 646
 /** 버튼 줄. **패 아래입니다** — 패와 겹치면 카드를 고를 수가 없습니다. */
 const BUTTON_Y = 742
+/** 상점의 줄들. **팩 줄이 카드 줄과 바우처 사이에 들어갑니다.** */
+const SHOP_CARD_Y = 276
+const SHOP_PACK_Y = 452
+const SHOP_VOUCHER_Y = 544
+
 const DECK_X = SIZE.width - 76
 const DECK_Y = 646
 
@@ -122,6 +129,8 @@ export class Game {
     },
   })
   private readonly shopLayer = new Container()
+  /** 뜯어 놓은 팩. 상점 위를 덮습니다. */
+  private readonly packLayer = new Container()
   private readonly consumableLayer = new Container()
   /** 고른 카드가 무슨 족보인지. **이것이 없으면 감으로 내야 합니다.** */
   private readonly preview = new Container()
@@ -145,6 +154,8 @@ export class Game {
   private liveMult = 10_000
   private clock = 0
   private pointerAt = { x: 0, y: 0 }
+  /** 지금 설명이 떠 있는 조커. 바뀔 때만 다시 그립니다. */
+  private hoveredJoker?: JokerView
 
   constructor(private readonly app: Application, private readonly data: Data, seed: string) {
     this.feel = readFeel(data.feel)
@@ -177,7 +188,7 @@ export class Game {
     this.guideButton = new Button('게임 방법', 118, 34, 0x2a3550, () => this.guide.open())
 
     this.overlay.addChild(this.playButton, this.discardButton, this.primaryButton,
-      this.skipButton, this.rerollButton, this.shopLayer,
+      this.skipButton, this.rerollButton, this.shopLayer, this.packLayer,
       this.sortRankButton, this.sortSuitButton, this.infoButton, this.guideButton,
       this.preview, this.handList, this.gameOver, this.guide)
 
@@ -189,7 +200,7 @@ export class Game {
     this.discardButton.position.set(BOARD_X + 24, BUTTON_Y)
     this.primaryButton.position.set(BOARD_X - 105, 520)
     this.skipButton.position.set(BOARD_X - 75, 586)
-    this.rerollButton.position.set(BOARD_X - 64, 600)
+    this.rerollButton.position.set(BOARD_X - 64, 618)
     this.sortRankButton.position.set(LEFT + PANEL_W + 30, BUTTON_Y + 7)
     this.sortSuitButton.position.set(LEFT + PANEL_W + 130, BUTTON_Y + 7)
     this.infoButton.position.set(LEFT - 2, 700)
@@ -643,6 +654,8 @@ export class Game {
 
     for (const slot of [this.score, this.chips, this.mult, this.money]) slot.advance(deltaMs)
 
+    this.updateHover()
+
     for (const view of this.cards.values()) {
       view.pointer = this.tiltFor(view)
       view.advance(seconds, this.clock)
@@ -703,6 +716,44 @@ export class Game {
     return Math.max(0.08, Math.min(1, Number(this.state.score) / Number(this.state.target)))
   }
 
+  /**
+   * 마우스가 무엇 위에 있는가.
+   *
+   * **올라간 자리가 아니라 쉬는 자리로 판정합니다.** 마우스가 올라오면 카드가 위로
+   * 들리는데, 들린 카드로 판정하면 카드가 마우스 밑에서 빠져나가 곧바로 내려오고, 내려오면
+   * 다시 들립니다 — 카드 아래쪽 몇 픽셀에서 카드가 떨던 것이 그것입니다.
+   *
+   * 겹쳐 있을 때는 오른쪽 것이 위입니다. 손패를 그리는 순서가 그렇습니다.
+   */
+  private updateHover(): void {
+    const blocked = this.guide.visible || this.state.pack !== null
+      || this.state.phase === 'lost' || this.state.phase === 'won'
+
+    let card: CardView | undefined
+    let joker: JokerView | undefined
+
+    if (!blocked) {
+      for (const view of this.cards.values()) {
+        if (!near(this.pointerAt, view.motion, SIZE.cardWidth, SIZE.cardHeight)) continue
+        if (!card || view.motion.x.target > card.motion.x.target) card = view
+      }
+      for (const view of this.jokers.values()) {
+        if (!near(this.pointerAt, view.motion, SIZE.jokerWidth, SIZE.jokerHeight)) continue
+        if (!joker || view.motion.x.target > joker.motion.x.target) joker = view
+      }
+    }
+
+    for (const view of this.cards.values()) view.hovered = view === card
+    for (const view of this.jokers.values()) view.hovered = view === joker
+
+    if (joker) {
+      if (joker !== this.hoveredJoker) this.showTooltip(joker)
+    } else if (this.hoveredJoker) {
+      this.tooltip.hide()
+    }
+    this.hoveredJoker = joker
+  }
+
   private tiltFor(view: Container): number {
     return Math.max(-1, Math.min(1, (this.pointerAt.x - view.x) / 90))
   }
@@ -730,6 +781,8 @@ export class Game {
       phase: state.phase, ante: state.ante, blind: state.blind,
       money: state.money, score: Number(state.score), target: Number(state.target),
       jokers: state.jokers.length, discards: state.discardsLeft,
+      packOpen: state.pack !== null, packs: state.shop.packs.length,
+      consumables: state.consumables.length,
       busy: this.player.busy || !this.score.settled,
       hand: state.hand.map(uid => {
         const card = state.deck.find(entry => entry.uid === uid)
@@ -767,6 +820,7 @@ export class Game {
     this.syncJokers()
     this.syncConsumables()
     this.syncShop()
+    this.syncPack()
     this.syncButtons()
     this.syncMood()
     this.drawPreview()
@@ -790,6 +844,9 @@ export class Game {
         }
         return '「낸다」 로 점수를 내거나, 「버린다」 로 고른 카드를 바꿉니다.'
       case 'shop':
+        if (state.pack) {
+          return `펼쳐진 것 중에서 ${state.pack.picksLeft}장을 고릅니다. 마음에 안 들면 건너뜁니다.`
+        }
         return state.jokers.length === 0
           ? '조커를 눌러 삽니다. 조커가 없으면 점수가 좀처럼 오르지 않습니다.'
           : '살 것을 누릅니다. 끝나면 「다음 블라인드로」 를 누릅니다.'
@@ -998,7 +1055,7 @@ export class Game {
     const choosing = state.phase === 'blind-select'
     this.primaryButton.visible = choosing || state.phase === 'shop'
     this.primaryButton.text = state.phase === 'shop' ? '다음 블라인드로' : '이 블라인드로'
-    this.primaryButton.position.set(BOARD_X - 105, state.phase === 'shop' ? 672 : 520)
+    this.primaryButton.position.set(BOARD_X - 105, state.phase === 'shop' ? 678 : 520)
     this.skipButton.visible = choosing && state.blind !== BlindKind.Boss
     this.sortRankButton.visible = inRound
     this.sortSuitButton.visible = inRound
@@ -1032,10 +1089,7 @@ export class Game {
         view = new CardView(card, this.editionLook(card.edition))
         view.eventMode = 'static'
         view.cursor = 'pointer'
-        const handle = view
         view.on('pointertap', () => this.toggle(card.uid))
-        view.on('pointerover', () => { handle.hovered = true })
-        view.on('pointerout', () => { handle.hovered = false })
         this.cards.set(card.uid, view)
         this.board.addChild(view)
         // 덱에서 날아옵니다. **곧바로 자리에 있으면 뽑았다는 느낌이 없습니다.**
@@ -1078,16 +1132,7 @@ export class Game {
         view = new JokerView(joker, look)
         view.eventMode = 'static'
         view.cursor = 'pointer'
-        const handle = view
         view.on('pointertap', () => this.act({ t: 'sell_joker', index }))
-        view.on('pointerover', () => {
-          handle.hovered = true
-          this.showTooltip(handle)
-        })
-        view.on('pointerout', () => {
-          handle.hovered = false
-          this.tooltip.hide()
-        })
         this.jokers.set(joker.uid, view)
         this.board.addChild(view)
         view.motion.snap(JOKER_X + index * (SIZE.jokerWidth + 12), JOKER_Y - 160)
@@ -1178,7 +1223,7 @@ export class Game {
         ? this.data.tables.joker.findByJokerId(item.id)?.rarity ?? 1 : 0
 
       const tile = new Panel(160, 162, 0x0f2118)
-      tile.position.set(startX + slot * spacing - 80, 300)
+      tile.position.set(startX + slot * spacing - 80, SHOP_CARD_Y)
 
       const label = new Text({
         text: name,
@@ -1240,7 +1285,7 @@ export class Game {
       const lines = describe(this.data, this.data.voucherEffects.get(id) ?? [])
 
       const tile = new Panel(300, 62, 0x132639)
-      tile.position.set(BOARD_X - 150, 486)
+      tile.position.set(BOARD_X - 150, SHOP_VOUCHER_Y)
 
       const label = new Text({
         text: row?.name ?? '',
@@ -1270,6 +1315,179 @@ export class Game {
       tile.on('pointerout', () => this.tooltip.hide())
       this.shopLayer.addChild(tile)
     }
+
+    this.drawPackRow()
+  }
+
+  /**
+   * 상점의 팩 줄.
+   *
+   * **팩은 사는 것이 아니라 뜯는 것입니다** — 값을 내면 몇 장이 펼쳐지고 그중에서 고릅니다.
+   * 그래서 카드 칸과 다른 줄에 두고 생김새도 다르게 합니다.
+   */
+  private drawPackRow(): void {
+    const packs = this.state.shop.packs
+    const spacing = 176
+    const startX = BOARD_X - ((Math.max(1, packs.length) - 1) * spacing) / 2
+
+    packs.forEach((packId, slot) => {
+      const row = this.data.tables.boosterPack.findByPackId(packId)
+      if (!row) return
+
+      const ink = packInk(row.kind)
+      const tile = new Panel(164, 78, ink)
+      tile.position.set(startX + slot * spacing - 82, SHOP_PACK_Y)
+
+      const label = new Text({
+        text: packName(row.kind, row.size),
+        style: { fontSize: 14, fill: COLOR.ink, fontWeight: '800' },
+      })
+      label.position.set(12, 10)
+
+      const note = new Text({
+        text: `${row.cards}장 중 ${row.picks}장`,
+        style: { fontSize: 10, fill: 0xd8e6dd },
+      })
+      note.position.set(12, 34)
+
+      const price = new Text({
+        text: `$${row.cost}`,
+        style: {
+          fontSize: 17, fontWeight: '800',
+          fill: this.state.money >= row.cost ? COLOR.money : 0x7a6a45,
+        },
+      })
+      price.anchor.set(1, 1)
+      price.position.set(152, 68)
+
+      tile.addChild(label, note, price)
+      tile.eventMode = 'static'
+      tile.cursor = 'pointer'
+      tile.on('pointertap', () => {
+        if (this.state.money < row.cost) return
+        this.audio.play('shop_buy')
+        this.particles.burst(tile.x + 82, tile.y + 39, 20, ink, 1.2)
+        this.jolt(5, 3)
+        this.act({ t: 'buy_pack', slot })
+      })
+      tile.on('pointerover', () => {
+        this.tooltip.show(packName(row.kind, row.size), '팩', 0,
+          [packBlurb(row.kind), `${row.cards}장이 펼쳐지고 ${row.picks}장을 고릅니다`],
+          tile.x + 82, tile.y + 78, SIZE)
+      })
+      tile.on('pointerout', () => this.tooltip.hide())
+      this.shopLayer.addChild(tile)
+    })
+  }
+
+  /**
+   * 뜯어 놓은 팩.
+   *
+   * **고르기 전에는 아무것도 못 합니다** — 뒤를 덮어 상점이 눌리지 않게 합니다.
+   */
+  private syncPack(): void {
+    this.packLayer.removeChildren().forEach(child => child.destroy())
+    const open = this.state.pack
+    this.packLayer.visible = open !== null
+    if (!open) return
+
+    // 팩 딱지에 떠 있던 설명을 걷습니다. 뜯은 판 뒤에 남으면 지저분합니다.
+    this.tooltip.hide()
+
+    const row = this.data.tables.boosterPack.findByPackId(open.packId)
+    const ink = packInk(open.kind)
+
+    const veil = new Graphics()
+    veil.rect(0, 0, SIZE.width, SIZE.height).fill({ color: 0x04090a, alpha: 0.78 })
+    veil.eventMode = 'static'
+    this.packLayer.addChild(veil)
+
+    const left = open.options.filter((_, index) => !open.taken[index])
+    const width = Math.max(520, 60 + open.options.length * 156)
+    const height = 292
+
+    const board = new Panel(width, height, ink)
+    board.position.set(BOARD_X - width / 2, 244)
+    this.packLayer.addChild(board)
+
+    const title = new Text({
+      text: row ? packName(row.kind, row.size) : '팩',
+      style: { fontSize: 22, fill: COLOR.ink, fontWeight: '800' },
+    })
+    title.anchor.set(0.5, 0)
+    title.position.set(BOARD_X, 262)
+
+    const note = new Text({
+      text: `${open.picksLeft}장 더 고릅니다`,
+      style: { fontSize: 13, fill: 0xd8e6dd, fontWeight: '700' },
+    })
+    note.anchor.set(0.5, 0)
+    note.position.set(BOARD_X, 292)
+    this.packLayer.addChild(title, note)
+
+    const spacing = 156
+    const startX = BOARD_X - ((open.options.length - 1) * spacing) / 2
+
+    open.options.forEach((item, index) => {
+      if (open.taken[index]) return
+
+      const name = shopLabel(item.kind, item.id, this.data)
+      const lines = this.shopLines(item)
+      const rarity = item.kind === ShopItemKind.Joker
+        ? this.data.tables.joker.findByJokerId(item.id)?.rarity ?? 1 : 0
+
+      const tile = new Panel(144, 158, 0x0f2118)
+      tile.position.set(startX + index * spacing - 72, 322)
+
+      const label = new Text({
+        text: name,
+        style: {
+          fontSize: 12, fill: COLOR.ink, fontWeight: '700',
+          wordWrap: true, wordWrapWidth: 118,
+        },
+      })
+      label.position.set(12, 11)
+
+      const blurb = new Text({
+        text: lines.slice(0, 3).join('\n'),
+        style: {
+          fontSize: 10, fill: 0xa9c6b2, lineHeight: 13,
+          wordWrap: true, wordWrapWidth: 118,
+        },
+      })
+      blurb.position.set(12, 44)
+
+      const kindLabel = new Text({
+        text: kindName(item.kind),
+        style: {
+          fontSize: 10, fontWeight: '700',
+          fill: rarity > 0 ? rarityColor(rarity) : 0x9b8fd0,
+        },
+      })
+      kindLabel.anchor.set(0, 1)
+      kindLabel.position.set(12, 146)
+
+      tile.addChild(label, blurb, kindLabel)
+      tile.eventMode = 'static'
+      tile.cursor = 'pointer'
+      tile.on('pointertap', () => {
+        this.audio.play('shop_buy')
+        this.particles.burst(tile.x + 72, tile.y + 79, 22, ink, 1.3)
+        this.jolt(6, 4)
+        this.act({ t: 'pick_pack', index })
+      })
+      tile.on('pointerover', () => {
+        this.tooltip.show(name, kindName(item.kind), rarity, lines,
+          tile.x + 72, tile.y + 158, SIZE)
+      })
+      tile.on('pointerout', () => this.tooltip.hide())
+      this.packLayer.addChild(tile)
+    })
+
+    const skip = new Button(left.length === open.options.length ? '건너뛴다' : '그만 고른다',
+      160, 40, 0x3f4560, () => this.act({ t: 'skip_pack' }))
+    skip.position.set(BOARD_X - 80, 494)
+    this.packLayer.addChild(skip)
   }
 
   private shopLines(item: { kind: ShopItemKind; id: string }): string[] {
@@ -1284,8 +1502,47 @@ export class Game {
   }
 }
 
+/** 점 하나가 쉬는 자리의 네모 안에 있는가. */
+function near(point: { x: number; y: number },
+              motion: { x: { target: number }; y: { target: number } },
+              width: number, height: number): boolean {
+  return Math.abs(point.x - motion.x.target) <= width / 2
+    && Math.abs(point.y - motion.y.target) <= height / 2
+}
+
 function blindName(blind: BlindKind): string {
   return blind === BlindKind.Small ? '스몰' : blind === BlindKind.Big ? '빅' : '보스'
+}
+
+/** 팩 이름. 표가 갈래와 크기만 정하므로 이름은 여기서 짓습니다. */
+function packName(kind: PackKind, size: PackSize): string {
+  const body = kind === PackKind.Arcana ? '비전'
+    : kind === PackKind.Celestial ? '천체'
+    : kind === PackKind.Spectral ? '유령'
+    : kind === PackKind.Buffoon ? '어릿광대'
+    : '표준'
+  const scale = size === PackSize.Jumbo ? '점보 ' : size === PackSize.Mega ? '메가 ' : ''
+  return `${scale}${body} 팩`
+}
+
+function packBlurb(kind: PackKind): string {
+  switch (kind) {
+    case PackKind.Arcana: return '타로가 들어 있습니다'
+    case PackKind.Celestial: return '행성이 들어 있습니다'
+    case PackKind.Spectral: return '유령이 들어 있습니다'
+    case PackKind.Buffoon: return '조커가 들어 있습니다'
+    default: return '강화·인장이 붙은 카드가 들어 있습니다'
+  }
+}
+
+function packInk(kind: PackKind): number {
+  switch (kind) {
+    case PackKind.Arcana: return 0x4a3a6b
+    case PackKind.Celestial: return 0x264a6b
+    case PackKind.Spectral: return 0x3a2a52
+    case PackKind.Buffoon: return 0x6b3a3a
+    default: return 0x2f5c42
+  }
 }
 
 function kindName(kind: ShopItemKind): string {

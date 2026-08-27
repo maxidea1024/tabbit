@@ -58,6 +58,15 @@ export function canonical(state: RunState): string {
   parts.push(Object.keys(state.rng).sort()
     .map(name => `${name}=${state.rng[name].save().join('/')}`).join(','))
 
+  // **뜯어 놓은 팩.** 끝에 붙입니다 — 가운데에 끼우면 예전 리플레이의 해시가 전부
+  // 달라집니다. 펼쳐진 것이 무엇인지까지 담아야 두 구현이 여기서 갈라진 것을 이 자리에서
+  // 알 수 있습니다.
+  parts.push(state.pack
+    ? `${state.pack.packId}:${state.pack.picksLeft}:` + state.pack.options
+        .map((item, at) => `${item.kind}.${item.id}.${item.enhancement ?? 0}` +
+          `.${item.seal ?? 0}.${item.edition}${state.pack!.taken[at] ? 'x' : ''}`).join(',')
+    : '')
+
   return parts.join('|')
 }
 

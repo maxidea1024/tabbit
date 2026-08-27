@@ -18,7 +18,7 @@ import {
   collect, newVm, RUN_HOST, runCardEffects, runRow, runTrigger, sellPrice,
   type EffectHost, type Vm,
 } from './vm'
-import { emptyShop, rerollCost, stock } from './shop'
+import { emptyShop, openPack, rerollCost, stock } from './shop'
 import { ShopItemKind } from '../generated/enums/shop-item-kind'
 import { newCounters as freshCounters } from './state'
 import type { EffectRow } from './data'
@@ -32,6 +32,9 @@ export type Action =
   | { t: 'sell_joker'; index: number }
   | { t: 'sell_consumable'; index: number }
   | { t: 'buy'; slot: number }
+  | { t: 'buy_pack'; slot: number }
+  | { t: 'pick_pack'; index: number }
+  | { t: 'skip_pack' }
   | { t: 'buy_voucher' }
   | { t: 'reroll' }
   | { t: 'leave_shop' }
@@ -138,6 +141,7 @@ export function newRun(data: Data, seed: string, deckId: string, stake: string):
     bossDisabled: false,
     duplicateNextTag: false,
     shop: emptyShop(),
+    pack: null,
     nextUid: 1,
     rng,
   }
@@ -492,6 +496,49 @@ export function apply(data: Data, state: RunState, action: Action): Step {
       break
     }
 
+    // 팩은 사는 순간 물건이 들어오지 않습니다. 뜯어 놓고 고르게 합니다.
+    case 'buy_pack': {
+      if (state.phase !== 'shop' || state.pack) break
+      const packId = state.shop.packs[action.slot]
+      if (!packId) break
+      const row = data.tables.boosterPack.findByPackId(packId)
+      if (!row || state.money - row.cost < -state.rules.debtLimit) break
+
+      const open = openPack(vm, packId)
+      if (!open) break
+
+      state.money -= row.cost
+      vm.events.push({ t: 'MoneyChanged', delta: -row.cost, reason: 'shop' })
+      state.shop.packs.splice(action.slot, 1)
+      state.pack = open
+      vm.events.push({ t: 'PackOpened', packId })
+      break
+    }
+
+    case 'pick_pack': {
+      const open = state.pack
+      if (!open || open.picksLeft <= 0) break
+      const item = open.options[action.index]
+      if (!item || open.taken[action.index]) break
+      // **자리가 없으면 고르지 못합니다.** 팩은 그대로 열려 있으므로 다른 것을 고르거나
+      // 건너뜁니다.
+      if (!takeItem(vm, item)) break
+
+      open.taken[action.index] = true
+      open.picksLeft--
+      if (open.picksLeft <= 0) {
+        state.pack = null
+        vm.events.push({ t: 'PackClosed' })
+      }
+      break
+    }
+
+    case 'skip_pack':
+      if (!state.pack) break
+      state.pack = null
+      vm.events.push({ t: 'PackClosed' })
+      break
+
     case 'buy_voucher': {
       if (state.phase !== 'shop' || !state.shop.voucher) break
       const cost = data.economy.voucherCost
@@ -518,9 +565,10 @@ export function apply(data: Data, state: RunState, action: Action): Step {
     }
 
     case 'leave_shop':
-      if (state.phase !== 'shop') break
+      if (state.phase !== 'shop' || state.pack) break
       runTrigger(vm, Trigger.OnShopExit)
       state.rules.nextShopFree = false
+      state.pack = null
       state.shop = emptyShop()
       state.shop.voucherBought = false
       advance(vm)
@@ -531,7 +579,10 @@ export function apply(data: Data, state: RunState, action: Action): Step {
 }
 
 /** 산 것을 실제로 받습니다. 자리가 없으면 사지 못합니다. */
-function takeItem(vm: Vm, item: { kind: ShopItemKind; id: string; edition: number }): boolean {
+function takeItem(vm: Vm, item: {
+  kind: ShopItemKind; id: string; edition: number
+  enhancement?: EnhancementKind; seal?: SealKind
+}): boolean {
   const state = vm.state
 
   switch (item.kind) {
@@ -571,8 +622,8 @@ function takeItem(vm: Vm, item: { kind: ShopItemKind; id: string; edition: numbe
         baseCardId: base.cardId,
         rank: base.rank,
         suit: base.suit,
-        enhancement: EnhancementKind.None,
-        seal: SealKind.None,
+        enhancement: item.enhancement ?? EnhancementKind.None,
+        seal: item.seal ?? SealKind.None,
         edition: item.edition as never,
         bonusChips: 0,
         debuffed: false,

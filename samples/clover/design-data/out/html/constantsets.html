@@ -512,7 +512,7 @@ tbody [data-pick] { cursor: pointer; }
 </aside>
 <main>
 <h1>상수 세트</h1>
-<p class="lead">상수 세트 4개 · 상수 45개</p>
+<p class="lead">상수 세트 4개 · 상수 48개</p>
 <div data-table>
 <div class="tools">
 <input type="search" data-filter="rows" placeholder="상수 세트 필터">
@@ -527,7 +527,7 @@ tbody [data-pick] { cursor: pointer; }
 </tr>
 </thead>
 <tbody>
-<tr><td><a href="constantsets.html#constantset_EconomyConst"><svg class="i"><use href="#i-const"></use></svg>EconomyConst</a></td><td class="num">14</td><td><span class="book" title="samples/clover/design-data/xlsx/Const.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Const.xlsx</span> <span class="hint">&middot;</span> Const_Economy</td><td>금액에 관한 값입니다.</td></tr>
+<tr><td><a href="constantsets.html#constantset_EconomyConst"><svg class="i"><use href="#i-const"></use></svg>EconomyConst</a></td><td class="num">17</td><td><span class="book" title="samples/clover/design-data/xlsx/Const.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Const.xlsx</span> <span class="hint">&middot;</span> Const_Economy</td><td>금액에 관한 값입니다.</td></tr>
 <tr><td><a href="constantsets.html#constantset_FeelConst"><svg class="i"><use href="#i-const"></use></svg>FeelConst</a></td><td class="num">17</td><td><span class="book" title="samples/clover/design-data/xlsx/Feel.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Feel.xlsx</span> <span class="hint">&middot;</span> Const_Feel</td><td>연출의 길이와 문턱입니다. **두 런타임이 같은 값을 읽습니다.**</td></tr>
 <tr><td><a href="constantsets.html#constantset_RunConst"><svg class="i"><use href="#i-const"></use></svg>RunConst</a></td><td class="num">10</td><td><span class="book" title="samples/clover/design-data/xlsx/Const.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Const.xlsx</span> <span class="hint">&middot;</span> Const_Run</td><td>런 하나의 시작값과 상한입니다.</td></tr>
 <tr><td><a href="constantsets.html#constantset_ScoreConst"><svg class="i"><use href="#i-const"></use></svg>ScoreConst</a></td><td class="num">4</td><td><span class="book" title="samples/clover/design-data/xlsx/Const.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Const.xlsx</span> <span class="hint">&middot;</span> Const_Score</td><td>득점의 단위와 규격입니다. **두 구현이 같아야 하는 값들입니다.**</td></tr>
@@ -535,7 +535,7 @@ tbody [data-pick] { cursor: pointer; }
 </table>
 </div>
 </div>
-<h2 id="constantset_EconomyConst"><svg class="i"><use href="#i-const"></use></svg>EconomyConst<span class="count">상수 14개</span></h2>
+<h2 id="constantset_EconomyConst"><svg class="i"><use href="#i-const"></use></svg>EconomyConst<span class="count">상수 17개</span></h2>
 <p class="lead">EconomyConst <span class="hint"><span class="book" title="samples/clover/design-data/xlsx/Const.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Const.xlsx</span> &middot; <svg class="i"><use href="#i-sheet"></use></svg>Const_Economy : A1</span></p>
 <p class="comment">금액에 관한 값입니다.</p>
 <div class="scroll">
@@ -630,13 +630,34 @@ tbody [data-pick] { cursor: pointer; }
 </tr>
 <tr>
 <td class="num">13</td>
+<td id="const_EconomyConst.PackEnhanceChanceBp">PackEnhanceChanceBp</td>
+<td><span class="type">int</span></td>
+<td>2000</td>
+<td>표준 팩의 카드 한 장이 강화를 달고 나올 확률 (만분율)</td>
+</tr>
+<tr>
+<td class="num">14</td>
+<td id="const_EconomyConst.PackSealChanceBp">PackSealChanceBp</td>
+<td><span class="type">int</span></td>
+<td>1000</td>
+<td>표준 팩의 카드 한 장이 인장을 달고 나올 확률 (만분율)</td>
+</tr>
+<tr>
+<td class="num">15</td>
+<td id="const_EconomyConst.PackEditionChanceBp">PackEditionChanceBp</td>
+<td><span class="type">int</span></td>
+<td>800</td>
+<td>표준 팩의 카드 한 장이 에디션을 달고 나올 확률 (만분율)</td>
+</tr>
+<tr>
+<td class="num">16</td>
 <td id="const_EconomyConst.SoulChanceNum">SoulChanceNum</td>
 <td><span class="type">int</span></td>
 <td>3</td>
 <td>`The Soul` 이 나올 확률의 분자</td>
 </tr>
 <tr>
-<td class="num">14</td>
+<td class="num">17</td>
 <td id="const_EconomyConst.SoulChanceDen">SoulChanceDen</td>
 <td><span class="type">int</span></td>
 <td>1000</td>
@@ -900,7 +921,7 @@ tbody [data-pick] { cursor: pointer; }
 </div>
 </main>
 </div>
-<p class="foot">생성 시각 2026-08-27 13:35:52</p>
+<p class="foot">생성 시각 2026-08-27 14:40:17</p>
 <script>
 (function () {
   "use strict";

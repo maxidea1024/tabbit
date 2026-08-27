@@ -64,6 +64,18 @@ namespace Clover.Data
         /// </summary>
         public static int ShopPackSlots { get; }
         /// <summary>
+        /// 표준 팩의 카드 한 장이 강화를 달고 나올 확률 (만분율)
+        /// </summary>
+        public static int PackEnhanceChanceBp { get; }
+        /// <summary>
+        /// 표준 팩의 카드 한 장이 인장을 달고 나올 확률 (만분율)
+        /// </summary>
+        public static int PackSealChanceBp { get; }
+        /// <summary>
+        /// 표준 팩의 카드 한 장이 에디션을 달고 나올 확률 (만분율)
+        /// </summary>
+        public static int PackEditionChanceBp { get; }
+        /// <summary>
         /// `The Soul` 이 나올 확률의 분자
         /// </summary>
         public static int SoulChanceNum { get; }
@@ -89,6 +101,9 @@ namespace Clover.Data
             VoucherCost = 10;
             ShopCardSlots = 2;
             ShopPackSlots = 2;
+            PackEnhanceChanceBp = 2000;
+            PackSealChanceBp = 1000;
+            PackEditionChanceBp = 800;
             SoulChanceNum = 3;
             SoulChanceDen = 1000;
         }

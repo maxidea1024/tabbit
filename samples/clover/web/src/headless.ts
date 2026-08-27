@@ -139,7 +139,14 @@ function decide(data: Data, state: RunState): Action | undefined {
 }
 
 /** 살 수 있는 것을 사고, 더 살 것이 없으면 나갑니다. */
-function shopMove(_data: Data, state: RunState): Action {
+function shopMove(data: Data, state: RunState): Action {
+  // **팩이 열려 있으면 그것부터 끝냅니다** — 다 고르기 전에는 상점을 나가지 못합니다.
+  const open = state.pack
+  if (open) {
+    const index = open.options.findIndex((item, at) => !open.taken[at] && hasRoom(state, item))
+    return index >= 0 ? { t: 'pick_pack', index } : { t: 'skip_pack' }
+  }
+
   // 행성 카드가 있으면 먼저 씁니다 — 족보 레벨이 안테를 넘기는 가장 싼 길입니다.
   const planet = state.consumables.findIndex(item => item.kind === 2)
   if (planet >= 0) return { t: 'use_consumable', index: planet }
@@ -153,7 +160,21 @@ function shopMove(_data: Data, state: RunState): Action {
     return { t: 'buy', slot }
   }
 
+  // 팩은 카드 칸을 다 본 뒤에 봅니다. 값이 싸고 들어 있는 것이 여럿입니다.
+  for (let slot = 0; slot < state.shop.packs.length; slot++) {
+    const row = data.tables.boosterPack.findByPackId(state.shop.packs[slot])
+    if (!row || row.cost > state.money - 1) continue
+    return { t: 'buy_pack', slot }
+  }
+
   return { t: 'leave_shop' }
+}
+
+/** 이 물건을 받을 자리가 있는가. */
+function hasRoom(state: RunState, item: { kind: ShopItemKind }): boolean {
+  if (item.kind === ShopItemKind.Joker) return state.jokers.length < state.rules.jokerSlots
+  if (item.kind === ShopItemKind.PlayingCard) return true
+  return state.consumables.length < state.rules.consumableSlots
 }
 
 /** 낼 수 있는 조합 중 가장 점수가 높은 것. 남은 핸드가 있으면 낮은 카드를 버립니다. */

@@ -12,5 +12,8 @@
 	VoucherCost	int	10	바우처 값
 	ShopCardSlots	int	2	상점의 카드 칸
 	ShopPackSlots	int	2	상점의 팩 칸
+	PackEnhanceChanceBp	int	2000	표준 팩의 카드 한 장이 강화를 달고 나올 확률 (만분율)
+	PackSealChanceBp	int	1000	표준 팩의 카드 한 장이 인장을 달고 나올 확률 (만분율)
+	PackEditionChanceBp	int	800	표준 팩의 카드 한 장이 에디션을 달고 나올 확률 (만분율)
 	SoulChanceNum	int	3	`The Soul` 이 나올 확률의 분자
 	SoulChanceDen	int	1000	`The Soul` 이 나올 확률의 분모

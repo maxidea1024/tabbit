@@ -26,6 +26,9 @@ interface Peek {
   target: number
   busy: boolean
   discards: number
+  jokers: number
+  packOpen: boolean
+  packs: number
   hand: { rank: number; suit: number }[]
 }
 
@@ -107,6 +110,25 @@ async function main(): Promise<number> {
   if (finished.phase === 'shop') {
     await shoot('5-shop')
 
+    // **팩을 먼저 뜯습니다** — 조커를 사고 나면 돈이 모자라 팩이 열리지 않습니다.
+    await buyAffordablePack(page)
+    if ((await peek(page)).packOpen) {
+      await shoot('9-pack')
+      const first = await at(page, BOARD_X - 78, 322 + 79)
+      await page.mouse.click(first.x, first.y)
+      await page.waitForTimeout(700)
+      await shoot('10-pack-picked')
+
+      // 다 못 골랐으면 건너뜁니다 — 열려 있으면 상점을 나가지 못합니다.
+      if ((await peek(page)).packOpen) {
+        const skip = await at(page, BOARD_X, 494 + 20)
+        await page.mouse.click(skip.x, skip.y)
+        await page.waitForTimeout(400)
+      }
+    } else {
+      console.log('팩을 뜯지 못했습니다 — 돈이 모자랍니다')
+    }
+
     // 조커를 사서 줄에 세웁니다. **조커가 없는 화면은 이 게임의 화면이 아닙니다.**
     await buyFirstAffordable(page)
     await settle(page)
@@ -118,6 +140,7 @@ async function main(): Promise<number> {
     await page.mouse.move(spot.x, spot.y)
     await page.waitForTimeout(500)
     await shoot('7-tooltip')
+    await page.mouse.move(10, 10)
 
     // 조커를 데리고 다음 판으로. **조커가 발동하는 장면이 이 게임의 얼굴입니다.**
     await page.mouse.move(10, 10)
@@ -156,11 +179,23 @@ async function settle(page: Page): Promise<void> {
   }
 }
 
+/** 살 수 있는 팩이 있으면 뜯습니다. */
+async function buyAffordablePack(page: Page): Promise<void> {
+  const spacing = 176
+  for (let slot = 0; slot < 2; slot++) {
+    if ((await peek(page)).packs <= slot) return
+    const spot = await at(page, BOARD_X - spacing / 2 + slot * spacing, 452 + 39)
+    await page.mouse.click(spot.x, spot.y)
+    await page.waitForTimeout(600)
+    if ((await peek(page)).packOpen) return
+  }
+}
+
 /** 상점의 첫 칸을 살 수 있으면 삽니다. */
 async function buyFirstAffordable(page: Page): Promise<void> {
   const spacing = 172
   for (let slot = 0; slot < 2; slot++) {
-    const spot = await at(page, BOARD_X - spacing / 2 + slot * spacing, 300 + 81)
+    const spot = await at(page, BOARD_X - spacing / 2 + slot * spacing, 276 + 81)
     await page.mouse.click(spot.x, spot.y)
     await page.waitForTimeout(500)
     if ((await peek(page)).jokers > 0) return
@@ -189,7 +224,7 @@ const BUTTON_Y = 742
  */
 async function clickPrimary(page: Page): Promise<void> {
   const shop = (await peek(page)).phase === 'shop'
-  const spot = await at(page, BOARD_X, shop ? 697 : 545)
+  const spot = await at(page, BOARD_X, shop ? 703 : 545)
   await page.mouse.click(spot.x, spot.y)
 }
 

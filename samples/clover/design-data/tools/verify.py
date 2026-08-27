@@ -19,6 +19,11 @@ DESIGN = os.path.dirname(HERE)
 SAMPLE = os.path.dirname(DESIGN)
 ROOT = os.path.dirname(os.path.dirname(SAMPLE))
 
+# 콘솔이 cp949 이면 「—」 하나에 이 스크립트가 멈춥니다. 출력만 UTF-8 로 돌립니다.
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
 PASS, FAIL = [], []
 
 

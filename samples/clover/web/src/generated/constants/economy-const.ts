@@ -47,6 +47,15 @@ export class EconomyConst {
   /** 상점의 팩 칸 */
   public static readonly shopPackSlots: number = 2
 
+  /** 표준 팩의 카드 한 장이 강화를 달고 나올 확률 (만분율) */
+  public static readonly packEnhanceChanceBp: number = 2000
+
+  /** 표준 팩의 카드 한 장이 인장을 달고 나올 확률 (만분율) */
+  public static readonly packSealChanceBp: number = 1000
+
+  /** 표준 팩의 카드 한 장이 에디션을 달고 나올 확률 (만분율) */
+  public static readonly packEditionChanceBp: number = 800
+
   /** `The Soul` 이 나올 확률의 분자 */
   public static readonly soulChanceNum: number = 3
 

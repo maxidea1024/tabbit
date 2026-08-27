@@ -13,7 +13,7 @@ import type { PokerHandKind } from '../generated/enums/poker-hand-kind'
 import type { BlindKind } from '../generated/enums/blind-kind'
 import type { ConsumableKind } from '../generated/enums/consumable-kind'
 import type { Pcg32 } from './rng'
-import type { ShopState } from './shop'
+import type { PackOpen, ShopState } from './shop'
 
 /**
  * 덱의 카드 한 장.
@@ -187,6 +187,8 @@ export interface RunState {
 
   /** 지금 상점에 놓인 것. 상점을 나가면 비웁니다. */
   shop: ShopState
+  /** 지금 뜯어 놓은 팩. 고를 것을 다 고르면 `null` 로 돌아갑니다. */
+  pack: PackOpen | null
 
   nextUid: number
   rng: Record<string, Pcg32>
@@ -209,6 +211,8 @@ export type GameEvent =
   | { t: 'CardDestroyed'; uid: number }
   | { t: 'CardAdded'; uid: number }
   | { t: 'JokerAdded'; uid: number; jokerId: string }
+  | { t: 'PackOpened'; packId: string }
+  | { t: 'PackClosed' }
   | { t: 'JokerDestroyed'; uid: number; jokerId: string }
   | { t: 'ConsumableAdded'; uid: number; id: string }
   | { t: 'ConsumableUsed'; id: string }
