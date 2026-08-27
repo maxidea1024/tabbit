@@ -30,7 +30,12 @@ export class Particles extends Container {
   }
 
   /** 한 자리에서 터뜨립니다. */
-  burst(x: number, y: number, count: number, tint: number, power = 1): void {
+  /**
+   * 한 자리에서 터뜨립니다.
+   *
+   * `linger` 는 오래 남는 정도입니다 — **마지막 한 방은 오래 남아야 「끝났다」로 읽힙니다.**
+   */
+  burst(x: number, y: number, count: number, tint: number, power = 1, linger = 1): void {
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2
       const speed = (60 + Math.random() * 240) * power
@@ -39,7 +44,7 @@ export class Particles extends Container {
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed - 60 * power,
         life: 0,
-        span: 0.45 + Math.random() * 0.5,
+        span: (0.45 + Math.random() * 0.5) * linger,
         size: 2 + Math.random() * 4 * power,
         tint,
       })

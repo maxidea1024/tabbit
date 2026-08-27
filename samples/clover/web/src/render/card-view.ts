@@ -13,6 +13,7 @@ import { SealKind } from '../generated/enums/seal-kind'
 import { SuitKind } from '../generated/enums/suit-kind'
 import type { CardInstance } from '../core/state'
 import { EditionFilter, type EditionShader } from '../shader/editions'
+import { PickFilter } from '../shader/pick'
 import { Motion, sway } from './motion'
 import { COLOR, SIZE } from './theme'
 
@@ -90,6 +91,15 @@ export class CardView extends Container {
   })
   private readonly seal = new Graphics()
   private edition?: EditionFilter
+  /**
+   * 고름 표시.
+   *
+   * **고른 것을 밝히는 것만으로는 부족합니다** — 고르지 않은 것이 물러나야 몇 장을 골랐는지가
+   * 한눈에 읽힙니다. 그 둘을 한 필터가 합니다.
+   */
+  private readonly pick = new PickFilter()
+  /** 1 고름 · -1 고르지 않음 · 0 그대로. */
+  private pickMode = 0
 
   /** 마우스가 올라와 있는가. 기울기와 크기가 이것을 봅니다. */
   hovered = false
@@ -121,9 +131,9 @@ export class CardView extends Container {
     if (card.faceDown) {
       this.paper.roundRect(0, 0, w, h, SIZE.cardRadius).fill(COLOR.cardBack)
       this.paper.roundRect(7, 7, w - 14, h - 14, SIZE.cardRadius - 4)
-        .stroke({ color: 0x3d9166, width: 2 })
+        .stroke({ color: 0xd1626c, width: 2 })
       for (let i = 0; i < 4; i++) {
-        this.paper.circle(w / 2, 22 + i * 30, 6).stroke({ color: 0x3d9166, width: 1.5 })
+        this.paper.circle(w / 2, 22 + i * 30, 6).stroke({ color: 0xd1626c, width: 1.5 })
       }
       this.cornerTop.visible = false
       this.cornerBottom.visible = false
@@ -193,18 +203,36 @@ export class CardView extends Container {
 
   private applyEdition(edition: EditionKind, look?: EditionLook): void {
     const shader = EDITION_SHADER[edition]
-    if (!shader || !look) {
-      this.filters = []
-      this.edition = undefined
-      return
-    }
+    this.edition = shader && look
+      ? new EditionFilter(shader, {
+        strength: look.strength,
+        flowSpeed: look.flowSpeed,
+        noise: look.noise,
+      })
+      : undefined
+    this.restack()
+  }
 
-    this.edition = new EditionFilter(shader, {
-      strength: look.strength,
-      flowSpeed: look.flowSpeed,
-      noise: look.noise,
-    })
-    this.filters = [this.edition]
+  /**
+   * 지금 걸려 있어야 할 필터.
+   *
+   * **필요할 때만 겁니다** — 늘 걸어 두면 카드가 매 프레임 그림으로 한 번 구워져 글씨가
+   * 뿌옇게 됩니다.
+   */
+  private restack(): void {
+    const stack = []
+    if (this.edition) stack.push(this.edition)
+    if (this.pickMode !== 0) stack.push(this.pick)
+    this.filters = stack
+  }
+
+  /** 1 고름 · -1 고르지 않음 · 0 그대로. */
+  setPick(mode: number, tint: [number, number, number]): void {
+    this.pick.setTint(tint[0], tint[1], tint[2])
+    if (mode === this.pickMode) return
+    this.pickMode = mode
+    this.pick.mode = mode
+    this.restack()
   }
 
   /** 이 카드가 지금 있어야 할 자리. 용수철이 따라갑니다. */
@@ -245,6 +273,7 @@ export class CardView extends Container {
   advance(seconds: number, time: number): void {
     this.motion.advance(seconds)
     this.edition?.advance(seconds, this.pointer)
+    if (this.pickMode !== 0) this.pick.time = time
 
     const lift = this.hovered ? 16 : this.selected ? 26 : 0
     const wobble = sway(time, this.motion.phase, 1.6 * this.idle, 1.4)

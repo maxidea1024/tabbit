@@ -117,7 +117,8 @@ export class JokerView extends Container {
     const parts: string[] = []
     if (chips !== 0) parts.push(`+${chips}칩`)
     if (multAdd !== 0) parts.push(`+${(multAdd / 10_000).toFixed(0)}`)
-    if (multMul !== 10_000) parts.push(`×${(multMul / 10_000).toFixed(2)}`)
+    // 0 은 「곱이 없다」가 아니라 「아직 값이 없다」입니다. 적지 않습니다.
+    if (multMul !== 10_000 && multMul !== 0) parts.push(`×${(multMul / 10_000).toFixed(2)}`)
     this.counter.text = parts.join(' ')
     this.counter.anchor.set(0.5, 0)
     this.counter.position.set(w / 2, 8)

@@ -18,7 +18,7 @@ export class Slot extends Container {
     text: '0',
     style: {
       fontSize: 23, fill: COLOR.ink, fontWeight: '800',
-      stroke: { color: 0x05100b, width: 3 },
+      stroke: { color: 0x0a0f18, width: 3 },
     },
   })
 
@@ -111,7 +111,12 @@ export class Slot extends Container {
   }
 }
 
-/** 블라인드 하나의 딱지. 보스는 붉습니다. */
+/**
+ * 블라인드 하나의 딱지.
+ *
+ * **색이 어느 블라인드인지 말합니다** — 스몰은 파랑, 빅은 보라, 보스는 붉습니다. 이름을 읽지
+ * 않아도 어디까지 왔는지가 보입니다.
+ */
 export class BlindBadge extends Container {
   private readonly plate = new Graphics()
   private readonly title = new Text({
@@ -121,7 +126,7 @@ export class BlindBadge extends Container {
     text: '',
     style: {
       fontSize: 30, fill: COLOR.chips, fontWeight: '800',
-      stroke: { color: 0x061009, width: 4 },
+      stroke: { color: 0x0a0f18, width: 4 },
     },
   })
   private readonly note = new Text({
@@ -140,10 +145,11 @@ export class BlindBadge extends Container {
     this.addChild(this.plate, this.title, this.need, this.reward, this.note)
   }
 
-  set(name: string, target: number, reward: number, note: string, boss: boolean): void {
+  set(name: string, target: number, reward: number, note: string,
+      boss: boolean, big = false): void {
     const height = 138 + (note.length > 0 ? 26 : 0)
-    const tint = boss ? 0x3d1622 : 0x12291d
-    const edge = boss ? COLOR.bad : 0x3a7a55
+    const tint = boss ? 0x3d1622 : big ? 0x2a2140 : 0x1b2c44
+    const edge = boss ? COLOR.bad : big ? 0xa279e0 : 0x5d92d6
 
     this.plate.clear()
     plate(this.plate, this.boxWidth, height, {

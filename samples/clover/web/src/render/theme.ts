@@ -4,31 +4,33 @@
 // 팔레트와 카드의 크기처럼 데이터가 아닌 것들입니다.
 
 export const COLOR = {
-  /** 배경. 밤의 온실입니다. */
-  ground: 0x0b1410,
-  panel: 0x14231b,
-  panelEdge: 0x24402f,
+  /** 배경. **짙은 남색입니다** — 초록 단색이면 화면이 한 가지 색으로 눌립니다. */
+  ground: 0x0e1420,
+  panel: 0x232b38,
+  panelEdge: 0x3f4a5c,
 
-  ink: 0xe8f3ea,
-  inkDim: 0x8fae98,
+  ink: 0xeef2f7,
+  inkDim: 0x93a1b5,
 
-  chips: 0x5fb4ff,
-  mult: 0xff5f6d,
-  money: 0xffcf4a,
+  /** 칩은 파랑, 배수는 빨강, 돈은 금색. **이 셋만 채도가 높습니다.** */
+  chips: 0x3f9dff,
+  mult: 0xfe5f55,
+  money: 0xffc53d,
 
-  cardFace: 0xf4f1e6,
-  cardEdge: 0x2a2418,
-  cardBack: 0x1d4d33,
-  red: 0xc8323c,
-  black: 0x241f1a,
+  cardFace: 0xf6f2e8,
+  cardEdge: 0x2b2a26,
+  cardBack: 0x8f2f3c,
+  cardBackEdge: 0xd1626c,
+  red: 0xd7343f,
+  black: 0x1f2024,
 
   /** 희귀도. 상점과 조커 테두리가 씁니다. */
-  common: 0x8fae98,
-  uncommon: 0x4fc3a1,
-  rare: 0xff6b6b,
-  legendary: 0xc08bff,
+  common: 0x9aa8bb,
+  uncommon: 0x4ec9a0,
+  rare: 0xfe5f55,
+  legendary: 0xb98cff,
 
-  good: 0x6fe3a1,
+  good: 0x63d68f,
   bad: 0xff7a7a,
 } as const
 

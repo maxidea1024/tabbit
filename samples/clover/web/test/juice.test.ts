@@ -19,6 +19,8 @@ const FEEL: Feel = {
   handLabelMs: 180,
   multiplyMs: 400,
   settleMs: 300,
+  moneyStepMs: 260,
+  hitStopMs: 120,
   fastForwardScale: 4,
   shakeMaxPx: 12,
   shakeThresholdMult: 200_000,

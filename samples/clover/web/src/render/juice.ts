@@ -29,6 +29,8 @@ export interface Feel {
   handLabelMs: number
   multiplyMs: number
   settleMs: number
+  moneyStepMs: number
+  hitStopMs: number
   fastForwardScale: number
   shakeMaxPx: number
   shakeThresholdMult: number
@@ -70,6 +72,8 @@ function holdOf(event: GameEvent, feel: Feel): number {
     case 'Retriggered': return feel.retriggerStepMs
     case 'ScoreResolved': return feel.multiplyMs + feel.settleMs
     case 'BlindCleared': return feel.settleMs
+    // **돈이 오가는 것도 사건입니다.** 동전이 날아가 꽂히는 시간을 자기 몫으로 씁니다.
+    case 'MoneyChanged': return event.delta === 0 ? 0 : feel.moneyStepMs
     case 'RunLost':
     case 'RunWon': return feel.settleMs * 2
     // 값이 바뀐 것을 알리는 이벤트는 자기 시간을 쓰지 않습니다 — 앞의 박자에 얹힙니다.

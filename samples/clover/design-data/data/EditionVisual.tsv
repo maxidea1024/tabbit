@@ -4,6 +4,6 @@
 :desc	에디션	셰이더 이름	세기. 만분율	흐르는 속도. 만분율	노이즈. 만분율
 	Base	none	0	0	0
 	Foil	foil	8000	3000	0
-	Holographic	holo	10000	2000	3500
-	Polychrome	poly	12000	1500	2000
+	Holographic	holo	9000	2000	1400
+	Polychrome	poly	10000	1500	1200
 	Negative	negative	10000	800	0

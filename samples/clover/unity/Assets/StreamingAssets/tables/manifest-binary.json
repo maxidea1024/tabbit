@@ -1,7 +1,7 @@
 {
-  "LastUpdatedDate": "2026-08-27T13:35:52.1304868+09:00",
-  "MasterHash": "db756c694a97f8bf6cedb4bb9a89e4ca",
-  "TotalSize": 52859,
+  "LastUpdatedDate": "2026-08-27T16:15:35.9152766+09:00",
+  "MasterHash": "3c1a423925e9f161db760cb67516db4c",
+  "TotalSize": 52858,
   "Items": [
     {
       "Name": "Rank.bytes",
@@ -95,9 +95,9 @@
     },
     {
       "Name": "EditionVisual.bytes",
-      "Size": 138,
-      "Hash": "87da563e6a456c468f9212b0986bf5f0",
-      "LastUpdatedDate": "2026-08-27T10:55:50.412964+09:00"
+      "Size": 137,
+      "Hash": "ff22a047ef7762b5ec43b89bb3f9af1c",
+      "LastUpdatedDate": "2026-08-27T16:15:35.9152647+09:00"
     },
     {
       "Name": "SoundCue.bytes",

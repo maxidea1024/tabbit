@@ -30,6 +30,7 @@ import {
   buildTimeline, particlesOf, readFeel, scaleOf, semitonesOf, shakeOf, TimelinePlayer,
   type Beat, type Feel,
 } from './juice'
+import { Coins } from './coins'
 import { Particles } from './particles'
 import { COLOR, rarityColor, SIZE } from './theme'
 import { Button, Panel } from '../ui/widgets'
@@ -46,9 +47,9 @@ const JOKER_Y = 108
 /** 조커 5칸이 시작하는 자리. */
 const JOKER_X = 372
 const CONSUMABLE_X = 962
-const PLAY_Y = 352
+const PLAY_Y = 390
 /** 고른 카드가 무슨 족보인지 뜨는 자리. */
-const PREVIEW_Y = 500
+const PREVIEW_Y = 512
 const HAND_Y = 646
 /** 버튼 줄. **패 아래입니다** — 패와 겹치면 카드를 고를 수가 없습니다. */
 const BUTTON_Y = 742
@@ -57,12 +58,17 @@ const SHOP_CARD_Y = 276
 const SHOP_PACK_Y = 452
 const SHOP_VOUCHER_Y = 544
 
+/** 고른 카드에 도는 빛의 색. 셰이더가 0..1 로 받습니다. */
+const PICK_TINT: [number, number, number] = [0.45, 1.0, 0.68]
+
 const DECK_X = SIZE.width - 76
 const DECK_Y = 646
 
 export class Game {
   private readonly world = new Container()
   private readonly backdrop = new Container()
+  /** 배경을 칠하는 흰 판. 창 크기를 그대로 받습니다. */
+  private readonly sheet = new Sprite(Texture.WHITE)
   private readonly board = new Container()
   private readonly overlay = new Container()
 
@@ -72,6 +78,7 @@ export class Game {
   private readonly player: TimelinePlayer
   private readonly background = new BackgroundFilter()
   private readonly particles = new Particles()
+  private readonly coins = new Coins()
   private readonly punch = new PunchFilter(SIZE.width, SIZE.height)
   private readonly tooltip = new Tooltip()
 
@@ -94,6 +101,17 @@ export class Game {
   })
   private readonly gauge = new Graphics()
   private readonly frames = new Graphics()
+  /** 패널 위에 얹는 빛. `panelGlow` 가 세기입니다. */
+  private readonly panelFlash = new Graphics()
+  /** 화면 전체에 얹는 빛. */
+  private readonly screenFlash = new Graphics()
+  /** 몇 장 골랐는가. **다섯 칸이 채워지는 것이 보여야 몇 장 더인지 압니다.** */
+  private readonly pips = new Graphics()
+  /** 조커 줄이 비었을 때의 안내. */
+  private readonly jokerHint = new Text({
+    text: '상점에서 조커를 사서 이 자리에 세웁니다',
+    style: { fontSize: 11, fill: 0x74829a, fontWeight: '700' },
+  })
   private readonly jokerCount = new Text({
     text: '', style: { fontSize: 11, fill: COLOR.inkDim, fontWeight: '700' },
   })
@@ -124,7 +142,7 @@ export class Game {
   private readonly hint = new Text({
     text: '',
     style: {
-      fontSize: 13, fill: 0xa9c6b3, fontWeight: '700', lineHeight: 19,
+      fontSize: 13, fill: 0xb4c4dc, fontWeight: '700', lineHeight: 19,
       wordWrap: true, wordWrapWidth: PANEL_W - 12,
     },
   })
@@ -146,8 +164,29 @@ export class Game {
   private handListOpen = false
   /** 끝났을 때 덮는 판. */
   private readonly gameOver = new Container()
+  private wasBusy = false
+  private gameOverShown = false
+  private gameOverPop = 0
+  private gameOverBoard?: Container
 
   private shake = 0
+  /**
+   * 히트스톱. **때린 순간 시간이 잠깐 멈추면 그 한 방이 무거워집니다.**
+   *
+   * 멈추는 것은 연출의 시계뿐입니다 — 용수철과 파티클은 계속 움직여야 화면이 얼어붙은 것처럼
+   * 보이지 않습니다.
+   */
+  private freeze = 0
+  /** 이번 득점에서 몇 번째 사건인가. 소리의 음과 세기가 이것으로 올라갑니다. */
+  private chain = 0
+  /** 왼쪽 패널의 번쩍임. 숫자가 바뀌는 자리를 파티클 대신 이것이 알립니다. */
+  private panelGlow = 0
+  private panelTint: number = COLOR.ink
+  /** 화면 전체의 번쩍임. 큰 것에만 씁니다. */
+  private screenGlow = 0
+  private panelDrawn = false
+  private screenDrawn = false
+  private screenTint: number = COLOR.ink
   /** 점수가 멈춘 뒤 낸 카드를 얼마나 붙잡아 두었는가. */
   private holdAfterScore = 0
   private liveChips = 0
@@ -164,28 +203,35 @@ export class Game {
     this.player = new TimelinePlayer(beat => this.showBeat(beat))
 
     // 배경은 흰 스프라이트 한 장에 셰이더를 얹은 것입니다.
-    const sheet = new Sprite(Texture.WHITE)
-    sheet.width = SIZE.width
-    sheet.height = SIZE.height
-    sheet.filters = [this.background]
-    this.backdrop.addChild(sheet)
+    this.sheet.filters = [this.background]
+    this.backdrop.addChild(this.sheet)
 
-    app.stage.addChild(this.world)
-    this.world.addChild(this.backdrop, this.board, this.particles, this.overlay, this.tooltip)
+    // **배경은 세계 밖에 있습니다.** 판은 기준 해상도에 맞춰 가운데에 놓이므로 창의 비율이
+    // 다르면 옆이나 아래가 남습니다 — 그 자리를 검정으로 두지 않고 배경이 창 전체를 덮습니다.
+    app.stage.addChild(this.backdrop, this.world)
+    this.world.addChild(this.board, this.particles, this.overlay,
+      this.coins, this.screenFlash, this.tooltip)
+
+    // 동전이 꽂힐 때마다 금액 칸이 튀고 음이 하나 올라갑니다.
+    this.coins.onLand = (index, gain) => {
+      this.audio.play(gain ? 'coin_land' : 'coin_lose', index * 2)
+      this.money.target = this.state.money
+      if (gain) this.flashPanel(COLOR.money, 0.5)
+    }
     this.board.sortableChildren = true
 
     this.buildPanel()
 
-    this.playButton = new Button('낸다', 128, 46, 0x2f7a52, () => this.play())
-    this.discardButton = new Button('버린다', 128, 46, 0x8a4632, () => this.discard())
-    this.primaryButton = new Button('이 블라인드로', 210, 50, 0x2f7a52, () => this.primary())
-    this.skipButton = new Button('건너뛴다', 150, 38, 0x3f4560,
+    this.playButton = new Button('낸다', 128, 46, 0x2f6fb5, () => this.play())
+    this.discardButton = new Button('버린다', 128, 46, 0xa63f3f, () => this.discard())
+    this.primaryButton = new Button('이 블라인드로', 210, 50, 0x2f6fb5, () => this.primary())
+    this.skipButton = new Button('건너뛴다', 150, 38, 0x4a5568,
       () => this.act({ t: 'skip_blind' }))
-    this.rerollButton = new Button('리롤', 128, 44, 0x3a4c6b, () => this.reroll())
-    this.sortRankButton = new Button('랭크순', 92, 32, 0x24402f, () => this.sortHand('rank'))
-    this.sortSuitButton = new Button('무늬순', 92, 32, 0x24402f, () => this.sortHand('suit'))
-    this.infoButton = new Button('족보 목록', 118, 34, 0x2a3550, () => this.toggleHandList())
-    this.guideButton = new Button('게임 방법', 118, 34, 0x2a3550, () => this.guide.open())
+    this.rerollButton = new Button('리롤', 128, 44, 0x3f5f8f, () => this.reroll())
+    this.sortRankButton = new Button('랭크순', 92, 32, 0x333e4e, () => this.sortHand('rank'))
+    this.sortSuitButton = new Button('무늬순', 92, 32, 0x333e4e, () => this.sortHand('suit'))
+    this.infoButton = new Button('족보 목록', 118, 34, 0x3a4658, () => this.toggleHandList())
+    this.guideButton = new Button('게임 방법', 118, 34, 0x3a4658, () => this.guide.open())
 
     this.overlay.addChild(this.playButton, this.discardButton, this.primaryButton,
       this.skipButton, this.rerollButton, this.shopLayer, this.packLayer,
@@ -234,7 +280,7 @@ export class Game {
   // ---------------------------------------------------------------- 뼈대
 
   private buildPanel(): void {
-    const panel = new Panel(PANEL_W + 24, SIZE.height - 44, 0x081410)
+    const panel = new Panel(PANEL_W + 24, SIZE.height - 44, 0x141b26)
     panel.position.set(LEFT - 12, 22)
     this.board.addChild(panel, this.frames)
 
@@ -255,7 +301,7 @@ export class Game {
       this.hands, this.discards, this.money, this.anteSlot)
 
     this.headline.anchor.set(0.5, 0)
-    this.headline.position.set(BOARD_X, 244)
+    this.headline.position.set(BOARD_X, 206)
 
     this.jokerCount.anchor.set(0.5, 1)
     this.jokerCount.position.set(
@@ -275,14 +321,19 @@ export class Game {
         .fill(COLOR.cardBack)
       pile.roundRect(DECK_X - SIZE.cardWidth / 2 + i * 2, DECK_Y - SIZE.cardHeight / 2 - i * 3,
         SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius)
-        .stroke({ color: 0x2f7a52, width: 1.5 })
+        .stroke({ color: COLOR.cardBackEdge, width: 1.5 })
     }
 
     // 지시문은 패널의 빈 자리에 둡니다. **눈이 마지막으로 머무는 곳이 여기입니다.**
     this.hint.position.set(LEFT + 2, 640)
 
+    this.jokerHint.anchor.set(0.5, 0)
+    this.jokerHint.position.set(JOKER_X + (SIZE.jokerWidth + 12) * 2,
+      JOKER_Y + SIZE.jokerHeight / 2 + 10)
+
     this.board.addChild(pile, this.headline, this.gauge, this.jokerCount,
-      this.consumableCount, this.deckLabel, this.consumableLayer, this.hint)
+      this.consumableCount, this.deckLabel, this.consumableLayer, this.hint,
+      this.jokerHint, this.pips, this.panelFlash)
   }
 
   /** 조커와 소모품의 빈 자리. **비어 있어도 자리가 보여야 무엇을 모으는 게임인지 압니다.** */
@@ -294,7 +345,7 @@ export class Game {
       const x = JOKER_X + i * (SIZE.jokerWidth + 12)
       g.roundRect(x - SIZE.jokerWidth / 2, JOKER_Y - SIZE.jokerHeight / 2,
         SIZE.jokerWidth, SIZE.jokerHeight, 9)
-        .fill({ color: 0x08130e, alpha: 0.55 })
+        .fill({ color: 0x161d29, alpha: 0.6 })
       g.roundRect(x - SIZE.jokerWidth / 2, JOKER_Y - SIZE.jokerHeight / 2,
         SIZE.jokerWidth, SIZE.jokerHeight, 9)
         .stroke({ color: COLOR.panelEdge, width: 1.5, alpha: 0.8 })
@@ -304,19 +355,24 @@ export class Game {
       const x = CONSUMABLE_X + i * (SIZE.jokerWidth + 12)
       g.roundRect(x - SIZE.jokerWidth / 2, JOKER_Y - SIZE.jokerHeight / 2,
         SIZE.jokerWidth, SIZE.jokerHeight, 9)
-        .fill({ color: 0x140f22, alpha: 0.55 })
+        .fill({ color: 0x1d1a2c, alpha: 0.6 })
       g.roundRect(x - SIZE.jokerWidth / 2, JOKER_Y - SIZE.jokerHeight / 2,
         SIZE.jokerWidth, SIZE.jokerHeight, 9)
-        .stroke({ color: 0x4a3f6b, width: 1.5, alpha: 0.9 })
+        .stroke({ color: 0x5a4d80, width: 1.5, alpha: 0.9 })
     }
   }
 
   layout(width: number, height: number): void {
     const scale = Math.min(width / SIZE.width, height / SIZE.height)
     this.world.scale.set(scale)
+    // 자리를 정수로 맞춥니다. 반 픽셀이 남으면 글씨가 흐려집니다.
     this.world.position.set(
-      (width - SIZE.width * scale) / 2, (height - SIZE.height * scale) / 2)
-    this.background.setAspect(SIZE.width / SIZE.height)
+      Math.round((width - SIZE.width * scale) / 2),
+      Math.round((height - SIZE.height * scale) / 2))
+
+    this.sheet.width = width
+    this.sheet.height = height
+    this.background.setAspect(width / Math.max(1, height))
     this.sharpen(scale)
   }
 
@@ -424,6 +480,7 @@ export class Game {
       view.eventMode = 'none'
       view.hovered = false
       view.selected = false
+      view.setPick(0, PICK_TINT)
       view.idle = 0.4
       view.place(startX + index * spacing, PLAY_Y, 0)
       view.zIndex = 100 + index
@@ -476,35 +533,59 @@ export class Game {
       case 'CardScored': {
         this.liveChips += event.chips
         const view = this.viewOf(event.uid)
+        // 카드가 차례로 득점할수록 세집니다. **뒤로 갈수록 커지는 것이 기대를 만듭니다.**
+        const step = Math.min(1, this.chain / 5)
+        this.chain++
         if (view) {
-          view.pop(0.6 + beat.intensity)
-          this.particles.burst(view.x, view.y - 40, 4 + dust, COLOR.chips, 0.6 + beat.intensity)
+          view.pop(0.8 + beat.intensity + step * 0.5)
+          this.particles.burst(view.x, view.y - 30, 14 + dust * 3, COLOR.chips,
+            1.1 + beat.intensity + step)
         }
-        this.popAt(view, `+${event.chips}`, COLOR.chips, beat.intensity)
-        this.audio.play('card_chip', semitones)
-        this.jolt(1.6 + beat.intensity * 4, 0.3 + beat.intensity)
+        this.popAt(view, `+${event.chips}`, COLOR.chips, beat.intensity + step * 0.4)
+        this.audio.play('card_chip', semitones + this.chain * 2)
+        this.jolt(3 + beat.intensity * 5 + step * 4, 0.6 + beat.intensity + step,
+          0.16 + step * 0.16)
+        this.flashPanel(COLOR.chips, 0.4 + step * 0.3)
+        this.stop(28 + step * 26)
         break
       }
 
       case 'JokerTriggered': {
         const view = this.jokers.get(this.jokerUidAt(event.slot))
         const mul = event.op === 'MulMult'
-        const cue = mul ? 'joker_mul' : event.op === 'AddMoney' ? 'joker_money' : 'joker_add'
+        const money = event.op === 'AddMoney'
+        const cue = mul ? 'joker_mul' : money ? 'joker_money' : 'joker_add'
         const text = mul ? `×${(event.mult / 10_000).toFixed(2)}`
           : event.chips !== 0 ? `+${event.chips}`
             : event.mult !== 0 ? `+${(event.mult / 10_000).toFixed(0)}`
               : `$${event.money}`
+        const tint = mul || event.chips === 0 ? COLOR.mult : COLOR.chips
 
+        this.chain++
         if (view) {
-          view.pop(mul ? 1.2 : 0.8)
-          this.particles.burst(view.x, view.y, 6 + dust,
-            mul ? COLOR.mult : event.chips !== 0 ? COLOR.chips : COLOR.money, 1)
+          view.pop(mul ? 1.6 : 1.1)
+          this.particles.burst(view.x, view.y, 18 + dust * 3,
+            mul ? COLOR.mult : event.chips !== 0 ? COLOR.chips : COLOR.money,
+            1.4 + (mul ? 0.8 : 0))
         }
-        this.popAt(view, text, mul || event.chips === 0 ? COLOR.mult : COLOR.chips,
-          beat.intensity + (mul ? 0.3 : 0))
-        this.audio.play(cue, semitones)
-        this.jolt(mul ? 7 + beat.intensity * 8 : 3 + beat.intensity * 5,
-          mul ? 1.2 + beat.intensity : 0.5 + beat.intensity)
+        this.popAt(view, text, tint, beat.intensity + (mul ? 0.6 : 0.2))
+        this.audio.play(cue, semitones + this.chain)
+
+        // **배수를 곱하는 것이 이 게임에서 가장 큰 사건입니다.** 그 하나만 크게 다룹니다.
+        if (mul) {
+          this.jolt(12 + beat.intensity * 10, 2 + beat.intensity * 2, 0.62)
+          this.flashScreen(COLOR.mult, 0.2 + beat.intensity * 0.16)
+          this.flashPanel(COLOR.mult, 1)
+          this.stop(120)
+        } else {
+          this.jolt(5 + beat.intensity * 6, 0.8 + beat.intensity, 0.24)
+          this.flashPanel(tint, 0.6)
+          this.stop(48)
+        }
+
+        if (money && event.money !== 0 && view) {
+          this.coins.fly(event.money, { x: view.x, y: view.y }, this.moneySpot())
+        }
         break
       }
 
@@ -517,40 +598,83 @@ export class Game {
 
       case 'Retriggered': {
         const view = this.viewOf(event.uid)
-        if (view) view.pop(0.9)
-        this.popAt(view, '다시', COLOR.good, beat.intensity)
-        this.audio.play('retrigger', semitones)
-        this.jolt(3, 0.6)
+        this.chain++
+        if (view) {
+          view.pop(1.2)
+          this.particles.burst(view.x, view.y, 12, COLOR.good, 1.2)
+        }
+        this.popAt(view, '다시', COLOR.good, beat.intensity + 0.3)
+        this.audio.play('retrigger', semitones + this.chain * 2)
+        this.jolt(5, 0.9, 0.2)
+        this.flashPanel(COLOR.good, 0.5)
+        this.stop(40)
+        break
+      }
+
+      case 'MoneyChanged': {
+        if (event.delta === 0) break
+        const spot = this.moneySpot()
+        const from = this.state.phase === 'shop' && event.reason === 'shop'
+          ? { x: BOARD_X, y: SHOP_CARD_Y + 81 }
+          : { x: BOARD_X, y: PLAY_Y }
+        this.coins.fly(event.delta, from, spot)
+        this.flashPanel(event.delta > 0 ? COLOR.money : COLOR.bad, 0.7)
+        this.audio.play(event.delta > 0 ? 'joker_money' : 'shop_reroll')
+        if (event.delta > 0) this.jolt(3, 0.6, 0.18)
+
+        // **무엇으로 번 돈인가**를 적습니다. 합계만 굴러가면 이유를 알 수 없습니다.
+        const why = moneyReason(event.reason)
+        if (why) {
+          this.popAt(this.moneyLabelAnchor(), `${why}  ${event.delta > 0 ? '+' : ''}$${event.delta}`,
+            event.delta > 0 ? COLOR.money : COLOR.bad, 0.3)
+        }
         break
       }
 
       case 'ScoreResolved':
         this.score.target = Number(event.score)
         this.audio.play('score_settle', semitones)
-        this.jolt(6 + shakeOf(beat.intensity, this.feel), 1.4 + beat.intensity * 1.6)
-        this.particles.burst(LEFT + PANEL_W / 2, 250, 16 + dust * 2, COLOR.ink,
-          1.2 + beat.intensity)
-        this.particles.burst(BOARD_X, PLAY_Y, 12 + dust, COLOR.mult, 1 + beat.intensity)
+
+        // **마지막 한 방이 앞의 것들보다 확실히 커야 합니다.** 그것이 없으면 득점이
+        // 어디서 끝났는지 읽히지 않습니다.
+        this.jolt(14 + shakeOf(beat.intensity, this.feel), 2.4 + beat.intensity * 2, 0.9)
+        this.flashScreen(COLOR.ink, 0.26 + beat.intensity * 0.2)
+        this.flashPanel(COLOR.ink, 1)
+        this.stop(150)
+
+        // 낸 카드가 멈춘 자리에서 크게 터집니다.
+        this.burstAcrossPlayArea(26 + dust * 4, COLOR.mult, 1.8 + beat.intensity)
+        this.chain = 0
         break
 
       case 'BlindCleared':
         this.headline.text = '넘겼습니다'
         this.audio.play('blind_clear')
-        this.particles.burst(BOARD_X, PLAY_Y, 48, COLOR.good, 1.6)
-        this.jolt(10, 2)
+        this.burstAcrossPlayArea(40, COLOR.good, 2.2)
+        this.particles.burst(BOARD_X, PLAY_Y - 60, 60, COLOR.money, 2.4, 2.4)
+        this.jolt(20, 3.2, 1)
+        this.flashScreen(COLOR.good, 0.4)
+        this.stop(200)
         this.liveChips = 0
         this.liveMult = 10_000
+        this.chain = 0
         break
 
       case 'RunLost':
-        this.headline.text = '여기까지입니다'
-        this.audio.play('run_lose')
+        this.headline.text = '점수가 모자랍니다'
+        this.audio.play('blind_fail')
+        this.jolt(9, 1.6, 0.5)
+        this.flashScreen(COLOR.bad, 0.2)
+        this.stop(160)
         break
 
       case 'RunWon':
-        this.headline.text = '끝까지 갔습니다'
-        this.audio.play('run_win')
-        this.particles.burst(BOARD_X, SIZE.height / 2, 80, COLOR.money, 2)
+        this.headline.text = '전부 넘겼습니다'
+        this.audio.play('blind_clear')
+        this.particles.burst(BOARD_X, SIZE.height / 2, 120, COLOR.money, 2.6)
+        this.jolt(22, 3.4, 1)
+        this.flashScreen(COLOR.money, 0.44)
+        this.stop(220)
         break
 
       default:
@@ -564,9 +688,75 @@ export class Game {
   }
 
   /** 한 방. 흔들림과 색수차를 함께 겁니다. */
-  private jolt(shake: number, chroma: number): void {
+  /**
+   * 패널을 번쩍입니다.
+   *
+   * **왼쪽의 숫자들이 바뀌는 자리를 파티클로 알리면 숫자를 가립니다.** 패널 자체가 빛나면
+   * 무엇이 바뀌었는지가 가려지지 않고 눈에 들어옵니다.
+   */
+  /** 금액이 왜 바뀌었는지를 띄울 자리. 판 가운데입니다. */
+  private moneyLabelAnchor(): Container {
+    const anchor = new Container()
+    // 낸 카드 아래입니다. **카드 위에 겹치면 흰 종이에 흰 글씨가 됩니다.**
+    anchor.position.set(BOARD_X, PLAY_Y + 200)
+    return anchor
+  }
+
+  /** 금액 칸의 가운데. 동전이 여기로 꽂힙니다. */
+  private moneySpot(): { x: number; y: number } {
+    return { x: this.money.x + 62, y: this.money.y + 26 }
+  }
+
+  /** 낸 카드가 늘어선 폭 전체에서 터뜨립니다. 한 점에서 터지면 찔끔 나온 것으로 보입니다. */
+  private burstAcrossPlayArea(perCard: number, tint: number, power: number,
+                              linger = 1.9): void {
+    if (this.playedViews.length === 0) {
+      this.particles.burst(BOARD_X, PLAY_Y, perCard * 3, tint, power, linger)
+      return
+    }
+    for (const view of this.playedViews) {
+      this.particles.burst(view.x, view.y, perCard, tint, power, linger)
+      this.particles.burst(view.x, view.y - 40, Math.round(perCard * 0.6),
+        COLOR.chips, power * 0.8, linger)
+    }
+  }
+
+  private flashPanel(tint: number, strength: number): void {
+    this.panelTint = tint
+    this.panelGlow = Math.min(1, Math.max(this.panelGlow, strength))
+  }
+
+  /** 화면 전체를 번쩍입니다. **큰 것에만 씁니다** — 잦으면 눈이 아픕니다. */
+  private flashScreen(tint: number, strength: number): void {
+    this.screenTint = tint
+    this.screenGlow = Math.min(0.72, Math.max(this.screenGlow, strength))
+  }
+
+  /** 때린 순간 연출의 시계를 잠깐 멈춥니다. 그 한 방이 무거워집니다. */
+  private stop(ms: number): void {
+    this.freeze = Math.max(this.freeze, ms)
+  }
+
+  /**
+   * 한 방.
+   *
+   * **채널을 한꺼번에 씁니다** — 흔들림 · 색수차 · 배경의 번쩍임. 하나만 쓰면 「움직였다」로
+   * 읽히고, 셋이 같이 오면 「맞았다」로 읽힙니다.
+   */
+  /**
+   * 연출이 다 끝났는가.
+   *
+   * **국면이 바뀌었어도 앞 국면의 연출이 돌고 있으면 화면을 갈지 않습니다.** 낸 카드가 아직
+   * 판에 있는데 상점이 그 위에 그려지면 무엇을 보고 있는지 알 수 없습니다.
+   */
+  private get presented(): boolean {
+    return !this.player.busy && this.playedViews.length === 0 && !this.coins.busy
+  }
+
+  private jolt(shake: number, chroma: number, pulse = 0): void {
     this.shake = Math.max(this.shake, shake)
     this.punch.hit(Math.min(chroma, this.feel.chromaticMaxPx * 2))
+    if (pulse > 0) this.background.pulse(pulse)
   }
 
   private popAt(target: Container | undefined, text: string, tint: number,
@@ -575,7 +765,7 @@ export class Game {
       text,
       style: {
         fontSize: 20 + intensity * 16, fill: tint, fontWeight: '800',
-        stroke: { color: 0x06100b, width: 4 },
+        stroke: { color: 0x0a0f18, width: 4 },
       },
     })
     label.anchor.set(0.5, 1)
@@ -637,8 +827,14 @@ export class Game {
     const seconds = deltaMs / 1000
     this.clock += seconds
 
-    this.player.advance(deltaMs)
+    // **히트스톱.** 연출의 시계만 멈춥니다 — 용수철과 파티클은 계속 움직여야 화면이
+    // 얼어붙은 것으로 보이지 않습니다.
+    if (this.freeze > 0) this.freeze = Math.max(0, this.freeze - deltaMs)
+    else this.player.advance(deltaMs)
     this.publishPeek()
+
+    this.coins.advance(seconds)
+    this.decayFlashes(seconds)
 
     this.background.advance(seconds)
     this.punch.advance(seconds)
@@ -672,6 +868,21 @@ export class Game {
       view.advance(seconds, this.clock)
     }
 
+    // 연출이 끝난 순간에 한 번 다시 그립니다. **그때가 다음 국면의 화면을 띄울 때입니다.**
+    const busyNow = !this.presented
+    if (this.wasBusy && !busyNow) this.refresh()
+    this.wasBusy = busyNow
+
+    this.advanceGameOver(seconds)
+
+    // **끝났다는 판은 연출이 다 끝난 뒤에 띄웁니다.** 마지막 카드의 결과를 보기 전에 덮이면
+    // 무엇 때문에 끝난 것인지 알 수 없습니다.
+    const finished = this.state.phase === 'lost' || this.state.phase === 'won'
+    if (finished && !this.gameOverShown
+        && !this.player.busy && this.score.settled && !this.coins.busy) {
+      this.drawGameOver()
+    }
+
     this.gauge.visible = this.state.phase === 'round'
     if (this.gauge.visible) this.drawGauge()
 
@@ -696,7 +907,7 @@ export class Game {
       // 무엇을 냈고 얼마가 되었는지가 보입니다.
       if (this.playedViews.length > 0 && this.score.settled) {
         this.holdAfterScore += deltaMs
-        if (this.holdAfterScore > 700 && !this.playedViews[0].retiring) {
+        if (this.holdAfterScore > 1_100 && !this.playedViews[0].retiring) {
           this.clearPlayArea()
         }
       } else {
@@ -706,6 +917,34 @@ export class Game {
         this.chips.target = 0
         this.mult.target = 0
       }
+    }
+  }
+
+  /** 번쩍임은 줄어듭니다. 패널은 빠르게, 화면은 더 빠르게 — 오래 남으면 눈이 아픕니다. */
+  private decayFlashes(seconds: number): void {
+    if (this.panelGlow > 0.002) {
+      this.panelGlow = Math.max(0, this.panelGlow - seconds * 3.6)
+      const ease = this.panelGlow * this.panelGlow
+      this.panelFlash.clear()
+      this.panelFlash.roundRect(LEFT - 12, 22, PANEL_W + 24, SIZE.height - 44, 12)
+        .fill({ color: this.panelTint, alpha: ease * 0.3 })
+      this.panelFlash.roundRect(LEFT - 11, 23, PANEL_W + 22, SIZE.height - 46, 11)
+        .stroke({ color: this.panelTint, width: 1 + ease * 4, alpha: ease })
+      this.panelDrawn = true
+    } else if (this.panelDrawn) {
+      this.panelFlash.clear()
+      this.panelDrawn = false
+    }
+
+    if (this.screenGlow > 0.002) {
+      this.screenGlow = Math.max(0, this.screenGlow - seconds * 4.4)
+      this.screenFlash.clear()
+      this.screenFlash.rect(-2000, -2000, SIZE.width + 4000, SIZE.height + 4000)
+        .fill({ color: this.screenTint, alpha: this.screenGlow * this.screenGlow })
+      this.screenDrawn = true
+    } else if (this.screenDrawn) {
+      this.screenFlash.clear()
+      this.screenDrawn = false
     }
   }
 
@@ -760,7 +999,7 @@ export class Game {
 
   private drawGauge(): void {
     const x = BOARD_X - 220
-    const y = 276
+    const y = 240
     const width = 440
     const height = 12
 
@@ -768,7 +1007,7 @@ export class Game {
     const ratio = this.state.target > 0
       ? Number(this.state.score) / Number(this.state.target) : 0
 
-    this.gauge.roundRect(x, y, width, height, 6).fill(0x0a1811)
+    this.gauge.roundRect(x, y, width, height, 6).fill(0x101724)
     this.gauge.roundRect(x, y, width * Math.min(1, ratio), height, 6)
       .fill(ratio >= 1 ? COLOR.good : COLOR.chips)
     this.gauge.roundRect(x - 0.5, y - 0.5, width + 1, height + 1, 6)
@@ -782,8 +1021,9 @@ export class Game {
       money: state.money, score: Number(state.score), target: Number(state.target),
       jokers: state.jokers.length, discards: state.discardsLeft,
       packOpen: state.pack !== null, packs: state.shop.packs.length,
+      played: this.playedViews.length, coins: this.coins.busy,
       consumables: state.consumables.length,
-      busy: this.player.busy || !this.score.settled,
+      busy: this.player.busy || !this.score.settled || this.coins.busy,
       hand: state.hand.map(uid => {
         const card = state.deck.find(entry => entry.uid === uid)
         return { rank: card?.rank ?? 0, suit: card?.suit ?? 0 }
@@ -825,9 +1065,43 @@ export class Game {
     this.syncMood()
     this.drawPreview()
     this.drawHandList()
-    this.drawGameOver()
+    // 다시 시작하면 판을 걷습니다. **띄우는 것은 `tick` 이 합니다** — 연출이 끝난 뒤여야
+    // 하기 때문입니다.
+    if (this.state.phase !== 'lost' && this.state.phase !== 'won') this.drawGameOver()
     this.hint.text = this.hintText()
+    this.jokerHint.visible = this.state.jokers.length === 0
+      && (this.state.phase === 'round' || this.state.phase === 'blind-select')
+    this.drawPips()
     this.sharpen(this.world.scale.x)
+  }
+
+  /**
+   * 몇 장 골랐는가.
+   *
+   * **「최대 5장」 이라고 적어 두는 것으로는 부족합니다** — 칸 다섯이 채워지는 것이 보여야
+   * 몇 장 더 고를 수 있는지가 세지 않고 읽힙니다.
+   */
+  private drawPips(): void {
+    const g = this.pips
+    g.clear()
+    g.visible = this.state.phase === 'round'
+    if (!g.visible) return
+
+    const max = this.data.run.maxPlayedCards
+    const filled = this.selected.size
+    const gap = 26
+    // 버튼 줄의 오른쪽입니다. **손패 위에 두면 족보 미리보기가 덮습니다.**
+    const startX = BOARD_X + 196
+    const y = BUTTON_Y + 23
+
+    for (let i = 0; i < max; i++) {
+      const x = startX + i * gap
+      const on = i < filled
+      g.roundRect(x - 9, y - 5, 18, 10, 5)
+        .fill({ color: on ? COLOR.good : 0x1c2431, alpha: on ? 1 : 0.9 })
+      g.roundRect(x - 9, y - 5, 18, 10, 5)
+        .stroke({ color: on ? 0xcdf5de : 0x4a5666, width: on ? 2 : 1.4 })
+    }
   }
 
   /** 지금 국면에서 다음에 할 것. */
@@ -840,9 +1114,11 @@ export class Game {
           : '「이 블라인드로」 를 누르면 판이 시작됩니다. 「건너뛴다」 는 태그를 받고 넘깁니다.'
       case 'round':
         if (this.selected.size === 0) {
-          return `패에서 카드를 눌러 최대 5장까지 고릅니다. 남은 핸드 ${state.handsLeft}회.`
+          return `패에서 카드를 눌러 고릅니다 — 최대 ${this.data.run.maxPlayedCards}장.`
+            + ` 남은 핸드 ${state.handsLeft}회.`
         }
-        return '「낸다」 로 점수를 내거나, 「버린다」 로 고른 카드를 바꿉니다.'
+        return `${this.selected.size}장 골랐습니다. 「낸다」 로 점수를 내거나,`
+          + ' 「버린다」 로 고른 것을 바꿉니다.'
       case 'shop':
         if (state.pack) {
           return `펼쳐진 것 중에서 ${state.pack.picksLeft}장을 고릅니다. 마음에 안 들면 건너뜁니다.`
@@ -899,7 +1175,7 @@ export class Game {
     const height = 60 + rows.length * 30
 
     const plate = new Graphics()
-    plate.roundRect(0, 0, width, height, 12).fill({ color: 0x07120d, alpha: 0.97 })
+    plate.roundRect(0, 0, width, height, 12).fill({ color: 0x131a25, alpha: 0.97 })
     plate.roundRect(0.5, 0.5, width - 1, height - 1, 12)
       .stroke({ color: COLOR.panelEdge, width: 2 })
     this.handList.addChild(plate)
@@ -965,54 +1241,132 @@ export class Game {
    */
   private drawGameOver(): void {
     const done = this.state.phase === 'lost' || this.state.phase === 'won'
-    this.gameOver.removeChildren().forEach(child => child.destroy())
-    this.gameOver.visible = done
-    if (!done) return
+    if (!done) {
+      this.gameOver.removeChildren().forEach(child => child.destroy())
+      this.gameOver.visible = false
+      this.gameOverShown = false
+      return
+    }
+
+    // **연출이 끝나기 전에는 띄우지 않습니다.** 마지막 카드를 낸 결과를 보기도 전에 판이
+    // 덮이면 무엇 때문에 끝난 것인지 알 수 없습니다. `tick` 이 조건을 보고 부릅니다.
+    if (this.gameOverShown) return
+    this.gameOverShown = true
+    this.gameOverPop = 1
 
     const won = this.state.phase === 'won'
+    this.gameOver.removeChildren().forEach(child => child.destroy())
+    this.gameOver.visible = true
+
     const veil = new Graphics()
-    veil.rect(0, 0, SIZE.width, SIZE.height).fill({ color: 0x04090a, alpha: 0.82 })
+    veil.rect(-2000, -2000, SIZE.width + 4000, SIZE.height + 4000)
+      .fill({ color: 0x070a10, alpha: 0.82 })
     this.gameOver.addChild(veil)
 
+    const board = new Container()
+    const width = 480
+    const height = 352
+
     const plate = new Graphics()
-    plate.roundRect(0, 0, 460, 300, 16).fill(won ? 0x123324 : 0x2a1218)
-    plate.roundRect(0.5, 0.5, 459, 299, 16)
+    plate.roundRect(-width / 2, -height / 2, width, height, 16)
+      .fill(won ? 0x1d2c22 : 0x2c1a22)
+    plate.roundRect(-width / 2 + 0.5, -height / 2 + 0.5, width - 1, height - 1, 16)
       .stroke({ color: won ? COLOR.good : COLOR.bad, width: 2.5 })
-    plate.position.set(SIZE.width / 2 - 230, SIZE.height / 2 - 150)
-    this.gameOver.addChild(plate)
+    board.addChild(plate)
 
     const title = new Text({
-      text: won ? '끝까지 갔습니다' : '여기까지입니다',
-      style: { fontSize: 30, fill: COLOR.ink, fontWeight: '800' },
+      text: won ? '승리' : '패배',
+      style: {
+        fontSize: 52, fill: won ? COLOR.good : COLOR.bad, fontWeight: '800',
+        stroke: { color: 0x0a0f18, width: 6 },
+      },
     })
-    title.anchor.set(0.5, 0)
-    title.position.set(SIZE.width / 2, SIZE.height / 2 - 118)
+    title.anchor.set(0.5)
+    title.position.set(0, -height / 2 + 62)
+
+    const lead = new Text({
+      text: this.endLine(won),
+      style: {
+        fontSize: 15, fill: COLOR.ink, fontWeight: '700',
+        wordWrap: true, wordWrapWidth: width - 60, align: 'center',
+      },
+    })
+    lead.anchor.set(0.5, 0)
+    lead.position.set(0, -height / 2 + 100)
 
     const lines = [
       `안테  ${this.state.ante} / ${this.data.run.winAnte}`,
-      `이번 런에 낸 핸드  ${this.state.handsPlayedThisRun}`,
+      `낸 핸드  ${this.state.handsPlayedThisRun}`,
       `모은 조커  ${this.state.jokers.length}`,
       `시드  ${this.state.seed}`,
     ]
     const body = new Text({
       text: lines.join('\n'),
-      style: { fontSize: 15, fill: 0xcfe3d6, lineHeight: 26, align: 'center' },
+      style: { fontSize: 14, fill: 0xd2dcea, lineHeight: 24, align: 'center' },
     })
     body.anchor.set(0.5, 0)
-    body.position.set(SIZE.width / 2, SIZE.height / 2 - 62)
+    body.position.set(0, -height / 2 + 150)
 
-    const again = new Button('다시 시작', 200, 52, won ? 0x2f7a52 : 0x8a4632, () => {
+    const again = new Button('다시 시작', 200, 52, won ? 0x2f7a52 : 0xa63f3f, () => {
       const seed = `CLOVER-${Math.floor(Math.random() * 1e6).toString().padStart(6, '0')}`
       location.href = `${location.pathname}?seed=${seed}`
     })
-    again.position.set(SIZE.width / 2 - 100, SIZE.height / 2 + 68)
+    again.position.set(-100, height / 2 - 76)
 
-    this.gameOver.addChild(title, body, again)
+    board.addChild(title, lead, body, again)
+    board.position.set(SIZE.width / 2, SIZE.height / 2)
+    this.gameOver.addChild(board)
+    this.gameOverBoard = board
     this.gameOver.zIndex = 10_000
+
+    // 럼블. **판이 그냥 나타나면 아무 무게가 없습니다.**
+    this.audio.play(won ? 'run_win' : 'run_lose')
+    this.jolt(won ? 22 : 16, won ? 3.4 : 2.6, 1)
+    this.flashScreen(won ? COLOR.money : COLOR.bad, won ? 0.5 : 0.34)
+    if (won) this.particles.burst(SIZE.width / 2, SIZE.height / 2, 90, COLOR.money, 2.6)
+  }
+
+  /** 왜 끝났는가. **숫자가 있어야 다음 판에 무엇을 다르게 할지 압니다.** */
+  private endLine(won: boolean): string {
+    if (won) return `안테 ${this.data.run.winAnte}까지 넘겼습니다.`
+    const short = Number(this.state.target) - Number(this.state.score)
+    const where = `안테 ${this.state.ante} · ${blindName(this.state.blind)} 블라인드`
+    return short > 0
+      ? `${where}에서 ${short.toLocaleString('en-US')}점이 모자랐습니다.`
+      : `${where}에서 멈췄습니다.`
+  }
+
+  /** 럼블. 크기가 넘쳤다가 잦아들고, 그동안 판이 조금씩 떱니다. */
+  private advanceGameOver(seconds: number): void {
+    const board = this.gameOverBoard
+    if (!board || this.gameOverPop <= 0) return
+
+    this.gameOverPop = Math.max(0, this.gameOverPop - seconds / 0.62)
+    const t = 1 - this.gameOverPop
+    // 0.45 에서 1.16 을 지나 1 로.
+    const scale = t < 0.42
+      ? 0.45 + (1.16 - 0.45) * (t / 0.42)
+      : 1.16 - 0.16 * ((t - 0.42) / 0.58)
+    const shiver = this.gameOverPop * this.gameOverPop * 12
+
+    board.scale.set(scale)
+    board.position.set(
+      SIZE.width / 2 + (Math.random() - 0.5) * shiver,
+      SIZE.height / 2 + (Math.random() - 0.5) * shiver)
+    board.rotation = (Math.random() - 0.5) * shiver * 0.0022
+
+    if (this.gameOverPop <= 0) {
+      board.scale.set(1)
+      board.position.set(SIZE.width / 2, SIZE.height / 2)
+      board.rotation = 0
+    }
   }
 
   private syncBadge(): void {
     const state = this.state
+
+    // 연출이 도는 중에는 앞 국면의 딱지를 그대로 둡니다.
+    if (!this.presented) return
 
     if (state.phase === 'shop') {
       this.badge.set('상점', 0, 0,
@@ -1030,16 +1384,43 @@ export class Game {
 
     this.badge.set(
       bossRow?.name ?? `${blindName(state.blind)} 블라인드`,
-      Number(state.target), row?.reward ?? 0, note, boss)
+      Number(state.target), row?.reward ?? 0, note, boss, state.blind === BlindKind.Big)
   }
 
+  /**
+   * 국면이 배경의 색을 정합니다.
+   *
+   * **어디에 있는지가 배경만 보고도 읽혀야 합니다.** 스몰은 초록, 빅은 호박, 보스는 붉고,
+   * 상점은 푸르고, 끝났으면 색이 빠집니다.
+   */
   private syncMood(): void {
-    if (this.state.phase === 'shop') {
-      this.background.setMood([0.03, 0.055, 0.09], [0.35, 0.55, 0.95])
-    } else if (this.state.blind === BlindKind.Boss) {
-      this.background.setMood([0.075, 0.02, 0.035], [0.95, 0.28, 0.35])
-    } else {
-      this.background.setMood([0.031, 0.075, 0.055], [0.25, 0.85, 0.55])
+    const state = this.state
+    // 배경도 연출이 끝난 뒤에 갑니다. 득점 중에 색이 바뀌면 무엇이 끝난 것인지 흐려집니다.
+    if (!this.presented) return
+
+    if (state.phase === 'lost') {
+      this.background.setMood([0.05, 0.05, 0.058], [0.55, 0.5, 0.55])
+      return
+    }
+    if (state.phase === 'won') {
+      this.background.setMood([0.075, 0.062, 0.026], [1, 0.82, 0.34])
+      return
+    }
+    if (state.phase === 'shop') {
+      this.background.setMood([0.032, 0.062, 0.072], [0.32, 0.86, 0.82])
+      return
+    }
+
+    switch (state.blind) {
+      case BlindKind.Boss:
+        this.background.setMood([0.082, 0.024, 0.04], [1, 0.26, 0.33])
+        break
+      case BlindKind.Big:
+        this.background.setMood([0.062, 0.042, 0.082], [0.72, 0.42, 0.98])
+        break
+      default:
+        this.background.setMood([0.042, 0.052, 0.086], [0.30, 0.52, 0.98])
+        break
     }
   }
 
@@ -1053,14 +1434,16 @@ export class Game {
     this.discardButton.enabled = inRound && this.selected.size > 0 && state.discardsLeft > 0
 
     const choosing = state.phase === 'blind-select'
-    this.primaryButton.visible = choosing || state.phase === 'shop'
+    this.primaryButton.visible = (choosing || state.phase === 'shop') && this.presented
     this.primaryButton.text = state.phase === 'shop' ? '다음 블라인드로' : '이 블라인드로'
     this.primaryButton.position.set(BOARD_X - 105, state.phase === 'shop' ? 678 : 520)
-    this.skipButton.visible = choosing && state.blind !== BlindKind.Boss
+    this.skipButton.visible = choosing && state.blind !== BlindKind.Boss && this.presented
     this.sortRankButton.visible = inRound
     this.sortSuitButton.visible = inRound
-    this.infoButton.visible = state.phase !== 'lost' && state.phase !== 'won'
-    this.rerollButton.visible = state.phase === 'shop'
+    const playing = state.phase !== 'lost' && state.phase !== 'won'
+    this.infoButton.visible = playing
+    this.guideButton.visible = playing
+    this.rerollButton.visible = state.phase === 'shop' && this.presented
     this.rerollButton.text = `리롤  $${rerollCost(this.data, state, state.shop)}`
     this.rerollButton.enabled = state.money >= rerollCost(this.data, state, state.shop)
   }
@@ -1099,7 +1482,11 @@ export class Game {
         view.set(card, this.editionLook(card.edition))
       }
 
-      view.selected = this.selected.has(card.uid)
+      const chosen = this.selected.has(card.uid)
+      view.selected = chosen
+      // 고른 것이 하나도 없으면 아무것도 물러나지 않습니다 — 고르기 전에 화면이 어두워지면
+      // 무엇이 잘못된 것처럼 보입니다.
+      view.setPick(this.selected.size === 0 ? 0 : chosen ? 1 : -1, PICK_TINT)
 
       // 부채꼴로 폅니다. 가운데가 높고 양끝이 기울어집니다.
       const offset = index - (hand.length - 1) / 2
@@ -1209,7 +1596,7 @@ export class Game {
 
   private syncShop(): void {
     this.shopLayer.removeChildren().forEach(child => child.destroy())
-    this.shopLayer.visible = this.state.phase === 'shop'
+    this.shopLayer.visible = this.state.phase === 'shop' && this.presented
     if (!this.shopLayer.visible) return
 
     const slots = this.state.shop.cards
@@ -1222,7 +1609,7 @@ export class Game {
       const rarity = item.kind === ShopItemKind.Joker
         ? this.data.tables.joker.findByJokerId(item.id)?.rarity ?? 1 : 0
 
-      const tile = new Panel(160, 162, 0x0f2118)
+      const tile = new Panel(160, 162, 0x1b2331)
       tile.position.set(startX + slot * spacing - 80, SHOP_CARD_Y)
 
       const label = new Text({
@@ -1237,7 +1624,7 @@ export class Game {
       const blurb = new Text({
         text: lines.slice(0, 2).join('\n'),
         style: {
-          fontSize: 10, fill: 0xa9c6b2, lineHeight: 13,
+          fontSize: 10, fill: 0xb4c4dc, lineHeight: 13,
           wordWrap: true, wordWrapWidth: 132,
         },
       })
@@ -1284,7 +1671,7 @@ export class Game {
       const row = this.data.tables.voucher.findByVoucherId(id)
       const lines = describe(this.data, this.data.voucherEffects.get(id) ?? [])
 
-      const tile = new Panel(300, 62, 0x132639)
+      const tile = new Panel(300, 62, 0x1d3149)
       tile.position.set(BOARD_X - 150, SHOP_VOUCHER_Y)
 
       const label = new Text({
@@ -1346,7 +1733,7 @@ export class Game {
 
       const note = new Text({
         text: `${row.cards}장 중 ${row.picks}장`,
-        style: { fontSize: 10, fill: 0xd8e6dd },
+        style: { fontSize: 10, fill: 0xdbe4f0 },
       })
       note.position.set(12, 34)
 
@@ -1398,7 +1785,8 @@ export class Game {
     const ink = packInk(open.kind)
 
     const veil = new Graphics()
-    veil.rect(0, 0, SIZE.width, SIZE.height).fill({ color: 0x04090a, alpha: 0.78 })
+    veil.rect(-2000, -2000, SIZE.width + 4000, SIZE.height + 4000)
+      .fill({ color: 0x070a10, alpha: 0.78 })
     veil.eventMode = 'static'
     this.packLayer.addChild(veil)
 
@@ -1419,7 +1807,7 @@ export class Game {
 
     const note = new Text({
       text: `${open.picksLeft}장 더 고릅니다`,
-      style: { fontSize: 13, fill: 0xd8e6dd, fontWeight: '700' },
+      style: { fontSize: 13, fill: 0xdbe4f0, fontWeight: '700' },
     })
     note.anchor.set(0.5, 0)
     note.position.set(BOARD_X, 292)
@@ -1436,7 +1824,7 @@ export class Game {
       const rarity = item.kind === ShopItemKind.Joker
         ? this.data.tables.joker.findByJokerId(item.id)?.rarity ?? 1 : 0
 
-      const tile = new Panel(144, 158, 0x0f2118)
+      const tile = new Panel(144, 158, 0x1b2331)
       tile.position.set(startX + index * spacing - 72, 322)
 
       const label = new Text({
@@ -1451,7 +1839,7 @@ export class Game {
       const blurb = new Text({
         text: lines.slice(0, 3).join('\n'),
         style: {
-          fontSize: 10, fill: 0xa9c6b2, lineHeight: 13,
+          fontSize: 10, fill: 0xb4c4dc, lineHeight: 13,
           wordWrap: true, wordWrapWidth: 118,
         },
       })
@@ -1485,7 +1873,7 @@ export class Game {
     })
 
     const skip = new Button(left.length === open.options.length ? '건너뛴다' : '그만 고른다',
-      160, 40, 0x3f4560, () => this.act({ t: 'skip_pack' }))
+      160, 40, 0x4a5568, () => this.act({ t: 'skip_pack' }))
     skip.position.set(BOARD_X - 80, 494)
     this.packLayer.addChild(skip)
   }
@@ -1508,6 +1896,17 @@ function near(point: { x: number; y: number },
               width: number, height: number): boolean {
   return Math.abs(point.x - motion.x.target) <= width / 2
     && Math.abs(point.y - motion.y.target) <= height / 2
+}
+
+/** 돈이 왜 오갔는가. 표에 없는 갈래는 적지 않습니다. */
+function moneyReason(reason: string): string {
+  switch (reason) {
+    case 'blind': return '격파 보상'
+    case 'interest': return '이자'
+    case 'hands_left': return '남은 핸드'
+    case 'discards_left': return '남은 버리기'
+    default: return ''
+  }
 }
 
 function blindName(blind: BlindKind): string {

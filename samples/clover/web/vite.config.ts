@@ -6,6 +6,13 @@ export default defineConfig({
     target: 'es2022',
     outDir: 'dist',
     sourcemap: true,
+    rollupOptions: {
+      // 에디션 셰이더를 나란히 보는 페이지도 같이 굽습니다.
+      input: {
+        main: new URL('./index.html', import.meta.url).pathname,
+        editions: new URL('./editions.html', import.meta.url).pathname,
+      },
+    },
   },
   resolve: {
     alias: {

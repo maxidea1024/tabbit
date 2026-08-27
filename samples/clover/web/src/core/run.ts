@@ -285,15 +285,29 @@ function winRound(vm: Vm): void {
   state.money += reward
   vm.events.push({ t: 'BlindCleared', blind: state.blind, reward })
 
+  // **들어오는 돈은 갈래마다 따로 알립니다.** 합계만 알리면 무엇으로 번 것인지 알 수 없고,
+  // 연출도 한 번에 끝나 버립니다.
+  if (reward !== 0) vm.events.push({ t: 'MoneyChanged', delta: reward, reason: 'blind' })
+
   if (!state.rules.noInterest) {
     const interest = Math.min(
       state.rules.interestCap,
       Math.floor(Math.max(0, state.money) / 5) * state.rules.interestPer5)
     state.money += interest
+    if (interest !== 0) vm.events.push({ t: 'MoneyChanged', delta: interest, reason: 'interest' })
   }
 
-  state.money += state.handsLeft * state.rules.moneyPerHandLeft
-  state.money += state.discardsLeft * state.rules.moneyPerDiscardLeft
+  const fromHands = state.handsLeft * state.rules.moneyPerHandLeft
+  state.money += fromHands
+  if (fromHands !== 0) {
+    vm.events.push({ t: 'MoneyChanged', delta: fromHands, reason: 'hands_left' })
+  }
+
+  const fromDiscards = state.discardsLeft * state.rules.moneyPerDiscardLeft
+  state.money += fromDiscards
+  if (fromDiscards !== 0) {
+    vm.events.push({ t: 'MoneyChanged', delta: fromDiscards, reason: 'discards_left' })
+  }
   state.discardsUnusedThisRun += state.discardsLeft
 
   if (state.blind === BlindKind.Boss) {

@@ -37,6 +37,7 @@ out vec4 finalColor;
 
 uniform float uTime;
 uniform float uHeat;       // 0..1. 점수가 클수록 올라갑니다.
+uniform float uPulse;      // 0..1. 한 방 먹으면 1이 되고 곧 줄어듭니다.
 uniform vec3  uInk;        // 바탕색
 uniform vec3  uGlow;       // 무늬의 색
 uniform float uAspect;
@@ -87,6 +88,14 @@ void main(void) {
   color += uGlow * (0.16 + 0.5 * uHeat) * bands;
   color += uGlow * 0.06 * f;
 
+  // **한 방.** 무늬가 통째로 밝아지고 고리가 가운데에서 바깥으로 퍼집니다. 화면 흔들림만
+  // 있으면 「움직였다」로 읽히고, 배경이 같이 밝아지면 「터졌다」로 읽힙니다.
+  if (uPulse > 0.002) {
+    float d = length(vec2((uv.x - 0.5) * uAspect, uv.y - 0.5));
+    float ring = smoothstep(0.09, 0.0, abs(d - (1.0 - uPulse) * 1.05));
+    color += uGlow * (uPulse * (0.45 + 1.1 * bands) + ring * uPulse * 1.5);
+  }
+
   // 가운데가 밝고 가장자리가 어둡습니다. 시선이 판에 머무릅니다.
   float vignette = 1.0 - smoothstep(0.35, 0.95, length(vec2((uv.x - 0.5) * uAspect, uv.y - 0.5)));
   color *= 0.55 + 0.75 * vignette;
@@ -103,6 +112,7 @@ export class BackgroundFilter extends Filter {
         backgroundUniforms: {
           uTime: { value: 0, type: 'f32' },
           uHeat: { value: 0, type: 'f32' },
+          uPulse: { value: 0, type: 'f32' },
           uAspect: { value: 16 / 9, type: 'f32' },
           uInk: { value: new Float32Array([0.031, 0.075, 0.055]), type: 'vec3<f32>' },
           uGlow: { value: new Float32Array([0.25, 0.85, 0.55]), type: 'vec3<f32>' },
@@ -117,6 +127,12 @@ export class BackgroundFilter extends Filter {
 
   advance(seconds: number): void {
     this.uniforms.uTime = (this.uniforms.uTime as number) + seconds
+    this.uniforms.uPulse = Math.max(0, (this.uniforms.uPulse as number) - seconds * 2.4)
+  }
+
+  /** 한 방. 큰 값이 들어오면 배경이 밝아지고 고리가 퍼집니다. */
+  pulse(amount: number): void {
+    this.uniforms.uPulse = Math.min(1, Math.max(this.uniforms.uPulse as number, amount))
   }
 
   /** 국면이 색을 정합니다. 보스는 붉고 상점은 푸릅니다. */

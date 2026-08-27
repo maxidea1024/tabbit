@@ -5,8 +5,8 @@ Totals
   tables    36
   columns   680
   unencoded 99,984
-  encoded   46,512  (46.5 % of unencoded)
-  deflated  33,054  (71.1 % of encoded)  - what a compression layer over the chosen blocks would come to
+  encoded   46,511  (46.5 % of unencoded)
+  deflated  33,053  (71.1 % of encoded)  - what a compression layer over the chosen blocks would come to
 
 By encoding
   encoding        columns        bytes    share
@@ -20,12 +20,12 @@ By encoding
   VARINT              17          181    0.4 %
   DICT_RLE            15          175    0.4 %
   DELTA_RLE           17          128    0.3 %
-  DELTA                6           77    0.2 %
+  DELTA                6           76    0.2 %
 
 By element
   element         columns    unencoded        bytes    share
   string              65       50,447       42,257   90.9 %
-  i32                254       35,792        2,147    4.6 %
+  i32                254       35,792        2,146    4.6 %
   varint             309       11,707        1,872    4.0 %
   bool                52        2,038          236    0.5 %
 
@@ -208,9 +208,9 @@ Bit-width packing headroom
   element     columns        today       packed        saved
   bool             52          236          348         -112
   varint          294        1,769        2,416         -647
-  i32             254        2,147        3,664       -1,517
+  i32             254        2,146        3,663       -1,517
 
-  Keeping the smaller of the two per column: 4,152 → 4,096 · saved 56 over 3 of 600 columns.
+  Keeping the smaller of the two per column: 4,151 → 4,095 · saved 56 over 3 of 600 columns.
 
     width            base        today       packed  inner         column
         4               2           86           43  RAW           JokerEffect.Ranks

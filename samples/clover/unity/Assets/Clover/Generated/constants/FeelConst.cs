@@ -40,6 +40,14 @@ namespace Clover.Data
         /// </summary>
         public static int SettleMs { get; }
         /// <summary>
+        /// 돈이 오가는 연출의 길이. 동전이 날아가 꽂히는 데 걸리는 시간입니다
+        /// </summary>
+        public static int MoneyStepMs { get; }
+        /// <summary>
+        /// 배수를 곱할 때 연출의 시계가 멈추는 길이
+        /// </summary>
+        public static int HitStopMs { get; }
+        /// <summary>
         /// 빠르게 넘기기의 배속
         /// </summary>
         public static int FastForwardScale { get; }
@@ -95,14 +103,16 @@ namespace Clover.Data
             HandLabelMs = 180;
             MultiplyMs = 400;
             SettleMs = 300;
+            MoneyStepMs = 260;
+            HitStopMs = 120;
             FastForwardScale = 4;
-            ShakeMaxPx = 12;
+            ShakeMaxPx = 20;
             ShakeThresholdMult = 200000;
             ShakeMaxMult = 3000000;
             NumberScaleMaxBp = 16000;
             PitchMaxSemitones = 12;
-            ParticleMax = 30;
-            ChromaticMaxPx = 2;
+            ParticleMax = 90;
+            ChromaticMaxPx = 5;
             CardHoverLiftPx = 12;
             CardHoverTiltDeg = 6;
             DrawStaggerMs = 40;

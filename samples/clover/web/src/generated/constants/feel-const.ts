@@ -29,11 +29,17 @@ export class FeelConst {
   /** 요구 점수 게이지가 채워지는 길이 */
   public static readonly settleMs: number = 300
 
+  /** 돈이 오가는 연출의 길이. 동전이 날아가 꽂히는 데 걸리는 시간입니다 */
+  public static readonly moneyStepMs: number = 260
+
+  /** 배수를 곱할 때 연출의 시계가 멈추는 길이 */
+  public static readonly hitStopMs: number = 120
+
   /** 빠르게 넘기기의 배속 */
   public static readonly fastForwardScale: number = 4
 
   /** 화면 흔들림의 최대 진폭 */
-  public static readonly shakeMaxPx: number = 12
+  public static readonly shakeMaxPx: number = 20
 
   /** 흔들림이 시작되는 배수. 만분율 */
   public static readonly shakeThresholdMult: number = 200000
@@ -48,10 +54,10 @@ export class FeelConst {
   public static readonly pitchMaxSemitones: number = 12
 
   /** 카드 뒤 파티클의 최대 개수 */
-  public static readonly particleMax: number = 30
+  public static readonly particleMax: number = 90
 
   /** 색수차의 최대 폭 */
-  public static readonly chromaticMaxPx: number = 2
+  public static readonly chromaticMaxPx: number = 5
 
   /** 카드에 마우스를 올렸을 때 떠오르는 높이 */
   public static readonly cardHoverLiftPx: number = 12

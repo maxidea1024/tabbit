@@ -100,7 +100,8 @@ export class Guide extends Container {
   private build(): void {
     // 뒤를 덮습니다. **덮지 않으면 뒤의 카드가 눌립니다.**
     const veil = new Graphics()
-    veil.rect(0, 0, SIZE.width, SIZE.height).fill({ color: 0x04090a, alpha: 0.86 })
+    veil.rect(-2000, -2000, SIZE.width + 4000, SIZE.height + 4000)
+      .fill({ color: 0x070a10, alpha: 0.86 })
     veil.eventMode = 'static'
     veil.cursor = 'pointer'
     veil.on('pointertap', () => this.onClose())
@@ -124,7 +125,7 @@ export class Guide extends Container {
 
     const lead = new Text({
       text: '포커 족보로 점수를 내고, 조커로 그 점수를 불립니다.',
-      style: { fontSize: 15, fill: 0xa9c6b3, fontWeight: '700' },
+      style: { fontSize: 15, fill: 0xb4c4dc, fontWeight: '700' },
     })
     lead.anchor.set(0.5, 0)
     lead.position.set(WIDTH / 2, 64)
@@ -146,7 +147,7 @@ export class Guide extends Container {
     let y = 104
     for (const section of sections) {
       const rule = new Graphics()
-      rule.roundRect(x, y + 6, 4, 17, 2).fill(COLOR.good)
+      rule.roundRect(x, y + 6, 4, 17, 2).fill(COLOR.chips)
 
       const head = new Text({
         text: section.head,
@@ -156,7 +157,7 @@ export class Guide extends Container {
 
       const text = new Text({
         text: section.lines.join('\n'),
-        style: { fontSize: 14, fill: 0xc9dcd0, lineHeight: 23 },
+        style: { fontSize: 14, fill: 0xd2dcea, lineHeight: 23 },
       })
       text.position.set(x + 14, y + 30)
 

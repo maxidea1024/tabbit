@@ -512,7 +512,7 @@ tbody [data-pick] { cursor: pointer; }
 </aside>
 <main>
 <h1>상수 세트</h1>
-<p class="lead">상수 세트 4개 · 상수 48개</p>
+<p class="lead">상수 세트 4개 · 상수 50개</p>
 <div data-table>
 <div class="tools">
 <input type="search" data-filter="rows" placeholder="상수 세트 필터">
@@ -528,7 +528,7 @@ tbody [data-pick] { cursor: pointer; }
 </thead>
 <tbody>
 <tr><td><a href="constantsets.html#constantset_EconomyConst"><svg class="i"><use href="#i-const"></use></svg>EconomyConst</a></td><td class="num">17</td><td><span class="book" title="samples/clover/design-data/xlsx/Const.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Const.xlsx</span> <span class="hint">&middot;</span> Const_Economy</td><td>금액에 관한 값입니다.</td></tr>
-<tr><td><a href="constantsets.html#constantset_FeelConst"><svg class="i"><use href="#i-const"></use></svg>FeelConst</a></td><td class="num">17</td><td><span class="book" title="samples/clover/design-data/xlsx/Feel.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Feel.xlsx</span> <span class="hint">&middot;</span> Const_Feel</td><td>연출의 길이와 문턱입니다. **두 런타임이 같은 값을 읽습니다.**</td></tr>
+<tr><td><a href="constantsets.html#constantset_FeelConst"><svg class="i"><use href="#i-const"></use></svg>FeelConst</a></td><td class="num">19</td><td><span class="book" title="samples/clover/design-data/xlsx/Feel.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Feel.xlsx</span> <span class="hint">&middot;</span> Const_Feel</td><td>연출의 길이와 문턱입니다. **두 런타임이 같은 값을 읽습니다.**</td></tr>
 <tr><td><a href="constantsets.html#constantset_RunConst"><svg class="i"><use href="#i-const"></use></svg>RunConst</a></td><td class="num">10</td><td><span class="book" title="samples/clover/design-data/xlsx/Const.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Const.xlsx</span> <span class="hint">&middot;</span> Const_Run</td><td>런 하나의 시작값과 상한입니다.</td></tr>
 <tr><td><a href="constantsets.html#constantset_ScoreConst"><svg class="i"><use href="#i-const"></use></svg>ScoreConst</a></td><td class="num">4</td><td><span class="book" title="samples/clover/design-data/xlsx/Const.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Const.xlsx</span> <span class="hint">&middot;</span> Const_Score</td><td>득점의 단위와 규격입니다. **두 구현이 같아야 하는 값들입니다.**</td></tr>
 </tbody>
@@ -666,7 +666,7 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h2 id="constantset_FeelConst"><svg class="i"><use href="#i-const"></use></svg>FeelConst<span class="count">상수 17개</span></h2>
+<h2 id="constantset_FeelConst"><svg class="i"><use href="#i-const"></use></svg>FeelConst<span class="count">상수 19개</span></h2>
 <p class="lead">FeelConst <span class="hint"><span class="book" title="samples/clover/design-data/xlsx/Feel.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Feel.xlsx</span> &middot; <svg class="i"><use href="#i-sheet"></use></svg>Const_Feel : A1</span></p>
 <p class="comment">연출의 길이와 문턱입니다. **두 런타임이 같은 값을 읽습니다.**</p>
 <div class="scroll">
@@ -719,76 +719,90 @@ tbody [data-pick] { cursor: pointer; }
 </tr>
 <tr>
 <td class="num">7</td>
+<td id="const_FeelConst.MoneyStepMs">MoneyStepMs</td>
+<td><span class="type">int</span></td>
+<td>260</td>
+<td>돈이 오가는 연출의 길이. 동전이 날아가 꽂히는 데 걸리는 시간입니다</td>
+</tr>
+<tr>
+<td class="num">8</td>
+<td id="const_FeelConst.HitStopMs">HitStopMs</td>
+<td><span class="type">int</span></td>
+<td>120</td>
+<td>배수를 곱할 때 연출의 시계가 멈추는 길이</td>
+</tr>
+<tr>
+<td class="num">9</td>
 <td id="const_FeelConst.FastForwardScale">FastForwardScale</td>
 <td><span class="type">int</span></td>
 <td>4</td>
 <td>빠르게 넘기기의 배속</td>
 </tr>
 <tr>
-<td class="num">8</td>
+<td class="num">10</td>
 <td id="const_FeelConst.ShakeMaxPx">ShakeMaxPx</td>
 <td><span class="type">int</span></td>
-<td>12</td>
+<td>20</td>
 <td>화면 흔들림의 최대 진폭</td>
 </tr>
 <tr>
-<td class="num">9</td>
+<td class="num">11</td>
 <td id="const_FeelConst.ShakeThresholdMult">ShakeThresholdMult</td>
 <td><span class="type">int</span></td>
 <td>200000</td>
 <td>흔들림이 시작되는 배수. 만분율</td>
 </tr>
 <tr>
-<td class="num">10</td>
+<td class="num">12</td>
 <td id="const_FeelConst.ShakeMaxMult">ShakeMaxMult</td>
 <td><span class="type">int</span></td>
 <td>3000000</td>
 <td>흔들림이 최대가 되는 배수. 만분율</td>
 </tr>
 <tr>
-<td class="num">11</td>
+<td class="num">13</td>
 <td id="const_FeelConst.NumberScaleMaxBp">NumberScaleMaxBp</td>
 <td><span class="type">int</span></td>
 <td>16000</td>
 <td>숫자가 커지는 최대 배율. 만분율</td>
 </tr>
 <tr>
-<td class="num">12</td>
+<td class="num">14</td>
 <td id="const_FeelConst.PitchMaxSemitones">PitchMaxSemitones</td>
 <td><span class="type">int</span></td>
 <td>12</td>
 <td>소리 음높이가 올라가는 최대 반음</td>
 </tr>
 <tr>
-<td class="num">13</td>
+<td class="num">15</td>
 <td id="const_FeelConst.ParticleMax">ParticleMax</td>
 <td><span class="type">int</span></td>
-<td>30</td>
+<td>90</td>
 <td>카드 뒤 파티클의 최대 개수</td>
 </tr>
 <tr>
-<td class="num">14</td>
+<td class="num">16</td>
 <td id="const_FeelConst.ChromaticMaxPx">ChromaticMaxPx</td>
 <td><span class="type">int</span></td>
-<td>2</td>
+<td>5</td>
 <td>색수차의 최대 폭</td>
 </tr>
 <tr>
-<td class="num">15</td>
+<td class="num">17</td>
 <td id="const_FeelConst.CardHoverLiftPx">CardHoverLiftPx</td>
 <td><span class="type">int</span></td>
 <td>12</td>
 <td>카드에 마우스를 올렸을 때 떠오르는 높이</td>
 </tr>
 <tr>
-<td class="num">16</td>
+<td class="num">18</td>
 <td id="const_FeelConst.CardHoverTiltDeg">CardHoverTiltDeg</td>
 <td><span class="type">int</span></td>
 <td>6</td>
 <td>그때의 기울기</td>
 </tr>
 <tr>
-<td class="num">17</td>
+<td class="num">19</td>
 <td id="const_FeelConst.DrawStaggerMs">DrawStaggerMs</td>
 <td><span class="type">int</span></td>
 <td>40</td>
@@ -921,7 +935,7 @@ tbody [data-pick] { cursor: pointer; }
 </div>
 </main>
 </div>
-<p class="foot">생성 시각 2026-08-27 14:40:17</p>
+<p class="foot">생성 시각 2026-08-27 16:28:03</p>
 <script>
 (function () {
   "use strict";

@@ -60,17 +60,17 @@ export function plate(g: Graphics, width: number, height: number, style: PlateSt
 
 /** 화면 위에 뜨는 것. 그림자가 더 깊고 테두리가 밝습니다. */
 export const FLOATING: PlateStyle = {
-  top: 0x14261d, bottom: 0x0a1710, border: 0x2f5c42, drop: 6, gloss: 0.4,
+  top: 0x2e3849, bottom: 0x18202c, border: 0x55637a, drop: 6, gloss: 0.4,
 }
 
 /** 붙박이 패널. */
 export const PANEL: PlateStyle = {
-  top: 0x0d1a14, bottom: 0x061009, border: 0x1f3c2c, drop: 3, gloss: 0.16,
+  top: 0x1d2431, bottom: 0x111721, border: 0x36404f, drop: 3, gloss: 0.16,
 }
 
 /** 값이 들어가는 작은 칸. */
 export function slotStyle(ink: number): PlateStyle {
-  return { top: 0x102019, bottom: 0x07120d, border: ink, weight: 1.5, drop: 2, gloss: 0.3 }
+  return { top: 0x1a212c, bottom: 0x0f141d, border: ink, weight: 1.5, drop: 2, gloss: 0.3 }
 }
 
 /** 누를 수 있는 것. 색은 그 버튼의 성격이 정합니다. */

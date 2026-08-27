@@ -97,6 +97,9 @@ const SHAPE: Record<string, Shape> = {
   card_draw: { wave: 'sine', offset: 20, length: 0.05, gain: 0.14, glide: 0 },
   card_select: { wave: 'sine', offset: 26, length: 0.04, gain: 0.16, glide: 0 },
   card_destroy: { wave: 'sawtooth', offset: 8, length: 0.16, gain: 0.24, glide: -8 },
+  // 동전이 꽂히는 소리. **음이 하나씩 올라가는 것이 이 연출의 절반입니다.**
+  coin_land: { wave: 'triangle', offset: 31, length: 0.06, gain: 0.20, glide: 2 },
+  coin_lose: { wave: 'sine', offset: 9, length: 0.09, gain: 0.18, glide: -6 },
   shop_enter: { wave: 'triangle', offset: 14, length: 0.22, gain: 0.26, glide: 4 },
   shop_buy: { wave: 'triangle', offset: 22, length: 0.10, gain: 0.28, glide: 3 },
   shop_reroll: { wave: 'square', offset: 12, length: 0.09, gain: 0.20, glide: -2 },
