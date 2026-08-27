@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-26T14:57:50.4005609+09:00",
+    "generatedAt": "2026-08-28T00:56:49.1395356+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "recipe.jsonc",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "2d6549e346f84b5ed8049ac517e52a17b124dbd9",
-      "shortHash": "2d6549e346f8",
-      "branch": "synthetic-samples",
+      "hash": "f080021d33772a7d397dc75c375a751bcb20b0d2",
+      "shortHash": "f080021d3377",
+      "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-26T14:52:35.0000000+09:00",
-      "subject": "docs: 합성 샘플 규격에 sprout 실측과 식별자 대조 결과를 적음",
+      "committedAt": "2026-08-28T00:35:09.0000000+09:00",
+      "subject": "Create yarn.lock",
       "origin": "git",
       "dirty": true,
       "attributable": false

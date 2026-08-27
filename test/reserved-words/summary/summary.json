@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-26T00:41:10.1453704+09:00",
+    "generatedAt": "2026-08-28T00:56:36.6194900+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "reserved-words.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "0194ec8859bf22f0a9f25e885afa77d97e8c4a92",
-      "shortHash": "0194ec8859bf",
+      "hash": "f080021d33772a7d397dc75c375a751bcb20b0d2",
+      "shortHash": "f080021d3377",
       "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-26T00:33:52.0000000+09:00",
-      "subject": "feat: Unreal도 상수셋을 냅니다 — 이 타깃만 아예 내지 않고 있었습니다",
+      "committedAt": "2026-08-28T00:35:09.0000000+09:00",
+      "subject": "Create yarn.lock",
       "origin": "git",
       "dirty": true,
       "attributable": false

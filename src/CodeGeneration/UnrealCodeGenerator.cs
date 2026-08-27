@@ -312,7 +312,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     {
         var text = new StringBuilder();
 
-        text.Append($"// {GeneratedFileMarker.TextWithWarning}\n");
+        text.Append($"// {GeneratedFileMarker.Banner}\n");
         text.Append('\n');
         text.Append("using UnrealBuildTool;\n");
         text.Append('\n');

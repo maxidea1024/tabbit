@@ -1335,7 +1335,7 @@ namespace Tabbit.Binary
         public const int KeyCheckOffset = 38;
 
         /// <summary>
-        /// The signature, as the fixed32 it is on disk: 'S' 'C' 'B' 0, little endian.
+        /// The signature, as the fixed32 it is on disk: 'T' 'C' 'B' 0, little endian.
         /// </summary>
         /// <remarks>
         /// The same four bytes serve twice. At offset zero they are the file format

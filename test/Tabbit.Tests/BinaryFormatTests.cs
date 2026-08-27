@@ -246,7 +246,7 @@ public class BinaryFormatTests
 
             var reader = new FormatWalker(bytes);
 
-            // 'S' 'C' 'B' 0 as a fixed32: every table file starts with it, encrypted or not.
+            // 'T' 'C' 'B' 0 as a fixed32: every table file starts with it, encrypted or not.
             Assert.Equal(0x00424354u, reader.ReadFixed32());
             Assert.Equal(Tabbit.Exporters.TcbFormat.Version, reader.ReadFixed32());
             Assert.Equal(0, reader.ReadByte());

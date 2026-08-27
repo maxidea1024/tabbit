@@ -398,7 +398,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
         var text = new StringBuilder();
 
         text.Append("// ------------------------------------------------------------------------------\n");
-        text.Append($"// {GeneratedFileMarker.TextWithWarning}\n");
+        text.Append($"// {GeneratedFileMarker.Banner}\n");
         text.Append("//\n");
         text.Append("// Changes to this file may cause incorrect behavior and will be lost if the code is\n");
         text.Append("// regenerated.\n");
@@ -551,7 +551,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
         var module = new StringBuilder();
 
         module.Append("// ------------------------------------------------------------------------------\n");
-        module.Append($"// {GeneratedFileMarker.TextWithWarning}\n");
+        module.Append($"// {GeneratedFileMarker.Banner}\n");
         module.Append("// ------------------------------------------------------------------------------\n");
         module.Append('\n');
         module.Append("mod tcb_reader;\n");

@@ -34,11 +34,11 @@
   // 조커 150종의 그림. **웹과 유니티가 같은 파일을 씁니다** — 그림은 한 벌이고 두 플랫폼이
   // 각자 자기 형식으로 가져갑니다.
   //
-  // 그림이 아직 없으므로 `warn` 입니다. P4 에서 그림이 들어오면 `error` 로 바꿉니다 —
-  // 그때부터 이 검사가 자리표가 아니라 게임이 띄우는 파일을 봅니다.
+  // 그림은 `web/public/art/` 에 있습니다. 웹이 그대로 서빙하는 자리이고, 유니티는
+  // 임포트할 때 거기서 가져갑니다 — 한 벌을 두 곳에 두지 않기 위해서입니다.
   "Assets": {
     "Roots": [
-      { "Kind": "joker", "Path": "samples/clover/art/joker", "Pattern": "*.png" }
+      { "Kind": "joker", "Path": "samples/clover/web/public/art/joker", "Pattern": "*.png" }
     ],
     "OnMissing": "warn"
   },

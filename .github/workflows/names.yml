@@ -31,7 +31,10 @@ jobs:
         run: |
           # Matched case-insensitively, so one spelling of each covers SheetMan, Sheetman,
           # SHEETMAN, ScbReader, scb_reader and `.scb` alike.
-          old='sheetman|sheet[ -]man|시트맨|\bscb'
+          # The last branch is the signature spelled a character at a time:
+          # `'S' 'C' 'B' 0` sat in ten runtime readers for months, because no
+          # word-boundary match can see letters that quotes hold apart.
+          old="sheetman|sheet[ -]man|시트맨|\bscb|'s' 'c' 'b'"
 
           paths="$(git ls-files | grep -Ei 'sheetman|scb' || true)"
           if [ -n "$paths" ]; then

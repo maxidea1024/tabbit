@@ -103,7 +103,7 @@ const (
 	NonceSize = 12
 	MacSize   = 16
 
-	// Magic is the signature, as the fixed32 it is on disk: 'S' 'C' 'B' 0, little
+	// Magic is the signature, as the fixed32 it is on disk: 'T' 'C' 'B' 0, little
 	// endian.
 	//
 	// The same four bytes serve twice. At offset zero they are the file format

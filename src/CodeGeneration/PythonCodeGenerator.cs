@@ -308,7 +308,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             string.Join("\n", new[]
             {
                 "# ------------------------------------------------------------------------------",
-                $"# {GeneratedFileMarker.TextWithWarning}",
+                $"# {GeneratedFileMarker.Banner}",
                 "# ------------------------------------------------------------------------------",
                 "",
                 "from .tcb_reader import *  # noqa: F401,F403",
@@ -346,7 +346,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         var text = new StringBuilder();
 
         text.Append("# ------------------------------------------------------------------------------\n");
-        text.Append($"# {GeneratedFileMarker.TextWithWarning}\n");
+        text.Append($"# {GeneratedFileMarker.Banner}\n");
         text.Append("#\n");
         text.Append("# Changes to this file may cause incorrect behavior and will be lost if the code is\n");
         text.Append("# regenerated.\n");

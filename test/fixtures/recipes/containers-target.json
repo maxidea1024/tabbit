@@ -108,7 +108,7 @@
     },
     {
       "Type": "unreal",
-      "Path": "test/fixtures/output/containers-target/unreal",
+      "Path": "test/fixtures/output/containers-target/unreal/Source",
       "ModuleName": "Containers"
     },
     {

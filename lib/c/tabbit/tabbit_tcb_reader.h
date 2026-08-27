@@ -119,7 +119,7 @@ extern "C" {
 #define TB_NONCE_SIZE 12
 #define TB_MAC_SIZE 16
 
-/* The signature, as the fixed32 it is on disk: 'S' 'C' 'B' 0, little endian.
+/* The signature, as the fixed32 it is on disk: 'T' 'C' 'B' 0, little endian.
  *
  * The same four bytes serve twice. At offset zero they are the file format signature, in the
  * clear whether or not the file is encrypted. At the key check they are under the key, so a
