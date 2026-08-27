@@ -53,7 +53,7 @@ jobs:
       # What a gate can see is the shape, and this is the shape that matters.
       - name: Samples carry no foreign workbooks
         run: |
-          books="$(git ls-files | grep -Ei '\.(xlsx|xlsm|xlsb)$' | grep -vE '^(test/fixtures/|tools/mabbit/test/fixtures/|samples/(sprout|canopy|wildling)/)' || true)"
+          books="$(git ls-files | grep -Ei '\.(xlsx|xlsm|xlsb)$' | grep -vE '^(test/fixtures/|tools/mabbit/test/fixtures/|samples/(sprout|canopy|wildling|clover)/)' || true)"
           if [ -n "$books" ]; then
             echo "::error::these workbooks are outside the synthetic samples and the fixtures"
             echo "$books"; exit 1

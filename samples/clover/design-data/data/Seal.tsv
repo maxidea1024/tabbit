@@ -1,0 +1,9 @@
+:table Seal(key=seal)	인장입니다. 강화와 별개의 축이고 한 장에 하나뿐입니다.
+:field	seal	display
+:type	SealKind	string (text=Seal)
+:desc	인장	표시 이름
+	None	없음
+	Red	붉은
+	Blue	파란
+	Gold	금색
+	Purple	보라

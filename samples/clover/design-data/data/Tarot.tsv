@@ -1,0 +1,26 @@
+:table Tarot(key=tarot_id)	타로 22종입니다. 대아르카나 그대로이고 상점 값은 전부 같습니다.
+:field	tarot_id	name	sort_order
+:type	string (regex="^[a-z][a-z0-9_]*$")	string (text=Tarot)	int (min=1, max=22)
+:desc	식별자	표시 이름	수집 목록에서의 순서
+	the_fool	바보	1
+	the_magician	마법사	2
+	the_high_priestess	고위 여사제	3
+	the_empress	여제	4
+	the_emperor	황제	5
+	the_hierophant	교황	6
+	the_lovers	연인	7
+	the_chariot	전차	8
+	justice	정의	9
+	the_hermit	은둔자	10
+	the_wheel_of_fortune	운명의 수레바퀴	11
+	strength	힘	12
+	the_hanged_man	매달린 사람	13
+	death	죽음	14
+	temperance	절제	15
+	the_devil	악마	16
+	the_tower	탑	17
+	the_star	별	18
+	the_moon	달	19
+	the_sun	태양	20
+	judgement	심판	21
+	the_world	세계	22

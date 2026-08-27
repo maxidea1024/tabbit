@@ -1,0 +1,24 @@
+:table Achievement(key=achievement_id)	도전과제입니다. **원작의 57종을 옮기지 않고 우리 목록을 만들었습니다.**
+:field	achievement_id	name	condition	sort_order
+:type	string (regex="^[a-z][a-z0-9_]*$")	string (text=Achievement)	string	int (min=1, max=20)
+:desc	식별자	표시 이름	조건	표시 순서
+	first_blood	첫 관문	스몰 블라인드를 처음 격파합니다	1
+	ante_four	중반	안테 4에 도달합니다	2
+	ante_eight	완주	안테 8을 넘깁니다	3
+	endless	그 너머	안테 12에 도달합니다	4
+	ten_thousand	만 점	한 핸드로 10,000점을 냅니다	5
+	million	백만 점	한 핸드로 1,000,000점을 냅니다	6
+	royal	로열	로열 플러시를 냅니다	7
+	five_of_a_kind	다섯 장	파이브 오브 어 카인드를 냅니다	8
+	flush_five	한 장으로 다섯	플러시 파이브를 냅니다	9
+	full_tray	가득 찬 줄	조커 슬롯을 전부 채웁니다	10
+	legendary	전설	전설 조커를 얻습니다	11
+	all_tarot	대아르카나	타로 22종을 모두 써 봅니다	12
+	all_planet	태양계	행성 12종을 모두 써 봅니다	13
+	no_discard	군더더기 없이	버리기를 한 번도 쓰지 않고 안테 하나를 넘깁니다	14
+	broke	빈손	금액 $0으로 보스를 격파합니다	15
+	rich	부자	$100을 모읍니다	16
+	skipper	건너뛰기	한 런에서 블라인드 8개를 스킵합니다	17
+	every_deck	모든 덱	덱 15종으로 각각 승리합니다	18
+	gold_stake	황금	황금 스테이크로 승리합니다	19
+	collector	수집가	조커 150종을 모두 발견합니다	20

@@ -1,0 +1,8 @@
+:table Suit(key=suit)	무늬 하나의 표시입니다.
+:field	suit	color	sort_order	letter
+:type	SuitKind	string	int (min=1, max=4)	string (regex="^[A-Z]$")
+:desc	무늬	카드에 쓰는 색	정렬 순서	식별자에 쓰는 글자
+	Spade	검정	1	S
+	Heart	빨강	2	H
+	Club	검정	3	C
+	Diamond	빨강	4	D

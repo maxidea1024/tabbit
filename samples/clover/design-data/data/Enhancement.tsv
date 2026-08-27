@@ -1,0 +1,13 @@
+:table Enhancement(key=enhancement)	카드 한 장에 붙는 강화입니다. 한 장에 하나뿐입니다.
+:field	enhancement	display
+:type	EnhancementKind	string (text=Enhancement)
+:desc	강화	표시 이름
+	None	없음
+	Bonus	보너스
+	Mult	배수
+	Wild	와일드
+	Glass	유리
+	Steel	강철
+	Stone	석재
+	Gold	황금
+	Lucky	행운

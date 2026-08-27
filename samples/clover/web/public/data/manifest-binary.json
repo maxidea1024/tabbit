@@ -1,0 +1,223 @@
+{
+  "LastUpdatedDate": "2026-08-27T16:15:35.7582191+09:00",
+  "MasterHash": "3c1a423925e9f161db760cb67516db4c",
+  "TotalSize": 52858,
+  "Items": [
+    {
+      "Name": "Rank.tcb",
+      "Size": 120,
+      "Hash": "177e8fd4ec8dfa19da3a36a99378b856",
+      "LastUpdatedDate": "2026-08-27T10:55:50.1862757+09:00"
+    },
+    {
+      "Name": "Suit.tcb",
+      "Size": 106,
+      "Hash": "d8dcba18dc1cc33f98fd0c33effc79b5",
+      "LastUpdatedDate": "2026-08-27T10:55:50.1879625+09:00"
+    },
+    {
+      "Name": "BaseDeckCard.tcb",
+      "Size": 275,
+      "Hash": "1c8b1d3d804cbb972b37bcbbfc609c91",
+      "LastUpdatedDate": "2026-08-27T10:55:50.1904806+09:00"
+    },
+    {
+      "Name": "PokerHand.tcb",
+      "Size": 145,
+      "Hash": "7aefe598dda901db820a32a76abac9c2",
+      "LastUpdatedDate": "2026-08-27T10:55:50.1915982+09:00"
+    },
+    {
+      "Name": "Enhancement.tcb",
+      "Size": 135,
+      "Hash": "fb533c0dfc8c4906fefea4fc09156170",
+      "LastUpdatedDate": "2026-08-27T10:55:50.1923513+09:00"
+    },
+    {
+      "Name": "EnhancementEffect.tcb",
+      "Size": 711,
+      "Hash": "08aec930b5283e5307709b593a16d310",
+      "LastUpdatedDate": "2026-08-27T10:55:50.1980415+09:00"
+    },
+    {
+      "Name": "Seal.tcb",
+      "Size": 98,
+      "Hash": "148fffdc91ae9531cd334f40b8bd16c7",
+      "LastUpdatedDate": "2026-08-27T10:55:50.1987784+09:00"
+    },
+    {
+      "Name": "SealEffect.tcb",
+      "Size": 649,
+      "Hash": "9f91228440c9e9357aa5856b69c38ba4",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2064215+09:00"
+    },
+    {
+      "Name": "Edition.tcb",
+      "Size": 185,
+      "Hash": "a4a5066e46d29a2dbd292413b54f3861",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2080467+09:00"
+    },
+    {
+      "Name": "RngStream.tcb",
+      "Size": 290,
+      "Hash": "d3d880c43e235bf92ba4d7189ed67b30",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2089138+09:00"
+    },
+    {
+      "Name": "Tarot.tcb",
+      "Size": 470,
+      "Hash": "7e05dff18a9894f99cb61e36bbbc6c1b",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2124808+09:00"
+    },
+    {
+      "Name": "TarotEffect.tcb",
+      "Size": 957,
+      "Hash": "6950491400107a8801c2eef57993d677",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2173765+09:00"
+    },
+    {
+      "Name": "Planet.tcb",
+      "Size": 266,
+      "Hash": "331454735a62d97a339eef0667cd5534",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2184968+09:00"
+    },
+    {
+      "Name": "Spectral.tcb",
+      "Size": 346,
+      "Hash": "149aae988088e233aa02fca428acbbe9",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2195656+09:00"
+    },
+    {
+      "Name": "SpectralEffect.tcb",
+      "Size": 941,
+      "Hash": "ba8e3e1da03a398cd89eac43c76d1d4d",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2243831+09:00"
+    },
+    {
+      "Name": "EditionVisual.tcb",
+      "Size": 137,
+      "Hash": "ff22a047ef7762b5ec43b89bb3f9af1c",
+      "LastUpdatedDate": "2026-08-27T16:15:35.6597148+09:00"
+    },
+    {
+      "Name": "SoundCue.tcb",
+      "Size": 698,
+      "Hash": "a955c948699a9072b6354f28451f9e3e",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2265338+09:00"
+    },
+    {
+      "Name": "Joker.tcb",
+      "Size": 5213,
+      "Hash": "6e43d13d35caae075ff3fa7d60f8d01e",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2327007+09:00"
+    },
+    {
+      "Name": "JokerRarityWeight.tcb",
+      "Size": 78,
+      "Hash": "34bcfffbb5c7bf156ea0891bdef37f40",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2333217+09:00"
+    },
+    {
+      "Name": "JokerEffect.tcb",
+      "Size": 4009,
+      "Hash": "14b94972617b9636e5e9941690a2d11d",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2511063+09:00"
+    },
+    {
+      "Name": "Ante.tcb",
+      "Size": 140,
+      "Hash": "2604d9df4466b1e294780e08d3e293a4",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2516926+09:00"
+    },
+    {
+      "Name": "Blind.tcb",
+      "Size": 144,
+      "Hash": "64a65c0bd1db480607b892918c1b1e0a",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2523694+09:00"
+    },
+    {
+      "Name": "BossBlind.tcb",
+      "Size": 609,
+      "Hash": "60fc48448d87b548a95cb8f949b5eb90",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2534691+09:00"
+    },
+    {
+      "Name": "BossEffect.tcb",
+      "Size": 996,
+      "Hash": "c7b919c2e8225a1b024bb8bcba9e1be6",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2579541+09:00"
+    },
+    {
+      "Name": "Deck.tcb",
+      "Size": 645,
+      "Hash": "10afd9561ae08e1905e1fd8defcd7613",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2595677+09:00"
+    },
+    {
+      "Name": "DeckEffect.tcb",
+      "Size": 1018,
+      "Hash": "fb12cb2bef0f8d34df97513ca932299b",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2656463+09:00"
+    },
+    {
+      "Name": "Stake.tcb",
+      "Size": 198,
+      "Hash": "e334a3ad9b83785804a688f7c338bf17",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2664345+09:00"
+    },
+    {
+      "Name": "Tag.tcb",
+      "Size": 604,
+      "Hash": "fa92de451a8e5f04eaa31bc346077d31",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2676469+09:00"
+    },
+    {
+      "Name": "TagEffect.tcb",
+      "Size": 1009,
+      "Hash": "3108321f6e22b689cb5cfcdef82e9ade",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2727269+09:00"
+    },
+    {
+      "Name": "ShopSlotWeight.tcb",
+      "Size": 279,
+      "Hash": "1ae0caa79491dec62e30f03012aac519",
+      "LastUpdatedDate": "2026-08-27T10:55:50.273834+09:00"
+    },
+    {
+      "Name": "BoosterPack.tcb",
+      "Size": 258,
+      "Hash": "2570fe157f5f8ab4b91c5d2224ba01c2",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2752456+09:00"
+    },
+    {
+      "Name": "Voucher.tcb",
+      "Size": 1007,
+      "Hash": "33dc7a7f98869c6724bff01f3ef24ea9",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2773016+09:00"
+    },
+    {
+      "Name": "VoucherEffect.tcb",
+      "Size": 1093,
+      "Hash": "9ef77bedbaa7b3b997bb50ae2a63b92e",
+      "LastUpdatedDate": "2026-08-27T10:55:50.283204+09:00"
+    },
+    {
+      "Name": "RerollCost.tcb",
+      "Size": 64,
+      "Hash": "d187a115f409914a22a2f860bf80b751",
+      "LastUpdatedDate": "2026-08-27T10:55:50.2840904+09:00"
+    },
+    {
+      "Name": "StringTable.tcb",
+      "Size": 27785,
+      "Hash": "43be489854a5764c202d65feeb98de74",
+      "LastUpdatedDate": "2026-08-27T13:35:51.9994885+09:00"
+    },
+    {
+      "Name": "Achievement.tcb",
+      "Size": 1180,
+      "Hash": "0233e717a71fb0961407d2d2b1c948bf",
+      "LastUpdatedDate": "2026-08-27T10:55:50.297917+09:00"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  // 우리 코드입니다. **`strict` 를 끄지 않습니다** — 생성 코드는 자기 프로젝트에서 따로
+  // 검사하고, 그 이유가 `src/generated/tsconfig.json` 에 있습니다.
+  "compilerOptions": {
+    "composite": true,
+    "outDir": ".tsbuild/src",
+    "tsBuildInfoFile": ".tsbuild/src.tsbuildinfo",
+    "declaration": true,
+
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true
+  },
+  "references": [{ "path": "./src/generated" }],
+  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "exclude": ["src/generated/**"]
+}

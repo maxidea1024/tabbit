@@ -1,0 +1,182 @@
+:table JokerEffect(key="owner,order")	조커가 하는 일입니다. 조커 하나가 행 여러 개를 가집니다.
+:field	owner	order	trigger	chance_num	chance_den	first_only	ranks	suits	scope	scope_count	condition.$type	condition.hand	condition.suit	condition.enhancement	condition.seal	condition.edition	condition.blind	condition.consumable	condition.target	condition.counter	condition.consume	condition.n	condition.compare	condition.num	condition.den	operation.$type	operation.chips	operation.mult	operation.money	operation.cap	operation.unit	operation.mode	operation.value	operation.base_value	operation.min	operation.max	operation.times	operation.counter	operation.step	operation.init	operation.floor	operation.reset	operation.hand_pick	operation.levels	operation.create	operation.count	operation.card_class	operation.edition	operation.rarity	operation.enhancement	operation.seal	operation.suit	operation.modify	operation.trait	operation.debuff	operation.pick	operation.rule	operation.absolute	operation.duration	operation.free	operation.random	operation.ref_id	operation.handler
+:type	foreign Joker	int (min=0, max=15)	Trigger	int?	int?	bool?	RankKind[]?	SuitKind[]?	Scope	int?	Condition															Operation																																					
+:desc	이 효과를 가진 것	같은 소유자 안의 순서	언제 보는가	확률의 분자	확률의 분모	조건을 만족한 첫 대상만	어느 랭크들인가	어느 무늬들인가	누구에게	대상 개수	무엇이 참이어야 하는가															무엇을 하는가																																					
+	twig	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpAddMult		40000																																			
+	quartz_bloom	0	OnCardScored	-	-	-	-	-	Run	-	CondCardSuit		Diamond													OpAddMult		30000																																			
+	poppy_bloom	0	OnCardScored	-	-	-	-	-	Run	-	CondCardSuit		Heart													OpAddMult		30000																																			
+	nettle_bloom	0	OnCardScored	-	-	-	-	-	Run	-	CondCardSuit		Spade													OpAddMult		30000																																			
+	clover_bloom	0	OnCardScored	-	-	-	-	-	Run	-	CondCardSuit		Club													OpAddMult		30000																																			
+	warbler	0	OnHandPlayed	-	-	-	-	-	Run	-	CondHandContains	Pair														OpAddMult		80000																																			
+	starling	0	OnHandPlayed	-	-	-	-	-	Run	-	CondHandContains	ThreeOfAKind														OpAddMult		120000																																			
+	magpie	0	OnHandPlayed	-	-	-	-	-	Run	-	CondHandContains	TwoPair														OpAddMult		100000																																			
+	swallow	0	OnHandPlayed	-	-	-	-	-	Run	-	CondHandContains	Straight														OpAddMult		120000																																			
+	finch	0	OnHandPlayed	-	-	-	-	-	Run	-	CondHandContains	Flush														OpAddMult		100000																																			
+	cricket	0	OnHandPlayed	-	-	-	-	-	Run	-	CondHandContains	Pair														OpAddChips	50																																				
+	mantis	0	OnHandPlayed	-	-	-	-	-	Run	-	CondHandContains	ThreeOfAKind														OpAddChips	100																																				
+	beetle	0	OnHandPlayed	-	-	-	-	-	Run	-	CondHandContains	TwoPair														OpAddChips	80																																				
+	centipede	0	OnHandPlayed	-	-	-	-	-	Run	-	CondHandContains	Straight														OpAddChips	100																																				
+	firefly	0	OnHandPlayed	-	-	-	-	-	Run	-	CondHandContains	Flush														OpAddChips	80																																				
+	half_pot	0	OnHandPlayed	-	-	-	-	-	Run	-	CondCardCount											3	AtMost			OpAddMult		200000																																			
+	ledger_note	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-20																								DebtLimit						
+	bunting	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					DiscardsLeft	AddChips	30																														
+	last_ridge	0	OnHandPlayed	-	-	-	-	-	Run	-	CondDiscardsLeft											0	Exactly			OpAddMult		150000																																			
+	eight_bell	0	OnCardScored	1	4	-	Eight	-	Run	-	CondCardRankSet															OpCreateCard																			Tarot	1																	
+	smudge	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpRandomRange						AddMult			0	230000																											
+	low_branch	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					LowestHeldRankChips	AddMult	20000																														
+	muddle	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								FreeRerolls						
+	grim_mask	0	OnCardScored	-	-	-	-	-	Run	-	CondCardIsFace															OpAddChips	30																																				
+	tangle	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					JokerCount	AddMult	30000																														
+	slow_pot	0	OnRoundEnd	-	-	-	-	-	Run	-	CondDiscardsUnused															OpPerUnit					DiscardsLeft	AddMoney	2																														
+	windfall_pear	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpAddMult		150000																																			
+	windfall_pear	1	OnRoundEnd	1	6	-	-	-	SelfTarget	-	CondAlways															OpDestroyJoker																														SelfPick							
+	even_ivy	0	OnCardScored	-	-	-	Two;Four;Six;Eight;Ten	-	Run	-	CondCardRankSet															OpAddMult		40000																																			
+	odd_alder	0	OnCardScored	-	-	-	Three;Five;Seven;Nine;Ace	-	Run	-	CondCardRankSet															OpAddChips	31																																				
+	almanac	0	OnCardScored	-	-	-	Ace	-	Run	-	CondCardRankSet															OpAddChips	20																																				
+	almanac	1	OnCardScored	-	-	-	Ace	-	Run	-	CondCardRankSet															OpAddMult		40000																																			
+	trade_card	0	OnCardScored	1	2	-	-	-	Run	-	CondCardIsFace															OpAddMoney			2																																		
+	nova_bud	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					HandPlayCount	AddMult	10000																														
+	long_path	0	OnScoreResolved	-	-	-	-	-	SelfTarget	-	CondNoFaceScored															OpGrowSelf												MultAdd	10000			Never																					
+	long_path	1	OnScoreResolved	-	-	-	-	-	SelfTarget	-	CondFaceScored															OpResetSelf												MultAdd																									
+	seed_pod	0	OnRoundEnd	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												SellValue	3			Never																					
+	creeper	0	OnScoreResolved	-	-	-	-	-	SelfTarget	-	CondHandContains	Straight														OpGrowSelf												Chips	15			Never																					
+	frost_pane	0	OnScoreResolved	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												Chips	-5	100	0	Never																					
+	frost_pane	1	OnScoreResolved	-	-	-	-	-	SelfTarget	-	CondCounterAtMost									Chips		0				OpDestroyJoker																														SelfPick							
+	downpour	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								AllCardsScore						
+	blue_lantern	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					DeckRemaining	AddChips	2																														
+	blank_mask	0	OnHandDiscarded	-	-	-	-	-	Run	-	CondDiscardedFaceAtLeast											3				OpAddMoney			5																																		
+	green_shoot	0	OnScoreResolved	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												MultAdd	10000			Never																					
+	green_shoot	1	OnHandDiscarded	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												MultAdd	-10000		0	Never																					
+	twin_state	0	OnHandPlayed	-	-	-	Ace	-	Run	-	CondHandContainsRankAndHand	Straight														OpCreateCard																			Tarot	1																	
+	chore_list	0	OnHandPlayed	-	-	-	-	-	Run	-	CondTargetMatch								Hand							OpAddMoney			4																																		
+	orchard_pear	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpMulMult		30000																																			
+	orchard_pear	1	OnRoundEnd	1	1000	-	-	-	SelfTarget	-	CondAlways															OpDestroyJoker																														SelfPick							
+	red_ticket	0	OnPackSkipped	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												MultAdd	30000			Never																					
+	square_trellis	0	OnScoreResolved	-	-	-	-	-	SelfTarget	-	CondCardCount											4	Exactly			OpGrowSelf												Chips	4			Never																					
+	rabble	0	OnBlindSelect	-	-	-	-	-	Run	-	CondAlways															OpCreateCard																			Joker	2			Common														
+	tintype	0	OnCardScored	-	-	true	-	-	Run	-	CondCardIsFace															OpMulMult		20000																																			
+	garden_bench	0	OnCardHeld	1	2	-	-	-	Run	-	CondCardIsFace															OpAddMoney			1																																		
+	rebate_slip	0	OnCardDiscarded	-	-	-	-	-	Run	-	CondTargetMatch								Rank							OpAddMoney			5																																		
+	daydream	0	OnPackOpened	1	2	-	-	-	Run	-	CondAlways															OpCreateCard																			Tarot	1																	
+	palm_reader	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					TarotUsed	AddMult	10000																														
+	spinner	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								HandSize						
+	tippler	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								DiscardsPerRound						
+	gilt_coin	0	OnRoundEnd	-	-	-	-	-	Run	-	CondAlways															OpAddMoney			4																																		
+	puffball	0	OnRoundEnd	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												MultAdd	-40000	200000	0	Never																					
+	puffball	1	OnRoundEnd	-	-	-	-	-	SelfTarget	-	CondCounterAtMost									MultAdd		0				OpDestroyJoker																														SelfPick							
+	tin_horn	0	OnCardScored	-	-	-	Ten;Four	-	Run	-	CondCardRankSet															OpAddChips	10																																				
+	tin_horn	1	OnCardScored	-	-	-	Ten;Four	-	Run	-	CondCardRankSet															OpAddMult		40000																																			
+	glad_mask	0	OnCardScored	-	-	-	-	-	Run	-	CondCardIsFace															OpAddMult		50000																																			
+	gilt_stub	0	OnCardScored	-	-	-	-	-	Run	-	CondCardEnhancement			Gold												OpAddMoney			4																																		
+	bramble_blade	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					OtherJokerSellValue	AddMult	10000																														
+	moonshot	0	OnCardHeld	-	-	-	Queen	-	Run	-	CondCardRankSet															OpAddMult		130000																																			
+	torn_tab	0	OnCardScored	-	-	true	-	-	ScoredCard	-	CondAlways															OpRetrigger											2																										
+	empty_frame	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					EmptyJokerSlots	MulMult	10000	0																													
+	four_knuckles	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							4																								FlushStraightCards	true					
+	mummer	0	OnCardHeld	-	-	-	-	-	HeldCard	-	CondAlways															OpRetrigger											1																										
+	pruning_shears	0	OnBlindSelect	-	-	-	-	-	JokerRight	-	CondAlways															OpCustom																																					pruning_shears
+	pebble_jar	0	OnBlindSelect	-	-	-	-	-	AllInDeck	-	CondAlways															OpAddCard																			PlayingCard	1				Stone											true		
+	punch_card	0	OnHandPlayed	-	-	-	-	-	Run	-	CondEveryNHands											6				OpMulMult		40000																																			
+	twilight	0	OnCardScored	-	-	-	-	-	ScoredCard	-	CondLastHand															OpRetrigger											1																										
+	spiral_shell	0	OnCardScored	-	-	-	Ace;Two;Three;Five;Eight	-	Run	-	CondCardRankSet															OpAddMult		80000																																			
+	steel_trellis	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					DeckEnhancementCount	MulMult	2000	10000																Steel													
+	notch	0	OnCardScored	-	-	-	Two;Three;Four;Five	-	ScoredCard	-	CondCardRankSet															OpRetrigger											1																										
+	face_pattern	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								AllCardsAreFace						
+	comet_tail	0	OnHandPlayed	1	4	-	-	-	Run	-	CondAlways															OpLevelUpHand																	Played	1																			
+	night_thief	0	OnBlindSelect	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							3																								HandsPerRound		ThisRound				
+	night_thief	1	OnBlindSelect	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								SetDiscardsZero		ThisRound				
+	slate_board	0	OnHandPlayed	-	-	-	-	Spade;Club	Run	-	CondAllHeldSuit															OpMulMult		30000																																			
+	hunch	0	OnHandPlayed	-	-	-	Six	-	ScoredCard	-	CondFirstHandSingleRank															OpDestroyCard																				1																	
+	hunch	1	OnHandPlayed	-	-	-	Six	-	Run	-	CondFirstHandSingleRank															OpCreateCard																			Spectral	1																	
+	star_chart	0	OnConsumableUsed	-	-	-	-	-	SelfTarget	-	CondConsumableKind							Planet								OpGrowSelf												MultMul	1000			Never																					
+	wanderer	0	OnCardScored	-	-	-	-	-	ScoredCard	-	CondAlways															OpModifyCard							5																				BonusChips										
+	sharper	0	OnHandPlayed	-	-	-	-	-	Run	-	CondHandRepeated															OpMulMult		30000																																			
+	fever	0	OnBlindSelect	-	-	-	-	-	SelfTarget	-	CondBlindKind						Small									OpGrowSelf												MultMul	5000			Never																					
+	fever	1	OnBlindSelect	-	-	-	-	-	SelfTarget	-	CondBlindKind						Big									OpGrowSelf												MultMul	5000			Never																					
+	fever	2	OnBlindSelect	-	-	-	-	-	RandomJoker	-	CondAlways															OpDestroyJoker																														Random							
+	vigil	0	OnHandPlayed	-	-	-	-	-	Run	-	CondHandIs	StraightFlush														OpCreateCard																			Spectral	1																	
+	leech_vine	0	OnCardScored	-	-	-	-	-	SelfTarget	-	CondCardEnhanced															OpGrowSelf												MultMul	1000			Never																					
+	leech_vine	1	OnCardScored	-	-	-	-	-	ScoredCard	-	CondCardEnhanced															OpModifyCard																								None			Enhancement										
+	stepping_stone	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								StraightGap	true					
+	glass_ghost	0	OnCardAdded	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												MultMul	2500			Never																					
+	ninth_cloud	0	OnRoundEnd	-	-	-	Nine	-	Run	-	CondAlways															OpPerUnit					DeckRankCount	AddMoney	1																														
+	sky_rocket	0	OnRoundEnd	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					SelfCounterMoney	AddMoney	1																														
+	sky_rocket	1	OnBossDefeated	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												Money	2	1		Never																					
+	gilt_mask	0	OnCardScored	-	-	-	-	-	ScoredCard	-	CondCardIsFace															OpModifyCard																								Gold			Enhancement										
+	ring_fighter	0	OnSell	-	-	-	-	-	Run	-	CondAlways															OpDisableBoss																																					
+	gift_tag	0	OnRoundEnd	-	-	-	-	-	AllJokers	-	CondAlways															OpGrowOthers												SellValue	1																								
+	gift_tag	1	OnRoundEnd	-	-	-	-	-	AllConsumables	-	CondAlways															OpGrowOthers												SellValue	1																								
+	broad_bean	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRuleByCounter												Charge																			HandSize						
+	broad_bean	1	OnRoundEnd	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												Charge	-1	5	0	Never																					
+	broad_bean	2	OnRoundEnd	-	-	-	-	-	SelfTarget	-	CondCounterAtMost									Charge		0				OpDestroyJoker																														SelfPick							
+	washout	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					DeckDeficit	AddMult	40000																														
+	moon_ladder	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								InterestPer5						
+	cairn	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					DeckEnhancementCount	AddChips	25																	Stone													
+	lucky_toad	0	OnLuckyTriggered	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												MultMul	2500			Never																					
+	soda_cap	0	OnSell	-	-	-	-	-	Run	-	CondAlways															OpCreateCard																			Tag	1																double	
+	swap_note	0	OnHandDiscarded	-	-	-	-	-	AllInHand	-	CondFirstDiscardSingleCard															OpDestroyCard																				1																	
+	swap_note	1	OnHandDiscarded	-	-	-	-	-	Run	-	CondFirstDiscardSingleCard															OpAddMoney			3																																		
+	flash_note	0	OnReroll	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												MultAdd	20000			Never																					
+	spare_gloves	0	OnScoreResolved	-	-	-	-	-	SelfTarget	-	CondHandContains	TwoPair														OpGrowSelf												MultAdd	20000			Never																					
+	noodle_pot	0	OnCardDiscarded	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												MultMul	-100	20000	0	Never																					
+	fizz_bottle	0	OnCardScored	-	-	-	-	-	ScoredCard	-	CondChargeLeft															OpRetrigger											1																										
+	fizz_bottle	1	OnScoreResolved	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												Charge	-1	10	0	Never																					
+	fizz_bottle	2	OnScoreResolved	-	-	-	-	-	SelfTarget	-	CondCounterAtMost									Charge		0				OpDestroyJoker																														SelfPick							
+	stone_keep	0	OnCardDiscarded	-	-	-	-	-	SelfTarget	-	CondTargetMatch								Suit							OpGrowSelf												Chips	3			Never																					
+	tumbler	0	OnHandPlayed	-	-	-	-	-	Run	-	CondLastHand															OpMulMult		30000																																			
+	two_masks	0	OnCardScored	-	-	-	-	-	ScoredCard	-	CondCardIsFace															OpRetrigger											1																										
+	fiddler	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							2																								HandSize						
+	fiddler	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-1																								HandsPerRound						
+	deed_stamp	0	OnRoundStart	-	-	-	-	-	AllInHand	-	CondAlways															OpAddCard																			PlayingCard	1															true		
+	smudged_pane	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								SuitsMerged						
+	old_route	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					BlindsSkipped	MulMult	2500	10000																													
+	raw_gem	0	OnCardScored	-	-	-	-	-	Run	-	CondCardSuit		Diamond													OpAddMoney			1																																		
+	heartstone	0	OnCardScored	1	2	-	-	-	Run	-	CondCardSuit		Heart													OpMulMult		15000																																			
+	arrow_flint	0	OnCardScored	-	-	-	-	-	Run	-	CondCardSuit		Spade													OpAddChips	50																																				
+	onyx_leaf	0	OnCardScored	-	-	-	-	-	Run	-	CondCardSuit		Club													OpAddMult		70000																																			
+	shard_jar	0	OnCardDestroyed	-	-	-	-	-	SelfTarget	-	CondCardEnhancement			Glass												OpGrowSelf												MultMul	7500			Never																					
+	barker	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								AllowDuplicates						
+	four_beds	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAllSuitsPresent															OpMulMult		30000																																			
+	glad_fool	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							3																								DiscardsPerRound						
+	glad_fool	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-1																								HandSize						
+	loaded_dice	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							2																								ProbabilityScale	true					
+	the_effigy	0	OnCardScored	-	-	-	-	-	Run	-	CondTargetMatch								Card							OpMulMult		20000																																			
+	double_sight	0	OnHandPlayed	-	-	-	-	-	Run	-	CondSuitPair		Club													OpMulMult		20000																																			
+	bullfighter	0	OnHandPlayed	-	-	-	-	-	Run	-	CondBossTriggered															OpAddMoney			8																																		
+	orbit_dish	0	OnRoundEnd	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					UniquePlanetUsed	AddMoney	1																														
+	card_reader	0	OnBlindSelect	-	-	-	-	-	Run	-	CondAlways															OpCreateCard																			Tarot	1																	
+	stargazer	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								FreePlanets						
+	bootlace	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					MoneyPer5	AddMult	20000																														
+	ox_yoke	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					Money	AddChips	2																														
+	old_bones	0	OnScoreResolved	-	-	-	-	-	Run	-	CondScoreRatioAtLeast													1	4	OpPreventLoss																																					
+	old_bones	1	OnScoreResolved	-	-	-	-	-	SelfTarget	-	CondScoreRatioAtLeast													1	4	OpDestroyJoker																														SelfPick							
+	graft	0	OnHandPlayed	-	-	-	-	-	AllInDeck	-	CondFirstHandSingleCard															OpAddCard																			CopyOfScored	1																	
+	drifter	0	OnHandPlayed	-	-	-	-	-	Run	-	CondMoney											4	AtMost			OpCreateCard																			Tarot	1																	
+	steward	0	OnCardHeld	-	-	-	King	-	Run	-	CondCardRankSet															OpMulMult		15000																																			
+	standing_stone	0	OnScoreResolved	-	-	-	-	-	SelfTarget	-	CondNotMostPlayedHand															OpGrowSelf												MultMul	2000			Never																					
+	standing_stone	1	OnScoreResolved	-	-	-	-	-	SelfTarget	-	CondIsMostPlayedHand															OpResetSelf												MultMul																									
+	rookie_card	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					JokerRarityCount	MulEach	15000																Uncommon														
+	old_sigil	0	OnCardScored	-	-	-	-	-	Run	-	CondTargetMatch								Suit							OpMulMult		15000																																			
+	bonfire	0	OnJokerSold	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												MultMul	2500			Never																					
+	bonfire	1	OnBossDefeated	-	-	-	-	-	SelfTarget	-	CondAlways															OpResetSelf												MultMul																									
+	tracing	0	Passive	-	-	-	-	-	JokerRight	-	CondAlways															OpCopyJoker																														Right							
+	tiny_tot	0	OnCardScored	-	-	-	Two	-	SelfTarget	-	CondCardRankSet															OpGrowSelf												Chips	8			Never																					
+	open_road	0	OnCardDiscarded	-	-	-	Jack	-	SelfTarget	-	CondCardRankSet															OpGrowSelf												MultMul	5000			Round																					
+	the_bond	0	OnHandPlayed	-	-	-	-	-	Run	-	CondHandContains	Pair														OpMulMult		20000																																			
+	the_braid	0	OnHandPlayed	-	-	-	-	-	Run	-	CondHandContains	ThreeOfAKind														OpMulMult		30000																																			
+	the_brood	0	OnHandPlayed	-	-	-	-	-	Run	-	CondHandContains	FourOfAKind														OpMulMult		40000																																			
+	the_march	0	OnHandPlayed	-	-	-	-	-	Run	-	CondHandContains	Straight														OpMulMult		30000																																			
+	the_flock	0	OnHandPlayed	-	-	-	-	-	Run	-	CondHandContains	Flush														OpMulMult		20000																																			
+	deadweight	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpAddChips	250																																				
+	deadweight	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-2																								HandSize						
+	faint_outline	0	OnRoundEnd	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												Tick	1			Never																					
+	faint_outline	1	OnSell	-	-	-	-	-	RandomJoker	-	CondCounterAtLeast									Tick		2				OpCopyJoker																														Random							
+	mirror_note	0	Passive	-	-	-	-	-	JokerLeftmost	-	CondAlways															OpCopyJoker																														Leftmost							
+	road_permit	0	OnHandPlayed	-	-	-	-	-	Run	-	CondDeckEnhancedAtLeast											16				OpMulMult		30000																																			
+	scorch_mark	0	OnHandDiscarded	-	-	-	-	-	Run	-	CondFirstDiscard															OpLevelUpHand																	FirstDiscarded	1																			
+	verdigris	0	OnCardDestroyed	-	-	-	-	-	SelfTarget	-	CondCardIsFace															OpGrowSelf												MultMul	10000			Never																					
+	coronet	0	OnCardScored	-	-	-	King;Queen	-	Run	-	CondCardRankSet															OpMulMult		20000																																			
+	gravebloom	0	OnCardDiscarded	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												Charge	1			Never																					
+	gravebloom	1	OnCardDiscarded	-	-	-	-	-	SelfTarget	-	CondCounterAtLeast									Charge	true	23				OpGrowSelf												MultMul	10000			Never																					
+	hushbell	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpDisableBoss																																					
+	echoseed	0	OnShopExit	-	-	-	-	-	RandomConsumable	-	CondAlways															OpCreateCard																			LastUsed	1		Negative															

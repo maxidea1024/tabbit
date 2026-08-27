@@ -1,0 +1,19 @@
+:table Deck(key=deck_id)	런의 시작 조건입니다. 카드 52장 자체를 바꾸는 덱과 자원을 바꾸는 덱이 갈립니다.
+:field	deck_id	name	unlock	sort_order
+:type	string (regex="^[a-z][a-z0-9_]*$")	string (text=Deck)	string	int (min=1, max=15)
+:desc	식별자	표시 이름	해금 조건	고르는 화면에서의 순서
+	red_deck	붉은 덱	처음부터	1
+	blue_deck	파란 덱	수집 20종	2
+	yellow_deck	노란 덱	수집 50종	3
+	green_deck	초록 덱	수집 75종	4
+	black_deck	검은 덱	수집 100종	5
+	magic_deck	마법 덱	붉은 덱 승리	6
+	nebula_deck	성운 덱	파란 덱 승리	7
+	ghost_deck	유령 덱	노란 덱 승리	8
+	abandoned_deck	버려진 덱	초록 덱 승리	9
+	checkered_deck	체크무늬 덱	검은 덱 승리	10
+	zodiac_deck	황도대 덱	붉은 스테이크 승리	11
+	painted_deck	물감 덱	초록 스테이크 승리	12
+	anaglyph_deck	입체사진 덱	검은 스테이크 승리	13
+	plasma_deck	플라스마 덱	파란 스테이크 승리	14
+	erratic_deck	불규칙한 덱	주황 스테이크 승리	15

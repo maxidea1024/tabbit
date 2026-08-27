@@ -1,0 +1,154 @@
+:table Joker(key=joker_id)	조커 한 종입니다. 효과는 `JokerEffect` 에 있고 여기에는 그 종의 성질만 있습니다.
+:field	joker_id	rarity	cost	name	art	blueprint_ok	sort_order
+:type	string (regex="^[a-z][a-z0-9_]*$")	Rarity	int (min=1, max=10)	string (text=Joker)	string (asset=joker)	bool	int (min=1, max=150)
+:desc	식별자	희귀도	상점에서의 값	표시 이름	그림	복사 조커가 복사할 수 있는가	수집 목록에서의 순서
+	twig	Common	2	둥근 잔가지	joker_twig	true	1
+	quartz_bloom	Common	5	석영꽃	joker_quartz_bloom	true	2
+	poppy_bloom	Common	5	양귀비꽃	joker_poppy_bloom	true	3
+	nettle_bloom	Common	5	쐐기풀꽃	joker_nettle_bloom	true	4
+	clover_bloom	Common	5	클로버꽃	joker_clover_bloom	true	5
+	warbler	Common	3	휘파람새	joker_warbler	true	6
+	starling	Common	4	찌르레기	joker_starling	true	7
+	magpie	Common	4	까치	joker_magpie	true	8
+	swallow	Common	4	제비	joker_swallow	true	9
+	finch	Common	4	되새	joker_finch	true	10
+	cricket	Common	3	귀뚜라미	joker_cricket	true	11
+	mantis	Common	4	사마귀	joker_mantis	true	12
+	beetle	Common	4	딱정벌레	joker_beetle	true	13
+	centipede	Common	4	그리마	joker_centipede	true	14
+	firefly	Common	4	개똥벌레	joker_firefly	true	15
+	half_pot	Common	5	반쪽 화분	joker_half_pot	true	16
+	ledger_note	Common	1	외상 장부	joker_ledger_note	false	17
+	bunting	Common	5	깃발천	joker_bunting	true	18
+	last_ridge	Common	5	마지막 능선	joker_last_ridge	true	19
+	eight_bell	Common	5	여덟째 종	joker_eight_bell	true	20
+	smudge	Common	4	번짐	joker_smudge	true	21
+	low_branch	Common	5	낮은 가지	joker_low_branch	true	22
+	muddle	Common	4	헝클림	joker_muddle	false	23
+	grim_mask	Common	4	무서운 가면	joker_grim_mask	true	24
+	tangle	Common	4	엉킴	joker_tangle	true	25
+	slow_pot	Common	4	더딘 항아리	joker_slow_pot	true	26
+	windfall_pear	Common	5	바람 맞은 배	joker_windfall_pear	true	27
+	even_ivy	Common	4	짝수 담쟁이	joker_even_ivy	true	28
+	odd_alder	Common	4	홀수 오리나무	joker_odd_alder	true	29
+	almanac	Common	4	낡은 연감	joker_almanac	true	30
+	trade_card	Common	4	거래 명함	joker_trade_card	true	31
+	nova_bud	Common	5	새로 뜬 별	joker_nova_bud	true	32
+	long_path	Common	6	긴 길	joker_long_path	true	33
+	seed_pod	Common	4	씨주머니	joker_seed_pod	true	34
+	creeper	Common	5	덩굴손	joker_creeper	true	35
+	frost_pane	Common	5	서린 유리	joker_frost_pane	true	36
+	downpour	Common	3	소나기	joker_downpour	false	37
+	blue_lantern	Common	5	파란 등	joker_blue_lantern	true	38
+	blank_mask	Common	4	빈 가면	joker_blank_mask	true	39
+	green_shoot	Common	4	초록 싹	joker_green_shoot	true	40
+	twin_state	Common	4	겹친 상태	joker_twin_state	true	41
+	chore_list	Common	4	할 일 목록	joker_chore_list	true	42
+	orchard_pear	Common	4	과수원 배	joker_orchard_pear	true	43
+	red_ticket	Common	5	붉은 표	joker_red_ticket	true	44
+	square_trellis	Common	4	네모 격자	joker_square_trellis	true	45
+	rabble	Common	6	잡것들	joker_rabble	true	46
+	tintype	Common	5	은판 사진	joker_tintype	true	47
+	garden_bench	Common	6	정원 벤치	joker_garden_bench	true	48
+	rebate_slip	Common	4	환급 전표	joker_rebate_slip	true	49
+	daydream	Common	4	백일몽	joker_daydream	true	50
+	palm_reader	Common	6	손금 읽는 이	joker_palm_reader	true	51
+	spinner	Common	4	던지는 이	joker_spinner	false	52
+	tippler	Common	4	한잔하는 이	joker_tippler	false	53
+	gilt_coin	Common	6	금박 동전	joker_gilt_coin	true	54
+	puffball	Common	5	먼지버섯	joker_puffball	true	55
+	tin_horn	Common	4	양철 나팔	joker_tin_horn	true	56
+	glad_mask	Common	4	웃는 가면	joker_glad_mask	true	57
+	gilt_stub	Common	5	금박 표	joker_gilt_stub	true	58
+	bramble_blade	Common	4	가시 칼	joker_bramble_blade	true	59
+	moonshot	Common	5	달 겨눔	joker_moonshot	true	60
+	torn_tab	Common	4	찢긴 쪽지	joker_torn_tab	true	61
+	empty_frame	Uncommon	8	빈 액자	joker_empty_frame	true	62
+	four_knuckles	Uncommon	7	네 마디	joker_four_knuckles	false	63
+	mummer	Uncommon	5	무언극배우	joker_mummer	true	64
+	pruning_shears	Uncommon	6	전정 가위	joker_pruning_shears	true	65
+	pebble_jar	Uncommon	6	자갈 항아리	joker_pebble_jar	true	66
+	punch_card	Uncommon	5	도장 카드	joker_punch_card	true	67
+	twilight	Uncommon	5	해거름	joker_twilight	true	68
+	spiral_shell	Uncommon	8	나선 껍질	joker_spiral_shell	true	69
+	steel_trellis	Uncommon	7	강철 격자	joker_steel_trellis	true	70
+	notch	Uncommon	6	눈금	joker_notch	true	71
+	face_pattern	Uncommon	5	얼굴 무늬	joker_face_pattern	false	72
+	comet_tail	Uncommon	5	혜성 꼬리	joker_comet_tail	true	73
+	night_thief	Uncommon	6	밤손님	joker_night_thief	true	74
+	slate_board	Uncommon	6	점판암 판	joker_slate_board	true	75
+	hunch	Uncommon	6	예감	joker_hunch	true	76
+	star_chart	Uncommon	6	별자리표	joker_star_chart	true	77
+	wanderer	Uncommon	5	나그네	joker_wanderer	true	78
+	sharper	Uncommon	6	타짜	joker_sharper	true	79
+	fever	Uncommon	7	열병	joker_fever	true	80
+	vigil	Uncommon	6	밤샘	joker_vigil	true	81
+	leech_vine	Uncommon	7	거머리 덩굴	joker_leech_vine	true	82
+	stepping_stone	Uncommon	7	디딤돌	joker_stepping_stone	false	83
+	glass_ghost	Uncommon	7	유리 그림자	joker_glass_ghost	true	84
+	ninth_cloud	Uncommon	7	아홉째 구름	joker_ninth_cloud	true	85
+	sky_rocket	Uncommon	6	불화살	joker_sky_rocket	true	86
+	gilt_mask	Uncommon	7	금박 가면	joker_gilt_mask	true	87
+	ring_fighter	Uncommon	5	링의 투사	joker_ring_fighter	false	88
+	gift_tag	Uncommon	6	선물 꼬리표	joker_gift_tag	true	89
+	broad_bean	Uncommon	6	넓은 콩	joker_broad_bean	true	90
+	washout	Uncommon	6	씻김	joker_washout	true	91
+	moon_ladder	Uncommon	5	달 사다리	joker_moon_ladder	false	92
+	cairn	Uncommon	6	돌무지	joker_cairn	true	93
+	lucky_toad	Uncommon	6	복 두꺼비	joker_lucky_toad	true	94
+	soda_cap	Uncommon	6	음료 뚜껑	joker_soda_cap	false	95
+	swap_note	Uncommon	6	교환 쪽지	joker_swap_note	true	96
+	flash_note	Uncommon	5	섬광 쪽지	joker_flash_note	true	97
+	spare_gloves	Uncommon	6	여벌 장갑	joker_spare_gloves	true	98
+	noodle_pot	Uncommon	6	국수 냄비	joker_noodle_pot	true	99
+	fizz_bottle	Uncommon	6	탄산병	joker_fizz_bottle	true	100
+	stone_keep	Uncommon	6	돌 성채	joker_stone_keep	true	101
+	tumbler	Uncommon	6	곡예사	joker_tumbler	true	102
+	two_masks	Uncommon	6	두 가면	joker_two_masks	true	103
+	fiddler	Uncommon	6	악사	joker_fiddler	false	104
+	deed_stamp	Uncommon	6	증서 도장	joker_deed_stamp	true	105
+	smudged_pane	Uncommon	7	번진 유리	joker_smudged_pane	false	106
+	old_route	Uncommon	6	옛 길	joker_old_route	true	107
+	raw_gem	Uncommon	7	원석	joker_raw_gem	true	108
+	heartstone	Uncommon	7	피돌	joker_heartstone	true	109
+	arrow_flint	Uncommon	7	화살 부싯돌	joker_arrow_flint	true	110
+	onyx_leaf	Uncommon	7	검은 잎	joker_onyx_leaf	true	111
+	shard_jar	Uncommon	6	파편 항아리	joker_shard_jar	true	112
+	barker	Uncommon	5	호객꾼	joker_barker	false	113
+	four_beds	Uncommon	6	네 화단	joker_four_beds	true	114
+	glad_fool	Uncommon	7	즐거운 광대	joker_glad_fool	false	115
+	loaded_dice	Uncommon	4	납 주사위	joker_loaded_dice	false	116
+	the_effigy	Uncommon	6	목각 인형	joker_the_effigy	true	117
+	double_sight	Uncommon	6	겹보임	joker_double_sight	true	118
+	bullfighter	Uncommon	7	투우사	joker_bullfighter	true	119
+	orbit_dish	Uncommon	6	접시 안테나	joker_orbit_dish	true	120
+	card_reader	Uncommon	6	카드 읽는 이	joker_card_reader	true	121
+	stargazer	Uncommon	8	별 보는 이	joker_stargazer	false	122
+	bootlace	Uncommon	7	구두끈	joker_bootlace	true	123
+	ox_yoke	Uncommon	6	황소 멍에	joker_ox_yoke	true	124
+	old_bones	Uncommon	5	낡은 뼈	joker_old_bones	true	125
+	graft	Rare	8	접붙임	joker_graft	true	126
+	drifter	Rare	8	떠돌이	joker_drifter	true	127
+	steward	Rare	8	집사	joker_steward	true	128
+	standing_stone	Rare	8	선돌	joker_standing_stone	true	129
+	rookie_card	Rare	8	신인 카드	joker_rookie_card	true	130
+	old_sigil	Rare	8	옛 인장	joker_old_sigil	true	131
+	bonfire	Rare	9	모닥불	joker_bonfire	true	132
+	tracing	Rare	10	덧그림	joker_tracing	false	133
+	tiny_tot	Rare	8	꼬맹이	joker_tiny_tot	true	134
+	open_road	Rare	8	열린 길	joker_open_road	true	135
+	the_bond	Rare	8	맺음	joker_the_bond	true	136
+	the_braid	Rare	8	세 갈래	joker_the_braid	true	137
+	the_brood	Rare	8	한 배	joker_the_brood	true	138
+	the_march	Rare	8	행렬	joker_the_march	true	139
+	the_flock	Rare	8	무리	joker_the_flock	true	140
+	deadweight	Rare	7	짐덩이	joker_deadweight	true	141
+	faint_outline	Rare	8	희미한 윤곽	joker_faint_outline	false	142
+	mirror_note	Rare	10	거울 쪽지	joker_mirror_note	false	143
+	road_permit	Rare	7	통행 허가	joker_road_permit	true	144
+	scorch_mark	Rare	8	그을음	joker_scorch_mark	true	145
+	verdigris	Legendary	10	녹빛	joker_verdigris	true	146
+	coronet	Legendary	10	작은 관	joker_coronet	true	147
+	gravebloom	Legendary	10	무덤꽃	joker_gravebloom	true	148
+	hushbell	Legendary	10	잠잠종	joker_hushbell	false	149
+	echoseed	Legendary	10	메아리씨	joker_echoseed	true	150

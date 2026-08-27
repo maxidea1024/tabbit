@@ -1,0 +1,452 @@
+{
+  "seed": "CLOVER-0004",
+  "deck": "red_deck",
+  "stake": "White",
+  "actions": [
+    {
+      "t": "select_blind"
+    },
+    {
+      "t": "discard",
+      "cards": [
+        1,
+        22,
+        32,
+        44,
+        7
+      ]
+    },
+    {
+      "t": "discard",
+      "cards": [
+        15,
+        26,
+        10,
+        8
+      ]
+    },
+    {
+      "t": "discard",
+      "cards": [
+        2,
+        43,
+        47,
+        19
+      ]
+    },
+    {
+      "t": "discard",
+      "cards": [
+        3,
+        33,
+        27,
+        46
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        50,
+        37,
+        38,
+        25
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        14,
+        30,
+        40,
+        4
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        5,
+        31
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        35,
+        34,
+        12,
+        11,
+        23
+      ]
+    },
+    {
+      "t": "buy",
+      "slot": 0
+    },
+    {
+      "t": "leave_shop"
+    },
+    {
+      "t": "select_blind"
+    },
+    {
+      "t": "play",
+      "cards": [
+        2,
+        6,
+        16,
+        4,
+        44
+      ]
+    },
+    {
+      "t": "discard",
+      "cards": [
+        3,
+        45,
+        13,
+        46,
+        23
+      ]
+    },
+    {
+      "t": "discard",
+      "cards": [
+        50,
+        21,
+        42,
+        39,
+        5
+      ]
+    },
+    {
+      "t": "discard",
+      "cards": [
+        48,
+        47,
+        14,
+        24
+      ]
+    },
+    {
+      "t": "discard",
+      "cards": [
+        9,
+        25,
+        35,
+        12
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        15,
+        28,
+        7,
+        33,
+        41
+      ]
+    },
+    {
+      "t": "buy",
+      "slot": 0
+    },
+    {
+      "t": "use_consumable",
+      "index": 0
+    },
+    {
+      "t": "buy",
+      "slot": 0
+    },
+    {
+      "t": "use_consumable",
+      "index": 0
+    },
+    {
+      "t": "leave_shop"
+    },
+    {
+      "t": "select_blind"
+    },
+    {
+      "t": "discard",
+      "cards": [
+        24,
+        14,
+        29,
+        23
+      ]
+    },
+    {
+      "t": "discard",
+      "cards": [
+        36,
+        1,
+        28,
+        49
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        43,
+        4,
+        30
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        44,
+        31,
+        32,
+        45
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        22,
+        35,
+        9
+      ]
+    },
+    {
+      "t": "buy",
+      "slot": 0
+    },
+    {
+      "t": "buy",
+      "slot": 0
+    },
+    {
+      "t": "leave_shop"
+    },
+    {
+      "t": "select_blind"
+    },
+    {
+      "t": "discard",
+      "cards": [
+        4,
+        37,
+        1,
+        5,
+        32
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        52,
+        26,
+        13
+      ]
+    },
+    {
+      "t": "discard",
+      "cards": [
+        14,
+        43,
+        41,
+        24
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        9,
+        35,
+        22
+      ]
+    },
+    {
+      "t": "buy",
+      "slot": 0
+    },
+    {
+      "t": "use_consumable",
+      "index": 0
+    },
+    {
+      "t": "leave_shop"
+    },
+    {
+      "t": "select_blind"
+    },
+    {
+      "t": "discard",
+      "cards": [
+        6,
+        40,
+        39,
+        42
+      ]
+    },
+    {
+      "t": "discard",
+      "cards": [
+        12,
+        35,
+        25,
+        34
+      ]
+    },
+    {
+      "t": "discard",
+      "cards": [
+        20,
+        7,
+        8,
+        15,
+        48
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        10,
+        49,
+        23,
+        36
+      ]
+    },
+    {
+      "t": "buy",
+      "slot": 1
+    },
+    {
+      "t": "leave_shop"
+    },
+    {
+      "t": "select_blind"
+    },
+    {
+      "t": "discard",
+      "cards": [
+        48,
+        21,
+        17,
+        23
+      ]
+    },
+    {
+      "t": "discard",
+      "cards": [
+        51,
+        11,
+        4,
+        25
+      ]
+    },
+    {
+      "t": "discard",
+      "cards": [
+        36,
+        35,
+        30,
+        50
+      ]
+    },
+    {
+      "t": "discard",
+      "cards": [
+        42,
+        47,
+        46,
+        28
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        18,
+        5,
+        40,
+        27
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        9,
+        22
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        32,
+        39,
+        52,
+        19
+      ]
+    },
+    {
+      "t": "play",
+      "cards": [
+        12,
+        38
+      ]
+    }
+  ],
+  "hashes": [
+    "28a6fd70",
+    "609ebf39",
+    "e2625d49",
+    "bce0e9df",
+    "ccf486a6",
+    "9d4176ed",
+    "1c7b8776",
+    "b8823c68",
+    "36fadd4a",
+    "d1d14152",
+    "57bf99ed",
+    "0d3d8353",
+    "5e1a3e45",
+    "542ce72c",
+    "e287d2fe",
+    "c05c984a",
+    "2af2da33",
+    "7fedddfd",
+    "68b7dc62",
+    "f7a59ee0",
+    "60a668cc",
+    "65e075c3",
+    "09a55a78",
+    "39899ce5",
+    "cf1acc27",
+    "512b6e43",
+    "7c4bc14d",
+    "2f47c42a",
+    "4a34be02",
+    "964c70f1",
+    "2d86c6c8",
+    "70d1fdda",
+    "c4154e9c",
+    "ebe10e33",
+    "f8cb3b69",
+    "e9eb73e4",
+    "b1bbde68",
+    "5b4987ef",
+    "f5580487",
+    "5af1d63b",
+    "2c2909fe",
+    "983076ef",
+    "6c0ee22c",
+    "51bb3a50",
+    "fb31c938",
+    "11db0579",
+    "a715f1b1",
+    "a541d3f3",
+    "d1b84eef",
+    "e742b6f0",
+    "99b862c0",
+    "b9de1d3c",
+    "b8d71426",
+    "a70cfc8c",
+    "c96da31a",
+    "e1d6351f",
+    "f3a091bd"
+  ]
+}

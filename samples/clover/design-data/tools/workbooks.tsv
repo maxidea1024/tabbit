@@ -1,0 +1,45 @@
+# 어느 격자가 어느 워크북 어느 탭이 되는가. 탭 이름이 엔티티 이름입니다.
+#
+# 갈래로 나눈 것은 **한 사람이 한 갈래를 고치는 동안 다른 갈래가 잠기지 않게** 하는 것입니다.
+#
+# 워크북	탭	격자
+Cards	Rank	Rank
+Cards	Suit	Suit
+Cards	BaseDeckCard	BaseDeckCard
+Cards	PokerHand	PokerHand
+Cards	Enhancement	Enhancement
+Cards	EnhancementEffect	EnhancementEffect
+Cards	Seal	Seal
+Cards	SealEffect	SealEffect
+Cards	Edition	Edition
+Jokers	Joker	Joker
+Jokers	JokerRarityWeight	JokerRarityWeight
+Jokers	JokerEffect	JokerEffect
+Consumables	Tarot	Tarot
+Consumables	TarotEffect	TarotEffect
+Consumables	Planet	Planet
+Consumables	Spectral	Spectral
+Consumables	SpectralEffect	SpectralEffect
+Progression	Ante	Ante
+Progression	Blind	Blind
+Progression	BossBlind	BossBlind
+Progression	BossEffect	BossEffect
+Shop	ShopSlotWeight	ShopSlotWeight
+Shop	BoosterPack	BoosterPack
+Shop	Voucher	Voucher
+Shop	VoucherEffect	VoucherEffect
+Shop	RerollCost	RerollCost
+Setup	Deck	Deck
+Setup	DeckEffect	DeckEffect
+Setup	Stake	Stake
+Setup	Tag	Tag
+Setup	TagEffect	TagEffect
+Const	Const_Run	Const_Run
+Const	Const_Score	Const_Score
+Const	Const_Economy	Const_Economy
+Const	RngStream	RngStream
+Feel	Const_Feel	Const_Feel
+Feel	EditionVisual	EditionVisual
+Feel	SoundCue	SoundCue
+Text	StringTable	StringTable
+Text	Achievement	Achievement

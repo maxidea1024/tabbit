@@ -1,0 +1,21 @@
+:const FeelConst	연출의 길이와 문턱입니다. **두 런타임이 같은 값을 읽습니다.**
+:field	name	type	value	desc
+	ScoreStepMs	int	120	득점 카드 하나의 연출 길이
+	JokerStepMs	int	140	조커 하나의 연출 길이
+	RetriggerStepMs	int	90	재발동의 연출 길이
+	HandLabelMs	int	180	족보 표시의 길이
+	MultiplyMs	int	400	칩과 배수가 점수로 합쳐지는 길이
+	SettleMs	int	300	요구 점수 게이지가 채워지는 길이
+	MoneyStepMs	int	260	돈이 오가는 연출의 길이. 동전이 날아가 꽂히는 데 걸리는 시간입니다
+	HitStopMs	int	120	배수를 곱할 때 연출의 시계가 멈추는 길이
+	FastForwardScale	int	4	빠르게 넘기기의 배속
+	ShakeMaxPx	int	20	화면 흔들림의 최대 진폭
+	ShakeThresholdMult	int	200000	흔들림이 시작되는 배수. 만분율
+	ShakeMaxMult	int	3000000	흔들림이 최대가 되는 배수. 만분율
+	NumberScaleMaxBp	int	16000	숫자가 커지는 최대 배율. 만분율
+	PitchMaxSemitones	int	12	소리 음높이가 올라가는 최대 반음
+	ParticleMax	int	90	카드 뒤 파티클의 최대 개수
+	ChromaticMaxPx	int	5	색수차의 최대 폭
+	CardHoverLiftPx	int	12	카드에 마우스를 올렸을 때 떠오르는 높이
+	CardHoverTiltDeg	int	6	그때의 기울기
+	DrawStaggerMs	int	40	카드를 뽑을 때 장마다의 간격

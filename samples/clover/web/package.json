@@ -1,0 +1,27 @@
+{
+  "name": "clover",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "포커 로그라이크 한 편. 규칙은 시트에 있고 여기는 그것을 읽는 한쪽 구현입니다.",
+  "scripts": {
+    "check": "tsc -b",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "headless": "tsx src/headless.ts",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "@types/node": "^26.4.0",
+    "pixi.js": "^8.6.6"
+  }
+}

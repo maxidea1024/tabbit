@@ -1,0 +1,9 @@
+:table Edition(key=edition)	에디션입니다. 카드와 조커 양쪽에 붙고 값이 같습니다. 배수 곱은 만분율입니다.
+:field	edition	display	chips	mult_add	mult_mul	joker_slots	weight
+:type	EditionKind	string (text=Edition)	int	int	int (min=1)	int	int (min=1)
+:desc	에디션	표시 이름	칩 가산	배수 가산	배수 곱	조커 슬롯 증가	상점 등장 가중치
+	Base	기본	0	0	10000	0	100
+	Foil	포일	50	0	10000	0	20
+	Holographic	홀로그래픽	0	100000	10000	0	14
+	Polychrome	폴리크롬	0	0	15000	0	3
+	Negative	네거티브	0	0	10000	1	3

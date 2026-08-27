@@ -1,0 +1,14 @@
+:table RngStream(key=stream)	난수 스트림입니다. 시드 하나에서 스트림마다 다른 상태를 파생합니다.
+:field	stream	note
+:type	RngStreamKind	string
+:desc	스트림	어디에 쓰는가
+	Shuffle	덱 섞기
+	ShopSlot	상점 카드 칸에 무엇이 오는가
+	ShopRarity	조커가 왔을 때의 희귀도
+	ShopVoucher	바우처 칸
+	Pack	팩의 내용
+	JokerProc	조커의 확률 발동
+	CardProc	`Glass` 파괴와 `Lucky` 발동
+	Boss	보스 추첨
+	Tag	태그 추첨
+	Misprint	`smudge` 의 난수 배수
