@@ -6,11 +6,12 @@
 // 그림 파일이 아직 없으므로 식별자에서 만든 문양으로 그립니다. 같은 조커는 언제나 같은
 // 모양이고, 희귀도가 테두리 색입니다.
 
-import { Container, Graphics, Text } from 'pixi.js'
+import { Container, Graphics, Sprite, Text } from 'pixi.js'
 
 import { EditionKind } from '../generated/enums/edition-kind'
 import type { JokerInstance } from '../core/state'
 import { EditionFilter, type EditionShader } from '../shader/editions'
+import { artFor } from './art'
 import { drawGlyph, glyphFor, hashOf, hsl, shade, tintUp } from './glyph'
 import { Motion, sway } from './motion'
 import { COLOR, rarityColor, SIZE } from './theme'
@@ -43,6 +44,8 @@ export class JokerView extends Container {
   private readonly shadow = new Graphics()
   private readonly plate = new Graphics()
   private readonly emblem = new Graphics()
+  /** 그림이 있으면 이것이 문양을 대신합니다. */
+  private art?: Sprite
   private readonly nameText = new Text({
     text: '',
     style: {
@@ -108,10 +111,24 @@ export class JokerView extends Container {
     this.emblem.roundRect(frameX + 0.75, frameY + 0.75, frameW - 1.5, frameH - 1.5, 5)
       .stroke({ color: shade(edge, 0.25), width: 1.5 })
 
-    drawGlyph(this.emblem, glyphFor(joker.jokerId), w / 2, frameY + frameH / 2, 40, {
-      fill: glyphInk,
-      line: shade(glyphInk, 0.62),
-    })
+    // **그림이 있으면 그림입니다.** 없는 동안만 문양을 그립니다.
+    this.art?.destroy()
+    this.art = undefined
+
+    const texture = artFor('joker', joker.jokerId)
+    if (texture) {
+      const sprite = new Sprite(texture)
+      sprite.width = frameW - 3
+      sprite.height = frameH - 3
+      sprite.position.set(frameX + 1.5, frameY + 1.5)
+      this.art = sprite
+      this.addChildAt(sprite, this.getChildIndex(this.emblem) + 1)
+    } else {
+      drawGlyph(this.emblem, glyphFor(joker.jokerId), w / 2, frameY + frameH / 2, 40, {
+        fill: glyphInk,
+        line: shade(glyphInk, 0.62),
+      })
+    }
 
     this.nameText.text = look.name
     this.nameText.anchor.set(0.5, 0)

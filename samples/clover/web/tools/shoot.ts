@@ -291,6 +291,12 @@ async function main(): Promise<number> {
     console.log(`끝까지 가지 못했습니다 — 지금은 ${end.phase} 입니다`)
   }
 
+  // 그림이 들어온 것을 확인합니다. **202장을 한 번에 만들지 않으므로 있는 것과 없는 것이
+  // 섞인 상태에서도 화면이 돌아야 합니다.**
+  await page.goto('http://localhost:5177/artcheck.html', { waitUntil: 'networkidle' })
+  await page.waitForTimeout(1600)
+  await shoot('16-art')
+
   // 에디션 셰이더는 상점 추첨으로만 붙으므로 게임 안에서는 눈으로 보기 어렵습니다.
   // 나란히 세운 페이지를 따로 찍습니다.
   await page.goto('http://localhost:5177/editions.html', { waitUntil: 'networkidle' })

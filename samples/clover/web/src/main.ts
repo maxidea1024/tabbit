@@ -6,6 +6,7 @@
 import { Application } from 'pixi.js'
 
 import { loadFromUrl } from './core/load'
+import { loadArtIndex } from './render/art'
 import { Game } from './render/game'
 import { COLOR } from './render/theme'
 
@@ -26,6 +27,8 @@ async function main(): Promise<void> {
   })
 
   const data = await loadFromUrl('./data')
+  // 그림 목록. 없으면 문양으로 갑니다.
+  await loadArtIndex('./art')
 
   // 시드는 주소에서 받습니다 — 같은 주소를 열면 같은 판입니다. 대조할 때 그 편이 편합니다.
   const seed = new URLSearchParams(location.search).get('seed')

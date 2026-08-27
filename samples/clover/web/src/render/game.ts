@@ -35,6 +35,7 @@ import {
 import { Coins } from './coins'
 import { Spring } from './motion'
 import { Particles } from './particles'
+import { artFor, artKindOf, onArtReady, type ArtKind } from './art'
 import { drawGlyph, glyphFor, hashOf, hsl, shade, type GlyphName } from './glyph'
 import { COLOR, rarityColor, SIZE } from './theme'
 import { Button, Panel } from '../ui/widgets'
@@ -292,6 +293,9 @@ export class Game {
       this.audio.unlock()
       if (this.player.busy) this.player.hurry(this.feel)
     })
+
+    // 그림이 새로 들어오면 다시 그립니다. 문양이 그림으로 바뀝니다.
+    onArtReady(() => this.refresh())
 
     this.refresh()
     app.ticker.add(ticker => this.tick(ticker.deltaMS))
@@ -2206,6 +2210,20 @@ function itemFace(kind: ShopItemKind, id: string, data: Data, size = 44): Contai
     return face
   }
 
+  const artKind: ArtKind | undefined = kind === ShopItemKind.Joker ? 'joker'
+    : kind === ShopItemKind.Tarot ? 'tarot'
+      : kind === ShopItemKind.Planet ? 'planet'
+        : kind === ShopItemKind.Spectral ? 'spectral' : undefined
+  const texture = artKind ? artFor(artKind, id) : undefined
+  if (texture) {
+    const sprite = new Sprite(texture)
+    sprite.width = size
+    sprite.height = size
+    sprite.position.set(-size / 2, -size / 2)
+    face.addChild(sprite)
+    return face
+  }
+
   const glyph: GlyphName = kind === ShopItemKind.Planet ? 'planet'
     : kind === ShopItemKind.Spectral ? 'sigil'
       : glyphFor(id)
@@ -2254,9 +2272,19 @@ function consumableFace(kind: number, id: string, name: string): Container {
 
   const art = new Graphics()
   art.roundRect(6, 22, w - 12, 48, 6).fill({ color: 0x000000, alpha: 0.28 })
-  drawGlyph(art, family.glyph ?? glyphFor(id), w / 2, 46, 38, {
-    fill: ink, line: shade(ink, 0.6),
-  })
+
+  const texture = artFor(artKindOf(kind), id)
+  if (texture) {
+    const sprite = new Sprite(texture)
+    sprite.width = w - 14
+    sprite.height = 46
+    sprite.position.set(7, 23)
+    face.addChild(sprite)
+  } else {
+    drawGlyph(art, family.glyph ?? glyphFor(id), w / 2, 46, 38, {
+      fill: ink, line: shade(ink, 0.6),
+    })
+  }
 
   const label = new Text({
     text: name,

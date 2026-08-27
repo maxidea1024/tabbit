@@ -11,6 +11,7 @@ export default defineConfig({
       input: {
         main: new URL('./index.html', import.meta.url).pathname,
         editions: new URL('./editions.html', import.meta.url).pathname,
+        artcheck: new URL('./artcheck.html', import.meta.url).pathname,
       },
     },
   },
