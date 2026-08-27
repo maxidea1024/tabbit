@@ -162,6 +162,11 @@ internal sealed class CsTableView
     /// <summary>The keys made of several columns, which publish no dictionary of their own.</summary>
     public required IReadOnlyList<CompositeKeyView> CompositeKeys { get; set; }
 
+    /// <summary>
+    /// The `set` and `map` lookups to build once every column is in.
+    /// </summary>
+    public IReadOnlyList<CsContainerView> Containers { get; set; } = Array.Empty<CsContainerView>();
+
     /// <summary>The fields that point at another table.</summary>
     public required IReadOnlyList<CsFieldView> ReferenceFields { get; set; }
 
@@ -470,7 +475,22 @@ internal sealed class CsRecordMemberView
     /// </remarks>
     public bool IsRecord { get; set; }
 
+    /// <summary>
+    /// Whether this member was declared a `set`, so the element type gets a lookup beside
+    /// the ordered array.
+    /// </summary>
+    /// <remarks>
+    /// The array is the file's order and the set is the lookup. Both, because sorting is not
+    /// this tool's to do and a `HashSet` alone would hand every language a different order -
+    /// spec/types/set-and-map.md section 7.1.
+    /// </remarks>
+    public bool IsSet { get; set; }
 
+    /// <summary>The element type of that set, for the `HashSet&lt;T&gt;` beside the array.</summary>
+    public string SetElementType { get; set; } = "";
+
+    /// <summary>Name of the lookup this member's set publishes.</summary>
+    public string ContainsMethod { get; set; } = "";
 }
 
 /// <summary>
@@ -503,6 +523,58 @@ internal sealed class CsRecordTypeView
     /// allocates its elements together. A level below is always one value at a time.
     /// </remarks>
     public required bool IsOutermost { get; set; }
+
+    /// <summary>
+    /// Whether this struct is a `map` - a key column beside what the entries hold.
+    /// </summary>
+    /// <remarks>
+    /// The two arrays are the file's order and the dictionary is the lookup, which is the
+    /// two-layer surface every language carries - spec/types/set-and-map.md section 7.1.
+    /// </remarks>
+    public bool IsMap { get; set; }
+
+    /// <summary>The key type of that map.</summary>
+    public string MapKeyType { get; set; } = "";
+
+    /// <summary>
+    /// The value type where a map's value is one column, and empty where it is a struct.
+    /// </summary>
+    /// <remarks>
+    /// **A struct-valued map has no single object to hand back.** Its value is a member per
+    /// column, each holding every entry's value of that member, so what a lookup can answer
+    /// with is the entry's position - and `Value.ItemId[at]` is how the entry is read. The
+    /// position lookup is generated for both, and this is what adds the value one on top.
+    /// </remarks>
+    public string MapValueType { get; set; } = "";
+}
+
+/// <summary>
+/// One container inside a record group, with the path that reaches it from the record.
+/// </summary>
+/// <remarks>
+/// The lookups are built after every column is in, beside the table's own index maps -
+/// a map's dictionary needs its key column and its length, and the columns arrive one at a
+/// time. spec/types/set-and-map.md section 7.3.
+/// </remarks>
+internal sealed class CsContainerView
+{
+    /// <summary>Whether this is a map rather than a set.</summary>
+    public required bool IsMap { get; set; }
+
+    /// <summary>
+    /// What reaches the container from a record - `._bag.Prices`, or `._bag` for the record
+    /// a set's member sits in.
+    /// </summary>
+    public required string Access { get; set; }
+
+    /// <summary>The field the lookup is stored in, under <see cref="Access"/>.</summary>
+    public required string LookupField { get; set; }
+
+    /// <summary>What the lookup is built from, under <see cref="Access"/>.</summary>
+    public required string SourceField { get; set; }
+
+    /// <summary>The lookup's own type, ready to be `new`ed.</summary>
+    public required string LookupType { get; set; }
 }
 
 /// <summary>

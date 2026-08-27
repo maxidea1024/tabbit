@@ -1,12 +1,12 @@
 {
   // The `containers` workbook handed to a target that has no container type yet.
   //
-  // **The boundary of stage 1, written down.** The model and the file carry a `set` and a
-  // `map`; what no language has yet is the container and its lookup - spec/types/set-and-map.md
-  // section 7. A target in that state names itself and refuses, rather than emitting a list
-  // and a pair of lists that a consumer would never learn were meant to be either.
+  // **The C# gate for containers** - spec/types/set-and-map.md section 9, stage 2.
   //
-  // When C# grows them, this recipe stops failing and becomes the C# gate.
+  // It began as the boundary of stage 1: the model and the file carried a `set` and a `map`
+  // and no language had the container, so this recipe failed by name. C# has them now, and
+  // the recipe is what says so - the generated code compiles and reads the binary back into
+  // both layers of the surface. `containers-unsupported` holds the boundary as it moves on.
 
   "Schemas": [
     { "Path": "test/fixtures/schemas/containers" }
@@ -20,6 +20,20 @@
   },
 
   "Targets": [
+    // The file the generated reader reads, and the JSON its values are checked against.
+    // Both here rather than borrowed from `containers`, so the round trip is one run's
+    // output read by one run's code.
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/containers-target/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/containers-target/json-named",
+      "UseCompactRowFormat": false,
+      "Indented": true
+    },
     {
       "Type": "csharp",
       "Path": "test/fixtures/output/containers-target/csharp",

@@ -23,3 +23,18 @@ public enum ContainerKind
     /// <summary>`map&lt;K,V&gt;` - two array columns of the same length, `Key` and `Value`.</summary>
     Map,
 }
+
+/// <summary>The two member names a `map` group's columns are written under.</summary>
+/// <remarks>
+/// Here rather than beside the notation, because a generator needs them and a generator does
+/// not read declarations - by the time it runs, `Key` is a member name like any other and the
+/// only thing that says it is a map's is <see cref="ContainerKind"/>.
+/// </remarks>
+public static class ContainerMembers
+{
+    /// <summary>The column every entry's key is in.</summary>
+    public const string Key = "Key";
+
+    /// <summary>What the entries hold: one column, or a group of them.</summary>
+    public const string Value = "Value";
+}

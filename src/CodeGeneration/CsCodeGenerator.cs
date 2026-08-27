@@ -165,6 +165,18 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     protected override bool SupportsDeepNestedFields => true;
 
     /// <summary>
+    /// A `set` and a `map` in two layers: the arrays the file holds, in its order, and a
+    /// `HashSet` and a `Dictionary` beside them for the lookups.
+    /// </summary>
+    /// <remarks>
+    /// Both, because the file's order is the sheet's and nothing sorts it - a hash container
+    /// alone would hand every language an order of its own, and the conformance driver would
+    /// then get a different answer per language for the same file.
+    /// spec/types/set-and-map.md section 7.
+    /// </remarks>
+    protected override bool SupportsContainers => true;
+
+    /// <summary>
     /// An optional column becomes a `Has{Prop}` accessor beside the value one.
     /// </summary>
     /// <remarks>
@@ -658,6 +670,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                                  .ToList(),
 
             CompositeKeys = CompositeKeys(table),
+            Containers = ContainersOf(table),
 
             ReferenceFields = table.SerialFields
                                    .Select((sf, i) => new { sf, view = fields[i] })
@@ -783,7 +796,13 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             // The member is the array rather than the record: one record, and each of its
             // members is as long as this row says. Read as `record_var` it allocated an
             // array of records over a field that is one.
-            not null when wire.IsArray && wire.Group.MembersAreArrays
+            //
+            // Two notations reach it. A group whose element number is on a level below it -
+            // `Pos["M"][0]` - and a member whose own cell is delimited, which is what a
+            // `set` and a `map` are: `Bag.Tags` typed `string[]` is one cell holding the
+            // list. spec/types/set-and-map.md section 4.
+            not null when wire.IsArray
+                          && (wire.Group.MembersAreArrays || wire.LengthIsInTheCell)
                 => "record_member_var",
 
             not null when wire.IsArray => "record_var",
@@ -1123,6 +1142,64 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// what makes depth cost nothing here: `Position` is declared exactly as `Id` is, with a
     /// different type name. spec/types/nested-multi-level.md.
     /// </remarks>
+    /// <summary>
+    /// Every container in a table, with what reaches it from a record.
+    /// </summary>
+    /// <remarks>
+    /// **Built after every column is in, beside the table's own index maps.** A map's
+    /// dictionary needs its key column and how long it is, and the columns arrive one at a
+    /// time - so nothing on the way through can build one. Eagerly rather than on first use,
+    /// because a struct has nowhere to cache a lazy answer and the array it reads is already
+    /// there. spec/types/set-and-map.md section 7.3.
+    /// </remarks>
+    private List<CsContainerView> ContainersOf(Table table)
+    {
+        var result = new List<CsContainerView>();
+
+        foreach (var group in table.SerialFields.Where(group => group.IsRecord))
+        {
+            string root = "._" + group.Name.ToCamelCase();
+
+            foreach (var member in group.Members)
+                Collect(member, root);
+        }
+
+        return result;
+
+        void Collect(RecordMember member, string path)
+        {
+            string here = path + "." + CsName(member.Name);
+
+            if (member.Container == Models.ContainerKind.Set)
+            {
+                result.Add(new CsContainerView
+                {
+                    IsMap = false,
+                    Access = path,
+                    LookupField = "_" + member.Name.ToCamelCase() + "Set",
+                    SourceField = CsName(member.Name),
+                    LookupType = $"HashSet<{ToCSharpTypeName(member.FirstField)}>",
+                });
+            }
+
+            if (member.Container == Models.ContainerKind.Map
+                && member.Members.Find(below => below.Name == Models.ContainerMembers.Key) is { } key)
+            {
+                result.Add(new CsContainerView
+                {
+                    IsMap = true,
+                    Access = here,
+                    LookupField = "_at",
+                    SourceField = Models.ContainerMembers.Key,
+                    LookupType = $"Dictionary<{ToCSharpTypeName(key.FirstField)}, int>",
+                });
+            }
+
+            foreach (var below in member.Members)
+                Collect(below, here);
+        }
+    }
+
     private List<CsRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, List<CsRecordTypeView> declared)
     {
@@ -1144,18 +1221,36 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
 
                     PropName = CsName(member.Name),
                     PascalName = member.Name.ToPascalCase(),
-                    FieldType = ToCSharpTypeName(member.FirstField) + (member.IsArray ? "[]" : ""),
+                    FieldType = ToCSharpTypeName(member.FirstField) + (member.HoldsList ? "[]" : ""),
 
                     // An array member allocates; a string one starts empty. Both for the same
                     // reason: a file predating the column leaves nothing to write it, and null
                     // one field later is a crash rather than a missing value.
-                    Initializer = member.IsArray
-                        ? $" = new {ToCSharpTypeName(member.FirstField)}[{member.Fields.Count}]"
-                        : member.ElementType == Models.ValueType.String ? " = \"\"" : "",
+                    //
+                    // A member whose own cell is the list starts empty rather than sized: no
+                    // declaration knows how long a row's list is, and the read makes the
+                    // array it fills. spec/types/set-and-map.md section 4.
+                    Initializer = member.ListIsInTheCell
+                        ? $" = System.Array.Empty<{ToCSharpTypeName(member.FirstField)}>()"
+                        : member.IsArray
+                            ? $" = new {ToCSharpTypeName(member.FirstField)}[{member.Fields.Count}]"
+                            : member.ElementType == Models.ValueType.String ? " = \"\"" : "",
                     IsFirst = at == 0,
-                    IsArray = member.IsArray,
+                    IsArray = member.HoldsList,
                     ElementInitializer = member.IsArray && member.ElementType == Models.ValueType.String
                         ? " = \"\""
+                        : "",
+
+                    // A set is the array beside a lookup into it. Both, because the array is
+                    // the file's order and sorting is not this tool's to do - the set alone
+                    // would give each language an order of its own.
+                    // spec/types/set-and-map.md section 7.1.
+                    IsSet = member.Container == Models.ContainerKind.Set,
+                    SetElementType = member.Container == Models.ContainerKind.Set
+                        ? ToCSharpTypeName(member.FirstField)
+                        : "",
+                    ContainsMethod = member.Container == Models.ContainerKind.Set
+                        ? "Contains" + member.Name.ToPascalCase()
                         : "",
 
                     // A reference member carries the key and the resolution flag beside the
@@ -1190,12 +1285,29 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             var nested = BuildRecordMembers(member.Members, prefix + member.Name.ToPascalCase(), declared);
             bool needsInit = nested.Any(m => m.Initializer.Length > 0);
 
+            // A map's own struct: the key column, whatever the entries hold, and the
+            // dictionary that turns a key into a position among them.
+            var key = member.Container == Models.ContainerKind.Map
+                ? member.Members.Find(below => below.Name == Models.ContainerMembers.Key)
+                : null;
+
+            var held = member.Container == Models.ContainerKind.Map
+                ? member.Members.Find(below => below.Name == Models.ContainerMembers.Value)
+                : null;
+
             declared.Add(new CsRecordTypeView
             {
                 TypeName = typeName,
                 Members = nested,
                 NeedsInit = needsInit,
                 IsOutermost = false,
+                IsMap = key is not null,
+                MapKeyType = key is null ? "" : ToCSharpTypeName(key.FirstField),
+
+                // Only where the value is one column. A struct value is a member per column
+                // and has no single object a lookup could hand back, so there the position
+                // is the answer and `Value.ItemId[at]` is how the entry is read.
+                MapValueType = held is { IsLeaf: true } ? ToCSharpTypeName(held.FirstField) : "",
             });
 
             result.Add(new CsRecordMemberView
@@ -1636,7 +1748,11 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         if (wire.Group.MembersAreAnonymous)
             return ($"record.{fieldName}[{wire.MemberAt}]", "[j]");
 
-        if (wire.Group.MembersAreArrays)
+        // The member is the array, so the subscript goes on it rather than on the group -
+        // `_bag.Tags[j]`, not `_bag[j].Tags`. A group whose element number is on a level
+        // below it says so, and so does a member whose own cell holds the list.
+        // spec/types/set-and-map.md section 4.
+        if (wire.Group.MembersAreArrays || wire.LengthIsInTheCell)
             return ($"record.{fieldName}{memberAccess}", "[j]");
 
         return ($"record.{fieldName}[j]{memberAccess}", "");

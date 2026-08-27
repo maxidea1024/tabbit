@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>cs-containers-check</AssemblyName>
+    <RootNamespace>Tabbit.CsContainersCheck</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      The generated output for the `containers-target` scenario, compiled from wherever the
+      test harness put it. Its own project rather than a second scenario for `cs-check`,
+      because a driver names the tables it reads and these are not that fixture's.
+    -->
+    <Compile Include="$(GeneratedDir)\**\*.cs" />
+  </ItemGroup>
+
+</Project>

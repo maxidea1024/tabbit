@@ -252,11 +252,11 @@ public class SchemaContainerTests
     [Fact]
     public void A_target_with_no_container_type_refuses_by_name()
     {
-        var result = TabbitRunner.Convert("containers-target");
+        var result = TabbitRunner.Convert("containers-unsupported");
 
         Assert.False(result.Succeeded, "A target with no container type was handed one.");
 
-        Assert.Contains("Target `csharp` does not support set columns yet.", result.StdOut);
+        Assert.Contains("Target `go` does not support set columns yet.", result.StdOut);
         Assert.Contains("Table `Shop` field `Bag.Tags` is declared a `set`.", result.StdOut);
     }
 

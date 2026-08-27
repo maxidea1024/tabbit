@@ -121,6 +121,29 @@ public class RecordMember
     public bool IsArray { get; set; }
 
     /// <summary>
+    /// Whether this member's own cell holds the whole list, rather than the level repeating.
+    /// </summary>
+    /// <remarks>
+    /// A member typed `string[]` is one column and one cell per row, and that cell holds as
+    /// many values as the author typed. `Bag.Tags` is that; `Slot1.Id`/`Slot2.Id` is the
+    /// other. The two arrive at the same file - the wire has written a length per row since
+    /// v107 - and they are read from different places, which is what this separates.
+    ///
+    /// spec/types/set-and-map.md section 4.
+    /// </remarks>
+    public bool ListIsInTheCell
+        => IsLeaf && Fields.Count > 0 && ValueTypes.IsArray(Fields[0].Type);
+
+    /// <summary>
+    /// Whether this member holds several values, whichever of the two ways said so.
+    /// </summary>
+    /// <remarks>
+    /// What a generator declaring the member asks: `string[]` either way. Where the values
+    /// are read from is <see cref="IsArray"/> and <see cref="ListIsInTheCell"/>.
+    /// </remarks>
+    public bool HoldsList => IsArray || ListIsInTheCell;
+
+    /// <summary>
     /// The container this member was declared as, or none.
     /// </summary>
     /// <remarks>

@@ -227,8 +227,8 @@ Duplicate key `2` in map column `Prices` of table `Shop`.
 
 |무엇|`set<T>`|`map<K,V>`|
 |--|--|--|
-|**순서 있는 것**|`Tags` — `T`의 배열 하나|`PricesKeys` · `PricesValues` — 배열 둘, 파일에 실린 순서 그대로|
-|**조회**|`HasTag(v)`|`PriceOf(k)` · `TryGetPrice(k)`|
+|**순서 있는 것**|`Tags` — `T`의 배열 하나|`Prices.Key` · `Prices.Value` — 배열 둘, 파일에 실린 순서 그대로|
+|**조회**|`ContainsTags(v)`|`TryGetIndex(k, out at)`, 그리고 값이 스칼라일 때 `TryGetValue(k, out v)`|
 
 **언어에 컨테이너가 있으면 조회를 그것으로 냅니다.** 없으면 배열 위의 탐색으로 냅니다 —
 [다중 대상 참조](../references/multi-target-references.md)가 겪은 것과 같은 갈래이고, **호출하는
@@ -237,11 +237,16 @@ Duplicate key `2` in map column `Prices` of table `Shop`.
 이름의 정확한 철자는 언어마다 [`AccessorName`](../targets/generated-naming.md)의 규칙을
 따릅니다.
 
+> **조회가 자리를 돌려주는 이유.** 값이 struct인 map은 멤버마다 컬럼 하나이고, 항목 하나에
+> 해당하는 객체가 없습니다 — 돌려줄 것이 없으므로 **몇 번째 항목인가**를 돌려주고,
+> `Value.ItemId[at]`으로 읽습니다. 값이 스칼라일 때는 그 위에 `TryGetValue`를 하나 더 얹습니다.
+> 자리를 돌려주는 쪽이 두 경우에 공통이므로 그것이 기본이고, 편의가 덧붙는 형태입니다.
+
 ### 7.2 언어별
 
 |언어|`map`|`set`|순서를 지키는가|
 |--|--|--|--|
-|C#|`Dictionary<K,V>`|`HashSet<T>`|아니오 — 배열이 순서를 답니다|
+|**C#** — **됨**|`Dictionary<K,int>`|`HashSet<T>`|아니오 — 배열이 순서를 답니다|
 |Java · Kotlin|`LinkedHashMap`|`LinkedHashSet`|**예**|
 |TypeScript|`Map`|`Set`|**예**|
 |Python|`dict`|`set`|`dict`는 **예**, `set`은 아니오|
@@ -292,7 +297,7 @@ Duplicate key `2` in map column `Prices` of table `Shop`.
 |단계|무엇|골든|
 |--|--|--|
 |**1**|거절을 걷어내고 **모델까지** — `.tbs` 멤버, 컬럼 확장, 셀 파싱, 중복·키 타입 검사. **생성기는 아직 이름을 대고 거절합니다**|**무변경.** 컨테이너를 쓰는 픽스처가 아직 없습니다|
-|**2**|**언어를 하나씩.** C#이 먼저입니다 — 컴파일과 되읽기 게이트를 각각|그 언어의 골든|
+|**2**|**언어를 하나씩.** C#이 먼저입니다 — 컴파일과 되읽기 게이트를 각각. **C# 끝남**|그 언어의 골든|
 |**3**|`json` · `text` · SQL 계열|해당 골든|
 |**4**|시트의 타입 칸(§2.3)|—|
 

@@ -21,10 +21,11 @@ namespace Tabbit.Schema;
 internal static class SchemaContainers
 {
     /// <summary>The member names a `map` group's two columns are written under.</summary>
-    public const string KeyMember = "Key";
+    /// <remarks>The model's, because a generator needs them and does not read declarations.</remarks>
+    public const string KeyMember = ContainerMembers.Key;
 
     /// <summary>The second of them.</summary>
-    public const string ValueMember = "Value";
+    public const string ValueMember = ContainerMembers.Value;
 
     /// <summary>
     /// Metadata keys that say something about one value rather than about the container.

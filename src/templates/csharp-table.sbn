@@ -260,6 +260,61 @@
    which is the third place an element number sits. spec/references/multi-target-accessors.md. ##~}}
 {{~ for member in rt.members ~}}
 {{~ end ~}}
+{{~## The second layer of a container's surface. The arrays above are the file's order, which
+      is the sheet's; these are the lookup. Both, because sorting is not this tool's to do -
+      a hash container alone would give every language an order of its own.
+      spec/types/set-and-map.md section 7.1. ##~}}
+{{~ for member in rt.members ~}}
+{{~ if member.is_set ~}}
+
+                internal HashSet<{{ member.set_element_type }}> _{{ member.prop_name | string.downcase }}Set;
+
+                /// <summary>Whether this set holds <paramref name="value"/>.</summary>
+                public bool {{ member.contains_method }}({{ member.set_element_type }} value)
+                    => _{{ member.prop_name | string.downcase }}Set != null
+                       && _{{ member.prop_name | string.downcase }}Set.Contains(value);
+{{~ end ~}}
+{{~ end ~}}
+{{~ if rt.is_map ~}}
+
+                internal Dictionary<{{ rt.map_key_type }}, int> _at;
+
+                /// <summary>How many entries this map holds.</summary>
+                public int Count => Key == null ? 0 : Key.Length;
+
+                /// <summary>
+                /// Where <paramref name="key"/> sits among the entries, or false when it is
+                /// not one of them.
+                /// </summary>
+                /// <remarks>
+                /// The position rather than the value, because a map whose value is a struct
+                /// holds a member per column and has no single object to hand back - there
+                /// the entry is read as <c>Value.Member[index]</c>.
+                /// </remarks>
+                public bool TryGetIndex({{ rt.map_key_type }} key, out int index)
+                {
+                    if (_at != null)
+                        return _at.TryGetValue(key, out index);
+
+                    index = -1;
+                    return false;
+                }
+{{~ if rt.map_value_type != '' ~}}
+
+                /// <summary>What <paramref name="key"/> is mapped to, if anything.</summary>
+                public bool TryGetValue({{ rt.map_key_type }} key, out {{ rt.map_value_type }} value)
+                {
+                    if (TryGetIndex(key, out int at))
+                    {
+                        value = Value[at];
+                        return true;
+                    }
+
+                    value = default({{ rt.map_value_type }});
+                    return false;
+                }
+{{~ end ~}}
+{{~ end ~}}
 
                 public override string ToString()
                 {
@@ -807,6 +862,33 @@
 
                 TcbTable.CheckBlockEnd(reader, column, blockEnd);
             }
+{{~ if table.containers | array.size > 0 }}
+            // The lookups a `set` and a `map` publish beside their arrays. Here rather than
+            // on the way through: a map's dictionary needs its key column and how long it
+            // is, and the columns arrive one at a time. spec/types/set-and-map.md section 7.3.
+            foreach (var record in records)
+            {
+{{~ for container in table.containers ~}}
+                record{{ container.access }}.{{ container.lookup_field }} =
+                    new {{ container.lookup_type }}(
+                        record{{ container.access }}.{{ container.source_field }} == null
+                            ? 0
+                            : record{{ container.access }}.{{ container.source_field }}.Length);
+
+                for (int j = 0; record{{ container.access }}.{{ container.source_field }} != null
+                                && j < record{{ container.access }}.{{ container.source_field }}.Length; j++)
+                {
+{{~ if container.is_map ~}}
+                    record{{ container.access }}.{{ container.lookup_field }}[
+                        record{{ container.access }}.{{ container.source_field }}[j]] = j;
+{{~ else ~}}
+                    record{{ container.access }}.{{ container.lookup_field }}.Add(
+                        record{{ container.access }}.{{ container.source_field }}[j]);
+{{~ end ~}}
+                }
+{{~ end ~}}
+            }
+{{~ end ~}}
 {{~ if table.indexed_fields | array.size > 0 }}
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
