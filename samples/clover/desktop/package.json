@@ -1,0 +1,59 @@
+{
+  "name": "clover-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "description": "clover 를 독립 실행 파일로. 웹 빌드를 그대로 담습니다.",
+  "main": "main.cjs",
+  "scripts": {
+    "prestart": "npm --prefix ../web run build",
+    "start": "electron .",
+    "prepack:win": "npm --prefix ../web run build",
+    "pack:win": "electron-builder --win --dir",
+    "predist:win": "npm --prefix ../web run build",
+    "dist:win": "electron-builder --win",
+    "predist:linux": "npm --prefix ../web run build",
+    "dist:linux": "electron-builder --linux"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "dev.tabbit.clover",
+    "productName": "clover",
+    "directories": {
+      "output": "out"
+    },
+    "files": [
+      "main.cjs",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../web/dist",
+        "to": "app/dist"
+      }
+    ],
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ],
+      "signAndEditExecutable": false
+    },
+    "portable": {
+      "artifactName": "clover-${version}-portable.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "clover-${version}-setup.exe"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Game"
+    }
+  }
+}

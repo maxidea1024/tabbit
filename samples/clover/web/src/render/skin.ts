@@ -23,12 +23,23 @@ export interface PlateStyle {
   alpha?: number
 }
 
+/**
+ * 위에서 아래로 흐르는 그라디언트.
+ *
+ * **좌표를 낱개로 넘기지 않습니다** — 그 형태는 Pixi 가 예고 폐기로 알리고, 콘솔이 그 경고로
+ * 덮이면 진짜 오류가 그 밑에 묻힙니다.
+ */
 function gradient(width: number, height: number, top: number, bottom: number): FillGradient {
-  const fill = new FillGradient(0, 0, 0, height)
-  fill.addColorStop(0, top)
-  fill.addColorStop(1, bottom)
   void width
-  return fill
+  return new FillGradient({
+    start: { x: 0, y: 0 },
+    end: { x: 0, y: height },
+    colorStops: [
+      { offset: 0, color: top },
+      { offset: 1, color: bottom },
+    ],
+    textureSpace: 'global',
+  })
 }
 
 /** 판때기 하나. 그림자부터 하이라이트까지 한 번에 그립니다. */
