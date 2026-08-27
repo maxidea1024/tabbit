@@ -42,3 +42,9 @@ struct ItemRequirement extends Requirement @3
 /// 스테이지 클리어.
 struct StageRequirement extends Requirement @4
     field stage_id    foreign Stage
+
+/// 기록부 완성률. 기획서 11.3 의 지역 해금이 이것을 요구합니다 — 「기록 이상인 행의 비율」
+/// 이고 주어가 없습니다. `CodexRequirement` 는 그 개체의 상태이므로 주어가 필요하고, 지역
+/// 해금에는 쓸 수 없습니다.
+struct CodexCompletionRequirement extends Requirement @5
+    field percent     int (min=1, max=100)

@@ -45,10 +45,13 @@
   //
   // **그림은 기획 데이터가 아니라 게임 애셋이므로 유니티 프로젝트 안에 있습니다.** 그래서
   // 이 검사는 자리표가 아니라 실제로 게임이 로드할 파일이 있는지를 봅니다.
+  //
+  // `Resources/` 아래인 것은 게임이 실행 중에 이름으로 찾아 쓰기 때문입니다 — 그 폴더가
+  // 아니면 빌드에 들어가지 않습니다. 배경도 프리팹이 아니라 스프라이트입니다.
   "Assets": {
     "Roots": [
-      { "Kind": "icon", "Path": "samples/wildling/unity/Assets/Art/icon", "Pattern": "*.png" },
-      { "Kind": "model", "Path": "samples/wildling/unity/Assets/Art/model", "Pattern": "*.prefab" }
+      { "Kind": "icon", "Path": "samples/wildling/unity/Assets/Resources/art/icon", "Pattern": "*.png" },
+      { "Kind": "model", "Path": "samples/wildling/unity/Assets/Resources/art/model", "Pattern": "*.png" }
     ],
     "OnMissing": "error"
   },

@@ -3,3 +3,8 @@
 	CapHours	int	8	누적 상한
 	ProgressFactor	int	10000	스테이지 진척도 계수. 만분율
 	AdDoubleTargets	string[]	gold;food;material	2배 대상. 발견과 조각은 아니다
+
+:const NewGameConst	새 판이 시작할 때 주는 것이다.
+:field	name	type	value	desc
+	RewardGroup	string	rg_start	새 판에 지급하는 보상 묶음
+	ExpeditionHours	int	8	새 판을 열었을 때 이미 쌓여 있는 탐사 시간

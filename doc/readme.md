@@ -25,7 +25,7 @@
 
 | 문서 | 내용 |
 | --- | --- |
-| [설치](install.md) | 소스에서 빌드하기, 릴리즈 내려받기, 받은 파일 확인 |
+| [설치](install.md) | 릴리즈 내려받기, 받은 파일 확인, 소스에서 빌드하기 |
 | [용어](glossary.md) | 문서가 설명 없이 쓰는 말들. 골든, 픽스처, 스위트, 와이어, 쿠킹 |
 | [시트에 무엇을 적을 수 있나](concepts.md) | 테이블, enum, 상수셋 세 가지와 각각이 무엇으로 생성되는지 |
 | [시트 작성](sheets.md) | 선언 셀과 헤더 행, 경로 표기, 멀티 로우, 이름 규칙, 지원 타입, 서버/클라이언트 분리 |
@@ -79,6 +79,8 @@
 | [중첩 필드](../spec/types/nested-fields.md) | 컬럼 여러 개를 레코드 하나로 접으면서 와이어 형식은 그대로 둔 방법 |
 | [다중 중첩](../spec/types/nested-multi-level.md) | 멤버가 배열인 레코드와 배열의 배열. 깊이 제한을 없앤 근거 |
 | [매트릭스 표](../spec/layout/matrix-tables.md) | 컬럼 이름이 행 id인 격자. long-form과 map을 채택하지 않은 이유 |
+| [행렬 선언 검토](../spec/types/matrix-entity.md) | 다섯 번째 선언 종류를 둘 것인가. 인코딩 이득이 없고 표기 이득이 있는 이유 |
+| [매트릭스 선언](../spec/layout/matrix-declaration.md) | `:matrix` 선언 셀의 시트 표기. 축의 키가 정수가 아니어도 되는 설계 |
 | [가변 길이 레코드 배열](../spec/types/variable-length-record-arrays.md) | 배열 길이를 행마다 다르게. 뒤에서만 자르는 이유 |
 | [비트셋](../spec/types/bitset.md) | `bitset` 타입과 진법 리터럴. 엄격함이 의도 선언을 요구하는 이유 |
 | [합성 값 타입](../spec/types/composite-value-types.md) | 벡터, 회전, 색을 타입 추가가 아니라 레코드로 접는 이유 |

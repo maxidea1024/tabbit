@@ -99,4 +99,21 @@ namespace Wildling.Data
         public string StageId;
         public StageTable.Record StageByStageId;
     }
+
+    /// <summary>
+    /// One shape of <c>Requirement</c>.
+    /// </summary>
+    /// <remarks>
+    /// The file carries <c>5</c> for it. That number rather than the
+    /// name is what lets this variant be renamed without a deployed reader reading a different
+    /// one.
+    /// </remarks>
+    [System.Serializable]
+    public sealed partial class CodexCompletionRequirement : Requirement
+    {
+        /// <summary>
+        /// 요구 완성률. 백분율
+        /// </summary>
+        public int Percent;
+    }
 } // namespace Wildling.Data

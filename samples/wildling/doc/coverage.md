@@ -46,7 +46,7 @@
 |검사 `refs=`|`Mission.target_id` — `string (refs="Monster;Region;Item")`|**생성 코드가 없습니다.** 값이 셋 중 하나의 id인지만 봅니다|
 |보조 인덱스 + `regex`|`Monster.*display_code` — `string (regex="^[a-z]{2}[0-9]{3}$")`|`RecordsByDisplayCode` 와 `FindByDisplayCode`|
 |`text` + 네임스페이스|`Monster.description` — `string (text=Monster, namespace=Codex)`|값은 `string` 그대로입니다 — 역할만 붙으므로 **와이어가 달라지지 않습니다**|
-|`asset`|`Monster.icon` — `string (asset=icon)`|`unity/Assets/Art/icon/` 에 그 이름의 파일이 있는지 검사합니다. **유니티 애셋이므로 자리표가 아닙니다**|
+|`asset`|`Monster.icon` — `string (asset=icon)`|`unity/Assets/Resources/art/icon/` 에 그 이름의 파일이 있는지 검사합니다. **게임이 실행 중에 그 이름으로 로드하므로 자리표가 아닙니다**|
 
 **왜 거기.** 서식 지역은 종마다 여러 곳이고 기록부가 그것을 플래그로만 씁니다 — 행을 조회하지
 않으므로 `foreign Region[]` 이 아니라 `bitset` 입니다. 반대로 스테이지의 등장 목록은 그 행의
@@ -97,7 +97,7 @@
 |`struct Cost (sep=",")`|3곳, 세 표기로|
 |`struct EncounterEntry`|`EncounterTable.entries[]`|
 |`abstract struct Reward` + 변종 4개|`RewardEntry`|
-|`abstract struct Requirement` + 변종 4개|`RequirementEntry`|
+|`abstract struct Requirement` + 변종 5개|`RequirementEntry`|
 |`abstract struct Effect` + 변종 4개|`SkillEffect` · `Boss`|
 |enum 6개|`Element` · `Grade` · `CodexState` · `StatKind` · `StatusKind` · `EncounterSlot`|
 

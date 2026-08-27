@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="791" height="198" viewBox="0 0 791 198" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>축이 enum인 격자</title>
+<rect x="0" y="0" width="520.875" height="190" fill="#FFFFFF"/>
+<rect x="0" y="0" width="519.875" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="190" fill="#E9ECEF"/>
+<rect x="30" y="22" width="489.875" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="489.875" height="24" fill="#F1F6FB"/>
+<rect x="30" y="70" width="489.875" height="24" fill="#F1F6FB"/>
+<rect x="30" y="94" width="489.875" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="190" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="184.0" y1="22" x2="184.0" y2="190" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="311.875" y1="22" x2="311.875" y2="190" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="363.875" y1="22" x2="363.875" y2="190" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="415.875" y1="22" x2="415.875" y2="190" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="467.875" y1="22" x2="467.875" y2="190" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="519.875" y1="22" x2="519.875" y2="190" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="519.875" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="519.875" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="519.875" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="519.875" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="519.875" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="519.875" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="166" x2="519.875" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="190" x2="519.875" y2="190" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="519.875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="190" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="184.0" y1="0" x2="184.0" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="311.875" y1="0" x2="311.875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="363.875" y1="0" x2="363.875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="415.875" y1="0" x2="415.875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="467.875" y1="0" x2="467.875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="519.875" y1="0" x2="519.875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="166" x2="30" y2="166" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="190" x2="30" y2="190" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="519.375" height="189.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="107.0" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="247.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="337.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="389.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="441.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">E</text>
+<text x="493.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">F</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="15.0" y="157.8" font-size="10.5" fill="#5B6570" text-anchor="middle">6</text>
+<text x="15.0" y="181.8" font-size="10.5" fill="#5B6570" text-anchor="middle">7</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:matrix ElementChart</text>
+<text x="191.0" y="38.5" font-size="12.5" fill="#1F2328">속성 상성표입니다.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="191.0" y="62.5" font-size="12.5" fill="#1F2328">attacker</text>
+<text x="318.875" y="62.5" font-size="12.5" fill="#1F2328">rate</text>
+<text x="37" y="86.5" font-size="12.5" fill="#1A5FA8">:type</text>
+<text x="191.0" y="86.5" font-size="12.5" fill="#1F2328">Element</text>
+<text x="318.875" y="86.5" font-size="12.5" fill="#1F2328">float</text>
+<text x="37" y="110.5" font-size="12.5" fill="#1A5FA8">:col</text>
+<text x="191.0" y="110.5" font-size="12.5" fill="#1F2328">defender Element</text>
+<text x="318.875" y="110.5" font-size="12.5" fill="#1F2328">Fire</text>
+<text x="370.875" y="110.5" font-size="12.5" fill="#1F2328">Water</text>
+<text x="422.875" y="110.5" font-size="12.5" fill="#1F2328">Wind</text>
+<text x="474.875" y="110.5" font-size="12.5" fill="#1F2328">Earth</text>
+<text x="191.0" y="134.5" font-size="12.5" fill="#1F2328">Fire</text>
+<text x="318.875" y="134.5" font-size="12.5" fill="#1F2328">1.0</text>
+<text x="370.875" y="134.5" font-size="12.5" fill="#1F2328">0.5</text>
+<text x="422.875" y="134.5" font-size="12.5" fill="#1F2328">2.0</text>
+<text x="474.875" y="134.5" font-size="12.5" fill="#1F2328">1.0</text>
+<text x="191.0" y="158.5" font-size="12.5" fill="#1F2328">Water</text>
+<text x="318.875" y="158.5" font-size="12.5" fill="#1F2328">2.0</text>
+<text x="370.875" y="158.5" font-size="12.5" fill="#1F2328">1.0</text>
+<text x="422.875" y="158.5" font-size="12.5" fill="#1F2328">1.0</text>
+<text x="474.875" y="158.5" font-size="12.5" fill="#1F2328">0.5</text>
+<text x="191.0" y="182.5" font-size="12.5" fill="#1F2328">Wind</text>
+<text x="318.875" y="182.5" font-size="12.5" fill="#1F2328">0.5</text>
+<text x="370.875" y="182.5" font-size="12.5" fill="#1F2328">1.0</text>
+<text x="422.875" y="182.5" font-size="12.5" fill="#1F2328">1.0</text>
+<text x="474.875" y="182.5" font-size="12.5" fill="#1F2328">2.0</text>
+<text x="529.875" y="110.0" font-size="11" fill="#8A929B" font-style="italic">◀ 열 축의 키가 enum 라벨입니다</text>
+<text x="529.875" y="134.0" font-size="11" fill="#8A929B" font-style="italic">◀ 두 축이 같은 enum이어도 축은 둘입니다</text>
+</svg>

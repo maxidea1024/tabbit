@@ -75,6 +75,11 @@ namespace Wildling.Data
                             StageId = _req.StageId,
                             StageByStageId = _req.StageByStageId,
                         };
+                    case 5:
+                        return new CodexCompletionRequirement
+                        {
+                            Percent = _req.Percent,
+                        };
                 }
 
                 // A number no variant claims. The conversion refuses one, so reaching this
@@ -104,6 +109,8 @@ namespace Wildling.Data
                 public string StageId;
                 public StageTable.Record StageByStageId;
                 public bool StageId_F;
+                /// 요구 완성률. 백분율
+                public int Percent;
 
                 public override string ToString()
                 {
@@ -114,6 +121,7 @@ namespace Wildling.Data
                     sb.Append(",\"ItemId\":"); ToStringHelper.ToString(ItemId, sb);
                     sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
                     sb.Append(",\"StageId\":"); ToStringHelper.ToString(StageId, sb);
+                    sb.Append(",\"Percent\":"); ToStringHelper.ToString(Percent, sb);
                     sb.Append("}");
                     return sb.ToString();
                 }
@@ -403,6 +411,22 @@ namespace Wildling.Data
                                 record._req.StageId = value;
                                 record._req.StageByStageId = default(StageTable.Record); // will be assigned.
                                 record._req.StageId_F = false;
+                            } while (--n > 0);
+                        }
+                        break;
+
+                    case 9:
+                        TcbTable.CheckColumn(column, "RequirementEntry.Req.Percent", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        cursor = new TcbColumnCursor(reader, column, count, "RequirementEntry.Req.Percent");
+                        for (int i = 0; i < count; )
+                        {
+                            // One call per run of equal values, not one per row - over a
+                            // run-length encoded column this is most of the decode.
+                            int n = cursor.NextSameI32(count - i, out var value);
+                            do
+                            {
+                                var record = records[i++];
+                                record._req.Percent = value;
                             } while (--n > 0);
                         }
                         break;
