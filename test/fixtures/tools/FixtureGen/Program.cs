@@ -1258,7 +1258,12 @@ internal static class Program
             // A map keying two entries the same.
             .Row("2", "new",          "10;10", "100;120", "1", "101", "1")
             // And a key with no value beside it.
-            .Row("3", "new",          "10;11", "100",     "1", "101", "1");
+            .Row("3", "new",          "10;11", "100",     "1", "101", "1")
+            // A value below the bound the declaration writes on the map's value argument -
+            // `map<int,int(min=1)>`. The constraint is written inside the brackets, which is
+            // the only place a container's element constraints may go, and this is what says
+            // it is read from there rather than parsed and dropped.
+            .Row("4", "new",          "10",    "0",       "1", "101", "1");
 
         int next = b.Table(1, 1, spec);
 

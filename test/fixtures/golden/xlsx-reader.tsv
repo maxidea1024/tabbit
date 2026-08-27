@@ -13,7 +13,7 @@ conformance-skew/conformance-skew.xlsx	sheets=1 rows=67 cells=906 chars=9776 nam
 conformance/conformance.xlsx	sheets=1 rows=67 cells=866 chars=9559 names=0 skipped-names=0 hash=72213585479d1e5f
 containers-expanded/containers-expanded.xlsx	sheets=1 rows=11 cells=58 chars=404 names=0 skipped-names=0 hash=2c5b73ac513083e9
 containers-paired/containers-paired.xlsx	sheets=1 rows=11 cells=46 chars=327 names=0 skipped-names=0 hash=d8b1cba5e28ee8fa
-containers-refused/containers-refused.xlsx	sheets=1 rows=25 cells=86 chars=636 names=0 skipped-names=0 hash=0599435eb6ef07b4
+containers-refused/containers-refused.xlsx	sheets=1 rows=26 cells=93 chars=648 names=0 skipped-names=0 hash=32fa29f35b1077fa
 containers/containers.xlsx	sheets=1 rows=11 cells=52 chars=345 names=0 skipped-names=0 hash=a01f430337d16b4d
 core/core.xlsx	sheets=7 rows=66 cells=421 chars=3579 names=0 skipped-names=0 hash=4de0cbf8fc0f2a71
 declared-expanded/declared-expanded.xlsx	sheets=1 rows=21 cells=98 chars=804 names=0 skipped-names=0 hash=b0429e8605432020

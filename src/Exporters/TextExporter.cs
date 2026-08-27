@@ -285,6 +285,19 @@ public sealed class TextExporter : Target<TextRecipe>
     protected override bool SupportsDeepNestedFields => true;
 
     /// <summary>
+    /// A container is a column with a role like any other, and this target reads roles.
+    /// </summary>
+    /// <remarks>
+    /// **Nothing about a `set` or a `map` reaches here.** What this writes is the strings of
+    /// every column marked `text`, and a container's column is one cell holding several of
+    /// them - which is the delimited cell this already gathers element by element. A key
+    /// column is not marked `text` and so is not gathered, which is right: a key is an
+    /// identifier and identifiers are not translated.
+    /// spec/types/set-and-map.md section 8.
+    /// </remarks>
+    protected override bool SupportsContainers => true;
+
+    /// <summary>
     /// A column with no value in a row contributes nothing, which is what a blank cell means
     /// here whether or not the column is marked optional.
     /// </summary>

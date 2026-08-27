@@ -225,6 +225,25 @@ public class SchemaContainerTests
         Assert.DoesNotContain("`Crate.Value` is declared", result.StdOut);
     }
 
+    /// <summary>
+    /// A constraint written inside a container's brackets is read from there.
+    /// </summary>
+    /// <remarks>
+    /// **The only place a container's element constraints may go is the argument** - section
+    /// 2.2 - so if the brackets were parsed, checked for where they sit, and then dropped,
+    /// nothing else would notice. `map<int,int(min=1)>` and a row holding `0` is what says
+    /// they are not.
+    /// </remarks>
+    [Fact]
+    public void A_constraint_inside_a_containers_brackets_is_checked()
+    {
+        var result = TabbitRunner.Convert("containers-refused");
+
+        Assert.Contains(
+            "is 0, below the minimum 1 the column declares",
+            result.StdOut);
+    }
+
     /// <summary>Each of them pointing at the cell that holds it.</summary>
     [Fact]
     public void Each_break_names_the_cell_it_is_in()
@@ -234,31 +253,6 @@ public class SchemaContainerTests
         Assert.Contains("Containers : D7", result.StdOut);
         Assert.Contains("Containers : E8", result.StdOut);
         Assert.Contains("Containers : F9", result.StdOut);
-    }
-
-    /// <summary>
-    /// A target with no container type names itself rather than writing a list.
-    /// </summary>
-    /// <remarks>
-    /// **This is the boundary of the rollout, and it has to be a refusal rather than a gap.**
-    /// The file carries a set and a map without changing, so a target that has not learned
-    /// them writes something plausible - an array, and two arrays side by side - and nothing
-    /// downstream ever finds out the tool was told these were distinct elements and keyed
-    /// entries. spec/types/set-and-map.md section 7.
-    ///
-    /// Every generated language carries them now, so what is left is the exporters that have
-    /// a spelling of their own to settle: `text` and the database targets, which are stage 3.
-    /// Repoint this as each lands.
-    /// </remarks>
-    [Fact]
-    public void A_target_with_no_container_type_refuses_by_name()
-    {
-        var result = TabbitRunner.Convert("containers-unsupported");
-
-        Assert.False(result.Succeeded, "A target with no container type was handed one.");
-
-        Assert.Contains("Target `text` does not support set columns yet.", result.StdOut);
-        Assert.Contains("Table `Shop` field `Bag.Tags` is declared a `set`.", result.StdOut);
     }
 
     private static string Json(string scenario)

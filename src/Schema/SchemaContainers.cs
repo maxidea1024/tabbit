@@ -333,6 +333,53 @@ internal static class SchemaContainers
         };
 
     /// <summary>
+    /// One member's metadata and one argument's, as the column that carries both.
+    /// </summary>
+    /// <remarks>
+    /// **The two are disjoint by construction.** A container's element-position keys are
+    /// refused on the member's own brackets and have to be written on the argument, so
+    /// nothing can be said twice - section 2.2. What is left on the member is about the
+    /// container itself, and the column the container becomes is where both are checked.
+    /// </remarks>
+    private static SchemaMeta Both(SchemaMeta container, SchemaMeta argument)
+    {
+        if (container.Entries.Count == 0)
+            return argument;
+
+        if (argument.Entries.Count == 0)
+            return container;
+
+        return new SchemaMeta([.. argument.Entries, .. container.Entries]);
+    }
+
+    /// <summary>
+    /// The member a `set` column carries, or null when the type is not a set.
+    /// </summary>
+    /// <remarks>
+    /// **Synthesised so that the argument's brackets reach the column.** A set is written
+    /// `set&lt;string(text)&gt;`, and the role, the bounds and the pattern are all on that
+    /// argument - the declared member carries only what is about the container. Handing the
+    /// declared member on would drop everything inside the brackets, which parses and
+    /// validates and then does nothing.
+    /// </remarks>
+    public static SchemaField? ColumnMemberOfSet(SchemaField member)
+    {
+        if (ColumnOfSet(member.Type) is not { } column)
+            return null;
+
+        return new SchemaField
+        {
+            Name = member.Name,
+            Location = member.Location,
+            Comment = member.Comment,
+            Meta = Both(member.Meta, member.Type.Arguments[0].Meta),
+            WireTag = member.WireTag,
+            DefaultValue = member.DefaultValue,
+            Type = column,
+        };
+    }
+
+    /// <summary>
     /// The one column a `set` is, or null when the type is not a set.
     /// </summary>
     /// <remarks>
@@ -381,8 +428,10 @@ internal static class SchemaContainers
         if (KindOf(type.Name) != ContainerKind.Map || type.Arguments.Count != 2)
             return null;
 
+        bool first = name == KeyMember;
+
         var argument =
-            name == KeyMember ? type.Arguments[0]
+            first ? type.Arguments[0]
             : name == ValueMember ? type.Arguments[1]
             : null;
 
@@ -397,7 +446,11 @@ internal static class SchemaContainers
             // columns it became. Repeating it on both would put the same sentence on `Key`
             // and on `Value` in every generated language.
             Comment = "",
-            Meta = argument.Meta,
+
+            // The container's own brackets go with the key column and only there: `size` is
+            // the entry count, the key column is exactly that long, and putting it on both
+            // would report one row twice.
+            Meta = first ? Both(member.Meta, argument.Meta) : argument.Meta,
             Type = new SchemaTypeRef
             {
                 Location = argument.Location,

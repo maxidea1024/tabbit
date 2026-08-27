@@ -114,6 +114,11 @@
     {
       "Type": "html",
       "Path": "test/fixtures/output/containers-target/html"
+    },
+    {
+      "Type": "text",
+      "Path": "test/fixtures/output/containers-target/text",
+      "Format": "{group}.{index}={text}"
     }
   ]
 }

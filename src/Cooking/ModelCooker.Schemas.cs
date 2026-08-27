@@ -329,6 +329,17 @@ public partial class ModelCooker
         if (member is not null && containerLevel >= 0 && path.Count - 1 > containerLevel + 1)
             member = SchemaContainers.Held(member);
 
+        // A `set` is one column, and the brackets that say what its elements are were
+        // written on the argument. The declared member carries only what is about the
+        // container, so handing it on as it stands would drop the role, the bounds and the
+        // pattern - parsed, checked for where they sit, and then ignored. Section 2.2.
+        if (member is not null
+            && containerLevel == path.Count - 1
+            && SchemaContainers.KindOf(member.Type) == Models.ContainerKind.Set)
+        {
+            member = SchemaContainers.ColumnMemberOfSet(member) ?? member;
+        }
+
         return member;
     }
 

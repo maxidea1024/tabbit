@@ -7,8 +7,12 @@
 
 /// What one row of the shop carries.
 struct Bag
-    /// What this row is filed under. No two the same.
-    field tags   set<string>
+    /// The badges shown on this row - "new", "sale". No two the same, and each is shown to
+    /// somebody, so they are gathered for translation.
+    ///
+    /// **The role goes inside the brackets**, because a container's element constraints are
+    /// written on the argument they are about - section 2.2 of the spec.
+    field tags   set<string(text)>
     /// What each item costs here, by that item's key.
     field prices map<int,int(min=1)>
     /// What one roll hands out, by the roll's number. The value is a struct, so this map is

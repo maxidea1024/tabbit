@@ -1077,9 +1077,16 @@ public partial class ModelCooker
     /// Each list is in element order, so a trimmed group's length applies to all of them -
     /// which is the same thing the wire and the exporters rely on.
     /// </remarks>
+    /// <remarks>
+    /// **The leaves, not the members.** A member may be a record and then holds no columns of
+    /// its own - `Star1.Position.X` gives the group one member, `Position`, whose `Fields` is
+    /// empty - so walking the members alone checked nothing a level further in. A constraint
+    /// written on such a member was read, stored on its column, and never asked about.
+    /// spec/types/set-and-map.md section 6.3.
+    /// </remarks>
     private static IEnumerable<IReadOnlyList<Field>> Columns(SerialField group)
         => group.IsRecord
-            ? group.Members.Select(member => (IReadOnlyList<Field>)member.Fields)
+            ? group.Leaves.Select(leaf => (IReadOnlyList<Field>)leaf.Fields)
             : new[] { (IReadOnlyList<Field>)group.Fields };
 
     /// <summary>One cell against what its column declared.</summary>
