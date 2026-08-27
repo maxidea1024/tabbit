@@ -16,6 +16,7 @@ namespace Tabbit.Tests;
 /// the model rather than by teaching each of them to filter, so these tests check
 /// the projection through the artifacts every consumer actually produces.
 /// </summary>
+[Collection("core-server-tree")]
 public class TargetSideTests
 {
     private static string[] TableNames(string scenario)

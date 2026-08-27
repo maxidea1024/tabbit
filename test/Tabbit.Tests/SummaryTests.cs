@@ -18,6 +18,7 @@ namespace Tabbit.Tests;
 /// state: that the three of them describe the same thing, and that the counting is
 /// counting what it claims to.
 /// </summary>
+[Collection("core-server-tree")]
 public class SummaryTests
 {
     private static JsonElement Read(string scenario)
@@ -87,15 +88,21 @@ public class SummaryTests
     /// What the run was narrowed to is recorded, so a reader of the document can tell
     /// that the outputs beside it are a cut even though this is not.
     /// </summary>
+    /// <remarks>
+    /// `core-cli-side` rather than `core`, because this is the one test that narrows a
+    /// run from the command line and a narrowed run clears and rewrites the tree it
+    /// writes into. A dozen other classes read `core`, so doing it there was a rewrite
+    /// under them - which only showed up once the suite stopped running serially.
+    /// </remarks>
     [Fact]
     public void The_side_the_run_was_narrowed_to_is_recorded()
     {
-        var conversion = TabbitRunner.Convert("core", null, "--target-side", "server");
+        var conversion = TabbitRunner.Convert("core-cli-side", null, "--target-side", "server");
 
         Assert.True(conversion.Succeeded,
             $"Conversion failed.{Environment.NewLine}{conversion.Describe()}");
 
-        var summary = Read("core");
+        var summary = Read("core-cli-side");
 
         Assert.Equal("s", summary.GetProperty("run").GetProperty("requestedTargetSide").GetString());
 

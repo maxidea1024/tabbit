@@ -9,9 +9,14 @@
   // Its own output tree so a narrowed run cannot overwrite what the golden
   // comparison for `core` expects to find.
   //
-  // Only the named JSON export, because the assertions read table and field names
-  // from it. That target-side narrowing reaches every other target is already
-  // covered by the recipe-declared cases.
+  // The named JSON export, because the assertions read table and field names from
+  // it. That target-side narrowing reaches every other target is already covered by
+  // the recipe-declared cases.
+  //
+  // And the summary, because what the run was narrowed to is recorded there and the
+  // narrowing this file exists for is the command line's. Reading that off `core`
+  // meant converting `core` with an option, which cleared and rewrote the tree a
+  // dozen other classes read.
 
   "Sources": {
     "Xlsx": [
@@ -28,6 +33,14 @@
       "Path": "test/fixtures/output/core-cli-side/json-named",
       "UseCompactRowFormat": false,
       "Indented": true
+    },
+
+    // Describes the whole model rather than producing anything a build consumes, so
+    // it is the one target that reads the unnarrowed model.
+    {
+      "Type": "summary",
+      "Path": "test/fixtures/output/core-cli-side/summary",
+      "TargetSide": "cs"
     }
   ]
 }

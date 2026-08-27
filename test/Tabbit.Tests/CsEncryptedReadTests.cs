@@ -21,6 +21,7 @@ namespace Tabbit.Tests;
 /// So this converts with a key, and reads the result back through the generated accessor as
 /// a consuming project would - the whole path, from the sheet to a row.
 /// </remarks>
+[Collection("encrypted-tree")]
 public class CsEncryptedReadTests
 {
     private const string Scenario = "encrypted";

@@ -24,6 +24,7 @@ namespace Tabbit.Tests;
 /// a consuming project would: the whole path, from the sheet to a row, through the cipher
 /// the interpreter actually has.
 /// </remarks>
+[Collection("encrypted-tree")]
 public class PhpEncryptedReadTests
 {
     private const string Scenario = "encrypted";

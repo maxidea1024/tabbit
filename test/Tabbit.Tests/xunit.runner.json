@@ -21,6 +21,13 @@
     "types are importable from, so those classes share a collection; and the updater servers",
     "took a port between finding it free and binding it, so they retry.",
     "",
+    "And one that is not about building at all. A conversion that names environment",
+    "variables or extra arguments is not the shared one - it clears the scenario's tree and",
+    "writes a different one - so a class doing that is a writer among readers. `core` had",
+    "one, and it moved to the scenario that exists for it (`core-cli-side`); `core-server`",
+    "and `encrypted` have two classes each, which a collection settles. A new test that",
+    "converts with an option belongs to a scenario nobody else reads.",
+    "",
     "1,829 tests, 9m08s against 15m53s serial. doc/roadmap.md carries the same numbers."
   ],
   "parallelizeTestCollections": true
