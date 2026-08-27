@@ -4,7 +4,7 @@
 **연출 수치도 데이터입니다.** 웹과 유니티가 같은 문턱을 읽어야 같은 세기로 보입니다.
 """
 
-from . import cards, consumables, jokers, progression, setup_, shop
+from . import cards, consumables, jokers, phrases, progression, setup_, shop
 from .grid import constants, table, write
 
 RUN = [
@@ -190,6 +190,9 @@ def strings():
         add('achievement', a[0], a[1], a[0].replace('_', ' ').title())
     for kind, ko, en in HAND_NAMES:
         add('hand', kind, ko, en)
+
+    # 효과를 문장으로 만드는 문구들. **조커 150종의 설명문을 손으로 적지 않습니다.**
+    rows.extend(phrases.rows())
     return rows
 
 

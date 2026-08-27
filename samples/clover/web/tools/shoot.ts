@@ -40,7 +40,13 @@ async function main(): Promise<number> {
   await server.listen()
 
   const browser = await chromium.launch()
-  const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
+  // **기준 해상도보다 크게, 그리고 픽셀 밀도를 올려서 찍습니다.** 1280 × 800 을 밀도 1로만
+  // 찍으면 배율이 1이라 배치가 틀려도 드러나지 않습니다 — 화면 오른쪽과 아래에 빈 곳이
+  // 남던 결함이 그래서 이 도구를 통과했습니다. 가로세로비는 기준과 같게 둡니다.
+  const page = await browser.newPage({
+    viewport: { width: 1600, height: 1000 },
+    deviceScaleFactor: 2,
+  })
 
   const problems: string[] = []
   page.on('console', message => {
@@ -55,6 +61,11 @@ async function main(): Promise<number> {
     await page.screenshot({ path: path.join(OUT, `${name}.png`) })
     console.log(`${name}.png`)
   }
+
+  // 처음 여는 사람에게 저절로 펼쳐지는 판입니다. 찍어 두고 닫습니다.
+  await shoot('0-guide')
+  await page.mouse.click(20, 20)
+  await page.waitForTimeout(300)
 
   await shoot('1-blind-select')
 
@@ -93,8 +104,35 @@ async function main(): Promise<number> {
   }
 
   const finished = await peek(page)
-  if (finished.phase === 'shop') await shoot('5-shop')
-  else console.log(`상점까지 가지 못했습니다 — 지금은 ${finished.phase} 입니다`)
+  if (finished.phase === 'shop') {
+    await shoot('5-shop')
+
+    // 조커를 사서 줄에 세웁니다. **조커가 없는 화면은 이 게임의 화면이 아닙니다.**
+    await buyFirstAffordable(page)
+    await settle(page)
+    await page.waitForTimeout(700)
+    await shoot('6-joker')
+
+    // 조커 위에 마우스를 올려 설명을 띄웁니다.
+    const spot = await at(page, 372, 108)
+    await page.mouse.move(spot.x, spot.y)
+    await page.waitForTimeout(500)
+    await shoot('7-tooltip')
+
+    // 조커를 데리고 다음 판으로. **조커가 발동하는 장면이 이 게임의 얼굴입니다.**
+    await page.mouse.move(10, 10)
+    await clickPrimary(page)
+    await settle(page)
+    await page.waitForTimeout(400)
+    await clickPrimary(page)
+    await settle(page)
+    await page.waitForTimeout(400)
+    await playHand(page, chooseFive((await peek(page)).hand))
+    await page.waitForTimeout(520)
+    await shoot('8-joker-fires')
+  } else {
+    console.log(`상점까지 가지 못했습니다 — 지금은 ${finished.phase} 입니다`)
+  }
 
   await browser.close()
   await server.close()
@@ -118,16 +156,40 @@ async function settle(page: Page): Promise<void> {
   }
 }
 
+/** 상점의 첫 칸을 살 수 있으면 삽니다. */
+async function buyFirstAffordable(page: Page): Promise<void> {
+  const spacing = 172
+  for (let slot = 0; slot < 2; slot++) {
+    const spot = await at(page, BOARD_X - spacing / 2 + slot * spacing, 300 + 81)
+    await page.mouse.click(spot.x, spot.y)
+    await page.waitForTimeout(500)
+    if ((await peek(page)).jokers > 0) return
+  }
+}
+
 /** 화면 좌표를 캔버스 위의 자리로. 기준 해상도는 1280 × 720 입니다. */
 async function at(page: Page, x: number, y: number): Promise<{ x: number; y: number }> {
   const box = await (await page.$('#stage'))?.boundingBox()
   if (!box) return { x, y }
-  return { x: box.x + (x / 1280) * box.width, y: box.y + (y / 720) * box.height }
+  return { x: box.x + (x / STAGE_W) * box.width, y: box.y + (y / STAGE_H) * box.height }
 }
 
-/** 가운데 큰 버튼. 블라인드 선택과 상점이 씁니다. */
+// 화면의 자리들. `render/game.ts` 의 상수와 같아야 합니다.
+const STAGE_W = 1280
+const STAGE_H = 800
+const BOARD_X = (16 + 264 + 20 + STAGE_W) / 2
+const HAND_Y = 646
+const CARD_SPACING = 100
+const BUTTON_Y = 742
+
+/**
+ * 가운데 큰 버튼. 블라인드 선택과 상점이 씁니다.
+ *
+ * **상점에서는 자리가 다릅니다** — 바우처 딱지와 겹치지 않게 아래로 내려가 있습니다.
+ */
 async function clickPrimary(page: Page): Promise<void> {
-  const spot = await at(page, 640, 642)
+  const shop = (await peek(page)).phase === 'shop'
+  const spot = await at(page, BOARD_X, shop ? 697 : 545)
   await page.mouse.click(spot.x, spot.y)
 }
 
@@ -138,25 +200,30 @@ async function clickPrimary(page: Page): Promise<void> {
  * 못합니다. 카드는 108픽셀 간격으로 가운데 놓이고, 8장일 때 첫 장의 중심이 262 입니다.
  */
 async function playHand(page: Page, picks: number[] = [0, 1, 2, 3, 4]): Promise<void> {
-  for (const i of picks) {
-    const spot = await at(page, 262 + i * 108, 560)
-    await page.mouse.click(spot.x, spot.y)
-    await page.waitForTimeout(70)
-  }
-
-  const play = await at(page, 820, 680)
+  const held = (await peek(page)).hand.length
+  await clickCards(page, picks, held)
+  const play = await at(page, BOARD_X - 152 + 64, BUTTON_Y + 23)
   await page.mouse.click(play.x, play.y)
+}
+
+/** 부채꼴로 편 패에서 몇 장을 누릅니다. */
+async function clickCards(page: Page, picks: number[], held: number): Promise<void> {
+  const spacing = Math.min(CARD_SPACING, 720 / Math.max(1, held))
+  const startX = BOARD_X - ((held - 1) * spacing) / 2
+
+  for (const i of picks) {
+    const offset = i - (held - 1) / 2
+    const spot = await at(page, startX + i * spacing, HAND_Y + offset * offset * 1.1)
+    await page.mouse.click(spot.x, spot.y)
+    await page.waitForTimeout(80)
+  }
 }
 
 /** 고른 것을 버립니다. */
 async function discardHand(page: Page, picks: number[]): Promise<void> {
-  for (const i of picks) {
-    const spot = await at(page, 262 + i * 108, 560)
-    await page.mouse.click(spot.x, spot.y)
-    await page.waitForTimeout(70)
-  }
-
-  const discard = await at(page, 960, 680)
+  const held = (await peek(page)).hand.length
+  await clickCards(page, picks, held)
+  const discard = await at(page, BOARD_X + 24 + 64, BUTTON_Y + 23)
   await page.mouse.click(discard.x, discard.y)
 }
 

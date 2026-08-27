@@ -365,3 +365,247 @@
 	hand.FiveOfAKind.name	파이브 오브 어 카인드	Five of a Kind
 	hand.FlushHouse.name	플러시 하우스	Flush House
 	hand.FlushFive.name	플러시 파이브	Flush Five
+	phrase.trigger.Passive	{cond} {op}	{cond} {op}
+	phrase.trigger.OnCardScored	{cond} 득점할 때마다 {op}	for each scoring {cond}{op}
+	phrase.trigger.OnCardHeld	패에 든 {cond} 마다 {op}	for each {cond}held in hand, {op}
+	phrase.trigger.OnHandPlayed	{cond} {op}	{cond} {op}
+	phrase.trigger.OnHandDiscarded	{cond} 버리면 {op}	when discarding {cond}{op}
+	phrase.trigger.OnCardDiscarded	{cond} 버릴 때마다 {op}	for each discarded {cond}{op}
+	phrase.trigger.OnRoundStart	라운드가 시작할 때 {cond} {op}	at round start, {cond}{op}
+	phrase.trigger.OnRoundEnd	라운드 종료 시 {cond} {op}	at end of round, {cond}{op}
+	phrase.trigger.OnBlindSelect	블라인드를 고를 때 {cond} {op}	when a blind is selected, {cond}{op}
+	phrase.trigger.OnBossDefeated	보스를 격파하면 {op}	when a boss is defeated, {op}
+	phrase.trigger.OnShopEnter	상점에 들어갈 때 {op}	on entering the shop, {op}
+	phrase.trigger.OnShopExit	상점을 나갈 때 {op}	on leaving the shop, {op}
+	phrase.trigger.OnReroll	상점에서 리롤할 때마다 {op}	for each shop reroll, {op}
+	phrase.trigger.OnPackSkipped	팩을 넘길 때마다 {op}	for each skipped pack, {op}
+	phrase.trigger.OnPackOpened	팩을 열 때 {op}	when a pack is opened, {op}
+	phrase.trigger.OnCardAdded	덱에 카드가 더해질 때마다 {op}	when a card joins the deck, {op}
+	phrase.trigger.OnCardDestroyed	{cond} 파괴될 때마다 {op}	when {cond}is destroyed, {op}
+	phrase.trigger.OnJokerSold	조커를 팔 때마다 {op}	when a joker is sold, {op}
+	phrase.trigger.OnConsumableUsed	{cond} 쓸 때마다 {op}	when {cond}is used, {op}
+	phrase.trigger.OnSell	팔면 {op}	sell this card to {op}
+	phrase.trigger.OnUse	{cond} {op}	{cond} {op}
+	phrase.trigger.OnScoreResolved	{cond} {op}	{cond} {op}
+	phrase.trigger.OnRunStart	런을 시작할 때 {op}	at the start of the run, {op}
+	phrase.trigger.OnLuckyTriggered	`행운` 카드가 발동할 때마다 {op}	when a Lucky card triggers, {op}
+	phrase.cond.CondAlways		
+	phrase.cond.CondHandContains	{hand} 포함 시	if the hand contains a {hand}, 
+	phrase.cond.CondHandIs	족보가 {hand}면	if the hand is a {hand}, 
+	phrase.cond.CondCardSuit	{suit} 카드가	{suit} card 
+	phrase.cond.CondCardRankSet	{ranks} 카드가	{ranks} 
+	phrase.cond.CondCardIsFace	그림 카드가	face card 
+	phrase.cond.CondCardEnhancement	`{enhancement}` 카드가	{enhancement} card 
+	phrase.cond.CondCardEnhanced	강화된 카드가	enhanced card 
+	phrase.cond.CondCardSeal	`{seal}` 인장이 붙은 카드가	card with a {seal} seal 
+	phrase.cond.CondCardEdition	`{edition}` 카드가	{edition} card 
+	phrase.cond.CondCardCount	낸 카드가 {n}장 {compare}	if played cards are {compare} {n}, 
+	phrase.cond.CondAllSuitsPresent	네 무늬가 모두 있으면	if all four suits score, 
+	phrase.cond.CondSuitPair	{suit} 하나와 다른 무늬 하나가 득점하면	if a {suit} and another suit both score, 
+	phrase.cond.CondAllHeldSuit	패가 전부 {suits} 면	if all cards held are {suits}, 
+	phrase.cond.CondBlindKind	{blind} 블라인드에서	on a {blind} blind, 
+	phrase.cond.CondMoney	보유 금액이 ${n} {compare}	if money is {compare} ${n}, 
+	phrase.cond.CondDiscardsLeft	남은 버리기가 {n} {compare}	if discards left are {compare} {n}, 
+	phrase.cond.CondHandsLeft	남은 핸드가 {n} {compare}	if hands left are {compare} {n}, 
+	phrase.cond.CondDiscardsUnused	버리기를 쓰지 않았으면	if no discards were used, 
+	phrase.cond.CondHandRepeated	이번 라운드에 이미 낸 족보면	if this hand was already played this round, 
+	phrase.cond.CondIsMostPlayedHand	최다 사용 족보면	if this is your most played hand, 
+	phrase.cond.CondNotMostPlayedHand	최다 사용 족보가 아니면	if this is not your most played hand, 
+	phrase.cond.CondFirstHand	라운드의 첫 핸드면	on the first hand of the round, 
+	phrase.cond.CondLastHand	라운드의 마지막 핸드면	on the final hand of the round, 
+	phrase.cond.CondFirstDiscard	라운드의 첫 버리기면	on the first discard of the round, 
+	phrase.cond.CondEveryNHands	{n}핸드마다	every {n} hands, 
+	phrase.cond.CondCounterAtLeast	{counter}가 {n} 이상이면	if {counter} reaches {n}, 
+	phrase.cond.CondCounterAtMost	{counter}가 {n} 이하가 되면	if {counter} drops to {n}, 
+	phrase.cond.CondChargeLeft	남은 횟수가 있으면	while charges remain, 
+	phrase.cond.CondTargetMatch	지정된 {target}과 맞으면	if it matches the chosen {target}, 
+	phrase.cond.CondDeckEnhancedAtLeast	덱에 강화 카드가 {n}장 이상이면	if the deck holds {n} or more enhanced cards, 
+	phrase.cond.CondBossTriggered	보스 능력을 발동시키면	if the boss ability triggers, 
+	phrase.cond.CondScoreRatioAtLeast	점수가 요구의 {num}/{den} 이상이면	if the score is at least {num}/{den} of the target, 
+	phrase.cond.CondNoFaceScored	그림 카드가 득점하지 않은 핸드마다	for each hand with no scoring face card, 
+	phrase.cond.CondFaceScored	그림 카드가 득점하면	if a face card scores, 
+	phrase.cond.CondDiscardedFaceAtLeast	그림 카드를 {n}장 이상 한 번에	{n} or more face cards at once, 
+	phrase.cond.CondHandContainsRankAndHand	{hand} 안에 {ranks} 카드가 있으면	if a {hand} contains {ranks}, 
+	phrase.cond.CondFirstHandSingleCard	라운드의 첫 핸드가 카드 한 장이면	if the first hand is a single card, 
+	phrase.cond.CondFirstHandSingleRank	라운드의 첫 핸드가 {ranks} 카드 한 장이면	if the first hand is a single {ranks}, 
+	phrase.cond.CondFirstDiscardSingleCard	라운드의 첫 버리기가 카드 한 장이면	if the first discard is a single card, 
+	phrase.cond.CondConsumableKind	{consumable} 카드를	{consumable} card 
+	phrase.op.OpAddChips	칩 +{chips}	+{chips} chips
+	phrase.op.OpAddMult	배수 +{mult}	+{mult} mult
+	phrase.op.OpMulMult	배수 ×{mult}	X{mult} mult
+	phrase.op.OpAddMoney	${money}	earn ${money}
+	phrase.op.OpSetMoney	금액이 ${money}이 됩니다	set money to ${money}
+	phrase.op.OpPerUnit	{unit} 마다 {per}	{per} for each {unit}
+	phrase.op.OpRandomRange	{per} +{min}~{max}	{per} +{min} to +{max}
+	phrase.op.OpRetrigger	{times}회 재발동	retrigger {times} more times
+	phrase.op.OpGrowSelf	{counter}가 {step}씩 늘어납니다	gains {step} {counter}
+	phrase.op.OpResetSelf	{counter}가 처음으로 돌아갑니다	resets {counter}
+	phrase.op.OpGrowOthers	{scope}의 {counter}가 {step}씩 늘어납니다	{scope} gain {step} {counter}
+	phrase.op.OpLevelUpHand	{hand_pick} 레벨 {levels}	level up {hand_pick} by {levels}
+	phrase.op.OpCreateCard	{create}를 {count}장 만듭니다	create {count} {create}
+	phrase.op.OpAddCard	{create}를 {count}장 더합니다	add {count} {create}
+	phrase.op.OpDestroyCard	카드 {count}장을 파괴합니다	destroy {count} cards
+	phrase.op.OpModifyCard	{scope}를 {modify}로 바꿉니다	change {scope} {modify}
+	phrase.op.OpModifyJoker	{scope}에 `{edition}`을 붙입니다	add {edition} to {scope}
+	phrase.op.OpDestroyJoker	{pick}를 파괴합니다	destroy {pick}
+	phrase.op.OpCopyJoker	{pick}의 능력을 복사합니다	copy the ability of {pick}
+	phrase.op.OpDebuff	{debuff}를 무력화합니다	debuff {debuff}
+	phrase.op.OpDisableBoss	보스 효과를 끕니다	disable the boss blind
+	phrase.op.OpPreventLoss	패배를 막습니다	prevent death
+	phrase.op.OpChangeRule	{rule}	{rule}
+	phrase.op.OpChangeRuleByCounter	{rule} — 누적값만큼	{rule}, by the counter
+	phrase.op.OpCardTrait	{trait}	{trait}
+	phrase.op.OpMulMoney	금액이 {value}배가 됩니다	multiply money by {value}
+	phrase.op.OpShopGift	다음 상점에 {create}를 놓습니다	the next shop offers {create}
+	phrase.op.OpDuplicateNextTag	다음 태그를 복제합니다	duplicate the next tag
+	phrase.op.OpRerollBoss	보스 블라인드를 다시 뽑습니다	reroll the boss blind
+	phrase.op.OpForceDiscard	패에서 {count}장을 버립니다	discard {count} cards from hand
+	phrase.op.OpDrawFaceDown	카드를 뒤집힌 채로 뽑습니다	cards are drawn face down
+	phrase.op.OpFlipJokers	조커를 뒤집고 섞습니다	flip and shuffle all jokers
+	phrase.op.OpDisableRandomJoker	핸드마다 조커 하나가 꺼집니다	one random joker is disabled
+	phrase.op.OpGrant	{create}를 {count}개 가지고 시작합니다	start with {count} {create}
+	phrase.op.OpNothing	아무것도 하지 않습니다	does nothing
+	phrase.op.OpCustom	{handler}	{handler}
+	phrase.unit.JokerCount	조커 하나	joker
+	phrase.unit.EmptyJokerSlots	빈 조커 슬롯 하나	empty joker slot
+	phrase.unit.DeckRemaining	덱에 남은 카드 한 장	card left in deck
+	phrase.unit.DeckDeficit	덱에서 모자란 카드 한 장	card below the deck size
+	phrase.unit.Money	보유 $1	$1
+	phrase.unit.MoneyPer5	보유 $5	$5
+	phrase.unit.DiscardsLeft	남은 버리기	remaining discard
+	phrase.unit.HandsLeft	남은 핸드	remaining hand
+	phrase.unit.BlindsSkipped	스킵한 블라인드	skipped blind
+	phrase.unit.TarotUsed	이번 런에 쓴 타로	tarot used this run
+	phrase.unit.UniquePlanetUsed	이번 런에 쓴 고유 행성	unique planet used this run
+	phrase.unit.DeckRankCount	덱의 {ranks} 한 장	{ranks} in the deck
+	phrase.unit.DeckEnhancementCount	덱의 `{enhancement}` 카드 한 장	{enhancement} card in the deck
+	phrase.unit.JokerRarityCount	{rarity} 조커 하나	{rarity} joker
+	phrase.unit.HandPlayCount	이 족보를 낸 횟수	time this hand was played
+	phrase.unit.OtherJokerSellValue	다른 조커의 판매가 $1	$1 of other jokers sell value
+	phrase.unit.LowestHeldRankChips	패의 최저 랭크 칩값	chip of the lowest held rank
+	phrase.unit.CardsPlayed	낸 카드 한 장	played card
+	phrase.unit.SelfCounterMoney	누적한 $1	$1 accumulated
+	phrase.unit.HandsPlayedThisRun	이번 런에 낸 핸드	hand played this run
+	phrase.unit.DiscardsUnusedThisRun	이번 런에 쓰지 않은 버리기	unused discard this run
+	phrase.rule.HandSize	패 크기 {value}	hand size {value}
+	phrase.rule.HandsPerRound	라운드당 핸드 {value}	{value} hands each round
+	phrase.rule.DiscardsPerRound	라운드당 버리기 {value}	{value} discards each round
+	phrase.rule.JokerSlots	조커 슬롯 {value}	{value} joker slots
+	phrase.rule.ConsumableSlots	소모품 슬롯 {value}	{value} consumable slots
+	phrase.rule.DebtLimit	빚을 {value}까지 집니다	go up to ${value} in debt
+	phrase.rule.FreeRerolls	상점마다 무료 리롤 {value}회	{value} free reroll each shop
+	phrase.rule.RerollCostDelta	리롤 비용 ${value}	rerolls cost ${value} less
+	phrase.rule.RerollStartsFree	다음 상점의 리롤이 $0에서 시작합니다	rerolls start at $0 in the next shop
+	phrase.rule.InterestPer5	보유 $5마다 이자 ${value}	${value} extra interest per $5
+	phrase.rule.InterestCap	이자 상한 ${value}	interest cap ${value}
+	phrase.rule.ShopCardSlots	상점 카드 칸 {value}	{value} shop card slots
+	phrase.rule.ShopDiscount	상점 {value}% 할인	shop is {value}% off
+	phrase.rule.ShopAllowsPlayingCards	상점에서 플레잉 카드를 살 수 있습니다	playing cards appear in the shop
+	phrase.rule.ShopAllowsSpectral	상점에 유령 카드가 나옵니다	spectral cards appear in the shop
+	phrase.rule.ShopWeightTarot	상점 타로 등장 {value}배	tarot cards appear {value}X as often
+	phrase.rule.ShopWeightPlanet	상점 행성 등장 {value}배	planet cards appear {value}X as often
+	phrase.rule.FreePlanets	상점의 행성 카드와 천체 팩이 무료입니다	planet cards and celestial packs are free
+	phrase.rule.AllCardsScore	낸 카드 전부가 득점합니다	every played card scores
+	phrase.rule.AllCardsAreFace	모든 카드를 그림 카드로 봅니다	all cards count as face cards
+	phrase.rule.FlushStraightCards	플러시와 스트레이트를 {value}장으로 이룹니다	flushes and straights need {value} cards
+	phrase.rule.StraightGap	스트레이트에 {value}칸 빈틈을 허용합니다	straights may skip {value} rank
+	phrase.rule.SuitsMerged	하트와 다이아를, 스페이드와 클럽을 한 무늬로 봅니다	hearts count as diamonds and spades as clubs
+	phrase.rule.ProbabilityScale	모든 확률이 {value}배가 됩니다	all listed odds are {value}X
+	phrase.rule.AllowDuplicates	같은 카드가 여러 번 나올 수 있습니다	cards may appear more than once
+	phrase.rule.BalanceChipsAndMult	칩과 배수를 평균으로 맞춥니다	chips and mult are balanced
+	phrase.rule.BossRerollsPerAnte	안테마다 보스를 {value}회 다시 뽑습니다	reroll the boss {value} times per ante
+	phrase.rule.AnteDelta	안테 {value}	ante {value}
+	phrase.rule.EditionWeightScale	에디션 등장 {value}배	editions appear {value}X as often
+	phrase.rule.PlanetGivesMult	행성 카드가 해당 족보에 배수 ×{value}	planet cards give X{value} mult to their hand
+	phrase.rule.StartingMoney	${value}을 더 가지고 시작합니다	start with ${value} more
+	phrase.rule.NoInterest	이자를 받지 않습니다	earn no interest
+	phrase.rule.MoneyPerHandLeft	남은 핸드마다 ${value}	${value} per remaining hand
+	phrase.rule.MoneyPerDiscardLeft	남은 버리기마다 ${value}	${value} per remaining discard
+	phrase.rule.RandomizeDeck	덱 52장의 랭크와 무늬가 무작위입니다	all ranks and suits are randomized
+	phrase.rule.DoubleTagOnBossDefeat	보스 격파마다 `Double Tag`	gain a Double Tag after each boss
+	phrase.rule.BlindSizeScale	블라인드 요구 점수 {value}배	blind size {value}X
+	phrase.rule.SetDiscardsZero	버리기 0으로 시작합니다	start with 0 discards
+	phrase.rule.SpectralInArcanaPacks	아르카나 팩에 유령 카드가 섞입니다	spectral cards appear in arcana packs
+	phrase.rule.CelestialHasMostPlayed	천체 팩에 최다 사용 족보의 행성이 반드시 들어갑니다	celestial packs always contain your most played hand
+	phrase.rule.ShopCardsHaveModifiers	상점의 플레잉 카드가 강화와 인장을 가집니다	shop playing cards may be enhanced
+	phrase.rule.NoRepeatHandTypes	같은 족보를 두 번 낼 수 없습니다	no repeat hand types this round
+	phrase.rule.SingleHandTypeOnly	한 종류의 족보만 낼 수 있습니다	only one hand type may be played
+	phrase.rule.MustPlayFiveCards	반드시 5장을 내야 합니다	must play 5 cards
+	phrase.rule.AlwaysDrawThree	항상 3장만 뽑습니다	always draw 3 cards
+	phrase.rule.HalveBaseChipsAndMult	기본 칩과 배수가 절반이 됩니다	base chips and mult are halved
+	phrase.rule.DebuffUntilJokerSold	조커 하나를 팔기 전까지 모든 카드가 무력화됩니다	all cards are debuffed until a joker is sold
+	phrase.rule.ForceCardSelected	카드 한 장이 항상 선택된 상태가 됩니다	one card is always forced to be selected
+	phrase.rule.RemoveFaceCards	그림 카드 없이 시작합니다	start with no face cards
+	phrase.rule.SuitsOnly	{suits} 로만 시작합니다	start with only {suits}
+	phrase.rule.NextShopFree	다음 상점의 처음 카드와 팩이 무료입니다	the next shop starts free
+	phrase.suit.Spade	스페이드	Spade
+	phrase.suit.Heart	하트	Heart
+	phrase.suit.Club	클럽	Club
+	phrase.suit.Diamond	다이아	Diamond
+	phrase.counter.Chips	칩	chips
+	phrase.counter.MultAdd	배수	mult
+	phrase.counter.MultMul	곱 배수	X mult
+	phrase.counter.Money	금액	money
+	phrase.counter.SellValue	판매가	sell value
+	phrase.counter.Charge	남은 횟수	charges
+	phrase.counter.Tick	지난 라운드	rounds
+	phrase.compare.AtLeast	이상이면	at least
+	phrase.compare.AtMost	이하면	at most
+	phrase.compare.Exactly	이면	exactly
+	phrase.pick.Right	오른쪽 조커	the joker to the right
+	phrase.pick.Leftmost	맨 왼쪽 조커	the leftmost joker
+	phrase.pick.Random	무작위 조커	a random joker
+	phrase.pick.AllOther	나머지 조커 전부	every other joker
+	phrase.pick.SelfPick	이 조커	this joker
+	phrase.create.Tarot	타로 카드	a tarot card
+	phrase.create.Planet	행성 카드	a planet card
+	phrase.create.Spectral	유령 카드	a spectral card
+	phrase.create.Joker	조커	a joker
+	phrase.create.PlayingCard	플레잉 카드	a playing card
+	phrase.create.Tag	태그	a tag
+	phrase.create.LastUsed	마지막으로 쓴 소모품	the last used consumable
+	phrase.create.CopyOfScored	그 카드의 사본	a copy of that card
+	phrase.create.CopyOfSelected	고른 카드의 사본	a copy of the selected card
+	phrase.create.Pack	팩	a pack
+	phrase.create.Voucher	바우처	a voucher
+	phrase.modify.Enhancement	강화	enhancement
+	phrase.modify.Seal	인장	seal
+	phrase.modify.Edition	에디션	edition
+	phrase.modify.Suit	무늬	suit
+	phrase.modify.RankStep	랭크	rank
+	phrase.modify.BonusChips	영구 칩	permanent chips
+	phrase.modify.CopyRight	오른쪽 카드와 같게	into the card on the right
+	phrase.modify.RankTo	같은 랭크로	to one rank
+	phrase.debuff.BySuit	그 무늬의 카드	cards of that suit
+	phrase.debuff.FaceCards	그림 카드	face cards
+	phrase.debuff.PlayedThisAnte	이번 안테에 이미 낸 카드	cards played this ante
+	phrase.debuff.AllCards	모든 카드	all cards
+	phrase.target.Hand	족보	hand
+	phrase.target.Rank	랭크	rank
+	phrase.target.Suit	무늬	suit
+	phrase.target.Card	카드	card
+	phrase.trait.AnySuit	모든 무늬로 취급됩니다	counts as every suit
+	phrase.trait.NoRankSuit	랭크와 무늬가 없습니다	has no rank or suit
+	phrase.trait.AlwaysScores	항상 득점합니다	always scores
+	phrase.handpick.Played	낸 족보의	the played hand
+	phrase.handpick.FirstDiscarded	처음 버린 족보의	the first discarded hand
+	phrase.handpick.MostPlayed	최다 사용 족보의	your most played hand
+	phrase.handpick.Random	무작위 족보의	a random hand
+	phrase.handpick.All	모든 족보의	every hand
+	phrase.rarity.Common	커먼	common
+	phrase.rarity.Uncommon	언커먼	uncommon
+	phrase.rarity.Rare	레어	rare
+	phrase.rarity.Legendary	전설	legendary
+	phrase.scope.AllJokers	모든 조커	all jokers
+	phrase.scope.AllOtherJokers	나머지 조커	other jokers
+	phrase.scope.AllConsumables	모든 소모품	all consumables
+	phrase.scope.RandomJoker	무작위 조커	a random joker
+	phrase.scope.Selected	고른 카드	the selected cards
+	phrase.scope.RandomInHand	패의 무작위 카드	random cards in hand
+	phrase.scope.AllInHand	패의 모든 카드	all cards in hand
+	phrase.scope.ScoredCard	그 카드	that card
+	phrase.scope.HeldCard	그 카드	that card
+	phrase.scope.AllInDeck	덱의 모든 카드	all cards in the deck
+	phrase.scope.SelfTarget	이것	this
+	phrase.scope.Run		
+	phrase.handler.pruning_shears	오른쪽 조커를 파괴하고 그 판매가의 2배를 배수로 얻습니다	destroy the joker to the right and gain double its sell value as mult

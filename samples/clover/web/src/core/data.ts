@@ -9,8 +9,23 @@ import type { Condition } from '../generated/structs/condition'
 import type { Operation } from '../generated/structs/operation'
 import { Scope } from '../generated/enums/scope'
 import { Trigger } from '../generated/enums/trigger'
-import type { RankKind } from '../generated/enums/rank-kind'
-import type { SuitKind } from '../generated/enums/suit-kind'
+import { Compare } from '../generated/enums/compare'
+import { CounterField } from '../generated/enums/counter-field'
+import { UnitKind } from '../generated/enums/unit-kind'
+import { HandPick } from '../generated/enums/hand-pick'
+import { CreateKind } from '../generated/enums/create-kind'
+import { ModifyKind } from '../generated/enums/modify-kind'
+import { JokerPick } from '../generated/enums/joker-pick'
+import { DebuffKind } from '../generated/enums/debuff-kind'
+import { TargetKind } from '../generated/enums/target-kind'
+import { RuleKind } from '../generated/enums/rule-kind'
+import { CardTrait } from '../generated/enums/card-trait'
+import { SuitKind } from '../generated/enums/suit-kind'
+import { RankKind } from '../generated/enums/rank-kind'
+import { PokerHandKind } from '../generated/enums/poker-hand-kind'
+import { Rarity } from '../generated/enums/rarity'
+import { BlindKind } from '../generated/enums/blind-kind'
+import { ConsumableKind } from '../generated/enums/consumable-kind'
 import { RunConst } from '../generated/constants/run-const'
 import { ScoreConst } from '../generated/constants/score-const'
 import { EconomyConst } from '../generated/constants/economy-const'
@@ -54,6 +69,14 @@ export interface Data {
   readonly deckEffects: EffectIndex
   readonly enhancementEffects: EffectIndex
   readonly sealEffects: EffectIndex
+
+  /**
+   * enum 값에서 이름으로.
+   *
+   * **설명을 조립할 때 씁니다** — `Trigger.OnCardScored` 가 `2` 로 오므로, 그 `2` 가 어느
+   * 이름인지 알아야 문구를 찾습니다.
+   */
+  readonly enumNames: Record<string, Record<number, string>>
 
   /** 상수셋. 시트의 `Const_*` 입니다. */
   readonly run: RunConstants
@@ -101,6 +124,15 @@ export interface EconomyConstants {
 
 export interface FeelConstants {
   [name: string]: number
+}
+
+/** enum 의 숫자에서 이름으로. 생성 코드의 enum 은 양방향 맵입니다. */
+function reverse(source: object): Record<number, string> {
+  const out: Record<number, string> = {}
+  for (const [key, value] of Object.entries(source)) {
+    if (typeof value === 'number') out[value] = key
+  }
+  return out
 }
 
 /** 어느 테이블에서든 같은 모양으로 읽습니다. */
@@ -176,6 +208,27 @@ function indexByEnum(source: EffectSource, records: readonly RawEffect[]): Effec
 export function build(tables: CloverData): Data {
   return {
     tables,
+    enumNames: {
+      Trigger: reverse(Trigger),
+      Scope: reverse(Scope),
+      Compare: reverse(Compare),
+      CounterField: reverse(CounterField),
+      UnitKind: reverse(UnitKind),
+      HandPick: reverse(HandPick),
+      CreateKind: reverse(CreateKind),
+      ModifyKind: reverse(ModifyKind),
+      JokerPick: reverse(JokerPick),
+      DebuffKind: reverse(DebuffKind),
+      TargetKind: reverse(TargetKind),
+      RuleKind: reverse(RuleKind),
+      CardTrait: reverse(CardTrait),
+      SuitKind: reverse(SuitKind),
+      RankKind: reverse(RankKind),
+      PokerHandKind: reverse(PokerHandKind),
+      Rarity: reverse(Rarity),
+      BlindKind: reverse(BlindKind),
+      ConsumableKind: reverse(ConsumableKind),
+    },
     jokerEffects: index('joker', tables.jokerEffect.records as unknown as RawEffect[]),
     tarotEffects: index('tarot', tables.tarotEffect.records as unknown as RawEffect[]),
     spectralEffects: index('spectral', tables.spectralEffect.records as unknown as RawEffect[]),

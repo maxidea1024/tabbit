@@ -18,7 +18,8 @@ async function main(): Promise<void> {
     canvas,
     background: COLOR.ground,
     antialias: true,
-    resolution: Math.min(2, window.devicePixelRatio || 1),
+    // 글씨가 뿌옇지 않게 화면의 픽셀 밀도를 그대로 씁니다.
+    resolution: Math.min(3, window.devicePixelRatio || 1),
     autoDensity: true,
     resizeTo: window,
     preference: 'webgl',
@@ -31,7 +32,9 @@ async function main(): Promise<void> {
     ?? `CLOVER-${Math.floor(Math.random() * 1e6).toString().padStart(6, '0')}`
 
   const game = new Game(app, data, seed)
-  const relayout = () => game.layout(app.renderer.width, app.renderer.height)
+  // **논리 크기를 씁니다.** `renderer.width` 는 픽셀 밀도가 곱해진 물리 크기라,
+  // 그것으로 재면 배율이 커져 화면 오른쪽과 아래에 빈 곳이 남습니다.
+  const relayout = () => game.layout(app.renderer.screen.width, app.renderer.screen.height)
   relayout()
   window.addEventListener('resize', relayout)
 

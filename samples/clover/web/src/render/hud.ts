@@ -1,0 +1,173 @@
+// 왼쪽 패널.
+//
+// **눈이 여기부터 갑니다.** 블라인드가 무엇을 요구하는지, 지금 점수가 얼마인지, 칩과 배수가
+// 얼마인지가 한 덩어리로 붙어 있어야 판단이 됩니다.
+
+import { Container, Graphics, Text } from 'pixi.js'
+
+import { mix, plate, slotStyle } from './skin'
+import { COLOR } from './theme'
+
+/** 값 하나가 들어가는 칸. */
+export class Slot extends Container {
+  private readonly plate = new Graphics()
+  private readonly caption = new Text({
+    text: '', style: { fontSize: 10, fill: COLOR.inkDim, fontWeight: '700' },
+  })
+  private readonly value = new Text({
+    text: '0',
+    style: {
+      fontSize: 23, fill: COLOR.ink, fontWeight: '800',
+      stroke: { color: 0x05100b, width: 3 },
+    },
+  })
+
+  private shown = 0
+  private wanted = 0
+  private numeric = true
+  /** 값이 바뀌었을 때의 튐. **툭 바뀌는 숫자는 아무 느낌도 주지 않습니다.** */
+  private pop = 0
+  private lastText = ''
+
+  constructor(caption: string, private readonly boxWidth: number,
+              private readonly boxHeight: number, private readonly ink: number) {
+    super()
+    this.addChild(this.plate, this.caption, this.value)
+    this.caption.text = caption
+    this.caption.anchor.set(0.5, 0)
+    this.caption.position.set(boxWidth / 2, 6)
+    this.value.anchor.set(0.5, 0.5)
+    this.value.position.set(boxWidth / 2, boxHeight / 2 + 6)
+    this.value.style.fill = ink
+    this.draw()
+  }
+
+  private draw(glow = 0): void {
+    const style = slotStyle(this.ink)
+    this.plate.clear()
+    plate(this.plate, this.boxWidth, this.boxHeight, {
+      ...style,
+      top: glow > 0 ? mix(style.top, this.ink, glow * 0.35) : style.top,
+      weight: 1.5 + glow * 2,
+    })
+  }
+
+  /** 숫자가 아닌 값. 바뀌면 한 번 튑니다. */
+  set text(value: string) {
+    this.numeric = false
+    if (this.value.text !== value) {
+      if (this.lastText !== '') this.pop = 1
+      this.lastText = value
+    }
+    this.value.text = value
+  }
+
+  reset(value: number): void {
+    this.numeric = true
+    this.shown = value
+    this.wanted = value
+    this.redraw()
+  }
+
+  set target(value: number) {
+    this.numeric = true
+    if (value !== this.wanted) this.pop = Math.min(1, Math.abs(value - this.shown) / 400 + 0.35)
+    this.wanted = value
+  }
+
+  get settled(): boolean { return this.shown === this.wanted }
+
+  /** 남은 거리의 일부씩 좁힙니다. 큰 수일수록 오래 굴러갑니다. */
+  advance(deltaMs: number): void {
+    if (this.pop > 0) {
+      this.pop = Math.max(0, this.pop - deltaMs / 260)
+      const ease = this.pop * this.pop
+      this.value.scale.set(1 + ease * 0.35)
+      this.value.y = this.boxHeight / 2 + 6 - ease * 4
+      this.draw(ease)
+    }
+
+    if (!this.numeric || this.shown === this.wanted) return
+    const gap = this.wanted - this.shown
+    const step = Math.max(1, Math.abs(gap) * (deltaMs / 130))
+    this.shown = gap > 0
+      ? Math.min(this.wanted, this.shown + step)
+      : Math.max(this.wanted, this.shown - step)
+    this.redraw()
+  }
+
+  /** 값이 클수록 크게, 그리고 테두리가 밝아집니다. */
+  emphasize(scale: number): void {
+    if (this.pop > 0) return
+    this.value.scale.set(scale)
+    this.draw(Math.max(0, Math.min(1, (scale - 1) * 2)))
+  }
+
+  private redraw(): void {
+    const shown = Math.round(this.shown)
+    this.value.text = shown >= 1_000_000
+      ? shown.toExponential(2).replace('e+', 'e')
+      : shown.toLocaleString('en-US')
+  }
+}
+
+/** 블라인드 하나의 딱지. 보스는 붉습니다. */
+export class BlindBadge extends Container {
+  private readonly plate = new Graphics()
+  private readonly title = new Text({
+    text: '', style: { fontSize: 17, fill: COLOR.ink, fontWeight: '800' },
+  })
+  private readonly need = new Text({
+    text: '',
+    style: {
+      fontSize: 30, fill: COLOR.chips, fontWeight: '800',
+      stroke: { color: 0x061009, width: 4 },
+    },
+  })
+  private readonly note = new Text({
+    text: '',
+    style: {
+      fontSize: 11, fill: COLOR.inkDim, lineHeight: 15,
+      wordWrap: true, wordWrapWidth: 234,
+    },
+  })
+  private readonly reward = new Text({
+    text: '', style: { fontSize: 13, fill: COLOR.money, fontWeight: '700' },
+  })
+
+  constructor(private readonly boxWidth: number) {
+    super()
+    this.addChild(this.plate, this.title, this.need, this.reward, this.note)
+  }
+
+  set(name: string, target: number, reward: number, note: string, boss: boolean): void {
+    const height = 138 + (note.length > 0 ? 26 : 0)
+    const tint = boss ? 0x3d1622 : 0x12291d
+    const edge = boss ? COLOR.bad : 0x3a7a55
+
+    this.plate.clear()
+    plate(this.plate, this.boxWidth, height, {
+      top: mix(tint, 0xffffff, 0.14), bottom: mix(tint, 0x000000, 0.3),
+      border: edge, radius: 12, weight: 2, drop: 5, gloss: 0.24,
+    })
+    // 이름이 앉는 띠.
+    this.plate.roundRect(6, 6, this.boxWidth - 12, 32, 8)
+      .fill({ color: edge, alpha: 0.28 })
+
+    this.title.text = name
+    this.title.anchor.set(0.5, 0)
+    this.title.position.set(this.boxWidth / 2, 12)
+
+    this.need.text = target.toLocaleString('en-US')
+    this.need.anchor.set(0.5, 0)
+    this.need.position.set(this.boxWidth / 2, 52)
+
+    this.reward.text = `격파 보상  $${reward}`
+    this.reward.anchor.set(0.5, 0)
+    this.reward.position.set(this.boxWidth / 2, 92)
+
+    this.note.text = note
+    this.note.anchor.set(0.5, 0)
+    this.note.position.set(this.boxWidth / 2, 116)
+  }
+}

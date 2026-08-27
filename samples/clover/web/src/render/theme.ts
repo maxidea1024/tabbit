@@ -35,18 +35,14 @@ export const COLOR = {
 export const SIZE = {
   /** 기준 해상도. 화면이 이보다 크면 통째로 키웁니다. */
   width: 1280,
-  height: 720,
+  height: 800,
 
-  cardWidth: 96,
-  cardHeight: 136,
-  cardRadius: 10,
+  cardWidth: 88,
+  cardHeight: 124,
+  cardRadius: 9,
 
-  jokerWidth: 88,
-  jokerHeight: 120,
-
-  handY: 560,
-  playY: 330,
-  jokerY: 96,
+  jokerWidth: 84,
+  jokerHeight: 116,
 } as const
 
 /** 희귀도 하나의 색. */
