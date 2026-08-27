@@ -284,7 +284,7 @@ internal static class ContainerHarness
             $"C++ toolchain required. {why}");
 
         string includeDir = Generated("cpp");
-        string workDir = Path.Combine(RepoLayout.OutputDir("_cppcheck"), "containers");
+        string workDir = RepoLayout.WorkDir("_cppcheck", "containers");
 
         if (Directory.Exists(workDir))
             Directory.Delete(workDir, recursive: true);
@@ -308,7 +308,7 @@ internal static class ContainerHarness
             $"C toolchain required. {why}");
 
         string generated = Generated("c");
-        string workDir = Path.Combine(RepoLayout.OutputDir("_ccheck"), "containers");
+        string workDir = RepoLayout.WorkDir("_ccheck", "containers");
 
         if (Directory.Exists(workDir))
             Directory.Delete(workDir, recursive: true);

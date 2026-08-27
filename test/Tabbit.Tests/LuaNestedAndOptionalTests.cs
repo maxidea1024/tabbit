@@ -16,6 +16,7 @@ namespace Tabbit.Tests;
 /// `row.name[1]` - so every subscript below is one up from its Python twin.
 /// spec/targets/lua-language-support.md.
 /// </remarks>
+[Collection("conformance-tree")]
 public class LuaNestedAndOptionalTests
 {
     /// <summary>

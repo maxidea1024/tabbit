@@ -18,6 +18,55 @@ internal static class CsToolchain
     /// <summary>
     /// Compiles a scenario's generated C# the way a plain .NET consumer would.
     /// </summary>
+    /// <summary>
+    /// A copy of one of the check projects, inside the work directory that will build it.
+    /// </summary>
+    /// <remarks>
+    /// **Because the project is shared and what it compiles is not.** Every one of these
+    /// builds names one `.csproj` with a different `GeneratedDir`, and MSBuild keeps a
+    /// project's intermediate output beside the project - so two builds at once write one
+    /// another's assembly lists and one reads half of the other's. Serial that gap never
+    /// opened; it is what failed the first time the suite ran in parallel.
+    ///
+    /// A copy rather than a redirected `obj`: the intermediate path is settled at restore
+    /// time, so moving it on the build command line leaves the restore output where it was
+    /// and the build cannot find it. The projects are a file or two, which is what makes
+    /// copying the cheap answer.
+    ///
+    /// The same move the language harnesses make for the same reason - build in a copy, not
+    /// in the tree. doc/roadmap.md, the suite-parallelism entry.
+    /// </remarks>
+    internal static string ProjectCopy(string workDir, string tool)
+        => ProjectCopy(workDir,
+                       Path.Combine(RepoLayout.Root, "test", "fixtures", "tools", tool),
+                       tool + ".csproj");
+
+    /// <summary>
+    /// The same, for a project that is not named after the folder it sits in.
+    /// </summary>
+    internal static string ProjectCopy(string workDir, string from, string projectFile)
+    {
+        // **Beside the output directory, not inside it.** These builds pass `-o <workDir>`,
+        // and the SDK excludes everything under the output path from the default compile
+        // items - a project below it compiles the generated sources and not its own entry
+        // point, which is a linker error about a missing `Main` and nothing about the copy.
+        string to = workDir + "-project";
+
+        Directory.CreateDirectory(to);
+
+        // The sources and the project file, and nothing a previous build left: `obj` and
+        // `bin` are exactly what this exists to stop sharing.
+        foreach (string path in Directory.GetFiles(from))
+        {
+            string name = Path.GetFileName(path);
+
+            if (name.EndsWith(".cs") || name.EndsWith(".csproj"))
+                File.Copy(path, Path.Combine(to, name), overwrite: true);
+        }
+
+        return Path.Combine(to, projectFile);
+    }
+
     public static ToolResult Compile(string scenario, string accessorName)
         => Compile(scenario, accessorName, unitySymbols: null);
 
@@ -36,7 +85,7 @@ internal static class CsToolchain
             ? "-compile"
             : "-compile-" + unitySymbols.Replace(';', '-').ToLowerInvariant();
 
-        string workDir = Path.Combine(RepoLayout.OutputDir("_cscheck"), scenario + label);
+        string workDir = RepoLayout.WorkDir("_cscheck", scenario + label);
         if (Directory.Exists(workDir))
             Directory.Delete(workDir, recursive: true);
 
@@ -56,7 +105,7 @@ internal static class CsToolchain
         var arguments = new System.Collections.Generic.List<string>
         {
             "build",
-            Path.Combine(RepoLayout.Root, "test", "fixtures", "tools", "cs-compile-check", "cs-compile-check.csproj"),
+            ProjectCopy(workDir, "cs-compile-check"),
             "--nologo",
             $"-p:GeneratedDir={generatedDir}",
         };
@@ -93,7 +142,7 @@ internal static class CsToolchain
     /// </param>
     public static ToolResult ReadBack(string scenario, string harness, params string[] extraArgs)
     {
-        string workDir = Path.Combine(RepoLayout.OutputDir("_cscheck"), scenario + "-readback");
+        string workDir = RepoLayout.WorkDir("_cscheck", scenario + "-readback");
         if (Directory.Exists(workDir))
             Directory.Delete(workDir, recursive: true);
 
@@ -103,7 +152,7 @@ internal static class CsToolchain
 
         var build = Execute("dotnet", RepoLayout.Root,
             "build",
-            Path.Combine(RepoLayout.Root, "test", "fixtures", "tools", harness, harness + ".csproj"),
+            ProjectCopy(workDir, harness),
             "--nologo",
             $"-p:GeneratedDir={generatedDir}",
             "-o", workDir);

@@ -2,21 +2,26 @@
   "$schema": "https://xunit.net/schema/current/xunit.runner.schema.json",
 
   "//": [
-    "Off, and three attempts at turning it on are what keeps it off.",
+    "On, and what it took to turn it on is worth writing down.",
     "",
     "The tests share scenario output trees: one converts and another reads what it wrote.",
-    "That works because nothing runs beside anything else. Turning it on measures 3m20s",
-    "against 13m08s serial, and fails - 52 tests, then 18 once the language harnesses stopped",
-    "building inside the trees they were generated into, then 65 once a test that plants files",
-    "in an output tree got a scenario of its own and two builds stopped sharing a directory.",
+    "Reading together is fine, because a conversion is memoised per scenario and nothing",
+    "rewrites a tree it did not make. Building together was not: three attempts failed with",
+    "52, then 18, then 65 tests, and the set was different every run.",
     "",
-    "The set is different every run, which is what says the remainder is not a list of known",
-    "races. What it would take is every test that shares a tree owning what it writes. The",
-    "updater tests look like a second problem on top of that - they start HTTP servers, so a",
-    "port rather than a directory.",
+    "It was never a list of races. It was one property - a build directory was named after",
+    "the scenario, and a scenario belongs to no class. A dozen classes compile the `core`",
+    "output with a different harness beside it, and each of them cleared and rebuilt the same",
+    "folder. RepoLayout.WorkDir now names the calling test class as well, which is the unit",
+    "xUnit does not run against itself.",
     "",
-    "doc/roadmap.md, the not-yet list, carries the numbers so the next attempt starts from",
-    "them rather than from the guess that a few places need fixing."
+    "Three more, each its own kind of sharing: the check projects are one .csproj compiled",
+    "with a different GeneratedDir, so each build copies it (CsToolchain.ProjectCopy); the",
+    "conformance harnesses build inside the generated tree, which is the one place their",
+    "types are importable from, so those classes share a collection; and the updater servers",
+    "took a port between finding it free and binding it, so they retry.",
+    "",
+    "1,829 tests, 9m08s against 15m53s serial. doc/roadmap.md carries the same numbers."
   ],
-  "parallelizeTestCollections": false
+  "parallelizeTestCollections": true
 }

@@ -15,6 +15,7 @@ namespace Tabbit.Tests;
 /// better check - but only on a machine with a Rust toolchain, and the tree is decidable from
 /// the files. This runs everywhere and fails with the offending line.
 /// </summary>
+[Collection("conformance-tree")]
 public class RustCrateTests
 {
     /// <summary>

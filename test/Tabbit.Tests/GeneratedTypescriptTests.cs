@@ -95,7 +95,7 @@ internal static class TypescriptToolchain
         // The scaffolding lives outside the generated tree: everything under the
         // scenario's output directory is compared against golden, so writing a
         // tsconfig in there would show up as an unexpected artifact.
-        string checkDir = Path.Combine(RepoLayout.OutputDir("_tscheck"));
+        string checkDir = RepoLayout.WorkDir("_tscheck", "typecheck");
         Directory.CreateDirectory(checkDir);
 
         // The generated code imports `fs` and `path`. Declaring them as
@@ -152,7 +152,7 @@ declare class TextDecoder { decode(input?: any): string }
     public static ToolResult RunScript(string entryFile, params string[] scriptArgs)
     {
         string generatedDir = Path.GetDirectoryName(entryFile);
-        string outDir = Path.Combine(RepoLayout.OutputDir("_conformance"), "ts-build");
+        string outDir = RepoLayout.WorkDir("_conformance", "ts-build");
 
         if (Directory.Exists(outDir))
             Directory.Delete(outDir, recursive: true);

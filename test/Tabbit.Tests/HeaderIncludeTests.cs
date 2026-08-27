@@ -18,6 +18,7 @@ namespace Tabbit.Tests;
 /// Which is exactly what splitting the output into a header per type made possible, and what
 /// building the sources does not check.
 /// </summary>
+[Collection("conformance-tree")]
 public class HeaderIncludeTests
 {
     /// <summary>

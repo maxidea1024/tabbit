@@ -153,7 +153,7 @@ public class CsContainerTests
     {
         Convert();
 
-        string workDir = Path.Combine(RepoLayout.OutputDir("_cscheck"), Scenario + "-read");
+        string workDir = RepoLayout.WorkDir("_cscheck", Scenario + "-read");
         if (Directory.Exists(workDir))
             Directory.Delete(workDir, recursive: true);
 
@@ -163,8 +163,7 @@ public class CsContainerTests
 
         var build = Execute("dotnet", RepoLayout.Root,
             "build",
-            Path.Combine(RepoLayout.Root, "test", "fixtures", "tools",
-                         "cs-containers-check", "cs-containers-check.csproj"),
+            CsToolchain.ProjectCopy(workDir, "cs-containers-check"),
             "--nologo",
             $"-p:GeneratedDir={generatedDir}",
             "-o", workDir);

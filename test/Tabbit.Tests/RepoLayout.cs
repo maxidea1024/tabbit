@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace Tabbit.Tests;
@@ -25,6 +26,51 @@ internal static class RepoLayout
 
     public static string OutputDir(string scenario)
         => Path.Combine(Root, "test", "fixtures", "output", scenario);
+
+
+    /// <summary>
+    /// A build directory that belongs to the test class that asked for it.
+    /// </summary>
+    /// <remarks>
+    /// **The build directories were keyed by scenario, and a scenario is not one class's.**
+    /// A dozen classes compile the `core` output with different harnesses beside it, and each
+    /// of them cleared and rebuilt `_cscheck/core`. Serial that is a reused folder; in
+    /// parallel it is one class deleting the tree another is compiling into, which is most of
+    /// what failed the first time the suite ran in parallel.
+    ///
+    /// **The class rather than the test**, because a class's own tests do not run at once -
+    /// xUnit's unit of parallelism is the collection and a class is one by default. Naming
+    /// the test as well would only make the paths longer, and these are Windows paths with a
+    /// compiler's intermediate files under them.
+    ///
+    /// Taken off the stack rather than from a parameter: the harnesses that call the
+    /// toolchains sit between them and the test, and one of the entry points ends in a
+    /// `params` array, which cannot have a caller argument after it.
+    ///
+    /// doc/roadmap.md, the suite-parallelism entry.
+    /// </remarks>
+    public static string WorkDir(string bucket, string name)
+        => Path.Combine(OutputDir(bucket), name + "-" + CallingTestClass());
+
+    /// <summary>
+    /// The nearest test class below this call, or a shared name if there is none.
+    /// </summary>
+    private static string CallingTestClass()
+    {
+        foreach (var frame in new StackTrace().GetFrames())
+        {
+            var type = frame.GetMethod()?.DeclaringType;
+
+            if (type != null
+                && type.Namespace == "Tabbit.Tests"
+                && type.Name.EndsWith("Tests", StringComparison.Ordinal))
+            {
+                return type.Name;
+            }
+        }
+
+        return "shared";
+    }
 
     /// <summary>Where a scenario's build cache goes.</summary>
     /// <remarks>

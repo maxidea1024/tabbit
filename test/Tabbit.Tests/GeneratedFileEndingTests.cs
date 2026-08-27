@@ -20,6 +20,7 @@ namespace Tabbit.Tests;
 /// newlines just as happily as one. They answer "did the output change"; this answers
 /// "is the output right".
 /// </summary>
+[Collection("conformance-tree")]
 public class GeneratedFileEndingTests
 {
     /// <summary>

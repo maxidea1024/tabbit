@@ -16,20 +16,41 @@ internal sealed class UpdaterTestServer : IDisposable
     private int _failuresLeft;
     private HttpStatusCode _failureStatus;
 
+    /// <remarks>
+    /// **The port is claimed with a retry, because asking for a free one does not hold it.**
+    /// The probe binds zero, reads what the operating system chose and lets go - and between
+    /// letting go and this listener binding, another server doing the same thing can be given
+    /// the same number. Serial that gap never opened; in parallel it is one of the two things
+    /// that failed. doc/roadmap.md, the suite-parallelism entry.
+    /// </remarks>
     public UpdaterTestServer(string root)
     {
         _root = root;
 
-        int port = FreePort();
-        BaseUrl = $"http://127.0.0.1:{port}/data";
+        for (int attempt = 0; ; attempt++)
+        {
+            int port = FreePort();
 
-        _listener.Prefixes.Add($"http://127.0.0.1:{port}/");
-        _listener.Start();
+            try
+            {
+                _listener.Prefixes.Add($"http://127.0.0.1:{port}/");
+                _listener.Start();
+
+                BaseUrl = $"http://127.0.0.1:{port}/data";
+                break;
+            }
+            catch (HttpListenerException) when (attempt < 20)
+            {
+                // Somebody else took it in the gap. The prefix has to come off too: a
+                // listener keeps them, and a second Start would bind the lost one again.
+                _listener.Prefixes.Clear();
+            }
+        }
 
         Task.Run(Loop);
     }
 
-    public string BaseUrl { get; }
+    public string BaseUrl { get; } = "";
 
     /// <summary>Paths requested, in order. Cleared by a test that wants to count.</summary>
     public List<string> Requests { get; } = new List<string>();

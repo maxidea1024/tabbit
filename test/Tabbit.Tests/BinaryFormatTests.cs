@@ -21,6 +21,7 @@ namespace Tabbit.Tests;
 /// a build that shipped: they are read by the layout this test spells out, and a silent
 /// change to it is a silent change to what those files mean.
 /// </summary>
+[Collection("conformance-tree")]
 public class BinaryFormatTests
 {
     /// <summary>

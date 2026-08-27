@@ -29,11 +29,12 @@ internal static class EvolutionHarness
 
     private static ToolResult Run(string generation, params string[] arguments)
     {
-        string workDir = Path.Combine(RepoLayout.OutputDir("_evolution"), generation + "-csharp");
+        string workDir = RepoLayout.WorkDir("_evolution", generation + "-csharp");
 
         var build = Execute("dotnet", RepoLayout.Root,
             "build",
-            Path.Combine(RepoLayout.Root, "test", "fixtures", "tools", "evolution", "csharp",
+            CsToolchain.ProjectCopy(workDir,
+                Path.Combine(RepoLayout.Root, "test", "fixtures", "tools", "evolution", "csharp"),
                 "evolution-csharp.csproj"),
             "--nologo",
             $"-p:GeneratedDir={Path.Combine(RepoLayout.OutputDir(generation), "csharp")}",

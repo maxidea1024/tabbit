@@ -22,6 +22,7 @@ namespace Tabbit.Tests;
 /// come from is worth gating on its own rather than only through a language that happens to
 /// be installed.
 /// </summary>
+[Collection("conformance-tree")]
 public class PythonPackageTests
 {
     /// <summary>

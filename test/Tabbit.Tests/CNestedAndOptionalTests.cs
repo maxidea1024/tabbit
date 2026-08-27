@@ -103,7 +103,7 @@ public class CNestedAndOptionalTests
             $"A C compiler is required to check the generated code. {why}");
 
         string includeDir = Path.Combine(RepoLayout.OutputDir(scenario), "c");
-        string workDir = Path.Combine(RepoLayout.OutputDir("_ccheck"), scenario + "-nested");
+        string workDir = RepoLayout.WorkDir("_ccheck", scenario + "-nested");
 
         // Every generated .c, so the check covers the read paths and not only the headers -
         // the record and presence shapes are almost entirely in the .c files.

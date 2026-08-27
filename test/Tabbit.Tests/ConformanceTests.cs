@@ -21,6 +21,7 @@ namespace Tabbit.Tests;
 /// JSON export lost anything past 2^53, and both survived because nothing read the data
 /// back in a language that could tell.
 /// </summary>
+[Collection("conformance-tree")]
 public class ConformanceTests
 {
     private const string Scenario = "conformance";

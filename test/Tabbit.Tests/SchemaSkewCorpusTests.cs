@@ -31,6 +31,7 @@ namespace Tabbit.Tests;
 ///
 /// doc/binary-format.md has what a tag guarantees and what it does not.
 /// </remarks>
+[Collection("conformance-tree")]
 public class SchemaSkewCorpusTests
 {
     /// <summary>Where the readers come from.</summary>

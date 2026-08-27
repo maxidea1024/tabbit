@@ -191,7 +191,7 @@ assert(t.beastMove:findByBeastIdAndMoveId('deer', 1).beastByBeastId.name == 'Dee
             $"A C compiler is required to check the generated code. {why}");
 
         string includeDir = Path.Combine(RepoLayout.OutputDir(Scenario), "c");
-        string workDir = Path.Combine(RepoLayout.OutputDir("_ccheck"), Scenario);
+        string workDir = RepoLayout.WorkDir("_ccheck", Scenario);
 
         var sources = Directory
             .EnumerateFiles(includeDir, "*.c", SearchOption.AllDirectories)

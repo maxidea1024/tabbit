@@ -181,7 +181,7 @@ public class CsGeneratorTests
         Assert.True(conversion.Succeeded,
             $"Conversion failed.{Environment.NewLine}{conversion.Describe()}");
 
-        string workDir = Path.Combine(RepoLayout.OutputDir("_cscheck"), Scenario);
+        string workDir = RepoLayout.WorkDir("_cscheck", Scenario);
         if (Directory.Exists(workDir))
             Directory.Delete(workDir, recursive: true);
 
@@ -191,7 +191,7 @@ public class CsGeneratorTests
 
         var build = Execute("dotnet", RepoLayout.Root,
             "build",
-            Path.Combine(RepoLayout.Root, "test", "fixtures", "tools", "cs-check", "cs-check.csproj"),
+            CsToolchain.ProjectCopy(workDir, "cs-check"),
             "--nologo",
             $"-p:GeneratedDir={generatedDir}",
             "-o", workDir);

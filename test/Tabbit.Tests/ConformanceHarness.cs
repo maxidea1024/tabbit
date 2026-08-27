@@ -91,7 +91,7 @@ internal static class ConformanceHarness
 
         var build = Execute("dotnet", RepoLayout.Root,
             "build",
-            Path.Combine(HarnessDir("csharp"), "conformance-csharp.csproj"),
+            CsToolchain.ProjectCopy(workDir, HarnessDir("csharp"), "conformance-csharp.csproj"),
             "--nologo",
             $"-p:GeneratedDir={Generated(scenario, "csharp")}",
             "-o", workDir);

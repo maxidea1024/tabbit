@@ -55,7 +55,7 @@ internal static class CppToolchain
     /// </summary>
     public static ToolResult BuildAndRun(string scenario, string accessorName)
     {
-        string workDir = Path.Combine(RepoLayout.OutputDir("_cppcheck"), scenario);
+        string workDir = RepoLayout.WorkDir("_cppcheck", scenario);
         Directory.CreateDirectory(workDir);
 
         string includeDir = Path.Combine(RepoLayout.OutputDir(scenario), "cpp");
@@ -87,7 +87,7 @@ internal static class CppToolchain
     /// </summary>
     public static ToolResult Compile(string scenario, string accessorName)
     {
-        string workDir = Path.Combine(RepoLayout.OutputDir("_cppcheck"), scenario + "-compile");
+        string workDir = RepoLayout.WorkDir("_cppcheck", scenario + "-compile");
         Directory.CreateDirectory(workDir);
 
         string includeDir = Path.Combine(RepoLayout.OutputDir(scenario), "cpp");

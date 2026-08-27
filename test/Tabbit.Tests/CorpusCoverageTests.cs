@@ -28,6 +28,7 @@ namespace Tabbit.Tests;
 /// So the type list is read from the enum rather than written down here. Add a `ValueType` and
 /// this fails the same day, naming it - before any of the generators have been touched.
 /// </summary>
+[Collection("conformance-tree")]
 public class CorpusCoverageTests
 {
     private const string Scenario = "conformance";

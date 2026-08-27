@@ -25,6 +25,7 @@ namespace Tabbit.Tests;
 /// own toolchain check and its own skip message, and because a theory that silently loses a
 /// language is the failure this whole corpus exists to prevent.
 /// </remarks>
+[Collection("conformance-tree")]
 public class ConformanceMacTests
 {
     private const string Scenario = "conformance";
