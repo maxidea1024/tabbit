@@ -119,13 +119,29 @@ public sealed class SchemaDeclarations
     public static SchemaDeclarations Read(
         IEnumerable<RawSchemaFile> files, Diagnostics diagnostics)
     {
+        // Deliberately lazy: `Gather` pulls one file at a time, so a file is parsed and then
+        // gathered before the next is read - the order the diagnostics of a run arrive in.
+        return Gather(
+            files.Select(raw => SchemaParser.Parse(raw.Text, raw.Name, diagnostics)),
+            diagnostics);
+    }
+
+    /// <summary>
+    /// Gathers what already-parsed files declare, reporting a name declared twice.
+    /// </summary>
+    /// <remarks>
+    /// **Apart from <see cref="Read"/> because a caller may need the parsed files themselves.**
+    /// An editor answers "go to this type" from the syntax and the declarations together, and
+    /// parsing a second time to get at the syntax would report every parse error twice.
+    /// </remarks>
+    public static SchemaDeclarations Gather(
+        IEnumerable<SchemaFile> files, Diagnostics diagnostics)
+    {
         var gathered = new SchemaDeclarations();
         var taken = new Dictionary<string, Location>(System.StringComparer.OrdinalIgnoreCase);
 
-        foreach (var raw in files)
+        foreach (var parsed in files)
         {
-            var parsed = SchemaParser.Parse(raw.Text, raw.Name, diagnostics);
-
             foreach (var declared in parsed.Structs)
             {
                 if (!gathered.Claim(taken, declared, diagnostics))
