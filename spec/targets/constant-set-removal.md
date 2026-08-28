@@ -98,7 +98,7 @@
 |`FixtureGen/Program.cs`|`ConstSpec` · `SheetBuilder.Const` · `core`의 `GameConfig`(상수 9개) · `conformance`의 `Limits`(상수 10개)|
 |워크북|`core.xlsx` · `conformance.xlsx` · `conformance-skew.xlsx` 재생성. **나머지는 상수 세트를 선언하지 않습니다**|
 |골든|`constantset`을 담은 파일 **90개**, `constants/` 아래 **14개**. `constantsets.html` 7개는 삭제, 나머지는 `TABBIT_UPDATE_GOLDEN=1`로 재기록|
-|커밋된 산출물|`side-by-side/`(9개 파일) · `test/generated/`(2개) · 샘플 산출물(상단 바 때문에 **115개**)|
+|커밋된 산출물|샘플 산출물(상단 바 때문에 **115개**). `side-by-side/`와 `test/generated/`는 이 표를 적을 때 있었고 지금은 없습니다|
 
 **테스트**
 
