@@ -80,6 +80,14 @@ internal sealed class LspServer : IDisposable
                 DidClose(arguments);
                 break;
 
+            case "textDocument/definition":
+                Respond(id, Definition(arguments));
+                break;
+
+            case "textDocument/hover":
+                Respond(id, Hover(arguments));
+                break;
+
             case "workspace/didChangeWatchedFiles":
                 DidChangeWatchedFiles(arguments);
                 break;
@@ -103,6 +111,8 @@ internal sealed class LspServer : IDisposable
             // reads whole files anyway, so keeping an incremental copy would buy nothing and
             // cost the offset arithmetic. Section 4.1 of spec/ops/lsp.md.
             textDocumentSync = 1,
+            definitionProvider = true,
+            hoverProvider = true,
         },
         serverInfo = new { name = "tabbit", version = ToolVersion.Current },
     };
@@ -199,6 +209,62 @@ internal sealed class LspServer : IDisposable
 
         foreach (string path in directories)
             _workspace.Touched(path, immediate: true);
+    }
+
+    /// <summary>Where the name under the cursor was declared, or nothing.</summary>
+    private object? Definition(JsonElement arguments)
+    {
+        if (!TryPosition(arguments, out var found, out var index))
+            return null;
+
+        var declared = index.DefinitionOf(found);
+
+        return declared is null
+            ? null
+            : new LspLocation(_documents.UriOf(declared.Value.Path), declared.Value.Range);
+    }
+
+    /// <summary>What to show beside the cursor, or nothing.</summary>
+    private object? Hover(JsonElement arguments)
+    {
+        if (!TryPosition(arguments, out var found, out var index))
+            return null;
+
+        string? said = index.HoverOf(found);
+
+        return said is null ? null : new LspHover(new MarkupContent("markdown", said), found.Range);
+    }
+
+    /// <summary>
+    /// Finds what a request is pointing at.
+    /// </summary>
+    /// <remarks>
+    /// The directory is read again here if a keystroke is still waiting, so that the answer is
+    /// about the text on the screen rather than the text of a moment ago.
+    /// </remarks>
+    private bool TryPosition(JsonElement arguments, out Occurrence found, out SchemaIndex index)
+    {
+        found = null!;
+        index = null!;
+
+        if (!TryDocument(arguments, "textDocument", out string uri)
+            || !arguments.TryGetProperty("position", out var position)
+            || !position.TryGetProperty("line", out var line)
+            || !position.TryGetProperty("character", out var character))
+        {
+            return false;
+        }
+
+        string path = DocumentStore.PathOf(uri);
+        index = _workspace.AnalysisFor(path).Index;
+
+        var written = index.At(path, line.GetInt32(), character.GetInt32());
+
+        if (written is null)
+            return false;
+
+        found = written;
+        return true;
     }
 
     private static bool TryDocument(JsonElement arguments, string member, out string uri)

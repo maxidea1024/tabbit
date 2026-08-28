@@ -8,7 +8,7 @@ namespace Tabbit.Lsp;
 
 /// <summary>What one directory's schema files say, as of the last time they were read.</summary>
 internal sealed record DirectoryAnalysis(
-    IReadOnlyList<SchemaFile> Files, SchemaDeclarations Declarations);
+    IReadOnlyList<SchemaFile> Files, SchemaDeclarations Declarations, SchemaIndex Index);
 
 /// <summary>
 /// Reads a directory's `.tbs` files and publishes what is wrong with them.
@@ -132,7 +132,8 @@ internal sealed class SchemaWorkspace : IDisposable
                 .ToList();
 
             var declarations = SchemaDeclarations.Gather(parsed, diagnostics);
-            var analysis = new DirectoryAnalysis(parsed, declarations);
+            var analysis = new DirectoryAnalysis(
+                parsed, declarations, SchemaIndex.Build(parsed, declarations));
 
             _analyses[directory] = analysis;
             Publish(directory, files, diagnostics);
