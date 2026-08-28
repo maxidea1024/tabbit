@@ -103,7 +103,7 @@
 
 ## 빌드와 운영
 
-캐시 · 리포트 · CLI · 설치 · 여러 사람이 함께 쓸 때
+캐시 · 리포트 · CLI · 설치 · 편집기 · 여러 사람이 함께 쓸 때
 
 - [빌드 캐시 — 바뀐 것이 없으면 아무것도 하지 않기](ops/build-cache.md) *(3개로 나뉨)*
 - [빌드 리포트 — 찾은 문제를 고칠 사람에게 보이게 하기](ops/build-report.md)
@@ -111,5 +111,6 @@
 - [전체 변환의 소요 시간 — 어디로 가는지, 무엇을 고치는지](ops/conversion-time.md)
 - [설치 경로 — 패키지 관리자 배포](ops/install-channels.md)
 - [알려진 문제 목록 — 고칠 수 없는 자리를 적어 두고 넘어가기](ops/known-problems.md)
+- [편집기 지원 — `.tbs` 를 쓰는 동안 답하기](ops/lsp.md)
 - [여러 사람이 함께 쓸 때 — 운영 규약과 도구의 결손](ops/multi-user-operations.md) *(3개로 나뉨)*
 - [출력 항목을 `Targets` 하나로](ops/target-section-unification.md)
