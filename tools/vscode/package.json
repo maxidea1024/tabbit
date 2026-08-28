@@ -16,6 +16,23 @@
   "categories": [
     "Programming Languages"
   ],
+  "main": "./dist/extension.js",
+  "scripts": {
+    "compile": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "package": "npm run compile && vsce package"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.2.0",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.0"
+  },
   "contributes": {
     "languages": [
       {
@@ -36,6 +53,31 @@
         "scopeName": "source.tbs",
         "path": "./syntaxes/tbs.tmLanguage.json"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Tabbit",
+      "properties": {
+        "tabbit.path": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "The `tabbit` executable to serve `.tbs` files from. Left empty, the extension looks on your PATH, and then in this repository's own build output."
+        },
+        "tabbit.messages": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Language for the reports, such as `ko`. Left empty, `TABBIT_MESSAGES` decides. Changing it restarts the server."
+        },
+        "tabbit.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Logs what passes between the editor and the server, in the Tabbit Language Server output channel."
+        }
+      }
+    }
   }
 }
