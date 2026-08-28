@@ -325,6 +325,24 @@ td.text.open .clip { max-width: 72ch; white-space: normal; overflow: visible; }
 .yes { color: var(--good); }
 .no { color: var(--bad); }
 .n-of { color: var(--faint); font-size: 11px; margin-left: 4px; }
+/* A bit pattern, coloured as the number it is. Monospace because the digits of a pattern are
+   read by position, and a proportional font puts the same nibble at a different offset on
+   every row. */
+.bits { color: var(--num); font-family: Consolas, "SF Mono", Menlo, monospace; }
+/* A member the row's variant does not declare. Upright, because italic on this page means a
+   value is absent and this is not an absence - the member is not part of what this row is. */
+.na { color: var(--none); }
+/* The variants that declare a member, beside its type in the header. Smaller than the type and
+   in the flag colour, so a type row of a wide union still reads as types first. */
+.of { color: var(--flag); font-size: 11px; }
+a.variant { color: var(--flag); }
+/* A colour, drawn. Its own border rather than none, so white on the light theme and black on
+   the dark one are still squares and not gaps. The colour itself is an inline style: a page
+   cannot carry a rule per colour a workbook holds. */
+.swatch {
+  display: inline-block; width: 11px; height: 11px; border-radius: 3px;
+  border: 1px solid var(--line); margin-right: 6px; vertical-align: -1px;
+}
 .tools { display: flex; align-items: center; gap: 12px; margin: 0 0 8px; flex-wrap: wrap; }
 .tools input[type=search] { width: 260px; }
 .hint { color: var(--faint); font-size: 12px; }
@@ -473,6 +491,7 @@ tbody [data-pick] { cursor: pointer; }
 <symbol id="i-column" viewBox="0 0 16 16"><rect x="2.2" y="3.2" width="11.6" height="9.6" rx="1.4"/><rect x="6.3" y="3.2" width="3.4" height="9.6" fill="currentColor" stroke="none" opacity=".28"/></symbol>
 <symbol id="i-enum" viewBox="0 0 16 16"><path d="M6.2 2.8h-1A1.5 1.5 0 0 0 3.7 4.3v2.2A1.5 1.5 0 0 1 2.2 8a1.5 1.5 0 0 1 1.5 1.5v2.2a1.5 1.5 0 0 0 1.5 1.5h1M9.8 2.8h1a1.5 1.5 0 0 1 1.5 1.5v2.2A1.5 1.5 0 0 0 13.8 8a1.5 1.5 0 0 0-1.5 1.5v2.2a1.5 1.5 0 0 1-1.5 1.5h-1"/></symbol>
 <symbol id="i-const" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.6"/><path d="M5.6 6.7h4.8M5.6 9.3h4.8"/></symbol>
+<symbol id="i-struct" viewBox="0 0 16 16"><rect x="1.6" y="6.2" width="4.4" height="3.6" rx="1"/><rect x="10" y="2.6" width="4.4" height="3.6" rx="1"/><rect x="10" y="9.8" width="4.4" height="3.6" rx="1"/><path d="M6 8h2.1V4.4H10M8.1 8v3.6H10"/></symbol>
 <symbol id="i-workbook" viewBox="0 0 16 16"><path d="M3.2 3.9A1.7 1.7 0 0 1 4.9 2.2h7.4a.8.8 0 0 1 .8.8v10a.8.8 0 0 1-.8.8H4.9a1.7 1.7 0 0 1-1.7-1.7z"/><path d="M6.3 2.2v11.6"/></symbol>
 <symbol id="i-sheet" viewBox="0 0 16 16"><path d="M4.3 2.4h4.6l3.3 3.3v7.1a.8.8 0 0 1-.8.8H4.3a.8.8 0 0 1-.8-.8V3.2a.8.8 0 0 1 .8-.8z"/><path d="M8.7 2.4v3.4h3.5"/></symbol>
 <symbol id="i-key" viewBox="0 0 16 16"><circle cx="5.4" cy="5.4" r="2.7"/><path d="M7.3 7.3l5.9 5.9M11.1 11.2l1.3 1.3M9.2 9.3l1.3 1.3"/></symbol>
@@ -489,6 +508,7 @@ tbody [data-pick] { cursor: pointer; }
 <a href="../fields.html"><svg class="i"><use href="#i-column"></use></svg>컬럼</a>
 <a href="../references.html"><svg class="i"><use href="#i-graph"></use></svg>참조</a>
 <a href="../enums.html"><svg class="i"><use href="#i-enum"></use></svg>enum</a>
+<a href="../structs.html"><svg class="i"><use href="#i-struct"></use></svg>구조체</a>
 <a href="../constantsets.html"><svg class="i"><use href="#i-const"></use></svg>상수 세트</a>
 </nav>
 <button class="theme" type="button" data-theme-cycle title="테마: 시스템 설정을 따릅니다">
@@ -564,7 +584,7 @@ tbody [data-pick] { cursor: pointer; }
 <th id="col_Region.State" title="생성 이름 State">state</th>
 <th id="col_Region.ThemeElement" title="생성 이름 ThemeElement">theme_element</th>
 <th id="col_Region.Background" title="생성 이름 Background">background</th>
-<th id="col_Region.FogColorR" title="레코드 4멤버 &#183; R: float &#183; G: float &#183; B: float &#183; A: float">fog_color.R</th>
+<th id="col_Region.FogColorR" title="레코드 4멤버 &#183; R: float &#183; G: float &#183; B: float &#183; A: float">fog_color</th>
 <th id="col_Region.RequirementGroupId" title="생성 이름 RequirementGroupId &#183; 옵셔널">requirement_group_id</th>
 </tr>
 <tr class="about">
@@ -584,7 +604,7 @@ tbody [data-pick] { cursor: pointer; }
 <th><a href="../enums/region-state.html#enum_RegionState" data-enum="RegionState">enum.RegionState</a></th>
 <th><a href="../enums/element.html#enum_Element" data-enum="Element">enum.Element</a></th>
 <th><span class="type">asset(model)</span></th>
-<th><span class="sep">{</span><span class="mem">R</span><span class="sep">: </span><span class="type">float</span><span class="sep">, </span><span class="mem">G</span><span class="sep">: </span><span class="type">float</span><span class="sep">, </span><span class="mem">B</span><span class="sep">: </span><span class="type">float</span><span class="sep">, </span><span class="mem">A</span><span class="sep">: </span><span class="type">float</span><span class="sep">}</span></th>
+<th><span class="type" title="R &#183; G &#183; B &#183; A (float)">color</span></th>
 <th><span class="type">string?</span> <a href="../tables/requirement-group.html" title="RequirementGroup 참조">&#x2192; RequirementGroup</a></th>
 </tr>
 <tr class="side">
@@ -599,11 +619,11 @@ tbody [data-pick] { cursor: pointer; }
 </tr>
 </thead>
 <tbody>
-<tr><td class="key" id="row_Region.weir_forest"><code><span class="str">&quot;weir_forest&quot;</span></code></td><td><span class="str">&quot;여울숲&quot;</span></td><td class="num">1</td><td><a class="enum" href="../enums/region-state.html#const_RegionState.Open" data-enum="RegionState" data-label="Open">Open</a></td><td><a class="enum" href="../enums/element.html#const_Element.Leaf" data-enum="Element" data-label="Leaf">Leaf</a></td><td><span class="str">&quot;bg_weir_forest&quot;</span></td><td class="text record"><span class="clip"><span class="obj"><span class="sep">(</span><span class="mem">R</span><span class="msep">: </span>0.78431374<span class="sep">, </span><span class="mem">G</span><span class="msep">: </span>0.8627451<span class="sep">, </span><span class="mem">B</span><span class="msep">: </span>0.7529412<span class="sep">, </span><span class="mem">A</span><span class="msep">: </span>1<span class="sep">)</span></span></span></td><td class="key"><code><span class="null" title="값 없음">null</span></code></td></tr>
-<tr><td class="key" id="row_Region.salt_coast"><code><span class="str">&quot;salt_coast&quot;</span></code></td><td><span class="str">&quot;소금해안&quot;</span></td><td class="num">2</td><td><a class="enum" href="../enums/region-state.html#const_RegionState.Locked" data-enum="RegionState" data-label="Locked">Locked</a></td><td><a class="enum" href="../enums/element.html#const_Element.Tide" data-enum="Element" data-label="Tide">Tide</a></td><td><span class="str">&quot;bg_salt_coast&quot;</span></td><td class="text record"><span class="clip"><span class="obj"><span class="sep">(</span><span class="mem">R</span><span class="msep">: </span>0.7490196<span class="sep">, </span><span class="mem">G</span><span class="msep">: </span>0.8392157<span class="sep">, </span><span class="mem">B</span><span class="msep">: </span>0.89411765<span class="sep">, </span><span class="mem">A</span><span class="msep">: </span>1<span class="sep">)</span></span></span></td><td class="key"><code><a href="../tables/requirement-group.html#row_RequirementGroup.req_region_salt_coast" data-refs="RequirementGroup" data-key="req_region_salt_coast">req_region_salt_coast</a></code></td></tr>
-<tr><td class="key" id="row_Region.ashen_crater"><code><span class="str">&quot;ashen_crater&quot;</span></code></td><td><span class="str">&quot;재의 화구&quot;</span></td><td class="num">3</td><td><a class="enum" href="../enums/region-state.html#const_RegionState.Locked" data-enum="RegionState" data-label="Locked">Locked</a></td><td><a class="enum" href="../enums/element.html#const_Element.Flame" data-enum="Element" data-label="Flame">Flame</a></td><td><span class="str">&quot;bg_ashen_crater&quot;</span></td><td class="text record"><span class="clip"><span class="obj"><span class="sep">(</span><span class="mem">R</span><span class="msep">: </span>0.8784314<span class="sep">, </span><span class="mem">G</span><span class="msep">: </span>0.7490196<span class="sep">, </span><span class="mem">B</span><span class="msep">: </span>0.68235296<span class="sep">, </span><span class="mem">A</span><span class="msep">: </span>1<span class="sep">)</span></span></span></td><td class="key"><code><a href="../tables/requirement-group.html#row_RequirementGroup.req_region_ashen_crater" data-refs="RequirementGroup" data-key="req_region_ashen_crater">req_region_ashen_crater</a></code></td></tr>
-<tr><td class="key" id="row_Region.frost_ridge"><code><span class="str">&quot;frost_ridge&quot;</span></code></td><td><span class="str">&quot;서릿능선&quot;</span></td><td class="num">4</td><td><a class="enum" href="../enums/region-state.html#const_RegionState.Locked" data-enum="RegionState" data-label="Locked">Locked</a></td><td><a class="enum" href="../enums/element.html#const_Element.Arc" data-enum="Element" data-label="Arc">Arc</a></td><td><span class="str">&quot;bg_frost_ridge&quot;</span></td><td class="text record"><span class="clip"><span class="obj"><span class="sep">(</span><span class="mem">R</span><span class="msep">: </span>0.8235294<span class="sep">, </span><span class="mem">G</span><span class="msep">: </span>0.87058824<span class="sep">, </span><span class="mem">B</span><span class="msep">: </span>0.9098039<span class="sep">, </span><span class="mem">A</span><span class="msep">: </span>1<span class="sep">)</span></span></span></td><td class="key"><code><a href="../tables/requirement-group.html#row_RequirementGroup.req_region_frost_ridge" data-refs="RequirementGroup" data-key="req_region_frost_ridge">req_region_frost_ridge</a></code></td></tr>
-<tr><td class="key" id="row_Region.sunken_temple"><code><span class="str">&quot;sunken_temple&quot;</span></code></td><td><span class="str">&quot;잠긴 신전&quot;</span></td><td class="num">5</td><td><a class="enum" href="../enums/region-state.html#const_RegionState.Locked" data-enum="RegionState" data-label="Locked">Locked</a></td><td><a class="enum" href="../enums/element.html#const_Element.Umbra" data-enum="Element" data-label="Umbra">Umbra</a></td><td><span class="str">&quot;bg_sunken_temple&quot;</span></td><td class="text record"><span class="clip"><span class="obj"><span class="sep">(</span><span class="mem">R</span><span class="msep">: </span>0.7647059<span class="sep">, </span><span class="mem">G</span><span class="msep">: </span>0.72156864<span class="sep">, </span><span class="mem">B</span><span class="msep">: </span>0.8392157<span class="sep">, </span><span class="mem">A</span><span class="msep">: </span>1<span class="sep">)</span></span></span></td><td class="key"><code><a href="../tables/requirement-group.html#row_RequirementGroup.req_region_sunken_temple" data-refs="RequirementGroup" data-key="req_region_sunken_temple">req_region_sunken_temple</a></code></td></tr>
+<tr><td class="key" id="row_Region.weir_forest"><code><span class="str">&quot;weir_forest&quot;</span></code></td><td><span class="str">&quot;여울숲&quot;</span></td><td class="num">1</td><td><a class="enum" href="../enums/region-state.html#const_RegionState.Open" data-enum="RegionState" data-label="Open">Open</a></td><td><a class="enum" href="../enums/element.html#const_Element.Leaf" data-enum="Element" data-label="Leaf">Leaf</a></td><td><span class="str">&quot;bg_weir_forest&quot;</span></td><td class="text record"><span class="clip"><span class="swatch" style="background: #C8DCC0" title="#C8DCC0"></span><span class="obj"><span class="sep">(</span>0.78431374<span class="sep">, </span>0.8627451<span class="sep">, </span>0.7529412<span class="sep">, </span>1<span class="sep">)</span></span></span></td><td class="key"><code><span class="null" title="값 없음">null</span></code></td></tr>
+<tr><td class="key" id="row_Region.salt_coast"><code><span class="str">&quot;salt_coast&quot;</span></code></td><td><span class="str">&quot;소금해안&quot;</span></td><td class="num">2</td><td><a class="enum" href="../enums/region-state.html#const_RegionState.Locked" data-enum="RegionState" data-label="Locked">Locked</a></td><td><a class="enum" href="../enums/element.html#const_Element.Tide" data-enum="Element" data-label="Tide">Tide</a></td><td><span class="str">&quot;bg_salt_coast&quot;</span></td><td class="text record"><span class="clip"><span class="swatch" style="background: #BFD6E4" title="#BFD6E4"></span><span class="obj"><span class="sep">(</span>0.7490196<span class="sep">, </span>0.8392157<span class="sep">, </span>0.89411765<span class="sep">, </span>1<span class="sep">)</span></span></span></td><td class="key"><code><a href="../tables/requirement-group.html#row_RequirementGroup.req_region_salt_coast" data-refs="RequirementGroup" data-key="req_region_salt_coast">req_region_salt_coast</a></code></td></tr>
+<tr><td class="key" id="row_Region.ashen_crater"><code><span class="str">&quot;ashen_crater&quot;</span></code></td><td><span class="str">&quot;재의 화구&quot;</span></td><td class="num">3</td><td><a class="enum" href="../enums/region-state.html#const_RegionState.Locked" data-enum="RegionState" data-label="Locked">Locked</a></td><td><a class="enum" href="../enums/element.html#const_Element.Flame" data-enum="Element" data-label="Flame">Flame</a></td><td><span class="str">&quot;bg_ashen_crater&quot;</span></td><td class="text record"><span class="clip"><span class="swatch" style="background: #E0BFAE" title="#E0BFAE"></span><span class="obj"><span class="sep">(</span>0.8784314<span class="sep">, </span>0.7490196<span class="sep">, </span>0.68235296<span class="sep">, </span>1<span class="sep">)</span></span></span></td><td class="key"><code><a href="../tables/requirement-group.html#row_RequirementGroup.req_region_ashen_crater" data-refs="RequirementGroup" data-key="req_region_ashen_crater">req_region_ashen_crater</a></code></td></tr>
+<tr><td class="key" id="row_Region.frost_ridge"><code><span class="str">&quot;frost_ridge&quot;</span></code></td><td><span class="str">&quot;서릿능선&quot;</span></td><td class="num">4</td><td><a class="enum" href="../enums/region-state.html#const_RegionState.Locked" data-enum="RegionState" data-label="Locked">Locked</a></td><td><a class="enum" href="../enums/element.html#const_Element.Arc" data-enum="Element" data-label="Arc">Arc</a></td><td><span class="str">&quot;bg_frost_ridge&quot;</span></td><td class="text record"><span class="clip"><span class="swatch" style="background: #D2DEE8" title="#D2DEE8"></span><span class="obj"><span class="sep">(</span>0.8235294<span class="sep">, </span>0.87058824<span class="sep">, </span>0.9098039<span class="sep">, </span>1<span class="sep">)</span></span></span></td><td class="key"><code><a href="../tables/requirement-group.html#row_RequirementGroup.req_region_frost_ridge" data-refs="RequirementGroup" data-key="req_region_frost_ridge">req_region_frost_ridge</a></code></td></tr>
+<tr><td class="key" id="row_Region.sunken_temple"><code><span class="str">&quot;sunken_temple&quot;</span></code></td><td><span class="str">&quot;잠긴 신전&quot;</span></td><td class="num">5</td><td><a class="enum" href="../enums/region-state.html#const_RegionState.Locked" data-enum="RegionState" data-label="Locked">Locked</a></td><td><a class="enum" href="../enums/element.html#const_Element.Umbra" data-enum="Element" data-label="Umbra">Umbra</a></td><td><span class="str">&quot;bg_sunken_temple&quot;</span></td><td class="text record"><span class="clip"><span class="swatch" style="background: #C3B8D6" title="#C3B8D6"></span><span class="obj"><span class="sep">(</span>0.7647059<span class="sep">, </span>0.72156864<span class="sep">, </span>0.8392157<span class="sep">, </span>1<span class="sep">)</span></span></span></td><td class="key"><code><a href="../tables/requirement-group.html#row_RequirementGroup.req_region_sunken_temple" data-refs="RequirementGroup" data-key="req_region_sunken_temple">req_region_sunken_temple</a></code></td></tr>
 </tbody>
 </table>
 </div>
@@ -631,7 +651,7 @@ tbody [data-pick] { cursor: pointer; }
 </tbody></table>
 </div>
 </div>
-<p class="foot">생성 시각 2026-08-28 16:51:05</p>
+<p class="foot">생성 시각 2026-08-28 18:15:08</p>
 <script>
 (function () {
   "use strict";
@@ -954,7 +974,7 @@ tbody [data-pick] { cursor: pointer; }
 
     // ---- one table's neighbourhood: what points at it on the left, what it points at on
     // the right. Built from the adjacency the page carries.
-    var ROW = 30, GAP = 12, COLUMN = 170, PAD = 14, CHAR = 8, HEAD = 22, MOST = 12;
+    var ROW = 30, GAP = 12, COLUMN = 170, PAD = 14, CHAR = 8, HEAD = 22, MOST = 12, LOOP = 44;
 
     var protoNode = proto.querySelector('[data-proto="node"]');
     var protoEdge = proto.querySelector('[data-proto="edge"]');
@@ -1038,6 +1058,24 @@ tbody [data-pick] { cursor: pointer; }
       focus.appendChild(node);
     }
 
+    // A table pointing at itself, as a loop off its own right edge - the same shape the
+    // whole drawing gives it. The loop bulges LOOP wide, which the width below reserves.
+    function loop(x, y, columns) {
+      var path = protoEdge.cloneNode(true);
+
+      path.setAttribute("class", "edge self");
+      path.setAttribute("d", "M" + x + "," + (y - 6) + " C" + (x + 34) + "," + (y - 26)
+        + " " + (x + 34) + "," + (y + 26) + " " + x + "," + (y + 6));
+
+      if (columns) {
+        var title = document.createElementNS(path.namespaceURI, "title");
+        title.textContent = columns;
+        path.appendChild(title);
+      }
+
+      focus.appendChild(path);
+    }
+
     function show(name) {
       if (links === null) {
         try { links = JSON.parse(adjacency.textContent); } catch (e) { links = {}; }
@@ -1049,8 +1087,22 @@ tbody [data-pick] { cursor: pointer; }
       while (focus.firstChild) focus.removeChild(focus.firstChild);
 
       var about = links[name] || { "in": [], "out": [] };
-      var ins = about["in"].slice(0, MOST);
-      var outs = about["out"].slice(0, MOST);
+
+      // The table itself is not one of its own neighbours. Left in, it was drawn in the
+      // left column and the right one as well as the middle - the selected table three
+      // times over, at three different widths - and the two copies wore the arrow that
+      // walks to a table, which walked to the picture already on screen. It is a loop on
+      // its own box instead, which is what the whole drawing does with it.
+      var itself = null;
+      var inAll = about["in"].filter(function (entry) {
+        if (entry[0] !== name) return true;
+        itself = entry[1];
+        return false;
+      });
+      var outAll = about["out"].filter(function (entry) { return entry[0] !== name; });
+
+      var ins = inAll.slice(0, MOST);
+      var outs = outAll.slice(0, MOST);
 
       var inWidth = ins.length ? Math.max.apply(null, ins.map(function (e) { return widthOf(e[0]); })) : 0;
       var outWidth = outs.length ? Math.max.apply(null, outs.map(function (e) { return widthOf(e[0]); })) : 0;
@@ -1058,7 +1110,11 @@ tbody [data-pick] { cursor: pointer; }
 
       var rows = Math.max(ins.length, outs.length, 1);
       var height = HEAD + rows * ROW + (rows - 1) * GAP + PAD * 2;
-      var width = PAD * 2 + inWidth + midWidth + outWidth
+
+      // Room for the loop only where there is no right-hand column for it to bulge into.
+      var loopRoom = (itself !== null && !outs.length) ? LOOP : 0;
+
+      var width = PAD * 2 + inWidth + midWidth + outWidth + loopRoom
         + (ins.length ? COLUMN : 0) + (outs.length ? COLUMN : 0);
 
       var midX = PAD + inWidth + (ins.length ? COLUMN : 0);
@@ -1084,17 +1140,25 @@ tbody [data-pick] { cursor: pointer; }
 
       box(name, midX, midY, midWidth, true);
 
+      if (itself !== null)
+        loop(midX + midWidth, midY + ROW / 2, name + " → " + name + " (" + itself + ")");
+
       if (ins.length) {
-        label(about["in"].length > MOST
-          ? "이 테이블을 가리킴 " + about["in"].length + "개 중 " + MOST + "개"
+        label(inAll.length > MOST
+          ? "이 테이블을 가리킴 " + inAll.length + "개 중 " + MOST + "개"
           : "이 테이블을 가리킴 " + ins.length + "개", PAD, 15);
       }
 
       if (outs.length) {
-        label(about["out"].length > MOST
-          ? "이 테이블이 가리킴 " + about["out"].length + "개 중 " + MOST + "개"
+        label(outAll.length > MOST
+          ? "이 테이블이 가리킴 " + outAll.length + "개 중 " + MOST + "개"
           : "이 테이블이 가리킴 " + outs.length + "개", outX, 15);
       }
+
+      // Said where the columns cannot say it: a table whose only reference is to itself has
+      // neither column, and the loop alone reads as a stray mark.
+      if (itself !== null && !ins.length && !outs.length)
+        label("자기 자신을 가리킴 (" + itself + ")", PAD, 15);
 
       focus.setAttribute("data-width", width);
       focus.setAttribute("data-height", height);

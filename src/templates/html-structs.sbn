@@ -1,0 +1,35 @@
+{{~##
+   Every abstract type the sheets declare, as a list, with how many groups use each one.
+
+   The usage count earns its column for the same reason it does on the enumerations list: a
+   declared type nothing uses is either a leftover or a group bound to the wrong name, and
+   neither is visible from the type's own page.
+##~}}
+{{~ include 'html-head.sbn' ~}}
+<p class="lead">구조체 {{ rows | array.size }}개 · 변종 {{ variant_total }}개</p>
+<div data-table>
+<div class="tools">
+<input type="search" data-filter="rows" placeholder="구조체 필터">
+<span class="hint" data-shown>{{ rows | array.size }}행 중 {{ rows | array.size }}행</span>
+<span class="hint">제목을 누르면 정렬됩니다.</span>
+</div>
+{{~ if rows | array.size == 0 ~}}
+<p class="none">선언된 것이 없습니다.</p>
+{{~ else ~}}
+<div class="scroll">
+<table data-sortable>
+<thead>
+<tr class="names">
+<th class="sorted"><svg class="i"><use href="#i-struct"></use></svg>구조체</th><th title="모든 변종이 가지는 멤버">공통 멤버</th><th>변종</th><th title="이 타입으로 선언된 컬럼 그룹의 수">사용 그룹</th>{{ if has_comments }}<th>설명</th>{{ end }}
+</tr>
+</thead>
+<tbody>
+{{~ for row in rows ~}}
+<tr><td><a href="{{ row.href }}"><svg class="i"><use href="#i-struct"></use></svg>{{ row.name }}</a></td><td class="num">{{ row.base_count }}</td><td class="num">{{ row.variant_count }}</td><td class="num">{{ row.user_count }}</td>{{ if has_comments }}<td>{{ row.comment }}</td>{{ end }}</tr>
+{{~ end ~}}
+</tbody>
+</table>
+</div>
+{{~ end ~}}
+</div>
+{{ include 'html-foot.sbn' }}

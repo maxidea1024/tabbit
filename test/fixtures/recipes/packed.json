@@ -31,6 +31,11 @@
 
   "Targets": [
     {
+      // A group declared in a schema file rather than in the sheet, documented.
+      "Type": "html",
+      "Path": "test/fixtures/output/packed/html"
+    },
+    {
       "Type": "binary",
       "Path": "test/fixtures/output/packed/binary",
       "FileExtension": ".tcb"

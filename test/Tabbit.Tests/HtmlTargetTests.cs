@@ -557,6 +557,286 @@ public class HtmlTargetTests
         Assert.True(previews > 0, "No page offers an enum preview, so this test proves nothing.");
     }
 
+    /// <summary>
+    /// Every scenario whose sheets use a type or a shape the pages have to say something
+    /// particular about.
+    /// </summary>
+    /// <remarks>
+    /// The checks below ran on `core` alone, which declares no composite, no container, no
+    /// struct, no bit pattern and no key of several columns - so a page could report any of
+    /// them wrongly, or not at all, and nothing here would notice. Every defect these
+    /// scenarios were added for had been in the goldens from the day the page was written,
+    /// recorded as the right answer, because a golden answers "did this change".
+    /// </remarks>
+    public static TheoryData<string> FeatureScenarios => new TheoryData<string>
+    {
+        "composite",
+        "polymorphism",
+        "bitset",
+        "composite-key",
+        "nullable-elements",
+        "containers",
+        "packed",
+    };
+
+    private static IReadOnlyList<string> PagesOf(string scenario)
+    {
+        var result = TabbitRunner.Convert(scenario);
+
+        Assert.True(result.Succeeded,
+            $"Conversion of `{scenario}` failed.{Environment.NewLine}{result.Describe()}");
+
+        string root = Path.Combine(RepoLayout.OutputDir(scenario), "html");
+
+        Assert.True(Directory.Exists(root), $"`{scenario}` generated no documentation at {root}.");
+
+        var pages = Directory.GetFiles(root, "*.html", SearchOption.AllDirectories);
+
+        Assert.NotEmpty(pages);
+
+        return pages;
+    }
+
+    /// <summary>
+    /// No page uses one `id` twice.
+    /// </summary>
+    /// <remarks>
+    /// A duplicate `id` is not a rendering fault a reader sees; it is a link that lands on the
+    /// wrong row and gives no sign of having done so. The pages promise that a reference names
+    /// a row, and the row anchors were built from the first column of the table whether the
+    /// rows were addressed by it or not - so a table keyed by `X`, `Y` and `Z` held
+    /// `row_Grid.0` three times over and `#row_Grid.0` reached whichever came first.
+    ///
+    /// <see cref="Every_internal_link_resolves"/> could not see it: it collects a page's ids
+    /// into a set and asks whether a fragment is in it, and a set of three identical ids is a
+    /// set of one.
+    /// </remarks>
+    [Theory]
+    [InlineData("core")]
+    [MemberData(nameof(FeatureScenarios))]
+    public void No_page_uses_one_id_twice(string scenario)
+    {
+        var offenders = new List<string>();
+
+        foreach (var page in PagesOf(scenario))
+        {
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+
+            foreach (Match match in IdPattern.Matches(File.ReadAllText(page)))
+            {
+                string id = match.Groups["id"].Value;
+
+                if (id.Length > 0 && !seen.Add(id))
+                    offenders.Add($"  {Path.GetFileName(page)}: `{id}`");
+            }
+        }
+
+        Assert.True(offenders.Count == 0,
+            $"`{scenario}` has pages that use one id several times:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, offenders.Distinct()));
+    }
+
+    /// <summary>
+    /// No page shows the name of a runtime type where a value belongs.
+    /// </summary>
+    /// <remarks>
+    /// `object.ToString()` on an array is the name of its CLR type, and the constant set page
+    /// reached it for every constant that was not a scalar enum - so a `string[]` constant read
+    /// `System.String[]` and a `Grade[]` read `System.Int32[]`. Four of them were in the
+    /// `core` golden from the first commit of that page.
+    ///
+    /// A blanket check rather than one about arrays: any `System.` in a rendered value is this
+    /// same mistake, and the next one will be a type nobody predicted here.
+    /// </remarks>
+    [Theory]
+    [InlineData("core")]
+    [MemberData(nameof(FeatureScenarios))]
+    public void No_page_shows_a_runtime_type_name(string scenario)
+    {
+        var offenders = new List<string>();
+
+        foreach (var page in PagesOf(scenario))
+        {
+            foreach (string line in File.ReadAllLines(page))
+            {
+                if (line.Contains("System.", StringComparison.Ordinal))
+                    offenders.Add($"  {Path.GetFileName(page)}: {Trim(line)}");
+            }
+        }
+
+        Assert.True(offenders.Count == 0,
+            $"`{scenario}` renders a runtime type name where a value belongs:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, offenders.Distinct()));
+    }
+
+    /// <summary>
+    /// No column heading names one part of the group it stands over.
+    /// </summary>
+    /// <remarks>
+    /// A group's columns are written `Pos.X`, `Bag.Tags`, `statBonus[0]["Id"]` - the sheet has
+    /// one column per part and nowhere else to say which - and the page draws the whole group
+    /// as one column. The bracket was being trimmed from the heading and the dot was not, so
+    /// every group a sheet wrote in dot notation was headed by its first member: a `vec3f`
+    /// column read `Pos.X` over a cell holding all three components.
+    /// </remarks>
+    [Theory]
+    [InlineData("core")]
+    [MemberData(nameof(FeatureScenarios))]
+    public void No_column_heading_names_a_part_of_its_group(string scenario)
+    {
+        var offenders = new List<string>();
+
+        foreach (var page in PagesOf(scenario))
+        {
+            foreach (Match match in Regex.Matches(File.ReadAllText(page), "<th[^>]*>(?<caption>[^<]*)</th>"))
+            {
+                string caption = match.Groups["caption"].Value.Trim();
+
+                // A description cell is prose from the sheet and may hold anything.
+                if (caption.Length == 0 || caption.Contains(' '))
+                    continue;
+
+                if (caption.Contains('.') || caption.Contains('['))
+                    offenders.Add($"  {Path.GetFileName(page)}: `{caption}`");
+            }
+        }
+
+        Assert.True(offenders.Count == 0,
+            $"`{scenario}` heads a column with the name of one part of it:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, offenders.Distinct()));
+    }
+
+    /// <summary>
+    /// The row anchors of a page are built from the columns the sheet says address the rows.
+    /// </summary>
+    /// <remarks>
+    /// Checked against the conversion's own answer rather than against a list written here, so
+    /// that the assertion is about the two agreeing. A page whose anchors come from somewhere
+    /// else is a page whose links are decoration.
+    /// </remarks>
+    [Theory]
+    [InlineData("composite-key")]
+    public void Row_anchors_carry_every_column_of_the_key(string scenario)
+    {
+        var pages = PagesOf(scenario)
+                    .Where(page => Path.GetFileName(Path.GetDirectoryName(page)) == "tables")
+                    .ToList();
+
+        Assert.NotEmpty(pages);
+
+        int composite = 0;
+
+        foreach (var page in pages)
+        {
+            string text = File.ReadAllText(page);
+
+            var anchors = Regex.Matches(text, "id=\"row_(?<name>[^.\"]+)\\.(?<key>[^\"]*)\"")
+                               .Select(m => m.Groups["key"].Value)
+                               .ToList();
+
+            Assert.NotEmpty(anchors);
+
+            // Every anchor of one page has the same number of parts, because every row of one
+            // table is addressed the same way. A page mixing widths means the anchor is being
+            // built from something other than the key.
+            var widths = anchors.Select(key => key.Split('|').Length).Distinct().ToList();
+
+            Assert.True(widths.Count == 1,
+                $"{Path.GetFileName(page)} has anchors of {widths.Count} different widths.");
+
+            if (widths[0] > 1)
+                composite++;
+        }
+
+        // And a table keyed by several columns really is in this fixture.
+        Assert.True(composite > 0, $"`{scenario}` has no table keyed by several columns.");
+    }
+
+    /// <summary>
+    /// Every variant a `$type` cell names is one the struct pages declare.
+    /// </summary>
+    /// <remarks>
+    /// The cell used to print the number the file carries, which is the one thing about a
+    /// variant that no reader of a sheet has ever typed. Now it prints the name and links to
+    /// the declaration, and this is the check that the two are the same set - a name with no
+    /// declaration behind it is the enum-preview fault in another place.
+    /// </remarks>
+    [Theory]
+    [InlineData("polymorphism")]
+    public void Every_variant_a_cell_names_is_declared(string scenario)
+    {
+        var pages = PagesOf(scenario);
+
+        var declared = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var page in pages.Where(p => Path.GetFileName(Path.GetDirectoryName(p)) == "structs"))
+        {
+            foreach (Match match in Regex.Matches(File.ReadAllText(page), "id=\"variant_(?<id>[^\"]+)\""))
+                declared.Add(match.Groups["id"].Value);
+        }
+
+        Assert.NotEmpty(declared);
+
+        var offenders = new List<string>();
+        int named = 0;
+
+        foreach (var page in pages)
+        {
+            foreach (Match match in Regex.Matches(
+                         File.ReadAllText(page), "class=\"variant\" href=\"[^\"]*#variant_(?<id>[^\"]+)\""))
+            {
+                named++;
+
+                if (!declared.Contains(match.Groups["id"].Value))
+                    offenders.Add($"  {Path.GetFileName(page)}: `{match.Groups["id"].Value}`");
+            }
+        }
+
+        Assert.True(offenders.Count == 0,
+            $"A cell names a variant no page declares:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, offenders.Distinct()));
+
+        Assert.True(named > 0, "No cell names a variant, so this test proves nothing.");
+    }
+
+    /// <summary>
+    /// The types a page reports are the ones the sheets wrote.
+    /// </summary>
+    /// <remarks>
+    /// The one check here that is about content rather than about structure, and it is here
+    /// because the absences it covers were each invisible: a `vec3f` column was reported as a
+    /// record of three floats, a `set` as an array, a `map` as a record of two, and a `bitset`
+    /// as the `bigint` it is folded to. Every one of those is a true statement about the
+    /// encoding and the wrong answer to "what does this sheet say".
+    /// </remarks>
+    [Theory]
+    [InlineData("composite", "vec3f", "vec2i", "quat", "color32", "color")]
+    [InlineData("containers", "set<", "map<")]
+    [InlineData("bitset", "bitset", "0x")]
+    [InlineData("nullable-elements", "?[]")]
+    [InlineData("polymorphism", "struct.Effect", "$type")]
+    public void A_page_reports_the_types_the_sheets_declared(string scenario, params string[] wanted)
+    {
+        // What a reader sees, not what the file holds. A type spelling is assembled out of
+        // several elements - the name, the angle brackets, the element's own type - so looking
+        // for it in the markup is looking for the markup rather than for the answer.
+        string all = string.Join("\n", PagesOf(scenario).Select(page => Readable(File.ReadAllText(page))));
+
+        foreach (string spelling in wanted)
+        {
+            Assert.True(all.Contains(spelling, StringComparison.Ordinal),
+                $"`{scenario}` never reports `{spelling}`, which its sheets declare.");
+        }
+    }
+
+    /// <summary>A page as its text, with the markup taken out and the entities resolved.</summary>
+    private static string Readable(string page)
+    {
+        string body = Regex.Replace(page, "<(script|style)[\\s\\S]*?</\\1>", " ");
+
+        return System.Net.WebUtility.HtmlDecode(Regex.Replace(body, "<[^>]*>", ""));
+    }
+
     private static int Number(string formatted)
         => int.Parse(formatted, NumberStyles.AllowThousands, CultureInfo.InvariantCulture);
 

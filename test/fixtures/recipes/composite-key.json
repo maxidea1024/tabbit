@@ -21,6 +21,12 @@
   },
   "Targets": [
     {
+      // Where a row's anchor comes from. A page keyed by several columns held the same `id`
+      // several times over until this tree existed to record it.
+      "Type": "html",
+      "Path": "test/fixtures/output/composite-key/html"
+    },
+    {
       "Type": "binary",
       "Path": "test/fixtures/output/composite-key/binary",
       "FileExtension": ".tcb"

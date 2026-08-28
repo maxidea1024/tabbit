@@ -17,6 +17,12 @@
 
   "Targets": [
     {
+      // `int?[]` and `int[]` have to read differently, on the one page whose purpose is
+      // telling a value from the absence of one.
+      "Type": "html",
+      "Path": "test/fixtures/output/nullable-elements/html"
+    },
+    {
       "Type": "json",
       "Path": "test/fixtures/output/nullable-elements/json-named",
       "UseCompactRowFormat": false,

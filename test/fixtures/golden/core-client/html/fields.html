@@ -325,6 +325,24 @@ td.text.open .clip { max-width: 72ch; white-space: normal; overflow: visible; }
 .yes { color: var(--good); }
 .no { color: var(--bad); }
 .n-of { color: var(--faint); font-size: 11px; margin-left: 4px; }
+/* A bit pattern, coloured as the number it is. Monospace because the digits of a pattern are
+   read by position, and a proportional font puts the same nibble at a different offset on
+   every row. */
+.bits { color: var(--num); font-family: Consolas, "SF Mono", Menlo, monospace; }
+/* A member the row's variant does not declare. Upright, because italic on this page means a
+   value is absent and this is not an absence - the member is not part of what this row is. */
+.na { color: var(--none); }
+/* The variants that declare a member, beside its type in the header. Smaller than the type and
+   in the flag colour, so a type row of a wide union still reads as types first. */
+.of { color: var(--flag); font-size: 11px; }
+a.variant { color: var(--flag); }
+/* A colour, drawn. Its own border rather than none, so white on the light theme and black on
+   the dark one are still squares and not gaps. The colour itself is an inline style: a page
+   cannot carry a rule per colour a workbook holds. */
+.swatch {
+  display: inline-block; width: 11px; height: 11px; border-radius: 3px;
+  border: 1px solid var(--line); margin-right: 6px; vertical-align: -1px;
+}
 .tools { display: flex; align-items: center; gap: 12px; margin: 0 0 8px; flex-wrap: wrap; }
 .tools input[type=search] { width: 260px; }
 .hint { color: var(--faint); font-size: 12px; }
@@ -473,6 +491,7 @@ tbody [data-pick] { cursor: pointer; }
 <symbol id="i-column" viewBox="0 0 16 16"><rect x="2.2" y="3.2" width="11.6" height="9.6" rx="1.4"/><rect x="6.3" y="3.2" width="3.4" height="9.6" fill="currentColor" stroke="none" opacity=".28"/></symbol>
 <symbol id="i-enum" viewBox="0 0 16 16"><path d="M6.2 2.8h-1A1.5 1.5 0 0 0 3.7 4.3v2.2A1.5 1.5 0 0 1 2.2 8a1.5 1.5 0 0 1 1.5 1.5v2.2a1.5 1.5 0 0 0 1.5 1.5h1M9.8 2.8h1a1.5 1.5 0 0 1 1.5 1.5v2.2A1.5 1.5 0 0 0 13.8 8a1.5 1.5 0 0 0-1.5 1.5v2.2a1.5 1.5 0 0 1-1.5 1.5h-1"/></symbol>
 <symbol id="i-const" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.6"/><path d="M5.6 6.7h4.8M5.6 9.3h4.8"/></symbol>
+<symbol id="i-struct" viewBox="0 0 16 16"><rect x="1.6" y="6.2" width="4.4" height="3.6" rx="1"/><rect x="10" y="2.6" width="4.4" height="3.6" rx="1"/><rect x="10" y="9.8" width="4.4" height="3.6" rx="1"/><path d="M6 8h2.1V4.4H10M8.1 8v3.6H10"/></symbol>
 <symbol id="i-workbook" viewBox="0 0 16 16"><path d="M3.2 3.9A1.7 1.7 0 0 1 4.9 2.2h7.4a.8.8 0 0 1 .8.8v10a.8.8 0 0 1-.8.8H4.9a1.7 1.7 0 0 1-1.7-1.7z"/><path d="M6.3 2.2v11.6"/></symbol>
 <symbol id="i-sheet" viewBox="0 0 16 16"><path d="M4.3 2.4h4.6l3.3 3.3v7.1a.8.8 0 0 1-.8.8H4.3a.8.8 0 0 1-.8-.8V3.2a.8.8 0 0 1 .8-.8z"/><path d="M8.7 2.4v3.4h3.5"/></symbol>
 <symbol id="i-key" viewBox="0 0 16 16"><circle cx="5.4" cy="5.4" r="2.7"/><path d="M7.3 7.3l5.9 5.9M11.1 11.2l1.3 1.3M9.2 9.3l1.3 1.3"/></symbol>
@@ -489,6 +508,7 @@ tbody [data-pick] { cursor: pointer; }
 <a href="fields.html" class="on"><svg class="i"><use href="#i-column"></use></svg>컬럼</a>
 <a href="references.html"><svg class="i"><use href="#i-graph"></use></svg>참조</a>
 <a href="enums.html"><svg class="i"><use href="#i-enum"></use></svg>enum</a>
+<a href="structs.html"><svg class="i"><use href="#i-struct"></use></svg>구조체</a>
 <a href="constantsets.html"><svg class="i"><use href="#i-const"></use></svg>상수 세트</a>
 </nav>
 <button class="theme" type="button" data-theme-cycle title="테마: 시스템 설정을 따릅니다">
@@ -517,15 +537,6 @@ tbody [data-pick] { cursor: pointer; }
 </tr>
 </thead>
 <tbody>
-<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Index">index</span></td><td><a href="tables/array-types.html#col_ArrayTypes.Index"><svg class="i"><use href="#i-table"></use></svg>ArrayTypes</a></td><td><span class="type">int</span> <span class="keymark" title="기본 인덱스">🔑</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>primary index</td></tr>
-<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Index">index</span></td><td><a href="tables/client-strings.html#col_ClientStrings.Index"><svg class="i"><use href="#i-table"></use></svg>ClientStrings</a></td><td><span class="type">int</span> <span class="keymark" title="기본 인덱스">🔑</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>primary index</td></tr>
-<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Index">index</span></td><td><a href="tables/item.html#col_Item.Index"><svg class="i"><use href="#i-table"></use></svg>Item</a></td><td><span class="type">int</span> <span class="keymark" title="기본 인덱스">🔑</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>primary index</td></tr>
-<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Index">index</span></td><td><a href="tables/item-category.html#col_ItemCategory.Index"><svg class="i"><use href="#i-table"></use></svg>ItemCategory</a></td><td><span class="type">int</span> <span class="keymark" title="기본 인덱스">🔑</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>primary index</td></tr>
-<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Index">index</span></td><td><a href="tables/localization.html#col_Localization.Index"><svg class="i"><use href="#i-table"></use></svg>Localization</a></td><td><span class="type">int</span> <span class="keymark" title="기본 인덱스">🔑</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>primary index</td></tr>
-<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Index">index</span></td><td><a href="tables/test-field-types.html#col_TestFieldTypes.Index"><svg class="i"><use href="#i-table"></use></svg>TestFieldTypes</a></td><td><span class="type">int</span> <span class="keymark" title="기본 인덱스">🔑</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>primary index</td></tr>
-<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="시트 컬럼 2개">Slot</span></td><td><a href="tables/array-types.html#col_ArrayTypes.Slot0"><svg class="i"><use href="#i-table"></use></svg>ArrayTypes</a></td><td><span class="type">int</span>[]</td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>fixed slot 1</td></tr>
-<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="시트 컬럼 2개">TextEn</span></td><td><a href="tables/localization.html#col_Localization.TextEn0"><svg class="i"><use href="#i-table"></use></svg>Localization</a></td><td><span class="type">string</span>[]</td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>english text 1</td></tr>
-<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="시트 컬럼 2개">TextKo</span></td><td><a href="tables/localization.html#col_Localization.TextKo0"><svg class="i"><use href="#i-table"></use></svg>Localization</a></td><td><span class="type">string</span>[]</td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>korean text 1</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg>BigIntField</td><td><a href="tables/test-field-types.html#col_TestFieldTypes.BigIntField"><svg class="i"><use href="#i-table"></use></svg>TestFieldTypes</a></td><td><span class="type">bigint</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>64 bit integer</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg>BoolField</td><td><a href="tables/test-field-types.html#col_TestFieldTypes.BoolField"><svg class="i"><use href="#i-table"></use></svg>TestFieldTypes</a></td><td><span class="type">bool</span></td><td>c</td><td><span class="yes" title="필수">&#x2714;</span></td><td>logical flag</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg>CategoryId</td><td><a href="tables/item.html#col_Item.CategoryId"><svg class="i"><use href="#i-table"></use></svg>Item</a></td><td><span class="type">int</span> <a href="tables/item-category.html" title="ItemCategory 참조">&#x2192; ItemCategory</a></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>owning category</td></tr>
@@ -537,14 +548,23 @@ tbody [data-pick] { cursor: pointer; }
 <tr><td><svg class="i"><use href="#i-column"></use></svg>FloatField</td><td><a href="tables/test-field-types.html#col_TestFieldTypes.FloatField"><svg class="i"><use href="#i-table"></use></svg>TestFieldTypes</a></td><td><span class="type">float</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>single precision</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg>GradeField</td><td><a href="tables/item.html#col_Item.GradeField"><svg class="i"><use href="#i-table"></use></svg>Item</a></td><td><a href="enums/grade.html#enum_Grade" data-enum="Grade">enum.Grade</a></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>item grade</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg>Grades</td><td><a href="tables/array-types.html#col_ArrayTypes.Grades"><svg class="i"><use href="#i-table"></use></svg>ArrayTypes</a></td><td><a href="enums/grade.html#enum_Grade" data-enum="Grade">enum.Grade</a>[]</td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>allowed grades</td></tr>
+<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Index">index</span></td><td><a href="tables/array-types.html#col_ArrayTypes.Index"><svg class="i"><use href="#i-table"></use></svg>ArrayTypes</a></td><td><span class="type">int</span> <span class="keymark" title="기본 인덱스">🔑</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>primary index</td></tr>
+<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Index">index</span></td><td><a href="tables/client-strings.html#col_ClientStrings.Index"><svg class="i"><use href="#i-table"></use></svg>ClientStrings</a></td><td><span class="type">int</span> <span class="keymark" title="기본 인덱스">🔑</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>primary index</td></tr>
+<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Index">index</span></td><td><a href="tables/item.html#col_Item.Index"><svg class="i"><use href="#i-table"></use></svg>Item</a></td><td><span class="type">int</span> <span class="keymark" title="기본 인덱스">🔑</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>primary index</td></tr>
+<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Index">index</span></td><td><a href="tables/item-category.html#col_ItemCategory.Index"><svg class="i"><use href="#i-table"></use></svg>ItemCategory</a></td><td><span class="type">int</span> <span class="keymark" title="기본 인덱스">🔑</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>primary index</td></tr>
+<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Index">index</span></td><td><a href="tables/localization.html#col_Localization.Index"><svg class="i"><use href="#i-table"></use></svg>Localization</a></td><td><span class="type">int</span> <span class="keymark" title="기본 인덱스">🔑</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>primary index</td></tr>
+<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Index">index</span></td><td><a href="tables/test-field-types.html#col_TestFieldTypes.Index"><svg class="i"><use href="#i-table"></use></svg>TestFieldTypes</a></td><td><span class="type">int</span> <span class="keymark" title="기본 인덱스">🔑</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>primary index</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg>Key</td><td><a href="tables/client-strings.html#col_ClientStrings.Key"><svg class="i"><use href="#i-table"></use></svg>ClientStrings</a></td><td><span class="type">string</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>string key</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg>Key</td><td><a href="tables/localization.html#col_Localization.Key"><svg class="i"><use href="#i-table"></use></svg>Localization</a></td><td><span class="type">string</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>lookup key</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg>Name</td><td><a href="tables/item.html#col_Item.Name"><svg class="i"><use href="#i-table"></use></svg>Item</a></td><td><span class="type">string</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>item name</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg>Name</td><td><a href="tables/item-category.html#col_ItemCategory.Name"><svg class="i"><use href="#i-table"></use></svg>ItemCategory</a></td><td><span class="type">string</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>category name</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg>SkillField</td><td><a href="tables/item.html#col_Item.SkillField"><svg class="i"><use href="#i-table"></use></svg>Item</a></td><td><a href="enums/skill-type.html#enum_SkillType" data-enum="SkillType">enum.SkillType</a></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>granted skill</td></tr>
+<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="시트 컬럼 2개">Slot</span></td><td><a href="tables/array-types.html#col_ArrayTypes.Slot0"><svg class="i"><use href="#i-table"></use></svg>ArrayTypes</a></td><td><span class="type">int</span>[]</td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>fixed slot 1</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg>StringField</td><td><a href="tables/test-field-types.html#col_TestFieldTypes.StringField"><svg class="i"><use href="#i-table"></use></svg>TestFieldTypes</a></td><td><span class="type">string</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>utf8 text</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg>Tags</td><td><a href="tables/array-types.html#col_ArrayTypes.Tags"><svg class="i"><use href="#i-table"></use></svg>ArrayTypes</a></td><td><span class="type">string[]</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>free-form tags</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg>Text</td><td><a href="tables/client-strings.html#col_ClientStrings.Text"><svg class="i"><use href="#i-table"></use></svg>ClientStrings</a></td><td><span class="type">string</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>display text</td></tr>
+<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="시트 컬럼 2개">TextEn</span></td><td><a href="tables/localization.html#col_Localization.TextEn0"><svg class="i"><use href="#i-table"></use></svg>Localization</a></td><td><span class="type">string</span>[]</td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>english text 1</td></tr>
+<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="시트 컬럼 2개">TextKo</span></td><td><a href="tables/localization.html#col_Localization.TextKo0"><svg class="i"><use href="#i-table"></use></svg>Localization</a></td><td><span class="type">string</span>[]</td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>korean text 1</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg>TimespanField</td><td><a href="tables/test-field-types.html#col_TestFieldTypes.TimespanField"><svg class="i"><use href="#i-table"></use></svg>TestFieldTypes</a></td><td><span class="type">timespan</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>time interval</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg>UuidField</td><td><a href="tables/test-field-types.html#col_TestFieldTypes.UuidField"><svg class="i"><use href="#i-table"></use></svg>TestFieldTypes</a></td><td><span class="type">uuid</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>globally unique id</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg>ValueTypeField</td><td><a href="tables/test-field-types.html#col_TestFieldTypes.ValueTypeField"><svg class="i"><use href="#i-table"></use></svg>TestFieldTypes</a></td><td><a href="enums/value-type.html#enum_ValueType" data-enum="ValueType">enum.ValueType</a></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>enum reference</td></tr>
@@ -906,7 +926,7 @@ tbody [data-pick] { cursor: pointer; }
 
     // ---- one table's neighbourhood: what points at it on the left, what it points at on
     // the right. Built from the adjacency the page carries.
-    var ROW = 30, GAP = 12, COLUMN = 170, PAD = 14, CHAR = 8, HEAD = 22, MOST = 12;
+    var ROW = 30, GAP = 12, COLUMN = 170, PAD = 14, CHAR = 8, HEAD = 22, MOST = 12, LOOP = 44;
 
     var protoNode = proto.querySelector('[data-proto="node"]');
     var protoEdge = proto.querySelector('[data-proto="edge"]');
@@ -990,6 +1010,24 @@ tbody [data-pick] { cursor: pointer; }
       focus.appendChild(node);
     }
 
+    // A table pointing at itself, as a loop off its own right edge - the same shape the
+    // whole drawing gives it. The loop bulges LOOP wide, which the width below reserves.
+    function loop(x, y, columns) {
+      var path = protoEdge.cloneNode(true);
+
+      path.setAttribute("class", "edge self");
+      path.setAttribute("d", "M" + x + "," + (y - 6) + " C" + (x + 34) + "," + (y - 26)
+        + " " + (x + 34) + "," + (y + 26) + " " + x + "," + (y + 6));
+
+      if (columns) {
+        var title = document.createElementNS(path.namespaceURI, "title");
+        title.textContent = columns;
+        path.appendChild(title);
+      }
+
+      focus.appendChild(path);
+    }
+
     function show(name) {
       if (links === null) {
         try { links = JSON.parse(adjacency.textContent); } catch (e) { links = {}; }
@@ -1001,8 +1039,22 @@ tbody [data-pick] { cursor: pointer; }
       while (focus.firstChild) focus.removeChild(focus.firstChild);
 
       var about = links[name] || { "in": [], "out": [] };
-      var ins = about["in"].slice(0, MOST);
-      var outs = about["out"].slice(0, MOST);
+
+      // The table itself is not one of its own neighbours. Left in, it was drawn in the
+      // left column and the right one as well as the middle - the selected table three
+      // times over, at three different widths - and the two copies wore the arrow that
+      // walks to a table, which walked to the picture already on screen. It is a loop on
+      // its own box instead, which is what the whole drawing does with it.
+      var itself = null;
+      var inAll = about["in"].filter(function (entry) {
+        if (entry[0] !== name) return true;
+        itself = entry[1];
+        return false;
+      });
+      var outAll = about["out"].filter(function (entry) { return entry[0] !== name; });
+
+      var ins = inAll.slice(0, MOST);
+      var outs = outAll.slice(0, MOST);
 
       var inWidth = ins.length ? Math.max.apply(null, ins.map(function (e) { return widthOf(e[0]); })) : 0;
       var outWidth = outs.length ? Math.max.apply(null, outs.map(function (e) { return widthOf(e[0]); })) : 0;
@@ -1010,7 +1062,11 @@ tbody [data-pick] { cursor: pointer; }
 
       var rows = Math.max(ins.length, outs.length, 1);
       var height = HEAD + rows * ROW + (rows - 1) * GAP + PAD * 2;
-      var width = PAD * 2 + inWidth + midWidth + outWidth
+
+      // Room for the loop only where there is no right-hand column for it to bulge into.
+      var loopRoom = (itself !== null && !outs.length) ? LOOP : 0;
+
+      var width = PAD * 2 + inWidth + midWidth + outWidth + loopRoom
         + (ins.length ? COLUMN : 0) + (outs.length ? COLUMN : 0);
 
       var midX = PAD + inWidth + (ins.length ? COLUMN : 0);
@@ -1036,17 +1092,25 @@ tbody [data-pick] { cursor: pointer; }
 
       box(name, midX, midY, midWidth, true);
 
+      if (itself !== null)
+        loop(midX + midWidth, midY + ROW / 2, name + " → " + name + " (" + itself + ")");
+
       if (ins.length) {
-        label(about["in"].length > MOST
-          ? "이 테이블을 가리킴 " + about["in"].length + "개 중 " + MOST + "개"
+        label(inAll.length > MOST
+          ? "이 테이블을 가리킴 " + inAll.length + "개 중 " + MOST + "개"
           : "이 테이블을 가리킴 " + ins.length + "개", PAD, 15);
       }
 
       if (outs.length) {
-        label(about["out"].length > MOST
-          ? "이 테이블이 가리킴 " + about["out"].length + "개 중 " + MOST + "개"
+        label(outAll.length > MOST
+          ? "이 테이블이 가리킴 " + outAll.length + "개 중 " + MOST + "개"
           : "이 테이블이 가리킴 " + outs.length + "개", outX, 15);
       }
+
+      // Said where the columns cannot say it: a table whose only reference is to itself has
+      // neither column, and the loop alone reads as a stray mark.
+      if (itself !== null && !ins.length && !outs.length)
+        label("자기 자신을 가리킴 (" + itself + ")", PAD, 15);
 
       focus.setAttribute("data-width", width);
       focus.setAttribute("data-height", height);

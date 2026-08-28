@@ -23,6 +23,12 @@
 
   "Targets": [
     {
+      // The one target that has to tell a composite from the record it expands into: it
+      // documents what the sheet says, and the sheet says `vec3f`.
+      "Type": "html",
+      "Path": "test/fixtures/output/composite/html"
+    },
+    {
       "Type": "binary",
       "Path": "test/fixtures/output/composite/binary",
       "FileExtension": ".tcb"

@@ -1,0 +1,72 @@
+{{~##
+   One page per abstract type: the members every variant carries, then each variant with the
+   members it declares of its own.
+
+   Two tables rather than one, because they answer different questions. The common members are
+   what any consumer may read without asking which variant it has; the variants are what it has
+   to ask about. Flattened into one table the distinction is gone, and that distinction is the
+   whole of what the declaration says. spec/types/polymorphism.md sections 5.1 and 7.1.
+
+   The discriminator is not a member and is not listed. What a cell holds is a variant name and
+   what the file carries is that variant's number, which is the column beside each variant's
+   name below - section 5.1.1 says why the number is fixed rather than positional.
+##~}}
+{{~ include 'html-head.sbn' ~}}
+<p class="lead" id="struct_{{ name }}"><svg class="i"><use href="#i-struct"></use></svg>{{ name }} &middot; 변종 {{ variants | array.size }}개 &middot; 공통 멤버 {{ base_members | array.size }}개</p>
+{{~ if comment != '' ~}}
+<p class="comment">{{ comment }}</p>
+{{~ end ~}}
+{{~ if used_by | array.size > 0 ~}}
+<p class="hint">이 타입으로 선언된 그룹:
+{{~ for item in used_by ~}}
+<a href="{{ item.href }}">{{ item.name }}</a>{{ if !for.last }}, {{ end }}
+{{~ end ~}}
+</p>
+{{~ else ~}}
+<p class="hint">이 타입으로 선언된 그룹이 없습니다.</p>
+{{~ end ~}}
+
+<h2>공통 멤버</h2>
+{{~ if base_members | array.size == 0 ~}}
+<p class="none">모든 변종이 가지는 멤버가 없습니다.</p>
+{{~ else ~}}
+<p class="hint">모든 변종이 가집니다. 그래서 옵셔널이 아닌 컬럼입니다.</p>
+<div class="scroll">
+<table>
+<thead>
+<tr class="names"><th>이름</th><th>타입</th><th>설명</th></tr>
+</thead>
+<tbody>
+{{~ for member in base_members ~}}
+<tr><td>{{ member.name }}</td><td>{{ member.type_cell }}</td><td>{{ member.comment }}</td></tr>
+{{~ end ~}}
+</tbody>
+</table>
+</div>
+{{~ end ~}}
+
+<h2>변종</h2>
+{{~ if variants | array.size == 0 ~}}
+<p class="none">선언된 변종이 없습니다.</p>
+{{~ else ~}}
+{{~ for variant in variants ~}}
+<h3 id="variant_{{ name }}.{{ variant.name }}"><svg class="i"><use href="#i-struct"></use></svg>{{ variant.name }} <span class="hint">&middot; 파일이 싣는 번호 <code>{{ variant.discriminator }}</code></span></h3>
+{{~ if variant.members | array.size == 0 ~}}
+<p class="none">이 변종이 따로 선언하는 멤버가 없습니다.</p>
+{{~ else ~}}
+<div class="scroll">
+<table>
+<thead>
+<tr class="names"><th>이름</th><th>타입</th><th title="같은 멤버를 선언하는 다른 변종">공유</th><th>설명</th></tr>
+</thead>
+<tbody>
+{{~ for member in variant.members ~}}
+<tr><td>{{ member.name }}</td><td>{{ member.type_cell }}</td><td>{{ if member.shared != '' }}<span class="hint">{{ member.shared }}</span>{{ end }}</td><td>{{ member.comment }}</td></tr>
+{{~ end ~}}
+</tbody>
+</table>
+</div>
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{ include 'html-foot.sbn' }}

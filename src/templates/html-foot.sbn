@@ -362,7 +362,7 @@
 
     // ---- one table's neighbourhood: what points at it on the left, what it points at on
     // the right. Built from the adjacency the page carries.
-    var ROW = 30, GAP = 12, COLUMN = 170, PAD = 14, CHAR = 8, HEAD = 22, MOST = 12;
+    var ROW = 30, GAP = 12, COLUMN = 170, PAD = 14, CHAR = 8, HEAD = 22, MOST = 12, LOOP = 44;
 
     var protoNode = proto.querySelector('[data-proto="node"]');
     var protoEdge = proto.querySelector('[data-proto="edge"]');
@@ -446,6 +446,24 @@
       focus.appendChild(node);
     }
 
+    // A table pointing at itself, as a loop off its own right edge - the same shape the
+    // whole drawing gives it. The loop bulges LOOP wide, which the width below reserves.
+    function loop(x, y, columns) {
+      var path = protoEdge.cloneNode(true);
+
+      path.setAttribute("class", "edge self");
+      path.setAttribute("d", "M" + x + "," + (y - 6) + " C" + (x + 34) + "," + (y - 26)
+        + " " + (x + 34) + "," + (y + 26) + " " + x + "," + (y + 6));
+
+      if (columns) {
+        var title = document.createElementNS(path.namespaceURI, "title");
+        title.textContent = columns;
+        path.appendChild(title);
+      }
+
+      focus.appendChild(path);
+    }
+
     function show(name) {
       if (links === null) {
         try { links = JSON.parse(adjacency.textContent); } catch (e) { links = {}; }
@@ -457,8 +475,22 @@
       while (focus.firstChild) focus.removeChild(focus.firstChild);
 
       var about = links[name] || { "in": [], "out": [] };
-      var ins = about["in"].slice(0, MOST);
-      var outs = about["out"].slice(0, MOST);
+
+      // The table itself is not one of its own neighbours. Left in, it was drawn in the
+      // left column and the right one as well as the middle - the selected table three
+      // times over, at three different widths - and the two copies wore the arrow that
+      // walks to a table, which walked to the picture already on screen. It is a loop on
+      // its own box instead, which is what the whole drawing does with it.
+      var itself = null;
+      var inAll = about["in"].filter(function (entry) {
+        if (entry[0] !== name) return true;
+        itself = entry[1];
+        return false;
+      });
+      var outAll = about["out"].filter(function (entry) { return entry[0] !== name; });
+
+      var ins = inAll.slice(0, MOST);
+      var outs = outAll.slice(0, MOST);
 
       var inWidth = ins.length ? Math.max.apply(null, ins.map(function (e) { return widthOf(e[0]); })) : 0;
       var outWidth = outs.length ? Math.max.apply(null, outs.map(function (e) { return widthOf(e[0]); })) : 0;
@@ -466,7 +498,11 @@
 
       var rows = Math.max(ins.length, outs.length, 1);
       var height = HEAD + rows * ROW + (rows - 1) * GAP + PAD * 2;
-      var width = PAD * 2 + inWidth + midWidth + outWidth
+
+      // Room for the loop only where there is no right-hand column for it to bulge into.
+      var loopRoom = (itself !== null && !outs.length) ? LOOP : 0;
+
+      var width = PAD * 2 + inWidth + midWidth + outWidth + loopRoom
         + (ins.length ? COLUMN : 0) + (outs.length ? COLUMN : 0);
 
       var midX = PAD + inWidth + (ins.length ? COLUMN : 0);
@@ -492,17 +528,25 @@
 
       box(name, midX, midY, midWidth, true);
 
+      if (itself !== null)
+        loop(midX + midWidth, midY + ROW / 2, name + " → " + name + " (" + itself + ")");
+
       if (ins.length) {
-        label(about["in"].length > MOST
-          ? "이 테이블을 가리킴 " + about["in"].length + "개 중 " + MOST + "개"
+        label(inAll.length > MOST
+          ? "이 테이블을 가리킴 " + inAll.length + "개 중 " + MOST + "개"
           : "이 테이블을 가리킴 " + ins.length + "개", PAD, 15);
       }
 
       if (outs.length) {
-        label(about["out"].length > MOST
-          ? "이 테이블이 가리킴 " + about["out"].length + "개 중 " + MOST + "개"
+        label(outAll.length > MOST
+          ? "이 테이블이 가리킴 " + outAll.length + "개 중 " + MOST + "개"
           : "이 테이블이 가리킴 " + outs.length + "개", outX, 15);
       }
+
+      // Said where the columns cannot say it: a table whose only reference is to itself has
+      // neither column, and the loop alone reads as a stray mark.
+      if (itself !== null && !ins.length && !outs.length)
+        label("자기 자신을 가리킴 (" + itself + ")", PAD, 15);
 
       focus.setAttribute("data-width", width);
       focus.setAttribute("data-height", height);

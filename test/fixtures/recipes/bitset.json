@@ -22,6 +22,12 @@
 
   "Targets": [
     {
+      // A bit pattern read by a person is read in hexadecimal, so this target is the one that
+      // must not print the same decimal as the `bigint` column beside it.
+      "Type": "html",
+      "Path": "test/fixtures/output/bitset/html"
+    },
+    {
       "Type": "binary",
       "Path": "test/fixtures/output/bitset/binary",
       "FileExtension": ".tcb"

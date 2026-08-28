@@ -236,6 +236,8 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         GenerateColumnIndex();
         GenerateEnumList();
         GenerateEnums();
+        GenerateStructList();
+        GenerateStructs();
         GenerateConstantSets();
         GenerateTables();
     }
@@ -408,13 +410,18 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     private HashSet<string> AnchoredKeysOf(Models.Table table)
     {
         var keys = new HashSet<string>(StringComparer.Ordinal);
-        var index = table.PrimaryIndexField;
 
-        if (index is null)
+        if (table.PrimaryIndexField is null)
             return keys;
 
+        // Through the same spelling the page writes, so the two cannot drift. A reference
+        // reaches a single-column key and this is that one value either way; a table keyed by
+        // several columns has no reference to it, and answering with a key its page does not
+        // hold would be a link to an anchor that is not there.
+        var primary = KeyPlans.PrimaryOf(table);
+
         foreach (var row in ShownRows(table))
-            keys.Add(row[index.Index].Value?.ToString() ?? "");
+            keys.Add(RowKey(table, primary, row));
 
         return keys;
     }
@@ -919,6 +926,8 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 
                 rows.Add(new HtmlFieldRowView
                 {
+                    // What the row sorts by: the name itself, not the markup around it.
+                    SortName = caption,
                     // The sheet's spelling, with the generated name in the tooltip: this
                     // index is read against the workbook and against the generated types,
                     // and the two names differ wherever a column is part of a record.
@@ -943,7 +952,12 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         // By column name, which is the order that answers the question this page exists for:
         // the same name in adjacent rows is where a type or a side that disagrees between
         // tables becomes visible. The table name breaks ties so the order is defined.
-        rows = ByName(rows, row => row.Name)
+        //
+        // By the name and not by the cell it is rendered into. The cell carries a `<span>`
+        // wherever a column has a tooltip, and `<` sorts ahead of every letter - so every
+        // annotated column was gathered at the top in one block and the names that were
+        // meant to sit next to each other never did.
+        rows = ByName(rows, row => row.SortName)
                    .ThenBy(row => row.Table, StringComparer.Ordinal)
                    .ToList();
 
@@ -991,9 +1005,15 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                 Name = label.Name,
                 SourceLink = SourceSheetLink(label.Location, label.Name),
                 Value = label.Value.ToString(CultureInfo.InvariantCulture),
+                // The other spelling a cell may write for this label. It resolves to the same
+                // integer and nothing downstream sees it, so this page is the only place it
+                // can be read - and somebody looking at a sheet that writes the alias has
+                // nowhere else to find out what it means.
+                Alias = Esc(label.Alias),
                 Comment = Esc(label.Comment),
             }).ToList(),
 
+            HasAliases = enumm.Labels.Any(label => !string.IsNullOrEmpty(label.Alias)),
             UsedBy = Users(_enumUsers, enumm.Name, root: "../"),
         };
 
@@ -1011,6 +1031,162 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 
         Write(HtmlLinks.EnumPage(enumm.Name), "html-enum.sbn", view);
     }
+
+    /// <summary>
+    /// The abstract types the sheets declared, as a list.
+    /// </summary>
+    /// <remarks>
+    /// Written whether the model declares any or not, like the enumerations list: the top bar
+    /// has the same entries on every page of every model, and a page that says a model
+    /// declares none is an answer where a missing page is a dead link.
+    /// </remarks>
+    private void GenerateStructList()
+    {
+        var rows = ByName(_model.PolymorphicTypes, declared => declared.Name)
+                   .Select(declared => new HtmlStructListRowView
+                   {
+                       Name = Esc(declared.Name),
+                       Href = HtmlLinks.Struct(declared.Name, root: ""),
+                       BaseCount = Num(declared.BaseMembers.Count),
+                       VariantCount = Num(declared.Variants.Count),
+                       UserCount = Num(GroupsOf(declared.Name).Count),
+                       Comment = "",
+                   })
+                   .ToList();
+
+        var view = new HtmlStructListPageView
+        {
+            Title = "구조체",
+            HasComments = false,
+            VariantTotal = Num(_model.PolymorphicTypes.Sum(x => (long)x.Variants.Count)),
+            Rows = rows,
+        };
+
+        Dress(view, kind: "structs", root: "",
+              crumbs: new[] { Crumb("개요", "index.html"), Crumb("구조체", "") },
+              sideTitle: "구조체",
+              sideItems: StructSideItems("", current: ""),
+              sideIcon: "i-struct",
+              fills: true);
+
+        Write("structs.html", "html-structs.sbn", view);
+    }
+
+    private void GenerateStructs()
+    {
+        foreach (var declared in _model.PolymorphicTypes)
+            GenerateStruct(declared);
+    }
+
+    private void GenerateStruct(Models.PolymorphicType declared)
+    {
+        int no = 0;
+
+        var view = new HtmlStructPageView
+        {
+            Title = declared.Name,
+            Name = declared.Name,
+            Comment = "",
+            BaseMembers = declared.BaseMembers
+                                  .Select(member => StructMember(member, declared, variant: ""))
+                                  .ToList(),
+
+            Variants = declared.Variants.Select(variant => new HtmlVariantView
+            {
+                No = ++no,
+                Name = variant.Name,
+                Discriminator = variant.Discriminator.ToString(CultureInfo.InvariantCulture),
+                Members = declared.Variants
+                                  .First(other => other.Name == variant.Name)
+                                  .Members
+                                  .Select(member => StructMember(member, declared, variant.Name))
+                                  .ToList(),
+            }).ToList(),
+
+            UsedBy = GroupsOf(declared.Name),
+        };
+
+        Dress(view, kind: "structs", root: "../",
+              crumbs: new[]
+              {
+                  Crumb("개요", "../index.html"),
+                  Crumb("구조체", "../structs.html"),
+                  Crumb(declared.Name, ""),
+              },
+              sideTitle: "구조체",
+              sideItems: StructSideItems("../", declared.Name),
+              sideIcon: "i-struct",
+              fills: true);
+
+        view.EnumDefs = EnumDefs(declared.BaseMembers
+                                         .Concat(declared.Variants.SelectMany(variant => variant.Members))
+                                         .Select(member => member.EnumOrNull)
+                                         .Where(enumm => enumm is not null)!);
+
+        Write(HtmlLinks.StructPage(declared.Name), "html-struct.sbn", view);
+    }
+
+    /// <summary>One member of an abstract type or of one of its variants.</summary>
+    private HtmlStructMemberView StructMember(
+        Models.Field member, Models.PolymorphicType declared, string variant)
+    {
+        // The other variants that declare the same member. One column and one field on each
+        // of them, so the same name appearing under two variants is not a duplicate - and
+        // nothing else on the page would say so.
+        var shared = member.VariantsDeclaringThis
+                           .Where(name => !string.Equals(name, variant, StringComparison.Ordinal))
+                           .ToList();
+
+        return new HtmlStructMemberView
+        {
+            Name = Esc(MemberName(member)),
+            TypeCell = TypeMarkup(member, root: "../"),
+            Shared = shared.Count == 0
+                ? ""
+                : Esc(string.Join(", ", shared)),
+            Comment = Esc(member.Comment),
+        };
+    }
+
+    /// <summary>
+    /// What a member of a declared type is called in the declaration.
+    /// </summary>
+    /// <remarks>
+    /// The last step of the column's path, not the column's own name. The name is the whole
+    /// path flattened into one identifier - `EffectChance` for `Effect.Chance` - because that
+    /// is what has to be unique among a table's columns, and a page about the declaration
+    /// listing it that way names the type twice in every row.
+    /// </remarks>
+    private static string MemberName(Models.Field member)
+        => member.NamePath is { Count: > 0 } path ? path[^1].Name : member.Name;
+
+    /// <summary>
+    /// The groups declared as one abstract type, wherever they are in the model.
+    /// </summary>
+    /// <remarks>
+    /// From the discriminator columns, which is where the binding is recorded. One entry per
+    /// group and not per column: a group written as an array has a `$type` column per element,
+    /// and listed per column one group appeared as many times as the sheet has elements.
+    /// </remarks>
+    private IReadOnlyList<HtmlSummaryEntryView> GroupsOf(string name)
+        => _model.Tables
+                 .SelectMany(table => table.Fields
+                     .Where(field => field.IsDiscriminator
+                                     && string.Equals(field.AbstractTypeName, name, StringComparison.Ordinal))
+                     .Select(field => (Table: table, Field: field)))
+                 .GroupBy(at => (at.Table.Name, Group: at.Field.GroupName ?? at.Field.Name),
+                          TupleComparer)
+                 .Select(group => Summarize(
+                     $"{group.Key.Name}.{group.Key.Group}",
+                     "",
+                     "",
+                     HtmlLinks.Column(group.Key.Name, group.First().Field.Name, root: "../")))
+                 .OrderBy(entry => entry.Name, StringComparer.Ordinal)
+                 .ToList();
+
+    /// <summary>Compares a table-and-group pair by both halves, ordinally.</summary>
+    private static readonly IEqualityComparer<(string Name, string Group)> TupleComparer =
+        EqualityComparer<(string Name, string Group)>.Default;
 
     private void GenerateConstantSets()
     {
@@ -1048,9 +1224,13 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                                .ToList(),
               sideIcon: "i-const");
 
+        // Element type rather than type, so a `Grade[]` constant carries its enum too. The
+        // filter asked for `Enum` exactly, and an array of labels is `EnumArray` - so the
+        // hover card was missing on the one page that shows every constant at once.
         view.EnumDefs = EnumDefs(_model.ConstantSets
                                        .SelectMany(set => set.Constants)
-                                       .Where(constant => constant.Type == Models.ValueType.Enum)
+                                       .Where(constant => Models.ValueTypes.ElementOf(constant.Type)
+                                                          == Models.ValueType.Enum)
                                        .Select(constant => constant.Enum));
 
         Write("constantsets.html", "html-constantsets.sbn", view);
@@ -1072,30 +1252,15 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 
     private HtmlConstantView BuildConstant(ConstantSet constantSet, ConstantSet.Constant constant, int no)
     {
-        string typeCell;
-        string valueCell;
+        var element = Models.ValueTypes.ElementOf(constant.Type);
+        bool isArray = Models.ValueTypes.IsArray(constant.Type);
 
-        if (constant.Type == Models.ValueType.Enum)
-        {
-            // An enum constant shows where both its type and its label were declared,
-            // because either is a place someone might want to go from here.
-            var label = constant.Enum.GetLabel(constant.Value!, constant.Location);
-
-            typeCell = SourceSheetLink(constant.Enum.Location, constant.Enum.Name);
-            valueCell = $"{EnumValueLink(constant.Enum, label, root: "")} " +
-                        $"<span class=\"hint\">({label.Value})</span>";
-        }
-        else
-        {
-            typeCell = $"<span class=\"type\">{Esc(constant.TypeName)}</span>";
-
-            // Through the invariant renderer, not `object.ToString()`. That takes the
-            // machine's culture, so a `datetime` constant came out of a Korean Windows as
-            // `2022-03-01 오전 9:00:00` and out of a Linux runner as `03/01/2022 09:00:00`
-            // - the same sheet, two different pages. Parsing has always been invariant here
-            // and writing had not caught up.
-            valueCell = Esc(PlainValue(constant.Type, constant.Value!));
-        }
+        // An enum constant shows where both its type and its label were declared, because
+        // either is a place someone might want to go from here. An array of labels shows the
+        // same declaration: the elements are labels of that enum whether there is one or ten.
+        string typeCell = element == Models.ValueType.Enum
+            ? SourceSheetLink(constant.Enum.Location, constant.Enum.Name) + (isArray ? "[]" : "")
+            : $"<span class=\"type\">{Esc(constant.TypeName)}</span>";
 
         return new HtmlConstantView
         {
@@ -1104,8 +1269,73 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             NameCell = SourceSheetLink(constant.Location, constant.Name),
             Comment = Esc(constant.Comment),
             TypeCell = typeCell,
-            ValueCell = valueCell,
+            ValueCell = ConstantValueMarkup(constant),
         };
+    }
+
+    /// <summary>
+    /// A constant's value: an enum label as a link, an array as its elements, anything else
+    /// as the invariant rendering of the value.
+    /// </summary>
+    /// <remarks>
+    /// **The array case was missing entirely.** Only a scalar `enum` had a branch and
+    /// everything else fell through to `object.ToString()`, which for an array is the name of
+    /// its CLR type - so `string[]` constants read `System.String[]`, and a `Grade[]` read
+    /// `System.Int32[]` and lost the link to its enum as well. The goldens had recorded that
+    /// as the right answer since the page was first written.
+    /// </remarks>
+    private string ConstantValueMarkup(ConstantSet.Constant constant)
+    {
+        var element = Models.ValueTypes.ElementOf(constant.Type);
+
+        if (constant.Value is null)
+            return Absent();
+
+        if (constant.Value is Array elements)
+        {
+            if (elements.Length == 0)
+                return "<span class=\"empty\" title=\"원소 없음\">[]</span>";
+
+            var parts = new List<string>();
+
+            foreach (var held in elements)
+                parts.Add(ConstantElementMarkup(constant, element, held));
+
+            return $"<span class=\"sep\">[</span>{string.Join("<span class=\"sep\">, </span>", parts)}" +
+                   "<span class=\"sep\">]</span>" +
+                   (elements.Length > 1 ? $"<span class=\"n-of\">&times;{elements.Length}</span>" : "");
+        }
+
+        return ConstantElementMarkup(constant, element, constant.Value);
+    }
+
+    /// <summary>One element of a constant, or the whole of a scalar one.</summary>
+    private string ConstantElementMarkup(
+        ConstantSet.Constant constant, Models.ValueType element, object? value)
+    {
+        if (value is null)
+            return Absent();
+
+        if (element == Models.ValueType.Enum)
+        {
+            var label = constant.Enum.GetLabel(value, constant.Location);
+
+            return $"{EnumValueLink(constant.Enum, label, root: "")} " +
+                   $"<span class=\"hint\">({label.Value})</span>";
+        }
+
+        if (element == Models.ValueType.String && value is string text)
+            return StringMarkup(text);
+
+        if (element == Models.ValueType.Bitset && value is long pattern)
+            return BitsetMarkup(pattern);
+
+        // Through the invariant renderer, not `object.ToString()`. That takes the machine's
+        // culture, so a `datetime` constant came out of a Korean Windows as
+        // `2022-03-01 오전 9:00:00` and out of a Linux runner as `03/01/2022 09:00:00` - the
+        // same sheet, two different pages. Parsing has always been invariant here and writing
+        // had not caught up.
+        return Esc(PlainValue(element, value));
     }
 
     private void GenerateTables()
@@ -1129,6 +1359,18 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 
         bool hasComments = columns.Any(entry => !string.IsNullOrEmpty(CommentOf(entry)));
 
+        // Which columns the rows are addressed by, from the sheet's own declaration.
+        //
+        // The page used to take the first column - `index == 0` - which is right for most
+        // sheets and quietly wrong for the rest. A sheet that names its key put the anchor on
+        // a column that is not one, and a sheet keyed by several columns put every row of one
+        // `X` value under the same anchor: `row_Grid.0` appeared three times in one page, and
+        // a link to it reached whichever of them came first. spec/layout/primary-layout.md
+        // section 3.5 and spec/keys/composite-keys.md.
+        var primary = KeyPlans.PrimaryOf(table);
+        var keyColumns = primary.Components.ToHashSet();
+        var anchorAt = columns.FindIndex(entry => keyColumns.Contains(entry));
+
         var view = new HtmlTablePageView
         {
             Title = table.Name,
@@ -1148,10 +1390,14 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             Sortable = shown.Count <= SortableRowLimit,
             ReferencedBy = Users(_tableReferrers, table.Name, root: "../"),
 
-            NameCells = columns.Select((entry, index) => NameCell(table, entry, index)).ToList(),
+            NameCells = columns
+                        .Select(entry => NameCell(table, entry, KeyNote(primary, keyColumns, entry)))
+                        .ToList(),
             CommentCells = columns.Select(entry => $"<th>{Esc(CommentOf(entry))}</th>").ToList(),
             HasColumnComments = hasComments,
-            TypeCells = columns.Select(entry => $"<th>{EntryTypeMarkup(entry, root: "../")}</th>").ToList(),
+            TypeCells = columns
+                        .Select(entry => $"<th>{EntryTypeMarkup(entry, root: "../", isKey: keyColumns.Contains(entry))}</th>")
+                        .ToList(),
 
             SideCells = columns.Select(entry => $"<th>{SideName(entry.TargetSide)}</th>").ToList(),
 
@@ -1160,7 +1406,12 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             Rows = shown.Select(row => new HtmlRowView
             {
                 Cells = columns
-                        .Select((entry, index) => EntryCell(table, entry, row, index == 0, root: "../"))
+                        .Select((entry, index) => EntryCell(
+                            table, entry, row,
+                            isKey: keyColumns.Contains(entry),
+                            anchored: index == anchorAt,
+                            key: RowKey(table, primary, row),
+                            root: "../"))
                         .ToList(),
             }).ToList(),
         };
@@ -1268,6 +1519,16 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                  })
                  .ToList();
 
+    private List<HtmlSideItemView> StructSideItems(string root, string current)
+        => ByName(_model.PolymorphicTypes, x => x.Name)
+                 .Select(x => new HtmlSideItemView
+                 {
+                     Name = Esc(x.Name),
+                     Href = HtmlLinks.Struct(x.Name, root),
+                     Current = x.Name == current,
+                 })
+                 .ToList();
+
     /// <summary>
     /// The enums a page mentions, once each, in a stable order.
     /// </summary>
@@ -1344,15 +1605,48 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             Labels = Num(_model.Enums.Sum(x => (long)x.Labels.Count)),
             ConstantSets = Num(_model.ConstantSets.Count),
             Constants = Num(_model.ConstantSets.Sum(x => (long)x.Constants.Count)),
+            Structs = Num(_model.PolymorphicTypes.Count),
+            Variants = Num(_model.PolymorphicTypes.Sum(x => (long)x.Variants.Count)),
             Workbooks = Counted(workbooks, "워크북"),
         };
     }
 
     private IEnumerable<Models.Field> AllFields => _model.Tables.SelectMany(table => table.Fields);
 
+    /// <summary>
+    /// How many columns of each type, by the name the sheet writes.
+    /// </summary>
+    /// <remarks>
+    /// The declared spelling and not the value's type. Counted by
+    /// <see cref="Models.Field.ElementType"/>, a `bitset` column was reported as `int64`
+    /// because the cooker folds it to one, and a `vec3f` column as three `float`s - so the
+    /// distribution named types no sheet in the model contains and omitted the ones it does.
+    /// </remarks>
     private IReadOnlyList<HtmlBarView> TypeDistribution()
-        => Bars(AllFields.GroupBy(field => field.ElementType)
-                         .Select(group => (Name: group.Key.ToString().ToLowerInvariant(), Count: group.Count())));
+        => Bars(AllFields.GroupBy(TypeSpelling)
+                         .Select(group => (Name: group.Key, Count: group.Count())));
+
+    /// <summary>
+    /// What a column's type is called, in the sheet's own vocabulary.
+    /// </summary>
+    private static string TypeSpelling(Models.Field field)
+    {
+        if (field.CompositeOrigin != Models.ValueType.None
+            && Models.CompositeTypes.Of(field.CompositeOrigin) is { } composite)
+        {
+            return composite.Name;
+        }
+
+        if (field.Role == StringRole.Text)
+            return "text";
+
+        if (field.Role == StringRole.Asset)
+            return "asset";
+
+        return string.IsNullOrEmpty(field.TypeName)
+            ? Models.ValueTypes.ElementOf(field.Type).ToString().ToLowerInvariant()
+            : field.TypeName;
+    }
 
     /// <summary>
     /// What columns are beyond their type. A column can be several of these at once, so
@@ -1371,6 +1665,9 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             (Name: "레코드 멤버", Count: fields.Count(f => f.IsRecordMember)),
             (Name: "번역 문자열", Count: fields.Count(f => f.Role == StringRole.Text)),
             (Name: "애셋 경로", Count: fields.Count(f => f.Role == StringRole.Asset)),
+            (Name: "집합·맵", Count: fields.Count(f => f.Container != Models.ContainerKind.None)),
+            (Name: "구조체 멤버", Count: fields.Count(f => f.IsDiscriminator
+                                                        || f.VariantsDeclaringThis.Count > 0)),
             (Name: "그 밖", Count: fields.Count(f => !f.IsRef && !f.IsArray && f.IsRequired
                                                      && !f.IsRecordMember && f.Role == StringRole.None)),
         });
@@ -1467,9 +1764,16 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     private static bool IsRequiredEntry(Models.SerialField entry) => HeadOf(entry)?.IsRequired ?? true;
 
     /// <summary>
-    /// The type of one entry: a value, an array of them, or a record with its members named.
+    /// The type of one entry: a value, an array of them, a container, a composite, or a
+    /// record with its members named.
     /// </summary>
-    private string EntryTypeMarkup(Models.SerialField entry, string root)
+    /// <param name="isKey">
+    /// Whether the sheet declared this column part of the primary key. Marked here rather
+    /// than from <see cref="Models.Field.Indexing"/> alone, which is true of the one column a
+    /// single-column key is made of - so a table keyed by several columns wore no key mark at
+    /// all. spec/keys/composite-keys.md.
+    /// </param>
+    private string EntryTypeMarkup(Models.SerialField entry, string root, bool isKey = false)
     {
         if (!entry.IsRecord)
         {
@@ -1482,11 +1786,28 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             // type says nothing about that - the entry is what knows it is an array.
             string brackets = entry.IsArray && !field.IsArray ? "[]" : "";
 
-            return TypeMarkup(field, root) + brackets + BrokenMark(entry);
+            string scalar = entry.Container == Models.ContainerKind.Set
+                ? SetMarkup(field, root)
+                : TypeMarkup(field, root);
+
+            return scalar + brackets + PartKeyMark(field, isKey) + BrokenMark(entry);
         }
 
-        return MemberTypes(entry.Members, root) + (entry.IsArray ? "[]" : "") + BrokenMark(entry);
+        string body = entry.Container == Models.ContainerKind.Map
+            ? MapMarkup(entry.Members, root)
+            : GroupTypeMarkup(entry.Members, root);
+
+        return body + (entry.IsArray ? "[]" : "") + BrokenMark(entry);
     }
+
+    /// <summary>
+    /// The key mark a column of a several-column key carries, where its own type did not
+    /// already get one.
+    /// </summary>
+    private static string PartKeyMark(Models.Field field, bool isKey)
+        => isKey && !field.Indexing
+            ? " <span class=\"keymark\" title=\"기본 인덱스의 일부\">🔑</span>"
+            : "";
 
     /// <summary>
     /// The mark a reference column carries when some of its keys name no row.
@@ -1625,6 +1946,22 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     private static string Optional(Models.Field field) => field.IsRequired ? "" : "?";
 
     /// <summary>
+    /// The brackets an array column's type carries, with the mark that says an element may
+    /// be absent.
+    /// </summary>
+    /// <remarks>
+    /// `int?[]` and `int[]` are different columns and the page drew both as `int[]`, so a
+    /// cell reading `null` inside an array sat under a type saying every element is a value -
+    /// which is the one thing this page exists to keep apart. The `?` goes inside the
+    /// brackets because that is where the sheet writes it: it is the element that may be
+    /// absent and not the array. spec/types/nullable-array-elements.md.
+    /// </remarks>
+    private static string ArrayMark(Models.Field field, bool brackets = true)
+        => field.IsArray && brackets
+            ? (field.ElementsRequired ? "[]" : "?[]")
+            : "";
+
+    /// <summary>
     /// The mark an index column's type carries.
     /// </summary>
     /// <remarks>
@@ -1633,8 +1970,38 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     /// on the type rather than in the heading, because being the key is a property of the
     /// column and not of its name.
     /// </remarks>
+    /// <remarks>
+    /// The tooltip says which kind, because <see cref="Models.Field.Indexing"/> is true of two
+    /// different things - the column the rows are addressed by, and a `*` column that is
+    /// merely unique - and one caption for both told the reader the second was the first.
+    /// </remarks>
     private static string KeyMark(Models.Field field)
-        => field.Indexing ? " <span class=\"keymark\" title=\"기본 인덱스\">🔑</span>" : "";
+    {
+        if (!field.Indexing)
+            return "";
+
+        string caption = field.OwnerTable.PrimaryIndexField == field
+            ? "기본 인덱스"
+            : "값이 유일한 인덱스";
+
+        return $" <span class=\"keymark\" title=\"{caption}\">🔑</span>";
+    }
+
+    /// <summary>
+    /// What a group of columns is, as a type: the composite it was expanded out of where it
+    /// is one, and the record of its members where it is not.
+    /// </summary>
+    /// <remarks>
+    /// The composite comes first because it is what the sheet wrote. A `vec3f` column reaches
+    /// the model as three `float` columns - that identity is what keeps the wire and the
+    /// language generators out of the feature - and the page was reporting the expansion:
+    /// `{X: float, Y: float, Z: float}` over a cell the author wrote `(1.5, -2.5, 0)` in.
+    /// spec/types/composite-value-types.md section 7.
+    /// </remarks>
+    private string GroupTypeMarkup(List<Models.RecordMember> members, string root, bool perElement = false)
+        => CompositeOf(members) is { } composite
+            ? CompositeTypeMarkup(composite, members[0].Fields.FirstOrDefault())
+            : MemberTypes(members, root, perElement);
 
     /// <summary>
     /// The members of a record as a type: `{Type: double, Id: int?, Value: double}`.
@@ -1644,18 +2011,27 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     /// name the members and nothing else, which left the one thing a reader asks of a
     /// record - what is in it - to be guessed from the values.
     /// </remarks>
-    private string MemberTypes(List<Models.RecordMember> members, string root)
+    /// <param name="perElement">
+    /// Whether to name what one element holds rather than what the columns hold. A
+    /// container's columns are arrays - one entry per element - so the type inside
+    /// `set&lt;&gt;` and `map&lt;&gt;` is the element's and the brackets belong to the
+    /// container.
+    /// </param>
+    private string MemberTypes(List<Models.RecordMember> members, string root, bool perElement = false)
     {
         var parts = members.Select(member =>
         {
-            string name = $"<span class=\"mem\">{Esc(member.Name)}</span><span class=\"sep\">: </span>";
+            // The discriminator under the name the sheet writes it by, which is what the
+            // cells below the heading are labelled with. Under the member's own name the
+            // heading said `Type` over cells saying `$type`.
+            string caption = member.IsLeaf
+                             && member.Fields.FirstOrDefault() is { IsDiscriminator: true } tag
+                ? DiscriminatorName(tag)
+                : member.Name;
 
-            if (!member.IsLeaf)
-                return name + MemberTypes(member.Members, root);
+            string name = $"<span class=\"mem\">{Esc(caption)}</span><span class=\"sep\">: </span>";
 
-            var field = member.Fields.FirstOrDefault();
-
-            return field is null ? name : name + TypeMarkup(field, root);
+            return name + MemberTypeMarkup(member, root, perElement);
         });
 
         return $"<span class=\"sep\">{{</span>{string.Join("<span class=\"sep\">, </span>", parts)}" +
@@ -1663,10 +2039,155 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     }
 
     /// <summary>
+    /// One member's type, which is a container where the declaration said so.
+    /// </summary>
+    /// <remarks>
+    /// **The columns are the same either way, so this mark is all that is left of the
+    /// declaration.** `set&lt;string&gt;` and `string[]` are one array column and
+    /// `map&lt;int,int&gt;` is a record of two, so the page was reporting the encoding -
+    /// `text[]` and `{Key: int[], Value: int[]}` - for types the sheet spells out.
+    /// spec/types/set-and-map.md section 3.
+    /// </remarks>
+    private string MemberTypeMarkup(Models.RecordMember member, string root, bool perElement)
+    {
+        if (member.Container == Models.ContainerKind.Map)
+            return MapMarkup(member.Members, root);
+
+        if (!member.IsLeaf)
+            return GroupTypeMarkup(member.Members, root, perElement);
+
+        var field = member.Fields.FirstOrDefault();
+
+        if (field is null)
+            return "";
+
+        if (member.Container == Models.ContainerKind.Set)
+            return SetMarkup(field, root);
+
+        // The column that says which variant reads as the declared type, linked to it. As
+        // `int` it was indistinguishable from a member called `Type`, and the abstract type -
+        // the one thing that explains every optional member beside it - was nowhere.
+        if (field.IsDiscriminator && !string.IsNullOrEmpty(field.AbstractTypeName))
+        {
+            string names = string.Join(" | ", field.Variants.Select(variant => variant.Name));
+
+            return $"<a href=\"{HtmlLinks.Struct(field.AbstractTypeName!, root)}\" " +
+                   $"title=\"{Esc(names)}\">struct.{Esc(field.AbstractTypeName)}</a>";
+        }
+
+        return TypeMarkup(field, root, brackets: !perElement) + VariantNote(field);
+    }
+
+    /// <summary>
+    /// The variants that declare a member, beside its type.
+    /// </summary>
+    /// <remarks>
+    /// The reader's first question at an optional member of a polymorphic group is which
+    /// variants have it, and the union alone cannot answer: every variant's members are one
+    /// flat list of optional columns, so `Damage: int?` read as "sometimes absent" where the
+    /// truth is "present exactly when this row is a Strike". spec/types/polymorphism.md
+    /// section 5.1.
+    /// </remarks>
+    private static string VariantNote(Models.Field field)
+    {
+        if (field.VariantsDeclaringThis.Count == 0)
+            return "";
+
+        string names = string.Join(", ", field.VariantsDeclaringThis);
+
+        return $" <span class=\"of\" title=\"{Esc(names)} 변종이 선언합니다\">{Esc(names)}</span>";
+    }
+
+    /// <summary>`set&lt;string&gt;` - one array column whose elements are distinct.</summary>
+    private string SetMarkup(Models.Field field, string root)
+        => $"<span class=\"type\" title=\"원소가 서로 다른 배열\">set</span><span class=\"sep\">&lt;</span>" +
+           $"{TypeMarkup(field, root, brackets: false)}<span class=\"sep\">&gt;</span>";
+
+    /// <summary>
+    /// `map&lt;int, Reward&gt;` - two array columns of the same length, `Key` and `Value`.
+    /// </summary>
+    /// <remarks>
+    /// Falls back to the record it is made of where the two columns are not there. A group
+    /// marked as a map without them is a defect somewhere above this, and a page that says
+    /// what it can see is more use than one that says `map&lt;&gt;`.
+    /// </remarks>
+    private string MapMarkup(List<Models.RecordMember> members, string root)
+    {
+        var key = members.Find(member => member.Name == Models.ContainerMembers.Key);
+        var held = members.Find(member => member.Name == Models.ContainerMembers.Value);
+
+        if (key is null || held is null)
+            return MemberTypes(members, root);
+
+        return $"<span class=\"type\" title=\"길이가 같은 두 배열, 키와 값\">map</span>" +
+               $"<span class=\"sep\">&lt;</span>{MemberTypeMarkup(key, root, perElement: true)}" +
+               $"<span class=\"sep\">, </span>{MemberTypeMarkup(held, root, perElement: true)}" +
+               "<span class=\"sep\">&gt;</span>";
+    }
+
+    /// <summary>
+    /// The composite type a group of members was expanded out of, or null where the sheet
+    /// wrote the members itself.
+    /// </summary>
+    /// <remarks>
+    /// The components have to be all of them, in order, and under their own names - not
+    /// merely a group every column of which came from some composite. Two `vec2f` columns
+    /// side by side in one group carry the same mark and are not one vector.
+    /// </remarks>
+    private static Models.CompositeType? CompositeOf(List<Models.RecordMember> members)
+    {
+        var head = members.Count > 0 ? members[0].Fields.FirstOrDefault() : null;
+
+        if (head is null || head.CompositeOrigin == Models.ValueType.None)
+            return null;
+
+        var composite = Models.CompositeTypes.Of(head.CompositeOrigin);
+
+        if (composite is null || composite.Components.Count != members.Count)
+            return null;
+
+        for (int at = 0; at < members.Count; at++)
+        {
+            var member = members[at];
+
+            if (!member.IsLeaf || member.Name != composite.Components[at])
+                return null;
+
+            if (member.Fields.FirstOrDefault() is not { } field
+                || field.CompositeOrigin != head.CompositeOrigin)
+            {
+                return null;
+            }
+        }
+
+        return composite;
+    }
+
+    /// <summary>
+    /// A composite as the type row wrote it, with what it holds in the tooltip.
+    /// </summary>
+    private static string CompositeTypeMarkup(Models.CompositeType composite, Models.Field? head)
+    {
+        string component = composite.ComponentType == Models.ValueType.Int32 ? "int" : "float";
+        string detail = $"{string.Join(" · ", composite.Components)} ({component})";
+
+        return $"<span class=\"type\" title=\"{Esc(detail)}\">{Esc(composite.Name)}</span>" +
+               (head is null ? "" : Optional(head));
+    }
+
+    /// <summary>
     /// One cell of the table: a value, an array, or the objects a record array holds.
     /// </summary>
+    /// <param name="isKey">Whether this column is one of the primary key's.</param>
+    /// <param name="anchored">
+    /// Whether this cell carries the row's anchor. One cell of the row does, even where the
+    /// key is several columns - an id has one place to be, and a link naming a row cannot
+    /// name three cells.
+    /// </param>
+    /// <param name="key">The row's key, as the anchors spell it.</param>
     private string EntryCell(
-        Models.Table table, Models.SerialField entry, List<Cell> row, bool isIndex, string root)
+        Models.Table table, Models.SerialField entry, List<Cell> row,
+        bool isKey, bool anchored, string key, string root)
     {
         if (!entry.IsRecord)
         {
@@ -1679,10 +2200,58 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             if (entry.Fields.Count > 1)
                 return FoldedArrayCell(table, entry, row, root);
 
-            return DataCell(table, field, row[field.Index], isIndex, root);
+            return DataCell(table, field, row[field.Index], isKey, anchored, key, root);
         }
 
         return RecordCell(table, entry, row, root);
+    }
+
+    /// <summary>
+    /// A row's key as the anchor spells it, with the columns joined where there are several.
+    /// </summary>
+    /// <remarks>
+    /// Every column of the key, because that is what identifies the row. Taking the first one
+    /// gave a table keyed by `X`, `Y` and `Z` one anchor per `X` value - so a page held the
+    /// same `id` several times over, which is not a document any link into it can be trusted
+    /// in. The joiner is a character no key value can hold on its own account.
+    /// </remarks>
+    private static string RowKey(Models.Table table, KeyPlan primary, List<Cell> row)
+    {
+        var parts = new List<string>();
+
+        foreach (var component in primary.Components)
+        {
+            var field = component.FirstField ?? component.AnyField;
+
+            parts.Add(field is null ? "" : row[field.Index].Value?.ToString() ?? "");
+        }
+
+        return parts.Count == 0
+            ? ""
+            : string.Join(CompositeKeyJoiner, parts);
+    }
+
+    /// <summary>What separates one column of a composite key from the next in an anchor.</summary>
+    private const string CompositeKeyJoiner = "|";
+
+    /// <summary>
+    /// What a heading says about the column being part of the key, or empty where it is not.
+    /// </summary>
+    /// <remarks>
+    /// From the declaration rather than from the column's position, which is what the heading
+    /// used to read: the first column was labelled the primary index whether it was one or
+    /// not, so a sheet that names its key annotated the wrong column and a sheet keyed by
+    /// several annotated one of them.
+    /// </remarks>
+    private static string KeyNote(
+        KeyPlan primary, HashSet<Models.SerialField> keyColumns, Models.SerialField entry)
+    {
+        if (!keyColumns.Contains(entry))
+            return "";
+
+        return primary.IsComposite
+            ? $"기본 인덱스 — {string.Join(", ", primary.Components.Select(part => part.Name))} 복합"
+            : "기본 인덱스";
     }
 
     /// <summary>
@@ -1729,15 +2298,29 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     private string RecordCell(
         Models.Table table, Models.SerialField entry, List<Cell> row, string root)
     {
+        // A group the sheet declared as a map is entries, not a record of two arrays: the
+        // pairing is the whole of what a map is, and `(Key: [10, 11], Value: [100, 120])`
+        // leaves the reader to do it by counting along both lists.
+        if (entry.Container == Models.ContainerKind.Map)
+        {
+            string pairs = MapBody(entry.Members, row, element: 0, root);
+
+            return pairs.Length > 200
+                ? $"<td class=\"text record\"><span class=\"clip\">{pairs}</span></td>"
+                : $"<td class=\"record\">{pairs}</td>";
+        }
+
         int count = table.ElementCountIn(entry, row);
         var elements = new List<string>();
+        var composite = CompositeOf(entry.Members);
 
         for (int i = 0; i < count; i++)
         {
-            string body = RecordBody(entry.Members, row, i, root);
-
-            elements.Add($"<span class=\"obj\"><span class=\"sep\">(</span>{body}" +
-                         "<span class=\"sep\">)</span></span>");
+            elements.Add(composite is not null
+                ? CompositeValueMarkup(composite, entry.Members, row, i, root)
+                : $"<span class=\"obj\"><span class=\"sep\">(</span>" +
+                  RecordBody(entry.Members, row, i, root) +
+                  "<span class=\"sep\">)</span></span>");
         }
 
         if (elements.Count == 0)
@@ -1765,17 +2348,47 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     {
         var parts = new List<string>();
 
+        // Which variant this element is, where the group is a polymorphic one. Read once for
+        // the whole element, because every member of it is answered against the same variant.
+        string variant = VariantOf(members, row, element);
+
         foreach (var member in members)
         {
             string value;
 
-            if (member.IsLeaf)
+            if (member.Container == Models.ContainerKind.Map)
+            {
+                value = MapBody(member.Members, row, element, root);
+            }
+            else if (member.IsLeaf)
             {
                 if (element >= member.Fields.Count)
                     continue;
 
                 var field = member.Fields[element];
                 var cell = row[field.Index];
+
+                // The column that says which variant, as the variant. What the cell holds is
+                // a number and what the author wrote is a name, and the page was printing the
+                // number - `Type: 2` over a union of every variant's members, with nothing
+                // saying which of them the row is. spec/types/polymorphism.md section 5.2.
+                if (field.IsDiscriminator)
+                {
+                    parts.Add($"<span class=\"mem\">{Esc(DiscriminatorName(field))}</span>" +
+                              $"<span class=\"msep\">: </span>{VariantMarkup(field, cell, root)}");
+                    continue;
+                }
+
+                // A member another variant declares is not absent from this row - it is not
+                // part of what this row is. Drawn as `null` it read as an optional value
+                // nobody filled in, which is a different fact and the one this page exists to
+                // keep apart. spec/types/polymorphism.md section 5.2.
+                if (NotInVariant(field, variant))
+                {
+                    parts.Add($"<span class=\"mem\">{Esc(member.Name)}</span>" +
+                              $"<span class=\"msep\">: </span>{Inapplicable(field, variant)}");
+                    continue;
+                }
 
                 // A member whose own cell holds the list - which is what a `set` and a `map`
                 // are - is several values under one name. Drawn as the list it is rather
@@ -1784,8 +2397,12 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                 value = !cell.HasValue
                     ? Absent()
                     : cell.Value is Array held
-                        ? ListMarkup(field, held, root)
+                        ? ListMarkup(field, held, root, member.Container == Models.ContainerKind.Set)
                         : ScalarValueMarkup(field, cell.Value, root);
+            }
+            else if (CompositeOf(member.Members) is { } composite)
+            {
+                value = CompositeValueMarkup(composite, member.Members, row, element, root);
             }
             else
             {
@@ -1802,6 +2419,292 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     }
 
     /// <summary>
+    /// Which variant one element of a polymorphic group is, or empty where the group is not
+    /// one.
+    /// </summary>
+    /// <remarks>
+    /// From the group's own `$type` column rather than from anything above it: a table may
+    /// hold several polymorphic groups, and each answers for itself.
+    /// </remarks>
+    private static string VariantOf(List<Models.RecordMember> members, List<Cell> row, int element)
+    {
+        foreach (var member in members)
+        {
+            if (!member.IsLeaf || element >= member.Fields.Count)
+                continue;
+
+            var field = member.Fields[element];
+
+            if (!field.IsDiscriminator)
+                continue;
+
+            var cell = row[field.Index];
+
+            return cell.HasValue && cell.Value is int number
+                ? field.Variants.Find(variant => variant.Discriminator == number)?.Name ?? ""
+                : "";
+        }
+
+        return "";
+    }
+
+    /// <summary>
+    /// Whether a member belongs to some other variant than the one this element is.
+    /// </summary>
+    /// <remarks>
+    /// An empty <see cref="Models.Field.VariantsDeclaringThis"/> is the abstract type's own
+    /// field, which every row of the group carries - so it is never out of place.
+    /// </remarks>
+    private static bool NotInVariant(Models.Field field, string variant)
+        => variant.Length > 0
+           && field.VariantsDeclaringThis.Count > 0
+           && !field.VariantsDeclaringThis.Contains(variant, StringComparer.Ordinal);
+
+    /// <summary>
+    /// A member this row's variant does not declare.
+    /// </summary>
+    /// <remarks>
+    /// A third mark, beside the `null` of a value nobody wrote and the `""` of an empty
+    /// string. Upright and not italic, because italic on this page means absence and this is
+    /// not an absence - the member is not part of the type this row is.
+    /// </remarks>
+    private static string Inapplicable(Models.Field field, string variant)
+    {
+        string owners = field.VariantsDeclaringThis.Count > 0
+            ? string.Join(", ", field.VariantsDeclaringThis)
+            : "";
+
+        string detail = owners.Length > 0
+            ? $"{variant} 변종에 없습니다 — {owners}이(가) 선언합니다"
+            : $"{variant} 변종에 없습니다";
+
+        return $"<span class=\"na\" title=\"{Esc(detail)}\">&mdash;</span>";
+    }
+
+    /// <summary>
+    /// What the discriminator column is called, which is what the sheet writes.
+    /// </summary>
+    /// <remarks>
+    /// From the raw name rather than the path, whose steps are normalized: the sheet writes
+    /// `$type` and the model carries `Type`, and the heading has to read as the sheet does
+    /// because that is the column somebody is going to go and edit.
+    /// </remarks>
+    private static string DiscriminatorName(Models.Field field)
+    {
+        string raw = field.RawName ?? "";
+        int last = raw.LastIndexOf('.');
+        string step = last >= 0 ? raw.Substring(last + 1) : raw;
+
+        if (step.Length == 0)
+            step = field.Name;
+
+        return step.StartsWith('$') ? step : "$" + step;
+    }
+
+    /// <summary>
+    /// The variant a `$type` cell names, as a link to its declaration.
+    /// </summary>
+    /// <remarks>
+    /// Linked for the same reason an enum label is: the variant is a declared thing with a
+    /// page, and the question a reader has at this cell is what that variant carries.
+    /// </remarks>
+    private string VariantMarkup(Models.Field field, Cell cell, string root)
+    {
+        if (!cell.HasValue || cell.Value is not int number)
+            return Absent();
+
+        var variant = field.Variants.Find(candidate => candidate.Discriminator == number);
+
+        if (variant is null || string.IsNullOrEmpty(field.AbstractTypeName))
+        {
+            // A number no variant carries. Said as what it is rather than drawn as a value,
+            // because a discriminator the readers do not know is data that will not load.
+            return $"<span class=\"bad\" title=\"어느 변종도 아닌 번호\">" +
+                   $"{number.ToString(CultureInfo.InvariantCulture)}</span>";
+        }
+
+        string detail = $"{field.AbstractTypeName}.{variant.Name} · 파일이 싣는 번호 {variant.Discriminator}";
+
+        return $"<a class=\"variant\" href=\"{HtmlLinks.Variant(field.AbstractTypeName!, variant.Name, root)}\" " +
+               $"title=\"{Esc(detail)}\">{Esc(variant.Name)}</a>";
+    }
+
+    /// <summary>
+    /// A map as its entries: `{10: 100, 11: 120}`.
+    /// </summary>
+    /// <remarks>
+    /// The two columns paired up, which is what a map is. Drawn as the record it is made of -
+    /// `(Key: [10, 11], Value: [100, 120])` - the reader has to count along both lists to find
+    /// out what any one key holds, and the declaration said not to make them do that.
+    /// spec/types/set-and-map.md section 7.2.
+    /// </remarks>
+    private string MapBody(
+        List<Models.RecordMember> members, List<Cell> row, int element, string root)
+    {
+        var key = members.Find(member => member.Name == Models.ContainerMembers.Key);
+        var held = members.Find(member => member.Name == Models.ContainerMembers.Value);
+
+        if (key is null || held is null)
+            return $"<span class=\"obj\"><span class=\"sep\">(</span>" +
+                   RecordBody(members, row, element, root) +
+                   "<span class=\"sep\">)</span></span>";
+
+        var keys = ContainerElements(key, row, element, root);
+        var parts = new List<string>();
+
+        for (int at = 0; at < keys.Count; at++)
+        {
+            parts.Add($"{keys[at]}<span class=\"msep\">: </span>" +
+                      $"{ContainerEntry(held, row, element, at, root)}");
+        }
+
+        if (parts.Count == 0)
+            return "<span class=\"empty\" title=\"원소 없음\">{}</span>";
+
+        return "<span class=\"obj\"><span class=\"sep\">{</span>"
+             + string.Join("<span class=\"sep\">, </span>", parts)
+             + "<span class=\"sep\">}</span></span>"
+             + (parts.Count > 1 ? $"<span class=\"n-of\">&times;{parts.Count}</span>" : "");
+    }
+
+    /// <summary>One column of a container, element by element, already rendered.</summary>
+    private List<string> ContainerElements(
+        Models.RecordMember member, List<Cell> row, int element, string root)
+    {
+        var result = new List<string>();
+
+        if (!member.IsLeaf || element >= member.Fields.Count)
+            return result;
+
+        var field = member.Fields[element];
+        var cell = row[field.Index];
+
+        if (!cell.HasValue || cell.Value is not Array values)
+            return result;
+
+        for (int at = 0; at < values.Length; at++)
+            result.Add(ScalarValueMarkup(field, values.GetValue(at), root));
+
+        return result;
+    }
+
+    /// <summary>
+    /// What one entry of a map holds: a value, or the record its members make.
+    /// </summary>
+    private string ContainerEntry(
+        Models.RecordMember held, List<Cell> row, int element, int at, string root)
+    {
+        if (held.IsLeaf)
+        {
+            var values = ContainerElements(held, row, element, root);
+
+            return at < values.Count ? values[at] : Absent();
+        }
+
+        var parts = new List<string>();
+
+        foreach (var member in held.Members)
+        {
+            var values = ContainerElements(member, row, element, root);
+
+            parts.Add($"<span class=\"mem\">{Esc(member.Name)}</span><span class=\"msep\">: </span>" +
+                      $"{(at < values.Count ? values[at] : Absent())}");
+        }
+
+        return "<span class=\"obj\"><span class=\"sep\">(</span>"
+             + string.Join("<span class=\"sep\">, </span>", parts)
+             + "<span class=\"sep\">)</span></span>";
+    }
+
+    /// <summary>
+    /// A composite value as the sheet writes one: `(1.5, -2.5, 0)`, and a colour as a colour.
+    /// </summary>
+    /// <remarks>
+    /// The components without their names, because the type row already names them and the
+    /// order is the type's - a `vec3f` cell reading `(X: 1.5, Y: -2.5, Z: 0)` is three times
+    /// as wide as the value the author typed, for nothing a reader of that column did not
+    /// already know.
+    ///
+    /// A colour additionally gets the one thing only this target can give it: the colour. The
+    /// pages are read to check data, and `(R: 51, G: 153, B: 204, A: 255)` is not how anybody
+    /// checks a colour. spec/types/composite-value-types.md.
+    /// </remarks>
+    private string CompositeValueMarkup(
+        Models.CompositeType composite, List<Models.RecordMember> members, List<Cell> row,
+        int element, string root)
+    {
+        var values = new List<object?>();
+        var parts = new List<string>();
+        bool complete = true;
+
+        foreach (var member in members)
+        {
+            if (element >= member.Fields.Count)
+            {
+                complete = false;
+                break;
+            }
+
+            var field = member.Fields[element];
+            var cell = row[field.Index];
+
+            values.Add(cell.HasValue ? cell.Value : null);
+
+            parts.Add(cell.HasValue
+                ? ScalarValueMarkup(field, cell.Value, root)
+                : Absent());
+        }
+
+        if (!complete || parts.Count == 0)
+            return Absent();
+
+        string tuple = "<span class=\"obj\"><span class=\"sep\">(</span>"
+                     + string.Join("<span class=\"sep\">, </span>", parts)
+                     + "<span class=\"sep\">)</span></span>";
+
+        return composite.IsColor
+            ? Swatch(composite, values) + tuple
+            : tuple;
+    }
+
+    /// <summary>
+    /// A colour, drawn.
+    /// </summary>
+    /// <remarks>
+    /// The swatch carries the colour as an inline style because the value comes from a sheet
+    /// and there is no class for it: a page cannot have a rule per colour a workbook holds.
+    /// Only the six hex digits and the two of alpha go in, so nothing a cell holds reaches the
+    /// style beyond a number this method wrote.
+    ///
+    /// An unbounded `color` is clamped for the swatch alone - an HDR component above 1 is a
+    /// colour no screen shows, and the tuple beside it still says what the sheet holds.
+    /// </remarks>
+    private static string Swatch(Models.CompositeType composite, List<object?> values)
+    {
+        var bytes = new int[4] { 0, 0, 0, 255 };
+
+        for (int at = 0; at < values.Count && at < 4; at++)
+        {
+            bytes[at] = values[at] switch
+            {
+                int whole => Math.Clamp(whole, 0, 255),
+                float part => (int)Math.Round(Math.Clamp(part, 0f, 1f) * 255f),
+                double part => (int)Math.Round(Math.Clamp(part, 0d, 1d) * 255d),
+                _ => 0,
+            };
+        }
+
+        string hex = $"#{bytes[0]:X2}{bytes[1]:X2}{bytes[2]:X2}";
+
+        // Alpha in the tooltip rather than in the swatch: a translucent square over the
+        // page's own background is a different colour on the light theme and the dark one,
+        // and the number is what somebody checking a value is after.
+        string detail = bytes[3] == 255 ? hex : $"{hex} · 알파 {bytes[3]}";
+
+        return $"<span class=\"swatch\" style=\"background: {hex}\" title=\"{Esc(detail)}\"></span>";
+    }
+
+    /// <summary>
     /// One member's whole list, drawn as the list it is.
     /// </summary>
     /// <remarks>
@@ -1810,23 +2713,31 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     /// publish, because a page is read rather than called.
     /// spec/types/set-and-map.md section 7.2.
     /// </remarks>
-    private string ListMarkup(Models.Field field, Array elements, string root)
+    /// <param name="isSet">
+    /// Whether the declaration said the elements are distinct, which the braces say: a `set`
+    /// and an array hold the same cell and the page had no way to tell a reader which one the
+    /// author wrote.
+    /// </param>
+    private string ListMarkup(Models.Field field, Array elements, string root, bool isSet = false)
     {
         var parts = new List<string>();
 
         foreach (var element in elements)
             parts.Add(ScalarValueMarkup(field, element, root));
 
-        return "<span class=\"obj\"><span class=\"sep\">[</span>"
+        string open = isSet ? "{" : "[";
+        string close = isSet ? "}" : "]";
+
+        return $"<span class=\"obj\"><span class=\"sep\">{open}</span>"
              + string.Join("<span class=\"sep\">, </span>", parts)
-             + "<span class=\"sep\">]</span></span>";
+             + $"<span class=\"sep\">{close}</span></span>";
     }
 
     /// <summary>
     /// The heading of one entry: the record's name where the sheet spread it over columns,
     /// and the column's own name where it did not.
     /// </summary>
-    private static string NameCell(Models.Table table, Models.SerialField entry, int position)
+    private static string NameCell(Models.Table table, Models.SerialField entry, string keyNote)
     {
         var head = HeadOf(entry);
 
@@ -1838,7 +2749,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         // the column name because a sheet has nowhere else to put it; the page has one
         // column for the whole array, so the index in the heading names nothing.
         if (!entry.IsRecord && entry.Fields.Count <= 1 && !entry.IsArray)
-            return NameCell(table, head, position);
+            return NameCell(table, head, keyNote);
 
         // A record, or an array: the entry has a name of its own and the columns under it are
         // its parts.
@@ -1857,6 +2768,9 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         if (!IsRequiredEntry(entry))
             notes.Add("옵셔널");
 
+        if (keyNote.Length > 0)
+            notes.Insert(0, keyNote);
+
         return $"<th id=\"{HtmlLinks.ColumnAnchor(table.Name, head.Name)}\" " +
                $"title=\"{Esc(string.Join(" · ", notes))}\">{Esc(EntryCaption(entry, head))}</th>";
     }
@@ -1865,23 +2779,35 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     /// What an entry is called, in the sheet's own spelling where the sheet has one.
     /// </summary>
     /// <remarks>
-    /// A column name carries the element it holds - `worldBuffId[0]`, `statBonus[0]["Id"]` -
-    /// because a sheet has one column per element and nowhere else to write which. The page
-    /// has one column for the whole entry, so everything from the first bracket on names a
-    /// part rather than the entry, and the heading drops it. Where the sheet spread an array
-    /// over numbered names instead (`Slot1`, `Slot2`), the model's own name is the only one
-    /// that covers them all.
+    /// A column name carries the element or member it holds - `worldBuffId[0]`,
+    /// `statBonus[0]["Id"]`, `Pos.X` - because a sheet has one column per part and nowhere
+    /// else to write which. The page has one column for the whole entry, so everything from
+    /// the first step of the path on names a part rather than the entry, and the heading
+    /// drops it. Where the sheet spread an array over numbered names instead (`Slot1`,
+    /// `Slot2`), the model's own name is the only one that covers them all.
+    ///
+    /// **Both notations, not just the bracket one.** The dot was not being cut, so every
+    /// group a sheet wrote in dot notation was headed by its first member: a `vec3f` column
+    /// read `Pos.X`, a `map` group read `Bag.Tags`, and a polymorphic group read
+    /// `Effect.$type` - each of them the name of one part standing over a cell holding all
+    /// of them.
     /// </remarks>
     private static string EntryCaption(Models.SerialField entry, Models.Field head)
     {
         string raw = head.RawName ?? "";
-        int bracket = raw.IndexOf('[');
+        int cut = raw.IndexOfAny(PathStart);
+        string step = cut > 0 ? raw.Substring(0, cut) : raw;
 
-        if (bracket > 0)
-            return raw.Substring(0, bracket);
+        // A numbered step is one element of the array rather than the array, so the entry's
+        // own name is the one that covers them all - `Slot`, not `Slot1`.
+        if (entry.IsArray && step.Length > 0 && char.IsDigit(step[^1]))
+            return entry.Name;
 
-        return entry.Fields.Count > 1 || raw.Length == 0 ? entry.Name : raw;
+        return entry.Fields.Count > 1 || step.Length == 0 ? entry.Name : step;
     }
+
+    /// <summary>Where a column name stops naming the entry and starts naming a part of it.</summary>
+    private static readonly char[] PathStart = { '[', '.' };
 
     /// <summary>One member of a record, as the heading's tooltip names it.</summary>
     private static string MemberNote(Models.RecordMember member)
@@ -1902,12 +2828,12 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     /// columns rather than the folded arrays, so the page reads like the workbook it
     /// documents.
     /// </summary>
-    private static string NameCell(Models.Table table, Models.Field field, int position)
+    private static string NameCell(Models.Table table, Models.Field field, string keyNote)
     {
         var notes = new List<string>();
 
-        if (position == 0)
-            notes.Add("기본 인덱스");
+        if (keyNote.Length > 0)
+            notes.Add(keyNote);
 
         // The name the generated code uses, when the sheet spells the column differently -
         // `statBonus[0]["Id"]` is one column of a record array and `StatEffect0Id` is what
@@ -1953,6 +2879,20 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         if (constraints.Maximum is double max)
             yield return $"최대 {max.ToString(CultureInfo.InvariantCulture)}";
 
+        // The three below were added to the model after this list was written and no page
+        // showed them, which is the same gap the first two were closing.
+        if (constraints.MinimumLength is int minLength)
+            yield return $"최소 길이 {minLength}";
+
+        if (constraints.MaximumLength is int maxLength)
+            yield return $"최대 길이 {maxLength}";
+
+        if (constraints.Pattern is { Length: > 0 } pattern)
+            yield return $"패턴 {pattern}";
+
+        if (constraints.NotDefault)
+            yield return "타입의 빈 값 금지";
+
         if (constraints.AllowedValues is { Count: > 0 } allowed)
             yield return $"허용값 {allowed.Count}개";
 
@@ -1961,7 +2901,8 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     }
 
     private string DataCell(
-        Models.Table table, Models.Field field, Cell cell, bool isIndex, string root)
+        Models.Table table, Models.Field field, Cell cell,
+        bool isKey, bool anchored, string key, string root)
     {
         // A row with no value for a column does not hold a null: it holds the type's empty
         // value with `HasValue` false beside it, which is how the wire carries absence. Read
@@ -1971,14 +2912,18 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 
         string content = DataValueMarkup(field, value, root, cell.ElementHasValue);
 
-        // The index cell is the row's anchor, so a reference elsewhere can name the row.
-        // Escaped, because a string index is a value from the sheet and it is going into
-        // an attribute.
-        if (isIndex)
+        // One key cell of the row carries the row's anchor, so a reference elsewhere can name
+        // the row. Escaped, because a string key is a value from the sheet and it is going
+        // into an attribute.
+        if (anchored)
         {
-            return $"<td class=\"key\" id=\"{Esc(HtmlLinks.RowAnchor(table.Name, value))}\">" +
+            return $"<td class=\"key\" id=\"{Esc(HtmlLinks.RowAnchor(table.Name, key))}\">" +
                    $"<code>{content}</code></td>";
         }
+
+        // The rest of a composite key still reads as a key, without an anchor of its own.
+        if (isKey)
+            return $"<td class=\"key\"><code>{content}</code></td>";
 
         if (field.IsRef)
             return $"<td class=\"key\"><code>{content}</code></td>";
@@ -2070,7 +3015,11 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         return null;
     }
 
-    private string TypeMarkup(Models.Field field, string root)
+    /// <param name="brackets">
+    /// Whether an array column's brackets belong here. They do not when the column is the
+    /// inside of a container: `set&lt;string&gt;` holds strings and the array is the set.
+    /// </param>
+    private string TypeMarkup(Models.Field field, string root, bool brackets = true)
     {
         // Several targets, so the column's type is the key it carries and the arrow names
 
@@ -2101,7 +3050,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             string left = string.IsNullOrEmpty(keyType)
                 ? ""
                 : $"<span class=\"type\">{Esc(keyType)}" +
-                  $"{(field.IsArray ? "[]" : "")}{Optional(field)}</span> ";
+                  $"{ArrayMark(field, brackets)}{Optional(field)}</span> ";
 
             // Only as a link when the table it names is in this model. A reference whose
             // target was filtered out by side, or never resolved, would otherwise be a
@@ -2113,7 +3062,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 
         // Element type drives the choice; the brackets are appended after, so an array
         // of enums still links to its declaration.
-        string suffix = field.IsArray ? "[]" : "";
+        string suffix = ArrayMark(field, brackets);
 
         if (field!.ElementType == Models.ValueType.Enum)
         {
@@ -2468,6 +3417,44 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     }
 
     /// <summary>
+    /// Whether the sheet wrote this column as a bit pattern.
+    /// </summary>
+    /// <remarks>
+    /// The type name and not the type: the cooker folds `bitset` to `bigint` once parsing is
+    /// over, because the wire carries an i64 either way, and leaves the name saying what the
+    /// sheet said. That name is the only thing left to read.
+    /// </remarks>
+    private static bool IsBitset(Models.Field field)
+        => string.Equals(field.TypeName, BitsetTypeName, StringComparison.Ordinal);
+
+    private const string BitsetTypeName = "bitset";
+
+    /// <summary>
+    /// A bit pattern as hexadecimal, with how many bits are set and the magnitude beside it.
+    /// </summary>
+    /// <remarks>
+    /// Hexadecimal because a pattern is read by its nibbles and a decimal has to be converted
+    /// before it says anything. Padded to the width the value needs rather than to 16 digits:
+    /// `0x1F` is what the sheet holds, and `0x000000000000001F` is the same value written so
+    /// that a column of them cannot be compared at a glance.
+    ///
+    /// The decimal is in the tooltip because it is still the number the exported data carries,
+    /// and somebody checking a saved value needs it.
+    /// </remarks>
+    private static string BitsetMarkup(long pattern)
+    {
+        string hex = pattern < 0
+            ? ((ulong)pattern).ToString("X", CultureInfo.InvariantCulture)
+            : pattern.ToString("X", CultureInfo.InvariantCulture);
+
+        int bits = System.Numerics.BitOperations.PopCount((ulong)pattern);
+
+        string detail = $"비트 {bits}개 · {pattern.ToString(CultureInfo.InvariantCulture)}";
+
+        return $"<span class=\"bits\" title=\"{Esc(detail)}\">0x{hex}</span>";
+    }
+
+    /// <summary>
     /// One value of a field's element type.
     /// </summary>
     private string ScalarValueMarkup(Models.Field field, object? value, string root)
@@ -2479,6 +3466,14 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         // inside one is a key: it links to its row like any other.
         if (NamedTablesOf(field).Count > 0)
             return KeyMarkup(field, value, root);
+
+        // A bit pattern, drawn as one. The type is folded to a 64-bit integer once every
+        // cell has been read - so by here nothing but the column's own type name says the
+        // sheet wrote `bitset`, and the page was printing the same decimal as the `bigint`
+        // column beside it. `0x1F` is what the author typed and `-1` is what every bit set
+        // came out as. spec/types/bitset.md.
+        if (IsBitset(field) && value is long pattern)
+            return BitsetMarkup(pattern);
 
         switch (field!.ElementType)
         {
@@ -2697,6 +3692,8 @@ internal static class HtmlLinks
 
     public static string EnumPage(string enumName) => $"enums/{enumName.ToKebabCase()}.html";
 
+    public static string StructPage(string name) => $"structs/{name.ToKebabCase()}.html";
+
     /// <summary>
     /// A table's page. No fragment: the page is the table, and an anchor on it landed the
     /// reader below the title with the sticky bar over the header row.
@@ -2712,6 +3709,12 @@ internal static class HtmlLinks
 
     public static string EnumLabel(string enumName, string label, string root)
         => $"{root}{EnumPage(enumName)}#const_{enumName}.{label}";
+
+    public static string Struct(string name, string root)
+        => $"{root}{StructPage(name)}#struct_{name}";
+
+    public static string Variant(string name, string variant, string root)
+        => $"{root}{StructPage(name)}#variant_{name}.{variant}";
 
     public static string ConstantSet(string set, string root)
         => $"{root}constantsets.html#constantset_{set}";

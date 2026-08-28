@@ -22,7 +22,7 @@
 <div class="scroll">
 <table>
 <thead>
-<tr class="names"><th>번호</th><th>이름</th><th>값</th><th>설명</th></tr>
+<tr class="names"><th>번호</th><th>이름</th><th>값</th>{{ if has_aliases }}<th title="셀이 이 이름으로 적어도 같은 레이블로 해석됩니다">다른 표기</th>{{ end }}<th>설명</th></tr>
 </thead>
 <tbody>
 {{~ for label in labels ~}}
@@ -30,6 +30,7 @@
 <td class="num">{{ label.no }}</td>
 <td id="const_{{ name }}.{{ label.name }}">{{ label.source_link }}</td>
 <td class="num"><code>{{ label.value }}</code></td>
+{{ if has_aliases }}<td>{{ if label.alias != '' }}<code>{{ label.alias }}</code>{{ end }}</td>{{ end }}
 <td>{{ label.comment }}</td>
 </tr>
 {{~ end ~}}

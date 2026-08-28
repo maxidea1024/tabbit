@@ -325,6 +325,24 @@ td.text.open .clip { max-width: 72ch; white-space: normal; overflow: visible; }
 .yes { color: var(--good); }
 .no { color: var(--bad); }
 .n-of { color: var(--faint); font-size: 11px; margin-left: 4px; }
+/* A bit pattern, coloured as the number it is. Monospace because the digits of a pattern are
+   read by position, and a proportional font puts the same nibble at a different offset on
+   every row. */
+.bits { color: var(--num); font-family: Consolas, "SF Mono", Menlo, monospace; }
+/* A member the row's variant does not declare. Upright, because italic on this page means a
+   value is absent and this is not an absence - the member is not part of what this row is. */
+.na { color: var(--none); }
+/* The variants that declare a member, beside its type in the header. Smaller than the type and
+   in the flag colour, so a type row of a wide union still reads as types first. */
+.of { color: var(--flag); font-size: 11px; }
+a.variant { color: var(--flag); }
+/* A colour, drawn. Its own border rather than none, so white on the light theme and black on
+   the dark one are still squares and not gaps. The colour itself is an inline style: a page
+   cannot carry a rule per colour a workbook holds. */
+.swatch {
+  display: inline-block; width: 11px; height: 11px; border-radius: 3px;
+  border: 1px solid var(--line); margin-right: 6px; vertical-align: -1px;
+}
 .tools { display: flex; align-items: center; gap: 12px; margin: 0 0 8px; flex-wrap: wrap; }
 .tools input[type=search] { width: 260px; }
 .hint { color: var(--faint); font-size: 12px; }
@@ -473,6 +491,7 @@ tbody [data-pick] { cursor: pointer; }
 <symbol id="i-column" viewBox="0 0 16 16"><rect x="2.2" y="3.2" width="11.6" height="9.6" rx="1.4"/><rect x="6.3" y="3.2" width="3.4" height="9.6" fill="currentColor" stroke="none" opacity=".28"/></symbol>
 <symbol id="i-enum" viewBox="0 0 16 16"><path d="M6.2 2.8h-1A1.5 1.5 0 0 0 3.7 4.3v2.2A1.5 1.5 0 0 1 2.2 8a1.5 1.5 0 0 1 1.5 1.5v2.2a1.5 1.5 0 0 0 1.5 1.5h1M9.8 2.8h1a1.5 1.5 0 0 1 1.5 1.5v2.2A1.5 1.5 0 0 0 13.8 8a1.5 1.5 0 0 0-1.5 1.5v2.2a1.5 1.5 0 0 1-1.5 1.5h-1"/></symbol>
 <symbol id="i-const" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.6"/><path d="M5.6 6.7h4.8M5.6 9.3h4.8"/></symbol>
+<symbol id="i-struct" viewBox="0 0 16 16"><rect x="1.6" y="6.2" width="4.4" height="3.6" rx="1"/><rect x="10" y="2.6" width="4.4" height="3.6" rx="1"/><rect x="10" y="9.8" width="4.4" height="3.6" rx="1"/><path d="M6 8h2.1V4.4H10M8.1 8v3.6H10"/></symbol>
 <symbol id="i-workbook" viewBox="0 0 16 16"><path d="M3.2 3.9A1.7 1.7 0 0 1 4.9 2.2h7.4a.8.8 0 0 1 .8.8v10a.8.8 0 0 1-.8.8H4.9a1.7 1.7 0 0 1-1.7-1.7z"/><path d="M6.3 2.2v11.6"/></symbol>
 <symbol id="i-sheet" viewBox="0 0 16 16"><path d="M4.3 2.4h4.6l3.3 3.3v7.1a.8.8 0 0 1-.8.8H4.3a.8.8 0 0 1-.8-.8V3.2a.8.8 0 0 1 .8-.8z"/><path d="M8.7 2.4v3.4h3.5"/></symbol>
 <symbol id="i-key" viewBox="0 0 16 16"><circle cx="5.4" cy="5.4" r="2.7"/><path d="M7.3 7.3l5.9 5.9M11.1 11.2l1.3 1.3M9.2 9.3l1.3 1.3"/></symbol>
@@ -489,6 +508,7 @@ tbody [data-pick] { cursor: pointer; }
 <a href="../fields.html"><svg class="i"><use href="#i-column"></use></svg>컬럼</a>
 <a href="../references.html"><svg class="i"><use href="#i-graph"></use></svg>참조</a>
 <a href="../enums.html"><svg class="i"><use href="#i-enum"></use></svg>enum</a>
+<a href="../structs.html"><svg class="i"><use href="#i-struct"></use></svg>구조체</a>
 <a href="../constantsets.html"><svg class="i"><use href="#i-const"></use></svg>상수 세트</a>
 </nav>
 <button class="theme" type="button" data-theme-cycle title="테마: 시스템 설정을 따릅니다">
@@ -553,7 +573,7 @@ tbody [data-pick] { cursor: pointer; }
 <tr class="names">
 <th id="col_MonsterAwakening.FromMonsterId" title="기본 인덱스 &#183; 생성 이름 FromMonsterId">from_monster_id</th>
 <th id="col_MonsterAwakening.ToMonsterId" title="생성 이름 ToMonsterId">to_monster_id</th>
-<th id="col_MonsterAwakening.GainHp" title="레코드 6멤버 &#183; Hp: int &#183; Attack: int &#183; Defense: int &#183; Speed: int &#183; CritRate: int &#183; CritPower: int">gain.hp</th>
+<th id="col_MonsterAwakening.GainHp" title="레코드 6멤버 &#183; Hp: int &#183; Attack: int &#183; Defense: int &#183; Speed: int &#183; CritRate: int &#183; CritPower: int">gain</th>
 <th id="col_MonsterAwakening.RequirementGroupId" title="생성 이름 RequirementGroupId">requirement_group_id</th>
 <th id="col_MonsterAwakening.Costs0CurrencyId" title="레코드 2멤버 &#183; CurrencyId: Currency.Record &#183; Amount: int">costs</th>
 </tr>
@@ -611,7 +631,7 @@ tbody [data-pick] { cursor: pointer; }
 <div id="rowdefs" hidden>{&quot;Currency&quot;:{&quot;cols&quot;:[&quot;CurrencyId&quot;,&quot;Name&quot;,&quot;Icon&quot;,&quot;Cap&quot;,&quot;Tradable&quot;],&quot;rows&quot;:{&quot;shard&quot;:[&quot;shard&quot;,&quot;울림 조각&quot;,&quot;cur_shard&quot;,&quot;99999&quot;,&quot;false&quot;],&quot;gold&quot;:[&quot;gold&quot;,&quot;은편&quot;,&quot;cur_gold&quot;,&quot;999999999&quot;,&quot;true&quot;],&quot;food&quot;:[&quot;food&quot;,&quot;먹이&quot;,&quot;cur_food&quot;,&quot;99999&quot;,&quot;true&quot;]}},&quot;Monster&quot;:{&quot;cols&quot;:[&quot;MonsterId&quot;,&quot;DisplayCode&quot;,&quot;SpeciesId&quot;,&quot;Stage&quot;,&quot;Name&quot;],&quot;rows&quot;:{&quot;sprout_deer_1&quot;:[&quot;sprout_deer_1&quot;,&quot;lf001&quot;,&quot;sprout_deer&quot;,&quot;1&quot;,&quot;새싹사슴&quot;],&quot;sprout_deer_2&quot;:[&quot;sprout_deer_2&quot;,&quot;lf002&quot;,&quot;sprout_deer&quot;,&quot;2&quot;,&quot;잎뿔사슴&quot;],&quot;sprout_deer_3&quot;:[&quot;sprout_deer_3&quot;,&quot;lf003&quot;,&quot;sprout_deer&quot;,&quot;3&quot;,&quot;숲지기사슴&quot;],&quot;thorn_beetle_1&quot;:[&quot;thorn_beetle_1&quot;,&quot;lf005&quot;,&quot;thorn_beetle&quot;,&quot;1&quot;,&quot;가시딱정벌레&quot;],&quot;thorn_beetle_2&quot;:[&quot;thorn_beetle_2&quot;,&quot;lf006&quot;,&quot;thorn_beetle&quot;,&quot;2&quot;,&quot;창날딱정벌레&quot;],&quot;vine_ape_1&quot;:[&quot;vine_ape_1&quot;,&quot;lf007&quot;,&quot;vine_ape&quot;,&quot;1&quot;,&quot;덩굴원숭이&quot;],&quot;vine_ape_2&quot;:[&quot;vine_ape_2&quot;,&quot;lf008&quot;,&quot;vine_ape&quot;,&quot;2&quot;,&quot;등나무원숭이&quot;],&quot;elder_bark_1&quot;:[&quot;elder_bark_1&quot;,&quot;lf010&quot;,&quot;elder_bark&quot;,&quot;1&quot;,&quot;늙은껍질&quot;],&quot;elder_bark_2&quot;:[&quot;elder_bark_2&quot;,&quot;lf011&quot;,&quot;elder_bark&quot;,&quot;2&quot;,&quot;고목수호자&quot;],&quot;ember_fox_1&quot;:[&quot;ember_fox_1&quot;,&quot;fl001&quot;,&quot;ember_fox&quot;,&quot;1&quot;,&quot;잉걸여우&quot;],&quot;ember_fox_2&quot;:[&quot;ember_fox_2&quot;,&quot;fl002&quot;,&quot;ember_fox&quot;,&quot;2&quot;,&quot;불꼬리여우&quot;],&quot;ember_fox_3&quot;:[&quot;ember_fox_3&quot;,&quot;fl003&quot;,&quot;ember_fox&quot;,&quot;3&quot;,&quot;화염여우&quot;],&quot;ash_boar_1&quot;:[&quot;ash_boar_1&quot;,&quot;fl005&quot;,&quot;ash_boar&quot;,&quot;1&quot;,&quot;재멧돼지&quot;],&quot;ash_boar_2&quot;:[&quot;ash_boar_2&quot;,&quot;fl006&quot;,&quot;ash_boar&quot;,&quot;2&quot;,&quot;화산멧돼지&quot;],&quot;magma_crab_1&quot;:[&quot;magma_crab_1&quot;,&quot;fl008&quot;,&quot;magma_crab&quot;,&quot;1&quot;,&quot;용암게&quot;],&quot;magma_crab_2&quot;:[&quot;magma_crab_2&quot;,&quot;fl009&quot;,&quot;magma_crab&quot;,&quot;2&quot;,&quot;분화구게&quot;],&quot;tide_serpent_1&quot;:[&quot;tide_serpent_1&quot;,&quot;td001&quot;,&quot;tide_serpent&quot;,&quot;1&quot;,&quot;물비늘뱀&quot;],&quot;tide_serpent_2&quot;:[&quot;tide_serpent_2&quot;,&quot;td002&quot;,&quot;tide_serpent&quot;,&quot;2&quot;,&quot;조류뱀&quot;],&quot;tide_serpent_3&quot;:[&quot;tide_serpent_3&quot;,&quot;td003&quot;,&quot;tide_serpent&quot;,&quot;3&quot;,&quot;심해뱀&quot;],&quot;reef_turtle_1&quot;:[&quot;reef_turtle_1&quot;,&quot;td005&quot;,&quot;reef_turtle&quot;,&quot;1&quot;,&quot;산호거북&quot;],&quot;reef_turtle_2&quot;:[&quot;reef_turtle_2&quot;,&quot;td006&quot;,&quot;reef_turtle&quot;,&quot;2&quot;,&quot;암초거북&quot;],&quot;brine_otter_1&quot;:[&quot;brine_otter_1&quot;,&quot;td008&quot;,&quot;brine_otter&quot;,&quot;1&quot;,&quot;소금수달&quot;],&quot;brine_otter_2&quot;:[&quot;brine_otter_2&quot;,&quot;td009&quot;,&quot;brine_otter&quot;,&quot;2&quot;,&quot;물살수달&quot;],&quot;bolt_lynx_1&quot;:[&quot;bolt_lynx_1&quot;,&quot;ar002&quot;,&quot;bolt_lynx&quot;,&quot;1&quot;,&quot;스파크살쾡이&quot;],&quot;bolt_lynx_2&quot;:[&quot;bolt_lynx_2&quot;,&quot;ar003&quot;,&quot;bolt_lynx&quot;,&quot;2&quot;,&quot;번개살쾡이&quot;],&quot;bolt_lynx_3&quot;:[&quot;bolt_lynx_3&quot;,&quot;ar004&quot;,&quot;bolt_lynx&quot;,&quot;3&quot;,&quot;뇌전살쾡이&quot;],&quot;coil_snake_1&quot;:[&quot;coil_snake_1&quot;,&quot;ar005&quot;,&quot;coil_snake&quot;,&quot;1&quot;,&quot;감김뱀&quot;],&quot;coil_snake_2&quot;:[&quot;coil_snake_2&quot;,&quot;ar006&quot;,&quot;coil_snake&quot;,&quot;2&quot;,&quot;나선뱀&quot;],&quot;storm_crane_1&quot;:[&quot;storm_crane_1&quot;,&quot;ar007&quot;,&quot;storm_crane&quot;,&quot;1&quot;,&quot;폭풍두루미&quot;],&quot;storm_crane_2&quot;:[&quot;storm_crane_2&quot;,&quot;ar008&quot;,&quot;storm_crane&quot;,&quot;2&quot;,&quot;뇌운두루미&quot;],&quot;dusk_weasel_1&quot;:[&quot;dusk_weasel_1&quot;,&quot;um002&quot;,&quot;dusk_weasel&quot;,&quot;1&quot;,&quot;해거름족제비&quot;],&quot;dusk_weasel_2&quot;:[&quot;dusk_weasel_2&quot;,&quot;um003&quot;,&quot;dusk_weasel&quot;,&quot;2&quot;,&quot;밤그늘족제비&quot;],&quot;gloom_spider_1&quot;:[&quot;gloom_spider_1&quot;,&quot;um004&quot;,&quot;gloom_spider&quot;,&quot;1&quot;,&quot;그늘거미&quot;],&quot;gloom_spider_2&quot;:[&quot;gloom_spider_2&quot;,&quot;um005&quot;,&quot;gloom_spider&quot;,&quot;2&quot;,&quot;어스름거미&quot;],&quot;gloom_spider_3&quot;:[&quot;gloom_spider_3&quot;,&quot;um006&quot;,&quot;gloom_spider&quot;,&quot;3&quot;,&quot;심연거미&quot;],&quot;night_hound_1&quot;:[&quot;night_hound_1&quot;,&quot;um007&quot;,&quot;night_hound&quot;,&quot;1&quot;,&quot;밤사냥개&quot;],&quot;night_hound_2&quot;:[&quot;night_hound_2&quot;,&quot;um008&quot;,&quot;night_hound&quot;,&quot;2&quot;,&quot;흑야사냥개&quot;],&quot;umbra_owl_1&quot;:[&quot;umbra_owl_1&quot;,&quot;um009&quot;,&quot;umbra_owl&quot;,&quot;1&quot;,&quot;그늘부엉이&quot;],&quot;umbra_owl_2&quot;:[&quot;umbra_owl_2&quot;,&quot;um010&quot;,&quot;umbra_owl&quot;,&quot;2&quot;,&quot;달그늘부엉이&quot;],&quot;void_seraph_1&quot;:[&quot;void_seraph_1&quot;,&quot;um011&quot;,&quot;void_seraph&quot;,&quot;1&quot;,&quot;공허날개&quot;],&quot;void_seraph_2&quot;:[&quot;void_seraph_2&quot;,&quot;um012&quot;,&quot;void_seraph&quot;,&quot;2&quot;,&quot;무광날개&quot;],&quot;void_seraph_3&quot;:[&quot;void_seraph_3&quot;,&quot;um013&quot;,&quot;void_seraph&quot;,&quot;3&quot;,&quot;종막날개&quot;]}},&quot;RequirementGroup&quot;:{&quot;cols&quot;:[&quot;RequirementGroupId&quot;,&quot;Note&quot;],&quot;rows&quot;:{&quot;req_awaken_sprout_deer_2&quot;:[&quot;req_awaken_sprout_deer_2&quot;,&quot;새싹사슴 2단 각성&quot;],&quot;req_awaken_sprout_deer_3&quot;:[&quot;req_awaken_sprout_deer_3&quot;,&quot;새싹사슴 3단 각성&quot;],&quot;req_awaken_thorn_beetle_2&quot;:[&quot;req_awaken_thorn_beetle_2&quot;,&quot;가시딱정벌레 2단 각성&quot;],&quot;req_awaken_vine_ape_2&quot;:[&quot;req_awaken_vine_ape_2&quot;,&quot;덩굴원숭이 2단 각성&quot;],&quot;req_awaken_elder_bark_2&quot;:[&quot;req_awaken_elder_bark_2&quot;,&quot;늙은껍질 2단 각성&quot;],&quot;req_awaken_ember_fox_2&quot;:[&quot;req_awaken_ember_fox_2&quot;,&quot;잉걸여우 2단 각성&quot;],&quot;req_awaken_ember_fox_3&quot;:[&quot;req_awaken_ember_fox_3&quot;,&quot;잉걸여우 3단 각성&quot;],&quot;req_awaken_ash_boar_2&quot;:[&quot;req_awaken_ash_boar_2&quot;,&quot;재멧돼지 2단 각성&quot;],&quot;req_awaken_magma_crab_2&quot;:[&quot;req_awaken_magma_crab_2&quot;,&quot;용암게 2단 각성&quot;],&quot;req_awaken_tide_serpent_2&quot;:[&quot;req_awaken_tide_serpent_2&quot;,&quot;물비늘뱀 2단 각성&quot;],&quot;req_awaken_tide_serpent_3&quot;:[&quot;req_awaken_tide_serpent_3&quot;,&quot;물비늘뱀 3단 각성&quot;],&quot;req_awaken_reef_turtle_2&quot;:[&quot;req_awaken_reef_turtle_2&quot;,&quot;산호거북 2단 각성&quot;],&quot;req_awaken_brine_otter_2&quot;:[&quot;req_awaken_brine_otter_2&quot;,&quot;소금수달 2단 각성&quot;],&quot;req_awaken_bolt_lynx_2&quot;:[&quot;req_awaken_bolt_lynx_2&quot;,&quot;스파크살쾡이 2단 각성&quot;],&quot;req_awaken_bolt_lynx_3&quot;:[&quot;req_awaken_bolt_lynx_3&quot;,&quot;스파크살쾡이 3단 각성&quot;],&quot;req_awaken_coil_snake_2&quot;:[&quot;req_awaken_coil_snake_2&quot;,&quot;감김뱀 2단 각성&quot;],&quot;req_awaken_storm_crane_2&quot;:[&quot;req_awaken_storm_crane_2&quot;,&quot;폭풍두루미 2단 각성&quot;],&quot;req_awaken_dusk_weasel_2&quot;:[&quot;req_awaken_dusk_weasel_2&quot;,&quot;해거름족제비 2단 각성&quot;],&quot;req_awaken_gloom_spider_2&quot;:[&quot;req_awaken_gloom_spider_2&quot;,&quot;그늘거미 2단 각성&quot;],&quot;req_awaken_gloom_spider_3&quot;:[&quot;req_awaken_gloom_spider_3&quot;,&quot;그늘거미 3단 각성&quot;],&quot;req_awaken_night_hound_2&quot;:[&quot;req_awaken_night_hound_2&quot;,&quot;밤사냥개 2단 각성&quot;],&quot;req_awaken_umbra_owl_2&quot;:[&quot;req_awaken_umbra_owl_2&quot;,&quot;그늘부엉이 2단 각성&quot;],&quot;req_awaken_void_seraph_2&quot;:[&quot;req_awaken_void_seraph_2&quot;,&quot;공허날개 2단 각성&quot;],&quot;req_awaken_void_seraph_3&quot;:[&quot;req_awaken_void_seraph_3&quot;,&quot;공허날개 3단 각성&quot;]}}}</div>
 </main>
 </div>
-<p class="foot">생성 시각 2026-08-28 16:51:05</p>
+<p class="foot">생성 시각 2026-08-28 18:15:08</p>
 <script>
 (function () {
   "use strict";
@@ -934,7 +954,7 @@ tbody [data-pick] { cursor: pointer; }
 
     // ---- one table's neighbourhood: what points at it on the left, what it points at on
     // the right. Built from the adjacency the page carries.
-    var ROW = 30, GAP = 12, COLUMN = 170, PAD = 14, CHAR = 8, HEAD = 22, MOST = 12;
+    var ROW = 30, GAP = 12, COLUMN = 170, PAD = 14, CHAR = 8, HEAD = 22, MOST = 12, LOOP = 44;
 
     var protoNode = proto.querySelector('[data-proto="node"]');
     var protoEdge = proto.querySelector('[data-proto="edge"]');
@@ -1018,6 +1038,24 @@ tbody [data-pick] { cursor: pointer; }
       focus.appendChild(node);
     }
 
+    // A table pointing at itself, as a loop off its own right edge - the same shape the
+    // whole drawing gives it. The loop bulges LOOP wide, which the width below reserves.
+    function loop(x, y, columns) {
+      var path = protoEdge.cloneNode(true);
+
+      path.setAttribute("class", "edge self");
+      path.setAttribute("d", "M" + x + "," + (y - 6) + " C" + (x + 34) + "," + (y - 26)
+        + " " + (x + 34) + "," + (y + 26) + " " + x + "," + (y + 6));
+
+      if (columns) {
+        var title = document.createElementNS(path.namespaceURI, "title");
+        title.textContent = columns;
+        path.appendChild(title);
+      }
+
+      focus.appendChild(path);
+    }
+
     function show(name) {
       if (links === null) {
         try { links = JSON.parse(adjacency.textContent); } catch (e) { links = {}; }
@@ -1029,8 +1067,22 @@ tbody [data-pick] { cursor: pointer; }
       while (focus.firstChild) focus.removeChild(focus.firstChild);
 
       var about = links[name] || { "in": [], "out": [] };
-      var ins = about["in"].slice(0, MOST);
-      var outs = about["out"].slice(0, MOST);
+
+      // The table itself is not one of its own neighbours. Left in, it was drawn in the
+      // left column and the right one as well as the middle - the selected table three
+      // times over, at three different widths - and the two copies wore the arrow that
+      // walks to a table, which walked to the picture already on screen. It is a loop on
+      // its own box instead, which is what the whole drawing does with it.
+      var itself = null;
+      var inAll = about["in"].filter(function (entry) {
+        if (entry[0] !== name) return true;
+        itself = entry[1];
+        return false;
+      });
+      var outAll = about["out"].filter(function (entry) { return entry[0] !== name; });
+
+      var ins = inAll.slice(0, MOST);
+      var outs = outAll.slice(0, MOST);
 
       var inWidth = ins.length ? Math.max.apply(null, ins.map(function (e) { return widthOf(e[0]); })) : 0;
       var outWidth = outs.length ? Math.max.apply(null, outs.map(function (e) { return widthOf(e[0]); })) : 0;
@@ -1038,7 +1090,11 @@ tbody [data-pick] { cursor: pointer; }
 
       var rows = Math.max(ins.length, outs.length, 1);
       var height = HEAD + rows * ROW + (rows - 1) * GAP + PAD * 2;
-      var width = PAD * 2 + inWidth + midWidth + outWidth
+
+      // Room for the loop only where there is no right-hand column for it to bulge into.
+      var loopRoom = (itself !== null && !outs.length) ? LOOP : 0;
+
+      var width = PAD * 2 + inWidth + midWidth + outWidth + loopRoom
         + (ins.length ? COLUMN : 0) + (outs.length ? COLUMN : 0);
 
       var midX = PAD + inWidth + (ins.length ? COLUMN : 0);
@@ -1064,17 +1120,25 @@ tbody [data-pick] { cursor: pointer; }
 
       box(name, midX, midY, midWidth, true);
 
+      if (itself !== null)
+        loop(midX + midWidth, midY + ROW / 2, name + " → " + name + " (" + itself + ")");
+
       if (ins.length) {
-        label(about["in"].length > MOST
-          ? "이 테이블을 가리킴 " + about["in"].length + "개 중 " + MOST + "개"
+        label(inAll.length > MOST
+          ? "이 테이블을 가리킴 " + inAll.length + "개 중 " + MOST + "개"
           : "이 테이블을 가리킴 " + ins.length + "개", PAD, 15);
       }
 
       if (outs.length) {
-        label(about["out"].length > MOST
-          ? "이 테이블이 가리킴 " + about["out"].length + "개 중 " + MOST + "개"
+        label(outAll.length > MOST
+          ? "이 테이블이 가리킴 " + outAll.length + "개 중 " + MOST + "개"
           : "이 테이블이 가리킴 " + outs.length + "개", outX, 15);
       }
+
+      // Said where the columns cannot say it: a table whose only reference is to itself has
+      // neither column, and the loop alone reads as a stray mark.
+      if (itself !== null && !ins.length && !outs.length)
+        label("자기 자신을 가리킴 (" + itself + ")", PAD, 15);
 
       focus.setAttribute("data-width", width);
       focus.setAttribute("data-height", height);

@@ -30,6 +30,13 @@
 
   "Targets": [
     {
+      // The documentation, which is where a declared type has a page of its own. Every other
+      // target here carries the union of the variants' columns, and a reader needs the
+      // declaration the union came from.
+      "Type": "html",
+      "Path": "test/fixtures/output/polymorphism/html"
+    },
+    {
       "Type": "binary",
       "Path": "test/fixtures/output/polymorphism/binary",
       "FileExtension": ".tcb"

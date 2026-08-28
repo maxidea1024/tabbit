@@ -25,6 +25,12 @@
 
   "Targets": [
     {
+      // A `set` and a `map` are marks on columns that look like arrays, so the target that
+      // reports what the author declared is the one that can lose them.
+      "Type": "html",
+      "Path": "test/fixtures/output/containers/html"
+    },
+    {
       "Type": "binary",
       "Path": "test/fixtures/output/containers/binary",
       "FileExtension": ".tcb"

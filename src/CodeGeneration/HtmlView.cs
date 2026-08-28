@@ -304,6 +304,89 @@ internal sealed class HtmlGraphEdgeView
     public required bool IsSelf { get; set; }
 }
 
+/// <summary>
+/// The abstract types the sheets declared, as a list.
+/// </summary>
+/// <remarks>
+/// A page of its own beside the enumerations, because a struct is an entity beside a table and
+/// an enum: it is declared once and any number of groups may be one. The pages said nothing
+/// about them at all - a polymorphic group was drawn as the flat union its columns are, which
+/// is the encoding and not what the author wrote. spec/types/polymorphism.md section 7.1.
+/// </remarks>
+internal sealed class HtmlStructListPageView : HtmlPageView
+{
+    /// <summary>Whether any row has a description. The column is dropped when none has.</summary>
+    public required bool HasComments { get; set; }
+
+    public required string VariantTotal { get; set; }
+    public required IReadOnlyList<HtmlStructListRowView> Rows { get; set; }
+}
+
+internal sealed class HtmlStructListRowView
+{
+    public required string Name { get; set; }
+    public required string Href { get; set; }
+
+    /// <summary>How many members every variant carries.</summary>
+    public required string BaseCount { get; set; }
+
+    public required string VariantCount { get; set; }
+
+    /// <summary>
+    /// How many groups are declared as this type.
+    ///
+    /// The column that earns this page, for the same reason the enumerations list has one: a
+    /// declared type nothing uses is either a leftover or a group bound to the wrong name.
+    /// </summary>
+    public required string UserCount { get; set; }
+
+    public required string Comment { get; set; }
+}
+
+/// <summary>One abstract type: its own members, and what one of its values may be.</summary>
+internal sealed class HtmlStructPageView : HtmlPageView
+{
+    public required string Name { get; set; }
+    public required string Comment { get; set; }
+
+    /// <summary>The members every variant carries.</summary>
+    public required IReadOnlyList<HtmlStructMemberView> BaseMembers { get; set; }
+
+    public required IReadOnlyList<HtmlVariantView> Variants { get; set; }
+
+    /// <summary>The groups declared as this type, so the page answers "who uses this".</summary>
+    public required IReadOnlyList<HtmlSummaryEntryView> UsedBy { get; set; }
+}
+
+internal sealed class HtmlVariantView
+{
+    public required int No { get; set; }
+    public required string Name { get; set; }
+
+    /// <summary>The number the exported file carries for it.</summary>
+    public required string Discriminator { get; set; }
+
+    public required IReadOnlyList<HtmlStructMemberView> Members { get; set; }
+}
+
+internal sealed class HtmlStructMemberView
+{
+    public required string Name { get; set; }
+
+    /// <summary>Rendered, because a member's type can be a link.</summary>
+    public required string TypeCell { get; set; }
+
+    /// <summary>
+    /// The other variants that declare this member, or empty for one only this variant has.
+    ///
+    /// A member several variants declare is one column and one field on each of them, so
+    /// seeing it twice in this page is not a duplicate - and a reader has to be told that.
+    /// </summary>
+    public required string Shared { get; set; }
+
+    public required string Comment { get; set; }
+}
+
 internal sealed class HtmlConstantSetListRowView
 {
     public required string Name { get; set; }
@@ -335,6 +418,11 @@ internal sealed class HtmlStatsView
     public required string Labels { get; set; }
     public required string ConstantSets { get; set; }
     public required string Constants { get; set; }
+
+    /// <summary>The abstract types declared beside the tables, and what they may be.</summary>
+    public required string Structs { get; set; }
+
+    public required string Variants { get; set; }
 
     /// <summary>Reads as `3 workbooks`, because the sentence it sits in needs the noun.</summary>
     public required string Workbooks { get; set; }
@@ -418,6 +506,16 @@ internal sealed class HtmlFieldsPageView : HtmlPageView
 
 internal sealed class HtmlFieldRowView
 {
+    /// <summary>
+    /// The column's name on its own, which the page orders by. Not rendered.
+    /// </summary>
+    /// <remarks>
+    /// Beside <see cref="Name"/> rather than derived from it, because that one is a rendered
+    /// cell: it carries a `&lt;span&gt;` wherever the column has a tooltip, and ordering by
+    /// the markup put every annotated column ahead of every plain one.
+    /// </remarks>
+    public required string SortName { get; set; }
+
     public required string Name { get; set; }
     public required string Table { get; set; }
     public required string TableHref { get; set; }
@@ -453,6 +551,11 @@ internal sealed class HtmlEnumPageView : HtmlPageView
 
     public required IReadOnlyList<HtmlEnumLabelView> Labels { get; set; }
 
+    /// <summary>
+    /// Whether any label has a second spelling. The column is dropped when none has.
+    /// </summary>
+    public required bool HasAliases { get; set; }
+
     /// <summary>The columns typed as this enum, so the page answers "who uses this".</summary>
     public required IReadOnlyList<HtmlSummaryEntryView> UsedBy { get; set; }
 }
@@ -463,6 +566,17 @@ internal sealed class HtmlEnumLabelView
     public required string Name { get; set; }
     public required string SourceLink { get; set; }
     public required string Value { get; set; }
+
+    /// <summary>
+    /// The other spelling a cell may write for this label, or empty.
+    /// </summary>
+    /// <remarks>
+    /// Nothing downstream sees an alias - only the integer is stored - so these pages are the
+    /// only place it can be read, and a sheet written with one gave a reader no way to find out
+    /// what it resolves to.
+    /// </remarks>
+    public string Alias { get; set; } = "";
+
     public required string Comment { get; set; }
 }
 
