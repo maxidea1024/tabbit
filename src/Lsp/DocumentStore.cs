@@ -124,6 +124,24 @@ internal sealed class DocumentStore
         }
     }
 
+    /// <summary>One line of a file, without its ending.</summary>
+    /// <remarks>
+    /// What completion is worked out from. The whole text is split each time it is asked for -
+    /// these are declaration files of a few hundred lines, and a cache of line offsets would
+    /// be a second thing to keep in step with every keystroke.
+    /// </remarks>
+    public string LineOf(string path, int line)
+    {
+        string? text = TextOf(path);
+
+        if (text is null || line < 0)
+            return "";
+
+        string[] lines = text.Replace("\r\n", "\n").Split('\n');
+
+        return line < lines.Length ? lines[line] : "";
+    }
+
     /// <summary>
     /// Every `.tbs` file of one directory, with its text.
     /// </summary>

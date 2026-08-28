@@ -88,6 +88,10 @@ internal sealed class LspServer : IDisposable
                 Respond(id, Hover(arguments));
                 break;
 
+            case "textDocument/completion":
+                Respond(id, Completion(arguments));
+                break;
+
             case "workspace/didChangeWatchedFiles":
                 DidChangeWatchedFiles(arguments);
                 break;
@@ -113,6 +117,11 @@ internal sealed class LspServer : IDisposable
             textDocumentSync = 1,
             definitionProvider = true,
             hoverProvider = true,
+
+            // The brackets and the comma open the list on their own. Everywhere else the
+            // editor asks as soon as a word is being typed, which is when the offers are
+            // worth showing.
+            completionProvider = new { triggerCharacters = new[] { "(", ",", "=" } },
         },
         serverInfo = new { name = "tabbit", version = ToolVersion.Current },
     };
@@ -233,6 +242,32 @@ internal sealed class LspServer : IDisposable
         string? said = index.HoverOf(found);
 
         return said is null ? null : new LspHover(new MarkupContent("markdown", said), found.Range);
+    }
+
+    /// <summary>
+    /// What may be written where the cursor is.
+    /// </summary>
+    /// <remarks>
+    /// Worked out from the line's text rather than from a position in the syntax, because the
+    /// line being typed is usually not one the parser accepts yet. The declarations are still
+    /// read, so what is offered is the names this folder actually declares.
+    /// </remarks>
+    private object? Completion(JsonElement arguments)
+    {
+        if (!TryDocument(arguments, "textDocument", out string uri)
+            || !arguments.TryGetProperty("position", out var position)
+            || !position.TryGetProperty("line", out var line)
+            || !position.TryGetProperty("character", out var character))
+        {
+            return null;
+        }
+
+        string path = DocumentStore.PathOf(uri);
+
+        return SchemaCompletion.For(
+            _documents.LineOf(path, line.GetInt32()),
+            character.GetInt32(),
+            _workspace.AnalysisFor(path).Declarations);
     }
 
     /// <summary>

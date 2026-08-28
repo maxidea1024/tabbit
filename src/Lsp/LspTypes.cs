@@ -40,6 +40,20 @@ internal sealed record PublishDiagnosticsParams(
 
 internal sealed record MarkupContent(string Kind, string Value);
 
+/// <summary>One thing the editor offers to write.</summary>
+internal sealed record LspCompletionItem
+{
+    public required string Label { get; init; }
+
+    /// <summary>Which icon the editor puts beside it.</summary>
+    public required int Kind { get; init; }
+
+    /// <summary>The grey note to the right of the label.</summary>
+    public string? Detail { get; init; }
+
+    public MarkupContent? Documentation { get; init; }
+}
+
 internal sealed record LspHover(MarkupContent Contents, LspRange? Range);
 
 /// <summary>A message the server sends without being asked.</summary>

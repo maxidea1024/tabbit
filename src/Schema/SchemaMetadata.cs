@@ -88,6 +88,25 @@ internal static class SchemaMetadata
         ["alias"] = MetaKey.NotCarried,
     };
 
+    /// <summary>
+    /// The keys of each kind that this build acts on, for an editor offering them.
+    /// </summary>
+    /// <remarks>
+    /// The ones the notation defines and this build does not carry are left out. Offering a
+    /// key and then reporting it as one that does nothing is two answers to the same question,
+    /// and the offer is the one somebody acts on.
+    /// </remarks>
+    public static IEnumerable<string> CarriedOnStruct => Carried(OnStruct);
+
+    public static IEnumerable<string> CarriedOnField => Carried(OnField);
+
+    public static IEnumerable<string> CarriedOnEnumValue => Carried(OnEnumValue);
+
+    private static IEnumerable<string> Carried(Dictionary<string, MetaKey> keys)
+        => keys.Where(entry => entry.Value == MetaKey.Carried)
+               .Select(entry => entry.Key)
+               .OrderBy(key => key, StringComparer.Ordinal);
+
     private enum MetaKey
     {
         /// <summary>Read below, and acted on.</summary>
