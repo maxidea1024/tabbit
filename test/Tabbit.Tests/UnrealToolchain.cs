@@ -317,7 +317,12 @@ internal static class UnrealToolchain
             };
         }
 
-        string workDir = Path.Combine(RepoLayout.OutputDir("_uht"));
+        // One directory per module rather than one for the gate. Four test classes call
+        // this and xUnit runs classes in parallel, so a shared directory meant one run
+        // deleting what another was writing into - which showed up as a UHT failure that
+        // passed when the same test ran on its own. The module name is distinct per call
+        // site, and repeats within a class are sequential.
+        string workDir = Path.Combine(RepoLayout.OutputDir("_uht"), moduleName);
 
         if (Directory.Exists(workDir))
             Directory.Delete(workDir, recursive: true);
