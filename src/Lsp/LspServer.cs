@@ -290,15 +290,31 @@ internal sealed class LspServer : IDisposable
             Params = new PublishDiagnosticsParams(uri, reports),
         });
 
+    /// <summary>
+    /// Answers a request, and says nothing to anything that was not one.
+    /// </summary>
+    /// <remarks>
+    /// A message with no id is a notification however it is spelled - `initialize` sent
+    /// without one included. Answering it would be a protocol mistake, and cloning the id
+    /// that is not there would throw.
+    /// </remarks>
     private void Respond(JsonElement id, object? result)
-        => _send(new ResponseMessage { Id = id.Clone(), Result = result });
+    {
+        if (id.ValueKind != JsonValueKind.Undefined)
+            _send(new ResponseMessage { Id = id.Clone(), Result = result });
+    }
 
     private void RespondError(JsonElement id, int code, string message)
-        => _send(new ErrorResponseMessage
+    {
+        if (id.ValueKind != JsonValueKind.Undefined)
         {
-            Id = id.Clone(),
-            Error = new ResponseError(code, message),
-        });
+            _send(new ErrorResponseMessage
+            {
+                Id = id.Clone(),
+                Error = new ResponseError(code, message),
+            });
+        }
+    }
 
     public void Dispose() => _workspace.Dispose();
 }

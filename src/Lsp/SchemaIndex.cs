@@ -100,9 +100,13 @@ internal sealed class SchemaIndex
         if (!_byFile.TryGetValue(path, out var written))
             return null;
 
+        // The end is included, because the caret sits after the last character as often as
+        // inside the word - somebody types a name and presses F12 without moving. Nothing is
+        // lost by it: every name in this notation has a space or a bracket beside it, so no
+        // two of these ever meet.
         foreach (var found in written)
         {
-            if (found.Line == line && character >= found.Start && character < found.End)
+            if (found.Line == line && character >= found.Start && character <= found.End)
                 return found;
         }
 
