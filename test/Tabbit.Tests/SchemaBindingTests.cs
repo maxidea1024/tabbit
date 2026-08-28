@@ -163,6 +163,40 @@ public class SchemaBindingTests
     }
 
     /// <summary>
+    /// A declaration and a column that differ only in an optional mark disagree.
+    /// </summary>
+    /// <remarks>
+    /// **The check could not see the thing it compares.** The mark is written in the type
+    /// cell and the layout takes it off into <see cref="Models.Field.IsRequired"/> before the
+    /// binding runs, so comparing the base type said `int` and `int?` agreed: a declaration
+    /// saying either one produced byte-identical output for a column that wrote `int`, and
+    /// neither side was told the two differed.
+    ///
+    /// The other direction is the one that costs something. A column writing `int?` where the
+    /// declaration says `int` keeps a blank cell reading as the type's empty value, and the
+    /// declaration saying a value is required is the one thing that would have refused it.
+    ///
+    /// Its own scenario because `declared.xlsx` types exactly one member and that member
+    /// already carries a disagreement about its base type in `declared-mismatch`.
+    /// </remarks>
+    [Fact]
+    public void A_declaration_and_a_column_that_differ_only_in_an_optional_mark_disagree()
+    {
+        var result = TabbitRunner.Convert("declared-optional");
+
+        Assert.False(result.Succeeded, "A column disagreeing about `?` alone was accepted.");
+
+        // Both spellings carry the mark. Built from the column's base type alone, the report
+        // read "is typed `int` and is declared `int?`" with the two halves looking the same.
+        Assert.Contains(
+            "`Loadout.Slot[0].Count` is typed `int` and `Reward.count` is declared `int?`",
+            result.StdOut);
+
+        // Every element, as with any disagreement: they are separate cells.
+        Assert.Contains("`Loadout.Slot[1].Count` is typed `int`", result.StdOut);
+    }
+
+    /// <summary>
     /// A column already reported against its declaration is not reported again for having no
     /// type.
     /// </summary>

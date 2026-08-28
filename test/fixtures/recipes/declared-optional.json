@@ -1,0 +1,23 @@
+{
+  // The `declared` workbook against a declaration that differs only in an optional mark.
+  //
+  // A run that must fail, and the report must name both spellings with the mark on. The
+  // check compared the base type alone, so `int` and `int?` read as agreeing - and a
+  // column that writes its own type kept whatever the sheet said about blank cells while
+  // the declaration said the other thing.
+  //
+  // No targets: what is being checked is the report, and a run that fails writes nothing.
+
+  "Schemas": [
+    { "Path": "test/fixtures/schemas/declared-optional" }
+  ],
+
+  "Sources": {
+    "Xlsx": [
+      { "Path": "test/fixtures/xlsx/declared" }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": []
+}

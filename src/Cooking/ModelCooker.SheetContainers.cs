@@ -276,7 +276,7 @@ public partial class ModelCooker
                 ("Struct", table.Name),
                 ("Member", member.Name),
                 ("Declared", wanted),
-                ("Written", field.TypeName)));
+                ("Written", SchemaFieldTypes.ColumnSpelling(field))));
 
             return;
         }

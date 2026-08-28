@@ -1,0 +1,34 @@
+// Declarations that agree with the `declared` workbook about everything except one `?`.
+//
+// Its own set rather than another line in `declared-mismatch`, because that workbook types
+// exactly one member - `count`, on both elements - and that member already carries a
+// disagreement about its base type. A second disagreement needs a second declaration.
+//
+// **What this pins is a check that could not see the thing it compares.** The mark is written
+// in the type cell and the layout takes it off into `Field.IsRequired` before the binding
+// runs, so a comparison of the base type said `int` and `int?` agreed: a declaration saying
+// either one gave byte-identical output for a column that wrote `int`, and neither side was
+// told the two differed. In the other direction it is worse - a column writing `int?` where
+// the declaration says `int` keeps a blank cell reading as the empty value, and the
+// declaration is the one thing that would have refused it.
+
+/// One thing a row hands out.
+struct Reward
+    field itemId int
+    /// How many of it.
+    field count int?
+    field icon string?
+
+/// What a reward is made of.
+enum Element
+    value Fire = 1
+    value Ice = 2
+
+/// One line of a table whose rows below make up the record.
+///
+/// Declared in every schema set that reads `declared.xlsx`, because the workbook is shared.
+struct Bonus
+    /// Which stat it raises.
+    field statId int
+    /// By how much.
+    field amount int

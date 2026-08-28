@@ -48,7 +48,7 @@ internal static class SchemaFieldTypes
             return false;
 
         if (!waiting)
-            return Agrees(field, resolved);
+            return Agrees(field, resolved, member, columnIsOptional);
 
         field.Type = resolved.Type;
         field.TypeName = resolved.TypeName;
@@ -172,9 +172,47 @@ internal static class SchemaFieldTypes
     /// are one type - a sheet writing `Element` where the declaration says `Element` should
     /// not turn on which of them lowered the cell.
     /// </remarks>
-    private static bool Agrees(Field field, Resolved resolved)
+    /// <remarks>
+    /// **The `?` marks are part of the type here, because they are part of it in the sheet.**
+    /// A column writes them in its type cell - `int?`, `int?[]` - and the layout takes them off
+    /// into <see cref="Field.IsRequired"/> and <see cref="Field.ElementsRequired"/> before this
+    /// runs, so a comparison of <see cref="Field.TypeName"/> alone cannot see them. It could
+    /// not: a declaration saying `int?` and one saying `int` produced byte-identical output for
+    /// a column that wrote `int`, and neither side was told the two disagreed.
+    ///
+    /// Which is worse in the other direction. A column writing `int?` where the declaration
+    /// says `int` keeps a blank cell reading as the empty value, and the declaration that says
+    /// a value is required is the one thing that would have refused it.
+    ///
+    /// <paramref name="columnIsOptional"/> for the polymorphic case, where the two really do
+    /// differ: a variant's member is required within that variant and the column is optional
+    /// all the same, because the rows of the other variants leave it blank. The expected answer
+    /// is the same one the assignment below makes, so the two cannot drift apart.
+    /// </remarks>
+    private static bool Agrees(
+        Field field, Resolved resolved, SchemaField member, bool columnIsOptional)
         => field.Type == resolved.Type
-           && string.Equals(field.TypeName, resolved.TypeName, System.StringComparison.OrdinalIgnoreCase);
+           && string.Equals(field.TypeName, resolved.TypeName, System.StringComparison.OrdinalIgnoreCase)
+           && field.IsRequired == (!columnIsOptional && !member.Type.IsOptional)
+           && field.ElementsRequired == !member.Type.ElementsAreOptional;
+
+    /// <summary>
+    /// A column's type as the sheet means it, with the marks the layout took off put back.
+    /// </summary>
+    /// <remarks>
+    /// For a report about a disagreement, which has to name the two spellings being compared.
+    /// <see cref="Field.TypeName"/> is the base type alone, so a report built from it read
+    /// "`int` and the declaration is `int?`" - two spellings a reader cannot tell apart from
+    /// the sentence that says they differ.
+    /// </remarks>
+    public static string ColumnSpelling(Field field)
+    {
+        string brackets = field.IsArray
+            ? (field.ElementsRequired ? "[]" : "?[]")
+            : "";
+
+        return $"{field.TypeName}{brackets}{(field.IsRequired ? "" : "?")}";
+    }
 
     /// <summary>
     /// Reads a column's cells again, now that there is a type to read them as.
