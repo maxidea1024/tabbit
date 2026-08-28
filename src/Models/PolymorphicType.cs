@@ -23,6 +23,17 @@ public sealed class PolymorphicType
     /// <summary>The abstract type's declared name.</summary>
     public required string Name { get; init; }
 
+    /// <summary>
+    /// The `///` block in front of the declaration, or empty where there was none.
+    /// </summary>
+    /// <remarks>
+    /// Carried because the declaration is the only place it is written. A member's own
+    /// description reaches the column that holds it and travels on from there; the type's own
+    /// describes a thing no column is, so dropping it here loses it for good - and the one
+    /// target whose whole purpose is reading descriptions had nothing to show.
+    /// </remarks>
+    public string Comment { get; init; } = "";
+
     /// <summary>Its own fields, which every variant carries.</summary>
     public required List<Field> BaseMembers { get; init; }
 
@@ -35,6 +46,9 @@ public sealed class PolymorphicTypeVariant
 {
     /// <summary>The variant's declared name.</summary>
     public required string Name { get; init; }
+
+    /// <summary>The `///` block in front of the variant, or empty where there was none.</summary>
+    public string Comment { get; init; } = "";
 
     /// <summary>The number the file carries for it.</summary>
     public required int Discriminator { get; init; }

@@ -194,6 +194,17 @@ public class Field
     public string? AbstractTypeName { get; set; }
 
     /// <summary>
+    /// The `///` block in front of that type's declaration, or empty.
+    /// </summary>
+    /// <remarks>
+    /// Beside the name and for the same reason: the declarations are read once and gone, and
+    /// what a `$type` column carries is all that is left of the one it names. A member's own
+    /// description travels on its column; the type's own describes a thing no column is.
+    /// </remarks>
+    [JsonIgnore]
+    public string AbstractTypeComment { get; set; } = "";
+
+    /// <summary>
     /// Whether this column is one element of an array of plain values.
     /// </summary>
     /// <remarks>

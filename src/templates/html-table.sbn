@@ -33,6 +33,13 @@
 {{~ if truncated ~}}
 <span class="warn">{{ record_count }}행 중 처음 {{ shown_count }}행입니다. 더 보려면 recipe의 MaxRowsPerTable을 올리세요.</span>
 {{~ end ~}}
+{{~## The three marks a cell may hold, said once for the table rather than only in a tooltip.
+     A polymorphic group's columns are the union of every variant's, so most cells of such a
+     table hold the「이 변종에 없음」mark - and a dash beside an italic `null` differs by too
+     little for a reader who has not been told which is which. ##~}}
+{{~ if has_variants ~}}
+<span class="hint"><span class="na">&mdash;</span> 그 행의 변종에 없는 멤버 &middot; <span class="null">null</span> 값이 없음</span>
+{{~ end ~}}
 </div>
 <div class="scroll">
 <table id="table_{{ name }}"{{ if sortable }} data-sortable{{ end }}>

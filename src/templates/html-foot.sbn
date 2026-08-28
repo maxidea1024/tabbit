@@ -260,33 +260,54 @@
       zoom(event.deltaY < 0 ? 1.15 : 1 / 1.15, event.clientX - box.left, event.clientY - box.top);
     }, { passive: false });
 
-    var dragging = false, fromX = 0, fromY = 0, moved = false;
+    var dragging = false, fromX = 0, fromY = 0, moved = false, held = -1;
 
     svg.addEventListener("pointerdown", function (event) {
       dragging = true;
       moved = false;
+      held = event.pointerId;
       fromX = event.clientX - panX;
       fromY = event.clientY - panY;
-      svg.setPointerCapture(event.pointerId);
       svg.classList.add("dragging");
     });
 
+    // **The capture is taken when a drag starts, not when the pointer goes down.**
+    //
+    // A captured pointer retargets every event after it to the element that captured, and
+    // the click the browser then synthesises goes to that element too - so a press and
+    // release on a table was delivered to the drawing and the table's own handler never
+    // ran. Clicking a table in the graph did nothing at all, which is the one thing the
+    // page tells the reader to do.
+    //
+    // Panning is what needs the capture, and panning is what the threshold detects. Below
+    // it nothing is captured, so a click stays a click on whatever was under it.
     svg.addEventListener("pointermove", function (event) {
       if (!dragging) return;
 
       var nextX = event.clientX - fromX;
       var nextY = event.clientY - fromY;
 
-      if (Math.abs(nextX - panX) > 2 || Math.abs(nextY - panY) > 2) moved = true;
+      if (!moved) {
+        if (Math.abs(nextX - panX) <= 2 && Math.abs(nextY - panY) <= 2) return;
+
+        moved = true;
+
+        // Not every pointer can be captured - a synthetic one has no id the browser knows -
+        // and a drawing that cannot be dragged is better than one that cannot be clicked.
+        try { svg.setPointerCapture(held); } catch (e) { /* pan without it */ }
+      }
 
       panX = nextX;
       panY = nextY;
       apply();
     });
 
-    svg.addEventListener("pointerup", function () {
+    svg.addEventListener("pointerup", function (event) {
       dragging = false;
       svg.classList.remove("dragging");
+
+      if (svg.hasPointerCapture && svg.hasPointerCapture(event.pointerId))
+        svg.releasePointerCapture(event.pointerId);
     });
 
     document.querySelector('[data-graph="in"]').addEventListener("click", function () {

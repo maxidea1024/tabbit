@@ -10,7 +10,7 @@
   --line: #d1d9e0; --line-soft: #eaeef2; --head-line: #dfe4ea; --head: #f6f8fa; --zebra: #fbfcfd;
   --hover: #fff8c5; --link: #0969da; --accent: #0969da;
   --num: #0a7c4a; --key: #0a7c4a; --type: #6639ba; --flag: #9a6700; --none: #a0a8b0;
-  --str: #a31515; --bad: #cf222e; --good: #c8a200;
+  --str: #a31515; --bad: #cf222e; --good: #c8a200; --true: #1a7f37;
   --bar: #f6f8fa; --card: #f6f8fa; --shadow: rgba(31, 35, 40, .12);
   --thumb: #ced3d9; --thumb-hover: #aeb6c0;
   color-scheme: light;
@@ -21,7 +21,7 @@
     --line: #30363d; --line-soft: #21262d; --head-line: #2b3138; --head: #161b22; --zebra: #11161d;
     --hover: #2d2611; --link: #4493f8; --accent: #4493f8;
     --num: #3fb950; --key: #3fb950; --type: #d2a8ff; --flag: #d29922; --none: #545d68;
-    --str: #ce9178; --bad: #f85149; --good: #ffd60a; --bad: #f85149;
+    --str: #ce9178; --bad: #f85149; --good: #ffd60a; --true: #3fb950;
     --bar: #161b22; --card: #161b22; --shadow: rgba(1, 4, 9, .8);
     --thumb: #30363d; --thumb-hover: #484f58;
     color-scheme: dark;
@@ -32,7 +32,7 @@
   --line: #30363d; --line-soft: #21262d; --head-line: #2b3138; --head: #161b22; --zebra: #11161d;
   --hover: #2d2611; --link: #4493f8; --accent: #4493f8;
   --num: #3fb950; --key: #3fb950; --type: #d2a8ff; --flag: #d29922; --none: #545d68;
-  --str: #ce9178; --bad: #f85149; --good: #ffd60a;
+  --str: #ce9178; --bad: #f85149; --good: #ffd60a; --true: #3fb950;
   --bar: #161b22; --card: #161b22; --shadow: rgba(1, 4, 9, .8);
   --thumb: #30363d; --thumb-hover: #484f58;
   color-scheme: dark;
@@ -250,8 +250,17 @@ tbody tr.out { display: none; }
 .scroll thead th:first-child, .scroll tbody td:first-child { position: sticky; left: 0; }
 .scroll thead th:first-child { z-index: 3; }
 /* The same reason as the header: this cell is sticky sideways, so its right-hand line is
-   painted from inside it. */
-.scroll tbody td:first-child { background: var(--bg); border-right: 0; box-shadow: inset -1px 0 0 var(--line-soft); }
+   painted from inside it.
+
+   **And `z-index`, without which the cell held its place and lost the paint.** A positioned
+   element left at `auto` is painted in document order, so every cell to the right of this one
+   went over it: scrolling sideways drew the second column's values across the key, and the two
+   texts sat on top of each other. Below the header's 3, because where the two meet the header
+   is the one that has to win. */
+.scroll tbody td:first-child {
+  z-index: 2;
+  background: var(--bg); border-right: 0; box-shadow: inset -1px 0 0 var(--line-soft);
+}
 .scroll tbody tr:nth-child(even) td:first-child { background: var(--zebra); }
 .scroll tbody tr:hover > td:first-child { background: var(--hover); }
 
@@ -320,18 +329,28 @@ td.text.open .clip { max-width: 72ch; white-space: normal; overflow: visible; }
    happens to be in a cell, which is the same reason numbers and enums have their own. */
 .str { color: var(--str); }
 /* True and false differ in shape first and colour second. In one shape and two colours a
-   column of `false` still reads as ticked - the eye takes the silhouette and not the hue. */
-.yes, .no { font-weight: 600; }
-.yes { color: var(--good); }
+   column of `false` still reads as ticked - the eye takes the silhouette and not the hue.
+
+   The tick used to be `--good`, which is the amber this page uses for a flag: on the light
+   theme that is a yellow glyph on white, and a column of them was the hardest thing on the
+   page to pick out. Green rather than amber, a size up and a weight up - a tick is a mark
+   rather than a letter, so it can afford both. `--true` is its own token because `--num` is
+   also green and the two are set separately per theme. */
+.yes, .no { font-weight: 700; font-size: 15px; line-height: 1; }
+.yes { color: var(--true); }
 .no { color: var(--bad); }
 .n-of { color: var(--faint); font-size: 11px; margin-left: 4px; }
 /* A bit pattern, coloured as the number it is. Monospace because the digits of a pattern are
    read by position, and a proportional font puts the same nibble at a different offset on
    every row. */
 .bits { color: var(--num); font-family: Consolas, "SF Mono", Menlo, monospace; }
-/* A member the row's variant does not declare. Upright, because italic on this page means a
-   value is absent and this is not an absence - the member is not part of what this row is. */
-.na { color: var(--none); }
+/* A member the row's variant does not declare.
+
+   Upright, because italic on this page means a value is absent and this is not an absence -
+   the member is not part of what this row is. And dotted underneath, because a dash and an
+   italic `null` differ by too little for a reader who has not been told: the underline says
+   there is something to hover, and the page carries a line saying what. */
+.na { color: var(--none); border-bottom: 1px dotted var(--none); cursor: help; }
 /* The variants that declare a member, beside its type in the header. Smaller than the type and
    in the flag colour, so a type row of a wide union still reads as types first. */
 .of { color: var(--flag); font-size: 11px; }
@@ -373,6 +392,54 @@ a.variant { color: var(--flag); }
 #enumcard.wrap { white-space: pre-wrap; word-break: break-word; color: var(--fg); }
 #enumcard.code { font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 12px; }
 #enumcard td:last-child { white-space: normal; }
+
+/* ---- a declared type: what every variant carries, and what one of them may be ----
+
+   The two were an `h2` and a run of `h3`s with a small table under each, and at 41 variants
+   that is a wall: every heading the same weight as the last, every table its own width, and
+   nothing saying which of them hang off which. What the declaration says is a relationship,
+   and the page was not drawing one.
+
+   So the base is a panel and the variants are cards on a rail that runs down from it. The
+   rail is one border on the container - a reader follows it from the shared members to the
+   list of shapes - and each card has its own edge, so where one variant ends and the next
+   begins is a line rather than a guess. */
+.base {
+  border: 1px solid var(--line); border-left: 3px solid var(--accent);
+  border-radius: 8px; background: var(--card); padding: 12px 14px; margin: 0 0 6px;
+}
+.base > :first-child { margin-top: 0; }
+.base > :last-child { margin-bottom: 0; }
+.base table { background: var(--bg); }
+
+/* The rail. Indented so the cards sit under the panel above them rather than beside it. */
+.variants { margin: 0 0 0 14px; padding: 14px 0 2px 20px; border-left: 2px solid var(--line); }
+.variant {
+  position: relative;
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 10px 12px; margin: 0 0 12px;
+}
+/* A stub from the rail to the card, so the two read as joined rather than merely near. */
+.variant::before {
+  content: ""; position: absolute; left: -20px; top: 18px;
+  width: 18px; border-top: 2px solid var(--line);
+}
+.variant > h3 { margin: 0 0 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.variant .tag {
+  font-size: 11px; font-weight: 400; color: var(--muted);
+  padding: 1px 7px; border: 1px solid var(--line); border-radius: 999px;
+}
+.variant .none { margin: 0; }
+.variant table { width: auto; min-width: 340px; }
+
+/* The variant names as one row of chips, for a type with dozens of them: the page is
+   otherwise a scroll with no way to see what is on it. */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
+.chips a {
+  font-size: 12px; padding: 2px 9px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--muted);
+}
+.chips a:hover { color: var(--fg); border-color: var(--accent); text-decoration: none; }
 
 /* ---- the reference graph ---- */
 .graph { display: block; background: var(--bg); }
@@ -550,11 +617,11 @@ tbody [data-pick] { cursor: pointer; }
 <tr><td><a href="enums/card-trait.html#enum_CardTrait" data-enum="CardTrait"><svg class="i"><use href="#i-enum"></use></svg>CardTrait</a></td><td class="num">3</td><td class="num">9</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>카드가 가지는 성질. 값을 더하지 않고 그 카드가 무엇으로 취급되는지를 바꿉니다.</td></tr>
 <tr><td><a href="enums/compare.html#enum_Compare" data-enum="Compare"><svg class="i"><use href="#i-enum"></use></svg>Compare</a></td><td class="num">3</td><td class="num">9</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>수 비교의 방향.</td></tr>
 <tr><td><a href="enums/consumable-kind.html#enum_ConsumableKind" data-enum="ConsumableKind"><svg class="i"><use href="#i-enum"></use></svg>ConsumableKind</a></td><td class="num">3</td><td class="num">9</td><td><span class="book" title="run.tbs"><svg class="i"><use href="#i-workbook"></use></svg>run.tbs</span></td><td>소모품의 갈래. 슬롯을 공유합니다.</td></tr>
-<tr><td><a href="enums/counter-field.html#enum_CounterField" data-enum="CounterField"><svg class="i"><use href="#i-enum"></use></svg>CounterField</a></td><td class="num">7</td><td class="num">18</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>누적하는 값의 칸. **소유자마다 이름이 다르지 않습니다** — 칸을 고정해야 세이브의 모양이
+<tr><td><a href="enums/counter-field.html#enum_CounterField" data-enum="CounterField"><svg class="i"><use href="#i-enum"></use></svg>CounterField</a></td><td class="num">7</td><td class="num">18</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>누적하는 값의 칸. <b>소유자마다 이름이 다르지 않습니다</b> — 칸을 고정해야 세이브의 모양이
 조커 목록에 따라 달라지지 않습니다.
 
-`Chips` &#183; `MultAdd` &#183; `MultMul` 은 **득점할 때 자동으로 적용됩니다.** 따로 더하는 효과 행을
-두지 않습니다. `MultMul` 의 기본값은 10000(&#215;1)이고 나머지는 0 입니다.</td></tr>
+<code>Chips</code> &#183; <code>MultAdd</code> &#183; <code>MultMul</code> 은 <b>득점할 때 자동으로 적용됩니다.</b> 따로 더하는 효과 행을
+두지 않습니다. <code>MultMul</code> 의 기본값은 10000(&#215;1)이고 나머지는 0 입니다.</td></tr>
 <tr><td><a href="enums/create-kind.html#enum_CreateKind" data-enum="CreateKind"><svg class="i"><use href="#i-enum"></use></svg>CreateKind</a></td><td class="num">11</td><td class="num">9</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>무엇을 만드는가.</td></tr>
 <tr><td><a href="enums/debuff-kind.html#enum_DebuffKind" data-enum="DebuffKind"><svg class="i"><use href="#i-enum"></use></svg>DebuffKind</a></td><td class="num">4</td><td class="num">9</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>무엇을 무력화하는가. 보스가 씁니다.</td></tr>
 <tr><td><a href="enums/duration.html#enum_Duration" data-enum="Duration"><svg class="i"><use href="#i-enum"></use></svg>Duration</a></td><td class="num">3</td><td class="num">9</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>규칙 변경이 얼마나 오래 가는가.</td></tr>
@@ -565,15 +632,15 @@ tbody [data-pick] { cursor: pointer; }
 <tr><td><a href="enums/modify-kind.html#enum_ModifyKind" data-enum="ModifyKind"><svg class="i"><use href="#i-enum"></use></svg>ModifyKind</a></td><td class="num">8</td><td class="num">9</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>카드의 무엇을 바꾸는가.</td></tr>
 <tr><td><a href="enums/pack-kind.html#enum_PackKind" data-enum="PackKind"><svg class="i"><use href="#i-enum"></use></svg>PackKind</a></td><td class="num">5</td><td class="num">1</td><td><span class="book" title="run.tbs"><svg class="i"><use href="#i-workbook"></use></svg>run.tbs</span></td><td>팩의 갈래. 무엇이 담기는가입니다.</td></tr>
 <tr><td><a href="enums/pack-size.html#enum_PackSize" data-enum="PackSize"><svg class="i"><use href="#i-enum"></use></svg>PackSize</a></td><td class="num">3</td><td class="num">1</td><td><span class="book" title="run.tbs"><svg class="i"><use href="#i-workbook"></use></svg>run.tbs</span></td><td>팩의 크기. 값과 장수와 고르는 수가 달라집니다.</td></tr>
-<tr><td><a href="enums/per-unit-mode.html#enum_PerUnitMode" data-enum="PerUnitMode"><svg class="i"><use href="#i-enum"></use></svg>PerUnitMode</a></td><td class="num">5</td><td class="num">9</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>`PerUnit` 과 `RandomRange` 가 어느 칸에 넣는가.</td></tr>
+<tr><td><a href="enums/per-unit-mode.html#enum_PerUnitMode" data-enum="PerUnitMode"><svg class="i"><use href="#i-enum"></use></svg>PerUnitMode</a></td><td class="num">5</td><td class="num">9</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td><code>PerUnit</code> 과 <code>RandomRange</code> 가 어느 칸에 넣는가.</td></tr>
 <tr><td><a href="enums/poker-hand-kind.html#enum_PokerHandKind" data-enum="PokerHandKind"><svg class="i"><use href="#i-enum"></use></svg>PokerHandKind</a></td><td class="num">12</td><td class="num">11</td><td><span class="book" title="card.tbs"><svg class="i"><use href="#i-workbook"></use></svg>card.tbs</span></td><td>족보. 로열 플러시는 별도 족보가 아니므로 여기 없습니다 — 스트레이트 플러시와 값을
 공유하고 표시만 다릅니다.</td></tr>
-<tr><td><a href="enums/rank-kind.html#enum_RankKind" data-enum="RankKind"><svg class="i"><use href="#i-enum"></use></svg>RankKind</a></td><td class="num">13</td><td class="num">11</td><td><span class="book" title="card.tbs"><svg class="i"><use href="#i-workbook"></use></svg>card.tbs</span></td><td>랭크. 값은 크기 순서이고 칩값이 아닙니다 — 칩값은 `Rank` 테이블에 있습니다.</td></tr>
+<tr><td><a href="enums/rank-kind.html#enum_RankKind" data-enum="RankKind"><svg class="i"><use href="#i-enum"></use></svg>RankKind</a></td><td class="num">13</td><td class="num">11</td><td><span class="book" title="card.tbs"><svg class="i"><use href="#i-workbook"></use></svg>card.tbs</span></td><td>랭크. 값은 크기 순서이고 칩값이 아닙니다 — 칩값은 <code>Rank</code> 테이블에 있습니다.</td></tr>
 <tr><td><a href="enums/rarity.html#enum_Rarity" data-enum="Rarity"><svg class="i"><use href="#i-enum"></use></svg>Rarity</a></td><td class="num">4</td><td class="num">11</td><td><span class="book" title="run.tbs"><svg class="i"><use href="#i-workbook"></use></svg>run.tbs</span></td><td>조커의 희귀도. 상점 추첨이 이것을 먼저 정하고 그다음 그 풀에서 하나를 고릅니다.</td></tr>
 <tr><td><a href="enums/reset-kind.html#enum_ResetKind" data-enum="ResetKind"><svg class="i"><use href="#i-enum"></use></svg>ResetKind</a></td><td class="num">3</td><td class="num">9</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>누적값이 언제 저절로 초기화되는가.</td></tr>
-<tr><td><a href="enums/rng-stream-kind.html#enum_RngStreamKind" data-enum="RngStreamKind"><svg class="i"><use href="#i-enum"></use></svg>RngStreamKind</a></td><td class="num">10</td><td class="num">1</td><td><span class="book" title="run.tbs"><svg class="i"><use href="#i-workbook"></use></svg>run.tbs</span></td><td>난수 스트림. **시드 하나에서 스트림마다 다른 상태를 파생합니다** — 같은 스트림을 쓰면
+<tr><td><a href="enums/rng-stream-kind.html#enum_RngStreamKind" data-enum="RngStreamKind"><svg class="i"><use href="#i-enum"></use></svg>RngStreamKind</a></td><td class="num">10</td><td class="num">1</td><td><span class="book" title="run.tbs"><svg class="i"><use href="#i-workbook"></use></svg>run.tbs</span></td><td>난수 스트림. <b>시드 하나에서 스트림마다 다른 상태를 파생합니다</b> — 같은 스트림을 쓰면
 상점에서 리롤 한 번이 득점의 확률을 바꿉니다.</td></tr>
-<tr><td><a href="enums/rule-kind.html#enum_RuleKind" data-enum="RuleKind"><svg class="i"><use href="#i-enum"></use></svg>RuleKind</a></td><td class="num">51</td><td class="num">9</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>바꿀 수 있는 규칙. **목록이 여기 있는 것이 요점입니다** — 자유 문자열이면 오타가
+<tr><td><a href="enums/rule-kind.html#enum_RuleKind" data-enum="RuleKind"><svg class="i"><use href="#i-enum"></use></svg>RuleKind</a></td><td class="num">51</td><td class="num">9</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>바꿀 수 있는 규칙. <b>목록이 여기 있는 것이 요점입니다</b> — 자유 문자열이면 오타가
 통과합니다.</td></tr>
 <tr><td><a href="enums/scope.html#enum_Scope" data-enum="Scope"><svg class="i"><use href="#i-enum"></use></svg>Scope</a></td><td class="num">16</td><td class="num">9</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>연산을 누구에게 하는가.</td></tr>
 <tr><td><a href="enums/seal-kind.html#enum_SealKind" data-enum="SealKind"><svg class="i"><use href="#i-enum"></use></svg>SealKind</a></td><td class="num">5</td><td class="num">20</td><td><span class="book" title="card.tbs"><svg class="i"><use href="#i-workbook"></use></svg>card.tbs</span></td><td>인장. 강화와 별개의 축이고, 한 장에 하나만 붙습니다.</td></tr>
@@ -583,7 +650,7 @@ tbody [data-pick] { cursor: pointer; }
 <tr><td><a href="enums/suit-kind.html#enum_SuitKind" data-enum="SuitKind"><svg class="i"><use href="#i-enum"></use></svg>SuitKind</a></td><td class="num">4</td><td class="num">29</td><td><span class="book" title="card.tbs"><svg class="i"><use href="#i-workbook"></use></svg>card.tbs</span></td><td>무늬. 값은 정렬 순서입니다.</td></tr>
 <tr><td><a href="enums/target-kind.html#enum_TargetKind" data-enum="TargetKind"><svg class="i"><use href="#i-enum"></use></svg>TargetKind</a></td><td class="num">4</td><td class="num">9</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>라운드마다 바뀌는 지정 대상.</td></tr>
 <tr><td><a href="enums/trigger.html#enum_Trigger" data-enum="Trigger"><svg class="i"><use href="#i-enum"></use></svg>Trigger</a></td><td class="num">24</td><td class="num">9</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>효과를 언제 보는가.</td></tr>
-<tr><td><a href="enums/unit-kind.html#enum_UnitKind" data-enum="UnitKind"><svg class="i"><use href="#i-enum"></use></svg>UnitKind</a></td><td class="num">21</td><td class="num">9</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>「무엇마다」의 단위. `PerUnit` 이 이 개수만큼 값을 넣습니다.</td></tr>
+<tr><td><a href="enums/unit-kind.html#enum_UnitKind" data-enum="UnitKind"><svg class="i"><use href="#i-enum"></use></svg>UnitKind</a></td><td class="num">21</td><td class="num">9</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>「무엇마다」의 단위. <code>PerUnit</code> 이 이 개수만큼 값을 넣습니다.</td></tr>
 </tbody>
 </table>
 </div>
@@ -611,9 +678,9 @@ tbody [data-pick] { cursor: pointer; }
 <div data-enum-def="CardTrait">
 <p class="lead"><b>enum.CardTrait</b> <span class="hint">카드가 가지는 성질. 값을 더하지 않고 그 카드가 무엇으로 취급되는지를 바꿉니다.</span></p>
 <table><tbody>
-<tr data-label="AnySuit"><td>AnySuit</td><td class="num">1</td><td class="hint">모든 무늬로 취급합니다. `Wild Card`.</td></tr>
-<tr data-label="NoRankSuit"><td>NoRankSuit</td><td class="num">2</td><td class="hint">랭크와 무늬가 없습니다. `Stone Card`.</td></tr>
-<tr data-label="AlwaysScores"><td>AlwaysScores</td><td class="num">3</td><td class="hint">족보를 이루지 않아도 항상 득점합니다. `Stone Card`.</td></tr>
+<tr data-label="AnySuit"><td>AnySuit</td><td class="num">1</td><td class="hint">모든 무늬로 취급합니다. <code>Wild Card</code>.</td></tr>
+<tr data-label="NoRankSuit"><td>NoRankSuit</td><td class="num">2</td><td class="hint">랭크와 무늬가 없습니다. <code>Stone Card</code>.</td></tr>
+<tr data-label="AlwaysScores"><td>AlwaysScores</td><td class="num">3</td><td class="hint">족보를 이루지 않아도 항상 득점합니다. <code>Stone Card</code>.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="Compare">
@@ -633,19 +700,19 @@ tbody [data-pick] { cursor: pointer; }
 </tbody></table>
 </div>
 <div data-enum-def="CounterField">
-<p class="lead"><b>enum.CounterField</b> <span class="hint">누적하는 값의 칸. **소유자마다 이름이 다르지 않습니다** — 칸을 고정해야 세이브의 모양이
+<p class="lead"><b>enum.CounterField</b> <span class="hint">누적하는 값의 칸. <b>소유자마다 이름이 다르지 않습니다</b> — 칸을 고정해야 세이브의 모양이
 조커 목록에 따라 달라지지 않습니다.
 
-`Chips` &#183; `MultAdd` &#183; `MultMul` 은 **득점할 때 자동으로 적용됩니다.** 따로 더하는 효과 행을
-두지 않습니다. `MultMul` 의 기본값은 10000(&#215;1)이고 나머지는 0 입니다.</span></p>
+<code>Chips</code> &#183; <code>MultAdd</code> &#183; <code>MultMul</code> 은 <b>득점할 때 자동으로 적용됩니다.</b> 따로 더하는 효과 행을
+두지 않습니다. <code>MultMul</code> 의 기본값은 10000(&#215;1)이고 나머지는 0 입니다.</span></p>
 <table><tbody>
 <tr data-label="Chips"><td>Chips</td><td class="num">1</td><td class="hint"></td></tr>
 <tr data-label="MultAdd"><td>MultAdd</td><td class="num">2</td><td class="hint"></td></tr>
 <tr data-label="MultMul"><td>MultMul</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="Money"><td>Money</td><td class="num">4</td><td class="hint">라운드 종료 시 지급할 금액. `PerUnit` 의 `SelfCounterMoney` 가 읽습니다.</td></tr>
+<tr data-label="Money"><td>Money</td><td class="num">4</td><td class="hint">라운드 종료 시 지급할 금액. <code>PerUnit</code> 의 <code>SelfCounterMoney</code> 가 읽습니다.</td></tr>
 <tr data-label="SellValue"><td>SellValue</td><td class="num">5</td><td class="hint"></td></tr>
-<tr data-label="Charge"><td>Charge</td><td class="num">6</td><td class="hint">남은 횟수나 세는 수. `fizz_bottle` 의 10핸드, `gravebloom` 의 23장.</td></tr>
-<tr data-label="Tick"><td>Tick</td><td class="num">7</td><td class="hint">지나간 라운드 수. `faint_outline` 의 2라운드.</td></tr>
+<tr data-label="Charge"><td>Charge</td><td class="num">6</td><td class="hint">남은 횟수나 세는 수. <code>fizz_bottle</code> 의 10핸드, <code>gravebloom</code> 의 23장.</td></tr>
+<tr data-label="Tick"><td>Tick</td><td class="num">7</td><td class="hint">지나간 라운드 수. <code>faint_outline</code> 의 2라운드.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="CreateKind">
@@ -657,11 +724,11 @@ tbody [data-pick] { cursor: pointer; }
 <tr data-label="Joker"><td>Joker</td><td class="num">4</td><td class="hint"></td></tr>
 <tr data-label="PlayingCard"><td>PlayingCard</td><td class="num">5</td><td class="hint"></td></tr>
 <tr data-label="Tag"><td>Tag</td><td class="num">6</td><td class="hint"></td></tr>
-<tr data-label="LastUsed"><td>LastUsed</td><td class="num">7</td><td class="hint">이번 런에서 마지막으로 쓴 소모품. `The Fool` 하나입니다.</td></tr>
-<tr data-label="CopyOfScored"><td>CopyOfScored</td><td class="num">8</td><td class="hint">지금 득점한 카드의 사본. `graft` 하나입니다.</td></tr>
-<tr data-label="CopyOfSelected"><td>CopyOfSelected</td><td class="num">9</td><td class="hint">고른 카드의 사본. `Cryptid` 하나입니다.</td></tr>
-<tr data-label="Pack"><td>Pack</td><td class="num">10</td><td class="hint">팩. `ref_id` 가 어느 팩인지 적습니다.</td></tr>
-<tr data-label="Voucher"><td>Voucher</td><td class="num">11</td><td class="hint">바우처. `ref_id` 가 어느 바우처인지 적습니다.</td></tr>
+<tr data-label="LastUsed"><td>LastUsed</td><td class="num">7</td><td class="hint">이번 런에서 마지막으로 쓴 소모품. <code>The Fool</code> 하나입니다.</td></tr>
+<tr data-label="CopyOfScored"><td>CopyOfScored</td><td class="num">8</td><td class="hint">지금 득점한 카드의 사본. <code>graft</code> 하나입니다.</td></tr>
+<tr data-label="CopyOfSelected"><td>CopyOfSelected</td><td class="num">9</td><td class="hint">고른 카드의 사본. <code>Cryptid</code> 하나입니다.</td></tr>
+<tr data-label="Pack"><td>Pack</td><td class="num">10</td><td class="hint">팩. <code>ref_id</code> 가 어느 팩인지 적습니다.</td></tr>
+<tr data-label="Voucher"><td>Voucher</td><td class="num">11</td><td class="hint">바우처. <code>ref_id</code> 가 어느 바우처인지 적습니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="DebuffKind">
@@ -732,10 +799,10 @@ tbody [data-pick] { cursor: pointer; }
 <tr data-label="Seal"><td>Seal</td><td class="num">2</td><td class="hint"></td></tr>
 <tr data-label="Edition"><td>Edition</td><td class="num">3</td><td class="hint"></td></tr>
 <tr data-label="Suit"><td>Suit</td><td class="num">4</td><td class="hint"></td></tr>
-<tr data-label="RankStep"><td>RankStep</td><td class="num">5</td><td class="hint">랭크를 `value` 만큼 올립니다.</td></tr>
-<tr data-label="BonusChips"><td>BonusChips</td><td class="num">6</td><td class="hint">영구 칩을 `value` 만큼 더합니다.</td></tr>
-<tr data-label="CopyRight"><td>CopyRight</td><td class="num">7</td><td class="hint">왼쪽 카드를 오른쪽 카드와 같게 만듭니다. `Death` 하나입니다.</td></tr>
-<tr data-label="RankTo"><td>RankTo</td><td class="num">8</td><td class="hint">랭크를 그 값으로 정합니다. `Ouija` 하나입니다.</td></tr>
+<tr data-label="RankStep"><td>RankStep</td><td class="num">5</td><td class="hint">랭크를 <code>value</code> 만큼 올립니다.</td></tr>
+<tr data-label="BonusChips"><td>BonusChips</td><td class="num">6</td><td class="hint">영구 칩을 <code>value</code> 만큼 더합니다.</td></tr>
+<tr data-label="CopyRight"><td>CopyRight</td><td class="num">7</td><td class="hint">왼쪽 카드를 오른쪽 카드와 같게 만듭니다. <code>Death</code> 하나입니다.</td></tr>
+<tr data-label="RankTo"><td>RankTo</td><td class="num">8</td><td class="hint">랭크를 그 값으로 정합니다. <code>Ouija</code> 하나입니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="PackKind">
@@ -757,13 +824,13 @@ tbody [data-pick] { cursor: pointer; }
 </tbody></table>
 </div>
 <div data-enum-def="PerUnitMode">
-<p class="lead"><b>enum.PerUnitMode</b> <span class="hint">`PerUnit` 과 `RandomRange` 가 어느 칸에 넣는가.</span></p>
+<p class="lead"><b>enum.PerUnitMode</b> <span class="hint"><code>PerUnit</code> 과 <code>RandomRange</code> 가 어느 칸에 넣는가.</span></p>
 <table><tbody>
 <tr data-label="AddChips"><td>AddChips</td><td class="num">1</td><td class="hint"></td></tr>
 <tr data-label="AddMult"><td>AddMult</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="MulMult"><td>MulMult</td><td class="num">3</td><td class="hint">결과는 `base_value + value &#215; 개수` 입니다.</td></tr>
+<tr data-label="MulMult"><td>MulMult</td><td class="num">3</td><td class="hint">결과는 <code>base_value + value &#215; 개수</code> 입니다.</td></tr>
 <tr data-label="AddMoney"><td>AddMoney</td><td class="num">4</td><td class="hint"></td></tr>
-<tr data-label="MulEach"><td>MulEach</td><td class="num">5</td><td class="hint">개수만큼 **되풀이해서 곱합니다.** `rookie_card` 하나입니다.</td></tr>
+<tr data-label="MulEach"><td>MulEach</td><td class="num">5</td><td class="hint">개수만큼 <b>되풀이해서 곱합니다.</b> <code>rookie_card</code> 하나입니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="PokerHandKind">
@@ -785,7 +852,7 @@ tbody [data-pick] { cursor: pointer; }
 </tbody></table>
 </div>
 <div data-enum-def="RankKind">
-<p class="lead"><b>enum.RankKind</b> <span class="hint">랭크. 값은 크기 순서이고 칩값이 아닙니다 — 칩값은 `Rank` 테이블에 있습니다.</span></p>
+<p class="lead"><b>enum.RankKind</b> <span class="hint">랭크. 값은 크기 순서이고 칩값이 아닙니다 — 칩값은 <code>Rank</code> 테이블에 있습니다.</span></p>
 <table><tbody>
 <tr data-label="Two"><td>Two</td><td class="num">2</td><td class="hint"></td></tr>
 <tr data-label="Three"><td>Three</td><td class="num">3</td><td class="hint"></td></tr>
@@ -808,7 +875,7 @@ tbody [data-pick] { cursor: pointer; }
 <tr data-label="Common"><td>Common</td><td class="num">1</td><td class="hint"></td></tr>
 <tr data-label="Uncommon"><td>Uncommon</td><td class="num">2</td><td class="hint"></td></tr>
 <tr data-label="Rare"><td>Rare</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="Legendary"><td>Legendary</td><td class="num">4</td><td class="hint">상점에 나오지 않습니다. `The Soul` 로만 나옵니다.</td></tr>
+<tr data-label="Legendary"><td>Legendary</td><td class="num">4</td><td class="hint">상점에 나오지 않습니다. <code>The Soul</code> 로만 나옵니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="ResetKind">
@@ -820,7 +887,7 @@ tbody [data-pick] { cursor: pointer; }
 </tbody></table>
 </div>
 <div data-enum-def="RngStreamKind">
-<p class="lead"><b>enum.RngStreamKind</b> <span class="hint">난수 스트림. **시드 하나에서 스트림마다 다른 상태를 파생합니다** — 같은 스트림을 쓰면
+<p class="lead"><b>enum.RngStreamKind</b> <span class="hint">난수 스트림. <b>시드 하나에서 스트림마다 다른 상태를 파생합니다</b> — 같은 스트림을 쓰면
 상점에서 리롤 한 번이 득점의 확률을 바꿉니다.</span></p>
 <table><tbody>
 <tr data-label="Shuffle"><td>Shuffle</td><td class="num">1</td><td class="hint"></td></tr>
@@ -836,7 +903,7 @@ tbody [data-pick] { cursor: pointer; }
 </tbody></table>
 </div>
 <div data-enum-def="RuleKind">
-<p class="lead"><b>enum.RuleKind</b> <span class="hint">바꿀 수 있는 규칙. **목록이 여기 있는 것이 요점입니다** — 자유 문자열이면 오타가
+<p class="lead"><b>enum.RuleKind</b> <span class="hint">바꿀 수 있는 규칙. <b>목록이 여기 있는 것이 요점입니다</b> — 자유 문자열이면 오타가
 통과합니다.</span></p>
 <table><tbody>
 <tr data-label="HandSize"><td>HandSize</td><td class="num">1</td><td class="hint"></td></tr>
@@ -888,8 +955,8 @@ tbody [data-pick] { cursor: pointer; }
 <tr data-label="DebuffUntilJokerSold"><td>DebuffUntilJokerSold</td><td class="num">47</td><td class="hint"></td></tr>
 <tr data-label="ForceCardSelected"><td>ForceCardSelected</td><td class="num">48</td><td class="hint"></td></tr>
 <tr data-label="RemoveFaceCards"><td>RemoveFaceCards</td><td class="num">49</td><td class="hint"></td></tr>
-<tr data-label="SuitsOnly"><td>SuitsOnly</td><td class="num">50</td><td class="hint">시작 덱을 그 무늬들로만 채웁니다. `suits` 가 어느 무늬인지 적습니다.</td></tr>
-<tr data-label="NextShopFree"><td>NextShopFree</td><td class="num">51</td><td class="hint">다음 상점의 처음 카드와 팩이 무료입니다. `Coupon Tag`.</td></tr>
+<tr data-label="SuitsOnly"><td>SuitsOnly</td><td class="num">50</td><td class="hint">시작 덱을 그 무늬들로만 채웁니다. <code>suits</code> 가 어느 무늬인지 적습니다.</td></tr>
+<tr data-label="NextShopFree"><td>NextShopFree</td><td class="num">51</td><td class="hint">다음 상점의 처음 카드와 팩이 무료입니다. <code>Coupon Tag</code>.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="Scope">
@@ -899,7 +966,7 @@ tbody [data-pick] { cursor: pointer; }
 <tr data-label="SelfTarget"><td>SelfTarget</td><td class="num">2</td><td class="hint"></td></tr>
 <tr data-label="ScoredCard"><td>ScoredCard</td><td class="num">3</td><td class="hint"></td></tr>
 <tr data-label="HeldCard"><td>HeldCard</td><td class="num">4</td><td class="hint"></td></tr>
-<tr data-label="Selected"><td>Selected</td><td class="num">5</td><td class="hint">플레이어가 고른 카드. 개수는 `scope_count` 에 적습니다.</td></tr>
+<tr data-label="Selected"><td>Selected</td><td class="num">5</td><td class="hint">플레이어가 고른 카드. 개수는 <code>scope_count</code> 에 적습니다.</td></tr>
 <tr data-label="RandomInHand"><td>RandomInHand</td><td class="num">6</td><td class="hint"></td></tr>
 <tr data-label="AllInHand"><td>AllInHand</td><td class="num">7</td><td class="hint"></td></tr>
 <tr data-label="RandomInDeck"><td>RandomInDeck</td><td class="num">8</td><td class="hint"></td></tr>
@@ -997,14 +1064,14 @@ tbody [data-pick] { cursor: pointer; }
 <tr data-label="OnConsumableUsed"><td>OnConsumableUsed</td><td class="num">19</td><td class="hint"></td></tr>
 <tr data-label="OnSell"><td>OnSell</td><td class="num">20</td><td class="hint">이것 자신을 팔 때.</td></tr>
 <tr data-label="OnUse"><td>OnUse</td><td class="num">21</td><td class="hint">이것 자신을 쓸 때. 소모품이 전부 이것입니다.</td></tr>
-<tr data-label="OnScoreResolved"><td>OnScoreResolved</td><td class="num">22</td><td class="hint">점수가 확정된 뒤, 패배 판정 전. **득점 뒤의 누적이 여기 있습니다** — 득점 중에
+<tr data-label="OnScoreResolved"><td>OnScoreResolved</td><td class="num">22</td><td class="hint">점수가 확정된 뒤, 패배 판정 전. <b>득점 뒤의 누적이 여기 있습니다</b> — 득점 중에
 늘리면 그 핸드의 점수가 달라집니다.</td></tr>
 <tr data-label="OnRunStart"><td>OnRunStart</td><td class="num">23</td><td class="hint">런이 시작할 때. 덱이 씁니다.</td></tr>
-<tr data-label="OnLuckyTriggered"><td>OnLuckyTriggered</td><td class="num">24</td><td class="hint">`Lucky Card` 가 실제로 발동했을 때.</td></tr>
+<tr data-label="OnLuckyTriggered"><td>OnLuckyTriggered</td><td class="num">24</td><td class="hint"><code>Lucky Card</code> 가 실제로 발동했을 때.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="UnitKind">
-<p class="lead"><b>enum.UnitKind</b> <span class="hint">「무엇마다」의 단위. `PerUnit` 이 이 개수만큼 값을 넣습니다.</span></p>
+<p class="lead"><b>enum.UnitKind</b> <span class="hint">「무엇마다」의 단위. <code>PerUnit</code> 이 이 개수만큼 값을 넣습니다.</span></p>
 <table><tbody>
 <tr data-label="JokerCount"><td>JokerCount</td><td class="num">1</td><td class="hint"></td></tr>
 <tr data-label="EmptyJokerSlots"><td>EmptyJokerSlots</td><td class="num">2</td><td class="hint"></td></tr>
@@ -1017,20 +1084,20 @@ tbody [data-pick] { cursor: pointer; }
 <tr data-label="BlindsSkipped"><td>BlindsSkipped</td><td class="num">9</td><td class="hint"></td></tr>
 <tr data-label="TarotUsed"><td>TarotUsed</td><td class="num">10</td><td class="hint"></td></tr>
 <tr data-label="UniquePlanetUsed"><td>UniquePlanetUsed</td><td class="num">11</td><td class="hint"></td></tr>
-<tr data-label="DeckRankCount"><td>DeckRankCount</td><td class="num">12</td><td class="hint">덱에서 그 랭크인 카드의 수. `ranks` 가 어느 랭크인지 적습니다.</td></tr>
-<tr data-label="DeckEnhancementCount"><td>DeckEnhancementCount</td><td class="num">13</td><td class="hint">덱에서 그 강화인 카드의 수. `enhancement` 가 어느 강화인지 적습니다.</td></tr>
-<tr data-label="JokerRarityCount"><td>JokerRarityCount</td><td class="num">14</td><td class="hint">그 희귀도인 조커의 수. `rarity` 가 어느 희귀도인지 적습니다.</td></tr>
+<tr data-label="DeckRankCount"><td>DeckRankCount</td><td class="num">12</td><td class="hint">덱에서 그 랭크인 카드의 수. <code>ranks</code> 가 어느 랭크인지 적습니다.</td></tr>
+<tr data-label="DeckEnhancementCount"><td>DeckEnhancementCount</td><td class="num">13</td><td class="hint">덱에서 그 강화인 카드의 수. <code>enhancement</code> 가 어느 강화인지 적습니다.</td></tr>
+<tr data-label="JokerRarityCount"><td>JokerRarityCount</td><td class="num">14</td><td class="hint">그 희귀도인 조커의 수. <code>rarity</code> 가 어느 희귀도인지 적습니다.</td></tr>
 <tr data-label="HandPlayCount"><td>HandPlayCount</td><td class="num">15</td><td class="hint"></td></tr>
 <tr data-label="OtherJokerSellValue"><td>OtherJokerSellValue</td><td class="num">16</td><td class="hint"></td></tr>
 <tr data-label="LowestHeldRankChips"><td>LowestHeldRankChips</td><td class="num">17</td><td class="hint">패의 최저 랭크 카드의 칩값.</td></tr>
 <tr data-label="CardsPlayed"><td>CardsPlayed</td><td class="num">18</td><td class="hint">이번 핸드에 낸 카드의 장수.</td></tr>
-<tr data-label="SelfCounterMoney"><td>SelfCounterMoney</td><td class="num">19</td><td class="hint">자기 `Money` 카운터.</td></tr>
+<tr data-label="SelfCounterMoney"><td>SelfCounterMoney</td><td class="num">19</td><td class="hint">자기 <code>Money</code> 카운터.</td></tr>
 <tr data-label="HandsPlayedThisRun"><td>HandsPlayedThisRun</td><td class="num">20</td><td class="hint"></td></tr>
 <tr data-label="DiscardsUnusedThisRun"><td>DiscardsUnusedThisRun</td><td class="num">21</td><td class="hint"></td></tr>
 </tbody></table>
 </div>
 </div>
-<p class="foot">생성 시각 2026-08-28 20:33:58</p>
+<p class="foot">생성 시각 2026-08-28 20:57:34</p>
 <script>
 (function () {
   "use strict";
@@ -1251,33 +1318,54 @@ tbody [data-pick] { cursor: pointer; }
       zoom(event.deltaY < 0 ? 1.15 : 1 / 1.15, event.clientX - box.left, event.clientY - box.top);
     }, { passive: false });
 
-    var dragging = false, fromX = 0, fromY = 0, moved = false;
+    var dragging = false, fromX = 0, fromY = 0, moved = false, held = -1;
 
     svg.addEventListener("pointerdown", function (event) {
       dragging = true;
       moved = false;
+      held = event.pointerId;
       fromX = event.clientX - panX;
       fromY = event.clientY - panY;
-      svg.setPointerCapture(event.pointerId);
       svg.classList.add("dragging");
     });
 
+    // **The capture is taken when a drag starts, not when the pointer goes down.**
+    //
+    // A captured pointer retargets every event after it to the element that captured, and
+    // the click the browser then synthesises goes to that element too - so a press and
+    // release on a table was delivered to the drawing and the table's own handler never
+    // ran. Clicking a table in the graph did nothing at all, which is the one thing the
+    // page tells the reader to do.
+    //
+    // Panning is what needs the capture, and panning is what the threshold detects. Below
+    // it nothing is captured, so a click stays a click on whatever was under it.
     svg.addEventListener("pointermove", function (event) {
       if (!dragging) return;
 
       var nextX = event.clientX - fromX;
       var nextY = event.clientY - fromY;
 
-      if (Math.abs(nextX - panX) > 2 || Math.abs(nextY - panY) > 2) moved = true;
+      if (!moved) {
+        if (Math.abs(nextX - panX) <= 2 && Math.abs(nextY - panY) <= 2) return;
+
+        moved = true;
+
+        // Not every pointer can be captured - a synthetic one has no id the browser knows -
+        // and a drawing that cannot be dragged is better than one that cannot be clicked.
+        try { svg.setPointerCapture(held); } catch (e) { /* pan without it */ }
+      }
 
       panX = nextX;
       panY = nextY;
       apply();
     });
 
-    svg.addEventListener("pointerup", function () {
+    svg.addEventListener("pointerup", function (event) {
       dragging = false;
       svg.classList.remove("dragging");
+
+      if (svg.hasPointerCapture && svg.hasPointerCapture(event.pointerId))
+        svg.releasePointerCapture(event.pointerId);
     });
 
     document.querySelector('[data-graph="in"]').addEventListener("click", function () {

@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using System.Text;
 using Tabbit.Helpers;
@@ -521,7 +522,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                              RecordCount = Num(table.Data.Count),
                              ColumnCount = Num(table.SerialFields.Count),
                              Sheet = SheetName(table.Location),
-                             Comment = Esc(table.Comment),
+                             Comment = Prose(table.Comment),
                          })
                          .ToList(),
         };
@@ -881,7 +882,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                              LabelCount = Num(x.Labels.Count),
                              UserCount = Num(Users(_enumUsers, x.Name, root: "").Count),
                              Sheet = SheetName(x.Location),
-                             Comment = Esc(x.Comment),
+                             Comment = Prose(x.Comment),
                          })
                          .ToList(),
         };
@@ -944,7 +945,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                     Presence = IsRequiredEntry(entry)
                         ? "<span class=\"yes\" title=\"필수\">&#x2714;</span>"
                         : "<span class=\"no\" title=\"옵셔널\">&#x2718;</span>",
-                    Comment = Esc(CommentOf(entry)),
+                    Comment = Prose(CommentOf(entry)),
                 });
             }
         }
@@ -998,7 +999,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             Name = enumm.Name,
             SourceLink = SourceSheetLink(enumm.Location, enumm.Name),
             SourceCell = SourceCell(enumm.Location),
-            Comment = Esc(enumm.Comment),
+            Comment = Prose(enumm.Comment),
             Labels = enumm.Labels.Select(label => new HtmlEnumLabelView
             {
                 No = ++no,
@@ -1010,7 +1011,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                 // can be read - and somebody looking at a sheet that writes the alias has
                 // nowhere else to find out what it means.
                 Alias = Esc(label.Alias),
-                Comment = Esc(label.Comment),
+                Comment = Prose(label.Comment),
             }).ToList(),
 
             HasAliases = enumm.Labels.Any(label => !string.IsNullOrEmpty(label.Alias)),
@@ -1050,14 +1051,14 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                        BaseCount = Num(declared.BaseMembers.Count),
                        VariantCount = Num(declared.Variants.Count),
                        UserCount = Num(GroupsOf(declared.Name).Count),
-                       Comment = "",
+                       Comment = Prose(declared.Comment),
                    })
                    .ToList();
 
         var view = new HtmlStructListPageView
         {
             Title = "구조체",
-            HasComments = false,
+            HasComments = _model.PolymorphicTypes.Any(x => !string.IsNullOrEmpty(x.Comment)),
             VariantTotal = Num(_model.PolymorphicTypes.Sum(x => (long)x.Variants.Count)),
             Rows = rows,
         };
@@ -1086,7 +1087,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         {
             Title = declared.Name,
             Name = declared.Name,
-            Comment = "",
+            Comment = Prose(declared.Comment),
             BaseMembers = declared.BaseMembers
                                   .Select(member => StructMember(member, declared, variant: ""))
                                   .ToList(),
@@ -1095,6 +1096,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             {
                 No = ++no,
                 Name = variant.Name,
+                Comment = Prose(variant.Comment),
                 Discriminator = variant.Discriminator.ToString(CultureInfo.InvariantCulture),
                 Members = declared.Variants
                                   .First(other => other.Name == variant.Name)
@@ -1115,8 +1117,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
               },
               sideTitle: "구조체",
               sideItems: StructSideItems("../", declared.Name),
-              sideIcon: "i-struct",
-              fills: true);
+              sideIcon: "i-struct");
 
         view.EnumDefs = EnumDefs(declared.BaseMembers
                                          .Concat(declared.Variants.SelectMany(variant => variant.Members))
@@ -1144,7 +1145,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             Shared = shared.Count == 0
                 ? ""
                 : Esc(string.Join(", ", shared)),
-            Comment = Esc(member.Comment),
+            Comment = Prose(member.Comment),
         };
     }
 
@@ -1204,7 +1205,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                              Href = HtmlLinks.ConstantSet(x.Name, root: ""),
                              ConstantCount = Num(x.Constants.Count),
                              Sheet = SheetName(x.Location),
-                             Comment = Esc(x.Comment),
+                             Comment = Prose(x.Comment),
                          })
                          .ToList(),
         };
@@ -1245,7 +1246,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             Name = constantSet.Name,
             SourceLink = SourceSheetLink(constantSet.Location, constantSet.Name),
             SourceCell = SourceCell(constantSet.Location),
-            Comment = Esc(constantSet.Comment),
+            Comment = Prose(constantSet.Comment),
             Constants = constantSet.Constants.Select(constant => BuildConstant(constantSet, constant, ++no)).ToList(),
         };
     }
@@ -1267,7 +1268,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             No = no,
             Name = constant.Name,
             NameCell = SourceSheetLink(constant.Location, constant.Name),
-            Comment = Esc(constant.Comment),
+            Comment = Prose(constant.Comment),
             TypeCell = typeCell,
             ValueCell = ConstantValueMarkup(constant),
         };
@@ -1327,6 +1328,12 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         if (element == Models.ValueType.String && value is string text)
             return StringMarkup(text);
 
+        // The same tick and cross a data cell draws. A constant page saying `true` beside a
+        // table page saying `✔` makes a reader learn the document before reading it, which is
+        // the reason the column index draws them too.
+        if (element == Models.ValueType.Bool && value is bool flag)
+            return BoolMarkup(flag);
+
         if (element == Models.ValueType.Bitset && value is long pattern)
             return BitsetMarkup(pattern);
 
@@ -1377,7 +1384,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
             Name = table.Name,
             SourceLink = SourceSheetLink(table.Location, table.Name),
             SourceCell = SourceCell(table.Location),
-            Comment = Esc(table.Comment),
+            Comment = Prose(table.Comment),
             RecordCount = Num(table.Data.Count),
             ShownCount = Num(shown.Count),
             // The sheet's columns, not the entries they fold into: how many columns a table
@@ -1387,13 +1394,14 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                 ? ""
                 : Num(table.Fields.Count),
             Truncated = shown.Count < table.Data.Count,
+            HasVariants = table.Fields.Any(field => field.IsDiscriminator),
             Sortable = shown.Count <= SortableRowLimit,
             ReferencedBy = Users(_tableReferrers, table.Name, root: "../"),
 
             NameCells = columns
                         .Select(entry => NameCell(table, entry, KeyNote(primary, keyColumns, entry)))
                         .ToList(),
-            CommentCells = columns.Select(entry => $"<th>{Esc(CommentOf(entry))}</th>").ToList(),
+            CommentCells = columns.Select(entry => $"<th>{Prose(CommentOf(entry))}</th>").ToList(),
             HasColumnComments = hasComments,
             TypeCells = columns
                         .Select(entry => $"<th>{EntryTypeMarkup(entry, root: "../", isKey: keyColumns.Contains(entry))}</th>")
@@ -1540,14 +1548,14 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                 .Select(group => new HtmlEnumDefView
                 {
                     Name = group.Key,
-                    Comment = Esc(group.First().Comment),
+                    Comment = Prose(group.First().Comment),
                     Labels = group.First().Labels.Select(label => new HtmlEnumLabelView
                     {
                         No = 0,
                         Name = Esc(label.Name),
                         SourceLink = "",
                         Value = label.Value.ToString(CultureInfo.InvariantCulture),
-                        Comment = Esc(label.Comment),
+                        Comment = Prose(label.Comment),
                     }).ToList(),
                 })
                 .ToList();
@@ -3417,6 +3425,23 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     }
 
     /// <summary>
+    /// A yes or a no, drawn.
+    /// </summary>
+    /// <remarks>
+    /// A tick or a cross rather than the words: a column of them reads as a pattern, which is
+    /// what somebody scanning the page is looking for. The tooltip carries the word, because
+    /// a glyph is not something a reader can copy out.
+    ///
+    /// False used to be nothing at all, which is the same as a cell with no value and the same
+    /// as one nobody filled in - three different things drawn alike on a page whose whole
+    /// purpose is telling them apart.
+    /// </remarks>
+    private static string BoolMarkup(bool value)
+        => value
+            ? "<span class=\"yes\" title=\"true\">&#x2714;</span>"
+            : "<span class=\"no\" title=\"false\">&#x2718;</span>";
+
+    /// <summary>
     /// Whether the sheet wrote this column as a bit pattern.
     /// </summary>
     /// <remarks>
@@ -3481,15 +3506,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
                 return StringMarkup((string)value);
 
             case Models.ValueType.Bool:
-                // A tick or a cross, rather than the words: a column of them reads as a
-                // pattern, which is what someone scanning the page is looking for.
-                //
-                // False used to be nothing at all, which is the same as a cell with no value
-                // and the same as one nobody filled in - three different things drawn alike
-                // on a page whose whole purpose is telling them apart.
-                return ((bool)value!)
-                    ? "<span class=\"yes\">&#x2714;</span>"
-                    : "<span class=\"no\">&#x2718;</span>";
+                return BoolMarkup((bool)value!);
 
             case Models.ValueType.Int32:
                 return ((int)value!).ToString(CultureInfo.InvariantCulture);
@@ -3550,7 +3567,7 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
         => new HtmlSummaryEntryView
         {
             Name = Esc(name),
-            Comment = Esc(comment),
+            Comment = Prose(comment),
             Detail = detail,
             Href = href,
         };
@@ -3634,6 +3651,102 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
     /// </summary>
     private static string Esc(string? text)
         => string.IsNullOrEmpty(text) ? "" : WebUtility.HtmlEncode(text);
+
+    /// <summary>
+    /// A description from a sheet, with the emphasis its author wrote.
+    /// </summary>
+    /// <remarks>
+    /// **Escaped first, then marked up.** Nothing a cell holds reaches the page as markup:
+    /// every angle bracket and ampersand is encoded before a single tag is introduced, and the
+    /// tags this adds are its own. A sheet cannot write markup into a page by writing markup
+    /// into a cell.
+    ///
+    /// Three spellings and no more - `**bold**`, `*italic*`, `` `code` ``. They are what
+    /// people write in a description cell, and the pages were printing the asterisks: a
+    /// constant whose description ended `**두 구현이 같아야 하는 값들입니다.**` read with the
+    /// four asterisks in it, which is the one place the author was trying to be emphatic.
+    ///
+    /// Not a Markdown implementation. There are no blocks, no lists and no links: a
+    /// description is one sentence in one cell, and a link would be a url a page fetches
+    /// nothing from anyway.
+    ///
+    /// **Only where the text is content.** A tooltip is an attribute and takes
+    /// <see cref="Esc"/>, because a `title` renders its markup as the characters they are.
+    /// </remarks>
+    private static string Prose(string? text)
+    {
+        string escaped = Esc(text);
+
+        if (escaped.Length == 0 || escaped.IndexOfAny(ProseMarks) < 0)
+            return escaped;
+
+        var result = new System.Text.StringBuilder(escaped.Length + 16);
+        int at = 0;
+
+        // Code spans first and as whole spans, so emphasis marks inside one stay the
+        // characters they are - which is the whole reason somebody writes a code span.
+        while (at < escaped.Length)
+        {
+            int open = escaped.IndexOf('`', at);
+
+            if (open < 0)
+            {
+                result.Append(Emphasis(escaped.Substring(at)));
+                break;
+            }
+
+            int close = escaped.IndexOf('`', open + 1);
+
+            if (close < 0)
+            {
+                result.Append(Emphasis(escaped.Substring(at)));
+                break;
+            }
+
+            result.Append(Emphasis(escaped.Substring(at, open - at)));
+            result.Append("<code>")
+                  .Append(escaped, open + 1, close - open - 1)
+                  .Append("</code>");
+
+            at = close + 1;
+        }
+
+        return result.ToString();
+    }
+
+    /// <summary>The characters worth scanning for before any of this runs.</summary>
+    private static readonly char[] ProseMarks = { '*', '`' };
+
+    /// <summary>
+    /// `**bold**` and `*italic*` in one run of text that holds no code span.
+    /// </summary>
+    /// <remarks>
+    /// Bold first, because a pair of asterisks is also two single ones and reading it as
+    /// italic-of-italic leaves the inner marks on the page.
+    /// </remarks>
+    private static string Emphasis(string text)
+    {
+        if (text.IndexOf('*') < 0)
+            return text;
+
+        text = BoldPattern.Replace(text, "<b>$1</b>");
+
+        return ItalicPattern.Replace(text, "<i>$1</i>");
+    }
+
+    private static readonly Regex BoldPattern =
+        new Regex(@"\*\*(?<text>[^*]+)\*\*", RegexOptions.Compiled);
+
+    /// <summary>
+    /// One asterisk each side, and neither of them touching a word.
+    /// </summary>
+    /// <remarks>
+    /// A column name may carry a `*` - it is how a sheet marks an index - and a description
+    /// mentioning one is not asking for italics. So an asterisk with a word character against
+    /// it on the inside opens nothing.
+    /// </remarks>
+    private static readonly Regex ItalicPattern =
+        new Regex(@"\*(?<text>[^\s*][^*]*?)\*", RegexOptions.Compiled);
 
     /// <summary>
     /// The caption for something, as an anchor back to the cell it was declared in when

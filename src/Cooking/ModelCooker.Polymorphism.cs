@@ -102,11 +102,13 @@ public partial class ModelCooker
         SchemaDeclarations declarations)
     {
         field.AbstractTypeName = declared.Name;
+        field.AbstractTypeComment = declared.Comment;
 
         field.Variants = variants
             .Select(variant => new PolymorphicVariant
             {
                 Name = variant.Name.ToPascalCase(),
+                Comment = variant.Comment,
                 Discriminator = declarations.DiscriminatorOf(variant),
             })
             .ToList();
@@ -550,6 +552,7 @@ public partial class ModelCooker
                 model.PolymorphicTypes.Add(new PolymorphicType
                 {
                     Name = name.ToPascalCase(),
+                    Comment = discriminator.AbstractTypeComment,
                     BaseMembers = members
                         .Where(field => field.VariantsDeclaringThis.Count == 0)
                         .ToList(),
@@ -557,6 +560,7 @@ public partial class ModelCooker
                         .Select(variant => new PolymorphicTypeVariant
                         {
                             Name = variant.Name,
+                            Comment = variant.Comment,
                             Discriminator = variant.Discriminator,
                             Members = members
                                 .Where(field => field.VariantsDeclaringThis.Contains(

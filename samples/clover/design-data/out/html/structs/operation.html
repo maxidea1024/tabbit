@@ -10,7 +10,7 @@
   --line: #d1d9e0; --line-soft: #eaeef2; --head-line: #dfe4ea; --head: #f6f8fa; --zebra: #fbfcfd;
   --hover: #fff8c5; --link: #0969da; --accent: #0969da;
   --num: #0a7c4a; --key: #0a7c4a; --type: #6639ba; --flag: #9a6700; --none: #a0a8b0;
-  --str: #a31515; --bad: #cf222e; --good: #c8a200;
+  --str: #a31515; --bad: #cf222e; --good: #c8a200; --true: #1a7f37;
   --bar: #f6f8fa; --card: #f6f8fa; --shadow: rgba(31, 35, 40, .12);
   --thumb: #ced3d9; --thumb-hover: #aeb6c0;
   color-scheme: light;
@@ -21,7 +21,7 @@
     --line: #30363d; --line-soft: #21262d; --head-line: #2b3138; --head: #161b22; --zebra: #11161d;
     --hover: #2d2611; --link: #4493f8; --accent: #4493f8;
     --num: #3fb950; --key: #3fb950; --type: #d2a8ff; --flag: #d29922; --none: #545d68;
-    --str: #ce9178; --bad: #f85149; --good: #ffd60a; --bad: #f85149;
+    --str: #ce9178; --bad: #f85149; --good: #ffd60a; --true: #3fb950;
     --bar: #161b22; --card: #161b22; --shadow: rgba(1, 4, 9, .8);
     --thumb: #30363d; --thumb-hover: #484f58;
     color-scheme: dark;
@@ -32,7 +32,7 @@
   --line: #30363d; --line-soft: #21262d; --head-line: #2b3138; --head: #161b22; --zebra: #11161d;
   --hover: #2d2611; --link: #4493f8; --accent: #4493f8;
   --num: #3fb950; --key: #3fb950; --type: #d2a8ff; --flag: #d29922; --none: #545d68;
-  --str: #ce9178; --bad: #f85149; --good: #ffd60a;
+  --str: #ce9178; --bad: #f85149; --good: #ffd60a; --true: #3fb950;
   --bar: #161b22; --card: #161b22; --shadow: rgba(1, 4, 9, .8);
   --thumb: #30363d; --thumb-hover: #484f58;
   color-scheme: dark;
@@ -250,8 +250,17 @@ tbody tr.out { display: none; }
 .scroll thead th:first-child, .scroll tbody td:first-child { position: sticky; left: 0; }
 .scroll thead th:first-child { z-index: 3; }
 /* The same reason as the header: this cell is sticky sideways, so its right-hand line is
-   painted from inside it. */
-.scroll tbody td:first-child { background: var(--bg); border-right: 0; box-shadow: inset -1px 0 0 var(--line-soft); }
+   painted from inside it.
+
+   **And `z-index`, without which the cell held its place and lost the paint.** A positioned
+   element left at `auto` is painted in document order, so every cell to the right of this one
+   went over it: scrolling sideways drew the second column's values across the key, and the two
+   texts sat on top of each other. Below the header's 3, because where the two meet the header
+   is the one that has to win. */
+.scroll tbody td:first-child {
+  z-index: 2;
+  background: var(--bg); border-right: 0; box-shadow: inset -1px 0 0 var(--line-soft);
+}
 .scroll tbody tr:nth-child(even) td:first-child { background: var(--zebra); }
 .scroll tbody tr:hover > td:first-child { background: var(--hover); }
 
@@ -320,18 +329,28 @@ td.text.open .clip { max-width: 72ch; white-space: normal; overflow: visible; }
    happens to be in a cell, which is the same reason numbers and enums have their own. */
 .str { color: var(--str); }
 /* True and false differ in shape first and colour second. In one shape and two colours a
-   column of `false` still reads as ticked - the eye takes the silhouette and not the hue. */
-.yes, .no { font-weight: 600; }
-.yes { color: var(--good); }
+   column of `false` still reads as ticked - the eye takes the silhouette and not the hue.
+
+   The tick used to be `--good`, which is the amber this page uses for a flag: on the light
+   theme that is a yellow glyph on white, and a column of them was the hardest thing on the
+   page to pick out. Green rather than amber, a size up and a weight up - a tick is a mark
+   rather than a letter, so it can afford both. `--true` is its own token because `--num` is
+   also green and the two are set separately per theme. */
+.yes, .no { font-weight: 700; font-size: 15px; line-height: 1; }
+.yes { color: var(--true); }
 .no { color: var(--bad); }
 .n-of { color: var(--faint); font-size: 11px; margin-left: 4px; }
 /* A bit pattern, coloured as the number it is. Monospace because the digits of a pattern are
    read by position, and a proportional font puts the same nibble at a different offset on
    every row. */
 .bits { color: var(--num); font-family: Consolas, "SF Mono", Menlo, monospace; }
-/* A member the row's variant does not declare. Upright, because italic on this page means a
-   value is absent and this is not an absence - the member is not part of what this row is. */
-.na { color: var(--none); }
+/* A member the row's variant does not declare.
+
+   Upright, because italic on this page means a value is absent and this is not an absence -
+   the member is not part of what this row is. And dotted underneath, because a dash and an
+   italic `null` differ by too little for a reader who has not been told: the underline says
+   there is something to hover, and the page carries a line saying what. */
+.na { color: var(--none); border-bottom: 1px dotted var(--none); cursor: help; }
 /* The variants that declare a member, beside its type in the header. Smaller than the type and
    in the flag colour, so a type row of a wide union still reads as types first. */
 .of { color: var(--flag); font-size: 11px; }
@@ -373,6 +392,54 @@ a.variant { color: var(--flag); }
 #enumcard.wrap { white-space: pre-wrap; word-break: break-word; color: var(--fg); }
 #enumcard.code { font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 12px; }
 #enumcard td:last-child { white-space: normal; }
+
+/* ---- a declared type: what every variant carries, and what one of them may be ----
+
+   The two were an `h2` and a run of `h3`s with a small table under each, and at 41 variants
+   that is a wall: every heading the same weight as the last, every table its own width, and
+   nothing saying which of them hang off which. What the declaration says is a relationship,
+   and the page was not drawing one.
+
+   So the base is a panel and the variants are cards on a rail that runs down from it. The
+   rail is one border on the container - a reader follows it from the shared members to the
+   list of shapes - and each card has its own edge, so where one variant ends and the next
+   begins is a line rather than a guess. */
+.base {
+  border: 1px solid var(--line); border-left: 3px solid var(--accent);
+  border-radius: 8px; background: var(--card); padding: 12px 14px; margin: 0 0 6px;
+}
+.base > :first-child { margin-top: 0; }
+.base > :last-child { margin-bottom: 0; }
+.base table { background: var(--bg); }
+
+/* The rail. Indented so the cards sit under the panel above them rather than beside it. */
+.variants { margin: 0 0 0 14px; padding: 14px 0 2px 20px; border-left: 2px solid var(--line); }
+.variant {
+  position: relative;
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 10px 12px; margin: 0 0 12px;
+}
+/* A stub from the rail to the card, so the two read as joined rather than merely near. */
+.variant::before {
+  content: ""; position: absolute; left: -20px; top: 18px;
+  width: 18px; border-top: 2px solid var(--line);
+}
+.variant > h3 { margin: 0 0 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.variant .tag {
+  font-size: 11px; font-weight: 400; color: var(--muted);
+  padding: 1px 7px; border: 1px solid var(--line); border-radius: 999px;
+}
+.variant .none { margin: 0; }
+.variant table { width: auto; min-width: 340px; }
+
+/* The variant names as one row of chips, for a type with dozens of them: the page is
+   otherwise a scroll with no way to see what is on it. */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
+.chips a {
+  font-size: 12px; padding: 2px 9px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--muted);
+}
+.chips a:hover { color: var(--fg); border-color: var(--accent); text-decoration: none; }
 
 /* ---- the reference graph ---- */
 .graph { display: block; background: var(--bg); }
@@ -537,9 +604,10 @@ tbody [data-pick] { cursor: pointer; }
 <li class="on"><a href="../structs/operation.html#struct_Operation"><svg class="i"><use href="#i-struct"></use></svg>Operation</a></li>
 </ul>
 </aside>
-<main class="fill">
+<main>
 <h1>Operation</h1>
 <p class="lead" id="struct_Operation"><svg class="i"><use href="#i-struct"></use></svg>Operation &middot; 변종 36개 &middot; 공통 멤버 0개</p>
+<p class="comment">효과가 하는 일.</p>
 <p class="hint">이 타입으로 선언된 그룹:
 <a href="../tables/boss-effect.html#col_BossEffect.OperationType">BossEffect.Operation</a>,
 <a href="../tables/deck-effect.html#col_DeckEffect.OperationType">DeckEffect.Operation</a>,
@@ -552,11 +620,53 @@ tbody [data-pick] { cursor: pointer; }
 <a href="../tables/voucher-effect.html#col_VoucherEffect.OperationType">VoucherEffect.Operation</a>
 </p>
 
-<h2>공통 멤버</h2>
-<p class="none">모든 변종이 가지는 멤버가 없습니다.</p>
+<div class="chips">
+<a href="#variant_Operation.OpAddChips">OpAddChips</a>
+<a href="#variant_Operation.OpAddMult">OpAddMult</a>
+<a href="#variant_Operation.OpMulMult">OpMulMult</a>
+<a href="#variant_Operation.OpAddMoney">OpAddMoney</a>
+<a href="#variant_Operation.OpSetMoney">OpSetMoney</a>
+<a href="#variant_Operation.OpPerUnit">OpPerUnit</a>
+<a href="#variant_Operation.OpRandomRange">OpRandomRange</a>
+<a href="#variant_Operation.OpRetrigger">OpRetrigger</a>
+<a href="#variant_Operation.OpGrowSelf">OpGrowSelf</a>
+<a href="#variant_Operation.OpResetSelf">OpResetSelf</a>
+<a href="#variant_Operation.OpGrowOthers">OpGrowOthers</a>
+<a href="#variant_Operation.OpLevelUpHand">OpLevelUpHand</a>
+<a href="#variant_Operation.OpCreateCard">OpCreateCard</a>
+<a href="#variant_Operation.OpAddCard">OpAddCard</a>
+<a href="#variant_Operation.OpDestroyCard">OpDestroyCard</a>
+<a href="#variant_Operation.OpModifyCard">OpModifyCard</a>
+<a href="#variant_Operation.OpModifyJoker">OpModifyJoker</a>
+<a href="#variant_Operation.OpDestroyJoker">OpDestroyJoker</a>
+<a href="#variant_Operation.OpCopyJoker">OpCopyJoker</a>
+<a href="#variant_Operation.OpDebuff">OpDebuff</a>
+<a href="#variant_Operation.OpDisableBoss">OpDisableBoss</a>
+<a href="#variant_Operation.OpPreventLoss">OpPreventLoss</a>
+<a href="#variant_Operation.OpChangeRule">OpChangeRule</a>
+<a href="#variant_Operation.OpChangeRuleByCounter">OpChangeRuleByCounter</a>
+<a href="#variant_Operation.OpCardTrait">OpCardTrait</a>
+<a href="#variant_Operation.OpMulMoney">OpMulMoney</a>
+<a href="#variant_Operation.OpShopGift">OpShopGift</a>
+<a href="#variant_Operation.OpDuplicateNextTag">OpDuplicateNextTag</a>
+<a href="#variant_Operation.OpRerollBoss">OpRerollBoss</a>
+<a href="#variant_Operation.OpForceDiscard">OpForceDiscard</a>
+<a href="#variant_Operation.OpDrawFaceDown">OpDrawFaceDown</a>
+<a href="#variant_Operation.OpFlipJokers">OpFlipJokers</a>
+<a href="#variant_Operation.OpDisableRandomJoker">OpDisableRandomJoker</a>
+<a href="#variant_Operation.OpGrant">OpGrant</a>
+<a href="#variant_Operation.OpNothing">OpNothing</a>
+<a href="#variant_Operation.OpCustom">OpCustom</a>
+</div>
 
-<h2>변종</h2>
-<h3 id="variant_Operation.OpAddChips"><svg class="i"><use href="#i-struct"></use></svg>OpAddChips <span class="hint">&middot; 파일이 싣는 번호 <code>1</code></span></h3>
+<div class="base">
+<h2>공통 멤버 <span class="count">0</span></h2>
+<p class="none">모든 변종이 가지는 멤버가 없습니다. 변종마다의 멤버만으로 이루어진 타입입니다.</p>
+</div>
+
+<div class="variants">
+<div class="variant" id="variant_Operation.OpAddChips">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpAddChips<span class="tag" title="파일이 싣는 번호">@1</span><span class="tag">멤버 1개</span></h3>
 <div class="scroll">
 <table>
 <thead>
@@ -567,7 +677,9 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpAddMult"><svg class="i"><use href="#i-struct"></use></svg>OpAddMult <span class="hint">&middot; 파일이 싣는 번호 <code>2</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpAddMult">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpAddMult<span class="tag" title="파일이 싣는 번호">@2</span><span class="tag">멤버 1개</span></h3>
 <div class="scroll">
 <table>
 <thead>
@@ -578,7 +690,9 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpMulMult"><svg class="i"><use href="#i-struct"></use></svg>OpMulMult <span class="hint">&middot; 파일이 싣는 번호 <code>3</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpMulMult">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpMulMult<span class="tag" title="파일이 싣는 번호">@3</span><span class="tag">멤버 1개</span></h3>
 <div class="scroll">
 <table>
 <thead>
@@ -589,7 +703,9 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpAddMoney"><svg class="i"><use href="#i-struct"></use></svg>OpAddMoney <span class="hint">&middot; 파일이 싣는 번호 <code>4</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpAddMoney">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpAddMoney<span class="tag" title="파일이 싣는 번호">@4</span><span class="tag">멤버 2개</span></h3>
 <div class="scroll">
 <table>
 <thead>
@@ -601,7 +717,10 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpSetMoney"><svg class="i"><use href="#i-struct"></use></svg>OpSetMoney <span class="hint">&middot; 파일이 싣는 번호 <code>5</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpSetMoney">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpSetMoney<span class="tag" title="파일이 싣는 번호">@5</span><span class="tag">멤버 1개</span></h3>
+<p class="comment">금액을 대입합니다. <code>Wraith</code> 와 <code>The Ox</code> 입니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -612,7 +731,12 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpPerUnit"><svg class="i"><use href="#i-struct"></use></svg>OpPerUnit <span class="hint">&middot; 파일이 싣는 번호 <code>6</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpPerUnit">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpPerUnit<span class="tag" title="파일이 싣는 번호">@6</span><span class="tag">멤버 7개</span></h3>
+<p class="comment">단위 개수만큼 값을 넣습니다. <code>MulMult</code> 의 결과는 <code>base_value + value &#215; 개수</code> 이고,
+<code>base_value</code> 를 비우면 0 입니다 — 빈 슬롯마다 &#215;1 은 0 이고 강철 카드마다 &#215;0.2 는
+10000 입니다. 나머지 모드는 <code>value &#215; 개수</code> 입니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -624,12 +748,15 @@ tbody [data-pick] { cursor: pointer; }
 <tr><td>Mode</td><td><a href="../enums/per-unit-mode.html#enum_PerUnitMode" data-enum="PerUnitMode">enum.PerUnitMode</a>?</td><td><span class="hint">OpRandomRange</span></td><td></td></tr>
 <tr><td>Value</td><td><span class="type">int?</span></td><td><span class="hint">OpModifyCard, OpChangeRule, OpMulMoney</span></td><td></td></tr>
 <tr><td>BaseValue</td><td><span class="type">int?</span></td><td></td><td></td></tr>
-<tr><td>Rarity</td><td><a href="../enums/rarity.html#enum_Rarity" data-enum="Rarity">enum.Rarity</a>?</td><td><span class="hint">OpCreateCard, OpShopGift</span></td><td>`JokerRarityCount` 가 어느 희귀도를 세는가.</td></tr>
-<tr><td>Enhancement</td><td><a href="../enums/enhancement-kind.html#enum_EnhancementKind" data-enum="EnhancementKind">enum.EnhancementKind</a>?</td><td><span class="hint">OpAddCard, OpModifyCard</span></td><td>`DeckEnhancementCount` 가 어느 강화를 세는가.</td></tr>
+<tr><td>Rarity</td><td><a href="../enums/rarity.html#enum_Rarity" data-enum="Rarity">enum.Rarity</a>?</td><td><span class="hint">OpCreateCard, OpShopGift</span></td><td><code>JokerRarityCount</code> 가 어느 희귀도를 세는가.</td></tr>
+<tr><td>Enhancement</td><td><a href="../enums/enhancement-kind.html#enum_EnhancementKind" data-enum="EnhancementKind">enum.EnhancementKind</a>?</td><td><span class="hint">OpAddCard, OpModifyCard</span></td><td><code>DeckEnhancementCount</code> 가 어느 강화를 세는가.</td></tr>
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpRandomRange"><svg class="i"><use href="#i-struct"></use></svg>OpRandomRange <span class="hint">&middot; 파일이 싣는 번호 <code>7</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpRandomRange">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpRandomRange<span class="tag" title="파일이 싣는 번호">@7</span><span class="tag">멤버 3개</span></h3>
+<p class="comment">난수를 그 칸에 더합니다. <code>smudge</code> 하나입니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -642,7 +769,10 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpRetrigger"><svg class="i"><use href="#i-struct"></use></svg>OpRetrigger <span class="hint">&middot; 파일이 싣는 번호 <code>8</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpRetrigger">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpRetrigger<span class="tag" title="파일이 싣는 번호">@8</span><span class="tag">멤버 1개</span></h3>
+<p class="comment">대상을 그 자리에서 다시 발동합니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -653,7 +783,10 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpGrowSelf"><svg class="i"><use href="#i-struct"></use></svg>OpGrowSelf <span class="hint">&middot; 파일이 싣는 번호 <code>9</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpGrowSelf">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpGrowSelf<span class="tag" title="파일이 싣는 번호">@9</span><span class="tag">멤버 6개</span></h3>
+<p class="comment">자기 누적값을 늘립니다. <code>step</code> 은 음수가 됩니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -663,13 +796,16 @@ tbody [data-pick] { cursor: pointer; }
 <tr><td>Cap</td><td><span class="type">int?</span></td><td><span class="hint">OpAddMoney, OpPerUnit, OpMulMoney</span></td><td>상한. 없으면 비웁니다.</td></tr>
 <tr><td>Counter</td><td><a href="../enums/counter-field.html#enum_CounterField" data-enum="CounterField">enum.CounterField</a>?</td><td><span class="hint">OpResetSelf, OpGrowOthers, OpChangeRuleByCounter</span></td><td></td></tr>
 <tr><td>Step</td><td><span class="type">int?</span></td><td><span class="hint">OpGrowOthers</span></td><td></td></tr>
-<tr><td>Init</td><td><span class="type">int?</span></td><td></td><td>시작값. 비우면 `MultMul` 은 10000 이고 나머지는 0 입니다.</td></tr>
+<tr><td>Init</td><td><span class="type">int?</span></td><td></td><td>시작값. 비우면 <code>MultMul</code> 은 10000 이고 나머지는 0 입니다.</td></tr>
 <tr><td>Floor</td><td><span class="type">int?</span></td><td></td><td></td></tr>
 <tr><td>Reset</td><td><a href="../enums/reset-kind.html#enum_ResetKind" data-enum="ResetKind">enum.ResetKind</a>?</td><td></td><td></td></tr>
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpResetSelf"><svg class="i"><use href="#i-struct"></use></svg>OpResetSelf <span class="hint">&middot; 파일이 싣는 번호 <code>10</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpResetSelf">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpResetSelf<span class="tag" title="파일이 싣는 번호">@10</span><span class="tag">멤버 1개</span></h3>
+<p class="comment">누적값을 시작값으로 되돌립니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -680,7 +816,10 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpGrowOthers"><svg class="i"><use href="#i-struct"></use></svg>OpGrowOthers <span class="hint">&middot; 파일이 싣는 번호 <code>11</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpGrowOthers">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpGrowOthers<span class="tag" title="파일이 싣는 번호">@11</span><span class="tag">멤버 2개</span></h3>
+<p class="comment">다른 것의 값을 늘립니다. <code>gift_tag</code> 하나입니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -692,7 +831,10 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpLevelUpHand"><svg class="i"><use href="#i-struct"></use></svg>OpLevelUpHand <span class="hint">&middot; 파일이 싣는 번호 <code>12</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpLevelUpHand">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpLevelUpHand<span class="tag" title="파일이 싣는 번호">@12</span><span class="tag">멤버 2개</span></h3>
+<p class="comment">족보의 레벨. <code>levels</code> 는 음수가 됩니다 — <code>The Arm</code> 이 내립니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -704,7 +846,10 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpCreateCard"><svg class="i"><use href="#i-struct"></use></svg>OpCreateCard <span class="hint">&middot; 파일이 싣는 번호 <code>13</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpCreateCard">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpCreateCard<span class="tag" title="파일이 싣는 번호">@13</span><span class="tag">멤버 7개</span></h3>
+<p class="comment">소모품이나 조커를 만듭니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -715,13 +860,16 @@ tbody [data-pick] { cursor: pointer; }
 <tr><td>Create</td><td><a href="../enums/create-kind.html#enum_CreateKind" data-enum="CreateKind">enum.CreateKind</a>?</td><td><span class="hint">OpAddCard, OpShopGift, OpGrant</span></td><td></td></tr>
 <tr><td>Count</td><td><span class="type">int?</span></td><td><span class="hint">OpAddCard, OpDestroyCard, OpShopGift, OpForceDiscard, OpGrant</span></td><td></td></tr>
 <tr><td>Edition</td><td><a href="../enums/edition-kind.html#enum_EditionKind" data-enum="EditionKind">enum.EditionKind</a>?</td><td><span class="hint">OpModifyCard, OpModifyJoker, OpShopGift</span></td><td></td></tr>
-<tr><td>Rarity</td><td><a href="../enums/rarity.html#enum_Rarity" data-enum="Rarity">enum.Rarity</a>?</td><td><span class="hint">OpPerUnit, OpShopGift</span></td><td>`JokerRarityCount` 가 어느 희귀도를 세는가.</td></tr>
+<tr><td>Rarity</td><td><a href="../enums/rarity.html#enum_Rarity" data-enum="Rarity">enum.Rarity</a>?</td><td><span class="hint">OpPerUnit, OpShopGift</span></td><td><code>JokerRarityCount</code> 가 어느 희귀도를 세는가.</td></tr>
 <tr><td>Random</td><td><span class="type">bool?</span></td><td><span class="hint">OpAddCard, OpModifyCard, OpModifyJoker</span></td><td>정하지 않은 성질을 무작위로 채웁니다.</td></tr>
 <tr><td>RefId</td><td><span class="type">string?</span></td><td><span class="hint">OpGrant</span></td><td>특정 행을 가리킬 때의 식별자. 팩과 바우처와 태그가 씁니다.</td></tr>
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpAddCard"><svg class="i"><use href="#i-struct"></use></svg>OpAddCard <span class="hint">&middot; 파일이 싣는 번호 <code>14</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpAddCard">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpAddCard<span class="tag" title="파일이 싣는 번호">@14</span><span class="tag">멤버 6개</span></h3>
+<p class="comment">덱이나 패에 플레잉 카드를 더합니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -731,13 +879,15 @@ tbody [data-pick] { cursor: pointer; }
 <tr><td>Create</td><td><a href="../enums/create-kind.html#enum_CreateKind" data-enum="CreateKind">enum.CreateKind</a>?</td><td><span class="hint">OpCreateCard, OpShopGift, OpGrant</span></td><td></td></tr>
 <tr><td>Count</td><td><span class="type">int?</span></td><td><span class="hint">OpCreateCard, OpDestroyCard, OpShopGift, OpForceDiscard, OpGrant</span></td><td></td></tr>
 <tr><td>CardClass</td><td><a href="../enums/card-class.html#enum_CardClass" data-enum="CardClass">enum.CardClass</a>?</td><td><span class="hint">OpDrawFaceDown</span></td><td></td></tr>
-<tr><td>Enhancement</td><td><a href="../enums/enhancement-kind.html#enum_EnhancementKind" data-enum="EnhancementKind">enum.EnhancementKind</a>?</td><td><span class="hint">OpPerUnit, OpModifyCard</span></td><td>`DeckEnhancementCount` 가 어느 강화를 세는가.</td></tr>
+<tr><td>Enhancement</td><td><a href="../enums/enhancement-kind.html#enum_EnhancementKind" data-enum="EnhancementKind">enum.EnhancementKind</a>?</td><td><span class="hint">OpPerUnit, OpModifyCard</span></td><td><code>DeckEnhancementCount</code> 가 어느 강화를 세는가.</td></tr>
 <tr><td>Seal</td><td><a href="../enums/seal-kind.html#enum_SealKind" data-enum="SealKind">enum.SealKind</a>?</td><td><span class="hint">OpModifyCard</span></td><td></td></tr>
 <tr><td>Random</td><td><span class="type">bool?</span></td><td><span class="hint">OpCreateCard, OpModifyCard, OpModifyJoker</span></td><td>정하지 않은 성질을 무작위로 채웁니다.</td></tr>
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpDestroyCard"><svg class="i"><use href="#i-struct"></use></svg>OpDestroyCard <span class="hint">&middot; 파일이 싣는 번호 <code>15</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpDestroyCard">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpDestroyCard<span class="tag" title="파일이 싣는 번호">@15</span><span class="tag">멤버 1개</span></h3>
 <div class="scroll">
 <table>
 <thead>
@@ -748,7 +898,11 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpModifyCard"><svg class="i"><use href="#i-struct"></use></svg>OpModifyCard <span class="hint">&middot; 파일이 싣는 번호 <code>16</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpModifyCard">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpModifyCard<span class="tag" title="파일이 싣는 번호">@16</span><span class="tag">멤버 7개</span></h3>
+<p class="comment">카드의 무엇을 바꿉니다. <code>random</code> 이 참이면 <code>scope</code> 안에서 <b>한 번 뽑아 전부에 같은 값</b>을
+씁니다 — <code>Sigil</code> 이 패 전체를 한 무늬로 만드는 것이 그것입니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -757,7 +911,7 @@ tbody [data-pick] { cursor: pointer; }
 <tbody>
 <tr><td>Value</td><td><span class="type">int?</span></td><td><span class="hint">OpPerUnit, OpChangeRule, OpMulMoney</span></td><td></td></tr>
 <tr><td>Edition</td><td><a href="../enums/edition-kind.html#enum_EditionKind" data-enum="EditionKind">enum.EditionKind</a>?</td><td><span class="hint">OpCreateCard, OpModifyJoker, OpShopGift</span></td><td></td></tr>
-<tr><td>Enhancement</td><td><a href="../enums/enhancement-kind.html#enum_EnhancementKind" data-enum="EnhancementKind">enum.EnhancementKind</a>?</td><td><span class="hint">OpPerUnit, OpAddCard</span></td><td>`DeckEnhancementCount` 가 어느 강화를 세는가.</td></tr>
+<tr><td>Enhancement</td><td><a href="../enums/enhancement-kind.html#enum_EnhancementKind" data-enum="EnhancementKind">enum.EnhancementKind</a>?</td><td><span class="hint">OpPerUnit, OpAddCard</span></td><td><code>DeckEnhancementCount</code> 가 어느 강화를 세는가.</td></tr>
 <tr><td>Seal</td><td><a href="../enums/seal-kind.html#enum_SealKind" data-enum="SealKind">enum.SealKind</a>?</td><td><span class="hint">OpAddCard</span></td><td></td></tr>
 <tr><td>Suit</td><td><a href="../enums/suit-kind.html#enum_SuitKind" data-enum="SuitKind">enum.SuitKind</a>?</td><td><span class="hint">OpDebuff</span></td><td></td></tr>
 <tr><td>Modify</td><td><a href="../enums/modify-kind.html#enum_ModifyKind" data-enum="ModifyKind">enum.ModifyKind</a>?</td><td></td><td></td></tr>
@@ -765,7 +919,10 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpModifyJoker"><svg class="i"><use href="#i-struct"></use></svg>OpModifyJoker <span class="hint">&middot; 파일이 싣는 번호 <code>17</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpModifyJoker">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpModifyJoker<span class="tag" title="파일이 싣는 번호">@17</span><span class="tag">멤버 2개</span></h3>
+<p class="comment">조커의 에디션을 바꿉니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -777,7 +934,9 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpDestroyJoker"><svg class="i"><use href="#i-struct"></use></svg>OpDestroyJoker <span class="hint">&middot; 파일이 싣는 번호 <code>18</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpDestroyJoker">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpDestroyJoker<span class="tag" title="파일이 싣는 번호">@18</span><span class="tag">멤버 1개</span></h3>
 <div class="scroll">
 <table>
 <thead>
@@ -788,7 +947,9 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpCopyJoker"><svg class="i"><use href="#i-struct"></use></svg>OpCopyJoker <span class="hint">&middot; 파일이 싣는 번호 <code>19</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpCopyJoker">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpCopyJoker<span class="tag" title="파일이 싣는 번호">@19</span><span class="tag">멤버 1개</span></h3>
 <div class="scroll">
 <table>
 <thead>
@@ -799,7 +960,10 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpDebuff"><svg class="i"><use href="#i-struct"></use></svg>OpDebuff <span class="hint">&middot; 파일이 싣는 번호 <code>20</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpDebuff">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpDebuff<span class="tag" title="파일이 싣는 번호">@20</span><span class="tag">멤버 2개</span></h3>
+<p class="comment">무력화합니다. 보스가 씁니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -811,11 +975,20 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpDisableBoss"><svg class="i"><use href="#i-struct"></use></svg>OpDisableBoss <span class="hint">&middot; 파일이 싣는 번호 <code>21</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpDisableBoss">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpDisableBoss<span class="tag" title="파일이 싣는 번호">@21</span></h3>
+<p class="comment">보스 효과를 끕니다.</p>
 <p class="none">이 변종이 따로 선언하는 멤버가 없습니다.</p>
-<h3 id="variant_Operation.OpPreventLoss"><svg class="i"><use href="#i-struct"></use></svg>OpPreventLoss <span class="hint">&middot; 파일이 싣는 번호 <code>22</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpPreventLoss">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpPreventLoss<span class="tag" title="파일이 싣는 번호">@22</span></h3>
+<p class="comment">패배를 막습니다.</p>
 <p class="none">이 변종이 따로 선언하는 멤버가 없습니다.</p>
-<h3 id="variant_Operation.OpChangeRule"><svg class="i"><use href="#i-struct"></use></svg>OpChangeRule <span class="hint">&middot; 파일이 싣는 번호 <code>23</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpChangeRule">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpChangeRule<span class="tag" title="파일이 싣는 번호">@23</span><span class="tag">멤버 4개</span></h3>
+<p class="comment">규칙 하나를 바꿉니다. <code>absolute</code> 가 참이면 더하지 않고 그 값으로 정합니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -829,7 +1002,10 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpChangeRuleByCounter"><svg class="i"><use href="#i-struct"></use></svg>OpChangeRuleByCounter <span class="hint">&middot; 파일이 싣는 번호 <code>24</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpChangeRuleByCounter">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpChangeRuleByCounter<span class="tag" title="파일이 싣는 번호">@24</span><span class="tag">멤버 2개</span></h3>
+<p class="comment">규칙을 누적값만큼 바꿉니다. 값이 라운드마다 줄어드는 것들이 씁니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -841,7 +1017,10 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpCardTrait"><svg class="i"><use href="#i-struct"></use></svg>OpCardTrait <span class="hint">&middot; 파일이 싣는 번호 <code>25</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpCardTrait">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpCardTrait<span class="tag" title="파일이 싣는 번호">@25</span><span class="tag">멤버 1개</span></h3>
+<p class="comment">이 카드가 무엇으로 취급되는지를 바꿉니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -852,7 +1031,10 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpMulMoney"><svg class="i"><use href="#i-struct"></use></svg>OpMulMoney <span class="hint">&middot; 파일이 싣는 번호 <code>26</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpMulMoney">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpMulMoney<span class="tag" title="파일이 싣는 번호">@26</span><span class="tag">멤버 2개</span></h3>
+<p class="comment">금액을 곱합니다. <code>The Hermit</code> 과 <code>Economy Tag</code> 입니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -864,7 +1046,10 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpShopGift"><svg class="i"><use href="#i-struct"></use></svg>OpShopGift <span class="hint">&middot; 파일이 싣는 번호 <code>27</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpShopGift">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpShopGift<span class="tag" title="파일이 싣는 번호">@27</span><span class="tag">멤버 5개</span></h3>
+<p class="comment">다음 상점에 무언가를 놓습니다. 태그가 씁니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -874,16 +1059,25 @@ tbody [data-pick] { cursor: pointer; }
 <tr><td>Create</td><td><a href="../enums/create-kind.html#enum_CreateKind" data-enum="CreateKind">enum.CreateKind</a>?</td><td><span class="hint">OpCreateCard, OpAddCard, OpGrant</span></td><td></td></tr>
 <tr><td>Count</td><td><span class="type">int?</span></td><td><span class="hint">OpCreateCard, OpAddCard, OpDestroyCard, OpForceDiscard, OpGrant</span></td><td></td></tr>
 <tr><td>Edition</td><td><a href="../enums/edition-kind.html#enum_EditionKind" data-enum="EditionKind">enum.EditionKind</a>?</td><td><span class="hint">OpCreateCard, OpModifyCard, OpModifyJoker</span></td><td></td></tr>
-<tr><td>Rarity</td><td><a href="../enums/rarity.html#enum_Rarity" data-enum="Rarity">enum.Rarity</a>?</td><td><span class="hint">OpPerUnit, OpCreateCard</span></td><td>`JokerRarityCount` 가 어느 희귀도를 세는가.</td></tr>
+<tr><td>Rarity</td><td><a href="../enums/rarity.html#enum_Rarity" data-enum="Rarity">enum.Rarity</a>?</td><td><span class="hint">OpPerUnit, OpCreateCard</span></td><td><code>JokerRarityCount</code> 가 어느 희귀도를 세는가.</td></tr>
 <tr><td>Free</td><td><span class="type">bool?</span></td><td></td><td></td></tr>
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpDuplicateNextTag"><svg class="i"><use href="#i-struct"></use></svg>OpDuplicateNextTag <span class="hint">&middot; 파일이 싣는 번호 <code>28</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpDuplicateNextTag">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpDuplicateNextTag<span class="tag" title="파일이 싣는 번호">@28</span></h3>
+<p class="comment">다음에 고르는 태그를 복제합니다. <code>Double Tag</code> 하나입니다.</p>
 <p class="none">이 변종이 따로 선언하는 멤버가 없습니다.</p>
-<h3 id="variant_Operation.OpRerollBoss"><svg class="i"><use href="#i-struct"></use></svg>OpRerollBoss <span class="hint">&middot; 파일이 싣는 번호 <code>29</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpRerollBoss">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpRerollBoss<span class="tag" title="파일이 싣는 번호">@29</span></h3>
+<p class="comment">보스 블라인드를 다시 뽑습니다.</p>
 <p class="none">이 변종이 따로 선언하는 멤버가 없습니다.</p>
-<h3 id="variant_Operation.OpForceDiscard"><svg class="i"><use href="#i-struct"></use></svg>OpForceDiscard <span class="hint">&middot; 파일이 싣는 번호 <code>30</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpForceDiscard">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpForceDiscard<span class="tag" title="파일이 싣는 번호">@30</span><span class="tag">멤버 1개</span></h3>
+<p class="comment">패에서 카드를 강제로 버립니다. <code>The Hook</code> 하나입니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -894,7 +1088,10 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpDrawFaceDown"><svg class="i"><use href="#i-struct"></use></svg>OpDrawFaceDown <span class="hint">&middot; 파일이 싣는 번호 <code>31</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpDrawFaceDown">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpDrawFaceDown<span class="tag" title="파일이 싣는 번호">@31</span><span class="tag">멤버 1개</span></h3>
+<p class="comment">카드를 뒤집힌 채로 뽑게 합니다. 확률은 효과 행의 <code>chance_num</code> &#183; <code>chance_den</code> 입니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -905,11 +1102,20 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpFlipJokers"><svg class="i"><use href="#i-struct"></use></svg>OpFlipJokers <span class="hint">&middot; 파일이 싣는 번호 <code>32</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpFlipJokers">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpFlipJokers<span class="tag" title="파일이 싣는 번호">@32</span></h3>
+<p class="comment">조커를 뒤집고 순서를 섞습니다. <code>Amber Acorn</code> 하나입니다.</p>
 <p class="none">이 변종이 따로 선언하는 멤버가 없습니다.</p>
-<h3 id="variant_Operation.OpDisableRandomJoker"><svg class="i"><use href="#i-struct"></use></svg>OpDisableRandomJoker <span class="hint">&middot; 파일이 싣는 번호 <code>33</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpDisableRandomJoker">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpDisableRandomJoker<span class="tag" title="파일이 싣는 번호">@33</span></h3>
+<p class="comment">무작위 조커 하나를 이번 핸드 동안 끕니다. <code>Crimson Heart</code> 하나입니다.</p>
 <p class="none">이 변종이 따로 선언하는 멤버가 없습니다.</p>
-<h3 id="variant_Operation.OpGrant"><svg class="i"><use href="#i-struct"></use></svg>OpGrant <span class="hint">&middot; 파일이 싣는 번호 <code>34</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpGrant">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpGrant<span class="tag" title="파일이 싣는 번호">@34</span><span class="tag">멤버 3개</span></h3>
+<p class="comment">런을 시작할 때 무언가를 줍니다. 덱이 씁니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -922,9 +1128,16 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h3 id="variant_Operation.OpNothing"><svg class="i"><use href="#i-struct"></use></svg>OpNothing <span class="hint">&middot; 파일이 싣는 번호 <code>35</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpNothing">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpNothing<span class="tag" title="파일이 싣는 번호">@35</span></h3>
+<p class="comment">아무것도 하지 않습니다. <code>Blank</code> 바우처가 씁니다 — 상위를 열기 위한 자리이므로 결함이
+아닙니다.</p>
 <p class="none">이 변종이 따로 선언하는 멤버가 없습니다.</p>
-<h3 id="variant_Operation.OpCustom"><svg class="i"><use href="#i-struct"></use></svg>OpCustom <span class="hint">&middot; 파일이 싣는 번호 <code>36</code></span></h3>
+</div>
+<div class="variant" id="variant_Operation.OpCustom">
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpCustom<span class="tag" title="파일이 싣는 번호">@36</span><span class="tag">멤버 1개</span></h3>
+<p class="comment">선언으로 적히지 않는 것. <b>개수가 이 샘플의 지표입니다</b> — 지워지면 그 자리가 닫힙니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -934,6 +1147,8 @@ tbody [data-pick] { cursor: pointer; }
 <tr><td>Handler</td><td><span class="type">string?</span></td><td></td><td></td></tr>
 </tbody>
 </table>
+</div>
+</div>
 </div>
 </main>
 </div>
@@ -950,25 +1165,25 @@ tbody [data-pick] { cursor: pointer; }
 <div data-enum-def="CardTrait">
 <p class="lead"><b>enum.CardTrait</b> <span class="hint">카드가 가지는 성질. 값을 더하지 않고 그 카드가 무엇으로 취급되는지를 바꿉니다.</span></p>
 <table><tbody>
-<tr data-label="AnySuit"><td>AnySuit</td><td class="num">1</td><td class="hint">모든 무늬로 취급합니다. `Wild Card`.</td></tr>
-<tr data-label="NoRankSuit"><td>NoRankSuit</td><td class="num">2</td><td class="hint">랭크와 무늬가 없습니다. `Stone Card`.</td></tr>
-<tr data-label="AlwaysScores"><td>AlwaysScores</td><td class="num">3</td><td class="hint">족보를 이루지 않아도 항상 득점합니다. `Stone Card`.</td></tr>
+<tr data-label="AnySuit"><td>AnySuit</td><td class="num">1</td><td class="hint">모든 무늬로 취급합니다. <code>Wild Card</code>.</td></tr>
+<tr data-label="NoRankSuit"><td>NoRankSuit</td><td class="num">2</td><td class="hint">랭크와 무늬가 없습니다. <code>Stone Card</code>.</td></tr>
+<tr data-label="AlwaysScores"><td>AlwaysScores</td><td class="num">3</td><td class="hint">족보를 이루지 않아도 항상 득점합니다. <code>Stone Card</code>.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="CounterField">
-<p class="lead"><b>enum.CounterField</b> <span class="hint">누적하는 값의 칸. **소유자마다 이름이 다르지 않습니다** — 칸을 고정해야 세이브의 모양이
+<p class="lead"><b>enum.CounterField</b> <span class="hint">누적하는 값의 칸. <b>소유자마다 이름이 다르지 않습니다</b> — 칸을 고정해야 세이브의 모양이
 조커 목록에 따라 달라지지 않습니다.
 
-`Chips` &#183; `MultAdd` &#183; `MultMul` 은 **득점할 때 자동으로 적용됩니다.** 따로 더하는 효과 행을
-두지 않습니다. `MultMul` 의 기본값은 10000(&#215;1)이고 나머지는 0 입니다.</span></p>
+<code>Chips</code> &#183; <code>MultAdd</code> &#183; <code>MultMul</code> 은 <b>득점할 때 자동으로 적용됩니다.</b> 따로 더하는 효과 행을
+두지 않습니다. <code>MultMul</code> 의 기본값은 10000(&#215;1)이고 나머지는 0 입니다.</span></p>
 <table><tbody>
 <tr data-label="Chips"><td>Chips</td><td class="num">1</td><td class="hint"></td></tr>
 <tr data-label="MultAdd"><td>MultAdd</td><td class="num">2</td><td class="hint"></td></tr>
 <tr data-label="MultMul"><td>MultMul</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="Money"><td>Money</td><td class="num">4</td><td class="hint">라운드 종료 시 지급할 금액. `PerUnit` 의 `SelfCounterMoney` 가 읽습니다.</td></tr>
+<tr data-label="Money"><td>Money</td><td class="num">4</td><td class="hint">라운드 종료 시 지급할 금액. <code>PerUnit</code> 의 <code>SelfCounterMoney</code> 가 읽습니다.</td></tr>
 <tr data-label="SellValue"><td>SellValue</td><td class="num">5</td><td class="hint"></td></tr>
-<tr data-label="Charge"><td>Charge</td><td class="num">6</td><td class="hint">남은 횟수나 세는 수. `fizz_bottle` 의 10핸드, `gravebloom` 의 23장.</td></tr>
-<tr data-label="Tick"><td>Tick</td><td class="num">7</td><td class="hint">지나간 라운드 수. `faint_outline` 의 2라운드.</td></tr>
+<tr data-label="Charge"><td>Charge</td><td class="num">6</td><td class="hint">남은 횟수나 세는 수. <code>fizz_bottle</code> 의 10핸드, <code>gravebloom</code> 의 23장.</td></tr>
+<tr data-label="Tick"><td>Tick</td><td class="num">7</td><td class="hint">지나간 라운드 수. <code>faint_outline</code> 의 2라운드.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="CreateKind">
@@ -980,11 +1195,11 @@ tbody [data-pick] { cursor: pointer; }
 <tr data-label="Joker"><td>Joker</td><td class="num">4</td><td class="hint"></td></tr>
 <tr data-label="PlayingCard"><td>PlayingCard</td><td class="num">5</td><td class="hint"></td></tr>
 <tr data-label="Tag"><td>Tag</td><td class="num">6</td><td class="hint"></td></tr>
-<tr data-label="LastUsed"><td>LastUsed</td><td class="num">7</td><td class="hint">이번 런에서 마지막으로 쓴 소모품. `The Fool` 하나입니다.</td></tr>
-<tr data-label="CopyOfScored"><td>CopyOfScored</td><td class="num">8</td><td class="hint">지금 득점한 카드의 사본. `graft` 하나입니다.</td></tr>
-<tr data-label="CopyOfSelected"><td>CopyOfSelected</td><td class="num">9</td><td class="hint">고른 카드의 사본. `Cryptid` 하나입니다.</td></tr>
-<tr data-label="Pack"><td>Pack</td><td class="num">10</td><td class="hint">팩. `ref_id` 가 어느 팩인지 적습니다.</td></tr>
-<tr data-label="Voucher"><td>Voucher</td><td class="num">11</td><td class="hint">바우처. `ref_id` 가 어느 바우처인지 적습니다.</td></tr>
+<tr data-label="LastUsed"><td>LastUsed</td><td class="num">7</td><td class="hint">이번 런에서 마지막으로 쓴 소모품. <code>The Fool</code> 하나입니다.</td></tr>
+<tr data-label="CopyOfScored"><td>CopyOfScored</td><td class="num">8</td><td class="hint">지금 득점한 카드의 사본. <code>graft</code> 하나입니다.</td></tr>
+<tr data-label="CopyOfSelected"><td>CopyOfSelected</td><td class="num">9</td><td class="hint">고른 카드의 사본. <code>Cryptid</code> 하나입니다.</td></tr>
+<tr data-label="Pack"><td>Pack</td><td class="num">10</td><td class="hint">팩. <code>ref_id</code> 가 어느 팩인지 적습니다.</td></tr>
+<tr data-label="Voucher"><td>Voucher</td><td class="num">11</td><td class="hint">바우처. <code>ref_id</code> 가 어느 바우처인지 적습니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="DebuffKind">
@@ -1055,20 +1270,20 @@ tbody [data-pick] { cursor: pointer; }
 <tr data-label="Seal"><td>Seal</td><td class="num">2</td><td class="hint"></td></tr>
 <tr data-label="Edition"><td>Edition</td><td class="num">3</td><td class="hint"></td></tr>
 <tr data-label="Suit"><td>Suit</td><td class="num">4</td><td class="hint"></td></tr>
-<tr data-label="RankStep"><td>RankStep</td><td class="num">5</td><td class="hint">랭크를 `value` 만큼 올립니다.</td></tr>
-<tr data-label="BonusChips"><td>BonusChips</td><td class="num">6</td><td class="hint">영구 칩을 `value` 만큼 더합니다.</td></tr>
-<tr data-label="CopyRight"><td>CopyRight</td><td class="num">7</td><td class="hint">왼쪽 카드를 오른쪽 카드와 같게 만듭니다. `Death` 하나입니다.</td></tr>
-<tr data-label="RankTo"><td>RankTo</td><td class="num">8</td><td class="hint">랭크를 그 값으로 정합니다. `Ouija` 하나입니다.</td></tr>
+<tr data-label="RankStep"><td>RankStep</td><td class="num">5</td><td class="hint">랭크를 <code>value</code> 만큼 올립니다.</td></tr>
+<tr data-label="BonusChips"><td>BonusChips</td><td class="num">6</td><td class="hint">영구 칩을 <code>value</code> 만큼 더합니다.</td></tr>
+<tr data-label="CopyRight"><td>CopyRight</td><td class="num">7</td><td class="hint">왼쪽 카드를 오른쪽 카드와 같게 만듭니다. <code>Death</code> 하나입니다.</td></tr>
+<tr data-label="RankTo"><td>RankTo</td><td class="num">8</td><td class="hint">랭크를 그 값으로 정합니다. <code>Ouija</code> 하나입니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="PerUnitMode">
-<p class="lead"><b>enum.PerUnitMode</b> <span class="hint">`PerUnit` 과 `RandomRange` 가 어느 칸에 넣는가.</span></p>
+<p class="lead"><b>enum.PerUnitMode</b> <span class="hint"><code>PerUnit</code> 과 <code>RandomRange</code> 가 어느 칸에 넣는가.</span></p>
 <table><tbody>
 <tr data-label="AddChips"><td>AddChips</td><td class="num">1</td><td class="hint"></td></tr>
 <tr data-label="AddMult"><td>AddMult</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="MulMult"><td>MulMult</td><td class="num">3</td><td class="hint">결과는 `base_value + value &#215; 개수` 입니다.</td></tr>
+<tr data-label="MulMult"><td>MulMult</td><td class="num">3</td><td class="hint">결과는 <code>base_value + value &#215; 개수</code> 입니다.</td></tr>
 <tr data-label="AddMoney"><td>AddMoney</td><td class="num">4</td><td class="hint"></td></tr>
-<tr data-label="MulEach"><td>MulEach</td><td class="num">5</td><td class="hint">개수만큼 **되풀이해서 곱합니다.** `rookie_card` 하나입니다.</td></tr>
+<tr data-label="MulEach"><td>MulEach</td><td class="num">5</td><td class="hint">개수만큼 <b>되풀이해서 곱합니다.</b> <code>rookie_card</code> 하나입니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="Rarity">
@@ -1077,7 +1292,7 @@ tbody [data-pick] { cursor: pointer; }
 <tr data-label="Common"><td>Common</td><td class="num">1</td><td class="hint"></td></tr>
 <tr data-label="Uncommon"><td>Uncommon</td><td class="num">2</td><td class="hint"></td></tr>
 <tr data-label="Rare"><td>Rare</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="Legendary"><td>Legendary</td><td class="num">4</td><td class="hint">상점에 나오지 않습니다. `The Soul` 로만 나옵니다.</td></tr>
+<tr data-label="Legendary"><td>Legendary</td><td class="num">4</td><td class="hint">상점에 나오지 않습니다. <code>The Soul</code> 로만 나옵니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="ResetKind">
@@ -1089,7 +1304,7 @@ tbody [data-pick] { cursor: pointer; }
 </tbody></table>
 </div>
 <div data-enum-def="RuleKind">
-<p class="lead"><b>enum.RuleKind</b> <span class="hint">바꿀 수 있는 규칙. **목록이 여기 있는 것이 요점입니다** — 자유 문자열이면 오타가
+<p class="lead"><b>enum.RuleKind</b> <span class="hint">바꿀 수 있는 규칙. <b>목록이 여기 있는 것이 요점입니다</b> — 자유 문자열이면 오타가
 통과합니다.</span></p>
 <table><tbody>
 <tr data-label="HandSize"><td>HandSize</td><td class="num">1</td><td class="hint"></td></tr>
@@ -1141,8 +1356,8 @@ tbody [data-pick] { cursor: pointer; }
 <tr data-label="DebuffUntilJokerSold"><td>DebuffUntilJokerSold</td><td class="num">47</td><td class="hint"></td></tr>
 <tr data-label="ForceCardSelected"><td>ForceCardSelected</td><td class="num">48</td><td class="hint"></td></tr>
 <tr data-label="RemoveFaceCards"><td>RemoveFaceCards</td><td class="num">49</td><td class="hint"></td></tr>
-<tr data-label="SuitsOnly"><td>SuitsOnly</td><td class="num">50</td><td class="hint">시작 덱을 그 무늬들로만 채웁니다. `suits` 가 어느 무늬인지 적습니다.</td></tr>
-<tr data-label="NextShopFree"><td>NextShopFree</td><td class="num">51</td><td class="hint">다음 상점의 처음 카드와 팩이 무료입니다. `Coupon Tag`.</td></tr>
+<tr data-label="SuitsOnly"><td>SuitsOnly</td><td class="num">50</td><td class="hint">시작 덱을 그 무늬들로만 채웁니다. <code>suits</code> 가 어느 무늬인지 적습니다.</td></tr>
+<tr data-label="NextShopFree"><td>NextShopFree</td><td class="num">51</td><td class="hint">다음 상점의 처음 카드와 팩이 무료입니다. <code>Coupon Tag</code>.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="SealKind">
@@ -1165,7 +1380,7 @@ tbody [data-pick] { cursor: pointer; }
 </tbody></table>
 </div>
 <div data-enum-def="UnitKind">
-<p class="lead"><b>enum.UnitKind</b> <span class="hint">「무엇마다」의 단위. `PerUnit` 이 이 개수만큼 값을 넣습니다.</span></p>
+<p class="lead"><b>enum.UnitKind</b> <span class="hint">「무엇마다」의 단위. <code>PerUnit</code> 이 이 개수만큼 값을 넣습니다.</span></p>
 <table><tbody>
 <tr data-label="JokerCount"><td>JokerCount</td><td class="num">1</td><td class="hint"></td></tr>
 <tr data-label="EmptyJokerSlots"><td>EmptyJokerSlots</td><td class="num">2</td><td class="hint"></td></tr>
@@ -1178,20 +1393,20 @@ tbody [data-pick] { cursor: pointer; }
 <tr data-label="BlindsSkipped"><td>BlindsSkipped</td><td class="num">9</td><td class="hint"></td></tr>
 <tr data-label="TarotUsed"><td>TarotUsed</td><td class="num">10</td><td class="hint"></td></tr>
 <tr data-label="UniquePlanetUsed"><td>UniquePlanetUsed</td><td class="num">11</td><td class="hint"></td></tr>
-<tr data-label="DeckRankCount"><td>DeckRankCount</td><td class="num">12</td><td class="hint">덱에서 그 랭크인 카드의 수. `ranks` 가 어느 랭크인지 적습니다.</td></tr>
-<tr data-label="DeckEnhancementCount"><td>DeckEnhancementCount</td><td class="num">13</td><td class="hint">덱에서 그 강화인 카드의 수. `enhancement` 가 어느 강화인지 적습니다.</td></tr>
-<tr data-label="JokerRarityCount"><td>JokerRarityCount</td><td class="num">14</td><td class="hint">그 희귀도인 조커의 수. `rarity` 가 어느 희귀도인지 적습니다.</td></tr>
+<tr data-label="DeckRankCount"><td>DeckRankCount</td><td class="num">12</td><td class="hint">덱에서 그 랭크인 카드의 수. <code>ranks</code> 가 어느 랭크인지 적습니다.</td></tr>
+<tr data-label="DeckEnhancementCount"><td>DeckEnhancementCount</td><td class="num">13</td><td class="hint">덱에서 그 강화인 카드의 수. <code>enhancement</code> 가 어느 강화인지 적습니다.</td></tr>
+<tr data-label="JokerRarityCount"><td>JokerRarityCount</td><td class="num">14</td><td class="hint">그 희귀도인 조커의 수. <code>rarity</code> 가 어느 희귀도인지 적습니다.</td></tr>
 <tr data-label="HandPlayCount"><td>HandPlayCount</td><td class="num">15</td><td class="hint"></td></tr>
 <tr data-label="OtherJokerSellValue"><td>OtherJokerSellValue</td><td class="num">16</td><td class="hint"></td></tr>
 <tr data-label="LowestHeldRankChips"><td>LowestHeldRankChips</td><td class="num">17</td><td class="hint">패의 최저 랭크 카드의 칩값.</td></tr>
 <tr data-label="CardsPlayed"><td>CardsPlayed</td><td class="num">18</td><td class="hint">이번 핸드에 낸 카드의 장수.</td></tr>
-<tr data-label="SelfCounterMoney"><td>SelfCounterMoney</td><td class="num">19</td><td class="hint">자기 `Money` 카운터.</td></tr>
+<tr data-label="SelfCounterMoney"><td>SelfCounterMoney</td><td class="num">19</td><td class="hint">자기 <code>Money</code> 카운터.</td></tr>
 <tr data-label="HandsPlayedThisRun"><td>HandsPlayedThisRun</td><td class="num">20</td><td class="hint"></td></tr>
 <tr data-label="DiscardsUnusedThisRun"><td>DiscardsUnusedThisRun</td><td class="num">21</td><td class="hint"></td></tr>
 </tbody></table>
 </div>
 </div>
-<p class="foot">생성 시각 2026-08-28 20:33:59</p>
+<p class="foot">생성 시각 2026-08-28 20:57:34</p>
 <script>
 (function () {
   "use strict";
@@ -1412,33 +1627,54 @@ tbody [data-pick] { cursor: pointer; }
       zoom(event.deltaY < 0 ? 1.15 : 1 / 1.15, event.clientX - box.left, event.clientY - box.top);
     }, { passive: false });
 
-    var dragging = false, fromX = 0, fromY = 0, moved = false;
+    var dragging = false, fromX = 0, fromY = 0, moved = false, held = -1;
 
     svg.addEventListener("pointerdown", function (event) {
       dragging = true;
       moved = false;
+      held = event.pointerId;
       fromX = event.clientX - panX;
       fromY = event.clientY - panY;
-      svg.setPointerCapture(event.pointerId);
       svg.classList.add("dragging");
     });
 
+    // **The capture is taken when a drag starts, not when the pointer goes down.**
+    //
+    // A captured pointer retargets every event after it to the element that captured, and
+    // the click the browser then synthesises goes to that element too - so a press and
+    // release on a table was delivered to the drawing and the table's own handler never
+    // ran. Clicking a table in the graph did nothing at all, which is the one thing the
+    // page tells the reader to do.
+    //
+    // Panning is what needs the capture, and panning is what the threshold detects. Below
+    // it nothing is captured, so a click stays a click on whatever was under it.
     svg.addEventListener("pointermove", function (event) {
       if (!dragging) return;
 
       var nextX = event.clientX - fromX;
       var nextY = event.clientY - fromY;
 
-      if (Math.abs(nextX - panX) > 2 || Math.abs(nextY - panY) > 2) moved = true;
+      if (!moved) {
+        if (Math.abs(nextX - panX) <= 2 && Math.abs(nextY - panY) <= 2) return;
+
+        moved = true;
+
+        // Not every pointer can be captured - a synthetic one has no id the browser knows -
+        // and a drawing that cannot be dragged is better than one that cannot be clicked.
+        try { svg.setPointerCapture(held); } catch (e) { /* pan without it */ }
+      }
 
       panX = nextX;
       panY = nextY;
       apply();
     });
 
-    svg.addEventListener("pointerup", function () {
+    svg.addEventListener("pointerup", function (event) {
       dragging = false;
       svg.classList.remove("dragging");
+
+      if (svg.hasPointerCapture && svg.hasPointerCapture(event.pointerId))
+        svg.releasePointerCapture(event.pointerId);
     });
 
     document.querySelector('[data-graph="in"]').addEventListener("click", function () {

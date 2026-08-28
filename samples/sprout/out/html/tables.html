@@ -10,7 +10,7 @@
   --line: #d1d9e0; --line-soft: #eaeef2; --head-line: #dfe4ea; --head: #f6f8fa; --zebra: #fbfcfd;
   --hover: #fff8c5; --link: #0969da; --accent: #0969da;
   --num: #0a7c4a; --key: #0a7c4a; --type: #6639ba; --flag: #9a6700; --none: #a0a8b0;
-  --str: #a31515; --bad: #cf222e; --good: #c8a200;
+  --str: #a31515; --bad: #cf222e; --good: #c8a200; --true: #1a7f37;
   --bar: #f6f8fa; --card: #f6f8fa; --shadow: rgba(31, 35, 40, .12);
   --thumb: #ced3d9; --thumb-hover: #aeb6c0;
   color-scheme: light;
@@ -21,7 +21,7 @@
     --line: #30363d; --line-soft: #21262d; --head-line: #2b3138; --head: #161b22; --zebra: #11161d;
     --hover: #2d2611; --link: #4493f8; --accent: #4493f8;
     --num: #3fb950; --key: #3fb950; --type: #d2a8ff; --flag: #d29922; --none: #545d68;
-    --str: #ce9178; --bad: #f85149; --good: #ffd60a; --bad: #f85149;
+    --str: #ce9178; --bad: #f85149; --good: #ffd60a; --true: #3fb950;
     --bar: #161b22; --card: #161b22; --shadow: rgba(1, 4, 9, .8);
     --thumb: #30363d; --thumb-hover: #484f58;
     color-scheme: dark;
@@ -32,7 +32,7 @@
   --line: #30363d; --line-soft: #21262d; --head-line: #2b3138; --head: #161b22; --zebra: #11161d;
   --hover: #2d2611; --link: #4493f8; --accent: #4493f8;
   --num: #3fb950; --key: #3fb950; --type: #d2a8ff; --flag: #d29922; --none: #545d68;
-  --str: #ce9178; --bad: #f85149; --good: #ffd60a;
+  --str: #ce9178; --bad: #f85149; --good: #ffd60a; --true: #3fb950;
   --bar: #161b22; --card: #161b22; --shadow: rgba(1, 4, 9, .8);
   --thumb: #30363d; --thumb-hover: #484f58;
   color-scheme: dark;
@@ -250,8 +250,17 @@ tbody tr.out { display: none; }
 .scroll thead th:first-child, .scroll tbody td:first-child { position: sticky; left: 0; }
 .scroll thead th:first-child { z-index: 3; }
 /* The same reason as the header: this cell is sticky sideways, so its right-hand line is
-   painted from inside it. */
-.scroll tbody td:first-child { background: var(--bg); border-right: 0; box-shadow: inset -1px 0 0 var(--line-soft); }
+   painted from inside it.
+
+   **And `z-index`, without which the cell held its place and lost the paint.** A positioned
+   element left at `auto` is painted in document order, so every cell to the right of this one
+   went over it: scrolling sideways drew the second column's values across the key, and the two
+   texts sat on top of each other. Below the header's 3, because where the two meet the header
+   is the one that has to win. */
+.scroll tbody td:first-child {
+  z-index: 2;
+  background: var(--bg); border-right: 0; box-shadow: inset -1px 0 0 var(--line-soft);
+}
 .scroll tbody tr:nth-child(even) td:first-child { background: var(--zebra); }
 .scroll tbody tr:hover > td:first-child { background: var(--hover); }
 
@@ -320,18 +329,28 @@ td.text.open .clip { max-width: 72ch; white-space: normal; overflow: visible; }
    happens to be in a cell, which is the same reason numbers and enums have their own. */
 .str { color: var(--str); }
 /* True and false differ in shape first and colour second. In one shape and two colours a
-   column of `false` still reads as ticked - the eye takes the silhouette and not the hue. */
-.yes, .no { font-weight: 600; }
-.yes { color: var(--good); }
+   column of `false` still reads as ticked - the eye takes the silhouette and not the hue.
+
+   The tick used to be `--good`, which is the amber this page uses for a flag: on the light
+   theme that is a yellow glyph on white, and a column of them was the hardest thing on the
+   page to pick out. Green rather than amber, a size up and a weight up - a tick is a mark
+   rather than a letter, so it can afford both. `--true` is its own token because `--num` is
+   also green and the two are set separately per theme. */
+.yes, .no { font-weight: 700; font-size: 15px; line-height: 1; }
+.yes { color: var(--true); }
 .no { color: var(--bad); }
 .n-of { color: var(--faint); font-size: 11px; margin-left: 4px; }
 /* A bit pattern, coloured as the number it is. Monospace because the digits of a pattern are
    read by position, and a proportional font puts the same nibble at a different offset on
    every row. */
 .bits { color: var(--num); font-family: Consolas, "SF Mono", Menlo, monospace; }
-/* A member the row's variant does not declare. Upright, because italic on this page means a
-   value is absent and this is not an absence - the member is not part of what this row is. */
-.na { color: var(--none); }
+/* A member the row's variant does not declare.
+
+   Upright, because italic on this page means a value is absent and this is not an absence -
+   the member is not part of what this row is. And dotted underneath, because a dash and an
+   italic `null` differ by too little for a reader who has not been told: the underline says
+   there is something to hover, and the page carries a line saying what. */
+.na { color: var(--none); border-bottom: 1px dotted var(--none); cursor: help; }
 /* The variants that declare a member, beside its type in the header. Smaller than the type and
    in the flag colour, so a type row of a wide union still reads as types first. */
 .of { color: var(--flag); font-size: 11px; }
@@ -373,6 +392,54 @@ a.variant { color: var(--flag); }
 #enumcard.wrap { white-space: pre-wrap; word-break: break-word; color: var(--fg); }
 #enumcard.code { font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 12px; }
 #enumcard td:last-child { white-space: normal; }
+
+/* ---- a declared type: what every variant carries, and what one of them may be ----
+
+   The two were an `h2` and a run of `h3`s with a small table under each, and at 41 variants
+   that is a wall: every heading the same weight as the last, every table its own width, and
+   nothing saying which of them hang off which. What the declaration says is a relationship,
+   and the page was not drawing one.
+
+   So the base is a panel and the variants are cards on a rail that runs down from it. The
+   rail is one border on the container - a reader follows it from the shared members to the
+   list of shapes - and each card has its own edge, so where one variant ends and the next
+   begins is a line rather than a guess. */
+.base {
+  border: 1px solid var(--line); border-left: 3px solid var(--accent);
+  border-radius: 8px; background: var(--card); padding: 12px 14px; margin: 0 0 6px;
+}
+.base > :first-child { margin-top: 0; }
+.base > :last-child { margin-bottom: 0; }
+.base table { background: var(--bg); }
+
+/* The rail. Indented so the cards sit under the panel above them rather than beside it. */
+.variants { margin: 0 0 0 14px; padding: 14px 0 2px 20px; border-left: 2px solid var(--line); }
+.variant {
+  position: relative;
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 10px 12px; margin: 0 0 12px;
+}
+/* A stub from the rail to the card, so the two read as joined rather than merely near. */
+.variant::before {
+  content: ""; position: absolute; left: -20px; top: 18px;
+  width: 18px; border-top: 2px solid var(--line);
+}
+.variant > h3 { margin: 0 0 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.variant .tag {
+  font-size: 11px; font-weight: 400; color: var(--muted);
+  padding: 1px 7px; border: 1px solid var(--line); border-radius: 999px;
+}
+.variant .none { margin: 0; }
+.variant table { width: auto; min-width: 340px; }
+
+/* The variant names as one row of chips, for a type with dozens of them: the page is
+   otherwise a scroll with no way to see what is on it. */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
+.chips a {
+  font-size: 12px; padding: 2px 9px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--muted);
+}
+.chips a:hover { color: var(--fg); border-color: var(--accent); text-decoration: none; }
 
 /* ---- the reference graph ---- */
 .graph { display: block; background: var(--bg); }
@@ -622,7 +689,7 @@ tbody [data-pick] { cursor: pointer; }
 </div>
 </main>
 </div>
-<p class="foot">생성 시각 2026-08-28 20:33:42</p>
+<p class="foot">생성 시각 2026-08-28 20:57:19</p>
 <script>
 (function () {
   "use strict";
@@ -843,33 +910,54 @@ tbody [data-pick] { cursor: pointer; }
       zoom(event.deltaY < 0 ? 1.15 : 1 / 1.15, event.clientX - box.left, event.clientY - box.top);
     }, { passive: false });
 
-    var dragging = false, fromX = 0, fromY = 0, moved = false;
+    var dragging = false, fromX = 0, fromY = 0, moved = false, held = -1;
 
     svg.addEventListener("pointerdown", function (event) {
       dragging = true;
       moved = false;
+      held = event.pointerId;
       fromX = event.clientX - panX;
       fromY = event.clientY - panY;
-      svg.setPointerCapture(event.pointerId);
       svg.classList.add("dragging");
     });
 
+    // **The capture is taken when a drag starts, not when the pointer goes down.**
+    //
+    // A captured pointer retargets every event after it to the element that captured, and
+    // the click the browser then synthesises goes to that element too - so a press and
+    // release on a table was delivered to the drawing and the table's own handler never
+    // ran. Clicking a table in the graph did nothing at all, which is the one thing the
+    // page tells the reader to do.
+    //
+    // Panning is what needs the capture, and panning is what the threshold detects. Below
+    // it nothing is captured, so a click stays a click on whatever was under it.
     svg.addEventListener("pointermove", function (event) {
       if (!dragging) return;
 
       var nextX = event.clientX - fromX;
       var nextY = event.clientY - fromY;
 
-      if (Math.abs(nextX - panX) > 2 || Math.abs(nextY - panY) > 2) moved = true;
+      if (!moved) {
+        if (Math.abs(nextX - panX) <= 2 && Math.abs(nextY - panY) <= 2) return;
+
+        moved = true;
+
+        // Not every pointer can be captured - a synthetic one has no id the browser knows -
+        // and a drawing that cannot be dragged is better than one that cannot be clicked.
+        try { svg.setPointerCapture(held); } catch (e) { /* pan without it */ }
+      }
 
       panX = nextX;
       panY = nextY;
       apply();
     });
 
-    svg.addEventListener("pointerup", function () {
+    svg.addEventListener("pointerup", function (event) {
       dragging = false;
       svg.classList.remove("dragging");
+
+      if (svg.hasPointerCapture && svg.hasPointerCapture(event.pointerId))
+        svg.releasePointerCapture(event.pointerId);
     });
 
     document.querySelector('[data-graph="in"]').addEventListener("click", function () {

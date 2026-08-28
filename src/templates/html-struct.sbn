@@ -2,13 +2,20 @@
    One page per abstract type: the members every variant carries, then each variant with the
    members it declares of its own.
 
-   Two tables rather than one, because they answer different questions. The common members are
-   what any consumer may read without asking which variant it has; the variants are what it has
-   to ask about. Flattened into one table the distinction is gone, and that distinction is the
-   whole of what the declaration says. spec/types/polymorphism.md sections 5.1 and 7.1.
+   Two sections rather than one, because they answer different questions. The common members
+   are what any consumer may read without asking which variant it has; the variants are what it
+   has to ask about. Flattened into one table the distinction is gone, and that distinction is
+   the whole of what the declaration says. spec/types/polymorphism.md sections 5.1 and 7.1.
+
+   **And the relationship is drawn, not merely implied by order.** The two used to be an `h2`
+   and a run of `h3`s, which at 41 variants is a wall of headings of one weight with nothing
+   saying what hangs off what. The common members are a panel; the variants are cards on a rail
+   that runs down from it, each joined to the rail by a stub. A type with more than a handful
+   also gets its names as one row of chips, because a page nobody can see the whole of is a
+   page nobody navigates.
 
    The discriminator is not a member and is not listed. What a cell holds is a variant name and
-   what the file carries is that variant's number, which is the column beside each variant's
+   what the file carries is that variant's number, which is the badge beside each variant's
    name below - section 5.1.1 says why the number is fixed rather than positional.
 ##~}}
 {{~ include 'html-head.sbn' ~}}
@@ -26,11 +33,21 @@
 <p class="hint">이 타입으로 선언된 그룹이 없습니다.</p>
 {{~ end ~}}
 
-<h2>공통 멤버</h2>
+{{~## Past a handful the list of names is the thing a reader wants first. ##~}}
+{{~ if variants | array.size > 6 ~}}
+<div class="chips">
+{{~ for variant in variants ~}}
+<a href="#variant_{{ name }}.{{ variant.name }}">{{ variant.name }}</a>
+{{~ end ~}}
+</div>
+{{~ end ~}}
+
+<div class="base">
+<h2>공통 멤버 <span class="count">{{ base_members | array.size }}</span></h2>
 {{~ if base_members | array.size == 0 ~}}
-<p class="none">모든 변종이 가지는 멤버가 없습니다.</p>
+<p class="none">모든 변종이 가지는 멤버가 없습니다. 변종마다의 멤버만으로 이루어진 타입입니다.</p>
 {{~ else ~}}
-<p class="hint">모든 변종이 가집니다. 그래서 옵셔널이 아닌 컬럼입니다.</p>
+<p class="hint">아래 변종 {{ variants | array.size }}개가 모두 가집니다. 그래서 옵셔널이 아닌 컬럼입니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -44,15 +61,20 @@
 </table>
 </div>
 {{~ end ~}}
+</div>
 
-<h2>변종</h2>
 {{~ if variants | array.size == 0 ~}}
 <p class="none">선언된 변종이 없습니다.</p>
 {{~ else ~}}
+<div class="variants">
 {{~ for variant in variants ~}}
-<h3 id="variant_{{ name }}.{{ variant.name }}"><svg class="i"><use href="#i-struct"></use></svg>{{ variant.name }} <span class="hint">&middot; 파일이 싣는 번호 <code>{{ variant.discriminator }}</code></span></h3>
+<div class="variant" id="variant_{{ name }}.{{ variant.name }}">
+<h3><svg class="i"><use href="#i-struct"></use></svg>{{ variant.name }}<span class="tag" title="파일이 싣는 번호">@{{ variant.discriminator }}</span>{{ if variant.members | array.size > 0 }}<span class="tag">멤버 {{ variant.members | array.size }}개</span>{{ end }}</h3>
+{{~ if variant.comment != '' ~}}
+<p class="comment">{{ variant.comment }}</p>
+{{~ end ~}}
 {{~ if variant.members | array.size == 0 ~}}
-<p class="none">이 변종이 따로 선언하는 멤버가 없습니다.</p>
+<p class="none">이 변종이 따로 선언하는 멤버가 없습니다.{{ if base_members | array.size > 0 }} 공통 멤버만 가집니다.{{ end }}</p>
 {{~ else ~}}
 <div class="scroll">
 <table>
@@ -67,6 +89,8 @@
 </table>
 </div>
 {{~ end ~}}
+</div>
 {{~ end ~}}
+</div>
 {{~ end ~}}
 {{ include 'html-foot.sbn' }}

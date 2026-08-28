@@ -363,6 +363,9 @@ internal sealed class HtmlVariantView
     public required int No { get; set; }
     public required string Name { get; set; }
 
+    /// <summary>The `///` block in front of the variant's declaration, or empty.</summary>
+    public required string Comment { get; set; }
+
     /// <summary>The number the exported file carries for it.</summary>
     public required string Discriminator { get; set; }
 
@@ -661,6 +664,18 @@ internal sealed class HtmlTablePageView : HtmlPageView
 
     /// <summary>Whether the page says it is showing part of the table.</summary>
     public required bool Truncated { get; set; }
+
+    /// <summary>
+    /// Whether any column of this table belongs to a polymorphic group.
+    /// </summary>
+    /// <remarks>
+    /// What it turns on is the line naming the marks. Such a table's columns are the union of
+    /// every variant's, so most of its cells hold the「not in this variant」mark - and that mark
+    /// beside an italic `null` differs by too little for a reader who has not been told which
+    /// is which. On tables that have no variants the line would name a mark the page never
+    /// draws.
+    /// </remarks>
+    public required bool HasVariants { get; set; }
 
     /// <summary>
     /// Whether the headings sort the table.

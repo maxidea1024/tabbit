@@ -18,6 +18,16 @@ public sealed class PolymorphicVariant
     public required string Name { get; init; }
 
     /// <summary>
+    /// The `///` block in front of the variant's declaration, or empty where there was none.
+    /// </summary>
+    /// <remarks>
+    /// Read here rather than looked up again, for the reason the number is: by the time
+    /// anything downstream runs, the declarations are gone and this list is what is left of
+    /// them.
+    /// </remarks>
+    public string Comment { get; init; } = "";
+
+    /// <summary>
     /// The number the file carries for it - written as `@N`, or its place among its siblings
     /// when the set numbers none.
     /// </summary>

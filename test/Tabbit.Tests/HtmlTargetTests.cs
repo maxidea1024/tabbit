@@ -869,6 +869,71 @@ public class HtmlTargetTests
         }
     }
 
+    /// <summary>
+    /// A description's emphasis is rendered rather than printed.
+    /// </summary>
+    /// <remarks>
+    /// Descriptions come from sheets and people write emphasis in them. The pages printed the
+    /// asterisks: a constant whose description ended `**두 구현이 같아야 하는 값들입니다.**`
+    /// read with the four asterisks in it, in the one place its author was being emphatic.
+    ///
+    /// The other half of this is the check below, that no page carries markup a cell wrote.
+    /// </remarks>
+    [Theory]
+    [InlineData("core")]
+    public void A_description_carries_the_emphasis_its_author_wrote(string scenario)
+    {
+        string all = string.Join("\n", PagesOf(scenario).Select(File.ReadAllText));
+
+        // The fixture writes one, so the assertion cannot pass by never meeting one.
+        Assert.Contains("<b>", all, StringComparison.Ordinal);
+
+        // And what it renders is not what it printed. A `**` left in a description means the
+        // pair was not read.
+        foreach (var page in PagesOf(scenario))
+        {
+            string readable = Readable(File.ReadAllText(page));
+
+            Assert.DoesNotContain("**", readable, StringComparison.Ordinal);
+        }
+    }
+
+    /// <summary>
+    /// The frozen first column keeps its paint as well as its place.
+    /// </summary>
+    /// <remarks>
+    /// A positioned element left at `z-index: auto` is painted in document order, so every
+    /// cell to the right of the sticky one went over it: scrolling a wide table sideways drew
+    /// the second column's values across the key and the two texts sat on top of each other.
+    /// The cell held its position the whole time, which is why nothing about the layout looked
+    /// wrong until it was scrolled.
+    /// </remarks>
+    [Theory]
+    [InlineData("core")]
+    public void The_frozen_column_is_painted_over_the_cells_it_passes(string scenario)
+    {
+        foreach (var page in PagesOf(scenario))
+        {
+            string text = File.ReadAllText(page);
+
+            if (!text.Contains("tbody td:first-child { position: sticky", StringComparison.Ordinal)
+                && !text.Contains("td:first-child { position: sticky", StringComparison.Ordinal))
+            {
+                Assert.Contains(".scroll tbody td:first-child {", text);
+            }
+
+            int at = text.IndexOf(".scroll tbody td:first-child {", StringComparison.Ordinal);
+
+            Assert.True(at >= 0, $"{Path.GetFileName(page)} has no rule for the sticky cell.");
+
+            string rule = text.Substring(at, Math.Min(220, text.Length - at));
+
+            Assert.True(rule.Contains("z-index", StringComparison.Ordinal),
+                $"{Path.GetFileName(page)} makes the first column sticky and gives it no " +
+                "z-index, so the cells it passes are painted over it.");
+        }
+    }
+
     /// <summary>A page as its text, with the markup taken out and the entities resolved.</summary>
     private static string Readable(string page)
     {
