@@ -1,0 +1,203 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Tabbit STRUCT DSL",
+  "scopeName": "source.tbs",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#struct-head" },
+    { "include": "#enum-head" },
+    { "include": "#value-head" },
+    { "include": "#field-line" },
+    { "include": "#wtag" },
+    { "include": "#meta" },
+    { "include": "#numbers" },
+    { "include": "#operators" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.block.documentation.tbs",
+          "match": "///.*$"
+        },
+        {
+          "name": "comment.line.double-slash.tbs",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.tbs",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+
+    "struct-head": {
+      "match": "^\\s*(?:(abstract)\\s+)?(struct)\\s+([A-Za-z_][A-Za-z0-9_]*)(?:\\s+(extends)\\s+([A-Za-z_][A-Za-z0-9_]*))?",
+      "captures": {
+        "1": { "name": "storage.modifier.abstract.tbs" },
+        "2": { "name": "keyword.declaration.struct.tbs" },
+        "3": { "name": "entity.name.type.struct.tbs" },
+        "4": { "name": "storage.modifier.extends.tbs" },
+        "5": { "name": "entity.other.inherited-class.tbs" }
+      }
+    },
+
+    "enum-head": {
+      "match": "^\\s*(enum)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "captures": {
+        "1": { "name": "keyword.declaration.enum.tbs" },
+        "2": { "name": "entity.name.type.enum.tbs" }
+      }
+    },
+
+    "value-head": {
+      "match": "^\\s*(value)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "captures": {
+        "1": { "name": "keyword.other.member.value.tbs" },
+        "2": { "name": "variable.other.enummember.tbs" }
+      }
+    },
+
+    "field-line": {
+      "name": "meta.field.tbs",
+      "begin": "^\\s*(field)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "beginCaptures": {
+        "1": { "name": "keyword.other.member.field.tbs" },
+        "2": { "name": "variable.other.member.tbs" }
+      },
+      "end": "$",
+      "patterns": [
+        { "include": "#comments" },
+        { "include": "#wtag" },
+        { "include": "#default-value" },
+        { "include": "#meta" },
+        { "include": "#type" }
+      ]
+    },
+
+    "default-value": {
+      "match": "(=)\\s*([^\\s(,\"]+)",
+      "captures": {
+        "1": { "name": "keyword.operator.assignment.tbs" },
+        "2": { "name": "constant.other.default.tbs" }
+      }
+    },
+
+    "wtag": {
+      "name": "constant.numeric.tag.tbs",
+      "match": "@\\d+"
+    },
+
+    "meta": {
+      "name": "meta.annotation.tbs",
+      "begin": "\\(",
+      "end": "\\)",
+      "beginCaptures": { "0": { "name": "punctuation.definition.annotation.begin.tbs" } },
+      "endCaptures": { "0": { "name": "punctuation.definition.annotation.end.tbs" } },
+      "patterns": [
+        {
+          "comment": "key=value, where the value is written without quotes.",
+          "match": "\\b([A-Za-z_][A-Za-z0-9_.]*)\\s*(=)\\s*([^\\s,()\"]+)",
+          "captures": {
+            "1": { "name": "entity.other.attribute-name.tbs" },
+            "2": { "name": "keyword.operator.assignment.tbs" },
+            "3": { "name": "string.unquoted.annotation.tbs" }
+          }
+        },
+        {
+          "comment": "key= before a quoted value; the string rule takes the value itself.",
+          "match": "\\b([A-Za-z_][A-Za-z0-9_.]*)\\s*(=)\\s*(?=\")",
+          "captures": {
+            "1": { "name": "entity.other.attribute-name.tbs" },
+            "2": { "name": "keyword.operator.assignment.tbs" }
+          }
+        },
+        { "include": "#strings" },
+        {
+          "comment": "A key written on its own, such as `removed` or `notDefault`.",
+          "match": "\\b([A-Za-z_][A-Za-z0-9_.]*)\\s*(?=[,)])",
+          "captures": { "1": { "name": "entity.other.attribute-name.tbs" } }
+        },
+        {
+          "name": "punctuation.separator.annotation.tbs",
+          "match": ","
+        }
+      ]
+    },
+
+    "type": {
+      "patterns": [
+        { "include": "#strings" },
+        {
+          "name": "keyword.other.foreign.tbs",
+          "match": "\\bforeign\\b"
+        },
+        {
+          "name": "support.type.container.tbs",
+          "match": "\\b(set|map)\\b(?=\\s*<)"
+        },
+        {
+          "name": "support.type.primitive.tbs",
+          "match": "\\b(string|text|asset|bool|int|bigint|float|double|datetime|timespan|uuid|bitset)\\b"
+        },
+        {
+          "name": "support.type.composite.tbs",
+          "match": "\\b(vec[234][if]|vector[234]i?f?|int[234]|float[234]|euler|eulerangles|quat|quaternion|axisangle|color32|color|linearcolor|flinearcolor|fcolor)\\b"
+        },
+        { "include": "#numbers" },
+        { "include": "#operators" },
+        {
+          "name": "entity.name.type.tbs",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b"
+        }
+      ]
+    },
+
+    "strings": {
+      "name": "string.quoted.double.tbs",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.tbs",
+          "match": "\\\\[\"\\\\]"
+        }
+      ]
+    },
+
+    "numbers": {
+      "name": "constant.numeric.tbs",
+      "match": "(?<![A-Za-z0-9_])-?\\d+(\\.\\d+)?\\b"
+    },
+
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.optional.tbs",
+          "match": "\\?"
+        },
+        {
+          "name": "keyword.operator.alternation.tbs",
+          "match": "\\|"
+        },
+        {
+          "name": "punctuation.definition.array.tbs",
+          "match": "\\[\\]"
+        },
+        {
+          "name": "punctuation.definition.typeparameters.tbs",
+          "match": "[<>]"
+        },
+        {
+          "name": "punctuation.separator.tbs",
+          "match": ","
+        },
+        {
+          "name": "keyword.operator.assignment.tbs",
+          "match": "="
+        }
+      ]
+    }
+  }
+}

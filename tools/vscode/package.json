@@ -1,0 +1,41 @@
+{
+  "name": "tabbit-tbs",
+  "displayName": "Tabbit STRUCT DSL",
+  "description": "Syntax highlighting and language support for Tabbit .tbs schema files.",
+  "version": "0.0.1",
+  "publisher": "tabbit",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maxidea1024/tabbit.git",
+    "directory": "tools/vscode"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "tbs",
+        "aliases": [
+          "Tabbit STRUCT DSL",
+          "tbs"
+        ],
+        "extensions": [
+          ".tbs"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tbs",
+        "scopeName": "source.tbs",
+        "path": "./syntaxes/tbs.tmLanguage.json"
+      }
+    ]
+  }
+}
