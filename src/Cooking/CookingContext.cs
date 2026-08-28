@@ -456,34 +456,13 @@ public sealed class CookingContext
         if (group is not null && typeName != "text" && typeName != "asset")
             return false;
 
-        switch (typeName)
-        {
-            case "string":
-            case "bool":
-            case "int":
-            case "bigint":
-            case "float":
-            case "double":
-            case "datetime":
-            case "timespan":
-            case "uuid":
+        if (Models.ScalarTypes.Has(typeName))
+            return true;
 
-            // Up to 64 flags. A separate name rather than `bigint` because the notation it
-            // accepts is narrower, and a type that does not say it holds a pattern has no
-            // ground to refuse a sign. See spec/types/bitset.md.
-            case "bitset":
-
-            // Strings with a role. What separates these from `string` is what else is done
-            // with the value - gathering it, checking that a file of that name exists - and
-            // never what the value is. See StringRole.
-            case "text":
-            case "asset":
-
-            // Also foreign, enum
-            case "foreign":
-            case "enum":
-                return true;
-        }
+        // Neither of these names a scalar. `foreign` is a reference, resolved once the tables
+        // are in, and `enum` is what a sheet's own enum column writes.
+        if (typeName is "foreign" or "enum")
+            return true;
 
         // One cell holding several named components - a vector, a rotation, a colour. A type
         // for as long as parsing lasts, like `bitset`; the cooker expands a column of one
@@ -538,26 +517,10 @@ public sealed class CookingContext
         // none.
         typeName = SplitRoleGroup(typeName, out _, out _);
 
-        // Primitive types.
-        switch (typeName)
-        {
-            case "string": return Models.ValueType.String;
-
-            // Strings, and deliberately indistinguishable from one here. The difference a
-            // role makes is in what is done with the value elsewhere, so it travels on the
-            // field rather than in the type: StringRole says why.
-            case "text":
-            case "asset": return Models.ValueType.String;
-            case "bool": return Models.ValueType.Bool;
-            case "int": return Models.ValueType.Int32;
-            case "bigint": return Models.ValueType.Int64;
-            case "float": return Models.ValueType.Float;
-            case "double": return Models.ValueType.Double;
-            case "datetime": return Models.ValueType.DateTime;
-            case "timespan": return Models.ValueType.TimeSpan;
-            case "uuid": return Models.ValueType.Uuid;
-            case "bitset": return Models.ValueType.Bitset;
-        }
+        // Primitive types. The names and what they hold are in Models.ScalarTypes, which is
+        // also what IsValidTypeName asks and what the editor offers.
+        if (Models.ScalarTypes.ByName.TryGetValue(typeName, out var scalar))
+            return scalar;
 
         // Also the composites. Their names carry the component type - `vec2i` against
         // `vec2f` - so the type row says what a cell holds rather than leaving it to a
