@@ -230,8 +230,20 @@ dotnet run --project src/Tabbit.csproj -- --recipe test/reserved-words/reserved-
 
 ```json
 {
-  // 배열 셀의 구분자. 쉼표가 기본이 아닌 이유는 문장과 숫자 표기에 너무 흔하기 때문입니다.
+  // 한 셀 안에 여러 값을 적을 때의 구분자 — 배열의 원소, set·map 셀의 항목.
+  // 타입이 자기 구분자를 말하면(구조체의 :sep) 그쪽이 우선하므로 이것은 기본값입니다.
+  // 쉼표가 기본이 아닌 이유는 문장과 숫자 표기에 너무 흔하기 때문입니다.
   "DefaultDelimiter": ";",
+
+  // bool 셀을 참·거짓으로 읽을 낱말. 내장 낱말(Y·YES·TRUE / N·NO·FALSE)에 더해집니다.
+  // 시트를 한국어로 채운다면 여기에 적어 두면 `예`라고 적을 수 있습니다.
+  "TrueWords": [],
+  "FalseWords": [],
+
+  // 위의 내장 낱말을 함께 읽을지. 끄면 TrueWords·FalseWords에 적은 것만 읽습니다 —
+  // 시트에 정확히 무엇만 허용할지 정하려는 프로젝트를 위한 것이고, 이미 적혀 있는
+  // TRUE가 전부 오류가 되는 것을 감수합니다.
+  "BuiltinBoolWords": true,
 
   // datetime 셀에 적힌 시각을 어느 시간대로 읽을지. 지역 이름 또는 고정 오프셋("+09:00").
   // 비우면 셀이 이미 UTC로 적힌 것으로 봅니다. 저장되는 값은 어느 쪽이든 UTC입니다.

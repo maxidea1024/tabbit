@@ -58,7 +58,7 @@
 |고친 곳|다시 실행되는 것|
 |--|--|
 |`Sources.*`|전부|
-|전역 설정 — `DefaultDelimiter` · `TimeZone` · `Naming` · `Assets` · `OnFormulaError`|전부|
+|전역 설정 — `DefaultDelimiter` · `TimeZone` · `Naming` · `Assets` · `OnFormulaError` · `TrueWords` · `FalseWords` · `BuiltinBoolWords`|전부|
 |`Validation.*` — `KnownProblems` 포함|검증|
 |`Targets[i]`의 설정|그 타깃|
 |`Targets`에 항목 추가|그 타깃만|
