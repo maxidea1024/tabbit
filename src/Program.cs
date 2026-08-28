@@ -32,6 +32,13 @@ class Program
 
         UseUtf8ForOutput();
 
+        // Before anything that writes to standard output, because from here on that stream
+        // carries the protocol and nothing else - not the banner, not a log line. Answered
+        // here rather than by the option parser for the same reason `@file` is: it decides
+        // what kind of run this is, not how one run is configured. spec/ops/lsp.md.
+        if (args.Length >= 1 && args[0] == "lsp")
+            return Lsp.LspCommand.Run(args[1..]);
+
         if (args.Length == 1 && args[0].StartsWith("@"))
         {
             var argFile = args[0][1..];
