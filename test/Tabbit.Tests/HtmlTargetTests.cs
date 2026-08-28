@@ -829,6 +829,46 @@ public class HtmlTargetTests
         }
     }
 
+    /// <summary>
+    /// The drawing the script hides really is hidden.
+    /// </summary>
+    /// <remarks>
+    /// **`hidden` is an HTML content attribute and the browser's own stylesheet does not apply
+    /// it to an SVG element.** The script sets it on the whole graph when a reader picks one
+    /// table, and it did nothing: the whole drawing stayed on screen while the neighbourhood
+    /// was drawn over it, from its own origin and at its own scale. What a reader saw was two
+    /// pictures on top of each other with the table they had chosen apparently somewhere of
+    /// its own.
+    ///
+    /// Nothing else here could see it. It is not a link, not a count, not a missing page - the
+    /// markup was right and one declaration was missing, so the goldens recorded it as correct
+    /// from the day the drawing was written. This asks for the declaration by name, which is
+    /// the only part of it a file can be read for.
+    /// </remarks>
+    [Theory]
+    [InlineData("core")]
+    [InlineData("polymorphism")]
+    public void The_graph_can_hide_a_drawing(string scenario)
+    {
+        var pages = PagesOf(scenario)
+                    .Where(page => Path.GetFileName(page) == "references.html")
+                    .ToList();
+
+        Assert.NotEmpty(pages);
+
+        foreach (var page in pages)
+        {
+            string text = File.ReadAllText(page);
+
+            Assert.Contains("id=\"focus\"", text);
+
+            Assert.True(
+                text.Contains(".graph [hidden]", StringComparison.Ordinal),
+                $"{Path.GetFileName(page)} sets `hidden` on an SVG group and carries no rule " +
+                "that hides one, so both drawings render at once.");
+        }
+    }
+
     /// <summary>A page as its text, with the markup taken out and the entities resolved.</summary>
     private static string Readable(string page)
     {

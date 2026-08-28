@@ -410,6 +410,14 @@ a.variant { color: var(--flag); }
 .graphrow .picker table { width: 100%; }
 .graphrow .picker input[type=search] { width: 100%; }
 .graphrow .picker .tools { gap: 6px; }
+/* The two drawings take turns, and this rule is what makes them.
+
+   `hidden` is an HTML content attribute and the browser's own stylesheet does not apply it to
+   an SVG element, so setting it on a group did nothing at all. The whole graph stayed on
+   screen underneath the one-table drawing: the neighbourhood is laid out from its own origin
+   and the viewport is then fitted to it, so a reader who clicked a table got two pictures over
+   each other at two scales, with the selected table apparently in a place of its own. */
+.graph [hidden] { display: none; }
 .viewport .graph { cursor: grab; touch-action: none; }
 .viewport .graph.dragging { cursor: grabbing; }
 .tools .grow { flex: 1 1 auto; }
@@ -955,7 +963,7 @@ tbody [data-pick] { cursor: pointer; }
 </div>
 </main>
 </div>
-<p class="foot">생성 시각 2026-08-28 18:15:14</p>
+<p class="foot">생성 시각 2026-08-28 20:33:59</p>
 <script>
 (function () {
   "use strict";
@@ -1129,6 +1137,7 @@ tbody [data-pick] { cursor: pointer; }
     var adjacency = document.getElementById("adjacency");
 
     var where = document.querySelector('[data-graph="where"]');
+    var heading = document.querySelector('[data-graph="title"]');
     var backButton = document.querySelector('[data-graph="back"]');
     var openLink = document.querySelector('[data-graph="open"]');
 
@@ -1479,6 +1488,7 @@ tbody [data-pick] { cursor: pointer; }
       }
 
       if (where) where.textContent = name;
+      if (heading) heading.textContent = "한 테이블의 참조";
 
       document.querySelectorAll("[data-pick]").forEach(function (row) {
         row.classList.toggle("picked", row.getAttribute("data-pick") === name);
@@ -1497,6 +1507,7 @@ tbody [data-pick] { cursor: pointer; }
       if (backButton) backButton.setAttribute("hidden", "hidden");
       if (openLink) openLink.setAttribute("hidden", "hidden");
       if (where) where.textContent = "전체 그래프";
+      if (heading) heading.textContent = "전체 그래프";
       document.querySelectorAll("[data-pick]").forEach(function (row) {
         row.classList.remove("picked");
       });

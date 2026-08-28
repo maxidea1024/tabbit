@@ -442,6 +442,14 @@ a.variant { color: var(--flag); }
 .graphrow .picker table { width: 100%; }
 .graphrow .picker input[type=search] { width: 100%; }
 .graphrow .picker .tools { gap: 6px; }
+/* The two drawings take turns, and this rule is what makes them.
+
+   `hidden` is an HTML content attribute and the browser's own stylesheet does not apply it to
+   an SVG element, so setting it on a group did nothing at all. The whole graph stayed on
+   screen underneath the one-table drawing: the neighbourhood is laid out from its own origin
+   and the viewport is then fitted to it, so a reader who clicked a table got two pictures over
+   each other at two scales, with the selected table apparently in a place of its own. */
+.graph [hidden] { display: none; }
 .viewport .graph { cursor: grab; touch-action: none; }
 .viewport .graph.dragging { cursor: grabbing; }
 .tools .grow { flex: 1 1 auto; }

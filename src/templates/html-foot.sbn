@@ -213,6 +213,7 @@
     var adjacency = document.getElementById("adjacency");
 
     var where = document.querySelector('[data-graph="where"]');
+    var heading = document.querySelector('[data-graph="title"]');
     var backButton = document.querySelector('[data-graph="back"]');
     var openLink = document.querySelector('[data-graph="open"]');
 
@@ -563,6 +564,7 @@
       }
 
       if (where) where.textContent = name;
+      if (heading) heading.textContent = "한 테이블의 참조";
 
       document.querySelectorAll("[data-pick]").forEach(function (row) {
         row.classList.toggle("picked", row.getAttribute("data-pick") === name);
@@ -581,6 +583,7 @@
       if (backButton) backButton.setAttribute("hidden", "hidden");
       if (openLink) openLink.setAttribute("hidden", "hidden");
       if (where) where.textContent = "전체 그래프";
+      if (heading) heading.textContent = "전체 그래프";
       document.querySelectorAll("[data-pick]").forEach(function (row) {
         row.classList.remove("picked");
       });

@@ -52,10 +52,13 @@
 </div>
 </div>
 <div class="stage">
+{{~## The heading says what is on screen, so the script moves it with the drawing. It read
+     「전체 그래프」 over one table's neighbourhood, which is the one thing the page was showing
+     it was not. ##~}}
 {{~ if detailed ~}}
-<h2><svg class="i"><use href="#i-graph"></use></svg>전체 그래프</h2>
+<h2><svg class="i"><use href="#i-graph"></use></svg><span data-graph="title">전체 그래프</span></h2>
 {{~ else ~}}
-<h2><svg class="i"><use href="#i-graph"></use></svg>한 테이블의 참조</h2>
+<h2><svg class="i"><use href="#i-graph"></use></svg><span data-graph="title">한 테이블의 참조</span></h2>
 {{~ end ~}}
 <div class="tools">
 {{~ if detailed ~}}
