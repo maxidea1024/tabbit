@@ -1,0 +1,66 @@
+name: vscode
+
+# Its own workflow because the extension is its own package. `tools/vscode/` has its own
+# manifest and its own dependencies, and nothing in the .NET suite compiles a line of it -
+# so without this a change that breaks `extension.ts` is found when somebody cuts a release,
+# which is the worst moment to find it.
+#
+# The `.NET` workflow is not the place for it either: that one converts workbooks and
+# compiles every generated language, and a change to a TypeScript file has no way to alter
+# what it answers.
+#
+# Cheap enough to run on every push that touches it - an install, a type check and a bundle.
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'tools/vscode/**'
+      - '.github/workflows/vscode.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'tools/vscode/**'
+      - '.github/workflows/vscode.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: vscode-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: tools/vscode
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: yarn
+          cache-dependency-path: tools/vscode/yarn.lock
+
+      # Frozen, so a lockfile that has drifted from the manifest fails here rather than
+      # quietly resolving to something nobody has run.
+      - name: Install
+        run: yarn install --frozen-lockfile
+
+      - name: Type check
+        run: yarn typecheck
+
+      # Packaging is the check. `vsce` refuses a manifest it cannot publish - a missing
+      # engine, a bad activation event, a file the bundle does not contain - and none of
+      # that is visible to `tsc`.
+      - name: Package
+        run: yarn package
+
+      # So a branch can be tried in a real editor without building it locally.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: tabbit-tbs-vsix
+          path: tools/vscode/*.vsix
+          if-no-files-found: error

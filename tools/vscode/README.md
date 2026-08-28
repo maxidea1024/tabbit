@@ -19,7 +19,19 @@
 것과 빌드가 거부하는 것이 같은 답입니다. 워크북은 열지 않으므로 시트가 있어야 답할 수 있는 것 —
 `foreign` 뒤의 테이블 이름이 그렇습니다 — 은 여기서 답하지 않습니다.
 
-## 만들고 설치하기
+## 받아서 설치하기
+
+만들지 않고 받아도 됩니다. [릴리즈](https://github.com/maxidea1024/tabbit/releases)에
+`tbs-v` 로 시작하는 태그의 것이 이 확장이고, `.vsix` 하나와 그 해시가 붙어 있습니다.
+
+```
+code --install-extension tabbit-tbs-0.0.1.vsix
+```
+
+**확장은 도구와 따로 배포됩니다.** 하이라이팅 하나를 고치는 데 플랫폼 바이너리 6개를 다시
+구울 이유가 없기 때문입니다. 다만 진단과 이동은 `tabbit lsp` 가 답하므로 도구도 있어야 합니다.
+
+## 직접 만들기
 
 ```
 cd tools/vscode
@@ -30,8 +42,22 @@ code --install-extension tabbit-tbs-0.0.1.vsix
 
 지우려면 `code --uninstall-extension tabbit.tabbit-tbs` 입니다.
 
-> yarn이 `The engine "vscode" appears to be invalid` 를 적습니다. `engines.vscode` 는 VS Code가
-> 요구하는 항목이고 yarn이 모르는 이름이라서 나오는 것이라, 그대로 두면 됩니다.
+### 무시해도 되는 경고 둘
+
+**`The engine "vscode" appears to be invalid`** — yarn이 적습니다. `engines.vscode` 는 VS Code가
+요구하는 항목이고 yarn이 모르는 이름이라서 나옵니다.
+
+**`[DEP0169] DeprecationWarning: url.parse()`** — 설치 뒤에 나옵니다. **이 확장에서 나오는 것이
+아닙니다.** VS Code의 CLI가 설치를 마치고 그 확장의 메타데이터를 마켓플레이스에 조회하는데, 그
+HTTP 요청 경로가 Node의 옛 API를 씁니다. `--trace-deprecation` 으로 찍어 본 스택이 전부
+`cliProcessMain.js` 안입니다.
+
+이 확장은 마켓플레이스에 없으므로 그 조회는 아무것도 찾지 못하고, 그래도 요청은 나갑니다.
+설치는 이미 끝난 뒤이므로 결과에 영향이 없습니다. 보기 싫으면 그 실행에서만 끕니다.
+
+```powershell
+$env:NODE_OPTIONS="--no-deprecation"; code --install-extension tabbit-tbs-0.0.1.vsix
+```
 
 ## 서버를 찾는 순서
 
@@ -80,8 +106,9 @@ code --install-extension tabbit-tbs-0.0.1.vsix
 ## 문법 파일을 고칠 때
 
 내장 타입 이름이 [`syntaxes/tbs.tmLanguage.json`](syntaxes/tbs.tmLanguage.json)에 적혀 있습니다.
-**타입을 추가하면 이 파일도 함께 고칩니다.** 정본은 `src/Cooking/CookingContext.cs` 의
-`IsValidTypeName` 과 `src/Models/CompositeType.cs` 의 목록입니다.
+**타입을 추가하면 이 파일도 함께 고칩니다.** 정본은 `src/Models/ScalarType.cs` 와
+`src/Models/CompositeType.cs` 이고, 서버는 그 두 표에 물으므로 따라올 필요가 없습니다 —
+따라오지 않는 것은 이 문법 파일 하나뿐입니다.
 
 문법을 고쳤으면 색이 실제로 어떻게 나오는지 토큰으로 확인할 수 있습니다. `vscode-textmate` 로
 파일 하나를 토큰화해 보면 스코프가 붙지 않은 자리가 드러납니다 — 눈으로 보아서는
