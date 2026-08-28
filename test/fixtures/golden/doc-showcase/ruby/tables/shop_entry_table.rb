@@ -7,6 +7,8 @@
 
 require_relative '../tabbit/tcb_reader'
 
+require_relative '../structs/effect'
+
 
 module DocShowcase
   # Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Shop : F2

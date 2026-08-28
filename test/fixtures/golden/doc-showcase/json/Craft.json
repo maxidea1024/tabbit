@@ -1,0 +1,31 @@
+[
+  {
+    "index": 1,
+    "result": 3,
+    "resultName": 3,
+    "parts": [
+      1,
+      2
+    ],
+    "substitute": 2
+  },
+  {
+    "index": 2,
+    "result": 2,
+    "resultName": 2,
+    "parts": [
+      1
+    ],
+    "substitute": null
+  },
+  {
+    "index": 3,
+    "result": 1,
+    "resultName": 1,
+    "parts": [
+      1,
+      1
+    ],
+    "substitute": 3
+  }
+]

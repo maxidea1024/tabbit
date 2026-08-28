@@ -1,12 +1,48 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "dde99a1e7be547a007669ecb3e3652e5",
-  "TotalSize": 639,
+  "MasterHash": "b202e2bffdb8f01193a6ae7219f61d8b",
+  "TotalSize": 2285,
   "Items": [
     {
       "Name": "Potion.tcb",
       "Size": 116,
       "Hash": "a467bfb935f269944c63c48b273095b7",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Sample.tcb",
+      "Size": 271,
+      "Hash": "85a906f1f6dd2259e8727141a0099cd8",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Marker.tcb",
+      "Size": 169,
+      "Hash": "ba31ae5b5a536f8c15bcf520024a7301",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Access.tcb",
+      "Size": 80,
+      "Hash": "57e2b51a95683948c85458e93393f0f9",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Line.tcb",
+      "Size": 146,
+      "Hash": "2055f3af59554cf94ef62918d9e3b31b",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Animation.tcb",
+      "Size": 94,
+      "Hash": "c6cc8c905375fa659929f0c5bf46f820",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Wire.tcb",
+      "Size": 87,
+      "Hash": "f54abbb13790f3bb22bdae271d6fdec3",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
@@ -22,9 +58,21 @@
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
+      "Name": "Craft.tcb",
+      "Size": 102,
+      "Hash": "ea1d74ed20fda93724f866a9d0c1139d",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
       "Name": "Loot.tcb",
       "Size": 114,
       "Hash": "f1a44d2e08e73a125f61bd83ca346000",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Drop.tcb",
+      "Size": 89,
+      "Hash": "2e9dbd129af7a7b436b7f4bfc5d23dbb",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
@@ -34,9 +82,39 @@
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
+      "Name": "Deck.tcb",
+      "Size": 152,
+      "Hash": "d960ecc04668044e887661729e60d9a5",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Quest.tcb",
+      "Size": 120,
+      "Hash": "24f9251900783b2273318254ed513b29",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
       "Name": "StageReward.tcb",
       "Size": 118,
       "Hash": "889dad7676f918ed4c22b5c67f451e14",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "ServerTuning.tcb",
+      "Size": 111,
+      "Hash": "2d0c7801a23cec21426b594eb9f51331",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Price.tcb",
+      "Size": 106,
+      "Hash": "c73034db2293dc95f292f8796ea7c2ef",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Skill.tcb",
+      "Size": 119,
+      "Hash": "04a353befc80949540f7f87081c3e30e",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

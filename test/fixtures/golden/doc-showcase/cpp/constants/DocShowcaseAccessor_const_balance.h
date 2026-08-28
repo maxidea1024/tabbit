@@ -9,7 +9,7 @@
 #define TABBIT_GENERATED_DOCSHOWCASEACCESSOR_CONST_BALANCE_H
 
 #include <cstdint>
-// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2
 /// Values with no rows.
 struct Balance {
   /// stack limit

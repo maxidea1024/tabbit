@@ -13,22 +13,50 @@ import 'dart:typed_data';
 import 'tabbit/tcb_reader.dart';
 
 part 'tables/potion_table.dart';
+part 'tables/sample_table.dart';
+part 'tables/marker_table.dart';
+part 'tables/access_table.dart';
+part 'tables/line_table.dart';
+part 'tables/animation_table.dart';
+part 'tables/wire_table.dart';
 part 'tables/shop_table.dart';
 part 'tables/shop_entry_table.dart';
+part 'tables/craft_table.dart';
 part 'tables/loot_table.dart';
+part 'tables/drop_table.dart';
 part 'tables/spawn_table.dart';
+part 'tables/deck_table.dart';
+part 'tables/quest_table.dart';
 part 'tables/stage_reward_table.dart';
+part 'tables/server_tuning_table.dart';
+part 'tables/price_table.dart';
+part 'tables/skill_table.dart';
 part 'enums/rarity.dart';
+part 'enums/element.dart';
+part 'structs/effect.dart';
 part 'constants/balance.dart';
 
 /// Every table, loaded together so cross-table references can be resolved.
 class Tables {
   PotionTable potion = PotionTable();
+  SampleTable sample = SampleTable();
+  MarkerTable marker = MarkerTable();
+  AccessTable access = AccessTable();
+  LineTable line = LineTable();
+  AnimationTable animation = AnimationTable();
+  WireTable wire = WireTable();
   ShopTable shop = ShopTable();
   ShopEntryTable shopEntry = ShopEntryTable();
+  CraftTable craft = CraftTable();
   LootTable loot = LootTable();
+  DropTable drop = DropTable();
   SpawnTable spawn = SpawnTable();
+  DeckTable deck = DeckTable();
+  QuestTable quest = QuestTable();
   StageRewardTable stageReward = StageRewardTable();
+  ServerTuningTable serverTuning = ServerTuningTable();
+  PriceTable price = PriceTable();
+  SkillTable skill = SkillTable();
 
   /// The key the table files were sealed with, or null when they were not sealed.
   ///
@@ -84,32 +112,71 @@ class Tables {
       [String fileExtension = '.tcb']) {
     final loadedPotionTable = PotionTable();
     loadedPotionTable.read('$basePath${Platform.pathSeparator}Potion$fileExtension');
+    final loadedSampleTable = SampleTable();
+    loadedSampleTable.read('$basePath${Platform.pathSeparator}Sample$fileExtension');
+    final loadedMarkerTable = MarkerTable();
+    loadedMarkerTable.read('$basePath${Platform.pathSeparator}Marker$fileExtension');
+    final loadedAccessTable = AccessTable();
+    loadedAccessTable.read('$basePath${Platform.pathSeparator}Access$fileExtension');
+    final loadedLineTable = LineTable();
+    loadedLineTable.read('$basePath${Platform.pathSeparator}Line$fileExtension');
+    final loadedAnimationTable = AnimationTable();
+    loadedAnimationTable.read('$basePath${Platform.pathSeparator}Animation$fileExtension');
+    final loadedWireTable = WireTable();
+    loadedWireTable.read('$basePath${Platform.pathSeparator}Wire$fileExtension');
     final loadedShopTable = ShopTable();
     loadedShopTable.read('$basePath${Platform.pathSeparator}Shop$fileExtension');
     final loadedShopEntryTable = ShopEntryTable();
     loadedShopEntryTable.read('$basePath${Platform.pathSeparator}ShopEntry$fileExtension');
+    final loadedCraftTable = CraftTable();
+    loadedCraftTable.read('$basePath${Platform.pathSeparator}Craft$fileExtension');
     final loadedLootTable = LootTable();
     loadedLootTable.read('$basePath${Platform.pathSeparator}Loot$fileExtension');
+    final loadedDropTable = DropTable();
+    loadedDropTable.read('$basePath${Platform.pathSeparator}Drop$fileExtension');
     final loadedSpawnTable = SpawnTable();
     loadedSpawnTable.read('$basePath${Platform.pathSeparator}Spawn$fileExtension');
+    final loadedDeckTable = DeckTable();
+    loadedDeckTable.read('$basePath${Platform.pathSeparator}Deck$fileExtension');
+    final loadedQuestTable = QuestTable();
+    loadedQuestTable.read('$basePath${Platform.pathSeparator}Quest$fileExtension');
     final loadedStageRewardTable = StageRewardTable();
     loadedStageRewardTable.read('$basePath${Platform.pathSeparator}StageReward$fileExtension');
+    final loadedServerTuningTable = ServerTuningTable();
+    loadedServerTuningTable.read('$basePath${Platform.pathSeparator}ServerTuning$fileExtension');
+    final loadedPriceTable = PriceTable();
+    loadedPriceTable.read('$basePath${Platform.pathSeparator}Price$fileExtension');
+    final loadedSkillTable = SkillTable();
+    loadedSkillTable.read('$basePath${Platform.pathSeparator}Skill$fileExtension');
 
-    _solveCrossReferences(loadedPotionTable, loadedShopTable, loadedShopEntryTable, loadedLootTable, loadedSpawnTable, loadedStageRewardTable);
+    _solveCrossReferences(loadedPotionTable, loadedSampleTable, loadedMarkerTable, loadedAccessTable, loadedLineTable, loadedAnimationTable, loadedWireTable, loadedShopTable, loadedShopEntryTable, loadedCraftTable, loadedLootTable, loadedDropTable, loadedSpawnTable, loadedDeckTable, loadedQuestTable, loadedStageRewardTable, loadedServerTuningTable, loadedPriceTable, loadedSkillTable);
 
     potion = loadedPotionTable;
+    sample = loadedSampleTable;
+    marker = loadedMarkerTable;
+    access = loadedAccessTable;
+    line = loadedLineTable;
+    animation = loadedAnimationTable;
+    wire = loadedWireTable;
     shop = loadedShopTable;
     shopEntry = loadedShopEntryTable;
+    craft = loadedCraftTable;
     loot = loadedLootTable;
+    drop = loadedDropTable;
     spawn = loadedSpawnTable;
+    deck = loadedDeckTable;
+    quest = loadedQuestTable;
     stageReward = loadedStageRewardTable;
+    serverTuning = loadedServerTuningTable;
+    price = loadedPriceTable;
+    skill = loadedSkillTable;
   }
 
   /// Turns the stored indices into usable values, once every table is in memory.
   ///
   /// The tables arrive as arguments and shadow the fields of the same name, which is how
   /// this resolves the load being read rather than the one already published.
-  void _solveCrossReferences(PotionTable potion, ShopTable shop, ShopEntryTable shopEntry, LootTable loot, SpawnTable spawn, StageRewardTable stageReward) {
+  void _solveCrossReferences(PotionTable potion, SampleTable sample, MarkerTable marker, AccessTable access, LineTable line, AnimationTable animation, WireTable wire, ShopTable shop, ShopEntryTable shopEntry, CraftTable craft, LootTable loot, DropTable drop, SpawnTable spawn, DeckTable deck, QuestTable quest, StageRewardTable stageReward, ServerTuningTable serverTuning, PriceTable price, SkillTable skill) {
     for (final record in shopEntry.records) {
       {
         final target = shop.findByIndex(record.shopId);
@@ -118,6 +185,24 @@ class Tables {
       {
         final target = potion.findByIndex(record.potionId);
         if (target != null) record.potionByPotionId = target;
+      }
+    }
+    for (final record in craft.records) {
+      {
+        final target = potion.findByIndex(record.result);
+        if (target != null) record.potionByResult = target;
+      }
+      {
+        final target = potion.findByIndex(record.resultNameIndex);
+        if (target != null) record.resultName = target.name;
+      }
+      for (var i = 0; i < record.parts.length; i++) {
+        final target = potion.findByIndex(record.parts[i]);
+        if (target != null) record.potionByParts[i] = target;
+      }
+      {
+        final target = potion.findByIndex(record.substitute);
+        if (target != null) record.potionBySubstitute = target;
       }
     }
   }

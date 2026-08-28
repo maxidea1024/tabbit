@@ -1,0 +1,33 @@
+[
+  {
+    "index": 1,
+    "grades": [
+      1,
+      2
+    ],
+    "counts": [
+      1,
+      2
+    ]
+  },
+  {
+    "index": 2,
+    "grades": [
+      3
+    ],
+    "counts": [
+      5
+    ]
+  },
+  {
+    "index": 3,
+    "grades": [
+      1,
+      1
+    ],
+    "counts": [
+      3,
+      null
+    ]
+  }
+]

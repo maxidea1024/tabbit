@@ -15,7 +15,7 @@ import (
 	"docshowcase/tabbit"
 )
 
-// StageRewardRecord was generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : StageReward : B2.
+// StageRewardRecord was generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Sides : B2.
 // Neither key column is unique alone.
 type StageRewardRecord struct {
 	// which stage

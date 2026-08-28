@@ -7,7 +7,7 @@
 
 
 module DocShowcase
-  # Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2
+  # Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2
   # Values with no rows.
   module Balance
     # stack limit

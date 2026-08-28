@@ -1,0 +1,61 @@
+{
+  "source": "test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx",
+  "sheet": "Sides",
+  "kind": "table",
+  "name": "ServerTuning",
+  "declaration": ":table ServerTuning(side=s)",
+  "origin": {
+    "row": 1,
+    "column": 7
+  },
+  "rows": [
+    [
+      ":table ServerTuning(side=s)",
+      "The client build has no type for this at all.",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "index",
+      "Knob",
+      "Value"
+    ],
+    [
+      ":type",
+      "int",
+      "string",
+      "float"
+    ],
+    [
+      ":desc",
+      "primary index",
+      "what it tunes",
+      "how much"
+    ],
+    [
+      ":target",
+      "cs",
+      "cs",
+      "cs"
+    ],
+    [
+      "",
+      "1",
+      "drop_rate",
+      "0.25"
+    ],
+    [
+      "",
+      "2",
+      "gold_rate",
+      "1.5"
+    ],
+    [
+      "",
+      "3",
+      "spawn_rate",
+      "0.8"
+    ]
+  ]
+}

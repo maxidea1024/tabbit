@@ -1,0 +1,59 @@
+[
+  {
+    "index": 1,
+    "slot": [
+      {
+        "id": 10,
+        "label": "sword"
+      },
+      {
+        "id": 11,
+        "label": "shield"
+      }
+    ],
+    "home": {
+      "at": {
+        "x": 1.5,
+        "y": -2.5
+      }
+    }
+  },
+  {
+    "index": 2,
+    "slot": [
+      {
+        "id": 20,
+        "label": "bow"
+      },
+      {
+        "id": 21,
+        "label": "arrow"
+      }
+    ],
+    "home": {
+      "at": {
+        "x": 0,
+        "y": 0
+      }
+    }
+  },
+  {
+    "index": 3,
+    "slot": [
+      {
+        "id": 30,
+        "label": "staff"
+      },
+      {
+        "id": 31,
+        "label": "orb"
+      }
+    ],
+    "home": {
+      "at": {
+        "x": -8.25,
+        "y": 12
+      }
+    }
+  }
+]

@@ -34,7 +34,21 @@ enum class ERarity : uint8
 };
 
 
-/* Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2 */
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2
+/** What a potion is made of. */
+UENUM(BlueprintType)
+enum class EElement : uint8
+{
+    /** no element */
+    None = 0 UMETA(DisplayName = "None"),
+    /** burns */
+    FireBall = 1 UMETA(DisplayName = "FireBall"),
+    /** chills */
+    IceShard = 2 UMETA(DisplayName = "IceShard"),
+};
+
+
+/* Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2 */
 /** Values with no rows. */
 struct FBalance
 {
@@ -42,6 +56,86 @@ struct FBalance
     static inline const int32 MaxStack = 99;
     /** sale refund */
     static inline const float RefundRate = 0.5f;
+};
+
+
+/** Which shape a FEffect value took. */
+UENUM(BlueprintType)
+enum class FEffectKind : uint8
+{
+    /** No variant. A default-constructed value, which no row ever carries. */
+    None = 0 UMETA(DisplayName = "None"),
+    /** The file carries 1 for this one. */
+    DamageEffect = 1 UMETA(DisplayName = "DamageEffect"),
+    /** The file carries 2 for this one. */
+    HealEffect = 2 UMETA(DisplayName = "HealEffect"),
+    /** The file carries 3 for this one. */
+    NoEffect = 3 UMETA(DisplayName = "NoEffect"),
+};
+
+
+/**
+ * One shape of FEffect.
+ *
+ * The file carries 1 for it. That number rather than the name is what
+ * lets this variant be renamed without a deployed reader reading a different one.
+ */
+USTRUCT(BlueprintType)
+struct FDamageEffect
+{
+    GENERATED_BODY()
+
+    /** How likely it is to land, in percent. Every variant carries it, so it is one column */
+    /** and every row fills it. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FEffect")
+    int32 Chance = {};
+
+    /** How much it takes. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FEffect")
+    int32 Damage = {};
+
+};
+
+
+/**
+ * One shape of FEffect.
+ *
+ * The file carries 2 for it. That number rather than the name is what
+ * lets this variant be renamed without a deployed reader reading a different one.
+ */
+USTRUCT(BlueprintType)
+struct FHealEffect
+{
+    GENERATED_BODY()
+
+    /** How likely it is to land, in percent. Every variant carries it, so it is one column */
+    /** and every row fills it. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FEffect")
+    int32 Chance = {};
+
+    /** How much it gives. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FEffect")
+    int32 Amount = {};
+
+};
+
+
+/**
+ * One shape of FEffect.
+ *
+ * The file carries 3 for it. That number rather than the name is what
+ * lets this variant be renamed without a deployed reader reading a different one.
+ */
+USTRUCT(BlueprintType)
+struct FNoEffect
+{
+    GENERATED_BODY()
+
+    /** How likely it is to land, in percent. Every variant carries it, so it is one column */
+    /** and every row fills it. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FEffect")
+    int32 Chance = {};
+
 };
 
 
@@ -66,6 +160,226 @@ struct DOCSHOWCASE_API FPotionRow
 
     /** shop price */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Potion")
+    int32 Price = 0;
+
+};
+
+
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Types : B2
+/** One column per scalar type. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FSampleRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sample")
+    int32 Index = 0;
+
+    /** 64 bit */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sample")
+    int64 Count = 0;
+
+    /** 32 bit */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sample")
+    float Ratio = 0.0f;
+
+    /** 64 bit */
+    // No UPROPERTY: UE4's header tool does not accept a double property.
+    double Precise = 0.0;
+
+    /** Y or N */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sample")
+    bool bEnabled = false;
+
+    /** text */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sample")
+    FString Label;
+
+    /** a moment */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sample")
+    FDateTime At;
+
+    /** a length */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sample")
+    FTimespan Span;
+
+    /** an identifier */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sample")
+    FGuid Id;
+
+};
+
+
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Types : M2
+/** One element of FMarkerRow::Pos. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FMarkerPosEntry
+{
+    GENERATED_BODY()
+
+    /** three floats */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marker")
+    float X = 0.0f;
+
+    /** three floats */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marker")
+    float Y = 0.0f;
+
+    /** three floats */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marker")
+    float Z = 0.0f;
+
+};
+
+/** One element of FMarkerRow::Cell. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FMarkerCellEntry
+{
+    GENERATED_BODY()
+
+    /** two ints */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marker")
+    int32 X = 0;
+
+    /** two ints */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marker")
+    int32 Y = 0;
+
+};
+
+/** One element of FMarkerRow::Tint. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FMarkerTintEntry
+{
+    GENERATED_BODY()
+
+    /** four bytes */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marker")
+    int32 R = 0;
+
+    /** four bytes */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marker")
+    int32 G = 0;
+
+    /** four bytes */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marker")
+    int32 B = 0;
+
+    /** four bytes */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marker")
+    int32 A = 0;
+
+};
+
+/** Values written as one cell and read as several. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FMarkerRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marker")
+    int32 Index = 0;
+
+    /** three floats */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marker")
+    FMarkerPosEntry Pos;
+
+    /** two ints */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marker")
+    FMarkerCellEntry Cell;
+
+    /** four bytes */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marker")
+    FMarkerTintEntry Tint;
+
+};
+
+
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Types : S2
+/** A flag set beside the number it becomes. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FAccessRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Access")
+    int32 Index = 0;
+
+    /** which bits */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Access")
+    int64 Flags = 0;
+
+    /** the same value */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Access")
+    int64 Same = 0;
+
+};
+
+
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Types : X2
+/** Strings that are for something. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FLineRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Line")
+    int32 Index = 0;
+
+    /** shown to a player */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Line")
+    FString Body;
+
+    /** names a file */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Line")
+    FString Icon;
+
+};
+
+
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Index : B2
+/** Keyed by name, with a second key beside it. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FAnimationRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+    FString Index;
+
+    /** secondary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+    int32 Slot = 0;
+
+    /** anything */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+    float Blend = 0.0f;
+
+};
+
+
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Index : G2
+/** Columns numbered so the file names them rather than counts them. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FWireRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wire")
+    int32 Index = 0;
+
+    /** display name */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wire")
+    FString Name;
+
+    /** added after the drop */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wire")
     int32 Price = 0;
 
 };
@@ -115,6 +429,39 @@ struct DOCSHOWCASE_API FShopEntryRow
 };
 
 
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Shop : K2
+/** The four shapes a reference takes. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FCraftRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Craft")
+    int32 Index = 0;
+
+    /** a whole row */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Craft")
+    int32 Result = 0;
+
+    /** one of its values */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Craft")
+    int32 ResultName = 0;
+
+    /** several rows in one cell */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Craft")
+    TArray<int32> Parts;
+
+    /** a row, or none */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Craft")
+    int32 Substitute = 0;
+
+    /** Whether this row has a value for Substitute. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Craft")
+    bool bHasSubstitute = false;
+};
+
+
 // Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Loot : B2
 /** Two ways to write an array. */
 USTRUCT(BlueprintType)
@@ -133,6 +480,33 @@ struct DOCSHOWCASE_API FLootRow
     /** weight 1 */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loot")
     TArray<int32> Weight;
+
+};
+
+
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Loot : G2
+/** An array of enums, and one whose elements may be absent. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FDropRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
+    int32 Index = 0;
+
+    /** which grades */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
+    TArray<ERarity> Grades;
+
+    /** how many of each */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drop")
+    TArray<int32> Counts;
+
+    /** Which of Counts's elements have a value. Empty where the file did not carry
+     * the column, and then every index is out of range anyway.
+     * spec/types/nullable-array-elements.md. */
+    TArray<bool> bHasCountsAt;
 
 };
 
@@ -178,7 +552,111 @@ struct DOCSHOWCASE_API FSpawnRow
 };
 
 
-// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : StageReward : B2
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Spawn : G2
+/** One element of FDeckRow::Slot. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FDeckSlotEntry
+{
+    GENERATED_BODY()
+
+    /** element 1 */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Deck")
+    int32 Id = 0;
+
+    /** element 1 */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Deck")
+    FString Label;
+
+};
+
+/** A record inside FDeckRow::Home. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FDeckHomeEntryAt
+{
+    GENERATED_BODY()
+
+    /** two levels in */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Deck")
+    float X = 0.0f;
+
+    /** two levels in */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Deck")
+    float Y = 0.0f;
+
+};
+
+/** One element of FDeckRow::Home. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FDeckHomeEntry
+{
+    GENERATED_BODY()
+
+    /** two levels in */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Deck")
+    FDeckHomeEntryAt At;
+
+};
+
+/** An array of records, and a record inside a record. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FDeckRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Deck")
+    int32 Index = 0;
+
+    /** element 1 */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Deck")
+    TArray<FDeckSlotEntry> Slot;
+
+    /** two levels in */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Deck")
+    FDeckHomeEntry Home;
+
+};
+
+
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Quest : B2
+/** One element of FQuestRow::Reward. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FQuestRewardEntry
+{
+    GENERATED_BODY()
+
+    /** an element */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest")
+    int32 Id = 0;
+
+    /** an element */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest")
+    int32 Count = 0;
+
+};
+
+/** One record over several rows, as many as it has rewards. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FQuestRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest")
+    int32 Index = 0;
+
+    /** display name */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest")
+    FString Name;
+
+    /** an element */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest")
+    TArray<FQuestRewardEntry> Reward;
+
+};
+
+
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Sides : B2
 /** Neither key column is unique alone. */
 USTRUCT(BlueprintType)
 struct DOCSHOWCASE_API FStageRewardRow
@@ -200,6 +678,97 @@ struct DOCSHOWCASE_API FStageRewardRow
     /** drop table */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "StageReward")
     FString DropTable;
+
+};
+
+
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Sides : H2
+/** The client build has no type for this at all. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FServerTuningRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ServerTuning")
+    int32 Index = 0;
+
+    /** what it tunes */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ServerTuning")
+    FString Knob;
+
+    /** how much */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ServerTuning")
+    float Value = 0.0f;
+
+};
+
+
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Price : B2
+/** One column of Amount reaches the build; the others do not. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FPriceRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Price")
+    int32 Index = 0;
+
+    /** display name */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Price")
+    FString Name;
+
+    /** what it costs */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Price")
+    int32 Amount = 0;
+
+};
+
+
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Skill : B2
+/** One element of FSkillRow::Effect. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FSkillEffectEntry
+{
+    GENERATED_BODY()
+
+    /** which shape */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
+    int32 Type = 0;
+
+    /** How likely it is to land, in percent. Every variant carries it, so it is one column */
+    /** and every row fills it. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
+    int32 Chance = 0;
+
+    /** How much it takes. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
+    int32 Damage = 0;
+
+    /** How much it gives. */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
+    int32 Amount = 0;
+
+};
+
+/** Every variant's members side by side; a row fills its own. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FSkillRow
+{
+    GENERATED_BODY()
+
+    /** primary index */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
+    int32 Index = 0;
+
+    /** display name */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
+    FString Name;
+
+    /** which shape */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
+    FSkillEffectEntry Effect;
 
 };
 
@@ -242,6 +811,270 @@ public:
 
 private:
     TArray<FPotionRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
+/** Every row of Sample. */
+class DOCSHOWCASE_API FSampleTable
+{
+public:
+    const TArray<FSampleRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FSampleRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FSampleRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
+/** Every row of Marker. */
+class DOCSHOWCASE_API FMarkerTable
+{
+public:
+    const TArray<FMarkerRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FMarkerRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FMarkerRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
+/** Every row of Access. */
+class DOCSHOWCASE_API FAccessTable
+{
+public:
+    const TArray<FAccessRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FAccessRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FAccessRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
+/** Every row of Line. */
+class DOCSHOWCASE_API FLineTable
+{
+public:
+    const TArray<FLineRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FLineRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FLineRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
+/** Every row of Animation. */
+class DOCSHOWCASE_API FAnimationTable
+{
+public:
+    const TArray<FAnimationRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FAnimationRow* FindByIndex(const FString& Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(const FString& Key) const;
+
+    /**
+     * The row with this Slot, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FAnimationRow* FindBySlot(int32 Key) const;
+
+    /** Whether the table holds a row with this Slot. */
+    bool ContainsSlot(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FAnimationRow> RecordsStorage;
+    TMap<FString, int32> ByIndex;
+    TMap<int32, int32> BySlot;
+};
+
+
+/** Every row of Wire. */
+class DOCSHOWCASE_API FWireTable
+{
+public:
+    const TArray<FWireRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FWireRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FWireRow> RecordsStorage;
     TMap<int32, int32> ByIndex;
 };
 
@@ -330,6 +1163,48 @@ private:
 };
 
 
+/** Every row of Craft. */
+class DOCSHOWCASE_API FCraftTable
+{
+public:
+    const TArray<FCraftRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FCraftRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FCraftRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
 /** Every row of Loot. */
 class DOCSHOWCASE_API FLootTable
 {
@@ -372,6 +1247,48 @@ private:
 };
 
 
+/** Every row of Drop. */
+class DOCSHOWCASE_API FDropTable
+{
+public:
+    const TArray<FDropRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FDropRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FDropRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
 /** Every row of Spawn. */
 class DOCSHOWCASE_API FSpawnTable
 {
@@ -410,6 +1327,90 @@ public:
 
 private:
     TArray<FSpawnRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
+/** Every row of Deck. */
+class DOCSHOWCASE_API FDeckTable
+{
+public:
+    const TArray<FDeckRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FDeckRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FDeckRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
+/** Every row of Quest. */
+class DOCSHOWCASE_API FQuestTable
+{
+public:
+    const TArray<FQuestRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FQuestRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FQuestRow> RecordsStorage;
     TMap<int32, int32> ByIndex;
 };
 
@@ -459,6 +1460,188 @@ private:
 };
 
 
+/** Every row of ServerTuning. */
+class DOCSHOWCASE_API FServerTuningTable
+{
+public:
+    const TArray<FServerTuningRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FServerTuningRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FServerTuningRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
+/** Every row of Price. */
+class DOCSHOWCASE_API FPriceTable
+{
+public:
+    const TArray<FPriceRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FPriceRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FPriceRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
+/** Every row of Skill. */
+class DOCSHOWCASE_API FSkillTable
+{
+public:
+    const TArray<FSkillRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
+    /**
+     * The row with this Index, or nullptr when the table has none.
+     *
+     * The lookup to reach for when a missing row is an ordinary answer - an optional
+     * reference, a key that came from user input.
+     */
+    const FSkillRow* FindByIndex(int32 Key) const;
+
+    /** Whether the table holds a row with this Index. */
+    bool ContainsIndex(int32 Key) const;
+
+
+    /** Which shape a row's FEffect took. */
+    static FEffectKind EffectKind(const FSkillRow& Row)
+    {
+        return static_cast<FEffectKind>(Row.Effect.Type);
+    }
+
+
+    /** Fills Out when the row is a FDamageEffect, and answers whether it was. */
+    static bool EffectAsDamageEffect(
+        const FSkillRow& Row, FDamageEffect& Out)
+    {
+        const FSkillEffectEntry& Entry = Row.Effect;
+
+        if (Entry.Type != 1)
+        {
+            return false;
+        }
+
+        Out.Chance = Entry.Chance;
+        Out.Damage = Entry.Damage;
+        return true;
+    }
+
+
+    /** Fills Out when the row is a FHealEffect, and answers whether it was. */
+    static bool EffectAsHealEffect(
+        const FSkillRow& Row, FHealEffect& Out)
+    {
+        const FSkillEffectEntry& Entry = Row.Effect;
+
+        if (Entry.Type != 2)
+        {
+            return false;
+        }
+
+        Out.Chance = Entry.Chance;
+        Out.Amount = Entry.Amount;
+        return true;
+    }
+
+
+    /** Fills Out when the row is a FNoEffect, and answers whether it was. */
+    static bool EffectAsNoEffect(
+        const FSkillRow& Row, FNoEffect& Out)
+    {
+        const FSkillEffectEntry& Entry = Row.Effect;
+
+        if (Entry.Type != 3)
+        {
+            return false;
+        }
+
+        Out.Chance = Entry.Chance;
+        return true;
+    }
+    /** Loads the table from a .tcb file written by Tabbit. */
+    bool Read(const FString& Filename);
+
+private:
+    TArray<FSkillRow> RecordsStorage;
+    TMap<int32, int32> ByIndex;
+};
+
+
 /**
  * Every table, loaded together.
  *
@@ -469,11 +1652,24 @@ class DOCSHOWCASE_API FDocShowcase
 {
 public:
     static const FPotionTable& Potion() { return PotionStorage; }
+    static const FSampleTable& Sample() { return SampleStorage; }
+    static const FMarkerTable& Marker() { return MarkerStorage; }
+    static const FAccessTable& Access() { return AccessStorage; }
+    static const FLineTable& Line() { return LineStorage; }
+    static const FAnimationTable& Animation() { return AnimationStorage; }
+    static const FWireTable& Wire() { return WireStorage; }
     static const FShopTable& Shop() { return ShopStorage; }
     static const FShopEntryTable& ShopEntry() { return ShopEntryStorage; }
+    static const FCraftTable& Craft() { return CraftStorage; }
     static const FLootTable& Loot() { return LootStorage; }
+    static const FDropTable& Drop() { return DropStorage; }
     static const FSpawnTable& Spawn() { return SpawnStorage; }
+    static const FDeckTable& Deck() { return DeckStorage; }
+    static const FQuestTable& Quest() { return QuestStorage; }
     static const FStageRewardTable& StageReward() { return StageRewardStorage; }
+    static const FServerTuningTable& ServerTuning() { return ServerTuningStorage; }
+    static const FPriceTable& Price() { return PriceStorage; }
+    static const FSkillTable& Skill() { return SkillStorage; }
 
     /**
      * Reads every table from BasePath. Returns false if any of them could not be read.
@@ -537,11 +1733,24 @@ public:
 
 private:
     static FPotionTable PotionStorage;
+    static FSampleTable SampleStorage;
+    static FMarkerTable MarkerStorage;
+    static FAccessTable AccessStorage;
+    static FLineTable LineStorage;
+    static FAnimationTable AnimationStorage;
+    static FWireTable WireStorage;
     static FShopTable ShopStorage;
     static FShopEntryTable ShopEntryStorage;
+    static FCraftTable CraftStorage;
     static FLootTable LootStorage;
+    static FDropTable DropStorage;
     static FSpawnTable SpawnStorage;
+    static FDeckTable DeckStorage;
+    static FQuestTable QuestStorage;
     static FStageRewardTable StageRewardStorage;
+    static FServerTuningTable ServerTuningStorage;
+    static FPriceTable PriceStorage;
+    static FSkillTable SkillStorage;
 };
 
 /**
@@ -591,6 +1800,174 @@ public:
     UFUNCTION(BlueprintPure, Category = "Tabbit|Potion",
               meta = (DisplayName = "Get Potion Row At"))
     static FPotionRow GetPotionRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The Sample row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Sample",
+              meta = (DisplayName = "Get Sample Row"))
+    static FSampleRow GetSampleRow(int32 Key, bool& bFound);
+
+    /** How many Sample rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Sample",
+              meta = (DisplayName = "Get Sample Row Count"))
+    static int32 GetSampleRowCount();
+
+    /**
+     * The Sample row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Sample",
+              meta = (DisplayName = "Get Sample Row At"))
+    static FSampleRow GetSampleRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The Marker row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Marker",
+              meta = (DisplayName = "Get Marker Row"))
+    static FMarkerRow GetMarkerRow(int32 Key, bool& bFound);
+
+    /** How many Marker rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Marker",
+              meta = (DisplayName = "Get Marker Row Count"))
+    static int32 GetMarkerRowCount();
+
+    /**
+     * The Marker row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Marker",
+              meta = (DisplayName = "Get Marker Row At"))
+    static FMarkerRow GetMarkerRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The Access row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Access",
+              meta = (DisplayName = "Get Access Row"))
+    static FAccessRow GetAccessRow(int32 Key, bool& bFound);
+
+    /** How many Access rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Access",
+              meta = (DisplayName = "Get Access Row Count"))
+    static int32 GetAccessRowCount();
+
+    /**
+     * The Access row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Access",
+              meta = (DisplayName = "Get Access Row At"))
+    static FAccessRow GetAccessRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The Line row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Line",
+              meta = (DisplayName = "Get Line Row"))
+    static FLineRow GetLineRow(int32 Key, bool& bFound);
+
+    /** How many Line rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Line",
+              meta = (DisplayName = "Get Line Row Count"))
+    static int32 GetLineRowCount();
+
+    /**
+     * The Line row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Line",
+              meta = (DisplayName = "Get Line Row At"))
+    static FLineRow GetLineRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The Animation row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Animation",
+              meta = (DisplayName = "Get Animation Row"))
+    static FAnimationRow GetAnimationRow(const FString& Key, bool& bFound);
+
+    /** How many Animation rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Animation",
+              meta = (DisplayName = "Get Animation Row Count"))
+    static int32 GetAnimationRowCount();
+
+    /**
+     * The Animation row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Animation",
+              meta = (DisplayName = "Get Animation Row At"))
+    static FAnimationRow GetAnimationRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The Wire row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Wire",
+              meta = (DisplayName = "Get Wire Row"))
+    static FWireRow GetWireRow(int32 Key, bool& bFound);
+
+    /** How many Wire rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Wire",
+              meta = (DisplayName = "Get Wire Row Count"))
+    static int32 GetWireRowCount();
+
+    /**
+     * The Wire row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Wire",
+              meta = (DisplayName = "Get Wire Row At"))
+    static FWireRow GetWireRowAt(int32 Position, bool& bFound);
 
     /**
      * The Shop row with the given Index.
@@ -649,6 +2026,34 @@ public:
     static FShopEntryRow GetShopEntryRowAt(int32 Position, bool& bFound);
 
     /**
+     * The Craft row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Craft",
+              meta = (DisplayName = "Get Craft Row"))
+    static FCraftRow GetCraftRow(int32 Key, bool& bFound);
+
+    /** How many Craft rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Craft",
+              meta = (DisplayName = "Get Craft Row Count"))
+    static int32 GetCraftRowCount();
+
+    /**
+     * The Craft row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Craft",
+              meta = (DisplayName = "Get Craft Row At"))
+    static FCraftRow GetCraftRowAt(int32 Position, bool& bFound);
+
+    /**
      * The Loot row with the given Index.
      *
      * bFound rather than a pointer, because Blueprint has no null struct - a graph that
@@ -675,6 +2080,34 @@ public:
     UFUNCTION(BlueprintPure, Category = "Tabbit|Loot",
               meta = (DisplayName = "Get Loot Row At"))
     static FLootRow GetLootRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The Drop row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Drop",
+              meta = (DisplayName = "Get Drop Row"))
+    static FDropRow GetDropRow(int32 Key, bool& bFound);
+
+    /** How many Drop rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Drop",
+              meta = (DisplayName = "Get Drop Row Count"))
+    static int32 GetDropRowCount();
+
+    /**
+     * The Drop row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Drop",
+              meta = (DisplayName = "Get Drop Row At"))
+    static FDropRow GetDropRowAt(int32 Position, bool& bFound);
 
     /**
      * The Spawn row with the given Index.
@@ -705,6 +2138,62 @@ public:
     static FSpawnRow GetSpawnRowAt(int32 Position, bool& bFound);
 
     /**
+     * The Deck row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Deck",
+              meta = (DisplayName = "Get Deck Row"))
+    static FDeckRow GetDeckRow(int32 Key, bool& bFound);
+
+    /** How many Deck rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Deck",
+              meta = (DisplayName = "Get Deck Row Count"))
+    static int32 GetDeckRowCount();
+
+    /**
+     * The Deck row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Deck",
+              meta = (DisplayName = "Get Deck Row At"))
+    static FDeckRow GetDeckRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The Quest row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Quest",
+              meta = (DisplayName = "Get Quest Row"))
+    static FQuestRow GetQuestRow(int32 Key, bool& bFound);
+
+    /** How many Quest rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Quest",
+              meta = (DisplayName = "Get Quest Row Count"))
+    static int32 GetQuestRowCount();
+
+    /**
+     * The Quest row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Quest",
+              meta = (DisplayName = "Get Quest Row At"))
+    static FQuestRow GetQuestRowAt(int32 Position, bool& bFound);
+
+    /**
      * The StageReward row with the given Stage and Rank.
      *
      * bFound rather than a pointer, because Blueprint has no null struct - a graph that
@@ -731,6 +2220,90 @@ public:
     UFUNCTION(BlueprintPure, Category = "Tabbit|StageReward",
               meta = (DisplayName = "Get StageReward Row At"))
     static FStageRewardRow GetStageRewardRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The ServerTuning row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|ServerTuning",
+              meta = (DisplayName = "Get ServerTuning Row"))
+    static FServerTuningRow GetServerTuningRow(int32 Key, bool& bFound);
+
+    /** How many ServerTuning rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|ServerTuning",
+              meta = (DisplayName = "Get ServerTuning Row Count"))
+    static int32 GetServerTuningRowCount();
+
+    /**
+     * The ServerTuning row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|ServerTuning",
+              meta = (DisplayName = "Get ServerTuning Row At"))
+    static FServerTuningRow GetServerTuningRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The Price row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Price",
+              meta = (DisplayName = "Get Price Row"))
+    static FPriceRow GetPriceRow(int32 Key, bool& bFound);
+
+    /** How many Price rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Price",
+              meta = (DisplayName = "Get Price Row Count"))
+    static int32 GetPriceRowCount();
+
+    /**
+     * The Price row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Price",
+              meta = (DisplayName = "Get Price Row At"))
+    static FPriceRow GetPriceRowAt(int32 Position, bool& bFound);
+
+    /**
+     * The Skill row with the given Index.
+     *
+     * bFound rather than a pointer, because Blueprint has no null struct - a graph that
+     * ignored a failure would otherwise carry a default row it could not tell apart from
+     * a real one.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Skill",
+              meta = (DisplayName = "Get Skill Row"))
+    static FSkillRow GetSkillRow(int32 Key, bool& bFound);
+
+    /** How many Skill rows were loaded. */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Skill",
+              meta = (DisplayName = "Get Skill Row Count"))
+    static int32 GetSkillRowCount();
+
+    /**
+     * The Skill row at a position, for walking the table in order.
+     *
+     * A position and a count rather than the whole array. Blueprint takes a return value
+     * by value, so handing back a TArray would copy every row of the table on every call -
+     * and a reference return is not something Unreal Header Tool accepts. With these two a
+     * graph can loop over the table and copy one row per turn.
+     */
+    UFUNCTION(BlueprintPure, Category = "Tabbit|Skill",
+              meta = (DisplayName = "Get Skill Row At"))
+    static FSkillRow GetSkillRowAt(int32 Position, bool& bFound);
 
     /**
      * Reads every table from BasePath, as FDocShowcase::ReadAll does.

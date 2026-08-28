@@ -265,13 +265,27 @@ WANTED = [
 
     # 생성 코드와 나란히 놓는 것들. `generated-code.md` 의 왼쪽입니다.
     ("showcase-rarity", SHOWCASE, "Basics", "Rarity"),
+    ("showcase-element", SHOWCASE, "Basics", "Element"),
     ("showcase-balance", SHOWCASE, "Basics", "Balance"),
     ("showcase-potion", SHOWCASE, "Potion", "Potion"),
+    ("showcase-sample", SHOWCASE, "Types", "Sample"),
+    ("showcase-marker", SHOWCASE, "Types", "Marker"),
+    ("showcase-access", SHOWCASE, "Types", "Access"),
+    ("showcase-line", SHOWCASE, "Types", "Line"),
+    ("showcase-animation", SHOWCASE, "Index", "Animation"),
+    ("showcase-wire", SHOWCASE, "Index", "Wire"),
     ("showcase-shop", SHOWCASE, "Shop", "Shop"),
     ("showcase-shop-entry", SHOWCASE, "Shop", "ShopEntry"),
+    ("showcase-craft", SHOWCASE, "Shop", "Craft"),
     ("showcase-loot", SHOWCASE, "Loot", "Loot"),
+    ("showcase-drop", SHOWCASE, "Loot", "Drop"),
     ("showcase-spawn", SHOWCASE, "Spawn", "Spawn"),
-    ("showcase-stage-reward", SHOWCASE, "StageReward", "StageReward"),
+    ("showcase-deck", SHOWCASE, "Spawn", "Deck"),
+    ("showcase-quest", SHOWCASE, "Quest", "Quest"),
+    ("showcase-stage-reward", SHOWCASE, "Sides", "StageReward"),
+    ("showcase-server-tuning", SHOWCASE, "Sides", "ServerTuning"),
+    ("showcase-price", SHOWCASE, "Price", "Price"),
+    ("showcase-skill", SHOWCASE, "Skill", "Skill"),
 ]
 
 

@@ -14,6 +14,22 @@
   // Tabbit from. Output lands in test/fixtures/output/doc-showcase (transient, gitignored)
   // and is compared against test/fixtures/golden/doc-showcase.
 
+  // The `Skill` table's group leaves its type cells to this file - the declaration says the
+  // shape and the sheet says which one each row is.
+  "Schemas": [
+    { "Path": "test/fixtures/schemas/doc-showcase" }
+  ],
+
+  // `Line.Icon` is typed `asset(icon)`, which is a string that has to name a file. The roots
+  // are the ones the `asset` fixture already carries: what the documentation shows is the
+  // column and the code it generates, not a catalogue of its own.
+  "Assets": {
+    "Roots": [
+      { "Kind": "icon", "Path": "test/fixtures/assets/icon", "Pattern": "*.uasset" }
+    ],
+    "OnMissing": "warn"
+  },
+
   "Sources": {
     "Xlsx": [
       {

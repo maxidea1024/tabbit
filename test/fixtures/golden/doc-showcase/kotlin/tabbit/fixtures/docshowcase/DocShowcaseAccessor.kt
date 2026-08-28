@@ -38,15 +38,41 @@ import tabbit.KIND_ARRAY
 object DocShowcaseAccessor {
     var potion: PotionTable = PotionTable()
         private set
+    var sample: SampleTable = SampleTable()
+        private set
+    var marker: MarkerTable = MarkerTable()
+        private set
+    var access: AccessTable = AccessTable()
+        private set
+    var line: LineTable = LineTable()
+        private set
+    var animation: AnimationTable = AnimationTable()
+        private set
+    var wire: WireTable = WireTable()
+        private set
     var shop: ShopTable = ShopTable()
         private set
     var shopEntry: ShopEntryTable = ShopEntryTable()
         private set
+    var craft: CraftTable = CraftTable()
+        private set
     var loot: LootTable = LootTable()
+        private set
+    var drop: DropTable = DropTable()
         private set
     var spawn: SpawnTable = SpawnTable()
         private set
+    var deck: DeckTable = DeckTable()
+        private set
+    var quest: QuestTable = QuestTable()
+        private set
     var stageReward: StageRewardTable = StageRewardTable()
+        private set
+    var serverTuning: ServerTuningTable = ServerTuningTable()
+        private set
+    var price: PriceTable = PriceTable()
+        private set
+    var skill: SkillTable = SkillTable()
         private set
 
     /**
@@ -107,25 +133,64 @@ object DocShowcaseAccessor {
     fun readAll(basePath: String, fileExtension: String = ".tcb") {
         val loadedPotionTable = PotionTable()
         loadedPotionTable.read(File(basePath, "Potion$fileExtension").path)
+        val loadedSampleTable = SampleTable()
+        loadedSampleTable.read(File(basePath, "Sample$fileExtension").path)
+        val loadedMarkerTable = MarkerTable()
+        loadedMarkerTable.read(File(basePath, "Marker$fileExtension").path)
+        val loadedAccessTable = AccessTable()
+        loadedAccessTable.read(File(basePath, "Access$fileExtension").path)
+        val loadedLineTable = LineTable()
+        loadedLineTable.read(File(basePath, "Line$fileExtension").path)
+        val loadedAnimationTable = AnimationTable()
+        loadedAnimationTable.read(File(basePath, "Animation$fileExtension").path)
+        val loadedWireTable = WireTable()
+        loadedWireTable.read(File(basePath, "Wire$fileExtension").path)
         val loadedShopTable = ShopTable()
         loadedShopTable.read(File(basePath, "Shop$fileExtension").path)
         val loadedShopEntryTable = ShopEntryTable()
         loadedShopEntryTable.read(File(basePath, "ShopEntry$fileExtension").path)
+        val loadedCraftTable = CraftTable()
+        loadedCraftTable.read(File(basePath, "Craft$fileExtension").path)
         val loadedLootTable = LootTable()
         loadedLootTable.read(File(basePath, "Loot$fileExtension").path)
+        val loadedDropTable = DropTable()
+        loadedDropTable.read(File(basePath, "Drop$fileExtension").path)
         val loadedSpawnTable = SpawnTable()
         loadedSpawnTable.read(File(basePath, "Spawn$fileExtension").path)
+        val loadedDeckTable = DeckTable()
+        loadedDeckTable.read(File(basePath, "Deck$fileExtension").path)
+        val loadedQuestTable = QuestTable()
+        loadedQuestTable.read(File(basePath, "Quest$fileExtension").path)
         val loadedStageRewardTable = StageRewardTable()
         loadedStageRewardTable.read(File(basePath, "StageReward$fileExtension").path)
+        val loadedServerTuningTable = ServerTuningTable()
+        loadedServerTuningTable.read(File(basePath, "ServerTuning$fileExtension").path)
+        val loadedPriceTable = PriceTable()
+        loadedPriceTable.read(File(basePath, "Price$fileExtension").path)
+        val loadedSkillTable = SkillTable()
+        loadedSkillTable.read(File(basePath, "Skill$fileExtension").path)
 
-        solveCrossReferences(loadedPotionTable, loadedShopTable, loadedShopEntryTable, loadedLootTable, loadedSpawnTable, loadedStageRewardTable)
+        solveCrossReferences(loadedPotionTable, loadedSampleTable, loadedMarkerTable, loadedAccessTable, loadedLineTable, loadedAnimationTable, loadedWireTable, loadedShopTable, loadedShopEntryTable, loadedCraftTable, loadedLootTable, loadedDropTable, loadedSpawnTable, loadedDeckTable, loadedQuestTable, loadedStageRewardTable, loadedServerTuningTable, loadedPriceTable, loadedSkillTable)
 
         potion = loadedPotionTable
+        sample = loadedSampleTable
+        marker = loadedMarkerTable
+        access = loadedAccessTable
+        line = loadedLineTable
+        animation = loadedAnimationTable
+        wire = loadedWireTable
         shop = loadedShopTable
         shopEntry = loadedShopEntryTable
+        craft = loadedCraftTable
         loot = loadedLootTable
+        drop = loadedDropTable
         spawn = loadedSpawnTable
+        deck = loadedDeckTable
+        quest = loadedQuestTable
         stageReward = loadedStageRewardTable
+        serverTuning = loadedServerTuningTable
+        price = loadedPriceTable
+        skill = loadedSkillTable
     }
 
     /**
@@ -134,13 +199,29 @@ object DocShowcaseAccessor {
      * The tables arrive as arguments and shadow the properties of the same name, which is
      * how this resolves the load being read rather than the one already published.
      */
-    private fun solveCrossReferences(potion: PotionTable, shop: ShopTable, shopEntry: ShopEntryTable, loot: LootTable, spawn: SpawnTable, stageReward: StageRewardTable) {
+    private fun solveCrossReferences(potion: PotionTable, sample: SampleTable, marker: MarkerTable, access: AccessTable, line: LineTable, animation: AnimationTable, wire: WireTable, shop: ShopTable, shopEntry: ShopEntryTable, craft: CraftTable, loot: LootTable, drop: DropTable, spawn: SpawnTable, deck: DeckTable, quest: QuestTable, stageReward: StageRewardTable, serverTuning: ServerTuningTable, price: PriceTable, skill: SkillTable) {
         for (record in shopEntry.records) {
             shop.findByIndex(record.shopId)?.let { target ->
                 record.shopByShopId = target
             }
             potion.findByIndex(record.potionId)?.let { target ->
                 record.potionByPotionId = target
+            }
+        }
+        for (record in craft.records) {
+            potion.findByIndex(record.result)?.let { target ->
+                record.potionByResult = target
+            }
+            potion.findByIndex(record.resultNameIndex)?.let { target ->
+                record.resultName = target.name
+            }
+            record.potionByParts = ArrayList(record.parts.size)
+            for (index in record.parts) {
+                val target = potion.findByIndex(index) ?: continue
+                record.potionByParts.add(target)
+            }
+            potion.findByIndex(record.substitute)?.let { target ->
+                record.potionBySubstitute = target
             }
         }
     }

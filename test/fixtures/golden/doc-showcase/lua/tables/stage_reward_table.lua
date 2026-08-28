@@ -9,7 +9,7 @@ local _root = (...):match("^(.-)[^%.]+%.[^%.]+$")
 local tcb = require(_root .. "tabbit.tcb_reader")
 local Rarity = require(_root .. "enums.enum_rarity")
 
--- Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : StageReward : B2.
+-- Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Sides : B2.
 -- Neither key column is unique alone.
 ---@class StageRewardRecord
 ---@field stage integer

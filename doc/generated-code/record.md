@@ -2,14 +2,15 @@
 
 <!-- 이 파일은 `doc/figures/showcase.py` 가 생성합니다. 손으로 고치지 마십시오 - 다음 실행이 덮어씁니다. -->
 
-> [생성되는 코드로](../generated-code.md)
+> [시트가 코드가 되는 모습으로](../generated-code.md)
 
 ---
 
 `At.X` · `At.Y` 처럼 **점 앞이 같은 컬럼들은 한 레코드**가 됩니다. 시트에서는
-여전히 컬럼 둘이고, 코드에서는 멤버 둘을 가진 타입 하나입니다.
+여전히 컬럼 여럿이고, 코드에서는 멤버를 가진 타입 하나입니다.
 
-타입 뒤의 `?` 는 그 칸을 비워도 된다는 뜻이고, 비우는 방법은 `-` 입니다.
+레코드 하나와, 비워도 되는 값 하나입니다. 타입 뒤의 `?` 가 그 칸을
+비워도 된다는 뜻이고, 비우는 방법은 `-` 입니다.
 
 <!-- tabbit:pair -->
 
@@ -479,9 +480,466 @@ struct DOCSHOWCASE_API FSpawnRow
 
 <!-- /tabbit:pair -->
 
-**중첩은 파일에 아무 값도 더하지 않습니다.** 레코드는 멤버마다 컬럼 하나로
-저장되므로, `At.X` 와 `At.Y` 를 따로 적었을 때와 파일의 바이트가 같습니다. 달라지는 것은
-코드를 읽는 쪽의 모습뿐입니다.
+**중첩은 파일에 아무 값도 더하지 않습니다.** 레코드는 멤버마다 컬럼
+하나로 저장되므로, `At.X` 와 `At.Y` 를 따로 적었을 때와 파일의 바이트가 같습니다. 달라지는
+것은 코드를 읽는 쪽의 모습뿐입니다.
 
 `?` 가 붙은 컬럼은 언어마다 그 언어의 「없음」으로 나옵니다 — 옵셔널 타입이 있는 언어는 그것을
 쓰고, 없는 언어는 값이 있는지 묻는 방법을 따로 냅니다.
+
+---
+
+레코드도 배열이 되고, 레코드 안에 레코드가 옵니다.
+
+- `Slot[0].Id` · `Slot[1].Id` — 레코드의 배열
+- `Home.At.X` — 레코드 안의 레코드
+
+![테이블 Deck](../figures/showcase-deck.svg)
+
+<!-- tabbit:tabs lang -->
+<details data-lang="csharp" open>
+<summary>C#</summary>
+
+```csharp
+[System.Serializable]
+public partial class DeckRecord
+{
+    #region Values
+    /// <summary>
+    /// primary index
+    /// </summary>
+    public int Index => _index;
+
+    /// <summary>
+    /// element 1
+    /// </summary>
+    public SlotEntry[] Slot => _slot;
+
+    /// <summary>
+    /// two levels in
+    /// </summary>
+    public HomeEntry Home => _home;
+    #endregion
+
+    /// <summary>One element of <see cref="Slot"/>.</summary>
+    [System.Serializable]
+    public struct SlotEntry
+    {
+        /// element 1
+        public int Id;
+        /// element 1
+        public string Label;
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Id\":"); ToStringHelper.ToString(Id, sb);
+            sb.Append(",\"Label\":"); ToStringHelper.ToString(Label, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+    }
+
+    internal static SlotEntry[] NewSlotEntryArray(int length)
+    {
+        var result = new SlotEntry[length];
+        for (int i = 0; i < result.Length; i++)
+        {
+            result[i].Label = "";
+        }
+        return result;
+    }
+
+    /// <summary>A record inside <see cref="Home"/>.</summary>
+    [System.Serializable]
+    public struct HomeAtEntry
+    {
+        /// two levels in
+        public float X;
+        /// two levels in
+        public float Y;
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"X\":"); ToStringHelper.ToString(X, sb);
+            sb.Append(",\"Y\":"); ToStringHelper.ToString(Y, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+    }
+    /// <summary>One element of <see cref="Home"/>.</summary>
+    [System.Serializable]
+    public struct HomeEntry
+    {
+        /// two levels in
+        public HomeAtEntry At;
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"At\":"); ToStringHelper.ToString(At, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+    }
+
+    private static HomeEntry NewHomeEntry()
+    {
+        var result = default(HomeEntry);
+        return result;
+    }
+
+    #region Storage
+    internal int _index;
+    internal SlotEntry[] _slot = System.Array.Empty<SlotEntry>();
+    internal HomeEntry _home = NewHomeEntry();
+    #endregion
+
+    #region ToString
+    public override string ToString()
+    {
+        var sb = new StringBuilder("{");
+        sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+        sb.Append(",\"Slot\":"); ToStringHelper.ToString(Slot, sb);
+        sb.Append(",\"Home\":"); ToStringHelper.ToString(Home, sb);
+        sb.Append("}");
+        return sb.ToString();
+    }
+    #endregion
+}
+```
+
+[DeckTable.cs](../../test/fixtures/golden/doc-showcase/csharp/tables/DeckTable.cs)
+
+</details>
+<details data-lang="typescript">
+<summary>TypeScript</summary>
+
+```typescript
+/** A record inside DeckRecord.home. */
+export interface HomeAtEntry {
+  /** two levels in */
+  x: number
+  /** two levels in */
+  y: number
+}
+```
+
+[deck.ts](../../test/fixtures/golden/doc-showcase/typescript/tables/deck.ts)
+
+</details>
+<details data-lang="cpp">
+<summary>C++</summary>
+
+```cpp
+/// A record inside DeckRecord::home.
+struct DeckRecord_home_entryAt {
+  /// two levels in
+  float x = 0.0f;
+  /// two levels in
+  float y = 0.0f;
+};
+```
+
+[DocShowcaseAccessor_deck.h](../../test/fixtures/golden/doc-showcase/cpp/tables/DocShowcaseAccessor_deck.h)
+
+</details>
+<details data-lang="python">
+<summary>Python</summary>
+
+```python
+"""A record inside DeckRecord.home."""
+```
+
+[deck_table.py](../../test/fixtures/golden/doc-showcase/python/doc_showcase_data/deck_table.py)
+
+</details>
+<details data-lang="c">
+<summary>C</summary>
+
+```c
+/* A record inside DocShowcase_DeckRecord_t::home. */
+struct DocShowcase_DeckRecord_t_home_entryAt {
+  /* two levels in */
+  float x;
+  /* two levels in */
+  float y;
+};
+```
+
+[DocShowcase_Deck.h](../../test/fixtures/golden/doc-showcase/c/tables/DocShowcase_Deck.h)
+
+</details>
+<details data-lang="dart">
+<summary>Dart</summary>
+
+```dart
+/// A record inside [DeckRecord.home].
+class DeckHomeEntryAt {
+  /// two levels in
+  double x = 0.0;
+  /// two levels in
+  double y = 0.0;
+}
+```
+
+[deck_table.dart](../../test/fixtures/golden/doc-showcase/dart/tables/deck_table.dart)
+
+</details>
+<details data-lang="go">
+<summary>Go</summary>
+
+```go
+// DeckHomeEntryAt is a record inside DeckRecord.Home.
+type DeckHomeEntryAt struct {
+	// two levels in
+	X float32
+	// two levels in
+	Y float32
+}
+```
+
+[deck_table.go](../../test/fixtures/golden/doc-showcase/go/deck_table.go)
+
+</details>
+<details data-lang="java">
+<summary>Java</summary>
+
+```java
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Spawn : G2
+/** An array of records, and a record inside a record. */
+public final class DeckRecord {
+    /** primary index */
+    public int index;
+    /** element 1 */
+    public SlotEntry[] slot = newSlotEntryArray(2);
+    /** two levels in */
+    public HomeEntry home = new HomeEntry();
+
+    /** One element of slot. */
+    public static final class SlotEntry {
+        /** element 1 */
+        public int id;
+        /** element 1 */
+        public String label = "";
+    }
+
+    /**
+     * A SlotEntry array with its elements constructed.
+     *
+     * Java fills an array of objects with nulls, and the length here is the sheet's column
+     * count - known at generation - so the row can arrive with the elements already there
+     * and each member column simply assigns into them.
+     */
+    private static SlotEntry[] newSlotEntryArray(int length) {
+        SlotEntry[] array = new SlotEntry[length];
+
+        for (int i = 0; i < length; i++) {
+            array[i] = new SlotEntry();
+        }
+
+        return array;
+    }
+
+    /** A record inside home. */
+    public static final class HomeEntryAt {
+        /** two levels in */
+        public float x;
+        /** two levels in */
+        public float y;
+    }
+    /** One element of home. */
+    public static final class HomeEntry {
+        /** two levels in */
+        public HomeEntryAt at = new HomeEntryAt();
+    }
+
+}
+```
+
+[DeckRecord.java](../../test/fixtures/golden/doc-showcase/java/tabbit/fixtures/docshowcase/DeckRecord.java)
+
+</details>
+<details data-lang="kotlin">
+<summary>Kotlin</summary>
+
+```kotlin
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Spawn : G2
+/** An array of records, and a record inside a record. */
+class DeckRecord {
+    /** primary index */
+    var index: Int = 0
+    /** element 1 */
+    var slot: MutableList<SlotEntry> = MutableList(2) { SlotEntry() }
+    /** two levels in */
+    var home: HomeEntry = HomeEntry()
+
+    /** One element of slot. */
+    class SlotEntry {
+        /** element 1 */
+        var id: Int = 0
+        /** element 1 */
+        var label: String = ""
+    }
+
+    /** A record inside home. */
+    class HomeEntryAt {
+        /** two levels in */
+        var x: Float = 0.0f
+        /** two levels in */
+        var y: Float = 0.0f
+    }
+    /** One element of home. */
+    class HomeEntry {
+        /** two levels in */
+        var at: HomeEntryAt = HomeEntryAt()
+    }
+
+}
+```
+
+[DeckTable.kt](../../test/fixtures/golden/doc-showcase/kotlin/tabbit/fixtures/docshowcase/tables/DeckTable.kt)
+
+</details>
+<details data-lang="lua">
+<summary>Lua</summary>
+
+```lua
+---@class DeckHomeEntryAt
+---@field x number
+---@field y number
+local DeckHomeEntryAtMeta = tcb.strictType("a record inside DeckRecord.home", { "x", "y" })
+```
+
+[deck_table.lua](../../test/fixtures/golden/doc-showcase/lua/tables/deck_table.lua)
+
+</details>
+<details data-lang="php">
+<summary>PHP</summary>
+
+```php
+/** A record inside DeckRecord::$home. */
+final class DeckHomeEntryAt
+{
+    /** two levels in */
+    public float $x = 0.0;
+    /** two levels in */
+    public float $y = 0.0;
+}
+```
+
+[DeckTable.php](../../test/fixtures/golden/doc-showcase/php/tables/DeckTable.php)
+
+</details>
+<details data-lang="ruby">
+<summary>Ruby</summary>
+
+```ruby
+# A record inside DeckRecord#home.
+```
+
+[deck_table.rb](../../test/fixtures/golden/doc-showcase/ruby/tables/deck_table.rb)
+
+</details>
+<details data-lang="rust">
+<summary>Rust</summary>
+
+```rust
+/// A record inside [`DeckRecord::home`].
+#[derive(Clone, Debug, Default)]
+pub struct DeckHomeEntryAt {
+    /// two levels in
+    pub x: f32,
+    /// two levels in
+    pub y: f32,
+}
+```
+
+[deck_table.rs](../../test/fixtures/golden/doc-showcase/rust/src/deck_table.rs)
+
+</details>
+<details data-lang="swift">
+<summary>Swift</summary>
+
+```swift
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Spawn : G2
+/// An array of records, and a record inside a record.
+public final class DeckRecord {
+
+    public init() {}
+
+    /// primary index
+    public var index: Int32 = 0
+
+    /// element 1
+    public var slot: [SlotEntry] = [SlotEntry](repeating: SlotEntry(), count: 2)
+
+    /// two levels in
+    public var home: HomeEntry = HomeEntry()
+
+    /// One element of slot.
+    public struct SlotEntry {
+
+        public init() {}
+
+        /// element 1
+        public var id: Int32 = 0
+
+        /// element 1
+        public var label: String = ""
+    }
+
+    /// A record inside home.
+    public struct HomeEntryAt {
+
+        public init() {}
+
+        /// two levels in
+        public var x: Float = 0
+
+        /// two levels in
+        public var y: Float = 0
+    }
+    /// One element of home.
+    public struct HomeEntry {
+
+        public init() {}
+
+        /// two levels in
+        public var at: HomeEntryAt = HomeEntryAt()
+    }
+}
+```
+
+[DeckTable.swift](../../test/fixtures/golden/doc-showcase/swift/tables/DeckTable.swift)
+
+</details>
+<details data-lang="unreal">
+<summary>Unreal</summary>
+
+```cpp
+/** A record inside FDeckRow::Home. */
+USTRUCT(BlueprintType)
+struct DOCSHOWCASE_API FDeckHomeEntryAt
+{
+    GENERATED_BODY()
+
+    /** two levels in */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Deck")
+    float X = 0.0f;
+
+    /** two levels in */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Deck")
+    float Y = 0.0f;
+
+};
+```
+
+[FDocShowcase.h](../../test/fixtures/golden/doc-showcase/unreal/Source/DocShowcase/Public/FDocShowcase.h)
+
+</details>
+<!-- /tabbit:tabs -->
+
+**깊이는 파일에 값을 더하지 않습니다.** 몇 단계를 내려가든 저장되는
+것은 잎마다 컬럼 하나입니다 — 생성된 코드에 단계마다 타입이 하나씩 생길 뿐입니다.

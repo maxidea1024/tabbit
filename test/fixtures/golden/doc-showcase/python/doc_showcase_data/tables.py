@@ -10,17 +10,30 @@ import os
 
 from . import tabbit
 from .potion_table import PotionTable
+from .sample_table import SampleTable
+from .marker_table import MarkerTable
+from .access_table import AccessTable
+from .line_table import LineTable
+from .animation_table import AnimationTable
+from .wire_table import WireTable
 from .shop_table import ShopTable
 from .shop_entry_table import ShopEntryTable
+from .craft_table import CraftTable
 from .loot_table import LootTable
+from .drop_table import DropTable
 from .spawn_table import SpawnTable
+from .deck_table import DeckTable
+from .quest_table import QuestTable
 from .stage_reward_table import StageRewardTable
+from .server_tuning_table import ServerTuningTable
+from .price_table import PriceTable
+from .skill_table import SkillTable
 
 
 class Tables:
     """Every table, loaded together so cross-table references can be resolved."""
 
-    __slots__ = ("potion", "shop", "shop_entry", "loot", "spawn", "stage_reward")
+    __slots__ = ("potion", "sample", "marker", "access", "line", "animation", "wire", "shop", "shop_entry", "craft", "loot", "drop", "spawn", "deck", "quest", "stage_reward", "server_tuning", "price", "skill")
 
     #: The key the table files were sealed with, or None when they were not sealed.
     #:
@@ -68,11 +81,24 @@ class Tables:
 
     def __init__(self):
         self.potion = PotionTable()
+        self.sample = SampleTable()
+        self.marker = MarkerTable()
+        self.access = AccessTable()
+        self.line = LineTable()
+        self.animation = AnimationTable()
+        self.wire = WireTable()
         self.shop = ShopTable()
         self.shop_entry = ShopEntryTable()
+        self.craft = CraftTable()
         self.loot = LootTable()
+        self.drop = DropTable()
         self.spawn = SpawnTable()
+        self.deck = DeckTable()
+        self.quest = QuestTable()
         self.stage_reward = StageRewardTable()
+        self.server_tuning = ServerTuningTable()
+        self.price = PriceTable()
+        self.skill = SkillTable()
 
     def read_all(self, base_path, file_extension=".tcb"):
         """Reads every table from base_path, then links the references between them.
@@ -86,27 +112,66 @@ class Tables:
         """
         loaded_potion = PotionTable()
         loaded_potion.read(os.path.join(base_path, "Potion" + file_extension))
+        loaded_sample = SampleTable()
+        loaded_sample.read(os.path.join(base_path, "Sample" + file_extension))
+        loaded_marker = MarkerTable()
+        loaded_marker.read(os.path.join(base_path, "Marker" + file_extension))
+        loaded_access = AccessTable()
+        loaded_access.read(os.path.join(base_path, "Access" + file_extension))
+        loaded_line = LineTable()
+        loaded_line.read(os.path.join(base_path, "Line" + file_extension))
+        loaded_animation = AnimationTable()
+        loaded_animation.read(os.path.join(base_path, "Animation" + file_extension))
+        loaded_wire = WireTable()
+        loaded_wire.read(os.path.join(base_path, "Wire" + file_extension))
         loaded_shop = ShopTable()
         loaded_shop.read(os.path.join(base_path, "Shop" + file_extension))
         loaded_shop_entry = ShopEntryTable()
         loaded_shop_entry.read(os.path.join(base_path, "ShopEntry" + file_extension))
+        loaded_craft = CraftTable()
+        loaded_craft.read(os.path.join(base_path, "Craft" + file_extension))
         loaded_loot = LootTable()
         loaded_loot.read(os.path.join(base_path, "Loot" + file_extension))
+        loaded_drop = DropTable()
+        loaded_drop.read(os.path.join(base_path, "Drop" + file_extension))
         loaded_spawn = SpawnTable()
         loaded_spawn.read(os.path.join(base_path, "Spawn" + file_extension))
+        loaded_deck = DeckTable()
+        loaded_deck.read(os.path.join(base_path, "Deck" + file_extension))
+        loaded_quest = QuestTable()
+        loaded_quest.read(os.path.join(base_path, "Quest" + file_extension))
         loaded_stage_reward = StageRewardTable()
         loaded_stage_reward.read(os.path.join(base_path, "StageReward" + file_extension))
+        loaded_server_tuning = ServerTuningTable()
+        loaded_server_tuning.read(os.path.join(base_path, "ServerTuning" + file_extension))
+        loaded_price = PriceTable()
+        loaded_price.read(os.path.join(base_path, "Price" + file_extension))
+        loaded_skill = SkillTable()
+        loaded_skill.read(os.path.join(base_path, "Skill" + file_extension))
 
-        self._solve_cross_references(loaded_potion, loaded_shop, loaded_shop_entry, loaded_loot, loaded_spawn, loaded_stage_reward)
+        self._solve_cross_references(loaded_potion, loaded_sample, loaded_marker, loaded_access, loaded_line, loaded_animation, loaded_wire, loaded_shop, loaded_shop_entry, loaded_craft, loaded_loot, loaded_drop, loaded_spawn, loaded_deck, loaded_quest, loaded_stage_reward, loaded_server_tuning, loaded_price, loaded_skill)
 
         self.potion = loaded_potion
+        self.sample = loaded_sample
+        self.marker = loaded_marker
+        self.access = loaded_access
+        self.line = loaded_line
+        self.animation = loaded_animation
+        self.wire = loaded_wire
         self.shop = loaded_shop
         self.shop_entry = loaded_shop_entry
+        self.craft = loaded_craft
         self.loot = loaded_loot
+        self.drop = loaded_drop
         self.spawn = loaded_spawn
+        self.deck = loaded_deck
+        self.quest = loaded_quest
         self.stage_reward = loaded_stage_reward
+        self.server_tuning = loaded_server_tuning
+        self.price = loaded_price
+        self.skill = loaded_skill
 
-    def _solve_cross_references(self, potion, shop, shop_entry, loot, spawn, stage_reward):
+    def _solve_cross_references(self, potion, sample, marker, access, line, animation, wire, shop, shop_entry, craft, loot, drop, spawn, deck, quest, stage_reward, server_tuning, price, skill):
         """Turns the stored indices into usable values, once every table is in memory.
 
         The tables arrive as arguments rather than off self, which is how this resolves the
@@ -119,3 +184,17 @@ class Tables:
             target = potion.find_by_index(record.potion_id)
             if target is not None:
                 record.potion_by_potion_id = target
+        for record in craft.records:
+            target = potion.find_by_index(record.result)
+            if target is not None:
+                record.potion_by_result = target
+            target = potion.find_by_index(record.result_name_index)
+            if target is not None:
+                record.result_name = target.name
+            for position, index in enumerate(record.parts):
+                target = potion.find_by_index(index)
+                if target is not None:
+                    record.potion_by_parts[position] = target
+            target = potion.find_by_index(record.substitute)
+            if target is not None:
+                record.potion_by_substitute = target

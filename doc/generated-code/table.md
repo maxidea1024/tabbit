@@ -2,12 +2,14 @@
 
 <!-- 이 파일은 `doc/figures/showcase.py` 가 생성합니다. 손으로 고치지 마십시오 - 다음 실행이 덮어씁니다. -->
 
-> [생성되는 코드로](../generated-code.md)
+> [시트가 코드가 되는 모습으로](../generated-code.md)
 
 ---
 
-컬럼 넷짜리 테이블입니다. `:field` 가 이름을, `:type` 이 타입을, `:desc` 가
-설명을 정하고, 마커 열이 빈 행부터가 데이터입니다.
+가장 작은 테이블부터 봅니다. 여기서 읽는 것이 나머지 전부의 바탕입니다.
+
+컬럼 넷짜리 테이블입니다. `:field` 가 이름을, `:type` 이 타입을,
+`:desc` 가 설명을 정하고, 마커 열이 빈 행부터가 데이터입니다.
 
 **첫 필드 컬럼이 기본 인덱스입니다.** 여기서는 `index` 가 그것입니다.
 
@@ -20,54 +22,19 @@
 <summary>C#</summary>
 
 ```csharp
-[System.Serializable]
-public partial class PotionRecord
-{
-    #region Values
-    /// <summary>
-    /// primary index
-    /// </summary>
-    public int Index => _index;
-
-    /// <summary>
-    /// display name
-    /// </summary>
-    public string Name => _name;
-
-    /// <summary>
-    /// how rare
-    /// </summary>
-    public global::Tabbit.Fixtures.DocShowcase.Rarity Rarity => _rarity;
-
-    /// <summary>
-    /// shop price
-    /// </summary>
-    public int Price => _price;
-    #endregion
-
-    #region Storage
-    internal int _index;
-    internal string _name = "";
-    internal global::Tabbit.Fixtures.DocShowcase.Rarity _rarity;
-    internal int _price;
-    #endregion
-
-    #region ToString
-    public override string ToString()
-    {
-        var sb = new StringBuilder("{");
-        sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-        sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-        sb.Append(",\"Rarity\":"); ToStringHelper.ToString(Rarity, sb);
-        sb.Append(",\"Price\":"); ToStringHelper.ToString(Price, sb);
-        sb.Append("}");
-        return sb.ToString();
+            record._result = default(PotionRecord); // will be assigned.
+        } while (--n > 0);
     }
-    #endregion
-}
+    break;
+
+case 3:
+    TcbTable.CheckColumn(column, "Craft.ResultName", TcbTable.KindScalar, false, TcbTable.ElementI32);
+    cursor = new TcbColumnCursor(reader, column, count, "Craft.ResultName");
+    for (int i = 0; i < count; )
+    {
 ```
 
-[PotionTable.cs](../../test/fixtures/golden/doc-showcase/csharp/tables/PotionTable.cs)
+[CraftTable.cs](../../test/fixtures/golden/doc-showcase/csharp/tables/CraftTable.cs)
 
 </details>
 <details data-lang="typescript">
@@ -170,23 +137,34 @@ class PotionRecord:
 <summary>C</summary>
 
 ```c
-/* Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Potion : B2
- *
- * A key, two values and an enum.
- */
-struct DocShowcase_PotionRecord_t {
-  /* primary index */
-  int32_t index;
-  /* display name */
-  const char* name;
-  /* how rare */
-  DocShowcase_Rarity_t rarity;
-  /* shop price */
-  int32_t price;
-};
+    record->potion_by_parts = (const DocShowcase_PotionRecord_t**)tb_arena_alloc(
+      &table->arena, (size_t)element_count * sizeof *record->potion_by_parts);
+    record->parts = (int32_t*)tb_arena_alloc(
+      &table->arena, (size_t)element_count * sizeof *record->parts);
+
+    if (element_count > 0
+        && (record->potion_by_parts == NULL || record->parts == NULL))
+      return tb_fail_with(reader, "out of memory allocating an array");
+
+    for (element = 0; element < element_count && !tb_failed(reader); ++element)
+      (void)tb_cursor_next_i32(&cursor, &record->parts[element]);
+  }
+  break;
+
+case 5:
+  (void)tb_check_column(reader, column, "Craft.Substitute", TB_KIND_SCALAR, true, TB_ELEMENT_MASK(TB_ELEMENT_I32));
+
+  /* The bitmap is at the front of the block, so it is read before the values. The
+   * values are written for every row either way, which is what lets the read shapes
+   * below stay as they are. */
+  (void)tb_read_presence(reader, column, table->count, &presence);
+
+  (void)tb_cursor_init(&cursor, reader, column, table->count, "Craft.Substitute");
+
+  for (row = 0; row < table->count && !tb_failed(reader); ++row) {
 ```
 
-[DocShowcase_Potion.h](../../test/fixtures/golden/doc-showcase/c/tables/DocShowcase_Potion.h)
+[DocShowcase_Craft.c](../../test/fixtures/golden/doc-showcase/c/tables/DocShowcase_Craft.c)
 
 </details>
 <details data-lang="dart">
@@ -429,8 +407,8 @@ struct DOCSHOWCASE_API FPotionRow
 - **컬럼 하나가 멤버 하나입니다.** 이름은 각 언어의 관례를 따라 바뀌지만 순서는 시트의 순서
   그대로입니다.
 - **`:desc` 에 적은 설명이 doc comment로 나갑니다.** 시트에 적어 두면 IDE의 툴팁까지 갑니다.
-- **`Rarity` 컬럼의 타입이 enum 타입입니다.** 정수가 아닙니다 - 시트에 `Common` 이라고 적고
+- **`Rarity` 컬럼의 타입이 enum 타입입니다.** 정수가 아닙니다 — 시트에 `Common` 이라고 적고
   코드에서도 `Rarity` 로 받습니다.
 
 조회 함수는 여기 없습니다. 레코드는 값이고, 찾는 일은 테이블이 합니다 —
-[레코드 조회](../languages/readme.md#레코드-조회)에 언어별로 정리되어 있습니다.
+[행을 찾는 방법](keys.md)에 있습니다.

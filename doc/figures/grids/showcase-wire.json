@@ -1,0 +1,69 @@
+{
+  "source": "test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx",
+  "sheet": "Index",
+  "kind": "table",
+  "name": "Wire",
+  "declaration": ":table Wire",
+  "origin": {
+    "row": 1,
+    "column": 6
+  },
+  "rows": [
+    [
+      ":table Wire",
+      "Columns numbered so the file names them rather than counts them.",
+      "",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "index@1",
+      "Name@2",
+      "#OldColour@3",
+      "Price@4"
+    ],
+    [
+      ":type",
+      "int",
+      "string",
+      "string",
+      "int"
+    ],
+    [
+      ":desc",
+      "primary index",
+      "display name",
+      "dropped, and its number reserved",
+      "added after the drop"
+    ],
+    [
+      ":target",
+      "cs",
+      "cs",
+      "cs",
+      "cs"
+    ],
+    [
+      "",
+      "1",
+      "Cap",
+      "red",
+      "10"
+    ],
+    [
+      "",
+      "2",
+      "Boots",
+      "blue",
+      "20"
+    ],
+    [
+      "",
+      "3",
+      "Cloak",
+      "green",
+      "30"
+    ]
+  ]
+}

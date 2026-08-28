@@ -1,0 +1,17 @@
+[
+  {
+    "index": "Idle",
+    "slot": 1,
+    "blend": 0
+  },
+  {
+    "index": "Run",
+    "slot": 2,
+    "blend": 0.2
+  },
+  {
+    "index": "Walk",
+    "slot": 3,
+    "blend": 0.35
+  }
+]

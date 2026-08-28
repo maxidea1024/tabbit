@@ -11,11 +11,24 @@
 #include <cstdint>
 #include <vector>
 struct PotionRecord;
+struct SampleRecord;
+struct MarkerRecord;
+struct AccessRecord;
+struct LineRecord;
+struct AnimationRecord;
+struct WireRecord;
 struct ShopRecord;
 struct ShopEntryRecord;
+struct CraftRecord;
 struct LootRecord;
+struct DropRecord;
 struct SpawnRecord;
+struct DeckRecord;
+struct QuestRecord;
 struct StageRewardRecord;
+struct ServerTuningRecord;
+struct PriceRecord;
+struct SkillRecord;
 
 /// The key the table files were sealed with, or empty when they were not sealed.
 ///

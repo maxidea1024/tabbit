@@ -13,6 +13,15 @@ pub mod tabbit;
 // The enums.
 mod enum_rarity;
 pub use enum_rarity::Rarity;
+mod enum_element;
+pub use enum_element::Element;
+
+// The declared abstract types, one module each.
+mod struct_effect;
+pub use struct_effect::Effect;
+pub use struct_effect::DamageEffect;
+pub use struct_effect::HealEffect;
+pub use struct_effect::NoEffect;
 
 // The constant sets, each keeping the module path it always had.
 pub mod balance;
@@ -20,16 +29,42 @@ pub mod balance;
 // A record and a table type per table.
 mod potion_table;
 pub use potion_table::{PotionRecord, PotionTable};
+mod sample_table;
+pub use sample_table::{SampleRecord, SampleTable};
+mod marker_table;
+pub use marker_table::{MarkerRecord, MarkerTable, MarkerPosEntry, MarkerCellEntry, MarkerTintEntry};
+mod access_table;
+pub use access_table::{AccessRecord, AccessTable};
+mod line_table;
+pub use line_table::{LineRecord, LineTable};
+mod animation_table;
+pub use animation_table::{AnimationRecord, AnimationTable};
+mod wire_table;
+pub use wire_table::{WireRecord, WireTable};
 mod shop_table;
 pub use shop_table::{ShopRecord, ShopTable};
 mod shop_entry_table;
 pub use shop_entry_table::{ShopEntryRecord, ShopEntryTable};
+mod craft_table;
+pub use craft_table::{CraftRecord, CraftTable};
 mod loot_table;
 pub use loot_table::{LootRecord, LootTable};
+mod drop_table;
+pub use drop_table::{DropRecord, DropTable};
 mod spawn_table;
 pub use spawn_table::{SpawnRecord, SpawnTable, SpawnAtEntry};
+mod deck_table;
+pub use deck_table::{DeckRecord, DeckTable, DeckSlotEntry, DeckHomeEntry};
+mod quest_table;
+pub use quest_table::{QuestRecord, QuestTable, QuestRewardEntry};
 mod stage_reward_table;
 pub use stage_reward_table::{StageRewardRecord, StageRewardTable};
+mod server_tuning_table;
+pub use server_tuning_table::{ServerTuningRecord, ServerTuningTable};
+mod price_table;
+pub use price_table::{PriceRecord, PriceTable};
+mod skill_table;
+pub use skill_table::{SkillRecord, SkillTable, SkillEffectEntry};
 
 // The accessor.
 mod tables;

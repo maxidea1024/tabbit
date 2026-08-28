@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="698" height="222" viewBox="0 0 698 222" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>테이블 Line</title>
+<rect x="0" y="0" width="519.5625" height="214" fill="#FFFFFF"/>
+<rect x="0" y="0" width="518.5625" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="214" fill="#E9ECEF"/>
+<rect x="30" y="22" width="488.5625" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="488.5625" height="24" fill="#F1F6FB"/>
+<rect x="30" y="70" width="488.5625" height="24" fill="#F1F6FB"/>
+<rect x="30" y="94" width="488.5625" height="24" fill="#F1F6FB"/>
+<rect x="30" y="118" width="488.5625" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="118.1875" y1="22" x2="118.1875" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="222.5625" y1="22" x2="222.5625" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="373.4375" y1="22" x2="373.4375" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="518.5625" y1="22" x2="518.5625" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="518.5625" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="518.5625" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="518.5625" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="518.5625" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="518.5625" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="518.5625" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="166" x2="518.5625" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="190" x2="518.5625" y2="190" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="214" x2="518.5625" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="518.5625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="214" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="118.1875" y1="0" x2="118.1875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="222.5625" y1="0" x2="222.5625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="373.4375" y1="0" x2="373.4375" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="518.5625" y1="0" x2="518.5625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="166" x2="30" y2="166" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="190" x2="30" y2="190" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="214" x2="30" y2="214" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="518.0625" height="213.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="74.1" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="170.4" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="298.0" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="446.0" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="15.0" y="157.8" font-size="10.5" fill="#5B6570" text-anchor="middle">6</text>
+<text x="15.0" y="181.8" font-size="10.5" fill="#5B6570" text-anchor="middle">7</text>
+<text x="15.0" y="205.8" font-size="10.5" fill="#5B6570" text-anchor="middle">8</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:table Line</text>
+<text x="125.1875" y="38.5" font-size="12.5" fill="#1F2328">Strings that are for something.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="125.1875" y="62.5" font-size="12.5" fill="#1F2328">index</text>
+<text x="229.5625" y="62.5" font-size="12.5" fill="#1F2328">Body</text>
+<text x="380.4375" y="62.5" font-size="12.5" fill="#1F2328">Icon</text>
+<text x="37" y="86.5" font-size="12.5" fill="#1A5FA8">:type</text>
+<text x="125.1875" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="229.5625" y="86.5" font-size="12.5" fill="#1F2328">string (text)</text>
+<text x="380.4375" y="86.5" font-size="12.5" fill="#1F2328">string (asset=icon)</text>
+<text x="37" y="110.5" font-size="12.5" fill="#1A5FA8">:desc</text>
+<text x="125.1875" y="110.5" font-size="12.5" fill="#1F2328">primary index</text>
+<text x="229.5625" y="110.5" font-size="12.5" fill="#1F2328">shown to a player</text>
+<text x="380.4375" y="110.5" font-size="12.5" fill="#1F2328">names a file</text>
+<text x="37" y="134.5" font-size="12.5" fill="#1A5FA8">:target</text>
+<text x="125.1875" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="229.5625" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="380.4375" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="125.1875" y="158.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="229.5625" y="158.5" font-size="12.5" fill="#1F2328">You feel better.</text>
+<text x="380.4375" y="158.5" font-size="12.5" fill="#1F2328">Icon_Sword</text>
+<text x="125.1875" y="182.5" font-size="12.5" fill="#1F2328">2</text>
+<text x="229.5625" y="182.5" font-size="12.5" fill="#1F2328">Nothing happens.</text>
+<text x="380.4375" y="182.5" font-size="12.5" fill="#1F2328">Icon_Shield</text>
+<text x="125.1875" y="206.5" font-size="12.5" fill="#1F2328">3</text>
+<text x="229.5625" y="206.5" font-size="12.5" fill="#1F2328">The bottle is empty.</text>
+<text x="380.4375" y="206.5" font-size="12.5" fill="#1F2328">Icon_Sword</text>
+<text x="528.5625" y="86.0" font-size="11" fill="#8A929B" font-style="italic">◀ 역할은 타입 뒤 괄호에</text>
+<text x="528.5625" y="158.0" font-size="11" fill="#8A929B" font-style="italic">◀ asset은 실제 파일 이름</text>
+</svg>

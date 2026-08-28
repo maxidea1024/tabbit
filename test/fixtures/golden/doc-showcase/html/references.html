@@ -597,15 +597,15 @@ tbody [data-pick] { cursor: pointer; }
 <div class="page">
 <main>
 <h1>참조</h1>
-<p class="lead">그래프의 테이블 3개 · 참조 2개. 끌어서 이동하고, 휠로 확대하고, 테이블을 누르면 그 테이블의 참조만 봅니다.</p>
+<p class="lead">그래프의 테이블 4개 · 참조 3개. 끌어서 이동하고, 휠로 확대하고, 테이블을 누르면 그 테이블의 참조만 봅니다.</p>
 
 <div class="graphrow">
 <div class="picker">
-<h2><svg class="i"><use href="#i-table"></use></svg>연결 정도<span class="count">3</span></h2>
+<h2><svg class="i"><use href="#i-table"></use></svg>연결 정도<span class="count">4</span></h2>
 <div data-table>
 <div class="tools">
 <input type="search" data-filter="rows" placeholder="테이블 필터">
-<span class="hint" data-shown>3행 중 3행</span>
+<span class="hint" data-shown>4행 중 4행</span>
 </div>
 <div class="scroll">
 <table data-sortable>
@@ -615,8 +615,9 @@ tbody [data-pick] { cursor: pointer; }
 </tr>
 </thead>
 <tbody>
+<tr data-pick="Potion"><td class="pick"><button type="button" title="Potion의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/potion.html"><svg class="i"><use href="#i-table"></use></svg>Potion</a></td><td class="num">0</td><td class="num">2</td></tr>
 <tr data-pick="ShopEntry"><td class="pick"><button type="button" title="ShopEntry의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/shop-entry.html"><svg class="i"><use href="#i-table"></use></svg>ShopEntry</a></td><td class="num">2</td><td class="num">0</td></tr>
-<tr data-pick="Potion"><td class="pick"><button type="button" title="Potion의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/potion.html"><svg class="i"><use href="#i-table"></use></svg>Potion</a></td><td class="num">0</td><td class="num">1</td></tr>
+<tr data-pick="Craft"><td class="pick"><button type="button" title="Craft의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/craft.html"><svg class="i"><use href="#i-table"></use></svg>Craft</a></td><td class="num">1</td><td class="num">0</td></tr>
 <tr data-pick="Shop"><td class="pick"><button type="button" title="Shop의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/shop.html"><svg class="i"><use href="#i-table"></use></svg>Shop</a></td><td class="num">0</td><td class="num">1</td></tr>
 </tbody>
 </table>
@@ -632,7 +633,7 @@ tbody [data-pick] { cursor: pointer; }
 <button type="button" data-graph="out" title="축소">&#x2212;</button>
 <button type="button" data-graph="in" title="확대">+</button>
 <button type="button" data-graph="fit" title="창에 맞춤">맞춤</button>
-<a class="hint" data-graph="open" href="tables/shop-entry.html" hidden>테이블 열기</a>
+<a class="hint" data-graph="open" href="tables/potion.html" hidden>테이블 열기</a>
 </div>
 <div class="viewport">
 <svg class="graph" id="graph" width="100%" height="100%">
@@ -644,19 +645,25 @@ tbody [data-pick] { cursor: pointer; }
 <g id="viewport">
 <g id="all" data-width="330" data-height="100">
 <g id="edges">
-<path class="edge" d="M104,23 C152,23 152,23 200,23" data-from="ShopEntry" data-to="Potion" marker-end="url(#arrow)"><title>ShopEntry → Potion (PotionId)</title></path>
-<path class="edge" d="M104,23 C152,23 152,65 200,65" data-from="ShopEntry" data-to="Shop" marker-end="url(#arrow)"><title>ShopEntry → Shop (ShopId)</title></path>
+<path class="edge" d="M104,23 C152,23 152,23 200,23" data-from="Craft" data-to="Potion" marker-end="url(#arrow)"><title>Craft → Potion (Result, ResultName, Parts, Substitute)</title></path>
+<path class="edge" d="M104,65 C152,65 152,23 200,23" data-from="ShopEntry" data-to="Potion" marker-end="url(#arrow)"><title>ShopEntry → Potion (PotionId)</title></path>
+<path class="edge" d="M104,65 C152,65 152,65 200,65" data-from="ShopEntry" data-to="Shop" marker-end="url(#arrow)"><title>ShopEntry → Shop (ShopId)</title></path>
 </g>
 <g id="lit"></g>
-<g class="node" data-node="ShopEntry" data-href="tables/shop-entry.html">
+<g class="node" data-node="Craft" data-href="tables/craft.html">
 <rect x="8" y="8" width="96" height="30" rx="6"></rect>
-<text x="18" y="28">ShopEntry</text>
+<text x="18" y="28">Craft</text>
+<title>Craft — 가리킴 1, 가리켜짐 0</title>
+</g>
+<g class="node" data-node="ShopEntry" data-href="tables/shop-entry.html">
+<rect x="8" y="50" width="96" height="30" rx="6"></rect>
+<text x="18" y="70">ShopEntry</text>
 <title>ShopEntry — 가리킴 2, 가리켜짐 0</title>
 </g>
 <g class="node" data-node="Potion" data-href="tables/potion.html">
 <rect x="200" y="8" width="90" height="30" rx="6"></rect>
 <text x="210" y="28">Potion</text>
-<title>Potion — 가리킴 0, 가리켜짐 1</title>
+<title>Potion — 가리킴 0, 가리켜짐 2</title>
 </g>
 <g class="node" data-node="Shop" data-href="tables/shop.html">
 <rect x="200" y="50" width="90" height="30" rx="6"></rect>
@@ -677,13 +684,25 @@ tbody [data-pick] { cursor: pointer; }
 <text data-proto="label" class="glyph"></text>
 </svg>
 
-<div id="adjacency" hidden>{&quot;ShopEntry&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Potion&quot;,&quot;PotionId&quot;],[&quot;Shop&quot;,&quot;ShopId&quot;]]},&quot;Potion&quot;:{&quot;in&quot;:[[&quot;ShopEntry&quot;,&quot;PotionId&quot;]],&quot;out&quot;:[]},&quot;Shop&quot;:{&quot;in&quot;:[[&quot;ShopEntry&quot;,&quot;ShopId&quot;]],&quot;out&quot;:[]}}</div>
-<h2><svg class="i"><use href="#i-table"></use></svg>그래프에 없는 테이블<span class="count">3</span></h2>
+<div id="adjacency" hidden>{&quot;Craft&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Potion&quot;,&quot;Result, ResultName, Parts, Substitute&quot;]]},&quot;Potion&quot;:{&quot;in&quot;:[[&quot;Craft&quot;,&quot;Result, ResultName, Parts, Substitute&quot;],[&quot;ShopEntry&quot;,&quot;PotionId&quot;]],&quot;out&quot;:[]},&quot;ShopEntry&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Potion&quot;,&quot;PotionId&quot;],[&quot;Shop&quot;,&quot;ShopId&quot;]]},&quot;Shop&quot;:{&quot;in&quot;:[[&quot;ShopEntry&quot;,&quot;ShopId&quot;]],&quot;out&quot;:[]}}</div>
+<h2><svg class="i"><use href="#i-table"></use></svg>그래프에 없는 테이블<span class="count">15</span></h2>
 <p class="hint">다른 테이블을 가리키지도, 가리켜지지도 않습니다.</p>
 <ul class="entities">
+<li><svg class="i"><use href="#i-table"></use></svg><a href="tables/access.html">Access</a> <span class="n-of">행 3개</span></li>
+<li><svg class="i"><use href="#i-table"></use></svg><a href="tables/animation.html">Animation</a> <span class="n-of">행 3개</span></li>
+<li><svg class="i"><use href="#i-table"></use></svg><a href="tables/deck.html">Deck</a> <span class="n-of">행 3개</span></li>
+<li><svg class="i"><use href="#i-table"></use></svg><a href="tables/drop.html">Drop</a> <span class="n-of">행 3개</span></li>
+<li><svg class="i"><use href="#i-table"></use></svg><a href="tables/line.html">Line</a> <span class="n-of">행 3개</span></li>
 <li><svg class="i"><use href="#i-table"></use></svg><a href="tables/loot.html">Loot</a> <span class="n-of">행 3개</span></li>
+<li><svg class="i"><use href="#i-table"></use></svg><a href="tables/marker.html">Marker</a> <span class="n-of">행 3개</span></li>
+<li><svg class="i"><use href="#i-table"></use></svg><a href="tables/price.html">Price</a> <span class="n-of">행 3개</span></li>
+<li><svg class="i"><use href="#i-table"></use></svg><a href="tables/quest.html">Quest</a> <span class="n-of">행 3개</span></li>
+<li><svg class="i"><use href="#i-table"></use></svg><a href="tables/sample.html">Sample</a> <span class="n-of">행 3개</span></li>
+<li><svg class="i"><use href="#i-table"></use></svg><a href="tables/server-tuning.html">ServerTuning</a> <span class="n-of">행 3개</span></li>
+<li><svg class="i"><use href="#i-table"></use></svg><a href="tables/skill.html">Skill</a> <span class="n-of">행 3개</span></li>
 <li><svg class="i"><use href="#i-table"></use></svg><a href="tables/spawn.html">Spawn</a> <span class="n-of">행 3개</span></li>
 <li><svg class="i"><use href="#i-table"></use></svg><a href="tables/stage-reward.html">StageReward</a> <span class="n-of">행 3개</span></li>
+<li><svg class="i"><use href="#i-table"></use></svg><a href="tables/wire.html">Wire</a> <span class="n-of">행 3개</span></li>
 </ul>
 </main>
 </div>

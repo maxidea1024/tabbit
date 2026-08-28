@@ -44,6 +44,46 @@ static void DocShowcase_SolveCrossReferences(DocShowcase_t* data) {
         record->potion_by_potion_id = target;
     }
   }
+
+  for (row = 0; row < data->craft.count; ++row) {
+    DocShowcase_CraftRecord_t* record = &data->craft.records[row];
+
+    {
+      const DocShowcase_PotionRecord_t* target = DocShowcase_PotionFindByIndex(
+        &data->potion, record->result);
+
+      if (target != NULL)
+        record->potion_by_result = target;
+    }
+
+    {
+      const DocShowcase_PotionRecord_t* target = DocShowcase_PotionFindByIndex(
+        &data->potion, record->result_name_index);
+
+      if (target != NULL)
+        record->result_name = target->name;
+    }
+
+    {
+      int32_t element;
+
+      for (element = 0; element < record->parts_count; ++element) {
+        const DocShowcase_PotionRecord_t* target = DocShowcase_PotionFindByIndex(
+          &data->potion, record->parts[element]);
+
+        if (target != NULL)
+          record->potion_by_parts[element] = target;
+      }
+    }
+
+    {
+      const DocShowcase_PotionRecord_t* target = DocShowcase_PotionFindByIndex(
+        &data->potion, record->substitute);
+
+      if (target != NULL)
+        record->potion_by_substitute = target;
+    }
+  }
 }
 
 bool DocShowcase_LoadAll(DocShowcase_t* data, const char* base_path,
@@ -79,6 +119,90 @@ bool DocShowcase_LoadAllWithExtension(DocShowcase_t* data, const char* base_path
   }
 
   if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Sample", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (!DocShowcase_SampleLoad(&loaded.sample, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Marker", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (!DocShowcase_MarkerLoad(&loaded.marker, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Access", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (!DocShowcase_AccessLoad(&loaded.access, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Line", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (!DocShowcase_LineLoad(&loaded.line, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Animation", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (!DocShowcase_AnimationLoad(&loaded.animation, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Wire", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (!DocShowcase_WireLoad(&loaded.wire, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
         base_path, "Shop", file_extension) >= (int)sizeof path) {
     tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
     DocShowcase_Free(&loaded);
@@ -107,6 +231,20 @@ bool DocShowcase_LoadAllWithExtension(DocShowcase_t* data, const char* base_path
   }
 
   if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Craft", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (!DocShowcase_CraftLoad(&loaded.craft, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
         base_path, "Loot", file_extension) >= (int)sizeof path) {
     tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
     DocShowcase_Free(&loaded);
@@ -114,6 +252,20 @@ bool DocShowcase_LoadAllWithExtension(DocShowcase_t* data, const char* base_path
   }
 
   if (!DocShowcase_LootLoad(&loaded.loot, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Drop", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (!DocShowcase_DropLoad(&loaded.drop, path, error, error_size)) {
     /* Everything loaded so far goes too. A model missing one table is not one
      * a caller can use, and leaving it allocated makes that a leak as well. */
     DocShowcase_Free(&loaded);
@@ -135,6 +287,34 @@ bool DocShowcase_LoadAllWithExtension(DocShowcase_t* data, const char* base_path
   }
 
   if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Deck", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (!DocShowcase_DeckLoad(&loaded.deck, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Quest", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (!DocShowcase_QuestLoad(&loaded.quest, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
         base_path, "StageReward", file_extension) >= (int)sizeof path) {
     tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
     DocShowcase_Free(&loaded);
@@ -142,6 +322,48 @@ bool DocShowcase_LoadAllWithExtension(DocShowcase_t* data, const char* base_path
   }
 
   if (!DocShowcase_StageRewardLoad(&loaded.stage_reward, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "ServerTuning", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (!DocShowcase_ServerTuningLoad(&loaded.server_tuning, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Price", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (!DocShowcase_PriceLoad(&loaded.price, path, error, error_size)) {
+    /* Everything loaded so far goes too. A model missing one table is not one
+     * a caller can use, and leaving it allocated makes that a leak as well. */
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (snprintf(path, sizeof path, "%s/%s%s",
+        base_path, "Skill", file_extension) >= (int)sizeof path) {
+    tb_copy_error(error, error_size, base_path, "the path to a table file is too long");
+    DocShowcase_Free(&loaded);
+    return false;
+  }
+
+  if (!DocShowcase_SkillLoad(&loaded.skill, path, error, error_size)) {
     /* Everything loaded so far goes too. A model missing one table is not one
      * a caller can use, and leaving it allocated makes that a leak as well. */
     DocShowcase_Free(&loaded);
@@ -160,9 +382,22 @@ bool DocShowcase_LoadAllWithExtension(DocShowcase_t* data, const char* base_path
 
 void DocShowcase_Free(DocShowcase_t* data) {
   DocShowcase_PotionFree(&data->potion);
+  DocShowcase_SampleFree(&data->sample);
+  DocShowcase_MarkerFree(&data->marker);
+  DocShowcase_AccessFree(&data->access);
+  DocShowcase_LineFree(&data->line);
+  DocShowcase_AnimationFree(&data->animation);
+  DocShowcase_WireFree(&data->wire);
   DocShowcase_ShopFree(&data->shop);
   DocShowcase_ShopEntryFree(&data->shop_entry);
+  DocShowcase_CraftFree(&data->craft);
   DocShowcase_LootFree(&data->loot);
+  DocShowcase_DropFree(&data->drop);
   DocShowcase_SpawnFree(&data->spawn);
+  DocShowcase_DeckFree(&data->deck);
+  DocShowcase_QuestFree(&data->quest);
   DocShowcase_StageRewardFree(&data->stage_reward);
+  DocShowcase_ServerTuningFree(&data->server_tuning);
+  DocShowcase_PriceFree(&data->price);
+  DocShowcase_SkillFree(&data->skill);
 }

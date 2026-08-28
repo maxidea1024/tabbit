@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="632" height="150" viewBox="0 0 632 150" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>enum Element</title>
+<rect x="0" y="0" width="349.625" height="142" fill="#FFFFFF"/>
+<rect x="0" y="0" width="348.625" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="142" fill="#E9ECEF"/>
+<rect x="30" y="22" width="318.625" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="318.625" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="134.375" y1="22" x2="134.375" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="212.625" y1="22" x2="212.625" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="264.625" y1="22" x2="264.625" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="348.625" y1="22" x2="348.625" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="348.625" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="348.625" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="348.625" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="348.625" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="348.625" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="348.625" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="348.625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="134.375" y1="0" x2="134.375" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="212.625" y1="0" x2="212.625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="264.625" y1="0" x2="264.625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="348.625" y1="0" x2="348.625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="348.125" height="141.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="82.2" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="173.5" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="238.6" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="306.6" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:enum Element</text>
+<text x="141.375" y="38.5" font-size="12.5" fill="#1F2328">What a potion is made of.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="141.375" y="62.5" font-size="12.5" fill="#1F2328">label</text>
+<text x="219.625" y="62.5" font-size="12.5" fill="#1F2328">value</text>
+<text x="271.625" y="62.5" font-size="12.5" fill="#1F2328">desc</text>
+<text x="141.375" y="86.5" font-size="12.5" fill="#1F2328">none</text>
+<text x="219.625" y="86.5" font-size="12.5" fill="#1F2328">0</text>
+<text x="271.625" y="86.5" font-size="12.5" fill="#1F2328">no element</text>
+<text x="141.375" y="110.5" font-size="12.5" fill="#1F2328">fire_ball</text>
+<text x="219.625" y="110.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="271.625" y="110.5" font-size="12.5" fill="#1F2328">burns</text>
+<text x="141.375" y="134.5" font-size="12.5" fill="#1F2328">ice_shard</text>
+<text x="219.625" y="134.5" font-size="12.5" fill="#1F2328">2</text>
+<text x="271.625" y="134.5" font-size="12.5" fill="#1F2328">chills</text>
+<text x="358.625" y="86.0" font-size="11" fill="#8A929B" font-style="italic">◀ 0을 직접 두면 손대지 않습니다</text>
+<text x="358.625" y="110.0" font-size="11" fill="#8A929B" font-style="italic">◀ 선언은 snake_case, 데이터 셀도 그 철자</text>
+</svg>

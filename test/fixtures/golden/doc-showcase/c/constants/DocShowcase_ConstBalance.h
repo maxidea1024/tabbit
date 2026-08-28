@@ -9,7 +9,7 @@
 #ifndef DOC_SHOWCASE_CONST_BALANCE_H
 #define DOC_SHOWCASE_CONST_BALANCE_H
 
-/* Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2
+/* Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2
  *
  * Values with no rows.
  */

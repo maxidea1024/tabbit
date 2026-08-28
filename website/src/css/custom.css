@@ -60,7 +60,7 @@
   max-width: 100%;
 }
 
-@media (min-width: 1400px) {
+@media (min-width: 1500px) {
   .tabbit-pair {
     /* 시트 쪽이 조금 넓습니다. 격자는 줄여도 글자가 남지만 코드는 가로로 스크롤됩니다. */
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);

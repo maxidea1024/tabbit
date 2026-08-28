@@ -1,0 +1,93 @@
+{
+  "source": "test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx",
+  "sheet": "Spawn",
+  "kind": "table",
+  "name": "Deck",
+  "declaration": ":table Deck",
+  "origin": {
+    "row": 1,
+    "column": 6
+  },
+  "rows": [
+    [
+      ":table Deck",
+      "An array of records, and a record inside a record.",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "index",
+      "Slot[0].Id",
+      "Slot[0].Label",
+      "Slot[1].Id",
+      "Slot[1].Label",
+      "Home.At.X",
+      "Home.At.Y"
+    ],
+    [
+      ":type",
+      "int",
+      "int",
+      "string",
+      "int",
+      "string",
+      "float",
+      "float"
+    ],
+    [
+      ":desc",
+      "primary index",
+      "element 1",
+      "element 1",
+      "element 2",
+      "element 2",
+      "two levels in",
+      "two levels in"
+    ],
+    [
+      ":target",
+      "cs",
+      "cs",
+      "cs",
+      "cs",
+      "cs",
+      "cs",
+      "cs"
+    ],
+    [
+      "",
+      "1",
+      "10",
+      "sword",
+      "11",
+      "shield",
+      "1.5",
+      "-2.5"
+    ],
+    [
+      "",
+      "2",
+      "20",
+      "bow",
+      "21",
+      "arrow",
+      "0",
+      "0"
+    ],
+    [
+      "",
+      "3",
+      "30",
+      "staff",
+      "31",
+      "orb",
+      "-8.25",
+      "12"
+    ]
+  ]
+}

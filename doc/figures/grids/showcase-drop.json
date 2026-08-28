@@ -1,0 +1,69 @@
+{
+  "source": "test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx",
+  "sheet": "Loot",
+  "kind": "table",
+  "name": "Drop",
+  "declaration": ":table Drop",
+  "origin": {
+    "row": 1,
+    "column": 6
+  },
+  "rows": [
+    [
+      ":table Drop",
+      "An array of enums, and one whose elements may be absent.",
+      "",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "index",
+      "Grades",
+      "Counts",
+      "#"
+    ],
+    [
+      ":type",
+      "int",
+      "Rarity[]",
+      "int?[]",
+      ""
+    ],
+    [
+      ":desc",
+      "primary index",
+      "which grades",
+      "how many of each",
+      ""
+    ],
+    [
+      ":target",
+      "cs",
+      "cs",
+      "cs",
+      ""
+    ],
+    [
+      "",
+      "1",
+      "Common;Rare",
+      "1;2",
+      "note to self"
+    ],
+    [
+      "",
+      "2",
+      "Epic",
+      "5",
+      "note to self"
+    ],
+    [
+      "",
+      "3",
+      "Common;Common",
+      "3;-",
+      "note to self"
+    ]
+  ]
+}

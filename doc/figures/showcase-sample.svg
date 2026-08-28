@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1328" height="222" viewBox="0 0 1328 222" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>테이블 Sample</title>
+<rect x="0" y="0" width="1117.0" height="214" fill="#FFFFFF"/>
+<rect x="0" y="0" width="1116.0" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="214" fill="#E9ECEF"/>
+<rect x="30" y="22" width="1086.0" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="1086.0" height="24" fill="#F1F6FB"/>
+<rect x="30" y="70" width="1086.0" height="24" fill="#F1F6FB"/>
+<rect x="30" y="94" width="1086.0" height="24" fill="#F1F6FB"/>
+<rect x="30" y="118" width="1086.0" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="132.8125" y1="22" x2="132.8125" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="237.1875" y1="22" x2="237.1875" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="368.1875" y1="22" x2="368.1875" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="422.9375" y1="22" x2="422.9375" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="486.5625" y1="22" x2="486.5625" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="550.1875" y1="22" x2="550.1875" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="608.0625" y1="22" x2="608.0625" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="756.3125" y1="22" x2="756.3125" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="838.75" y1="22" x2="838.75" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="1116.0" y1="22" x2="1116.0" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="1116.0" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="1116.0" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="1116.0" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="1116.0" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="1116.0" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="1116.0" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="166" x2="1116.0" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="190" x2="1116.0" y2="190" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="214" x2="1116.0" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="1116.0" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="214" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="132.8125" y1="0" x2="132.8125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="237.1875" y1="0" x2="237.1875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="368.1875" y1="0" x2="368.1875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="422.9375" y1="0" x2="422.9375" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="486.5625" y1="0" x2="486.5625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="550.1875" y1="0" x2="550.1875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="608.0625" y1="0" x2="608.0625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="756.3125" y1="0" x2="756.3125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="838.75" y1="0" x2="838.75" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="1116.0" y1="0" x2="1116.0" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="166" x2="30" y2="166" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="190" x2="30" y2="190" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="214" x2="30" y2="214" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="1115.5" height="213.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="81.4" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="185.0" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="302.7" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="395.6" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="454.8" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">E</text>
+<text x="518.4" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">F</text>
+<text x="579.1" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">G</text>
+<text x="682.2" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">H</text>
+<text x="797.5" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">I</text>
+<text x="977.4" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">J</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="15.0" y="157.8" font-size="10.5" fill="#5B6570" text-anchor="middle">6</text>
+<text x="15.0" y="181.8" font-size="10.5" fill="#5B6570" text-anchor="middle">7</text>
+<text x="15.0" y="205.8" font-size="10.5" fill="#5B6570" text-anchor="middle">8</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:table Sample</text>
+<text x="139.8125" y="38.5" font-size="12.5" fill="#1F2328">One column per scalar type.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="139.8125" y="62.5" font-size="12.5" fill="#1F2328">index</text>
+<text x="244.1875" y="62.5" font-size="12.5" fill="#1F2328">Count</text>
+<text x="375.1875" y="62.5" font-size="12.5" fill="#1F2328">Ratio</text>
+<text x="429.9375" y="62.5" font-size="12.5" fill="#1F2328">Precise</text>
+<text x="493.5625" y="62.5" font-size="12.5" fill="#1F2328">Enabled</text>
+<text x="557.1875" y="62.5" font-size="12.5" fill="#1F2328">Label</text>
+<text x="615.0625" y="62.5" font-size="12.5" fill="#1F2328">At</text>
+<text x="763.3125" y="62.5" font-size="12.5" fill="#1F2328">Span</text>
+<text x="845.75" y="62.5" font-size="12.5" fill="#1F2328">Id</text>
+<text x="37" y="86.5" font-size="12.5" fill="#1A5FA8">:type</text>
+<text x="139.8125" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="244.1875" y="86.5" font-size="12.5" fill="#1F2328">bigint</text>
+<text x="375.1875" y="86.5" font-size="12.5" fill="#1F2328">float</text>
+<text x="429.9375" y="86.5" font-size="12.5" fill="#1F2328">double</text>
+<text x="493.5625" y="86.5" font-size="12.5" fill="#1F2328">bool</text>
+<text x="557.1875" y="86.5" font-size="12.5" fill="#1F2328">string</text>
+<text x="615.0625" y="86.5" font-size="12.5" fill="#1F2328">datetime</text>
+<text x="763.3125" y="86.5" font-size="12.5" fill="#1F2328">timespan</text>
+<text x="845.75" y="86.5" font-size="12.5" fill="#1F2328">uuid</text>
+<text x="37" y="110.5" font-size="12.5" fill="#1A5FA8">:desc</text>
+<text x="139.8125" y="110.5" font-size="12.5" fill="#1F2328">primary index</text>
+<text x="244.1875" y="110.5" font-size="12.5" fill="#1F2328">64 bit</text>
+<text x="375.1875" y="110.5" font-size="12.5" fill="#1F2328">32 bit</text>
+<text x="429.9375" y="110.5" font-size="12.5" fill="#1F2328">64 bit</text>
+<text x="493.5625" y="110.5" font-size="12.5" fill="#1F2328">Y or N</text>
+<text x="557.1875" y="110.5" font-size="12.5" fill="#1F2328">text</text>
+<text x="615.0625" y="110.5" font-size="12.5" fill="#1F2328">a moment</text>
+<text x="763.3125" y="110.5" font-size="12.5" fill="#1F2328">a length</text>
+<text x="845.75" y="110.5" font-size="12.5" fill="#1F2328">an identifier</text>
+<text x="37" y="134.5" font-size="12.5" fill="#1A5FA8">:target</text>
+<text x="139.8125" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="244.1875" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="375.1875" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="429.9375" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="493.5625" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="557.1875" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="615.0625" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="763.3125" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="845.75" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="139.8125" y="158.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="244.1875" y="158.5" font-size="12.5" fill="#1F2328">9007199254740993</text>
+<text x="375.1875" y="158.5" font-size="12.5" fill="#1F2328">1.5</text>
+<text x="429.9375" y="158.5" font-size="12.5" fill="#1F2328">2.25</text>
+<text x="493.5625" y="158.5" font-size="12.5" fill="#1F2328">Y</text>
+<text x="557.1875" y="158.5" font-size="12.5" fill="#1F2328">first</text>
+<text x="615.0625" y="158.5" font-size="12.5" fill="#1F2328">2026-01-24 10:30:00</text>
+<text x="763.3125" y="158.5" font-size="12.5" fill="#1F2328">1.02:03:04</text>
+<text x="845.75" y="158.5" font-size="12.5" fill="#1F2328">7b7d9f6a-1e2c-4c1a-9a5f-2b6d0c3e4f51</text>
+<text x="139.8125" y="182.5" font-size="12.5" fill="#1F2328">2</text>
+<text x="244.1875" y="182.5" font-size="12.5" fill="#1F2328">-20</text>
+<text x="375.1875" y="182.5" font-size="12.5" fill="#1F2328">-0.5</text>
+<text x="429.9375" y="182.5" font-size="12.5" fill="#1F2328">1e-8</text>
+<text x="493.5625" y="182.5" font-size="12.5" fill="#1F2328">N</text>
+<text x="557.1875" y="182.5" font-size="12.5" fill="#1F2328">second</text>
+<text x="615.0625" y="182.5" font-size="12.5" fill="#1F2328">1999-12-31 23:59:59</text>
+<text x="763.3125" y="182.5" font-size="12.5" fill="#1F2328">00:00:01</text>
+<text x="845.75" y="182.5" font-size="12.5" fill="#1F2328">0f8fad5b-d9cb-469f-a165-70867728950e</text>
+<text x="139.8125" y="206.5" font-size="12.5" fill="#1F2328">3</text>
+<text x="244.1875" y="206.5" font-size="12.5" fill="#1F2328">0</text>
+<text x="375.1875" y="206.5" font-size="12.5" fill="#1F2328">0</text>
+<text x="429.9375" y="206.5" font-size="12.5" fill="#1F2328">0</text>
+<text x="615.0625" y="206.5" font-size="12.5" fill="#1F2328">2000-01-01 00:00:00</text>
+<text x="763.3125" y="206.5" font-size="12.5" fill="#1F2328">00:00:00</text>
+<text x="845.75" y="206.5" font-size="12.5" fill="#1F2328">00000000-0000-0000-0000-000000000000</text>
+<text x="1126.0" y="86.0" font-size="11" fill="#8A929B" font-style="italic">◀ 여기 적는 이름이 타입입니다</text>
+<text x="1126.0" y="158.0" font-size="11" fill="#8A929B" font-style="italic">◀ bool은 Y·N·빈 칸을 받습니다</text>
+<text x="1126.0" y="182.0" font-size="11" fill="#8A929B" font-style="italic">◀ 지수 표기도 그대로 읽습니다</text>
+</svg>

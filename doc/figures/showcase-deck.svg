@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="993" height="222" viewBox="0 0 993 222" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>테이블 Deck</title>
+<rect x="0" y="0" width="788.75" height="214" fill="#FFFFFF"/>
+<rect x="0" y="0" width="787.75" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="214" fill="#E9ECEF"/>
+<rect x="30" y="22" width="757.75" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="757.75" height="24" fill="#F1F6FB"/>
+<rect x="30" y="70" width="757.75" height="24" fill="#F1F6FB"/>
+<rect x="30" y="94" width="757.75" height="24" fill="#F1F6FB"/>
+<rect x="30" y="118" width="757.75" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="119.75" y1="22" x2="119.75" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="224.125" y1="22" x2="224.125" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="303.4375" y1="22" x2="303.4375" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="404.6875" y1="22" x2="404.6875" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="484.0" y1="22" x2="484.0" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="585.25" y1="22" x2="585.25" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="686.5" y1="22" x2="686.5" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="787.75" y1="22" x2="787.75" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="787.75" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="787.75" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="787.75" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="787.75" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="787.75" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="787.75" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="166" x2="787.75" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="190" x2="787.75" y2="190" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="214" x2="787.75" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="787.75" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="214" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="119.75" y1="0" x2="119.75" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="224.125" y1="0" x2="224.125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="303.4375" y1="0" x2="303.4375" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="404.6875" y1="0" x2="404.6875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="484.0" y1="0" x2="484.0" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="585.25" y1="0" x2="585.25" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="686.5" y1="0" x2="686.5" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="787.75" y1="0" x2="787.75" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="166" x2="30" y2="166" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="190" x2="30" y2="190" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="214" x2="30" y2="214" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="787.25" height="213.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="74.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="171.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="263.8" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="354.1" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="444.3" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">E</text>
+<text x="534.6" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">F</text>
+<text x="635.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">G</text>
+<text x="737.1" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">H</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="15.0" y="157.8" font-size="10.5" fill="#5B6570" text-anchor="middle">6</text>
+<text x="15.0" y="181.8" font-size="10.5" fill="#5B6570" text-anchor="middle">7</text>
+<text x="15.0" y="205.8" font-size="10.5" fill="#5B6570" text-anchor="middle">8</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:table Deck</text>
+<text x="126.75" y="38.5" font-size="12.5" fill="#1F2328">An array of records, and a record inside a record.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="126.75" y="62.5" font-size="12.5" fill="#1F2328">index</text>
+<text x="231.125" y="62.5" font-size="12.5" fill="#1F2328">Slot[0].Id</text>
+<text x="310.4375" y="62.5" font-size="12.5" fill="#1F2328">Slot[0].Label</text>
+<text x="411.6875" y="62.5" font-size="12.5" fill="#1F2328">Slot[1].Id</text>
+<text x="491.0" y="62.5" font-size="12.5" fill="#1F2328">Slot[1].Label</text>
+<text x="592.25" y="62.5" font-size="12.5" fill="#1F2328">Home.At.X</text>
+<text x="693.5" y="62.5" font-size="12.5" fill="#1F2328">Home.At.Y</text>
+<text x="37" y="86.5" font-size="12.5" fill="#1A5FA8">:type</text>
+<text x="126.75" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="231.125" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="310.4375" y="86.5" font-size="12.5" fill="#1F2328">string</text>
+<text x="411.6875" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="491.0" y="86.5" font-size="12.5" fill="#1F2328">string</text>
+<text x="592.25" y="86.5" font-size="12.5" fill="#1F2328">float</text>
+<text x="693.5" y="86.5" font-size="12.5" fill="#1F2328">float</text>
+<text x="37" y="110.5" font-size="12.5" fill="#1A5FA8">:desc</text>
+<text x="126.75" y="110.5" font-size="12.5" fill="#1F2328">primary index</text>
+<text x="231.125" y="110.5" font-size="12.5" fill="#1F2328">element 1</text>
+<text x="310.4375" y="110.5" font-size="12.5" fill="#1F2328">element 1</text>
+<text x="411.6875" y="110.5" font-size="12.5" fill="#1F2328">element 2</text>
+<text x="491.0" y="110.5" font-size="12.5" fill="#1F2328">element 2</text>
+<text x="592.25" y="110.5" font-size="12.5" fill="#1F2328">two levels in</text>
+<text x="693.5" y="110.5" font-size="12.5" fill="#1F2328">two levels in</text>
+<text x="37" y="134.5" font-size="12.5" fill="#1A5FA8">:target</text>
+<text x="126.75" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="231.125" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="310.4375" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="411.6875" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="491.0" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="592.25" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="693.5" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="126.75" y="158.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="231.125" y="158.5" font-size="12.5" fill="#1F2328">10</text>
+<text x="310.4375" y="158.5" font-size="12.5" fill="#1F2328">sword</text>
+<text x="411.6875" y="158.5" font-size="12.5" fill="#1F2328">11</text>
+<text x="491.0" y="158.5" font-size="12.5" fill="#1F2328">shield</text>
+<text x="592.25" y="158.5" font-size="12.5" fill="#1F2328">1.5</text>
+<text x="693.5" y="158.5" font-size="12.5" fill="#1F2328">-2.5</text>
+<text x="126.75" y="182.5" font-size="12.5" fill="#1F2328">2</text>
+<text x="231.125" y="182.5" font-size="12.5" fill="#1F2328">20</text>
+<text x="310.4375" y="182.5" font-size="12.5" fill="#1F2328">bow</text>
+<text x="411.6875" y="182.5" font-size="12.5" fill="#1F2328">21</text>
+<text x="491.0" y="182.5" font-size="12.5" fill="#1F2328">arrow</text>
+<text x="592.25" y="182.5" font-size="12.5" fill="#1F2328">0</text>
+<text x="693.5" y="182.5" font-size="12.5" fill="#1F2328">0</text>
+<text x="126.75" y="206.5" font-size="12.5" fill="#1F2328">3</text>
+<text x="231.125" y="206.5" font-size="12.5" fill="#1F2328">30</text>
+<text x="310.4375" y="206.5" font-size="12.5" fill="#1F2328">staff</text>
+<text x="411.6875" y="206.5" font-size="12.5" fill="#1F2328">31</text>
+<text x="491.0" y="206.5" font-size="12.5" fill="#1F2328">orb</text>
+<text x="592.25" y="206.5" font-size="12.5" fill="#1F2328">-8.25</text>
+<text x="693.5" y="206.5" font-size="12.5" fill="#1F2328">12</text>
+<text x="797.75" y="62.0" font-size="11" fill="#8A929B" font-style="italic">◀ 번호가 붙으면 레코드의 배열</text>
+<text x="797.75" y="86.0" font-size="11" fill="#8A929B" font-style="italic">◀ 점이 둘이면 두 단계</text>
+</svg>

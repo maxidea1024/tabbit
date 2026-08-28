@@ -7,7 +7,7 @@
 
 package docshowcase
 
-// Balance was generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2.
+// Balance was generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2.
 // Values with no rows.
 var Balance = struct {
 	MaxStack   int32

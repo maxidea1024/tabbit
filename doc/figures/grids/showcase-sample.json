@@ -1,0 +1,109 @@
+{
+  "source": "test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx",
+  "sheet": "Types",
+  "kind": "table",
+  "name": "Sample",
+  "declaration": ":table Sample",
+  "origin": {
+    "row": 1,
+    "column": 1
+  },
+  "rows": [
+    [
+      ":table Sample",
+      "One column per scalar type.",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "index",
+      "Count",
+      "Ratio",
+      "Precise",
+      "Enabled",
+      "Label",
+      "At",
+      "Span",
+      "Id"
+    ],
+    [
+      ":type",
+      "int",
+      "bigint",
+      "float",
+      "double",
+      "bool",
+      "string",
+      "datetime",
+      "timespan",
+      "uuid"
+    ],
+    [
+      ":desc",
+      "primary index",
+      "64 bit",
+      "32 bit",
+      "64 bit",
+      "Y or N",
+      "text",
+      "a moment",
+      "a length",
+      "an identifier"
+    ],
+    [
+      ":target",
+      "cs",
+      "cs",
+      "cs",
+      "cs",
+      "cs",
+      "cs",
+      "cs",
+      "cs",
+      "cs"
+    ],
+    [
+      "",
+      "1",
+      "9007199254740993",
+      "1.5",
+      "2.25",
+      "Y",
+      "first",
+      "2026-01-24 10:30:00",
+      "1.02:03:04",
+      "7b7d9f6a-1e2c-4c1a-9a5f-2b6d0c3e4f51"
+    ],
+    [
+      "",
+      "2",
+      "-20",
+      "-0.5",
+      "1e-8",
+      "N",
+      "second",
+      "1999-12-31 23:59:59",
+      "00:00:01",
+      "0f8fad5b-d9cb-469f-a165-70867728950e"
+    ],
+    [
+      "",
+      "3",
+      "0",
+      "0",
+      "0",
+      "",
+      "",
+      "2000-01-01 00:00:00",
+      "00:00:00",
+      "00000000-0000-0000-0000-000000000000"
+    ]
+  ]
+}

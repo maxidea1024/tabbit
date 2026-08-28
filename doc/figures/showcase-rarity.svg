@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="607" height="150" viewBox="0 0 607 150" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<svg xmlns="http://www.w3.org/2000/svg" width="573" height="150" viewBox="0 0 573 150" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
 <title>enum Rarity</title>
 <rect x="0" y="0" width="330.8125" height="142" fill="#FFFFFF"/>
 <rect x="0" y="0" width="329.8125" height="22" fill="#E9ECEF"/>
@@ -52,6 +52,6 @@
 <text x="134.0625" y="134.5" font-size="12.5" fill="#1F2328">Epic</text>
 <text x="191.9375" y="134.5" font-size="12.5" fill="#1F2328">3</text>
 <text x="243.9375" y="134.5" font-size="12.5" fill="#1F2328">from bosses</text>
-<text x="339.8125" y="62.0" font-size="11" fill="#8A929B" font-style="italic">◀ enum은 컬럼이 정해져 있어 이 줄 하나뿐</text>
+<text x="339.8125" y="62.0" font-size="11" fill="#8A929B" font-style="italic">◀ 헤더 행은 이것 하나뿐</text>
 <text x="339.8125" y="86.0" font-size="11" fill="#8A929B" font-style="italic">◀ 0이 없으므로 None = 0이 붙습니다</text>
 </svg>

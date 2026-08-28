@@ -1,0 +1,85 @@
+{
+  "source": "test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx",
+  "sheet": "Price",
+  "kind": "table",
+  "name": "Price",
+  "declaration": ":table Price",
+  "origin": {
+    "row": 1,
+    "column": 1
+  },
+  "rows": [
+    [
+      ":table Price",
+      "One column of Amount reaches the build; the others do not.",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "index",
+      "Name",
+      "Amount",
+      "Amount",
+      "Amount"
+    ],
+    [
+      ":type",
+      "int",
+      "string",
+      "int",
+      "",
+      ""
+    ],
+    [
+      ":desc",
+      "primary index",
+      "display name",
+      "what it costs",
+      "",
+      ""
+    ],
+    [
+      ":target",
+      "cs",
+      "cs",
+      "cs",
+      "",
+      ""
+    ],
+    [
+      ":variant",
+      "",
+      "",
+      "",
+      "kr",
+      "jp"
+    ],
+    [
+      "",
+      "1",
+      "Small Potion",
+      "50",
+      "1500",
+      "300"
+    ],
+    [
+      "",
+      "2",
+      "Large Potion",
+      "180",
+      "5400",
+      "1080"
+    ],
+    [
+      "",
+      "3",
+      "Elixir",
+      "900",
+      "27000",
+      "5400"
+    ]
+  ]
+}

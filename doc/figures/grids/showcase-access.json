@@ -1,0 +1,61 @@
+{
+  "source": "test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx",
+  "sheet": "Types",
+  "kind": "table",
+  "name": "Access",
+  "declaration": ":table Access",
+  "origin": {
+    "row": 1,
+    "column": 18
+  },
+  "rows": [
+    [
+      ":table Access",
+      "A flag set beside the number it becomes.",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "index",
+      "Flags",
+      "Same"
+    ],
+    [
+      ":type",
+      "int",
+      "bitset",
+      "bigint"
+    ],
+    [
+      ":desc",
+      "primary index",
+      "which bits",
+      "the same value"
+    ],
+    [
+      ":target",
+      "cs",
+      "cs",
+      "cs"
+    ],
+    [
+      "",
+      "1",
+      "0b1011",
+      "11"
+    ],
+    [
+      "",
+      "2",
+      "0x1f",
+      "31"
+    ],
+    [
+      "",
+      "3",
+      "0b1010_1010",
+      "170"
+    ]
+  ]
+}

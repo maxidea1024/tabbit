@@ -13,12 +13,25 @@ import (
 
 // Tables holds every table, loaded together so cross-table references can be resolved.
 type Tables struct {
-	Potion      PotionTable
-	Shop        ShopTable
-	ShopEntry   ShopEntryTable
-	Loot        LootTable
-	Spawn       SpawnTable
-	StageReward StageRewardTable
+	Potion       PotionTable
+	Sample       SampleTable
+	Marker       MarkerTable
+	Access       AccessTable
+	Line         LineTable
+	Animation    AnimationTable
+	Wire         WireTable
+	Shop         ShopTable
+	ShopEntry    ShopEntryTable
+	Craft        CraftTable
+	Loot         LootTable
+	Drop         DropTable
+	Spawn        SpawnTable
+	Deck         DeckTable
+	Quest        QuestTable
+	StageReward  StageRewardTable
+	ServerTuning ServerTuningTable
+	Price        PriceTable
+	Skill        SkillTable
 }
 
 // EncryptionKey is the key the table files were sealed with, or nil when they were not
@@ -83,19 +96,58 @@ func (t *Tables) ReadAllWithExtension(basePath string, fileExtension string) err
 	if err := loaded.Potion.Read(filepath.Join(basePath, "Potion"+fileExtension)); err != nil {
 		return err
 	}
+	if err := loaded.Sample.Read(filepath.Join(basePath, "Sample"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.Marker.Read(filepath.Join(basePath, "Marker"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.Access.Read(filepath.Join(basePath, "Access"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.Line.Read(filepath.Join(basePath, "Line"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.Animation.Read(filepath.Join(basePath, "Animation"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.Wire.Read(filepath.Join(basePath, "Wire"+fileExtension)); err != nil {
+		return err
+	}
 	if err := loaded.Shop.Read(filepath.Join(basePath, "Shop"+fileExtension)); err != nil {
 		return err
 	}
 	if err := loaded.ShopEntry.Read(filepath.Join(basePath, "ShopEntry"+fileExtension)); err != nil {
 		return err
 	}
+	if err := loaded.Craft.Read(filepath.Join(basePath, "Craft"+fileExtension)); err != nil {
+		return err
+	}
 	if err := loaded.Loot.Read(filepath.Join(basePath, "Loot"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.Drop.Read(filepath.Join(basePath, "Drop"+fileExtension)); err != nil {
 		return err
 	}
 	if err := loaded.Spawn.Read(filepath.Join(basePath, "Spawn"+fileExtension)); err != nil {
 		return err
 	}
+	if err := loaded.Deck.Read(filepath.Join(basePath, "Deck"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.Quest.Read(filepath.Join(basePath, "Quest"+fileExtension)); err != nil {
+		return err
+	}
 	if err := loaded.StageReward.Read(filepath.Join(basePath, "StageReward"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.ServerTuning.Read(filepath.Join(basePath, "ServerTuning"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.Price.Read(filepath.Join(basePath, "Price"+fileExtension)); err != nil {
+		return err
+	}
+	if err := loaded.Skill.Read(filepath.Join(basePath, "Skill"+fileExtension)); err != nil {
 		return err
 	}
 
@@ -116,6 +168,23 @@ func (t *Tables) solveCrossReferences() {
 		}
 		if target := t.Potion.FindByIndex(record.PotionId); target != nil {
 			record.PotionByPotionId = target
+		}
+	}
+	for i := range t.Craft.records {
+		record := &t.Craft.records[i]
+		if target := t.Potion.FindByIndex(record.Result); target != nil {
+			record.PotionByResult = target
+		}
+		if target := t.Potion.FindByIndex(record.ResultNameIndex); target != nil {
+			record.ResultName = target.Name
+		}
+		for k := range record.Parts {
+			if target := t.Potion.FindByIndex(record.Parts[k]); target != nil {
+				record.PotionByParts[k] = target
+			}
+		}
+		if target := t.Potion.FindByIndex(record.Substitute); target != nil {
+			record.PotionBySubstitute = target
 		}
 	}
 }

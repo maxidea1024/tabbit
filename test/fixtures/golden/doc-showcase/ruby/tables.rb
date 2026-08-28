@@ -9,25 +9,55 @@ require_relative 'tabbit/tcb_reader'
 
 require_relative 'enums/rarity'
 
+require_relative 'enums/element'
+
+require_relative 'structs/effect'
+
 require_relative 'constants/balance'
 
 require_relative 'tables/potion_table'
+
+require_relative 'tables/sample_table'
+
+require_relative 'tables/marker_table'
+
+require_relative 'tables/access_table'
+
+require_relative 'tables/line_table'
+
+require_relative 'tables/animation_table'
+
+require_relative 'tables/wire_table'
 
 require_relative 'tables/shop_table'
 
 require_relative 'tables/shop_entry_table'
 
+require_relative 'tables/craft_table'
+
 require_relative 'tables/loot_table'
+
+require_relative 'tables/drop_table'
 
 require_relative 'tables/spawn_table'
 
+require_relative 'tables/deck_table'
+
+require_relative 'tables/quest_table'
+
 require_relative 'tables/stage_reward_table'
+
+require_relative 'tables/server_tuning_table'
+
+require_relative 'tables/price_table'
+
+require_relative 'tables/skill_table'
 
 
 module DocShowcase
   # Every table, loaded together so cross-table references can be resolved.
   class Tables
-    attr_reader :potion, :shop, :shop_entry, :loot, :spawn, :stage_reward
+    attr_reader :potion, :sample, :marker, :access, :line, :animation, :wire, :shop, :shop_entry, :craft, :loot, :drop, :spawn, :deck, :quest, :stage_reward, :server_tuning, :price, :skill
 
     class << self
       # The key the table files were sealed with, or nil when they were not sealed.
@@ -84,11 +114,24 @@ module DocShowcase
 
     def initialize
       @potion = PotionTable.new
+      @sample = SampleTable.new
+      @marker = MarkerTable.new
+      @access = AccessTable.new
+      @line = LineTable.new
+      @animation = AnimationTable.new
+      @wire = WireTable.new
       @shop = ShopTable.new
       @shop_entry = ShopEntryTable.new
+      @craft = CraftTable.new
       @loot = LootTable.new
+      @drop = DropTable.new
       @spawn = SpawnTable.new
+      @deck = DeckTable.new
+      @quest = QuestTable.new
       @stage_reward = StageRewardTable.new
+      @server_tuning = ServerTuningTable.new
+      @price = PriceTable.new
+      @skill = SkillTable.new
     end
 
     # Reads every table from base_path, then links the references between them.
@@ -98,25 +141,64 @@ module DocShowcase
     def read_all(base_path, file_extension = '.tcb')
       loaded_potion = PotionTable.new
       loaded_potion.read(File.join(base_path, "Potion#{file_extension}"))
+      loaded_sample = SampleTable.new
+      loaded_sample.read(File.join(base_path, "Sample#{file_extension}"))
+      loaded_marker = MarkerTable.new
+      loaded_marker.read(File.join(base_path, "Marker#{file_extension}"))
+      loaded_access = AccessTable.new
+      loaded_access.read(File.join(base_path, "Access#{file_extension}"))
+      loaded_line = LineTable.new
+      loaded_line.read(File.join(base_path, "Line#{file_extension}"))
+      loaded_animation = AnimationTable.new
+      loaded_animation.read(File.join(base_path, "Animation#{file_extension}"))
+      loaded_wire = WireTable.new
+      loaded_wire.read(File.join(base_path, "Wire#{file_extension}"))
       loaded_shop = ShopTable.new
       loaded_shop.read(File.join(base_path, "Shop#{file_extension}"))
       loaded_shop_entry = ShopEntryTable.new
       loaded_shop_entry.read(File.join(base_path, "ShopEntry#{file_extension}"))
+      loaded_craft = CraftTable.new
+      loaded_craft.read(File.join(base_path, "Craft#{file_extension}"))
       loaded_loot = LootTable.new
       loaded_loot.read(File.join(base_path, "Loot#{file_extension}"))
+      loaded_drop = DropTable.new
+      loaded_drop.read(File.join(base_path, "Drop#{file_extension}"))
       loaded_spawn = SpawnTable.new
       loaded_spawn.read(File.join(base_path, "Spawn#{file_extension}"))
+      loaded_deck = DeckTable.new
+      loaded_deck.read(File.join(base_path, "Deck#{file_extension}"))
+      loaded_quest = QuestTable.new
+      loaded_quest.read(File.join(base_path, "Quest#{file_extension}"))
       loaded_stage_reward = StageRewardTable.new
       loaded_stage_reward.read(File.join(base_path, "StageReward#{file_extension}"))
+      loaded_server_tuning = ServerTuningTable.new
+      loaded_server_tuning.read(File.join(base_path, "ServerTuning#{file_extension}"))
+      loaded_price = PriceTable.new
+      loaded_price.read(File.join(base_path, "Price#{file_extension}"))
+      loaded_skill = SkillTable.new
+      loaded_skill.read(File.join(base_path, "Skill#{file_extension}"))
 
-      solve_cross_references(loaded_potion, loaded_shop, loaded_shop_entry, loaded_loot, loaded_spawn, loaded_stage_reward)
+      solve_cross_references(loaded_potion, loaded_sample, loaded_marker, loaded_access, loaded_line, loaded_animation, loaded_wire, loaded_shop, loaded_shop_entry, loaded_craft, loaded_loot, loaded_drop, loaded_spawn, loaded_deck, loaded_quest, loaded_stage_reward, loaded_server_tuning, loaded_price, loaded_skill)
 
       @potion = loaded_potion
+      @sample = loaded_sample
+      @marker = loaded_marker
+      @access = loaded_access
+      @line = loaded_line
+      @animation = loaded_animation
+      @wire = loaded_wire
       @shop = loaded_shop
       @shop_entry = loaded_shop_entry
+      @craft = loaded_craft
       @loot = loaded_loot
+      @drop = loaded_drop
       @spawn = loaded_spawn
+      @deck = loaded_deck
+      @quest = loaded_quest
       @stage_reward = loaded_stage_reward
+      @server_tuning = loaded_server_tuning
+      @price = loaded_price
+      @skill = loaded_skill
     end
 
     private
@@ -124,12 +206,24 @@ module DocShowcase
     # Turns the stored indices into usable values, once every table is in memory.
     # The tables arrive as arguments rather than off the instance, which is how this
     # resolves the load being read rather than the one already published.
-    def solve_cross_references(potion, shop, shop_entry, loot, spawn, stage_reward)
+    def solve_cross_references(potion, sample, marker, access, line, animation, wire, shop, shop_entry, craft, loot, drop, spawn, deck, quest, stage_reward, server_tuning, price, skill)
       shop_entry.records.each do |record|
         target = shop.find_by_index(record.shop_id)
         record.shop_by_shop_id = target unless target.nil?
         target = potion.find_by_index(record.potion_id)
         record.potion_by_potion_id = target unless target.nil?
+      end
+      craft.records.each do |record|
+        target = potion.find_by_index(record.result)
+        record.potion_by_result = target unless target.nil?
+        target = potion.find_by_index(record.result_name_index)
+        record.result_name = target.name unless target.nil?
+        record.parts.each_with_index do |index, position|
+          target = potion.find_by_index(index)
+          record.potion_by_parts[position] = target unless target.nil?
+        end
+        target = potion.find_by_index(record.substitute)
+        record.potion_by_substitute = target unless target.nil?
       end
     end
   end

@@ -1,12 +1,48 @@
 {
   "LastUpdatedDate": "<TIMESTAMP>",
-  "MasterHash": "98ae52e8c929391a2da92688c283e5c8",
-  "TotalSize": 1534,
+  "MasterHash": "3a8bb14cd89a4c23b5192f292342a8cc",
+  "TotalSize": 6481,
   "Items": [
     {
       "Name": "Potion.json",
       "Size": 257,
       "Hash": "43bb67e21d8871fbb318fb2526024c42",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Sample.json",
+      "Size": 710,
+      "Hash": "9f9c6d48edf70ae32dbdb19d60fd1155",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Marker.json",
+      "Size": 655,
+      "Hash": "538ca71b74db8af2781f79fe29e199ef",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Access.json",
+      "Size": 188,
+      "Hash": "df93a88de1b90e497fd89a58be211afc",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Line.json",
+      "Size": 254,
+      "Hash": "0f7ed6f9a3a4af7b1bb863db730455e1",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Animation.json",
+      "Size": 187,
+      "Hash": "8b4ceae631d2393270d77554aa9fb687",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Wire.json",
+      "Size": 187,
+      "Hash": "ca9a6a2e43492269e84f9d00ed9ae7f3",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
@@ -22,9 +58,21 @@
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
+      "Name": "Craft.json",
+      "Size": 363,
+      "Hash": "1c6928124a062ec40b8d0322192ff989",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
       "Name": "Loot.json",
       "Size": 335,
       "Hash": "f00a2bfddec12cce5cc321d149f04b1e",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Drop.json",
+      "Size": 300,
+      "Hash": "fd26494c20b6de4e5e4fcacb2f17e71e",
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
@@ -34,9 +82,39 @@
       "LastUpdatedDate": "<TIMESTAMP>"
     },
     {
+      "Name": "Deck.json",
+      "Size": 724,
+      "Hash": "69b76ce04f1b7ebdbe10a2c8c49a5c34",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Quest.json",
+      "Size": 533,
+      "Hash": "b8e6f6882635bec001e0d2b12462447b",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
       "Name": "StageReward.json",
       "Size": 271,
       "Hash": "48a234bfca29ebcc6e615a39257365e7",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "ServerTuning.json",
+      "Size": 206,
+      "Hash": "4c07ae38f2a33a2121194db1575a6b87",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Price.json",
+      "Size": 209,
+      "Hash": "936c454f6a42bb68ffb0bf94ba16a6db",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Skill.json",
+      "Size": 431,
+      "Hash": "6e4884f61cacb94cfa823c3f958236b5",
       "LastUpdatedDate": "<TIMESTAMP>"
     }
   ]

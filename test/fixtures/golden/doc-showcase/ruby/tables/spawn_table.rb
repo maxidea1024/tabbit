@@ -7,6 +7,8 @@
 
 require_relative '../tabbit/tcb_reader'
 
+require_relative '../structs/effect'
+
 
 module DocShowcase
   # One element of SpawnRecord#at.

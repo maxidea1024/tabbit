@@ -20,15 +20,41 @@ public final class DocShowcaseAccessor {
 
     public private(set) var potion: PotionTable = PotionTable()
 
+    public private(set) var sample: SampleTable = SampleTable()
+
+    public private(set) var marker: MarkerTable = MarkerTable()
+
+    public private(set) var access: AccessTable = AccessTable()
+
+    public private(set) var line: LineTable = LineTable()
+
+    public private(set) var animation: AnimationTable = AnimationTable()
+
+    public private(set) var wire: WireTable = WireTable()
+
     public private(set) var shop: ShopTable = ShopTable()
 
     public private(set) var shopEntry: ShopEntryTable = ShopEntryTable()
 
+    public private(set) var craft: CraftTable = CraftTable()
+
     public private(set) var loot: LootTable = LootTable()
+
+    public private(set) var drop: DropTable = DropTable()
 
     public private(set) var spawn: SpawnTable = SpawnTable()
 
+    public private(set) var deck: DeckTable = DeckTable()
+
+    public private(set) var quest: QuestTable = QuestTable()
+
     public private(set) var stageReward: StageRewardTable = StageRewardTable()
+
+    public private(set) var serverTuning: ServerTuningTable = ServerTuningTable()
+
+    public private(set) var price: PriceTable = PriceTable()
+
+    public private(set) var skill: SkillTable = SkillTable()
 
     /// The key the table files were sealed with, or nil when they were not sealed.
     ///
@@ -95,6 +121,36 @@ public final class DocShowcaseAccessor {
             base.appendingPathComponent("Potion" + fileExtension).path,
             key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
 
+        let loadedSampleTable = SampleTable()
+        try loadedSampleTable.read(
+            base.appendingPathComponent("Sample" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
+        let loadedMarkerTable = MarkerTable()
+        try loadedMarkerTable.read(
+            base.appendingPathComponent("Marker" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
+        let loadedAccessTable = AccessTable()
+        try loadedAccessTable.read(
+            base.appendingPathComponent("Access" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
+        let loadedLineTable = LineTable()
+        try loadedLineTable.read(
+            base.appendingPathComponent("Line" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
+        let loadedAnimationTable = AnimationTable()
+        try loadedAnimationTable.read(
+            base.appendingPathComponent("Animation" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
+        let loadedWireTable = WireTable()
+        try loadedWireTable.read(
+            base.appendingPathComponent("Wire" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
         let loadedShopTable = ShopTable()
         try loadedShopTable.read(
             base.appendingPathComponent("Shop" + fileExtension).path,
@@ -105,9 +161,19 @@ public final class DocShowcaseAccessor {
             base.appendingPathComponent("ShopEntry" + fileExtension).path,
             key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
 
+        let loadedCraftTable = CraftTable()
+        try loadedCraftTable.read(
+            base.appendingPathComponent("Craft" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
         let loadedLootTable = LootTable()
         try loadedLootTable.read(
             base.appendingPathComponent("Loot" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
+        let loadedDropTable = DropTable()
+        try loadedDropTable.read(
+            base.appendingPathComponent("Drop" + fileExtension).path,
             key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
 
         let loadedSpawnTable = SpawnTable()
@@ -115,31 +181,87 @@ public final class DocShowcaseAccessor {
             base.appendingPathComponent("Spawn" + fileExtension).path,
             key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
 
+        let loadedDeckTable = DeckTable()
+        try loadedDeckTable.read(
+            base.appendingPathComponent("Deck" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
+        let loadedQuestTable = QuestTable()
+        try loadedQuestTable.read(
+            base.appendingPathComponent("Quest" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
         let loadedStageRewardTable = StageRewardTable()
         try loadedStageRewardTable.read(
             base.appendingPathComponent("StageReward" + fileExtension).path,
             key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
 
-        DocShowcaseAccessor.solveCrossReferences(potion: loadedPotionTable, shop: loadedShopTable, shopEntry: loadedShopEntryTable, loot: loadedLootTable, spawn: loadedSpawnTable, stageReward: loadedStageRewardTable)
+        let loadedServerTuningTable = ServerTuningTable()
+        try loadedServerTuningTable.read(
+            base.appendingPathComponent("ServerTuning" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
+        let loadedPriceTable = PriceTable()
+        try loadedPriceTable.read(
+            base.appendingPathComponent("Price" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
+        let loadedSkillTable = SkillTable()
+        try loadedSkillTable.read(
+            base.appendingPathComponent("Skill" + fileExtension).path,
+            key: encryptionKey, macKey: macKey, verifyMac: verifyMac)
+
+        DocShowcaseAccessor.solveCrossReferences(potion: loadedPotionTable, sample: loadedSampleTable, marker: loadedMarkerTable, access: loadedAccessTable, line: loadedLineTable, animation: loadedAnimationTable, wire: loadedWireTable, shop: loadedShopTable, shopEntry: loadedShopEntryTable, craft: loadedCraftTable, loot: loadedLootTable, drop: loadedDropTable, spawn: loadedSpawnTable, deck: loadedDeckTable, quest: loadedQuestTable, stageReward: loadedStageRewardTable, serverTuning: loadedServerTuningTable, price: loadedPriceTable, skill: loadedSkillTable)
         potion = loadedPotionTable
+        sample = loadedSampleTable
+        marker = loadedMarkerTable
+        access = loadedAccessTable
+        line = loadedLineTable
+        animation = loadedAnimationTable
+        wire = loadedWireTable
         shop = loadedShopTable
         shopEntry = loadedShopEntryTable
+        craft = loadedCraftTable
         loot = loadedLootTable
+        drop = loadedDropTable
         spawn = loadedSpawnTable
+        deck = loadedDeckTable
+        quest = loadedQuestTable
         stageReward = loadedStageRewardTable
+        serverTuning = loadedServerTuningTable
+        price = loadedPriceTable
+        skill = loadedSkillTable
     }
 
     /// Turns the stored keys into usable values, once every table is in memory.
     ///
     /// The tables arrive as arguments rather than being read off the instance, which is how
     /// this resolves the load being read rather than the one already published.
-    private static func solveCrossReferences(potion: PotionTable, shop: ShopTable, shopEntry: ShopEntryTable, loot: LootTable, spawn: SpawnTable, stageReward: StageRewardTable) {
+    private static func solveCrossReferences(potion: PotionTable, sample: SampleTable, marker: MarkerTable, access: AccessTable, line: LineTable, animation: AnimationTable, wire: WireTable, shop: ShopTable, shopEntry: ShopEntryTable, craft: CraftTable, loot: LootTable, drop: DropTable, spawn: SpawnTable, deck: DeckTable, quest: QuestTable, stageReward: StageRewardTable, serverTuning: ServerTuningTable, price: PriceTable, skill: SkillTable) {
         for record in shopEntry.records {
             if let target = shop.findByIndex(record.shopId) {
                 record.shopByShopId = target
             }
             if let target = potion.findByIndex(record.potionId) {
                 record.potionByPotionId = target
+            }
+        }
+        for record in craft.records {
+            if let target = potion.findByIndex(record.result) {
+                record.potionByResult = target
+            }
+            if let target = potion.findByIndex(record.resultNameIndex) {
+                record.resultName = target.name
+            }
+            record.potionByParts = []
+            record.potionByParts.reserveCapacity(record.parts.count)
+
+            for index in record.parts {
+                guard let target = potion.findByIndex(index) else { continue }
+                record.potionByParts.append(target)
+            }
+            if let target = potion.findByIndex(record.substitute) {
+                record.potionBySubstitute = target
             }
         }
     }

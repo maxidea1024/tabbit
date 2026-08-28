@@ -10,11 +10,24 @@ use std::sync::atomic::AtomicBool;
 use std::sync::OnceLock;
 use crate::tabbit;
 use crate::potion_table::PotionTable;
+use crate::sample_table::SampleTable;
+use crate::marker_table::MarkerTable;
+use crate::access_table::AccessTable;
+use crate::line_table::LineTable;
+use crate::animation_table::AnimationTable;
+use crate::wire_table::WireTable;
 use crate::shop_table::ShopTable;
 use crate::shop_entry_table::ShopEntryTable;
+use crate::craft_table::CraftTable;
 use crate::loot_table::LootTable;
+use crate::drop_table::DropTable;
 use crate::spawn_table::SpawnTable;
+use crate::deck_table::DeckTable;
+use crate::quest_table::QuestTable;
 use crate::stage_reward_table::StageRewardTable;
+use crate::server_tuning_table::ServerTuningTable;
+use crate::price_table::PriceTable;
+use crate::skill_table::SkillTable;
 
 /// The key the table files were sealed with, or unset when they were not sealed.
 ///
@@ -68,11 +81,24 @@ pub static VERIFY_MAC: AtomicBool = AtomicBool::new(true);
 #[derive(Clone, Debug, Default)]
 pub struct Tables {
     pub potion: PotionTable,
+    pub sample: SampleTable,
+    pub marker: MarkerTable,
+    pub access: AccessTable,
+    pub line: LineTable,
+    pub animation: AnimationTable,
+    pub wire: WireTable,
     pub shop: ShopTable,
     pub shop_entry: ShopEntryTable,
+    pub craft: CraftTable,
     pub loot: LootTable,
+    pub drop: DropTable,
     pub spawn: SpawnTable,
+    pub deck: DeckTable,
+    pub quest: QuestTable,
     pub stage_reward: StageRewardTable,
+    pub server_tuning: ServerTuningTable,
+    pub price: PriceTable,
+    pub skill: SkillTable,
 }
 
 impl Tables {
@@ -95,16 +121,42 @@ impl Tables {
 
         loaded.potion.read(
             &base_path.join(format!("Potion{}", file_extension)))?;
+        loaded.sample.read(
+            &base_path.join(format!("Sample{}", file_extension)))?;
+        loaded.marker.read(
+            &base_path.join(format!("Marker{}", file_extension)))?;
+        loaded.access.read(
+            &base_path.join(format!("Access{}", file_extension)))?;
+        loaded.line.read(
+            &base_path.join(format!("Line{}", file_extension)))?;
+        loaded.animation.read(
+            &base_path.join(format!("Animation{}", file_extension)))?;
+        loaded.wire.read(
+            &base_path.join(format!("Wire{}", file_extension)))?;
         loaded.shop.read(
             &base_path.join(format!("Shop{}", file_extension)))?;
         loaded.shop_entry.read(
             &base_path.join(format!("ShopEntry{}", file_extension)))?;
+        loaded.craft.read(
+            &base_path.join(format!("Craft{}", file_extension)))?;
         loaded.loot.read(
             &base_path.join(format!("Loot{}", file_extension)))?;
+        loaded.drop.read(
+            &base_path.join(format!("Drop{}", file_extension)))?;
         loaded.spawn.read(
             &base_path.join(format!("Spawn{}", file_extension)))?;
+        loaded.deck.read(
+            &base_path.join(format!("Deck{}", file_extension)))?;
+        loaded.quest.read(
+            &base_path.join(format!("Quest{}", file_extension)))?;
         loaded.stage_reward.read(
             &base_path.join(format!("StageReward{}", file_extension)))?;
+        loaded.server_tuning.read(
+            &base_path.join(format!("ServerTuning{}", file_extension)))?;
+        loaded.price.read(
+            &base_path.join(format!("Price{}", file_extension)))?;
+        loaded.skill.read(
+            &base_path.join(format!("Skill{}", file_extension)))?;
 
         *self = loaded;
 

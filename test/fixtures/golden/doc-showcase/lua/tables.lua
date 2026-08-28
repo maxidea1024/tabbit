@@ -8,11 +8,24 @@
 local _root = (...):match("^(.-)[^%.]*$")
 local tcb = require(_root .. "tabbit.tcb_reader")
 local PotionTable = require(_root .. "tables.potion_table")
+local SampleTable = require(_root .. "tables.sample_table")
+local MarkerTable = require(_root .. "tables.marker_table")
+local AccessTable = require(_root .. "tables.access_table")
+local LineTable = require(_root .. "tables.line_table")
+local AnimationTable = require(_root .. "tables.animation_table")
+local WireTable = require(_root .. "tables.wire_table")
 local ShopTable = require(_root .. "tables.shop_table")
 local ShopEntryTable = require(_root .. "tables.shop_entry_table")
+local CraftTable = require(_root .. "tables.craft_table")
 local LootTable = require(_root .. "tables.loot_table")
+local DropTable = require(_root .. "tables.drop_table")
 local SpawnTable = require(_root .. "tables.spawn_table")
+local DeckTable = require(_root .. "tables.deck_table")
+local QuestTable = require(_root .. "tables.quest_table")
 local StageRewardTable = require(_root .. "tables.stage_reward_table")
+local ServerTuningTable = require(_root .. "tables.server_tuning_table")
+local PriceTable = require(_root .. "tables.price_table")
+local SkillTable = require(_root .. "tables.skill_table")
 
 -- Every table, loaded together so cross-table references can be resolved.
 ---@class tables
@@ -37,16 +50,29 @@ tables.macKey = nil
 -- is not a security boundary.
 tables.verifyMac = true
 
-local instanceMeta = tcb.strictInstance("a `tables` accessor", tables, { "potion", "shop", "shopEntry", "loot", "spawn", "stageReward" })
+local instanceMeta = tcb.strictInstance("a `tables` accessor", tables, { "potion", "sample", "marker", "access", "line", "animation", "wire", "shop", "shopEntry", "craft", "loot", "drop", "spawn", "deck", "quest", "stageReward", "serverTuning", "price", "skill" })
 
 function tables.new()
   return setmetatable({
     potion = PotionTable.new(),
+    sample = SampleTable.new(),
+    marker = MarkerTable.new(),
+    access = AccessTable.new(),
+    line = LineTable.new(),
+    animation = AnimationTable.new(),
+    wire = WireTable.new(),
     shop = ShopTable.new(),
     shopEntry = ShopEntryTable.new(),
+    craft = CraftTable.new(),
     loot = LootTable.new(),
+    drop = DropTable.new(),
     spawn = SpawnTable.new(),
+    deck = DeckTable.new(),
+    quest = QuestTable.new(),
     stageReward = StageRewardTable.new(),
+    serverTuning = ServerTuningTable.new(),
+    price = PriceTable.new(),
+    skill = SkillTable.new(),
   }, instanceMeta)
 end
 
@@ -73,20 +99,59 @@ function tables:readAll(source, fileExtension)
   local loadedPotion = PotionTable.new()
   loadedPotion:readBytes(bytesOf(source, "Potion", fileExtension))
 
+  local loadedSample = SampleTable.new()
+  loadedSample:readBytes(bytesOf(source, "Sample", fileExtension))
+
+  local loadedMarker = MarkerTable.new()
+  loadedMarker:readBytes(bytesOf(source, "Marker", fileExtension))
+
+  local loadedAccess = AccessTable.new()
+  loadedAccess:readBytes(bytesOf(source, "Access", fileExtension))
+
+  local loadedLine = LineTable.new()
+  loadedLine:readBytes(bytesOf(source, "Line", fileExtension))
+
+  local loadedAnimation = AnimationTable.new()
+  loadedAnimation:readBytes(bytesOf(source, "Animation", fileExtension))
+
+  local loadedWire = WireTable.new()
+  loadedWire:readBytes(bytesOf(source, "Wire", fileExtension))
+
   local loadedShop = ShopTable.new()
   loadedShop:readBytes(bytesOf(source, "Shop", fileExtension))
 
   local loadedShopEntry = ShopEntryTable.new()
   loadedShopEntry:readBytes(bytesOf(source, "ShopEntry", fileExtension))
 
+  local loadedCraft = CraftTable.new()
+  loadedCraft:readBytes(bytesOf(source, "Craft", fileExtension))
+
   local loadedLoot = LootTable.new()
   loadedLoot:readBytes(bytesOf(source, "Loot", fileExtension))
+
+  local loadedDrop = DropTable.new()
+  loadedDrop:readBytes(bytesOf(source, "Drop", fileExtension))
 
   local loadedSpawn = SpawnTable.new()
   loadedSpawn:readBytes(bytesOf(source, "Spawn", fileExtension))
 
+  local loadedDeck = DeckTable.new()
+  loadedDeck:readBytes(bytesOf(source, "Deck", fileExtension))
+
+  local loadedQuest = QuestTable.new()
+  loadedQuest:readBytes(bytesOf(source, "Quest", fileExtension))
+
   local loadedStageReward = StageRewardTable.new()
   loadedStageReward:readBytes(bytesOf(source, "StageReward", fileExtension))
+
+  local loadedServerTuning = ServerTuningTable.new()
+  loadedServerTuning:readBytes(bytesOf(source, "ServerTuning", fileExtension))
+
+  local loadedPrice = PriceTable.new()
+  loadedPrice:readBytes(bytesOf(source, "Price", fileExtension))
+
+  local loadedSkill = SkillTable.new()
+  loadedSkill:readBytes(bytesOf(source, "Skill", fileExtension))
 
   -- Turns loadedShopEntry's stored keys into rows, now that every table is in
   -- memory.
@@ -107,13 +172,59 @@ function tables:readAll(source, fileExtension)
     end
   end
 
+  -- Turns loadedCraft's stored keys into rows, now that every table is in
+  -- memory.
+  for _, record in ipairs(loadedCraft.records) do
+    do
+      local target = loadedPotion:findByIndex(record.result)
+
+      if target ~= nil then
+        record.potionByResult = target
+      end
+    end
+    do
+      local target = loadedPotion:findByIndex(record.resultNameIndex)
+
+      if target ~= nil then
+        record.resultName = target.name
+      end
+    end
+    for position = 1, #record.parts do
+      local target = loadedPotion:findByIndex(record.parts[position])
+
+      if target ~= nil then
+        record.potionByParts[position] = target
+      end
+    end
+    do
+      local target = loadedPotion:findByIndex(record.substitute)
+
+      if target ~= nil then
+        record.potionBySubstitute = target
+      end
+    end
+  end
+
   -- Published, now that every table read and linked.
   self.potion = loadedPotion
+  self.sample = loadedSample
+  self.marker = loadedMarker
+  self.access = loadedAccess
+  self.line = loadedLine
+  self.animation = loadedAnimation
+  self.wire = loadedWire
   self.shop = loadedShop
   self.shopEntry = loadedShopEntry
+  self.craft = loadedCraft
   self.loot = loadedLoot
+  self.drop = loadedDrop
   self.spawn = loadedSpawn
+  self.deck = loadedDeck
+  self.quest = loadedQuest
   self.stageReward = loadedStageReward
+  self.serverTuning = loadedServerTuning
+  self.price = loadedPrice
+  self.skill = loadedSkill
 end
 
 return setmetatable(tables, tcb.strictType(

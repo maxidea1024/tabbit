@@ -117,11 +117,24 @@ namespace Tabbit.Fixtures.DocShowcase
         public sealed class Snapshot
         {
             public PotionTable Potion = new PotionTable();
+            public SampleTable Sample = new SampleTable();
+            public MarkerTable Marker = new MarkerTable();
+            public AccessTable Access = new AccessTable();
+            public LineTable Line = new LineTable();
+            public AnimationTable Animation = new AnimationTable();
+            public WireTable Wire = new WireTable();
             public ShopTable Shop = new ShopTable();
             public ShopEntryTable ShopEntry = new ShopEntryTable();
+            public CraftTable Craft = new CraftTable();
             public LootTable Loot = new LootTable();
+            public DropTable Drop = new DropTable();
             public SpawnTable Spawn = new SpawnTable();
+            public DeckTable Deck = new DeckTable();
+            public QuestTable Quest = new QuestTable();
             public StageRewardTable StageReward = new StageRewardTable();
+            public ServerTuningTable ServerTuning = new ServerTuningTable();
+            public PriceTable Price = new PriceTable();
+            public SkillTable Skill = new SkillTable();
         }
 
         /// <summary>
@@ -139,6 +152,36 @@ namespace Tabbit.Fixtures.DocShowcase
         public static PotionTable Potion => Current.Potion;
 
         /// <summary>
+        /// Property for Sample table.
+        /// </summary>
+        public static SampleTable Sample => Current.Sample;
+
+        /// <summary>
+        /// Property for Marker table.
+        /// </summary>
+        public static MarkerTable Marker => Current.Marker;
+
+        /// <summary>
+        /// Property for Access table.
+        /// </summary>
+        public static AccessTable Access => Current.Access;
+
+        /// <summary>
+        /// Property for Line table.
+        /// </summary>
+        public static LineTable Line => Current.Line;
+
+        /// <summary>
+        /// Property for Animation table.
+        /// </summary>
+        public static AnimationTable Animation => Current.Animation;
+
+        /// <summary>
+        /// Property for Wire table.
+        /// </summary>
+        public static WireTable Wire => Current.Wire;
+
+        /// <summary>
         /// Property for Shop table.
         /// </summary>
         public static ShopTable Shop => Current.Shop;
@@ -149,9 +192,19 @@ namespace Tabbit.Fixtures.DocShowcase
         public static ShopEntryTable ShopEntry => Current.ShopEntry;
 
         /// <summary>
+        /// Property for Craft table.
+        /// </summary>
+        public static CraftTable Craft => Current.Craft;
+
+        /// <summary>
         /// Property for Loot table.
         /// </summary>
         public static LootTable Loot => Current.Loot;
+
+        /// <summary>
+        /// Property for Drop table.
+        /// </summary>
+        public static DropTable Drop => Current.Drop;
 
         /// <summary>
         /// Property for Spawn table.
@@ -159,9 +212,34 @@ namespace Tabbit.Fixtures.DocShowcase
         public static SpawnTable Spawn => Current.Spawn;
 
         /// <summary>
+        /// Property for Deck table.
+        /// </summary>
+        public static DeckTable Deck => Current.Deck;
+
+        /// <summary>
+        /// Property for Quest table.
+        /// </summary>
+        public static QuestTable Quest => Current.Quest;
+
+        /// <summary>
         /// Property for StageReward table.
         /// </summary>
         public static StageRewardTable StageReward => Current.StageReward;
+
+        /// <summary>
+        /// Property for ServerTuning table.
+        /// </summary>
+        public static ServerTuningTable ServerTuning => Current.ServerTuning;
+
+        /// <summary>
+        /// Property for Price table.
+        /// </summary>
+        public static PriceTable Price => Current.Price;
+
+        /// <summary>
+        /// Property for Skill table.
+        /// </summary>
+        public static SkillTable Skill => Current.Skill;
 
         /// <summary>
         /// Reads every table and links them, and hands the result back without publishing it.
@@ -177,11 +255,24 @@ namespace Tabbit.Fixtures.DocShowcase
             var snapshot = new Snapshot();
             var tasks = new List<Task>();
             tasks.Add(snapshot.Potion.ReadAsync(System.IO.Path.Combine(basePath, $"Potion{fileExtension}")));
+            tasks.Add(snapshot.Sample.ReadAsync(System.IO.Path.Combine(basePath, $"Sample{fileExtension}")));
+            tasks.Add(snapshot.Marker.ReadAsync(System.IO.Path.Combine(basePath, $"Marker{fileExtension}")));
+            tasks.Add(snapshot.Access.ReadAsync(System.IO.Path.Combine(basePath, $"Access{fileExtension}")));
+            tasks.Add(snapshot.Line.ReadAsync(System.IO.Path.Combine(basePath, $"Line{fileExtension}")));
+            tasks.Add(snapshot.Animation.ReadAsync(System.IO.Path.Combine(basePath, $"Animation{fileExtension}")));
+            tasks.Add(snapshot.Wire.ReadAsync(System.IO.Path.Combine(basePath, $"Wire{fileExtension}")));
             tasks.Add(snapshot.Shop.ReadAsync(System.IO.Path.Combine(basePath, $"Shop{fileExtension}")));
             tasks.Add(snapshot.ShopEntry.ReadAsync(System.IO.Path.Combine(basePath, $"ShopEntry{fileExtension}")));
+            tasks.Add(snapshot.Craft.ReadAsync(System.IO.Path.Combine(basePath, $"Craft{fileExtension}")));
             tasks.Add(snapshot.Loot.ReadAsync(System.IO.Path.Combine(basePath, $"Loot{fileExtension}")));
+            tasks.Add(snapshot.Drop.ReadAsync(System.IO.Path.Combine(basePath, $"Drop{fileExtension}")));
             tasks.Add(snapshot.Spawn.ReadAsync(System.IO.Path.Combine(basePath, $"Spawn{fileExtension}")));
+            tasks.Add(snapshot.Deck.ReadAsync(System.IO.Path.Combine(basePath, $"Deck{fileExtension}")));
+            tasks.Add(snapshot.Quest.ReadAsync(System.IO.Path.Combine(basePath, $"Quest{fileExtension}")));
             tasks.Add(snapshot.StageReward.ReadAsync(System.IO.Path.Combine(basePath, $"StageReward{fileExtension}")));
+            tasks.Add(snapshot.ServerTuning.ReadAsync(System.IO.Path.Combine(basePath, $"ServerTuning{fileExtension}")));
+            tasks.Add(snapshot.Price.ReadAsync(System.IO.Path.Combine(basePath, $"Price{fileExtension}")));
+            tasks.Add(snapshot.Skill.ReadAsync(System.IO.Path.Combine(basePath, $"Skill{fileExtension}")));
 
             await Task.WhenAll(tasks);
 
@@ -234,6 +325,29 @@ namespace Tabbit.Fixtures.DocShowcase
                 if (record._potionId_Potion_index > 0)
                 {
                     record.SetReference_PotionId_INTERNAL(snapshot.Potion.GetByIndexOrThrow(record._potionId_Potion_index));
+                }
+            }
+
+            foreach (var record in snapshot.Craft.Records)
+            {
+                if (record._result_Potion_index > 0)
+                {
+                    record.SetReference_Result_INTERNAL(snapshot.Potion.GetByIndexOrThrow(record._result_Potion_index));
+                }
+                if (record._resultName_Potion_index > 0)
+                {
+                    record.SetReference_ResultName_INTERNAL(snapshot.Potion.GetByIndexOrThrow(record._resultName_Potion_index).Name);
+                }
+                for (int i = 0; i < record._parts_Potion_index.Length; i++)
+                {
+                    if (record._parts_Potion_index[i] > 0)
+                    {
+                        record.SetReference_Parts_INTERNAL(i, snapshot.Potion.GetByIndexOrThrow(record._parts_Potion_index[i]));
+                    }
+                }
+                if (record._substitute_Potion_index > 0)
+                {
+                    record.SetReference_Substitute_INTERNAL(snapshot.Potion.GetByIndexOrThrow(record._substitute_Potion_index));
                 }
             }
         }

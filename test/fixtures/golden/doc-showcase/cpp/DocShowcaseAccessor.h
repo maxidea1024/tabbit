@@ -12,22 +12,49 @@
 #include <string>
 
 #include "enums/DocShowcaseAccessor_enum_rarity.h"
+#include "enums/DocShowcaseAccessor_enum_element.h"
 #include "constants/DocShowcaseAccessor_const_balance.h"
 #include "tables/DocShowcaseAccessor_potion.h"
+#include "tables/DocShowcaseAccessor_sample.h"
+#include "tables/DocShowcaseAccessor_marker.h"
+#include "tables/DocShowcaseAccessor_access.h"
+#include "tables/DocShowcaseAccessor_line.h"
+#include "tables/DocShowcaseAccessor_animation.h"
+#include "tables/DocShowcaseAccessor_wire.h"
 #include "tables/DocShowcaseAccessor_shop.h"
 #include "tables/DocShowcaseAccessor_shop_entry.h"
+#include "tables/DocShowcaseAccessor_craft.h"
 #include "tables/DocShowcaseAccessor_loot.h"
+#include "tables/DocShowcaseAccessor_drop.h"
 #include "tables/DocShowcaseAccessor_spawn.h"
+#include "tables/DocShowcaseAccessor_deck.h"
+#include "tables/DocShowcaseAccessor_quest.h"
 #include "tables/DocShowcaseAccessor_stage_reward.h"
+#include "tables/DocShowcaseAccessor_server_tuning.h"
+#include "tables/DocShowcaseAccessor_price.h"
+#include "tables/DocShowcaseAccessor_skill.h"
 /// Every table, loaded together so cross-table references can be resolved.
 class DocShowcaseAccessor {
  public:
   const PotionTable& potion() const { return potion_; }
+  const SampleTable& sample() const { return sample_; }
+  const MarkerTable& marker() const { return marker_; }
+  const AccessTable& access() const { return access_; }
+  const LineTable& line() const { return line_; }
+  const AnimationTable& animation() const { return animation_; }
+  const WireTable& wire() const { return wire_; }
   const ShopTable& shop() const { return shop_; }
   const ShopEntryTable& shop_entry() const { return shop_entry_; }
+  const CraftTable& craft() const { return craft_; }
   const LootTable& loot() const { return loot_; }
+  const DropTable& drop() const { return drop_; }
   const SpawnTable& spawn() const { return spawn_; }
+  const DeckTable& deck() const { return deck_; }
+  const QuestTable& quest() const { return quest_; }
   const StageRewardTable& stage_reward() const { return stage_reward_; }
+  const ServerTuningTable& server_tuning() const { return server_tuning_; }
+  const PriceTable& price() const { return price_; }
+  const SkillTable& skill() const { return skill_; }
 
   /// Reads every table from `base_path`, then links the references between them.
   ///
@@ -37,25 +64,64 @@ class DocShowcaseAccessor {
   void read_all(const std::string& base_path, const std::string& file_extension = ".tcb") {
     PotionTable loaded_potion;
     loaded_potion.read(base_path + "/Potion" + file_extension);
+    SampleTable loaded_sample;
+    loaded_sample.read(base_path + "/Sample" + file_extension);
+    MarkerTable loaded_marker;
+    loaded_marker.read(base_path + "/Marker" + file_extension);
+    AccessTable loaded_access;
+    loaded_access.read(base_path + "/Access" + file_extension);
+    LineTable loaded_line;
+    loaded_line.read(base_path + "/Line" + file_extension);
+    AnimationTable loaded_animation;
+    loaded_animation.read(base_path + "/Animation" + file_extension);
+    WireTable loaded_wire;
+    loaded_wire.read(base_path + "/Wire" + file_extension);
     ShopTable loaded_shop;
     loaded_shop.read(base_path + "/Shop" + file_extension);
     ShopEntryTable loaded_shop_entry;
     loaded_shop_entry.read(base_path + "/ShopEntry" + file_extension);
+    CraftTable loaded_craft;
+    loaded_craft.read(base_path + "/Craft" + file_extension);
     LootTable loaded_loot;
     loaded_loot.read(base_path + "/Loot" + file_extension);
+    DropTable loaded_drop;
+    loaded_drop.read(base_path + "/Drop" + file_extension);
     SpawnTable loaded_spawn;
     loaded_spawn.read(base_path + "/Spawn" + file_extension);
+    DeckTable loaded_deck;
+    loaded_deck.read(base_path + "/Deck" + file_extension);
+    QuestTable loaded_quest;
+    loaded_quest.read(base_path + "/Quest" + file_extension);
     StageRewardTable loaded_stage_reward;
     loaded_stage_reward.read(base_path + "/StageReward" + file_extension);
+    ServerTuningTable loaded_server_tuning;
+    loaded_server_tuning.read(base_path + "/ServerTuning" + file_extension);
+    PriceTable loaded_price;
+    loaded_price.read(base_path + "/Price" + file_extension);
+    SkillTable loaded_skill;
+    loaded_skill.read(base_path + "/Skill" + file_extension);
 
-    solve_cross_references(loaded_potion, loaded_shop, loaded_shop_entry, loaded_loot, loaded_spawn, loaded_stage_reward);
+    solve_cross_references(loaded_potion, loaded_sample, loaded_marker, loaded_access, loaded_line, loaded_animation, loaded_wire, loaded_shop, loaded_shop_entry, loaded_craft, loaded_loot, loaded_drop, loaded_spawn, loaded_deck, loaded_quest, loaded_stage_reward, loaded_server_tuning, loaded_price, loaded_skill);
 
     potion_ = std::move(loaded_potion);
+    sample_ = std::move(loaded_sample);
+    marker_ = std::move(loaded_marker);
+    access_ = std::move(loaded_access);
+    line_ = std::move(loaded_line);
+    animation_ = std::move(loaded_animation);
+    wire_ = std::move(loaded_wire);
     shop_ = std::move(loaded_shop);
     shop_entry_ = std::move(loaded_shop_entry);
+    craft_ = std::move(loaded_craft);
     loot_ = std::move(loaded_loot);
+    drop_ = std::move(loaded_drop);
     spawn_ = std::move(loaded_spawn);
+    deck_ = std::move(loaded_deck);
+    quest_ = std::move(loaded_quest);
     stage_reward_ = std::move(loaded_stage_reward);
+    server_tuning_ = std::move(loaded_server_tuning);
+    price_ = std::move(loaded_price);
+    skill_ = std::move(loaded_skill);
   }
 
  private:
@@ -67,7 +133,7 @@ class DocShowcaseAccessor {
   /// compiler: the gate builds with `-Wextra -Werror`, and a model where nothing
   /// references anything - which is most of them - otherwise fails to compile on the
   /// unused parameters.
-  void solve_cross_references([[maybe_unused]] PotionTable& loaded_potion, [[maybe_unused]] ShopTable& loaded_shop, [[maybe_unused]] ShopEntryTable& loaded_shop_entry, [[maybe_unused]] LootTable& loaded_loot, [[maybe_unused]] SpawnTable& loaded_spawn, [[maybe_unused]] StageRewardTable& loaded_stage_reward) {
+  void solve_cross_references([[maybe_unused]] PotionTable& loaded_potion, [[maybe_unused]] SampleTable& loaded_sample, [[maybe_unused]] MarkerTable& loaded_marker, [[maybe_unused]] AccessTable& loaded_access, [[maybe_unused]] LineTable& loaded_line, [[maybe_unused]] AnimationTable& loaded_animation, [[maybe_unused]] WireTable& loaded_wire, [[maybe_unused]] ShopTable& loaded_shop, [[maybe_unused]] ShopEntryTable& loaded_shop_entry, [[maybe_unused]] CraftTable& loaded_craft, [[maybe_unused]] LootTable& loaded_loot, [[maybe_unused]] DropTable& loaded_drop, [[maybe_unused]] SpawnTable& loaded_spawn, [[maybe_unused]] DeckTable& loaded_deck, [[maybe_unused]] QuestTable& loaded_quest, [[maybe_unused]] StageRewardTable& loaded_stage_reward, [[maybe_unused]] ServerTuningTable& loaded_server_tuning, [[maybe_unused]] PriceTable& loaded_price, [[maybe_unused]] SkillTable& loaded_skill) {
     for (auto& record : loaded_shop_entry.records_) {
       {
         const auto* target = loaded_shop.find_by_index(record.shop_id);
@@ -78,14 +144,46 @@ class DocShowcaseAccessor {
         if (target != nullptr) record.potion_by_potion_id = target;
       }
     }
+    for (auto& record : loaded_craft.records_) {
+      {
+        const auto* target = loaded_potion.find_by_index(record.result);
+        if (target != nullptr) record.potion_by_result = target;
+      }
+      {
+        const auto* target = loaded_potion.find_by_index(record.result_name_index);
+        if (target != nullptr) record.result_name = target->name;
+      }
+      record.potion_by_parts.resize(record.parts.size(), nullptr);
+      for (std::size_t i = 0; i < record.parts.size(); ++i) {
+        const auto* target = loaded_potion.find_by_index(record.parts[i]);
+        if (target != nullptr) record.potion_by_parts[i] = target;
+      }
+      {
+        const auto* target = loaded_potion.find_by_index(record.substitute);
+        if (target != nullptr) record.potion_by_substitute = target;
+      }
+    }
   }
 
   PotionTable potion_;
+  SampleTable sample_;
+  MarkerTable marker_;
+  AccessTable access_;
+  LineTable line_;
+  AnimationTable animation_;
+  WireTable wire_;
   ShopTable shop_;
   ShopEntryTable shop_entry_;
+  CraftTable craft_;
   LootTable loot_;
+  DropTable drop_;
   SpawnTable spawn_;
+  DeckTable deck_;
+  QuestTable quest_;
   StageRewardTable stage_reward_;
+  ServerTuningTable server_tuning_;
+  PriceTable price_;
+  SkillTable skill_;
 };
 
 #endif  // TABBIT_GENERATED_DOCSHOWCASEACCESSOR_H

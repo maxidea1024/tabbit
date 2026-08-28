@@ -1,0 +1,61 @@
+{
+  "source": "test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx",
+  "sheet": "Types",
+  "kind": "table",
+  "name": "Line",
+  "declaration": ":table Line",
+  "origin": {
+    "row": 1,
+    "column": 23
+  },
+  "rows": [
+    [
+      ":table Line",
+      "Strings that are for something.",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "index",
+      "Body",
+      "Icon"
+    ],
+    [
+      ":type",
+      "int",
+      "string (text)",
+      "string (asset=icon)"
+    ],
+    [
+      ":desc",
+      "primary index",
+      "shown to a player",
+      "names a file"
+    ],
+    [
+      ":target",
+      "cs",
+      "cs",
+      "cs"
+    ],
+    [
+      "",
+      "1",
+      "You feel better.",
+      "Icon_Sword"
+    ],
+    [
+      "",
+      "2",
+      "Nothing happens.",
+      "Icon_Shield"
+    ],
+    [
+      "",
+      "3",
+      "The bottle is empty.",
+      "Icon_Sword"
+    ]
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "source": "test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx",
+  "sheet": "Skill",
+  "kind": "table",
+  "name": "Skill",
+  "declaration": ":table Skill",
+  "origin": {
+    "row": 1,
+    "column": 1
+  },
+  "rows": [
+    [
+      ":table Skill",
+      "Every variant's members side by side; a row fills its own.",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "index",
+      "Name",
+      "Effect.$type",
+      "Effect.Chance",
+      "Effect.Damage",
+      "Effect.Amount"
+    ],
+    [
+      ":type",
+      "int",
+      "string",
+      "Effect",
+      "",
+      "",
+      ""
+    ],
+    [
+      ":desc",
+      "primary index",
+      "display name",
+      "which shape",
+      "",
+      "",
+      ""
+    ],
+    [
+      ":target",
+      "cs",
+      "cs",
+      "cs",
+      "cs",
+      "cs",
+      "cs"
+    ],
+    [
+      "",
+      "1",
+      "Slash",
+      "DamageEffect",
+      "30",
+      "50",
+      ""
+    ],
+    [
+      "",
+      "2",
+      "Mend",
+      "HealEffect",
+      "100",
+      "",
+      "20"
+    ],
+    [
+      "",
+      "3",
+      "Feint",
+      "NoEffect",
+      "10",
+      "",
+      ""
+    ]
+  ]
+}

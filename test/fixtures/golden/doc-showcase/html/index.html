@@ -596,18 +596,18 @@ tbody [data-pick] { cursor: pointer; }
 <div class="page">
 <main>
 <h1>데이터 정의</h1>
-<p class="lead">테이블 6개 · 행 18개 · 컬럼 20개 · 워크북 1개</p>
-<p class="hint">컬럼은 페이지가 그리는 단위입니다 — 접힌 배열과 레코드는 컬럼 하나입니다. 시트의 칸으로는 22개입니다.</p>
+<p class="lead">테이블 19개 · 행 57개 · 컬럼 68개 · 워크북 1개</p>
+<p class="hint">컬럼은 페이지가 그리는 단위입니다 — 접힌 배열과 레코드는 컬럼 하나입니다. 시트의 칸으로는 88개입니다.</p>
 
 <div class="cards">
-<a class="card" href="tables.html"><div class="n">6</div><div class="k"><svg class="i"><use href="#i-table"></use></svg>테이블</div></a>
-<div class="card"><div class="n">18</div><div class="k">행</div></div>
-<a class="card" href="fields.html"><div class="n">20</div><div class="k"><svg class="i"><use href="#i-column"></use></svg>컬럼</div></a>
-<div class="card"><div class="n">66</div><div class="k">셀</div></div>
-<a class="card" href="enums.html"><div class="n">1</div><div class="k"><svg class="i"><use href="#i-enum"></use></svg>enum</div></a>
-<div class="card"><div class="n">4</div><div class="k">enum 레이블</div></div>
-<a class="card" href="structs.html"><div class="n">0</div><div class="k"><svg class="i"><use href="#i-struct"></use></svg>구조체</div></a>
-<div class="card"><div class="n">0</div><div class="k">구조체 변종</div></div>
+<a class="card" href="tables.html"><div class="n">19</div><div class="k"><svg class="i"><use href="#i-table"></use></svg>테이블</div></a>
+<div class="card"><div class="n">57</div><div class="k">행</div></div>
+<a class="card" href="fields.html"><div class="n">68</div><div class="k"><svg class="i"><use href="#i-column"></use></svg>컬럼</div></a>
+<div class="card"><div class="n">264</div><div class="k">셀</div></div>
+<a class="card" href="enums.html"><div class="n">2</div><div class="k"><svg class="i"><use href="#i-enum"></use></svg>enum</div></a>
+<div class="card"><div class="n">7</div><div class="k">enum 레이블</div></div>
+<a class="card" href="structs.html"><div class="n">1</div><div class="k"><svg class="i"><use href="#i-struct"></use></svg>구조체</div></a>
+<div class="card"><div class="n">3</div><div class="k">구조체 변종</div></div>
 <a class="card" href="constantsets.html"><div class="n">1</div><div class="k"><svg class="i"><use href="#i-const"></use></svg>상수 세트</div></a>
 <div class="card"><div class="n">2</div><div class="k">상수</div></div>
 </div>
@@ -618,46 +618,65 @@ tbody [data-pick] { cursor: pointer; }
 <div>
 <h3>타입별</h3>
 <div class="dist">
-<span class="k">int</span><span class="track"><div style="width: 100%"></div></span><span class="v">11</span>
-<span class="k">string</span><span class="track"><div style="width: 36%"></div></span><span class="v">4</span>
-<span class="k">float</span><span class="track"><div style="width: 27%"></div></span><span class="v">3</span>
-<span class="k">Rarity</span><span class="track"><div style="width: 18%"></div></span><span class="v">2</span>
-<span class="k">Potion.Record</span><span class="track"><div style="width: 9%"></div></span><span class="v">1</span>
-<span class="k">Shop.Record</span><span class="track"><div style="width: 9%"></div></span><span class="v">1</span>
+<span class="k">int</span><span class="track"><div style="width: 100%"></div></span><span class="v">39</span>
+<span class="k">string</span><span class="track"><div style="width: 36%"></div></span><span class="v">14</span>
+<span class="k">float</span><span class="track"><div style="width: 21%"></div></span><span class="v">8</span>
+<span class="k">Potion.Record</span><span class="track"><div style="width: 10%"></div></span><span class="v">4</span>
+<span class="k">color32</span><span class="track"><div style="width: 10%"></div></span><span class="v">4</span>
+<span class="k">Rarity</span><span class="track"><div style="width: 8%"></div></span><span class="v">3</span>
+<span class="k">vec3f</span><span class="track"><div style="width: 8%"></div></span><span class="v">3</span>
+<span class="k">bigint</span><span class="track"><div style="width: 5%"></div></span><span class="v">2</span>
+<span class="k">vec2i</span><span class="track"><div style="width: 5%"></div></span><span class="v">2</span>
+<span class="k">Shop.Record</span><span class="track"><div style="width: 3%"></div></span><span class="v">1</span>
+<span class="k">asset</span><span class="track"><div style="width: 3%"></div></span><span class="v">1</span>
+<span class="k">bitset</span><span class="track"><div style="width: 3%"></div></span><span class="v">1</span>
+<span class="k">bool</span><span class="track"><div style="width: 3%"></div></span><span class="v">1</span>
+<span class="k">datetime</span><span class="track"><div style="width: 3%"></div></span><span class="v">1</span>
+<span class="k">double</span><span class="track"><div style="width: 3%"></div></span><span class="v">1</span>
+<span class="k">text</span><span class="track"><div style="width: 3%"></div></span><span class="v">1</span>
+<span class="k">timespan</span><span class="track"><div style="width: 3%"></div></span><span class="v">1</span>
+<span class="k">uuid</span><span class="track"><div style="width: 3%"></div></span><span class="v">1</span>
 </div>
 </div>
 <div>
 <h3>역할별</h3>
 <div class="dist">
-<span class="k">그 밖</span><span class="track"><div style="width: 100%"></div></span><span class="v">16</span>
-<span class="k">레코드 멤버</span><span class="track"><div style="width: 12%"></div></span><span class="v">2</span>
-<span class="k">참조</span><span class="track"><div style="width: 12%"></div></span><span class="v">2</span>
-<span class="k">배열</span><span class="track"><div style="width: 6%"></div></span><span class="v">1</span>
-<span class="k">옵셔널</span><span class="track"><div style="width: 6%"></div></span><span class="v">1</span>
+<span class="k">그 밖</span><span class="track"><div style="width: 100%"></div></span><span class="v">49</span>
+<span class="k">레코드 멤버</span><span class="track"><div style="width: 55%"></div></span><span class="v">27</span>
+<span class="k">옵셔널</span><span class="track"><div style="width: 20%"></div></span><span class="v">10</span>
+<span class="k">참조</span><span class="track"><div style="width: 12%"></div></span><span class="v">6</span>
+<span class="k">배열</span><span class="track"><div style="width: 8%"></div></span><span class="v">4</span>
+<span class="k">구조체 멤버</span><span class="track"><div style="width: 6%"></div></span><span class="v">3</span>
+<span class="k">번역 문자열</span><span class="track"><div style="width: 2%"></div></span><span class="v">1</span>
+<span class="k">애셋 경로</span><span class="track"><div style="width: 2%"></div></span><span class="v">1</span>
 </div>
 </div>
 <div>
 <h3>측별</h3>
 <div class="dist">
-<span class="k">양쪽</span><span class="track"><div style="width: 100%"></div></span><span class="v">21</span>
-<span class="k">서버 전용</span><span class="track"><div style="width: 5%"></div></span><span class="v">1</span>
+<span class="k">양쪽</span><span class="track"><div style="width: 100%"></div></span><span class="v">87</span>
+<span class="k">서버 전용</span><span class="track"><div style="width: 2%"></div></span><span class="v">1</span>
 </div>
 </div>
 </div>
 
 <h2><svg class="i"><use href="#i-table"></use></svg>큰 테이블</h2>
 <div class="dist">
+<span class="k"><svg class="i"><use href="#i-table"></use></svg><a href="tables/access.html">Access</a></span><span class="track"><div style="width: 100%"></div></span><span class="v">3</span>
+<span class="k"><svg class="i"><use href="#i-table"></use></svg><a href="tables/animation.html">Animation</a></span><span class="track"><div style="width: 100%"></div></span><span class="v">3</span>
+<span class="k"><svg class="i"><use href="#i-table"></use></svg><a href="tables/craft.html">Craft</a></span><span class="track"><div style="width: 100%"></div></span><span class="v">3</span>
+<span class="k"><svg class="i"><use href="#i-table"></use></svg><a href="tables/deck.html">Deck</a></span><span class="track"><div style="width: 100%"></div></span><span class="v">3</span>
+<span class="k"><svg class="i"><use href="#i-table"></use></svg><a href="tables/drop.html">Drop</a></span><span class="track"><div style="width: 100%"></div></span><span class="v">3</span>
+<span class="k"><svg class="i"><use href="#i-table"></use></svg><a href="tables/line.html">Line</a></span><span class="track"><div style="width: 100%"></div></span><span class="v">3</span>
 <span class="k"><svg class="i"><use href="#i-table"></use></svg><a href="tables/loot.html">Loot</a></span><span class="track"><div style="width: 100%"></div></span><span class="v">3</span>
+<span class="k"><svg class="i"><use href="#i-table"></use></svg><a href="tables/marker.html">Marker</a></span><span class="track"><div style="width: 100%"></div></span><span class="v">3</span>
 <span class="k"><svg class="i"><use href="#i-table"></use></svg><a href="tables/potion.html">Potion</a></span><span class="track"><div style="width: 100%"></div></span><span class="v">3</span>
-<span class="k"><svg class="i"><use href="#i-table"></use></svg><a href="tables/shop.html">Shop</a></span><span class="track"><div style="width: 100%"></div></span><span class="v">3</span>
-<span class="k"><svg class="i"><use href="#i-table"></use></svg><a href="tables/shop-entry.html">ShopEntry</a></span><span class="track"><div style="width: 100%"></div></span><span class="v">3</span>
-<span class="k"><svg class="i"><use href="#i-table"></use></svg><a href="tables/spawn.html">Spawn</a></span><span class="track"><div style="width: 100%"></div></span><span class="v">3</span>
-<span class="k"><svg class="i"><use href="#i-table"></use></svg><a href="tables/stage-reward.html">StageReward</a></span><span class="track"><div style="width: 100%"></div></span><span class="v">3</span>
+<span class="k"><svg class="i"><use href="#i-table"></use></svg><a href="tables/price.html">Price</a></span><span class="track"><div style="width: 100%"></div></span><span class="v">3</span>
 </div>
 
 <h2 id="source-sheets"><svg class="i"><use href="#i-workbook"></use></svg>원본 워크북<span class="count">1</span></h2>
 <ul class="entities">
-<li><svg class="i"><use href="#i-workbook"></use></svg>test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx <span class="n-of">테이블 6개</span></li>
+<li><svg class="i"><use href="#i-workbook"></use></svg>test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx <span class="n-of">테이블 19개</span></li>
 </ul>
 </main>
 </div>

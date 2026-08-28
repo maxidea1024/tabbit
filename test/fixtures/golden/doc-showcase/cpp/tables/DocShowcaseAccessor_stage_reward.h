@@ -17,7 +17,7 @@
 #include "tabbit/tcb_reader.h"
 #include "DocShowcaseAccessor_forward.h"
 #include "enums/DocShowcaseAccessor_enum_rarity.h"
-// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : StageReward : B2
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Sides : B2
 /// Neither key column is unique alone.
 struct StageRewardRecord {
   /// which stage

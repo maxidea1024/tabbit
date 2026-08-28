@@ -8,7 +8,7 @@
 local _root = (...):match("^(.-)[^%.]+%.[^%.]+$")
 local tcb = require(_root .. "tabbit.tcb_reader")
 
--- Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2.
+-- Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2.
 -- Values with no rows.
 ---@class Balance
 local Balance = {

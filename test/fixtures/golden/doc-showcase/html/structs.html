@@ -595,16 +595,37 @@ tbody [data-pick] { cursor: pointer; }
 <span>구조체</span>
 </p>
 <div class="page">
+<aside>
+<div class="side-head"><svg class="i"><use href="#i-struct"></use></svg>구조체</div>
+<input type="search" data-filter="side" placeholder="이름 필터">
+<ul class="side-list">
+<li><a href="structs/effect.html#struct_Effect"><svg class="i"><use href="#i-struct"></use></svg>Effect</a></li>
+</ul>
+</aside>
 <main class="fill">
 <h1>구조체</h1>
-<p class="lead">구조체 0개 · 변종 0개</p>
+<p class="lead">구조체 1개 · 변종 3개</p>
 <div data-table>
 <div class="tools">
 <input type="search" data-filter="rows" placeholder="구조체 필터">
-<span class="hint" data-shown>0행 중 0행</span>
+<span class="hint" data-shown>1행 중 1행</span>
 <span class="hint">제목을 누르면 정렬됩니다.</span>
 </div>
-<p class="none">선언된 것이 없습니다.</p>
+<div class="scroll">
+<table data-sortable>
+<thead>
+<tr class="names">
+<th class="sorted"><svg class="i"><use href="#i-struct"></use></svg>구조체</th><th title="모든 변종이 가지는 멤버">공통 멤버</th><th>변종</th><th title="이 타입으로 선언된 컬럼 그룹의 수">사용 그룹</th><th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr><td><a href="structs/effect.html#struct_Effect"><svg class="i"><use href="#i-struct"></use></svg>Effect</a></td><td class="num">1</td><td class="num">3</td><td class="num">1</td><td>Something a skill does to whoever it lands on.
+
+Abstract: a row says which kind it is in its <code>$type</code> cell, and the columns of the group are
+every variant&#39;s members side by side.</td></tr>
+</tbody>
+</table>
+</div>
 </div>
 </main>
 </div>

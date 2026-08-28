@@ -1,0 +1,17 @@
+[
+  {
+    "index": 1,
+    "knob": "drop_rate",
+    "value": 0.25
+  },
+  {
+    "index": 2,
+    "knob": "gold_rate",
+    "value": 1.5
+  },
+  {
+    "index": 3,
+    "knob": "spawn_rate",
+    "value": 0.8
+  }
+]

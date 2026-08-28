@@ -2,12 +2,14 @@
 
 <!-- 이 파일은 `doc/figures/showcase.py` 가 생성합니다. 손으로 고치지 마십시오 - 다음 실행이 덮어씁니다. -->
 
-> [생성되는 코드로](../generated-code.md)
+> [시트가 코드가 되는 모습으로](../generated-code.md)
 
 ---
 
-행이 아니라 이름과 타입과 값의 목록입니다. 한 줄짜리 설정값들이 테이블 흉내를
-내지 않아도 되는 자리입니다.
+행이 아니라 이름과 타입과 값의 목록입니다. 한 줄짜리 설정값들이 테이블
+흉내를 내지 않아도 되는 자리입니다.
+
+`:field` 줄 하나에 `name` · `type` · `value` · `desc` 입니다.
 
 <!-- tabbit:pair -->
 
@@ -20,7 +22,7 @@
 ```csharp
 namespace Tabbit.Fixtures.DocShowcase
 {
-    // Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2
+    // Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2
     /// <summary>
     /// Values with no rows.
     /// </summary>
@@ -75,7 +77,7 @@ export class Balance {
 #define TABBIT_GENERATED_DOCSHOWCASEACCESSOR_CONST_BALANCE_H
 
 #include <cstdint>
-// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2
 /// Values with no rows.
 struct Balance {
   /// stack limit
@@ -101,7 +103,7 @@ from . import tabbit
 
 
 class Balance:
-    """Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2.
+    """Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2.
 
     Values with no rows.
     """
@@ -129,7 +131,7 @@ class Balance:
 #ifndef DOC_SHOWCASE_CONST_BALANCE_H
 #define DOC_SHOWCASE_CONST_BALANCE_H
 
-/* Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2
+/* Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2
  *
  * Values with no rows.
  */
@@ -149,7 +151,7 @@ class Balance:
 
 ```dart
 part of '../tables.dart';
-// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2
 /// Values with no rows.
 class Balance {
   Balance._();
@@ -169,7 +171,7 @@ class Balance {
 ```go
 package docshowcase
 
-// Balance was generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2.
+// Balance was generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2.
 // Values with no rows.
 var Balance = struct {
 	MaxStack   int32
@@ -191,7 +193,7 @@ var Balance = struct {
 ```java
 package tabbit.fixtures.docshowcase;
 
-// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2
 /** Values with no rows. */
 public final class Balance {
     private Balance() {
@@ -240,7 +242,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2
 /** Values with no rows. */
 object Balance {
     /** stack limit */
@@ -260,7 +262,7 @@ object Balance {
 local _root = (...):match("^(.-)[^%.]+%.[^%.]+$")
 local tcb = require(_root .. "tabbit.tcb_reader")
 
--- Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2.
+-- Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2.
 -- Values with no rows.
 ---@class Balance
 local Balance = {
@@ -299,7 +301,7 @@ use Tabbit\RecordNotFoundException;
 use Tabbit\Uuid;
 
 /**
- * Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2
+ * Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2
  *
  * Values with no rows.
  */
@@ -320,7 +322,7 @@ final class Balance
 
 ```ruby
 module DocShowcase
-  # Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2
+  # Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2
   # Values with no rows.
   module Balance
     # stack limit
@@ -352,7 +354,7 @@ pub const REFUND_RATE: f32 = 0.5;
 ```swift
 import Foundation
 
-// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2
 /// Values with no rows.
 public enum Balance {
     /// stack limit
@@ -369,7 +371,7 @@ public enum Balance {
 <summary>Unreal</summary>
 
 ```cpp
-/* Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2 */
+/* Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2 */
 /** Values with no rows. */
 struct FBalance
 {
@@ -387,8 +389,8 @@ struct FBalance
 
 <!-- /tabbit:pair -->
 
-**상수셋은 데이터 파일에 흔적이 전혀 없습니다.** 값을 고쳐도 코드를 다시
-배포하기 전에는 아무것도 달라지지 않습니다 —
+**상수셋은 데이터 파일에 흔적이 전혀 없습니다.** 값을 고쳐도 코드를
+다시 배포하기 전에는 아무것도 달라지지 않습니다 —
 [엔티티에 따라 갈리는 배포 경로](../concepts.md#엔티티에-따라-갈리는-배포-경로).
 
 언어마다 내는 것이 다릅니다. 클래스의 정적 멤버로 내는 언어가 있고, 모듈 상수로 내는 언어가

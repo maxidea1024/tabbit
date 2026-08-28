@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="789" height="294" viewBox="0 0 789 294" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>테이블 Quest</title>
+<rect x="0" y="0" width="529.6875" height="286" fill="#FFFFFF"/>
+<rect x="0" y="0" width="528.6875" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="286" fill="#E9ECEF"/>
+<rect x="30" y="22" width="498.6875" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="498.6875" height="24" fill="#F1F6FB"/>
+<rect x="30" y="70" width="498.6875" height="24" fill="#F1F6FB"/>
+<rect x="30" y="94" width="498.6875" height="24" fill="#F1F6FB"/>
+<rect x="30" y="118" width="498.6875" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="286" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="127.0625" y1="22" x2="127.0625" y2="286" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="231.4375" y1="22" x2="231.4375" y2="286" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="328.5" y1="22" x2="328.5" y2="286" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="416.6875" y1="22" x2="416.6875" y2="286" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="528.6875" y1="22" x2="528.6875" y2="286" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="528.6875" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="528.6875" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="528.6875" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="528.6875" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="528.6875" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="528.6875" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="166" x2="528.6875" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="190" x2="528.6875" y2="190" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="214" x2="528.6875" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="238" x2="528.6875" y2="238" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="262" x2="528.6875" y2="262" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="286" x2="528.6875" y2="286" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="528.6875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="286" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="127.0625" y1="0" x2="127.0625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="231.4375" y1="0" x2="231.4375" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="328.5" y1="0" x2="328.5" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="416.6875" y1="0" x2="416.6875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="528.6875" y1="0" x2="528.6875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="166" x2="30" y2="166" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="190" x2="30" y2="190" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="214" x2="30" y2="214" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="238" x2="30" y2="238" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="262" x2="30" y2="262" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="286" x2="30" y2="286" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="528.1875" height="285.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="78.5" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="179.2" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="280.0" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="372.6" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="472.7" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">E</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="15.0" y="157.8" font-size="10.5" fill="#5B6570" text-anchor="middle">6</text>
+<text x="15.0" y="181.8" font-size="10.5" fill="#5B6570" text-anchor="middle">7</text>
+<text x="15.0" y="205.8" font-size="10.5" fill="#5B6570" text-anchor="middle">8</text>
+<text x="15.0" y="229.8" font-size="10.5" fill="#5B6570" text-anchor="middle">9</text>
+<text x="15.0" y="253.8" font-size="10.5" fill="#5B6570" text-anchor="middle">10</text>
+<text x="15.0" y="277.8" font-size="10.5" fill="#5B6570" text-anchor="middle">11</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:table Quest</text>
+<text x="134.0625" y="38.5" font-size="12.5" fill="#1F2328">One record over several rows, as many as it has rewards.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="134.0625" y="62.5" font-size="12.5" fill="#1F2328">index</text>
+<text x="238.4375" y="62.5" font-size="12.5" fill="#1F2328">Name</text>
+<text x="335.5" y="62.5" font-size="12.5" fill="#1F2328">reward[].id</text>
+<text x="423.6875" y="62.5" font-size="12.5" fill="#1F2328">reward[].count</text>
+<text x="37" y="86.5" font-size="12.5" fill="#1A5FA8">:type</text>
+<text x="134.0625" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="238.4375" y="86.5" font-size="12.5" fill="#1F2328">string</text>
+<text x="335.5" y="86.5" font-size="12.5" fill="#1F2328">int?</text>
+<text x="423.6875" y="86.5" font-size="12.5" fill="#1F2328">int?</text>
+<text x="37" y="110.5" font-size="12.5" fill="#1A5FA8">:desc</text>
+<text x="134.0625" y="110.5" font-size="12.5" fill="#1F2328">primary index</text>
+<text x="238.4375" y="110.5" font-size="12.5" fill="#1F2328">display name</text>
+<text x="335.5" y="110.5" font-size="12.5" fill="#1F2328">an element</text>
+<text x="423.6875" y="110.5" font-size="12.5" fill="#1F2328">an element</text>
+<text x="37" y="134.5" font-size="12.5" fill="#1A5FA8">:target</text>
+<text x="134.0625" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="238.4375" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="335.5" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="423.6875" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="134.0625" y="158.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="238.4375" y="158.5" font-size="12.5" fill="#1F2328">Gather</text>
+<text x="335.5" y="158.5" font-size="12.5" fill="#1F2328">10</text>
+<text x="423.6875" y="158.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="335.5" y="182.5" font-size="12.5" fill="#1F2328">11</text>
+<text x="423.6875" y="182.5" font-size="12.5" fill="#1F2328">2</text>
+<text x="134.0625" y="206.5" font-size="12.5" fill="#1F2328">2</text>
+<text x="238.4375" y="206.5" font-size="12.5" fill="#1F2328">Deliver</text>
+<text x="335.5" y="206.5" font-size="12.5" fill="#1F2328">20</text>
+<text x="423.6875" y="206.5" font-size="12.5" fill="#1F2328">5</text>
+<text x="134.0625" y="230.5" font-size="12.5" fill="#1F2328">3</text>
+<text x="238.4375" y="230.5" font-size="12.5" fill="#1F2328">Explore</text>
+<text x="335.5" y="230.5" font-size="12.5" fill="#1F2328">30</text>
+<text x="423.6875" y="230.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="335.5" y="254.5" font-size="12.5" fill="#1F2328">31</text>
+<text x="423.6875" y="254.5" font-size="12.5" fill="#1F2328">2</text>
+<text x="335.5" y="278.5" font-size="12.5" fill="#1F2328">32</text>
+<text x="423.6875" y="278.5" font-size="12.5" fill="#1F2328">3</text>
+<text x="538.6875" y="62.0" font-size="11" fill="#8A929B" font-style="italic">◀ 이름의 []가 「아래로 쌓는다」는 표시</text>
+<text x="538.6875" y="158.0" font-size="11" fill="#8A929B" font-style="italic">◀ 기본 인덱스에 값이 있으면 새 레코드</text>
+<text x="538.6875" y="182.0" font-size="11" fill="#8A929B" font-style="italic">◀ 비어 있으면 위 레코드의 연장 행</text>
+</svg>

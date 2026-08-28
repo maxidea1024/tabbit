@@ -35,7 +35,7 @@ import tabbit.ELEMENT_UUID
 import tabbit.KIND_SCALAR
 import tabbit.KIND_ARRAY
 
-// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2
 /** Values with no rows. */
 object Balance {
     /** stack limit */

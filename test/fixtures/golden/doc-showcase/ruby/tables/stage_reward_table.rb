@@ -7,9 +7,11 @@
 
 require_relative '../tabbit/tcb_reader'
 
+require_relative '../structs/effect'
+
 
 module DocShowcase
-  # Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : StageReward : B2
+  # Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Sides : B2
   # Neither key column is unique alone.
   class StageRewardRecord
     attr_accessor :stage, :rank, :gold, :drop_table

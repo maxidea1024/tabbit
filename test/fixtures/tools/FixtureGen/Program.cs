@@ -4164,17 +4164,24 @@ internal static class Program
     /// </summary>
     /// <remarks>
     /// Its reason for existing is not coverage - every shape here is already pinned by a
-    /// scenario of its own. It is that the docs may show a whole generated file rather than
-    /// an excerpt somebody keeps in step by hand, and a whole file is only readable when the
-    /// table it came from is small. So every table here is three or four columns and three
-    /// rows, and each one answers exactly one question the documentation asks.
+    /// scenario of its own. It is that the docs may show generated code rather than an excerpt
+    /// somebody keeps in step by hand, and that is only readable when the table it came from
+    /// is small. So every table here is a handful of columns and three or four rows, and each
+    /// one answers exactly one question the documentation asks.
     ///
-    ///   Rarity · Balance   an enum with no zero entry, and a constant set
-    ///   Potion             the plain table, with an enum column
-    ///   Shop · ShopEntry   a reference, and the second name it generates
-    ///   Loot               arrays, in both places one comes from
-    ///   Spawn              a record folded from columns, beside an optional value
-    ///   StageReward        a key of two columns, and a column the client never receives
+    ///   Rarity · Element · Balance   an enum with no zero entry, one that declares its own,
+    ///                                and a constant set
+    ///   Potion                       the plain table
+    ///   Sample · Marker · Access     every scalar type, the composite ones, and a bitset
+    ///   Line                         the two roles a string carries
+    ///   Animation · Wire             a string key beside a secondary one, and wire tags
+    ///   Shop · ShopEntry · Craft     a reference, and the four shapes one takes
+    ///   Loot · Drop                  arrays, in every place one comes from
+    ///   Spawn · Deck                 records folded from columns, one and two levels deep
+    ///   Quest                        an array written down the rows
+    ///   StageReward · ServerTuning   a key of two columns, and the two ways a side is chosen
+    ///   Price                        one field written once per region
+    ///   Skill                        a group whose shape each row chooses
     ///
     /// **Adding a shape here means the documentation grew a section for it.** Anything else
     /// belongs in the scenario that pins it, where the tables are free to be as awkward as
@@ -4194,7 +4201,14 @@ internal static class Program
             .Label("Rare", "2", "in chests")
             .Label("Epic", "3", "from bosses"));
 
-        basics.Const(6, 1, new ConstSpec { Name = "Balance", Comment = "Values with no rows." }
+        // The other half of that: a zero entry of its own, which is left alone. Declared in
+        // snake_case, because a data cell repeating the declared spelling has to resolve.
+        basics.Enum(6, 1, new EnumSpec { Name = "Element", Comment = "What a potion is made of." }
+            .Label("none", "0", "no element")
+            .Label("fire_ball", "1", "burns")
+            .Label("ice_shard", "2", "chills"));
+
+        basics.Const(11, 1, new ConstSpec { Name = "Balance", Comment = "Values with no rows." }
             .Constant("MaxStack", "int", "99", "stack limit")
             .Constant("RefundRate", "float", "0.5", "sale refund"));
 
@@ -4218,6 +4232,128 @@ internal static class Program
             .Row("3", "Elixir", "Epic", "900");
 
         potions.Table(1, 1, potion);
+
+        // --- Every type a column may be --------------------------------------
+
+        var types = new SheetBuilder(workbook.CreateSheet("Types"));
+
+        var sample = new TableSpec
+        {
+            Name = "Sample",
+            Comment = "One column per scalar type.",
+        };
+        sample
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Count", "bigint", "64 bit"))
+            .Field(FieldSpec.Of("Ratio", "float", "32 bit"))
+            .Field(FieldSpec.Of("Precise", "double", "64 bit"))
+            .Field(FieldSpec.Of("Enabled", "bool", "Y or N"))
+            .Field(FieldSpec.Of("Label", "string", "text"))
+            .Field(FieldSpec.Of("At", "datetime", "a moment"))
+            .Field(FieldSpec.Of("Span", "timespan", "a length"))
+            .Field(FieldSpec.Of("Id", "uuid", "an identifier"));
+        sample
+            .Row("1", "9007199254740993", "1.5", "2.25", "Y",
+                 "first", "2026-01-24 10:30:00", "1.02:03:04",
+                 "7b7d9f6a-1e2c-4c1a-9a5f-2b6d0c3e4f51")
+            .Row("2", "-20", "-0.5", "1e-8", "N",
+                 "second", "1999-12-31 23:59:59", "00:00:01",
+                 "0f8fad5b-d9cb-469f-a165-70867728950e")
+            .Row("3", "0", "0", "0", "",
+                 "", "2000-01-01 00:00:00", "00:00:00",
+                 "00000000-0000-0000-0000-000000000000");
+
+        types.Table(1, 1, sample);
+
+        var marker = new TableSpec
+        {
+            Name = "Marker",
+            Comment = "Values written as one cell and read as several.",
+        };
+        marker
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Pos", "vec3f", "three floats"))
+            .Field(FieldSpec.Of("Cell", "vec2i", "two ints"))
+            .Field(FieldSpec.Of("Tint", "color32", "four bytes"));
+        marker
+            .Row("1", "1.5, -2, 0.25", "3, 4", "#FF8000FF")
+            .Row("2", "0, 0, 0", "0, 0", "#00000000")
+            .Row("3", "-8.25, 12, 1", "-1, 2", "#3366CCFF");
+
+        types.Table(12, 1, marker);
+
+        var access = new TableSpec
+        {
+            Name = "Access",
+            Comment = "A flag set beside the number it becomes.",
+        };
+        access
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Flags", "bitset", "which bits"))
+            .Field(FieldSpec.Of("Same", "bigint", "the same value"));
+        access
+            // Binary, hex and decimal - the three notations, and the underscore that breaks a
+            // long mask into bytes. A blank is an error here: a bit pattern has nothing for
+            // one to mean.
+            .Row("1", "0b1011", "11")
+            .Row("2", "0x1f", "31")
+            .Row("3", "0b1010_1010", "170");
+
+        types.Table(18, 1, access);
+
+        var line = new TableSpec
+        {
+            Name = "Line",
+            Comment = "Strings that are for something.",
+        };
+        line
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Body", "text", "shown to a player"))
+            .Field(FieldSpec.Of("Icon", "asset(icon)", "names a file"));
+        line
+            .Row("1", "You feel better.", "Icon_Sword")
+            .Row("2", "Nothing happens.", "Icon_Shield")
+            .Row("3", "The bottle is empty.", "Icon_Sword");
+
+        types.Table(23, 1, line);
+
+        // --- What a row is found by -------------------------------------------
+
+        var index = new SheetBuilder(workbook.CreateSheet("Index"));
+
+        var animation = new TableSpec
+        {
+            Name = "Animation",
+            Comment = "Keyed by name, with a second key beside it.",
+        };
+        animation
+            .Field(FieldSpec.Of("index", "string", "primary index"))
+            .Field(FieldSpec.Of("*Slot", "int", "secondary index"))
+            .Field(FieldSpec.Of("Blend", "float", "anything"));
+        animation
+            .Row("Idle", "1", "0")
+            .Row("Run", "2", "0.2")
+            .Row("Walk", "3", "0.35");
+
+        index.Table(1, 1, animation);
+
+        var wire = new TableSpec
+        {
+            Name = "Wire",
+            Comment = "Columns numbered so the file names them rather than counts them.",
+        };
+        wire
+            .Field(FieldSpec.Of("index@1", "int", "primary index"))
+            .Field(FieldSpec.Of("Name@2", "string", "display name"))
+            // A column that was dropped keeps its number, so nothing else may be given it.
+            .Field(FieldSpec.Of("#OldColour@3", "string", "dropped, and its number reserved"))
+            .Field(FieldSpec.Of("Price@4", "int", "added after the drop"));
+        wire
+            .Row("1", "Cap", "red", "10")
+            .Row("2", "Boots", "blue", "20")
+            .Row("3", "Cloak", "green", "30");
+
+        index.Table(6, 1, wire);
 
         // --- A reference, and the row it resolves to -------------------------
 
@@ -4257,7 +4393,30 @@ internal static class Program
         // cells, so neighbours need a blank gutter.
         shops.Table(5, 1, entry);
 
-        // --- The two places an array comes from ------------------------------
+        var craft = new TableSpec
+        {
+            Name = "Craft",
+            Comment = "The four shapes a reference takes.",
+        };
+        craft
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Result", "foreign", "a whole row", detailType: "Potion"))
+            // One of the target's values rather than the row - the column ends up typed as
+            // that field is.
+            .Field(FieldSpec.Of("ResultName", "foreign", "one of its values",
+                                detailType: "Potion.Name"))
+            .Field(FieldSpec.Of("Parts", "foreign[]", "several rows in one cell",
+                                detailType: "Potion"))
+            .Field(FieldSpec.Of("Substitute", "foreign?", "a row, or none",
+                                detailType: "Potion"));
+        craft
+            .Row("1", "3", "3", "1;2", "2")
+            .Row("2", "2", "2", "1", "-")
+            .Row("3", "1", "1", "1;1", "3");
+
+        shops.Table(10, 1, craft);
+
+        // --- The places an array comes from ------------------------------------
 
         var loots = new SheetBuilder(workbook.CreateSheet("Loot"));
 
@@ -4278,7 +4437,26 @@ internal static class Program
 
         loots.Table(1, 1, loot);
 
-        // --- Columns folded into a record, and a value that may be absent -----
+        var drop = new TableSpec
+        {
+            Name = "Drop",
+            Comment = "An array of enums, and one whose elements may be absent.",
+        };
+        drop
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Grades", "enum[]", "which grades", detailType: "Rarity"))
+            .Field(FieldSpec.Of("Counts", "int?[]", "how many of each"));
+        drop
+            // A memo column: the author's, and nothing reads it.
+            // `-` is one element saying it has no value. The array itself is always there -
+            // a row with no array at all would need the type to be `int?[]?`.
+            .Row("1", "Common;Rare", "1;2")
+            .Row("2", "Epic", "5")
+            .Row("3", "Common;Common", "3;-");
+
+        loots.Table(6, 1, drop, "note to self");
+
+        // --- Columns folded into a record --------------------------------------
 
         var spawns = new SheetBuilder(workbook.CreateSheet("Spawn"));
 
@@ -4299,29 +4477,143 @@ internal static class Program
 
         spawns.Table(1, 1, spawn);
 
-        // --- A key of two columns, and a column one side never receives -------
+        var deck = new TableSpec
+        {
+            Name = "Deck",
+            Comment = "An array of records, and a record inside a record.",
+        };
+        deck
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Slot1.Id", "int", "element 1"))
+            .Field(FieldSpec.Of("Slot1.Label", "string", "element 1"))
+            .Field(FieldSpec.Of("Slot2.Id", "int", "element 2"))
+            .Field(FieldSpec.Of("Slot2.Label", "string", "element 2"))
+            // Two levels: a record whose member is a record.
+            .Field(FieldSpec.Of("Home.At.X", "float", "two levels in"))
+            .Field(FieldSpec.Of("Home.At.Y", "float", "two levels in"));
+        deck
+            .Row("1", "10", "sword", "11", "shield", "1.5", "-2.5")
+            .Row("2", "20", "bow", "21", "arrow", "0", "0")
+            .Row("3", "30", "staff", "31", "orb", "-8.25", "12");
 
-        var rewards = new SheetBuilder(workbook.CreateSheet("StageReward"));
+        spawns.Table(6, 1, deck);
+
+        // --- An array written down the rows -------------------------------------
+
+        var quests = new SheetBuilder(workbook.CreateSheet("Quest"));
+
+        var quest = new TableSpec
+        {
+            Name = "Quest",
+            Comment = "One record over several rows, as many as it has rewards.",
+        };
+        quest
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "display name"))
+            .Field(FieldSpec.Of("reward[].id", "int?", "an element"))
+            .Field(FieldSpec.Of("reward[].count", "int?", "an element"));
+        quest
+            // A record starts where the index has a value; a row leaving it blank extends the
+            // record above.
+            .Row("1", "Gather", "10", "1")
+            .Row("", "", "11", "2")
+            .Row("2", "Deliver", "20", "5")
+            .Row("3", "Explore", "30", "1")
+            .Row("", "", "31", "2")
+            .Row("", "", "32", "3");
+
+        quests.Table(1, 1, quest);
+
+        // --- The two ways a side is chosen ---------------------------------------
+
+        var sides = new SheetBuilder(workbook.CreateSheet("Sides"));
 
         var reward = new TableSpec
         {
             Name = "StageReward",
             Comment = "Neither key column is unique alone.",
-            Meta = "key=\"Stage,Rank\"",
+            Meta = @"key=""Stage,Rank""",
         };
         reward
             .Field(FieldSpec.Of("Stage", "int", "which stage"))
             .Field(FieldSpec.Of("Rank", "enum", "finishing rank", detailType: "Rarity"))
             .Field(FieldSpec.Of("Gold", "int", "gold paid"))
             // The one column the client build has no trace of.
-            .Field(FieldSpec.Of("DropTable", "string", "drop table",
-                                targetSide: "s"));
+            .Field(FieldSpec.Of("DropTable", "string", "drop table", targetSide: "s"));
         reward
             .Row("1", "Common", "100", "stage1_common")
             .Row("1", "Rare", "250", "stage1_rare")
             .Row("2", "Common", "300", "stage2_common");
 
-        rewards.Table(1, 1, reward);
+        sides.Table(1, 1, reward);
+
+        // The other way: the whole table, said once on the declaration.
+        var tuning = new TableSpec
+        {
+            Name = "ServerTuning",
+            Comment = "The client build has no type for this at all.",
+            TargetSide = "s",
+        };
+        tuning
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Knob", "string", "what it tunes"))
+            .Field(FieldSpec.Of("Value", "float", "how much"));
+        tuning
+            .Row("1", "drop_rate", "0.25")
+            .Row("2", "gold_rate", "1.5")
+            .Row("3", "spawn_rate", "0.8");
+
+        sides.Table(7, 1, tuning);
+
+        // --- One field written once per region -------------------------------------
+
+        var prices = new SheetBuilder(workbook.CreateSheet("Price"));
+
+        var price = new TableSpec
+        {
+            Name = "Price",
+            Comment = "One column of Amount reaches the build; the others do not.",
+        };
+        price
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "display name"))
+            // The default variant carries the header cells; the others carry a name only.
+            .Field(FieldSpec.Of("Amount", "int", "what it costs"))
+            .Field(FieldSpec.Variation("Amount", "kr"))
+            .Field(FieldSpec.Variation("Amount", "jp"));
+        price
+            .Row("1", "Small Potion", "50", "1500", "300")
+            .Row("2", "Large Potion", "180", "5400", "1080")
+            .Row("3", "Elixir", "900", "27000", "5400");
+
+        prices.Table(1, 1, price);
+
+        // --- A group whose shape each row chooses -----------------------------------
+
+        var effects = new SheetBuilder(workbook.CreateSheet("Skill"));
+
+        var skill = new TableSpec
+        {
+            Name = "Skill",
+            Comment = "Every variant's members side by side; a row fills its own.",
+        };
+        skill
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "display name"))
+            // The discriminator names the abstract type. Every other column of the group
+            // leaves its type cell empty - the declaration said it.
+            .Field(FieldSpec.Of("Effect.$type", "Effect", "which shape"))
+            .Field(FieldSpec.Of("Effect.Chance", "", ""))
+            .Field(FieldSpec.Of("Effect.Damage", "", ""))
+            .Field(FieldSpec.Of("Effect.Amount", "", ""));
+        skill
+            // The columns a row's variant does not have are left blank rather than written
+            // as `-`: they are members it does not carry, not values it lacks.
+            .Row("1", "Slash", "DamageEffect", "30", "50", "")
+            .Row("2", "Mend", "HealEffect", "100", "", "20")
+            .Row("3", "Feint", "NoEffect", "10", "", "");
+
+        effects.Table(1, 1, skill);
 
         Save(workbook, path);
     }

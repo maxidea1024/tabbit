@@ -1,0 +1,61 @@
+{
+  "source": "test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx",
+  "sheet": "Index",
+  "kind": "table",
+  "name": "Animation",
+  "declaration": ":table Animation",
+  "origin": {
+    "row": 1,
+    "column": 1
+  },
+  "rows": [
+    [
+      ":table Animation",
+      "Keyed by name, with a second key beside it.",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "index",
+      "*Slot",
+      "Blend"
+    ],
+    [
+      ":type",
+      "string",
+      "int",
+      "float"
+    ],
+    [
+      ":desc",
+      "primary index",
+      "secondary index",
+      "anything"
+    ],
+    [
+      ":target",
+      "cs",
+      "cs",
+      "cs"
+    ],
+    [
+      "",
+      "Idle",
+      "1",
+      "0"
+    ],
+    [
+      "",
+      "Run",
+      "2",
+      "0.2"
+    ],
+    [
+      "",
+      "Walk",
+      "3",
+      "0.35"
+    ]
+  ]
+}

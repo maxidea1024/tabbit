@@ -12,11 +12,24 @@ import java.nio.file.Paths;
 /** Every table, loaded together so cross-table references can be resolved. */
 public final class DocShowcaseAccessor {
     public PotionTable potion = new PotionTable();
+    public SampleTable sample = new SampleTable();
+    public MarkerTable marker = new MarkerTable();
+    public AccessTable access = new AccessTable();
+    public LineTable line = new LineTable();
+    public AnimationTable animation = new AnimationTable();
+    public WireTable wire = new WireTable();
     public ShopTable shop = new ShopTable();
     public ShopEntryTable shopEntry = new ShopEntryTable();
+    public CraftTable craft = new CraftTable();
     public LootTable loot = new LootTable();
+    public DropTable drop = new DropTable();
     public SpawnTable spawn = new SpawnTable();
+    public DeckTable deck = new DeckTable();
+    public QuestTable quest = new QuestTable();
     public StageRewardTable stageReward = new StageRewardTable();
+    public ServerTuningTable serverTuning = new ServerTuningTable();
+    public PriceTable price = new PriceTable();
+    public SkillTable skill = new SkillTable();
 
     /**
      * The key the table files were sealed with, or null when they were not sealed.
@@ -86,25 +99,64 @@ public final class DocShowcaseAccessor {
     public void readAll(String basePath, String fileExtension) {
         PotionTable loadedPotionTable = new PotionTable();
         loadedPotionTable.read(Paths.get(basePath, "Potion" + fileExtension));
+        SampleTable loadedSampleTable = new SampleTable();
+        loadedSampleTable.read(Paths.get(basePath, "Sample" + fileExtension));
+        MarkerTable loadedMarkerTable = new MarkerTable();
+        loadedMarkerTable.read(Paths.get(basePath, "Marker" + fileExtension));
+        AccessTable loadedAccessTable = new AccessTable();
+        loadedAccessTable.read(Paths.get(basePath, "Access" + fileExtension));
+        LineTable loadedLineTable = new LineTable();
+        loadedLineTable.read(Paths.get(basePath, "Line" + fileExtension));
+        AnimationTable loadedAnimationTable = new AnimationTable();
+        loadedAnimationTable.read(Paths.get(basePath, "Animation" + fileExtension));
+        WireTable loadedWireTable = new WireTable();
+        loadedWireTable.read(Paths.get(basePath, "Wire" + fileExtension));
         ShopTable loadedShopTable = new ShopTable();
         loadedShopTable.read(Paths.get(basePath, "Shop" + fileExtension));
         ShopEntryTable loadedShopEntryTable = new ShopEntryTable();
         loadedShopEntryTable.read(Paths.get(basePath, "ShopEntry" + fileExtension));
+        CraftTable loadedCraftTable = new CraftTable();
+        loadedCraftTable.read(Paths.get(basePath, "Craft" + fileExtension));
         LootTable loadedLootTable = new LootTable();
         loadedLootTable.read(Paths.get(basePath, "Loot" + fileExtension));
+        DropTable loadedDropTable = new DropTable();
+        loadedDropTable.read(Paths.get(basePath, "Drop" + fileExtension));
         SpawnTable loadedSpawnTable = new SpawnTable();
         loadedSpawnTable.read(Paths.get(basePath, "Spawn" + fileExtension));
+        DeckTable loadedDeckTable = new DeckTable();
+        loadedDeckTable.read(Paths.get(basePath, "Deck" + fileExtension));
+        QuestTable loadedQuestTable = new QuestTable();
+        loadedQuestTable.read(Paths.get(basePath, "Quest" + fileExtension));
         StageRewardTable loadedStageRewardTable = new StageRewardTable();
         loadedStageRewardTable.read(Paths.get(basePath, "StageReward" + fileExtension));
+        ServerTuningTable loadedServerTuningTable = new ServerTuningTable();
+        loadedServerTuningTable.read(Paths.get(basePath, "ServerTuning" + fileExtension));
+        PriceTable loadedPriceTable = new PriceTable();
+        loadedPriceTable.read(Paths.get(basePath, "Price" + fileExtension));
+        SkillTable loadedSkillTable = new SkillTable();
+        loadedSkillTable.read(Paths.get(basePath, "Skill" + fileExtension));
 
-        solveCrossReferences(loadedPotionTable, loadedShopTable, loadedShopEntryTable, loadedLootTable, loadedSpawnTable, loadedStageRewardTable);
+        solveCrossReferences(loadedPotionTable, loadedSampleTable, loadedMarkerTable, loadedAccessTable, loadedLineTable, loadedAnimationTable, loadedWireTable, loadedShopTable, loadedShopEntryTable, loadedCraftTable, loadedLootTable, loadedDropTable, loadedSpawnTable, loadedDeckTable, loadedQuestTable, loadedStageRewardTable, loadedServerTuningTable, loadedPriceTable, loadedSkillTable);
 
         potion = loadedPotionTable;
+        sample = loadedSampleTable;
+        marker = loadedMarkerTable;
+        access = loadedAccessTable;
+        line = loadedLineTable;
+        animation = loadedAnimationTable;
+        wire = loadedWireTable;
         shop = loadedShopTable;
         shopEntry = loadedShopEntryTable;
+        craft = loadedCraftTable;
         loot = loadedLootTable;
+        drop = loadedDropTable;
         spawn = loadedSpawnTable;
+        deck = loadedDeckTable;
+        quest = loadedQuestTable;
         stageReward = loadedStageRewardTable;
+        serverTuning = loadedServerTuningTable;
+        price = loadedPriceTable;
+        skill = loadedSkillTable;
     }
 
     /**
@@ -113,7 +165,7 @@ public final class DocShowcaseAccessor {
      * <p>The tables arrive as arguments and shadow the fields of the same name, which is
      * how this resolves the load being read rather than the one already published.
      */
-    private void solveCrossReferences(PotionTable potion, ShopTable shop, ShopEntryTable shopEntry, LootTable loot, SpawnTable spawn, StageRewardTable stageReward) {
+    private void solveCrossReferences(PotionTable potion, SampleTable sample, MarkerTable marker, AccessTable access, LineTable line, AnimationTable animation, WireTable wire, ShopTable shop, ShopEntryTable shopEntry, CraftTable craft, LootTable loot, DropTable drop, SpawnTable spawn, DeckTable deck, QuestTable quest, StageRewardTable stageReward, ServerTuningTable serverTuning, PriceTable price, SkillTable skill) {
         for (ShopEntryRecord record : shopEntry.records()) {
             {
                 ShopRecord target = shop.findByIndex(record.shopId);
@@ -125,6 +177,32 @@ public final class DocShowcaseAccessor {
                 PotionRecord target = potion.findByIndex(record.potionId);
                 if (target != null) {
                     record.potionByPotionId = target;
+                }
+            }
+        }
+        for (CraftRecord record : craft.records()) {
+            {
+                PotionRecord target = potion.findByIndex(record.result);
+                if (target != null) {
+                    record.potionByResult = target;
+                }
+            }
+            {
+                PotionRecord target = potion.findByIndex(record.resultNameIndex);
+                if (target != null) {
+                    record.resultName = target.name;
+                }
+            }
+            for (int i = 0; i < record.parts.length; i++) {
+                PotionRecord target = potion.findByIndex(record.parts[i]);
+                if (target != null) {
+                    record.potionByParts[i] = target;
+                }
+            }
+            {
+                PotionRecord target = potion.findByIndex(record.substitute);
+                if (target != null) {
+                    record.potionBySubstitute = target;
                 }
             }
         }

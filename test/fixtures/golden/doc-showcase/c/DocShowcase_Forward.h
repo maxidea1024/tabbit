@@ -17,11 +17,24 @@ extern "C" {
 #endif
 
 typedef struct DocShowcase_PotionRecord_t DocShowcase_PotionRecord_t;
+typedef struct DocShowcase_SampleRecord_t DocShowcase_SampleRecord_t;
+typedef struct DocShowcase_MarkerRecord_t DocShowcase_MarkerRecord_t;
+typedef struct DocShowcase_AccessRecord_t DocShowcase_AccessRecord_t;
+typedef struct DocShowcase_LineRecord_t DocShowcase_LineRecord_t;
+typedef struct DocShowcase_AnimationRecord_t DocShowcase_AnimationRecord_t;
+typedef struct DocShowcase_WireRecord_t DocShowcase_WireRecord_t;
 typedef struct DocShowcase_ShopRecord_t DocShowcase_ShopRecord_t;
 typedef struct DocShowcase_ShopEntryRecord_t DocShowcase_ShopEntryRecord_t;
+typedef struct DocShowcase_CraftRecord_t DocShowcase_CraftRecord_t;
 typedef struct DocShowcase_LootRecord_t DocShowcase_LootRecord_t;
+typedef struct DocShowcase_DropRecord_t DocShowcase_DropRecord_t;
 typedef struct DocShowcase_SpawnRecord_t DocShowcase_SpawnRecord_t;
+typedef struct DocShowcase_DeckRecord_t DocShowcase_DeckRecord_t;
+typedef struct DocShowcase_QuestRecord_t DocShowcase_QuestRecord_t;
 typedef struct DocShowcase_StageRewardRecord_t DocShowcase_StageRewardRecord_t;
+typedef struct DocShowcase_ServerTuningRecord_t DocShowcase_ServerTuningRecord_t;
+typedef struct DocShowcase_PriceRecord_t DocShowcase_PriceRecord_t;
+typedef struct DocShowcase_SkillRecord_t DocShowcase_SkillRecord_t;
 
 /* The key the table files were sealed with, and its length - NULL and 0 when they were not
  * sealed.

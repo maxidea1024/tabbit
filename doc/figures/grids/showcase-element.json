@@ -1,0 +1,43 @@
+{
+  "source": "test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx",
+  "sheet": "Basics",
+  "kind": "enum",
+  "name": "Element",
+  "declaration": ":enum Element",
+  "origin": {
+    "row": 1,
+    "column": 6
+  },
+  "rows": [
+    [
+      ":enum Element",
+      "What a potion is made of.",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "label",
+      "value",
+      "desc"
+    ],
+    [
+      "",
+      "none",
+      "0",
+      "no element"
+    ],
+    [
+      "",
+      "fire_ball",
+      "1",
+      "burns"
+    ],
+    [
+      "",
+      "ice_shard",
+      "2",
+      "chills"
+    ]
+  ]
+}

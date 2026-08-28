@@ -122,14 +122,29 @@ public sealed class SheetBuilder
         Set(column, row + 3, ":desc");
         Set(column, row + 4, ":target");
 
+        // Only written when a column asks for it. The row key is optional and a table with no
+        // variants that carried an empty one would be a different sheet from the one every
+        // other fixture writes.
+        bool varied = spec.Fields.Exists(f => !string.IsNullOrEmpty(f.Variant));
+        int headerRows = varied ? 5 : 4;
+
+        if (varied)
+            Set(column, row + 5, ":variant");
+
         for (int i = 0; i < width; i++)
         {
             var f = spec.Fields[i];
 
+            // Every column of a variant group repeats the name - that is what groups them.
+            // What is said once, on the default column, is the type, the description and the
+            // side; a variant column leaves those blank and reads them from there.
             Set(column + 1 + i, row + 1, f.NameForPrimary());
-            Set(column + 1 + i, row + 2, f.TypeForPrimary());
-            Set(column + 1 + i, row + 3, f.Comment);
+            Set(column + 1 + i, row + 2, string.IsNullOrEmpty(f.Variant) ? f.TypeForPrimary() : "");
+            Set(column + 1 + i, row + 3, string.IsNullOrEmpty(f.Variant) ? f.Comment : "");
             Set(column + 1 + i, row + 4, f.TargetSide);
+
+            if (varied)
+                Set(column + 1 + i, row + 5, f.Variant);
         }
 
         // Space for the sheet's author, which leaves no trace in the model. Written to the
@@ -138,7 +153,8 @@ public sealed class SheetBuilder
         for (int m = 0; m < memoColumns.Length; m++)
             Set(column + 1 + width + m, row + 1, "#");
 
-        int dataRow = row + 5;
+
+        int dataRow = row + 1 + headerRows;
         foreach (var dataLine in spec.Data)
         {
             if (dataLine.Length != width)
@@ -221,8 +237,22 @@ public sealed class FieldSpec
     public string DetailType = "";
     public string TargetSide = "cs";
 
+    /// <summary>
+    /// Which variant of its field this column is, or empty for the default one.
+    /// </summary>
+    /// <remarks>
+    /// A field written several times over, one column per variant, with the build choosing
+    /// one. **The name is repeated on every column** - that is what groups them - and the
+    /// type, the description and the side are stated once, on the default column.
+    /// </remarks>
+    public string Variant = "";
+
     public static FieldSpec Of(string name, string type, string comment = "", string detailType = "", string targetSide = "cs")
         => new FieldSpec { Name = name, Type = type, Comment = comment, DetailType = detailType, TargetSide = targetSide };
+
+    /// <summary>A further column of a field already declared, told apart by its variant name.</summary>
+    public static FieldSpec Variation(string name, string variant)
+        => new FieldSpec { Name = name, Type = "", Comment = "", TargetSide = "", Variant = variant };
 
     /// <summary>
     /// A column whose number meant an array: `Tag1` is `tag[0]`.

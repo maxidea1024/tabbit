@@ -1,0 +1,30 @@
+// The declarations the `doc-showcase` workbook's `Skill` table leaves its type cells empty for.
+//
+// Small on purpose: this file is shown in the documentation beside the sheet that uses it, so
+// it has to be readable whole. What it has to carry is the shape - an abstract struct, two
+// variants with members of their own, and one with none.
+
+/// Something a skill does to whoever it lands on.
+///
+/// Abstract: a row says which kind it is in its `$type` cell, and the columns of the group are
+/// every variant's members side by side.
+abstract struct Effect
+    /// How likely it is to land, in percent. Every variant carries it, so it is one column
+    /// and every row fills it.
+    field chance int (min=0, max=100)
+
+/// Takes health away.
+struct DamageEffect extends Effect @1
+    /// How much it takes.
+    field damage int
+
+/// Gives health back.
+struct HealEffect extends Effect @2
+    /// How much it gives.
+    field amount int
+
+/// Does nothing, and carries no members of its own.
+///
+/// Here because a variant with no members has to work: what is left is the name, and the
+/// discriminator is the whole of what the row carries.
+struct NoEffect extends Effect @3

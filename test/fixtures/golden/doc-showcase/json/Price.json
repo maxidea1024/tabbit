@@ -1,0 +1,17 @@
+[
+  {
+    "index": 1,
+    "name": "Small Potion",
+    "amount": 50
+  },
+  {
+    "index": 2,
+    "name": "Large Potion",
+    "amount": 180
+  },
+  {
+    "index": 3,
+    "name": "Elixir",
+    "amount": 900
+  }
+]

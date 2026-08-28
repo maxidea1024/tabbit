@@ -1,6 +1,6 @@
 {
   "source": "test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx",
-  "sheet": "StageReward",
+  "sheet": "Sides",
   "kind": "table",
   "name": "StageReward",
   "declaration": ":table StageReward(key=\"Stage,Rank\")",

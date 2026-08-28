@@ -1,0 +1,77 @@
+{
+  "source": "test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx",
+  "sheet": "Shop",
+  "kind": "table",
+  "name": "Craft",
+  "declaration": ":table Craft",
+  "origin": {
+    "row": 1,
+    "column": 10
+  },
+  "rows": [
+    [
+      ":table Craft",
+      "The four shapes a reference takes.",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "index",
+      "Result",
+      "ResultName",
+      "Parts",
+      "Substitute"
+    ],
+    [
+      ":type",
+      "int",
+      "foreign Potion",
+      "foreign Potion.Name",
+      "foreign Potion[]",
+      "foreign Potion?"
+    ],
+    [
+      ":desc",
+      "primary index",
+      "a whole row",
+      "one of its values",
+      "several rows in one cell",
+      "a row, or none"
+    ],
+    [
+      ":target",
+      "cs",
+      "cs",
+      "cs",
+      "cs",
+      "cs"
+    ],
+    [
+      "",
+      "1",
+      "3",
+      "3",
+      "1;2",
+      "2"
+    ],
+    [
+      "",
+      "2",
+      "2",
+      "2",
+      "1",
+      "-"
+    ],
+    [
+      "",
+      "3",
+      "1",
+      "1",
+      "1;1",
+      "3"
+    ]
+  ]
+}

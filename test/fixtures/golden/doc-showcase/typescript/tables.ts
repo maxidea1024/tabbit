@@ -8,11 +8,24 @@
 import * as path from 'path'
 
 import { PotionTable } from './tables/potion'
+import { SampleTable } from './tables/sample'
+import { MarkerTable } from './tables/marker'
+import { AccessTable } from './tables/access'
+import { LineTable } from './tables/line'
+import { AnimationTable } from './tables/animation'
+import { WireTable } from './tables/wire'
 import { ShopTable } from './tables/shop'
 import { ShopEntryTable } from './tables/shop-entry'
+import { CraftTable } from './tables/craft'
 import { LootTable } from './tables/loot'
+import { DropTable } from './tables/drop'
 import { SpawnTable } from './tables/spawn'
+import { DeckTable } from './tables/deck'
+import { QuestTable } from './tables/quest'
 import { StageRewardTable } from './tables/stage-reward'
+import { ServerTuningTable } from './tables/server-tuning'
+import { PriceTable } from './tables/price'
+import { SkillTable } from './tables/skill'
 
 /** Tables */
 export class Tables {
@@ -71,6 +84,30 @@ export class Tables {
   public get potion(): PotionTable { return this._potion }
   private _potion: PotionTable = new PotionTable()
 
+  /** Peroperty for table Sample */
+  public get sample(): SampleTable { return this._sample }
+  private _sample: SampleTable = new SampleTable()
+
+  /** Peroperty for table Marker */
+  public get marker(): MarkerTable { return this._marker }
+  private _marker: MarkerTable = new MarkerTable()
+
+  /** Peroperty for table Access */
+  public get access(): AccessTable { return this._access }
+  private _access: AccessTable = new AccessTable()
+
+  /** Peroperty for table Line */
+  public get line(): LineTable { return this._line }
+  private _line: LineTable = new LineTable()
+
+  /** Peroperty for table Animation */
+  public get animation(): AnimationTable { return this._animation }
+  private _animation: AnimationTable = new AnimationTable()
+
+  /** Peroperty for table Wire */
+  public get wire(): WireTable { return this._wire }
+  private _wire: WireTable = new WireTable()
+
   /** Peroperty for table Shop */
   public get shop(): ShopTable { return this._shop }
   private _shop: ShopTable = new ShopTable()
@@ -79,17 +116,45 @@ export class Tables {
   public get shopEntry(): ShopEntryTable { return this._shopEntry }
   private _shopEntry: ShopEntryTable = new ShopEntryTable()
 
+  /** Peroperty for table Craft */
+  public get craft(): CraftTable { return this._craft }
+  private _craft: CraftTable = new CraftTable()
+
   /** Peroperty for table Loot */
   public get loot(): LootTable { return this._loot }
   private _loot: LootTable = new LootTable()
+
+  /** Peroperty for table Drop */
+  public get drop(): DropTable { return this._drop }
+  private _drop: DropTable = new DropTable()
 
   /** Peroperty for table Spawn */
   public get spawn(): SpawnTable { return this._spawn }
   private _spawn: SpawnTable = new SpawnTable()
 
+  /** Peroperty for table Deck */
+  public get deck(): DeckTable { return this._deck }
+  private _deck: DeckTable = new DeckTable()
+
+  /** Peroperty for table Quest */
+  public get quest(): QuestTable { return this._quest }
+  private _quest: QuestTable = new QuestTable()
+
   /** Peroperty for table StageReward */
   public get stageReward(): StageRewardTable { return this._stageReward }
   private _stageReward: StageRewardTable = new StageRewardTable()
+
+  /** Peroperty for table ServerTuning */
+  public get serverTuning(): ServerTuningTable { return this._serverTuning }
+  private _serverTuning: ServerTuningTable = new ServerTuningTable()
+
+  /** Peroperty for table Price */
+  public get price(): PriceTable { return this._price }
+  private _price: PriceTable = new PriceTable()
+
+  /** Peroperty for table Skill */
+  public get skill(): SkillTable { return this._skill }
+  private _skill: SkillTable = new SkillTable()
 
   /**
    * Read all tables asynchronously.
@@ -100,36 +165,88 @@ export class Tables {
   public async readAll(basePath: string, fileExtension: string = '.json'): Promise<void> {
     const potion = new PotionTable()
     await potion.read(path.join(basePath, `Potion${fileExtension}`))
+    const sample = new SampleTable()
+    await sample.read(path.join(basePath, `Sample${fileExtension}`))
+    const marker = new MarkerTable()
+    await marker.read(path.join(basePath, `Marker${fileExtension}`))
+    const access = new AccessTable()
+    await access.read(path.join(basePath, `Access${fileExtension}`))
+    const line = new LineTable()
+    await line.read(path.join(basePath, `Line${fileExtension}`))
+    const animation = new AnimationTable()
+    await animation.read(path.join(basePath, `Animation${fileExtension}`))
+    const wire = new WireTable()
+    await wire.read(path.join(basePath, `Wire${fileExtension}`))
     const shop = new ShopTable()
     await shop.read(path.join(basePath, `Shop${fileExtension}`))
     const shopEntry = new ShopEntryTable()
     await shopEntry.read(path.join(basePath, `ShopEntry${fileExtension}`))
+    const craft = new CraftTable()
+    await craft.read(path.join(basePath, `Craft${fileExtension}`))
     const loot = new LootTable()
     await loot.read(path.join(basePath, `Loot${fileExtension}`))
+    const drop = new DropTable()
+    await drop.read(path.join(basePath, `Drop${fileExtension}`))
     const spawn = new SpawnTable()
     await spawn.read(path.join(basePath, `Spawn${fileExtension}`))
+    const deck = new DeckTable()
+    await deck.read(path.join(basePath, `Deck${fileExtension}`))
+    const quest = new QuestTable()
+    await quest.read(path.join(basePath, `Quest${fileExtension}`))
     const stageReward = new StageRewardTable()
     await stageReward.read(path.join(basePath, `StageReward${fileExtension}`))
+    const serverTuning = new ServerTuningTable()
+    await serverTuning.read(path.join(basePath, `ServerTuning${fileExtension}`))
+    const price = new PriceTable()
+    await price.read(path.join(basePath, `Price${fileExtension}`))
+    const skill = new SkillTable()
+    await skill.read(path.join(basePath, `Skill${fileExtension}`))
 
-    this.publish(potion, shop, shopEntry, loot, spawn, stageReward)
+    this.publish(potion, sample, marker, access, line, animation, wire, shop, shopEntry, craft, loot, drop, spawn, deck, quest, stageReward, serverTuning, price, skill)
   }
 
   /** Read all tables synchronously. */
   public readAllSync(basePath: string, fileExtension: string = '.json'): void {
     const potion = new PotionTable()
     potion.readSync(path.join(basePath, `Potion${fileExtension}`))
+    const sample = new SampleTable()
+    sample.readSync(path.join(basePath, `Sample${fileExtension}`))
+    const marker = new MarkerTable()
+    marker.readSync(path.join(basePath, `Marker${fileExtension}`))
+    const access = new AccessTable()
+    access.readSync(path.join(basePath, `Access${fileExtension}`))
+    const line = new LineTable()
+    line.readSync(path.join(basePath, `Line${fileExtension}`))
+    const animation = new AnimationTable()
+    animation.readSync(path.join(basePath, `Animation${fileExtension}`))
+    const wire = new WireTable()
+    wire.readSync(path.join(basePath, `Wire${fileExtension}`))
     const shop = new ShopTable()
     shop.readSync(path.join(basePath, `Shop${fileExtension}`))
     const shopEntry = new ShopEntryTable()
     shopEntry.readSync(path.join(basePath, `ShopEntry${fileExtension}`))
+    const craft = new CraftTable()
+    craft.readSync(path.join(basePath, `Craft${fileExtension}`))
     const loot = new LootTable()
     loot.readSync(path.join(basePath, `Loot${fileExtension}`))
+    const drop = new DropTable()
+    drop.readSync(path.join(basePath, `Drop${fileExtension}`))
     const spawn = new SpawnTable()
     spawn.readSync(path.join(basePath, `Spawn${fileExtension}`))
+    const deck = new DeckTable()
+    deck.readSync(path.join(basePath, `Deck${fileExtension}`))
+    const quest = new QuestTable()
+    quest.readSync(path.join(basePath, `Quest${fileExtension}`))
     const stageReward = new StageRewardTable()
     stageReward.readSync(path.join(basePath, `StageReward${fileExtension}`))
+    const serverTuning = new ServerTuningTable()
+    serverTuning.readSync(path.join(basePath, `ServerTuning${fileExtension}`))
+    const price = new PriceTable()
+    price.readSync(path.join(basePath, `Price${fileExtension}`))
+    const skill = new SkillTable()
+    skill.readSync(path.join(basePath, `Skill${fileExtension}`))
 
-    this.publish(potion, shop, shopEntry, loot, spawn, stageReward)
+    this.publish(potion, sample, marker, access, line, animation, wire, shop, shopEntry, craft, loot, drop, spawn, deck, quest, stageReward, serverTuning, price, skill)
   }
 
   /**
@@ -142,18 +259,44 @@ export class Tables {
   public readAllBinarySync(basePath: string, fileExtension: string = '.tcb'): void {
     const potion = new PotionTable()
     potion.readBinarySync(path.join(basePath, `Potion${fileExtension}`))
+    const sample = new SampleTable()
+    sample.readBinarySync(path.join(basePath, `Sample${fileExtension}`))
+    const marker = new MarkerTable()
+    marker.readBinarySync(path.join(basePath, `Marker${fileExtension}`))
+    const access = new AccessTable()
+    access.readBinarySync(path.join(basePath, `Access${fileExtension}`))
+    const line = new LineTable()
+    line.readBinarySync(path.join(basePath, `Line${fileExtension}`))
+    const animation = new AnimationTable()
+    animation.readBinarySync(path.join(basePath, `Animation${fileExtension}`))
+    const wire = new WireTable()
+    wire.readBinarySync(path.join(basePath, `Wire${fileExtension}`))
     const shop = new ShopTable()
     shop.readBinarySync(path.join(basePath, `Shop${fileExtension}`))
     const shopEntry = new ShopEntryTable()
     shopEntry.readBinarySync(path.join(basePath, `ShopEntry${fileExtension}`))
+    const craft = new CraftTable()
+    craft.readBinarySync(path.join(basePath, `Craft${fileExtension}`))
     const loot = new LootTable()
     loot.readBinarySync(path.join(basePath, `Loot${fileExtension}`))
+    const drop = new DropTable()
+    drop.readBinarySync(path.join(basePath, `Drop${fileExtension}`))
     const spawn = new SpawnTable()
     spawn.readBinarySync(path.join(basePath, `Spawn${fileExtension}`))
+    const deck = new DeckTable()
+    deck.readBinarySync(path.join(basePath, `Deck${fileExtension}`))
+    const quest = new QuestTable()
+    quest.readBinarySync(path.join(basePath, `Quest${fileExtension}`))
     const stageReward = new StageRewardTable()
     stageReward.readBinarySync(path.join(basePath, `StageReward${fileExtension}`))
+    const serverTuning = new ServerTuningTable()
+    serverTuning.readBinarySync(path.join(basePath, `ServerTuning${fileExtension}`))
+    const price = new PriceTable()
+    price.readBinarySync(path.join(basePath, `Price${fileExtension}`))
+    const skill = new SkillTable()
+    skill.readBinarySync(path.join(basePath, `Skill${fileExtension}`))
 
-    this.publish(potion, shop, shopEntry, loot, spawn, stageReward)
+    this.publish(potion, sample, marker, access, line, animation, wire, shop, shopEntry, craft, loot, drop, spawn, deck, quest, stageReward, serverTuning, price, skill)
   }
 
   /**
@@ -164,13 +307,26 @@ export class Tables {
    * what it held, which is the answer a running program wants: the data it already had, and
    * an exception saying why the new data was not taken.
    */
-  private publish(potion: PotionTable, shop: ShopTable, shopEntry: ShopEntryTable, loot: LootTable, spawn: SpawnTable, stageReward: StageRewardTable): void {
+  private publish(potion: PotionTable, sample: SampleTable, marker: MarkerTable, access: AccessTable, line: LineTable, animation: AnimationTable, wire: WireTable, shop: ShopTable, shopEntry: ShopEntryTable, craft: CraftTable, loot: LootTable, drop: DropTable, spawn: SpawnTable, deck: DeckTable, quest: QuestTable, stageReward: StageRewardTable, serverTuning: ServerTuningTable, price: PriceTable, skill: SkillTable): void {
     this._potion = potion
+    this._sample = sample
+    this._marker = marker
+    this._access = access
+    this._line = line
+    this._animation = animation
+    this._wire = wire
     this._shop = shop
     this._shopEntry = shopEntry
+    this._craft = craft
     this._loot = loot
+    this._drop = drop
     this._spawn = spawn
+    this._deck = deck
+    this._quest = quest
     this._stageReward = stageReward
+    this._serverTuning = serverTuning
+    this._price = price
+    this._skill = skill
 
     this.solveCrossReferences()
   }
@@ -193,6 +349,31 @@ export class Tables {
         const target = this._potion.getByIndexOrThrow(
           record._potionId_Potion_index)
         record.setReference_potionId_INTERNAL(target)
+      }
+    }
+
+    for (const record of this._craft.records) {
+      if (record._result_Potion_index > 0) {
+        const target = this._potion.getByIndexOrThrow(
+          record._result_Potion_index)
+        record.setReference_result_INTERNAL(target)
+      }
+      if (record._resultName_Potion_index > 0) {
+        const target = this._potion.getByIndexOrThrow(
+          record._resultName_Potion_index)
+        record.setReference_resultName_INTERNAL(target.name)
+      }
+      for (let i = 0; i < record._parts_Potion_index.length; i++) {
+        if (record._parts_Potion_index[i] > 0) {
+          const target = this._potion.getByIndexOrThrow(
+            record._parts_Potion_index[i])
+          record.setReference_parts_INTERNAL(i, target)
+        }
+      }
+      if (record._substitute_Potion_index > 0) {
+        const target = this._potion.getByIndexOrThrow(
+          record._substitute_Potion_index)
+        record.setReference_substitute_INTERNAL(target)
       }
     }
   }

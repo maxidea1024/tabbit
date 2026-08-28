@@ -239,6 +239,1388 @@ bool FPotionTable::Read(const FString& Filename)
 }
 
 
+const FSampleRow* FSampleTable::FindByIndex(int32 Key) const
+{
+    const int32* Position = ByIndex.Find(Key);
+    return Position != nullptr ? &RecordsStorage[*Position] : nullptr;
+}
+
+bool FSampleTable::ContainsIndex(int32 Key) const
+{
+    return ByIndex.Contains(Key);
+}
+
+bool FSampleTable::Read(const FString& Filename)
+{
+    TArray<uint8> Buffer;
+
+    // FFileHelper rather than the platform's own file API, and that is what makes this work
+    // in a packaged build: it goes through IPlatformFile, which mounts the .pak and reads
+    // out of it as though the file were loose on disk. The same call therefore works in the
+    // editor, in a cooked build, and inside an Android .obb.
+    //
+    // What it cannot do is find a file the packaging step never took. A .tcb is not an
+    // asset, so Unreal ignores it unless the project lists its directory under
+    // Project Settings -> Packaging -> "Additional Non-Asset Directories to Package".
+    // Miss that and this works in the editor and reports a missing file the moment anybody
+    // runs the build - which is the failure this message exists to name.
+    if (!FFileHelper::LoadFileToArray(Buffer, *Filename))
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Tabbit: could not read %s. In a packaged build, check that its directory is "
+                 "listed under Packaging -> Additional Non-Asset Directories to Package."),
+            *Filename);
+
+        return false;
+    }
+
+    // Opened unconditionally, with whatever FDocShowcase::EncryptionKey and
+    // FDocShowcase::MacKey hold - empty unless the project set them. A file that is
+    // neither encrypted nor signed comes back from this untouched, so the load path is the
+    // same either way and there is no condition here that could be the wrong way round.
+    // spec/wire/tcb-mac-and-signature.md.
+    //
+    // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
+    // what has to stay alive for as long as the reader below is used.
+    TArrayView<const uint8> Bytes;
+    FString OpenError;
+
+    if (!Tabbit::Open(Buffer, FDocShowcase::EncryptionKey, Bytes, OpenError,
+            FDocShowcase::MacKey, FDocShowcase::bVerifyMac))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s could not be opened. %s"),
+            *Filename, *OpenError);
+
+        return false;
+    }
+
+    // A view over the bytes already in memory, so the file is read once and not copied
+    // a second time - a localization table is megabytes.
+    Tabbit::FTabbitBinaryReader Reader(Bytes);
+
+    Tabbit::FTabbitTableHeader Header;
+    if (!Tabbit::ReadTableHeader(Reader, Header))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is not a table this build can read. %s"),
+            *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    // Read beside whatever this table is already holding and swapped in at the end. Reading
+    // again is a refresh - a patched .pak, a downloaded table - and one that turns out to be
+    // unreadable has to leave the rows already there, which Blueprint graphs and gameplay
+    // code are holding by value and by pointer.
+    //
+    // The header has already checked the row count against what the columns declare, so this
+    // allocation is the size the file can actually hold rows for.
+    TArray<FSampleRow> Loaded;
+
+    Loaded.Empty(Header.RowCount);
+    Loaded.SetNum(Header.RowCount);
+
+    // One cursor for the whole read: the switch's cases share a scope, and C++ does
+    // not allow a jump past a live constructor, so each encodable column opens this
+    // one rather than declaring its own.
+    Tabbit::FTabbitColumnCursor Cursor;
+
+    // Column by column, matched by tag rather than by position: a column this build has no
+    // member for is skipped by its declared length, and one whose type no longer fits the
+    // member stops the read naming the field. Rows arrive default constructed, so a member
+    // the file carries nothing for keeps its default.
+    for (const Tabbit::FTabbitColumn& Column : Header.Columns)
+    {
+        const int32 BlockEnd = Reader.Tell() + Column.ByteLength;
+
+        switch (Column.Tag)
+        {
+        case 1:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Sample.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Sample.Index"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Index = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 2:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Sample.Count"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI64) | Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Sample.Count"));
+
+            for (FSampleRow& Record : Loaded)
+            {
+                Cursor.NextI64(Record.Count);
+            }
+
+            break;
+
+        case 3:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Sample.Ratio"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementF32));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Sample.Ratio"));
+
+            for (FSampleRow& Record : Loaded)
+            {
+                Cursor.NextF32(Record.Ratio);
+            }
+
+            break;
+
+        case 4:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Sample.Precise"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementF64) | Tabbit::ElementMask(Tabbit::ElementF32) | Tabbit::ElementMask(Tabbit::ElementI32));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Sample.Precise"));
+
+            for (FSampleRow& Record : Loaded)
+            {
+                Cursor.NextF64(Record.Precise);
+            }
+
+            break;
+
+        case 5:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Sample.Enabled"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementBool));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Sample.Enabled"));
+
+            for (FSampleRow& Record : Loaded)
+            {
+                Cursor.NextBool(Record.bEnabled);
+            }
+
+            break;
+
+        case 6:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Sample.Label"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Sample.Label"));
+
+            {
+                FString RunText;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameString(Header.RowCount - Row, RunLength, RunText))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Label = RunText;
+                    }
+                }
+            }
+
+            break;
+
+        case 7:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Sample.At"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI64));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Sample.At"));
+
+            for (FSampleRow& Record : Loaded)
+            {
+                Cursor.NextDateTime(Record.At);
+            }
+
+            break;
+
+        case 8:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Sample.Span"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI64));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Sample.Span"));
+
+            for (FSampleRow& Record : Loaded)
+            {
+                Cursor.NextTimespan(Record.Span);
+            }
+
+            break;
+
+        case 9:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Sample.Id"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementUuid));
+
+            for (FSampleRow& Record : Loaded)
+            {
+                Reader.ReadAs(Column.Element, Record.Id);
+            }
+
+            break;
+
+        default:
+            // A column this build has no member for: added to the schema after the code
+            // was generated, or removed from the code while the data still carries it.
+            Reader.Skip(Column.ByteLength);
+            break;
+        }
+
+        Tabbit::CheckBlockEnd(Reader, Column, BlockEnd);
+    }
+
+    // Asked once, for the whole table. Anything short or malformed anywhere in it has
+    // left its reason here, and a half-read table is not one this returns true for - nor
+    // is it one that replaces what the table was holding.
+    if (Reader.HasFailed())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is malformed. %s"), *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    TMap<int32, int32> LoadedByIndex;
+    LoadedByIndex.Empty(Loaded.Num());
+
+    for (int32 Position = 0; Position < Loaded.Num(); ++Position)
+    {
+        LoadedByIndex.Add(Loaded[Position].Index, Position);
+    }
+
+    // Published together: rows holding this load and an index built from the last one would
+    // answer a lookup with a row that has moved.
+    RecordsStorage = MoveTemp(Loaded);
+    ByIndex = MoveTemp(LoadedByIndex);
+
+    return true;
+}
+
+
+const FMarkerRow* FMarkerTable::FindByIndex(int32 Key) const
+{
+    const int32* Position = ByIndex.Find(Key);
+    return Position != nullptr ? &RecordsStorage[*Position] : nullptr;
+}
+
+bool FMarkerTable::ContainsIndex(int32 Key) const
+{
+    return ByIndex.Contains(Key);
+}
+
+bool FMarkerTable::Read(const FString& Filename)
+{
+    TArray<uint8> Buffer;
+
+    // FFileHelper rather than the platform's own file API, and that is what makes this work
+    // in a packaged build: it goes through IPlatformFile, which mounts the .pak and reads
+    // out of it as though the file were loose on disk. The same call therefore works in the
+    // editor, in a cooked build, and inside an Android .obb.
+    //
+    // What it cannot do is find a file the packaging step never took. A .tcb is not an
+    // asset, so Unreal ignores it unless the project lists its directory under
+    // Project Settings -> Packaging -> "Additional Non-Asset Directories to Package".
+    // Miss that and this works in the editor and reports a missing file the moment anybody
+    // runs the build - which is the failure this message exists to name.
+    if (!FFileHelper::LoadFileToArray(Buffer, *Filename))
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Tabbit: could not read %s. In a packaged build, check that its directory is "
+                 "listed under Packaging -> Additional Non-Asset Directories to Package."),
+            *Filename);
+
+        return false;
+    }
+
+    // Opened unconditionally, with whatever FDocShowcase::EncryptionKey and
+    // FDocShowcase::MacKey hold - empty unless the project set them. A file that is
+    // neither encrypted nor signed comes back from this untouched, so the load path is the
+    // same either way and there is no condition here that could be the wrong way round.
+    // spec/wire/tcb-mac-and-signature.md.
+    //
+    // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
+    // what has to stay alive for as long as the reader below is used.
+    TArrayView<const uint8> Bytes;
+    FString OpenError;
+
+    if (!Tabbit::Open(Buffer, FDocShowcase::EncryptionKey, Bytes, OpenError,
+            FDocShowcase::MacKey, FDocShowcase::bVerifyMac))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s could not be opened. %s"),
+            *Filename, *OpenError);
+
+        return false;
+    }
+
+    // A view over the bytes already in memory, so the file is read once and not copied
+    // a second time - a localization table is megabytes.
+    Tabbit::FTabbitBinaryReader Reader(Bytes);
+
+    Tabbit::FTabbitTableHeader Header;
+    if (!Tabbit::ReadTableHeader(Reader, Header))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is not a table this build can read. %s"),
+            *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    // Read beside whatever this table is already holding and swapped in at the end. Reading
+    // again is a refresh - a patched .pak, a downloaded table - and one that turns out to be
+    // unreadable has to leave the rows already there, which Blueprint graphs and gameplay
+    // code are holding by value and by pointer.
+    //
+    // The header has already checked the row count against what the columns declare, so this
+    // allocation is the size the file can actually hold rows for.
+    TArray<FMarkerRow> Loaded;
+
+    Loaded.Empty(Header.RowCount);
+    Loaded.SetNum(Header.RowCount);
+
+    // One cursor for the whole read: the switch's cases share a scope, and C++ does
+    // not allow a jump past a live constructor, so each encodable column opens this
+    // one rather than declaring its own.
+    Tabbit::FTabbitColumnCursor Cursor;
+
+    // Column by column, matched by tag rather than by position: a column this build has no
+    // member for is skipped by its declared length, and one whose type no longer fits the
+    // member stops the read naming the field. Rows arrive default constructed, so a member
+    // the file carries nothing for keeps its default.
+    for (const Tabbit::FTabbitColumn& Column : Header.Columns)
+    {
+        const int32 BlockEnd = Reader.Tell() + Column.ByteLength;
+
+        switch (Column.Tag)
+        {
+        case 1:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Marker.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Marker.Index"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Index = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 2:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Marker.Pos.X"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementF32));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Marker.Pos.X"));
+
+            for (FMarkerRow& Record : Loaded)
+            {
+                Cursor.NextF32(Record.Pos.X);
+            }
+
+            break;
+
+        case 3:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Marker.Pos.Y"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementF32));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Marker.Pos.Y"));
+
+            for (FMarkerRow& Record : Loaded)
+            {
+                Cursor.NextF32(Record.Pos.Y);
+            }
+
+            break;
+
+        case 4:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Marker.Pos.Z"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementF32));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Marker.Pos.Z"));
+
+            for (FMarkerRow& Record : Loaded)
+            {
+                Cursor.NextF32(Record.Pos.Z);
+            }
+
+            break;
+
+        case 5:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Marker.Cell.X"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Marker.Cell.X"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Cell.X = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 6:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Marker.Cell.Y"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Marker.Cell.Y"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Cell.Y = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 7:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Marker.Tint.R"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Marker.Tint.R"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Tint.R = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 8:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Marker.Tint.G"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Marker.Tint.G"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Tint.G = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 9:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Marker.Tint.B"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Marker.Tint.B"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Tint.B = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 10:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Marker.Tint.A"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Marker.Tint.A"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Tint.A = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        default:
+            // A column this build has no member for: added to the schema after the code
+            // was generated, or removed from the code while the data still carries it.
+            Reader.Skip(Column.ByteLength);
+            break;
+        }
+
+        Tabbit::CheckBlockEnd(Reader, Column, BlockEnd);
+    }
+
+    // Asked once, for the whole table. Anything short or malformed anywhere in it has
+    // left its reason here, and a half-read table is not one this returns true for - nor
+    // is it one that replaces what the table was holding.
+    if (Reader.HasFailed())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is malformed. %s"), *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    TMap<int32, int32> LoadedByIndex;
+    LoadedByIndex.Empty(Loaded.Num());
+
+    for (int32 Position = 0; Position < Loaded.Num(); ++Position)
+    {
+        LoadedByIndex.Add(Loaded[Position].Index, Position);
+    }
+
+    // Published together: rows holding this load and an index built from the last one would
+    // answer a lookup with a row that has moved.
+    RecordsStorage = MoveTemp(Loaded);
+    ByIndex = MoveTemp(LoadedByIndex);
+
+    return true;
+}
+
+
+const FAccessRow* FAccessTable::FindByIndex(int32 Key) const
+{
+    const int32* Position = ByIndex.Find(Key);
+    return Position != nullptr ? &RecordsStorage[*Position] : nullptr;
+}
+
+bool FAccessTable::ContainsIndex(int32 Key) const
+{
+    return ByIndex.Contains(Key);
+}
+
+bool FAccessTable::Read(const FString& Filename)
+{
+    TArray<uint8> Buffer;
+
+    // FFileHelper rather than the platform's own file API, and that is what makes this work
+    // in a packaged build: it goes through IPlatformFile, which mounts the .pak and reads
+    // out of it as though the file were loose on disk. The same call therefore works in the
+    // editor, in a cooked build, and inside an Android .obb.
+    //
+    // What it cannot do is find a file the packaging step never took. A .tcb is not an
+    // asset, so Unreal ignores it unless the project lists its directory under
+    // Project Settings -> Packaging -> "Additional Non-Asset Directories to Package".
+    // Miss that and this works in the editor and reports a missing file the moment anybody
+    // runs the build - which is the failure this message exists to name.
+    if (!FFileHelper::LoadFileToArray(Buffer, *Filename))
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Tabbit: could not read %s. In a packaged build, check that its directory is "
+                 "listed under Packaging -> Additional Non-Asset Directories to Package."),
+            *Filename);
+
+        return false;
+    }
+
+    // Opened unconditionally, with whatever FDocShowcase::EncryptionKey and
+    // FDocShowcase::MacKey hold - empty unless the project set them. A file that is
+    // neither encrypted nor signed comes back from this untouched, so the load path is the
+    // same either way and there is no condition here that could be the wrong way round.
+    // spec/wire/tcb-mac-and-signature.md.
+    //
+    // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
+    // what has to stay alive for as long as the reader below is used.
+    TArrayView<const uint8> Bytes;
+    FString OpenError;
+
+    if (!Tabbit::Open(Buffer, FDocShowcase::EncryptionKey, Bytes, OpenError,
+            FDocShowcase::MacKey, FDocShowcase::bVerifyMac))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s could not be opened. %s"),
+            *Filename, *OpenError);
+
+        return false;
+    }
+
+    // A view over the bytes already in memory, so the file is read once and not copied
+    // a second time - a localization table is megabytes.
+    Tabbit::FTabbitBinaryReader Reader(Bytes);
+
+    Tabbit::FTabbitTableHeader Header;
+    if (!Tabbit::ReadTableHeader(Reader, Header))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is not a table this build can read. %s"),
+            *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    // Read beside whatever this table is already holding and swapped in at the end. Reading
+    // again is a refresh - a patched .pak, a downloaded table - and one that turns out to be
+    // unreadable has to leave the rows already there, which Blueprint graphs and gameplay
+    // code are holding by value and by pointer.
+    //
+    // The header has already checked the row count against what the columns declare, so this
+    // allocation is the size the file can actually hold rows for.
+    TArray<FAccessRow> Loaded;
+
+    Loaded.Empty(Header.RowCount);
+    Loaded.SetNum(Header.RowCount);
+
+    // One cursor for the whole read: the switch's cases share a scope, and C++ does
+    // not allow a jump past a live constructor, so each encodable column opens this
+    // one rather than declaring its own.
+    Tabbit::FTabbitColumnCursor Cursor;
+
+    // Column by column, matched by tag rather than by position: a column this build has no
+    // member for is skipped by its declared length, and one whose type no longer fits the
+    // member stops the read naming the field. Rows arrive default constructed, so a member
+    // the file carries nothing for keeps its default.
+    for (const Tabbit::FTabbitColumn& Column : Header.Columns)
+    {
+        const int32 BlockEnd = Reader.Tell() + Column.ByteLength;
+
+        switch (Column.Tag)
+        {
+        case 1:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Access.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Access.Index"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Index = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 2:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Access.Flags"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI64) | Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Access.Flags"));
+
+            for (FAccessRow& Record : Loaded)
+            {
+                Cursor.NextI64(Record.Flags);
+            }
+
+            break;
+
+        case 3:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Access.Same"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI64) | Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Access.Same"));
+
+            for (FAccessRow& Record : Loaded)
+            {
+                Cursor.NextI64(Record.Same);
+            }
+
+            break;
+
+        default:
+            // A column this build has no member for: added to the schema after the code
+            // was generated, or removed from the code while the data still carries it.
+            Reader.Skip(Column.ByteLength);
+            break;
+        }
+
+        Tabbit::CheckBlockEnd(Reader, Column, BlockEnd);
+    }
+
+    // Asked once, for the whole table. Anything short or malformed anywhere in it has
+    // left its reason here, and a half-read table is not one this returns true for - nor
+    // is it one that replaces what the table was holding.
+    if (Reader.HasFailed())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is malformed. %s"), *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    TMap<int32, int32> LoadedByIndex;
+    LoadedByIndex.Empty(Loaded.Num());
+
+    for (int32 Position = 0; Position < Loaded.Num(); ++Position)
+    {
+        LoadedByIndex.Add(Loaded[Position].Index, Position);
+    }
+
+    // Published together: rows holding this load and an index built from the last one would
+    // answer a lookup with a row that has moved.
+    RecordsStorage = MoveTemp(Loaded);
+    ByIndex = MoveTemp(LoadedByIndex);
+
+    return true;
+}
+
+
+const FLineRow* FLineTable::FindByIndex(int32 Key) const
+{
+    const int32* Position = ByIndex.Find(Key);
+    return Position != nullptr ? &RecordsStorage[*Position] : nullptr;
+}
+
+bool FLineTable::ContainsIndex(int32 Key) const
+{
+    return ByIndex.Contains(Key);
+}
+
+bool FLineTable::Read(const FString& Filename)
+{
+    TArray<uint8> Buffer;
+
+    // FFileHelper rather than the platform's own file API, and that is what makes this work
+    // in a packaged build: it goes through IPlatformFile, which mounts the .pak and reads
+    // out of it as though the file were loose on disk. The same call therefore works in the
+    // editor, in a cooked build, and inside an Android .obb.
+    //
+    // What it cannot do is find a file the packaging step never took. A .tcb is not an
+    // asset, so Unreal ignores it unless the project lists its directory under
+    // Project Settings -> Packaging -> "Additional Non-Asset Directories to Package".
+    // Miss that and this works in the editor and reports a missing file the moment anybody
+    // runs the build - which is the failure this message exists to name.
+    if (!FFileHelper::LoadFileToArray(Buffer, *Filename))
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Tabbit: could not read %s. In a packaged build, check that its directory is "
+                 "listed under Packaging -> Additional Non-Asset Directories to Package."),
+            *Filename);
+
+        return false;
+    }
+
+    // Opened unconditionally, with whatever FDocShowcase::EncryptionKey and
+    // FDocShowcase::MacKey hold - empty unless the project set them. A file that is
+    // neither encrypted nor signed comes back from this untouched, so the load path is the
+    // same either way and there is no condition here that could be the wrong way round.
+    // spec/wire/tcb-mac-and-signature.md.
+    //
+    // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
+    // what has to stay alive for as long as the reader below is used.
+    TArrayView<const uint8> Bytes;
+    FString OpenError;
+
+    if (!Tabbit::Open(Buffer, FDocShowcase::EncryptionKey, Bytes, OpenError,
+            FDocShowcase::MacKey, FDocShowcase::bVerifyMac))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s could not be opened. %s"),
+            *Filename, *OpenError);
+
+        return false;
+    }
+
+    // A view over the bytes already in memory, so the file is read once and not copied
+    // a second time - a localization table is megabytes.
+    Tabbit::FTabbitBinaryReader Reader(Bytes);
+
+    Tabbit::FTabbitTableHeader Header;
+    if (!Tabbit::ReadTableHeader(Reader, Header))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is not a table this build can read. %s"),
+            *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    // Read beside whatever this table is already holding and swapped in at the end. Reading
+    // again is a refresh - a patched .pak, a downloaded table - and one that turns out to be
+    // unreadable has to leave the rows already there, which Blueprint graphs and gameplay
+    // code are holding by value and by pointer.
+    //
+    // The header has already checked the row count against what the columns declare, so this
+    // allocation is the size the file can actually hold rows for.
+    TArray<FLineRow> Loaded;
+
+    Loaded.Empty(Header.RowCount);
+    Loaded.SetNum(Header.RowCount);
+
+    // One cursor for the whole read: the switch's cases share a scope, and C++ does
+    // not allow a jump past a live constructor, so each encodable column opens this
+    // one rather than declaring its own.
+    Tabbit::FTabbitColumnCursor Cursor;
+
+    // Column by column, matched by tag rather than by position: a column this build has no
+    // member for is skipped by its declared length, and one whose type no longer fits the
+    // member stops the read naming the field. Rows arrive default constructed, so a member
+    // the file carries nothing for keeps its default.
+    for (const Tabbit::FTabbitColumn& Column : Header.Columns)
+    {
+        const int32 BlockEnd = Reader.Tell() + Column.ByteLength;
+
+        switch (Column.Tag)
+        {
+        case 1:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Line.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Line.Index"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Index = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 2:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Line.Body"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Line.Body"));
+
+            {
+                FString RunText;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameString(Header.RowCount - Row, RunLength, RunText))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Body = RunText;
+                    }
+                }
+            }
+
+            break;
+
+        case 3:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Line.Icon"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Line.Icon"));
+
+            {
+                FString RunText;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameString(Header.RowCount - Row, RunLength, RunText))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Icon = RunText;
+                    }
+                }
+            }
+
+            break;
+
+        default:
+            // A column this build has no member for: added to the schema after the code
+            // was generated, or removed from the code while the data still carries it.
+            Reader.Skip(Column.ByteLength);
+            break;
+        }
+
+        Tabbit::CheckBlockEnd(Reader, Column, BlockEnd);
+    }
+
+    // Asked once, for the whole table. Anything short or malformed anywhere in it has
+    // left its reason here, and a half-read table is not one this returns true for - nor
+    // is it one that replaces what the table was holding.
+    if (Reader.HasFailed())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is malformed. %s"), *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    TMap<int32, int32> LoadedByIndex;
+    LoadedByIndex.Empty(Loaded.Num());
+
+    for (int32 Position = 0; Position < Loaded.Num(); ++Position)
+    {
+        LoadedByIndex.Add(Loaded[Position].Index, Position);
+    }
+
+    // Published together: rows holding this load and an index built from the last one would
+    // answer a lookup with a row that has moved.
+    RecordsStorage = MoveTemp(Loaded);
+    ByIndex = MoveTemp(LoadedByIndex);
+
+    return true;
+}
+
+
+const FAnimationRow* FAnimationTable::FindByIndex(const FString& Key) const
+{
+    const int32* Position = ByIndex.Find(Key);
+    return Position != nullptr ? &RecordsStorage[*Position] : nullptr;
+}
+
+bool FAnimationTable::ContainsIndex(const FString& Key) const
+{
+    return ByIndex.Contains(Key);
+}
+
+const FAnimationRow* FAnimationTable::FindBySlot(int32 Key) const
+{
+    const int32* Position = BySlot.Find(Key);
+    return Position != nullptr ? &RecordsStorage[*Position] : nullptr;
+}
+
+bool FAnimationTable::ContainsSlot(int32 Key) const
+{
+    return BySlot.Contains(Key);
+}
+
+bool FAnimationTable::Read(const FString& Filename)
+{
+    TArray<uint8> Buffer;
+
+    // FFileHelper rather than the platform's own file API, and that is what makes this work
+    // in a packaged build: it goes through IPlatformFile, which mounts the .pak and reads
+    // out of it as though the file were loose on disk. The same call therefore works in the
+    // editor, in a cooked build, and inside an Android .obb.
+    //
+    // What it cannot do is find a file the packaging step never took. A .tcb is not an
+    // asset, so Unreal ignores it unless the project lists its directory under
+    // Project Settings -> Packaging -> "Additional Non-Asset Directories to Package".
+    // Miss that and this works in the editor and reports a missing file the moment anybody
+    // runs the build - which is the failure this message exists to name.
+    if (!FFileHelper::LoadFileToArray(Buffer, *Filename))
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Tabbit: could not read %s. In a packaged build, check that its directory is "
+                 "listed under Packaging -> Additional Non-Asset Directories to Package."),
+            *Filename);
+
+        return false;
+    }
+
+    // Opened unconditionally, with whatever FDocShowcase::EncryptionKey and
+    // FDocShowcase::MacKey hold - empty unless the project set them. A file that is
+    // neither encrypted nor signed comes back from this untouched, so the load path is the
+    // same either way and there is no condition here that could be the wrong way round.
+    // spec/wire/tcb-mac-and-signature.md.
+    //
+    // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
+    // what has to stay alive for as long as the reader below is used.
+    TArrayView<const uint8> Bytes;
+    FString OpenError;
+
+    if (!Tabbit::Open(Buffer, FDocShowcase::EncryptionKey, Bytes, OpenError,
+            FDocShowcase::MacKey, FDocShowcase::bVerifyMac))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s could not be opened. %s"),
+            *Filename, *OpenError);
+
+        return false;
+    }
+
+    // A view over the bytes already in memory, so the file is read once and not copied
+    // a second time - a localization table is megabytes.
+    Tabbit::FTabbitBinaryReader Reader(Bytes);
+
+    Tabbit::FTabbitTableHeader Header;
+    if (!Tabbit::ReadTableHeader(Reader, Header))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is not a table this build can read. %s"),
+            *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    // Read beside whatever this table is already holding and swapped in at the end. Reading
+    // again is a refresh - a patched .pak, a downloaded table - and one that turns out to be
+    // unreadable has to leave the rows already there, which Blueprint graphs and gameplay
+    // code are holding by value and by pointer.
+    //
+    // The header has already checked the row count against what the columns declare, so this
+    // allocation is the size the file can actually hold rows for.
+    TArray<FAnimationRow> Loaded;
+
+    Loaded.Empty(Header.RowCount);
+    Loaded.SetNum(Header.RowCount);
+
+    // One cursor for the whole read: the switch's cases share a scope, and C++ does
+    // not allow a jump past a live constructor, so each encodable column opens this
+    // one rather than declaring its own.
+    Tabbit::FTabbitColumnCursor Cursor;
+
+    // Column by column, matched by tag rather than by position: a column this build has no
+    // member for is skipped by its declared length, and one whose type no longer fits the
+    // member stops the read naming the field. Rows arrive default constructed, so a member
+    // the file carries nothing for keeps its default.
+    for (const Tabbit::FTabbitColumn& Column : Header.Columns)
+    {
+        const int32 BlockEnd = Reader.Tell() + Column.ByteLength;
+
+        switch (Column.Tag)
+        {
+        case 1:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Animation.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Animation.Index"));
+
+            {
+                FString RunText;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameString(Header.RowCount - Row, RunLength, RunText))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Index = RunText;
+                    }
+                }
+            }
+
+            break;
+
+        case 2:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Animation.Slot"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Animation.Slot"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Slot = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 3:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Animation.Blend"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementF32));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Animation.Blend"));
+
+            for (FAnimationRow& Record : Loaded)
+            {
+                Cursor.NextF32(Record.Blend);
+            }
+
+            break;
+
+        default:
+            // A column this build has no member for: added to the schema after the code
+            // was generated, or removed from the code while the data still carries it.
+            Reader.Skip(Column.ByteLength);
+            break;
+        }
+
+        Tabbit::CheckBlockEnd(Reader, Column, BlockEnd);
+    }
+
+    // Asked once, for the whole table. Anything short or malformed anywhere in it has
+    // left its reason here, and a half-read table is not one this returns true for - nor
+    // is it one that replaces what the table was holding.
+    if (Reader.HasFailed())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is malformed. %s"), *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    TMap<FString, int32> LoadedByIndex;
+    LoadedByIndex.Empty(Loaded.Num());
+
+    TMap<int32, int32> LoadedBySlot;
+    LoadedBySlot.Empty(Loaded.Num());
+
+    for (int32 Position = 0; Position < Loaded.Num(); ++Position)
+    {
+        LoadedByIndex.Add(Loaded[Position].Index, Position);
+        LoadedBySlot.Add(Loaded[Position].Slot, Position);
+    }
+
+    // Published together: rows holding this load and an index built from the last one would
+    // answer a lookup with a row that has moved.
+    RecordsStorage = MoveTemp(Loaded);
+    ByIndex = MoveTemp(LoadedByIndex);
+    BySlot = MoveTemp(LoadedBySlot);
+
+    return true;
+}
+
+
+const FWireRow* FWireTable::FindByIndex(int32 Key) const
+{
+    const int32* Position = ByIndex.Find(Key);
+    return Position != nullptr ? &RecordsStorage[*Position] : nullptr;
+}
+
+bool FWireTable::ContainsIndex(int32 Key) const
+{
+    return ByIndex.Contains(Key);
+}
+
+bool FWireTable::Read(const FString& Filename)
+{
+    TArray<uint8> Buffer;
+
+    // FFileHelper rather than the platform's own file API, and that is what makes this work
+    // in a packaged build: it goes through IPlatformFile, which mounts the .pak and reads
+    // out of it as though the file were loose on disk. The same call therefore works in the
+    // editor, in a cooked build, and inside an Android .obb.
+    //
+    // What it cannot do is find a file the packaging step never took. A .tcb is not an
+    // asset, so Unreal ignores it unless the project lists its directory under
+    // Project Settings -> Packaging -> "Additional Non-Asset Directories to Package".
+    // Miss that and this works in the editor and reports a missing file the moment anybody
+    // runs the build - which is the failure this message exists to name.
+    if (!FFileHelper::LoadFileToArray(Buffer, *Filename))
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Tabbit: could not read %s. In a packaged build, check that its directory is "
+                 "listed under Packaging -> Additional Non-Asset Directories to Package."),
+            *Filename);
+
+        return false;
+    }
+
+    // Opened unconditionally, with whatever FDocShowcase::EncryptionKey and
+    // FDocShowcase::MacKey hold - empty unless the project set them. A file that is
+    // neither encrypted nor signed comes back from this untouched, so the load path is the
+    // same either way and there is no condition here that could be the wrong way round.
+    // spec/wire/tcb-mac-and-signature.md.
+    //
+    // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
+    // what has to stay alive for as long as the reader below is used.
+    TArrayView<const uint8> Bytes;
+    FString OpenError;
+
+    if (!Tabbit::Open(Buffer, FDocShowcase::EncryptionKey, Bytes, OpenError,
+            FDocShowcase::MacKey, FDocShowcase::bVerifyMac))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s could not be opened. %s"),
+            *Filename, *OpenError);
+
+        return false;
+    }
+
+    // A view over the bytes already in memory, so the file is read once and not copied
+    // a second time - a localization table is megabytes.
+    Tabbit::FTabbitBinaryReader Reader(Bytes);
+
+    Tabbit::FTabbitTableHeader Header;
+    if (!Tabbit::ReadTableHeader(Reader, Header))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is not a table this build can read. %s"),
+            *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    // Read beside whatever this table is already holding and swapped in at the end. Reading
+    // again is a refresh - a patched .pak, a downloaded table - and one that turns out to be
+    // unreadable has to leave the rows already there, which Blueprint graphs and gameplay
+    // code are holding by value and by pointer.
+    //
+    // The header has already checked the row count against what the columns declare, so this
+    // allocation is the size the file can actually hold rows for.
+    TArray<FWireRow> Loaded;
+
+    Loaded.Empty(Header.RowCount);
+    Loaded.SetNum(Header.RowCount);
+
+    // One cursor for the whole read: the switch's cases share a scope, and C++ does
+    // not allow a jump past a live constructor, so each encodable column opens this
+    // one rather than declaring its own.
+    Tabbit::FTabbitColumnCursor Cursor;
+
+    // Column by column, matched by tag rather than by position: a column this build has no
+    // member for is skipped by its declared length, and one whose type no longer fits the
+    // member stops the read naming the field. Rows arrive default constructed, so a member
+    // the file carries nothing for keeps its default.
+    for (const Tabbit::FTabbitColumn& Column : Header.Columns)
+    {
+        const int32 BlockEnd = Reader.Tell() + Column.ByteLength;
+
+        switch (Column.Tag)
+        {
+        case 1:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Wire.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Wire.Index"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Index = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 2:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Wire.Name"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Wire.Name"));
+
+            {
+                FString RunText;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameString(Header.RowCount - Row, RunLength, RunText))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Name = RunText;
+                    }
+                }
+            }
+
+            break;
+
+        case 4:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Wire.Price"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Wire.Price"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Price = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        default:
+            // A column this build has no member for: added to the schema after the code
+            // was generated, or removed from the code while the data still carries it.
+            Reader.Skip(Column.ByteLength);
+            break;
+        }
+
+        Tabbit::CheckBlockEnd(Reader, Column, BlockEnd);
+    }
+
+    // Asked once, for the whole table. Anything short or malformed anywhere in it has
+    // left its reason here, and a half-read table is not one this returns true for - nor
+    // is it one that replaces what the table was holding.
+    if (Reader.HasFailed())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is malformed. %s"), *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    TMap<int32, int32> LoadedByIndex;
+    LoadedByIndex.Empty(Loaded.Num());
+
+    for (int32 Position = 0; Position < Loaded.Num(); ++Position)
+    {
+        LoadedByIndex.Add(Loaded[Position].Index, Position);
+    }
+
+    // Published together: rows holding this load and an index built from the last one would
+    // answer a lookup with a row that has moved.
+    RecordsStorage = MoveTemp(Loaded);
+    ByIndex = MoveTemp(LoadedByIndex);
+
+    return true;
+}
+
+
 const FShopRow* FShopTable::FindByIndex(int32 Key) const
 {
     const int32* Position = ByIndex.Find(Key);
@@ -647,6 +2029,267 @@ bool FShopEntryTable::Read(const FString& Filename)
 }
 
 
+const FCraftRow* FCraftTable::FindByIndex(int32 Key) const
+{
+    const int32* Position = ByIndex.Find(Key);
+    return Position != nullptr ? &RecordsStorage[*Position] : nullptr;
+}
+
+bool FCraftTable::ContainsIndex(int32 Key) const
+{
+    return ByIndex.Contains(Key);
+}
+
+bool FCraftTable::Read(const FString& Filename)
+{
+    TArray<uint8> Buffer;
+
+    // FFileHelper rather than the platform's own file API, and that is what makes this work
+    // in a packaged build: it goes through IPlatformFile, which mounts the .pak and reads
+    // out of it as though the file were loose on disk. The same call therefore works in the
+    // editor, in a cooked build, and inside an Android .obb.
+    //
+    // What it cannot do is find a file the packaging step never took. A .tcb is not an
+    // asset, so Unreal ignores it unless the project lists its directory under
+    // Project Settings -> Packaging -> "Additional Non-Asset Directories to Package".
+    // Miss that and this works in the editor and reports a missing file the moment anybody
+    // runs the build - which is the failure this message exists to name.
+    if (!FFileHelper::LoadFileToArray(Buffer, *Filename))
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Tabbit: could not read %s. In a packaged build, check that its directory is "
+                 "listed under Packaging -> Additional Non-Asset Directories to Package."),
+            *Filename);
+
+        return false;
+    }
+
+    // Opened unconditionally, with whatever FDocShowcase::EncryptionKey and
+    // FDocShowcase::MacKey hold - empty unless the project set them. A file that is
+    // neither encrypted nor signed comes back from this untouched, so the load path is the
+    // same either way and there is no condition here that could be the wrong way round.
+    // spec/wire/tcb-mac-and-signature.md.
+    //
+    // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
+    // what has to stay alive for as long as the reader below is used.
+    TArrayView<const uint8> Bytes;
+    FString OpenError;
+
+    if (!Tabbit::Open(Buffer, FDocShowcase::EncryptionKey, Bytes, OpenError,
+            FDocShowcase::MacKey, FDocShowcase::bVerifyMac))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s could not be opened. %s"),
+            *Filename, *OpenError);
+
+        return false;
+    }
+
+    // A view over the bytes already in memory, so the file is read once and not copied
+    // a second time - a localization table is megabytes.
+    Tabbit::FTabbitBinaryReader Reader(Bytes);
+
+    Tabbit::FTabbitTableHeader Header;
+    if (!Tabbit::ReadTableHeader(Reader, Header))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is not a table this build can read. %s"),
+            *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    // Read beside whatever this table is already holding and swapped in at the end. Reading
+    // again is a refresh - a patched .pak, a downloaded table - and one that turns out to be
+    // unreadable has to leave the rows already there, which Blueprint graphs and gameplay
+    // code are holding by value and by pointer.
+    //
+    // The header has already checked the row count against what the columns declare, so this
+    // allocation is the size the file can actually hold rows for.
+    TArray<FCraftRow> Loaded;
+
+    Loaded.Empty(Header.RowCount);
+    Loaded.SetNum(Header.RowCount);
+
+    // One cursor for the whole read: the switch's cases share a scope, and C++ does
+    // not allow a jump past a live constructor, so each encodable column opens this
+    // one rather than declaring its own.
+    Tabbit::FTabbitColumnCursor Cursor;
+
+    // Declared once for the same reason the cursor is: the switch's cases share a scope.
+    TArray<uint8> Presence;
+
+    // Column by column, matched by tag rather than by position: a column this build has no
+    // member for is skipped by its declared length, and one whose type no longer fits the
+    // member stops the read naming the field. Rows arrive default constructed, so a member
+    // the file carries nothing for keeps its default.
+    for (const Tabbit::FTabbitColumn& Column : Header.Columns)
+    {
+        const int32 BlockEnd = Reader.Tell() + Column.ByteLength;
+
+        switch (Column.Tag)
+        {
+        case 1:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Craft.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Craft.Index"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Index = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 2:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Craft.Result"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Craft.Result"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Result = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 3:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Craft.ResultName"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Craft.ResultName"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].ResultName = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 4:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Craft.Parts"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Craft.Parts"));
+
+            for (FCraftRow& Record : Loaded)
+            {
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                Record.Parts.Empty(Tabbit::ReserveBound(ElementCount));
+
+                while (Record.Parts.Num() < ElementCount && !Reader.HasFailed())
+                {
+                    Cursor.NextAs(Column.Element, Record.Parts.AddDefaulted_GetRef());
+                }
+            }
+
+            break;
+
+        case 5:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Craft.Substitute"), Tabbit::KindScalar, true, Tabbit::ElementMask(Tabbit::ElementI32));
+            Tabbit::ReadPresence(Reader, Column, Header.RowCount, Presence);
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Craft.Substitute"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Substitute = RunValue;
+                    }
+                }
+            }
+
+            for (int32 RowAt = 0; RowAt < Loaded.Num(); ++RowAt)
+            {
+                Loaded[RowAt].bHasSubstitute = Tabbit::IsPresent(Presence, RowAt);
+
+                if (!Loaded[RowAt].bHasSubstitute)
+                {
+                    Loaded[RowAt].Substitute = 0;
+                }
+            }
+
+            break;
+
+        default:
+            // A column this build has no member for: added to the schema after the code
+            // was generated, or removed from the code while the data still carries it.
+            Reader.Skip(Column.ByteLength);
+            break;
+        }
+
+        Tabbit::CheckBlockEnd(Reader, Column, BlockEnd);
+    }
+
+    // Asked once, for the whole table. Anything short or malformed anywhere in it has
+    // left its reason here, and a half-read table is not one this returns true for - nor
+    // is it one that replaces what the table was holding.
+    if (Reader.HasFailed())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is malformed. %s"), *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    TMap<int32, int32> LoadedByIndex;
+    LoadedByIndex.Empty(Loaded.Num());
+
+    for (int32 Position = 0; Position < Loaded.Num(); ++Position)
+    {
+        LoadedByIndex.Add(Loaded[Position].Index, Position);
+    }
+
+    // Published together: rows holding this load and an index built from the last one would
+    // answer a lookup with a row that has moved.
+    RecordsStorage = MoveTemp(Loaded);
+    ByIndex = MoveTemp(LoadedByIndex);
+
+    return true;
+}
+
+
 const FLootRow* FLootTable::FindByIndex(int32 Key) const
 {
     const int32* Position = ByIndex.Find(Key);
@@ -804,6 +2447,220 @@ bool FLootTable::Read(const FString& Filename)
                 {
                     Cursor.NextAs(Column.Element, Record.Weight.AddDefaulted_GetRef());
                 }
+            }
+
+            break;
+
+        default:
+            // A column this build has no member for: added to the schema after the code
+            // was generated, or removed from the code while the data still carries it.
+            Reader.Skip(Column.ByteLength);
+            break;
+        }
+
+        Tabbit::CheckBlockEnd(Reader, Column, BlockEnd);
+    }
+
+    // Asked once, for the whole table. Anything short or malformed anywhere in it has
+    // left its reason here, and a half-read table is not one this returns true for - nor
+    // is it one that replaces what the table was holding.
+    if (Reader.HasFailed())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is malformed. %s"), *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    TMap<int32, int32> LoadedByIndex;
+    LoadedByIndex.Empty(Loaded.Num());
+
+    for (int32 Position = 0; Position < Loaded.Num(); ++Position)
+    {
+        LoadedByIndex.Add(Loaded[Position].Index, Position);
+    }
+
+    // Published together: rows holding this load and an index built from the last one would
+    // answer a lookup with a row that has moved.
+    RecordsStorage = MoveTemp(Loaded);
+    ByIndex = MoveTemp(LoadedByIndex);
+
+    return true;
+}
+
+
+const FDropRow* FDropTable::FindByIndex(int32 Key) const
+{
+    const int32* Position = ByIndex.Find(Key);
+    return Position != nullptr ? &RecordsStorage[*Position] : nullptr;
+}
+
+bool FDropTable::ContainsIndex(int32 Key) const
+{
+    return ByIndex.Contains(Key);
+}
+
+bool FDropTable::Read(const FString& Filename)
+{
+    TArray<uint8> Buffer;
+
+    // FFileHelper rather than the platform's own file API, and that is what makes this work
+    // in a packaged build: it goes through IPlatformFile, which mounts the .pak and reads
+    // out of it as though the file were loose on disk. The same call therefore works in the
+    // editor, in a cooked build, and inside an Android .obb.
+    //
+    // What it cannot do is find a file the packaging step never took. A .tcb is not an
+    // asset, so Unreal ignores it unless the project lists its directory under
+    // Project Settings -> Packaging -> "Additional Non-Asset Directories to Package".
+    // Miss that and this works in the editor and reports a missing file the moment anybody
+    // runs the build - which is the failure this message exists to name.
+    if (!FFileHelper::LoadFileToArray(Buffer, *Filename))
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Tabbit: could not read %s. In a packaged build, check that its directory is "
+                 "listed under Packaging -> Additional Non-Asset Directories to Package."),
+            *Filename);
+
+        return false;
+    }
+
+    // Opened unconditionally, with whatever FDocShowcase::EncryptionKey and
+    // FDocShowcase::MacKey hold - empty unless the project set them. A file that is
+    // neither encrypted nor signed comes back from this untouched, so the load path is the
+    // same either way and there is no condition here that could be the wrong way round.
+    // spec/wire/tcb-mac-and-signature.md.
+    //
+    // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
+    // what has to stay alive for as long as the reader below is used.
+    TArrayView<const uint8> Bytes;
+    FString OpenError;
+
+    if (!Tabbit::Open(Buffer, FDocShowcase::EncryptionKey, Bytes, OpenError,
+            FDocShowcase::MacKey, FDocShowcase::bVerifyMac))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s could not be opened. %s"),
+            *Filename, *OpenError);
+
+        return false;
+    }
+
+    // A view over the bytes already in memory, so the file is read once and not copied
+    // a second time - a localization table is megabytes.
+    Tabbit::FTabbitBinaryReader Reader(Bytes);
+
+    Tabbit::FTabbitTableHeader Header;
+    if (!Tabbit::ReadTableHeader(Reader, Header))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is not a table this build can read. %s"),
+            *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    // Read beside whatever this table is already holding and swapped in at the end. Reading
+    // again is a refresh - a patched .pak, a downloaded table - and one that turns out to be
+    // unreadable has to leave the rows already there, which Blueprint graphs and gameplay
+    // code are holding by value and by pointer.
+    //
+    // The header has already checked the row count against what the columns declare, so this
+    // allocation is the size the file can actually hold rows for.
+    TArray<FDropRow> Loaded;
+
+    Loaded.Empty(Header.RowCount);
+    Loaded.SetNum(Header.RowCount);
+
+    // One cursor for the whole read: the switch's cases share a scope, and C++ does
+    // not allow a jump past a live constructor, so each encodable column opens this
+    // one rather than declaring its own.
+    Tabbit::FTabbitColumnCursor Cursor;
+    TArray<uint8> ElementPresence;
+    int32 ElementAt = 0;
+
+    // Column by column, matched by tag rather than by position: a column this build has no
+    // member for is skipped by its declared length, and one whose type no longer fits the
+    // member stops the read naming the field. Rows arrive default constructed, so a member
+    // the file carries nothing for keeps its default.
+    for (const Tabbit::FTabbitColumn& Column : Header.Columns)
+    {
+        const int32 BlockEnd = Reader.Tell() + Column.ByteLength;
+
+        switch (Column.Tag)
+        {
+        case 1:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Drop.Index"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Index = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 2:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Grades"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Drop.Grades"));
+
+            for (FDropRow& Record : Loaded)
+            {
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                // Bounded, because the count came out of the file. The array grows past
+                // this if the elements really are there.
+                Record.Grades.Empty(Tabbit::ReserveBound(ElementCount));
+
+                while (Record.Grades.Num() < ElementCount && !Reader.HasFailed())
+                {
+                    Cursor.NextEnumAs(Column.Element, Record.Grades.AddDefaulted_GetRef());
+                }
+            }
+
+            break;
+
+        case 3:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Drop.Counts"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            // Behind the row bitmap and in front of the values, walked with a counter that
+            // steps once per element of every row. spec/types/nullable-array-elements.md.
+            Tabbit::ReadElementPresence(Reader, Column, ElementPresence);
+            ElementAt = 0;
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Drop.Counts"));
+
+            for (FDropRow& Record : Loaded)
+            {
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                // Bounded, because the count came out of the file. The array grows past
+                // this if the elements really are there.
+                Record.Counts.Empty(Tabbit::ReserveBound(ElementCount));
+
+                while (Record.Counts.Num() < ElementCount && !Reader.HasFailed())
+                {
+                    Cursor.NextAs(Column.Element, Record.Counts.AddDefaulted_GetRef());
+                }
+                Record.bHasCountsAt.Empty(
+                    Tabbit::ReserveBound(ElementCount));
+
+                for (int32 ElementIndex = 0; ElementIndex < ElementCount; ++ElementIndex)
+                {
+                    Record.bHasCountsAt.Add(
+                        Tabbit::IsPresent(ElementPresence, ElementAt + ElementIndex));
+                }
+
+                ElementAt += ElementCount;
             }
 
             break;
@@ -1006,6 +2863,454 @@ bool FSpawnTable::Read(const FString& Filename)
                 if (!Loaded[RowAt].bHasRadius)
                 {
                     Loaded[RowAt].Radius = 0;
+                }
+            }
+
+            break;
+
+        default:
+            // A column this build has no member for: added to the schema after the code
+            // was generated, or removed from the code while the data still carries it.
+            Reader.Skip(Column.ByteLength);
+            break;
+        }
+
+        Tabbit::CheckBlockEnd(Reader, Column, BlockEnd);
+    }
+
+    // Asked once, for the whole table. Anything short or malformed anywhere in it has
+    // left its reason here, and a half-read table is not one this returns true for - nor
+    // is it one that replaces what the table was holding.
+    if (Reader.HasFailed())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is malformed. %s"), *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    TMap<int32, int32> LoadedByIndex;
+    LoadedByIndex.Empty(Loaded.Num());
+
+    for (int32 Position = 0; Position < Loaded.Num(); ++Position)
+    {
+        LoadedByIndex.Add(Loaded[Position].Index, Position);
+    }
+
+    // Published together: rows holding this load and an index built from the last one would
+    // answer a lookup with a row that has moved.
+    RecordsStorage = MoveTemp(Loaded);
+    ByIndex = MoveTemp(LoadedByIndex);
+
+    return true;
+}
+
+
+const FDeckRow* FDeckTable::FindByIndex(int32 Key) const
+{
+    const int32* Position = ByIndex.Find(Key);
+    return Position != nullptr ? &RecordsStorage[*Position] : nullptr;
+}
+
+bool FDeckTable::ContainsIndex(int32 Key) const
+{
+    return ByIndex.Contains(Key);
+}
+
+bool FDeckTable::Read(const FString& Filename)
+{
+    TArray<uint8> Buffer;
+
+    // FFileHelper rather than the platform's own file API, and that is what makes this work
+    // in a packaged build: it goes through IPlatformFile, which mounts the .pak and reads
+    // out of it as though the file were loose on disk. The same call therefore works in the
+    // editor, in a cooked build, and inside an Android .obb.
+    //
+    // What it cannot do is find a file the packaging step never took. A .tcb is not an
+    // asset, so Unreal ignores it unless the project lists its directory under
+    // Project Settings -> Packaging -> "Additional Non-Asset Directories to Package".
+    // Miss that and this works in the editor and reports a missing file the moment anybody
+    // runs the build - which is the failure this message exists to name.
+    if (!FFileHelper::LoadFileToArray(Buffer, *Filename))
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Tabbit: could not read %s. In a packaged build, check that its directory is "
+                 "listed under Packaging -> Additional Non-Asset Directories to Package."),
+            *Filename);
+
+        return false;
+    }
+
+    // Opened unconditionally, with whatever FDocShowcase::EncryptionKey and
+    // FDocShowcase::MacKey hold - empty unless the project set them. A file that is
+    // neither encrypted nor signed comes back from this untouched, so the load path is the
+    // same either way and there is no condition here that could be the wrong way round.
+    // spec/wire/tcb-mac-and-signature.md.
+    //
+    // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
+    // what has to stay alive for as long as the reader below is used.
+    TArrayView<const uint8> Bytes;
+    FString OpenError;
+
+    if (!Tabbit::Open(Buffer, FDocShowcase::EncryptionKey, Bytes, OpenError,
+            FDocShowcase::MacKey, FDocShowcase::bVerifyMac))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s could not be opened. %s"),
+            *Filename, *OpenError);
+
+        return false;
+    }
+
+    // A view over the bytes already in memory, so the file is read once and not copied
+    // a second time - a localization table is megabytes.
+    Tabbit::FTabbitBinaryReader Reader(Bytes);
+
+    Tabbit::FTabbitTableHeader Header;
+    if (!Tabbit::ReadTableHeader(Reader, Header))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is not a table this build can read. %s"),
+            *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    // Read beside whatever this table is already holding and swapped in at the end. Reading
+    // again is a refresh - a patched .pak, a downloaded table - and one that turns out to be
+    // unreadable has to leave the rows already there, which Blueprint graphs and gameplay
+    // code are holding by value and by pointer.
+    //
+    // The header has already checked the row count against what the columns declare, so this
+    // allocation is the size the file can actually hold rows for.
+    TArray<FDeckRow> Loaded;
+
+    Loaded.Empty(Header.RowCount);
+    Loaded.SetNum(Header.RowCount);
+
+    // One cursor for the whole read: the switch's cases share a scope, and C++ does
+    // not allow a jump past a live constructor, so each encodable column opens this
+    // one rather than declaring its own.
+    Tabbit::FTabbitColumnCursor Cursor;
+
+    // Column by column, matched by tag rather than by position: a column this build has no
+    // member for is skipped by its declared length, and one whose type no longer fits the
+    // member stops the read naming the field. Rows arrive default constructed, so a member
+    // the file carries nothing for keeps its default.
+    for (const Tabbit::FTabbitColumn& Column : Header.Columns)
+    {
+        const int32 BlockEnd = Reader.Tell() + Column.ByteLength;
+
+        switch (Column.Tag)
+        {
+        case 1:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Deck.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Deck.Index"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Index = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 2:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Deck.Slot.Id"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Deck.Slot.Id"));
+
+            for (FDeckRow& Record : Loaded)
+            {
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                Record.Slot.Empty(Tabbit::ReserveBound(ElementCount));
+                Record.Slot.SetNum(ElementCount);
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
+                {
+                    Cursor.NextAs(Column.Element, Record.Slot[ElementAt].Id);
+                }
+            }
+
+            break;
+
+        case 3:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Deck.Slot.Label"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Deck.Slot.Label"));
+
+            for (FDeckRow& Record : Loaded)
+            {
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                if (Record.Slot.Num() != ElementCount)
+                {
+                    Reader.FailWith(TEXT("Deck.Slot: the file gives this row a ")
+                        TEXT("different element count for one member of the record than for another; every ")
+                        TEXT("member of a record carries the same count, so the file is damaged."));
+                    break;
+                }
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
+                {
+                    Cursor.NextAs(Column.Element, Record.Slot[ElementAt].Label);
+                }
+            }
+
+            break;
+
+        case 4:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Deck.Home.At.X"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementF32));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Deck.Home.At.X"));
+
+            for (FDeckRow& Record : Loaded)
+            {
+                Cursor.NextF32(Record.Home.At.X);
+            }
+
+            break;
+
+        case 5:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Deck.Home.At.Y"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementF32));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Deck.Home.At.Y"));
+
+            for (FDeckRow& Record : Loaded)
+            {
+                Cursor.NextF32(Record.Home.At.Y);
+            }
+
+            break;
+
+        default:
+            // A column this build has no member for: added to the schema after the code
+            // was generated, or removed from the code while the data still carries it.
+            Reader.Skip(Column.ByteLength);
+            break;
+        }
+
+        Tabbit::CheckBlockEnd(Reader, Column, BlockEnd);
+    }
+
+    // Asked once, for the whole table. Anything short or malformed anywhere in it has
+    // left its reason here, and a half-read table is not one this returns true for - nor
+    // is it one that replaces what the table was holding.
+    if (Reader.HasFailed())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is malformed. %s"), *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    TMap<int32, int32> LoadedByIndex;
+    LoadedByIndex.Empty(Loaded.Num());
+
+    for (int32 Position = 0; Position < Loaded.Num(); ++Position)
+    {
+        LoadedByIndex.Add(Loaded[Position].Index, Position);
+    }
+
+    // Published together: rows holding this load and an index built from the last one would
+    // answer a lookup with a row that has moved.
+    RecordsStorage = MoveTemp(Loaded);
+    ByIndex = MoveTemp(LoadedByIndex);
+
+    return true;
+}
+
+
+const FQuestRow* FQuestTable::FindByIndex(int32 Key) const
+{
+    const int32* Position = ByIndex.Find(Key);
+    return Position != nullptr ? &RecordsStorage[*Position] : nullptr;
+}
+
+bool FQuestTable::ContainsIndex(int32 Key) const
+{
+    return ByIndex.Contains(Key);
+}
+
+bool FQuestTable::Read(const FString& Filename)
+{
+    TArray<uint8> Buffer;
+
+    // FFileHelper rather than the platform's own file API, and that is what makes this work
+    // in a packaged build: it goes through IPlatformFile, which mounts the .pak and reads
+    // out of it as though the file were loose on disk. The same call therefore works in the
+    // editor, in a cooked build, and inside an Android .obb.
+    //
+    // What it cannot do is find a file the packaging step never took. A .tcb is not an
+    // asset, so Unreal ignores it unless the project lists its directory under
+    // Project Settings -> Packaging -> "Additional Non-Asset Directories to Package".
+    // Miss that and this works in the editor and reports a missing file the moment anybody
+    // runs the build - which is the failure this message exists to name.
+    if (!FFileHelper::LoadFileToArray(Buffer, *Filename))
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Tabbit: could not read %s. In a packaged build, check that its directory is "
+                 "listed under Packaging -> Additional Non-Asset Directories to Package."),
+            *Filename);
+
+        return false;
+    }
+
+    // Opened unconditionally, with whatever FDocShowcase::EncryptionKey and
+    // FDocShowcase::MacKey hold - empty unless the project set them. A file that is
+    // neither encrypted nor signed comes back from this untouched, so the load path is the
+    // same either way and there is no condition here that could be the wrong way round.
+    // spec/wire/tcb-mac-and-signature.md.
+    //
+    // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
+    // what has to stay alive for as long as the reader below is used.
+    TArrayView<const uint8> Bytes;
+    FString OpenError;
+
+    if (!Tabbit::Open(Buffer, FDocShowcase::EncryptionKey, Bytes, OpenError,
+            FDocShowcase::MacKey, FDocShowcase::bVerifyMac))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s could not be opened. %s"),
+            *Filename, *OpenError);
+
+        return false;
+    }
+
+    // A view over the bytes already in memory, so the file is read once and not copied
+    // a second time - a localization table is megabytes.
+    Tabbit::FTabbitBinaryReader Reader(Bytes);
+
+    Tabbit::FTabbitTableHeader Header;
+    if (!Tabbit::ReadTableHeader(Reader, Header))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is not a table this build can read. %s"),
+            *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    // Read beside whatever this table is already holding and swapped in at the end. Reading
+    // again is a refresh - a patched .pak, a downloaded table - and one that turns out to be
+    // unreadable has to leave the rows already there, which Blueprint graphs and gameplay
+    // code are holding by value and by pointer.
+    //
+    // The header has already checked the row count against what the columns declare, so this
+    // allocation is the size the file can actually hold rows for.
+    TArray<FQuestRow> Loaded;
+
+    Loaded.Empty(Header.RowCount);
+    Loaded.SetNum(Header.RowCount);
+
+    // One cursor for the whole read: the switch's cases share a scope, and C++ does
+    // not allow a jump past a live constructor, so each encodable column opens this
+    // one rather than declaring its own.
+    Tabbit::FTabbitColumnCursor Cursor;
+
+    // Column by column, matched by tag rather than by position: a column this build has no
+    // member for is skipped by its declared length, and one whose type no longer fits the
+    // member stops the read naming the field. Rows arrive default constructed, so a member
+    // the file carries nothing for keeps its default.
+    for (const Tabbit::FTabbitColumn& Column : Header.Columns)
+    {
+        const int32 BlockEnd = Reader.Tell() + Column.ByteLength;
+
+        switch (Column.Tag)
+        {
+        case 1:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Quest.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Quest.Index"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Index = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 2:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Quest.Name"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Quest.Name"));
+
+            {
+                FString RunText;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameString(Header.RowCount - Row, RunLength, RunText))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Name = RunText;
+                    }
+                }
+            }
+
+            break;
+
+        case 3:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Quest.Reward.Id"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Quest.Reward.Id"));
+
+            for (FQuestRow& Record : Loaded)
+            {
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                Record.Reward.Empty(Tabbit::ReserveBound(ElementCount));
+                Record.Reward.SetNum(ElementCount);
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
+                {
+                    Cursor.NextAs(Column.Element, Record.Reward[ElementAt].Id);
+                }
+            }
+
+            break;
+
+        case 4:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Quest.Reward.Count"), Tabbit::KindArray, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Quest.Reward.Count"));
+
+            for (FQuestRow& Record : Loaded)
+            {
+                int32 ElementCount = 0;
+                Cursor.NextLength(ElementCount);
+
+                if (Record.Reward.Num() != ElementCount)
+                {
+                    Reader.FailWith(TEXT("Quest.Reward: the file gives this row a ")
+                        TEXT("different element count for one member of the record than for another; every ")
+                        TEXT("member of a record carries the same count, so the file is damaged."));
+                    break;
+                }
+
+                for (int32 ElementAt = 0; ElementAt < ElementCount && !Reader.HasFailed(); ++ElementAt)
+                {
+                    Cursor.NextAs(Column.Element, Record.Reward[ElementAt].Count);
                 }
             }
 
@@ -1295,12 +3600,696 @@ bool FStageRewardTable::Read(const FString& Filename)
     return true;
 }
 
+
+const FServerTuningRow* FServerTuningTable::FindByIndex(int32 Key) const
+{
+    const int32* Position = ByIndex.Find(Key);
+    return Position != nullptr ? &RecordsStorage[*Position] : nullptr;
+}
+
+bool FServerTuningTable::ContainsIndex(int32 Key) const
+{
+    return ByIndex.Contains(Key);
+}
+
+bool FServerTuningTable::Read(const FString& Filename)
+{
+    TArray<uint8> Buffer;
+
+    // FFileHelper rather than the platform's own file API, and that is what makes this work
+    // in a packaged build: it goes through IPlatformFile, which mounts the .pak and reads
+    // out of it as though the file were loose on disk. The same call therefore works in the
+    // editor, in a cooked build, and inside an Android .obb.
+    //
+    // What it cannot do is find a file the packaging step never took. A .tcb is not an
+    // asset, so Unreal ignores it unless the project lists its directory under
+    // Project Settings -> Packaging -> "Additional Non-Asset Directories to Package".
+    // Miss that and this works in the editor and reports a missing file the moment anybody
+    // runs the build - which is the failure this message exists to name.
+    if (!FFileHelper::LoadFileToArray(Buffer, *Filename))
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Tabbit: could not read %s. In a packaged build, check that its directory is "
+                 "listed under Packaging -> Additional Non-Asset Directories to Package."),
+            *Filename);
+
+        return false;
+    }
+
+    // Opened unconditionally, with whatever FDocShowcase::EncryptionKey and
+    // FDocShowcase::MacKey hold - empty unless the project set them. A file that is
+    // neither encrypted nor signed comes back from this untouched, so the load path is the
+    // same either way and there is no condition here that could be the wrong way round.
+    // spec/wire/tcb-mac-and-signature.md.
+    //
+    // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
+    // what has to stay alive for as long as the reader below is used.
+    TArrayView<const uint8> Bytes;
+    FString OpenError;
+
+    if (!Tabbit::Open(Buffer, FDocShowcase::EncryptionKey, Bytes, OpenError,
+            FDocShowcase::MacKey, FDocShowcase::bVerifyMac))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s could not be opened. %s"),
+            *Filename, *OpenError);
+
+        return false;
+    }
+
+    // A view over the bytes already in memory, so the file is read once and not copied
+    // a second time - a localization table is megabytes.
+    Tabbit::FTabbitBinaryReader Reader(Bytes);
+
+    Tabbit::FTabbitTableHeader Header;
+    if (!Tabbit::ReadTableHeader(Reader, Header))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is not a table this build can read. %s"),
+            *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    // Read beside whatever this table is already holding and swapped in at the end. Reading
+    // again is a refresh - a patched .pak, a downloaded table - and one that turns out to be
+    // unreadable has to leave the rows already there, which Blueprint graphs and gameplay
+    // code are holding by value and by pointer.
+    //
+    // The header has already checked the row count against what the columns declare, so this
+    // allocation is the size the file can actually hold rows for.
+    TArray<FServerTuningRow> Loaded;
+
+    Loaded.Empty(Header.RowCount);
+    Loaded.SetNum(Header.RowCount);
+
+    // One cursor for the whole read: the switch's cases share a scope, and C++ does
+    // not allow a jump past a live constructor, so each encodable column opens this
+    // one rather than declaring its own.
+    Tabbit::FTabbitColumnCursor Cursor;
+
+    // Column by column, matched by tag rather than by position: a column this build has no
+    // member for is skipped by its declared length, and one whose type no longer fits the
+    // member stops the read naming the field. Rows arrive default constructed, so a member
+    // the file carries nothing for keeps its default.
+    for (const Tabbit::FTabbitColumn& Column : Header.Columns)
+    {
+        const int32 BlockEnd = Reader.Tell() + Column.ByteLength;
+
+        switch (Column.Tag)
+        {
+        case 1:
+            Tabbit::CheckColumn(Reader, Column, TEXT("ServerTuning.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("ServerTuning.Index"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Index = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 2:
+            Tabbit::CheckColumn(Reader, Column, TEXT("ServerTuning.Knob"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("ServerTuning.Knob"));
+
+            {
+                FString RunText;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameString(Header.RowCount - Row, RunLength, RunText))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Knob = RunText;
+                    }
+                }
+            }
+
+            break;
+
+        case 3:
+            Tabbit::CheckColumn(Reader, Column, TEXT("ServerTuning.Value"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementF32));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("ServerTuning.Value"));
+
+            for (FServerTuningRow& Record : Loaded)
+            {
+                Cursor.NextF32(Record.Value);
+            }
+
+            break;
+
+        default:
+            // A column this build has no member for: added to the schema after the code
+            // was generated, or removed from the code while the data still carries it.
+            Reader.Skip(Column.ByteLength);
+            break;
+        }
+
+        Tabbit::CheckBlockEnd(Reader, Column, BlockEnd);
+    }
+
+    // Asked once, for the whole table. Anything short or malformed anywhere in it has
+    // left its reason here, and a half-read table is not one this returns true for - nor
+    // is it one that replaces what the table was holding.
+    if (Reader.HasFailed())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is malformed. %s"), *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    TMap<int32, int32> LoadedByIndex;
+    LoadedByIndex.Empty(Loaded.Num());
+
+    for (int32 Position = 0; Position < Loaded.Num(); ++Position)
+    {
+        LoadedByIndex.Add(Loaded[Position].Index, Position);
+    }
+
+    // Published together: rows holding this load and an index built from the last one would
+    // answer a lookup with a row that has moved.
+    RecordsStorage = MoveTemp(Loaded);
+    ByIndex = MoveTemp(LoadedByIndex);
+
+    return true;
+}
+
+
+const FPriceRow* FPriceTable::FindByIndex(int32 Key) const
+{
+    const int32* Position = ByIndex.Find(Key);
+    return Position != nullptr ? &RecordsStorage[*Position] : nullptr;
+}
+
+bool FPriceTable::ContainsIndex(int32 Key) const
+{
+    return ByIndex.Contains(Key);
+}
+
+bool FPriceTable::Read(const FString& Filename)
+{
+    TArray<uint8> Buffer;
+
+    // FFileHelper rather than the platform's own file API, and that is what makes this work
+    // in a packaged build: it goes through IPlatformFile, which mounts the .pak and reads
+    // out of it as though the file were loose on disk. The same call therefore works in the
+    // editor, in a cooked build, and inside an Android .obb.
+    //
+    // What it cannot do is find a file the packaging step never took. A .tcb is not an
+    // asset, so Unreal ignores it unless the project lists its directory under
+    // Project Settings -> Packaging -> "Additional Non-Asset Directories to Package".
+    // Miss that and this works in the editor and reports a missing file the moment anybody
+    // runs the build - which is the failure this message exists to name.
+    if (!FFileHelper::LoadFileToArray(Buffer, *Filename))
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Tabbit: could not read %s. In a packaged build, check that its directory is "
+                 "listed under Packaging -> Additional Non-Asset Directories to Package."),
+            *Filename);
+
+        return false;
+    }
+
+    // Opened unconditionally, with whatever FDocShowcase::EncryptionKey and
+    // FDocShowcase::MacKey hold - empty unless the project set them. A file that is
+    // neither encrypted nor signed comes back from this untouched, so the load path is the
+    // same either way and there is no condition here that could be the wrong way round.
+    // spec/wire/tcb-mac-and-signature.md.
+    //
+    // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
+    // what has to stay alive for as long as the reader below is used.
+    TArrayView<const uint8> Bytes;
+    FString OpenError;
+
+    if (!Tabbit::Open(Buffer, FDocShowcase::EncryptionKey, Bytes, OpenError,
+            FDocShowcase::MacKey, FDocShowcase::bVerifyMac))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s could not be opened. %s"),
+            *Filename, *OpenError);
+
+        return false;
+    }
+
+    // A view over the bytes already in memory, so the file is read once and not copied
+    // a second time - a localization table is megabytes.
+    Tabbit::FTabbitBinaryReader Reader(Bytes);
+
+    Tabbit::FTabbitTableHeader Header;
+    if (!Tabbit::ReadTableHeader(Reader, Header))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is not a table this build can read. %s"),
+            *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    // Read beside whatever this table is already holding and swapped in at the end. Reading
+    // again is a refresh - a patched .pak, a downloaded table - and one that turns out to be
+    // unreadable has to leave the rows already there, which Blueprint graphs and gameplay
+    // code are holding by value and by pointer.
+    //
+    // The header has already checked the row count against what the columns declare, so this
+    // allocation is the size the file can actually hold rows for.
+    TArray<FPriceRow> Loaded;
+
+    Loaded.Empty(Header.RowCount);
+    Loaded.SetNum(Header.RowCount);
+
+    // One cursor for the whole read: the switch's cases share a scope, and C++ does
+    // not allow a jump past a live constructor, so each encodable column opens this
+    // one rather than declaring its own.
+    Tabbit::FTabbitColumnCursor Cursor;
+
+    // Column by column, matched by tag rather than by position: a column this build has no
+    // member for is skipped by its declared length, and one whose type no longer fits the
+    // member stops the read naming the field. Rows arrive default constructed, so a member
+    // the file carries nothing for keeps its default.
+    for (const Tabbit::FTabbitColumn& Column : Header.Columns)
+    {
+        const int32 BlockEnd = Reader.Tell() + Column.ByteLength;
+
+        switch (Column.Tag)
+        {
+        case 1:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Price.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Price.Index"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Index = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 2:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Price.Name"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Price.Name"));
+
+            {
+                FString RunText;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameString(Header.RowCount - Row, RunLength, RunText))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Name = RunText;
+                    }
+                }
+            }
+
+            break;
+
+        case 3:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Price.Amount"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Price.Amount"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Amount = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        default:
+            // A column this build has no member for: added to the schema after the code
+            // was generated, or removed from the code while the data still carries it.
+            Reader.Skip(Column.ByteLength);
+            break;
+        }
+
+        Tabbit::CheckBlockEnd(Reader, Column, BlockEnd);
+    }
+
+    // Asked once, for the whole table. Anything short or malformed anywhere in it has
+    // left its reason here, and a half-read table is not one this returns true for - nor
+    // is it one that replaces what the table was holding.
+    if (Reader.HasFailed())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is malformed. %s"), *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    TMap<int32, int32> LoadedByIndex;
+    LoadedByIndex.Empty(Loaded.Num());
+
+    for (int32 Position = 0; Position < Loaded.Num(); ++Position)
+    {
+        LoadedByIndex.Add(Loaded[Position].Index, Position);
+    }
+
+    // Published together: rows holding this load and an index built from the last one would
+    // answer a lookup with a row that has moved.
+    RecordsStorage = MoveTemp(Loaded);
+    ByIndex = MoveTemp(LoadedByIndex);
+
+    return true;
+}
+
+
+const FSkillRow* FSkillTable::FindByIndex(int32 Key) const
+{
+    const int32* Position = ByIndex.Find(Key);
+    return Position != nullptr ? &RecordsStorage[*Position] : nullptr;
+}
+
+bool FSkillTable::ContainsIndex(int32 Key) const
+{
+    return ByIndex.Contains(Key);
+}
+
+bool FSkillTable::Read(const FString& Filename)
+{
+    TArray<uint8> Buffer;
+
+    // FFileHelper rather than the platform's own file API, and that is what makes this work
+    // in a packaged build: it goes through IPlatformFile, which mounts the .pak and reads
+    // out of it as though the file were loose on disk. The same call therefore works in the
+    // editor, in a cooked build, and inside an Android .obb.
+    //
+    // What it cannot do is find a file the packaging step never took. A .tcb is not an
+    // asset, so Unreal ignores it unless the project lists its directory under
+    // Project Settings -> Packaging -> "Additional Non-Asset Directories to Package".
+    // Miss that and this works in the editor and reports a missing file the moment anybody
+    // runs the build - which is the failure this message exists to name.
+    if (!FFileHelper::LoadFileToArray(Buffer, *Filename))
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Tabbit: could not read %s. In a packaged build, check that its directory is "
+                 "listed under Packaging -> Additional Non-Asset Directories to Package."),
+            *Filename);
+
+        return false;
+    }
+
+    // Opened unconditionally, with whatever FDocShowcase::EncryptionKey and
+    // FDocShowcase::MacKey hold - empty unless the project set them. A file that is
+    // neither encrypted nor signed comes back from this untouched, so the load path is the
+    // same either way and there is no condition here that could be the wrong way round.
+    // spec/wire/tcb-mac-and-signature.md.
+    //
+    // A view over Buffer rather than a copy of it: decryption happens in place, so Buffer is
+    // what has to stay alive for as long as the reader below is used.
+    TArrayView<const uint8> Bytes;
+    FString OpenError;
+
+    if (!Tabbit::Open(Buffer, FDocShowcase::EncryptionKey, Bytes, OpenError,
+            FDocShowcase::MacKey, FDocShowcase::bVerifyMac))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s could not be opened. %s"),
+            *Filename, *OpenError);
+
+        return false;
+    }
+
+    // A view over the bytes already in memory, so the file is read once and not copied
+    // a second time - a localization table is megabytes.
+    Tabbit::FTabbitBinaryReader Reader(Bytes);
+
+    Tabbit::FTabbitTableHeader Header;
+    if (!Tabbit::ReadTableHeader(Reader, Header))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is not a table this build can read. %s"),
+            *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    // Read beside whatever this table is already holding and swapped in at the end. Reading
+    // again is a refresh - a patched .pak, a downloaded table - and one that turns out to be
+    // unreadable has to leave the rows already there, which Blueprint graphs and gameplay
+    // code are holding by value and by pointer.
+    //
+    // The header has already checked the row count against what the columns declare, so this
+    // allocation is the size the file can actually hold rows for.
+    TArray<FSkillRow> Loaded;
+
+    Loaded.Empty(Header.RowCount);
+    Loaded.SetNum(Header.RowCount);
+
+    // One cursor for the whole read: the switch's cases share a scope, and C++ does
+    // not allow a jump past a live constructor, so each encodable column opens this
+    // one rather than declaring its own.
+    Tabbit::FTabbitColumnCursor Cursor;
+
+    // Column by column, matched by tag rather than by position: a column this build has no
+    // member for is skipped by its declared length, and one whose type no longer fits the
+    // member stops the read naming the field. Rows arrive default constructed, so a member
+    // the file carries nothing for keeps its default.
+    for (const Tabbit::FTabbitColumn& Column : Header.Columns)
+    {
+        const int32 BlockEnd = Reader.Tell() + Column.ByteLength;
+
+        switch (Column.Tag)
+        {
+        case 1:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Skill.Index"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Skill.Index"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Index = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 2:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Skill.Name"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementString));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Skill.Name"));
+
+            {
+                FString RunText;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameString(Header.RowCount - Row, RunLength, RunText))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Name = RunText;
+                    }
+                }
+            }
+
+            break;
+
+        case 3:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Skill.Effect.Type"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Skill.Effect.Type"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Effect.Type = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 4:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Skill.Effect.Chance"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Skill.Effect.Chance"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Effect.Chance = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 5:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Skill.Effect.Damage"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Skill.Effect.Damage"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Effect.Damage = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        case 6:
+            Tabbit::CheckColumn(Reader, Column, TEXT("Skill.Effect.Amount"), Tabbit::KindScalar, false, Tabbit::ElementMask(Tabbit::ElementI32) | Tabbit::ElementMask(Tabbit::ElementVarint));
+            Cursor.Open(Reader, Column, Header.RowCount, TEXT("Skill.Effect.Amount"));
+
+            {
+                int32 RunValue = 0;
+                int32 RunLength = 0;
+
+                for (int32 Row = 0; Row < Header.RowCount; )
+                {
+                    if (!Cursor.NextSameI32(Header.RowCount - Row, RunLength, RunValue))
+                    {
+                        break;
+                    }
+
+                    for (; RunLength > 0; --RunLength, ++Row)
+                    {
+                        Loaded[Row].Effect.Amount = RunValue;
+                    }
+                }
+            }
+
+            break;
+
+        default:
+            // A column this build has no member for: added to the schema after the code
+            // was generated, or removed from the code while the data still carries it.
+            Reader.Skip(Column.ByteLength);
+            break;
+        }
+
+        Tabbit::CheckBlockEnd(Reader, Column, BlockEnd);
+    }
+
+    // Asked once, for the whole table. Anything short or malformed anywhere in it has
+    // left its reason here, and a half-read table is not one this returns true for - nor
+    // is it one that replaces what the table was holding.
+    if (Reader.HasFailed())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Tabbit: %s is malformed. %s"), *Filename, *Reader.GetError());
+
+        return false;
+    }
+
+    TMap<int32, int32> LoadedByIndex;
+    LoadedByIndex.Empty(Loaded.Num());
+
+    for (int32 Position = 0; Position < Loaded.Num(); ++Position)
+    {
+        LoadedByIndex.Add(Loaded[Position].Index, Position);
+    }
+
+    // Published together: rows holding this load and an index built from the last one would
+    // answer a lookup with a row that has moved.
+    RecordsStorage = MoveTemp(Loaded);
+    ByIndex = MoveTemp(LoadedByIndex);
+
+    return true;
+}
+
 FPotionTable FDocShowcase::PotionStorage;
+FSampleTable FDocShowcase::SampleStorage;
+FMarkerTable FDocShowcase::MarkerStorage;
+FAccessTable FDocShowcase::AccessStorage;
+FLineTable FDocShowcase::LineStorage;
+FAnimationTable FDocShowcase::AnimationStorage;
+FWireTable FDocShowcase::WireStorage;
 FShopTable FDocShowcase::ShopStorage;
 FShopEntryTable FDocShowcase::ShopEntryStorage;
+FCraftTable FDocShowcase::CraftStorage;
 FLootTable FDocShowcase::LootStorage;
+FDropTable FDocShowcase::DropStorage;
 FSpawnTable FDocShowcase::SpawnStorage;
+FDeckTable FDocShowcase::DeckStorage;
+FQuestTable FDocShowcase::QuestStorage;
 FStageRewardTable FDocShowcase::StageRewardStorage;
+FServerTuningTable FDocShowcase::ServerTuningStorage;
+FPriceTable FDocShowcase::PriceStorage;
+FSkillTable FDocShowcase::SkillStorage;
 
 TArray<uint8> FDocShowcase::EncryptionKey;
 TArray<uint8> FDocShowcase::MacKey;
@@ -1331,6 +4320,162 @@ FPotionRow UDocShowcaseLibrary::GetPotionRowAt(int32 Position, bool& bFound)
     bFound = Rows.IsValidIndex(Position);
 
     return bFound ? Rows[Position] : FPotionRow();
+}
+
+
+FSampleRow UDocShowcaseLibrary::GetSampleRow(int32 Key, bool& bFound)
+{
+    const FSampleRow* Found = FDocShowcase::Sample().FindByIndex(Key);
+
+    bFound = Found != nullptr;
+
+    // A copy, because Blueprint takes a struct by value and the row belongs to the table.
+    // A default one when the key is not there, which is why bFound is not decoration.
+    return Found != nullptr ? *Found : FSampleRow();
+}
+
+int32 UDocShowcaseLibrary::GetSampleRowCount()
+{
+    return FDocShowcase::Sample().Records().Num();
+}
+
+FSampleRow UDocShowcaseLibrary::GetSampleRowAt(int32 Position, bool& bFound)
+{
+    const TArray<FSampleRow>& Rows = FDocShowcase::Sample().Records();
+
+    bFound = Rows.IsValidIndex(Position);
+
+    return bFound ? Rows[Position] : FSampleRow();
+}
+
+
+FMarkerRow UDocShowcaseLibrary::GetMarkerRow(int32 Key, bool& bFound)
+{
+    const FMarkerRow* Found = FDocShowcase::Marker().FindByIndex(Key);
+
+    bFound = Found != nullptr;
+
+    // A copy, because Blueprint takes a struct by value and the row belongs to the table.
+    // A default one when the key is not there, which is why bFound is not decoration.
+    return Found != nullptr ? *Found : FMarkerRow();
+}
+
+int32 UDocShowcaseLibrary::GetMarkerRowCount()
+{
+    return FDocShowcase::Marker().Records().Num();
+}
+
+FMarkerRow UDocShowcaseLibrary::GetMarkerRowAt(int32 Position, bool& bFound)
+{
+    const TArray<FMarkerRow>& Rows = FDocShowcase::Marker().Records();
+
+    bFound = Rows.IsValidIndex(Position);
+
+    return bFound ? Rows[Position] : FMarkerRow();
+}
+
+
+FAccessRow UDocShowcaseLibrary::GetAccessRow(int32 Key, bool& bFound)
+{
+    const FAccessRow* Found = FDocShowcase::Access().FindByIndex(Key);
+
+    bFound = Found != nullptr;
+
+    // A copy, because Blueprint takes a struct by value and the row belongs to the table.
+    // A default one when the key is not there, which is why bFound is not decoration.
+    return Found != nullptr ? *Found : FAccessRow();
+}
+
+int32 UDocShowcaseLibrary::GetAccessRowCount()
+{
+    return FDocShowcase::Access().Records().Num();
+}
+
+FAccessRow UDocShowcaseLibrary::GetAccessRowAt(int32 Position, bool& bFound)
+{
+    const TArray<FAccessRow>& Rows = FDocShowcase::Access().Records();
+
+    bFound = Rows.IsValidIndex(Position);
+
+    return bFound ? Rows[Position] : FAccessRow();
+}
+
+
+FLineRow UDocShowcaseLibrary::GetLineRow(int32 Key, bool& bFound)
+{
+    const FLineRow* Found = FDocShowcase::Line().FindByIndex(Key);
+
+    bFound = Found != nullptr;
+
+    // A copy, because Blueprint takes a struct by value and the row belongs to the table.
+    // A default one when the key is not there, which is why bFound is not decoration.
+    return Found != nullptr ? *Found : FLineRow();
+}
+
+int32 UDocShowcaseLibrary::GetLineRowCount()
+{
+    return FDocShowcase::Line().Records().Num();
+}
+
+FLineRow UDocShowcaseLibrary::GetLineRowAt(int32 Position, bool& bFound)
+{
+    const TArray<FLineRow>& Rows = FDocShowcase::Line().Records();
+
+    bFound = Rows.IsValidIndex(Position);
+
+    return bFound ? Rows[Position] : FLineRow();
+}
+
+
+FAnimationRow UDocShowcaseLibrary::GetAnimationRow(const FString& Key, bool& bFound)
+{
+    const FAnimationRow* Found = FDocShowcase::Animation().FindByIndex(Key);
+
+    bFound = Found != nullptr;
+
+    // A copy, because Blueprint takes a struct by value and the row belongs to the table.
+    // A default one when the key is not there, which is why bFound is not decoration.
+    return Found != nullptr ? *Found : FAnimationRow();
+}
+
+int32 UDocShowcaseLibrary::GetAnimationRowCount()
+{
+    return FDocShowcase::Animation().Records().Num();
+}
+
+FAnimationRow UDocShowcaseLibrary::GetAnimationRowAt(int32 Position, bool& bFound)
+{
+    const TArray<FAnimationRow>& Rows = FDocShowcase::Animation().Records();
+
+    bFound = Rows.IsValidIndex(Position);
+
+    return bFound ? Rows[Position] : FAnimationRow();
+}
+
+
+FWireRow UDocShowcaseLibrary::GetWireRow(int32 Key, bool& bFound)
+{
+    const FWireRow* Found = FDocShowcase::Wire().FindByIndex(Key);
+
+    bFound = Found != nullptr;
+
+    // A copy, because Blueprint takes a struct by value and the row belongs to the table.
+    // A default one when the key is not there, which is why bFound is not decoration.
+    return Found != nullptr ? *Found : FWireRow();
+}
+
+int32 UDocShowcaseLibrary::GetWireRowCount()
+{
+    return FDocShowcase::Wire().Records().Num();
+}
+
+FWireRow UDocShowcaseLibrary::GetWireRowAt(int32 Position, bool& bFound)
+{
+    const TArray<FWireRow>& Rows = FDocShowcase::Wire().Records();
+
+    bFound = Rows.IsValidIndex(Position);
+
+    return bFound ? Rows[Position] : FWireRow();
 }
 
 
@@ -1386,6 +4531,32 @@ FShopEntryRow UDocShowcaseLibrary::GetShopEntryRowAt(int32 Position, bool& bFoun
 }
 
 
+FCraftRow UDocShowcaseLibrary::GetCraftRow(int32 Key, bool& bFound)
+{
+    const FCraftRow* Found = FDocShowcase::Craft().FindByIndex(Key);
+
+    bFound = Found != nullptr;
+
+    // A copy, because Blueprint takes a struct by value and the row belongs to the table.
+    // A default one when the key is not there, which is why bFound is not decoration.
+    return Found != nullptr ? *Found : FCraftRow();
+}
+
+int32 UDocShowcaseLibrary::GetCraftRowCount()
+{
+    return FDocShowcase::Craft().Records().Num();
+}
+
+FCraftRow UDocShowcaseLibrary::GetCraftRowAt(int32 Position, bool& bFound)
+{
+    const TArray<FCraftRow>& Rows = FDocShowcase::Craft().Records();
+
+    bFound = Rows.IsValidIndex(Position);
+
+    return bFound ? Rows[Position] : FCraftRow();
+}
+
+
 FLootRow UDocShowcaseLibrary::GetLootRow(int32 Key, bool& bFound)
 {
     const FLootRow* Found = FDocShowcase::Loot().FindByIndex(Key);
@@ -1409,6 +4580,32 @@ FLootRow UDocShowcaseLibrary::GetLootRowAt(int32 Position, bool& bFound)
     bFound = Rows.IsValidIndex(Position);
 
     return bFound ? Rows[Position] : FLootRow();
+}
+
+
+FDropRow UDocShowcaseLibrary::GetDropRow(int32 Key, bool& bFound)
+{
+    const FDropRow* Found = FDocShowcase::Drop().FindByIndex(Key);
+
+    bFound = Found != nullptr;
+
+    // A copy, because Blueprint takes a struct by value and the row belongs to the table.
+    // A default one when the key is not there, which is why bFound is not decoration.
+    return Found != nullptr ? *Found : FDropRow();
+}
+
+int32 UDocShowcaseLibrary::GetDropRowCount()
+{
+    return FDocShowcase::Drop().Records().Num();
+}
+
+FDropRow UDocShowcaseLibrary::GetDropRowAt(int32 Position, bool& bFound)
+{
+    const TArray<FDropRow>& Rows = FDocShowcase::Drop().Records();
+
+    bFound = Rows.IsValidIndex(Position);
+
+    return bFound ? Rows[Position] : FDropRow();
 }
 
 
@@ -1438,6 +4635,58 @@ FSpawnRow UDocShowcaseLibrary::GetSpawnRowAt(int32 Position, bool& bFound)
 }
 
 
+FDeckRow UDocShowcaseLibrary::GetDeckRow(int32 Key, bool& bFound)
+{
+    const FDeckRow* Found = FDocShowcase::Deck().FindByIndex(Key);
+
+    bFound = Found != nullptr;
+
+    // A copy, because Blueprint takes a struct by value and the row belongs to the table.
+    // A default one when the key is not there, which is why bFound is not decoration.
+    return Found != nullptr ? *Found : FDeckRow();
+}
+
+int32 UDocShowcaseLibrary::GetDeckRowCount()
+{
+    return FDocShowcase::Deck().Records().Num();
+}
+
+FDeckRow UDocShowcaseLibrary::GetDeckRowAt(int32 Position, bool& bFound)
+{
+    const TArray<FDeckRow>& Rows = FDocShowcase::Deck().Records();
+
+    bFound = Rows.IsValidIndex(Position);
+
+    return bFound ? Rows[Position] : FDeckRow();
+}
+
+
+FQuestRow UDocShowcaseLibrary::GetQuestRow(int32 Key, bool& bFound)
+{
+    const FQuestRow* Found = FDocShowcase::Quest().FindByIndex(Key);
+
+    bFound = Found != nullptr;
+
+    // A copy, because Blueprint takes a struct by value and the row belongs to the table.
+    // A default one when the key is not there, which is why bFound is not decoration.
+    return Found != nullptr ? *Found : FQuestRow();
+}
+
+int32 UDocShowcaseLibrary::GetQuestRowCount()
+{
+    return FDocShowcase::Quest().Records().Num();
+}
+
+FQuestRow UDocShowcaseLibrary::GetQuestRowAt(int32 Position, bool& bFound)
+{
+    const TArray<FQuestRow>& Rows = FDocShowcase::Quest().Records();
+
+    bFound = Rows.IsValidIndex(Position);
+
+    return bFound ? Rows[Position] : FQuestRow();
+}
+
+
 FStageRewardRow UDocShowcaseLibrary::GetStageRewardRow(int32 StageKey, ERarity RankKey, bool& bFound)
 {
     const FStageRewardRow* Found = FDocShowcase::StageReward().FindByStageAndRank(KeyOfStageAndRank(StageKey, RankKey));
@@ -1464,6 +4713,84 @@ FStageRewardRow UDocShowcaseLibrary::GetStageRewardRowAt(int32 Position, bool& b
 }
 
 
+FServerTuningRow UDocShowcaseLibrary::GetServerTuningRow(int32 Key, bool& bFound)
+{
+    const FServerTuningRow* Found = FDocShowcase::ServerTuning().FindByIndex(Key);
+
+    bFound = Found != nullptr;
+
+    // A copy, because Blueprint takes a struct by value and the row belongs to the table.
+    // A default one when the key is not there, which is why bFound is not decoration.
+    return Found != nullptr ? *Found : FServerTuningRow();
+}
+
+int32 UDocShowcaseLibrary::GetServerTuningRowCount()
+{
+    return FDocShowcase::ServerTuning().Records().Num();
+}
+
+FServerTuningRow UDocShowcaseLibrary::GetServerTuningRowAt(int32 Position, bool& bFound)
+{
+    const TArray<FServerTuningRow>& Rows = FDocShowcase::ServerTuning().Records();
+
+    bFound = Rows.IsValidIndex(Position);
+
+    return bFound ? Rows[Position] : FServerTuningRow();
+}
+
+
+FPriceRow UDocShowcaseLibrary::GetPriceRow(int32 Key, bool& bFound)
+{
+    const FPriceRow* Found = FDocShowcase::Price().FindByIndex(Key);
+
+    bFound = Found != nullptr;
+
+    // A copy, because Blueprint takes a struct by value and the row belongs to the table.
+    // A default one when the key is not there, which is why bFound is not decoration.
+    return Found != nullptr ? *Found : FPriceRow();
+}
+
+int32 UDocShowcaseLibrary::GetPriceRowCount()
+{
+    return FDocShowcase::Price().Records().Num();
+}
+
+FPriceRow UDocShowcaseLibrary::GetPriceRowAt(int32 Position, bool& bFound)
+{
+    const TArray<FPriceRow>& Rows = FDocShowcase::Price().Records();
+
+    bFound = Rows.IsValidIndex(Position);
+
+    return bFound ? Rows[Position] : FPriceRow();
+}
+
+
+FSkillRow UDocShowcaseLibrary::GetSkillRow(int32 Key, bool& bFound)
+{
+    const FSkillRow* Found = FDocShowcase::Skill().FindByIndex(Key);
+
+    bFound = Found != nullptr;
+
+    // A copy, because Blueprint takes a struct by value and the row belongs to the table.
+    // A default one when the key is not there, which is why bFound is not decoration.
+    return Found != nullptr ? *Found : FSkillRow();
+}
+
+int32 UDocShowcaseLibrary::GetSkillRowCount()
+{
+    return FDocShowcase::Skill().Records().Num();
+}
+
+FSkillRow UDocShowcaseLibrary::GetSkillRowAt(int32 Position, bool& bFound)
+{
+    const TArray<FSkillRow>& Rows = FDocShowcase::Skill().Records();
+
+    bFound = Rows.IsValidIndex(Position);
+
+    return bFound ? Rows[Position] : FSkillRow();
+}
+
+
 bool UDocShowcaseLibrary::ReadAll(const FString& BasePath, const FString& FileExtension)
 {
     return FDocShowcase::ReadAll(BasePath, FileExtension);
@@ -1480,6 +4807,42 @@ bool FDocShowcase::ReadAll(const FString& BasePath, const FString& FileExtension
     {
         return false;
     }
+    FSampleTable LoadedSample;
+
+    if (!LoadedSample.Read(FPaths::Combine(BasePath, TEXT("Sample") + FileExtension)))
+    {
+        return false;
+    }
+    FMarkerTable LoadedMarker;
+
+    if (!LoadedMarker.Read(FPaths::Combine(BasePath, TEXT("Marker") + FileExtension)))
+    {
+        return false;
+    }
+    FAccessTable LoadedAccess;
+
+    if (!LoadedAccess.Read(FPaths::Combine(BasePath, TEXT("Access") + FileExtension)))
+    {
+        return false;
+    }
+    FLineTable LoadedLine;
+
+    if (!LoadedLine.Read(FPaths::Combine(BasePath, TEXT("Line") + FileExtension)))
+    {
+        return false;
+    }
+    FAnimationTable LoadedAnimation;
+
+    if (!LoadedAnimation.Read(FPaths::Combine(BasePath, TEXT("Animation") + FileExtension)))
+    {
+        return false;
+    }
+    FWireTable LoadedWire;
+
+    if (!LoadedWire.Read(FPaths::Combine(BasePath, TEXT("Wire") + FileExtension)))
+    {
+        return false;
+    }
     FShopTable LoadedShop;
 
     if (!LoadedShop.Read(FPaths::Combine(BasePath, TEXT("Shop") + FileExtension)))
@@ -1492,9 +4855,21 @@ bool FDocShowcase::ReadAll(const FString& BasePath, const FString& FileExtension
     {
         return false;
     }
+    FCraftTable LoadedCraft;
+
+    if (!LoadedCraft.Read(FPaths::Combine(BasePath, TEXT("Craft") + FileExtension)))
+    {
+        return false;
+    }
     FLootTable LoadedLoot;
 
     if (!LoadedLoot.Read(FPaths::Combine(BasePath, TEXT("Loot") + FileExtension)))
+    {
+        return false;
+    }
+    FDropTable LoadedDrop;
+
+    if (!LoadedDrop.Read(FPaths::Combine(BasePath, TEXT("Drop") + FileExtension)))
     {
         return false;
     }
@@ -1504,19 +4879,62 @@ bool FDocShowcase::ReadAll(const FString& BasePath, const FString& FileExtension
     {
         return false;
     }
+    FDeckTable LoadedDeck;
+
+    if (!LoadedDeck.Read(FPaths::Combine(BasePath, TEXT("Deck") + FileExtension)))
+    {
+        return false;
+    }
+    FQuestTable LoadedQuest;
+
+    if (!LoadedQuest.Read(FPaths::Combine(BasePath, TEXT("Quest") + FileExtension)))
+    {
+        return false;
+    }
     FStageRewardTable LoadedStageReward;
 
     if (!LoadedStageReward.Read(FPaths::Combine(BasePath, TEXT("StageReward") + FileExtension)))
     {
         return false;
     }
+    FServerTuningTable LoadedServerTuning;
+
+    if (!LoadedServerTuning.Read(FPaths::Combine(BasePath, TEXT("ServerTuning") + FileExtension)))
+    {
+        return false;
+    }
+    FPriceTable LoadedPrice;
+
+    if (!LoadedPrice.Read(FPaths::Combine(BasePath, TEXT("Price") + FileExtension)))
+    {
+        return false;
+    }
+    FSkillTable LoadedSkill;
+
+    if (!LoadedSkill.Read(FPaths::Combine(BasePath, TEXT("Skill") + FileExtension)))
+    {
+        return false;
+    }
 
     PotionStorage = MoveTemp(LoadedPotion);
+    SampleStorage = MoveTemp(LoadedSample);
+    MarkerStorage = MoveTemp(LoadedMarker);
+    AccessStorage = MoveTemp(LoadedAccess);
+    LineStorage = MoveTemp(LoadedLine);
+    AnimationStorage = MoveTemp(LoadedAnimation);
+    WireStorage = MoveTemp(LoadedWire);
     ShopStorage = MoveTemp(LoadedShop);
     ShopEntryStorage = MoveTemp(LoadedShopEntry);
+    CraftStorage = MoveTemp(LoadedCraft);
     LootStorage = MoveTemp(LoadedLoot);
+    DropStorage = MoveTemp(LoadedDrop);
     SpawnStorage = MoveTemp(LoadedSpawn);
+    DeckStorage = MoveTemp(LoadedDeck);
+    QuestStorage = MoveTemp(LoadedQuest);
     StageRewardStorage = MoveTemp(LoadedStageReward);
+    ServerTuningStorage = MoveTemp(LoadedServerTuning);
+    PriceStorage = MoveTemp(LoadedPrice);
+    SkillStorage = MoveTemp(LoadedSkill);
 
     return true;
 }

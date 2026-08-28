@@ -10,13 +10,27 @@
 #define DOC_SHOWCASE_H
 
 #include "enums/DocShowcase_EnumRarity.h"
+#include "enums/DocShowcase_EnumElement.h"
 #include "constants/DocShowcase_ConstBalance.h"
 #include "tables/DocShowcase_Potion.h"
+#include "tables/DocShowcase_Sample.h"
+#include "tables/DocShowcase_Marker.h"
+#include "tables/DocShowcase_Access.h"
+#include "tables/DocShowcase_Line.h"
+#include "tables/DocShowcase_Animation.h"
+#include "tables/DocShowcase_Wire.h"
 #include "tables/DocShowcase_Shop.h"
 #include "tables/DocShowcase_ShopEntry.h"
+#include "tables/DocShowcase_Craft.h"
 #include "tables/DocShowcase_Loot.h"
+#include "tables/DocShowcase_Drop.h"
 #include "tables/DocShowcase_Spawn.h"
+#include "tables/DocShowcase_Deck.h"
+#include "tables/DocShowcase_Quest.h"
 #include "tables/DocShowcase_StageReward.h"
+#include "tables/DocShowcase_ServerTuning.h"
+#include "tables/DocShowcase_Price.h"
+#include "tables/DocShowcase_Skill.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,11 +39,24 @@ extern "C" {
 /* Every table, loaded together so cross-table references can be resolved. */
 typedef struct DocShowcase_t {
   DocShowcase_PotionTable_t potion;
+  DocShowcase_SampleTable_t sample;
+  DocShowcase_MarkerTable_t marker;
+  DocShowcase_AccessTable_t access;
+  DocShowcase_LineTable_t line;
+  DocShowcase_AnimationTable_t animation;
+  DocShowcase_WireTable_t wire;
   DocShowcase_ShopTable_t shop;
   DocShowcase_ShopEntryTable_t shop_entry;
+  DocShowcase_CraftTable_t craft;
   DocShowcase_LootTable_t loot;
+  DocShowcase_DropTable_t drop;
   DocShowcase_SpawnTable_t spawn;
+  DocShowcase_DeckTable_t deck;
+  DocShowcase_QuestTable_t quest;
   DocShowcase_StageRewardTable_t stage_reward;
+  DocShowcase_ServerTuningTable_t server_tuning;
+  DocShowcase_PriceTable_t price;
+  DocShowcase_SkillTable_t skill;
 } DocShowcase_t;
 
 /* Reads every table from base_path, then links the references between them.

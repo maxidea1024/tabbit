@@ -9,7 +9,7 @@
 
 namespace Tabbit.Fixtures.DocShowcase
 {
-    // Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : G2
+    // Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Basics : L2
     /// <summary>
     /// Values with no rows.
     /// </summary>

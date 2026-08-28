@@ -13,13 +13,28 @@ namespace Tabbit\Fixtures\DocShowcase;
 
 require_once __DIR__ . '/tabbit/TcbReader.php';
 require_once __DIR__ . '/enums/Rarity.php';
+require_once __DIR__ . '/enums/Element.php';
+require_once __DIR__ . '/structs/Effect.php';
 require_once __DIR__ . '/constants/Balance.php';
 require_once __DIR__ . '/tables/PotionTable.php';
+require_once __DIR__ . '/tables/SampleTable.php';
+require_once __DIR__ . '/tables/MarkerTable.php';
+require_once __DIR__ . '/tables/AccessTable.php';
+require_once __DIR__ . '/tables/LineTable.php';
+require_once __DIR__ . '/tables/AnimationTable.php';
+require_once __DIR__ . '/tables/WireTable.php';
 require_once __DIR__ . '/tables/ShopTable.php';
 require_once __DIR__ . '/tables/ShopEntryTable.php';
+require_once __DIR__ . '/tables/CraftTable.php';
 require_once __DIR__ . '/tables/LootTable.php';
+require_once __DIR__ . '/tables/DropTable.php';
 require_once __DIR__ . '/tables/SpawnTable.php';
+require_once __DIR__ . '/tables/DeckTable.php';
+require_once __DIR__ . '/tables/QuestTable.php';
 require_once __DIR__ . '/tables/StageRewardTable.php';
+require_once __DIR__ . '/tables/ServerTuningTable.php';
+require_once __DIR__ . '/tables/PriceTable.php';
+require_once __DIR__ . '/tables/SkillTable.php';
 
 use Tabbit\TcbReader;
 use Tabbit\TcbColumnCursor;
@@ -30,20 +45,46 @@ use Tabbit\Uuid;
 final class DocShowcaseAccessor
 {
     public PotionTable $potion;
+    public SampleTable $sample;
+    public MarkerTable $marker;
+    public AccessTable $access;
+    public LineTable $line;
+    public AnimationTable $animation;
+    public WireTable $wire;
     public ShopTable $shop;
     public ShopEntryTable $shopEntry;
+    public CraftTable $craft;
     public LootTable $loot;
+    public DropTable $drop;
     public SpawnTable $spawn;
+    public DeckTable $deck;
+    public QuestTable $quest;
     public StageRewardTable $stageReward;
+    public ServerTuningTable $serverTuning;
+    public PriceTable $price;
+    public SkillTable $skill;
 
     public function __construct()
     {
         $this->potion = new PotionTable();
+        $this->sample = new SampleTable();
+        $this->marker = new MarkerTable();
+        $this->access = new AccessTable();
+        $this->line = new LineTable();
+        $this->animation = new AnimationTable();
+        $this->wire = new WireTable();
         $this->shop = new ShopTable();
         $this->shopEntry = new ShopEntryTable();
+        $this->craft = new CraftTable();
         $this->loot = new LootTable();
+        $this->drop = new DropTable();
         $this->spawn = new SpawnTable();
+        $this->deck = new DeckTable();
+        $this->quest = new QuestTable();
         $this->stageReward = new StageRewardTable();
+        $this->serverTuning = new ServerTuningTable();
+        $this->price = new PriceTable();
+        $this->skill = new SkillTable();
     }
 
     /**
@@ -105,25 +146,64 @@ final class DocShowcaseAccessor
     {
         $loadedPotionTable = new PotionTable();
         $loadedPotionTable->read($basePath . \DIRECTORY_SEPARATOR . 'Potion' . $fileExtension);
+        $loadedSampleTable = new SampleTable();
+        $loadedSampleTable->read($basePath . \DIRECTORY_SEPARATOR . 'Sample' . $fileExtension);
+        $loadedMarkerTable = new MarkerTable();
+        $loadedMarkerTable->read($basePath . \DIRECTORY_SEPARATOR . 'Marker' . $fileExtension);
+        $loadedAccessTable = new AccessTable();
+        $loadedAccessTable->read($basePath . \DIRECTORY_SEPARATOR . 'Access' . $fileExtension);
+        $loadedLineTable = new LineTable();
+        $loadedLineTable->read($basePath . \DIRECTORY_SEPARATOR . 'Line' . $fileExtension);
+        $loadedAnimationTable = new AnimationTable();
+        $loadedAnimationTable->read($basePath . \DIRECTORY_SEPARATOR . 'Animation' . $fileExtension);
+        $loadedWireTable = new WireTable();
+        $loadedWireTable->read($basePath . \DIRECTORY_SEPARATOR . 'Wire' . $fileExtension);
         $loadedShopTable = new ShopTable();
         $loadedShopTable->read($basePath . \DIRECTORY_SEPARATOR . 'Shop' . $fileExtension);
         $loadedShopEntryTable = new ShopEntryTable();
         $loadedShopEntryTable->read($basePath . \DIRECTORY_SEPARATOR . 'ShopEntry' . $fileExtension);
+        $loadedCraftTable = new CraftTable();
+        $loadedCraftTable->read($basePath . \DIRECTORY_SEPARATOR . 'Craft' . $fileExtension);
         $loadedLootTable = new LootTable();
         $loadedLootTable->read($basePath . \DIRECTORY_SEPARATOR . 'Loot' . $fileExtension);
+        $loadedDropTable = new DropTable();
+        $loadedDropTable->read($basePath . \DIRECTORY_SEPARATOR . 'Drop' . $fileExtension);
         $loadedSpawnTable = new SpawnTable();
         $loadedSpawnTable->read($basePath . \DIRECTORY_SEPARATOR . 'Spawn' . $fileExtension);
+        $loadedDeckTable = new DeckTable();
+        $loadedDeckTable->read($basePath . \DIRECTORY_SEPARATOR . 'Deck' . $fileExtension);
+        $loadedQuestTable = new QuestTable();
+        $loadedQuestTable->read($basePath . \DIRECTORY_SEPARATOR . 'Quest' . $fileExtension);
         $loadedStageRewardTable = new StageRewardTable();
         $loadedStageRewardTable->read($basePath . \DIRECTORY_SEPARATOR . 'StageReward' . $fileExtension);
+        $loadedServerTuningTable = new ServerTuningTable();
+        $loadedServerTuningTable->read($basePath . \DIRECTORY_SEPARATOR . 'ServerTuning' . $fileExtension);
+        $loadedPriceTable = new PriceTable();
+        $loadedPriceTable->read($basePath . \DIRECTORY_SEPARATOR . 'Price' . $fileExtension);
+        $loadedSkillTable = new SkillTable();
+        $loadedSkillTable->read($basePath . \DIRECTORY_SEPARATOR . 'Skill' . $fileExtension);
 
-        $this->solveCrossReferences($loadedPotionTable, $loadedShopTable, $loadedShopEntryTable, $loadedLootTable, $loadedSpawnTable, $loadedStageRewardTable);
+        $this->solveCrossReferences($loadedPotionTable, $loadedSampleTable, $loadedMarkerTable, $loadedAccessTable, $loadedLineTable, $loadedAnimationTable, $loadedWireTable, $loadedShopTable, $loadedShopEntryTable, $loadedCraftTable, $loadedLootTable, $loadedDropTable, $loadedSpawnTable, $loadedDeckTable, $loadedQuestTable, $loadedStageRewardTable, $loadedServerTuningTable, $loadedPriceTable, $loadedSkillTable);
 
         $this->potion = $loadedPotionTable;
+        $this->sample = $loadedSampleTable;
+        $this->marker = $loadedMarkerTable;
+        $this->access = $loadedAccessTable;
+        $this->line = $loadedLineTable;
+        $this->animation = $loadedAnimationTable;
+        $this->wire = $loadedWireTable;
         $this->shop = $loadedShopTable;
         $this->shopEntry = $loadedShopEntryTable;
+        $this->craft = $loadedCraftTable;
         $this->loot = $loadedLootTable;
+        $this->drop = $loadedDropTable;
         $this->spawn = $loadedSpawnTable;
+        $this->deck = $loadedDeckTable;
+        $this->quest = $loadedQuestTable;
         $this->stageReward = $loadedStageRewardTable;
+        $this->serverTuning = $loadedServerTuningTable;
+        $this->price = $loadedPriceTable;
+        $this->skill = $loadedSkillTable;
     }
 
     /**
@@ -132,7 +212,7 @@ final class DocShowcaseAccessor
      * The tables arrive as arguments rather than off $this, which is how this resolves the
      * load being read rather than the one already published.
      */
-    private function solveCrossReferences(PotionTable $potion, ShopTable $shop, ShopEntryTable $shopEntry, LootTable $loot, SpawnTable $spawn, StageRewardTable $stageReward): void
+    private function solveCrossReferences(PotionTable $potion, SampleTable $sample, MarkerTable $marker, AccessTable $access, LineTable $line, AnimationTable $animation, WireTable $wire, ShopTable $shop, ShopEntryTable $shopEntry, CraftTable $craft, LootTable $loot, DropTable $drop, SpawnTable $spawn, DeckTable $deck, QuestTable $quest, StageRewardTable $stageReward, ServerTuningTable $serverTuning, PriceTable $price, SkillTable $skill): void
     {
         foreach ($shopEntry->records as $record) {
             $target = $shop->findByIndex($record->shopId);
@@ -144,6 +224,30 @@ final class DocShowcaseAccessor
 
             if ($target !== null) {
                 $record->potionByPotionId = $target;
+            }
+        }
+        foreach ($craft->records as $record) {
+            $target = $potion->findByIndex($record->result);
+
+            if ($target !== null) {
+                $record->potionByResult = $target;
+            }
+            $target = $potion->findByIndex($record->resultNameIndex);
+
+            if ($target !== null) {
+                $record->resultName = $target->name;
+            }
+            foreach ($record->parts as $position => $index) {
+                $target = $potion->findByIndex($index);
+
+                if ($target !== null) {
+                    $record->potionByParts[$position] = $target;
+                }
+            }
+            $target = $potion->findByIndex($record->substitute);
+
+            if ($target !== null) {
+                $record->potionBySubstitute = $target;
             }
         }
     }

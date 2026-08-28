@@ -10,7 +10,7 @@ use std::path::Path;
 use crate::tabbit;
 use crate::enum_rarity::Rarity;
 
-// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : StageReward : B2
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Sides : B2
 /// Neither key column is unique alone.
 #[derive(Clone, Debug, Default)]
 pub struct StageRewardRecord {

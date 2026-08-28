@@ -1,0 +1,17 @@
+[
+  {
+    "index": 1,
+    "body": "You feel better.",
+    "icon": "Icon_Sword"
+  },
+  {
+    "index": 2,
+    "body": "Nothing happens.",
+    "icon": "Icon_Shield"
+  },
+  {
+    "index": 3,
+    "body": "The bottle is empty.",
+    "icon": "Icon_Sword"
+  }
+]

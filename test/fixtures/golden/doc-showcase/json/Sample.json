@@ -1,0 +1,35 @@
+[
+  {
+    "index": 1,
+    "count": "9007199254740993",
+    "ratio": 1.5,
+    "precise": 2.25,
+    "enabled": true,
+    "label": "first",
+    "at": "2026-01-24T10:30:00",
+    "span": "1.02:03:04",
+    "id": "7b7d9f6a-1e2c-4c1a-9a5f-2b6d0c3e4f51"
+  },
+  {
+    "index": 2,
+    "count": "-20",
+    "ratio": -0.5,
+    "precise": 1E-08,
+    "enabled": false,
+    "label": "second",
+    "at": "1999-12-31T23:59:59",
+    "span": "00:00:01",
+    "id": "0f8fad5b-d9cb-469f-a165-70867728950e"
+  },
+  {
+    "index": 3,
+    "count": "0",
+    "ratio": 0,
+    "precise": 0,
+    "enabled": false,
+    "label": "",
+    "at": "2000-01-01T00:00:00",
+    "span": "00:00:00",
+    "id": "00000000-0000-0000-0000-000000000000"
+  }
+]
