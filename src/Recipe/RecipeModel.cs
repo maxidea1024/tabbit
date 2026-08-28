@@ -289,6 +289,38 @@ public class RecipeModel
     /// spec/layout/primary-layout.md section 3.6.
     /// </remarks>
     public Dictionary<string, string> Variants { get; set; } = new Dictionary<string, string>();
+
+    /// <summary>
+    /// Row tags this build leaves out.
+    /// </summary>
+    /// <remarks>
+    /// <code>
+    /// "ExcludeTags": [ "wip" ]
+    /// </code>
+    ///
+    /// A sheet may mark a row with one or more tags, and a build named here drops every row
+    /// carrying one of them. The rule is that a dropped row is a row the sheet never had:
+    /// the layout parser does not hand it on, and nothing below the parser is told that a
+    /// row was ever there. A reference to a dropped row is reported as a reference to a key
+    /// that does not exist, which is what it is in the data this build produced.
+    ///
+    /// Tag names are not declared anywhere. Whatever a sheet writes is the row's tag, and a
+    /// name nobody excludes simply keeps its rows. The build report lists every tag it saw
+    /// with the row counts, which is where a misspelled one shows up.
+    ///
+    /// Recipe-wide rather than per source entry, for the reason <see cref="Variants"/> is:
+    /// what a build ships is one decision, and a build that dropped `wip` rows from one
+    /// workbook and kept them from another would be a build nobody asked for.
+    ///
+    /// No command line equivalent. Which rows a build ships belongs in the file that is
+    /// committed, not in how somebody happened to invoke the tool - and the build cache
+    /// keys on the recipe as substituted, so putting it here is also what makes a changed
+    /// selection reconvert.
+    ///
+    /// spec/layout/tags.md.
+    /// </remarks>
+    [JsonConverter(typeof(StringListConverter))]
+    public List<string> ExcludeTags { get; set; } = new List<string>();
     #endregion
 
 

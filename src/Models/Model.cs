@@ -416,4 +416,13 @@ public class Model
     }
 
     #endregion
+    /// <summary>
+    /// Every row tag the sheets wrote, with what this build did with each.
+    /// </summary>
+    /// <remarks>
+    /// Empty for the sheets that use none, which is every project that has not asked.
+    /// <see cref="RowTagUse"/> says why it is here rather than only in the run's log.
+    /// </remarks>
+    public List<RowTagUse> RowTags { get; set; } = new List<RowTagUse>();
+
 }

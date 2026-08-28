@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Tabbit.History;
 
@@ -63,10 +64,37 @@ public sealed class SummaryRun
     /// </summary>
     public required string RequestedTargetSide { get; set; }
 
+    /// <summary>
+    /// Row tags the sheets wrote, and how many rows each left out of this build.
+    /// </summary>
+    /// <remarks>
+    /// **Under the run and not under the data**, because it describes what this build did
+    /// rather than what the sheets declared: another build of the same sheets excluding
+    /// nothing has the same tables and no entries here.
+    ///
+    /// Left out of the document entirely when the sheets used no tags, so that every summary
+    /// written before this existed is still the document this writes.
+    /// </remarks>
+    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    public IReadOnlyList<SummaryRowTag>? RowTags { get; set; }
+
     public required SummaryCommit Commit { get; set; }
 }
 
 /// <summary>The commit this conversion is of.</summary>
+/// <summary>One row tag a build met, and what it left out.</summary>
+public sealed class SummaryRowTag
+{
+    /// <summary>As the sheet wrote it: `wip`, or `stage=test`.</summary>
+    public required string Tag { get; set; }
+
+    /// <summary>Rows carrying it, left out or not.</summary>
+    public required int Rows { get; set; }
+
+    /// <summary>How many of those this build left out.</summary>
+    public required int Omitted { get; set; }
+}
+
 public sealed class SummaryCommit
 {
     public string? Hash { get; set; }

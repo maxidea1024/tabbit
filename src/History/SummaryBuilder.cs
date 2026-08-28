@@ -42,14 +42,14 @@ public static class SummaryBuilder
 
         return new SummaryDocument
         {
-            Run = RunOf(commit, context),
+            Run = RunOf(model, commit, context),
             Data = DataOf(model, fingerprint),
         };
     }
 
     // ------------------------------------------------------------------ run
 
-    private static SummaryRun RunOf(CommitInfo commit, TargetContext context)
+    private static SummaryRun RunOf(Model model, CommitInfo commit, TargetContext context)
     {
         return new SummaryRun
         {
@@ -71,6 +71,17 @@ public static class SummaryBuilder
             // The marker, not the prose: this document is read by a program more often
             // than by a person, and `cs` is what every other side in it says.
             RequestedTargetSide = Side(CommandLineTargetSide.Of(context?.Options)),
+
+            // Null rather than an empty list for the sheets that use no tags, so a summary
+            // of a project that has not asked for any is the document it always was.
+            RowTags = model.RowTags.Count == 0
+                ? null
+                : [.. model.RowTags.Select(tag => new SummaryRowTag
+                  {
+                      Tag = tag.Tag,
+                      Rows = tag.Rows,
+                      Omitted = tag.Omitted,
+                  })],
 
             Commit = CommitOf(commit),
         };

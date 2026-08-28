@@ -59,6 +59,82 @@ public sealed class CookingContext
         AutoInsertEnumNoneLabel = recipe.AutoInsertEnumNoneLabel;
         Palettes = ResolvePalettes(recipe);
         BoolWords = BooleanWords.Of(recipe);
+        ReadExcludedRowTags(recipe);
+    }
+
+    /// <summary>
+    /// Whether a row tag this build excludes matches one written on a row.
+    /// </summary>
+    /// <remarks>
+    /// A tag is a `key=value` pair, and a recipe may name either half of that:
+    /// `wip` leaves out every row tagged `wip` whatever its value, and `stage=test` leaves
+    /// out only the rows whose `stage` is `test`. Naming the key alone is the common case
+    /// and naming the pair is what makes one key usable for more than one thing.
+    ///
+    /// Compared without regard to case on both halves, because a tag is a word somebody typed
+    /// into a cell and `WIP` and `wip` are the same word.
+    ///
+    /// spec/layout/tags.md.
+    /// </remarks>
+    public bool ExcludesRowTag(string key, string value)
+        => _excludedTagKeys.Contains(key)
+        || _excludedTagPairs.Contains(key + "=" + value);
+
+    /// <summary>Whether this build excludes anything at all, for a reader of the recipe.</summary>
+    public bool ExcludesAnyRowTag => _excludedTagKeys.Count + _excludedTagPairs.Count > 0;
+
+    private readonly HashSet<string> _excludedTagKeys = new(StringComparer.OrdinalIgnoreCase);
+
+    private readonly HashSet<string> _excludedTagPairs = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Every row tag this run saw, with how many rows carried it and how many that left out.
+    /// </summary>
+    /// <remarks>
+    /// **Tag names are not declared anywhere**, so nothing can tell a misspelled one from a
+    /// new one - and this list is where a person can. A build that meant to drop `wip` and
+    /// finds `wpi` on one row here has been told what happened without the tool having to
+    /// guess which of the two was intended.
+    ///
+    /// Keyed without regard to case, holding the first spelling seen, which is the one the
+    /// line prints.
+    /// </remarks>
+    public IReadOnlyDictionary<string, RowTagCount> RowTags => _rowTags;
+
+    private readonly Dictionary<string, RowTagCount> _rowTags =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>How many rows one tag was written on, and how many of those are left out.</summary>
+    public sealed class RowTagCount
+    {
+        public string Written { get; init; } = "";
+
+        public int Rows { get; set; }
+
+        public int Omitted { get; set; }
+    }
+
+    /// <summary>
+    /// Records what one data row's marker column named, for the run's summary.
+    /// </summary>
+    /// <remarks>
+    /// Called by any layout that has somewhere to write a tag. A row left out counts under
+    /// every tag it carried, because any one of them would have been enough on its own.
+    /// </remarks>
+    public void NoteRowTags(IReadOnlyDictionary<string, string> tags, bool omitted)
+    {
+        foreach (var (key, value) in tags)
+        {
+            string written = value.Length == 0 ? key : key + "=" + value;
+
+            if (!_rowTags.TryGetValue(written, out var count))
+                _rowTags[written] = count = new RowTagCount { Written = written };
+
+            count.Rows++;
+
+            if (omitted)
+                count.Omitted++;
+        }
     }
 
     /// <summary>
@@ -165,6 +241,38 @@ public sealed class CookingContext
     /// fault in the recipe, and reporting it while the first coloured cell happens to be
     /// parsed would make it look like a fault in the sheet.
     /// </remarks>
+    /// <summary>
+    /// Sorts the recipe's excluded tags into the ones naming a key and the ones naming a pair.
+    /// </summary>
+    /// <remarks>
+    /// Two sets rather than one list walked per row: a sheet asks this once per tag per row,
+    /// and the answer is a lookup either way.
+    /// </remarks>
+    private void ReadExcludedRowTags(RecipeModel recipe)
+    {
+        foreach (string? written in recipe.ExcludeTags)
+        {
+            string entry = (written ?? "").Trim();
+
+            if (entry.Length == 0)
+                continue;
+
+            int equals = entry.IndexOf('=');
+
+            if (equals < 0)
+            {
+                _excludedTagKeys.Add(entry);
+                continue;
+            }
+
+            string key = entry.Substring(0, equals).Trim();
+            string value = entry.Substring(equals + 1).Trim();
+
+            if (key.Length != 0)
+                _excludedTagPairs.Add(key + "=" + value);
+        }
+    }
+
     private static ColorPalettes ResolvePalettes(RecipeModel recipeModel)
     {
         if (recipeModel.Palettes.Count == 0)

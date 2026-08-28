@@ -152,6 +152,21 @@ public class Table
     /// spec/layout/table-row-sets.md.
     /// </remarks>
     [JsonIgnore]
+    /// <summary>
+    /// Labels a sheet wrote on this table for something outside this tool to read.
+    /// </summary>
+    /// <remarks>
+    /// **Held and not acted on.** The words mean nothing here - what a project puts in them
+    /// is that project's business, and this tool neither checks them nor produces them.
+    /// Carried so the notation is not a key that quietly does nothing, and so that whatever
+    /// decides to read them later has them already.
+    ///
+    /// Not the wire tag, which is a number and decides how a column is written to a file.
+    /// spec/layout/tags.md section 6.
+    /// </remarks>
+    public Dictionary<string, string> MetaTags { get; set; } =
+        new Dictionary<string, string>(System.StringComparer.OrdinalIgnoreCase);
+
     public List<RowSet> ExtraRowSets { get; set; } = new List<RowSet>();
 
     /// <summary>

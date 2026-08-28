@@ -196,7 +196,15 @@ public class SchemaCompletionTests
         // Offering `uniqueBy` and then reporting it as a key that does nothing is two answers
         // to one question.
         Assert.DoesNotContain("uniqueBy", Labels("    field count int (|"));
-        Assert.DoesNotContain("tag", Labels("    field count int (|"));
+    }
+
+    [Fact]
+    public void A_key_this_build_holds_without_reading_is_offered()
+    {
+        // `tag` is a label for something outside this tool, and holding it is acting on it -
+        // what the rule above refuses is offering a key that goes nowhere.
+        // spec/layout/tags.md section 6.
+        Assert.Contains("tag", Labels("    field count int (|"));
     }
 
     [Fact]

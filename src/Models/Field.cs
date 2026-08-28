@@ -312,6 +312,21 @@ public class Field
     /// Empty unless a layout filled it in. The type says what a value is and this says
     /// which of those are allowed - see <see cref="ColumnConstraints"/>.
     /// </remarks>
+    /// <summary>
+    /// Labels a sheet wrote on this field for something outside this tool to read.
+    /// </summary>
+    /// <remarks>
+    /// **Held and not acted on.** The words mean nothing here - what a project puts in them
+    /// is that project's business, and this tool neither checks them nor produces them.
+    /// Carried so the notation is not a key that quietly does nothing, and so that whatever
+    /// decides to read them later has them already.
+    ///
+    /// Not the wire tag, which is a number and decides how a column is written to a file.
+    /// spec/layout/tags.md section 6.
+    /// </remarks>
+    public Dictionary<string, string> MetaTags { get; set; } =
+        new Dictionary<string, string>(System.StringComparer.OrdinalIgnoreCase);
+
     public ColumnConstraints Constraints { get; set; } = new ColumnConstraints();
 
     /// <summary>

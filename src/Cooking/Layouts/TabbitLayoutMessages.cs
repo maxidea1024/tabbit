@@ -35,6 +35,9 @@ public static class TabbitLayoutMessages
     /// <summary>A table-only declaration key written on an `:enum` or a `:const`.</summary>
     public const string DeclarationMetaKeyNotOnKind = "tabbit.declaration-meta-key-not-on-kind";
 
+    /// <summary>A marker cell that begins with `#` and goes on, which is neither one.</summary>
+    public const string RowTagBesideOmitMark = "tabbit.row-tag-beside-omit-mark";
+
     /// <summary>Two entities of one run with the same name, whatever their kind.</summary>
     public const string EntityNameDuplicated = "tabbit.entity-name-duplicated";
 

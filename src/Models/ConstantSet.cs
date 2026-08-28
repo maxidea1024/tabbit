@@ -90,4 +90,13 @@ public class ConstantSet
 
     /// <summary>Finds a constant by name, or null.</summary>
     public Constant? FindConstant(string constantName) => Constants.Find(x => x.Name == constantName);
+    /// <summary>
+    /// Labels a sheet wrote on this constant set for something outside this tool to read.
+    /// </summary>
+    /// <remarks>
+    /// **Held and not acted on** - see <see cref="Table.MetaTags"/>.
+    /// </remarks>
+    public Dictionary<string, string> MetaTags { get; set; } =
+        new Dictionary<string, string>(System.StringComparer.OrdinalIgnoreCase);
+
 }

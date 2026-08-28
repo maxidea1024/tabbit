@@ -78,6 +78,21 @@ public class TabbitLayoutTests
         return new ModelCooker().Cook(new Options(), new RecipeModel(), raw);
     }
 
+    /// <summary>The same, for a build whose recipe says something.</summary>
+    private static Model Cook(RecipeModel recipe, params RawSheet[] sheets)
+    {
+        var raw = new RawModel();
+
+        foreach (var sheet in sheets)
+            raw.Sheets.Add(sheet);
+
+        return new ModelCooker().Cook(new Options(), recipe, raw);
+    }
+
+    /// <summary>A recipe that leaves out the named row tags and says nothing else.</summary>
+    private static RecipeModel Excluding(params string[] tags)
+        => new RecipeModel { ExcludeTags = [.. tags] };
+
     private static TabbitException Refuses(params RawSheet[] sheets)
         => Assert.Throws<TabbitException>(() => Cook(sheets));
 
@@ -304,6 +319,245 @@ public class TabbitLayoutTests
             ["", "1"]));
 
         Assert.Contains(":field", problem.Message);
+    }
+
+    #endregion
+
+
+    #region Row tags - spec/layout/tags.md
+
+    /// <summary>A table whose second row is marked `wip`.</summary>
+    private static RawSheet TaggedItemSheet() => Sheet(
+        [":table Item", "an item"],
+        [":field", "code", "name"],
+        [":type", "int", "string"],
+        ["", "1", "sword"],
+        ["wip", "2", "shield"],
+        ["", "3", "helm"]);
+
+    [Fact]
+    public void A_tag_nothing_excludes_leaves_its_row_where_it_is()
+    {
+        var table = Assert.Single(Cook(TaggedItemSheet()).Tables);
+
+        Assert.Equal(3, table.Data.Count);
+    }
+
+    [Fact]
+    public void An_excluded_tag_leaves_the_row_out_as_if_the_sheet_never_had_it()
+    {
+        var table = Assert.Single(Cook(Excluding("wip"), TaggedItemSheet()).Tables);
+
+        Assert.Equal(2, table.Data.Count);
+        Assert.Equal(["1", "3"], table.Data.Select(row => row[0].Value!.ToString()));
+    }
+
+    [Fact]
+    public void A_tag_is_matched_whatever_case_it_was_written_in()
+    {
+        var table = Assert.Single(Cook(Excluding("WIP"), TaggedItemSheet()).Tables);
+
+        Assert.Equal(2, table.Data.Count);
+    }
+
+    [Fact]
+    public void A_row_may_carry_several_tags_and_any_one_of_them_leaves_it_out()
+    {
+        var sheet = Sheet(
+            [":table Item", "an item"],
+            [":field", "code", "name"],
+            [":type", "int", "string"],
+            ["wip, event", "1", "sword"],
+            ["", "2", "shield"]);
+
+        Assert.Single(Assert.Single(Cook(Excluding("event"), sheet).Tables).Data);
+        Assert.Equal(2, Assert.Single(Cook(Excluding("other"), sheet).Tables).Data.Count);
+    }
+
+    [Fact]
+    public void A_tag_may_be_a_key_with_a_value_and_the_recipe_may_name_either()
+    {
+        var sheet = Sheet(
+            [":table Item", "an item"],
+            [":field", "code", "name"],
+            [":type", "int", "string"],
+            ["stage=test", "1", "sword"],
+            ["stage=live", "2", "shield"],
+            ["", "3", "helm"]);
+
+        // The key alone takes every value it was written with.
+        Assert.Single(Assert.Single(Cook(Excluding("stage"), sheet).Tables).Data);
+
+        // The pair takes only the rows whose value matches.
+        Assert.Equal(2, Assert.Single(Cook(Excluding("stage=test"), sheet).Tables).Data.Count);
+    }
+
+    [Fact]
+    public void A_value_that_does_not_match_leaves_the_row_where_it_is()
+    {
+        var sheet = Sheet(
+            [":table Item", "an item"],
+            [":field", "code", "name"],
+            [":type", "int", "string"],
+            ["stage=live", "1", "sword"]);
+
+        Assert.Single(Assert.Single(Cook(Excluding("stage=test"), sheet).Tables).Data);
+    }
+
+    [Fact]
+    public void A_misspelled_tag_is_a_tag_nobody_excludes_rather_than_a_report()
+    {
+        // Section 4: names are not declared, so there is nothing to check `wpi` against. The
+        // row stays, and the run's tag list is where somebody sees it.
+        var sheet = Sheet(
+            [":table Item", "an item"],
+            [":field", "code", "name"],
+            [":type", "int", "string"],
+            ["wpi", "1", "sword"]);
+
+        Assert.Single(Assert.Single(Cook(Excluding("wip"), sheet).Tables).Data);
+    }
+
+    [Fact]
+    public void A_marker_that_begins_with_the_omit_mark_and_goes_on_is_reported()
+    {
+        // `#wip` reads as a tag named `#wip`, which nobody excludes - so the row would ship
+        // when whoever wrote it meant it out.
+        string reported = Reported(Sheet(
+            [":table Item", "an item"],
+            [":field", "code"],
+            [":type", "int"],
+            ["#wip", "1"]));
+
+        Assert.Contains("#wip", reported);
+        Assert.Contains("wip", reported);
+    }
+
+    [Fact]
+    public void An_unknown_row_key_is_still_reported_because_a_key_carries_its_colon()
+    {
+        Assert.Contains(":filed", Reported(Sheet(
+            [":table Item", "an item"],
+            [":field", "code"],
+            [":type", "int"],
+            [":filed", "code"],
+            ["", "1"])));
+    }
+
+    [Fact]
+    public void An_enums_row_keeps_its_label_and_is_never_left_out_by_it()
+    {
+        // Its rows are the generated code, so leaving one out would make the declarations
+        // differ per build - the property this feature has is that the code is one.
+        var sheet = Sheet(
+            [":enum Grade", "a grade"],
+            [":field", "label", "value"],
+            ["", "Common", "0"],
+            ["wip", "Rare", "1"]);
+
+        Assert.Equal(2, Assert.Single(Cook(sheet).Enums).Labels.Count);
+        Assert.Equal(2, Assert.Single(Cook(Excluding("wip"), sheet).Enums).Labels.Count);
+    }
+
+    [Fact]
+    public void A_constant_sets_row_is_the_same()
+    {
+        var sheet = Sheet(
+            [":const Balance", "the numbers"],
+            [":field", "name", "type", "value"],
+            ["", "MaxLevel", "int", "60"],
+            ["wip", "MinLevel", "int", "1"]);
+
+        Assert.Equal(
+            2, Assert.Single(Cook(Excluding("wip"), sheet).ConstantSets).Constants.Count);
+    }
+
+    #endregion
+
+
+    #region Meta tags - spec/layout/tags.md section 6
+
+    [Fact]
+    public void A_tag_on_a_declaration_and_on_a_column_is_held_and_nothing_else()
+    {
+        var model = Cook(Sheet(
+            [":table Item(tag=\"owner=combat\")", "an item"],
+            [":field", "code", "name"],
+            [":type", "int", "string (tag=\"editor=slider, ui=hidden\")"],
+            ["", "1", "sword"]));
+
+        var table = Assert.Single(model.Tables);
+
+        Assert.Equal("combat", table.MetaTags["owner"]);
+        Assert.Empty(table.Fields[0].MetaTags);
+        Assert.Equal("slider", table.Fields[1].MetaTags["editor"]);
+        Assert.Equal("hidden", table.Fields[1].MetaTags["ui"]);
+    }
+
+    [Fact]
+    public void A_label_may_be_a_key_with_no_value()
+    {
+        var model = Cook(Sheet(
+            [":table Item(tag=\"internal\")", "an item"],
+            [":field", "code", "name"],
+            [":type", "int", "string (tag=\"hidden, editor=slider\")"],
+            ["", "1", "sword"]));
+
+        var table = Assert.Single(model.Tables);
+
+        Assert.Equal("", table.MetaTags["internal"]);
+        Assert.Equal("", table.Fields[1].MetaTags["hidden"]);
+        Assert.Equal("slider", table.Fields[1].MetaTags["editor"]);
+    }
+
+    [Fact]
+    public void A_label_key_does_not_mind_the_case_it_was_written_in()
+    {
+        var model = Cook(Sheet(
+            [":table Item(tag=\"Owner=combat\")", "an item"],
+            [":field", "code"],
+            [":type", "int"],
+            ["", "1"]));
+
+        Assert.Equal("combat", Assert.Single(model.Tables).MetaTags["owner"]);
+    }
+
+    [Fact]
+    public void A_value_is_matched_whatever_case_either_side_wrote_it_in()
+    {
+        var sheet = Sheet(
+            [":table Item", "an item"],
+            [":field", "code", "name"],
+            [":type", "int", "string"],
+            ["Stage=Test", "1", "sword"],
+            ["", "2", "shield"]);
+
+        Assert.Single(Assert.Single(Cook(Excluding("stage=test"), sheet).Tables).Data);
+    }
+
+    [Fact]
+    public void A_key_written_on_both_the_declaration_and_the_column_takes_the_columns_value()
+    {
+        // The two writers are a type declaration and the column carrying it, and the column
+        // is the more specific of the two.
+        var model = Cook(Sheet(
+            [":table Item", "an item"],
+            [":field", "code", "name"],
+            [":type", "int", "string (tag=\"editor=slider, editor=text\")"],
+            ["", "1", "sword"]));
+
+        Assert.Equal("text", Assert.Single(model.Tables).Fields[1].MetaTags["editor"]);
+    }
+
+    [Fact]
+    public void An_enum_may_be_labelled_too()
+    {
+        var model = Cook(Sheet(
+            [":enum Grade(tag=\"owner=combat\")", "a grade"],
+            [":field", "label", "value"],
+            ["", "Common", "0"]));
+
+        Assert.Equal("combat", Assert.Single(model.Enums).MetaTags["owner"]);
     }
 
     #endregion

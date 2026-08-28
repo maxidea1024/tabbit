@@ -208,4 +208,13 @@ public class Enum
     /// Finds a label by its integer value, which is how stored data refers to it.
     /// </summary>
     public Label? FindLabelByValue(int value) => Labels.Find(x => x.Value == value);
+    /// <summary>
+    /// Labels a sheet wrote on this enum for something outside this tool to read.
+    /// </summary>
+    /// <remarks>
+    /// **Held and not acted on** - see <see cref="Table.MetaTags"/>.
+    /// </remarks>
+    public Dictionary<string, string> MetaTags { get; set; } =
+        new Dictionary<string, string>(System.StringComparer.OrdinalIgnoreCase);
+
 }

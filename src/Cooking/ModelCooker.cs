@@ -540,6 +540,41 @@ public partial class ModelCooker
 
         foreach (var (parser, sheets) in parsers)
             parser.ParseTables(context, sheets);
+
+        ReportRowTags(context);
+    }
+
+    /// <summary>
+    /// Lists the row tags this run saw and what they left out.
+    /// </summary>
+    /// <remarks>
+    /// **The one place a misspelled tag shows.** Tag names are not declared, so a build that
+    /// excludes `wip` and meets `wpi` drops nothing and has nothing to report as wrong - the
+    /// line below is what lets somebody see it anyway. Silent otherwise, so a run of sheets
+    /// that use no tags reads as it always has. spec/layout/tags.md.
+    /// </remarks>
+    private static void ReportRowTags(CookingContext context)
+    {
+        if (context.RowTags.Count == 0)
+            return;
+
+        context.Model.RowTags =
+        [
+            .. context.RowTags.Values
+                .OrderBy(tag => tag.Written, System.StringComparer.OrdinalIgnoreCase)
+                .Select(tag => new Models.RowTagUse
+                {
+                    Tag = tag.Written,
+                    Rows = tag.Rows,
+                    Omitted = tag.Omitted,
+                }),
+        ];
+
+        var listed = context.RowTags.Values
+            .OrderBy(tag => tag.Written, System.StringComparer.OrdinalIgnoreCase)
+            .Select(tag => $"{tag.Written} on {tag.Rows} row(s), {tag.Omitted} left out");
+
+        Log.Information($"Row tags: {string.Join("; ", listed)}.");
     }
 
     /// <summary>

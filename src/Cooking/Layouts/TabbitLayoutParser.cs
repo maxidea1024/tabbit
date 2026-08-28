@@ -71,7 +71,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
     /// </remarks>
     private static readonly string[] EntityRowKeys = [RowKeyField];
 
-    private static readonly string[] DeclarationMetaKeys = ["side", "key"];
+    private static readonly string[] DeclarationMetaKeys = ["side", "key", "tag"];
 
     /// <summary>The declaration keys only a `:table` takes, and what each is for in a report.</summary>
     /// <remarks>
@@ -127,12 +127,20 @@ public sealed class TabbitLayoutParser : ILayoutParser
 
     #endregion
 
-    /// <summary>One row below an entity's headers, and whether `#` left it out.</summary>
-    private readonly struct DataRow(int row, bool omitted)
+    /// <summary>One row below an entity's headers, what tagged it, and whether it is left out.</summary>
+    private readonly struct DataRow(
+        int row, bool omitted, Dictionary<string, string>? tags = null)
     {
         public int Row { get; } = row;
 
         public bool Omitted { get; } = omitted;
+
+        /// <summary>
+        /// What the marker column named this row, or empty. Held whether or not the row was
+        /// left out: what a build saw is what the report lists, and a tag nobody excludes is
+        /// still a tag somebody wrote.
+        /// </summary>
+        public Dictionary<string, string> Tags { get; } = tags ?? [];
     }
 
     /// <summary>One `key=value` from a declaration's brackets, and where it was written.</summary>
@@ -641,6 +649,28 @@ public sealed class TabbitLayoutParser : ILayoutParser
                 continue;
             }
 
+            // Anything that is not a row key and not the omit mark is a tag on this row.
+            // **Tag names are not declared**, so there is nothing to check them against and a
+            // misspelled one is a tag nobody excludes - section 4 of the spec, and the reason
+            // the report lists every tag it saw. A row key is spelled with the leading colon,
+            // so the two cannot be confused: `:filed` is still an unknown key.
+            if (!value.StartsWith(':'))
+            {
+                // **`#wip` is not a tag named `wip`, and it is not `#` either.** Whoever wrote
+                // it meant the row to be out, and reading it as a tag nobody excludes would
+                // ship the row without saying so - the one thing this feature must not do.
+                if (value.StartsWith(OmitMark) || value.StartsWith(OmitMarkAlternate))
+                {
+                    throw new TabbitException(marker!.Location,
+                        Message.Of(TabbitLayoutMessages.RowTagBesideOmitMark,
+                            ("Entity", block.Name), ("Written", value),
+                            ("Tag", value.TrimStart('#', '/').Trim())));
+                }
+
+                block.Rows.Add(ReadRowTags(block, row, value));
+                continue;
+            }
+
             string key = value.ToLowerInvariant();
 
             if (!AllRowKeys.Contains(key, StringComparer.Ordinal))
@@ -672,6 +702,53 @@ public sealed class TabbitLayoutParser : ILayoutParser
         }
 
         RequireHeaderRows(block);
+    }
+
+    /// <summary>
+    /// The labels a declaration's brackets wrote, for something outside this tool to read.
+    /// </summary>
+    /// <remarks>
+    /// Read and held, never acted on - section 6 of the spec. `key=value` pairs, comma
+    /// separated, because a declaration writes one bracket key and a project may have more
+    /// than one thing to say.
+    /// </remarks>
+    private static Dictionary<string, string> MetaTagsOf(EntityBlock block)
+    {
+        var tags = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        if (block.Meta.TryGetValue("tag", out var written) && written.Value is not null)
+            Models.MetaTagText.ReadInto(written.Value, tags);
+
+        return tags;
+    }
+
+    /// <summary>
+    /// One data row's tags, and whether they leave it out of this build.
+    /// </summary>
+    /// <remarks>
+    /// A left-out row is a row the sheet never had: it is kept in the list and marked, the
+    /// same as one marked `#`, and <see cref="EntityBlock.DataRows"/> is what everything else
+    /// reads. So a reference to it is reported as a reference to a key that is not there,
+    /// which is what it is in the data this build produced.
+    ///
+    /// **Only a table's rows are left out by one.** An enum's rows and a constant set's rows
+    /// **are the generated code**, so leaving one out would make the declarations differ per
+    /// build - and the property this feature has is that the code is one and only the data
+    /// varies. Their tags are read and held all the same: a word in the marker column is a
+    /// tag wherever it is written, and refusing it there would be this layout having an
+    /// opinion about a label it does not read.
+    /// </remarks>
+    private DataRow ReadRowTags(EntityBlock block, int row, string written)
+    {
+        var tags = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        Models.MetaTagText.ReadInto(written, tags);
+
+        bool omitted = block.Kind == KindTable
+                    && tags.Any(tag => _context.ExcludesRowTag(tag.Key, tag.Value));
+
+        _context.NoteRowTags(tags, omitted);
+
+        return new DataRow(row, omitted, tags);
     }
 
     private void RequireHeaderRows(EntityBlock block)
@@ -1248,8 +1325,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
             RawName = block.RawName,
             Name = block.Name,
             Comment = block.Comment,
-
-
+            MetaTags = MetaTagsOf(block),
 
             TrimTrailingArrayElements = block.Sheet.Layout.TrimTrailingArrayElements,
             AllowArrayGaps = block.Sheet.Layout.AllowArrayGaps,
@@ -2566,6 +2642,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
             RawName = block.RawName,
             Name = block.Name,
             Comment = block.Comment,
+            MetaTags = MetaTagsOf(block),
             Labels = [],
         };
 
@@ -2714,6 +2791,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
             RawName = block.RawName,
             Name = block.Name,
             Comment = block.Comment,
+            MetaTags = MetaTagsOf(block),
             Constants = [],
         };
 

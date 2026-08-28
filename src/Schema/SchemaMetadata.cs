@@ -77,8 +77,9 @@ internal static class SchemaMetadata
         // used as is a group of sheet columns, which has no brackets to write it in.
         ["uniqueBy"] = MetaKey.NotCarried,
 
-        // A consumer's own label. Nothing in this tool has anywhere to put one.
-        ["tag"] = MetaKey.NotCarried,
+        // A consumer's own label. Held on the field and nothing else - this tool does not
+        // read the words, check them or produce them. spec/layout/tags.md section 6.
+        ["tag"] = MetaKey.Carried,
     };
 
     /// <summary>Keys an enum entry may carry.</summary>
@@ -213,12 +214,33 @@ internal static class SchemaMetadata
         ApplyPattern(table, field, meta, memberName, typeName, diagnostics);
         ApplyLength(field, meta, memberName, typeName, typeIsArray, diagnostics);
 
+        ApplyMetaTags(field, meta);
+
         // A flag, so there is nothing to narrow: either side saying it makes it true.
         if (meta.Has("notDefault"))
         {
             field.Constraints.NotDefault = true;
             field.Constraints.NotDefaultLocation = meta.LocationOf("notDefault");
         }
+    }
+
+    /// <summary>
+    /// The labels a declaration or a sheet wrote for something outside this tool.
+    /// </summary>
+    /// <remarks>
+    /// Both sides add: a struct's members may be labelled where the type is declared and the
+    /// column that carries one may say more, and neither is a narrowing of the other because
+    /// nothing here reads the words. One key written on both sides takes the column's value,
+    /// which is the direction everything else in this class goes.
+    /// </remarks>
+    private static void ApplyMetaTags(Field field, SchemaMeta meta)
+    {
+        string? written = meta.Value("tag");
+
+        if (written is null)
+            return;
+
+        MetaTagText.ReadInto(written, field.MetaTags);
     }
 
     /// <summary>
