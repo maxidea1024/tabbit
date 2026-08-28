@@ -14,7 +14,7 @@ import (
 // Tables holds every table, loaded together so cross-table references can be resolved.
 type Tables struct {
 	Listing ListingTable
-	Folded FoldedTable
+	Folded  FoldedTable
 }
 
 // EncryptionKey is the key the table files were sealed with, or nil when they were not

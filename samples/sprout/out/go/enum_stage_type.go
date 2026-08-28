@@ -17,7 +17,7 @@ type StageType int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	StageTypeNone StageType = 0
+	StageTypeNone  StageType = 0
 	StageTypeStory StageType = 1
 	StageTypeElite StageType = 2
 	StageTypeEvent StageType = 3

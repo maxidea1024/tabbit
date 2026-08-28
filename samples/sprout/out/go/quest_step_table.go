@@ -33,7 +33,7 @@ type QuestStepRecord struct {
 // QuestStepTable holds every row of QuestStep.
 type QuestStepTable struct {
 	records []QuestStepRecord
-	byId map[int32]int
+	byId    map[int32]int
 }
 
 // Records returns every row, in the order the sheet declared them.
@@ -41,7 +41,6 @@ func (t *QuestStepTable) Records() []QuestStepRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *QuestStepTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -93,7 +92,6 @@ func (t *QuestStepTable) ContainsId(key int32) bool {
 	_, found := t.byId[key]
 	return found
 }
-
 
 // Entries yields each row with the Id it is keyed by -
 // `for key, row := range t.Entries()`.

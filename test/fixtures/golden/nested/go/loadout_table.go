@@ -59,7 +59,6 @@ func (t *LoadoutTable) Records() []LoadoutRecord { return t.records }
 // Count returns how many rows the table holds.
 func (t *LoadoutTable) Count() int { return len(t.records) }
 
-
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
 // The slice header is read once, here. A refresh replaces it rather than its contents, so a
@@ -110,7 +109,6 @@ func (t *LoadoutTable) ContainsIndex(key int32) bool {
 	_, found := t.byIndex[key]
 	return found
 }
-
 
 // Entries yields each row with the Index it is keyed by -
 // `for key, row := range t.Entries()`.

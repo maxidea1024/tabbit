@@ -17,12 +17,12 @@ type RarityType int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	RarityTypeNone RarityType = 0
-	RarityTypeOne RarityType = 1
-	RarityTypeTwo RarityType = 2
+	RarityTypeNone  RarityType = 0
+	RarityTypeOne   RarityType = 1
+	RarityTypeTwo   RarityType = 2
 	RarityTypeThree RarityType = 3
-	RarityTypeFour RarityType = 4
-	RarityTypeFive RarityType = 5
+	RarityTypeFour  RarityType = 4
+	RarityTypeFive  RarityType = 5
 )
 
 // String names the label, or renders the number when the value has none.

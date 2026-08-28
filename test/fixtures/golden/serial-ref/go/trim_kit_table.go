@@ -20,14 +20,14 @@ type TrimKitRecord struct {
 	// primary index
 	Index int32
 	// element 1 - the row it points at
-	Slot []int32
+	Slot      []int32
 	BitBySlot []*BitRecord
 	// Which of Slot's elements have a value. Empty where the file did not carry
 	// the column, and then every index is out of range anyway.
 	HasSlotAt []bool
 	// element 1 - the target's own value
 	TierIndex []int32
-	Tier []int32
+	Tier      []int32
 	// Which of Tier's elements have a value. Empty where the file did not carry
 	// the column, and then every index is out of range anyway.
 	HasTierAt []bool
@@ -44,7 +44,6 @@ func (t *TrimKitTable) Records() []TrimKitRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *TrimKitTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -96,7 +95,6 @@ func (t *TrimKitTable) ContainsIndex(key int32) bool {
 	_, found := t.byIndex[key]
 	return found
 }
-
 
 // Entries yields each row with the Index it is keyed by -
 // `for key, row := range t.Entries()`.

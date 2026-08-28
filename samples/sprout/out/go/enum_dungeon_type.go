@@ -17,11 +17,11 @@ type DungeonType int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	DungeonTypeNone DungeonType = 0
+	DungeonTypeNone     DungeonType = 0
 	DungeonTypeMaterial DungeonType = 1
-	DungeonTypeGold DungeonType = 2
-	DungeonTypeElement DungeonType = 3
-	DungeonTypeBoss DungeonType = 4
+	DungeonTypeGold     DungeonType = 2
+	DungeonTypeElement  DungeonType = 3
+	DungeonTypeBoss     DungeonType = 4
 )
 
 // String names the label, or renders the number when the value has none.

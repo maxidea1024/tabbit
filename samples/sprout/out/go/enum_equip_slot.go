@@ -17,12 +17,12 @@ type EquipSlot int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	EquipSlotNone EquipSlot = 0
+	EquipSlotNone   EquipSlot = 0
 	EquipSlotWeapon EquipSlot = 1
-	EquipSlotArmor EquipSlot = 2
-	EquipSlotHelm EquipSlot = 3
-	EquipSlotBoots EquipSlot = 4
-	EquipSlotRing EquipSlot = 5
+	EquipSlotArmor  EquipSlot = 2
+	EquipSlotHelm   EquipSlot = 3
+	EquipSlotBoots  EquipSlot = 4
+	EquipSlotRing   EquipSlot = 5
 	EquipSlotAmulet EquipSlot = 6
 )
 

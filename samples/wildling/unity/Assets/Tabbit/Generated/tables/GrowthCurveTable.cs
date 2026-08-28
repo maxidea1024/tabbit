@@ -22,7 +22,7 @@ namespace Wildling.Data
     /// 등급과 레벨별 능력치 배수와 소모 재화이다.
     /// </summary>
     [System.Serializable]
-    public partial class GrowthCurveTable
+    public partial class GrowthCurveTable : IEnumerable<GrowthCurveTable.Record>
     {
         #region Record
         [System.Serializable]
@@ -146,6 +146,28 @@ namespace Wildling.Data
         public List<Record> Records => _records;
         private List<Record> _records = new List<Record>();
 
+        /// <summary>How many rows the table holds.</summary>
+        public int Count => _records.Count;
+
+        /// <summary>The rows, in the order the file wrote them.</summary>
+        /// <remarks>
+        /// A struct enumerator rather than the interface one, because `foreach` binds to this
+        /// by name and a boxed enumerator allocates once per loop - which in a project that
+        /// walks a table every frame is an allocation every frame. LINQ and anything holding
+        /// the table as `IEnumerable` reach the explicit implementations below instead, and
+        /// those box exactly as they always would have.
+        ///
+        /// The list reference is read once, here. A refresh replaces the reference rather than
+        /// its contents, so a loop already running keeps the rows it started with - the same
+        /// property `Records` documents above, reached without naming the list.
+        /// </remarks>
+        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+
+        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            => _records.GetEnumerator();
+
         #region Indexing by 'Grade and Level'
         private Dictionary<string, Record> _recordsByGradeAndLevel = new Dictionary<string, Record>();
 
@@ -191,6 +213,18 @@ namespace Wildling.Data
 
         /// <summary>Whether the table holds a row with this `Grade and Level`.</summary>
         public bool ContainsGradeAndLevel(global::Wildling.Data.Grade gradeKey, int levelKey) => _recordsByGradeAndLevel.ContainsKey(KeyOfGradeAndLevel(gradeKey, levelKey));
+
+        /// <summary>
+        /// The row with this `Grade and Level`, or a thrown exception naming what was
+        /// missing.
+        /// </summary>
+        /// <remarks>
+        /// A key of several columns takes them in the order the sheet wrote them, which is
+        /// the order `GetByGradeAndLevelOrThrow` takes them in too.
+        /// spec/targets/table-collection-surface.md section 5.4.
+        /// </remarks>
+        public Record this[global::Wildling.Data.Grade gradeKey, int levelKey]
+            => GetByGradeAndLevelOrThrow(gradeKey, levelKey);
         #endregion // Indexing by `Grade and Level`
 
         /// <summary>

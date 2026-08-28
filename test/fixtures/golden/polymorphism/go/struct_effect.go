@@ -12,10 +12,10 @@ package gamedata
 // Narrow it with a type switch. The interface is sealed by isEffect, so this
 // package's variants are the whole list:
 //
-//\tswitch v := effect.(type) {
-//\tcase DamageEffect:
-//\t\t_ = v
-//\t}
+//	switch v := effect.(type) {
+//	case DamageEffect:
+//		_ = v
+//	}
 type Effect interface {
 	isEffect()
 
@@ -57,7 +57,7 @@ type DamageEffect struct {
 	// path twice over: the blank cells of the other variants go through the reference
 
 	// conversion, and the built variant has to carry the resolved row rather than the key.
-	ElementId int32
+	ElementId          int32
 	ElementByElementId *ElementRecord
 }
 

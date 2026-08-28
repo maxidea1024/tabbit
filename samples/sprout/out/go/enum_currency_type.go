@@ -17,13 +17,13 @@ type CurrencyType int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	CurrencyTypeNone CurrencyType = 0
-	CurrencyTypeSoft CurrencyType = 1
-	CurrencyTypeHard CurrencyType = 2
+	CurrencyTypeNone    CurrencyType = 0
+	CurrencyTypeSoft    CurrencyType = 1
+	CurrencyTypeHard    CurrencyType = 2
 	CurrencyTypeStamina CurrencyType = 3
-	CurrencyTypeTicket CurrencyType = 4
-	CurrencyTypeShard CurrencyType = 5
-	CurrencyTypeToken CurrencyType = 6
+	CurrencyTypeTicket  CurrencyType = 4
+	CurrencyTypeShard   CurrencyType = 5
+	CurrencyTypeToken   CurrencyType = 6
 )
 
 // String names the label, or renders the number when the value has none.

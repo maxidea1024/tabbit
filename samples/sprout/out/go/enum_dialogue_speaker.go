@@ -17,12 +17,12 @@ type DialogueSpeaker int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	DialogueSpeakerNone DialogueSpeaker = 0
+	DialogueSpeakerNone     DialogueSpeaker = 0
 	DialogueSpeakerNarrator DialogueSpeaker = 1
-	DialogueSpeakerHero DialogueSpeaker = 2
-	DialogueSpeakerAlly DialogueSpeaker = 3
-	DialogueSpeakerVillain DialogueSpeaker = 4
-	DialogueSpeakerSystem DialogueSpeaker = 5
+	DialogueSpeakerHero     DialogueSpeaker = 2
+	DialogueSpeakerAlly     DialogueSpeaker = 3
+	DialogueSpeakerVillain  DialogueSpeaker = 4
+	DialogueSpeakerSystem   DialogueSpeaker = 5
 )
 
 // String names the label, or renders the number when the value has none.

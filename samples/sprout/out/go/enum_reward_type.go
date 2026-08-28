@@ -17,12 +17,12 @@ type RewardType int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	RewardTypeNone RewardType = 0
-	RewardTypeItem RewardType = 1
-	RewardTypeCurrency RewardType = 2
+	RewardTypeNone      RewardType = 0
+	RewardTypeItem      RewardType = 1
+	RewardTypeCurrency  RewardType = 2
 	RewardTypeCharacter RewardType = 3
-	RewardTypeEquip RewardType = 4
-	RewardTypeBuff RewardType = 5
+	RewardTypeEquip     RewardType = 4
+	RewardTypeBuff      RewardType = 5
 )
 
 // String names the label, or renders the number when the value has none.

@@ -13,8 +13,8 @@ import (
 
 // Tables holds every table, loaded together so cross-table references can be resolved.
 type Tables struct {
-	Asset AssetTable
-	Ledger LedgerTable
+	Asset    AssetTable
+	Ledger   LedgerTable
 	Slotting SlottingTable
 }
 

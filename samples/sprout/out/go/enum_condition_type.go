@@ -17,13 +17,13 @@ type ConditionType int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	ConditionTypeNone ConditionType = 0
-	ConditionTypeLevel ConditionType = 1
+	ConditionTypeNone       ConditionType = 0
+	ConditionTypeLevel      ConditionType = 1
 	ConditionTypeStageClear ConditionType = 2
-	ConditionTypeItemOwned ConditionType = 3
-	ConditionTypeQuestDone ConditionType = 4
+	ConditionTypeItemOwned  ConditionType = 3
+	ConditionTypeQuestDone  ConditionType = 4
 	ConditionTypeCollection ConditionType = 5
-	ConditionTypeLogin ConditionType = 6
+	ConditionTypeLogin      ConditionType = 6
 )
 
 // String names the label, or renders the number when the value has none.

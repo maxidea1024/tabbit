@@ -70,6 +70,19 @@ export class ShopSlotWeightTable {
   public get records(): ShopSlotWeightRecord[] { return this._records }
   private _records: ShopSlotWeightRecord[] = []
 
+  /** How many rows the table holds. */
+  public get count(): number { return this._records.length }
+
+  /**
+   * The rows, in the order the file wrote them.
+   *
+   * The array reference is read once, here. A refresh replaces the reference rather
+   * than its contents, so a loop already running keeps the rows it started with.
+   */
+  public [Symbol.iterator](): IterableIterator<ShopSlotWeightRecord> {
+    return this._records[Symbol.iterator]()
+  }
+
   // Indexing by 'item'
   public get recordsByItem(): Map<ShopItemKind, ShopSlotWeightRecord> { return this._recordsByItem }
   private _recordsByItem: Map<ShopItemKind, ShopSlotWeightRecord> = new Map<ShopItemKind, ShopSlotWeightRecord>()
@@ -101,6 +114,24 @@ export class ShopSlotWeightTable {
   /** Whether the table holds a row with this item. */
   public containsItem(key: ShopItemKind): boolean {
     return this._recordsByItem.has(key)
+  }
+
+
+  /**
+   * Each row with the item it is keyed by -
+   * `for (const [key, row] of table.entries())`.
+   *
+   * What this saves a caller is not the key value - the row carries it - but having to know
+   * which column the key is: item here, something else in the next table.
+   *
+   * The rows come in the order the file wrote them rather than the order the map holds
+   * them, which makes this and iterating the table agree. Only the primary key has this: a
+   * table keyed by several columns together has no single key value to pair a row with.
+   */
+  public *entries(): IterableIterator<[ShopItemKind, ShopSlotWeightRecord]> {
+    for (const record of this._records) {
+      yield [record.item, record]
+    }
   }
 
   /** Read a table from specified file. */

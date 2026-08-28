@@ -30,7 +30,7 @@ type GridRecord struct {
 
 // GridTable holds every row of Grid.
 type GridTable struct {
-	records []GridRecord
+	records     []GridRecord
 	byXAndYAndZ map[string]int
 }
 
@@ -39,7 +39,6 @@ func (t *GridTable) Records() []GridRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *GridTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //

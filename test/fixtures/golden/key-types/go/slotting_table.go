@@ -27,8 +27,8 @@ type SlottingRecord struct {
 
 // SlottingTable holds every row of Slotting.
 type SlottingTable struct {
-	records []SlottingRecord
-	byIndex map[Slot]int
+	records  []SlottingRecord
+	byIndex  map[Slot]int
 	bySerial map[int64]int
 }
 
@@ -37,7 +37,6 @@ func (t *SlottingTable) Records() []SlottingRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *SlottingTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -89,7 +88,6 @@ func (t *SlottingTable) ContainsIndex(key Slot) bool {
 	_, found := t.byIndex[key]
 	return found
 }
-
 
 // Entries yields each row with the Index it is keyed by -
 // `for key, row := range t.Entries()`.

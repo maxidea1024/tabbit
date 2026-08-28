@@ -352,7 +352,8 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     {
         string full = System.IO.Path.GetFullPath(System.IO.Path.Combine(_recipe.Path, filename));
 
-        StagingFiles.WriteAllTextToFile(full, TemplateEngine.Render(templateName, view));
+        StagingFiles.WriteAllTextToFile(
+            full, GoLayout.Formatted(TemplateEngine.Render(templateName, view)));
     }
 
     /// <summary>

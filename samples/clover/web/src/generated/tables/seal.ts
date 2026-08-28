@@ -63,6 +63,19 @@ export class SealTable {
   public get records(): SealRecord[] { return this._records }
   private _records: SealRecord[] = []
 
+  /** How many rows the table holds. */
+  public get count(): number { return this._records.length }
+
+  /**
+   * The rows, in the order the file wrote them.
+   *
+   * The array reference is read once, here. A refresh replaces the reference rather
+   * than its contents, so a loop already running keeps the rows it started with.
+   */
+  public [Symbol.iterator](): IterableIterator<SealRecord> {
+    return this._records[Symbol.iterator]()
+  }
+
   // Indexing by 'seal'
   public get recordsBySeal(): Map<SealKind, SealRecord> { return this._recordsBySeal }
   private _recordsBySeal: Map<SealKind, SealRecord> = new Map<SealKind, SealRecord>()
@@ -94,6 +107,24 @@ export class SealTable {
   /** Whether the table holds a row with this seal. */
   public containsSeal(key: SealKind): boolean {
     return this._recordsBySeal.has(key)
+  }
+
+
+  /**
+   * Each row with the seal it is keyed by -
+   * `for (const [key, row] of table.entries())`.
+   *
+   * What this saves a caller is not the key value - the row carries it - but having to know
+   * which column the key is: seal here, something else in the next table.
+   *
+   * The rows come in the order the file wrote them rather than the order the map holds
+   * them, which makes this and iterating the table agree. Only the primary key has this: a
+   * table keyed by several columns together has no single key value to pair a row with.
+   */
+  public *entries(): IterableIterator<[SealKind, SealRecord]> {
+    for (const record of this._records) {
+      yield [record.seal, record]
+    }
   }
 
   /** Read a table from specified file. */

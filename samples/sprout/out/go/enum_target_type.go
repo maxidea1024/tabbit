@@ -17,13 +17,13 @@ type TargetType int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	TargetTypeNone TargetType = 0
+	TargetTypeNone     TargetType = 0
 	TargetTypeSelfOnly TargetType = 1
-	TargetTypeAlly TargetType = 2
-	TargetTypeAllyAll TargetType = 3
-	TargetTypeEnemy TargetType = 4
+	TargetTypeAlly     TargetType = 2
+	TargetTypeAllyAll  TargetType = 3
+	TargetTypeEnemy    TargetType = 4
 	TargetTypeEnemyAll TargetType = 5
-	TargetTypeRandom TargetType = 6
+	TargetTypeRandom   TargetType = 6
 )
 
 // String names the label, or renders the number when the value has none.

@@ -17,11 +17,11 @@ type CollectionType int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	CollectionTypeNone CollectionType = 0
+	CollectionTypeNone      CollectionType = 0
 	CollectionTypeCharacter CollectionType = 1
-	CollectionTypeEquip CollectionType = 2
-	CollectionTypeMonster CollectionType = 3
-	CollectionTypeRegion CollectionType = 4
+	CollectionTypeEquip     CollectionType = 2
+	CollectionTypeMonster   CollectionType = 3
+	CollectionTypeRegion    CollectionType = 4
 )
 
 // String names the label, or renders the number when the value has none.

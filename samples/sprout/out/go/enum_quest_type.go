@@ -17,12 +17,12 @@ type QuestType int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	QuestTypeNone QuestType = 0
-	QuestTypeMain QuestType = 1
-	QuestTypeSub QuestType = 2
-	QuestTypeDaily QuestType = 3
+	QuestTypeNone   QuestType = 0
+	QuestTypeMain   QuestType = 1
+	QuestTypeSub    QuestType = 2
+	QuestTypeDaily  QuestType = 3
 	QuestTypeWeekly QuestType = 4
-	QuestTypeEvent QuestType = 5
+	QuestTypeEvent  QuestType = 5
 )
 
 // String names the label, or renders the number when the value has none.

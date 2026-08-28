@@ -17,13 +17,13 @@ type ItemType int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	ItemTypeNone ItemType = 0
-	ItemTypeMaterial ItemType = 1
+	ItemTypeNone       ItemType = 0
+	ItemTypeMaterial   ItemType = 1
 	ItemTypeConsumable ItemType = 2
-	ItemTypeEquip ItemType = 3
-	ItemTypeCurrency ItemType = 4
-	ItemTypeChest ItemType = 5
-	ItemTypeFragment ItemType = 6
+	ItemTypeEquip      ItemType = 3
+	ItemTypeCurrency   ItemType = 4
+	ItemTypeChest      ItemType = 5
+	ItemTypeFragment   ItemType = 6
 )
 
 // String names the label, or renders the number when the value has none.

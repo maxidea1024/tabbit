@@ -756,6 +756,19 @@ export class TarotEffectTable {
   public get records(): TarotEffectRecord[] { return this._records }
   private _records: TarotEffectRecord[] = []
 
+  /** How many rows the table holds. */
+  public get count(): number { return this._records.length }
+
+  /**
+   * The rows, in the order the file wrote them.
+   *
+   * The array reference is read once, here. A refresh replaces the reference rather
+   * than its contents, so a loop already running keeps the rows it started with.
+   */
+  public [Symbol.iterator](): IterableIterator<TarotEffectRecord> {
+    return this._records[Symbol.iterator]()
+  }
+
   // Indexing by 'Owner and Order'
   private _recordsByOwnerAndOrder: Map<string, TarotEffectRecord> = new Map<string, TarotEffectRecord>()
 

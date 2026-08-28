@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-28T10:56:44.3155082+09:00",
+    "generatedAt": "2026-08-28T11:52:34.4692483+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "reserved-words.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "a7238bd5355ed4dacb70a6e4aa3acac775dc1d9f",
-      "shortHash": "a7238bd5355e",
+      "hash": "f1f17392f99527f882a1533035433342920008b6",
+      "shortHash": "f1f17392f995",
       "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-28T01:45:20.0000000+09:00",
-      "subject": "fix: Go만 자기 헤더 형식으로 되돌립니다",
+      "committedAt": "2026-08-28T11:44:44.0000000+09:00",
+      "subject": "docs: 스위트 시간 재측정과 재생성 절차의 캐시 우회",
       "origin": "git",
       "dirty": true,
       "attributable": false

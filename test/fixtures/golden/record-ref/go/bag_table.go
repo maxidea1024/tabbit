@@ -17,7 +17,7 @@ import (
 // BagSlotsEntry is one element of BagRecord.Slots.
 type BagSlotsEntry struct {
 	// element 1 of the member
-	ItemId []int32
+	ItemId       []int32
 	ItemByItemId []*ItemRecord
 	// element 1 of the member beside it
 	Count []int32
@@ -43,7 +43,6 @@ func (t *BagTable) Records() []BagRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *BagTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -95,7 +94,6 @@ func (t *BagTable) ContainsIndex(key int32) bool {
 	_, found := t.byIndex[key]
 	return found
 }
-
 
 // Entries yields each row with the Index it is keyed by -
 // `for key, row := range t.Entries()`.

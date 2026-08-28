@@ -17,15 +17,15 @@ type StatType int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	StatTypeNone StatType = 0
-	StatTypeAttack StatType = 1
-	StatTypeDefense StatType = 2
-	StatTypeHealth StatType = 3
-	StatTypeCrit StatType = 4
+	StatTypeNone       StatType = 0
+	StatTypeAttack     StatType = 1
+	StatTypeDefense    StatType = 2
+	StatTypeHealth     StatType = 3
+	StatTypeCrit       StatType = 4
 	StatTypeCritDamage StatType = 5
-	StatTypeSpeed StatType = 6
-	StatTypeEvasion StatType = 7
-	StatTypeAccuracy StatType = 8
+	StatTypeSpeed      StatType = 6
+	StatTypeEvasion    StatType = 7
+	StatTypeAccuracy   StatType = 8
 )
 
 // String names the label, or renders the number when the value has none.

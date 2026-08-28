@@ -13,9 +13,9 @@ import (
 
 // Tables holds every table, loaded together so cross-table references can be resolved.
 type Tables struct {
-	Piece PieceTable
-	Kit KitTable
-	Bit BitTable
+	Piece   PieceTable
+	Kit     KitTable
+	Bit     BitTable
 	TrimKit TrimKitTable
 }
 

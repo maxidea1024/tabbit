@@ -13,16 +13,16 @@ import (
 
 // Tables holds every table, loaded together so cross-table references can be resolved.
 type Tables struct {
-	Item ItemTable
+	Item    ItemTable
 	Loadout LoadoutTable
-	Holder HolderTable
-	Bag BagTable
-	Mount MountTable
-	Clip ClipTable
-	Pose PoseTable
-	Seal SealTable
-	Badge BadgeTable
-	Kit KitTable
+	Holder  HolderTable
+	Bag     BagTable
+	Mount   MountTable
+	Clip    ClipTable
+	Pose    PoseTable
+	Seal    SealTable
+	Badge   BadgeTable
+	Kit     KitTable
 }
 
 // EncryptionKey is the key the table files were sealed with, or nil when they were not

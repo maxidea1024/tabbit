@@ -17,10 +17,10 @@ import (
 // BadgeMarkEntry is one element of BadgeRecord.Mark.
 type BadgeMarkEntry struct {
 	// a string key, on the run path
-	ClipId string
+	ClipId       string
 	ClipByClipId *ClipRecord
 	// a uuid key, on the run path
-	SealId tabbit.UUID
+	SealId       tabbit.UUID
 	SealBySealId *SealRecord
 	// an ordinary member beside them
 	Rank int32
@@ -48,7 +48,6 @@ func (t *BadgeTable) Records() []BadgeRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *BadgeTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -100,7 +99,6 @@ func (t *BadgeTable) ContainsIndex(key int32) bool {
 	_, found := t.byIndex[key]
 	return found
 }
-
 
 // Entries yields each row with the Index it is keyed by -
 // `for key, row := range t.Entries()`.

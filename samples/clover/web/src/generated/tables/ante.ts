@@ -74,6 +74,19 @@ export class AnteTable {
   public get records(): AnteRecord[] { return this._records }
   private _records: AnteRecord[] = []
 
+  /** How many rows the table holds. */
+  public get count(): number { return this._records.length }
+
+  /**
+   * The rows, in the order the file wrote them.
+   *
+   * The array reference is read once, here. A refresh replaces the reference rather
+   * than its contents, so a loop already running keeps the rows it started with.
+   */
+  public [Symbol.iterator](): IterableIterator<AnteRecord> {
+    return this._records[Symbol.iterator]()
+  }
+
   // Indexing by 'ante'
   public get recordsByAnte(): Map<number, AnteRecord> { return this._recordsByAnte }
   private _recordsByAnte: Map<number, AnteRecord> = new Map<number, AnteRecord>()
@@ -105,6 +118,24 @@ export class AnteTable {
   /** Whether the table holds a row with this ante. */
   public containsAnte(key: number): boolean {
     return this._recordsByAnte.has(key)
+  }
+
+
+  /**
+   * Each row with the ante it is keyed by -
+   * `for (const [key, row] of table.entries())`.
+   *
+   * What this saves a caller is not the key value - the row carries it - but having to know
+   * which column the key is: ante here, something else in the next table.
+   *
+   * The rows come in the order the file wrote them rather than the order the map holds
+   * them, which makes this and iterating the table agree. Only the primary key has this: a
+   * table keyed by several columns together has no single key value to pair a row with.
+   */
+  public *entries(): IterableIterator<[number, AnteRecord]> {
+    for (const record of this._records) {
+      yield [record.ante, record]
+    }
   }
 
   /** Read a table from specified file. */

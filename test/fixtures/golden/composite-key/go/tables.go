@@ -13,14 +13,14 @@ import (
 
 // Tables holds every table, loaded together so cross-table references can be resolved.
 type Tables struct {
-	Loadout LoadoutTable
-	Route RouteTable
-	Grid GridTable
-	Beast BeastTable
-	Move MoveTable
+	Loadout   LoadoutTable
+	Route     RouteTable
+	Grid      GridTable
+	Beast     BeastTable
+	Move      MoveTable
 	BeastMove BeastMoveTable
 	BeastNote BeastNoteTable
-	MoveNote MoveNoteTable
+	MoveNote  MoveNoteTable
 }
 
 // EncryptionKey is the key the table files were sealed with, or nil when they were not

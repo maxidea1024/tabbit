@@ -17,11 +17,11 @@ type UnlockType int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	UnlockTypeNone UnlockType = 0
+	UnlockTypeNone    UnlockType = 0
 	UnlockTypeChapter UnlockType = 1
-	UnlockTypeLevel UnlockType = 2
-	UnlockTypeQuest UnlockType = 3
-	UnlockTypeItem UnlockType = 4
+	UnlockTypeLevel   UnlockType = 2
+	UnlockTypeQuest   UnlockType = 3
+	UnlockTypeItem    UnlockType = 4
 )
 
 // String names the label, or renders the number when the value has none.

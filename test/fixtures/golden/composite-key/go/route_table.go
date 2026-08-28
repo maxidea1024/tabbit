@@ -30,8 +30,8 @@ type RouteRecord struct {
 
 // RouteTable holds every row of Route.
 type RouteTable struct {
-	records []RouteRecord
-	byCode map[string]int
+	records     []RouteRecord
+	byCode      map[string]int
 	byFromAndTo map[string]int
 }
 
@@ -40,7 +40,6 @@ func (t *RouteTable) Records() []RouteRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *RouteTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //

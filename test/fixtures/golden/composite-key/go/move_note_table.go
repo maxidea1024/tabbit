@@ -18,7 +18,7 @@ import (
 // First column is the index and it is a reference to an int-keyed table.
 type MoveNoteRecord struct {
 	// the index, and a reference
-	MoveId int32
+	MoveId       int32
 	MoveByMoveId *MoveRecord
 	// anything
 	Note string
@@ -28,7 +28,7 @@ type MoveNoteRecord struct {
 
 // MoveNoteTable holds every row of MoveNote.
 type MoveNoteTable struct {
-	records []MoveNoteRecord
+	records  []MoveNoteRecord
 	byMoveId map[int32]int
 }
 
@@ -37,7 +37,6 @@ func (t *MoveNoteTable) Records() []MoveNoteRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *MoveNoteTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -89,7 +88,6 @@ func (t *MoveNoteTable) ContainsMoveId(key int32) bool {
 	_, found := t.byMoveId[key]
 	return found
 }
-
 
 // Entries yields each row with the MoveId it is keyed by -
 // `for key, row := range t.Entries()`.

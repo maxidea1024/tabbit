@@ -17,13 +17,13 @@ type ElementType int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	ElementTypeNone ElementType = 0
+	ElementTypeNone    ElementType = 0
 	ElementTypeNeutral ElementType = 1
-	ElementTypeFlame ElementType = 2
-	ElementTypeTide ElementType = 3
-	ElementTypeGale ElementType = 4
-	ElementTypeStone ElementType = 5
-	ElementTypeGloom ElementType = 6
+	ElementTypeFlame   ElementType = 2
+	ElementTypeTide    ElementType = 3
+	ElementTypeGale    ElementType = 4
+	ElementTypeStone   ElementType = 5
+	ElementTypeGloom   ElementType = 6
 )
 
 // String names the label, or renders the number when the value has none.

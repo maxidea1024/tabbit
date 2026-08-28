@@ -26,7 +26,7 @@ type ElementRecord struct {
 // ElementTable holds every row of Element.
 type ElementTable struct {
 	records []ElementRecord
-	byCode map[int32]int
+	byCode  map[int32]int
 }
 
 // Records returns every row, in the order the sheet declared them.
@@ -34,7 +34,6 @@ func (t *ElementTable) Records() []ElementRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *ElementTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -86,7 +85,6 @@ func (t *ElementTable) ContainsCode(key int32) bool {
 	_, found := t.byCode[key]
 	return found
 }
-
 
 // Entries yields each row with the Code it is keyed by -
 // `for key, row := range t.Entries()`.

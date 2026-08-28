@@ -30,7 +30,7 @@ type LoadoutRecord struct {
 
 // LoadoutTable holds every row of Loadout.
 type LoadoutTable struct {
-	records []LoadoutRecord
+	records        []LoadoutRecord
 	byStageAndSlot map[string]int
 }
 
@@ -39,7 +39,6 @@ func (t *LoadoutTable) Records() []LoadoutRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *LoadoutTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //

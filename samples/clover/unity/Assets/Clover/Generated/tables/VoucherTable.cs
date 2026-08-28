@@ -22,7 +22,7 @@ namespace Clover.Data
     /// 바우처 32종입니다. 16쌍이고, 상위는 자기 하위를 산 뒤에만 상점에 나옵니다.
     /// </summary>
     [System.Serializable]
-    public partial class VoucherTable
+    public partial class VoucherTable : IEnumerable<VoucherTable.Record>
     {
         #region Record
         [System.Serializable]
@@ -118,6 +118,28 @@ namespace Clover.Data
         public List<Record> Records => _records;
         private List<Record> _records = new List<Record>();
 
+        /// <summary>How many rows the table holds.</summary>
+        public int Count => _records.Count;
+
+        /// <summary>The rows, in the order the file wrote them.</summary>
+        /// <remarks>
+        /// A struct enumerator rather than the interface one, because `foreach` binds to this
+        /// by name and a boxed enumerator allocates once per loop - which in a project that
+        /// walks a table every frame is an allocation every frame. LINQ and anything holding
+        /// the table as `IEnumerable` reach the explicit implementations below instead, and
+        /// those box exactly as they always would have.
+        ///
+        /// The list reference is read once, here. A refresh replaces the reference rather than
+        /// its contents, so a loop already running keeps the rows it started with - the same
+        /// property `Records` documents above, reached without naming the list.
+        /// </remarks>
+        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+
+        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            => _records.GetEnumerator();
+
         #region Indexing by 'VoucherId'
         public Dictionary<string, Record> RecordsByVoucherId => _recordsByVoucherId;
         private Dictionary<string, Record> _recordsByVoucherId = new Dictionary<string, Record>();
@@ -153,6 +175,61 @@ namespace Clover.Data
         /// <summary>Whether the table holds a row with this `VoucherId`.</summary>
         public bool ContainsVoucherId(string key) => _recordsByVoucherId.ContainsKey(key);
         #endregion // Indexing by `VoucherId`
+
+        /// <summary>Each row with the `VoucherId` it is keyed by.</summary>
+        /// <remarks>
+        /// `foreach (var (key, row) in table.Entries)`. What this saves a caller is not the
+        /// key value - the row carries it - but having to know which column the key is:
+        /// `VoucherId` here, something else in the next table.
+        ///
+        /// A struct that enumerates itself, so the loop allocates nothing, and the rows in
+        /// the order the file wrote them rather than the order a dictionary happens to hold
+        /// them - which makes this and a plain `foreach` over the table agree.
+        ///
+        /// Only the primary key gets this. A table keyed by several columns together has no
+        /// single key value to pair a row with.
+        /// </remarks>
+        public struct EntryEnumerator
+        {
+            private readonly List<Record> _rows;
+            private int _at;
+
+            internal EntryEnumerator(List<Record> rows)
+            {
+                _rows = rows;
+                _at = -1;
+            }
+
+            public EntryEnumerator GetEnumerator() => this;
+
+            public bool MoveNext() => ++_at < _rows.Count;
+
+            public (string Key, Record Row) Current
+                => (_rows[_at].VoucherId, _rows[_at]);
+        }
+
+        /// <summary>Each row with the `VoucherId` it is keyed by.</summary>
+        public EntryEnumerator Entries => new EntryEnumerator(_records);
+
+        /// <summary>
+        /// The row with this `VoucherId`, or a thrown exception naming what was
+        /// missing.
+        /// </summary>
+        /// <remarks>
+        /// `GetByVoucherIdOrThrow` under the spelling the language uses for a
+        /// keyed collection. It throws because that is what `Dictionary` does here; a
+        /// language whose own map answers with null generates a subscript that answers with
+        /// null. spec/targets/table-collection-surface.md section 5.7.
+        ///
+        /// **This is the key, not the row's position.** `table[0]` is the row whose
+        /// `VoucherId` is 0, not the first row - the rows in order are
+        /// `Records`. Nothing in the type says which, which is why the table itself is not
+        /// subscriptable by position anywhere.
+        ///
+        /// It does not replace `FindByVoucherId`: a key that may be absent
+        /// wants the one whose name says a miss is an ordinary answer.
+        /// </remarks>
+        public Record this[string key] => GetByVoucherIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.

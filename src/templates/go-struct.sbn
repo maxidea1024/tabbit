@@ -16,10 +16,10 @@
 // Narrow it with a type switch. The interface is sealed by {{ structure.seal_name }}, so this
 // package's variants are the whole list:
 //
-//\tswitch v := effect.(type) {
-//\tcase {{ structure.variants[0].type_name }}:
-//\t\t_ = v
-//\t}
+//	switch v := effect.(type) {
+//	case {{ structure.variants[0].type_name }}:
+//		_ = v
+//	}
 type {{ structure.name }} interface {
 	{{ structure.seal_name }}()
 

@@ -31,7 +31,7 @@ type ComboEffectsEntry struct {
 	// reward is an item, or a currency, or a monster" is that shape - and it is a different
 	// path twice over: the blank cells of the other variants go through the reference
 	// conversion, and the built variant has to carry the resolved row rather than the key.
-	ElementId int32
+	ElementId          int32
 	ElementByElementId *ElementRecord
 	// How much it gives.
 	Amount int32
@@ -49,7 +49,6 @@ type ComboRecord struct {
 	// which shape this element's effect is
 	effects []ComboEffectsEntry
 }
-
 
 // Effects is what this row's Effects are, one per element.
 //
@@ -74,9 +73,9 @@ func (r *ComboRecord) effectsElement(
 			EffectBase: EffectBase{
 				Chance: entry.Chance,
 			},
-			Damage: entry.Damage,
-			Pierces: entry.Pierces,
-			ElementId: entry.ElementId,
+			Damage:             entry.Damage,
+			Pierces:            entry.Pierces,
+			ElementId:          entry.ElementId,
 			ElementByElementId: entry.ElementByElementId,
 		}
 	case 2:
@@ -85,7 +84,7 @@ func (r *ComboRecord) effectsElement(
 				Chance: entry.Chance,
 			},
 			Amount: entry.Amount,
-			Band: entry.Band,
+			Band:   entry.Band,
 		}
 	case 3:
 		return NoEffect{
@@ -110,7 +109,6 @@ func (t *ComboTable) Records() []ComboRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *ComboTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -162,7 +160,6 @@ func (t *ComboTable) ContainsIndex(key int32) bool {
 	_, found := t.byIndex[key]
 	return found
 }
-
 
 // Entries yields each row with the Index it is keyed by -
 // `for key, row := range t.Entries()`.

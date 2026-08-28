@@ -14,8 +14,8 @@ import (
 // Tables holds every table, loaded together so cross-table references can be resolved.
 type Tables struct {
 	Element ElementTable
-	Skill SkillTable
-	Combo ComboTable
+	Skill   SkillTable
+	Combo   ComboTable
 }
 
 // EncryptionKey is the key the table files were sealed with, or nil when they were not

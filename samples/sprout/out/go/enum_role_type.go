@@ -17,11 +17,11 @@ type RoleType int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	RoleTypeNone RoleType = 0
+	RoleTypeNone     RoleType = 0
 	RoleTypeVanguard RoleType = 1
 	RoleTypeSkirmish RoleType = 2
-	RoleTypeSupport RoleType = 3
-	RoleTypeArcane RoleType = 4
+	RoleTypeSupport  RoleType = 3
+	RoleTypeArcane   RoleType = 4
 )
 
 // String names the label, or renders the number when the value has none.

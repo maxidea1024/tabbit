@@ -37,8 +37,8 @@ type TemplateRecord struct {
 
 // TemplateTable holds every row of Template.
 type TemplateTable struct {
-	records []TemplateRecord
-	byIndex map[int32]int
+	records    []TemplateRecord
+	byIndex    map[int32]int
 	byOperator map[string]int
 }
 
@@ -47,7 +47,6 @@ func (t *TemplateTable) Records() []TemplateRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *TemplateTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -99,7 +98,6 @@ func (t *TemplateTable) ContainsIndex(key int32) bool {
 	_, found := t.byIndex[key]
 	return found
 }
-
 
 // Entries yields each row with the Index it is keyed by -
 // `for key, row := range t.Entries()`.

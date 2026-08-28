@@ -20,11 +20,11 @@ type KitRecord struct {
 	// primary index
 	Index int32
 	// element 1 - the row it points at
-	Slot []int32
+	Slot        []int32
 	PieceBySlot []*PieceRecord
 	// element 1 - the target's own value
 	TierIndex []int32
-	Tier []int32
+	Tier      []int32
 }
 
 // KitTable holds every row of Kit.
@@ -38,7 +38,6 @@ func (t *KitTable) Records() []KitRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *KitTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -90,7 +89,6 @@ func (t *KitTable) ContainsIndex(key int32) bool {
 	_, found := t.byIndex[key]
 	return found
 }
-
 
 // Entries yields each row with the Index it is keyed by -
 // `for key, row := range t.Entries()`.

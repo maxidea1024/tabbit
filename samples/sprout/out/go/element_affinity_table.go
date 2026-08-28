@@ -29,7 +29,7 @@ type ElementAffinityRecord struct {
 // ElementAffinityTable holds every row of ElementAffinity.
 type ElementAffinityTable struct {
 	records []ElementAffinityRecord
-	byId map[int32]int
+	byId    map[int32]int
 }
 
 // Records returns every row, in the order the sheet declared them.
@@ -37,7 +37,6 @@ func (t *ElementAffinityTable) Records() []ElementAffinityRecord { return t.reco
 
 // Count returns how many rows the table holds.
 func (t *ElementAffinityTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -89,7 +88,6 @@ func (t *ElementAffinityTable) ContainsId(key int32) bool {
 	_, found := t.byId[key]
 	return found
 }
-
 
 // Entries yields each row with the Id it is keyed by -
 // `for key, row := range t.Entries()`.

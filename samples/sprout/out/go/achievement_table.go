@@ -33,7 +33,7 @@ type AchievementRecord struct {
 // AchievementTable holds every row of Achievement.
 type AchievementTable struct {
 	records []AchievementRecord
-	byId map[int32]int
+	byId    map[int32]int
 }
 
 // Records returns every row, in the order the sheet declared them.
@@ -41,7 +41,6 @@ func (t *AchievementTable) Records() []AchievementRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *AchievementTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -93,7 +92,6 @@ func (t *AchievementTable) ContainsId(key int32) bool {
 	_, found := t.byId[key]
 	return found
 }
-
 
 // Entries yields each row with the Id it is keyed by -
 // `for key, row := range t.Entries()`.

@@ -17,11 +17,11 @@ type GachaType int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	GachaTypeNone GachaType = 0
+	GachaTypeNone     GachaType = 0
 	GachaTypeStandard GachaType = 1
-	GachaTypeLimited GachaType = 2
+	GachaTypeLimited  GachaType = 2
 	GachaTypeBeginner GachaType = 3
-	GachaTypeStep GachaType = 4
+	GachaTypeStep     GachaType = 4
 )
 
 // String names the label, or renders the number when the value has none.

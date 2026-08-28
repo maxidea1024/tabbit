@@ -20,7 +20,7 @@ type BeastNoteRecord struct {
 	// not the index, so `key=` has something to move
 	Seq int32
 	// the index, and a reference
-	BeastId string
+	BeastId        string
 	BeastByBeastId *BeastRecord
 	// anything
 	Note string
@@ -28,7 +28,7 @@ type BeastNoteRecord struct {
 
 // BeastNoteTable holds every row of BeastNote.
 type BeastNoteTable struct {
-	records []BeastNoteRecord
+	records   []BeastNoteRecord
 	byBeastId map[string]int
 }
 
@@ -37,7 +37,6 @@ func (t *BeastNoteTable) Records() []BeastNoteRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *BeastNoteTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -89,7 +88,6 @@ func (t *BeastNoteTable) ContainsBeastId(key string) bool {
 	_, found := t.byBeastId[key]
 	return found
 }
-
 
 // Entries yields each row with the BeastId it is keyed by -
 // `for key, row := range t.Entries()`.

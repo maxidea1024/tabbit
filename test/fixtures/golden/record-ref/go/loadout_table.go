@@ -17,10 +17,10 @@ import (
 // LoadoutSlotEntry is one element of LoadoutRecord.Slot.
 type LoadoutSlotEntry struct {
 	// element 1, the reference
-	ItemId int32
+	ItemId       int32
 	ItemByItemId *ItemRecord
 	// element 1, a second reference to the same table
-	SwapId int32
+	SwapId       int32
 	ItemBySwapId *ItemRecord
 	// element 1, an ordinary member
 	Count int32
@@ -46,7 +46,6 @@ func (t *LoadoutTable) Records() []LoadoutRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *LoadoutTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -98,7 +97,6 @@ func (t *LoadoutTable) ContainsIndex(key int32) bool {
 	_, found := t.byIndex[key]
 	return found
 }
-
 
 // Entries yields each row with the Index it is keyed by -
 // `for key, row := range t.Entries()`.

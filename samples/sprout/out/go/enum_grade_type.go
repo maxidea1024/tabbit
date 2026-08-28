@@ -17,10 +17,10 @@ type GradeType int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	GradeTypeNone GradeType = 0
+	GradeTypeNone   GradeType = 0
 	GradeTypeNormal GradeType = 1
-	GradeTypeRare GradeType = 2
-	GradeTypeEpic GradeType = 3
+	GradeTypeRare   GradeType = 2
+	GradeTypeEpic   GradeType = 3
 	GradeTypeUnique GradeType = 4
 	GradeTypeLegend GradeType = 5
 )

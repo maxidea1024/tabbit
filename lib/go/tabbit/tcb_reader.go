@@ -54,8 +54,8 @@ const (
 	ElementString uint8 = 6
 	ElementUUID   uint8 = 7
 
-	KindScalar     uint8 = 0
-	KindArray   uint8 = 1
+	KindScalar uint8 = 0
+	KindArray  uint8 = 1
 
 	// How a block's values are laid out. Raw is the layout 101 had; the others
 	// compress a column that repeats itself. spec/wire/tcb-v102-column-encoding.md is
@@ -127,7 +127,7 @@ const (
 // Column is one column as the file describes it.
 type Column struct {
 	// Tag identifies the column, instead of its position.
-	Tag int32
+	Tag     int32
 	Element uint8
 	Kind    uint8
 	// Encoding says how the block's values are laid out: one of the Encoding* constants.

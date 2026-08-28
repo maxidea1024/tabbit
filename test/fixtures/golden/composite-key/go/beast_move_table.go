@@ -19,10 +19,10 @@ import (
 // One row per pair; the key is both references taken together.
 type BeastMoveRecord struct {
 	// a string-keyed target
-	BeastId string
+	BeastId        string
 	BeastByBeastId *BeastRecord
 	// an int-keyed target
-	MoveId int32
+	MoveId       int32
 	MoveByMoveId *MoveRecord
 	// anything
 	Power int32
@@ -30,7 +30,7 @@ type BeastMoveRecord struct {
 
 // BeastMoveTable holds every row of BeastMove.
 type BeastMoveTable struct {
-	records []BeastMoveRecord
+	records            []BeastMoveRecord
 	byBeastIdAndMoveId map[string]int
 }
 
@@ -39,7 +39,6 @@ func (t *BeastMoveTable) Records() []BeastMoveRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *BeastMoveTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //

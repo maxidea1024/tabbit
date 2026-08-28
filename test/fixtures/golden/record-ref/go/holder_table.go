@@ -17,7 +17,7 @@ import (
 // HolderMainEntry is one element of HolderRecord.Main.
 type HolderMainEntry struct {
 	// the reference, in a record of one
-	ItemId int32
+	ItemId       int32
 	ItemByItemId *ItemRecord
 	// an ordinary member beside it
 	Count int32
@@ -47,7 +47,6 @@ func (t *HolderTable) Records() []HolderRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *HolderTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -99,7 +98,6 @@ func (t *HolderTable) ContainsIndex(key int32) bool {
 	_, found := t.byIndex[key]
 	return found
 }
-
 
 // Entries yields each row with the Index it is keyed by -
 // `for key, row := range t.Entries()`.

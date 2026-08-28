@@ -26,7 +26,7 @@ type SettingRecord struct {
 
 // SettingTable holds every row of Setting.
 type SettingTable struct {
-	records []SettingRecord
+	records      []SettingRecord
 	bySettingKey map[string]int
 }
 
@@ -35,7 +35,6 @@ func (t *SettingTable) Records() []SettingRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *SettingTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -87,7 +86,6 @@ func (t *SettingTable) ContainsSettingKey(key string) bool {
 	_, found := t.bySettingKey[key]
 	return found
 }
-
 
 // Entries yields each row with the SettingKey it is keyed by -
 // `for key, row := range t.Entries()`.

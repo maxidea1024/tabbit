@@ -63,6 +63,19 @@ export class EnhancementTable {
   public get records(): EnhancementRecord[] { return this._records }
   private _records: EnhancementRecord[] = []
 
+  /** How many rows the table holds. */
+  public get count(): number { return this._records.length }
+
+  /**
+   * The rows, in the order the file wrote them.
+   *
+   * The array reference is read once, here. A refresh replaces the reference rather
+   * than its contents, so a loop already running keeps the rows it started with.
+   */
+  public [Symbol.iterator](): IterableIterator<EnhancementRecord> {
+    return this._records[Symbol.iterator]()
+  }
+
   // Indexing by 'enhancement'
   public get recordsByEnhancement(): Map<EnhancementKind, EnhancementRecord> { return this._recordsByEnhancement }
   private _recordsByEnhancement: Map<EnhancementKind, EnhancementRecord> = new Map<EnhancementKind, EnhancementRecord>()
@@ -94,6 +107,24 @@ export class EnhancementTable {
   /** Whether the table holds a row with this enhancement. */
   public containsEnhancement(key: EnhancementKind): boolean {
     return this._recordsByEnhancement.has(key)
+  }
+
+
+  /**
+   * Each row with the enhancement it is keyed by -
+   * `for (const [key, row] of table.entries())`.
+   *
+   * What this saves a caller is not the key value - the row carries it - but having to know
+   * which column the key is: enhancement here, something else in the next table.
+   *
+   * The rows come in the order the file wrote them rather than the order the map holds
+   * them, which makes this and iterating the table agree. Only the primary key has this: a
+   * table keyed by several columns together has no single key value to pair a row with.
+   */
+  public *entries(): IterableIterator<[EnhancementKind, EnhancementRecord]> {
+    for (const record of this._records) {
+      yield [record.enhancement, record]
+    }
   }
 
   /** Read a table from specified file. */

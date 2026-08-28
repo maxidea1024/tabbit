@@ -35,7 +35,7 @@ type CharacterStatRecord struct {
 // CharacterStatTable holds every row of CharacterStat.
 type CharacterStatTable struct {
 	records []CharacterStatRecord
-	byId map[int32]int
+	byId    map[int32]int
 }
 
 // Records returns every row, in the order the sheet declared them.
@@ -43,7 +43,6 @@ func (t *CharacterStatTable) Records() []CharacterStatRecord { return t.records 
 
 // Count returns how many rows the table holds.
 func (t *CharacterStatTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -95,7 +94,6 @@ func (t *CharacterStatTable) ContainsId(key int32) bool {
 	_, found := t.byId[key]
 	return found
 }
-
 
 // Entries yields each row with the Id it is keyed by -
 // `for key, row := range t.Entries()`.

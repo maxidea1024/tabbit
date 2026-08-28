@@ -17,7 +17,7 @@ import (
 // PoseStepEntry is one element of PoseRecord.Step.
 type PoseStepEntry struct {
 	// element 1, a string key
-	ClipId string
+	ClipId       string
 	ClipByClipId *ClipRecord
 	// element 1, an ordinary member
 	Weight int32
@@ -43,7 +43,6 @@ func (t *PoseTable) Records() []PoseRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *PoseTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -95,7 +94,6 @@ func (t *PoseTable) ContainsIndex(key int32) bool {
 	_, found := t.byIndex[key]
 	return found
 }
-
 
 // Entries yields each row with the Index it is keyed by -
 // `for key, row := range t.Entries()`.

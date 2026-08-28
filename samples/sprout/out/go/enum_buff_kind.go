@@ -17,12 +17,12 @@ type BuffKind int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	BuffKindNone BuffKind = 0
-	BuffKindBuff BuffKind = 1
+	BuffKindNone   BuffKind = 0
+	BuffKindBuff   BuffKind = 1
 	BuffKindDebuff BuffKind = 2
 	BuffKindShield BuffKind = 3
-	BuffKindDot BuffKind = 4
-	BuffKindHot BuffKind = 5
+	BuffKindDot    BuffKind = 4
+	BuffKindHot    BuffKind = 5
 )
 
 // String names the label, or renders the number when the value has none.

@@ -17,12 +17,12 @@ type ShopType int32
 
 const (
 	// None (automatically inserted by Tabbit)
-	ShopTypeNone ShopType = 0
-	ShopTypeDaily ShopType = 1
+	ShopTypeNone   ShopType = 0
+	ShopTypeDaily  ShopType = 1
 	ShopTypeWeekly ShopType = 2
-	ShopTypeGuild ShopType = 3
-	ShopTypeEvent ShopType = 4
-	ShopTypeCash ShopType = 5
+	ShopTypeGuild  ShopType = 3
+	ShopTypeEvent  ShopType = 4
+	ShopTypeCash   ShopType = 5
 )
 
 // String names the label, or renders the number when the value has none.

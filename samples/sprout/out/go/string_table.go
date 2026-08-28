@@ -28,7 +28,7 @@ type StringRecord struct {
 
 // StringTable holds every row of String.
 type StringTable struct {
-	records []StringRecord
+	records     []StringRecord
 	byStringKey map[string]int
 }
 
@@ -37,7 +37,6 @@ func (t *StringTable) Records() []StringRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *StringTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -89,7 +88,6 @@ func (t *StringTable) ContainsStringKey(key string) bool {
 	_, found := t.byStringKey[key]
 	return found
 }
-
 
 // Entries yields each row with the StringKey it is keyed by -
 // `for key, row := range t.Entries()`.

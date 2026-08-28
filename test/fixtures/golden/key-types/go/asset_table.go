@@ -29,7 +29,7 @@ type AssetRecord struct {
 type AssetTable struct {
 	records []AssetRecord
 	byIndex map[tabbit.UUID]int
-	bySlot map[Slot]int
+	bySlot  map[Slot]int
 }
 
 // Records returns every row, in the order the sheet declared them.
@@ -37,7 +37,6 @@ func (t *AssetTable) Records() []AssetRecord { return t.records }
 
 // Count returns how many rows the table holds.
 func (t *AssetTable) Count() int { return len(t.records) }
-
 
 // All returns the rows, in the order the file wrote them - `for row := range t.All()`.
 //
@@ -89,7 +88,6 @@ func (t *AssetTable) ContainsIndex(key tabbit.UUID) bool {
 	_, found := t.byIndex[key]
 	return found
 }
-
 
 // Entries yields each row with the Index it is keyed by -
 // `for key, row := range t.Entries()`.
