@@ -36,9 +36,9 @@ namespace Wildling.Game
     public static class Rewards
     {
         /// <summary>그 묶음의 항목을 순서대로 낸다. 굴리지 않고 보여 줄 때 쓴다.</summary>
-        public static IEnumerable<RewardEntryTable.Record> Entries(string groupId)
+        public static IEnumerable<RewardEntryRecord> Entries(string groupId)
             => string.IsNullOrEmpty(groupId)
-                ? Enumerable.Empty<RewardEntryTable.Record>()
+                ? Enumerable.Empty<RewardEntryRecord>()
                 : WildlingData.RewardEntry.Records
                     .Where(r => r.RewardGroupId == groupId)
                     .OrderBy(r => r.Order);

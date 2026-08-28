@@ -119,10 +119,10 @@ namespace Wildling.Game
         /// **수호자는 `Boss` 가 능력치 배수를 얹습니다.** 같은 종이라도 수호자로 나오면 다른
         /// 상대가 되는 자리이고, 그 배수가 표에 있습니다.
         /// </remarks>
-        private static List<Combatant> BuildEnemies(StageTable.Record stage)
+        private static List<Combatant> BuildEnemies(StageRecord stage)
         {
             var list = new List<Combatant>();
-            var wave = stage.MonsterByWaveMonsterIds ?? System.Array.Empty<MonsterTable.Record>();
+            var wave = stage.MonsterByWaveMonsterIds ?? System.Array.Empty<MonsterRecord>();
 
             for (int i = 0; i < wave.Length; i++)
             {
@@ -161,7 +161,7 @@ namespace Wildling.Game
 
         // ------------------------------------------------------------ 화면
 
-        private void BuildLayout(Transform root, StageTable.Record stage)
+        private void BuildLayout(Transform root, StageRecord stage)
         {
             var region = stage.RegionByRegionId;
             if (region != null)
@@ -310,7 +310,7 @@ namespace Wildling.Game
             => System.Math.Max(1, WildlingData.BattleSpeed.Records
                 .FirstOrDefault(s => s.At == _speedIndex)?.Multiplier ?? 1);
 
-        private IEnumerator Play(StageTable.Record stage)
+        private IEnumerator Play(StageRecord stage)
         {
             while (_shown < _report.Beats.Count)
             {
@@ -498,11 +498,11 @@ namespace Wildling.Game
         /// 반복 보상, `RewardEntry` 의 변종 지급, `CodexConst` 의 전투 관측, 관측 스테이지의
         /// 목격 전이, 그리고 `RequirementGroup` 을 다시 확인해 열리는 지역.
         /// </remarks>
-        private void Finish(StageTable.Record stage)
+        private void Finish(StageRecord stage)
         {
             var state = _app.State;
             var grants = new List<Grant>();
-            var opened = new List<RegionTable.Record>();
+            var opened = new List<RegionRecord>();
             bool firstClear = false;
 
             if (_report.PartyWon)
@@ -598,15 +598,15 @@ namespace Wildling.Game
     public sealed class BattleResultScreen : Screen
     {
         private readonly BattleReport _battle;
-        private readonly StageTable.Record _stage;
+        private readonly StageRecord _stage;
         private readonly GrantReport _report;
         private readonly bool _firstClear;
-        private readonly List<RegionTable.Record> _opened;
+        private readonly List<RegionRecord> _opened;
         private readonly BattleRun _run;
 
-        public BattleResultScreen(BattleReport battle, StageTable.Record stage,
+        public BattleResultScreen(BattleReport battle, StageRecord stage,
                                   GrantReport report, bool firstClear,
-                                  List<RegionTable.Record> opened, BattleRun run = null)
+                                  List<RegionRecord> opened, BattleRun run = null)
         {
             _run = run;
             _battle = battle;

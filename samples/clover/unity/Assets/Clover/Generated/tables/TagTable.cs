@@ -18,60 +18,58 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class TagRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string TagId => _tagId;
+
+        /// <summary>
+        /// 표시 이름
+        /// </summary>
+        public string Name => _name;
+
+        /// <summary>
+        /// 나올 수 있는 가장 이른 안테
+        /// </summary>
+        public int MinAnte => _minAnte;
+
+        /// <summary>
+        /// 수집 목록에서의 순서
+        /// </summary>
+        public int SortOrder => _sortOrder;
+        #endregion
+
+        #region Storage
+        internal string _tagId = "";
+        internal string _name = "";
+        internal int _minAnte;
+        internal int _sortOrder;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"TagId\":"); ToStringHelper.ToString(TagId, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append(",\"MinAnte\":"); ToStringHelper.ToString(MinAnte, sb);
+            sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 블라인드를 스킵하면 받는 것입니다. 즉시 발동하거나 다음 상점까지 기다립니다.
     /// </summary>
     [System.Serializable]
-    public partial class TagTable : IEnumerable<TagTable.Record>
+    public partial class TagTable : IEnumerable<TagRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string TagId => _tagId;
-
-            /// <summary>
-            /// 표시 이름
-            /// </summary>
-            public string Name => _name;
-
-            /// <summary>
-            /// 나올 수 있는 가장 이른 안테
-            /// </summary>
-            public int MinAnte => _minAnte;
-
-            /// <summary>
-            /// 수집 목록에서의 순서
-            /// </summary>
-            public int SortOrder => _sortOrder;
-            #endregion
-
-            #region Storage
-            internal string _tagId = "";
-            internal string _name = "";
-            internal int _minAnte;
-            internal int _sortOrder;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"TagId\":"); ToStringHelper.ToString(TagId, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append(",\"MinAnte\":"); ToStringHelper.ToString(MinAnte, sb);
-                sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -98,8 +96,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<TagRecord> Records => _records;
+        private List<TagRecord> _records = new List<TagRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -116,16 +114,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<TagRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<TagRecord> IEnumerable<TagRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'TagId'
-        public Dictionary<string, Record> RecordsByTagId => _recordsByTagId;
-        private Dictionary<string, Record> _recordsByTagId = new Dictionary<string, Record>();
+        public Dictionary<string, TagRecord> RecordsByTagId => _recordsByTagId;
+        private Dictionary<string, TagRecord> _recordsByTagId = new Dictionary<string, TagRecord>();
 
         /// <summary>
         /// The row with this `TagId`, or null when the table has none.
@@ -135,8 +133,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByTagId(string key)
-            => _recordsByTagId.TryGetValue(key, out Record record) ? record : null;
+        public TagRecord FindByTagId(string key)
+            => _recordsByTagId.TryGetValue(key, out TagRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `TagId`, or a thrown exception naming what was
@@ -147,9 +145,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByTagId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByTagIdOrThrow(string key)
+        public TagRecord GetByTagIdOrThrow(string key)
         {
-            if (!_recordsByTagId.TryGetValue(key, out Record record))
+            if (!_recordsByTagId.TryGetValue(key, out TagRecord record))
                 throw new TabbitException($"There is no record in table `Tag` that corresponds to field `TagId` value {key}");
 
             return record;
@@ -174,10 +172,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<TagRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<TagRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -187,7 +185,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, TagRecord Row) Current
                 => (_rows[_at].TagId, _rows[_at]);
         }
 
@@ -212,7 +210,7 @@ namespace Clover.Data
         /// It does not replace `FindByTagId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByTagIdOrThrow(key);
+        public TagRecord this[string key] => GetByTagIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -255,10 +253,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<TagRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new TagRecord());
 
             foreach (var column in columns)
             {
@@ -342,7 +340,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByTagId = new Dictionary<string, Record>(count);
+            var recordsByTagId = new Dictionary<string, TagRecord>(count);
             foreach (var record in records)
                 recordsByTagId.Add(record.TagId, record);
 

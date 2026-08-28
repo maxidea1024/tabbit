@@ -66,7 +66,7 @@
 
 ```csharp
 itemRow.CategoryId                    // int — 셀에 적힌 값
-itemRow.ItemCategoryByCategoryId      // ItemCategoryTable.Record
+itemRow.ItemCategoryByCategoryId      // ItemCategoryRecord
 ```
 
 - **컬럼 이름이 키의 것입니다.** 셀에 있는 것이 키이고, 행은 이 도구가 로드 시점에 이어 준

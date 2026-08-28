@@ -18,71 +18,69 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class StageRewardRecord
+    {
+        #region Values
+        /// <summary>
+        /// 어느 스테이지인가
+        /// </summary>
+        public string StageId => _stageId_Stage_index;
+        public StageRecord StageByStageId => _stageId;
+
+        /// <summary>
+        /// 반복 보상
+        /// </summary>
+        public string RewardGroupId => _rewardGroupId_RewardGroup_index;
+        public RewardGroupRecord RewardGroupByRewardGroupId => _rewardGroupId;
+
+        /// <summary>
+        /// 첫 클리어 보상
+        /// </summary>
+        public string FirstClearGroupId => _firstClearGroupId_RewardGroup_index;
+        public RewardGroupRecord RewardGroupByFirstClearGroupId => _firstClearGroupId;
+        /// <summary>Whether this row has a value for <see cref="FirstClearGroupId"/>.</summary>
+        public bool HasFirstClearGroupId => _firstClearGroupIdHasValue;
+        #endregion
+
+        #region Reference wiring
+        public void SetReference_StageId_INTERNAL(StageRecord value) => _stageId = value;
+        public void SetReference_RewardGroupId_INTERNAL(RewardGroupRecord value) => _rewardGroupId = value;
+        public void SetReference_FirstClearGroupId_INTERNAL(RewardGroupRecord value) => _firstClearGroupId = value;
+        #endregion
+
+        #region Storage
+        internal StageRecord _stageId;
+        internal string _stageId_Stage_index;
+        public bool _stageId_F = false;
+        internal RewardGroupRecord _rewardGroupId;
+        internal string _rewardGroupId_RewardGroup_index;
+        public bool _rewardGroupId_F = false;
+        internal RewardGroupRecord _firstClearGroupId;
+        internal string _firstClearGroupId_RewardGroup_index;
+        public bool _firstClearGroupId_F = false;
+        internal bool _firstClearGroupIdHasValue;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"StageId\":"); ToStringHelper.ToString(StageId, sb);
+            sb.Append(",\"RewardGroupId\":"); ToStringHelper.ToString(RewardGroupId, sb);
+            sb.Append(",\"FirstClearGroupId\":"); ToStringHelper.ToString(FirstClearGroupId, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 스테이지 보상이다.
     /// </summary>
     [System.Serializable]
-    public partial class StageRewardTable : IEnumerable<StageRewardTable.Record>
+    public partial class StageRewardTable : IEnumerable<StageRewardRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 어느 스테이지인가
-            /// </summary>
-            public string StageId => _stageId_Stage_index;
-            public StageTable.Record StageByStageId => _stageId;
-
-            /// <summary>
-            /// 반복 보상
-            /// </summary>
-            public string RewardGroupId => _rewardGroupId_RewardGroup_index;
-            public RewardGroupTable.Record RewardGroupByRewardGroupId => _rewardGroupId;
-
-            /// <summary>
-            /// 첫 클리어 보상
-            /// </summary>
-            public string FirstClearGroupId => _firstClearGroupId_RewardGroup_index;
-            public RewardGroupTable.Record RewardGroupByFirstClearGroupId => _firstClearGroupId;
-            /// <summary>Whether this row has a value for <see cref="FirstClearGroupId"/>.</summary>
-            public bool HasFirstClearGroupId => _firstClearGroupIdHasValue;
-            #endregion
-
-            #region Reference wiring
-            public void SetReference_StageId_INTERNAL(StageTable.Record value) => _stageId = value;
-            public void SetReference_RewardGroupId_INTERNAL(RewardGroupTable.Record value) => _rewardGroupId = value;
-            public void SetReference_FirstClearGroupId_INTERNAL(RewardGroupTable.Record value) => _firstClearGroupId = value;
-            #endregion
-
-            #region Storage
-            internal StageTable.Record _stageId;
-            internal string _stageId_Stage_index;
-            public bool _stageId_F = false;
-            internal RewardGroupTable.Record _rewardGroupId;
-            internal string _rewardGroupId_RewardGroup_index;
-            public bool _rewardGroupId_F = false;
-            internal RewardGroupTable.Record _firstClearGroupId;
-            internal string _firstClearGroupId_RewardGroup_index;
-            public bool _firstClearGroupId_F = false;
-            internal bool _firstClearGroupIdHasValue;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"StageId\":"); ToStringHelper.ToString(StageId, sb);
-                sb.Append(",\"RewardGroupId\":"); ToStringHelper.ToString(RewardGroupId, sb);
-                sb.Append(",\"FirstClearGroupId\":"); ToStringHelper.ToString(FirstClearGroupId, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -109,8 +107,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<StageRewardRecord> Records => _records;
+        private List<StageRewardRecord> _records = new List<StageRewardRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -127,16 +125,16 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<StageRewardRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<StageRewardRecord> IEnumerable<StageRewardRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'StageId'
-        public Dictionary<string, Record> RecordsByStageId => _recordsByStageId;
-        private Dictionary<string, Record> _recordsByStageId = new Dictionary<string, Record>();
+        public Dictionary<string, StageRewardRecord> RecordsByStageId => _recordsByStageId;
+        private Dictionary<string, StageRewardRecord> _recordsByStageId = new Dictionary<string, StageRewardRecord>();
 
         /// <summary>
         /// The row with this `StageId`, or null when the table has none.
@@ -146,8 +144,8 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByStageId(string key)
-            => _recordsByStageId.TryGetValue(key, out Record record) ? record : null;
+        public StageRewardRecord FindByStageId(string key)
+            => _recordsByStageId.TryGetValue(key, out StageRewardRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `StageId`, or a thrown exception naming what was
@@ -158,9 +156,9 @@ namespace Wildling.Data
         /// says it throws, because a caller reading `GetByStageId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByStageIdOrThrow(string key)
+        public StageRewardRecord GetByStageIdOrThrow(string key)
         {
-            if (!_recordsByStageId.TryGetValue(key, out Record record))
+            if (!_recordsByStageId.TryGetValue(key, out StageRewardRecord record))
                 throw new TabbitException($"There is no record in table `StageReward` that corresponds to field `StageId` value {key}");
 
             return record;
@@ -185,10 +183,10 @@ namespace Wildling.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<StageRewardRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<StageRewardRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -198,7 +196,7 @@ namespace Wildling.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, StageRewardRecord Row) Current
                 => (_rows[_at].StageId, _rows[_at]);
         }
 
@@ -223,7 +221,7 @@ namespace Wildling.Data
         /// It does not replace `FindByStageId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByStageIdOrThrow(key);
+        public StageRewardRecord this[string key] => GetByStageIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -267,10 +265,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<StageRewardRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new StageRewardRecord());
 
             foreach (var column in columns)
             {
@@ -290,7 +288,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._stageId_Stage_index = value;
-                                record._stageId = default(StageTable.Record); // will be assigned.
+                                record._stageId = default(StageRecord); // will be assigned.
                                 record._stageId_F = false;
                             } while (--n > 0);
                         }
@@ -308,7 +306,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._rewardGroupId_RewardGroup_index = value;
-                                record._rewardGroupId = default(RewardGroupTable.Record); // will be assigned.
+                                record._rewardGroupId = default(RewardGroupRecord); // will be assigned.
                                 record._rewardGroupId_F = false;
                             } while (--n > 0);
                         }
@@ -327,7 +325,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._firstClearGroupId_RewardGroup_index = value;
-                                record._firstClearGroupId = default(RewardGroupTable.Record); // will be assigned.
+                                record._firstClearGroupId = default(RewardGroupRecord); // will be assigned.
                                 record._firstClearGroupId_F = false;
                             } while (--n > 0);
                         }
@@ -339,7 +337,7 @@ namespace Wildling.Data
                             // just been given whatever was there. Putting the empty value
                             // back is what makes this path agree with the JSON one.
                             if (!records[i]._firstClearGroupIdHasValue)
-                                records[i]._firstClearGroupId = default(RewardGroupTable.Record);
+                                records[i]._firstClearGroupId = default(RewardGroupRecord);
                         }
                         break;
 
@@ -355,7 +353,7 @@ namespace Wildling.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByStageId = new Dictionary<string, Record>(count);
+            var recordsByStageId = new Dictionary<string, StageRewardRecord>(count);
             foreach (var record in records)
                 recordsByStageId.Add(record.StageId, record);
 

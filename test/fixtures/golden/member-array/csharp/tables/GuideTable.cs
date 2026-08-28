@@ -18,131 +18,129 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.MemberArray
 {
+    [System.Serializable]
+    public partial class GuideRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// plain column, between the groups
+        /// </summary>
+        public string Name => _name;
+
+        /// <summary>
+        /// member array, element 1
+        /// </summary>
+        public SkillEntry Skill => _skill;
+
+        /// <summary>
+        /// a record with no number at all - still one record, members not arrays
+        /// </summary>
+        public PosEntry Pos => _pos;
+
+        /// <summary>
+        /// scalar serial array, so both array kinds sit in one table
+        /// </summary>
+        public string[] Tag => _tag;
+
+        /// <summary>
+        /// array of arrays: outer 1, inner 1 - neither level has a name
+        /// </summary>
+        public int[][] Grid => _grid;
+        internal const int Grid_N = 2;
+        #endregion
+
+        /// <summary>One element of <see cref="Skill"/>.</summary>
+        [System.Serializable]
+        public struct SkillEntry
+        {
+            /// member array, element 1
+            public int[] Step;
+            /// second member, element 1
+            public string[] Order;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"Step\":"); ToStringHelper.ToString(Step, sb);
+                sb.Append(",\"Order\":"); ToStringHelper.ToString(Order, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        private static SkillEntry NewSkillEntry()
+        {
+            var result = default(SkillEntry);
+            result.Step = new int[2];
+            result.Order = new string[2];
+            for (int k = 0; k < result.Order.Length; k++)
+                result.Order[k] = "";
+            return result;
+        }
+
+        /// <summary>One element of <see cref="Pos"/>.</summary>
+        [System.Serializable]
+        public struct PosEntry
+        {
+            /// a record with no number at all - still one record, members not arrays
+            public float X;
+            /// second member of it
+            public float Y;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"X\":"); ToStringHelper.ToString(X, sb);
+                sb.Append(",\"Y\":"); ToStringHelper.ToString(Y, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        private static int[][] NewGrid()
+        {
+            var result = new int[Grid_N][];
+            for (int i = 0; i < result.Length; i++)
+                result[i] = System.Array.Empty<int>();
+            return result;
+        }
+
+        #region Storage
+        internal int _index;
+        internal string _name = "";
+        internal SkillEntry _skill = NewSkillEntry();
+        internal PosEntry _pos;
+        internal string[] _tag = System.Array.Empty<string>();
+        internal int[][] _grid = NewGrid();
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append(",\"Skill\":"); ToStringHelper.ToString(Skill, sb);
+            sb.Append(",\"Pos\":"); ToStringHelper.ToString(Pos, sb);
+            sb.Append(",\"Tag\":"); ToStringHelper.ToString(Tag, sb);
+            sb.Append(",\"Grid\":"); ToStringHelper.ToString(Grid, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// A record whose members are arrays, and an array of arrays beside it.
     /// </summary>
     [System.Serializable]
-    public partial class GuideTable : IEnumerable<GuideTable.Record>
+    public partial class GuideTable : IEnumerable<GuideRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Index => _index;
-
-            /// <summary>
-            /// plain column, between the groups
-            /// </summary>
-            public string Name => _name;
-
-            /// <summary>
-            /// member array, element 1
-            /// </summary>
-            public SkillEntry Skill => _skill;
-
-            /// <summary>
-            /// a record with no number at all - still one record, members not arrays
-            /// </summary>
-            public PosEntry Pos => _pos;
-
-            /// <summary>
-            /// scalar serial array, so both array kinds sit in one table
-            /// </summary>
-            public string[] Tag => _tag;
-
-            /// <summary>
-            /// array of arrays: outer 1, inner 1 - neither level has a name
-            /// </summary>
-            public int[][] Grid => _grid;
-            internal const int Grid_N = 2;
-            #endregion
-
-            /// <summary>One element of <see cref="Skill"/>.</summary>
-            [System.Serializable]
-            public struct SkillEntry
-            {
-                /// member array, element 1
-                public int[] Step;
-                /// second member, element 1
-                public string[] Order;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"Step\":"); ToStringHelper.ToString(Step, sb);
-                    sb.Append(",\"Order\":"); ToStringHelper.ToString(Order, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            private static SkillEntry NewSkillEntry()
-            {
-                var result = default(SkillEntry);
-                result.Step = new int[2];
-                result.Order = new string[2];
-                for (int k = 0; k < result.Order.Length; k++)
-                    result.Order[k] = "";
-                return result;
-            }
-
-            /// <summary>One element of <see cref="Pos"/>.</summary>
-            [System.Serializable]
-            public struct PosEntry
-            {
-                /// a record with no number at all - still one record, members not arrays
-                public float X;
-                /// second member of it
-                public float Y;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"X\":"); ToStringHelper.ToString(X, sb);
-                    sb.Append(",\"Y\":"); ToStringHelper.ToString(Y, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            private static int[][] NewGrid()
-            {
-                var result = new int[Grid_N][];
-                for (int i = 0; i < result.Length; i++)
-                    result[i] = System.Array.Empty<int>();
-                return result;
-            }
-
-            #region Storage
-            internal int _index;
-            internal string _name = "";
-            internal SkillEntry _skill = NewSkillEntry();
-            internal PosEntry _pos;
-            internal string[] _tag = System.Array.Empty<string>();
-            internal int[][] _grid = NewGrid();
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append(",\"Skill\":"); ToStringHelper.ToString(Skill, sb);
-                sb.Append(",\"Pos\":"); ToStringHelper.ToString(Pos, sb);
-                sb.Append(",\"Tag\":"); ToStringHelper.ToString(Tag, sb);
-                sb.Append(",\"Grid\":"); ToStringHelper.ToString(Grid, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -169,8 +167,8 @@ namespace Tabbit.Fixtures.MemberArray
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<GuideRecord> Records => _records;
+        private List<GuideRecord> _records = new List<GuideRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -187,16 +185,16 @@ namespace Tabbit.Fixtures.MemberArray
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<GuideRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<GuideRecord> IEnumerable<GuideRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+        public Dictionary<int, GuideRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<int, GuideRecord> _recordsByIndex = new Dictionary<int, GuideRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -206,8 +204,8 @@ namespace Tabbit.Fixtures.MemberArray
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(int key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public GuideRecord FindByIndex(int key)
+            => _recordsByIndex.TryGetValue(key, out GuideRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -218,9 +216,9 @@ namespace Tabbit.Fixtures.MemberArray
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(int key)
+        public GuideRecord GetByIndexOrThrow(int key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out GuideRecord record))
                 throw new TabbitException($"There is no record in table `Guide` that corresponds to field `Index` value {key}");
 
             return record;
@@ -245,10 +243,10 @@ namespace Tabbit.Fixtures.MemberArray
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<GuideRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<GuideRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -258,7 +256,7 @@ namespace Tabbit.Fixtures.MemberArray
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, GuideRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -283,7 +281,7 @@ namespace Tabbit.Fixtures.MemberArray
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIndexOrThrow(key);
+        public GuideRecord this[int key] => GetByIndexOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -326,10 +324,10 @@ namespace Tabbit.Fixtures.MemberArray
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<GuideRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new GuideRecord());
 
             foreach (var column in columns)
             {
@@ -485,7 +483,7 @@ namespace Tabbit.Fixtures.MemberArray
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<int, Record>(count);
+            var recordsByIndex = new Dictionary<int, GuideRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
 

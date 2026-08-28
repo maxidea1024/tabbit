@@ -18,46 +18,44 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class EnhancementRecord
+    {
+        #region Values
+        /// <summary>
+        /// 강화
+        /// </summary>
+        public global::Clover.Data.EnhancementKind Enhancement => _enhancement;
+
+        /// <summary>
+        /// 표시 이름
+        /// </summary>
+        public string Display => _display;
+        #endregion
+
+        #region Storage
+        internal global::Clover.Data.EnhancementKind _enhancement;
+        internal string _display = "";
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Enhancement\":"); ToStringHelper.ToString(Enhancement, sb);
+            sb.Append(",\"Display\":"); ToStringHelper.ToString(Display, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 카드 한 장에 붙는 강화입니다. 한 장에 하나뿐입니다.
     /// </summary>
     [System.Serializable]
-    public partial class EnhancementTable : IEnumerable<EnhancementTable.Record>
+    public partial class EnhancementTable : IEnumerable<EnhancementRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 강화
-            /// </summary>
-            public global::Clover.Data.EnhancementKind Enhancement => _enhancement;
-
-            /// <summary>
-            /// 표시 이름
-            /// </summary>
-            public string Display => _display;
-            #endregion
-
-            #region Storage
-            internal global::Clover.Data.EnhancementKind _enhancement;
-            internal string _display = "";
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Enhancement\":"); ToStringHelper.ToString(Enhancement, sb);
-                sb.Append(",\"Display\":"); ToStringHelper.ToString(Display, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -84,8 +82,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<EnhancementRecord> Records => _records;
+        private List<EnhancementRecord> _records = new List<EnhancementRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -102,16 +100,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<EnhancementRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<EnhancementRecord> IEnumerable<EnhancementRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Enhancement'
-        public Dictionary<global::Clover.Data.EnhancementKind, Record> RecordsByEnhancement => _recordsByEnhancement;
-        private Dictionary<global::Clover.Data.EnhancementKind, Record> _recordsByEnhancement = new Dictionary<global::Clover.Data.EnhancementKind, Record>();
+        public Dictionary<global::Clover.Data.EnhancementKind, EnhancementRecord> RecordsByEnhancement => _recordsByEnhancement;
+        private Dictionary<global::Clover.Data.EnhancementKind, EnhancementRecord> _recordsByEnhancement = new Dictionary<global::Clover.Data.EnhancementKind, EnhancementRecord>();
 
         /// <summary>
         /// The row with this `Enhancement`, or null when the table has none.
@@ -121,8 +119,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByEnhancement(global::Clover.Data.EnhancementKind key)
-            => _recordsByEnhancement.TryGetValue(key, out Record record) ? record : null;
+        public EnhancementRecord FindByEnhancement(global::Clover.Data.EnhancementKind key)
+            => _recordsByEnhancement.TryGetValue(key, out EnhancementRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Enhancement`, or a thrown exception naming what was
@@ -133,9 +131,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByEnhancement(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByEnhancementOrThrow(global::Clover.Data.EnhancementKind key)
+        public EnhancementRecord GetByEnhancementOrThrow(global::Clover.Data.EnhancementKind key)
         {
-            if (!_recordsByEnhancement.TryGetValue(key, out Record record))
+            if (!_recordsByEnhancement.TryGetValue(key, out EnhancementRecord record))
                 throw new TabbitException($"There is no record in table `Enhancement` that corresponds to field `Enhancement` value {key}");
 
             return record;
@@ -160,10 +158,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<EnhancementRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<EnhancementRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -173,7 +171,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (global::Clover.Data.EnhancementKind Key, Record Row) Current
+            public (global::Clover.Data.EnhancementKind Key, EnhancementRecord Row) Current
                 => (_rows[_at].Enhancement, _rows[_at]);
         }
 
@@ -198,7 +196,7 @@ namespace Clover.Data
         /// It does not replace `FindByEnhancement`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[global::Clover.Data.EnhancementKind key] => GetByEnhancementOrThrow(key);
+        public EnhancementRecord this[global::Clover.Data.EnhancementKind key] => GetByEnhancementOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -241,10 +239,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<EnhancementRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new EnhancementRecord());
 
             foreach (var column in columns)
             {
@@ -296,7 +294,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByEnhancement = new Dictionary<global::Clover.Data.EnhancementKind, Record>(count);
+            var recordsByEnhancement = new Dictionary<global::Clover.Data.EnhancementKind, EnhancementRecord>(count);
             foreach (var record in records)
                 recordsByEnhancement.Add(record.Enhancement, record);
 

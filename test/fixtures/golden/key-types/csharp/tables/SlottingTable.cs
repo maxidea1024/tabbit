@@ -18,53 +18,51 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.KeyTypes
 {
+    [System.Serializable]
+    public partial class SlottingRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index, an enum label
+        /// </summary>
+        public global::Tabbit.Fixtures.KeyTypes.Slot Index => _index;
+
+        /// <summary>
+        /// anything
+        /// </summary>
+        public int Capacity => _capacity;
+
+        /// <summary>
+        /// secondary index, past 32 bits
+        /// </summary>
+        public long Serial => _serial;
+        #endregion
+
+        #region Storage
+        internal global::Tabbit.Fixtures.KeyTypes.Slot _index;
+        internal int _capacity;
+        internal long _serial;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Capacity\":"); ToStringHelper.ToString(Capacity, sb);
+            sb.Append(",\"Serial\":"); ToStringHelper.ToString(Serial, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// Keyed by an enum: one row per label, which is a shape sheets have.
     /// </summary>
     [System.Serializable]
-    public partial class SlottingTable : IEnumerable<SlottingTable.Record>
+    public partial class SlottingTable : IEnumerable<SlottingRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index, an enum label
-            /// </summary>
-            public global::Tabbit.Fixtures.KeyTypes.Slot Index => _index;
-
-            /// <summary>
-            /// anything
-            /// </summary>
-            public int Capacity => _capacity;
-
-            /// <summary>
-            /// secondary index, past 32 bits
-            /// </summary>
-            public long Serial => _serial;
-            #endregion
-
-            #region Storage
-            internal global::Tabbit.Fixtures.KeyTypes.Slot _index;
-            internal int _capacity;
-            internal long _serial;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Capacity\":"); ToStringHelper.ToString(Capacity, sb);
-                sb.Append(",\"Serial\":"); ToStringHelper.ToString(Serial, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -91,8 +89,8 @@ namespace Tabbit.Fixtures.KeyTypes
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<SlottingRecord> Records => _records;
+        private List<SlottingRecord> _records = new List<SlottingRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -109,16 +107,16 @@ namespace Tabbit.Fixtures.KeyTypes
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<SlottingRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<SlottingRecord> IEnumerable<SlottingRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<global::Tabbit.Fixtures.KeyTypes.Slot, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<global::Tabbit.Fixtures.KeyTypes.Slot, Record> _recordsByIndex = new Dictionary<global::Tabbit.Fixtures.KeyTypes.Slot, Record>();
+        public Dictionary<global::Tabbit.Fixtures.KeyTypes.Slot, SlottingRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<global::Tabbit.Fixtures.KeyTypes.Slot, SlottingRecord> _recordsByIndex = new Dictionary<global::Tabbit.Fixtures.KeyTypes.Slot, SlottingRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -128,8 +126,8 @@ namespace Tabbit.Fixtures.KeyTypes
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(global::Tabbit.Fixtures.KeyTypes.Slot key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public SlottingRecord FindByIndex(global::Tabbit.Fixtures.KeyTypes.Slot key)
+            => _recordsByIndex.TryGetValue(key, out SlottingRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -140,9 +138,9 @@ namespace Tabbit.Fixtures.KeyTypes
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(global::Tabbit.Fixtures.KeyTypes.Slot key)
+        public SlottingRecord GetByIndexOrThrow(global::Tabbit.Fixtures.KeyTypes.Slot key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out SlottingRecord record))
                 throw new TabbitException($"There is no record in table `Slotting` that corresponds to field `Index` value {key}");
 
             return record;
@@ -167,10 +165,10 @@ namespace Tabbit.Fixtures.KeyTypes
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<SlottingRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<SlottingRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -180,7 +178,7 @@ namespace Tabbit.Fixtures.KeyTypes
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (global::Tabbit.Fixtures.KeyTypes.Slot Key, Record Row) Current
+            public (global::Tabbit.Fixtures.KeyTypes.Slot Key, SlottingRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -205,11 +203,11 @@ namespace Tabbit.Fixtures.KeyTypes
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[global::Tabbit.Fixtures.KeyTypes.Slot key] => GetByIndexOrThrow(key);
+        public SlottingRecord this[global::Tabbit.Fixtures.KeyTypes.Slot key] => GetByIndexOrThrow(key);
 
         #region Indexing by 'Serial'
-        public Dictionary<long, Record> RecordsBySerial => _recordsBySerial;
-        private Dictionary<long, Record> _recordsBySerial = new Dictionary<long, Record>();
+        public Dictionary<long, SlottingRecord> RecordsBySerial => _recordsBySerial;
+        private Dictionary<long, SlottingRecord> _recordsBySerial = new Dictionary<long, SlottingRecord>();
 
         /// <summary>
         /// The row with this `Serial`, or null when the table has none.
@@ -219,8 +217,8 @@ namespace Tabbit.Fixtures.KeyTypes
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindBySerial(long key)
-            => _recordsBySerial.TryGetValue(key, out Record record) ? record : null;
+        public SlottingRecord FindBySerial(long key)
+            => _recordsBySerial.TryGetValue(key, out SlottingRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Serial`, or a thrown exception naming what was
@@ -231,9 +229,9 @@ namespace Tabbit.Fixtures.KeyTypes
         /// says it throws, because a caller reading `GetBySerial(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetBySerialOrThrow(long key)
+        public SlottingRecord GetBySerialOrThrow(long key)
         {
-            if (!_recordsBySerial.TryGetValue(key, out Record record))
+            if (!_recordsBySerial.TryGetValue(key, out SlottingRecord record))
                 throw new TabbitException($"There is no record in table `Slotting` that corresponds to field `Serial` value {key}");
 
             return record;
@@ -284,10 +282,10 @@ namespace Tabbit.Fixtures.KeyTypes
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<SlottingRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new SlottingRecord());
 
             foreach (var column in columns)
             {
@@ -349,10 +347,10 @@ namespace Tabbit.Fixtures.KeyTypes
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<global::Tabbit.Fixtures.KeyTypes.Slot, Record>(count);
+            var recordsByIndex = new Dictionary<global::Tabbit.Fixtures.KeyTypes.Slot, SlottingRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
-            var recordsBySerial = new Dictionary<long, Record>(count);
+            var recordsBySerial = new Dictionary<long, SlottingRecord>(count);
             foreach (var record in records)
                 recordsBySerial.Add(record.Serial, record);
 

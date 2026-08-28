@@ -18,77 +18,75 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class PassBenefitRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string BenefitId => _benefitId;
+
+        /// <summary>
+        /// 표시 이름
+        /// </summary>
+        public string Name => _name;
+
+        /// <summary>
+        /// 일일 지급
+        /// </summary>
+        public string RewardGroupId => _rewardGroupId_RewardGroup_index;
+        public RewardGroupRecord RewardGroupByRewardGroupId => _rewardGroupId;
+        /// <summary>Whether this row has a value for <see cref="RewardGroupId"/>.</summary>
+        public bool HasRewardGroupId => _rewardGroupIdHasValue;
+
+        /// <summary>
+        /// 탐사 상한 연장
+        /// </summary>
+        public int IdleHoursBonus => _idleHoursBonus;
+
+        /// <summary>
+        /// 광고 제거 포함
+        /// </summary>
+        public bool AdFree => _adFree;
+        #endregion
+
+        #region Reference wiring
+        public void SetReference_RewardGroupId_INTERNAL(RewardGroupRecord value) => _rewardGroupId = value;
+        #endregion
+
+        #region Storage
+        internal string _benefitId = "";
+        internal string _name = "";
+        internal RewardGroupRecord _rewardGroupId;
+        internal string _rewardGroupId_RewardGroup_index;
+        public bool _rewardGroupId_F = false;
+        internal bool _rewardGroupIdHasValue;
+        internal int _idleHoursBonus;
+        internal bool _adFree;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"BenefitId\":"); ToStringHelper.ToString(BenefitId, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append(",\"RewardGroupId\":"); ToStringHelper.ToString(RewardGroupId, sb);
+            sb.Append(",\"IdleHoursBonus\":"); ToStringHelper.ToString(IdleHoursBonus, sb);
+            sb.Append(",\"AdFree\":"); ToStringHelper.ToString(AdFree, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 월간 통행증과 광고 제거이다.
     /// </summary>
     [System.Serializable]
-    public partial class PassBenefitTable : IEnumerable<PassBenefitTable.Record>
+    public partial class PassBenefitTable : IEnumerable<PassBenefitRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string BenefitId => _benefitId;
-
-            /// <summary>
-            /// 표시 이름
-            /// </summary>
-            public string Name => _name;
-
-            /// <summary>
-            /// 일일 지급
-            /// </summary>
-            public string RewardGroupId => _rewardGroupId_RewardGroup_index;
-            public RewardGroupTable.Record RewardGroupByRewardGroupId => _rewardGroupId;
-            /// <summary>Whether this row has a value for <see cref="RewardGroupId"/>.</summary>
-            public bool HasRewardGroupId => _rewardGroupIdHasValue;
-
-            /// <summary>
-            /// 탐사 상한 연장
-            /// </summary>
-            public int IdleHoursBonus => _idleHoursBonus;
-
-            /// <summary>
-            /// 광고 제거 포함
-            /// </summary>
-            public bool AdFree => _adFree;
-            #endregion
-
-            #region Reference wiring
-            public void SetReference_RewardGroupId_INTERNAL(RewardGroupTable.Record value) => _rewardGroupId = value;
-            #endregion
-
-            #region Storage
-            internal string _benefitId = "";
-            internal string _name = "";
-            internal RewardGroupTable.Record _rewardGroupId;
-            internal string _rewardGroupId_RewardGroup_index;
-            public bool _rewardGroupId_F = false;
-            internal bool _rewardGroupIdHasValue;
-            internal int _idleHoursBonus;
-            internal bool _adFree;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"BenefitId\":"); ToStringHelper.ToString(BenefitId, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append(",\"RewardGroupId\":"); ToStringHelper.ToString(RewardGroupId, sb);
-                sb.Append(",\"IdleHoursBonus\":"); ToStringHelper.ToString(IdleHoursBonus, sb);
-                sb.Append(",\"AdFree\":"); ToStringHelper.ToString(AdFree, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -115,8 +113,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<PassBenefitRecord> Records => _records;
+        private List<PassBenefitRecord> _records = new List<PassBenefitRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -133,16 +131,16 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<PassBenefitRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<PassBenefitRecord> IEnumerable<PassBenefitRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'BenefitId'
-        public Dictionary<string, Record> RecordsByBenefitId => _recordsByBenefitId;
-        private Dictionary<string, Record> _recordsByBenefitId = new Dictionary<string, Record>();
+        public Dictionary<string, PassBenefitRecord> RecordsByBenefitId => _recordsByBenefitId;
+        private Dictionary<string, PassBenefitRecord> _recordsByBenefitId = new Dictionary<string, PassBenefitRecord>();
 
         /// <summary>
         /// The row with this `BenefitId`, or null when the table has none.
@@ -152,8 +150,8 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByBenefitId(string key)
-            => _recordsByBenefitId.TryGetValue(key, out Record record) ? record : null;
+        public PassBenefitRecord FindByBenefitId(string key)
+            => _recordsByBenefitId.TryGetValue(key, out PassBenefitRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `BenefitId`, or a thrown exception naming what was
@@ -164,9 +162,9 @@ namespace Wildling.Data
         /// says it throws, because a caller reading `GetByBenefitId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByBenefitIdOrThrow(string key)
+        public PassBenefitRecord GetByBenefitIdOrThrow(string key)
         {
-            if (!_recordsByBenefitId.TryGetValue(key, out Record record))
+            if (!_recordsByBenefitId.TryGetValue(key, out PassBenefitRecord record))
                 throw new TabbitException($"There is no record in table `PassBenefit` that corresponds to field `BenefitId` value {key}");
 
             return record;
@@ -191,10 +189,10 @@ namespace Wildling.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<PassBenefitRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<PassBenefitRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -204,7 +202,7 @@ namespace Wildling.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, PassBenefitRecord Row) Current
                 => (_rows[_at].BenefitId, _rows[_at]);
         }
 
@@ -229,7 +227,7 @@ namespace Wildling.Data
         /// It does not replace `FindByBenefitId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByBenefitIdOrThrow(key);
+        public PassBenefitRecord this[string key] => GetByBenefitIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -273,10 +271,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<PassBenefitRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new PassBenefitRecord());
 
             foreach (var column in columns)
             {
@@ -329,7 +327,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._rewardGroupId_RewardGroup_index = value;
-                                record._rewardGroupId = default(RewardGroupTable.Record); // will be assigned.
+                                record._rewardGroupId = default(RewardGroupRecord); // will be assigned.
                                 record._rewardGroupId_F = false;
                             } while (--n > 0);
                         }
@@ -341,7 +339,7 @@ namespace Wildling.Data
                             // just been given whatever was there. Putting the empty value
                             // back is what makes this path agree with the JSON one.
                             if (!records[i]._rewardGroupIdHasValue)
-                                records[i]._rewardGroupId = default(RewardGroupTable.Record);
+                                records[i]._rewardGroupId = default(RewardGroupRecord);
                         }
                         break;
 
@@ -383,7 +381,7 @@ namespace Wildling.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByBenefitId = new Dictionary<string, Record>(count);
+            var recordsByBenefitId = new Dictionary<string, PassBenefitRecord>(count);
             foreach (var record in records)
                 recordsByBenefitId.Add(record.BenefitId, record);
 

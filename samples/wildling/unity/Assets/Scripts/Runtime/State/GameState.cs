@@ -15,7 +15,7 @@ namespace Wildling.Game
         public List<string> Passive = new();
         public List<int> SkillLevels = new();
 
-        public MonsterTable.Record Row => WildlingData.Monster.FindByMonsterId(MonsterId);
+        public MonsterRecord Row => WildlingData.Monster.FindByMonsterId(MonsterId);
         public string SpeciesId => Row?.SpeciesId ?? MonsterId;
         public string Name => Row?.Name ?? MonsterId;
     }
@@ -392,7 +392,7 @@ namespace Wildling.Game
 
         // ------------------------------------------------------------ 각성
 
-        public MonsterAwakeningTable.Record AwakeningOf(Owned owned)
+        public MonsterAwakeningRecord AwakeningOf(Owned owned)
             => owned is null
                 ? null
                 : WildlingData.MonsterAwakening.Records
@@ -519,14 +519,14 @@ namespace Wildling.Game
         /// 보고, 상대가 정해져 있으면 **상성까지** 봅니다 — 같은 개체라도 무엇과 싸우느냐에
         /// 따라 답이 달라집니다. 그래서 진행한 뒤 다시 누르면 다른 답이 나옵니다.
         /// </remarks>
-        public int AutoFillParty(int partyIndex = -1, StageTable.Record against = null)
+        public int AutoFillParty(int partyIndex = -1, StageRecord against = null)
         {
             int index = partyIndex < 0 ? ActiveParty : partyIndex;
             var slots = Party(index);
             var before = slots.ToArray();
 
             var foes = (against?.MonsterByWaveMonsterIds
-                        ?? Array.Empty<MonsterTable.Record>())
+                        ?? Array.Empty<MonsterRecord>())
                 .Where(m => m != null)
                 .Select(m => m.Element)
                 .Distinct()
@@ -591,7 +591,7 @@ namespace Wildling.Game
         public int HighestCleared(string regionId)
             => _regionProgress.TryGetValue(regionId, out int v) ? v : 0;
 
-        public bool IsStageOpen(StageTable.Record stage)
+        public bool IsStageOpen(StageRecord stage)
             => stage != null
                && IsUnlocked(stage.RegionId)
                && stage.Index <= HighestCleared(stage.RegionId) + 1;
@@ -599,7 +599,7 @@ namespace Wildling.Game
         public bool IsCleared(string stageId) => _firstClears.Contains(stageId);
 
         /// <summary>스테이지를 클리어로 기록한다. 첫 클리어이면 참이다.</summary>
-        public bool ClearStage(StageTable.Record stage)
+        public bool ClearStage(StageRecord stage)
         {
             bool first = _firstClears.Add(stage.StageId);
             if (stage.Index > HighestCleared(stage.RegionId))
@@ -608,9 +608,9 @@ namespace Wildling.Game
         }
 
         /// <summary>해금 조건을 만족한 지역을 연다. 새로 열린 지역을 낸다.</summary>
-        public List<RegionTable.Record> UnlockReady()
+        public List<RegionRecord> UnlockReady()
         {
-            var opened = new List<RegionTable.Record>();
+            var opened = new List<RegionRecord>();
             foreach (var region in WildlingData.Region.Records.OrderBy(r => r.Order))
             {
                 if (IsUnlocked(region.RegionId))
@@ -631,7 +631,7 @@ namespace Wildling.Game
         }
 
         /// <summary>아직 받지 않은 기록부 완성 보상을 낸다.</summary>
-        public List<CodexRewardTable.Record> PendingCodexRewards()
+        public List<CodexRewardRecord> PendingCodexRewards()
             => WildlingData.CodexReward.Records
                 .Where(r => !_claimedCodex.Contains(r.CodexRewardId))
                 .Where(r => Completion(r.HasRegionId ? r.RegionId : null)

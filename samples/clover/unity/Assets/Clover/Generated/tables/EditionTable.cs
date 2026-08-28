@@ -18,81 +18,79 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class EditionRecord
+    {
+        #region Values
+        /// <summary>
+        /// 에디션
+        /// </summary>
+        public global::Clover.Data.EditionKind Edition => _edition;
+
+        /// <summary>
+        /// 표시 이름
+        /// </summary>
+        public string Display => _display;
+
+        /// <summary>
+        /// 칩 가산
+        /// </summary>
+        public int Chips => _chips;
+
+        /// <summary>
+        /// 배수 가산
+        /// </summary>
+        public int MultAdd => _multAdd;
+
+        /// <summary>
+        /// 배수 곱
+        /// </summary>
+        public int MultMul => _multMul;
+
+        /// <summary>
+        /// 조커 슬롯 증가
+        /// </summary>
+        public int JokerSlots => _jokerSlots;
+
+        /// <summary>
+        /// 상점 등장 가중치
+        /// </summary>
+        public int Weight => _weight;
+        #endregion
+
+        #region Storage
+        internal global::Clover.Data.EditionKind _edition;
+        internal string _display = "";
+        internal int _chips;
+        internal int _multAdd;
+        internal int _multMul;
+        internal int _jokerSlots;
+        internal int _weight;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Edition\":"); ToStringHelper.ToString(Edition, sb);
+            sb.Append(",\"Display\":"); ToStringHelper.ToString(Display, sb);
+            sb.Append(",\"Chips\":"); ToStringHelper.ToString(Chips, sb);
+            sb.Append(",\"MultAdd\":"); ToStringHelper.ToString(MultAdd, sb);
+            sb.Append(",\"MultMul\":"); ToStringHelper.ToString(MultMul, sb);
+            sb.Append(",\"JokerSlots\":"); ToStringHelper.ToString(JokerSlots, sb);
+            sb.Append(",\"Weight\":"); ToStringHelper.ToString(Weight, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 에디션입니다. 카드와 조커 양쪽에 붙고 값이 같습니다. 배수 곱은 만분율입니다.
     /// </summary>
     [System.Serializable]
-    public partial class EditionTable : IEnumerable<EditionTable.Record>
+    public partial class EditionTable : IEnumerable<EditionRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 에디션
-            /// </summary>
-            public global::Clover.Data.EditionKind Edition => _edition;
-
-            /// <summary>
-            /// 표시 이름
-            /// </summary>
-            public string Display => _display;
-
-            /// <summary>
-            /// 칩 가산
-            /// </summary>
-            public int Chips => _chips;
-
-            /// <summary>
-            /// 배수 가산
-            /// </summary>
-            public int MultAdd => _multAdd;
-
-            /// <summary>
-            /// 배수 곱
-            /// </summary>
-            public int MultMul => _multMul;
-
-            /// <summary>
-            /// 조커 슬롯 증가
-            /// </summary>
-            public int JokerSlots => _jokerSlots;
-
-            /// <summary>
-            /// 상점 등장 가중치
-            /// </summary>
-            public int Weight => _weight;
-            #endregion
-
-            #region Storage
-            internal global::Clover.Data.EditionKind _edition;
-            internal string _display = "";
-            internal int _chips;
-            internal int _multAdd;
-            internal int _multMul;
-            internal int _jokerSlots;
-            internal int _weight;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Edition\":"); ToStringHelper.ToString(Edition, sb);
-                sb.Append(",\"Display\":"); ToStringHelper.ToString(Display, sb);
-                sb.Append(",\"Chips\":"); ToStringHelper.ToString(Chips, sb);
-                sb.Append(",\"MultAdd\":"); ToStringHelper.ToString(MultAdd, sb);
-                sb.Append(",\"MultMul\":"); ToStringHelper.ToString(MultMul, sb);
-                sb.Append(",\"JokerSlots\":"); ToStringHelper.ToString(JokerSlots, sb);
-                sb.Append(",\"Weight\":"); ToStringHelper.ToString(Weight, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -119,8 +117,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<EditionRecord> Records => _records;
+        private List<EditionRecord> _records = new List<EditionRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -137,16 +135,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<EditionRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<EditionRecord> IEnumerable<EditionRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Edition'
-        public Dictionary<global::Clover.Data.EditionKind, Record> RecordsByEdition => _recordsByEdition;
-        private Dictionary<global::Clover.Data.EditionKind, Record> _recordsByEdition = new Dictionary<global::Clover.Data.EditionKind, Record>();
+        public Dictionary<global::Clover.Data.EditionKind, EditionRecord> RecordsByEdition => _recordsByEdition;
+        private Dictionary<global::Clover.Data.EditionKind, EditionRecord> _recordsByEdition = new Dictionary<global::Clover.Data.EditionKind, EditionRecord>();
 
         /// <summary>
         /// The row with this `Edition`, or null when the table has none.
@@ -156,8 +154,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByEdition(global::Clover.Data.EditionKind key)
-            => _recordsByEdition.TryGetValue(key, out Record record) ? record : null;
+        public EditionRecord FindByEdition(global::Clover.Data.EditionKind key)
+            => _recordsByEdition.TryGetValue(key, out EditionRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Edition`, or a thrown exception naming what was
@@ -168,9 +166,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByEdition(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByEditionOrThrow(global::Clover.Data.EditionKind key)
+        public EditionRecord GetByEditionOrThrow(global::Clover.Data.EditionKind key)
         {
-            if (!_recordsByEdition.TryGetValue(key, out Record record))
+            if (!_recordsByEdition.TryGetValue(key, out EditionRecord record))
                 throw new TabbitException($"There is no record in table `Edition` that corresponds to field `Edition` value {key}");
 
             return record;
@@ -195,10 +193,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<EditionRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<EditionRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -208,7 +206,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (global::Clover.Data.EditionKind Key, Record Row) Current
+            public (global::Clover.Data.EditionKind Key, EditionRecord Row) Current
                 => (_rows[_at].Edition, _rows[_at]);
         }
 
@@ -233,7 +231,7 @@ namespace Clover.Data
         /// It does not replace `FindByEdition`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[global::Clover.Data.EditionKind key] => GetByEditionOrThrow(key);
+        public EditionRecord this[global::Clover.Data.EditionKind key] => GetByEditionOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -276,10 +274,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<EditionRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new EditionRecord());
 
             foreach (var column in columns)
             {
@@ -411,7 +409,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByEdition = new Dictionary<global::Clover.Data.EditionKind, Record>(count);
+            var recordsByEdition = new Dictionary<global::Clover.Data.EditionKind, EditionRecord>(count);
             foreach (var record in records)
                 recordsByEdition.Add(record.Edition, record);
 

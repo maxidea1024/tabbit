@@ -18,60 +18,58 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class PlanetRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string PlanetId => _planetId;
+
+        /// <summary>
+        /// 표시 이름
+        /// </summary>
+        public string Name => _name;
+
+        /// <summary>
+        /// 올리는 족보
+        /// </summary>
+        public global::Clover.Data.PokerHandKind Hand => _hand;
+
+        /// <summary>
+        /// 수집 목록에서의 순서
+        /// </summary>
+        public int SortOrder => _sortOrder;
+        #endregion
+
+        #region Storage
+        internal string _planetId = "";
+        internal string _name = "";
+        internal global::Clover.Data.PokerHandKind _hand;
+        internal int _sortOrder;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"PlanetId\":"); ToStringHelper.ToString(PlanetId, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append(",\"Hand\":"); ToStringHelper.ToString(Hand, sb);
+            sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 행성 12종입니다. **증분은 여기 없습니다** — 어느 족보를 올리는지만 있고 값은 `PokerHand` 에 있습니다.
     /// </summary>
     [System.Serializable]
-    public partial class PlanetTable : IEnumerable<PlanetTable.Record>
+    public partial class PlanetTable : IEnumerable<PlanetRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string PlanetId => _planetId;
-
-            /// <summary>
-            /// 표시 이름
-            /// </summary>
-            public string Name => _name;
-
-            /// <summary>
-            /// 올리는 족보
-            /// </summary>
-            public global::Clover.Data.PokerHandKind Hand => _hand;
-
-            /// <summary>
-            /// 수집 목록에서의 순서
-            /// </summary>
-            public int SortOrder => _sortOrder;
-            #endregion
-
-            #region Storage
-            internal string _planetId = "";
-            internal string _name = "";
-            internal global::Clover.Data.PokerHandKind _hand;
-            internal int _sortOrder;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"PlanetId\":"); ToStringHelper.ToString(PlanetId, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append(",\"Hand\":"); ToStringHelper.ToString(Hand, sb);
-                sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -98,8 +96,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<PlanetRecord> Records => _records;
+        private List<PlanetRecord> _records = new List<PlanetRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -116,16 +114,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<PlanetRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<PlanetRecord> IEnumerable<PlanetRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'PlanetId'
-        public Dictionary<string, Record> RecordsByPlanetId => _recordsByPlanetId;
-        private Dictionary<string, Record> _recordsByPlanetId = new Dictionary<string, Record>();
+        public Dictionary<string, PlanetRecord> RecordsByPlanetId => _recordsByPlanetId;
+        private Dictionary<string, PlanetRecord> _recordsByPlanetId = new Dictionary<string, PlanetRecord>();
 
         /// <summary>
         /// The row with this `PlanetId`, or null when the table has none.
@@ -135,8 +133,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByPlanetId(string key)
-            => _recordsByPlanetId.TryGetValue(key, out Record record) ? record : null;
+        public PlanetRecord FindByPlanetId(string key)
+            => _recordsByPlanetId.TryGetValue(key, out PlanetRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `PlanetId`, or a thrown exception naming what was
@@ -147,9 +145,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByPlanetId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByPlanetIdOrThrow(string key)
+        public PlanetRecord GetByPlanetIdOrThrow(string key)
         {
-            if (!_recordsByPlanetId.TryGetValue(key, out Record record))
+            if (!_recordsByPlanetId.TryGetValue(key, out PlanetRecord record))
                 throw new TabbitException($"There is no record in table `Planet` that corresponds to field `PlanetId` value {key}");
 
             return record;
@@ -174,10 +172,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<PlanetRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<PlanetRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -187,7 +185,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, PlanetRecord Row) Current
                 => (_rows[_at].PlanetId, _rows[_at]);
         }
 
@@ -212,7 +210,7 @@ namespace Clover.Data
         /// It does not replace `FindByPlanetId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByPlanetIdOrThrow(key);
+        public PlanetRecord this[string key] => GetByPlanetIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -255,10 +253,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<PlanetRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new PlanetRecord());
 
             foreach (var column in columns)
             {
@@ -342,7 +340,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByPlanetId = new Dictionary<string, Record>(count);
+            var recordsByPlanetId = new Dictionary<string, PlanetRecord>(count);
             foreach (var record in records)
                 recordsByPlanetId.Add(record.PlanetId, record);
 

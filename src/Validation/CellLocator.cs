@@ -24,8 +24,8 @@ namespace Tabbit.Validation;
 /// </remarks>
 internal sealed class CellLocator
 {
-    /// <summary>Suffix the generator puts on a table's class name.</summary>
-    private const string TableSuffix = "Table";
+    /// <summary>Suffix the generator puts on a record's class name.</summary>
+    private const string RecordSuffix = "Record";
 
     private readonly Model _model;
 
@@ -73,16 +73,16 @@ internal sealed class CellLocator
     /// <remarks>
     /// Read from the type rather than passed in, because a rule holds the record and nothing
     /// else - `Error(row, ...)` is the call an author should be able to write. The generated
-    /// record is nested in its table class, so `ItemTable.Record` names `Item`.
+    /// record is named after its table, so `ItemRecord` names `Item`.
     /// </remarks>
     private Table? TableOf(object row)
     {
-        string? owner = row?.GetType().DeclaringType?.Name;
+        string? name = row?.GetType().Name;
 
-        if (string.IsNullOrEmpty(owner) || !owner.EndsWith(TableSuffix, StringComparison.Ordinal))
+        if (string.IsNullOrEmpty(name) || !name.EndsWith(RecordSuffix, StringComparison.Ordinal))
             return null;
 
-        return _model.FindTable(owner.Substring(0, owner.Length - TableSuffix.Length));
+        return _model.FindTable(name.Substring(0, name.Length - RecordSuffix.Length));
     }
 
     /// <summary>The model row this record was built from, found by primary index.</summary>

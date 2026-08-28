@@ -320,7 +320,7 @@ namespace Wildling.Game
 
         /// <summary>각성 조건 중 모자란 것을 채운다.</summary>
         private static void Supply(GameState state, Owned owned,
-                                   MonsterAwakeningTable.Record link)
+                                   MonsterAwakeningRecord link)
         {
             state.SetCodex(owned.MonsterId, CodexState.Studied);
 
@@ -363,10 +363,10 @@ namespace Wildling.Game
             return list;
         }
 
-        private static List<Combatant> BuildEnemies(StageTable.Record stage)
+        private static List<Combatant> BuildEnemies(StageRecord stage)
         {
             var list = new List<Combatant>();
-            var wave = stage.MonsterByWaveMonsterIds ?? Array.Empty<MonsterTable.Record>();
+            var wave = stage.MonsterByWaveMonsterIds ?? Array.Empty<MonsterRecord>();
 
             for (int i = 0; i < wave.Length; i++)
             {

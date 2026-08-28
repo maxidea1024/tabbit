@@ -18,81 +18,79 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class CodexRewardRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string CodexRewardId => _codexRewardId;
+
+        /// <summary>
+        /// 지역별인지 전체인지
+        /// </summary>
+        public global::Wildling.Data.CodexScope CodexScope => _codexScope;
+
+        /// <summary>
+        /// 전체 보상은 비운다
+        /// </summary>
+        public string RegionId => _regionId_Region_index;
+        public RegionRecord RegionByRegionId => _regionId;
+        /// <summary>Whether this row has a value for <see cref="RegionId"/>.</summary>
+        public bool HasRegionId => _regionIdHasValue;
+
+        /// <summary>
+        /// 완성률
+        /// </summary>
+        public int Threshold => _threshold;
+
+        /// <summary>
+        /// 보상
+        /// </summary>
+        public string RewardGroupId => _rewardGroupId_RewardGroup_index;
+        public RewardGroupRecord RewardGroupByRewardGroupId => _rewardGroupId;
+        #endregion
+
+        #region Reference wiring
+        public void SetReference_RegionId_INTERNAL(RegionRecord value) => _regionId = value;
+        public void SetReference_RewardGroupId_INTERNAL(RewardGroupRecord value) => _rewardGroupId = value;
+        #endregion
+
+        #region Storage
+        internal string _codexRewardId = "";
+        internal global::Wildling.Data.CodexScope _codexScope;
+        internal RegionRecord _regionId;
+        internal string _regionId_Region_index;
+        public bool _regionId_F = false;
+        internal bool _regionIdHasValue;
+        internal int _threshold;
+        internal RewardGroupRecord _rewardGroupId;
+        internal string _rewardGroupId_RewardGroup_index;
+        public bool _rewardGroupId_F = false;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"CodexRewardId\":"); ToStringHelper.ToString(CodexRewardId, sb);
+            sb.Append(",\"CodexScope\":"); ToStringHelper.ToString(CodexScope, sb);
+            sb.Append(",\"RegionId\":"); ToStringHelper.ToString(RegionId, sb);
+            sb.Append(",\"Threshold\":"); ToStringHelper.ToString(Threshold, sb);
+            sb.Append(",\"RewardGroupId\":"); ToStringHelper.ToString(RewardGroupId, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 기록부 완성률 보상이다.
     /// </summary>
     [System.Serializable]
-    public partial class CodexRewardTable : IEnumerable<CodexRewardTable.Record>
+    public partial class CodexRewardTable : IEnumerable<CodexRewardRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string CodexRewardId => _codexRewardId;
-
-            /// <summary>
-            /// 지역별인지 전체인지
-            /// </summary>
-            public global::Wildling.Data.CodexScope CodexScope => _codexScope;
-
-            /// <summary>
-            /// 전체 보상은 비운다
-            /// </summary>
-            public string RegionId => _regionId_Region_index;
-            public RegionTable.Record RegionByRegionId => _regionId;
-            /// <summary>Whether this row has a value for <see cref="RegionId"/>.</summary>
-            public bool HasRegionId => _regionIdHasValue;
-
-            /// <summary>
-            /// 완성률
-            /// </summary>
-            public int Threshold => _threshold;
-
-            /// <summary>
-            /// 보상
-            /// </summary>
-            public string RewardGroupId => _rewardGroupId_RewardGroup_index;
-            public RewardGroupTable.Record RewardGroupByRewardGroupId => _rewardGroupId;
-            #endregion
-
-            #region Reference wiring
-            public void SetReference_RegionId_INTERNAL(RegionTable.Record value) => _regionId = value;
-            public void SetReference_RewardGroupId_INTERNAL(RewardGroupTable.Record value) => _rewardGroupId = value;
-            #endregion
-
-            #region Storage
-            internal string _codexRewardId = "";
-            internal global::Wildling.Data.CodexScope _codexScope;
-            internal RegionTable.Record _regionId;
-            internal string _regionId_Region_index;
-            public bool _regionId_F = false;
-            internal bool _regionIdHasValue;
-            internal int _threshold;
-            internal RewardGroupTable.Record _rewardGroupId;
-            internal string _rewardGroupId_RewardGroup_index;
-            public bool _rewardGroupId_F = false;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"CodexRewardId\":"); ToStringHelper.ToString(CodexRewardId, sb);
-                sb.Append(",\"CodexScope\":"); ToStringHelper.ToString(CodexScope, sb);
-                sb.Append(",\"RegionId\":"); ToStringHelper.ToString(RegionId, sb);
-                sb.Append(",\"Threshold\":"); ToStringHelper.ToString(Threshold, sb);
-                sb.Append(",\"RewardGroupId\":"); ToStringHelper.ToString(RewardGroupId, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -119,8 +117,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<CodexRewardRecord> Records => _records;
+        private List<CodexRewardRecord> _records = new List<CodexRewardRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -137,16 +135,16 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<CodexRewardRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<CodexRewardRecord> IEnumerable<CodexRewardRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'CodexRewardId'
-        public Dictionary<string, Record> RecordsByCodexRewardId => _recordsByCodexRewardId;
-        private Dictionary<string, Record> _recordsByCodexRewardId = new Dictionary<string, Record>();
+        public Dictionary<string, CodexRewardRecord> RecordsByCodexRewardId => _recordsByCodexRewardId;
+        private Dictionary<string, CodexRewardRecord> _recordsByCodexRewardId = new Dictionary<string, CodexRewardRecord>();
 
         /// <summary>
         /// The row with this `CodexRewardId`, or null when the table has none.
@@ -156,8 +154,8 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByCodexRewardId(string key)
-            => _recordsByCodexRewardId.TryGetValue(key, out Record record) ? record : null;
+        public CodexRewardRecord FindByCodexRewardId(string key)
+            => _recordsByCodexRewardId.TryGetValue(key, out CodexRewardRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `CodexRewardId`, or a thrown exception naming what was
@@ -168,9 +166,9 @@ namespace Wildling.Data
         /// says it throws, because a caller reading `GetByCodexRewardId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByCodexRewardIdOrThrow(string key)
+        public CodexRewardRecord GetByCodexRewardIdOrThrow(string key)
         {
-            if (!_recordsByCodexRewardId.TryGetValue(key, out Record record))
+            if (!_recordsByCodexRewardId.TryGetValue(key, out CodexRewardRecord record))
                 throw new TabbitException($"There is no record in table `CodexReward` that corresponds to field `CodexRewardId` value {key}");
 
             return record;
@@ -195,10 +193,10 @@ namespace Wildling.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<CodexRewardRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<CodexRewardRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -208,7 +206,7 @@ namespace Wildling.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, CodexRewardRecord Row) Current
                 => (_rows[_at].CodexRewardId, _rows[_at]);
         }
 
@@ -233,7 +231,7 @@ namespace Wildling.Data
         /// It does not replace `FindByCodexRewardId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByCodexRewardIdOrThrow(key);
+        public CodexRewardRecord this[string key] => GetByCodexRewardIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -277,10 +275,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<CodexRewardRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new CodexRewardRecord());
 
             foreach (var column in columns)
             {
@@ -333,7 +331,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._regionId_Region_index = value;
-                                record._regionId = default(RegionTable.Record); // will be assigned.
+                                record._regionId = default(RegionRecord); // will be assigned.
                                 record._regionId_F = false;
                             } while (--n > 0);
                         }
@@ -345,7 +343,7 @@ namespace Wildling.Data
                             // just been given whatever was there. Putting the empty value
                             // back is what makes this path agree with the JSON one.
                             if (!records[i]._regionIdHasValue)
-                                records[i]._regionId = default(RegionTable.Record);
+                                records[i]._regionId = default(RegionRecord);
                         }
                         break;
 
@@ -377,7 +375,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._rewardGroupId_RewardGroup_index = value;
-                                record._rewardGroupId = default(RewardGroupTable.Record); // will be assigned.
+                                record._rewardGroupId = default(RewardGroupRecord); // will be assigned.
                                 record._rewardGroupId_F = false;
                             } while (--n > 0);
                         }
@@ -395,7 +393,7 @@ namespace Wildling.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByCodexRewardId = new Dictionary<string, Record>(count);
+            var recordsByCodexRewardId = new Dictionary<string, CodexRewardRecord>(count);
             foreach (var record in records)
                 recordsByCodexRewardId.Add(record.CodexRewardId, record);
 

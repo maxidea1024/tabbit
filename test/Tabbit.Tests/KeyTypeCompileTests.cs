@@ -35,10 +35,10 @@ public class KeyTypeCompileTests
     /// consumer.
     /// </summary>
     /// <remarks>
-    /// `Dictionary<System.Guid, Record>` and `Dictionary<Slot, Record>` are the declarations
-    /// at issue. Both are ordinary C#, which is the point: the check is that the generator
-    /// spelled the key's type the way the rest of the file spells that type, rather than
-    /// emitting the wire's name for it.
+    /// `Dictionary<System.Guid, AssetRecord>` and `Dictionary<Slot, SlottingRecord>` are the
+    /// declarations at issue. Both are ordinary C#, which is the point: the check is that
+    /// the generator spelled the key's type the way the rest of the file spells that type,
+    /// rather than emitting the wire's name for it.
     /// </remarks>
     [Fact]
     public void Generated_cs_compiles_for_every_key_type()

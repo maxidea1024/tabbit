@@ -139,7 +139,7 @@ export default function Home() {
                 <pre>
 {`public string Name => _name;
 public int CategoryId => _categoryId;
-`}<span className={styles.mark}>{`public ItemCategoryTable.Record ItemCategoryByCategoryId`}</span>{`
+`}<span className={styles.mark}>{`public ItemCategoryRecord ItemCategoryByCategoryId`}</span>{`
 public Grade GradeField => _gradeField;
 
 await GameData.ReadAllAsync("./data");

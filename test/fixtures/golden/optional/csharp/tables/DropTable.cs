@@ -18,156 +18,154 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.Optional
 {
+    [System.Serializable]
+    public partial class DropRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index, never optional
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// required, so a blank here would be an error
+        /// </summary>
+        public int Hp => _hp;
+
+        /// <summary>
+        /// optional int
+        /// </summary>
+        public int Bonus => _bonus;
+        /// <summary>Whether this row has a value for <see cref="Bonus"/>.</summary>
+        public bool HasBonus => _bonusHasValue;
+
+        /// <summary>
+        /// optional double
+        /// </summary>
+        public double Weight => _weight;
+        /// <summary>Whether this row has a value for <see cref="Weight"/>.</summary>
+        public bool HasWeight => _weightHasValue;
+
+        /// <summary>
+        /// optional float
+        /// </summary>
+        public float Ratio => _ratio;
+        /// <summary>Whether this row has a value for <see cref="Ratio"/>.</summary>
+        public bool HasRatio => _ratioHasValue;
+
+        /// <summary>
+        /// optional bigint
+        /// </summary>
+        public long Count => _count;
+        /// <summary>Whether this row has a value for <see cref="Count"/>.</summary>
+        public bool HasCount => _countHasValue;
+
+        /// <summary>
+        /// optional datetime
+        /// </summary>
+        public System.DateTime OpenAt => _openAt;
+        /// <summary>Whether this row has a value for <see cref="OpenAt"/>.</summary>
+        public bool HasOpenAt => _openAtHasValue;
+
+        /// <summary>
+        /// optional timespan
+        /// </summary>
+        public System.TimeSpan Cooldown => _cooldown;
+        /// <summary>Whether this row has a value for <see cref="Cooldown"/>.</summary>
+        public bool HasCooldown => _cooldownHasValue;
+
+        /// <summary>
+        /// optional uuid
+        /// </summary>
+        public System.Guid Batch => _batch;
+        /// <summary>Whether this row has a value for <see cref="Batch"/>.</summary>
+        public bool HasBatch => _batchHasValue;
+
+        /// <summary>
+        /// optional enum label
+        /// </summary>
+        public global::Tabbit.Fixtures.Optional.Rarity Grade => _grade;
+        /// <summary>Whether this row has a value for <see cref="Grade"/>.</summary>
+        public bool HasGrade => _gradeHasValue;
+
+        /// <summary>
+        /// optional array
+        /// </summary>
+        public int[] Costs => _costs;
+        /// <summary>Whether this row has a value for <see cref="Costs"/>.</summary>
+        public bool HasCosts => _costsHasValue;
+
+        /// <summary>
+        /// optional string
+        /// </summary>
+        public string Label => _label;
+        /// <summary>Whether this row has a value for <see cref="Label"/>.</summary>
+        public bool HasLabel => _labelHasValue;
+
+        /// <summary>
+        /// optional bool
+        /// </summary>
+        public bool Hidden => _hidden;
+        /// <summary>Whether this row has a value for <see cref="Hidden"/>.</summary>
+        public bool HasHidden => _hiddenHasValue;
+        #endregion
+
+        #region Storage
+        internal int _index;
+        internal int _hp;
+        internal int _bonus;
+        internal bool _bonusHasValue;
+        internal double _weight;
+        internal bool _weightHasValue;
+        internal float _ratio;
+        internal bool _ratioHasValue;
+        internal long _count;
+        internal bool _countHasValue;
+        internal System.DateTime _openAt;
+        internal bool _openAtHasValue;
+        internal System.TimeSpan _cooldown;
+        internal bool _cooldownHasValue;
+        internal System.Guid _batch;
+        internal bool _batchHasValue;
+        internal global::Tabbit.Fixtures.Optional.Rarity _grade;
+        internal bool _gradeHasValue;
+        internal int[] _costs = System.Array.Empty<int>();
+        internal bool _costsHasValue;
+        internal string _label = "";
+        internal bool _labelHasValue;
+        internal bool _hidden;
+        internal bool _hiddenHasValue;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Hp\":"); ToStringHelper.ToString(Hp, sb);
+            sb.Append(",\"Bonus\":"); ToStringHelper.ToString(Bonus, sb);
+            sb.Append(",\"Weight\":"); ToStringHelper.ToString(Weight, sb);
+            sb.Append(",\"Ratio\":"); ToStringHelper.ToString(Ratio, sb);
+            sb.Append(",\"Count\":"); ToStringHelper.ToString(Count, sb);
+            sb.Append(",\"OpenAt\":"); ToStringHelper.ToString(OpenAt, sb);
+            sb.Append(",\"Cooldown\":"); ToStringHelper.ToString(Cooldown, sb);
+            sb.Append(",\"Batch\":"); ToStringHelper.ToString(Batch, sb);
+            sb.Append(",\"Grade\":"); ToStringHelper.ToString(Grade, sb);
+            sb.Append(",\"Costs\":"); ToStringHelper.ToString(Costs, sb);
+            sb.Append(",\"Label\":"); ToStringHelper.ToString(Label, sb);
+            sb.Append(",\"Hidden\":"); ToStringHelper.ToString(Hidden, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// Optional columns, each beside the same type left required.
     /// </summary>
     [System.Serializable]
-    public partial class DropTable : IEnumerable<DropTable.Record>
+    public partial class DropTable : IEnumerable<DropRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index, never optional
-            /// </summary>
-            public int Index => _index;
-
-            /// <summary>
-            /// required, so a blank here would be an error
-            /// </summary>
-            public int Hp => _hp;
-
-            /// <summary>
-            /// optional int
-            /// </summary>
-            public int Bonus => _bonus;
-            /// <summary>Whether this row has a value for <see cref="Bonus"/>.</summary>
-            public bool HasBonus => _bonusHasValue;
-
-            /// <summary>
-            /// optional double
-            /// </summary>
-            public double Weight => _weight;
-            /// <summary>Whether this row has a value for <see cref="Weight"/>.</summary>
-            public bool HasWeight => _weightHasValue;
-
-            /// <summary>
-            /// optional float
-            /// </summary>
-            public float Ratio => _ratio;
-            /// <summary>Whether this row has a value for <see cref="Ratio"/>.</summary>
-            public bool HasRatio => _ratioHasValue;
-
-            /// <summary>
-            /// optional bigint
-            /// </summary>
-            public long Count => _count;
-            /// <summary>Whether this row has a value for <see cref="Count"/>.</summary>
-            public bool HasCount => _countHasValue;
-
-            /// <summary>
-            /// optional datetime
-            /// </summary>
-            public System.DateTime OpenAt => _openAt;
-            /// <summary>Whether this row has a value for <see cref="OpenAt"/>.</summary>
-            public bool HasOpenAt => _openAtHasValue;
-
-            /// <summary>
-            /// optional timespan
-            /// </summary>
-            public System.TimeSpan Cooldown => _cooldown;
-            /// <summary>Whether this row has a value for <see cref="Cooldown"/>.</summary>
-            public bool HasCooldown => _cooldownHasValue;
-
-            /// <summary>
-            /// optional uuid
-            /// </summary>
-            public System.Guid Batch => _batch;
-            /// <summary>Whether this row has a value for <see cref="Batch"/>.</summary>
-            public bool HasBatch => _batchHasValue;
-
-            /// <summary>
-            /// optional enum label
-            /// </summary>
-            public global::Tabbit.Fixtures.Optional.Rarity Grade => _grade;
-            /// <summary>Whether this row has a value for <see cref="Grade"/>.</summary>
-            public bool HasGrade => _gradeHasValue;
-
-            /// <summary>
-            /// optional array
-            /// </summary>
-            public int[] Costs => _costs;
-            /// <summary>Whether this row has a value for <see cref="Costs"/>.</summary>
-            public bool HasCosts => _costsHasValue;
-
-            /// <summary>
-            /// optional string
-            /// </summary>
-            public string Label => _label;
-            /// <summary>Whether this row has a value for <see cref="Label"/>.</summary>
-            public bool HasLabel => _labelHasValue;
-
-            /// <summary>
-            /// optional bool
-            /// </summary>
-            public bool Hidden => _hidden;
-            /// <summary>Whether this row has a value for <see cref="Hidden"/>.</summary>
-            public bool HasHidden => _hiddenHasValue;
-            #endregion
-
-            #region Storage
-            internal int _index;
-            internal int _hp;
-            internal int _bonus;
-            internal bool _bonusHasValue;
-            internal double _weight;
-            internal bool _weightHasValue;
-            internal float _ratio;
-            internal bool _ratioHasValue;
-            internal long _count;
-            internal bool _countHasValue;
-            internal System.DateTime _openAt;
-            internal bool _openAtHasValue;
-            internal System.TimeSpan _cooldown;
-            internal bool _cooldownHasValue;
-            internal System.Guid _batch;
-            internal bool _batchHasValue;
-            internal global::Tabbit.Fixtures.Optional.Rarity _grade;
-            internal bool _gradeHasValue;
-            internal int[] _costs = System.Array.Empty<int>();
-            internal bool _costsHasValue;
-            internal string _label = "";
-            internal bool _labelHasValue;
-            internal bool _hidden;
-            internal bool _hiddenHasValue;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Hp\":"); ToStringHelper.ToString(Hp, sb);
-                sb.Append(",\"Bonus\":"); ToStringHelper.ToString(Bonus, sb);
-                sb.Append(",\"Weight\":"); ToStringHelper.ToString(Weight, sb);
-                sb.Append(",\"Ratio\":"); ToStringHelper.ToString(Ratio, sb);
-                sb.Append(",\"Count\":"); ToStringHelper.ToString(Count, sb);
-                sb.Append(",\"OpenAt\":"); ToStringHelper.ToString(OpenAt, sb);
-                sb.Append(",\"Cooldown\":"); ToStringHelper.ToString(Cooldown, sb);
-                sb.Append(",\"Batch\":"); ToStringHelper.ToString(Batch, sb);
-                sb.Append(",\"Grade\":"); ToStringHelper.ToString(Grade, sb);
-                sb.Append(",\"Costs\":"); ToStringHelper.ToString(Costs, sb);
-                sb.Append(",\"Label\":"); ToStringHelper.ToString(Label, sb);
-                sb.Append(",\"Hidden\":"); ToStringHelper.ToString(Hidden, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -194,8 +192,8 @@ namespace Tabbit.Fixtures.Optional
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<DropRecord> Records => _records;
+        private List<DropRecord> _records = new List<DropRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -212,16 +210,16 @@ namespace Tabbit.Fixtures.Optional
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<DropRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<DropRecord> IEnumerable<DropRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+        public Dictionary<int, DropRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<int, DropRecord> _recordsByIndex = new Dictionary<int, DropRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -231,8 +229,8 @@ namespace Tabbit.Fixtures.Optional
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(int key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public DropRecord FindByIndex(int key)
+            => _recordsByIndex.TryGetValue(key, out DropRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -243,9 +241,9 @@ namespace Tabbit.Fixtures.Optional
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(int key)
+        public DropRecord GetByIndexOrThrow(int key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out DropRecord record))
                 throw new TabbitException($"There is no record in table `Drop` that corresponds to field `Index` value {key}");
 
             return record;
@@ -270,10 +268,10 @@ namespace Tabbit.Fixtures.Optional
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<DropRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<DropRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -283,7 +281,7 @@ namespace Tabbit.Fixtures.Optional
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, DropRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -308,7 +306,7 @@ namespace Tabbit.Fixtures.Optional
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIndexOrThrow(key);
+        public DropRecord this[int key] => GetByIndexOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -352,10 +350,10 @@ namespace Tabbit.Fixtures.Optional
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<DropRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new DropRecord());
 
             foreach (var column in columns)
             {
@@ -661,7 +659,7 @@ namespace Tabbit.Fixtures.Optional
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<int, Record>(count);
+            var recordsByIndex = new Dictionary<int, DropRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
 

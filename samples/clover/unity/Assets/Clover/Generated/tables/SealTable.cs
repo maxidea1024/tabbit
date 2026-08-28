@@ -18,46 +18,44 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class SealRecord
+    {
+        #region Values
+        /// <summary>
+        /// 인장
+        /// </summary>
+        public global::Clover.Data.SealKind Seal => _seal;
+
+        /// <summary>
+        /// 표시 이름
+        /// </summary>
+        public string Display => _display;
+        #endregion
+
+        #region Storage
+        internal global::Clover.Data.SealKind _seal;
+        internal string _display = "";
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Seal\":"); ToStringHelper.ToString(Seal, sb);
+            sb.Append(",\"Display\":"); ToStringHelper.ToString(Display, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 인장입니다. 강화와 별개의 축이고 한 장에 하나뿐입니다.
     /// </summary>
     [System.Serializable]
-    public partial class SealTable : IEnumerable<SealTable.Record>
+    public partial class SealTable : IEnumerable<SealRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 인장
-            /// </summary>
-            public global::Clover.Data.SealKind Seal => _seal;
-
-            /// <summary>
-            /// 표시 이름
-            /// </summary>
-            public string Display => _display;
-            #endregion
-
-            #region Storage
-            internal global::Clover.Data.SealKind _seal;
-            internal string _display = "";
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Seal\":"); ToStringHelper.ToString(Seal, sb);
-                sb.Append(",\"Display\":"); ToStringHelper.ToString(Display, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -84,8 +82,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<SealRecord> Records => _records;
+        private List<SealRecord> _records = new List<SealRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -102,16 +100,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<SealRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<SealRecord> IEnumerable<SealRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Seal'
-        public Dictionary<global::Clover.Data.SealKind, Record> RecordsBySeal => _recordsBySeal;
-        private Dictionary<global::Clover.Data.SealKind, Record> _recordsBySeal = new Dictionary<global::Clover.Data.SealKind, Record>();
+        public Dictionary<global::Clover.Data.SealKind, SealRecord> RecordsBySeal => _recordsBySeal;
+        private Dictionary<global::Clover.Data.SealKind, SealRecord> _recordsBySeal = new Dictionary<global::Clover.Data.SealKind, SealRecord>();
 
         /// <summary>
         /// The row with this `Seal`, or null when the table has none.
@@ -121,8 +119,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindBySeal(global::Clover.Data.SealKind key)
-            => _recordsBySeal.TryGetValue(key, out Record record) ? record : null;
+        public SealRecord FindBySeal(global::Clover.Data.SealKind key)
+            => _recordsBySeal.TryGetValue(key, out SealRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Seal`, or a thrown exception naming what was
@@ -133,9 +131,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetBySeal(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetBySealOrThrow(global::Clover.Data.SealKind key)
+        public SealRecord GetBySealOrThrow(global::Clover.Data.SealKind key)
         {
-            if (!_recordsBySeal.TryGetValue(key, out Record record))
+            if (!_recordsBySeal.TryGetValue(key, out SealRecord record))
                 throw new TabbitException($"There is no record in table `Seal` that corresponds to field `Seal` value {key}");
 
             return record;
@@ -160,10 +158,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<SealRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<SealRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -173,7 +171,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (global::Clover.Data.SealKind Key, Record Row) Current
+            public (global::Clover.Data.SealKind Key, SealRecord Row) Current
                 => (_rows[_at].Seal, _rows[_at]);
         }
 
@@ -198,7 +196,7 @@ namespace Clover.Data
         /// It does not replace `FindBySeal`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[global::Clover.Data.SealKind key] => GetBySealOrThrow(key);
+        public SealRecord this[global::Clover.Data.SealKind key] => GetBySealOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -241,10 +239,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<SealRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new SealRecord());
 
             foreach (var column in columns)
             {
@@ -296,7 +294,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsBySeal = new Dictionary<global::Clover.Data.SealKind, Record>(count);
+            var recordsBySeal = new Dictionary<global::Clover.Data.SealKind, SealRecord>(count);
             foreach (var record in records)
                 recordsBySeal.Add(record.Seal, record);
 

@@ -18,60 +18,58 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class AchievementRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string AchievementId => _achievementId;
+
+        /// <summary>
+        /// 표시 이름
+        /// </summary>
+        public string Name => _name;
+
+        /// <summary>
+        /// 조건
+        /// </summary>
+        public string Condition => _condition;
+
+        /// <summary>
+        /// 표시 순서
+        /// </summary>
+        public int SortOrder => _sortOrder;
+        #endregion
+
+        #region Storage
+        internal string _achievementId = "";
+        internal string _name = "";
+        internal string _condition = "";
+        internal int _sortOrder;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"AchievementId\":"); ToStringHelper.ToString(AchievementId, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append(",\"Condition\":"); ToStringHelper.ToString(Condition, sb);
+            sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 도전과제입니다. **원작의 57종을 옮기지 않고 우리 목록을 만들었습니다.**
     /// </summary>
     [System.Serializable]
-    public partial class AchievementTable : IEnumerable<AchievementTable.Record>
+    public partial class AchievementTable : IEnumerable<AchievementRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string AchievementId => _achievementId;
-
-            /// <summary>
-            /// 표시 이름
-            /// </summary>
-            public string Name => _name;
-
-            /// <summary>
-            /// 조건
-            /// </summary>
-            public string Condition => _condition;
-
-            /// <summary>
-            /// 표시 순서
-            /// </summary>
-            public int SortOrder => _sortOrder;
-            #endregion
-
-            #region Storage
-            internal string _achievementId = "";
-            internal string _name = "";
-            internal string _condition = "";
-            internal int _sortOrder;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"AchievementId\":"); ToStringHelper.ToString(AchievementId, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append(",\"Condition\":"); ToStringHelper.ToString(Condition, sb);
-                sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -98,8 +96,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<AchievementRecord> Records => _records;
+        private List<AchievementRecord> _records = new List<AchievementRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -116,16 +114,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<AchievementRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<AchievementRecord> IEnumerable<AchievementRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'AchievementId'
-        public Dictionary<string, Record> RecordsByAchievementId => _recordsByAchievementId;
-        private Dictionary<string, Record> _recordsByAchievementId = new Dictionary<string, Record>();
+        public Dictionary<string, AchievementRecord> RecordsByAchievementId => _recordsByAchievementId;
+        private Dictionary<string, AchievementRecord> _recordsByAchievementId = new Dictionary<string, AchievementRecord>();
 
         /// <summary>
         /// The row with this `AchievementId`, or null when the table has none.
@@ -135,8 +133,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByAchievementId(string key)
-            => _recordsByAchievementId.TryGetValue(key, out Record record) ? record : null;
+        public AchievementRecord FindByAchievementId(string key)
+            => _recordsByAchievementId.TryGetValue(key, out AchievementRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `AchievementId`, or a thrown exception naming what was
@@ -147,9 +145,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByAchievementId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByAchievementIdOrThrow(string key)
+        public AchievementRecord GetByAchievementIdOrThrow(string key)
         {
-            if (!_recordsByAchievementId.TryGetValue(key, out Record record))
+            if (!_recordsByAchievementId.TryGetValue(key, out AchievementRecord record))
                 throw new TabbitException($"There is no record in table `Achievement` that corresponds to field `AchievementId` value {key}");
 
             return record;
@@ -174,10 +172,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<AchievementRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<AchievementRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -187,7 +185,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, AchievementRecord Row) Current
                 => (_rows[_at].AchievementId, _rows[_at]);
         }
 
@@ -212,7 +210,7 @@ namespace Clover.Data
         /// It does not replace `FindByAchievementId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByAchievementIdOrThrow(key);
+        public AchievementRecord this[string key] => GetByAchievementIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -255,10 +253,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<AchievementRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new AchievementRecord());
 
             foreach (var column in columns)
             {
@@ -342,7 +340,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByAchievementId = new Dictionary<string, Record>(count);
+            var recordsByAchievementId = new Dictionary<string, AchievementRecord>(count);
             foreach (var record in records)
                 recordsByAchievementId.Add(record.AchievementId, record);
 

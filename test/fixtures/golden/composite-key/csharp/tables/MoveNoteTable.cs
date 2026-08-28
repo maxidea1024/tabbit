@@ -18,60 +18,58 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.CompositeKey
 {
+    [System.Serializable]
+    public partial class MoveNoteRecord
+    {
+        #region Values
+        /// <summary>
+        /// the index, and a reference
+        /// </summary>
+        public int MoveId => _moveId_Move_index;
+        public MoveRecord MoveByMoveId => _moveId;
+
+        /// <summary>
+        /// anything
+        /// </summary>
+        public string Note => _note;
+
+        /// <summary>
+        /// padding, so every table is one width
+        /// </summary>
+        public int Pad1 => _pad1;
+        #endregion
+
+        #region Reference wiring
+        public void SetReference_MoveId_INTERNAL(MoveRecord value) => _moveId = value;
+        #endregion
+
+        #region Storage
+        internal MoveRecord _moveId;
+        internal int _moveId_Move_index;
+        public bool _moveId_F = false;
+        internal string _note = "";
+        internal int _pad1;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"MoveId\":"); ToStringHelper.ToString(MoveId, sb);
+            sb.Append(",\"Note\":"); ToStringHelper.ToString(Note, sb);
+            sb.Append(",\"Pad1\":"); ToStringHelper.ToString(Pad1, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// First column is the index and it is a reference to an int-keyed table.
     /// </summary>
     [System.Serializable]
-    public partial class MoveNoteTable : IEnumerable<MoveNoteTable.Record>
+    public partial class MoveNoteTable : IEnumerable<MoveNoteRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// the index, and a reference
-            /// </summary>
-            public int MoveId => _moveId_Move_index;
-            public MoveTable.Record MoveByMoveId => _moveId;
-
-            /// <summary>
-            /// anything
-            /// </summary>
-            public string Note => _note;
-
-            /// <summary>
-            /// padding, so every table is one width
-            /// </summary>
-            public int Pad1 => _pad1;
-            #endregion
-
-            #region Reference wiring
-            public void SetReference_MoveId_INTERNAL(MoveTable.Record value) => _moveId = value;
-            #endregion
-
-            #region Storage
-            internal MoveTable.Record _moveId;
-            internal int _moveId_Move_index;
-            public bool _moveId_F = false;
-            internal string _note = "";
-            internal int _pad1;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"MoveId\":"); ToStringHelper.ToString(MoveId, sb);
-                sb.Append(",\"Note\":"); ToStringHelper.ToString(Note, sb);
-                sb.Append(",\"Pad1\":"); ToStringHelper.ToString(Pad1, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -98,8 +96,8 @@ namespace Tabbit.Fixtures.CompositeKey
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<MoveNoteRecord> Records => _records;
+        private List<MoveNoteRecord> _records = new List<MoveNoteRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -116,16 +114,16 @@ namespace Tabbit.Fixtures.CompositeKey
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<MoveNoteRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<MoveNoteRecord> IEnumerable<MoveNoteRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'MoveId'
-        public Dictionary<int, Record> RecordsByMoveId => _recordsByMoveId;
-        private Dictionary<int, Record> _recordsByMoveId = new Dictionary<int, Record>();
+        public Dictionary<int, MoveNoteRecord> RecordsByMoveId => _recordsByMoveId;
+        private Dictionary<int, MoveNoteRecord> _recordsByMoveId = new Dictionary<int, MoveNoteRecord>();
 
         /// <summary>
         /// The row with this `MoveId`, or null when the table has none.
@@ -135,8 +133,8 @@ namespace Tabbit.Fixtures.CompositeKey
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByMoveId(int key)
-            => _recordsByMoveId.TryGetValue(key, out Record record) ? record : null;
+        public MoveNoteRecord FindByMoveId(int key)
+            => _recordsByMoveId.TryGetValue(key, out MoveNoteRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `MoveId`, or a thrown exception naming what was
@@ -147,9 +145,9 @@ namespace Tabbit.Fixtures.CompositeKey
         /// says it throws, because a caller reading `GetByMoveId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByMoveIdOrThrow(int key)
+        public MoveNoteRecord GetByMoveIdOrThrow(int key)
         {
-            if (!_recordsByMoveId.TryGetValue(key, out Record record))
+            if (!_recordsByMoveId.TryGetValue(key, out MoveNoteRecord record))
                 throw new TabbitException($"There is no record in table `MoveNote` that corresponds to field `MoveId` value {key}");
 
             return record;
@@ -174,10 +172,10 @@ namespace Tabbit.Fixtures.CompositeKey
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<MoveNoteRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<MoveNoteRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -187,7 +185,7 @@ namespace Tabbit.Fixtures.CompositeKey
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, MoveNoteRecord Row) Current
                 => (_rows[_at].MoveId, _rows[_at]);
         }
 
@@ -212,7 +210,7 @@ namespace Tabbit.Fixtures.CompositeKey
         /// It does not replace `FindByMoveId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByMoveIdOrThrow(key);
+        public MoveNoteRecord this[int key] => GetByMoveIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -255,10 +253,10 @@ namespace Tabbit.Fixtures.CompositeKey
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<MoveNoteRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new MoveNoteRecord());
 
             foreach (var column in columns)
             {
@@ -278,7 +276,7 @@ namespace Tabbit.Fixtures.CompositeKey
                             {
                                 var record = records[i++];
                                 record._moveId_Move_index = value;
-                                record._moveId = default(MoveTable.Record); // will be assigned.
+                                record._moveId = default(MoveRecord); // will be assigned.
                                 record._moveId_F = false;
                             } while (--n > 0);
                         }
@@ -328,7 +326,7 @@ namespace Tabbit.Fixtures.CompositeKey
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByMoveId = new Dictionary<int, Record>(count);
+            var recordsByMoveId = new Dictionary<int, MoveNoteRecord>(count);
             foreach (var record in records)
                 recordsByMoveId.Add(record.MoveId, record);
 

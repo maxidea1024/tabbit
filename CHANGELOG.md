@@ -5,6 +5,17 @@
 
 ## 0.2.0
 
+- **C#의 레코드 타입이 `ItemRecord`가 되었습니다.** 테이블 클래스 안에 중첩한
+  `ItemTable.Record`였던 것이 네임스페이스 바로 아래로 올라오고, 다른 모든 언어와 같은
+  이름이 되었습니다 ([C#/Unity](doc/languages/csharp.md) ·
+  [설계](spec/targets/csharp-record-name.md)).
+  - **파일은 그대로입니다** — `tables/ItemTable.cs` 하나에 `ItemRecord`와 `ItemTable`이
+    함께 있고, 레코드가 위에 옵니다
+  - **파괴적 변경입니다.** 타입 이름을 적던 자리를 `ItemTable.Record`에서 `ItemRecord`로
+    바꿉니다. `partial class Record`로 레코드를 확장하던 코드는 선언을
+    `partial class ItemRecord`로 옮깁니다
+  - 레코드 안의 중첩 타입은 그 자리에 있습니다 — 그룹의 원소 타입은 `ItemRecord.RewardEntry`입니다
+
 - **`.tbs` 를 쓰는 동안 오타와 타입 오류를 봅니다.** VS Code 확장이 문법을 칠하고,
   `tabbit lsp` 가 진단 · 정의로 이동(F12) · 호버 · 자동완성 · 시맨틱 토큰을 답합니다
   ([사용](doc/editor.md) · [설계](spec/ops/lsp.md)).

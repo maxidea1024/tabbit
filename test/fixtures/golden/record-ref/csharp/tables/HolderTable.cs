@@ -18,81 +18,79 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.RecordRef
 {
+    [System.Serializable]
+    public partial class HolderRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// the reference, in a record of one
+        /// </summary>
+        public MainEntry Main => _main;
+
+        /// <summary>
+        /// padding, so every table is one width
+        /// </summary>
+        public int Pad => _pad;
+
+        /// <summary>
+        /// padding, so every table is one width
+        /// </summary>
+        public int Pad2 => _pad2;
+        #endregion
+
+        /// <summary>One element of <see cref="Main"/>.</summary>
+        [System.Serializable]
+        public struct MainEntry
+        {
+            /// the reference, in a record of one
+            public int ItemId;
+            public ItemRecord ItemByItemId;
+            public bool ItemId_F;
+            /// an ordinary member beside it
+            public int Count;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"ItemId\":"); ToStringHelper.ToString(ItemId, sb);
+                sb.Append(",\"Count\":"); ToStringHelper.ToString(Count, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        #region Storage
+        internal int _index;
+        internal MainEntry _main;
+        internal int _pad;
+        internal int _pad2;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Main\":"); ToStringHelper.ToString(Main, sb);
+            sb.Append(",\"Pad\":"); ToStringHelper.ToString(Pad, sb);
+            sb.Append(",\"Pad2\":"); ToStringHelper.ToString(Pad2, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// A single record whose first member is a reference.
     /// </summary>
     [System.Serializable]
-    public partial class HolderTable : IEnumerable<HolderTable.Record>
+    public partial class HolderTable : IEnumerable<HolderRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Index => _index;
-
-            /// <summary>
-            /// the reference, in a record of one
-            /// </summary>
-            public MainEntry Main => _main;
-
-            /// <summary>
-            /// padding, so every table is one width
-            /// </summary>
-            public int Pad => _pad;
-
-            /// <summary>
-            /// padding, so every table is one width
-            /// </summary>
-            public int Pad2 => _pad2;
-            #endregion
-
-            /// <summary>One element of <see cref="Main"/>.</summary>
-            [System.Serializable]
-            public struct MainEntry
-            {
-                /// the reference, in a record of one
-                public int ItemId;
-                public ItemTable.Record ItemByItemId;
-                public bool ItemId_F;
-                /// an ordinary member beside it
-                public int Count;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"ItemId\":"); ToStringHelper.ToString(ItemId, sb);
-                    sb.Append(",\"Count\":"); ToStringHelper.ToString(Count, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            #region Storage
-            internal int _index;
-            internal MainEntry _main;
-            internal int _pad;
-            internal int _pad2;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Main\":"); ToStringHelper.ToString(Main, sb);
-                sb.Append(",\"Pad\":"); ToStringHelper.ToString(Pad, sb);
-                sb.Append(",\"Pad2\":"); ToStringHelper.ToString(Pad2, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -119,8 +117,8 @@ namespace Tabbit.Fixtures.RecordRef
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<HolderRecord> Records => _records;
+        private List<HolderRecord> _records = new List<HolderRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -137,16 +135,16 @@ namespace Tabbit.Fixtures.RecordRef
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<HolderRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<HolderRecord> IEnumerable<HolderRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+        public Dictionary<int, HolderRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<int, HolderRecord> _recordsByIndex = new Dictionary<int, HolderRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -156,8 +154,8 @@ namespace Tabbit.Fixtures.RecordRef
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(int key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public HolderRecord FindByIndex(int key)
+            => _recordsByIndex.TryGetValue(key, out HolderRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -168,9 +166,9 @@ namespace Tabbit.Fixtures.RecordRef
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(int key)
+        public HolderRecord GetByIndexOrThrow(int key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out HolderRecord record))
                 throw new TabbitException($"There is no record in table `Holder` that corresponds to field `Index` value {key}");
 
             return record;
@@ -195,10 +193,10 @@ namespace Tabbit.Fixtures.RecordRef
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<HolderRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<HolderRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -208,7 +206,7 @@ namespace Tabbit.Fixtures.RecordRef
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, HolderRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -233,7 +231,7 @@ namespace Tabbit.Fixtures.RecordRef
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIndexOrThrow(key);
+        public HolderRecord this[int key] => GetByIndexOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -276,10 +274,10 @@ namespace Tabbit.Fixtures.RecordRef
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<HolderRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new HolderRecord());
 
             foreach (var column in columns)
             {
@@ -315,7 +313,7 @@ namespace Tabbit.Fixtures.RecordRef
                             {
                                 var record = records[i++];
                                 record._main.ItemId = value;
-                                record._main.ItemByItemId = default(ItemTable.Record); // will be assigned.
+                                record._main.ItemByItemId = default(ItemRecord); // will be assigned.
                                 record._main.ItemId_F = false;
                             } while (--n > 0);
                         }
@@ -381,7 +379,7 @@ namespace Tabbit.Fixtures.RecordRef
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<int, Record>(count);
+            var recordsByIndex = new Dictionary<int, HolderRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
 

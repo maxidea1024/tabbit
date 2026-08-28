@@ -18,98 +18,96 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class EncounterTableRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string EncounterId => _encounterId;
+
+        /// <summary>
+        /// 어느 지역인가
+        /// </summary>
+        public string RegionId => _regionId_Region_index;
+        public RegionRecord RegionByRegionId => _regionId;
+
+        /// <summary>
+        /// 은둔 슬롯의 조건
+        /// </summary>
+        public string RequirementGroupId => _requirementGroupId_RequirementGroup_index;
+        public RequirementGroupRecord RequirementGroupByRequirementGroupId => _requirementGroupId;
+        /// <summary>Whether this row has a value for <see cref="RequirementGroupId"/>.</summary>
+        public bool HasRequirementGroupId => _requirementGroupIdHasValue;
+
+        /// <summary>
+        /// 어느 단계가 나오는가.
+        /// </summary>
+        public EntriesEntry[] Entries => _entries;
+        #endregion
+
+        /// <summary>One element of <see cref="Entries"/>.</summary>
+        [System.Serializable]
+        public struct EntriesEntry
+        {
+            /// 어느 단계가 나오는가.
+            public string MonsterId;
+            public MonsterRecord MonsterByMonsterId;
+            public bool MonsterId_F;
+            /// 가중치. 등급 기본값에 지역 계수를 적용한 값입니다.
+            public int Weight;
+            /// 어느 슬롯에서 나오는가.
+            public global::Wildling.Data.EncounterSlot EncounterSlot;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"MonsterId\":"); ToStringHelper.ToString(MonsterId, sb);
+                sb.Append(",\"Weight\":"); ToStringHelper.ToString(Weight, sb);
+                sb.Append(",\"EncounterSlot\":"); ToStringHelper.ToString(EncounterSlot, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        #region Reference wiring
+        public void SetReference_RegionId_INTERNAL(RegionRecord value) => _regionId = value;
+        public void SetReference_RequirementGroupId_INTERNAL(RequirementGroupRecord value) => _requirementGroupId = value;
+        #endregion
+
+        #region Storage
+        internal string _encounterId = "";
+        internal RegionRecord _regionId;
+        internal string _regionId_Region_index;
+        public bool _regionId_F = false;
+        internal RequirementGroupRecord _requirementGroupId;
+        internal string _requirementGroupId_RequirementGroup_index;
+        public bool _requirementGroupId_F = false;
+        internal bool _requirementGroupIdHasValue;
+        internal EntriesEntry[] _entries = System.Array.Empty<EntriesEntry>();
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"EncounterId\":"); ToStringHelper.ToString(EncounterId, sb);
+            sb.Append(",\"RegionId\":"); ToStringHelper.ToString(RegionId, sb);
+            sb.Append(",\"RequirementGroupId\":"); ToStringHelper.ToString(RequirementGroupId, sb);
+            sb.Append(",\"Entries\":"); ToStringHelper.ToString(Entries, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 지역별 출현 목록이다. 확률은 클라이언트가 알 필요가 없다.
     /// </summary>
     [System.Serializable]
-    public partial class EncounterTableTable : IEnumerable<EncounterTableTable.Record>
+    public partial class EncounterTableTable : IEnumerable<EncounterTableRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string EncounterId => _encounterId;
-
-            /// <summary>
-            /// 어느 지역인가
-            /// </summary>
-            public string RegionId => _regionId_Region_index;
-            public RegionTable.Record RegionByRegionId => _regionId;
-
-            /// <summary>
-            /// 은둔 슬롯의 조건
-            /// </summary>
-            public string RequirementGroupId => _requirementGroupId_RequirementGroup_index;
-            public RequirementGroupTable.Record RequirementGroupByRequirementGroupId => _requirementGroupId;
-            /// <summary>Whether this row has a value for <see cref="RequirementGroupId"/>.</summary>
-            public bool HasRequirementGroupId => _requirementGroupIdHasValue;
-
-            /// <summary>
-            /// 어느 단계가 나오는가.
-            /// </summary>
-            public EntriesEntry[] Entries => _entries;
-            #endregion
-
-            /// <summary>One element of <see cref="Entries"/>.</summary>
-            [System.Serializable]
-            public struct EntriesEntry
-            {
-                /// 어느 단계가 나오는가.
-                public string MonsterId;
-                public MonsterTable.Record MonsterByMonsterId;
-                public bool MonsterId_F;
-                /// 가중치. 등급 기본값에 지역 계수를 적용한 값입니다.
-                public int Weight;
-                /// 어느 슬롯에서 나오는가.
-                public global::Wildling.Data.EncounterSlot EncounterSlot;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"MonsterId\":"); ToStringHelper.ToString(MonsterId, sb);
-                    sb.Append(",\"Weight\":"); ToStringHelper.ToString(Weight, sb);
-                    sb.Append(",\"EncounterSlot\":"); ToStringHelper.ToString(EncounterSlot, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            #region Reference wiring
-            public void SetReference_RegionId_INTERNAL(RegionTable.Record value) => _regionId = value;
-            public void SetReference_RequirementGroupId_INTERNAL(RequirementGroupTable.Record value) => _requirementGroupId = value;
-            #endregion
-
-            #region Storage
-            internal string _encounterId = "";
-            internal RegionTable.Record _regionId;
-            internal string _regionId_Region_index;
-            public bool _regionId_F = false;
-            internal RequirementGroupTable.Record _requirementGroupId;
-            internal string _requirementGroupId_RequirementGroup_index;
-            public bool _requirementGroupId_F = false;
-            internal bool _requirementGroupIdHasValue;
-            internal EntriesEntry[] _entries = System.Array.Empty<EntriesEntry>();
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"EncounterId\":"); ToStringHelper.ToString(EncounterId, sb);
-                sb.Append(",\"RegionId\":"); ToStringHelper.ToString(RegionId, sb);
-                sb.Append(",\"RequirementGroupId\":"); ToStringHelper.ToString(RequirementGroupId, sb);
-                sb.Append(",\"Entries\":"); ToStringHelper.ToString(Entries, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -136,8 +134,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<EncounterTableRecord> Records => _records;
+        private List<EncounterTableRecord> _records = new List<EncounterTableRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -154,16 +152,16 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<EncounterTableRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<EncounterTableRecord> IEnumerable<EncounterTableRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'EncounterId'
-        public Dictionary<string, Record> RecordsByEncounterId => _recordsByEncounterId;
-        private Dictionary<string, Record> _recordsByEncounterId = new Dictionary<string, Record>();
+        public Dictionary<string, EncounterTableRecord> RecordsByEncounterId => _recordsByEncounterId;
+        private Dictionary<string, EncounterTableRecord> _recordsByEncounterId = new Dictionary<string, EncounterTableRecord>();
 
         /// <summary>
         /// The row with this `EncounterId`, or null when the table has none.
@@ -173,8 +171,8 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByEncounterId(string key)
-            => _recordsByEncounterId.TryGetValue(key, out Record record) ? record : null;
+        public EncounterTableRecord FindByEncounterId(string key)
+            => _recordsByEncounterId.TryGetValue(key, out EncounterTableRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `EncounterId`, or a thrown exception naming what was
@@ -185,9 +183,9 @@ namespace Wildling.Data
         /// says it throws, because a caller reading `GetByEncounterId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByEncounterIdOrThrow(string key)
+        public EncounterTableRecord GetByEncounterIdOrThrow(string key)
         {
-            if (!_recordsByEncounterId.TryGetValue(key, out Record record))
+            if (!_recordsByEncounterId.TryGetValue(key, out EncounterTableRecord record))
                 throw new TabbitException($"There is no record in table `EncounterTable` that corresponds to field `EncounterId` value {key}");
 
             return record;
@@ -212,10 +210,10 @@ namespace Wildling.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<EncounterTableRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<EncounterTableRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -225,7 +223,7 @@ namespace Wildling.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, EncounterTableRecord Row) Current
                 => (_rows[_at].EncounterId, _rows[_at]);
         }
 
@@ -250,7 +248,7 @@ namespace Wildling.Data
         /// It does not replace `FindByEncounterId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByEncounterIdOrThrow(key);
+        public EncounterTableRecord this[string key] => GetByEncounterIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -294,10 +292,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<EncounterTableRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new EncounterTableRecord());
 
             foreach (var column in columns)
             {
@@ -333,7 +331,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._regionId_Region_index = value;
-                                record._regionId = default(RegionTable.Record); // will be assigned.
+                                record._regionId = default(RegionRecord); // will be assigned.
                                 record._regionId_F = false;
                             } while (--n > 0);
                         }
@@ -352,7 +350,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._requirementGroupId_RequirementGroup_index = value;
-                                record._requirementGroupId = default(RequirementGroupTable.Record); // will be assigned.
+                                record._requirementGroupId = default(RequirementGroupRecord); // will be assigned.
                                 record._requirementGroupId_F = false;
                             } while (--n > 0);
                         }
@@ -364,7 +362,7 @@ namespace Wildling.Data
                             // just been given whatever was there. Putting the empty value
                             // back is what makes this path agree with the JSON one.
                             if (!records[i]._requirementGroupIdHasValue)
-                                records[i]._requirementGroupId = default(RequirementGroupTable.Record);
+                                records[i]._requirementGroupId = default(RequirementGroupRecord);
                         }
                         break;
 
@@ -376,11 +374,11 @@ namespace Wildling.Data
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._entries = new Record.EntriesEntry[elementCount];
+                            record._entries = new EncounterTableRecord.EntriesEntry[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
                                 record._entries[j].MonsterId = cursor.NextString();
-                                record._entries[j].MonsterByMonsterId = default(MonsterTable.Record); // will be assigned.
+                                record._entries[j].MonsterByMonsterId = default(MonsterRecord); // will be assigned.
                                 record._entries[j].MonsterId_F = false;
                             }
                         }
@@ -444,7 +442,7 @@ namespace Wildling.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByEncounterId = new Dictionary<string, Record>(count);
+            var recordsByEncounterId = new Dictionary<string, EncounterTableRecord>(count);
             foreach (var record in records)
                 recordsByEncounterId.Add(record.EncounterId, record);
 

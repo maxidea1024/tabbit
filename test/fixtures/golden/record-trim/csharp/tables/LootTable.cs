@@ -18,118 +18,116 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.RecordTrim
 {
+    [System.Serializable]
+    public partial class LootRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// plain column, must not move
+        /// </summary>
+        public string Name => _name;
+
+        /// <summary>
+        /// element 1
+        /// </summary>
+        public SlotEntry[] Slot => _slot;
+
+        /// <summary>
+        /// single record, not an array
+        /// </summary>
+        public PosEntry Pos => _pos;
+
+        /// <summary>
+        /// scalar serial array, element 1 - required, so the array is never empty
+        /// </summary>
+        public string[] Tag => _tag;
+        #endregion
+
+        /// <summary>One element of <see cref="Slot"/>.</summary>
+        [System.Serializable]
+        public struct SlotEntry
+        {
+            /// element 1
+            public int Id;
+            /// element 1
+            public int Count;
+            /// element 1 - a string, so the element factory has to fill it
+            public string Label;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"Id\":"); ToStringHelper.ToString(Id, sb);
+                sb.Append(",\"Count\":"); ToStringHelper.ToString(Count, sb);
+                sb.Append(",\"Label\":"); ToStringHelper.ToString(Label, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        internal static SlotEntry[] NewSlotEntryArray(int length)
+        {
+            var result = new SlotEntry[length];
+            for (int i = 0; i < result.Length; i++)
+            {
+                result[i].Label = "";
+            }
+            return result;
+        }
+
+        /// <summary>One element of <see cref="Pos"/>.</summary>
+        [System.Serializable]
+        public struct PosEntry
+        {
+            /// single record, not an array
+            public int X;
+            /// second member of it
+            public int Y;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"X\":"); ToStringHelper.ToString(X, sb);
+                sb.Append(",\"Y\":"); ToStringHelper.ToString(Y, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        #region Storage
+        internal int _index;
+        internal string _name = "";
+        internal SlotEntry[] _slot = System.Array.Empty<SlotEntry>();
+        internal PosEntry _pos;
+        internal string[] _tag = System.Array.Empty<string>();
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append(",\"Slot\":"); ToStringHelper.ToString(Slot, sb);
+            sb.Append(",\"Pos\":"); ToStringHelper.ToString(Pos, sb);
+            sb.Append(",\"Tag\":"); ToStringHelper.ToString(Tag, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// A record array trimmed at the last element the row filled in.
     /// </summary>
     [System.Serializable]
-    public partial class LootTable : IEnumerable<LootTable.Record>
+    public partial class LootTable : IEnumerable<LootRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Index => _index;
-
-            /// <summary>
-            /// plain column, must not move
-            /// </summary>
-            public string Name => _name;
-
-            /// <summary>
-            /// element 1
-            /// </summary>
-            public SlotEntry[] Slot => _slot;
-
-            /// <summary>
-            /// single record, not an array
-            /// </summary>
-            public PosEntry Pos => _pos;
-
-            /// <summary>
-            /// scalar serial array, element 1 - required, so the array is never empty
-            /// </summary>
-            public string[] Tag => _tag;
-            #endregion
-
-            /// <summary>One element of <see cref="Slot"/>.</summary>
-            [System.Serializable]
-            public struct SlotEntry
-            {
-                /// element 1
-                public int Id;
-                /// element 1
-                public int Count;
-                /// element 1 - a string, so the element factory has to fill it
-                public string Label;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"Id\":"); ToStringHelper.ToString(Id, sb);
-                    sb.Append(",\"Count\":"); ToStringHelper.ToString(Count, sb);
-                    sb.Append(",\"Label\":"); ToStringHelper.ToString(Label, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            internal static SlotEntry[] NewSlotEntryArray(int length)
-            {
-                var result = new SlotEntry[length];
-                for (int i = 0; i < result.Length; i++)
-                {
-                    result[i].Label = "";
-                }
-                return result;
-            }
-
-            /// <summary>One element of <see cref="Pos"/>.</summary>
-            [System.Serializable]
-            public struct PosEntry
-            {
-                /// single record, not an array
-                public int X;
-                /// second member of it
-                public int Y;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"X\":"); ToStringHelper.ToString(X, sb);
-                    sb.Append(",\"Y\":"); ToStringHelper.ToString(Y, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            #region Storage
-            internal int _index;
-            internal string _name = "";
-            internal SlotEntry[] _slot = System.Array.Empty<SlotEntry>();
-            internal PosEntry _pos;
-            internal string[] _tag = System.Array.Empty<string>();
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append(",\"Slot\":"); ToStringHelper.ToString(Slot, sb);
-                sb.Append(",\"Pos\":"); ToStringHelper.ToString(Pos, sb);
-                sb.Append(",\"Tag\":"); ToStringHelper.ToString(Tag, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -156,8 +154,8 @@ namespace Tabbit.Fixtures.RecordTrim
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<LootRecord> Records => _records;
+        private List<LootRecord> _records = new List<LootRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -174,16 +172,16 @@ namespace Tabbit.Fixtures.RecordTrim
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<LootRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<LootRecord> IEnumerable<LootRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+        public Dictionary<int, LootRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<int, LootRecord> _recordsByIndex = new Dictionary<int, LootRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -193,8 +191,8 @@ namespace Tabbit.Fixtures.RecordTrim
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(int key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public LootRecord FindByIndex(int key)
+            => _recordsByIndex.TryGetValue(key, out LootRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -205,9 +203,9 @@ namespace Tabbit.Fixtures.RecordTrim
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(int key)
+        public LootRecord GetByIndexOrThrow(int key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out LootRecord record))
                 throw new TabbitException($"There is no record in table `Loot` that corresponds to field `Index` value {key}");
 
             return record;
@@ -232,10 +230,10 @@ namespace Tabbit.Fixtures.RecordTrim
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<LootRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<LootRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -245,7 +243,7 @@ namespace Tabbit.Fixtures.RecordTrim
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, LootRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -270,7 +268,7 @@ namespace Tabbit.Fixtures.RecordTrim
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIndexOrThrow(key);
+        public LootRecord this[int key] => GetByIndexOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -313,10 +311,10 @@ namespace Tabbit.Fixtures.RecordTrim
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<LootRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new LootRecord());
 
             foreach (var column in columns)
             {
@@ -364,7 +362,7 @@ namespace Tabbit.Fixtures.RecordTrim
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._slot = Record.NewSlotEntryArray(elementCount);
+                            record._slot = LootRecord.NewSlotEntryArray(elementCount);
                             for (int j = 0; j < elementCount; ++j)
                             {
                                 record._slot[j].Id = cursor.NextI32();
@@ -478,7 +476,7 @@ namespace Tabbit.Fixtures.RecordTrim
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<int, Record>(count);
+            var recordsByIndex = new Dictionary<int, LootRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
 

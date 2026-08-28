@@ -18,64 +18,62 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.CompositeKey
 {
+    [System.Serializable]
+    public partial class BeastMoveRecord
+    {
+        #region Values
+        /// <summary>
+        /// a string-keyed target
+        /// </summary>
+        public string BeastId => _beastId_Beast_index;
+        public BeastRecord BeastByBeastId => _beastId;
+
+        /// <summary>
+        /// an int-keyed target
+        /// </summary>
+        public int MoveId => _moveId_Move_index;
+        public MoveRecord MoveByMoveId => _moveId;
+
+        /// <summary>
+        /// anything
+        /// </summary>
+        public int Power => _power;
+        #endregion
+
+        #region Reference wiring
+        public void SetReference_BeastId_INTERNAL(BeastRecord value) => _beastId = value;
+        public void SetReference_MoveId_INTERNAL(MoveRecord value) => _moveId = value;
+        #endregion
+
+        #region Storage
+        internal BeastRecord _beastId;
+        internal string _beastId_Beast_index;
+        public bool _beastId_F = false;
+        internal MoveRecord _moveId;
+        internal int _moveId_Move_index;
+        public bool _moveId_F = false;
+        internal int _power;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"BeastId\":"); ToStringHelper.ToString(BeastId, sb);
+            sb.Append(",\"MoveId\":"); ToStringHelper.ToString(MoveId, sb);
+            sb.Append(",\"Power\":"); ToStringHelper.ToString(Power, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// One row per pair; the key is both references taken together.
     /// </summary>
     [System.Serializable]
-    public partial class BeastMoveTable : IEnumerable<BeastMoveTable.Record>
+    public partial class BeastMoveTable : IEnumerable<BeastMoveRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// a string-keyed target
-            /// </summary>
-            public string BeastId => _beastId_Beast_index;
-            public BeastTable.Record BeastByBeastId => _beastId;
-
-            /// <summary>
-            /// an int-keyed target
-            /// </summary>
-            public int MoveId => _moveId_Move_index;
-            public MoveTable.Record MoveByMoveId => _moveId;
-
-            /// <summary>
-            /// anything
-            /// </summary>
-            public int Power => _power;
-            #endregion
-
-            #region Reference wiring
-            public void SetReference_BeastId_INTERNAL(BeastTable.Record value) => _beastId = value;
-            public void SetReference_MoveId_INTERNAL(MoveTable.Record value) => _moveId = value;
-            #endregion
-
-            #region Storage
-            internal BeastTable.Record _beastId;
-            internal string _beastId_Beast_index;
-            public bool _beastId_F = false;
-            internal MoveTable.Record _moveId;
-            internal int _moveId_Move_index;
-            public bool _moveId_F = false;
-            internal int _power;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"BeastId\":"); ToStringHelper.ToString(BeastId, sb);
-                sb.Append(",\"MoveId\":"); ToStringHelper.ToString(MoveId, sb);
-                sb.Append(",\"Power\":"); ToStringHelper.ToString(Power, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -102,8 +100,8 @@ namespace Tabbit.Fixtures.CompositeKey
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<BeastMoveRecord> Records => _records;
+        private List<BeastMoveRecord> _records = new List<BeastMoveRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -120,15 +118,15 @@ namespace Tabbit.Fixtures.CompositeKey
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<BeastMoveRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<BeastMoveRecord> IEnumerable<BeastMoveRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'BeastId and MoveId'
-        private Dictionary<string, Record> _recordsByBeastIdAndMoveId = new Dictionary<string, Record>();
+        private Dictionary<string, BeastMoveRecord> _recordsByBeastIdAndMoveId = new Dictionary<string, BeastMoveRecord>();
 
         /// <summary>Joins the columns of the `BeastId and MoveId` key into the text the map is keyed by.</summary>
         private static string KeyOfBeastIdAndMoveId(string beastIdKey, int moveIdKey)
@@ -155,16 +153,16 @@ namespace Tabbit.Fixtures.CompositeKey
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByBeastIdAndMoveId(string beastIdKey, int moveIdKey)
-            => _recordsByBeastIdAndMoveId.TryGetValue(KeyOfBeastIdAndMoveId(beastIdKey, moveIdKey), out Record record) ? record : null;
+        public BeastMoveRecord FindByBeastIdAndMoveId(string beastIdKey, int moveIdKey)
+            => _recordsByBeastIdAndMoveId.TryGetValue(KeyOfBeastIdAndMoveId(beastIdKey, moveIdKey), out BeastMoveRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `BeastId and MoveId`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetByBeastIdAndMoveIdOrThrow(string beastIdKey, int moveIdKey)
+        public BeastMoveRecord GetByBeastIdAndMoveIdOrThrow(string beastIdKey, int moveIdKey)
         {
-            if (!_recordsByBeastIdAndMoveId.TryGetValue(KeyOfBeastIdAndMoveId(beastIdKey, moveIdKey), out Record record))
+            if (!_recordsByBeastIdAndMoveId.TryGetValue(KeyOfBeastIdAndMoveId(beastIdKey, moveIdKey), out BeastMoveRecord record))
                 throw new TabbitException($"There is no record in table `BeastMove` that corresponds to field `BeastId and MoveId` value ({beastIdKey}, {moveIdKey})");
 
             return record;
@@ -182,7 +180,7 @@ namespace Tabbit.Fixtures.CompositeKey
         /// the order `GetByBeastIdAndMoveIdOrThrow` takes them in too.
         /// spec/targets/table-collection-surface.md section 5.4.
         /// </remarks>
-        public Record this[string beastIdKey, int moveIdKey]
+        public BeastMoveRecord this[string beastIdKey, int moveIdKey]
             => GetByBeastIdAndMoveIdOrThrow(beastIdKey, moveIdKey);
         #endregion // Indexing by `BeastId and MoveId`
 
@@ -227,10 +225,10 @@ namespace Tabbit.Fixtures.CompositeKey
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<BeastMoveRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new BeastMoveRecord());
 
             foreach (var column in columns)
             {
@@ -250,7 +248,7 @@ namespace Tabbit.Fixtures.CompositeKey
                             {
                                 var record = records[i++];
                                 record._beastId_Beast_index = value;
-                                record._beastId = default(BeastTable.Record); // will be assigned.
+                                record._beastId = default(BeastRecord); // will be assigned.
                                 record._beastId_F = false;
                             } while (--n > 0);
                         }
@@ -268,7 +266,7 @@ namespace Tabbit.Fixtures.CompositeKey
                             {
                                 var record = records[i++];
                                 record._moveId_Move_index = value;
-                                record._moveId = default(MoveTable.Record); // will be assigned.
+                                record._moveId = default(MoveRecord); // will be assigned.
                                 record._moveId_F = false;
                             } while (--n > 0);
                         }
@@ -299,7 +297,7 @@ namespace Tabbit.Fixtures.CompositeKey
 
                 TcbTable.CheckBlockEnd(reader, column, blockEnd);
             }
-            var recordsByBeastIdAndMoveId = new Dictionary<string, Record>(count);
+            var recordsByBeastIdAndMoveId = new Dictionary<string, BeastMoveRecord>(count);
             foreach (var record in records)
                 recordsByBeastIdAndMoveId.Add(KeyOfBeastIdAndMoveId(record.BeastId, record.MoveId), record);
 

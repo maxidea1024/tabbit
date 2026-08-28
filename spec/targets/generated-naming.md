@@ -134,7 +134,7 @@ csharp · cpp에 `AccessorName: "Tables"`를, ruby · dart에 `"tables"`를 명�
 |표기 변환|**타입은 `ToPascalCase()`, 파일은 언어 관례**입니다. 생성기마다 `AccessorType`·`AccessorFile`로 갈라 두었습니다. Go·Ruby·Dart·Rust·TypeScript는 snake/kebab 파일, 나머지는 타입과 같은 이름의 파일입니다|
 |C의 접두사|정본을 그대로 접두사로 씁니다. 기본값이 `Tables`이므로 `Tables_ItemRecord_t` 형태가 되고, 전역 식별자 공간이 걱정되는 프로젝트는 이름을 바꿔 지정합니다|
 |Unreal의 장식|기본값을 `FTables`로 두었습니다 — 엔진 관례가 접두사를 강제하므로 정본에 담습니다|
-|레코드 타입 이름|**현행 유지**입니다. 언어 관용 축이므로 이번 범위 밖입니다|
+|레코드 타입 이름|**뒤집었습니다.** 다른 언어는 모두 `{테이블}Record`를 내고 C#만 테이블 안에 중첩한 `Record`였으므로, C#을 나머지에 맞추었습니다 ([C# 레코드 이름](csharp-record-name.md))|
 
 |남은 것|왜 미루었나|
 |--|--|

@@ -18,63 +18,61 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.SerialRef
 {
+    [System.Serializable]
+    public partial class KitRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// element 1 - the row it points at
+        /// </summary>
+        public int[] Slot => _slot_Piece_index;
+        public PieceRecord[] PieceBySlot => _slot;
+
+        /// <summary>
+        /// element 1 - the target's own value
+        /// </summary>
+        public int[] Tier => _tier;
+        #endregion
+
+        #region Reference wiring
+        public void SetReference_Slot_INTERNAL(int index, PieceRecord value) => _slot[index] = value;
+        public void SetReference_Tier_INTERNAL(int index, int value) => _tier[index] = value;
+        #endregion
+
+        #region Storage
+        internal int _index;
+        internal PieceRecord[] _slot = System.Array.Empty<PieceRecord>();
+        internal int[] _slot_Piece_index = System.Array.Empty<int>();
+        public bool[] _slot_F = System.Array.Empty<bool>();
+        internal int[] _tier = System.Array.Empty<int>();
+        public int[] _tier_Piece_index = System.Array.Empty<int>();
+        public bool[] _tier_F = System.Array.Empty<bool>();
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Slot\":"); ToStringHelper.ToString(Slot, sb);
+            sb.Append(",\"Tier\":"); ToStringHelper.ToString(Tier, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// Numbered reference columns, folded into arrays.
     /// </summary>
     [System.Serializable]
-    public partial class KitTable : IEnumerable<KitTable.Record>
+    public partial class KitTable : IEnumerable<KitRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Index => _index;
-
-            /// <summary>
-            /// element 1 - the row it points at
-            /// </summary>
-            public int[] Slot => _slot_Piece_index;
-            public PieceTable.Record[] PieceBySlot => _slot;
-
-            /// <summary>
-            /// element 1 - the target's own value
-            /// </summary>
-            public int[] Tier => _tier;
-            #endregion
-
-            #region Reference wiring
-            public void SetReference_Slot_INTERNAL(int index, PieceTable.Record value) => _slot[index] = value;
-            public void SetReference_Tier_INTERNAL(int index, int value) => _tier[index] = value;
-            #endregion
-
-            #region Storage
-            internal int _index;
-            internal PieceTable.Record[] _slot = System.Array.Empty<PieceTable.Record>();
-            internal int[] _slot_Piece_index = System.Array.Empty<int>();
-            public bool[] _slot_F = System.Array.Empty<bool>();
-            internal int[] _tier = System.Array.Empty<int>();
-            public int[] _tier_Piece_index = System.Array.Empty<int>();
-            public bool[] _tier_F = System.Array.Empty<bool>();
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Slot\":"); ToStringHelper.ToString(Slot, sb);
-                sb.Append(",\"Tier\":"); ToStringHelper.ToString(Tier, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -101,8 +99,8 @@ namespace Tabbit.Fixtures.SerialRef
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<KitRecord> Records => _records;
+        private List<KitRecord> _records = new List<KitRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -119,16 +117,16 @@ namespace Tabbit.Fixtures.SerialRef
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<KitRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<KitRecord> IEnumerable<KitRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+        public Dictionary<int, KitRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<int, KitRecord> _recordsByIndex = new Dictionary<int, KitRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -138,8 +136,8 @@ namespace Tabbit.Fixtures.SerialRef
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(int key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public KitRecord FindByIndex(int key)
+            => _recordsByIndex.TryGetValue(key, out KitRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -150,9 +148,9 @@ namespace Tabbit.Fixtures.SerialRef
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(int key)
+        public KitRecord GetByIndexOrThrow(int key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out KitRecord record))
                 throw new TabbitException($"There is no record in table `Kit` that corresponds to field `Index` value {key}");
 
             return record;
@@ -177,10 +175,10 @@ namespace Tabbit.Fixtures.SerialRef
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<KitRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<KitRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -190,7 +188,7 @@ namespace Tabbit.Fixtures.SerialRef
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, KitRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -215,7 +213,7 @@ namespace Tabbit.Fixtures.SerialRef
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIndexOrThrow(key);
+        public KitRecord this[int key] => GetByIndexOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -258,10 +256,10 @@ namespace Tabbit.Fixtures.SerialRef
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<KitRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new KitRecord());
 
             foreach (var column in columns)
             {
@@ -293,13 +291,13 @@ namespace Tabbit.Fixtures.SerialRef
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._slot = new PieceTable.Record[elementCount];
+                            record._slot = new PieceRecord[elementCount];
                             record._slot_Piece_index = new int[elementCount];
                             record._slot_F = new bool[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
                                 record._slot_Piece_index[j] = cursor.NextI32();
-                                record._slot[j] = default(PieceTable.Record); // will be assigned.
+                                record._slot[j] = default(PieceRecord); // will be assigned.
                                 record._slot_F[j] = false;
                             }
                         }
@@ -337,7 +335,7 @@ namespace Tabbit.Fixtures.SerialRef
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<int, Record>(count);
+            var recordsByIndex = new Dictionary<int, KitRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
 

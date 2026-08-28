@@ -18,73 +18,71 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.RowSets
 {
+    [System.Serializable]
+    public partial class NarrowRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// in both sets
+        /// </summary>
+        public int Kept => _kept;
+
+        /// <summary>
+        /// in both sets
+        /// </summary>
+        public int Also => _also;
+
+        /// <summary>
+        /// in this set only
+        /// </summary>
+        public int Dropped => _dropped;
+        /// <summary>Whether this row has a value for <see cref="Dropped"/>.</summary>
+        public bool HasDropped => _droppedHasValue;
+
+        /// <summary>
+        /// in this set only, and required
+        /// </summary>
+        public int Firm => _firm;
+        /// <summary>Whether this row has a value for <see cref="Firm"/>.</summary>
+        public bool HasFirm => _firmHasValue;
+        #endregion
+
+        #region Storage
+        internal int _index;
+        internal int _kept;
+        internal int _also;
+        internal int _dropped;
+        internal bool _droppedHasValue;
+        internal int _firm;
+        internal bool _firmHasValue;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Kept\":"); ToStringHelper.ToString(Kept, sb);
+            sb.Append(",\"Also\":"); ToStringHelper.ToString(Also, sb);
+            sb.Append(",\"Dropped\":"); ToStringHelper.ToString(Dropped, sb);
+            sb.Append(",\"Firm\":"); ToStringHelper.ToString(Firm, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// One set holds fewer columns.
     /// </summary>
     [System.Serializable]
-    public partial class NarrowTable : IEnumerable<NarrowTable.Record>
+    public partial class NarrowTable : IEnumerable<NarrowRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Index => _index;
-
-            /// <summary>
-            /// in both sets
-            /// </summary>
-            public int Kept => _kept;
-
-            /// <summary>
-            /// in both sets
-            /// </summary>
-            public int Also => _also;
-
-            /// <summary>
-            /// in this set only
-            /// </summary>
-            public int Dropped => _dropped;
-            /// <summary>Whether this row has a value for <see cref="Dropped"/>.</summary>
-            public bool HasDropped => _droppedHasValue;
-
-            /// <summary>
-            /// in this set only, and required
-            /// </summary>
-            public int Firm => _firm;
-            /// <summary>Whether this row has a value for <see cref="Firm"/>.</summary>
-            public bool HasFirm => _firmHasValue;
-            #endregion
-
-            #region Storage
-            internal int _index;
-            internal int _kept;
-            internal int _also;
-            internal int _dropped;
-            internal bool _droppedHasValue;
-            internal int _firm;
-            internal bool _firmHasValue;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Kept\":"); ToStringHelper.ToString(Kept, sb);
-                sb.Append(",\"Also\":"); ToStringHelper.ToString(Also, sb);
-                sb.Append(",\"Dropped\":"); ToStringHelper.ToString(Dropped, sb);
-                sb.Append(",\"Firm\":"); ToStringHelper.ToString(Firm, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -111,8 +109,8 @@ namespace Tabbit.Fixtures.RowSets
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<NarrowRecord> Records => _records;
+        private List<NarrowRecord> _records = new List<NarrowRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -129,16 +127,16 @@ namespace Tabbit.Fixtures.RowSets
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<NarrowRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<NarrowRecord> IEnumerable<NarrowRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+        public Dictionary<int, NarrowRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<int, NarrowRecord> _recordsByIndex = new Dictionary<int, NarrowRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -148,8 +146,8 @@ namespace Tabbit.Fixtures.RowSets
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(int key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public NarrowRecord FindByIndex(int key)
+            => _recordsByIndex.TryGetValue(key, out NarrowRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -160,9 +158,9 @@ namespace Tabbit.Fixtures.RowSets
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(int key)
+        public NarrowRecord GetByIndexOrThrow(int key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out NarrowRecord record))
                 throw new TabbitException($"There is no record in table `Narrow` that corresponds to field `Index` value {key}");
 
             return record;
@@ -187,10 +185,10 @@ namespace Tabbit.Fixtures.RowSets
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<NarrowRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<NarrowRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -200,7 +198,7 @@ namespace Tabbit.Fixtures.RowSets
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, NarrowRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -225,7 +223,7 @@ namespace Tabbit.Fixtures.RowSets
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIndexOrThrow(key);
+        public NarrowRecord this[int key] => GetByIndexOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -269,10 +267,10 @@ namespace Tabbit.Fixtures.RowSets
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<NarrowRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new NarrowRecord());
 
             foreach (var column in columns)
             {
@@ -394,7 +392,7 @@ namespace Tabbit.Fixtures.RowSets
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<int, Record>(count);
+            var recordsByIndex = new Dictionary<int, NarrowRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
 

@@ -18,60 +18,58 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.ReferenceKeys
 {
+    [System.Serializable]
+    public partial class AnimationRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index, a string
+        /// </summary>
+        public string Index => _index;
+
+        /// <summary>
+        /// anything
+        /// </summary>
+        public float Blend => _blend;
+
+        /// <summary>
+        /// padding, so every table is one width
+        /// </summary>
+        public int Pad1 => _pad1;
+
+        /// <summary>
+        /// padding, so every table is one width
+        /// </summary>
+        public int Pad2 => _pad2;
+        #endregion
+
+        #region Storage
+        internal string _index = "";
+        internal float _blend;
+        internal int _pad1;
+        internal int _pad2;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Blend\":"); ToStringHelper.ToString(Blend, sb);
+            sb.Append(",\"Pad1\":"); ToStringHelper.ToString(Pad1, sb);
+            sb.Append(",\"Pad2\":"); ToStringHelper.ToString(Pad2, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// Keyed by name.
     /// </summary>
     [System.Serializable]
-    public partial class AnimationTable : IEnumerable<AnimationTable.Record>
+    public partial class AnimationTable : IEnumerable<AnimationRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index, a string
-            /// </summary>
-            public string Index => _index;
-
-            /// <summary>
-            /// anything
-            /// </summary>
-            public float Blend => _blend;
-
-            /// <summary>
-            /// padding, so every table is one width
-            /// </summary>
-            public int Pad1 => _pad1;
-
-            /// <summary>
-            /// padding, so every table is one width
-            /// </summary>
-            public int Pad2 => _pad2;
-            #endregion
-
-            #region Storage
-            internal string _index = "";
-            internal float _blend;
-            internal int _pad1;
-            internal int _pad2;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Blend\":"); ToStringHelper.ToString(Blend, sb);
-                sb.Append(",\"Pad1\":"); ToStringHelper.ToString(Pad1, sb);
-                sb.Append(",\"Pad2\":"); ToStringHelper.ToString(Pad2, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -98,8 +96,8 @@ namespace Tabbit.Fixtures.ReferenceKeys
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<AnimationRecord> Records => _records;
+        private List<AnimationRecord> _records = new List<AnimationRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -116,16 +114,16 @@ namespace Tabbit.Fixtures.ReferenceKeys
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<AnimationRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<AnimationRecord> IEnumerable<AnimationRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<string, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<string, Record> _recordsByIndex = new Dictionary<string, Record>();
+        public Dictionary<string, AnimationRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<string, AnimationRecord> _recordsByIndex = new Dictionary<string, AnimationRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -135,8 +133,8 @@ namespace Tabbit.Fixtures.ReferenceKeys
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(string key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public AnimationRecord FindByIndex(string key)
+            => _recordsByIndex.TryGetValue(key, out AnimationRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -147,9 +145,9 @@ namespace Tabbit.Fixtures.ReferenceKeys
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(string key)
+        public AnimationRecord GetByIndexOrThrow(string key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out AnimationRecord record))
                 throw new TabbitException($"There is no record in table `Animation` that corresponds to field `Index` value {key}");
 
             return record;
@@ -174,10 +172,10 @@ namespace Tabbit.Fixtures.ReferenceKeys
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<AnimationRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<AnimationRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -187,7 +185,7 @@ namespace Tabbit.Fixtures.ReferenceKeys
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, AnimationRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -212,7 +210,7 @@ namespace Tabbit.Fixtures.ReferenceKeys
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByIndexOrThrow(key);
+        public AnimationRecord this[string key] => GetByIndexOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -255,10 +253,10 @@ namespace Tabbit.Fixtures.ReferenceKeys
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<AnimationRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new AnimationRecord());
 
             foreach (var column in columns)
             {
@@ -336,7 +334,7 @@ namespace Tabbit.Fixtures.ReferenceKeys
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<string, Record>(count);
+            var recordsByIndex = new Dictionary<string, AnimationRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
 

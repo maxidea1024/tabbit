@@ -18,53 +18,51 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class JokerRarityWeightRecord
+    {
+        #region Values
+        /// <summary>
+        /// 희귀도
+        /// </summary>
+        public global::Clover.Data.Rarity Rarity => _rarity;
+
+        /// <summary>
+        /// 백분율 가중치
+        /// </summary>
+        public int Weight => _weight;
+
+        /// <summary>
+        /// 이 희귀도의 종수
+        /// </summary>
+        public int Count => _count;
+        #endregion
+
+        #region Storage
+        internal global::Clover.Data.Rarity _rarity;
+        internal int _weight;
+        internal int _count;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Rarity\":"); ToStringHelper.ToString(Rarity, sb);
+            sb.Append(",\"Weight\":"); ToStringHelper.ToString(Weight, sb);
+            sb.Append(",\"Count\":"); ToStringHelper.ToString(Count, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 상점에 조커가 왔을 때 희귀도를 정하는 추첨입니다. 전설은 상점에 나오지 않습니다.
     /// </summary>
     [System.Serializable]
-    public partial class JokerRarityWeightTable : IEnumerable<JokerRarityWeightTable.Record>
+    public partial class JokerRarityWeightTable : IEnumerable<JokerRarityWeightRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 희귀도
-            /// </summary>
-            public global::Clover.Data.Rarity Rarity => _rarity;
-
-            /// <summary>
-            /// 백분율 가중치
-            /// </summary>
-            public int Weight => _weight;
-
-            /// <summary>
-            /// 이 희귀도의 종수
-            /// </summary>
-            public int Count => _count;
-            #endregion
-
-            #region Storage
-            internal global::Clover.Data.Rarity _rarity;
-            internal int _weight;
-            internal int _count;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Rarity\":"); ToStringHelper.ToString(Rarity, sb);
-                sb.Append(",\"Weight\":"); ToStringHelper.ToString(Weight, sb);
-                sb.Append(",\"Count\":"); ToStringHelper.ToString(Count, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -91,8 +89,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<JokerRarityWeightRecord> Records => _records;
+        private List<JokerRarityWeightRecord> _records = new List<JokerRarityWeightRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -109,16 +107,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<JokerRarityWeightRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<JokerRarityWeightRecord> IEnumerable<JokerRarityWeightRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Rarity'
-        public Dictionary<global::Clover.Data.Rarity, Record> RecordsByRarity => _recordsByRarity;
-        private Dictionary<global::Clover.Data.Rarity, Record> _recordsByRarity = new Dictionary<global::Clover.Data.Rarity, Record>();
+        public Dictionary<global::Clover.Data.Rarity, JokerRarityWeightRecord> RecordsByRarity => _recordsByRarity;
+        private Dictionary<global::Clover.Data.Rarity, JokerRarityWeightRecord> _recordsByRarity = new Dictionary<global::Clover.Data.Rarity, JokerRarityWeightRecord>();
 
         /// <summary>
         /// The row with this `Rarity`, or null when the table has none.
@@ -128,8 +126,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByRarity(global::Clover.Data.Rarity key)
-            => _recordsByRarity.TryGetValue(key, out Record record) ? record : null;
+        public JokerRarityWeightRecord FindByRarity(global::Clover.Data.Rarity key)
+            => _recordsByRarity.TryGetValue(key, out JokerRarityWeightRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Rarity`, or a thrown exception naming what was
@@ -140,9 +138,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByRarity(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByRarityOrThrow(global::Clover.Data.Rarity key)
+        public JokerRarityWeightRecord GetByRarityOrThrow(global::Clover.Data.Rarity key)
         {
-            if (!_recordsByRarity.TryGetValue(key, out Record record))
+            if (!_recordsByRarity.TryGetValue(key, out JokerRarityWeightRecord record))
                 throw new TabbitException($"There is no record in table `JokerRarityWeight` that corresponds to field `Rarity` value {key}");
 
             return record;
@@ -167,10 +165,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<JokerRarityWeightRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<JokerRarityWeightRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -180,7 +178,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (global::Clover.Data.Rarity Key, Record Row) Current
+            public (global::Clover.Data.Rarity Key, JokerRarityWeightRecord Row) Current
                 => (_rows[_at].Rarity, _rows[_at]);
         }
 
@@ -205,7 +203,7 @@ namespace Clover.Data
         /// It does not replace `FindByRarity`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[global::Clover.Data.Rarity key] => GetByRarityOrThrow(key);
+        public JokerRarityWeightRecord this[global::Clover.Data.Rarity key] => GetByRarityOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -248,10 +246,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<JokerRarityWeightRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new JokerRarityWeightRecord());
 
             foreach (var column in columns)
             {
@@ -319,7 +317,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByRarity = new Dictionary<global::Clover.Data.Rarity, Record>(count);
+            var recordsByRarity = new Dictionary<global::Clover.Data.Rarity, JokerRarityWeightRecord>(count);
             foreach (var record in records)
                 recordsByRarity.Add(record.Rarity, record);
 

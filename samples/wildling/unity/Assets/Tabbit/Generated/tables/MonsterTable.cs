@@ -18,190 +18,188 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class MonsterRecord
+    {
+        #region Values
+        /// <summary>
+        /// 종과 단계를 함께 가리키는 식별자
+        /// </summary>
+        public string MonsterId => _monsterId;
+
+        /// <summary>
+        /// 운영 도구가 쓰는 짧은 코드
+        /// </summary>
+        public string DisplayCode => _displayCode;
+
+        /// <summary>
+        /// 같은 종을 묶는 식별자
+        /// </summary>
+        public string SpeciesId => _speciesId;
+
+        /// <summary>
+        /// 각성 단계
+        /// </summary>
+        public int Stage => _stage;
+
+        /// <summary>
+        /// 표시 이름
+        /// </summary>
+        public string Name => _name;
+
+        /// <summary>
+        /// 기록부 설명
+        /// </summary>
+        public string Description => _description;
+
+        /// <summary>
+        /// 속성
+        /// </summary>
+        public global::Wildling.Data.Element Element => _element;
+
+        /// <summary>
+        /// 희소성. 종의 성질이고 변하지 않는다
+        /// </summary>
+        public global::Wildling.Data.Grade Grade => _grade;
+
+        /// <summary>
+        /// 전투에서의 역할
+        /// </summary>
+        public global::Wildling.Data.Role Role => _role;
+
+        /// <summary>
+        /// 1레벨 기준 능력치
+        /// </summary>
+        public BaseEntry Base => _base;
+
+        /// <summary>
+        /// 서식 지역 플래그
+        /// </summary>
+        public long Habitat => _habitat;
+
+        /// <summary>
+        /// 이 종이 도달할 수 있는 최대 단계
+        /// </summary>
+        public int MaxStage => _maxStage;
+
+        /// <summary>
+        /// 기록부와 편성 화면의 아이콘
+        /// </summary>
+        public string Icon => _icon;
+
+        /// <summary>
+        /// 연출 보정. 대부분의 종은 비운다
+        /// </summary>
+        public ModelOffsetEntry ModelOffset => _modelOffset;
+
+        /// <summary>
+        /// 검색 태그
+        /// </summary>
+        public string[] Tags => _tags;
+        #endregion
+
+        /// <summary>One element of <see cref="Base"/>.</summary>
+        [System.Serializable]
+        public struct BaseEntry
+        {
+            /// 1레벨 기준 능력치
+            public int Hp;
+            /// 공격
+            public int Attack;
+            /// 방어
+            public int Defense;
+            /// 행동 순서
+            public int Speed;
+            /// 치명타 확률. 만분율
+            public int CritRate;
+            /// 치명타 배수. 만분율
+            public int CritPower;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"Hp\":"); ToStringHelper.ToString(Hp, sb);
+                sb.Append(",\"Attack\":"); ToStringHelper.ToString(Attack, sb);
+                sb.Append(",\"Defense\":"); ToStringHelper.ToString(Defense, sb);
+                sb.Append(",\"Speed\":"); ToStringHelper.ToString(Speed, sb);
+                sb.Append(",\"CritRate\":"); ToStringHelper.ToString(CritRate, sb);
+                sb.Append(",\"CritPower\":"); ToStringHelper.ToString(CritPower, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        /// <summary>One element of <see cref="ModelOffset"/>.</summary>
+        [System.Serializable]
+        public struct ModelOffsetEntry
+        {
+            /// 연출 보정. 대부분의 종은 비운다
+            public float X;
+            /// 연출 보정. 대부분의 종은 비운다
+            public float Y;
+            /// 연출 보정. 대부분의 종은 비운다
+            public float Z;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"X\":"); ToStringHelper.ToString(X, sb);
+                sb.Append(",\"Y\":"); ToStringHelper.ToString(Y, sb);
+                sb.Append(",\"Z\":"); ToStringHelper.ToString(Z, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        #region Storage
+        internal string _monsterId = "";
+        internal string _displayCode = "";
+        internal string _speciesId = "";
+        internal int _stage;
+        internal string _name = "";
+        internal string _description = "";
+        internal global::Wildling.Data.Element _element;
+        internal global::Wildling.Data.Grade _grade;
+        internal global::Wildling.Data.Role _role;
+        internal BaseEntry _base;
+        internal long _habitat;
+        internal int _maxStage;
+        internal string _icon = "";
+        internal ModelOffsetEntry _modelOffset;
+        internal string[] _tags = System.Array.Empty<string>();
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"MonsterId\":"); ToStringHelper.ToString(MonsterId, sb);
+            sb.Append(",\"DisplayCode\":"); ToStringHelper.ToString(DisplayCode, sb);
+            sb.Append(",\"SpeciesId\":"); ToStringHelper.ToString(SpeciesId, sb);
+            sb.Append(",\"Stage\":"); ToStringHelper.ToString(Stage, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append(",\"Description\":"); ToStringHelper.ToString(Description, sb);
+            sb.Append(",\"Element\":"); ToStringHelper.ToString(Element, sb);
+            sb.Append(",\"Grade\":"); ToStringHelper.ToString(Grade, sb);
+            sb.Append(",\"Role\":"); ToStringHelper.ToString(Role, sb);
+            sb.Append(",\"Base\":"); ToStringHelper.ToString(Base, sb);
+            sb.Append(",\"Habitat\":"); ToStringHelper.ToString(Habitat, sb);
+            sb.Append(",\"MaxStage\":"); ToStringHelper.ToString(MaxStage, sb);
+            sb.Append(",\"Icon\":"); ToStringHelper.ToString(Icon, sb);
+            sb.Append(",\"ModelOffset\":"); ToStringHelper.ToString(ModelOffset, sb);
+            sb.Append(",\"Tags\":"); ToStringHelper.ToString(Tags, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 종의 한 단계이다. 같은 종의 1단과 2단은 다른 행이다.
     /// </summary>
     [System.Serializable]
-    public partial class MonsterTable : IEnumerable<MonsterTable.Record>
+    public partial class MonsterTable : IEnumerable<MonsterRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 종과 단계를 함께 가리키는 식별자
-            /// </summary>
-            public string MonsterId => _monsterId;
-
-            /// <summary>
-            /// 운영 도구가 쓰는 짧은 코드
-            /// </summary>
-            public string DisplayCode => _displayCode;
-
-            /// <summary>
-            /// 같은 종을 묶는 식별자
-            /// </summary>
-            public string SpeciesId => _speciesId;
-
-            /// <summary>
-            /// 각성 단계
-            /// </summary>
-            public int Stage => _stage;
-
-            /// <summary>
-            /// 표시 이름
-            /// </summary>
-            public string Name => _name;
-
-            /// <summary>
-            /// 기록부 설명
-            /// </summary>
-            public string Description => _description;
-
-            /// <summary>
-            /// 속성
-            /// </summary>
-            public global::Wildling.Data.Element Element => _element;
-
-            /// <summary>
-            /// 희소성. 종의 성질이고 변하지 않는다
-            /// </summary>
-            public global::Wildling.Data.Grade Grade => _grade;
-
-            /// <summary>
-            /// 전투에서의 역할
-            /// </summary>
-            public global::Wildling.Data.Role Role => _role;
-
-            /// <summary>
-            /// 1레벨 기준 능력치
-            /// </summary>
-            public BaseEntry Base => _base;
-
-            /// <summary>
-            /// 서식 지역 플래그
-            /// </summary>
-            public long Habitat => _habitat;
-
-            /// <summary>
-            /// 이 종이 도달할 수 있는 최대 단계
-            /// </summary>
-            public int MaxStage => _maxStage;
-
-            /// <summary>
-            /// 기록부와 편성 화면의 아이콘
-            /// </summary>
-            public string Icon => _icon;
-
-            /// <summary>
-            /// 연출 보정. 대부분의 종은 비운다
-            /// </summary>
-            public ModelOffsetEntry ModelOffset => _modelOffset;
-
-            /// <summary>
-            /// 검색 태그
-            /// </summary>
-            public string[] Tags => _tags;
-            #endregion
-
-            /// <summary>One element of <see cref="Base"/>.</summary>
-            [System.Serializable]
-            public struct BaseEntry
-            {
-                /// 1레벨 기준 능력치
-                public int Hp;
-                /// 공격
-                public int Attack;
-                /// 방어
-                public int Defense;
-                /// 행동 순서
-                public int Speed;
-                /// 치명타 확률. 만분율
-                public int CritRate;
-                /// 치명타 배수. 만분율
-                public int CritPower;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"Hp\":"); ToStringHelper.ToString(Hp, sb);
-                    sb.Append(",\"Attack\":"); ToStringHelper.ToString(Attack, sb);
-                    sb.Append(",\"Defense\":"); ToStringHelper.ToString(Defense, sb);
-                    sb.Append(",\"Speed\":"); ToStringHelper.ToString(Speed, sb);
-                    sb.Append(",\"CritRate\":"); ToStringHelper.ToString(CritRate, sb);
-                    sb.Append(",\"CritPower\":"); ToStringHelper.ToString(CritPower, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            /// <summary>One element of <see cref="ModelOffset"/>.</summary>
-            [System.Serializable]
-            public struct ModelOffsetEntry
-            {
-                /// 연출 보정. 대부분의 종은 비운다
-                public float X;
-                /// 연출 보정. 대부분의 종은 비운다
-                public float Y;
-                /// 연출 보정. 대부분의 종은 비운다
-                public float Z;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"X\":"); ToStringHelper.ToString(X, sb);
-                    sb.Append(",\"Y\":"); ToStringHelper.ToString(Y, sb);
-                    sb.Append(",\"Z\":"); ToStringHelper.ToString(Z, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            #region Storage
-            internal string _monsterId = "";
-            internal string _displayCode = "";
-            internal string _speciesId = "";
-            internal int _stage;
-            internal string _name = "";
-            internal string _description = "";
-            internal global::Wildling.Data.Element _element;
-            internal global::Wildling.Data.Grade _grade;
-            internal global::Wildling.Data.Role _role;
-            internal BaseEntry _base;
-            internal long _habitat;
-            internal int _maxStage;
-            internal string _icon = "";
-            internal ModelOffsetEntry _modelOffset;
-            internal string[] _tags = System.Array.Empty<string>();
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"MonsterId\":"); ToStringHelper.ToString(MonsterId, sb);
-                sb.Append(",\"DisplayCode\":"); ToStringHelper.ToString(DisplayCode, sb);
-                sb.Append(",\"SpeciesId\":"); ToStringHelper.ToString(SpeciesId, sb);
-                sb.Append(",\"Stage\":"); ToStringHelper.ToString(Stage, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append(",\"Description\":"); ToStringHelper.ToString(Description, sb);
-                sb.Append(",\"Element\":"); ToStringHelper.ToString(Element, sb);
-                sb.Append(",\"Grade\":"); ToStringHelper.ToString(Grade, sb);
-                sb.Append(",\"Role\":"); ToStringHelper.ToString(Role, sb);
-                sb.Append(",\"Base\":"); ToStringHelper.ToString(Base, sb);
-                sb.Append(",\"Habitat\":"); ToStringHelper.ToString(Habitat, sb);
-                sb.Append(",\"MaxStage\":"); ToStringHelper.ToString(MaxStage, sb);
-                sb.Append(",\"Icon\":"); ToStringHelper.ToString(Icon, sb);
-                sb.Append(",\"ModelOffset\":"); ToStringHelper.ToString(ModelOffset, sb);
-                sb.Append(",\"Tags\":"); ToStringHelper.ToString(Tags, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -228,8 +226,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<MonsterRecord> Records => _records;
+        private List<MonsterRecord> _records = new List<MonsterRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -246,16 +244,16 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<MonsterRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<MonsterRecord> IEnumerable<MonsterRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'MonsterId'
-        public Dictionary<string, Record> RecordsByMonsterId => _recordsByMonsterId;
-        private Dictionary<string, Record> _recordsByMonsterId = new Dictionary<string, Record>();
+        public Dictionary<string, MonsterRecord> RecordsByMonsterId => _recordsByMonsterId;
+        private Dictionary<string, MonsterRecord> _recordsByMonsterId = new Dictionary<string, MonsterRecord>();
 
         /// <summary>
         /// The row with this `MonsterId`, or null when the table has none.
@@ -265,8 +263,8 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByMonsterId(string key)
-            => _recordsByMonsterId.TryGetValue(key, out Record record) ? record : null;
+        public MonsterRecord FindByMonsterId(string key)
+            => _recordsByMonsterId.TryGetValue(key, out MonsterRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `MonsterId`, or a thrown exception naming what was
@@ -277,9 +275,9 @@ namespace Wildling.Data
         /// says it throws, because a caller reading `GetByMonsterId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByMonsterIdOrThrow(string key)
+        public MonsterRecord GetByMonsterIdOrThrow(string key)
         {
-            if (!_recordsByMonsterId.TryGetValue(key, out Record record))
+            if (!_recordsByMonsterId.TryGetValue(key, out MonsterRecord record))
                 throw new TabbitException($"There is no record in table `Monster` that corresponds to field `MonsterId` value {key}");
 
             return record;
@@ -304,10 +302,10 @@ namespace Wildling.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<MonsterRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<MonsterRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -317,7 +315,7 @@ namespace Wildling.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, MonsterRecord Row) Current
                 => (_rows[_at].MonsterId, _rows[_at]);
         }
 
@@ -342,11 +340,11 @@ namespace Wildling.Data
         /// It does not replace `FindByMonsterId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByMonsterIdOrThrow(key);
+        public MonsterRecord this[string key] => GetByMonsterIdOrThrow(key);
 
         #region Indexing by 'DisplayCode'
-        public Dictionary<string, Record> RecordsByDisplayCode => _recordsByDisplayCode;
-        private Dictionary<string, Record> _recordsByDisplayCode = new Dictionary<string, Record>();
+        public Dictionary<string, MonsterRecord> RecordsByDisplayCode => _recordsByDisplayCode;
+        private Dictionary<string, MonsterRecord> _recordsByDisplayCode = new Dictionary<string, MonsterRecord>();
 
         /// <summary>
         /// The row with this `DisplayCode`, or null when the table has none.
@@ -356,8 +354,8 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByDisplayCode(string key)
-            => _recordsByDisplayCode.TryGetValue(key, out Record record) ? record : null;
+        public MonsterRecord FindByDisplayCode(string key)
+            => _recordsByDisplayCode.TryGetValue(key, out MonsterRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `DisplayCode`, or a thrown exception naming what was
@@ -368,9 +366,9 @@ namespace Wildling.Data
         /// says it throws, because a caller reading `GetByDisplayCode(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByDisplayCodeOrThrow(string key)
+        public MonsterRecord GetByDisplayCodeOrThrow(string key)
         {
-            if (!_recordsByDisplayCode.TryGetValue(key, out Record record))
+            if (!_recordsByDisplayCode.TryGetValue(key, out MonsterRecord record))
                 throw new TabbitException($"There is no record in table `Monster` that corresponds to field `DisplayCode` value {key}");
 
             return record;
@@ -421,10 +419,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<MonsterRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new MonsterRecord());
 
             foreach (var column in columns)
             {
@@ -772,10 +770,10 @@ namespace Wildling.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByMonsterId = new Dictionary<string, Record>(count);
+            var recordsByMonsterId = new Dictionary<string, MonsterRecord>(count);
             foreach (var record in records)
                 recordsByMonsterId.Add(record.MonsterId, record);
-            var recordsByDisplayCode = new Dictionary<string, Record>(count);
+            var recordsByDisplayCode = new Dictionary<string, MonsterRecord>(count);
             foreach (var record in records)
                 recordsByDisplayCode.Add(record.DisplayCode, record);
 

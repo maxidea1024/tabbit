@@ -18,88 +18,86 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class SkillGrowthRecord
+    {
+        #region Values
+        /// <summary>
+        /// 어느 스킬인가
+        /// </summary>
+        public string SkillId => _skillId_Skill_index;
+        public SkillRecord SkillBySkillId => _skillId;
+
+        /// <summary>
+        /// 스킬 레벨
+        /// </summary>
+        public int Level => _level;
+
+        /// <summary>
+        /// 효과 배수. 만분율
+        /// </summary>
+        public int PowerFactor => _powerFactor;
+
+        /// <summary>
+        /// 소모 재화
+        /// </summary>
+        public CostsEntry[] Costs => _costs;
+        #endregion
+
+        /// <summary>One element of <see cref="Costs"/>.</summary>
+        [System.Serializable]
+        public struct CostsEntry
+        {
+            /// 소모 재화
+            public string CurrencyId;
+            public CurrencyRecord CurrencyByCurrencyId;
+            public bool CurrencyId_F;
+            /// 첫째 소모 수량
+            public int Amount;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"CurrencyId\":"); ToStringHelper.ToString(CurrencyId, sb);
+                sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        #region Reference wiring
+        public void SetReference_SkillId_INTERNAL(SkillRecord value) => _skillId = value;
+        #endregion
+
+        #region Storage
+        internal SkillRecord _skillId;
+        internal string _skillId_Skill_index;
+        public bool _skillId_F = false;
+        internal int _level;
+        internal int _powerFactor;
+        internal CostsEntry[] _costs = System.Array.Empty<CostsEntry>();
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"SkillId\":"); ToStringHelper.ToString(SkillId, sb);
+            sb.Append(",\"Level\":"); ToStringHelper.ToString(Level, sb);
+            sb.Append(",\"PowerFactor\":"); ToStringHelper.ToString(PowerFactor, sb);
+            sb.Append(",\"Costs\":"); ToStringHelper.ToString(Costs, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 스킬 레벨별 효과와 재료이다.
     /// </summary>
     [System.Serializable]
-    public partial class SkillGrowthTable : IEnumerable<SkillGrowthTable.Record>
+    public partial class SkillGrowthTable : IEnumerable<SkillGrowthRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 어느 스킬인가
-            /// </summary>
-            public string SkillId => _skillId_Skill_index;
-            public SkillTable.Record SkillBySkillId => _skillId;
-
-            /// <summary>
-            /// 스킬 레벨
-            /// </summary>
-            public int Level => _level;
-
-            /// <summary>
-            /// 효과 배수. 만분율
-            /// </summary>
-            public int PowerFactor => _powerFactor;
-
-            /// <summary>
-            /// 소모 재화
-            /// </summary>
-            public CostsEntry[] Costs => _costs;
-            #endregion
-
-            /// <summary>One element of <see cref="Costs"/>.</summary>
-            [System.Serializable]
-            public struct CostsEntry
-            {
-                /// 소모 재화
-                public string CurrencyId;
-                public CurrencyTable.Record CurrencyByCurrencyId;
-                public bool CurrencyId_F;
-                /// 첫째 소모 수량
-                public int Amount;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"CurrencyId\":"); ToStringHelper.ToString(CurrencyId, sb);
-                    sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            #region Reference wiring
-            public void SetReference_SkillId_INTERNAL(SkillTable.Record value) => _skillId = value;
-            #endregion
-
-            #region Storage
-            internal SkillTable.Record _skillId;
-            internal string _skillId_Skill_index;
-            public bool _skillId_F = false;
-            internal int _level;
-            internal int _powerFactor;
-            internal CostsEntry[] _costs = System.Array.Empty<CostsEntry>();
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"SkillId\":"); ToStringHelper.ToString(SkillId, sb);
-                sb.Append(",\"Level\":"); ToStringHelper.ToString(Level, sb);
-                sb.Append(",\"PowerFactor\":"); ToStringHelper.ToString(PowerFactor, sb);
-                sb.Append(",\"Costs\":"); ToStringHelper.ToString(Costs, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -126,8 +124,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<SkillGrowthRecord> Records => _records;
+        private List<SkillGrowthRecord> _records = new List<SkillGrowthRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -144,15 +142,15 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<SkillGrowthRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<SkillGrowthRecord> IEnumerable<SkillGrowthRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'SkillId and Level'
-        private Dictionary<string, Record> _recordsBySkillIdAndLevel = new Dictionary<string, Record>();
+        private Dictionary<string, SkillGrowthRecord> _recordsBySkillIdAndLevel = new Dictionary<string, SkillGrowthRecord>();
 
         /// <summary>Joins the columns of the `SkillId and Level` key into the text the map is keyed by.</summary>
         private static string KeyOfSkillIdAndLevel(string skillIdKey, int levelKey)
@@ -179,16 +177,16 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindBySkillIdAndLevel(string skillIdKey, int levelKey)
-            => _recordsBySkillIdAndLevel.TryGetValue(KeyOfSkillIdAndLevel(skillIdKey, levelKey), out Record record) ? record : null;
+        public SkillGrowthRecord FindBySkillIdAndLevel(string skillIdKey, int levelKey)
+            => _recordsBySkillIdAndLevel.TryGetValue(KeyOfSkillIdAndLevel(skillIdKey, levelKey), out SkillGrowthRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `SkillId and Level`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetBySkillIdAndLevelOrThrow(string skillIdKey, int levelKey)
+        public SkillGrowthRecord GetBySkillIdAndLevelOrThrow(string skillIdKey, int levelKey)
         {
-            if (!_recordsBySkillIdAndLevel.TryGetValue(KeyOfSkillIdAndLevel(skillIdKey, levelKey), out Record record))
+            if (!_recordsBySkillIdAndLevel.TryGetValue(KeyOfSkillIdAndLevel(skillIdKey, levelKey), out SkillGrowthRecord record))
                 throw new TabbitException($"There is no record in table `SkillGrowth` that corresponds to field `SkillId and Level` value ({skillIdKey}, {levelKey})");
 
             return record;
@@ -206,7 +204,7 @@ namespace Wildling.Data
         /// the order `GetBySkillIdAndLevelOrThrow` takes them in too.
         /// spec/targets/table-collection-surface.md section 5.4.
         /// </remarks>
-        public Record this[string skillIdKey, int levelKey]
+        public SkillGrowthRecord this[string skillIdKey, int levelKey]
             => GetBySkillIdAndLevelOrThrow(skillIdKey, levelKey);
         #endregion // Indexing by `SkillId and Level`
 
@@ -251,10 +249,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<SkillGrowthRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new SkillGrowthRecord());
 
             foreach (var column in columns)
             {
@@ -274,7 +272,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._skillId_Skill_index = value;
-                                record._skillId = default(SkillTable.Record); // will be assigned.
+                                record._skillId = default(SkillRecord); // will be assigned.
                                 record._skillId_F = false;
                             } while (--n > 0);
                         }
@@ -320,11 +318,11 @@ namespace Wildling.Data
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._costs = new Record.CostsEntry[elementCount];
+                            record._costs = new SkillGrowthRecord.CostsEntry[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
                                 record._costs[j].CurrencyId = cursor.NextString();
-                                record._costs[j].CurrencyByCurrencyId = default(CurrencyTable.Record); // will be assigned.
+                                record._costs[j].CurrencyByCurrencyId = default(CurrencyRecord); // will be assigned.
                                 record._costs[j].CurrencyId_F = false;
                             }
                         }
@@ -362,7 +360,7 @@ namespace Wildling.Data
 
                 TcbTable.CheckBlockEnd(reader, column, blockEnd);
             }
-            var recordsBySkillIdAndLevel = new Dictionary<string, Record>(count);
+            var recordsBySkillIdAndLevel = new Dictionary<string, SkillGrowthRecord>(count);
             foreach (var record in records)
                 recordsBySkillIdAndLevel.Add(KeyOfSkillIdAndLevel(record.SkillId, record.Level), record);
 

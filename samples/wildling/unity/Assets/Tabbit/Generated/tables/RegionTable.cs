@@ -18,123 +18,121 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class RegionRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string RegionId => _regionId;
+
+        /// <summary>
+        /// 표시 이름
+        /// </summary>
+        public string Name => _name;
+
+        /// <summary>
+        /// 진행 순서
+        /// </summary>
+        public int Order => _order;
+
+        /// <summary>
+        /// 해금 상태의 초기값
+        /// </summary>
+        public global::Wildling.Data.RegionState State => _state;
+
+        /// <summary>
+        /// 그 지역에 많은 속성
+        /// </summary>
+        public global::Wildling.Data.Element ThemeElement => _themeElement;
+
+        /// <summary>
+        /// 배경
+        /// </summary>
+        public string Background => _background;
+
+        /// <summary>
+        /// 안개 색
+        /// </summary>
+        public FogColorEntry FogColor => _fogColor;
+
+        /// <summary>
+        /// 해금 조건. 첫 지역은 비운다
+        /// </summary>
+        public string RequirementGroupId => _requirementGroupId_RequirementGroup_index;
+        public RequirementGroupRecord RequirementGroupByRequirementGroupId => _requirementGroupId;
+        /// <summary>Whether this row has a value for <see cref="RequirementGroupId"/>.</summary>
+        public bool HasRequirementGroupId => _requirementGroupIdHasValue;
+        #endregion
+
+        /// <summary>One element of <see cref="FogColor"/>.</summary>
+        [System.Serializable]
+        public struct FogColorEntry
+        {
+            /// 안개 색
+            public float R;
+            /// 안개 색
+            public float G;
+            /// 안개 색
+            public float B;
+            /// 안개 색
+            public float A;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"R\":"); ToStringHelper.ToString(R, sb);
+                sb.Append(",\"G\":"); ToStringHelper.ToString(G, sb);
+                sb.Append(",\"B\":"); ToStringHelper.ToString(B, sb);
+                sb.Append(",\"A\":"); ToStringHelper.ToString(A, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        #region Reference wiring
+        public void SetReference_RequirementGroupId_INTERNAL(RequirementGroupRecord value) => _requirementGroupId = value;
+        #endregion
+
+        #region Storage
+        internal string _regionId = "";
+        internal string _name = "";
+        internal int _order;
+        internal global::Wildling.Data.RegionState _state;
+        internal global::Wildling.Data.Element _themeElement;
+        internal string _background = "";
+        internal FogColorEntry _fogColor;
+        internal RequirementGroupRecord _requirementGroupId;
+        internal string _requirementGroupId_RequirementGroup_index;
+        public bool _requirementGroupId_F = false;
+        internal bool _requirementGroupIdHasValue;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"RegionId\":"); ToStringHelper.ToString(RegionId, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append(",\"Order\":"); ToStringHelper.ToString(Order, sb);
+            sb.Append(",\"State\":"); ToStringHelper.ToString(State, sb);
+            sb.Append(",\"ThemeElement\":"); ToStringHelper.ToString(ThemeElement, sb);
+            sb.Append(",\"Background\":"); ToStringHelper.ToString(Background, sb);
+            sb.Append(",\"FogColor\":"); ToStringHelper.ToString(FogColor, sb);
+            sb.Append(",\"RequirementGroupId\":"); ToStringHelper.ToString(RequirementGroupId, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 지역이다. 장기 진행 구조를 만든다.
     /// </summary>
     [System.Serializable]
-    public partial class RegionTable : IEnumerable<RegionTable.Record>
+    public partial class RegionTable : IEnumerable<RegionRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string RegionId => _regionId;
-
-            /// <summary>
-            /// 표시 이름
-            /// </summary>
-            public string Name => _name;
-
-            /// <summary>
-            /// 진행 순서
-            /// </summary>
-            public int Order => _order;
-
-            /// <summary>
-            /// 해금 상태의 초기값
-            /// </summary>
-            public global::Wildling.Data.RegionState State => _state;
-
-            /// <summary>
-            /// 그 지역에 많은 속성
-            /// </summary>
-            public global::Wildling.Data.Element ThemeElement => _themeElement;
-
-            /// <summary>
-            /// 배경
-            /// </summary>
-            public string Background => _background;
-
-            /// <summary>
-            /// 안개 색
-            /// </summary>
-            public FogColorEntry FogColor => _fogColor;
-
-            /// <summary>
-            /// 해금 조건. 첫 지역은 비운다
-            /// </summary>
-            public string RequirementGroupId => _requirementGroupId_RequirementGroup_index;
-            public RequirementGroupTable.Record RequirementGroupByRequirementGroupId => _requirementGroupId;
-            /// <summary>Whether this row has a value for <see cref="RequirementGroupId"/>.</summary>
-            public bool HasRequirementGroupId => _requirementGroupIdHasValue;
-            #endregion
-
-            /// <summary>One element of <see cref="FogColor"/>.</summary>
-            [System.Serializable]
-            public struct FogColorEntry
-            {
-                /// 안개 색
-                public float R;
-                /// 안개 색
-                public float G;
-                /// 안개 색
-                public float B;
-                /// 안개 색
-                public float A;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"R\":"); ToStringHelper.ToString(R, sb);
-                    sb.Append(",\"G\":"); ToStringHelper.ToString(G, sb);
-                    sb.Append(",\"B\":"); ToStringHelper.ToString(B, sb);
-                    sb.Append(",\"A\":"); ToStringHelper.ToString(A, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            #region Reference wiring
-            public void SetReference_RequirementGroupId_INTERNAL(RequirementGroupTable.Record value) => _requirementGroupId = value;
-            #endregion
-
-            #region Storage
-            internal string _regionId = "";
-            internal string _name = "";
-            internal int _order;
-            internal global::Wildling.Data.RegionState _state;
-            internal global::Wildling.Data.Element _themeElement;
-            internal string _background = "";
-            internal FogColorEntry _fogColor;
-            internal RequirementGroupTable.Record _requirementGroupId;
-            internal string _requirementGroupId_RequirementGroup_index;
-            public bool _requirementGroupId_F = false;
-            internal bool _requirementGroupIdHasValue;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"RegionId\":"); ToStringHelper.ToString(RegionId, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append(",\"Order\":"); ToStringHelper.ToString(Order, sb);
-                sb.Append(",\"State\":"); ToStringHelper.ToString(State, sb);
-                sb.Append(",\"ThemeElement\":"); ToStringHelper.ToString(ThemeElement, sb);
-                sb.Append(",\"Background\":"); ToStringHelper.ToString(Background, sb);
-                sb.Append(",\"FogColor\":"); ToStringHelper.ToString(FogColor, sb);
-                sb.Append(",\"RequirementGroupId\":"); ToStringHelper.ToString(RequirementGroupId, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -161,8 +159,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<RegionRecord> Records => _records;
+        private List<RegionRecord> _records = new List<RegionRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -179,16 +177,16 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<RegionRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<RegionRecord> IEnumerable<RegionRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'RegionId'
-        public Dictionary<string, Record> RecordsByRegionId => _recordsByRegionId;
-        private Dictionary<string, Record> _recordsByRegionId = new Dictionary<string, Record>();
+        public Dictionary<string, RegionRecord> RecordsByRegionId => _recordsByRegionId;
+        private Dictionary<string, RegionRecord> _recordsByRegionId = new Dictionary<string, RegionRecord>();
 
         /// <summary>
         /// The row with this `RegionId`, or null when the table has none.
@@ -198,8 +196,8 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByRegionId(string key)
-            => _recordsByRegionId.TryGetValue(key, out Record record) ? record : null;
+        public RegionRecord FindByRegionId(string key)
+            => _recordsByRegionId.TryGetValue(key, out RegionRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `RegionId`, or a thrown exception naming what was
@@ -210,9 +208,9 @@ namespace Wildling.Data
         /// says it throws, because a caller reading `GetByRegionId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByRegionIdOrThrow(string key)
+        public RegionRecord GetByRegionIdOrThrow(string key)
         {
-            if (!_recordsByRegionId.TryGetValue(key, out Record record))
+            if (!_recordsByRegionId.TryGetValue(key, out RegionRecord record))
                 throw new TabbitException($"There is no record in table `Region` that corresponds to field `RegionId` value {key}");
 
             return record;
@@ -237,10 +235,10 @@ namespace Wildling.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<RegionRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<RegionRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -250,7 +248,7 @@ namespace Wildling.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, RegionRecord Row) Current
                 => (_rows[_at].RegionId, _rows[_at]);
         }
 
@@ -275,7 +273,7 @@ namespace Wildling.Data
         /// It does not replace `FindByRegionId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByRegionIdOrThrow(key);
+        public RegionRecord this[string key] => GetByRegionIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -319,10 +317,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<RegionRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new RegionRecord());
 
             foreach (var column in columns)
             {
@@ -479,7 +477,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._requirementGroupId_RequirementGroup_index = value;
-                                record._requirementGroupId = default(RequirementGroupTable.Record); // will be assigned.
+                                record._requirementGroupId = default(RequirementGroupRecord); // will be assigned.
                                 record._requirementGroupId_F = false;
                             } while (--n > 0);
                         }
@@ -491,7 +489,7 @@ namespace Wildling.Data
                             // just been given whatever was there. Putting the empty value
                             // back is what makes this path agree with the JSON one.
                             if (!records[i]._requirementGroupIdHasValue)
-                                records[i]._requirementGroupId = default(RequirementGroupTable.Record);
+                                records[i]._requirementGroupId = default(RequirementGroupRecord);
                         }
                         break;
 
@@ -507,7 +505,7 @@ namespace Wildling.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByRegionId = new Dictionary<string, Record>(count);
+            var recordsByRegionId = new Dictionary<string, RegionRecord>(count);
             foreach (var record in records)
                 recordsByRegionId.Add(record.RegionId, record);
 

@@ -18,79 +18,77 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.RecordRef
 {
+    [System.Serializable]
+    public partial class BadgeRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// a string key, on the run path
+        /// </summary>
+        public MarkEntry Mark => _mark;
+
+        /// <summary>
+        /// padding, so every table is one width
+        /// </summary>
+        public int Pad => _pad;
+        #endregion
+
+        /// <summary>One element of <see cref="Mark"/>.</summary>
+        [System.Serializable]
+        public struct MarkEntry
+        {
+            /// a string key, on the run path
+            public string ClipId;
+            public ClipRecord ClipByClipId;
+            public bool ClipId_F;
+            /// a uuid key, on the run path
+            public System.Guid SealId;
+            public SealRecord SealBySealId;
+            public bool SealId_F;
+            /// an ordinary member beside them
+            public int Rank;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"ClipId\":"); ToStringHelper.ToString(ClipId, sb);
+                sb.Append(",\"SealId\":"); ToStringHelper.ToString(SealId, sb);
+                sb.Append(",\"Rank\":"); ToStringHelper.ToString(Rank, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        #region Storage
+        internal int _index;
+        internal MarkEntry _mark;
+        internal int _pad;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Mark\":"); ToStringHelper.ToString(Mark, sb);
+            sb.Append(",\"Pad\":"); ToStringHelper.ToString(Pad, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// A record of one whose members' keys are not numbers.
     /// </summary>
     [System.Serializable]
-    public partial class BadgeTable : IEnumerable<BadgeTable.Record>
+    public partial class BadgeTable : IEnumerable<BadgeRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Index => _index;
-
-            /// <summary>
-            /// a string key, on the run path
-            /// </summary>
-            public MarkEntry Mark => _mark;
-
-            /// <summary>
-            /// padding, so every table is one width
-            /// </summary>
-            public int Pad => _pad;
-            #endregion
-
-            /// <summary>One element of <see cref="Mark"/>.</summary>
-            [System.Serializable]
-            public struct MarkEntry
-            {
-                /// a string key, on the run path
-                public string ClipId;
-                public ClipTable.Record ClipByClipId;
-                public bool ClipId_F;
-                /// a uuid key, on the run path
-                public System.Guid SealId;
-                public SealTable.Record SealBySealId;
-                public bool SealId_F;
-                /// an ordinary member beside them
-                public int Rank;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"ClipId\":"); ToStringHelper.ToString(ClipId, sb);
-                    sb.Append(",\"SealId\":"); ToStringHelper.ToString(SealId, sb);
-                    sb.Append(",\"Rank\":"); ToStringHelper.ToString(Rank, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            #region Storage
-            internal int _index;
-            internal MarkEntry _mark;
-            internal int _pad;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Mark\":"); ToStringHelper.ToString(Mark, sb);
-                sb.Append(",\"Pad\":"); ToStringHelper.ToString(Pad, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -117,8 +115,8 @@ namespace Tabbit.Fixtures.RecordRef
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<BadgeRecord> Records => _records;
+        private List<BadgeRecord> _records = new List<BadgeRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -135,16 +133,16 @@ namespace Tabbit.Fixtures.RecordRef
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<BadgeRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<BadgeRecord> IEnumerable<BadgeRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+        public Dictionary<int, BadgeRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<int, BadgeRecord> _recordsByIndex = new Dictionary<int, BadgeRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -154,8 +152,8 @@ namespace Tabbit.Fixtures.RecordRef
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(int key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public BadgeRecord FindByIndex(int key)
+            => _recordsByIndex.TryGetValue(key, out BadgeRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -166,9 +164,9 @@ namespace Tabbit.Fixtures.RecordRef
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(int key)
+        public BadgeRecord GetByIndexOrThrow(int key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out BadgeRecord record))
                 throw new TabbitException($"There is no record in table `Badge` that corresponds to field `Index` value {key}");
 
             return record;
@@ -193,10 +191,10 @@ namespace Tabbit.Fixtures.RecordRef
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<BadgeRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<BadgeRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -206,7 +204,7 @@ namespace Tabbit.Fixtures.RecordRef
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, BadgeRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -231,7 +229,7 @@ namespace Tabbit.Fixtures.RecordRef
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIndexOrThrow(key);
+        public BadgeRecord this[int key] => GetByIndexOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -274,10 +272,10 @@ namespace Tabbit.Fixtures.RecordRef
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<BadgeRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new BadgeRecord());
 
             foreach (var column in columns)
             {
@@ -313,7 +311,7 @@ namespace Tabbit.Fixtures.RecordRef
                             {
                                 var record = records[i++];
                                 record._mark.ClipId = value;
-                                record._mark.ClipByClipId = default(ClipTable.Record); // will be assigned.
+                                record._mark.ClipByClipId = default(ClipRecord); // will be assigned.
                                 record._mark.ClipId_F = false;
                             } while (--n > 0);
                         }
@@ -325,7 +323,7 @@ namespace Tabbit.Fixtures.RecordRef
                         {
                             var record = records[i];
                             reader.Read(out record._mark.SealId);
-                            record._mark.SealBySealId = default(SealTable.Record); // will be assigned.
+                            record._mark.SealBySealId = default(SealRecord); // will be assigned.
                             record._mark.SealId_F = false;
                         }
                         break;
@@ -374,7 +372,7 @@ namespace Tabbit.Fixtures.RecordRef
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<int, Record>(count);
+            var recordsByIndex = new Dictionary<int, BadgeRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
 

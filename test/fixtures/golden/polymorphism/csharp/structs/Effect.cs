@@ -56,7 +56,7 @@ public sealed partial class DamageEffect : Effect
     /// conversion, and the built variant has to carry the resolved row rather than the key.
     /// </summary>
     public int ElementId;
-    public ElementTable.Record ElementByElementId;
+    public ElementRecord ElementByElementId;
 }
 
 /// <summary>

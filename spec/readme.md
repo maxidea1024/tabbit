@@ -74,6 +74,7 @@
 - [접근자 객체화 — 인스턴스와 전역 헬퍼](targets/accessor-instances.md)
 - [Cocos Creator 지원](targets/cocos-creator-support.md)
 - [상수 세트 제거](targets/constant-set-removal.md)
+- [C# 레코드 이름 — 중첩 `Record`에서 `{테이블}Record`로](targets/csharp-record-name.md)
 - [파일 내보내기 형식 — `bson` · `jsonl` · `csv` · `sqlite`](targets/export-formats.md)
 - [생성 코드의 이름 체계](targets/generated-naming.md)
 - [Godot 지원](targets/godot-support.md)

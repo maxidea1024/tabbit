@@ -69,7 +69,7 @@ namespace Wildling.Game
 
         // ------------------------------------------------------------ 탐사
 
-        private static void BuildExpedition(Transform column, App app, RegionTable.Record region)
+        private static void BuildExpedition(Transform column, App app, RegionRecord region)
         {
             var state = app.State;
             App.Section(column, "탐사");

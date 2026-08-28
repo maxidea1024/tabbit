@@ -19,91 +19,89 @@ using Tabbit.Binary;
 namespace Sprout.Tables
 {
     [System.Serializable]
-    public partial class LevelCurveTable : IEnumerable<LevelCurveTable.Record>
+    public partial class LevelCurveRecord
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Id => _id;
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Id => _id;
 
-            /// <summary>
-            /// curve tier
-            /// </summary>
-            public string TierName => _tierName;
+        /// <summary>
+        /// curve tier
+        /// </summary>
+        public string TierName => _tierName;
 
-            /// <summary>
-            /// affected stat
-            /// </summary>
-            public global::Sprout.Tables.StatType CurveStat => _curveStat;
+        /// <summary>
+        /// affected stat
+        /// </summary>
+        public global::Sprout.Tables.StatType CurveStat => _curveStat;
 
-            /// <summary>
-            /// tick within the curve
-            /// </summary>
-            public int Tick => _tick;
+        /// <summary>
+        /// tick within the curve
+        /// </summary>
+        public int Tick => _tick;
 
-            /// <summary>
-            /// value at the start of the step
-            /// </summary>
-            public int BaseValue => _baseValue;
+        /// <summary>
+        /// value at the start of the step
+        /// </summary>
+        public int BaseValue => _baseValue;
 
-            /// <summary>
-            /// increment per step
-            /// </summary>
-            public int StepValue => _stepValue;
+        /// <summary>
+        /// increment per step
+        /// </summary>
+        public int StepValue => _stepValue;
 
-            /// <summary>
-            /// value at the end of the step
-            /// </summary>
-            public long EndValue => _endValue;
+        /// <summary>
+        /// value at the end of the step
+        /// </summary>
+        public long EndValue => _endValue;
 
-            /// <summary>
-            /// ceiling for this curve
-            /// </summary>
-            public long CapValue => _capValue;
+        /// <summary>
+        /// ceiling for this curve
+        /// </summary>
+        public long CapValue => _capValue;
 
-            /// <summary>
-            /// balance revision
-            /// </summary>
-            public int Revision => _revision;
-            #endregion
-
-            #region Storage
-            internal int _id;
-            internal string _tierName = "";
-            internal global::Sprout.Tables.StatType _curveStat;
-            internal int _tick;
-            internal int _baseValue;
-            internal int _stepValue;
-            internal long _endValue;
-            internal long _capValue;
-            internal int _revision;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Id\":"); ToStringHelper.ToString(Id, sb);
-                sb.Append(",\"TierName\":"); ToStringHelper.ToString(TierName, sb);
-                sb.Append(",\"CurveStat\":"); ToStringHelper.ToString(CurveStat, sb);
-                sb.Append(",\"Tick\":"); ToStringHelper.ToString(Tick, sb);
-                sb.Append(",\"BaseValue\":"); ToStringHelper.ToString(BaseValue, sb);
-                sb.Append(",\"StepValue\":"); ToStringHelper.ToString(StepValue, sb);
-                sb.Append(",\"EndValue\":"); ToStringHelper.ToString(EndValue, sb);
-                sb.Append(",\"CapValue\":"); ToStringHelper.ToString(CapValue, sb);
-                sb.Append(",\"Revision\":"); ToStringHelper.ToString(Revision, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
+        /// <summary>
+        /// balance revision
+        /// </summary>
+        public int Revision => _revision;
         #endregion
 
+        #region Storage
+        internal int _id;
+        internal string _tierName = "";
+        internal global::Sprout.Tables.StatType _curveStat;
+        internal int _tick;
+        internal int _baseValue;
+        internal int _stepValue;
+        internal long _endValue;
+        internal long _capValue;
+        internal int _revision;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Id\":"); ToStringHelper.ToString(Id, sb);
+            sb.Append(",\"TierName\":"); ToStringHelper.ToString(TierName, sb);
+            sb.Append(",\"CurveStat\":"); ToStringHelper.ToString(CurveStat, sb);
+            sb.Append(",\"Tick\":"); ToStringHelper.ToString(Tick, sb);
+            sb.Append(",\"BaseValue\":"); ToStringHelper.ToString(BaseValue, sb);
+            sb.Append(",\"StepValue\":"); ToStringHelper.ToString(StepValue, sb);
+            sb.Append(",\"EndValue\":"); ToStringHelper.ToString(EndValue, sb);
+            sb.Append(",\"CapValue\":"); ToStringHelper.ToString(CapValue, sb);
+            sb.Append(",\"Revision\":"); ToStringHelper.ToString(Revision, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
+    [System.Serializable]
+    public partial class LevelCurveTable : IEnumerable<LevelCurveRecord>
+    {
         /// <summary>
         /// Field names.
         /// </summary>
@@ -130,8 +128,8 @@ namespace Sprout.Tables
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<LevelCurveRecord> Records => _records;
+        private List<LevelCurveRecord> _records = new List<LevelCurveRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -148,16 +146,16 @@ namespace Sprout.Tables
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<LevelCurveRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<LevelCurveRecord> IEnumerable<LevelCurveRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Id'
-        public Dictionary<int, Record> RecordsById => _recordsById;
-        private Dictionary<int, Record> _recordsById = new Dictionary<int, Record>();
+        public Dictionary<int, LevelCurveRecord> RecordsById => _recordsById;
+        private Dictionary<int, LevelCurveRecord> _recordsById = new Dictionary<int, LevelCurveRecord>();
 
         /// <summary>
         /// The row with this `Id`, or null when the table has none.
@@ -167,8 +165,8 @@ namespace Sprout.Tables
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindById(int key)
-            => _recordsById.TryGetValue(key, out Record record) ? record : null;
+        public LevelCurveRecord FindById(int key)
+            => _recordsById.TryGetValue(key, out LevelCurveRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Id`, or a thrown exception naming what was
@@ -179,9 +177,9 @@ namespace Sprout.Tables
         /// says it throws, because a caller reading `GetById(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIdOrThrow(int key)
+        public LevelCurveRecord GetByIdOrThrow(int key)
         {
-            if (!_recordsById.TryGetValue(key, out Record record))
+            if (!_recordsById.TryGetValue(key, out LevelCurveRecord record))
                 throw new TabbitException($"There is no record in table `LevelCurve` that corresponds to field `Id` value {key}");
 
             return record;
@@ -206,10 +204,10 @@ namespace Sprout.Tables
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<LevelCurveRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<LevelCurveRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -219,7 +217,7 @@ namespace Sprout.Tables
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, LevelCurveRecord Row) Current
                 => (_rows[_at].Id, _rows[_at]);
         }
 
@@ -244,7 +242,7 @@ namespace Sprout.Tables
         /// It does not replace `FindById`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIdOrThrow(key);
+        public LevelCurveRecord this[int key] => GetByIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -287,10 +285,10 @@ namespace Sprout.Tables
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<LevelCurveRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new LevelCurveRecord());
 
             foreach (var column in columns)
             {
@@ -442,7 +440,7 @@ namespace Sprout.Tables
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsById = new Dictionary<int, Record>(count);
+            var recordsById = new Dictionary<int, LevelCurveRecord>(count);
             foreach (var record in records)
                 recordsById.Add(record.Id, record);
 

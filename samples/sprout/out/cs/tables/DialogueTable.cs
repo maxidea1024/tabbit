@@ -19,56 +19,54 @@ using Tabbit.Binary;
 namespace Sprout.Tables
 {
     [System.Serializable]
-    public partial class DialogueTable : IEnumerable<DialogueTable.Record>
+    public partial class DialogueRecord
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Id => _id;
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Id => _id;
 
-            /// <summary>
-            /// scene key
-            /// </summary>
-            public string SceneKey => _sceneKey;
+        /// <summary>
+        /// scene key
+        /// </summary>
+        public string SceneKey => _sceneKey;
 
-            /// <summary>
-            /// cutscene, 0 for none
-            /// </summary>
-            public int CutsceneId => _cutsceneId;
+        /// <summary>
+        /// cutscene, 0 for none
+        /// </summary>
+        public int CutsceneId => _cutsceneId;
 
-            /// <summary>
-            /// skippable
-            /// </summary>
-            public bool Skippable => _skippable;
-            #endregion
-
-            #region Storage
-            internal int _id;
-            internal string _sceneKey = "";
-            internal int _cutsceneId;
-            internal bool _skippable;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Id\":"); ToStringHelper.ToString(Id, sb);
-                sb.Append(",\"SceneKey\":"); ToStringHelper.ToString(SceneKey, sb);
-                sb.Append(",\"CutsceneId\":"); ToStringHelper.ToString(CutsceneId, sb);
-                sb.Append(",\"Skippable\":"); ToStringHelper.ToString(Skippable, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
+        /// <summary>
+        /// skippable
+        /// </summary>
+        public bool Skippable => _skippable;
         #endregion
 
+        #region Storage
+        internal int _id;
+        internal string _sceneKey = "";
+        internal int _cutsceneId;
+        internal bool _skippable;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Id\":"); ToStringHelper.ToString(Id, sb);
+            sb.Append(",\"SceneKey\":"); ToStringHelper.ToString(SceneKey, sb);
+            sb.Append(",\"CutsceneId\":"); ToStringHelper.ToString(CutsceneId, sb);
+            sb.Append(",\"Skippable\":"); ToStringHelper.ToString(Skippable, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
+    [System.Serializable]
+    public partial class DialogueTable : IEnumerable<DialogueRecord>
+    {
         /// <summary>
         /// Field names.
         /// </summary>
@@ -95,8 +93,8 @@ namespace Sprout.Tables
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<DialogueRecord> Records => _records;
+        private List<DialogueRecord> _records = new List<DialogueRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -113,16 +111,16 @@ namespace Sprout.Tables
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<DialogueRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<DialogueRecord> IEnumerable<DialogueRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Id'
-        public Dictionary<int, Record> RecordsById => _recordsById;
-        private Dictionary<int, Record> _recordsById = new Dictionary<int, Record>();
+        public Dictionary<int, DialogueRecord> RecordsById => _recordsById;
+        private Dictionary<int, DialogueRecord> _recordsById = new Dictionary<int, DialogueRecord>();
 
         /// <summary>
         /// The row with this `Id`, or null when the table has none.
@@ -132,8 +130,8 @@ namespace Sprout.Tables
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindById(int key)
-            => _recordsById.TryGetValue(key, out Record record) ? record : null;
+        public DialogueRecord FindById(int key)
+            => _recordsById.TryGetValue(key, out DialogueRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Id`, or a thrown exception naming what was
@@ -144,9 +142,9 @@ namespace Sprout.Tables
         /// says it throws, because a caller reading `GetById(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIdOrThrow(int key)
+        public DialogueRecord GetByIdOrThrow(int key)
         {
-            if (!_recordsById.TryGetValue(key, out Record record))
+            if (!_recordsById.TryGetValue(key, out DialogueRecord record))
                 throw new TabbitException($"There is no record in table `Dialogue` that corresponds to field `Id` value {key}");
 
             return record;
@@ -171,10 +169,10 @@ namespace Sprout.Tables
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<DialogueRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<DialogueRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -184,7 +182,7 @@ namespace Sprout.Tables
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, DialogueRecord Row) Current
                 => (_rows[_at].Id, _rows[_at]);
         }
 
@@ -209,7 +207,7 @@ namespace Sprout.Tables
         /// It does not replace `FindById`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIdOrThrow(key);
+        public DialogueRecord this[int key] => GetByIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -252,10 +250,10 @@ namespace Sprout.Tables
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<DialogueRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new DialogueRecord());
 
             foreach (var column in columns)
             {
@@ -333,7 +331,7 @@ namespace Sprout.Tables
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsById = new Dictionary<int, Record>(count);
+            var recordsById = new Dictionary<int, DialogueRecord>(count);
             foreach (var record in records)
                 recordsById.Add(record.Id, record);
 

@@ -18,71 +18,69 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class MonsterSkillRecord
+    {
+        #region Values
+        /// <summary>
+        /// 어느 단계인가
+        /// </summary>
+        public string MonsterId => _monsterId_Monster_index;
+        public MonsterRecord MonsterByMonsterId => _monsterId;
+
+        /// <summary>
+        /// 어느 스킬인가
+        /// </summary>
+        public string SkillId => _skillId_Skill_index;
+        public SkillRecord SkillBySkillId => _skillId;
+
+        /// <summary>
+        /// 액티브인지 패시브인지
+        /// </summary>
+        public global::Wildling.Data.SlotKind SlotKind => _slotKind;
+
+        /// <summary>
+        /// 이 단계부터 사용할 수 있다
+        /// </summary>
+        public int UnlockStage => _unlockStage;
+        #endregion
+
+        #region Reference wiring
+        public void SetReference_MonsterId_INTERNAL(MonsterRecord value) => _monsterId = value;
+        public void SetReference_SkillId_INTERNAL(SkillRecord value) => _skillId = value;
+        #endregion
+
+        #region Storage
+        internal MonsterRecord _monsterId;
+        internal string _monsterId_Monster_index;
+        public bool _monsterId_F = false;
+        internal SkillRecord _skillId;
+        internal string _skillId_Skill_index;
+        public bool _skillId_F = false;
+        internal global::Wildling.Data.SlotKind _slotKind;
+        internal int _unlockStage;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"MonsterId\":"); ToStringHelper.ToString(MonsterId, sb);
+            sb.Append(",\"SkillId\":"); ToStringHelper.ToString(SkillId, sb);
+            sb.Append(",\"SlotKind\":"); ToStringHelper.ToString(SlotKind, sb);
+            sb.Append(",\"UnlockStage\":"); ToStringHelper.ToString(UnlockStage, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 단계별로 사용할 수 있는 스킬이다.
     /// </summary>
     [System.Serializable]
-    public partial class MonsterSkillTable : IEnumerable<MonsterSkillTable.Record>
+    public partial class MonsterSkillTable : IEnumerable<MonsterSkillRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 어느 단계인가
-            /// </summary>
-            public string MonsterId => _monsterId_Monster_index;
-            public MonsterTable.Record MonsterByMonsterId => _monsterId;
-
-            /// <summary>
-            /// 어느 스킬인가
-            /// </summary>
-            public string SkillId => _skillId_Skill_index;
-            public SkillTable.Record SkillBySkillId => _skillId;
-
-            /// <summary>
-            /// 액티브인지 패시브인지
-            /// </summary>
-            public global::Wildling.Data.SlotKind SlotKind => _slotKind;
-
-            /// <summary>
-            /// 이 단계부터 사용할 수 있다
-            /// </summary>
-            public int UnlockStage => _unlockStage;
-            #endregion
-
-            #region Reference wiring
-            public void SetReference_MonsterId_INTERNAL(MonsterTable.Record value) => _monsterId = value;
-            public void SetReference_SkillId_INTERNAL(SkillTable.Record value) => _skillId = value;
-            #endregion
-
-            #region Storage
-            internal MonsterTable.Record _monsterId;
-            internal string _monsterId_Monster_index;
-            public bool _monsterId_F = false;
-            internal SkillTable.Record _skillId;
-            internal string _skillId_Skill_index;
-            public bool _skillId_F = false;
-            internal global::Wildling.Data.SlotKind _slotKind;
-            internal int _unlockStage;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"MonsterId\":"); ToStringHelper.ToString(MonsterId, sb);
-                sb.Append(",\"SkillId\":"); ToStringHelper.ToString(SkillId, sb);
-                sb.Append(",\"SlotKind\":"); ToStringHelper.ToString(SlotKind, sb);
-                sb.Append(",\"UnlockStage\":"); ToStringHelper.ToString(UnlockStage, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -109,8 +107,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<MonsterSkillRecord> Records => _records;
+        private List<MonsterSkillRecord> _records = new List<MonsterSkillRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -127,15 +125,15 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<MonsterSkillRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<MonsterSkillRecord> IEnumerable<MonsterSkillRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'MonsterId and SkillId'
-        private Dictionary<string, Record> _recordsByMonsterIdAndSkillId = new Dictionary<string, Record>();
+        private Dictionary<string, MonsterSkillRecord> _recordsByMonsterIdAndSkillId = new Dictionary<string, MonsterSkillRecord>();
 
         /// <summary>Joins the columns of the `MonsterId and SkillId` key into the text the map is keyed by.</summary>
         private static string KeyOfMonsterIdAndSkillId(string monsterIdKey, string skillIdKey)
@@ -162,16 +160,16 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByMonsterIdAndSkillId(string monsterIdKey, string skillIdKey)
-            => _recordsByMonsterIdAndSkillId.TryGetValue(KeyOfMonsterIdAndSkillId(monsterIdKey, skillIdKey), out Record record) ? record : null;
+        public MonsterSkillRecord FindByMonsterIdAndSkillId(string monsterIdKey, string skillIdKey)
+            => _recordsByMonsterIdAndSkillId.TryGetValue(KeyOfMonsterIdAndSkillId(monsterIdKey, skillIdKey), out MonsterSkillRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `MonsterId and SkillId`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetByMonsterIdAndSkillIdOrThrow(string monsterIdKey, string skillIdKey)
+        public MonsterSkillRecord GetByMonsterIdAndSkillIdOrThrow(string monsterIdKey, string skillIdKey)
         {
-            if (!_recordsByMonsterIdAndSkillId.TryGetValue(KeyOfMonsterIdAndSkillId(monsterIdKey, skillIdKey), out Record record))
+            if (!_recordsByMonsterIdAndSkillId.TryGetValue(KeyOfMonsterIdAndSkillId(monsterIdKey, skillIdKey), out MonsterSkillRecord record))
                 throw new TabbitException($"There is no record in table `MonsterSkill` that corresponds to field `MonsterId and SkillId` value ({monsterIdKey}, {skillIdKey})");
 
             return record;
@@ -189,7 +187,7 @@ namespace Wildling.Data
         /// the order `GetByMonsterIdAndSkillIdOrThrow` takes them in too.
         /// spec/targets/table-collection-surface.md section 5.4.
         /// </remarks>
-        public Record this[string monsterIdKey, string skillIdKey]
+        public MonsterSkillRecord this[string monsterIdKey, string skillIdKey]
             => GetByMonsterIdAndSkillIdOrThrow(monsterIdKey, skillIdKey);
         #endregion // Indexing by `MonsterId and SkillId`
 
@@ -234,10 +232,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<MonsterSkillRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new MonsterSkillRecord());
 
             foreach (var column in columns)
             {
@@ -257,7 +255,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._monsterId_Monster_index = value;
-                                record._monsterId = default(MonsterTable.Record); // will be assigned.
+                                record._monsterId = default(MonsterRecord); // will be assigned.
                                 record._monsterId_F = false;
                             } while (--n > 0);
                         }
@@ -275,7 +273,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._skillId_Skill_index = value;
-                                record._skillId = default(SkillTable.Record); // will be assigned.
+                                record._skillId = default(SkillRecord); // will be assigned.
                                 record._skillId_F = false;
                             } while (--n > 0);
                         }
@@ -322,7 +320,7 @@ namespace Wildling.Data
 
                 TcbTable.CheckBlockEnd(reader, column, blockEnd);
             }
-            var recordsByMonsterIdAndSkillId = new Dictionary<string, Record>(count);
+            var recordsByMonsterIdAndSkillId = new Dictionary<string, MonsterSkillRecord>(count);
             foreach (var record in records)
                 recordsByMonsterIdAndSkillId.Add(KeyOfMonsterIdAndSkillId(record.MonsterId, record.SkillId), record);
 

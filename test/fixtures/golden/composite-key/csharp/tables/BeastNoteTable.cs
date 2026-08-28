@@ -18,60 +18,58 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.CompositeKey
 {
+    [System.Serializable]
+    public partial class BeastNoteRecord
+    {
+        #region Values
+        /// <summary>
+        /// not the index, so `key=` has something to move
+        /// </summary>
+        public int Seq => _seq;
+
+        /// <summary>
+        /// the index, and a reference
+        /// </summary>
+        public string BeastId => _beastId_Beast_index;
+        public BeastRecord BeastByBeastId => _beastId;
+
+        /// <summary>
+        /// anything
+        /// </summary>
+        public string Note => _note;
+        #endregion
+
+        #region Reference wiring
+        public void SetReference_BeastId_INTERNAL(BeastRecord value) => _beastId = value;
+        #endregion
+
+        #region Storage
+        internal int _seq;
+        internal BeastRecord _beastId;
+        internal string _beastId_Beast_index;
+        public bool _beastId_F = false;
+        internal string _note = "";
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Seq\":"); ToStringHelper.ToString(Seq, sb);
+            sb.Append(",\"BeastId\":"); ToStringHelper.ToString(BeastId, sb);
+            sb.Append(",\"Note\":"); ToStringHelper.ToString(Note, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// Indexed by a reference to a string-keyed table, named with `key=`.
     /// </summary>
     [System.Serializable]
-    public partial class BeastNoteTable : IEnumerable<BeastNoteTable.Record>
+    public partial class BeastNoteTable : IEnumerable<BeastNoteRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// not the index, so `key=` has something to move
-            /// </summary>
-            public int Seq => _seq;
-
-            /// <summary>
-            /// the index, and a reference
-            /// </summary>
-            public string BeastId => _beastId_Beast_index;
-            public BeastTable.Record BeastByBeastId => _beastId;
-
-            /// <summary>
-            /// anything
-            /// </summary>
-            public string Note => _note;
-            #endregion
-
-            #region Reference wiring
-            public void SetReference_BeastId_INTERNAL(BeastTable.Record value) => _beastId = value;
-            #endregion
-
-            #region Storage
-            internal int _seq;
-            internal BeastTable.Record _beastId;
-            internal string _beastId_Beast_index;
-            public bool _beastId_F = false;
-            internal string _note = "";
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Seq\":"); ToStringHelper.ToString(Seq, sb);
-                sb.Append(",\"BeastId\":"); ToStringHelper.ToString(BeastId, sb);
-                sb.Append(",\"Note\":"); ToStringHelper.ToString(Note, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -98,8 +96,8 @@ namespace Tabbit.Fixtures.CompositeKey
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<BeastNoteRecord> Records => _records;
+        private List<BeastNoteRecord> _records = new List<BeastNoteRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -116,16 +114,16 @@ namespace Tabbit.Fixtures.CompositeKey
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<BeastNoteRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<BeastNoteRecord> IEnumerable<BeastNoteRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'BeastId'
-        public Dictionary<string, Record> RecordsByBeastId => _recordsByBeastId;
-        private Dictionary<string, Record> _recordsByBeastId = new Dictionary<string, Record>();
+        public Dictionary<string, BeastNoteRecord> RecordsByBeastId => _recordsByBeastId;
+        private Dictionary<string, BeastNoteRecord> _recordsByBeastId = new Dictionary<string, BeastNoteRecord>();
 
         /// <summary>
         /// The row with this `BeastId`, or null when the table has none.
@@ -135,8 +133,8 @@ namespace Tabbit.Fixtures.CompositeKey
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByBeastId(string key)
-            => _recordsByBeastId.TryGetValue(key, out Record record) ? record : null;
+        public BeastNoteRecord FindByBeastId(string key)
+            => _recordsByBeastId.TryGetValue(key, out BeastNoteRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `BeastId`, or a thrown exception naming what was
@@ -147,9 +145,9 @@ namespace Tabbit.Fixtures.CompositeKey
         /// says it throws, because a caller reading `GetByBeastId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByBeastIdOrThrow(string key)
+        public BeastNoteRecord GetByBeastIdOrThrow(string key)
         {
-            if (!_recordsByBeastId.TryGetValue(key, out Record record))
+            if (!_recordsByBeastId.TryGetValue(key, out BeastNoteRecord record))
                 throw new TabbitException($"There is no record in table `BeastNote` that corresponds to field `BeastId` value {key}");
 
             return record;
@@ -174,10 +172,10 @@ namespace Tabbit.Fixtures.CompositeKey
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<BeastNoteRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<BeastNoteRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -187,7 +185,7 @@ namespace Tabbit.Fixtures.CompositeKey
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, BeastNoteRecord Row) Current
                 => (_rows[_at].BeastId, _rows[_at]);
         }
 
@@ -212,7 +210,7 @@ namespace Tabbit.Fixtures.CompositeKey
         /// It does not replace `FindByBeastId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByBeastIdOrThrow(key);
+        public BeastNoteRecord this[string key] => GetByBeastIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -255,10 +253,10 @@ namespace Tabbit.Fixtures.CompositeKey
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<BeastNoteRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new BeastNoteRecord());
 
             foreach (var column in columns)
             {
@@ -294,7 +292,7 @@ namespace Tabbit.Fixtures.CompositeKey
                             {
                                 var record = records[i++];
                                 record._beastId_Beast_index = value;
-                                record._beastId = default(BeastTable.Record); // will be assigned.
+                                record._beastId = default(BeastRecord); // will be assigned.
                                 record._beastId_F = false;
                             } while (--n > 0);
                         }
@@ -328,7 +326,7 @@ namespace Tabbit.Fixtures.CompositeKey
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByBeastId = new Dictionary<string, Record>(count);
+            var recordsByBeastId = new Dictionary<string, BeastNoteRecord>(count);
             foreach (var record in records)
                 recordsByBeastId.Add(record.BeastId, record);
 

@@ -44,7 +44,7 @@ OnlyIndex int32             // 키는 이름을 지어 받았습니다
 (같은 골든의 `csharp/tables/HolderTable.cs`).
 
 ```csharp
-public WeaponTable.Record Only => _only;     // 행 — 여기까지는 같습니다
+public WeaponRecord Only => _only;           // 행 — 여기까지는 같습니다
 public int _only_Weapon_index;               // 키 — 밑줄로 시작하는 이름입니다
 ```
 
@@ -59,7 +59,7 @@ public int _only_Weapon_index;               // 키 — 밑줄로 시작하는 �
 ```csharp
 public int Pick => _pick;                          // 컬럼 이름이 키에게 갔습니다
 public HolderPickTarget PickTarget => _pickTarget; // 판별자
-public WeaponTable.Record WeaponByPick => ...;     // 행은 이름을 지어 받았습니다
+public WeaponRecord WeaponByPick => ...;           // 행은 이름을 지어 받았습니다
 ```
 
 **1.1의 정반대입니다.**
@@ -137,18 +137,18 @@ id인가」이고, 그 사실로 행에 닿는 것은 소비하는 쪽입니다.
 
 ```csharp
 postRow.MailId                  // int                — 셀에 적힌 값
-postRow.MailByMailId            // MailTable.Record
+postRow.MailByMailId            // MailRecord
 
 postRow.SenderId                // int
-postRow.CharacterBySenderId     // CharacterTable.Record
+postRow.CharacterBySenderId     // CharacterRecord
 postRow.ReceiverId              // int
-postRow.CharacterByReceiverId   // CharacterTable.Record
+postRow.CharacterByReceiverId   // CharacterRecord
 ```
 
 **`senderId`와 `receiverId`가 같은 테이블을 가리키는데 이름이 갈립니다.** 이름에 컬럼이
 들어 있기 때문이고, 이것이 이 형태가 사는 자리입니다.
 
-> **지금 이 시트가 내는 것과 비교하십시오.** `MailId`가 `MailTable.Record`를 돌려주고,
+> **지금 이 시트가 내는 것과 비교하십시오.** `MailId`가 `MailRecord`를 돌려주고,
 > 키는 Go·Java 계열에서 `MailIdIndex`, C#·TypeScript에서는 `_mailId_Mail_index`입니다(1절).
 
 ### 3.2 짧은 이름을 파생하지 않는 이유
@@ -186,7 +186,7 @@ postRow.CharacterByReceiverId   // CharacterTable.Record
 
 ```csharp
 chestRow.MailIds            // int[]               — 셀에 적힌 키들
-chestRow.MailByMailIds      // MailTable.Record[]  — 원소마다 행 하나
+chestRow.MailByMailIds      // MailRecord[]  — 원소마다 행 하나
 ```
 
 **이름 규칙이 스칼라와 같습니다.** 배열이라고 달라지는 것은 타입뿐입니다.
@@ -348,7 +348,7 @@ foreign Mail              참조 — 값이 행이 되고 접근자가 나옵니
 |와이어와 형식|**무변경입니다.** 실리는 것은 키이고 이 문서는 이름만 정합니다|
 |struct 다형성|값 임베딩이고 참조가 아닙니다. [다형성 §5](../types/polymorphism.md)|
 |점 표기(`Table.Field`)의 이름|그 컬럼은 행이 아니라 **값**을 돌려줍니다. 지금 그대로입니다|
-|레코드 타입 이름(`ItemRecord` · `ItemTable.Record`)|[이름 체계](../targets/generated-naming.md)가 현행 유지로 정한 축입니다|
+|레코드 타입 이름|C#의 중첩 `Record`를 나머지 언어에 맞추어 `ItemRecord`로 통일하였습니다. 별개 작업입니다 — [C# 레코드 이름](../targets/csharp-record-name.md)|
 |`refs=` 목록에 이름 붙이기|Luban의 `refgroup` 같은 것. 같은 목록이 되풀이되는 것이 실제로 부담인지부터 셉니다|
 |이름을 짧게 하는 수단|5절. 짧은 이름은 컬럼 이름을 빼야 하고, 빼면 부딪힙니다|
 

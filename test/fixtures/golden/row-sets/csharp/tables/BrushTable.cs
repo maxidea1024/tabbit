@@ -18,53 +18,51 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.RowSets
 {
+    [System.Serializable]
+    public partial class BrushRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// anything
+        /// </summary>
+        public int Width => _width;
+
+        /// <summary>
+        /// anything
+        /// </summary>
+        public int Bristles => _bristles;
+        #endregion
+
+        #region Storage
+        internal int _index;
+        internal int _width;
+        internal int _bristles;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Width\":"); ToStringHelper.ToString(Width, sb);
+            sb.Append(",\"Bristles\":"); ToStringHelper.ToString(Bristles, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// One set of rows only.
     /// </summary>
     [System.Serializable]
-    public partial class BrushTable : IEnumerable<BrushTable.Record>
+    public partial class BrushTable : IEnumerable<BrushRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Index => _index;
-
-            /// <summary>
-            /// anything
-            /// </summary>
-            public int Width => _width;
-
-            /// <summary>
-            /// anything
-            /// </summary>
-            public int Bristles => _bristles;
-            #endregion
-
-            #region Storage
-            internal int _index;
-            internal int _width;
-            internal int _bristles;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Width\":"); ToStringHelper.ToString(Width, sb);
-                sb.Append(",\"Bristles\":"); ToStringHelper.ToString(Bristles, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -91,8 +89,8 @@ namespace Tabbit.Fixtures.RowSets
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<BrushRecord> Records => _records;
+        private List<BrushRecord> _records = new List<BrushRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -109,16 +107,16 @@ namespace Tabbit.Fixtures.RowSets
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<BrushRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<BrushRecord> IEnumerable<BrushRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+        public Dictionary<int, BrushRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<int, BrushRecord> _recordsByIndex = new Dictionary<int, BrushRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -128,8 +126,8 @@ namespace Tabbit.Fixtures.RowSets
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(int key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public BrushRecord FindByIndex(int key)
+            => _recordsByIndex.TryGetValue(key, out BrushRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -140,9 +138,9 @@ namespace Tabbit.Fixtures.RowSets
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(int key)
+        public BrushRecord GetByIndexOrThrow(int key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out BrushRecord record))
                 throw new TabbitException($"There is no record in table `Brush` that corresponds to field `Index` value {key}");
 
             return record;
@@ -167,10 +165,10 @@ namespace Tabbit.Fixtures.RowSets
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<BrushRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<BrushRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -180,7 +178,7 @@ namespace Tabbit.Fixtures.RowSets
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, BrushRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -205,7 +203,7 @@ namespace Tabbit.Fixtures.RowSets
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIndexOrThrow(key);
+        public BrushRecord this[int key] => GetByIndexOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -248,10 +246,10 @@ namespace Tabbit.Fixtures.RowSets
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<BrushRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new BrushRecord());
 
             foreach (var column in columns)
             {
@@ -319,7 +317,7 @@ namespace Tabbit.Fixtures.RowSets
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<int, Record>(count);
+            var recordsByIndex = new Dictionary<int, BrushRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
 

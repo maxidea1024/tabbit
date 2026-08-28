@@ -18,84 +18,82 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class SkillRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string SkillId => _skillId;
+
+        /// <summary>
+        /// 표시 이름
+        /// </summary>
+        public string Name => _name;
+
+        /// <summary>
+        /// 설명
+        /// </summary>
+        public string Description => _description;
+
+        /// <summary>
+        /// 무속성 스킬은 비운다
+        /// </summary>
+        public global::Wildling.Data.Element Element => _element;
+        /// <summary>Whether this row has a value for <see cref="Element"/>.</summary>
+        public bool HasElement => _elementHasValue;
+
+        /// <summary>
+        /// 대상 범위
+        /// </summary>
+        public global::Wildling.Data.TargetScope TargetScope => _targetScope;
+
+        /// <summary>
+        /// 재사용 대기 턴
+        /// </summary>
+        public int Cooldown => _cooldown;
+
+        /// <summary>
+        /// 아이콘
+        /// </summary>
+        public string Icon => _icon;
+        #endregion
+
+        #region Storage
+        internal string _skillId = "";
+        internal string _name = "";
+        internal string _description = "";
+        internal global::Wildling.Data.Element _element;
+        internal bool _elementHasValue;
+        internal global::Wildling.Data.TargetScope _targetScope;
+        internal int _cooldown;
+        internal string _icon = "";
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"SkillId\":"); ToStringHelper.ToString(SkillId, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append(",\"Description\":"); ToStringHelper.ToString(Description, sb);
+            sb.Append(",\"Element\":"); ToStringHelper.ToString(Element, sb);
+            sb.Append(",\"TargetScope\":"); ToStringHelper.ToString(TargetScope, sb);
+            sb.Append(",\"Cooldown\":"); ToStringHelper.ToString(Cooldown, sb);
+            sb.Append(",\"Icon\":"); ToStringHelper.ToString(Icon, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 스킬이다. 효과는 SkillEffect 에 있다.
     /// </summary>
     [System.Serializable]
-    public partial class SkillTable : IEnumerable<SkillTable.Record>
+    public partial class SkillTable : IEnumerable<SkillRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string SkillId => _skillId;
-
-            /// <summary>
-            /// 표시 이름
-            /// </summary>
-            public string Name => _name;
-
-            /// <summary>
-            /// 설명
-            /// </summary>
-            public string Description => _description;
-
-            /// <summary>
-            /// 무속성 스킬은 비운다
-            /// </summary>
-            public global::Wildling.Data.Element Element => _element;
-            /// <summary>Whether this row has a value for <see cref="Element"/>.</summary>
-            public bool HasElement => _elementHasValue;
-
-            /// <summary>
-            /// 대상 범위
-            /// </summary>
-            public global::Wildling.Data.TargetScope TargetScope => _targetScope;
-
-            /// <summary>
-            /// 재사용 대기 턴
-            /// </summary>
-            public int Cooldown => _cooldown;
-
-            /// <summary>
-            /// 아이콘
-            /// </summary>
-            public string Icon => _icon;
-            #endregion
-
-            #region Storage
-            internal string _skillId = "";
-            internal string _name = "";
-            internal string _description = "";
-            internal global::Wildling.Data.Element _element;
-            internal bool _elementHasValue;
-            internal global::Wildling.Data.TargetScope _targetScope;
-            internal int _cooldown;
-            internal string _icon = "";
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"SkillId\":"); ToStringHelper.ToString(SkillId, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append(",\"Description\":"); ToStringHelper.ToString(Description, sb);
-                sb.Append(",\"Element\":"); ToStringHelper.ToString(Element, sb);
-                sb.Append(",\"TargetScope\":"); ToStringHelper.ToString(TargetScope, sb);
-                sb.Append(",\"Cooldown\":"); ToStringHelper.ToString(Cooldown, sb);
-                sb.Append(",\"Icon\":"); ToStringHelper.ToString(Icon, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -122,8 +120,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<SkillRecord> Records => _records;
+        private List<SkillRecord> _records = new List<SkillRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -140,16 +138,16 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<SkillRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<SkillRecord> IEnumerable<SkillRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'SkillId'
-        public Dictionary<string, Record> RecordsBySkillId => _recordsBySkillId;
-        private Dictionary<string, Record> _recordsBySkillId = new Dictionary<string, Record>();
+        public Dictionary<string, SkillRecord> RecordsBySkillId => _recordsBySkillId;
+        private Dictionary<string, SkillRecord> _recordsBySkillId = new Dictionary<string, SkillRecord>();
 
         /// <summary>
         /// The row with this `SkillId`, or null when the table has none.
@@ -159,8 +157,8 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindBySkillId(string key)
-            => _recordsBySkillId.TryGetValue(key, out Record record) ? record : null;
+        public SkillRecord FindBySkillId(string key)
+            => _recordsBySkillId.TryGetValue(key, out SkillRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `SkillId`, or a thrown exception naming what was
@@ -171,9 +169,9 @@ namespace Wildling.Data
         /// says it throws, because a caller reading `GetBySkillId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetBySkillIdOrThrow(string key)
+        public SkillRecord GetBySkillIdOrThrow(string key)
         {
-            if (!_recordsBySkillId.TryGetValue(key, out Record record))
+            if (!_recordsBySkillId.TryGetValue(key, out SkillRecord record))
                 throw new TabbitException($"There is no record in table `Skill` that corresponds to field `SkillId` value {key}");
 
             return record;
@@ -198,10 +196,10 @@ namespace Wildling.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<SkillRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<SkillRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -211,7 +209,7 @@ namespace Wildling.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, SkillRecord Row) Current
                 => (_rows[_at].SkillId, _rows[_at]);
         }
 
@@ -236,7 +234,7 @@ namespace Wildling.Data
         /// It does not replace `FindBySkillId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetBySkillIdOrThrow(key);
+        public SkillRecord this[string key] => GetBySkillIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -280,10 +278,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<SkillRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new SkillRecord());
 
             foreach (var column in columns)
             {
@@ -426,7 +424,7 @@ namespace Wildling.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsBySkillId = new Dictionary<string, Record>(count);
+            var recordsBySkillId = new Dictionary<string, SkillRecord>(count);
             foreach (var record in records)
                 recordsBySkillId.Add(record.SkillId, record);
 

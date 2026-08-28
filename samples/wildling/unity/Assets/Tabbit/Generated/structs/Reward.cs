@@ -45,7 +45,7 @@ namespace Wildling.Data
         /// 아이템 보상의 대상
         /// </summary>
         public string ItemId;
-        public ItemTable.Record ItemByItemId;
+        public ItemRecord ItemByItemId;
     }
 
     /// <summary>
@@ -63,7 +63,7 @@ namespace Wildling.Data
         /// 재화 보상의 대상
         /// </summary>
         public string CurrencyId;
-        public CurrencyTable.Record CurrencyByCurrencyId;
+        public CurrencyRecord CurrencyByCurrencyId;
     }
 
     /// <summary>
@@ -81,7 +81,7 @@ namespace Wildling.Data
         /// 와일드링 또는 조각 보상의 대상
         /// </summary>
         public string MonsterId;
-        public MonsterTable.Record MonsterByMonsterId;
+        public MonsterRecord MonsterByMonsterId;
     }
 
     /// <summary>
@@ -99,6 +99,6 @@ namespace Wildling.Data
         /// 와일드링 또는 조각 보상의 대상
         /// </summary>
         public string MonsterId;
-        public MonsterTable.Record MonsterByMonsterId;
+        public MonsterRecord MonsterByMonsterId;
     }
 } // namespace Wildling.Data

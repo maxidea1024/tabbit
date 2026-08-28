@@ -18,60 +18,58 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class AnteRecord
+    {
+        #region Values
+        /// <summary>
+        /// 안테
+        /// </summary>
+        public int Ante => _ante;
+
+        /// <summary>
+        /// 흰색~검은 스테이크
+        /// </summary>
+        public int BaseWhite => _baseWhite;
+
+        /// <summary>
+        /// 초록~파란 스테이크
+        /// </summary>
+        public int BaseGreen => _baseGreen;
+
+        /// <summary>
+        /// 보라~황금 스테이크
+        /// </summary>
+        public int BasePurple => _basePurple;
+        #endregion
+
+        #region Storage
+        internal int _ante;
+        internal int _baseWhite;
+        internal int _baseGreen;
+        internal int _basePurple;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Ante\":"); ToStringHelper.ToString(Ante, sb);
+            sb.Append(",\"BaseWhite\":"); ToStringHelper.ToString(BaseWhite, sb);
+            sb.Append(",\"BaseGreen\":"); ToStringHelper.ToString(BaseGreen, sb);
+            sb.Append(",\"BasePurple\":"); ToStringHelper.ToString(BasePurple, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 안테별 기준 점수입니다. 스테이크가 어느 열을 읽는지는 `Stake` 가 정합니다. 안테 9 이상은 `Const_Run` 의 식으로 계산합니다.
     /// </summary>
     [System.Serializable]
-    public partial class AnteTable : IEnumerable<AnteTable.Record>
+    public partial class AnteTable : IEnumerable<AnteRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 안테
-            /// </summary>
-            public int Ante => _ante;
-
-            /// <summary>
-            /// 흰색~검은 스테이크
-            /// </summary>
-            public int BaseWhite => _baseWhite;
-
-            /// <summary>
-            /// 초록~파란 스테이크
-            /// </summary>
-            public int BaseGreen => _baseGreen;
-
-            /// <summary>
-            /// 보라~황금 스테이크
-            /// </summary>
-            public int BasePurple => _basePurple;
-            #endregion
-
-            #region Storage
-            internal int _ante;
-            internal int _baseWhite;
-            internal int _baseGreen;
-            internal int _basePurple;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Ante\":"); ToStringHelper.ToString(Ante, sb);
-                sb.Append(",\"BaseWhite\":"); ToStringHelper.ToString(BaseWhite, sb);
-                sb.Append(",\"BaseGreen\":"); ToStringHelper.ToString(BaseGreen, sb);
-                sb.Append(",\"BasePurple\":"); ToStringHelper.ToString(BasePurple, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -98,8 +96,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<AnteRecord> Records => _records;
+        private List<AnteRecord> _records = new List<AnteRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -116,16 +114,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<AnteRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<AnteRecord> IEnumerable<AnteRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Ante'
-        public Dictionary<int, Record> RecordsByAnte => _recordsByAnte;
-        private Dictionary<int, Record> _recordsByAnte = new Dictionary<int, Record>();
+        public Dictionary<int, AnteRecord> RecordsByAnte => _recordsByAnte;
+        private Dictionary<int, AnteRecord> _recordsByAnte = new Dictionary<int, AnteRecord>();
 
         /// <summary>
         /// The row with this `Ante`, or null when the table has none.
@@ -135,8 +133,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByAnte(int key)
-            => _recordsByAnte.TryGetValue(key, out Record record) ? record : null;
+        public AnteRecord FindByAnte(int key)
+            => _recordsByAnte.TryGetValue(key, out AnteRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Ante`, or a thrown exception naming what was
@@ -147,9 +145,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByAnte(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByAnteOrThrow(int key)
+        public AnteRecord GetByAnteOrThrow(int key)
         {
-            if (!_recordsByAnte.TryGetValue(key, out Record record))
+            if (!_recordsByAnte.TryGetValue(key, out AnteRecord record))
                 throw new TabbitException($"There is no record in table `Ante` that corresponds to field `Ante` value {key}");
 
             return record;
@@ -174,10 +172,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<AnteRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<AnteRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -187,7 +185,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, AnteRecord Row) Current
                 => (_rows[_at].Ante, _rows[_at]);
         }
 
@@ -212,7 +210,7 @@ namespace Clover.Data
         /// It does not replace `FindByAnte`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByAnteOrThrow(key);
+        public AnteRecord this[int key] => GetByAnteOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -255,10 +253,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<AnteRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new AnteRecord());
 
             foreach (var column in columns)
             {
@@ -342,7 +340,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByAnte = new Dictionary<int, Record>(count);
+            var recordsByAnte = new Dictionary<int, AnteRecord>(count);
             foreach (var record in records)
                 recordsByAnte.Add(record.Ante, record);
 

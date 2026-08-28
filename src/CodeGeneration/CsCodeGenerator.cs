@@ -953,7 +953,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             // A reference to a whole row is assigned the target record; one that names a
             // field is assigned that field's value, which is the field's own type.
             ReferenceSetterType = sf.ElementType == Models.ValueType.ForeignRecord
-                ? refTable + "Table.Record"
+                ? refTable + "Record"
                 : fieldType,
 
             ReferencesField = !string.IsNullOrEmpty(sf.FirstField!.RefFieldName),
@@ -1995,7 +1995,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                 break;
 
             case Models.ValueType.ForeignRecord:
-                result = $"{refTableName.ToPascalCase()}Table.Record";
+                result = $"{refTableName.ToPascalCase()}Record";
                 break;
 
             default:

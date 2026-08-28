@@ -18,70 +18,68 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class ResonanceRankRecord
+    {
+        #region Values
+        /// <summary>
+        /// 등급
+        /// </summary>
+        public global::Wildling.Data.Grade Grade => _grade;
+
+        /// <summary>
+        /// 공명 등급
+        /// </summary>
+        public int Rank => _rank;
+
+        /// <summary>
+        /// 능력치 배수. 만분율
+        /// </summary>
+        public int StatFactor => _statFactor;
+
+        /// <summary>
+        /// 필요한 울림 조각
+        /// </summary>
+        public int ShardCost => _shardCost;
+
+        /// <summary>
+        /// 3 · 5등급의 추가 효과
+        /// </summary>
+        public string UnlockNote => _unlockNote;
+        /// <summary>Whether this row has a value for <see cref="UnlockNote"/>.</summary>
+        public bool HasUnlockNote => _unlockNoteHasValue;
+        #endregion
+
+        #region Storage
+        internal global::Wildling.Data.Grade _grade;
+        internal int _rank;
+        internal int _statFactor;
+        internal int _shardCost;
+        internal string _unlockNote = "";
+        internal bool _unlockNoteHasValue;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Grade\":"); ToStringHelper.ToString(Grade, sb);
+            sb.Append(",\"Rank\":"); ToStringHelper.ToString(Rank, sb);
+            sb.Append(",\"StatFactor\":"); ToStringHelper.ToString(StatFactor, sb);
+            sb.Append(",\"ShardCost\":"); ToStringHelper.ToString(ShardCost, sb);
+            sb.Append(",\"UnlockNote\":"); ToStringHelper.ToString(UnlockNote, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 공명 등급별 배수와 필요 조각이다.
     /// </summary>
     [System.Serializable]
-    public partial class ResonanceRankTable : IEnumerable<ResonanceRankTable.Record>
+    public partial class ResonanceRankTable : IEnumerable<ResonanceRankRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 등급
-            /// </summary>
-            public global::Wildling.Data.Grade Grade => _grade;
-
-            /// <summary>
-            /// 공명 등급
-            /// </summary>
-            public int Rank => _rank;
-
-            /// <summary>
-            /// 능력치 배수. 만분율
-            /// </summary>
-            public int StatFactor => _statFactor;
-
-            /// <summary>
-            /// 필요한 울림 조각
-            /// </summary>
-            public int ShardCost => _shardCost;
-
-            /// <summary>
-            /// 3 · 5등급의 추가 효과
-            /// </summary>
-            public string UnlockNote => _unlockNote;
-            /// <summary>Whether this row has a value for <see cref="UnlockNote"/>.</summary>
-            public bool HasUnlockNote => _unlockNoteHasValue;
-            #endregion
-
-            #region Storage
-            internal global::Wildling.Data.Grade _grade;
-            internal int _rank;
-            internal int _statFactor;
-            internal int _shardCost;
-            internal string _unlockNote = "";
-            internal bool _unlockNoteHasValue;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Grade\":"); ToStringHelper.ToString(Grade, sb);
-                sb.Append(",\"Rank\":"); ToStringHelper.ToString(Rank, sb);
-                sb.Append(",\"StatFactor\":"); ToStringHelper.ToString(StatFactor, sb);
-                sb.Append(",\"ShardCost\":"); ToStringHelper.ToString(ShardCost, sb);
-                sb.Append(",\"UnlockNote\":"); ToStringHelper.ToString(UnlockNote, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -108,8 +106,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<ResonanceRankRecord> Records => _records;
+        private List<ResonanceRankRecord> _records = new List<ResonanceRankRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -126,15 +124,15 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<ResonanceRankRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<ResonanceRankRecord> IEnumerable<ResonanceRankRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Grade and Rank'
-        private Dictionary<string, Record> _recordsByGradeAndRank = new Dictionary<string, Record>();
+        private Dictionary<string, ResonanceRankRecord> _recordsByGradeAndRank = new Dictionary<string, ResonanceRankRecord>();
 
         /// <summary>Joins the columns of the `Grade and Rank` key into the text the map is keyed by.</summary>
         private static string KeyOfGradeAndRank(global::Wildling.Data.Grade gradeKey, int rankKey)
@@ -161,16 +159,16 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByGradeAndRank(global::Wildling.Data.Grade gradeKey, int rankKey)
-            => _recordsByGradeAndRank.TryGetValue(KeyOfGradeAndRank(gradeKey, rankKey), out Record record) ? record : null;
+        public ResonanceRankRecord FindByGradeAndRank(global::Wildling.Data.Grade gradeKey, int rankKey)
+            => _recordsByGradeAndRank.TryGetValue(KeyOfGradeAndRank(gradeKey, rankKey), out ResonanceRankRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Grade and Rank`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetByGradeAndRankOrThrow(global::Wildling.Data.Grade gradeKey, int rankKey)
+        public ResonanceRankRecord GetByGradeAndRankOrThrow(global::Wildling.Data.Grade gradeKey, int rankKey)
         {
-            if (!_recordsByGradeAndRank.TryGetValue(KeyOfGradeAndRank(gradeKey, rankKey), out Record record))
+            if (!_recordsByGradeAndRank.TryGetValue(KeyOfGradeAndRank(gradeKey, rankKey), out ResonanceRankRecord record))
                 throw new TabbitException($"There is no record in table `ResonanceRank` that corresponds to field `Grade and Rank` value ({gradeKey}, {rankKey})");
 
             return record;
@@ -188,7 +186,7 @@ namespace Wildling.Data
         /// the order `GetByGradeAndRankOrThrow` takes them in too.
         /// spec/targets/table-collection-surface.md section 5.4.
         /// </remarks>
-        public Record this[global::Wildling.Data.Grade gradeKey, int rankKey]
+        public ResonanceRankRecord this[global::Wildling.Data.Grade gradeKey, int rankKey]
             => GetByGradeAndRankOrThrow(gradeKey, rankKey);
         #endregion // Indexing by `Grade and Rank`
 
@@ -234,10 +232,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<ResonanceRankRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new ResonanceRankRecord());
 
             foreach (var column in columns)
             {
@@ -345,7 +343,7 @@ namespace Wildling.Data
 
                 TcbTable.CheckBlockEnd(reader, column, blockEnd);
             }
-            var recordsByGradeAndRank = new Dictionary<string, Record>(count);
+            var recordsByGradeAndRank = new Dictionary<string, ResonanceRankRecord>(count);
             foreach (var record in records)
                 recordsByGradeAndRank.Add(KeyOfGradeAndRank(record.Grade, record.Rank), record);
 

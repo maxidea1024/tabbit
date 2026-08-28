@@ -18,141 +18,139 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class RequirementEntryRecord
+    {
+        #region Values
+        /// <summary>
+        /// 어느 묶음인가
+        /// </summary>
+        public string RequirementGroupId => _requirementGroupId_RequirementGroup_index;
+        public RequirementGroupRecord RequirementGroupByRequirementGroupId => _requirementGroupId;
+
+        /// <summary>
+        /// 검사 순서
+        /// </summary>
+        public int Order => _order;
+
+        /// <summary>
+        /// 이 행의 조건이 어떤 형태인가
+        /// </summary>
+        public Requirement Req
+            => _req_value ?? (_req_value = BuildReq());
+
+        private Requirement _req_value;
+
+        private Requirement BuildReq()
+        {
+            switch (_req.Type)
+            {
+                case 1:
+                    return new LevelRequirement
+                    {
+                        Level = _req.Level,
+                    };
+                case 2:
+                    return new CodexRequirement
+                    {
+                        CodexState = _req.CodexState,
+                    };
+                case 3:
+                    return new ItemRequirement
+                    {
+                        ItemId = _req.ItemId,
+                        ItemByItemId = _req.ItemByItemId,
+                        Amount = _req.Amount,
+                    };
+                case 4:
+                    return new StageRequirement
+                    {
+                        StageId = _req.StageId,
+                        StageByStageId = _req.StageByStageId,
+                    };
+                case 5:
+                    return new CodexCompletionRequirement
+                    {
+                        Percent = _req.Percent,
+                    };
+            }
+
+            // A number no variant claims. The conversion refuses one, so reaching this
+            // means the file was written by a build that had a variant this code does not
+            // - the same shape as a column added after this code was generated.
+            return null;
+        }
+        #endregion
+
+        /// <summary>One element of <see cref="Req"/>.</summary>
+        [System.Serializable]
+        public struct ReqEntry
+        {
+            /// 이 행의 조건이 어떤 형태인가
+            public int Type;
+            /// 요구 레벨
+            public int Level;
+            /// 요구 기록 상태
+            public global::Wildling.Data.CodexState CodexState;
+            /// 요구 아이템
+            public string ItemId;
+            public ItemRecord ItemByItemId;
+            public bool ItemId_F;
+            /// 요구 수량
+            public int Amount;
+            /// 요구 스테이지
+            public string StageId;
+            public StageRecord StageByStageId;
+            public bool StageId_F;
+            /// 요구 완성률. 백분율
+            public int Percent;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"Type\":"); ToStringHelper.ToString(Type, sb);
+                sb.Append(",\"Level\":"); ToStringHelper.ToString(Level, sb);
+                sb.Append(",\"CodexState\":"); ToStringHelper.ToString(CodexState, sb);
+                sb.Append(",\"ItemId\":"); ToStringHelper.ToString(ItemId, sb);
+                sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
+                sb.Append(",\"StageId\":"); ToStringHelper.ToString(StageId, sb);
+                sb.Append(",\"Percent\":"); ToStringHelper.ToString(Percent, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        #region Reference wiring
+        public void SetReference_RequirementGroupId_INTERNAL(RequirementGroupRecord value) => _requirementGroupId = value;
+        #endregion
+
+        #region Storage
+        internal RequirementGroupRecord _requirementGroupId;
+        internal string _requirementGroupId_RequirementGroup_index;
+        public bool _requirementGroupId_F = false;
+        internal int _order;
+        internal ReqEntry _req;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"RequirementGroupId\":"); ToStringHelper.ToString(RequirementGroupId, sb);
+            sb.Append(",\"Order\":"); ToStringHelper.ToString(Order, sb);
+            sb.Append(",\"Req\":"); ToStringHelper.ToString(Req, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 묶음 하나의 조건이다.
     /// </summary>
     [System.Serializable]
-    public partial class RequirementEntryTable : IEnumerable<RequirementEntryTable.Record>
+    public partial class RequirementEntryTable : IEnumerable<RequirementEntryRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 어느 묶음인가
-            /// </summary>
-            public string RequirementGroupId => _requirementGroupId_RequirementGroup_index;
-            public RequirementGroupTable.Record RequirementGroupByRequirementGroupId => _requirementGroupId;
-
-            /// <summary>
-            /// 검사 순서
-            /// </summary>
-            public int Order => _order;
-
-            /// <summary>
-            /// 이 행의 조건이 어떤 형태인가
-            /// </summary>
-            public Requirement Req
-                => _req_value ?? (_req_value = BuildReq());
-
-            private Requirement _req_value;
-
-            private Requirement BuildReq()
-            {
-                switch (_req.Type)
-                {
-                    case 1:
-                        return new LevelRequirement
-                        {
-                            Level = _req.Level,
-                        };
-                    case 2:
-                        return new CodexRequirement
-                        {
-                            CodexState = _req.CodexState,
-                        };
-                    case 3:
-                        return new ItemRequirement
-                        {
-                            ItemId = _req.ItemId,
-                            ItemByItemId = _req.ItemByItemId,
-                            Amount = _req.Amount,
-                        };
-                    case 4:
-                        return new StageRequirement
-                        {
-                            StageId = _req.StageId,
-                            StageByStageId = _req.StageByStageId,
-                        };
-                    case 5:
-                        return new CodexCompletionRequirement
-                        {
-                            Percent = _req.Percent,
-                        };
-                }
-
-                // A number no variant claims. The conversion refuses one, so reaching this
-                // means the file was written by a build that had a variant this code does not
-                // - the same shape as a column added after this code was generated.
-                return null;
-            }
-            #endregion
-
-            /// <summary>One element of <see cref="Req"/>.</summary>
-            [System.Serializable]
-            public struct ReqEntry
-            {
-                /// 이 행의 조건이 어떤 형태인가
-                public int Type;
-                /// 요구 레벨
-                public int Level;
-                /// 요구 기록 상태
-                public global::Wildling.Data.CodexState CodexState;
-                /// 요구 아이템
-                public string ItemId;
-                public ItemTable.Record ItemByItemId;
-                public bool ItemId_F;
-                /// 요구 수량
-                public int Amount;
-                /// 요구 스테이지
-                public string StageId;
-                public StageTable.Record StageByStageId;
-                public bool StageId_F;
-                /// 요구 완성률. 백분율
-                public int Percent;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"Type\":"); ToStringHelper.ToString(Type, sb);
-                    sb.Append(",\"Level\":"); ToStringHelper.ToString(Level, sb);
-                    sb.Append(",\"CodexState\":"); ToStringHelper.ToString(CodexState, sb);
-                    sb.Append(",\"ItemId\":"); ToStringHelper.ToString(ItemId, sb);
-                    sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
-                    sb.Append(",\"StageId\":"); ToStringHelper.ToString(StageId, sb);
-                    sb.Append(",\"Percent\":"); ToStringHelper.ToString(Percent, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            #region Reference wiring
-            public void SetReference_RequirementGroupId_INTERNAL(RequirementGroupTable.Record value) => _requirementGroupId = value;
-            #endregion
-
-            #region Storage
-            internal RequirementGroupTable.Record _requirementGroupId;
-            internal string _requirementGroupId_RequirementGroup_index;
-            public bool _requirementGroupId_F = false;
-            internal int _order;
-            internal ReqEntry _req;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"RequirementGroupId\":"); ToStringHelper.ToString(RequirementGroupId, sb);
-                sb.Append(",\"Order\":"); ToStringHelper.ToString(Order, sb);
-                sb.Append(",\"Req\":"); ToStringHelper.ToString(Req, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -179,8 +177,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<RequirementEntryRecord> Records => _records;
+        private List<RequirementEntryRecord> _records = new List<RequirementEntryRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -197,15 +195,15 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<RequirementEntryRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<RequirementEntryRecord> IEnumerable<RequirementEntryRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'RequirementGroupId and Order'
-        private Dictionary<string, Record> _recordsByRequirementGroupIdAndOrder = new Dictionary<string, Record>();
+        private Dictionary<string, RequirementEntryRecord> _recordsByRequirementGroupIdAndOrder = new Dictionary<string, RequirementEntryRecord>();
 
         /// <summary>Joins the columns of the `RequirementGroupId and Order` key into the text the map is keyed by.</summary>
         private static string KeyOfRequirementGroupIdAndOrder(string requirementGroupIdKey, int orderKey)
@@ -232,16 +230,16 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByRequirementGroupIdAndOrder(string requirementGroupIdKey, int orderKey)
-            => _recordsByRequirementGroupIdAndOrder.TryGetValue(KeyOfRequirementGroupIdAndOrder(requirementGroupIdKey, orderKey), out Record record) ? record : null;
+        public RequirementEntryRecord FindByRequirementGroupIdAndOrder(string requirementGroupIdKey, int orderKey)
+            => _recordsByRequirementGroupIdAndOrder.TryGetValue(KeyOfRequirementGroupIdAndOrder(requirementGroupIdKey, orderKey), out RequirementEntryRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `RequirementGroupId and Order`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetByRequirementGroupIdAndOrderOrThrow(string requirementGroupIdKey, int orderKey)
+        public RequirementEntryRecord GetByRequirementGroupIdAndOrderOrThrow(string requirementGroupIdKey, int orderKey)
         {
-            if (!_recordsByRequirementGroupIdAndOrder.TryGetValue(KeyOfRequirementGroupIdAndOrder(requirementGroupIdKey, orderKey), out Record record))
+            if (!_recordsByRequirementGroupIdAndOrder.TryGetValue(KeyOfRequirementGroupIdAndOrder(requirementGroupIdKey, orderKey), out RequirementEntryRecord record))
                 throw new TabbitException($"There is no record in table `RequirementEntry` that corresponds to field `RequirementGroupId and Order` value ({requirementGroupIdKey}, {orderKey})");
 
             return record;
@@ -259,7 +257,7 @@ namespace Wildling.Data
         /// the order `GetByRequirementGroupIdAndOrderOrThrow` takes them in too.
         /// spec/targets/table-collection-surface.md section 5.4.
         /// </remarks>
-        public Record this[string requirementGroupIdKey, int orderKey]
+        public RequirementEntryRecord this[string requirementGroupIdKey, int orderKey]
             => GetByRequirementGroupIdAndOrderOrThrow(requirementGroupIdKey, orderKey);
         #endregion // Indexing by `RequirementGroupId and Order`
 
@@ -304,10 +302,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<RequirementEntryRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new RequirementEntryRecord());
 
             foreach (var column in columns)
             {
@@ -327,7 +325,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._requirementGroupId_RequirementGroup_index = value;
-                                record._requirementGroupId = default(RequirementGroupTable.Record); // will be assigned.
+                                record._requirementGroupId = default(RequirementGroupRecord); // will be assigned.
                                 record._requirementGroupId_F = false;
                             } while (--n > 0);
                         }
@@ -409,7 +407,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._req.ItemId = value;
-                                record._req.ItemByItemId = default(ItemTable.Record); // will be assigned.
+                                record._req.ItemByItemId = default(ItemRecord); // will be assigned.
                                 record._req.ItemId_F = false;
                             } while (--n > 0);
                         }
@@ -443,7 +441,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._req.StageId = value;
-                                record._req.StageByStageId = default(StageTable.Record); // will be assigned.
+                                record._req.StageByStageId = default(StageRecord); // will be assigned.
                                 record._req.StageId_F = false;
                             } while (--n > 0);
                         }
@@ -474,7 +472,7 @@ namespace Wildling.Data
 
                 TcbTable.CheckBlockEnd(reader, column, blockEnd);
             }
-            var recordsByRequirementGroupIdAndOrder = new Dictionary<string, Record>(count);
+            var recordsByRequirementGroupIdAndOrder = new Dictionary<string, RequirementEntryRecord>(count);
             foreach (var record in records)
                 recordsByRequirementGroupIdAndOrder.Add(KeyOfRequirementGroupIdAndOrder(record.RequirementGroupId, record.Order), record);
 

@@ -18,197 +18,195 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.Composite
 {
+    [System.Serializable]
+    public partial class VectorsRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// where it is
+        /// </summary>
+        public PosEntry Pos => _pos;
+
+        /// <summary>
+        /// which tile
+        /// </summary>
+        public CellEntry Cell => _cell;
+
+        /// <summary>
+        /// how it is turned
+        /// </summary>
+        public RotEntry Rot => _rot;
+
+        /// <summary>
+        /// 8-bit colour
+        /// </summary>
+        public TintEntry Tint => _tint;
+
+        /// <summary>
+        /// float colour
+        /// </summary>
+        public GlowEntry Glow => _glow;
+
+        /// <summary>
+        /// a plain column after the components
+        /// </summary>
+        public string Label => _label;
+        #endregion
+
+        /// <summary>One element of <see cref="Pos"/>.</summary>
+        [System.Serializable]
+        public struct PosEntry
+        {
+            /// where it is
+            public float X;
+            /// where it is
+            public float Y;
+            /// where it is
+            public float Z;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"X\":"); ToStringHelper.ToString(X, sb);
+                sb.Append(",\"Y\":"); ToStringHelper.ToString(Y, sb);
+                sb.Append(",\"Z\":"); ToStringHelper.ToString(Z, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        /// <summary>One element of <see cref="Cell"/>.</summary>
+        [System.Serializable]
+        public struct CellEntry
+        {
+            /// which tile
+            public int X;
+            /// which tile
+            public int Y;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"X\":"); ToStringHelper.ToString(X, sb);
+                sb.Append(",\"Y\":"); ToStringHelper.ToString(Y, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        /// <summary>One element of <see cref="Rot"/>.</summary>
+        [System.Serializable]
+        public struct RotEntry
+        {
+            /// how it is turned
+            public float X;
+            /// how it is turned
+            public float Y;
+            /// how it is turned
+            public float Z;
+            /// how it is turned
+            public float W;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"X\":"); ToStringHelper.ToString(X, sb);
+                sb.Append(",\"Y\":"); ToStringHelper.ToString(Y, sb);
+                sb.Append(",\"Z\":"); ToStringHelper.ToString(Z, sb);
+                sb.Append(",\"W\":"); ToStringHelper.ToString(W, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        /// <summary>One element of <see cref="Tint"/>.</summary>
+        [System.Serializable]
+        public struct TintEntry
+        {
+            /// 8-bit colour
+            public int R;
+            /// 8-bit colour
+            public int G;
+            /// 8-bit colour
+            public int B;
+            /// 8-bit colour
+            public int A;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"R\":"); ToStringHelper.ToString(R, sb);
+                sb.Append(",\"G\":"); ToStringHelper.ToString(G, sb);
+                sb.Append(",\"B\":"); ToStringHelper.ToString(B, sb);
+                sb.Append(",\"A\":"); ToStringHelper.ToString(A, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        /// <summary>One element of <see cref="Glow"/>.</summary>
+        [System.Serializable]
+        public struct GlowEntry
+        {
+            /// float colour
+            public float R;
+            /// float colour
+            public float G;
+            /// float colour
+            public float B;
+            /// float colour
+            public float A;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"R\":"); ToStringHelper.ToString(R, sb);
+                sb.Append(",\"G\":"); ToStringHelper.ToString(G, sb);
+                sb.Append(",\"B\":"); ToStringHelper.ToString(B, sb);
+                sb.Append(",\"A\":"); ToStringHelper.ToString(A, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        #region Storage
+        internal int _index;
+        internal PosEntry _pos;
+        internal CellEntry _cell;
+        internal RotEntry _rot;
+        internal TintEntry _tint;
+        internal GlowEntry _glow;
+        internal string _label = "";
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Pos\":"); ToStringHelper.ToString(Pos, sb);
+            sb.Append(",\"Cell\":"); ToStringHelper.ToString(Cell, sb);
+            sb.Append(",\"Rot\":"); ToStringHelper.ToString(Rot, sb);
+            sb.Append(",\"Tint\":"); ToStringHelper.ToString(Tint, sb);
+            sb.Append(",\"Glow\":"); ToStringHelper.ToString(Glow, sb);
+            sb.Append(",\"Label\":"); ToStringHelper.ToString(Label, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// Vectors, a rotation and two colours, in one notation or the other.
     /// </summary>
     [System.Serializable]
-    public partial class VectorsTable : IEnumerable<VectorsTable.Record>
+    public partial class VectorsTable : IEnumerable<VectorsRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Index => _index;
-
-            /// <summary>
-            /// where it is
-            /// </summary>
-            public PosEntry Pos => _pos;
-
-            /// <summary>
-            /// which tile
-            /// </summary>
-            public CellEntry Cell => _cell;
-
-            /// <summary>
-            /// how it is turned
-            /// </summary>
-            public RotEntry Rot => _rot;
-
-            /// <summary>
-            /// 8-bit colour
-            /// </summary>
-            public TintEntry Tint => _tint;
-
-            /// <summary>
-            /// float colour
-            /// </summary>
-            public GlowEntry Glow => _glow;
-
-            /// <summary>
-            /// a plain column after the components
-            /// </summary>
-            public string Label => _label;
-            #endregion
-
-            /// <summary>One element of <see cref="Pos"/>.</summary>
-            [System.Serializable]
-            public struct PosEntry
-            {
-                /// where it is
-                public float X;
-                /// where it is
-                public float Y;
-                /// where it is
-                public float Z;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"X\":"); ToStringHelper.ToString(X, sb);
-                    sb.Append(",\"Y\":"); ToStringHelper.ToString(Y, sb);
-                    sb.Append(",\"Z\":"); ToStringHelper.ToString(Z, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            /// <summary>One element of <see cref="Cell"/>.</summary>
-            [System.Serializable]
-            public struct CellEntry
-            {
-                /// which tile
-                public int X;
-                /// which tile
-                public int Y;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"X\":"); ToStringHelper.ToString(X, sb);
-                    sb.Append(",\"Y\":"); ToStringHelper.ToString(Y, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            /// <summary>One element of <see cref="Rot"/>.</summary>
-            [System.Serializable]
-            public struct RotEntry
-            {
-                /// how it is turned
-                public float X;
-                /// how it is turned
-                public float Y;
-                /// how it is turned
-                public float Z;
-                /// how it is turned
-                public float W;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"X\":"); ToStringHelper.ToString(X, sb);
-                    sb.Append(",\"Y\":"); ToStringHelper.ToString(Y, sb);
-                    sb.Append(",\"Z\":"); ToStringHelper.ToString(Z, sb);
-                    sb.Append(",\"W\":"); ToStringHelper.ToString(W, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            /// <summary>One element of <see cref="Tint"/>.</summary>
-            [System.Serializable]
-            public struct TintEntry
-            {
-                /// 8-bit colour
-                public int R;
-                /// 8-bit colour
-                public int G;
-                /// 8-bit colour
-                public int B;
-                /// 8-bit colour
-                public int A;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"R\":"); ToStringHelper.ToString(R, sb);
-                    sb.Append(",\"G\":"); ToStringHelper.ToString(G, sb);
-                    sb.Append(",\"B\":"); ToStringHelper.ToString(B, sb);
-                    sb.Append(",\"A\":"); ToStringHelper.ToString(A, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            /// <summary>One element of <see cref="Glow"/>.</summary>
-            [System.Serializable]
-            public struct GlowEntry
-            {
-                /// float colour
-                public float R;
-                /// float colour
-                public float G;
-                /// float colour
-                public float B;
-                /// float colour
-                public float A;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"R\":"); ToStringHelper.ToString(R, sb);
-                    sb.Append(",\"G\":"); ToStringHelper.ToString(G, sb);
-                    sb.Append(",\"B\":"); ToStringHelper.ToString(B, sb);
-                    sb.Append(",\"A\":"); ToStringHelper.ToString(A, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            #region Storage
-            internal int _index;
-            internal PosEntry _pos;
-            internal CellEntry _cell;
-            internal RotEntry _rot;
-            internal TintEntry _tint;
-            internal GlowEntry _glow;
-            internal string _label = "";
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Pos\":"); ToStringHelper.ToString(Pos, sb);
-                sb.Append(",\"Cell\":"); ToStringHelper.ToString(Cell, sb);
-                sb.Append(",\"Rot\":"); ToStringHelper.ToString(Rot, sb);
-                sb.Append(",\"Tint\":"); ToStringHelper.ToString(Tint, sb);
-                sb.Append(",\"Glow\":"); ToStringHelper.ToString(Glow, sb);
-                sb.Append(",\"Label\":"); ToStringHelper.ToString(Label, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -235,8 +233,8 @@ namespace Tabbit.Fixtures.Composite
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<VectorsRecord> Records => _records;
+        private List<VectorsRecord> _records = new List<VectorsRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -253,16 +251,16 @@ namespace Tabbit.Fixtures.Composite
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<VectorsRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<VectorsRecord> IEnumerable<VectorsRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+        public Dictionary<int, VectorsRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<int, VectorsRecord> _recordsByIndex = new Dictionary<int, VectorsRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -272,8 +270,8 @@ namespace Tabbit.Fixtures.Composite
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(int key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public VectorsRecord FindByIndex(int key)
+            => _recordsByIndex.TryGetValue(key, out VectorsRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -284,9 +282,9 @@ namespace Tabbit.Fixtures.Composite
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(int key)
+        public VectorsRecord GetByIndexOrThrow(int key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out VectorsRecord record))
                 throw new TabbitException($"There is no record in table `Vectors` that corresponds to field `Index` value {key}");
 
             return record;
@@ -311,10 +309,10 @@ namespace Tabbit.Fixtures.Composite
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<VectorsRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<VectorsRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -324,7 +322,7 @@ namespace Tabbit.Fixtures.Composite
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, VectorsRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -349,7 +347,7 @@ namespace Tabbit.Fixtures.Composite
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIndexOrThrow(key);
+        public VectorsRecord this[int key] => GetByIndexOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -392,10 +390,10 @@ namespace Tabbit.Fixtures.Composite
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<VectorsRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new VectorsRecord());
 
             foreach (var column in columns)
             {
@@ -653,7 +651,7 @@ namespace Tabbit.Fixtures.Composite
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<int, Record>(count);
+            var recordsByIndex = new Dictionary<int, VectorsRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
 

@@ -129,7 +129,7 @@ namespace Wildling.Game
             }
         }
 
-        private static void SlotRow(Transform column, App app, ShopSlotTable.Record slot)
+        private static void SlotRow(Transform column, App app, ShopSlotRecord slot)
         {
             var state = app.State;
             var cost = slot.Cost;

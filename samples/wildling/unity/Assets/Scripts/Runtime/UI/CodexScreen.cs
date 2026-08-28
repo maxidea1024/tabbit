@@ -76,7 +76,7 @@ namespace Wildling.Game
             }
         }
 
-        private static void Entry(Transform column, App app, MonsterTable.Record row)
+        private static void Entry(Transform column, App app, MonsterRecord row)
         {
             var state = app.State;
             var codex = state.CodexState(row.MonsterId);
@@ -223,7 +223,7 @@ namespace Wildling.Game
         }
 
         /// <summary>스킬 한 줄이다. 효과는 다형이므로 변종마다 다르게 적힌다.</summary>
-        public static void SkillRow(Transform column, SkillTable.Record skill,
+        public static void SkillRow(Transform column, SkillRecord skill,
                                     SlotKind slot, int unlockStage)
         {
             if (skill is null)
@@ -270,7 +270,7 @@ namespace Wildling.Game
         /// 상태 부여는 대상 상태와 지속 턴을 듭니다 — 기획서 9.3 이 「다형 레코드가 가장
         /// 강하게 요구되는 자리」라고 적은 곳입니다.
         /// </remarks>
-        public static string DescribeEffects(SkillTable.Record skill)
+        public static string DescribeEffects(SkillRecord skill)
         {
             var parts = Battle.EffectsOf(skill).Select(effect => effect switch
             {

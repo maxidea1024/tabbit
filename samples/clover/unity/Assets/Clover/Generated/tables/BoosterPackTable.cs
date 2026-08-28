@@ -18,74 +18,72 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class BoosterPackRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string PackId => _packId;
+
+        /// <summary>
+        /// 갈래
+        /// </summary>
+        public global::Clover.Data.PackKind Kind => _kind;
+
+        /// <summary>
+        /// 크기
+        /// </summary>
+        public global::Clover.Data.PackSize Size => _size;
+
+        /// <summary>
+        /// 값
+        /// </summary>
+        public int Cost => _cost;
+
+        /// <summary>
+        /// 들어 있는 장수
+        /// </summary>
+        public int Cards => _cards;
+
+        /// <summary>
+        /// 고르는 장수
+        /// </summary>
+        public int Picks => _picks;
+        #endregion
+
+        #region Storage
+        internal string _packId = "";
+        internal global::Clover.Data.PackKind _kind;
+        internal global::Clover.Data.PackSize _size;
+        internal int _cost;
+        internal int _cards;
+        internal int _picks;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"PackId\":"); ToStringHelper.ToString(PackId, sb);
+            sb.Append(",\"Kind\":"); ToStringHelper.ToString(Kind, sb);
+            sb.Append(",\"Size\":"); ToStringHelper.ToString(Size, sb);
+            sb.Append(",\"Cost\":"); ToStringHelper.ToString(Cost, sb);
+            sb.Append(",\"Cards\":"); ToStringHelper.ToString(Cards, sb);
+            sb.Append(",\"Picks\":"); ToStringHelper.ToString(Picks, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 팩 15종입니다. 갈래 5종과 크기 3종의 조합입니다.
     /// </summary>
     [System.Serializable]
-    public partial class BoosterPackTable : IEnumerable<BoosterPackTable.Record>
+    public partial class BoosterPackTable : IEnumerable<BoosterPackRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string PackId => _packId;
-
-            /// <summary>
-            /// 갈래
-            /// </summary>
-            public global::Clover.Data.PackKind Kind => _kind;
-
-            /// <summary>
-            /// 크기
-            /// </summary>
-            public global::Clover.Data.PackSize Size => _size;
-
-            /// <summary>
-            /// 값
-            /// </summary>
-            public int Cost => _cost;
-
-            /// <summary>
-            /// 들어 있는 장수
-            /// </summary>
-            public int Cards => _cards;
-
-            /// <summary>
-            /// 고르는 장수
-            /// </summary>
-            public int Picks => _picks;
-            #endregion
-
-            #region Storage
-            internal string _packId = "";
-            internal global::Clover.Data.PackKind _kind;
-            internal global::Clover.Data.PackSize _size;
-            internal int _cost;
-            internal int _cards;
-            internal int _picks;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"PackId\":"); ToStringHelper.ToString(PackId, sb);
-                sb.Append(",\"Kind\":"); ToStringHelper.ToString(Kind, sb);
-                sb.Append(",\"Size\":"); ToStringHelper.ToString(Size, sb);
-                sb.Append(",\"Cost\":"); ToStringHelper.ToString(Cost, sb);
-                sb.Append(",\"Cards\":"); ToStringHelper.ToString(Cards, sb);
-                sb.Append(",\"Picks\":"); ToStringHelper.ToString(Picks, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -112,8 +110,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<BoosterPackRecord> Records => _records;
+        private List<BoosterPackRecord> _records = new List<BoosterPackRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -130,16 +128,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<BoosterPackRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<BoosterPackRecord> IEnumerable<BoosterPackRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'PackId'
-        public Dictionary<string, Record> RecordsByPackId => _recordsByPackId;
-        private Dictionary<string, Record> _recordsByPackId = new Dictionary<string, Record>();
+        public Dictionary<string, BoosterPackRecord> RecordsByPackId => _recordsByPackId;
+        private Dictionary<string, BoosterPackRecord> _recordsByPackId = new Dictionary<string, BoosterPackRecord>();
 
         /// <summary>
         /// The row with this `PackId`, or null when the table has none.
@@ -149,8 +147,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByPackId(string key)
-            => _recordsByPackId.TryGetValue(key, out Record record) ? record : null;
+        public BoosterPackRecord FindByPackId(string key)
+            => _recordsByPackId.TryGetValue(key, out BoosterPackRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `PackId`, or a thrown exception naming what was
@@ -161,9 +159,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByPackId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByPackIdOrThrow(string key)
+        public BoosterPackRecord GetByPackIdOrThrow(string key)
         {
-            if (!_recordsByPackId.TryGetValue(key, out Record record))
+            if (!_recordsByPackId.TryGetValue(key, out BoosterPackRecord record))
                 throw new TabbitException($"There is no record in table `BoosterPack` that corresponds to field `PackId` value {key}");
 
             return record;
@@ -188,10 +186,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<BoosterPackRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<BoosterPackRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -201,7 +199,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, BoosterPackRecord Row) Current
                 => (_rows[_at].PackId, _rows[_at]);
         }
 
@@ -226,7 +224,7 @@ namespace Clover.Data
         /// It does not replace `FindByPackId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByPackIdOrThrow(key);
+        public BoosterPackRecord this[string key] => GetByPackIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -269,10 +267,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<BoosterPackRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new BoosterPackRecord());
 
             foreach (var column in columns)
             {
@@ -388,7 +386,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByPackId = new Dictionary<string, Record>(count);
+            var recordsByPackId = new Dictionary<string, BoosterPackRecord>(count);
             foreach (var record in records)
                 recordsByPackId.Add(record.PackId, record);
 

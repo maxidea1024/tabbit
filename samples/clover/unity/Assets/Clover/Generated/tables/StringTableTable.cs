@@ -18,53 +18,51 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class StringTableRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string StringId => _stringId;
+
+        /// <summary>
+        /// 한국어
+        /// </summary>
+        public string Ko => _ko;
+
+        /// <summary>
+        /// 영어
+        /// </summary>
+        public string En => _en;
+        #endregion
+
+        #region Storage
+        internal string _stringId = "";
+        internal string _ko = "";
+        internal string _en = "";
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"StringId\":"); ToStringHelper.ToString(StringId, sb);
+            sb.Append(",\"Ko\":"); ToStringHelper.ToString(Ko, sb);
+            sb.Append(",\"En\":"); ToStringHelper.ToString(En, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 번역 대조본입니다. 시트의 표시 이름이 한국어이고 영어가 여기 있습니다.
     /// </summary>
     [System.Serializable]
-    public partial class StringTableTable : IEnumerable<StringTableTable.Record>
+    public partial class StringTableTable : IEnumerable<StringTableRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string StringId => _stringId;
-
-            /// <summary>
-            /// 한국어
-            /// </summary>
-            public string Ko => _ko;
-
-            /// <summary>
-            /// 영어
-            /// </summary>
-            public string En => _en;
-            #endregion
-
-            #region Storage
-            internal string _stringId = "";
-            internal string _ko = "";
-            internal string _en = "";
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"StringId\":"); ToStringHelper.ToString(StringId, sb);
-                sb.Append(",\"Ko\":"); ToStringHelper.ToString(Ko, sb);
-                sb.Append(",\"En\":"); ToStringHelper.ToString(En, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -91,8 +89,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<StringTableRecord> Records => _records;
+        private List<StringTableRecord> _records = new List<StringTableRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -109,16 +107,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<StringTableRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<StringTableRecord> IEnumerable<StringTableRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'StringId'
-        public Dictionary<string, Record> RecordsByStringId => _recordsByStringId;
-        private Dictionary<string, Record> _recordsByStringId = new Dictionary<string, Record>();
+        public Dictionary<string, StringTableRecord> RecordsByStringId => _recordsByStringId;
+        private Dictionary<string, StringTableRecord> _recordsByStringId = new Dictionary<string, StringTableRecord>();
 
         /// <summary>
         /// The row with this `StringId`, or null when the table has none.
@@ -128,8 +126,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByStringId(string key)
-            => _recordsByStringId.TryGetValue(key, out Record record) ? record : null;
+        public StringTableRecord FindByStringId(string key)
+            => _recordsByStringId.TryGetValue(key, out StringTableRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `StringId`, or a thrown exception naming what was
@@ -140,9 +138,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByStringId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByStringIdOrThrow(string key)
+        public StringTableRecord GetByStringIdOrThrow(string key)
         {
-            if (!_recordsByStringId.TryGetValue(key, out Record record))
+            if (!_recordsByStringId.TryGetValue(key, out StringTableRecord record))
                 throw new TabbitException($"There is no record in table `StringTable` that corresponds to field `StringId` value {key}");
 
             return record;
@@ -167,10 +165,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<StringTableRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<StringTableRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -180,7 +178,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, StringTableRecord Row) Current
                 => (_rows[_at].StringId, _rows[_at]);
         }
 
@@ -205,7 +203,7 @@ namespace Clover.Data
         /// It does not replace `FindByStringId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByStringIdOrThrow(key);
+        public StringTableRecord this[string key] => GetByStringIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -248,10 +246,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<StringTableRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new StringTableRecord());
 
             foreach (var column in columns)
             {
@@ -319,7 +317,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByStringId = new Dictionary<string, Record>(count);
+            var recordsByStringId = new Dictionary<string, StringTableRecord>(count);
             foreach (var record in records)
                 recordsByStringId.Add(record.StringId, record);
 

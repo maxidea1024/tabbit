@@ -80,7 +80,7 @@ public class SerialReferenceTests
         string cs = File.ReadAllText(Path.Combine(
             RepoLayout.OutputDir(Scenario), "csharp", "tables", "KitTable.cs"));
 
-        Assert.Contains("record._slot = new PieceTable.Record[elementCount];", cs);
+        Assert.Contains("record._slot = new PieceRecord[elementCount];", cs);
         Assert.Contains("record._slot_Piece_index = new int[elementCount];", cs);
         Assert.Contains("record._slot_F = new bool[elementCount];", cs);
 

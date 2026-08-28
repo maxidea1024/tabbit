@@ -18,134 +18,132 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class MonsterAwakeningRecord
+    {
+        #region Values
+        /// <summary>
+        /// 각성 전
+        /// </summary>
+        public string FromMonsterId => _fromMonsterId_Monster_index;
+        public MonsterRecord MonsterByFromMonsterId => _fromMonsterId;
+
+        /// <summary>
+        /// 각성 후
+        /// </summary>
+        public string ToMonsterId => _toMonsterId_Monster_index;
+        public MonsterRecord MonsterByToMonsterId => _toMonsterId;
+
+        /// <summary>
+        /// 각성으로 더해지는 값
+        /// </summary>
+        public GainEntry Gain => _gain;
+
+        /// <summary>
+        /// 각성 조건
+        /// </summary>
+        public string RequirementGroupId => _requirementGroupId_RequirementGroup_index;
+        public RequirementGroupRecord RequirementGroupByRequirementGroupId => _requirementGroupId;
+
+        /// <summary>
+        /// 어느 재화인가.
+        /// </summary>
+        public CostsEntry[] Costs => _costs;
+        #endregion
+
+        /// <summary>One element of <see cref="Gain"/>.</summary>
+        [System.Serializable]
+        public struct GainEntry
+        {
+            /// 각성으로 더해지는 값
+            public int Hp;
+            /// 공격 증가분
+            public int Attack;
+            /// 방어 증가분
+            public int Defense;
+            /// 행동 순서 증가분
+            public int Speed;
+            /// 치명타 확률 증가분
+            public int CritRate;
+            /// 치명타 배수 증가분
+            public int CritPower;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"Hp\":"); ToStringHelper.ToString(Hp, sb);
+                sb.Append(",\"Attack\":"); ToStringHelper.ToString(Attack, sb);
+                sb.Append(",\"Defense\":"); ToStringHelper.ToString(Defense, sb);
+                sb.Append(",\"Speed\":"); ToStringHelper.ToString(Speed, sb);
+                sb.Append(",\"CritRate\":"); ToStringHelper.ToString(CritRate, sb);
+                sb.Append(",\"CritPower\":"); ToStringHelper.ToString(CritPower, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        /// <summary>One element of <see cref="Costs"/>.</summary>
+        [System.Serializable]
+        public struct CostsEntry
+        {
+            /// 어느 재화인가.
+            public string CurrencyId;
+            public CurrencyRecord CurrencyByCurrencyId;
+            public bool CurrencyId_F;
+            /// 수량.
+            public int Amount;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"CurrencyId\":"); ToStringHelper.ToString(CurrencyId, sb);
+                sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        #region Reference wiring
+        public void SetReference_FromMonsterId_INTERNAL(MonsterRecord value) => _fromMonsterId = value;
+        public void SetReference_ToMonsterId_INTERNAL(MonsterRecord value) => _toMonsterId = value;
+        public void SetReference_RequirementGroupId_INTERNAL(RequirementGroupRecord value) => _requirementGroupId = value;
+        #endregion
+
+        #region Storage
+        internal MonsterRecord _fromMonsterId;
+        internal string _fromMonsterId_Monster_index;
+        public bool _fromMonsterId_F = false;
+        internal MonsterRecord _toMonsterId;
+        internal string _toMonsterId_Monster_index;
+        public bool _toMonsterId_F = false;
+        internal GainEntry _gain;
+        internal RequirementGroupRecord _requirementGroupId;
+        internal string _requirementGroupId_RequirementGroup_index;
+        public bool _requirementGroupId_F = false;
+        internal CostsEntry[] _costs = System.Array.Empty<CostsEntry>();
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"FromMonsterId\":"); ToStringHelper.ToString(FromMonsterId, sb);
+            sb.Append(",\"ToMonsterId\":"); ToStringHelper.ToString(ToMonsterId, sb);
+            sb.Append(",\"Gain\":"); ToStringHelper.ToString(Gain, sb);
+            sb.Append(",\"RequirementGroupId\":"); ToStringHelper.ToString(RequirementGroupId, sb);
+            sb.Append(",\"Costs\":"); ToStringHelper.ToString(Costs, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 각성 관계이다. 연장 행은 소모 재화의 원소이다.
     /// </summary>
     [System.Serializable]
-    public partial class MonsterAwakeningTable : IEnumerable<MonsterAwakeningTable.Record>
+    public partial class MonsterAwakeningTable : IEnumerable<MonsterAwakeningRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 각성 전
-            /// </summary>
-            public string FromMonsterId => _fromMonsterId_Monster_index;
-            public MonsterTable.Record MonsterByFromMonsterId => _fromMonsterId;
-
-            /// <summary>
-            /// 각성 후
-            /// </summary>
-            public string ToMonsterId => _toMonsterId_Monster_index;
-            public MonsterTable.Record MonsterByToMonsterId => _toMonsterId;
-
-            /// <summary>
-            /// 각성으로 더해지는 값
-            /// </summary>
-            public GainEntry Gain => _gain;
-
-            /// <summary>
-            /// 각성 조건
-            /// </summary>
-            public string RequirementGroupId => _requirementGroupId_RequirementGroup_index;
-            public RequirementGroupTable.Record RequirementGroupByRequirementGroupId => _requirementGroupId;
-
-            /// <summary>
-            /// 어느 재화인가.
-            /// </summary>
-            public CostsEntry[] Costs => _costs;
-            #endregion
-
-            /// <summary>One element of <see cref="Gain"/>.</summary>
-            [System.Serializable]
-            public struct GainEntry
-            {
-                /// 각성으로 더해지는 값
-                public int Hp;
-                /// 공격 증가분
-                public int Attack;
-                /// 방어 증가분
-                public int Defense;
-                /// 행동 순서 증가분
-                public int Speed;
-                /// 치명타 확률 증가분
-                public int CritRate;
-                /// 치명타 배수 증가분
-                public int CritPower;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"Hp\":"); ToStringHelper.ToString(Hp, sb);
-                    sb.Append(",\"Attack\":"); ToStringHelper.ToString(Attack, sb);
-                    sb.Append(",\"Defense\":"); ToStringHelper.ToString(Defense, sb);
-                    sb.Append(",\"Speed\":"); ToStringHelper.ToString(Speed, sb);
-                    sb.Append(",\"CritRate\":"); ToStringHelper.ToString(CritRate, sb);
-                    sb.Append(",\"CritPower\":"); ToStringHelper.ToString(CritPower, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            /// <summary>One element of <see cref="Costs"/>.</summary>
-            [System.Serializable]
-            public struct CostsEntry
-            {
-                /// 어느 재화인가.
-                public string CurrencyId;
-                public CurrencyTable.Record CurrencyByCurrencyId;
-                public bool CurrencyId_F;
-                /// 수량.
-                public int Amount;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"CurrencyId\":"); ToStringHelper.ToString(CurrencyId, sb);
-                    sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            #region Reference wiring
-            public void SetReference_FromMonsterId_INTERNAL(MonsterTable.Record value) => _fromMonsterId = value;
-            public void SetReference_ToMonsterId_INTERNAL(MonsterTable.Record value) => _toMonsterId = value;
-            public void SetReference_RequirementGroupId_INTERNAL(RequirementGroupTable.Record value) => _requirementGroupId = value;
-            #endregion
-
-            #region Storage
-            internal MonsterTable.Record _fromMonsterId;
-            internal string _fromMonsterId_Monster_index;
-            public bool _fromMonsterId_F = false;
-            internal MonsterTable.Record _toMonsterId;
-            internal string _toMonsterId_Monster_index;
-            public bool _toMonsterId_F = false;
-            internal GainEntry _gain;
-            internal RequirementGroupTable.Record _requirementGroupId;
-            internal string _requirementGroupId_RequirementGroup_index;
-            public bool _requirementGroupId_F = false;
-            internal CostsEntry[] _costs = System.Array.Empty<CostsEntry>();
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"FromMonsterId\":"); ToStringHelper.ToString(FromMonsterId, sb);
-                sb.Append(",\"ToMonsterId\":"); ToStringHelper.ToString(ToMonsterId, sb);
-                sb.Append(",\"Gain\":"); ToStringHelper.ToString(Gain, sb);
-                sb.Append(",\"RequirementGroupId\":"); ToStringHelper.ToString(RequirementGroupId, sb);
-                sb.Append(",\"Costs\":"); ToStringHelper.ToString(Costs, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -172,8 +170,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<MonsterAwakeningRecord> Records => _records;
+        private List<MonsterAwakeningRecord> _records = new List<MonsterAwakeningRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -190,16 +188,16 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<MonsterAwakeningRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<MonsterAwakeningRecord> IEnumerable<MonsterAwakeningRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'FromMonsterId'
-        public Dictionary<string, Record> RecordsByFromMonsterId => _recordsByFromMonsterId;
-        private Dictionary<string, Record> _recordsByFromMonsterId = new Dictionary<string, Record>();
+        public Dictionary<string, MonsterAwakeningRecord> RecordsByFromMonsterId => _recordsByFromMonsterId;
+        private Dictionary<string, MonsterAwakeningRecord> _recordsByFromMonsterId = new Dictionary<string, MonsterAwakeningRecord>();
 
         /// <summary>
         /// The row with this `FromMonsterId`, or null when the table has none.
@@ -209,8 +207,8 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByFromMonsterId(string key)
-            => _recordsByFromMonsterId.TryGetValue(key, out Record record) ? record : null;
+        public MonsterAwakeningRecord FindByFromMonsterId(string key)
+            => _recordsByFromMonsterId.TryGetValue(key, out MonsterAwakeningRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `FromMonsterId`, or a thrown exception naming what was
@@ -221,9 +219,9 @@ namespace Wildling.Data
         /// says it throws, because a caller reading `GetByFromMonsterId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByFromMonsterIdOrThrow(string key)
+        public MonsterAwakeningRecord GetByFromMonsterIdOrThrow(string key)
         {
-            if (!_recordsByFromMonsterId.TryGetValue(key, out Record record))
+            if (!_recordsByFromMonsterId.TryGetValue(key, out MonsterAwakeningRecord record))
                 throw new TabbitException($"There is no record in table `MonsterAwakening` that corresponds to field `FromMonsterId` value {key}");
 
             return record;
@@ -248,10 +246,10 @@ namespace Wildling.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<MonsterAwakeningRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<MonsterAwakeningRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -261,7 +259,7 @@ namespace Wildling.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, MonsterAwakeningRecord Row) Current
                 => (_rows[_at].FromMonsterId, _rows[_at]);
         }
 
@@ -286,7 +284,7 @@ namespace Wildling.Data
         /// It does not replace `FindByFromMonsterId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByFromMonsterIdOrThrow(key);
+        public MonsterAwakeningRecord this[string key] => GetByFromMonsterIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -329,10 +327,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<MonsterAwakeningRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new MonsterAwakeningRecord());
 
             foreach (var column in columns)
             {
@@ -352,7 +350,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._fromMonsterId_Monster_index = value;
-                                record._fromMonsterId = default(MonsterTable.Record); // will be assigned.
+                                record._fromMonsterId = default(MonsterRecord); // will be assigned.
                                 record._fromMonsterId_F = false;
                             } while (--n > 0);
                         }
@@ -370,7 +368,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._toMonsterId_Monster_index = value;
-                                record._toMonsterId = default(MonsterTable.Record); // will be assigned.
+                                record._toMonsterId = default(MonsterRecord); // will be assigned.
                                 record._toMonsterId_F = false;
                             } while (--n > 0);
                         }
@@ -484,7 +482,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._requirementGroupId_RequirementGroup_index = value;
-                                record._requirementGroupId = default(RequirementGroupTable.Record); // will be assigned.
+                                record._requirementGroupId = default(RequirementGroupRecord); // will be assigned.
                                 record._requirementGroupId_F = false;
                             } while (--n > 0);
                         }
@@ -498,11 +496,11 @@ namespace Wildling.Data
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._costs = new Record.CostsEntry[elementCount];
+                            record._costs = new MonsterAwakeningRecord.CostsEntry[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
                                 record._costs[j].CurrencyId = cursor.NextString();
-                                record._costs[j].CurrencyByCurrencyId = default(CurrencyTable.Record); // will be assigned.
+                                record._costs[j].CurrencyByCurrencyId = default(CurrencyRecord); // will be assigned.
                                 record._costs[j].CurrencyId_F = false;
                             }
                         }
@@ -543,7 +541,7 @@ namespace Wildling.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByFromMonsterId = new Dictionary<string, Record>(count);
+            var recordsByFromMonsterId = new Dictionary<string, MonsterAwakeningRecord>(count);
             foreach (var record in records)
                 recordsByFromMonsterId.Add(record.FromMonsterId, record);
 

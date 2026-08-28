@@ -85,14 +85,14 @@ namespace Wildling.Game
                       .Sum(o => Power(Stats.Compute(o.Row, o.Level,
                                                     state.Resonance(o.SpeciesId))));
 
-        public static long StagePower(StageTable.Record stage)
+        public static long StagePower(StageRecord stage)
         {
             if (stage is null)
                 return 0;
 
             long total = 0;
             var wave = stage.MonsterByWaveMonsterIds
-                       ?? System.Array.Empty<MonsterTable.Record>();
+                       ?? System.Array.Empty<MonsterRecord>();
 
             for (int i = 0; i < wave.Length; i++)
             {

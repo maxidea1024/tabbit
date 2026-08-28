@@ -18,53 +18,51 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class ElementAffinityRecord
+    {
+        #region Values
+        /// <summary>
+        /// 공격 속성
+        /// </summary>
+        public global::Wildling.Data.Element Attacker => _attacker;
+
+        /// <summary>
+        /// 방어 속성
+        /// </summary>
+        public global::Wildling.Data.Element Defender => _defender;
+
+        /// <summary>
+        /// 피해 배수. 만분율
+        /// </summary>
+        public int Factor => _factor;
+        #endregion
+
+        #region Storage
+        internal global::Wildling.Data.Element _attacker;
+        internal global::Wildling.Data.Element _defender;
+        internal int _factor;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Attacker\":"); ToStringHelper.ToString(Attacker, sb);
+            sb.Append(",\"Defender\":"); ToStringHelper.ToString(Defender, sb);
+            sb.Append(",\"Factor\":"); ToStringHelper.ToString(Factor, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 속성 상성 배수이다. 조합이 키이므로 복합 기본 인덱스이다.
     /// </summary>
     [System.Serializable]
-    public partial class ElementAffinityTable : IEnumerable<ElementAffinityTable.Record>
+    public partial class ElementAffinityTable : IEnumerable<ElementAffinityRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 공격 속성
-            /// </summary>
-            public global::Wildling.Data.Element Attacker => _attacker;
-
-            /// <summary>
-            /// 방어 속성
-            /// </summary>
-            public global::Wildling.Data.Element Defender => _defender;
-
-            /// <summary>
-            /// 피해 배수. 만분율
-            /// </summary>
-            public int Factor => _factor;
-            #endregion
-
-            #region Storage
-            internal global::Wildling.Data.Element _attacker;
-            internal global::Wildling.Data.Element _defender;
-            internal int _factor;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Attacker\":"); ToStringHelper.ToString(Attacker, sb);
-                sb.Append(",\"Defender\":"); ToStringHelper.ToString(Defender, sb);
-                sb.Append(",\"Factor\":"); ToStringHelper.ToString(Factor, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -91,8 +89,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<ElementAffinityRecord> Records => _records;
+        private List<ElementAffinityRecord> _records = new List<ElementAffinityRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -109,15 +107,15 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<ElementAffinityRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<ElementAffinityRecord> IEnumerable<ElementAffinityRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Attacker and Defender'
-        private Dictionary<string, Record> _recordsByAttackerAndDefender = new Dictionary<string, Record>();
+        private Dictionary<string, ElementAffinityRecord> _recordsByAttackerAndDefender = new Dictionary<string, ElementAffinityRecord>();
 
         /// <summary>Joins the columns of the `Attacker and Defender` key into the text the map is keyed by.</summary>
         private static string KeyOfAttackerAndDefender(global::Wildling.Data.Element attackerKey, global::Wildling.Data.Element defenderKey)
@@ -144,16 +142,16 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByAttackerAndDefender(global::Wildling.Data.Element attackerKey, global::Wildling.Data.Element defenderKey)
-            => _recordsByAttackerAndDefender.TryGetValue(KeyOfAttackerAndDefender(attackerKey, defenderKey), out Record record) ? record : null;
+        public ElementAffinityRecord FindByAttackerAndDefender(global::Wildling.Data.Element attackerKey, global::Wildling.Data.Element defenderKey)
+            => _recordsByAttackerAndDefender.TryGetValue(KeyOfAttackerAndDefender(attackerKey, defenderKey), out ElementAffinityRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Attacker and Defender`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetByAttackerAndDefenderOrThrow(global::Wildling.Data.Element attackerKey, global::Wildling.Data.Element defenderKey)
+        public ElementAffinityRecord GetByAttackerAndDefenderOrThrow(global::Wildling.Data.Element attackerKey, global::Wildling.Data.Element defenderKey)
         {
-            if (!_recordsByAttackerAndDefender.TryGetValue(KeyOfAttackerAndDefender(attackerKey, defenderKey), out Record record))
+            if (!_recordsByAttackerAndDefender.TryGetValue(KeyOfAttackerAndDefender(attackerKey, defenderKey), out ElementAffinityRecord record))
                 throw new TabbitException($"There is no record in table `ElementAffinity` that corresponds to field `Attacker and Defender` value ({attackerKey}, {defenderKey})");
 
             return record;
@@ -171,7 +169,7 @@ namespace Wildling.Data
         /// the order `GetByAttackerAndDefenderOrThrow` takes them in too.
         /// spec/targets/table-collection-surface.md section 5.4.
         /// </remarks>
-        public Record this[global::Wildling.Data.Element attackerKey, global::Wildling.Data.Element defenderKey]
+        public ElementAffinityRecord this[global::Wildling.Data.Element attackerKey, global::Wildling.Data.Element defenderKey]
             => GetByAttackerAndDefenderOrThrow(attackerKey, defenderKey);
         #endregion // Indexing by `Attacker and Defender`
 
@@ -216,10 +214,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<ElementAffinityRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new ElementAffinityRecord());
 
             foreach (var column in columns)
             {
@@ -284,7 +282,7 @@ namespace Wildling.Data
 
                 TcbTable.CheckBlockEnd(reader, column, blockEnd);
             }
-            var recordsByAttackerAndDefender = new Dictionary<string, Record>(count);
+            var recordsByAttackerAndDefender = new Dictionary<string, ElementAffinityRecord>(count);
             foreach (var record in records)
                 recordsByAttackerAndDefender.Add(KeyOfAttackerAndDefender(record.Attacker, record.Defender), record);
 

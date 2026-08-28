@@ -18,53 +18,51 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class ShopSlotWeightRecord
+    {
+        #region Values
+        /// <summary>
+        /// 무엇이
+        /// </summary>
+        public global::Clover.Data.ShopItemKind Item => _item;
+
+        /// <summary>
+        /// 가중치
+        /// </summary>
+        public int Weight => _weight;
+
+        /// <summary>
+        /// 언제 바뀌는가
+        /// </summary>
+        public string Note => _note;
+        #endregion
+
+        #region Storage
+        internal global::Clover.Data.ShopItemKind _item;
+        internal int _weight;
+        internal string _note = "";
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Item\":"); ToStringHelper.ToString(Item, sb);
+            sb.Append(",\"Weight\":"); ToStringHelper.ToString(Weight, sb);
+            sb.Append(",\"Note\":"); ToStringHelper.ToString(Note, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 카드 칸 하나에 무엇이 오는가의 추첨입니다. 가중치의 합으로 나눈 것이 확률입니다.
     /// </summary>
     [System.Serializable]
-    public partial class ShopSlotWeightTable : IEnumerable<ShopSlotWeightTable.Record>
+    public partial class ShopSlotWeightTable : IEnumerable<ShopSlotWeightRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 무엇이
-            /// </summary>
-            public global::Clover.Data.ShopItemKind Item => _item;
-
-            /// <summary>
-            /// 가중치
-            /// </summary>
-            public int Weight => _weight;
-
-            /// <summary>
-            /// 언제 바뀌는가
-            /// </summary>
-            public string Note => _note;
-            #endregion
-
-            #region Storage
-            internal global::Clover.Data.ShopItemKind _item;
-            internal int _weight;
-            internal string _note = "";
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Item\":"); ToStringHelper.ToString(Item, sb);
-                sb.Append(",\"Weight\":"); ToStringHelper.ToString(Weight, sb);
-                sb.Append(",\"Note\":"); ToStringHelper.ToString(Note, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -91,8 +89,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<ShopSlotWeightRecord> Records => _records;
+        private List<ShopSlotWeightRecord> _records = new List<ShopSlotWeightRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -109,16 +107,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<ShopSlotWeightRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<ShopSlotWeightRecord> IEnumerable<ShopSlotWeightRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Item'
-        public Dictionary<global::Clover.Data.ShopItemKind, Record> RecordsByItem => _recordsByItem;
-        private Dictionary<global::Clover.Data.ShopItemKind, Record> _recordsByItem = new Dictionary<global::Clover.Data.ShopItemKind, Record>();
+        public Dictionary<global::Clover.Data.ShopItemKind, ShopSlotWeightRecord> RecordsByItem => _recordsByItem;
+        private Dictionary<global::Clover.Data.ShopItemKind, ShopSlotWeightRecord> _recordsByItem = new Dictionary<global::Clover.Data.ShopItemKind, ShopSlotWeightRecord>();
 
         /// <summary>
         /// The row with this `Item`, or null when the table has none.
@@ -128,8 +126,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByItem(global::Clover.Data.ShopItemKind key)
-            => _recordsByItem.TryGetValue(key, out Record record) ? record : null;
+        public ShopSlotWeightRecord FindByItem(global::Clover.Data.ShopItemKind key)
+            => _recordsByItem.TryGetValue(key, out ShopSlotWeightRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Item`, or a thrown exception naming what was
@@ -140,9 +138,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByItem(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByItemOrThrow(global::Clover.Data.ShopItemKind key)
+        public ShopSlotWeightRecord GetByItemOrThrow(global::Clover.Data.ShopItemKind key)
         {
-            if (!_recordsByItem.TryGetValue(key, out Record record))
+            if (!_recordsByItem.TryGetValue(key, out ShopSlotWeightRecord record))
                 throw new TabbitException($"There is no record in table `ShopSlotWeight` that corresponds to field `Item` value {key}");
 
             return record;
@@ -167,10 +165,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<ShopSlotWeightRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<ShopSlotWeightRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -180,7 +178,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (global::Clover.Data.ShopItemKind Key, Record Row) Current
+            public (global::Clover.Data.ShopItemKind Key, ShopSlotWeightRecord Row) Current
                 => (_rows[_at].Item, _rows[_at]);
         }
 
@@ -205,7 +203,7 @@ namespace Clover.Data
         /// It does not replace `FindByItem`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[global::Clover.Data.ShopItemKind key] => GetByItemOrThrow(key);
+        public ShopSlotWeightRecord this[global::Clover.Data.ShopItemKind key] => GetByItemOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -248,10 +246,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<ShopSlotWeightRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new ShopSlotWeightRecord());
 
             foreach (var column in columns)
             {
@@ -319,7 +317,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByItem = new Dictionary<global::Clover.Data.ShopItemKind, Record>(count);
+            var recordsByItem = new Dictionary<global::Clover.Data.ShopItemKind, ShopSlotWeightRecord>(count);
             foreach (var record in records)
                 recordsByItem.Add(record.Item, record);
 

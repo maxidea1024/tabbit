@@ -52,7 +52,7 @@ namespace Wildling.Game
         /// <summary>
         /// 기본치 × 레벨 배수 × 공명 배수이다.
         /// </summary>
-        public static StatBlock Compute(MonsterTable.Record monster, int level, int resonance)
+        public static StatBlock Compute(MonsterRecord monster, int level, int resonance)
         {
             var b = monster.Base;
             var curve = WildlingData.GrowthCurve.FindByGradeAndLevel(monster.Grade, level);
@@ -119,8 +119,8 @@ namespace Wildling.Game
         /// 건너뜁니다」까지만 정했고 하나도 못 쓰는 경우를 다루지 않았습니다. 대기가 0인 스킬을
         /// 반드시 한 자리 넣으면 그 상태가 생기지 않습니다.
         /// </remarks>
-        public static List<MonsterSkillTable.Record> BasicFirst(
-            IEnumerable<MonsterSkillTable.Record> candidates)
+        public static List<MonsterSkillRecord> BasicFirst(
+            IEnumerable<MonsterSkillRecord> candidates)
             => candidates
                 .Select((row, order) => (row, order))
                 .OrderBy(p => (p.row.SkillBySkillId?.Cooldown ?? 9) == 0 ? 0 : 1)
@@ -129,9 +129,9 @@ namespace Wildling.Game
                 .ToList();
 
         /// <summary>레벨 하나를 올리는 데 드는 재화이다.</summary>
-        public static GrowthCurveTable.Record.CostsEntry[] LevelCost(Grade grade, int nextLevel)
+        public static GrowthCurveRecord.CostsEntry[] LevelCost(Grade grade, int nextLevel)
             => WildlingData.GrowthCurve.FindByGradeAndLevel(grade, nextLevel)?.Costs
-               ?? Array.Empty<GrowthCurveTable.Record.CostsEntry>();
+               ?? Array.Empty<GrowthCurveRecord.CostsEntry>();
 
         /// <summary>공명 등급 하나를 올리는 데 드는 조각이다.</summary>
         public static int ResonanceCost(Grade grade, int nextRank)

@@ -18,67 +18,65 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class EditionVisualRecord
+    {
+        #region Values
+        /// <summary>
+        /// 에디션
+        /// </summary>
+        public global::Clover.Data.EditionKind Edition => _edition;
+
+        /// <summary>
+        /// 셰이더 이름
+        /// </summary>
+        public string Shader => _shader;
+
+        /// <summary>
+        /// 세기. 만분율
+        /// </summary>
+        public int Strength => _strength;
+
+        /// <summary>
+        /// 흐르는 속도. 만분율
+        /// </summary>
+        public int FlowSpeed => _flowSpeed;
+
+        /// <summary>
+        /// 노이즈. 만분율
+        /// </summary>
+        public int Noise => _noise;
+        #endregion
+
+        #region Storage
+        internal global::Clover.Data.EditionKind _edition;
+        internal string _shader = "";
+        internal int _strength;
+        internal int _flowSpeed;
+        internal int _noise;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Edition\":"); ToStringHelper.ToString(Edition, sb);
+            sb.Append(",\"Shader\":"); ToStringHelper.ToString(Shader, sb);
+            sb.Append(",\"Strength\":"); ToStringHelper.ToString(Strength, sb);
+            sb.Append(",\"FlowSpeed\":"); ToStringHelper.ToString(FlowSpeed, sb);
+            sb.Append(",\"Noise\":"); ToStringHelper.ToString(Noise, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 에디션 셰이더의 파라미터입니다. 웹 GLSL과 유니티 HLSL이 같은 수식에 이 값을 넣습니다.
     /// </summary>
     [System.Serializable]
-    public partial class EditionVisualTable : IEnumerable<EditionVisualTable.Record>
+    public partial class EditionVisualTable : IEnumerable<EditionVisualRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 에디션
-            /// </summary>
-            public global::Clover.Data.EditionKind Edition => _edition;
-
-            /// <summary>
-            /// 셰이더 이름
-            /// </summary>
-            public string Shader => _shader;
-
-            /// <summary>
-            /// 세기. 만분율
-            /// </summary>
-            public int Strength => _strength;
-
-            /// <summary>
-            /// 흐르는 속도. 만분율
-            /// </summary>
-            public int FlowSpeed => _flowSpeed;
-
-            /// <summary>
-            /// 노이즈. 만분율
-            /// </summary>
-            public int Noise => _noise;
-            #endregion
-
-            #region Storage
-            internal global::Clover.Data.EditionKind _edition;
-            internal string _shader = "";
-            internal int _strength;
-            internal int _flowSpeed;
-            internal int _noise;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Edition\":"); ToStringHelper.ToString(Edition, sb);
-                sb.Append(",\"Shader\":"); ToStringHelper.ToString(Shader, sb);
-                sb.Append(",\"Strength\":"); ToStringHelper.ToString(Strength, sb);
-                sb.Append(",\"FlowSpeed\":"); ToStringHelper.ToString(FlowSpeed, sb);
-                sb.Append(",\"Noise\":"); ToStringHelper.ToString(Noise, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -105,8 +103,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<EditionVisualRecord> Records => _records;
+        private List<EditionVisualRecord> _records = new List<EditionVisualRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -123,16 +121,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<EditionVisualRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<EditionVisualRecord> IEnumerable<EditionVisualRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Edition'
-        public Dictionary<global::Clover.Data.EditionKind, Record> RecordsByEdition => _recordsByEdition;
-        private Dictionary<global::Clover.Data.EditionKind, Record> _recordsByEdition = new Dictionary<global::Clover.Data.EditionKind, Record>();
+        public Dictionary<global::Clover.Data.EditionKind, EditionVisualRecord> RecordsByEdition => _recordsByEdition;
+        private Dictionary<global::Clover.Data.EditionKind, EditionVisualRecord> _recordsByEdition = new Dictionary<global::Clover.Data.EditionKind, EditionVisualRecord>();
 
         /// <summary>
         /// The row with this `Edition`, or null when the table has none.
@@ -142,8 +140,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByEdition(global::Clover.Data.EditionKind key)
-            => _recordsByEdition.TryGetValue(key, out Record record) ? record : null;
+        public EditionVisualRecord FindByEdition(global::Clover.Data.EditionKind key)
+            => _recordsByEdition.TryGetValue(key, out EditionVisualRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Edition`, or a thrown exception naming what was
@@ -154,9 +152,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByEdition(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByEditionOrThrow(global::Clover.Data.EditionKind key)
+        public EditionVisualRecord GetByEditionOrThrow(global::Clover.Data.EditionKind key)
         {
-            if (!_recordsByEdition.TryGetValue(key, out Record record))
+            if (!_recordsByEdition.TryGetValue(key, out EditionVisualRecord record))
                 throw new TabbitException($"There is no record in table `EditionVisual` that corresponds to field `Edition` value {key}");
 
             return record;
@@ -181,10 +179,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<EditionVisualRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<EditionVisualRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -194,7 +192,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (global::Clover.Data.EditionKind Key, Record Row) Current
+            public (global::Clover.Data.EditionKind Key, EditionVisualRecord Row) Current
                 => (_rows[_at].Edition, _rows[_at]);
         }
 
@@ -219,7 +217,7 @@ namespace Clover.Data
         /// It does not replace `FindByEdition`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[global::Clover.Data.EditionKind key] => GetByEditionOrThrow(key);
+        public EditionVisualRecord this[global::Clover.Data.EditionKind key] => GetByEditionOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -262,10 +260,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<EditionVisualRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new EditionVisualRecord());
 
             foreach (var column in columns)
             {
@@ -365,7 +363,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByEdition = new Dictionary<global::Clover.Data.EditionKind, Record>(count);
+            var recordsByEdition = new Dictionary<global::Clover.Data.EditionKind, EditionVisualRecord>(count);
             foreach (var record in records)
                 recordsByEdition.Add(record.Edition, record);
 

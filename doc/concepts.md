@@ -98,7 +98,7 @@ tabbit --recipe my-recipe.json
 public int Index => _index;
 public string Name => _name;
 public int CategoryId => ...;                                // 셀에 적힌 키
-public ItemCategoryTable.Record ItemCategoryByCategoryId => ...;  // 그것이 가리키는 행
+public ItemCategoryRecord ItemCategoryByCategoryId => ...;        // 그것이 가리키는 행
 public Grade GradeField => _gradeField;
 public SkillType SkillField => _skillField;
 public string Description => _description;

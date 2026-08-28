@@ -115,7 +115,7 @@ namespace Wildling.Game
 
                 var foes = Ui.Item(lines, 30f);
                 var wave = target.MonsterByWaveMonsterIds
-                           ?? System.Array.Empty<MonsterTable.Record>();
+                           ?? System.Array.Empty<MonsterRecord>();
                 Ui.Label(foes.transform,
                          string.Join(" · ", wave.Where(m => m != null)
                              .Select(m => $"{m.Name}({Theme.Label(m.Element)})")),

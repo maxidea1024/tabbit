@@ -15,143 +15,141 @@ using System.Threading.Tasks;
 // Tabbit's binary reader, written into this directory beside the accessor.
 // Nothing has to be installed for the generated code to compile.
 using Tabbit.Binary;
+[System.Serializable]
+public partial class ComboRecord
+{
+    #region Values
+    /// <summary>
+    /// primary index
+    /// </summary>
+    public int Index => _index;
+
+    /// <summary>
+    /// plain column, outside the group
+    /// </summary>
+    public string Name => _name;
+
+    /// <summary>
+    /// which shape this element's effect is
+    /// </summary>
+    public Effect[] Effects
+        => _effects_value ?? (_effects_value = BuildEffects());
+
+    private Effect[] _effects_value;
+
+    private Effect[] BuildEffects()
+    {
+        var built = new Effect[_effects.Length];
+
+        for (int at = 0; at < _effects.Length; at++)
+            built[at] = BuildEffectsElement(_effects[at]);
+
+        return built;
+    }
+
+    private static Effect BuildEffectsElement(
+        EffectsEntry entry)
+    {
+        switch (entry.Type)
+        {
+            case 1:
+                return new DamageEffect
+                {
+                    Chance = entry.Chance,
+                    Damage = entry.Damage,
+                    Pierces = entry.Pierces,
+                    ElementId = entry.ElementId,
+                    ElementByElementId = entry.ElementByElementId,
+                };
+            case 2:
+                return new HealEffect
+                {
+                    Chance = entry.Chance,
+                    Amount = entry.Amount,
+                    Band = entry.Band,
+                };
+            case 3:
+                return new NoEffect
+                {
+                    Chance = entry.Chance,
+                };
+        }
+
+        // A number no variant claims - a file written by a build that had one this code
+        // does not. Unlike a column added later, which the reader skips, that makes the
+        // element uninterpretable.
+        throw new TcbException(
+            "Effect: no variant is numbered " + entry.Type);
+    }
+    #endregion
+
+    /// <summary>One element of <see cref="Effects"/>.</summary>
+    [System.Serializable]
+    public struct EffectsEntry
+    {
+        /// which shape this element's effect is
+        public int Type;
+        /// How likely it is to land, in percent. Every variant carries it, so it is one column and
+        /// every row fills it.
+        public int Chance;
+        /// How much it takes.
+        public int Damage;
+        /// Whether it ignores armour.
+        public bool Pierces;
+        /// Which element it deals, as a row of that catalogue.
+        ///
+        /// **A reference on a variant member is the shape a real project reaches for first** - "the
+        /// reward is an item, or a currency, or a monster" is that shape - and it is a different
+        /// path twice over: the blank cells of the other variants go through the reference
+        /// conversion, and the built variant has to carry the resolved row rather than the key.
+        public int ElementId;
+        public ElementRecord ElementByElementId;
+        public bool ElementId_F;
+        /// How much it gives.
+        public int Amount;
+        /// How often it lands, as a band rather than a number.
+        public Band Band;
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Type\":"); ToStringHelper.ToString(Type, sb);
+            sb.Append(",\"Chance\":"); ToStringHelper.ToString(Chance, sb);
+            sb.Append(",\"Damage\":"); ToStringHelper.ToString(Damage, sb);
+            sb.Append(",\"Pierces\":"); ToStringHelper.ToString(Pierces, sb);
+            sb.Append(",\"ElementId\":"); ToStringHelper.ToString(ElementId, sb);
+            sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
+            sb.Append(",\"Band\":"); ToStringHelper.ToString(Band, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+    }
+
+    #region Storage
+    internal int _index;
+    internal string _name = "";
+    internal EffectsEntry[] _effects = System.Array.Empty<EffectsEntry>();
+    #endregion
+
+    #region ToString
+    public override string ToString()
+    {
+        var sb = new StringBuilder("{");
+        sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+        sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+        sb.Append(",\"Effects\":"); ToStringHelper.ToString(Effects, sb);
+        sb.Append("}");
+        return sb.ToString();
+    }
+    #endregion
+}
+
 /// <summary>
 /// Skills whose effects are a list, each element its own shape.
 /// </summary>
 [System.Serializable]
-public partial class ComboTable : IEnumerable<ComboTable.Record>
+public partial class ComboTable : IEnumerable<ComboRecord>
 {
-    #region Record
-    [System.Serializable]
-    public partial class Record
-    {
-        #region Values
-        /// <summary>
-        /// primary index
-        /// </summary>
-        public int Index => _index;
-
-        /// <summary>
-        /// plain column, outside the group
-        /// </summary>
-        public string Name => _name;
-
-        /// <summary>
-        /// which shape this element's effect is
-        /// </summary>
-        public Effect[] Effects
-            => _effects_value ?? (_effects_value = BuildEffects());
-
-        private Effect[] _effects_value;
-
-        private Effect[] BuildEffects()
-        {
-            var built = new Effect[_effects.Length];
-
-            for (int at = 0; at < _effects.Length; at++)
-                built[at] = BuildEffectsElement(_effects[at]);
-
-            return built;
-        }
-
-        private static Effect BuildEffectsElement(
-            EffectsEntry entry)
-        {
-            switch (entry.Type)
-            {
-                case 1:
-                    return new DamageEffect
-                    {
-                        Chance = entry.Chance,
-                        Damage = entry.Damage,
-                        Pierces = entry.Pierces,
-                        ElementId = entry.ElementId,
-                        ElementByElementId = entry.ElementByElementId,
-                    };
-                case 2:
-                    return new HealEffect
-                    {
-                        Chance = entry.Chance,
-                        Amount = entry.Amount,
-                        Band = entry.Band,
-                    };
-                case 3:
-                    return new NoEffect
-                    {
-                        Chance = entry.Chance,
-                    };
-            }
-
-            // A number no variant claims - a file written by a build that had one this code
-            // does not. Unlike a column added later, which the reader skips, that makes the
-            // element uninterpretable.
-            throw new TcbException(
-                "Effect: no variant is numbered " + entry.Type);
-        }
-        #endregion
-
-        /// <summary>One element of <see cref="Effects"/>.</summary>
-        [System.Serializable]
-        public struct EffectsEntry
-        {
-            /// which shape this element's effect is
-            public int Type;
-            /// How likely it is to land, in percent. Every variant carries it, so it is one column and
-            /// every row fills it.
-            public int Chance;
-            /// How much it takes.
-            public int Damage;
-            /// Whether it ignores armour.
-            public bool Pierces;
-            /// Which element it deals, as a row of that catalogue.
-            ///
-            /// **A reference on a variant member is the shape a real project reaches for first** - "the
-            /// reward is an item, or a currency, or a monster" is that shape - and it is a different
-            /// path twice over: the blank cells of the other variants go through the reference
-            /// conversion, and the built variant has to carry the resolved row rather than the key.
-            public int ElementId;
-            public ElementTable.Record ElementByElementId;
-            public bool ElementId_F;
-            /// How much it gives.
-            public int Amount;
-            /// How often it lands, as a band rather than a number.
-            public Band Band;
-
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Type\":"); ToStringHelper.ToString(Type, sb);
-                sb.Append(",\"Chance\":"); ToStringHelper.ToString(Chance, sb);
-                sb.Append(",\"Damage\":"); ToStringHelper.ToString(Damage, sb);
-                sb.Append(",\"Pierces\":"); ToStringHelper.ToString(Pierces, sb);
-                sb.Append(",\"ElementId\":"); ToStringHelper.ToString(ElementId, sb);
-                sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
-                sb.Append(",\"Band\":"); ToStringHelper.ToString(Band, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-        }
-
-        #region Storage
-        internal int _index;
-        internal string _name = "";
-        internal EffectsEntry[] _effects = System.Array.Empty<EffectsEntry>();
-        #endregion
-
-        #region ToString
-        public override string ToString()
-        {
-            var sb = new StringBuilder("{");
-            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-            sb.Append(",\"Effects\":"); ToStringHelper.ToString(Effects, sb);
-            sb.Append("}");
-            return sb.ToString();
-        }
-        #endregion
-    }
-    #endregion
-
     /// <summary>
     /// Field names.
     /// </summary>
@@ -178,8 +176,8 @@ public partial class ComboTable : IEnumerable<ComboTable.Record>
     /// reference rather than the contents - so an iteration in progress neither tears nor
     /// throws, and a read that fails leaves the previous rows exactly where they were.
     /// </remarks>
-    public List<Record> Records => _records;
-    private List<Record> _records = new List<Record>();
+    public List<ComboRecord> Records => _records;
+    private List<ComboRecord> _records = new List<ComboRecord>();
 
     /// <summary>How many rows the table holds.</summary>
     public int Count => _records.Count;
@@ -196,16 +194,16 @@ public partial class ComboTable : IEnumerable<ComboTable.Record>
     /// its contents, so a loop already running keeps the rows it started with - the same
     /// property `Records` documents above, reached without naming the list.
     /// </remarks>
-    public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+    public List<ComboRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-    IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+    IEnumerator<ComboRecord> IEnumerable<ComboRecord>.GetEnumerator() => _records.GetEnumerator();
 
     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         => _records.GetEnumerator();
 
     #region Indexing by 'Index'
-    public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-    private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+    public Dictionary<int, ComboRecord> RecordsByIndex => _recordsByIndex;
+    private Dictionary<int, ComboRecord> _recordsByIndex = new Dictionary<int, ComboRecord>();
 
     /// <summary>
     /// The row with this `Index`, or null when the table has none.
@@ -215,8 +213,8 @@ public partial class ComboTable : IEnumerable<ComboTable.Record>
     /// reference, a key that came from user input. Every language Tabbit generates has
     /// this one under the same name.
     /// </remarks>
-    public Record FindByIndex(int key)
-        => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+    public ComboRecord FindByIndex(int key)
+        => _recordsByIndex.TryGetValue(key, out ComboRecord record) ? record : null;
 
     /// <summary>
     /// The row with this `Index`, or a thrown exception naming what was
@@ -227,9 +225,9 @@ public partial class ComboTable : IEnumerable<ComboTable.Record>
     /// says it throws, because a caller reading `GetByIndex(id).Name` at
     /// a glance cannot otherwise tell whether the next line is a null check or a catch.
     /// </remarks>
-    public Record GetByIndexOrThrow(int key)
+    public ComboRecord GetByIndexOrThrow(int key)
     {
-        if (!_recordsByIndex.TryGetValue(key, out Record record))
+        if (!_recordsByIndex.TryGetValue(key, out ComboRecord record))
             throw new TabbitException($"There is no record in table `Combo` that corresponds to field `Index` value {key}");
 
         return record;
@@ -254,10 +252,10 @@ public partial class ComboTable : IEnumerable<ComboTable.Record>
     /// </remarks>
     public struct EntryEnumerator
     {
-        private readonly List<Record> _rows;
+        private readonly List<ComboRecord> _rows;
         private int _at;
 
-        internal EntryEnumerator(List<Record> rows)
+        internal EntryEnumerator(List<ComboRecord> rows)
         {
             _rows = rows;
             _at = -1;
@@ -267,7 +265,7 @@ public partial class ComboTable : IEnumerable<ComboTable.Record>
 
         public bool MoveNext() => ++_at < _rows.Count;
 
-        public (int Key, Record Row) Current
+        public (int Key, ComboRecord Row) Current
             => (_rows[_at].Index, _rows[_at]);
     }
 
@@ -292,7 +290,7 @@ public partial class ComboTable : IEnumerable<ComboTable.Record>
     /// It does not replace `FindByIndex`: a key that may be absent
     /// wants the one whose name says a miss is an ordinary answer.
     /// </remarks>
-    public Record this[int key] => GetByIndexOrThrow(key);
+    public ComboRecord this[int key] => GetByIndexOrThrow(key);
 
     /// <summary>
     /// Read a table from specified file.
@@ -335,10 +333,10 @@ public partial class ComboTable : IEnumerable<ComboTable.Record>
         // this point, so it is a number the file could actually hold rows for - and a
         // list that grows into twenty thousand rows reallocates fifteen times to get
         // there, copying everything each time.
-        var records = new List<Record>(count);
+        var records = new List<ComboRecord>(count);
 
         for (int i = 0; i < count; i++)
-            records.Add(new Record());
+            records.Add(new ComboRecord());
 
         foreach (var column in columns)
         {
@@ -386,7 +384,7 @@ public partial class ComboTable : IEnumerable<ComboTable.Record>
                         var record = records[i];
                         int elementCount;
                         elementCount = cursor.NextLength();
-                        record._effects = new Record.EffectsEntry[elementCount];
+                        record._effects = new ComboRecord.EffectsEntry[elementCount];
                         for (int j = 0; j < elementCount; ++j)
                         {
                             record._effects[j].Type = cursor.NextI32();
@@ -482,7 +480,7 @@ public partial class ComboTable : IEnumerable<ComboTable.Record>
                         for (int j = 0; j < elementCount; ++j)
                         {
                             record._effects[j].ElementId = cursor.NextI32();
-                            record._effects[j].ElementByElementId = default(ElementTable.Record); // will be assigned.
+                            record._effects[j].ElementByElementId = default(ElementRecord); // will be assigned.
                             record._effects[j].ElementId_F = false;
                         }
                     }
@@ -546,7 +544,7 @@ public partial class ComboTable : IEnumerable<ComboTable.Record>
 
         // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
         // duplicate key throws here - before any of this is visible.
-        var recordsByIndex = new Dictionary<int, Record>(count);
+        var recordsByIndex = new Dictionary<int, ComboRecord>(count);
         foreach (var record in records)
             recordsByIndex.Add(record.Index, record);
 

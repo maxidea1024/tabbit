@@ -18,88 +18,86 @@ using Tabbit.Binary;
 
 namespace X
 {
+    [System.Serializable]
+    public partial class TemplateRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// class: keyword in C++ and C#
+        /// </summary>
+        public string Class => _class;
+
+        /// <summary>
+        /// int: keyword in C++ and C#
+        /// </summary>
+        public int Int => _int;
+
+        /// <summary>
+        /// delete: keyword in C++
+        /// </summary>
+        public bool Delete => _delete;
+
+        /// <summary>
+        /// operator: keyword in C++, and a secondary index
+        /// </summary>
+        public string Operator => _operator;
+
+        /// <summary>
+        /// namespace: keyword in C++ and C#
+        /// </summary>
+        public string Namespace => _namespace;
+
+        /// <summary>
+        /// constructor: special member in TypeScript
+        /// </summary>
+        public string Constructor => _constructor;
+
+        /// <summary>
+        /// function: keyword in TypeScript
+        /// </summary>
+        public string Function => _function;
+        #endregion
+
+        #region Storage
+        internal int _index;
+        internal string _class = "";
+        internal int _int;
+        internal bool _delete;
+        internal string _operator = "";
+        internal string _namespace = "";
+        internal string _constructor = "";
+        internal string _function = "";
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Class\":"); ToStringHelper.ToString(Class, sb);
+            sb.Append(",\"Int\":"); ToStringHelper.ToString(Int, sb);
+            sb.Append(",\"Delete\":"); ToStringHelper.ToString(Delete, sb);
+            sb.Append(",\"Operator\":"); ToStringHelper.ToString(Operator, sb);
+            sb.Append(",\"Namespace\":"); ToStringHelper.ToString(Namespace, sb);
+            sb.Append(",\"Constructor\":"); ToStringHelper.ToString(Constructor, sb);
+            sb.Append(",\"Function\":"); ToStringHelper.ToString(Function, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// Named after a C++ keyword.
     /// </summary>
     [System.Serializable]
-    public partial class TemplateTable : IEnumerable<TemplateTable.Record>
+    public partial class TemplateTable : IEnumerable<TemplateRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Index => _index;
-
-            /// <summary>
-            /// class: keyword in C++ and C#
-            /// </summary>
-            public string Class => _class;
-
-            /// <summary>
-            /// int: keyword in C++ and C#
-            /// </summary>
-            public int Int => _int;
-
-            /// <summary>
-            /// delete: keyword in C++
-            /// </summary>
-            public bool Delete => _delete;
-
-            /// <summary>
-            /// operator: keyword in C++, and a secondary index
-            /// </summary>
-            public string Operator => _operator;
-
-            /// <summary>
-            /// namespace: keyword in C++ and C#
-            /// </summary>
-            public string Namespace => _namespace;
-
-            /// <summary>
-            /// constructor: special member in TypeScript
-            /// </summary>
-            public string Constructor => _constructor;
-
-            /// <summary>
-            /// function: keyword in TypeScript
-            /// </summary>
-            public string Function => _function;
-            #endregion
-
-            #region Storage
-            internal int _index;
-            internal string _class = "";
-            internal int _int;
-            internal bool _delete;
-            internal string _operator = "";
-            internal string _namespace = "";
-            internal string _constructor = "";
-            internal string _function = "";
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Class\":"); ToStringHelper.ToString(Class, sb);
-                sb.Append(",\"Int\":"); ToStringHelper.ToString(Int, sb);
-                sb.Append(",\"Delete\":"); ToStringHelper.ToString(Delete, sb);
-                sb.Append(",\"Operator\":"); ToStringHelper.ToString(Operator, sb);
-                sb.Append(",\"Namespace\":"); ToStringHelper.ToString(Namespace, sb);
-                sb.Append(",\"Constructor\":"); ToStringHelper.ToString(Constructor, sb);
-                sb.Append(",\"Function\":"); ToStringHelper.ToString(Function, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -126,8 +124,8 @@ namespace X
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<TemplateRecord> Records => _records;
+        private List<TemplateRecord> _records = new List<TemplateRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -144,16 +142,16 @@ namespace X
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<TemplateRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<TemplateRecord> IEnumerable<TemplateRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+        public Dictionary<int, TemplateRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<int, TemplateRecord> _recordsByIndex = new Dictionary<int, TemplateRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -163,8 +161,8 @@ namespace X
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(int key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public TemplateRecord FindByIndex(int key)
+            => _recordsByIndex.TryGetValue(key, out TemplateRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -175,9 +173,9 @@ namespace X
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(int key)
+        public TemplateRecord GetByIndexOrThrow(int key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out TemplateRecord record))
                 throw new TabbitException($"There is no record in table `Template` that corresponds to field `Index` value {key}");
 
             return record;
@@ -202,10 +200,10 @@ namespace X
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<TemplateRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<TemplateRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -215,7 +213,7 @@ namespace X
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, TemplateRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -240,11 +238,11 @@ namespace X
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIndexOrThrow(key);
+        public TemplateRecord this[int key] => GetByIndexOrThrow(key);
 
         #region Indexing by 'Operator'
-        public Dictionary<string, Record> RecordsByOperator => _recordsByOperator;
-        private Dictionary<string, Record> _recordsByOperator = new Dictionary<string, Record>();
+        public Dictionary<string, TemplateRecord> RecordsByOperator => _recordsByOperator;
+        private Dictionary<string, TemplateRecord> _recordsByOperator = new Dictionary<string, TemplateRecord>();
 
         /// <summary>
         /// The row with this `Operator`, or null when the table has none.
@@ -254,8 +252,8 @@ namespace X
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByOperator(string key)
-            => _recordsByOperator.TryGetValue(key, out Record record) ? record : null;
+        public TemplateRecord FindByOperator(string key)
+            => _recordsByOperator.TryGetValue(key, out TemplateRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Operator`, or a thrown exception naming what was
@@ -266,9 +264,9 @@ namespace X
         /// says it throws, because a caller reading `GetByOperator(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByOperatorOrThrow(string key)
+        public TemplateRecord GetByOperatorOrThrow(string key)
         {
-            if (!_recordsByOperator.TryGetValue(key, out Record record))
+            if (!_recordsByOperator.TryGetValue(key, out TemplateRecord record))
                 throw new TabbitException($"There is no record in table `Template` that corresponds to field `Operator` value {key}");
 
             return record;
@@ -319,10 +317,10 @@ namespace X
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<TemplateRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new TemplateRecord());
 
             foreach (var column in columns)
             {
@@ -464,10 +462,10 @@ namespace X
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<int, Record>(count);
+            var recordsByIndex = new Dictionary<int, TemplateRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
-            var recordsByOperator = new Dictionary<string, Record>(count);
+            var recordsByOperator = new Dictionary<string, TemplateRecord>(count);
             foreach (var record in records)
                 recordsByOperator.Add(record.Operator, record);
 

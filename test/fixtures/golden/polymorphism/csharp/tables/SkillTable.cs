@@ -15,131 +15,129 @@ using System.Threading.Tasks;
 // Tabbit's binary reader, written into this directory beside the accessor.
 // Nothing has to be installed for the generated code to compile.
 using Tabbit.Binary;
+[System.Serializable]
+public partial class SkillRecord
+{
+    #region Values
+    /// <summary>
+    /// primary index
+    /// </summary>
+    public int Index => _index;
+
+    /// <summary>
+    /// plain column, outside the group
+    /// </summary>
+    public string Name => _name;
+
+    /// <summary>
+    /// which shape this row's effect is
+    /// </summary>
+    public Effect Effect
+        => _effect_value ?? (_effect_value = BuildEffect());
+
+    private Effect _effect_value;
+
+    private Effect BuildEffect()
+    {
+        switch (_effect.Type)
+        {
+            case 1:
+                return new DamageEffect
+                {
+                    Chance = _effect.Chance,
+                    Damage = _effect.Damage,
+                    Pierces = _effect.Pierces,
+                    ElementId = _effect.ElementId,
+                    ElementByElementId = _effect.ElementByElementId,
+                };
+            case 2:
+                return new HealEffect
+                {
+                    Chance = _effect.Chance,
+                    Amount = _effect.Amount,
+                    Band = _effect.Band,
+                };
+            case 3:
+                return new NoEffect
+                {
+                    Chance = _effect.Chance,
+                };
+        }
+
+        // A number no variant claims. The conversion refuses one, so reaching this
+        // means the file was written by a build that had a variant this code does not
+        // - the same shape as a column added after this code was generated.
+        return null;
+    }
+    #endregion
+
+    /// <summary>One element of <see cref="Effect"/>.</summary>
+    [System.Serializable]
+    public struct EffectEntry
+    {
+        /// which shape this row's effect is
+        public int Type;
+        /// How likely it is to land, in percent. Every variant carries it, so it is one column and
+        /// every row fills it.
+        public int Chance;
+        /// How much it takes.
+        public int Damage;
+        /// Whether it ignores armour.
+        public bool Pierces;
+        /// Which element it deals, as a row of that catalogue.
+        ///
+        /// **A reference on a variant member is the shape a real project reaches for first** - "the
+        /// reward is an item, or a currency, or a monster" is that shape - and it is a different
+        /// path twice over: the blank cells of the other variants go through the reference
+        /// conversion, and the built variant has to carry the resolved row rather than the key.
+        public int ElementId;
+        public ElementRecord ElementByElementId;
+        public bool ElementId_F;
+        /// How much it gives.
+        public int Amount;
+        /// How often it lands, as a band rather than a number.
+        public Band Band;
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Type\":"); ToStringHelper.ToString(Type, sb);
+            sb.Append(",\"Chance\":"); ToStringHelper.ToString(Chance, sb);
+            sb.Append(",\"Damage\":"); ToStringHelper.ToString(Damage, sb);
+            sb.Append(",\"Pierces\":"); ToStringHelper.ToString(Pierces, sb);
+            sb.Append(",\"ElementId\":"); ToStringHelper.ToString(ElementId, sb);
+            sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
+            sb.Append(",\"Band\":"); ToStringHelper.ToString(Band, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+    }
+
+    #region Storage
+    internal int _index;
+    internal string _name = "";
+    internal EffectEntry _effect;
+    #endregion
+
+    #region ToString
+    public override string ToString()
+    {
+        var sb = new StringBuilder("{");
+        sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+        sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+        sb.Append(",\"Effect\":"); ToStringHelper.ToString(Effect, sb);
+        sb.Append("}");
+        return sb.ToString();
+    }
+    #endregion
+}
+
 /// <summary>
 /// Skills whose effect is one of several shapes.
 /// </summary>
 [System.Serializable]
-public partial class SkillTable : IEnumerable<SkillTable.Record>
+public partial class SkillTable : IEnumerable<SkillRecord>
 {
-    #region Record
-    [System.Serializable]
-    public partial class Record
-    {
-        #region Values
-        /// <summary>
-        /// primary index
-        /// </summary>
-        public int Index => _index;
-
-        /// <summary>
-        /// plain column, outside the group
-        /// </summary>
-        public string Name => _name;
-
-        /// <summary>
-        /// which shape this row's effect is
-        /// </summary>
-        public Effect Effect
-            => _effect_value ?? (_effect_value = BuildEffect());
-
-        private Effect _effect_value;
-
-        private Effect BuildEffect()
-        {
-            switch (_effect.Type)
-            {
-                case 1:
-                    return new DamageEffect
-                    {
-                        Chance = _effect.Chance,
-                        Damage = _effect.Damage,
-                        Pierces = _effect.Pierces,
-                        ElementId = _effect.ElementId,
-                        ElementByElementId = _effect.ElementByElementId,
-                    };
-                case 2:
-                    return new HealEffect
-                    {
-                        Chance = _effect.Chance,
-                        Amount = _effect.Amount,
-                        Band = _effect.Band,
-                    };
-                case 3:
-                    return new NoEffect
-                    {
-                        Chance = _effect.Chance,
-                    };
-            }
-
-            // A number no variant claims. The conversion refuses one, so reaching this
-            // means the file was written by a build that had a variant this code does not
-            // - the same shape as a column added after this code was generated.
-            return null;
-        }
-        #endregion
-
-        /// <summary>One element of <see cref="Effect"/>.</summary>
-        [System.Serializable]
-        public struct EffectEntry
-        {
-            /// which shape this row's effect is
-            public int Type;
-            /// How likely it is to land, in percent. Every variant carries it, so it is one column and
-            /// every row fills it.
-            public int Chance;
-            /// How much it takes.
-            public int Damage;
-            /// Whether it ignores armour.
-            public bool Pierces;
-            /// Which element it deals, as a row of that catalogue.
-            ///
-            /// **A reference on a variant member is the shape a real project reaches for first** - "the
-            /// reward is an item, or a currency, or a monster" is that shape - and it is a different
-            /// path twice over: the blank cells of the other variants go through the reference
-            /// conversion, and the built variant has to carry the resolved row rather than the key.
-            public int ElementId;
-            public ElementTable.Record ElementByElementId;
-            public bool ElementId_F;
-            /// How much it gives.
-            public int Amount;
-            /// How often it lands, as a band rather than a number.
-            public Band Band;
-
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Type\":"); ToStringHelper.ToString(Type, sb);
-                sb.Append(",\"Chance\":"); ToStringHelper.ToString(Chance, sb);
-                sb.Append(",\"Damage\":"); ToStringHelper.ToString(Damage, sb);
-                sb.Append(",\"Pierces\":"); ToStringHelper.ToString(Pierces, sb);
-                sb.Append(",\"ElementId\":"); ToStringHelper.ToString(ElementId, sb);
-                sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
-                sb.Append(",\"Band\":"); ToStringHelper.ToString(Band, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-        }
-
-        #region Storage
-        internal int _index;
-        internal string _name = "";
-        internal EffectEntry _effect;
-        #endregion
-
-        #region ToString
-        public override string ToString()
-        {
-            var sb = new StringBuilder("{");
-            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-            sb.Append(",\"Effect\":"); ToStringHelper.ToString(Effect, sb);
-            sb.Append("}");
-            return sb.ToString();
-        }
-        #endregion
-    }
-    #endregion
-
     /// <summary>
     /// Field names.
     /// </summary>
@@ -166,8 +164,8 @@ public partial class SkillTable : IEnumerable<SkillTable.Record>
     /// reference rather than the contents - so an iteration in progress neither tears nor
     /// throws, and a read that fails leaves the previous rows exactly where they were.
     /// </remarks>
-    public List<Record> Records => _records;
-    private List<Record> _records = new List<Record>();
+    public List<SkillRecord> Records => _records;
+    private List<SkillRecord> _records = new List<SkillRecord>();
 
     /// <summary>How many rows the table holds.</summary>
     public int Count => _records.Count;
@@ -184,16 +182,16 @@ public partial class SkillTable : IEnumerable<SkillTable.Record>
     /// its contents, so a loop already running keeps the rows it started with - the same
     /// property `Records` documents above, reached without naming the list.
     /// </remarks>
-    public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+    public List<SkillRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-    IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+    IEnumerator<SkillRecord> IEnumerable<SkillRecord>.GetEnumerator() => _records.GetEnumerator();
 
     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         => _records.GetEnumerator();
 
     #region Indexing by 'Index'
-    public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-    private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+    public Dictionary<int, SkillRecord> RecordsByIndex => _recordsByIndex;
+    private Dictionary<int, SkillRecord> _recordsByIndex = new Dictionary<int, SkillRecord>();
 
     /// <summary>
     /// The row with this `Index`, or null when the table has none.
@@ -203,8 +201,8 @@ public partial class SkillTable : IEnumerable<SkillTable.Record>
     /// reference, a key that came from user input. Every language Tabbit generates has
     /// this one under the same name.
     /// </remarks>
-    public Record FindByIndex(int key)
-        => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+    public SkillRecord FindByIndex(int key)
+        => _recordsByIndex.TryGetValue(key, out SkillRecord record) ? record : null;
 
     /// <summary>
     /// The row with this `Index`, or a thrown exception naming what was
@@ -215,9 +213,9 @@ public partial class SkillTable : IEnumerable<SkillTable.Record>
     /// says it throws, because a caller reading `GetByIndex(id).Name` at
     /// a glance cannot otherwise tell whether the next line is a null check or a catch.
     /// </remarks>
-    public Record GetByIndexOrThrow(int key)
+    public SkillRecord GetByIndexOrThrow(int key)
     {
-        if (!_recordsByIndex.TryGetValue(key, out Record record))
+        if (!_recordsByIndex.TryGetValue(key, out SkillRecord record))
             throw new TabbitException($"There is no record in table `Skill` that corresponds to field `Index` value {key}");
 
         return record;
@@ -242,10 +240,10 @@ public partial class SkillTable : IEnumerable<SkillTable.Record>
     /// </remarks>
     public struct EntryEnumerator
     {
-        private readonly List<Record> _rows;
+        private readonly List<SkillRecord> _rows;
         private int _at;
 
-        internal EntryEnumerator(List<Record> rows)
+        internal EntryEnumerator(List<SkillRecord> rows)
         {
             _rows = rows;
             _at = -1;
@@ -255,7 +253,7 @@ public partial class SkillTable : IEnumerable<SkillTable.Record>
 
         public bool MoveNext() => ++_at < _rows.Count;
 
-        public (int Key, Record Row) Current
+        public (int Key, SkillRecord Row) Current
             => (_rows[_at].Index, _rows[_at]);
     }
 
@@ -280,7 +278,7 @@ public partial class SkillTable : IEnumerable<SkillTable.Record>
     /// It does not replace `FindByIndex`: a key that may be absent
     /// wants the one whose name says a miss is an ordinary answer.
     /// </remarks>
-    public Record this[int key] => GetByIndexOrThrow(key);
+    public SkillRecord this[int key] => GetByIndexOrThrow(key);
 
     /// <summary>
     /// Read a table from specified file.
@@ -323,10 +321,10 @@ public partial class SkillTable : IEnumerable<SkillTable.Record>
         // this point, so it is a number the file could actually hold rows for - and a
         // list that grows into twenty thousand rows reallocates fifteen times to get
         // there, copying everything each time.
-        var records = new List<Record>(count);
+        var records = new List<SkillRecord>(count);
 
         for (int i = 0; i < count; i++)
-            records.Add(new Record());
+            records.Add(new SkillRecord());
 
         foreach (var column in columns)
         {
@@ -436,7 +434,7 @@ public partial class SkillTable : IEnumerable<SkillTable.Record>
                         {
                             var record = records[i++];
                             record._effect.ElementId = value;
-                            record._effect.ElementByElementId = default(ElementTable.Record); // will be assigned.
+                            record._effect.ElementByElementId = default(ElementRecord); // will be assigned.
                             record._effect.ElementId_F = false;
                         } while (--n > 0);
                     }
@@ -486,7 +484,7 @@ public partial class SkillTable : IEnumerable<SkillTable.Record>
 
         // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
         // duplicate key throws here - before any of this is visible.
-        var recordsByIndex = new Dictionary<int, Record>(count);
+        var recordsByIndex = new Dictionary<int, SkillRecord>(count);
         foreach (var record in records)
             recordsByIndex.Add(record.Index, record);
 

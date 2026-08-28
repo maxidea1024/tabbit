@@ -18,67 +18,65 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.RecordRef
 {
+    [System.Serializable]
+    public partial class SealRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index, a uuid
+        /// </summary>
+        public System.Guid Index => _index;
+
+        /// <summary>
+        /// so the row has something in it
+        /// </summary>
+        public string Label => _label;
+
+        /// <summary>
+        /// padding, so every table is one width
+        /// </summary>
+        public int Pad => _pad;
+
+        /// <summary>
+        /// padding, so every table is one width
+        /// </summary>
+        public int Pad2 => _pad2;
+
+        /// <summary>
+        /// padding, so every table is one width
+        /// </summary>
+        public int Pad3 => _pad3;
+        #endregion
+
+        #region Storage
+        internal System.Guid _index;
+        internal string _label = "";
+        internal int _pad;
+        internal int _pad2;
+        internal int _pad3;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Label\":"); ToStringHelper.ToString(Label, sb);
+            sb.Append(",\"Pad\":"); ToStringHelper.ToString(Pad, sb);
+            sb.Append(",\"Pad2\":"); ToStringHelper.ToString(Pad2, sb);
+            sb.Append(",\"Pad3\":"); ToStringHelper.ToString(Pad3, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// Keyed by a uuid.
     /// </summary>
     [System.Serializable]
-    public partial class SealTable : IEnumerable<SealTable.Record>
+    public partial class SealTable : IEnumerable<SealRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index, a uuid
-            /// </summary>
-            public System.Guid Index => _index;
-
-            /// <summary>
-            /// so the row has something in it
-            /// </summary>
-            public string Label => _label;
-
-            /// <summary>
-            /// padding, so every table is one width
-            /// </summary>
-            public int Pad => _pad;
-
-            /// <summary>
-            /// padding, so every table is one width
-            /// </summary>
-            public int Pad2 => _pad2;
-
-            /// <summary>
-            /// padding, so every table is one width
-            /// </summary>
-            public int Pad3 => _pad3;
-            #endregion
-
-            #region Storage
-            internal System.Guid _index;
-            internal string _label = "";
-            internal int _pad;
-            internal int _pad2;
-            internal int _pad3;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Label\":"); ToStringHelper.ToString(Label, sb);
-                sb.Append(",\"Pad\":"); ToStringHelper.ToString(Pad, sb);
-                sb.Append(",\"Pad2\":"); ToStringHelper.ToString(Pad2, sb);
-                sb.Append(",\"Pad3\":"); ToStringHelper.ToString(Pad3, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -105,8 +103,8 @@ namespace Tabbit.Fixtures.RecordRef
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<SealRecord> Records => _records;
+        private List<SealRecord> _records = new List<SealRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -123,16 +121,16 @@ namespace Tabbit.Fixtures.RecordRef
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<SealRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<SealRecord> IEnumerable<SealRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<System.Guid, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<System.Guid, Record> _recordsByIndex = new Dictionary<System.Guid, Record>();
+        public Dictionary<System.Guid, SealRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<System.Guid, SealRecord> _recordsByIndex = new Dictionary<System.Guid, SealRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -142,8 +140,8 @@ namespace Tabbit.Fixtures.RecordRef
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(System.Guid key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public SealRecord FindByIndex(System.Guid key)
+            => _recordsByIndex.TryGetValue(key, out SealRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -154,9 +152,9 @@ namespace Tabbit.Fixtures.RecordRef
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(System.Guid key)
+        public SealRecord GetByIndexOrThrow(System.Guid key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out SealRecord record))
                 throw new TabbitException($"There is no record in table `Seal` that corresponds to field `Index` value {key}");
 
             return record;
@@ -181,10 +179,10 @@ namespace Tabbit.Fixtures.RecordRef
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<SealRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<SealRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -194,7 +192,7 @@ namespace Tabbit.Fixtures.RecordRef
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (System.Guid Key, Record Row) Current
+            public (System.Guid Key, SealRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -219,7 +217,7 @@ namespace Tabbit.Fixtures.RecordRef
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[System.Guid key] => GetByIndexOrThrow(key);
+        public SealRecord this[System.Guid key] => GetByIndexOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -262,10 +260,10 @@ namespace Tabbit.Fixtures.RecordRef
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<SealRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new SealRecord());
 
             foreach (var column in columns)
             {
@@ -358,7 +356,7 @@ namespace Tabbit.Fixtures.RecordRef
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<System.Guid, Record>(count);
+            var recordsByIndex = new Dictionary<System.Guid, SealRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
 

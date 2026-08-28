@@ -18,67 +18,65 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class BlindRecord
+    {
+        #region Values
+        /// <summary>
+        /// 블라인드
+        /// </summary>
+        public global::Clover.Data.BlindKind Blind => _blind;
+
+        /// <summary>
+        /// 표시 이름
+        /// </summary>
+        public string Name => _name;
+
+        /// <summary>
+        /// 기준 점수의 배율. 만분율
+        /// </summary>
+        public int ScoreMul => _scoreMul;
+
+        /// <summary>
+        /// 격파 보상
+        /// </summary>
+        public int Reward => _reward;
+
+        /// <summary>
+        /// 스킵할 수 있는가
+        /// </summary>
+        public bool Skippable => _skippable;
+        #endregion
+
+        #region Storage
+        internal global::Clover.Data.BlindKind _blind;
+        internal string _name = "";
+        internal int _scoreMul;
+        internal int _reward;
+        internal bool _skippable;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Blind\":"); ToStringHelper.ToString(Blind, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append(",\"ScoreMul\":"); ToStringHelper.ToString(ScoreMul, sb);
+            sb.Append(",\"Reward\":"); ToStringHelper.ToString(Reward, sb);
+            sb.Append(",\"Skippable\":"); ToStringHelper.ToString(Skippable, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 안테 하나의 세 라운드입니다. 보스는 배율을 `BossBlind` 가 덮어씁니다.
     /// </summary>
     [System.Serializable]
-    public partial class BlindTable : IEnumerable<BlindTable.Record>
+    public partial class BlindTable : IEnumerable<BlindRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 블라인드
-            /// </summary>
-            public global::Clover.Data.BlindKind Blind => _blind;
-
-            /// <summary>
-            /// 표시 이름
-            /// </summary>
-            public string Name => _name;
-
-            /// <summary>
-            /// 기준 점수의 배율. 만분율
-            /// </summary>
-            public int ScoreMul => _scoreMul;
-
-            /// <summary>
-            /// 격파 보상
-            /// </summary>
-            public int Reward => _reward;
-
-            /// <summary>
-            /// 스킵할 수 있는가
-            /// </summary>
-            public bool Skippable => _skippable;
-            #endregion
-
-            #region Storage
-            internal global::Clover.Data.BlindKind _blind;
-            internal string _name = "";
-            internal int _scoreMul;
-            internal int _reward;
-            internal bool _skippable;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Blind\":"); ToStringHelper.ToString(Blind, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append(",\"ScoreMul\":"); ToStringHelper.ToString(ScoreMul, sb);
-                sb.Append(",\"Reward\":"); ToStringHelper.ToString(Reward, sb);
-                sb.Append(",\"Skippable\":"); ToStringHelper.ToString(Skippable, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -105,8 +103,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<BlindRecord> Records => _records;
+        private List<BlindRecord> _records = new List<BlindRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -123,16 +121,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<BlindRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<BlindRecord> IEnumerable<BlindRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Blind'
-        public Dictionary<global::Clover.Data.BlindKind, Record> RecordsByBlind => _recordsByBlind;
-        private Dictionary<global::Clover.Data.BlindKind, Record> _recordsByBlind = new Dictionary<global::Clover.Data.BlindKind, Record>();
+        public Dictionary<global::Clover.Data.BlindKind, BlindRecord> RecordsByBlind => _recordsByBlind;
+        private Dictionary<global::Clover.Data.BlindKind, BlindRecord> _recordsByBlind = new Dictionary<global::Clover.Data.BlindKind, BlindRecord>();
 
         /// <summary>
         /// The row with this `Blind`, or null when the table has none.
@@ -142,8 +140,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByBlind(global::Clover.Data.BlindKind key)
-            => _recordsByBlind.TryGetValue(key, out Record record) ? record : null;
+        public BlindRecord FindByBlind(global::Clover.Data.BlindKind key)
+            => _recordsByBlind.TryGetValue(key, out BlindRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Blind`, or a thrown exception naming what was
@@ -154,9 +152,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByBlind(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByBlindOrThrow(global::Clover.Data.BlindKind key)
+        public BlindRecord GetByBlindOrThrow(global::Clover.Data.BlindKind key)
         {
-            if (!_recordsByBlind.TryGetValue(key, out Record record))
+            if (!_recordsByBlind.TryGetValue(key, out BlindRecord record))
                 throw new TabbitException($"There is no record in table `Blind` that corresponds to field `Blind` value {key}");
 
             return record;
@@ -181,10 +179,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<BlindRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<BlindRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -194,7 +192,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (global::Clover.Data.BlindKind Key, Record Row) Current
+            public (global::Clover.Data.BlindKind Key, BlindRecord Row) Current
                 => (_rows[_at].Blind, _rows[_at]);
         }
 
@@ -219,7 +217,7 @@ namespace Clover.Data
         /// It does not replace `FindByBlind`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[global::Clover.Data.BlindKind key] => GetByBlindOrThrow(key);
+        public BlindRecord this[global::Clover.Data.BlindKind key] => GetByBlindOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -262,10 +260,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<BlindRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new BlindRecord());
 
             foreach (var column in columns)
             {
@@ -359,7 +357,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByBlind = new Dictionary<global::Clover.Data.BlindKind, Record>(count);
+            var recordsByBlind = new Dictionary<global::Clover.Data.BlindKind, BlindRecord>(count);
             foreach (var record in records)
                 recordsByBlind.Add(record.Blind, record);
 

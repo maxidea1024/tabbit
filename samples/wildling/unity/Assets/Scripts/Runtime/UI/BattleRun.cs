@@ -56,7 +56,7 @@ namespace Wildling.Game
         /// 아직 깨지 않은 것이 있으면 그것으로 넘어가고, 그 지역을 다 깼으면 **같은 자리를
         /// 반복합니다** — 방치의 목적이 진행만이 아니라 재화와 조각을 쌓는 것이기 때문입니다.
         /// </remarks>
-        public static string NextStage(GameState state, StageTable.Record current)
+        public static string NextStage(GameState state, StageRecord current)
         {
             if (current is null)
                 return "";
@@ -77,7 +77,7 @@ namespace Wildling.Game
         /// 깬 것 중 가장 뒤가 벌이가 가장 좋습니다. 하나도 못 깼으면 첫 스테이지입니다 —
         /// 거기서도 지면 파티를 고쳐야 하는 것이고, 그 사실이 결과 화면에 적힙니다.
         /// </remarks>
-        public static string FallbackStage(GameState state, StageTable.Record current)
+        public static string FallbackStage(GameState state, StageRecord current)
         {
             if (current is null)
                 return "";

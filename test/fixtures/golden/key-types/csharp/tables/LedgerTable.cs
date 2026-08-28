@@ -18,53 +18,51 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.KeyTypes
 {
+    [System.Serializable]
+    public partial class LedgerRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index, past 32 bits
+        /// </summary>
+        public long Index => _index;
+
+        /// <summary>
+        /// anything
+        /// </summary>
+        public int Amount => _amount;
+
+        /// <summary>
+        /// secondary index, a uuid
+        /// </summary>
+        public System.Guid Batch => _batch;
+        #endregion
+
+        #region Storage
+        internal long _index;
+        internal int _amount;
+        internal System.Guid _batch;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
+            sb.Append(",\"Batch\":"); ToStringHelper.ToString(Batch, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// Keyed by a bigint, for ids that outgrew 32 bits.
     /// </summary>
     [System.Serializable]
-    public partial class LedgerTable : IEnumerable<LedgerTable.Record>
+    public partial class LedgerTable : IEnumerable<LedgerRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index, past 32 bits
-            /// </summary>
-            public long Index => _index;
-
-            /// <summary>
-            /// anything
-            /// </summary>
-            public int Amount => _amount;
-
-            /// <summary>
-            /// secondary index, a uuid
-            /// </summary>
-            public System.Guid Batch => _batch;
-            #endregion
-
-            #region Storage
-            internal long _index;
-            internal int _amount;
-            internal System.Guid _batch;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
-                sb.Append(",\"Batch\":"); ToStringHelper.ToString(Batch, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -91,8 +89,8 @@ namespace Tabbit.Fixtures.KeyTypes
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<LedgerRecord> Records => _records;
+        private List<LedgerRecord> _records = new List<LedgerRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -109,16 +107,16 @@ namespace Tabbit.Fixtures.KeyTypes
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<LedgerRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<LedgerRecord> IEnumerable<LedgerRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<long, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<long, Record> _recordsByIndex = new Dictionary<long, Record>();
+        public Dictionary<long, LedgerRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<long, LedgerRecord> _recordsByIndex = new Dictionary<long, LedgerRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -128,8 +126,8 @@ namespace Tabbit.Fixtures.KeyTypes
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(long key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public LedgerRecord FindByIndex(long key)
+            => _recordsByIndex.TryGetValue(key, out LedgerRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -140,9 +138,9 @@ namespace Tabbit.Fixtures.KeyTypes
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(long key)
+        public LedgerRecord GetByIndexOrThrow(long key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out LedgerRecord record))
                 throw new TabbitException($"There is no record in table `Ledger` that corresponds to field `Index` value {key}");
 
             return record;
@@ -167,10 +165,10 @@ namespace Tabbit.Fixtures.KeyTypes
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<LedgerRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<LedgerRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -180,7 +178,7 @@ namespace Tabbit.Fixtures.KeyTypes
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (long Key, Record Row) Current
+            public (long Key, LedgerRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -205,11 +203,11 @@ namespace Tabbit.Fixtures.KeyTypes
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[long key] => GetByIndexOrThrow(key);
+        public LedgerRecord this[long key] => GetByIndexOrThrow(key);
 
         #region Indexing by 'Batch'
-        public Dictionary<System.Guid, Record> RecordsByBatch => _recordsByBatch;
-        private Dictionary<System.Guid, Record> _recordsByBatch = new Dictionary<System.Guid, Record>();
+        public Dictionary<System.Guid, LedgerRecord> RecordsByBatch => _recordsByBatch;
+        private Dictionary<System.Guid, LedgerRecord> _recordsByBatch = new Dictionary<System.Guid, LedgerRecord>();
 
         /// <summary>
         /// The row with this `Batch`, or null when the table has none.
@@ -219,8 +217,8 @@ namespace Tabbit.Fixtures.KeyTypes
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByBatch(System.Guid key)
-            => _recordsByBatch.TryGetValue(key, out Record record) ? record : null;
+        public LedgerRecord FindByBatch(System.Guid key)
+            => _recordsByBatch.TryGetValue(key, out LedgerRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Batch`, or a thrown exception naming what was
@@ -231,9 +229,9 @@ namespace Tabbit.Fixtures.KeyTypes
         /// says it throws, because a caller reading `GetByBatch(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByBatchOrThrow(System.Guid key)
+        public LedgerRecord GetByBatchOrThrow(System.Guid key)
         {
-            if (!_recordsByBatch.TryGetValue(key, out Record record))
+            if (!_recordsByBatch.TryGetValue(key, out LedgerRecord record))
                 throw new TabbitException($"There is no record in table `Ledger` that corresponds to field `Batch` value {key}");
 
             return record;
@@ -284,10 +282,10 @@ namespace Tabbit.Fixtures.KeyTypes
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<LedgerRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new LedgerRecord());
 
             foreach (var column in columns)
             {
@@ -342,10 +340,10 @@ namespace Tabbit.Fixtures.KeyTypes
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<long, Record>(count);
+            var recordsByIndex = new Dictionary<long, LedgerRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
-            var recordsByBatch = new Dictionary<System.Guid, Record>(count);
+            var recordsByBatch = new Dictionary<System.Guid, LedgerRecord>(count);
             foreach (var record in records)
                 recordsByBatch.Add(record.Batch, record);
 

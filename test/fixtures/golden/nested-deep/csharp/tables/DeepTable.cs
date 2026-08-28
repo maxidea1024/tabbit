@@ -18,92 +18,90 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.NestedDeep
 {
+    [System.Serializable]
+    public partial class DeepRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// element 1, a value beside a record
+        /// </summary>
+        public StarEntry[] Star => _star;
+        #endregion
+
+        /// <summary>A record inside <see cref="Star"/>.</summary>
+        [System.Serializable]
+        public struct StarPositionEntry
+        {
+            /// element 1, one level further in
+            public int X;
+            /// its sibling
+            public int Y;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"X\":"); ToStringHelper.ToString(X, sb);
+                sb.Append(",\"Y\":"); ToStringHelper.ToString(Y, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+        /// <summary>One element of <see cref="Star"/>.</summary>
+        [System.Serializable]
+        public struct StarEntry
+        {
+            /// element 1, a value beside a record
+            public int Id;
+            /// element 1, one level further in
+            public StarPositionEntry Position;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"Id\":"); ToStringHelper.ToString(Id, sb);
+                sb.Append(",\"Position\":"); ToStringHelper.ToString(Position, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        internal static StarEntry[] NewStarEntryArray(int length)
+        {
+            var result = new StarEntry[length];
+            for (int i = 0; i < result.Length; i++)
+            {
+            }
+            return result;
+        }
+
+        #region Storage
+        internal int _index;
+        internal StarEntry[] _star = System.Array.Empty<StarEntry>();
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Star\":"); ToStringHelper.ToString(Star, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// A record whose member is a record.
     /// </summary>
     [System.Serializable]
-    public partial class DeepTable : IEnumerable<DeepTable.Record>
+    public partial class DeepTable : IEnumerable<DeepRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Index => _index;
-
-            /// <summary>
-            /// element 1, a value beside a record
-            /// </summary>
-            public StarEntry[] Star => _star;
-            #endregion
-
-            /// <summary>A record inside <see cref="Star"/>.</summary>
-            [System.Serializable]
-            public struct StarPositionEntry
-            {
-                /// element 1, one level further in
-                public int X;
-                /// its sibling
-                public int Y;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"X\":"); ToStringHelper.ToString(X, sb);
-                    sb.Append(",\"Y\":"); ToStringHelper.ToString(Y, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-            /// <summary>One element of <see cref="Star"/>.</summary>
-            [System.Serializable]
-            public struct StarEntry
-            {
-                /// element 1, a value beside a record
-                public int Id;
-                /// element 1, one level further in
-                public StarPositionEntry Position;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"Id\":"); ToStringHelper.ToString(Id, sb);
-                    sb.Append(",\"Position\":"); ToStringHelper.ToString(Position, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            internal static StarEntry[] NewStarEntryArray(int length)
-            {
-                var result = new StarEntry[length];
-                for (int i = 0; i < result.Length; i++)
-                {
-                }
-                return result;
-            }
-
-            #region Storage
-            internal int _index;
-            internal StarEntry[] _star = System.Array.Empty<StarEntry>();
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Star\":"); ToStringHelper.ToString(Star, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -130,8 +128,8 @@ namespace Tabbit.Fixtures.NestedDeep
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<DeepRecord> Records => _records;
+        private List<DeepRecord> _records = new List<DeepRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -148,16 +146,16 @@ namespace Tabbit.Fixtures.NestedDeep
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<DeepRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<DeepRecord> IEnumerable<DeepRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+        public Dictionary<int, DeepRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<int, DeepRecord> _recordsByIndex = new Dictionary<int, DeepRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -167,8 +165,8 @@ namespace Tabbit.Fixtures.NestedDeep
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(int key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public DeepRecord FindByIndex(int key)
+            => _recordsByIndex.TryGetValue(key, out DeepRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -179,9 +177,9 @@ namespace Tabbit.Fixtures.NestedDeep
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(int key)
+        public DeepRecord GetByIndexOrThrow(int key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out DeepRecord record))
                 throw new TabbitException($"There is no record in table `Deep` that corresponds to field `Index` value {key}");
 
             return record;
@@ -206,10 +204,10 @@ namespace Tabbit.Fixtures.NestedDeep
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<DeepRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<DeepRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -219,7 +217,7 @@ namespace Tabbit.Fixtures.NestedDeep
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, DeepRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -244,7 +242,7 @@ namespace Tabbit.Fixtures.NestedDeep
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIndexOrThrow(key);
+        public DeepRecord this[int key] => GetByIndexOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -287,10 +285,10 @@ namespace Tabbit.Fixtures.NestedDeep
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<DeepRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new DeepRecord());
 
             foreach (var column in columns)
             {
@@ -322,7 +320,7 @@ namespace Tabbit.Fixtures.NestedDeep
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._star = Record.NewStarEntryArray(elementCount);
+                            record._star = DeepRecord.NewStarEntryArray(elementCount);
                             for (int j = 0; j < elementCount; ++j)
                             {
                                 record._star[j].Id = cursor.NextI32();
@@ -388,7 +386,7 @@ namespace Tabbit.Fixtures.NestedDeep
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<int, Record>(count);
+            var recordsByIndex = new Dictionary<int, DeepRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
 

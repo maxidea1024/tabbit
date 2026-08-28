@@ -18,46 +18,44 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class RngStreamRecord
+    {
+        #region Values
+        /// <summary>
+        /// 스트림
+        /// </summary>
+        public global::Clover.Data.RngStreamKind Stream => _stream;
+
+        /// <summary>
+        /// 어디에 쓰는가
+        /// </summary>
+        public string Note => _note;
+        #endregion
+
+        #region Storage
+        internal global::Clover.Data.RngStreamKind _stream;
+        internal string _note = "";
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Stream\":"); ToStringHelper.ToString(Stream, sb);
+            sb.Append(",\"Note\":"); ToStringHelper.ToString(Note, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 난수 스트림입니다. 시드 하나에서 스트림마다 다른 상태를 파생합니다.
     /// </summary>
     [System.Serializable]
-    public partial class RngStreamTable : IEnumerable<RngStreamTable.Record>
+    public partial class RngStreamTable : IEnumerable<RngStreamRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 스트림
-            /// </summary>
-            public global::Clover.Data.RngStreamKind Stream => _stream;
-
-            /// <summary>
-            /// 어디에 쓰는가
-            /// </summary>
-            public string Note => _note;
-            #endregion
-
-            #region Storage
-            internal global::Clover.Data.RngStreamKind _stream;
-            internal string _note = "";
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Stream\":"); ToStringHelper.ToString(Stream, sb);
-                sb.Append(",\"Note\":"); ToStringHelper.ToString(Note, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -84,8 +82,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<RngStreamRecord> Records => _records;
+        private List<RngStreamRecord> _records = new List<RngStreamRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -102,16 +100,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<RngStreamRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<RngStreamRecord> IEnumerable<RngStreamRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Stream'
-        public Dictionary<global::Clover.Data.RngStreamKind, Record> RecordsByStream => _recordsByStream;
-        private Dictionary<global::Clover.Data.RngStreamKind, Record> _recordsByStream = new Dictionary<global::Clover.Data.RngStreamKind, Record>();
+        public Dictionary<global::Clover.Data.RngStreamKind, RngStreamRecord> RecordsByStream => _recordsByStream;
+        private Dictionary<global::Clover.Data.RngStreamKind, RngStreamRecord> _recordsByStream = new Dictionary<global::Clover.Data.RngStreamKind, RngStreamRecord>();
 
         /// <summary>
         /// The row with this `Stream`, or null when the table has none.
@@ -121,8 +119,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByStream(global::Clover.Data.RngStreamKind key)
-            => _recordsByStream.TryGetValue(key, out Record record) ? record : null;
+        public RngStreamRecord FindByStream(global::Clover.Data.RngStreamKind key)
+            => _recordsByStream.TryGetValue(key, out RngStreamRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Stream`, or a thrown exception naming what was
@@ -133,9 +131,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByStream(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByStreamOrThrow(global::Clover.Data.RngStreamKind key)
+        public RngStreamRecord GetByStreamOrThrow(global::Clover.Data.RngStreamKind key)
         {
-            if (!_recordsByStream.TryGetValue(key, out Record record))
+            if (!_recordsByStream.TryGetValue(key, out RngStreamRecord record))
                 throw new TabbitException($"There is no record in table `RngStream` that corresponds to field `Stream` value {key}");
 
             return record;
@@ -160,10 +158,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<RngStreamRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<RngStreamRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -173,7 +171,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (global::Clover.Data.RngStreamKind Key, Record Row) Current
+            public (global::Clover.Data.RngStreamKind Key, RngStreamRecord Row) Current
                 => (_rows[_at].Stream, _rows[_at]);
         }
 
@@ -198,7 +196,7 @@ namespace Clover.Data
         /// It does not replace `FindByStream`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[global::Clover.Data.RngStreamKind key] => GetByStreamOrThrow(key);
+        public RngStreamRecord this[global::Clover.Data.RngStreamKind key] => GetByStreamOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -241,10 +239,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<RngStreamRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new RngStreamRecord());
 
             foreach (var column in columns)
             {
@@ -296,7 +294,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByStream = new Dictionary<global::Clover.Data.RngStreamKind, Record>(count);
+            var recordsByStream = new Dictionary<global::Clover.Data.RngStreamKind, RngStreamRecord>(count);
             foreach (var record in records)
                 recordsByStream.Add(record.Stream, record);
 

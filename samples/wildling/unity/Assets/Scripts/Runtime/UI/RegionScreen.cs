@@ -81,7 +81,7 @@ namespace Wildling.Game
                 StageRow(column, app, stage);
         }
 
-        private static void StageRow(Transform column, App app, StageTable.Record stage)
+        private static void StageRow(Transform column, App app, StageRecord stage)
         {
             var state = app.State;
             bool open = state.IsStageOpen(stage);
@@ -107,7 +107,7 @@ namespace Wildling.Game
                      24, open ? Theme.Text : Theme.TextDim);
 
             // 등장 목록은 셀 안의 참조 배열입니다 — 키가 아니라 행으로 옵니다.
-            var wave = stage.MonsterByWaveMonsterIds ?? System.Array.Empty<MonsterTable.Record>();
+            var wave = stage.MonsterByWaveMonsterIds ?? System.Array.Empty<MonsterRecord>();
             var names = new List<string>();
             for (int i = 0; i < wave.Length; i++)
             {

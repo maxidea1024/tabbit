@@ -18,81 +18,79 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class StakeRecord
+    {
+        #region Values
+        /// <summary>
+        /// 스테이크
+        /// </summary>
+        public global::Clover.Data.StakeKind Stake => _stake;
+
+        /// <summary>
+        /// 표시 이름
+        /// </summary>
+        public string Name => _name;
+
+        /// <summary>
+        /// `Ante` 의 어느 열을 읽는가
+        /// </summary>
+        public int AnteColumn => _anteColumn;
+
+        /// <summary>
+        /// 스몰 블라인드 격파 보상
+        /// </summary>
+        public int SmallBlindReward => _smallBlindReward;
+
+        /// <summary>
+        /// 버리기 증감
+        /// </summary>
+        public int DiscardsDelta => _discardsDelta;
+
+        /// <summary>
+        /// 조커에 붙는 스티커
+        /// </summary>
+        public global::Clover.Data.StickerKind Sticker => _sticker;
+
+        /// <summary>
+        /// 스티커가 붙을 확률
+        /// </summary>
+        public int StickerPercent => _stickerPercent;
+        #endregion
+
+        #region Storage
+        internal global::Clover.Data.StakeKind _stake;
+        internal string _name = "";
+        internal int _anteColumn;
+        internal int _smallBlindReward;
+        internal int _discardsDelta;
+        internal global::Clover.Data.StickerKind _sticker;
+        internal int _stickerPercent;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Stake\":"); ToStringHelper.ToString(Stake, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append(",\"AnteColumn\":"); ToStringHelper.ToString(AnteColumn, sb);
+            sb.Append(",\"SmallBlindReward\":"); ToStringHelper.ToString(SmallBlindReward, sb);
+            sb.Append(",\"DiscardsDelta\":"); ToStringHelper.ToString(DiscardsDelta, sb);
+            sb.Append(",\"Sticker\":"); ToStringHelper.ToString(Sticker, sb);
+            sb.Append(",\"StickerPercent\":"); ToStringHelper.ToString(StickerPercent, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 난이도입니다. **누적이므로 뒤의 것은 앞의 것을 전부 포함합니다** — 이 표의 값은 그 스테이크에서의 최종값입니다.
     /// </summary>
     [System.Serializable]
-    public partial class StakeTable : IEnumerable<StakeTable.Record>
+    public partial class StakeTable : IEnumerable<StakeRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 스테이크
-            /// </summary>
-            public global::Clover.Data.StakeKind Stake => _stake;
-
-            /// <summary>
-            /// 표시 이름
-            /// </summary>
-            public string Name => _name;
-
-            /// <summary>
-            /// `Ante` 의 어느 열을 읽는가
-            /// </summary>
-            public int AnteColumn => _anteColumn;
-
-            /// <summary>
-            /// 스몰 블라인드 격파 보상
-            /// </summary>
-            public int SmallBlindReward => _smallBlindReward;
-
-            /// <summary>
-            /// 버리기 증감
-            /// </summary>
-            public int DiscardsDelta => _discardsDelta;
-
-            /// <summary>
-            /// 조커에 붙는 스티커
-            /// </summary>
-            public global::Clover.Data.StickerKind Sticker => _sticker;
-
-            /// <summary>
-            /// 스티커가 붙을 확률
-            /// </summary>
-            public int StickerPercent => _stickerPercent;
-            #endregion
-
-            #region Storage
-            internal global::Clover.Data.StakeKind _stake;
-            internal string _name = "";
-            internal int _anteColumn;
-            internal int _smallBlindReward;
-            internal int _discardsDelta;
-            internal global::Clover.Data.StickerKind _sticker;
-            internal int _stickerPercent;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Stake\":"); ToStringHelper.ToString(Stake, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append(",\"AnteColumn\":"); ToStringHelper.ToString(AnteColumn, sb);
-                sb.Append(",\"SmallBlindReward\":"); ToStringHelper.ToString(SmallBlindReward, sb);
-                sb.Append(",\"DiscardsDelta\":"); ToStringHelper.ToString(DiscardsDelta, sb);
-                sb.Append(",\"Sticker\":"); ToStringHelper.ToString(Sticker, sb);
-                sb.Append(",\"StickerPercent\":"); ToStringHelper.ToString(StickerPercent, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -119,8 +117,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<StakeRecord> Records => _records;
+        private List<StakeRecord> _records = new List<StakeRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -137,16 +135,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<StakeRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<StakeRecord> IEnumerable<StakeRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Stake'
-        public Dictionary<global::Clover.Data.StakeKind, Record> RecordsByStake => _recordsByStake;
-        private Dictionary<global::Clover.Data.StakeKind, Record> _recordsByStake = new Dictionary<global::Clover.Data.StakeKind, Record>();
+        public Dictionary<global::Clover.Data.StakeKind, StakeRecord> RecordsByStake => _recordsByStake;
+        private Dictionary<global::Clover.Data.StakeKind, StakeRecord> _recordsByStake = new Dictionary<global::Clover.Data.StakeKind, StakeRecord>();
 
         /// <summary>
         /// The row with this `Stake`, or null when the table has none.
@@ -156,8 +154,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByStake(global::Clover.Data.StakeKind key)
-            => _recordsByStake.TryGetValue(key, out Record record) ? record : null;
+        public StakeRecord FindByStake(global::Clover.Data.StakeKind key)
+            => _recordsByStake.TryGetValue(key, out StakeRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Stake`, or a thrown exception naming what was
@@ -168,9 +166,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByStake(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByStakeOrThrow(global::Clover.Data.StakeKind key)
+        public StakeRecord GetByStakeOrThrow(global::Clover.Data.StakeKind key)
         {
-            if (!_recordsByStake.TryGetValue(key, out Record record))
+            if (!_recordsByStake.TryGetValue(key, out StakeRecord record))
                 throw new TabbitException($"There is no record in table `Stake` that corresponds to field `Stake` value {key}");
 
             return record;
@@ -195,10 +193,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<StakeRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<StakeRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -208,7 +206,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (global::Clover.Data.StakeKind Key, Record Row) Current
+            public (global::Clover.Data.StakeKind Key, StakeRecord Row) Current
                 => (_rows[_at].Stake, _rows[_at]);
         }
 
@@ -233,7 +231,7 @@ namespace Clover.Data
         /// It does not replace `FindByStake`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[global::Clover.Data.StakeKind key] => GetByStakeOrThrow(key);
+        public StakeRecord this[global::Clover.Data.StakeKind key] => GetByStakeOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -276,10 +274,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<StakeRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new StakeRecord());
 
             foreach (var column in columns)
             {
@@ -411,7 +409,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByStake = new Dictionary<global::Clover.Data.StakeKind, Record>(count);
+            var recordsByStake = new Dictionary<global::Clover.Data.StakeKind, StakeRecord>(count);
             foreach (var record in records)
                 recordsByStake.Add(record.Stake, record);
 

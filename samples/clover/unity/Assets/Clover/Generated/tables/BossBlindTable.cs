@@ -18,74 +18,72 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class BossBlindRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string BossId => _bossId;
+
+        /// <summary>
+        /// 표시 이름
+        /// </summary>
+        public string Name => _name;
+
+        /// <summary>
+        /// 나올 수 있는 가장 이른 안테
+        /// </summary>
+        public int MinAnte => _minAnte;
+
+        /// <summary>
+        /// 기준 점수의 배율. 만분율
+        /// </summary>
+        public int ScoreMul => _scoreMul;
+
+        /// <summary>
+        /// 최종 보스인가
+        /// </summary>
+        public bool IsShowdown => _isShowdown;
+
+        /// <summary>
+        /// 수집 목록에서의 순서
+        /// </summary>
+        public int SortOrder => _sortOrder;
+        #endregion
+
+        #region Storage
+        internal string _bossId = "";
+        internal string _name = "";
+        internal int _minAnte;
+        internal int _scoreMul;
+        internal bool _isShowdown;
+        internal int _sortOrder;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"BossId\":"); ToStringHelper.ToString(BossId, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append(",\"MinAnte\":"); ToStringHelper.ToString(MinAnte, sb);
+            sb.Append(",\"ScoreMul\":"); ToStringHelper.ToString(ScoreMul, sb);
+            sb.Append(",\"IsShowdown\":"); ToStringHelper.ToString(IsShowdown, sb);
+            sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 보스 28종입니다. 최종 보스 5종은 안테 8의 배수에서만 나옵니다.
     /// </summary>
     [System.Serializable]
-    public partial class BossBlindTable : IEnumerable<BossBlindTable.Record>
+    public partial class BossBlindTable : IEnumerable<BossBlindRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string BossId => _bossId;
-
-            /// <summary>
-            /// 표시 이름
-            /// </summary>
-            public string Name => _name;
-
-            /// <summary>
-            /// 나올 수 있는 가장 이른 안테
-            /// </summary>
-            public int MinAnte => _minAnte;
-
-            /// <summary>
-            /// 기준 점수의 배율. 만분율
-            /// </summary>
-            public int ScoreMul => _scoreMul;
-
-            /// <summary>
-            /// 최종 보스인가
-            /// </summary>
-            public bool IsShowdown => _isShowdown;
-
-            /// <summary>
-            /// 수집 목록에서의 순서
-            /// </summary>
-            public int SortOrder => _sortOrder;
-            #endregion
-
-            #region Storage
-            internal string _bossId = "";
-            internal string _name = "";
-            internal int _minAnte;
-            internal int _scoreMul;
-            internal bool _isShowdown;
-            internal int _sortOrder;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"BossId\":"); ToStringHelper.ToString(BossId, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append(",\"MinAnte\":"); ToStringHelper.ToString(MinAnte, sb);
-                sb.Append(",\"ScoreMul\":"); ToStringHelper.ToString(ScoreMul, sb);
-                sb.Append(",\"IsShowdown\":"); ToStringHelper.ToString(IsShowdown, sb);
-                sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -112,8 +110,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<BossBlindRecord> Records => _records;
+        private List<BossBlindRecord> _records = new List<BossBlindRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -130,16 +128,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<BossBlindRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<BossBlindRecord> IEnumerable<BossBlindRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'BossId'
-        public Dictionary<string, Record> RecordsByBossId => _recordsByBossId;
-        private Dictionary<string, Record> _recordsByBossId = new Dictionary<string, Record>();
+        public Dictionary<string, BossBlindRecord> RecordsByBossId => _recordsByBossId;
+        private Dictionary<string, BossBlindRecord> _recordsByBossId = new Dictionary<string, BossBlindRecord>();
 
         /// <summary>
         /// The row with this `BossId`, or null when the table has none.
@@ -149,8 +147,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByBossId(string key)
-            => _recordsByBossId.TryGetValue(key, out Record record) ? record : null;
+        public BossBlindRecord FindByBossId(string key)
+            => _recordsByBossId.TryGetValue(key, out BossBlindRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `BossId`, or a thrown exception naming what was
@@ -161,9 +159,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByBossId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByBossIdOrThrow(string key)
+        public BossBlindRecord GetByBossIdOrThrow(string key)
         {
-            if (!_recordsByBossId.TryGetValue(key, out Record record))
+            if (!_recordsByBossId.TryGetValue(key, out BossBlindRecord record))
                 throw new TabbitException($"There is no record in table `BossBlind` that corresponds to field `BossId` value {key}");
 
             return record;
@@ -188,10 +186,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<BossBlindRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<BossBlindRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -201,7 +199,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, BossBlindRecord Row) Current
                 => (_rows[_at].BossId, _rows[_at]);
         }
 
@@ -226,7 +224,7 @@ namespace Clover.Data
         /// It does not replace `FindByBossId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByBossIdOrThrow(key);
+        public BossBlindRecord this[string key] => GetByBossIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -269,10 +267,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<BossBlindRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new BossBlindRecord());
 
             foreach (var column in columns)
             {
@@ -382,7 +380,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByBossId = new Dictionary<string, Record>(count);
+            var recordsByBossId = new Dictionary<string, BossBlindRecord>(count);
             foreach (var record in records)
                 recordsByBossId.Add(record.BossId, record);
 

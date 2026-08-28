@@ -109,7 +109,7 @@ namespace Wildling.Game
                 .FirstOrDefault();
             if (stage != null)
             {
-                var wave = stage.MonsterByWaveMonsterIds ?? System.Array.Empty<MonsterTable.Record>();
+                var wave = stage.MonsterByWaveMonsterIds ?? System.Array.Empty<MonsterRecord>();
                 return new Goal
                 {
                     Head = $"{stage.RegionByRegionId?.Name ?? stage.RegionId} "

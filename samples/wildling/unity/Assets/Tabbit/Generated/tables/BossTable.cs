@@ -18,273 +18,271 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class BossRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string BossId => _bossId;
+
+        /// <summary>
+        /// 외형과 기본 능력치의 출처
+        /// </summary>
+        public string MonsterId => _monsterId_Monster_index;
+        public MonsterRecord MonsterByMonsterId => _monsterId;
+
+        /// <summary>
+        /// 계수. 만분율
+        /// </summary>
+        public StatFactorEntry StatFactor => _statFactor;
+
+        /// <summary>
+        /// 특수 능력
+        /// </summary>
+        public global::Wildling.Data.BossAbility Ability => _ability;
+
+        /// <summary>
+        /// 페이즈별 행동 순서
+        /// </summary>
+        public int[][] AbilityPattern => _abilityPattern;
+        internal const int AbilityPattern_N = 3;
+
+        /// <summary>
+        /// 등장 연출의 회전
+        /// </summary>
+        public SpawnRotationEntry SpawnRotation => _spawnRotation;
+
+        /// <summary>
+        /// 실루엣 색
+        /// </summary>
+        public TintEntry Tint => _tint;
+
+        /// <summary>
+        /// 특수 능력의 효과. 원소가 행에서 온다
+        /// </summary>
+        public Effect[] Effects
+            => _effects_value ?? (_effects_value = BuildEffects());
+
+        private Effect[] _effects_value;
+
+        private Effect[] BuildEffects()
+        {
+            var built = new Effect[_effects.Length];
+
+            for (int at = 0; at < _effects.Length; at++)
+                built[at] = BuildEffectsElement(_effects[at]);
+
+            return built;
+        }
+
+        private static Effect BuildEffectsElement(
+            EffectsEntry entry)
+        {
+            switch (entry.Type)
+            {
+                case 1:
+                    return new DamageEffect
+                    {
+                        Chance = entry.Chance,
+                        Power = entry.Power,
+                    };
+                case 2:
+                    return new HealEffect
+                    {
+                        Chance = entry.Chance,
+                        Power = entry.Power,
+                    };
+                case 3:
+                    return new StatusEffect
+                    {
+                        Chance = entry.Chance,
+                        Status = entry.Status,
+                        Duration = entry.Duration,
+                    };
+                case 4:
+                    return new BuffEffect
+                    {
+                        Chance = entry.Chance,
+                        Stat = entry.Stat,
+                        Ratio = entry.Ratio,
+                        Duration = entry.Duration,
+                    };
+            }
+
+            // A number no variant claims - a file written by a build that had one this code
+            // does not. Unlike a column added later, which the reader skips, that makes the
+            // element uninterpretable.
+            throw new TcbException(
+                "Effect: no variant is numbered " + entry.Type);
+        }
+        #endregion
+
+        /// <summary>One element of <see cref="StatFactor"/>.</summary>
+        [System.Serializable]
+        public struct StatFactorEntry
+        {
+            /// 계수. 만분율
+            public int Hp;
+            /// 공격 계수
+            public int Attack;
+            /// 방어 계수
+            public int Defense;
+            /// 행동 순서 계수
+            public int Speed;
+            /// 치명타 확률 계수
+            public int CritRate;
+            /// 치명타 배수 계수
+            public int CritPower;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"Hp\":"); ToStringHelper.ToString(Hp, sb);
+                sb.Append(",\"Attack\":"); ToStringHelper.ToString(Attack, sb);
+                sb.Append(",\"Defense\":"); ToStringHelper.ToString(Defense, sb);
+                sb.Append(",\"Speed\":"); ToStringHelper.ToString(Speed, sb);
+                sb.Append(",\"CritRate\":"); ToStringHelper.ToString(CritRate, sb);
+                sb.Append(",\"CritPower\":"); ToStringHelper.ToString(CritPower, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        private static int[][] NewAbilityPattern()
+        {
+            var result = new int[AbilityPattern_N][];
+            for (int i = 0; i < result.Length; i++)
+                result[i] = System.Array.Empty<int>();
+            return result;
+        }
+
+        /// <summary>One element of <see cref="SpawnRotation"/>.</summary>
+        [System.Serializable]
+        public struct SpawnRotationEntry
+        {
+            /// 등장 연출의 회전
+            public float X;
+            /// 등장 연출의 회전
+            public float Y;
+            /// 등장 연출의 회전
+            public float Z;
+            /// 등장 연출의 회전
+            public float W;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"X\":"); ToStringHelper.ToString(X, sb);
+                sb.Append(",\"Y\":"); ToStringHelper.ToString(Y, sb);
+                sb.Append(",\"Z\":"); ToStringHelper.ToString(Z, sb);
+                sb.Append(",\"W\":"); ToStringHelper.ToString(W, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        /// <summary>One element of <see cref="Tint"/>.</summary>
+        [System.Serializable]
+        public struct TintEntry
+        {
+            /// 실루엣 색
+            public int R;
+            /// 실루엣 색
+            public int G;
+            /// 실루엣 색
+            public int B;
+            /// 실루엣 색
+            public int A;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"R\":"); ToStringHelper.ToString(R, sb);
+                sb.Append(",\"G\":"); ToStringHelper.ToString(G, sb);
+                sb.Append(",\"B\":"); ToStringHelper.ToString(B, sb);
+                sb.Append(",\"A\":"); ToStringHelper.ToString(A, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        /// <summary>One element of <see cref="Effects"/>.</summary>
+        [System.Serializable]
+        public struct EffectsEntry
+        {
+            /// 특수 능력의 효과. 원소가 행에서 온다
+            public int Type;
+            /// 발동 확률. 만분율
+            public int Chance;
+            /// 피해 또는 회복 배수
+            public int Power;
+            /// 부여하는 상태
+            public global::Wildling.Data.StatusKind Status;
+            /// 변동시키는 능력치
+            public global::Wildling.Data.StatKind Stat;
+            /// 변동률. 만분율
+            public int Ratio;
+            /// 지속 턴
+            public int Duration;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"Type\":"); ToStringHelper.ToString(Type, sb);
+                sb.Append(",\"Chance\":"); ToStringHelper.ToString(Chance, sb);
+                sb.Append(",\"Power\":"); ToStringHelper.ToString(Power, sb);
+                sb.Append(",\"Status\":"); ToStringHelper.ToString(Status, sb);
+                sb.Append(",\"Stat\":"); ToStringHelper.ToString(Stat, sb);
+                sb.Append(",\"Ratio\":"); ToStringHelper.ToString(Ratio, sb);
+                sb.Append(",\"Duration\":"); ToStringHelper.ToString(Duration, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        #region Reference wiring
+        public void SetReference_MonsterId_INTERNAL(MonsterRecord value) => _monsterId = value;
+        #endregion
+
+        #region Storage
+        internal string _bossId = "";
+        internal MonsterRecord _monsterId;
+        internal string _monsterId_Monster_index;
+        public bool _monsterId_F = false;
+        internal StatFactorEntry _statFactor;
+        internal global::Wildling.Data.BossAbility _ability;
+        internal int[][] _abilityPattern = NewAbilityPattern();
+        internal SpawnRotationEntry _spawnRotation;
+        internal TintEntry _tint;
+        internal EffectsEntry[] _effects = System.Array.Empty<EffectsEntry>();
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"BossId\":"); ToStringHelper.ToString(BossId, sb);
+            sb.Append(",\"MonsterId\":"); ToStringHelper.ToString(MonsterId, sb);
+            sb.Append(",\"StatFactor\":"); ToStringHelper.ToString(StatFactor, sb);
+            sb.Append(",\"Ability\":"); ToStringHelper.ToString(Ability, sb);
+            sb.Append(",\"AbilityPattern\":"); ToStringHelper.ToString(AbilityPattern, sb);
+            sb.Append(",\"SpawnRotation\":"); ToStringHelper.ToString(SpawnRotation, sb);
+            sb.Append(",\"Tint\":"); ToStringHelper.ToString(Tint, sb);
+            sb.Append(",\"Effects\":"); ToStringHelper.ToString(Effects, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 지역 수호자이다. 효과가 멀티 로우 다형 배열이므로 5단계를 기다린다.
     /// </summary>
     [System.Serializable]
-    public partial class BossTable : IEnumerable<BossTable.Record>
+    public partial class BossTable : IEnumerable<BossRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string BossId => _bossId;
-
-            /// <summary>
-            /// 외형과 기본 능력치의 출처
-            /// </summary>
-            public string MonsterId => _monsterId_Monster_index;
-            public MonsterTable.Record MonsterByMonsterId => _monsterId;
-
-            /// <summary>
-            /// 계수. 만분율
-            /// </summary>
-            public StatFactorEntry StatFactor => _statFactor;
-
-            /// <summary>
-            /// 특수 능력
-            /// </summary>
-            public global::Wildling.Data.BossAbility Ability => _ability;
-
-            /// <summary>
-            /// 페이즈별 행동 순서
-            /// </summary>
-            public int[][] AbilityPattern => _abilityPattern;
-            internal const int AbilityPattern_N = 3;
-
-            /// <summary>
-            /// 등장 연출의 회전
-            /// </summary>
-            public SpawnRotationEntry SpawnRotation => _spawnRotation;
-
-            /// <summary>
-            /// 실루엣 색
-            /// </summary>
-            public TintEntry Tint => _tint;
-
-            /// <summary>
-            /// 특수 능력의 효과. 원소가 행에서 온다
-            /// </summary>
-            public Effect[] Effects
-                => _effects_value ?? (_effects_value = BuildEffects());
-
-            private Effect[] _effects_value;
-
-            private Effect[] BuildEffects()
-            {
-                var built = new Effect[_effects.Length];
-
-                for (int at = 0; at < _effects.Length; at++)
-                    built[at] = BuildEffectsElement(_effects[at]);
-
-                return built;
-            }
-
-            private static Effect BuildEffectsElement(
-                EffectsEntry entry)
-            {
-                switch (entry.Type)
-                {
-                    case 1:
-                        return new DamageEffect
-                        {
-                            Chance = entry.Chance,
-                            Power = entry.Power,
-                        };
-                    case 2:
-                        return new HealEffect
-                        {
-                            Chance = entry.Chance,
-                            Power = entry.Power,
-                        };
-                    case 3:
-                        return new StatusEffect
-                        {
-                            Chance = entry.Chance,
-                            Status = entry.Status,
-                            Duration = entry.Duration,
-                        };
-                    case 4:
-                        return new BuffEffect
-                        {
-                            Chance = entry.Chance,
-                            Stat = entry.Stat,
-                            Ratio = entry.Ratio,
-                            Duration = entry.Duration,
-                        };
-                }
-
-                // A number no variant claims - a file written by a build that had one this code
-                // does not. Unlike a column added later, which the reader skips, that makes the
-                // element uninterpretable.
-                throw new TcbException(
-                    "Effect: no variant is numbered " + entry.Type);
-            }
-            #endregion
-
-            /// <summary>One element of <see cref="StatFactor"/>.</summary>
-            [System.Serializable]
-            public struct StatFactorEntry
-            {
-                /// 계수. 만분율
-                public int Hp;
-                /// 공격 계수
-                public int Attack;
-                /// 방어 계수
-                public int Defense;
-                /// 행동 순서 계수
-                public int Speed;
-                /// 치명타 확률 계수
-                public int CritRate;
-                /// 치명타 배수 계수
-                public int CritPower;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"Hp\":"); ToStringHelper.ToString(Hp, sb);
-                    sb.Append(",\"Attack\":"); ToStringHelper.ToString(Attack, sb);
-                    sb.Append(",\"Defense\":"); ToStringHelper.ToString(Defense, sb);
-                    sb.Append(",\"Speed\":"); ToStringHelper.ToString(Speed, sb);
-                    sb.Append(",\"CritRate\":"); ToStringHelper.ToString(CritRate, sb);
-                    sb.Append(",\"CritPower\":"); ToStringHelper.ToString(CritPower, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            private static int[][] NewAbilityPattern()
-            {
-                var result = new int[AbilityPattern_N][];
-                for (int i = 0; i < result.Length; i++)
-                    result[i] = System.Array.Empty<int>();
-                return result;
-            }
-
-            /// <summary>One element of <see cref="SpawnRotation"/>.</summary>
-            [System.Serializable]
-            public struct SpawnRotationEntry
-            {
-                /// 등장 연출의 회전
-                public float X;
-                /// 등장 연출의 회전
-                public float Y;
-                /// 등장 연출의 회전
-                public float Z;
-                /// 등장 연출의 회전
-                public float W;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"X\":"); ToStringHelper.ToString(X, sb);
-                    sb.Append(",\"Y\":"); ToStringHelper.ToString(Y, sb);
-                    sb.Append(",\"Z\":"); ToStringHelper.ToString(Z, sb);
-                    sb.Append(",\"W\":"); ToStringHelper.ToString(W, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            /// <summary>One element of <see cref="Tint"/>.</summary>
-            [System.Serializable]
-            public struct TintEntry
-            {
-                /// 실루엣 색
-                public int R;
-                /// 실루엣 색
-                public int G;
-                /// 실루엣 색
-                public int B;
-                /// 실루엣 색
-                public int A;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"R\":"); ToStringHelper.ToString(R, sb);
-                    sb.Append(",\"G\":"); ToStringHelper.ToString(G, sb);
-                    sb.Append(",\"B\":"); ToStringHelper.ToString(B, sb);
-                    sb.Append(",\"A\":"); ToStringHelper.ToString(A, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            /// <summary>One element of <see cref="Effects"/>.</summary>
-            [System.Serializable]
-            public struct EffectsEntry
-            {
-                /// 특수 능력의 효과. 원소가 행에서 온다
-                public int Type;
-                /// 발동 확률. 만분율
-                public int Chance;
-                /// 피해 또는 회복 배수
-                public int Power;
-                /// 부여하는 상태
-                public global::Wildling.Data.StatusKind Status;
-                /// 변동시키는 능력치
-                public global::Wildling.Data.StatKind Stat;
-                /// 변동률. 만분율
-                public int Ratio;
-                /// 지속 턴
-                public int Duration;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"Type\":"); ToStringHelper.ToString(Type, sb);
-                    sb.Append(",\"Chance\":"); ToStringHelper.ToString(Chance, sb);
-                    sb.Append(",\"Power\":"); ToStringHelper.ToString(Power, sb);
-                    sb.Append(",\"Status\":"); ToStringHelper.ToString(Status, sb);
-                    sb.Append(",\"Stat\":"); ToStringHelper.ToString(Stat, sb);
-                    sb.Append(",\"Ratio\":"); ToStringHelper.ToString(Ratio, sb);
-                    sb.Append(",\"Duration\":"); ToStringHelper.ToString(Duration, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            #region Reference wiring
-            public void SetReference_MonsterId_INTERNAL(MonsterTable.Record value) => _monsterId = value;
-            #endregion
-
-            #region Storage
-            internal string _bossId = "";
-            internal MonsterTable.Record _monsterId;
-            internal string _monsterId_Monster_index;
-            public bool _monsterId_F = false;
-            internal StatFactorEntry _statFactor;
-            internal global::Wildling.Data.BossAbility _ability;
-            internal int[][] _abilityPattern = NewAbilityPattern();
-            internal SpawnRotationEntry _spawnRotation;
-            internal TintEntry _tint;
-            internal EffectsEntry[] _effects = System.Array.Empty<EffectsEntry>();
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"BossId\":"); ToStringHelper.ToString(BossId, sb);
-                sb.Append(",\"MonsterId\":"); ToStringHelper.ToString(MonsterId, sb);
-                sb.Append(",\"StatFactor\":"); ToStringHelper.ToString(StatFactor, sb);
-                sb.Append(",\"Ability\":"); ToStringHelper.ToString(Ability, sb);
-                sb.Append(",\"AbilityPattern\":"); ToStringHelper.ToString(AbilityPattern, sb);
-                sb.Append(",\"SpawnRotation\":"); ToStringHelper.ToString(SpawnRotation, sb);
-                sb.Append(",\"Tint\":"); ToStringHelper.ToString(Tint, sb);
-                sb.Append(",\"Effects\":"); ToStringHelper.ToString(Effects, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -311,8 +309,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<BossRecord> Records => _records;
+        private List<BossRecord> _records = new List<BossRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -329,16 +327,16 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<BossRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<BossRecord> IEnumerable<BossRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'BossId'
-        public Dictionary<string, Record> RecordsByBossId => _recordsByBossId;
-        private Dictionary<string, Record> _recordsByBossId = new Dictionary<string, Record>();
+        public Dictionary<string, BossRecord> RecordsByBossId => _recordsByBossId;
+        private Dictionary<string, BossRecord> _recordsByBossId = new Dictionary<string, BossRecord>();
 
         /// <summary>
         /// The row with this `BossId`, or null when the table has none.
@@ -348,8 +346,8 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByBossId(string key)
-            => _recordsByBossId.TryGetValue(key, out Record record) ? record : null;
+        public BossRecord FindByBossId(string key)
+            => _recordsByBossId.TryGetValue(key, out BossRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `BossId`, or a thrown exception naming what was
@@ -360,9 +358,9 @@ namespace Wildling.Data
         /// says it throws, because a caller reading `GetByBossId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByBossIdOrThrow(string key)
+        public BossRecord GetByBossIdOrThrow(string key)
         {
-            if (!_recordsByBossId.TryGetValue(key, out Record record))
+            if (!_recordsByBossId.TryGetValue(key, out BossRecord record))
                 throw new TabbitException($"There is no record in table `Boss` that corresponds to field `BossId` value {key}");
 
             return record;
@@ -387,10 +385,10 @@ namespace Wildling.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<BossRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<BossRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -400,7 +398,7 @@ namespace Wildling.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, BossRecord Row) Current
                 => (_rows[_at].BossId, _rows[_at]);
         }
 
@@ -425,7 +423,7 @@ namespace Wildling.Data
         /// It does not replace `FindByBossId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByBossIdOrThrow(key);
+        public BossRecord this[string key] => GetByBossIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -468,10 +466,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<BossRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new BossRecord());
 
             foreach (var column in columns)
             {
@@ -507,7 +505,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._monsterId_Monster_index = value;
-                                record._monsterId = default(MonsterTable.Record); // will be assigned.
+                                record._monsterId = default(MonsterRecord); // will be assigned.
                                 record._monsterId_F = false;
                             } while (--n > 0);
                         }
@@ -788,7 +786,7 @@ namespace Wildling.Data
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._effects = new Record.EffectsEntry[elementCount];
+                            record._effects = new BossRecord.EffectsEntry[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
                                 record._effects[j].Type = cursor.NextI32();
@@ -946,7 +944,7 @@ namespace Wildling.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByBossId = new Dictionary<string, Record>(count);
+            var recordsByBossId = new Dictionary<string, BossRecord>(count);
             foreach (var record in records)
                 recordsByBossId.Add(record.BossId, record);
 

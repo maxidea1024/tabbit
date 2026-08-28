@@ -19,84 +19,82 @@ using Tabbit.Binary;
 namespace Sprout.Tables
 {
     [System.Serializable]
-    public partial class ItemTable : IEnumerable<ItemTable.Record>
+    public partial class ItemRecord
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Id => _id;
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Id => _id;
 
-            /// <summary>
-            /// item name key
-            /// </summary>
-            public string NameKey => _nameKey;
+        /// <summary>
+        /// item name key
+        /// </summary>
+        public string NameKey => _nameKey;
 
-            /// <summary>
-            /// item kind
-            /// </summary>
-            public global::Sprout.Tables.ItemType Type => _type;
+        /// <summary>
+        /// item kind
+        /// </summary>
+        public global::Sprout.Tables.ItemType Type => _type;
 
-            /// <summary>
-            /// grade
-            /// </summary>
-            public global::Sprout.Tables.GradeType Grade => _grade;
+        /// <summary>
+        /// grade
+        /// </summary>
+        public global::Sprout.Tables.GradeType Grade => _grade;
 
-            /// <summary>
-            /// icon asset
-            /// </summary>
-            public string Icon => _icon;
+        /// <summary>
+        /// icon asset
+        /// </summary>
+        public string Icon => _icon;
 
-            /// <summary>
-            /// stack ceiling
-            /// </summary>
-            public int StackLimit => _stackLimit;
+        /// <summary>
+        /// stack ceiling
+        /// </summary>
+        public int StackLimit => _stackLimit;
 
-            /// <summary>
-            /// sell price
-            /// </summary>
-            public int SellPrice => _sellPrice;
+        /// <summary>
+        /// sell price
+        /// </summary>
+        public int SellPrice => _sellPrice;
 
-            /// <summary>
-            /// tradable
-            /// </summary>
-            public bool Tradable => _tradable;
-            #endregion
-
-            #region Storage
-            internal int _id;
-            internal string _nameKey = "";
-            internal global::Sprout.Tables.ItemType _type;
-            internal global::Sprout.Tables.GradeType _grade;
-            internal string _icon = "";
-            internal int _stackLimit;
-            internal int _sellPrice;
-            internal bool _tradable;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Id\":"); ToStringHelper.ToString(Id, sb);
-                sb.Append(",\"NameKey\":"); ToStringHelper.ToString(NameKey, sb);
-                sb.Append(",\"Type\":"); ToStringHelper.ToString(Type, sb);
-                sb.Append(",\"Grade\":"); ToStringHelper.ToString(Grade, sb);
-                sb.Append(",\"Icon\":"); ToStringHelper.ToString(Icon, sb);
-                sb.Append(",\"StackLimit\":"); ToStringHelper.ToString(StackLimit, sb);
-                sb.Append(",\"SellPrice\":"); ToStringHelper.ToString(SellPrice, sb);
-                sb.Append(",\"Tradable\":"); ToStringHelper.ToString(Tradable, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
+        /// <summary>
+        /// tradable
+        /// </summary>
+        public bool Tradable => _tradable;
         #endregion
 
+        #region Storage
+        internal int _id;
+        internal string _nameKey = "";
+        internal global::Sprout.Tables.ItemType _type;
+        internal global::Sprout.Tables.GradeType _grade;
+        internal string _icon = "";
+        internal int _stackLimit;
+        internal int _sellPrice;
+        internal bool _tradable;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Id\":"); ToStringHelper.ToString(Id, sb);
+            sb.Append(",\"NameKey\":"); ToStringHelper.ToString(NameKey, sb);
+            sb.Append(",\"Type\":"); ToStringHelper.ToString(Type, sb);
+            sb.Append(",\"Grade\":"); ToStringHelper.ToString(Grade, sb);
+            sb.Append(",\"Icon\":"); ToStringHelper.ToString(Icon, sb);
+            sb.Append(",\"StackLimit\":"); ToStringHelper.ToString(StackLimit, sb);
+            sb.Append(",\"SellPrice\":"); ToStringHelper.ToString(SellPrice, sb);
+            sb.Append(",\"Tradable\":"); ToStringHelper.ToString(Tradable, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
+    [System.Serializable]
+    public partial class ItemTable : IEnumerable<ItemRecord>
+    {
         /// <summary>
         /// Field names.
         /// </summary>
@@ -123,8 +121,8 @@ namespace Sprout.Tables
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<ItemRecord> Records => _records;
+        private List<ItemRecord> _records = new List<ItemRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -141,16 +139,16 @@ namespace Sprout.Tables
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<ItemRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<ItemRecord> IEnumerable<ItemRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Id'
-        public Dictionary<int, Record> RecordsById => _recordsById;
-        private Dictionary<int, Record> _recordsById = new Dictionary<int, Record>();
+        public Dictionary<int, ItemRecord> RecordsById => _recordsById;
+        private Dictionary<int, ItemRecord> _recordsById = new Dictionary<int, ItemRecord>();
 
         /// <summary>
         /// The row with this `Id`, or null when the table has none.
@@ -160,8 +158,8 @@ namespace Sprout.Tables
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindById(int key)
-            => _recordsById.TryGetValue(key, out Record record) ? record : null;
+        public ItemRecord FindById(int key)
+            => _recordsById.TryGetValue(key, out ItemRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Id`, or a thrown exception naming what was
@@ -172,9 +170,9 @@ namespace Sprout.Tables
         /// says it throws, because a caller reading `GetById(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIdOrThrow(int key)
+        public ItemRecord GetByIdOrThrow(int key)
         {
-            if (!_recordsById.TryGetValue(key, out Record record))
+            if (!_recordsById.TryGetValue(key, out ItemRecord record))
                 throw new TabbitException($"There is no record in table `Item` that corresponds to field `Id` value {key}");
 
             return record;
@@ -199,10 +197,10 @@ namespace Sprout.Tables
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<ItemRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<ItemRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -212,7 +210,7 @@ namespace Sprout.Tables
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, ItemRecord Row) Current
                 => (_rows[_at].Id, _rows[_at]);
         }
 
@@ -237,7 +235,7 @@ namespace Sprout.Tables
         /// It does not replace `FindById`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIdOrThrow(key);
+        public ItemRecord this[int key] => GetByIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -280,10 +278,10 @@ namespace Sprout.Tables
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<ItemRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new ItemRecord());
 
             foreach (var column in columns)
             {
@@ -425,7 +423,7 @@ namespace Sprout.Tables
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsById = new Dictionary<int, Record>(count);
+            var recordsById = new Dictionary<int, ItemRecord>(count);
             foreach (var record in records)
                 recordsById.Add(record.Id, record);
 

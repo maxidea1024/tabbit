@@ -18,724 +18,722 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class SealEffectRecord
+    {
+        #region Values
+        /// <summary>
+        /// 이 효과를 가진 것
+        /// </summary>
+        public global::Clover.Data.SealKind Owner => _owner;
+
+        /// <summary>
+        /// 같은 소유자 안의 순서
+        /// </summary>
+        public int Order => _order;
+
+        /// <summary>
+        /// 언제 보는가
+        /// </summary>
+        public global::Clover.Data.Trigger Trigger => _trigger;
+
+        /// <summary>
+        /// 확률의 분자
+        /// </summary>
+        public int ChanceNum => _chanceNum;
+        /// <summary>Whether this row has a value for <see cref="ChanceNum"/>.</summary>
+        public bool HasChanceNum => _chanceNumHasValue;
+
+        /// <summary>
+        /// 확률의 분모
+        /// </summary>
+        public int ChanceDen => _chanceDen;
+        /// <summary>Whether this row has a value for <see cref="ChanceDen"/>.</summary>
+        public bool HasChanceDen => _chanceDenHasValue;
+
+        /// <summary>
+        /// 조건을 만족한 첫 대상만
+        /// </summary>
+        public bool FirstOnly => _firstOnly;
+        /// <summary>Whether this row has a value for <see cref="FirstOnly"/>.</summary>
+        public bool HasFirstOnly => _firstOnlyHasValue;
+
+        /// <summary>
+        /// 어느 랭크들인가
+        /// </summary>
+        public global::Clover.Data.RankKind[] Ranks => _ranks;
+        /// <summary>Whether this row has a value for <see cref="Ranks"/>.</summary>
+        public bool HasRanks => _ranksHasValue;
+
+        /// <summary>
+        /// 어느 무늬들인가
+        /// </summary>
+        public global::Clover.Data.SuitKind[] Suits => _suits;
+        /// <summary>Whether this row has a value for <see cref="Suits"/>.</summary>
+        public bool HasSuits => _suitsHasValue;
+
+        /// <summary>
+        /// 누구에게
+        /// </summary>
+        public global::Clover.Data.Scope Scope => _scope;
+
+        /// <summary>
+        /// 대상 개수
+        /// </summary>
+        public int ScopeCount => _scopeCount;
+        /// <summary>Whether this row has a value for <see cref="ScopeCount"/>.</summary>
+        public bool HasScopeCount => _scopeCountHasValue;
+
+        /// <summary>
+        /// 무엇이 참이어야 하는가
+        /// </summary>
+        public Condition Condition
+            => _condition_value ?? (_condition_value = BuildCondition());
+
+        private Condition _condition_value;
+
+        private Condition BuildCondition()
+        {
+            switch (_condition.Type)
+            {
+                case 1:
+                    return new CondAlways
+                    {
+                    };
+                case 2:
+                    return new CondHandContains
+                    {
+                        Hand = _condition.Hand,
+                    };
+                case 3:
+                    return new CondHandIs
+                    {
+                        Hand = _condition.Hand,
+                    };
+                case 4:
+                    return new CondCardSuit
+                    {
+                        Suit = _condition.Suit,
+                    };
+                case 5:
+                    return new CondCardRankSet
+                    {
+                    };
+                case 6:
+                    return new CondCardIsFace
+                    {
+                    };
+                case 7:
+                    return new CondCardEnhancement
+                    {
+                        Enhancement = _condition.Enhancement,
+                    };
+                case 8:
+                    return new CondCardSeal
+                    {
+                        Seal = _condition.Seal,
+                    };
+                case 9:
+                    return new CondCardEdition
+                    {
+                        Edition = _condition.Edition,
+                    };
+                case 10:
+                    return new CondCardCount
+                    {
+                        N = _condition.N,
+                        Compare = _condition.Compare,
+                    };
+                case 11:
+                    return new CondAllSuitsPresent
+                    {
+                    };
+                case 12:
+                    return new CondSuitPair
+                    {
+                        Suit = _condition.Suit,
+                    };
+                case 13:
+                    return new CondAllHeldSuit
+                    {
+                    };
+                case 14:
+                    return new CondBlindKind
+                    {
+                        Blind = _condition.Blind,
+                    };
+                case 15:
+                    return new CondMoney
+                    {
+                        N = _condition.N,
+                        Compare = _condition.Compare,
+                    };
+                case 16:
+                    return new CondDiscardsLeft
+                    {
+                        N = _condition.N,
+                        Compare = _condition.Compare,
+                    };
+                case 17:
+                    return new CondHandsLeft
+                    {
+                        N = _condition.N,
+                        Compare = _condition.Compare,
+                    };
+                case 18:
+                    return new CondDiscardsUnused
+                    {
+                    };
+                case 19:
+                    return new CondHandRepeated
+                    {
+                    };
+                case 20:
+                    return new CondFirstHand
+                    {
+                    };
+                case 21:
+                    return new CondLastHand
+                    {
+                    };
+                case 22:
+                    return new CondIsMostPlayedHand
+                    {
+                    };
+                case 23:
+                    return new CondFirstDiscard
+                    {
+                    };
+                case 24:
+                    return new CondEveryNHands
+                    {
+                        N = _condition.N,
+                    };
+                case 25:
+                    return new CondCounterAtLeast
+                    {
+                        Counter = _condition.Counter,
+                        Consume = _condition.Consume,
+                        N = _condition.N,
+                    };
+                case 26:
+                    return new CondChargeLeft
+                    {
+                    };
+                case 27:
+                    return new CondTargetMatch
+                    {
+                        Target = _condition.Target,
+                    };
+                case 28:
+                    return new CondDeckEnhancedAtLeast
+                    {
+                        N = _condition.N,
+                    };
+                case 29:
+                    return new CondBossTriggered
+                    {
+                    };
+                case 30:
+                    return new CondScoreRatioAtLeast
+                    {
+                        Num = _condition.Num,
+                        Den = _condition.Den,
+                    };
+                case 31:
+                    return new CondNoFaceScored
+                    {
+                    };
+                case 32:
+                    return new CondFaceScored
+                    {
+                    };
+                case 33:
+                    return new CondCounterAtMost
+                    {
+                        Counter = _condition.Counter,
+                        N = _condition.N,
+                    };
+                case 34:
+                    return new CondDiscardedFaceAtLeast
+                    {
+                        N = _condition.N,
+                    };
+                case 35:
+                    return new CondHandContainsRankAndHand
+                    {
+                        Hand = _condition.Hand,
+                    };
+                case 36:
+                    return new CondFirstHandSingleCard
+                    {
+                    };
+                case 37:
+                    return new CondFirstHandSingleRank
+                    {
+                    };
+                case 38:
+                    return new CondFirstDiscardSingleCard
+                    {
+                    };
+                case 39:
+                    return new CondNotMostPlayedHand
+                    {
+                    };
+                case 40:
+                    return new CondCardEnhanced
+                    {
+                    };
+                case 41:
+                    return new CondConsumableKind
+                    {
+                        Consumable = _condition.Consumable,
+                    };
+            }
+
+            // A number no variant claims. The conversion refuses one, so reaching this
+            // means the file was written by a build that had a variant this code does not
+            // - the same shape as a column added after this code was generated.
+            return null;
+        }
+
+        /// <summary>
+        /// 무엇을 하는가
+        /// </summary>
+        public Operation Operation
+            => _operation_value ?? (_operation_value = BuildOperation());
+
+        private Operation _operation_value;
+
+        private Operation BuildOperation()
+        {
+            switch (_operation.Type)
+            {
+                case 1:
+                    return new OpAddChips
+                    {
+                        Chips = _operation.Chips,
+                    };
+                case 2:
+                    return new OpAddMult
+                    {
+                        Mult = _operation.Mult,
+                    };
+                case 3:
+                    return new OpMulMult
+                    {
+                        Mult = _operation.Mult,
+                    };
+                case 4:
+                    return new OpAddMoney
+                    {
+                        Money = _operation.Money,
+                        Cap = _operation.Cap,
+                    };
+                case 5:
+                    return new OpSetMoney
+                    {
+                        Money = _operation.Money,
+                    };
+                case 6:
+                    return new OpPerUnit
+                    {
+                        Cap = _operation.Cap,
+                        Unit = _operation.Unit,
+                        Mode = _operation.Mode,
+                        Value = _operation.Value,
+                        BaseValue = _operation.BaseValue,
+                        Rarity = _operation.Rarity,
+                        Enhancement = _operation.Enhancement,
+                    };
+                case 7:
+                    return new OpRandomRange
+                    {
+                        Mode = _operation.Mode,
+                        Min = _operation.Min,
+                        Max = _operation.Max,
+                    };
+                case 8:
+                    return new OpRetrigger
+                    {
+                        Times = _operation.Times,
+                    };
+                case 9:
+                    return new OpGrowSelf
+                    {
+                        Cap = _operation.Cap,
+                        Counter = _operation.Counter,
+                        Step = _operation.Step,
+                        Init = _operation.Init,
+                        Floor = _operation.Floor,
+                        Reset = _operation.Reset,
+                    };
+                case 10:
+                    return new OpResetSelf
+                    {
+                        Counter = _operation.Counter,
+                    };
+                case 11:
+                    return new OpGrowOthers
+                    {
+                        Counter = _operation.Counter,
+                        Step = _operation.Step,
+                    };
+                case 12:
+                    return new OpLevelUpHand
+                    {
+                        HandPick = _operation.HandPick,
+                        Levels = _operation.Levels,
+                    };
+                case 13:
+                    return new OpCreateCard
+                    {
+                        HandPick = _operation.HandPick,
+                        Create = _operation.Create,
+                        Count = _operation.Count,
+                        Edition = _operation.Edition,
+                        Rarity = _operation.Rarity,
+                        Random = _operation.Random,
+                        RefId = _operation.RefId,
+                    };
+                case 14:
+                    return new OpAddCard
+                    {
+                        Create = _operation.Create,
+                        Count = _operation.Count,
+                        CardClass = _operation.CardClass,
+                        Enhancement = _operation.Enhancement,
+                        Seal = _operation.Seal,
+                        Random = _operation.Random,
+                    };
+                case 15:
+                    return new OpDestroyCard
+                    {
+                        Count = _operation.Count,
+                    };
+                case 16:
+                    return new OpModifyCard
+                    {
+                        Value = _operation.Value,
+                        Edition = _operation.Edition,
+                        Enhancement = _operation.Enhancement,
+                        Seal = _operation.Seal,
+                        Suit = _operation.Suit,
+                        Modify = _operation.Modify,
+                        Random = _operation.Random,
+                    };
+                case 17:
+                    return new OpModifyJoker
+                    {
+                        Edition = _operation.Edition,
+                        Random = _operation.Random,
+                    };
+                case 18:
+                    return new OpDestroyJoker
+                    {
+                        Pick = _operation.Pick,
+                    };
+                case 19:
+                    return new OpCopyJoker
+                    {
+                        Pick = _operation.Pick,
+                    };
+                case 20:
+                    return new OpDebuff
+                    {
+                        Suit = _operation.Suit,
+                        Debuff = _operation.Debuff,
+                    };
+                case 21:
+                    return new OpDisableBoss
+                    {
+                    };
+                case 22:
+                    return new OpPreventLoss
+                    {
+                    };
+                case 23:
+                    return new OpChangeRule
+                    {
+                        Value = _operation.Value,
+                        Rule = _operation.Rule,
+                        Absolute = _operation.Absolute,
+                        Duration = _operation.Duration,
+                    };
+                case 24:
+                    return new OpChangeRuleByCounter
+                    {
+                        Counter = _operation.Counter,
+                        Rule = _operation.Rule,
+                    };
+                case 25:
+                    return new OpCardTrait
+                    {
+                        Trait = _operation.Trait,
+                    };
+                case 26:
+                    return new OpMulMoney
+                    {
+                        Cap = _operation.Cap,
+                        Value = _operation.Value,
+                    };
+                case 27:
+                    return new OpShopGift
+                    {
+                        Create = _operation.Create,
+                        Count = _operation.Count,
+                        Edition = _operation.Edition,
+                        Rarity = _operation.Rarity,
+                        Free = _operation.Free,
+                    };
+                case 28:
+                    return new OpDuplicateNextTag
+                    {
+                    };
+                case 29:
+                    return new OpRerollBoss
+                    {
+                    };
+                case 30:
+                    return new OpForceDiscard
+                    {
+                        Count = _operation.Count,
+                    };
+                case 31:
+                    return new OpDrawFaceDown
+                    {
+                        CardClass = _operation.CardClass,
+                    };
+                case 32:
+                    return new OpFlipJokers
+                    {
+                    };
+                case 33:
+                    return new OpDisableRandomJoker
+                    {
+                    };
+                case 34:
+                    return new OpGrant
+                    {
+                        Create = _operation.Create,
+                        Count = _operation.Count,
+                        RefId = _operation.RefId,
+                    };
+                case 35:
+                    return new OpNothing
+                    {
+                    };
+                case 36:
+                    return new OpCustom
+                    {
+                        Handler = _operation.Handler,
+                    };
+            }
+
+            // A number no variant claims. The conversion refuses one, so reaching this
+            // means the file was written by a build that had a variant this code does not
+            // - the same shape as a column added after this code was generated.
+            return null;
+        }
+        #endregion
+
+        /// <summary>One element of <see cref="Condition"/>.</summary>
+        [System.Serializable]
+        public struct ConditionEntry
+        {
+            /// 무엇이 참이어야 하는가
+            public int Type;
+            public global::Clover.Data.PokerHandKind Hand;
+            public global::Clover.Data.SuitKind Suit;
+            public global::Clover.Data.EnhancementKind Enhancement;
+            public global::Clover.Data.SealKind Seal;
+            public global::Clover.Data.EditionKind Edition;
+            public global::Clover.Data.BlindKind Blind;
+            public global::Clover.Data.ConsumableKind Consumable;
+            public global::Clover.Data.TargetKind Target;
+            public global::Clover.Data.CounterField Counter;
+            public bool Consume;
+            public int N;
+            public global::Clover.Data.Compare Compare;
+            public int Num;
+            public int Den;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"Type\":"); ToStringHelper.ToString(Type, sb);
+                sb.Append(",\"Hand\":"); ToStringHelper.ToString(Hand, sb);
+                sb.Append(",\"Suit\":"); ToStringHelper.ToString(Suit, sb);
+                sb.Append(",\"Enhancement\":"); ToStringHelper.ToString(Enhancement, sb);
+                sb.Append(",\"Seal\":"); ToStringHelper.ToString(Seal, sb);
+                sb.Append(",\"Edition\":"); ToStringHelper.ToString(Edition, sb);
+                sb.Append(",\"Blind\":"); ToStringHelper.ToString(Blind, sb);
+                sb.Append(",\"Consumable\":"); ToStringHelper.ToString(Consumable, sb);
+                sb.Append(",\"Target\":"); ToStringHelper.ToString(Target, sb);
+                sb.Append(",\"Counter\":"); ToStringHelper.ToString(Counter, sb);
+                sb.Append(",\"Consume\":"); ToStringHelper.ToString(Consume, sb);
+                sb.Append(",\"N\":"); ToStringHelper.ToString(N, sb);
+                sb.Append(",\"Compare\":"); ToStringHelper.ToString(Compare, sb);
+                sb.Append(",\"Num\":"); ToStringHelper.ToString(Num, sb);
+                sb.Append(",\"Den\":"); ToStringHelper.ToString(Den, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        /// <summary>One element of <see cref="Operation"/>.</summary>
+        [System.Serializable]
+        public struct OperationEntry
+        {
+            /// 무엇을 하는가
+            public int Type;
+            public int Chips;
+            public int Mult;
+            public int Money;
+            /// 상한. 없으면 비웁니다.
+            public int Cap;
+            public global::Clover.Data.UnitKind Unit;
+            public global::Clover.Data.PerUnitMode Mode;
+            public int Value;
+            public int BaseValue;
+            public int Min;
+            public int Max;
+            public int Times;
+            public global::Clover.Data.CounterField Counter;
+            public int Step;
+            /// 시작값. 비우면 `MultMul` 은 10000 이고 나머지는 0 입니다.
+            public int Init;
+            public int Floor;
+            public global::Clover.Data.ResetKind Reset;
+            public global::Clover.Data.HandPick HandPick;
+            public int Levels;
+            public global::Clover.Data.CreateKind Create;
+            public int Count;
+            public global::Clover.Data.CardClass CardClass;
+            public global::Clover.Data.EditionKind Edition;
+            /// `JokerRarityCount` 가 어느 희귀도를 세는가.
+            public global::Clover.Data.Rarity Rarity;
+            /// `DeckEnhancementCount` 가 어느 강화를 세는가.
+            public global::Clover.Data.EnhancementKind Enhancement;
+            public global::Clover.Data.SealKind Seal;
+            public global::Clover.Data.SuitKind Suit;
+            public global::Clover.Data.ModifyKind Modify;
+            public global::Clover.Data.CardTrait Trait;
+            public global::Clover.Data.DebuffKind Debuff;
+            public global::Clover.Data.JokerPick Pick;
+            public global::Clover.Data.RuleKind Rule;
+            public bool Absolute;
+            public global::Clover.Data.Duration Duration;
+            public bool Free;
+            /// 정하지 않은 성질을 무작위로 채웁니다.
+            public bool Random;
+            /// 특정 행을 가리킬 때의 식별자. 팩과 바우처와 태그가 씁니다.
+            public string RefId;
+            public string Handler;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"Type\":"); ToStringHelper.ToString(Type, sb);
+                sb.Append(",\"Chips\":"); ToStringHelper.ToString(Chips, sb);
+                sb.Append(",\"Mult\":"); ToStringHelper.ToString(Mult, sb);
+                sb.Append(",\"Money\":"); ToStringHelper.ToString(Money, sb);
+                sb.Append(",\"Cap\":"); ToStringHelper.ToString(Cap, sb);
+                sb.Append(",\"Unit\":"); ToStringHelper.ToString(Unit, sb);
+                sb.Append(",\"Mode\":"); ToStringHelper.ToString(Mode, sb);
+                sb.Append(",\"Value\":"); ToStringHelper.ToString(Value, sb);
+                sb.Append(",\"BaseValue\":"); ToStringHelper.ToString(BaseValue, sb);
+                sb.Append(",\"Min\":"); ToStringHelper.ToString(Min, sb);
+                sb.Append(",\"Max\":"); ToStringHelper.ToString(Max, sb);
+                sb.Append(",\"Times\":"); ToStringHelper.ToString(Times, sb);
+                sb.Append(",\"Counter\":"); ToStringHelper.ToString(Counter, sb);
+                sb.Append(",\"Step\":"); ToStringHelper.ToString(Step, sb);
+                sb.Append(",\"Init\":"); ToStringHelper.ToString(Init, sb);
+                sb.Append(",\"Floor\":"); ToStringHelper.ToString(Floor, sb);
+                sb.Append(",\"Reset\":"); ToStringHelper.ToString(Reset, sb);
+                sb.Append(",\"HandPick\":"); ToStringHelper.ToString(HandPick, sb);
+                sb.Append(",\"Levels\":"); ToStringHelper.ToString(Levels, sb);
+                sb.Append(",\"Create\":"); ToStringHelper.ToString(Create, sb);
+                sb.Append(",\"Count\":"); ToStringHelper.ToString(Count, sb);
+                sb.Append(",\"CardClass\":"); ToStringHelper.ToString(CardClass, sb);
+                sb.Append(",\"Edition\":"); ToStringHelper.ToString(Edition, sb);
+                sb.Append(",\"Rarity\":"); ToStringHelper.ToString(Rarity, sb);
+                sb.Append(",\"Enhancement\":"); ToStringHelper.ToString(Enhancement, sb);
+                sb.Append(",\"Seal\":"); ToStringHelper.ToString(Seal, sb);
+                sb.Append(",\"Suit\":"); ToStringHelper.ToString(Suit, sb);
+                sb.Append(",\"Modify\":"); ToStringHelper.ToString(Modify, sb);
+                sb.Append(",\"Trait\":"); ToStringHelper.ToString(Trait, sb);
+                sb.Append(",\"Debuff\":"); ToStringHelper.ToString(Debuff, sb);
+                sb.Append(",\"Pick\":"); ToStringHelper.ToString(Pick, sb);
+                sb.Append(",\"Rule\":"); ToStringHelper.ToString(Rule, sb);
+                sb.Append(",\"Absolute\":"); ToStringHelper.ToString(Absolute, sb);
+                sb.Append(",\"Duration\":"); ToStringHelper.ToString(Duration, sb);
+                sb.Append(",\"Free\":"); ToStringHelper.ToString(Free, sb);
+                sb.Append(",\"Random\":"); ToStringHelper.ToString(Random, sb);
+                sb.Append(",\"RefId\":"); ToStringHelper.ToString(RefId, sb);
+                sb.Append(",\"Handler\":"); ToStringHelper.ToString(Handler, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        private static OperationEntry NewOperationEntry()
+        {
+            var result = default(OperationEntry);
+            result.RefId = "";
+            result.Handler = "";
+            return result;
+        }
+
+        #region Storage
+        internal global::Clover.Data.SealKind _owner;
+        internal int _order;
+        internal global::Clover.Data.Trigger _trigger;
+        internal int _chanceNum;
+        internal bool _chanceNumHasValue;
+        internal int _chanceDen;
+        internal bool _chanceDenHasValue;
+        internal bool _firstOnly;
+        internal bool _firstOnlyHasValue;
+        internal global::Clover.Data.RankKind[] _ranks = System.Array.Empty<global::Clover.Data.RankKind>();
+        internal bool _ranksHasValue;
+        internal global::Clover.Data.SuitKind[] _suits = System.Array.Empty<global::Clover.Data.SuitKind>();
+        internal bool _suitsHasValue;
+        internal global::Clover.Data.Scope _scope;
+        internal int _scopeCount;
+        internal bool _scopeCountHasValue;
+        internal ConditionEntry _condition;
+        internal OperationEntry _operation = NewOperationEntry();
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Owner\":"); ToStringHelper.ToString(Owner, sb);
+            sb.Append(",\"Order\":"); ToStringHelper.ToString(Order, sb);
+            sb.Append(",\"Trigger\":"); ToStringHelper.ToString(Trigger, sb);
+            sb.Append(",\"ChanceNum\":"); ToStringHelper.ToString(ChanceNum, sb);
+            sb.Append(",\"ChanceDen\":"); ToStringHelper.ToString(ChanceDen, sb);
+            sb.Append(",\"FirstOnly\":"); ToStringHelper.ToString(FirstOnly, sb);
+            sb.Append(",\"Ranks\":"); ToStringHelper.ToString(Ranks, sb);
+            sb.Append(",\"Suits\":"); ToStringHelper.ToString(Suits, sb);
+            sb.Append(",\"Scope\":"); ToStringHelper.ToString(Scope, sb);
+            sb.Append(",\"ScopeCount\":"); ToStringHelper.ToString(ScopeCount, sb);
+            sb.Append(",\"Condition\":"); ToStringHelper.ToString(Condition, sb);
+            sb.Append(",\"Operation\":"); ToStringHelper.ToString(Operation, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 인장이 하는 일입니다.
     /// </summary>
     [System.Serializable]
-    public partial class SealEffectTable : IEnumerable<SealEffectTable.Record>
+    public partial class SealEffectTable : IEnumerable<SealEffectRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 이 효과를 가진 것
-            /// </summary>
-            public global::Clover.Data.SealKind Owner => _owner;
-
-            /// <summary>
-            /// 같은 소유자 안의 순서
-            /// </summary>
-            public int Order => _order;
-
-            /// <summary>
-            /// 언제 보는가
-            /// </summary>
-            public global::Clover.Data.Trigger Trigger => _trigger;
-
-            /// <summary>
-            /// 확률의 분자
-            /// </summary>
-            public int ChanceNum => _chanceNum;
-            /// <summary>Whether this row has a value for <see cref="ChanceNum"/>.</summary>
-            public bool HasChanceNum => _chanceNumHasValue;
-
-            /// <summary>
-            /// 확률의 분모
-            /// </summary>
-            public int ChanceDen => _chanceDen;
-            /// <summary>Whether this row has a value for <see cref="ChanceDen"/>.</summary>
-            public bool HasChanceDen => _chanceDenHasValue;
-
-            /// <summary>
-            /// 조건을 만족한 첫 대상만
-            /// </summary>
-            public bool FirstOnly => _firstOnly;
-            /// <summary>Whether this row has a value for <see cref="FirstOnly"/>.</summary>
-            public bool HasFirstOnly => _firstOnlyHasValue;
-
-            /// <summary>
-            /// 어느 랭크들인가
-            /// </summary>
-            public global::Clover.Data.RankKind[] Ranks => _ranks;
-            /// <summary>Whether this row has a value for <see cref="Ranks"/>.</summary>
-            public bool HasRanks => _ranksHasValue;
-
-            /// <summary>
-            /// 어느 무늬들인가
-            /// </summary>
-            public global::Clover.Data.SuitKind[] Suits => _suits;
-            /// <summary>Whether this row has a value for <see cref="Suits"/>.</summary>
-            public bool HasSuits => _suitsHasValue;
-
-            /// <summary>
-            /// 누구에게
-            /// </summary>
-            public global::Clover.Data.Scope Scope => _scope;
-
-            /// <summary>
-            /// 대상 개수
-            /// </summary>
-            public int ScopeCount => _scopeCount;
-            /// <summary>Whether this row has a value for <see cref="ScopeCount"/>.</summary>
-            public bool HasScopeCount => _scopeCountHasValue;
-
-            /// <summary>
-            /// 무엇이 참이어야 하는가
-            /// </summary>
-            public Condition Condition
-                => _condition_value ?? (_condition_value = BuildCondition());
-
-            private Condition _condition_value;
-
-            private Condition BuildCondition()
-            {
-                switch (_condition.Type)
-                {
-                    case 1:
-                        return new CondAlways
-                        {
-                        };
-                    case 2:
-                        return new CondHandContains
-                        {
-                            Hand = _condition.Hand,
-                        };
-                    case 3:
-                        return new CondHandIs
-                        {
-                            Hand = _condition.Hand,
-                        };
-                    case 4:
-                        return new CondCardSuit
-                        {
-                            Suit = _condition.Suit,
-                        };
-                    case 5:
-                        return new CondCardRankSet
-                        {
-                        };
-                    case 6:
-                        return new CondCardIsFace
-                        {
-                        };
-                    case 7:
-                        return new CondCardEnhancement
-                        {
-                            Enhancement = _condition.Enhancement,
-                        };
-                    case 8:
-                        return new CondCardSeal
-                        {
-                            Seal = _condition.Seal,
-                        };
-                    case 9:
-                        return new CondCardEdition
-                        {
-                            Edition = _condition.Edition,
-                        };
-                    case 10:
-                        return new CondCardCount
-                        {
-                            N = _condition.N,
-                            Compare = _condition.Compare,
-                        };
-                    case 11:
-                        return new CondAllSuitsPresent
-                        {
-                        };
-                    case 12:
-                        return new CondSuitPair
-                        {
-                            Suit = _condition.Suit,
-                        };
-                    case 13:
-                        return new CondAllHeldSuit
-                        {
-                        };
-                    case 14:
-                        return new CondBlindKind
-                        {
-                            Blind = _condition.Blind,
-                        };
-                    case 15:
-                        return new CondMoney
-                        {
-                            N = _condition.N,
-                            Compare = _condition.Compare,
-                        };
-                    case 16:
-                        return new CondDiscardsLeft
-                        {
-                            N = _condition.N,
-                            Compare = _condition.Compare,
-                        };
-                    case 17:
-                        return new CondHandsLeft
-                        {
-                            N = _condition.N,
-                            Compare = _condition.Compare,
-                        };
-                    case 18:
-                        return new CondDiscardsUnused
-                        {
-                        };
-                    case 19:
-                        return new CondHandRepeated
-                        {
-                        };
-                    case 20:
-                        return new CondFirstHand
-                        {
-                        };
-                    case 21:
-                        return new CondLastHand
-                        {
-                        };
-                    case 22:
-                        return new CondIsMostPlayedHand
-                        {
-                        };
-                    case 23:
-                        return new CondFirstDiscard
-                        {
-                        };
-                    case 24:
-                        return new CondEveryNHands
-                        {
-                            N = _condition.N,
-                        };
-                    case 25:
-                        return new CondCounterAtLeast
-                        {
-                            Counter = _condition.Counter,
-                            Consume = _condition.Consume,
-                            N = _condition.N,
-                        };
-                    case 26:
-                        return new CondChargeLeft
-                        {
-                        };
-                    case 27:
-                        return new CondTargetMatch
-                        {
-                            Target = _condition.Target,
-                        };
-                    case 28:
-                        return new CondDeckEnhancedAtLeast
-                        {
-                            N = _condition.N,
-                        };
-                    case 29:
-                        return new CondBossTriggered
-                        {
-                        };
-                    case 30:
-                        return new CondScoreRatioAtLeast
-                        {
-                            Num = _condition.Num,
-                            Den = _condition.Den,
-                        };
-                    case 31:
-                        return new CondNoFaceScored
-                        {
-                        };
-                    case 32:
-                        return new CondFaceScored
-                        {
-                        };
-                    case 33:
-                        return new CondCounterAtMost
-                        {
-                            Counter = _condition.Counter,
-                            N = _condition.N,
-                        };
-                    case 34:
-                        return new CondDiscardedFaceAtLeast
-                        {
-                            N = _condition.N,
-                        };
-                    case 35:
-                        return new CondHandContainsRankAndHand
-                        {
-                            Hand = _condition.Hand,
-                        };
-                    case 36:
-                        return new CondFirstHandSingleCard
-                        {
-                        };
-                    case 37:
-                        return new CondFirstHandSingleRank
-                        {
-                        };
-                    case 38:
-                        return new CondFirstDiscardSingleCard
-                        {
-                        };
-                    case 39:
-                        return new CondNotMostPlayedHand
-                        {
-                        };
-                    case 40:
-                        return new CondCardEnhanced
-                        {
-                        };
-                    case 41:
-                        return new CondConsumableKind
-                        {
-                            Consumable = _condition.Consumable,
-                        };
-                }
-
-                // A number no variant claims. The conversion refuses one, so reaching this
-                // means the file was written by a build that had a variant this code does not
-                // - the same shape as a column added after this code was generated.
-                return null;
-            }
-
-            /// <summary>
-            /// 무엇을 하는가
-            /// </summary>
-            public Operation Operation
-                => _operation_value ?? (_operation_value = BuildOperation());
-
-            private Operation _operation_value;
-
-            private Operation BuildOperation()
-            {
-                switch (_operation.Type)
-                {
-                    case 1:
-                        return new OpAddChips
-                        {
-                            Chips = _operation.Chips,
-                        };
-                    case 2:
-                        return new OpAddMult
-                        {
-                            Mult = _operation.Mult,
-                        };
-                    case 3:
-                        return new OpMulMult
-                        {
-                            Mult = _operation.Mult,
-                        };
-                    case 4:
-                        return new OpAddMoney
-                        {
-                            Money = _operation.Money,
-                            Cap = _operation.Cap,
-                        };
-                    case 5:
-                        return new OpSetMoney
-                        {
-                            Money = _operation.Money,
-                        };
-                    case 6:
-                        return new OpPerUnit
-                        {
-                            Cap = _operation.Cap,
-                            Unit = _operation.Unit,
-                            Mode = _operation.Mode,
-                            Value = _operation.Value,
-                            BaseValue = _operation.BaseValue,
-                            Rarity = _operation.Rarity,
-                            Enhancement = _operation.Enhancement,
-                        };
-                    case 7:
-                        return new OpRandomRange
-                        {
-                            Mode = _operation.Mode,
-                            Min = _operation.Min,
-                            Max = _operation.Max,
-                        };
-                    case 8:
-                        return new OpRetrigger
-                        {
-                            Times = _operation.Times,
-                        };
-                    case 9:
-                        return new OpGrowSelf
-                        {
-                            Cap = _operation.Cap,
-                            Counter = _operation.Counter,
-                            Step = _operation.Step,
-                            Init = _operation.Init,
-                            Floor = _operation.Floor,
-                            Reset = _operation.Reset,
-                        };
-                    case 10:
-                        return new OpResetSelf
-                        {
-                            Counter = _operation.Counter,
-                        };
-                    case 11:
-                        return new OpGrowOthers
-                        {
-                            Counter = _operation.Counter,
-                            Step = _operation.Step,
-                        };
-                    case 12:
-                        return new OpLevelUpHand
-                        {
-                            HandPick = _operation.HandPick,
-                            Levels = _operation.Levels,
-                        };
-                    case 13:
-                        return new OpCreateCard
-                        {
-                            HandPick = _operation.HandPick,
-                            Create = _operation.Create,
-                            Count = _operation.Count,
-                            Edition = _operation.Edition,
-                            Rarity = _operation.Rarity,
-                            Random = _operation.Random,
-                            RefId = _operation.RefId,
-                        };
-                    case 14:
-                        return new OpAddCard
-                        {
-                            Create = _operation.Create,
-                            Count = _operation.Count,
-                            CardClass = _operation.CardClass,
-                            Enhancement = _operation.Enhancement,
-                            Seal = _operation.Seal,
-                            Random = _operation.Random,
-                        };
-                    case 15:
-                        return new OpDestroyCard
-                        {
-                            Count = _operation.Count,
-                        };
-                    case 16:
-                        return new OpModifyCard
-                        {
-                            Value = _operation.Value,
-                            Edition = _operation.Edition,
-                            Enhancement = _operation.Enhancement,
-                            Seal = _operation.Seal,
-                            Suit = _operation.Suit,
-                            Modify = _operation.Modify,
-                            Random = _operation.Random,
-                        };
-                    case 17:
-                        return new OpModifyJoker
-                        {
-                            Edition = _operation.Edition,
-                            Random = _operation.Random,
-                        };
-                    case 18:
-                        return new OpDestroyJoker
-                        {
-                            Pick = _operation.Pick,
-                        };
-                    case 19:
-                        return new OpCopyJoker
-                        {
-                            Pick = _operation.Pick,
-                        };
-                    case 20:
-                        return new OpDebuff
-                        {
-                            Suit = _operation.Suit,
-                            Debuff = _operation.Debuff,
-                        };
-                    case 21:
-                        return new OpDisableBoss
-                        {
-                        };
-                    case 22:
-                        return new OpPreventLoss
-                        {
-                        };
-                    case 23:
-                        return new OpChangeRule
-                        {
-                            Value = _operation.Value,
-                            Rule = _operation.Rule,
-                            Absolute = _operation.Absolute,
-                            Duration = _operation.Duration,
-                        };
-                    case 24:
-                        return new OpChangeRuleByCounter
-                        {
-                            Counter = _operation.Counter,
-                            Rule = _operation.Rule,
-                        };
-                    case 25:
-                        return new OpCardTrait
-                        {
-                            Trait = _operation.Trait,
-                        };
-                    case 26:
-                        return new OpMulMoney
-                        {
-                            Cap = _operation.Cap,
-                            Value = _operation.Value,
-                        };
-                    case 27:
-                        return new OpShopGift
-                        {
-                            Create = _operation.Create,
-                            Count = _operation.Count,
-                            Edition = _operation.Edition,
-                            Rarity = _operation.Rarity,
-                            Free = _operation.Free,
-                        };
-                    case 28:
-                        return new OpDuplicateNextTag
-                        {
-                        };
-                    case 29:
-                        return new OpRerollBoss
-                        {
-                        };
-                    case 30:
-                        return new OpForceDiscard
-                        {
-                            Count = _operation.Count,
-                        };
-                    case 31:
-                        return new OpDrawFaceDown
-                        {
-                            CardClass = _operation.CardClass,
-                        };
-                    case 32:
-                        return new OpFlipJokers
-                        {
-                        };
-                    case 33:
-                        return new OpDisableRandomJoker
-                        {
-                        };
-                    case 34:
-                        return new OpGrant
-                        {
-                            Create = _operation.Create,
-                            Count = _operation.Count,
-                            RefId = _operation.RefId,
-                        };
-                    case 35:
-                        return new OpNothing
-                        {
-                        };
-                    case 36:
-                        return new OpCustom
-                        {
-                            Handler = _operation.Handler,
-                        };
-                }
-
-                // A number no variant claims. The conversion refuses one, so reaching this
-                // means the file was written by a build that had a variant this code does not
-                // - the same shape as a column added after this code was generated.
-                return null;
-            }
-            #endregion
-
-            /// <summary>One element of <see cref="Condition"/>.</summary>
-            [System.Serializable]
-            public struct ConditionEntry
-            {
-                /// 무엇이 참이어야 하는가
-                public int Type;
-                public global::Clover.Data.PokerHandKind Hand;
-                public global::Clover.Data.SuitKind Suit;
-                public global::Clover.Data.EnhancementKind Enhancement;
-                public global::Clover.Data.SealKind Seal;
-                public global::Clover.Data.EditionKind Edition;
-                public global::Clover.Data.BlindKind Blind;
-                public global::Clover.Data.ConsumableKind Consumable;
-                public global::Clover.Data.TargetKind Target;
-                public global::Clover.Data.CounterField Counter;
-                public bool Consume;
-                public int N;
-                public global::Clover.Data.Compare Compare;
-                public int Num;
-                public int Den;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"Type\":"); ToStringHelper.ToString(Type, sb);
-                    sb.Append(",\"Hand\":"); ToStringHelper.ToString(Hand, sb);
-                    sb.Append(",\"Suit\":"); ToStringHelper.ToString(Suit, sb);
-                    sb.Append(",\"Enhancement\":"); ToStringHelper.ToString(Enhancement, sb);
-                    sb.Append(",\"Seal\":"); ToStringHelper.ToString(Seal, sb);
-                    sb.Append(",\"Edition\":"); ToStringHelper.ToString(Edition, sb);
-                    sb.Append(",\"Blind\":"); ToStringHelper.ToString(Blind, sb);
-                    sb.Append(",\"Consumable\":"); ToStringHelper.ToString(Consumable, sb);
-                    sb.Append(",\"Target\":"); ToStringHelper.ToString(Target, sb);
-                    sb.Append(",\"Counter\":"); ToStringHelper.ToString(Counter, sb);
-                    sb.Append(",\"Consume\":"); ToStringHelper.ToString(Consume, sb);
-                    sb.Append(",\"N\":"); ToStringHelper.ToString(N, sb);
-                    sb.Append(",\"Compare\":"); ToStringHelper.ToString(Compare, sb);
-                    sb.Append(",\"Num\":"); ToStringHelper.ToString(Num, sb);
-                    sb.Append(",\"Den\":"); ToStringHelper.ToString(Den, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            /// <summary>One element of <see cref="Operation"/>.</summary>
-            [System.Serializable]
-            public struct OperationEntry
-            {
-                /// 무엇을 하는가
-                public int Type;
-                public int Chips;
-                public int Mult;
-                public int Money;
-                /// 상한. 없으면 비웁니다.
-                public int Cap;
-                public global::Clover.Data.UnitKind Unit;
-                public global::Clover.Data.PerUnitMode Mode;
-                public int Value;
-                public int BaseValue;
-                public int Min;
-                public int Max;
-                public int Times;
-                public global::Clover.Data.CounterField Counter;
-                public int Step;
-                /// 시작값. 비우면 `MultMul` 은 10000 이고 나머지는 0 입니다.
-                public int Init;
-                public int Floor;
-                public global::Clover.Data.ResetKind Reset;
-                public global::Clover.Data.HandPick HandPick;
-                public int Levels;
-                public global::Clover.Data.CreateKind Create;
-                public int Count;
-                public global::Clover.Data.CardClass CardClass;
-                public global::Clover.Data.EditionKind Edition;
-                /// `JokerRarityCount` 가 어느 희귀도를 세는가.
-                public global::Clover.Data.Rarity Rarity;
-                /// `DeckEnhancementCount` 가 어느 강화를 세는가.
-                public global::Clover.Data.EnhancementKind Enhancement;
-                public global::Clover.Data.SealKind Seal;
-                public global::Clover.Data.SuitKind Suit;
-                public global::Clover.Data.ModifyKind Modify;
-                public global::Clover.Data.CardTrait Trait;
-                public global::Clover.Data.DebuffKind Debuff;
-                public global::Clover.Data.JokerPick Pick;
-                public global::Clover.Data.RuleKind Rule;
-                public bool Absolute;
-                public global::Clover.Data.Duration Duration;
-                public bool Free;
-                /// 정하지 않은 성질을 무작위로 채웁니다.
-                public bool Random;
-                /// 특정 행을 가리킬 때의 식별자. 팩과 바우처와 태그가 씁니다.
-                public string RefId;
-                public string Handler;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"Type\":"); ToStringHelper.ToString(Type, sb);
-                    sb.Append(",\"Chips\":"); ToStringHelper.ToString(Chips, sb);
-                    sb.Append(",\"Mult\":"); ToStringHelper.ToString(Mult, sb);
-                    sb.Append(",\"Money\":"); ToStringHelper.ToString(Money, sb);
-                    sb.Append(",\"Cap\":"); ToStringHelper.ToString(Cap, sb);
-                    sb.Append(",\"Unit\":"); ToStringHelper.ToString(Unit, sb);
-                    sb.Append(",\"Mode\":"); ToStringHelper.ToString(Mode, sb);
-                    sb.Append(",\"Value\":"); ToStringHelper.ToString(Value, sb);
-                    sb.Append(",\"BaseValue\":"); ToStringHelper.ToString(BaseValue, sb);
-                    sb.Append(",\"Min\":"); ToStringHelper.ToString(Min, sb);
-                    sb.Append(",\"Max\":"); ToStringHelper.ToString(Max, sb);
-                    sb.Append(",\"Times\":"); ToStringHelper.ToString(Times, sb);
-                    sb.Append(",\"Counter\":"); ToStringHelper.ToString(Counter, sb);
-                    sb.Append(",\"Step\":"); ToStringHelper.ToString(Step, sb);
-                    sb.Append(",\"Init\":"); ToStringHelper.ToString(Init, sb);
-                    sb.Append(",\"Floor\":"); ToStringHelper.ToString(Floor, sb);
-                    sb.Append(",\"Reset\":"); ToStringHelper.ToString(Reset, sb);
-                    sb.Append(",\"HandPick\":"); ToStringHelper.ToString(HandPick, sb);
-                    sb.Append(",\"Levels\":"); ToStringHelper.ToString(Levels, sb);
-                    sb.Append(",\"Create\":"); ToStringHelper.ToString(Create, sb);
-                    sb.Append(",\"Count\":"); ToStringHelper.ToString(Count, sb);
-                    sb.Append(",\"CardClass\":"); ToStringHelper.ToString(CardClass, sb);
-                    sb.Append(",\"Edition\":"); ToStringHelper.ToString(Edition, sb);
-                    sb.Append(",\"Rarity\":"); ToStringHelper.ToString(Rarity, sb);
-                    sb.Append(",\"Enhancement\":"); ToStringHelper.ToString(Enhancement, sb);
-                    sb.Append(",\"Seal\":"); ToStringHelper.ToString(Seal, sb);
-                    sb.Append(",\"Suit\":"); ToStringHelper.ToString(Suit, sb);
-                    sb.Append(",\"Modify\":"); ToStringHelper.ToString(Modify, sb);
-                    sb.Append(",\"Trait\":"); ToStringHelper.ToString(Trait, sb);
-                    sb.Append(",\"Debuff\":"); ToStringHelper.ToString(Debuff, sb);
-                    sb.Append(",\"Pick\":"); ToStringHelper.ToString(Pick, sb);
-                    sb.Append(",\"Rule\":"); ToStringHelper.ToString(Rule, sb);
-                    sb.Append(",\"Absolute\":"); ToStringHelper.ToString(Absolute, sb);
-                    sb.Append(",\"Duration\":"); ToStringHelper.ToString(Duration, sb);
-                    sb.Append(",\"Free\":"); ToStringHelper.ToString(Free, sb);
-                    sb.Append(",\"Random\":"); ToStringHelper.ToString(Random, sb);
-                    sb.Append(",\"RefId\":"); ToStringHelper.ToString(RefId, sb);
-                    sb.Append(",\"Handler\":"); ToStringHelper.ToString(Handler, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            private static OperationEntry NewOperationEntry()
-            {
-                var result = default(OperationEntry);
-                result.RefId = "";
-                result.Handler = "";
-                return result;
-            }
-
-            #region Storage
-            internal global::Clover.Data.SealKind _owner;
-            internal int _order;
-            internal global::Clover.Data.Trigger _trigger;
-            internal int _chanceNum;
-            internal bool _chanceNumHasValue;
-            internal int _chanceDen;
-            internal bool _chanceDenHasValue;
-            internal bool _firstOnly;
-            internal bool _firstOnlyHasValue;
-            internal global::Clover.Data.RankKind[] _ranks = System.Array.Empty<global::Clover.Data.RankKind>();
-            internal bool _ranksHasValue;
-            internal global::Clover.Data.SuitKind[] _suits = System.Array.Empty<global::Clover.Data.SuitKind>();
-            internal bool _suitsHasValue;
-            internal global::Clover.Data.Scope _scope;
-            internal int _scopeCount;
-            internal bool _scopeCountHasValue;
-            internal ConditionEntry _condition;
-            internal OperationEntry _operation = NewOperationEntry();
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Owner\":"); ToStringHelper.ToString(Owner, sb);
-                sb.Append(",\"Order\":"); ToStringHelper.ToString(Order, sb);
-                sb.Append(",\"Trigger\":"); ToStringHelper.ToString(Trigger, sb);
-                sb.Append(",\"ChanceNum\":"); ToStringHelper.ToString(ChanceNum, sb);
-                sb.Append(",\"ChanceDen\":"); ToStringHelper.ToString(ChanceDen, sb);
-                sb.Append(",\"FirstOnly\":"); ToStringHelper.ToString(FirstOnly, sb);
-                sb.Append(",\"Ranks\":"); ToStringHelper.ToString(Ranks, sb);
-                sb.Append(",\"Suits\":"); ToStringHelper.ToString(Suits, sb);
-                sb.Append(",\"Scope\":"); ToStringHelper.ToString(Scope, sb);
-                sb.Append(",\"ScopeCount\":"); ToStringHelper.ToString(ScopeCount, sb);
-                sb.Append(",\"Condition\":"); ToStringHelper.ToString(Condition, sb);
-                sb.Append(",\"Operation\":"); ToStringHelper.ToString(Operation, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -762,8 +760,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<SealEffectRecord> Records => _records;
+        private List<SealEffectRecord> _records = new List<SealEffectRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -780,15 +778,15 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<SealEffectRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<SealEffectRecord> IEnumerable<SealEffectRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Owner and Order'
-        private Dictionary<string, Record> _recordsByOwnerAndOrder = new Dictionary<string, Record>();
+        private Dictionary<string, SealEffectRecord> _recordsByOwnerAndOrder = new Dictionary<string, SealEffectRecord>();
 
         /// <summary>Joins the columns of the `Owner and Order` key into the text the map is keyed by.</summary>
         private static string KeyOfOwnerAndOrder(global::Clover.Data.SealKind ownerKey, int orderKey)
@@ -815,16 +813,16 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByOwnerAndOrder(global::Clover.Data.SealKind ownerKey, int orderKey)
-            => _recordsByOwnerAndOrder.TryGetValue(KeyOfOwnerAndOrder(ownerKey, orderKey), out Record record) ? record : null;
+        public SealEffectRecord FindByOwnerAndOrder(global::Clover.Data.SealKind ownerKey, int orderKey)
+            => _recordsByOwnerAndOrder.TryGetValue(KeyOfOwnerAndOrder(ownerKey, orderKey), out SealEffectRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Owner and Order`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetByOwnerAndOrderOrThrow(global::Clover.Data.SealKind ownerKey, int orderKey)
+        public SealEffectRecord GetByOwnerAndOrderOrThrow(global::Clover.Data.SealKind ownerKey, int orderKey)
         {
-            if (!_recordsByOwnerAndOrder.TryGetValue(KeyOfOwnerAndOrder(ownerKey, orderKey), out Record record))
+            if (!_recordsByOwnerAndOrder.TryGetValue(KeyOfOwnerAndOrder(ownerKey, orderKey), out SealEffectRecord record))
                 throw new TabbitException($"There is no record in table `SealEffect` that corresponds to field `Owner and Order` value ({ownerKey}, {orderKey})");
 
             return record;
@@ -842,7 +840,7 @@ namespace Clover.Data
         /// the order `GetByOwnerAndOrderOrThrow` takes them in too.
         /// spec/targets/table-collection-surface.md section 5.4.
         /// </remarks>
-        public Record this[global::Clover.Data.SealKind ownerKey, int orderKey]
+        public SealEffectRecord this[global::Clover.Data.SealKind ownerKey, int orderKey]
             => GetByOwnerAndOrderOrThrow(ownerKey, orderKey);
         #endregion // Indexing by `Owner and Order`
 
@@ -889,10 +887,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<SealEffectRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new SealEffectRecord());
 
             foreach (var column in columns)
             {
@@ -1953,7 +1951,7 @@ namespace Clover.Data
 
                 TcbTable.CheckBlockEnd(reader, column, blockEnd);
             }
-            var recordsByOwnerAndOrder = new Dictionary<string, Record>(count);
+            var recordsByOwnerAndOrder = new Dictionary<string, SealEffectRecord>(count);
             foreach (var record in records)
                 recordsByOwnerAndOrder.Add(KeyOfOwnerAndOrder(record.Owner, record.Order), record);
 

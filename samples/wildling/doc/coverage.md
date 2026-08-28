@@ -41,7 +41,7 @@
 |셀 배열|`Monster.tags` — `string[]`, 값은 `잎새;사슴;초기형`|`public string[] Tags`. **원소 3개**|
 |합성 값 타입|`Monster.model_offset` — `vec3f?`, 값은 `(0,0.2,0)`|`public ModelOffsetEntry ModelOffset` — 성분마다 컬럼입니다|
 |합성 값 타입|`Region.fog_color` — `color`, 값은 `#C8DCC0`|`public FogColorEntry FogColor`|
-|참조 배열|`Stage.wave_monster_ids` — `foreign Monster[]`|`public MonsterTable.Record[] MonsterByWaveMonsterIds` — 키 배열이 **행 배열**로|
+|참조 배열|`Stage.wave_monster_ids` — `foreign Monster[]`|`public MonsterRecord[] MonsterByWaveMonsterIds` — 키 배열이 **행 배열**로|
 |셀 배열 + 크기 제약|`Stage.wave_levels` — `int[] (size=1..5)`|`public int[] WaveLevels`|
 |검사 `refs=`|`Mission.target_id` — `string (refs="Monster;Region;Item")`|**생성 코드가 없습니다.** 값이 셋 중 하나의 id인지만 봅니다|
 |보조 인덱스 + `regex`|`Monster.*display_code` — `string (regex="^[a-z]{2}[0-9]{3}$")`|`RecordsByDisplayCode` 와 `FindByDisplayCode`|

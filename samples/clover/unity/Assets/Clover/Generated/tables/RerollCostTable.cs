@@ -18,46 +18,44 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class RerollCostRecord
+    {
+        #region Values
+        /// <summary>
+        /// 이 상점에서 이미 리롤한 횟수
+        /// </summary>
+        public int Times => _times;
+
+        /// <summary>
+        /// 다음 리롤의 값
+        /// </summary>
+        public int Cost => _cost;
+        #endregion
+
+        #region Storage
+        internal int _times;
+        internal int _cost;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Times\":"); ToStringHelper.ToString(Times, sb);
+            sb.Append(",\"Cost\":"); ToStringHelper.ToString(Cost, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 상점 하나 안에서 리롤한 횟수마다의 값입니다. 상점을 나가면 처음으로 돌아갑니다.
     /// </summary>
     [System.Serializable]
-    public partial class RerollCostTable : IEnumerable<RerollCostTable.Record>
+    public partial class RerollCostTable : IEnumerable<RerollCostRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 이 상점에서 이미 리롤한 횟수
-            /// </summary>
-            public int Times => _times;
-
-            /// <summary>
-            /// 다음 리롤의 값
-            /// </summary>
-            public int Cost => _cost;
-            #endregion
-
-            #region Storage
-            internal int _times;
-            internal int _cost;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Times\":"); ToStringHelper.ToString(Times, sb);
-                sb.Append(",\"Cost\":"); ToStringHelper.ToString(Cost, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -84,8 +82,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<RerollCostRecord> Records => _records;
+        private List<RerollCostRecord> _records = new List<RerollCostRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -102,16 +100,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<RerollCostRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<RerollCostRecord> IEnumerable<RerollCostRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Times'
-        public Dictionary<int, Record> RecordsByTimes => _recordsByTimes;
-        private Dictionary<int, Record> _recordsByTimes = new Dictionary<int, Record>();
+        public Dictionary<int, RerollCostRecord> RecordsByTimes => _recordsByTimes;
+        private Dictionary<int, RerollCostRecord> _recordsByTimes = new Dictionary<int, RerollCostRecord>();
 
         /// <summary>
         /// The row with this `Times`, or null when the table has none.
@@ -121,8 +119,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByTimes(int key)
-            => _recordsByTimes.TryGetValue(key, out Record record) ? record : null;
+        public RerollCostRecord FindByTimes(int key)
+            => _recordsByTimes.TryGetValue(key, out RerollCostRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Times`, or a thrown exception naming what was
@@ -133,9 +131,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByTimes(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByTimesOrThrow(int key)
+        public RerollCostRecord GetByTimesOrThrow(int key)
         {
-            if (!_recordsByTimes.TryGetValue(key, out Record record))
+            if (!_recordsByTimes.TryGetValue(key, out RerollCostRecord record))
                 throw new TabbitException($"There is no record in table `RerollCost` that corresponds to field `Times` value {key}");
 
             return record;
@@ -160,10 +158,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<RerollCostRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<RerollCostRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -173,7 +171,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, RerollCostRecord Row) Current
                 => (_rows[_at].Times, _rows[_at]);
         }
 
@@ -198,7 +196,7 @@ namespace Clover.Data
         /// It does not replace `FindByTimes`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByTimesOrThrow(key);
+        public RerollCostRecord this[int key] => GetByTimesOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -241,10 +239,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<RerollCostRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new RerollCostRecord());
 
             foreach (var column in columns)
             {
@@ -296,7 +294,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByTimes = new Dictionary<int, Record>(count);
+            var recordsByTimes = new Dictionary<int, RerollCostRecord>(count);
             foreach (var record in records)
                 recordsByTimes.Add(record.Times, record);
 

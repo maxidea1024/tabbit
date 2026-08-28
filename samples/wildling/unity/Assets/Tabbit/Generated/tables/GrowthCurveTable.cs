@@ -18,105 +18,103 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class GrowthCurveRecord
+    {
+        #region Values
+        /// <summary>
+        /// 등급마다 곡선이 다르다
+        /// </summary>
+        public global::Wildling.Data.Grade Grade => _grade;
+
+        /// <summary>
+        /// 레벨
+        /// </summary>
+        public int Level => _level;
+
+        /// <summary>
+        /// 체력 배수. 만분율
+        /// </summary>
+        public int HpFactor => _hpFactor;
+
+        /// <summary>
+        /// 공격 배수
+        /// </summary>
+        public int AttackFactor => _attackFactor;
+
+        /// <summary>
+        /// 방어 배수
+        /// </summary>
+        public int DefenseFactor => _defenseFactor;
+
+        /// <summary>
+        /// 구간 보너스. 없으면 비운다
+        /// </summary>
+        public int BonusFactor => _bonusFactor;
+        /// <summary>Whether this row has a value for <see cref="BonusFactor"/>.</summary>
+        public bool HasBonusFactor => _bonusFactorHasValue;
+
+        /// <summary>
+        /// 소모 재화
+        /// </summary>
+        public CostsEntry[] Costs => _costs;
+        #endregion
+
+        /// <summary>One element of <see cref="Costs"/>.</summary>
+        [System.Serializable]
+        public struct CostsEntry
+        {
+            /// 소모 재화
+            public string CurrencyId;
+            public CurrencyRecord CurrencyByCurrencyId;
+            public bool CurrencyId_F;
+            /// 첫째 소모 수량
+            public int Amount;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"CurrencyId\":"); ToStringHelper.ToString(CurrencyId, sb);
+                sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        #region Storage
+        internal global::Wildling.Data.Grade _grade;
+        internal int _level;
+        internal int _hpFactor;
+        internal int _attackFactor;
+        internal int _defenseFactor;
+        internal int _bonusFactor;
+        internal bool _bonusFactorHasValue;
+        internal CostsEntry[] _costs = System.Array.Empty<CostsEntry>();
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Grade\":"); ToStringHelper.ToString(Grade, sb);
+            sb.Append(",\"Level\":"); ToStringHelper.ToString(Level, sb);
+            sb.Append(",\"HpFactor\":"); ToStringHelper.ToString(HpFactor, sb);
+            sb.Append(",\"AttackFactor\":"); ToStringHelper.ToString(AttackFactor, sb);
+            sb.Append(",\"DefenseFactor\":"); ToStringHelper.ToString(DefenseFactor, sb);
+            sb.Append(",\"BonusFactor\":"); ToStringHelper.ToString(BonusFactor, sb);
+            sb.Append(",\"Costs\":"); ToStringHelper.ToString(Costs, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 등급과 레벨별 능력치 배수와 소모 재화이다.
     /// </summary>
     [System.Serializable]
-    public partial class GrowthCurveTable : IEnumerable<GrowthCurveTable.Record>
+    public partial class GrowthCurveTable : IEnumerable<GrowthCurveRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 등급마다 곡선이 다르다
-            /// </summary>
-            public global::Wildling.Data.Grade Grade => _grade;
-
-            /// <summary>
-            /// 레벨
-            /// </summary>
-            public int Level => _level;
-
-            /// <summary>
-            /// 체력 배수. 만분율
-            /// </summary>
-            public int HpFactor => _hpFactor;
-
-            /// <summary>
-            /// 공격 배수
-            /// </summary>
-            public int AttackFactor => _attackFactor;
-
-            /// <summary>
-            /// 방어 배수
-            /// </summary>
-            public int DefenseFactor => _defenseFactor;
-
-            /// <summary>
-            /// 구간 보너스. 없으면 비운다
-            /// </summary>
-            public int BonusFactor => _bonusFactor;
-            /// <summary>Whether this row has a value for <see cref="BonusFactor"/>.</summary>
-            public bool HasBonusFactor => _bonusFactorHasValue;
-
-            /// <summary>
-            /// 소모 재화
-            /// </summary>
-            public CostsEntry[] Costs => _costs;
-            #endregion
-
-            /// <summary>One element of <see cref="Costs"/>.</summary>
-            [System.Serializable]
-            public struct CostsEntry
-            {
-                /// 소모 재화
-                public string CurrencyId;
-                public CurrencyTable.Record CurrencyByCurrencyId;
-                public bool CurrencyId_F;
-                /// 첫째 소모 수량
-                public int Amount;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"CurrencyId\":"); ToStringHelper.ToString(CurrencyId, sb);
-                    sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            #region Storage
-            internal global::Wildling.Data.Grade _grade;
-            internal int _level;
-            internal int _hpFactor;
-            internal int _attackFactor;
-            internal int _defenseFactor;
-            internal int _bonusFactor;
-            internal bool _bonusFactorHasValue;
-            internal CostsEntry[] _costs = System.Array.Empty<CostsEntry>();
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Grade\":"); ToStringHelper.ToString(Grade, sb);
-                sb.Append(",\"Level\":"); ToStringHelper.ToString(Level, sb);
-                sb.Append(",\"HpFactor\":"); ToStringHelper.ToString(HpFactor, sb);
-                sb.Append(",\"AttackFactor\":"); ToStringHelper.ToString(AttackFactor, sb);
-                sb.Append(",\"DefenseFactor\":"); ToStringHelper.ToString(DefenseFactor, sb);
-                sb.Append(",\"BonusFactor\":"); ToStringHelper.ToString(BonusFactor, sb);
-                sb.Append(",\"Costs\":"); ToStringHelper.ToString(Costs, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -143,8 +141,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<GrowthCurveRecord> Records => _records;
+        private List<GrowthCurveRecord> _records = new List<GrowthCurveRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -161,15 +159,15 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<GrowthCurveRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<GrowthCurveRecord> IEnumerable<GrowthCurveRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Grade and Level'
-        private Dictionary<string, Record> _recordsByGradeAndLevel = new Dictionary<string, Record>();
+        private Dictionary<string, GrowthCurveRecord> _recordsByGradeAndLevel = new Dictionary<string, GrowthCurveRecord>();
 
         /// <summary>Joins the columns of the `Grade and Level` key into the text the map is keyed by.</summary>
         private static string KeyOfGradeAndLevel(global::Wildling.Data.Grade gradeKey, int levelKey)
@@ -196,16 +194,16 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByGradeAndLevel(global::Wildling.Data.Grade gradeKey, int levelKey)
-            => _recordsByGradeAndLevel.TryGetValue(KeyOfGradeAndLevel(gradeKey, levelKey), out Record record) ? record : null;
+        public GrowthCurveRecord FindByGradeAndLevel(global::Wildling.Data.Grade gradeKey, int levelKey)
+            => _recordsByGradeAndLevel.TryGetValue(KeyOfGradeAndLevel(gradeKey, levelKey), out GrowthCurveRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Grade and Level`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetByGradeAndLevelOrThrow(global::Wildling.Data.Grade gradeKey, int levelKey)
+        public GrowthCurveRecord GetByGradeAndLevelOrThrow(global::Wildling.Data.Grade gradeKey, int levelKey)
         {
-            if (!_recordsByGradeAndLevel.TryGetValue(KeyOfGradeAndLevel(gradeKey, levelKey), out Record record))
+            if (!_recordsByGradeAndLevel.TryGetValue(KeyOfGradeAndLevel(gradeKey, levelKey), out GrowthCurveRecord record))
                 throw new TabbitException($"There is no record in table `GrowthCurve` that corresponds to field `Grade and Level` value ({gradeKey}, {levelKey})");
 
             return record;
@@ -223,7 +221,7 @@ namespace Wildling.Data
         /// the order `GetByGradeAndLevelOrThrow` takes them in too.
         /// spec/targets/table-collection-surface.md section 5.4.
         /// </remarks>
-        public Record this[global::Wildling.Data.Grade gradeKey, int levelKey]
+        public GrowthCurveRecord this[global::Wildling.Data.Grade gradeKey, int levelKey]
             => GetByGradeAndLevelOrThrow(gradeKey, levelKey);
         #endregion // Indexing by `Grade and Level`
 
@@ -269,10 +267,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<GrowthCurveRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new GrowthCurveRecord());
 
             foreach (var column in columns)
             {
@@ -395,11 +393,11 @@ namespace Wildling.Data
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._costs = new Record.CostsEntry[elementCount];
+                            record._costs = new GrowthCurveRecord.CostsEntry[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
                                 record._costs[j].CurrencyId = cursor.NextString();
-                                record._costs[j].CurrencyByCurrencyId = default(CurrencyTable.Record); // will be assigned.
+                                record._costs[j].CurrencyByCurrencyId = default(CurrencyRecord); // will be assigned.
                                 record._costs[j].CurrencyId_F = false;
                             }
                         }
@@ -437,7 +435,7 @@ namespace Wildling.Data
 
                 TcbTable.CheckBlockEnd(reader, column, blockEnd);
             }
-            var recordsByGradeAndLevel = new Dictionary<string, Record>(count);
+            var recordsByGradeAndLevel = new Dictionary<string, GrowthCurveRecord>(count);
             foreach (var record in records)
                 recordsByGradeAndLevel.Add(KeyOfGradeAndLevel(record.Grade, record.Level), record);
 

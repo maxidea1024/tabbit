@@ -74,7 +74,7 @@ public class CsGeneratorTests
 
         // A row is the type the sources would have given, which is the whole claim: the same
         // output, compiled.
-        Assert.NotNull(loaded.GetType("Tabbit.Fixtures.Assembly.ItemTable+Record"));
+        Assert.NotNull(loaded.GetType("Tabbit.Fixtures.Assembly.ItemRecord"));
     }
 
     /// <summary>

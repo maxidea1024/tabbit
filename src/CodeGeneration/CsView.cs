@@ -364,7 +364,7 @@ internal sealed class CsColumnView
 
     /// <summary>
     /// The same name in Pascal case, which is how the generated element-count constants
-    /// (`Record.{PascalName}_N` and `_M`) are reached. See
+    /// (`{Table}Record.{PascalName}_N` and `_M`) are reached. See
     /// <see cref="CsFieldView.PascalName"/> for why the two are separate.
     /// </summary>
     public required string PascalName { get; set; }
@@ -504,7 +504,7 @@ internal sealed class CsRecordMemberView
 /// </remarks>
 internal sealed class CsRecordTypeView
 {
-    /// <summary>Name of the struct, declared inside `Record`.</summary>
+    /// <summary>Name of the struct, declared inside the record class.</summary>
     public required string TypeName { get; set; }
 
     /// <summary>Fields of this struct.</summary>
@@ -644,7 +644,7 @@ internal sealed class CsFieldView
     /// Name of the generated element type, for a record group. Empty otherwise.
     /// </summary>
     /// <remarks>
-    /// The group name plus `Entry`, declared inside `Record`. It cannot simply be the
+    /// The group name plus `Entry`, declared inside the record class. It cannot simply be the
     /// group name: that is already the property's name, and C# does not allow a nested
     /// type and a member to share one.
     /// </remarks>

@@ -18,60 +18,58 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class SuitRecord
+    {
+        #region Values
+        /// <summary>
+        /// 무늬
+        /// </summary>
+        public global::Clover.Data.SuitKind Suit => _suit;
+
+        /// <summary>
+        /// 카드에 쓰는 색
+        /// </summary>
+        public string Color => _color;
+
+        /// <summary>
+        /// 정렬 순서
+        /// </summary>
+        public int SortOrder => _sortOrder;
+
+        /// <summary>
+        /// 식별자에 쓰는 글자
+        /// </summary>
+        public string Letter => _letter;
+        #endregion
+
+        #region Storage
+        internal global::Clover.Data.SuitKind _suit;
+        internal string _color = "";
+        internal int _sortOrder;
+        internal string _letter = "";
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Suit\":"); ToStringHelper.ToString(Suit, sb);
+            sb.Append(",\"Color\":"); ToStringHelper.ToString(Color, sb);
+            sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
+            sb.Append(",\"Letter\":"); ToStringHelper.ToString(Letter, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 무늬 하나의 표시입니다.
     /// </summary>
     [System.Serializable]
-    public partial class SuitTable : IEnumerable<SuitTable.Record>
+    public partial class SuitTable : IEnumerable<SuitRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 무늬
-            /// </summary>
-            public global::Clover.Data.SuitKind Suit => _suit;
-
-            /// <summary>
-            /// 카드에 쓰는 색
-            /// </summary>
-            public string Color => _color;
-
-            /// <summary>
-            /// 정렬 순서
-            /// </summary>
-            public int SortOrder => _sortOrder;
-
-            /// <summary>
-            /// 식별자에 쓰는 글자
-            /// </summary>
-            public string Letter => _letter;
-            #endregion
-
-            #region Storage
-            internal global::Clover.Data.SuitKind _suit;
-            internal string _color = "";
-            internal int _sortOrder;
-            internal string _letter = "";
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Suit\":"); ToStringHelper.ToString(Suit, sb);
-                sb.Append(",\"Color\":"); ToStringHelper.ToString(Color, sb);
-                sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
-                sb.Append(",\"Letter\":"); ToStringHelper.ToString(Letter, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -98,8 +96,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<SuitRecord> Records => _records;
+        private List<SuitRecord> _records = new List<SuitRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -116,16 +114,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<SuitRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<SuitRecord> IEnumerable<SuitRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Suit'
-        public Dictionary<global::Clover.Data.SuitKind, Record> RecordsBySuit => _recordsBySuit;
-        private Dictionary<global::Clover.Data.SuitKind, Record> _recordsBySuit = new Dictionary<global::Clover.Data.SuitKind, Record>();
+        public Dictionary<global::Clover.Data.SuitKind, SuitRecord> RecordsBySuit => _recordsBySuit;
+        private Dictionary<global::Clover.Data.SuitKind, SuitRecord> _recordsBySuit = new Dictionary<global::Clover.Data.SuitKind, SuitRecord>();
 
         /// <summary>
         /// The row with this `Suit`, or null when the table has none.
@@ -135,8 +133,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindBySuit(global::Clover.Data.SuitKind key)
-            => _recordsBySuit.TryGetValue(key, out Record record) ? record : null;
+        public SuitRecord FindBySuit(global::Clover.Data.SuitKind key)
+            => _recordsBySuit.TryGetValue(key, out SuitRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Suit`, or a thrown exception naming what was
@@ -147,9 +145,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetBySuit(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetBySuitOrThrow(global::Clover.Data.SuitKind key)
+        public SuitRecord GetBySuitOrThrow(global::Clover.Data.SuitKind key)
         {
-            if (!_recordsBySuit.TryGetValue(key, out Record record))
+            if (!_recordsBySuit.TryGetValue(key, out SuitRecord record))
                 throw new TabbitException($"There is no record in table `Suit` that corresponds to field `Suit` value {key}");
 
             return record;
@@ -174,10 +172,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<SuitRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<SuitRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -187,7 +185,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (global::Clover.Data.SuitKind Key, Record Row) Current
+            public (global::Clover.Data.SuitKind Key, SuitRecord Row) Current
                 => (_rows[_at].Suit, _rows[_at]);
         }
 
@@ -212,7 +210,7 @@ namespace Clover.Data
         /// It does not replace `FindBySuit`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[global::Clover.Data.SuitKind key] => GetBySuitOrThrow(key);
+        public SuitRecord this[global::Clover.Data.SuitKind key] => GetBySuitOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -255,10 +253,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<SuitRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new SuitRecord());
 
             foreach (var column in columns)
             {
@@ -342,7 +340,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsBySuit = new Dictionary<global::Clover.Data.SuitKind, Record>(count);
+            var recordsBySuit = new Dictionary<global::Clover.Data.SuitKind, SuitRecord>(count);
             foreach (var record in records)
                 recordsBySuit.Add(record.Suit, record);
 

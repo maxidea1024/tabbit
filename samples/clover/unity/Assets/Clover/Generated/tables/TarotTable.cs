@@ -18,53 +18,51 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class TarotRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string TarotId => _tarotId;
+
+        /// <summary>
+        /// 표시 이름
+        /// </summary>
+        public string Name => _name;
+
+        /// <summary>
+        /// 수집 목록에서의 순서
+        /// </summary>
+        public int SortOrder => _sortOrder;
+        #endregion
+
+        #region Storage
+        internal string _tarotId = "";
+        internal string _name = "";
+        internal int _sortOrder;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"TarotId\":"); ToStringHelper.ToString(TarotId, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 타로 22종입니다. 대아르카나 그대로이고 상점 값은 전부 같습니다.
     /// </summary>
     [System.Serializable]
-    public partial class TarotTable : IEnumerable<TarotTable.Record>
+    public partial class TarotTable : IEnumerable<TarotRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string TarotId => _tarotId;
-
-            /// <summary>
-            /// 표시 이름
-            /// </summary>
-            public string Name => _name;
-
-            /// <summary>
-            /// 수집 목록에서의 순서
-            /// </summary>
-            public int SortOrder => _sortOrder;
-            #endregion
-
-            #region Storage
-            internal string _tarotId = "";
-            internal string _name = "";
-            internal int _sortOrder;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"TarotId\":"); ToStringHelper.ToString(TarotId, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -91,8 +89,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<TarotRecord> Records => _records;
+        private List<TarotRecord> _records = new List<TarotRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -109,16 +107,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<TarotRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<TarotRecord> IEnumerable<TarotRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'TarotId'
-        public Dictionary<string, Record> RecordsByTarotId => _recordsByTarotId;
-        private Dictionary<string, Record> _recordsByTarotId = new Dictionary<string, Record>();
+        public Dictionary<string, TarotRecord> RecordsByTarotId => _recordsByTarotId;
+        private Dictionary<string, TarotRecord> _recordsByTarotId = new Dictionary<string, TarotRecord>();
 
         /// <summary>
         /// The row with this `TarotId`, or null when the table has none.
@@ -128,8 +126,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByTarotId(string key)
-            => _recordsByTarotId.TryGetValue(key, out Record record) ? record : null;
+        public TarotRecord FindByTarotId(string key)
+            => _recordsByTarotId.TryGetValue(key, out TarotRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `TarotId`, or a thrown exception naming what was
@@ -140,9 +138,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByTarotId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByTarotIdOrThrow(string key)
+        public TarotRecord GetByTarotIdOrThrow(string key)
         {
-            if (!_recordsByTarotId.TryGetValue(key, out Record record))
+            if (!_recordsByTarotId.TryGetValue(key, out TarotRecord record))
                 throw new TabbitException($"There is no record in table `Tarot` that corresponds to field `TarotId` value {key}");
 
             return record;
@@ -167,10 +165,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<TarotRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<TarotRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -180,7 +178,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, TarotRecord Row) Current
                 => (_rows[_at].TarotId, _rows[_at]);
         }
 
@@ -205,7 +203,7 @@ namespace Clover.Data
         /// It does not replace `FindByTarotId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByTarotIdOrThrow(key);
+        public TarotRecord this[string key] => GetByTarotIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -248,10 +246,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<TarotRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new TarotRecord());
 
             foreach (var column in columns)
             {
@@ -319,7 +317,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByTarotId = new Dictionary<string, Record>(count);
+            var recordsByTarotId = new Dictionary<string, TarotRecord>(count);
             foreach (var record in records)
                 recordsByTarotId.Add(record.TarotId, record);
 

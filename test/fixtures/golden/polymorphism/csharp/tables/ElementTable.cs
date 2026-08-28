@@ -15,46 +15,44 @@ using System.Threading.Tasks;
 // Tabbit's binary reader, written into this directory beside the accessor.
 // Nothing has to be installed for the generated code to compile.
 using Tabbit.Binary;
+[System.Serializable]
+public partial class ElementRecord
+{
+    #region Values
+    /// <summary>
+    /// primary index
+    /// </summary>
+    public int Code => _code;
+
+    /// <summary>
+    /// what it is called
+    /// </summary>
+    public string Name => _name;
+    #endregion
+
+    #region Storage
+    internal int _code;
+    internal string _name = "";
+    #endregion
+
+    #region ToString
+    public override string ToString()
+    {
+        var sb = new StringBuilder("{");
+        sb.Append("\"Code\":"); ToStringHelper.ToString(Code, sb);
+        sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+        sb.Append("}");
+        return sb.ToString();
+    }
+    #endregion
+}
+
 /// <summary>
 /// What a damaging effect is made of.
 /// </summary>
 [System.Serializable]
-public partial class ElementTable : IEnumerable<ElementTable.Record>
+public partial class ElementTable : IEnumerable<ElementRecord>
 {
-    #region Record
-    [System.Serializable]
-    public partial class Record
-    {
-        #region Values
-        /// <summary>
-        /// primary index
-        /// </summary>
-        public int Code => _code;
-
-        /// <summary>
-        /// what it is called
-        /// </summary>
-        public string Name => _name;
-        #endregion
-
-        #region Storage
-        internal int _code;
-        internal string _name = "";
-        #endregion
-
-        #region ToString
-        public override string ToString()
-        {
-            var sb = new StringBuilder("{");
-            sb.Append("\"Code\":"); ToStringHelper.ToString(Code, sb);
-            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-            sb.Append("}");
-            return sb.ToString();
-        }
-        #endregion
-    }
-    #endregion
-
     /// <summary>
     /// Field names.
     /// </summary>
@@ -81,8 +79,8 @@ public partial class ElementTable : IEnumerable<ElementTable.Record>
     /// reference rather than the contents - so an iteration in progress neither tears nor
     /// throws, and a read that fails leaves the previous rows exactly where they were.
     /// </remarks>
-    public List<Record> Records => _records;
-    private List<Record> _records = new List<Record>();
+    public List<ElementRecord> Records => _records;
+    private List<ElementRecord> _records = new List<ElementRecord>();
 
     /// <summary>How many rows the table holds.</summary>
     public int Count => _records.Count;
@@ -99,16 +97,16 @@ public partial class ElementTable : IEnumerable<ElementTable.Record>
     /// its contents, so a loop already running keeps the rows it started with - the same
     /// property `Records` documents above, reached without naming the list.
     /// </remarks>
-    public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+    public List<ElementRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-    IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+    IEnumerator<ElementRecord> IEnumerable<ElementRecord>.GetEnumerator() => _records.GetEnumerator();
 
     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         => _records.GetEnumerator();
 
     #region Indexing by 'Code'
-    public Dictionary<int, Record> RecordsByCode => _recordsByCode;
-    private Dictionary<int, Record> _recordsByCode = new Dictionary<int, Record>();
+    public Dictionary<int, ElementRecord> RecordsByCode => _recordsByCode;
+    private Dictionary<int, ElementRecord> _recordsByCode = new Dictionary<int, ElementRecord>();
 
     /// <summary>
     /// The row with this `Code`, or null when the table has none.
@@ -118,8 +116,8 @@ public partial class ElementTable : IEnumerable<ElementTable.Record>
     /// reference, a key that came from user input. Every language Tabbit generates has
     /// this one under the same name.
     /// </remarks>
-    public Record FindByCode(int key)
-        => _recordsByCode.TryGetValue(key, out Record record) ? record : null;
+    public ElementRecord FindByCode(int key)
+        => _recordsByCode.TryGetValue(key, out ElementRecord record) ? record : null;
 
     /// <summary>
     /// The row with this `Code`, or a thrown exception naming what was
@@ -130,9 +128,9 @@ public partial class ElementTable : IEnumerable<ElementTable.Record>
     /// says it throws, because a caller reading `GetByCode(id).Name` at
     /// a glance cannot otherwise tell whether the next line is a null check or a catch.
     /// </remarks>
-    public Record GetByCodeOrThrow(int key)
+    public ElementRecord GetByCodeOrThrow(int key)
     {
-        if (!_recordsByCode.TryGetValue(key, out Record record))
+        if (!_recordsByCode.TryGetValue(key, out ElementRecord record))
             throw new TabbitException($"There is no record in table `Element` that corresponds to field `Code` value {key}");
 
         return record;
@@ -157,10 +155,10 @@ public partial class ElementTable : IEnumerable<ElementTable.Record>
     /// </remarks>
     public struct EntryEnumerator
     {
-        private readonly List<Record> _rows;
+        private readonly List<ElementRecord> _rows;
         private int _at;
 
-        internal EntryEnumerator(List<Record> rows)
+        internal EntryEnumerator(List<ElementRecord> rows)
         {
             _rows = rows;
             _at = -1;
@@ -170,7 +168,7 @@ public partial class ElementTable : IEnumerable<ElementTable.Record>
 
         public bool MoveNext() => ++_at < _rows.Count;
 
-        public (int Key, Record Row) Current
+        public (int Key, ElementRecord Row) Current
             => (_rows[_at].Code, _rows[_at]);
     }
 
@@ -195,7 +193,7 @@ public partial class ElementTable : IEnumerable<ElementTable.Record>
     /// It does not replace `FindByCode`: a key that may be absent
     /// wants the one whose name says a miss is an ordinary answer.
     /// </remarks>
-    public Record this[int key] => GetByCodeOrThrow(key);
+    public ElementRecord this[int key] => GetByCodeOrThrow(key);
 
     /// <summary>
     /// Read a table from specified file.
@@ -238,10 +236,10 @@ public partial class ElementTable : IEnumerable<ElementTable.Record>
         // this point, so it is a number the file could actually hold rows for - and a
         // list that grows into twenty thousand rows reallocates fifteen times to get
         // there, copying everything each time.
-        var records = new List<Record>(count);
+        var records = new List<ElementRecord>(count);
 
         for (int i = 0; i < count; i++)
-            records.Add(new Record());
+            records.Add(new ElementRecord());
 
         foreach (var column in columns)
         {
@@ -293,7 +291,7 @@ public partial class ElementTable : IEnumerable<ElementTable.Record>
 
         // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
         // duplicate key throws here - before any of this is visible.
-        var recordsByCode = new Dictionary<int, Record>(count);
+        var recordsByCode = new Dictionary<int, ElementRecord>(count);
         foreach (var record in records)
             recordsByCode.Add(record.Code, record);
 

@@ -18,77 +18,75 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.RecordRef
 {
+    [System.Serializable]
+    public partial class BagRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// element 1 of the member
+        /// </summary>
+        public SlotsEntry Slots => _slots;
+        #endregion
+
+        /// <summary>One element of <see cref="Slots"/>.</summary>
+        [System.Serializable]
+        public struct SlotsEntry
+        {
+            /// element 1 of the member
+            public int[] ItemId;
+            public ItemRecord[] ItemByItemId;
+            public bool[] ItemId_F;
+            /// element 1 of the member beside it
+            public int[] Count;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"ItemId\":"); ToStringHelper.ToString(ItemId, sb);
+                sb.Append(",\"Count\":"); ToStringHelper.ToString(Count, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        private static SlotsEntry NewSlotsEntry()
+        {
+            var result = default(SlotsEntry);
+            result.ItemByItemId = new ItemRecord[2];
+            result.ItemId = new int[2];
+            result.ItemId_F = new bool[2];
+            result.Count = new int[2];
+            return result;
+        }
+
+        #region Storage
+        internal int _index;
+        internal SlotsEntry _slots = NewSlotsEntry();
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Slots\":"); ToStringHelper.ToString(Slots, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// One record whose members are arrays, one of them references.
     /// </summary>
     [System.Serializable]
-    public partial class BagTable : IEnumerable<BagTable.Record>
+    public partial class BagTable : IEnumerable<BagRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Index => _index;
-
-            /// <summary>
-            /// element 1 of the member
-            /// </summary>
-            public SlotsEntry Slots => _slots;
-            #endregion
-
-            /// <summary>One element of <see cref="Slots"/>.</summary>
-            [System.Serializable]
-            public struct SlotsEntry
-            {
-                /// element 1 of the member
-                public int[] ItemId;
-                public ItemTable.Record[] ItemByItemId;
-                public bool[] ItemId_F;
-                /// element 1 of the member beside it
-                public int[] Count;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"ItemId\":"); ToStringHelper.ToString(ItemId, sb);
-                    sb.Append(",\"Count\":"); ToStringHelper.ToString(Count, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            private static SlotsEntry NewSlotsEntry()
-            {
-                var result = default(SlotsEntry);
-                result.ItemByItemId = new ItemTable.Record[2];
-                result.ItemId = new int[2];
-                result.ItemId_F = new bool[2];
-                result.Count = new int[2];
-                return result;
-            }
-
-            #region Storage
-            internal int _index;
-            internal SlotsEntry _slots = NewSlotsEntry();
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Slots\":"); ToStringHelper.ToString(Slots, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -115,8 +113,8 @@ namespace Tabbit.Fixtures.RecordRef
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<BagRecord> Records => _records;
+        private List<BagRecord> _records = new List<BagRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -133,16 +131,16 @@ namespace Tabbit.Fixtures.RecordRef
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<BagRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<BagRecord> IEnumerable<BagRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+        public Dictionary<int, BagRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<int, BagRecord> _recordsByIndex = new Dictionary<int, BagRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -152,8 +150,8 @@ namespace Tabbit.Fixtures.RecordRef
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(int key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public BagRecord FindByIndex(int key)
+            => _recordsByIndex.TryGetValue(key, out BagRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -164,9 +162,9 @@ namespace Tabbit.Fixtures.RecordRef
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(int key)
+        public BagRecord GetByIndexOrThrow(int key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out BagRecord record))
                 throw new TabbitException($"There is no record in table `Bag` that corresponds to field `Index` value {key}");
 
             return record;
@@ -191,10 +189,10 @@ namespace Tabbit.Fixtures.RecordRef
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<BagRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<BagRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -204,7 +202,7 @@ namespace Tabbit.Fixtures.RecordRef
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, BagRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -229,7 +227,7 @@ namespace Tabbit.Fixtures.RecordRef
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIndexOrThrow(key);
+        public BagRecord this[int key] => GetByIndexOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -272,10 +270,10 @@ namespace Tabbit.Fixtures.RecordRef
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<BagRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new BagRecord());
 
             foreach (var column in columns)
             {
@@ -310,11 +308,11 @@ namespace Tabbit.Fixtures.RecordRef
                             record._slots.ItemId =
                                 new int[elementCount];
                             record._slots.ItemByItemId =
-                                new ItemTable.Record[elementCount];
+                                new ItemRecord[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
                                 record._slots.ItemId[j] = cursor.NextI32();
-                                record._slots.ItemByItemId[j] = default(ItemTable.Record); // will be assigned.
+                                record._slots.ItemByItemId[j] = default(ItemRecord); // will be assigned.
                                 record._slots.ItemId_F[j] = false;
                             }
                         }
@@ -349,7 +347,7 @@ namespace Tabbit.Fixtures.RecordRef
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<int, Record>(count);
+            var recordsByIndex = new Dictionary<int, BagRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
 

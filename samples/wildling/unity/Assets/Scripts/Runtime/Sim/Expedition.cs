@@ -109,7 +109,7 @@ namespace Wildling.Game
         /// 마지막 한 종이 나오지 않아 진행이 멈추는 것을 억제하기 위한 것입니다.
         /// </remarks>
         private static void DrawOne(GameState state,
-                                    List<EncounterTableTable.Record.EntriesEntry> pool,
+                                    List<EncounterTableRecord.EntriesEntry> pool,
                                     List<Grant> grants, ExpeditionResult result, Rng rng)
         {
             if (pool.Count == 0)

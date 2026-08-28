@@ -19,63 +19,61 @@ using Tabbit.Binary;
 namespace Sprout.Tables
 {
     [System.Serializable]
-    public partial class EquipOptionTable : IEnumerable<EquipOptionTable.Record>
+    public partial class EquipOptionRecord
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Id => _id;
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Id => _id;
 
-            /// <summary>
-            /// affected stat
-            /// </summary>
-            public global::Sprout.Tables.StatType Stat => _stat;
+        /// <summary>
+        /// affected stat
+        /// </summary>
+        public global::Sprout.Tables.StatType Stat => _stat;
 
-            /// <summary>
-            /// lowest roll in permille
-            /// </summary>
-            public int MinRoll => _minRoll;
+        /// <summary>
+        /// lowest roll in permille
+        /// </summary>
+        public int MinRoll => _minRoll;
 
-            /// <summary>
-            /// highest roll in permille
-            /// </summary>
-            public int MaxRoll => _maxRoll;
+        /// <summary>
+        /// highest roll in permille
+        /// </summary>
+        public int MaxRoll => _maxRoll;
 
-            /// <summary>
-            /// weight
-            /// </summary>
-            public int Weight => _weight;
-            #endregion
-
-            #region Storage
-            internal int _id;
-            internal global::Sprout.Tables.StatType _stat;
-            internal int _minRoll;
-            internal int _maxRoll;
-            internal int _weight;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Id\":"); ToStringHelper.ToString(Id, sb);
-                sb.Append(",\"Stat\":"); ToStringHelper.ToString(Stat, sb);
-                sb.Append(",\"MinRoll\":"); ToStringHelper.ToString(MinRoll, sb);
-                sb.Append(",\"MaxRoll\":"); ToStringHelper.ToString(MaxRoll, sb);
-                sb.Append(",\"Weight\":"); ToStringHelper.ToString(Weight, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
+        /// <summary>
+        /// weight
+        /// </summary>
+        public int Weight => _weight;
         #endregion
 
+        #region Storage
+        internal int _id;
+        internal global::Sprout.Tables.StatType _stat;
+        internal int _minRoll;
+        internal int _maxRoll;
+        internal int _weight;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Id\":"); ToStringHelper.ToString(Id, sb);
+            sb.Append(",\"Stat\":"); ToStringHelper.ToString(Stat, sb);
+            sb.Append(",\"MinRoll\":"); ToStringHelper.ToString(MinRoll, sb);
+            sb.Append(",\"MaxRoll\":"); ToStringHelper.ToString(MaxRoll, sb);
+            sb.Append(",\"Weight\":"); ToStringHelper.ToString(Weight, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
+    [System.Serializable]
+    public partial class EquipOptionTable : IEnumerable<EquipOptionRecord>
+    {
         /// <summary>
         /// Field names.
         /// </summary>
@@ -102,8 +100,8 @@ namespace Sprout.Tables
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<EquipOptionRecord> Records => _records;
+        private List<EquipOptionRecord> _records = new List<EquipOptionRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -120,16 +118,16 @@ namespace Sprout.Tables
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<EquipOptionRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<EquipOptionRecord> IEnumerable<EquipOptionRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Id'
-        public Dictionary<int, Record> RecordsById => _recordsById;
-        private Dictionary<int, Record> _recordsById = new Dictionary<int, Record>();
+        public Dictionary<int, EquipOptionRecord> RecordsById => _recordsById;
+        private Dictionary<int, EquipOptionRecord> _recordsById = new Dictionary<int, EquipOptionRecord>();
 
         /// <summary>
         /// The row with this `Id`, or null when the table has none.
@@ -139,8 +137,8 @@ namespace Sprout.Tables
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindById(int key)
-            => _recordsById.TryGetValue(key, out Record record) ? record : null;
+        public EquipOptionRecord FindById(int key)
+            => _recordsById.TryGetValue(key, out EquipOptionRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Id`, or a thrown exception naming what was
@@ -151,9 +149,9 @@ namespace Sprout.Tables
         /// says it throws, because a caller reading `GetById(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIdOrThrow(int key)
+        public EquipOptionRecord GetByIdOrThrow(int key)
         {
-            if (!_recordsById.TryGetValue(key, out Record record))
+            if (!_recordsById.TryGetValue(key, out EquipOptionRecord record))
                 throw new TabbitException($"There is no record in table `EquipOption` that corresponds to field `Id` value {key}");
 
             return record;
@@ -178,10 +176,10 @@ namespace Sprout.Tables
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<EquipOptionRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<EquipOptionRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -191,7 +189,7 @@ namespace Sprout.Tables
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, EquipOptionRecord Row) Current
                 => (_rows[_at].Id, _rows[_at]);
         }
 
@@ -216,7 +214,7 @@ namespace Sprout.Tables
         /// It does not replace `FindById`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIdOrThrow(key);
+        public EquipOptionRecord this[int key] => GetByIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -259,10 +257,10 @@ namespace Sprout.Tables
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<EquipOptionRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new EquipOptionRecord());
 
             foreach (var column in columns)
             {
@@ -362,7 +360,7 @@ namespace Sprout.Tables
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsById = new Dictionary<int, Record>(count);
+            var recordsById = new Dictionary<int, EquipOptionRecord>(count);
             foreach (var record in records)
                 recordsById.Add(record.Id, record);
 

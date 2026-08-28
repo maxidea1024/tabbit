@@ -21,9 +21,9 @@ namespace Wildling.Game
             public bool Met;
         }
 
-        public static IEnumerable<RequirementEntryTable.Record> Entries(string groupId)
+        public static IEnumerable<RequirementEntryRecord> Entries(string groupId)
             => string.IsNullOrEmpty(groupId)
-                ? Enumerable.Empty<RequirementEntryTable.Record>()
+                ? Enumerable.Empty<RequirementEntryRecord>()
                 : WildlingData.RequirementEntry.Records
                     .Where(r => r.RequirementGroupId == groupId)
                     .OrderBy(r => r.Order);

@@ -18,91 +18,89 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.RecordRef
 {
+    [System.Serializable]
+    public partial class MountRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// element 1, two levels in
+        /// </summary>
+        public RigEntry[] Rig => _rig;
+        #endregion
+
+        /// <summary>A record inside <see cref="Rig"/>.</summary>
+        [System.Serializable]
+        public struct RigCoreEntry
+        {
+            /// element 1, two levels in
+            public int ItemId;
+            public ItemRecord ItemByItemId;
+            public bool ItemId_F;
+            /// its sibling at that level
+            public int Count;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"ItemId\":"); ToStringHelper.ToString(ItemId, sb);
+                sb.Append(",\"Count\":"); ToStringHelper.ToString(Count, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+        /// <summary>One element of <see cref="Rig"/>.</summary>
+        [System.Serializable]
+        public struct RigEntry
+        {
+            /// element 1, two levels in
+            public RigCoreEntry Core;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"Core\":"); ToStringHelper.ToString(Core, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        internal static RigEntry[] NewRigEntryArray(int length)
+        {
+            var result = new RigEntry[length];
+            for (int i = 0; i < result.Length; i++)
+            {
+            }
+            return result;
+        }
+
+        #region Storage
+        internal int _index;
+        internal RigEntry[] _rig = System.Array.Empty<RigEntry>();
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Rig\":"); ToStringHelper.ToString(Rig, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// A reference inside a record inside a record.
     /// </summary>
     [System.Serializable]
-    public partial class MountTable : IEnumerable<MountTable.Record>
+    public partial class MountTable : IEnumerable<MountRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Index => _index;
-
-            /// <summary>
-            /// element 1, two levels in
-            /// </summary>
-            public RigEntry[] Rig => _rig;
-            #endregion
-
-            /// <summary>A record inside <see cref="Rig"/>.</summary>
-            [System.Serializable]
-            public struct RigCoreEntry
-            {
-                /// element 1, two levels in
-                public int ItemId;
-                public ItemTable.Record ItemByItemId;
-                public bool ItemId_F;
-                /// its sibling at that level
-                public int Count;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"ItemId\":"); ToStringHelper.ToString(ItemId, sb);
-                    sb.Append(",\"Count\":"); ToStringHelper.ToString(Count, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-            /// <summary>One element of <see cref="Rig"/>.</summary>
-            [System.Serializable]
-            public struct RigEntry
-            {
-                /// element 1, two levels in
-                public RigCoreEntry Core;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"Core\":"); ToStringHelper.ToString(Core, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            internal static RigEntry[] NewRigEntryArray(int length)
-            {
-                var result = new RigEntry[length];
-                for (int i = 0; i < result.Length; i++)
-                {
-                }
-                return result;
-            }
-
-            #region Storage
-            internal int _index;
-            internal RigEntry[] _rig = System.Array.Empty<RigEntry>();
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Rig\":"); ToStringHelper.ToString(Rig, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -129,8 +127,8 @@ namespace Tabbit.Fixtures.RecordRef
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<MountRecord> Records => _records;
+        private List<MountRecord> _records = new List<MountRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -147,16 +145,16 @@ namespace Tabbit.Fixtures.RecordRef
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<MountRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<MountRecord> IEnumerable<MountRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+        public Dictionary<int, MountRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<int, MountRecord> _recordsByIndex = new Dictionary<int, MountRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -166,8 +164,8 @@ namespace Tabbit.Fixtures.RecordRef
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(int key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public MountRecord FindByIndex(int key)
+            => _recordsByIndex.TryGetValue(key, out MountRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -178,9 +176,9 @@ namespace Tabbit.Fixtures.RecordRef
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(int key)
+        public MountRecord GetByIndexOrThrow(int key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out MountRecord record))
                 throw new TabbitException($"There is no record in table `Mount` that corresponds to field `Index` value {key}");
 
             return record;
@@ -205,10 +203,10 @@ namespace Tabbit.Fixtures.RecordRef
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<MountRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<MountRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -218,7 +216,7 @@ namespace Tabbit.Fixtures.RecordRef
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, MountRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -243,7 +241,7 @@ namespace Tabbit.Fixtures.RecordRef
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIndexOrThrow(key);
+        public MountRecord this[int key] => GetByIndexOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -286,10 +284,10 @@ namespace Tabbit.Fixtures.RecordRef
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<MountRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new MountRecord());
 
             foreach (var column in columns)
             {
@@ -321,11 +319,11 @@ namespace Tabbit.Fixtures.RecordRef
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._rig = Record.NewRigEntryArray(elementCount);
+                            record._rig = MountRecord.NewRigEntryArray(elementCount);
                             for (int j = 0; j < elementCount; ++j)
                             {
                                 record._rig[j].Core.ItemId = cursor.NextI32();
-                                record._rig[j].Core.ItemByItemId = default(ItemTable.Record); // will be assigned.
+                                record._rig[j].Core.ItemByItemId = default(ItemRecord); // will be assigned.
                                 record._rig[j].Core.ItemId_F = false;
                             }
                         }
@@ -366,7 +364,7 @@ namespace Tabbit.Fixtures.RecordRef
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<int, Record>(count);
+            var recordsByIndex = new Dictionary<int, MountRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
 

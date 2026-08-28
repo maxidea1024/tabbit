@@ -27,7 +27,7 @@ internal static class TextRules
     }
 
     private static void Check(
-        IGlobalContext context, Dictionary<string, StringTableTable.Record> strings,
+        IGlobalContext context, Dictionary<string, StringTableRecord> strings,
         string prefix, IEnumerable<string> ids)
     {
         var missing = new List<string>();

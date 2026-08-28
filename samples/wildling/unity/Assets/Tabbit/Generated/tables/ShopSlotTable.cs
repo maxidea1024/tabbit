@@ -18,106 +18,104 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class ShopSlotRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string ShopSlotId => _shopSlotId;
+
+        /// <summary>
+        /// 어느 상점인가
+        /// </summary>
+        public string ShopId => _shopId_Shop_index;
+        public ShopRecord ShopByShopId => _shopId;
+
+        /// <summary>
+        /// 표시 자리
+        /// </summary>
+        public int SlotIndex => _slotIndex;
+
+        /// <summary>
+        /// 판매 내용
+        /// </summary>
+        public string RewardGroupId => _rewardGroupId_RewardGroup_index;
+        public RewardGroupRecord RewardGroupByRewardGroupId => _rewardGroupId;
+
+        /// <summary>
+        /// 어느 재화인가.
+        /// </summary>
+        public CostEntry Cost => _cost;
+
+        /// <summary>
+        /// 재고
+        /// </summary>
+        public int Stock => _stock;
+        #endregion
+
+        /// <summary>One element of <see cref="Cost"/>.</summary>
+        [System.Serializable]
+        public struct CostEntry
+        {
+            /// 어느 재화인가.
+            public string CurrencyId;
+            public CurrencyRecord CurrencyByCurrencyId;
+            public bool CurrencyId_F;
+            /// 수량.
+            public int Amount;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"CurrencyId\":"); ToStringHelper.ToString(CurrencyId, sb);
+                sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        #region Reference wiring
+        public void SetReference_ShopId_INTERNAL(ShopRecord value) => _shopId = value;
+        public void SetReference_RewardGroupId_INTERNAL(RewardGroupRecord value) => _rewardGroupId = value;
+        #endregion
+
+        #region Storage
+        internal string _shopSlotId = "";
+        internal ShopRecord _shopId;
+        internal string _shopId_Shop_index;
+        public bool _shopId_F = false;
+        internal int _slotIndex;
+        internal RewardGroupRecord _rewardGroupId;
+        internal string _rewardGroupId_RewardGroup_index;
+        public bool _rewardGroupId_F = false;
+        internal CostEntry _cost;
+        internal int _stock;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"ShopSlotId\":"); ToStringHelper.ToString(ShopSlotId, sb);
+            sb.Append(",\"ShopId\":"); ToStringHelper.ToString(ShopId, sb);
+            sb.Append(",\"SlotIndex\":"); ToStringHelper.ToString(SlotIndex, sb);
+            sb.Append(",\"RewardGroupId\":"); ToStringHelper.ToString(RewardGroupId, sb);
+            sb.Append(",\"Cost\":"); ToStringHelper.ToString(Cost, sb);
+            sb.Append(",\"Stock\":"); ToStringHelper.ToString(Stock, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 상시 상점의 판매 항목이다.
     /// </summary>
     [System.Serializable]
-    public partial class ShopSlotTable : IEnumerable<ShopSlotTable.Record>
+    public partial class ShopSlotTable : IEnumerable<ShopSlotRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string ShopSlotId => _shopSlotId;
-
-            /// <summary>
-            /// 어느 상점인가
-            /// </summary>
-            public string ShopId => _shopId_Shop_index;
-            public ShopTable.Record ShopByShopId => _shopId;
-
-            /// <summary>
-            /// 표시 자리
-            /// </summary>
-            public int SlotIndex => _slotIndex;
-
-            /// <summary>
-            /// 판매 내용
-            /// </summary>
-            public string RewardGroupId => _rewardGroupId_RewardGroup_index;
-            public RewardGroupTable.Record RewardGroupByRewardGroupId => _rewardGroupId;
-
-            /// <summary>
-            /// 어느 재화인가.
-            /// </summary>
-            public CostEntry Cost => _cost;
-
-            /// <summary>
-            /// 재고
-            /// </summary>
-            public int Stock => _stock;
-            #endregion
-
-            /// <summary>One element of <see cref="Cost"/>.</summary>
-            [System.Serializable]
-            public struct CostEntry
-            {
-                /// 어느 재화인가.
-                public string CurrencyId;
-                public CurrencyTable.Record CurrencyByCurrencyId;
-                public bool CurrencyId_F;
-                /// 수량.
-                public int Amount;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"CurrencyId\":"); ToStringHelper.ToString(CurrencyId, sb);
-                    sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            #region Reference wiring
-            public void SetReference_ShopId_INTERNAL(ShopTable.Record value) => _shopId = value;
-            public void SetReference_RewardGroupId_INTERNAL(RewardGroupTable.Record value) => _rewardGroupId = value;
-            #endregion
-
-            #region Storage
-            internal string _shopSlotId = "";
-            internal ShopTable.Record _shopId;
-            internal string _shopId_Shop_index;
-            public bool _shopId_F = false;
-            internal int _slotIndex;
-            internal RewardGroupTable.Record _rewardGroupId;
-            internal string _rewardGroupId_RewardGroup_index;
-            public bool _rewardGroupId_F = false;
-            internal CostEntry _cost;
-            internal int _stock;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"ShopSlotId\":"); ToStringHelper.ToString(ShopSlotId, sb);
-                sb.Append(",\"ShopId\":"); ToStringHelper.ToString(ShopId, sb);
-                sb.Append(",\"SlotIndex\":"); ToStringHelper.ToString(SlotIndex, sb);
-                sb.Append(",\"RewardGroupId\":"); ToStringHelper.ToString(RewardGroupId, sb);
-                sb.Append(",\"Cost\":"); ToStringHelper.ToString(Cost, sb);
-                sb.Append(",\"Stock\":"); ToStringHelper.ToString(Stock, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -144,8 +142,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<ShopSlotRecord> Records => _records;
+        private List<ShopSlotRecord> _records = new List<ShopSlotRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -162,16 +160,16 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<ShopSlotRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<ShopSlotRecord> IEnumerable<ShopSlotRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'ShopSlotId'
-        public Dictionary<string, Record> RecordsByShopSlotId => _recordsByShopSlotId;
-        private Dictionary<string, Record> _recordsByShopSlotId = new Dictionary<string, Record>();
+        public Dictionary<string, ShopSlotRecord> RecordsByShopSlotId => _recordsByShopSlotId;
+        private Dictionary<string, ShopSlotRecord> _recordsByShopSlotId = new Dictionary<string, ShopSlotRecord>();
 
         /// <summary>
         /// The row with this `ShopSlotId`, or null when the table has none.
@@ -181,8 +179,8 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByShopSlotId(string key)
-            => _recordsByShopSlotId.TryGetValue(key, out Record record) ? record : null;
+        public ShopSlotRecord FindByShopSlotId(string key)
+            => _recordsByShopSlotId.TryGetValue(key, out ShopSlotRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `ShopSlotId`, or a thrown exception naming what was
@@ -193,9 +191,9 @@ namespace Wildling.Data
         /// says it throws, because a caller reading `GetByShopSlotId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByShopSlotIdOrThrow(string key)
+        public ShopSlotRecord GetByShopSlotIdOrThrow(string key)
         {
-            if (!_recordsByShopSlotId.TryGetValue(key, out Record record))
+            if (!_recordsByShopSlotId.TryGetValue(key, out ShopSlotRecord record))
                 throw new TabbitException($"There is no record in table `ShopSlot` that corresponds to field `ShopSlotId` value {key}");
 
             return record;
@@ -220,10 +218,10 @@ namespace Wildling.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<ShopSlotRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<ShopSlotRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -233,7 +231,7 @@ namespace Wildling.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, ShopSlotRecord Row) Current
                 => (_rows[_at].ShopSlotId, _rows[_at]);
         }
 
@@ -258,7 +256,7 @@ namespace Wildling.Data
         /// It does not replace `FindByShopSlotId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByShopSlotIdOrThrow(key);
+        public ShopSlotRecord this[string key] => GetByShopSlotIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -301,10 +299,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<ShopSlotRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new ShopSlotRecord());
 
             foreach (var column in columns)
             {
@@ -340,7 +338,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._shopId_Shop_index = value;
-                                record._shopId = default(ShopTable.Record); // will be assigned.
+                                record._shopId = default(ShopRecord); // will be assigned.
                                 record._shopId_F = false;
                             } while (--n > 0);
                         }
@@ -374,7 +372,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._rewardGroupId_RewardGroup_index = value;
-                                record._rewardGroupId = default(RewardGroupTable.Record); // will be assigned.
+                                record._rewardGroupId = default(RewardGroupRecord); // will be assigned.
                                 record._rewardGroupId_F = false;
                             } while (--n > 0);
                         }
@@ -392,7 +390,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._cost.CurrencyId = value;
-                                record._cost.CurrencyByCurrencyId = default(CurrencyTable.Record); // will be assigned.
+                                record._cost.CurrencyByCurrencyId = default(CurrencyRecord); // will be assigned.
                                 record._cost.CurrencyId_F = false;
                             } while (--n > 0);
                         }
@@ -442,7 +440,7 @@ namespace Wildling.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByShopSlotId = new Dictionary<string, Record>(count);
+            var recordsByShopSlotId = new Dictionary<string, ShopSlotRecord>(count);
             foreach (var record in records)
                 recordsByShopSlotId.Add(record.ShopSlotId, record);
 

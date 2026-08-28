@@ -18,78 +18,76 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class RegionYieldRecord
+    {
+        #region Values
+        /// <summary>
+        /// 어느 지역인가
+        /// </summary>
+        public string RegionId => _regionId_Region_index;
+        public RegionRecord RegionByRegionId => _regionId;
+
+        /// <summary>
+        /// 누적 시간대
+        /// </summary>
+        public int HourBand => _hourBand;
+
+        /// <summary>
+        /// 시간당 골드
+        /// </summary>
+        public int GoldPerHour => _goldPerHour;
+
+        /// <summary>
+        /// 시간당 먹이
+        /// </summary>
+        public int FoodPerHour => _foodPerHour;
+
+        /// <summary>
+        /// 재료 드랍 묶음
+        /// </summary>
+        public string RewardGroupId => _rewardGroupId_RewardGroup_index;
+        public RewardGroupRecord RewardGroupByRewardGroupId => _rewardGroupId;
+        #endregion
+
+        #region Reference wiring
+        public void SetReference_RegionId_INTERNAL(RegionRecord value) => _regionId = value;
+        public void SetReference_RewardGroupId_INTERNAL(RewardGroupRecord value) => _rewardGroupId = value;
+        #endregion
+
+        #region Storage
+        internal RegionRecord _regionId;
+        internal string _regionId_Region_index;
+        public bool _regionId_F = false;
+        internal int _hourBand;
+        internal int _goldPerHour;
+        internal int _foodPerHour;
+        internal RewardGroupRecord _rewardGroupId;
+        internal string _rewardGroupId_RewardGroup_index;
+        public bool _rewardGroupId_F = false;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"RegionId\":"); ToStringHelper.ToString(RegionId, sb);
+            sb.Append(",\"HourBand\":"); ToStringHelper.ToString(HourBand, sb);
+            sb.Append(",\"GoldPerHour\":"); ToStringHelper.ToString(GoldPerHour, sb);
+            sb.Append(",\"FoodPerHour\":"); ToStringHelper.ToString(FoodPerHour, sb);
+            sb.Append(",\"RewardGroupId\":"); ToStringHelper.ToString(RewardGroupId, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 지역과 시간대별 산출이다. 뒤로 갈수록 줄어든다.
     /// </summary>
     [System.Serializable]
-    public partial class RegionYieldTable : IEnumerable<RegionYieldTable.Record>
+    public partial class RegionYieldTable : IEnumerable<RegionYieldRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 어느 지역인가
-            /// </summary>
-            public string RegionId => _regionId_Region_index;
-            public RegionTable.Record RegionByRegionId => _regionId;
-
-            /// <summary>
-            /// 누적 시간대
-            /// </summary>
-            public int HourBand => _hourBand;
-
-            /// <summary>
-            /// 시간당 골드
-            /// </summary>
-            public int GoldPerHour => _goldPerHour;
-
-            /// <summary>
-            /// 시간당 먹이
-            /// </summary>
-            public int FoodPerHour => _foodPerHour;
-
-            /// <summary>
-            /// 재료 드랍 묶음
-            /// </summary>
-            public string RewardGroupId => _rewardGroupId_RewardGroup_index;
-            public RewardGroupTable.Record RewardGroupByRewardGroupId => _rewardGroupId;
-            #endregion
-
-            #region Reference wiring
-            public void SetReference_RegionId_INTERNAL(RegionTable.Record value) => _regionId = value;
-            public void SetReference_RewardGroupId_INTERNAL(RewardGroupTable.Record value) => _rewardGroupId = value;
-            #endregion
-
-            #region Storage
-            internal RegionTable.Record _regionId;
-            internal string _regionId_Region_index;
-            public bool _regionId_F = false;
-            internal int _hourBand;
-            internal int _goldPerHour;
-            internal int _foodPerHour;
-            internal RewardGroupTable.Record _rewardGroupId;
-            internal string _rewardGroupId_RewardGroup_index;
-            public bool _rewardGroupId_F = false;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"RegionId\":"); ToStringHelper.ToString(RegionId, sb);
-                sb.Append(",\"HourBand\":"); ToStringHelper.ToString(HourBand, sb);
-                sb.Append(",\"GoldPerHour\":"); ToStringHelper.ToString(GoldPerHour, sb);
-                sb.Append(",\"FoodPerHour\":"); ToStringHelper.ToString(FoodPerHour, sb);
-                sb.Append(",\"RewardGroupId\":"); ToStringHelper.ToString(RewardGroupId, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -116,8 +114,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<RegionYieldRecord> Records => _records;
+        private List<RegionYieldRecord> _records = new List<RegionYieldRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -134,15 +132,15 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<RegionYieldRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<RegionYieldRecord> IEnumerable<RegionYieldRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'RegionId and HourBand'
-        private Dictionary<string, Record> _recordsByRegionIdAndHourBand = new Dictionary<string, Record>();
+        private Dictionary<string, RegionYieldRecord> _recordsByRegionIdAndHourBand = new Dictionary<string, RegionYieldRecord>();
 
         /// <summary>Joins the columns of the `RegionId and HourBand` key into the text the map is keyed by.</summary>
         private static string KeyOfRegionIdAndHourBand(string regionIdKey, int hourBandKey)
@@ -169,16 +167,16 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByRegionIdAndHourBand(string regionIdKey, int hourBandKey)
-            => _recordsByRegionIdAndHourBand.TryGetValue(KeyOfRegionIdAndHourBand(regionIdKey, hourBandKey), out Record record) ? record : null;
+        public RegionYieldRecord FindByRegionIdAndHourBand(string regionIdKey, int hourBandKey)
+            => _recordsByRegionIdAndHourBand.TryGetValue(KeyOfRegionIdAndHourBand(regionIdKey, hourBandKey), out RegionYieldRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `RegionId and HourBand`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetByRegionIdAndHourBandOrThrow(string regionIdKey, int hourBandKey)
+        public RegionYieldRecord GetByRegionIdAndHourBandOrThrow(string regionIdKey, int hourBandKey)
         {
-            if (!_recordsByRegionIdAndHourBand.TryGetValue(KeyOfRegionIdAndHourBand(regionIdKey, hourBandKey), out Record record))
+            if (!_recordsByRegionIdAndHourBand.TryGetValue(KeyOfRegionIdAndHourBand(regionIdKey, hourBandKey), out RegionYieldRecord record))
                 throw new TabbitException($"There is no record in table `RegionYield` that corresponds to field `RegionId and HourBand` value ({regionIdKey}, {hourBandKey})");
 
             return record;
@@ -196,7 +194,7 @@ namespace Wildling.Data
         /// the order `GetByRegionIdAndHourBandOrThrow` takes them in too.
         /// spec/targets/table-collection-surface.md section 5.4.
         /// </remarks>
-        public Record this[string regionIdKey, int hourBandKey]
+        public RegionYieldRecord this[string regionIdKey, int hourBandKey]
             => GetByRegionIdAndHourBandOrThrow(regionIdKey, hourBandKey);
         #endregion // Indexing by `RegionId and HourBand`
 
@@ -241,10 +239,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<RegionYieldRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new RegionYieldRecord());
 
             foreach (var column in columns)
             {
@@ -264,7 +262,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._regionId_Region_index = value;
-                                record._regionId = default(RegionTable.Record); // will be assigned.
+                                record._regionId = default(RegionRecord); // will be assigned.
                                 record._regionId_F = false;
                             } while (--n > 0);
                         }
@@ -330,7 +328,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._rewardGroupId_RewardGroup_index = value;
-                                record._rewardGroupId = default(RewardGroupTable.Record); // will be assigned.
+                                record._rewardGroupId = default(RewardGroupRecord); // will be assigned.
                                 record._rewardGroupId_F = false;
                             } while (--n > 0);
                         }
@@ -345,7 +343,7 @@ namespace Wildling.Data
 
                 TcbTable.CheckBlockEnd(reader, column, blockEnd);
             }
-            var recordsByRegionIdAndHourBand = new Dictionary<string, Record>(count);
+            var recordsByRegionIdAndHourBand = new Dictionary<string, RegionYieldRecord>(count);
             foreach (var record in records)
                 recordsByRegionIdAndHourBand.Add(KeyOfRegionIdAndHourBand(record.RegionId, record.HourBand), record);
 

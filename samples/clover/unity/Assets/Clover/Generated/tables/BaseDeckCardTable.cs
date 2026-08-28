@@ -18,60 +18,58 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class BaseDeckCardRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string CardId => _cardId;
+
+        /// <summary>
+        /// 랭크
+        /// </summary>
+        public global::Clover.Data.RankKind Rank => _rank;
+
+        /// <summary>
+        /// 무늬
+        /// </summary>
+        public global::Clover.Data.SuitKind Suit => _suit;
+
+        /// <summary>
+        /// 그림 카드인가
+        /// </summary>
+        public bool IsFace => _isFace;
+        #endregion
+
+        #region Storage
+        internal string _cardId = "";
+        internal global::Clover.Data.RankKind _rank;
+        internal global::Clover.Data.SuitKind _suit;
+        internal bool _isFace;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"CardId\":"); ToStringHelper.ToString(CardId, sb);
+            sb.Append(",\"Rank\":"); ToStringHelper.ToString(Rank, sb);
+            sb.Append(",\"Suit\":"); ToStringHelper.ToString(Suit, sb);
+            sb.Append(",\"IsFace\":"); ToStringHelper.ToString(IsFace, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 표준 52장입니다. 덱이 이 목록을 걸러 시작 덱을 만듭니다.
     /// </summary>
     [System.Serializable]
-    public partial class BaseDeckCardTable : IEnumerable<BaseDeckCardTable.Record>
+    public partial class BaseDeckCardTable : IEnumerable<BaseDeckCardRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string CardId => _cardId;
-
-            /// <summary>
-            /// 랭크
-            /// </summary>
-            public global::Clover.Data.RankKind Rank => _rank;
-
-            /// <summary>
-            /// 무늬
-            /// </summary>
-            public global::Clover.Data.SuitKind Suit => _suit;
-
-            /// <summary>
-            /// 그림 카드인가
-            /// </summary>
-            public bool IsFace => _isFace;
-            #endregion
-
-            #region Storage
-            internal string _cardId = "";
-            internal global::Clover.Data.RankKind _rank;
-            internal global::Clover.Data.SuitKind _suit;
-            internal bool _isFace;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"CardId\":"); ToStringHelper.ToString(CardId, sb);
-                sb.Append(",\"Rank\":"); ToStringHelper.ToString(Rank, sb);
-                sb.Append(",\"Suit\":"); ToStringHelper.ToString(Suit, sb);
-                sb.Append(",\"IsFace\":"); ToStringHelper.ToString(IsFace, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -98,8 +96,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<BaseDeckCardRecord> Records => _records;
+        private List<BaseDeckCardRecord> _records = new List<BaseDeckCardRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -116,16 +114,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<BaseDeckCardRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<BaseDeckCardRecord> IEnumerable<BaseDeckCardRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'CardId'
-        public Dictionary<string, Record> RecordsByCardId => _recordsByCardId;
-        private Dictionary<string, Record> _recordsByCardId = new Dictionary<string, Record>();
+        public Dictionary<string, BaseDeckCardRecord> RecordsByCardId => _recordsByCardId;
+        private Dictionary<string, BaseDeckCardRecord> _recordsByCardId = new Dictionary<string, BaseDeckCardRecord>();
 
         /// <summary>
         /// The row with this `CardId`, or null when the table has none.
@@ -135,8 +133,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByCardId(string key)
-            => _recordsByCardId.TryGetValue(key, out Record record) ? record : null;
+        public BaseDeckCardRecord FindByCardId(string key)
+            => _recordsByCardId.TryGetValue(key, out BaseDeckCardRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `CardId`, or a thrown exception naming what was
@@ -147,9 +145,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByCardId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByCardIdOrThrow(string key)
+        public BaseDeckCardRecord GetByCardIdOrThrow(string key)
         {
-            if (!_recordsByCardId.TryGetValue(key, out Record record))
+            if (!_recordsByCardId.TryGetValue(key, out BaseDeckCardRecord record))
                 throw new TabbitException($"There is no record in table `BaseDeckCard` that corresponds to field `CardId` value {key}");
 
             return record;
@@ -174,10 +172,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<BaseDeckCardRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<BaseDeckCardRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -187,7 +185,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, BaseDeckCardRecord Row) Current
                 => (_rows[_at].CardId, _rows[_at]);
         }
 
@@ -212,7 +210,7 @@ namespace Clover.Data
         /// It does not replace `FindByCardId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByCardIdOrThrow(key);
+        public BaseDeckCardRecord this[string key] => GetByCardIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -255,10 +253,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<BaseDeckCardRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new BaseDeckCardRecord());
 
             foreach (var column in columns)
             {
@@ -336,7 +334,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByCardId = new Dictionary<string, Record>(count);
+            var recordsByCardId = new Dictionary<string, BaseDeckCardRecord>(count);
             foreach (var record in records)
                 recordsByCardId.Add(record.CardId, record);
 

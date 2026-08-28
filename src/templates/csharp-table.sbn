@@ -1,5 +1,5 @@
 {{~##
-   One table: its Record, the read, the indexes and the object-value map.
+   One table: its record, the read, the indexes and the object-value map.
 
    One file per table, so deleting a table from the sheets deletes a file rather than
    leaving a hunk of dead code inside a larger one. `table` is the single table this file is
@@ -11,23 +11,10 @@
    and a literal opening pair anywhere is read as code.
 ##~}}
 {{ include 'csharp-file-head.sbn' ~}}
-{{~ for line in table.comment ~}}
-{{~ if for.first ~}}
-    /// <summary>
-{{~ end ~}}
-    /// {{ line }}
-{{~ if for.last ~}}
-    /// </summary>
-{{~ end ~}}
-{{~ end ~}}
     [System.Serializable]
-    public partial class {{ table.name }}Table : IEnumerable<{{ table.name }}Table.Record>
+    public partial class {{ table.name }}Record
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
+        #region Values
 {{~## The readable surface first, and the storage below it. A property and its
       backing field on adjacent lines reads as noise where the field is never the
       thing a consumer wants; grouped, the top of the record is what it holds and
@@ -37,11 +24,11 @@
 {{ end ~}}
 {{~ for line in field.comment ~}}
 {{~ if for.first ~}}
-            /// <summary>
+        /// <summary>
 {{~ end ~}}
-            /// {{ line }}
+        /// {{ line }}
 {{~ if for.last ~}}
-            /// </summary>
+        /// </summary>
 {{~ end ~}}
 {{~ end ~}}
 {{~## **No length in the public API.** A number published here could only be the one the
@@ -60,137 +47,137 @@
       too. `_N` is the outer count, which is how many columns fill this field rather than
       how long any of them is - the inner length is the row's and is read from the file.
       spec/types/nested-multi-level.md. ##~}}
-            public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
-            internal const int {{ field.pascal_name }}_N = {{ field.outer_count }};
+        public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
+        internal const int {{ field.pascal_name }}_N = {{ field.outer_count }};
 {{~ else if field.kind == 'record_var_array' && field.variants.size > 0 ~}}
 {{~## **The array of them, built once on first use.** Each element carries its own
       discriminator - section 5.3 - so the shapes inside one row may differ, and the array a
       consumer reads is an array of the abstract type. The entries below are what the read
       filled, element by element, and nothing about the wire changes.
       spec/types/polymorphism.md sections 5.3 and 7.2. ##~}}
-            public {{ field.abstract_type_name }}[] {{ field.prop_name }}
-                => {{ field.field_name }}_value ?? ({{ field.field_name }}_value = Build{{ field.prop_name }}());
+        public {{ field.abstract_type_name }}[] {{ field.prop_name }}
+            => {{ field.field_name }}_value ?? ({{ field.field_name }}_value = Build{{ field.prop_name }}());
 
-            private {{ field.abstract_type_name }}[] {{ field.field_name }}_value;
+        private {{ field.abstract_type_name }}[] {{ field.field_name }}_value;
 
-            private {{ field.abstract_type_name }}[] Build{{ field.prop_name }}()
+        private {{ field.abstract_type_name }}[] Build{{ field.prop_name }}()
+        {
+            var built = new {{ field.abstract_type_name }}[{{ field.field_name }}.Length];
+
+            for (int at = 0; at < {{ field.field_name }}.Length; at++)
+                built[at] = Build{{ field.prop_name }}Element({{ field.field_name }}[at]);
+
+            return built;
+        }
+
+        private static {{ field.abstract_type_name }} Build{{ field.prop_name }}Element(
+            {{ field.record_type_name }} entry)
+        {
+            switch (entry.Type)
             {
-                var built = new {{ field.abstract_type_name }}[{{ field.field_name }}.Length];
-
-                for (int at = 0; at < {{ field.field_name }}.Length; at++)
-                    built[at] = Build{{ field.prop_name }}Element({{ field.field_name }}[at]);
-
-                return built;
-            }
-
-            private static {{ field.abstract_type_name }} Build{{ field.prop_name }}Element(
-                {{ field.record_type_name }} entry)
-            {
-                switch (entry.Type)
-                {
 {{~ for variant in field.variants ~}}
-                    case {{ variant.discriminator }}:
-                        return new {{ variant.type_name }}
-                        {
+                case {{ variant.discriminator }}:
+                    return new {{ variant.type_name }}
+                    {
 {{~ for member in field.base_members ~}}
-                            {{ member.prop_name }} = entry.{{ member.prop_name }},
+                        {{ member.prop_name }} = entry.{{ member.prop_name }},
 {{~ end ~}}
 {{~ for member in variant.members ~}}
 {{~ if member.row_prop_name != '' ~}}
-                            {{ member.prop_name }} = entry.{{ member.prop_name }},
-                            {{ member.row_prop_name }} = entry.{{ member.row_prop_name }},
+                        {{ member.prop_name }} = entry.{{ member.prop_name }},
+                        {{ member.row_prop_name }} = entry.{{ member.row_prop_name }},
 {{~ else ~}}
-                            {{ member.prop_name }} = entry.{{ member.prop_name }},
+                        {{ member.prop_name }} = entry.{{ member.prop_name }},
 {{~ end ~}}
 {{~ end ~}}
-                        };
+                    };
 {{~ end ~}}
-                }
-
-                // A number no variant claims - a file written by a build that had one this code
-                // does not. Unlike a column added later, which the reader skips, that makes the
-                // element uninterpretable.
-                throw new TcbException(
-                    "{{ field.abstract_type_name }}: no variant is numbered " + entry.Type);
             }
+
+            // A number no variant claims - a file written by a build that had one this code
+            // does not. Unlike a column added later, which the reader skips, that makes the
+            // element uninterpretable.
+            throw new TcbException(
+                "{{ field.abstract_type_name }}: no variant is numbered " + entry.Type);
+        }
 {{~ else if field.kind == 'record_var_array' ~}}
-            public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
+        public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
 {{~ else if field.kind == 'record' && field.variants.size > 0 ~}}
 {{~## **The variant object, built once on first use.** The struct below is what the read
       filled - one assignment per column - and which variant it is only became knowable when
       the discriminator column arrived. Building it here rather than while reading keeps the
       read path and the wire exactly as they were, and a row nobody looks at costs nothing.
       spec/types/polymorphism.md section 7. ##~}}
-            public {{ field.abstract_type_name }} {{ field.prop_name }}
-                => {{ field.field_name }}_value ?? ({{ field.field_name }}_value = Build{{ field.prop_name }}());
+        public {{ field.abstract_type_name }} {{ field.prop_name }}
+            => {{ field.field_name }}_value ?? ({{ field.field_name }}_value = Build{{ field.prop_name }}());
 
-            private {{ field.abstract_type_name }} {{ field.field_name }}_value;
+        private {{ field.abstract_type_name }} {{ field.field_name }}_value;
 
-            private {{ field.abstract_type_name }} Build{{ field.prop_name }}()
+        private {{ field.abstract_type_name }} Build{{ field.prop_name }}()
+        {
+            switch ({{ field.field_name }}.Type)
             {
-                switch ({{ field.field_name }}.Type)
-                {
 {{~ for variant in field.variants ~}}
-                    case {{ variant.discriminator }}:
-                        return new {{ variant.type_name }}
-                        {
+                case {{ variant.discriminator }}:
+                    return new {{ variant.type_name }}
+                    {
 {{~ for member in field.base_members ~}}
-                            {{ member.prop_name }} = {{ field.field_name }}.{{ member.prop_name }},
+                        {{ member.prop_name }} = {{ field.field_name }}.{{ member.prop_name }},
 {{~ end ~}}
 {{~ for member in variant.members ~}}
 {{~ if member.row_prop_name != '' ~}}
 {{~## **The row from the row, not the key from the key.** The entry carries both; assigning the
       key into a field declared as a row does not compile, which is what this used to do.
       spec/references/reference-surface-naming.md sections 4 and 5. ##~}}
-                            {{ member.prop_name }} = {{ field.field_name }}.{{ member.prop_name }},
-                            {{ member.row_prop_name }} = {{ field.field_name }}.{{ member.row_prop_name }},
+                        {{ member.prop_name }} = {{ field.field_name }}.{{ member.prop_name }},
+                        {{ member.row_prop_name }} = {{ field.field_name }}.{{ member.row_prop_name }},
 {{~ else ~}}
-                            {{ member.prop_name }} = {{ field.field_name }}.{{ member.prop_name }},
+                        {{ member.prop_name }} = {{ field.field_name }}.{{ member.prop_name }},
 {{~ end ~}}
 {{~ end ~}}
-                        };
+                    };
 {{~ end ~}}
-                }
-
-                // A number no variant claims. The conversion refuses one, so reaching this
-                // means the file was written by a build that had a variant this code does not
-                // - the same shape as a column added after this code was generated.
-                return null;
             }
+
+            // A number no variant claims. The conversion refuses one, so reaching this
+            // means the file was written by a build that had a variant this code does not
+            // - the same shape as a column added after this code was generated.
+            return null;
+        }
 {{~ else if field.kind == 'record' ~}}
-            public {{ field.field_type }} {{ field.prop_name }} => {{ field.field_name }};
+        public {{ field.field_type }} {{ field.prop_name }} => {{ field.field_name }};
 {{~ else if field.kind == 'array_ref' && field.row_prop_name != '' ~}}
 {{~## The column's name is the key's, because the key is what the cell holds. The rows are
       linked after loading and take a derived name.
       spec/references/reference-surface-naming.md sections 4 and 5. ##~}}
-            public {{ field.ref_key_type_name }}[] {{ field.prop_name }} => {{ field.field_name }}_{{ field.ref_table }}_index;
-            public {{ field.field_type }}[] {{ field.row_prop_name }} => {{ field.field_name }};
+        public {{ field.ref_key_type_name }}[] {{ field.prop_name }} => {{ field.field_name }}_{{ field.ref_table }}_index;
+        public {{ field.field_type }}[] {{ field.row_prop_name }} => {{ field.field_name }};
 {{~ else if field.kind == 'array_ref' ~}}
-            public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
+        public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
 {{~ else if field.kind == 'var_array' ~}}
-            public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
+        public {{ field.field_type }}[] {{ field.prop_name }} => {{ field.field_name }};
 {{~ else if field.kind == 'scalar_ref' && field.row_prop_name != '' ~}}
-            public {{ field.ref_key_type_name }} {{ field.prop_name }} => {{ field.field_name }}_{{ field.ref_table }}_index;
-            public {{ field.field_type }} {{ field.row_prop_name }} => {{ field.field_name }};
+        public {{ field.ref_key_type_name }} {{ field.prop_name }} => {{ field.field_name }}_{{ field.ref_table }}_index;
+        public {{ field.field_type }} {{ field.row_prop_name }} => {{ field.field_name }};
 {{~ else ~}}
-            public {{ field.field_type }} {{ field.prop_name }} => {{ field.field_name }};
+        public {{ field.field_type }} {{ field.prop_name }} => {{ field.field_name }};
 {{~ end ~}}
 {{~ if field.is_nullable ~}}
 {{~## The value accessor keeps its type and reads the type's empty value when the row had
       none; this says which it was. One shape for every type, which `T?` is not - a
       nullable reference needs a nullable context the generated C# 8 does not have. ##~}}
-            /// <summary>Whether this row has a value for <see cref="{{ field.prop_name }}"/>.</summary>
-            public bool Has{{ field.pascal_name }} => {{ field.presence_field }};
+        /// <summary>Whether this row has a value for <see cref="{{ field.prop_name }}"/>.</summary>
+        public bool Has{{ field.pascal_name }} => {{ field.presence_field }};
 {{~ end ~}}
 {{~ if field.has_optional_elements ~}}
 {{~## The same answer one level in. `true` where the row never got a bitmap - a column the
       file does not carry leaves the array empty, and an index into it is out of range
       whatever this said. ##~}}
-            /// <summary>Whether element <paramref name="index"/> of <see cref="{{ field.prop_name }}"/> has a value.</summary>
-            public bool Has{{ field.pascal_name }}At(int index)
-                => {{ field.element_presence_field }} == null
-                    || index < 0 || index >= {{ field.element_presence_field }}.Length
-                    || {{ field.element_presence_field }}[index];
+        /// <summary>Whether element <paramref name="index"/> of <see cref="{{ field.prop_name }}"/> has a value.</summary>
+        public bool Has{{ field.pascal_name }}At(int index)
+            => {{ field.element_presence_field }} == null
+                || index < 0 || index >= {{ field.element_presence_field }}.Length
+                || {{ field.element_presence_field }}[index];
 {{~ end ~}}
 {{~ end ~}}
 {{~## A column whose value is a row of one of several tables. The key above is the value;
@@ -200,7 +187,7 @@
       bands, so at most one target ever answers and the rest would be permanently null.
       The cast is safe by construction - the discriminator was set by the same assignment
       that filled the slot. spec/references/multi-target-accessors.md. ##~}}
-            #endregion
+        #endregion
 {{~## The element type of each record group. A struct, so an array of them needs no
       per-element allocation and `array[j].Member = x` is a legal assignment - which is
       exactly what a member column's read does. See spec/types/nested-fields.md. ##~}}
@@ -210,48 +197,48 @@
       create it, so its length is how many columns there are. The inner arrays are the
       read's, at whatever length the row gives - empty until then, so a file that does not
       carry the column leaves something indexable. spec/types/nested-multi-level.md. ##~}}
-            private static {{ field.field_type }}[] New{{ field.pascal_name }}()
-            {
-                var result = new {{ field.element_type_name }}[{{ field.pascal_name }}_N][];
-                for (int i = 0; i < result.Length; i++)
-                    result[i] = System.Array.Empty<{{ field.element_type_name }}>();
-                return result;
-            }
+        private static {{ field.field_type }}[] New{{ field.pascal_name }}()
+        {
+            var result = new {{ field.element_type_name }}[{{ field.pascal_name }}_N][];
+            for (int i = 0; i < result.Length; i++)
+                result[i] = System.Array.Empty<{{ field.element_type_name }}>();
+            return result;
+        }
 {{~ else if field.is_record }}
 {{~## One struct per level, innermost first - the view flattened the nesting so this loop
       does not have to know how deep it went. The last entry is the group's own element type.
       spec/types/nested-multi-level.md. ##~}}
 {{~ for rt in field.record_types ~}}
 {{~ if rt.is_outermost ~}}
-            /// <summary>One element of <see cref="{{ field.prop_name }}"/>.</summary>
+        /// <summary>One element of <see cref="{{ field.prop_name }}"/>.</summary>
 {{~ else ~}}
-            /// <summary>A record inside <see cref="{{ field.prop_name }}"/>.</summary>
+        /// <summary>A record inside <see cref="{{ field.prop_name }}"/>.</summary>
 {{~ end ~}}
-            [System.Serializable]
-            public struct {{ rt.type_name }}
-            {
+        [System.Serializable]
+        public struct {{ rt.type_name }}
+        {
 {{~## No field initializers: those are C# 10 in a struct and need an explicit
       parameterless constructor, and this has to compile as the C# 8 Unity 2020.3
       accepts. The factory below fills the strings instead. ##~}}
 {{~ for member in rt.members ~}}
 {{~ for line in member.comment ~}}
-                /// {{ line }}
+            /// {{ line }}
 {{~ end ~}}
 {{~ if member.row_prop_name != '' ~}}
 {{~## The member's own name is the key's, because the key is what the cell holds; the row is
       linked after loading and takes a derived name.
       spec/references/reference-surface-naming.md sections 4 and 5. ##~}}
-                public {{ member.ref_key_type_name }} {{ member.prop_name }};
-                public {{ member.field_type }} {{ member.row_prop_name }};
-                public {{ member.ref_flag_type_name }} {{ member.prop_name }}_F;
+            public {{ member.ref_key_type_name }} {{ member.prop_name }};
+            public {{ member.field_type }} {{ member.row_prop_name }};
+            public {{ member.ref_flag_type_name }} {{ member.prop_name }}_F;
 {{~ else ~}}
-                public {{ member.field_type }} {{ member.prop_name }};
+            public {{ member.field_type }} {{ member.prop_name }};
 {{~ if member.ref_table != '' ~}}
 {{~## A reference member carries three things: the row it resolved to, the key that came
    off the wire, and whether the resolution happened. All three inside the element, because
    a group may hold more than one reference - and all three at the member's own arity. ##~}}
-                public {{ member.ref_key_type_name }} {{ member.prop_name }}_index;
-                public {{ member.ref_flag_type_name }} {{ member.prop_name }}_F;
+            public {{ member.ref_key_type_name }} {{ member.prop_name }}_index;
+            public {{ member.ref_flag_type_name }} {{ member.prop_name }}_F;
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
@@ -267,99 +254,99 @@
 {{~ for member in rt.members ~}}
 {{~ if member.is_set ~}}
 
-                internal HashSet<{{ member.set_element_type }}> _{{ member.prop_name | string.downcase }}Set;
+            internal HashSet<{{ member.set_element_type }}> _{{ member.prop_name | string.downcase }}Set;
 
-                /// <summary>Whether this set holds <paramref name="value"/>.</summary>
-                public bool {{ member.contains_method }}({{ member.set_element_type }} value)
-                    => _{{ member.prop_name | string.downcase }}Set != null
-                       && _{{ member.prop_name | string.downcase }}Set.Contains(value);
+            /// <summary>Whether this set holds <paramref name="value"/>.</summary>
+            public bool {{ member.contains_method }}({{ member.set_element_type }} value)
+                => _{{ member.prop_name | string.downcase }}Set != null
+                   && _{{ member.prop_name | string.downcase }}Set.Contains(value);
 {{~ end ~}}
 {{~ end ~}}
 {{~ if rt.is_map ~}}
 {{~ if rt.map_value_type != '' ~}}
 
-                internal Dictionary<{{ rt.map_key_type }}, {{ rt.map_value_type }}> _byKey;
+            internal Dictionary<{{ rt.map_key_type }}, {{ rt.map_value_type }}> _byKey;
 
-                /// <summary>How many entries this map holds.</summary>
-                public int Count => Key == null ? 0 : Key.Length;
+            /// <summary>How many entries this map holds.</summary>
+            public int Count => Key == null ? 0 : Key.Length;
 
-                /// <summary>What <paramref name="key"/> is mapped to, if anything.</summary>
-                public bool TryGetValue({{ rt.map_key_type }} key, out {{ rt.map_value_type }} value)
-                {
-                    if (_byKey != null)
-                        return _byKey.TryGetValue(key, out value);
+            /// <summary>What <paramref name="key"/> is mapped to, if anything.</summary>
+            public bool TryGetValue({{ rt.map_key_type }} key, out {{ rt.map_value_type }} value)
+            {
+                if (_byKey != null)
+                    return _byKey.TryGetValue(key, out value);
 
-                    value = default({{ rt.map_value_type }});
-                    return false;
-                }
+                value = default({{ rt.map_value_type }});
+                return false;
+            }
 {{~ else ~}}
 
-                internal Dictionary<{{ rt.map_key_type }}, int> _byKey;
+            internal Dictionary<{{ rt.map_key_type }}, int> _byKey;
 
-                /// <summary>How many entries this map holds.</summary>
-                public int Count => Key == null ? 0 : Key.Length;
+            /// <summary>How many entries this map holds.</summary>
+            public int Count => Key == null ? 0 : Key.Length;
 
-                /// <summary>
-                /// Where <paramref name="key"/> sits among the entries, or false when it is
-                /// not one of them.
-                /// </summary>
-                /// <remarks>
-                /// **The position rather than the value, and only here.** This map's value is
-                /// a struct, which is a member per column - so there is no single object to
-                /// hand back and the entry is read as <c>Value.Member[index]</c>. A map whose
-                /// value is one column answers with the value, under a different name so that
-                /// neither can be mistaken for the other.
-                /// </remarks>
-                public bool TryGetIndex({{ rt.map_key_type }} key, out int index)
-                {
-                    if (_byKey != null)
-                        return _byKey.TryGetValue(key, out index);
+            /// <summary>
+            /// Where <paramref name="key"/> sits among the entries, or false when it is
+            /// not one of them.
+            /// </summary>
+            /// <remarks>
+            /// **The position rather than the value, and only here.** This map's value is
+            /// a struct, which is a member per column - so there is no single object to
+            /// hand back and the entry is read as <c>Value.Member[index]</c>. A map whose
+            /// value is one column answers with the value, under a different name so that
+            /// neither can be mistaken for the other.
+            /// </remarks>
+            public bool TryGetIndex({{ rt.map_key_type }} key, out int index)
+            {
+                if (_byKey != null)
+                    return _byKey.TryGetValue(key, out index);
 
-                    index = -1;
-                    return false;
-                }
+                index = -1;
+                return false;
+            }
 {{~ end ~}}
 {{~ end ~}}
 
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
 {{~ for member in rt.members ~}}
 {{~ if member.is_first ~}}
-                    sb.Append("\"{{ member.prop_name }}\":"); ToStringHelper.ToString({{ member.prop_name }}, sb);
+                sb.Append("\"{{ member.prop_name }}\":"); ToStringHelper.ToString({{ member.prop_name }}, sb);
 {{~ else ~}}
-                    sb.Append(",\"{{ member.prop_name }}\":"); ToStringHelper.ToString({{ member.prop_name }}, sb);
+                sb.Append(",\"{{ member.prop_name }}\":"); ToStringHelper.ToString({{ member.prop_name }}, sb);
 {{~ end ~}}
 {{~ end ~}}
-                    sb.Append("}");
-                    return sb.ToString();
-                }
+                sb.Append("}");
+                return sb.ToString();
             }
+        }
 {{~## A level below always gets the one-value factory. The outermost one is further down,
       because whether it takes a length depends on the group's kind. ##~}}
 {{~ if !rt.is_outermost && rt.needs_init }}
-            private static {{ rt.type_name }} New{{ rt.type_name }}()
-            {
-                var result = default({{ rt.type_name }});
+        private static {{ rt.type_name }} New{{ rt.type_name }}()
+        {
+            var result = default({{ rt.type_name }});
 {{~ for member in rt.members ~}}
 {{~ if member.initializer != '' ~}}
-                result.{{ if member.row_prop_name != '' }}{{ member.row_prop_name }}{{ else }}{{ member.prop_name }}{{ end }}{{ member.initializer }};
+            result.{{ if member.row_prop_name != '' }}{{ member.row_prop_name }}{{ else }}{{ member.prop_name }}{{ end }}{{ member.initializer }};
 {{~ end ~}}
 {{~ if member.element_initializer != '' ~}}
-                for (int k = 0; k < result.{{ member.prop_name }}.Length; k++)
-                    result.{{ member.prop_name }}[k]{{ member.element_initializer }};
+            for (int k = 0; k < result.{{ member.prop_name }}.Length; k++)
+                result.{{ member.prop_name }}[k]{{ member.element_initializer }};
 {{~ end ~}}
 {{~ if member.ref_key_initializer != '' ~}}
 {{~## A reference member that is an array holds one key and one flag per element, and they
       are allocated with the member for the same reason it is. Where the reference is to a
       whole row the key wears the member's own name.
       spec/references/reference-surface-naming.md sections 4 and 9. ##~}}
-                result.{{ member.prop_name }}{{ if member.row_prop_name == '' }}_index{{ end }}{{ member.ref_key_initializer }};
-                result.{{ member.prop_name }}_F{{ member.ref_flag_initializer }};
+            result.{{ member.prop_name }}{{ if member.row_prop_name == '' }}_index{{ end }}{{ member.ref_key_initializer }};
+            result.{{ member.prop_name }}_F{{ member.ref_flag_initializer }};
 {{~ end ~}}
 {{~ end ~}}
-                return result;
-            }
+            return result;
+        }
 {{~ end ~}}
 {{~ end ~}}
 {{~ if field.needs_element_init }}
@@ -371,126 +358,137 @@
 {{~## Takes the length, because a trimmed group's is this row's rather than the sheet's
       column count - and the fixed kind passes its constant. ##~}}
 {{~## Internal, not private: a trimmed group's read calls this from the table class, which is
-      outside `Record`. Private compiled for as long as no fixture had a trimmed record with a
+      outside the record class. Private compiled for as long as no fixture had a trimmed record
       member that needed initializing - the only case that reaches this from out there. ##~}}
-            internal static {{ field.record_type_name }}[] New{{ field.record_type_name }}Array(int length)
+        internal static {{ field.record_type_name }}[] New{{ field.record_type_name }}Array(int length)
+        {
+            var result = new {{ field.record_type_name }}[length];
+            for (int i = 0; i < result.Length; i++)
             {
-                var result = new {{ field.record_type_name }}[length];
-                for (int i = 0; i < result.Length; i++)
-                {
 {{~ for member in field.members ~}}
 {{~ if member.initializer != '' ~}}
-                    result[i].{{ member.prop_name }}{{ member.initializer }};
+                result[i].{{ member.prop_name }}{{ member.initializer }};
 {{~ end ~}}
 {{~ end ~}}
-                }
-                return result;
             }
+            return result;
+        }
 {{~ else ~}}
-            private static {{ field.record_type_name }} New{{ field.record_type_name }}()
-            {
-                var result = default({{ field.record_type_name }});
+        private static {{ field.record_type_name }} New{{ field.record_type_name }}()
+        {
+            var result = default({{ field.record_type_name }});
 {{~ for member in field.members ~}}
 {{~ if member.initializer != '' ~}}
-                result.{{ if member.row_prop_name != '' }}{{ member.row_prop_name }}{{ else }}{{ member.prop_name }}{{ end }}{{ member.initializer }};
+            result.{{ if member.row_prop_name != '' }}{{ member.row_prop_name }}{{ else }}{{ member.prop_name }}{{ end }}{{ member.initializer }};
 {{~ end ~}}
 {{~ if member.element_initializer != '' ~}}
 {{~## An array of strings: allocating it leaves nulls, and the guarantee is the same one
       a scalar string member gets - empty rather than null when nothing wrote it. ##~}}
-                for (int k = 0; k < result.{{ member.prop_name }}.Length; k++)
-                    result.{{ member.prop_name }}[k]{{ member.element_initializer }};
+            for (int k = 0; k < result.{{ member.prop_name }}.Length; k++)
+                result.{{ member.prop_name }}[k]{{ member.element_initializer }};
 {{~ end ~}}
 {{~ if member.ref_key_initializer != '' ~}}
 {{~## A reference member that is an array holds one key and one flag per element, and they
       are allocated with the member for the same reason it is. Where the reference is to a
       whole row the key wears the member's own name.
       spec/references/reference-surface-naming.md sections 4 and 9. ##~}}
-                result.{{ member.prop_name }}{{ if member.row_prop_name == '' }}_index{{ end }}{{ member.ref_key_initializer }};
-                result.{{ member.prop_name }}_F{{ member.ref_flag_initializer }};
+            result.{{ member.prop_name }}{{ if member.row_prop_name == '' }}_index{{ end }}{{ member.ref_key_initializer }};
+            result.{{ member.prop_name }}_F{{ member.ref_flag_initializer }};
 {{~ end ~}}
 {{~ end ~}}
-                return result;
-            }
+            return result;
+        }
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
 {{~ if table.reference_fields | array.size > 0 }}
-            #region Reference wiring
+        #region Reference wiring
 {{~## Called by the accessor once every table is read, and by nothing else. Kept
       away from the values above because a consumer never calls one. ##~}}
 {{~ for field in table.reference_fields ~}}
 {{~ if field.kind == 'array_ref' ~}}
-            public void SetReference_{{ field.pascal_name }}_INTERNAL(int index, {{ field.reference_setter_type }} value) => {{ field.field_name }}[index] = value;
+        public void SetReference_{{ field.pascal_name }}_INTERNAL(int index, {{ field.reference_setter_type }} value) => {{ field.field_name }}[index] = value;
 {{~ else ~}}
-            public void SetReference_{{ field.pascal_name }}_INTERNAL({{ field.reference_setter_type }} value) => {{ field.field_name }} = value;
+        public void SetReference_{{ field.pascal_name }}_INTERNAL({{ field.reference_setter_type }} value) => {{ field.field_name }} = value;
 {{~ end ~}}
 {{~ end ~}}
-            #endregion
+        #endregion
 {{~ end ~}}
 
-            #region Storage
+        #region Storage
 {{~## Written by the enclosing table as it reads, and by the accessor as it
       resolves references - hence `internal` and `public` rather than `private`. ##~}}
 {{~ for field in table.fields ~}}
 {{~ if field.kind == 'array_of_arrays' ~}}
-            internal {{ field.field_type }}[] {{ field.field_name }} = New{{ field.pascal_name }}();
+        internal {{ field.field_type }}[] {{ field.field_name }} = New{{ field.pascal_name }}();
 {{~ else if field.kind == 'record_var_array' ~}}
 {{~## Empty, not sized: the read allocates once it knows this row's length. Empty rather
       than null so a file that does not carry the column leaves something indexable. ##~}}
-            internal {{ field.field_type }}[] {{ field.field_name }} = System.Array.Empty<{{ field.field_type }}>();
+        internal {{ field.field_type }}[] {{ field.field_name }} = System.Array.Empty<{{ field.field_type }}>();
 {{~ else if field.kind == 'record' ~}}
 {{~ if field.needs_element_init ~}}
-            internal {{ field.field_type }} {{ field.field_name }} = New{{ field.record_type_name }}();
+        internal {{ field.field_type }} {{ field.field_name }} = New{{ field.record_type_name }}();
 {{~ else ~}}
-            internal {{ field.field_type }} {{ field.field_name }};
+        internal {{ field.field_type }} {{ field.field_name }};
 {{~ end ~}}
 {{~ else if field.kind == 'array_ref' ~}}
-            internal {{ field.field_type }}[] {{ field.field_name }} = System.Array.Empty<{{ field.field_type }}>();
-            {{ if field.row_prop_name != '' }}internal{{ else }}public{{ end }} {{ field.ref_key_type_name }}[] {{ field.field_name }}_{{ field.ref_table }}_index = System.Array.Empty<{{ field.ref_key_type_name }}>();
-            public bool[] {{ field.field_name }}_F = System.Array.Empty<bool>();
+        internal {{ field.field_type }}[] {{ field.field_name }} = System.Array.Empty<{{ field.field_type }}>();
+        {{ if field.row_prop_name != '' }}internal{{ else }}public{{ end }} {{ field.ref_key_type_name }}[] {{ field.field_name }}_{{ field.ref_table }}_index = System.Array.Empty<{{ field.ref_key_type_name }}>();
+        public bool[] {{ field.field_name }}_F = System.Array.Empty<bool>();
 {{~ else if field.kind == 'var_array' ~}}
-            internal {{ field.field_type }}[] {{ field.field_name }} = System.Array.Empty<{{ field.field_type }}>();
+        internal {{ field.field_type }}[] {{ field.field_name }} = System.Array.Empty<{{ field.field_type }}>();
 {{~ else if field.kind == 'scalar_ref' ~}}
-            internal {{ field.field_type }} {{ field.field_name }};
-            {{ if field.row_prop_name != '' }}internal{{ else }}public{{ end }} {{ field.ref_key_type_name }} {{ field.field_name }}_{{ field.ref_table }}_index;
-            public bool {{ field.field_name }}_F = false;
+        internal {{ field.field_type }} {{ field.field_name }};
+        {{ if field.row_prop_name != '' }}internal{{ else }}public{{ end }} {{ field.ref_key_type_name }} {{ field.field_name }}_{{ field.ref_table }}_index;
+        public bool {{ field.field_name }}_F = false;
 {{~ else ~}}
-            internal {{ field.field_type }} {{ field.field_name }}{{ field.initializer }};
+        internal {{ field.field_type }} {{ field.field_name }}{{ field.initializer }};
 {{~ end ~}}
 {{~ if field.is_nullable ~}}
 {{~## False until the read says otherwise, so a file that does not carry the column leaves
       the member absent rather than claiming a value it never got. ##~}}
-            internal bool {{ field.presence_field }};
+        internal bool {{ field.presence_field }};
 {{~ end ~}}
 {{~ if field.has_optional_elements ~}}
-            internal bool[] {{ field.element_presence_field }};
+        internal bool[] {{ field.element_presence_field }};
 {{~ end ~}}
 {{~ end ~}}
 {{~## One slot for the resolved row whatever table it came from, and the discriminator that
       says which. `object` because the tables have no common type and inventing one would be
       a sum type in every language; the cast back out lives in the property above, where the
       discriminator has already answered. spec/references/multi-target-accessors.md. ##~}}
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-{{~ for field in table.fields ~}}
-{{~ if for.first ~}}
-                sb.Append("\"{{ field.prop_name }}\":"); ToStringHelper.ToString({{ field.prop_name }}, sb);
-{{~ else ~}}
-                sb.Append(",\"{{ field.prop_name }}\":"); ToStringHelper.ToString({{ field.prop_name }}, sb);
-{{~ end ~}}
-{{~ end ~}}
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
         #endregion
 
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+{{~ for field in table.fields ~}}
+{{~ if for.first ~}}
+            sb.Append("\"{{ field.prop_name }}\":"); ToStringHelper.ToString({{ field.prop_name }}, sb);
+{{~ else ~}}
+            sb.Append(",\"{{ field.prop_name }}\":"); ToStringHelper.ToString({{ field.prop_name }}, sb);
+{{~ end ~}}
+{{~ end ~}}
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
+{{ for line in table.comment ~}}
+{{~ if for.first ~}}
+    /// <summary>
+{{~ end ~}}
+    /// {{ line }}
+{{~ if for.last ~}}
+    /// </summary>
+{{~ end ~}}
+{{~ end ~}}
+    [System.Serializable]
+    public partial class {{ table.name }}Table : IEnumerable<{{ table.name }}Record>
+    {
         /// <summary>
         /// Field names.
         /// </summary>
@@ -517,8 +515,8 @@
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<{{ table.name }}Record> Records => _records;
+        private List<{{ table.name }}Record> _records = new List<{{ table.name }}Record>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -535,16 +533,16 @@
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<{{ table.name }}Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<{{ table.name }}Record> IEnumerable<{{ table.name }}Record>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 {{~ for field in table.indexed_fields }}
         #region Indexing by '{{ field.prop_name }}'
-        public Dictionary<{{ field.index_key_type }}, Record> RecordsBy{{ field.pascal_name }} => _recordsBy{{ field.pascal_name }};
-        private Dictionary<{{ field.index_key_type }}, Record> _recordsBy{{ field.pascal_name }} = new Dictionary<{{ field.index_key_type }}, Record>();
+        public Dictionary<{{ field.index_key_type }}, {{ table.name }}Record> RecordsBy{{ field.pascal_name }} => _recordsBy{{ field.pascal_name }};
+        private Dictionary<{{ field.index_key_type }}, {{ table.name }}Record> _recordsBy{{ field.pascal_name }} = new Dictionary<{{ field.index_key_type }}, {{ table.name }}Record>();
 
         /// <summary>
         /// The row with this `{{ field.prop_name }}`, or null when the table has none.
@@ -554,8 +552,8 @@
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindBy{{ field.pascal_name }}({{ field.index_key_type }} key)
-            => _recordsBy{{ field.pascal_name }}.TryGetValue(key, out Record record) ? record : null;
+        public {{ table.name }}Record FindBy{{ field.pascal_name }}({{ field.index_key_type }} key)
+            => _recordsBy{{ field.pascal_name }}.TryGetValue(key, out {{ table.name }}Record record) ? record : null;
 
         /// <summary>
         /// The row with this `{{ field.prop_name }}`, or a thrown exception naming what was
@@ -566,9 +564,9 @@
         /// says it throws, because a caller reading `GetBy{{ field.pascal_name }}(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetBy{{ field.pascal_name }}OrThrow({{ field.index_key_type }} key)
+        public {{ table.name }}Record GetBy{{ field.pascal_name }}OrThrow({{ field.index_key_type }} key)
         {
-            if (!_recordsBy{{ field.pascal_name }}.TryGetValue(key, out Record record))
+            if (!_recordsBy{{ field.pascal_name }}.TryGetValue(key, out {{ table.name }}Record record))
                 throw new TabbitException($"There is no record in table `{{ table.raw_name }}` that corresponds to field `{{ field.prop_name }}` value {key}");
 
             return record;
@@ -594,10 +592,10 @@
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<{{ table.name }}Record> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<{{ table.name }}Record> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -607,7 +605,7 @@
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public ({{ field.index_key_type }} Key, Record Row) Current
+            public ({{ field.index_key_type }} Key, {{ table.name }}Record Row) Current
                 => (_rows[_at].{{ field.prop_name }}, _rows[_at]);
         }
 
@@ -632,7 +630,7 @@
         /// It does not replace `FindBy{{ field.pascal_name }}`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[{{ field.index_key_type }} key] => GetBy{{ field.pascal_name }}OrThrow(key);
+        public {{ table.name }}Record this[{{ field.index_key_type }} key] => GetBy{{ field.pascal_name }}OrThrow(key);
 {{~ end ~}}
 {{~ end ~}}
 {{~ for key in table.composite_keys }}
@@ -642,7 +640,7 @@
    ("a b", "c") and ("a", "b c") would be one key and one of the two rows would be lost.
    The map is private, so what it is keyed by can change without the lookups moving.
    spec/layout/primary-layout.md section 3.5. ##~}}
-        private Dictionary<string, Record> {{ key.map_name }} = new Dictionary<string, Record>();
+        private Dictionary<string, {{ table.name }}Record> {{ key.map_name }} = new Dictionary<string, {{ table.name }}Record>();
 
         /// <summary>Joins the columns of the `{{ key.field_name }}` key into the text the map is keyed by.</summary>
         private static string KeyOf{{ key.suffix }}({{ key.params }})
@@ -676,16 +674,16 @@
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindBy{{ key.suffix }}({{ key.params }})
-            => {{ key.map_name }}.TryGetValue({{ key.argument }}, out Record record) ? record : null;
+        public {{ table.name }}Record FindBy{{ key.suffix }}({{ key.params }})
+            => {{ key.map_name }}.TryGetValue({{ key.argument }}, out {{ table.name }}Record record) ? record : null;
 
         /// <summary>
         /// The row with this `{{ key.field_name }}`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetBy{{ key.suffix }}OrThrow({{ key.params }})
+        public {{ table.name }}Record GetBy{{ key.suffix }}OrThrow({{ key.params }})
         {
-            if (!{{ key.map_name }}.TryGetValue({{ key.argument }}, out Record record))
+            if (!{{ key.map_name }}.TryGetValue({{ key.argument }}, out {{ table.name }}Record record))
                 throw new TabbitException($"There is no record in table `{{ table.raw_name }}` that corresponds to field `{{ key.field_name }}` value {{ key.value_format }}");
 
             return record;
@@ -704,7 +702,7 @@
         /// the order `GetBy{{ key.suffix }}OrThrow` takes them in too.
         /// spec/targets/table-collection-surface.md section 5.4.
         /// </remarks>
-        public Record this[{{ key.params }}]
+        public {{ table.name }}Record this[{{ key.params }}]
             => GetBy{{ key.suffix }}OrThrow({{ for c in key.components }}{{ c.param }}{{ if !for.last }}, {{ end }}{{ end }});
 {{~ end ~}}
         #endregion // Indexing by `{{ key.field_name }}`
@@ -765,10 +763,10 @@
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<{{ table.name }}Record>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new {{ table.name }}Record());
 
             foreach (var column in columns)
             {
@@ -842,9 +840,9 @@
                             {{ column.length_read }}
 {{~ if column.is_first_member ~}}
 {{~ if column.record_needs_init ~}}
-                            record.{{ column.field_name }} = Record.New{{ column.record_type_name }}Array(elementCount);
+                            record.{{ column.field_name }} = {{ table.name }}Record.New{{ column.record_type_name }}Array(elementCount);
 {{~ else ~}}
-                            record.{{ column.field_name }} = new Record.{{ column.record_type_name }}[elementCount];
+                            record.{{ column.field_name }} = new {{ table.name }}Record.{{ column.record_type_name }}[elementCount];
 {{~ end ~}}
 {{~ else ~}}
                             if (record.{{ column.field_name }}.Length != elementCount)
@@ -992,13 +990,13 @@
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
 {{~ for field in table.indexed_fields ~}}
-            var recordsBy{{ field.pascal_name }} = new Dictionary<{{ field.index_key_type }}, Record>(count);
+            var recordsBy{{ field.pascal_name }} = new Dictionary<{{ field.index_key_type }}, {{ table.name }}Record>(count);
             foreach (var record in records)
                 recordsBy{{ field.pascal_name }}.Add(record.{{ field.prop_name }}, record);
 {{~ end ~}}
 {{~ end ~}}
 {{~ for key in table.composite_keys ~}}
-            var recordsBy{{ key.suffix }} = new Dictionary<string, Record>(count);
+            var recordsBy{{ key.suffix }} = new Dictionary<string, {{ table.name }}Record>(count);
             foreach (var record in records)
                 recordsBy{{ key.suffix }}.Add(KeyOf{{ key.suffix }}({{ for c in key.components }}record.{{ c.member }}{{ if !for.last }}, {{ end }}{{ end }}), record);
 {{~ end }}

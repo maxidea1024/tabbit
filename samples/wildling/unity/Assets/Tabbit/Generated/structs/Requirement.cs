@@ -75,7 +75,7 @@ namespace Wildling.Data
         /// 요구 아이템
         /// </summary>
         public string ItemId;
-        public ItemTable.Record ItemByItemId;
+        public ItemRecord ItemByItemId;
         /// <summary>
         /// 요구 수량
         /// </summary>
@@ -97,7 +97,7 @@ namespace Wildling.Data
         /// 요구 스테이지
         /// </summary>
         public string StageId;
-        public StageTable.Record StageByStageId;
+        public StageRecord StageByStageId;
     }
 
     /// <summary>

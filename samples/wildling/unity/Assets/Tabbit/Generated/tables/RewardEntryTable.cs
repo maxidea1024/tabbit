@@ -18,154 +18,152 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class RewardEntryRecord
+    {
+        #region Values
+        /// <summary>
+        /// 어느 묶음인가
+        /// </summary>
+        public string RewardGroupId => _rewardGroupId_RewardGroup_index;
+        public RewardGroupRecord RewardGroupByRewardGroupId => _rewardGroupId;
+
+        /// <summary>
+        /// 표시 순서
+        /// </summary>
+        public int Order => _order;
+
+        /// <summary>
+        /// 이 행의 보상이 어떤 형태인가
+        /// </summary>
+        public Reward Reward
+            => _reward_value ?? (_reward_value = BuildReward());
+
+        private Reward _reward_value;
+
+        private Reward BuildReward()
+        {
+            switch (_reward.Type)
+            {
+                case 1:
+                    return new ItemReward
+                    {
+                        Amount = _reward.Amount,
+                        ItemId = _reward.ItemId,
+                        ItemByItemId = _reward.ItemByItemId,
+                    };
+                case 2:
+                    return new CurrencyReward
+                    {
+                        Amount = _reward.Amount,
+                        CurrencyId = _reward.CurrencyId,
+                        CurrencyByCurrencyId = _reward.CurrencyByCurrencyId,
+                    };
+                case 3:
+                    return new MonsterReward
+                    {
+                        Amount = _reward.Amount,
+                        MonsterId = _reward.MonsterId,
+                        MonsterByMonsterId = _reward.MonsterByMonsterId,
+                    };
+                case 4:
+                    return new ShardReward
+                    {
+                        Amount = _reward.Amount,
+                        MonsterId = _reward.MonsterId,
+                        MonsterByMonsterId = _reward.MonsterByMonsterId,
+                    };
+            }
+
+            // A number no variant claims. The conversion refuses one, so reaching this
+            // means the file was written by a build that had a variant this code does not
+            // - the same shape as a column added after this code was generated.
+            return null;
+        }
+
+        /// <summary>
+        /// 확률. 만분율
+        /// </summary>
+        public int Rate => _rate;
+
+        /// <summary>
+        /// 서버만 쓰는 가중치
+        /// </summary>
+        public int ServerWeight => _serverWeight;
+        /// <summary>Whether this row has a value for <see cref="ServerWeight"/>.</summary>
+        public bool HasServerWeight => _serverWeightHasValue;
+        #endregion
+
+        /// <summary>One element of <see cref="Reward"/>.</summary>
+        [System.Serializable]
+        public struct RewardEntry
+        {
+            /// 이 행의 보상이 어떤 형태인가
+            public int Type;
+            /// 수량
+            public int Amount;
+            /// 아이템 보상의 대상
+            public string ItemId;
+            public ItemRecord ItemByItemId;
+            public bool ItemId_F;
+            /// 재화 보상의 대상
+            public string CurrencyId;
+            public CurrencyRecord CurrencyByCurrencyId;
+            public bool CurrencyId_F;
+            /// 와일드링 또는 조각 보상의 대상
+            public string MonsterId;
+            public MonsterRecord MonsterByMonsterId;
+            public bool MonsterId_F;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"Type\":"); ToStringHelper.ToString(Type, sb);
+                sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
+                sb.Append(",\"ItemId\":"); ToStringHelper.ToString(ItemId, sb);
+                sb.Append(",\"CurrencyId\":"); ToStringHelper.ToString(CurrencyId, sb);
+                sb.Append(",\"MonsterId\":"); ToStringHelper.ToString(MonsterId, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        #region Reference wiring
+        public void SetReference_RewardGroupId_INTERNAL(RewardGroupRecord value) => _rewardGroupId = value;
+        #endregion
+
+        #region Storage
+        internal RewardGroupRecord _rewardGroupId;
+        internal string _rewardGroupId_RewardGroup_index;
+        public bool _rewardGroupId_F = false;
+        internal int _order;
+        internal RewardEntry _reward;
+        internal int _rate;
+        internal int _serverWeight;
+        internal bool _serverWeightHasValue;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"RewardGroupId\":"); ToStringHelper.ToString(RewardGroupId, sb);
+            sb.Append(",\"Order\":"); ToStringHelper.ToString(Order, sb);
+            sb.Append(",\"Reward\":"); ToStringHelper.ToString(Reward, sb);
+            sb.Append(",\"Rate\":"); ToStringHelper.ToString(Rate, sb);
+            sb.Append(",\"ServerWeight\":"); ToStringHelper.ToString(ServerWeight, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 묶음 하나의 항목이다. 판별자가 형태를 정한다.
     /// </summary>
     [System.Serializable]
-    public partial class RewardEntryTable : IEnumerable<RewardEntryTable.Record>
+    public partial class RewardEntryTable : IEnumerable<RewardEntryRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 어느 묶음인가
-            /// </summary>
-            public string RewardGroupId => _rewardGroupId_RewardGroup_index;
-            public RewardGroupTable.Record RewardGroupByRewardGroupId => _rewardGroupId;
-
-            /// <summary>
-            /// 표시 순서
-            /// </summary>
-            public int Order => _order;
-
-            /// <summary>
-            /// 이 행의 보상이 어떤 형태인가
-            /// </summary>
-            public Reward Reward
-                => _reward_value ?? (_reward_value = BuildReward());
-
-            private Reward _reward_value;
-
-            private Reward BuildReward()
-            {
-                switch (_reward.Type)
-                {
-                    case 1:
-                        return new ItemReward
-                        {
-                            Amount = _reward.Amount,
-                            ItemId = _reward.ItemId,
-                            ItemByItemId = _reward.ItemByItemId,
-                        };
-                    case 2:
-                        return new CurrencyReward
-                        {
-                            Amount = _reward.Amount,
-                            CurrencyId = _reward.CurrencyId,
-                            CurrencyByCurrencyId = _reward.CurrencyByCurrencyId,
-                        };
-                    case 3:
-                        return new MonsterReward
-                        {
-                            Amount = _reward.Amount,
-                            MonsterId = _reward.MonsterId,
-                            MonsterByMonsterId = _reward.MonsterByMonsterId,
-                        };
-                    case 4:
-                        return new ShardReward
-                        {
-                            Amount = _reward.Amount,
-                            MonsterId = _reward.MonsterId,
-                            MonsterByMonsterId = _reward.MonsterByMonsterId,
-                        };
-                }
-
-                // A number no variant claims. The conversion refuses one, so reaching this
-                // means the file was written by a build that had a variant this code does not
-                // - the same shape as a column added after this code was generated.
-                return null;
-            }
-
-            /// <summary>
-            /// 확률. 만분율
-            /// </summary>
-            public int Rate => _rate;
-
-            /// <summary>
-            /// 서버만 쓰는 가중치
-            /// </summary>
-            public int ServerWeight => _serverWeight;
-            /// <summary>Whether this row has a value for <see cref="ServerWeight"/>.</summary>
-            public bool HasServerWeight => _serverWeightHasValue;
-            #endregion
-
-            /// <summary>One element of <see cref="Reward"/>.</summary>
-            [System.Serializable]
-            public struct RewardEntry
-            {
-                /// 이 행의 보상이 어떤 형태인가
-                public int Type;
-                /// 수량
-                public int Amount;
-                /// 아이템 보상의 대상
-                public string ItemId;
-                public ItemTable.Record ItemByItemId;
-                public bool ItemId_F;
-                /// 재화 보상의 대상
-                public string CurrencyId;
-                public CurrencyTable.Record CurrencyByCurrencyId;
-                public bool CurrencyId_F;
-                /// 와일드링 또는 조각 보상의 대상
-                public string MonsterId;
-                public MonsterTable.Record MonsterByMonsterId;
-                public bool MonsterId_F;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"Type\":"); ToStringHelper.ToString(Type, sb);
-                    sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
-                    sb.Append(",\"ItemId\":"); ToStringHelper.ToString(ItemId, sb);
-                    sb.Append(",\"CurrencyId\":"); ToStringHelper.ToString(CurrencyId, sb);
-                    sb.Append(",\"MonsterId\":"); ToStringHelper.ToString(MonsterId, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            #region Reference wiring
-            public void SetReference_RewardGroupId_INTERNAL(RewardGroupTable.Record value) => _rewardGroupId = value;
-            #endregion
-
-            #region Storage
-            internal RewardGroupTable.Record _rewardGroupId;
-            internal string _rewardGroupId_RewardGroup_index;
-            public bool _rewardGroupId_F = false;
-            internal int _order;
-            internal RewardEntry _reward;
-            internal int _rate;
-            internal int _serverWeight;
-            internal bool _serverWeightHasValue;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"RewardGroupId\":"); ToStringHelper.ToString(RewardGroupId, sb);
-                sb.Append(",\"Order\":"); ToStringHelper.ToString(Order, sb);
-                sb.Append(",\"Reward\":"); ToStringHelper.ToString(Reward, sb);
-                sb.Append(",\"Rate\":"); ToStringHelper.ToString(Rate, sb);
-                sb.Append(",\"ServerWeight\":"); ToStringHelper.ToString(ServerWeight, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -192,8 +190,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<RewardEntryRecord> Records => _records;
+        private List<RewardEntryRecord> _records = new List<RewardEntryRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -210,15 +208,15 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<RewardEntryRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<RewardEntryRecord> IEnumerable<RewardEntryRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'RewardGroupId and Order'
-        private Dictionary<string, Record> _recordsByRewardGroupIdAndOrder = new Dictionary<string, Record>();
+        private Dictionary<string, RewardEntryRecord> _recordsByRewardGroupIdAndOrder = new Dictionary<string, RewardEntryRecord>();
 
         /// <summary>Joins the columns of the `RewardGroupId and Order` key into the text the map is keyed by.</summary>
         private static string KeyOfRewardGroupIdAndOrder(string rewardGroupIdKey, int orderKey)
@@ -245,16 +243,16 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByRewardGroupIdAndOrder(string rewardGroupIdKey, int orderKey)
-            => _recordsByRewardGroupIdAndOrder.TryGetValue(KeyOfRewardGroupIdAndOrder(rewardGroupIdKey, orderKey), out Record record) ? record : null;
+        public RewardEntryRecord FindByRewardGroupIdAndOrder(string rewardGroupIdKey, int orderKey)
+            => _recordsByRewardGroupIdAndOrder.TryGetValue(KeyOfRewardGroupIdAndOrder(rewardGroupIdKey, orderKey), out RewardEntryRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `RewardGroupId and Order`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetByRewardGroupIdAndOrderOrThrow(string rewardGroupIdKey, int orderKey)
+        public RewardEntryRecord GetByRewardGroupIdAndOrderOrThrow(string rewardGroupIdKey, int orderKey)
         {
-            if (!_recordsByRewardGroupIdAndOrder.TryGetValue(KeyOfRewardGroupIdAndOrder(rewardGroupIdKey, orderKey), out Record record))
+            if (!_recordsByRewardGroupIdAndOrder.TryGetValue(KeyOfRewardGroupIdAndOrder(rewardGroupIdKey, orderKey), out RewardEntryRecord record))
                 throw new TabbitException($"There is no record in table `RewardEntry` that corresponds to field `RewardGroupId and Order` value ({rewardGroupIdKey}, {orderKey})");
 
             return record;
@@ -272,7 +270,7 @@ namespace Wildling.Data
         /// the order `GetByRewardGroupIdAndOrderOrThrow` takes them in too.
         /// spec/targets/table-collection-surface.md section 5.4.
         /// </remarks>
-        public Record this[string rewardGroupIdKey, int orderKey]
+        public RewardEntryRecord this[string rewardGroupIdKey, int orderKey]
             => GetByRewardGroupIdAndOrderOrThrow(rewardGroupIdKey, orderKey);
         #endregion // Indexing by `RewardGroupId and Order`
 
@@ -318,10 +316,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<RewardEntryRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new RewardEntryRecord());
 
             foreach (var column in columns)
             {
@@ -341,7 +339,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._rewardGroupId_RewardGroup_index = value;
-                                record._rewardGroupId = default(RewardGroupTable.Record); // will be assigned.
+                                record._rewardGroupId = default(RewardGroupRecord); // will be assigned.
                                 record._rewardGroupId_F = false;
                             } while (--n > 0);
                         }
@@ -407,7 +405,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._reward.ItemId = value;
-                                record._reward.ItemByItemId = default(ItemTable.Record); // will be assigned.
+                                record._reward.ItemByItemId = default(ItemRecord); // will be assigned.
                                 record._reward.ItemId_F = false;
                             } while (--n > 0);
                         }
@@ -425,7 +423,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._reward.CurrencyId = value;
-                                record._reward.CurrencyByCurrencyId = default(CurrencyTable.Record); // will be assigned.
+                                record._reward.CurrencyByCurrencyId = default(CurrencyRecord); // will be assigned.
                                 record._reward.CurrencyId_F = false;
                             } while (--n > 0);
                         }
@@ -443,7 +441,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._reward.MonsterId = value;
-                                record._reward.MonsterByMonsterId = default(MonsterTable.Record); // will be assigned.
+                                record._reward.MonsterByMonsterId = default(MonsterRecord); // will be assigned.
                                 record._reward.MonsterId_F = false;
                             } while (--n > 0);
                         }
@@ -501,7 +499,7 @@ namespace Wildling.Data
 
                 TcbTable.CheckBlockEnd(reader, column, blockEnd);
             }
-            var recordsByRewardGroupIdAndOrder = new Dictionary<string, Record>(count);
+            var recordsByRewardGroupIdAndOrder = new Dictionary<string, RewardEntryRecord>(count);
             foreach (var record in records)
                 recordsByRewardGroupIdAndOrder.Add(KeyOfRewardGroupIdAndOrder(record.RewardGroupId, record.Order), record);
 

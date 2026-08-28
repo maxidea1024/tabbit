@@ -18,74 +18,72 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class AdRewardRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string AdRewardId => _adRewardId;
+
+        /// <summary>
+        /// 표시 이름
+        /// </summary>
+        public string Name => _name;
+
+        /// <summary>
+        /// 일일 한도
+        /// </summary>
+        public int DailyLimit => _dailyLimit;
+
+        /// <summary>
+        /// 보상
+        /// </summary>
+        public string RewardGroupId => _rewardGroupId_RewardGroup_index;
+        public RewardGroupRecord RewardGroupByRewardGroupId => _rewardGroupId;
+
+        /// <summary>
+        /// 방치 보상을 2배로
+        /// </summary>
+        public bool DoublesIdle => _doublesIdle;
+        #endregion
+
+        #region Reference wiring
+        public void SetReference_RewardGroupId_INTERNAL(RewardGroupRecord value) => _rewardGroupId = value;
+        #endregion
+
+        #region Storage
+        internal string _adRewardId = "";
+        internal string _name = "";
+        internal int _dailyLimit;
+        internal RewardGroupRecord _rewardGroupId;
+        internal string _rewardGroupId_RewardGroup_index;
+        public bool _rewardGroupId_F = false;
+        internal bool _doublesIdle;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"AdRewardId\":"); ToStringHelper.ToString(AdRewardId, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append(",\"DailyLimit\":"); ToStringHelper.ToString(DailyLimit, sb);
+            sb.Append(",\"RewardGroupId\":"); ToStringHelper.ToString(RewardGroupId, sb);
+            sb.Append(",\"DoublesIdle\":"); ToStringHelper.ToString(DoublesIdle, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 선택형 광고 보상이다. 강제 광고는 없다.
     /// </summary>
     [System.Serializable]
-    public partial class AdRewardTable : IEnumerable<AdRewardTable.Record>
+    public partial class AdRewardTable : IEnumerable<AdRewardRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string AdRewardId => _adRewardId;
-
-            /// <summary>
-            /// 표시 이름
-            /// </summary>
-            public string Name => _name;
-
-            /// <summary>
-            /// 일일 한도
-            /// </summary>
-            public int DailyLimit => _dailyLimit;
-
-            /// <summary>
-            /// 보상
-            /// </summary>
-            public string RewardGroupId => _rewardGroupId_RewardGroup_index;
-            public RewardGroupTable.Record RewardGroupByRewardGroupId => _rewardGroupId;
-
-            /// <summary>
-            /// 방치 보상을 2배로
-            /// </summary>
-            public bool DoublesIdle => _doublesIdle;
-            #endregion
-
-            #region Reference wiring
-            public void SetReference_RewardGroupId_INTERNAL(RewardGroupTable.Record value) => _rewardGroupId = value;
-            #endregion
-
-            #region Storage
-            internal string _adRewardId = "";
-            internal string _name = "";
-            internal int _dailyLimit;
-            internal RewardGroupTable.Record _rewardGroupId;
-            internal string _rewardGroupId_RewardGroup_index;
-            public bool _rewardGroupId_F = false;
-            internal bool _doublesIdle;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"AdRewardId\":"); ToStringHelper.ToString(AdRewardId, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append(",\"DailyLimit\":"); ToStringHelper.ToString(DailyLimit, sb);
-                sb.Append(",\"RewardGroupId\":"); ToStringHelper.ToString(RewardGroupId, sb);
-                sb.Append(",\"DoublesIdle\":"); ToStringHelper.ToString(DoublesIdle, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -112,8 +110,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<AdRewardRecord> Records => _records;
+        private List<AdRewardRecord> _records = new List<AdRewardRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -130,16 +128,16 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<AdRewardRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<AdRewardRecord> IEnumerable<AdRewardRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'AdRewardId'
-        public Dictionary<string, Record> RecordsByAdRewardId => _recordsByAdRewardId;
-        private Dictionary<string, Record> _recordsByAdRewardId = new Dictionary<string, Record>();
+        public Dictionary<string, AdRewardRecord> RecordsByAdRewardId => _recordsByAdRewardId;
+        private Dictionary<string, AdRewardRecord> _recordsByAdRewardId = new Dictionary<string, AdRewardRecord>();
 
         /// <summary>
         /// The row with this `AdRewardId`, or null when the table has none.
@@ -149,8 +147,8 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByAdRewardId(string key)
-            => _recordsByAdRewardId.TryGetValue(key, out Record record) ? record : null;
+        public AdRewardRecord FindByAdRewardId(string key)
+            => _recordsByAdRewardId.TryGetValue(key, out AdRewardRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `AdRewardId`, or a thrown exception naming what was
@@ -161,9 +159,9 @@ namespace Wildling.Data
         /// says it throws, because a caller reading `GetByAdRewardId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByAdRewardIdOrThrow(string key)
+        public AdRewardRecord GetByAdRewardIdOrThrow(string key)
         {
-            if (!_recordsByAdRewardId.TryGetValue(key, out Record record))
+            if (!_recordsByAdRewardId.TryGetValue(key, out AdRewardRecord record))
                 throw new TabbitException($"There is no record in table `AdReward` that corresponds to field `AdRewardId` value {key}");
 
             return record;
@@ -188,10 +186,10 @@ namespace Wildling.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<AdRewardRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<AdRewardRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -201,7 +199,7 @@ namespace Wildling.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, AdRewardRecord Row) Current
                 => (_rows[_at].AdRewardId, _rows[_at]);
         }
 
@@ -226,7 +224,7 @@ namespace Wildling.Data
         /// It does not replace `FindByAdRewardId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByAdRewardIdOrThrow(key);
+        public AdRewardRecord this[string key] => GetByAdRewardIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -269,10 +267,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<AdRewardRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new AdRewardRecord());
 
             foreach (var column in columns)
             {
@@ -340,7 +338,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._rewardGroupId_RewardGroup_index = value;
-                                record._rewardGroupId = default(RewardGroupTable.Record); // will be assigned.
+                                record._rewardGroupId = default(RewardGroupRecord); // will be assigned.
                                 record._rewardGroupId_F = false;
                             } while (--n > 0);
                         }
@@ -368,7 +366,7 @@ namespace Wildling.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByAdRewardId = new Dictionary<string, Record>(count);
+            var recordsByAdRewardId = new Dictionary<string, AdRewardRecord>(count);
             foreach (var record in records)
                 recordsByAdRewardId.Add(record.AdRewardId, record);
 

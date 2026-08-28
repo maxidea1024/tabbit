@@ -222,8 +222,8 @@ foreign   Weapon.Name            대상의 필드 — 지금 그대로
 ```csharp
 shopRow.ItemId              // int — 키. 지금도 있는 것
 shopRow.ItemIdTarget        // ShopItemIdTarget.CharGear 또는 .Item 또는 .None
-shopRow.CEquipByItemId      // CEquipTable.Record 또는 null
-shopRow.ItemByItemId        // ItemTable.Record 또는 null
+shopRow.CEquipByItemId      // CEquipRecord 또는 null
+shopRow.ItemByItemId        // ItemRecord 또는 null
 ```
 
 레코드 멤버도 같은 형태이고, [세 가지 레코드 형태](references-in-records.md#레코드-그룹의-세-가지-형태)에서
@@ -231,7 +231,7 @@ shopRow.ItemByItemId        // ItemTable.Record 또는 null
 
 ```csharp
 rewardRow.RewardFixed[j].IdTarget      // RewardFixedIdTarget.Item
-rewardRow.RewardFixed[j].ItemById      // ItemTable.Record
+rewardRow.RewardFixed[j].ItemById      // ItemRecord
 ```
 
 ### 이름

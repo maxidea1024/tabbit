@@ -18,67 +18,65 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class CurrencyRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string CurrencyId => _currencyId;
+
+        /// <summary>
+        /// 표시 이름
+        /// </summary>
+        public string Name => _name;
+
+        /// <summary>
+        /// 아이콘
+        /// </summary>
+        public string Icon => _icon;
+
+        /// <summary>
+        /// 보유 상한
+        /// </summary>
+        public int Cap => _cap;
+
+        /// <summary>
+        /// 상점에서 살 수 있는가
+        /// </summary>
+        public bool Tradable => _tradable;
+        #endregion
+
+        #region Storage
+        internal string _currencyId = "";
+        internal string _name = "";
+        internal string _icon = "";
+        internal int _cap;
+        internal bool _tradable;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"CurrencyId\":"); ToStringHelper.ToString(CurrencyId, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append(",\"Icon\":"); ToStringHelper.ToString(Icon, sb);
+            sb.Append(",\"Cap\":"); ToStringHelper.ToString(Cap, sb);
+            sb.Append(",\"Tradable\":"); ToStringHelper.ToString(Tradable, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 재화이다. 조각은 상점에서 팔지 않는다.
     /// </summary>
     [System.Serializable]
-    public partial class CurrencyTable : IEnumerable<CurrencyTable.Record>
+    public partial class CurrencyTable : IEnumerable<CurrencyRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string CurrencyId => _currencyId;
-
-            /// <summary>
-            /// 표시 이름
-            /// </summary>
-            public string Name => _name;
-
-            /// <summary>
-            /// 아이콘
-            /// </summary>
-            public string Icon => _icon;
-
-            /// <summary>
-            /// 보유 상한
-            /// </summary>
-            public int Cap => _cap;
-
-            /// <summary>
-            /// 상점에서 살 수 있는가
-            /// </summary>
-            public bool Tradable => _tradable;
-            #endregion
-
-            #region Storage
-            internal string _currencyId = "";
-            internal string _name = "";
-            internal string _icon = "";
-            internal int _cap;
-            internal bool _tradable;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"CurrencyId\":"); ToStringHelper.ToString(CurrencyId, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append(",\"Icon\":"); ToStringHelper.ToString(Icon, sb);
-                sb.Append(",\"Cap\":"); ToStringHelper.ToString(Cap, sb);
-                sb.Append(",\"Tradable\":"); ToStringHelper.ToString(Tradable, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -105,8 +103,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<CurrencyRecord> Records => _records;
+        private List<CurrencyRecord> _records = new List<CurrencyRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -123,16 +121,16 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<CurrencyRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<CurrencyRecord> IEnumerable<CurrencyRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'CurrencyId'
-        public Dictionary<string, Record> RecordsByCurrencyId => _recordsByCurrencyId;
-        private Dictionary<string, Record> _recordsByCurrencyId = new Dictionary<string, Record>();
+        public Dictionary<string, CurrencyRecord> RecordsByCurrencyId => _recordsByCurrencyId;
+        private Dictionary<string, CurrencyRecord> _recordsByCurrencyId = new Dictionary<string, CurrencyRecord>();
 
         /// <summary>
         /// The row with this `CurrencyId`, or null when the table has none.
@@ -142,8 +140,8 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByCurrencyId(string key)
-            => _recordsByCurrencyId.TryGetValue(key, out Record record) ? record : null;
+        public CurrencyRecord FindByCurrencyId(string key)
+            => _recordsByCurrencyId.TryGetValue(key, out CurrencyRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `CurrencyId`, or a thrown exception naming what was
@@ -154,9 +152,9 @@ namespace Wildling.Data
         /// says it throws, because a caller reading `GetByCurrencyId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByCurrencyIdOrThrow(string key)
+        public CurrencyRecord GetByCurrencyIdOrThrow(string key)
         {
-            if (!_recordsByCurrencyId.TryGetValue(key, out Record record))
+            if (!_recordsByCurrencyId.TryGetValue(key, out CurrencyRecord record))
                 throw new TabbitException($"There is no record in table `Currency` that corresponds to field `CurrencyId` value {key}");
 
             return record;
@@ -181,10 +179,10 @@ namespace Wildling.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<CurrencyRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<CurrencyRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -194,7 +192,7 @@ namespace Wildling.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, CurrencyRecord Row) Current
                 => (_rows[_at].CurrencyId, _rows[_at]);
         }
 
@@ -219,7 +217,7 @@ namespace Wildling.Data
         /// It does not replace `FindByCurrencyId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByCurrencyIdOrThrow(key);
+        public CurrencyRecord this[string key] => GetByCurrencyIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -262,10 +260,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<CurrencyRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new CurrencyRecord());
 
             foreach (var column in columns)
             {
@@ -359,7 +357,7 @@ namespace Wildling.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByCurrencyId = new Dictionary<string, Record>(count);
+            var recordsByCurrencyId = new Dictionary<string, CurrencyRecord>(count);
             foreach (var record in records)
                 recordsByCurrencyId.Add(record.CurrencyId, record);
 

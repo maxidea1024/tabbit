@@ -220,7 +220,7 @@ namespace Wildling.Game
         // ------------------------------------------------------------ 공용 조각
 
         /// <summary>와일드링 한 줄이다. 목록마다 같은 모양으로 나온다.</summary>
-        public static GameObject MonsterRow(Transform parent, MonsterTable.Record row,
+        public static GameObject MonsterRow(Transform parent, MonsterRecord row,
                                             string right, Action onClick, float height = 112f)
         {
             var item = Ui.Item(parent, height);

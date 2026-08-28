@@ -18,74 +18,72 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class ItemRecord
+    {
+        #region Values
+        /// <summary>
+        /// 첫 컬럼이지만 인덱스가 아니다
+        /// </summary>
+        public global::Wildling.Data.ItemCategory Category => _category;
+
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string ItemId => _itemId;
+
+        /// <summary>
+        /// 표시 이름
+        /// </summary>
+        public string Name => _name;
+
+        /// <summary>
+        /// 등급
+        /// </summary>
+        public global::Wildling.Data.Grade Grade => _grade;
+
+        /// <summary>
+        /// 아이콘
+        /// </summary>
+        public string Icon => _icon;
+
+        /// <summary>
+        /// 한 칸에 쌓이는 최대
+        /// </summary>
+        public int StackMax => _stackMax;
+        #endregion
+
+        #region Storage
+        internal global::Wildling.Data.ItemCategory _category;
+        internal string _itemId = "";
+        internal string _name = "";
+        internal global::Wildling.Data.Grade _grade;
+        internal string _icon = "";
+        internal int _stackMax;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Category\":"); ToStringHelper.ToString(Category, sb);
+            sb.Append(",\"ItemId\":"); ToStringHelper.ToString(ItemId, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append(",\"Grade\":"); ToStringHelper.ToString(Grade, sb);
+            sb.Append(",\"Icon\":"); ToStringHelper.ToString(Icon, sb);
+            sb.Append(",\"StackMax\":"); ToStringHelper.ToString(StackMax, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 아이템이다.
     /// </summary>
     [System.Serializable]
-    public partial class ItemTable : IEnumerable<ItemTable.Record>
+    public partial class ItemTable : IEnumerable<ItemRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 첫 컬럼이지만 인덱스가 아니다
-            /// </summary>
-            public global::Wildling.Data.ItemCategory Category => _category;
-
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string ItemId => _itemId;
-
-            /// <summary>
-            /// 표시 이름
-            /// </summary>
-            public string Name => _name;
-
-            /// <summary>
-            /// 등급
-            /// </summary>
-            public global::Wildling.Data.Grade Grade => _grade;
-
-            /// <summary>
-            /// 아이콘
-            /// </summary>
-            public string Icon => _icon;
-
-            /// <summary>
-            /// 한 칸에 쌓이는 최대
-            /// </summary>
-            public int StackMax => _stackMax;
-            #endregion
-
-            #region Storage
-            internal global::Wildling.Data.ItemCategory _category;
-            internal string _itemId = "";
-            internal string _name = "";
-            internal global::Wildling.Data.Grade _grade;
-            internal string _icon = "";
-            internal int _stackMax;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Category\":"); ToStringHelper.ToString(Category, sb);
-                sb.Append(",\"ItemId\":"); ToStringHelper.ToString(ItemId, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append(",\"Grade\":"); ToStringHelper.ToString(Grade, sb);
-                sb.Append(",\"Icon\":"); ToStringHelper.ToString(Icon, sb);
-                sb.Append(",\"StackMax\":"); ToStringHelper.ToString(StackMax, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -112,8 +110,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<ItemRecord> Records => _records;
+        private List<ItemRecord> _records = new List<ItemRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -130,16 +128,16 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<ItemRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<ItemRecord> IEnumerable<ItemRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'ItemId'
-        public Dictionary<string, Record> RecordsByItemId => _recordsByItemId;
-        private Dictionary<string, Record> _recordsByItemId = new Dictionary<string, Record>();
+        public Dictionary<string, ItemRecord> RecordsByItemId => _recordsByItemId;
+        private Dictionary<string, ItemRecord> _recordsByItemId = new Dictionary<string, ItemRecord>();
 
         /// <summary>
         /// The row with this `ItemId`, or null when the table has none.
@@ -149,8 +147,8 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByItemId(string key)
-            => _recordsByItemId.TryGetValue(key, out Record record) ? record : null;
+        public ItemRecord FindByItemId(string key)
+            => _recordsByItemId.TryGetValue(key, out ItemRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `ItemId`, or a thrown exception naming what was
@@ -161,9 +159,9 @@ namespace Wildling.Data
         /// says it throws, because a caller reading `GetByItemId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByItemIdOrThrow(string key)
+        public ItemRecord GetByItemIdOrThrow(string key)
         {
-            if (!_recordsByItemId.TryGetValue(key, out Record record))
+            if (!_recordsByItemId.TryGetValue(key, out ItemRecord record))
                 throw new TabbitException($"There is no record in table `Item` that corresponds to field `ItemId` value {key}");
 
             return record;
@@ -188,10 +186,10 @@ namespace Wildling.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<ItemRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<ItemRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -201,7 +199,7 @@ namespace Wildling.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, ItemRecord Row) Current
                 => (_rows[_at].ItemId, _rows[_at]);
         }
 
@@ -226,7 +224,7 @@ namespace Wildling.Data
         /// It does not replace `FindByItemId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByItemIdOrThrow(key);
+        public ItemRecord this[string key] => GetByItemIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -269,10 +267,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<ItemRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new ItemRecord());
 
             foreach (var column in columns)
             {
@@ -388,7 +386,7 @@ namespace Wildling.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByItemId = new Dictionary<string, Record>(count);
+            var recordsByItemId = new Dictionary<string, ItemRecord>(count);
             foreach (var record in records)
                 recordsByItemId.Add(record.ItemId, record);
 

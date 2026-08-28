@@ -18,75 +18,73 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.ReferenceKeys
 {
+    [System.Serializable]
+    public partial class ClipRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// a string-keyed target
+        /// </summary>
+        public string Anim => _anim_Animation_index;
+        public AnimationRecord AnimationByAnim => _anim;
+
+        /// <summary>
+        /// a bigint-keyed target
+        /// </summary>
+        public long Entry => _entry_Ledger_index;
+        public LedgerRecord LedgerByEntry => _entry;
+
+        /// <summary>
+        /// a uuid-keyed target
+        /// </summary>
+        public System.Guid Cover => _cover_Art_index;
+        public ArtRecord ArtByCover => _cover;
+        #endregion
+
+        #region Reference wiring
+        public void SetReference_Anim_INTERNAL(AnimationRecord value) => _anim = value;
+        public void SetReference_Entry_INTERNAL(LedgerRecord value) => _entry = value;
+        public void SetReference_Cover_INTERNAL(ArtRecord value) => _cover = value;
+        #endregion
+
+        #region Storage
+        internal int _index;
+        internal AnimationRecord _anim;
+        internal string _anim_Animation_index;
+        public bool _anim_F = false;
+        internal LedgerRecord _entry;
+        internal long _entry_Ledger_index;
+        public bool _entry_F = false;
+        internal ArtRecord _cover;
+        internal System.Guid _cover_Art_index;
+        public bool _cover_F = false;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Anim\":"); ToStringHelper.ToString(Anim, sb);
+            sb.Append(",\"Entry\":"); ToStringHelper.ToString(Entry, sb);
+            sb.Append(",\"Cover\":"); ToStringHelper.ToString(Cover, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// Points at all three at once.
     /// </summary>
     [System.Serializable]
-    public partial class ClipTable : IEnumerable<ClipTable.Record>
+    public partial class ClipTable : IEnumerable<ClipRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Index => _index;
-
-            /// <summary>
-            /// a string-keyed target
-            /// </summary>
-            public string Anim => _anim_Animation_index;
-            public AnimationTable.Record AnimationByAnim => _anim;
-
-            /// <summary>
-            /// a bigint-keyed target
-            /// </summary>
-            public long Entry => _entry_Ledger_index;
-            public LedgerTable.Record LedgerByEntry => _entry;
-
-            /// <summary>
-            /// a uuid-keyed target
-            /// </summary>
-            public System.Guid Cover => _cover_Art_index;
-            public ArtTable.Record ArtByCover => _cover;
-            #endregion
-
-            #region Reference wiring
-            public void SetReference_Anim_INTERNAL(AnimationTable.Record value) => _anim = value;
-            public void SetReference_Entry_INTERNAL(LedgerTable.Record value) => _entry = value;
-            public void SetReference_Cover_INTERNAL(ArtTable.Record value) => _cover = value;
-            #endregion
-
-            #region Storage
-            internal int _index;
-            internal AnimationTable.Record _anim;
-            internal string _anim_Animation_index;
-            public bool _anim_F = false;
-            internal LedgerTable.Record _entry;
-            internal long _entry_Ledger_index;
-            public bool _entry_F = false;
-            internal ArtTable.Record _cover;
-            internal System.Guid _cover_Art_index;
-            public bool _cover_F = false;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Anim\":"); ToStringHelper.ToString(Anim, sb);
-                sb.Append(",\"Entry\":"); ToStringHelper.ToString(Entry, sb);
-                sb.Append(",\"Cover\":"); ToStringHelper.ToString(Cover, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -113,8 +111,8 @@ namespace Tabbit.Fixtures.ReferenceKeys
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<ClipRecord> Records => _records;
+        private List<ClipRecord> _records = new List<ClipRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -131,16 +129,16 @@ namespace Tabbit.Fixtures.ReferenceKeys
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<ClipRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<ClipRecord> IEnumerable<ClipRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+        public Dictionary<int, ClipRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<int, ClipRecord> _recordsByIndex = new Dictionary<int, ClipRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -150,8 +148,8 @@ namespace Tabbit.Fixtures.ReferenceKeys
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(int key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public ClipRecord FindByIndex(int key)
+            => _recordsByIndex.TryGetValue(key, out ClipRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -162,9 +160,9 @@ namespace Tabbit.Fixtures.ReferenceKeys
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(int key)
+        public ClipRecord GetByIndexOrThrow(int key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out ClipRecord record))
                 throw new TabbitException($"There is no record in table `Clip` that corresponds to field `Index` value {key}");
 
             return record;
@@ -189,10 +187,10 @@ namespace Tabbit.Fixtures.ReferenceKeys
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<ClipRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<ClipRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -202,7 +200,7 @@ namespace Tabbit.Fixtures.ReferenceKeys
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, ClipRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -227,7 +225,7 @@ namespace Tabbit.Fixtures.ReferenceKeys
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIndexOrThrow(key);
+        public ClipRecord this[int key] => GetByIndexOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -270,10 +268,10 @@ namespace Tabbit.Fixtures.ReferenceKeys
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<ClipRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new ClipRecord());
 
             foreach (var column in columns)
             {
@@ -309,7 +307,7 @@ namespace Tabbit.Fixtures.ReferenceKeys
                             {
                                 var record = records[i++];
                                 record._anim_Animation_index = value;
-                                record._anim = default(AnimationTable.Record); // will be assigned.
+                                record._anim = default(AnimationRecord); // will be assigned.
                                 record._anim_F = false;
                             } while (--n > 0);
                         }
@@ -322,7 +320,7 @@ namespace Tabbit.Fixtures.ReferenceKeys
                         {
                             var record = records[i];
                             record._entry_Ledger_index = cursor.NextI64();
-                            record._entry = default(LedgerTable.Record); // will be assigned.
+                            record._entry = default(LedgerRecord); // will be assigned.
                             record._entry_F = false;
                         }
                         break;
@@ -333,7 +331,7 @@ namespace Tabbit.Fixtures.ReferenceKeys
                         {
                             var record = records[i];
                             reader.Read(out record._cover_Art_index);
-                            record._cover = default(ArtTable.Record); // will be assigned.
+                            record._cover = default(ArtRecord); // will be assigned.
                             record._cover_F = false;
                         }
                         break;
@@ -350,7 +348,7 @@ namespace Tabbit.Fixtures.ReferenceKeys
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<int, Record>(count);
+            var recordsByIndex = new Dictionary<int, ClipRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
 

@@ -18,53 +18,51 @@ using Tabbit.Binary;
 
 namespace X
 {
+    [System.Serializable]
+    public partial class PackageRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// 라벨 — 한글 주석
+        /// </summary>
+        public string Label => _label;
+
+        /// <summary>
+        /// 예약어 라벨을 쓰는 enum 필드
+        /// </summary>
+        public global::X.Keyword Kind => _kind;
+        #endregion
+
+        #region Storage
+        internal int _index;
+        internal string _label = "";
+        internal global::X.Keyword _kind;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Label\":"); ToStringHelper.ToString(Label, sb);
+            sb.Append(",\"Kind\":"); ToStringHelper.ToString(Kind, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 이름이 TypeScript의 바인딩 예약어인 테이블. 주석은 한글이라 MSVC 코드페이지도 함께 확인합니다.
     /// </summary>
     [System.Serializable]
-    public partial class PackageTable : IEnumerable<PackageTable.Record>
+    public partial class PackageTable : IEnumerable<PackageRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Index => _index;
-
-            /// <summary>
-            /// 라벨 — 한글 주석
-            /// </summary>
-            public string Label => _label;
-
-            /// <summary>
-            /// 예약어 라벨을 쓰는 enum 필드
-            /// </summary>
-            public global::X.Keyword Kind => _kind;
-            #endregion
-
-            #region Storage
-            internal int _index;
-            internal string _label = "";
-            internal global::X.Keyword _kind;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Label\":"); ToStringHelper.ToString(Label, sb);
-                sb.Append(",\"Kind\":"); ToStringHelper.ToString(Kind, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -91,8 +89,8 @@ namespace X
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<PackageRecord> Records => _records;
+        private List<PackageRecord> _records = new List<PackageRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -109,16 +107,16 @@ namespace X
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<PackageRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<PackageRecord> IEnumerable<PackageRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+        public Dictionary<int, PackageRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<int, PackageRecord> _recordsByIndex = new Dictionary<int, PackageRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -128,8 +126,8 @@ namespace X
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(int key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public PackageRecord FindByIndex(int key)
+            => _recordsByIndex.TryGetValue(key, out PackageRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -140,9 +138,9 @@ namespace X
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(int key)
+        public PackageRecord GetByIndexOrThrow(int key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out PackageRecord record))
                 throw new TabbitException($"There is no record in table `Package` that corresponds to field `Index` value {key}");
 
             return record;
@@ -167,10 +165,10 @@ namespace X
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<PackageRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<PackageRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -180,7 +178,7 @@ namespace X
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, PackageRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -205,7 +203,7 @@ namespace X
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIndexOrThrow(key);
+        public PackageRecord this[int key] => GetByIndexOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -248,10 +246,10 @@ namespace X
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<PackageRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new PackageRecord());
 
             foreach (var column in columns)
             {
@@ -319,7 +317,7 @@ namespace X
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<int, Record>(count);
+            var recordsByIndex = new Dictionary<int, PackageRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
 

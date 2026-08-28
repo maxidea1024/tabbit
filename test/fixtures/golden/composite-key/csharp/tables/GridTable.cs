@@ -18,60 +18,58 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.CompositeKey
 {
+    [System.Serializable]
+    public partial class GridRecord
+    {
+        #region Values
+        /// <summary>
+        /// column
+        /// </summary>
+        public int X => _x;
+
+        /// <summary>
+        /// row
+        /// </summary>
+        public int Y => _y;
+
+        /// <summary>
+        /// layer
+        /// </summary>
+        public string Z => _z;
+
+        /// <summary>
+        /// anything
+        /// </summary>
+        public string Name => _name;
+        #endregion
+
+        #region Storage
+        internal int _x;
+        internal int _y;
+        internal string _z = "";
+        internal string _name = "";
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"X\":"); ToStringHelper.ToString(X, sb);
+            sb.Append(",\"Y\":"); ToStringHelper.ToString(Y, sb);
+            sb.Append(",\"Z\":"); ToStringHelper.ToString(Z, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// Three columns taken together, so two is not the only width that works.
     /// </summary>
     [System.Serializable]
-    public partial class GridTable : IEnumerable<GridTable.Record>
+    public partial class GridTable : IEnumerable<GridRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// column
-            /// </summary>
-            public int X => _x;
-
-            /// <summary>
-            /// row
-            /// </summary>
-            public int Y => _y;
-
-            /// <summary>
-            /// layer
-            /// </summary>
-            public string Z => _z;
-
-            /// <summary>
-            /// anything
-            /// </summary>
-            public string Name => _name;
-            #endregion
-
-            #region Storage
-            internal int _x;
-            internal int _y;
-            internal string _z = "";
-            internal string _name = "";
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"X\":"); ToStringHelper.ToString(X, sb);
-                sb.Append(",\"Y\":"); ToStringHelper.ToString(Y, sb);
-                sb.Append(",\"Z\":"); ToStringHelper.ToString(Z, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -98,8 +96,8 @@ namespace Tabbit.Fixtures.CompositeKey
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<GridRecord> Records => _records;
+        private List<GridRecord> _records = new List<GridRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -116,15 +114,15 @@ namespace Tabbit.Fixtures.CompositeKey
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<GridRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<GridRecord> IEnumerable<GridRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'X and Y and Z'
-        private Dictionary<string, Record> _recordsByXAndYAndZ = new Dictionary<string, Record>();
+        private Dictionary<string, GridRecord> _recordsByXAndYAndZ = new Dictionary<string, GridRecord>();
 
         /// <summary>Joins the columns of the `X and Y and Z` key into the text the map is keyed by.</summary>
         private static string KeyOfXAndYAndZ(int xKey, int yKey, string zKey)
@@ -152,16 +150,16 @@ namespace Tabbit.Fixtures.CompositeKey
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByXAndYAndZ(int xKey, int yKey, string zKey)
-            => _recordsByXAndYAndZ.TryGetValue(KeyOfXAndYAndZ(xKey, yKey, zKey), out Record record) ? record : null;
+        public GridRecord FindByXAndYAndZ(int xKey, int yKey, string zKey)
+            => _recordsByXAndYAndZ.TryGetValue(KeyOfXAndYAndZ(xKey, yKey, zKey), out GridRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `X and Y and Z`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetByXAndYAndZOrThrow(int xKey, int yKey, string zKey)
+        public GridRecord GetByXAndYAndZOrThrow(int xKey, int yKey, string zKey)
         {
-            if (!_recordsByXAndYAndZ.TryGetValue(KeyOfXAndYAndZ(xKey, yKey, zKey), out Record record))
+            if (!_recordsByXAndYAndZ.TryGetValue(KeyOfXAndYAndZ(xKey, yKey, zKey), out GridRecord record))
                 throw new TabbitException($"There is no record in table `Grid` that corresponds to field `X and Y and Z` value ({xKey}, {yKey}, {zKey})");
 
             return record;
@@ -179,7 +177,7 @@ namespace Tabbit.Fixtures.CompositeKey
         /// the order `GetByXAndYAndZOrThrow` takes them in too.
         /// spec/targets/table-collection-surface.md section 5.4.
         /// </remarks>
-        public Record this[int xKey, int yKey, string zKey]
+        public GridRecord this[int xKey, int yKey, string zKey]
             => GetByXAndYAndZOrThrow(xKey, yKey, zKey);
         #endregion // Indexing by `X and Y and Z`
 
@@ -224,10 +222,10 @@ namespace Tabbit.Fixtures.CompositeKey
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<GridRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new GridRecord());
 
             foreach (var column in columns)
             {
@@ -308,7 +306,7 @@ namespace Tabbit.Fixtures.CompositeKey
 
                 TcbTable.CheckBlockEnd(reader, column, blockEnd);
             }
-            var recordsByXAndYAndZ = new Dictionary<string, Record>(count);
+            var recordsByXAndYAndZ = new Dictionary<string, GridRecord>(count);
             foreach (var record in records)
                 recordsByXAndYAndZ.Add(KeyOfXAndYAndZ(record.X, record.Y, record.Z), record);
 

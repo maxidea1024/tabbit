@@ -18,136 +18,134 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class SkillEffectRecord
+    {
+        #region Values
+        /// <summary>
+        /// 어느 스킬인가
+        /// </summary>
+        public string SkillId => _skillId_Skill_index;
+        public SkillRecord SkillBySkillId => _skillId;
+
+        /// <summary>
+        /// 적용 순서
+        /// </summary>
+        public int Order => _order;
+
+        /// <summary>
+        /// 이 행의 효과가 어떤 형태인가
+        /// </summary>
+        public Effect Effect
+            => _effect_value ?? (_effect_value = BuildEffect());
+
+        private Effect _effect_value;
+
+        private Effect BuildEffect()
+        {
+            switch (_effect.Type)
+            {
+                case 1:
+                    return new DamageEffect
+                    {
+                        Chance = _effect.Chance,
+                        Power = _effect.Power,
+                    };
+                case 2:
+                    return new HealEffect
+                    {
+                        Chance = _effect.Chance,
+                        Power = _effect.Power,
+                    };
+                case 3:
+                    return new StatusEffect
+                    {
+                        Chance = _effect.Chance,
+                        Status = _effect.Status,
+                        Duration = _effect.Duration,
+                    };
+                case 4:
+                    return new BuffEffect
+                    {
+                        Chance = _effect.Chance,
+                        Stat = _effect.Stat,
+                        Ratio = _effect.Ratio,
+                        Duration = _effect.Duration,
+                    };
+            }
+
+            // A number no variant claims. The conversion refuses one, so reaching this
+            // means the file was written by a build that had a variant this code does not
+            // - the same shape as a column added after this code was generated.
+            return null;
+        }
+        #endregion
+
+        /// <summary>One element of <see cref="Effect"/>.</summary>
+        [System.Serializable]
+        public struct EffectEntry
+        {
+            /// 이 행의 효과가 어떤 형태인가
+            public int Type;
+            /// 발동 확률. 만분율
+            public int Chance;
+            /// 피해 또는 회복 배수. 만분율
+            public int Power;
+            /// 부여하는 상태
+            public global::Wildling.Data.StatusKind Status;
+            /// 변동시키는 능력치
+            public global::Wildling.Data.StatKind Stat;
+            /// 변동률. 만분율. 음수는 하락
+            public int Ratio;
+            /// 지속 턴
+            public int Duration;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"Type\":"); ToStringHelper.ToString(Type, sb);
+                sb.Append(",\"Chance\":"); ToStringHelper.ToString(Chance, sb);
+                sb.Append(",\"Power\":"); ToStringHelper.ToString(Power, sb);
+                sb.Append(",\"Status\":"); ToStringHelper.ToString(Status, sb);
+                sb.Append(",\"Stat\":"); ToStringHelper.ToString(Stat, sb);
+                sb.Append(",\"Ratio\":"); ToStringHelper.ToString(Ratio, sb);
+                sb.Append(",\"Duration\":"); ToStringHelper.ToString(Duration, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        #region Reference wiring
+        public void SetReference_SkillId_INTERNAL(SkillRecord value) => _skillId = value;
+        #endregion
+
+        #region Storage
+        internal SkillRecord _skillId;
+        internal string _skillId_Skill_index;
+        public bool _skillId_F = false;
+        internal int _order;
+        internal EffectEntry _effect;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"SkillId\":"); ToStringHelper.ToString(SkillId, sb);
+            sb.Append(",\"Order\":"); ToStringHelper.ToString(Order, sb);
+            sb.Append(",\"Effect\":"); ToStringHelper.ToString(Effect, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 스킬 하나가 일으키는 것이다. 판별자가 그 행의 형태를 정한다.
     /// </summary>
     [System.Serializable]
-    public partial class SkillEffectTable : IEnumerable<SkillEffectTable.Record>
+    public partial class SkillEffectTable : IEnumerable<SkillEffectRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 어느 스킬인가
-            /// </summary>
-            public string SkillId => _skillId_Skill_index;
-            public SkillTable.Record SkillBySkillId => _skillId;
-
-            /// <summary>
-            /// 적용 순서
-            /// </summary>
-            public int Order => _order;
-
-            /// <summary>
-            /// 이 행의 효과가 어떤 형태인가
-            /// </summary>
-            public Effect Effect
-                => _effect_value ?? (_effect_value = BuildEffect());
-
-            private Effect _effect_value;
-
-            private Effect BuildEffect()
-            {
-                switch (_effect.Type)
-                {
-                    case 1:
-                        return new DamageEffect
-                        {
-                            Chance = _effect.Chance,
-                            Power = _effect.Power,
-                        };
-                    case 2:
-                        return new HealEffect
-                        {
-                            Chance = _effect.Chance,
-                            Power = _effect.Power,
-                        };
-                    case 3:
-                        return new StatusEffect
-                        {
-                            Chance = _effect.Chance,
-                            Status = _effect.Status,
-                            Duration = _effect.Duration,
-                        };
-                    case 4:
-                        return new BuffEffect
-                        {
-                            Chance = _effect.Chance,
-                            Stat = _effect.Stat,
-                            Ratio = _effect.Ratio,
-                            Duration = _effect.Duration,
-                        };
-                }
-
-                // A number no variant claims. The conversion refuses one, so reaching this
-                // means the file was written by a build that had a variant this code does not
-                // - the same shape as a column added after this code was generated.
-                return null;
-            }
-            #endregion
-
-            /// <summary>One element of <see cref="Effect"/>.</summary>
-            [System.Serializable]
-            public struct EffectEntry
-            {
-                /// 이 행의 효과가 어떤 형태인가
-                public int Type;
-                /// 발동 확률. 만분율
-                public int Chance;
-                /// 피해 또는 회복 배수. 만분율
-                public int Power;
-                /// 부여하는 상태
-                public global::Wildling.Data.StatusKind Status;
-                /// 변동시키는 능력치
-                public global::Wildling.Data.StatKind Stat;
-                /// 변동률. 만분율. 음수는 하락
-                public int Ratio;
-                /// 지속 턴
-                public int Duration;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"Type\":"); ToStringHelper.ToString(Type, sb);
-                    sb.Append(",\"Chance\":"); ToStringHelper.ToString(Chance, sb);
-                    sb.Append(",\"Power\":"); ToStringHelper.ToString(Power, sb);
-                    sb.Append(",\"Status\":"); ToStringHelper.ToString(Status, sb);
-                    sb.Append(",\"Stat\":"); ToStringHelper.ToString(Stat, sb);
-                    sb.Append(",\"Ratio\":"); ToStringHelper.ToString(Ratio, sb);
-                    sb.Append(",\"Duration\":"); ToStringHelper.ToString(Duration, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            #region Reference wiring
-            public void SetReference_SkillId_INTERNAL(SkillTable.Record value) => _skillId = value;
-            #endregion
-
-            #region Storage
-            internal SkillTable.Record _skillId;
-            internal string _skillId_Skill_index;
-            public bool _skillId_F = false;
-            internal int _order;
-            internal EffectEntry _effect;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"SkillId\":"); ToStringHelper.ToString(SkillId, sb);
-                sb.Append(",\"Order\":"); ToStringHelper.ToString(Order, sb);
-                sb.Append(",\"Effect\":"); ToStringHelper.ToString(Effect, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -174,8 +172,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<SkillEffectRecord> Records => _records;
+        private List<SkillEffectRecord> _records = new List<SkillEffectRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -192,15 +190,15 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<SkillEffectRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<SkillEffectRecord> IEnumerable<SkillEffectRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'SkillId and Order'
-        private Dictionary<string, Record> _recordsBySkillIdAndOrder = new Dictionary<string, Record>();
+        private Dictionary<string, SkillEffectRecord> _recordsBySkillIdAndOrder = new Dictionary<string, SkillEffectRecord>();
 
         /// <summary>Joins the columns of the `SkillId and Order` key into the text the map is keyed by.</summary>
         private static string KeyOfSkillIdAndOrder(string skillIdKey, int orderKey)
@@ -227,16 +225,16 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindBySkillIdAndOrder(string skillIdKey, int orderKey)
-            => _recordsBySkillIdAndOrder.TryGetValue(KeyOfSkillIdAndOrder(skillIdKey, orderKey), out Record record) ? record : null;
+        public SkillEffectRecord FindBySkillIdAndOrder(string skillIdKey, int orderKey)
+            => _recordsBySkillIdAndOrder.TryGetValue(KeyOfSkillIdAndOrder(skillIdKey, orderKey), out SkillEffectRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `SkillId and Order`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetBySkillIdAndOrderOrThrow(string skillIdKey, int orderKey)
+        public SkillEffectRecord GetBySkillIdAndOrderOrThrow(string skillIdKey, int orderKey)
         {
-            if (!_recordsBySkillIdAndOrder.TryGetValue(KeyOfSkillIdAndOrder(skillIdKey, orderKey), out Record record))
+            if (!_recordsBySkillIdAndOrder.TryGetValue(KeyOfSkillIdAndOrder(skillIdKey, orderKey), out SkillEffectRecord record))
                 throw new TabbitException($"There is no record in table `SkillEffect` that corresponds to field `SkillId and Order` value ({skillIdKey}, {orderKey})");
 
             return record;
@@ -254,7 +252,7 @@ namespace Wildling.Data
         /// the order `GetBySkillIdAndOrderOrThrow` takes them in too.
         /// spec/targets/table-collection-surface.md section 5.4.
         /// </remarks>
-        public Record this[string skillIdKey, int orderKey]
+        public SkillEffectRecord this[string skillIdKey, int orderKey]
             => GetBySkillIdAndOrderOrThrow(skillIdKey, orderKey);
         #endregion // Indexing by `SkillId and Order`
 
@@ -299,10 +297,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<SkillEffectRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new SkillEffectRecord());
 
             foreach (var column in columns)
             {
@@ -322,7 +320,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._skillId_Skill_index = value;
-                                record._skillId = default(SkillTable.Record); // will be assigned.
+                                record._skillId = default(SkillRecord); // will be assigned.
                                 record._skillId_F = false;
                             } while (--n > 0);
                         }
@@ -465,7 +463,7 @@ namespace Wildling.Data
 
                 TcbTable.CheckBlockEnd(reader, column, blockEnd);
             }
-            var recordsBySkillIdAndOrder = new Dictionary<string, Record>(count);
+            var recordsBySkillIdAndOrder = new Dictionary<string, SkillEffectRecord>(count);
             foreach (var record in records)
                 recordsBySkillIdAndOrder.Add(KeyOfSkillIdAndOrder(record.SkillId, record.Order), record);
 

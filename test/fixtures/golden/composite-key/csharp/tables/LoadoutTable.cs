@@ -18,60 +18,58 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.CompositeKey
 {
+    [System.Serializable]
+    public partial class LoadoutRecord
+    {
+        #region Values
+        /// <summary>
+        /// which stage
+        /// </summary>
+        public int Stage => _stage;
+
+        /// <summary>
+        /// which slot
+        /// </summary>
+        public global::Tabbit.Fixtures.CompositeKey.Slot Slot => _slot;
+
+        /// <summary>
+        /// anything
+        /// </summary>
+        public int Power => _power;
+
+        /// <summary>
+        /// anything
+        /// </summary>
+        public string Label => _label;
+        #endregion
+
+        #region Storage
+        internal int _stage;
+        internal global::Tabbit.Fixtures.CompositeKey.Slot _slot;
+        internal int _power;
+        internal string _label = "";
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Stage\":"); ToStringHelper.ToString(Stage, sb);
+            sb.Append(",\"Slot\":"); ToStringHelper.ToString(Slot, sb);
+            sb.Append(",\"Power\":"); ToStringHelper.ToString(Power, sb);
+            sb.Append(",\"Label\":"); ToStringHelper.ToString(Label, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// One row per stage and slot; neither column is unique on its own.
     /// </summary>
     [System.Serializable]
-    public partial class LoadoutTable : IEnumerable<LoadoutTable.Record>
+    public partial class LoadoutTable : IEnumerable<LoadoutRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// which stage
-            /// </summary>
-            public int Stage => _stage;
-
-            /// <summary>
-            /// which slot
-            /// </summary>
-            public global::Tabbit.Fixtures.CompositeKey.Slot Slot => _slot;
-
-            /// <summary>
-            /// anything
-            /// </summary>
-            public int Power => _power;
-
-            /// <summary>
-            /// anything
-            /// </summary>
-            public string Label => _label;
-            #endregion
-
-            #region Storage
-            internal int _stage;
-            internal global::Tabbit.Fixtures.CompositeKey.Slot _slot;
-            internal int _power;
-            internal string _label = "";
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Stage\":"); ToStringHelper.ToString(Stage, sb);
-                sb.Append(",\"Slot\":"); ToStringHelper.ToString(Slot, sb);
-                sb.Append(",\"Power\":"); ToStringHelper.ToString(Power, sb);
-                sb.Append(",\"Label\":"); ToStringHelper.ToString(Label, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -98,8 +96,8 @@ namespace Tabbit.Fixtures.CompositeKey
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<LoadoutRecord> Records => _records;
+        private List<LoadoutRecord> _records = new List<LoadoutRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -116,15 +114,15 @@ namespace Tabbit.Fixtures.CompositeKey
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<LoadoutRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<LoadoutRecord> IEnumerable<LoadoutRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Stage and Slot'
-        private Dictionary<string, Record> _recordsByStageAndSlot = new Dictionary<string, Record>();
+        private Dictionary<string, LoadoutRecord> _recordsByStageAndSlot = new Dictionary<string, LoadoutRecord>();
 
         /// <summary>Joins the columns of the `Stage and Slot` key into the text the map is keyed by.</summary>
         private static string KeyOfStageAndSlot(int stageKey, global::Tabbit.Fixtures.CompositeKey.Slot slotKey)
@@ -151,16 +149,16 @@ namespace Tabbit.Fixtures.CompositeKey
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByStageAndSlot(int stageKey, global::Tabbit.Fixtures.CompositeKey.Slot slotKey)
-            => _recordsByStageAndSlot.TryGetValue(KeyOfStageAndSlot(stageKey, slotKey), out Record record) ? record : null;
+        public LoadoutRecord FindByStageAndSlot(int stageKey, global::Tabbit.Fixtures.CompositeKey.Slot slotKey)
+            => _recordsByStageAndSlot.TryGetValue(KeyOfStageAndSlot(stageKey, slotKey), out LoadoutRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Stage and Slot`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetByStageAndSlotOrThrow(int stageKey, global::Tabbit.Fixtures.CompositeKey.Slot slotKey)
+        public LoadoutRecord GetByStageAndSlotOrThrow(int stageKey, global::Tabbit.Fixtures.CompositeKey.Slot slotKey)
         {
-            if (!_recordsByStageAndSlot.TryGetValue(KeyOfStageAndSlot(stageKey, slotKey), out Record record))
+            if (!_recordsByStageAndSlot.TryGetValue(KeyOfStageAndSlot(stageKey, slotKey), out LoadoutRecord record))
                 throw new TabbitException($"There is no record in table `Loadout` that corresponds to field `Stage and Slot` value ({stageKey}, {slotKey})");
 
             return record;
@@ -178,7 +176,7 @@ namespace Tabbit.Fixtures.CompositeKey
         /// the order `GetByStageAndSlotOrThrow` takes them in too.
         /// spec/targets/table-collection-surface.md section 5.4.
         /// </remarks>
-        public Record this[int stageKey, global::Tabbit.Fixtures.CompositeKey.Slot slotKey]
+        public LoadoutRecord this[int stageKey, global::Tabbit.Fixtures.CompositeKey.Slot slotKey]
             => GetByStageAndSlotOrThrow(stageKey, slotKey);
         #endregion // Indexing by `Stage and Slot`
 
@@ -223,10 +221,10 @@ namespace Tabbit.Fixtures.CompositeKey
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<LoadoutRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new LoadoutRecord());
 
             foreach (var column in columns)
             {
@@ -307,7 +305,7 @@ namespace Tabbit.Fixtures.CompositeKey
 
                 TcbTable.CheckBlockEnd(reader, column, blockEnd);
             }
-            var recordsByStageAndSlot = new Dictionary<string, Record>(count);
+            var recordsByStageAndSlot = new Dictionary<string, LoadoutRecord>(count);
             foreach (var record in records)
                 recordsByStageAndSlot.Add(KeyOfStageAndSlot(record.Stage, record.Slot), record);
 

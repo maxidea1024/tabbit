@@ -18,81 +18,79 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class JokerRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string JokerId => _jokerId;
+
+        /// <summary>
+        /// 희귀도
+        /// </summary>
+        public global::Clover.Data.Rarity Rarity => _rarity;
+
+        /// <summary>
+        /// 상점에서의 값
+        /// </summary>
+        public int Cost => _cost;
+
+        /// <summary>
+        /// 표시 이름
+        /// </summary>
+        public string Name => _name;
+
+        /// <summary>
+        /// 그림
+        /// </summary>
+        public string Art => _art;
+
+        /// <summary>
+        /// 복사 조커가 복사할 수 있는가
+        /// </summary>
+        public bool BlueprintOk => _blueprintOk;
+
+        /// <summary>
+        /// 수집 목록에서의 순서
+        /// </summary>
+        public int SortOrder => _sortOrder;
+        #endregion
+
+        #region Storage
+        internal string _jokerId = "";
+        internal global::Clover.Data.Rarity _rarity;
+        internal int _cost;
+        internal string _name = "";
+        internal string _art = "";
+        internal bool _blueprintOk;
+        internal int _sortOrder;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"JokerId\":"); ToStringHelper.ToString(JokerId, sb);
+            sb.Append(",\"Rarity\":"); ToStringHelper.ToString(Rarity, sb);
+            sb.Append(",\"Cost\":"); ToStringHelper.ToString(Cost, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append(",\"Art\":"); ToStringHelper.ToString(Art, sb);
+            sb.Append(",\"BlueprintOk\":"); ToStringHelper.ToString(BlueprintOk, sb);
+            sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 조커 한 종입니다. 효과는 `JokerEffect` 에 있고 여기에는 그 종의 성질만 있습니다.
     /// </summary>
     [System.Serializable]
-    public partial class JokerTable : IEnumerable<JokerTable.Record>
+    public partial class JokerTable : IEnumerable<JokerRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string JokerId => _jokerId;
-
-            /// <summary>
-            /// 희귀도
-            /// </summary>
-            public global::Clover.Data.Rarity Rarity => _rarity;
-
-            /// <summary>
-            /// 상점에서의 값
-            /// </summary>
-            public int Cost => _cost;
-
-            /// <summary>
-            /// 표시 이름
-            /// </summary>
-            public string Name => _name;
-
-            /// <summary>
-            /// 그림
-            /// </summary>
-            public string Art => _art;
-
-            /// <summary>
-            /// 복사 조커가 복사할 수 있는가
-            /// </summary>
-            public bool BlueprintOk => _blueprintOk;
-
-            /// <summary>
-            /// 수집 목록에서의 순서
-            /// </summary>
-            public int SortOrder => _sortOrder;
-            #endregion
-
-            #region Storage
-            internal string _jokerId = "";
-            internal global::Clover.Data.Rarity _rarity;
-            internal int _cost;
-            internal string _name = "";
-            internal string _art = "";
-            internal bool _blueprintOk;
-            internal int _sortOrder;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"JokerId\":"); ToStringHelper.ToString(JokerId, sb);
-                sb.Append(",\"Rarity\":"); ToStringHelper.ToString(Rarity, sb);
-                sb.Append(",\"Cost\":"); ToStringHelper.ToString(Cost, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append(",\"Art\":"); ToStringHelper.ToString(Art, sb);
-                sb.Append(",\"BlueprintOk\":"); ToStringHelper.ToString(BlueprintOk, sb);
-                sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -119,8 +117,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<JokerRecord> Records => _records;
+        private List<JokerRecord> _records = new List<JokerRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -137,16 +135,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<JokerRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<JokerRecord> IEnumerable<JokerRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'JokerId'
-        public Dictionary<string, Record> RecordsByJokerId => _recordsByJokerId;
-        private Dictionary<string, Record> _recordsByJokerId = new Dictionary<string, Record>();
+        public Dictionary<string, JokerRecord> RecordsByJokerId => _recordsByJokerId;
+        private Dictionary<string, JokerRecord> _recordsByJokerId = new Dictionary<string, JokerRecord>();
 
         /// <summary>
         /// The row with this `JokerId`, or null when the table has none.
@@ -156,8 +154,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByJokerId(string key)
-            => _recordsByJokerId.TryGetValue(key, out Record record) ? record : null;
+        public JokerRecord FindByJokerId(string key)
+            => _recordsByJokerId.TryGetValue(key, out JokerRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `JokerId`, or a thrown exception naming what was
@@ -168,9 +166,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByJokerId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByJokerIdOrThrow(string key)
+        public JokerRecord GetByJokerIdOrThrow(string key)
         {
-            if (!_recordsByJokerId.TryGetValue(key, out Record record))
+            if (!_recordsByJokerId.TryGetValue(key, out JokerRecord record))
                 throw new TabbitException($"There is no record in table `Joker` that corresponds to field `JokerId` value {key}");
 
             return record;
@@ -195,10 +193,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<JokerRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<JokerRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -208,7 +206,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, JokerRecord Row) Current
                 => (_rows[_at].JokerId, _rows[_at]);
         }
 
@@ -233,7 +231,7 @@ namespace Clover.Data
         /// It does not replace `FindByJokerId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByJokerIdOrThrow(key);
+        public JokerRecord this[string key] => GetByJokerIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -276,10 +274,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<JokerRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new JokerRecord());
 
             foreach (var column in columns)
             {
@@ -405,7 +403,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByJokerId = new Dictionary<string, Record>(count);
+            var recordsByJokerId = new Dictionary<string, JokerRecord>(count);
             foreach (var record in records)
                 recordsByJokerId.Add(record.JokerId, record);
 

@@ -18,102 +18,100 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.Core.Client
 {
+    [System.Serializable]
+    public partial class TestFieldTypesRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// utf8 text
+        /// </summary>
+        public string StringField => _stringField;
+
+        /// <summary>
+        /// logical flag
+        /// </summary>
+        public bool BoolField => _boolField;
+
+        /// <summary>
+        /// 64 bit integer
+        /// </summary>
+        public long BigIntField => _bigIntField;
+
+        /// <summary>
+        /// single precision
+        /// </summary>
+        public float FloatField => _floatField;
+
+        /// <summary>
+        /// double precision
+        /// </summary>
+        public double DoubleField => _doubleField;
+
+        /// <summary>
+        /// date and time
+        /// </summary>
+        public System.DateTime DatetimeField => _datetimeField;
+
+        /// <summary>
+        /// time interval
+        /// </summary>
+        public System.TimeSpan TimespanField => _timespanField;
+
+        /// <summary>
+        /// globally unique id
+        /// </summary>
+        public System.Guid UuidField => _uuidField;
+
+        /// <summary>
+        /// enum reference
+        /// </summary>
+        public global::Tabbit.Fixtures.Core.Client.ValueType ValueTypeField => _valueTypeField;
+        #endregion
+
+        #region Storage
+        internal int _index;
+        internal string _stringField = "";
+        internal bool _boolField;
+        internal long _bigIntField;
+        internal float _floatField;
+        internal double _doubleField;
+        internal System.DateTime _datetimeField;
+        internal System.TimeSpan _timespanField;
+        internal System.Guid _uuidField;
+        internal global::Tabbit.Fixtures.Core.Client.ValueType _valueTypeField;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"StringField\":"); ToStringHelper.ToString(StringField, sb);
+            sb.Append(",\"BoolField\":"); ToStringHelper.ToString(BoolField, sb);
+            sb.Append(",\"BigIntField\":"); ToStringHelper.ToString(BigIntField, sb);
+            sb.Append(",\"FloatField\":"); ToStringHelper.ToString(FloatField, sb);
+            sb.Append(",\"DoubleField\":"); ToStringHelper.ToString(DoubleField, sb);
+            sb.Append(",\"DatetimeField\":"); ToStringHelper.ToString(DatetimeField, sb);
+            sb.Append(",\"TimespanField\":"); ToStringHelper.ToString(TimespanField, sb);
+            sb.Append(",\"UuidField\":"); ToStringHelper.ToString(UuidField, sb);
+            sb.Append(",\"ValueTypeField\":"); ToStringHelper.ToString(ValueTypeField, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// One column per supported primitive type.
     /// </summary>
     [System.Serializable]
-    public partial class TestFieldTypesTable : IEnumerable<TestFieldTypesTable.Record>
+    public partial class TestFieldTypesTable : IEnumerable<TestFieldTypesRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Index => _index;
-
-            /// <summary>
-            /// utf8 text
-            /// </summary>
-            public string StringField => _stringField;
-
-            /// <summary>
-            /// logical flag
-            /// </summary>
-            public bool BoolField => _boolField;
-
-            /// <summary>
-            /// 64 bit integer
-            /// </summary>
-            public long BigIntField => _bigIntField;
-
-            /// <summary>
-            /// single precision
-            /// </summary>
-            public float FloatField => _floatField;
-
-            /// <summary>
-            /// double precision
-            /// </summary>
-            public double DoubleField => _doubleField;
-
-            /// <summary>
-            /// date and time
-            /// </summary>
-            public System.DateTime DatetimeField => _datetimeField;
-
-            /// <summary>
-            /// time interval
-            /// </summary>
-            public System.TimeSpan TimespanField => _timespanField;
-
-            /// <summary>
-            /// globally unique id
-            /// </summary>
-            public System.Guid UuidField => _uuidField;
-
-            /// <summary>
-            /// enum reference
-            /// </summary>
-            public global::Tabbit.Fixtures.Core.Client.ValueType ValueTypeField => _valueTypeField;
-            #endregion
-
-            #region Storage
-            internal int _index;
-            internal string _stringField = "";
-            internal bool _boolField;
-            internal long _bigIntField;
-            internal float _floatField;
-            internal double _doubleField;
-            internal System.DateTime _datetimeField;
-            internal System.TimeSpan _timespanField;
-            internal System.Guid _uuidField;
-            internal global::Tabbit.Fixtures.Core.Client.ValueType _valueTypeField;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"StringField\":"); ToStringHelper.ToString(StringField, sb);
-                sb.Append(",\"BoolField\":"); ToStringHelper.ToString(BoolField, sb);
-                sb.Append(",\"BigIntField\":"); ToStringHelper.ToString(BigIntField, sb);
-                sb.Append(",\"FloatField\":"); ToStringHelper.ToString(FloatField, sb);
-                sb.Append(",\"DoubleField\":"); ToStringHelper.ToString(DoubleField, sb);
-                sb.Append(",\"DatetimeField\":"); ToStringHelper.ToString(DatetimeField, sb);
-                sb.Append(",\"TimespanField\":"); ToStringHelper.ToString(TimespanField, sb);
-                sb.Append(",\"UuidField\":"); ToStringHelper.ToString(UuidField, sb);
-                sb.Append(",\"ValueTypeField\":"); ToStringHelper.ToString(ValueTypeField, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -140,8 +138,8 @@ namespace Tabbit.Fixtures.Core.Client
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<TestFieldTypesRecord> Records => _records;
+        private List<TestFieldTypesRecord> _records = new List<TestFieldTypesRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -158,16 +156,16 @@ namespace Tabbit.Fixtures.Core.Client
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<TestFieldTypesRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<TestFieldTypesRecord> IEnumerable<TestFieldTypesRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+        public Dictionary<int, TestFieldTypesRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<int, TestFieldTypesRecord> _recordsByIndex = new Dictionary<int, TestFieldTypesRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -177,8 +175,8 @@ namespace Tabbit.Fixtures.Core.Client
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(int key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public TestFieldTypesRecord FindByIndex(int key)
+            => _recordsByIndex.TryGetValue(key, out TestFieldTypesRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -189,9 +187,9 @@ namespace Tabbit.Fixtures.Core.Client
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(int key)
+        public TestFieldTypesRecord GetByIndexOrThrow(int key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out TestFieldTypesRecord record))
                 throw new TabbitException($"There is no record in table `TestFieldTypes` that corresponds to field `Index` value {key}");
 
             return record;
@@ -216,10 +214,10 @@ namespace Tabbit.Fixtures.Core.Client
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<TestFieldTypesRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<TestFieldTypesRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -229,7 +227,7 @@ namespace Tabbit.Fixtures.Core.Client
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, TestFieldTypesRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -254,7 +252,7 @@ namespace Tabbit.Fixtures.Core.Client
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIndexOrThrow(key);
+        public TestFieldTypesRecord this[int key] => GetByIndexOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -297,10 +295,10 @@ namespace Tabbit.Fixtures.Core.Client
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<TestFieldTypesRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new TestFieldTypesRecord());
 
             foreach (var column in columns)
             {
@@ -437,7 +435,7 @@ namespace Tabbit.Fixtures.Core.Client
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<int, Record>(count);
+            var recordsByIndex = new Dictionary<int, TestFieldTypesRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
 

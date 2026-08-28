@@ -18,60 +18,58 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class RankRecord
+    {
+        #region Values
+        /// <summary>
+        /// 랭크
+        /// </summary>
+        public global::Clover.Data.RankKind Rank => _rank;
+
+        /// <summary>
+        /// 득점할 때의 칩값
+        /// </summary>
+        public int Chips => _chips;
+
+        /// <summary>
+        /// 그림 카드인가
+        /// </summary>
+        public bool IsFace => _isFace;
+
+        /// <summary>
+        /// 카드에 적히는 글자
+        /// </summary>
+        public string Display => _display;
+        #endregion
+
+        #region Storage
+        internal global::Clover.Data.RankKind _rank;
+        internal int _chips;
+        internal bool _isFace;
+        internal string _display = "";
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Rank\":"); ToStringHelper.ToString(Rank, sb);
+            sb.Append(",\"Chips\":"); ToStringHelper.ToString(Chips, sb);
+            sb.Append(",\"IsFace\":"); ToStringHelper.ToString(IsFace, sb);
+            sb.Append(",\"Display\":"); ToStringHelper.ToString(Display, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 랭크 하나의 값입니다. 크기 순서는 enum 이 정하고 칩값이 여기 있습니다.
     /// </summary>
     [System.Serializable]
-    public partial class RankTable : IEnumerable<RankTable.Record>
+    public partial class RankTable : IEnumerable<RankRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 랭크
-            /// </summary>
-            public global::Clover.Data.RankKind Rank => _rank;
-
-            /// <summary>
-            /// 득점할 때의 칩값
-            /// </summary>
-            public int Chips => _chips;
-
-            /// <summary>
-            /// 그림 카드인가
-            /// </summary>
-            public bool IsFace => _isFace;
-
-            /// <summary>
-            /// 카드에 적히는 글자
-            /// </summary>
-            public string Display => _display;
-            #endregion
-
-            #region Storage
-            internal global::Clover.Data.RankKind _rank;
-            internal int _chips;
-            internal bool _isFace;
-            internal string _display = "";
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Rank\":"); ToStringHelper.ToString(Rank, sb);
-                sb.Append(",\"Chips\":"); ToStringHelper.ToString(Chips, sb);
-                sb.Append(",\"IsFace\":"); ToStringHelper.ToString(IsFace, sb);
-                sb.Append(",\"Display\":"); ToStringHelper.ToString(Display, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -98,8 +96,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<RankRecord> Records => _records;
+        private List<RankRecord> _records = new List<RankRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -116,16 +114,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<RankRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<RankRecord> IEnumerable<RankRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Rank'
-        public Dictionary<global::Clover.Data.RankKind, Record> RecordsByRank => _recordsByRank;
-        private Dictionary<global::Clover.Data.RankKind, Record> _recordsByRank = new Dictionary<global::Clover.Data.RankKind, Record>();
+        public Dictionary<global::Clover.Data.RankKind, RankRecord> RecordsByRank => _recordsByRank;
+        private Dictionary<global::Clover.Data.RankKind, RankRecord> _recordsByRank = new Dictionary<global::Clover.Data.RankKind, RankRecord>();
 
         /// <summary>
         /// The row with this `Rank`, or null when the table has none.
@@ -135,8 +133,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByRank(global::Clover.Data.RankKind key)
-            => _recordsByRank.TryGetValue(key, out Record record) ? record : null;
+        public RankRecord FindByRank(global::Clover.Data.RankKind key)
+            => _recordsByRank.TryGetValue(key, out RankRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Rank`, or a thrown exception naming what was
@@ -147,9 +145,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByRank(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByRankOrThrow(global::Clover.Data.RankKind key)
+        public RankRecord GetByRankOrThrow(global::Clover.Data.RankKind key)
         {
-            if (!_recordsByRank.TryGetValue(key, out Record record))
+            if (!_recordsByRank.TryGetValue(key, out RankRecord record))
                 throw new TabbitException($"There is no record in table `Rank` that corresponds to field `Rank` value {key}");
 
             return record;
@@ -174,10 +172,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<RankRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<RankRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -187,7 +185,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (global::Clover.Data.RankKind Key, Record Row) Current
+            public (global::Clover.Data.RankKind Key, RankRecord Row) Current
                 => (_rows[_at].Rank, _rows[_at]);
         }
 
@@ -212,7 +210,7 @@ namespace Clover.Data
         /// It does not replace `FindByRank`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[global::Clover.Data.RankKind key] => GetByRankOrThrow(key);
+        public RankRecord this[global::Clover.Data.RankKind key] => GetByRankOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -255,10 +253,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<RankRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new RankRecord());
 
             foreach (var column in columns)
             {
@@ -336,7 +334,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByRank = new Dictionary<global::Clover.Data.RankKind, Record>(count);
+            var recordsByRank = new Dictionary<global::Clover.Data.RankKind, RankRecord>(count);
             foreach (var record in records)
                 recordsByRank.Add(record.Rank, record);
 

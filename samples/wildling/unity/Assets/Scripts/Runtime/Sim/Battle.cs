@@ -8,7 +8,7 @@ namespace Wildling.Game
     /// <summary>전투에 선 개체 하나이다.</summary>
     public sealed class Combatant
     {
-        public MonsterTable.Record Monster;
+        public MonsterRecord Monster;
         public int Level;
         public int Resonance;
         public int Placement;      // 배치 순서. 속도가 같을 때의 순서이다
@@ -18,8 +18,8 @@ namespace Wildling.Game
         public int Hp;
         public int MaxHp;
 
-        public SkillTable.Record[] Active = Array.Empty<SkillTable.Record>();
-        public SkillTable.Record[] Passive = Array.Empty<SkillTable.Record>();
+        public SkillRecord[] Active = Array.Empty<SkillRecord>();
+        public SkillRecord[] Passive = Array.Empty<SkillRecord>();
         public int[] SkillLevels = Array.Empty<int>();
 
         public int[] Cooldowns = Array.Empty<int>();
@@ -405,7 +405,7 @@ namespace Wildling.Game
         }
 
         private static void ApplyEffect(BattleReport report, Combatant actor, Combatant target,
-                                        SkillTable.Record skill, Effect effect,
+                                        SkillRecord skill, Effect effect,
                                         int growth, Rng rng)
         {
             if (!rng.Chance(effect.Chance))
@@ -497,7 +497,7 @@ namespace Wildling.Game
         }
 
         /// <summary>속성이 없는 스킬은 상성을 타지 않는다.</summary>
-        private static int Affinity(SkillTable.Record skill, Combatant actor, Combatant target)
+        private static int Affinity(SkillRecord skill, Combatant actor, Combatant target)
         {
             if (!skill.HasElement)
                 return BattleConst.NeutralAffinity;
@@ -510,13 +510,13 @@ namespace Wildling.Game
         private static int SkillLevelOf(Combatant actor, int slot)
             => slot < actor.SkillLevels.Length ? Math.Max(1, actor.SkillLevels[slot]) : 1;
 
-        private static int SkillPowerFactor(SkillTable.Record skill, int level)
+        private static int SkillPowerFactor(SkillRecord skill, int level)
             => WildlingData.SkillGrowth.Records
                    .FirstOrDefault(r => r.SkillId == skill.SkillId && r.Level == level)
                    ?.PowerFactor ?? Numbers.One;
 
         /// <summary>스킬 하나가 일으키는 효과를 순서대로 낸다.</summary>
-        public static IEnumerable<Effect> EffectsOf(SkillTable.Record skill)
+        public static IEnumerable<Effect> EffectsOf(SkillRecord skill)
             => WildlingData.SkillEffect.Records
                 .Where(r => r.SkillId == skill.SkillId)
                 .OrderBy(r => r.Order)

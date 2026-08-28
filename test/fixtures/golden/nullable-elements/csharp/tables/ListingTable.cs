@@ -18,105 +18,103 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.NullableElements
 {
+    [System.Serializable]
+    public partial class ListingRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// what the row is about
+        /// </summary>
+        public string Name => _name;
+
+        /// <summary>
+        /// both required
+        /// </summary>
+        public int[] Plain => _plain;
+
+        /// <summary>
+        /// the array may be absent
+        /// </summary>
+        public int[] Maybe => _maybe;
+        /// <summary>Whether this row has a value for <see cref="Maybe"/>.</summary>
+        public bool HasMaybe => _maybeHasValue;
+
+        /// <summary>
+        /// an element may be absent
+        /// </summary>
+        public int[] Holes => _holes;
+        /// <summary>Whether element <paramref name="index"/> of <see cref="Holes"/> has a value.</summary>
+        public bool HasHolesAt(int index)
+            => _holesHasValueAt == null
+                || index < 0 || index >= _holesHasValueAt.Length
+                || _holesHasValueAt[index];
+
+        /// <summary>
+        /// either may be
+        /// </summary>
+        public int[] Both => _both;
+        /// <summary>Whether this row has a value for <see cref="Both"/>.</summary>
+        public bool HasBoth => _bothHasValue;
+        /// <summary>Whether element <paramref name="index"/> of <see cref="Both"/> has a value.</summary>
+        public bool HasBothAt(int index)
+            => _bothHasValueAt == null
+                || index < 0 || index >= _bothHasValueAt.Length
+                || _bothHasValueAt[index];
+
+        /// <summary>
+        /// where a value comparison cannot see it
+        /// </summary>
+        public string[] Words => _words;
+        /// <summary>Whether element <paramref name="index"/> of <see cref="Words"/> has a value.</summary>
+        public bool HasWordsAt(int index)
+            => _wordsHasValueAt == null
+                || index < 0 || index >= _wordsHasValueAt.Length
+                || _wordsHasValueAt[index];
+        #endregion
+
+        #region Storage
+        internal int _index;
+        internal string _name = "";
+        internal int[] _plain = System.Array.Empty<int>();
+        internal int[] _maybe = System.Array.Empty<int>();
+        internal bool _maybeHasValue;
+        internal int[] _holes = System.Array.Empty<int>();
+        internal bool[] _holesHasValueAt;
+        internal int[] _both = System.Array.Empty<int>();
+        internal bool _bothHasValue;
+        internal bool[] _bothHasValueAt;
+        internal string[] _words = System.Array.Empty<string>();
+        internal bool[] _wordsHasValueAt;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append(",\"Plain\":"); ToStringHelper.ToString(Plain, sb);
+            sb.Append(",\"Maybe\":"); ToStringHelper.ToString(Maybe, sb);
+            sb.Append(",\"Holes\":"); ToStringHelper.ToString(Holes, sb);
+            sb.Append(",\"Both\":"); ToStringHelper.ToString(Both, sb);
+            sb.Append(",\"Words\":"); ToStringHelper.ToString(Words, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// Every combination of an array and its elements being optional.
     /// </summary>
     [System.Serializable]
-    public partial class ListingTable : IEnumerable<ListingTable.Record>
+    public partial class ListingTable : IEnumerable<ListingRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Index => _index;
-
-            /// <summary>
-            /// what the row is about
-            /// </summary>
-            public string Name => _name;
-
-            /// <summary>
-            /// both required
-            /// </summary>
-            public int[] Plain => _plain;
-
-            /// <summary>
-            /// the array may be absent
-            /// </summary>
-            public int[] Maybe => _maybe;
-            /// <summary>Whether this row has a value for <see cref="Maybe"/>.</summary>
-            public bool HasMaybe => _maybeHasValue;
-
-            /// <summary>
-            /// an element may be absent
-            /// </summary>
-            public int[] Holes => _holes;
-            /// <summary>Whether element <paramref name="index"/> of <see cref="Holes"/> has a value.</summary>
-            public bool HasHolesAt(int index)
-                => _holesHasValueAt == null
-                    || index < 0 || index >= _holesHasValueAt.Length
-                    || _holesHasValueAt[index];
-
-            /// <summary>
-            /// either may be
-            /// </summary>
-            public int[] Both => _both;
-            /// <summary>Whether this row has a value for <see cref="Both"/>.</summary>
-            public bool HasBoth => _bothHasValue;
-            /// <summary>Whether element <paramref name="index"/> of <see cref="Both"/> has a value.</summary>
-            public bool HasBothAt(int index)
-                => _bothHasValueAt == null
-                    || index < 0 || index >= _bothHasValueAt.Length
-                    || _bothHasValueAt[index];
-
-            /// <summary>
-            /// where a value comparison cannot see it
-            /// </summary>
-            public string[] Words => _words;
-            /// <summary>Whether element <paramref name="index"/> of <see cref="Words"/> has a value.</summary>
-            public bool HasWordsAt(int index)
-                => _wordsHasValueAt == null
-                    || index < 0 || index >= _wordsHasValueAt.Length
-                    || _wordsHasValueAt[index];
-            #endregion
-
-            #region Storage
-            internal int _index;
-            internal string _name = "";
-            internal int[] _plain = System.Array.Empty<int>();
-            internal int[] _maybe = System.Array.Empty<int>();
-            internal bool _maybeHasValue;
-            internal int[] _holes = System.Array.Empty<int>();
-            internal bool[] _holesHasValueAt;
-            internal int[] _both = System.Array.Empty<int>();
-            internal bool _bothHasValue;
-            internal bool[] _bothHasValueAt;
-            internal string[] _words = System.Array.Empty<string>();
-            internal bool[] _wordsHasValueAt;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append(",\"Plain\":"); ToStringHelper.ToString(Plain, sb);
-                sb.Append(",\"Maybe\":"); ToStringHelper.ToString(Maybe, sb);
-                sb.Append(",\"Holes\":"); ToStringHelper.ToString(Holes, sb);
-                sb.Append(",\"Both\":"); ToStringHelper.ToString(Both, sb);
-                sb.Append(",\"Words\":"); ToStringHelper.ToString(Words, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -143,8 +141,8 @@ namespace Tabbit.Fixtures.NullableElements
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<ListingRecord> Records => _records;
+        private List<ListingRecord> _records = new List<ListingRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -161,16 +159,16 @@ namespace Tabbit.Fixtures.NullableElements
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<ListingRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<ListingRecord> IEnumerable<ListingRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+        public Dictionary<int, ListingRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<int, ListingRecord> _recordsByIndex = new Dictionary<int, ListingRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -180,8 +178,8 @@ namespace Tabbit.Fixtures.NullableElements
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(int key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public ListingRecord FindByIndex(int key)
+            => _recordsByIndex.TryGetValue(key, out ListingRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -192,9 +190,9 @@ namespace Tabbit.Fixtures.NullableElements
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(int key)
+        public ListingRecord GetByIndexOrThrow(int key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out ListingRecord record))
                 throw new TabbitException($"There is no record in table `Listing` that corresponds to field `Index` value {key}");
 
             return record;
@@ -219,10 +217,10 @@ namespace Tabbit.Fixtures.NullableElements
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<ListingRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<ListingRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -232,7 +230,7 @@ namespace Tabbit.Fixtures.NullableElements
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, ListingRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -257,7 +255,7 @@ namespace Tabbit.Fixtures.NullableElements
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIndexOrThrow(key);
+        public ListingRecord this[int key] => GetByIndexOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -303,10 +301,10 @@ namespace Tabbit.Fixtures.NullableElements
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<ListingRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new ListingRecord());
 
             foreach (var column in columns)
             {
@@ -475,7 +473,7 @@ namespace Tabbit.Fixtures.NullableElements
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<int, Record>(count);
+            var recordsByIndex = new Dictionary<int, ListingRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
 

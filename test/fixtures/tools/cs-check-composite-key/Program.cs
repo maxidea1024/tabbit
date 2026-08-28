@@ -92,5 +92,5 @@ internal static class Program
         }
     }
 
-    private static string Code(RouteTable.Record row) => row is null ? "<none>" : row.Code;
+    private static string Code(RouteRecord row) => row is null ? "<none>" : row.Code;
 }

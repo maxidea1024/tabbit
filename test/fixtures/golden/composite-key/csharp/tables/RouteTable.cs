@@ -18,60 +18,58 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.CompositeKey
 {
+    [System.Serializable]
+    public partial class RouteRecord
+    {
+        #region Values
+        /// <summary>
+        /// where it starts
+        /// </summary>
+        public string From => _from;
+
+        /// <summary>
+        /// where it ends
+        /// </summary>
+        public string To => _to;
+
+        /// <summary>
+        /// unique on its own
+        /// </summary>
+        public string Code => _code;
+
+        /// <summary>
+        /// anything
+        /// </summary>
+        public int Distance => _distance;
+        #endregion
+
+        #region Storage
+        internal string _from = "";
+        internal string _to = "";
+        internal string _code = "";
+        internal int _distance;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"From\":"); ToStringHelper.ToString(From, sb);
+            sb.Append(",\"To\":"); ToStringHelper.ToString(To, sb);
+            sb.Append(",\"Code\":"); ToStringHelper.ToString(Code, sb);
+            sb.Append(",\"Distance\":"); ToStringHelper.ToString(Distance, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// A composite primary key of strings, beside a single-column secondary one.
     /// </summary>
     [System.Serializable]
-    public partial class RouteTable : IEnumerable<RouteTable.Record>
+    public partial class RouteTable : IEnumerable<RouteRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// where it starts
-            /// </summary>
-            public string From => _from;
-
-            /// <summary>
-            /// where it ends
-            /// </summary>
-            public string To => _to;
-
-            /// <summary>
-            /// unique on its own
-            /// </summary>
-            public string Code => _code;
-
-            /// <summary>
-            /// anything
-            /// </summary>
-            public int Distance => _distance;
-            #endregion
-
-            #region Storage
-            internal string _from = "";
-            internal string _to = "";
-            internal string _code = "";
-            internal int _distance;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"From\":"); ToStringHelper.ToString(From, sb);
-                sb.Append(",\"To\":"); ToStringHelper.ToString(To, sb);
-                sb.Append(",\"Code\":"); ToStringHelper.ToString(Code, sb);
-                sb.Append(",\"Distance\":"); ToStringHelper.ToString(Distance, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -98,8 +96,8 @@ namespace Tabbit.Fixtures.CompositeKey
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<RouteRecord> Records => _records;
+        private List<RouteRecord> _records = new List<RouteRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -116,16 +114,16 @@ namespace Tabbit.Fixtures.CompositeKey
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<RouteRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<RouteRecord> IEnumerable<RouteRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Code'
-        public Dictionary<string, Record> RecordsByCode => _recordsByCode;
-        private Dictionary<string, Record> _recordsByCode = new Dictionary<string, Record>();
+        public Dictionary<string, RouteRecord> RecordsByCode => _recordsByCode;
+        private Dictionary<string, RouteRecord> _recordsByCode = new Dictionary<string, RouteRecord>();
 
         /// <summary>
         /// The row with this `Code`, or null when the table has none.
@@ -135,8 +133,8 @@ namespace Tabbit.Fixtures.CompositeKey
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByCode(string key)
-            => _recordsByCode.TryGetValue(key, out Record record) ? record : null;
+        public RouteRecord FindByCode(string key)
+            => _recordsByCode.TryGetValue(key, out RouteRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Code`, or a thrown exception naming what was
@@ -147,9 +145,9 @@ namespace Tabbit.Fixtures.CompositeKey
         /// says it throws, because a caller reading `GetByCode(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByCodeOrThrow(string key)
+        public RouteRecord GetByCodeOrThrow(string key)
         {
-            if (!_recordsByCode.TryGetValue(key, out Record record))
+            if (!_recordsByCode.TryGetValue(key, out RouteRecord record))
                 throw new TabbitException($"There is no record in table `Route` that corresponds to field `Code` value {key}");
 
             return record;
@@ -160,7 +158,7 @@ namespace Tabbit.Fixtures.CompositeKey
         #endregion // Indexing by `Code`
 
         #region Indexing by 'From and To'
-        private Dictionary<string, Record> _recordsByFromAndTo = new Dictionary<string, Record>();
+        private Dictionary<string, RouteRecord> _recordsByFromAndTo = new Dictionary<string, RouteRecord>();
 
         /// <summary>Joins the columns of the `From and To` key into the text the map is keyed by.</summary>
         private static string KeyOfFromAndTo(string fromKey, string toKey)
@@ -187,16 +185,16 @@ namespace Tabbit.Fixtures.CompositeKey
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByFromAndTo(string fromKey, string toKey)
-            => _recordsByFromAndTo.TryGetValue(KeyOfFromAndTo(fromKey, toKey), out Record record) ? record : null;
+        public RouteRecord FindByFromAndTo(string fromKey, string toKey)
+            => _recordsByFromAndTo.TryGetValue(KeyOfFromAndTo(fromKey, toKey), out RouteRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `From and To`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetByFromAndToOrThrow(string fromKey, string toKey)
+        public RouteRecord GetByFromAndToOrThrow(string fromKey, string toKey)
         {
-            if (!_recordsByFromAndTo.TryGetValue(KeyOfFromAndTo(fromKey, toKey), out Record record))
+            if (!_recordsByFromAndTo.TryGetValue(KeyOfFromAndTo(fromKey, toKey), out RouteRecord record))
                 throw new TabbitException($"There is no record in table `Route` that corresponds to field `From and To` value ({fromKey}, {toKey})");
 
             return record;
@@ -214,7 +212,7 @@ namespace Tabbit.Fixtures.CompositeKey
         /// the order `GetByFromAndToOrThrow` takes them in too.
         /// spec/targets/table-collection-surface.md section 5.4.
         /// </remarks>
-        public Record this[string fromKey, string toKey]
+        public RouteRecord this[string fromKey, string toKey]
             => GetByFromAndToOrThrow(fromKey, toKey);
         #endregion // Indexing by `From and To`
 
@@ -259,10 +257,10 @@ namespace Tabbit.Fixtures.CompositeKey
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<RouteRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new RouteRecord());
 
             foreach (var column in columns)
             {
@@ -346,10 +344,10 @@ namespace Tabbit.Fixtures.CompositeKey
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByCode = new Dictionary<string, Record>(count);
+            var recordsByCode = new Dictionary<string, RouteRecord>(count);
             foreach (var record in records)
                 recordsByCode.Add(record.Code, record);
-            var recordsByFromAndTo = new Dictionary<string, Record>(count);
+            var recordsByFromAndTo = new Dictionary<string, RouteRecord>(count);
             foreach (var record in records)
                 recordsByFromAndTo.Add(KeyOfFromAndTo(record.From, record.To), record);
 

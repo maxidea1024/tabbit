@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-28T11:52:34.4692483+09:00",
+    "generatedAt": "2026-08-28T16:50:57.7130075+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "reserved-words.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "f1f17392f99527f882a1533035433342920008b6",
-      "shortHash": "f1f17392f995",
+      "hash": "ec90f734ad09371828b2c6e13ec29acfa6935b75",
+      "shortHash": "ec90f734ad09",
       "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-28T11:44:44.0000000+09:00",
-      "subject": "docs: 스위트 시간 재측정과 재생성 절차의 캐시 우회",
+      "committedAt": "2026-08-28T16:05:24.0000000+09:00",
+      "subject": "docs: 편집기 문서의 설치를 릴리즈와 yarn으로",
       "origin": "git",
       "dirty": true,
       "attributable": false

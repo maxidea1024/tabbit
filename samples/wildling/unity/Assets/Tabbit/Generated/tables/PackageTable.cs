@@ -18,74 +18,72 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class PackageRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string PackageId => _packageId;
+
+        /// <summary>
+        /// 표시 이름
+        /// </summary>
+        public string Name => _name;
+
+        /// <summary>
+        /// 지급 내용
+        /// </summary>
+        public string RewardGroupId => _rewardGroupId_RewardGroup_index;
+        public RewardGroupRecord RewardGroupByRewardGroupId => _rewardGroupId;
+
+        /// <summary>
+        /// 표시 가격
+        /// </summary>
+        public string PriceDisplay => _priceDisplay;
+
+        /// <summary>
+        /// 표시 순서
+        /// </summary>
+        public int SortOrder => _sortOrder;
+        #endregion
+
+        #region Reference wiring
+        public void SetReference_RewardGroupId_INTERNAL(RewardGroupRecord value) => _rewardGroupId = value;
+        #endregion
+
+        #region Storage
+        internal string _packageId = "";
+        internal string _name = "";
+        internal RewardGroupRecord _rewardGroupId;
+        internal string _rewardGroupId_RewardGroup_index;
+        public bool _rewardGroupId_F = false;
+        internal string _priceDisplay = "";
+        internal int _sortOrder;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"PackageId\":"); ToStringHelper.ToString(PackageId, sb);
+            sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+            sb.Append(",\"RewardGroupId\":"); ToStringHelper.ToString(RewardGroupId, sb);
+            sb.Append(",\"PriceDisplay\":"); ToStringHelper.ToString(PriceDisplay, sb);
+            sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 판매 상품이다. 표시 가격만 국가별로 갈린다.
     /// </summary>
     [System.Serializable]
-    public partial class PackageTable : IEnumerable<PackageTable.Record>
+    public partial class PackageTable : IEnumerable<PackageRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string PackageId => _packageId;
-
-            /// <summary>
-            /// 표시 이름
-            /// </summary>
-            public string Name => _name;
-
-            /// <summary>
-            /// 지급 내용
-            /// </summary>
-            public string RewardGroupId => _rewardGroupId_RewardGroup_index;
-            public RewardGroupTable.Record RewardGroupByRewardGroupId => _rewardGroupId;
-
-            /// <summary>
-            /// 표시 가격
-            /// </summary>
-            public string PriceDisplay => _priceDisplay;
-
-            /// <summary>
-            /// 표시 순서
-            /// </summary>
-            public int SortOrder => _sortOrder;
-            #endregion
-
-            #region Reference wiring
-            public void SetReference_RewardGroupId_INTERNAL(RewardGroupTable.Record value) => _rewardGroupId = value;
-            #endregion
-
-            #region Storage
-            internal string _packageId = "";
-            internal string _name = "";
-            internal RewardGroupTable.Record _rewardGroupId;
-            internal string _rewardGroupId_RewardGroup_index;
-            public bool _rewardGroupId_F = false;
-            internal string _priceDisplay = "";
-            internal int _sortOrder;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"PackageId\":"); ToStringHelper.ToString(PackageId, sb);
-                sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
-                sb.Append(",\"RewardGroupId\":"); ToStringHelper.ToString(RewardGroupId, sb);
-                sb.Append(",\"PriceDisplay\":"); ToStringHelper.ToString(PriceDisplay, sb);
-                sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -112,8 +110,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<PackageRecord> Records => _records;
+        private List<PackageRecord> _records = new List<PackageRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -130,16 +128,16 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<PackageRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<PackageRecord> IEnumerable<PackageRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'PackageId'
-        public Dictionary<string, Record> RecordsByPackageId => _recordsByPackageId;
-        private Dictionary<string, Record> _recordsByPackageId = new Dictionary<string, Record>();
+        public Dictionary<string, PackageRecord> RecordsByPackageId => _recordsByPackageId;
+        private Dictionary<string, PackageRecord> _recordsByPackageId = new Dictionary<string, PackageRecord>();
 
         /// <summary>
         /// The row with this `PackageId`, or null when the table has none.
@@ -149,8 +147,8 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByPackageId(string key)
-            => _recordsByPackageId.TryGetValue(key, out Record record) ? record : null;
+        public PackageRecord FindByPackageId(string key)
+            => _recordsByPackageId.TryGetValue(key, out PackageRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `PackageId`, or a thrown exception naming what was
@@ -161,9 +159,9 @@ namespace Wildling.Data
         /// says it throws, because a caller reading `GetByPackageId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByPackageIdOrThrow(string key)
+        public PackageRecord GetByPackageIdOrThrow(string key)
         {
-            if (!_recordsByPackageId.TryGetValue(key, out Record record))
+            if (!_recordsByPackageId.TryGetValue(key, out PackageRecord record))
                 throw new TabbitException($"There is no record in table `Package` that corresponds to field `PackageId` value {key}");
 
             return record;
@@ -188,10 +186,10 @@ namespace Wildling.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<PackageRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<PackageRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -201,7 +199,7 @@ namespace Wildling.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, PackageRecord Row) Current
                 => (_rows[_at].PackageId, _rows[_at]);
         }
 
@@ -226,7 +224,7 @@ namespace Wildling.Data
         /// It does not replace `FindByPackageId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByPackageIdOrThrow(key);
+        public PackageRecord this[string key] => GetByPackageIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -269,10 +267,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<PackageRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new PackageRecord());
 
             foreach (var column in columns)
             {
@@ -324,7 +322,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._rewardGroupId_RewardGroup_index = value;
-                                record._rewardGroupId = default(RewardGroupTable.Record); // will be assigned.
+                                record._rewardGroupId = default(RewardGroupRecord); // will be assigned.
                                 record._rewardGroupId_F = false;
                             } while (--n > 0);
                         }
@@ -374,7 +372,7 @@ namespace Wildling.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByPackageId = new Dictionary<string, Record>(count);
+            var recordsByPackageId = new Dictionary<string, PackageRecord>(count);
             foreach (var record in records)
                 recordsByPackageId.Add(record.PackageId, record);
 

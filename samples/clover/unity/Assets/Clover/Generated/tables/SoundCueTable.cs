@@ -18,53 +18,51 @@ using Tabbit.Binary;
 
 namespace Clover.Data
 {
+    [System.Serializable]
+    public partial class SoundCueRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string CueId => _cueId;
+
+        /// <summary>
+        /// 언제 나는가
+        /// </summary>
+        public string Note => _note;
+
+        /// <summary>
+        /// 음높이가 값을 따라가는가
+        /// </summary>
+        public bool PitchFollowsValue => _pitchFollowsValue;
+        #endregion
+
+        #region Storage
+        internal string _cueId = "";
+        internal string _note = "";
+        internal bool _pitchFollowsValue;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"CueId\":"); ToStringHelper.ToString(CueId, sb);
+            sb.Append(",\"Note\":"); ToStringHelper.ToString(Note, sb);
+            sb.Append(",\"PitchFollowsValue\":"); ToStringHelper.ToString(PitchFollowsValue, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 소리 하나입니다. 음높이가 값을 따라가는 것과 그렇지 않은 것이 갈립니다.
     /// </summary>
     [System.Serializable]
-    public partial class SoundCueTable : IEnumerable<SoundCueTable.Record>
+    public partial class SoundCueTable : IEnumerable<SoundCueRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string CueId => _cueId;
-
-            /// <summary>
-            /// 언제 나는가
-            /// </summary>
-            public string Note => _note;
-
-            /// <summary>
-            /// 음높이가 값을 따라가는가
-            /// </summary>
-            public bool PitchFollowsValue => _pitchFollowsValue;
-            #endregion
-
-            #region Storage
-            internal string _cueId = "";
-            internal string _note = "";
-            internal bool _pitchFollowsValue;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"CueId\":"); ToStringHelper.ToString(CueId, sb);
-                sb.Append(",\"Note\":"); ToStringHelper.ToString(Note, sb);
-                sb.Append(",\"PitchFollowsValue\":"); ToStringHelper.ToString(PitchFollowsValue, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -91,8 +89,8 @@ namespace Clover.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<SoundCueRecord> Records => _records;
+        private List<SoundCueRecord> _records = new List<SoundCueRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -109,16 +107,16 @@ namespace Clover.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<SoundCueRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<SoundCueRecord> IEnumerable<SoundCueRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'CueId'
-        public Dictionary<string, Record> RecordsByCueId => _recordsByCueId;
-        private Dictionary<string, Record> _recordsByCueId = new Dictionary<string, Record>();
+        public Dictionary<string, SoundCueRecord> RecordsByCueId => _recordsByCueId;
+        private Dictionary<string, SoundCueRecord> _recordsByCueId = new Dictionary<string, SoundCueRecord>();
 
         /// <summary>
         /// The row with this `CueId`, or null when the table has none.
@@ -128,8 +126,8 @@ namespace Clover.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByCueId(string key)
-            => _recordsByCueId.TryGetValue(key, out Record record) ? record : null;
+        public SoundCueRecord FindByCueId(string key)
+            => _recordsByCueId.TryGetValue(key, out SoundCueRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `CueId`, or a thrown exception naming what was
@@ -140,9 +138,9 @@ namespace Clover.Data
         /// says it throws, because a caller reading `GetByCueId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByCueIdOrThrow(string key)
+        public SoundCueRecord GetByCueIdOrThrow(string key)
         {
-            if (!_recordsByCueId.TryGetValue(key, out Record record))
+            if (!_recordsByCueId.TryGetValue(key, out SoundCueRecord record))
                 throw new TabbitException($"There is no record in table `SoundCue` that corresponds to field `CueId` value {key}");
 
             return record;
@@ -167,10 +165,10 @@ namespace Clover.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<SoundCueRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<SoundCueRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -180,7 +178,7 @@ namespace Clover.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, SoundCueRecord Row) Current
                 => (_rows[_at].CueId, _rows[_at]);
         }
 
@@ -205,7 +203,7 @@ namespace Clover.Data
         /// It does not replace `FindByCueId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByCueIdOrThrow(key);
+        public SoundCueRecord this[string key] => GetByCueIdOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -248,10 +246,10 @@ namespace Clover.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<SoundCueRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new SoundCueRecord());
 
             foreach (var column in columns)
             {
@@ -313,7 +311,7 @@ namespace Clover.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByCueId = new Dictionary<string, Record>(count);
+            var recordsByCueId = new Dictionary<string, SoundCueRecord>(count);
             foreach (var record in records)
                 recordsByCueId.Add(record.CueId, record);
 

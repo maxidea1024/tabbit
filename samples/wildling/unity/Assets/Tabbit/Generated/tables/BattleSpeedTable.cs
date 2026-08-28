@@ -18,53 +18,51 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class BattleSpeedRecord
+    {
+        #region Values
+        /// <summary>
+        /// 자리
+        /// </summary>
+        public int At => _at;
+
+        /// <summary>
+        /// 배수
+        /// </summary>
+        public int Multiplier => _multiplier;
+
+        /// <summary>
+        /// 표시
+        /// </summary>
+        public string Label => _label;
+        #endregion
+
+        #region Storage
+        internal int _at;
+        internal int _multiplier;
+        internal string _label = "";
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"At\":"); ToStringHelper.ToString(At, sb);
+            sb.Append(",\"Multiplier\":"); ToStringHelper.ToString(Multiplier, sb);
+            sb.Append(",\"Label\":"); ToStringHelper.ToString(Label, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 배속 단계이다. 전투 상수만 쓰는 작은 표라 같은 탭에 둔다.
     /// </summary>
     [System.Serializable]
-    public partial class BattleSpeedTable : IEnumerable<BattleSpeedTable.Record>
+    public partial class BattleSpeedTable : IEnumerable<BattleSpeedRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 자리
-            /// </summary>
-            public int At => _at;
-
-            /// <summary>
-            /// 배수
-            /// </summary>
-            public int Multiplier => _multiplier;
-
-            /// <summary>
-            /// 표시
-            /// </summary>
-            public string Label => _label;
-            #endregion
-
-            #region Storage
-            internal int _at;
-            internal int _multiplier;
-            internal string _label = "";
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"At\":"); ToStringHelper.ToString(At, sb);
-                sb.Append(",\"Multiplier\":"); ToStringHelper.ToString(Multiplier, sb);
-                sb.Append(",\"Label\":"); ToStringHelper.ToString(Label, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -91,8 +89,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<BattleSpeedRecord> Records => _records;
+        private List<BattleSpeedRecord> _records = new List<BattleSpeedRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -109,16 +107,16 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<BattleSpeedRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<BattleSpeedRecord> IEnumerable<BattleSpeedRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'At'
-        public Dictionary<int, Record> RecordsByAt => _recordsByAt;
-        private Dictionary<int, Record> _recordsByAt = new Dictionary<int, Record>();
+        public Dictionary<int, BattleSpeedRecord> RecordsByAt => _recordsByAt;
+        private Dictionary<int, BattleSpeedRecord> _recordsByAt = new Dictionary<int, BattleSpeedRecord>();
 
         /// <summary>
         /// The row with this `At`, or null when the table has none.
@@ -128,8 +126,8 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByAt(int key)
-            => _recordsByAt.TryGetValue(key, out Record record) ? record : null;
+        public BattleSpeedRecord FindByAt(int key)
+            => _recordsByAt.TryGetValue(key, out BattleSpeedRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `At`, or a thrown exception naming what was
@@ -140,9 +138,9 @@ namespace Wildling.Data
         /// says it throws, because a caller reading `GetByAt(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByAtOrThrow(int key)
+        public BattleSpeedRecord GetByAtOrThrow(int key)
         {
-            if (!_recordsByAt.TryGetValue(key, out Record record))
+            if (!_recordsByAt.TryGetValue(key, out BattleSpeedRecord record))
                 throw new TabbitException($"There is no record in table `BattleSpeed` that corresponds to field `At` value {key}");
 
             return record;
@@ -167,10 +165,10 @@ namespace Wildling.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<BattleSpeedRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<BattleSpeedRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -180,7 +178,7 @@ namespace Wildling.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, BattleSpeedRecord Row) Current
                 => (_rows[_at].At, _rows[_at]);
         }
 
@@ -205,7 +203,7 @@ namespace Wildling.Data
         /// It does not replace `FindByAt`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByAtOrThrow(key);
+        public BattleSpeedRecord this[int key] => GetByAtOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -248,10 +246,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<BattleSpeedRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new BattleSpeedRecord());
 
             foreach (var column in columns)
             {
@@ -319,7 +317,7 @@ namespace Wildling.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByAt = new Dictionary<int, Record>(count);
+            var recordsByAt = new Dictionary<int, BattleSpeedRecord>(count);
             foreach (var record in records)
                 recordsByAt.Add(record.At, record);
 

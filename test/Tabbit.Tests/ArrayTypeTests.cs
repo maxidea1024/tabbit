@@ -188,12 +188,12 @@ public class ArrayTypeTests
         // the key's either way; only the whole-row form has a second name for the rows.
         // spec/references/reference-surface-naming.md sections 4, 5 and 9.
         Assert.Contains("public int[] Targets => _targets_Target_index;", cs);
-        Assert.Contains("public TargetTable.Record[] TargetByTargets => _targets;", cs);
+        Assert.Contains("public TargetRecord[] TargetByTargets => _targets;", cs);
         Assert.Contains("public string[] Notes => _notes;", cs);
 
         // Allocated from the row's own element count rather than a constant, which is what
         // separates a cell array from a folded group of columns.
-        Assert.Contains("record._targets = new TargetTable.Record[elementCount];", cs);
+        Assert.Contains("record._targets = new TargetRecord[elementCount];", cs);
 
         var rows = Rows("array-foreign", "Holder");
 

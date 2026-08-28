@@ -18,67 +18,65 @@ using Tabbit.Binary;
 
 namespace Tabbit.Fixtures.RecordRef
 {
+    [System.Serializable]
+    public partial class PoseRecord
+    {
+        #region Values
+        /// <summary>
+        /// primary index
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// element 1, a string key
+        /// </summary>
+        public StepEntry[] Step => _step;
+        #endregion
+
+        /// <summary>One element of <see cref="Step"/>.</summary>
+        [System.Serializable]
+        public struct StepEntry
+        {
+            /// element 1, a string key
+            public string ClipId;
+            public ClipRecord ClipByClipId;
+            public bool ClipId_F;
+            /// element 1, an ordinary member
+            public int Weight;
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder("{");
+                sb.Append("\"ClipId\":"); ToStringHelper.ToString(ClipId, sb);
+                sb.Append(",\"Weight\":"); ToStringHelper.ToString(Weight, sb);
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
+        #region Storage
+        internal int _index;
+        internal StepEntry[] _step = System.Array.Empty<StepEntry>();
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"Step\":"); ToStringHelper.ToString(Step, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// A record member pointing at a table keyed by a string.
     /// </summary>
     [System.Serializable]
-    public partial class PoseTable : IEnumerable<PoseTable.Record>
+    public partial class PoseTable : IEnumerable<PoseRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// primary index
-            /// </summary>
-            public int Index => _index;
-
-            /// <summary>
-            /// element 1, a string key
-            /// </summary>
-            public StepEntry[] Step => _step;
-            #endregion
-
-            /// <summary>One element of <see cref="Step"/>.</summary>
-            [System.Serializable]
-            public struct StepEntry
-            {
-                /// element 1, a string key
-                public string ClipId;
-                public ClipTable.Record ClipByClipId;
-                public bool ClipId_F;
-                /// element 1, an ordinary member
-                public int Weight;
-
-                public override string ToString()
-                {
-                    var sb = new StringBuilder("{");
-                    sb.Append("\"ClipId\":"); ToStringHelper.ToString(ClipId, sb);
-                    sb.Append(",\"Weight\":"); ToStringHelper.ToString(Weight, sb);
-                    sb.Append("}");
-                    return sb.ToString();
-                }
-            }
-
-            #region Storage
-            internal int _index;
-            internal StepEntry[] _step = System.Array.Empty<StepEntry>();
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"Step\":"); ToStringHelper.ToString(Step, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -105,8 +103,8 @@ namespace Tabbit.Fixtures.RecordRef
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<PoseRecord> Records => _records;
+        private List<PoseRecord> _records = new List<PoseRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -123,16 +121,16 @@ namespace Tabbit.Fixtures.RecordRef
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<PoseRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<PoseRecord> IEnumerable<PoseRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'Index'
-        public Dictionary<int, Record> RecordsByIndex => _recordsByIndex;
-        private Dictionary<int, Record> _recordsByIndex = new Dictionary<int, Record>();
+        public Dictionary<int, PoseRecord> RecordsByIndex => _recordsByIndex;
+        private Dictionary<int, PoseRecord> _recordsByIndex = new Dictionary<int, PoseRecord>();
 
         /// <summary>
         /// The row with this `Index`, or null when the table has none.
@@ -142,8 +140,8 @@ namespace Tabbit.Fixtures.RecordRef
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByIndex(int key)
-            => _recordsByIndex.TryGetValue(key, out Record record) ? record : null;
+        public PoseRecord FindByIndex(int key)
+            => _recordsByIndex.TryGetValue(key, out PoseRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `Index`, or a thrown exception naming what was
@@ -154,9 +152,9 @@ namespace Tabbit.Fixtures.RecordRef
         /// says it throws, because a caller reading `GetByIndex(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByIndexOrThrow(int key)
+        public PoseRecord GetByIndexOrThrow(int key)
         {
-            if (!_recordsByIndex.TryGetValue(key, out Record record))
+            if (!_recordsByIndex.TryGetValue(key, out PoseRecord record))
                 throw new TabbitException($"There is no record in table `Pose` that corresponds to field `Index` value {key}");
 
             return record;
@@ -181,10 +179,10 @@ namespace Tabbit.Fixtures.RecordRef
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<PoseRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<PoseRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -194,7 +192,7 @@ namespace Tabbit.Fixtures.RecordRef
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (int Key, Record Row) Current
+            public (int Key, PoseRecord Row) Current
                 => (_rows[_at].Index, _rows[_at]);
         }
 
@@ -219,7 +217,7 @@ namespace Tabbit.Fixtures.RecordRef
         /// It does not replace `FindByIndex`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[int key] => GetByIndexOrThrow(key);
+        public PoseRecord this[int key] => GetByIndexOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -262,10 +260,10 @@ namespace Tabbit.Fixtures.RecordRef
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<PoseRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new PoseRecord());
 
             foreach (var column in columns)
             {
@@ -297,11 +295,11 @@ namespace Tabbit.Fixtures.RecordRef
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._step = new Record.StepEntry[elementCount];
+                            record._step = new PoseRecord.StepEntry[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
                                 record._step[j].ClipId = cursor.NextString();
-                                record._step[j].ClipByClipId = default(ClipTable.Record); // will be assigned.
+                                record._step[j].ClipByClipId = default(ClipRecord); // will be assigned.
                                 record._step[j].ClipId_F = false;
                             }
                         }
@@ -342,7 +340,7 @@ namespace Tabbit.Fixtures.RecordRef
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByIndex = new Dictionary<int, Record>(count);
+            var recordsByIndex = new Dictionary<int, PoseRecord>(count);
             foreach (var record in records)
                 recordsByIndex.Add(record.Index, record);
 

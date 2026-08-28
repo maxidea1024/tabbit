@@ -18,96 +18,94 @@ using Tabbit.Binary;
 
 namespace Wildling.Data
 {
+    [System.Serializable]
+    public partial class StageRecord
+    {
+        #region Values
+        /// <summary>
+        /// 식별자
+        /// </summary>
+        public string StageId => _stageId;
+
+        /// <summary>
+        /// 어느 지역인가
+        /// </summary>
+        public string RegionId => _regionId_Region_index;
+        public RegionRecord RegionByRegionId => _regionId;
+
+        /// <summary>
+        /// 지역 안의 순번
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// 일반 · 관측 · 수호자
+        /// </summary>
+        public global::Wildling.Data.StageKind StageKind => _stageKind;
+
+        /// <summary>
+        /// 등장 목록. 셀 안의 참조 배열
+        /// </summary>
+        public string[] WaveMonsterIds => _waveMonsterIds_Monster_index;
+        public MonsterRecord[] MonsterByWaveMonsterIds => _waveMonsterIds;
+
+        /// <summary>
+        /// 각 등장의 레벨
+        /// </summary>
+        public int[] WaveLevels => _waveLevels;
+
+        /// <summary>
+        /// 클리어 보상
+        /// </summary>
+        public string RewardGroupId => _rewardGroupId_RewardGroup_index;
+        public RewardGroupRecord RewardGroupByRewardGroupId => _rewardGroupId;
+        #endregion
+
+        #region Reference wiring
+        public void SetReference_RegionId_INTERNAL(RegionRecord value) => _regionId = value;
+        public void SetReference_WaveMonsterIds_INTERNAL(int index, MonsterRecord value) => _waveMonsterIds[index] = value;
+        public void SetReference_RewardGroupId_INTERNAL(RewardGroupRecord value) => _rewardGroupId = value;
+        #endregion
+
+        #region Storage
+        internal string _stageId = "";
+        internal RegionRecord _regionId;
+        internal string _regionId_Region_index;
+        public bool _regionId_F = false;
+        internal int _index;
+        internal global::Wildling.Data.StageKind _stageKind;
+        internal MonsterRecord[] _waveMonsterIds = System.Array.Empty<MonsterRecord>();
+        internal string[] _waveMonsterIds_Monster_index = System.Array.Empty<string>();
+        public bool[] _waveMonsterIds_F = System.Array.Empty<bool>();
+        internal int[] _waveLevels = System.Array.Empty<int>();
+        internal RewardGroupRecord _rewardGroupId;
+        internal string _rewardGroupId_RewardGroup_index;
+        public bool _rewardGroupId_F = false;
+        #endregion
+
+        #region ToString
+        public override string ToString()
+        {
+            var sb = new StringBuilder("{");
+            sb.Append("\"StageId\":"); ToStringHelper.ToString(StageId, sb);
+            sb.Append(",\"RegionId\":"); ToStringHelper.ToString(RegionId, sb);
+            sb.Append(",\"Index\":"); ToStringHelper.ToString(Index, sb);
+            sb.Append(",\"StageKind\":"); ToStringHelper.ToString(StageKind, sb);
+            sb.Append(",\"WaveMonsterIds\":"); ToStringHelper.ToString(WaveMonsterIds, sb);
+            sb.Append(",\"WaveLevels\":"); ToStringHelper.ToString(WaveLevels, sb);
+            sb.Append(",\"RewardGroupId\":"); ToStringHelper.ToString(RewardGroupId, sb);
+            sb.Append("}");
+            return sb.ToString();
+        }
+        #endregion
+    }
+
     /// <summary>
     /// 스테이지이다. 첫 키가 단일이므로 참조 대상이 된다.
     /// </summary>
     [System.Serializable]
-    public partial class StageTable : IEnumerable<StageTable.Record>
+    public partial class StageTable : IEnumerable<StageRecord>
     {
-        #region Record
-        [System.Serializable]
-        public partial class Record
-        {
-            #region Values
-            /// <summary>
-            /// 식별자
-            /// </summary>
-            public string StageId => _stageId;
-
-            /// <summary>
-            /// 어느 지역인가
-            /// </summary>
-            public string RegionId => _regionId_Region_index;
-            public RegionTable.Record RegionByRegionId => _regionId;
-
-            /// <summary>
-            /// 지역 안의 순번
-            /// </summary>
-            public int Index => _index;
-
-            /// <summary>
-            /// 일반 · 관측 · 수호자
-            /// </summary>
-            public global::Wildling.Data.StageKind StageKind => _stageKind;
-
-            /// <summary>
-            /// 등장 목록. 셀 안의 참조 배열
-            /// </summary>
-            public string[] WaveMonsterIds => _waveMonsterIds_Monster_index;
-            public MonsterTable.Record[] MonsterByWaveMonsterIds => _waveMonsterIds;
-
-            /// <summary>
-            /// 각 등장의 레벨
-            /// </summary>
-            public int[] WaveLevels => _waveLevels;
-
-            /// <summary>
-            /// 클리어 보상
-            /// </summary>
-            public string RewardGroupId => _rewardGroupId_RewardGroup_index;
-            public RewardGroupTable.Record RewardGroupByRewardGroupId => _rewardGroupId;
-            #endregion
-
-            #region Reference wiring
-            public void SetReference_RegionId_INTERNAL(RegionTable.Record value) => _regionId = value;
-            public void SetReference_WaveMonsterIds_INTERNAL(int index, MonsterTable.Record value) => _waveMonsterIds[index] = value;
-            public void SetReference_RewardGroupId_INTERNAL(RewardGroupTable.Record value) => _rewardGroupId = value;
-            #endregion
-
-            #region Storage
-            internal string _stageId = "";
-            internal RegionTable.Record _regionId;
-            internal string _regionId_Region_index;
-            public bool _regionId_F = false;
-            internal int _index;
-            internal global::Wildling.Data.StageKind _stageKind;
-            internal MonsterTable.Record[] _waveMonsterIds = System.Array.Empty<MonsterTable.Record>();
-            internal string[] _waveMonsterIds_Monster_index = System.Array.Empty<string>();
-            public bool[] _waveMonsterIds_F = System.Array.Empty<bool>();
-            internal int[] _waveLevels = System.Array.Empty<int>();
-            internal RewardGroupTable.Record _rewardGroupId;
-            internal string _rewardGroupId_RewardGroup_index;
-            public bool _rewardGroupId_F = false;
-            #endregion
-
-            #region ToString
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"StageId\":"); ToStringHelper.ToString(StageId, sb);
-                sb.Append(",\"RegionId\":"); ToStringHelper.ToString(RegionId, sb);
-                sb.Append(",\"Index\":"); ToStringHelper.ToString(Index, sb);
-                sb.Append(",\"StageKind\":"); ToStringHelper.ToString(StageKind, sb);
-                sb.Append(",\"WaveMonsterIds\":"); ToStringHelper.ToString(WaveMonsterIds, sb);
-                sb.Append(",\"WaveLevels\":"); ToStringHelper.ToString(WaveLevels, sb);
-                sb.Append(",\"RewardGroupId\":"); ToStringHelper.ToString(RewardGroupId, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-            #endregion
-        }
-        #endregion
-
         /// <summary>
         /// Field names.
         /// </summary>
@@ -134,8 +132,8 @@ namespace Wildling.Data
         /// reference rather than the contents - so an iteration in progress neither tears nor
         /// throws, and a read that fails leaves the previous rows exactly where they were.
         /// </remarks>
-        public List<Record> Records => _records;
-        private List<Record> _records = new List<Record>();
+        public List<StageRecord> Records => _records;
+        private List<StageRecord> _records = new List<StageRecord>();
 
         /// <summary>How many rows the table holds.</summary>
         public int Count => _records.Count;
@@ -152,16 +150,16 @@ namespace Wildling.Data
         /// its contents, so a loop already running keeps the rows it started with - the same
         /// property `Records` documents above, reached without naming the list.
         /// </remarks>
-        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+        public List<StageRecord>.Enumerator GetEnumerator() => _records.GetEnumerator();
 
-        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+        IEnumerator<StageRecord> IEnumerable<StageRecord>.GetEnumerator() => _records.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
         #region Indexing by 'StageId'
-        public Dictionary<string, Record> RecordsByStageId => _recordsByStageId;
-        private Dictionary<string, Record> _recordsByStageId = new Dictionary<string, Record>();
+        public Dictionary<string, StageRecord> RecordsByStageId => _recordsByStageId;
+        private Dictionary<string, StageRecord> _recordsByStageId = new Dictionary<string, StageRecord>();
 
         /// <summary>
         /// The row with this `StageId`, or null when the table has none.
@@ -171,8 +169,8 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByStageId(string key)
-            => _recordsByStageId.TryGetValue(key, out Record record) ? record : null;
+        public StageRecord FindByStageId(string key)
+            => _recordsByStageId.TryGetValue(key, out StageRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `StageId`, or a thrown exception naming what was
@@ -183,9 +181,9 @@ namespace Wildling.Data
         /// says it throws, because a caller reading `GetByStageId(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public Record GetByStageIdOrThrow(string key)
+        public StageRecord GetByStageIdOrThrow(string key)
         {
-            if (!_recordsByStageId.TryGetValue(key, out Record record))
+            if (!_recordsByStageId.TryGetValue(key, out StageRecord record))
                 throw new TabbitException($"There is no record in table `Stage` that corresponds to field `StageId` value {key}");
 
             return record;
@@ -210,10 +208,10 @@ namespace Wildling.Data
         /// </remarks>
         public struct EntryEnumerator
         {
-            private readonly List<Record> _rows;
+            private readonly List<StageRecord> _rows;
             private int _at;
 
-            internal EntryEnumerator(List<Record> rows)
+            internal EntryEnumerator(List<StageRecord> rows)
             {
                 _rows = rows;
                 _at = -1;
@@ -223,7 +221,7 @@ namespace Wildling.Data
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (string Key, Record Row) Current
+            public (string Key, StageRecord Row) Current
                 => (_rows[_at].StageId, _rows[_at]);
         }
 
@@ -248,10 +246,10 @@ namespace Wildling.Data
         /// It does not replace `FindByStageId`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public Record this[string key] => GetByStageIdOrThrow(key);
+        public StageRecord this[string key] => GetByStageIdOrThrow(key);
 
         #region Indexing by 'RegionId and Index'
-        private Dictionary<string, Record> _recordsByRegionIdAndIndex = new Dictionary<string, Record>();
+        private Dictionary<string, StageRecord> _recordsByRegionIdAndIndex = new Dictionary<string, StageRecord>();
 
         /// <summary>Joins the columns of the `RegionId and Index` key into the text the map is keyed by.</summary>
         private static string KeyOfRegionIdAndIndex(string regionIdKey, int indexKey)
@@ -278,16 +276,16 @@ namespace Wildling.Data
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public Record FindByRegionIdAndIndex(string regionIdKey, int indexKey)
-            => _recordsByRegionIdAndIndex.TryGetValue(KeyOfRegionIdAndIndex(regionIdKey, indexKey), out Record record) ? record : null;
+        public StageRecord FindByRegionIdAndIndex(string regionIdKey, int indexKey)
+            => _recordsByRegionIdAndIndex.TryGetValue(KeyOfRegionIdAndIndex(regionIdKey, indexKey), out StageRecord record) ? record : null;
 
         /// <summary>
         /// The row with this `RegionId and Index`, or a thrown exception naming what was
         /// missing.
         /// </summary>
-        public Record GetByRegionIdAndIndexOrThrow(string regionIdKey, int indexKey)
+        public StageRecord GetByRegionIdAndIndexOrThrow(string regionIdKey, int indexKey)
         {
-            if (!_recordsByRegionIdAndIndex.TryGetValue(KeyOfRegionIdAndIndex(regionIdKey, indexKey), out Record record))
+            if (!_recordsByRegionIdAndIndex.TryGetValue(KeyOfRegionIdAndIndex(regionIdKey, indexKey), out StageRecord record))
                 throw new TabbitException($"There is no record in table `Stage` that corresponds to field `RegionId and Index` value ({regionIdKey}, {indexKey})");
 
             return record;
@@ -338,10 +336,10 @@ namespace Wildling.Data
             // this point, so it is a number the file could actually hold rows for - and a
             // list that grows into twenty thousand rows reallocates fifteen times to get
             // there, copying everything each time.
-            var records = new List<Record>(count);
+            var records = new List<StageRecord>(count);
 
             for (int i = 0; i < count; i++)
-                records.Add(new Record());
+                records.Add(new StageRecord());
 
             foreach (var column in columns)
             {
@@ -377,7 +375,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._regionId_Region_index = value;
-                                record._regionId = default(RegionTable.Record); // will be assigned.
+                                record._regionId = default(RegionRecord); // will be assigned.
                                 record._regionId_F = false;
                             } while (--n > 0);
                         }
@@ -423,13 +421,13 @@ namespace Wildling.Data
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._waveMonsterIds = new MonsterTable.Record[elementCount];
+                            record._waveMonsterIds = new MonsterRecord[elementCount];
                             record._waveMonsterIds_Monster_index = new string[elementCount];
                             record._waveMonsterIds_F = new bool[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
                                 record._waveMonsterIds_Monster_index[j] = cursor.NextString();
-                                record._waveMonsterIds[j] = default(MonsterTable.Record); // will be assigned.
+                                record._waveMonsterIds[j] = default(MonsterRecord); // will be assigned.
                                 record._waveMonsterIds_F[j] = false;
                             }
                         }
@@ -463,7 +461,7 @@ namespace Wildling.Data
                             {
                                 var record = records[i++];
                                 record._rewardGroupId_RewardGroup_index = value;
-                                record._rewardGroupId = default(RewardGroupTable.Record); // will be assigned.
+                                record._rewardGroupId = default(RewardGroupRecord); // will be assigned.
                                 record._rewardGroupId_F = false;
                             } while (--n > 0);
                         }
@@ -481,10 +479,10 @@ namespace Wildling.Data
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByStageId = new Dictionary<string, Record>(count);
+            var recordsByStageId = new Dictionary<string, StageRecord>(count);
             foreach (var record in records)
                 recordsByStageId.Add(record.StageId, record);
-            var recordsByRegionIdAndIndex = new Dictionary<string, Record>(count);
+            var recordsByRegionIdAndIndex = new Dictionary<string, StageRecord>(count);
             foreach (var record in records)
                 recordsByRegionIdAndIndex.Add(KeyOfRegionIdAndIndex(record.RegionId, record.Index), record);
 
