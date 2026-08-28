@@ -36,10 +36,22 @@ VS Code 확장  ──(대강의 색)──▶  TextMate 문법
 
 ## 설치
 
+**확장은 도구와 따로 배포됩니다.** [릴리즈](https://github.com/maxidea1024/tabbit/releases)에서
+`tbs-v` 로 시작하는 태그의 `.vsix` 를 받아 설치합니다.
+
+```
+code --install-extension tabbit-tbs-0.0.1.vsix
+```
+
+따로인 이유는 둘이 함께 바뀌지 않기 때문입니다. 하이라이팅 하나를 고치는 데 플랫폼 바이너리
+6개를 다시 구울 이유가 없고, 도구를 올린다고 바뀌지 않은 확장을 다시 건네야 할 이유도 없습니다.
+
+직접 만들려면 이렇게 합니다.
+
 ```
 cd tools/vscode
-npm install
-npm run package
+yarn install
+yarn package
 code --install-extension tabbit-tbs-0.0.1.vsix
 ```
 
