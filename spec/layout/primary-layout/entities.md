@@ -194,7 +194,7 @@ struct Reward (sep=",")
 |--|--|
 |값 파싱|[파싱 규칙](../../../doc/sheets/layout.md#값을-읽는-규칙) 전부 — bool 어휘 · 진법 리터럴 · InvariantCulture · TimeZone|
 |빈 칸과 없음|`-` · `\-` · `OnBlankCell` — [설계](../../types/blank-and-null-cells.md)|
-|배열|셀 구분자(`ArrayDelimiter`) · `TrimTrailingArrayElements` · `AllowArrayGaps`|
+|배열|셀 구분자(`DefaultDelimiter`) · `TrimTrailingArrayElements` · `AllowArrayGaps`|
 |합성 값 타입|`vec3f` · `quat` · `color` 계열의 셀 표기 전부|
 |옵셔널|`?`의 4형태와 presence 비트맵|
 |참조|`foreign`의 해석 · `refs=`의 검사 · 키 타입 규칙|

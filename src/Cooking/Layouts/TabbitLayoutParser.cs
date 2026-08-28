@@ -1870,7 +1870,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
         // the one character `-`, and a blank is whatever the column's type reads a blank as.
         var reading = _context.ReadCell(
             field.Type, field.EnumOrNull, rawCell.Value, rawCell.Location,
-            block.Sheet.Layout.ArrayDelimiter,
+            block.Sheet.Layout.DefaultDelimiter,
             required: field.IsRequired,
             onBlankCell: block.Sheet.Layout.OnBlankCell,
             isReference: field.IsRef,
@@ -2836,7 +2836,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
                 ValueString = valueWritten,
                 Value = _context.ParseValue(
                     type, enumm, valueWritten, valueCell!.Location,
-                    block.Sheet.Layout.ArrayDelimiter,
+                    block.Sheet.Layout.DefaultDelimiter,
                     timeZone: block.Sheet.Layout.TimeZone),
             });
         }

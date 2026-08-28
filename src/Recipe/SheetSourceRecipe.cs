@@ -30,15 +30,16 @@ public abstract class SheetSourceRecipe
     public string Layout { get; set; } = "tabbit";
 
     /// <summary>
-    /// Separator for array cells in these sheets. Blank takes the recipe-wide setting.
+    /// Character separating the values written into one cell in these sheets. Blank takes
+    /// the recipe-wide setting.
     /// </summary>
     /// <remarks>
     /// The delimiter is a property of how a set of sheets was written, so it belongs beside
     /// the entry that reads them: two sets read in one run were authored under different
     /// conventions, and one of them using `|` should not force the other to. Set here, it
-    /// wins over the recipe-wide `ArrayDelimiter` for this entry only.
+    /// wins over the recipe-wide `DefaultDelimiter` for this entry only.
     /// </remarks>
-    public string ArrayDelimiter { get; set; } = "";
+    public string DefaultDelimiter { get; set; } = "";
 
     /// <summary>
     /// Which time zone these sheets' `datetime` cells were written in. Blank takes the

@@ -23,9 +23,10 @@
 
 `client`, `server`, `both` 중 하나입니다.
 
-### `Recipe setting 'ArrayDelimiter' is '...', but it must be exactly one character`
+### `Recipe setting 'DefaultDelimiter' is '...', but it must be exactly one character`
 
-배열 구분자는 한 글자입니다.
+셀 안의 값 구분자는 한 글자입니다. 예전 이름 `ArrayDelimiter`로 적혀 있어도 읽히지만, 지금
+이름으로 고치라는 경고가 함께 나옵니다.
 
 ### `Recipe '...' reads workbooks from '...', which does not exist`
 

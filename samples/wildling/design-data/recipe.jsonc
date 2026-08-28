@@ -17,7 +17,7 @@
         "TableRowSets": "^(?<table>.+?)(?<set>_(Season|Package))$",
 
         // 배열 원소의 구분자. 셀 배열과 `foreign X[]` 가 이것을 씁니다.
-        "ArrayDelimiter": ";"
+        "DefaultDelimiter": ";"
       }
     ]
   },

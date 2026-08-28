@@ -10,7 +10,7 @@
 // --commit 을 생략하면 워킹카피에서 git으로 읽습니다.
 
 {
-  "ArrayDelimiter": ";",
+  "DefaultDelimiter": ";",
 
   "Sources": {
     "Xlsx": [

@@ -46,7 +46,7 @@
 |레이아웃 전용 설정|`LayoutOptions` 자유 키/값. 코어는 키를 모르고, 레이아웃이 `SheetLayout.Option()` 으로 읽고 `RequireKnownOptions()` 로 오타를 보고합니다|
 |임포터의 레이아웃별 동작|어트리뷰트에 선언하고 임포터가 확인합니다. `UsesNamedRanges` 가 그 예 — 임포터는 「정의된 이름을 쓰는 레이아웃인가」만 알고 어느 프로젝트인지는 모릅니다|
 
-모든 레이아웃에 해당하는 것은 정식 설정으로 둡니다 — `ArrayDelimiter` · `OnDuplicateIndex` ·
+모든 레이아웃에 해당하는 것은 정식 설정으로 둡니다 — `DefaultDelimiter` · `OnDuplicateIndex` ·
 `OnFormulaError` · `OnBlankCell`. 어느 레이아웃인지 몰라도 찾을 수 있어야 하기 때문입니다.
 
 > **판단 기준 하나:** 레이아웃 파일 하나를 지웠을 때 빌드가 깨지거나 코어에 흔적이 남으면

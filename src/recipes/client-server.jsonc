@@ -7,7 +7,7 @@
 // 어긋나면 컬럼 집합이 달라져 생성된 리더가 데이터와 맞지 않습니다.
 
 {
-  "ArrayDelimiter": ";",
+  "DefaultDelimiter": ";",
 
   "Sources": {
     "Xlsx": [

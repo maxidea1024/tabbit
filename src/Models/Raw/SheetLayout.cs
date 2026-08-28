@@ -72,7 +72,7 @@ public sealed class SheetLayout
     public static readonly SheetLayout Default = new SheetLayout("tabbit", DuplicateIndexPolicy.Error);
 
     public SheetLayout(
-        string id, DuplicateIndexPolicy onDuplicateIndex, char? arrayDelimiter = null,
+        string id, DuplicateIndexPolicy onDuplicateIndex, char? delimiter = null,
         FormulaErrorPolicy onFormulaError = FormulaErrorPolicy.Error,
         IReadOnlyDictionary<string, string>? options = null,
         bool trimTrailingArrayElements = false,
@@ -83,7 +83,7 @@ public sealed class SheetLayout
     {
         Id = id;
         OnDuplicateIndex = onDuplicateIndex;
-        ArrayDelimiter = arrayDelimiter;
+        DefaultDelimiter = delimiter;
         TimeZone = timeZone;
         OnFormulaError = onFormulaError;
         OnBlankCell = onBlankCell;
@@ -216,14 +216,15 @@ public sealed class SheetLayout
     public BlankCellPolicy OnBlankCell { get; }
 
     /// <summary>
-    /// Separator for array cells in these sheets, or null to use the recipe-wide one.
+    /// Character separating the values written into one cell in these sheets, or null to
+    /// use the recipe-wide one.
     /// </summary>
     /// <remarks>
     /// Per entry because the delimiter is a property of how a sheet was written, not of the
     /// run: two sets of sheets read together were authored by different people under
     /// different conventions, and one of them writing `1|2|3` should not force the other to.
     /// </remarks>
-    public char? ArrayDelimiter { get; }
+    public char? DefaultDelimiter { get; }
 
     /// <summary>
     /// The time zone these sheets' wall clocks were written in, or null to use the

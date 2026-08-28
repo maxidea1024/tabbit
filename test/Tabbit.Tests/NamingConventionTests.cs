@@ -681,7 +681,7 @@ public class NamingConventionTests
     [Fact]
     public void A_recipe_document_without_the_section_still_gets_the_defaults()
     {
-        var recipe = Newtonsoft.Json.Linq.JObject.Parse("""{ "ArrayDelimiter": ";" }""")
+        var recipe = Newtonsoft.Json.Linq.JObject.Parse("""{ "DefaultDelimiter": ";" }""")
             .ToObject<RecipeModel>()!;
 
         var rules = NamingRules.From(recipe.Naming);

@@ -328,7 +328,7 @@ internal static class TableRowSets
         {
             RawCell = where,
             Value = context.ParseValue(
-                field.Type, field.EnumOrNull, "", where?.Location, arrayDelimiter: null,
+                field.Type, field.EnumOrNull, "", where?.Location, delimiter: null,
                 required: false),
             HasValue = false,
         };

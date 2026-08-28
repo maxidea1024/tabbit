@@ -31,7 +31,7 @@
 |--|--|
 |레이아웃 추가|`[TabbitLayout("id")]` 를 단 클래스 하나. 레지스트리가 어트리뷰트 스캔으로 찾으므로 **코어에 등록 코드가 없습니다**|
 |**레이아웃 전용 설정**|`LayoutOptions` 자유 키/값 맵. 코어는 키를 모르고 검증하지 않습니다. 레이아웃이 `SheetLayout.Option(key)` 로 읽고, `RequireKnownOptions` 로 오타를 보고합니다|
-|모든 레이아웃에 해당하는 설정|`SheetSourceRecipe` 의 정식 프로퍼티. `ArrayDelimiter`·`OnDuplicateIndex`·`OnFormulaError` 가 그런 것들입니다 — 어느 레이아웃인지 몰라도 찾을 수 있어야 하기 때문입니다|
+|모든 레이아웃에 해당하는 설정|`SheetSourceRecipe` 의 정식 프로퍼티. `DefaultDelimiter`·`OnDuplicateIndex`·`OnFormulaError` 가 그런 것들입니다 — 어느 레이아웃인지 몰라도 찾을 수 있어야 하기 때문입니다|
 |임포터가 레이아웃별로 다르게 읽어야 할 때|어트리뷰트에 선언하고 임포터가 확인합니다. `UsesNamedRanges` 가 그 예입니다 — 임포터는 「이 레이아웃이 정의된 이름을 쓰나?」만 확인하고, 어느 프로젝트인지는 모릅니다|
 
 **판단 기준 하나:** 그 레이아웃 파일 하나를 지웠을 때 빌드가 깨지거나 코어에 흔적이 남으면,

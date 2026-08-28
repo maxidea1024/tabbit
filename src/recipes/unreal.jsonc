@@ -9,7 +9,7 @@
 //   (생성된 로더가 실패할 때 그 설정 이름을 로그에 적어줍니다.)
 
 {
-  "ArrayDelimiter": ";",
+  "DefaultDelimiter": ";",
 
   "Sources": {
     "Xlsx": [

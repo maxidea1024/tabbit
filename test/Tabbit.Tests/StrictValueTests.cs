@@ -27,8 +27,11 @@ public class StrictValueTests
         Assert.False(result.Succeeded, "A misspelled boolean was accepted.");
         Assert.Contains("`Ture` is not a boolean", result.StdOut);
 
-        // The message says what is accepted, since the answer is not obvious.
-        Assert.Contains("Y/N", result.StdOut);
+        // The message says what is accepted, since the answer is not obvious. The words
+        // are listed rather than described, because a recipe may add its own - so the
+        // sentence names whatever this run reads. spec/types/boolean-words.md.
+        Assert.Contains("TRUE", result.StdOut);
+        Assert.Contains("FALSE", result.StdOut);
 
         // And where it is.
         Assert.Contains("strict-values.xlsx : Bad : D8", result.StdOut);

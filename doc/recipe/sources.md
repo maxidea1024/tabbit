@@ -65,7 +65,7 @@
 |`ExcludeWorkbooks`|`[]`|제외할 워크북. `IncludeWorkbooks` 다음에 적용됩니다.|
 |`IncludeSheets`|`[]`(전부)|읽을 시트 이름. `[워크북]시트`로 워크북을 지정할 수 있습니다.|
 |`ExcludeSheets`|`[]`|제외할 시트. `IncludeSheets` 다음에 적용됩니다.|
-|`ArrayDelimiter`|(전체 설정)|이 항목의 배열 셀 구분자. **적으면 recipe 전체 설정보다 우선합니다.**|
+|`DefaultDelimiter`|(전체 설정)|이 항목의 셀 안 값 구분자. **적으면 recipe 전체 설정보다 우선합니다.**|
 |`TimeZone`|(전체 설정)|이 항목 시트의 시간대. **적으면 recipe 전체 설정보다 우선합니다.** [위](settings.md#timezone--시트의-날짜를-어느-시간대로-읽을지) 참고.|
 |`OnDuplicateIndex`|`"error"`|인덱스 값이 겹칠 때. 겹치는 것을 허용하는 레이아웃에서만 동작합니다.|
 |`OnFormulaError`|`"error"`|`#REF!` 같은 수식 오류 셀을 만났을 때. [아래](#onformulaerror--수식이-오류일-때) 참고.|

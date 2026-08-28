@@ -266,7 +266,7 @@ public partial class ModelCooker
     private static IEnumerable<Cell> SplitPairs(
         CookingContext context, Table table, Field field, Cell cell, Diagnostics diagnostics)
     {
-        char delimiter = context.ArrayDelimiter;
+        char delimiter = context.DefaultDelimiter;
 
         string written = (cell.Value as string ?? "").Trim();
 

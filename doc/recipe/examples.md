@@ -231,7 +231,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe test/reserved-words/reserved-
 ```json
 {
   // 배열 셀의 구분자. 쉼표가 기본이 아닌 이유는 문장과 숫자 표기에 너무 흔하기 때문입니다.
-  "ArrayDelimiter": ";",
+  "DefaultDelimiter": ";",
 
   // datetime 셀에 적힌 시각을 어느 시간대로 읽을지. 지역 이름 또는 고정 오프셋("+09:00").
   // 비우면 셀이 이미 UTC로 적힌 것으로 봅니다. 저장되는 값은 어느 쪽이든 UTC입니다.

@@ -673,7 +673,7 @@ public sealed class SheetPerTableLayoutParser : ILayoutParser
             // reads them. spec/types/blank-and-null-cells.md.
             var reading = _context.ReadCell(
                 field.Type, field.EnumOrNull, rawCell.Value, rawCell.Location,
-                sheet.Layout?.ArrayDelimiter,
+                sheet.Layout?.DefaultDelimiter,
                 required: field.IsRequired,
                 onBlankCell: sheet.Layout?.OnBlankCell ?? BlankCellPolicy.Error,
                 column: $"{table.Name}.{field.Name}",

@@ -5,7 +5,7 @@
 // 실제로 있기 때문입니다. 두 경로는 같은 값을 냅니다.
 
 {
-  "ArrayDelimiter": ";",
+  "DefaultDelimiter": ";",
 
   "Sources": {
     "GoogleSheets": [

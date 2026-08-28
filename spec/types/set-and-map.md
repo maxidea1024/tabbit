@@ -167,7 +167,7 @@ public enum ContainerKind { None, Set, Map }
 
 ### 5.1 `set`
 
-**배열과 같습니다.** `a;b;c` — 구분자는 `ArrayDelimiter`입니다.
+**배열과 같습니다.** `a;b;c` — 구분자는 `DefaultDelimiter`입니다.
 
 ### 5.2 `map` — 두 가지
 
@@ -176,7 +176,7 @@ public enum ContainerKind { None, Set, Map }
 |**(가) 컬럼 둘**|`Prices.Key`에 `1;2;3`, `Prices.Value`에 `10;20;30`|언제나. **값이 struct인 map은 이것만 됩니다**|
 |**(나) 한 셀**|`Prices`에 `1:10;2:20;3:30`|값이 스칼라일 때|
 
-(나)의 구분자는 두 겹입니다 — **항목 사이가 `ArrayDelimiter`, 키와 값 사이가 `:`** 입니다.
+(나)의 구분자는 두 겹입니다 — **항목 사이가 `DefaultDelimiter`, 키와 값 사이가 `:`** 입니다.
 `:`는 이 도구가 이미 쓰는 기호이므로 어휘가 늘지 않습니다.
 
 |경우|판정|

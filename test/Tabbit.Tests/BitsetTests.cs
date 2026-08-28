@@ -116,7 +116,6 @@ public class BitsetTests
     [InlineData("1,000", "thousands separator")]
     [InlineData("1e3", "exponent notation")]
     [InlineData("0b1012", "base-2 digit")]
-    [InlineData("0b1010_1010", "base-2 digit")]
     [InlineData("0xZZ", "base-16 digit")]
     [InlineData("0x", "decimal digit")]
     public void Refused_notations(string cell, string reason)
@@ -126,6 +125,32 @@ public class BitsetTests
         Assert.Contains(reason, message);
         Assert.Contains(cell, message);
     }
+
+    /// <summary>
+    /// The digit separator, which this type used to refuse and now reads.
+    /// </summary>
+    /// <remarks>
+    /// The refusal was documented as deliberate, on the grounds that a bit pattern has no
+    /// use for the notation. That was wrong about which notation - `0b1010_1010` is how a
+    /// mask is written where it is written at all, and eight bits at a time is the reason.
+    ///
+    /// It costs nothing the other refusals were guarding. A separator widens what is
+    /// accepted without giving any cell a second reading, which is what a sign and a
+    /// decimal point and a thousands separator each do. spec/types/number-literals.md
+    /// section 7.
+    /// </remarks>
+    [Theory]
+    [InlineData("0b1010_1010", 170L)]
+    [InlineData("0xFF_FF", 65535L)]
+    [InlineData("0b_1111", 15L)]
+    [InlineData("1_000", 1000L)]
+    public void The_digit_separator_is_read(string cell, long expected)
+        => Assert.Equal(expected, Bitset(cell));
+
+    /// <summary>And one that is not between digits is reported as that rather than as a bad digit.</summary>
+    [Fact]
+    public void A_misplaced_digit_separator_says_so()
+        => Assert.Contains("not between two digits", Refusal(ValueType.Bitset, "1000_"));
 
     [Theory]
     [InlineData("0x1FFFFFFFFFFFFFFFF", "at most 16")]

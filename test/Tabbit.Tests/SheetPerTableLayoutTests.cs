@@ -538,11 +538,11 @@ public class SheetPerTableLayoutTests
     [Fact]
     public void An_entry_delimiter_that_is_not_one_character_is_reported()
     {
-        var recipe = new RecipeModel.SourceRecipeGroup.XlsxRecipe { ArrayDelimiter = "::" };
+        var recipe = new RecipeModel.SourceRecipeGroup.XlsxRecipe { DefaultDelimiter = "::" };
 
         var error = Assert.Throws<TabbitException>(
             () => SheetImportSettings.From(recipe, "Sources.Xlsx[0]"));
 
-        Assert.Equal(Tabbit.Recipe.RecipeMessages.EntryArrayDelimiterNotOneCharacter, error.MessageId);
+        Assert.Equal(Tabbit.Recipe.RecipeMessages.EntryDefaultDelimiterNotOneCharacter, error.MessageId);
     }
 }

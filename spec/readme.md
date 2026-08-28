@@ -31,16 +31,19 @@
 - [배열 옵셔널리티 — 첫 원소가 배열 전체를 대표](types/array-optionality.md)
 - [비트셋 — `bitset` 타입](types/bitset.md)
 - [빈 칸과 없음 — `-`와 `\-`](types/blank-and-null-cells.md)
+- [불리언의 낱말 — recipe가 정하는 참·거짓 표기](types/boolean-words.md)
 - [합성 값 타입 — 벡터 · 회전 · 색](types/composite-value-types.md)
 - [시트의 datetime과 시간대](types/datetime-timezone.md)
 - [수식 오류 — 읽는 셀만 보고합니다](types/formula-errors.md)
 - [중첩 필드](types/nested-fields.md)
 - [다중 중첩 — 두 형태와 그 값의 차이](types/nested-multi-level.md)
 - [원소가 없을 수 있는 배열 — `T?[]` · `T[]?` · `T?[]?`](types/nullable-array-elements.md)
+- [숫자 리터럴 표기 — `_` · 지수 · 진법](types/number-literals.md)
 - [옵셔널 필드 — 타입 끝의 `?`](types/optional-fields.md)
 - [다형과 참조 배열](types/polymorphism.md) *(3개로 나뉨)*
 - [레코드 멤버별 옵셔널 — `:requiredInObject`](types/record-member-optionality.md)
 - [`set`과 `map` — STRUCT DSL의 컨테이너](types/set-and-map.md)
+- [셀 안의 값 구분자 — `DefaultDelimiter`](types/value-delimiter.md)
 - [가변 길이 레코드 배열](types/variable-length-record-arrays.md)
 
 ## 참조

@@ -54,10 +54,11 @@ public sealed class CookingContext
         Model = model;
         Diagnostics = diagnostics;
         Declarations = declarations;
-        ArrayDelimiter = ResolveArrayDelimiter(recipe);
+        DefaultDelimiter = ResolveDefaultDelimiter(recipe);
         TimeZone = Helpers.TimeZones.OfRecipe(recipe.TimeZone);
         AutoInsertEnumNoneLabel = recipe.AutoInsertEnumNoneLabel;
         Palettes = ResolvePalettes(recipe);
+        BoolWords = BooleanWords.Of(recipe);
     }
 
     /// <summary>
@@ -104,9 +105,15 @@ public sealed class CookingContext
     public bool HasDeclarations => Declarations is { IsEmpty: false };
 
     /// <summary>
-    /// Separator for array cells, taken from the recipe. A source entry may override it.
+    /// Character separating the values written into one cell, taken from the recipe.
     /// </summary>
-    public char ArrayDelimiter { get; }
+    /// <remarks>
+    /// The default rather than the only answer: a struct declaring `:sep` names the
+    /// separator its own cells are written with, and a composite's components are always
+    /// separated by a comma. This is what a cell whose type names neither is split by, and
+    /// a source entry may override it for its sheets. spec/types/value-delimiter.md.
+    /// </remarks>
+    public char DefaultDelimiter { get; }
 
     /// <summary>
     /// The time zone a `datetime` cell's wall clock is read as being in, taken from the
@@ -122,17 +129,27 @@ public sealed class CookingContext
     public bool AutoInsertEnumNoneLabel { get; }
 
     /// <summary>
-    /// Reads the array delimiter from the recipe, rejecting anything that is not exactly
+    /// What a `bool` cell may be written as, built in and recipe-declared.
+    /// </summary>
+    /// <remarks>
+    /// Recipe-wide rather than per source entry, unlike the delimiter and the time zone.
+    /// Those have to be one value per set of sheets; words do not, because two teams'
+    /// spellings can both be in the list and both be read. spec/types/boolean-words.md.
+    /// </remarks>
+    internal BooleanWords BoolWords { get; }
+
+    /// <summary>
+    /// Reads the default delimiter from the recipe, rejecting anything that is not exactly
     /// one character.
     /// </summary>
-    private static char ResolveArrayDelimiter(RecipeModel recipeModel)
+    private static char ResolveDefaultDelimiter(RecipeModel recipeModel)
     {
-        string delimiter = recipeModel.ArrayDelimiter;
+        string delimiter = recipeModel.DefaultDelimiter;
 
         if (string.IsNullOrEmpty(delimiter) || delimiter.Length != 1)
         {
             throw new TabbitException(null,
-                Message.Of(RecipeMessages.ArrayDelimiterNotOneCharacter,
+                Message.Of(RecipeMessages.DefaultDelimiterNotOneCharacter,
                     ("Delimiter", delimiter)));
         }
 
@@ -745,7 +762,7 @@ public sealed class CookingContext
     /// </param>
     public CellReading ReadCell(
         Models.ValueType type, Models.Enum? enumm, string? rawValue, Location? location,
-        char? arrayDelimiter = null, bool required = true,
+        char? delimiter = null, bool required = true,
         BlankCellPolicy onBlankCell = BlankCellPolicy.Error, bool isReference = false,
         string? column = null, bool elementsRequired = true,
         string formulaError = "", FormulaErrorPolicy onFormulaError = FormulaErrorPolicy.Error,
@@ -775,11 +792,11 @@ public sealed class CookingContext
             }
 
             return new CellReading(
-                NoValueOf(type, enumm, location, arrayDelimiter), hasValue: true);
+                NoValueOf(type, enumm, location, delimiter), hasValue: true);
         }
 
         if (SaysNoValue(rawValue))
-            return new CellReading(NoValueOf(type, enumm, location, arrayDelimiter), hasValue: false);
+            return new CellReading(NoValueOf(type, enumm, location, delimiter), hasValue: false);
 
         bool blank = string.IsNullOrEmpty(rawValue);
 
@@ -788,7 +805,7 @@ public sealed class CookingContext
         // reads a blank as a value. Left to that, a blank reference would become the empty
         // key and pass as "points at nothing".
         if (blank && isReference)
-            return new CellReading(NoValueOf(type, enumm, location, arrayDelimiter), hasValue: false);
+            return new CellReading(NoValueOf(type, enumm, location, delimiter), hasValue: false);
 
         if (blank && !ReadsBlankAsValue(type))
         {
@@ -804,7 +821,7 @@ public sealed class CookingContext
                 }
 
                 return new CellReading(
-                    NoValueOf(type, enumm, location, arrayDelimiter), hasValue: true);
+                    NoValueOf(type, enumm, location, delimiter), hasValue: true);
             }
 
             throw new TabbitException(location, BlankRefusal(type, required));
@@ -826,7 +843,7 @@ public sealed class CookingContext
         if (Models.ValueTypes.IsArray(type))
         {
             var elements = ParseArrayValue(
-                type, enumm!, rawValue ?? "", location!, arrayDelimiter, elementsRequired,
+                type, enumm!, rawValue ?? "", location!, delimiter, elementsRequired,
                 out bool[]? elementHasValue, timeZone);
 
             return new CellReading(elements, hasValue: true, elementHasValue: elementHasValue);
@@ -834,7 +851,7 @@ public sealed class CookingContext
 
         return new CellReading(
             ParseValue(
-                type, enumm, ValueTextOf(rawValue), location, arrayDelimiter,
+                type, enumm, ValueTextOf(rawValue), location, delimiter,
                 timeZone: timeZone),
             hasValue: true);
     }
@@ -846,10 +863,10 @@ public sealed class CookingContext
     /// `[number]` column holding `-` reach the binary exporter as a string.
     /// </remarks>
     private object NoValueOf(
-        Models.ValueType type, Models.Enum? enumm, Location? location, char? arrayDelimiter)
+        Models.ValueType type, Models.Enum? enumm, Location? location, char? delimiter)
     {
         return Models.ValueTypes.IsArray(type)
-            ? ParseArrayValue(type, enumm!, "", location!, arrayDelimiter)
+            ? ParseArrayValue(type, enumm!, "", location!, delimiter)
             : EmptyValueOf(type);
     }
 
@@ -917,7 +934,7 @@ public sealed class CookingContext
 
     #endregion
 
-    /// <param name="arrayDelimiter">
+    /// <param name="delimiter">
     /// What separates elements of an array cell, when the sheet's own entry named one.
     /// Null takes the recipe-wide delimiter, which is the usual case.
     /// </param>
@@ -931,10 +948,10 @@ public sealed class CookingContext
     /// </param>
     public object? ParseValue(
         Models.ValueType type, Models.Enum? enumm, string? rawValue, Location? location,
-        char? arrayDelimiter = null, bool required = true, TimeZoneInfo? timeZone = null)
+        char? delimiter = null, bool required = true, TimeZoneInfo? timeZone = null)
     {
         if (Models.ValueTypes.IsArray(type))
-            return ParseArrayValue(type, enumm!, rawValue!, location!, arrayDelimiter, timeZone);
+            return ParseArrayValue(type, enumm!, rawValue!, location!, delimiter, timeZone);
 
         // An optional column's blank cell. Only reachable for the types a blank was already
         // refused for - a `string` or a `bool` reads a blank as an empty string or false, and
@@ -955,13 +972,12 @@ public sealed class CookingContext
 
         try
         {
-            // `0x1f`, `0b1011`. The base is notation and does not widen the type: the
-            // literal becomes the decimal it denotes and goes through the type's own
-            // parser, so `0xFFFFFFFF` in an `int` column is the overflow it would have
-            // been written out. A column that means a 32-bit pattern is a `bitset`, and
-            // that type reads its own literals below.
-            if (RadixLiteralBase(rawValue!) != 0 && TakesRadixLiteral(type))
-                rawValue = DecimalOfRadix(rawValue!, type, location!);
+            // `1_000`, `0x1f`, `0b1011`, `1e3`. The spelling is rewritten into what the
+            // type's own parser reads, and what it denotes is decided there rather than
+            // here - a column that means a 32-bit pattern is a `bitset`, and that type
+            // reads its own literals below. spec/types/number-literals.md.
+            if (NumberLiterals.ReadsLiterals(type))
+                rawValue = NumberLiterals.OfCell(rawValue, type, location);
 
             switch (type)
             {
@@ -1098,124 +1114,17 @@ public sealed class CookingContext
     // --------------------------------------------------------- radix literals
 
     /// <summary>
-    /// The base a `0x` or `0b` literal is written in, or zero when the text is not one.
+    /// One component of a composite cell, in the notation its own type reads.
     /// </summary>
     /// <remarks>
-    /// A sign is stepped over rather than judged here, because whether one is allowed is the
-    /// type's question: a magnitude may carry a sign and a bit pattern may not.
-    /// </remarks>
-    private static int RadixLiteralBase(string text)
-    {
-        if (string.IsNullOrEmpty(text))
-            return 0;
-
-        int at = text[0] is '-' or '+' ? 1 : 0;
-
-        if (text.Length < at + 3 || text[at] != '0')
-            return 0;
-
-        return text[at + 1] switch
-        {
-            'x' or 'X' => 16,
-            'b' or 'B' => 2,
-            _ => 0,
-        };
-    }
-
-    /// <summary>Which types read a `0x` or `0b` literal as one of their values.</summary>
-    /// <remarks>
-    /// The four numeric types, `float` and `double` included. A layout that does not narrow
-    /// its number columns widens them to `double`, so a rule stopping at the integers would
-    /// miss those columns in the configuration that is the default one - and colour values,
-    /// which is where these literals mostly are, sit in exactly them.
-    /// </remarks>
-    private static bool TakesRadixLiteral(Models.ValueType type)
-        => type is Models.ValueType.Int32 or Models.ValueType.Int64
-            or Models.ValueType.Float or Models.ValueType.Double;
-
-    /// <summary>
-    /// One component of a composite cell, with any radix literal already rewritten.
-    /// </summary>
-    /// <remarks>
-    /// A component is a value of its own type, so it reads that type's notation: `(0xFF,
-    /// 0x80, 0x40)` is three integers written in base 16. The whole-cell colour forms are
-    /// read before this and never reach it.
+    /// Here rather than at the call site because <see cref="CompositeValues"/> parses a
+    /// component with the framework parsers this class hands its cells to, and the two
+    /// must read `0x80` the same way. What a component does not get is the whole-number
+    /// reading - <see cref="NumberLiterals.OfComponent"/> says why.
     /// </remarks>
     internal static string ComponentLiteral(
         string text, Models.ValueType componentType, Location? location)
-        => RadixLiteralBase(text) != 0 && TakesRadixLiteral(componentType)
-            ? DecimalOfRadix(text, componentType, location!)
-            : text;
-
-    /// <summary>
-    /// A `0x` or `0b` literal as the decimal it denotes, for the type's own parser to read.
-    /// </summary>
-    private static string DecimalOfRadix(string text, Models.ValueType type, Location location)
-    {
-        bool negative = text[0] == '-';
-        int at = text[0] is '-' or '+' ? 1 : 0;
-
-        int radix = text[at + 1] is 'x' or 'X' ? 16 : 2;
-        ulong magnitude = RadixDigits(text.Substring(at + 2), radix, text, location);
-
-        // Every type reaching here is signed, so the magnitude has to leave room for the
-        // sign even when none is written.
-        if (magnitude > long.MaxValue)
-        {
-            throw new TabbitException(location,
-                Message.Of(CookingMessages.MagnitudeTooLarge, ("Text", text), ("Type", type)));
-        }
-
-        // A float column takes the literal only where it holds the integer exactly. Above
-        // the mantissa the value reads back as a neighbouring one, and nothing downstream
-        // would say so - the same silent failure the whole-number encoding checks for.
-        if (type is Models.ValueType.Float or Models.ValueType.Double)
-        {
-            ulong exact = type == Models.ValueType.Float ? 1UL << 24 : 1UL << 53;
-
-            if (magnitude > exact)
-            {
-                throw new TabbitException(location,
-                    Message.Of(CookingMessages.FloatLosesExactness,
-                        ("Text", text), ("Type", type), ("Exact", exact)));
-            }
-        }
-
-        return (negative ? "-" : "") + magnitude.ToString(CultureInfo.InvariantCulture);
-    }
-
-    /// <summary>The digits of a radix literal, refusing whatever the base does not spell.</summary>
-    private static ulong RadixDigits(string digits, int radix, string text, Location location)
-    {
-        int limit = radix == 16 ? 16 : 64;
-
-        if (digits.Length > limit)
-        {
-            throw new TabbitException(location,
-                Message.Of(CookingMessages.RadixTooManyDigits,
-                    ("Text", text), ("Digits", digits.Length),
-                    ("Radix", radix), ("Limit", limit)));
-        }
-
-        foreach (char digit in digits)
-        {
-            if (!IsRadixDigit(digit, radix))
-            {
-                throw new TabbitException(location,
-                    Message.Of(CookingMessages.RadixBadDigit,
-                        ("Text", text), ("Digit", digit), ("Radix", radix)));
-            }
-        }
-
-        return Convert.ToUInt64(digits, radix);
-    }
-
-    private static bool IsRadixDigit(char digit, int radix)
-        => radix == 2
-            ? digit is '0' or '1'
-            : (digit >= '0' && digit <= '9')
-                || (digit >= 'a' && digit <= 'f')
-                || (digit >= 'A' && digit <= 'F');
+        => NumberLiterals.OfComponent(text, componentType, location);
 
     // ----------------------------------------------------------------- bitset
 
@@ -1237,6 +1146,12 @@ public sealed class CookingContext
     /// `0x` and `0b` reach all 64 bits, this being the one type whose value is a pattern
     /// rather than a magnitude: `0xFFFFFFFFFFFFFFFF` is every flag set, carried as the
     /// signed -1 it shares its bits with.
+    ///
+    /// **The digit separator is the one refusal that was reversed.** `0b1010_1010` is how a
+    /// mask is written where it is written at all, and it is the notation this type has most
+    /// use for. The reversal costs nothing the others were guarding: `_` widens what is
+    /// accepted without giving any cell a second reading, which is what `-1` and `1.0` and
+    /// `1,000` each do. spec/types/number-literals.md section 7.
     /// </remarks>
     private static long ParseBitset(string rawValue, Location location)
     {
@@ -1245,17 +1160,24 @@ public sealed class CookingContext
             throw new TabbitException(location, Message.Of(CookingMessages.BitsetEmpty));
         }
 
-        int radix = RadixLiteralBase(rawValue!);
+        int radix = NumberLiterals.RadixOf(rawValue);
 
         if (radix != 0)
         {
             if (rawValue[0] is '-' or '+')
                 throw new TabbitException(location, SignRefusal(rawValue));
 
-            return unchecked((long)RadixDigits(rawValue.Substring(2), radix, rawValue, location));
+            return unchecked(
+                (long)NumberLiterals.RadixDigits(
+                    rawValue.Substring(2), radix, rawValue, location));
         }
 
-        foreach (char character in rawValue)
+        // Separators come out first, and where one is misplaced that is what is reported -
+        // the character loop below would otherwise call `_` a character that is not a digit,
+        // which names the wrong thing about `1000_`.
+        string digits = NumberLiterals.DecimalDigits(rawValue, location);
+
+        foreach (char character in digits)
         {
             if (character < '0' || character > '9')
                 throw new TabbitException(location, DecimalRefusal(rawValue, character));
@@ -1263,7 +1185,7 @@ public sealed class CookingContext
 
         // Every character is a digit by here, so the only way this fails is by being longer
         // than 64 bits hold - which the 2^53 limit below would have refused anyway.
-        if (!ulong.TryParse(rawValue, NumberStyles.None, CultureInfo.InvariantCulture, out ulong value)
+        if (!ulong.TryParse(digits, NumberStyles.None, CultureInfo.InvariantCulture, out ulong value)
             || value > (1UL << 53))
         {
             throw new TabbitException(location,
@@ -1281,6 +1203,8 @@ public sealed class CookingContext
     /// The switch stays and what it chooses between changes: it used to pick a sentence and now
     /// picks an id. Six branches were already six sentences - this only moves where they are
     /// written down, and makes each one something a translator sees whole.
+    ///
+    /// The digit separator lost its branch when this type started accepting one.
     /// </remarks>
     private static Message DecimalRefusal(string text, char character) => character switch
     {
@@ -1291,8 +1215,6 @@ public sealed class CookingContext
         '-' or '+' => SignRefusal(text),
 
         'e' or 'E' => Message.Of(CookingMessages.BitsetExponent, ("Text", text)),
-
-        '_' => Message.Of(CookingMessages.BitsetDigitSeparator, ("Text", text)),
 
         _ => Message.Of(CookingMessages.BitsetNotADigit,
             ("Text", text), ("Character", character)),
@@ -1309,16 +1231,16 @@ public sealed class CookingContext
     /// </summary>
     private object ParseArrayValue(
         Models.ValueType arrayType, Models.Enum enumm, string rawValue, Location location,
-        char? arrayDelimiter, TimeZoneInfo? timeZone = null)
+        char? delimiter, TimeZoneInfo? timeZone = null)
         => ParseArrayValue(
-            arrayType, enumm, rawValue, location, arrayDelimiter, true, out _, timeZone);
+            arrayType, enumm, rawValue, location, delimiter, true, out _, timeZone);
 
     /// <summary>
     /// The same, answering which elements the sheet gave a value.
     /// </summary>
     private object ParseArrayValue(
         Models.ValueType arrayType, Models.Enum enumm, string rawValue, Location location,
-        char? arrayDelimiter, bool elementsRequired, out bool[]? elementHasValue,
+        char? delimiter, bool elementsRequired, out bool[]? elementHasValue,
         TimeZoneInfo? timeZone = null)
     {
         elementHasValue = null;
@@ -1328,7 +1250,7 @@ public sealed class CookingContext
         if (string.IsNullOrWhiteSpace(rawValue))
             return System.Array.CreateInstance(ElementClrType(elementType, enumm), 0);
 
-        var parts = rawValue.Split(arrayDelimiter ?? ArrayDelimiter);
+        var parts = rawValue.Split(delimiter ?? DefaultDelimiter);
         var result = System.Array.CreateInstance(ElementClrType(elementType, enumm), parts.Length);
 
         for (int i = 0; i < parts.Length; i++)
@@ -1436,7 +1358,8 @@ public sealed class CookingContext
     /// Reads a boolean cell.
     ///
     /// Several spellings are accepted because designers reach for whichever reads
-    /// best in the sheet: Y/N, YES/NO, TRUE/FALSE, 1/0. Case does not matter.
+    /// best in the sheet: Y/N, YES/NO, TRUE/FALSE, 1/0. Case does not matter, and a
+    /// recipe may name words of its own - `예`/`아니오`, `켜짐`/`꺼짐`.
     ///
     /// An empty cell is false. That is deliberate - a blank means "not set" and
     /// false is the useful reading of that - and it is the one lenient case here.
@@ -1450,26 +1373,24 @@ public sealed class CookingContext
         if (value.Length == 0)
             return false;
 
-        switch (value.ToUpperInvariant())
-        {
-            case "N":
-            case "NO":
-            case "FALSE":
-                return false;
-
-            case "Y":
-            case "YES":
-            case "TRUE":
-                return true;
-        }
+        // Words before numbers, so a recipe naming `O` gets `O` read as a word. Nothing
+        // spells a number and a word at once - <see cref="BooleanWords"/> refuses a list
+        // that tries - so the order settles nothing else.
+        if (BoolWords.TryRead(value, out bool word))
+            return word;
 
         // Numeric spellings, so a column of counts can be read as flags: zero is
         // false and anything else is true, as in C.
         if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double number))
             return number != 0.0;
 
+        // The lists are named rather than described, because they are the recipe's and a
+        // sentence naming `Y/N` would be wrong for every project that added a word.
         throw new TabbitException(location,
-            Message.Of(CookingMessages.NotABoolean, ("Value", value)));
+            Message.Of(CookingMessages.NotABoolean,
+                ("Value", value),
+                ("True", BoolWords.TrueSpellings),
+                ("False", BoolWords.FalseSpellings)));
     }
 
     #endregion

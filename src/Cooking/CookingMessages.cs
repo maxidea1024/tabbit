@@ -188,6 +188,15 @@ public static class CookingMessages
     /// <summary>A cell whose text will not read as its column's type.</summary>
     public const string ValueUnparsable = "cook.value-unparsable";
 
+    /// <summary>A digit separator with something other than a digit on one side of it.</summary>
+    public const string DigitSeparatorMisplaced = "cook.digit-separator-misplaced";
+
+    /// <summary>One number written with both a thousands separator and a digit separator.</summary>
+    public const string SeparatorsMixed = "cook.separators-mixed";
+
+    /// <summary>A literal naming a value with a fractional part, in a whole-number column.</summary>
+    public const string NotAWholeNumber = "cook.not-a-whole-number";
+
     /// <summary>A cell that is not any spelling of true or false.</summary>
     public const string NotABoolean = "cook.not-a-boolean";
 
@@ -223,9 +232,6 @@ public static class CookingMessages
 
     /// <summary>Exponent notation in a `bitset`.</summary>
     public const string BitsetExponent = "cook.bitset-exponent";
-
-    /// <summary>A digit separator in a `bitset`.</summary>
-    public const string BitsetDigitSeparator = "cook.bitset-digit-separator";
 
     /// <summary>Anything else that is not a decimal digit in a `bitset`.</summary>
     public const string BitsetNotADigit = "cook.bitset-not-a-digit";

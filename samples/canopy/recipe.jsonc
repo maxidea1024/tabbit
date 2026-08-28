@@ -27,7 +27,7 @@
 
         // This layout's `[number]` delimiter. The sheets do not say what it is, so the
         // recipe does. Tabbit's default is `;`, and these sheets use `,`.
-        "ArrayDelimiter": ",",
+        "DefaultDelimiter": ",",
 
         // Scalar arrays here are written `slot[0]`..`slot[5]` with optional members, so a
         // filled slot after an empty one is ordinary rather than a mistake. The original

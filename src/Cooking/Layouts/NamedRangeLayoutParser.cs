@@ -530,7 +530,7 @@ public sealed class NamedRangeLayoutParser : ILayoutParser
                 if (typeName.StartsWith('[') && typeName.EndsWith(']'))
                 {
                     // `[number]` - one cell holding a list. Exactly one column of this project
-                    // uses it, and the separator is the source entry's `ArrayDelimiter`: the
+                    // uses it, and the separator is the source entry's `DefaultDelimiter`: the
                     // sheet does not say what it is, so the recipe does.
                     string inner = typeName.Substring(1, typeName.Length - 2).Trim();
 
@@ -650,7 +650,7 @@ public sealed class NamedRangeLayoutParser : ILayoutParser
             foreach (var column in columns)
             {
                 var rawCell = CellAt(sheet, named, row, column.RangeColumn);
-                cells.Add(ReadCell(column, rawCell, sheet.Layout?.ArrayDelimiter,
+                cells.Add(ReadCell(column, rawCell, sheet.Layout?.DefaultDelimiter,
                                sheet.Layout?.OnFormulaError ?? FormulaErrorPolicy.Error,
                                sheet.Layout?.TimeZone));
             }
@@ -687,7 +687,7 @@ public sealed class NamedRangeLayoutParser : ILayoutParser
     /// output holds by omitting the property.
     /// </remarks>
     private Cell ReadCell(
-        DataColumn column, RawCell rawCell, char? arrayDelimiter,
+        DataColumn column, RawCell rawCell, char? delimiter,
         FormulaErrorPolicy onFormulaError, TimeZoneInfo? timeZone)
     {
         string text = rawCell.Value.Trim();
@@ -698,7 +698,7 @@ public sealed class NamedRangeLayoutParser : ILayoutParser
         if (rawCell.FormulaError.Length > 0)
         {
             var broken = _context.ReadCell(
-                column.Field.Type, column.Field.EnumOrNull, "", rawCell.Location, arrayDelimiter,
+                column.Field.Type, column.Field.EnumOrNull, "", rawCell.Location, delimiter,
                 required: column.Field.IsRequired,
                 column: $"{column.Field.OwnerTable.Name}.{column.Field.Name}",
                 formulaError: rawCell.FormulaError,
@@ -718,7 +718,7 @@ public sealed class NamedRangeLayoutParser : ILayoutParser
         // cannot come to mean two things in two layouts - spec/types/blank-and-null-cells.md - and
         // what this layout keeps deciding is what a blank means, below.
         if (CookingContext.SaysNoValue(text))
-            return EmptyCell(column, rawCell, arrayDelimiter);
+            return EmptyCell(column, rawCell, delimiter);
 
         if (text.Length == 0)
         {
@@ -730,7 +730,7 @@ public sealed class NamedRangeLayoutParser : ILayoutParser
                 ("Table", column.Field.OwnerTable.Name), ("Field", column.Field.Name),
                 ("At", rawCell.Location)).In(MessageCatalog.Current));
 
-            return EmptyCell(column, rawCell, arrayDelimiter);
+            return EmptyCell(column, rawCell, delimiter);
         }
 
         // A bare run of digits meaning base 2 - `1111111` for 127 - which is this layout's
@@ -756,7 +756,7 @@ public sealed class NamedRangeLayoutParser : ILayoutParser
             text = text.TrimStart('#');
 
         var reading = _context.ReadCell(
-            column.Field.Type, column.Field.EnumOrNull, text, rawCell.Location, arrayDelimiter,
+            column.Field.Type, column.Field.EnumOrNull, text, rawCell.Location, delimiter,
             required: column.Field.IsRequired,
             column: $"{column.Field.OwnerTable.Name}.{column.Field.Name}",
             formulaError: rawCell.FormulaError,
@@ -1128,7 +1128,7 @@ public sealed class NamedRangeLayoutParser : ILayoutParser
     /// it exists to catch - and what is happening here is a column saying it has no value,
     /// which is a different thing.
     /// </remarks>
-    private Cell EmptyCell(DataColumn column, RawCell rawCell, char? arrayDelimiter)
+    private Cell EmptyCell(DataColumn column, RawCell rawCell, char? delimiter)
     {
         // The same parse a value goes through, given nothing. It used to be a switch of its
         // own here, which listed the scalars and answered `""` for everything else - so a
@@ -1136,7 +1136,7 @@ public sealed class NamedRangeLayoutParser : ILayoutParser
         // array, and the binary exporter cast it and threw. Two switches for one question,
         // and only one of them knew about arrays.
         object? value = _context.ParseValue(
-            column.Field.Type, column.Field.EnumOrNull, "", rawCell.Location, arrayDelimiter,
+            column.Field.Type, column.Field.EnumOrNull, "", rawCell.Location, delimiter,
             required: false);
 
         // HasValue false is the whole point of this cell existing separately: it carries the

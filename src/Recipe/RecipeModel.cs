@@ -150,14 +150,60 @@ public class RecipeModel
     public bool AutoInsertEnumNoneLabel { get; set; } = true;
 
     /// <summary>
-    /// Character separating the elements of an array cell, for fields typed
-    /// `int[]`, `string[]` and so on.
+    /// Character separating the values written into one cell - the elements of an array,
+    /// and the entries of a `set` or `map` cell.
     ///
     /// Semicolon by default rather than comma, because comma appears constantly in
     /// ordinary prose and in numbers formatted for humans. Whitespace around each
-    /// element is trimmed, so `1; 2 ;3` reads the same as `1;2;3`.
+    /// value is trimmed, so `1; 2 ;3` reads the same as `1;2;3`.
     /// </summary>
-    public string ArrayDelimiter { get; set; } = ";";
+    /// <remarks>
+    /// **Default**, because it is not the only place a separator is named. A struct
+    /// declaring `:sep` carries the one its own cells are written with, and a composite
+    /// value's components are always separated by a comma - neither reads this. What this
+    /// answers is every cell whose type names nothing, and a source entry sits between the
+    /// two and may override it for its own sheets.
+    ///
+    /// spec/types/value-delimiter.md.
+    /// </remarks>
+    public string DefaultDelimiter { get; set; } = ";";
+
+    /// <summary>
+    /// Words a `bool` cell reads as true, on top of `Y` · `YES` · `TRUE`.
+    ///
+    /// For a sheet filled in in a language whose word for "yes" is not one of those:
+    /// `["예", "참", "켜짐"]`. Case is not part of a spelling, and a word may be written
+    /// either as an array or as one semicolon-separated string.
+    /// </summary>
+    /// <remarks>
+    /// Added to the built-in words rather than replacing them, so a recipe naming one word
+    /// does not quietly stop reading `TRUE` in a sheet that has been writing it for years.
+    /// <see cref="BuiltinBoolWords"/> is what replaces them.
+    ///
+    /// A word declared on both lists is refused, as is one spelled as a number - `0` and
+    /// `1.5` are already answered by the rule that a number is true when it is not zero.
+    /// spec/types/boolean-words.md.
+    /// </remarks>
+    [JsonConverter(typeof(StringListConverter))]
+    public List<string> TrueWords { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Words a `bool` cell reads as false, on top of `N` · `NO` · `FALSE`.
+    ///
+    /// The other half of <see cref="TrueWords"/>: `["아니오", "거짓", "꺼짐"]`.
+    /// </summary>
+    [JsonConverter(typeof(StringListConverter))]
+    public List<string> FalseWords { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Whether `Y` · `YES` · `TRUE` · `N` · `NO` · `FALSE` are read alongside whatever
+    /// <see cref="TrueWords"/> and <see cref="FalseWords"/> name.
+    ///
+    /// On, which is what every recipe written before those settings existed holds. Turn it
+    /// off for a project that wants its sheets to spell a boolean exactly one way - at the
+    /// cost of every `TRUE` already in them becoming an error.
+    /// </summary>
+    public bool BuiltinBoolWords { get; set; } = true;
 
     /// <summary>
     /// Which time zone the wall clock in a `datetime` cell was written in, so the value
@@ -366,6 +412,11 @@ public class RecipeModel
         {
             CommentHandling = CommentHandling.Ignore,
         });
+
+        // Before anything binds, and before the document is handed to the build cache: a
+        // setting under a name nothing reads any more would otherwise be ignored in
+        // silence, and the run would convert with the new setting's default.
+        RenamedSettings.Apply(parsed, filename);
 
         RecipeVariables.Expand(parsed, filename);
 

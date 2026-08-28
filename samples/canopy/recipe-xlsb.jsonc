@@ -20,7 +20,7 @@
         "FileExtensionPatterns": ".xlsb",
         "Layout": "named-range",
         "ExcludeWorkbooks": [ "Tile" ],
-        "ArrayDelimiter": ",",
+        "DefaultDelimiter": ",",
         "AllowArrayGaps": true
       }
     ]

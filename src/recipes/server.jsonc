@@ -4,7 +4,7 @@
 // 적재는 섀도 테이블에 한 뒤 원자적으로 교체하므로, 실패하면 기존 데이터가 그대로입니다.
 
 {
-  "ArrayDelimiter": ";",
+  "DefaultDelimiter": ";",
 
   "Sources": {
     "Xlsx": [

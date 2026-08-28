@@ -168,7 +168,7 @@ Write one, or type the column `int?` so that a row may say it has none.
 전달됩니다.
 
 **소스 항목의 정식 프로퍼티로 둡니다.** 어느 레이아웃에나 해당하는 설정이므로 `LayoutOptions`의
-자유 키가 아니라 `SheetSourceRecipe`의 프로퍼티입니다 — `ArrayDelimiter` · `OnDuplicateIndex` ·
+자유 키가 아니라 `SheetSourceRecipe`의 프로퍼티입니다 — `DefaultDelimiter` · `OnDuplicateIndex` ·
 `OnFormulaError`가 있는 자리이고, 어느 레이아웃인지 몰라도 찾을 수 있어야 하기 때문입니다.
 
 **`-`에는 적용되지 않습니다.** 필수 컬럼의 `-`는 `OnBlankCell`이 무엇이든 오류입니다. 이

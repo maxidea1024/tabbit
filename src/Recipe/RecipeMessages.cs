@@ -17,7 +17,7 @@ namespace Tabbit.Recipe;
 public static class RecipeMessages
 {
     /// <summary>An array delimiter that is not exactly one character.</summary>
-    public const string ArrayDelimiterNotOneCharacter = "recipe.array-delimiter-not-one-character";
+    public const string DefaultDelimiterNotOneCharacter = "recipe.default-delimiter-not-one-character";
 
     /// <summary>Two source entries declaring different row-set patterns.</summary>
     public const string RowSetsConflictingPatterns = "recipe.row-sets-conflicting-patterns";
@@ -29,7 +29,7 @@ public static class RecipeMessages
     public const string RowSetsMissingGroups = "recipe.row-sets-missing-groups";
 
     /// <summary>A source entry's array delimiter that is not exactly one character.</summary>
-    public const string EntryArrayDelimiterNotOneCharacter = "recipe.entry-array-delimiter-not-one-character";
+    public const string EntryDefaultDelimiterNotOneCharacter = "recipe.entry-default-delimiter-not-one-character";
 
     /// <summary>An `OnBlankCell` this tool does not understand.</summary>
     public const string OnBlankCellUnknown = "recipe.on-blank-cell-unknown";
@@ -147,4 +147,25 @@ public static class RecipeMessages
 
     /// <summary>An offset further from UTC than anywhere on earth.</summary>
     public const string TimeZoneOffsetTooLarge = "recipe.time-zone-offset-too-large";
+
+    /// <summary>A boolean word list holding an entry with nothing in it.</summary>
+    public const string BoolWordBlank = "recipe.bool-word-blank";
+
+    /// <summary>One word declared as both true and false.</summary>
+    public const string BoolWordBothSenses = "recipe.bool-word-both-senses";
+
+    /// <summary>A boolean word that a cell would already have read as a number.</summary>
+    public const string BoolWordIsANumber = "recipe.bool-word-is-a-number";
+
+    /// <summary>A boolean word spelled as the mark for a cell that has no value.</summary>
+    public const string BoolWordNoValueMark = "recipe.bool-word-no-value-mark";
+
+    /// <summary>The built-in boolean words turned off with none declared in their place.</summary>
+    public const string BoolWordsNone = "recipe.bool-words-none";
+
+    /// <summary>A setting written under a name it used to have.</summary>
+    public const string LogSettingRenamed = "recipe.log-setting-renamed";
+
+    /// <summary>One setting written under both its old name and its new one.</summary>
+    public const string SettingNamedTwice = "recipe.setting-named-twice";
 }

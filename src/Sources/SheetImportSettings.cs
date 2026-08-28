@@ -44,7 +44,7 @@ public sealed class SheetImportSettings
             new SheetLayout(
                 layoutId.ToLowerInvariant(),
                 ParseDuplicateIndexPolicy(recipe.OnDuplicateIndex, section),
-                ParseArrayDelimiter(recipe.ArrayDelimiter, section),
+                ParseDefaultDelimiter(recipe.DefaultDelimiter, section),
                 ParseFormulaErrorPolicy(recipe.OnFormulaError, section),
 
                 // Passed through without inspection. Which keys mean anything is the
@@ -108,7 +108,7 @@ public sealed class SheetImportSettings
     /// A value that is present but not one character is an error, because the alternative is
     /// splitting on the first character of it and reporting nothing.
     /// </remarks>
-    private static char? ParseArrayDelimiter(string value, string section)
+    private static char? ParseDefaultDelimiter(string value, string section)
     {
         string text = value ?? "";
         if (text.Length == 0)
@@ -117,7 +117,7 @@ public sealed class SheetImportSettings
         if (text.Length != 1)
         {
             throw new TabbitException(null,
-                Message.Of(Recipe.RecipeMessages.EntryArrayDelimiterNotOneCharacter,
+                Message.Of(Recipe.RecipeMessages.EntryDefaultDelimiterNotOneCharacter,
                     ("Section", section), ("Value", text)));
         }
 
