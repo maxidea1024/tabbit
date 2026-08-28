@@ -159,7 +159,7 @@ C# 안에서 왕복하면 무엇을 잘못 쓰든 제대로 읽혔습니다.
 ## 개발 / 테스트
 
 ```
-dotnet test            # 전체 회귀 스위트 — 15분 53초, 1,752개 (2026-08-26 실측)
+dotnet test            # 전체 회귀 스위트 — 6분 40초 안팎, 1,829개 (2026-08-28 실측 4회)
 ```
 
 **전체는 푸쉬 전 한 번입니다.** 그 시간의 대부분은 아래 표의 언어별 항목 — 모든 언어의 생성 코드를
@@ -243,7 +243,7 @@ PATH만 보면 그 언어를 없는 것으로 판정하고 건너뛰는데, 적�
 |브랜드 파생본|[brand/](../brand/readme.md)|`node build-assets.mjs`. 결과인 `dist/`는 **커밋합니다** — `.csproj`의 `ApplicationIcon`이 참조하므로, 아니면 .NET 빌드에 Node가 필요해집니다|
 
 로고를 바꾸면 `brand`를 먼저 돌립니다. 파비콘이 [html-head.sbn](../src/templates/html-head.sbn)에
-base64로 박혀 있어 **생성 산출물이 바뀌므로**, 그 뒤에는 아래의 골든 절차를 그대로 따릅니다.
+base64로 들어 있어 **생성 산출물이 바뀌므로**, 그 뒤에는 아래의 골든 절차를 그대로 따릅니다.
 
 생성기나 템플릿을 건드렸다면 **네 가지를 순서대로** 합니다. 아래는 cmd 기준이고,
 셸에서는 `set X=Y &&` 자리에 `X=Y`를 그대로 앞에 붙입니다 —
@@ -253,13 +253,18 @@ base64로 박혀 있어 **생성 산출물이 바뀌므로**, 그 뒤에는 아�
 set TABBIT_UE_ROOT=C:/path/to/UnrealEngine     # 언리얼 게이트를 돌릴 때만
 
 set TABBIT_UPDATE_GOLDEN=1 && dotnet test      # 1. 골든 다시 기록
-dotnet run -c Release --project src/Tabbit.csproj -- --recipe test/reserved-words/reserved-words.json
+dotnet run -c Release --project src/Tabbit.csproj -- --recipe test/reserved-words/reserved-words.json --full --force-output
                                                  # 2. 전 언어 비교본 다시 생성 (커밋 대상입니다)
-dotnet run -c Release --project src/Tabbit.csproj -- --recipe samples/sprout/recipe.jsonc
+dotnet run -c Release --project src/Tabbit.csproj -- --recipe samples/sprout/recipe.jsonc --full --force-output
                                                  # 3. 샘플 산출물 다시 생성 (커밋 대상입니다)
 dotnet test                                      # 4. 기록 없이 검증
 ```
 
+> **`--full --force-output`이 2·3단계에 붙어 있는 것도 취향이 아닙니다.** 빌드 캐시는
+> 레시피와 워크북을 보고 **생성기 버전은 보지 않습니다.** 템플릿만 바꾼 뒤 이 두 줄을 플래그
+> 없이 돌리면 **오류 없이 0.3초에 끝나고 아무것도 다시 쓰지 않습니다** — 2026-08-28에 실제로
+> 그렇게 지나갔습니다. 3단계를 빼먹은 것과 증상이 같은데, 이쪽은 빼먹지 않아도 그렇게 됩니다.
+>
 > **`-c Release`가 2·3단계에 붙어 있는 것은 취향이 아닙니다.** 그 실행은 계약 어셈블리를
 > `validation/lib/`에 함께 씁니다 — 받은 사람이 변환을 돌리지 않고도 편집기를 열 수 있게 하려고
 > 커밋되는 파일입니다. 그런데 Debug와 Release는 같은 소스에서 **다른 바이트**를 냅니다. 구성을
