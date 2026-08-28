@@ -11,6 +11,8 @@
 |**진단** — 문법 오류, 중복 선언, `extends` 와 판별자|`tabbit lsp`|
 |**정의로 이동**(F12) — 타입 이름 · `extends` 뒤의 이름|`tabbit lsp`|
 |**호버** — 선언 한 줄과 `///` 문서|`tabbit lsp`|
+|**자동완성** — 줄을 여는 낱말 · 멤버의 타입 · `extends` 뒤의 이름 · 메타데이터 키 · enum 기본값|`tabbit lsp`|
+|**시맨틱 토큰** — 이름을 실제 정체로 갈라서 칠하기|`tabbit lsp`|
 |주석 토글 · 괄호 짝 · `///` 줄 잇기|언어 설정|
 
 **판정은 확장이 하지 않습니다.** 서버가 변환과 같은 파서를 돌리므로, 여기서 빨간 줄이 그어지는
@@ -21,12 +23,15 @@
 
 ```
 cd tools/vscode
-npm install
-npm run package
+yarn install
+yarn package
 code --install-extension tabbit-tbs-0.0.1.vsix
 ```
 
 지우려면 `code --uninstall-extension tabbit.tabbit-tbs` 입니다.
+
+> yarn이 `The engine "vscode" appears to be invalid` 를 적습니다. `engines.vscode` 는 VS Code가
+> 요구하는 항목이고 yarn이 모르는 이름이라서 나오는 것이라, 그대로 두면 됩니다.
 
 ## 서버를 찾는 순서
 
@@ -62,6 +67,9 @@ code --install-extension tabbit-tbs-0.0.1.vsix
 3. `struct` 를 `strcut` 으로 고쳐 — 그 낱말에만 빨간 줄이 그어지고, 문제 패널에
    `schema.unknown-keyword` 가 뜹니다
 4. 되돌려 — 빨간 줄이 사라집니다
+5. 새 줄에 `field x ` 까지 치고 Ctrl+Space — 내장 타입과 이 폴더가 선언한 타입이 나옵니다
+6. `field x ` 뒤에 `Elemnt` 처럼 없는 이름을 적어 — **그 이름만 색을 잃습니다.** 잘못 적은
+   타입 이름은 워크북이 있어야 검사되므로 빨간 줄이 아니라 색으로 드러납니다
 
 `samples/clover/design-data/schemas/effect.tbs` 는 다형과 툼스톤이,
 `test/fixtures/schemas/containers/bag.tbs` 는 `set` · `map` 이 들어 있어 함께 보면 좋습니다.
