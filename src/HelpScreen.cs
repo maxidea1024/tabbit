@@ -105,6 +105,7 @@ internal static class HelpScreen
            or: tabbit -r RECIPE --serve [--port N]              serve, and stay up
            or: tabbit -r RECIPE --prune --before AGE            drop old change detail
            or: tabbit --new-recipe FILE [--template NAME]       write a starting recipe
+           or: tabbit lsp                                       serve an editor on stdio
            or: tabbit @ARGFILE                                  read options from a file
 
         Examples:
