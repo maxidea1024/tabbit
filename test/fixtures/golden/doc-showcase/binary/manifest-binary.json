@@ -1,0 +1,43 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "dde99a1e7be547a007669ecb3e3652e5",
+  "TotalSize": 639,
+  "Items": [
+    {
+      "Name": "Potion.tcb",
+      "Size": 116,
+      "Hash": "a467bfb935f269944c63c48b273095b7",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Shop.tcb",
+      "Size": 102,
+      "Hash": "146134d42db2ee4b588514efa22ad948",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "ShopEntry.tcb",
+      "Size": 84,
+      "Hash": "87b727c42c8440e90569575690fd5a51",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Loot.tcb",
+      "Size": 114,
+      "Hash": "f1a44d2e08e73a125f61bd83ca346000",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Spawn.tcb",
+      "Size": 105,
+      "Hash": "f4bb863a7f19265fcf245ad0dd855eeb",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "StageReward.tcb",
+      "Size": 118,
+      "Hash": "889dad7676f918ed4c22b5c67f451e14",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

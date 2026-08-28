@@ -1,0 +1,41 @@
+{
+  "source": "test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx",
+  "sheet": "Basics",
+  "kind": "const",
+  "name": "Balance",
+  "declaration": ":const Balance",
+  "origin": {
+    "row": 1,
+    "column": 6
+  },
+  "rows": [
+    [
+      ":const Balance",
+      "Values with no rows.",
+      "",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "name",
+      "type",
+      "value",
+      "desc"
+    ],
+    [
+      "",
+      "MaxStack",
+      "int",
+      "99",
+      "stack limit"
+    ],
+    [
+      "",
+      "RefundRate",
+      "float",
+      "0.5",
+      "sale refund"
+    ]
+  ]
+}

@@ -137,8 +137,10 @@ python <스킬경로>/assets/lint.py <파일>
   행·몇 셀·해시」가 거기 적혀 있고, 새 워크북 하나가 그 게이트를 빨갛게 만듭니다. 골든과 같은
   스위치입니다 — `TABBIT_UPDATE_GOLDEN=1 dotnet test --filter "FullyQualifiedName~XlsxReaderGate"`.
   **`--filter`만 돌린 커밋에서는 이것이 보이지 않습니다.**
-- **생성기·템플릿을 건드렸으면** 골든 재기록 → 전 언어 비교본 재생성 → **샘플 재생성** → 기록
-  없이 재검증 순서로. 샘플을 빼먹어도 스위트는 통과하므로 — `samples/*/out/`은 커밋되어
+- **생성기·템플릿을 건드렸으면** 골든 재기록 → 전 언어 비교본 재생성 → **샘플 재생성** →
+  **문서 재생성**(`python doc/figures/grid_dump.py` 다음 `python doc/figures/showcase.py`) →
+  기록 없이 재검증 순서로. 문서 재생성만은 게이트가 봅니다 — `GeneratedDocsGate` 가 골든에서
+  오려 온 코드가 문서와 같은지 확인합니다. 샘플을 빼먹어도 스위트는 통과하므로 — `samples/*/out/`은 커밋되어
   있지만 게이트가 없습니다 — 이 순서가 유일한 방어선입니다. 자세한 것은
   [아키텍처와 개발](doc/architecture.md#개발--테스트).
   **재생성 두 단계에는 `--full --force-output` 을 붙입니다.** 빌드 캐시는 레시피와 워크북을

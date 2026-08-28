@@ -1,0 +1,61 @@
+{
+  "source": "test/fixtures/xlsx/core/core.xlsx",
+  "sheet": "Refs",
+  "kind": "table",
+  "name": "ItemCategory",
+  "declaration": ":table ItemCategory",
+  "origin": {
+    "row": 1,
+    "column": 1
+  },
+  "rows": [
+    [
+      ":table ItemCategory",
+      "Referenced by Item.CategoryId.",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "index",
+      "Name",
+      "Description"
+    ],
+    [
+      ":type",
+      "int",
+      "string",
+      "string"
+    ],
+    [
+      ":desc",
+      "primary index",
+      "category name",
+      "human readable description"
+    ],
+    [
+      ":target",
+      "cs",
+      "cs",
+      "cs"
+    ],
+    [
+      "",
+      "1",
+      "Weapon",
+      "things that hit"
+    ],
+    [
+      "",
+      "2",
+      "Armor",
+      "things that absorb"
+    ],
+    [
+      "",
+      "3",
+      "Potion",
+      "things that heal"
+    ]
+  ]
+}

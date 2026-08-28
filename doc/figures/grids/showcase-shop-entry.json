@@ -1,0 +1,69 @@
+{
+  "source": "test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx",
+  "sheet": "Shop",
+  "kind": "table",
+  "name": "ShopEntry",
+  "declaration": ":table ShopEntry",
+  "origin": {
+    "row": 1,
+    "column": 5
+  },
+  "rows": [
+    [
+      ":table ShopEntry",
+      "What each shop sells.",
+      "",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "index",
+      "ShopId",
+      "PotionId",
+      "Stock"
+    ],
+    [
+      ":type",
+      "int",
+      "foreign Shop",
+      "foreign Potion",
+      "int"
+    ],
+    [
+      ":desc",
+      "primary index",
+      "which shop",
+      "which potion",
+      "how many"
+    ],
+    [
+      ":target",
+      "cs",
+      "cs",
+      "cs",
+      "cs"
+    ],
+    [
+      "",
+      "1",
+      "1",
+      "1",
+      "20"
+    ],
+    [
+      "",
+      "2",
+      "1",
+      "2",
+      "5"
+    ],
+    [
+      "",
+      "3",
+      "2",
+      "3",
+      "1"
+    ]
+  ]
+}

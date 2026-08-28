@@ -1,0 +1,43 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "98ae52e8c929391a2da92688c283e5c8",
+  "TotalSize": 1534,
+  "Items": [
+    {
+      "Name": "Potion.json",
+      "Size": 257,
+      "Hash": "43bb67e21d8871fbb318fb2526024c42",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Shop.json",
+      "Size": 161,
+      "Hash": "e4d04fff17d253a8c822a5b8737ce8b6",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "ShopEntry.json",
+      "Size": 232,
+      "Hash": "a08957c8ecec399b20fd0655511ad8f0",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Loot.json",
+      "Size": 335,
+      "Hash": "f00a2bfddec12cce5cc321d149f04b1e",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Spawn.json",
+      "Size": 278,
+      "Hash": "2c01843edfeb412f26b5e605b7d4e867",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "StageReward.json",
+      "Size": 271,
+      "Hash": "48a234bfca29ebcc6e615a39257365e7",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

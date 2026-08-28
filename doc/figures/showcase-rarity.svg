@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="607" height="150" viewBox="0 0 607 150" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>enum Rarity</title>
+<rect x="0" y="0" width="330.8125" height="142" fill="#FFFFFF"/>
+<rect x="0" y="0" width="329.8125" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="142" fill="#E9ECEF"/>
+<rect x="30" y="22" width="299.8125" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="299.8125" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="127.0625" y1="22" x2="127.0625" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="184.9375" y1="22" x2="184.9375" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="236.9375" y1="22" x2="236.9375" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="329.8125" y1="22" x2="329.8125" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="329.8125" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="329.8125" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="329.8125" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="329.8125" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="329.8125" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="329.8125" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="329.8125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="127.0625" y1="0" x2="127.0625" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="184.9375" y1="0" x2="184.9375" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="236.9375" y1="0" x2="236.9375" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="329.8125" y1="0" x2="329.8125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="329.3125" height="141.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="78.5" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="156.0" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="210.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="283.4" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:enum Rarity</text>
+<text x="134.0625" y="38.5" font-size="12.5" fill="#1F2328">How rare a potion is.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="134.0625" y="62.5" font-size="12.5" fill="#1F2328">label</text>
+<text x="191.9375" y="62.5" font-size="12.5" fill="#1F2328">value</text>
+<text x="243.9375" y="62.5" font-size="12.5" fill="#1F2328">desc</text>
+<text x="134.0625" y="86.5" font-size="12.5" fill="#1F2328">Common</text>
+<text x="191.9375" y="86.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="243.9375" y="86.5" font-size="12.5" fill="#1F2328">everywhere</text>
+<text x="134.0625" y="110.5" font-size="12.5" fill="#1F2328">Rare</text>
+<text x="191.9375" y="110.5" font-size="12.5" fill="#1F2328">2</text>
+<text x="243.9375" y="110.5" font-size="12.5" fill="#1F2328">in chests</text>
+<text x="134.0625" y="134.5" font-size="12.5" fill="#1F2328">Epic</text>
+<text x="191.9375" y="134.5" font-size="12.5" fill="#1F2328">3</text>
+<text x="243.9375" y="134.5" font-size="12.5" fill="#1F2328">from bosses</text>
+<text x="339.8125" y="62.0" font-size="11" fill="#8A929B" font-style="italic">◀ enum은 컬럼이 정해져 있어 이 줄 하나뿐</text>
+<text x="339.8125" y="86.0" font-size="11" fill="#8A929B" font-style="italic">◀ 0이 없으므로 None = 0이 붙습니다</text>
+</svg>

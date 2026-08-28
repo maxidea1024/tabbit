@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="954" height="222" viewBox="0 0 954 222" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>테이블 StageReward</title>
+<rect x="0" y="0" width="684.5" height="214" fill="#FFFFFF"/>
+<rect x="0" y="0" width="683.5" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="214" fill="#E9ECEF"/>
+<rect x="30" y="22" width="653.5" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="653.5" height="24" fill="#F1F6FB"/>
+<rect x="30" y="70" width="653.5" height="24" fill="#F1F6FB"/>
+<rect x="30" y="94" width="653.5" height="24" fill="#F1F6FB"/>
+<rect x="30" y="118" width="653.5" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="297.875" y1="22" x2="297.875" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="389.1875" y1="22" x2="389.1875" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="499.3125" y1="22" x2="499.3125" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="574.4375" y1="22" x2="574.4375" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="683.5" y1="22" x2="683.5" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="683.5" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="683.5" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="683.5" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="683.5" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="683.5" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="683.5" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="166" x2="683.5" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="190" x2="683.5" y2="190" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="214" x2="683.5" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="683.5" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="214" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="297.875" y1="0" x2="297.875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="389.1875" y1="0" x2="389.1875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="499.3125" y1="0" x2="499.3125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="574.4375" y1="0" x2="574.4375" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="683.5" y1="0" x2="683.5" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="166" x2="30" y2="166" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="190" x2="30" y2="190" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="214" x2="30" y2="214" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="683.0" height="213.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="163.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="343.5" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="444.2" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="536.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="629.0" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">E</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="15.0" y="157.8" font-size="10.5" fill="#5B6570" text-anchor="middle">6</text>
+<text x="15.0" y="181.8" font-size="10.5" fill="#5B6570" text-anchor="middle">7</text>
+<text x="15.0" y="205.8" font-size="10.5" fill="#5B6570" text-anchor="middle">8</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:table StageReward(key=&quot;Stage,Rank&quot;)</text>
+<text x="304.875" y="38.5" font-size="12.5" fill="#1F2328">Neither key column is unique alone.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="304.875" y="62.5" font-size="12.5" fill="#1F2328">Stage</text>
+<text x="396.1875" y="62.5" font-size="12.5" fill="#1F2328">Rank</text>
+<text x="506.3125" y="62.5" font-size="12.5" fill="#1F2328">Gold</text>
+<text x="581.4375" y="62.5" font-size="12.5" fill="#1F2328">DropTable</text>
+<text x="37" y="86.5" font-size="12.5" fill="#1A5FA8">:type</text>
+<text x="304.875" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="396.1875" y="86.5" font-size="12.5" fill="#1F2328">Rarity</text>
+<text x="506.3125" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="581.4375" y="86.5" font-size="12.5" fill="#1F2328">string</text>
+<text x="37" y="110.5" font-size="12.5" fill="#1A5FA8">:desc</text>
+<text x="304.875" y="110.5" font-size="12.5" fill="#1F2328">which stage</text>
+<text x="396.1875" y="110.5" font-size="12.5" fill="#1F2328">finishing rank</text>
+<text x="506.3125" y="110.5" font-size="12.5" fill="#1F2328">gold paid</text>
+<text x="581.4375" y="110.5" font-size="12.5" fill="#1F2328">drop table</text>
+<text x="37" y="134.5" font-size="12.5" fill="#1A5FA8">:target</text>
+<text x="304.875" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="396.1875" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="506.3125" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="581.4375" y="134.5" font-size="12.5" fill="#1F2328">s</text>
+<text x="304.875" y="158.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="396.1875" y="158.5" font-size="12.5" fill="#1F2328">Common</text>
+<text x="506.3125" y="158.5" font-size="12.5" fill="#1F2328">100</text>
+<text x="581.4375" y="158.5" font-size="12.5" fill="#1F2328">stage1_common</text>
+<text x="304.875" y="182.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="396.1875" y="182.5" font-size="12.5" fill="#1F2328">Rare</text>
+<text x="506.3125" y="182.5" font-size="12.5" fill="#1F2328">250</text>
+<text x="581.4375" y="182.5" font-size="12.5" fill="#1F2328">stage1_rare</text>
+<text x="304.875" y="206.5" font-size="12.5" fill="#1F2328">2</text>
+<text x="396.1875" y="206.5" font-size="12.5" fill="#1F2328">Common</text>
+<text x="506.3125" y="206.5" font-size="12.5" fill="#1F2328">300</text>
+<text x="581.4375" y="206.5" font-size="12.5" fill="#1F2328">stage2_common</text>
+<text x="693.5" y="38.0" font-size="11" fill="#8A929B" font-style="italic">◀ 선언 셀의 괄호에 키를 적습니다</text>
+<text x="693.5" y="134.0" font-size="11" fill="#8A929B" font-style="italic">◀ DropTable만 s — 서버 빌드에만</text>
+<text x="693.5" y="158.0" font-size="11" fill="#8A929B" font-style="italic">◀ Stage가 겹쳐도 Rank가 다르면 다른 행</text>
+</svg>

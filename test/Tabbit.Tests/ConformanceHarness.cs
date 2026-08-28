@@ -246,6 +246,9 @@ internal static class ConformanceHarness
     /// </summary>
     private static string PythonExecutable => OnWindows ? "python" : "python3";
 
+    /// <summary>The same name, for a caller running a script of the repository's own.</summary>
+    internal static string Python => PythonExecutable;
+
     public static ToolResult RunPython(string scenario, string dataScenario = null)
     {
         // Beside the generated package rather than inside it, so the package's own
@@ -1694,7 +1697,7 @@ internal static class ConformanceHarness
     /// tools in one place, and Go compiling `conformance` has nothing to do with Rust
     /// compiling `nested`.
     /// </remarks>
-    private static ToolResult Execute(
+    internal static ToolResult Execute(
         string fileName,
         string workingDirectory,
         IReadOnlyDictionary<string, string> environment,

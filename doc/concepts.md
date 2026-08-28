@@ -92,20 +92,15 @@ tabbit --recipe my-recipe.json
 
 ## 3. 생성된 코드
 
-`Item` 하나에서 생성되는 C#입니다. 골든에서 가져왔고, 네임스페이스 수식만 줄였습니다.
+컬럼 하나가 멤버 하나입니다. 이름은 각 언어의 관례를 따르고, `:desc`에 적은 설명이 doc
+comment로 나갑니다.
 
-```csharp
-public int Index => _index;
-public string Name => _name;
-public int CategoryId => ...;                                // 셀에 적힌 키
-public ItemCategoryRecord ItemCategoryByCategoryId => ...;        // 그것이 가리키는 행
-public Grade GradeField => _gradeField;
-public SkillType SkillField => _skillField;
-public string Description => _description;
-public int Price => _price;                                  // 서버 빌드에만
-```
+**어느 시트가 어느 코드가 되는지는
+[시트가 코드가 되는 모습](generated-code.md)에 언어별로 나란히 놓여 있습니다** — 거기 실린
+코드는 골든에서 그대로 오려 온 것이라 손으로 옮겨 적은 자리가 없습니다.
 
-`CategoryId`는 셀에 적힌 키 그대로이고, 그것이 가리키는 행은 이름이 따로 있습니다 —
+참조 컬럼은 멤버 둘이 됩니다. `CategoryId`는 셀에 적힌 키 그대로이고, 그것이 가리키는 행은
+이름이 따로 있습니다 —
 `<대상>By<컬럼>`입니다 ([참조가 내는 이름](../spec/references/reference-surface-naming.md)).
 
 파일에는 인덱스로 저장되고, `ReadAllAsync`가 모든 테이블을 읽은 뒤 실제 레코드로 연결합니다.

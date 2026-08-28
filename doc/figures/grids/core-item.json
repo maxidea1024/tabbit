@@ -1,0 +1,93 @@
+{
+  "source": "test/fixtures/xlsx/core/core.xlsx",
+  "sheet": "Refs",
+  "kind": "table",
+  "name": "Item",
+  "declaration": ":table Item",
+  "origin": {
+    "row": 1,
+    "column": 8
+  },
+  "rows": [
+    [
+      ":table Item",
+      "References ItemCategory by record.",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "index",
+      "Name",
+      "CategoryId",
+      "GradeField",
+      "SkillField",
+      "Description",
+      "Price"
+    ],
+    [
+      ":type",
+      "int",
+      "string",
+      "foreign ItemCategory",
+      "Grade",
+      "SkillType",
+      "string",
+      "int"
+    ],
+    [
+      ":desc",
+      "primary index",
+      "item name",
+      "owning category",
+      "item grade",
+      "granted skill",
+      "shop blurb",
+      "shop price"
+    ],
+    [
+      ":target",
+      "cs",
+      "cs",
+      "cs",
+      "cs",
+      "cs",
+      "cs",
+      "s"
+    ],
+    [
+      "",
+      "1",
+      "Short Sword",
+      "1",
+      "Common",
+      "fire_ball",
+      "Sharp & quick; deals <b>bonus</b> damage",
+      "100"
+    ],
+    [
+      "",
+      "2",
+      "Leather Armor",
+      "2",
+      "Rare",
+      "ice_shard",
+      "Blocks 5% of \"physical\" hits",
+      "250"
+    ],
+    [
+      "",
+      "3",
+      "Small Potion",
+      "3",
+      "Epic",
+      "none",
+      "Restores 10 HP <or> 5 MP",
+      "50"
+    ]
+  ]
+}

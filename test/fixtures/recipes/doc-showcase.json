@@ -1,0 +1,130 @@
+{
+  // The workbook the documentation shows beside the code it generates.
+  //
+  // Every language, because the documentation's whole point here is that one sheet becomes
+  // every one of them - a reader picking their language must find their own code rather than
+  // a note saying the others look similar. The tables are small on purpose, so a doc page can
+  // show a generated file whole instead of an excerpt somebody keeps in step by hand.
+  //
+  // `csharp-client` is the same tables built for one side. It is what lets the docs show a
+  // column marked `s` being absent rather than only assert it, and it costs one more emit
+  // rather than another workbook and another conversion.
+  //
+  // Every path is relative to the repository root, which is where the test harness invokes
+  // Tabbit from. Output lands in test/fixtures/output/doc-showcase (transient, gitignored)
+  // and is compared against test/fixtures/golden/doc-showcase.
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/doc-showcase"
+      }
+    ],
+    "GoogleSheets": []
+  },
+
+  "Targets": [
+    {
+      "Type": "html",
+      "Path": "test/fixtures/output/doc-showcase/html"
+    },
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/doc-showcase/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/doc-showcase/json",
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/doc-showcase/csharp",
+      "Namespace": "Tabbit.Fixtures.DocShowcase",
+      "AccessorName": "DocShowcaseAccessor"
+    },
+    {
+      // The same tables built for the client, so the docs can show what a `s` column does
+      // to the code rather than only say it.
+      "Type": "csharp",
+      "Path": "test/fixtures/output/doc-showcase/csharp-client",
+      "Namespace": "Tabbit.Fixtures.DocShowcase",
+      "AccessorName": "DocShowcaseAccessor",
+      "TargetSide": "c"
+    },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/doc-showcase/cpp",
+      "AccessorName": "DocShowcaseAccessor"
+    },
+    {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/doc-showcase/typescript"
+    },
+    {
+      "Type": "go",
+      "Path": "test/fixtures/output/doc-showcase/go",
+      "PackageName": "docshowcase",
+      "ModulePath": "docshowcase"
+    },
+    {
+      "Type": "ruby",
+      "Path": "test/fixtures/output/doc-showcase/ruby",
+      "ModuleName": "DocShowcase"
+    },
+    {
+      "Type": "php",
+      "Path": "test/fixtures/output/doc-showcase/php",
+      "Namespace": "Tabbit\\Fixtures\\DocShowcase",
+      "AccessorName": "DocShowcaseAccessor"
+    },
+    {
+      "Type": "dart",
+      "Path": "test/fixtures/output/doc-showcase/dart"
+    },
+    {
+      "Type": "python",
+      "Path": "test/fixtures/output/doc-showcase/python",
+      "PackageName": "doc_showcase_data"
+    },
+    {
+      "Type": "kotlin",
+      "Path": "test/fixtures/output/doc-showcase/kotlin",
+      "PackageName": "tabbit.fixtures.docshowcase",
+      "AccessorName": "DocShowcaseAccessor"
+    },
+    {
+      "Type": "swift",
+      "Path": "test/fixtures/output/doc-showcase/swift",
+      "AccessorName": "DocShowcaseAccessor"
+    },
+    {
+      "Type": "lua",
+      "Path": "test/fixtures/output/doc-showcase/lua"
+    },
+    {
+      "Type": "java",
+      "Path": "test/fixtures/output/doc-showcase/java",
+      "PackageName": "tabbit.fixtures.docshowcase",
+      "AccessorName": "DocShowcaseAccessor"
+    },
+    {
+      "Type": "rust",
+      "Path": "test/fixtures/output/doc-showcase/rust",
+      "CrateName": "doc_showcase"
+    },
+    {
+      "Type": "c",
+      "Path": "test/fixtures/output/doc-showcase/c",
+      "AccessorName": "DocShowcase"
+    },
+    {
+      "Type": "unreal",
+      "Path": "test/fixtures/output/doc-showcase/unreal/Source",
+      "ModuleName": "DocShowcase",
+      "AccessorName": "FDocShowcase",
+      "BinaryTableFileExtension": ".tcb"
+    }
+  ]
+}

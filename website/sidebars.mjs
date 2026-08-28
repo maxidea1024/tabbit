@@ -19,6 +19,22 @@ const sidebars = {
         'guide/concepts',
         'guide/glossary',
         'guide/sheets',
+        {
+          // 시트 작성 바로 다음입니다 - 「이렇게 적으면 무엇이 나오는가」가 그 문서를 읽는
+          // 동안 생기는 질문이고, 답이 두 단계 아래에 있으면 없는 것과 같습니다.
+          type: 'category',
+          label: '시트가 코드가 되는 모습',
+          link: { type: 'doc', id: 'guide/generated-code' },
+          items: [
+            'guide/generated-code/table',
+            'guide/generated-code/enum',
+            'guide/generated-code/const',
+            'guide/generated-code/reference',
+            'guide/generated-code/array',
+            'guide/generated-code/record',
+            'guide/generated-code/key',
+          ],
+        },
         'guide/cli',
         'guide/recipe',
       ],

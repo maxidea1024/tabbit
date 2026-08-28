@@ -73,6 +73,70 @@ for (const root of roots) {
   }
 }
 
+// ── 언어 탭.
+//
+// `doc/figures/showcase.py` 가 생성한 문서는 언어마다 코드를 `<details>` 하나에 담아 둡니다.
+// GitHub 에서는 그것이 그대로 접히는 목록으로 읽히고, 사이트에서는 탭이 낫습니다 - 열다섯
+// 언어를 세로로 늘어놓으면 어느 것도 옆의 시트 그림과 나란히 보이지 않기 때문입니다.
+//
+// **`groupId` 를 두는 이유**는 고른 언어가 페이지를 넘어 유지되게 하기 위해서입니다. 한 곳에서
+// C# 을 고르면 다른 문서도 C# 으로 열립니다.
+//
+// 이 변환을 거친 문서만 `.mdx` 로 나갑니다. 나머지는 `.md` 그대로이고, 그래서 `<Field>` 나
+// `{}` 를 그냥 적어 둔 문서 60여 편은 이 변환과 무관합니다.
+const TABS = /<!--\s*tabbit:tabs\s+([\w-]+)\s*-->\n([\s\S]*?)<!--\s*\/tabbit:tabs\s*-->/g
+const TAB = /<details\s+data-lang="([\w-]+)"(?:\s+open)?>\n<summary>([^<]+)<\/summary>\n([\s\S]*?)<\/details>/g
+
+// 오른쪽 목차를 접습니다. 이 문서들은 절이 하나뿐이라 목차에 담을 것이 없고, 그 자리를
+// 비우면 시트 그림과 코드를 좌우로 놓을 폭이 나옵니다.
+const MDX_HEAD =
+  '---\nhide_table_of_contents: true\n---\n\n'
+  + "import Tabs from '@theme/Tabs'\nimport TabItem from '@theme/TabItem'\n"
+
+/** 시트 그림과 코드를 좌우로 놓을 수 있게 묶습니다. 좁은 화면에서는 CSS 가 다시 위아래로 폅니다. */
+function pairs(text) {
+  return text.replace(/<!--\s*tabbit:pair\s*-->\n([\s\S]*?)<!--\s*\/tabbit:pair\s*-->/g,
+    (whole, body) => {
+      const at = body.indexOf('<Tabs')
+      if (at === -1) return whole
+
+      const sheet = body.slice(0, at).trim()
+      const code = body.slice(at).trim()
+
+      return ['<div className="tabbit-pair">',
+              '<div className="tabbit-pair-sheet">', '', sheet, '', '</div>',
+              '<div className="tabbit-pair-code">', '', code, '', '</div>',
+              '</div>'].join('\n')
+    })
+}
+
+/** 탭 묶음을 MDX 의 `<Tabs>` 로. 바꿀 것이 없으면 원문을 그대로 돌려줍니다. */
+function tabify(text) {
+  let changed = false
+
+  const next = text.replace(TABS, (whole, group, body) => {
+    const items = []
+    for (const [, value, label, content] of body.matchAll(TAB)) {
+      items.push(
+        `<TabItem value="${value}" label="${label}">\n${content.trim()}\n</TabItem>`,
+      )
+    }
+
+    if (items.length === 0) return whole
+    changed = true
+    return `<Tabs groupId="${group}">\n${items.join('\n')}\n</Tabs>`
+  })
+
+  return { text: changed ? next : text, changed }
+}
+
+/** 탭이 들어 있어 `.mdx` 로 나갈 문서들. 링크를 고칠 때 확장자를 함께 맞춥니다. */
+const asMdx = new Set()
+for (const [srcRel, destRel] of plan) {
+  if (!srcRel.endsWith('.md')) continue
+  if (tabify(await readFile(path.join(repo, srcRel), 'utf8')).changed) asMdx.add(destRel)
+}
+
 // ── 링크 하나를 새 자리에 맞게 고칩니다.
 function rewriteTarget(target, srcRel, destRel) {
   if (/^(https?:|mailto:|#|<)/.test(target)) return target
@@ -89,7 +153,8 @@ function rewriteTarget(target, srcRel, destRel) {
 
   const moved = plan.get(bare)
   if (moved) {
-    let rel = path.posix.relative(path.posix.dirname(destRel), moved)
+    const at = asMdx.has(moved) ? moved.replace(/\.md$/, '.mdx') : moved
+    let rel = path.posix.relative(path.posix.dirname(destRel), at)
     if (!rel.startsWith('.')) rel = `./${rel}`
     return rel + hash
   }
@@ -125,7 +190,7 @@ function rewriteLinks(text, srcRel, destRel, report) {
 // ── 실행.
 await rm(outDir, { recursive: true, force: true })
 
-const report = { md: 0, asset: 0, rewritten: 0 }
+const report = { md: 0, asset: 0, rewritten: 0, tabs: 0 }
 
 for (const [srcRel, destRel] of plan) {
   const src = path.join(repo, srcRel)
@@ -138,11 +203,24 @@ for (const [srcRel, destRel] of plan) {
     continue
   }
 
-  const text = await readFile(src, 'utf8')
-  await writeFile(dest, rewriteLinks(text, srcRel, destRel, report), 'utf8')
+  const text = rewriteLinks(await readFile(src, 'utf8'), srcRel, destRel, report)
+  const tabbed = tabify(text)
+
+  // 링크를 먼저 고치고 탭으로 바꿉니다. 반대 순서이면 `<TabItem>` 안의 링크가 코드 펜스
+  // 바깥인지 안인지를 세는 자리에서 어긋납니다.
+  if (tabbed.changed) {
+    // MDX 에는 HTML 주석이 없습니다. 남아 있는 것은 「손으로 고치지 마십시오」 한 줄이고,
+    // 사이트에서도 소스에 남아 있어야 하므로 지우지 않고 MDX 의 주석으로 바꿉니다.
+    const mdx = pairs(tabbed.text).replace(/<!--([\s\S]*?)-->/g, '{/*$1*/}')
+    await writeFile(`${dest}x`, MDX_HEAD + '\n' + mdx, 'utf8')
+    report.tabs++
+  } else {
+    await writeFile(dest, text, 'utf8')
+  }
   report.md++
 }
 
 console.log(
-  `문서 ${report.md}편 · 이미지 등 ${report.asset}개를 복사했고, 링크 ${report.rewritten}개를 새 자리에 맞췄습니다.`,
+  `문서 ${report.md}편 · 이미지 등 ${report.asset}개를 복사했고, 링크 ${report.rewritten}개를 새 자리에 맞췄습니다.`
+    + ` 그중 ${report.tabs}편은 언어 탭이 있어 .mdx 로 나갔습니다.`,
 )

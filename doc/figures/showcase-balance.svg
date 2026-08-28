@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="621" height="126" viewBox="0 0 621 126" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>상수셋 Balance</title>
+<rect x="0" y="0" width="425.125" height="118" fill="#FFFFFF"/>
+<rect x="0" y="0" width="424.125" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="118" fill="#E9ECEF"/>
+<rect x="30" y="22" width="394.125" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="394.125" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="141.6875" y1="22" x2="141.6875" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="228.8125" y1="22" x2="228.8125" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="280.8125" y1="22" x2="280.8125" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="332.8125" y1="22" x2="332.8125" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="424.125" y1="22" x2="424.125" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="424.125" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="424.125" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="424.125" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="424.125" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="424.125" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="424.125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="141.6875" y1="0" x2="141.6875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="228.8125" y1="0" x2="228.8125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="280.8125" y1="0" x2="280.8125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="332.8125" y1="0" x2="332.8125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="424.125" y1="0" x2="424.125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="423.625" height="117.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="85.8" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="185.2" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="254.8" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="306.8" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="378.5" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">E</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:const Balance</text>
+<text x="148.6875" y="38.5" font-size="12.5" fill="#1F2328">Values with no rows.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="148.6875" y="62.5" font-size="12.5" fill="#1F2328">name</text>
+<text x="235.8125" y="62.5" font-size="12.5" fill="#1F2328">type</text>
+<text x="287.8125" y="62.5" font-size="12.5" fill="#1F2328">value</text>
+<text x="339.8125" y="62.5" font-size="12.5" fill="#1F2328">desc</text>
+<text x="148.6875" y="86.5" font-size="12.5" fill="#1F2328">MaxStack</text>
+<text x="235.8125" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="287.8125" y="86.5" font-size="12.5" fill="#1F2328">99</text>
+<text x="339.8125" y="86.5" font-size="12.5" fill="#1F2328">stack limit</text>
+<text x="148.6875" y="110.5" font-size="12.5" fill="#1F2328">RefundRate</text>
+<text x="235.8125" y="110.5" font-size="12.5" fill="#1F2328">float</text>
+<text x="287.8125" y="110.5" font-size="12.5" fill="#1F2328">0.5</text>
+<text x="339.8125" y="110.5" font-size="12.5" fill="#1F2328">sale refund</text>
+<text x="434.125" y="62.0" font-size="11" fill="#8A929B" font-style="italic">◀ 이름·타입·값·설명 네 컬럼</text>
+</svg>

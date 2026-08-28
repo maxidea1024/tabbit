@@ -1,0 +1,43 @@
+{
+  "source": "test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx",
+  "sheet": "Basics",
+  "kind": "enum",
+  "name": "Rarity",
+  "declaration": ":enum Rarity",
+  "origin": {
+    "row": 1,
+    "column": 1
+  },
+  "rows": [
+    [
+      ":enum Rarity",
+      "How rare a potion is.",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "label",
+      "value",
+      "desc"
+    ],
+    [
+      "",
+      "Common",
+      "1",
+      "everywhere"
+    ],
+    [
+      "",
+      "Rare",
+      "2",
+      "in chests"
+    ],
+    [
+      "",
+      "Epic",
+      "3",
+      "from bosses"
+    ]
+  ]
+}

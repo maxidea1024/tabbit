@@ -32,9 +32,11 @@ const config = {
   i18n: { defaultLocale: 'ko', locales: ['ko'] },
 
   markdown: {
-    // `.md` 를 MDX 가 아니라 보통 마크다운으로 읽습니다. 문서에 `<Field>` · `{}` 같은 표기가
-    // 그대로 들어 있어서, MDX 로 파싱하면 그것들이 전부 문법 오류가 됩니다.
-    format: 'md',
+    // 확장자로 가릅니다 - `.md` 는 보통 마크다운, `.mdx` 만 MDX 입니다. 문서에 `<Field>` ·
+    // `{}` 같은 표기가 그대로 들어 있어서 전부를 MDX 로 파싱하면 그것들이 문법 오류가 되고,
+    // 그래서 저장소의 문서는 모두 `.md` 입니다. `.mdx` 로 나가는 것은 `sync-docs.mjs` 가
+    // 언어 탭을 붙여 만든 것들뿐이고, 그것들은 기계가 쓰므로 MDX 로 읽혀도 안전합니다.
+    format: 'detect',
     hooks: { onBrokenMarkdownLinks: 'throw' },
   },
 

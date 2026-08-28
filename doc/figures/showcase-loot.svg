@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="751" height="222" viewBox="0 0 751 222" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
+<title>테이블 Loot</title>
+<rect x="0" y="0" width="474.0" height="214" fill="#FFFFFF"/>
+<rect x="0" y="0" width="473.0" height="22" fill="#E9ECEF"/>
+<rect x="0" y="0" width="30" height="214" fill="#E9ECEF"/>
+<rect x="30" y="22" width="443.0" height="24" fill="#E3EDF8"/>
+<rect x="30" y="46" width="443.0" height="24" fill="#F1F6FB"/>
+<rect x="30" y="70" width="443.0" height="24" fill="#F1F6FB"/>
+<rect x="30" y="94" width="443.0" height="24" fill="#F1F6FB"/>
+<rect x="30" y="118" width="443.0" height="24" fill="#F1F6FB"/>
+<line x1="30" y1="22" x2="30" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="119.75" y1="22" x2="119.75" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="224.125" y1="22" x2="224.125" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="322.75" y1="22" x2="322.75" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="397.875" y1="22" x2="397.875" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="473.0" y1="22" x2="473.0" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="22" x2="473.0" y2="22" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="46" x2="473.0" y2="46" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="70" x2="473.0" y2="70" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="94" x2="473.0" y2="94" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="118" x2="473.0" y2="118" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="142" x2="473.0" y2="142" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="166" x2="473.0" y2="166" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="190" x2="473.0" y2="190" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="30" y1="214" x2="473.0" y2="214" stroke="#D8DDE2" stroke-width="1"/>
+<line x1="0" y1="22" x2="473.0" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="30" y1="0" x2="30" y2="214" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="119.75" y1="0" x2="119.75" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="224.125" y1="0" x2="224.125" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="322.75" y1="0" x2="322.75" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="397.875" y1="0" x2="397.875" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="473.0" y1="0" x2="473.0" y2="22" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="46" x2="30" y2="46" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="70" x2="30" y2="70" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="94" x2="30" y2="94" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="118" x2="30" y2="118" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="142" x2="30" y2="142" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="166" x2="30" y2="166" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="190" x2="30" y2="190" stroke="#BFC6CC" stroke-width="1"/>
+<line x1="0" y1="214" x2="30" y2="214" stroke="#BFC6CC" stroke-width="1"/>
+<rect x="0.5" y="0.5" width="472.5" height="213.5" fill="none" stroke="#BFC6CC" stroke-width="1"/>
+<text x="74.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">A</text>
+<text x="171.9" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">B</text>
+<text x="273.4" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">C</text>
+<text x="360.3" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">D</text>
+<text x="435.4" y="14.8" font-size="10.5" fill="#5B6570" text-anchor="middle">E</text>
+<text x="15.0" y="37.8" font-size="10.5" fill="#5B6570" text-anchor="middle">1</text>
+<text x="15.0" y="61.8" font-size="10.5" fill="#5B6570" text-anchor="middle">2</text>
+<text x="15.0" y="85.8" font-size="10.5" fill="#5B6570" text-anchor="middle">3</text>
+<text x="15.0" y="109.8" font-size="10.5" fill="#5B6570" text-anchor="middle">4</text>
+<text x="15.0" y="133.8" font-size="10.5" fill="#5B6570" text-anchor="middle">5</text>
+<text x="15.0" y="157.8" font-size="10.5" fill="#5B6570" text-anchor="middle">6</text>
+<text x="15.0" y="181.8" font-size="10.5" fill="#5B6570" text-anchor="middle">7</text>
+<text x="15.0" y="205.8" font-size="10.5" fill="#5B6570" text-anchor="middle">8</text>
+<text x="37" y="38.5" font-size="12.5" fill="#1A5FA8" font-weight="bold">:table Loot</text>
+<text x="126.75" y="38.5" font-size="12.5" fill="#1F2328">Two ways to write an array.</text>
+<text x="37" y="62.5" font-size="12.5" fill="#1A5FA8">:field</text>
+<text x="126.75" y="62.5" font-size="12.5" fill="#1F2328">index</text>
+<text x="231.125" y="62.5" font-size="12.5" fill="#1F2328">Tags</text>
+<text x="329.75" y="62.5" font-size="12.5" fill="#1F2328">Weight[0]</text>
+<text x="404.875" y="62.5" font-size="12.5" fill="#1F2328">Weight[1]</text>
+<text x="37" y="86.5" font-size="12.5" fill="#1A5FA8">:type</text>
+<text x="126.75" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="231.125" y="86.5" font-size="12.5" fill="#1F2328">string[]</text>
+<text x="329.75" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="404.875" y="86.5" font-size="12.5" fill="#1F2328">int</text>
+<text x="37" y="110.5" font-size="12.5" fill="#1A5FA8">:desc</text>
+<text x="126.75" y="110.5" font-size="12.5" fill="#1F2328">primary index</text>
+<text x="231.125" y="110.5" font-size="12.5" fill="#1F2328">search tags</text>
+<text x="329.75" y="110.5" font-size="12.5" fill="#1F2328">weight 1</text>
+<text x="404.875" y="110.5" font-size="12.5" fill="#1F2328">weight 2</text>
+<text x="37" y="134.5" font-size="12.5" fill="#1A5FA8">:target</text>
+<text x="126.75" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="231.125" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="329.75" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="404.875" y="134.5" font-size="12.5" fill="#1F2328">cs</text>
+<text x="126.75" y="158.5" font-size="12.5" fill="#1F2328">1</text>
+<text x="231.125" y="158.5" font-size="12.5" fill="#1F2328">potion;cheap</text>
+<text x="329.75" y="158.5" font-size="12.5" fill="#1F2328">70</text>
+<text x="404.875" y="158.5" font-size="12.5" fill="#1F2328">30</text>
+<text x="126.75" y="182.5" font-size="12.5" fill="#1F2328">2</text>
+<text x="231.125" y="182.5" font-size="12.5" fill="#1F2328">potion;rare</text>
+<text x="329.75" y="182.5" font-size="12.5" fill="#1F2328">20</text>
+<text x="404.875" y="182.5" font-size="12.5" fill="#1F2328">80</text>
+<text x="126.75" y="206.5" font-size="12.5" fill="#1F2328">3</text>
+<text x="231.125" y="206.5" font-size="12.5" fill="#1F2328">boss</text>
+<text x="329.75" y="206.5" font-size="12.5" fill="#1F2328">5</text>
+<text x="404.875" y="206.5" font-size="12.5" fill="#1F2328">95</text>
+<text x="483.0" y="62.0" font-size="11" fill="#8A929B" font-style="italic">◀ Weight[0]과 Weight[1]은 한 배열입니다</text>
+<text x="483.0" y="86.0" font-size="11" fill="#8A929B" font-style="italic">◀ 셀 안에서 나누는 것은 타입 뒤의 []</text>
+</svg>

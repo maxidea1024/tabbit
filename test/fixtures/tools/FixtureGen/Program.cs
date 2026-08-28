@@ -135,6 +135,10 @@ internal static class Program
         WriteEvolution(Prepare(outputDir, "evolution-v1", "evolution-v1.xlsx"), second: false);
         WriteEvolution(Prepare(outputDir, "evolution-v2", "evolution-v2.xlsx"), second: true);
 
+        // Not a coverage fixture: the workbook the documentation shows beside the code it
+        // generates, kept small enough that a whole generated file fits on a page.
+        WriteDocShowcase(Prepare(outputDir, "doc-showcase", "doc-showcase.xlsx"));
+
         Console.WriteLine($"Fixtures written to {outputDir}");
         return 0;
     }
@@ -4151,6 +4155,173 @@ internal static class Program
             .Row("3", "-", "-", "-", "-", "-", "-");
 
         b.Table(9, 1, kit);
+
+        Save(workbook, path);
+    }
+
+    /// <summary>
+    /// The workbook the documentation shows beside the code it generates.
+    /// </summary>
+    /// <remarks>
+    /// Its reason for existing is not coverage - every shape here is already pinned by a
+    /// scenario of its own. It is that the docs may show a whole generated file rather than
+    /// an excerpt somebody keeps in step by hand, and a whole file is only readable when the
+    /// table it came from is small. So every table here is three or four columns and three
+    /// rows, and each one answers exactly one question the documentation asks.
+    ///
+    ///   Rarity · Balance   an enum with no zero entry, and a constant set
+    ///   Potion             the plain table, with an enum column
+    ///   Shop · ShopEntry   a reference, and the second name it generates
+    ///   Loot               arrays, in both places one comes from
+    ///   Spawn              a record folded from columns, beside an optional value
+    ///   StageReward        a key of two columns, and a column the client never receives
+    ///
+    /// **Adding a shape here means the documentation grew a section for it.** Anything else
+    /// belongs in the scenario that pins it, where the tables are free to be as awkward as
+    /// the mechanism needs.
+    /// </remarks>
+    private static void WriteDocShowcase(string path)
+    {
+        var workbook = new XSSFWorkbook();
+
+        // --- The two entities that are not tables --------------------------
+
+        var basics = new SheetBuilder(workbook.CreateSheet("Basics"));
+
+        // No zero entry, so the docs can point at the `None = 0` that arrives on its own.
+        basics.Enum(1, 1, new EnumSpec { Name = "Rarity", Comment = "How rare a potion is." }
+            .Label("Common", "1", "everywhere")
+            .Label("Rare", "2", "in chests")
+            .Label("Epic", "3", "from bosses"));
+
+        basics.Const(6, 1, new ConstSpec { Name = "Balance", Comment = "Values with no rows." }
+            .Constant("MaxStack", "int", "99", "stack limit")
+            .Constant("RefundRate", "float", "0.5", "sale refund"));
+
+        // --- The plain table ------------------------------------------------
+
+        var potions = new SheetBuilder(workbook.CreateSheet("Potion"));
+
+        var potion = new TableSpec
+        {
+            Name = "Potion",
+            Comment = "A key, two values and an enum.",
+        };
+        potion
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "display name"))
+            .Field(FieldSpec.Of("Rarity", "enum", "how rare", detailType: "Rarity"))
+            .Field(FieldSpec.Of("Price", "int", "shop price"));
+        potion
+            .Row("1", "Small Potion", "Common", "50")
+            .Row("2", "Large Potion", "Rare", "180")
+            .Row("3", "Elixir", "Epic", "900");
+
+        potions.Table(1, 1, potion);
+
+        // --- A reference, and the row it resolves to -------------------------
+
+        var shops = new SheetBuilder(workbook.CreateSheet("Shop"));
+
+        var shop = new TableSpec
+        {
+            Name = "Shop",
+            Comment = "Pointed at by ShopEntry.",
+        };
+        shop
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Name", "string", "shop name"));
+        shop
+            .Row("1", "Town Market")
+            .Row("2", "Harbour Stall")
+            .Row("3", "Wandering Cart");
+
+        shops.Table(1, 1, shop);
+
+        var entry = new TableSpec
+        {
+            Name = "ShopEntry",
+            Comment = "What each shop sells.",
+        };
+        entry
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("ShopId", "foreign", "which shop", detailType: "Shop"))
+            .Field(FieldSpec.Of("PotionId", "foreign", "which potion", detailType: "Potion"))
+            .Field(FieldSpec.Of("Stock", "int", "how many"));
+        entry
+            .Row("1", "1", "1", "20")
+            .Row("2", "1", "2", "5")
+            .Row("3", "2", "3", "1");
+
+        // Clear of the table beside it: the rect scanner grows rightward through non-empty
+        // cells, so neighbours need a blank gutter.
+        shops.Table(5, 1, entry);
+
+        // --- The two places an array comes from ------------------------------
+
+        var loots = new SheetBuilder(workbook.CreateSheet("Loot"));
+
+        var loot = new TableSpec
+        {
+            Name = "Loot",
+            Comment = "Two ways to write an array.",
+        };
+        loot
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("Tags", "string[]", "search tags"))
+            .Field(FieldSpec.Numbered("Weight1", "int", "weight 1"))
+            .Field(FieldSpec.Numbered("Weight2", "int", "weight 2"));
+        loot
+            .Row("1", "potion;cheap", "70", "30")
+            .Row("2", "potion;rare", "20", "80")
+            .Row("3", "boss", "5", "95");
+
+        loots.Table(1, 1, loot);
+
+        // --- Columns folded into a record, and a value that may be absent -----
+
+        var spawns = new SheetBuilder(workbook.CreateSheet("Spawn"));
+
+        var spawn = new TableSpec
+        {
+            Name = "Spawn",
+            Comment = "Two columns as one record.",
+        };
+        spawn
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of("At.X", "float", "x position"))
+            .Field(FieldSpec.Of("At.Y", "float", "y position"))
+            .Field(FieldSpec.Of("Radius", "float?", "radius, or blank"));
+        spawn
+            .Row("1", "10.5", "-4", "2.5")
+            .Row("2", "0", "0", "-")
+            .Row("3", "-8.25", "12", "6");
+
+        spawns.Table(1, 1, spawn);
+
+        // --- A key of two columns, and a column one side never receives -------
+
+        var rewards = new SheetBuilder(workbook.CreateSheet("StageReward"));
+
+        var reward = new TableSpec
+        {
+            Name = "StageReward",
+            Comment = "Neither key column is unique alone.",
+            Meta = "key=\"Stage,Rank\"",
+        };
+        reward
+            .Field(FieldSpec.Of("Stage", "int", "which stage"))
+            .Field(FieldSpec.Of("Rank", "enum", "finishing rank", detailType: "Rarity"))
+            .Field(FieldSpec.Of("Gold", "int", "gold paid"))
+            // The one column the client build has no trace of.
+            .Field(FieldSpec.Of("DropTable", "string", "drop table",
+                                targetSide: "s"));
+        reward
+            .Row("1", "Common", "100", "stage1_common")
+            .Row("1", "Rare", "250", "stage1_rare")
+            .Row("2", "Common", "300", "stage2_common");
+
+        rewards.Table(1, 1, reward);
 
         Save(workbook, path);
     }

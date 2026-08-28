@@ -1,0 +1,53 @@
+{
+  "source": "test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx",
+  "sheet": "Shop",
+  "kind": "table",
+  "name": "Shop",
+  "declaration": ":table Shop",
+  "origin": {
+    "row": 1,
+    "column": 1
+  },
+  "rows": [
+    [
+      ":table Shop",
+      "Pointed at by ShopEntry.",
+      ""
+    ],
+    [
+      ":field",
+      "index",
+      "Name"
+    ],
+    [
+      ":type",
+      "int",
+      "string"
+    ],
+    [
+      ":desc",
+      "primary index",
+      "shop name"
+    ],
+    [
+      ":target",
+      "cs",
+      "cs"
+    ],
+    [
+      "",
+      "1",
+      "Town Market"
+    ],
+    [
+      "",
+      "2",
+      "Harbour Stall"
+    ],
+    [
+      "",
+      "3",
+      "Wandering Cart"
+    ]
+  ]
+}

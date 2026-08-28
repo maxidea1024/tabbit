@@ -1,0 +1,69 @@
+{
+  "source": "test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx",
+  "sheet": "StageReward",
+  "kind": "table",
+  "name": "StageReward",
+  "declaration": ":table StageReward(key=\"Stage,Rank\")",
+  "origin": {
+    "row": 1,
+    "column": 1
+  },
+  "rows": [
+    [
+      ":table StageReward(key=\"Stage,Rank\")",
+      "Neither key column is unique alone.",
+      "",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "Stage",
+      "Rank",
+      "Gold",
+      "DropTable"
+    ],
+    [
+      ":type",
+      "int",
+      "Rarity",
+      "int",
+      "string"
+    ],
+    [
+      ":desc",
+      "which stage",
+      "finishing rank",
+      "gold paid",
+      "drop table"
+    ],
+    [
+      ":target",
+      "cs",
+      "cs",
+      "cs",
+      "s"
+    ],
+    [
+      "",
+      "1",
+      "Common",
+      "100",
+      "stage1_common"
+    ],
+    [
+      "",
+      "1",
+      "Rare",
+      "250",
+      "stage1_rare"
+    ],
+    [
+      "",
+      "2",
+      "Common",
+      "300",
+      "stage2_common"
+    ]
+  ]
+}

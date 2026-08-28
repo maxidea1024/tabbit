@@ -135,6 +135,13 @@ public class ConversionGoldenTests
     // the fixture is written with the variants interleaved and the file has them gathered.
     // spec/types/polymorphism.md sections 5.2 and 6.3.
     [InlineData("polymorphism")]
+    // The workbook the documentation shows beside the code it generates. Every language,
+    // because the doc pages let a reader pick theirs - and the pages quote these files
+    // rather than paraphrase them, so this tree is what keeps the documentation in step
+    // with the generators. A diff here is a doc page that needs regenerating, which
+    // `doc/figures/showcase.py` does. It is the only golden whose reason for existing is
+    // a document rather than a mechanism; every shape in it is pinned elsewhere too.
+    [InlineData("doc-showcase")]
     public void Fixture_matches_golden(string scenario)
     {
         var result = TabbitRunner.Convert(scenario);

@@ -1,0 +1,20 @@
+[
+  {
+    "stage": 1,
+    "rank": 1,
+    "gold": 100,
+    "dropTable": "stage1_common"
+  },
+  {
+    "stage": 1,
+    "rank": 2,
+    "gold": 250,
+    "dropTable": "stage1_rare"
+  },
+  {
+    "stage": 2,
+    "rank": 1,
+    "gold": 300,
+    "dropTable": "stage2_common"
+  }
+]

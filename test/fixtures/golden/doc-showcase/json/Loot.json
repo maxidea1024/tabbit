@@ -1,0 +1,34 @@
+[
+  {
+    "index": 1,
+    "tags": [
+      "potion",
+      "cheap"
+    ],
+    "weight": [
+      70,
+      30
+    ]
+  },
+  {
+    "index": 2,
+    "tags": [
+      "potion",
+      "rare"
+    ],
+    "weight": [
+      20,
+      80
+    ]
+  },
+  {
+    "index": 3,
+    "tags": [
+      "boss"
+    ],
+    "weight": [
+      5,
+      95
+    ]
+  }
+]

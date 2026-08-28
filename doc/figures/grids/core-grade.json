@@ -1,0 +1,43 @@
+{
+  "source": "test/fixtures/xlsx/core/core.xlsx",
+  "sheet": "Enums",
+  "kind": "enum",
+  "name": "Grade",
+  "declaration": ":enum Grade",
+  "origin": {
+    "row": 1,
+    "column": 6
+  },
+  "rows": [
+    [
+      ":enum Grade",
+      "Item grade. Deliberately omits a zero entry.",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "label",
+      "value",
+      "desc"
+    ],
+    [
+      "",
+      "Common",
+      "1",
+      "common grade"
+    ],
+    [
+      "",
+      "Rare",
+      "2",
+      "rare grade"
+    ],
+    [
+      "",
+      "Epic",
+      "3",
+      "epic grade"
+    ]
+  ]
+}

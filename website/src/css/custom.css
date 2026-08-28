@@ -42,3 +42,39 @@
 .markdown h2 {
   margin-top: 2.4rem;
 }
+
+/*
+ * 시트 그림과 그 시트가 만드는 코드를 나란히.
+ *
+ * `doc/figures/showcase.py` 가 둘을 한 덩어리로 묶어 두고, `sync-docs.mjs` 가 여기 쓰는
+ * 클래스를 붙이면서 오른쪽 목차를 접습니다. 좁은 화면에서는 그대로 위아래이고, 넓을 때만
+ * 좌우로 갑니다 - 시트 격자도 코드도 폭을 먹는 것들이라 반으로 나눌 만한 자리가 아니면 둘 다
+ * 읽히지 않기 때문입니다.
+ */
+.tabbit-pair {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.tabbit-pair-sheet img {
+  max-width: 100%;
+}
+
+@media (min-width: 1400px) {
+  .tabbit-pair {
+    /* 시트 쪽이 조금 넓습니다. 격자는 줄여도 글자가 남지만 코드는 가로로 스크롤됩니다. */
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  /* 코드가 세로로 길어도 그림은 따라 내려가지 않고 화면에 남습니다. */
+  .tabbit-pair-sheet {
+    position: sticky;
+    top: calc(var(--ifm-navbar-height) + 1rem);
+  }
+}
+
+/* 언어 탭이 열다섯입니다. 한 줄에 다 들어가지 않으므로 접히게 둡니다. */
+.tabbit-pair-code .tabs {
+  flex-wrap: wrap;
+}

@@ -28,6 +28,14 @@ test/reserved-words/** text eol=lf
 samples/**/out/** text eol=lf
 test/fixtures/validation/**/Validation.csproj text eol=lf
 
+# 시트와 생성 코드를 나란히 놓은 문서와 그 재료들. 같은 이유이고, 여기서는 한 걸음 더 나갑니다 -
+# `GeneratedDocsGate` 가 다시 만들어 **바이트 단위로** 비교하므로, 체크아웃이 개행을 바꾸면
+# 내용이 같은데도 게이트가 실패합니다. 통과 여부가 클론한 자리에 좌우되는 자리입니다.
+doc/figures/grids/** text eol=lf
+doc/figures/showcase-*.svg text eol=lf
+doc/generated-code.md text eol=lf
+doc/generated-code/** text eol=lf
+
 # 위의 넓은 규칙 **뒤에** 둡니다. gitattributes는 마지막에 일치한 것이 이기므로, 이 자리가
 # 아니면 위 규칙이 바이너리를 텍스트로 취급해 개행 변환으로 망가뜨립니다.
 #
