@@ -92,6 +92,10 @@ internal sealed class LspServer : IDisposable
                 Respond(id, Completion(arguments));
                 break;
 
+            case "textDocument/semanticTokens/full":
+                Respond(id, SemanticTokens(arguments));
+                break;
+
             case "workspace/didChangeWatchedFiles":
                 DidChangeWatchedFiles(arguments);
                 break;
@@ -122,6 +126,16 @@ internal sealed class LspServer : IDisposable
             // editor asks as soon as a word is being typed, which is when the offers are
             // worth showing.
             completionProvider = new { triggerCharacters = new[] { "(", ",", "=" } },
+
+            semanticTokensProvider = new
+            {
+                legend = new
+                {
+                    tokenTypes = SchemaIndex.TokenTypes,
+                    tokenModifiers = SchemaIndex.TokenModifiers,
+                },
+                full = true,
+            },
         },
         serverInfo = new { name = "tabbit", version = ToolVersion.Current },
     };
@@ -242,6 +256,24 @@ internal sealed class LspServer : IDisposable
         string? said = index.HoverOf(found);
 
         return said is null ? null : new LspHover(new MarkupContent("markdown", said), found.Range);
+    }
+
+    /// <summary>
+    /// Every name in the file, told apart by what it actually is.
+    /// </summary>
+    /// <remarks>
+    /// The colours the highlighting grammar cannot work out on its own. A regex cannot tell a
+    /// struct's name from an enum's, and it cannot tell either from a misspelling - these can,
+    /// because they come from the declarations.
+    /// </remarks>
+    private object? SemanticTokens(JsonElement arguments)
+    {
+        if (!TryDocument(arguments, "textDocument", out string uri))
+            return null;
+
+        string path = DocumentStore.PathOf(uri);
+
+        return new { data = _workspace.AnalysisFor(path).Index.TokensFor(path) };
     }
 
     /// <summary>

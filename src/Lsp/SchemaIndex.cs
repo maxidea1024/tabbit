@@ -160,6 +160,105 @@ internal sealed class SchemaIndex
             : $"```tbs\n{composite.Name}\n```\n\n{string.Join(" · ", composite.Components)}";
     }
 
+    /// <summary>
+    /// The kinds of name this server can tell apart, in the order the protocol numbers them.
+    /// </summary>
+    /// <remarks>
+    /// **What the highlighting grammar cannot know.** A regex sees a word in type position;
+    /// it cannot say whether that word is a struct, an enum, a built-in type or a misspelling.
+    /// These do, because they come from the declarations - and a name that matches none of
+    /// them is given no token at all, so it is the one word on the line the editor colours
+    /// from the grammar alone.
+    /// </remarks>
+    public static readonly IReadOnlyList<string> TokenTypes =
+        ["struct", "enum", "enumMember", "property", "type"];
+
+    public static readonly IReadOnlyList<string> TokenModifiers = ["declaration"];
+
+    /// <summary>
+    /// Every name in one file, in the packed form the protocol asks for.
+    /// </summary>
+    /// <remarks>
+    /// Five numbers each - the line and column as a step from the token before, then the
+    /// length, the kind, and the modifiers as a bit set. Sorted first, because the steps are
+    /// meaningless in any other order.
+    /// </remarks>
+    public IReadOnlyList<int> TokensFor(string path)
+    {
+        if (!_byFile.TryGetValue(path, out var written))
+            return [];
+
+        var tokens = new List<(int Line, int Start, int Length, int Kind, int Modifiers)>();
+
+        foreach (var found in written)
+        {
+            int kind = KindOf(found, out int modifiers);
+
+            if (kind >= 0)
+                tokens.Add((found.Line, found.Start, found.End - found.Start, kind, modifiers));
+        }
+
+        tokens.Sort((left, right) => left.Line != right.Line
+            ? left.Line.CompareTo(right.Line)
+            : left.Start.CompareTo(right.Start));
+
+        var packed = new List<int>(tokens.Count * 5);
+        int line = 0;
+        int start = 0;
+
+        foreach (var token in tokens)
+        {
+            int downBy = token.Line - line;
+
+            packed.Add(downBy);
+            packed.Add(downBy == 0 ? token.Start - start : token.Start);
+            packed.Add(token.Length);
+            packed.Add(token.Kind);
+            packed.Add(token.Modifiers);
+
+            line = token.Line;
+            start = token.Start;
+        }
+
+        return packed;
+    }
+
+    /// <summary>Which kind a name is, or -1 for one nothing here recognises.</summary>
+    private int KindOf(Occurrence found, out int modifiers)
+    {
+        modifiers = 0;
+
+        if (found.Declares is not null)
+        {
+            // The one place a name is introduced rather than used.
+            modifiers = 1;
+
+            return found.Declares switch
+            {
+                SchemaStruct => 0,
+                SchemaEnum => 1,
+                SchemaEnumValue => 2,
+                SchemaField => 3,
+                _ => -1,
+            };
+        }
+
+        switch (Resolve(found.Refers))
+        {
+            case SchemaStruct: return 0;
+            case SchemaEnum: return 1;
+        }
+
+        if (found.Refers is null)
+            return -1;
+
+        // A built-in name is one this server recognises even though no file declares it. A
+        // name that is neither gets nothing, which is the point.
+        return ScalarTypes.Has(found.Refers) || CompositeTypes.BySpelling(found.Refers) is not null
+            ? 4
+            : -1;
+    }
+
     /// <summary>The declaration a written name means, or nothing when no file declares it.</summary>
     private SchemaDeclaration? Resolve(string? written)
         => written is null

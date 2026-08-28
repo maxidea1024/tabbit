@@ -251,6 +251,119 @@ public class SchemaIndexTests
         Assert.Contains("X · Y · Z", said);
     }
 
+    // ------------------------------------------------------------------ semantic tokens
+
+    /// <summary>The packed tokens, unpacked back into places and kinds.</summary>
+    private static List<(int Line, int Start, int Length, string Kind, bool Declares)> Tokens(
+        SchemaIndex index, string path)
+    {
+        var packed = index.TokensFor(path);
+        var read = new List<(int, int, int, string, bool)>();
+        int line = 0;
+        int start = 0;
+
+        for (int at = 0; at < packed.Count; at += 5)
+        {
+            line += packed[at];
+            start = packed[at] == 0 ? start + packed[at + 1] : packed[at + 1];
+
+            read.Add((line, start, packed[at + 2],
+                SchemaIndex.TokenTypes[packed[at + 3]], (packed[at + 4] & 1) != 0));
+        }
+
+        return read;
+    }
+
+    private static string KindAt(SchemaIndex index, string path, string text, string word,
+        int which = 1)
+    {
+        var (line, character) = Where(text, word, which);
+
+        return Tokens(index, path)
+            .Where(token => token.Line == line && token.Start == character)
+            .Select(token => token.Kind)
+            .FirstOrDefault() ?? "(none)";
+    }
+
+    [Fact]
+    public void Every_name_is_told_apart_by_what_it_is()
+    {
+        var index = Build(("rewards.tbs", Rewards), ("elements.tbs", Elements));
+
+        Assert.Equal("struct", KindAt(index, "rewards.tbs", Rewards, "Reward"));
+        Assert.Equal("property", KindAt(index, "rewards.tbs", Rewards, "itemId"));
+        Assert.Equal("enum", KindAt(index, "elements.tbs", Elements, "Element"));
+        Assert.Equal("enumMember", KindAt(index, "elements.tbs", Elements, "Fire"));
+
+        // A use of a declared type carries the same kind as its declaration.
+        Assert.Equal("enum", KindAt(index, "rewards.tbs", Rewards, "Element"));
+
+        // And the built-in names, which no file declares.
+        Assert.Equal("type", KindAt(index, "rewards.tbs", Rewards, "int"));
+        Assert.Equal("type", KindAt(index, "rewards.tbs", Rewards, "vec3f"));
+    }
+
+    [Fact]
+    public void A_declaration_is_marked_as_one_and_a_use_is_not()
+    {
+        var index = Build(("rewards.tbs", Rewards), ("elements.tbs", Elements));
+
+        var declaring = Where(Elements, "Element");
+        var using_ = Where(Rewards, "Element");
+
+        Assert.True(Tokens(index, "elements.tbs")
+            .Single(token => token.Line == declaring.Line && token.Start == declaring.Character)
+            .Declares);
+
+        Assert.False(Tokens(index, "rewards.tbs")
+            .Single(token => token.Line == using_.Line && token.Start == using_.Character)
+            .Declares);
+    }
+
+    [Fact]
+    public void A_name_nothing_declares_is_given_no_token()
+    {
+        const string typo = """
+            struct Reward
+                field grade Elemnt
+            """;
+
+        var index = Build(("typo.tbs", typo), ("elements.tbs", Elements));
+
+        // **This is the point of the semantic tokens.** A misspelled type name is not reported
+        // as a problem here - that check needs a workbook - so the one signal it can be given
+        // is losing the colour every recognised name beside it has.
+        Assert.Equal("(none)", KindAt(index, "typo.tbs", typo, "Elemnt"));
+        Assert.Equal("property", KindAt(index, "typo.tbs", typo, "grade"));
+    }
+
+    [Fact]
+    public void The_steps_between_tokens_never_go_backwards()
+    {
+        var index = Build(("rewards.tbs", Rewards), ("elements.tbs", Elements));
+        var packed = index.TokensFor("rewards.tbs");
+
+        Assert.NotEmpty(packed);
+        Assert.Equal(0, packed.Count % 5);
+
+        // The packing is a step from the token before, so an editor reading it in order gets
+        // nonsense the moment one of those steps is negative.
+        for (int at = 0; at < packed.Count; at += 5)
+        {
+            Assert.True(packed[at] >= 0, "A token sits above the one before it.");
+            Assert.True(packed[at + 1] >= 0, "A token starts left of the one before it.");
+            Assert.True(packed[at + 2] > 0, "A token has no width.");
+        }
+    }
+
+    [Fact]
+    public void A_file_the_index_never_read_has_no_tokens()
+    {
+        Assert.Empty(Build(("rewards.tbs", Rewards)).TokensFor("nowhere.tbs"));
+    }
+
+    // ------------------------------------------------------------------ what is left alone
+
     [Fact]
     public void A_scalar_and_a_foreign_table_are_left_alone()
     {
