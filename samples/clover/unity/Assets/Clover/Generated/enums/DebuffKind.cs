@@ -9,15 +9,27 @@
 
 namespace Clover.Data
 {
-    // Generated from effect.tbs(211,6)
+    // Generated from effect.tbs(293,6)
     /// <summary>
     /// 무엇을 무력화하는가. 보스가 씁니다.
     /// </summary>
     public enum DebuffKind
     {
+        /// <summary>
+        /// 그 무늬의 카드. `suits` 가 어느 무늬인지 적습니다.
+        /// </summary>
         BySuit = 1,
+        /// <summary>
+        /// 그림 카드 전부.
+        /// </summary>
         FaceCards = 2,
+        /// <summary>
+        /// 이번 안테에 이미 낸 적이 있는 카드.
+        /// </summary>
         PlayedThisAnte = 3,
+        /// <summary>
+        /// 낸 카드 전부.
+        /// </summary>
         AllCards = 4
     }
 } // namespace Clover.Data

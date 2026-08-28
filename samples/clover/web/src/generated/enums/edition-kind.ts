@@ -5,12 +5,16 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from card.tbs(70,6)
+// Generated from card.tbs(110,6)
 /** 에디션. 카드와 조커 양쪽에 붙습니다. */
 export enum EditionKind {
+  /** 에디션이 없습니다. */
   Base = 0,
+  /** 칩을 더합니다. */
   Foil = 1,
+  /** 배수를 더합니다. */
   Holographic = 2,
+  /** 배수를 곱합니다. */
   Polychrome = 3,
   /** 조커에 붙으면 슬롯 +1, 소모품에 붙으면 소모품 슬롯 +1 입니다. */
   Negative = 4

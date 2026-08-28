@@ -9,15 +9,27 @@
 
 namespace Clover.Data
 {
-    // Generated from effect.tbs(218,6)
+    // Generated from effect.tbs(304,6)
     /// <summary>
     /// 라운드마다 바뀌는 지정 대상.
     /// </summary>
     public enum TargetKind
     {
+        /// <summary>
+        /// 족보 하나를 지정합니다.
+        /// </summary>
         Hand = 1,
+        /// <summary>
+        /// 랭크 하나를 지정합니다.
+        /// </summary>
         Rank = 2,
+        /// <summary>
+        /// 무늬 하나를 지정합니다.
+        /// </summary>
         Suit = 3,
+        /// <summary>
+        /// 카드 한 장을 지정합니다.
+        /// </summary>
         Card = 4
     }
 } // namespace Clover.Data

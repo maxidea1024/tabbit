@@ -5,12 +5,16 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from effect.tbs(188,6)
+// Generated from effect.tbs(261,6)
 /** 카드의 무엇을 바꾸는가. */
 export enum ModifyKind {
+  /** 강화를 `enhancement` 의 것으로 바꿉니다. */
   Enhancement = 1,
+  /** 인장을 `seal` 의 것으로 바꿉니다. */
   Seal = 2,
+  /** 에디션을 `edition` 의 것으로 바꿉니다. */
   Edition = 3,
+  /** 무늬를 `suits` 의 것으로 바꿉니다. */
   Suit = 4,
   /** 랭크를 `value` 만큼 올립니다. */
   RankStep = 5,

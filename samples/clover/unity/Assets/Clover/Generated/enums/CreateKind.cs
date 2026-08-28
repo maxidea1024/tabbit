@@ -9,17 +9,35 @@
 
 namespace Clover.Data
 {
-    // Generated from effect.tbs(162,6)
+    // Generated from effect.tbs(225,6)
     /// <summary>
     /// 무엇을 만드는가.
     /// </summary>
     public enum CreateKind
     {
+        /// <summary>
+        /// 타로 카드.
+        /// </summary>
         Tarot = 1,
+        /// <summary>
+        /// 행성 카드.
+        /// </summary>
         Planet = 2,
+        /// <summary>
+        /// 유령 카드.
+        /// </summary>
         Spectral = 3,
+        /// <summary>
+        /// 조커. `rarity` 가 어느 희귀도에서 뽑을지 적습니다.
+        /// </summary>
         Joker = 4,
+        /// <summary>
+        /// 플레잉 카드. `card_class` 가 어느 갈래인지 적습니다.
+        /// </summary>
         PlayingCard = 5,
+        /// <summary>
+        /// 태그.
+        /// </summary>
         Tag = 6,
         /// <summary>
         /// 이번 런에서 마지막으로 쓴 소모품. `The Fool` 하나입니다.

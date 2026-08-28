@@ -31,20 +31,65 @@ namespace Clover.Data
         /// 족보가 판정된 뒤, 곱하기 전.
         /// </summary>
         OnHandPlayed = 4,
+        /// <summary>
+        /// 패를 버릴 때, 버린 장수와 무관하게 한 번.
+        /// </summary>
         OnHandDiscarded = 5,
+        /// <summary>
+        /// 버린 카드 한 장마다.
+        /// </summary>
         OnCardDiscarded = 6,
+        /// <summary>
+        /// 라운드가 시작할 때, 카드를 뽑기 전.
+        /// </summary>
         OnRoundStart = 7,
+        /// <summary>
+        /// 라운드를 깨고 정산할 때.
+        /// </summary>
         OnRoundEnd = 8,
+        /// <summary>
+        /// 블라인드를 고른 직후.
+        /// </summary>
         OnBlindSelect = 9,
+        /// <summary>
+        /// 보스 블라인드를 깬 뒤.
+        /// </summary>
         OnBossDefeated = 10,
+        /// <summary>
+        /// 상점에 들어갈 때.
+        /// </summary>
         OnShopEnter = 11,
+        /// <summary>
+        /// 상점을 떠날 때.
+        /// </summary>
         OnShopExit = 12,
+        /// <summary>
+        /// 상점을 다시 뽑을 때.
+        /// </summary>
         OnReroll = 13,
+        /// <summary>
+        /// 팩을 열지 않고 건너뛸 때.
+        /// </summary>
         OnPackSkipped = 14,
+        /// <summary>
+        /// 팩을 열 때.
+        /// </summary>
         OnPackOpened = 15,
+        /// <summary>
+        /// 덱에 카드가 들어올 때.
+        /// </summary>
         OnCardAdded = 16,
+        /// <summary>
+        /// 덱에서 카드가 없어질 때.
+        /// </summary>
         OnCardDestroyed = 17,
+        /// <summary>
+        /// 다른 조커를 팔 때. 자기 자신을 팔 때는 `OnSell` 입니다.
+        /// </summary>
         OnJokerSold = 18,
+        /// <summary>
+        /// 소모품을 쓸 때. 쓰인 소모품 자신은 `OnUse` 입니다.
+        /// </summary>
         OnConsumableUsed = 19,
         /// <summary>
         /// 이것 자신을 팔 때.

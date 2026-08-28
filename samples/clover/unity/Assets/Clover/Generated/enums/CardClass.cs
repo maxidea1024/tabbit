@@ -9,15 +9,27 @@
 
 namespace Clover.Data
 {
-    // Generated from effect.tbs(181,6)
+    // Generated from effect.tbs(250,6)
     /// <summary>
     /// 만들거나 더하는 플레잉 카드의 갈래.
     /// </summary>
     public enum CardClass
     {
+        /// <summary>
+        /// 갈래를 가리지 않습니다.
+        /// </summary>
         Any = 0,
+        /// <summary>
+        /// 그림 카드. J·Q·K 입니다.
+        /// </summary>
         Face = 1,
+        /// <summary>
+        /// 에이스.
+        /// </summary>
         Ace = 2,
+        /// <summary>
+        /// 숫자 카드. 2부터 10까지입니다.
+        /// </summary>
         Numbered = 3
     }
 } // namespace Clover.Data

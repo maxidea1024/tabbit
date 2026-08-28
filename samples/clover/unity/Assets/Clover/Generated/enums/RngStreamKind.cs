@@ -9,22 +9,52 @@
 
 namespace Clover.Data
 {
-    // Generated from run.tbs(68,6)
+    // Generated from run.tbs(99,6)
     /// <summary>
     /// 난수 스트림. **시드 하나에서 스트림마다 다른 상태를 파생합니다** — 같은 스트림을 쓰면
     /// 상점에서 리롤 한 번이 득점의 확률을 바꿉니다.
     /// </summary>
     public enum RngStreamKind
     {
+        /// <summary>
+        /// 덱을 섞는 것.
+        /// </summary>
         Shuffle = 1,
+        /// <summary>
+        /// 상점의 칸마다 무엇이 올지 고르는 것.
+        /// </summary>
         ShopSlot = 2,
+        /// <summary>
+        /// 상점의 조커가 어느 희귀도일지 고르는 것.
+        /// </summary>
         ShopRarity = 3,
+        /// <summary>
+        /// 안테마다 어느 바우처가 나올지 고르는 것.
+        /// </summary>
         ShopVoucher = 4,
+        /// <summary>
+        /// 팩에 무엇이 담길지 고르는 것.
+        /// </summary>
         Pack = 5,
+        /// <summary>
+        /// 조커의 확률 판정.
+        /// </summary>
         JokerProc = 6,
+        /// <summary>
+        /// 카드의 확률 판정. `Lucky` 와 `Glass` 가 씁니다.
+        /// </summary>
         CardProc = 7,
+        /// <summary>
+        /// 안테마다 어느 보스가 나올지 고르는 것.
+        /// </summary>
         Boss = 8,
+        /// <summary>
+        /// 건너뛸 때 어느 태그를 줄지 고르는 것.
+        /// </summary>
         Tag = 9,
+        /// <summary>
+        /// 값의 폭이 있는 조커가 이번에 얼마일지 고르는 것.
+        /// </summary>
         Misprint = 10
     }
 } // namespace Clover.Data

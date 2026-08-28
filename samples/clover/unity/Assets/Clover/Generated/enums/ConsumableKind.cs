@@ -9,14 +9,23 @@
 
 namespace Clover.Data
 {
-    // Generated from run.tbs(42,6)
+    // Generated from run.tbs(57,6)
     /// <summary>
     /// 소모품의 갈래. 슬롯을 공유합니다.
     /// </summary>
     public enum ConsumableKind
     {
+        /// <summary>
+        /// 카드를 바꾸거나 무언가를 만듭니다.
+        /// </summary>
         Tarot = 1,
+        /// <summary>
+        /// 족보의 칩과 배수를 올립니다.
+        /// </summary>
         Planet = 2,
+        /// <summary>
+        /// 값이 큰 대신 대가가 있습니다.
+        /// </summary>
         Spectral = 3
     }
 } // namespace Clover.Data

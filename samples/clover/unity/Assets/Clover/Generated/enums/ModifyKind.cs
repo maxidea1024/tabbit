@@ -9,15 +9,27 @@
 
 namespace Clover.Data
 {
-    // Generated from effect.tbs(188,6)
+    // Generated from effect.tbs(261,6)
     /// <summary>
     /// 카드의 무엇을 바꾸는가.
     /// </summary>
     public enum ModifyKind
     {
+        /// <summary>
+        /// 강화를 `enhancement` 의 것으로 바꿉니다.
+        /// </summary>
         Enhancement = 1,
+        /// <summary>
+        /// 인장을 `seal` 의 것으로 바꿉니다.
+        /// </summary>
         Seal = 2,
+        /// <summary>
+        /// 에디션을 `edition` 의 것으로 바꿉니다.
+        /// </summary>
         Edition = 3,
+        /// <summary>
+        /// 무늬를 `suits` 의 것으로 바꿉니다.
+        /// </summary>
         Suit = 4,
         /// <summary>
         /// 랭크를 `value` 만큼 올립니다.

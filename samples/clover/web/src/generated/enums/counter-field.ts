@@ -5,15 +5,19 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from effect.tbs(95,6)
+// Generated from effect.tbs(128,6)
 /** 누적하는 값의 칸. **소유자마다 이름이 다르지 않습니다** — 칸을 고정해야 세이브의 모양이조커 목록에 따라 달라지지 않습니다.
 `Chips` · `MultAdd` · `MultMul` 은 **득점할 때 자동으로 적용됩니다.** 따로 더하는 효과 행을두지 않습니다. `MultMul` 의 기본값은 10000(×1)이고 나머지는 0 입니다. */
 export enum CounterField {
+  /** 득점에 더할 칩. */
   Chips = 1,
+  /** 배수에 더할 값. */
   MultAdd = 2,
+  /** 배수에 곱할 값. 만분율이고 기본값은 10000(×1)입니다. */
   MultMul = 3,
   /** 라운드 종료 시 지급할 금액. `PerUnit` 의 `SelfCounterMoney` 가 읽습니다. */
   Money = 4,
+  /** 판매가에 더할 금액. */
   SellValue = 5,
   /** 남은 횟수나 세는 수. `fizz_bottle` 의 10핸드, `gravebloom` 의 23장. */
   Charge = 6,

@@ -9,19 +9,43 @@
 
 namespace Clover.Data
 {
-    // Generated from run.tbs(48,6)
+    // Generated from run.tbs(66,6)
     /// <summary>
     /// 난이도. 누적입니다 — 뒤의 것은 앞의 것을 전부 포함합니다.
     /// </summary>
     public enum StakeKind
     {
+        /// <summary>
+        /// 기본 난이도. 더해지는 규칙이 없습니다.
+        /// </summary>
         White = 1,
+        /// <summary>
+        /// 블라인드를 건너뛸 때 받는 것이 줄어듭니다.
+        /// </summary>
         Red = 2,
+        /// <summary>
+        /// 요구 점수가 안테마다 더 빨리 오릅니다.
+        /// </summary>
         Green = 3,
+        /// <summary>
+        /// 조커에 `Eternal` 이 붙어 나옵니다.
+        /// </summary>
         Black = 4,
+        /// <summary>
+        /// 버리기 횟수가 줄어듭니다.
+        /// </summary>
         Blue = 5,
+        /// <summary>
+        /// 요구 점수가 한 단계 더 오릅니다.
+        /// </summary>
         Purple = 6,
+        /// <summary>
+        /// 조커에 `Perishable` 이 붙어 나옵니다.
+        /// </summary>
         Orange = 7,
+        /// <summary>
+        /// 조커에 `Rental` 이 붙어 나옵니다.
+        /// </summary>
         Gold = 8
     }
 } // namespace Clover.Data

@@ -9,14 +9,23 @@
 
 namespace Clover.Data
 {
-    // Generated from effect.tbs(108,6)
+    // Generated from effect.tbs(145,6)
     /// <summary>
     /// 누적값이 언제 저절로 초기화되는가.
     /// </summary>
     public enum ResetKind
     {
+        /// <summary>
+        /// 초기화하지 않습니다. 런이 끝날 때까지 남습니다.
+        /// </summary>
         Never = 0,
+        /// <summary>
+        /// 라운드가 끝나면 0으로 돌아갑니다.
+        /// </summary>
         Round = 1,
+        /// <summary>
+        /// 보스를 깨면 0으로 돌아갑니다.
+        /// </summary>
         Boss = 2
     }
 } // namespace Clover.Data

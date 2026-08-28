@@ -744,18 +744,18 @@ tbody [data-pick] { cursor: pointer; }
 <div data-enum-def="BlindKind">
 <p class="lead"><b>enum.BlindKind</b> <span class="hint">안테 하나 안의 세 라운드.</span></p>
 <table><tbody>
-<tr data-label="Small"><td>Small</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Big"><td>Big</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Boss"><td>Boss</td><td class="num">3</td><td class="hint"></td></tr>
+<tr data-label="Small"><td>Small</td><td class="num">1</td><td class="hint">안테의 첫 라운드. 건너뛸 수 있습니다.</td></tr>
+<tr data-label="Big"><td>Big</td><td class="num">2</td><td class="hint">안테의 두 번째 라운드. 건너뛸 수 있습니다.</td></tr>
+<tr data-label="Boss"><td>Boss</td><td class="num">3</td><td class="hint">안테의 마지막 라운드. 규칙 하나가 붙고 건너뛸 수 없습니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="CardClass">
 <p class="lead"><b>enum.CardClass</b> <span class="hint">만들거나 더하는 플레잉 카드의 갈래.</span></p>
 <table><tbody>
-<tr data-label="Any"><td>Any</td><td class="num">0</td><td class="hint"></td></tr>
-<tr data-label="Face"><td>Face</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Ace"><td>Ace</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Numbered"><td>Numbered</td><td class="num">3</td><td class="hint"></td></tr>
+<tr data-label="Any"><td>Any</td><td class="num">0</td><td class="hint">갈래를 가리지 않습니다.</td></tr>
+<tr data-label="Face"><td>Face</td><td class="num">1</td><td class="hint">그림 카드. J&#183;Q&#183;K 입니다.</td></tr>
+<tr data-label="Ace"><td>Ace</td><td class="num">2</td><td class="hint">에이스.</td></tr>
+<tr data-label="Numbered"><td>Numbered</td><td class="num">3</td><td class="hint">숫자 카드. 2부터 10까지입니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="CardTrait">
@@ -769,17 +769,17 @@ tbody [data-pick] { cursor: pointer; }
 <div data-enum-def="Compare">
 <p class="lead"><b>enum.Compare</b> <span class="hint">수 비교의 방향.</span></p>
 <table><tbody>
-<tr data-label="AtLeast"><td>AtLeast</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="AtMost"><td>AtMost</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Exactly"><td>Exactly</td><td class="num">3</td><td class="hint"></td></tr>
+<tr data-label="AtLeast"><td>AtLeast</td><td class="num">1</td><td class="hint">그 값 이상.</td></tr>
+<tr data-label="AtMost"><td>AtMost</td><td class="num">2</td><td class="hint">그 값 이하.</td></tr>
+<tr data-label="Exactly"><td>Exactly</td><td class="num">3</td><td class="hint">그 값과 같음.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="ConsumableKind">
 <p class="lead"><b>enum.ConsumableKind</b> <span class="hint">소모품의 갈래. 슬롯을 공유합니다.</span></p>
 <table><tbody>
-<tr data-label="Tarot"><td>Tarot</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Planet"><td>Planet</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Spectral"><td>Spectral</td><td class="num">3</td><td class="hint"></td></tr>
+<tr data-label="Tarot"><td>Tarot</td><td class="num">1</td><td class="hint">카드를 바꾸거나 무언가를 만듭니다.</td></tr>
+<tr data-label="Planet"><td>Planet</td><td class="num">2</td><td class="hint">족보의 칩과 배수를 올립니다.</td></tr>
+<tr data-label="Spectral"><td>Spectral</td><td class="num">3</td><td class="hint">값이 큰 대신 대가가 있습니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="CounterField">
@@ -789,11 +789,11 @@ tbody [data-pick] { cursor: pointer; }
 <code>Chips</code> &#183; <code>MultAdd</code> &#183; <code>MultMul</code> 은 <b>득점할 때 자동으로 적용됩니다.</b> 따로 더하는 효과 행을
 두지 않습니다. <code>MultMul</code> 의 기본값은 10000(&#215;1)이고 나머지는 0 입니다.</span></p>
 <table><tbody>
-<tr data-label="Chips"><td>Chips</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="MultAdd"><td>MultAdd</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="MultMul"><td>MultMul</td><td class="num">3</td><td class="hint"></td></tr>
+<tr data-label="Chips"><td>Chips</td><td class="num">1</td><td class="hint">득점에 더할 칩.</td></tr>
+<tr data-label="MultAdd"><td>MultAdd</td><td class="num">2</td><td class="hint">배수에 더할 값.</td></tr>
+<tr data-label="MultMul"><td>MultMul</td><td class="num">3</td><td class="hint">배수에 곱할 값. 만분율이고 기본값은 10000(&#215;1)입니다.</td></tr>
 <tr data-label="Money"><td>Money</td><td class="num">4</td><td class="hint">라운드 종료 시 지급할 금액. <code>PerUnit</code> 의 <code>SelfCounterMoney</code> 가 읽습니다.</td></tr>
-<tr data-label="SellValue"><td>SellValue</td><td class="num">5</td><td class="hint"></td></tr>
+<tr data-label="SellValue"><td>SellValue</td><td class="num">5</td><td class="hint">판매가에 더할 금액.</td></tr>
 <tr data-label="Charge"><td>Charge</td><td class="num">6</td><td class="hint">남은 횟수나 세는 수. <code>fizz_bottle</code> 의 10핸드, <code>gravebloom</code> 의 23장.</td></tr>
 <tr data-label="Tick"><td>Tick</td><td class="num">7</td><td class="hint">지나간 라운드 수. <code>faint_outline</code> 의 2라운드.</td></tr>
 </tbody></table>
@@ -801,12 +801,12 @@ tbody [data-pick] { cursor: pointer; }
 <div data-enum-def="CreateKind">
 <p class="lead"><b>enum.CreateKind</b> <span class="hint">무엇을 만드는가.</span></p>
 <table><tbody>
-<tr data-label="Tarot"><td>Tarot</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Planet"><td>Planet</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Spectral"><td>Spectral</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="Joker"><td>Joker</td><td class="num">4</td><td class="hint"></td></tr>
-<tr data-label="PlayingCard"><td>PlayingCard</td><td class="num">5</td><td class="hint"></td></tr>
-<tr data-label="Tag"><td>Tag</td><td class="num">6</td><td class="hint"></td></tr>
+<tr data-label="Tarot"><td>Tarot</td><td class="num">1</td><td class="hint">타로 카드.</td></tr>
+<tr data-label="Planet"><td>Planet</td><td class="num">2</td><td class="hint">행성 카드.</td></tr>
+<tr data-label="Spectral"><td>Spectral</td><td class="num">3</td><td class="hint">유령 카드.</td></tr>
+<tr data-label="Joker"><td>Joker</td><td class="num">4</td><td class="hint">조커. <code>rarity</code> 가 어느 희귀도에서 뽑을지 적습니다.</td></tr>
+<tr data-label="PlayingCard"><td>PlayingCard</td><td class="num">5</td><td class="hint">플레잉 카드. <code>card_class</code> 가 어느 갈래인지 적습니다.</td></tr>
+<tr data-label="Tag"><td>Tag</td><td class="num">6</td><td class="hint">태그.</td></tr>
 <tr data-label="LastUsed"><td>LastUsed</td><td class="num">7</td><td class="hint">이번 런에서 마지막으로 쓴 소모품. <code>The Fool</code> 하나입니다.</td></tr>
 <tr data-label="CopyOfScored"><td>CopyOfScored</td><td class="num">8</td><td class="hint">지금 득점한 카드의 사본. <code>graft</code> 하나입니다.</td></tr>
 <tr data-label="CopyOfSelected"><td>CopyOfSelected</td><td class="num">9</td><td class="hint">고른 카드의 사본. <code>Cryptid</code> 하나입니다.</td></tr>
@@ -817,71 +817,71 @@ tbody [data-pick] { cursor: pointer; }
 <div data-enum-def="DebuffKind">
 <p class="lead"><b>enum.DebuffKind</b> <span class="hint">무엇을 무력화하는가. 보스가 씁니다.</span></p>
 <table><tbody>
-<tr data-label="BySuit"><td>BySuit</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="FaceCards"><td>FaceCards</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="PlayedThisAnte"><td>PlayedThisAnte</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="AllCards"><td>AllCards</td><td class="num">4</td><td class="hint"></td></tr>
+<tr data-label="BySuit"><td>BySuit</td><td class="num">1</td><td class="hint">그 무늬의 카드. <code>suits</code> 가 어느 무늬인지 적습니다.</td></tr>
+<tr data-label="FaceCards"><td>FaceCards</td><td class="num">2</td><td class="hint">그림 카드 전부.</td></tr>
+<tr data-label="PlayedThisAnte"><td>PlayedThisAnte</td><td class="num">3</td><td class="hint">이번 안테에 이미 낸 적이 있는 카드.</td></tr>
+<tr data-label="AllCards"><td>AllCards</td><td class="num">4</td><td class="hint">낸 카드 전부.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="Duration">
 <p class="lead"><b>enum.Duration</b> <span class="hint">규칙 변경이 얼마나 오래 가는가.</span></p>
 <table><tbody>
-<tr data-label="Permanent"><td>Permanent</td><td class="num">0</td><td class="hint"></td></tr>
-<tr data-label="ThisRound"><td>ThisRound</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="NextRound"><td>NextRound</td><td class="num">2</td><td class="hint"></td></tr>
+<tr data-label="Permanent"><td>Permanent</td><td class="num">0</td><td class="hint">런이 끝날 때까지.</td></tr>
+<tr data-label="ThisRound"><td>ThisRound</td><td class="num">1</td><td class="hint">이번 라운드까지.</td></tr>
+<tr data-label="NextRound"><td>NextRound</td><td class="num">2</td><td class="hint">다음 라운드 한 번만.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="EditionKind">
 <p class="lead"><b>enum.EditionKind</b> <span class="hint">에디션. 카드와 조커 양쪽에 붙습니다.</span></p>
 <table><tbody>
-<tr data-label="Base"><td>Base</td><td class="num">0</td><td class="hint"></td></tr>
-<tr data-label="Foil"><td>Foil</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Holographic"><td>Holographic</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Polychrome"><td>Polychrome</td><td class="num">3</td><td class="hint"></td></tr>
+<tr data-label="Base"><td>Base</td><td class="num">0</td><td class="hint">에디션이 없습니다.</td></tr>
+<tr data-label="Foil"><td>Foil</td><td class="num">1</td><td class="hint">칩을 더합니다.</td></tr>
+<tr data-label="Holographic"><td>Holographic</td><td class="num">2</td><td class="hint">배수를 더합니다.</td></tr>
+<tr data-label="Polychrome"><td>Polychrome</td><td class="num">3</td><td class="hint">배수를 곱합니다.</td></tr>
 <tr data-label="Negative"><td>Negative</td><td class="num">4</td><td class="hint">조커에 붙으면 슬롯 +1, 소모품에 붙으면 소모품 슬롯 +1 입니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="EnhancementKind">
 <p class="lead"><b>enum.EnhancementKind</b> <span class="hint">카드 한 장의 강화. 한 장에 하나만 붙습니다.</span></p>
 <table><tbody>
-<tr data-label="None"><td>None</td><td class="num">0</td><td class="hint"></td></tr>
-<tr data-label="Bonus"><td>Bonus</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Mult"><td>Mult</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Wild"><td>Wild</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="Glass"><td>Glass</td><td class="num">4</td><td class="hint"></td></tr>
-<tr data-label="Steel"><td>Steel</td><td class="num">5</td><td class="hint"></td></tr>
-<tr data-label="Stone"><td>Stone</td><td class="num">6</td><td class="hint"></td></tr>
-<tr data-label="Gold"><td>Gold</td><td class="num">7</td><td class="hint"></td></tr>
-<tr data-label="Lucky"><td>Lucky</td><td class="num">8</td><td class="hint"></td></tr>
+<tr data-label="None"><td>None</td><td class="num">0</td><td class="hint">강화가 없습니다.</td></tr>
+<tr data-label="Bonus"><td>Bonus</td><td class="num">1</td><td class="hint">칩을 더합니다.</td></tr>
+<tr data-label="Mult"><td>Mult</td><td class="num">2</td><td class="hint">배수를 더합니다.</td></tr>
+<tr data-label="Wild"><td>Wild</td><td class="num">3</td><td class="hint">모든 무늬로 취급합니다.</td></tr>
+<tr data-label="Glass"><td>Glass</td><td class="num">4</td><td class="hint">배수를 곱하고, 득점한 뒤 확률로 깨집니다.</td></tr>
+<tr data-label="Steel"><td>Steel</td><td class="num">5</td><td class="hint">패에 들고 있는 동안 배수를 곱합니다.</td></tr>
+<tr data-label="Stone"><td>Stone</td><td class="num">6</td><td class="hint">랭크와 무늬가 없고 족보와 무관하게 득점합니다.</td></tr>
+<tr data-label="Gold"><td>Gold</td><td class="num">7</td><td class="hint">라운드가 끝날 때 패에 있으면 금액을 줍니다.</td></tr>
+<tr data-label="Lucky"><td>Lucky</td><td class="num">8</td><td class="hint">확률로 배수나 금액을 줍니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="HandPick">
 <p class="lead"><b>enum.HandPick</b> <span class="hint">어느 족보를 가리키는가.</span></p>
 <table><tbody>
-<tr data-label="Played"><td>Played</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="FirstDiscarded"><td>FirstDiscarded</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="MostPlayed"><td>MostPlayed</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="Random"><td>Random</td><td class="num">4</td><td class="hint"></td></tr>
-<tr data-label="All"><td>All</td><td class="num">5</td><td class="hint"></td></tr>
+<tr data-label="Played"><td>Played</td><td class="num">1</td><td class="hint">지금 낸 족보.</td></tr>
+<tr data-label="FirstDiscarded"><td>FirstDiscarded</td><td class="num">2</td><td class="hint">이번에 버린 카드가 이루는 첫 족보.</td></tr>
+<tr data-label="MostPlayed"><td>MostPlayed</td><td class="num">3</td><td class="hint">이번 런에서 가장 많이 낸 족보.</td></tr>
+<tr data-label="Random"><td>Random</td><td class="num">4</td><td class="hint">무작위 족보 하나.</td></tr>
+<tr data-label="All"><td>All</td><td class="num">5</td><td class="hint">모든 족보.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="JokerPick">
 <p class="lead"><b>enum.JokerPick</b> <span class="hint">어느 조커를 가리키는가.</span></p>
 <table><tbody>
-<tr data-label="Right"><td>Right</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Leftmost"><td>Leftmost</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Random"><td>Random</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="AllOther"><td>AllOther</td><td class="num">4</td><td class="hint"></td></tr>
-<tr data-label="SelfPick"><td>SelfPick</td><td class="num">5</td><td class="hint"></td></tr>
+<tr data-label="Right"><td>Right</td><td class="num">1</td><td class="hint">자기 오른쪽에 붙은 조커.</td></tr>
+<tr data-label="Leftmost"><td>Leftmost</td><td class="num">2</td><td class="hint">가장 왼쪽 조커.</td></tr>
+<tr data-label="Random"><td>Random</td><td class="num">3</td><td class="hint">무작위 조커 하나.</td></tr>
+<tr data-label="AllOther"><td>AllOther</td><td class="num">4</td><td class="hint">자기를 뺀 모든 조커.</td></tr>
+<tr data-label="SelfPick"><td>SelfPick</td><td class="num">5</td><td class="hint">자기 자신.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="ModifyKind">
 <p class="lead"><b>enum.ModifyKind</b> <span class="hint">카드의 무엇을 바꾸는가.</span></p>
 <table><tbody>
-<tr data-label="Enhancement"><td>Enhancement</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Seal"><td>Seal</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Edition"><td>Edition</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="Suit"><td>Suit</td><td class="num">4</td><td class="hint"></td></tr>
+<tr data-label="Enhancement"><td>Enhancement</td><td class="num">1</td><td class="hint">강화를 <code>enhancement</code> 의 것으로 바꿉니다.</td></tr>
+<tr data-label="Seal"><td>Seal</td><td class="num">2</td><td class="hint">인장을 <code>seal</code> 의 것으로 바꿉니다.</td></tr>
+<tr data-label="Edition"><td>Edition</td><td class="num">3</td><td class="hint">에디션을 <code>edition</code> 의 것으로 바꿉니다.</td></tr>
+<tr data-label="Suit"><td>Suit</td><td class="num">4</td><td class="hint">무늬를 <code>suits</code> 의 것으로 바꿉니다.</td></tr>
 <tr data-label="RankStep"><td>RankStep</td><td class="num">5</td><td class="hint">랭크를 <code>value</code> 만큼 올립니다.</td></tr>
 <tr data-label="BonusChips"><td>BonusChips</td><td class="num">6</td><td class="hint">영구 칩을 <code>value</code> 만큼 더합니다.</td></tr>
 <tr data-label="CopyRight"><td>CopyRight</td><td class="num">7</td><td class="hint">왼쪽 카드를 오른쪽 카드와 같게 만듭니다. <code>Death</code> 하나입니다.</td></tr>
@@ -891,10 +891,10 @@ tbody [data-pick] { cursor: pointer; }
 <div data-enum-def="PerUnitMode">
 <p class="lead"><b>enum.PerUnitMode</b> <span class="hint"><code>PerUnit</code> 과 <code>RandomRange</code> 가 어느 칸에 넣는가.</span></p>
 <table><tbody>
-<tr data-label="AddChips"><td>AddChips</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="AddMult"><td>AddMult</td><td class="num">2</td><td class="hint"></td></tr>
+<tr data-label="AddChips"><td>AddChips</td><td class="num">1</td><td class="hint">칩에 더합니다.</td></tr>
+<tr data-label="AddMult"><td>AddMult</td><td class="num">2</td><td class="hint">배수에 더합니다.</td></tr>
 <tr data-label="MulMult"><td>MulMult</td><td class="num">3</td><td class="hint">결과는 <code>base_value + value &#215; 개수</code> 입니다.</td></tr>
-<tr data-label="AddMoney"><td>AddMoney</td><td class="num">4</td><td class="hint"></td></tr>
+<tr data-label="AddMoney"><td>AddMoney</td><td class="num">4</td><td class="hint">금액을 지급합니다.</td></tr>
 <tr data-label="MulEach"><td>MulEach</td><td class="num">5</td><td class="hint">개수만큼 <b>되풀이해서 곱합니다.</b> <code>rookie_card</code> 하나입니다.</td></tr>
 </tbody></table>
 </div>
@@ -902,15 +902,15 @@ tbody [data-pick] { cursor: pointer; }
 <p class="lead"><b>enum.PokerHandKind</b> <span class="hint">족보. 로열 플러시는 별도 족보가 아니므로 여기 없습니다 — 스트레이트 플러시와 값을
 공유하고 표시만 다릅니다.</span></p>
 <table><tbody>
-<tr data-label="HighCard"><td>HighCard</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Pair"><td>Pair</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="TwoPair"><td>TwoPair</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="ThreeOfAKind"><td>ThreeOfAKind</td><td class="num">4</td><td class="hint"></td></tr>
-<tr data-label="Straight"><td>Straight</td><td class="num">5</td><td class="hint"></td></tr>
-<tr data-label="Flush"><td>Flush</td><td class="num">6</td><td class="hint"></td></tr>
-<tr data-label="FullHouse"><td>FullHouse</td><td class="num">7</td><td class="hint"></td></tr>
-<tr data-label="FourOfAKind"><td>FourOfAKind</td><td class="num">8</td><td class="hint"></td></tr>
-<tr data-label="StraightFlush"><td>StraightFlush</td><td class="num">9</td><td class="hint"></td></tr>
+<tr data-label="HighCard"><td>HighCard</td><td class="num">1</td><td class="hint">아무것도 이루지 못한 패.</td></tr>
+<tr data-label="Pair"><td>Pair</td><td class="num">2</td><td class="hint">같은 랭크 둘.</td></tr>
+<tr data-label="TwoPair"><td>TwoPair</td><td class="num">3</td><td class="hint">같은 랭크 둘이 두 쌍.</td></tr>
+<tr data-label="ThreeOfAKind"><td>ThreeOfAKind</td><td class="num">4</td><td class="hint">같은 랭크 셋.</td></tr>
+<tr data-label="Straight"><td>Straight</td><td class="num">5</td><td class="hint">이어지는 랭크 다섯.</td></tr>
+<tr data-label="Flush"><td>Flush</td><td class="num">6</td><td class="hint">같은 무늬 다섯.</td></tr>
+<tr data-label="FullHouse"><td>FullHouse</td><td class="num">7</td><td class="hint">같은 랭크 셋과 둘.</td></tr>
+<tr data-label="FourOfAKind"><td>FourOfAKind</td><td class="num">8</td><td class="hint">같은 랭크 넷.</td></tr>
+<tr data-label="StraightFlush"><td>StraightFlush</td><td class="num">9</td><td class="hint">같은 무늬로 이어지는 랭크 다섯.</td></tr>
 <tr data-label="FiveOfAKind"><td>FiveOfAKind</td><td class="num">10</td><td class="hint">한 번 낸 뒤에 목록에 보입니다.</td></tr>
 <tr data-label="FlushHouse"><td>FlushHouse</td><td class="num">11</td><td class="hint">한 번 낸 뒤에 목록에 보입니다.</td></tr>
 <tr data-label="FlushFive"><td>FlushFive</td><td class="num">12</td><td class="hint">한 번 낸 뒤에 목록에 보입니다.</td></tr>
@@ -919,91 +919,91 @@ tbody [data-pick] { cursor: pointer; }
 <div data-enum-def="RankKind">
 <p class="lead"><b>enum.RankKind</b> <span class="hint">랭크. 값은 크기 순서이고 칩값이 아닙니다 — 칩값은 <code>Rank</code> 테이블에 있습니다.</span></p>
 <table><tbody>
-<tr data-label="Two"><td>Two</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Three"><td>Three</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="Four"><td>Four</td><td class="num">4</td><td class="hint"></td></tr>
-<tr data-label="Five"><td>Five</td><td class="num">5</td><td class="hint"></td></tr>
-<tr data-label="Six"><td>Six</td><td class="num">6</td><td class="hint"></td></tr>
-<tr data-label="Seven"><td>Seven</td><td class="num">7</td><td class="hint"></td></tr>
-<tr data-label="Eight"><td>Eight</td><td class="num">8</td><td class="hint"></td></tr>
-<tr data-label="Nine"><td>Nine</td><td class="num">9</td><td class="hint"></td></tr>
-<tr data-label="Ten"><td>Ten</td><td class="num">10</td><td class="hint"></td></tr>
-<tr data-label="Jack"><td>Jack</td><td class="num">11</td><td class="hint"></td></tr>
-<tr data-label="Queen"><td>Queen</td><td class="num">12</td><td class="hint"></td></tr>
-<tr data-label="King"><td>King</td><td class="num">13</td><td class="hint"></td></tr>
-<tr data-label="Ace"><td>Ace</td><td class="num">14</td><td class="hint"></td></tr>
+<tr data-label="Two"><td>Two</td><td class="num">2</td><td class="hint">2.</td></tr>
+<tr data-label="Three"><td>Three</td><td class="num">3</td><td class="hint">3.</td></tr>
+<tr data-label="Four"><td>Four</td><td class="num">4</td><td class="hint">4.</td></tr>
+<tr data-label="Five"><td>Five</td><td class="num">5</td><td class="hint">5.</td></tr>
+<tr data-label="Six"><td>Six</td><td class="num">6</td><td class="hint">6.</td></tr>
+<tr data-label="Seven"><td>Seven</td><td class="num">7</td><td class="hint">7.</td></tr>
+<tr data-label="Eight"><td>Eight</td><td class="num">8</td><td class="hint">8.</td></tr>
+<tr data-label="Nine"><td>Nine</td><td class="num">9</td><td class="hint">9.</td></tr>
+<tr data-label="Ten"><td>Ten</td><td class="num">10</td><td class="hint">10.</td></tr>
+<tr data-label="Jack"><td>Jack</td><td class="num">11</td><td class="hint">J.</td></tr>
+<tr data-label="Queen"><td>Queen</td><td class="num">12</td><td class="hint">Q.</td></tr>
+<tr data-label="King"><td>King</td><td class="num">13</td><td class="hint">K.</td></tr>
+<tr data-label="Ace"><td>Ace</td><td class="num">14</td><td class="hint">A. 스트레이트에서는 가장 낮은 쪽으로도 쓰입니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="Rarity">
 <p class="lead"><b>enum.Rarity</b> <span class="hint">조커의 희귀도. 상점 추첨이 이것을 먼저 정하고 그다음 그 풀에서 하나를 고릅니다.</span></p>
 <table><tbody>
-<tr data-label="Common"><td>Common</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Uncommon"><td>Uncommon</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Rare"><td>Rare</td><td class="num">3</td><td class="hint"></td></tr>
+<tr data-label="Common"><td>Common</td><td class="num">1</td><td class="hint">가장 흔합니다.</td></tr>
+<tr data-label="Uncommon"><td>Uncommon</td><td class="num">2</td><td class="hint">덜 흔합니다.</td></tr>
+<tr data-label="Rare"><td>Rare</td><td class="num">3</td><td class="hint">드뭅니다.</td></tr>
 <tr data-label="Legendary"><td>Legendary</td><td class="num">4</td><td class="hint">상점에 나오지 않습니다. <code>The Soul</code> 로만 나옵니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="ResetKind">
 <p class="lead"><b>enum.ResetKind</b> <span class="hint">누적값이 언제 저절로 초기화되는가.</span></p>
 <table><tbody>
-<tr data-label="Never"><td>Never</td><td class="num">0</td><td class="hint"></td></tr>
-<tr data-label="Round"><td>Round</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Boss"><td>Boss</td><td class="num">2</td><td class="hint"></td></tr>
+<tr data-label="Never"><td>Never</td><td class="num">0</td><td class="hint">초기화하지 않습니다. 런이 끝날 때까지 남습니다.</td></tr>
+<tr data-label="Round"><td>Round</td><td class="num">1</td><td class="hint">라운드가 끝나면 0으로 돌아갑니다.</td></tr>
+<tr data-label="Boss"><td>Boss</td><td class="num">2</td><td class="hint">보스를 깨면 0으로 돌아갑니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="RuleKind">
 <p class="lead"><b>enum.RuleKind</b> <span class="hint">바꿀 수 있는 규칙. <b>목록이 여기 있는 것이 요점입니다</b> — 자유 문자열이면 오타가
 통과합니다.</span></p>
 <table><tbody>
-<tr data-label="HandSize"><td>HandSize</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="HandsPerRound"><td>HandsPerRound</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="DiscardsPerRound"><td>DiscardsPerRound</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="JokerSlots"><td>JokerSlots</td><td class="num">4</td><td class="hint"></td></tr>
-<tr data-label="ConsumableSlots"><td>ConsumableSlots</td><td class="num">5</td><td class="hint"></td></tr>
-<tr data-label="DebtLimit"><td>DebtLimit</td><td class="num">6</td><td class="hint"></td></tr>
-<tr data-label="FreeRerolls"><td>FreeRerolls</td><td class="num">7</td><td class="hint"></td></tr>
-<tr data-label="RerollCostDelta"><td>RerollCostDelta</td><td class="num">8</td><td class="hint"></td></tr>
-<tr data-label="RerollStartsFree"><td>RerollStartsFree</td><td class="num">9</td><td class="hint"></td></tr>
-<tr data-label="InterestPer5"><td>InterestPer5</td><td class="num">10</td><td class="hint"></td></tr>
-<tr data-label="InterestCap"><td>InterestCap</td><td class="num">11</td><td class="hint"></td></tr>
-<tr data-label="ShopCardSlots"><td>ShopCardSlots</td><td class="num">12</td><td class="hint"></td></tr>
-<tr data-label="ShopDiscount"><td>ShopDiscount</td><td class="num">13</td><td class="hint"></td></tr>
-<tr data-label="ShopAllowsPlayingCards"><td>ShopAllowsPlayingCards</td><td class="num">14</td><td class="hint"></td></tr>
-<tr data-label="ShopAllowsSpectral"><td>ShopAllowsSpectral</td><td class="num">15</td><td class="hint"></td></tr>
-<tr data-label="ShopWeightTarot"><td>ShopWeightTarot</td><td class="num">16</td><td class="hint"></td></tr>
-<tr data-label="ShopWeightPlanet"><td>ShopWeightPlanet</td><td class="num">17</td><td class="hint"></td></tr>
-<tr data-label="FreePlanets"><td>FreePlanets</td><td class="num">18</td><td class="hint"></td></tr>
-<tr data-label="AllCardsScore"><td>AllCardsScore</td><td class="num">19</td><td class="hint"></td></tr>
-<tr data-label="AllCardsAreFace"><td>AllCardsAreFace</td><td class="num">20</td><td class="hint"></td></tr>
-<tr data-label="FlushStraightCards"><td>FlushStraightCards</td><td class="num">21</td><td class="hint"></td></tr>
-<tr data-label="StraightGap"><td>StraightGap</td><td class="num">22</td><td class="hint"></td></tr>
-<tr data-label="SuitsMerged"><td>SuitsMerged</td><td class="num">23</td><td class="hint"></td></tr>
-<tr data-label="ProbabilityScale"><td>ProbabilityScale</td><td class="num">24</td><td class="hint"></td></tr>
-<tr data-label="AllowDuplicates"><td>AllowDuplicates</td><td class="num">25</td><td class="hint"></td></tr>
-<tr data-label="BalanceChipsAndMult"><td>BalanceChipsAndMult</td><td class="num">26</td><td class="hint"></td></tr>
-<tr data-label="BossRerollsPerAnte"><td>BossRerollsPerAnte</td><td class="num">27</td><td class="hint"></td></tr>
-<tr data-label="AnteDelta"><td>AnteDelta</td><td class="num">28</td><td class="hint"></td></tr>
-<tr data-label="EditionWeightScale"><td>EditionWeightScale</td><td class="num">29</td><td class="hint"></td></tr>
-<tr data-label="PlanetGivesMult"><td>PlanetGivesMult</td><td class="num">30</td><td class="hint"></td></tr>
-<tr data-label="StartingMoney"><td>StartingMoney</td><td class="num">31</td><td class="hint"></td></tr>
-<tr data-label="NoInterest"><td>NoInterest</td><td class="num">32</td><td class="hint"></td></tr>
-<tr data-label="MoneyPerHandLeft"><td>MoneyPerHandLeft</td><td class="num">33</td><td class="hint"></td></tr>
-<tr data-label="MoneyPerDiscardLeft"><td>MoneyPerDiscardLeft</td><td class="num">34</td><td class="hint"></td></tr>
-<tr data-label="RandomizeDeck"><td>RandomizeDeck</td><td class="num">35</td><td class="hint"></td></tr>
-<tr data-label="DoubleTagOnBossDefeat"><td>DoubleTagOnBossDefeat</td><td class="num">36</td><td class="hint"></td></tr>
-<tr data-label="BlindSizeScale"><td>BlindSizeScale</td><td class="num">37</td><td class="hint"></td></tr>
-<tr data-label="SetDiscardsZero"><td>SetDiscardsZero</td><td class="num">38</td><td class="hint"></td></tr>
-<tr data-label="SpectralInArcanaPacks"><td>SpectralInArcanaPacks</td><td class="num">39</td><td class="hint"></td></tr>
-<tr data-label="CelestialHasMostPlayed"><td>CelestialHasMostPlayed</td><td class="num">40</td><td class="hint"></td></tr>
-<tr data-label="ShopCardsHaveModifiers"><td>ShopCardsHaveModifiers</td><td class="num">41</td><td class="hint"></td></tr>
-<tr data-label="NoRepeatHandTypes"><td>NoRepeatHandTypes</td><td class="num">42</td><td class="hint"></td></tr>
-<tr data-label="SingleHandTypeOnly"><td>SingleHandTypeOnly</td><td class="num">43</td><td class="hint"></td></tr>
-<tr data-label="MustPlayFiveCards"><td>MustPlayFiveCards</td><td class="num">44</td><td class="hint"></td></tr>
-<tr data-label="AlwaysDrawThree"><td>AlwaysDrawThree</td><td class="num">45</td><td class="hint"></td></tr>
-<tr data-label="HalveBaseChipsAndMult"><td>HalveBaseChipsAndMult</td><td class="num">46</td><td class="hint"></td></tr>
-<tr data-label="DebuffUntilJokerSold"><td>DebuffUntilJokerSold</td><td class="num">47</td><td class="hint"></td></tr>
-<tr data-label="ForceCardSelected"><td>ForceCardSelected</td><td class="num">48</td><td class="hint"></td></tr>
-<tr data-label="RemoveFaceCards"><td>RemoveFaceCards</td><td class="num">49</td><td class="hint"></td></tr>
+<tr data-label="HandSize"><td>HandSize</td><td class="num">1</td><td class="hint">패에 드는 카드의 수.</td></tr>
+<tr data-label="HandsPerRound"><td>HandsPerRound</td><td class="num">2</td><td class="hint">라운드마다 낼 수 있는 핸드의 수.</td></tr>
+<tr data-label="DiscardsPerRound"><td>DiscardsPerRound</td><td class="num">3</td><td class="hint">라운드마다 버릴 수 있는 횟수.</td></tr>
+<tr data-label="JokerSlots"><td>JokerSlots</td><td class="num">4</td><td class="hint">조커 칸의 수.</td></tr>
+<tr data-label="ConsumableSlots"><td>ConsumableSlots</td><td class="num">5</td><td class="hint">소모품 칸의 수.</td></tr>
+<tr data-label="DebtLimit"><td>DebtLimit</td><td class="num">6</td><td class="hint">금액이 내려갈 수 있는 하한. 0보다 작습니다.</td></tr>
+<tr data-label="FreeRerolls"><td>FreeRerolls</td><td class="num">7</td><td class="hint">값을 내지 않고 다시 뽑을 수 있는 횟수.</td></tr>
+<tr data-label="RerollCostDelta"><td>RerollCostDelta</td><td class="num">8</td><td class="hint">다시 뽑기 값에 더할 금액.</td></tr>
+<tr data-label="RerollStartsFree"><td>RerollStartsFree</td><td class="num">9</td><td class="hint">상점의 첫 다시 뽑기가 무료입니다.</td></tr>
+<tr data-label="InterestPer5"><td>InterestPer5</td><td class="num">10</td><td class="hint">보유 5마다 받는 이자.</td></tr>
+<tr data-label="InterestCap"><td>InterestCap</td><td class="num">11</td><td class="hint">한 라운드에 받는 이자의 상한.</td></tr>
+<tr data-label="ShopCardSlots"><td>ShopCardSlots</td><td class="num">12</td><td class="hint">상점의 카드 칸 수.</td></tr>
+<tr data-label="ShopDiscount"><td>ShopDiscount</td><td class="num">13</td><td class="hint">상점 값의 할인율. 만분율입니다.</td></tr>
+<tr data-label="ShopAllowsPlayingCards"><td>ShopAllowsPlayingCards</td><td class="num">14</td><td class="hint">상점의 카드 칸에 플레잉 카드가 나옵니다.</td></tr>
+<tr data-label="ShopAllowsSpectral"><td>ShopAllowsSpectral</td><td class="num">15</td><td class="hint">상점의 카드 칸에 유령 카드가 나옵니다.</td></tr>
+<tr data-label="ShopWeightTarot"><td>ShopWeightTarot</td><td class="num">16</td><td class="hint">상점에서 타로가 뽑힐 가중치.</td></tr>
+<tr data-label="ShopWeightPlanet"><td>ShopWeightPlanet</td><td class="num">17</td><td class="hint">상점에서 행성이 뽑힐 가중치.</td></tr>
+<tr data-label="FreePlanets"><td>FreePlanets</td><td class="num">18</td><td class="hint">상점의 행성이 무료입니다.</td></tr>
+<tr data-label="AllCardsScore"><td>AllCardsScore</td><td class="num">19</td><td class="hint">족보를 이루지 않은 카드도 득점합니다.</td></tr>
+<tr data-label="AllCardsAreFace"><td>AllCardsAreFace</td><td class="num">20</td><td class="hint">모든 카드를 그림 카드로 봅니다.</td></tr>
+<tr data-label="FlushStraightCards"><td>FlushStraightCards</td><td class="num">21</td><td class="hint">플러시와 스트레이트를 이루는 데 필요한 카드의 수.</td></tr>
+<tr data-label="StraightGap"><td>StraightGap</td><td class="num">22</td><td class="hint">스트레이트가 건너뛸 수 있는 랭크의 수.</td></tr>
+<tr data-label="SuitsMerged"><td>SuitsMerged</td><td class="num">23</td><td class="hint">네 무늬를 하나로 봅니다.</td></tr>
+<tr data-label="ProbabilityScale"><td>ProbabilityScale</td><td class="num">24</td><td class="hint">확률에 곱하는 배수. 만분율입니다.</td></tr>
+<tr data-label="AllowDuplicates"><td>AllowDuplicates</td><td class="num">25</td><td class="hint">같은 것을 둘 이상 가질 수 있습니다.</td></tr>
+<tr data-label="BalanceChipsAndMult"><td>BalanceChipsAndMult</td><td class="num">26</td><td class="hint">칩과 배수를 둘의 평균으로 맞춥니다.</td></tr>
+<tr data-label="BossRerollsPerAnte"><td>BossRerollsPerAnte</td><td class="num">27</td><td class="hint">안테마다 보스를 다시 뽑을 수 있는 횟수.</td></tr>
+<tr data-label="AnteDelta"><td>AnteDelta</td><td class="num">28</td><td class="hint">안테에 더할 값.</td></tr>
+<tr data-label="EditionWeightScale"><td>EditionWeightScale</td><td class="num">29</td><td class="hint">에디션이 붙을 가중치의 배수. 만분율입니다.</td></tr>
+<tr data-label="PlanetGivesMult"><td>PlanetGivesMult</td><td class="num">30</td><td class="hint">행성이 칩과 함께 배수도 올립니다.</td></tr>
+<tr data-label="StartingMoney"><td>StartingMoney</td><td class="num">31</td><td class="hint">런을 시작할 때의 금액.</td></tr>
+<tr data-label="NoInterest"><td>NoInterest</td><td class="num">32</td><td class="hint">이자를 받지 않습니다.</td></tr>
+<tr data-label="MoneyPerHandLeft"><td>MoneyPerHandLeft</td><td class="num">33</td><td class="hint">쓰지 않고 남긴 핸드마다 받는 금액.</td></tr>
+<tr data-label="MoneyPerDiscardLeft"><td>MoneyPerDiscardLeft</td><td class="num">34</td><td class="hint">쓰지 않고 남긴 버리기마다 받는 금액.</td></tr>
+<tr data-label="RandomizeDeck"><td>RandomizeDeck</td><td class="num">35</td><td class="hint">시작 덱의 랭크와 무늬를 무작위로 정합니다.</td></tr>
+<tr data-label="DoubleTagOnBossDefeat"><td>DoubleTagOnBossDefeat</td><td class="num">36</td><td class="hint">보스를 깨면 태그를 둘 받습니다.</td></tr>
+<tr data-label="BlindSizeScale"><td>BlindSizeScale</td><td class="num">37</td><td class="hint">블라인드의 요구 점수에 곱하는 배수. 만분율입니다.</td></tr>
+<tr data-label="SetDiscardsZero"><td>SetDiscardsZero</td><td class="num">38</td><td class="hint">버리기 횟수를 0으로 만듭니다.</td></tr>
+<tr data-label="SpectralInArcanaPacks"><td>SpectralInArcanaPacks</td><td class="num">39</td><td class="hint">아르카나 팩에 유령 카드가 섞입니다.</td></tr>
+<tr data-label="CelestialHasMostPlayed"><td>CelestialHasMostPlayed</td><td class="num">40</td><td class="hint">천체 팩에 가장 많이 낸 족보의 행성이 반드시 들어갑니다.</td></tr>
+<tr data-label="ShopCardsHaveModifiers"><td>ShopCardsHaveModifiers</td><td class="num">41</td><td class="hint">상점의 플레잉 카드에 강화&#183;인장&#183;에디션이 붙어 나옵니다.</td></tr>
+<tr data-label="NoRepeatHandTypes"><td>NoRepeatHandTypes</td><td class="num">42</td><td class="hint">한 라운드에 같은 족보를 두 번 낼 수 없습니다.</td></tr>
+<tr data-label="SingleHandTypeOnly"><td>SingleHandTypeOnly</td><td class="num">43</td><td class="hint">한 라운드에 한 가지 족보만 낼 수 있습니다.</td></tr>
+<tr data-label="MustPlayFiveCards"><td>MustPlayFiveCards</td><td class="num">44</td><td class="hint">핸드마다 다섯 장을 내야 합니다.</td></tr>
+<tr data-label="AlwaysDrawThree"><td>AlwaysDrawThree</td><td class="num">45</td><td class="hint">뽑을 때 언제나 세 장씩 뽑습니다.</td></tr>
+<tr data-label="HalveBaseChipsAndMult"><td>HalveBaseChipsAndMult</td><td class="num">46</td><td class="hint">족보의 기본 칩과 배수를 절반으로 합니다.</td></tr>
+<tr data-label="DebuffUntilJokerSold"><td>DebuffUntilJokerSold</td><td class="num">47</td><td class="hint">조커를 팔 때까지 카드가 무력화된 채로 있습니다.</td></tr>
+<tr data-label="ForceCardSelected"><td>ForceCardSelected</td><td class="num">48</td><td class="hint">카드 한 장이 반드시 골라진 상태가 됩니다.</td></tr>
+<tr data-label="RemoveFaceCards"><td>RemoveFaceCards</td><td class="num">49</td><td class="hint">시작 덱에서 그림 카드를 뺍니다.</td></tr>
 <tr data-label="SuitsOnly"><td>SuitsOnly</td><td class="num">50</td><td class="hint">시작 덱을 그 무늬들로만 채웁니다. <code>suits</code> 가 어느 무늬인지 적습니다.</td></tr>
 <tr data-label="NextShopFree"><td>NextShopFree</td><td class="num">51</td><td class="hint">다음 상점의 처음 카드와 팩이 무료입니다. <code>Coupon Tag</code>.</td></tr>
 </tbody></table>
@@ -1011,50 +1011,50 @@ tbody [data-pick] { cursor: pointer; }
 <div data-enum-def="Scope">
 <p class="lead"><b>enum.Scope</b> <span class="hint">연산을 누구에게 하는가.</span></p>
 <table><tbody>
-<tr data-label="Run"><td>Run</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="SelfTarget"><td>SelfTarget</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="ScoredCard"><td>ScoredCard</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="HeldCard"><td>HeldCard</td><td class="num">4</td><td class="hint"></td></tr>
+<tr data-label="Run"><td>Run</td><td class="num">1</td><td class="hint">런 전체. 규칙 변경이 여기로 갑니다.</td></tr>
+<tr data-label="SelfTarget"><td>SelfTarget</td><td class="num">2</td><td class="hint">이 효과를 가진 것 자신.</td></tr>
+<tr data-label="ScoredCard"><td>ScoredCard</td><td class="num">3</td><td class="hint">지금 득점하는 카드.</td></tr>
+<tr data-label="HeldCard"><td>HeldCard</td><td class="num">4</td><td class="hint">패에 남아 있는 카드.</td></tr>
 <tr data-label="Selected"><td>Selected</td><td class="num">5</td><td class="hint">플레이어가 고른 카드. 개수는 <code>scope_count</code> 에 적습니다.</td></tr>
-<tr data-label="RandomInHand"><td>RandomInHand</td><td class="num">6</td><td class="hint"></td></tr>
-<tr data-label="AllInHand"><td>AllInHand</td><td class="num">7</td><td class="hint"></td></tr>
-<tr data-label="RandomInDeck"><td>RandomInDeck</td><td class="num">8</td><td class="hint"></td></tr>
-<tr data-label="AllInDeck"><td>AllInDeck</td><td class="num">9</td><td class="hint"></td></tr>
-<tr data-label="RandomJoker"><td>RandomJoker</td><td class="num">10</td><td class="hint"></td></tr>
-<tr data-label="JokerRight"><td>JokerRight</td><td class="num">11</td><td class="hint"></td></tr>
-<tr data-label="JokerLeftmost"><td>JokerLeftmost</td><td class="num">12</td><td class="hint"></td></tr>
-<tr data-label="AllOtherJokers"><td>AllOtherJokers</td><td class="num">13</td><td class="hint"></td></tr>
-<tr data-label="AllJokers"><td>AllJokers</td><td class="num">14</td><td class="hint"></td></tr>
-<tr data-label="RandomConsumable"><td>RandomConsumable</td><td class="num">15</td><td class="hint"></td></tr>
-<tr data-label="AllConsumables"><td>AllConsumables</td><td class="num">16</td><td class="hint"></td></tr>
+<tr data-label="RandomInHand"><td>RandomInHand</td><td class="num">6</td><td class="hint">패에서 무작위 한 장.</td></tr>
+<tr data-label="AllInHand"><td>AllInHand</td><td class="num">7</td><td class="hint">패의 모든 카드.</td></tr>
+<tr data-label="RandomInDeck"><td>RandomInDeck</td><td class="num">8</td><td class="hint">덱에서 무작위 한 장.</td></tr>
+<tr data-label="AllInDeck"><td>AllInDeck</td><td class="num">9</td><td class="hint">덱의 모든 카드.</td></tr>
+<tr data-label="RandomJoker"><td>RandomJoker</td><td class="num">10</td><td class="hint">무작위 조커 하나. 자기도 후보입니다.</td></tr>
+<tr data-label="JokerRight"><td>JokerRight</td><td class="num">11</td><td class="hint">자기 오른쪽에 붙은 조커.</td></tr>
+<tr data-label="JokerLeftmost"><td>JokerLeftmost</td><td class="num">12</td><td class="hint">가장 왼쪽 조커.</td></tr>
+<tr data-label="AllOtherJokers"><td>AllOtherJokers</td><td class="num">13</td><td class="hint">자기를 뺀 모든 조커.</td></tr>
+<tr data-label="AllJokers"><td>AllJokers</td><td class="num">14</td><td class="hint">자기를 포함한 모든 조커.</td></tr>
+<tr data-label="RandomConsumable"><td>RandomConsumable</td><td class="num">15</td><td class="hint">가진 소모품 중 무작위 하나.</td></tr>
+<tr data-label="AllConsumables"><td>AllConsumables</td><td class="num">16</td><td class="hint">가진 모든 소모품.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="SealKind">
 <p class="lead"><b>enum.SealKind</b> <span class="hint">인장. 강화와 별개의 축이고, 한 장에 하나만 붙습니다.</span></p>
 <table><tbody>
-<tr data-label="None"><td>None</td><td class="num">0</td><td class="hint"></td></tr>
-<tr data-label="Red"><td>Red</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Blue"><td>Blue</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Gold"><td>Gold</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="Purple"><td>Purple</td><td class="num">4</td><td class="hint"></td></tr>
+<tr data-label="None"><td>None</td><td class="num">0</td><td class="hint">인장이 없습니다.</td></tr>
+<tr data-label="Red"><td>Red</td><td class="num">1</td><td class="hint">그 카드의 득점을 한 번 되풀이합니다.</td></tr>
+<tr data-label="Blue"><td>Blue</td><td class="num">2</td><td class="hint">라운드가 끝날 때 패에 있으면 행성을 만듭니다.</td></tr>
+<tr data-label="Gold"><td>Gold</td><td class="num">3</td><td class="hint">득점하면 금액을 줍니다.</td></tr>
+<tr data-label="Purple"><td>Purple</td><td class="num">4</td><td class="hint">버려지면 타로를 만듭니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="SuitKind">
 <p class="lead"><b>enum.SuitKind</b> <span class="hint">무늬. 값은 정렬 순서입니다.</span></p>
 <table><tbody>
-<tr data-label="Spade"><td>Spade</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Heart"><td>Heart</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Club"><td>Club</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="Diamond"><td>Diamond</td><td class="num">4</td><td class="hint"></td></tr>
+<tr data-label="Spade"><td>Spade</td><td class="num">1</td><td class="hint">스페이드.</td></tr>
+<tr data-label="Heart"><td>Heart</td><td class="num">2</td><td class="hint">하트.</td></tr>
+<tr data-label="Club"><td>Club</td><td class="num">3</td><td class="hint">클로버.</td></tr>
+<tr data-label="Diamond"><td>Diamond</td><td class="num">4</td><td class="hint">다이아몬드.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="TargetKind">
 <p class="lead"><b>enum.TargetKind</b> <span class="hint">라운드마다 바뀌는 지정 대상.</span></p>
 <table><tbody>
-<tr data-label="Hand"><td>Hand</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Rank"><td>Rank</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Suit"><td>Suit</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="Card"><td>Card</td><td class="num">4</td><td class="hint"></td></tr>
+<tr data-label="Hand"><td>Hand</td><td class="num">1</td><td class="hint">족보 하나를 지정합니다.</td></tr>
+<tr data-label="Rank"><td>Rank</td><td class="num">2</td><td class="hint">랭크 하나를 지정합니다.</td></tr>
+<tr data-label="Suit"><td>Suit</td><td class="num">3</td><td class="hint">무늬 하나를 지정합니다.</td></tr>
+<tr data-label="Card"><td>Card</td><td class="num">4</td><td class="hint">카드 한 장을 지정합니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="Trigger">
@@ -1064,21 +1064,21 @@ tbody [data-pick] { cursor: pointer; }
 <tr data-label="OnCardScored"><td>OnCardScored</td><td class="num">2</td><td class="hint">득점 카드 한 장마다.</td></tr>
 <tr data-label="OnCardHeld"><td>OnCardHeld</td><td class="num">3</td><td class="hint">패에 든 카드 한 장마다.</td></tr>
 <tr data-label="OnHandPlayed"><td>OnHandPlayed</td><td class="num">4</td><td class="hint">족보가 판정된 뒤, 곱하기 전.</td></tr>
-<tr data-label="OnHandDiscarded"><td>OnHandDiscarded</td><td class="num">5</td><td class="hint"></td></tr>
-<tr data-label="OnCardDiscarded"><td>OnCardDiscarded</td><td class="num">6</td><td class="hint"></td></tr>
-<tr data-label="OnRoundStart"><td>OnRoundStart</td><td class="num">7</td><td class="hint"></td></tr>
-<tr data-label="OnRoundEnd"><td>OnRoundEnd</td><td class="num">8</td><td class="hint"></td></tr>
-<tr data-label="OnBlindSelect"><td>OnBlindSelect</td><td class="num">9</td><td class="hint"></td></tr>
-<tr data-label="OnBossDefeated"><td>OnBossDefeated</td><td class="num">10</td><td class="hint"></td></tr>
-<tr data-label="OnShopEnter"><td>OnShopEnter</td><td class="num">11</td><td class="hint"></td></tr>
-<tr data-label="OnShopExit"><td>OnShopExit</td><td class="num">12</td><td class="hint"></td></tr>
-<tr data-label="OnReroll"><td>OnReroll</td><td class="num">13</td><td class="hint"></td></tr>
-<tr data-label="OnPackSkipped"><td>OnPackSkipped</td><td class="num">14</td><td class="hint"></td></tr>
-<tr data-label="OnPackOpened"><td>OnPackOpened</td><td class="num">15</td><td class="hint"></td></tr>
-<tr data-label="OnCardAdded"><td>OnCardAdded</td><td class="num">16</td><td class="hint"></td></tr>
-<tr data-label="OnCardDestroyed"><td>OnCardDestroyed</td><td class="num">17</td><td class="hint"></td></tr>
-<tr data-label="OnJokerSold"><td>OnJokerSold</td><td class="num">18</td><td class="hint"></td></tr>
-<tr data-label="OnConsumableUsed"><td>OnConsumableUsed</td><td class="num">19</td><td class="hint"></td></tr>
+<tr data-label="OnHandDiscarded"><td>OnHandDiscarded</td><td class="num">5</td><td class="hint">패를 버릴 때, 버린 장수와 무관하게 한 번.</td></tr>
+<tr data-label="OnCardDiscarded"><td>OnCardDiscarded</td><td class="num">6</td><td class="hint">버린 카드 한 장마다.</td></tr>
+<tr data-label="OnRoundStart"><td>OnRoundStart</td><td class="num">7</td><td class="hint">라운드가 시작할 때, 카드를 뽑기 전.</td></tr>
+<tr data-label="OnRoundEnd"><td>OnRoundEnd</td><td class="num">8</td><td class="hint">라운드를 깨고 정산할 때.</td></tr>
+<tr data-label="OnBlindSelect"><td>OnBlindSelect</td><td class="num">9</td><td class="hint">블라인드를 고른 직후.</td></tr>
+<tr data-label="OnBossDefeated"><td>OnBossDefeated</td><td class="num">10</td><td class="hint">보스 블라인드를 깬 뒤.</td></tr>
+<tr data-label="OnShopEnter"><td>OnShopEnter</td><td class="num">11</td><td class="hint">상점에 들어갈 때.</td></tr>
+<tr data-label="OnShopExit"><td>OnShopExit</td><td class="num">12</td><td class="hint">상점을 떠날 때.</td></tr>
+<tr data-label="OnReroll"><td>OnReroll</td><td class="num">13</td><td class="hint">상점을 다시 뽑을 때.</td></tr>
+<tr data-label="OnPackSkipped"><td>OnPackSkipped</td><td class="num">14</td><td class="hint">팩을 열지 않고 건너뛸 때.</td></tr>
+<tr data-label="OnPackOpened"><td>OnPackOpened</td><td class="num">15</td><td class="hint">팩을 열 때.</td></tr>
+<tr data-label="OnCardAdded"><td>OnCardAdded</td><td class="num">16</td><td class="hint">덱에 카드가 들어올 때.</td></tr>
+<tr data-label="OnCardDestroyed"><td>OnCardDestroyed</td><td class="num">17</td><td class="hint">덱에서 카드가 없어질 때.</td></tr>
+<tr data-label="OnJokerSold"><td>OnJokerSold</td><td class="num">18</td><td class="hint">다른 조커를 팔 때. 자기 자신을 팔 때는 <code>OnSell</code> 입니다.</td></tr>
+<tr data-label="OnConsumableUsed"><td>OnConsumableUsed</td><td class="num">19</td><td class="hint">소모품을 쓸 때. 쓰인 소모품 자신은 <code>OnUse</code> 입니다.</td></tr>
 <tr data-label="OnSell"><td>OnSell</td><td class="num">20</td><td class="hint">이것 자신을 팔 때.</td></tr>
 <tr data-label="OnUse"><td>OnUse</td><td class="num">21</td><td class="hint">이것 자신을 쓸 때. 소모품이 전부 이것입니다.</td></tr>
 <tr data-label="OnScoreResolved"><td>OnScoreResolved</td><td class="num">22</td><td class="hint">점수가 확정된 뒤, 패배 판정 전. <b>득점 뒤의 누적이 여기 있습니다</b> — 득점 중에
@@ -1090,31 +1090,31 @@ tbody [data-pick] { cursor: pointer; }
 <div data-enum-def="UnitKind">
 <p class="lead"><b>enum.UnitKind</b> <span class="hint">「무엇마다」의 단위. <code>PerUnit</code> 이 이 개수만큼 값을 넣습니다.</span></p>
 <table><tbody>
-<tr data-label="JokerCount"><td>JokerCount</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="EmptyJokerSlots"><td>EmptyJokerSlots</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="DeckRemaining"><td>DeckRemaining</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="DeckDeficit"><td>DeckDeficit</td><td class="num">4</td><td class="hint"></td></tr>
-<tr data-label="Money"><td>Money</td><td class="num">5</td><td class="hint"></td></tr>
-<tr data-label="MoneyPer5"><td>MoneyPer5</td><td class="num">6</td><td class="hint"></td></tr>
-<tr data-label="DiscardsLeft"><td>DiscardsLeft</td><td class="num">7</td><td class="hint"></td></tr>
-<tr data-label="HandsLeft"><td>HandsLeft</td><td class="num">8</td><td class="hint"></td></tr>
-<tr data-label="BlindsSkipped"><td>BlindsSkipped</td><td class="num">9</td><td class="hint"></td></tr>
-<tr data-label="TarotUsed"><td>TarotUsed</td><td class="num">10</td><td class="hint"></td></tr>
-<tr data-label="UniquePlanetUsed"><td>UniquePlanetUsed</td><td class="num">11</td><td class="hint"></td></tr>
+<tr data-label="JokerCount"><td>JokerCount</td><td class="num">1</td><td class="hint">가진 조커의 수.</td></tr>
+<tr data-label="EmptyJokerSlots"><td>EmptyJokerSlots</td><td class="num">2</td><td class="hint">비어 있는 조커 칸의 수.</td></tr>
+<tr data-label="DeckRemaining"><td>DeckRemaining</td><td class="num">3</td><td class="hint">덱에 남은 카드의 수.</td></tr>
+<tr data-label="DeckDeficit"><td>DeckDeficit</td><td class="num">4</td><td class="hint">시작 덱보다 줄어든 카드의 수.</td></tr>
+<tr data-label="Money"><td>Money</td><td class="num">5</td><td class="hint">지금 가진 금액.</td></tr>
+<tr data-label="MoneyPer5"><td>MoneyPer5</td><td class="num">6</td><td class="hint">지금 가진 금액을 5로 나눈 몫.</td></tr>
+<tr data-label="DiscardsLeft"><td>DiscardsLeft</td><td class="num">7</td><td class="hint">남은 버리기 횟수.</td></tr>
+<tr data-label="HandsLeft"><td>HandsLeft</td><td class="num">8</td><td class="hint">남은 핸드 수.</td></tr>
+<tr data-label="BlindsSkipped"><td>BlindsSkipped</td><td class="num">9</td><td class="hint">이번 런에서 건너뛴 블라인드의 수.</td></tr>
+<tr data-label="TarotUsed"><td>TarotUsed</td><td class="num">10</td><td class="hint">이번 런에서 쓴 타로의 수.</td></tr>
+<tr data-label="UniquePlanetUsed"><td>UniquePlanetUsed</td><td class="num">11</td><td class="hint">이번 런에서 쓴 서로 다른 행성의 수.</td></tr>
 <tr data-label="DeckRankCount"><td>DeckRankCount</td><td class="num">12</td><td class="hint">덱에서 그 랭크인 카드의 수. <code>ranks</code> 가 어느 랭크인지 적습니다.</td></tr>
 <tr data-label="DeckEnhancementCount"><td>DeckEnhancementCount</td><td class="num">13</td><td class="hint">덱에서 그 강화인 카드의 수. <code>enhancement</code> 가 어느 강화인지 적습니다.</td></tr>
 <tr data-label="JokerRarityCount"><td>JokerRarityCount</td><td class="num">14</td><td class="hint">그 희귀도인 조커의 수. <code>rarity</code> 가 어느 희귀도인지 적습니다.</td></tr>
-<tr data-label="HandPlayCount"><td>HandPlayCount</td><td class="num">15</td><td class="hint"></td></tr>
-<tr data-label="OtherJokerSellValue"><td>OtherJokerSellValue</td><td class="num">16</td><td class="hint"></td></tr>
+<tr data-label="HandPlayCount"><td>HandPlayCount</td><td class="num">15</td><td class="hint">그 족보를 이번 런에서 낸 횟수. <code>hand</code> 가 어느 족보인지 적습니다.</td></tr>
+<tr data-label="OtherJokerSellValue"><td>OtherJokerSellValue</td><td class="num">16</td><td class="hint">자기를 뺀 조커들의 판매가 합.</td></tr>
 <tr data-label="LowestHeldRankChips"><td>LowestHeldRankChips</td><td class="num">17</td><td class="hint">패의 최저 랭크 카드의 칩값.</td></tr>
 <tr data-label="CardsPlayed"><td>CardsPlayed</td><td class="num">18</td><td class="hint">이번 핸드에 낸 카드의 장수.</td></tr>
 <tr data-label="SelfCounterMoney"><td>SelfCounterMoney</td><td class="num">19</td><td class="hint">자기 <code>Money</code> 카운터.</td></tr>
-<tr data-label="HandsPlayedThisRun"><td>HandsPlayedThisRun</td><td class="num">20</td><td class="hint"></td></tr>
-<tr data-label="DiscardsUnusedThisRun"><td>DiscardsUnusedThisRun</td><td class="num">21</td><td class="hint"></td></tr>
+<tr data-label="HandsPlayedThisRun"><td>HandsPlayedThisRun</td><td class="num">20</td><td class="hint">이번 런에서 낸 핸드의 총수.</td></tr>
+<tr data-label="DiscardsUnusedThisRun"><td>DiscardsUnusedThisRun</td><td class="num">21</td><td class="hint">이번 런에서 쓰지 않고 남긴 버리기 횟수의 합.</td></tr>
 </tbody></table>
 </div>
 </div>
-<p class="foot">생성 시각 2026-08-28 20:57:34</p>
+<p class="foot">생성 시각 2026-08-28 21:29:21</p>
 <script>
 (function () {
   "use strict";

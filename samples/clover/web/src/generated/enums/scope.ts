@@ -5,24 +5,39 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from effect.tbs(65,6)
+// Generated from effect.tbs(80,6)
 /** 연산을 누구에게 하는가. */
 export enum Scope {
+  /** 런 전체. 규칙 변경이 여기로 갑니다. */
   Run = 1,
+  /** 이 효과를 가진 것 자신. */
   SelfTarget = 2,
+  /** 지금 득점하는 카드. */
   ScoredCard = 3,
+  /** 패에 남아 있는 카드. */
   HeldCard = 4,
   /** 플레이어가 고른 카드. 개수는 `scope_count` 에 적습니다. */
   Selected = 5,
+  /** 패에서 무작위 한 장. */
   RandomInHand = 6,
+  /** 패의 모든 카드. */
   AllInHand = 7,
+  /** 덱에서 무작위 한 장. */
   RandomInDeck = 8,
+  /** 덱의 모든 카드. */
   AllInDeck = 9,
+  /** 무작위 조커 하나. 자기도 후보입니다. */
   RandomJoker = 10,
+  /** 자기 오른쪽에 붙은 조커. */
   JokerRight = 11,
+  /** 가장 왼쪽 조커. */
   JokerLeftmost = 12,
+  /** 자기를 뺀 모든 조커. */
   AllOtherJokers = 13,
+  /** 자기를 포함한 모든 조커. */
   AllJokers = 14,
+  /** 가진 소모품 중 무작위 하나. */
   RandomConsumable = 15,
+  /** 가진 모든 소모품. */
   AllConsumables = 16
 }

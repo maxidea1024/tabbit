@@ -5,13 +5,16 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from effect.tbs(144,6)
+// Generated from effect.tbs(199,6)
 /** `PerUnit` 과 `RandomRange` 가 어느 칸에 넣는가. */
 export enum PerUnitMode {
+  /** 칩에 더합니다. */
   AddChips = 1,
+  /** 배수에 더합니다. */
   AddMult = 2,
   /** 결과는 `base_value + value × 개수` 입니다. */
   MulMult = 3,
+  /** 금액을 지급합니다. */
   AddMoney = 4,
   /** 개수만큼 **되풀이해서 곱합니다.** `rookie_card` 하나입니다. */
   MulEach = 5

@@ -34,20 +34,35 @@ enum Trigger
     value OnCardHeld        = 3
     /// 족보가 판정된 뒤, 곱하기 전.
     value OnHandPlayed      = 4
+    /// 패를 버릴 때, 버린 장수와 무관하게 한 번.
     value OnHandDiscarded   = 5
+    /// 버린 카드 한 장마다.
     value OnCardDiscarded   = 6
+    /// 라운드가 시작할 때, 카드를 뽑기 전.
     value OnRoundStart      = 7
+    /// 라운드를 깨고 정산할 때.
     value OnRoundEnd        = 8
+    /// 블라인드를 고른 직후.
     value OnBlindSelect     = 9
+    /// 보스 블라인드를 깬 뒤.
     value OnBossDefeated    = 10
+    /// 상점에 들어갈 때.
     value OnShopEnter       = 11
+    /// 상점을 떠날 때.
     value OnShopExit        = 12
+    /// 상점을 다시 뽑을 때.
     value OnReroll          = 13
+    /// 팩을 열지 않고 건너뛸 때.
     value OnPackSkipped     = 14
+    /// 팩을 열 때.
     value OnPackOpened      = 15
+    /// 덱에 카드가 들어올 때.
     value OnCardAdded       = 16
+    /// 덱에서 카드가 없어질 때.
     value OnCardDestroyed   = 17
+    /// 다른 조커를 팔 때. 자기 자신을 팔 때는 `OnSell` 입니다.
     value OnJokerSold       = 18
+    /// 소모품을 쓸 때. 쓰인 소모품 자신은 `OnUse` 입니다.
     value OnConsumableUsed  = 19
     /// 이것 자신을 팔 때.
     value OnSell            = 20
@@ -63,28 +78,46 @@ enum Trigger
 
 /// 연산을 누구에게 하는가.
 enum Scope
+    /// 런 전체. 규칙 변경이 여기로 갑니다.
     value Run                = 1
+    /// 이 효과를 가진 것 자신.
     value SelfTarget         = 2
+    /// 지금 득점하는 카드.
     value ScoredCard         = 3
+    /// 패에 남아 있는 카드.
     value HeldCard           = 4
     /// 플레이어가 고른 카드. 개수는 `scope_count` 에 적습니다.
     value Selected           = 5
+    /// 패에서 무작위 한 장.
     value RandomInHand       = 6
+    /// 패의 모든 카드.
     value AllInHand          = 7
+    /// 덱에서 무작위 한 장.
     value RandomInDeck       = 8
+    /// 덱의 모든 카드.
     value AllInDeck          = 9
+    /// 무작위 조커 하나. 자기도 후보입니다.
     value RandomJoker        = 10
+    /// 자기 오른쪽에 붙은 조커.
     value JokerRight         = 11
+    /// 가장 왼쪽 조커.
     value JokerLeftmost      = 12
+    /// 자기를 뺀 모든 조커.
     value AllOtherJokers     = 13
+    /// 자기를 포함한 모든 조커.
     value AllJokers          = 14
+    /// 가진 소모품 중 무작위 하나.
     value RandomConsumable   = 15
+    /// 가진 모든 소모품.
     value AllConsumables     = 16
 
 /// 수 비교의 방향.
 enum Compare
+    /// 그 값 이상.
     value AtLeast = 1
+    /// 그 값 이하.
     value AtMost  = 2
+    /// 그 값과 같음.
     value Exactly = 3
 
 /// 누적하는 값의 칸. **소유자마다 이름이 다르지 않습니다** — 칸을 고정해야 세이브의 모양이
@@ -93,11 +126,15 @@ enum Compare
 /// `Chips` · `MultAdd` · `MultMul` 은 **득점할 때 자동으로 적용됩니다.** 따로 더하는 효과 행을
 /// 두지 않습니다. `MultMul` 의 기본값은 10000(×1)이고 나머지는 0 입니다.
 enum CounterField
+    /// 득점에 더할 칩.
     value Chips     = 1
+    /// 배수에 더할 값.
     value MultAdd   = 2
+    /// 배수에 곱할 값. 만분율이고 기본값은 10000(×1)입니다.
     value MultMul   = 3
     /// 라운드 종료 시 지급할 금액. `PerUnit` 의 `SelfCounterMoney` 가 읽습니다.
     value Money     = 4
+    /// 판매가에 더할 금액.
     value SellValue = 5
     /// 남은 횟수나 세는 수. `fizz_bottle` 의 10핸드, `gravebloom` 의 23장.
     value Charge    = 6
@@ -106,22 +143,36 @@ enum CounterField
 
 /// 누적값이 언제 저절로 초기화되는가.
 enum ResetKind
+    /// 초기화하지 않습니다. 런이 끝날 때까지 남습니다.
     value Never = 0
+    /// 라운드가 끝나면 0으로 돌아갑니다.
     value Round = 1
+    /// 보스를 깨면 0으로 돌아갑니다.
     value Boss  = 2
 
 /// 「무엇마다」의 단위. `PerUnit` 이 이 개수만큼 값을 넣습니다.
 enum UnitKind
+    /// 가진 조커의 수.
     value JokerCount            = 1
+    /// 비어 있는 조커 칸의 수.
     value EmptyJokerSlots       = 2
+    /// 덱에 남은 카드의 수.
     value DeckRemaining         = 3
+    /// 시작 덱보다 줄어든 카드의 수.
     value DeckDeficit           = 4
+    /// 지금 가진 금액.
     value Money                 = 5
+    /// 지금 가진 금액을 5로 나눈 몫.
     value MoneyPer5             = 6
+    /// 남은 버리기 횟수.
     value DiscardsLeft          = 7
+    /// 남은 핸드 수.
     value HandsLeft             = 8
+    /// 이번 런에서 건너뛴 블라인드의 수.
     value BlindsSkipped         = 9
+    /// 이번 런에서 쓴 타로의 수.
     value TarotUsed             = 10
+    /// 이번 런에서 쓴 서로 다른 행성의 수.
     value UniquePlanetUsed      = 11
     /// 덱에서 그 랭크인 카드의 수. `ranks` 가 어느 랭크인지 적습니다.
     value DeckRankCount         = 12
@@ -129,7 +180,9 @@ enum UnitKind
     value DeckEnhancementCount  = 13
     /// 그 희귀도인 조커의 수. `rarity` 가 어느 희귀도인지 적습니다.
     value JokerRarityCount      = 14
+    /// 그 족보를 이번 런에서 낸 횟수. `hand` 가 어느 족보인지 적습니다.
     value HandPlayCount         = 15
+    /// 자기를 뺀 조커들의 판매가 합.
     value OtherJokerSellValue   = 16
     /// 패의 최저 랭크 카드의 칩값.
     value LowestHeldRankChips   = 17
@@ -137,34 +190,50 @@ enum UnitKind
     value CardsPlayed           = 18
     /// 자기 `Money` 카운터.
     value SelfCounterMoney      = 19
+    /// 이번 런에서 낸 핸드의 총수.
     value HandsPlayedThisRun    = 20
+    /// 이번 런에서 쓰지 않고 남긴 버리기 횟수의 합.
     value DiscardsUnusedThisRun = 21
 
 /// `PerUnit` 과 `RandomRange` 가 어느 칸에 넣는가.
 enum PerUnitMode
+    /// 칩에 더합니다.
     value AddChips = 1
+    /// 배수에 더합니다.
     value AddMult  = 2
     /// 결과는 `base_value + value × 개수` 입니다.
     value MulMult  = 3
+    /// 금액을 지급합니다.
     value AddMoney = 4
     /// 개수만큼 **되풀이해서 곱합니다.** `rookie_card` 하나입니다.
     value MulEach  = 5
 
 /// 어느 족보를 가리키는가.
 enum HandPick
+    /// 지금 낸 족보.
     value Played         = 1
+    /// 이번에 버린 카드가 이루는 첫 족보.
     value FirstDiscarded = 2
+    /// 이번 런에서 가장 많이 낸 족보.
     value MostPlayed     = 3
+    /// 무작위 족보 하나.
     value Random         = 4
+    /// 모든 족보.
     value All            = 5
 
 /// 무엇을 만드는가.
 enum CreateKind
+    /// 타로 카드.
     value Tarot           = 1
+    /// 행성 카드.
     value Planet          = 2
+    /// 유령 카드.
     value Spectral        = 3
+    /// 조커. `rarity` 가 어느 희귀도에서 뽑을지 적습니다.
     value Joker           = 4
+    /// 플레잉 카드. `card_class` 가 어느 갈래인지 적습니다.
     value PlayingCard     = 5
+    /// 태그.
     value Tag             = 6
     /// 이번 런에서 마지막으로 쓴 소모품. `The Fool` 하나입니다.
     value LastUsed        = 7
@@ -179,16 +248,24 @@ enum CreateKind
 
 /// 만들거나 더하는 플레잉 카드의 갈래.
 enum CardClass
+    /// 갈래를 가리지 않습니다.
     value Any      = 0
+    /// 그림 카드. J·Q·K 입니다.
     value Face     = 1
+    /// 에이스.
     value Ace      = 2
+    /// 숫자 카드. 2부터 10까지입니다.
     value Numbered = 3
 
 /// 카드의 무엇을 바꾸는가.
 enum ModifyKind
+    /// 강화를 `enhancement` 의 것으로 바꿉니다.
     value Enhancement = 1
+    /// 인장을 `seal` 의 것으로 바꿉니다.
     value Seal        = 2
+    /// 에디션을 `edition` 의 것으로 바꿉니다.
     value Edition     = 3
+    /// 무늬를 `suits` 의 것으로 바꿉니다.
     value Suit        = 4
     /// 랭크를 `value` 만큼 올립니다.
     value RankStep    = 5
@@ -201,83 +278,148 @@ enum ModifyKind
 
 /// 어느 조커를 가리키는가.
 enum JokerPick
+    /// 자기 오른쪽에 붙은 조커.
     value Right     = 1
+    /// 가장 왼쪽 조커.
     value Leftmost  = 2
+    /// 무작위 조커 하나.
     value Random    = 3
+    /// 자기를 뺀 모든 조커.
     value AllOther  = 4
+    /// 자기 자신.
     value SelfPick  = 5
 
 /// 무엇을 무력화하는가. 보스가 씁니다.
 enum DebuffKind
+    /// 그 무늬의 카드. `suits` 가 어느 무늬인지 적습니다.
     value BySuit         = 1
+    /// 그림 카드 전부.
     value FaceCards      = 2
+    /// 이번 안테에 이미 낸 적이 있는 카드.
     value PlayedThisAnte = 3
+    /// 낸 카드 전부.
     value AllCards       = 4
 
 /// 라운드마다 바뀌는 지정 대상.
 enum TargetKind
+    /// 족보 하나를 지정합니다.
     value Hand = 1
+    /// 랭크 하나를 지정합니다.
     value Rank = 2
+    /// 무늬 하나를 지정합니다.
     value Suit = 3
+    /// 카드 한 장을 지정합니다.
     value Card = 4
 
 /// 규칙 변경이 얼마나 오래 가는가.
 enum Duration
+    /// 런이 끝날 때까지.
     value Permanent = 0
+    /// 이번 라운드까지.
     value ThisRound = 1
+    /// 다음 라운드 한 번만.
     value NextRound = 2
 
 /// 바꿀 수 있는 규칙. **목록이 여기 있는 것이 요점입니다** — 자유 문자열이면 오타가
 /// 통과합니다.
 enum RuleKind
+    /// 패에 드는 카드의 수.
     value HandSize                 = 1
+    /// 라운드마다 낼 수 있는 핸드의 수.
     value HandsPerRound            = 2
+    /// 라운드마다 버릴 수 있는 횟수.
     value DiscardsPerRound         = 3
+    /// 조커 칸의 수.
     value JokerSlots               = 4
+    /// 소모품 칸의 수.
     value ConsumableSlots          = 5
+    /// 금액이 내려갈 수 있는 하한. 0보다 작습니다.
     value DebtLimit                = 6
+    /// 값을 내지 않고 다시 뽑을 수 있는 횟수.
     value FreeRerolls              = 7
+    /// 다시 뽑기 값에 더할 금액.
     value RerollCostDelta          = 8
+    /// 상점의 첫 다시 뽑기가 무료입니다.
     value RerollStartsFree         = 9
+    /// 보유 5마다 받는 이자.
     value InterestPer5             = 10
+    /// 한 라운드에 받는 이자의 상한.
     value InterestCap              = 11
+    /// 상점의 카드 칸 수.
     value ShopCardSlots            = 12
+    /// 상점 값의 할인율. 만분율입니다.
     value ShopDiscount             = 13
+    /// 상점의 카드 칸에 플레잉 카드가 나옵니다.
     value ShopAllowsPlayingCards   = 14
+    /// 상점의 카드 칸에 유령 카드가 나옵니다.
     value ShopAllowsSpectral       = 15
+    /// 상점에서 타로가 뽑힐 가중치.
     value ShopWeightTarot          = 16
+    /// 상점에서 행성이 뽑힐 가중치.
     value ShopWeightPlanet         = 17
+    /// 상점의 행성이 무료입니다.
     value FreePlanets              = 18
+    /// 족보를 이루지 않은 카드도 득점합니다.
     value AllCardsScore            = 19
+    /// 모든 카드를 그림 카드로 봅니다.
     value AllCardsAreFace          = 20
+    /// 플러시와 스트레이트를 이루는 데 필요한 카드의 수.
     value FlushStraightCards       = 21
+    /// 스트레이트가 건너뛸 수 있는 랭크의 수.
     value StraightGap              = 22
+    /// 네 무늬를 하나로 봅니다.
     value SuitsMerged              = 23
+    /// 확률에 곱하는 배수. 만분율입니다.
     value ProbabilityScale         = 24
+    /// 같은 것을 둘 이상 가질 수 있습니다.
     value AllowDuplicates          = 25
+    /// 칩과 배수를 둘의 평균으로 맞춥니다.
     value BalanceChipsAndMult      = 26
+    /// 안테마다 보스를 다시 뽑을 수 있는 횟수.
     value BossRerollsPerAnte       = 27
+    /// 안테에 더할 값.
     value AnteDelta                = 28
+    /// 에디션이 붙을 가중치의 배수. 만분율입니다.
     value EditionWeightScale       = 29
+    /// 행성이 칩과 함께 배수도 올립니다.
     value PlanetGivesMult          = 30
+    /// 런을 시작할 때의 금액.
     value StartingMoney            = 31
+    /// 이자를 받지 않습니다.
     value NoInterest               = 32
+    /// 쓰지 않고 남긴 핸드마다 받는 금액.
     value MoneyPerHandLeft         = 33
+    /// 쓰지 않고 남긴 버리기마다 받는 금액.
     value MoneyPerDiscardLeft      = 34
+    /// 시작 덱의 랭크와 무늬를 무작위로 정합니다.
     value RandomizeDeck            = 35
+    /// 보스를 깨면 태그를 둘 받습니다.
     value DoubleTagOnBossDefeat    = 36
+    /// 블라인드의 요구 점수에 곱하는 배수. 만분율입니다.
     value BlindSizeScale           = 37
+    /// 버리기 횟수를 0으로 만듭니다.
     value SetDiscardsZero          = 38
+    /// 아르카나 팩에 유령 카드가 섞입니다.
     value SpectralInArcanaPacks    = 39
+    /// 천체 팩에 가장 많이 낸 족보의 행성이 반드시 들어갑니다.
     value CelestialHasMostPlayed   = 40
+    /// 상점의 플레잉 카드에 강화·인장·에디션이 붙어 나옵니다.
     value ShopCardsHaveModifiers   = 41
+    /// 한 라운드에 같은 족보를 두 번 낼 수 없습니다.
     value NoRepeatHandTypes        = 42
+    /// 한 라운드에 한 가지 족보만 낼 수 있습니다.
     value SingleHandTypeOnly       = 43
+    /// 핸드마다 다섯 장을 내야 합니다.
     value MustPlayFiveCards        = 44
+    /// 뽑을 때 언제나 세 장씩 뽑습니다.
     value AlwaysDrawThree          = 45
+    /// 족보의 기본 칩과 배수를 절반으로 합니다.
     value HalveBaseChipsAndMult    = 46
+    /// 조커를 팔 때까지 카드가 무력화된 채로 있습니다.
     value DebuffUntilJokerSold     = 47
+    /// 카드 한 장이 반드시 골라진 상태가 됩니다.
     value ForceCardSelected        = 48
+    /// 시작 덱에서 그림 카드를 뺍니다.
     value RemoveFaceCards          = 49
     /// 시작 덱을 그 무늬들로만 채웁니다. `suits` 가 어느 무늬인지 적습니다.
     value SuitsOnly                = 50

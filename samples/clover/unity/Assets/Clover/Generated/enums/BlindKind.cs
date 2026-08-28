@@ -9,14 +9,23 @@
 
 namespace Clover.Data
 {
-    // Generated from run.tbs(22,6)
+    // Generated from run.tbs(26,6)
     /// <summary>
     /// 안테 하나 안의 세 라운드.
     /// </summary>
     public enum BlindKind
     {
+        /// <summary>
+        /// 안테의 첫 라운드. 건너뛸 수 있습니다.
+        /// </summary>
         Small = 1,
+        /// <summary>
+        /// 안테의 두 번째 라운드. 건너뛸 수 있습니다.
+        /// </summary>
         Big = 2,
+        /// <summary>
+        /// 안테의 마지막 라운드. 규칙 하나가 붙고 건너뛸 수 없습니다.
+        /// </summary>
         Boss = 3
     }
 } // namespace Clover.Data

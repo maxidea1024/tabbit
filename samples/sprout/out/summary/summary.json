@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-28T20:57:20.4252129+09:00",
+    "generatedAt": "2026-08-28T21:28:17.6789460+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "recipe.jsonc",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "667fab93fba633acb44baa71c6ec24261e7ef9a7",
-      "shortHash": "667fab93fba6",
+      "hash": "5e6b55de88a23b02fb2443aa8d4655489629c9b7",
+      "shortHash": "5e6b55de88a2",
       "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-28T20:40:25.0000000+09:00",
-      "subject": "fix: 참조 그래프에서 전체 그림이 실제로 숨겨집니다",
+      "committedAt": "2026-08-28T21:20:57.0000000+09:00",
+      "subject": "fix: html 문서에서 읽히지 않던 것들 — 논리값·설명의 강조·고정 컬럼·구조체의 구성",
       "origin": "git",
       "dirty": true,
       "attributable": false

@@ -5,57 +5,106 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from effect.tbs(232,6)
+// Generated from effect.tbs(325,6)
 /** 바꿀 수 있는 규칙. **목록이 여기 있는 것이 요점입니다** — 자유 문자열이면 오타가 통과합니다. */
 export enum RuleKind {
+  /** 패에 드는 카드의 수. */
   HandSize = 1,
+  /** 라운드마다 낼 수 있는 핸드의 수. */
   HandsPerRound = 2,
+  /** 라운드마다 버릴 수 있는 횟수. */
   DiscardsPerRound = 3,
+  /** 조커 칸의 수. */
   JokerSlots = 4,
+  /** 소모품 칸의 수. */
   ConsumableSlots = 5,
+  /** 금액이 내려갈 수 있는 하한. 0보다 작습니다. */
   DebtLimit = 6,
+  /** 값을 내지 않고 다시 뽑을 수 있는 횟수. */
   FreeRerolls = 7,
+  /** 다시 뽑기 값에 더할 금액. */
   RerollCostDelta = 8,
+  /** 상점의 첫 다시 뽑기가 무료입니다. */
   RerollStartsFree = 9,
+  /** 보유 5마다 받는 이자. */
   InterestPer5 = 10,
+  /** 한 라운드에 받는 이자의 상한. */
   InterestCap = 11,
+  /** 상점의 카드 칸 수. */
   ShopCardSlots = 12,
+  /** 상점 값의 할인율. 만분율입니다. */
   ShopDiscount = 13,
+  /** 상점의 카드 칸에 플레잉 카드가 나옵니다. */
   ShopAllowsPlayingCards = 14,
+  /** 상점의 카드 칸에 유령 카드가 나옵니다. */
   ShopAllowsSpectral = 15,
+  /** 상점에서 타로가 뽑힐 가중치. */
   ShopWeightTarot = 16,
+  /** 상점에서 행성이 뽑힐 가중치. */
   ShopWeightPlanet = 17,
+  /** 상점의 행성이 무료입니다. */
   FreePlanets = 18,
+  /** 족보를 이루지 않은 카드도 득점합니다. */
   AllCardsScore = 19,
+  /** 모든 카드를 그림 카드로 봅니다. */
   AllCardsAreFace = 20,
+  /** 플러시와 스트레이트를 이루는 데 필요한 카드의 수. */
   FlushStraightCards = 21,
+  /** 스트레이트가 건너뛸 수 있는 랭크의 수. */
   StraightGap = 22,
+  /** 네 무늬를 하나로 봅니다. */
   SuitsMerged = 23,
+  /** 확률에 곱하는 배수. 만분율입니다. */
   ProbabilityScale = 24,
+  /** 같은 것을 둘 이상 가질 수 있습니다. */
   AllowDuplicates = 25,
+  /** 칩과 배수를 둘의 평균으로 맞춥니다. */
   BalanceChipsAndMult = 26,
+  /** 안테마다 보스를 다시 뽑을 수 있는 횟수. */
   BossRerollsPerAnte = 27,
+  /** 안테에 더할 값. */
   AnteDelta = 28,
+  /** 에디션이 붙을 가중치의 배수. 만분율입니다. */
   EditionWeightScale = 29,
+  /** 행성이 칩과 함께 배수도 올립니다. */
   PlanetGivesMult = 30,
+  /** 런을 시작할 때의 금액. */
   StartingMoney = 31,
+  /** 이자를 받지 않습니다. */
   NoInterest = 32,
+  /** 쓰지 않고 남긴 핸드마다 받는 금액. */
   MoneyPerHandLeft = 33,
+  /** 쓰지 않고 남긴 버리기마다 받는 금액. */
   MoneyPerDiscardLeft = 34,
+  /** 시작 덱의 랭크와 무늬를 무작위로 정합니다. */
   RandomizeDeck = 35,
+  /** 보스를 깨면 태그를 둘 받습니다. */
   DoubleTagOnBossDefeat = 36,
+  /** 블라인드의 요구 점수에 곱하는 배수. 만분율입니다. */
   BlindSizeScale = 37,
+  /** 버리기 횟수를 0으로 만듭니다. */
   SetDiscardsZero = 38,
+  /** 아르카나 팩에 유령 카드가 섞입니다. */
   SpectralInArcanaPacks = 39,
+  /** 천체 팩에 가장 많이 낸 족보의 행성이 반드시 들어갑니다. */
   CelestialHasMostPlayed = 40,
+  /** 상점의 플레잉 카드에 강화·인장·에디션이 붙어 나옵니다. */
   ShopCardsHaveModifiers = 41,
+  /** 한 라운드에 같은 족보를 두 번 낼 수 없습니다. */
   NoRepeatHandTypes = 42,
+  /** 한 라운드에 한 가지 족보만 낼 수 있습니다. */
   SingleHandTypeOnly = 43,
+  /** 핸드마다 다섯 장을 내야 합니다. */
   MustPlayFiveCards = 44,
+  /** 뽑을 때 언제나 세 장씩 뽑습니다. */
   AlwaysDrawThree = 45,
+  /** 족보의 기본 칩과 배수를 절반으로 합니다. */
   HalveBaseChipsAndMult = 46,
+  /** 조커를 팔 때까지 카드가 무력화된 채로 있습니다. */
   DebuffUntilJokerSold = 47,
+  /** 카드 한 장이 반드시 골라진 상태가 됩니다. */
   ForceCardSelected = 48,
+  /** 시작 덱에서 그림 카드를 뺍니다. */
   RemoveFaceCards = 49,
   /** 시작 덱을 그 무늬들로만 채웁니다. `suits` 가 어느 무늬인지 적습니다. */
   SuitsOnly = 50,

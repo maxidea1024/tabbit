@@ -8,8 +8,12 @@
 // Generated from card.tbs(8,6)
 /** 무늬. 값은 정렬 순서입니다. */
 export enum SuitKind {
+  /** 스페이드. */
   Spade = 1,
+  /** 하트. */
   Heart = 2,
+  /** 클로버. */
   Club = 3,
+  /** 다이아몬드. */
   Diamond = 4
 }

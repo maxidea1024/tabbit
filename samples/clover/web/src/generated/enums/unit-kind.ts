@@ -5,19 +5,30 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from effect.tbs(114,6)
+// Generated from effect.tbs(154,6)
 /** 「무엇마다」의 단위. `PerUnit` 이 이 개수만큼 값을 넣습니다. */
 export enum UnitKind {
+  /** 가진 조커의 수. */
   JokerCount = 1,
+  /** 비어 있는 조커 칸의 수. */
   EmptyJokerSlots = 2,
+  /** 덱에 남은 카드의 수. */
   DeckRemaining = 3,
+  /** 시작 덱보다 줄어든 카드의 수. */
   DeckDeficit = 4,
+  /** 지금 가진 금액. */
   Money = 5,
+  /** 지금 가진 금액을 5로 나눈 몫. */
   MoneyPer5 = 6,
+  /** 남은 버리기 횟수. */
   DiscardsLeft = 7,
+  /** 남은 핸드 수. */
   HandsLeft = 8,
+  /** 이번 런에서 건너뛴 블라인드의 수. */
   BlindsSkipped = 9,
+  /** 이번 런에서 쓴 타로의 수. */
   TarotUsed = 10,
+  /** 이번 런에서 쓴 서로 다른 행성의 수. */
   UniquePlanetUsed = 11,
   /** 덱에서 그 랭크인 카드의 수. `ranks` 가 어느 랭크인지 적습니다. */
   DeckRankCount = 12,
@@ -25,7 +36,9 @@ export enum UnitKind {
   DeckEnhancementCount = 13,
   /** 그 희귀도인 조커의 수. `rarity` 가 어느 희귀도인지 적습니다. */
   JokerRarityCount = 14,
+  /** 그 족보를 이번 런에서 낸 횟수. `hand` 가 어느 족보인지 적습니다. */
   HandPlayCount = 15,
+  /** 자기를 뺀 조커들의 판매가 합. */
   OtherJokerSellValue = 16,
   /** 패의 최저 랭크 카드의 칩값. */
   LowestHeldRankChips = 17,
@@ -33,6 +46,8 @@ export enum UnitKind {
   CardsPlayed = 18,
   /** 자기 `Money` 카운터. */
   SelfCounterMoney = 19,
+  /** 이번 런에서 낸 핸드의 총수. */
   HandsPlayedThisRun = 20,
+  /** 이번 런에서 쓰지 않고 남긴 버리기 횟수의 합. */
   DiscardsUnusedThisRun = 21
 }

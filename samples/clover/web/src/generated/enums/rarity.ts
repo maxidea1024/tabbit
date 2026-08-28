@@ -8,8 +8,11 @@
 // Generated from run.tbs(4,6)
 /** 조커의 희귀도. 상점 추첨이 이것을 먼저 정하고 그다음 그 풀에서 하나를 고릅니다. */
 export enum Rarity {
+  /** 가장 흔합니다. */
   Common = 1,
+  /** 덜 흔합니다. */
   Uncommon = 2,
+  /** 드뭅니다. */
   Rare = 3,
   /** 상점에 나오지 않습니다. `The Soul` 로만 나옵니다. */
   Legendary = 4

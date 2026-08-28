@@ -9,12 +9,15 @@
 
 namespace Clover.Data
 {
-    // Generated from run.tbs(12,6)
+    // Generated from run.tbs(15,6)
     /// <summary>
     /// 조커 개체에 붙는 상태. 조커의 성질이 아니므로 테이블이 아니라 런 상태입니다.
     /// </summary>
     public enum StickerKind
     {
+        /// <summary>
+        /// 아무 상태도 붙지 않았습니다.
+        /// </summary>
         None = 0,
         /// <summary>
         /// 팔 수 없고 파괴되지 않습니다.

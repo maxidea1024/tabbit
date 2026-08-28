@@ -9,16 +9,31 @@
 
 namespace Clover.Data
 {
-    // Generated from card.tbs(62,6)
+    // Generated from card.tbs(97,6)
     /// <summary>
     /// 인장. 강화와 별개의 축이고, 한 장에 하나만 붙습니다.
     /// </summary>
     public enum SealKind
     {
+        /// <summary>
+        /// 인장이 없습니다.
+        /// </summary>
         None = 0,
+        /// <summary>
+        /// 그 카드의 득점을 한 번 되풀이합니다.
+        /// </summary>
         Red = 1,
+        /// <summary>
+        /// 라운드가 끝날 때 패에 있으면 행성을 만듭니다.
+        /// </summary>
         Blue = 2,
+        /// <summary>
+        /// 득점하면 금액을 줍니다.
+        /// </summary>
         Gold = 3,
+        /// <summary>
+        /// 버려지면 타로를 만듭니다.
+        /// </summary>
         Purple = 4
     }
 } // namespace Clover.Data

@@ -9,16 +9,31 @@
 
 namespace Clover.Data
 {
-    // Generated from effect.tbs(203,6)
+    // Generated from effect.tbs(280,6)
     /// <summary>
     /// 어느 조커를 가리키는가.
     /// </summary>
     public enum JokerPick
     {
+        /// <summary>
+        /// 자기 오른쪽에 붙은 조커.
+        /// </summary>
         Right = 1,
+        /// <summary>
+        /// 가장 왼쪽 조커.
+        /// </summary>
         Leftmost = 2,
+        /// <summary>
+        /// 무작위 조커 하나.
+        /// </summary>
         Random = 3,
+        /// <summary>
+        /// 자기를 뺀 모든 조커.
+        /// </summary>
         AllOther = 4,
+        /// <summary>
+        /// 자기 자신.
+        /// </summary>
         SelfPick = 5
     }
 } // namespace Clover.Data

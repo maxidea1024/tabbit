@@ -5,11 +5,15 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from effect.tbs(211,6)
+// Generated from effect.tbs(293,6)
 /** 무엇을 무력화하는가. 보스가 씁니다. */
 export enum DebuffKind {
+  /** 그 무늬의 카드. `suits` 가 어느 무늬인지 적습니다. */
   BySuit = 1,
+  /** 그림 카드 전부. */
   FaceCards = 2,
+  /** 이번 안테에 이미 낸 적이 있는 카드. */
   PlayedThisAnte = 3,
+  /** 낸 카드 전부. */
   AllCards = 4
 }

@@ -5,12 +5,17 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from run.tbs(59,6)
+// Generated from run.tbs(85,6)
 /** 상점의 카드 칸에 올 수 있는 것. 가중치 추첨의 후보입니다. */
 export enum ShopItemKind {
+  /** 조커. */
   Joker = 1,
+  /** 타로 카드. */
   Tarot = 2,
+  /** 행성 카드. */
   Planet = 3,
+  /** 플레잉 카드. */
   PlayingCard = 4,
+  /** 유령 카드. */
   Spectral = 5
 }

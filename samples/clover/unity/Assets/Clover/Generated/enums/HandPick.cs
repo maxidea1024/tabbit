@@ -9,16 +9,31 @@
 
 namespace Clover.Data
 {
-    // Generated from effect.tbs(154,6)
+    // Generated from effect.tbs(212,6)
     /// <summary>
     /// 어느 족보를 가리키는가.
     /// </summary>
     public enum HandPick
     {
+        /// <summary>
+        /// 지금 낸 족보.
+        /// </summary>
         Played = 1,
+        /// <summary>
+        /// 이번에 버린 카드가 이루는 첫 족보.
+        /// </summary>
         FirstDiscarded = 2,
+        /// <summary>
+        /// 이번 런에서 가장 많이 낸 족보.
+        /// </summary>
         MostPlayed = 3,
+        /// <summary>
+        /// 무작위 족보 하나.
+        /// </summary>
         Random = 4,
+        /// <summary>
+        /// 모든 족보.
+        /// </summary>
         All = 5
     }
 } // namespace Clover.Data

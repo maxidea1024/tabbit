@@ -6,38 +6,64 @@
 
 /// 무늬. 값은 정렬 순서입니다.
 enum SuitKind
+    /// 스페이드.
     value Spade   = 1
+    /// 하트.
     value Heart   = 2
+    /// 클로버.
     value Club    = 3
+    /// 다이아몬드.
     value Diamond = 4
 
 /// 랭크. 값은 크기 순서이고 칩값이 아닙니다 — 칩값은 `Rank` 테이블에 있습니다.
 enum RankKind
+    /// 2.
     value Two   = 2
+    /// 3.
     value Three = 3
+    /// 4.
     value Four  = 4
+    /// 5.
     value Five  = 5
+    /// 6.
     value Six   = 6
+    /// 7.
     value Seven = 7
+    /// 8.
     value Eight = 8
+    /// 9.
     value Nine  = 9
+    /// 10.
     value Ten   = 10
+    /// J.
     value Jack  = 11
+    /// Q.
     value Queen = 12
+    /// K.
     value King  = 13
+    /// A. 스트레이트에서는 가장 낮은 쪽으로도 쓰입니다.
     value Ace   = 14
 
 /// 족보. 로열 플러시는 별도 족보가 아니므로 여기 없습니다 — 스트레이트 플러시와 값을
 /// 공유하고 표시만 다릅니다.
 enum PokerHandKind
+    /// 아무것도 이루지 못한 패.
     value HighCard      = 1
+    /// 같은 랭크 둘.
     value Pair          = 2
+    /// 같은 랭크 둘이 두 쌍.
     value TwoPair       = 3
+    /// 같은 랭크 셋.
     value ThreeOfAKind  = 4
+    /// 이어지는 랭크 다섯.
     value Straight      = 5
+    /// 같은 무늬 다섯.
     value Flush         = 6
+    /// 같은 랭크 셋과 둘.
     value FullHouse     = 7
+    /// 같은 랭크 넷.
     value FourOfAKind   = 8
+    /// 같은 무늬로 이어지는 랭크 다섯.
     value StraightFlush = 9
     /// 한 번 낸 뒤에 목록에 보입니다.
     value FiveOfAKind   = 10
@@ -48,29 +74,47 @@ enum PokerHandKind
 
 /// 카드 한 장의 강화. 한 장에 하나만 붙습니다.
 enum EnhancementKind
+    /// 강화가 없습니다.
     value None  = 0
+    /// 칩을 더합니다.
     value Bonus = 1
+    /// 배수를 더합니다.
     value Mult  = 2
+    /// 모든 무늬로 취급합니다.
     value Wild  = 3
+    /// 배수를 곱하고, 득점한 뒤 확률로 깨집니다.
     value Glass = 4
+    /// 패에 들고 있는 동안 배수를 곱합니다.
     value Steel = 5
+    /// 랭크와 무늬가 없고 족보와 무관하게 득점합니다.
     value Stone = 6
+    /// 라운드가 끝날 때 패에 있으면 금액을 줍니다.
     value Gold  = 7
+    /// 확률로 배수나 금액을 줍니다.
     value Lucky = 8
 
 /// 인장. 강화와 별개의 축이고, 한 장에 하나만 붙습니다.
 enum SealKind
+    /// 인장이 없습니다.
     value None   = 0
+    /// 그 카드의 득점을 한 번 되풀이합니다.
     value Red    = 1
+    /// 라운드가 끝날 때 패에 있으면 행성을 만듭니다.
     value Blue   = 2
+    /// 득점하면 금액을 줍니다.
     value Gold   = 3
+    /// 버려지면 타로를 만듭니다.
     value Purple = 4
 
 /// 에디션. 카드와 조커 양쪽에 붙습니다.
 enum EditionKind
+    /// 에디션이 없습니다.
     value Base         = 0
+    /// 칩을 더합니다.
     value Foil         = 1
+    /// 배수를 더합니다.
     value Holographic  = 2
+    /// 배수를 곱합니다.
     value Polychrome   = 3
     /// 조커에 붙으면 슬롯 +1, 소모품에 붙으면 소모품 슬롯 +1 입니다.
     value Negative     = 4

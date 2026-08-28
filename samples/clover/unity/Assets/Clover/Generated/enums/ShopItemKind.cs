@@ -9,16 +9,31 @@
 
 namespace Clover.Data
 {
-    // Generated from run.tbs(59,6)
+    // Generated from run.tbs(85,6)
     /// <summary>
     /// 상점의 카드 칸에 올 수 있는 것. 가중치 추첨의 후보입니다.
     /// </summary>
     public enum ShopItemKind
     {
+        /// <summary>
+        /// 조커.
+        /// </summary>
         Joker = 1,
+        /// <summary>
+        /// 타로 카드.
+        /// </summary>
         Tarot = 2,
+        /// <summary>
+        /// 행성 카드.
+        /// </summary>
         Planet = 3,
+        /// <summary>
+        /// 플레잉 카드.
+        /// </summary>
         PlayingCard = 4,
+        /// <summary>
+        /// 유령 카드.
+        /// </summary>
         Spectral = 5
     }
 } // namespace Clover.Data

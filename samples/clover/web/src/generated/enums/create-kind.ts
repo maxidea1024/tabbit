@@ -5,14 +5,20 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from effect.tbs(162,6)
+// Generated from effect.tbs(225,6)
 /** 무엇을 만드는가. */
 export enum CreateKind {
+  /** 타로 카드. */
   Tarot = 1,
+  /** 행성 카드. */
   Planet = 2,
+  /** 유령 카드. */
   Spectral = 3,
+  /** 조커. `rarity` 가 어느 희귀도에서 뽑을지 적습니다. */
   Joker = 4,
+  /** 플레잉 카드. `card_class` 가 어느 갈래인지 적습니다. */
   PlayingCard = 5,
+  /** 태그. */
   Tag = 6,
   /** 이번 런에서 마지막으로 쓴 소모품. `The Fool` 하나입니다. */
   LastUsed = 7,

@@ -15,8 +15,17 @@ namespace Clover.Data
     /// </summary>
     public enum Rarity
     {
+        /// <summary>
+        /// 가장 흔합니다.
+        /// </summary>
         Common = 1,
+        /// <summary>
+        /// 덜 흔합니다.
+        /// </summary>
         Uncommon = 2,
+        /// <summary>
+        /// 드뭅니다.
+        /// </summary>
         Rare = 3,
         /// <summary>
         /// 상점에 나오지 않습니다. `The Soul` 로만 나옵니다.

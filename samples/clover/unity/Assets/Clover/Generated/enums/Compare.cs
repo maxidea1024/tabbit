@@ -9,14 +9,23 @@
 
 namespace Clover.Data
 {
-    // Generated from effect.tbs(85,6)
+    // Generated from effect.tbs(115,6)
     /// <summary>
     /// 수 비교의 방향.
     /// </summary>
     public enum Compare
     {
+        /// <summary>
+        /// 그 값 이상.
+        /// </summary>
         AtLeast = 1,
+        /// <summary>
+        /// 그 값 이하.
+        /// </summary>
         AtMost = 2,
+        /// <summary>
+        /// 그 값과 같음.
+        /// </summary>
         Exactly = 3
     }
 } // namespace Clover.Data

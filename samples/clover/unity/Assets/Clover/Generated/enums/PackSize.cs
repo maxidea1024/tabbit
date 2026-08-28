@@ -9,14 +9,23 @@
 
 namespace Clover.Data
 {
-    // Generated from run.tbs(36,6)
+    // Generated from run.tbs(48,6)
     /// <summary>
     /// 팩의 크기. 값과 장수와 고르는 수가 달라집니다.
     /// </summary>
     public enum PackSize
     {
+        /// <summary>
+        /// 기본 크기.
+        /// </summary>
         Normal = 1,
+        /// <summary>
+        /// 장수가 늘어납니다.
+        /// </summary>
         Jumbo = 2,
+        /// <summary>
+        /// 장수가 늘고 고르는 수도 늘어납니다.
+        /// </summary>
         Mega = 3
     }
 } // namespace Clover.Data

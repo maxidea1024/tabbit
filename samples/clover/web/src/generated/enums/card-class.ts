@@ -5,11 +5,15 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from effect.tbs(181,6)
+// Generated from effect.tbs(250,6)
 /** 만들거나 더하는 플레잉 카드의 갈래. */
 export enum CardClass {
+  /** 갈래를 가리지 않습니다. */
   Any = 0,
+  /** 그림 카드. J·Q·K 입니다. */
   Face = 1,
+  /** 에이스. */
   Ace = 2,
+  /** 숫자 카드. 2부터 10까지입니다. */
   Numbered = 3
 }

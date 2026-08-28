@@ -15,9 +15,21 @@ namespace Clover.Data
     /// </summary>
     public enum SuitKind
     {
+        /// <summary>
+        /// 스페이드.
+        /// </summary>
         Spade = 1,
+        /// <summary>
+        /// 하트.
+        /// </summary>
         Heart = 2,
+        /// <summary>
+        /// 클로버.
+        /// </summary>
         Club = 3,
+        /// <summary>
+        /// 다이아몬드.
+        /// </summary>
         Diamond = 4
     }
 } // namespace Clover.Data

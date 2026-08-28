@@ -5,12 +5,17 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from run.tbs(28,6)
+// Generated from run.tbs(35,6)
 /** 팩의 갈래. 무엇이 담기는가입니다. */
 export enum PackKind {
+  /** 타로가 담깁니다. */
   Arcana = 1,
+  /** 행성이 담깁니다. */
   Celestial = 2,
+  /** 플레잉 카드가 담깁니다. */
   Standard = 3,
+  /** 조커가 담깁니다. */
   Buffoon = 4,
+  /** 유령 카드가 담깁니다. */
   Spectral = 5
 }

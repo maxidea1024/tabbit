@@ -5,12 +5,17 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from effect.tbs(203,6)
+// Generated from effect.tbs(280,6)
 /** 어느 조커를 가리키는가. */
 export enum JokerPick {
+  /** 자기 오른쪽에 붙은 조커. */
   Right = 1,
+  /** 가장 왼쪽 조커. */
   Leftmost = 2,
+  /** 무작위 조커 하나. */
   Random = 3,
+  /** 자기를 뺀 모든 조커. */
   AllOther = 4,
+  /** 자기 자신. */
   SelfPick = 5
 }

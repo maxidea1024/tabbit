@@ -5,12 +5,17 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from effect.tbs(154,6)
+// Generated from effect.tbs(212,6)
 /** 어느 족보를 가리키는가. */
 export enum HandPick {
+  /** 지금 낸 족보. */
   Played = 1,
+  /** 이번에 버린 카드가 이루는 첫 족보. */
   FirstDiscarded = 2,
+  /** 이번 런에서 가장 많이 낸 족보. */
   MostPlayed = 3,
+  /** 무작위 족보 하나. */
   Random = 4,
+  /** 모든 족보. */
   All = 5
 }

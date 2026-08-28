@@ -9,14 +9,23 @@
 
 namespace Clover.Data
 {
-    // Generated from effect.tbs(225,6)
+    // Generated from effect.tbs(315,6)
     /// <summary>
     /// 규칙 변경이 얼마나 오래 가는가.
     /// </summary>
     public enum Duration
     {
+        /// <summary>
+        /// 런이 끝날 때까지.
+        /// </summary>
         Permanent = 0,
+        /// <summary>
+        /// 이번 라운드까지.
+        /// </summary>
         ThisRound = 1,
+        /// <summary>
+        /// 다음 라운드 한 번만.
+        /// </summary>
         NextRound = 2
     }
 } // namespace Clover.Data

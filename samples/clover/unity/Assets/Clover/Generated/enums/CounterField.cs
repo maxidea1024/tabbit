@@ -9,7 +9,7 @@
 
 namespace Clover.Data
 {
-    // Generated from effect.tbs(95,6)
+    // Generated from effect.tbs(128,6)
     /// <summary>
     /// 누적하는 값의 칸. **소유자마다 이름이 다르지 않습니다** — 칸을 고정해야 세이브의 모양이
     /// 조커 목록에 따라 달라지지 않습니다.
@@ -19,13 +19,25 @@ namespace Clover.Data
     /// </summary>
     public enum CounterField
     {
+        /// <summary>
+        /// 득점에 더할 칩.
+        /// </summary>
         Chips = 1,
+        /// <summary>
+        /// 배수에 더할 값.
+        /// </summary>
         MultAdd = 2,
+        /// <summary>
+        /// 배수에 곱할 값. 만분율이고 기본값은 10000(×1)입니다.
+        /// </summary>
         MultMul = 3,
         /// <summary>
         /// 라운드 종료 시 지급할 금액. `PerUnit` 의 `SelfCounterMoney` 가 읽습니다.
         /// </summary>
         Money = 4,
+        /// <summary>
+        /// 판매가에 더할 금액.
+        /// </summary>
         SellValue = 5,
         /// <summary>
         /// 남은 횟수나 세는 수. `fizz_bottle` 의 10핸드, `gravebloom` 의 23장.

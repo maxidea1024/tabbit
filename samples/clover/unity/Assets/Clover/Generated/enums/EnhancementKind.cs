@@ -9,20 +9,47 @@
 
 namespace Clover.Data
 {
-    // Generated from card.tbs(50,6)
+    // Generated from card.tbs(76,6)
     /// <summary>
     /// 카드 한 장의 강화. 한 장에 하나만 붙습니다.
     /// </summary>
     public enum EnhancementKind
     {
+        /// <summary>
+        /// 강화가 없습니다.
+        /// </summary>
         None = 0,
+        /// <summary>
+        /// 칩을 더합니다.
+        /// </summary>
         Bonus = 1,
+        /// <summary>
+        /// 배수를 더합니다.
+        /// </summary>
         Mult = 2,
+        /// <summary>
+        /// 모든 무늬로 취급합니다.
+        /// </summary>
         Wild = 3,
+        /// <summary>
+        /// 배수를 곱하고, 득점한 뒤 확률로 깨집니다.
+        /// </summary>
         Glass = 4,
+        /// <summary>
+        /// 패에 들고 있는 동안 배수를 곱합니다.
+        /// </summary>
         Steel = 5,
+        /// <summary>
+        /// 랭크와 무늬가 없고 족보와 무관하게 득점합니다.
+        /// </summary>
         Stone = 6,
+        /// <summary>
+        /// 라운드가 끝날 때 패에 있으면 금액을 줍니다.
+        /// </summary>
         Gold = 7,
+        /// <summary>
+        /// 확률로 배수나 금액을 줍니다.
+        /// </summary>
         Lucky = 8
     }
 } // namespace Clover.Data

@@ -9,21 +9,48 @@
 
 namespace Clover.Data
 {
-    // Generated from card.tbs(32,6)
+    // Generated from card.tbs(49,6)
     /// <summary>
     /// 족보. 로열 플러시는 별도 족보가 아니므로 여기 없습니다 — 스트레이트 플러시와 값을
     /// 공유하고 표시만 다릅니다.
     /// </summary>
     public enum PokerHandKind
     {
+        /// <summary>
+        /// 아무것도 이루지 못한 패.
+        /// </summary>
         HighCard = 1,
+        /// <summary>
+        /// 같은 랭크 둘.
+        /// </summary>
         Pair = 2,
+        /// <summary>
+        /// 같은 랭크 둘이 두 쌍.
+        /// </summary>
         TwoPair = 3,
+        /// <summary>
+        /// 같은 랭크 셋.
+        /// </summary>
         ThreeOfAKind = 4,
+        /// <summary>
+        /// 이어지는 랭크 다섯.
+        /// </summary>
         Straight = 5,
+        /// <summary>
+        /// 같은 무늬 다섯.
+        /// </summary>
         Flush = 6,
+        /// <summary>
+        /// 같은 랭크 셋과 둘.
+        /// </summary>
         FullHouse = 7,
+        /// <summary>
+        /// 같은 랭크 넷.
+        /// </summary>
         FourOfAKind = 8,
+        /// <summary>
+        /// 같은 무늬로 이어지는 랭크 다섯.
+        /// </summary>
         StraightFlush = 9,
         /// <summary>
         /// 한 번 낸 뒤에 목록에 보입니다.

@@ -5,10 +5,13 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from effect.tbs(85,6)
+// Generated from effect.tbs(115,6)
 /** 수 비교의 방향. */
 export enum Compare {
+  /** 그 값 이상. */
   AtLeast = 1,
+  /** 그 값 이하. */
   AtMost = 2,
+  /** 그 값과 같음. */
   Exactly = 3
 }

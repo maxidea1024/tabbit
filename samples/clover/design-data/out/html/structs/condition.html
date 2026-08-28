@@ -1070,25 +1070,25 @@ tbody [data-pick] { cursor: pointer; }
 <div data-enum-def="BlindKind">
 <p class="lead"><b>enum.BlindKind</b> <span class="hint">안테 하나 안의 세 라운드.</span></p>
 <table><tbody>
-<tr data-label="Small"><td>Small</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Big"><td>Big</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Boss"><td>Boss</td><td class="num">3</td><td class="hint"></td></tr>
+<tr data-label="Small"><td>Small</td><td class="num">1</td><td class="hint">안테의 첫 라운드. 건너뛸 수 있습니다.</td></tr>
+<tr data-label="Big"><td>Big</td><td class="num">2</td><td class="hint">안테의 두 번째 라운드. 건너뛸 수 있습니다.</td></tr>
+<tr data-label="Boss"><td>Boss</td><td class="num">3</td><td class="hint">안테의 마지막 라운드. 규칙 하나가 붙고 건너뛸 수 없습니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="Compare">
 <p class="lead"><b>enum.Compare</b> <span class="hint">수 비교의 방향.</span></p>
 <table><tbody>
-<tr data-label="AtLeast"><td>AtLeast</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="AtMost"><td>AtMost</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Exactly"><td>Exactly</td><td class="num">3</td><td class="hint"></td></tr>
+<tr data-label="AtLeast"><td>AtLeast</td><td class="num">1</td><td class="hint">그 값 이상.</td></tr>
+<tr data-label="AtMost"><td>AtMost</td><td class="num">2</td><td class="hint">그 값 이하.</td></tr>
+<tr data-label="Exactly"><td>Exactly</td><td class="num">3</td><td class="hint">그 값과 같음.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="ConsumableKind">
 <p class="lead"><b>enum.ConsumableKind</b> <span class="hint">소모품의 갈래. 슬롯을 공유합니다.</span></p>
 <table><tbody>
-<tr data-label="Tarot"><td>Tarot</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Planet"><td>Planet</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Spectral"><td>Spectral</td><td class="num">3</td><td class="hint"></td></tr>
+<tr data-label="Tarot"><td>Tarot</td><td class="num">1</td><td class="hint">카드를 바꾸거나 무언가를 만듭니다.</td></tr>
+<tr data-label="Planet"><td>Planet</td><td class="num">2</td><td class="hint">족보의 칩과 배수를 올립니다.</td></tr>
+<tr data-label="Spectral"><td>Spectral</td><td class="num">3</td><td class="hint">값이 큰 대신 대가가 있습니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="CounterField">
@@ -1098,11 +1098,11 @@ tbody [data-pick] { cursor: pointer; }
 <code>Chips</code> &#183; <code>MultAdd</code> &#183; <code>MultMul</code> 은 <b>득점할 때 자동으로 적용됩니다.</b> 따로 더하는 효과 행을
 두지 않습니다. <code>MultMul</code> 의 기본값은 10000(&#215;1)이고 나머지는 0 입니다.</span></p>
 <table><tbody>
-<tr data-label="Chips"><td>Chips</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="MultAdd"><td>MultAdd</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="MultMul"><td>MultMul</td><td class="num">3</td><td class="hint"></td></tr>
+<tr data-label="Chips"><td>Chips</td><td class="num">1</td><td class="hint">득점에 더할 칩.</td></tr>
+<tr data-label="MultAdd"><td>MultAdd</td><td class="num">2</td><td class="hint">배수에 더할 값.</td></tr>
+<tr data-label="MultMul"><td>MultMul</td><td class="num">3</td><td class="hint">배수에 곱할 값. 만분율이고 기본값은 10000(&#215;1)입니다.</td></tr>
 <tr data-label="Money"><td>Money</td><td class="num">4</td><td class="hint">라운드 종료 시 지급할 금액. <code>PerUnit</code> 의 <code>SelfCounterMoney</code> 가 읽습니다.</td></tr>
-<tr data-label="SellValue"><td>SellValue</td><td class="num">5</td><td class="hint"></td></tr>
+<tr data-label="SellValue"><td>SellValue</td><td class="num">5</td><td class="hint">판매가에 더할 금액.</td></tr>
 <tr data-label="Charge"><td>Charge</td><td class="num">6</td><td class="hint">남은 횟수나 세는 수. <code>fizz_bottle</code> 의 10핸드, <code>gravebloom</code> 의 23장.</td></tr>
 <tr data-label="Tick"><td>Tick</td><td class="num">7</td><td class="hint">지나간 라운드 수. <code>faint_outline</code> 의 2라운드.</td></tr>
 </tbody></table>
@@ -1110,40 +1110,40 @@ tbody [data-pick] { cursor: pointer; }
 <div data-enum-def="EditionKind">
 <p class="lead"><b>enum.EditionKind</b> <span class="hint">에디션. 카드와 조커 양쪽에 붙습니다.</span></p>
 <table><tbody>
-<tr data-label="Base"><td>Base</td><td class="num">0</td><td class="hint"></td></tr>
-<tr data-label="Foil"><td>Foil</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Holographic"><td>Holographic</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Polychrome"><td>Polychrome</td><td class="num">3</td><td class="hint"></td></tr>
+<tr data-label="Base"><td>Base</td><td class="num">0</td><td class="hint">에디션이 없습니다.</td></tr>
+<tr data-label="Foil"><td>Foil</td><td class="num">1</td><td class="hint">칩을 더합니다.</td></tr>
+<tr data-label="Holographic"><td>Holographic</td><td class="num">2</td><td class="hint">배수를 더합니다.</td></tr>
+<tr data-label="Polychrome"><td>Polychrome</td><td class="num">3</td><td class="hint">배수를 곱합니다.</td></tr>
 <tr data-label="Negative"><td>Negative</td><td class="num">4</td><td class="hint">조커에 붙으면 슬롯 +1, 소모품에 붙으면 소모품 슬롯 +1 입니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="EnhancementKind">
 <p class="lead"><b>enum.EnhancementKind</b> <span class="hint">카드 한 장의 강화. 한 장에 하나만 붙습니다.</span></p>
 <table><tbody>
-<tr data-label="None"><td>None</td><td class="num">0</td><td class="hint"></td></tr>
-<tr data-label="Bonus"><td>Bonus</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Mult"><td>Mult</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Wild"><td>Wild</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="Glass"><td>Glass</td><td class="num">4</td><td class="hint"></td></tr>
-<tr data-label="Steel"><td>Steel</td><td class="num">5</td><td class="hint"></td></tr>
-<tr data-label="Stone"><td>Stone</td><td class="num">6</td><td class="hint"></td></tr>
-<tr data-label="Gold"><td>Gold</td><td class="num">7</td><td class="hint"></td></tr>
-<tr data-label="Lucky"><td>Lucky</td><td class="num">8</td><td class="hint"></td></tr>
+<tr data-label="None"><td>None</td><td class="num">0</td><td class="hint">강화가 없습니다.</td></tr>
+<tr data-label="Bonus"><td>Bonus</td><td class="num">1</td><td class="hint">칩을 더합니다.</td></tr>
+<tr data-label="Mult"><td>Mult</td><td class="num">2</td><td class="hint">배수를 더합니다.</td></tr>
+<tr data-label="Wild"><td>Wild</td><td class="num">3</td><td class="hint">모든 무늬로 취급합니다.</td></tr>
+<tr data-label="Glass"><td>Glass</td><td class="num">4</td><td class="hint">배수를 곱하고, 득점한 뒤 확률로 깨집니다.</td></tr>
+<tr data-label="Steel"><td>Steel</td><td class="num">5</td><td class="hint">패에 들고 있는 동안 배수를 곱합니다.</td></tr>
+<tr data-label="Stone"><td>Stone</td><td class="num">6</td><td class="hint">랭크와 무늬가 없고 족보와 무관하게 득점합니다.</td></tr>
+<tr data-label="Gold"><td>Gold</td><td class="num">7</td><td class="hint">라운드가 끝날 때 패에 있으면 금액을 줍니다.</td></tr>
+<tr data-label="Lucky"><td>Lucky</td><td class="num">8</td><td class="hint">확률로 배수나 금액을 줍니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="PokerHandKind">
 <p class="lead"><b>enum.PokerHandKind</b> <span class="hint">족보. 로열 플러시는 별도 족보가 아니므로 여기 없습니다 — 스트레이트 플러시와 값을
 공유하고 표시만 다릅니다.</span></p>
 <table><tbody>
-<tr data-label="HighCard"><td>HighCard</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Pair"><td>Pair</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="TwoPair"><td>TwoPair</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="ThreeOfAKind"><td>ThreeOfAKind</td><td class="num">4</td><td class="hint"></td></tr>
-<tr data-label="Straight"><td>Straight</td><td class="num">5</td><td class="hint"></td></tr>
-<tr data-label="Flush"><td>Flush</td><td class="num">6</td><td class="hint"></td></tr>
-<tr data-label="FullHouse"><td>FullHouse</td><td class="num">7</td><td class="hint"></td></tr>
-<tr data-label="FourOfAKind"><td>FourOfAKind</td><td class="num">8</td><td class="hint"></td></tr>
-<tr data-label="StraightFlush"><td>StraightFlush</td><td class="num">9</td><td class="hint"></td></tr>
+<tr data-label="HighCard"><td>HighCard</td><td class="num">1</td><td class="hint">아무것도 이루지 못한 패.</td></tr>
+<tr data-label="Pair"><td>Pair</td><td class="num">2</td><td class="hint">같은 랭크 둘.</td></tr>
+<tr data-label="TwoPair"><td>TwoPair</td><td class="num">3</td><td class="hint">같은 랭크 둘이 두 쌍.</td></tr>
+<tr data-label="ThreeOfAKind"><td>ThreeOfAKind</td><td class="num">4</td><td class="hint">같은 랭크 셋.</td></tr>
+<tr data-label="Straight"><td>Straight</td><td class="num">5</td><td class="hint">이어지는 랭크 다섯.</td></tr>
+<tr data-label="Flush"><td>Flush</td><td class="num">6</td><td class="hint">같은 무늬 다섯.</td></tr>
+<tr data-label="FullHouse"><td>FullHouse</td><td class="num">7</td><td class="hint">같은 랭크 셋과 둘.</td></tr>
+<tr data-label="FourOfAKind"><td>FourOfAKind</td><td class="num">8</td><td class="hint">같은 랭크 넷.</td></tr>
+<tr data-label="StraightFlush"><td>StraightFlush</td><td class="num">9</td><td class="hint">같은 무늬로 이어지는 랭크 다섯.</td></tr>
 <tr data-label="FiveOfAKind"><td>FiveOfAKind</td><td class="num">10</td><td class="hint">한 번 낸 뒤에 목록에 보입니다.</td></tr>
 <tr data-label="FlushHouse"><td>FlushHouse</td><td class="num">11</td><td class="hint">한 번 낸 뒤에 목록에 보입니다.</td></tr>
 <tr data-label="FlushFive"><td>FlushFive</td><td class="num">12</td><td class="hint">한 번 낸 뒤에 목록에 보입니다.</td></tr>
@@ -1152,33 +1152,33 @@ tbody [data-pick] { cursor: pointer; }
 <div data-enum-def="SealKind">
 <p class="lead"><b>enum.SealKind</b> <span class="hint">인장. 강화와 별개의 축이고, 한 장에 하나만 붙습니다.</span></p>
 <table><tbody>
-<tr data-label="None"><td>None</td><td class="num">0</td><td class="hint"></td></tr>
-<tr data-label="Red"><td>Red</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Blue"><td>Blue</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Gold"><td>Gold</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="Purple"><td>Purple</td><td class="num">4</td><td class="hint"></td></tr>
+<tr data-label="None"><td>None</td><td class="num">0</td><td class="hint">인장이 없습니다.</td></tr>
+<tr data-label="Red"><td>Red</td><td class="num">1</td><td class="hint">그 카드의 득점을 한 번 되풀이합니다.</td></tr>
+<tr data-label="Blue"><td>Blue</td><td class="num">2</td><td class="hint">라운드가 끝날 때 패에 있으면 행성을 만듭니다.</td></tr>
+<tr data-label="Gold"><td>Gold</td><td class="num">3</td><td class="hint">득점하면 금액을 줍니다.</td></tr>
+<tr data-label="Purple"><td>Purple</td><td class="num">4</td><td class="hint">버려지면 타로를 만듭니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="SuitKind">
 <p class="lead"><b>enum.SuitKind</b> <span class="hint">무늬. 값은 정렬 순서입니다.</span></p>
 <table><tbody>
-<tr data-label="Spade"><td>Spade</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Heart"><td>Heart</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Club"><td>Club</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="Diamond"><td>Diamond</td><td class="num">4</td><td class="hint"></td></tr>
+<tr data-label="Spade"><td>Spade</td><td class="num">1</td><td class="hint">스페이드.</td></tr>
+<tr data-label="Heart"><td>Heart</td><td class="num">2</td><td class="hint">하트.</td></tr>
+<tr data-label="Club"><td>Club</td><td class="num">3</td><td class="hint">클로버.</td></tr>
+<tr data-label="Diamond"><td>Diamond</td><td class="num">4</td><td class="hint">다이아몬드.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="TargetKind">
 <p class="lead"><b>enum.TargetKind</b> <span class="hint">라운드마다 바뀌는 지정 대상.</span></p>
 <table><tbody>
-<tr data-label="Hand"><td>Hand</td><td class="num">1</td><td class="hint"></td></tr>
-<tr data-label="Rank"><td>Rank</td><td class="num">2</td><td class="hint"></td></tr>
-<tr data-label="Suit"><td>Suit</td><td class="num">3</td><td class="hint"></td></tr>
-<tr data-label="Card"><td>Card</td><td class="num">4</td><td class="hint"></td></tr>
+<tr data-label="Hand"><td>Hand</td><td class="num">1</td><td class="hint">족보 하나를 지정합니다.</td></tr>
+<tr data-label="Rank"><td>Rank</td><td class="num">2</td><td class="hint">랭크 하나를 지정합니다.</td></tr>
+<tr data-label="Suit"><td>Suit</td><td class="num">3</td><td class="hint">무늬 하나를 지정합니다.</td></tr>
+<tr data-label="Card"><td>Card</td><td class="num">4</td><td class="hint">카드 한 장을 지정합니다.</td></tr>
 </tbody></table>
 </div>
 </div>
-<p class="foot">생성 시각 2026-08-28 20:57:34</p>
+<p class="foot">생성 시각 2026-08-28 21:29:21</p>
 <script>
 (function () {
   "use strict";

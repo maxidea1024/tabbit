@@ -5,10 +5,13 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from run.tbs(42,6)
+// Generated from run.tbs(57,6)
 /** 소모품의 갈래. 슬롯을 공유합니다. */
 export enum ConsumableKind {
+  /** 카드를 바꾸거나 무언가를 만듭니다. */
   Tarot = 1,
+  /** 족보의 칩과 배수를 올립니다. */
   Planet = 2,
+  /** 값이 큰 대신 대가가 있습니다. */
   Spectral = 3
 }

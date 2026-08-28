@@ -16,20 +16,35 @@ export enum Trigger {
   OnCardHeld = 3,
   /** 족보가 판정된 뒤, 곱하기 전. */
   OnHandPlayed = 4,
+  /** 패를 버릴 때, 버린 장수와 무관하게 한 번. */
   OnHandDiscarded = 5,
+  /** 버린 카드 한 장마다. */
   OnCardDiscarded = 6,
+  /** 라운드가 시작할 때, 카드를 뽑기 전. */
   OnRoundStart = 7,
+  /** 라운드를 깨고 정산할 때. */
   OnRoundEnd = 8,
+  /** 블라인드를 고른 직후. */
   OnBlindSelect = 9,
+  /** 보스 블라인드를 깬 뒤. */
   OnBossDefeated = 10,
+  /** 상점에 들어갈 때. */
   OnShopEnter = 11,
+  /** 상점을 떠날 때. */
   OnShopExit = 12,
+  /** 상점을 다시 뽑을 때. */
   OnReroll = 13,
+  /** 팩을 열지 않고 건너뛸 때. */
   OnPackSkipped = 14,
+  /** 팩을 열 때. */
   OnPackOpened = 15,
+  /** 덱에 카드가 들어올 때. */
   OnCardAdded = 16,
+  /** 덱에서 카드가 없어질 때. */
   OnCardDestroyed = 17,
+  /** 다른 조커를 팔 때. 자기 자신을 팔 때는 `OnSell` 입니다. */
   OnJokerSold = 18,
+  /** 소모품을 쓸 때. 쓰인 소모품 자신은 `OnUse` 입니다. */
   OnConsumableUsed = 19,
   /** 이것 자신을 팔 때. */
   OnSell = 20,
