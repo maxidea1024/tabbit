@@ -15,7 +15,7 @@ namespace Tabbit.Lsp;
 /// **Bytes rather than characters, all the way through.** `Content-Length` counts UTF-8 bytes
 /// and a <see cref="StreamReader"/> counts characters. One `///` line of Korean makes those
 /// two numbers differ, and from that point on the stream is cut in the middle of a message and
-/// every message after it is garbage. spec/ops/lsp.md section 8.
+/// every message after it is garbage. spec/ops/lsp.md section 10.
 /// </remarks>
 internal sealed class JsonRpcConnection
 {

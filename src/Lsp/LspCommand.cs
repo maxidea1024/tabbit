@@ -68,7 +68,7 @@ internal static class LspCommand
     /// </summary>
     /// <remarks>
     /// Read once. The catalog is settled into each report as it is recorded, so changing the
-    /// language means restarting the server - which spec/ops/lsp.md section 8 says out loud.
+    /// language means restarting the server - which spec/ops/lsp.md section 10 says out loud.
     /// </remarks>
     private static void ChooseMessageLanguage(string[] arguments)
     {

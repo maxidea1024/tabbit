@@ -27,7 +27,7 @@ internal sealed class DocumentStore
     /// Kept rather than rebuilt because a URI that differs from the client's by one character
     /// is a URI the client does not recognise as the file it opened - and the drive letter's
     /// colon alone is spelled two ways in the wild. Rebuilt only for files the client has
-    /// never named. spec/ops/lsp.md section 8.
+    /// never named. spec/ops/lsp.md section 10.
     /// </remarks>
     private readonly Dictionary<string, string> _uris = new(StringComparer.OrdinalIgnoreCase);
 
