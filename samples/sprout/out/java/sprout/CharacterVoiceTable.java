@@ -8,15 +8,17 @@
 package sprout;
 
 import java.nio.file.Path;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import tabbit.TcbReader;
 
 /** Every row of CharacterVoice. */
-public final class CharacterVoiceTable {
+public final class CharacterVoiceTable implements Iterable<CharacterVoiceRecord> {
     private List<CharacterVoiceRecord> records = new ArrayList<>();
     private Map<Integer, CharacterVoiceRecord> byId = new HashMap<>();
 
@@ -28,6 +30,22 @@ public final class CharacterVoiceTable {
      */
     public List<CharacterVoiceRecord> records() {
         return records;
+    }
+
+    /** How many rows the table holds. */
+    public int size() {
+        return records.size();
+    }
+
+    /**
+     * The rows, in the order the file wrote them.
+     *
+     * The list reference is read once, here. A refresh replaces the reference rather than
+     * its contents, so a loop already running keeps the rows it started with.
+     */
+    @Override
+    public Iterator<CharacterVoiceRecord> iterator() {
+        return records.iterator();
     }
 
     /**
@@ -62,6 +80,39 @@ public final class CharacterVoiceTable {
     /** Whether the table holds a row with this Id. */
     public boolean containsId(int key) {
         return byId.containsKey(key);
+    }
+
+
+    /**
+     * Each row with the Id it is keyed by -
+     * `for (var entry : table.entries())`.
+     *
+     * What this saves a caller is not the key value - the row carries it - but having to
+     * know which column the key is: Id here, something else in the next
+     * table.
+     *
+     * The rows come in the order the file wrote them rather than the order the map holds
+     * them, which makes this and iterating the table agree. Only the primary key has this:
+     * a table keyed by several columns together has no single key value to pair a row with.
+     */
+    public Iterable<Map.Entry<Integer, CharacterVoiceRecord>> entries() {
+        final List<CharacterVoiceRecord> rows = records;
+
+        return () -> new Iterator<Map.Entry<Integer, CharacterVoiceRecord>>() {
+            private final Iterator<CharacterVoiceRecord> source = rows.iterator();
+
+            @Override
+            public boolean hasNext() {
+                return source.hasNext();
+            }
+
+            @Override
+            public Map.Entry<Integer, CharacterVoiceRecord> next() {
+                final CharacterVoiceRecord row = source.next();
+
+                return new AbstractMap.SimpleImmutableEntry<>(row.id, row);
+            }
+        };
     }
 
     /** Loads the table from a .tcb file written by Tabbit. */

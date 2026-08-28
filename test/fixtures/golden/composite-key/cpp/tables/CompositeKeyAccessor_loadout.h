@@ -35,6 +35,25 @@ class LoadoutTable {
  public:
   const std::vector<LoadoutRecord>& records() const { return records_; }
 
+  /// How many rows the table holds.
+  std::size_t size() const { return records_.size(); }
+
+  /// Whether the table holds no rows.
+  bool empty() const { return records_.empty(); }
+
+  /// The rows, in the order the file wrote them - what a range-for binds to.
+  ///
+  /// A refresh replaces the vector rather than appending to it, so these are the ordinary
+  /// vector invalidation rules: a loop running across a reload is reading a container that
+  /// has been assigned to.
+  typename std::vector<LoadoutRecord>::const_iterator begin() const {
+    return records_.begin();
+  }
+
+  typename std::vector<LoadoutRecord>::const_iterator end() const {
+    return records_.end();
+  }
+
   /// Joins the columns of the Stage and Slot key into the text the map is keyed by.
   static std::string key_of_stage_and_slot(std::int32_t stage_key, Slot slot_key) {
     const std::string parts[] = {

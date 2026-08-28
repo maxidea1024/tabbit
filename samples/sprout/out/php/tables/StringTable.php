@@ -35,10 +35,29 @@ final class StringRecord
 }
 
 /** Every row of String. */
-final class StringTable
+final class StringTable implements \Countable, \IteratorAggregate, \ArrayAccess
 {
     /** @var list<StringRecord> */
     public array $records = [];
+
+    /** How many rows the table holds. */
+    public function count(): int
+    {
+        return count($this->records);
+    }
+
+    /**
+     * The rows, in the order the file wrote them.
+     *
+     * The array is read once, here. A refresh replaces it rather than its contents, so a
+     * loop already running keeps the rows it started with.
+     *
+     * @return \Traversable<int, StringRecord>
+     */
+    public function getIterator(): \Traversable
+    {
+        return new \ArrayIterator($this->records);
+    }
 
     /** @var array<string, StringRecord> */
     private array $byStringKey = [];
@@ -78,6 +97,67 @@ final class StringTable
     public function containsStringKey(string $key): bool
     {
         return isset($this->byStringKey[$key]);
+    }
+
+
+    /**
+     * Whether the table holds a row with this StringKey - `isset($table[$key])`.
+     */
+    public function offsetExists(mixed $offset): bool
+    {
+        return $this->containsStringKey($offset);
+    }
+
+    /**
+     * The row with this StringKey, or null when the table has none.
+     *
+     * findByStringKey under the spelling PHP uses for a keyed collection. It
+     * answers with null because that is what array access does here; a language whose own
+     * map throws generates a subscript that throws.
+     * spec/targets/table-collection-surface.md section 5.7.
+     *
+     * This is the key, not the row's position. `$table[0]` is the row whose
+     * StringKey is 0, not the first row - the rows in order are ->records.
+     *
+     * Only a key of one column has this: PHP's array access takes one offset.
+     */
+    public function offsetGet(mixed $offset): ?StringRecord
+    {
+        return $this->findByStringKey($offset);
+    }
+
+    /** The table is read-only: a row comes from the file, not from an assignment. */
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+        throw new \LogicException('StringTable is read-only.');
+    }
+
+    /** The table is read-only: a row comes from the file, not from an assignment. */
+    public function offsetUnset(mixed $offset): void
+    {
+        throw new \LogicException('StringTable is read-only.');
+    }
+
+
+    /**
+     * Each row with the StringKey it is keyed by -
+     * `foreach ($table->entries() as $key => $row)`.
+     *
+     * What this saves a caller is not the key value - the row carries it - but having to
+     * know which column the key is: StringKey here, something else in the next
+     * table.
+     *
+     * The rows come in the order the file wrote them rather than the order the map holds
+     * them, which makes this and iterating the table agree. Only the primary key has this:
+     * a table keyed by several columns together has no single key value to pair a row with.
+     *
+     * @return \Generator<string, StringRecord>
+     */
+    public function entries(): \Generator
+    {
+        foreach ($this->records as $record) {
+            yield $record->stringKey => $record;
+        }
     }
 
     /** Loads the table from a .tcb file written by Tabbit. */

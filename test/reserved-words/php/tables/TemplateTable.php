@@ -45,10 +45,29 @@ final class TemplateRecord
 }
 
 /** Every row of Template. */
-final class TemplateTable
+final class TemplateTable implements \Countable, \IteratorAggregate, \ArrayAccess
 {
     /** @var list<TemplateRecord> */
     public array $records = [];
+
+    /** How many rows the table holds. */
+    public function count(): int
+    {
+        return count($this->records);
+    }
+
+    /**
+     * The rows, in the order the file wrote them.
+     *
+     * The array is read once, here. A refresh replaces it rather than its contents, so a
+     * loop already running keeps the rows it started with.
+     *
+     * @return \Traversable<int, TemplateRecord>
+     */
+    public function getIterator(): \Traversable
+    {
+        return new \ArrayIterator($this->records);
+    }
 
     /** @var array<int, TemplateRecord> */
     private array $byIndex = [];
@@ -91,6 +110,67 @@ final class TemplateTable
     public function containsIndex(int $key): bool
     {
         return isset($this->byIndex[$key]);
+    }
+
+
+    /**
+     * Whether the table holds a row with this Index - `isset($table[$key])`.
+     */
+    public function offsetExists(mixed $offset): bool
+    {
+        return $this->containsIndex($offset);
+    }
+
+    /**
+     * The row with this Index, or null when the table has none.
+     *
+     * findByIndex under the spelling PHP uses for a keyed collection. It
+     * answers with null because that is what array access does here; a language whose own
+     * map throws generates a subscript that throws.
+     * spec/targets/table-collection-surface.md section 5.7.
+     *
+     * This is the key, not the row's position. `$table[0]` is the row whose
+     * Index is 0, not the first row - the rows in order are ->records.
+     *
+     * Only a key of one column has this: PHP's array access takes one offset.
+     */
+    public function offsetGet(mixed $offset): ?TemplateRecord
+    {
+        return $this->findByIndex($offset);
+    }
+
+    /** The table is read-only: a row comes from the file, not from an assignment. */
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+        throw new \LogicException('TemplateTable is read-only.');
+    }
+
+    /** The table is read-only: a row comes from the file, not from an assignment. */
+    public function offsetUnset(mixed $offset): void
+    {
+        throw new \LogicException('TemplateTable is read-only.');
+    }
+
+
+    /**
+     * Each row with the Index it is keyed by -
+     * `foreach ($table->entries() as $key => $row)`.
+     *
+     * What this saves a caller is not the key value - the row carries it - but having to
+     * know which column the key is: Index here, something else in the next
+     * table.
+     *
+     * The rows come in the order the file wrote them rather than the order the map holds
+     * them, which makes this and iterating the table agree. Only the primary key has this:
+     * a table keyed by several columns together has no single key value to pair a row with.
+     *
+     * @return \Generator<int, TemplateRecord>
+     */
+    public function entries(): \Generator
+    {
+        foreach ($this->records as $record) {
+            yield $record->index => $record;
+        }
     }
 
     /**

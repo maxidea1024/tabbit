@@ -74,6 +74,19 @@ export class GridTable {
   public get records(): GridRecord[] { return this._records }
   private _records: GridRecord[] = []
 
+  /** How many rows the table holds. */
+  public get count(): number { return this._records.length }
+
+  /**
+   * The rows, in the order the file wrote them.
+   *
+   * The array reference is read once, here. A refresh replaces the reference rather
+   * than its contents, so a loop already running keeps the rows it started with.
+   */
+  public [Symbol.iterator](): IterableIterator<GridRecord> {
+    return this._records[Symbol.iterator]()
+  }
+
   // Indexing by 'X and Y and Z'
   private _recordsByXAndYAndZ: Map<string, GridRecord> = new Map<string, GridRecord>()
 

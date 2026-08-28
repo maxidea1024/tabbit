@@ -8,15 +8,17 @@
 package sprout;
 
 import java.nio.file.Path;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import tabbit.TcbReader;
 
 /** Every row of Setting. */
-public final class SettingTable {
+public final class SettingTable implements Iterable<SettingRecord> {
     private List<SettingRecord> records = new ArrayList<>();
     private Map<String, SettingRecord> bySettingKey = new HashMap<>();
 
@@ -28,6 +30,22 @@ public final class SettingTable {
      */
     public List<SettingRecord> records() {
         return records;
+    }
+
+    /** How many rows the table holds. */
+    public int size() {
+        return records.size();
+    }
+
+    /**
+     * The rows, in the order the file wrote them.
+     *
+     * The list reference is read once, here. A refresh replaces the reference rather than
+     * its contents, so a loop already running keeps the rows it started with.
+     */
+    @Override
+    public Iterator<SettingRecord> iterator() {
+        return records.iterator();
     }
 
     /**
@@ -62,6 +80,39 @@ public final class SettingTable {
     /** Whether the table holds a row with this SettingKey. */
     public boolean containsSettingKey(String key) {
         return bySettingKey.containsKey(key);
+    }
+
+
+    /**
+     * Each row with the SettingKey it is keyed by -
+     * `for (var entry : table.entries())`.
+     *
+     * What this saves a caller is not the key value - the row carries it - but having to
+     * know which column the key is: SettingKey here, something else in the next
+     * table.
+     *
+     * The rows come in the order the file wrote them rather than the order the map holds
+     * them, which makes this and iterating the table agree. Only the primary key has this:
+     * a table keyed by several columns together has no single key value to pair a row with.
+     */
+    public Iterable<Map.Entry<String, SettingRecord>> entries() {
+        final List<SettingRecord> rows = records;
+
+        return () -> new Iterator<Map.Entry<String, SettingRecord>>() {
+            private final Iterator<SettingRecord> source = rows.iterator();
+
+            @Override
+            public boolean hasNext() {
+                return source.hasNext();
+            }
+
+            @Override
+            public Map.Entry<String, SettingRecord> next() {
+                final SettingRecord row = source.next();
+
+                return new AbstractMap.SimpleImmutableEntry<>(row.settingKey, row);
+            }
+        };
     }
 
     /** Loads the table from a .tcb file written by Tabbit. */

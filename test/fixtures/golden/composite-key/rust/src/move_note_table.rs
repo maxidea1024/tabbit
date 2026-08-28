@@ -37,6 +37,24 @@ impl MoveNoteTable {
         &self.records
     }
 
+    /// How many rows the table holds.
+    pub fn len(&self) -> usize {
+        self.records.len()
+    }
+
+    /// Whether the table holds no rows.
+    ///
+    /// Paired with `len` because clippy refuses one without the other, and the generated
+    /// crate is built with warnings denied.
+    pub fn is_empty(&self) -> bool {
+        self.records.is_empty()
+    }
+
+    /// The rows, in the order the file wrote them.
+    pub fn iter(&self) -> std::slice::Iter<'_, MoveNoteRecord> {
+        self.records.iter()
+    }
+
     /// The row with this MoveId, or None when the table has none.
     ///
     /// The lookup to reach for when a missing row is an ordinary answer - an optional
@@ -64,6 +82,20 @@ impl MoveNoteTable {
     /// Whether the table holds a row with this MoveId.
     pub fn contains_move_id(&self, key: i32) -> bool {
         self.by_move_id.contains_key(&key)
+    }
+
+
+    /// Each row with the MoveId it is keyed by.
+    ///
+    /// What this saves a caller is not the key value - the row carries it - but having to
+    /// know which column the key is: MoveId here, something else in the
+    /// next table.
+    ///
+    /// The rows come in the order the file wrote them rather than the order the map holds
+    /// them, which makes this and `iter` agree. Only the primary key has this: a table
+    /// keyed by several columns together has no single key value to pair a row with.
+    pub fn entries(&self) -> impl Iterator<Item = (&i32, &MoveNoteRecord)> + '_ {
+        self.records.iter().map(|record| (&record.move_id, record))
     }
 
     /// Loads the table from a .tcb file written by Tabbit.
@@ -158,5 +190,19 @@ impl MoveNoteTable {
         self.by_move_id = by_move_id;
 
         Ok(())
+    }
+}
+
+/// Lets a borrow of the table be iterated directly - `for record in &table`.
+///
+/// Separate from `iter` rather than instead of it, because a method is what an iterator
+/// chain starts from and the trait is what a `for` reaches for; a crate that has one and
+/// not the other reads as unfinished from whichever side the caller came in on.
+impl<'a> IntoIterator for &'a MoveNoteTable {
+    type Item = &'a MoveNoteRecord;
+    type IntoIter = std::slice::Iter<'a, MoveNoteRecord>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.records.iter()
     }
 }

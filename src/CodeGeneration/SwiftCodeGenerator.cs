@@ -557,11 +557,14 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
                 MapName = "by" + suffix,
                 FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
                 IsComposite = plan.IsComposite,
+                IsPrimary = plan.IsPrimary,
                 Components = components,
 
                 Params = plan.IsComposite
                     ? string.Join(", ", components.Select(c => "_ " + c.Param + ": " + c.Type))
                     : "_ key: " + IndexKeyType(plan.Only),
+
+                CallArgs = plan.IsComposite ? args : "key",
 
                 Argument = plan.IsComposite
                     ? "Self.keyOf" + suffix + "(" + args + ")"

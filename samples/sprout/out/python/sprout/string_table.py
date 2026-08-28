@@ -36,6 +36,18 @@ class StringTable:
         self.records = []
         self.by_string_key = {}
 
+    def __len__(self):
+        """How many rows the table holds."""
+        return len(self.records)
+
+    def __iter__(self):
+        """The rows, in the order the file wrote them.
+
+        The list reference is read once, here. A refresh replaces the reference rather
+        than its contents, so a loop already running keeps the rows it started with.
+        """
+        return iter(self.records)
+
     def find_by_string_key(self, key):
         """The row with this StringKey, or None when the table has none.
 
@@ -63,6 +75,35 @@ class StringTable:
     def contains_string_key(self, key):
         """Whether the table holds a row with this StringKey."""
         return key in self.by_string_key
+
+
+    def __getitem__(self, key):
+        """The row with this StringKey, or a raised error naming what was missing.
+
+        get_by_string_key_or_throw under the spelling Python uses for a keyed
+        collection. It raises because that is what dict does; a language whose own map
+        answers with null generates a subscript that answers with null.
+        spec/targets/table-collection-surface.md section 5.7.
+
+        This is the key, not the row's position. table[0] is the row whose
+        StringKey is 0, not the first row - the rows in order are .records.
+        """
+        return self.get_by_string_key_or_throw(key)
+
+
+    def items(self):
+        """Each row with the StringKey it is keyed by.
+
+        What this saves a caller is not the key value - the row carries it - but having to
+        know which column the key is: StringKey here, something else in the
+        next table.
+
+        The rows come in the order the file wrote them rather than the order the dict holds
+        them, which makes this and iterating the table agree. Only the primary key has this:
+        a table keyed by several columns together has no single key value to pair a row
+        with.
+        """
+        return ((record.string_key, record) for record in self.records)
 
     def read(self, filename):
         """Loads the table from a .tcb file written by Tabbit.

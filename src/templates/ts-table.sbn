@@ -306,6 +306,19 @@ export class {{ name }}Table {
   /** All records. */
   public get records(): {{ name }}Record[] { return this._records }
   private _records: {{ name }}Record[] = []
+
+  /** How many rows the table holds. */
+  public get count(): number { return this._records.length }
+
+  /**
+   * The rows, in the order the file wrote them.
+   *
+   * The array reference is read once, here. A refresh replaces the reference rather
+   * than its contents, so a loop already running keeps the rows it started with.
+   */
+  public [Symbol.iterator](): IterableIterator<{{ name }}Record> {
+    return this._records[Symbol.iterator]()
+  }
 {{~ for field in indexed_fields }}
   // Indexing by '{{ field.prop_name }}'
   public get recordsBy{{ field.pascal_name }}(): Map<{{ field.field_type }}, {{ name }}Record> { return this._recordsBy{{ field.pascal_name }} }
@@ -339,6 +352,25 @@ export class {{ name }}Table {
   public contains{{ field.pascal_name }}(key: {{ field.field_type }}): boolean {
     return this._recordsBy{{ field.pascal_name }}.has(key)
   }
+{{~ if field.is_primary_index }}
+
+  /**
+   * Each row with the {{ field.prop_name }} it is keyed by -
+   * `for (const [key, row] of table.entries())`.
+   *
+   * What this saves a caller is not the key value - the row carries it - but having to know
+   * which column the key is: {{ field.prop_name }} here, something else in the next table.
+   *
+   * The rows come in the order the file wrote them rather than the order the map holds
+   * them, which makes this and iterating the table agree. Only the primary key has this: a
+   * table keyed by several columns together has no single key value to pair a row with.
+   */
+  public *entries(): IterableIterator<[{{ field.field_type }}, {{ name }}Record]> {
+    for (const record of this._records) {
+      yield [record.{{ field.prop_name }}, record]
+    }
+  }
+{{~ end ~}}
 {{~ end ~}}
 {{~ for key in composite_keys }}
   // Indexing by '{{ key.field_name }}'

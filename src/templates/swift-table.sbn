@@ -161,9 +161,26 @@ public final class {{ table.record_name }} {
 }
 
 /// Every row of {{ table.raw_name }}.
-public final class {{ table.table_name }} {
+{{~## Conforming to Sequence puts its members - `max` - `min` - `first` - into the class body's
+   own scope, where they shadow the global functions of the same name. `Swift.max` below is
+   spelled that way for this reason and has to stay that way.
+   spec/targets/table-collection-surface.md section 3.2. ##~}}
+public final class {{ table.table_name }}: Sequence {
 
     public init() {}
+
+    /// How many rows the table holds.
+    public var count: Int { records.count }
+
+    /// The rows, in the order the file wrote them. Conforming to `Sequence` on top of this
+    /// is what gives the table `map` - `filter` - `first(where:)` without any of them being
+    /// written here.
+    ///
+    /// The array is read once, here. A refresh replaces it rather than appending to it, so a
+    /// loop already running keeps the rows it started with.
+    public func makeIterator() -> Array<{{ table.record_name }}>.Iterator {
+        records.makeIterator()
+    }
 
     /// Every row, in the order the sheet declared them.
     ///
@@ -239,6 +256,38 @@ public final class {{ table.table_name }} {
     public func contains{{ index.suffix }}({{ index.params }}) -> Bool {
         {{ index.map_name }}[{{ index.argument }}] != nil
     }
+{{~ if index.is_primary }}
+
+    /// The row with this {{ index.field_name }}, or nil when the table has none.
+    ///
+    /// `findBy{{ index.suffix }}` under the spelling Swift uses for a keyed collection. It
+    /// answers with an optional because that is what `Dictionary` does here, and the type
+    /// says so - a language whose own map throws generates a subscript that throws.
+    /// spec/targets/table-collection-surface.md section 5.7.
+    ///
+    /// This is the key, not the row's position. `table[0]` is the row whose
+    /// {{ index.field_name }} is 0, not the first row - the rows in order are `records`.
+    public subscript({{ index.params }}) -> {{ table.record_name }}? {
+        findBy{{ index.suffix }}({{ index.call_args }})
+    }
+{{~ end ~}}
+{{~ if index.is_primary && !index.is_composite }}
+
+    /// Each row with the {{ index.field_name }} it is keyed by -
+    /// `for (key, row) in table.entries`.
+    ///
+    /// What this saves a caller is not the key value - the row carries it - but having to
+    /// know which column the key is: {{ index.field_name }} here, something else in the
+    /// next table.
+    ///
+    /// The rows come in the order the file wrote them rather than the order the dictionary
+    /// holds them, which makes this and iterating the table agree. Only the primary key has
+    /// this: a table keyed by several columns together has no single key value to pair a
+    /// row with.
+    public var entries: LazyMapSequence<[{{ table.record_name }}], (key: {{ index.key_type }}, row: {{ table.record_name }})> {
+        records.lazy.map { (key: $0.{{ index.member }}, row: $0) }
+    }
+{{~ end ~}}
 {{~ end ~}}
 
     /// Loads the table from a .tcb file written by Tabbit.
@@ -324,7 +373,7 @@ public final class {{ table.table_name }} {
 {{~ else ~}}
                 for record in loaded {
 {{~ if column_view.kind == 'var_array' ~}}
-                    let elementCount = max(0, {{ column_view.length_read }})
+                    let elementCount = Swift.max(0, {{ column_view.length_read }})
                     record.{{ column_view.name }} = []
                     record.{{ column_view.name }}.reserveCapacity(elementCount)
 {{~ if column_view.has_optional_elements ~}}
@@ -344,7 +393,7 @@ public final class {{ table.table_name }} {
                     }
 {{~ end ~}}
 {{~ else if column_view.kind == 'record_var' ~}}
-                    let elementCount = max(0, {{ column_view.length_read }})
+                    let elementCount = Swift.max(0, {{ column_view.length_read }})
 {{~ if column_view.is_first_member ~}}
                     // The first member allocates; the rest check. Allocating again would
                     // discard what the members before it wrote, and taking the shorter of two
@@ -365,7 +414,7 @@ public final class {{ table.table_name }} {
 {{~ else if column_view.kind == 'array_of_arrays_member' ~}}
 {{~## One inner array. Which outer element it is, is which column this is - so that index is
    fixed and the loop runs the inner length. spec/types/nested-multi-level.md. ##~}}
-                    let elementCount = max(0, {{ column_view.length_read }})
+                    let elementCount = Swift.max(0, {{ column_view.length_read }})
                     record.{{ column_view.name }}[{{ column_view.member_at }}] = []
                     record.{{ column_view.name }}[{{ column_view.member_at }}].reserveCapacity(elementCount)
                     for _ in 0 ..< elementCount {
@@ -374,7 +423,7 @@ public final class {{ table.table_name }} {
 {{~ else if column_view.kind == 'record_member_var' ~}}
 {{~## The member is the array: the index goes after its name rather than before. Same
    columns and same loop as the case below - see spec/types/nested-multi-level.md. ##~}}
-                    let elementCount = max(0, {{ column_view.length_read }})
+                    let elementCount = Swift.max(0, {{ column_view.length_read }})
                     record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }} = []
                     record.{{ column_view.name }}{{ column_view.member_access }}{{ column_view.member_ref_suffix }}.reserveCapacity(elementCount)
                     for _ in 0 ..< elementCount {
@@ -383,7 +432,7 @@ public final class {{ table.table_name }} {
 {{~ else if column_view.kind == 'var_array_ref' ~}}
 {{~## A trimmed array of references. The keys are the array this row's length fills; the
    resolved rows are filled by the linking pass. spec/types/variable-length-record-arrays.md. ##~}}
-                    let elementCount = max(0, {{ column_view.length_read }})
+                    let elementCount = Swift.max(0, {{ column_view.length_read }})
                     record.{{ column_view.name }} = []
                     record.{{ column_view.name }}.reserveCapacity(elementCount)
 {{~ if column_view.has_optional_elements ~}}

@@ -25,7 +25,24 @@ module CompositeKey
 
   # Every row of Grid.
   class GridTable
+    include Enumerable
+
     attr_accessor :records
+
+    # How many rows the table holds.
+    def size
+      @records.size
+    end
+
+    # The rows, in the order the file wrote them. Including Enumerable on top of this
+    # is what gives the table `map` - `select` - `find` - `sort_by` without any of them
+    # being written here.
+    #
+    # The array reference is read once, here. A refresh replaces the reference rather
+    # than its contents, so a loop already running keeps the rows it started with.
+    def each(&block)
+      @records.each(&block)
+    end
 
     def initialize
       @records = []
@@ -71,6 +88,20 @@ module CompositeKey
     # Whether the table holds a row with this X and Y and Z.
     def contains_x_and_y_and_z?(x_key, y_key, z_key)
       @by_x_and_y_and_z.key?(self.class.key_of_x_and_y_and_z(x_key, y_key, z_key))
+    end
+
+
+    # The row with this X and Y and Z, or nil when the table has none.
+    #
+    # find_by_x_and_y_and_z under the spelling Ruby uses for a keyed collection. It
+    # answers with nil because that is what Hash does here; a language whose own map raises
+    # generates a subscript that raises.
+    # spec/targets/table-collection-surface.md section 5.7.
+    #
+    # This is the key, not the row's position. `table[0]` is the row whose
+    # X and Y and Z is 0, not the first row - the rows in order are `records`.
+    def [](x_key, y_key, z_key)
+      find_by_x_and_y_and_z(x_key, y_key, z_key)
     end
 
     # Loads the table from a .tcb file written by Tabbit.

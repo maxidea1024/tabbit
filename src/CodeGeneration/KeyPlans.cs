@@ -22,6 +22,16 @@ internal sealed class KeyPlan
     /// <summary>Whether the key is made of more than one column.</summary>
     public bool IsComposite => Components.Count > 1;
 
+    /// <summary>Whether this is the key the rows are identified by.</summary>
+    /// <remarks>
+    /// Carried on the plan rather than asked of the table again, because the question a
+    /// generator has is always "is *this* one the primary", and answering it by comparing
+    /// against <see cref="KeyPlans.PrimaryOf"/> at every use is the same lookup written
+    /// twelve times. What it is for is the surface that only the primary key gets - the
+    /// key-and-row view. spec/targets/table-collection-surface.md section 4.2.
+    /// </remarks>
+    public bool IsPrimary { get; init; }
+
     /// <summary>The one column, for the single-column case that every language already had.</summary>
     public SerialField Only => Components[0];
 
@@ -56,9 +66,23 @@ internal static class KeyPlans
     /// </remarks>
     public static IReadOnlyList<KeyPlan> Of(Table table)
     {
+        // Which columns the primary key is made of, by name. A table that declares no keys
+        // is not keyless - its first column is the primary one - which is why this asks
+        // `Table` rather than reading `Keys` and finding it empty.
+        var declared = table.Keys.Find(key => key.IsPrimary);
+
+        var primaryNames = declared is not null
+            ? declared.FieldNames
+            : table.PrimaryIndexField is { } column ? [column.Name] : new List<string>();
+
         var plans = table.SerialFields
                          .Where(field => field.IsIndexer)
-                         .Select(field => new KeyPlan { Components = [field] })
+                         .Select(field => new KeyPlan
+                         {
+                             Components = [field],
+                             IsPrimary = primaryNames.Count == 1
+                                         && primaryNames[0] == field.Name,
+                         })
                          .ToList();
 
         foreach (var key in table.Keys.Where(key => key.IsComposite))
@@ -71,10 +95,28 @@ internal static class KeyPlans
             if (components.Any(component => component is null))
                 continue;
 
-            plans.Add(new KeyPlan { Components = components! });
+            plans.Add(new KeyPlan { Components = components!, IsPrimary = key.IsPrimary });
         }
 
         return plans;
+    }
+
+    /// <summary>
+    /// The name of the primary key's column, or empty where the key is several columns.
+    /// </summary>
+    /// <remarks>
+    /// For the generators that build their index list by filtering <c>SerialFields</c>
+    /// rather than by walking <see cref="Of"/> - they have a field in hand and the question
+    /// is about that field. Empty rather than null so a template comparison against a name
+    /// is simply false, with nothing to guard.
+    /// </remarks>
+    public static string PrimarySingleName(Table table)
+    {
+        var plans = Of(table);
+
+        return plans.FirstOrDefault(plan => plan.IsPrimary && !plan.IsComposite) is { } single
+            ? single.Only.Name
+            : "";
     }
 
     /// <summary>
@@ -208,6 +250,14 @@ internal sealed class CompositeKeyView
 
     /// <summary>The columns as the sheet spells them, for the doc line and the message.</summary>
     public required string FieldName { get; set; }
+
+    /// <summary>Whether this is the key the rows are identified by.</summary>
+    /// <remarks>
+    /// A table may declare several composite keys and only one of them is the primary. What
+    /// it gates is the subscript, which is generated for the primary key alone.
+    /// spec/targets/table-collection-surface.md section 5.4.
+    /// </remarks>
+    public required bool IsPrimary { get; set; }
 
     /// <summary>The columns making up the key.</summary>
     public required IReadOnlyList<KeyComponentView> Components { get; set; }

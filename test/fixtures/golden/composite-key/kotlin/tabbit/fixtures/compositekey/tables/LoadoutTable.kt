@@ -50,7 +50,7 @@ class LoadoutRecord {
 }
 
 /** Every row of Loadout. */
-class LoadoutTable {
+class LoadoutTable : Iterable<LoadoutRecord> {
 
     /**
      * Every row, in the order the sheet declared them.
@@ -60,6 +60,18 @@ class LoadoutTable {
      */
     var records: MutableList<LoadoutRecord> = ArrayList()
         private set
+
+    /** How many rows the table holds. */
+    val size: Int
+        get() = records.size
+
+    /**
+     * The rows, in the order the file wrote them.
+     *
+     * The list reference is read once, here. A refresh replaces the reference rather than
+     * its contents, so a loop already running keeps the rows it started with.
+     */
+    override fun iterator(): Iterator<LoadoutRecord> = records.iterator()
 
     private var byStageAndSlot: HashMap<String, LoadoutRecord> = HashMap()
 
@@ -101,6 +113,20 @@ class LoadoutTable {
 
     /** Whether the table holds a row with this Stage and Slot. */
     fun containsStageAndSlot(stageKey: Int, slotKey: Slot): Boolean = byStageAndSlot.containsKey(keyOfStageAndSlot(stageKey, slotKey))
+
+
+    /**
+     * The row with this Stage and Slot, or null when the table has none.
+     *
+     * findByStageAndSlot under the spelling Kotlin uses for a keyed collection. It
+     * answers with null because that is what Map does here, and the type says so - a
+     * language whose own map throws generates a subscript that throws.
+     * spec/targets/table-collection-surface.md section 5.7.
+     *
+     * This is the key, not the row's position. `table[0]` is the row whose
+     * Stage and Slot is 0, not the first row - the rows in order are `records`.
+     */
+    operator fun get(stageKey: Int, slotKey: Slot): LoadoutRecord? = findByStageAndSlot(stageKey, slotKey)
 
     /** Loads the table from a .tcb file written by Tabbit. */
     /**

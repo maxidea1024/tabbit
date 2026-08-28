@@ -640,7 +640,16 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             IndexedFields = table.SerialFields
                                  .Select((sf, i) => new { sf, view = fields[i] })
                                  .Where(x => x.sf.IsIndexer)
-                                 .Select(x => x.view)
+                                 .Select(x =>
+                                 {
+                                     // The field view is the record's, shared with the
+                                     // list above; the flag is about this table's key, so
+                                     // it is set here rather than where the field is built.
+                                     x.view.IsPrimaryIndex =
+                                         x.sf.Name == KeyPlans.PrimarySingleName(table);
+
+                                     return x.view;
+                                 })
                                  .ToList(),
 
             CompositeKeys = CompositeKeys(table),
@@ -841,6 +850,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 Suffix = suffix,
                 MapName = "_recordsBy" + suffix,
                 FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
+                IsPrimary = plan.IsPrimary,
                 Components = components,
 
                 Params = string.Join(", ", components.Select(c => c.Param + ": " + c.Type)),

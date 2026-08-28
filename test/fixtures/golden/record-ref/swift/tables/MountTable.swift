@@ -42,9 +42,22 @@ public final class MountRecord {
 }
 
 /// Every row of Mount.
-public final class MountTable {
+public final class MountTable: Sequence {
 
     public init() {}
+
+    /// How many rows the table holds.
+    public var count: Int { records.count }
+
+    /// The rows, in the order the file wrote them. Conforming to `Sequence` on top of this
+    /// is what gives the table `map` - `filter` - `first(where:)` without any of them being
+    /// written here.
+    ///
+    /// The array is read once, here. A refresh replaces it rather than appending to it, so a
+    /// loop already running keeps the rows it started with.
+    public func makeIterator() -> Array<MountRecord>.Iterator {
+        records.makeIterator()
+    }
 
     /// Every row, in the order the sheet declared them.
     ///
@@ -80,6 +93,36 @@ public final class MountTable {
     /// Whether the table holds a row with this Index.
     public func containsIndex(_ key: Int32) -> Bool {
         byIndex[key] != nil
+    }
+
+
+    /// The row with this Index, or nil when the table has none.
+    ///
+    /// `findByIndex` under the spelling Swift uses for a keyed collection. It
+    /// answers with an optional because that is what `Dictionary` does here, and the type
+    /// says so - a language whose own map throws generates a subscript that throws.
+    /// spec/targets/table-collection-surface.md section 5.7.
+    ///
+    /// This is the key, not the row's position. `table[0]` is the row whose
+    /// Index is 0, not the first row - the rows in order are `records`.
+    public subscript(_ key: Int32) -> MountRecord? {
+        findByIndex(key)
+    }
+
+
+    /// Each row with the Index it is keyed by -
+    /// `for (key, row) in table.entries`.
+    ///
+    /// What this saves a caller is not the key value - the row carries it - but having to
+    /// know which column the key is: Index here, something else in the
+    /// next table.
+    ///
+    /// The rows come in the order the file wrote them rather than the order the dictionary
+    /// holds them, which makes this and iterating the table agree. Only the primary key has
+    /// this: a table keyed by several columns together has no single key value to pair a
+    /// row with.
+    public var entries: LazyMapSequence<[MountRecord], (key: Int32, row: MountRecord)> {
+        records.lazy.map { (key: $0.index, row: $0) }
     }
 
     /// Loads the table from a .tcb file written by Tabbit.
@@ -140,7 +183,7 @@ public final class MountTable {
                 try Tcb.checkColumn(column, "Mount.Rig.Core.ItemId", Tcb.kindArray, false, Tcb.elementI32)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Mount.Rig.Core.ItemId")
                 for record in loaded {
-                    let elementCount = max(0, try cursor.nextLength())
+                    let elementCount = Swift.max(0, try cursor.nextLength())
                     // The first member allocates; the rest check. Allocating again would
                     // discard what the members before it wrote, and taking the shorter of two
                     // counts would shift every value after it.
@@ -155,7 +198,7 @@ public final class MountTable {
                 try Tcb.checkColumn(column, "Mount.Rig.Core.Count", Tcb.kindArray, false, Tcb.elementI32, Tcb.elementVarint)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Mount.Rig.Core.Count")
                 for record in loaded {
-                    let elementCount = max(0, try cursor.nextLength())
+                    let elementCount = Swift.max(0, try cursor.nextLength())
                     if record.rig.count != elementCount {
                         throw TcbError(
                             "Mount.rig: the file gives one "

@@ -76,6 +76,19 @@ export class StatBaseTable {
   public get records(): StatBaseRecord[] { return this._records }
   private _records: StatBaseRecord[] = []
 
+  /** How many rows the table holds. */
+  public get count(): number { return this._records.length }
+
+  /**
+   * The rows, in the order the file wrote them.
+   *
+   * The array reference is read once, here. A refresh replaces the reference rather
+   * than its contents, so a loop already running keeps the rows it started with.
+   */
+  public [Symbol.iterator](): IterableIterator<StatBaseRecord> {
+    return this._records[Symbol.iterator]()
+  }
+
   // Indexing by 'id'
   public get recordsById(): Map<number, StatBaseRecord> { return this._recordsById }
   private _recordsById: Map<number, StatBaseRecord> = new Map<number, StatBaseRecord>()
@@ -107,6 +120,24 @@ export class StatBaseTable {
   /** Whether the table holds a row with this id. */
   public containsId(key: number): boolean {
     return this._recordsById.has(key)
+  }
+
+
+  /**
+   * Each row with the id it is keyed by -
+   * `for (const [key, row] of table.entries())`.
+   *
+   * What this saves a caller is not the key value - the row carries it - but having to know
+   * which column the key is: id here, something else in the next table.
+   *
+   * The rows come in the order the file wrote them rather than the order the map holds
+   * them, which makes this and iterating the table agree. Only the primary key has this: a
+   * table keyed by several columns together has no single key value to pair a row with.
+   */
+  public *entries(): IterableIterator<[number, StatBaseRecord]> {
+    for (const record of this._records) {
+      yield [record.id, record]
+    }
   }
 
   /** Read a table from specified file. */

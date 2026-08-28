@@ -9,6 +9,7 @@ package compositekey
 
 import (
 	"fmt"
+	"iter"
 
 	"compositekey/tabbit"
 )
@@ -33,6 +34,26 @@ type MoveNoteTable struct {
 
 // Records returns every row, in the order the sheet declared them.
 func (t *MoveNoteTable) Records() []MoveNoteRecord { return t.records }
+
+// Count returns how many rows the table holds.
+func (t *MoveNoteTable) Count() int { return len(t.records) }
+
+
+// All returns the rows, in the order the file wrote them - `for row := range t.All()`.
+//
+// The slice header is read once, here. A refresh replaces it rather than its contents, so a
+// loop already running keeps the rows it started with.
+func (t *MoveNoteTable) All() iter.Seq[*MoveNoteRecord] {
+	records := t.records
+
+	return func(yield func(*MoveNoteRecord) bool) {
+		for i := range records {
+			if !yield(&records[i]) {
+				return
+			}
+		}
+	}
+}
 
 // FindByMoveId returns the row with this MoveId, or nil when the table has none.
 //
@@ -67,6 +88,28 @@ func (t *MoveNoteTable) GetByMoveIdOrError(key int32) (*MoveNoteRecord, error) {
 func (t *MoveNoteTable) ContainsMoveId(key int32) bool {
 	_, found := t.byMoveId[key]
 	return found
+}
+
+
+// Entries yields each row with the MoveId it is keyed by -
+// `for key, row := range t.Entries()`.
+//
+// What this saves a caller is not the key value - the row carries it - but having to know
+// which column the key is: MoveId here, something else in the next table.
+//
+// The rows come in the order the file wrote them rather than the order a map happens to
+// hold them, which makes this and All agree. Only the primary key has this: a table keyed
+// by several columns together has no single key value to pair a row with.
+func (t *MoveNoteTable) Entries() iter.Seq2[int32, *MoveNoteRecord] {
+	records := t.records
+
+	return func(yield func(int32, *MoveNoteRecord) bool) {
+		for i := range records {
+			if !yield(records[i].MoveId, &records[i]) {
+				return
+			}
+		}
+	}
 }
 
 // Read loads the table from a .tcb file written by Tabbit.

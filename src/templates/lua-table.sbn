@@ -87,6 +87,28 @@ function {{ table.table_name }}.new()
 {{~ end ~}}
   }, {{ table.table_name }}Meta)
 end
+
+-- How many rows the table holds.
+--
+-- A method rather than `#table`: LuaJIT 2.1 does not call `__len` on a table, so the
+-- operator would answer on 5.3+ and not on the other runtime this output has to run on.
+function {{ table.table_name }}:count()
+  return #self.records
+end
+
+-- The rows, in the order the file wrote them - `for row in table:iter() do`.
+--
+-- The list is read once, here. A refresh replaces it rather than its contents, so a loop
+-- already running keeps the rows it started with.
+function {{ table.table_name }}:iter()
+  local records = self.records
+  local i = 0
+
+  return function()
+    i = i + 1
+    return records[i]
+  end
+end
 {{~ for index in table.indexes }}
 {{~## A key of several columns is held as the text they make. Each part carries its own
    length, so no two combinations can make the same text - joined by a separator alone,
@@ -146,6 +168,33 @@ end
 function {{ table.table_name }}:contains{{ index.suffix }}({{ index.params }})
   return self:findBy{{ index.suffix }}({{ index.params }}) ~= nil
 end
+{{~ if index.is_primary && !index.is_composite }}
+
+-- Each row with the {{ index.field_name }} it is keyed by -
+-- `for key, row in table:entries() do`.
+--
+-- What this saves a caller is not the key value - the row carries it - but having to know
+-- which column the key is: {{ index.field_name }} here, something else in the next table.
+--
+-- The rows come in the order the file wrote them rather than the order the map holds them,
+-- which makes this and `iter` agree. Only the primary key has this: a table keyed by
+-- several columns together has no single key value to pair a row with.
+function {{ table.table_name }}:entries()
+  local records = self.records
+  local i = 0
+
+  return function()
+    i = i + 1
+    local record = records[i]
+
+    if record == nil then
+      return nil
+    end
+
+    return record{{ index.access }}, record
+  end
+end
+{{~ end }}
 {{~ end }}
 -- Loads the table from the bytes of a .tcb file written by Tabbit. Column by column,
 -- matched by tag rather than position: a column this build does not know is skipped by

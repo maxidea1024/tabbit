@@ -228,6 +228,22 @@ class COMPOSITEKEY_API FLoadoutTable
 public:
     const TArray<FLoadoutRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Stage and Slot, or nullptr when the table has none.
      *
@@ -256,6 +272,22 @@ class COMPOSITEKEY_API FRouteTable
 {
 public:
     const TArray<FRouteRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Code, or nullptr when the table has none.
@@ -298,6 +330,22 @@ class COMPOSITEKEY_API FGridTable
 public:
     const TArray<FGridRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this X and Y and Z, or nullptr when the table has none.
      *
@@ -327,6 +375,22 @@ class COMPOSITEKEY_API FBeastTable
 public:
     const TArray<FBeastRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Index, or nullptr when the table has none.
      *
@@ -353,6 +417,22 @@ class COMPOSITEKEY_API FMoveTable
 public:
     const TArray<FMoveRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Index, or nullptr when the table has none.
      *
@@ -378,6 +458,22 @@ class COMPOSITEKEY_API FBeastMoveTable
 {
 public:
     const TArray<FBeastMoveRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this BeastId and MoveId, or nullptr when the table has none.
@@ -408,6 +504,22 @@ class COMPOSITEKEY_API FBeastNoteTable
 public:
     const TArray<FBeastNoteRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this BeastId, or nullptr when the table has none.
      *
@@ -433,6 +545,22 @@ class COMPOSITEKEY_API FMoveNoteTable
 {
 public:
     const TArray<FMoveNoteRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this MoveId, or nullptr when the table has none.

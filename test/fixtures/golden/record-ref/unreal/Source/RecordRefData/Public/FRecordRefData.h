@@ -384,6 +384,22 @@ class RECORDREFDATA_API FItemTable
 public:
     const TArray<FItemRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Index, or nullptr when the table has none.
      *
@@ -409,6 +425,22 @@ class RECORDREFDATA_API FLoadoutTable
 {
 public:
     const TArray<FLoadoutRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Index, or nullptr when the table has none.
@@ -436,6 +468,22 @@ class RECORDREFDATA_API FHolderTable
 public:
     const TArray<FHolderRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Index, or nullptr when the table has none.
      *
@@ -461,6 +509,22 @@ class RECORDREFDATA_API FBagTable
 {
 public:
     const TArray<FBagRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Index, or nullptr when the table has none.
@@ -488,6 +552,22 @@ class RECORDREFDATA_API FMountTable
 public:
     const TArray<FMountRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Index, or nullptr when the table has none.
      *
@@ -513,6 +593,22 @@ class RECORDREFDATA_API FClipTable
 {
 public:
     const TArray<FClipRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Index, or nullptr when the table has none.
@@ -540,6 +636,22 @@ class RECORDREFDATA_API FPoseTable
 public:
     const TArray<FPoseRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Index, or nullptr when the table has none.
      *
@@ -565,6 +677,22 @@ class RECORDREFDATA_API FSealTable
 {
 public:
     const TArray<FSealRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Index, or nullptr when the table has none.
@@ -592,6 +720,22 @@ class RECORDREFDATA_API FBadgeTable
 public:
     const TArray<FBadgeRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Index, or nullptr when the table has none.
      *
@@ -617,6 +761,22 @@ class RECORDREFDATA_API FKitTable
 {
 public:
     const TArray<FKitRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Index, or nullptr when the table has none.

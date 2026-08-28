@@ -38,6 +38,24 @@ impl LedgerTable {
         &self.records
     }
 
+    /// How many rows the table holds.
+    pub fn len(&self) -> usize {
+        self.records.len()
+    }
+
+    /// Whether the table holds no rows.
+    ///
+    /// Paired with `len` because clippy refuses one without the other, and the generated
+    /// crate is built with warnings denied.
+    pub fn is_empty(&self) -> bool {
+        self.records.is_empty()
+    }
+
+    /// The rows, in the order the file wrote them.
+    pub fn iter(&self) -> std::slice::Iter<'_, LedgerRecord> {
+        self.records.iter()
+    }
+
     /// The row with this Index, or None when the table has none.
     ///
     /// The lookup to reach for when a missing row is an ordinary answer - an optional
@@ -65,6 +83,20 @@ impl LedgerTable {
     /// Whether the table holds a row with this Index.
     pub fn contains_index(&self, key: i64) -> bool {
         self.by_index.contains_key(&key)
+    }
+
+
+    /// Each row with the Index it is keyed by.
+    ///
+    /// What this saves a caller is not the key value - the row carries it - but having to
+    /// know which column the key is: Index here, something else in the
+    /// next table.
+    ///
+    /// The rows come in the order the file wrote them rather than the order the map holds
+    /// them, which makes this and `iter` agree. Only the primary key has this: a table
+    /// keyed by several columns together has no single key value to pair a row with.
+    pub fn entries(&self) -> impl Iterator<Item = (&i64, &LedgerRecord)> + '_ {
+        self.records.iter().map(|record| (&record.index, record))
     }
 
     /// The row with this Batch, or None when the table has none.
@@ -184,5 +216,19 @@ impl LedgerTable {
         self.by_batch = by_batch;
 
         Ok(())
+    }
+}
+
+/// Lets a borrow of the table be iterated directly - `for record in &table`.
+///
+/// Separate from `iter` rather than instead of it, because a method is what an iterator
+/// chain starts from and the trait is what a `for` reaches for; a crate that has one and
+/// not the other reads as unfinished from whichever side the caller came in on.
+impl<'a> IntoIterator for &'a LedgerTable {
+    type Item = &'a LedgerRecord;
+    type IntoIter = std::slice::Iter<'a, LedgerRecord>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.records.iter()
     }
 }

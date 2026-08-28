@@ -9,6 +9,7 @@ package keytypes
 
 import (
 	"fmt"
+	"iter"
 
 	"keytypes/tabbit"
 )
@@ -33,6 +34,26 @@ type LedgerTable struct {
 
 // Records returns every row, in the order the sheet declared them.
 func (t *LedgerTable) Records() []LedgerRecord { return t.records }
+
+// Count returns how many rows the table holds.
+func (t *LedgerTable) Count() int { return len(t.records) }
+
+
+// All returns the rows, in the order the file wrote them - `for row := range t.All()`.
+//
+// The slice header is read once, here. A refresh replaces it rather than its contents, so a
+// loop already running keeps the rows it started with.
+func (t *LedgerTable) All() iter.Seq[*LedgerRecord] {
+	records := t.records
+
+	return func(yield func(*LedgerRecord) bool) {
+		for i := range records {
+			if !yield(&records[i]) {
+				return
+			}
+		}
+	}
+}
 
 // FindByIndex returns the row with this Index, or nil when the table has none.
 //
@@ -67,6 +88,28 @@ func (t *LedgerTable) GetByIndexOrError(key int64) (*LedgerRecord, error) {
 func (t *LedgerTable) ContainsIndex(key int64) bool {
 	_, found := t.byIndex[key]
 	return found
+}
+
+
+// Entries yields each row with the Index it is keyed by -
+// `for key, row := range t.Entries()`.
+//
+// What this saves a caller is not the key value - the row carries it - but having to know
+// which column the key is: Index here, something else in the next table.
+//
+// The rows come in the order the file wrote them rather than the order a map happens to
+// hold them, which makes this and All agree. Only the primary key has this: a table keyed
+// by several columns together has no single key value to pair a row with.
+func (t *LedgerTable) Entries() iter.Seq2[int64, *LedgerRecord] {
+	records := t.records
+
+	return func(yield func(int64, *LedgerRecord) bool) {
+		for i := range records {
+			if !yield(records[i].Index, &records[i]) {
+				return
+			}
+		}
+	}
 }
 
 // FindByBatch returns the row with this Batch, or nil when the table has none.

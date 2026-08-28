@@ -40,6 +40,24 @@ impl RouteTable {
         &self.records
     }
 
+    /// How many rows the table holds.
+    pub fn len(&self) -> usize {
+        self.records.len()
+    }
+
+    /// Whether the table holds no rows.
+    ///
+    /// Paired with `len` because clippy refuses one without the other, and the generated
+    /// crate is built with warnings denied.
+    pub fn is_empty(&self) -> bool {
+        self.records.is_empty()
+    }
+
+    /// The rows, in the order the file wrote them.
+    pub fn iter(&self) -> std::slice::Iter<'_, RouteRecord> {
+        self.records.iter()
+    }
+
     /// The row with this Code, or None when the table has none.
     ///
     /// The lookup to reach for when a missing row is an ordinary answer - an optional
@@ -229,5 +247,19 @@ impl RouteTable {
         self.by_from_and_to = by_from_and_to;
 
         Ok(())
+    }
+}
+
+/// Lets a borrow of the table be iterated directly - `for record in &table`.
+///
+/// Separate from `iter` rather than instead of it, because a method is what an iterator
+/// chain starts from and the trait is what a `for` reaches for; a crate that has one and
+/// not the other reads as unfinished from whichever side the caller came in on.
+impl<'a> IntoIterator for &'a RouteTable {
+    type Item = &'a RouteRecord;
+    type IntoIter = std::slice::Iter<'a, RouteRecord>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.records.iter()
     }
 }

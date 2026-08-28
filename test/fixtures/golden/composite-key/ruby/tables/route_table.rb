@@ -25,7 +25,24 @@ module CompositeKey
 
   # Every row of Route.
   class RouteTable
+    include Enumerable
+
     attr_accessor :records
+
+    # How many rows the table holds.
+    def size
+      @records.size
+    end
+
+    # The rows, in the order the file wrote them. Including Enumerable on top of this
+    # is what gives the table `map` - `select` - `find` - `sort_by` without any of them
+    # being written here.
+    #
+    # The array reference is read once, here. A refresh replaces the reference rather
+    # than its contents, so a loop already running keeps the rows it started with.
+    def each(&block)
+      @records.each(&block)
+    end
 
     def initialize
       @records = []
@@ -101,6 +118,20 @@ module CompositeKey
     # Whether the table holds a row with this From and To.
     def contains_from_and_to?(from_key, to_key)
       @by_from_and_to.key?(self.class.key_of_from_and_to(from_key, to_key))
+    end
+
+
+    # The row with this From and To, or nil when the table has none.
+    #
+    # find_by_from_and_to under the spelling Ruby uses for a keyed collection. It
+    # answers with nil because that is what Hash does here; a language whose own map raises
+    # generates a subscript that raises.
+    # spec/targets/table-collection-surface.md section 5.7.
+    #
+    # This is the key, not the row's position. `table[0]` is the row whose
+    # From and To is 0, not the first row - the rows in order are `records`.
+    def [](from_key, to_key)
+      find_by_from_and_to(from_key, to_key)
     end
 
     # Loads the table from a .tcb file written by Tabbit.

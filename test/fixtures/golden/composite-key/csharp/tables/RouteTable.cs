@@ -22,7 +22,7 @@ namespace Tabbit.Fixtures.CompositeKey
     /// A composite primary key of strings, beside a single-column secondary one.
     /// </summary>
     [System.Serializable]
-    public partial class RouteTable
+    public partial class RouteTable : IEnumerable<RouteTable.Record>
     {
         #region Record
         [System.Serializable]
@@ -100,6 +100,28 @@ namespace Tabbit.Fixtures.CompositeKey
         /// </remarks>
         public List<Record> Records => _records;
         private List<Record> _records = new List<Record>();
+
+        /// <summary>How many rows the table holds.</summary>
+        public int Count => _records.Count;
+
+        /// <summary>The rows, in the order the file wrote them.</summary>
+        /// <remarks>
+        /// A struct enumerator rather than the interface one, because `foreach` binds to this
+        /// by name and a boxed enumerator allocates once per loop - which in a project that
+        /// walks a table every frame is an allocation every frame. LINQ and anything holding
+        /// the table as `IEnumerable` reach the explicit implementations below instead, and
+        /// those box exactly as they always would have.
+        ///
+        /// The list reference is read once, here. A refresh replaces the reference rather than
+        /// its contents, so a loop already running keeps the rows it started with - the same
+        /// property `Records` documents above, reached without naming the list.
+        /// </remarks>
+        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+
+        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            => _records.GetEnumerator();
 
         #region Indexing by 'Code'
         public Dictionary<string, Record> RecordsByCode => _recordsByCode;
@@ -182,6 +204,18 @@ namespace Tabbit.Fixtures.CompositeKey
 
         /// <summary>Whether the table holds a row with this `From and To`.</summary>
         public bool ContainsFromAndTo(string fromKey, string toKey) => _recordsByFromAndTo.ContainsKey(KeyOfFromAndTo(fromKey, toKey));
+
+        /// <summary>
+        /// The row with this `From and To`, or a thrown exception naming what was
+        /// missing.
+        /// </summary>
+        /// <remarks>
+        /// A key of several columns takes them in the order the sheet wrote them, which is
+        /// the order `GetByFromAndToOrThrow` takes them in too.
+        /// spec/targets/table-collection-surface.md section 5.4.
+        /// </remarks>
+        public Record this[string fromKey, string toKey]
+            => GetByFromAndToOrThrow(fromKey, toKey);
         #endregion // Indexing by `From and To`
 
         /// <summary>

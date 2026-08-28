@@ -60,7 +60,13 @@ public sealed class GoRecipe : IOutputRecipe
     public bool WriteUpdater { get; set; } = false;
 
     /// <summary>Go version the generated go.mod requires.</summary>
-    public string GoVersion { get; set; } = "1.21";
+    /// <remarks>
+    /// 1.23 because that is where `iter.Seq` and range-over-function arrived, which is what
+    /// the generated tables are iterated by. A recipe that has to build on an older toolchain
+    /// sets this lower and gets the same tables without the iterator - the rows are still
+    /// reachable as `Records()`.
+    /// </remarks>
+    public string GoVersion { get; set; } = "1.23";
 
     /// <summary>Base name of the generated file, without its extension.</summary>
     public string AccessorName { get; set; } = "Tables";
@@ -227,10 +233,14 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                 // strconv only where a composite key is present: its text is built from
                 // the components' and an import Go does not reach for does not compile.
                 Imports = Imports(
-                    pair.rendered.Indexes.Any(index => index.IsComposite)
+                    (pair.rendered.Indexes.Any(index => index.IsComposite)
                         ? new[] { "fmt", "strconv" }
-                        : new[] { "fmt" },
+                        : new[] { "fmt" })
+                        .Concat(RangeOverFunc ? new[] { "iter" } : Array.Empty<string>())
+                        .OrderBy(name => name, System.StringComparer.Ordinal)
+                        .ToArray(),
                     reader: true),
+                RangeOverFunc = RangeOverFunc,
                 Table = pair.rendered,
             });
         }
@@ -365,6 +375,31 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             WriteBinaryReaderRuntime(
                 "Tabbit.Runtime.Go.updater.go",
                 System.IO.Path.Combine(_recipe.Path, "tabbit", "updater.go"));
+        }
+    }
+
+    /// <summary>
+    /// Whether the version the recipe asks for has range-over-function.
+    /// </summary>
+    /// <remarks>
+    /// A string compare would answer "1.9" is above "1.23", so the two parts are read as
+    /// numbers. Anything this cannot parse is treated as too old, which leaves the output
+    /// building rather than failing on a version spelling nobody anticipated.
+    /// </remarks>
+    private bool RangeOverFunc
+    {
+        get
+        {
+            string[] parts = (_recipe.GoVersion ?? "").Split('.');
+
+            if (parts.Length < 2
+                || !int.TryParse(parts[0], out int major)
+                || !int.TryParse(parts[1], out int minor))
+            {
+                return false;
+            }
+
+            return major > 1 || (major == 1 && minor >= 23);
         }
     }
 
@@ -634,6 +669,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                 MapName = "by" + suffix,
                 FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
                 IsComposite = plan.IsComposite,
+                IsPrimary = plan.IsPrimary,
 
                 Components = components,
 

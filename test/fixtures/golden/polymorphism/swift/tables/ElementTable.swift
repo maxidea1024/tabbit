@@ -21,9 +21,22 @@ public final class ElementRecord {
 }
 
 /// Every row of Element.
-public final class ElementTable {
+public final class ElementTable: Sequence {
 
     public init() {}
+
+    /// How many rows the table holds.
+    public var count: Int { records.count }
+
+    /// The rows, in the order the file wrote them. Conforming to `Sequence` on top of this
+    /// is what gives the table `map` - `filter` - `first(where:)` without any of them being
+    /// written here.
+    ///
+    /// The array is read once, here. A refresh replaces it rather than appending to it, so a
+    /// loop already running keeps the rows it started with.
+    public func makeIterator() -> Array<ElementRecord>.Iterator {
+        records.makeIterator()
+    }
 
     /// Every row, in the order the sheet declared them.
     ///
@@ -59,6 +72,36 @@ public final class ElementTable {
     /// Whether the table holds a row with this Code.
     public func containsCode(_ key: Int32) -> Bool {
         byCode[key] != nil
+    }
+
+
+    /// The row with this Code, or nil when the table has none.
+    ///
+    /// `findByCode` under the spelling Swift uses for a keyed collection. It
+    /// answers with an optional because that is what `Dictionary` does here, and the type
+    /// says so - a language whose own map throws generates a subscript that throws.
+    /// spec/targets/table-collection-surface.md section 5.7.
+    ///
+    /// This is the key, not the row's position. `table[0]` is the row whose
+    /// Code is 0, not the first row - the rows in order are `records`.
+    public subscript(_ key: Int32) -> ElementRecord? {
+        findByCode(key)
+    }
+
+
+    /// Each row with the Code it is keyed by -
+    /// `for (key, row) in table.entries`.
+    ///
+    /// What this saves a caller is not the key value - the row carries it - but having to
+    /// know which column the key is: Code here, something else in the
+    /// next table.
+    ///
+    /// The rows come in the order the file wrote them rather than the order the dictionary
+    /// holds them, which makes this and iterating the table agree. Only the primary key has
+    /// this: a table keyed by several columns together has no single key value to pair a
+    /// row with.
+    public var entries: LazyMapSequence<[ElementRecord], (key: Int32, row: ElementRecord)> {
+        records.lazy.map { (key: $0.code, row: $0) }
     }
 
     /// Loads the table from a .tcb file written by Tabbit.

@@ -539,6 +539,15 @@ internal sealed class TsLookupView
 /// </summary>
 internal sealed class TsFieldView
 {
+
+    /// <summary>Whether this column is the table's primary key, on its own.</summary>
+    /// <remarks>
+    /// What the key-and-row view is generated for, and only for: a table whose primary key
+    /// is several columns has no single key value to pair a row with. Set from the table,
+    /// not from the column - the same field view serves the record's field list, where the
+    /// question does not arise. spec/targets/table-collection-surface.md section 4.2.
+    /// </remarks>
+    public bool IsPrimaryIndex { get; set; }
     /// <summary>
     /// How the builder reaches the entry it reads from: the row's own member, or the element it
     /// was handed.

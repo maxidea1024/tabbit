@@ -9,6 +9,7 @@ package compositekey
 
 import (
 	"fmt"
+	"iter"
 	"strconv"
 
 	"compositekey/tabbit"
@@ -35,6 +36,26 @@ type BeastMoveTable struct {
 
 // Records returns every row, in the order the sheet declared them.
 func (t *BeastMoveTable) Records() []BeastMoveRecord { return t.records }
+
+// Count returns how many rows the table holds.
+func (t *BeastMoveTable) Count() int { return len(t.records) }
+
+
+// All returns the rows, in the order the file wrote them - `for row := range t.All()`.
+//
+// The slice header is read once, here. A refresh replaces it rather than its contents, so a
+// loop already running keeps the rows it started with.
+func (t *BeastMoveTable) All() iter.Seq[*BeastMoveRecord] {
+	records := t.records
+
+	return func(yield func(*BeastMoveRecord) bool) {
+		for i := range records {
+			if !yield(&records[i]) {
+				return
+			}
+		}
+	}
+}
 
 // keyOfBeastIdAndMoveId joins the columns of the BeastId and MoveId key into the text the map is keyed by.
 func (t *BeastMoveTable) keyOfBeastIdAndMoveId(beastIdKey string, moveIdKey int32) string {

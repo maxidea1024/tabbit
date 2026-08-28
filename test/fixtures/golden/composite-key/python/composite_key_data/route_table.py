@@ -39,6 +39,18 @@ class RouteTable:
         self.by_code = {}
         self.by_from_and_to = {}
 
+    def __len__(self):
+        """How many rows the table holds."""
+        return len(self.records)
+
+    def __iter__(self):
+        """The rows, in the order the file wrote them.
+
+        The list reference is read once, here. A refresh replaces the reference rather
+        than its contents, so a loop already running keeps the rows it started with.
+        """
+        return iter(self.records)
+
     def find_by_code(self, key):
         """The row with this Code, or None when the table has none.
 
@@ -104,6 +116,24 @@ class RouteTable:
     def contains_from_and_to(self, from_key, to_key):
         """Whether the table holds a row with this From and To."""
         return self._key_of_from_and_to(from_key, to_key) in self.by_from_and_to
+
+
+    def __getitem__(self, key):
+        """The row with this From and To, or a raised error naming what was missing.
+
+        get_by_from_and_to_or_throw under the spelling Python uses for a keyed
+        collection. It raises because that is what dict does; a language whose own map
+        answers with null generates a subscript that answers with null.
+        spec/targets/table-collection-surface.md section 5.7.
+
+        This is the key, not the row's position. table[0] is the row whose
+        From and To is 0, not the first row - the rows in order are .records.
+
+
+        A key of several columns is passed as a tuple, in the order the sheet wrote them.
+        """
+
+        return self.get_by_from_and_to_or_throw(*key)
 
     def read(self, filename):
         """Loads the table from a .tcb file written by Tabbit.

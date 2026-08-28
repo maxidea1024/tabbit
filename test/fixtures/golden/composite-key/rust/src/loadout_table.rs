@@ -40,6 +40,24 @@ impl LoadoutTable {
         &self.records
     }
 
+    /// How many rows the table holds.
+    pub fn len(&self) -> usize {
+        self.records.len()
+    }
+
+    /// Whether the table holds no rows.
+    ///
+    /// Paired with `len` because clippy refuses one without the other, and the generated
+    /// crate is built with warnings denied.
+    pub fn is_empty(&self) -> bool {
+        self.records.is_empty()
+    }
+
+    /// The rows, in the order the file wrote them.
+    pub fn iter(&self) -> std::slice::Iter<'_, LoadoutRecord> {
+        self.records.iter()
+    }
+
     /// Joins the columns of the Stage and Slot key into the text the map is keyed by.
     fn key_of_stage_and_slot(stage_key: i32, slot_key: Slot) -> String {
         let parts: [String; 2] = [
@@ -193,5 +211,19 @@ impl LoadoutTable {
         self.by_stage_and_slot = by_stage_and_slot;
 
         Ok(())
+    }
+}
+
+/// Lets a borrow of the table be iterated directly - `for record in &table`.
+///
+/// Separate from `iter` rather than instead of it, because a method is what an iterator
+/// chain starts from and the trait is what a `for` reaches for; a crate that has one and
+/// not the other reads as unfinished from whichever side the caller came in on.
+impl<'a> IntoIterator for &'a LoadoutTable {
+    type Item = &'a LoadoutRecord;
+    type IntoIter = std::slice::Iter<'a, LoadoutRecord>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.records.iter()
     }
 }

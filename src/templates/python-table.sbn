@@ -152,6 +152,18 @@ class {{ table.table_name }}:
 {{~ for index in table.indexes ~}}
         self.{{ index.map_name }} = {}
 {{~ end ~}}
+
+    def __len__(self):
+        """How many rows the table holds."""
+        return len(self.records)
+
+    def __iter__(self):
+        """The rows, in the order the file wrote them.
+
+        The list reference is read once, here. A refresh replaces the reference rather
+        than its contents, so a loop already running keeps the rows it started with.
+        """
+        return iter(self.records)
 {{~ for index in table.indexes }}
 {{~## A key of several columns is held as the text they make. Each part carries its own
    length, so no two combinations can make the same text - joined by a separator alone,
@@ -201,6 +213,45 @@ class {{ table.table_name }}:
     def contains_{{ index.suffix }}(self, {{ index.params }}):
         """Whether the table holds a row with this {{ index.field_name }}."""
         return {{ index.argument }} in self.{{ index.map_name }}
+{{~ if index.is_primary }}
+
+    def __getitem__(self, key):
+        """The row with this {{ index.field_name }}, or a raised error naming what was missing.
+
+        get_by_{{ index.suffix }}_or_throw under the spelling Python uses for a keyed
+        collection. It raises because that is what dict does; a language whose own map
+        answers with null generates a subscript that answers with null.
+        spec/targets/table-collection-surface.md section 5.7.
+
+        This is the key, not the row's position. table[0] is the row whose
+        {{ index.field_name }} is 0, not the first row - the rows in order are .records.
+{{~ if index.is_composite }}
+
+        A key of several columns is passed as a tuple, in the order the sheet wrote them.
+{{~ end ~}}
+        """
+{{~ if index.is_composite }}
+        return self.get_by_{{ index.suffix }}_or_throw(*key)
+{{~ else ~}}
+        return self.get_by_{{ index.suffix }}_or_throw(key)
+{{~ end ~}}
+{{~ end ~}}
+{{~ if index.is_primary && !index.is_composite }}
+
+    def items(self):
+        """Each row with the {{ index.field_name }} it is keyed by.
+
+        What this saves a caller is not the key value - the row carries it - but having to
+        know which column the key is: {{ index.field_name }} here, something else in the
+        next table.
+
+        The rows come in the order the file wrote them rather than the order the dict holds
+        them, which makes this and iterating the table agree. Only the primary key has this:
+        a table keyed by several columns together has no single key value to pair a row
+        with.
+        """
+        return ((record.{{ index.member }}, record) for record in self.records)
+{{~ end ~}}
 {{~ end ~}}
 
     def read(self, filename):

@@ -37,10 +37,29 @@ final class MoveNoteRecord
 }
 
 /** Every row of MoveNote. */
-final class MoveNoteTable
+final class MoveNoteTable implements \Countable, \IteratorAggregate, \ArrayAccess
 {
     /** @var list<MoveNoteRecord> */
     public array $records = [];
+
+    /** How many rows the table holds. */
+    public function count(): int
+    {
+        return count($this->records);
+    }
+
+    /**
+     * The rows, in the order the file wrote them.
+     *
+     * The array is read once, here. A refresh replaces it rather than its contents, so a
+     * loop already running keeps the rows it started with.
+     *
+     * @return \Traversable<int, MoveNoteRecord>
+     */
+    public function getIterator(): \Traversable
+    {
+        return new \ArrayIterator($this->records);
+    }
 
     /** @var array<int, MoveNoteRecord> */
     private array $byMoveId = [];
@@ -80,6 +99,67 @@ final class MoveNoteTable
     public function containsMoveId(int $key): bool
     {
         return isset($this->byMoveId[$key]);
+    }
+
+
+    /**
+     * Whether the table holds a row with this MoveId - `isset($table[$key])`.
+     */
+    public function offsetExists(mixed $offset): bool
+    {
+        return $this->containsMoveId($offset);
+    }
+
+    /**
+     * The row with this MoveId, or null when the table has none.
+     *
+     * findByMoveId under the spelling PHP uses for a keyed collection. It
+     * answers with null because that is what array access does here; a language whose own
+     * map throws generates a subscript that throws.
+     * spec/targets/table-collection-surface.md section 5.7.
+     *
+     * This is the key, not the row's position. `$table[0]` is the row whose
+     * MoveId is 0, not the first row - the rows in order are ->records.
+     *
+     * Only a key of one column has this: PHP's array access takes one offset.
+     */
+    public function offsetGet(mixed $offset): ?MoveNoteRecord
+    {
+        return $this->findByMoveId($offset);
+    }
+
+    /** The table is read-only: a row comes from the file, not from an assignment. */
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+        throw new \LogicException('MoveNoteTable is read-only.');
+    }
+
+    /** The table is read-only: a row comes from the file, not from an assignment. */
+    public function offsetUnset(mixed $offset): void
+    {
+        throw new \LogicException('MoveNoteTable is read-only.');
+    }
+
+
+    /**
+     * Each row with the MoveId it is keyed by -
+     * `foreach ($table->entries() as $key => $row)`.
+     *
+     * What this saves a caller is not the key value - the row carries it - but having to
+     * know which column the key is: MoveId here, something else in the next
+     * table.
+     *
+     * The rows come in the order the file wrote them rather than the order the map holds
+     * them, which makes this and iterating the table agree. Only the primary key has this:
+     * a table keyed by several columns together has no single key value to pair a row with.
+     *
+     * @return \Generator<int, MoveNoteRecord>
+     */
+    public function entries(): \Generator
+    {
+        foreach ($this->records as $record) {
+            yield $record->moveId => $record;
+        }
     }
 
     /** Loads the table from a .tcb file written by Tabbit. */

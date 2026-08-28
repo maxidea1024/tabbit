@@ -35,6 +35,15 @@ internal sealed class GoPartView
     /// <summary>Import lines, already quoted, with a blank entry where gofmt wants a gap.</summary>
     public IReadOnlyList<string>? Imports { get; set; }
 
+    /// <summary>
+    /// Whether the target's Go version has range-over-function.
+    /// </summary>
+    /// <remarks>
+    /// 1.23 and up. Below it `iter.Seq` does not exist and a `for range` over a function does
+    /// not compile, so the iterator is left out rather than the file failing to build.
+    /// </remarks>
+    public bool RangeOverFunc { get; set; }
+
     /// <summary>The table this file is for, when it is a table file.</summary>
     public GoTableView? Table { get; set; }
 
@@ -148,6 +157,14 @@ internal sealed class GoIndexView
 
     /// <summary>Whether the key is several columns taken together.</summary>
     public required bool IsComposite { get; set; }
+
+    /// <summary>Whether this is the key the rows are identified by.</summary>
+    /// <remarks>
+    /// What the key-and-row view is generated for, and only for: a table whose primary key
+    /// is several columns has no single key value to pair a row with.
+    /// spec/targets/table-collection-surface.md section 4.2.
+    /// </remarks>
+    public required bool IsPrimary { get; set; }
 
     /// <summary>The columns making it up - one entry unless it is composite.</summary>
     public required IReadOnlyList<KeyComponentView> Components { get; set; }

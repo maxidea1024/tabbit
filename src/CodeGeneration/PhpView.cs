@@ -99,6 +99,15 @@ internal sealed class PhpTableView
     public required string RawName { get; set; }
     public required string RecordName { get; set; }
     public required string TableName { get; set; }
+
+    /// <summary>Whether the table's primary key is one column, so a subscript is generated.</summary>
+    /// <remarks>
+    /// PHP is the one target where the subscript is an interface rather than a member, so the
+    /// class declaration has to know before the index loop reaches it. A table declaring
+    /// ArrayAccess without the four methods would not load at all.
+    /// spec/targets/table-collection-surface.md section 5.4.
+    /// </remarks>
+    public required bool HasKeySubscript { get; set; }
     public required string Location { get; set; }
     public required IReadOnlyList<string> Comment { get; set; }
 
@@ -182,6 +191,14 @@ internal sealed class PhpIndexView
     public required string FieldName { get; set; }
     /// <summary>Whether the key is several columns taken together.</summary>
     public required bool IsComposite { get; set; }
+
+    /// <summary>Whether this is the key the rows are identified by.</summary>
+    /// <remarks>
+    /// What the key-and-row view is generated for, and only for: a table whose primary key
+    /// is several columns has no single key value to pair a row with.
+    /// spec/targets/table-collection-surface.md section 4.2.
+    /// </remarks>
+    public required bool IsPrimary { get; set; }
 
     /// <summary>The columns making it up - one entry unless it is composite.</summary>
     public required IReadOnlyList<KeyComponentView> Components { get; set; }

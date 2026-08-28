@@ -208,8 +208,9 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
                 Imports = Imports(
                     new[]
                     {
-                        "java.nio.file.Path", "java.util.ArrayList", "java.util.HashMap",
-                        "java.util.List", "java.util.Map",
+                        "java.nio.file.Path", "java.util.AbstractMap",
+                        "java.util.ArrayList", "java.util.HashMap",
+                        "java.util.Iterator", "java.util.List", "java.util.Map",
                     },
                     reader: true),
                 Table = pair.rendered,
@@ -590,6 +591,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
                 MapName = "by" + suffix,
                 FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
                 IsComposite = plan.IsComposite,
+                IsPrimary = plan.IsPrimary,
                 Components = components,
 
                 Params = plan.IsComposite

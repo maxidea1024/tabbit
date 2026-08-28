@@ -484,11 +484,14 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
                 MapName = "by" + suffix,
                 FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
                 IsComposite = plan.IsComposite,
+                IsPrimary = plan.IsPrimary,
                 Components = components,
 
                 Params = plan.IsComposite
                     ? string.Join(", ", components.Select(c => c.Param + ": " + c.Type))
                     : "key: " + IndexKeyType(plan.Only),
+
+                CallArgs = plan.IsComposite ? args : "key",
 
                 Argument = plan.IsComposite ? "keyOf" + suffix + "(" + args + ")" : "key",
 

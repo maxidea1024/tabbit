@@ -442,6 +442,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         TableName = table.Name.ToPascalCase() + "Table",
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
+        HasKeySubscript = KeyPlans.PrimarySingleName(table).Length > 0,
         Indexes = Indexes(table),
         ContainerFill = ContainerFillLines(table),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
@@ -517,6 +518,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
                 LocalName = "$by" + suffix,
                 FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
                 IsComposite = plan.IsComposite,
+                IsPrimary = plan.IsPrimary,
                 Components = components,
 
                 Params = plan.IsComposite

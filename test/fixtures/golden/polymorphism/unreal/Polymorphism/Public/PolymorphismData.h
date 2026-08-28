@@ -289,6 +289,22 @@ class POLYMORPHISM_API FElementTable
 public:
     const TArray<FElementRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Code, or nullptr when the table has none.
      *
@@ -314,6 +330,22 @@ class POLYMORPHISM_API FSkillTable
 {
 public:
     const TArray<FSkillRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Index, or nullptr when the table has none.
@@ -400,6 +432,22 @@ class POLYMORPHISM_API FComboTable
 {
 public:
     const TArray<FComboRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Index, or nullptr when the table has none.

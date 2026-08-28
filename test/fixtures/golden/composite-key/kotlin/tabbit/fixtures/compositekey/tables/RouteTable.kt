@@ -50,7 +50,7 @@ class RouteRecord {
 }
 
 /** Every row of Route. */
-class RouteTable {
+class RouteTable : Iterable<RouteRecord> {
 
     /**
      * Every row, in the order the sheet declared them.
@@ -60,6 +60,18 @@ class RouteTable {
      */
     var records: MutableList<RouteRecord> = ArrayList()
         private set
+
+    /** How many rows the table holds. */
+    val size: Int
+        get() = records.size
+
+    /**
+     * The rows, in the order the file wrote them.
+     *
+     * The list reference is read once, here. A refresh replaces the reference rather than
+     * its contents, so a loop already running keeps the rows it started with.
+     */
+    override fun iterator(): Iterator<RouteRecord> = records.iterator()
 
     private var byCode: HashMap<String, RouteRecord> = HashMap()
     private var byFromAndTo: HashMap<String, RouteRecord> = HashMap()
@@ -125,6 +137,20 @@ class RouteTable {
 
     /** Whether the table holds a row with this From and To. */
     fun containsFromAndTo(fromKey: String, toKey: String): Boolean = byFromAndTo.containsKey(keyOfFromAndTo(fromKey, toKey))
+
+
+    /**
+     * The row with this From and To, or null when the table has none.
+     *
+     * findByFromAndTo under the spelling Kotlin uses for a keyed collection. It
+     * answers with null because that is what Map does here, and the type says so - a
+     * language whose own map throws generates a subscript that throws.
+     * spec/targets/table-collection-surface.md section 5.7.
+     *
+     * This is the key, not the row's position. `table[0]` is the row whose
+     * From and To is 0, not the first row - the rows in order are `records`.
+     */
+    operator fun get(fromKey: String, toKey: String): RouteRecord? = findByFromAndTo(fromKey, toKey)
 
     /** Loads the table from a .tcb file written by Tabbit. */
     /**

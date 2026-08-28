@@ -576,6 +576,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                 NormalizesInt64 = !plan.IsComposite && KeyIsInt64(plan.Only.ElementType),
 
                 IsComposite = plan.IsComposite,
+                IsPrimary = plan.IsPrimary,
                 Components = components,
 
                 Params = plan.IsComposite ? args : "key",

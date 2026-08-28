@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-28T01:36:48.7361621+09:00",
+    "generatedAt": "2026-08-28T10:56:44.3155082+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "reserved-words.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "b919c88cd5baa041a5aa2f202e7b13e610654613",
-      "shortHash": "b919c88cd5ba",
+      "hash": "a7238bd5355ed4dacb70a6e4aa3acac775dc1d9f",
+      "shortHash": "a7238bd5355e",
       "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-28T01:20:20.0000000+09:00",
-      "subject": "fix: clover 조커의 그림 이름이 파일과 어긋나 150장 전부 경고이던 것",
+      "committedAt": "2026-08-28T01:45:20.0000000+09:00",
+      "subject": "fix: Go만 자기 헤더 형식으로 되돌립니다",
       "origin": "git",
       "dirty": true,
       "attributable": false

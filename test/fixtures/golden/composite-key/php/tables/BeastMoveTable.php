@@ -39,10 +39,29 @@ final class BeastMoveRecord
 }
 
 /** Every row of BeastMove. */
-final class BeastMoveTable
+final class BeastMoveTable implements \Countable, \IteratorAggregate
 {
     /** @var list<BeastMoveRecord> */
     public array $records = [];
+
+    /** How many rows the table holds. */
+    public function count(): int
+    {
+        return count($this->records);
+    }
+
+    /**
+     * The rows, in the order the file wrote them.
+     *
+     * The array is read once, here. A refresh replaces it rather than its contents, so a
+     * loop already running keeps the rows it started with.
+     *
+     * @return \Traversable<int, BeastMoveRecord>
+     */
+    public function getIterator(): \Traversable
+    {
+        return new \ArrayIterator($this->records);
+    }
 
     /** @var array<string, BeastMoveRecord> */
     private array $byBeastIdAndMoveId = [];

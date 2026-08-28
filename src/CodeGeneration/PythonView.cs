@@ -167,6 +167,14 @@ internal sealed class PythonIndexView
     /// <summary>Whether the key is several columns taken together.</summary>
     public required bool IsComposite { get; set; }
 
+    /// <summary>Whether this is the key the rows are identified by.</summary>
+    /// <remarks>
+    /// What the key-and-row view is generated for, and only for: a table whose primary key
+    /// is several columns has no single key value to pair a row with.
+    /// spec/targets/table-collection-surface.md section 4.2.
+    /// </remarks>
+    public required bool IsPrimary { get; set; }
+
     /// <summary>The columns making it up - one entry unless it is composite.</summary>
     public required IReadOnlyList<KeyComponentView> Components { get; set; }
 

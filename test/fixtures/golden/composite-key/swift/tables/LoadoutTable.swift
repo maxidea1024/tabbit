@@ -27,9 +27,22 @@ public final class LoadoutRecord {
 }
 
 /// Every row of Loadout.
-public final class LoadoutTable {
+public final class LoadoutTable: Sequence {
 
     public init() {}
+
+    /// How many rows the table holds.
+    public var count: Int { records.count }
+
+    /// The rows, in the order the file wrote them. Conforming to `Sequence` on top of this
+    /// is what gives the table `map` - `filter` - `first(where:)` without any of them being
+    /// written here.
+    ///
+    /// The array is read once, here. A refresh replaces it rather than appending to it, so a
+    /// loop already running keeps the rows it started with.
+    public func makeIterator() -> Array<LoadoutRecord>.Iterator {
+        records.makeIterator()
+    }
 
     /// Every row, in the order the sheet declared them.
     ///
@@ -81,6 +94,20 @@ public final class LoadoutTable {
     /// Whether the table holds a row with this Stage and Slot.
     public func containsStageAndSlot(_ stageKey: Int32, _ slotKey: Slot) -> Bool {
         byStageAndSlot[Self.keyOfStageAndSlot(stageKey, slotKey)] != nil
+    }
+
+
+    /// The row with this Stage and Slot, or nil when the table has none.
+    ///
+    /// `findByStageAndSlot` under the spelling Swift uses for a keyed collection. It
+    /// answers with an optional because that is what `Dictionary` does here, and the type
+    /// says so - a language whose own map throws generates a subscript that throws.
+    /// spec/targets/table-collection-surface.md section 5.7.
+    ///
+    /// This is the key, not the row's position. `table[0]` is the row whose
+    /// Stage and Slot is 0, not the first row - the rows in order are `records`.
+    public subscript(_ stageKey: Int32, _ slotKey: Slot) -> LoadoutRecord? {
+        findByStageAndSlot(stageKey, slotKey)
     }
 
     /// Loads the table from a .tcb file written by Tabbit.

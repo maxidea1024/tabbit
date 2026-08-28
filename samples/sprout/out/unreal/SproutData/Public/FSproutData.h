@@ -2442,6 +2442,22 @@ class SPROUTDATA_API FCharacterTable
 public:
     const TArray<FCharacterRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -2467,6 +2483,22 @@ class SPROUTDATA_API FCharacterStatTable
 {
 public:
     const TArray<FCharacterStatRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -2494,6 +2526,22 @@ class SPROUTDATA_API FCharacterAscendTable
 public:
     const TArray<FCharacterAscendRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -2519,6 +2567,22 @@ class SPROUTDATA_API FCharacterSkinTable
 {
 public:
     const TArray<FCharacterSkinRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -2546,6 +2610,22 @@ class SPROUTDATA_API FCharacterVoiceTable
 public:
     const TArray<FCharacterVoiceRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -2571,6 +2651,22 @@ class SPROUTDATA_API FRoleBonusTable
 {
 public:
     const TArray<FRoleBonusRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -2598,6 +2694,22 @@ class SPROUTDATA_API FElementAffinityTable
 public:
     const TArray<FElementAffinityRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -2623,6 +2735,22 @@ class SPROUTDATA_API FCodexTable
 {
 public:
     const TArray<FCodexRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -2650,6 +2778,22 @@ class SPROUTDATA_API FCodexEntryTable
 public:
     const TArray<FCodexEntryRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -2675,6 +2819,22 @@ class SPROUTDATA_API FCodexTierTable
 {
 public:
     const TArray<FCodexTierRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -2702,6 +2862,22 @@ class SPROUTDATA_API FDialogueTable
 public:
     const TArray<FDialogueRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -2727,6 +2903,22 @@ class SPROUTDATA_API FDialogueLineTable
 {
 public:
     const TArray<FDialogueLineRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -2754,6 +2946,22 @@ class SPROUTDATA_API FCutsceneTable
 public:
     const TArray<FCutsceneRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -2779,6 +2987,22 @@ class SPROUTDATA_API FDungeonTable
 {
 public:
     const TArray<FDungeonRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -2806,6 +3030,22 @@ class SPROUTDATA_API FDungeonFloorTable
 public:
     const TArray<FDungeonFloorRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -2831,6 +3071,22 @@ class SPROUTDATA_API FDungeonRewardTable
 {
 public:
     const TArray<FDungeonRewardRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -2858,6 +3114,22 @@ class SPROUTDATA_API FRaidTable
 public:
     const TArray<FRaidRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -2883,6 +3155,22 @@ class SPROUTDATA_API FEquipTable
 {
 public:
     const TArray<FEquipRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -2910,6 +3198,22 @@ class SPROUTDATA_API FEquipLevelTable
 public:
     const TArray<FEquipLevelRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -2935,6 +3239,22 @@ class SPROUTDATA_API FEquipGradeTable
 {
 public:
     const TArray<FEquipGradeRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -2962,6 +3282,22 @@ class SPROUTDATA_API FEquipSetTable
 public:
     const TArray<FEquipSetRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -2987,6 +3323,22 @@ class SPROUTDATA_API FEquipSetBonusTable
 {
 public:
     const TArray<FEquipSetBonusRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -3014,6 +3366,22 @@ class SPROUTDATA_API FEquipOptionTable
 public:
     const TArray<FEquipOptionRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -3039,6 +3407,22 @@ class SPROUTDATA_API FGachaTable
 {
 public:
     const TArray<FGachaRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -3066,6 +3450,22 @@ class SPROUTDATA_API FGachaPoolTable
 public:
     const TArray<FGachaPoolRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -3091,6 +3491,22 @@ class SPROUTDATA_API FGachaOddsTable
 {
 public:
     const TArray<FGachaOddsRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -3118,6 +3534,22 @@ class SPROUTDATA_API FPityTable
 public:
     const TArray<FPityRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -3143,6 +3575,22 @@ class SPROUTDATA_API FLevelCurveTable
 {
 public:
     const TArray<FLevelCurveRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -3170,6 +3618,22 @@ class SPROUTDATA_API FStatBaseTable
 public:
     const TArray<FStatBaseRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -3195,6 +3659,22 @@ class SPROUTDATA_API FAscendCurveTable
 {
 public:
     const TArray<FAscendCurveRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -3222,6 +3702,22 @@ class SPROUTDATA_API FPowerScoreTable
 public:
     const TArray<FPowerScoreRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -3247,6 +3743,22 @@ class SPROUTDATA_API FItemTable
 {
 public:
     const TArray<FItemRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -3274,6 +3786,22 @@ class SPROUTDATA_API FCurrencyTable
 public:
     const TArray<FCurrencyRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -3299,6 +3827,22 @@ class SPROUTDATA_API FMaterialTable
 {
 public:
     const TArray<FMaterialRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -3326,6 +3870,22 @@ class SPROUTDATA_API FConsumableTable
 public:
     const TArray<FConsumableRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -3351,6 +3911,22 @@ class SPROUTDATA_API FOfferTable
 {
 public:
     const TArray<FOfferRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -3378,6 +3954,22 @@ class SPROUTDATA_API FOfferItemTable
 public:
     const TArray<FOfferItemRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -3403,6 +3995,22 @@ class SPROUTDATA_API FItemGradeTable
 {
 public:
     const TArray<FItemGradeRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -3430,6 +4038,22 @@ class SPROUTDATA_API FStringTable
 public:
     const TArray<FStringRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this StringKey, or nullptr when the table has none.
      *
@@ -3455,6 +4079,22 @@ class SPROUTDATA_API FOfflineRewardTable
 {
 public:
     const TArray<FOfflineRewardRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -3482,6 +4122,22 @@ class SPROUTDATA_API FIdleRateTable
 public:
     const TArray<FIdleRateRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -3507,6 +4163,22 @@ class SPROUTDATA_API FAfkBonusTable
 {
 public:
     const TArray<FAfkBonusRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -3534,6 +4206,22 @@ class SPROUTDATA_API FQuestTable
 public:
     const TArray<FQuestRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -3559,6 +4247,22 @@ class SPROUTDATA_API FQuestStepTable
 {
 public:
     const TArray<FQuestStepRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -3586,6 +4290,22 @@ class SPROUTDATA_API FDailyQuestTable
 public:
     const TArray<FDailyQuestRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -3611,6 +4331,22 @@ class SPROUTDATA_API FWeeklyQuestTable
 {
 public:
     const TArray<FWeeklyQuestRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -3638,6 +4374,22 @@ class SPROUTDATA_API FAchievementTable
 public:
     const TArray<FAchievementRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -3663,6 +4415,22 @@ class SPROUTDATA_API FRewardTable
 {
 public:
     const TArray<FRewardRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -3690,6 +4458,22 @@ class SPROUTDATA_API FLootGroupTable
 public:
     const TArray<FLootGroupRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -3715,6 +4499,22 @@ class SPROUTDATA_API FLootEntryTable
 {
 public:
     const TArray<FLootEntryRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -3742,6 +4542,22 @@ class SPROUTDATA_API FMailRewardTable
 public:
     const TArray<FMailRewardRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -3767,6 +4583,22 @@ class SPROUTDATA_API FSettingTable
 {
 public:
     const TArray<FSettingRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this SettingKey, or nullptr when the table has none.
@@ -3794,6 +4626,22 @@ class SPROUTDATA_API FConditionTable
 public:
     const TArray<FConditionRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -3819,6 +4667,22 @@ class SPROUTDATA_API FUnlockTable
 {
 public:
     const TArray<FUnlockRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -3846,6 +4710,22 @@ class SPROUTDATA_API FTableTable
 public:
     const TArray<FTableRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -3871,6 +4751,22 @@ class SPROUTDATA_API FShopTable
 {
 public:
     const TArray<FShopRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -3898,6 +4794,22 @@ class SPROUTDATA_API FShopSlotTable
 public:
     const TArray<FShopSlotRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -3923,6 +4835,22 @@ class SPROUTDATA_API FPriceTable
 {
 public:
     const TArray<FPriceRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -3950,6 +4878,22 @@ class SPROUTDATA_API FPromoTable
 public:
     const TArray<FPromoRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -3975,6 +4919,22 @@ class SPROUTDATA_API FSkillTable
 {
 public:
     const TArray<FSkillRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -4002,6 +4962,22 @@ class SPROUTDATA_API FSkillLevelTable
 public:
     const TArray<FSkillLevelRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -4027,6 +5003,22 @@ class SPROUTDATA_API FSkillEffectTable
 {
 public:
     const TArray<FSkillEffectRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -4054,6 +5046,22 @@ class SPROUTDATA_API FBuffTable
 public:
     const TArray<FBuffRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -4079,6 +5087,22 @@ class SPROUTDATA_API FBuffPoolTable
 {
 public:
     const TArray<FBuffPoolRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -4106,6 +5130,22 @@ class SPROUTDATA_API FPassiveTable
 public:
     const TArray<FPassiveRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -4131,6 +5171,22 @@ class SPROUTDATA_API FStageTable
 {
 public:
     const TArray<FStageRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -4158,6 +5214,22 @@ class SPROUTDATA_API FStageWaveTable
 public:
     const TArray<FStageWaveRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -4183,6 +5255,22 @@ class SPROUTDATA_API FStageMonsterTable
 {
 public:
     const TArray<FStageMonsterRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.
@@ -4210,6 +5298,22 @@ class SPROUTDATA_API FStageRewardTable
 public:
     const TArray<FStageRewardRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -4236,6 +5340,22 @@ class SPROUTDATA_API FChapterTable
 public:
     const TArray<FChapterRow>& Records() const { return RecordsStorage; }
 
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
+
     /**
      * The row with this Id, or nullptr when the table has none.
      *
@@ -4261,6 +5381,22 @@ class SPROUTDATA_API FWorldTable
 {
 public:
     const TArray<FWorldRow>& Records() const { return RecordsStorage; }
+
+    /** How many rows the table holds. */
+    int32 Num() const { return RecordsStorage.Num(); }
+
+    /**
+     * Whether the table holds no rows.
+     *
+     * Asked of the count rather than through TArray::IsEmpty, which the engine only grew
+     * in 4.27 - this way the generated module builds against older engines too.
+     */
+    bool IsEmpty() const { return RecordsStorage.Num() == 0; }
+
+    /** The rows, in the order the file wrote them - what a range-for binds to. */
+    auto begin() const { return RecordsStorage.begin(); }
+
+    auto end() const { return RecordsStorage.end(); }
 
     /**
      * The row with this Id, or nullptr when the table has none.

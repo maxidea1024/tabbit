@@ -8,15 +8,17 @@
 package tabbit.fixtures.compositekey;
 
 import java.nio.file.Path;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import tabbit.TcbReader;
 
 /** Every row of MoveNote. */
-public final class MoveNoteTable {
+public final class MoveNoteTable implements Iterable<MoveNoteRecord> {
     private List<MoveNoteRecord> records = new ArrayList<>();
     private Map<Integer, MoveNoteRecord> byMoveId = new HashMap<>();
 
@@ -28,6 +30,22 @@ public final class MoveNoteTable {
      */
     public List<MoveNoteRecord> records() {
         return records;
+    }
+
+    /** How many rows the table holds. */
+    public int size() {
+        return records.size();
+    }
+
+    /**
+     * The rows, in the order the file wrote them.
+     *
+     * The list reference is read once, here. A refresh replaces the reference rather than
+     * its contents, so a loop already running keeps the rows it started with.
+     */
+    @Override
+    public Iterator<MoveNoteRecord> iterator() {
+        return records.iterator();
     }
 
     /**
@@ -62,6 +80,39 @@ public final class MoveNoteTable {
     /** Whether the table holds a row with this MoveId. */
     public boolean containsMoveId(int key) {
         return byMoveId.containsKey(key);
+    }
+
+
+    /**
+     * Each row with the MoveId it is keyed by -
+     * `for (var entry : table.entries())`.
+     *
+     * What this saves a caller is not the key value - the row carries it - but having to
+     * know which column the key is: MoveId here, something else in the next
+     * table.
+     *
+     * The rows come in the order the file wrote them rather than the order the map holds
+     * them, which makes this and iterating the table agree. Only the primary key has this:
+     * a table keyed by several columns together has no single key value to pair a row with.
+     */
+    public Iterable<Map.Entry<Integer, MoveNoteRecord>> entries() {
+        final List<MoveNoteRecord> rows = records;
+
+        return () -> new Iterator<Map.Entry<Integer, MoveNoteRecord>>() {
+            private final Iterator<MoveNoteRecord> source = rows.iterator();
+
+            @Override
+            public boolean hasNext() {
+                return source.hasNext();
+            }
+
+            @Override
+            public Map.Entry<Integer, MoveNoteRecord> next() {
+                final MoveNoteRecord row = source.next();
+
+                return new AbstractMap.SimpleImmutableEntry<>(row.moveId, row);
+            }
+        };
     }
 
     /** Loads the table from a .tcb file written by Tabbit. */

@@ -37,10 +37,29 @@ final class GridRecord
 }
 
 /** Every row of Grid. */
-final class GridTable
+final class GridTable implements \Countable, \IteratorAggregate
 {
     /** @var list<GridRecord> */
     public array $records = [];
+
+    /** How many rows the table holds. */
+    public function count(): int
+    {
+        return count($this->records);
+    }
+
+    /**
+     * The rows, in the order the file wrote them.
+     *
+     * The array is read once, here. A refresh replaces it rather than its contents, so a
+     * loop already running keeps the rows it started with.
+     *
+     * @return \Traversable<int, GridRecord>
+     */
+    public function getIterator(): \Traversable
+    {
+        return new \ArrayIterator($this->records);
+    }
 
     /** @var array<string, GridRecord> */
     private array $byXAndYAndZ = [];

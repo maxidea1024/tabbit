@@ -410,9 +410,12 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                 MapName = "@by_" + suffix,
                 FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
                 IsComposite = plan.IsComposite,
+                IsPrimary = plan.IsPrimary,
                 Components = components,
 
                 Params = plan.IsComposite ? args : "key",
+
+                CallArgs = plan.IsComposite ? args : "key",
 
                 Argument = plan.IsComposite
                     ? "self.class.key_of_" + suffix + "(" + args + ")"

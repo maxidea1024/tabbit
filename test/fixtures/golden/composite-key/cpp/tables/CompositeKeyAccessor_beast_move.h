@@ -34,6 +34,25 @@ class BeastMoveTable {
  public:
   const std::vector<BeastMoveRecord>& records() const { return records_; }
 
+  /// How many rows the table holds.
+  std::size_t size() const { return records_.size(); }
+
+  /// Whether the table holds no rows.
+  bool empty() const { return records_.empty(); }
+
+  /// The rows, in the order the file wrote them - what a range-for binds to.
+  ///
+  /// A refresh replaces the vector rather than appending to it, so these are the ordinary
+  /// vector invalidation rules: a loop running across a reload is reading a container that
+  /// has been assigned to.
+  typename std::vector<BeastMoveRecord>::const_iterator begin() const {
+    return records_.begin();
+  }
+
+  typename std::vector<BeastMoveRecord>::const_iterator end() const {
+    return records_.end();
+  }
+
   /// Joins the columns of the BeastId and MoveId key into the text the map is keyed by.
   static std::string key_of_beast_id_and_move_id(const std::string& beast_id_key, std::int32_t move_id_key) {
     const std::string parts[] = {

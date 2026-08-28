@@ -8,15 +8,17 @@
 package tabbit.fixtures.compositekey;
 
 import java.nio.file.Path;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import tabbit.TcbReader;
 
 /** Every row of Loadout. */
-public final class LoadoutTable {
+public final class LoadoutTable implements Iterable<LoadoutRecord> {
     private List<LoadoutRecord> records = new ArrayList<>();
     private Map<String, LoadoutRecord> byStageAndSlot = new HashMap<>();
 
@@ -28,6 +30,22 @@ public final class LoadoutTable {
      */
     public List<LoadoutRecord> records() {
         return records;
+    }
+
+    /** How many rows the table holds. */
+    public int size() {
+        return records.size();
+    }
+
+    /**
+     * The rows, in the order the file wrote them.
+     *
+     * The list reference is read once, here. A refresh replaces the reference rather than
+     * its contents, so a loop already running keeps the rows it started with.
+     */
+    @Override
+    public Iterator<LoadoutRecord> iterator() {
+        return records.iterator();
     }
 
     /** Joins the columns of the Stage and Slot key into the text the map is keyed by. */

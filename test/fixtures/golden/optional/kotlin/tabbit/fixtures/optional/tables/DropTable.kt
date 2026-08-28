@@ -123,7 +123,7 @@ class DropRecord {
 }
 
 /** Every row of Drop. */
-class DropTable {
+class DropTable : Iterable<DropRecord> {
 
     /**
      * Every row, in the order the sheet declared them.
@@ -133,6 +133,18 @@ class DropTable {
      */
     var records: MutableList<DropRecord> = ArrayList()
         private set
+
+    /** How many rows the table holds. */
+    val size: Int
+        get() = records.size
+
+    /**
+     * The rows, in the order the file wrote them.
+     *
+     * The list reference is read once, here. A refresh replaces the reference rather than
+     * its contents, so a loop already running keeps the rows it started with.
+     */
+    override fun iterator(): Iterator<DropRecord> = records.iterator()
 
     private var byIndex: HashMap<Int, DropRecord> = HashMap()
 
@@ -158,6 +170,36 @@ class DropTable {
 
     /** Whether the table holds a row with this Index. */
     fun containsIndex(key: Int): Boolean = byIndex.containsKey(key)
+
+
+    /**
+     * The row with this Index, or null when the table has none.
+     *
+     * findByIndex under the spelling Kotlin uses for a keyed collection. It
+     * answers with null because that is what Map does here, and the type says so - a
+     * language whose own map throws generates a subscript that throws.
+     * spec/targets/table-collection-surface.md section 5.7.
+     *
+     * This is the key, not the row's position. `table[0]` is the row whose
+     * Index is 0, not the first row - the rows in order are `records`.
+     */
+    operator fun get(key: Int): DropRecord? = findByIndex(key)
+
+
+    /**
+     * Each row with the Index it is keyed by -
+     * `for ((key, row) in table.entries)`.
+     *
+     * What this saves a caller is not the key value - the row carries it - but having to
+     * know which column the key is: Index here, something else in the next
+     * table.
+     *
+     * The rows come in the order the file wrote them rather than the order the map holds
+     * them, which makes this and iterating the table agree. Only the primary key has this:
+     * a table keyed by several columns together has no single key value to pair a row with.
+     */
+    val entries: Sequence<Pair<Int, DropRecord>>
+        get() = records.asSequence().map { record -> record.index to record }
 
     /** Loads the table from a .tcb file written by Tabbit. */
     /**

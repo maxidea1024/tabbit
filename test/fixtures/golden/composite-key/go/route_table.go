@@ -9,6 +9,7 @@ package compositekey
 
 import (
 	"fmt"
+	"iter"
 	"strconv"
 
 	"compositekey/tabbit"
@@ -36,6 +37,26 @@ type RouteTable struct {
 
 // Records returns every row, in the order the sheet declared them.
 func (t *RouteTable) Records() []RouteRecord { return t.records }
+
+// Count returns how many rows the table holds.
+func (t *RouteTable) Count() int { return len(t.records) }
+
+
+// All returns the rows, in the order the file wrote them - `for row := range t.All()`.
+//
+// The slice header is read once, here. A refresh replaces it rather than its contents, so a
+// loop already running keeps the rows it started with.
+func (t *RouteTable) All() iter.Seq[*RouteRecord] {
+	records := t.records
+
+	return func(yield func(*RouteRecord) bool) {
+		for i := range records {
+			if !yield(&records[i]) {
+				return
+			}
+		}
+	}
+}
 
 // FindByCode returns the row with this Code, or nil when the table has none.
 //

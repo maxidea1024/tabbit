@@ -143,6 +143,22 @@ internal sealed class RubyIndexView
     /// <summary>Whether the key is several columns taken together.</summary>
     public required bool IsComposite { get; set; }
 
+    /// <summary>The lookup's arguments by name, for a call that forwards to it.</summary>
+    /// <remarks>
+    /// Not <c>Params</c>, which carries types in the languages that declare them, and not
+    /// <c>Argument</c>, which is what the map is subscripted with. What a subscript
+    /// forwarding to <c>findBy</c> needs is the parameter names on their own.
+    /// </remarks>
+    public required string CallArgs { get; set; }
+
+    /// <summary>Whether this is the key the rows are identified by.</summary>
+    /// <remarks>
+    /// What the key-and-row view is generated for, and only for: a table whose primary key
+    /// is several columns has no single key value to pair a row with.
+    /// spec/targets/table-collection-surface.md section 4.2.
+    /// </remarks>
+    public required bool IsPrimary { get; set; }
+
     /// <summary>The columns making it up - one entry unless it is composite.</summary>
     public required IReadOnlyList<KeyComponentView> Components { get; set; }
 

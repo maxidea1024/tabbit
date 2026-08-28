@@ -50,7 +50,7 @@ class GridRecord {
 }
 
 /** Every row of Grid. */
-class GridTable {
+class GridTable : Iterable<GridRecord> {
 
     /**
      * Every row, in the order the sheet declared them.
@@ -60,6 +60,18 @@ class GridTable {
      */
     var records: MutableList<GridRecord> = ArrayList()
         private set
+
+    /** How many rows the table holds. */
+    val size: Int
+        get() = records.size
+
+    /**
+     * The rows, in the order the file wrote them.
+     *
+     * The list reference is read once, here. A refresh replaces the reference rather than
+     * its contents, so a loop already running keeps the rows it started with.
+     */
+    override fun iterator(): Iterator<GridRecord> = records.iterator()
 
     private var byXAndYAndZ: HashMap<String, GridRecord> = HashMap()
 
@@ -102,6 +114,20 @@ class GridTable {
 
     /** Whether the table holds a row with this X and Y and Z. */
     fun containsXAndYAndZ(xKey: Int, yKey: Int, zKey: String): Boolean = byXAndYAndZ.containsKey(keyOfXAndYAndZ(xKey, yKey, zKey))
+
+
+    /**
+     * The row with this X and Y and Z, or null when the table has none.
+     *
+     * findByXAndYAndZ under the spelling Kotlin uses for a keyed collection. It
+     * answers with null because that is what Map does here, and the type says so - a
+     * language whose own map throws generates a subscript that throws.
+     * spec/targets/table-collection-surface.md section 5.7.
+     *
+     * This is the key, not the row's position. `table[0]` is the row whose
+     * X and Y and Z is 0, not the first row - the rows in order are `records`.
+     */
+    operator fun get(xKey: Int, yKey: Int, zKey: String): GridRecord? = findByXAndYAndZ(xKey, yKey, zKey)
 
     /** Loads the table from a .tcb file written by Tabbit. */
     /**

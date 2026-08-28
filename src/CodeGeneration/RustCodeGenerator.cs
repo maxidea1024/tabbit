@@ -807,6 +807,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
                 MapName = "by_" + suffix,
                 FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
                 IsComposite = plan.IsComposite,
+                IsPrimary = plan.IsPrimary,
                 Components = components,
 
                 Params = plan.IsComposite

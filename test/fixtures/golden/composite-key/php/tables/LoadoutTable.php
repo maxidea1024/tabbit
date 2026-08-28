@@ -38,10 +38,29 @@ final class LoadoutRecord
 }
 
 /** Every row of Loadout. */
-final class LoadoutTable
+final class LoadoutTable implements \Countable, \IteratorAggregate
 {
     /** @var list<LoadoutRecord> */
     public array $records = [];
+
+    /** How many rows the table holds. */
+    public function count(): int
+    {
+        return count($this->records);
+    }
+
+    /**
+     * The rows, in the order the file wrote them.
+     *
+     * The array is read once, here. A refresh replaces it rather than its contents, so a
+     * loop already running keeps the rows it started with.
+     *
+     * @return \Traversable<int, LoadoutRecord>
+     */
+    public function getIterator(): \Traversable
+    {
+        return new \ArrayIterator($this->records);
+    }
 
     /** @var array<string, LoadoutRecord> */
     private array $byStageAndSlot = [];

@@ -21,13 +21,29 @@ class GridRecord {
 }
 
 /// Every row of Grid.
-class GridTable {
+class GridTable extends Iterable<GridRecord> {
   /// Every row, in the order the sheet declared them.
   ///
   /// The list a read published, not one a read fills. A refresh replaces the reference
   /// rather than the contents, so whoever holds this holds one whole load.
   List<GridRecord> get records => _records;
   List<GridRecord> _records = [];
+
+  /// How many rows the table holds.
+  ///
+  /// Overridden rather than inherited: `Iterable.length` counts by walking, and the rows
+  /// are a list that already knows.
+  @override
+  int get length => _records.length;
+
+  /// The rows, in the order the file wrote them. Extending `Iterable` on top of this is
+  /// what gives the table `map` - `where` - `firstWhere` without any of them being
+  /// written here.
+  ///
+  /// The list reference is read once, here. A refresh replaces the reference rather than
+  /// its contents, so a loop already running keeps the rows it started with.
+  @override
+  Iterator<GridRecord> get iterator => _records.iterator;
 
   Map<String, GridRecord> _byXAndYAndZ = {};
 

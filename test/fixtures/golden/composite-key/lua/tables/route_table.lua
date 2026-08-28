@@ -41,6 +41,28 @@ function RouteTable.new()
   }, RouteTableMeta)
 end
 
+-- How many rows the table holds.
+--
+-- A method rather than `#table`: LuaJIT 2.1 does not call `__len` on a table, so the
+-- operator would answer on 5.3+ and not on the other runtime this output has to run on.
+function RouteTable:count()
+  return #self.records
+end
+
+-- The rows, in the order the file wrote them - `for row in table:iter() do`.
+--
+-- The list is read once, here. A refresh replaces it rather than its contents, so a loop
+-- already running keeps the rows it started with.
+function RouteTable:iter()
+  local records = self.records
+  local i = 0
+
+  return function()
+    i = i + 1
+    return records[i]
+  end
+end
+
 -- The row with this Code, or nil when the table has none: the lookup to
 -- reach for when a missing row is an ordinary answer.
 function RouteTable:findByCode(key)
@@ -64,6 +86,7 @@ end
 function RouteTable:containsCode(key)
   return self:findByCode(key) ~= nil
 end
+
 
 -- Joins the columns of the From and To key into the text the map is keyed by.
 local function keyOfFromAndTo(fromKey, toKey)
@@ -104,6 +127,7 @@ end
 function RouteTable:containsFromAndTo(fromKey, toKey)
   return self:findByFromAndTo(fromKey, toKey) ~= nil
 end
+
 
 -- Loads the table from the bytes of a .tcb file written by Tabbit. Column by column,
 -- matched by tag rather than position: a column this build does not know is skipped by

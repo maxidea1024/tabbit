@@ -9,6 +9,7 @@ package sprout
 
 import (
 	"fmt"
+	"iter"
 
 	"sprout/tabbit"
 )
@@ -46,6 +47,26 @@ type StageTable struct {
 // Records returns every row, in the order the sheet declared them.
 func (t *StageTable) Records() []StageRecord { return t.records }
 
+// Count returns how many rows the table holds.
+func (t *StageTable) Count() int { return len(t.records) }
+
+
+// All returns the rows, in the order the file wrote them - `for row := range t.All()`.
+//
+// The slice header is read once, here. A refresh replaces it rather than its contents, so a
+// loop already running keeps the rows it started with.
+func (t *StageTable) All() iter.Seq[*StageRecord] {
+	records := t.records
+
+	return func(yield func(*StageRecord) bool) {
+		for i := range records {
+			if !yield(&records[i]) {
+				return
+			}
+		}
+	}
+}
+
 // FindById returns the row with this Id, or nil when the table has none.
 //
 // The lookup to reach for when a missing row is an ordinary answer - an optional
@@ -79,6 +100,28 @@ func (t *StageTable) GetByIdOrError(key int32) (*StageRecord, error) {
 func (t *StageTable) ContainsId(key int32) bool {
 	_, found := t.byId[key]
 	return found
+}
+
+
+// Entries yields each row with the Id it is keyed by -
+// `for key, row := range t.Entries()`.
+//
+// What this saves a caller is not the key value - the row carries it - but having to know
+// which column the key is: Id here, something else in the next table.
+//
+// The rows come in the order the file wrote them rather than the order a map happens to
+// hold them, which makes this and All agree. Only the primary key has this: a table keyed
+// by several columns together has no single key value to pair a row with.
+func (t *StageTable) Entries() iter.Seq2[int32, *StageRecord] {
+	records := t.records
+
+	return func(yield func(int32, *StageRecord) bool) {
+		for i := range records {
+			if !yield(records[i].Id, &records[i]) {
+				return
+			}
+		}
+	}
 }
 
 // Read loads the table from a .tcb file written by Tabbit.

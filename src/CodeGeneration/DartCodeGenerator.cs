@@ -459,6 +459,7 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
                 MapName = "_by" + suffix,
                 FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
                 IsComposite = plan.IsComposite,
+                IsPrimary = plan.IsPrimary,
                 Components = components,
 
                 Params = plan.IsComposite

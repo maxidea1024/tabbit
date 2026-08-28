@@ -9,6 +9,7 @@ package compositekey
 
 import (
 	"fmt"
+	"iter"
 	"strconv"
 
 	"compositekey/tabbit"
@@ -35,6 +36,26 @@ type LoadoutTable struct {
 
 // Records returns every row, in the order the sheet declared them.
 func (t *LoadoutTable) Records() []LoadoutRecord { return t.records }
+
+// Count returns how many rows the table holds.
+func (t *LoadoutTable) Count() int { return len(t.records) }
+
+
+// All returns the rows, in the order the file wrote them - `for row := range t.All()`.
+//
+// The slice header is read once, here. A refresh replaces it rather than its contents, so a
+// loop already running keeps the rows it started with.
+func (t *LoadoutTable) All() iter.Seq[*LoadoutRecord] {
+	records := t.records
+
+	return func(yield func(*LoadoutRecord) bool) {
+		for i := range records {
+			if !yield(&records[i]) {
+				return
+			}
+		}
+	}
+}
 
 // keyOfStageAndSlot joins the columns of the Stage and Slot key into the text the map is keyed by.
 func (t *LoadoutTable) keyOfStageAndSlot(stageKey int32, slotKey Slot) string {

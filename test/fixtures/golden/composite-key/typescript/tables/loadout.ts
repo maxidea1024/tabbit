@@ -77,6 +77,19 @@ export class LoadoutTable {
   public get records(): LoadoutRecord[] { return this._records }
   private _records: LoadoutRecord[] = []
 
+  /** How many rows the table holds. */
+  public get count(): number { return this._records.length }
+
+  /**
+   * The rows, in the order the file wrote them.
+   *
+   * The array reference is read once, here. A refresh replaces the reference rather
+   * than its contents, so a loop already running keeps the rows it started with.
+   */
+  public [Symbol.iterator](): IterableIterator<LoadoutRecord> {
+    return this._records[Symbol.iterator]()
+  }
+
   // Indexing by 'Stage and Slot'
   private _recordsByStageAndSlot: Map<string, LoadoutRecord> = new Map<string, LoadoutRecord>()
 

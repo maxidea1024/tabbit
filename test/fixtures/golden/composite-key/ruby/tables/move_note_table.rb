@@ -25,7 +25,24 @@ module CompositeKey
 
   # Every row of MoveNote.
   class MoveNoteTable
+    include Enumerable
+
     attr_accessor :records
+
+    # How many rows the table holds.
+    def size
+      @records.size
+    end
+
+    # The rows, in the order the file wrote them. Including Enumerable on top of this
+    # is what gives the table `map` - `select` - `find` - `sort_by` without any of them
+    # being written here.
+    #
+    # The array reference is read once, here. A refresh replaces the reference rather
+    # than its contents, so a loop already running keeps the rows it started with.
+    def each(&block)
+      @records.each(&block)
+    end
 
     def initialize
       @records = []
@@ -60,6 +77,38 @@ module CompositeKey
     # Whether the table holds a row with this MoveId.
     def contains_move_id?(key)
       @by_move_id.key?(key)
+    end
+
+
+    # The row with this MoveId, or nil when the table has none.
+    #
+    # find_by_move_id under the spelling Ruby uses for a keyed collection. It
+    # answers with nil because that is what Hash does here; a language whose own map raises
+    # generates a subscript that raises.
+    # spec/targets/table-collection-surface.md section 5.7.
+    #
+    # This is the key, not the row's position. `table[0]` is the row whose
+    # MoveId is 0, not the first row - the rows in order are `records`.
+    def [](key)
+      find_by_move_id(key)
+    end
+
+
+    # Each row with the MoveId it is keyed by -
+    # `table.each_pair { |key, row| ... }`.
+    #
+    # What this saves a caller is not the key value - the row carries it - but having to
+    # know which column the key is: MoveId here, something else in the next
+    # table.
+    #
+    # The rows come in the order the file wrote them rather than the order the hash holds
+    # them, which makes this and `each` agree. Only the primary key has this: a table keyed
+    # by several columns together has no single key value to pair a row with.
+    def each_pair
+      return to_enum(:each_pair) unless block_given?
+
+      @records.each { |record| yield record.move_id, record }
+      self
     end
 
     # Loads the table from a .tcb file written by Tabbit.

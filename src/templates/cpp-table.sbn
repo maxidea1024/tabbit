@@ -158,6 +158,25 @@ class {{ table.table_name }} {
  public:
   const std::vector<{{ table.record_name }}>& records() const { return records_; }
 
+  /// How many rows the table holds.
+  std::size_t size() const { return records_.size(); }
+
+  /// Whether the table holds no rows.
+  bool empty() const { return records_.empty(); }
+
+  /// The rows, in the order the file wrote them - what a range-for binds to.
+  ///
+  /// A refresh replaces the vector rather than appending to it, so these are the ordinary
+  /// vector invalidation rules: a loop running across a reload is reading a container that
+  /// has been assigned to.
+  typename std::vector<{{ table.record_name }}>::const_iterator begin() const {
+    return records_.begin();
+  }
+
+  typename std::vector<{{ table.record_name }}>::const_iterator end() const {
+    return records_.end();
+  }
+
 {{~ for index in table.indexes ~}}
 {{~## A key of several columns is held as the text they make. Each part carries its own
    length, so no two combinations can make the same text - joined by a separator alone,
@@ -220,6 +239,25 @@ class {{ table.table_name }} {
   bool contains_{{ index.suffix }}({{ index.params }}) const {
     return {{ index.map_name }}.find({{ index.argument }}) != {{ index.map_name }}.end();
   }
+{{~ if index.is_primary && !index.is_composite }}
+
+  /// The row with this {{ index.field_name }}, or a thrown exception naming what was missing.
+  ///
+  /// `get_by_{{ index.suffix }}_or_throw` under the spelling C++ uses for a keyed
+  /// container. It throws because that is what `std::map::at` does, and because the other
+  /// spelling - `operator[]` inserting a default - cannot happen on a table that is read
+  /// from a file and handed out const.
+  /// spec/targets/table-collection-surface.md section 5.7.
+  ///
+  /// This is the key, not the row's position. `table[0]` is the row whose
+  /// {{ index.field_name }} is 0, not the first row - the rows in order are `records()`.
+  ///
+  /// Only a key of one column has this: a subscript takes one argument until C++23, and
+  /// this header is built as C++17.
+  const {{ table.record_name }}& operator[]({{ index.params }}) const {
+    return get_by_{{ index.suffix }}_or_throw(key);
+  }
+{{~ end ~}}
 
 {{~ end ~}}
   /// Loads the table from a .tcb file written by Tabbit.

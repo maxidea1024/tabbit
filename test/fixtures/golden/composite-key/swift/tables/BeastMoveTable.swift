@@ -26,9 +26,22 @@ public final class BeastMoveRecord {
 }
 
 /// Every row of BeastMove.
-public final class BeastMoveTable {
+public final class BeastMoveTable: Sequence {
 
     public init() {}
+
+    /// How many rows the table holds.
+    public var count: Int { records.count }
+
+    /// The rows, in the order the file wrote them. Conforming to `Sequence` on top of this
+    /// is what gives the table `map` - `filter` - `first(where:)` without any of them being
+    /// written here.
+    ///
+    /// The array is read once, here. A refresh replaces it rather than appending to it, so a
+    /// loop already running keeps the rows it started with.
+    public func makeIterator() -> Array<BeastMoveRecord>.Iterator {
+        records.makeIterator()
+    }
 
     /// Every row, in the order the sheet declared them.
     ///
@@ -80,6 +93,20 @@ public final class BeastMoveTable {
     /// Whether the table holds a row with this BeastId and MoveId.
     public func containsBeastIdAndMoveId(_ beastIdKey: String, _ moveIdKey: Int32) -> Bool {
         byBeastIdAndMoveId[Self.keyOfBeastIdAndMoveId(beastIdKey, moveIdKey)] != nil
+    }
+
+
+    /// The row with this BeastId and MoveId, or nil when the table has none.
+    ///
+    /// `findByBeastIdAndMoveId` under the spelling Swift uses for a keyed collection. It
+    /// answers with an optional because that is what `Dictionary` does here, and the type
+    /// says so - a language whose own map throws generates a subscript that throws.
+    /// spec/targets/table-collection-surface.md section 5.7.
+    ///
+    /// This is the key, not the row's position. `table[0]` is the row whose
+    /// BeastId and MoveId is 0, not the first row - the rows in order are `records`.
+    public subscript(_ beastIdKey: String, _ moveIdKey: Int32) -> BeastMoveRecord? {
+        findByBeastIdAndMoveId(beastIdKey, moveIdKey)
     }
 
     /// Loads the table from a .tcb file written by Tabbit.

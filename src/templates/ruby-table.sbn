@@ -144,7 +144,24 @@ require 'set'
 
   # Every row of {{ table.raw_name }}.
   class {{ table.table_name }}
+    include Enumerable
+
     attr_accessor :records
+
+    # How many rows the table holds.
+    def size
+      @records.size
+    end
+
+    # The rows, in the order the file wrote them. Including Enumerable on top of this
+    # is what gives the table `map` - `select` - `find` - `sort_by` without any of them
+    # being written here.
+    #
+    # The array reference is read once, here. A refresh replaces the reference rather
+    # than its contents, so a loop already running keeps the rows it started with.
+    def each(&block)
+      @records.each(&block)
+    end
 
     def initialize
       @records = []
@@ -203,6 +220,40 @@ require 'set'
     def contains_{{ index.suffix }}?({{ index.params }})
       {{ index.map_name }}.key?({{ index.argument }})
     end
+{{~ if index.is_primary }}
+
+    # The row with this {{ index.field_name }}, or nil when the table has none.
+    #
+    # find_by_{{ index.suffix }} under the spelling Ruby uses for a keyed collection. It
+    # answers with nil because that is what Hash does here; a language whose own map raises
+    # generates a subscript that raises.
+    # spec/targets/table-collection-surface.md section 5.7.
+    #
+    # This is the key, not the row's position. `table[0]` is the row whose
+    # {{ index.field_name }} is 0, not the first row - the rows in order are `records`.
+    def []({{ index.params }})
+      find_by_{{ index.suffix }}({{ index.call_args }})
+    end
+{{~ end ~}}
+{{~ if index.is_primary && !index.is_composite }}
+
+    # Each row with the {{ index.field_name }} it is keyed by -
+    # `table.each_pair { |key, row| ... }`.
+    #
+    # What this saves a caller is not the key value - the row carries it - but having to
+    # know which column the key is: {{ index.field_name }} here, something else in the next
+    # table.
+    #
+    # The rows come in the order the file wrote them rather than the order the hash holds
+    # them, which makes this and `each` agree. Only the primary key has this: a table keyed
+    # by several columns together has no single key value to pair a row with.
+    def each_pair
+      return to_enum(:each_pair) unless block_given?
+
+      @records.each { |record| yield record.{{ index.member }}, record }
+      self
+    end
+{{~ end ~}}
 {{~ end ~}}
 
     # Loads the table from a .tcb file written by Tabbit.

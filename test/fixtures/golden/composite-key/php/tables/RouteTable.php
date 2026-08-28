@@ -37,10 +37,29 @@ final class RouteRecord
 }
 
 /** Every row of Route. */
-final class RouteTable
+final class RouteTable implements \Countable, \IteratorAggregate
 {
     /** @var list<RouteRecord> */
     public array $records = [];
+
+    /** How many rows the table holds. */
+    public function count(): int
+    {
+        return count($this->records);
+    }
+
+    /**
+     * The rows, in the order the file wrote them.
+     *
+     * The array is read once, here. A refresh replaces it rather than its contents, so a
+     * loop already running keeps the rows it started with.
+     *
+     * @return \Traversable<int, RouteRecord>
+     */
+    public function getIterator(): \Traversable
+    {
+        return new \ArrayIterator($this->records);
+    }
 
     /** @var array<string, RouteRecord> */
     private array $byCode = [];

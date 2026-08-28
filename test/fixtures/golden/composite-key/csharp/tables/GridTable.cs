@@ -22,7 +22,7 @@ namespace Tabbit.Fixtures.CompositeKey
     /// Three columns taken together, so two is not the only width that works.
     /// </summary>
     [System.Serializable]
-    public partial class GridTable
+    public partial class GridTable : IEnumerable<GridTable.Record>
     {
         #region Record
         [System.Serializable]
@@ -101,6 +101,28 @@ namespace Tabbit.Fixtures.CompositeKey
         public List<Record> Records => _records;
         private List<Record> _records = new List<Record>();
 
+        /// <summary>How many rows the table holds.</summary>
+        public int Count => _records.Count;
+
+        /// <summary>The rows, in the order the file wrote them.</summary>
+        /// <remarks>
+        /// A struct enumerator rather than the interface one, because `foreach` binds to this
+        /// by name and a boxed enumerator allocates once per loop - which in a project that
+        /// walks a table every frame is an allocation every frame. LINQ and anything holding
+        /// the table as `IEnumerable` reach the explicit implementations below instead, and
+        /// those box exactly as they always would have.
+        ///
+        /// The list reference is read once, here. A refresh replaces the reference rather than
+        /// its contents, so a loop already running keeps the rows it started with - the same
+        /// property `Records` documents above, reached without naming the list.
+        /// </remarks>
+        public List<Record>.Enumerator GetEnumerator() => _records.GetEnumerator();
+
+        IEnumerator<Record> IEnumerable<Record>.GetEnumerator() => _records.GetEnumerator();
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            => _records.GetEnumerator();
+
         #region Indexing by 'X and Y and Z'
         private Dictionary<string, Record> _recordsByXAndYAndZ = new Dictionary<string, Record>();
 
@@ -147,6 +169,18 @@ namespace Tabbit.Fixtures.CompositeKey
 
         /// <summary>Whether the table holds a row with this `X and Y and Z`.</summary>
         public bool ContainsXAndYAndZ(int xKey, int yKey, string zKey) => _recordsByXAndYAndZ.ContainsKey(KeyOfXAndYAndZ(xKey, yKey, zKey));
+
+        /// <summary>
+        /// The row with this `X and Y and Z`, or a thrown exception naming what was
+        /// missing.
+        /// </summary>
+        /// <remarks>
+        /// A key of several columns takes them in the order the sheet wrote them, which is
+        /// the order `GetByXAndYAndZOrThrow` takes them in too.
+        /// spec/targets/table-collection-surface.md section 5.4.
+        /// </remarks>
+        public Record this[int xKey, int yKey, string zKey]
+            => GetByXAndYAndZOrThrow(xKey, yKey, zKey);
         #endregion // Indexing by `X and Y and Z`
 
         /// <summary>

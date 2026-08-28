@@ -56,6 +56,28 @@ function ListingTable.new()
   }, ListingTableMeta)
 end
 
+-- How many rows the table holds.
+--
+-- A method rather than `#table`: LuaJIT 2.1 does not call `__len` on a table, so the
+-- operator would answer on 5.3+ and not on the other runtime this output has to run on.
+function ListingTable:count()
+  return #self.records
+end
+
+-- The rows, in the order the file wrote them - `for row in table:iter() do`.
+--
+-- The list is read once, here. A refresh replaces it rather than its contents, so a loop
+-- already running keeps the rows it started with.
+function ListingTable:iter()
+  local records = self.records
+  local i = 0
+
+  return function()
+    i = i + 1
+    return records[i]
+  end
+end
+
 -- The row with this Index, or nil when the table has none: the lookup to
 -- reach for when a missing row is an ordinary answer.
 function ListingTable:findByIndex(key)
@@ -79,6 +101,33 @@ end
 function ListingTable:containsIndex(key)
   return self:findByIndex(key) ~= nil
 end
+
+
+-- Each row with the Index it is keyed by -
+-- `for key, row in table:entries() do`.
+--
+-- What this saves a caller is not the key value - the row carries it - but having to know
+-- which column the key is: Index here, something else in the next table.
+--
+-- The rows come in the order the file wrote them rather than the order the map holds them,
+-- which makes this and `iter` agree. Only the primary key has this: a table keyed by
+-- several columns together has no single key value to pair a row with.
+function ListingTable:entries()
+  local records = self.records
+  local i = 0
+
+  return function()
+    i = i + 1
+    local record = records[i]
+
+    if record == nil then
+      return nil
+    end
+
+    return record.index, record
+  end
+end
+
 
 -- Loads the table from the bytes of a .tcb file written by Tabbit. Column by column,
 -- matched by tag rather than position: a column this build does not know is skipped by

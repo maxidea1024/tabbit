@@ -9,6 +9,7 @@ package compositekey
 
 import (
 	"fmt"
+	"iter"
 	"strconv"
 
 	"compositekey/tabbit"
@@ -35,6 +36,26 @@ type GridTable struct {
 
 // Records returns every row, in the order the sheet declared them.
 func (t *GridTable) Records() []GridRecord { return t.records }
+
+// Count returns how many rows the table holds.
+func (t *GridTable) Count() int { return len(t.records) }
+
+
+// All returns the rows, in the order the file wrote them - `for row := range t.All()`.
+//
+// The slice header is read once, here. A refresh replaces it rather than its contents, so a
+// loop already running keeps the rows it started with.
+func (t *GridTable) All() iter.Seq[*GridRecord] {
+	records := t.records
+
+	return func(yield func(*GridRecord) bool) {
+		for i := range records {
+			if !yield(&records[i]) {
+				return
+			}
+		}
+	}
+}
 
 // keyOfXAndYAndZ joins the columns of the X and Y and Z key into the text the map is keyed by.
 func (t *GridTable) keyOfXAndYAndZ(xKey int32, yKey int32, zKey string) string {

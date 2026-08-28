@@ -610,6 +610,7 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                 MapName = "by_" + suffix,
                 FieldName = plan.Suffix(name => name.ToPascalCase(), " and "),
                 IsComposite = plan.IsComposite,
+                IsPrimary = plan.IsPrimary,
                 Components = components,
 
                 Params = plan.IsComposite ? args : "key",

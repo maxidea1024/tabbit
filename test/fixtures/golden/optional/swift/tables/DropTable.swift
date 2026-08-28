@@ -87,9 +87,22 @@ public final class DropRecord {
 }
 
 /// Every row of Drop.
-public final class DropTable {
+public final class DropTable: Sequence {
 
     public init() {}
+
+    /// How many rows the table holds.
+    public var count: Int { records.count }
+
+    /// The rows, in the order the file wrote them. Conforming to `Sequence` on top of this
+    /// is what gives the table `map` - `filter` - `first(where:)` without any of them being
+    /// written here.
+    ///
+    /// The array is read once, here. A refresh replaces it rather than appending to it, so a
+    /// loop already running keeps the rows it started with.
+    public func makeIterator() -> Array<DropRecord>.Iterator {
+        records.makeIterator()
+    }
 
     /// Every row, in the order the sheet declared them.
     ///
@@ -125,6 +138,36 @@ public final class DropTable {
     /// Whether the table holds a row with this Index.
     public func containsIndex(_ key: Int32) -> Bool {
         byIndex[key] != nil
+    }
+
+
+    /// The row with this Index, or nil when the table has none.
+    ///
+    /// `findByIndex` under the spelling Swift uses for a keyed collection. It
+    /// answers with an optional because that is what `Dictionary` does here, and the type
+    /// says so - a language whose own map throws generates a subscript that throws.
+    /// spec/targets/table-collection-surface.md section 5.7.
+    ///
+    /// This is the key, not the row's position. `table[0]` is the row whose
+    /// Index is 0, not the first row - the rows in order are `records`.
+    public subscript(_ key: Int32) -> DropRecord? {
+        findByIndex(key)
+    }
+
+
+    /// Each row with the Index it is keyed by -
+    /// `for (key, row) in table.entries`.
+    ///
+    /// What this saves a caller is not the key value - the row carries it - but having to
+    /// know which column the key is: Index here, something else in the
+    /// next table.
+    ///
+    /// The rows come in the order the file wrote them rather than the order the dictionary
+    /// holds them, which makes this and iterating the table agree. Only the primary key has
+    /// this: a table keyed by several columns together has no single key value to pair a
+    /// row with.
+    public var entries: LazyMapSequence<[DropRecord], (key: Int32, row: DropRecord)> {
+        records.lazy.map { (key: $0.index, row: $0) }
     }
 
     /// Loads the table from a .tcb file written by Tabbit.
@@ -399,7 +442,7 @@ public final class DropTable {
                 let presence = try Tcb.readPresence(reader, column, count)
                 let cursor = try Tcb.ColumnCursor(reader, column, count, "Drop.Costs")
                 for record in loaded {
-                    let elementCount = max(0, try cursor.nextLength())
+                    let elementCount = Swift.max(0, try cursor.nextLength())
                     record.costs = []
                     record.costs.reserveCapacity(elementCount)
 

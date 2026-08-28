@@ -20,13 +20,29 @@ class StringRecord {
 }
 
 /// Every row of String.
-class StringTable {
+class StringTable extends Iterable<StringRecord> {
   /// Every row, in the order the sheet declared them.
   ///
   /// The list a read published, not one a read fills. A refresh replaces the reference
   /// rather than the contents, so whoever holds this holds one whole load.
   List<StringRecord> get records => _records;
   List<StringRecord> _records = [];
+
+  /// How many rows the table holds.
+  ///
+  /// Overridden rather than inherited: `Iterable.length` counts by walking, and the rows
+  /// are a list that already knows.
+  @override
+  int get length => _records.length;
+
+  /// The rows, in the order the file wrote them. Extending `Iterable` on top of this is
+  /// what gives the table `map` - `where` - `firstWhere` without any of them being
+  /// written here.
+  ///
+  /// The list reference is read once, here. A refresh replaces the reference rather than
+  /// its contents, so a loop already running keeps the rows it started with.
+  @override
+  Iterator<StringRecord> get iterator => _records.iterator;
 
   Map<String, StringRecord> _byStringKey = {};
 
@@ -55,6 +71,34 @@ class StringTable {
 
   /// Whether the table holds a row with this StringKey.
   bool containsStringKey(String key) => _byStringKey.containsKey(key);
+
+
+  /// The row with this StringKey, or null when the table has none.
+  ///
+  /// `findByStringKey` under the spelling Dart uses for a keyed collection. It
+  /// answers with null because that is what `Map` does here, and the type says so - a
+  /// language whose own map throws generates a subscript that throws.
+  /// spec/targets/table-collection-surface.md section 5.7.
+  ///
+  /// This is the key, not the row's position. `table[0]` is the row whose
+  /// StringKey is 0, not the first row - the rows in order are `records`.
+  ///
+  /// Only a key of one column has this: Dart's subscript takes one argument.
+  StringRecord? operator [](String key) => findByStringKey(key);
+
+
+  /// Each row with the StringKey it is keyed by -
+  /// `for (final entry in table.entries)`.
+  ///
+  /// What this saves a caller is not the key value - the row carries it - but having to
+  /// know which column the key is: StringKey here, something else in the next
+  /// table.
+  ///
+  /// The rows come in the order the file wrote them rather than the order the map holds
+  /// them, which makes this and iterating the table agree. Only the primary key has this:
+  /// a table keyed by several columns together has no single key value to pair a row with.
+  Iterable<MapEntry<String, StringRecord>> get entries =>
+      _records.map((record) => MapEntry(record.stringKey, record));
 
   /// Loads the table from a .tcb file written by Tabbit.
   /// Column by column, matched by tag rather than position: a column this build does

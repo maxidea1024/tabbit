@@ -27,9 +27,22 @@ public final class GridRecord {
 }
 
 /// Every row of Grid.
-public final class GridTable {
+public final class GridTable: Sequence {
 
     public init() {}
+
+    /// How many rows the table holds.
+    public var count: Int { records.count }
+
+    /// The rows, in the order the file wrote them. Conforming to `Sequence` on top of this
+    /// is what gives the table `map` - `filter` - `first(where:)` without any of them being
+    /// written here.
+    ///
+    /// The array is read once, here. A refresh replaces it rather than appending to it, so a
+    /// loop already running keeps the rows it started with.
+    public func makeIterator() -> Array<GridRecord>.Iterator {
+        records.makeIterator()
+    }
 
     /// Every row, in the order the sheet declared them.
     ///
@@ -82,6 +95,20 @@ public final class GridTable {
     /// Whether the table holds a row with this X and Y and Z.
     public func containsXAndYAndZ(_ xKey: Int32, _ yKey: Int32, _ zKey: String) -> Bool {
         byXAndYAndZ[Self.keyOfXAndYAndZ(xKey, yKey, zKey)] != nil
+    }
+
+
+    /// The row with this X and Y and Z, or nil when the table has none.
+    ///
+    /// `findByXAndYAndZ` under the spelling Swift uses for a keyed collection. It
+    /// answers with an optional because that is what `Dictionary` does here, and the type
+    /// says so - a language whose own map throws generates a subscript that throws.
+    /// spec/targets/table-collection-surface.md section 5.7.
+    ///
+    /// This is the key, not the row's position. `table[0]` is the row whose
+    /// X and Y and Z is 0, not the first row - the rows in order are `records`.
+    public subscript(_ xKey: Int32, _ yKey: Int32, _ zKey: String) -> GridRecord? {
+        findByXAndYAndZ(xKey, yKey, zKey)
     }
 
     /// Loads the table from a .tcb file written by Tabbit.
