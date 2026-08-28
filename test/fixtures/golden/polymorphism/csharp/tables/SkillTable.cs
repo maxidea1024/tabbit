@@ -92,7 +92,6 @@ public partial class SkillRecord
         /// conversion, and the built variant has to carry the resolved row rather than the key.
         public int ElementId;
         public ElementRecord ElementByElementId;
-        public bool ElementId_F;
         /// How much it gives.
         public int Amount;
         /// How often it lands, as a band rather than a number.
@@ -435,7 +434,6 @@ public partial class SkillTable : IEnumerable<SkillRecord>
                             var record = records[i++];
                             record._effect.ElementId = value;
                             record._effect.ElementByElementId = default(ElementRecord); // will be assigned.
-                            record._effect.ElementId_F = false;
                         } while (--n > 0);
                     }
                     break;

@@ -218,7 +218,6 @@ namespace Tabbit.Fixtures.SerialRef
                     if (record._slot_Piece_index[i] > 0)
                     {
                         record.SetReference_Slot_INTERNAL(i, snapshot.Piece.GetByIndexOrThrow(record._slot_Piece_index[i]));
-                        record._slot_F[i] = true;
                     }
                 }
                 for (int i = 0; i < record._tier_Piece_index.Length; i++)
@@ -226,7 +225,6 @@ namespace Tabbit.Fixtures.SerialRef
                     if (record._tier_Piece_index[i] > 0)
                     {
                         record.SetReference_Tier_INTERNAL(i, snapshot.Piece.GetByIndexOrThrow(record._tier_Piece_index[i]).Tier);
-                        record._tier_F[i] = true;
                     }
                 }
             }
@@ -238,7 +236,6 @@ namespace Tabbit.Fixtures.SerialRef
                     if (record._slot_Bit_index[i] > 0)
                     {
                         record.SetReference_Slot_INTERNAL(i, snapshot.Bit.GetByIndexOrThrow(record._slot_Bit_index[i]));
-                        record._slot_F[i] = true;
                     }
                 }
                 for (int i = 0; i < record._tier_Bit_index.Length; i++)
@@ -246,7 +243,6 @@ namespace Tabbit.Fixtures.SerialRef
                     if (record._tier_Bit_index[i] > 0)
                     {
                         record.SetReference_Tier_INTERNAL(i, snapshot.Bit.GetByIndexOrThrow(record._tier_Bit_index[i]).Tier);
-                        record._tier_F[i] = true;
                     }
                 }
             }

@@ -46,16 +46,14 @@ export class KitRecord {
   public _index: number = 0
   public _slot: PieceRecord[] = []
   public _slot_Piece_index: number[] = []
-  public _slot_F: boolean[] = []
   public _tier: number[] = []
   public _tier_Piece_index: number[] = []
-  public _tier_F: boolean[] = []
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
-    this._slot_Piece_index = dataRow.slot; this._slot = new Array(this._slot_Piece_index.length).fill(undefined); this._slot_F = new Array(this._slot_Piece_index.length).fill(false)
-    this._tier_Piece_index = dataRow.tier; this._tier = new Array(this._tier_Piece_index.length).fill(undefined); this._tier_F = new Array(this._tier_Piece_index.length).fill(false)
+    this._slot_Piece_index = dataRow.slot; this._slot = new Array(this._slot_Piece_index.length).fill(undefined)
+    this._tier_Piece_index = dataRow.tier; this._tier = new Array(this._tier_Piece_index.length).fill(undefined)
   }
 
   /** Populate field values. */
@@ -63,10 +61,10 @@ export class KitRecord {
     let offset = 0
     this._index = dataRow[offset++]
     this._slot_Piece_index = dataRow.slice(offset, offset + 2)
-    this._slot = new Array(this._slot_Piece_index.length).fill(undefined); this._slot_F = new Array(this._slot_Piece_index.length).fill(false)
+    this._slot = new Array(this._slot_Piece_index.length).fill(undefined)
     offset += 2
     this._tier_Piece_index = dataRow.slice(offset, offset + 2)
-    this._tier = new Array(this._tier_Piece_index.length).fill(undefined); this._tier_F = new Array(this._tier_Piece_index.length).fill(false)
+    this._tier = new Array(this._tier_Piece_index.length).fill(undefined)
     offset += 2
   }
 }
@@ -232,7 +230,6 @@ export class KitTable {
             const record = records[i]
             const elementCount = cursor.nextLength()
             record._slot = new Array(elementCount).fill(undefined)
-            record._slot_F = new Array(elementCount).fill(false)
             record._slot_Piece_index = []
             for (let j = 0; j < elementCount; ++j) {
               record._slot_Piece_index.push(cursor.nextI32())
@@ -246,7 +243,6 @@ export class KitTable {
             const record = records[i]
             const elementCount = cursor.nextLength()
             record._tier = new Array(elementCount).fill(undefined)
-            record._tier_F = new Array(elementCount).fill(false)
             record._tier_Piece_index = []
             for (let j = 0; j < elementCount; ++j) {
               record._tier_Piece_index.push(cursor.nextI32())

@@ -39,8 +39,8 @@ function compare(table: string, index: number, field: string, fromJson: unknown,
  * The target's name rather than its key, because comparing the key back would pass whatever
  * the linking pass did with it.
  */
-function resolved(row: { name: string } | undefined, flag: boolean): string {
-    return flag && row ? row.name : '<unresolved>'
+function resolved(row: { name: string } | undefined): string {
+    return row ? row.name : '<unresolved>'
 }
 
 function main(): number {
@@ -73,13 +73,15 @@ function main(): number {
             compare('Kit', i, `slot[${k}].key`,
                     j._slot_Piece_index[k], b._slot_Piece_index[k])
             compare('Kit', i, `slot[${k}]`,
-                    resolved(j.pieceBySlot[k], j._slot_F[k]),
-                    resolved(b.pieceBySlot[k], b._slot_F[k]))
+                    resolved(j.pieceBySlot[k]),
+                    resolved(b.pieceBySlot[k]))
 
-            // A field reference resolves to the value itself, so there is no row to name.
+            // A field reference resolves to the value itself, so there is no row to name -
+            // and no null to read the resolution off either. The key answers instead, which is
+            // the same question the linking pass asked before it wrote the value.
             compare('Kit', i, `tier[${k}]`,
-                    j._tier_F[k] ? j.tier[k] : '<unresolved>',
-                    b._tier_F[k] ? b.tier[k] : '<unresolved>')
+                    j._tier_Piece_index[k] > 0 ? j.tier[k] : '<unresolved>',
+                    b._tier_Piece_index[k] > 0 ? b.tier[k] : '<unresolved>')
         }
     }
 
@@ -87,9 +89,9 @@ function main(): number {
     // of one mistake.
     const values = {
         slots: fromBinary.kit.records.map(
-            r => r.pieceBySlot.map((piece, at) => resolved(piece, r._slot_F[at])).join('/')),
+            r => r.pieceBySlot.map((piece, at) => resolved(piece)).join('/')),
         tiers: fromBinary.kit.records.map(
-            r => r.tier.map((tier, at) => r._tier_F[at] ? String(tier) : '<unresolved>').join('/')),
+            r => r.tier.map((tier, at) => r._tier_Piece_index[at] > 0 ? String(tier) : '<unresolved>').join('/')),
     }
 
     console.log(JSON.stringify(values))

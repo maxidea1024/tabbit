@@ -230,7 +230,6 @@ namespace Tabbit.Fixtures.Core.Client
                 if (record._categoryId_ItemCategory_index > 0)
                 {
                     record.SetReference_CategoryId_INTERNAL(snapshot.ItemCategory.GetByIndexOrThrow(record._categoryId_ItemCategory_index));
-                    record._categoryId_F = true;
                 }
             }
         }

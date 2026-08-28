@@ -58,7 +58,6 @@ namespace Wildling.Data
         internal string _name = "";
         internal RewardGroupRecord _rewardGroupId;
         internal string _rewardGroupId_RewardGroup_index;
-        public bool _rewardGroupId_F = false;
         internal string _priceDisplay = "";
         internal int _sortOrder;
         #endregion
@@ -323,7 +322,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._rewardGroupId_RewardGroup_index = value;
                                 record._rewardGroupId = default(RewardGroupRecord); // will be assigned.
-                                record._rewardGroupId_F = false;
                             } while (--n > 0);
                         }
                         break;

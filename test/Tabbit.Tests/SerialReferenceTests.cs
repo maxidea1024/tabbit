@@ -59,17 +59,17 @@ public class SerialReferenceTests
     }
 
     /// <summary>
-    /// The read allocates all three arrays from the file's count, and the linking pass walks
-    /// the keys it has.
+    /// The read allocates both arrays from the file's count, and the linking pass walks the
+    /// keys it has.
     /// </summary>
     /// <remarks>
     /// Read off the emitted page rather than inferred from behaviour, because behaviour cannot
     /// tell the two numbers apart while they agree - and they agree in every fixture. What
     /// would break is a file whose column grew, which no sheet in this corpus can produce.
     ///
-    /// The keys and the flag are the ones that were missed: their declarations went from a
-    /// sized allocation to an empty array when the length left the page, and the read had to
-    /// take over sizing them. spec/types/nullable-array-elements.md.
+    /// The keys are the ones that were missed: their declaration went from a sized allocation
+    /// to an empty array when the length left the page, and the read had to take over sizing
+    /// them. spec/types/nullable-array-elements.md.
     /// </remarks>
     [Fact]
     public void The_page_sizes_every_array_from_the_file()
@@ -82,7 +82,6 @@ public class SerialReferenceTests
 
         Assert.Contains("record._slot = new PieceRecord[elementCount];", cs);
         Assert.Contains("record._slot_Piece_index = new int[elementCount];", cs);
-        Assert.Contains("record._slot_F = new bool[elementCount];", cs);
 
         // And no length in the check: the shape is the kind, and the length is the row's.
         // spec/wire/tcb-v107-dynamic-arrays.md.

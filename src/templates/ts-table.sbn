@@ -46,12 +46,12 @@ export interface {{ rt.type_name }} {
   {{ line }}
 {{~ end ~}}
 {{~ if member.ref_key_type_name != '' ~}}
-{{~## A reference member carries three things: the key that came off the wire under the
-   member's own name, the row it resolved to under the derived one, and whether the
-   resolution happened. spec/references/reference-surface-naming.md sections 4 and 5. ##~}}
+{{~## A reference member carries two things: the key that came off the wire under the
+   member's own name, and the row it resolved to under the derived one. Whether the
+   resolution happened the key answers, so there is no third property for it.
+   spec/references/reference-surface-naming.md sections 4 and 5. ##~}}
   {{ member.prop_name }}: {{ member.ref_key_type_name }}
   {{ member.row_prop_name }}: {{ member.field_type }}
-  {{ member.prop_name }}_F: {{ member.ref_flag_type_name }}
 {{~ else ~}}
   {{ member.prop_name }}: {{ member.field_type }}
 {{~ end ~}}
@@ -246,7 +246,6 @@ export class {{ name }}Record {
 {{~ if field.kind == 'array_ref' ~}}
   public {{ field.field_name }}: {{ field.field_type }}[] = []
   public {{ field.field_name }}_{{ field.ref_table }}_index: {{ field.ref_key_type_name }}[] = []
-  public {{ field.field_name }}_F: boolean[] = []
 {{~ else if field.kind == 'record_var_array' || field.kind == 'array_of_arrays' ~}}
 {{~## Created with the record, not by the read. Each member column fills one property of
    each element, so there has to be an element there to fill - and a member whose column
@@ -260,7 +259,6 @@ export class {{ name }}Record {
 {{~ else if field.kind == 'scalar_ref' ~}}
   public {{ field.field_name }}: {{ field.field_type }}
   public {{ field.field_name }}_{{ field.ref_table }}_index: {{ field.ref_key_type_name }} = {{ field.ref_key_initial }}
-  public {{ field.field_name }}_F: boolean = false
 {{~ else ~}}
   public {{ field.field_name }}: {{ field.field_type }} = {{ field.default_value }}
 {{~ end ~}}
@@ -560,11 +558,10 @@ export class {{ name }}Table {
 {{~ end ~}}
             }
 {{~ else if column.kind == 'var_array_ref' ~}}
-{{~## The same three arrays as `array_ref` below, at the length this row gave rather than the
+{{~## The same two arrays as `array_ref` below, at the length this row gave rather than the
    one the column states. spec/types/variable-length-record-arrays.md. ##~}}
             const elementCount = {{ column.length_read }}
             record.{{ column.field_name }} = new Array(elementCount).fill(undefined)
-            record.{{ column.field_name }}_F = new Array(elementCount).fill(false)
             record.{{ column.field_name }}_{{ column.ref_table }}_index = []
 {{~ if column.has_optional_elements ~}}
             record.{{ column.element_presence_field }} = []

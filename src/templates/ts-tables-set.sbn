@@ -150,7 +150,6 @@ export class {{ accessor_name }} {
           const target = this._{{ field.ref_table }}.{{ field.ref_lookup }}(
             record.{{ field.field_name }}_{{ field.ref_table_type }}_index[i])
           record.setReference_{{ field.prop_name }}_INTERNAL(i, {{ field.value }})
-          record.{{ field.field_name }}_F[i] = true
         }
       }
 {{~ else ~}}
@@ -158,7 +157,6 @@ export class {{ accessor_name }} {
         const target = this._{{ field.ref_table }}.{{ field.ref_lookup }}(
           record.{{ field.field_name }}_{{ field.ref_table_type }}_index)
         record.setReference_{{ field.prop_name }}_INTERNAL({{ field.value }})
-        record.{{ field.field_name }}_F = true
       }
 {{~ end ~}}
 {{~ end ~}}
@@ -172,13 +170,11 @@ export class {{ accessor_name }} {
       for (let i = 0; i < {{ member.count }}; i++) {
         if ({{ member.key }} {{ member.ref_is_set }}) {
           {{ member.access }} = this._{{ member.ref_table }}.{{ member.ref_lookup }}({{ member.key }})
-          {{ member.flag }} = true
         }
       }
 {{~ else ~}}
       if ({{ member.key }} {{ member.ref_is_set }}) {
         {{ member.access }} = this._{{ member.ref_table }}.{{ member.ref_lookup }}({{ member.key }})
-        {{ member.flag }} = true
       }
 {{~ end ~}}
 {{~ end ~}}

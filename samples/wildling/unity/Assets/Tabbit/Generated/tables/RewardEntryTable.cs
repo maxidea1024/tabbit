@@ -105,15 +105,12 @@ namespace Wildling.Data
             /// 아이템 보상의 대상
             public string ItemId;
             public ItemRecord ItemByItemId;
-            public bool ItemId_F;
             /// 재화 보상의 대상
             public string CurrencyId;
             public CurrencyRecord CurrencyByCurrencyId;
-            public bool CurrencyId_F;
             /// 와일드링 또는 조각 보상의 대상
             public string MonsterId;
             public MonsterRecord MonsterByMonsterId;
-            public bool MonsterId_F;
 
             public override string ToString()
             {
@@ -135,7 +132,6 @@ namespace Wildling.Data
         #region Storage
         internal RewardGroupRecord _rewardGroupId;
         internal string _rewardGroupId_RewardGroup_index;
-        public bool _rewardGroupId_F = false;
         internal int _order;
         internal RewardEntry _reward;
         internal int _rate;
@@ -340,7 +336,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._rewardGroupId_RewardGroup_index = value;
                                 record._rewardGroupId = default(RewardGroupRecord); // will be assigned.
-                                record._rewardGroupId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -406,7 +401,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._reward.ItemId = value;
                                 record._reward.ItemByItemId = default(ItemRecord); // will be assigned.
-                                record._reward.ItemId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -424,7 +418,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._reward.CurrencyId = value;
                                 record._reward.CurrencyByCurrencyId = default(CurrencyRecord); // will be assigned.
-                                record._reward.CurrencyId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -442,7 +435,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._reward.MonsterId = value;
                                 record._reward.MonsterByMonsterId = default(MonsterRecord); // will be assigned.
-                                record._reward.MonsterId_F = false;
                             } while (--n > 0);
                         }
                         break;

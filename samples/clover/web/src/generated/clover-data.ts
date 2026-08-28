@@ -548,7 +548,6 @@ export class CloverData {
         const target = this._tarot.getByTarotIdOrThrow(
           record._owner_Tarot_index)
         record.setReference_owner_INTERNAL(target)
-        record._owner_F = true
       }
     }
 
@@ -557,7 +556,6 @@ export class CloverData {
         const target = this._spectral.getBySpectralIdOrThrow(
           record._owner_Spectral_index)
         record.setReference_owner_INTERNAL(target)
-        record._owner_F = true
       }
     }
 
@@ -566,7 +564,6 @@ export class CloverData {
         const target = this._joker.getByJokerIdOrThrow(
           record._owner_Joker_index)
         record.setReference_owner_INTERNAL(target)
-        record._owner_F = true
       }
     }
 
@@ -575,7 +572,6 @@ export class CloverData {
         const target = this._bossBlind.getByBossIdOrThrow(
           record._owner_BossBlind_index)
         record.setReference_owner_INTERNAL(target)
-        record._owner_F = true
       }
     }
 
@@ -584,7 +580,6 @@ export class CloverData {
         const target = this._deck.getByDeckIdOrThrow(
           record._owner_Deck_index)
         record.setReference_owner_INTERNAL(target)
-        record._owner_F = true
       }
     }
 
@@ -593,7 +588,6 @@ export class CloverData {
         const target = this._tag.getByTagIdOrThrow(
           record._owner_Tag_index)
         record.setReference_owner_INTERNAL(target)
-        record._owner_F = true
       }
     }
 
@@ -602,7 +596,6 @@ export class CloverData {
         const target = this._voucher.getByVoucherIdOrThrow(
           record._upgradesFrom_Voucher_index)
         record.setReference_upgradesFrom_INTERNAL(target)
-        record._upgradesFrom_F = true
       }
     }
 
@@ -611,7 +604,6 @@ export class CloverData {
         const target = this._voucher.getByVoucherIdOrThrow(
           record._owner_Voucher_index)
         record.setReference_owner_INTERNAL(target)
-        record._owner_F = true
       }
     }
   }

@@ -95,13 +95,11 @@ namespace Wildling.Data
             /// 요구 아이템
             public string ItemId;
             public ItemRecord ItemByItemId;
-            public bool ItemId_F;
             /// 요구 수량
             public int Amount;
             /// 요구 스테이지
             public string StageId;
             public StageRecord StageByStageId;
-            public bool StageId_F;
             /// 요구 완성률. 백분율
             public int Percent;
 
@@ -127,7 +125,6 @@ namespace Wildling.Data
         #region Storage
         internal RequirementGroupRecord _requirementGroupId;
         internal string _requirementGroupId_RequirementGroup_index;
-        public bool _requirementGroupId_F = false;
         internal int _order;
         internal ReqEntry _req;
         #endregion
@@ -326,7 +323,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._requirementGroupId_RequirementGroup_index = value;
                                 record._requirementGroupId = default(RequirementGroupRecord); // will be assigned.
-                                record._requirementGroupId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -408,7 +404,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._req.ItemId = value;
                                 record._req.ItemByItemId = default(ItemRecord); // will be assigned.
-                                record._req.ItemId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -442,7 +437,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._req.StageId = value;
                                 record._req.StageByStageId = default(StageRecord); // will be assigned.
-                                record._req.StageId_F = false;
                             } while (--n > 0);
                         }
                         break;

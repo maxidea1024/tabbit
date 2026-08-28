@@ -235,13 +235,11 @@ export class Tables {
       for (let i = 0; i < record._slot.length; i++) {
         if (record._slot[i].itemId > 0) {
           record._slot[i].itemByItemId = this._item.getByIndexOrThrow(record._slot[i].itemId)
-          record._slot[i].itemId_F = true
         }
       }
       for (let i = 0; i < record._slot.length; i++) {
         if (record._slot[i].swapId > 0) {
           record._slot[i].itemBySwapId = this._item.getByIndexOrThrow(record._slot[i].swapId)
-          record._slot[i].swapId_F = true
         }
       }
     }
@@ -249,7 +247,6 @@ export class Tables {
     for (const record of this._holder.records) {
       if (record._main.itemId > 0) {
         record._main.itemByItemId = this._item.getByIndexOrThrow(record._main.itemId)
-        record._main.itemId_F = true
       }
     }
 
@@ -257,7 +254,6 @@ export class Tables {
       for (let i = 0; i < record._slots.itemId.length; i++) {
         if (record._slots.itemId[i] > 0) {
           record._slots.itemByItemId[i] = this._item.getByIndexOrThrow(record._slots.itemId[i])
-          record._slots.itemId_F[i] = true
         }
       }
     }
@@ -266,7 +262,6 @@ export class Tables {
       for (let i = 0; i < record._rig.length; i++) {
         if (record._rig[i].core.itemId > 0) {
           record._rig[i].core.itemByItemId = this._item.getByIndexOrThrow(record._rig[i].core.itemId)
-          record._rig[i].core.itemId_F = true
         }
       }
     }
@@ -275,7 +270,6 @@ export class Tables {
       for (let i = 0; i < record._step.length; i++) {
         if (record._step[i].clipId !== "") {
           record._step[i].clipByClipId = this._clip.getByIndexOrThrow(record._step[i].clipId)
-          record._step[i].clipId_F = true
         }
       }
     }
@@ -283,11 +277,9 @@ export class Tables {
     for (const record of this._badge.records) {
       if (record._mark.clipId !== "") {
         record._mark.clipByClipId = this._clip.getByIndexOrThrow(record._mark.clipId)
-        record._mark.clipId_F = true
       }
       if (record._mark.sealId !== "") {
         record._mark.sealBySealId = this._seal.getByIndexOrThrow(record._mark.sealId)
-        record._mark.sealId_F = true
       }
     }
 
@@ -295,7 +287,6 @@ export class Tables {
       for (let i = 0; i < record._part.length; i++) {
         if (record._part[i].itemId > 0) {
           record._part[i].itemByItemId = this._item.getByIndexOrThrow(record._part[i].itemId)
-          record._part[i].itemId_F = true
         }
       }
     }

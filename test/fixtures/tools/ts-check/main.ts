@@ -160,7 +160,9 @@ function main(): number {
             compare('Item', i, 'categoryId.name',
                 j.itemCategoryByCategoryId?.name, b.itemCategoryByCategoryId?.name)
             compare('Item', i, 'categoryId(key)', j.categoryId, b.categoryId)
-            compare('Item', i, 'categoryId(linked)', j._categoryId_F, b._categoryId_F)
+            compare('Item', i, 'categoryId(linked)',
+                    j.itemCategoryByCategoryId !== undefined,
+                    b.itemCategoryByCategoryId !== undefined)
         }
 
         console.log(JSON.stringify({

@@ -55,6 +55,7 @@
 - [참조가 가리킬 수 있는 키 — `int32` 가정 걷어내기](references/reference-key-types.md)
 - [참조의 「없음」 — 빈 칸과 0](references/reference-optionality.md)
 - [참조가 내는 이름](references/reference-surface-naming.md)
+- [참조의 해석 여부 — `_F` 플래그 제거](references/resolution-flag.md)
 - [레코드 안의 참조](references/references-in-records.md)
 
 ## `.tcb` 와이어 형식

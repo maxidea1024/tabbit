@@ -53,10 +53,8 @@ namespace Tabbit.Fixtures.X
         internal int _index;
         internal TargetRecord[] _targets = System.Array.Empty<TargetRecord>();
         internal int[] _targets_Target_index = System.Array.Empty<int>();
-        public bool[] _targets_F = System.Array.Empty<bool>();
         internal string[] _notes = System.Array.Empty<string>();
         public int[] _notes_Target_index = System.Array.Empty<int>();
-        public bool[] _notes_F = System.Array.Empty<bool>();
         internal string _label = "";
         #endregion
 
@@ -300,12 +298,10 @@ namespace Tabbit.Fixtures.X
                             elementCount = cursor.NextLength();
                             record._targets = new TargetRecord[elementCount];
                             record._targets_Target_index = new int[elementCount];
-                            record._targets_F = new bool[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
                                 record._targets_Target_index[j] = cursor.NextI32();
                                 record._targets[j] = default(TargetRecord); // will be assigned.
-                                record._targets_F[j] = false;
                             }
                         }
                         break;
@@ -320,12 +316,10 @@ namespace Tabbit.Fixtures.X
                             elementCount = cursor.NextLength();
                             record._notes = new string[elementCount];
                             record._notes_Target_index = new int[elementCount];
-                            record._notes_F = new bool[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
                                 record._notes_Target_index[j] = cursor.NextI32();
                                 record._notes[j] = default(string); // will be assigned.
-                                record._notes_F[j] = false;
                             }
                         }
                         break;

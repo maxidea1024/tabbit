@@ -399,33 +399,23 @@ internal sealed class CsRecordMemberView
     /// When the member is a reference, the type of the key it stores. Empty otherwise.
     /// </summary>
     /// <remarks>
-    /// A reference member carries three things where an ordinary one carries a value: the
-    /// row it resolved to, the key that came off the wire, and whether the resolution
-    /// happened. They live in the element rather than beside it because a group may hold
-    /// more than one reference, and a name built from the group and the target would
-    /// collide the moment two members point at the same table.
-    /// spec/references/references-in-records.md.
+    /// A reference member carries two things where an ordinary one carries a value: the row
+    /// it resolved to, and the key that came off the wire. They live in the element rather
+    /// than beside it because a group may hold more than one reference, and a name built
+    /// from the group and the target would collide the moment two members point at the same
+    /// table. spec/references/references-in-records.md.
     /// </remarks>
     public required string RefKeyTypeName { get; set; }
-
-    /// <summary>
-    /// The type of the resolution flag - `bool`, or an array of them where the member is an
-    /// array. Empty when the member is not a reference.
-    /// </summary>
-    public required string RefFlagTypeName { get; set; }
 
     /// <summary>
     /// What allocates the stored keys where the member is an array, and nothing otherwise.
     /// </summary>
     /// <remarks>
     /// A record of arrays holds one key per element exactly as it holds one row per element,
-    /// so the key and the flag are allocated with the member. A scalar member needs neither:
-    /// C#'s own default for an `int` and a `bool` is already the unset one.
+    /// so the key is allocated with the member. A scalar member needs nothing: C#'s own
+    /// default for the key type is already the unset one.
     /// </remarks>
     public required string RefKeyInitializer { get; set; }
-
-    /// <summary>What allocates the resolution flags, on the same condition.</summary>
-    public required string RefFlagInitializer { get; set; }
 
     /// <summary>The referenced table, for the accessor's linking pass. Empty otherwise.</summary>
     public required string RefTable { get; set; }
@@ -872,9 +862,6 @@ internal sealed class CsRecordReferenceView
 
     /// <summary>The stored key it resolves through.</summary>
     public required string Key { get; set; }
-
-    /// <summary>The flag recording that the resolution happened.</summary>
-    public required string Flag { get; set; }
 
     /// <summary>
     /// The loop bound, or empty where the group is one record and there is nothing to walk.

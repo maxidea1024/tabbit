@@ -67,7 +67,6 @@ namespace Wildling.Data
             /// 소모 재화
             public string CurrencyId;
             public CurrencyRecord CurrencyByCurrencyId;
-            public bool CurrencyId_F;
             /// 첫째 소모 수량
             public int Amount;
 
@@ -398,7 +397,6 @@ namespace Wildling.Data
                             {
                                 record._costs[j].CurrencyId = cursor.NextString();
                                 record._costs[j].CurrencyByCurrencyId = default(CurrencyRecord); // will be assigned.
-                                record._costs[j].CurrencyId_F = false;
                             }
                         }
                         break;

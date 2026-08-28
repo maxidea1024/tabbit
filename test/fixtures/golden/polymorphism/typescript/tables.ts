@@ -150,7 +150,6 @@ export class Tables {
     for (const record of this._skill.records) {
       if (record._effect.elementId > 0) {
         record._effect.elementByElementId = this._element.getByCodeOrThrow(record._effect.elementId)
-        record._effect.elementId_F = true
       }
     }
 
@@ -158,7 +157,6 @@ export class Tables {
       for (let i = 0; i < record._effects.length; i++) {
         if (record._effects[i].elementId > 0) {
           record._effects[i].elementByElementId = this._element.getByCodeOrThrow(record._effects[i].elementId)
-          record._effects[i].elementId_F = true
         }
       }
     }

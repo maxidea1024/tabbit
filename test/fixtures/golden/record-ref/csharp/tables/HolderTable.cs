@@ -50,7 +50,6 @@ namespace Tabbit.Fixtures.RecordRef
             /// the reference, in a record of one
             public int ItemId;
             public ItemRecord ItemByItemId;
-            public bool ItemId_F;
             /// an ordinary member beside it
             public int Count;
 
@@ -314,7 +313,6 @@ namespace Tabbit.Fixtures.RecordRef
                                 var record = records[i++];
                                 record._main.ItemId = value;
                                 record._main.ItemByItemId = default(ItemRecord); // will be assigned.
-                                record._main.ItemId_F = false;
                             } while (--n > 0);
                         }
                         break;

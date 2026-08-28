@@ -32,7 +32,6 @@ export interface EffectsEntry {
   **A reference on a variant member is the shape a real project reaches for first** - "thereward is an item, or a currency, or a monster" is that shape - and it is a differentpath twice over: the blank cells of the other variants go through the referenceconversion, and the built variant has to carry the resolved row rather than the key. */
   elementId: number
   elementByElementId: ElementRecord | undefined
-  elementId_F: boolean
   /** How much it gives. */
   amount: number
   /** How often it lands, as a band rather than a number. */
@@ -113,7 +112,7 @@ export class ComboRecord {
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
     this._name = dataRow.name
-    this._effects = dataRow.effects.map(e => ({ type: e.type, chance: e.chance, damage: e.damage, pierces: e.pierces, elementByElementId: undefined, elementId: e.elementId, elementId_F: false, amount: e.amount, band: e.band }))
+    this._effects = dataRow.effects.map(e => ({ type: e.type, chance: e.chance, damage: e.damage, pierces: e.pierces, elementByElementId: undefined, elementId: e.elementId, amount: e.amount, band: e.band }))
   }
 
   /** Populate field values. */
@@ -128,7 +127,7 @@ export class ComboRecord {
     const _effects_elementId = dataRow[offset++] as any[]
     const _effects_amount = dataRow[offset++] as any[]
     const _effects_band = dataRow[offset++] as any[]
-    this._effects = Array.from({ length: _effects_type.length }, (_, k) => ({ type: _effects_type[k], chance: _effects_chance[k], damage: _effects_damage[k], pierces: _effects_pierces[k], elementByElementId: undefined, elementId: _effects_elementId[k], elementId_F: false, amount: _effects_amount[k], band: _effects_band[k] }))
+    this._effects = Array.from({ length: _effects_type.length }, (_, k) => ({ type: _effects_type[k], chance: _effects_chance[k], damage: _effects_damage[k], pierces: _effects_pierces[k], elementByElementId: undefined, elementId: _effects_elementId[k], amount: _effects_amount[k], band: _effects_band[k] }))
   }
 }
 
@@ -301,7 +300,7 @@ export class ComboTable {
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
-            record._effects = Array.from({ length: elementCount }, () => ({ type: 0, chance: 0, damage: 0, pierces: false, elementByElementId: undefined, elementId: 0, elementId_F: false, amount: 0, band: 0 as Band }))
+            record._effects = Array.from({ length: elementCount }, () => ({ type: 0, chance: 0, damage: 0, pierces: false, elementByElementId: undefined, elementId: 0, amount: 0, band: 0 as Band }))
             for (let j = 0; j < elementCount; ++j)
               record._effects[j].type = cursor.nextI32()
           }

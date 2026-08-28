@@ -71,16 +71,13 @@ namespace Wildling.Data
         internal string _stageId = "";
         internal RegionRecord _regionId;
         internal string _regionId_Region_index;
-        public bool _regionId_F = false;
         internal int _index;
         internal global::Wildling.Data.StageKind _stageKind;
         internal MonsterRecord[] _waveMonsterIds = System.Array.Empty<MonsterRecord>();
         internal string[] _waveMonsterIds_Monster_index = System.Array.Empty<string>();
-        public bool[] _waveMonsterIds_F = System.Array.Empty<bool>();
         internal int[] _waveLevels = System.Array.Empty<int>();
         internal RewardGroupRecord _rewardGroupId;
         internal string _rewardGroupId_RewardGroup_index;
-        public bool _rewardGroupId_F = false;
         #endregion
 
         #region ToString
@@ -376,7 +373,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._regionId_Region_index = value;
                                 record._regionId = default(RegionRecord); // will be assigned.
-                                record._regionId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -423,12 +419,10 @@ namespace Wildling.Data
                             elementCount = cursor.NextLength();
                             record._waveMonsterIds = new MonsterRecord[elementCount];
                             record._waveMonsterIds_Monster_index = new string[elementCount];
-                            record._waveMonsterIds_F = new bool[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
                                 record._waveMonsterIds_Monster_index[j] = cursor.NextString();
                                 record._waveMonsterIds[j] = default(MonsterRecord); // will be assigned.
-                                record._waveMonsterIds_F[j] = false;
                             }
                         }
                         break;
@@ -462,7 +456,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._rewardGroupId_RewardGroup_index = value;
                                 record._rewardGroupId = default(RewardGroupRecord); // will be assigned.
-                                record._rewardGroupId_F = false;
                             } while (--n > 0);
                         }
                         break;

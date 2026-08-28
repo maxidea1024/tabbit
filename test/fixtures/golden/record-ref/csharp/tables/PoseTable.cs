@@ -40,7 +40,6 @@ namespace Tabbit.Fixtures.RecordRef
             /// element 1, a string key
             public string ClipId;
             public ClipRecord ClipByClipId;
-            public bool ClipId_F;
             /// element 1, an ordinary member
             public int Weight;
 
@@ -300,7 +299,6 @@ namespace Tabbit.Fixtures.RecordRef
                             {
                                 record._step[j].ClipId = cursor.NextString();
                                 record._step[j].ClipByClipId = default(ClipRecord); // will be assigned.
-                                record._step[j].ClipId_F = false;
                             }
                         }
                         break;

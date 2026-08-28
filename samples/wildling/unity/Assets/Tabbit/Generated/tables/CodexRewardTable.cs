@@ -62,12 +62,10 @@ namespace Wildling.Data
         internal global::Wildling.Data.CodexScope _codexScope;
         internal RegionRecord _regionId;
         internal string _regionId_Region_index;
-        public bool _regionId_F = false;
         internal bool _regionIdHasValue;
         internal int _threshold;
         internal RewardGroupRecord _rewardGroupId;
         internal string _rewardGroupId_RewardGroup_index;
-        public bool _rewardGroupId_F = false;
         #endregion
 
         #region ToString
@@ -332,7 +330,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._regionId_Region_index = value;
                                 record._regionId = default(RegionRecord); // will be assigned.
-                                record._regionId_F = false;
                             } while (--n > 0);
                         }
                         for (int i = 0; i < count; i++)
@@ -376,7 +373,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._rewardGroupId_RewardGroup_index = value;
                                 record._rewardGroupId = default(RewardGroupRecord); // will be assigned.
-                                record._rewardGroupId_F = false;
                             } while (--n > 0);
                         }
                         break;

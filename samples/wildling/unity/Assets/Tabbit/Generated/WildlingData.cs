@@ -405,7 +405,6 @@ namespace Wildling.Data
                 if (record._skillId_Skill_index is { Length: > 0 })
                 {
                     record.SetReference_SkillId_INTERNAL(snapshot.Skill.GetBySkillIdOrThrow(record._skillId_Skill_index));
-                    record._skillId_F = true;
                 }
             }
 
@@ -414,14 +413,12 @@ namespace Wildling.Data
                 if (record._skillId_Skill_index is { Length: > 0 })
                 {
                     record.SetReference_SkillId_INTERNAL(snapshot.Skill.GetBySkillIdOrThrow(record._skillId_Skill_index));
-                    record._skillId_F = true;
                 }
                 for (int j = 0; j < record._costs.Length; j++)
                 {
                     if (record._costs[j].CurrencyId is { Length: > 0 })
                     {
                         record._costs[j].CurrencyByCurrencyId = snapshot.Currency.GetByCurrencyIdOrThrow(record._costs[j].CurrencyId);
-                        record._costs[j].CurrencyId_F = true;
                     }
                 }
             }
@@ -431,7 +428,6 @@ namespace Wildling.Data
                 if (record._monsterId_Monster_index is { Length: > 0 })
                 {
                     record.SetReference_MonsterId_INTERNAL(snapshot.Monster.GetByMonsterIdOrThrow(record._monsterId_Monster_index));
-                    record._monsterId_F = true;
                 }
             }
 
@@ -440,17 +436,14 @@ namespace Wildling.Data
                 if (record._shopId_Shop_index is { Length: > 0 })
                 {
                     record.SetReference_ShopId_INTERNAL(snapshot.Shop.GetByShopIdOrThrow(record._shopId_Shop_index));
-                    record._shopId_F = true;
                 }
                 if (record._rewardGroupId_RewardGroup_index is { Length: > 0 })
                 {
                     record.SetReference_RewardGroupId_INTERNAL(snapshot.RewardGroup.GetByRewardGroupIdOrThrow(record._rewardGroupId_RewardGroup_index));
-                    record._rewardGroupId_F = true;
                 }
                 if (record._cost.CurrencyId is { Length: > 0 })
                 {
                     record._cost.CurrencyByCurrencyId = snapshot.Currency.GetByCurrencyIdOrThrow(record._cost.CurrencyId);
-                    record._cost.CurrencyId_F = true;
                 }
             }
 
@@ -459,7 +452,6 @@ namespace Wildling.Data
                 if (record._rewardGroupId_RewardGroup_index is { Length: > 0 })
                 {
                     record.SetReference_RewardGroupId_INTERNAL(snapshot.RewardGroup.GetByRewardGroupIdOrThrow(record._rewardGroupId_RewardGroup_index));
-                    record._rewardGroupId_F = true;
                 }
             }
 
@@ -468,7 +460,6 @@ namespace Wildling.Data
                 if (record._rewardGroupId_RewardGroup_index is { Length: > 0 })
                 {
                     record.SetReference_RewardGroupId_INTERNAL(snapshot.RewardGroup.GetByRewardGroupIdOrThrow(record._rewardGroupId_RewardGroup_index));
-                    record._rewardGroupId_F = true;
                 }
             }
 
@@ -477,7 +468,6 @@ namespace Wildling.Data
                 if (record._rewardGroupId_RewardGroup_index is { Length: > 0 })
                 {
                     record.SetReference_RewardGroupId_INTERNAL(snapshot.RewardGroup.GetByRewardGroupIdOrThrow(record._rewardGroupId_RewardGroup_index));
-                    record._rewardGroupId_F = true;
                 }
             }
 
@@ -488,7 +478,6 @@ namespace Wildling.Data
                     if (record._costs[j].CurrencyId is { Length: > 0 })
                     {
                         record._costs[j].CurrencyByCurrencyId = snapshot.Currency.GetByCurrencyIdOrThrow(record._costs[j].CurrencyId);
-                        record._costs[j].CurrencyId_F = true;
                     }
                 }
             }
@@ -498,12 +487,10 @@ namespace Wildling.Data
                 if (record._regionId_Region_index is { Length: > 0 })
                 {
                     record.SetReference_RegionId_INTERNAL(snapshot.Region.GetByRegionIdOrThrow(record._regionId_Region_index));
-                    record._regionId_F = true;
                 }
                 if (record._rewardGroupId_RewardGroup_index is { Length: > 0 })
                 {
                     record.SetReference_RewardGroupId_INTERNAL(snapshot.RewardGroup.GetByRewardGroupIdOrThrow(record._rewardGroupId_RewardGroup_index));
-                    record._rewardGroupId_F = true;
                 }
             }
 
@@ -512,12 +499,10 @@ namespace Wildling.Data
                 if (record._requirementGroupId_RequirementGroup_index is { Length: > 0 })
                 {
                     record.SetReference_RequirementGroupId_INTERNAL(snapshot.RequirementGroup.GetByRequirementGroupIdOrThrow(record._requirementGroupId_RequirementGroup_index));
-                    record._requirementGroupId_F = true;
                 }
                 if (record._rewardGroupId_RewardGroup_index is { Length: > 0 })
                 {
                     record.SetReference_RewardGroupId_INTERNAL(snapshot.RewardGroup.GetByRewardGroupIdOrThrow(record._rewardGroupId_RewardGroup_index));
-                    record._rewardGroupId_F = true;
                 }
             }
 
@@ -526,12 +511,10 @@ namespace Wildling.Data
                 if (record._monsterId_Monster_index is { Length: > 0 })
                 {
                     record.SetReference_MonsterId_INTERNAL(snapshot.Monster.GetByMonsterIdOrThrow(record._monsterId_Monster_index));
-                    record._monsterId_F = true;
                 }
                 if (record._skillId_Skill_index is { Length: > 0 })
                 {
                     record.SetReference_SkillId_INTERNAL(snapshot.Skill.GetBySkillIdOrThrow(record._skillId_Skill_index));
-                    record._skillId_F = true;
                 }
             }
 
@@ -540,24 +523,20 @@ namespace Wildling.Data
                 if (record._fromMonsterId_Monster_index is { Length: > 0 })
                 {
                     record.SetReference_FromMonsterId_INTERNAL(snapshot.Monster.GetByMonsterIdOrThrow(record._fromMonsterId_Monster_index));
-                    record._fromMonsterId_F = true;
                 }
                 if (record._toMonsterId_Monster_index is { Length: > 0 })
                 {
                     record.SetReference_ToMonsterId_INTERNAL(snapshot.Monster.GetByMonsterIdOrThrow(record._toMonsterId_Monster_index));
-                    record._toMonsterId_F = true;
                 }
                 if (record._requirementGroupId_RequirementGroup_index is { Length: > 0 })
                 {
                     record.SetReference_RequirementGroupId_INTERNAL(snapshot.RequirementGroup.GetByRequirementGroupIdOrThrow(record._requirementGroupId_RequirementGroup_index));
-                    record._requirementGroupId_F = true;
                 }
                 for (int j = 0; j < record._costs.Length; j++)
                 {
                     if (record._costs[j].CurrencyId is { Length: > 0 })
                     {
                         record._costs[j].CurrencyByCurrencyId = snapshot.Currency.GetByCurrencyIdOrThrow(record._costs[j].CurrencyId);
-                        record._costs[j].CurrencyId_F = true;
                     }
                 }
             }
@@ -567,22 +546,18 @@ namespace Wildling.Data
                 if (record._rewardGroupId_RewardGroup_index is { Length: > 0 })
                 {
                     record.SetReference_RewardGroupId_INTERNAL(snapshot.RewardGroup.GetByRewardGroupIdOrThrow(record._rewardGroupId_RewardGroup_index));
-                    record._rewardGroupId_F = true;
                 }
                 if (record._reward.ItemId is { Length: > 0 })
                 {
                     record._reward.ItemByItemId = snapshot.Item.GetByItemIdOrThrow(record._reward.ItemId);
-                    record._reward.ItemId_F = true;
                 }
                 if (record._reward.CurrencyId is { Length: > 0 })
                 {
                     record._reward.CurrencyByCurrencyId = snapshot.Currency.GetByCurrencyIdOrThrow(record._reward.CurrencyId);
-                    record._reward.CurrencyId_F = true;
                 }
                 if (record._reward.MonsterId is { Length: > 0 })
                 {
                     record._reward.MonsterByMonsterId = snapshot.Monster.GetByMonsterIdOrThrow(record._reward.MonsterId);
-                    record._reward.MonsterId_F = true;
                 }
             }
 
@@ -591,17 +566,14 @@ namespace Wildling.Data
                 if (record._requirementGroupId_RequirementGroup_index is { Length: > 0 })
                 {
                     record.SetReference_RequirementGroupId_INTERNAL(snapshot.RequirementGroup.GetByRequirementGroupIdOrThrow(record._requirementGroupId_RequirementGroup_index));
-                    record._requirementGroupId_F = true;
                 }
                 if (record._req.ItemId is { Length: > 0 })
                 {
                     record._req.ItemByItemId = snapshot.Item.GetByItemIdOrThrow(record._req.ItemId);
-                    record._req.ItemId_F = true;
                 }
                 if (record._req.StageId is { Length: > 0 })
                 {
                     record._req.StageByStageId = snapshot.Stage.GetByStageIdOrThrow(record._req.StageId);
-                    record._req.StageId_F = true;
                 }
             }
 
@@ -610,12 +582,10 @@ namespace Wildling.Data
                 if (record._regionId_Region_index is { Length: > 0 })
                 {
                     record.SetReference_RegionId_INTERNAL(snapshot.Region.GetByRegionIdOrThrow(record._regionId_Region_index));
-                    record._regionId_F = true;
                 }
                 if (record._rewardGroupId_RewardGroup_index is { Length: > 0 })
                 {
                     record.SetReference_RewardGroupId_INTERNAL(snapshot.RewardGroup.GetByRewardGroupIdOrThrow(record._rewardGroupId_RewardGroup_index));
-                    record._rewardGroupId_F = true;
                 }
             }
 
@@ -624,7 +594,6 @@ namespace Wildling.Data
                 if (record._requirementGroupId_RequirementGroup_index is { Length: > 0 })
                 {
                     record.SetReference_RequirementGroupId_INTERNAL(snapshot.RequirementGroup.GetByRequirementGroupIdOrThrow(record._requirementGroupId_RequirementGroup_index));
-                    record._requirementGroupId_F = true;
                 }
             }
 
@@ -633,12 +602,10 @@ namespace Wildling.Data
                 if (record._regionId_Region_index is { Length: > 0 })
                 {
                     record.SetReference_RegionId_INTERNAL(snapshot.Region.GetByRegionIdOrThrow(record._regionId_Region_index));
-                    record._regionId_F = true;
                 }
                 if (record._rewardGroupId_RewardGroup_index is { Length: > 0 })
                 {
                     record.SetReference_RewardGroupId_INTERNAL(snapshot.RewardGroup.GetByRewardGroupIdOrThrow(record._rewardGroupId_RewardGroup_index));
-                    record._rewardGroupId_F = true;
                 }
             }
 
@@ -647,20 +614,17 @@ namespace Wildling.Data
                 if (record._regionId_Region_index is { Length: > 0 })
                 {
                     record.SetReference_RegionId_INTERNAL(snapshot.Region.GetByRegionIdOrThrow(record._regionId_Region_index));
-                    record._regionId_F = true;
                 }
                 for (int i = 0; i < record._waveMonsterIds_Monster_index.Length; i++)
                 {
                     if (record._waveMonsterIds_Monster_index[i] is { Length: > 0 })
                     {
                         record.SetReference_WaveMonsterIds_INTERNAL(i, snapshot.Monster.GetByMonsterIdOrThrow(record._waveMonsterIds_Monster_index[i]));
-                        record._waveMonsterIds_F[i] = true;
                     }
                 }
                 if (record._rewardGroupId_RewardGroup_index is { Length: > 0 })
                 {
                     record.SetReference_RewardGroupId_INTERNAL(snapshot.RewardGroup.GetByRewardGroupIdOrThrow(record._rewardGroupId_RewardGroup_index));
-                    record._rewardGroupId_F = true;
                 }
             }
 
@@ -669,17 +633,14 @@ namespace Wildling.Data
                 if (record._stageId_Stage_index is { Length: > 0 })
                 {
                     record.SetReference_StageId_INTERNAL(snapshot.Stage.GetByStageIdOrThrow(record._stageId_Stage_index));
-                    record._stageId_F = true;
                 }
                 if (record._rewardGroupId_RewardGroup_index is { Length: > 0 })
                 {
                     record.SetReference_RewardGroupId_INTERNAL(snapshot.RewardGroup.GetByRewardGroupIdOrThrow(record._rewardGroupId_RewardGroup_index));
-                    record._rewardGroupId_F = true;
                 }
                 if (record._firstClearGroupId_RewardGroup_index is { Length: > 0 })
                 {
                     record.SetReference_FirstClearGroupId_INTERNAL(snapshot.RewardGroup.GetByRewardGroupIdOrThrow(record._firstClearGroupId_RewardGroup_index));
-                    record._firstClearGroupId_F = true;
                 }
             }
 
@@ -688,19 +649,16 @@ namespace Wildling.Data
                 if (record._regionId_Region_index is { Length: > 0 })
                 {
                     record.SetReference_RegionId_INTERNAL(snapshot.Region.GetByRegionIdOrThrow(record._regionId_Region_index));
-                    record._regionId_F = true;
                 }
                 if (record._requirementGroupId_RequirementGroup_index is { Length: > 0 })
                 {
                     record.SetReference_RequirementGroupId_INTERNAL(snapshot.RequirementGroup.GetByRequirementGroupIdOrThrow(record._requirementGroupId_RequirementGroup_index));
-                    record._requirementGroupId_F = true;
                 }
                 for (int j = 0; j < record._entries.Length; j++)
                 {
                     if (record._entries[j].MonsterId is { Length: > 0 })
                     {
                         record._entries[j].MonsterByMonsterId = snapshot.Monster.GetByMonsterIdOrThrow(record._entries[j].MonsterId);
-                        record._entries[j].MonsterId_F = true;
                     }
                 }
             }

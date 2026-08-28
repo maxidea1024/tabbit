@@ -1115,7 +1115,6 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         {
             Access = rowPath + rowSubscript,
             Key = toRow ? path + subscript : path + "_index" + subscript,
-            Flag = path + "_F" + subscript,
 
             // The member's own array when the number is on the member, the group's when it
             // is on the group, and nothing to walk when the group is one record. `Length`
@@ -1314,22 +1313,17 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                         ? "Contains" + member.Name.ToPascalCase()
                         : "",
 
-                    // A reference member carries the key and the resolution flag beside the
-                    // row it resolved to, all three inside the element - and all three at
-                    // the member's own arity, because a record of arrays holds one key per
-                    // element just as it holds one row per element.
+                    // A reference member carries the key beside the row it resolved to, both
+                    // inside the element - and both at the member's own arity, because a record
+                    // of arrays holds one key per element just as it holds one row per element.
                     // spec/references/references-in-records.md.
                     RefKeyTypeName = member.IsRef
                         ? ToCSharpTypeName(member.FirstField!.RefKeyType, null, null)
                           + (member.IsArray ? "[]" : "")
                         : "",
-                    RefFlagTypeName = member.IsRef ? (member.IsArray ? "bool[]" : "bool") : "",
                     RefKeyInitializer = member.IsRef && member.IsArray
                         ? $" = new {ToCSharpTypeName(member.FirstField!.RefKeyType, null, null)}"
                           + $"[{member.Fields.Count}]"
-                        : "",
-                    RefFlagInitializer = member.IsRef && member.IsArray
-                        ? $" = new bool[{member.Fields.Count}]"
                         : "",
                     RefTable = member.IsRef ? member.FirstField!.RefTableName.ToPascalCase() ?? "" : "",
                     RefLookup = member.IsRef ? PrimaryLookup(member.FirstField!.ResolvedRefTable) : "",
@@ -1395,9 +1389,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                 // A level below is a record, never a reference: the reference belongs to a
                 // leaf and this member is the struct holding them.
                 RefKeyTypeName = "",
-                RefFlagTypeName = "",
                 RefKeyInitializer = "",
-                RefFlagInitializer = "",
                 RefTable = "",
                 RefLookup = "",
                 RefIsSet = "",
@@ -1495,8 +1487,8 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// The arrays a reference column fills beside its values, for the read to allocate.
     /// </summary>
     /// <remarks>
-    /// Only where one column owns the array: a member of a record group keeps its key and its
-    /// flag inside the element, which the record allocates. spec/references/references-in-records.md.
+    /// Only where one column owns the array: a member of a record group keeps its key inside
+    /// the element, which the record allocates. spec/references/references-in-records.md.
     ///
     /// **Both array kinds, from their own length.** A folded group's length is the column count
     /// the file states; a trimmed one's is the row's, read a line earlier. This asked only for
@@ -1522,7 +1514,6 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         return new[]
         {
             $"record.{fieldName}_{refTable}_index = new {keyType}[{length}];",
-            $"record.{fieldName}_F = new bool[{length}];",
         };
     }
 
@@ -1779,7 +1770,6 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             {
                 $"{index} = value;",
                 $"{target} = default({fieldType}); // will be assigned.",
-                $"{key}_F = false;",
             };
         }
 
@@ -1796,8 +1786,8 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// are arrays names the member and then indexes it; a record of one indexes nothing.
     /// Same columns, same loop, same wire - see spec/types/nested-multi-level.md.
     ///
-    /// The two are kept apart because a reference member declares its key and its flag on
-    /// the member rather than on the element it holds: `Slots.ItemId[j]`, not
+    /// The two are kept apart because a reference member declares its key on the member
+    /// rather than on the element it holds: `Slots.ItemId_index[j]`, not
     /// `Slots.ItemId[j]_index`. spec/references/references-in-records.md.
     /// </remarks>
     private static (string Path, string Subscript) MemberPlace(
@@ -1827,17 +1817,14 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         var (path, subscript) = MemberPlace(wire, fieldName, memberAccess);
         string target = path + subscript;
 
-        // A record member keeps its key and flag inside the element, beside the row they
-        // belong to - `record._slot[j].ItemId` rather than a parallel array named
-        // after the group, which two members pointing at one table would collide in.
+        // A record member keeps its key inside the element, beside the row it belongs to -
+        // `record._slot[j].ItemId` rather than a parallel array named after the group,
+        // which two members pointing at one table would collide in.
         // spec/references/references-in-records.md.
-        string flag;
         string index;
 
         if (wire.Member is not null)
         {
-            flag = path + "_F" + subscript;
-
             // The member's own name is the key's, and the row it resolves to sits beside it
             // under the derived one. spec/references/reference-surface-naming.md sections 4, 5 and 9.
             if (wire.IsRef && ResolvesToRow(wire.TagCarrier))
@@ -1860,7 +1847,6 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         }
         else
         {
-            flag = isArray ? $"record.{fieldName}_F[j]" : $"record.{fieldName}_F";
             index = isArray
                 ? $"record.{fieldName}_{refTable}_index[j]"
                 : $"record.{fieldName}_{refTable}_index";
@@ -1877,14 +1863,13 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             if (wire.IsRef)
             {
                 // Only the stored key is on the wire; the value is filled in once every
-                // table is loaded, and the flag records whether that happened. The call is
-                // the key's own - `NextI32` for every reference is what kept a table keyed
+                // table is loaded, and the key is what says whether that happened. The call
+                // is the key's own - `NextI32` for every reference is what kept a table keyed
                 // by anything else from being pointed at. spec/references/reference-key-types.md.
                 return new[]
                 {
                     $"{index} = cursor.{CursorCallFor(wire.RefKeyType)};",
                     $"{target} = default({fieldType}); // will be assigned.",
-                    $"{flag} = false;",
                 };
             }
 
@@ -1928,7 +1913,6 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             {
                 $"reader.Read(out {index});",
                 $"{target} = default({fieldType}); // will be assigned.",
-                $"{flag} = false;",
             };
         }
 

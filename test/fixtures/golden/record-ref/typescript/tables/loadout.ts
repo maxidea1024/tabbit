@@ -21,11 +21,9 @@ export interface SlotEntry {
   /** element 1, the reference */
   itemId: number
   itemByItemId: ItemRecord | undefined
-  itemId_F: boolean
   /** element 1, a second reference to the same table */
   swapId: number
   itemBySwapId: ItemRecord | undefined
-  swapId_F: boolean
   /** element 1, an ordinary member */
   count: number
 }
@@ -62,7 +60,7 @@ export class LoadoutRecord {
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
-    this._slot = dataRow.slot.map(e => ({ itemByItemId: undefined, itemId: e.itemId, itemId_F: false, itemBySwapId: undefined, swapId: e.swapId, swapId_F: false, count: e.count }))
+    this._slot = dataRow.slot.map(e => ({ itemByItemId: undefined, itemId: e.itemId, itemBySwapId: undefined, swapId: e.swapId, count: e.count }))
   }
 
   /** Populate field values. */
@@ -75,7 +73,7 @@ export class LoadoutRecord {
     offset += 2
     const _slot_count = dataRow.slice(offset, offset + 2)
     offset += 2
-    this._slot = Array.from({ length: 2 }, (_, k) => ({ itemByItemId: undefined, itemId: _slot_itemId[k], itemId_F: false, itemBySwapId: undefined, swapId: _slot_swapId[k], swapId_F: false, count: _slot_count[k] }))
+    this._slot = Array.from({ length: 2 }, (_, k) => ({ itemByItemId: undefined, itemId: _slot_itemId[k], itemBySwapId: undefined, swapId: _slot_swapId[k], count: _slot_count[k] }))
   }
 }
 
@@ -239,7 +237,7 @@ export class LoadoutTable {
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
-            record._slot = Array.from({ length: elementCount }, () => ({ itemByItemId: undefined, itemId: 0, itemId_F: false, itemBySwapId: undefined, swapId: 0, swapId_F: false, count: 0 }))
+            record._slot = Array.from({ length: elementCount }, () => ({ itemByItemId: undefined, itemId: 0, itemBySwapId: undefined, swapId: 0, count: 0 }))
             for (let j = 0; j < elementCount; ++j)
               record._slot[j].itemId = cursor.nextI32()
           }

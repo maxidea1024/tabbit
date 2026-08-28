@@ -141,7 +141,6 @@ export class Tables {
           const target = this._target.getByIndexOrThrow(
             record._targets_Target_index[i])
           record.setReference_targets_INTERNAL(i, target)
-          record._targets_F[i] = true
         }
       }
       for (let i = 0; i < record._notes_Target_index.length; i++) {
@@ -149,7 +148,6 @@ export class Tables {
           const target = this._target.getByIndexOrThrow(
             record._notes_Target_index[i])
           record.setReference_notes_INTERNAL(i, target.note)
-          record._notes_F[i] = true
         }
       }
     }

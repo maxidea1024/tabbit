@@ -48,10 +48,8 @@ namespace Tabbit.Fixtures.CompositeKey
         #region Storage
         internal BeastRecord _beastId;
         internal string _beastId_Beast_index;
-        public bool _beastId_F = false;
         internal MoveRecord _moveId;
         internal int _moveId_Move_index;
-        public bool _moveId_F = false;
         internal int _power;
         #endregion
 
@@ -249,7 +247,6 @@ namespace Tabbit.Fixtures.CompositeKey
                                 var record = records[i++];
                                 record._beastId_Beast_index = value;
                                 record._beastId = default(BeastRecord); // will be assigned.
-                                record._beastId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -267,7 +264,6 @@ namespace Tabbit.Fixtures.CompositeKey
                                 var record = records[i++];
                                 record._moveId_Move_index = value;
                                 record._moveId = default(MoveRecord); // will be assigned.
-                                record._moveId_F = false;
                             } while (--n > 0);
                         }
                         break;

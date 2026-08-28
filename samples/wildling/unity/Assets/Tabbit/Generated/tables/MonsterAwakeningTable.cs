@@ -89,7 +89,6 @@ namespace Wildling.Data
             /// 어느 재화인가.
             public string CurrencyId;
             public CurrencyRecord CurrencyByCurrencyId;
-            public bool CurrencyId_F;
             /// 수량.
             public int Amount;
 
@@ -112,14 +111,11 @@ namespace Wildling.Data
         #region Storage
         internal MonsterRecord _fromMonsterId;
         internal string _fromMonsterId_Monster_index;
-        public bool _fromMonsterId_F = false;
         internal MonsterRecord _toMonsterId;
         internal string _toMonsterId_Monster_index;
-        public bool _toMonsterId_F = false;
         internal GainEntry _gain;
         internal RequirementGroupRecord _requirementGroupId;
         internal string _requirementGroupId_RequirementGroup_index;
-        public bool _requirementGroupId_F = false;
         internal CostsEntry[] _costs = System.Array.Empty<CostsEntry>();
         #endregion
 
@@ -351,7 +347,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._fromMonsterId_Monster_index = value;
                                 record._fromMonsterId = default(MonsterRecord); // will be assigned.
-                                record._fromMonsterId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -369,7 +364,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._toMonsterId_Monster_index = value;
                                 record._toMonsterId = default(MonsterRecord); // will be assigned.
-                                record._toMonsterId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -483,7 +477,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._requirementGroupId_RequirementGroup_index = value;
                                 record._requirementGroupId = default(RequirementGroupRecord); // will be assigned.
-                                record._requirementGroupId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -501,7 +494,6 @@ namespace Wildling.Data
                             {
                                 record._costs[j].CurrencyId = cursor.NextString();
                                 record._costs[j].CurrencyByCurrencyId = default(CurrencyRecord); // will be assigned.
-                                record._costs[j].CurrencyId_F = false;
                             }
                         }
                         break;

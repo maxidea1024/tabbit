@@ -122,7 +122,6 @@ namespace Wildling.Data
         #region Storage
         internal SkillRecord _skillId;
         internal string _skillId_Skill_index;
-        public bool _skillId_F = false;
         internal int _order;
         internal EffectEntry _effect;
         #endregion
@@ -321,7 +320,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._skillId_Skill_index = value;
                                 record._skillId = default(SkillRecord); // will be assigned.
-                                record._skillId_F = false;
                             } while (--n > 0);
                         }
                         break;

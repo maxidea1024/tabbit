@@ -48,10 +48,8 @@ export class PaintRecord {
   public _index: number = 0
   public _colourId: ColourRecord
   public _colourId_Colour_index: number = 0
-  public _colourId_F: boolean = false
   public _brushId: BrushRecord
   public _brushId_Brush_index: number = 0
-  public _brushId_F: boolean = false
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {

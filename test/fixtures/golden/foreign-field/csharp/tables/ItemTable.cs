@@ -47,7 +47,6 @@ namespace Tabbit.Fixtures.X
         internal string _name = "";
         internal string _categoryName;
         public int _categoryName_ItemCategory_index;
-        public bool _categoryName_F = false;
         #endregion
 
         #region ToString
@@ -308,7 +307,6 @@ namespace Tabbit.Fixtures.X
                                 var record = records[i++];
                                 record._categoryName_ItemCategory_index = value;
                                 record._categoryName = default(string); // will be assigned.
-                                record._categoryName_F = false;
                             } while (--n > 0);
                         }
                         break;

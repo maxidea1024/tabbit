@@ -53,10 +53,8 @@ namespace Wildling.Data
         #region Storage
         internal MonsterRecord _monsterId;
         internal string _monsterId_Monster_index;
-        public bool _monsterId_F = false;
         internal SkillRecord _skillId;
         internal string _skillId_Skill_index;
-        public bool _skillId_F = false;
         internal global::Wildling.Data.SlotKind _slotKind;
         internal int _unlockStage;
         #endregion
@@ -256,7 +254,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._monsterId_Monster_index = value;
                                 record._monsterId = default(MonsterRecord); // will be assigned.
-                                record._monsterId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -274,7 +271,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._skillId_Skill_index = value;
                                 record._skillId = default(SkillRecord); // will be assigned.
-                                record._skillId_F = false;
                             } while (--n > 0);
                         }
                         break;

@@ -48,10 +48,8 @@ namespace Tabbit.Fixtures.SerialRef
         internal int _index;
         internal PieceRecord[] _slot = System.Array.Empty<PieceRecord>();
         internal int[] _slot_Piece_index = System.Array.Empty<int>();
-        public bool[] _slot_F = System.Array.Empty<bool>();
         internal int[] _tier = System.Array.Empty<int>();
         public int[] _tier_Piece_index = System.Array.Empty<int>();
-        public bool[] _tier_F = System.Array.Empty<bool>();
         #endregion
 
         #region ToString
@@ -293,12 +291,10 @@ namespace Tabbit.Fixtures.SerialRef
                             elementCount = cursor.NextLength();
                             record._slot = new PieceRecord[elementCount];
                             record._slot_Piece_index = new int[elementCount];
-                            record._slot_F = new bool[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
                                 record._slot_Piece_index[j] = cursor.NextI32();
                                 record._slot[j] = default(PieceRecord); // will be assigned.
-                                record._slot_F[j] = false;
                             }
                         }
                         break;
@@ -313,12 +309,10 @@ namespace Tabbit.Fixtures.SerialRef
                             elementCount = cursor.NextLength();
                             record._tier = new int[elementCount];
                             record._tier_Piece_index = new int[elementCount];
-                            record._tier_F = new bool[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
                                 record._tier_Piece_index[j] = cursor.NextI32();
                                 record._tier[j] = default(int); // will be assigned.
-                                record._tier_F[j] = false;
                             }
                         }
                         break;

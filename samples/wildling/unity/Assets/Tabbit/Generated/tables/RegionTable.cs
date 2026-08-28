@@ -105,7 +105,6 @@ namespace Wildling.Data
         internal FogColorEntry _fogColor;
         internal RequirementGroupRecord _requirementGroupId;
         internal string _requirementGroupId_RequirementGroup_index;
-        public bool _requirementGroupId_F = false;
         internal bool _requirementGroupIdHasValue;
         #endregion
 
@@ -478,7 +477,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._requirementGroupId_RequirementGroup_index = value;
                                 record._requirementGroupId = default(RequirementGroupRecord); // will be assigned.
-                                record._requirementGroupId_F = false;
                             } while (--n > 0);
                         }
                         for (int i = 0; i < count; i++)

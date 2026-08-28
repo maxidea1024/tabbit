@@ -101,6 +101,7 @@
 | [레코드 안의 참조](../spec/references/references-in-records.md) | 레코드 그룹의 멤버가 다른 테이블을 가리킬 때 |
 | [다중 대상 참조의 접근자](../spec/references/multi-target-accessors.md) | 공개 표면은 대상별로, 저장은 슬롯 하나와 식별자로 — **되돌림** |
 | [참조의 「없음」](../spec/references/reference-optionality.md) | 참조 컬럼의 빈 칸. 없음은 명시적으로, 허용된 자리에서만 |
+| [참조의 해석 여부](../spec/references/resolution-flag.md) | C#·TypeScript만 내던 `_F` 플래그를 없애고 널과 키로 판정 |
 | [다형과 참조 배열](../spec/types/polymorphism.md) | 추상 타입의 변종을 가리키는 참조와, 필드 구성이 행마다 다른 레코드 |
 
 ### 검증

@@ -1,7 +1,7 @@
 // Read-back check for an array of references - numbered reference columns folded into one.
 //
-// A compile cannot answer any of this. The read allocates three arrays per column and fills
-// one of them; the linking pass walks the keys and writes the resolved values into another.
+// A compile cannot answer any of this. The read allocates two arrays per column and fills
+// one of them; the linking pass walks the keys and writes the resolved values into the other.
 // Generated code that builds and resolves nothing - or resolves element 0 and leaves the rest
 // - is exactly what this shape produced while nothing read it.
 //
@@ -50,15 +50,19 @@ internal static class Program
                     ["slots"] = r.PieceBySlot.Select((piece, at) => new Dictionary<string, object>
                     {
                         ["key"] = r.Slot[at],
-                        ["resolved"] = r._slot_F[at] ? piece.Name : "<unresolved>",
+                        ["resolved"] = piece != null ? piece.Name : "<unresolved>",
                     }).ToList(),
 
                     // A field reference: the target's own value rather than its row, so the
-                    // resolved member is an `int` and there is no name to print.
+                    // resolved member is an `int` - no name to print, and no null to read the
+                    // resolution off. The key answers instead, which is the same question the
+                    // linking pass asked before it wrote the value.
                     ["tiers"] = r.Tier.Select((tier, at) => new Dictionary<string, object>
                     {
                         ["key"] = r._tier_Piece_index[at],
-                        ["resolved"] = r._tier_F[at] ? tier.ToString() : "<unresolved>",
+                        ["resolved"] = r._tier_Piece_index[at] > 0
+                            ? tier.ToString()
+                            : "<unresolved>",
                     }).ToList(),
                 }).ToList(),
 
@@ -75,13 +79,15 @@ internal static class Program
                     ["slots"] = r.BitBySlot.Select((bit, at) => new Dictionary<string, object>
                     {
                         ["key"] = r.Slot[at],
-                        ["resolved"] = r._slot_F[at] ? bit.Name : "<unresolved>",
+                        ["resolved"] = bit != null ? bit.Name : "<unresolved>",
                     }).ToList(),
 
                     ["tiers"] = r.Tier.Select((tier, at) => new Dictionary<string, object>
                     {
                         ["key"] = r._tier_Bit_index[at],
-                        ["resolved"] = r._tier_F[at] ? tier.ToString() : "<unresolved>",
+                        ["resolved"] = r._tier_Bit_index[at] > 0
+                            ? tier.ToString()
+                            : "<unresolved>",
                     }).ToList(),
                 }).ToList(),
             };

@@ -58,11 +58,9 @@ namespace Tabbit.Fixtures.SerialRef
         internal int _index;
         internal BitRecord[] _slot = System.Array.Empty<BitRecord>();
         internal int[] _slot_Bit_index = System.Array.Empty<int>();
-        public bool[] _slot_F = System.Array.Empty<bool>();
         internal bool[] _slotHasValueAt;
         internal int[] _tier = System.Array.Empty<int>();
         public int[] _tier_Bit_index = System.Array.Empty<int>();
-        public bool[] _tier_F = System.Array.Empty<bool>();
         internal bool[] _tierHasValueAt;
         #endregion
 
@@ -309,7 +307,6 @@ namespace Tabbit.Fixtures.SerialRef
                             elementCount = cursor.NextLength();
                             record._slot = new BitRecord[elementCount];
                             record._slot_Bit_index = new int[elementCount];
-                            record._slot_F = new bool[elementCount];
                             record._slotHasValueAt = new bool[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
@@ -317,7 +314,6 @@ namespace Tabbit.Fixtures.SerialRef
                                     TcbTable.IsPresent(elementPresence, elementAt++);
                                 record._slot_Bit_index[j] = cursor.NextI32();
                                 record._slot[j] = default(BitRecord); // will be assigned.
-                                record._slot_F[j] = false;
                             }
                         }
                         break;
@@ -334,7 +330,6 @@ namespace Tabbit.Fixtures.SerialRef
                             elementCount = cursor.NextLength();
                             record._tier = new int[elementCount];
                             record._tier_Bit_index = new int[elementCount];
-                            record._tier_F = new bool[elementCount];
                             record._tierHasValueAt = new bool[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
@@ -342,7 +337,6 @@ namespace Tabbit.Fixtures.SerialRef
                                     TcbTable.IsPresent(elementPresence, elementAt++);
                                 record._tier_Bit_index[j] = cursor.NextI32();
                                 record._tier[j] = default(int); // will be assigned.
-                                record._tier_F[j] = false;
                             }
                         }
                         break;

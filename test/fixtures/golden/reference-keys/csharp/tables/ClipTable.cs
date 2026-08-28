@@ -56,13 +56,10 @@ namespace Tabbit.Fixtures.ReferenceKeys
         internal int _index;
         internal AnimationRecord _anim;
         internal string _anim_Animation_index;
-        public bool _anim_F = false;
         internal LedgerRecord _entry;
         internal long _entry_Ledger_index;
-        public bool _entry_F = false;
         internal ArtRecord _cover;
         internal System.Guid _cover_Art_index;
-        public bool _cover_F = false;
         #endregion
 
         #region ToString
@@ -308,7 +305,6 @@ namespace Tabbit.Fixtures.ReferenceKeys
                                 var record = records[i++];
                                 record._anim_Animation_index = value;
                                 record._anim = default(AnimationRecord); // will be assigned.
-                                record._anim_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -321,7 +317,6 @@ namespace Tabbit.Fixtures.ReferenceKeys
                             var record = records[i];
                             record._entry_Ledger_index = cursor.NextI64();
                             record._entry = default(LedgerRecord); // will be assigned.
-                            record._entry_F = false;
                         }
                         break;
 
@@ -332,7 +327,6 @@ namespace Tabbit.Fixtures.ReferenceKeys
                             var record = records[i];
                             reader.Read(out record._cover_Art_index);
                             record._cover = default(ArtRecord); // will be assigned.
-                            record._cover_F = false;
                         }
                         break;
 

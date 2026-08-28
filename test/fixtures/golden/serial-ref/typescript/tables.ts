@@ -165,7 +165,6 @@ export class Tables {
           const target = this._piece.getByIndexOrThrow(
             record._slot_Piece_index[i])
           record.setReference_slot_INTERNAL(i, target)
-          record._slot_F[i] = true
         }
       }
       for (let i = 0; i < record._tier_Piece_index.length; i++) {
@@ -173,7 +172,6 @@ export class Tables {
           const target = this._piece.getByIndexOrThrow(
             record._tier_Piece_index[i])
           record.setReference_tier_INTERNAL(i, target.tier)
-          record._tier_F[i] = true
         }
       }
     }
@@ -184,7 +182,6 @@ export class Tables {
           const target = this._bit.getByIndexOrThrow(
             record._slot_Bit_index[i])
           record.setReference_slot_INTERNAL(i, target)
-          record._slot_F[i] = true
         }
       }
       for (let i = 0; i < record._tier_Bit_index.length; i++) {
@@ -192,7 +189,6 @@ export class Tables {
           const target = this._bit.getByIndexOrThrow(
             record._tier_Bit_index[i])
           record.setReference_tier_INTERNAL(i, target.tier)
-          record._tier_F[i] = true
         }
       }
     }

@@ -47,7 +47,6 @@ namespace Tabbit.Fixtures.CompositeKey
         internal int _seq;
         internal BeastRecord _beastId;
         internal string _beastId_Beast_index;
-        public bool _beastId_F = false;
         internal string _note = "";
         #endregion
 
@@ -293,7 +292,6 @@ namespace Tabbit.Fixtures.CompositeKey
                                 var record = records[i++];
                                 record._beastId_Beast_index = value;
                                 record._beastId = default(BeastRecord); // will be assigned.
-                                record._beastId_F = false;
                             } while (--n > 0);
                         }
                         break;

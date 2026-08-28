@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-28T21:28:17.6789460+09:00",
+    "generatedAt": "2026-08-28T21:50:21.3728984+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "recipe.jsonc",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "5e6b55de88a23b02fb2443aa8d4655489629c9b7",
-      "shortHash": "5e6b55de88a2",
+      "hash": "3da18ee29dacbb4ae44f2b65035acd5d7097b932",
+      "shortHash": "3da18ee29dac",
       "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-28T21:20:57.0000000+09:00",
-      "subject": "fix: html 문서에서 읽히지 않던 것들 — 논리값·설명의 강조·고정 컬럼·구조체의 구성",
+      "committedAt": "2026-08-28T21:29:43.0000000+09:00",
+      "subject": "docs: clover의 enum 레이블 설명 227개",
       "origin": "git",
       "dirty": true,
       "attributable": false

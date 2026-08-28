@@ -49,9 +49,9 @@ internal static class Program
                     ["slots"] = r.Slot.Select(s => new Dictionary<string, object>
                     {
                         ["key"] = s.ItemId,
-                        ["resolved"] = s.ItemId_F ? s.ItemByItemId.Name : "<unresolved>",
+                        ["resolved"] = s.ItemByItemId != null ? s.ItemByItemId.Name : "<unresolved>",
                         ["swapKey"] = s.SwapId,
-                        ["swap"] = s.SwapId_F ? s.ItemBySwapId.Name : "<unresolved>",
+                        ["swap"] = s.ItemBySwapId != null ? s.ItemBySwapId.Name : "<unresolved>",
                         ["count"] = s.Count,
                     }).ToList(),
                 }).ToList(),
@@ -62,12 +62,12 @@ internal static class Program
                 {
                     ["index"] = r.Index,
                     ["key"] = r.Main.ItemId,
-                    ["resolved"] = r.Main.ItemId_F ? r.Main.ItemByItemId.Name : "<unresolved>",
+                    ["resolved"] = r.Main.ItemByItemId != null ? r.Main.ItemByItemId.Name : "<unresolved>",
                     ["count"] = r.Main.Count,
                 }).ToList(),
 
-                // A record of arrays: the number is on the member, so the key and the flag
-                // are arrays beside the rows they belong to rather than single values.
+                // A record of arrays: the number is on the member, so the key is an array
+                // beside the rows it belongs to rather than a single value.
                 ["Bag"] = RecordRefAccessor.Bag.Records.Select(r => new Dictionary<string, object>
                 {
                     ["index"] = r.Index,
@@ -75,7 +75,7 @@ internal static class Program
                                           .Select(k => new Dictionary<string, object>
                                           {
                                               ["key"] = r.Slots.ItemId[k],
-                                              ["resolved"] = r.Slots.ItemId_F[k]
+                                              ["resolved"] = r.Slots.ItemByItemId[k] != null
                                                   ? r.Slots.ItemByItemId[k].Name
                                                   : "<unresolved>",
                                               ["count"] = r.Slots.Count[k],
@@ -90,7 +90,7 @@ internal static class Program
                     ["rigs"] = r.Rig.Select(g => new Dictionary<string, object>
                     {
                         ["key"] = g.Core.ItemId,
-                        ["resolved"] = g.Core.ItemId_F ? g.Core.ItemByItemId.Name : "<unresolved>",
+                        ["resolved"] = g.Core.ItemByItemId != null ? g.Core.ItemByItemId.Name : "<unresolved>",
                         ["count"] = g.Core.Count,
                     }).ToList(),
                 }).ToList(),
@@ -103,7 +103,7 @@ internal static class Program
                     ["steps"] = r.Step.Select(s => new Dictionary<string, object>
                     {
                         ["key"] = s.ClipId,
-                        ["resolved"] = s.ClipId_F ? s.ClipByClipId.Index : "<unresolved>",
+                        ["resolved"] = s.ClipByClipId != null ? s.ClipByClipId.Index : "<unresolved>",
                         ["weight"] = s.Weight,
                     }).ToList(),
                 }).ToList(),
@@ -117,7 +117,7 @@ internal static class Program
                     ["parts"] = r.Part.Select(p => new Dictionary<string, object>
                     {
                         ["key"] = p.ItemId,
-                        ["resolved"] = p.ItemId_F ? p.ItemByItemId.Name : "<unresolved>",
+                        ["resolved"] = p.ItemByItemId != null ? p.ItemByItemId.Name : "<unresolved>",
                         ["count"] = p.Count,
                     }).ToList(),
                 }).ToList(),

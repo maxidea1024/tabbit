@@ -21,7 +21,6 @@ export interface StepEntry {
   /** element 1, a string key */
   clipId: string
   clipByClipId: ClipRecord | undefined
-  clipId_F: boolean
   /** element 1, an ordinary member */
   weight: number
 }
@@ -57,7 +56,7 @@ export class PoseRecord {
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
-    this._step = dataRow.step.map(e => ({ clipByClipId: undefined, clipId: e.clipId, clipId_F: false, weight: e.weight }))
+    this._step = dataRow.step.map(e => ({ clipByClipId: undefined, clipId: e.clipId, weight: e.weight }))
   }
 
   /** Populate field values. */
@@ -68,7 +67,7 @@ export class PoseRecord {
     offset += 2
     const _step_weight = dataRow.slice(offset, offset + 2)
     offset += 2
-    this._step = Array.from({ length: 2 }, (_, k) => ({ clipByClipId: undefined, clipId: _step_clipId[k], clipId_F: false, weight: _step_weight[k] }))
+    this._step = Array.from({ length: 2 }, (_, k) => ({ clipByClipId: undefined, clipId: _step_clipId[k], weight: _step_weight[k] }))
   }
 }
 
@@ -232,7 +231,7 @@ export class PoseTable {
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
-            record._step = Array.from({ length: elementCount }, () => ({ clipByClipId: undefined, clipId: "", clipId_F: false, weight: 0 }))
+            record._step = Array.from({ length: elementCount }, () => ({ clipByClipId: undefined, clipId: "", weight: 0 }))
             for (let j = 0; j < elementCount; ++j)
               record._step[j].clipId = cursor.nextString()
           }

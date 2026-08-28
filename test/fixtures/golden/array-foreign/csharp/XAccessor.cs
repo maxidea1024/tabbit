@@ -204,7 +204,6 @@ namespace Tabbit.Fixtures.X
                     if (record._targets_Target_index[i] > 0)
                     {
                         record.SetReference_Targets_INTERNAL(i, snapshot.Target.GetByIndexOrThrow(record._targets_Target_index[i]));
-                        record._targets_F[i] = true;
                     }
                 }
                 for (int i = 0; i < record._notes_Target_index.Length; i++)
@@ -212,7 +211,6 @@ namespace Tabbit.Fixtures.X
                     if (record._notes_Target_index[i] > 0)
                     {
                         record.SetReference_Notes_INTERNAL(i, snapshot.Target.GetByIndexOrThrow(record._notes_Target_index[i]).Note);
-                        record._notes_F[i] = true;
                     }
                 }
             }

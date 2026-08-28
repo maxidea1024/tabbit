@@ -73,10 +73,8 @@ namespace Wildling.Data
         internal int _goalCount;
         internal RequirementGroupRecord _requirementGroupId;
         internal string _requirementGroupId_RequirementGroup_index;
-        public bool _requirementGroupId_F = false;
         internal RewardGroupRecord _rewardGroupId;
         internal string _rewardGroupId_RewardGroup_index;
-        public bool _rewardGroupId_F = false;
         #endregion
 
         #region ToString
@@ -389,7 +387,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._requirementGroupId_RequirementGroup_index = value;
                                 record._requirementGroupId = default(RequirementGroupRecord); // will be assigned.
-                                record._requirementGroupId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -407,7 +404,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._rewardGroupId_RewardGroup_index = value;
                                 record._rewardGroupId = default(RewardGroupRecord); // will be assigned.
-                                record._rewardGroupId_F = false;
                             } while (--n > 0);
                         }
                         break;

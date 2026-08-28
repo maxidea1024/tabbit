@@ -260,7 +260,6 @@ namespace Tabbit.Fixtures.RecordRef
                     if (record._slot[j].ItemId > 0)
                     {
                         record._slot[j].ItemByItemId = snapshot.Item.GetByIndexOrThrow(record._slot[j].ItemId);
-                        record._slot[j].ItemId_F = true;
                     }
                 }
                 for (int j = 0; j < record._slot.Length; j++)
@@ -268,7 +267,6 @@ namespace Tabbit.Fixtures.RecordRef
                     if (record._slot[j].SwapId > 0)
                     {
                         record._slot[j].ItemBySwapId = snapshot.Item.GetByIndexOrThrow(record._slot[j].SwapId);
-                        record._slot[j].SwapId_F = true;
                     }
                 }
             }
@@ -278,7 +276,6 @@ namespace Tabbit.Fixtures.RecordRef
                 if (record._main.ItemId > 0)
                 {
                     record._main.ItemByItemId = snapshot.Item.GetByIndexOrThrow(record._main.ItemId);
-                    record._main.ItemId_F = true;
                 }
             }
 
@@ -289,7 +286,6 @@ namespace Tabbit.Fixtures.RecordRef
                     if (record._slots.ItemId[j] > 0)
                     {
                         record._slots.ItemByItemId[j] = snapshot.Item.GetByIndexOrThrow(record._slots.ItemId[j]);
-                        record._slots.ItemId_F[j] = true;
                     }
                 }
             }
@@ -301,7 +297,6 @@ namespace Tabbit.Fixtures.RecordRef
                     if (record._rig[j].Core.ItemId > 0)
                     {
                         record._rig[j].Core.ItemByItemId = snapshot.Item.GetByIndexOrThrow(record._rig[j].Core.ItemId);
-                        record._rig[j].Core.ItemId_F = true;
                     }
                 }
             }
@@ -313,7 +308,6 @@ namespace Tabbit.Fixtures.RecordRef
                     if (record._step[j].ClipId is { Length: > 0 })
                     {
                         record._step[j].ClipByClipId = snapshot.Clip.GetByIndexOrThrow(record._step[j].ClipId);
-                        record._step[j].ClipId_F = true;
                     }
                 }
             }
@@ -323,12 +317,10 @@ namespace Tabbit.Fixtures.RecordRef
                 if (record._mark.ClipId is { Length: > 0 })
                 {
                     record._mark.ClipByClipId = snapshot.Clip.GetByIndexOrThrow(record._mark.ClipId);
-                    record._mark.ClipId_F = true;
                 }
                 if (record._mark.SealId != System.Guid.Empty)
                 {
                     record._mark.SealBySealId = snapshot.Seal.GetByIndexOrThrow(record._mark.SealId);
-                    record._mark.SealId_F = true;
                 }
             }
 
@@ -339,7 +331,6 @@ namespace Tabbit.Fixtures.RecordRef
                     if (record._part[j].ItemId > 0)
                     {
                         record._part[j].ItemByItemId = snapshot.Item.GetByIndexOrThrow(record._part[j].ItemId);
-                        record._part[j].ItemId_F = true;
                     }
                 }
             }

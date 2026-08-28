@@ -61,7 +61,6 @@ namespace Clover.Data
         internal int _cost;
         internal VoucherRecord _upgradesFrom;
         internal string _upgradesFrom_Voucher_index;
-        public bool _upgradesFrom_F = false;
         internal bool _upgradesFromHasValue;
         internal int _sortOrder;
         #endregion
@@ -344,7 +343,6 @@ namespace Clover.Data
                                 var record = records[i++];
                                 record._upgradesFrom_Voucher_index = value;
                                 record._upgradesFrom = default(VoucherRecord); // will be assigned.
-                                record._upgradesFrom_F = false;
                             } while (--n > 0);
                         }
                         for (int i = 0; i < count; i++)

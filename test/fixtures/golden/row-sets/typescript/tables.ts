@@ -164,13 +164,11 @@ export class Tables {
         const target = this._colour.getByIndexOrThrow(
           record._colourId_Colour_index)
         record.setReference_colourId_INTERNAL(target)
-        record._colourId_F = true
       }
       if (record._brushId_Brush_index > 0) {
         const target = this._brush.getByIndexOrThrow(
           record._brushId_Brush_index)
         record.setReference_brushId_INTERNAL(target)
-        record._brushId_F = true
       }
     }
   }

@@ -46,7 +46,6 @@ namespace Tabbit.Fixtures.CompositeKey
         #region Storage
         internal MoveRecord _moveId;
         internal int _moveId_Move_index;
-        public bool _moveId_F = false;
         internal string _note = "";
         internal int _pad1;
         #endregion
@@ -277,7 +276,6 @@ namespace Tabbit.Fixtures.CompositeKey
                                 var record = records[i++];
                                 record._moveId_Move_index = value;
                                 record._moveId = default(MoveRecord); // will be assigned.
-                                record._moveId_F = false;
                             } while (--n > 0);
                         }
                         break;

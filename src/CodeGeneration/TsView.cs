@@ -110,9 +110,6 @@ internal sealed class TsRecordReferenceView
     /// <summary>The stored key it resolves through.</summary>
     public required string Key { get; set; }
 
-    /// <summary>The flag recording that the resolution happened.</summary>
-    public required string Flag { get; set; }
-
     /// <summary>
     /// The loop bound, or empty where the group is one record and there is nothing to walk.
     /// </summary>
@@ -449,20 +446,16 @@ internal sealed class TsRecordMemberView
     /// The type of the stored key where the member is a reference, and empty otherwise.
     /// </summary>
     /// <remarks>
-    /// A reference member carries three things where an ordinary one carries a value: the row
-    /// it resolved to, the key that came off the wire, and whether the resolution happened.
-    /// All three inside the element, because a group may hold more than one reference and a
-    /// name built from the group and the target would collide the moment two members point at
-    /// one table. spec/references/references-in-records.md.
+    /// A reference member carries two things where an ordinary one carries a value: the row
+    /// it resolved to, and the key that came off the wire. Both inside the element, because a
+    /// group may hold more than one reference and a name built from the group and the target
+    /// would collide the moment two members point at one table.
+    /// spec/references/references-in-records.md.
     /// </remarks>
     public string RefKeyTypeName { get; set; } = "";
 
-    /// <summary>The type of the resolution flag, on the same condition.</summary>
-    public string RefFlagTypeName { get; set; } = "";
-
-    /// <summary>What the stored key and the flag hold before a row is read.</summary>
+    /// <summary>What the stored key holds before a row is read.</summary>
     public string RefKeyDefault { get; set; } = "";
-    public string RefFlagDefault { get; set; } = "";
 
     /// <summary>
     /// Whether this member is itself a record, so its type is another generated interface.

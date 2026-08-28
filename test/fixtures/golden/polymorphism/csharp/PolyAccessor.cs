@@ -206,7 +206,6 @@ public partial class PolyAccessor
             if (record._effect.ElementId > 0)
             {
                 record._effect.ElementByElementId = snapshot.Element.GetByCodeOrThrow(record._effect.ElementId);
-                record._effect.ElementId_F = true;
             }
         }
 
@@ -217,7 +216,6 @@ public partial class PolyAccessor
                 if (record._effects[j].ElementId > 0)
                 {
                     record._effects[j].ElementByElementId = snapshot.Element.GetByCodeOrThrow(record._effects[j].ElementId);
-                    record._effects[j].ElementId_F = true;
                 }
             }
         }

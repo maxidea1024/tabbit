@@ -143,13 +143,11 @@
                     if (record.{{ field.field_name }}_{{ field.ref_table }}_index[i] {{ field.ref_is_set }})
                     {
                         record.SetReference_{{ field.pascal_name }}_INTERNAL(i, snapshot.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.field_name }}_{{ field.ref_table }}_index[i]).{{ field.ref_field }});
-                        record.{{ field.field_name }}_F[i] = true;
                     }
 {{~ else ~}}
                     if (record.{{ field.field_name }}_{{ field.ref_table }}_index[i] {{ field.ref_is_set }})
                     {
                         record.SetReference_{{ field.pascal_name }}_INTERNAL(i, snapshot.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.field_name }}_{{ field.ref_table }}_index[i]));
-                        record.{{ field.field_name }}_F[i] = true;
                     }
 {{~ end ~}}
                 }
@@ -161,7 +159,6 @@
 {{~ else ~}}
                     record.SetReference_{{ field.pascal_name }}_INTERNAL(snapshot.{{ field.ref_table }}.{{ field.ref_lookup }}(record.{{ field.field_name }}_{{ field.ref_table }}_index));
 {{~ end ~}}
-                    record.{{ field.field_name }}_F = true;
                 }
 {{~ end ~}}
 {{~ end ~}}
@@ -176,14 +173,12 @@
                     if ({{ ref.key }} {{ ref.ref_is_set }})
                     {
                         {{ ref.access }} = snapshot.{{ ref.ref_table }}.{{ ref.ref_lookup }}({{ ref.key }});
-                        {{ ref.flag }} = true;
                     }
                 }
 {{~ else ~}}
                 if ({{ ref.key }} {{ ref.ref_is_set }})
                 {
                     {{ ref.access }} = snapshot.{{ ref.ref_table }}.{{ ref.ref_lookup }}({{ ref.key }});
-                    {{ ref.flag }} = true;
                 }
 {{~ end ~}}
 {{~ end ~}}

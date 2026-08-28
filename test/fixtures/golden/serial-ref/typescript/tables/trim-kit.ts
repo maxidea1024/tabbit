@@ -58,18 +58,16 @@ export class TrimKitRecord {
   public _index: number = 0
   public _slot: BitRecord[] = []
   public _slot_Bit_index: number[] = []
-  public _slot_F: boolean[] = []
   public _slotHasValueAt: boolean[] | null = null
   public _tier: number[] = []
   public _tier_Bit_index: number[] = []
-  public _tier_F: boolean[] = []
   public _tierHasValueAt: boolean[] | null = null
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
-    this._slot_Bit_index = dataRow.slot; this._slot = new Array(this._slot_Bit_index.length).fill(undefined); this._slot_F = new Array(this._slot_Bit_index.length).fill(false)
-    this._tier_Bit_index = dataRow.tier; this._tier = new Array(this._tier_Bit_index.length).fill(undefined); this._tier_F = new Array(this._tier_Bit_index.length).fill(false)
+    this._slot_Bit_index = dataRow.slot; this._slot = new Array(this._slot_Bit_index.length).fill(undefined)
+    this._tier_Bit_index = dataRow.tier; this._tier = new Array(this._tier_Bit_index.length).fill(undefined)
   }
 
   /** Populate field values. */
@@ -77,10 +75,10 @@ export class TrimKitRecord {
     let offset = 0
     this._index = dataRow[offset++]
     this._slot_Bit_index = dataRow.slice(offset, offset + 3)
-    this._slot = new Array(this._slot_Bit_index.length).fill(undefined); this._slot_F = new Array(this._slot_Bit_index.length).fill(false)
+    this._slot = new Array(this._slot_Bit_index.length).fill(undefined)
     offset += 3
     this._tier_Bit_index = dataRow.slice(offset, offset + 3)
-    this._tier = new Array(this._tier_Bit_index.length).fill(undefined); this._tier_F = new Array(this._tier_Bit_index.length).fill(false)
+    this._tier = new Array(this._tier_Bit_index.length).fill(undefined)
     offset += 3
   }
 }
@@ -250,7 +248,6 @@ export class TrimKitTable {
             const record = records[i]
             const elementCount = cursor.nextLength()
             record._slot = new Array(elementCount).fill(undefined)
-            record._slot_F = new Array(elementCount).fill(false)
             record._slot_Bit_index = []
             record._slotHasValueAt = []
             for (let j = 0; j < elementCount; ++j) {
@@ -269,7 +266,6 @@ export class TrimKitTable {
             const record = records[i]
             const elementCount = cursor.nextLength()
             record._tier = new Array(elementCount).fill(undefined)
-            record._tier_F = new Array(elementCount).fill(false)
             record._tier_Bit_index = []
             record._tierHasValueAt = []
             for (let j = 0; j < elementCount; ++j) {

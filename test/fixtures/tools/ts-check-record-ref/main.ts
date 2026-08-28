@@ -43,8 +43,8 @@ function compare(table: string, index: number, field: string, fromJson: unknown,
  * The target's name rather than its key, so a reference that resolved to the wrong row shows
  * as a different word - comparing the key back would pass whatever the linking pass did.
  */
-function resolved(row: { name: string } | undefined, flag: boolean): string {
-    return flag && row ? row.name : '<unresolved>'
+function resolved(row: { name: string } | undefined): string {
+    return row ? row.name : '<unresolved>'
 }
 
 function main(): number {
@@ -77,22 +77,22 @@ function main(): number {
         for (let k = 0; k < j.slot.length; k++) {
             compare('Loadout', i, `slot[${k}].itemId`, j.slot[k].itemId, b.slot[k].itemId)
             compare('Loadout', i, `slot[${k}].itemByItemId`,
-                    resolved(j.slot[k].itemByItemId, j.slot[k].itemId_F),
-                    resolved(b.slot[k].itemByItemId, b.slot[k].itemId_F))
+                    resolved(j.slot[k].itemByItemId),
+                    resolved(b.slot[k].itemByItemId))
             compare('Loadout', i, `slot[${k}].count`, j.slot[k].count, b.slot[k].count)
 
             // The second reference of the same element, at the same table. A key named after
             // the group and the target would be one name for both.
             compare('Loadout', i, `slot[${k}].itemBySwapId`,
-                    resolved(j.slot[k].itemBySwapId, j.slot[k].swapId_F),
-                    resolved(b.slot[k].itemBySwapId, b.slot[k].swapId_F))
+                    resolved(j.slot[k].itemBySwapId),
+                    resolved(b.slot[k].itemBySwapId))
 
             compare('Loadout', i, `compact slot[${k}].itemByItemId`,
-                    resolved(c.slot[k].itemByItemId, c.slot[k].itemId_F),
-                    resolved(b.slot[k].itemByItemId, b.slot[k].itemId_F))
+                    resolved(c.slot[k].itemByItemId),
+                    resolved(b.slot[k].itemByItemId))
             compare('Loadout', i, `compact slot[${k}].itemBySwapId`,
-                    resolved(c.slot[k].itemBySwapId, c.slot[k].swapId_F),
-                    resolved(b.slot[k].itemBySwapId, b.slot[k].swapId_F))
+                    resolved(c.slot[k].itemBySwapId),
+                    resolved(b.slot[k].itemBySwapId))
             compare('Loadout', i, `compact slot[${k}].count`, c.slot[k].count, b.slot[k].count)
         }
     }
@@ -105,11 +105,11 @@ function main(): number {
 
         for (let k = 0; k < j.rig.length; k++) {
             compare('Mount', i, `rig[${k}].core.itemByItemId`,
-                    resolved(j.rig[k].core.itemByItemId, j.rig[k].core.itemId_F),
-                    resolved(b.rig[k].core.itemByItemId, b.rig[k].core.itemId_F))
+                    resolved(j.rig[k].core.itemByItemId),
+                    resolved(b.rig[k].core.itemByItemId))
             compare('Mount', i, `compact rig[${k}].core.itemByItemId`,
-                    resolved(c.rig[k].core.itemByItemId, c.rig[k].core.itemId_F),
-                    resolved(b.rig[k].core.itemByItemId, b.rig[k].core.itemId_F))
+                    resolved(c.rig[k].core.itemByItemId),
+                    resolved(b.rig[k].core.itemByItemId))
             compare('Mount', i, `rig[${k}].core.count`, j.rig[k].core.count, b.rig[k].core.count)
         }
     }
@@ -123,8 +123,8 @@ function main(): number {
         for (let k = 0; k < j.step.length; k++) {
             compare('Pose', i, `step[${k}].clipId`, j.step[k].clipId, b.step[k].clipId)
             compare('Pose', i, `step[${k}].clipByClipId`,
-                    j.step[k].clipId_F ? j.step[k].clipByClipId!.index : '<unresolved>',
-                    b.step[k].clipId_F ? b.step[k].clipByClipId!.index : '<unresolved>')
+                    j.step[k].clipByClipId ? j.step[k].clipByClipId!.index : '<unresolved>',
+                    b.step[k].clipByClipId ? b.step[k].clipByClipId!.index : '<unresolved>')
             compare('Pose', i, `compact step[${k}].clipId`,
                     c.step[k].clipId, b.step[k].clipId)
         }
@@ -141,11 +141,11 @@ function main(): number {
 
         for (let k = 0; k < j.part.length; k++) {
             compare('Kit', i, `part[${k}].itemByItemId`,
-                    resolved(j.part[k].itemByItemId, j.part[k].itemId_F),
-                    resolved(b.part[k].itemByItemId, b.part[k].itemId_F))
+                    resolved(j.part[k].itemByItemId),
+                    resolved(b.part[k].itemByItemId))
             compare('Kit', i, `compact part[${k}].itemByItemId`,
-                    resolved(c.part[k].itemByItemId, c.part[k].itemId_F),
-                    resolved(b.part[k].itemByItemId, b.part[k].itemId_F))
+                    resolved(c.part[k].itemByItemId),
+                    resolved(b.part[k].itemByItemId))
             compare('Kit', i, `part[${k}].count`, j.part[k].count, b.part[k].count)
         }
     }
@@ -158,13 +158,13 @@ function main(): number {
 
         compare('Holder', i, 'main.itemId', j.main.itemId, b.main.itemId)
         compare('Holder', i, 'main.itemByItemId',
-                resolved(j.main.itemByItemId, j.main.itemId_F),
-                resolved(b.main.itemByItemId, b.main.itemId_F))
+                resolved(j.main.itemByItemId),
+                resolved(b.main.itemByItemId))
         compare('Holder', i, 'main.count', j.main.count, b.main.count)
 
         compare('Holder', i, 'compact main.itemByItemId',
-                resolved(c.main.itemByItemId, c.main.itemId_F),
-                resolved(b.main.itemByItemId, b.main.itemId_F))
+                resolved(c.main.itemByItemId),
+                resolved(b.main.itemByItemId))
     }
 
     // A record of arrays: the element number is on the member.
@@ -178,13 +178,13 @@ function main(): number {
         for (let k = 0; k < j.slots.itemByItemId.length; k++) {
             compare('Bag', i, `slots.itemId[${k}]`, j.slots.itemId[k], b.slots.itemId[k])
             compare('Bag', i, `slots.itemByItemId[${k}]`,
-                    resolved(j.slots.itemByItemId[k], j.slots.itemId_F[k]),
-                    resolved(b.slots.itemByItemId[k], b.slots.itemId_F[k]))
+                    resolved(j.slots.itemByItemId[k]),
+                    resolved(b.slots.itemByItemId[k]))
             compare('Bag', i, `slots.count[${k}]`, j.slots.count[k], b.slots.count[k])
 
             compare('Bag', i, `compact slots.itemByItemId[${k}]`,
-                    resolved(c.slots.itemByItemId[k], c.slots.itemId_F[k]),
-                    resolved(b.slots.itemByItemId[k], b.slots.itemId_F[k]))
+                    resolved(c.slots.itemByItemId[k]),
+                    resolved(b.slots.itemByItemId[k]))
         }
     }
 
@@ -193,17 +193,17 @@ function main(): number {
     // at different rows, so an element index that is off shows here.
     console.log(JSON.stringify({
         loadout: fromBinary.loadout.records.map(
-            r => r.slot.map(s => `${resolved(s.itemByItemId, s.itemId_F)}+${resolved(s.itemBySwapId, s.swapId_F)}`).join('/')),
+            r => r.slot.map(s => `${resolved(s.itemByItemId)}+${resolved(s.itemBySwapId)}`).join('/')),
         holder: fromBinary.holder.records.map(
-            r => resolved(r.main.itemByItemId, r.main.itemId_F)),
+            r => resolved(r.main.itemByItemId)),
         bag: fromBinary.bag.records.map(
-            r => r.slots.itemByItemId.map((_, k) => resolved(r.slots.itemByItemId[k], r.slots.itemId_F[k])).join('/')),
+            r => r.slots.itemByItemId.map((_, k) => resolved(r.slots.itemByItemId[k])).join('/')),
         mount: fromBinary.mount.records.map(
-            r => r.rig.map(g => resolved(g.core.itemByItemId, g.core.itemId_F)).join('/')),
+            r => r.rig.map(g => resolved(g.core.itemByItemId)).join('/')),
         pose: fromBinary.pose.records.map(
-            r => r.step.map(s => s.clipId_F ? s.clipByClipId!.index : '<unresolved>').join('/')),
+            r => r.step.map(s => s.clipByClipId ? s.clipByClipId!.index : '<unresolved>').join('/')),
         kit: fromBinary.kit.records.map(
-            r => r.part.map(p => resolved(p.itemByItemId, p.itemId_F)).join('/')),
+            r => r.part.map(p => resolved(p.itemByItemId)).join('/')),
     }))
 
     console.log(JSON.stringify({ mismatches }))

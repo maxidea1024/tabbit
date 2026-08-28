@@ -244,12 +244,10 @@ namespace Tabbit.Fixtures.CompositeKey
                 if (record._beastId_Beast_index is { Length: > 0 })
                 {
                     record.SetReference_BeastId_INTERNAL(snapshot.Beast.GetByIndexOrThrow(record._beastId_Beast_index));
-                    record._beastId_F = true;
                 }
                 if (record._moveId_Move_index > 0)
                 {
                     record.SetReference_MoveId_INTERNAL(snapshot.Move.GetByIndexOrThrow(record._moveId_Move_index));
-                    record._moveId_F = true;
                 }
             }
 
@@ -258,7 +256,6 @@ namespace Tabbit.Fixtures.CompositeKey
                 if (record._beastId_Beast_index is { Length: > 0 })
                 {
                     record.SetReference_BeastId_INTERNAL(snapshot.Beast.GetByIndexOrThrow(record._beastId_Beast_index));
-                    record._beastId_F = true;
                 }
             }
 
@@ -267,7 +264,6 @@ namespace Tabbit.Fixtures.CompositeKey
                 if (record._moveId_Move_index > 0)
                 {
                     record.SetReference_MoveId_INTERNAL(snapshot.Move.GetByIndexOrThrow(record._moveId_Move_index));
-                    record._moveId_F = true;
                 }
             }
         }

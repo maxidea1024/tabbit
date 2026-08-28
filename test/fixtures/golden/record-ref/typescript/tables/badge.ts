@@ -22,11 +22,9 @@ export interface MarkEntry {
   /** a string key, on the run path */
   clipId: string
   clipByClipId: ClipRecord | undefined
-  clipId_F: boolean
   /** a uuid key, on the run path */
   sealId: string
   sealBySealId: SealRecord | undefined
-  sealId_F: boolean
   /** an ordinary member beside them */
   rank: number
 }
@@ -62,13 +60,13 @@ export class BadgeRecord {
   public get pad(): number { return this._pad }
 
   public _index: number = 0
-  public _mark: MarkEntry = { clipByClipId: undefined, clipId: "", clipId_F: false, sealBySealId: undefined, sealId: "", sealId_F: false, rank: 0 }
+  public _mark: MarkEntry = { clipByClipId: undefined, clipId: "", sealBySealId: undefined, sealId: "", rank: 0 }
   public _pad: number = 0
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
-    this._mark = ((e: any) => ({ clipByClipId: undefined, clipId: e.clipId, clipId_F: false, sealBySealId: undefined, sealId: e.sealId, sealId_F: false, rank: e.rank }))(dataRow.mark)
+    this._mark = ((e: any) => ({ clipByClipId: undefined, clipId: e.clipId, sealBySealId: undefined, sealId: e.sealId, rank: e.rank }))(dataRow.mark)
     this._pad = dataRow.pad
   }
 
@@ -76,7 +74,7 @@ export class BadgeRecord {
   public populateFieldValuesCompact(dataRow: any[]): void {
     let offset = 0
     this._index = dataRow[offset++]
-    this._mark = { clipByClipId: undefined, clipId: dataRow[offset++], clipId_F: false, sealBySealId: undefined, sealId: dataRow[offset++], sealId_F: false, rank: dataRow[offset++] }
+    this._mark = { clipByClipId: undefined, clipId: dataRow[offset++], sealBySealId: undefined, sealId: dataRow[offset++], rank: dataRow[offset++] }
     this._pad = dataRow[offset++]
   }
 }

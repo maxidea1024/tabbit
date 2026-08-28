@@ -50,17 +50,15 @@ export class HolderRecord {
   public _index: number = 0
   public _targets: TargetRecord[] = []
   public _targets_Target_index: number[] = []
-  public _targets_F: boolean[] = []
   public _notes: string[] = []
   public _notes_Target_index: number[] = []
-  public _notes_F: boolean[] = []
   public _label: string = ''
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
-    this._targets_Target_index = dataRow.targets; this._targets = new Array(this._targets_Target_index.length).fill(undefined); this._targets_F = new Array(this._targets_Target_index.length).fill(false)
-    this._notes_Target_index = dataRow.notes; this._notes = new Array(this._notes_Target_index.length).fill(undefined); this._notes_F = new Array(this._notes_Target_index.length).fill(false)
+    this._targets_Target_index = dataRow.targets; this._targets = new Array(this._targets_Target_index.length).fill(undefined)
+    this._notes_Target_index = dataRow.notes; this._notes = new Array(this._notes_Target_index.length).fill(undefined)
     this._label = dataRow.label
   }
 
@@ -69,10 +67,10 @@ export class HolderRecord {
     let offset = 0
     this._index = dataRow[offset++]
     this._targets_Target_index = dataRow.slice(offset, offset + 1)
-    this._targets = new Array(this._targets_Target_index.length).fill(undefined); this._targets_F = new Array(this._targets_Target_index.length).fill(false)
+    this._targets = new Array(this._targets_Target_index.length).fill(undefined)
     offset += 1
     this._notes_Target_index = dataRow.slice(offset, offset + 1)
-    this._notes = new Array(this._notes_Target_index.length).fill(undefined); this._notes_F = new Array(this._notes_Target_index.length).fill(false)
+    this._notes = new Array(this._notes_Target_index.length).fill(undefined)
     offset += 1
     this._label = dataRow[offset++]
   }
@@ -239,7 +237,6 @@ export class HolderTable {
             const record = records[i]
             const elementCount = cursor.nextLength()
             record._targets = new Array(elementCount).fill(undefined)
-            record._targets_F = new Array(elementCount).fill(false)
             record._targets_Target_index = []
             for (let j = 0; j < elementCount; ++j) {
               record._targets_Target_index.push(cursor.nextI32())
@@ -253,7 +250,6 @@ export class HolderTable {
             const record = records[i]
             const elementCount = cursor.nextLength()
             record._notes = new Array(elementCount).fill(undefined)
-            record._notes_F = new Array(elementCount).fill(false)
             record._notes_Target_index = []
             for (let j = 0; j < elementCount; ++j) {
               record._notes_Target_index.push(cursor.nextI32())

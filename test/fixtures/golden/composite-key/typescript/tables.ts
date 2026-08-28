@@ -212,13 +212,11 @@ export class Tables {
         const target = this._beast.getByIndexOrThrow(
           record._beastId_Beast_index)
         record.setReference_beastId_INTERNAL(target)
-        record._beastId_F = true
       }
       if (record._moveId_Move_index > 0) {
         const target = this._move.getByIndexOrThrow(
           record._moveId_Move_index)
         record.setReference_moveId_INTERNAL(target)
-        record._moveId_F = true
       }
     }
 
@@ -227,7 +225,6 @@ export class Tables {
         const target = this._beast.getByIndexOrThrow(
           record._beastId_Beast_index)
         record.setReference_beastId_INTERNAL(target)
-        record._beastId_F = true
       }
     }
 
@@ -236,7 +233,6 @@ export class Tables {
         const target = this._move.getByIndexOrThrow(
           record._moveId_Move_index)
         record.setReference_moveId_INTERNAL(target)
-        record._moveId_F = true
       }
     }
   }

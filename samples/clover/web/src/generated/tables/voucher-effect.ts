@@ -684,7 +684,6 @@ export class VoucherEffectRecord {
 
   public _owner: VoucherRecord
   public _owner_Voucher_index: string = ""
-  public _owner_F: boolean = false
   public _order: number = 0
   public _trigger: Trigger = 0 as Trigger
   public _chanceNum: number = 0

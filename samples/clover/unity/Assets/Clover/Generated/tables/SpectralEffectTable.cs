@@ -693,7 +693,6 @@ namespace Clover.Data
         #region Storage
         internal SpectralRecord _owner;
         internal string _owner_Spectral_index;
-        public bool _owner_F = false;
         internal int _order;
         internal global::Clover.Data.Trigger _trigger;
         internal int _chanceNum;
@@ -918,7 +917,6 @@ namespace Clover.Data
                                 var record = records[i++];
                                 record._owner_Spectral_index = value;
                                 record._owner = default(SpectralRecord); // will be assigned.
-                                record._owner_F = false;
                             } while (--n > 0);
                         }
                         break;

@@ -21,7 +21,6 @@ export interface SlotsEntry {
   /** element 1 of the member */
   itemId: number[]
   itemByItemId: (ItemRecord | undefined)[]
-  itemId_F: boolean[]
   /** element 1 of the member beside it */
   count: number[]
 }
@@ -52,19 +51,19 @@ export class BagRecord {
   public get slots(): SlotsEntry { return this._slots }
 
   public _index: number = 0
-  public _slots: SlotsEntry = { itemByItemId: [undefined, undefined], itemId: [0, 0], itemId_F: [false, false], count: [0, 0] }
+  public _slots: SlotsEntry = { itemByItemId: [undefined, undefined], itemId: [0, 0], count: [0, 0] }
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
-    this._slots = ((e: any) => ({ itemByItemId: e.itemId.map(() => undefined), itemId: e.itemId.map((v: any) => v), itemId_F: e.itemId.map(() => false), count: e.count.map((v: any) => v) }))(dataRow.slots)
+    this._slots = ((e: any) => ({ itemByItemId: e.itemId.map(() => undefined), itemId: e.itemId.map((v: any) => v), count: e.count.map((v: any) => v) }))(dataRow.slots)
   }
 
   /** Populate field values. */
   public populateFieldValuesCompact(dataRow: any[]): void {
     let offset = 0
     this._index = dataRow[offset++]
-    this._slots = { itemByItemId: dataRow.slice(offset + 0, offset + 2).map(() => undefined), itemId: dataRow.slice(offset + 0, offset + 2).map((v: any) => v), itemId_F: dataRow.slice(offset + 0, offset + 2).map(() => false), count: dataRow.slice(offset + 2, offset + 4).map((v: any) => v) }
+    this._slots = { itemByItemId: dataRow.slice(offset + 0, offset + 2).map(() => undefined), itemId: dataRow.slice(offset + 0, offset + 2).map((v: any) => v), count: dataRow.slice(offset + 2, offset + 4).map((v: any) => v) }
     offset += 4
   }
 }

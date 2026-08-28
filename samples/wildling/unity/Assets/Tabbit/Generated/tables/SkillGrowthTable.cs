@@ -51,7 +51,6 @@ namespace Wildling.Data
             /// 소모 재화
             public string CurrencyId;
             public CurrencyRecord CurrencyByCurrencyId;
-            public bool CurrencyId_F;
             /// 첫째 소모 수량
             public int Amount;
 
@@ -72,7 +71,6 @@ namespace Wildling.Data
         #region Storage
         internal SkillRecord _skillId;
         internal string _skillId_Skill_index;
-        public bool _skillId_F = false;
         internal int _level;
         internal int _powerFactor;
         internal CostsEntry[] _costs = System.Array.Empty<CostsEntry>();
@@ -273,7 +271,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._skillId_Skill_index = value;
                                 record._skillId = default(SkillRecord); // will be assigned.
-                                record._skillId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -323,7 +320,6 @@ namespace Wildling.Data
                             {
                                 record._costs[j].CurrencyId = cursor.NextString();
                                 record._costs[j].CurrencyByCurrencyId = default(CurrencyRecord); // will be assigned.
-                                record._costs[j].CurrencyId_F = false;
                             }
                         }
                         break;

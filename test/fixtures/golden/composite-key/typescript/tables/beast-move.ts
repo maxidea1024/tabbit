@@ -47,10 +47,8 @@ export class BeastMoveRecord {
 
   public _beastId: BeastRecord
   public _beastId_Beast_index: string = ""
-  public _beastId_F: boolean = false
   public _moveId: MoveRecord
   public _moveId_Move_index: number = 0
-  public _moveId_F: boolean = false
   public _power: number = 0
 
   /** Populate field values. */

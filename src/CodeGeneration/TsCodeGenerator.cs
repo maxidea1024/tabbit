@@ -530,7 +530,6 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         {
             Access = rowPath + subscript,
             Key = path + subscript,
-            Flag = path + "_F" + subscript,
 
             // Whichever array holds the elements. `length` rather than the column count,
             // because a trimming group's rows differ in how many they carry.
@@ -1107,16 +1106,10 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                             : DefaultValueOf(member.ElementType, member.FirstField),
 
                     RefKeyTypeName = isRef ? keyType + (member.IsArray ? "[]" : "") : "",
-                    RefFlagTypeName = isRef ? "boolean" + (member.IsArray ? "[]" : "") : "",
                     RefKeyDefault = isRef
                         ? (member.IsArray
                             ? "[" + string.Join(", ", Enumerable.Repeat(keyDefault, member.Fields.Count)) + "]"
                             : keyDefault)
-                        : "",
-                    RefFlagDefault = isRef
-                        ? (member.IsArray
-                            ? "[" + string.Join(", ", Enumerable.Repeat("false", member.Fields.Count)) + "]"
-                            : "false")
                         : "",
                 });
 
@@ -1293,7 +1286,6 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         if (member.RefKeyTypeName.Length > 0)
         {
             yield return $"{member.PropName}: {member.RefKeyDefault}";
-            yield return $"{member.PropName}_F: {member.RefFlagDefault}";
         }
 
     }
@@ -1356,14 +1348,12 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                     {
                         $"{rowProp}: {accessor}.{prop}.map(() => undefined)",
                         $"{prop}: {accessor}.{prop}.map((v: any) => {key})",
-                        $"{prop}_F: {accessor}.{prop}.map(() => false)",
                     }
                     : new[]
                     {
                         $"{rowProp}: undefined",
                         $"{prop}: "
                             + FromJsonExpressionOf(member.FirstField!.RefKeyType, $"{accessor}.{prop}"),
-                        $"{prop}_F: false",
                     };
             }
 
@@ -1423,7 +1413,6 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                     {
                         $"{rowProp}: undefined",
                         $"{prop}: {FromJsonExpressionOf(member.FirstField!.RefKeyType, source)}",
-                        $"{prop}_F: false",
                     }
                     : new[] { $"{prop}: {FromJsonExpressionOf(member.ElementType, source)}" };
             })) + " }";
@@ -1471,7 +1460,6 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                     {
                         $"{rowProp}: {slice}.map(() => undefined)",
                         $"{prop}: {slice}.map((v: any) => {key})",
-                        $"{prop}_F: {slice}.map(() => false)",
                     };
                 }
 
@@ -1533,7 +1521,6 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                     $"{rowProp}: undefined",
                     $"{prop}: "
                         + FromJsonExpressionOf(member.FirstField!.RefKeyType, "dataRow[offset++]"),
-                    $"{prop}_F: false",
                 };
             }
 
@@ -1604,7 +1591,6 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                     $"{rowProp}: undefined",
                     $"{prop}: "
                         + FromJsonExpressionOf(member.FirstField!.RefKeyType, $"{field}_{prefix}{prop}[k]"),
-                    $"{prop}_F: false",
                 };
             }
 
@@ -1720,17 +1706,16 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     }
 
     /// <summary>
-    /// The resolved array and its flag, made as long as the keys just read.
+    /// The resolved array, made as long as the keys just read.
     /// </summary>
     /// <remarks>
     /// The values are filled in by the linking pass, and only for the keys that point at
-    /// something - so nothing else gives these two arrays their length. Every other language
-    /// sizes them where it reads, and a shorter array here is a hole a `for ... of` walks past
-    /// without a sign. spec/types/nullable-array-elements.md.
+    /// something - so nothing else gives this array its length. Every other language sizes it
+    /// where it reads, and a shorter array here is a hole a `for ... of` walks past without a
+    /// sign. spec/types/nullable-array-elements.md.
     /// </remarks>
     private static string SizedFromKeys(string field, string index)
-        => $"this.{field} = new Array(this.{index}.length).fill(undefined); "
-         + $"this.{field}_F = new Array(this.{index}.length).fill(false)";
+        => $"this.{field} = new Array(this.{index}.length).fill(undefined)";
 
     /// <summary>The assignment itself, without the presence handling around it.</summary>
     private string ValueFromNamedRow(SerialField sf, string field, string prop)

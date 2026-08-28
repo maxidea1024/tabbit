@@ -40,11 +40,9 @@ namespace Tabbit.Fixtures.RecordRef
             /// element 1, the reference
             public int ItemId;
             public ItemRecord ItemByItemId;
-            public bool ItemId_F;
             /// element 1, a second reference to the same table
             public int SwapId;
             public ItemRecord ItemBySwapId;
-            public bool SwapId_F;
             /// element 1, an ordinary member
             public int Count;
 
@@ -305,7 +303,6 @@ namespace Tabbit.Fixtures.RecordRef
                             {
                                 record._slot[j].ItemId = cursor.NextI32();
                                 record._slot[j].ItemByItemId = default(ItemRecord); // will be assigned.
-                                record._slot[j].ItemId_F = false;
                             }
                         }
                         break;
@@ -330,7 +327,6 @@ namespace Tabbit.Fixtures.RecordRef
                             {
                                 record._slot[j].SwapId = cursor.NextI32();
                                 record._slot[j].ItemBySwapId = default(ItemRecord); // will be assigned.
-                                record._slot[j].SwapId_F = false;
                             }
                         }
                         break;

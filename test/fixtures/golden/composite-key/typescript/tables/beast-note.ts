@@ -45,7 +45,6 @@ export class BeastNoteRecord {
   public _seq: number = 0
   public _beastId: BeastRecord
   public _beastId_Beast_index: string = ""
-  public _beastId_F: boolean = false
   public _note: string = ''
 
   /** Populate field values. */

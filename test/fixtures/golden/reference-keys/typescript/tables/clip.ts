@@ -55,13 +55,10 @@ export class ClipRecord {
   public _index: number = 0
   public _anim: AnimationRecord
   public _anim_Animation_index: string = ""
-  public _anim_F: boolean = false
   public _entry: LedgerRecord
   public _entry_Ledger_index: bigint = 0n
-  public _entry_F: boolean = false
   public _cover: ArtRecord
   public _cover_Art_index: string = ""
-  public _cover_F: boolean = false
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {

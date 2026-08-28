@@ -45,11 +45,9 @@ namespace Tabbit.Fixtures.RecordRef
             /// a string key, on the run path
             public string ClipId;
             public ClipRecord ClipByClipId;
-            public bool ClipId_F;
             /// a uuid key, on the run path
             public System.Guid SealId;
             public SealRecord SealBySealId;
-            public bool SealId_F;
             /// an ordinary member beside them
             public int Rank;
 
@@ -312,7 +310,6 @@ namespace Tabbit.Fixtures.RecordRef
                                 var record = records[i++];
                                 record._mark.ClipId = value;
                                 record._mark.ClipByClipId = default(ClipRecord); // will be assigned.
-                                record._mark.ClipId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -324,7 +321,6 @@ namespace Tabbit.Fixtures.RecordRef
                             var record = records[i];
                             reader.Read(out record._mark.SealId);
                             record._mark.SealBySealId = default(SealRecord); // will be assigned.
-                            record._mark.SealId_F = false;
                         }
                         break;
 

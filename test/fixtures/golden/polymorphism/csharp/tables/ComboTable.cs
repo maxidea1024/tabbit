@@ -104,7 +104,6 @@ public partial class ComboRecord
         /// conversion, and the built variant has to carry the resolved row rather than the key.
         public int ElementId;
         public ElementRecord ElementByElementId;
-        public bool ElementId_F;
         /// How much it gives.
         public int Amount;
         /// How often it lands, as a band rather than a number.
@@ -481,7 +480,6 @@ public partial class ComboTable : IEnumerable<ComboRecord>
                         {
                             record._effects[j].ElementId = cursor.NextI32();
                             record._effects[j].ElementByElementId = default(ElementRecord); // will be assigned.
-                            record._effects[j].ElementId_F = false;
                         }
                     }
                     break;

@@ -230,15 +230,15 @@
       spec/references/reference-surface-naming.md sections 4 and 5. ##~}}
             public {{ member.ref_key_type_name }} {{ member.prop_name }};
             public {{ member.field_type }} {{ member.row_prop_name }};
-            public {{ member.ref_flag_type_name }} {{ member.prop_name }}_F;
 {{~ else ~}}
             public {{ member.field_type }} {{ member.prop_name }};
 {{~ if member.ref_table != '' ~}}
-{{~## A reference member carries three things: the row it resolved to, the key that came
-   off the wire, and whether the resolution happened. All three inside the element, because
-   a group may hold more than one reference - and all three at the member's own arity. ##~}}
+{{~## A reference member carries two things: the row it resolved to and the key that came
+   off the wire. Both inside the element, because a group may hold more than one reference -
+   and both at the member's own arity. There is no third member saying whether the linking
+   ran, because the key it runs on answers that already.
+   spec/references/references-in-records.md. ##~}}
             public {{ member.ref_key_type_name }} {{ member.prop_name }}_index;
-            public {{ member.ref_flag_type_name }} {{ member.prop_name }}_F;
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
@@ -337,12 +337,11 @@
                 result.{{ member.prop_name }}[k]{{ member.element_initializer }};
 {{~ end ~}}
 {{~ if member.ref_key_initializer != '' ~}}
-{{~## A reference member that is an array holds one key and one flag per element, and they
-      are allocated with the member for the same reason it is. Where the reference is to a
-      whole row the key wears the member's own name.
+{{~## A reference member that is an array holds one key per element, and it is allocated
+      with the member for the same reason the member is. Where the reference is to a whole
+      row the key takes the member's own name.
       spec/references/reference-surface-naming.md sections 4 and 9. ##~}}
             result.{{ member.prop_name }}{{ if member.row_prop_name == '' }}_index{{ end }}{{ member.ref_key_initializer }};
-            result.{{ member.prop_name }}_F{{ member.ref_flag_initializer }};
 {{~ end ~}}
 {{~ end ~}}
             return result;
@@ -388,12 +387,11 @@
                 result.{{ member.prop_name }}[k]{{ member.element_initializer }};
 {{~ end ~}}
 {{~ if member.ref_key_initializer != '' ~}}
-{{~## A reference member that is an array holds one key and one flag per element, and they
-      are allocated with the member for the same reason it is. Where the reference is to a
-      whole row the key wears the member's own name.
+{{~## A reference member that is an array holds one key per element, and it is allocated
+      with the member for the same reason the member is. Where the reference is to a whole
+      row the key takes the member's own name.
       spec/references/reference-surface-naming.md sections 4 and 9. ##~}}
             result.{{ member.prop_name }}{{ if member.row_prop_name == '' }}_index{{ end }}{{ member.ref_key_initializer }};
-            result.{{ member.prop_name }}_F{{ member.ref_flag_initializer }};
 {{~ end ~}}
 {{~ end ~}}
             return result;
@@ -435,13 +433,11 @@
 {{~ else if field.kind == 'array_ref' ~}}
         internal {{ field.field_type }}[] {{ field.field_name }} = System.Array.Empty<{{ field.field_type }}>();
         {{ if field.row_prop_name != '' }}internal{{ else }}public{{ end }} {{ field.ref_key_type_name }}[] {{ field.field_name }}_{{ field.ref_table }}_index = System.Array.Empty<{{ field.ref_key_type_name }}>();
-        public bool[] {{ field.field_name }}_F = System.Array.Empty<bool>();
 {{~ else if field.kind == 'var_array' ~}}
         internal {{ field.field_type }}[] {{ field.field_name }} = System.Array.Empty<{{ field.field_type }}>();
 {{~ else if field.kind == 'scalar_ref' ~}}
         internal {{ field.field_type }} {{ field.field_name }};
         {{ if field.row_prop_name != '' }}internal{{ else }}public{{ end }} {{ field.ref_key_type_name }} {{ field.field_name }}_{{ field.ref_table }}_index;
-        public bool {{ field.field_name }}_F = false;
 {{~ else ~}}
         internal {{ field.field_type }} {{ field.field_name }}{{ field.initializer }};
 {{~ end ~}}

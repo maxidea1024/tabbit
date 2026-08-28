@@ -21,7 +21,6 @@ export interface PartEntry {
   /** element 1, the reference */
   itemId: number
   itemByItemId: ItemRecord | undefined
-  itemId_F: boolean
   /** element 1, an ordinary member */
   count: number
 }
@@ -57,7 +56,7 @@ export class KitRecord {
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
-    this._part = dataRow.part.map(e => ({ itemByItemId: undefined, itemId: e.itemId, itemId_F: false, count: e.count }))
+    this._part = dataRow.part.map(e => ({ itemByItemId: undefined, itemId: e.itemId, count: e.count }))
   }
 
   /** Populate field values. */
@@ -66,7 +65,7 @@ export class KitRecord {
     this._index = dataRow[offset++]
     const _part_itemId = dataRow[offset++] as any[]
     const _part_count = dataRow[offset++] as any[]
-    this._part = Array.from({ length: _part_itemId.length }, (_, k) => ({ itemByItemId: undefined, itemId: _part_itemId[k], itemId_F: false, count: _part_count[k] }))
+    this._part = Array.from({ length: _part_itemId.length }, (_, k) => ({ itemByItemId: undefined, itemId: _part_itemId[k], count: _part_count[k] }))
   }
 }
 
@@ -230,7 +229,7 @@ export class KitTable {
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
-            record._part = Array.from({ length: elementCount }, () => ({ itemByItemId: undefined, itemId: 0, itemId_F: false, count: 0 }))
+            record._part = Array.from({ length: elementCount }, () => ({ itemByItemId: undefined, itemId: 0, count: 0 }))
             for (let j = 0; j < elementCount; ++j)
               record._part[j].itemId = cursor.nextI32()
           }

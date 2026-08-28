@@ -54,7 +54,6 @@ namespace Wildling.Data
             /// 어느 단계가 나오는가.
             public string MonsterId;
             public MonsterRecord MonsterByMonsterId;
-            public bool MonsterId_F;
             /// 가중치. 등급 기본값에 지역 계수를 적용한 값입니다.
             public int Weight;
             /// 어느 슬롯에서 나오는가.
@@ -80,10 +79,8 @@ namespace Wildling.Data
         internal string _encounterId = "";
         internal RegionRecord _regionId;
         internal string _regionId_Region_index;
-        public bool _regionId_F = false;
         internal RequirementGroupRecord _requirementGroupId;
         internal string _requirementGroupId_RequirementGroup_index;
-        public bool _requirementGroupId_F = false;
         internal bool _requirementGroupIdHasValue;
         internal EntriesEntry[] _entries = System.Array.Empty<EntriesEntry>();
         #endregion
@@ -332,7 +329,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._regionId_Region_index = value;
                                 record._regionId = default(RegionRecord); // will be assigned.
-                                record._regionId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -351,7 +347,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._requirementGroupId_RequirementGroup_index = value;
                                 record._requirementGroupId = default(RequirementGroupRecord); // will be assigned.
-                                record._requirementGroupId_F = false;
                             } while (--n > 0);
                         }
                         for (int i = 0; i < count; i++)
@@ -379,7 +374,6 @@ namespace Wildling.Data
                             {
                                 record._entries[j].MonsterId = cursor.NextString();
                                 record._entries[j].MonsterByMonsterId = default(MonsterRecord); // will be assigned.
-                                record._entries[j].MonsterId_F = false;
                             }
                         }
                         break;

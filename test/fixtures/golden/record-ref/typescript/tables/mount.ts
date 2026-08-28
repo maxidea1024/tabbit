@@ -21,7 +21,6 @@ export interface RigCoreEntry {
   /** element 1, two levels in */
   itemId: number
   itemByItemId: ItemRecord | undefined
-  itemId_F: boolean
   /** its sibling at that level */
   count: number
 }
@@ -68,7 +67,7 @@ export class MountRecord {
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._index = dataRow.index
-    this._rig = dataRow.rig.map(e => ({ core: { itemByItemId: undefined, itemId: e.core.itemId, itemId_F: false, count: e.core.count } }))
+    this._rig = dataRow.rig.map(e => ({ core: { itemByItemId: undefined, itemId: e.core.itemId, count: e.core.count } }))
   }
 
   /** Populate field values. */
@@ -79,7 +78,7 @@ export class MountRecord {
     offset += 2
     const _rig_core_count = dataRow.slice(offset, offset + 2)
     offset += 2
-    this._rig = Array.from({ length: 2 }, (_, k) => ({ core: { itemByItemId: undefined, itemId: _rig_core_itemId[k], itemId_F: false, count: _rig_core_count[k] } }))
+    this._rig = Array.from({ length: 2 }, (_, k) => ({ core: { itemByItemId: undefined, itemId: _rig_core_itemId[k], count: _rig_core_count[k] } }))
   }
 }
 
@@ -243,7 +242,7 @@ export class MountTable {
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             const elementCount = cursor.nextLength()
-            record._rig = Array.from({ length: elementCount }, () => ({ core: { itemByItemId: undefined, itemId: 0, itemId_F: false, count: 0 } }))
+            record._rig = Array.from({ length: elementCount }, () => ({ core: { itemByItemId: undefined, itemId: 0, count: 0 } }))
             for (let j = 0; j < elementCount; ++j)
               record._rig[j].core.itemId = cursor.nextI32()
           }

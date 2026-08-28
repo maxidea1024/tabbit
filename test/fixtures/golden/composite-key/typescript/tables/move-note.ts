@@ -44,7 +44,6 @@ export class MoveNoteRecord {
 
   public _moveId: MoveRecord
   public _moveId_Move_index: number = 0
-  public _moveId_F: boolean = false
   public _note: string = ''
   public _pad1: number = 0
 

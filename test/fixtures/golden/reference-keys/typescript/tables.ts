@@ -164,19 +164,16 @@ export class Tables {
         const target = this._animation.getByIndexOrThrow(
           record._anim_Animation_index)
         record.setReference_anim_INTERNAL(target)
-        record._anim_F = true
       }
       if (record._entry_Ledger_index > 0n) {
         const target = this._ledger.getByIndexOrThrow(
           record._entry_Ledger_index)
         record.setReference_entry_INTERNAL(target)
-        record._entry_F = true
       }
       if (record._cover_Art_index !== "") {
         const target = this._art.getByIndexOrThrow(
           record._cover_Art_index)
         record.setReference_cover_INTERNAL(target)
-        record._cover_F = true
       }
     }
   }

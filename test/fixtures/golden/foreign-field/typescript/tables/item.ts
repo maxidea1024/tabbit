@@ -42,7 +42,6 @@ export class ItemRecord {
   public _name: string = ''
   public _categoryName: string
   public _categoryName_ItemCategory_index: number = 0
-  public _categoryName_F: boolean = false
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {

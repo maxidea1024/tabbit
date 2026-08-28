@@ -693,7 +693,6 @@ namespace Clover.Data
         #region Storage
         internal TagRecord _owner;
         internal string _owner_Tag_index;
-        public bool _owner_F = false;
         internal int _order;
         internal global::Clover.Data.Trigger _trigger;
         internal int _chanceNum;
@@ -918,7 +917,6 @@ namespace Clover.Data
                                 var record = records[i++];
                                 record._owner_Tag_index = value;
                                 record._owner = default(TagRecord); // will be assigned.
-                                record._owner_F = false;
                             } while (--n > 0);
                         }
                         break;

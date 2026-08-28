@@ -52,13 +52,10 @@ namespace Wildling.Data
         #region Storage
         internal StageRecord _stageId;
         internal string _stageId_Stage_index;
-        public bool _stageId_F = false;
         internal RewardGroupRecord _rewardGroupId;
         internal string _rewardGroupId_RewardGroup_index;
-        public bool _rewardGroupId_F = false;
         internal RewardGroupRecord _firstClearGroupId;
         internal string _firstClearGroupId_RewardGroup_index;
-        public bool _firstClearGroupId_F = false;
         internal bool _firstClearGroupIdHasValue;
         #endregion
 
@@ -289,7 +286,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._stageId_Stage_index = value;
                                 record._stageId = default(StageRecord); // will be assigned.
-                                record._stageId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -307,7 +303,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._rewardGroupId_RewardGroup_index = value;
                                 record._rewardGroupId = default(RewardGroupRecord); // will be assigned.
-                                record._rewardGroupId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -326,7 +321,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._firstClearGroupId_RewardGroup_index = value;
                                 record._firstClearGroupId = default(RewardGroupRecord); // will be assigned.
-                                record._firstClearGroupId_F = false;
                             } while (--n > 0);
                         }
                         for (int i = 0; i < count; i++)

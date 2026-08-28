@@ -440,7 +440,6 @@ namespace Clover.Data
                 if (record._owner_Tarot_index is { Length: > 0 })
                 {
                     record.SetReference_Owner_INTERNAL(snapshot.Tarot.GetByTarotIdOrThrow(record._owner_Tarot_index));
-                    record._owner_F = true;
                 }
             }
 
@@ -449,7 +448,6 @@ namespace Clover.Data
                 if (record._owner_Spectral_index is { Length: > 0 })
                 {
                     record.SetReference_Owner_INTERNAL(snapshot.Spectral.GetBySpectralIdOrThrow(record._owner_Spectral_index));
-                    record._owner_F = true;
                 }
             }
 
@@ -458,7 +456,6 @@ namespace Clover.Data
                 if (record._owner_Joker_index is { Length: > 0 })
                 {
                     record.SetReference_Owner_INTERNAL(snapshot.Joker.GetByJokerIdOrThrow(record._owner_Joker_index));
-                    record._owner_F = true;
                 }
             }
 
@@ -467,7 +464,6 @@ namespace Clover.Data
                 if (record._owner_BossBlind_index is { Length: > 0 })
                 {
                     record.SetReference_Owner_INTERNAL(snapshot.BossBlind.GetByBossIdOrThrow(record._owner_BossBlind_index));
-                    record._owner_F = true;
                 }
             }
 
@@ -476,7 +472,6 @@ namespace Clover.Data
                 if (record._owner_Deck_index is { Length: > 0 })
                 {
                     record.SetReference_Owner_INTERNAL(snapshot.Deck.GetByDeckIdOrThrow(record._owner_Deck_index));
-                    record._owner_F = true;
                 }
             }
 
@@ -485,7 +480,6 @@ namespace Clover.Data
                 if (record._owner_Tag_index is { Length: > 0 })
                 {
                     record.SetReference_Owner_INTERNAL(snapshot.Tag.GetByTagIdOrThrow(record._owner_Tag_index));
-                    record._owner_F = true;
                 }
             }
 
@@ -494,7 +488,6 @@ namespace Clover.Data
                 if (record._upgradesFrom_Voucher_index is { Length: > 0 })
                 {
                     record.SetReference_UpgradesFrom_INTERNAL(snapshot.Voucher.GetByVoucherIdOrThrow(record._upgradesFrom_Voucher_index));
-                    record._upgradesFrom_F = true;
                 }
             }
 
@@ -503,7 +496,6 @@ namespace Clover.Data
                 if (record._owner_Voucher_index is { Length: > 0 })
                 {
                     record.SetReference_Owner_INTERNAL(snapshot.Voucher.GetByVoucherIdOrThrow(record._owner_Voucher_index));
-                    record._owner_F = true;
                 }
             }
         }

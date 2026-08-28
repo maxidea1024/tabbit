@@ -140,7 +140,6 @@ export class Tables {
         const target = this._itemCategory.getByIndexOrThrow(
           record._categoryName_ItemCategory_index)
         record.setReference_categoryName_INTERNAL(target.name)
-        record._categoryName_F = true
       }
     }
   }

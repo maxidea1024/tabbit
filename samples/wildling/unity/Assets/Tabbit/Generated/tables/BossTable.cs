@@ -250,7 +250,6 @@ namespace Wildling.Data
         internal string _bossId = "";
         internal MonsterRecord _monsterId;
         internal string _monsterId_Monster_index;
-        public bool _monsterId_F = false;
         internal StatFactorEntry _statFactor;
         internal global::Wildling.Data.BossAbility _ability;
         internal int[][] _abilityPattern = NewAbilityPattern();
@@ -506,7 +505,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._monsterId_Monster_index = value;
                                 record._monsterId = default(MonsterRecord); // will be assigned.
-                                record._monsterId_F = false;
                             } while (--n > 0);
                         }
                         break;

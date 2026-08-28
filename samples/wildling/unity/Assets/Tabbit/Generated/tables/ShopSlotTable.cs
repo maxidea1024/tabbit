@@ -62,7 +62,6 @@ namespace Wildling.Data
             /// 어느 재화인가.
             public string CurrencyId;
             public CurrencyRecord CurrencyByCurrencyId;
-            public bool CurrencyId_F;
             /// 수량.
             public int Amount;
 
@@ -85,11 +84,9 @@ namespace Wildling.Data
         internal string _shopSlotId = "";
         internal ShopRecord _shopId;
         internal string _shopId_Shop_index;
-        public bool _shopId_F = false;
         internal int _slotIndex;
         internal RewardGroupRecord _rewardGroupId;
         internal string _rewardGroupId_RewardGroup_index;
-        public bool _rewardGroupId_F = false;
         internal CostEntry _cost;
         internal int _stock;
         #endregion
@@ -339,7 +336,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._shopId_Shop_index = value;
                                 record._shopId = default(ShopRecord); // will be assigned.
-                                record._shopId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -373,7 +369,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._rewardGroupId_RewardGroup_index = value;
                                 record._rewardGroupId = default(RewardGroupRecord); // will be assigned.
-                                record._rewardGroupId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -391,7 +386,6 @@ namespace Wildling.Data
                                 var record = records[i++];
                                 record._cost.CurrencyId = value;
                                 record._cost.CurrencyByCurrencyId = default(CurrencyRecord); // will be assigned.
-                                record._cost.CurrencyId_F = false;
                             } while (--n > 0);
                         }
                         break;

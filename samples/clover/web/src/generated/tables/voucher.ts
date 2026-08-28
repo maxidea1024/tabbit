@@ -54,7 +54,6 @@ export class VoucherRecord {
   public _cost: number = 0
   public _upgradesFrom: VoucherRecord
   public _upgradesFrom_Voucher_index: string = ""
-  public _upgradesFrom_F: boolean = false
   public _upgradesFromHasValue: boolean = false
   public _sortOrder: number = 0
 

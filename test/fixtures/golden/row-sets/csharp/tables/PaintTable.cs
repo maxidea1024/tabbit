@@ -49,10 +49,8 @@ namespace Tabbit.Fixtures.RowSets
         internal int _index;
         internal ColourRecord _colourId;
         internal int _colourId_Colour_index;
-        public bool _colourId_F = false;
         internal BrushRecord _brushId;
         internal int _brushId_Brush_index;
-        public bool _brushId_F = false;
         #endregion
 
         #region ToString
@@ -297,7 +295,6 @@ namespace Tabbit.Fixtures.RowSets
                                 var record = records[i++];
                                 record._colourId_Colour_index = value;
                                 record._colourId = default(ColourRecord); // will be assigned.
-                                record._colourId_F = false;
                             } while (--n > 0);
                         }
                         break;
@@ -315,7 +312,6 @@ namespace Tabbit.Fixtures.RowSets
                                 var record = records[i++];
                                 record._brushId_Brush_index = value;
                                 record._brushId = default(BrushRecord); // will be assigned.
-                                record._brushId_F = false;
                             } while (--n > 0);
                         }
                         break;

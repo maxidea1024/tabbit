@@ -40,7 +40,6 @@ namespace Tabbit.Fixtures.RecordRef
             /// element 1 of the member
             public int[] ItemId;
             public ItemRecord[] ItemByItemId;
-            public bool[] ItemId_F;
             /// element 1 of the member beside it
             public int[] Count;
 
@@ -59,7 +58,6 @@ namespace Tabbit.Fixtures.RecordRef
             var result = default(SlotsEntry);
             result.ItemByItemId = new ItemRecord[2];
             result.ItemId = new int[2];
-            result.ItemId_F = new bool[2];
             result.Count = new int[2];
             return result;
         }
@@ -313,7 +311,6 @@ namespace Tabbit.Fixtures.RecordRef
                             {
                                 record._slots.ItemId[j] = cursor.NextI32();
                                 record._slots.ItemByItemId[j] = default(ItemRecord); // will be assigned.
-                                record._slots.ItemId_F[j] = false;
                             }
                         }
                         break;

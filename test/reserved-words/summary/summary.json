@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-28T20:57:15.0322629+09:00",
+    "generatedAt": "2026-08-28T21:50:15.8911807+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "reserved-words.json",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "667fab93fba633acb44baa71c6ec24261e7ef9a7",
-      "shortHash": "667fab93fba6",
+      "hash": "3da18ee29dacbb4ae44f2b65035acd5d7097b932",
+      "shortHash": "3da18ee29dac",
       "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-28T20:40:25.0000000+09:00",
-      "subject": "fix: 참조 그래프에서 전체 그림이 실제로 숨겨집니다",
+      "committedAt": "2026-08-28T21:29:43.0000000+09:00",
+      "subject": "docs: clover의 enum 레이블 설명 227개",
       "origin": "git",
       "dirty": true,
       "attributable": false

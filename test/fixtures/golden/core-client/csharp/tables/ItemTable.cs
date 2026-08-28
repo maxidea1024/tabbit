@@ -63,7 +63,6 @@ namespace Tabbit.Fixtures.Core.Client
         internal string _name = "";
         internal ItemCategoryRecord _categoryId;
         internal int _categoryId_ItemCategory_index;
-        public bool _categoryId_F = false;
         internal global::Tabbit.Fixtures.Core.Client.Grade _gradeField;
         internal global::Tabbit.Fixtures.Core.Client.SkillType _skillField;
         internal string _description = "";
@@ -330,7 +329,6 @@ namespace Tabbit.Fixtures.Core.Client
                                 var record = records[i++];
                                 record._categoryId_ItemCategory_index = value;
                                 record._categoryId = default(ItemCategoryRecord); // will be assigned.
-                                record._categoryId_F = false;
                             } while (--n > 0);
                         }
                         break;

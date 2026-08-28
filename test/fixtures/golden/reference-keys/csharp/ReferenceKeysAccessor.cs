@@ -216,17 +216,14 @@ namespace Tabbit.Fixtures.ReferenceKeys
                 if (record._anim_Animation_index is { Length: > 0 })
                 {
                     record.SetReference_Anim_INTERNAL(snapshot.Animation.GetByIndexOrThrow(record._anim_Animation_index));
-                    record._anim_F = true;
                 }
                 if (record._entry_Ledger_index > 0)
                 {
                     record.SetReference_Entry_INTERNAL(snapshot.Ledger.GetByIndexOrThrow(record._entry_Ledger_index));
-                    record._entry_F = true;
                 }
                 if (record._cover_Art_index != System.Guid.Empty)
                 {
                     record.SetReference_Cover_INTERNAL(snapshot.Art.GetByIndexOrThrow(record._cover_Art_index));
-                    record._cover_F = true;
                 }
             }
         }

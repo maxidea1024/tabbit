@@ -216,12 +216,10 @@ namespace Tabbit.Fixtures.RowSets
                 if (record._colourId_Colour_index > 0)
                 {
                     record.SetReference_ColourId_INTERNAL(snapshot.Colour.GetByIndexOrThrow(record._colourId_Colour_index));
-                    record._colourId_F = true;
                 }
                 if (record._brushId_Brush_index > 0)
                 {
                     record.SetReference_BrushId_INTERNAL(snapshot.Brush.GetByIndexOrThrow(record._brushId_Brush_index));
-                    record._brushId_F = true;
                 }
             }
         }

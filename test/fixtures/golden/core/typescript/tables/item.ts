@@ -64,7 +64,6 @@ export class ItemRecord {
   public _name: string = ''
   public _categoryId: ItemCategoryRecord
   public _categoryId_ItemCategory_index: number = 0
-  public _categoryId_F: boolean = false
   public _gradeField: Grade = 0 as Grade
   public _skillField: SkillType = 0 as SkillType
   public _description: string = ''
