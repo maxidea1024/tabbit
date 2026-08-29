@@ -104,7 +104,7 @@ class ElementChartTable : Iterable<ElementChartRecord> {
      * In the order [colKeys] is in, which is what makes a position mean something. The list is
      * the record's own, so it is not a copy.
      */
-    fun row(AttackerKey: Element) = findByAttacker(AttackerKey)?.rate
+    fun row(attacker: Element) = findByAttacker(attacker)?.rate
 
     /**
      * The cell where the two keys meet, or a thrown exception naming the one that missed.
@@ -112,27 +112,27 @@ class ElementChartTable : Iterable<ElementChartRecord> {
      * It throws rather than answering with the type's empty value, because a grid's empty
      * value is one the sheet can write - 0 in a modifier table is a modifier of zero.
      */
-    fun at(AttackerKey: Element, DefenderKey: Element): Float =
-        cellRecord(AttackerKey).rate[cellAt(DefenderKey)]
+    fun at(attacker: Element, defender: Element): Float =
+        cellRecord(attacker).rate[cellAt(defender)]
 
 
     /** The row half of a cell lookup. */
-    private fun cellRecord(AttackerKey: Element): ElementChartRecord {
+    private fun cellRecord(attacker: Element): ElementChartRecord {
         checkNotNull(columnAxis) {
             "table `ElementChart` has no column axis yet; " +
                 "read `ElementChartColumn` before reading a cell"
         }
 
-        return findByAttacker(AttackerKey)
+        return findByAttacker(attacker)
             ?: throw RecordNotFoundException(
-                "table `ElementChart` has no row `${AttackerKey}`")
+                "table `ElementChart` has no row `${attacker}`")
     }
 
     /** The column half of a cell lookup. */
-    private fun cellAt(DefenderKey: Element): Int {
-        val column = columnAxis?.findByDefender(DefenderKey)
+    private fun cellAt(defender: Element): Int {
+        val column = columnAxis?.findByDefender(defender)
             ?: throw RecordNotFoundException(
-                "table `ElementChart` has no column `${DefenderKey}`")
+                "table `ElementChart` has no column `${defender}`")
 
         return column.at
     }

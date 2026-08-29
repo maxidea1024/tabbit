@@ -102,8 +102,8 @@ public final class ElementChartTable implements Iterable<ElementChartRecord> {
      * <p>In the order colKeys is in, which is what makes a position mean something. The array
      * is the record's own, so it is not a copy.
      */
-    public float[] row(Element AttackerKey) {
-        ElementChartRecord record = findByAttacker(AttackerKey);
+    public float[] row(Element attacker) {
+        ElementChartRecord record = findByAttacker(attacker);
         return record == null ? null : record.rate;
     }
 
@@ -113,37 +113,37 @@ public final class ElementChartTable implements Iterable<ElementChartRecord> {
      * <p>It throws rather than answering with the type's empty value, because a grid's empty
      * value is one the sheet can write - 0 in a modifier table is a modifier of zero.
      */
-    public float at(Element AttackerKey, Element DefenderKey) {
-        ElementChartRecord record = cellRecord(AttackerKey);
-        return record.rate[cellAt(DefenderKey)];
+    public float at(Element attacker, Element defender) {
+        ElementChartRecord record = cellRecord(attacker);
+        return record.rate[cellAt(defender)];
     }
 
 
     /** The row half of a cell lookup. */
-    private ElementChartRecord cellRecord(Element AttackerKey) {
+    private ElementChartRecord cellRecord(Element attacker) {
         if (columnAxis == null) {
             throw new IllegalStateException(
                 "table `ElementChart` has no column axis yet; "
                 + "read `ElementChartColumn` before reading a cell");
         }
 
-        ElementChartRecord record = findByAttacker(AttackerKey);
+        ElementChartRecord record = findByAttacker(attacker);
 
         if (record == null) {
             throw new TcbReader.RecordNotFoundException(String.format(
-                "table `ElementChart` has no row `%s`", AttackerKey));
+                "table `ElementChart` has no row `%s`", attacker));
         }
 
         return record;
     }
 
     /** The column half of a cell lookup. */
-    private int cellAt(Element DefenderKey) {
-        ElementChartColumnRecord column = columnAxis.findByDefender(DefenderKey);
+    private int cellAt(Element defender) {
+        ElementChartColumnRecord column = columnAxis.findByDefender(defender);
 
         if (column == null) {
             throw new TcbReader.RecordNotFoundException(String.format(
-                "table `ElementChart` has no column `%s`", DefenderKey));
+                "table `ElementChart` has no column `%s`", defender));
         }
 
         return column.at;

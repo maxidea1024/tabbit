@@ -444,6 +444,7 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         Comment = CommentLines(table.Comment),
         HasKeySubscript = KeyPlans.PrimarySingleName(table).Length > 0,
         Indexes = Indexes(table),
+        Matrix = BuildMatrix(table),
         ContainerFill = ContainerFillLines(table),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
@@ -1439,6 +1440,16 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
             DataFileName = table.DataFileName,
         }).ToList(),
 
+        Grids = _model.Tables
+            .Select(table => MatrixPlans.Of(table, _model))
+            .Where(plan => plan is not null)
+            .Select(plan => new PhpGridLinkView
+            {
+                Values = plan!.Values.Name.ToPascalCase() + "Table",
+                Columns = plan.Columns.Name.ToPascalCase() + "Table",
+            })
+            .ToList(),
+
         CrossReferences = _model.Tables
             .Select(table => new
             {
@@ -1755,6 +1766,34 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// `KeyComponentView.TypeOf` is the one place that decides, and the composite path
     /// already asks it; this is the single-column path asking the same.
     /// </remarks>
+    /// <summary>The grid accessor for this table, or null when it is not a grid's values.</summary>
+    private PhpMatrixView? BuildMatrix(Table table)
+    {
+        if (MatrixPlans.Of(table, _model) is not { } plan)
+            return null;
+
+        return new PhpMatrixView
+        {
+            ColumnTable = plan.Columns.Name.ToPascalCase() + "Table",
+            ColumnTableName = plan.Columns.Name,
+            ColumnLookup = "findBy" + plan.ColumnKey.Name.ToPascalCase(),
+            RowKeyMember = PhpName(plan.RowKey.Name),
+            RowKeyParam = PhpName(plan.RowKey.Name),
+            RowKeyType = IndexKeyType(plan.RowKey),
+            RowLookup = "findBy" + plan.RowKey.Name.ToPascalCase(),
+            ColumnKeyMember = PhpName(plan.ColumnKey.Name),
+            ColumnKeyParam = PhpName(plan.ColumnKey.Name),
+            ColumnKeyType = IndexKeyType(plan.ColumnKey),
+            AtMember = PhpName(plan.At.Name),
+            GridMember = PhpName(plan.Grid.Name),
+            GridHasMember = ElementPresenceMember(plan.Grid),
+            CellType = plan.Grid.FirstField!.ElementType == ValueType.Enum
+                ? EnumName(plan.Grid.FirstField!.Enum)
+                : LanguageProfile.Php.ScalarTypeName(plan.Grid.FirstField!.ElementType),
+            CellsAreOptional = plan.CellsAreOptional,
+        };
+    }
+
     private string IndexKeyType(SerialField only)
     {
         var (type, enumm) = KeyComponentView.TypeOf(only);

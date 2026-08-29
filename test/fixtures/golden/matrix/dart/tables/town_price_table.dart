@@ -77,50 +77,50 @@ class TownPriceTable extends Iterable<TownPriceRecord> {
   ///
   /// In the order [colKeys] is in, which is what makes a position mean something. The list is
   /// the record's own, so it is not a copy.
-  List<int>? row(int TownKey) =>
-      findByTown(TownKey)?.price;
+  List<int>? row(int town) =>
+      findByTown(town)?.price;
 
   /// The cell where the two keys meet, or a thrown exception naming the one that missed.
   ///
   /// It throws rather than answering with the type's empty value, because a grid's empty value
   /// is one the sheet can write - 0 in a modifier table is a modifier of zero.
-  int at(int TownKey, int GoodsKey) =>
-      _cellRecord(TownKey).price[_cellAt(GoodsKey)];
+  int at(int town, int goods) =>
+      _cellRecord(town).price[_cellAt(goods)];
 
 
   /// Whether the sheet gave the cell where the two keys meet a value.
   ///
   /// A grid whose cells are optional reads a blank as the type's empty value, and that value
   /// is one the sheet could also have written - so this is the only way to tell them apart.
-  bool hasAt(int TownKey, int GoodsKey) =>
-      _cellRecord(TownKey).hasPriceAt[_cellAt(GoodsKey)];
+  bool hasAt(int town, int goods) =>
+      _cellRecord(town).hasPriceAt[_cellAt(goods)];
 
 
   /// The row half of a cell lookup.
-  TownPriceRecord _cellRecord(int TownKey) {
+  TownPriceRecord _cellRecord(int town) {
     if (_columnAxis == null) {
       throw StateError(
           'table `TownPrice` has no column axis yet; '
           'read `TownPriceColumn` before reading a cell');
     }
 
-    final record = findByTown(TownKey);
+    final record = findByTown(town);
 
     if (record == null) {
       throw RecordNotFoundException(
-          'table `TownPrice` has no row `${TownKey}`');
+          'table `TownPrice` has no row `${town}`');
     }
 
     return record;
   }
 
   /// The column half of a cell lookup.
-  int _cellAt(int GoodsKey) {
-    final column = _columnAxis!.findByGoods(GoodsKey);
+  int _cellAt(int goods) {
+    final column = _columnAxis!.findByGoods(goods);
 
     if (column == null) {
       throw RecordNotFoundException(
-          'table `TownPrice` has no column `${GoodsKey}`');
+          'table `TownPrice` has no column `${goods}`');
     }
 
     return column.at;

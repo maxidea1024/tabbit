@@ -35,6 +35,12 @@
       "Path": "test/fixtures/output/matrix/typescript"
     },
     {
+      "Type": "php",
+      "Path": "test/fixtures/output/matrix/php",
+      "Namespace": "Tabbit\\Fixtures\\Matrix",
+      "AccessorName": "MatrixAccessor"
+    },
+    {
       "Type": "dart",
       "Path": "test/fixtures/output/matrix/dart"
     },

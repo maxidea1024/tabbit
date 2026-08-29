@@ -88,6 +88,9 @@ final class {{ accessor.name }}
 {{~ end ~}}
 
         $this->solveCrossReferences({{ for slot in accessor.tables }}{{ if !for.first }}, {{ end }}$loaded{{ slot.table_name }}{{ end }});
+{{~ for grid in accessor.grids ~}}
+        $loaded{{ grid.values }}->linkColumnAxis($loaded{{ grid.columns }});
+{{~ end ~}}
 
 {{~ for slot in accessor.tables ~}}
         $this->{{ slot.name }} = $loaded{{ slot.table_name }};

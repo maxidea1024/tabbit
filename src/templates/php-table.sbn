@@ -204,6 +204,116 @@ final class {{ table.table_name }} implements \Countable, \IteratorAggregate{{ i
         return new \ArrayIterator($this->records);
     }
 
+{{~ if table.matrix }}
+{{~ m = table.matrix ~}}
+{{~## The two lookups composed. Both halves already exist - this table indexes its rows by the
+   row axis and the column table indexes its own by the column axis - and what this adds is the
+   one call that goes through both. spec/layout/matrix-declaration.md section 8. ##~}}
+    private ?{{ m.column_table }} $columnAxis = null;
+
+    /**
+     * Hands this table the column axis its cells are positioned by.
+     *
+     * Called by the accessor once both files are read, and the length check is here rather
+     * than in the read. A grid is two files, either can be deployed without the other, and a
+     * row whose array is a different length from the axis is a row whose cells have moved.
+     */
+    public function linkColumnAxis({{ m.column_table }} $columns): void
+    {
+        foreach ($this->records as $record) {
+            if (count($record->{{ m.grid_member }}) !== count($columns->records)) {
+                throw new \RuntimeException(sprintf(
+                    "Table `{{ table.raw_name }}` holds %d cells for `%s` and its column axis " .
+                    "`{{ m.column_table_name }}` holds %d keys. The two files are from different builds.",
+                    count($record->{{ m.grid_member }}), $record->{{ m.row_key_member }}, count($columns->records)));
+            }
+        }
+
+        $this->columnAxis = $columns;
+    }
+
+    /** The row axis keys, in the order the file wrote them. */
+    public function rowKeys(): array
+    {
+        return array_map(fn ($record) => $record->{{ m.row_key_member }}, $this->records);
+    }
+
+    /** The column axis keys, in the order a row holds its cells. */
+    public function colKeys(): array
+    {
+        if ($this->columnAxis === null) {
+            return [];
+        }
+
+        return array_map(fn ($record) => $record->{{ m.column_key_member }}, $this->columnAxis->records);
+    }
+
+    /**
+     * One row of cells, or null when the grid has no such row.
+     *
+     * In the order colKeys is in, which is what makes a position mean something.
+     */
+    public function row({{ m.row_key_type }} ${{ m.row_key_param }}): ?array
+    {
+        return $this->{{ m.row_lookup }}(${{ m.row_key_param }})?->{{ m.grid_member }};
+    }
+
+    /**
+     * The cell where the two keys meet, or a thrown exception naming the one that missed.
+     *
+     * It throws rather than answering with the type's empty value, because a grid's empty
+     * value is one the sheet can write - 0 in a modifier table is a modifier of zero.
+     */
+    public function at({{ m.row_key_type }} ${{ m.row_key_param }}, {{ m.column_key_type }} ${{ m.column_key_param }}): {{ m.cell_type }}
+    {
+        return $this->cellRecord(${{ m.row_key_param }})->{{ m.grid_member }}[$this->cellAt(${{ m.column_key_param }})];
+    }
+{{~ if m.cells_are_optional }}
+
+    /**
+     * Whether the sheet gave the cell where the two keys meet a value.
+     *
+     * A grid whose cells are optional reads a blank as the type's empty value, and that value
+     * is one the sheet could also have written - so this is the only way to tell them apart.
+     */
+    public function hasAt({{ m.row_key_type }} ${{ m.row_key_param }}, {{ m.column_key_type }} ${{ m.column_key_param }}): bool
+    {
+        return $this->cellRecord(${{ m.row_key_param }})->{{ m.grid_has_member }}[$this->cellAt(${{ m.column_key_param }})];
+    }
+{{~ end }}
+
+    /** The row half of a cell lookup. */
+    private function cellRecord({{ m.row_key_type }} ${{ m.row_key_param }}): {{ table.record_name }}
+    {
+        if ($this->columnAxis === null) {
+            throw new \RuntimeException(
+                "Table `{{ table.raw_name }}` has no column axis yet. " .
+                "Read `{{ m.column_table_name }}` before reading a cell.");
+        }
+
+        $record = $this->{{ m.row_lookup }}(${{ m.row_key_param }});
+
+        if ($record === null) {
+            throw new RecordNotFoundException(
+                "Table `{{ table.raw_name }}` has no row `" . ${{ m.row_key_param }} . "`.");
+        }
+
+        return $record;
+    }
+
+    /** The column half of a cell lookup. */
+    private function cellAt({{ m.column_key_type }} ${{ m.column_key_param }}): int
+    {
+        $column = $this->columnAxis?->{{ m.column_lookup }}(${{ m.column_key_param }});
+
+        if ($column === null) {
+            throw new RecordNotFoundException(
+                "Table `{{ table.raw_name }}` has no column `" . ${{ m.column_key_param }} . "`.");
+        }
+
+        return $column->{{ m.at_member }};
+    }
+{{~ end ~}}
 {{~ for index in table.indexes ~}}
     /** @var array<{{ index.key_doc_type }}, {{ table.record_name }}> */
     private array ${{ index.map_name }} = [];

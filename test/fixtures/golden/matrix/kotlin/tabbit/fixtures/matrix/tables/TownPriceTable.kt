@@ -111,7 +111,7 @@ class TownPriceTable : Iterable<TownPriceRecord> {
      * In the order [colKeys] is in, which is what makes a position mean something. The list is
      * the record's own, so it is not a copy.
      */
-    fun row(TownKey: Int) = findByTown(TownKey)?.price
+    fun row(town: Int) = findByTown(town)?.price
 
     /**
      * The cell where the two keys meet, or a thrown exception naming the one that missed.
@@ -119,8 +119,8 @@ class TownPriceTable : Iterable<TownPriceRecord> {
      * It throws rather than answering with the type's empty value, because a grid's empty
      * value is one the sheet can write - 0 in a modifier table is a modifier of zero.
      */
-    fun at(TownKey: Int, GoodsKey: Int): Int =
-        cellRecord(TownKey).price[cellAt(GoodsKey)]
+    fun at(town: Int, goods: Int): Int =
+        cellRecord(town).price[cellAt(goods)]
 
 
     /**
@@ -129,27 +129,27 @@ class TownPriceTable : Iterable<TownPriceRecord> {
      * A grid whose cells are optional reads a blank as the type's empty value, and that value
      * is one the sheet could also have written - so this is the only way to tell them apart.
      */
-    fun hasAt(TownKey: Int, GoodsKey: Int): Boolean =
-        cellRecord(TownKey).hasPriceAt[cellAt(GoodsKey)]
+    fun hasAt(town: Int, goods: Int): Boolean =
+        cellRecord(town).hasPriceAt[cellAt(goods)]
 
 
     /** The row half of a cell lookup. */
-    private fun cellRecord(TownKey: Int): TownPriceRecord {
+    private fun cellRecord(town: Int): TownPriceRecord {
         checkNotNull(columnAxis) {
             "table `TownPrice` has no column axis yet; " +
                 "read `TownPriceColumn` before reading a cell"
         }
 
-        return findByTown(TownKey)
+        return findByTown(town)
             ?: throw RecordNotFoundException(
-                "table `TownPrice` has no row `${TownKey}`")
+                "table `TownPrice` has no row `${town}`")
     }
 
     /** The column half of a cell lookup. */
-    private fun cellAt(GoodsKey: Int): Int {
-        val column = columnAxis?.findByGoods(GoodsKey)
+    private fun cellAt(goods: Int): Int {
+        val column = columnAxis?.findByGoods(goods)
             ?: throw RecordNotFoundException(
-                "table `TownPrice` has no column `${GoodsKey}`")
+                "table `TownPrice` has no column `${goods}`")
 
         return column.at
     }

@@ -104,8 +104,8 @@ func (t *ElementChartTable) ColKeys() []Element { return t.columnKeys }
 //
 // In the order ColKeys is in, which is what makes a position mean something. The slice is the
 // record's own, so it is not a copy.
-func (t *ElementChartTable) Row(AttackerKey Element) []float32 {
-	record := t.FindByAttacker(AttackerKey)
+func (t *ElementChartTable) Row(attacker Element) []float32 {
+	record := t.FindByAttacker(attacker)
 	if record == nil {
 		return nil
 	}
@@ -117,8 +117,8 @@ func (t *ElementChartTable) Row(AttackerKey Element) []float32 {
 //
 // It errors rather than answering with the type's zero value, because a grid's zero is one
 // the sheet can write - 0 in a modifier table is a modifier of zero.
-func (t *ElementChartTable) At(AttackerKey Element, DefenderKey Element) (float32, error) {
-	record, at, err := t.cellAt(AttackerKey, DefenderKey)
+func (t *ElementChartTable) At(attacker Element, defender Element) (float32, error) {
+	record, at, err := t.cellAt(attacker, defender)
 	if err != nil {
 		var none float32
 		return none, err
@@ -128,20 +128,20 @@ func (t *ElementChartTable) At(AttackerKey Element, DefenderKey Element) (float3
 }
 
 // cellAt does both lookups once for the readers above.
-func (t *ElementChartTable) cellAt(AttackerKey Element, DefenderKey Element) (*ElementChartRecord, int, error) {
+func (t *ElementChartTable) cellAt(attacker Element, defender Element) (*ElementChartRecord, int, error) {
 	if t.columnAt == nil {
 		return nil, 0, fmt.Errorf(
 			"table `ElementChart` has no column axis yet; read `ElementChartColumn` before reading a cell")
 	}
 
-	record := t.FindByAttacker(AttackerKey)
+	record := t.FindByAttacker(attacker)
 	if record == nil {
-		return nil, 0, fmt.Errorf("table `ElementChart` has no row `%v`", AttackerKey)
+		return nil, 0, fmt.Errorf("table `ElementChart` has no row `%v`", attacker)
 	}
 
-	at, found := t.columnAt[DefenderKey]
+	at, found := t.columnAt[defender]
 	if !found {
-		return nil, 0, fmt.Errorf("table `ElementChart` has no column `%v`", DefenderKey)
+		return nil, 0, fmt.Errorf("table `ElementChart` has no column `%v`", defender)
 	}
 
 	return record, at, nil

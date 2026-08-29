@@ -74,42 +74,42 @@ class ElementChartTable extends Iterable<ElementChartRecord> {
   ///
   /// In the order [colKeys] is in, which is what makes a position mean something. The list is
   /// the record's own, so it is not a copy.
-  List<double>? row(Element AttackerKey) =>
-      findByAttacker(AttackerKey)?.rate;
+  List<double>? row(Element attacker) =>
+      findByAttacker(attacker)?.rate;
 
   /// The cell where the two keys meet, or a thrown exception naming the one that missed.
   ///
   /// It throws rather than answering with the type's empty value, because a grid's empty value
   /// is one the sheet can write - 0 in a modifier table is a modifier of zero.
-  double at(Element AttackerKey, Element DefenderKey) =>
-      _cellRecord(AttackerKey).rate[_cellAt(DefenderKey)];
+  double at(Element attacker, Element defender) =>
+      _cellRecord(attacker).rate[_cellAt(defender)];
 
 
   /// The row half of a cell lookup.
-  ElementChartRecord _cellRecord(Element AttackerKey) {
+  ElementChartRecord _cellRecord(Element attacker) {
     if (_columnAxis == null) {
       throw StateError(
           'table `ElementChart` has no column axis yet; '
           'read `ElementChartColumn` before reading a cell');
     }
 
-    final record = findByAttacker(AttackerKey);
+    final record = findByAttacker(attacker);
 
     if (record == null) {
       throw RecordNotFoundException(
-          'table `ElementChart` has no row `${AttackerKey}`');
+          'table `ElementChart` has no row `${attacker}`');
     }
 
     return record;
   }
 
   /// The column half of a cell lookup.
-  int _cellAt(Element DefenderKey) {
-    final column = _columnAxis!.findByDefender(DefenderKey);
+  int _cellAt(Element defender) {
+    final column = _columnAxis!.findByDefender(defender);
 
     if (column == null) {
       throw RecordNotFoundException(
-          'table `ElementChart` has no column `${DefenderKey}`');
+          'table `ElementChart` has no column `${defender}`');
     }
 
     return column.at;

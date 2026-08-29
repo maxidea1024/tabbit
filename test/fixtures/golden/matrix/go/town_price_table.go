@@ -109,8 +109,8 @@ func (t *TownPriceTable) ColKeys() []int32 { return t.columnKeys }
 //
 // In the order ColKeys is in, which is what makes a position mean something. The slice is the
 // record's own, so it is not a copy.
-func (t *TownPriceTable) Row(TownKey int32) []int32 {
-	record := t.FindByTown(TownKey)
+func (t *TownPriceTable) Row(town int32) []int32 {
+	record := t.FindByTown(town)
 	if record == nil {
 		return nil
 	}
@@ -122,8 +122,8 @@ func (t *TownPriceTable) Row(TownKey int32) []int32 {
 //
 // It errors rather than answering with the type's zero value, because a grid's zero is one
 // the sheet can write - 0 in a modifier table is a modifier of zero.
-func (t *TownPriceTable) At(TownKey int32, GoodsKey int32) (int32, error) {
-	record, at, err := t.cellAt(TownKey, GoodsKey)
+func (t *TownPriceTable) At(town int32, goods int32) (int32, error) {
+	record, at, err := t.cellAt(town, goods)
 	if err != nil {
 		var none int32
 		return none, err
@@ -136,8 +136,8 @@ func (t *TownPriceTable) At(TownKey int32, GoodsKey int32) (int32, error) {
 //
 // A grid whose cells are optional reads a blank as the type's zero value, and that value is
 // one the sheet could also have written - so this is the only way to tell them apart.
-func (t *TownPriceTable) HasAt(TownKey int32, GoodsKey int32) (bool, error) {
-	record, at, err := t.cellAt(TownKey, GoodsKey)
+func (t *TownPriceTable) HasAt(town int32, goods int32) (bool, error) {
+	record, at, err := t.cellAt(town, goods)
 	if err != nil {
 		return false, err
 	}
@@ -146,20 +146,20 @@ func (t *TownPriceTable) HasAt(TownKey int32, GoodsKey int32) (bool, error) {
 }
 
 // cellAt does both lookups once for the readers above.
-func (t *TownPriceTable) cellAt(TownKey int32, GoodsKey int32) (*TownPriceRecord, int, error) {
+func (t *TownPriceTable) cellAt(town int32, goods int32) (*TownPriceRecord, int, error) {
 	if t.columnAt == nil {
 		return nil, 0, fmt.Errorf(
 			"table `TownPrice` has no column axis yet; read `TownPriceColumn` before reading a cell")
 	}
 
-	record := t.FindByTown(TownKey)
+	record := t.FindByTown(town)
 	if record == nil {
-		return nil, 0, fmt.Errorf("table `TownPrice` has no row `%v`", TownKey)
+		return nil, 0, fmt.Errorf("table `TownPrice` has no row `%v`", town)
 	}
 
-	at, found := t.columnAt[GoodsKey]
+	at, found := t.columnAt[goods]
 	if !found {
-		return nil, 0, fmt.Errorf("table `TownPrice` has no column `%v`", GoodsKey)
+		return nil, 0, fmt.Errorf("table `TownPrice` has no column `%v`", goods)
 	}
 
 	return record, at, nil

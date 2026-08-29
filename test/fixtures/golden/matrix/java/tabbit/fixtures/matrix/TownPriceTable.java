@@ -102,8 +102,8 @@ public final class TownPriceTable implements Iterable<TownPriceRecord> {
      * <p>In the order colKeys is in, which is what makes a position mean something. The array
      * is the record's own, so it is not a copy.
      */
-    public int[] row(int TownKey) {
-        TownPriceRecord record = findByTown(TownKey);
+    public int[] row(int town) {
+        TownPriceRecord record = findByTown(town);
         return record == null ? null : record.price;
     }
 
@@ -113,9 +113,9 @@ public final class TownPriceTable implements Iterable<TownPriceRecord> {
      * <p>It throws rather than answering with the type's empty value, because a grid's empty
      * value is one the sheet can write - 0 in a modifier table is a modifier of zero.
      */
-    public int at(int TownKey, int GoodsKey) {
-        TownPriceRecord record = cellRecord(TownKey);
-        return record.price[cellAt(GoodsKey)];
+    public int at(int town, int goods) {
+        TownPriceRecord record = cellRecord(town);
+        return record.price[cellAt(goods)];
     }
 
 
@@ -126,37 +126,37 @@ public final class TownPriceTable implements Iterable<TownPriceRecord> {
      * value is one the sheet could also have written - so this is the only way to tell them
      * apart.
      */
-    public boolean hasAt(int TownKey, int GoodsKey) {
-        TownPriceRecord record = cellRecord(TownKey);
-        return record.hasPriceAt[cellAt(GoodsKey)];
+    public boolean hasAt(int town, int goods) {
+        TownPriceRecord record = cellRecord(town);
+        return record.hasPriceAt[cellAt(goods)];
     }
 
 
     /** The row half of a cell lookup. */
-    private TownPriceRecord cellRecord(int TownKey) {
+    private TownPriceRecord cellRecord(int town) {
         if (columnAxis == null) {
             throw new IllegalStateException(
                 "table `TownPrice` has no column axis yet; "
                 + "read `TownPriceColumn` before reading a cell");
         }
 
-        TownPriceRecord record = findByTown(TownKey);
+        TownPriceRecord record = findByTown(town);
 
         if (record == null) {
             throw new TcbReader.RecordNotFoundException(String.format(
-                "table `TownPrice` has no row `%s`", TownKey));
+                "table `TownPrice` has no row `%s`", town));
         }
 
         return record;
     }
 
     /** The column half of a cell lookup. */
-    private int cellAt(int GoodsKey) {
-        TownPriceColumnRecord column = columnAxis.findByGoods(GoodsKey);
+    private int cellAt(int goods) {
+        TownPriceColumnRecord column = columnAxis.findByGoods(goods);
 
         if (column == null) {
             throw new TcbReader.RecordNotFoundException(String.format(
-                "table `TownPrice` has no column `%s`", GoodsKey));
+                "table `TownPrice` has no column `%s`", goods));
         }
 
         return column.at;
