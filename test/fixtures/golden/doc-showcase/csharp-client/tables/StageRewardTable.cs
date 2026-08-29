@@ -114,6 +114,65 @@ namespace Tabbit.Fixtures.DocShowcase
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             => _records.GetEnumerator();
 
+        #region Indexing by 'Stage and Rank'
+        private Dictionary<string, StageRewardRecord> _recordsByStageAndRank = new Dictionary<string, StageRewardRecord>();
+
+        /// <summary>Joins the columns of the `Stage and Rank` key into the text the map is keyed by.</summary>
+        private static string KeyOfStageAndRank(int stageKey, global::Tabbit.Fixtures.DocShowcase.Rarity rankKey)
+        {
+            var parts = new string[]
+            {
+                stageKey.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                ((long)rankKey).ToString(System.Globalization.CultureInfo.InvariantCulture),
+            };
+
+            var text = new StringBuilder();
+
+            foreach (var part in parts)
+                text.Append(part.Length).Append(':').Append(part);
+
+            return text.ToString();
+        }
+
+        /// <summary>
+        /// The row with this `Stage and Rank`, or null when the table has none.
+        /// </summary>
+        /// <remarks>
+        /// The lookup to reach for when a missing row is an ordinary answer - an optional
+        /// reference, a key that came from user input. Every language Tabbit generates has
+        /// this one under the same name.
+        /// </remarks>
+        public StageRewardRecord FindByStageAndRank(int stageKey, global::Tabbit.Fixtures.DocShowcase.Rarity rankKey)
+            => _recordsByStageAndRank.TryGetValue(KeyOfStageAndRank(stageKey, rankKey), out StageRewardRecord record) ? record : null;
+
+        /// <summary>
+        /// The row with this `Stage and Rank`, or a thrown exception naming what was
+        /// missing.
+        /// </summary>
+        public StageRewardRecord GetByStageAndRankOrThrow(int stageKey, global::Tabbit.Fixtures.DocShowcase.Rarity rankKey)
+        {
+            if (!_recordsByStageAndRank.TryGetValue(KeyOfStageAndRank(stageKey, rankKey), out StageRewardRecord record))
+                throw new TabbitException($"There is no record in table `StageReward` that corresponds to field `Stage and Rank` value ({stageKey}, {rankKey})");
+
+            return record;
+        }
+
+        /// <summary>Whether the table holds a row with this `Stage and Rank`.</summary>
+        public bool ContainsStageAndRank(int stageKey, global::Tabbit.Fixtures.DocShowcase.Rarity rankKey) => _recordsByStageAndRank.ContainsKey(KeyOfStageAndRank(stageKey, rankKey));
+
+        /// <summary>
+        /// The row with this `Stage and Rank`, or a thrown exception naming what was
+        /// missing.
+        /// </summary>
+        /// <remarks>
+        /// A key of several columns takes them in the order the sheet wrote them, which is
+        /// the order `GetByStageAndRankOrThrow` takes them in too.
+        /// spec/targets/table-collection-surface.md section 5.4.
+        /// </remarks>
+        public StageRewardRecord this[int stageKey, global::Tabbit.Fixtures.DocShowcase.Rarity rankKey]
+            => GetByStageAndRankOrThrow(stageKey, rankKey);
+        #endregion // Indexing by `Stage and Rank`
+
         /// <summary>
         /// Read a table from specified file.
         /// </summary>
@@ -223,6 +282,9 @@ namespace Tabbit.Fixtures.DocShowcase
 
                 TcbTable.CheckBlockEnd(reader, column, blockEnd);
             }
+            var recordsByStageAndRank = new Dictionary<string, StageRewardRecord>(count);
+            foreach (var record in records)
+                recordsByStageAndRank.Add(KeyOfStageAndRank(record.Stage, record.Rank), record);
 
             // Published. Everything above succeeded, and the barrier is what keeps the writes
             // that built these from being seen after the references to them - a reader on
@@ -230,6 +292,7 @@ namespace Tabbit.Fixtures.DocShowcase
             System.Threading.Thread.MemoryBarrier();
 
             _records = records;
+            _recordsByStageAndRank = recordsByStageAndRank;
 
             return Task.CompletedTask;
         }

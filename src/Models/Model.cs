@@ -128,7 +128,40 @@ public class Model
                 // tables take the side from one declaration, so they are kept or dropped
                 // together and the link cannot come out pointing at nothing.
                 Matrix = table.Matrix,
+
+                // **Everything else the table says about itself.** The narrowing is about
+                // fields, and a setting that describes the table is as true of the narrowed
+                // one as of the whole. Leaving these to their defaults made a narrowed build
+                // quietly different: `TrimTrailingArrayElements` off meant an array was
+                // written to its declared length rather than the row's, which for a
+                // polymorphic group meant writing an element the sheet never filled in - and
+                // that failed inside the writer with a cast, naming neither table nor column.
+                TrimTrailingArrayElements = table.TrimTrailingArrayElements,
+                AllowArrayGaps = table.AllowArrayGaps,
+                PrimaryIndexName = table.PrimaryIndexName,
+                HasExplicitTags = table.HasExplicitTags,
+                ReservedTags = table.ReservedTags,
+                MetaTags = table.MetaTags,
+                ExtraRowSets = table.ExtraRowSets,
             };
+
+            // The keys, minus any whose columns did not survive. A key is written as names
+            // and looked up in the field list, so one naming a column this side does not have
+            // is a lookup nothing can answer - and the generated code for it would take an
+            // argument for a member that is not there.
+            //
+            // The primary key never goes: the cooker refuses a primary index marked for one
+            // side only, which is what makes the row's identity the same on both.
+            foreach (var key in table.Keys)
+            {
+                if (key.FieldNames.All(name => table.Fields.Any(
+                        field => field.Name == name
+                                 && (field.Index == 0
+                                     || TargetSides.Includes(side, field.TargetSide)))))
+                {
+                    narrowed.Keys.Add(key);
+                }
+            }
 
             foreach (var field in table.Fields)
             {

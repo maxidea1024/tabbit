@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Tabbit.Models;
 using Xunit;
 
 namespace Tabbit.Tests;
@@ -164,4 +166,125 @@ public class TargetSideTests
         Assert.False(result.Succeeded, "A misspelled --target-side value was accepted.");
         Assert.Contains("--target-side", result.StdOut);
     }
+
+    // ------------------------------------------------------------------ what a narrowing is
+
+    /// <summary>
+    /// A narrowed table keeps every setting that is the table's own.
+    /// </summary>
+    /// <remarks>
+    /// **The narrowing is about fields, and nothing else.** The projection built the narrowed
+    /// table by naming the properties to carry, so every one it did not name arrived at its
+    /// default - and a default is a different answer, not a missing one.
+    ///
+    /// Two of them were visible from outside. `TrimTrailingArrayElements` off wrote an array
+    /// to its declared length rather than the row's, which for a polymorphic group meant
+    /// writing an element the sheet never filled in - and that failed inside the binary writer
+    /// with a cast between two type names, naming neither the table nor the column. The keys
+    /// went the other way and said nothing at all: a narrowed build generated a table without
+    /// the composite lookup the whole build has.
+    /// </remarks>
+    [Fact]
+    public void A_narrowed_table_keeps_what_the_table_says_about_itself()
+    {
+        var model = new Model();
+
+        var table = new Table
+        {
+            Location = new Location { Filename = "book.xlsx", Sheet = "S" },
+            RawName = "Stage",
+            Name = "Stage",
+            Comment = "",
+            TargetSide = TargetSide.Both,
+            TrimTrailingArrayElements = true,
+            AllowArrayGaps = true,
+            PrimaryIndexName = "Id",
+            MetaTags = new Dictionary<string, string> { { "owner", "combat" } },
+            Keys = [new TableKey { FieldNames = ["Id"], IsPrimary = true }],
+        };
+
+        table.Fields.Add(new Field
+        {
+            OwnerTable = table,
+            NameLocation = table.Location,
+            TypeLocation = table.Location,
+            DetailTypeLocation = table.Location,
+            TargetSideLocation = table.Location,
+            TargetSide = TargetSide.Both,
+            Index = 0,
+            Comment = "",
+            RawName = "id",
+            Name = "Id",
+            TypeName = "int",
+            Type = Tabbit.Models.ValueType.Int32,
+        });
+
+        model.Tables.Add(table);
+
+        var narrowed = model.ProjectTo(TargetSide.ClientOnly).Tables[0];
+
+        Assert.True(narrowed.TrimTrailingArrayElements);
+        Assert.True(narrowed.AllowArrayGaps);
+        Assert.Equal("Id", narrowed.PrimaryIndexName);
+        Assert.Equal("combat", narrowed.MetaTags["owner"]);
+
+        // The key survives because its column does.
+        Assert.Single(narrowed.Keys);
+        Assert.Equal("Id", narrowed.Keys[0].FieldNames[0]);
+    }
+
+    /// <summary>
+    /// A key whose column this side does not have is dropped rather than left dangling.
+    /// </summary>
+    /// <remarks>
+    /// A key is written as names and answered from the field list, so one naming a column
+    /// that is not there is a lookup nothing can build - and the generated code for it would
+    /// take an argument for a member the record does not have.
+    /// </remarks>
+    [Fact]
+    public void A_key_whose_column_the_side_drops_goes_with_it()
+    {
+        var model = new Model();
+
+        var table = new Table
+        {
+            Location = new Location { Filename = "book.xlsx", Sheet = "S" },
+            RawName = "Stage",
+            Name = "Stage",
+            Comment = "",
+            TargetSide = TargetSide.Both,
+            Keys =
+            [
+                new TableKey { FieldNames = ["Id"], IsPrimary = true },
+                new TableKey { FieldNames = ["Id", "ServerOnly"], IsPrimary = false },
+            ],
+        };
+
+        table.Fields.Add(Column(table, index: 0, name: "Id", side: TargetSide.Both));
+        table.Fields.Add(Column(table, index: 1, name: "ServerOnly", side: TargetSide.ServerOnly));
+
+        model.Tables.Add(table);
+
+        var narrowed = model.ProjectTo(TargetSide.ClientOnly).Tables[0];
+
+        Assert.Single(narrowed.Keys);
+        Assert.True(narrowed.Keys[0].IsPrimary);
+    }
+
+    private static Field Column(Table table, int index, string name, TargetSide side)
+        => new()
+        {
+            OwnerTable = table,
+            NameLocation = table.Location,
+            TypeLocation = table.Location,
+            DetailTypeLocation = table.Location,
+            TargetSideLocation = table.Location,
+            TargetSide = side,
+            Index = index,
+            Comment = "",
+            RawName = name,
+            Name = name,
+            TypeName = "int",
+            Type = Tabbit.Models.ValueType.Int32,
+        };
 }

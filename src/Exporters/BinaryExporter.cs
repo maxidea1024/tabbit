@@ -1273,6 +1273,30 @@ public class BinaryExporter : Target<BinaryRecipe>
             ExportValue(writer, elements!.GetValue(i), field);
     }
 
+    /// <summary>
+    /// Whether a cell's value is what the column says it is.
+    /// </summary>
+    /// <remarks>
+    /// Asked only to make the report name the column. What it must not do is decide anything:
+    /// a value it does not recognize is left to the cast below, which is the one place that
+    /// says what the format accepts.
+    /// </remarks>
+    private static bool Fits(object? value, Models.ValueType valueType)
+        => value is null || valueType switch
+        {
+            Models.ValueType.String => value is string,
+            Models.ValueType.Bool => value is bool,
+            Models.ValueType.Int32 or Models.ValueType.Enum or Models.ValueType.ForeignRecord
+                => value is int,
+            Models.ValueType.Int64 => value is long,
+            Models.ValueType.Float => value is float,
+            Models.ValueType.Double => value is double,
+            Models.ValueType.DateTime => value is System.DateTime,
+            Models.ValueType.TimeSpan => value is System.TimeSpan,
+            Models.ValueType.Uuid => value is System.Guid,
+            _ => true,
+        };
+
     private static void ExportValue(TcbWriter writer, object? value, Field field)
     {
         // Element type, so the same switch serves a scalar field and one element
@@ -1285,6 +1309,18 @@ public class BinaryExporter : Target<BinaryRecipe>
         // not be pointed at. spec/references/reference-key-types.md.
         if (field.IsRef)
             valueType = field.RefKeyType;
+
+        // **A value of the wrong shape is a defect, and the report has to say whose.** The
+        // casts below are unboxing casts, so a cell that is not what its column says it is
+        // fails with the two type names and nothing else - no table, no column, no value.
+        // Twice now that has been the whole of what a failure said.
+        if (!Fits(value, valueType))
+        {
+            throw new TabbitDefectException(
+                $"`{field.OwnerTable?.Name}.{field.Name}` is `{valueType}` and its cell holds "
+                + $"{(value is null ? "nothing" : "a " + value.GetType().Name)}"
+                + $"{(value is null ? "" : $" (`{value}`)")}.");
+        }
 
         switch (valueType)
         {
