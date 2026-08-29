@@ -530,6 +530,20 @@ internal sealed class TsRecordMemberView
 /// templates has a recursive include and the one that grew a tree walk would be the only place
 /// where depth had to be reasoned about in template syntax.
 /// </remarks>
+/// <summary>One declared record type, as its own module needs it.</summary>
+internal sealed class TsRecordFileView
+{
+    public required string Name { get; init; }
+
+    public required IReadOnlyList<string> Comment { get; init; }
+
+    /// <summary>The `import` lines the module opens with.</summary>
+    public required IReadOnlyList<string> Imports { get; init; }
+
+    /// <summary>Innermost first, so an interface is declared before the one naming it.</summary>
+    public required IReadOnlyList<TsRecordTypeView> Types { get; init; }
+}
+
 internal sealed class TsRecordTypeView
 {
     /// <summary>Name of the interface.</summary>
@@ -540,6 +554,15 @@ internal sealed class TsRecordTypeView
 
     /// <summary>Whether this is the group's own element type rather than a level below it.</summary>
     public required bool IsOutermost { get; set; }
+
+    /// <summary>
+    /// Whether the type is a declaration's, so it is written once in its own module.
+    /// </summary>
+    /// <remarks>
+    /// Everything below such a level is written there too - a level inside a shared type is
+    /// part of it. spec/types/declared-struct-identity.md.
+    /// </remarks>
+    public bool IsShared { get; set; }
 
     /// <summary>
     /// The lookups this interface declares beside its arrays, for a `set` or a `map`.

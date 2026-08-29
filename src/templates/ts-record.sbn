@@ -1,0 +1,58 @@
+{{~##
+   One declared record type, and the levels inside it that are its own.
+
+   **A struct is an entity beside a table and an enum, so it gets a module like one.** The
+   declaration says "this is one type", and the generated code says the same thing only if
+   there is one type - so this is written once however many groups named it.
+   spec/types/declared-struct-identity.md.
+
+   The `…Json` twin stays in the table's module: it is that module's parsing detail, it is not
+   exported, and two modules holding one of the same name do not meet.
+##~}}
+{{ include 'ts-head.sbn' ~}}
+{{~ if imports | array.size > 0 ~}}
+
+{{~ for line in imports ~}}
+{{ line }}
+{{~ end ~}}
+{{~ end ~}}
+{{~ for rt in types }}
+
+{{~ if rt.is_outermost ~}}
+{{~ if comment | array.size > 0 ~}}
+{{~ for line in comment ~}}
+{{ line }}
+{{~ end ~}}
+{{~ else ~}}
+/** One {{ name }}, as the declaration that names it says. */
+{{~ end ~}}
+{{~ else ~}}
+/** A record inside {{ name }}. */
+{{~ end ~}}
+export interface {{ rt.type_name }} {
+{{~ for member in rt.members ~}}
+{{~ for line in member.comment ~}}
+  {{ line }}
+{{~ end ~}}
+{{~ if member.ref_key_type_name != '' ~}}
+  {{ member.prop_name }}: {{ member.ref_key_type_name }}
+  {{ member.row_prop_name }}: {{ member.field_type }}
+{{~ else ~}}
+  {{ member.prop_name }}: {{ member.field_type }}
+{{~ end ~}}
+{{~ end ~}}
+{{~ for lookup in rt.lookups ~}}
+{{~ if lookup.is_map ~}}
+{{~ if lookup.prop_name == 'byKey' ~}}
+  /** What each key is mapped to. Insertion order, which is the file's. */
+{{~ else ~}}
+  /** Where each key sits among the entries - this map's value is a struct, which is a
+      property per column, so what a lookup can answer with is the position. */
+{{~ end ~}}
+{{~ else ~}}
+  /** The elements of `{{ lookup.source_prop }}`, for asking whether one is there. */
+{{~ end ~}}
+  {{ lookup.prop_name }}: {{ lookup.type_name }}
+{{~ end ~}}
+}
+{{~ end ~}}

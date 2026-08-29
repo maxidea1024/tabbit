@@ -35,6 +35,10 @@ import { {{ accessor_name }} } from '../{{ accessor_file }}'
 {{~## One interface per level, innermost first - the view flattened the nesting so this loop
    does not have to know how deep it went. spec/types/nested-multi-level.md. ##~}}
 {{~ for rt in field.record_types ~}}
+{{~## A shared type is written once in a module of its own, and imported above. The `…Json`
+   twin below is this module's parsing detail and stays either way.
+   spec/types/declared-struct-identity.md. ##~}}
+{{~ if !rt.is_shared ~}}
 {{~ if rt.is_outermost ~}}
 /** One element of {{ name }}Record.{{ field.prop_name }}. */
 {{~ else ~}}
@@ -75,6 +79,7 @@ export interface {{ rt.type_name }} {
   {{ lookup.prop_name }}: {{ lookup.type_name }}
 {{~ end ~}}
 }
+{{~ end ~}}
 
 {{~ if field.variants.size > 0 ~}}
 {{~## The union built from one entry. A `switch` so a variant the file names and this build

@@ -226,6 +226,11 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                   BuildStruct(declared));
         }
 
+        // And the declarations whose value is one shape, beside them for the same reason.
+        // spec/types/declared-struct-identity.md.
+        foreach (var record in BuildRecordFiles())
+            Write($"structs/{TsFileName(record.Name)}.ts", "ts-record.sbn", record);
+
         if (_model.Tables.Count > 0)
         {
             foreach (var table in _model.Tables)
@@ -807,6 +812,11 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             }
         }
 
+        // A group a declaration typed: the type is written once in a module of its own.
+        // spec/types/declared-struct-identity.md.
+        foreach (var group in table.SerialFields.Where(sf => sf.DeclaredType.Length > 0))
+            Add($"import {{ {group.DeclaredType} }} from '../structs/{TsFileName(group.DeclaredType)}'");
+
         // The column axis of a grid, whose table this one holds a reference to. Its enum, if
         // the axis is one, comes in through the loop above - the key column is a field of this
         // table's own only in the column table, so the import is stated here.
@@ -950,7 +960,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     {
         string prop = TsName(sf.Name);
         string field = "_" + prop;
-        string typeName = sf.Name.ToPascalCase() + "Entry";
+        string typeName = RecordTypeNameOf(sf);
 
         // Trimmed, so the length is this row's: nothing to declare filled and no `_N` to
         // expose, because there is no one count.
@@ -959,11 +969,17 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         // Innermost first, so an interface is declared before the one naming it - which
         // TypeScript does not require but a reader does.
         var recordTypes = new List<TsRecordTypeView>();
-        var members = BuildRecordMembers(sf.Members, sf.Name.ToPascalCase(), recordTypes);
+
+        var members = BuildRecordMembers(
+            sf.Members,
+            sf.DeclaredType.Length > 0 ? sf.DeclaredType : sf.Name.ToPascalCase(),
+            recordTypes,
+            inShared: sf.DeclaredType.Length > 0);
 
         recordTypes.Add(new TsRecordTypeView
         {
             TypeName = typeName,
+            IsShared = sf.DeclaredType.Length > 0,
             Members = members,
             IsOutermost = true,
             Lookups = LookupsOf(sf.Members, sf.Container),
@@ -1071,8 +1087,14 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// a value only in the three strings below - its type, its exported type, and its empty
     /// value - so depth costs nothing past this method. spec/types/nested-multi-level.md.
     /// </remarks>
+    /// <param name="inShared">
+    /// Whether these members sit inside a type a declaration owns. Everything below such a
+    /// level is written where that type is, so the table module must not declare any of it.
+    /// spec/types/declared-struct-identity.md.
+    /// </param>
     private List<TsRecordMemberView> BuildRecordMembers(
-        List<RecordMember> members, string prefix, List<TsRecordTypeView> declared)
+        List<RecordMember> members, string prefix, List<TsRecordTypeView> declared,
+        bool inShared = false)
     {
         var result = new List<TsRecordMemberView>();
 
@@ -1144,12 +1166,24 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
             // A level below. The type name carries the path so two records each holding a
             // `Position` do not name one interface twice.
-            string typeName = prefix + member.Name.ToPascalCase() + "Entry";
-            var nested = BuildRecordMembers(member.Members, prefix + member.Name.ToPascalCase(), declared);
+            string typeName = member.DeclaredType.Length > 0
+                ? member.DeclaredType
+                : prefix + member.Name.ToPascalCase() + "Entry";
+
+            bool nestedIsShared = inShared || member.DeclaredType.Length > 0;
+
+            var nested = BuildRecordMembers(
+                member.Members,
+                member.DeclaredType.Length > 0
+                    ? member.DeclaredType
+                    : prefix + member.Name.ToPascalCase(),
+                declared,
+                nestedIsShared);
 
             declared.Add(new TsRecordTypeView
             {
                 TypeName = typeName,
+                IsShared = nestedIsShared,
                 Members = nested,
                 IsOutermost = false,
                 Lookups = LookupsOf(member.Members, member.Container),
@@ -2330,6 +2364,92 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
         var (type, enumm) = KeyComponentView.TypeOf(sf);
         return ToTypescriptTypename(type, enumm, null);
     }
+
+    /// <summary>
+    /// What a record group's element type is called: the declaration when one typed it.
+    /// </summary>
+    /// <remarks>
+    /// spec/types/declared-struct-identity.md.
+    /// </remarks>
+    /// <summary>
+    /// The declared record types, each with the levels inside it that are its own.
+    /// </summary>
+    /// <remarks>
+    /// A level below that is itself a declaration is skipped: it has a module of its own, and
+    /// writing it in both would export the same name twice.
+    /// spec/types/declared-struct-identity.md.
+    /// </remarks>
+    private IReadOnlyList<TsRecordFileView> BuildRecordFiles()
+        => _model.RecordTypes
+            .Select(declared =>
+            {
+                var types = new List<TsRecordTypeView>();
+                var members = BuildRecordMembers(declared.Members, declared.Name, types);
+
+                types.Add(new TsRecordTypeView
+                {
+                    TypeName = declared.Name,
+                    Members = members,
+                    IsOutermost = true,
+                    IsShared = true,
+
+                    // The lookups its members' containers publish. A declared group has no
+                    // container of its own - the type cell names the struct, not a `set` - so
+                    // what is asked for here is what the members declare.
+                    // spec/types/set-and-map.md section 7.2.
+                    Lookups = LookupsOf(declared.Members, Models.ContainerKind.None),
+                });
+
+                return new TsRecordFileView
+                {
+                    Name = declared.Name,
+                    Comment = CommentLines(declared.Comment),
+                    Imports = RecordImports(declared, types),
+                    Types = types.Where(type => type.TypeName == declared.Name
+                                                || !type.IsShared).ToList(),
+                };
+            })
+            .ToList();
+
+    /// <summary>What a declared record type's module has to bring in.</summary>
+    /// <remarks>
+    /// The enums its members are typed with, the tables its references point at, and the other
+    /// declarations it holds - the same three a table module brings in, asked of one type.
+    /// </remarks>
+    private IReadOnlyList<string> RecordImports(
+        Models.RecordType declared, IReadOnlyList<TsRecordTypeView> types)
+    {
+        var lines = new List<string>();
+
+        foreach (var field in declared.Members.SelectMany(member => member.AllFields))
+        {
+            if (field.ElementType == ValueType.Enum)
+                Add($"import {{ {field.Enum.Name} }} from '../enums/{TsFileName(field.Enum.Name)}'");
+            else if (field.ElementType == ValueType.ForeignRecord
+                     && field.ResolvedRefTable is { } refTable)
+            {
+                Add($"import {{ {refTable.Name.ToPascalCase()}Record }} from '../tables/{TsFileName(refTable.Name)}'");
+            }
+        }
+
+        // A member that is itself a declaration lives in its own module.
+        foreach (var nested in types.Where(type => type.IsShared
+                                                   && type.TypeName != declared.Name))
+        {
+            Add($"import {{ {nested.TypeName} }} from './{TsFileName(nested.TypeName)}'");
+        }
+
+        return lines;
+
+        void Add(string line)
+        {
+            if (!lines.Contains(line))
+                lines.Add(line);
+        }
+    }
+
+    private static string RecordTypeNameOf(SerialField sf)
+        => sf.DeclaredType.Length > 0 ? sf.DeclaredType : sf.Name.ToPascalCase() + "Entry";
 
     private string TsName(string name) => LanguageProfile.Typescript.MemberName(name.ToCase(_memberCase));
 
