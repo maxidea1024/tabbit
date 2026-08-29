@@ -85,6 +85,12 @@ public class ConversionGoldenTests
     // axis pointing at another table, a memo column, an excluded row and a cell with no value;
     // the other has an enum on both axes, which the reading rule cannot express at all.
     // spec/layout/matrix-declaration.md.
+    // A group typed by a `.tbs` declaration, and a second table that names the same one. What
+    // the tree pins is the identity: `Reward` is written once, in a file of its own, and both
+    // tables refer to it - so a function taking one takes either. Before this, each table had
+    // its own type named after its own column.
+    // spec/types/declared-struct-identity.md.
+    [InlineData("declared")]
     [InlineData("matrix")]
     // The other half of that: a table pointing *at* those keys. One table holds a `string`, a
     // `bigint` and a `uuid` reference at once, so a mixture is pinned as well as each on its

@@ -214,114 +214,11 @@
 {{~ else ~}}
         /// <summary>A record inside <see cref="{{ field.prop_name }}"/>.</summary>
 {{~ end ~}}
-        [System.Serializable]
-        public struct {{ rt.type_name }}
-        {
-{{~## No field initializers: those are C# 10 in a struct and need an explicit
-      parameterless constructor, and this has to compile as the C# 8 Unity 2020.3
-      accepts. The factory below fills the strings instead. ##~}}
-{{~ for member in rt.members ~}}
-{{~ for line in member.comment ~}}
-            /// {{ line }}
+{{~## The struct itself, which a shared type gets in a file of its own instead. The entry
+      stays in this list either way: the factory below it is the table's own. ##~}}
+{{~ if !rt.is_shared ~}}
+{{ include 'csharp-record-body.sbn' ~}}
 {{~ end ~}}
-{{~ if member.row_prop_name != '' ~}}
-{{~## The member's own name is the key's, because the key is what the cell holds; the row is
-      linked after loading and takes a derived name.
-      spec/references/reference-surface-naming.md sections 4 and 5. ##~}}
-            public {{ member.ref_key_type_name }} {{ member.prop_name }};
-            public {{ member.field_type }} {{ member.row_prop_name }};
-{{~ else ~}}
-            public {{ member.field_type }} {{ member.prop_name }};
-{{~ if member.ref_table != '' ~}}
-{{~## A reference member carries two things: the row it resolved to and the key that came
-   off the wire. Both inside the element, because a group may hold more than one reference -
-   and both at the member's own arity. There is no third member saying whether the linking
-   ran, because the key it runs on answers that already.
-   spec/references/references-in-records.md. ##~}}
-            public {{ member.ref_key_type_name }} {{ member.prop_name }}_index;
-{{~ end ~}}
-{{~ end ~}}
-{{~ end ~}}
-{{~## The per-target accessors of every member that reaches several tables. A property where
-   the member is one value; a method taking the element number where the member is the array,
-   which is the third place an element number sits. spec/references/multi-target-accessors.md. ##~}}
-{{~ for member in rt.members ~}}
-{{~ end ~}}
-{{~## The second layer of a container's surface. The arrays above are the file's order, which
-      is the sheet's; these are the lookup. Both, because sorting is not this tool's to do -
-      a hash container alone would give every language an order of its own.
-      spec/types/set-and-map.md section 7.1. ##~}}
-{{~ for member in rt.members ~}}
-{{~ if member.is_set ~}}
-
-            internal HashSet<{{ member.set_element_type }}> _{{ member.prop_name | string.downcase }}Set;
-
-            /// <summary>Whether this set holds <paramref name="value"/>.</summary>
-            public bool {{ member.contains_method }}({{ member.set_element_type }} value)
-                => _{{ member.prop_name | string.downcase }}Set != null
-                   && _{{ member.prop_name | string.downcase }}Set.Contains(value);
-{{~ end ~}}
-{{~ end ~}}
-{{~ if rt.is_map ~}}
-{{~ if rt.map_value_type != '' ~}}
-
-            internal Dictionary<{{ rt.map_key_type }}, {{ rt.map_value_type }}> _byKey;
-
-            /// <summary>How many entries this map holds.</summary>
-            public int Count => Key == null ? 0 : Key.Length;
-
-            /// <summary>What <paramref name="key"/> is mapped to, if anything.</summary>
-            public bool TryGetValue({{ rt.map_key_type }} key, out {{ rt.map_value_type }} value)
-            {
-                if (_byKey != null)
-                    return _byKey.TryGetValue(key, out value);
-
-                value = default({{ rt.map_value_type }});
-                return false;
-            }
-{{~ else ~}}
-
-            internal Dictionary<{{ rt.map_key_type }}, int> _byKey;
-
-            /// <summary>How many entries this map holds.</summary>
-            public int Count => Key == null ? 0 : Key.Length;
-
-            /// <summary>
-            /// Where <paramref name="key"/> sits among the entries, or false when it is
-            /// not one of them.
-            /// </summary>
-            /// <remarks>
-            /// **The position rather than the value, and only here.** This map's value is
-            /// a struct, which is a member per column - so there is no single object to
-            /// hand back and the entry is read as <c>Value.Member[index]</c>. A map whose
-            /// value is one column answers with the value, under a different name so that
-            /// neither can be mistaken for the other.
-            /// </remarks>
-            public bool TryGetIndex({{ rt.map_key_type }} key, out int index)
-            {
-                if (_byKey != null)
-                    return _byKey.TryGetValue(key, out index);
-
-                index = -1;
-                return false;
-            }
-{{~ end ~}}
-{{~ end ~}}
-
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-{{~ for member in rt.members ~}}
-{{~ if member.is_first ~}}
-                sb.Append("\"{{ member.prop_name }}\":"); ToStringHelper.ToString({{ member.prop_name }}, sb);
-{{~ else ~}}
-                sb.Append(",\"{{ member.prop_name }}\":"); ToStringHelper.ToString({{ member.prop_name }}, sb);
-{{~ end ~}}
-{{~ end ~}}
-                sb.Append("}");
-                return sb.ToString();
-            }
-        }
 {{~## A level below always gets the one-value factory. The outermost one is further down,
       because whether it takes a length depends on the group's kind. ##~}}
 {{~ if !rt.is_outermost && rt.needs_init }}
@@ -963,7 +860,9 @@
 {{~ if column.record_needs_init ~}}
                             record.{{ column.field_name }} = {{ table.name }}Record.New{{ column.record_type_name }}Array(elementCount);
 {{~ else ~}}
-                            record.{{ column.field_name }} = new {{ table.name }}Record.{{ column.record_type_name }}[elementCount];
+{{~## A shared type is not nested in the record class, so it is named on its own. The factory
+      beside it stays the record's either way. ##~}}
+                            record.{{ column.field_name }} = new {{ if column.record_is_shared }}{{ column.record_type_name }}{{ else }}{{ table.name }}Record.{{ column.record_type_name }}{{ end }}[elementCount];
 {{~ end ~}}
 {{~ else ~}}
                             if (record.{{ column.field_name }}.Length != elementCount)

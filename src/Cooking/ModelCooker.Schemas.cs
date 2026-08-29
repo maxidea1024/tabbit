@@ -356,6 +356,7 @@ public partial class ModelCooker
                     return null;
 
                 here = declarations.FindStruct(member.Type.Name);
+                path[level].DeclaredType = here is null ? "" : here.Name.ToPascalCase();
                 continue;
             }
 

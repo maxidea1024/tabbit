@@ -118,6 +118,9 @@ internal sealed class CsPartView
     /// answer is a spelling nobody would choose.
     /// </remarks>
     public CsPolymorphicTypeView? Structure { get; set; }
+
+    /// <summary>The declared record type this file is for, and the levels inside it.</summary>
+    public CsRecordFileView? Record { get; set; }
 }
 
 /// <summary>
@@ -161,6 +164,24 @@ internal sealed class CsMatrixView
 
     /// <summary>Whether a cell may have no value, which is what makes `HasAt` worth writing.</summary>
     public required bool CellsAreOptional { get; init; }
+}
+
+/// <summary>One declared record type, and every level of it, as its own file needs them.</summary>
+/// <remarks>
+/// The same views a table builds for a group it declares inline - the type is the same shape
+/// wherever it is written, and only the place changes.
+/// spec/types/declared-struct-identity.md.
+/// </remarks>
+internal sealed class CsRecordFileView
+{
+    /// <summary>The type's name, which is the declaration's.</summary>
+    public required string Name { get; init; }
+
+    /// <summary>Doc-comment lines from the declaration, already split.</summary>
+    public required IReadOnlyList<string> Comment { get; init; }
+
+    /// <summary>Innermost first, so a struct is declared before the one that holds it.</summary>
+    public required IReadOnlyList<CsRecordTypeView> Types { get; init; }
 }
 
 internal sealed class CsTableView
@@ -313,6 +334,9 @@ internal sealed class CsColumnView
 
     /// <summary>The element type of the record group, for the member columns that allocate it.</summary>
     public required string RecordTypeName { get; set; }
+
+    /// <summary>Whether that type is a declaration's, so it is not nested in the record.</summary>
+    public bool RecordIsShared { get; set; }
 
     /// <summary>
     /// Whether the element type has a member the factory has to fill - a string, which
@@ -562,6 +586,16 @@ internal sealed class CsRecordTypeView
     /// allocates its elements together. A level below is always one value at a time.
     /// </remarks>
     public required bool IsOutermost { get; set; }
+
+    /// <summary>
+    /// Whether this type is a declaration's, and so is written once rather than here.
+    /// </summary>
+    /// <remarks>
+    /// The entry stays in the table's list either way, because the factory below it is the
+    /// table's own - what the flag turns off is the declaration of the type, not the code
+    /// that fills one. spec/types/declared-struct-identity.md.
+    /// </remarks>
+    public bool IsShared { get; set; }
 
     /// <summary>
     /// Whether this struct is a `map` - a key column beside what the entries hold.

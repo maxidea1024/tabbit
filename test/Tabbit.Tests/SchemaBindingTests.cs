@@ -112,8 +112,10 @@ public class SchemaBindingTests
     {
         Convert("declared");
 
+        // The struct's own file, which is where a declared group's type is written now that
+        // the declaration is the type's identity. spec/types/declared-struct-identity.md.
         string emitted = File.ReadAllText(Path.Combine(
-            RepoLayout.OutputDir("declared"), "csharp", "tables", "LoadoutTable.cs"));
+            RepoLayout.OutputDir("declared"), "csharp", "structs", "Reward.cs"));
 
         Assert.Contains("Which item, as that table's key.", emitted);
         Assert.Contains("Shown beside the count. Blank where there is nothing to show.", emitted);
@@ -325,6 +327,9 @@ public class SchemaBindingTests
         var result = TabbitRunner.Convert("declared");
 
         Assert.True(result.Succeeded, result.Describe());
-        Assert.Contains("2 column(s) are typed `asset`", result.StdOut);
+        // Three: `Slot1.Icon` and `Slot2.Icon` on `Loadout`, and `Prize.Icon` on `Chest`.
+        // The role is the declaration's, so it reaches every column of every group that
+        // named it - which is the same fact the shared type is.
+        Assert.Contains("3 column(s) are typed `asset`", result.StdOut);
     }
 }

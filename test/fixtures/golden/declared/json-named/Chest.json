@@ -1,0 +1,18 @@
+[
+  {
+    "index": 1,
+    "prize": {
+      "itemId": 30,
+      "count": 1,
+      "icon": "icon_d"
+    }
+  },
+  {
+    "index": 2,
+    "prize": {
+      "itemId": 31,
+      "count": 2,
+      "icon": ""
+    }
+  }
+]

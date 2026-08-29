@@ -1,0 +1,53 @@
+[
+  {
+    "index": 1,
+    "name": "first",
+    "slot": [
+      {
+        "itemId": 10,
+        "count": 1,
+        "icon": "icon_a"
+      },
+      {
+        "itemId": 11,
+        "count": 2,
+        "icon": "icon_b"
+      }
+    ],
+    "grade": 1
+  },
+  {
+    "index": 2,
+    "name": "second",
+    "slot": [
+      {
+        "itemId": 20,
+        "count": 3,
+        "icon": ""
+      },
+      {
+        "itemId": 21,
+        "count": 4,
+        "icon": "icon_c"
+      }
+    ],
+    "grade": 2
+  },
+  {
+    "index": 3,
+    "name": "third",
+    "slot": [
+      {
+        "itemId": 20,
+        "count": 3,
+        "icon": ""
+      },
+      {
+        "itemId": 21,
+        "count": 4,
+        "icon": "icon_c"
+      }
+    ],
+    "grade": 2
+  }
+]

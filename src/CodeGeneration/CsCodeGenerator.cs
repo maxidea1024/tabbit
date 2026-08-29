@@ -382,6 +382,15 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                   Part(structure: structure, usings: TableUsings()));
         }
 
+        // And the declarations whose value is one shape, beside them for the same reason: the
+        // declaration is one type, and it is one type in the output only if one file declares
+        // it. spec/types/declared-struct-identity.md.
+        foreach (var record in BuildRecordFiles())
+        {
+            Write(Path.Combine("structs", record.Name + ".cs"), "csharp-record.sbn",
+                  Part(record: record, usings: TableUsings()));
+        }
+
         foreach (var pair in _model.ConstantSets.Zip(view.ConstantSets, (model, rendered) => (model, rendered)))
         {
             Write(Path.Combine("constants", pair.rendered.Name + ".cs"), "csharp-constants.sbn",
@@ -392,7 +401,8 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// <summary>A view for one of the single-subject templates.</summary>
     private CsPartView Part(
         CsTableView? table = null, CsEnumView? enumm = null, CsConstantSetView? set = null,
-        IReadOnlyList<string>? usings = null, CsPolymorphicTypeView? structure = null)
+        IReadOnlyList<string>? usings = null, CsPolymorphicTypeView? structure = null,
+        CsRecordFileView? record = null)
         => new CsPartView
         {
             Namespace = _csharpReceipe.Namespace,
@@ -402,7 +412,45 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             Enumm = enumm,
             Set = set,
             Structure = structure,
+            Record = record,
         };
+
+    /// <summary>
+    /// The declared record types, each with the levels inside it that are its own.
+    /// </summary>
+    /// <remarks>
+    /// A level below that is itself a declaration is skipped here: it has a file of its own,
+    /// and writing it in both would give the namespace the same type twice.
+    /// spec/types/declared-struct-identity.md.
+    /// </remarks>
+    private IReadOnlyList<CsRecordFileView> BuildRecordFiles()
+        => _model.RecordTypes
+            .Select(declared =>
+            {
+                var types = new List<CsRecordTypeView>();
+                var members = BuildRecordMembers(declared.Members, declared.Name, types);
+
+                types.Add(new CsRecordTypeView
+                {
+                    TypeName = declared.Name,
+                    Members = members,
+                    NeedsInit = members.Any(member => member.Initializer.Length > 0),
+                    IsOutermost = true,
+                    IsShared = true,
+                    IsMap = false,
+                    MapKeyType = "",
+                    MapValueType = "",
+                });
+
+                return new CsRecordFileView
+                {
+                    Name = declared.Name,
+                    Comment = CommentLines(declared.Comment),
+                    Types = types.Where(type => type.TypeName == declared.Name
+                                                || !type.IsShared).ToList(),
+                };
+            })
+            .ToList();
 
     /// <summary>
     /// The abstract types the sheets used, as the templates read them.
@@ -843,7 +891,8 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             PresenceField = PresenceField(wire.Group),
             ElementPresenceField = ElementPresenceField(wire.Group),
             EmptyValue = EmptyValue(wire, fieldType),
-            RecordTypeName = wire.Group.Name.ToPascalCase() + "Entry",
+            RecordTypeName = RecordTypeNameOf(wire.Group),
+            RecordIsShared = wire.Group.DeclaredType.Length > 0,
             RecordNeedsInit = wire.Group.IsRecord && RecordNeedsFactory(wire.Group),
             CursorOpen = CursorOpen(wire, table.Name.ToPascalCase()),
             MemberAccess = memberAccess,
@@ -986,11 +1035,22 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         // Innermost first, so a struct is declared before the one that holds it - and so the
         // outermost, which every existing path reads, is last.
         var recordTypes = new List<CsRecordTypeView>();
-        var members = BuildRecordMembers(sf.Members, sf.Name.ToPascalCase(), recordTypes);
+
+        // The declaration is the type's identity when there is one, and the prefix the levels
+        // below are named with. A group nobody declared keeps the name the sheet gave it.
+        // spec/types/declared-struct-identity.md.
+        string entryName = RecordTypeNameOf(sf);
+
+        var members = BuildRecordMembers(
+            sf.Members,
+            sf.DeclaredType.Length > 0 ? sf.DeclaredType : sf.Name.ToPascalCase(),
+            recordTypes,
+            inShared: sf.DeclaredType.Length > 0);
 
         recordTypes.Add(new CsRecordTypeView
         {
-            TypeName = sf.Name.ToPascalCase() + "Entry",
+            TypeName = entryName,
+            IsShared = sf.DeclaredType.Length > 0,
             Members = members,
             // And the slot a member reaching several tables holds per element, which a struct
             // cannot size at its declaration either. spec/references/multi-target-accessors.md.
@@ -1029,7 +1089,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             // length, not a bit per member. WireColumn.Of says the same about the wire.
             IsNullable = false,
             PresenceField = "",
-            RecordTypeName = sf.Name.ToPascalCase() + "Entry",
+            RecordTypeName = RecordTypeNameOf(sf),
             Members = members,
             RecordTypes = recordTypes,
 
@@ -1073,7 +1133,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             // type - see spec/types/nested-multi-level.md.
             FieldType = sf.MembersAreAnonymous
                 ? ToCSharpTypeName(sf.Members[0].FirstField) + "[]"
-                : sf.Name.ToPascalCase() + "Entry",
+                : RecordTypeNameOf(sf),
             Initializer = "",
             ElementCount = sf.RecordElementCount,
             Kind = sf.MembersAreAnonymous
@@ -1262,8 +1322,16 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
         }
     }
 
+    /// <param name="inShared">
+    /// Whether these members sit inside a type a declaration owns. Everything below such a
+    /// level is written where that type is written, so a table must not declare any of it -
+    /// otherwise the namespace holds `Bag.PricesEntry` and `ShopRecord.BagPricesEntry`, two
+    /// types of one shape that nothing can assign across.
+    /// spec/types/declared-struct-identity.md.
+    /// </param>
     private List<CsRecordMemberView> BuildRecordMembers(
-        List<RecordMember> members, string prefix, List<CsRecordTypeView> declared)
+        List<RecordMember> members, string prefix, List<CsRecordTypeView> declared,
+        bool inShared = false)
     {
         var result = new List<CsRecordMemberView>();
 
@@ -1338,8 +1406,19 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             // A level below. Its type name carries the path so two records holding a
             // `Position` do not name one struct twice, and `Entry` is what keeps it off the
             // property's own name - C# does not allow a nested type and a member to share one.
-            string typeName = prefix + member.Name.ToPascalCase() + "Entry";
-            var nested = BuildRecordMembers(member.Members, prefix + member.Name.ToPascalCase(), declared);
+            string typeName = member.DeclaredType.Length > 0
+                ? member.DeclaredType
+                : prefix + member.Name.ToPascalCase() + "Entry";
+
+            bool nestedIsShared = inShared || member.DeclaredType.Length > 0;
+
+            var nested = BuildRecordMembers(
+                member.Members,
+                member.DeclaredType.Length > 0
+                    ? member.DeclaredType
+                    : prefix + member.Name.ToPascalCase(),
+                declared,
+                nestedIsShared);
             bool needsInit = nested.Any(m => m.Initializer.Length > 0);
 
             // A map's own struct: the key column, whatever the entries hold, and the
@@ -1355,6 +1434,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
             declared.Add(new CsRecordTypeView
             {
                 TypeName = typeName,
+                IsShared = nestedIsShared,
                 Members = nested,
                 NeedsInit = needsInit,
                 IsOutermost = false,
@@ -2160,6 +2240,19 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// column literals are spelled where they are built, because none of them is a member
     /// and none of them should move when a member's spelling does.
     /// </remarks>
+    /// <summary>
+    /// What a record group's element type is called.
+    /// </summary>
+    /// <remarks>
+    /// The declaration when one typed the group, because the declaration is the type's
+    /// identity and two tables that named it get the one type. A group nobody declared keeps
+    /// the name the sheet gave it, with `Entry` behind it - it has no identity to share, and
+    /// C# will not let a nested type and a member have one name.
+    /// spec/types/declared-struct-identity.md.
+    /// </remarks>
+    private static string RecordTypeNameOf(SerialField sf)
+        => sf.DeclaredType.Length > 0 ? sf.DeclaredType : sf.Name.ToPascalCase() + "Entry";
+
     private string CsName(string name)
         => LanguageProfile.CSharp.MemberName(name.ToCase(_memberCase));
 

@@ -1,0 +1,44 @@
+{{~##
+   One declared record type, and the levels inside it that are its own.
+
+   **A struct is an entity beside a table and an enum, so it gets a file like one.** The
+   declaration says "this is one type", and the generated code says the same thing only if
+   there is one type - so this is written once however many groups named it. Declaring it
+   inside each of those tables would give them a `Reward` apiece that share a name and are not
+   the same type, and then nothing can be written that takes one.
+   spec/types/declared-struct-identity.md.
+
+   The body is the same include a table uses for a group nobody declared, so the two cannot
+   drift. It is written for the nested case, which is four spaces deeper than a type at
+   namespace level - so it is captured and dedented by one level rather than kept twice.
+##~}}
+{{ include 'csharp-file-head.sbn' ~}}
+{{~ for rt in record.types ~}}
+{{~ if !for.first }}
+
+{{ end ~}}
+{{~ if rt.is_outermost ~}}
+{{~ for line in record.comment ~}}
+{{~ if for.first ~}}
+    /// <summary>
+{{~ end ~}}
+    /// {{ line }}
+{{~ if for.last ~}}
+    /// </summary>
+{{~ end ~}}
+{{~ end ~}}
+{{~ if record.comment | array.size == 0 ~}}
+    /// <summary>One <c>{{ record.name }}</c>, as the declaration that names it says.</summary>
+{{~ end ~}}
+{{~ else ~}}
+    /// <summary>A record inside <see cref="{{ record.name }}"/>.</summary>
+{{~ end ~}}
+{{~ capture body ~}}
+{{ include 'csharp-record-body.sbn' ~}}
+{{~ end ~}}
+{{~## One replace, not two: the eight-space pattern matches the front of every deeper line as
+      well, so each loses exactly one level. A newline goes in front so the first line is
+      reached the same way as the rest, and comes off again after. ##~}}
+{{ ("\n" + body) | string.replace("\n        ", "\n    ") | string.slice 1 | string.rstrip }}
+{{~ end ~}}
+{{ include 'csharp-file-foot.sbn' ~}}

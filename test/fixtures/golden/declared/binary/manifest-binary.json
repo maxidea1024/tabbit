@@ -1,0 +1,25 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "92edc734eeb8531dbed54b332972e84b",
+  "TotalSize": 331,
+  "Items": [
+    {
+      "Name": "Loadout.tcb",
+      "Size": 157,
+      "Hash": "9e78e4b4fd124b7569b9886ca45a3a6e",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Bonuses.tcb",
+      "Size": 88,
+      "Hash": "7f2a8e42a8ee3256142df799ff9c0108",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Chest.tcb",
+      "Size": 86,
+      "Hash": "788b8b5a617eb0a6b9fdfd71bca0e0f8",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

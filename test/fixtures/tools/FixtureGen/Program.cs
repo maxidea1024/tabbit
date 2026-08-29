@@ -1487,7 +1487,38 @@ internal static class Program
             .Row("3", "3", "9")
             .Row("", "4", "11");
 
-        b.Table(1, next + 2, multi);
+        next = b.Table(1, next + 2, multi);
+
+        // --- a second table typed by the same declaration -------------------
+        //
+        // **What makes the declaration a type rather than a shape.** `Loadout` above types a
+        // group `Reward` and so does this one; the two get the same type, and a function
+        // taking one takes either. Written with a different group name on purpose - the
+        // identity is the declaration's, not the column's, so `Prize` and `Slot` are the
+        // same thing. spec/types/declared-struct-identity.md.
+
+        var second = new TableSpec
+        {
+            Name = "Chest",
+            Comment = "A second table whose group the same declaration types.",
+        };
+
+        second
+            .Field(FieldSpec.Of("index", "int", "primary index"))
+            .Field(FieldSpec.Of(
+                "Prize.ItemId",
+                fromSchema ? "Reward" : "int",
+                Said("Which item, as that table's key.")))
+            .Field(FieldSpec.Of("Prize.Count", Typed("int"), Said("How many of it.")))
+            .Field(FieldSpec.Of(
+                "Prize.Icon", Typed("string?"),
+                Said("Shown beside the count. Blank where there is nothing to show.")));
+
+        second
+            .Row("1", "30", "1", "icon_d")
+            .Row("2", "31", "2", "");
+
+        b.Table(1, next + 2, second);
 
         Save(workbook, path);
     }

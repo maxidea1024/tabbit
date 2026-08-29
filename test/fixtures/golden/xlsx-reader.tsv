@@ -18,8 +18,8 @@ containers-sheet-set/containers-sheet-set.xlsx	sheets=1 rows=7 cells=16 chars=15
 containers-sheet/containers-sheet.xlsx	sheets=1 rows=11 cells=31 chars=279 names=0 skipped-names=0 hash=96ea08bff1ef76da
 containers/containers.xlsx	sheets=1 rows=11 cells=52 chars=345 names=0 skipped-names=0 hash=a01f430337d16b4d
 core/core.xlsx	sheets=7 rows=66 cells=421 chars=3579 names=0 skipped-names=0 hash=4de0cbf8fc0f2a71
-declared-expanded/declared-expanded.xlsx	sheets=1 rows=21 cells=98 chars=804 names=0 skipped-names=0 hash=b0429e8605432020
-declared/declared.xlsx	sheets=1 rows=21 cells=86 chars=540 names=0 skipped-names=0 hash=7e517010d0c2ba8d
+declared-expanded/declared-expanded.xlsx	sheets=1 rows=30 cells=127 chars=1090 names=0 skipped-names=0 hash=fa1867a12e6c5e48
+declared/declared.xlsx	sheets=1 rows=30 cells=110 chars=711 names=0 skipped-names=0 hash=68f70777e386e927
 doc-showcase/doc-showcase.xlsx	sheets=11 rows=100 cells=721 chars=4894 names=0 skipped-names=0 hash=0c981a060c00b3e0
 double-star/double-star.xlsx	sheets=1 rows=7 cells=21 chars=150 names=0 skipped-names=0 hash=2be8348acef4b44e
 element-only/element-only.xlsx	sheets=1 rows=8 cells=24 chars=216 names=0 skipped-names=0 hash=46193e98a6ccd7fa

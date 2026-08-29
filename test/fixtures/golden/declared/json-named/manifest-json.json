@@ -1,0 +1,25 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "dc347bc7400f2c98f4f56f8d01233f49",
+  "TotalSize": 1379,
+  "Items": [
+    {
+      "Name": "Loadout.json",
+      "Size": 739,
+      "Hash": "2d1a236a7a612132ee07d5827458ce34",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Bonuses.json",
+      "Size": 429,
+      "Hash": "9f6cb8eb9f6bfac48204fe23a7640d88",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "Chest.json",
+      "Size": 211,
+      "Hash": "fb90e74b319bbcbbef5c5d55d8da50c1",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

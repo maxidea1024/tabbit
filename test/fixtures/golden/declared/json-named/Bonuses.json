@@ -1,0 +1,37 @@
+[
+  {
+    "index": 1,
+    "bonus": [
+      {
+        "statId": 1,
+        "amount": 5
+      },
+      {
+        "statId": 2,
+        "amount": 7
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "bonus": [
+      {
+        "statId": 3,
+        "amount": 9
+      }
+    ]
+  },
+  {
+    "index": 3,
+    "bonus": [
+      {
+        "statId": 3,
+        "amount": 9
+      },
+      {
+        "statId": 4,
+        "amount": 11
+      }
+    ]
+  }
+]
