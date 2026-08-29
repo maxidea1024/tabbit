@@ -85,6 +85,11 @@ function {{ table.table_name }}.new()
 {{~ for index in table.indexes ~}}
     {{ index.map_name }} = {},
 {{~ end ~}}
+{{~ if table.matrix ~}}
+{{~## Named here as well as in the strict field list: `strictInstance` refuses a field it was
+      not told about, and the axis arrives after the read. ##~}}
+    columnAxis = nil,
+{{~ end ~}}
   }, {{ table.table_name }}Meta)
 end
 
@@ -109,6 +114,109 @@ function {{ table.table_name }}:iter()
     return records[i]
   end
 end
+{{~ if table.matrix }}
+{{~ m = table.matrix ~}}
+{{~## The two lookups composed. Both halves already exist - this table indexes its rows by the
+   row axis and the column table indexes its own by the column axis - and what this adds is the
+   one call that goes through both.
+
+   The position the file carries counts from 0 and a Lua array counts from 1, so every
+   subscript below adds one. spec/layout/matrix-declaration.md section 8. ##~}}
+-- Hands this table the column axis its cells are positioned by.
+--
+-- Called by the accessor once both files are read, and the length check is here rather than in
+-- the read. A grid is two files, either can be deployed without the other, and a row whose
+-- array is a different length from the axis is a row whose cells have moved.
+function {{ table.table_name }}:linkColumnAxis(columns)
+  for _, record in ipairs(self.records) do
+    if #record.{{ m.grid_member }} ~= #columns.records then
+      tcb.fail("table `{{ table.raw_name }}` holds %d cells for `%s` and its column axis " ..
+        "`{{ m.column_table }}` holds %d keys; the two files are from different builds",
+        #record.{{ m.grid_member }}, tostring(record.{{ m.row_key_member }}), #columns.records)
+    end
+  end
+
+  self.columnAxis = columns
+end
+
+-- The row axis keys, in the order the file wrote them.
+function {{ table.table_name }}:rowKeys()
+  local keys = {}
+
+  for i, record in ipairs(self.records) do
+    keys[i] = record.{{ m.row_key_member }}
+  end
+
+  return keys
+end
+
+-- The column axis keys, in the order a row holds its cells.
+function {{ table.table_name }}:colKeys()
+  local keys = {}
+
+  if self.columnAxis == nil then
+    return keys
+  end
+
+  for i, record in ipairs(self.columnAxis.records) do
+    keys[i] = record.{{ m.column_key_member }}
+  end
+
+  return keys
+end
+
+-- One row of cells, or nil when the grid has no such row.
+--
+-- In the order `colKeys` is in, which is what makes a position mean something.
+function {{ table.table_name }}:row({{ m.row_key_param }})
+  local record = self:{{ m.row_lookup }}({{ m.row_key_param }})
+  return record ~= nil and record.{{ m.grid_member }} or nil
+end
+
+-- The cell where the two keys meet, or a raised error naming the one that missed.
+--
+-- It raises rather than answering with the type's empty value, because a grid's empty value is
+-- one the sheet can write - 0 in a modifier table is a modifier of zero.
+function {{ table.table_name }}:at({{ m.row_key_param }}, {{ m.column_key_param }})
+  local record, position = self:cellAt({{ m.row_key_param }}, {{ m.column_key_param }})
+  return record.{{ m.grid_member }}[position]
+end
+{{~ if m.cells_are_optional }}
+
+-- Whether the sheet gave the cell where the two keys meet a value.
+--
+-- A grid whose cells are optional reads a blank as the type's empty value, and that value is
+-- one the sheet could also have written - so this is the only way to tell them apart.
+function {{ table.table_name }}:hasAt({{ m.row_key_param }}, {{ m.column_key_param }})
+  local record, position = self:cellAt({{ m.row_key_param }}, {{ m.column_key_param }})
+  return record.{{ m.grid_has_member }}[position]
+end
+{{~ end }}
+
+-- Both lookups, done once for the readers above. The position it answers with is already
+-- shifted to where a Lua array holds it.
+function {{ table.table_name }}:cellAt({{ m.row_key_param }}, {{ m.column_key_param }})
+  if self.columnAxis == nil then
+    tcb.fail("table `{{ table.raw_name }}` has no column axis yet; " ..
+      "read `{{ m.column_table }}` before reading a cell")
+  end
+
+  local record = self:{{ m.row_lookup }}({{ m.row_key_param }})
+
+  if record == nil then
+    tcb.fail("table `{{ table.raw_name }}` has no row `%s`", tostring({{ m.row_key_param }}))
+  end
+
+  local column = self.columnAxis:{{ m.column_lookup }}({{ m.column_key_param }})
+
+  if column == nil then
+    tcb.fail("table `{{ table.raw_name }}` has no column `%s`", tostring({{ m.column_key_param }}))
+  end
+
+  return record, column.{{ m.at_member }} + 1
+end
+
+{{~ end ~}}
 {{~ for index in table.indexes }}
 {{~## A key of several columns is held as the text they make. Each part carries its own
    length, so no two combinations can make the same text - joined by a separator alone,

@@ -117,6 +117,9 @@ function {{ accessor.name }}:readAll(source, fileExtension)
    spec/references/multi-target-accessors.md. ##~}}
   end
 {{~ end }}
+{{~ for grid in accessor.grids ~}}
+  {{ grid.values }}:linkColumnAxis({{ grid.columns }})
+{{~ end ~}}
   -- Published, now that every table read and linked.
 {{~ for slot in accessor.tables ~}}
   self{{ slot.access }} = {{ slot.loaded }}

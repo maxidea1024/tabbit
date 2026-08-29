@@ -526,10 +526,18 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             Location = table.Location.ToString(),
             Comment = CommentLines(table.Comment),
             Indexes = Indexes(table),
+            Matrix = BuildMatrix(table),
             ContainerFill = ContainerFillLines(table),
             RecordFieldNames = QuotedList(known),
+            // The column axis is a field of the table, and `strictInstance` refuses one it was
+            // not told about - so a grid names it here beside the lookup maps.
             TableFieldNames = QuotedList(
-                new[] { "records" }.Concat(Indexes(table).Select(index => index.MapName)).ToList()),
+                new[] { "records" }
+                    .Concat(Indexes(table).Select(index => index.MapName))
+                    .Concat(table.Matrix is null
+                        ? System.Array.Empty<string>()
+                        : new[] { "columnAxis" })
+                    .ToList()),
             Annotations = annotations,
             Fields = fields,
 
@@ -873,6 +881,28 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
     private string PresenceName(SerialField sf)
         => sf.IsRecord ? "" : LuaName("has_" + sf.Name);
+
+    /// <summary>The grid accessor for this table, or null when it is not a grid's values.</summary>
+    private LuaMatrixView? BuildMatrix(Table table)
+    {
+        if (MatrixPlans.Of(table, _model) is not { } plan)
+            return null;
+
+        return new LuaMatrixView
+        {
+            ColumnTable = plan.Columns.Name,
+            RowKeyMember = LuaName(plan.RowKey.Name),
+            RowKeyParam = LuaCamelName(plan.RowKey.Name),
+            RowLookup = "findBy" + plan.RowKey.Name.ToPascalCase(),
+            ColumnKeyMember = LuaName(plan.ColumnKey.Name),
+            ColumnKeyParam = LuaCamelName(plan.ColumnKey.Name),
+            ColumnLookup = "findBy" + plan.ColumnKey.Name.ToPascalCase(),
+            AtMember = LuaName(plan.At.Name),
+            GridMember = LuaName(plan.Grid.Name),
+            GridHasMember = ElementPresenceName(plan.Grid),
+            CellsAreOptional = plan.CellsAreOptional,
+        };
+    }
 
     private string ElementPresenceName(SerialField sf)
         => sf.IsRecord ? "" : LuaName("has_" + sf.Name + "_at");
@@ -1331,6 +1361,16 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
             // Unescaped: this one names the file the exporter wrote.
             DataFileName = table.DataFileName,
         }).ToList(),
+
+        Grids = _model.Tables
+            .Select(table => MatrixPlans.Of(table, _model))
+            .Where(plan => plan is not null)
+            .Select(plan => new LuaGridLinkView
+            {
+                Values = "loaded" + plan!.Values.Name.ToPascalCase(),
+                Columns = "loaded" + plan.Columns.Name.ToPascalCase(),
+            })
+            .ToList(),
 
         CrossReferences = _model.Tables
             .Select(table => new

@@ -79,6 +79,38 @@ internal sealed class LuaConstantView
     public required IReadOnlyList<string> Comment { get; set; }
 }
 
+/// <summary>A grid's accessor, spelled the way Lua spells it.</summary>
+/// <remarks>
+/// Lua counts an array from 1, so the position the file carries - which counts from 0 - is
+/// shifted where it is used as a subscript. That shift is the one thing this view exists to
+/// keep in one place. <see cref="MatrixPlan"/> decides the rest.
+/// spec/layout/matrix-declaration.md.
+/// </remarks>
+internal sealed class LuaMatrixView
+{
+    public required string ColumnTable { get; init; }
+
+    public required string RowKeyMember { get; init; }
+
+    public required string RowKeyParam { get; init; }
+
+    public required string RowLookup { get; init; }
+
+    public required string ColumnKeyMember { get; init; }
+
+    public required string ColumnKeyParam { get; init; }
+
+    public required string ColumnLookup { get; init; }
+
+    public required string AtMember { get; init; }
+
+    public required string GridMember { get; init; }
+
+    public required string GridHasMember { get; init; }
+
+    public required bool CellsAreOptional { get; init; }
+}
+
 internal sealed class LuaTableView
 {
     public required string RawName { get; set; }
@@ -88,6 +120,9 @@ internal sealed class LuaTableView
     public required IReadOnlyList<string> Comment { get; set; }
 
     public required IReadOnlyList<LuaIndexView> Indexes { get; set; }
+
+    /// <summary>The grid this table holds the values of, or null when it is not one.</summary>
+    public LuaMatrixView? Matrix { get; set; }
 
     /// <summary>
     /// The statements filling every `set` and `map` lookup in the table, ready to paste.
@@ -360,6 +395,14 @@ internal sealed class LuaColumnView
     public required string EmptyValue { get; set; }
 }
 
+/// <summary>One grid, as the accessor's linking pass names it.</summary>
+internal sealed class LuaGridLinkView
+{
+    public required string Values { get; init; }
+
+    public required string Columns { get; init; }
+}
+
 internal sealed class LuaAccessorView
 {
     public required string Name { get; set; }
@@ -370,6 +413,10 @@ internal sealed class LuaAccessorView
 
     public required IReadOnlyList<LuaTableSlotView> Tables { get; set; }
     public required IReadOnlyList<LuaCrossReferenceView> CrossReferences { get; set; }
+
+    /// <summary>Every grid, as the pass that hands each one its axis names it.</summary>
+    public IReadOnlyList<LuaGridLinkView> Grids { get; set; }
+        = System.Array.Empty<LuaGridLinkView>();
 }
 
 internal sealed class LuaTableSlotView
