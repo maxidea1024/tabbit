@@ -134,6 +134,36 @@ public class SchemaBindingTests
     /// three ways. Correcting a sheet that has moved to this notation is a matter of reading
     /// a list, and a run that stopped at the first mistake would make it one run per mistake.
     /// </remarks>
+    /// <summary>
+    /// A `.tbs` enum and a sheet enum of one name are reported as that, not as a consequence.
+    /// </summary>
+    /// <remarks>
+    /// **A report that points away from the cause is the failure this checks for.** The
+    /// declarations go into the model before a sheet is read, and the primary layout compared
+    /// a sheet's declarations only with each other - so the pair met nothing. What came out
+    /// was the first data cell holding a label of the wrong one, reported as a label that
+    /// enum does not have, several steps from either declaration.
+    ///
+    /// The other layout that reads enums already refused this
+    /// (`SheetPerTableLayoutMessages.EnumRedefined`), which is what said the gap was one
+    /// layout's rather than the design's.
+    /// </remarks>
+    [Fact]
+    public void An_enum_a_declaration_already_named_is_refused_where_it_is_written()
+    {
+        var result = TabbitRunner.Convert("enum-name-clash");
+
+        Assert.False(result.Succeeded, "Two enums of one name were accepted.");
+
+        // The two declarations, and both of their places.
+        Assert.Contains("`Affinity` is declared here", result.StdOut);
+        Assert.Contains("clash.tbs", result.StdOut);
+        Assert.Contains("matrix.xlsx : Enums", result.StdOut);
+
+        // And not the consequence it used to report instead.
+        Assert.DoesNotContain("was not found in the enum", result.StdOut);
+    }
+
     [Fact]
     public void A_declaration_that_disagrees_with_the_sheet_says_so_everywhere()
     {

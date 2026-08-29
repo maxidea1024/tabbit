@@ -65,5 +65,6 @@
   "tabbit.matrix-header-beyond-grid": "`{Written}` in `{Entity}` sits past the grid's first column. A grid is one group, so it is named and typed once - the columns after it are keys, and the `:col` row is what says so.",
   "tabbit.matrix-column-axis-missing": "`{Entity}` leaves the first cell of its `:col` row blank. That cell names the column axis and gives its type - `goods foreign Goods`.",
   "tabbit.matrix-column-axis-needs-type": "`{Written}` in `{Entity}` names the column axis and gives no type. Write the type behind the name - `goods foreign Goods`.",
-  "tabbit.matrix-no-column-keys": "`{Entity}` is a grid whose `:col` row holds no keys. The cells after the first are the column axis keys, and a grid needs at least one."
+  "tabbit.matrix-no-column-keys": "`{Entity}` is a grid whose `:col` row holds no keys. The cells after the first are the column axis keys, and a grid needs at least one.",
+  "tabbit.enum-name-already-declared": "`{Name}` is declared here and a type of that name is already declared at {Where}. Two enums of one name leave nothing to say which a type cell or a data cell meant; rename one of them, or keep the declaration and delete the sheet's."
 }

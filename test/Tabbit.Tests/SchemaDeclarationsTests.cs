@@ -368,6 +368,53 @@ public class SchemaDeclarationsTests
             string.Join("\n", diagnostics.Entries.Select(entry => entry.Detail.Message)));
     }
 
+    /// <summary>
+    /// An enum a sheet has already declared is refused, and the declaration's own is not.
+    /// </summary>
+    /// <remarks>
+    /// The backstop under the layout's own check. A layout that adds an enum without asking
+    /// whether the name is taken would otherwise leave the pair unreported - which is what
+    /// the primary layout did. The second half matters as much: every enum these files
+    /// declared is in the same list by the time this runs, so a check that did not tell them
+    /// apart would report each declaration against itself.
+    /// </remarks>
+    [Fact]
+    public void An_enum_name_a_sheet_already_has_is_refused()
+    {
+        var diagnostics = new Diagnostics();
+        var model = new Model();
+        var context = new CookingContext(model, new Tabbit.Recipe.RecipeModel(), diagnostics);
+
+        model.Enums.Add(new Tabbit.Models.Enum
+        {
+            Location = new Location { Filename = "book.xlsx", Sheet = "E" },
+            RawName = "Grade",
+            Name = "Grade",
+            Comment = "",
+        });
+
+        var declarations = SchemaDeclarations.Read(
+            [new RawSchemaFile
+            {
+                Name = "s.tbs",
+                Text = "enum Grade\n    Common\nenum Rank\n    First\n",
+            }],
+            diagnostics);
+
+        declarations.DeclareEnums(model, diagnostics);
+        declarations.Resolve(model, context, diagnostics);
+
+        string reported = string.Join(
+            System.Environment.NewLine,
+            diagnostics.Entries.Select(entry => entry.Detail.Message));
+
+        Assert.Contains("a sheet already declares an enum of that name", reported);
+
+        // `Rank` is only in these files. A check that did not skip what it put in the model
+        // would report it against itself.
+        Assert.DoesNotContain("Rank", reported);
+    }
+
     // ------------------------------------------------------------------ variant sets
 
     /// <summary>

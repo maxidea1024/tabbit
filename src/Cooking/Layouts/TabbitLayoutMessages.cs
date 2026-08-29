@@ -41,6 +41,9 @@ public static class TabbitLayoutMessages
     /// <summary>Two entities of one run with the same name, whatever their kind.</summary>
     public const string EntityNameDuplicated = "tabbit.entity-name-duplicated";
 
+    /// <summary>A sheet enum whose name something outside the sheets already declared.</summary>
+    public const string EnumNameAlreadyDeclared = "tabbit.enum-name-already-declared";
+
     #endregion
 
     #region Marker column and header rows

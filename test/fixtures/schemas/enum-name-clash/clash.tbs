@@ -1,0 +1,11 @@
+// A declaration whose name a sheet's enum already uses.
+//
+// The workbook is `matrix`, whose `Enums` sheet declares `Affinity` with its own labels.
+// Two enums of one name used to be reported as a data cell holding a label the enum does
+// not have - the consequence, several steps from the two declarations that are the cause.
+
+/// Deliberately different labels from the sheet's, so an unreported clash would surface
+/// as a missing label rather than as itself.
+enum Affinity
+    Head
+    Body

@@ -41,6 +41,11 @@ public sealed class SchemaDeclarations
     private readonly Dictionary<string, List<SchemaStruct>> _variants =
         new(System.StringComparer.OrdinalIgnoreCase);
 
+    // The enums this set put into the model, so the collision check can tell them from the
+    // ones a sheet declared. Both are in `Model.Enums` by the time it runs, and reporting a
+    // declaration against itself is the one answer it must not give.
+    private readonly List<Models.Enum> _declaredInModel = [];
+
     // The tombstones, kept apart from the sets above. A dropped variant is not a member of
     // its set - nothing is generated for it and no column may hold it - and the one thing it
     // is here for is that its number stays taken. spec/types/polymorphism.md section 5.1.1.
@@ -374,6 +379,7 @@ public sealed class SchemaDeclarations
             }
 
             model.Enums.Add(built);
+            _declaredInModel.Add(built);
         }
     }
 
@@ -415,13 +421,22 @@ public sealed class SchemaDeclarations
     }
 
     /// <summary>
-    /// Refuses a declaration whose name a sheet has already given to a table or a set of
-    /// constants.
+    /// Refuses a declaration whose name a sheet has already given to an entity.
     /// </summary>
     /// <remarks>
-    /// Enums are left out on purpose: they were put into the model before the sheets were
-    /// read, so a sheet declaring one of the same name meets the model's own duplicate check
-    /// - and that one points at the cell, which this cannot.
+    /// **Enums were left out, and that was wrong.** The reason written here was that a sheet
+    /// declaring an enum of the same name would meet the model's own duplicate check - but
+    /// that check is the layout's, and a layout compares the declarations of its own sheets
+    /// against each other. An enum these files declared is already in the model by then and
+    /// no layout ever looks at it, so nothing reported the pair.
+    ///
+    /// What a reader got instead was the consequence: the two enums differ in their labels,
+    /// so a data cell holding a label of one of them is reported as a label that enum does
+    /// not have - pointing at a row, several steps away from the two declarations that are
+    /// the cause.
+    ///
+    /// The declarations' own entries are skipped, because they are in the same list: an enum
+    /// these files declared would otherwise be reported as colliding with itself.
     /// </remarks>
     private void RefuseNamesTheSheetsAlreadyGave(Model model, Diagnostics diagnostics)
     {
@@ -430,6 +445,14 @@ public sealed class SchemaDeclarations
 
         foreach (var constants in model.ConstantSets)
             Collide(constants.Name, "a set of constants", constants.Location, diagnostics);
+
+        foreach (var enumm in model.Enums)
+        {
+            if (_declaredInModel.Contains(enumm))
+                continue;
+
+            Collide(enumm.Name, "an enum", enumm.Location, diagnostics);
+        }
     }
 
     /// <summary>

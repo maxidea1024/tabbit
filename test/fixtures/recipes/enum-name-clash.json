@@ -1,0 +1,28 @@
+{
+  // A `.tbs` enum and a sheet enum of one name.
+  //
+  // The workbook is the `matrix` one, reused rather than copied: what this scenario needs is
+  // a sheet that declares an enum, and that one does. Nothing here is expected to convert -
+  // the gate is which report comes out, and that it points at the two declarations rather
+  // than at the first data cell that reads one of them.
+
+  "Schemas": [
+    { "Path": "test/fixtures/schemas/enum-name-clash" }
+  ],
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/matrix"
+      }
+    ],
+    "GoogleSheets": []
+  },
+  "Targets": [
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/enum-name-clash/json",
+      "Indented": true
+    }
+  ]
+}

@@ -236,7 +236,23 @@ public sealed partial class TabbitLayoutParser : ILayoutParser
         // Enums and constant sets first, and in that order: a constant may be typed with an
         // enum, and a table may be typed with either.
         foreach (var block in _blocks.Where(b => b.Kind == KindEnum))
+        {
+            // **Against what is already in the model, not only against the other blocks.**
+            // The schema files declare their enums before a sheet is read, and the scan above
+            // compares a sheet's declarations with each other - so a sheet declaring the name
+            // one of those files already used met nothing here. What a reader got instead was
+            // the consequence: the two enums have different labels, so the first data cell
+            // holding a label of the wrong one was reported as a label that enum does not
+            // have, several steps from the two declarations that are the cause.
+            if (Model.Enums.Find(existing => existing.Name == block.Name) is { } already)
+            {
+                throw new TabbitException(block.Location,
+                    Message.Of(TabbitLayoutMessages.EnumNameAlreadyDeclared,
+                        ("Name", block.Name), ("Where", already.Location)));
+            }
+
             Model.Enums.Add(ParseEnum(block));
+        }
 
         foreach (var block in _blocks.Where(b => b.Kind == KindConst))
             Model.ConstantSets.Add(ParseConstantSet(block));
