@@ -643,6 +643,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
                 .Where(t => t.ReferenceFields.Count > 0
                             || t.RecordReferenceFields.Count > 0)
                 .ToList(),
+            GridTables = tables.Where(t => t.Matrix is not null).ToList(),
             Enums = _model.Enums.Select(BuildEnum).ToList(),
             Structs = BuildStructs(),
             ConstantSets = _model.ConstantSets.Select(BuildConstantSet).ToList(),
@@ -680,6 +681,7 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
 
             CompositeKeys = CompositeKeys(table),
             Containers = ContainersOf(table),
+            Matrix = BuildMatrix(table),
 
             ReferenceFields = table.SerialFields
                                    .Select((sf, i) => new { sf, view = fields[i] })
@@ -2169,6 +2171,36 @@ public class CsCodeGenerator : CodeGenerator<CSharpRecipe>
     /// somewhere else. `KeyComponentView.TypeOf` is the one place that decides, and the
     /// composite path already asks it; this is the single-column path asking the same.
     /// </remarks>
+    /// <summary>
+    /// The grid accessor for this table, or null when it is not a grid's values.
+    /// </summary>
+    /// <remarks>
+    /// Both halves are already generated: the values table indexes its rows by the row axis
+    /// and the column table indexes its own by the column axis. What is built here is the
+    /// spelling of the one call that goes through both.
+    /// </remarks>
+    private CsMatrixView? BuildMatrix(Table table)
+    {
+        if (MatrixPlans.Of(table, _model) is not { } plan)
+            return null;
+
+        return new CsMatrixView
+        {
+            ColumnTable = plan.Columns.Name.ToPascalCase(),
+            RowKeyProp = CsName(plan.RowKey.Name),
+            RowKeyType = IndexKeyType(plan.RowKey),
+            ColumnKeyProp = CsName(plan.ColumnKey.Name),
+            ColumnKeyType = IndexKeyType(plan.ColumnKey),
+            ColumnKeyPascal = plan.ColumnKey.Name.ToPascalCase(),
+            AtProp = CsName(plan.At.Name),
+            GridProp = CsName(plan.Grid.Name),
+            CellType = ToCSharpTypeName(plan.Grid.FirstField),
+            RowLookup = plan.RowKey.Name.ToPascalCase(),
+            GridPascal = plan.Grid.Name.ToPascalCase(),
+            CellsAreOptional = plan.CellsAreOptional,
+        };
+    }
+
     private string IndexKeyType(SerialField sf)
     {
         var (type, enumm) = KeyComponentView.TypeOf(sf);

@@ -81,6 +81,9 @@
             await Task.WhenAll(tasks);
 
             SolveCrossReferences(snapshot);
+{{~ if grid_tables | array.size > 0 ~}}
+            LinkGrids(snapshot);
+{{~ end ~}}
 
             return snapshot;
         }
@@ -120,6 +123,23 @@
 {{~ end ~}}
         }
 {{~ if tables | array.size > 0 }}
+
+{{~ if grid_tables | array.size > 0 }}
+        /// <summary>
+        /// Hands every grid the column axis its cells are positioned by.
+        /// </summary>
+        /// <remarks>
+        /// After the references and before the snapshot is handed back, so a grid is never
+        /// readable without its axis. The length check the link makes is what says the two
+        /// files came from one build - spec/layout/matrix-declaration.md section 8.
+        /// </remarks>
+        private static void LinkGrids(Snapshot snapshot)
+        {
+{{~ for table in grid_tables ~}}
+            snapshot.{{ table.name }}.LinkColumnAxis(snapshot.{{ table.matrix.column_table }});
+{{~ end ~}}
+        }
+{{~ end }}
 
         /// <summary>
         /// Solve cross references, among the tables of one read.

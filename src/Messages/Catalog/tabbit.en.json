@@ -57,5 +57,13 @@
   "tabbit.constant-cannot-be-optional": "Constant `{Name}` of `{Entity}` is typed `{Type}`. A constant is one value written in one cell - there is no row for it to be absent from, so `?` has nothing to mean here.",
   "tabbit.constant-cell-required": "Constant `{Name}` of `{Entity}` leaves its `{Column}` cell blank. The name, the type and the value of a constant are all required.",
   "tabbit.constant-type-not-array-element": "Constant `{Entity}.{Name}` is typed as an array of `{Type}`, and `{Type}` is not a type this tool puts in an array. The array types are the scalar ones and an enum - a composite value type, a struct and a reference are not among them.",
-  "tabbit.composite-key-multi-row": "`{Entity}` is a multi-row table whose primary key `{Key}` is several columns taken together. A multi-row record begins where the primary key's cell has a value, and a combination spread over several columns has no such cell - so where one record ends and the next begins cannot be read. Give the table a single-column primary key, or write one row per record."
+  "tabbit.composite-key-multi-row": "`{Entity}` is a multi-row table whose primary key `{Key}` is several columns taken together. A multi-row record begins where the primary key's cell has a value, and a combination spread over several columns has no such cell - so where one record ends and the next begins cannot be read. Give the table a single-column primary key, or write one row per record.",
+  "tabbit.col-row-missing": "`{Entity}` is a grid and has no `:col` row. That row holds the column axis - its name and type in the first cell, its keys across the rest.",
+  "tabbit.matrix-needs-two-columns": "`{Entity}` is a grid and has only one column. A grid needs the row axis column and at least one grid column beside it.",
+  "tabbit.matrix-name-missing": "`{Entity}` leaves the {Which} unnamed in its `:field` row. The first cell names the row axis and the second names the grid.",
+  "tabbit.matrix-name-marked": "`{Written}` in `{Entity}` carries `{Mark}`, which a grid does not take. A grid's columns are keys carried in the data, so there is no wire tag to set, no tombstone to reserve and no second index to mark.",
+  "tabbit.matrix-header-beyond-grid": "`{Written}` in `{Entity}` sits past the grid's first column. A grid is one group, so it is named and typed once - the columns after it are keys, and the `:col` row is what says so.",
+  "tabbit.matrix-column-axis-missing": "`{Entity}` leaves the first cell of its `:col` row blank. That cell names the column axis and gives its type - `goods foreign Goods`.",
+  "tabbit.matrix-column-axis-needs-type": "`{Written}` in `{Entity}` names the column axis and gives no type. Write the type behind the name - `goods foreign Goods`.",
+  "tabbit.matrix-no-column-keys": "`{Entity}` is a grid whose `:col` row holds no keys. The cells after the first are the column axis keys, and a grid needs at least one."
 }

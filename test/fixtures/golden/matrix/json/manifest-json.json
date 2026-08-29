@@ -1,0 +1,37 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "8573ef1cc262b9d0fabf2d2d5693f3d1",
+  "TotalSize": 765,
+  "Items": [
+    {
+      "Name": "Goods.json",
+      "Size": 131,
+      "Hash": "1e6cc0fab495c6459ec473a4f4d68469",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "TownPrice.json",
+      "Size": 162,
+      "Hash": "2f8347cac5f57bb717da4263a55ea6f1",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "TownPriceColumn.json",
+      "Size": 120,
+      "Hash": "ad84664ab92d317483275d038704a54a",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "ElementChart.json",
+      "Size": 229,
+      "Hash": "b7479104e4c409ab2c10cfb38451b2df",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "ElementChartColumn.json",
+      "Size": 123,
+      "Hash": "bdb0480a2d51850e39f34b1e5861f79d",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

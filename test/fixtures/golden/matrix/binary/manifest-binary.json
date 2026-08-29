@@ -1,0 +1,37 @@
+{
+  "LastUpdatedDate": "<TIMESTAMP>",
+  "MasterHash": "b152e8f4c92c57f1c25d13ba26988612",
+  "TotalSize": 367,
+  "Items": [
+    {
+      "Name": "Goods.tcb",
+      "Size": 76,
+      "Hash": "19e55e26c9a5ebe442db4c6caa25846d",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "TownPrice.tcb",
+      "Size": 75,
+      "Hash": "d7845ba66a168ae520d265f1a5080bc5",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "TownPriceColumn.tcb",
+      "Size": 65,
+      "Hash": "3cc8821ed7def2013cc06f8da98dc15e",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "ElementChart.tcb",
+      "Size": 87,
+      "Hash": "144f81d85e7292b49198204d811bcb4e",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    },
+    {
+      "Name": "ElementChartColumn.tcb",
+      "Size": 64,
+      "Hash": "e32c81f332386231fdf7276d9f1979af",
+      "LastUpdatedDate": "<TIMESTAMP>"
+    }
+  ]
+}

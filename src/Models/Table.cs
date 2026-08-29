@@ -153,6 +153,16 @@ public class Table
     /// </remarks>
     [JsonIgnore]
     /// <summary>
+    /// The grid this table holds the values of, or null when it is an ordinary table.
+    /// </summary>
+    /// <remarks>
+    /// Set by the layout that read a grid declaration, and read by the generators alone -
+    /// everything between the two sees an ordinary table with an array column.
+    /// <see cref="MatrixShape"/> says why that is the whole of it.
+    /// </remarks>
+    public MatrixShape? Matrix { get; set; }
+
+    /// <summary>
     /// Labels a sheet wrote on this table for something outside this tool to read.
     /// </summary>
     /// <remarks>

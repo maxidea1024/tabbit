@@ -1,0 +1,40 @@
+{
+  // `:matrix` — 격자를 선언으로 적는 표기.
+  //
+  // 선언 하나가 테이블 둘이 됩니다. 값 테이블은 행 축의 키와 그 행의 칸 배열이고, 컬럼
+  // 테이블은 열 축의 키와 그 키가 배열의 몇 번째인지입니다. 형식은 움직이지 않습니다 —
+  // 배열 컬럼과 인덱스가 있는 테이블은 이미 싣던 것입니다.
+  //
+  // 두 격자가 두 가지를 묻습니다. `TownPrice` 는 축이 정수이고 다른 테이블을 가리키며,
+  // 메모 컬럼과 제외 행과 값 없는 칸을 함께 담습니다. `ElementChart` 는 두 축이 같은
+  // enum이라 열의 키가 라벨이고, 판독 규칙으로는 적을 수 없던 표입니다.
+  //
+  // spec/layout/matrix-declaration.md
+
+  "Sources": {
+    "Xlsx": [
+      {
+        "Path": "test/fixtures/xlsx/matrix"
+      }
+    ],
+    "GoogleSheets": []
+  },
+  "Targets": [
+    {
+      "Type": "binary",
+      "Path": "test/fixtures/output/matrix/binary",
+      "FileExtension": ".tcb"
+    },
+    {
+      "Type": "json",
+      "Path": "test/fixtures/output/matrix/json",
+      "Indented": true
+    },
+    {
+      "Type": "csharp",
+      "Path": "test/fixtures/output/matrix/csharp",
+      "Namespace": "Tabbit.Fixtures.Matrix",
+      "AccessorName": "MatrixAccessor"
+    }
+  ]
+}

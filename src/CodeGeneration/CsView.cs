@@ -70,6 +70,9 @@ internal sealed class CsFileView
     /// every table - which is what the hand-written version did with its own counter.
     /// </summary>
     public required IReadOnlyList<CsTableView> TablesWithReferences { get; set; }
+
+    /// <summary>The tables that are the values of a grid, for the pass that links the axis.</summary>
+    public IReadOnlyList<CsTableView> GridTables { get; set; } = System.Array.Empty<CsTableView>();
 }
 
 /// <summary>
@@ -115,6 +118,49 @@ internal sealed class CsPartView
     /// answer is a spelling nobody would choose.
     /// </remarks>
     public CsPolymorphicTypeView? Structure { get; set; }
+}
+
+/// <summary>
+/// A grid's accessor, as the table template needs to see it.
+/// </summary>
+/// <remarks>
+/// Every name here is already spelled the way C# spells it, so the template writes one block
+/// and decides nothing. What the block is for is spec/layout/matrix-declaration.md section 8:
+/// the two lookups composed into one, and the check that the two files came from one build.
+/// </remarks>
+internal sealed class CsMatrixView
+{
+    /// <summary>The column table's generated class, without the `Table` suffix.</summary>
+    public required string ColumnTable { get; init; }
+
+    /// <summary>What the row axis is called on a record, and its type.</summary>
+    public required string RowKeyProp { get; init; }
+
+    public required string RowKeyType { get; init; }
+
+    /// <summary>What the column axis is called, its type, and the lookup that finds it.</summary>
+    public required string ColumnKeyProp { get; init; }
+
+    public required string ColumnKeyType { get; init; }
+
+    public required string ColumnKeyPascal { get; init; }
+
+    /// <summary>The column table's position member.</summary>
+    public required string AtProp { get; init; }
+
+    /// <summary>The array member holding one row of cells, and what one cell is.</summary>
+    public required string GridProp { get; init; }
+
+    public required string CellType { get; init; }
+
+    /// <summary>The lookup on this table that the row axis key goes through.</summary>
+    public required string RowLookup { get; init; }
+
+    /// <summary>The grid member's Pascal name, which the per-element `Has` reader carries.</summary>
+    public required string GridPascal { get; init; }
+
+    /// <summary>Whether a cell may have no value, which is what makes `HasAt` worth writing.</summary>
+    public required bool CellsAreOptional { get; init; }
 }
 
 internal sealed class CsTableView
@@ -166,6 +212,9 @@ internal sealed class CsTableView
     /// The `set` and `map` lookups to build once every column is in.
     /// </summary>
     public IReadOnlyList<CsContainerView> Containers { get; set; } = Array.Empty<CsContainerView>();
+
+    /// <summary>The grid this table holds the values of, or null when it is not one.</summary>
+    public CsMatrixView? Matrix { get; set; }
 
     /// <summary>The fields that point at another table.</summary>
     public required IReadOnlyList<CsFieldView> ReferenceFields { get; set; }

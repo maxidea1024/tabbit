@@ -34,7 +34,7 @@ namespace Tabbit.Cooking.Layouts;
 /// </remarks>
 [TabbitLayout("tabbit",
     Summary = "Entities declared with `:table` cells, whose column is the entity's marker column.")]
-public sealed class TabbitLayoutParser : ILayoutParser
+public sealed partial class TabbitLayoutParser : ILayoutParser
 {
     /// <summary>Which step of a run this class's log lines belong to.</summary>
     private static Serilog.ILogger Log => LogCategory.Cooking;
@@ -44,12 +44,14 @@ public sealed class TabbitLayoutParser : ILayoutParser
     private const string KindTable = "table";
     private const string KindEnum = "enum";
     private const string KindConst = "const";
+    private const string KindMatrix = "matrix";
 
     private const string RowKeyField = ":field";
     private const string RowKeyType = ":type";
     private const string RowKeyDesc = ":desc";
     private const string RowKeyTarget = ":target";
     private const string RowKeyVariant = ":variant";
+    private const string RowKeyCol = ":col";
 
     /// <summary>Marks a memo column, and a row the conversion leaves out.</summary>
     private const string OmitMark = "#";
@@ -58,7 +60,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
     private const string OmitMarkAlternate = "//";
 
     private static readonly string[] AllRowKeys =
-        [RowKeyField, RowKeyType, RowKeyDesc, RowKeyTarget, RowKeyVariant];
+        [RowKeyField, RowKeyType, RowKeyDesc, RowKeyTarget, RowKeyVariant, RowKeyCol];
 
     /// <summary>
     /// The header rows an enum or a constant set may carry, which is `:field` alone.
@@ -70,6 +72,21 @@ public sealed class TabbitLayoutParser : ILayoutParser
     /// the quiet no-op this layout is meant not to have.
     /// </remarks>
     private static readonly string[] EntityRowKeys = [RowKeyField];
+
+    /// <summary>The header rows a `:table` takes - every one this layout defines but `:col`.</summary>
+    private static readonly string[] TableRowKeys =
+        [RowKeyField, RowKeyType, RowKeyDesc, RowKeyTarget, RowKeyVariant];
+
+    /// <summary>
+    /// The header rows a `:matrix` takes.
+    /// </summary>
+    /// <remarks>
+    /// `:target` and `:variant` are out because both say something per column, and a grid's
+    /// columns are keys rather than fields - there is nothing for either to be about.
+    /// spec/layout/matrix-declaration.md section 2.3.
+    /// </remarks>
+    private static readonly string[] MatrixRowKeys =
+        [RowKeyField, RowKeyType, RowKeyDesc, RowKeyCol];
 
     private static readonly string[] DeclarationMetaKeys = ["side", "key", "tag"];
 
@@ -231,6 +248,16 @@ public sealed class TabbitLayoutParser : ILayoutParser
 
         foreach (var block in _blocks.Where(b => b.Kind == KindTable))
             Model.Tables.Add(ParseTable(block));
+
+        // After the tables, and each declaration adds two: the values and the column axis.
+        // Order in the list is the order the report and the generated files follow, and a
+        // grid reads better with its axis beside it than interleaved with everything else.
+        foreach (var block in _blocks.Where(b => b.Kind == KindMatrix))
+        {
+            var (values, columns) = ParseMatrix(block);
+            Model.Tables.Add(values);
+            Model.Tables.Add(columns);
+        }
     }
 
     #region Finding the entities - spec section 3.1 and 3.2
@@ -308,7 +335,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
     {
         string text = (value ?? "").Trim();
 
-        foreach (string kind in new[] { KindTable, KindEnum, KindConst })
+        foreach (string kind in new[] { KindTable, KindEnum, KindConst, KindMatrix })
         {
             string keyword = ":" + kind;
 
@@ -743,7 +770,7 @@ public sealed class TabbitLayoutParser : ILayoutParser
         var tags = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         Models.MetaTagText.ReadInto(written, tags);
 
-        bool omitted = block.Kind == KindTable
+        bool omitted = (block.Kind == KindTable || block.Kind == KindMatrix)
                     && tags.Any(tag => _context.ExcludesRowTag(tag.Key, tag.Value));
 
         _context.NoteRowTags(tags, omitted);
@@ -759,12 +786,35 @@ public sealed class TabbitLayoutParser : ILayoutParser
                 Message.Of(TabbitLayoutMessages.FieldRowMissing, ("Entity", block.Name)));
         }
 
-        if (block.Kind == KindTable)
+        if (block.Kind == KindTable || block.Kind == KindMatrix)
         {
             if (!block.HeaderRows.ContainsKey(RowKeyType))
             {
                 throw new TabbitException(block.Location,
                     Message.Of(TabbitLayoutMessages.TypeRowMissing, ("Entity", block.Name)));
+            }
+
+            // A grid needs its column axis, and a table has none - so each refuses the other's
+            // rows rather than reading past them. A row key that is read by nothing is the
+            // quiet no-op this layout is meant not to have.
+            string[] allowed = block.Kind == KindMatrix ? MatrixRowKeys : TableRowKeys;
+
+            foreach (var (key, row) in block.HeaderRows)
+            {
+                if (allowed.Contains(key, StringComparer.Ordinal))
+                    continue;
+
+                throw new TabbitException(
+                    block.Sheet.Rows[row][block.MarkerColumn].Location,
+                    Message.Of(TabbitLayoutMessages.RowKeyNotOnEntity,
+                        ("Entity", block.Name), ("Kind", block.Kind), ("Key", key),
+                        ("Keys", string.Join(" · ", allowed))));
+            }
+
+            if (block.Kind == KindMatrix && !block.HeaderRows.ContainsKey(RowKeyCol))
+            {
+                throw new TabbitException(block.Location,
+                    Message.Of(TabbitLayoutMessages.ColRowMissing, ("Entity", block.Name)));
             }
 
             return;

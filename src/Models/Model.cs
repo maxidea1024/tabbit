@@ -123,6 +123,11 @@ public class Model
                 // agree on. Left to default it is empty, and the export writes `.tcb`.
                 DataFileName = table.DataFileName,
 
+                // Carried for the same reason: the accessor a grid generates is written from
+                // it, and a narrowed model generates the same accessor. Both of a grid's
+                // tables take the side from one declaration, so they are kept or dropped
+                // together and the link cannot come out pointing at nothing.
+                Matrix = table.Matrix,
             };
 
             foreach (var field in table.Fields)

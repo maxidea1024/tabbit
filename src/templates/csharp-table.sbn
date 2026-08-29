@@ -629,6 +629,131 @@
         public {{ table.name }}Record this[{{ field.index_key_type }} key] => GetBy{{ field.pascal_name }}OrThrow(key);
 {{~ end ~}}
 {{~ end ~}}
+{{~ if table.matrix }}
+{{~ m = table.matrix ~}}
+        #region Grid of '{{ m.row_key_prop }}' by '{{ m.column_key_prop }}'
+{{~## The two lookups composed. Both halves already exist - this table indexes its rows by
+   the row axis and the column table indexes its own by the column axis - and what the block
+   adds is the one call that goes through both, so nothing outside handles a position.
+   spec/layout/matrix-declaration.md section 8. ##~}}
+        private {{ m.column_table }}Table _columnAxis;
+
+        /// <summary>
+        /// Hands this table the column axis its cells are positioned by.
+        /// </summary>
+        /// <remarks>
+        /// Called by the accessor once both files are read, and **the length check is here**
+        /// rather than in the read. A grid is two files, either can be deployed without the
+        /// other, and a row whose array is a different length from the axis is a row whose
+        /// cells have moved - which reads the wrong cell and reports nothing. This is what
+        /// turns that into a failure at load.
+        /// </remarks>
+        public void LinkColumnAxis({{ m.column_table }}Table columns)
+        {
+            foreach (var record in _records)
+            {
+                if (record.{{ m.grid_prop }}.Length == columns.Records.Count)
+                    continue;
+
+                throw new TabbitException(
+                    $"Table `{{ table.raw_name }}` holds {record.{{ m.grid_prop }}.Length} cells for `{record.{{ m.row_key_prop }}}` and its column axis `{{ m.column_table }}` holds {columns.Records.Count} keys. The two files are from different builds.");
+            }
+
+            _columnAxis = columns;
+        }
+
+        /// <summary>The row axis keys, in the order the file wrote them.</summary>
+        public IEnumerable<{{ m.row_key_type }}> RowKeys
+        {
+            get
+            {
+                foreach (var record in _records)
+                    yield return record.{{ m.row_key_prop }};
+            }
+        }
+
+        /// <summary>The column axis keys, in the order a row holds its cells.</summary>
+        public IEnumerable<{{ m.column_key_type }}> ColKeys
+        {
+            get
+            {
+                if (_columnAxis == null)
+                    yield break;
+
+                foreach (var record in _columnAxis.Records)
+                    yield return record.{{ m.column_key_prop }};
+            }
+        }
+
+        /// <summary>
+        /// One row of cells, or null when the grid has no such row.
+        /// </summary>
+        /// <remarks>
+        /// In the order <see cref="ColKeys"/> is in, which is what makes a position mean
+        /// something. The array is the record's own, so it is not a copy.
+        /// </remarks>
+        public {{ m.cell_type }}[] Row({{ m.row_key_type }} {{ m.row_key_prop | string.downcase }})
+        {
+            var record = FindBy{{ m.row_lookup }}({{ m.row_key_prop | string.downcase }});
+            return record == null ? null : record.{{ m.grid_prop }};
+        }
+
+        /// <summary>
+        /// The cell where the two keys meet, or a thrown exception naming the one that missed.
+        /// </summary>
+        /// <remarks>
+        /// It throws rather than answering with the type's empty value, because a grid's empty
+        /// value is a value the sheet can write - `0` in a modifier table is a modifier of
+        /// zero, and a key nobody declared is not that.
+        /// </remarks>
+        public {{ m.cell_type }} At({{ m.row_key_type }} {{ m.row_key_prop | string.downcase }}, {{ m.column_key_type }} {{ m.column_key_prop | string.downcase }})
+        {
+            if (_columnAxis == null)
+                throw new TabbitException("Table `{{ table.raw_name }}` has no column axis yet. Read `{{ m.column_table }}` before reading a cell.");
+
+            var record = FindBy{{ m.row_lookup }}({{ m.row_key_prop | string.downcase }});
+
+            if (record == null)
+                throw new TabbitException($"Table `{{ table.raw_name }}` has no row `{ {{- m.row_key_prop | string.downcase -}} }`.");
+
+            var column = _columnAxis.FindBy{{ m.column_key_pascal }}({{ m.column_key_prop | string.downcase }});
+
+            if (column == null)
+                throw new TabbitException($"Table `{{ table.raw_name }}` has no column `{ {{- m.column_key_prop | string.downcase -}} }`.");
+
+            return record.{{ m.grid_prop }}[column.{{ m.at_prop }}];
+        }
+{{~ if m.cells_are_optional }}
+
+        /// <summary>
+        /// Whether the sheet gave the cell where the two keys meet a value.
+        /// </summary>
+        /// <remarks>
+        /// A grid whose cells are optional reads a blank as the type's empty value, and that
+        /// value is one the sheet could also have written - so this is the only way to tell
+        /// "nobody filled it in" from "somebody wrote zero". Both keys have to be there;
+        /// a key that is not is the same report `At` makes.
+        /// </remarks>
+        public bool HasAt({{ m.row_key_type }} {{ m.row_key_prop | string.downcase }}, {{ m.column_key_type }} {{ m.column_key_prop | string.downcase }})
+        {
+            if (_columnAxis == null)
+                throw new TabbitException("Table `{{ table.raw_name }}` has no column axis yet. Read `{{ m.column_table }}` before reading a cell.");
+
+            var record = FindBy{{ m.row_lookup }}({{ m.row_key_prop | string.downcase }});
+
+            if (record == null)
+                throw new TabbitException($"Table `{{ table.raw_name }}` has no row `{ {{- m.row_key_prop | string.downcase -}} }`.");
+
+            var column = _columnAxis.FindBy{{ m.column_key_pascal }}({{ m.column_key_prop | string.downcase }});
+
+            if (column == null)
+                throw new TabbitException($"Table `{{ table.raw_name }}` has no column `{ {{- m.column_key_prop | string.downcase -}} }`.");
+
+            return record.Has{{ m.grid_pascal }}At(column.{{ m.at_prop }});
+        }
+{{~ end ~}}
+        #endregion
+{{~ end ~}}
 {{~ for key in table.composite_keys }}
         #region Indexing by '{{ key.field_name }}'
 {{~## A key of several columns is held as the text they make. Each part carries its own

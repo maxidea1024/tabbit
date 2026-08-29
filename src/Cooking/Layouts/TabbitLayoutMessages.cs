@@ -57,6 +57,30 @@ public static class TabbitLayoutMessages
     /// <summary>An entity with no `:field` row, which nothing can be read without.</summary>
     public const string FieldRowMissing = "tabbit.field-row-missing";
 
+    /// <summary>A `:matrix` with no `:col` row, which its column axis is written in.</summary>
+    public const string ColRowMissing = "tabbit.col-row-missing";
+
+    /// <summary>A `:matrix` narrower than a row key and one grid column.</summary>
+    public const string MatrixNeedsTwoColumns = "tabbit.matrix-needs-two-columns";
+
+    /// <summary>A `:matrix` whose `:field` row left the row axis or the grid unnamed.</summary>
+    public const string MatrixNameMissing = "tabbit.matrix-name-missing";
+
+    /// <summary>A `:matrix` name carrying `@`, `*` or `#`, none of which a grid takes.</summary>
+    public const string MatrixNameMarked = "tabbit.matrix-name-marked";
+
+    /// <summary>A `:field`, `:type` or `:desc` cell past the grid's first column.</summary>
+    public const string MatrixHeaderBeyondGrid = "tabbit.matrix-header-beyond-grid";
+
+    /// <summary>A `:col` row whose first cell, which names the column axis, is blank.</summary>
+    public const string MatrixColumnAxisMissing = "tabbit.matrix-column-axis-missing";
+
+    /// <summary>A column axis written as a name with no type expression behind it.</summary>
+    public const string MatrixColumnAxisNeedsType = "tabbit.matrix-column-axis-needs-type";
+
+    /// <summary>A `:matrix` whose `:col` row holds no keys.</summary>
+    public const string MatrixNoColumnKeys = "tabbit.matrix-no-column-keys";
+
     /// <summary>A table with no `:type` row.</summary>
     public const string TypeRowMissing = "tabbit.type-row-missing";
 

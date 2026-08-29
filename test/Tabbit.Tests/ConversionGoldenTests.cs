@@ -77,6 +77,15 @@ public class ConversionGoldenTests
     // assumed, and a key of three columns. Recording it found PHP casting an enum object to
     // an int. spec/layout/primary-layout.md section 3.5.
     [InlineData("composite-key")]
+    // `:matrix` - a grid written as a declaration. One declaration becomes two tables, and the
+    // wire does not move: the values table is a key and an array column, the column table is a
+    // key and a position, and both are shapes the format already carried. What is new is above
+    // them - the accessor that composes the two lookups, and the length check that says the two
+    // files came from one build. Two grids, because the pair is the point: one has an integer
+    // axis pointing at another table, a memo column, an excluded row and a cell with no value;
+    // the other has an enum on both axes, which the reading rule cannot express at all.
+    // spec/layout/matrix-declaration.md.
+    [InlineData("matrix")]
     // The other half of that: a table pointing *at* those keys. One table holds a `string`, a
     // `bigint` and a `uuid` reference at once, so a mixture is pinned as well as each on its
     // own. What travels is the key, and `int32` used to be written in for it - in the
