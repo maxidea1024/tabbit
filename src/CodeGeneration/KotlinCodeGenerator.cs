@@ -439,6 +439,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        Matrix = BuildMatrix(table),
         ContainerFill = ContainerFillLines(table),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
@@ -1205,6 +1206,16 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
             DataFileName = table.DataFileName,
         }).ToList(),
 
+        Grids = _model.Tables
+            .Select(table => MatrixPlans.Of(table, _model))
+            .Where(plan => plan is not null)
+            .Select(plan => new KotlinGridLinkView
+            {
+                Values = plan!.Values.Name.ToPascalCase() + "Table",
+                Columns = plan.Columns.Name.ToPascalCase() + "Table",
+            })
+            .ToList(),
+
         CrossReferences = _model.Tables
             .Select(table => new
             {
@@ -1527,6 +1538,34 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     /// somewhere else. `KeyComponentView.TypeOf` is the one place that decides, and the
     /// composite path already asks it; this is the single-column path asking the same.
     /// </remarks>
+    /// <summary>The grid accessor for this table, or null when it is not a grid's values.</summary>
+    private KotlinMatrixView? BuildMatrix(Table table)
+    {
+        if (MatrixPlans.Of(table, _model) is not { } plan)
+            return null;
+
+        return new KotlinMatrixView
+        {
+            ColumnTable = plan.Columns.Name.ToPascalCase() + "Table",
+            ColumnTableName = plan.Columns.Name,
+            ColumnRecord = plan.Columns.Name.ToPascalCase() + "Record",
+            ColumnLookup = "findBy" + plan.ColumnKey.Name.ToPascalCase(),
+            RowKeyMember = KotlinName(plan.RowKey.Name),
+            RowKeyParam = KeyComponentView.ParamOf(plan.RowKey.Name),
+            RowKeyType = IndexKeyType(plan.RowKey),
+            RowLookup = "findBy" + plan.RowKey.Name.ToPascalCase(),
+            ColumnKeyMember = KotlinName(plan.ColumnKey.Name),
+            ColumnKeyParam = KeyComponentView.ParamOf(plan.ColumnKey.Name),
+            ColumnKeyType = IndexKeyType(plan.ColumnKey),
+            AtMember = KotlinName(plan.At.Name),
+            GridMember = KotlinName(plan.Grid.Name),
+            GridHasMember = PresenceMember(plan.Grid) + "At",
+            CellType = ToKotlinTypeName(
+                plan.Grid.FirstField!.ElementType, plan.Grid.FirstField!.EnumOrNull, null),
+            CellsAreOptional = plan.CellsAreOptional,
+        };
+    }
+
     private string IndexKeyType(SerialField only)
     {
         var (type, enumm) = KeyComponentView.TypeOf(only);

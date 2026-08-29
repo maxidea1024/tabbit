@@ -84,6 +84,46 @@ internal sealed class KotlinConstantView
     public required IReadOnlyList<string> Comment { get; set; }
 }
 
+/// <summary>A grid's accessor, spelled the way Kotlin spells it.</summary>
+/// <remarks>
+/// <see cref="MatrixPlan"/> decides the shape; this is its spelling.
+/// spec/layout/matrix-declaration.md.
+/// </remarks>
+internal sealed class KotlinMatrixView
+{
+    public required string ColumnTable { get; init; }
+
+    public required string ColumnTableName { get; init; }
+
+    public required string ColumnRecord { get; init; }
+
+    public required string ColumnLookup { get; init; }
+
+    public required string RowKeyMember { get; init; }
+
+    public required string RowKeyParam { get; init; }
+
+    public required string RowKeyType { get; init; }
+
+    public required string RowLookup { get; init; }
+
+    public required string ColumnKeyMember { get; init; }
+
+    public required string ColumnKeyParam { get; init; }
+
+    public required string ColumnKeyType { get; init; }
+
+    public required string AtMember { get; init; }
+
+    public required string GridMember { get; init; }
+
+    public required string GridHasMember { get; init; }
+
+    public required string CellType { get; init; }
+
+    public required bool CellsAreOptional { get; init; }
+}
+
 internal sealed class KotlinTableView
 {
     public required string RawName { get; set; }
@@ -97,6 +137,9 @@ internal sealed class KotlinTableView
     /// The indexed fields: the sheet's first column plus every one marked with `*`.
     /// </summary>
     public required IReadOnlyList<KotlinIndexView> Indexes { get; set; }
+
+    /// <summary>The grid this table holds the values of, or null when it is not one.</summary>
+    public KotlinMatrixView? Matrix { get; set; }
 
     /// <summary>
     /// The statements filling every `set` and `map` lookup in the table, ready to paste.
@@ -434,6 +477,18 @@ internal sealed class KotlinAccessorView
     public required string FileExtension { get; set; }
     public required IReadOnlyList<KotlinTableSlotView> Tables { get; set; }
     public required IReadOnlyList<KotlinCrossReferenceView> CrossReferences { get; set; }
+
+    /// <summary>Every grid, as the pass that hands each one its axis names it.</summary>
+    public IReadOnlyList<KotlinGridLinkView> Grids { get; set; }
+        = System.Array.Empty<KotlinGridLinkView>();
+}
+
+/// <summary>One grid, as the accessor's linking pass names it.</summary>
+internal sealed class KotlinGridLinkView
+{
+    public required string Values { get; init; }
+
+    public required string Columns { get; init; }
 }
 
 internal sealed class KotlinTableSlotView

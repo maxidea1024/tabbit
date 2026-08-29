@@ -177,6 +177,89 @@ class {{ table.table_name }} : Iterable<{{ table.record_name }}> {
 {{~ for index in table.indexes ~}}
     private var {{ index.map_name }}: HashMap<{{ index.key_type }}, {{ table.record_name }}> = HashMap()
 {{~ end ~}}
+{{~ if table.matrix }}
+{{~ m = table.matrix ~}}
+{{~## The two lookups composed. Both halves already exist - this table indexes its rows by the
+   row axis and the column table indexes its own by the column axis - and what this adds is the
+   one call that goes through both. spec/layout/matrix-declaration.md section 8. ##~}}
+    private var columnAxis: {{ m.column_table }}? = null
+
+    /**
+     * Hands this table the column axis its cells are positioned by.
+     *
+     * Called by the accessor once both files are read, and the length check is here rather
+     * than in the read. A grid is two files, either can be deployed without the other, and a
+     * row whose array is a different length from the axis is a row whose cells have moved.
+     */
+    fun linkColumnAxis(columns: {{ m.column_table }}) {
+        for (record in records) {
+            check(record.{{ m.grid_member }}.size == columns.records.size) {
+                "table `{{ table.raw_name }}` holds ${record.{{ m.grid_member }}.size} cells for " +
+                    "`${record.{{ m.row_key_member }}}` and its column axis `{{ m.column_table_name }}` holds " +
+                    "${columns.records.size} keys; the two files are from different builds"
+            }
+        }
+
+        columnAxis = columns
+    }
+
+    /** The row axis keys, in the order the file wrote them. */
+    val rowKeys: List<{{ m.row_key_type }}>
+        get() = records.map { record -> record.{{ m.row_key_member }} }
+
+    /** The column axis keys, in the order a row holds its cells. */
+    val colKeys: List<{{ m.column_key_type }}>
+        get() = columnAxis?.records?.map { record -> record.{{ m.column_key_member }} } ?: emptyList()
+
+    /**
+     * One row of cells, or null when the grid has no such row.
+     *
+     * In the order [colKeys] is in, which is what makes a position mean something. The list is
+     * the record's own, so it is not a copy.
+     */
+    fun row({{ m.row_key_param }}: {{ m.row_key_type }}) = {{ m.row_lookup }}({{ m.row_key_param }})?.{{ m.grid_member }}
+
+    /**
+     * The cell where the two keys meet, or a thrown exception naming the one that missed.
+     *
+     * It throws rather than answering with the type's empty value, because a grid's empty
+     * value is one the sheet can write - 0 in a modifier table is a modifier of zero.
+     */
+    fun at({{ m.row_key_param }}: {{ m.row_key_type }}, {{ m.column_key_param }}: {{ m.column_key_type }}): {{ m.cell_type }} =
+        cellRecord({{ m.row_key_param }}).{{ m.grid_member }}[cellAt({{ m.column_key_param }})]
+{{~ if m.cells_are_optional }}
+
+    /**
+     * Whether the sheet gave the cell where the two keys meet a value.
+     *
+     * A grid whose cells are optional reads a blank as the type's empty value, and that value
+     * is one the sheet could also have written - so this is the only way to tell them apart.
+     */
+    fun hasAt({{ m.row_key_param }}: {{ m.row_key_type }}, {{ m.column_key_param }}: {{ m.column_key_type }}): Boolean =
+        cellRecord({{ m.row_key_param }}).{{ m.grid_has_member }}[cellAt({{ m.column_key_param }})]
+{{~ end }}
+
+    /** The row half of a cell lookup. */
+    private fun cellRecord({{ m.row_key_param }}: {{ m.row_key_type }}): {{ table.record_name }} {
+        checkNotNull(columnAxis) {
+            "table `{{ table.raw_name }}` has no column axis yet; " +
+                "read `{{ m.column_table_name }}` before reading a cell"
+        }
+
+        return {{ m.row_lookup }}({{ m.row_key_param }})
+            ?: throw RecordNotFoundException(
+                "table `{{ table.raw_name }}` has no row `${ {{- m.row_key_param -}} }`")
+    }
+
+    /** The column half of a cell lookup. */
+    private fun cellAt({{ m.column_key_param }}: {{ m.column_key_type }}): Int {
+        val column = columnAxis?.{{ m.column_lookup }}({{ m.column_key_param }})
+            ?: throw RecordNotFoundException(
+                "table `{{ table.raw_name }}` has no column `${ {{- m.column_key_param -}} }`")
+
+        return column.{{ m.at_member }}
+    }
+{{~ end ~}}
 {{~ for index in table.indexes }}
 {{~## A key of several columns is held as the text they make. Each part carries its own
    length, so no two combinations can make the same text - joined by a separator alone,
