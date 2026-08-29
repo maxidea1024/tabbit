@@ -35,6 +35,13 @@
       "Path": "test/fixtures/output/matrix/typescript"
     },
     {
+      "Type": "unreal",
+      "Path": "test/fixtures/output/matrix/unreal/Source",
+      "ModuleName": "MatrixData",
+      "AccessorName": "FMatrixData",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
       "Type": "cpp",
       "Path": "test/fixtures/output/matrix/cpp",
       "AccessorName": "MatrixAccessor"

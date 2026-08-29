@@ -102,6 +102,53 @@ internal sealed class UnrealEnumLabelView
     public required IReadOnlyList<string> Comment { get; set; }
 }
 
+/// <summary>A grid's accessor, spelled the way Unreal spells it.</summary>
+/// <remarks>
+/// The axis is a `TMap` from key to position rather than a pointer at the column table: the
+/// accessor moves its tables into place after loading, and a pointer at one of them would name
+/// the object that was moved from. <see cref="MatrixPlan"/> decides the rest.
+/// spec/layout/matrix-declaration.md.
+/// </remarks>
+internal sealed class UnrealMatrixView
+{
+    public required string ColumnTable { get; init; }
+
+    public required string ColumnTableName { get; init; }
+
+    /// <summary>The column table's row type.</summary>
+    public required string ColumnRecord { get; init; }
+
+    public required string ColumnLookup { get; init; }
+
+    public required string RowKeyMember { get; init; }
+
+    public required string RowKeyParam { get; init; }
+
+    public required string RowKeyType { get; init; }
+
+    public required string RowKeyArg { get; init; }
+
+    public required string RowLookup { get; init; }
+
+    public required string ColumnKeyMember { get; init; }
+
+    public required string ColumnKeyParam { get; init; }
+
+    public required string ColumnKeyType { get; init; }
+
+    public required string ColumnKeyArg { get; init; }
+
+    public required string AtMember { get; init; }
+
+    public required string GridMember { get; init; }
+
+    public required string GridHasMember { get; init; }
+
+    public required string CellType { get; init; }
+
+    public required bool CellsAreOptional { get; init; }
+}
+
 internal sealed class UnrealTableView
 {
     public required string RawName { get; set; }
@@ -114,6 +161,9 @@ internal sealed class UnrealTableView
     /// The indexed fields: the sheet's first column plus every one marked with `*`.
     /// </summary>
     public required IReadOnlyList<UnrealIndexView> Indexes { get; set; }
+
+    /// <summary>The grid this table holds the values of, or null when it is not one.</summary>
+    public UnrealMatrixView? Matrix { get; set; }
 
     /// <summary>
     /// The statements filling every `set` and `map` lookup in the table, ready to paste.
@@ -312,6 +362,14 @@ internal sealed class UnrealFieldView
 
 }
 
+/// <summary>One grid, as the accessor's linking pass names it.</summary>
+internal sealed class UnrealGridLinkView
+{
+    public required string Values { get; init; }
+
+    public required string Columns { get; init; }
+}
+
 internal sealed class UnrealAccessorView
 {
     public required string FileExtension { get; set; }
@@ -328,6 +386,10 @@ internal sealed class UnrealAccessorView
     public required string LibraryName { get; set; }
 
     public required IReadOnlyList<UnrealTableSlotView> Tables { get; set; }
+
+    /// <summary>Every grid, as the pass that hands each one its axis names it.</summary>
+    public IReadOnlyList<UnrealGridLinkView> Grids { get; set; }
+        = System.Array.Empty<UnrealGridLinkView>();
 }
 
 internal sealed class UnrealTableSlotView

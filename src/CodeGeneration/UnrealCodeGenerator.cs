@@ -385,6 +385,16 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
                 // Unescaped: this one names the file the exporter wrote.
                 DataFileName = table.DataFileName,
             }).ToList(),
+
+            Grids = _model.Tables
+                .Select(table => MatrixPlans.Of(table, _model))
+                .Where(plan => plan is not null)
+                .Select(plan => new UnrealGridLinkView
+                {
+                    Values = plan!.Values.Name.ToPascalCase(),
+                    Columns = plan.Columns.Name.ToPascalCase(),
+                })
+                .ToList(),
         },
     };
 
@@ -533,6 +543,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
             Location = table.Location.ToString(),
             Comment = CommentLines(table.Comment),
             Indexes = Indexes(table),
+            Matrix = BuildMatrix(table),
             ContainerFill = ContainerFillLines(table),
             Fields = table.SerialFields.Select(sf => BuildField(table, sf, members)).ToList(),
 
@@ -1626,6 +1637,45 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
 
         return Indexes(table).First(
             index => index.Suffix == primary.Suffix(name => name.ToPascalCase(), "And"));
+    }
+
+    /// <summary>The grid accessor for this table, or null when it is not a grid's values.</summary>
+    private UnrealMatrixView? BuildMatrix(Table table)
+    {
+        if (MatrixPlans.Of(table, _model) is not { } plan)
+            return null;
+
+        var (rowType, rowEnum) = KeyComponentView.TypeOf(plan.RowKey);
+        var (columnType, columnEnum) = KeyComponentView.TypeOf(plan.ColumnKey);
+
+        string rowKeyType = ToUnrealTypeName(rowType, rowEnum);
+        string columnKeyType = ToUnrealTypeName(columnType, columnEnum);
+
+        return new UnrealMatrixView
+        {
+            ColumnTable = TableName(plan.Columns),
+            ColumnTableName = plan.Columns.Name,
+            ColumnRecord = RecordName(plan.Columns),
+            ColumnLookup = "FindBy" + plan.ColumnKey.Name.ToPascalCase(),
+            RowKeyMember = MemberName(plan.RowKey.FirstField, plan.RowKey.Name),
+            RowKeyParam = plan.RowKey.Name.ToPascalCase(),
+            RowKeyType = rowKeyType,
+
+            // An FString costs a copy to take by value, the same way the generated lookups
+            // already decide it.
+            RowKeyArg = rowKeyType == "FString" ? "const FString&" : rowKeyType,
+            RowLookup = "FindBy" + plan.RowKey.Name.ToPascalCase(),
+            ColumnKeyMember = MemberName(plan.ColumnKey.FirstField, plan.ColumnKey.Name),
+            ColumnKeyParam = plan.ColumnKey.Name.ToPascalCase(),
+            ColumnKeyType = columnKeyType,
+            ColumnKeyArg = columnKeyType == "FString" ? "const FString&" : columnKeyType,
+            AtMember = MemberName(plan.At, plan.At.Name),
+            GridMember = MemberName(plan.Grid.FirstField, plan.Grid.Name),
+            GridHasMember = "bHas" + MemberName(plan.Grid.FirstField, plan.Grid.Name) + "At",
+            CellType = ToUnrealTypeName(
+                plan.Grid.FirstField!.ElementType, plan.Grid.FirstField!.EnumOrNull),
+            CellsAreOptional = plan.CellsAreOptional,
+        };
     }
 
     private static string MemberName(Field? field) => MemberName(field, field!.Name);

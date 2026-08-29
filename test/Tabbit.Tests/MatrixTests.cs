@@ -250,6 +250,35 @@ for pair in [(2001, 999), (9999, 101)]:
         return (output, process.ExitCode == 0);
     }
 
+    /// <summary>
+    /// The generated Unreal module, put through the Header Tool.
+    /// </summary>
+    /// <remarks>
+    /// Opt in: it runs only where `TABBIT_UE_ROOT` names an engine. What it answers that a
+    /// golden cannot is whether the grid's members are ones Unreal accepts - the reflection
+    /// pass reads every header of the module and refuses a shape it cannot generate for.
+    /// </remarks>
+    [Fact]
+    public void The_generated_unreal_passes_the_header_tool()
+    {
+        string engineRoot = Environment.GetEnvironmentVariable("TABBIT_UE_ROOT");
+
+        if (string.IsNullOrEmpty(engineRoot))
+            return;
+
+        TabbitRunner.Convert(Scenario);
+
+        var result = UnrealToolchain.RunHeaderTool(
+            engineRoot,
+            Path.Combine(RepoLayout.OutputDir(Scenario), "unreal", "Source", "MatrixData"),
+            moduleName: "MatrixData",
+            headerName: "FMatrixData.h");
+
+        Assert.True(result.Succeeded,
+            $"Unreal Header Tool rejected the generated module."
+            + $"{Environment.NewLine}{result.Output}");
+    }
+
     // ------------------------------------------------------------------ the generated surface
 
     /// <summary>

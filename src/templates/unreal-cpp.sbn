@@ -401,6 +401,122 @@ bool {{ table.table_name }}::Read(const FString& Filename)
 
     return true;
 }
+{{~ if table.matrix }}
+{{~ m = table.matrix ~}}
+bool {{ table.table_name }}::LinkColumnAxis(const {{ m.column_table }}& Columns)
+{
+    TMap<{{ m.column_key_type }}, int32> At;
+    TArray<{{ m.column_key_type }}> Keys;
+
+    At.Reserve(Columns.Records().Num());
+    Keys.SetNum(Columns.Records().Num());
+
+    for (const {{ m.column_record }}& Column : Columns.Records())
+    {
+        const int32 Position = static_cast<int32>(Column.{{ m.at_member }});
+
+        At.Add(Column.{{ m.column_key_member }}, Position);
+        Keys[Position] = Column.{{ m.column_key_member }};
+    }
+
+    for (const {{ table.record_name }}& Record : RecordsStorage)
+    {
+        if (Record.{{ m.grid_member }}.Num() != Keys.Num())
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Tabbit: table `{{ table.raw_name }}` holds %d cells for one row and its column axis `{{ m.column_table_name }}` holds %d keys. The two files are from different builds."),
+                Record.{{ m.grid_member }}.Num(), Keys.Num());
+
+            return false;
+        }
+    }
+
+    ColumnAt = MoveTemp(At);
+    ColumnKeys = MoveTemp(Keys);
+    bColumnAxisLinked = true;
+
+    return true;
+}
+
+TArray<{{ m.row_key_type }}> {{ table.table_name }}::RowKeys() const
+{
+    TArray<{{ m.row_key_type }}> Keys;
+    Keys.Reserve(RecordsStorage.Num());
+
+    for (const {{ table.record_name }}& Record : RecordsStorage)
+    {
+        Keys.Add(Record.{{ m.row_key_member }});
+    }
+
+    return Keys;
+}
+
+const TArray<{{ m.cell_type }}>* {{ table.table_name }}::Row({{ m.row_key_arg }} {{ m.row_key_param }}) const
+{
+    const {{ table.record_name }}* Record = {{ m.row_lookup }}({{ m.row_key_param }});
+    return Record == nullptr ? nullptr : &Record->{{ m.grid_member }};
+}
+
+bool {{ table.table_name }}::At({{ m.row_key_arg }} {{ m.row_key_param }}, {{ m.column_key_arg }} {{ m.column_key_param }}, {{ m.cell_type }}& OutCell) const
+{
+    const {{ table.record_name }}* Record = nullptr;
+    int32 Position = 0;
+
+    if (!CellAt({{ m.row_key_param }}, {{ m.column_key_param }}, Record, Position))
+    {
+        return false;
+    }
+
+    OutCell = Record->{{ m.grid_member }}[Position];
+
+    return true;
+}
+{{~ if m.cells_are_optional }}
+
+bool {{ table.table_name }}::HasAt({{ m.row_key_arg }} {{ m.row_key_param }}, {{ m.column_key_arg }} {{ m.column_key_param }}, bool& OutHasValue) const
+{
+    const {{ table.record_name }}* Record = nullptr;
+    int32 Position = 0;
+
+    if (!CellAt({{ m.row_key_param }}, {{ m.column_key_param }}, Record, Position))
+    {
+        return false;
+    }
+
+    OutHasValue = Record->{{ m.grid_has_member }}[Position];
+
+    return true;
+}
+{{~ end }}
+
+bool {{ table.table_name }}::CellAt({{ m.row_key_arg }} {{ m.row_key_param }}, {{ m.column_key_arg }} {{ m.column_key_param }}, const {{ table.record_name }}*& OutRecord, int32& OutPosition) const
+{
+    if (!bColumnAxisLinked)
+    {
+        return false;
+    }
+
+    const {{ table.record_name }}* Record = {{ m.row_lookup }}({{ m.row_key_param }});
+
+    if (Record == nullptr)
+    {
+        return false;
+    }
+
+    const int32* Position = ColumnAt.Find({{ m.column_key_param }});
+
+    if (Position == nullptr)
+    {
+        return false;
+    }
+
+    OutRecord = Record;
+    OutPosition = *Position;
+
+    return true;
+}
+
+{{~ end ~}}
 {{~ end }}
 {{~ for slot in accessor.tables ~}}
 {{ slot.table_name }} {{ accessor_name }}::{{ slot.name }}Storage;
@@ -460,6 +576,12 @@ bool {{ accessor_name }}::ReadAll(const FString& BasePath, const FString& FileEx
     }
 {{~ end ~}}
 
+{{~ for grid in accessor.grids ~}}
+    if (!Loaded{{ grid.values }}.LinkColumnAxis(Loaded{{ grid.columns }}))
+    {
+        return false;
+    }
+{{~ end ~}}
 {{~ for slot in accessor.tables ~}}
     {{ slot.name }}Storage = MoveTemp(Loaded{{ slot.name }});
 {{~ end ~}}

@@ -348,13 +348,74 @@ public:
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
+{{~ if table.matrix }}
+{{~ m = table.matrix ~}}
+{{~## The two lookups composed. Both halves already exist - this table indexes its rows by the
+   row axis and the column table indexes its own by the column axis - and what this adds is the
+   one call that goes through both. spec/layout/matrix-declaration.md section 8. ##~}}
+
+    /**
+     * Hands this table the column axis its cells are positioned by.
+     *
+     * Called by the accessor once both files are read. The length check is here rather than in
+     * the read: a grid is two files, either can be deployed without the other, and a row whose
+     * array is a different length from the axis is a row whose cells have moved.
+     */
+    bool LinkColumnAxis(const {{ m.column_table }}& Columns);
+
+    /** The row axis keys, in the order the file wrote them. */
+    TArray<{{ m.row_key_type }}> RowKeys() const;
+
+    /** The column axis keys, in the order a row holds its cells. */
+    const TArray<{{ m.column_key_type }}>& ColKeys() const { return ColumnKeys; }
+
+    /**
+     * One row of cells, or nullptr when the grid has no such row.
+     *
+     * In the order ColKeys is in, which is what makes a position mean something.
+     */
+    const TArray<{{ m.cell_type }}>* Row({{ m.row_key_arg }} {{ m.row_key_param }}) const;
+
+    /**
+     * The cell where the two keys meet, and whether both keys were there.
+     *
+     * It answers false rather than the type's empty value, because a grid's empty value is one
+     * the sheet can write - 0 in a modifier table is a modifier of zero. Unreal builds without
+     * exceptions, so a miss is a return rather than a throw.
+     */
+    bool At({{ m.row_key_arg }} {{ m.row_key_param }}, {{ m.column_key_arg }} {{ m.column_key_param }}, {{ m.cell_type }}& OutCell) const;
+{{~ if m.cells_are_optional }}
+
+
+    /**
+     * Whether the sheet gave the cell where the two keys meet a value, and whether both keys
+     * were there.
+     *
+     * A grid whose cells are optional reads a blank as the type's empty value, and that value
+     * is one the sheet could also have written - so this is the only way to tell them apart.
+     */
+    bool HasAt({{ m.row_key_arg }} {{ m.row_key_param }}, {{ m.column_key_arg }} {{ m.column_key_param }}, bool& OutHasValue) const;
+{{~ end }}
+{{~ end ~}}
     /** Loads the table from a .tcb file written by Tabbit. */
     bool Read(const FString& Filename);
 
 private:
+{{~ if table.matrix }}
+{{~## Both lookups, done once for the readers above. ##~}}
+    bool CellAt({{ table.matrix.row_key_arg }} {{ table.matrix.row_key_param }}, {{ table.matrix.column_key_arg }} {{ table.matrix.column_key_param }}, const {{ table.record_name }}*& OutRecord, int32& OutPosition) const;
+
+{{~ end ~}}
     TArray<{{ table.record_name }}> RecordsStorage;
 {{~ for index in table.indexes ~}}
     TMap<{{ index.key_type }}, int32> {{ index.map_name }};
+{{~ end ~}}
+{{~ if table.matrix ~}}
+{{~## The axis as a map and an array rather than a pointer at the column table - the accessor
+      moves its tables into place, and a pointer at one of them would name what was moved from. ##~}}
+    TMap<{{ table.matrix.column_key_type }}, int32> ColumnAt;
+    TArray<{{ table.matrix.column_key_type }}> ColumnKeys;
+    bool bColumnAxisLinked = false;
 {{~ end ~}}
 };
 {{~ end }}
