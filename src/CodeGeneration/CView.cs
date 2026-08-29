@@ -160,6 +160,48 @@ internal sealed class CConstantView
     public required string Count { get; set; }
 }
 
+/// <summary>A grid's accessor, spelled the way C spells it.</summary>
+/// <remarks>
+/// <see cref="MatrixPlan"/> decides the shape; this is its spelling.
+/// spec/layout/matrix-declaration.md.
+/// </remarks>
+internal sealed class CMatrixView
+{
+    public required string ColumnTable { get; init; }
+
+    public required string ColumnTableName { get; init; }
+
+    public required string ColumnRecord { get; init; }
+
+    public required string ColumnPrefix { get; init; }
+
+    public required string ColumnLookup { get; init; }
+
+    public required string RowKeyMember { get; init; }
+
+    public required string RowKeyParam { get; init; }
+
+    public required string RowKeyType { get; init; }
+
+    public required string RowLookup { get; init; }
+
+    public required string ColumnKeyMember { get; init; }
+
+    public required string ColumnKeyParam { get; init; }
+
+    public required string ColumnKeyType { get; init; }
+
+    public required string AtMember { get; init; }
+
+    public required string GridMember { get; init; }
+
+    public required string GridHasMember { get; init; }
+
+    public required string CellType { get; init; }
+
+    public required bool CellsAreOptional { get; init; }
+}
+
 internal sealed class CTableView
 {
     public required string RawName { get; set; }
@@ -181,6 +223,9 @@ internal sealed class CTableView
     /// The indexed fields: the sheet's first column plus every one marked with `*`.
     /// </summary>
     public required IReadOnlyList<CIndexView> Indexes { get; set; }
+
+    /// <summary>The grid this table holds the values of, or null when it is not one.</summary>
+    public CMatrixView? Matrix { get; set; }
 
     /// <summary>Whether any member holds strings, and so needs the pre-read pass.</summary>
     public required bool HasStringFields { get; set; }
@@ -398,6 +443,16 @@ internal sealed class CFieldView
 
 }
 
+/// <summary>One grid, as the accessor's linking pass names it.</summary>
+internal sealed class CGridLinkView
+{
+    public required string Values { get; init; }
+
+    public required string Columns { get; init; }
+
+    public required string Prefix { get; init; }
+}
+
 internal sealed class CAccessorView
 {
     /// <summary>The prefix its functions carry: `TabbitData`, giving `TabbitData_Free`.</summary>
@@ -408,6 +463,10 @@ internal sealed class CAccessorView
 
     public required string FileExtension { get; set; }
     public required IReadOnlyList<CTableSlotView> Tables { get; set; }
+
+    /// <summary>Every grid, as the pass that hands each one its axis names it.</summary>
+    public IReadOnlyList<CGridLinkView> Grids { get; set; }
+        = System.Array.Empty<CGridLinkView>();
     public required IReadOnlyList<CCrossReferenceView> CrossReferences { get; set; }
 }
 

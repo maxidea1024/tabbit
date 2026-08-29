@@ -35,6 +35,11 @@
       "Path": "test/fixtures/output/matrix/typescript"
     },
     {
+      "Type": "c",
+      "Path": "test/fixtures/output/matrix/c",
+      "AccessorName": "Matrix"
+    },
+    {
       "Type": "unreal",
       "Path": "test/fixtures/output/matrix/unreal/Source",
       "ModuleName": "MatrixData",

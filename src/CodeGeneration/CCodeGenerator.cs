@@ -307,7 +307,13 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                     headers: new[] { ForwardHeader }
                         .Concat(TypeDependencies.EnumsNamedBy(pair.model)
                                 .Select(EnumHeaderFor))
-                        .Concat(PolymorphicHeaders(pair.model)),
+                        .Concat(PolymorphicHeaders(pair.model))
+
+                        // A grid names its column axis as a member and reads its rows, so the
+                        // complete type is needed rather than the forward declaration.
+                        .Concat(MatrixPlans.Of(pair.model, _model) is { } plan
+                            ? new[] { TableHeaderPath(plan.Columns) }
+                            : Array.Empty<string>()),
 
                     // A container keyed by text generates a lookup that compares with
                     // `strcmp`, which is the one thing in these headers that reaches the C
@@ -475,6 +481,10 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     private string ConstantsSource(CConstantSetView set) => $"constants/{FileBase}_Const{set.Name}.c";
 
     private string TableHeader(CTableView table) => $"tables/{FileBase}_{table.RawName.ToPascalCase()}.h";
+
+    /// <summary>The same path from a model table, for the include a grid adds.</summary>
+    private string TableHeaderPath(Table table)
+        => $"tables/{FileBase}_{table.Name.ToPascalCase()}.h";
     private string TableSource(CTableView table) => $"tables/{FileBase}_{table.RawName.ToPascalCase()}.c";
 
     /// <summary>
@@ -653,6 +663,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        Matrix = BuildMatrix(table),
 
         // Only the scalars. An array is a pointer now, so a column the file does not carry
         // leaves it NULL with a count of zero - which is an empty array rather than a row of
@@ -675,6 +686,42 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// The indexed fields of a table: the sheet's first column, plus every one marked
     /// with a `*`.
     /// </summary>
+    /// <summary>The grid accessor for this table, or null when it is not a grid's values.</summary>
+    private CMatrixView? BuildMatrix(Table table)
+    {
+        if (MatrixPlans.Of(table, _model) is not { } plan)
+            return null;
+
+        var (rowType, rowEnum) = KeyComponentView.TypeOf(plan.RowKey);
+        var (columnType, columnEnum) = KeyComponentView.TypeOf(plan.ColumnKey);
+
+        return new CMatrixView
+        {
+            ColumnTable = TableTypeName(plan.Columns),
+            ColumnTableName = plan.Columns.Name,
+            ColumnRecord = RecordName(plan.Columns),
+            ColumnPrefix = FunctionPrefix(plan.Columns),
+            ColumnLookup = "FindBy" + plan.ColumnKey.Name.ToPascalCase(),
+            RowKeyMember = CName(plan.RowKey.Name),
+            RowKeyParam = plan.RowKey.Name.ToSnakeCase(),
+            RowKeyType = rowType == Models.ValueType.String
+                ? "const char*"
+                : ScalarTypeName(rowType, rowEnum),
+            RowLookup = "FindBy" + plan.RowKey.Name.ToPascalCase(),
+            ColumnKeyMember = CName(plan.ColumnKey.Name),
+            ColumnKeyParam = plan.ColumnKey.Name.ToSnakeCase(),
+            ColumnKeyType = columnType == Models.ValueType.String
+                ? "const char*"
+                : ScalarTypeName(columnType, columnEnum),
+            AtMember = CName(plan.At.Name),
+            GridMember = CName(plan.Grid.Name),
+            GridHasMember = "has_" + CName(plan.Grid.Name) + "_at",
+            CellType = ScalarTypeName(
+                plan.Grid.FirstField!.ElementType, plan.Grid.FirstField!.EnumOrNull),
+            CellsAreOptional = plan.CellsAreOptional,
+        };
+    }
+
     private IReadOnlyList<CIndexView> Indexes(Table table)
         => KeyPlans.Of(table).Select(plan =>
         {
@@ -1527,6 +1574,17 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             // Unescaped: this one names the file the exporter wrote.
             DataFileName = table.DataFileName,
         }).ToList(),
+
+        Grids = _model.Tables
+            .Select(table => MatrixPlans.Of(table, _model))
+            .Where(plan => plan is not null)
+            .Select(plan => new CGridLinkView
+            {
+                Values = CSnakeName(plan!.Values.Name),
+                Columns = CSnakeName(plan.Columns.Name),
+                Prefix = FunctionPrefix(plan.Values),
+            })
+            .ToList(),
 
         CrossReferences = _model.Tables
             .Select(table => new

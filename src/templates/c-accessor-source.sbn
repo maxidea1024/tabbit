@@ -130,6 +130,20 @@ bool {{ accessor.name }}_LoadAllWithExtension({{ accessor.type_name }}* data, co
   /* The previous load goes now, and not before. */
   {{ accessor.name }}_Free(data);
   *data = loaded;
+{{~ if accessor.grids | array.size > 0 }}
+
+  /* After the copy: a grid holds its axis by pointer, and one taken before this would name
+     the local that is about to go out of scope. */
+{{~ for grid in accessor.grids ~}}
+  if (!{{ grid.prefix }}LinkColumnAxis(&data->{{ grid.values }}, &data->{{ grid.columns }})) {
+    if (error != NULL && error_size > 0)
+      snprintf(error, error_size,
+               "table `%s` and its column axis are from different builds", "{{ grid.values }}");
+
+    return false;
+  }
+{{~ end ~}}
+{{~ end ~}}
 
   return true;
 {{~ end ~}}

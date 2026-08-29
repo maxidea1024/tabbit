@@ -8,6 +8,88 @@
    them stacked is two blank lines, which is what this file used to do at every case of the
    switch below. ##~}}
 {{ include 'c-source-head.sbn' ~}}
+{{~ if table.matrix }}
+{{~ m = table.matrix ~}}
+bool {{ table.function_prefix }}LinkColumnAxis(
+  {{ table.table_name }}* table, const {{ m.column_table }}* columns) {
+  int32_t i;
+
+  for (i = 0; i < table->count; ++i) {
+    if (table->records[i].{{ m.grid_member }}_count != columns->count)
+      return false;
+  }
+
+  table->column_axis = columns;
+
+  return true;
+}
+
+const {{ m.cell_type }}* {{ table.function_prefix }}Row(
+  const {{ table.table_name }}* table, {{ m.row_key_type }} {{ m.row_key_param }}) {
+  const {{ table.record_name }}* record =
+    {{ table.function_prefix }}{{ m.row_lookup }}(table, {{ m.row_key_param }});
+
+  return record == NULL ? NULL : record->{{ m.grid_member }};
+}
+
+/* Both lookups, done once for the readers below. */
+static const {{ table.record_name }}* {{ table.function_prefix }}CellAt(
+  const {{ table.table_name }}* table, {{ m.row_key_type }} {{ m.row_key_param }},
+  {{ m.column_key_type }} {{ m.column_key_param }}, int32_t* out_position) {
+  const {{ table.record_name }}* record;
+  const {{ m.column_record }}* column;
+
+  if (table->column_axis == NULL)
+    return NULL;
+
+  record = {{ table.function_prefix }}{{ m.row_lookup }}(table, {{ m.row_key_param }});
+
+  if (record == NULL)
+    return NULL;
+
+  column = {{ m.column_prefix }}{{ m.column_lookup }}(table->column_axis, {{ m.column_key_param }});
+
+  if (column == NULL)
+    return NULL;
+
+  *out_position = column->{{ m.at_member }};
+
+  return record;
+}
+
+bool {{ table.function_prefix }}At(
+  const {{ table.table_name }}* table, {{ m.row_key_type }} {{ m.row_key_param }},
+  {{ m.column_key_type }} {{ m.column_key_param }}, {{ m.cell_type }}* out_cell) {
+  int32_t position = 0;
+  const {{ table.record_name }}* record =
+    {{ table.function_prefix }}CellAt(table, {{ m.row_key_param }}, {{ m.column_key_param }}, &position);
+
+  if (record == NULL)
+    return false;
+
+  *out_cell = record->{{ m.grid_member }}[position];
+
+  return true;
+}
+{{~ if m.cells_are_optional }}
+
+bool {{ table.function_prefix }}HasAt(
+  const {{ table.table_name }}* table, {{ m.row_key_type }} {{ m.row_key_param }},
+  {{ m.column_key_type }} {{ m.column_key_param }}, bool* out_has_value) {
+  int32_t position = 0;
+  const {{ table.record_name }}* record =
+    {{ table.function_prefix }}CellAt(table, {{ m.row_key_param }}, {{ m.column_key_param }}, &position);
+
+  if (record == NULL)
+    return false;
+
+  *out_has_value = record->{{ m.grid_has_member }}[position];
+
+  return true;
+}
+{{~ end }}
+
+{{~ end ~}}
 {{~ for index in table.indexes ~}}
 {{~ if index.is_composite ~}}
 {{~## A key of several columns is held as the text they make. Each part carries its own

@@ -5,8 +5,7 @@
 > 그림은 [`primary-layout-figures.py`](primary-layout-figures.py)가 생성합니다 — 예시를 고치면
 > 그 파일을 고치고 다시 실행합니다.
 >
-> 상태: **구현되었습니다.** 주 레이아웃의 파서와 7개 언어의 표면까지이고, 남은 언어는
-> 9절에 있습니다. 도입 근거는 [행렬 선언 — 1급 엔티티 검토](../types/matrix-entity.md)입니다.
+> 상태: **구현되었습니다.** 주 레이아웃의 파서와 **모든 언어**의 표면까지입니다. 도입 근거는 [행렬 선언 — 1급 엔티티 검토](../types/matrix-entity.md)입니다.
 
 [주 레이아웃](primary-layout.md)에 다섯 번째 선언 셀 `:matrix`를 두는 표기입니다.
 
@@ -209,7 +208,6 @@ foreach (var key in Data.ElementChart.ColKeys) { … }
 
 |무엇|선택지|
 |--|--|
-|나머지 언어|C# · TypeScript · Python · Go · Java · Kotlin · Dart가 되어 있습니다. 남은 것은 PHP · Ruby · Lua · Rust · Swift · C++ · Unreal · C 와 HTML 문서이고, 뷰 하나와 템플릿 블록 하나를 더하는 같은 일입니다|
 |`symmetric`|4절에서 예약만 하였습니다|
-|HTML 문서의 표시|격자를 격자로 그릴 것인지, 테이블과 같은 목록으로 둘 것인지|
+|HTML 문서의 표시|격자를 격자로 그릴 것인지, 테이블과 같은 목록으로 둘 것인지. 지금은 테이블 둘로 나옵니다|
 |이름 기반 레이아웃의 `matrix_` 접두어|7절에 적어 두었고 구현은 없습니다|
