@@ -146,6 +146,40 @@ internal sealed class PythonTableView
     /// reading is per column, and a record group is one column per member of it.
     /// </remarks>
     public required IReadOnlyList<PythonColumnView> Columns { get; set; }
+
+    /// <summary>The grid this table holds the values of, or null when it is not one.</summary>
+    public PythonMatrixView? Matrix { get; set; }
+}
+
+/// <summary>A grid's accessor, spelled the way Python spells it.</summary>
+/// <remarks>
+/// No types, unlike the other languages: what a grid needs here is names alone - the two
+/// lookups, the two members, and the position. <see cref="MatrixPlan"/> decides the shape.
+/// </remarks>
+internal sealed class PythonMatrixView
+{
+    /// <summary>The column table's class.</summary>
+    public required string ColumnTable { get; init; }
+
+    /// <summary>The record member holding the row axis key, and the lookup taking it.</summary>
+    public required string RowKeyMember { get; init; }
+
+    public required string RowLookup { get; init; }
+
+    /// <summary>The same two for the column axis, on the column table.</summary>
+    public required string ColumnKeyMember { get; init; }
+
+    public required string ColumnLookup { get; init; }
+
+    /// <summary>The column table's position member.</summary>
+    public required string AtMember { get; init; }
+
+    /// <summary>The array member holding one row of cells, and its per-element reader.</summary>
+    public required string GridMember { get; init; }
+
+    public required string GridHasMember { get; init; }
+
+    public required bool CellsAreOptional { get; init; }
 }
 
 /// <summary>
@@ -480,6 +514,18 @@ internal sealed class PythonAccessorView
 
     public required IReadOnlyList<PythonTableSlotView> Tables { get; set; }
     public required IReadOnlyList<PythonCrossReferenceView> CrossReferences { get; set; }
+
+    /// <summary>Every grid, as the pass that hands each one its axis names it.</summary>
+    public IReadOnlyList<PythonGridLinkView> Grids { get; set; }
+        = System.Array.Empty<PythonGridLinkView>();
+}
+
+/// <summary>One grid, as the accessor's linking pass names it.</summary>
+internal sealed class PythonGridLinkView
+{
+    public required string Values { get; init; }
+
+    public required string Columns { get; init; }
 }
 
 internal sealed class PythonTableSlotView

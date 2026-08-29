@@ -14,65 +14,56 @@ import * as tabbit from '../tabbit/tcb-reader'
 import { Tables } from '../tables'
 
 // Automatically import to handle external type references.
-import { BeastRecord } from './beast'
+import { GoodsRecord } from './goods'
 
 /** A type for handling rows when parsing .json. */
 interface IDataRow {
-  seq: number
-  beastId: string
-  note: string
+  goods: number
+  at: number
 }
 
-// Generated from test/fixtures/xlsx/composite-key/composite-key.xlsx : Link : T2
-/** Indexed by a reference to a string-keyed table, named with `key=`. */
-export class BeastNoteRecord {
+// Generated from test/fixtures/xlsx/matrix/matrix.xlsx : Grids : B2
+/** Price modifier by town and goods. */
+export class TownPriceColumnRecord {
   /** Default constructor */
   constructor() {
   }
 
-  /** not the index, so `key=` has something to move */
-  public get seq(): number { return this._seq }
+  public get goods(): number { return this._goods_Goods_index }
+  public get goodsByGoods(): GoodsRecord { return this._goods }
 
-  /** the index, and a reference */
-  public get beastId(): string { return this._beastId_Beast_index }
-  public get beastByBeastId(): BeastRecord { return this._beastId }
+  public get at(): number { return this._at }
 
-  /** anything */
-  public get note(): string { return this._note }
+  public setReference_goods_INTERNAL(value: GoodsRecord) { this._goods = value; }
 
-  public setReference_beastId_INTERNAL(value: BeastRecord) { this._beastId = value; }
-
-  public _seq: number = 0
-  public _beastId: BeastRecord
-  public _beastId_Beast_index: string = ""
-  public _note: string = ''
+  public _goods: GoodsRecord
+  public _goods_Goods_index: number = 0
+  public _at: number = 0
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
-    this._seq = dataRow.seq
-    this._beastId_Beast_index = dataRow.beastId
-    this._note = dataRow.note
+    this._goods_Goods_index = dataRow.goods
+    this._at = dataRow.at
   }
 
   /** Populate field values. */
   public populateFieldValuesCompact(dataRow: any[]): void {
     let offset = 0
-    this._seq = dataRow[offset++]
-    this._beastId_Beast_index = dataRow[offset++]
-    this._note = dataRow[offset++]
+    this._goods_Goods_index = dataRow[offset++]
+    this._at = dataRow[offset++]
   }
 }
 
-// Generated from test/fixtures/xlsx/composite-key/composite-key.xlsx : Link : T2
-/** Indexed by a reference to a string-keyed table, named with `key=`. */
-export class BeastNoteTable {
+// Generated from test/fixtures/xlsx/matrix/matrix.xlsx : Grids : B2
+/** Price modifier by town and goods. */
+export class TownPriceColumnTable {
   /** Default constructor. */
   constructor() {
   }
 
   /** All records. */
-  public get records(): BeastNoteRecord[] { return this._records }
-  private _records: BeastNoteRecord[] = []
+  public get records(): TownPriceColumnRecord[] { return this._records }
+  private _records: TownPriceColumnRecord[] = []
 
   /** How many rows the table holds. */
   public get count(): number { return this._records.length }
@@ -83,58 +74,58 @@ export class BeastNoteTable {
    * The array reference is read once, here. A refresh replaces the reference rather
    * than its contents, so a loop already running keeps the rows it started with.
    */
-  public [Symbol.iterator](): IterableIterator<BeastNoteRecord> {
+  public [Symbol.iterator](): IterableIterator<TownPriceColumnRecord> {
     return this._records[Symbol.iterator]()
   }
 
-  // Indexing by 'beastId'
-  public get recordsByBeastId(): Map<string, BeastNoteRecord> { return this._recordsByBeastId }
-  private _recordsByBeastId: Map<string, BeastNoteRecord> = new Map<string, BeastNoteRecord>()
+  // Indexing by 'goods'
+  public get recordsByGoods(): Map<number, TownPriceColumnRecord> { return this._recordsByGoods }
+  private _recordsByGoods: Map<number, TownPriceColumnRecord> = new Map<number, TownPriceColumnRecord>()
 
   /**
-   * The row with this beastId, or undefined when the table has none.
+   * The row with this goods, or undefined when the table has none.
    *
    * The lookup to reach for when a missing row is an ordinary answer.
    */
-  public findByBeastId(key: string): BeastNoteRecord | undefined {
-    return this._recordsByBeastId.get(key)
+  public findByGoods(key: number): TownPriceColumnRecord | undefined {
+    return this._recordsByGoods.get(key)
   }
 
   /**
-   * The row with this beastId, or a thrown Error naming what was missing.
+   * The row with this goods, or a thrown Error naming what was missing.
    *
    * For a key that has to be there. The name says it throws, because a caller reading
-   * `getByBeastId(id).name` at a glance cannot otherwise tell whether the
+   * `getByGoods(id).name` at a glance cannot otherwise tell whether the
    * next line is a check or a catch.
    */
-  public getByBeastIdOrThrow(key: string): BeastNoteRecord {
-    const found = this._recordsByBeastId.get(key)
+  public getByGoodsOrThrow(key: number): TownPriceColumnRecord {
+    const found = this._recordsByGoods.get(key)
     if (!found)
-      throw new Error(`There is no record in table "BeastNote" that corresponds to field "beastId" value ${key}`)
+      throw new Error(`There is no record in table "TownPriceColumn" that corresponds to field "goods" value ${key}`)
 
     return found
   }
 
-  /** Whether the table holds a row with this beastId. */
-  public containsBeastId(key: string): boolean {
-    return this._recordsByBeastId.has(key)
+  /** Whether the table holds a row with this goods. */
+  public containsGoods(key: number): boolean {
+    return this._recordsByGoods.has(key)
   }
 
 
   /**
-   * Each row with the beastId it is keyed by -
+   * Each row with the goods it is keyed by -
    * `for (const [key, row] of table.entries())`.
    *
    * What this saves a caller is not the key value - the row carries it - but having to know
-   * which column the key is: beastId here, something else in the next table.
+   * which column the key is: goods here, something else in the next table.
    *
    * The rows come in the order the file wrote them rather than the order the map holds
    * them, which makes this and iterating the table agree. Only the primary key has this: a
    * table keyed by several columns together has no single key value to pair a row with.
    */
-  public *entries(): IterableIterator<[string, BeastNoteRecord]> {
+  public *entries(): IterableIterator<[number, TownPriceColumnRecord]> {
     for (const record of this._records) {
-      yield [record.beastId, record]
+      yield [record.goods, record]
     }
   }
 
@@ -152,17 +143,17 @@ export class BeastNoteTable {
 
   private readFromJson(json: string): void {
     const dataRows: any[] = JSON.parse(json)
-    const records: BeastNoteRecord[] = []
+    const records: TownPriceColumnRecord[] = []
 
     if (this.isCompactRowFormatted(dataRows)) {
       for (const dataRow of dataRows) {
-        const record = new BeastNoteRecord()
+        const record = new TownPriceColumnRecord()
         record.populateFieldValuesCompact(dataRow)
         records.push(record)
       }
     } else {
       for (const dataRow of dataRows as IDataRow[]) {
-        const record = new BeastNoteRecord()
+        const record = new TownPriceColumnRecord()
         record.populateFieldValues(dataRow)
         records.push(record)
       }
@@ -200,39 +191,30 @@ export class BeastNoteTable {
 
     // Built here and published at the end, so a file that turns out to be truncated - or
     // a column this build cannot read - leaves the rows already loaded exactly as they are.
-    const records: BeastNoteRecord[] = []
+    const records: TownPriceColumnRecord[] = []
     for (let i = 0; i < rowCount; ++i)
-      records.push(new BeastNoteRecord())
+      records.push(new TownPriceColumnRecord())
 
     for (const column of columns) {
       const blockEnd = reader.position + column.byteLength
 
       switch (column.tag) {
         case 1:
-          tabbit.checkColumn(column, 'BeastNote.Seq', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
-          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'BeastNote.Seq')
+          tabbit.checkColumn(column, 'TownPriceColumn.Goods', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'TownPriceColumn.Goods')
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
             for (let left = n; left > 0; --left, ++i)
-              records[i]._seq = value
+              records[i]._goods_Goods_index = value
           }
           break
         case 2:
-          tabbit.checkColumn(column, 'BeastNote.BeastId', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
-          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'BeastNote.BeastId')
+          tabbit.checkColumn(column, 'TownPriceColumn.At', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'TownPriceColumn.At')
           for (let i = 0; i < rowCount; ) {
-            const { n, value } = cursor.nextSameString(rowCount - i)
+            const { n, value } = cursor.nextSameI32(rowCount - i)
             for (let left = n; left > 0; --left, ++i)
-              records[i]._beastId_Beast_index = value
-          }
-          break
-        case 3:
-          tabbit.checkColumn(column, 'BeastNote.Note', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
-          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'BeastNote.Note')
-          for (let i = 0; i < rowCount; ) {
-            const { n, value } = cursor.nextSameString(rowCount - i)
-            for (let left = n; left > 0; --left, ++i)
-              records[i]._note = value
+              records[i]._at = value
           }
           break
         default:
@@ -257,14 +239,14 @@ export class BeastNoteTable {
    * builds its own arrays and gets here only if it finished, and this replaces the references
    * in one step. Whoever took `records` before still has the previous load, whole.
    */
-  private publish(records: BeastNoteRecord[]): void {
-    const recordsByBeastId = new Map<string, BeastNoteRecord>()
+  private publish(records: TownPriceColumnRecord[]): void {
+    const recordsByGoods = new Map<number, TownPriceColumnRecord>()
 
     for (const record of records) {
-      recordsByBeastId.set(record.beastId, record)
+      recordsByGoods.set(record.goods, record)
     }
 
     this._records = records
-    this._recordsByBeastId = recordsByBeastId
+    this._recordsByGoods = recordsByGoods
   }
 }

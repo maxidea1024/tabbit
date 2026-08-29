@@ -76,6 +76,9 @@ class {{ accessor_name }}:
 {{~ end ~}}
 {{~ if accessor.tables | array.size > 0 }}
         self._solve_cross_references({{ for slot in accessor.tables }}{{ if !for.first }}, {{ end }}loaded_{{ slot.name }}{{ end }})
+{{~ for grid in accessor.grids ~}}
+        loaded_{{ grid.values }}.link_column_axis(loaded_{{ grid.columns }})
+{{~ end ~}}
 
 {{~ for slot in accessor.tables ~}}
         self.{{ slot.name }} = loaded_{{ slot.name }}

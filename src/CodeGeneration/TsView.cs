@@ -39,6 +39,16 @@ internal sealed class TsExportView
     public required string File { get; set; }
 }
 
+/// <summary>One grid, as the accessor's linking pass names it.</summary>
+internal sealed class TsGridLinkView
+{
+    /// <summary>The values table's local name in the load.</summary>
+    public required string Values { get; init; }
+
+    /// <summary>The column table's local name in the same load.</summary>
+    public required string Columns { get; init; }
+}
+
 internal sealed class TsTableSetView
 {
     /// <summary>What the accessor class is called.</summary>
@@ -47,6 +57,9 @@ internal sealed class TsTableSetView
     /// <summary>Its file, extension left off, as an import path spells it.</summary>
     public required string AccessorFile { get; set; }
     public required IReadOnlyList<TsTableSlotView> Tables { get; set; }
+
+    /// <summary>Every grid in the model, as the pass that hands each one its axis needs it.</summary>
+    public IReadOnlyList<TsGridLinkView> Grids { get; set; } = System.Array.Empty<TsGridLinkView>();
 
     /// <summary>
     /// Default extension of the binary data files, as the recipe told the exporter to
@@ -221,6 +234,42 @@ internal sealed class TsConstantView
     public required IReadOnlyList<string> Comment { get; set; }
 }
 
+/// <summary>A grid's accessor, spelled the way TypeScript spells it.</summary>
+/// <remarks>
+/// The same pieces every language's grid view holds - <see cref="MatrixPlan"/> is where the
+/// shape is decided, and this is only its spelling. spec/layout/matrix-declaration.md.
+/// </remarks>
+internal sealed class TsMatrixView
+{
+    public required string ColumnTable { get; init; }
+
+    public required string ColumnTableMember { get; init; }
+
+    public required string ColumnTableFile { get; init; }
+
+    public required string RowKeyProp { get; init; }
+
+    public required string RowKeyType { get; init; }
+
+    public required string ColumnKeyProp { get; init; }
+
+    public required string ColumnKeyType { get; init; }
+
+    public required string ColumnKeyPascal { get; init; }
+
+    public required string AtProp { get; init; }
+
+    public required string GridProp { get; init; }
+
+    public required string GridPascal { get; init; }
+
+    public required string CellType { get; init; }
+
+    public required string RowLookup { get; init; }
+
+    public required bool CellsAreOptional { get; init; }
+}
+
 internal sealed class TsTableView
 {
     /// <summary>What the accessor class is called.</summary>
@@ -250,6 +299,9 @@ internal sealed class TsTableView
     public required IReadOnlyList<TsColumnView> Columns { get; set; }
 
 /// <summary>The fields that reference another table, and so get a wiring method.</summary>
+    /// <summary>The grid this table holds the values of, or null when it is not one.</summary>
+    public TsMatrixView? Matrix { get; set; }
+
     public required IReadOnlyList<TsFieldView> ReferenceFields { get; set; }
 
 
@@ -671,6 +723,16 @@ internal sealed class TsFieldView
     /// `number` was written into the template, which is one of the places that kept a table
     /// keyed by anything else from being pointed at. spec/references/reference-key-types.md.
     /// </remarks>
+    /// <summary>
+    /// What a lookup on this field is keyed by, which is not always the member's type.
+    /// </summary>
+    /// <remarks>
+    /// A `foreign` column's member is the row it points at and the stored value is the key -
+    /// so a map keyed by the member's type is a map nothing can be looked up in. Every other
+    /// column answers the same as <see cref="FieldType"/>.
+    /// </remarks>
+    public string IndexKeyType { get; set; } = "";
+
     public required string RefKeyTypeName { get; set; }
 
     /// <summary>The value that key member starts at, before a row is read.</summary>

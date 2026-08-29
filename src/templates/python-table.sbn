@@ -152,6 +152,9 @@ class {{ table.table_name }}:
 {{~ for index in table.indexes ~}}
         self.{{ index.map_name }} = {}
 {{~ end ~}}
+{{~ if table.matrix ~}}
+        self._column_axis = None
+{{~ end ~}}
 
     def __len__(self):
         """How many rows the table holds."""
@@ -164,6 +167,92 @@ class {{ table.table_name }}:
         than its contents, so a loop already running keeps the rows it started with.
         """
         return iter(self.records)
+{{~ if table.matrix }}
+{{~ m = table.matrix ~}}
+{{~## The two lookups composed. Both halves already exist - this table indexes its rows by the
+   row axis and the column table indexes its own by the column axis - and what this adds is the
+   one call that goes through both. spec/layout/matrix-declaration.md section 8. ##~}}
+    def link_column_axis(self, columns):
+        """Hands this table the column axis its cells are positioned by.
+
+        Called by the accessor once both files are read, and the length check is here rather
+        than in the read. A grid is two files, either can be deployed without the other, and a
+        row whose array is a different length from the axis is a row whose cells have moved.
+        """
+        for record in self.records:
+            if len(record.{{ m.grid_member }}) != len(columns.records):
+                raise tabbit.TcbError(
+                    "table `{{ table.raw_name }}` holds %d cells for `%r` and its column axis "
+                    "`{{ m.column_table }}` holds %d keys; the two files are from different builds"
+                    % (len(record.{{ m.grid_member }}), record.{{ m.row_key_member }}, len(columns.records)))
+
+        self._column_axis = columns
+
+    @property
+    def row_keys(self):
+        """The row axis keys, in the order the file wrote them."""
+        return [record.{{ m.row_key_member }} for record in self.records]
+
+    @property
+    def col_keys(self):
+        """The column axis keys, in the order a row holds its cells."""
+        if self._column_axis is None:
+            return []
+
+        return [record.{{ m.column_key_member }} for record in self._column_axis.records]
+
+    def row(self, {{ m.row_key_member }}):
+        """One row of cells, or None when the grid has no such row.
+
+        In the order col_keys is in, which is what makes a position mean something.
+        """
+        record = self.{{ m.row_lookup }}({{ m.row_key_member }})
+        return None if record is None else record.{{ m.grid_member }}
+
+    def at(self, {{ m.row_key_member }}, {{ m.column_key_member }}):
+        """The cell where the two keys meet, or a raised error naming the one that missed.
+
+        It raises rather than answering with the type's empty value, because a grid's empty
+        value is one the sheet can write - 0 in a modifier table is a modifier of zero.
+        """
+        record, at = self._cell_at({{ m.row_key_member }}, {{ m.column_key_member }})
+        return record.{{ m.grid_member }}[at]
+{{~ if m.cells_are_optional }}
+
+    def has_at(self, {{ m.row_key_member }}, {{ m.column_key_member }}):
+        """Whether the sheet gave the cell where the two keys meet a value.
+
+        A grid whose cells are optional reads a blank as the type's empty value, and that
+        value is one the sheet could also have written - so this is the only way to tell them
+        apart.
+        """
+        record, at = self._cell_at({{ m.row_key_member }}, {{ m.column_key_member }})
+{{~## A list rather than a call: Python holds the per-element answers as an attribute, so
+      this subscripts where the other languages ask. ##~}}
+        return record.{{ m.grid_has_member }}[at]
+{{~ end }}
+
+    def _cell_at(self, {{ m.row_key_member }}, {{ m.column_key_member }}):
+        """Both lookups, done once for the readers above."""
+        if self._column_axis is None:
+            raise tabbit.TcbError(
+                "table `{{ table.raw_name }}` has no column axis yet; "
+                "read `{{ m.column_table }}` before reading a cell")
+
+        record = self.{{ m.row_lookup }}({{ m.row_key_member }})
+
+        if record is None:
+            raise tabbit.RecordNotFoundError(
+                "table `{{ table.raw_name }}` has no row `%r`" % ({{ m.row_key_member }},))
+
+        column = self._column_axis.{{ m.column_lookup }}({{ m.column_key_member }})
+
+        if column is None:
+            raise tabbit.RecordNotFoundError(
+                "table `{{ table.raw_name }}` has no column `%r`" % ({{ m.column_key_member }},))
+
+        return record, column.{{ m.at_member }}
+{{~ end ~}}
 {{~ for index in table.indexes }}
 {{~## A key of several columns is held as the text they make. Each part carries its own
    length, so no two combinations can make the same text - joined by a separator alone,

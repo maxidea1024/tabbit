@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Xunit;
@@ -130,6 +133,112 @@ public class MatrixTests
         string columns = Json("ElementChartColumn");
 
         Assert.Matches(@"""defender"":\s*3,\s*""at"":\s*2", columns);
+    }
+
+    // ------------------------------------------------------------------ run
+
+    /// <summary>
+    /// The generated Python, run against the exported files.
+    /// </summary>
+    /// <remarks>
+    /// The one thing no golden can answer: whether the accessor gives the right cell. Both
+    /// halves of the grid's own question are asked here - a cell holding an authored zero and
+    /// a cell nobody filled in read the same value and differ only in `has_at`, which is the
+    /// distinction the design exists to keep.
+    ///
+    /// Python because it needs no build step, so this stays a test rather than a toolchain.
+    /// The script is written outside the generated tree - three tests walk that tree and judge
+    /// every file in it.
+    /// </remarks>
+    [Fact]
+    public void The_generated_python_reads_the_cell_the_two_keys_name()
+    {
+        var conversion = TabbitRunner.Convert(Scenario);
+
+        Assert.True(conversion.Succeeded, conversion.Describe());
+
+        string root = Path.Combine(RepoLayout.OutputDir(Scenario), "python");
+        string binary = Path.Combine(RepoLayout.OutputDir(Scenario), "binary");
+
+        string script = Path.Combine(
+            Path.GetTempPath(), $"tabbit-matrix-{Guid.NewGuid():N}.py");
+
+        File.WriteAllText(script, $@"
+import sys
+sys.path.insert(0, r'{root}')
+
+from matrix_data.tables import Tables
+
+tables = Tables()
+tables.read_all(r'{binary}', '.tcb')
+
+price = tables.town_price
+chart = tables.element_chart
+
+print('cells', price.at(2001, 101), price.at(2002, 102))
+print('has', price.has_at(2001, 101), price.has_at(2002, 102))
+print('row', price.row(2001))
+print('colkeys', price.col_keys)
+print('chart', chart.at(1, 2), chart.at(2, 1))
+
+for pair in [(2001, 999), (9999, 101)]:
+    try:
+        price.at(*pair)
+        print('missing', pair, 'answered')
+    except Exception as error:
+        print('missing', pair, type(error).__name__)
+");
+
+        try
+        {
+            var (output, succeeded) = RunPython(script);
+
+            Assert.True(succeeded, output);
+
+            // A zero the sheet wrote and a cell it left with `-` read the same value...
+            Assert.Contains("cells 0 0", output);
+
+            // ...and are told apart by nothing else.
+            Assert.Contains("has True False", output);
+
+            // The row is in the order of the axis, with the memo column no part of it.
+            Assert.Contains("row [0, -25, -125]", output);
+            Assert.Contains("colkeys [101, 102, 103]", output);
+
+            // The grid is not symmetric, so the two directions are different cells.
+            Assert.Contains("chart 0.5 2.0", output);
+
+            // A key on either axis that the grid does not hold is reported rather than
+            // answered with the type's empty value.
+            Assert.Contains("missing (2001, 999) RecordNotFoundError", output);
+            Assert.Contains("missing (9999, 101) RecordNotFoundError", output);
+        }
+        finally
+        {
+            File.Delete(script);
+        }
+    }
+
+    private static (string Output, bool Succeeded) RunPython(string script)
+    {
+        var start = new ProcessStartInfo
+        {
+            FileName = OperatingSystem.IsWindows() ? "python" : "python3",
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+        };
+
+        start.ArgumentList.Add(script);
+        start.Environment["PYTHONIOENCODING"] = "utf-8";
+
+        using var process = Process.Start(start);
+
+        string output = process.StandardOutput.ReadToEnd() + process.StandardError.ReadToEnd();
+
+        process.WaitForExit();
+
+        return (output, process.ExitCode == 0);
     }
 
     // ------------------------------------------------------------------ the generated surface

@@ -319,15 +319,15 @@ export class {{ name }}Table {
   }
 {{~ for field in indexed_fields }}
   // Indexing by '{{ field.prop_name }}'
-  public get recordsBy{{ field.pascal_name }}(): Map<{{ field.field_type }}, {{ name }}Record> { return this._recordsBy{{ field.pascal_name }} }
-  private _recordsBy{{ field.pascal_name }}: Map<{{ field.field_type }}, {{ name }}Record> = new Map<{{ field.field_type }}, {{ name }}Record>()
+  public get recordsBy{{ field.pascal_name }}(): Map<{{ field.index_key_type }}, {{ name }}Record> { return this._recordsBy{{ field.pascal_name }} }
+  private _recordsBy{{ field.pascal_name }}: Map<{{ field.index_key_type }}, {{ name }}Record> = new Map<{{ field.index_key_type }}, {{ name }}Record>()
 
   /**
    * The row with this {{ field.prop_name }}, or undefined when the table has none.
    *
    * The lookup to reach for when a missing row is an ordinary answer.
    */
-  public findBy{{ field.pascal_name }}(key: {{ field.field_type }}): {{ name }}Record | undefined {
+  public findBy{{ field.pascal_name }}(key: {{ field.index_key_type }}): {{ name }}Record | undefined {
     return this._recordsBy{{ field.pascal_name }}.get(key)
   }
 
@@ -338,7 +338,7 @@ export class {{ name }}Table {
    * `getBy{{ field.pascal_name }}(id).name` at a glance cannot otherwise tell whether the
    * next line is a check or a catch.
    */
-  public getBy{{ field.pascal_name }}OrThrow(key: {{ field.field_type }}): {{ name }}Record {
+  public getBy{{ field.pascal_name }}OrThrow(key: {{ field.index_key_type }}): {{ name }}Record {
     const found = this._recordsBy{{ field.pascal_name }}.get(key)
     if (!found)
       throw new Error(`There is no record in table "{{ name }}" that corresponds to field "{{ field.prop_name }}" value ${key}`)
@@ -347,7 +347,7 @@ export class {{ name }}Table {
   }
 
   /** Whether the table holds a row with this {{ field.prop_name }}. */
-  public contains{{ field.pascal_name }}(key: {{ field.field_type }}): boolean {
+  public contains{{ field.pascal_name }}(key: {{ field.index_key_type }}): boolean {
     return this._recordsBy{{ field.pascal_name }}.has(key)
   }
 {{~ if field.is_primary_index }}
@@ -363,12 +363,105 @@ export class {{ name }}Table {
    * them, which makes this and iterating the table agree. Only the primary key has this: a
    * table keyed by several columns together has no single key value to pair a row with.
    */
-  public *entries(): IterableIterator<[{{ field.field_type }}, {{ name }}Record]> {
+  public *entries(): IterableIterator<[{{ field.index_key_type }}, {{ name }}Record]> {
     for (const record of this._records) {
       yield [record.{{ field.prop_name }}, record]
     }
   }
 {{~ end ~}}
+{{~ end ~}}
+{{~ if matrix }}
+{{~ m = matrix ~}}
+  // Grid of '{{ m.row_key_prop }}' by '{{ m.column_key_prop }}'
+{{~## The two lookups composed. Both halves already exist - this table indexes its rows by the
+   row axis and the column table indexes its own by the column axis - and what this adds is the
+   one call that goes through both. spec/layout/matrix-declaration.md section 8. ##~}}
+  private _columnAxis: {{ m.column_table }}Table | undefined = undefined
+
+  /**
+   * Hands this table the column axis its cells are positioned by.
+   *
+   * Called by the accessor once both files are read, and the length check is here rather than
+   * in the read. A grid is two files, either can be deployed without the other, and a row
+   * whose array is a different length from the axis is a row whose cells have moved.
+   */
+  public linkColumnAxis(columns: {{ m.column_table }}Table): void {
+    for (const record of this._records) {
+      if (record.{{ m.grid_prop }}.length !== columns.records.length) {
+        throw new Error(
+          `Table \`{{ name }}\` holds ${record.{{ m.grid_prop }}.length} cells for \`${record.{{ m.row_key_prop }}}\` ` +
+          `and its column axis \`{{ m.column_table }}\` holds ${columns.records.length} keys. ` +
+          `The two files are from different builds.`)
+      }
+    }
+
+    this._columnAxis = columns
+  }
+
+  /** The row axis keys, in the order the file wrote them. */
+  public get rowKeys(): {{ m.row_key_type }}[] {
+    return this._records.map(record => record.{{ m.row_key_prop }})
+  }
+
+  /** The column axis keys, in the order a row holds its cells. */
+  public get colKeys(): {{ m.column_key_type }}[] {
+    return this._columnAxis === undefined
+      ? []
+      : this._columnAxis.records.map(record => record.{{ m.column_key_prop }})
+  }
+
+  /**
+   * One row of cells, or undefined when the grid has no such row.
+   *
+   * In the order `colKeys` is in, which is what makes a position mean something.
+   */
+  public row({{ m.row_key_prop }}: {{ m.row_key_type }}): {{ m.cell_type }}[] | undefined {
+    return this.findBy{{ m.row_lookup }}({{ m.row_key_prop }})?.{{ m.grid_prop }}
+  }
+
+  /**
+   * The cell where the two keys meet, or a thrown Error naming the one that missed.
+   *
+   * It throws rather than answering with the type's empty value, because a grid's empty value
+   * is one the sheet can write - `0` in a modifier table is a modifier of zero.
+   */
+  public at({{ m.row_key_prop }}: {{ m.row_key_type }}, {{ m.column_key_prop }}: {{ m.column_key_type }}): {{ m.cell_type }} {
+    return this.cellAt({{ m.row_key_prop }}, {{ m.column_key_prop }}).cell
+  }
+{{~ if m.cells_are_optional }}
+
+  /**
+   * Whether the sheet gave the cell where the two keys meet a value.
+   *
+   * A grid whose cells are optional reads a blank as the type's empty value, and that value is
+   * one the sheet could also have written - so this is the only way to tell the two apart.
+   */
+  public hasAt({{ m.row_key_prop }}: {{ m.row_key_type }}, {{ m.column_key_prop }}: {{ m.column_key_type }}): boolean {
+    const found = this.cellAt({{ m.row_key_prop }}, {{ m.column_key_prop }})
+    return found.record.has{{ m.grid_pascal }}At(found.at)
+  }
+{{~ end }}
+
+  /** Both lookups, done once for the readers above. */
+  private cellAt({{ m.row_key_prop }}: {{ m.row_key_type }}, {{ m.column_key_prop }}: {{ m.column_key_type }}): { record: {{ name }}Record, at: number, cell: {{ m.cell_type }} } {
+    if (this._columnAxis === undefined) {
+      throw new Error(`Table \`{{ name }}\` has no column axis yet. Read \`{{ m.column_table }}\` before reading a cell.`)
+    }
+
+    const record = this.findBy{{ m.row_lookup }}({{ m.row_key_prop }})
+
+    if (record === undefined) {
+      throw new Error(`Table \`{{ name }}\` has no row \`${ {{- m.row_key_prop -}} }\`.`)
+    }
+
+    const column = this._columnAxis.findBy{{ m.column_key_pascal }}({{ m.column_key_prop }})
+
+    if (column === undefined) {
+      throw new Error(`Table \`{{ name }}\` has no column \`${ {{- m.column_key_prop -}} }\`.`)
+    }
+
+    return { record, at: column.{{ m.at_prop }}, cell: record.{{ m.grid_prop }}[column.{{ m.at_prop }}] }
+  }
 {{~ end ~}}
 {{~ for key in composite_keys }}
   // Indexing by '{{ key.field_name }}'
@@ -669,7 +762,7 @@ export class {{ name }}Table {
 
 {{~ end ~}}
 {{~ for field in indexed_fields ~}}
-    const recordsBy{{ field.pascal_name }} = new Map<{{ field.field_type }}, {{ name }}Record>()
+    const recordsBy{{ field.pascal_name }} = new Map<{{ field.index_key_type }}, {{ name }}Record>()
 {{~ end ~}}
 {{~ for key in composite_keys ~}}
     const recordsBy{{ key.suffix }} = new Map<string, {{ name }}Record>()

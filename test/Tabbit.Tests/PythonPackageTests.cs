@@ -30,7 +30,7 @@ public class PythonPackageTests
     /// for: `conformance` has enums and two tables referencing each other's rows,
     /// `reserved-words` has a table whose every field is named after a keyword.
     /// </summary>
-    private static readonly string[] Scenarios = { "conformance", "reserved-words" };
+    private static readonly string[] Scenarios = { "conformance", "reserved-words", "matrix" };
 
     /// <summary>`from .module import A, B` - the only import form the generator emits.</summary>
     /// <summary>

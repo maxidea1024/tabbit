@@ -247,6 +247,19 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
                 BinaryFileExtension = _typescriptRecipe.BinaryTableFileExtension,
                 CrossReferences = BuildCrossReferences(),
 
+                Grids = _model.Tables
+                              .Select(table => MatrixPlans.Of(table, _model))
+                              .Where(plan => plan is not null)
+                              .Select(plan => new TsGridLinkView
+                              {
+                                  // The members rather than the locals of the load: linking
+                                  // runs after `publish` has assigned them, so what it names
+                                  // is what the accessor is holding.
+                                  Values = TsCamelName(plan!.Values.Name),
+                                  Columns = TsCamelName(plan.Columns.Name),
+                              })
+                              .ToList(),
+
                 // Both kinds: a plain column reaching several tables and a record member
                 Imports = System.Linq.Enumerable.Empty<string>()
                                 .ToList(),
@@ -653,6 +666,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
 
             CompositeKeys = CompositeKeys(table),
             Containers = ContainersOf(table),
+            Matrix = BuildMatrix(table),
 
             ReferenceFields = table.SerialFields
                                    .Select((sf, i) => new { sf, view = fields[i] })
@@ -793,6 +807,17 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             }
         }
 
+        // The column axis of a grid, whose table this one holds a reference to. Its enum, if
+        // the axis is one, comes in through the loop above - the key column is a field of this
+        // table's own only in the column table, so the import is stated here.
+        if (MatrixPlans.Of(table, _model) is { } plan)
+        {
+            Add($"import {{ {plan.Columns.Name.ToPascalCase()}Table }} from './{TsFileName(plan.Columns.Name)}'");
+
+            if (plan.ColumnKey.FirstField is { ElementType: ValueType.Enum } key)
+                Add($"import {{ {key.Enum.Name} }} from '../enums/{TsFileName(key.Enum.Name)}'");
+        }
+
         // The abstract types this table's groups are. Declared in a module of their own -
         // one per declaration however many tables named it - so the table brings the union
         // in rather than declaring its own. spec/types/polymorphism.md section 7.1.
@@ -895,6 +920,7 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
             ElementCount = sf.Fields.Count,
             RefTable = sf.FirstField!.RefTableName.ToPascalCase() ?? "",
             RefKeyTypeName = ToTypescriptTypename(sf.FirstField!.RefKeyType, null, null),
+            IndexKeyType = IndexKeyType(sf),
             RefKeyInitial = RefKeyInitial(sf.FirstField!.RefKeyType),
             Kind = DeclarationKind(table, sf),
             IsArray = sf.IsArray,
@@ -2268,6 +2294,43 @@ public class TsCodeGenerator : CodeGenerator<TypescriptRecipe>
     /// legal as member names, so only the few that genuinely are not get renamed -
     /// `constructor` above all, which a class may not declare as an accessor.
     /// </summary>
+    /// <summary>
+    /// The grid accessor for this table, or null when it is not a grid's values.
+    /// </summary>
+    private TsMatrixView? BuildMatrix(Models.Table table)
+    {
+        if (MatrixPlans.Of(table, _model) is not { } plan)
+            return null;
+
+        var (rowKeyType, rowKeyEnum) = KeyComponentView.TypeOf(plan.RowKey);
+        var (columnKeyType, columnKeyEnum) = KeyComponentView.TypeOf(plan.ColumnKey);
+
+        return new TsMatrixView
+        {
+            ColumnTable = plan.Columns.Name,
+            ColumnTableMember = TsCamelName(plan.Columns.Name),
+            ColumnTableFile = TsFileName(plan.Columns.Name),
+            RowKeyProp = TsName(plan.RowKey.Name),
+            RowKeyType = ToTypescriptTypename(rowKeyType, rowKeyEnum, null),
+            ColumnKeyProp = TsName(plan.ColumnKey.Name),
+            ColumnKeyType = ToTypescriptTypename(columnKeyType, columnKeyEnum, null),
+            ColumnKeyPascal = plan.ColumnKey.Name.ToPascalCase(),
+            AtProp = TsName(plan.At.Name),
+            GridProp = TsName(plan.Grid.Name),
+            GridPascal = plan.Grid.Name.ToPascalCase(),
+            CellType = ToTypescriptTypename(plan.Grid.FirstField),
+            RowLookup = plan.RowKey.Name.ToPascalCase(),
+            CellsAreOptional = plan.CellsAreOptional,
+        };
+    }
+
+    /// <summary>What a lookup on this column is keyed by, spelled for TypeScript.</summary>
+    private string IndexKeyType(SerialField sf)
+    {
+        var (type, enumm) = KeyComponentView.TypeOf(sf);
+        return ToTypescriptTypename(type, enumm, null);
+    }
+
     private string TsName(string name) => LanguageProfile.Typescript.MemberName(name.ToCase(_memberCase));
 
     /// <summary>

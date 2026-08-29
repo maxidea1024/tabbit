@@ -31,6 +31,15 @@
       "Indented": true
     },
     {
+      "Type": "typescript",
+      "Path": "test/fixtures/output/matrix/typescript"
+    },
+    {
+      "Type": "python",
+      "Path": "test/fixtures/output/matrix/python",
+      "PackageName": "matrix_data"
+    },
+    {
       "Type": "csharp",
       "Path": "test/fixtures/output/matrix/csharp",
       "Namespace": "Tabbit.Fixtures.Matrix",

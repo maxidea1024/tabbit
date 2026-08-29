@@ -88,15 +88,15 @@ export class MoveNoteTable {
   }
 
   // Indexing by 'moveId'
-  public get recordsByMoveId(): Map<MoveRecord, MoveNoteRecord> { return this._recordsByMoveId }
-  private _recordsByMoveId: Map<MoveRecord, MoveNoteRecord> = new Map<MoveRecord, MoveNoteRecord>()
+  public get recordsByMoveId(): Map<number, MoveNoteRecord> { return this._recordsByMoveId }
+  private _recordsByMoveId: Map<number, MoveNoteRecord> = new Map<number, MoveNoteRecord>()
 
   /**
    * The row with this moveId, or undefined when the table has none.
    *
    * The lookup to reach for when a missing row is an ordinary answer.
    */
-  public findByMoveId(key: MoveRecord): MoveNoteRecord | undefined {
+  public findByMoveId(key: number): MoveNoteRecord | undefined {
     return this._recordsByMoveId.get(key)
   }
 
@@ -107,7 +107,7 @@ export class MoveNoteTable {
    * `getByMoveId(id).name` at a glance cannot otherwise tell whether the
    * next line is a check or a catch.
    */
-  public getByMoveIdOrThrow(key: MoveRecord): MoveNoteRecord {
+  public getByMoveIdOrThrow(key: number): MoveNoteRecord {
     const found = this._recordsByMoveId.get(key)
     if (!found)
       throw new Error(`There is no record in table "MoveNote" that corresponds to field "moveId" value ${key}`)
@@ -116,7 +116,7 @@ export class MoveNoteTable {
   }
 
   /** Whether the table holds a row with this moveId. */
-  public containsMoveId(key: MoveRecord): boolean {
+  public containsMoveId(key: number): boolean {
     return this._recordsByMoveId.has(key)
   }
 
@@ -132,7 +132,7 @@ export class MoveNoteTable {
    * them, which makes this and iterating the table agree. Only the primary key has this: a
    * table keyed by several columns together has no single key value to pair a row with.
    */
-  public *entries(): IterableIterator<[MoveRecord, MoveNoteRecord]> {
+  public *entries(): IterableIterator<[number, MoveNoteRecord]> {
     for (const record of this._records) {
       yield [record.moveId, record]
     }
@@ -258,7 +258,7 @@ export class MoveNoteTable {
    * in one step. Whoever took `records` before still has the previous load, whole.
    */
   private publish(records: MoveNoteRecord[]): void {
-    const recordsByMoveId = new Map<MoveRecord, MoveNoteRecord>()
+    const recordsByMoveId = new Map<number, MoveNoteRecord>()
 
     for (const record of records) {
       recordsByMoveId.set(record.moveId, record)

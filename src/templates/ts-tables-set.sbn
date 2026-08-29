@@ -123,7 +123,25 @@ export class {{ accessor_name }} {
 {{~ end ~}}
 
     this.solveCrossReferences()
+{{~ if grids | array.size > 0 ~}}
+    this.linkGrids()
+{{~ end ~}}
   }
+{{~ if grids | array.size > 0 }}
+
+  /**
+   * Hands every grid the column axis its cells are positioned by.
+   *
+   * After the references and before the load is readable, so a grid is never reachable
+   * without its axis. The length check the link makes is what says the two files came from
+   * one build.
+   */
+  private linkGrids(): void {
+{{~ for grid in grids ~}}
+    this._{{ grid.values }}.linkColumnAxis(this._{{ grid.columns }})
+{{~ end ~}}
+  }
+{{~ end ~}}
 
   /**
    * Turns the stored keys into the rows they name, once every table is in memory.

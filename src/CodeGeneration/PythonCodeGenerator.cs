@@ -560,8 +560,15 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             Comment = CommentLines(table.Comment),
             Indexes = Indexes(table),
             ContainerFill = ContainerFillLines(table),
+            // The column axis is held on the table, so it is a slot like the maps are - a
+            // class with `__slots__` has nowhere else to put it.
             TableSlotNames = Tuple(
-                new[] { "records" }.Concat(Indexes(table).Select(index => index.MapName)).ToList()),
+                new[] { "records" }
+                    .Concat(Indexes(table).Select(index => index.MapName))
+                    .Concat(table.Matrix is null
+                        ? System.Array.Empty<string>()
+                        : new[] { "_column_axis" })
+                    .ToList()),
             SlotNames = Tuple(slots),
             ReprFormat = string.Join(", ", table.SerialFields.Select(sf => PythonName(sf.Name) + "=%r")),
             ReprValues = Tuple(table.SerialFields.Select(sf => "self." + PythonName(sf.Name)).ToList(),
@@ -571,6 +578,31 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
             // A separate list, because declaring an attribute is per field and reading is
             // per column - and a record group is one column per member of it.
             Columns = table.WireColumns.Select(wire => BuildColumn(table, wire)).ToList(),
+            Matrix = BuildMatrix(table),
+        };
+    }
+
+    /// <summary>The grid accessor for this table, or null when it is not a grid's values.</summary>
+    private PythonMatrixView? BuildMatrix(Table table)
+    {
+        if (MatrixPlans.Of(table, _model) is not { } plan)
+            return null;
+
+        return new PythonMatrixView
+        {
+            // The table's name rather than its class: Python needs no type here, and the only
+            // place the name appears is a message - where the table is what a reader is
+            // looking for. Naming the class would also be naming a type this module cannot
+            // see, which is a thing the generated packages are checked for.
+            ColumnTable = plan.Columns.Name.ToPascalCase(),
+            RowKeyMember = PythonName(plan.RowKey.Name),
+            RowLookup = "find_by_" + plan.RowKey.Name.ToSnakeCase(),
+            ColumnKeyMember = PythonName(plan.ColumnKey.Name),
+            ColumnLookup = "find_by_" + plan.ColumnKey.Name.ToSnakeCase(),
+            AtMember = PythonName(plan.At.Name),
+            GridMember = PythonName(plan.Grid.Name),
+            GridHasMember = PythonName("has_" + plan.Grid.Name + "_at"),
+            CellsAreOptional = plan.CellsAreOptional,
         };
     }
 
@@ -1534,6 +1566,16 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     {
         FileExtension = _recipe.BinaryTableFileExtension,
         SlotNames = Tuple(_model.Tables.Select(table => PythonSnakeName(table.Name)).ToList()),
+
+        Grids = _model.Tables
+                      .Select(table => MatrixPlans.Of(table, _model))
+                      .Where(plan => plan is not null)
+                      .Select(plan => new PythonGridLinkView
+                      {
+                          Values = PythonSnakeName(plan!.Values.Name),
+                          Columns = PythonSnakeName(plan.Columns.Name),
+                      })
+                      .ToList(),
 
         Tables = _model.Tables.Select(table => new PythonTableSlotView
         {
