@@ -314,7 +314,13 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                     // And the abstract types its groups are: the base is what the accessor
                     // hands back, so an incomplete type will not do.
                     // spec/types/polymorphism.md section 7.1.
-                    .Concat(PolymorphicHeaders(pair.model)),
+                    .Concat(PolymorphicHeaders(pair.model))
+
+                    // A grid takes its column axis by reference and reads its rows, so the
+                    // complete type is needed rather than the forward declaration.
+                    .Concat(MatrixPlans.Of(pair.model, _model) is { } plan
+                        ? new[] { "\"" + TableHeaderPath(plan.Columns) + "\"" }
+                        : Array.Empty<string>()),
                 part => part.Table = pair.rendered));
         }
 
@@ -423,6 +429,10 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     private string ConstantsHeader(CppConstantSetView set) => $"constants/{_cppRecipe.AccessorName}_const_{set.Name.ToSnakeCase()}.h";
 
     private string TableHeader(CppTableView table) => $"tables/{_cppRecipe.AccessorName}_{table.RawName.ToSnakeCase()}.h";
+
+    /// <summary>The same path from a model table, for the includes a grid adds.</summary>
+    private string TableHeaderPath(Table table)
+        => $"tables/{_cppRecipe.AccessorName}_{table.Name.ToSnakeCase()}.h";
 
     private const string ReaderInclude = "\"tabbit/tcb_reader.h\"";
 
@@ -647,6 +657,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        Matrix = BuildMatrix(table),
         ContainerFill = ContainerFillLines(table),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
         Columns = table.WireColumns.Select(wire => BuildColumn(table, wire)).ToList(),
@@ -665,6 +676,43 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// The indexed fields of a table: the sheet's first column, plus every one marked
     /// with a `*`.
     /// </summary>
+    /// <summary>The grid accessor for this table, or null when it is not a grid's values.</summary>
+    private CppMatrixView? BuildMatrix(Table table)
+    {
+        if (MatrixPlans.Of(table, _model) is not { } plan)
+            return null;
+
+        var (rowType, rowEnum) = KeyComponentView.TypeOf(plan.RowKey);
+        var (columnType, columnEnum) = KeyComponentView.TypeOf(plan.ColumnKey);
+
+        string rowKeyType = ToCppTypeName(rowType, rowEnum);
+        string columnKeyType = ToCppTypeName(columnType, columnEnum);
+
+        return new CppMatrixView
+        {
+            ColumnTable = TableName(plan.Columns),
+            ColumnTableName = plan.Columns.Name,
+            ColumnLookup = "find_by_" + plan.ColumnKey.Name.ToSnakeCase(),
+            RowKeyMember = CppName(plan.RowKey.Name),
+            RowKeyParam = plan.RowKey.Name.ToSnakeCase(),
+            RowKeyType = rowKeyType,
+
+            // A string costs a copy to take by value, so it travels by reference the way the
+            // generated lookups already take theirs.
+            RowKeyArg = rowKeyType == "std::string" ? "const std::string&" : rowKeyType,
+            RowLookup = "find_by_" + plan.RowKey.Name.ToSnakeCase(),
+            ColumnKeyMember = CppName(plan.ColumnKey.Name),
+            ColumnKeyParam = plan.ColumnKey.Name.ToSnakeCase(),
+            ColumnKeyType = columnKeyType,
+            ColumnKeyArg = columnKeyType == "std::string" ? "const std::string&" : columnKeyType,
+            AtMember = CppName(plan.At.Name),
+            GridMember = CppName(plan.Grid.Name),
+            GridHasMethod = "has_" + CppName(plan.Grid.Name) + "_at",
+            CellType = ToCppTypeName(plan.Grid.FirstField),
+            CellsAreOptional = plan.CellsAreOptional,
+        };
+    }
+
     private IReadOnlyList<CppIndexView> Indexes(Table table)
         => KeyPlans.Of(table).Select(plan =>
         {
@@ -1221,6 +1269,16 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             // Unescaped: this one names the file the exporter wrote, not an identifier.
             DataFileName = table.DataFileName,
         }).ToList(),
+
+        Grids = _model.Tables
+            .Select(table => MatrixPlans.Of(table, _model))
+            .Where(plan => plan is not null)
+            .Select(plan => new CppGridLinkView
+            {
+                Values = CppSnakeName(plan!.Values.Name),
+                Columns = CppSnakeName(plan.Columns.Name),
+            })
+            .ToList(),
 
         CrossReferences = _model.Tables
             .Select(table => new

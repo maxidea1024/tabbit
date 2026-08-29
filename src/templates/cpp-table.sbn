@@ -177,6 +177,94 @@ class {{ table.table_name }} {
     return records_.end();
   }
 
+{{~ if table.matrix }}
+{{~ m = table.matrix ~}}
+{{~## The two lookups composed. Both halves already exist - this table indexes its rows by the
+   row axis and the column table indexes its own by the column axis - and what this adds is the
+   one call that goes through both. spec/layout/matrix-declaration.md section 8. ##~}}
+  /// Hands this table the column axis its cells are positioned by.
+  ///
+  /// Called by the accessor once both files are read. The length check is here rather than in
+  /// the read: a grid is two files, either can be deployed without the other, and a row whose
+  /// array is a different length from the axis is a row whose cells have moved.
+  ///
+  /// What is kept is a map from key to position rather than a pointer at the column table -
+  /// the accessor moves its tables into place after loading, and a pointer at one of them
+  /// would name the object that was moved from.
+  void link_column_axis(const {{ m.column_table }}& columns) {
+    std::unordered_map<{{ m.column_key_type }}, std::size_t> at;
+    std::vector<{{ m.column_key_type }}> keys(columns.records().size());
+
+    for (const auto& column : columns.records()) {
+      const std::size_t position = static_cast<std::size_t>(column.{{ m.at_member }});
+
+      at[column.{{ m.column_key_member }}] = position;
+      keys[position] = column.{{ m.column_key_member }};
+    }
+
+    for (const auto& record : records_) {
+      if (record.{{ m.grid_member }}.size() != keys.size()) {
+        throw tabbit::TcbError(
+            "table `{{ table.raw_name }}` holds " + std::to_string(record.{{ m.grid_member }}.size())
+            + " cells for one row and its column axis `{{ m.column_table_name }}` holds "
+            + std::to_string(keys.size()) + " keys; the two files are from different builds");
+      }
+    }
+
+    column_at_ = std::move(at);
+    column_keys_ = std::move(keys);
+    column_axis_linked_ = true;
+  }
+
+  /// The row axis keys, in the order the file wrote them.
+  std::vector<{{ m.row_key_type }}> row_keys() const {
+    std::vector<{{ m.row_key_type }}> keys;
+    keys.reserve(records_.size());
+
+    for (const auto& record : records_) {
+      keys.push_back(record.{{ m.row_key_member }});
+    }
+
+    return keys;
+  }
+
+  /// The column axis keys, in the order a row holds its cells.
+  const std::vector<{{ m.column_key_type }}>& col_keys() const { return column_keys_; }
+
+  /// One row of cells, or nullptr when the grid has no such row.
+  ///
+  /// In the order `col_keys` is in, which is what makes a position mean something. The vector
+  /// is the record's own, so it is not a copy.
+  const std::vector<{{ m.cell_type }}>* row({{ m.row_key_arg }} {{ m.row_key_param }}) const {
+    const {{ table.record_name }}* record = {{ m.row_lookup }}({{ m.row_key_param }});
+    return record == nullptr ? nullptr : &record->{{ m.grid_member }};
+  }
+
+  /// The cell where the two keys meet, or a thrown exception naming the one that missed.
+  ///
+  /// It throws rather than answering with the type's empty value, because a grid's empty value
+  /// is one the sheet can write - 0 in a modifier table is a modifier of zero.
+  {{ m.cell_type }} at({{ m.row_key_arg }} {{ m.row_key_param }}, {{ m.column_key_arg }} {{ m.column_key_param }}) const {
+    std::size_t position = 0;
+    const {{ table.record_name }}& record = cell_at({{ m.row_key_param }}, {{ m.column_key_param }}, position);
+
+    return record.{{ m.grid_member }}[position];
+  }
+{{~ if m.cells_are_optional }}
+
+  /// Whether the sheet gave the cell where the two keys meet a value.
+  ///
+  /// A grid whose cells are optional reads a blank as the type's empty value, and that value
+  /// is one the sheet could also have written - so this is the only way to tell them apart.
+  bool has_at({{ m.row_key_arg }} {{ m.row_key_param }}, {{ m.column_key_arg }} {{ m.column_key_param }}) const {
+    std::size_t position = 0;
+    const {{ table.record_name }}& record = cell_at({{ m.row_key_param }}, {{ m.column_key_param }}, position);
+
+    return record.{{ m.grid_has_method }}(position);
+  }
+{{~ end }}
+
+{{~ end ~}}
 {{~ for index in table.indexes ~}}
 {{~## A key of several columns is held as the text they make. Each part carries its own
    length, so no two combinations can make the same text - joined by a separator alone,
@@ -459,6 +547,44 @@ class {{ table.table_name }} {
 
  private:
   friend class {{ accessor_name }};
+{{~ if table.matrix }}
+
+{{~ m = table.matrix ~}}
+  /// Both lookups, done once for the readers above.
+  const {{ table.record_name }}& cell_at(
+      {{ m.row_key_arg }} {{ m.row_key_param }},
+      {{ m.column_key_arg }} {{ m.column_key_param }},
+      std::size_t& position) const {
+    if (!column_axis_linked_) {
+      throw tabbit::TcbError(
+          "table `{{ table.raw_name }}` has no column axis yet; "
+          "read `{{ m.column_table_name }}` before reading a cell");
+    }
+
+    const {{ table.record_name }}* record = {{ m.row_lookup }}({{ m.row_key_param }});
+
+    if (record == nullptr) {
+      throw tabbit::RecordNotFound(
+          "there is no row in table `{{ table.raw_name }}` for the given `{{ m.row_key_member }}`");
+    }
+
+    const auto found = column_at_.find({{ m.column_key_param }});
+
+    if (found == column_at_.end()) {
+      throw tabbit::RecordNotFound(
+          "there is no column in table `{{ table.raw_name }}` for the given `{{ m.column_key_member }}`");
+    }
+
+    position = found->second;
+
+    return *record;
+  }
+
+  std::unordered_map<{{ m.column_key_type }}, std::size_t> column_at_;
+  std::vector<{{ m.column_key_type }}> column_keys_;
+  bool column_axis_linked_ = false;
+
+{{~ end ~}}
 
   /// One whole load, in place of the previous one.
   ///

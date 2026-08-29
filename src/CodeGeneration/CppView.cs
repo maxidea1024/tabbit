@@ -110,6 +110,48 @@ internal sealed class CppConstantView
     public required IReadOnlyList<string> Comment { get; set; }
 }
 
+/// <summary>A grid's accessor, spelled the way C++ spells it.</summary>
+/// <remarks>
+/// <see cref="MatrixPlan"/> decides the shape; this is its spelling.
+/// spec/layout/matrix-declaration.md.
+/// </remarks>
+internal sealed class CppMatrixView
+{
+    public required string ColumnTable { get; init; }
+
+    public required string ColumnTableName { get; init; }
+
+    public required string ColumnLookup { get; init; }
+
+    public required string RowKeyMember { get; init; }
+
+    public required string RowKeyParam { get; init; }
+
+    public required string RowKeyType { get; init; }
+
+    public required string RowKeyArg { get; init; }
+
+    public required string RowLookup { get; init; }
+
+    public required string ColumnKeyMember { get; init; }
+
+    public required string ColumnKeyParam { get; init; }
+
+    public required string ColumnKeyType { get; init; }
+
+    public required string ColumnKeyArg { get; init; }
+
+    public required string AtMember { get; init; }
+
+    public required string GridMember { get; init; }
+
+    public required string GridHasMethod { get; init; }
+
+    public required string CellType { get; init; }
+
+    public required bool CellsAreOptional { get; init; }
+}
+
 internal sealed class CppTableView
 {
     /// <summary>Table name as the sheet spelled it. Names the table's header.</summary>
@@ -125,6 +167,9 @@ internal sealed class CppTableView
     /// The indexed fields: the sheet's first column plus every one marked with `*`.
     /// </summary>
     public required IReadOnlyList<CppIndexView> Indexes { get; set; }
+
+    /// <summary>The grid this table holds the values of, or null when it is not one.</summary>
+    public CppMatrixView? Matrix { get; set; }
 
     /// <summary>
     /// The statements filling every `set` and `map` lookup in the table, ready to paste.
@@ -320,11 +365,23 @@ internal sealed class CppFieldView
 
 }
 
+/// <summary>One grid, as the accessor's linking pass names it.</summary>
+internal sealed class CppGridLinkView
+{
+    public required string Values { get; init; }
+
+    public required string Columns { get; init; }
+}
+
 internal sealed class CppAccessorView
 {
     public required string FileExtension { get; set; }
 
     public required IReadOnlyList<CppTableSlotView> Tables { get; set; }
+
+    /// <summary>Every grid, as the pass that hands each one its axis names it.</summary>
+    public IReadOnlyList<CppGridLinkView> Grids { get; set; }
+        = System.Array.Empty<CppGridLinkView>();
 
     public required IReadOnlyList<CppCrossReferenceView> CrossReferences { get; set; }
 }
