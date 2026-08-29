@@ -129,6 +129,13 @@ pub struct {{ table.table_name }} {
 {{~ for index in table.indexes ~}}
     {{ index.map_name }}: HashMap<{{ index.key_type }}, usize>,
 {{~ end ~}}
+{{~ if table.matrix ~}}
+{{~## The axis as a map and a list rather than a borrow of the column table: the accessor owns
+      both, and a table holding a reference to its sibling does not compile. ##~}}
+    column_at: HashMap<{{ table.matrix.column_key_type }}, usize>,
+    column_keys: Vec<{{ table.matrix.column_key_type }}>,
+    column_axis_linked: bool,
+{{~ end ~}}
 }
 
 impl {{ table.table_name }} {
@@ -154,6 +161,124 @@ impl {{ table.table_name }} {
     pub fn iter(&self) -> std::slice::Iter<'_, {{ table.record_name }}> {
         self.records.iter()
     }
+{{~ if table.matrix }}
+{{~ m = table.matrix ~}}
+{{~## The two lookups composed. Both halves already exist - this table indexes its rows by the
+   row axis and the column table indexes its own by the column axis - and what this adds is the
+   one call that goes through both. spec/layout/matrix-declaration.md section 8. ##~}}
+    /// Hands this table the column axis its cells are positioned by.
+    ///
+    /// Called by the accessor once both files are read. The length check is here rather than
+    /// in the read: a grid is two files, either can be deployed without the other, and a row
+    /// whose array is a different length from the axis is a row whose cells have moved.
+    pub fn link_column_axis(&mut self, columns: &crate::{{ m.column_table_module }}::{{ m.column_table }}) -> Result<(), tabbit::Error> {
+        let mut at = HashMap::with_capacity(columns.records().len());
+        let mut keys = vec![Default::default(); columns.records().len()];
+
+        for column in columns.records() {
+            let position = column.{{ m.at_member }} as usize;
+
+            at.insert(column.{{ m.column_key_member }}.clone(), position);
+            keys[position] = column.{{ m.column_key_member }}.clone();
+        }
+
+        for record in self.records.iter() {
+            if record.{{ m.grid_member }}.len() != keys.len() {
+                return Err(tabbit::Error::Grid {
+                    table: "{{ table.raw_name }}",
+                    detail: format!(
+                        "holds {} cells for `{:?}` and its column axis `{{ m.column_table_name }}` holds {} keys; the two files are from different builds",
+                        record.{{ m.grid_member }}.len(), record.{{ m.row_key_member }}, keys.len()),
+                });
+            }
+        }
+
+        self.column_at = at;
+        self.column_keys = keys;
+        self.column_axis_linked = true;
+
+        Ok(())
+    }
+
+    /// The row axis keys, in the order the file wrote them.
+    pub fn row_keys(&self) -> Vec<{{ m.row_key_type }}> {
+        self.records.iter().map(|record| record.{{ m.row_key_member }}.clone()).collect()
+    }
+
+    /// The column axis keys, in the order a row holds its cells.
+    pub fn col_keys(&self) -> &[{{ m.column_key_type }}] {
+        &self.column_keys
+    }
+
+    /// One row of cells, or None when the grid has no such row.
+    ///
+    /// In the order `col_keys` is in, which is what makes a position mean something. The slice
+    /// is the record's own, so it is not a copy.
+    pub fn row(&self, {{ m.row_key_param }}: {{ m.row_key_arg }}) -> Option<&[{{ m.cell_type }}]> {
+        self.{{ m.row_lookup }}({{ m.row_key_param }}).map(|record| &record.{{ m.grid_member }}[..])
+    }
+
+    /// The cell where the two keys meet, or an error naming the one that missed.
+    ///
+    /// It errors rather than answering with the type's default, because a grid's default is
+    /// one the sheet can write - 0 in a modifier table is a modifier of zero.
+    pub fn at(
+        &self,
+        {{ m.row_key_param }}: {{ m.row_key_arg }},
+        {{ m.column_key_param }}: {{ m.column_key_arg }},
+    ) -> Result<{{ m.cell_type }}, tabbit::Error> {
+        let (record, position) = self.cell_at({{ m.row_key_param }}, {{ m.column_key_param }})?;
+        Ok(record.{{ m.grid_member }}[position].clone())
+    }
+{{~ if m.cells_are_optional }}
+
+    /// Whether the sheet gave the cell where the two keys meet a value.
+    ///
+    /// A grid whose cells are optional reads a blank as the type's default, and that value is
+    /// one the sheet could also have written - so this is the only way to tell them apart.
+    pub fn has_at(
+        &self,
+        {{ m.row_key_param }}: {{ m.row_key_arg }},
+        {{ m.column_key_param }}: {{ m.column_key_arg }},
+    ) -> Result<bool, tabbit::Error> {
+        let (record, position) = self.cell_at({{ m.row_key_param }}, {{ m.column_key_param }})?;
+        Ok(record.{{ m.grid_has_member }}[position])
+    }
+{{~ end }}
+
+    /// Both lookups, done once for the readers above.
+    fn cell_at(
+        &self,
+        {{ m.row_key_param }}: {{ m.row_key_arg }},
+        {{ m.column_key_param }}: {{ m.column_key_arg }},
+    ) -> Result<(&{{ table.record_name }}, usize), tabbit::Error> {
+        if !self.column_axis_linked {
+            return Err(tabbit::Error::Grid {
+                table: "{{ table.raw_name }}",
+                detail: "has no column axis yet; read `{{ m.column_table_name }}` before reading a cell".to_string(),
+            });
+        }
+
+        let record = self.{{ m.row_lookup }}({{ m.row_key_param }}).ok_or_else(|| {
+            tabbit::Error::RecordNotFound {
+                table: "{{ table.raw_name }}",
+                field: "{{ m.row_key_member }}",
+                key: format!("{:?}", {{ m.row_key_param }}),
+            }
+        })?;
+
+        let position = *self.column_at.get({{ m.column_key_borrowed }}).ok_or_else(|| {
+            tabbit::Error::RecordNotFound {
+                table: "{{ m.column_table_name }}",
+                field: "{{ m.column_key_member }}",
+                key: format!("{:?}", {{ m.column_key_param }}),
+            }
+        })?;
+
+        Ok((record, position))
+    }
+
+{{~ end ~}}
 {{~ for index in table.indexes }}
 {{~## A key of several columns is held as the text they make. Each part carries its own
    length, so no two combinations can make the same text - joined by a separator alone,

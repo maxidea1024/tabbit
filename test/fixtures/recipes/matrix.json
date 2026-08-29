@@ -35,6 +35,11 @@
       "Path": "test/fixtures/output/matrix/typescript"
     },
     {
+      "Type": "rust",
+      "Path": "test/fixtures/output/matrix/rust",
+      "CrateName": "matrix_data"
+    },
+    {
       "Type": "lua",
       "Path": "test/fixtures/output/matrix/lua"
     },

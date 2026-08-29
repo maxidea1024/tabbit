@@ -95,6 +95,55 @@ internal sealed class RustConstantView
     public required IReadOnlyList<string> Comment { get; set; }
 }
 
+/// <summary>A grid's accessor, spelled the way Rust spells it.</summary>
+/// <remarks>
+/// Like Go, the axis is held as a map from key to position rather than as a reference to the
+/// column table - the accessor owns both tables and a table holding a borrow of its sibling
+/// does not compile. <see cref="MatrixPlan"/> decides the rest.
+/// spec/layout/matrix-declaration.md.
+/// </remarks>
+internal sealed class RustMatrixView
+{
+    public required string ColumnTable { get; init; }
+
+    public required string ColumnTableName { get; init; }
+
+    /// <summary>The module the column table is declared in, for the `use` this file needs.</summary>
+    public required string ColumnTableModule { get; init; }
+
+    public required string RowKeyMember { get; init; }
+
+    public required string RowKeyParam { get; init; }
+
+    public required string RowKeyType { get; init; }
+
+    /// <summary>The type the signature takes, which is `&amp;str` where the key is owned.</summary>
+    public required string RowKeyArg { get; init; }
+
+    public required string RowLookup { get; init; }
+
+    public required string ColumnKeyMember { get; init; }
+
+    public required string ColumnKeyParam { get; init; }
+
+    public required string ColumnKeyType { get; init; }
+
+    public required string ColumnKeyArg { get; init; }
+
+    /// <summary>What the position map is asked with - a borrow, unless the key already is one.</summary>
+    public required string ColumnKeyBorrowed { get; init; }
+
+    public required string AtMember { get; init; }
+
+    public required string GridMember { get; init; }
+
+    public required string GridHasMember { get; init; }
+
+    public required string CellType { get; init; }
+
+    public required bool CellsAreOptional { get; init; }
+}
+
 internal sealed class RustTableView
 {
     public required string RawName { get; set; }
@@ -107,6 +156,9 @@ internal sealed class RustTableView
     /// The indexed fields: the sheet's first column plus every one marked with `*`.
     /// </summary>
     public required IReadOnlyList<RustIndexView> Indexes { get; set; }
+
+    /// <summary>The grid this table holds the values of, or null when it is not one.</summary>
+    public RustMatrixView? Matrix { get; set; }
 
     /// <summary>
     /// The statements filling every `set` and `map` lookup in the table, ready to paste.
@@ -483,6 +535,18 @@ internal sealed class RustAccessorView
 {
     public required string FileExtension { get; set; }
     public required IReadOnlyList<RustTableSlotView> Tables { get; set; }
+
+    /// <summary>Every grid, as the pass that hands each one its axis names it.</summary>
+    public IReadOnlyList<RustGridLinkView> Grids { get; set; }
+        = System.Array.Empty<RustGridLinkView>();
+}
+
+/// <summary>One grid, as the accessor's linking pass names it.</summary>
+internal sealed class RustGridLinkView
+{
+    public required string Values { get; init; }
+
+    public required string Columns { get; init; }
 }
 
 internal sealed class RustTableSlotView

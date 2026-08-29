@@ -613,6 +613,16 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
                 // Unescaped: this one names the file the exporter wrote.
                 DataFileName = table.DataFileName,
             }).ToList(),
+
+            Grids = _model.Tables
+                .Select(table => MatrixPlans.Of(table, _model))
+                .Where(plan => plan is not null)
+                .Select(plan => new RustGridLinkView
+                {
+                    Values = RustSnakeName(plan!.Values.Name),
+                    Columns = RustSnakeName(plan.Columns.Name),
+                })
+                .ToList(),
         },
     };
 
@@ -749,6 +759,7 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        Matrix = BuildMatrix(table),
         ContainerFill = ContainerFillLines(table),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
@@ -827,6 +838,44 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
         }).ToList();
 
     /// <summary>How a key column arrives at a lookup: borrowed where owning it would copy.</summary>
+    /// <summary>The grid accessor for this table, or null when it is not a grid's values.</summary>
+    private RustMatrixView? BuildMatrix(Table table)
+    {
+        if (MatrixPlans.Of(table, _model) is not { } plan)
+            return null;
+
+        var (rowType, rowEnum) = KeyComponentView.TypeOf(plan.RowKey);
+        var (columnType, columnEnum) = KeyComponentView.TypeOf(plan.ColumnKey);
+
+        string rowKeyType = ToRustTypeName(rowType, rowEnum);
+        string columnKeyType = ToRustTypeName(columnType, columnEnum);
+
+        return new RustMatrixView
+        {
+            ColumnTable = plan.Columns.Name.ToPascalCase() + "Table",
+            ColumnTableName = plan.Columns.Name,
+            ColumnTableModule = RustSnakeName(plan.Columns.Name) + "_table",
+            RowKeyMember = RustName(plan.RowKey.Name),
+            RowKeyParam = RustSnakeName(plan.RowKey.Name),
+            RowKeyType = rowKeyType,
+            RowKeyArg = rowKeyType == "String" ? "&str" : rowKeyType,
+            RowLookup = "find_by_" + plan.RowKey.Name.ToSnakeCase(),
+            ColumnKeyMember = RustName(plan.ColumnKey.Name),
+            ColumnKeyParam = RustSnakeName(plan.ColumnKey.Name),
+            ColumnKeyType = columnKeyType,
+            ColumnKeyArg = columnKeyType == "String" ? "&str" : columnKeyType,
+            ColumnKeyBorrowed = columnKeyType == "String"
+                ? RustSnakeName(plan.ColumnKey.Name)
+                : "&" + RustSnakeName(plan.ColumnKey.Name),
+            AtMember = RustName(plan.At.Name),
+            GridMember = RustName(plan.Grid.Name),
+            GridHasMember = PresenceMember(plan.Grid) + "_at",
+            CellType = ToRustTypeName(
+                plan.Grid.FirstField!.ElementType, plan.Grid.FirstField!.EnumOrNull),
+            CellsAreOptional = plan.CellsAreOptional,
+        };
+    }
+
     private string RustKeyParam(ValueType keyType, Models.Enum? keyEnum)
     {
         string type = ToRustTypeName(keyType, keyEnum);

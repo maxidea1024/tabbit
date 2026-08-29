@@ -197,6 +197,13 @@ pub enum Error {
     /// Raised by the generated `get_by_*_or_error` lookups, which is where a caller has
     /// said the key has to be there. `find_by_*` answers the same question with `None`.
     RecordNotFound { table: &'static str, field: &'static str, key: String },
+    /// A grid and the column axis it is positioned by do not agree.
+    ///
+    /// Raised by the generated `link_column_axis`, which the accessor calls once both files
+    /// are read. A grid is two files and either can be deployed without the other, so this is
+    /// what a row whose cells have moved looks like before anything reads one.
+    /// spec/layout/matrix-declaration.md section 8.
+    Grid { table: &'static str, detail: String },
     /// The file could not be opened or read.
     Io(io::Error),
 }
@@ -289,6 +296,7 @@ impl fmt::Display for Error {
                 "there is no record in table `{}` that corresponds to field `{}` value {}",
                 table, field, key
             ),
+            Error::Grid { table, detail } => write!(f, "table `{}` {}", table, detail),
             Error::Io(inner) => write!(f, "{}", inner),
         }
     }
