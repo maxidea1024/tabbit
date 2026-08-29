@@ -35,6 +35,12 @@
       "Path": "test/fixtures/output/matrix/typescript"
     },
     {
+      "Type": "java",
+      "Path": "test/fixtures/output/matrix/java",
+      "PackageName": "tabbit.fixtures.matrix",
+      "AccessorName": "MatrixAccessor"
+    },
+    {
       "Type": "go",
       "Path": "test/fixtures/output/matrix/go",
       "PackageName": "matrixdata",

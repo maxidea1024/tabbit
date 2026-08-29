@@ -536,6 +536,7 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        Matrix = BuildMatrix(table),
         ContainerFill = ContainerFillLines(table),
 
         // One cursor variable for the whole read method, assigned per column before its
@@ -961,6 +962,36 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
     /// One per group rather than one per sheet column: a group is one value to whoever reads
     /// it, and the model has already required its columns to agree about being optional.
     /// </remarks>
+    /// <summary>The grid accessor for this table, or null when it is not a grid's values.</summary>
+    private JavaMatrixView? BuildMatrix(Table table)
+    {
+        if (MatrixPlans.Of(table, _model) is not { } plan)
+            return null;
+
+        return new JavaMatrixView
+        {
+            ColumnTable = plan.Columns.Name.ToPascalCase() + "Table",
+            ColumnTableName = plan.Columns.Name,
+            ColumnRecord = plan.Columns.Name.ToPascalCase() + "Record",
+            ColumnLookup = "findBy" + plan.ColumnKey.Name.ToPascalCase(),
+            RowKeyMember = JavaName(plan.RowKey.Name),
+            RowKeyParam = KeyComponentView.ParamOf(plan.RowKey.Name),
+            RowKeyType = IndexKeyType(plan.RowKey),
+            RowKeyBoxed = Boxed(IndexKeyType(plan.RowKey)),
+            RowLookup = "findBy" + plan.RowKey.Name.ToPascalCase(),
+            ColumnKeyMember = JavaName(plan.ColumnKey.Name),
+            ColumnKeyParam = KeyComponentView.ParamOf(plan.ColumnKey.Name),
+            ColumnKeyType = IndexKeyType(plan.ColumnKey),
+            ColumnKeyBoxed = Boxed(IndexKeyType(plan.ColumnKey)),
+            AtMember = JavaName(plan.At.Name),
+            GridMember = JavaName(plan.Grid.Name),
+            GridHasMember = PresenceMember(plan.Grid) + "At",
+            CellType = ToJavaTypeName(
+                plan.Grid.FirstField!.ElementType, plan.Grid.FirstField!.EnumOrNull, null),
+            CellsAreOptional = plan.CellsAreOptional,
+        };
+    }
+
     private string PresenceMember(SerialField sf)
         => sf.IsRecord ? "" : JavaName("has_" + sf.Name);
 
@@ -1336,6 +1367,16 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             // Unescaped: this one names the file the exporter wrote.
             DataFileName = table.DataFileName,
         }).ToList(),
+
+        Grids = _model.Tables
+            .Select(table => MatrixPlans.Of(table, _model))
+            .Where(plan => plan is not null)
+            .Select(plan => new JavaGridLinkView
+            {
+                Values = plan!.Values.Name.ToPascalCase() + "Table",
+                Columns = plan.Columns.Name.ToPascalCase() + "Table",
+            })
+            .ToList(),
 
         CrossReferences = _model.Tables
             .Select(table => new

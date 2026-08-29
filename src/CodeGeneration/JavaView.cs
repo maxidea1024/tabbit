@@ -99,6 +99,53 @@ internal sealed class JavaConstantView
     public required IReadOnlyList<string> Comment { get; set; }
 }
 
+/// <summary>A grid's accessor, spelled the way Java spells it.</summary>
+/// <remarks>
+/// The same pieces every language's grid view holds. <see cref="MatrixPlan"/> decides the
+/// shape; this is its spelling. spec/layout/matrix-declaration.md.
+/// </remarks>
+internal sealed class JavaMatrixView
+{
+    public required string ColumnTable { get; init; }
+
+    public required string ColumnTableName { get; init; }
+
+    /// <summary>The column table's record class.</summary>
+    public required string ColumnRecord { get; init; }
+
+    /// <summary>The lookup on the column table that the column axis key goes through.</summary>
+    public required string ColumnLookup { get; init; }
+
+    public required string RowKeyMember { get; init; }
+
+    public required string RowKeyParam { get; init; }
+
+    public required string RowKeyType { get; init; }
+
+    /// <summary>The same type where a generic needs a reference - `List&lt;Integer&gt;`.</summary>
+    public required string RowKeyBoxed { get; init; }
+
+    public required string RowLookup { get; init; }
+
+    public required string ColumnKeyMember { get; init; }
+
+    public required string ColumnKeyParam { get; init; }
+
+    public required string ColumnKeyType { get; init; }
+
+    public required string ColumnKeyBoxed { get; init; }
+
+    public required string AtMember { get; init; }
+
+    public required string GridMember { get; init; }
+
+    public required string GridHasMember { get; init; }
+
+    public required string CellType { get; init; }
+
+    public required bool CellsAreOptional { get; init; }
+}
+
 internal sealed class JavaTableView
 {
     public required string RawName { get; set; }
@@ -112,6 +159,9 @@ internal sealed class JavaTableView
     /// The indexed fields: the sheet's first column plus every one marked with `*`.
     /// </summary>
     public required IReadOnlyList<JavaIndexView> Indexes { get; set; }
+
+    /// <summary>The grid this table holds the values of, or null when it is not one.</summary>
+    public JavaMatrixView? Matrix { get; set; }
 
     /// <summary>
     /// The statements filling every `set` and `map` lookup in the table, ready to paste.
@@ -489,6 +539,18 @@ internal sealed class JavaAccessorView
     public required string FileExtension { get; set; }
     public required IReadOnlyList<JavaTableSlotView> Tables { get; set; }
     public required IReadOnlyList<JavaCrossReferenceView> CrossReferences { get; set; }
+
+    /// <summary>Every grid, as the pass that hands each one its axis names it.</summary>
+    public IReadOnlyList<JavaGridLinkView> Grids { get; set; }
+        = System.Array.Empty<JavaGridLinkView>();
+}
+
+/// <summary>One grid, as the accessor's linking pass names it.</summary>
+internal sealed class JavaGridLinkView
+{
+    public required string Values { get; init; }
+
+    public required string Columns { get; init; }
 }
 
 internal sealed class JavaTableSlotView
