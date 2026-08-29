@@ -11,7 +11,7 @@ import os
 from . import tabbit
 
 
-class Element(enum.IntEnum):
+class Affinity(enum.IntEnum):
     """Generated from test/fixtures/xlsx/matrix/matrix.xlsx : Enums : B2.
 
     What an attack is made of.

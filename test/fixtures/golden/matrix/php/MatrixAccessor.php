@@ -12,7 +12,7 @@ declare(strict_types=1);
 namespace Tabbit\Fixtures\Matrix;
 
 require_once __DIR__ . '/tabbit/TcbReader.php';
-require_once __DIR__ . '/enums/Element.php';
+require_once __DIR__ . '/enums/Affinity.php';
 require_once __DIR__ . '/tables/GoodsTable.php';
 require_once __DIR__ . '/tables/TownPriceTable.php';
 require_once __DIR__ . '/tables/TownPriceColumnTable.php';

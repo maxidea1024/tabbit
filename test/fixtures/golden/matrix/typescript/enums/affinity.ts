@@ -7,7 +7,7 @@
 
 // Generated from test/fixtures/xlsx/matrix/matrix.xlsx : Enums : B2
 /** What an attack is made of. */
-export enum Element {
+export enum Affinity {
   /** no element */
   None = 0,
   /** burns */

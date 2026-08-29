@@ -8,7 +8,7 @@
 part of '../tables.dart';
 // Generated from test/fixtures/xlsx/matrix/matrix.xlsx : Enums : B2
 /// What an attack is made of.
-enum Element {
+enum Affinity {
   /// no element
   none(0),
   /// burns
@@ -18,17 +18,17 @@ enum Element {
   /// cuts
   wind(3);
 
-  const Element(this.value);
+  const Affinity(this.value);
 
   /// The declared value, which is what travels on the wire.
   final int value;
 
   /// The label with this value, or the default when the sheet declared no such label.
-  static Element of(int value) {
-    for (final candidate in Element.values) {
+  static Affinity of(int value) {
+    for (final candidate in Affinity.values) {
       if (candidate.value == value) return candidate;
     }
 
-    return Element.none;
+    return Affinity.none;
   }
 }

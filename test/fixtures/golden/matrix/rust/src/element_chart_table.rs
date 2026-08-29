@@ -8,13 +8,13 @@
 use std::collections::HashMap;
 use std::path::Path;
 use crate::tabbit;
-use crate::enum_element::Element;
+use crate::enum_affinity::Affinity;
 
 // Generated from test/fixtures/xlsx/matrix/matrix.xlsx : Grids : B11
 /// How much an element does to another.
 #[derive(Clone, Debug, Default)]
 pub struct ElementChartRecord {
-    pub attacker: Element,
+    pub attacker: Affinity,
     pub rate: Vec<f32>,
 }
 
@@ -25,9 +25,9 @@ impl ElementChartRecord {
 #[derive(Clone, Debug, Default)]
 pub struct ElementChartTable {
     records: Vec<ElementChartRecord>,
-    by_attacker: HashMap<Element, usize>,
-    column_at: HashMap<Element, usize>,
-    column_keys: Vec<Element>,
+    by_attacker: HashMap<Affinity, usize>,
+    column_at: HashMap<Affinity, usize>,
+    column_keys: Vec<Affinity>,
     column_axis_linked: bool,
 }
 
@@ -90,12 +90,12 @@ impl ElementChartTable {
     }
 
     /// The row axis keys, in the order the file wrote them.
-    pub fn row_keys(&self) -> Vec<Element> {
+    pub fn row_keys(&self) -> Vec<Affinity> {
         self.records.iter().map(|record| record.attacker.clone()).collect()
     }
 
     /// The column axis keys, in the order a row holds its cells.
-    pub fn col_keys(&self) -> &[Element] {
+    pub fn col_keys(&self) -> &[Affinity] {
         &self.column_keys
     }
 
@@ -103,7 +103,7 @@ impl ElementChartTable {
     ///
     /// In the order `col_keys` is in, which is what makes a position mean something. The slice
     /// is the record's own, so it is not a copy.
-    pub fn row(&self, attacker: Element) -> Option<&[f32]> {
+    pub fn row(&self, attacker: Affinity) -> Option<&[f32]> {
         self.find_by_attacker(attacker).map(|record| &record.rate[..])
     }
 
@@ -113,8 +113,8 @@ impl ElementChartTable {
     /// one the sheet can write - 0 in a modifier table is a modifier of zero.
     pub fn at(
         &self,
-        attacker: Element,
-        defender: Element,
+        attacker: Affinity,
+        defender: Affinity,
     ) -> Result<f32, tabbit::Error> {
         let (record, position) = self.cell_at(attacker, defender)?;
         Ok(record.rate[position].clone())
@@ -124,8 +124,8 @@ impl ElementChartTable {
     /// Both lookups, done once for the readers above.
     fn cell_at(
         &self,
-        attacker: Element,
-        defender: Element,
+        attacker: Affinity,
+        defender: Affinity,
     ) -> Result<(&ElementChartRecord, usize), tabbit::Error> {
         if !self.column_axis_linked {
             return Err(tabbit::Error::Grid {
@@ -158,7 +158,7 @@ impl ElementChartTable {
     ///
     /// The lookup to reach for when a missing row is an ordinary answer - an optional
     /// reference, a key that came from user input.
-    pub fn find_by_attacker(&self, key: Element) -> Option<&ElementChartRecord> {
+    pub fn find_by_attacker(&self, key: Affinity) -> Option<&ElementChartRecord> {
         self.by_attacker.get(&key).map(|position| &self.records[*position])
     }
 
@@ -167,7 +167,7 @@ impl ElementChartTable {
     /// For a key that has to be there - one from another table, or a constant. Rust has no
     /// exception to throw, so where the other languages name a throw this one names the
     /// error it returns.
-    pub fn get_by_attacker_or_error(&self, key: Element) -> tabbit::Result<&ElementChartRecord> {
+    pub fn get_by_attacker_or_error(&self, key: Affinity) -> tabbit::Result<&ElementChartRecord> {
         self.by_attacker
             .get(&key)
             .map(|position| &self.records[*position])
@@ -179,7 +179,7 @@ impl ElementChartTable {
     }
 
     /// Whether the table holds a row with this Attacker.
-    pub fn contains_attacker(&self, key: Element) -> bool {
+    pub fn contains_attacker(&self, key: Affinity) -> bool {
         self.by_attacker.contains_key(&key)
     }
 
@@ -193,7 +193,7 @@ impl ElementChartTable {
     /// The rows come in the order the file wrote them rather than the order the map holds
     /// them, which makes this and `iter` agree. Only the primary key has this: a table
     /// keyed by several columns together has no single key value to pair a row with.
-    pub fn entries(&self) -> impl Iterator<Item = (&Element, &ElementChartRecord)> + '_ {
+    pub fn entries(&self) -> impl Iterator<Item = (&Affinity, &ElementChartRecord)> + '_ {
         self.records.iter().map(|record| (&record.attacker, record))
     }
 
@@ -240,7 +240,7 @@ impl ElementChartTable {
                     while at < records.len() {
                         let (n, value) = cursor.next_same_i32((records.len() - at) as i32)?;
                         for _ in 0..n {
-                            records[at].attacker = Element::from_value(value).unwrap_or_default();
+                            records[at].attacker = Affinity::from_value(value).unwrap_or_default();
                             at += 1;
                         }
                     }

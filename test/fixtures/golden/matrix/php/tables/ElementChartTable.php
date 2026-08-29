@@ -12,7 +12,7 @@ declare(strict_types=1);
 namespace Tabbit\Fixtures\Matrix;
 
 require_once __DIR__ . '/../tabbit/TcbReader.php';
-require_once __DIR__ . '/../enums/Element.php';
+require_once __DIR__ . '/../enums/Affinity.php';
 require_once __DIR__ . '/../MatrixAccessor.php';
 
 use Tabbit\TcbReader;
@@ -27,7 +27,7 @@ use Tabbit\Uuid;
  */
 final class ElementChartRecord
 {
-    public Element $attacker = Element::None;
+    public Affinity $attacker = Affinity::None;
     /** @var list<float> */
     public array $rate = [];
 }
@@ -102,7 +102,7 @@ final class ElementChartTable implements \Countable, \IteratorAggregate, \ArrayA
      *
      * In the order colKeys is in, which is what makes a position mean something.
      */
-    public function row(Element $attacker): ?array
+    public function row(Affinity $attacker): ?array
     {
         return $this->findByAttacker($attacker)?->rate;
     }
@@ -113,14 +113,14 @@ final class ElementChartTable implements \Countable, \IteratorAggregate, \ArrayA
      * It throws rather than answering with the type's empty value, because a grid's empty
      * value is one the sheet can write - 0 in a modifier table is a modifier of zero.
      */
-    public function at(Element $attacker, Element $defender): float
+    public function at(Affinity $attacker, Affinity $defender): float
     {
         return $this->cellRecord($attacker)->rate[$this->cellAt($defender)];
     }
 
 
     /** The row half of a cell lookup. */
-    private function cellRecord(Element $attacker): ElementChartRecord
+    private function cellRecord(Affinity $attacker): ElementChartRecord
     {
         if ($this->columnAxis === null) {
             throw new \RuntimeException(
@@ -139,7 +139,7 @@ final class ElementChartTable implements \Countable, \IteratorAggregate, \ArrayA
     }
 
     /** The column half of a cell lookup. */
-    private function cellAt(Element $defender): int
+    private function cellAt(Affinity $defender): int
     {
         $column = $this->columnAxis?->findByDefender($defender);
 
@@ -159,7 +159,7 @@ final class ElementChartTable implements \Countable, \IteratorAggregate, \ArrayA
      * The lookup to reach for when a missing row is an ordinary answer - an optional
      * reference, a key that came from user input.
      */
-    public function findByAttacker(Element $key): ?ElementChartRecord
+    public function findByAttacker(Affinity $key): ?ElementChartRecord
     {
         return $this->byAttacker[$key->value] ?? null;
     }
@@ -171,7 +171,7 @@ final class ElementChartTable implements \Countable, \IteratorAggregate, \ArrayA
      * it throws, because a caller reading getByAttacker($key)->name at a glance
      * cannot otherwise tell whether the next line is a null check or a catch.
      */
-    public function getByAttackerOrThrow(Element $key): ElementChartRecord
+    public function getByAttackerOrThrow(Affinity $key): ElementChartRecord
     {
         $record = $this->byAttacker[$key->value] ?? null;
 
@@ -185,7 +185,7 @@ final class ElementChartTable implements \Countable, \IteratorAggregate, \ArrayA
     }
 
     /** Whether the table holds a row with this Attacker. */
-    public function containsAttacker(Element $key): bool
+    public function containsAttacker(Affinity $key): bool
     {
         return isset($this->byAttacker[$key->value]);
     }
@@ -289,7 +289,7 @@ final class ElementChartTable implements \Countable, \IteratorAggregate, \ArrayA
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
                         for (; $n > 0; $n--, $i++) {
-                            $records[$i]->attacker = Element::tryFrom($value) ?? Element::None;
+                            $records[$i]->attacker = Affinity::tryFrom($value) ?? Affinity::None;
                         }
                     }
                     break;

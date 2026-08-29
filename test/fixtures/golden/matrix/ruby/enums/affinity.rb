@@ -9,7 +9,7 @@
 module MatrixData
   # Generated from test/fixtures/xlsx/matrix/matrix.xlsx : Enums : B2
   # What an attack is made of.
-  module Element
+  module Affinity
     # no element
     NONE = 0
     # burns

@@ -22,13 +22,13 @@ namespace Tabbit.Fixtures.Matrix
     public partial class ElementChartRecord
     {
         #region Values
-        public global::Tabbit.Fixtures.Matrix.Element Attacker => _attacker;
+        public global::Tabbit.Fixtures.Matrix.Affinity Attacker => _attacker;
 
         public float[] Rate => _rate;
         #endregion
 
         #region Storage
-        internal global::Tabbit.Fixtures.Matrix.Element _attacker;
+        internal global::Tabbit.Fixtures.Matrix.Affinity _attacker;
         internal float[] _rate = System.Array.Empty<float>();
         #endregion
 
@@ -102,8 +102,8 @@ namespace Tabbit.Fixtures.Matrix
             => _records.GetEnumerator();
 
         #region Indexing by 'Attacker'
-        public Dictionary<global::Tabbit.Fixtures.Matrix.Element, ElementChartRecord> RecordsByAttacker => _recordsByAttacker;
-        private Dictionary<global::Tabbit.Fixtures.Matrix.Element, ElementChartRecord> _recordsByAttacker = new Dictionary<global::Tabbit.Fixtures.Matrix.Element, ElementChartRecord>();
+        public Dictionary<global::Tabbit.Fixtures.Matrix.Affinity, ElementChartRecord> RecordsByAttacker => _recordsByAttacker;
+        private Dictionary<global::Tabbit.Fixtures.Matrix.Affinity, ElementChartRecord> _recordsByAttacker = new Dictionary<global::Tabbit.Fixtures.Matrix.Affinity, ElementChartRecord>();
 
         /// <summary>
         /// The row with this `Attacker`, or null when the table has none.
@@ -113,7 +113,7 @@ namespace Tabbit.Fixtures.Matrix
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public ElementChartRecord FindByAttacker(global::Tabbit.Fixtures.Matrix.Element key)
+        public ElementChartRecord FindByAttacker(global::Tabbit.Fixtures.Matrix.Affinity key)
             => _recordsByAttacker.TryGetValue(key, out ElementChartRecord record) ? record : null;
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace Tabbit.Fixtures.Matrix
         /// says it throws, because a caller reading `GetByAttacker(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public ElementChartRecord GetByAttackerOrThrow(global::Tabbit.Fixtures.Matrix.Element key)
+        public ElementChartRecord GetByAttackerOrThrow(global::Tabbit.Fixtures.Matrix.Affinity key)
         {
             if (!_recordsByAttacker.TryGetValue(key, out ElementChartRecord record))
                 throw new TabbitException($"There is no record in table `ElementChart` that corresponds to field `Attacker` value {key}");
@@ -134,7 +134,7 @@ namespace Tabbit.Fixtures.Matrix
         }
 
         /// <summary>Whether the table holds a row with this `Attacker`.</summary>
-        public bool ContainsAttacker(global::Tabbit.Fixtures.Matrix.Element key) => _recordsByAttacker.ContainsKey(key);
+        public bool ContainsAttacker(global::Tabbit.Fixtures.Matrix.Affinity key) => _recordsByAttacker.ContainsKey(key);
         #endregion // Indexing by `Attacker`
 
         /// <summary>Each row with the `Attacker` it is keyed by.</summary>
@@ -165,7 +165,7 @@ namespace Tabbit.Fixtures.Matrix
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (global::Tabbit.Fixtures.Matrix.Element Key, ElementChartRecord Row) Current
+            public (global::Tabbit.Fixtures.Matrix.Affinity Key, ElementChartRecord Row) Current
                 => (_rows[_at].Attacker, _rows[_at]);
         }
 
@@ -190,7 +190,7 @@ namespace Tabbit.Fixtures.Matrix
         /// It does not replace `FindByAttacker`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public ElementChartRecord this[global::Tabbit.Fixtures.Matrix.Element key] => GetByAttackerOrThrow(key);
+        public ElementChartRecord this[global::Tabbit.Fixtures.Matrix.Affinity key] => GetByAttackerOrThrow(key);
 
         #region Grid of 'Attacker' by 'Defender'
         private ElementChartColumnTable _columnAxis;
@@ -220,7 +220,7 @@ namespace Tabbit.Fixtures.Matrix
         }
 
         /// <summary>The row axis keys, in the order the file wrote them.</summary>
-        public IEnumerable<global::Tabbit.Fixtures.Matrix.Element> RowKeys
+        public IEnumerable<global::Tabbit.Fixtures.Matrix.Affinity> RowKeys
         {
             get
             {
@@ -230,7 +230,7 @@ namespace Tabbit.Fixtures.Matrix
         }
 
         /// <summary>The column axis keys, in the order a row holds its cells.</summary>
-        public IEnumerable<global::Tabbit.Fixtures.Matrix.Element> ColKeys
+        public IEnumerable<global::Tabbit.Fixtures.Matrix.Affinity> ColKeys
         {
             get
             {
@@ -249,7 +249,7 @@ namespace Tabbit.Fixtures.Matrix
         /// In the order <see cref="ColKeys"/> is in, which is what makes a position mean
         /// something. The array is the record's own, so it is not a copy.
         /// </remarks>
-        public float[] Row(global::Tabbit.Fixtures.Matrix.Element attacker)
+        public float[] Row(global::Tabbit.Fixtures.Matrix.Affinity attacker)
         {
             var record = FindByAttacker(attacker);
             return record == null ? null : record.Rate;
@@ -263,7 +263,7 @@ namespace Tabbit.Fixtures.Matrix
         /// value is a value the sheet can write - `0` in a modifier table is a modifier of
         /// zero, and a key nobody declared is not that.
         /// </remarks>
-        public float At(global::Tabbit.Fixtures.Matrix.Element attacker, global::Tabbit.Fixtures.Matrix.Element defender)
+        public float At(global::Tabbit.Fixtures.Matrix.Affinity attacker, global::Tabbit.Fixtures.Matrix.Affinity defender)
         {
             if (_columnAxis == null)
                 throw new TabbitException("Table `ElementChart` has no column axis yet. Read `ElementChartColumn` before reading a cell.");
@@ -345,7 +345,7 @@ namespace Tabbit.Fixtures.Matrix
                             do
                             {
                                 var record = records[i++];
-                                record._attacker = (global::Tabbit.Fixtures.Matrix.Element)value;
+                                record._attacker = (global::Tabbit.Fixtures.Matrix.Affinity)value;
                             } while (--n > 0);
                         }
                         break;
@@ -378,7 +378,7 @@ namespace Tabbit.Fixtures.Matrix
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByAttacker = new Dictionary<global::Tabbit.Fixtures.Matrix.Element, ElementChartRecord>(count);
+            var recordsByAttacker = new Dictionary<global::Tabbit.Fixtures.Matrix.Affinity, ElementChartRecord>(count);
             foreach (var record in records)
                 recordsByAttacker.Add(record.Attacker, record);
 

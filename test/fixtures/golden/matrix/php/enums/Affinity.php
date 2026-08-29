@@ -21,7 +21,7 @@ use Tabbit\Uuid;
  *
  * What an attack is made of.
  */
-enum Element: int
+enum Affinity: int
 {
     /** no element */
     case None = 0;

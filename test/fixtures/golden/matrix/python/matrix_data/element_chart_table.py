@@ -9,7 +9,7 @@ import enum
 import os
 
 from . import tabbit
-from .enum_element import Element
+from .enum_affinity import Affinity
 
 
 class ElementChartRecord:
@@ -21,7 +21,7 @@ class ElementChartRecord:
     __slots__ = ("attacker", "rate")
 
     def __init__(self):
-        self.attacker = Element(0)
+        self.attacker = Affinity(0)
         self.rate = []
 
     def __repr__(self):
@@ -208,7 +208,7 @@ class ElementChartTable:
                 while at < count:
                     n, value = cursor.next_same_i32(count - at)
                     for i in range(at, at + n):
-                        records[i].attacker = Element(value)
+                        records[i].attacker = Affinity(value)
                     at += n
             elif column.tag == 2:
                 tabbit.check_column(column, "ElementChart.Rate", tabbit.KIND_ARRAY, False, (tabbit.ELEMENT_F32,))

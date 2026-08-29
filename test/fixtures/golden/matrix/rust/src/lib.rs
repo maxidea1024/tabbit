@@ -11,8 +11,8 @@
 pub mod tabbit;
 
 // The enums.
-mod enum_element;
-pub use enum_element::Element;
+mod enum_affinity;
+pub use enum_affinity::Affinity;
 
 // A record and a table type per table.
 mod goods_table;

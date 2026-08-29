@@ -191,6 +191,92 @@ public final class {{ table.table_name }}: Sequence {
 
     private var {{ index.map_name }}: [{{ index.key_type }}: {{ table.record_name }}] = [:]
 {{~ end ~}}
+{{~ if table.matrix }}
+{{~ m = table.matrix ~}}
+{{~## The two lookups composed. Both halves already exist - this table indexes its rows by the
+   row axis and the column table indexes its own by the column axis - and what this adds is the
+   one call that goes through both. spec/layout/matrix-declaration.md section 8. ##~}}
+    private var columnAxis: {{ m.column_table }}?
+
+    /// Hands this table the column axis its cells are positioned by.
+    ///
+    /// Called by the accessor once both files are read, and the length check is here rather
+    /// than in the read. A grid is two files, either can be deployed without the other, and a
+    /// row whose array is a different length from the axis is a row whose cells have moved.
+    public func linkColumnAxis(_ columns: {{ m.column_table }}) throws {
+        for record in records where record.{{ m.grid_member }}.count != columns.records.count {
+            throw TcbError(
+                "table `{{ table.raw_name }}` holds \(record.{{ m.grid_member }}.count) cells for "
+                + "`\(record.{{ m.row_key_member }})` and its column axis `{{ m.column_table_name }}` holds "
+                + "\(columns.records.count) keys; the two files are from different builds")
+        }
+
+        columnAxis = columns
+    }
+
+    /// The row axis keys, in the order the file wrote them.
+    public var rowKeys: [{{ m.row_key_type }}] { records.map { $0.{{ m.row_key_member }} } }
+
+    /// The column axis keys, in the order a row holds its cells.
+    public var colKeys: [{{ m.column_key_type }}] {
+        columnAxis?.records.map { $0.{{ m.column_key_member }} } ?? []
+    }
+
+    /// One row of cells, or nil when the grid has no such row.
+    ///
+    /// In the order `colKeys` is in, which is what makes a position mean something.
+    public func row(_ {{ m.row_key_param }}: {{ m.row_key_type }}) -> [{{ m.cell_type }}]? {
+        {{ m.row_lookup }}({{ m.row_key_param }})?.{{ m.grid_member }}
+    }
+
+    /// The cell where the two keys meet, or a thrown error naming the one that missed.
+    ///
+    /// It throws rather than answering with the type's empty value, because a grid's empty
+    /// value is one the sheet can write - 0 in a modifier table is a modifier of zero.
+    public func at(
+        _ {{ m.row_key_param }}: {{ m.row_key_type }}, _ {{ m.column_key_param }}: {{ m.column_key_type }}
+    ) throws -> {{ m.cell_type }} {
+        let found = try cellAt({{ m.row_key_param }}, {{ m.column_key_param }})
+        return found.record.{{ m.grid_member }}[found.at]
+    }
+{{~ if m.cells_are_optional }}
+
+    /// Whether the sheet gave the cell where the two keys meet a value.
+    ///
+    /// A grid whose cells are optional reads a blank as the type's empty value, and that value
+    /// is one the sheet could also have written - so this is the only way to tell them apart.
+    public func hasAt(
+        _ {{ m.row_key_param }}: {{ m.row_key_type }}, _ {{ m.column_key_param }}: {{ m.column_key_type }}
+    ) throws -> Bool {
+        let found = try cellAt({{ m.row_key_param }}, {{ m.column_key_param }})
+        return found.record.{{ m.grid_has_member }}[found.at]
+    }
+{{~ end }}
+
+    /// Both lookups, done once for the readers above.
+    private func cellAt(
+        _ {{ m.row_key_param }}: {{ m.row_key_type }}, _ {{ m.column_key_param }}: {{ m.column_key_type }}
+    ) throws -> (record: {{ table.record_name }}, at: Int) {
+        guard let axis = columnAxis else {
+            throw TcbError(
+                "table `{{ table.raw_name }}` has no column axis yet; "
+                + "read `{{ m.column_table_name }}` before reading a cell")
+        }
+
+        guard let record = {{ m.row_lookup }}({{ m.row_key_param }}) else {
+            throw RecordNotFoundError(
+                "table `{{ table.raw_name }}` has no row `\({{ m.row_key_param }})`")
+        }
+
+        guard let column = axis.{{ m.column_lookup }}({{ m.column_key_param }}) else {
+            throw RecordNotFoundError(
+                "table `{{ table.raw_name }}` has no column `\({{ m.column_key_param }})`")
+        }
+
+        return (record, Int(column.{{ m.at_member }}))
+    }
+
+{{~ end ~}}
 {{~ for index in table.indexes }}
 {{~## A key of several columns is held as the text they make. Each part carries its own
    length, so no two combinations can make the same text - joined by a separator alone,

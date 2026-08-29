@@ -14,11 +14,11 @@ import * as tabbit from '../tabbit/tcb-reader'
 import { Tables } from '../tables'
 
 // Automatically import to handle external type references.
-import { Element } from '../enums/element'
+import { Affinity } from '../enums/affinity'
 
 /** A type for handling rows when parsing .json. */
 interface IDataRow {
-  defender: Element
+  defender: Affinity
   at: number
 }
 
@@ -29,11 +29,11 @@ export class ElementChartColumnRecord {
   constructor() {
   }
 
-  public get defender(): Element { return this._defender }
+  public get defender(): Affinity { return this._defender }
 
   public get at(): number { return this._at }
 
-  public _defender: Element = 0 as Element
+  public _defender: Affinity = 0 as Affinity
   public _at: number = 0
 
   /** Populate field values. */
@@ -75,15 +75,15 @@ export class ElementChartColumnTable {
   }
 
   // Indexing by 'defender'
-  public get recordsByDefender(): Map<Element, ElementChartColumnRecord> { return this._recordsByDefender }
-  private _recordsByDefender: Map<Element, ElementChartColumnRecord> = new Map<Element, ElementChartColumnRecord>()
+  public get recordsByDefender(): Map<Affinity, ElementChartColumnRecord> { return this._recordsByDefender }
+  private _recordsByDefender: Map<Affinity, ElementChartColumnRecord> = new Map<Affinity, ElementChartColumnRecord>()
 
   /**
    * The row with this defender, or undefined when the table has none.
    *
    * The lookup to reach for when a missing row is an ordinary answer.
    */
-  public findByDefender(key: Element): ElementChartColumnRecord | undefined {
+  public findByDefender(key: Affinity): ElementChartColumnRecord | undefined {
     return this._recordsByDefender.get(key)
   }
 
@@ -94,7 +94,7 @@ export class ElementChartColumnTable {
    * `getByDefender(id).name` at a glance cannot otherwise tell whether the
    * next line is a check or a catch.
    */
-  public getByDefenderOrThrow(key: Element): ElementChartColumnRecord {
+  public getByDefenderOrThrow(key: Affinity): ElementChartColumnRecord {
     const found = this._recordsByDefender.get(key)
     if (!found)
       throw new Error(`There is no record in table "ElementChartColumn" that corresponds to field "defender" value ${key}`)
@@ -103,7 +103,7 @@ export class ElementChartColumnTable {
   }
 
   /** Whether the table holds a row with this defender. */
-  public containsDefender(key: Element): boolean {
+  public containsDefender(key: Affinity): boolean {
     return this._recordsByDefender.has(key)
   }
 
@@ -119,7 +119,7 @@ export class ElementChartColumnTable {
    * them, which makes this and iterating the table agree. Only the primary key has this: a
    * table keyed by several columns together has no single key value to pair a row with.
    */
-  public *entries(): IterableIterator<[Element, ElementChartColumnRecord]> {
+  public *entries(): IterableIterator<[Affinity, ElementChartColumnRecord]> {
     for (const record of this._records) {
       yield [record.defender, record]
     }
@@ -201,7 +201,7 @@ export class ElementChartColumnTable {
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
             for (let left = n; left > 0; --left, ++i)
-              records[i]._defender = value as Element
+              records[i]._defender = value as Affinity
           }
           break
         case 2:
@@ -236,7 +236,7 @@ export class ElementChartColumnTable {
    * in one step. Whoever took `records` before still has the previous load, whole.
    */
   private publish(records: ElementChartColumnRecord[]): void {
-    const recordsByDefender = new Map<Element, ElementChartColumnRecord>()
+    const recordsByDefender = new Map<Affinity, ElementChartColumnRecord>()
 
     for (const record of records) {
       recordsByDefender.set(record.defender, record)

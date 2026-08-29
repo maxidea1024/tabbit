@@ -16,8 +16,11 @@ OUT = os.path.join(
 # 시트마다 (B2부터 놓을 행들). 첫 행과 첫 열을 비우는 것은 다른 픽스처와 같습니다 —
 # 레이아웃이 시트의 어디에서든 선언을 찾는다는 것을 픽스처가 계속 확인합니다.
 SHEETS = {
+    # 이름을 `Element` 로 두지 않는 이유는 Swift입니다 - 테이블이 `Sequence` 를 따르므로
+    # 타입 안에서 `Element` 는 그 프로토콜의 연관 타입으로 풀립니다. 이 픽스처가 확인하려는
+    # 것이 아니므로 다른 이름을 씁니다.
     "Enums": [
-        [":enum Element", "What an attack is made of."],
+        [":enum Affinity", "What an attack is made of."],
         [":field", "label", "value", "desc"],
         ["", "None", "0", "no element"],
         ["", "Fire", "1", "burns"],
@@ -48,8 +51,8 @@ SHEETS = {
         # 선언이 있어서 되는 것이 이것입니다.
         [":matrix ElementChart", "How much an element does to another."],
         [":field", "attacker", "rate"],
-        [":type", "Element", "float"],
-        [":col", "defender Element", "Fire", "Water", "Wind"],
+        [":type", "Affinity", "float"],
+        [":col", "defender Affinity", "Fire", "Water", "Wind"],
         ["", "Fire", "1.0", "0.5", "2.0"],
         ["", "Water", "2.0", "1.0", "1.0"],
         ["", "Wind", "0.5", "1.0", "1.0"],

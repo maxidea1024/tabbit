@@ -14,12 +14,12 @@ import * as tabbit from '../tabbit/tcb-reader'
 import { Tables } from '../tables'
 
 // Automatically import to handle external type references.
-import { Element } from '../enums/element'
+import { Affinity } from '../enums/affinity'
 import { ElementChartColumnTable } from './element-chart-column'
 
 /** A type for handling rows when parsing .json. */
 interface IDataRow {
-  attacker: Element
+  attacker: Affinity
   rate: number[]
 }
 
@@ -30,11 +30,11 @@ export class ElementChartRecord {
   constructor() {
   }
 
-  public get attacker(): Element { return this._attacker }
+  public get attacker(): Affinity { return this._attacker }
 
   public get rate(): number[] { return this._rate }
 
-  public _attacker: Element = 0 as Element
+  public _attacker: Affinity = 0 as Affinity
   public _rate: number[] = []
 
   /** Populate field values. */
@@ -77,15 +77,15 @@ export class ElementChartTable {
   }
 
   // Indexing by 'attacker'
-  public get recordsByAttacker(): Map<Element, ElementChartRecord> { return this._recordsByAttacker }
-  private _recordsByAttacker: Map<Element, ElementChartRecord> = new Map<Element, ElementChartRecord>()
+  public get recordsByAttacker(): Map<Affinity, ElementChartRecord> { return this._recordsByAttacker }
+  private _recordsByAttacker: Map<Affinity, ElementChartRecord> = new Map<Affinity, ElementChartRecord>()
 
   /**
    * The row with this attacker, or undefined when the table has none.
    *
    * The lookup to reach for when a missing row is an ordinary answer.
    */
-  public findByAttacker(key: Element): ElementChartRecord | undefined {
+  public findByAttacker(key: Affinity): ElementChartRecord | undefined {
     return this._recordsByAttacker.get(key)
   }
 
@@ -96,7 +96,7 @@ export class ElementChartTable {
    * `getByAttacker(id).name` at a glance cannot otherwise tell whether the
    * next line is a check or a catch.
    */
-  public getByAttackerOrThrow(key: Element): ElementChartRecord {
+  public getByAttackerOrThrow(key: Affinity): ElementChartRecord {
     const found = this._recordsByAttacker.get(key)
     if (!found)
       throw new Error(`There is no record in table "ElementChart" that corresponds to field "attacker" value ${key}`)
@@ -105,7 +105,7 @@ export class ElementChartTable {
   }
 
   /** Whether the table holds a row with this attacker. */
-  public containsAttacker(key: Element): boolean {
+  public containsAttacker(key: Affinity): boolean {
     return this._recordsByAttacker.has(key)
   }
 
@@ -121,7 +121,7 @@ export class ElementChartTable {
    * them, which makes this and iterating the table agree. Only the primary key has this: a
    * table keyed by several columns together has no single key value to pair a row with.
    */
-  public *entries(): IterableIterator<[Element, ElementChartRecord]> {
+  public *entries(): IterableIterator<[Affinity, ElementChartRecord]> {
     for (const record of this._records) {
       yield [record.attacker, record]
     }
@@ -151,12 +151,12 @@ export class ElementChartTable {
   }
 
   /** The row axis keys, in the order the file wrote them. */
-  public get rowKeys(): Element[] {
+  public get rowKeys(): Affinity[] {
     return this._records.map(record => record.attacker)
   }
 
   /** The column axis keys, in the order a row holds its cells. */
-  public get colKeys(): Element[] {
+  public get colKeys(): Affinity[] {
     return this._columnAxis === undefined
       ? []
       : this._columnAxis.records.map(record => record.defender)
@@ -167,7 +167,7 @@ export class ElementChartTable {
    *
    * In the order `colKeys` is in, which is what makes a position mean something.
    */
-  public row(attacker: Element): number[] | undefined {
+  public row(attacker: Affinity): number[] | undefined {
     return this.findByAttacker(attacker)?.rate
   }
 
@@ -177,13 +177,13 @@ export class ElementChartTable {
    * It throws rather than answering with the type's empty value, because a grid's empty value
    * is one the sheet can write - `0` in a modifier table is a modifier of zero.
    */
-  public at(attacker: Element, defender: Element): number {
+  public at(attacker: Affinity, defender: Affinity): number {
     return this.cellAt(attacker, defender).cell
   }
 
 
   /** Both lookups, done once for the readers above. */
-  private cellAt(attacker: Element, defender: Element): { record: ElementChartRecord, at: number, cell: number } {
+  private cellAt(attacker: Affinity, defender: Affinity): { record: ElementChartRecord, at: number, cell: number } {
     if (this._columnAxis === undefined) {
       throw new Error(`Table \`ElementChart\` has no column axis yet. Read \`ElementChartColumn\` before reading a cell.`)
     }
@@ -279,7 +279,7 @@ export class ElementChartTable {
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
             for (let left = n; left > 0; --left, ++i)
-              records[i]._attacker = value as Element
+              records[i]._attacker = value as Affinity
           }
           break
         case 2:
@@ -317,7 +317,7 @@ export class ElementChartTable {
    * in one step. Whoever took `records` before still has the previous load, whole.
    */
   private publish(records: ElementChartRecord[]): void {
-    const recordsByAttacker = new Map<Element, ElementChartRecord>()
+    const recordsByAttacker = new Map<Affinity, ElementChartRecord>()
 
     for (const record of records) {
       recordsByAttacker.set(record.attacker, record)

@@ -7,7 +7,7 @@
 
 local _root = (...):match("^(.-)[^%.]+%.[^%.]+$")
 local tcb = require(_root .. "tabbit.tcb_reader")
-local Element = require(_root .. "enums.enum_element")
+local Affinity = require(_root .. "enums.enum_affinity")
 
 -- Generated from test/fixtures/xlsx/matrix/matrix.xlsx : Grids : B11.
 -- How much an element does to another.

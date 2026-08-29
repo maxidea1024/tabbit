@@ -22,13 +22,13 @@ namespace Tabbit.Fixtures.Matrix
     public partial class ElementChartColumnRecord
     {
         #region Values
-        public global::Tabbit.Fixtures.Matrix.Element Defender => _defender;
+        public global::Tabbit.Fixtures.Matrix.Affinity Defender => _defender;
 
         public int At => _at;
         #endregion
 
         #region Storage
-        internal global::Tabbit.Fixtures.Matrix.Element _defender;
+        internal global::Tabbit.Fixtures.Matrix.Affinity _defender;
         internal int _at;
         #endregion
 
@@ -102,8 +102,8 @@ namespace Tabbit.Fixtures.Matrix
             => _records.GetEnumerator();
 
         #region Indexing by 'Defender'
-        public Dictionary<global::Tabbit.Fixtures.Matrix.Element, ElementChartColumnRecord> RecordsByDefender => _recordsByDefender;
-        private Dictionary<global::Tabbit.Fixtures.Matrix.Element, ElementChartColumnRecord> _recordsByDefender = new Dictionary<global::Tabbit.Fixtures.Matrix.Element, ElementChartColumnRecord>();
+        public Dictionary<global::Tabbit.Fixtures.Matrix.Affinity, ElementChartColumnRecord> RecordsByDefender => _recordsByDefender;
+        private Dictionary<global::Tabbit.Fixtures.Matrix.Affinity, ElementChartColumnRecord> _recordsByDefender = new Dictionary<global::Tabbit.Fixtures.Matrix.Affinity, ElementChartColumnRecord>();
 
         /// <summary>
         /// The row with this `Defender`, or null when the table has none.
@@ -113,7 +113,7 @@ namespace Tabbit.Fixtures.Matrix
         /// reference, a key that came from user input. Every language Tabbit generates has
         /// this one under the same name.
         /// </remarks>
-        public ElementChartColumnRecord FindByDefender(global::Tabbit.Fixtures.Matrix.Element key)
+        public ElementChartColumnRecord FindByDefender(global::Tabbit.Fixtures.Matrix.Affinity key)
             => _recordsByDefender.TryGetValue(key, out ElementChartColumnRecord record) ? record : null;
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace Tabbit.Fixtures.Matrix
         /// says it throws, because a caller reading `GetByDefender(id).Name` at
         /// a glance cannot otherwise tell whether the next line is a null check or a catch.
         /// </remarks>
-        public ElementChartColumnRecord GetByDefenderOrThrow(global::Tabbit.Fixtures.Matrix.Element key)
+        public ElementChartColumnRecord GetByDefenderOrThrow(global::Tabbit.Fixtures.Matrix.Affinity key)
         {
             if (!_recordsByDefender.TryGetValue(key, out ElementChartColumnRecord record))
                 throw new TabbitException($"There is no record in table `ElementChartColumn` that corresponds to field `Defender` value {key}");
@@ -134,7 +134,7 @@ namespace Tabbit.Fixtures.Matrix
         }
 
         /// <summary>Whether the table holds a row with this `Defender`.</summary>
-        public bool ContainsDefender(global::Tabbit.Fixtures.Matrix.Element key) => _recordsByDefender.ContainsKey(key);
+        public bool ContainsDefender(global::Tabbit.Fixtures.Matrix.Affinity key) => _recordsByDefender.ContainsKey(key);
         #endregion // Indexing by `Defender`
 
         /// <summary>Each row with the `Defender` it is keyed by.</summary>
@@ -165,7 +165,7 @@ namespace Tabbit.Fixtures.Matrix
 
             public bool MoveNext() => ++_at < _rows.Count;
 
-            public (global::Tabbit.Fixtures.Matrix.Element Key, ElementChartColumnRecord Row) Current
+            public (global::Tabbit.Fixtures.Matrix.Affinity Key, ElementChartColumnRecord Row) Current
                 => (_rows[_at].Defender, _rows[_at]);
         }
 
@@ -190,7 +190,7 @@ namespace Tabbit.Fixtures.Matrix
         /// It does not replace `FindByDefender`: a key that may be absent
         /// wants the one whose name says a miss is an ordinary answer.
         /// </remarks>
-        public ElementChartColumnRecord this[global::Tabbit.Fixtures.Matrix.Element key] => GetByDefenderOrThrow(key);
+        public ElementChartColumnRecord this[global::Tabbit.Fixtures.Matrix.Affinity key] => GetByDefenderOrThrow(key);
 
         /// <summary>
         /// Read a table from specified file.
@@ -255,7 +255,7 @@ namespace Tabbit.Fixtures.Matrix
                             do
                             {
                                 var record = records[i++];
-                                record._defender = (global::Tabbit.Fixtures.Matrix.Element)value;
+                                record._defender = (global::Tabbit.Fixtures.Matrix.Affinity)value;
                             } while (--n > 0);
                         }
                         break;
@@ -288,7 +288,7 @@ namespace Tabbit.Fixtures.Matrix
 
             // Index mapping. Sized to the rows, so nothing rehashes on the way in, and a
             // duplicate key throws here - before any of this is visible.
-            var recordsByDefender = new Dictionary<global::Tabbit.Fixtures.Matrix.Element, ElementChartColumnRecord>(count);
+            var recordsByDefender = new Dictionary<global::Tabbit.Fixtures.Matrix.Affinity, ElementChartColumnRecord>(count);
             foreach (var record in records)
                 recordsByDefender.Add(record.Defender, record);
 

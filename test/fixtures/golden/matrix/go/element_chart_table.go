@@ -17,16 +17,16 @@ import (
 // ElementChartRecord was generated from test/fixtures/xlsx/matrix/matrix.xlsx : Grids : B11.
 // How much an element does to another.
 type ElementChartRecord struct {
-	Attacker Element
+	Attacker Affinity
 	Rate     []float32
 }
 
 // ElementChartTable holds every row of ElementChart.
 type ElementChartTable struct {
 	records    []ElementChartRecord
-	byAttacker map[Element]int
-	columnAt   map[Element]int
-	columnKeys []Element
+	byAttacker map[Affinity]int
+	columnAt   map[Affinity]int
+	columnKeys []Affinity
 }
 
 // Records returns every row, in the order the sheet declared them.
@@ -61,8 +61,8 @@ func (t *ElementChartTable) All() iter.Seq[*ElementChartRecord] {
 // accessor is copied into place after loading, so a pointer at one of its fields would name
 // the copy left behind; a map is a reference and survives that.
 func (t *ElementChartTable) LinkColumnAxis(columns *ElementChartColumnTable) error {
-	at := make(map[Element]int, columns.Count())
-	keys := make([]Element, columns.Count())
+	at := make(map[Affinity]int, columns.Count())
+	keys := make([]Affinity, columns.Count())
 
 	for i := range columns.Records() {
 		key := columns.Records()[i].Defender
@@ -87,8 +87,8 @@ func (t *ElementChartTable) LinkColumnAxis(columns *ElementChartColumnTable) err
 }
 
 // RowKeys returns the row axis keys, in the order the file wrote them.
-func (t *ElementChartTable) RowKeys() []Element {
-	keys := make([]Element, len(t.records))
+func (t *ElementChartTable) RowKeys() []Affinity {
+	keys := make([]Affinity, len(t.records))
 
 	for i := range t.records {
 		keys[i] = t.records[i].Attacker
@@ -98,13 +98,13 @@ func (t *ElementChartTable) RowKeys() []Element {
 }
 
 // ColKeys returns the column axis keys, in the order a row holds its cells.
-func (t *ElementChartTable) ColKeys() []Element { return t.columnKeys }
+func (t *ElementChartTable) ColKeys() []Affinity { return t.columnKeys }
 
 // Row returns one row of cells, or nil when the grid has no such row.
 //
 // In the order ColKeys is in, which is what makes a position mean something. The slice is the
 // record's own, so it is not a copy.
-func (t *ElementChartTable) Row(attacker Element) []float32 {
+func (t *ElementChartTable) Row(attacker Affinity) []float32 {
 	record := t.FindByAttacker(attacker)
 	if record == nil {
 		return nil
@@ -117,7 +117,7 @@ func (t *ElementChartTable) Row(attacker Element) []float32 {
 //
 // It errors rather than answering with the type's zero value, because a grid's zero is one
 // the sheet can write - 0 in a modifier table is a modifier of zero.
-func (t *ElementChartTable) At(attacker Element, defender Element) (float32, error) {
+func (t *ElementChartTable) At(attacker Affinity, defender Affinity) (float32, error) {
 	record, at, err := t.cellAt(attacker, defender)
 	if err != nil {
 		var none float32
@@ -128,7 +128,7 @@ func (t *ElementChartTable) At(attacker Element, defender Element) (float32, err
 }
 
 // cellAt does both lookups once for the readers above.
-func (t *ElementChartTable) cellAt(attacker Element, defender Element) (*ElementChartRecord, int, error) {
+func (t *ElementChartTable) cellAt(attacker Affinity, defender Affinity) (*ElementChartRecord, int, error) {
 	if t.columnAt == nil {
 		return nil, 0, fmt.Errorf(
 			"table `ElementChart` has no column axis yet; read `ElementChartColumn` before reading a cell")
@@ -151,7 +151,7 @@ func (t *ElementChartTable) cellAt(attacker Element, defender Element) (*Element
 //
 // The lookup to reach for when a missing row is an ordinary answer - an optional
 // reference, a key that came from user input.
-func (t *ElementChartTable) FindByAttacker(key Element) *ElementChartRecord {
+func (t *ElementChartTable) FindByAttacker(key Affinity) *ElementChartRecord {
 	position, found := t.byAttacker[key]
 	if !found {
 		return nil
@@ -166,7 +166,7 @@ func (t *ElementChartTable) FindByAttacker(key Element) *ElementChartRecord {
 // For a key that has to be there - one from another table, or a constant. Go has no
 // exception to throw, so where the other languages name a throw this one names the error
 // it returns; either way the call site can tell without going to the definition.
-func (t *ElementChartTable) GetByAttackerOrError(key Element) (*ElementChartRecord, error) {
+func (t *ElementChartTable) GetByAttackerOrError(key Affinity) (*ElementChartRecord, error) {
 	position, found := t.byAttacker[key]
 	if !found {
 		return nil, fmt.Errorf(
@@ -177,7 +177,7 @@ func (t *ElementChartTable) GetByAttackerOrError(key Element) (*ElementChartReco
 }
 
 // ContainsAttacker reports whether the table holds a row with this Attacker.
-func (t *ElementChartTable) ContainsAttacker(key Element) bool {
+func (t *ElementChartTable) ContainsAttacker(key Affinity) bool {
 	_, found := t.byAttacker[key]
 	return found
 }
@@ -191,10 +191,10 @@ func (t *ElementChartTable) ContainsAttacker(key Element) bool {
 // The rows come in the order the file wrote them rather than the order a map happens to
 // hold them, which makes this and All agree. Only the primary key has this: a table keyed
 // by several columns together has no single key value to pair a row with.
-func (t *ElementChartTable) Entries() iter.Seq2[Element, *ElementChartRecord] {
+func (t *ElementChartTable) Entries() iter.Seq2[Affinity, *ElementChartRecord] {
 	records := t.records
 
-	return func(yield func(Element, *ElementChartRecord) bool) {
+	return func(yield func(Affinity, *ElementChartRecord) bool) {
 		for i := range records {
 			if !yield(records[i].Attacker, &records[i]) {
 				return
@@ -244,7 +244,7 @@ func (t *ElementChartTable) Read(filename string) error {
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
 					for ; n > 0; n-- {
-						records[i].Attacker = Element(value)
+						records[i].Attacker = Affinity(value)
 						i++
 					}
 				}
@@ -273,7 +273,7 @@ func (t *ElementChartTable) Read(filename string) error {
 		return fmt.Errorf("ElementChart: %w", err)
 	}
 
-	byAttacker := make(map[Element]int, len(records))
+	byAttacker := make(map[Affinity]int, len(records))
 	for i := range records {
 		byAttacker[records[i].Attacker] = i
 	}

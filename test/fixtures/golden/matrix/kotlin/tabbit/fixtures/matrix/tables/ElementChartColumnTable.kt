@@ -38,7 +38,7 @@ import tabbit.KIND_ARRAY
 // Generated from test/fixtures/xlsx/matrix/matrix.xlsx : Grids : B11
 /** How much an element does to another. */
 class ElementChartColumnRecord {
-    var defender: Element = Element.of(0)
+    var defender: Affinity = Affinity.of(0)
     var at: Int = 0
 
 }
@@ -67,7 +67,7 @@ class ElementChartColumnTable : Iterable<ElementChartColumnRecord> {
      */
     override fun iterator(): Iterator<ElementChartColumnRecord> = records.iterator()
 
-    private var byDefender: HashMap<Element, ElementChartColumnRecord> = HashMap()
+    private var byDefender: HashMap<Affinity, ElementChartColumnRecord> = HashMap()
 
     /**
      * The row with this Defender, or null when the table has none.
@@ -75,7 +75,7 @@ class ElementChartColumnTable : Iterable<ElementChartColumnRecord> {
      * The lookup to reach for when a missing row is an ordinary answer - an optional
      * reference, a key that came from user input.
      */
-    fun findByDefender(key: Element): ElementChartColumnRecord? = byDefender[key]
+    fun findByDefender(key: Affinity): ElementChartColumnRecord? = byDefender[key]
 
     /**
      * The row with this Defender, or a thrown exception naming what was missing.
@@ -84,13 +84,13 @@ class ElementChartColumnTable : Iterable<ElementChartColumnRecord> {
      * it throws, because a caller reading getByDefender(key).name at a glance
      * cannot otherwise tell whether the next line is a null check or a catch.
      */
-    fun getByDefenderOrThrow(key: Element): ElementChartColumnRecord =
+    fun getByDefenderOrThrow(key: Affinity): ElementChartColumnRecord =
         byDefender[key] ?: throw RecordNotFoundException(
             "there is no record in table `ElementChartColumn` that corresponds to " +
                 "field `Defender` value $key")
 
     /** Whether the table holds a row with this Defender. */
-    fun containsDefender(key: Element): Boolean = byDefender.containsKey(key)
+    fun containsDefender(key: Affinity): Boolean = byDefender.containsKey(key)
 
 
     /**
@@ -104,7 +104,7 @@ class ElementChartColumnTable : Iterable<ElementChartColumnRecord> {
      * This is the key, not the row's position. `table[0]` is the row whose
      * Defender is 0, not the first row - the rows in order are `records`.
      */
-    operator fun get(key: Element): ElementChartColumnRecord? = findByDefender(key)
+    operator fun get(key: Affinity): ElementChartColumnRecord? = findByDefender(key)
 
 
     /**
@@ -119,7 +119,7 @@ class ElementChartColumnTable : Iterable<ElementChartColumnRecord> {
      * them, which makes this and iterating the table agree. Only the primary key has this:
      * a table keyed by several columns together has no single key value to pair a row with.
      */
-    val entries: Sequence<Pair<Element, ElementChartColumnRecord>>
+    val entries: Sequence<Pair<Affinity, ElementChartColumnRecord>>
         get() = records.asSequence().map { record -> record.defender to record }
 
     /** Loads the table from a .tcb file written by Tabbit. */
@@ -142,7 +142,7 @@ class ElementChartColumnTable : Iterable<ElementChartColumnRecord> {
 
         // Read into storage of its own and published at the end: reading a table that is already loaded is a refresh, and one that turns out to be unreadable has to leave the rows already there alone.
         val loaded = ArrayList<ElementChartColumnRecord>(count)
-        val loadedByDefender = HashMap<Element, ElementChartColumnRecord>(count * 2)
+        val loadedByDefender = HashMap<Affinity, ElementChartColumnRecord>(count * 2)
 
         repeat(count) { loaded.add(ElementChartColumnRecord()) }
 
@@ -158,7 +158,7 @@ class ElementChartColumnTable : Iterable<ElementChartColumnRecord> {
                         var n = cursor.nextSameI32(count - at)
                         while (n > 0) {
                             val i = at
-                            loaded[i].defender = Element.of(cursor.runSameValue)
+                            loaded[i].defender = Affinity.of(cursor.runSameValue)
                             at++
                             n--
                         }

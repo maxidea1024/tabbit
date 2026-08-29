@@ -119,13 +119,17 @@ public class MatrixTests
     /// `Fire` is not an integer, so a grid headed by labels is not a grid to the rule that
     /// reads column names - it is a table with a field called `Fire`. Declared, the heading
     /// is a key of the axis type and the label reads as one.
+    ///
+    /// The enum is `Affinity` rather than `Element` because of Swift: a generated table
+    /// conforms to `Sequence`, so inside it the name `Element` is that protocol's associated
+    /// type rather than the enum. That is a defect of its own and not what this pins.
     /// </remarks>
     [Fact]
     public void An_axis_may_be_an_enum()
     {
         TabbitRunner.Convert(Scenario);
 
-        // Both axes are `Element`, and both sides resolved the label to its value.
+        // Both axes are `Affinity`, and both sides resolved the label to its value.
         Assert.Contains("\"attacker\": 1", Json("ElementChart"));
         Assert.Contains("\"defender\": 1", Json("ElementChartColumn"));
 

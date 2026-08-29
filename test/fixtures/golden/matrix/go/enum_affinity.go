@@ -11,31 +11,31 @@ import (
 	"strconv"
 )
 
-// Element was generated from test/fixtures/xlsx/matrix/matrix.xlsx : Enums : B2.
+// Affinity was generated from test/fixtures/xlsx/matrix/matrix.xlsx : Enums : B2.
 // What an attack is made of.
-type Element int32
+type Affinity int32
 
 const (
 	// no element
-	ElementNone Element = 0
+	AffinityNone Affinity = 0
 	// burns
-	ElementFire Element = 1
+	AffinityFire Affinity = 1
 	// soaks
-	ElementWater Element = 2
+	AffinityWater Affinity = 2
 	// cuts
-	ElementWind Element = 3
+	AffinityWind Affinity = 3
 )
 
 // String names the label, or renders the number when the value has none.
-func (v Element) String() string {
+func (v Affinity) String() string {
 	switch v {
-	case ElementNone:
+	case AffinityNone:
 		return "None"
-	case ElementFire:
+	case AffinityFire:
 		return "Fire"
-	case ElementWater:
+	case AffinityWater:
 		return "Water"
-	case ElementWind:
+	case AffinityWind:
 		return "Wind"
 	}
 

@@ -20,7 +20,7 @@ import tabbit.TcbReader;
 /** Every row of ElementChart. */
 public final class ElementChartTable implements Iterable<ElementChartRecord> {
     private List<ElementChartRecord> records = new ArrayList<>();
-    private Map<Element, ElementChartRecord> byAttacker = new HashMap<>();
+    private Map<Affinity, ElementChartRecord> byAttacker = new HashMap<>();
 
     /**
      * Every row, in the order the sheet declared them.
@@ -71,8 +71,8 @@ public final class ElementChartTable implements Iterable<ElementChartRecord> {
     }
 
     /** The row axis keys, in the order the file wrote them. */
-    public List<Element> rowKeys() {
-        List<Element> keys = new ArrayList<>(records.size());
+    public List<Affinity> rowKeys() {
+        List<Affinity> keys = new ArrayList<>(records.size());
 
         for (ElementChartRecord record : records) {
             keys.add(record.attacker);
@@ -82,8 +82,8 @@ public final class ElementChartTable implements Iterable<ElementChartRecord> {
     }
 
     /** The column axis keys, in the order a row holds its cells. */
-    public List<Element> colKeys() {
-        List<Element> keys = new ArrayList<>();
+    public List<Affinity> colKeys() {
+        List<Affinity> keys = new ArrayList<>();
 
         if (columnAxis == null) {
             return keys;
@@ -102,7 +102,7 @@ public final class ElementChartTable implements Iterable<ElementChartRecord> {
      * <p>In the order colKeys is in, which is what makes a position mean something. The array
      * is the record's own, so it is not a copy.
      */
-    public float[] row(Element attacker) {
+    public float[] row(Affinity attacker) {
         ElementChartRecord record = findByAttacker(attacker);
         return record == null ? null : record.rate;
     }
@@ -113,14 +113,14 @@ public final class ElementChartTable implements Iterable<ElementChartRecord> {
      * <p>It throws rather than answering with the type's empty value, because a grid's empty
      * value is one the sheet can write - 0 in a modifier table is a modifier of zero.
      */
-    public float at(Element attacker, Element defender) {
+    public float at(Affinity attacker, Affinity defender) {
         ElementChartRecord record = cellRecord(attacker);
         return record.rate[cellAt(defender)];
     }
 
 
     /** The row half of a cell lookup. */
-    private ElementChartRecord cellRecord(Element attacker) {
+    private ElementChartRecord cellRecord(Affinity attacker) {
         if (columnAxis == null) {
             throw new IllegalStateException(
                 "table `ElementChart` has no column axis yet; "
@@ -138,7 +138,7 @@ public final class ElementChartTable implements Iterable<ElementChartRecord> {
     }
 
     /** The column half of a cell lookup. */
-    private int cellAt(Element defender) {
+    private int cellAt(Affinity defender) {
         ElementChartColumnRecord column = columnAxis.findByDefender(defender);
 
         if (column == null) {
@@ -155,7 +155,7 @@ public final class ElementChartTable implements Iterable<ElementChartRecord> {
      * The lookup to reach for when a missing row is an ordinary answer - an optional
      * reference, a key that came from user input.
      */
-    public ElementChartRecord findByAttacker(Element key) {
+    public ElementChartRecord findByAttacker(Affinity key) {
         return byAttacker.get(key);
     }
 
@@ -166,7 +166,7 @@ public final class ElementChartTable implements Iterable<ElementChartRecord> {
      * it throws, because a caller reading getByAttacker(key).name() at a glance
      * cannot otherwise tell whether the next line is a null check or a catch.
      */
-    public ElementChartRecord getByAttackerOrThrow(Element key) {
+    public ElementChartRecord getByAttackerOrThrow(Affinity key) {
         ElementChartRecord record = byAttacker.get(key);
 
         if (record == null) {
@@ -179,7 +179,7 @@ public final class ElementChartTable implements Iterable<ElementChartRecord> {
     }
 
     /** Whether the table holds a row with this Attacker. */
-    public boolean containsAttacker(Element key) {
+    public boolean containsAttacker(Affinity key) {
         return byAttacker.containsKey(key);
     }
 
@@ -196,10 +196,10 @@ public final class ElementChartTable implements Iterable<ElementChartRecord> {
      * them, which makes this and iterating the table agree. Only the primary key has this:
      * a table keyed by several columns together has no single key value to pair a row with.
      */
-    public Iterable<Map.Entry<Element, ElementChartRecord>> entries() {
+    public Iterable<Map.Entry<Affinity, ElementChartRecord>> entries() {
         final List<ElementChartRecord> rows = records;
 
-        return () -> new Iterator<Map.Entry<Element, ElementChartRecord>>() {
+        return () -> new Iterator<Map.Entry<Affinity, ElementChartRecord>>() {
             private final Iterator<ElementChartRecord> source = rows.iterator();
 
             @Override
@@ -208,7 +208,7 @@ public final class ElementChartTable implements Iterable<ElementChartRecord> {
             }
 
             @Override
-            public Map.Entry<Element, ElementChartRecord> next() {
+            public Map.Entry<Affinity, ElementChartRecord> next() {
                 final ElementChartRecord row = source.next();
 
                 return new AbstractMap.SimpleImmutableEntry<>(row.attacker, row);
@@ -237,7 +237,7 @@ public final class ElementChartTable implements Iterable<ElementChartRecord> {
 
         // Read into storage of its own and published at the end: reading a table that is already loaded is a refresh, and one that turns out to be unreadable has to leave the rows already there alone.
         List<ElementChartRecord> loaded = new ArrayList<>(count);
-        Map<Element, ElementChartRecord> loadedByAttacker = new HashMap<>(count * 2);
+        Map<Affinity, ElementChartRecord> loadedByAttacker = new HashMap<>(count * 2);
 
         for (int i = 0; i < count; i++) {
             loaded.add(new ElementChartRecord());
@@ -253,7 +253,7 @@ public final class ElementChartTable implements Iterable<ElementChartRecord> {
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
                         for (; n > 0; n--, i++) {
-                            loaded.get(i).attacker = Element.of(cursor.runSameValue);
+                            loaded.get(i).attacker = Affinity.of(cursor.runSameValue);
                         }
                     }
                     break;

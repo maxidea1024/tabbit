@@ -32,7 +32,7 @@ formula-error/formula-error.xlsx	sheets=1 rows=7 cells=21 chars=168 names=0 skip
 invalid/invalid.xlsx	sheets=1 rows=9 cells=72 chars=585 names=0 skipped-names=0 hash=abf4881e95a5e60d
 key-types/key-types.xlsx	sheets=4 rows=34 cells=99 chars=1088 names=0 skipped-names=0 hash=bd358516d69bb0c6
 layout-edge/layout-edge.xlsx	sheets=1 rows=24 cells=45 chars=322 names=0 skipped-names=0 hash=6cb6c949680dfc5e
-matrix/matrix.xlsx	sheets=3 rows=31 cells=90 chars=553 names=0 skipped-names=0 hash=16c2ea5e883676ab
+matrix/matrix.xlsx	sheets=3 rows=31 cells=90 chars=556 names=0 skipped-names=0 hash=d0b3dd3ad7151ba3
 member-array/member-array.xlsx	sheets=1 rows=9 cells=114 chars=855 names=0 skipped-names=0 hash=373bcd96a1bd0629
 multirow-columns/multirow-columns.xlsx	sheets=1 rows=10 cells=66 chars=373 names=0 skipped-names=0 hash=8eeab00a905e6468
 multirow-rows/multirow-rows.xlsx	sheets=1 rows=13 cells=42 chars=257 names=0 skipped-names=0 hash=926aa406516ddb84

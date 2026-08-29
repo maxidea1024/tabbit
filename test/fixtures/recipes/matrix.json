@@ -35,6 +35,11 @@
       "Path": "test/fixtures/output/matrix/typescript"
     },
     {
+      "Type": "swift",
+      "Path": "test/fixtures/output/matrix/swift",
+      "AccessorName": "MatrixAccessor"
+    },
+    {
       "Type": "rust",
       "Path": "test/fixtures/output/matrix/rust",
       "CrateName": "matrix_data"

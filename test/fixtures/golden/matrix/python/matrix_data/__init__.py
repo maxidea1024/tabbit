@@ -5,7 +5,7 @@
 # regenerated.
 # ------------------------------------------------------------------------------
 
-from .enum_element import Element
+from .enum_affinity import Affinity
 from .goods_table import GoodsRecord, GoodsTable
 from .town_price_table import TownPriceRecord, TownPriceTable
 from .town_price_column_table import TownPriceColumnRecord, TownPriceColumnTable
@@ -14,7 +14,7 @@ from .element_chart_column_table import ElementChartColumnRecord, ElementChartCo
 from .tables import Tables
 
 __all__ = [
-    "Element",
+    "Affinity",
     "GoodsRecord",
     "GoodsTable",
     "TownPriceRecord",

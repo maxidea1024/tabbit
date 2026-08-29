@@ -9,7 +9,7 @@ part of '../tables.dart';
 // Generated from test/fixtures/xlsx/matrix/matrix.xlsx : Grids : B11
 /// How much an element does to another.
 class ElementChartColumnRecord {
-  Element defender = Element.of(0);
+  Affinity defender = Affinity.of(0);
   int at = 0;
 
 }
@@ -39,20 +39,20 @@ class ElementChartColumnTable extends Iterable<ElementChartColumnRecord> {
   @override
   Iterator<ElementChartColumnRecord> get iterator => _records.iterator;
 
-  Map<Element, ElementChartColumnRecord> _byDefender = {};
+  Map<Affinity, ElementChartColumnRecord> _byDefender = {};
 
   /// The row with this Defender, or null when the table has none.
   ///
   /// The lookup to reach for when a missing row is an ordinary answer - an optional
   /// reference, a key that came from user input.
-  ElementChartColumnRecord? findByDefender(Element key) => _byDefender[key];
+  ElementChartColumnRecord? findByDefender(Affinity key) => _byDefender[key];
 
   /// The row with this Defender, or a thrown exception naming what was missing.
   ///
   /// For a key that has to be there - one from another table, or a constant. The name says
   /// it throws, because a caller reading getByDefender(key).name at a glance
   /// cannot otherwise tell whether the next line is a null check or a catch.
-  ElementChartColumnRecord getByDefenderOrThrow(Element key) {
+  ElementChartColumnRecord getByDefenderOrThrow(Affinity key) {
     final record = _byDefender[key];
 
     if (record == null) {
@@ -65,7 +65,7 @@ class ElementChartColumnTable extends Iterable<ElementChartColumnRecord> {
   }
 
   /// Whether the table holds a row with this Defender.
-  bool containsDefender(Element key) => _byDefender.containsKey(key);
+  bool containsDefender(Affinity key) => _byDefender.containsKey(key);
 
 
   /// The row with this Defender, or null when the table has none.
@@ -79,7 +79,7 @@ class ElementChartColumnTable extends Iterable<ElementChartColumnRecord> {
   /// Defender is 0, not the first row - the rows in order are `records`.
   ///
   /// Only a key of one column has this: Dart's subscript takes one argument.
-  ElementChartColumnRecord? operator [](Element key) => findByDefender(key);
+  ElementChartColumnRecord? operator [](Affinity key) => findByDefender(key);
 
 
   /// Each row with the Defender it is keyed by -
@@ -92,7 +92,7 @@ class ElementChartColumnTable extends Iterable<ElementChartColumnRecord> {
   /// The rows come in the order the file wrote them rather than the order the map holds
   /// them, which makes this and iterating the table agree. Only the primary key has this:
   /// a table keyed by several columns together has no single key value to pair a row with.
-  Iterable<MapEntry<Element, ElementChartColumnRecord>> get entries =>
+  Iterable<MapEntry<Affinity, ElementChartColumnRecord>> get entries =>
       _records.map((record) => MapEntry(record.defender, record));
 
   /// Loads the table from a .tcb file written by Tabbit.
@@ -113,7 +113,7 @@ class ElementChartColumnTable extends Iterable<ElementChartColumnRecord> {
 
     // Read into storage of its own and published at the end: reading a table that is already loaded is a refresh, and one that turns out to be unreadable has to leave the rows already there alone.
     final loaded = <ElementChartColumnRecord>[];
-    final loadedByDefender = <Element, ElementChartColumnRecord>{};
+    final loadedByDefender = <Affinity, ElementChartColumnRecord>{};
 
     for (var i = 0; i < count; i++) {
       loaded.add(ElementChartColumnRecord());
@@ -129,7 +129,7 @@ class ElementChartColumnTable extends Iterable<ElementChartColumnRecord> {
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
             for (var left = n; left > 0; left--, i++) {
-              loaded[i].defender = Element.of(value);
+              loaded[i].defender = Affinity.of(value);
             }
           }
           break;

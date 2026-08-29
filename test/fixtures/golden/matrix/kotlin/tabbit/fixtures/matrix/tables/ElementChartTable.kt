@@ -38,7 +38,7 @@ import tabbit.KIND_ARRAY
 // Generated from test/fixtures/xlsx/matrix/matrix.xlsx : Grids : B11
 /** How much an element does to another. */
 class ElementChartRecord {
-    var attacker: Element = Element.of(0)
+    var attacker: Affinity = Affinity.of(0)
     var rate: MutableList<Float> = ArrayList()
 
 }
@@ -67,7 +67,7 @@ class ElementChartTable : Iterable<ElementChartRecord> {
      */
     override fun iterator(): Iterator<ElementChartRecord> = records.iterator()
 
-    private var byAttacker: HashMap<Element, ElementChartRecord> = HashMap()
+    private var byAttacker: HashMap<Affinity, ElementChartRecord> = HashMap()
 
     private var columnAxis: ElementChartColumnTable? = null
 
@@ -91,11 +91,11 @@ class ElementChartTable : Iterable<ElementChartRecord> {
     }
 
     /** The row axis keys, in the order the file wrote them. */
-    val rowKeys: List<Element>
+    val rowKeys: List<Affinity>
         get() = records.map { record -> record.attacker }
 
     /** The column axis keys, in the order a row holds its cells. */
-    val colKeys: List<Element>
+    val colKeys: List<Affinity>
         get() = columnAxis?.records?.map { record -> record.defender } ?: emptyList()
 
     /**
@@ -104,7 +104,7 @@ class ElementChartTable : Iterable<ElementChartRecord> {
      * In the order [colKeys] is in, which is what makes a position mean something. The list is
      * the record's own, so it is not a copy.
      */
-    fun row(attacker: Element) = findByAttacker(attacker)?.rate
+    fun row(attacker: Affinity) = findByAttacker(attacker)?.rate
 
     /**
      * The cell where the two keys meet, or a thrown exception naming the one that missed.
@@ -112,12 +112,12 @@ class ElementChartTable : Iterable<ElementChartRecord> {
      * It throws rather than answering with the type's empty value, because a grid's empty
      * value is one the sheet can write - 0 in a modifier table is a modifier of zero.
      */
-    fun at(attacker: Element, defender: Element): Float =
+    fun at(attacker: Affinity, defender: Affinity): Float =
         cellRecord(attacker).rate[cellAt(defender)]
 
 
     /** The row half of a cell lookup. */
-    private fun cellRecord(attacker: Element): ElementChartRecord {
+    private fun cellRecord(attacker: Affinity): ElementChartRecord {
         checkNotNull(columnAxis) {
             "table `ElementChart` has no column axis yet; " +
                 "read `ElementChartColumn` before reading a cell"
@@ -129,7 +129,7 @@ class ElementChartTable : Iterable<ElementChartRecord> {
     }
 
     /** The column half of a cell lookup. */
-    private fun cellAt(defender: Element): Int {
+    private fun cellAt(defender: Affinity): Int {
         val column = columnAxis?.findByDefender(defender)
             ?: throw RecordNotFoundException(
                 "table `ElementChart` has no column `${defender}`")
@@ -143,7 +143,7 @@ class ElementChartTable : Iterable<ElementChartRecord> {
      * The lookup to reach for when a missing row is an ordinary answer - an optional
      * reference, a key that came from user input.
      */
-    fun findByAttacker(key: Element): ElementChartRecord? = byAttacker[key]
+    fun findByAttacker(key: Affinity): ElementChartRecord? = byAttacker[key]
 
     /**
      * The row with this Attacker, or a thrown exception naming what was missing.
@@ -152,13 +152,13 @@ class ElementChartTable : Iterable<ElementChartRecord> {
      * it throws, because a caller reading getByAttacker(key).name at a glance
      * cannot otherwise tell whether the next line is a null check or a catch.
      */
-    fun getByAttackerOrThrow(key: Element): ElementChartRecord =
+    fun getByAttackerOrThrow(key: Affinity): ElementChartRecord =
         byAttacker[key] ?: throw RecordNotFoundException(
             "there is no record in table `ElementChart` that corresponds to " +
                 "field `Attacker` value $key")
 
     /** Whether the table holds a row with this Attacker. */
-    fun containsAttacker(key: Element): Boolean = byAttacker.containsKey(key)
+    fun containsAttacker(key: Affinity): Boolean = byAttacker.containsKey(key)
 
 
     /**
@@ -172,7 +172,7 @@ class ElementChartTable : Iterable<ElementChartRecord> {
      * This is the key, not the row's position. `table[0]` is the row whose
      * Attacker is 0, not the first row - the rows in order are `records`.
      */
-    operator fun get(key: Element): ElementChartRecord? = findByAttacker(key)
+    operator fun get(key: Affinity): ElementChartRecord? = findByAttacker(key)
 
 
     /**
@@ -187,7 +187,7 @@ class ElementChartTable : Iterable<ElementChartRecord> {
      * them, which makes this and iterating the table agree. Only the primary key has this:
      * a table keyed by several columns together has no single key value to pair a row with.
      */
-    val entries: Sequence<Pair<Element, ElementChartRecord>>
+    val entries: Sequence<Pair<Affinity, ElementChartRecord>>
         get() = records.asSequence().map { record -> record.attacker to record }
 
     /** Loads the table from a .tcb file written by Tabbit. */
@@ -210,7 +210,7 @@ class ElementChartTable : Iterable<ElementChartRecord> {
 
         // Read into storage of its own and published at the end: reading a table that is already loaded is a refresh, and one that turns out to be unreadable has to leave the rows already there alone.
         val loaded = ArrayList<ElementChartRecord>(count)
-        val loadedByAttacker = HashMap<Element, ElementChartRecord>(count * 2)
+        val loadedByAttacker = HashMap<Affinity, ElementChartRecord>(count * 2)
 
         repeat(count) { loaded.add(ElementChartRecord()) }
 
@@ -226,7 +226,7 @@ class ElementChartTable : Iterable<ElementChartRecord> {
                         var n = cursor.nextSameI32(count - at)
                         while (n > 0) {
                             val i = at
-                            loaded[i].attacker = Element.of(cursor.runSameValue)
+                            loaded[i].attacker = Affinity.of(cursor.runSameValue)
                             at++
                             n--
                         }

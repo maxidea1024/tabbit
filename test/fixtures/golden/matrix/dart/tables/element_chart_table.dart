@@ -9,7 +9,7 @@ part of '../tables.dart';
 // Generated from test/fixtures/xlsx/matrix/matrix.xlsx : Grids : B11
 /// How much an element does to another.
 class ElementChartRecord {
-  Element attacker = Element.of(0);
+  Affinity attacker = Affinity.of(0);
   List<double> rate = [];
 
 }
@@ -39,7 +39,7 @@ class ElementChartTable extends Iterable<ElementChartRecord> {
   @override
   Iterator<ElementChartRecord> get iterator => _records.iterator;
 
-  Map<Element, ElementChartRecord> _byAttacker = {};
+  Map<Affinity, ElementChartRecord> _byAttacker = {};
 
   ElementChartColumnTable? _columnAxis;
 
@@ -62,31 +62,31 @@ class ElementChartTable extends Iterable<ElementChartRecord> {
   }
 
   /// The row axis keys, in the order the file wrote them.
-  List<Element> get rowKeys =>
+  List<Affinity> get rowKeys =>
       _records.map((record) => record.attacker).toList();
 
   /// The column axis keys, in the order a row holds its cells.
-  List<Element> get colKeys =>
+  List<Affinity> get colKeys =>
       _columnAxis?.records.map((record) => record.defender).toList()
-      ?? <Element>[];
+      ?? <Affinity>[];
 
   /// One row of cells, or null when the grid has no such row.
   ///
   /// In the order [colKeys] is in, which is what makes a position mean something. The list is
   /// the record's own, so it is not a copy.
-  List<double>? row(Element attacker) =>
+  List<double>? row(Affinity attacker) =>
       findByAttacker(attacker)?.rate;
 
   /// The cell where the two keys meet, or a thrown exception naming the one that missed.
   ///
   /// It throws rather than answering with the type's empty value, because a grid's empty value
   /// is one the sheet can write - 0 in a modifier table is a modifier of zero.
-  double at(Element attacker, Element defender) =>
+  double at(Affinity attacker, Affinity defender) =>
       _cellRecord(attacker).rate[_cellAt(defender)];
 
 
   /// The row half of a cell lookup.
-  ElementChartRecord _cellRecord(Element attacker) {
+  ElementChartRecord _cellRecord(Affinity attacker) {
     if (_columnAxis == null) {
       throw StateError(
           'table `ElementChart` has no column axis yet; '
@@ -104,7 +104,7 @@ class ElementChartTable extends Iterable<ElementChartRecord> {
   }
 
   /// The column half of a cell lookup.
-  int _cellAt(Element defender) {
+  int _cellAt(Affinity defender) {
     final column = _columnAxis!.findByDefender(defender);
 
     if (column == null) {
@@ -119,14 +119,14 @@ class ElementChartTable extends Iterable<ElementChartRecord> {
   ///
   /// The lookup to reach for when a missing row is an ordinary answer - an optional
   /// reference, a key that came from user input.
-  ElementChartRecord? findByAttacker(Element key) => _byAttacker[key];
+  ElementChartRecord? findByAttacker(Affinity key) => _byAttacker[key];
 
   /// The row with this Attacker, or a thrown exception naming what was missing.
   ///
   /// For a key that has to be there - one from another table, or a constant. The name says
   /// it throws, because a caller reading getByAttacker(key).name at a glance
   /// cannot otherwise tell whether the next line is a null check or a catch.
-  ElementChartRecord getByAttackerOrThrow(Element key) {
+  ElementChartRecord getByAttackerOrThrow(Affinity key) {
     final record = _byAttacker[key];
 
     if (record == null) {
@@ -139,7 +139,7 @@ class ElementChartTable extends Iterable<ElementChartRecord> {
   }
 
   /// Whether the table holds a row with this Attacker.
-  bool containsAttacker(Element key) => _byAttacker.containsKey(key);
+  bool containsAttacker(Affinity key) => _byAttacker.containsKey(key);
 
 
   /// The row with this Attacker, or null when the table has none.
@@ -153,7 +153,7 @@ class ElementChartTable extends Iterable<ElementChartRecord> {
   /// Attacker is 0, not the first row - the rows in order are `records`.
   ///
   /// Only a key of one column has this: Dart's subscript takes one argument.
-  ElementChartRecord? operator [](Element key) => findByAttacker(key);
+  ElementChartRecord? operator [](Affinity key) => findByAttacker(key);
 
 
   /// Each row with the Attacker it is keyed by -
@@ -166,7 +166,7 @@ class ElementChartTable extends Iterable<ElementChartRecord> {
   /// The rows come in the order the file wrote them rather than the order the map holds
   /// them, which makes this and iterating the table agree. Only the primary key has this:
   /// a table keyed by several columns together has no single key value to pair a row with.
-  Iterable<MapEntry<Element, ElementChartRecord>> get entries =>
+  Iterable<MapEntry<Affinity, ElementChartRecord>> get entries =>
       _records.map((record) => MapEntry(record.attacker, record));
 
   /// Loads the table from a .tcb file written by Tabbit.
@@ -187,7 +187,7 @@ class ElementChartTable extends Iterable<ElementChartRecord> {
 
     // Read into storage of its own and published at the end: reading a table that is already loaded is a refresh, and one that turns out to be unreadable has to leave the rows already there alone.
     final loaded = <ElementChartRecord>[];
-    final loadedByAttacker = <Element, ElementChartRecord>{};
+    final loadedByAttacker = <Affinity, ElementChartRecord>{};
 
     for (var i = 0; i < count; i++) {
       loaded.add(ElementChartRecord());
@@ -203,7 +203,7 @@ class ElementChartTable extends Iterable<ElementChartRecord> {
           for (var i = 0; i < count; ) {
             final (n, value) = cursor.nextSameI32(count - i);
             for (var left = n; left > 0; left--, i++) {
-              loaded[i].attacker = Element.of(value);
+              loaded[i].attacker = Affinity.of(value);
             }
           }
           break;

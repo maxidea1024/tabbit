@@ -37,7 +37,7 @@ import tabbit.KIND_ARRAY
 
 // Generated from test/fixtures/xlsx/matrix/matrix.xlsx : Enums : B2
 /** What an attack is made of. */
-enum class Element(val value: Int) {
+enum class Affinity(val value: Int) {
     /** no element */
     NONE(0),
     /** burns */
@@ -53,7 +53,7 @@ enum class Element(val value: Int) {
          *
          * A fallback rather than a throw, matching the other generated readers.
          */
-        fun of(value: Int): Element =
-            entries.firstOrNull { it.value == value } ?: Element.NONE
+        fun of(value: Int): Affinity =
+            entries.firstOrNull { it.value == value } ?: Affinity.NONE
     }
 }

@@ -512,6 +512,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        Matrix = BuildMatrix(table),
         ContainerFill = ContainerFillLines(table),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
@@ -870,6 +871,33 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     /// <summary>
     /// The property a nullable column's presence lands in.
     /// </summary>
+    /// <summary>The grid accessor for this table, or null when it is not a grid's values.</summary>
+    private SwiftMatrixView? BuildMatrix(Table table)
+    {
+        if (MatrixPlans.Of(table, _model) is not { } plan)
+            return null;
+
+        return new SwiftMatrixView
+        {
+            ColumnTable = plan.Columns.Name.ToPascalCase() + "Table",
+            ColumnTableName = plan.Columns.Name,
+            ColumnLookup = "findBy" + plan.ColumnKey.Name.ToPascalCase(),
+            RowKeyMember = SwiftName(plan.RowKey.Name),
+            RowKeyParam = SwiftName(plan.RowKey.Name),
+            RowKeyType = IndexKeyType(plan.RowKey),
+            RowLookup = "findBy" + plan.RowKey.Name.ToPascalCase(),
+            ColumnKeyMember = SwiftName(plan.ColumnKey.Name),
+            ColumnKeyParam = SwiftName(plan.ColumnKey.Name),
+            ColumnKeyType = IndexKeyType(plan.ColumnKey),
+            AtMember = SwiftName(plan.At.Name),
+            GridMember = SwiftName(plan.Grid.Name),
+            GridHasMember = PresenceMember(plan.Grid) + "At",
+            CellType = ToSwiftTypeName(
+                plan.Grid.FirstField!.ElementType, plan.Grid.FirstField!.EnumOrNull, null),
+            CellsAreOptional = plan.CellsAreOptional,
+        };
+    }
+
     private string PresenceMember(SerialField sf)
         => sf.IsRecord ? "" : SwiftName("has_" + sf.Name);
 
@@ -1204,6 +1232,16 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
             // Unescaped: this one names the file the exporter wrote.
             DataFileName = table.DataFileName,
         }).ToList(),
+
+        Grids = _model.Tables
+            .Select(table => MatrixPlans.Of(table, _model))
+            .Where(plan => plan is not null)
+            .Select(plan => new SwiftGridLinkView
+            {
+                Values = plan!.Values.Name.ToPascalCase() + "Table",
+                Columns = plan.Columns.Name.ToPascalCase() + "Table",
+            })
+            .ToList(),
 
         CrossReferences = _model.Tables
             .Select(table => new

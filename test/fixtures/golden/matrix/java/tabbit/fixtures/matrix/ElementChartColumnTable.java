@@ -20,7 +20,7 @@ import tabbit.TcbReader;
 /** Every row of ElementChartColumn. */
 public final class ElementChartColumnTable implements Iterable<ElementChartColumnRecord> {
     private List<ElementChartColumnRecord> records = new ArrayList<>();
-    private Map<Element, ElementChartColumnRecord> byDefender = new HashMap<>();
+    private Map<Affinity, ElementChartColumnRecord> byDefender = new HashMap<>();
 
     /**
      * Every row, in the order the sheet declared them.
@@ -54,7 +54,7 @@ public final class ElementChartColumnTable implements Iterable<ElementChartColum
      * The lookup to reach for when a missing row is an ordinary answer - an optional
      * reference, a key that came from user input.
      */
-    public ElementChartColumnRecord findByDefender(Element key) {
+    public ElementChartColumnRecord findByDefender(Affinity key) {
         return byDefender.get(key);
     }
 
@@ -65,7 +65,7 @@ public final class ElementChartColumnTable implements Iterable<ElementChartColum
      * it throws, because a caller reading getByDefender(key).name() at a glance
      * cannot otherwise tell whether the next line is a null check or a catch.
      */
-    public ElementChartColumnRecord getByDefenderOrThrow(Element key) {
+    public ElementChartColumnRecord getByDefenderOrThrow(Affinity key) {
         ElementChartColumnRecord record = byDefender.get(key);
 
         if (record == null) {
@@ -78,7 +78,7 @@ public final class ElementChartColumnTable implements Iterable<ElementChartColum
     }
 
     /** Whether the table holds a row with this Defender. */
-    public boolean containsDefender(Element key) {
+    public boolean containsDefender(Affinity key) {
         return byDefender.containsKey(key);
     }
 
@@ -95,10 +95,10 @@ public final class ElementChartColumnTable implements Iterable<ElementChartColum
      * them, which makes this and iterating the table agree. Only the primary key has this:
      * a table keyed by several columns together has no single key value to pair a row with.
      */
-    public Iterable<Map.Entry<Element, ElementChartColumnRecord>> entries() {
+    public Iterable<Map.Entry<Affinity, ElementChartColumnRecord>> entries() {
         final List<ElementChartColumnRecord> rows = records;
 
-        return () -> new Iterator<Map.Entry<Element, ElementChartColumnRecord>>() {
+        return () -> new Iterator<Map.Entry<Affinity, ElementChartColumnRecord>>() {
             private final Iterator<ElementChartColumnRecord> source = rows.iterator();
 
             @Override
@@ -107,7 +107,7 @@ public final class ElementChartColumnTable implements Iterable<ElementChartColum
             }
 
             @Override
-            public Map.Entry<Element, ElementChartColumnRecord> next() {
+            public Map.Entry<Affinity, ElementChartColumnRecord> next() {
                 final ElementChartColumnRecord row = source.next();
 
                 return new AbstractMap.SimpleImmutableEntry<>(row.defender, row);
@@ -136,7 +136,7 @@ public final class ElementChartColumnTable implements Iterable<ElementChartColum
 
         // Read into storage of its own and published at the end: reading a table that is already loaded is a refresh, and one that turns out to be unreadable has to leave the rows already there alone.
         List<ElementChartColumnRecord> loaded = new ArrayList<>(count);
-        Map<Element, ElementChartColumnRecord> loadedByDefender = new HashMap<>(count * 2);
+        Map<Affinity, ElementChartColumnRecord> loadedByDefender = new HashMap<>(count * 2);
 
         for (int i = 0; i < count; i++) {
             loaded.add(new ElementChartColumnRecord());
@@ -152,7 +152,7 @@ public final class ElementChartColumnTable implements Iterable<ElementChartColum
                     for (int i = 0; i < count; ) {
                         int n = cursor.nextSameI32(count - i);
                         for (; n > 0; n--, i++) {
-                            loaded.get(i).defender = Element.of(cursor.runSameValue);
+                            loaded.get(i).defender = Affinity.of(cursor.runSameValue);
                         }
                     }
                     break;

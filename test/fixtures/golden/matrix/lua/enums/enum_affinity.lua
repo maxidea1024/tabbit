@@ -10,8 +10,8 @@ local tcb = require(_root .. "tabbit.tcb_reader")
 
 -- Generated from test/fixtures/xlsx/matrix/matrix.xlsx : Enums : B2.
 -- What an attack is made of.
----@class Element
-local Element = {
+---@class Affinity
+local Affinity = {
   -- no element
   none = 0,
   -- burns
@@ -22,4 +22,4 @@ local Element = {
   wind = 3,
 }
 
-return setmetatable(Element, tcb.strictType("enum `Element`", {}))
+return setmetatable(Affinity, tcb.strictType("enum `Affinity`", {}))

@@ -9,7 +9,7 @@ package tabbit.fixtures.matrix;
 
 // Generated from test/fixtures/xlsx/matrix/matrix.xlsx : Enums : B2
 /** What an attack is made of. */
-public enum Element {
+public enum Affinity {
     /** no element */
         NONE(0),
     /** burns */
@@ -21,7 +21,7 @@ public enum Element {
 
     private final int value;
 
-        Element(int value) {
+        Affinity(int value) {
         this.value = value;
     }
 
@@ -35,8 +35,8 @@ public enum Element {
      *
      * <p>A fallback rather than a throw, matching what the other generated readers do.
      */
-    public static Element of(int value) {
-        for (Element candidate : values()) {
+    public static Affinity of(int value) {
+        for (Affinity candidate : values()) {
             if (candidate.value == value) {
                 return candidate;
             }

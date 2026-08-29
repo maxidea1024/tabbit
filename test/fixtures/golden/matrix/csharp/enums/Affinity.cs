@@ -13,7 +13,7 @@ namespace Tabbit.Fixtures.Matrix
     /// <summary>
     /// What an attack is made of.
     /// </summary>
-    public enum Element
+    public enum Affinity
     {
         /// <summary>
         /// no element

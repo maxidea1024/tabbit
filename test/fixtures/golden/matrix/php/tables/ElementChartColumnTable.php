@@ -12,7 +12,7 @@ declare(strict_types=1);
 namespace Tabbit\Fixtures\Matrix;
 
 require_once __DIR__ . '/../tabbit/TcbReader.php';
-require_once __DIR__ . '/../enums/Element.php';
+require_once __DIR__ . '/../enums/Affinity.php';
 require_once __DIR__ . '/../MatrixAccessor.php';
 
 use Tabbit\TcbReader;
@@ -27,7 +27,7 @@ use Tabbit\Uuid;
  */
 final class ElementChartColumnRecord
 {
-    public Element $defender = Element::None;
+    public Affinity $defender = Affinity::None;
     public int $at = 0;
 }
 
@@ -65,7 +65,7 @@ final class ElementChartColumnTable implements \Countable, \IteratorAggregate, \
      * The lookup to reach for when a missing row is an ordinary answer - an optional
      * reference, a key that came from user input.
      */
-    public function findByDefender(Element $key): ?ElementChartColumnRecord
+    public function findByDefender(Affinity $key): ?ElementChartColumnRecord
     {
         return $this->byDefender[$key->value] ?? null;
     }
@@ -77,7 +77,7 @@ final class ElementChartColumnTable implements \Countable, \IteratorAggregate, \
      * it throws, because a caller reading getByDefender($key)->name at a glance
      * cannot otherwise tell whether the next line is a null check or a catch.
      */
-    public function getByDefenderOrThrow(Element $key): ElementChartColumnRecord
+    public function getByDefenderOrThrow(Affinity $key): ElementChartColumnRecord
     {
         $record = $this->byDefender[$key->value] ?? null;
 
@@ -91,7 +91,7 @@ final class ElementChartColumnTable implements \Countable, \IteratorAggregate, \
     }
 
     /** Whether the table holds a row with this Defender. */
-    public function containsDefender(Element $key): bool
+    public function containsDefender(Affinity $key): bool
     {
         return isset($this->byDefender[$key->value]);
     }
@@ -195,7 +195,7 @@ final class ElementChartColumnTable implements \Countable, \IteratorAggregate, \
                     for ($i = 0; $i < $count; ) {
                         [$n, $value] = $cursor->nextSameI32($count - $i);
                         for (; $n > 0; $n--, $i++) {
-                            $records[$i]->defender = Element::tryFrom($value) ?? Element::None;
+                            $records[$i]->defender = Affinity::tryFrom($value) ?? Affinity::None;
                         }
                     }
                     break;

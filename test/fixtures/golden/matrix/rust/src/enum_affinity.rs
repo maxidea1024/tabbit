@@ -9,7 +9,7 @@
 /// What an attack is made of.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 #[repr(i32)]
-pub enum Element {
+pub enum Affinity {
     /// no element
     #[default]
     None = 0,
@@ -21,14 +21,14 @@ pub enum Element {
     Wind = 3,
 }
 
-impl Element {
+impl Affinity {
     /// The label with this value, or None when the sheet declared no such label.
     pub fn from_value(value: i32) -> Option<Self> {
         match value {
-            0 => Some(Element::None),
-            1 => Some(Element::Fire),
-            2 => Some(Element::Water),
-            3 => Some(Element::Wind),
+            0 => Some(Affinity::None),
+            1 => Some(Affinity::Fire),
+            2 => Some(Affinity::Water),
+            3 => Some(Affinity::Wind),
             _ => None,
         }
     }

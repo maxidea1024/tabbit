@@ -77,6 +77,44 @@ internal sealed class SwiftConstantView
     public required IReadOnlyList<string> Comment { get; set; }
 }
 
+/// <summary>A grid's accessor, spelled the way Swift spells it.</summary>
+/// <remarks>
+/// <see cref="MatrixPlan"/> decides the shape; this is its spelling.
+/// spec/layout/matrix-declaration.md.
+/// </remarks>
+internal sealed class SwiftMatrixView
+{
+    public required string ColumnTable { get; init; }
+
+    public required string ColumnTableName { get; init; }
+
+    public required string ColumnLookup { get; init; }
+
+    public required string RowKeyMember { get; init; }
+
+    public required string RowKeyParam { get; init; }
+
+    public required string RowKeyType { get; init; }
+
+    public required string RowLookup { get; init; }
+
+    public required string ColumnKeyMember { get; init; }
+
+    public required string ColumnKeyParam { get; init; }
+
+    public required string ColumnKeyType { get; init; }
+
+    public required string AtMember { get; init; }
+
+    public required string GridMember { get; init; }
+
+    public required string GridHasMember { get; init; }
+
+    public required string CellType { get; init; }
+
+    public required bool CellsAreOptional { get; init; }
+}
+
 internal sealed class SwiftTableView
 {
     public required string RawName { get; set; }
@@ -90,6 +128,9 @@ internal sealed class SwiftTableView
     /// The indexed fields: the sheet's first column plus every one marked with `*`.
     /// </summary>
     public required IReadOnlyList<SwiftIndexView> Indexes { get; set; }
+
+    /// <summary>The grid this table holds the values of, or null when it is not one.</summary>
+    public SwiftMatrixView? Matrix { get; set; }
 
     /// <summary>
     /// The statements filling every `set` and `map` lookup in the table, ready to paste.
@@ -398,6 +439,18 @@ internal sealed class SwiftAccessorView
     public required string FileExtension { get; set; }
     public required IReadOnlyList<SwiftTableSlotView> Tables { get; set; }
     public required IReadOnlyList<SwiftCrossReferenceView> CrossReferences { get; set; }
+
+    /// <summary>Every grid, as the pass that hands each one its axis names it.</summary>
+    public IReadOnlyList<SwiftGridLinkView> Grids { get; set; }
+        = System.Array.Empty<SwiftGridLinkView>();
+}
+
+/// <summary>One grid, as the accessor's linking pass names it.</summary>
+internal sealed class SwiftGridLinkView
+{
+    public required string Values { get; init; }
+
+    public required string Columns { get; init; }
 }
 
 internal sealed class SwiftTableSlotView

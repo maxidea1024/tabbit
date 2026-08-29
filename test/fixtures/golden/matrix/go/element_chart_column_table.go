@@ -17,14 +17,14 @@ import (
 // ElementChartColumnRecord was generated from test/fixtures/xlsx/matrix/matrix.xlsx : Grids : B11.
 // How much an element does to another.
 type ElementChartColumnRecord struct {
-	Defender Element
+	Defender Affinity
 	At       int32
 }
 
 // ElementChartColumnTable holds every row of ElementChartColumn.
 type ElementChartColumnTable struct {
 	records    []ElementChartColumnRecord
-	byDefender map[Element]int
+	byDefender map[Affinity]int
 }
 
 // Records returns every row, in the order the sheet declared them.
@@ -53,7 +53,7 @@ func (t *ElementChartColumnTable) All() iter.Seq[*ElementChartColumnRecord] {
 //
 // The lookup to reach for when a missing row is an ordinary answer - an optional
 // reference, a key that came from user input.
-func (t *ElementChartColumnTable) FindByDefender(key Element) *ElementChartColumnRecord {
+func (t *ElementChartColumnTable) FindByDefender(key Affinity) *ElementChartColumnRecord {
 	position, found := t.byDefender[key]
 	if !found {
 		return nil
@@ -68,7 +68,7 @@ func (t *ElementChartColumnTable) FindByDefender(key Element) *ElementChartColum
 // For a key that has to be there - one from another table, or a constant. Go has no
 // exception to throw, so where the other languages name a throw this one names the error
 // it returns; either way the call site can tell without going to the definition.
-func (t *ElementChartColumnTable) GetByDefenderOrError(key Element) (*ElementChartColumnRecord, error) {
+func (t *ElementChartColumnTable) GetByDefenderOrError(key Affinity) (*ElementChartColumnRecord, error) {
 	position, found := t.byDefender[key]
 	if !found {
 		return nil, fmt.Errorf(
@@ -79,7 +79,7 @@ func (t *ElementChartColumnTable) GetByDefenderOrError(key Element) (*ElementCha
 }
 
 // ContainsDefender reports whether the table holds a row with this Defender.
-func (t *ElementChartColumnTable) ContainsDefender(key Element) bool {
+func (t *ElementChartColumnTable) ContainsDefender(key Affinity) bool {
 	_, found := t.byDefender[key]
 	return found
 }
@@ -93,10 +93,10 @@ func (t *ElementChartColumnTable) ContainsDefender(key Element) bool {
 // The rows come in the order the file wrote them rather than the order a map happens to
 // hold them, which makes this and All agree. Only the primary key has this: a table keyed
 // by several columns together has no single key value to pair a row with.
-func (t *ElementChartColumnTable) Entries() iter.Seq2[Element, *ElementChartColumnRecord] {
+func (t *ElementChartColumnTable) Entries() iter.Seq2[Affinity, *ElementChartColumnRecord] {
 	records := t.records
 
-	return func(yield func(Element, *ElementChartColumnRecord) bool) {
+	return func(yield func(Affinity, *ElementChartColumnRecord) bool) {
 		for i := range records {
 			if !yield(records[i].Defender, &records[i]) {
 				return
@@ -146,7 +146,7 @@ func (t *ElementChartColumnTable) Read(filename string) error {
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
 					for ; n > 0; n-- {
-						records[i].Defender = Element(value)
+						records[i].Defender = Affinity(value)
 						i++
 					}
 				}
@@ -174,7 +174,7 @@ func (t *ElementChartColumnTable) Read(filename string) error {
 		return fmt.Errorf("ElementChartColumn: %w", err)
 	}
 
-	byDefender := make(map[Element]int, len(records))
+	byDefender := make(map[Affinity]int, len(records))
 	for i := range records {
 		byDefender[records[i].Defender] = i
 	}

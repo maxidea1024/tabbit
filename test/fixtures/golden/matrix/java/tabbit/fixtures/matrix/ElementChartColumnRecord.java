@@ -12,7 +12,7 @@ import tabbit.TcbReader;
 // Generated from test/fixtures/xlsx/matrix/matrix.xlsx : Grids : B11
 /** How much an element does to another. */
 public final class ElementChartColumnRecord {
-    public Element defender = Element.of(0);
+    public Affinity defender = Affinity.of(0);
     public int at;
 
 }

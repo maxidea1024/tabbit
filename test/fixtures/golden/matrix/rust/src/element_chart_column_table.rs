@@ -8,13 +8,13 @@
 use std::collections::HashMap;
 use std::path::Path;
 use crate::tabbit;
-use crate::enum_element::Element;
+use crate::enum_affinity::Affinity;
 
 // Generated from test/fixtures/xlsx/matrix/matrix.xlsx : Grids : B11
 /// How much an element does to another.
 #[derive(Clone, Debug, Default)]
 pub struct ElementChartColumnRecord {
-    pub defender: Element,
+    pub defender: Affinity,
     pub at: i32,
 }
 
@@ -25,7 +25,7 @@ impl ElementChartColumnRecord {
 #[derive(Clone, Debug, Default)]
 pub struct ElementChartColumnTable {
     records: Vec<ElementChartColumnRecord>,
-    by_defender: HashMap<Element, usize>,
+    by_defender: HashMap<Affinity, usize>,
 }
 
 impl ElementChartColumnTable {
@@ -56,7 +56,7 @@ impl ElementChartColumnTable {
     ///
     /// The lookup to reach for when a missing row is an ordinary answer - an optional
     /// reference, a key that came from user input.
-    pub fn find_by_defender(&self, key: Element) -> Option<&ElementChartColumnRecord> {
+    pub fn find_by_defender(&self, key: Affinity) -> Option<&ElementChartColumnRecord> {
         self.by_defender.get(&key).map(|position| &self.records[*position])
     }
 
@@ -65,7 +65,7 @@ impl ElementChartColumnTable {
     /// For a key that has to be there - one from another table, or a constant. Rust has no
     /// exception to throw, so where the other languages name a throw this one names the
     /// error it returns.
-    pub fn get_by_defender_or_error(&self, key: Element) -> tabbit::Result<&ElementChartColumnRecord> {
+    pub fn get_by_defender_or_error(&self, key: Affinity) -> tabbit::Result<&ElementChartColumnRecord> {
         self.by_defender
             .get(&key)
             .map(|position| &self.records[*position])
@@ -77,7 +77,7 @@ impl ElementChartColumnTable {
     }
 
     /// Whether the table holds a row with this Defender.
-    pub fn contains_defender(&self, key: Element) -> bool {
+    pub fn contains_defender(&self, key: Affinity) -> bool {
         self.by_defender.contains_key(&key)
     }
 
@@ -91,7 +91,7 @@ impl ElementChartColumnTable {
     /// The rows come in the order the file wrote them rather than the order the map holds
     /// them, which makes this and `iter` agree. Only the primary key has this: a table
     /// keyed by several columns together has no single key value to pair a row with.
-    pub fn entries(&self) -> impl Iterator<Item = (&Element, &ElementChartColumnRecord)> + '_ {
+    pub fn entries(&self) -> impl Iterator<Item = (&Affinity, &ElementChartColumnRecord)> + '_ {
         self.records.iter().map(|record| (&record.defender, record))
     }
 
@@ -138,7 +138,7 @@ impl ElementChartColumnTable {
                     while at < records.len() {
                         let (n, value) = cursor.next_same_i32((records.len() - at) as i32)?;
                         for _ in 0..n {
-                            records[at].defender = Element::from_value(value).unwrap_or_default();
+                            records[at].defender = Affinity::from_value(value).unwrap_or_default();
                             at += 1;
                         }
                     }

@@ -7,7 +7,7 @@
 
 require_relative 'tabbit/tcb_reader'
 
-require_relative 'enums/element'
+require_relative 'enums/affinity'
 
 require_relative 'tables/goods_table'
 

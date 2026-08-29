@@ -7,7 +7,7 @@
 
 
 // Enums
-export { Element } from './enums/element'
+export { Affinity } from './enums/affinity'
 
 // Tables
 export { GoodsRecord } from './tables/goods'

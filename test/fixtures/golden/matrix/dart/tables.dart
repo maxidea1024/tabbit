@@ -17,7 +17,7 @@ part 'tables/town_price_table.dart';
 part 'tables/town_price_column_table.dart';
 part 'tables/element_chart_table.dart';
 part 'tables/element_chart_column_table.dart';
-part 'enums/element.dart';
+part 'enums/affinity.dart';
 
 /// Every table, loaded together so cross-table references can be resolved.
 class Tables {
