@@ -1,0 +1,36 @@
+{{~##
+   One declared record type, and the levels inside it that are its own.
+
+   **A struct is an entity beside a table and an enum, so it gets a file like one.** The
+   declaration says "this is one type", and the generated code says the same thing only if
+   there is one type. spec/types/declared-struct-identity.md.
+##~}}
+{{ include 'go-file-head.sbn' ~}}
+{{~ for rt in record.types }}
+{{~ if rt.is_outermost ~}}
+{{~ if record.comment | array.size > 0 ~}}
+{{~ for line in record.comment ~}}
+// {{ line }}
+{{~ end ~}}
+{{~ else ~}}
+// {{ rt.type_name }} is one value of the declaration that names it.
+{{~ end ~}}
+{{~ else ~}}
+// {{ rt.type_name }} is a record inside {{ record.name }}.
+{{~ end ~}}
+type {{ rt.type_name }} struct {
+{{~ for member in rt.members ~}}
+{{~ for line in member.comment ~}}
+	// {{ line }}
+{{~ end ~}}
+{{~ for line in member.declarations ~}}
+	{{ line }}
+{{~ end ~}}
+{{~ end ~}}
+{{~ for lookup in rt.lookups ~}}
+
+	// {{ lookup.comment }}
+	{{ lookup.name }} {{ lookup.type_name }}
+{{~ end ~}}
+}
+{{~ end ~}}

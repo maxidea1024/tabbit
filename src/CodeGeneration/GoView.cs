@@ -35,6 +35,9 @@ internal sealed class GoPartView
     /// <summary>Import lines, already quoted, with a blank entry where gofmt wants a gap.</summary>
     public IReadOnlyList<string>? Imports { get; set; }
 
+    /// <summary>The declared record type this file is for.</summary>
+    public GoRecordFileView? Record { get; set; }
+
     /// <summary>
     /// Whether the target's Go version has range-over-function.
     /// </summary>
@@ -417,6 +420,21 @@ internal sealed class GoRecordMemberView
 /// where depth had to be reasoned about in template syntax. Innermost first.
 /// spec/types/nested-multi-level.md.
 /// </remarks>
+/// <summary>One declared record type, and the levels inside it that are its own.</summary>
+/// <remarks>
+/// The same views a table builds for a group it declares inline - the type is the same shape
+/// wherever it is written, and only the place changes.
+/// spec/types/declared-struct-identity.md.
+/// </remarks>
+internal sealed class GoRecordFileView
+{
+    public required string Name { get; init; }
+
+    public required IReadOnlyList<string> Comment { get; init; }
+
+    public required IReadOnlyList<GoRecordTypeView> Types { get; init; }
+}
+
 internal sealed class GoRecordTypeView
 {
     /// <summary>Name of the struct.</summary>
@@ -427,6 +445,10 @@ internal sealed class GoRecordTypeView
 
     /// <summary>Whether this is the group's own element type rather than a level below it.</summary>
     public required bool IsOutermost { get; set; }
+
+    /// <summary>Whether the type is a declaration's, so it is written once in its own file.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    public bool IsShared { get; set; }
 
     /// <summary>What the struct is called in its doc comment.</summary>
     public required string Owner { get; set; }

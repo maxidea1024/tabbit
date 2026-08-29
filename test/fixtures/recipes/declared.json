@@ -36,6 +36,12 @@
       "Indented": true
     },
     {
+      "Type": "go",
+      "Path": "test/fixtures/output/declared/go",
+      "PackageName": "declareddata",
+      "ModulePath": "declareddata"
+    },
+    {
       "Type": "typescript",
       "Path": "test/fixtures/output/declared/typescript"
     },

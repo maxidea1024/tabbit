@@ -271,6 +271,21 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
                   });
         }
 
+        // And the declarations whose value is one shape, beside them for the same reason: a Go
+        // directory is one package, so a type declared per table would be the same name
+        // declared twice. spec/types/declared-struct-identity.md.
+        foreach (var record in BuildRecordFiles())
+        {
+            Write("struct_" + record.Name.ToSnakeCase() + ".go", "go-record.sbn",
+                  new GoPartView
+                  {
+                      AccessorName = AccessorType,
+                      PackageName = _recipe.PackageName,
+                      Imports = Imports(System.Array.Empty<string>(), reader: false),
+                      Record = record,
+                  });
+        }
+
         foreach (var pair in _model.ConstantSets.Zip(view.ConstantSets, (model, rendered) => (model, rendered)))
         {
             // A constant set names no standard library type, and reaches the reader only
@@ -766,9 +781,13 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// line: a Go struct zero-initializes, so there is no factory to call for it to reach its
     /// members' empty values. spec/types/nested-multi-level.md.
     /// </remarks>
+    /// <param name="inShared">
+    /// Whether these members sit inside a type a declaration owns. Everything below such a
+    /// level is written where that type is. spec/types/declared-struct-identity.md.
+    /// </param>
     private List<GoRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, Table table, SerialField group,
-        List<GoRecordTypeView> declared)
+        List<GoRecordTypeView> declared, bool inShared = false)
     {
         var result = new List<GoRecordMemberView>();
 
@@ -833,12 +852,19 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
 
             // A level below. The type name carries the path so two records each holding a
             // `Position` do not name one struct twice.
-            string typeName = prefix + GoName(member.Name);
-            var nested = BuildRecordMembers(member.Members, typeName, table, group, declared);
+            string typeName = member.DeclaredType.Length > 0
+                ? member.DeclaredType
+                : prefix + GoName(member.Name);
+
+            bool nestedIsShared = inShared || member.DeclaredType.Length > 0;
+
+            var nested = BuildRecordMembers(
+                member.Members, typeName, table, group, declared, nestedIsShared);
 
             declared.Add(new GoRecordTypeView
             {
                 TypeName = typeName,
+                IsShared = nestedIsShared,
                 Members = nested,
                 IsOutermost = false,
                 Owner = $"{table.Name.ToPascalCase()}Record.{GoName(group.Name)}",
@@ -892,11 +918,15 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
 
         // Innermost first, so a struct is declared before the one naming it.
         var recordTypes = new List<GoRecordTypeView>();
-        var members = BuildRecordMembers(sf.Members, elementType, table, sf, recordTypes);
+
+        var members = BuildRecordMembers(
+            sf.Members, elementType, table, sf, recordTypes,
+            inShared: sf.DeclaredType.Length > 0);
 
         recordTypes.Add(new GoRecordTypeView
         {
             TypeName = elementType,
+            IsShared = sf.DeclaredType.Length > 0,
             Members = members,
             IsOutermost = true,
             Lookups = LookupsOf(sf.Members, sf.Container),
@@ -1051,8 +1081,52 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// shares a namespace - two tables each holding a `Slot` group would otherwise be the
     /// same name declared twice.
     /// </remarks>
+    /// <summary>
+    /// The declared record types, each with the levels inside it that are its own.
+    /// </summary>
+    /// <remarks>
+    /// A level below that is itself a declaration is skipped: it has a file of its own.
+    /// spec/types/declared-struct-identity.md.
+    /// </remarks>
+    private IReadOnlyList<GoRecordFileView> BuildRecordFiles()
+        => _model.RecordTypes
+            .Select(declared =>
+            {
+                var types = new List<GoRecordTypeView>();
+
+                var owner = _model.Tables.FirstOrDefault(table => table.SerialFields.Any(
+                    group => group.DeclaredType == declared.Name))!;
+
+                var group = owner?.SerialFields.First(
+                    candidate => candidate.DeclaredType == declared.Name)!;
+
+                var members = BuildRecordMembers(
+                    declared.Members, declared.Name, owner!, group!, types);
+
+                types.Add(new GoRecordTypeView
+                {
+                    TypeName = declared.Name,
+                    IsShared = true,
+                    Members = members,
+                    IsOutermost = true,
+                    Lookups = LookupsOf(declared.Members, Models.ContainerKind.None),
+                    Owner = declared.Name,
+                });
+
+                return new GoRecordFileView
+                {
+                    Name = declared.Name,
+                    Comment = CommentLines(declared.Comment),
+                    Types = types.Where(type => type.TypeName == declared.Name
+                                                || !type.IsShared).ToList(),
+                };
+            })
+            .ToList();
+
     private static string RecordTypeName(Table table, SerialField sf)
-        => table.Name.ToPascalCase() + sf.Name.ToPascalCase() + "Entry";
+        => sf.DeclaredType.Length > 0
+            ? sf.DeclaredType
+            : table.Name.ToPascalCase() + sf.Name.ToPascalCase() + "Entry";
 
     /// <summary>
     /// The member a nullable column's presence lands in.

@@ -9,6 +9,10 @@
 {{~## One struct per level, innermost first - the view flattened the nesting so this loop does
    not have to know how deep it went. spec/types/nested-multi-level.md. ##~}}
 {{~ for rt in field.record_types ~}}
+{{~## A shared type is written once in a file of its own - a Go directory is one package, so
+   a type declared per table would be the same name declared twice.
+   spec/types/declared-struct-identity.md. ##~}}
+{{~ if !rt.is_shared ~}}
 {{~ if rt.is_outermost ~}}
 // {{ rt.type_name }} is one element of {{ rt.owner }}.
 {{~ else ~}}
@@ -32,6 +36,7 @@ type {{ rt.type_name }} struct {
 	{{ lookup.name }} {{ lookup.type_name }}
 {{~ end ~}}
 }
+{{~ end ~}}
 {{~## The per-target methods of every member of this struct that reaches several tables. One
    taking an element number where the member is the array, which is the third place an element
    number sits. spec/references/multi-target-accessors.md. ##~}}
