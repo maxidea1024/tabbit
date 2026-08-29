@@ -80,6 +80,7 @@
 | --- | --- |
 | [중첩 필드](../spec/types/nested-fields.md) | 컬럼 여러 개를 레코드 하나로 접으면서 와이어 형식은 그대로 둔 방법 |
 | [다중 중첩](../spec/types/nested-multi-level.md) | 멤버가 배열인 레코드와 배열의 배열. 깊이 제한을 없앤 근거 |
+| [선언된 struct의 신원](../spec/types/declared-struct-identity.md) | 두 테이블의 `Reward`가 같은 타입이 되는 것. 형식은 그대로이고 생성 코드가 전부 움직입니다 |
 | [매트릭스 표](../spec/layout/matrix-tables.md) | 컬럼 이름이 행 id인 격자. long-form과 map을 채택하지 않은 이유 |
 | [행렬 선언 검토](../spec/types/matrix-entity.md) | 다섯 번째 선언 종류를 둘 것인가. 인코딩 이득이 없고 표기 이득이 있는 이유 |
 | [매트릭스 선언](../spec/layout/matrix-declaration.md) | `:matrix` 선언 셀의 시트 표기. 축의 키가 정수가 아니어도 되는 설계 |
