@@ -91,6 +91,46 @@ internal sealed class GoConstantView
     public required IReadOnlyList<string> Comment { get; set; }
 }
 
+/// <summary>A grid's accessor, spelled the way Go spells it.</summary>
+/// <remarks>
+/// Go holds the axis as a map from key to position rather than as a pointer to the column
+/// table. The accessor is copied into place after loading - `*t = loaded` - so a pointer at a
+/// field of the load would name the copy that was left behind; a map is a reference and
+/// survives that unchanged. <see cref="MatrixPlan"/> decides the shape.
+/// </remarks>
+internal sealed class GoMatrixView
+{
+    /// <summary>The column table's type.</summary>
+    public required string ColumnTable { get; init; }
+
+    /// <summary>The table's name as the sheet wrote it, for a message.</summary>
+    public required string ColumnTableName { get; init; }
+
+    public required string RowKeyMember { get; init; }
+
+    public required string RowKeyParam { get; init; }
+
+    public required string RowKeyType { get; init; }
+
+    public required string RowLookup { get; init; }
+
+    public required string ColumnKeyMember { get; init; }
+
+    public required string ColumnKeyParam { get; init; }
+
+    public required string ColumnKeyType { get; init; }
+
+    public required string AtMember { get; init; }
+
+    public required string GridMember { get; init; }
+
+    public required string GridHasMember { get; init; }
+
+    public required string CellType { get; init; }
+
+    public required bool CellsAreOptional { get; init; }
+}
+
 internal sealed class GoTableView
 {
     /// <summary>Table name as the sheet spelled it, used in the data file name.</summary>
@@ -105,6 +145,9 @@ internal sealed class GoTableView
     /// The indexed fields: the sheet's first column plus every one marked with `*`.
     /// </summary>
     public required IReadOnlyList<GoIndexView> Indexes { get; set; }
+
+    /// <summary>The grid this table holds the values of, or null when it is not one.</summary>
+    public GoMatrixView? Matrix { get; set; }
 
     /// <summary>
     /// Every `set` and `map` lookup in the table, with what reaches it from a record.
@@ -565,6 +608,17 @@ internal sealed class GoAccessorView
     public required string FileExtension { get; set; }
     public required IReadOnlyList<GoTableSlotView> Tables { get; set; }
     public required IReadOnlyList<GoCrossReferenceView> CrossReferences { get; set; }
+
+    /// <summary>Every grid, as the pass that hands each one its axis names it.</summary>
+    public IReadOnlyList<GoGridLinkView> Grids { get; set; } = System.Array.Empty<GoGridLinkView>();
+}
+
+/// <summary>One grid, as the accessor's linking pass names it.</summary>
+internal sealed class GoGridLinkView
+{
+    public required string Values { get; init; }
+
+    public required string Columns { get; init; }
 }
 
 internal sealed class GoTableSlotView

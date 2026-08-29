@@ -232,6 +232,11 @@ for pair in [(2001, 999), (9999, 101)]:
         start.ArgumentList.Add(script);
         start.Environment["PYTHONIOENCODING"] = "utf-8";
 
+        // **No `__pycache__` in the generated tree.** Importing the package writes bytecode
+        // beside it by default, and three tests walk that tree and judge every file in it -
+        // a compiler's working file there is read as something the converter produced.
+        start.Environment["PYTHONDONTWRITEBYTECODE"] = "1";
+
         using var process = Process.Start(start);
 
         string output = process.StandardOutput.ReadToEnd() + process.StandardError.ReadToEnd();

@@ -516,6 +516,7 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
         Location = table.Location.ToString(),
         Comment = CommentLines(table.Comment),
         Indexes = Indexes(table),
+        Matrix = BuildMatrix(table),
         Containers = ContainersOf(table),
         Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
 
@@ -1374,6 +1375,16 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             DataFileName = table.DataFileName,
         }).ToList(),
 
+        Grids = _model.Tables
+            .Select(table => MatrixPlans.Of(table, _model))
+            .Where(plan => plan is not null)
+            .Select(plan => new GoGridLinkView
+            {
+                Values = GoPascalName(plan!.Values.Name),
+                Columns = GoPascalName(plan.Columns.Name),
+            })
+            .ToList(),
+
         CrossReferences = _model.Tables
             .Select(table => new
             {
@@ -1717,6 +1728,32 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
     /// somewhere else. `KeyComponentView.TypeOf` is the one place that decides, and the
     /// composite path already asks it; this is the single-column path asking the same.
     /// </remarks>
+    /// <summary>The grid accessor for this table, or null when it is not a grid's values.</summary>
+    private GoMatrixView? BuildMatrix(Table table)
+    {
+        if (MatrixPlans.Of(table, _model) is not { } plan)
+            return null;
+
+        return new GoMatrixView
+        {
+            ColumnTable = plan.Columns.Name.ToPascalCase() + "Table",
+            ColumnTableName = plan.Columns.Name,
+            RowKeyMember = GoName(plan.RowKey.Name),
+            RowKeyParam = KeyComponentView.ParamOf(plan.RowKey.Name),
+            RowKeyType = IndexKeyType(plan.RowKey),
+            RowLookup = "FindBy" + plan.RowKey.Name.ToPascalCase(),
+            ColumnKeyMember = GoName(plan.ColumnKey.Name),
+            ColumnKeyParam = KeyComponentView.ParamOf(plan.ColumnKey.Name),
+            ColumnKeyType = IndexKeyType(plan.ColumnKey),
+            AtMember = GoName(plan.At.Name),
+            GridMember = GoName(plan.Grid.Name),
+            GridHasMember = "Has" + plan.Grid.Name.ToPascalCase() + "At",
+            CellType = ToGoTypeName(
+                plan.Grid.FirstField!.ElementType, plan.Grid.FirstField!.EnumOrNull, null),
+            CellsAreOptional = plan.CellsAreOptional,
+        };
+    }
+
     private string IndexKeyType(SerialField only)
     {
         var (type, enumm) = KeyComponentView.TypeOf(only);

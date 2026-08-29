@@ -151,6 +151,13 @@ type {{ table.table_name }} struct {
 {{~ for index in table.indexes ~}}
 	{{ index.map_name }} map[{{ index.key_type }}]int
 {{~ end ~}}
+{{~ if table.matrix ~}}
+{{~## The axis as a map and a slice rather than a pointer at the column table - the accessor
+      is copied into place after loading, and these two survive that where a pointer at one of
+      its fields would not. ##~}}
+	columnAt map[{{ table.matrix.column_key_type }}]int
+	columnKeys []{{ table.matrix.column_key_type }}
+{{~ end ~}}
 }
 
 // Records returns every row, in the order the sheet declared them.
@@ -174,6 +181,124 @@ func (t *{{ table.table_name }}) All() iter.Seq[*{{ table.record_name }}] {
 			}
 		}
 	}
+}
+{{~ end ~}}
+{{~ if table.matrix }}
+{{~ m = table.matrix ~}}
+{{~## The two lookups composed. Both halves already exist - this table indexes its rows by the
+   row axis and the column table indexes its own by the column axis - and what this adds is the
+   one call that goes through both. spec/layout/matrix-declaration.md section 8. ##~}}
+// LinkColumnAxis hands this table the column axis its cells are positioned by.
+//
+// Called by the accessor once both files are read. The length check is here rather than in
+// the read: a grid is two files, either can be deployed without the other, and a row whose
+// array is a different length from the axis is a row whose cells have moved.
+//
+// What is kept is a map from key to position rather than a pointer at the column table. The
+// accessor is copied into place after loading, so a pointer at one of its fields would name
+// the copy left behind; a map is a reference and survives that.
+func (t *{{ table.table_name }}) LinkColumnAxis(columns *{{ m.column_table }}) error {
+	at := make(map[{{ m.column_key_type }}]int, columns.Count())
+	keys := make([]{{ m.column_key_type }}, columns.Count())
+
+	for i := range columns.Records() {
+{{~## The position travels as the column's own integer type; a subscript is an `int`. ##~}}
+		key := columns.Records()[i].{{ m.column_key_member }}
+		position := int(columns.Records()[i].{{ m.at_member }})
+
+		at[key] = position
+		keys[position] = key
+	}
+
+	for i := range t.records {
+		if len(t.records[i].{{ m.grid_member }}) != len(keys) {
+			return fmt.Errorf(
+				"table `{{ table.raw_name }}` holds %d cells for `%v` and its column axis `{{ m.column_table_name }}` holds %d keys; the two files are from different builds",
+				len(t.records[i].{{ m.grid_member }}), t.records[i].{{ m.row_key_member }}, len(keys))
+		}
+	}
+
+	t.columnAt = at
+	t.columnKeys = keys
+
+	return nil
+}
+
+// RowKeys returns the row axis keys, in the order the file wrote them.
+func (t *{{ table.table_name }}) RowKeys() []{{ m.row_key_type }} {
+	keys := make([]{{ m.row_key_type }}, len(t.records))
+
+	for i := range t.records {
+		keys[i] = t.records[i].{{ m.row_key_member }}
+	}
+
+	return keys
+}
+
+// ColKeys returns the column axis keys, in the order a row holds its cells.
+func (t *{{ table.table_name }}) ColKeys() []{{ m.column_key_type }} { return t.columnKeys }
+
+// Row returns one row of cells, or nil when the grid has no such row.
+//
+// In the order ColKeys is in, which is what makes a position mean something. The slice is the
+// record's own, so it is not a copy.
+func (t *{{ table.table_name }}) Row({{ m.row_key_param }} {{ m.row_key_type }}) []{{ m.cell_type }} {
+	record := t.{{ m.row_lookup }}({{ m.row_key_param }})
+	if record == nil {
+		return nil
+	}
+
+	return record.{{ m.grid_member }}
+}
+
+// At returns the cell where the two keys meet, or an error naming the one that missed.
+//
+// It errors rather than answering with the type's zero value, because a grid's zero is one
+// the sheet can write - 0 in a modifier table is a modifier of zero.
+func (t *{{ table.table_name }}) At({{ m.row_key_param }} {{ m.row_key_type }}, {{ m.column_key_param }} {{ m.column_key_type }}) ({{ m.cell_type }}, error) {
+	record, at, err := t.cellAt({{ m.row_key_param }}, {{ m.column_key_param }})
+	if err != nil {
+		var none {{ m.cell_type }}
+		return none, err
+	}
+
+	return record.{{ m.grid_member }}[at], nil
+}
+{{~ if m.cells_are_optional }}
+
+// HasAt reports whether the sheet gave the cell where the two keys meet a value.
+//
+// A grid whose cells are optional reads a blank as the type's zero value, and that value is
+// one the sheet could also have written - so this is the only way to tell them apart.
+func (t *{{ table.table_name }}) HasAt({{ m.row_key_param }} {{ m.row_key_type }}, {{ m.column_key_param }} {{ m.column_key_type }}) (bool, error) {
+	record, at, err := t.cellAt({{ m.row_key_param }}, {{ m.column_key_param }})
+	if err != nil {
+		return false, err
+	}
+
+{{~## A slice rather than a call: Go holds the per-element answers as a field. ##~}}
+	return record.{{ m.grid_has_member }}[at], nil
+}
+{{~ end }}
+
+// cellAt does both lookups once for the readers above.
+func (t *{{ table.table_name }}) cellAt({{ m.row_key_param }} {{ m.row_key_type }}, {{ m.column_key_param }} {{ m.column_key_type }}) (*{{ table.record_name }}, int, error) {
+	if t.columnAt == nil {
+		return nil, 0, fmt.Errorf(
+			"table `{{ table.raw_name }}` has no column axis yet; read `{{ m.column_table_name }}` before reading a cell")
+	}
+
+	record := t.{{ m.row_lookup }}({{ m.row_key_param }})
+	if record == nil {
+		return nil, 0, fmt.Errorf("table `{{ table.raw_name }}` has no row `%v`", {{ m.row_key_param }})
+	}
+
+	at, found := t.columnAt[{{ m.column_key_param }}]
+	if !found {
+		return nil, 0, fmt.Errorf("table `{{ table.raw_name }}` has no column `%v`", {{ m.column_key_param }})
+	}
+
+	return record, at, nil
 }
 {{~ end ~}}
 {{~ for index in table.indexes }}

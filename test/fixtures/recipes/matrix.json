@@ -35,6 +35,12 @@
       "Path": "test/fixtures/output/matrix/typescript"
     },
     {
+      "Type": "go",
+      "Path": "test/fixtures/output/matrix/go",
+      "PackageName": "matrixdata",
+      "ModulePath": "matrixdata"
+    },
+    {
       "Type": "python",
       "Path": "test/fixtures/output/matrix/python",
       "PackageName": "matrix_data"
