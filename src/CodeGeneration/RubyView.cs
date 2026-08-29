@@ -86,6 +86,32 @@ internal sealed class RubyConstantView
     public required IReadOnlyList<string> Comment { get; set; }
 }
 
+/// <summary>A grid's accessor, spelled the way Ruby spells it.</summary>
+/// <remarks>
+/// No types, like Python: what a grid needs here is names alone. <see cref="MatrixPlan"/>
+/// decides the shape. spec/layout/matrix-declaration.md.
+/// </remarks>
+internal sealed class RubyMatrixView
+{
+    public required string ColumnTable { get; init; }
+
+    public required string RowKeyMember { get; init; }
+
+    public required string RowLookup { get; init; }
+
+    public required string ColumnKeyMember { get; init; }
+
+    public required string ColumnLookup { get; init; }
+
+    public required string AtMember { get; init; }
+
+    public required string GridMember { get; init; }
+
+    public required string GridHasMember { get; init; }
+
+    public required bool CellsAreOptional { get; init; }
+}
+
 internal sealed class RubyTableView
 {
     public required string RawName { get; set; }
@@ -98,6 +124,9 @@ internal sealed class RubyTableView
     /// The indexed fields: the sheet's first column plus every one marked with `*`.
     /// </summary>
     public required IReadOnlyList<RubyIndexView> Indexes { get; set; }
+
+    /// <summary>The grid this table holds the values of, or null when it is not one.</summary>
+    public RubyMatrixView? Matrix { get; set; }
 
     /// <summary>
     /// The statements filling every `set` and `map` lookup in the table, ready to paste.
@@ -436,6 +465,14 @@ internal sealed class RubyColumnView
     public required string EmptyValue { get; set; }
 }
 
+/// <summary>One grid, as the accessor's linking pass names it.</summary>
+internal sealed class RubyGridLinkView
+{
+    public required string Values { get; init; }
+
+    public required string Columns { get; init; }
+}
+
 internal sealed class RubyAccessorView
 {
     public required string FileExtension { get; set; }
@@ -445,6 +482,10 @@ internal sealed class RubyAccessorView
 
     public required IReadOnlyList<RubyTableSlotView> Tables { get; set; }
     public required IReadOnlyList<RubyCrossReferenceView> CrossReferences { get; set; }
+
+    /// <summary>Every grid, as the pass that hands each one its axis names it.</summary>
+    public IReadOnlyList<RubyGridLinkView> Grids { get; set; }
+        = System.Array.Empty<RubyGridLinkView>();
 }
 
 internal sealed class RubyTableSlotView

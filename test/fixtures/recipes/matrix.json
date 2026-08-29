@@ -35,6 +35,11 @@
       "Path": "test/fixtures/output/matrix/typescript"
     },
     {
+      "Type": "ruby",
+      "Path": "test/fixtures/output/matrix/ruby",
+      "ModuleName": "MatrixData"
+    },
+    {
       "Type": "php",
       "Path": "test/fixtures/output/matrix/php",
       "Namespace": "Tabbit\\Fixtures\\Matrix",

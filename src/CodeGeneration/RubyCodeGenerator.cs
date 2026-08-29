@@ -364,6 +364,7 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             Location = table.Location.ToString(),
             Comment = CommentLines(table.Comment),
             Indexes = Indexes(table),
+            Matrix = BuildMatrix(table),
             ContainerFill = ContainerFillLines(table),
             AccessorNames = Symbols(accessors),
             Fields = table.SerialFields.Select(sf => BuildField(table, sf)).ToList(),
@@ -757,6 +758,26 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     /// it, and the model has already required its columns to agree about being optional.
     /// </remarks>
     /// <summary>The member holding which of an array's elements have a value.</summary>
+    /// <summary>The grid accessor for this table, or null when it is not a grid's values.</summary>
+    private RubyMatrixView? BuildMatrix(Table table)
+    {
+        if (MatrixPlans.Of(table, _model) is not { } plan)
+            return null;
+
+        return new RubyMatrixView
+        {
+            ColumnTable = plan.Columns.Name,
+            RowKeyMember = RubyName(plan.RowKey.Name),
+            RowLookup = "find_by_" + plan.RowKey.Name.ToSnakeCase(),
+            ColumnKeyMember = RubyName(plan.ColumnKey.Name),
+            ColumnLookup = "find_by_" + plan.ColumnKey.Name.ToSnakeCase(),
+            AtMember = RubyName(plan.At.Name),
+            GridMember = RubyName(plan.Grid.Name),
+            GridHasMember = ElementPresenceMember(plan.Grid),
+            CellsAreOptional = plan.CellsAreOptional,
+        };
+    }
+
     private string ElementPresenceMember(SerialField sf)
         => sf.IsRecord ? "" : RubyName("has_" + sf.Name + "_at");
 
@@ -1187,6 +1208,16 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
             // Unescaped: this one names the file the exporter wrote.
             DataFileName = table.DataFileName,
         }).ToList(),
+
+        Grids = _model.Tables
+            .Select(table => MatrixPlans.Of(table, _model))
+            .Where(plan => plan is not null)
+            .Select(plan => new RubyGridLinkView
+            {
+                Values = RubySnakeName(plan!.Values.Name),
+                Columns = RubySnakeName(plan.Columns.Name),
+            })
+            .ToList(),
 
         CrossReferences = _model.Tables
             .Select(table => new
