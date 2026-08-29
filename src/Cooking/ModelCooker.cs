@@ -142,6 +142,10 @@ public partial class ModelCooker
         // spec/types/polymorphism.md section 7.1.
         GatherPolymorphicTypes(result);
 
+        // And the declarations whose value is one shape, gathered the same way and for the
+        // same reason. spec/types/declared-struct-identity.md.
+        GatherRecordTypes(result, declarations);
+
         // Runs after resolution: validation follows references to check that what
         // they point at exists.
         //

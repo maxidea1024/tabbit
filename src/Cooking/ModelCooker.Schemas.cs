@@ -68,6 +68,57 @@ public partial class ModelCooker
     }
 
     /// <summary>
+    /// Gathers the declared structs the sheets used, one entry per declaration.
+    /// </summary>
+    /// <remarks>
+    /// **First group wins, and any group would do.** The declaration fixes what the members
+    /// are and the binding refuses a group that leaves one out, so two tables using one struct
+    /// give the same answer - and taking the members from one of them is what lets every
+    /// generator write the type with the machinery it already has.
+    ///
+    /// Nested declarations are gathered too, and by the same rule: a member whose own value is
+    /// a declared struct is a declaration, so it is a type. Depth is not counted here any more
+    /// than anywhere else - the walk follows members until there are none.
+    ///
+    /// Nothing is gathered for a declaration no sheet used. A struct on its own is not a type
+    /// in the output, the same way an enum nobody typed a column with is not.
+    /// spec/types/declared-struct-identity.md.
+    /// </remarks>
+    private static void GatherRecordTypes(Model model, SchemaDeclarations declarations)
+    {
+        var seen = new HashSet<string>(System.StringComparer.Ordinal);
+
+        foreach (var table in model.Tables)
+        {
+            foreach (var group in table.SerialFields)
+            {
+                if (!group.IsRecord)
+                    continue;
+
+                Take(group.DeclaredType, group.Members);
+            }
+        }
+
+        void Take(string name, List<RecordMember> members)
+        {
+            if (name.Length > 0 && seen.Add(name))
+            {
+                model.RecordTypes.Add(new RecordType
+                {
+                    Name = name,
+                    Comment = declarations.FindStruct(name)?.Comment ?? "",
+                    Members = members,
+                });
+            }
+
+            // Below it whether or not the level above was one: a group nobody declared may
+            // still hold a member that something did.
+            foreach (var member in members)
+                Take(member.DeclaredType, member.Members);
+        }
+    }
+
+    /// <summary>
     /// The record groups of a table: columns that sit inside one, gathered by its name.
     /// </summary>
     /// <remarks>
@@ -281,6 +332,13 @@ public partial class ModelCooker
         containerKind = Models.ContainerKind.None;
         containerLevel = -1;
 
+        // **The walk is where a level learns what it is.** Level zero is the group, which the
+        // type cell named; every level below is whatever the member it stepped through
+        // declares. Stamped here rather than derived later because this is the only pass that
+        // holds both the path and the declarations at once.
+        // spec/types/declared-struct-identity.md.
+        path[0].DeclaredType = declared.Name.ToPascalCase();
+
         for (int level = 1; level < path.Count; level++)
         {
             if (path[level].IsAnonymous)
@@ -320,6 +378,8 @@ public partial class ModelCooker
             here = member.Type.Form == SchemaTypeForm.Named
                 ? declarations.FindStruct(member.Type.Name)
                 : null;
+
+            path[level].DeclaredType = here is null ? "" : here.Name.ToPascalCase();
         }
 
         // A member of a struct that a container holds is one column per entry, so its column

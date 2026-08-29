@@ -34,6 +34,16 @@ public class Model
     /// </remarks>
     public List<PolymorphicType> PolymorphicTypes { get; set; } = new List<PolymorphicType>();
 
+    /// <summary>
+    /// The declared structs a sheet used, one entry however many groups named each.
+    /// </summary>
+    /// <remarks>
+    /// Model level for the reason <see cref="PolymorphicTypes"/> is: the declaration is one
+    /// type, and it is one type in the output only if one thing declares it.
+    /// spec/types/declared-struct-identity.md.
+    /// </remarks>
+    public List<RecordType> RecordTypes { get; set; } = new List<RecordType>();
+
     /// <summary>Constant sets. Parsed before tables, for the same reason.</summary>
     public List<ConstantSet> ConstantSets { get; set; } = new List<ConstantSet>();
 

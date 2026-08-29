@@ -44,6 +44,21 @@ public sealed class FieldPathStep
     public bool IsAnonymous => Name.Length == 0;
 
     /// <summary>
+    /// The declared struct this level's value is, or empty when it is not one.
+    /// </summary>
+    /// <remarks>
+    /// **Per level rather than per column, because that is what it is a property of.** A
+    /// column written `star.position.x` walks two declarations to reach a number, and each of
+    /// the two is the answer for its own level - so the path, which already has one entry per
+    /// level, is where the answer belongs.
+    ///
+    /// Empty for every level of a group no declaration typed. Such a group has no identity to
+    /// share: what it is, is what that one sheet wrote in that one place.
+    /// spec/types/declared-struct-identity.md.
+    /// </remarks>
+    public string DeclaredType { get; set; } = "";
+
+    /// <summary>
     /// Whether this level is the `$type` column of a polymorphic group rather than a member
     /// of it.
     /// </summary>

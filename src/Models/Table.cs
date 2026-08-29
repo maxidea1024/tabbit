@@ -657,6 +657,10 @@ public class Table
         result.MembersAreAnonymous =
             claimed.All(field => field.NamePath!.Count == 2 && field.NamePath![1].IsAnonymous);
 
+        // What the type cell named, if anything did. Level zero of the path is the group.
+        // spec/types/declared-struct-identity.md.
+        result.DeclaredType = claimed[0].NamePath![0].DeclaredType;
+
         result.Members.AddRange(result.MembersAreAnonymous
             ? BuildAnonymousMembers(claimed)
             : BuildMembers(claimed, level: 1, repeating: repeating));
@@ -702,6 +706,10 @@ public class Table
         foreach (var member in result)
         {
             var own = byName[member.Name];
+
+            // What this level declares itself to be, from the columns that pass through it.
+            // spec/types/declared-struct-identity.md.
+            member.DeclaredType = own[0].NamePath![level].DeclaredType;
 
             // A container is the level its columns say it is, and the levels below it are
             // what it holds - `Prices` is the map and `Prices.Value` is a value in one.

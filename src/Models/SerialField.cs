@@ -76,6 +76,17 @@ public class RecordMember
     /// </summary>
     public List<RecordMember> Members { get; set; } = new List<RecordMember>();
 
+    /// <summary>
+    /// The declared struct this member's value is, or empty when it is not one.
+    /// </summary>
+    /// <remarks>
+    /// Read off the path of the columns this member holds, at this member's own level -
+    /// <see cref="FieldPathStep.DeclaredType"/> is where the binding stamped it. A group
+    /// nobody declared leaves this empty at every level.
+    /// spec/types/declared-struct-identity.md.
+    /// </remarks>
+    public string DeclaredType { get; set; } = "";
+
     /// <summary>Whether this member holds columns rather than further members.</summary>
     public bool IsLeaf => Members.Count == 0;
 
@@ -183,6 +194,15 @@ public class SerialField
     public List<RecordMember> Members { get; set; } = new List<RecordMember>();
 
     /// <summary>Whether one element of this group is a record rather than a scalar.</summary>
+    /// <summary>
+    /// The declared struct this group's element is, or empty when it is not one.
+    /// </summary>
+    /// <remarks>
+    /// The group is level zero of its columns' paths, so this is what the type cell named.
+    /// spec/types/declared-struct-identity.md.
+    /// </remarks>
+    public string DeclaredType { get; set; } = "";
+
     public bool IsRecord => Kind == SerialFieldKind.Record;
 
     /// <summary>
