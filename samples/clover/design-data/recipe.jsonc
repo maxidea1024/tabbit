@@ -41,7 +41,7 @@
   // 띄우는 파일을 보고 있고, 그림 하나가 빠지면 변환이 그 자리에서 멈춥니다.
   "Assets": {
     "Roots": [
-      { "Kind": "joker", "Path": "samples/clover/web/public/art/joker", "Pattern": "*.png" }
+      { "Kind": "joker", "Path": "samples/clover/web/public/art/joker", "Pattern": "*.webp" }
     ],
     "OnMissing": "error"
   },

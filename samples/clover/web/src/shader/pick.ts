@@ -5,6 +5,10 @@
 //
 //     uMode = 1   고른 것. 밝아지고 테두리에 빛이 돌고 사선 광택이 흐릅니다
 //     uMode = -1  고르지 않은 것. 어두워지고 색이 빠집니다
+//     uMode = 2   득점하는 것. 카드 둘레로 빛이 번집니다
+//
+// **득점의 빛만 카드 밖으로 나갑니다.** 그래서 이 필터에는 여백이 있고, 둘레를 훑는 표본이
+// 있습니다 — 카드 안에서만 밝히면 종이 색이 조금 변한 것으로 보일 뿐입니다.
 //
 // **족보 도움은 여기 없습니다.** 그것은 카드에 그린 외곽선 하나이고 `card-view.ts` 가
 // 그립니다 — 필터를 걸면 카드가 매 프레임 그림으로 구워져 글씨가 흐려지고, 알파의 기울기로
@@ -43,13 +47,60 @@ in vec2 vTextureCoord;
 out vec4 finalColor;
 
 uniform sampler2D uTexture;
+uniform vec4  uInputSize;   // 너비 · 높이 · 1/너비 · 1/높이
 uniform float uMode;    // 1 고름 · -1 고르지 않음 · 2 득점 · 0 그대로
 uniform float uTime;
 uniform vec3  uTint;
 uniform float uGlow;    // 0..1. 득점의 빛이 잦아드는 정도입니다.
 
+/**
+ * 카드 모양을 뭉갠 것.
+ *
+ * **알파의 기울기만으로는 빛이 나지 않습니다** — 카드는 안쪽이 전부 불투명하고 바깥이 전부
+ * 투명해서, 그 기울기는 모서리의 1px 뿐입니다. 그래서 카드 모양 자체를 흐리게 뭉개고, 그
+ * 뭉개진 그림을 빛으로 씁니다. 안쪽에서 1 이고 바깥으로 부드럽게 0 이 되는 값입니다.
+ *
+ * 표본은 원판 위에 황금각으로 흩습니다. 고리를 몇 겹 두르면 그 고리가 그대로 줄무늬로
+ * 보이고, 격자로 두면 네모가 비칩니다.
+ */
+float blurredShape(vec2 uv, vec2 texel) {
+  float sum = 0.0;
+  float total = 0.0;
+  for (int i = 0; i < 28; i++) {
+    float t = (float(i) + 0.5) / 28.0;
+    float radius = sqrt(t) * 26.0;
+    float angle = float(i) * 2.39996323;
+    float weight = exp(-radius * radius / 320.0);
+    sum += texture(uTexture, uv + vec2(cos(angle), sin(angle)) * radius * texel).a * weight;
+    total += weight;
+  }
+  return sum / total;
+}
+
 void main(void) {
   vec4 src = texture(uTexture, vTextureCoord);
+
+  // **득점의 빛은 카드가 없는 자리에도 그립니다.** 카드 안에서만 밝히면 종이 색이 조금
+  // 변한 것으로 보일 뿐이고, 한 장이 지금 점수를 내고 있다는 것이 읽히지 않습니다.
+  if (uMode > 1.5) {
+    float soft = blurredShape(vTextureCoord, uInputSize.zw);
+    // 빛이 숨을 쉽니다. 잦아드는 동안 부풀었다 꺼집니다.
+    float breath = 0.84 + 0.16 * sin(uTime * 8.0);
+    float glow = uGlow * breath;
+
+    // 카드 밖. 뭉갠 그림이 그대로 빛의 모양입니다.
+    float outer = pow(soft, 1.25) * (1.0 - src.a) * 3.6 * glow;
+
+    // 카드 안. **테두리를 긋지 않습니다** — 같은 뭉갠 그림을 뒤집어 쓰면 가장자리에서
+    // 안쪽으로 빛이 스며들고, 선 하나가 얹힌 것으로 보이지 않습니다.
+    vec3 color = src.a < 0.004 ? vec3(0.0) : src.rgb / src.a;
+    color += uTint * ((1.0 - soft) * 1.5 + 0.10) * glow;
+
+    finalColor = vec4(color * src.a + uTint * min(outer, 1.6),
+                      min(1.0, src.a + outer * 0.9));
+    return;
+  }
+
   if (src.a < 0.004) {
     finalColor = src;
     return;
@@ -58,12 +109,7 @@ void main(void) {
   vec3 color = src.rgb / max(src.a, 0.004);
   float gray = dot(color, vec3(0.299, 0.587, 0.114));
 
-  if (uMode > 1.5) {
-    // **득점.** 테두리에 빛이 돌고 종이가 조금 밝아집니다 — 조각이 터지는 것보다 점잖고,
-    // 카드가 몇 장이든 화면이 시끄러워지지 않습니다.
-    float edge = 1.0 - smoothstep(0.30, 0.98, src.a);
-    color += uTint * (edge * 1.5 + 0.16) * uGlow;
-  } else if (uMode > 0.5) {
+  if (uMode > 0.5) {
     // 고른 카드. 밝히고, 사선 광택을 흘리고, 테두리에 빛을 두릅니다.
     color = mix(color, color * 1.18 + uTint * 0.16, 1.0);
 
@@ -87,6 +133,9 @@ export class PickFilter extends Filter {
   constructor() {
     super({
       glProgram: GlProgram.from({ vertex: VERTEX, fragment: FRAGMENT }),
+      // **빛이 카드 밖으로 나가므로 자리를 넓힙니다.** 여백이 없으면 둘레의 빛이 카드
+      // 경계에서 잘려 네모난 테가 보입니다.
+      padding: 32,
       resources: {
         pickUniforms: {
           uMode: { value: 0, type: 'f32' },

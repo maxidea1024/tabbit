@@ -51,8 +51,14 @@ export const SIZE = {
   cardHeight: 124,
   cardRadius: 9,
 
-  jokerWidth: 84,
-  jokerHeight: 116,
+  /**
+   * 조커 딱지의 크기. **플레잉 카드와 같습니다.**
+   *
+   * 조커는 카드입니다 — 크기가 다르면 줄에 섰을 때 다른 갈래의 물건으로 보이고, 그림도
+   * 카드 비율로 그려 두었는데 담을 자리가 다른 비율이면 잘리거나 남습니다.
+   */
+  jokerWidth: 88,
+  jokerHeight: 124,
 } as const
 
 /** 희귀도 하나의 색. */

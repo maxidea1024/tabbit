@@ -19,6 +19,10 @@ import { Motion, sway } from './motion'
 import { COLOR, rarityColor, SIZE } from './theme'
 import type { EditionLook } from './card-view'
 
+/** 카드의 모서리와 이름 띠의 높이. */
+const RADIUS = 9
+const BAND = 26
+
 const EDITION_SHADER: Partial<Record<EditionKind, EditionShader>> = {
   [EditionKind.Foil]: 'foil',
   [EditionKind.Holographic]: 'holo',
@@ -52,14 +56,22 @@ export class JokerView extends Container {
    */
   private readonly body = new Container()
   private readonly plate = new Graphics()
+  /** 그림을 카드 모양으로 오려 내는 것. */
+  private readonly clip = new Graphics()
+  /** 이름이 앉는 띠. 그림 위에 얹힙니다. */
+  private readonly band = new Graphics()
+  /** 테두리. 희귀도의 색입니다. */
+  private readonly frame = new Graphics()
+  /** 누적값이 앉는 바탕. */
+  private readonly counterPlate = new Graphics()
   private readonly emblem = new Graphics()
   /** 그림이 있으면 이것이 문양을 대신합니다. */
   private art?: Sprite
   private readonly nameText = new Text({
     text: '',
     style: {
-      fontSize: 11, fill: COLOR.ink, align: 'center', fontWeight: '700',
-      wordWrap: true, wordWrapWidth: SIZE.jokerWidth - 10,
+      fontSize: 11, fill: COLOR.ink, align: 'center', fontWeight: '800',
+      wordWrap: true, wordWrapWidth: SIZE.jokerWidth - 8, lineHeight: 12,
     },
   })
   private readonly counter = new Text({
@@ -83,7 +95,8 @@ export class JokerView extends Container {
     super()
     this.uid = joker.uid
     this.look = look
-    this.body.addChild(this.plate, this.emblem, this.nameText, this.counter)
+    this.body.addChild(this.plate, this.emblem, this.clip, this.band, this.frame,
+      this.nameText, this.counterPlate, this.counter)
     this.body.boundsArea = new Rectangle(0, 0, SIZE.jokerWidth, SIZE.jokerHeight)
     this.addChild(this.shadow, this.body)
     this.pivot.set(SIZE.jokerWidth / 2, SIZE.jokerHeight / 2)
@@ -98,61 +111,67 @@ export class JokerView extends Container {
     const edge = rarityColor(look.rarity)
 
     this.shadow.clear()
-    this.shadow.roundRect(3, 5, w, h, 9).fill({ color: 0x000000, alpha: 0.4 })
+    this.shadow.roundRect(3, 5, w, h, RADIUS).fill({ color: 0x000000, alpha: 0.4 })
 
+    // 카드의 바탕. **그림이 덮으므로 보이는 것은 모서리뿐입니다** — 그림이 아직 안 읽혔을
+    // 때 흰 자리가 번쩍이지 않게 어두운 색을 깝니다.
     this.plate.clear()
-    this.plate.roundRect(0, 0, w, h, 9).fill(hsl(hue, 0.35, 0.16))
-    // 이름 띠. 희귀도 색을 옅게 깔아 어느 등급인지 얼굴에서 읽힙니다.
-    this.plate.roundRect(0, h - 32, w, 32, 9).fill({ color: shade(edge, 0.62), alpha: 0.9 })
-    this.plate.roundRect(0, 0, w, 26, 9).fill({ color: 0xffffff, alpha: 0.06 })
-    this.plate.roundRect(1.5, 1.5, w - 3, h - 3, 9).stroke({ color: edge, width: 2.5 })
-    this.plate.roundRect(4, 4, w - 8, h - 8, 7)
-      .stroke({ color: 0xffffff, width: 1, alpha: 0.12 })
+    this.plate.roundRect(0, 0, w, h, RADIUS).fill(hsl(hue, 0.35, 0.14))
 
-    // 문양.
-    //
-    // **그림 파일이 아직 없습니다.** 그때까지 도형 셋으로 두면 무엇을 사는 것인지 알 수
-    // 없으므로, 뜻이 읽히는 문양 스물 중 하나를 식별자로 골라 그립니다 — 같은 조커는 언제나
-    // 같은 문양입니다.
-    this.emblem.clear()
+    // 그림이 앉을 자리를 오려 냅니다. 카드의 둥근 모서리를 그림도 따릅니다.
+    // **그림이 있을 때만 채웁니다** — 마스크로 쓰이지 않는 동안에는 이것이 그대로 흰
+    // 사각형으로 그려져 카드를 덮습니다.
+    this.clip.clear()
 
-    const plateTop = hsl(hue, 0.55, 0.30)
-    const plateBottom = hsl((hue + 22) % 360, 0.6, 0.14)
-    const glyphInk = tintUp(hsl(hue, 0.7, 0.62), 0.25)
-
-    // 문양이 앉는 창. 액자 안의 그림처럼 보이게 합니다.
-    const frameX = 7
-    const frameY = 30
-    const frameW = w - 14
-    const frameH = 52
-    this.emblem.roundRect(frameX, frameY, frameW, frameH, 6).fill(plateBottom)
-    this.emblem.roundRect(frameX, frameY, frameW, frameH * 0.55, 6)
-      .fill({ color: plateTop, alpha: 0.75 })
-    this.emblem.roundRect(frameX + 0.75, frameY + 0.75, frameW - 1.5, frameH - 1.5, 5)
-      .stroke({ color: shade(edge, 0.25), width: 1.5 })
-
-    // **그림이 있으면 그림입니다.** 없는 동안만 문양을 그립니다.
     this.art?.destroy()
     this.art = undefined
 
+    // **그림이 카드를 가득 채웁니다.** 액자 안의 작은 그림으로 두면 카드가 아니라 아이콘이
+    // 되고, 무엇을 사는 것인지 줄에서 읽히지 않습니다.
     const texture = artFor('joker', joker.jokerId)
     if (texture) {
+      this.clip.roundRect(0, 0, w, h, RADIUS).fill(0xffffff)
       const sprite = new Sprite(texture)
-      sprite.width = frameW - 3
-      sprite.height = frameH - 3
-      sprite.position.set(frameX + 1.5, frameY + 1.5)
+      // 넓이에 맞추고 남는 세로를 가운데에서 자릅니다. 그림에 테두리가 있으므로 조금
+      // 잘려도 티가 나지 않습니다.
+      const scale = Math.max(w / texture.width, h / texture.height)
+      sprite.width = texture.width * scale
+      sprite.height = texture.height * scale
+      sprite.position.set((w - sprite.width) / 2, (h - sprite.height) / 2)
+      sprite.mask = this.clip
       this.art = sprite
-      this.body.addChildAt(sprite, this.body.getChildIndex(this.emblem) + 1)
-    } else {
-      drawGlyph(this.emblem, glyphFor(joker.jokerId), w / 2, frameY + frameH / 2, 40, {
+      this.body.addChildAt(sprite, this.body.getChildIndex(this.plate) + 1)
+    }
+
+    // 그림이 아직 없으면 문양 하나를 그립니다. **202장을 한 번에 만들지 않으므로 절반만
+    // 있는 상태에서도 화면이 돌아야 합니다.**
+    this.emblem.clear()
+    if (!texture) {
+      const glyphInk = tintUp(hsl(hue, 0.7, 0.62), 0.25)
+      this.emblem.roundRect(0, 0, w, h, RADIUS).fill(hsl((hue + 22) % 360, 0.6, 0.12))
+      drawGlyph(this.emblem, glyphFor(joker.jokerId), w / 2, h / 2 - 8, 46, {
         fill: glyphInk,
         line: shade(glyphInk, 0.62),
       })
     }
 
+    // 이름 띠. **그림 위에 얹힙니다** — 카드 아래를 덮어야 이름이 그림의 일부가 아니라
+    // 이 카드의 이름으로 읽힙니다.
+    this.band.clear()
+    this.band.roundRect(0, h - BAND, w, BAND, RADIUS).fill({ color: 0x0b1018, alpha: 0.88 })
+    this.band.rect(0, h - BAND, w, BAND - RADIUS).fill({ color: 0x0b1018, alpha: 0.88 })
+    this.band.rect(0, h - BAND, w, 1.5).fill({ color: edge, alpha: 0.9 })
+
+    // 테두리. **희귀도가 테두리입니다** — 줄에 여럿이 서면 그 색이 먼저 읽힙니다.
+    this.frame.clear()
+    this.frame.roundRect(1.25, 1.25, w - 2.5, h - 2.5, RADIUS - 1)
+      .stroke({ color: edge, width: 2.5 })
+    this.frame.roundRect(4, 4, w - 8, h - 8, RADIUS - 3)
+      .stroke({ color: 0xffffff, width: 1, alpha: 0.10 })
+
     this.nameText.text = look.name
-    this.nameText.anchor.set(0.5, 0)
-    this.nameText.position.set(w / 2, h - 27)
+    this.nameText.anchor.set(0.5, 0.5)
+    this.nameText.position.set(w / 2, h - BAND / 2)
 
     // 누적값을 얼굴에 적습니다 — 늘어나는 조커는 그것이 전부이기 때문입니다.
     const { chips, multAdd, multMul } = joker.counters
@@ -162,8 +181,17 @@ export class JokerView extends Container {
     // 0 은 「곱이 없다」가 아니라 「아직 값이 없다」입니다. 적지 않습니다.
     if (multMul !== 10_000 && multMul !== 0) parts.push(`×${(multMul / 10_000).toFixed(2)}`)
     this.counter.text = parts.join(' ')
+
+    // 누적값은 그림 위이므로 바탕을 하나 깝니다. 없으면 그림에 묻힙니다.
+    this.counterPlate.clear()
+    if (this.counter.text !== '') {
+      const pad = 6
+      const width = this.counter.width + pad * 2
+      this.counterPlate.roundRect((w - width) / 2, 5, width, 18, 6)
+        .fill({ color: 0x0b1018, alpha: 0.85 })
+    }
     this.counter.anchor.set(0.5, 0)
-    this.counter.position.set(w / 2, 8)
+    this.counter.position.set(w / 2, 7)
 
     this.alpha = joker.disabled ? 0.35 : 1
 
@@ -173,7 +201,7 @@ export class JokerView extends Container {
         strength: look.edition.strength,
         flowSpeed: look.edition.flowSpeed,
         noise: look.edition.noise,
-        shape: roundedMask(SIZE.jokerWidth, SIZE.jokerHeight, 9),
+        shape: roundedMask(SIZE.jokerWidth, SIZE.jokerHeight, RADIUS),
       })
       this.body.filters = [this.edition]
     } else {

@@ -27,7 +27,7 @@ import { evaluate } from '../core/hand'
 import { apply, newRun, targetOf, type Action } from '../core/run'
 import { rerollCost, sellValueOf, type ShopItem } from '../core/shop'
 import { bestHand, valueOf } from '../core/suggest'
-import type { CardInstance, GameEvent, RunState } from '../core/state'
+import { newCounters, type CardInstance, type GameEvent, type RunState } from '../core/state'
 import { BackgroundFilter } from '../shader/background'
 import { PunchFilter } from '../shader/punch'
 import { FlameFilter } from '../shader/flame'
@@ -42,7 +42,7 @@ import {
 import { Coins } from './coins'
 import { Spring } from './motion'
 import { Particles } from './particles'
-import { artFor, artKindOf, onArtReady, type ArtKind } from './art'
+import { artFor, onArtReady, type ArtKind } from './art'
 import { drawGlyph, glyphFor, hashOf, hsl, shade, type GlyphName } from './glyph'
 import { cardArtId, drawFace } from './pips'
 import { COLOR, rarityColor, SIZE } from './theme'
@@ -247,7 +247,7 @@ export class Game {
   private readonly punch = new PunchFilter(SIZE.width, SIZE.height)
   private readonly tooltip = new Tooltip()
   /** 무엇이 일어났는지 알리는 줄들. 여러 개가 동시에 뜹니다. */
-  private readonly toasts = new Toasts()
+  private readonly toasts = new Toasts(BOARD_X)
 
   private readonly cards = new Map<number, CardView>()
   private readonly playedViews: CardView[] = []
@@ -1121,16 +1121,17 @@ export class Game {
         if (view) {
           // **조각을 터뜨리지 않고 빛을 돌립니다.** 카드가 차례로 터지면 화면이 시끄러워지고,
           // 정작 카드 위에 뜬 숫자가 그 조각에 묻힙니다.
-          view.pop(0.6 + beat.intensity * 0.7 + step * 0.4 + (mul ? 0.5 : 0))
-          view.shine(rgbOf(tint), 0.7 + beat.intensity * 0.3 + (mul ? 0.3 : 0))
+          view.pop(0.5 + beat.intensity * 0.4 + step * 0.25 + (mul ? 0.35 : 0))
+          view.shine(rgbOf(tint), 1)
         }
         this.popAt(view, valueText(event.op, event.chips, event.mult, event.money),
           tint, beat.intensity + step * 0.4 + (mul ? 0.5 : 0))
         // 랭크의 칩과 강화·인장·에디션이 낸 것은 소리가 달라야 갈립니다.
         this.audio.play(event.source === 'rank' ? 'card_chip'
           : mul ? 'joker_mul' : 'joker_add', semitones + this.chain * 2)
-        this.jolt(3 + beat.intensity * 5 + step * 4 + (mul ? 6 : 0),
-          0.6 + beat.intensity + step, 0.16 + step * 0.16)
+        // **화면은 흔들지 않습니다.** 한 장이 점수를 내는 것은 다섯 번, 여덟 번 이어지는
+        // 일이고, 그때마다 화면이 흔들리면 카드 위의 숫자를 읽을 수 없습니다 — 일어난 자리를
+        // 가리키는 것은 그 카드에 도는 빛 하나로 충분합니다.
         this.flashPanel(tint, 0.4 + step * 0.3)
         this.stop(28 + step * 26 + (mul ? 60 : 0))
         if (event.money !== 0 && view) {
@@ -2677,7 +2678,9 @@ export class Game {
     again.position.set(-100, height / 2 - 76)
 
     board.addChild(title, lead, body, again)
-    board.position.set(SIZE.width / 2, SIZE.height / 2)
+    // **판의 한가운데입니다.** 왼쪽 패널을 뺀 나머지의 가운데 — 화면의 가운데에 두면
+    // 그동안 카드가 서 있던 자리에서 비껴 나타납니다.
+    board.position.set(BOARD_X, SIZE.height / 2)
     this.gameOver.addChild(board)
     this.gameOverBoard = board
     this.gameOver.zIndex = 10_000
@@ -2686,7 +2689,7 @@ export class Game {
     this.audio.play(won ? 'run_win' : 'run_lose')
     this.jolt(won ? 22 : 16, won ? 3.4 : 2.6, 1)
     this.flashScreen(won ? COLOR.money : COLOR.bad, won ? 0.5 : 0.34)
-    if (won) this.particles.burst(SIZE.width / 2, SIZE.height / 2, 90, COLOR.money, 2.6)
+    if (won) this.particles.burst(BOARD_X, SIZE.height / 2, 90, COLOR.money, 2.6)
   }
 
   /** 왜 끝났는가. **숫자가 있어야 다음 판에 무엇을 다르게 할지 압니다.** */
@@ -2714,13 +2717,13 @@ export class Game {
 
     board.scale.set(scale)
     board.position.set(
-      SIZE.width / 2 + (Math.random() - 0.5) * shiver,
+      BOARD_X + (Math.random() - 0.5) * shiver,
       SIZE.height / 2 + (Math.random() - 0.5) * shiver)
     board.rotation = (Math.random() - 0.5) * shiver * 0.0022
 
     if (this.gameOverPop <= 0) {
       board.scale.set(1)
-      board.position.set(SIZE.width / 2, SIZE.height / 2)
+      board.position.set(BOARD_X, SIZE.height / 2)
       board.rotation = 0
     }
   }
@@ -2926,13 +2929,21 @@ export class Game {
       const name = this.consumableName(item.kind, item.id)
       const lines = this.consumableLines(item.kind, item.id)
 
-      const family = consumableFamily(item.kind)
-      const tile = new Panel(SIZE.jokerWidth, SIZE.jokerHeight, family.ink)
+      // **조커와 같은 카드입니다.** 나란히 선 줄에서 하나만 다른 모양이면 갈래가 다른
+      // 물건으로 보이고, 실제로는 둘 다 손에 든 카드입니다.
+      const tile = new Container()
       tile.position.set(
         CONSUMABLE_X + index * (SIZE.jokerWidth + 12) - SIZE.jokerWidth / 2,
         JOKER_Y - SIZE.jokerHeight / 2)
 
-      tile.addChild(consumableFace(item.kind, item.id, name))
+      tile.addChild(this.faceCard({
+        kind: (item.kind === 1 ? ShopItemKind.Tarot
+          : item.kind === 2 ? ShopItemKind.Planet : ShopItemKind.Spectral) as ShopItemKind,
+        id: item.id,
+        cost: 0,
+        edition: item.edition as never,
+      } as ShopItem))
+      tile.hitArea = new Rectangle(0, 0, SIZE.jokerWidth, SIZE.jokerHeight)
       tile.eventMode = 'static'
       tile.cursor = 'pointer'
       tile.on('pointertap', () => {
@@ -2983,8 +2994,8 @@ export class Game {
 
     // **자리를 세어 가며 쌓습니다.** 높이를 못박으면 물건이 하나 늘거나 줄 때마다 아래가
     // 넘치거나 비고, 그 둘은 눈에 곧바로 보입니다.
-    const ITEM_H = 172
-    const PACK_H = 84
+    const ITEM_H = SIZE.jokerHeight + 52
+    const PACK_H = SIZE.jokerHeight + 34
     const VOUCHER_H = 68
     const HEAD = 26
     const GAP = 20
@@ -3045,7 +3056,12 @@ export class Game {
     this.shopLayer.addChild(rule, label)
   }
 
-  /** 살 것들. 조커와 소모품과 플레잉 카드가 같은 줄에 섭니다. */
+  /**
+   * 살 것들.
+   *
+   * **줄에 서는 것은 카드입니다.** 아이콘을 얹은 딱지로 두면 살 때와 산 뒤의 모습이 달라
+   * 같은 물건으로 보이지 않습니다 — 상점에 선 그 카드가 그대로 조커 줄에 섭니다.
+   */
   private drawShopItems(left: number, top: number, width: number, tileH: number): void {
     const slots = this.state.shop.cards
     const tileW = 158
@@ -3061,50 +3077,24 @@ export class Game {
       const afford = this.shown.money >= item.cost
       const room = this.roomFor(item.kind)
 
-      const tile = new Panel(tileW, tileH, 0x1b2331)
+      const tile = new Container()
       tile.position.set(startX + slot * (tileW + gap), top)
 
-      const label = new Text({
-        text: name,
-        style: {
-          fontSize: 13, fill: COLOR.ink, fontWeight: '800',
-          wordWrap: true, wordWrapWidth: tileW - 24,
-        },
-      })
-      label.position.set(12, 11)
-
-      const face = itemFace(item.kind, item.id, this.data, 44)
-      face.position.set(tileW - 30, 44)
-
-      const blurb = new Text({
-        text: lines.slice(0, 3).join(NEWLINE),
-        style: {
-          fontSize: 10, fill: 0xb4c4dc, lineHeight: 13,
-          wordWrap: true, wordWrapWidth: tileW - 62,
-        },
-      })
-      blurb.position.set(12, 54)
-
-      const kindLabel = new Text({
-        text: kindName(item.kind),
-        style: {
-          fontSize: 10, fontWeight: '800',
-          fill: rarity > 0 ? rarityColor(rarity) : 0x9b8fd0,
-        },
-      })
-      kindLabel.position.set(12, tileH - 40)
+      const card = this.itemCard(item)
+      card.position.set((tileW - SIZE.jokerWidth) / 2, 0)
+      tile.addChild(card)
 
       const price = new Text({
         text: `$${item.cost}`,
         style: {
-          fontSize: 19, fontWeight: '800',
+          fontSize: 20, fontWeight: '800',
           fill: afford ? COLOR.money : 0x7a6a45,
+          stroke: { color: 0x0a0f18, width: 4 },
         },
       })
-      price.anchor.set(1, 1)
-      price.position.set(tileW - 12, tileH - 10)
-
-      tile.addChild(label, face, blurb, kindLabel, price)
+      price.anchor.set(0.5, 0)
+      price.position.set(tileW / 2, SIZE.jokerHeight + 8)
+      tile.addChild(price)
 
       // **자리가 없으면 그것이 값보다 먼저 읽혀야 합니다.** 눌러 보고 아무 일도 없는 것이
       // 가장 나쁩니다.
@@ -3113,12 +3103,14 @@ export class Game {
           text: '자리 없음 — 눌러서 교체',
           style: { fontSize: 10, fill: 0xffb4c8, fontWeight: '800' },
         })
-        full.position.set(12, tileH - 24)
+        full.anchor.set(0.5, 0)
+        full.position.set(tileW / 2, SIZE.jokerHeight + 34)
         tile.addChild(full)
       }
 
       tile.alpha = afford ? 1 : 0.55
       tile.eventMode = 'static'
+      tile.hitArea = new Rectangle(0, 0, tileW, tileH)
       tile.cursor = afford ? 'pointer' : 'default'
       tile.on('pointertap', () => this.buyFrom(slot, item, tile))
       tile.on('pointerover', () => {
@@ -3128,6 +3120,112 @@ export class Game {
       tile.on('pointerout', () => this.tooltip.hide())
       this.shopLayer.addChild(tile)
     })
+  }
+
+  /**
+   * 상점에 선 물건 하나의 카드.
+   *
+   * 조커는 **줄에 서는 그 카드 그대로**입니다 — 같은 클래스를 씁니다. 소모품과 플레잉
+   * 카드는 같은 크기와 모양의 카드로 그립니다.
+   */
+  private itemCard(item: ShopItem): Container {
+    if (item.kind === ShopItemKind.Joker) {
+      const row = this.data.tables.joker.findByJokerId(item.id)
+      const view = new JokerView({
+        uid: -1, jokerId: item.id, edition: item.edition as never,
+        sticker: 0 as never, counters: newCounters(), age: 0, disabled: false,
+      }, {
+        name: row?.name ?? item.id,
+        rarity: row?.rarity ?? 1,
+        lines: describe(this.data, this.data.jokerEffects.get(item.id) ?? []),
+        edition: this.editionLook(item.edition as EditionKind),
+      })
+      // 상점의 카드는 흔들리지 않습니다. 줄에 선 것과 달리 고를 것이지 도는 것이 아닙니다.
+      view.pivot.set(0, 0)
+      view.position.set(0, 0)
+      return view
+    }
+
+    return this.faceCard(item)
+  }
+
+  /**
+   * 소모품과 플레잉 카드의 얼굴.
+   *
+   * 조커와 **같은 크기, 같은 모서리, 같은 이름 띠**입니다 — 상점에 여러 갈래가 서므로
+   * 모양이 어긋나면 줄이 흐트러져 보입니다.
+   */
+  private faceCard(item: ShopItem): Container {
+    const w = SIZE.jokerWidth
+    const h = SIZE.jokerHeight
+    const node = new Container()
+
+    const plate = new Graphics()
+    plate.roundRect(3, 5, w, h, 9).fill({ color: 0x000000, alpha: 0.4 })
+    plate.roundRect(0, 0, w, h, 9).fill(0x141b26)
+    node.addChild(plate)
+
+    const clip = new Graphics()
+    clip.roundRect(0, 0, w, h, 9).fill(0xffffff)
+    node.addChild(clip)
+
+    if (item.kind === ShopItemKind.PlayingCard) {
+      const row = this.data.tables.baseDeckCard.findByCardId(item.id)
+      if (row) {
+        const texture = artFor('card', cardArtId(row.suit, row.rank))
+        if (texture) {
+          const picture = new Sprite(texture)
+          picture.width = w
+          picture.height = h
+          node.addChild(picture)
+        } else {
+          const face = new Graphics()
+          face.roundRect(0, 0, w, h, 9).fill(COLOR.cardFace)
+          drawFace(face, row.suit, row.rank, w, h,
+            row.suit === SuitKind.Heart || row.suit === SuitKind.Diamond
+              ? COLOR.red : COLOR.black)
+          node.addChild(face)
+        }
+      }
+    } else {
+      const kind: ArtKind | undefined = item.kind === ShopItemKind.Tarot ? 'tarot'
+        : item.kind === ShopItemKind.Planet ? 'planet'
+          : item.kind === ShopItemKind.Spectral ? 'spectral' : undefined
+      const texture = kind ? artFor(kind, item.id) : undefined
+      if (texture) {
+        const sprite = new Sprite(texture)
+        const scale = Math.max(w / texture.width, h / texture.height)
+        sprite.width = texture.width * scale
+        sprite.height = texture.height * scale
+        sprite.position.set((w - sprite.width) / 2, (h - sprite.height) / 2)
+        sprite.mask = clip
+        node.addChild(sprite)
+      }
+    }
+
+    const tint = item.kind === ShopItemKind.PlayingCard ? COLOR.cardEdge : 0x9b8fd0
+    const band = new Graphics()
+    band.roundRect(0, h - 26, w, 26, 9).fill({ color: 0x0b1018, alpha: 0.88 })
+    band.rect(0, h - 26, w, 17).fill({ color: 0x0b1018, alpha: 0.88 })
+    band.rect(0, h - 26, w, 1.5).fill({ color: tint, alpha: 0.9 })
+    node.addChild(band)
+
+    const label = new Text({
+      text: shopLabel(item.kind, item.id, this.data),
+      style: {
+        fontSize: 11, fill: COLOR.ink, fontWeight: '800', align: 'center',
+        wordWrap: true, wordWrapWidth: w - 8, lineHeight: 12,
+      },
+    })
+    label.anchor.set(0.5, 0.5)
+    label.position.set(w / 2, h - 13)
+    node.addChild(label)
+
+    const frame = new Graphics()
+    frame.roundRect(1.25, 1.25, w - 2.5, h - 2.5, 8).stroke({ color: tint, width: 2.5 })
+    node.addChild(frame)
+
+    return node
   }
 
   /** 그 갈래를 받을 자리가 있는가. */
@@ -3255,11 +3353,17 @@ export class Game {
     this.modals.open(panel)
   }
 
-  /** 팩. **사는 것이 아니라 뜯는 것입니다** — 값을 내면 몇 장이 펼쳐지고 그중에서 고릅니다. */
+  /**
+   * 팩.
+   *
+   * **사는 것이 아니라 뜯는 것입니다** — 값을 내면 몇 장이 펼쳐지고 그중에서 고릅니다.
+   * 그래서 카드가 아니라 **봉지**로 그립니다. 크기는 카드에 맞추되 위가 톱니로 뜯기게 되어
+   * 있고, 그 톱니 하나가 「이건 여는 것이다」를 말합니다.
+   */
   private drawPackRow(left: number, top: number, width: number, tileH: number): void {
     const packs = this.state.shop.packs
-    const tileW = 210
-    const gap = 16
+    const tileW = 104
+    const gap = 26
     const span = packs.length * tileW + Math.max(0, packs.length - 1) * gap
     const startX = left + (width - span) / 2
 
@@ -3269,40 +3373,70 @@ export class Game {
 
       const ink = packInk(row.kind)
       const afford = this.shown.money >= row.cost
-      const tile = new Panel(tileW, tileH, ink)
+      const h = SIZE.jokerHeight
+      const tile = new Container()
       tile.position.set(startX + slot * (tileW + gap), top)
+
+      const bag = new Graphics()
+      bag.roundRect(3, 5, tileW, h, 10).fill({ color: 0x000000, alpha: 0.4 })
+      bag.roundRect(0, 0, tileW, h, 10).fill(shade(ink, 0.45))
+      // 봉지의 몸통. 위쪽이 조금 밝아 빛을 받은 것으로 보입니다.
+      bag.roundRect(0, 0, tileW, h * 0.55, 10).fill({ color: ink, alpha: 0.5 })
+
+      // **뜯는 줄.** 톱니 하나가 봉지를 봉지로 만듭니다.
+      const tearY = 26
+      bag.rect(0, tearY - 7, tileW, 14).fill({ color: 0x0b1018, alpha: 0.35 })
+      const teeth = 13
+      for (let i = 0; i < teeth; i++) {
+        const x = (tileW / teeth) * i
+        bag.moveTo(x, tearY)
+          .lineTo(x + tileW / teeth / 2, tearY - 4)
+          .lineTo(x + tileW / teeth, tearY)
+          .stroke({ color: shade(ink, 0.8), width: 1.4, alpha: 0.9 })
+      }
+
+      bag.roundRect(1.25, 1.25, tileW - 2.5, h - 2.5, 9)
+        .stroke({ color: shade(ink, 0.9), width: 2.5 })
+      tile.addChild(bag)
 
       const label = new Text({
         text: packName(row.kind, row.size),
-        style: { fontSize: 14, fill: COLOR.ink, fontWeight: '800' },
+        style: {
+          fontSize: 12, fill: COLOR.ink, fontWeight: '800', align: 'center',
+          wordWrap: true, wordWrapWidth: tileW - 14, lineHeight: 15,
+        },
       })
-      label.position.set(14, 12)
+      label.anchor.set(0.5, 0.5)
+      label.position.set(tileW / 2, h * 0.52)
 
       const note = richLine(`${row.cards}장 중 ${row.picks}장`, {
         base: { fontSize: 11, fill: 0xdbe4f0 },
         number: COLOR.accentNumber,
         term: COLOR.accentTerm,
       })
-      note.position.set(14, 40)
+      note.position.set((tileW - note.width) / 2, h - 30)
+      tile.addChild(label, note)
 
       const price = new Text({
         text: `$${row.cost}`,
         style: {
-          fontSize: 18, fontWeight: '800',
+          fontSize: 20, fontWeight: '800',
           fill: afford ? COLOR.money : 0x7a6a45,
+          stroke: { color: 0x0a0f18, width: 4 },
         },
       })
-      price.anchor.set(1, 1)
-      price.position.set(tileW - 14, tileH - 12)
+      price.anchor.set(0.5, 0)
+      price.position.set(tileW / 2, h + 8)
+      tile.addChild(price)
 
-      tile.addChild(label, note, price)
       tile.alpha = afford ? 1 : 0.55
       tile.eventMode = 'static'
+      tile.hitArea = new Rectangle(0, 0, tileW, tileH)
       tile.cursor = afford ? 'pointer' : 'default'
       tile.on('pointertap', () => {
         if (!afford) return
         this.audio.play('shop_buy')
-        this.particles.burst(tile.x + tileW / 2, tile.y + tileH / 2, 20, ink, 1.2)
+        this.particles.burst(tile.x + tileW / 2, tile.y + h / 2, 20, ink, 1.2)
         this.jolt(5, 3)
         this.act({ t: 'buy_pack', slot })
       })
@@ -3667,69 +3801,6 @@ const SUIT_PIP: Record<number, string> = {
   [SuitKind.Heart]: '♥',
   [SuitKind.Club]: '♣',
   [SuitKind.Diamond]: '♦',
-}
-
-/**
- * 소모품 세 갈래의 색과 문양.
- *
- * **타로·행성·유령은 서로 다른 것입니다.** 이름만 다르게 적어 두면 급할 때 구별되지 않으므로
- * 색과 문양을 갈랐습니다 — 행성은 고리가 있는 원, 유령은 사인, 타로는 식별자마다 다른 문양
- * 입니다.
- */
-function consumableFamily(kind: number): { ink: number; glyph: GlyphName | null; label: string } {
-  switch (kind) {
-    case 2: return { ink: 0x1d3149, glyph: 'planet', label: '행성' }
-    case 3: return { ink: 0x2a1d3a, glyph: 'sigil', label: '유령' }
-    default: return { ink: 0x33234a, glyph: null, label: '타로' }
-  }
-}
-
-/** 소모품 한 장의 얼굴. 문양과 이름과 갈래입니다. */
-function consumableFace(kind: number, id: string, name: string): Container {
-  const face = new Container()
-  const w = SIZE.jokerWidth
-  const h = SIZE.jokerHeight
-  const family = consumableFamily(kind)
-  const hue = hashOf(id) % 360
-  const ink = kind === 2 ? hsl(hue, 0.6, 0.58)
-    : kind === 3 ? hsl((hue + 200) % 360, 0.5, 0.66)
-      : hsl(hue, 0.62, 0.62)
-
-  const art = new Graphics()
-  art.roundRect(6, 22, w - 12, 48, 6).fill({ color: 0x000000, alpha: 0.28 })
-
-  const texture = artFor(artKindOf(kind), id)
-  if (texture) {
-    const sprite = new Sprite(texture)
-    sprite.width = w - 14
-    sprite.height = 46
-    sprite.position.set(7, 23)
-    face.addChild(sprite)
-  } else {
-    drawGlyph(art, family.glyph ?? glyphFor(id), w / 2, 46, 38, {
-      fill: ink, line: shade(ink, 0.6),
-    })
-  }
-
-  const label = new Text({
-    text: name,
-    style: {
-      fontSize: 11, fill: COLOR.ink, align: 'center', fontWeight: '700',
-      wordWrap: true, wordWrapWidth: w - 10,
-    },
-  })
-  label.anchor.set(0.5, 0)
-  label.position.set(w / 2, 4)
-
-  const family_ = new Text({
-    text: family.label,
-    style: { fontSize: 10, fill: ink, fontWeight: '700' },
-  })
-  family_.anchor.set(0.5, 1)
-  family_.position.set(w / 2, h - 6)
-
-  face.addChild(art, label, family_)
-  return face
 }
 
 /** 팩 이름. 표가 갈래와 크기만 정하므로 이름은 여기서 짓습니다. */

@@ -24,14 +24,54 @@ SAMPLE = os.path.dirname(DESIGN)
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
-# **화풍을 한 줄에 고정합니다.** 202장이 같은 화풍이어야 한 게임의 그림으로 보입니다.
-STYLE = ('drawn as flat vector art with bold outlines and cel shading, filling the frame, '
-         'on a plain solid dark navy background that bleeds to all four edges. '
-         'Palette: dark navy, slate blue, warm gold, crimson, sage green. '
-         'No frame, no border, no lettering.')
+# **화풍을 한 자리에 고정합니다.** 202장이 같은 화풍이어야 한 게임의 그림으로 보입니다.
+#
+# 그림이 아니라 **문장(紋章)** 입니다. 2D 게임의 카드에 앉는 것이므로 사진처럼 그리면 화면의
+# 나머지와 겉돌고, 작게 줄이면 무엇인지 읽히지도 않습니다 — 두꺼운 선과 납작한 색으로 크게
+# 하나를 놓는 편이 어느 크기에서도 읽힙니다.
+#
+# 세로 2:3 입니다. **카드의 비율입니다** — 정사각형으로 뽑으면 카드에 넣을 때 위아래가
+# 잘리거나 좌우에 빈 자리가 남고, 그러면 그림이 아니라 아이콘이 됩니다.
+#
+# 바탕색을 못박는 것이 요점입니다. 적지 않으면 어떤 것은 크림색으로 떠서 한 벌로 보이지
+# 않습니다.
+PROMPT = (
+    'Bold flat 2D emblem of %s. '
+    'Heraldic symbol, thick clean outlines, screen-print poster art, limited flat colour '
+    'palette, no realism, no photography, no soft shading, no depth of field. '
+    'Decorative geometric background pattern behind the symbol: art-deco rays and a fine '
+    'dot grid with subtle paper grain, on a DEEP NAVY background. '
+    'The symbol is HUGE and fills the whole vertical frame. '
+    'Enclosed by a thin art-deco keyline border with small square corner ornaments on a '
+    'narrow cream margin. '
+    'Palette: deep navy, teal, warm gold, crimson. Vertical composition. '
+    'No text, no letters, no numbers, no signature.')
+
+# 그림의 크기. **카드의 비율이고, 이 비율을 내는 모델로 뽑아야 합니다** —
+# `flux-1-schnell` 은 가로세로를 무시하고 정사각형만 냅니다.
+SIZE = (640, 960)
+MODEL = 'lucid-origin'
+
+
+def prompt_for(subject):
+    """그 대상 하나의 프롬프트. **화풍은 위에 한 벌만 있습니다.**"""
+    return PROMPT % (subject[0].lower() + subject[1:])
 
 # 식별자를 그대로 읽으면 어색한 것들. **여기 없는 것은 식별자를 그대로 문장으로 만듭니다.**
+# 그림 생성기가 낱말만 보고 거절하는 것들이 있습니다. **뜻은 그대로 두고 낱말만 바꿉니다** —
+# 「a seed pod」·「a tiny tot」·「strength」 같은 것이 오탐으로 걸렀습니다.
 OVERRIDE = {
+    'smudge': 'a smudged ink thumbprint on paper',
+    'almanac': 'an open almanac book showing moon phases',
+    'seed_pod': 'a dried poppy capsule with a ring of vents',
+    'tintype': 'an antique metal-plate portrait in an oval frame',
+    'puffball': 'a round white mushroom releasing a cloud of spores',
+    'night_thief': 'a masked burglar in a dark cloak carrying a lantern',
+    'broad_bean': 'three round green legumes in a long green shell',
+    'tiny_tot': 'a very small jester doll in a patchwork hood',
+    'strength': 'a lion with a wreath, an arcana emblem of fortitude',
+    'the_devil': 'a horned goat-headed idol, an arcana emblem',
+    'cryptid': 'a shadowy horned beast glimpsed between trees',
     'half_note': 'a single half note carved from pale stone',
     'low_note': 'a low bass note drawn as a heavy dark stone disc',
     'even_note': 'two identical stone discs balanced on a beam',
@@ -108,7 +148,9 @@ def entries():
 
 
 def target(kind, identifier):
-    return os.path.join(SAMPLE, 'web', 'public', 'art', kind, identifier + '.png')
+    # **트럼프만 png 입니다.** 나머지는 결이 있는 사각형 그림이라 webp 로 굽습니다 —
+    # png 로 두면 장당 400KB 이고 202장이면 77MB 입니다.
+    return os.path.join(SAMPLE, 'web', 'public', 'art', kind, identifier + '.webp')
 
 
 def main():
@@ -126,7 +168,7 @@ def main():
             have = '1' if os.path.exists(target(kind, identifier)) else ''
             handle.write('%s\t%s\t%s\t%s\t%s\t%s\n'
                          % (kind, identifier, display, subject,
-                            '%s, %s' % (subject[0].upper() + subject[1:], STYLE), have))
+                            prompt_for(subject), have))
 
     # **화면이 읽는 목록.** 이것이 없으면 그림마다 없는 파일을 찾아 404를 냅니다.
     art_dir = os.path.join(SAMPLE, 'web', 'public', 'art')
@@ -154,8 +196,7 @@ def main():
 
     if only_missing:
         for kind, identifier, _display, subject in missing:
-            print('%s/%s\t%s, %s' % (kind, identifier,
-                                     subject[0].upper() + subject[1:], STYLE))
+            print('%s/%s\t%s' % (kind, identifier, prompt_for(subject)))
 
 
 if __name__ == '__main__':

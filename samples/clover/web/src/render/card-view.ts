@@ -464,7 +464,7 @@ export class CardView extends Container {
     if (this.pickMode !== 0 || this.glow > 0) this.pick.time = time
 
     if (this.glow > 0) {
-      this.glow = Math.max(0, this.glow - seconds * 2.4)
+      this.glow = Math.max(0, this.glow - seconds * 1.5)
       this.pick.glow = this.glow
       if (this.glow === 0) this.restack()
     }

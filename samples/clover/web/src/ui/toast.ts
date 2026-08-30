@@ -43,7 +43,13 @@ interface Entry {
 export class Toasts extends Container {
   private readonly live: Entry[] = []
 
-  constructor() {
+  /**
+   * 줄이 가운데에 서는 자리.
+   *
+   * **화면의 한가운데가 아닙니다.** 왼쪽에 패널이 서 있으므로 화면의 한가운데는 판의
+   * 한가운데보다 왼쪽이고, 거기에 띄우면 줄이 카드에서 비껴 보입니다.
+   */
+  constructor(private readonly centerX: number = SIZE.width / 2) {
     super()
     this.eventMode = 'none'
     this.zIndex = 8_000
@@ -127,7 +133,7 @@ export class Toasts extends Container {
       entry.shown += (want - entry.shown) * Math.min(1, seconds * 12)
 
       entry.box.scale.set(scale)
-      entry.box.position.set(SIZE.width / 2, entry.shown - (1 - enter) * 26)
+      entry.box.position.set(this.centerX, entry.shown - (1 - enter) * 26)
       entry.box.alpha = Math.min(enter, Math.min(1, entry.life / 0.4))
     }
   }

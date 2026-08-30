@@ -32,6 +32,17 @@ export async function loadArtIndex(url = './art'): Promise<number> {
   return known.size
 }
 
+/**
+ * 그 갈래의 파일 확장자.
+ *
+ * **트럼프만 `png` 입니다.** 모서리가 둥근 투명 그림이라 그렇고, 나머지는 결이 있는 사각형
+ * 그림이라 `png` 로 두면 장당 400KB 입니다 — 202장이면 77MB 이고, 화면에서 가장 크게 쓰이는
+ * 자리는 88 × 124 입니다.
+ */
+function extensionOf(kind: ArtKind): string {
+  return kind === 'card' ? 'png' : 'webp'
+}
+
 export function onArtReady(listener: () => void): void {
   listeners.push(listener)
 }
@@ -51,7 +62,7 @@ export function artFor(kind: ArtKind, id: string): Texture | undefined {
   if (loading.has(key)) return undefined
 
   loading.add(key)
-  void Assets.load<Texture>(`${base}/${key}.png`).then(texture => {
+  void Assets.load<Texture>(`${base}/${key}.${extensionOf(kind)}`).then(texture => {
     loading.delete(key)
     ready.set(key, texture)
     for (const listener of listeners) listener()

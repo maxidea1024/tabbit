@@ -12,6 +12,7 @@ import { Application, Container, Sprite, Text, Texture } from 'pixi.js'
 import { EditionKind } from './generated/enums/edition-kind'
 import { loadFromUrl } from './core/load'
 import { BackgroundFilter } from './shader/background'
+import { loadArtIndex, onArtReady } from './render/art'
 import { JokerView } from './render/joker-view'
 import { CardView, type EditionLook } from './render/card-view'
 import { COLOR } from './render/theme'
@@ -38,6 +39,9 @@ async function main(): Promise<void> {
   })
 
   const data = await loadFromUrl('./data')
+  // **그림을 먼저 읽습니다.** 없으면 조커가 문양 하나로 그려지고, 에디션 셰이더가 무엇에
+  // 걸리는지가 이 그림의 요점인데 그 무엇이 빈 자리가 됩니다.
+  await loadArtIndex()
 
   const background = new BackgroundFilter()
   const sheet = new Sprite(Texture.WHITE)
@@ -78,9 +82,13 @@ async function main(): Promise<void> {
       counters: { chips: 0, multAdd: 0, multMul: 10_000, money: 0, sellValue: 0, charge: 0, tick: 0 },
       age: 0, disabled: false,
     }
-    const view = new JokerView(joker, {
+    const dress = {
       name: jokerRow.name, rarity: jokerRow.rarity, lines: [], edition: look(edition),
-    })
+    }
+    const view = new JokerView(joker, dress)
+    // **그림은 목록을 읽은 뒤에도 한 박자 늦게 옵니다.** 그때 다시 그리지 않으면 카드가
+    // 빈 채로 남습니다.
+    onArtReady(() => view.set(joker, dress))
     view.motion.snap(x, 190)
     world.addChild(view)
     jokers.push(view)
