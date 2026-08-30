@@ -20,6 +20,15 @@ export interface Beat {
   event: GameEvent
   /** 0 부터 1. 흔들림 · 숫자 크기 · 음높이가 전부 이것을 씁니다. */
   intensity: number
+  /**
+   * 이 박자가 끝났을 때의 칩과 배수.
+   *
+   * **박자가 값을 들고 다녀야 합니다.** 값이 바뀐 것을 알리는 이벤트는 자기 시간을 쓰지
+   * 않으므로 화면이 그것을 따로 받을 자리가 없고, 없으면 조커가 올린 배수가 칸에 반영되지
+   * 않은 채 마지막에 점수만 튀어나옵니다.
+   */
+  chips?: number
+  mult?: number
 }
 
 export interface Feel {
@@ -42,6 +51,10 @@ export interface Feel {
   cardHoverLiftPx: number
   cardHoverTiltDeg: number
   drawStaggerMs: number
+  /** 낸 카드가 판으로 올라갈 때 장마다의 간격. */
+  playStaggerMs: number
+  /** 마지막 장이 자리에 붙고 득점이 시작되기까지. */
+  playLandMs: number
 }
 
 export function readFeel(feel: FeelConstants): Feel {
@@ -65,9 +78,14 @@ export function intensityOf(mult: number, feel: Feel): number {
 /** 이벤트 하나가 차지하는 시간. */
 function holdOf(event: GameEvent, feel: Feel): number {
   switch (event.t) {
+    // **낸 카드가 한 장씩 날아가 붙는 동안은 아무것도 세지 않습니다.** 아직 자리에 없는
+    // 카드 위에 숫자가 뜨면 다섯 장이 한 덩어리로 보입니다.
+    case 'HandPlayed':
+      return event.uids.length * feel.playStaggerMs + feel.playLandMs
     case 'HandEvaluated': return feel.handLabelMs
     case 'CardScored': return feel.scoreStepMs
     case 'JokerTriggered': return feel.jokerStepMs
+    case 'RunTriggered': return feel.jokerStepMs
     case 'JokerFizzled': return feel.jokerStepMs
     case 'Retriggered': return feel.retriggerStepMs
     case 'ScoreResolved': return feel.multiplyMs + feel.settleMs
@@ -76,6 +94,10 @@ function holdOf(event: GameEvent, feel: Feel): number {
     case 'MoneyChanged': return event.delta === 0 ? 0 : feel.moneyStepMs
     case 'RunLost':
     case 'RunWon': return feel.settleMs * 2
+    // 버린 카드도 한 장씩 나갑니다.
+    case 'HandDiscarded': return event.uids.length * feel.playStaggerMs
+    // 다음 패는 득점이 끝난 뒤에 깔립니다. 장마다의 간격이 자기 몫입니다.
+    case 'HandDrawn': return event.uids.length * feel.drawStaggerMs
     // 값이 바뀐 것을 알리는 이벤트는 자기 시간을 쓰지 않습니다 — 앞의 박자에 얹힙니다.
     case 'ChipsMultChanged': return 0
     default: return 0
@@ -91,19 +113,36 @@ function holdOf(event: GameEvent, feel: Feel): number {
 export function buildTimeline(events: readonly GameEvent[], feel: Feel): Beat[] {
   const beats: Beat[] = []
   let at = 0
+  let chips = 0
   let mult = 10_000
 
   for (const event of events) {
     if (event.t === 'ChipsMultChanged') {
+      chips = event.chips
       mult = event.mult
-      if (beats.length > 0) beats[beats.length - 1].intensity = intensityOf(mult, feel)
+      const last = beats[beats.length - 1]
+      if (last) {
+        last.chips = chips
+        last.mult = mult
+        last.intensity = intensityOf(mult, feel)
+      }
       continue
     }
 
     const hold = holdOf(event, feel)
     if (hold === 0) continue
 
-    beats.push({ at, hold, event, intensity: intensityOf(mult, feel) })
+    // 족보가 정해지는 자리에서 기본값으로 갈아탑니다. **그 앞의 값은 지난 판의 것입니다.**
+    if (event.t === 'HandEvaluated') {
+      chips = event.chips
+      mult = event.mult
+    }
+
+    beats.push({
+      at, hold, event,
+      intensity: intensityOf(mult, feel),
+      chips, mult,
+    })
     at += hold
   }
 
@@ -148,16 +187,19 @@ export class TimelinePlayer {
 
   constructor(private readonly onBeat: (beat: Beat) => void) {}
 
+  /** 옵션이 정한 배속. 빠르게 넘기기는 이 위에 얹힙니다. */
+  base = 1
+
   play(beats: Beat[]): void {
     this.beats = beats
     this.cursor = 0
     this.clock = 0
-    this.speed = 1
+    this.speed = this.base
   }
 
   /** 아무 키나 누르면 빨라지고, 두 번 누르면 끝냅니다. */
   hurry(feel: Feel): void {
-    if (this.speed === 1) this.speed = feel.fastForwardScale
+    if (this.speed <= this.base) this.speed = this.base * feel.fastForwardScale
     else this.finish()
   }
 

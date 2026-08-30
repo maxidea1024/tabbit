@@ -16,6 +16,8 @@ export class Audio {
   private readonly follows = new Map<string, boolean>()
 
   volume = 0.35
+  /** 소리를 끄는가. 옵션이 정합니다. */
+  muted = false
 
   constructor(tables: CloverData) {
     for (const cue of tables.soundCue.records) {
@@ -43,7 +45,7 @@ export class Audio {
   play(cueId: string, semitones = 0): void {
     const context = this.context
     const master = this.master
-    if (!context || !master) return
+    if (!context || !master || this.muted) return
 
     const follows = this.follows.get(cueId) ?? false
     const shape = SHAPE[cueId] ?? DEFAULT_SHAPE

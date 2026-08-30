@@ -30,6 +30,7 @@ interface Peek {
   packOpen: boolean
   packs: number
   played: number
+  blind: number
   coins: boolean
   cleared: boolean
   consumables: number
@@ -65,13 +66,19 @@ async function main(): Promise<number> {
   })
   page.on('pageerror', error => problems.push(String(error)))
 
-  await page.goto('http://localhost:5177/?seed=CLOVER-SHOT7', { waitUntil: 'networkidle' })
+  await page.goto('http://localhost:5177/?seed=CLOVER-SHOT6', { waitUntil: 'networkidle' })
   await page.waitForTimeout(1500)
 
   const shoot = async (name: string) => {
     await page.screenshot({ path: path.join(OUT, `${name}.png`) })
     console.log(`${name}.png`)
   }
+
+  // 타이틀. **게임은 여기서 시작합니다.**
+  await shoot('0a-title')
+  const startSpot = await at(page, STAGE_W / 2, 446 + 27)
+  await page.mouse.click(startSpot.x, startSpot.y)
+  await page.waitForTimeout(700)
 
   // 처음 여는 사람에게 저절로 펼쳐지는 판입니다. 찍어 두고 닫습니다.
   await shoot('0-guide')
@@ -97,16 +104,23 @@ async function main(): Promise<number> {
 
   // 연출이 도는 중을 찍습니다 — 끝난 뒤에는 낸 카드가 이미 치워져 있어서, 득점이 어떻게
   // 보이는지가 그림에 남지 않습니다.
+  // **남은 카드.** 무엇이 덱에 남았는지 보는 판입니다.
+  await openDeckView(page)
+  await shoot('2c-deck')
+  await openDeckView(page)
+  await page.waitForTimeout(200)
+
   await pickCards(page, picks.slice(3))
   await page.waitForTimeout(150)
   await pressPlay(page)
-  await page.waitForTimeout(700)
+  // 낸 카드가 자리에 붙고 득점 카드를 세기 시작한 뒤입니다.
+  await page.waitForTimeout(1500)
   await shoot('3-scoring')
 
   // 마지막 한 방. **점수가 합쳐지는 순간이 이 게임에서 가장 큰 장면입니다.**
   // **마지막 한 방을 정확히 잡습니다.** 시간으로 재면 스크린샷 자체가 느려 어긋납니다 —
   // 「연출이 끝났고 낸 카드가 아직 판에 있다」가 그 순간입니다.
-  for (let wait = 0; wait < 60; wait++) {
+  for (let wait = 0; wait < 220; wait++) {
     const state = await peek(page)
     if (!state.busy && state.played > 0) break
     await page.waitForTimeout(60)
@@ -129,7 +143,7 @@ async function main(): Promise<number> {
       }
       // 「넘겼습니다」 가 튀어나오는 순간.
       if (!shotClear) {
-        for (let wait = 0; wait < 60; wait++) {
+        for (let wait = 0; wait < 240; wait++) {
           const now = await peek(page)
           if (now.cleared) {
             shotClear = true
@@ -142,7 +156,7 @@ async function main(): Promise<number> {
       }
 
       // **격파 보상이 들어오는 순간.** 동전이 날아가는 것을 여기서 잡습니다.
-      for (let wait = 0; wait < 80; wait++) {
+      for (let wait = 0; wait < 260; wait++) {
         const now = await peek(page)
         if (now.coins) {
           if (!shotCoins) {
@@ -169,6 +183,9 @@ async function main(): Promise<number> {
 
     // 조커를 먼저 삽니다. **조커가 없는 화면은 이 게임의 화면이 아닙니다** — 팩을 먼저
     // 뜯으면 돈이 모자라 조커를 못 삽니다.
+    //
+    // 시드는 **첫 상점에 살 수 있는 조커가 놓이는 것**으로 골랐습니다. 아무 시드나 쓰면
+    // 상점에 타로와 행성만 놓이는 판이 나오고, 그러면 조커 화면이 빈 채로 찍힙니다.
     await buyFirstAffordable(page)
     await settle(page)
     await page.waitForTimeout(700)
@@ -205,7 +222,8 @@ async function main(): Promise<number> {
     await settle(page)
     await page.waitForTimeout(400)
     await playHand(page, chooseFive((await peek(page)).hand))
-    await page.waitForTimeout(520)
+    // 조커 줄까지 내려온 뒤입니다 — 카드를 다 세고 나서야 조커가 돕니다.
+    await page.waitForTimeout(2600)
     await shoot('8-joker-fires')
   } else {
     console.log(`상점까지 가지 못했습니다 — 지금은 ${finished.phase} 입니다`)
@@ -385,8 +403,21 @@ const SHOP_CARD_Y = 252
  * **상점에서는 자리가 다릅니다** — 바우처 딱지와 겹치지 않게 아래로 내려가 있습니다.
  */
 async function clickPrimary(page: Page): Promise<void> {
-  const shop = (await peek(page)).phase === 'shop'
-  const spot = await at(page, BOARD_X, shop ? 657 : 545)
+  if ((await peek(page)).phase === 'shop') {
+    const spot = await at(page, BOARD_X, 657)
+    await page.mouse.click(spot.x, spot.y)
+    return
+  }
+  // 블라인드 선택은 **판 셋이 나란히** 서고 지금 차례인 것만 자기 버튼을 가집니다.
+  // `game.ts` 의 `drawBlindPick` 과 같은 계산입니다.
+  const cardW = 226
+  const gap = 20
+  const cardH = 306
+  const top = 236
+  const index = { 1: 0, 2: 1, 3: 2 }[(await peek(page)).blind as 1 | 2 | 3] ?? 0
+  const startX = BOARD_X - (2 * (cardW + gap)) / 2 - cardW / 2
+  const spot = await at(page, startX + index * (cardW + gap) + cardW / 2,
+    top - 16 + (cardH + 26) - 106 + 22)
   await page.mouse.click(spot.x, spot.y)
 }
 
@@ -399,6 +430,13 @@ async function clickPrimary(page: Page): Promise<void> {
 async function playHand(page: Page, picks: number[] = [0, 1, 2, 3, 4]): Promise<void> {
   await pickCards(page, picks)
   await pressPlay(page)
+}
+
+/** 남은 카드 판을 열고 닫습니다. 왼쪽 패널 아래의 버튼입니다. */
+async function openDeckView(page: Page): Promise<void> {
+  const spot = await at(page, 16 - 2 + 59, 700 + 17)
+  await page.mouse.click(spot.x, spot.y)
+  await page.waitForTimeout(350)
 }
 
 /** 고르기만 합니다. 고른 카드의 셰이더를 찍으려면 낸다를 누르기 전에 멈춰야 합니다. */

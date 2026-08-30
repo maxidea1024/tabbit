@@ -6,11 +6,12 @@
 // 그림 파일이 아직 없으므로 식별자에서 만든 문양으로 그립니다. 같은 조커는 언제나 같은
 // 모양이고, 희귀도가 테두리 색입니다.
 
-import { Container, Graphics, Sprite, Text } from 'pixi.js'
+import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
 
 import { EditionKind } from '../generated/enums/edition-kind'
 import type { JokerInstance } from '../core/state'
 import { EditionFilter, type EditionShader } from '../shader/editions'
+import { roundedMask } from '../shader/mask'
 import { artFor } from './art'
 import { drawGlyph, glyphFor, hashOf, hsl, shade, tintUp } from './glyph'
 import { Motion, sway } from './motion'
@@ -42,6 +43,13 @@ export class JokerView extends Container {
   look: JokerLook
 
   private readonly shadow = new Graphics()
+  /**
+   * 조커 딱지 자체. **에디션 셰이더가 이것에만 걸립니다.**
+   *
+   * 그림자까지 함께 감싸면 필터가 도는 사각형이 딱지보다 커지고, 셰이더에 넘긴 모양 그림이
+   * 딱지와 어긋납니다. `card-view.ts` 와 같은 이유입니다.
+   */
+  private readonly body = new Container()
   private readonly plate = new Graphics()
   private readonly emblem = new Graphics()
   /** 그림이 있으면 이것이 문양을 대신합니다. */
@@ -65,7 +73,9 @@ export class JokerView extends Container {
     super()
     this.uid = joker.uid
     this.look = look
-    this.addChild(this.shadow, this.plate, this.emblem, this.nameText, this.counter)
+    this.body.addChild(this.plate, this.emblem, this.nameText, this.counter)
+    this.body.boundsArea = new Rectangle(0, 0, SIZE.jokerWidth, SIZE.jokerHeight)
+    this.addChild(this.shadow, this.body)
     this.pivot.set(SIZE.jokerWidth / 2, SIZE.jokerHeight / 2)
     this.set(joker, look)
   }
@@ -122,7 +132,7 @@ export class JokerView extends Container {
       sprite.height = frameH - 3
       sprite.position.set(frameX + 1.5, frameY + 1.5)
       this.art = sprite
-      this.addChildAt(sprite, this.getChildIndex(this.emblem) + 1)
+      this.body.addChildAt(sprite, this.body.getChildIndex(this.emblem) + 1)
     } else {
       drawGlyph(this.emblem, glyphFor(joker.jokerId), w / 2, frameY + frameH / 2, 40, {
         fill: glyphInk,
@@ -153,10 +163,11 @@ export class JokerView extends Container {
         strength: look.edition.strength,
         flowSpeed: look.edition.flowSpeed,
         noise: look.edition.noise,
+        shape: roundedMask(SIZE.jokerWidth, SIZE.jokerHeight, 9),
       })
-      this.filters = [this.edition]
+      this.body.filters = [this.edition]
     } else {
-      this.filters = []
+      this.body.filters = []
       this.edition = undefined
     }
   }

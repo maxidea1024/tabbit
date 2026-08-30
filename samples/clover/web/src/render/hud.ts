@@ -32,8 +32,10 @@ export class Slot extends Container {
   private settledLook = true
 
   constructor(caption: string, private readonly boxWidth: number,
-              private readonly boxHeight: number, private readonly ink: number) {
+              private readonly boxHeight: number, private readonly ink: number,
+              valueSize = 23) {
     super()
+    this.value.style.fontSize = valueSize
     this.addChild(this.plate, this.caption, this.value)
     this.caption.text = caption
     this.caption.anchor.set(0.5, 0)

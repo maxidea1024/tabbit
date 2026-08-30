@@ -32,28 +32,90 @@ function rankChips(vm: Vm, card: CardInstance): number {
   return (vm.data.tables.rank.findByRank(card.rank)?.chips ?? 0) + card.bonusChips
 }
 
-/** 에디션이 카드에 주는 것. 조커에도 같은 값이 붙습니다. */
-function applyEdition(vm: Vm, edition: EditionKind): void {
+/**
+ * 에디션이 카드에 주는 것. 조커에도 같은 값이 붙습니다.
+ *
+ * **에디션도 이름을 남깁니다.** 값만 조용히 들어가면 화면에는 「어디선가 배수가 올랐다」만
+ * 남고, 그 카드에 왜 무늬가 도는지가 설명되지 않습니다.
+ */
+function applyEdition(vm: Vm, edition: EditionKind, tell: (chips: number, mult: number,
+                                                          op: string) => void): void {
   const row = vm.data.tables.edition.findByEdition(edition)
   if (!row || !vm.scoring) return
 
-  if (row.chips !== 0) vm.scoring.chips += row.chips
-  if (row.multAdd !== 0) vm.scoring.mult += row.multAdd
-  if (row.multMul !== MULT_ONE) vm.scoring.mult = mulBp(vm.scoring.mult, row.multMul)
+  if (row.chips !== 0) {
+    vm.scoring.chips += row.chips
+    tell(row.chips, 0, 'AddChips')
+    emitTotals(vm)
+  }
+  if (row.multAdd !== 0) {
+    vm.scoring.mult += row.multAdd
+    tell(0, row.multAdd, 'AddMult')
+    emitTotals(vm)
+  }
+  if (row.multMul !== MULT_ONE) {
+    vm.scoring.mult = mulBp(vm.scoring.mult, row.multMul)
+    tell(0, row.multMul, 'MulMult')
+    emitTotals(vm)
+  }
+}
+
+/** 카드의 에디션. 그 카드 위에 뜹니다. */
+function applyCardEdition(vm: Vm, card: CardInstance): void {
+  applyEdition(vm, card.edition, (chips, mult, op) => {
+    vm.events.push({
+      t: 'CardScored', uid: card.uid, op, chips, mult, money: 0, source: 'edition',
+    })
+  })
+}
+
+/** 조커의 에디션. 그 조커 위에 뜹니다. */
+function applyJokerEdition(vm: Vm, joker: JokerInstance, slot: number): void {
+  applyEdition(vm, joker.edition, (chips, mult, op) => {
+    vm.events.push({
+      t: 'JokerTriggered', slot, jokerId: joker.jokerId, op, chips, mult, money: 0,
+    })
+  })
 }
 
 /**
  * 조커가 누적한 값. **득점할 때 자동으로 들어갑니다** — 조커마다 더하는 효과 행을 두면
  * 같은 것을 150번 적게 됩니다.
+ *
+ * **자동으로 들어가는 것과 조용히 들어가는 것은 다릅니다.** 늘어나는 조커는 누적값이 그
+ * 조커의 전부이고, 그것이 이벤트를 내지 않는 동안 화면에서는 아무 일도 하지 않는 조커였습니다.
  */
-function applyCounters(vm: Vm, joker: JokerInstance): void {
+function applyCounters(vm: Vm, joker: JokerInstance, slot: number): void {
   const scoring = vm.scoring
   if (!scoring) return
   const { chips, multAdd, multMul } = joker.counters
 
-  if (chips !== 0) scoring.chips += chips
-  if (multAdd !== 0) scoring.mult += multAdd
-  if (multMul !== MULT_ONE) scoring.mult = mulBp(scoring.mult, multMul)
+  const tell = (op: string, addChips: number, addMult: number) => {
+    vm.events.push({
+      t: 'JokerTriggered', slot, jokerId: joker.jokerId, op,
+      chips: addChips, mult: addMult, money: 0,
+    })
+    emitTotals(vm)
+  }
+
+  if (chips !== 0) {
+    scoring.chips += chips
+    tell('AddChips', chips, 0)
+  }
+  if (multAdd !== 0) {
+    scoring.mult += multAdd
+    tell('AddMult', 0, multAdd)
+  }
+  if (multMul !== MULT_ONE) {
+    scoring.mult = mulBp(scoring.mult, multMul)
+    tell('MulMult', 0, multMul)
+  }
+}
+
+/** 지금의 칩과 배수. 값을 바꾼 것 바로 뒤에 붙습니다. */
+function emitTotals(vm: Vm): void {
+  if (!vm.scoring) return
+  vm.events.push({ t: 'ChipsMultChanged', chips: vm.scoring.chips, mult: vm.scoring.mult })
 }
 
 /** 카드 한 장을 한 번 처리합니다. 재발동이면 이것이 다시 불립니다. */
@@ -64,12 +126,16 @@ function scoreCardOnce(vm: Vm, card: CardInstance): void {
   const chips = rankChips(vm, card)
   if (chips !== 0) {
     scoring.chips += chips
-    vm.events.push({ t: 'CardScored', uid: card.uid, chips, mult: 0, source: 'rank' })
+    vm.events.push({
+      t: 'CardScored', uid: card.uid, op: 'AddChips',
+      chips, mult: 0, money: 0, source: 'rank',
+    })
+    emitTotals(vm)
   }
 
   if (!isSilenced(card)) {
     runCardEffects(vm, Trigger.OnCardScored, card)
-    applyEdition(vm, card.edition)
+    applyCardEdition(vm, card)
   }
 
   // 조커를 매번 다시 모으는 것은 낭비가 아니라 규격입니다 — 효과가 조커를 파괴할 수 있고,
@@ -153,13 +219,13 @@ export function scoreHand(vm: Vm, played: CardInstance[]): ScoreResult {
     const joker = state.jokers[slot]
     if (joker.disabled) continue
 
-    applyCounters(vm, joker)
+    applyCounters(vm, joker, slot)
     for (const effect of rowsForJoker(vm, joker, slot)) {
       if (effect.trigger === Trigger.OnHandPlayed) {
         runRow(vm, effect, { kind: 'joker', joker, slot })
       }
     }
-    applyEdition(vm, joker.edition)
+    applyJokerEdition(vm, joker, slot)
   }
 
   // 6. 곱합니다. 여기서 한 번뿐입니다.

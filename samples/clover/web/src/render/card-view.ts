@@ -5,7 +5,7 @@
 // 움직임이 절반입니다 — 카드는 늘 조금씩 흔들리고, 마우스를 따라 기울고, 골라지면
 // 튀어오르고, 득점하면 한 번 커집니다. 곧바로 목표 자리로 가는 카드는 죽어 보입니다.
 
-import { Container, Graphics, Text } from 'pixi.js'
+import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
 
 import { EditionKind } from '../generated/enums/edition-kind'
 import { EnhancementKind } from '../generated/enums/enhancement-kind'
@@ -13,16 +13,12 @@ import { SealKind } from '../generated/enums/seal-kind'
 import { SuitKind } from '../generated/enums/suit-kind'
 import type { CardInstance } from '../core/state'
 import { EditionFilter, type EditionShader } from '../shader/editions'
+import { roundedMask } from '../shader/mask'
 import { PickFilter } from '../shader/pick'
+import { artFor } from './art'
+import { cardArtId, drawFace, drawSuit } from './pips'
 import { Motion, sway } from './motion'
 import { COLOR, SIZE } from './theme'
-
-const PIP: Record<SuitKind, string> = {
-  [SuitKind.Spade]: '♠',
-  [SuitKind.Heart]: '♥',
-  [SuitKind.Club]: '♣',
-  [SuitKind.Diamond]: '♦',
-}
 
 /** 족보 도움의 색. **고른 카드의 초록과 달라야 헷갈리지 않습니다.** */
 const HINT_COLOR = 0xffc53d
@@ -81,6 +77,14 @@ export class CardView extends Container {
   readonly motion = new Motion()
 
   private readonly shadow = new Graphics()
+  /**
+   * 카드의 종이 자체. **에디션 셰이더가 이것에만 걸립니다.**
+   *
+   * 필터는 그 물체를 감싸는 사각형 위에서 돕니다. 그림자와 도움 외곽선까지 함께 감싸면 그
+   * 사각형이 카드보다 커지고, 셰이더에 넘긴 모양 그림이 카드와 어긋납니다 — 그래서 카드
+   * 넓이만 담는 통을 하나 두고 그 넓이를 못박습니다.
+   */
+  private readonly body = new Container()
   private readonly paper = new Graphics()
   private readonly cornerTop = new Text({
     text: '', style: { fontSize: 19, fill: COLOR.black, fontWeight: '800' },
@@ -88,7 +92,21 @@ export class CardView extends Container {
   private readonly cornerBottom = new Text({
     text: '', style: { fontSize: 19, fill: COLOR.black, fontWeight: '800' },
   })
-  private readonly pip = new Text({ text: '', style: { fontSize: 44, fill: COLOR.black } })
+  /**
+   * 카드의 얼굴.
+   *
+   * **글자 하나가 아니라 그린 것입니다.** 5는 무늬가 다섯이어야 5로 읽히고, 킹에는 그림이
+   * 있어야 킹으로 읽힙니다 — 큰 무늬 하나로는 랭크가 모서리의 글자에만 남습니다.
+   */
+  private readonly face = new Graphics()
+  /**
+   * 트럼프 그림.
+   *
+   * **있으면 이것이 얼굴 전부입니다.** 트럼프의 얼굴은 몇백 년째 같은 모양이고, 새로
+   * 지어낸 얼굴은 그 낱말을 잃습니다 — 그래서 이 한 벌만 공유 재산을 씁니다
+   * (`public/art/card/readme.md`). 아직 안 읽혔으면 `face` 가 그려서 채웁니다.
+   */
+  private readonly picture = new Sprite()
   private readonly mark = new Text({
     text: '', style: { fontSize: 10, fill: 0x3a3226, fontWeight: '700' },
   })
@@ -124,8 +142,14 @@ export class CardView extends Container {
   constructor(card: CardInstance, look?: EditionLook) {
     super()
     this.uid = card.uid
-    this.addChild(this.shadow, this.paper, this.pip, this.cornerTop, this.cornerBottom,
-      this.mark, this.seal, this.hintRing)
+    this.body.addChild(this.paper, this.picture, this.face, this.cornerTop, this.cornerBottom,
+      this.mark, this.seal)
+    this.picture.width = SIZE.cardWidth
+    this.picture.height = SIZE.cardHeight
+    // **넓이를 못박습니다.** 그리는 것에 따라 재면 획이 삐져나온 만큼 사각형이 커지고,
+    // 그만큼 모양 그림이 밀립니다.
+    this.body.boundsArea = new Rectangle(0, 0, SIZE.cardWidth, SIZE.cardHeight)
+    this.addChild(this.shadow, this.body, this.hintRing)
     this.drawHintRing()
     this.pivot.set(SIZE.cardWidth / 2, SIZE.cardHeight / 2)
     this.set(card, look)
@@ -150,10 +174,12 @@ export class CardView extends Container {
       }
       this.cornerTop.visible = false
       this.cornerBottom.visible = false
-      this.pip.visible = false
+      this.face.clear()
+      this.picture.visible = false
       this.mark.visible = false
       this.seal.clear()
-      this.filters = []
+      this.edition = undefined
+      this.restack()
       return
     }
 
@@ -170,24 +196,42 @@ export class CardView extends Container {
 
     const ink = card.debuffed ? 0x9a9a9a : red ? COLOR.red : COLOR.black
 
-    this.cornerTop.visible = !stone
-    this.cornerBottom.visible = !stone
-    this.pip.visible = true
+    this.face.clear()
+    this.picture.visible = false
 
     if (stone) {
-      this.pip.text = '⬤'
-      this.pip.style.fill = 0x6f6a60
+      // 석재는 랭크도 무늬도 없습니다. **돌 하나입니다.**
+      this.cornerTop.visible = false
+      this.cornerBottom.visible = false
+      this.face.circle(w / 2, h / 2, 22).fill(0x6f6a60)
+      this.face.circle(w / 2 - 5, h / 2 - 6, 7).fill({ color: 0x8b8578, alpha: 0.6 })
     } else {
-      this.pip.text = PIP[card.suit]
-      this.pip.style.fill = ink
-      this.cornerTop.text = RANK_TEXT[card.rank] ?? '?'
-      this.cornerBottom.text = this.cornerTop.text
-      this.cornerTop.style.fill = ink
-      this.cornerBottom.style.fill = ink
+      const texture = artFor('card', cardArtId(card.suit, card.rank))
+      if (texture) {
+        // 그림이 곧 얼굴입니다. 글자도 무늬도 그 안에 있습니다.
+        this.picture.texture = texture
+        this.picture.width = w
+        this.picture.height = h
+        this.picture.visible = true
+        // 강화는 그림에 색을 입혀 알립니다 — 그림 위에 덧그리면 얼굴이 가려집니다.
+        this.picture.tint = card.debuffed ? 0x8d8d8d : paperColor
+        this.cornerTop.visible = false
+        this.cornerBottom.visible = false
+      } else {
+        drawFace(this.face, card.suit, card.rank, w, h, ink)
+        this.cornerTop.visible = true
+        this.cornerBottom.visible = true
+        this.cornerTop.text = RANK_TEXT[card.rank] ?? '?'
+        this.cornerBottom.text = this.cornerTop.text
+        this.cornerTop.style.fill = ink
+        this.cornerBottom.style.fill = ink
+        // 모서리에는 랭크 아래에 작은 무늬가 붙습니다. **트럼프의 모서리가 그렇습니다** —
+        // 손에 부챗살로 쥐었을 때 보이는 것이 그 둘뿐이기 때문입니다.
+        drawSuit(this.face, card.suit, 14, 33, 12, ink)
+        drawSuit(this.face, card.suit, w - 14, h - 33, 12, ink, true)
+      }
     }
 
-    this.pip.anchor.set(0.5)
-    this.pip.position.set(w / 2, h / 2)
     this.cornerTop.position.set(8, 5)
     this.cornerBottom.anchor.set(1, 1)
     this.cornerBottom.position.set(w - 8, h - 5)
@@ -221,6 +265,7 @@ export class CardView extends Container {
         strength: look.strength,
         flowSpeed: look.flowSpeed,
         noise: look.noise,
+        shape: roundedMask(SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius),
       })
       : undefined
     this.restack()
@@ -233,10 +278,10 @@ export class CardView extends Container {
    * 뿌옇게 됩니다.
    */
   private restack(): void {
-    const stack = []
-    if (this.edition) stack.push(this.edition)
-    if (this.pickMode !== 0) stack.push(this.pick)
-    this.filters = stack
+    // 에디션은 종이에만, 고름 표시는 카드 전체에. **고름 표시의 빛은 카드 밖으로 나가야
+    // 하고, 에디션의 무늬는 카드 안에 머물러야 합니다.**
+    this.body.filters = this.edition ? [this.edition] : []
+    this.filters = this.pickMode !== 0 ? [this.pick] : []
   }
 
   /** 족보 도움. 이것도 고르면 더 높은 족보가 되는 카드입니다. */

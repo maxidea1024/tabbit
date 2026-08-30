@@ -194,15 +194,29 @@ export interface RunState {
   rng: Record<string, Pcg32>
 }
 
-/** 코어가 내는 것. 연출이 이것을 받아 그립니다. */
+/**
+ * 코어가 내는 것. 연출이 이것을 받아 그립니다.
+ *
+ * **득점 하나가 이벤트 수십 개로 풀립니다.** 굵게 내면 연출이 보간으로 흉내를 내게 되고,
+ * 그러면 「누가 얼마를 더했는가」가 화면에서 사라집니다 — 조커의 누적값과 에디션이 실제로
+ * 그렇게 사라져 있었습니다.
+ *
+ * 값을 더한 것은 **셋 중 하나가 냅니다** — 카드가 낸 것은 `CardScored`, 조커가 낸 것은
+ * `JokerTriggered`, 덱과 바우처와 보스가 낸 것은 `RunTriggered` 입니다. 셋 다 그 뒤에
+ * `ChipsMultChanged` 가 따라와 지금의 칩과 배수를 알립니다.
+ */
 export type GameEvent =
+  | { t: 'HandPlayed'; uids: number[] }
   | { t: 'HandEvaluated'; hand: PokerHandKind; level: number; chips: number; mult: number; cards: number[] }
-  | { t: 'CardScored'; uid: number; chips: number; mult: number; source: string }
+  | { t: 'CardScored'; uid: number; op: string; chips: number; mult: number; money: number; source: string }
   | { t: 'JokerTriggered'; slot: number; jokerId: string; op: string; chips: number; mult: number; money: number }
+  | { t: 'RunTriggered'; owner: string; op: string; chips: number; mult: number; money: number }
   | { t: 'JokerFizzled'; slot: number; jokerId: string; num: number; den: number }
   | { t: 'Retriggered'; uid: number; times: number }
   | { t: 'ChipsMultChanged'; chips: number; mult: number }
   | { t: 'ScoreResolved'; score: number; target: number }
+  | { t: 'HandDiscarded'; uids: number[] }
+  | { t: 'HandDrawn'; uids: number[] }
   | { t: 'BlindCleared'; blind: BlindKind; reward: number }
   | { t: 'RunLost'; ante: number }
   | { t: 'RunWon'; ante: number }

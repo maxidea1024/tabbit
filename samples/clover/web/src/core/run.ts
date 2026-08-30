@@ -211,30 +211,39 @@ function pickBoss(vm: Vm): void {
   state.bossesSeen.push(chosen.bossId)
 }
 
-/** 이번 블라인드의 요구 점수. */
-function blindTarget(vm: Vm): number {
-  const state = vm.state
-  const stake = vm.data.tables.stake.records.find(
+/**
+ * 그 블라인드의 요구 점수.
+ *
+ * **지금 것이 아닌 것도 셀 수 있어야 합니다** — 블라인드 셋을 한 자리에 세우려면 아직
+ * 오지 않은 것의 요구 점수도 화면에 적혀야 합니다.
+ */
+export function targetOf(data: Data, state: RunState, blind: BlindKind): number {
+  const stake = data.tables.stake.records.find(
     row => row.name === state.stake || String(row.stake) === state.stake)
   const column = stake?.anteColumn ?? 1
 
   const ante = Math.max(0, state.ante + state.rules.anteDelta)
-  const row = vm.data.tables.ante.findByAnte(Math.min(ante, 8))
+  const row = data.tables.ante.findByAnte(Math.min(ante, 8))
   let base = column === 3 ? row?.basePurple : column === 2 ? row?.baseGreen : row?.baseWhite
   base = base ?? 100
 
   // 안테 9 이상은 표가 아니라 식입니다. **원작의 값을 수집하지 못했으므로 우리 값입니다.**
   for (let step = 8; step < ante; step++) {
-    base = Math.floor((base * vm.data.run.endlessGrowthBp) / 10_000)
+    base = Math.floor((base * data.run.endlessGrowthBp) / 10_000)
   }
 
-  const blindRow = vm.data.tables.blind.getByBlindOrThrow(state.blind)
+  const blindRow = data.tables.blind.getByBlindOrThrow(blind)
   let mul = blindRow.scoreMul
-  if (state.blind === BlindKind.Boss) {
-    mul = vm.data.tables.bossBlind.findByBossId(state.bossId)?.scoreMul ?? mul
+  if (blind === BlindKind.Boss) {
+    mul = data.tables.bossBlind.findByBossId(state.bossId)?.scoreMul ?? mul
   }
 
   return Math.floor((Math.floor((base * mul) / 10_000) * state.rules.blindSizeScaleBp) / 10_000)
+}
+
+/** 이번 블라인드의 요구 점수. */
+function blindTarget(vm: Vm): number {
+  return targetOf(vm.data, vm.state, vm.state.blind)
 }
 
 /** 라운드를 시작합니다. 패를 채우고 자원을 되돌립니다. */
@@ -263,13 +272,22 @@ function beginRound(vm: Vm): void {
   draw(vm)
 }
 
-/** 패가 찰 때까지 뽑습니다. */
+/**
+ * 패가 찰 때까지 뽑습니다.
+ *
+ * **뽑은 것을 알립니다.** 화면은 이 이벤트를 받을 때까지 새 카드를 그리지 않습니다 — 득점
+ * 연출이 도는 동안 다음 패가 이미 깔려 있으면, 무엇을 낸 판인지가 흐려집니다.
+ */
 function draw(vm: Vm, limit?: number): void {
   const state = vm.state
   const want = limit ?? state.rules.handSize
+  const drawn: number[] = []
   while (state.hand.length < want && state.drawPile.length > 0) {
-    state.hand.push(state.drawPile.shift() as number)
+    const uid = state.drawPile.shift() as number
+    state.hand.push(uid)
+    drawn.push(uid)
   }
+  if (drawn.length > 0) vm.events.push({ t: 'HandDrawn', uids: drawn })
 }
 
 /** 라운드를 이깁니다. 보상과 이자를 정산합니다. */
@@ -401,6 +419,10 @@ export function apply(data: Data, state: RunState, action: Action): Step {
       state.played = action.cards.slice()
       for (const uid of action.cards) state.cardsPlayedThisAnte.push(uid)
 
+      // **낸 것이 판에 올라가는 것도 사건입니다.** 카드가 아직 날아가는 중에 득점이 시작되면
+      // 다섯 장이 한 덩어리로 보이고, 무엇을 냈는지가 남지 않습니다.
+      vm.events.push({ t: 'HandPlayed', uids: action.cards.slice() })
+
       const result = scoreHand(vm, cards)
       const name = PokerHandKind[result.hand]
       state.handPlayCounts[name] = (state.handPlayCounts[name] ?? 0) + 1
@@ -429,6 +451,7 @@ export function apply(data: Data, state: RunState, action: Action): Step {
       state.discardsLeft--
       state.discarded = action.cards.slice()
       state.hand = state.hand.filter(uid => !action.cards.includes(uid))
+      vm.events.push({ t: 'HandDiscarded', uids: action.cards.slice() })
 
       for (const uid of action.cards) {
         const card = state.deck.find(entry => entry.uid === uid)

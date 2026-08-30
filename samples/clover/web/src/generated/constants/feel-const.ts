@@ -10,22 +10,22 @@
 /** 연출의 길이와 문턱입니다. **두 런타임이 같은 값을 읽습니다.** */
 export class FeelConst {
   /** 득점 카드 하나의 연출 길이 */
-  public static readonly scoreStepMs: number = 120
+  public static readonly scoreStepMs: number = 230
 
   /** 조커 하나의 연출 길이 */
-  public static readonly jokerStepMs: number = 140
+  public static readonly jokerStepMs: number = 280
 
   /** 재발동의 연출 길이 */
-  public static readonly retriggerStepMs: number = 90
+  public static readonly retriggerStepMs: number = 170
 
   /** 족보 표시의 길이 */
-  public static readonly handLabelMs: number = 180
+  public static readonly handLabelMs: number = 420
 
   /** 칩과 배수가 점수로 합쳐지는 길이 */
-  public static readonly multiplyMs: number = 400
+  public static readonly multiplyMs: number = 620
 
   /** 요구 점수 게이지가 채워지는 길이 */
-  public static readonly settleMs: number = 300
+  public static readonly settleMs: number = 420
 
   /** 돈이 오가는 연출의 길이. 동전이 날아가 꽂히는 데 걸리는 시간입니다 */
   public static readonly moneyStepMs: number = 260
@@ -64,5 +64,11 @@ export class FeelConst {
   public static readonly cardHoverTiltDeg: number = 6
 
   /** 카드를 뽑을 때 장마다의 간격 */
-  public static readonly drawStaggerMs: number = 40
+  public static readonly drawStaggerMs: number = 70
+
+  /** 낸 카드가 판으로 올라갈 때 장마다의 간격 */
+  public static readonly playStaggerMs: number = 90
+
+  /** 마지막 장이 자리에 붙고 득점이 시작되기까지 */
+  public static readonly playLandMs: number = 260
 }

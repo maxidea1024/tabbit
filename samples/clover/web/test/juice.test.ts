@@ -32,6 +32,8 @@ const FEEL: Feel = {
   cardHoverLiftPx: 12,
   cardHoverTiltDeg: 6,
   drawStaggerMs: 40,
+  playStaggerMs: 90,
+  playLandMs: 260,
 }
 
 const HAND: GameEvent = {
@@ -40,7 +42,7 @@ const HAND: GameEvent = {
 }
 
 function scored(uid: number, chips: number): GameEvent {
-  return { t: 'CardScored', uid, chips, mult: 0, source: 'rank' }
+  return { t: 'CardScored', uid, op: 'AddChips', chips, mult: 0, money: 0, source: 'rank' }
 }
 
 describe('타임라인', () => {

@@ -91,18 +91,26 @@ namespace Clover.Data
         /// 카드를 뽑을 때 장마다의 간격
         /// </summary>
         public static int DrawStaggerMs { get; }
+        /// <summary>
+        /// 낸 카드가 판으로 올라갈 때 장마다의 간격
+        /// </summary>
+        public static int PlayStaggerMs { get; }
+        /// <summary>
+        /// 마지막 장이 자리에 붙고 득점이 시작되기까지
+        /// </summary>
+        public static int PlayLandMs { get; }
 
         /// <summary>
         /// Static constructor for initialize static variables.
         /// </summary>
         static FeelConst()
         {
-            ScoreStepMs = 120;
-            JokerStepMs = 140;
-            RetriggerStepMs = 90;
-            HandLabelMs = 180;
-            MultiplyMs = 400;
-            SettleMs = 300;
+            ScoreStepMs = 230;
+            JokerStepMs = 280;
+            RetriggerStepMs = 170;
+            HandLabelMs = 420;
+            MultiplyMs = 620;
+            SettleMs = 420;
             MoneyStepMs = 260;
             HitStopMs = 120;
             FastForwardScale = 4;
@@ -115,7 +123,9 @@ namespace Clover.Data
             ChromaticMaxPx = 5;
             CardHoverLiftPx = 12;
             CardHoverTiltDeg = 6;
-            DrawStaggerMs = 40;
+            DrawStaggerMs = 70;
+            PlayStaggerMs = 90;
+            PlayLandMs = 260;
         }
     }
 } // namespace Clover.Data

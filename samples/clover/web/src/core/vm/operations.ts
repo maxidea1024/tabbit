@@ -25,7 +25,7 @@ import { UnitKind } from '../../generated/enums/unit-kind'
 import type { EffectRow } from '../data'
 import { isFace } from '../hand'
 import { mulBp, MULT_ONE } from '../units'
-import type { CardInstance, JokerInstance } from '../state'
+import type { CardInstance, GameEvent, JokerInstance } from '../state'
 import { newCounters } from '../state'
 import { cardOf, counterOf, hasSuit, setCounter } from './conditions'
 import type { EffectHost, Vm } from './context'
@@ -399,25 +399,36 @@ export function apply(vm: Vm, row: EffectRow, host: EffectHost): void {
   const op: Operation = row.operation
   const state = vm.state
 
+  // 이 효과가 낸 이벤트가 시작하는 자리. `report` 가 「누가 했는가」를 여기에 끼웁니다.
+  const outer = vm.mark
+  vm.mark = vm.events.length
+
+  runOp(vm, row, host, op, state)
+
+  vm.mark = outer
+}
+
+function runOp(vm: Vm, row: EffectRow, host: EffectHost, op: Operation,
+               state: Vm['state']): void {
   switch (op.kind) {
     case 'OpAddChips':
       addChips(vm, op.chips, row.owner)
-      report(vm, host, 'AddChips', op.chips, 0, 0)
+      report(vm, row, host, 'AddChips', op.chips, 0, 0)
       break
 
     case 'OpAddMult':
       addMult(vm, op.mult)
-      report(vm, host, 'AddMult', 0, op.mult, 0)
+      report(vm, row, host, 'AddMult', 0, op.mult, 0)
       break
 
     case 'OpMulMult':
       mulMult(vm, op.mult)
-      report(vm, host, 'MulMult', 0, op.mult, 0)
+      report(vm, row, host, 'MulMult', 0, op.mult, 0)
       break
 
     case 'OpAddMoney':
       addMoney(vm, op.money, row.owner, op.cap || null)
-      report(vm, host, 'AddMoney', 0, 0, op.money)
+      report(vm, row, host, 'AddMoney', 0, 0, op.money)
       break
 
     case 'OpSetMoney':
@@ -430,20 +441,40 @@ export function apply(vm: Vm, row: EffectRow, host: EffectHost): void {
       if (count <= 0 && op.mode !== PerUnitMode.MulMult) break
       const base = op.baseValue
 
+      // **몇 개를 셌는지가 아니라 얼마가 되었는지를 알립니다.** 「단위마다」라고만 알리면
+      // 화면에 뜰 숫자가 없고, 그 조커는 아무것도 하지 않은 것으로 보입니다.
       switch (op.mode) {
-        case PerUnitMode.AddChips: addChips(vm, op.value * count, row.owner); break
-        case PerUnitMode.AddMult: addMult(vm, op.value * count); break
-        case PerUnitMode.MulMult: mulMult(vm, base + op.value * count); break
-        case PerUnitMode.MulEach:
-          for (let i = 0; i < count; i++) mulMult(vm, op.value)
+        case PerUnitMode.AddChips:
+          addChips(vm, op.value * count, row.owner)
+          report(vm, row, host, 'AddChips', op.value * count, 0, 0)
           break
+        case PerUnitMode.AddMult:
+          addMult(vm, op.value * count)
+          report(vm, row, host, 'AddMult', 0, op.value * count, 0)
+          break
+        case PerUnitMode.MulMult:
+          mulMult(vm, base + op.value * count)
+          report(vm, row, host, 'MulMult', 0, base + op.value * count, 0)
+          break
+        case PerUnitMode.MulEach: {
+          // 하나씩 곱합니다. **곱한 것을 합쳐서 한 번에 알립니다** — 화면에는 그 결과
+          // 하나가 떠야 하고, 곱하기 다섯 번이 다섯 박자가 되면 무엇에 곱한 것인지가
+          // 흩어집니다.
+          let total = MULT_ONE
+          for (let i = 0; i < count; i++) {
+            mulMult(vm, op.value)
+            total = mulBp(total, op.value)
+          }
+          report(vm, row, host, 'MulMult', 0, total, 0)
+          break
+        }
         case PerUnitMode.AddMoney: {
           const amount = op.value * count
           addMoney(vm, amount, row.owner, op.cap || null)
+          report(vm, row, host, 'AddMoney', 0, 0, amount)
           break
         }
       }
-      report(vm, host, 'PerUnit', 0, 0, 0)
       break
     }
 
@@ -452,7 +483,7 @@ export function apply(vm: Vm, row: EffectRow, host: EffectHost): void {
       const value = op.min + state.rng.Misprint.below(Math.max(1, span))
       if (op.mode === PerUnitMode.AddChips) addChips(vm, value, row.owner)
       else addMult(vm, value)
-      report(vm, host, 'RandomRange', 0, value, 0)
+      report(vm, row, host, 'RandomRange', 0, value, 0)
       break
     }
 
@@ -472,6 +503,9 @@ export function apply(vm: Vm, row: EffectRow, host: EffectHost): void {
       if (op.cap !== 0) next = Math.min(next, op.cap)
       if (op.step < 0) next = Math.max(next, op.floor)
       setCounter(host.joker.counters, op.counter, next)
+      // **늘어난 것도 사건입니다.** 늘어나는 조커는 그 순간이 전부이고, 조용히 늘면
+      // 얼굴의 숫자가 언제 왜 바뀌었는지 알 수 없습니다.
+      if (next !== current) report(vm, row, host, 'GrowSelf', 0, 0, 0)
       break
     }
 
@@ -776,15 +810,43 @@ function randomRank(vm: Vm): number {
   return pool[vm.state.rng.CardProc.below(pool.length)].rank
 }
 
-function report(vm: Vm, host: EffectHost, op: string,
+/**
+ * 무엇이 얼마를 했는가.
+ *
+ * **임자 셋이 전부 냅니다.** 조커만 내던 동안 강화와 인장과 에디션은 화면에 흔적을 남기지
+ * 못했고, 값은 늘었는데 이유가 없는 화면이 되었습니다.
+ *
+ * 이벤트를 뒤에 붙이지 않고 **그 효과가 시작한 자리에 끼웁니다.** 값이 바뀐 것을 알리는
+ * 이벤트는 연산 안쪽에서 이미 나갔으므로, 뒤에 붙이면 「누가」가 「얼마」보다 늦게 나옵니다.
+ */
+function report(vm: Vm, row: EffectRow, host: EffectHost, op: string,
                 chips: number, mult: number, money: number): void {
-  if (host.kind !== 'joker' || host.joker === undefined) return
-  vm.events.push({
-    t: 'JokerTriggered',
-    slot: host.slot ?? 0,
-    jokerId: host.joker.jokerId,
-    op, chips, mult, money,
-  })
+  const event: GameEvent | undefined =
+    host.kind === 'joker' && host.joker !== undefined
+      ? {
+        t: 'JokerTriggered',
+        slot: host.slot ?? 0,
+        jokerId: host.joker.jokerId,
+        op, chips, mult, money,
+      }
+      : host.kind === 'card'
+        ? {
+          t: 'CardScored',
+          uid: (host.card ?? vm.scoring?.card)?.uid ?? 0,
+          op, chips, mult, money,
+          source: sourceOf(row),
+        }
+        : { t: 'RunTriggered', owner: row.owner, op, chips, mult, money }
+
+  if (event === undefined) return
+  if (event.t === 'CardScored' && event.uid === 0) return
+
+  vm.events.splice(vm.mark ?? vm.events.length, 0, event)
+}
+
+/** 카드에 붙은 효과가 어디서 온 것인가. 화면이 색과 글로 가릅니다. */
+function sourceOf(row: EffectRow): string {
+  return row.source
 }
 
 /**

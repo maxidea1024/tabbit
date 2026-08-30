@@ -134,6 +134,13 @@ def main():
         os.makedirs(art_dir)
     have = ['%s/%s' % (kind, identifier) for kind, identifier, _d, _s in rows
             if os.path.exists(target(kind, identifier))]
+    # 트럼프 52장은 **밖에서 온 것**이라 여기 목록에 없습니다. 폴더를 그대로 훑습니다 —
+    # 어디서 왔고 어느 라이선스인지는 `web/public/art/card/readme.md` 에 있습니다.
+    card_dir = os.path.join(art_dir, 'card')
+    if os.path.isdir(card_dir):
+        for entry in sorted(os.listdir(card_dir)):
+            if entry.endswith('.png'):
+                have.append('card/%s' % entry[:-4])
     index = os.path.join(art_dir, 'index.json')
     with io.open(index, 'w', encoding='utf-8', newline='') as handle:
         handle.write('[\n')
