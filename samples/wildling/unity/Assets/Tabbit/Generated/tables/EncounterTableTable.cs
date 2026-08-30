@@ -44,31 +44,10 @@ namespace Wildling.Data
         /// <summary>
         /// 어느 단계가 나오는가.
         /// </summary>
-        public EntriesEntry[] Entries => _entries;
+        public EncounterEntry[] Entries => _entries;
         #endregion
 
         /// <summary>One element of <see cref="Entries"/>.</summary>
-        [System.Serializable]
-        public struct EntriesEntry
-        {
-            /// 어느 단계가 나오는가.
-            public string MonsterId;
-            public MonsterRecord MonsterByMonsterId;
-            /// 가중치. 등급 기본값에 지역 계수를 적용한 값입니다.
-            public int Weight;
-            /// 어느 슬롯에서 나오는가.
-            public global::Wildling.Data.EncounterSlot EncounterSlot;
-
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"MonsterId\":"); ToStringHelper.ToString(MonsterId, sb);
-                sb.Append(",\"Weight\":"); ToStringHelper.ToString(Weight, sb);
-                sb.Append(",\"EncounterSlot\":"); ToStringHelper.ToString(EncounterSlot, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-        }
 
         #region Reference wiring
         public void SetReference_RegionId_INTERNAL(RegionRecord value) => _regionId = value;
@@ -82,7 +61,7 @@ namespace Wildling.Data
         internal RequirementGroupRecord _requirementGroupId;
         internal string _requirementGroupId_RequirementGroup_index;
         internal bool _requirementGroupIdHasValue;
-        internal EntriesEntry[] _entries = System.Array.Empty<EntriesEntry>();
+        internal EncounterEntry[] _entries = System.Array.Empty<EncounterEntry>();
         #endregion
 
         #region ToString
@@ -369,7 +348,7 @@ namespace Wildling.Data
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._entries = new EncounterTableRecord.EntriesEntry[elementCount];
+                            record._entries = new EncounterEntry[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
                                 record._entries[j].MonsterId = cursor.NextString();

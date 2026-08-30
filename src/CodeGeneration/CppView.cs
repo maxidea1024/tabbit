@@ -47,6 +47,9 @@ internal sealed class CppFileView
 /// </remarks>
 internal sealed class CppPartView
 {
+    /// <summary>The declared record type this header is for.</summary>
+    public CppRecordFileView? Record { get; set; }
+
     public string? IncludeGuard { get; set; }
 
     /// <summary>`#include` lines, standard library first and then this tool's own.</summary>
@@ -495,6 +498,19 @@ internal sealed class CppRecordMemberView
 /// Innermost first, and here that is not only tidiness - a C++ struct has to be a complete
 /// type before another declares a member of it. spec/types/nested-multi-level.md.
 /// </remarks>
+/// <summary>One declared record type, and the levels inside it that are its own.</summary>
+/// <remarks>spec/types/declared-struct-identity.md.</remarks>
+internal sealed class CppRecordFileView
+{
+    public required Models.RecordType Declared { get; init; }
+
+    public required string Name { get; init; }
+
+    public required IReadOnlyList<string> Comment { get; init; }
+
+    public required IReadOnlyList<CppRecordTypeView> Types { get; init; }
+}
+
 internal sealed class CppRecordTypeView
 {
     /// <summary>Name of the struct.</summary>
@@ -505,6 +521,10 @@ internal sealed class CppRecordTypeView
 
     /// <summary>Whether this is the group's own element type rather than a level below it.</summary>
     public required bool IsOutermost { get; set; }
+
+    /// <summary>Whether the type is a declaration's, so it is written once elsewhere.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    public bool IsShared { get; set; }
 
     /// <summary>What the struct belongs to, for its doc comment.</summary>
     public required string Owner { get; set; }

@@ -1,0 +1,29 @@
+{{~##
+   One declared record type, and the levels inside it that are its own.
+
+   **A struct is an entity beside a table and an enum, so it gets a header like one.** The
+   declaration says "this is one type", and C has one namespace for struct tags - so a tag per
+   table that named it would be the same tag declared twice.
+   spec/types/declared-struct-identity.md.
+##~}}
+{{ include 'c-header-head.sbn' ~}}
+{{~ for rt in record.types }}
+{{~ if rt.is_outermost ~}}
+{{~ if record.comment | array.size > 0 ~}}
+{{~ for line in record.comment ~}}
+/* {{ line }} */
+{{~ end ~}}
+{{~ else ~}}
+/* One value of the declaration that names it. */
+{{~ end ~}}
+{{~ else ~}}
+/* A record inside {{ record.name }}. */
+{{~ end ~}}
+{{ include 'c-record-body.sbn' ~}}
+{{~ if rt.lookups | array.size > 0 }}
+{{~ for line in rt.lookups ~}}
+{{ line }}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{ include 'c-header-foot.sbn' ~}}

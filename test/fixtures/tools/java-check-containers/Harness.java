@@ -12,7 +12,7 @@
 import java.util.StringJoiner;
 
 import containers.ContainersData;
-import containers.ShopRecord;
+import containers.Bag;
 
 public final class Harness {
     public static void main(String[] args) throws Exception {
@@ -24,8 +24,8 @@ public final class Harness {
         ContainersData data = new ContainersData();
         data.readAll(args[0]);
 
-        ShopRecord.BagEntry first = data.shop.records().get(0).bag;
-        ShopRecord.BagEntry empty = data.shop.records().get(2).bag;
+        Bag first = data.shop.records().get(0).bag;
+        Bag empty = data.shop.records().get(2).bag;
 
         Integer at = first.drops.indexByKey.get(2);
 

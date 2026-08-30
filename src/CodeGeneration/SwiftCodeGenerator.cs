@@ -215,6 +215,14 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
                   "swift-struct.sbn", Part(structure: BuildStruct(declared)));
         }
 
+        // And the declarations whose value is one shape, beside them for the same reason.
+        // spec/types/declared-struct-identity.md.
+        foreach (var record in BuildRecordFiles())
+        {
+            Write(System.IO.Path.Combine("structs", record.Name + ".swift"),
+                  "swift-record-file.sbn", Part(record: record));
+        }
+
         foreach (var set in view.ConstantSets)
             Write(System.IO.Path.Combine("constants", set.Name + ".swift"),
                   "swift-constants.sbn", Part(set: set));
@@ -283,7 +291,8 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     }
 
     private SwiftPartView Part(
-        SwiftTableView? table = null, SwiftEnumView? enumm = null, SwiftConstantSetView? set = null, SwiftPolymorphicTypeView? structure = null)
+        SwiftTableView? table = null, SwiftEnumView? enumm = null, SwiftConstantSetView? set = null,
+        SwiftPolymorphicTypeView? structure = null, SwiftRecordFileView? record = null)
         => new SwiftPartView
         {
             AccessorName = AccessorType,
@@ -291,6 +300,7 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
             Enumm = enumm,
             Set = set,
             Structure = structure,
+                    Record = record,
         };
 
     private void Write(string relative, string templateName, object view)
@@ -635,9 +645,51 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
     /// struct, which is how the values inside it reach the empty values a scalar member gets.
     /// spec/types/nested-multi-level.md.
     /// </remarks>
+    /// <param name="inShared">
+    /// Whether these members sit inside a type a declaration owns. Everything below
+    /// such a level is written where that type is.
+    /// spec/types/declared-struct-identity.md.
+    /// </param>
+    /// <summary>The declared record types, each with the levels inside it that are its own.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    private IReadOnlyList<SwiftRecordFileView> BuildRecordFiles()
+        => _model.RecordTypes
+            .Select(declared =>
+            {
+                var types = new List<SwiftRecordTypeView>();
+
+                var group = _model.Tables
+                    .SelectMany(table => table.SerialFields)
+                    .FirstOrDefault(candidate => candidate.DeclaredType == declared.Name)
+                    ?? _model.Tables.SelectMany(table => table.SerialFields)
+                        .First(candidate => candidate.IsRecord);
+
+                var members = BuildRecordMembers(declared.Members, declared.Name, group, types);
+
+                types.Add(new SwiftRecordTypeView
+                {
+                    TypeName = declared.Name,
+                    IsShared = true,
+                    Members = members,
+                    IsOutermost = true,
+                    Lookups = LookupLines(declared.Members, Models.ContainerKind.None, group),
+                    Owner = declared.Name,
+                });
+
+                return new SwiftRecordFileView
+                {
+                    Declared = declared,
+                    Name = declared.Name,
+                    Comment = CommentLines(declared.Comment),
+                    Types = types.Where(type => type.TypeName == declared.Name
+                                                || !type.IsShared).ToList(),
+                };
+            })
+            .ToList();
+
     private List<SwiftRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, SerialField group,
-        List<SwiftRecordTypeView> declared)
+        List<SwiftRecordTypeView> declared, bool inShared = false)
     {
         var result = new List<SwiftRecordMemberView>();
 
@@ -713,12 +765,18 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
 
             // A level below. The struct name carries the path: both levels are nested in the
             // same record, so two groups each holding a `Position` would otherwise collide.
-            string typeName = prefix + member.Name.ToPascalCase();
-            var nested = BuildRecordMembers(member.Members, typeName, group, declared);
+            string typeName = member.DeclaredType.Length > 0
+                ? member.DeclaredType
+                : prefix + member.Name.ToPascalCase();
+
+            bool nestedIsShared = inShared || member.DeclaredType.Length > 0;
+            var nested = BuildRecordMembers(
+                member.Members, typeName, group, declared, nestedIsShared);
 
             declared.Add(new SwiftRecordTypeView
             {
                 TypeName = typeName,
+                IsShared = nestedIsShared,
                 Members = nested,
                 IsOutermost = false,
                 Lookups = LookupLines(member.Members, member.Container, group),
@@ -747,15 +805,19 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
             : null;
 
         string name = SwiftName(sf.Name);
-        string entry = sf.Name.ToPascalCase() + "Entry";
+        string entry = sf.DeclaredType.Length > 0
+            ? sf.DeclaredType
+            : sf.Name.ToPascalCase() + "Entry";
 
         // Innermost first, so a struct is declared before the one naming it.
         var recordTypes = new List<SwiftRecordTypeView>();
-        var members = BuildRecordMembers(sf.Members, entry, sf, recordTypes);
+        var members = BuildRecordMembers(
+            sf.Members, entry, sf, recordTypes, inShared: sf.DeclaredType.Length > 0);
 
         recordTypes.Add(new SwiftRecordTypeView
         {
             TypeName = entry,
+            IsShared = sf.DeclaredType.Length > 0,
             Members = members,
             IsOutermost = true,
             Lookups = LookupLines(sf.Members, sf.Container, sf),
@@ -851,9 +913,14 @@ public class SwiftCodeGenerator : CodeGenerator<SwiftRecipe>
 
             // Qualified, because the element struct is nested in the record and this is read
             // from the table class beside it.
-            RecordTypeName = wire.Group.IsRecord
-                ? $"{table.Name.ToPascalCase()}Record.{wire.Group.Name.ToPascalCase()}Entry"
-                : "",
+            // Qualified, because the element type is nested in the record - unless a
+            // declaration owns it, and then it is a type of its own beside them.
+            // spec/types/declared-struct-identity.md.
+            RecordTypeName = !wire.Group.IsRecord
+                ? ""
+                : wire.Group.DeclaredType.Length > 0
+                    ? wire.Group.DeclaredType
+                    : $"{table.Name.ToPascalCase()}Record.{wire.Group.Name.ToPascalCase()}Entry",
 
             IsFirstMember = wire.IsFirstMember,
             ElementCount = wire.Cells.Count,

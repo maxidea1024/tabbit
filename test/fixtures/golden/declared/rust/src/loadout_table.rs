@@ -8,7 +8,7 @@
 use std::collections::HashMap;
 use std::path::Path;
 use crate::tabbit;
-use crate::enum_element::Element;
+use crate::enum_affinity::Affinity;
 use crate::Reward;
 
 // Generated from test/fixtures/xlsx/declared/declared.xlsx : Declared : B2
@@ -22,7 +22,7 @@ pub struct LoadoutRecord {
     /// Which item, as that table's key.
     pub slot: Vec<Reward>,
     /// an enum the schema file declares
-    pub grade: Element,
+    pub grade: Affinity,
 }
 
 impl LoadoutRecord {
@@ -235,7 +235,7 @@ impl LoadoutTable {
                     while at < records.len() {
                         let (n, value) = cursor.next_same_i32((records.len() - at) as i32)?;
                         for _ in 0..n {
-                            records[at].grade = Element::from_value(value).unwrap_or_default();
+                            records[at].grade = Affinity::from_value(value).unwrap_or_default();
                             at += 1;
                         }
                     }

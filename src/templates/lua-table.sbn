@@ -11,6 +11,10 @@
 {{~ for field in table.fields ~}}
 {{~ if field.is_record && !field.members_are_anonymous ~}}
 {{~ for rt in field.record_types ~}}
+{{~## A shared type is written once in a module of its own - the annotation is the type here,
+   and two files declaring `---@class Reward` are two types to anything reading them.
+   spec/types/declared-struct-identity.md. ##~}}
+{{~ if !rt.is_shared ~}}
 ---@class {{ rt.type_name }}
 {{~ for line in rt.annotations ~}}
 {{ line }}
@@ -42,6 +46,7 @@ local function new{{ rt.type_name }}()
   }, {{ rt.type_name }}Meta)
 end
 
+{{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}

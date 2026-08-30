@@ -1,0 +1,50 @@
+{{~##
+   One declared record type, and the levels inside it that are its own.
+
+   **A struct is an entity beside a table and an enum, so it gets a file like one.** The
+   declaration says "this is one type", and the generated code says the same thing only if
+   there is one type. spec/types/declared-struct-identity.md.
+
+   The body is the same include a record class uses for a group nobody declared. It is written
+   for the nested case, which is one level deeper than a type at file level - so the outermost
+   is captured and dedented rather than kept twice, and the levels inside it stay nested where
+   the include already puts them. **This language allows one public type per file**, so those
+   levels cannot become files of their own or siblings beside it.
+##~}}
+{{ include 'java-file-head.sbn' ~}}
+{{~## The levels inside, at the indent the include already writes them at. ##~}}
+{{~ capture inner ~}}
+{{~ for rt in record.types ~}}
+{{~ if !for.last }}
+    /** A record inside {{ record.name }}. */
+{{ include 'java-record-body.sbn' ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~## And the type itself, which the model puts last. ##~}}
+{{~ for rt in record.types ~}}
+{{~ if for.last ~}}
+{{~ if record.comment | array.size > 0 ~}}
+{{~ for line in record.comment ~}}
+/** {{ line }} */
+{{~ end ~}}
+{{~ else ~}}
+/** One value of the declaration that names it. */
+{{~ end ~}}
+{{~ capture body ~}}
+{{ include 'java-record-body.sbn' ~}}
+{{~ end ~}}
+{{~## One replace: the four-space pattern matches the front of every deeper line as well, so
+      each loses one level. A newline goes in front so the first line is reached the same way
+      as the rest, and comes off again after. ##~}}
+{{~## `static` goes with the nesting: a file-level type cannot carry it. ##~}}
+{{~ open = ("
+" + body) | string.replace("
+    ", "
+") | string.replace("public static final class", "public final class") | string.slice 1 | string.rstrip ~}}
+{{~## The closing brace comes off so the levels inside go in ahead of it. ##~}}
+{{ open | string.slice 0 (open.size - 1) | string.rstrip }}
+{{~ inner ~}}
+}
+{{~ end ~}}
+{{~ end ~}}

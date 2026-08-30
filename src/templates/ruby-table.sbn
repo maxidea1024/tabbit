@@ -17,6 +17,10 @@ require 'set'
    nesting so this loop does not have to know how deep it went.
    spec/types/nested-multi-level.md. ##~}}
 {{~ for rt in field.record_types ~}}
+{{~## A shared type is written once in a file of its own - the module is one namespace, so a
+   class declared per table would be two classes of one name.
+   spec/types/declared-struct-identity.md. ##~}}
+{{~ if !rt.is_shared ~}}
 {{~ if rt.is_outermost ~}}
   # One element of {{ rt.owner }}.
 {{~ else ~}}
@@ -43,6 +47,7 @@ require 'set'
    number sits. spec/references/multi-target-accessors.md. ##~}}
   end
 
+{{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}

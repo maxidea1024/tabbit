@@ -195,6 +195,8 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         accessorRequires.AddRange(view.Enums.Select(e => Require(0, $"enums/{e.Name}.php")));
         accessorRequires.AddRange(
             _model.PolymorphicTypes.Select(s => Require(0, $"structs/{s.Name}.php")));
+        accessorRequires.AddRange(
+            _model.RecordTypes.Select(r => Require(0, $"structs/{r.Name}.php")));
         accessorRequires.AddRange(view.ConstantSets.Select(s => Require(0, $"constants/{s.Name}.php")));
         accessorRequires.AddRange(view.Tables.Select(t => Require(0, $"tables/{t.TableName}.php")));
 
@@ -223,6 +225,11 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
                 .Where(field => field.IsDiscriminator && field.AbstractTypeName is not null)
                 .Select(field => field.AbstractTypeName!.ToPascalCase())
                 .Distinct()
+                .Select(name => Require(1, $"structs/{name}.php")));
+
+            // And the declared record types its groups are, for the same reason.
+            // spec/types/declared-struct-identity.md.
+            requires.AddRange(RecordNamesReachedBy(pair.model)
                 .Select(name => Require(1, $"structs/{name}.php")));
 
             requires.Add(Require(1, _recipe.AccessorName + ".php"));
@@ -263,6 +270,27 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
                   });
         }
 
+        // And the declarations whose value is one shape, beside them for the same reason: the
+        // namespace is one, so a class declared per table would be two classes of one name.
+        // spec/types/declared-struct-identity.md.
+        foreach (var record in BuildRecordFiles())
+        {
+            Write(System.IO.Path.Combine("structs", record.Name + ".php"), "php-record.sbn",
+                  new PhpPartView
+                  {
+                      Namespace = _recipe.Namespace,
+
+                      // A level inside this one that a declaration also named is a file of its
+                      // own, so this one names that class rather than writing it again.
+                      Requires = record.Declared.Members
+                          .SelectMany(NestedDeclaredNames)
+                          .Distinct()
+                          .Select(name => Require(1, $"structs/{name}.php"))
+                          .ToList(),
+                      Record = record,
+                  });
+        }
+
         foreach (var set in view.ConstantSets)
         {
             Write(System.IO.Path.Combine("constants", set.Name + ".php"), "php-constants.sbn",
@@ -274,6 +302,22 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
                   });
         }
     }
+
+    /// <summary>The declared types a member reaches, whatever depth they sit at.</summary>
+    private static IEnumerable<string> NestedDeclaredNames(RecordMember member)
+        => member.DeclaredType.Length > 0
+            ? new[] { member.DeclaredType }
+            : member.Members.SelectMany(NestedDeclaredNames);
+
+    /// <summary>The declared record types a table's groups are.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    private static IEnumerable<string> RecordNamesReachedBy(Table table)
+        => table.SerialFields
+            .Where(group => group.IsRecord)
+            .SelectMany(group => group.DeclaredType.Length > 0
+                ? new[] { group.DeclaredType }
+                : group.Members.SelectMany(NestedDeclaredNames))
+            .Distinct();
 
     /// <summary>
     /// A `require_once` line, relative to a file <paramref name="depth"/> directories below
@@ -673,9 +717,14 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// a property initializer has to be a constant expression, and a typed property left unset
     /// is an error to read rather than a null. spec/types/nested-multi-level.md.
     /// </remarks>
+    /// <param name="inShared">
+    /// Whether these members sit inside a type a declaration owns. Everything below such a
+    /// level is written where that type is. spec/types/declared-struct-identity.md.
+    /// </param>
     private List<PhpRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, Table table, SerialField group,
-        List<PhpRecordTypeView> declared, List<string> constructorLines)
+        List<PhpRecordTypeView> declared, List<string> constructorLines,
+        bool inShared = false)
     {
         var result = new List<PhpRecordMemberView>();
 
@@ -705,14 +754,21 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
 
             // A level below. The class name carries the path so two records each holding a
             // `Position` do not name one class twice.
-            string typeName = prefix + member.Name.ToPascalCase();
+            string typeName = member.DeclaredType.Length > 0
+                ? member.DeclaredType
+                : prefix + member.Name.ToPascalCase();
+
+            bool nestedIsShared = inShared || member.DeclaredType.Length > 0;
+
             var nestedConstructor = new List<string>();
             var nested = BuildRecordMembers(
-                member.Members, typeName, table, group, declared, nestedConstructor);
+                member.Members, typeName, table, group, declared, nestedConstructor,
+                nestedIsShared);
 
             declared.Add(new PhpRecordTypeView
             {
                 TypeName = typeName,
+                IsShared = nestedIsShared,
                 Members = nested,
                 IsOutermost = false,
                 Lookups = LookupLines(member.Members, member.Container, group),
@@ -802,11 +858,13 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
         var recordTypes = new List<PhpRecordTypeView>();
         var entryConstructor = new List<string>();
         var members = BuildRecordMembers(
-            sf.Members, entry, table, sf, recordTypes, entryConstructor);
+            sf.Members, entry, table, sf, recordTypes, entryConstructor,
+            inShared: sf.DeclaredType.Length > 0);
 
         recordTypes.Add(new PhpRecordTypeView
         {
             TypeName = entry,
+            IsShared = sf.DeclaredType.Length > 0,
             Members = members,
             IsOutermost = true,
             Lookups = LookupLines(sf.Members, sf.Container, sf),
@@ -948,8 +1006,55 @@ public class PhpCodeGenerator : CodeGenerator<PhpRecipe>
     /// Every generated class shares one namespace, so two tables each holding a `Slot` group
     /// would declare the same name twice.
     /// </remarks>
+    /// <summary>The declared record types, each with the levels inside it that are its own.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    private IReadOnlyList<PhpRecordFileView> BuildRecordFiles()
+        => _model.RecordTypes
+            .Select(declared =>
+            {
+                var types = new List<PhpRecordTypeView>();
+
+                var owner = _model.Tables.FirstOrDefault(
+                                table => table.SerialFields.Any(
+                                    group => group.DeclaredType == declared.Name))
+                            ?? _model.Tables.First(
+                                table => table.SerialFields.Any(group => group.IsRecord));
+
+                var group = owner.SerialFields.FirstOrDefault(
+                                candidate => candidate.DeclaredType == declared.Name)
+                            ?? owner.SerialFields.First(candidate => candidate.IsRecord);
+
+                var constructor = new List<string>();
+
+                var members = BuildRecordMembers(
+                    declared.Members, declared.Name, owner, group, types, constructor);
+
+                types.Add(new PhpRecordTypeView
+                {
+                    TypeName = declared.Name,
+                    IsShared = true,
+                    Members = members,
+                    IsOutermost = true,
+                    Lookups = LookupLines(declared.Members, Models.ContainerKind.None, group),
+                    Owner = declared.Name,
+                    ConstructorLines = constructor,
+                });
+
+                return new PhpRecordFileView
+                {
+                    Declared = declared,
+                    Name = declared.Name,
+                    Comment = CommentLines(declared.Comment),
+                    Types = types.Where(type => type.TypeName == declared.Name
+                                                || !type.IsShared).ToList(),
+                };
+            })
+            .ToList();
+
     private static string RecordTypeName(Table table, SerialField sf)
-        => table.Name.ToPascalCase() + sf.Name.ToPascalCase() + "Entry";
+        => sf.DeclaredType.Length > 0
+            ? sf.DeclaredType
+            : table.Name.ToPascalCase() + sf.Name.ToPascalCase() + "Entry";
 
     /// <summary>
     /// The property a nullable column's presence lands in.

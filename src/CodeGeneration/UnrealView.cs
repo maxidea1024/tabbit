@@ -30,6 +30,11 @@ internal sealed class UnrealFileView
     public IReadOnlyList<UnrealPolymorphicTypeView> Structs { get; set; }
         = new List<UnrealPolymorphicTypeView>();
 
+    /// <summary>The declared record types, written once above the tables that hold them.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    public IReadOnlyList<UnrealRecordTypeView> RecordTypes { get; set; }
+        = new List<UnrealRecordTypeView>();
+
     /// <summary>
     /// The constant sets, which this target did not emit at all until now.
     /// </summary>
@@ -461,6 +466,16 @@ internal sealed class UnrealRecordMemberView
 /// </remarks>
 internal sealed class UnrealRecordTypeView
 {
+    /// <summary>Whether a declaration owns the type, so it is written once above the tables.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    public bool IsShared { get; set; }
+
+    /// <summary>
+    /// What the editor files this type's properties under: the table that holds it, or the
+    /// declaration's own name where a declaration owns it and several tables may.
+    /// </summary>
+    public string Category { get; set; } = "";
+
     /// <summary>Name of the USTRUCT.</summary>
     public required string TypeName { get; set; }
 

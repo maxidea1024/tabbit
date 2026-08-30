@@ -1434,7 +1434,10 @@ internal static class Program
                 "Slot2.Icon", Typed("string?"),
                 Said("Shown beside the count. Blank where there is nothing to show.")))
 
-            .Field(FieldSpec.Of("Grade", "enum", "an enum the schema file declares", "Element"));
+            // Not `Element`: a Swift table conforms to `Sequence`, so inside it that name is
+            // the protocol's associated type rather than the enum. A defect of its own, and
+            // not what this fixture is for.
+            .Field(FieldSpec.Of("Grade", "enum", "an enum the schema file declares", "Affinity"));
 
         spec
             .Row("1", "first",  "10", "1", "icon_a", "11", "2", "icon_b", "Fire")

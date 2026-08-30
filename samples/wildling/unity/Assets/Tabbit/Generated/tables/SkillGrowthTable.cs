@@ -41,28 +41,10 @@ namespace Wildling.Data
         /// <summary>
         /// 소모 재화
         /// </summary>
-        public CostsEntry[] Costs => _costs;
+        public Cost[] Costs => _costs;
         #endregion
 
         /// <summary>One element of <see cref="Costs"/>.</summary>
-        [System.Serializable]
-        public struct CostsEntry
-        {
-            /// 소모 재화
-            public string CurrencyId;
-            public CurrencyRecord CurrencyByCurrencyId;
-            /// 첫째 소모 수량
-            public int Amount;
-
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"CurrencyId\":"); ToStringHelper.ToString(CurrencyId, sb);
-                sb.Append(",\"Amount\":"); ToStringHelper.ToString(Amount, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-        }
 
         #region Reference wiring
         public void SetReference_SkillId_INTERNAL(SkillRecord value) => _skillId = value;
@@ -73,7 +55,7 @@ namespace Wildling.Data
         internal string _skillId_Skill_index;
         internal int _level;
         internal int _powerFactor;
-        internal CostsEntry[] _costs = System.Array.Empty<CostsEntry>();
+        internal Cost[] _costs = System.Array.Empty<Cost>();
         #endregion
 
         #region ToString
@@ -315,7 +297,7 @@ namespace Wildling.Data
                             var record = records[i];
                             int elementCount;
                             elementCount = cursor.NextLength();
-                            record._costs = new SkillGrowthRecord.CostsEntry[elementCount];
+                            record._costs = new Cost[elementCount];
                             for (int j = 0; j < elementCount; ++j)
                             {
                                 record._costs[j].CurrencyId = cursor.NextString();

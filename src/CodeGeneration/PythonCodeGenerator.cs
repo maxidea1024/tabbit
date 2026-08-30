@@ -210,6 +210,16 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                 Imports = TypeDependencies.EnumsNamedBy(pair.model)
                                           .Select(EnumImport)
                                           .Concat(PolymorphicImports(pair.model))
+
+                                          // And the declarations its groups are typed by,
+                                          // each in a module of its own.
+                                          // spec/types/declared-struct-identity.md.
+                                          .Concat(pair.model.SerialFields
+                                              .Where(group => group.DeclaredType.Length > 0)
+                                              .Select(group =>
+                                                  $"from .struct_{group.DeclaredType.ToSnakeCase()}"
+                                                  + $" import {group.DeclaredType}")
+                                              .Distinct())
                                           .ToList(),
                 AccessorModule = _recipe.ModuleName,
                 Table = pair.rendered,
@@ -238,6 +248,19 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                 AccessorName = AccessorType,
                 Imports = Array.Empty<string>(),
                 Structure = structure,
+            });
+        }
+
+        // And the declarations whose value is one shape, beside them for the same reason: the
+        // package is one namespace, so a class declared per table would be two classes of one
+        // name. spec/types/declared-struct-identity.md.
+        foreach (var record in BuildRecordFiles())
+        {
+            Write(record.ModuleName + ".py", "python-record.sbn", new PythonPartView
+            {
+                AccessorName = AccessorType,
+                Imports = RecordImports(record.Declared),
+                Record = record,
             });
         }
 
@@ -371,11 +394,21 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
             // An array of arrays declares no element type - its outer level has no name - so
             // there is nothing to re-export and naming one would import what does not exist.
-            names.AddRange(table.SerialFields.Where(sf => sf.IsRecord && !sf.MembersAreAnonymous)
-                                             .Select(sf => RecordTypeName(table, sf)));
+            // A shared type is exported from its own module, so naming it here would import
+            // it from a module that does not hold it.
+            // spec/types/declared-struct-identity.md.
+            names.AddRange(table.SerialFields
+                                .Where(sf => sf.IsRecord && !sf.MembersAreAnonymous
+                                             && sf.DeclaredType.Length == 0)
+                                .Select(sf => RecordTypeName(table, sf)));
 
             Export(text, exported, TableModule(table), names.ToArray());
         }
+
+        // The declared record types, each from the module that holds it.
+        // spec/types/declared-struct-identity.md.
+        foreach (var record in BuildRecordFiles())
+            Export(text, exported, record.ModuleName, record.Types.Select(t => t.TypeName).ToArray());
 
         Export(text, exported, _recipe.ModuleName, "Tables");
 
@@ -745,9 +778,13 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// means the nested class has to be declared first, because that call runs at construction
     /// against a name resolved at import. spec/types/nested-multi-level.md.
     /// </remarks>
+    /// <param name="inShared">
+    /// Whether these members sit inside a type a declaration owns. Everything below such
+    /// a level is written where that type is. spec/types/declared-struct-identity.md.
+    /// </param>
     private List<PythonRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, Table table, SerialField group,
-        List<PythonRecordTypeView> declared)
+        List<PythonRecordTypeView> declared, bool inShared = false)
     {
         var result = new List<PythonRecordMemberView>();
 
@@ -769,12 +806,17 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
 
             // A level below. The class name carries the path so two records each holding a
             // `Position` do not name one class twice.
-            string typeName = prefix + member.Name.ToPascalCase();
-            var nested = BuildRecordMembers(member.Members, typeName, table, group, declared);
+            string typeName = member.DeclaredType.Length > 0
+                ? member.DeclaredType
+                : prefix + member.Name.ToPascalCase();
+
+            bool nestedIsShared = inShared || member.DeclaredType.Length > 0;
+            var nested = BuildRecordMembers(member.Members, typeName, table, group, declared, nestedIsShared);
 
             declared.Add(new PythonRecordTypeView
             {
                 TypeName = typeName,
+                IsShared = nestedIsShared,
                 Members = nested,
                 IsOutermost = false,
                 Lookups = LookupLines(member.Members, member.Container, group),
@@ -828,6 +870,98 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
                 ", ", new[] { name }.Concat(declared.Variants.Select(v => v.Name)));
 
             yield return $"from .{module} import {names}";
+        }
+    }
+
+    /// <summary>The declared record types, each with the levels inside it that are its own.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    private IReadOnlyList<PythonRecordFileView> BuildRecordFiles()
+        => _model.RecordTypes
+            .Select(declared =>
+            {
+                var types = new List<PythonRecordTypeView>();
+
+                var owner = _model.Tables.FirstOrDefault(
+                                table => table.SerialFields.Any(
+                                    group => group.DeclaredType == declared.Name))
+                            ?? _model.Tables.First(
+                                table => table.SerialFields.Any(group => group.IsRecord));
+
+                var group = owner.SerialFields.FirstOrDefault(
+                                candidate => candidate.DeclaredType == declared.Name)
+                            ?? owner.SerialFields.First(candidate => candidate.IsRecord);
+
+                var members = BuildRecordMembers(
+                    declared.Members, declared.Name, owner, group, types);
+
+                types.Add(new PythonRecordTypeView
+                {
+                    TypeName = declared.Name,
+                    IsShared = true,
+                    Members = members,
+                    IsOutermost = true,
+                    Lookups = LookupLines(declared.Members, Models.ContainerKind.None, group),
+                    Owner = declared.Name,
+                    SlotNames = Tuple(MemberSlotNames(declared.Members, Models.ContainerKind.None)),
+                    ReprFormat = string.Join(
+                        ", ", declared.Members.Select(m => PythonName(m.Name) + "=%r")),
+                    ReprValues = Tuple(
+                        declared.Members.Select(m => "self." + PythonName(m.Name)).ToList(),
+                        quote: false),
+                });
+
+                return new PythonRecordFileView
+                {
+                    Declared = declared,
+                    Name = declared.Name,
+                    ModuleName = "struct_" + declared.Name.ToSnakeCase(),
+                    Comment = CommentLines(declared.Comment),
+                    Types = types.Where(type => type.TypeName == declared.Name
+                                                || !type.IsShared).ToList(),
+                };
+            })
+            .ToList();
+
+    /// <summary>
+    /// What a declared record type's module has to bring in.
+    /// </summary>
+    /// <remarks>
+    /// The enums its members are typed with, and the declarations it holds. A reference member
+    /// carries a key rather than a row here, so no table is named.
+    /// spec/types/declared-struct-identity.md.
+    /// </remarks>
+    private IReadOnlyList<string> RecordImports(Models.RecordType declared)
+    {
+        var lines = new List<string>();
+
+        foreach (var field in declared.Members.SelectMany(member => member.AllFields))
+        {
+            if (field.ElementType == ValueType.Enum)
+                Add($"from .enum_{field.Enum.Name.ToSnakeCase()} import {field.Enum.Name}");
+        }
+
+        foreach (string nested in NestedDeclarations(declared.Members))
+            Add($"from .struct_{nested.ToSnakeCase()} import {nested}");
+
+        return lines;
+
+        void Add(string line)
+        {
+            if (!lines.Contains(line))
+                lines.Add(line);
+        }
+    }
+
+    /// <summary>Every declaration named below these members, at any depth.</summary>
+    private static IEnumerable<string> NestedDeclarations(IEnumerable<RecordMember> members)
+    {
+        foreach (var member in members)
+        {
+            if (member.DeclaredType.Length > 0)
+                yield return member.DeclaredType;
+
+            foreach (string deeper in NestedDeclarations(member.Members))
+                yield return deeper;
         }
     }
 
@@ -889,11 +1023,13 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
         // Innermost first, and here that is required rather than tidy: a class body naming
         // another runs at import time, so the one it names has to exist already.
         var recordTypes = new List<PythonRecordTypeView>();
-        var members = BuildRecordMembers(sf.Members, entry, table, sf, recordTypes);
+        var members = BuildRecordMembers(sf.Members, entry, table, sf, recordTypes,
+            inShared: sf.DeclaredType.Length > 0);
 
         recordTypes.Add(new PythonRecordTypeView
         {
             TypeName = entry,
+            IsShared = sf.DeclaredType.Length > 0,
             Members = members,
             IsOutermost = true,
             Lookups = LookupLines(sf.Members, sf.Container, sf),
@@ -1023,7 +1159,9 @@ public class PythonCodeGenerator : CodeGenerator<PythonRecipe>
     /// tables each holding a `Slot` group would be the same name exported twice.
     /// </remarks>
     private static string RecordTypeName(Table table, SerialField sf)
-        => table.Name.ToPascalCase() + sf.Name.ToPascalCase() + "Entry";
+        => sf.DeclaredType.Length > 0
+            ? sf.DeclaredType
+            : table.Name.ToPascalCase() + sf.Name.ToPascalCase() + "Entry";
 
     /// <summary>
     /// The attribute a nullable column's presence lands in.

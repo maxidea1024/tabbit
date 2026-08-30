@@ -1,0 +1,35 @@
+{{~##
+   One declared record type, and the levels inside it that are its own.
+
+   **The annotation is the type here.** Two files each writing `---@class Reward` are two types
+   to anything that reads them, so the declaration gets a module and every table requires it.
+   The module hands back the constructor, which is what a table calls.
+   spec/types/declared-struct-identity.md.
+##~}}
+{{ include 'lua-file-head.sbn' ~}}
+{{~ for rt in record.types }}
+---@class {{ rt.type_name }}
+{{~ for line in rt.annotations ~}}
+{{ line }}
+{{~ end ~}}
+{{~ for line in rt.lookup_annotations ~}}
+{{ line }}
+{{~ end ~}}
+local {{ rt.type_name }}Meta = tcb.strictType("a `{{ rt.type_name }}`", { {{ rt.field_names }} })
+
+---@return {{ rt.type_name }}
+local function new{{ rt.type_name }}()
+  return setmetatable({
+{{~ for member in rt.members ~}}
+{{~ for line in member.initializers ~}}
+    {{ line }}
+{{~ end ~}}
+{{~ end ~}}
+{{~ for line in rt.lookups ~}}
+    {{ line }}
+{{~ end ~}}
+  }, {{ rt.type_name }}Meta)
+end
+{{~ end }}
+
+return new{{ record.name }}

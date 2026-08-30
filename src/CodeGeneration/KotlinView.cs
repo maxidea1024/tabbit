@@ -26,6 +26,9 @@ internal sealed class KotlinFileView
 /// </remarks>
 internal sealed class KotlinPartView
 {
+    /// <summary>The declared record type this file is for.</summary>
+    public KotlinRecordFileView? Record { get; set; }
+
     public string? PackageName { get; set; }
 
     /// <summary>
@@ -330,6 +333,20 @@ internal sealed class KotlinRecordMemberView
 /// where depth had to be reasoned about in template syntax. Innermost first.
 /// spec/types/nested-multi-level.md.
 /// </remarks>
+/// <summary>One declared record type, and the levels inside it that are its own.</summary>
+/// <remarks>spec/types/declared-struct-identity.md.</remarks>
+internal sealed class KotlinRecordFileView
+{
+    /// <summary>The declaration itself, for what its members ask the file to bring in.</summary>
+    public required Models.RecordType Declared { get; init; }
+
+    public required string Name { get; init; }
+
+    public required IReadOnlyList<string> Comment { get; init; }
+
+    public required IReadOnlyList<KotlinRecordTypeView> Types { get; init; }
+}
+
 internal sealed class KotlinRecordTypeView
 {
     /// <summary>Name of the class.</summary>
@@ -340,6 +357,10 @@ internal sealed class KotlinRecordTypeView
 
     /// <summary>Whether this is the group's own element type rather than a level below it.</summary>
     public required bool IsOutermost { get; set; }
+
+    /// <summary>Whether the type is a declaration's, so it is written once elsewhere.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    public bool IsShared { get; set; }
 
     /// <summary>What the class belongs to, for its doc comment.</summary>
     public required string Owner { get; set; }

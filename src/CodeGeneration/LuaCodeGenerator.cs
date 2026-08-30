@@ -162,6 +162,7 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                     Requires = TypeDependencies.EnumsNamedBy(pair.model)
                                                    .Select(EnumRequire)
                                                    .Concat(PolymorphicRequires(pair.model))
+                                                   .Concat(RecordRequires(pair.model))
                                                    .ToList(),
                     AccessorModule = _recipe.AccessorName,
                     Table = pair.rendered,
@@ -194,6 +195,24 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
                 });
         }
 
+        // And the declarations whose value is one shape, beside them for the same reason: the
+        // annotation is the type here, and two files declaring `---@class Reward` are two
+        // types to anything reading them. spec/types/declared-struct-identity.md.
+        foreach (var record in BuildRecordFiles())
+        {
+            Write(System.IO.Path.Combine("structs", "struct_" + record.Name.ToSnakeCase() + ".lua"),
+                "lua-record.sbn", new LuaPartView
+                {
+                    RootPattern = RootPatternDeep,
+
+                    // A level inside this one that a declaration also named is a module of its
+                    // own, so this one calls its constructor rather than writing it again.
+                    Requires = RecordRequireLines(
+                        record.Declared.Members.SelectMany(NestedDeclaredNames)).ToList(),
+                    Record = record,
+                });
+        }
+
         foreach (var pair in _model.ConstantSets.Zip(view.ConstantSets, (model, rendered) => (model, rendered)))
         {
             Write(System.IO.Path.Combine("constants", ConstantsModule(pair.model) + ".lua"),
@@ -210,6 +229,34 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
     /// <summary>
     /// The `require` lines a table needs for the abstract types its groups are.
     /// </summary>
+    /// <summary>
+    /// The declarations this table's groups are typed by, each a module of its own.
+    /// </summary>
+    /// <remarks>
+    /// The module hands back the constructor, under the name the table already calls - so the
+    /// line the read path writes does not change when a group moves to a declaration.
+    /// spec/types/declared-struct-identity.md.
+    /// </remarks>
+    private static IEnumerable<string> RecordRequires(Table table)
+        => RecordRequireLines(
+            table.SerialFields.SelectMany(
+                group => group.DeclaredType.Length > 0
+                    ? new[] { group.DeclaredType }
+                    : group.Members.SelectMany(NestedDeclaredNames)));
+
+    /// <summary>The declared types a member reaches, whatever depth they sit at.</summary>
+    private static IEnumerable<string> NestedDeclaredNames(RecordMember member)
+        => member.DeclaredType.Length > 0
+            ? new[] { member.DeclaredType }
+            : member.Members.SelectMany(NestedDeclaredNames);
+
+    /// <summary>The require lines for a set of declared record types.</summary>
+    private static IEnumerable<string> RecordRequireLines(IEnumerable<string> names)
+        => names
+            .Distinct()
+            .Select(name => $"local new{name} = require(_root .. \"structs.struct_"
+                            + $"{name.ToSnakeCase()}\")");
+
     private IEnumerable<string> PolymorphicRequires(Table table)
         => table.Fields
             .Where(field => field.IsDiscriminator && field.AbstractTypeName is not null)
@@ -656,9 +703,13 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         };
     }
 
+    /// <param name="inShared">
+    /// Whether these members sit inside a type a declaration owns. Everything below such
+    /// a level is written where that type is. spec/types/declared-struct-identity.md.
+    /// </param>
     private List<LuaRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, Table table, SerialField group,
-        List<LuaRecordTypeView> declared)
+        List<LuaRecordTypeView> declared, bool inShared = false)
     {
         var result = new List<LuaRecordMemberView>();
 
@@ -677,12 +728,17 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
 
             // A level below. The type name carries the path so two records each holding a
             // `Position` do not name one constructor twice.
-            string typeName = prefix + member.Name.ToPascalCase();
-            var nested = BuildRecordMembers(member.Members, typeName, table, group, declared);
+            string typeName = member.DeclaredType.Length > 0
+                ? member.DeclaredType
+                : prefix + member.Name.ToPascalCase();
+
+            bool nestedIsShared = inShared || member.DeclaredType.Length > 0;
+            var nested = BuildRecordMembers(member.Members, typeName, table, group, declared, nestedIsShared);
 
             declared.Add(new LuaRecordTypeView
             {
                 TypeName = typeName,
+                IsShared = nestedIsShared,
                 Members = nested,
                 IsOutermost = false,
                 Lookups = LookupLines(member.Members, member.Container, group),
@@ -718,11 +774,13 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         // Innermost first, and required rather than tidy: a constructor names the level
         // below, and that local has to exist by the time the line runs.
         var recordTypes = new List<LuaRecordTypeView>();
-        var members = BuildRecordMembers(sf.Members, entry, table, sf, recordTypes);
+        var members = BuildRecordMembers(sf.Members, entry, table, sf, recordTypes,
+            inShared: sf.DeclaredType.Length > 0);
 
         recordTypes.Add(new LuaRecordTypeView
         {
             TypeName = entry,
+            IsShared = sf.DeclaredType.Length > 0,
             Members = members,
             IsOutermost = true,
             Lookups = LookupLines(sf.Members, sf.Container, sf),
@@ -876,8 +934,59 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         };
     }
 
+    /// <summary>The declared record types, each with the levels inside it that are its own.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    private IReadOnlyList<LuaRecordFileView> BuildRecordFiles()
+        => _model.RecordTypes
+            .Select(declared =>
+            {
+                var types = new List<LuaRecordTypeView>();
+
+                var owner = _model.Tables.FirstOrDefault(
+                                table => table.SerialFields.Any(
+                                    group => group.DeclaredType == declared.Name))
+                            ?? _model.Tables.First(
+                                table => table.SerialFields.Any(group => group.IsRecord));
+
+                var group = owner.SerialFields.FirstOrDefault(
+                                candidate => candidate.DeclaredType == declared.Name)
+                            ?? owner.SerialFields.First(candidate => candidate.IsRecord);
+
+                var members = BuildRecordMembers(
+                    declared.Members, declared.Name, owner, group, types);
+
+                types.Add(new LuaRecordTypeView
+                {
+                    TypeName = declared.Name,
+                    IsShared = true,
+                    Members = members,
+                    IsOutermost = true,
+                    Lookups = LookupLines(declared.Members, Models.ContainerKind.None, group),
+                    LookupAnnotations = LookupAnnotationLines(
+                        declared.Members, Models.ContainerKind.None, group),
+                    Annotations = declared.Members
+                        .SelectMany(member => MemberAnnotations(member, declared.Name))
+                        .ToList(),
+                    FieldNames = QuotedList(
+                        MemberFieldNames(declared.Members, Models.ContainerKind.None)),
+                    Owner = declared.Name,
+                });
+
+                return new LuaRecordFileView
+                {
+                    Declared = declared,
+                    Name = declared.Name,
+                    Comment = CommentLines(declared.Comment),
+                    Types = types.Where(type => type.TypeName == declared.Name
+                                                || !type.IsShared).ToList(),
+                };
+            })
+            .ToList();
+
     private static string RecordTypeName(Table table, SerialField sf)
-        => table.Name.ToPascalCase() + sf.Name.ToPascalCase() + "Entry";
+        => sf.DeclaredType.Length > 0
+            ? sf.DeclaredType
+            : table.Name.ToPascalCase() + sf.Name.ToPascalCase() + "Entry";
 
     private string PresenceName(SerialField sf)
         => sf.IsRecord ? "" : LuaName("has_" + sf.Name);
@@ -1599,7 +1708,13 @@ public class LuaCodeGenerator : CodeGenerator<LuaRecipe>
         string name = LuaName(member.Name);
 
         if (!member.IsLeaf)
-            return $"---@field {name} {prefix + member.Name.ToPascalCase()}";
+        {
+            // A level a declaration typed is that declaration's name wherever it appears -
+            // the annotation is the type here. spec/types/declared-struct-identity.md.
+            return $"---@field {name} " + (member.DeclaredType.Length > 0
+                ? member.DeclaredType
+                : prefix + member.Name.ToPascalCase());
+        }
 
         if (member.IsRef)
         {

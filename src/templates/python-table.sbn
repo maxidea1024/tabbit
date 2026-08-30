@@ -12,6 +12,10 @@
    flattened the nesting so this loop does not have to know how deep it went.
    spec/types/nested-multi-level.md. ##~}}
 {{~ for rt in field.record_types ~}}
+{{~## A shared type is written once in a module of its own - the package is one namespace, so
+   a class declared per table would be two classes of one name.
+   spec/types/declared-struct-identity.md. ##~}}
+{{~ if !rt.is_shared ~}}
 class {{ rt.type_name }}:
 {{~ if rt.is_outermost ~}}
     """One element of {{ rt.owner }}."""
@@ -41,6 +45,7 @@ class {{ rt.type_name }}:
         return "{{ rt.type_name }}({{ rt.repr_format }})" % ({{ rt.repr_values }})
 
 
+{{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}

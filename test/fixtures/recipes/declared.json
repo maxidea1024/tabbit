@@ -36,6 +36,47 @@
       "Indented": true
     },
     {
+      "Type": "kotlin",
+      "Path": "test/fixtures/output/declared/kotlin",
+      "PackageName": "tabbit.fixtures.declared",
+      "AccessorName": "DeclaredAccessor"
+    },
+    {
+      "Type": "swift",
+      "Path": "test/fixtures/output/declared/swift",
+      "AccessorName": "DeclaredAccessor"
+    },
+    {
+      "Type": "java",
+      "Path": "test/fixtures/output/declared/java",
+      "PackageName": "tabbit.fixtures.declared",
+      "AccessorName": "DeclaredAccessor"
+    },
+    {
+      "Type": "lua",
+      "Path": "test/fixtures/output/declared/lua"
+    },
+    {
+      "Type": "ruby",
+      "Path": "test/fixtures/output/declared/ruby",
+      "ModuleName": "DeclaredData"
+    },
+    {
+      "Type": "php",
+      "Path": "test/fixtures/output/declared/php",
+      "Namespace": "Tabbit\\Fixtures\\Declared",
+      "AccessorName": "DeclaredAccessor"
+    },
+    {
+      "Type": "python",
+      "Path": "test/fixtures/output/declared/python",
+      "PackageName": "declared_data"
+    },
+    {
+      "Type": "dart",
+      "Path": "test/fixtures/output/declared/dart"
+    },
+    {
       "Type": "rust",
       "Path": "test/fixtures/output/declared/rust",
       "CrateName": "declared_data"
@@ -49,6 +90,24 @@
     {
       "Type": "typescript",
       "Path": "test/fixtures/output/declared/typescript"
+    },
+    {
+      "Type": "c",
+      "Path": "test/fixtures/output/declared/c",
+      "AccessorName": "Declared"
+    },
+    {
+      "Type": "unreal",
+      "Path": "test/fixtures/output/declared/unreal/Source",
+      "ModuleName": "DeclaredData",
+      "AccessorName": "FDeclaredAccessor",
+      "BinaryTableFileExtension": ".tcb"
+    },
+    {
+      "Type": "cpp",
+      "Path": "test/fixtures/output/declared/cpp",
+      "Namespace": "tabbit::fixtures::declared",
+      "AccessorName": "DeclaredAccessor"
     },
     {
       "Type": "csharp",

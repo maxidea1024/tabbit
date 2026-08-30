@@ -70,7 +70,7 @@ namespace Wildling.Data
         /// <summary>
         /// 1레벨 기준 능력치
         /// </summary>
-        public BaseEntry Base => _base;
+        public StatBlock Base => _base;
 
         /// <summary>
         /// 서식 지역 플래그
@@ -99,35 +99,6 @@ namespace Wildling.Data
         #endregion
 
         /// <summary>One element of <see cref="Base"/>.</summary>
-        [System.Serializable]
-        public struct BaseEntry
-        {
-            /// 1레벨 기준 능력치
-            public int Hp;
-            /// 공격
-            public int Attack;
-            /// 방어
-            public int Defense;
-            /// 행동 순서
-            public int Speed;
-            /// 치명타 확률. 만분율
-            public int CritRate;
-            /// 치명타 배수. 만분율
-            public int CritPower;
-
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Hp\":"); ToStringHelper.ToString(Hp, sb);
-                sb.Append(",\"Attack\":"); ToStringHelper.ToString(Attack, sb);
-                sb.Append(",\"Defense\":"); ToStringHelper.ToString(Defense, sb);
-                sb.Append(",\"Speed\":"); ToStringHelper.ToString(Speed, sb);
-                sb.Append(",\"CritRate\":"); ToStringHelper.ToString(CritRate, sb);
-                sb.Append(",\"CritPower\":"); ToStringHelper.ToString(CritPower, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-        }
 
         /// <summary>One element of <see cref="ModelOffset"/>.</summary>
         [System.Serializable]
@@ -161,7 +132,7 @@ namespace Wildling.Data
         internal global::Wildling.Data.Element _element;
         internal global::Wildling.Data.Grade _grade;
         internal global::Wildling.Data.Role _role;
-        internal BaseEntry _base;
+        internal StatBlock _base;
         internal long _habitat;
         internal int _maxStage;
         internal string _icon = "";

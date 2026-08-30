@@ -1,0 +1,16 @@
+{{~##
+   One record type, at one level of indent.
+
+   Included from two places and written once, because the type is the same shape wherever
+   it is declared: a group nobody declared gets it beside the table's record, and a group
+   a `.tbs` file typed gets a header of its own.
+   spec/types/declared-struct-identity.md.
+##~}}
+struct {{ rt.type_name }} {
+{{~ for member in rt.members ~}}
+{{~ for line in member.comment ~}}
+  /* {{ line }} */
+{{~ end ~}}
+  {{ member.declaration }}
+{{~ end ~}}
+};

@@ -12,7 +12,7 @@
 /// declaration this run read from a file.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 #[repr(i32)]
-pub enum Element {
+pub enum Affinity {
     /// Burns.
     #[default]
     Fire = 1,
@@ -20,12 +20,12 @@ pub enum Element {
     Ice = 2,
 }
 
-impl Element {
+impl Affinity {
     /// The label with this value, or None when the sheet declared no such label.
     pub fn from_value(value: i32) -> Option<Self> {
         match value {
-            1 => Some(Element::Fire),
-            2 => Some(Element::Ice),
+            1 => Some(Affinity::Fire),
+            2 => Some(Affinity::Ice),
             _ => None,
         }
     }

@@ -27,6 +27,9 @@ internal sealed class RubyFileView
 /// </remarks>
 internal sealed class RubyPartView
 {
+    /// <summary>The declared record type this file is for.</summary>
+    public RubyRecordFileView? Record { get; set; }
+
     /// <summary>What the accessor type is called, for the files that name it.</summary>
     public string? AccessorName { get; set; }
 
@@ -331,6 +334,20 @@ internal sealed class RubyRecordMemberView
 /// below resolves that name when it runs, so the class has to be defined already.
 /// spec/types/nested-multi-level.md.
 /// </remarks>
+/// <summary>One declared record type, and the levels inside it that are its own.</summary>
+/// <remarks>spec/types/declared-struct-identity.md.</remarks>
+internal sealed class RubyRecordFileView
+{
+    /// <summary>The declaration itself, for what its members ask the file to bring in.</summary>
+    public required Models.RecordType Declared { get; init; }
+
+    public required string Name { get; init; }
+
+    public required IReadOnlyList<string> Comment { get; init; }
+
+    public required IReadOnlyList<RubyRecordTypeView> Types { get; init; }
+}
+
 internal sealed class RubyRecordTypeView
 {
 
@@ -342,6 +359,10 @@ internal sealed class RubyRecordTypeView
 
     /// <summary>Whether this is the group's own element type rather than a level below it.</summary>
     public required bool IsOutermost { get; set; }
+
+    /// <summary>Whether the type is a declaration's, so it is written once elsewhere.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    public bool IsShared { get; set; }
 
     /// <summary>
     /// The lookups this class initializes beside its arrays, for a `set` or a `map`.

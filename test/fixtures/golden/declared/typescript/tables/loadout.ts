@@ -14,7 +14,7 @@ import * as tabbit from '../tabbit/tcb-reader'
 import { Tables } from '../tables'
 
 // Automatically import to handle external type references.
-import { Element } from '../enums/element'
+import { Affinity } from '../enums/affinity'
 import { Reward } from '../structs/reward'
 
 
@@ -30,7 +30,7 @@ interface IDataRow {
   index: number
   name: string
   slot: RewardJson[]
-  grade: Element
+  grade: Affinity
 }
 
 // Generated from test/fixtures/xlsx/declared/declared.xlsx : Declared : B2
@@ -50,12 +50,12 @@ export class LoadoutRecord {
   public get slot(): Reward[] { return this._slot }
 
   /** an enum the schema file declares */
-  public get grade(): Element { return this._grade }
+  public get grade(): Affinity { return this._grade }
 
   public _index: number = 0
   public _name: string = ''
   public _slot: Reward[] = []
-  public _grade: Element = 0 as Element
+  public _grade: Affinity = 0 as Affinity
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
@@ -285,7 +285,7 @@ export class LoadoutTable {
           for (let i = 0; i < rowCount; ) {
             const { n, value } = cursor.nextSameI32(rowCount - i)
             for (let left = n; left > 0; --left, ++i)
-              records[i]._grade = value as Element
+              records[i]._grade = value as Affinity
           }
           break
         default:

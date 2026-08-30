@@ -37,6 +37,9 @@ internal sealed class CFileView
 /// </remarks>
 internal sealed class CPartView
 {
+    /// <summary>The declared record type this header is for.</summary>
+    public CRecordFileView? Record { get; set; }
+
     /// <summary>The include guard macro. Empty for a source file, which needs none.</summary>
     public string? Guard { get; set; }
 
@@ -584,8 +587,25 @@ internal sealed class CRecordMemberView
 /// Innermost first, and here that is not only tidiness - a struct has to be complete before
 /// another declares a member of it. spec/types/nested-multi-level.md.
 /// </remarks>
+/// <summary>One declared record type, and the levels inside it that are its own.</summary>
+/// <remarks>spec/types/declared-struct-identity.md.</remarks>
+internal sealed class CRecordFileView
+{
+    public required Models.RecordType Declared { get; init; }
+
+    public required string Name { get; init; }
+
+    public required IReadOnlyList<string> Comment { get; init; }
+
+    public required IReadOnlyList<CRecordTypeView> Types { get; init; }
+}
+
 internal sealed class CRecordTypeView
 {
+    /// <summary>Whether the type is a declaration's, so it is written once elsewhere.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    public bool IsShared { get; set; }
+
     /// <summary>Name of the struct tag, which carries the table's and the group's.</summary>
     public required string TypeName { get; set; }
 

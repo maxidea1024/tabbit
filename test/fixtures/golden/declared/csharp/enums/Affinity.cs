@@ -16,7 +16,7 @@ namespace Tabbit.Fixtures.Declared
     /// Declared here rather than in a sheet, so the type cell that names it is reading a
     /// declaration this run read from a file.
     /// </summary>
-    public enum Element
+    public enum Affinity
     {
         /// <summary>
         /// Burns.

@@ -17,8 +17,8 @@
 int main(int argc, char** argv)
 {
     ContainersData_t data = {0};
-    const struct ContainersData_ShopRecord_t_bag_entry* first;
-    const struct ContainersData_ShopRecord_t_bag_entry* empty;
+    const struct ContainersData_Bag* first;
+    const struct ContainersData_Bag* empty;
     int32_t at;
     int32_t j;
     char error[256];
@@ -38,7 +38,7 @@ int main(int argc, char** argv)
     first = &data.shop.records[0].bag;
     empty = &data.shop.records[2].bag;
 
-    at = ContainersData_ShopRecord_t_bag_entryDrops_index_of(&first->drops, 2);
+    at = ContainersData_BagDrops_index_of(&first->drops, 2);
 
     printf("{\"tags\":[");
     for (j = 0; j < first->tags_count; ++j)
@@ -47,13 +47,13 @@ int main(int argc, char** argv)
     }
 
     printf("],\"hasSale\":%s,\"hasGone\":%s",
-        ContainersData_ShopRecord_t_bag_entry_contains_tags(first, "sale") ? "true" : "false",
-        ContainersData_ShopRecord_t_bag_entry_contains_tags(first, "gone") ? "true" : "false");
+        ContainersData_Bag_contains_tags(first, "sale") ? "true" : "false",
+        ContainersData_Bag_contains_tags(first, "gone") ? "true" : "false");
 
     /* A map of scalars: the position, and the value read at it. */
     printf(",\"priceOf11\":%d",
         first->prices.value[
-            ContainersData_ShopRecord_t_bag_entryPrices_index_of(&first->prices, 11)]);
+            ContainersData_BagPrices_index_of(&first->prices, 11)]);
 
     /* A map of structs: the same position, and the members read at it. */
     printf(",\"dropIndexOf2\":%d,\"dropItemAt2\":%d,\"dropCountAt2\":%d",

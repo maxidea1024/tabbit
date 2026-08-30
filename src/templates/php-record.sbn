@@ -1,0 +1,56 @@
+{{~##
+   One declared record type, and the levels inside it that are its own.
+
+   **A struct is an entity beside a table and an enum, so it gets a file like one.** The
+   declaration says "this is one type", and the generated code says the same thing only if
+   there is one type. spec/types/declared-struct-identity.md.
+##~}}
+{{ include 'php-file-head.sbn' ~}}
+{{~ for rt in record.types }}
+{{~ if rt.is_outermost ~}}
+{{~ if record.comment | array.size > 0 ~}}
+{{~ for line in record.comment ~}}
+/** {{ line }} */
+{{~ end ~}}
+{{~ else ~}}
+/** One value of the declaration that names it. */
+{{~ end ~}}
+{{~ else ~}}
+/** A record inside {{ record.name }}. */
+{{~ end ~}}
+final class {{ rt.type_name }}
+{
+{{~ for member in rt.members ~}}
+{{~ for line in member.comment ~}}
+    /** {{ line }} */
+{{~ end ~}}
+{{~ for line in member.declarations ~}}
+    {{ line }}
+{{~ end ~}}
+{{~ end ~}}
+{{~## The second layer of a container's surface. The lists above are the file's order; these
+   are the lookup, and an associative array keeps insertion order so the two agree.
+   spec/types/set-and-map.md section 7. ##~}}
+{{~ for line in rt.lookups ~}}
+    {{ line }}
+{{~ end ~}}
+{{~ if rt.constructor_lines | array.size > 0 }}
+    /**
+     * What cannot be built at a declaration: the levels below, and the lists whose positions
+     * have to be there before anything fills one.
+     *
+     * A PHP property initializer has to be a constant expression, and a typed property left
+     * unset is an error to read.
+     */
+    public function __construct()
+    {
+{{~ for line in rt.constructor_lines ~}}
+        {{ line }}
+{{~ end ~}}
+    }
+{{~ end ~}}
+{{~## The per-target methods of every member of this class that reaches several tables. One
+   taking the element number where the member is the array, which is the third place an element
+   number sits. spec/references/multi-target-accessors.md. ##~}}
+}
+{{~ end ~}}

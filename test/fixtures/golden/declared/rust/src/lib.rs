@@ -11,8 +11,8 @@
 pub mod tabbit;
 
 // The enums.
-mod enum_element;
-pub use enum_element::Element;
+mod enum_affinity;
+pub use enum_affinity::Affinity;
 
 // The declared record types, one module each.
 mod struct_reward;

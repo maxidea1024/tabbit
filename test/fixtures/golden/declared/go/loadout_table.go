@@ -24,7 +24,7 @@ type LoadoutRecord struct {
 	// Which item, as that table's key.
 	Slot []Reward
 	// an enum the schema file declares
-	Grade Element
+	Grade Affinity
 }
 
 // LoadoutTable holds every row of Loadout.
@@ -228,7 +228,7 @@ func (t *LoadoutTable) Read(filename string) error {
 				for i := int32(0); i < count; {
 					n, value := cursor.NextSameI32(count - i)
 					for ; n > 0; n-- {
-						records[i].Grade = Element(value)
+						records[i].Grade = Affinity(value)
 						i++
 					}
 				}

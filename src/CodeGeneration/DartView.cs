@@ -42,6 +42,9 @@ internal sealed class DartFileView
 /// </remarks>
 internal sealed class DartPartView
 {
+    /// <summary>The declared record type this part is for.</summary>
+    public DartRecordFileView? Record { get; set; }
+
     /// <summary>What the accessor type is called, for the files that name it.</summary>
     public string? AccessorName { get; set; }
 
@@ -346,6 +349,17 @@ internal sealed class DartRecordMemberView
 /// where depth had to be reasoned about in template syntax. Innermost first.
 /// spec/types/nested-multi-level.md.
 /// </remarks>
+/// <summary>One declared record type, and the levels inside it that are its own.</summary>
+/// <remarks>spec/types/declared-struct-identity.md.</remarks>
+internal sealed class DartRecordFileView
+{
+    public required string Name { get; init; }
+
+    public required IReadOnlyList<string> Comment { get; init; }
+
+    public required IReadOnlyList<DartRecordTypeView> Types { get; init; }
+}
+
 internal sealed class DartRecordTypeView
 {
     /// <summary>Name of the class.</summary>
@@ -356,6 +370,10 @@ internal sealed class DartRecordTypeView
 
     /// <summary>Whether this is the group's own element type rather than a level below it.</summary>
     public required bool IsOutermost { get; set; }
+
+    /// <summary>Whether the type is a declaration's, so it is written once in its own part.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    public bool IsShared { get; set; }
 
     /// <summary>What the class belongs to, for its doc comment.</summary>
     public required string Owner { get; set; }

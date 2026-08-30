@@ -36,7 +36,7 @@ namespace Wildling.Data
         /// <summary>
         /// 계수. 만분율
         /// </summary>
-        public StatFactorEntry StatFactor => _statFactor;
+        public StatBlock StatFactor => _statFactor;
 
         /// <summary>
         /// 특수 능력
@@ -120,35 +120,6 @@ namespace Wildling.Data
         #endregion
 
         /// <summary>One element of <see cref="StatFactor"/>.</summary>
-        [System.Serializable]
-        public struct StatFactorEntry
-        {
-            /// 계수. 만분율
-            public int Hp;
-            /// 공격 계수
-            public int Attack;
-            /// 방어 계수
-            public int Defense;
-            /// 행동 순서 계수
-            public int Speed;
-            /// 치명타 확률 계수
-            public int CritRate;
-            /// 치명타 배수 계수
-            public int CritPower;
-
-            public override string ToString()
-            {
-                var sb = new StringBuilder("{");
-                sb.Append("\"Hp\":"); ToStringHelper.ToString(Hp, sb);
-                sb.Append(",\"Attack\":"); ToStringHelper.ToString(Attack, sb);
-                sb.Append(",\"Defense\":"); ToStringHelper.ToString(Defense, sb);
-                sb.Append(",\"Speed\":"); ToStringHelper.ToString(Speed, sb);
-                sb.Append(",\"CritRate\":"); ToStringHelper.ToString(CritRate, sb);
-                sb.Append(",\"CritPower\":"); ToStringHelper.ToString(CritPower, sb);
-                sb.Append("}");
-                return sb.ToString();
-            }
-        }
 
         private static int[][] NewAbilityPattern()
         {
@@ -250,7 +221,7 @@ namespace Wildling.Data
         internal string _bossId = "";
         internal MonsterRecord _monsterId;
         internal string _monsterId_Monster_index;
-        internal StatFactorEntry _statFactor;
+        internal StatBlock _statFactor;
         internal global::Wildling.Data.BossAbility _ability;
         internal int[][] _abilityPattern = NewAbilityPattern();
         internal SpawnRotationEntry _spawnRotation;

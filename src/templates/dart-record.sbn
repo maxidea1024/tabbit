@@ -1,0 +1,34 @@
+{{~##
+   One declared record type, and the levels inside it that are its own.
+
+   **A struct is an entity beside a table and an enum, so it gets a part like one.** The
+   declaration says "this is one type", and the generated code says the same thing only if
+   there is one type. spec/types/declared-struct-identity.md.
+##~}}
+{{ include 'dart-part-head.sbn' ~}}
+{{~ for rt in record.types }}
+{{~ if rt.is_outermost ~}}
+{{~ if record.comment | array.size > 0 ~}}
+{{~ for line in record.comment ~}}
+/// {{ line }}
+{{~ end ~}}
+{{~ else ~}}
+/// One value of the declaration that names it.
+{{~ end ~}}
+{{~ else ~}}
+/// A record inside [{{ record.name }}].
+{{~ end ~}}
+class {{ rt.type_name }} {
+{{~ for member in rt.members ~}}
+{{~ for line in member.comment ~}}
+  /// {{ line }}
+{{~ end ~}}
+{{~ for line in member.declarations ~}}
+  {{ line }}
+{{~ end ~}}
+{{~ end ~}}
+{{~ for line in rt.lookups ~}}
+  {{ line }}
+{{~ end ~}}
+}
+{{~ end ~}}

@@ -40,7 +40,7 @@ namespace Tabbit.Fixtures.Declared
         /// <summary>
         /// an enum the schema file declares
         /// </summary>
-        public global::Tabbit.Fixtures.Declared.Element Grade => _grade;
+        public global::Tabbit.Fixtures.Declared.Affinity Grade => _grade;
         #endregion
 
         /// <summary>One element of <see cref="Slot"/>.</summary>
@@ -59,7 +59,7 @@ namespace Tabbit.Fixtures.Declared
         internal int _index;
         internal string _name = "";
         internal Reward[] _slot = System.Array.Empty<Reward>();
-        internal global::Tabbit.Fixtures.Declared.Element _grade;
+        internal global::Tabbit.Fixtures.Declared.Affinity _grade;
         #endregion
 
         #region ToString
@@ -381,7 +381,7 @@ namespace Tabbit.Fixtures.Declared
                             do
                             {
                                 var record = records[i++];
-                                record._grade = (global::Tabbit.Fixtures.Declared.Element)value;
+                                record._grade = (global::Tabbit.Fixtures.Declared.Affinity)value;
                             } while (--n > 0);
                         }
                         break;

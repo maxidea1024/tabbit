@@ -144,6 +144,14 @@ struct {{ variant.type_name }}
 };
 {{~ end ~}}
 {{~ end ~}}
+{{~## **The declared record types, once each.** A `.tbs` file saying "this group is a Reward"
+   says there is one type, and a USTRUCT name is global - a copy per table that named it would
+   be the same name declared twice and UHT would reject the second.
+   spec/types/declared-struct-identity.md. ##~}}
+{{~ for rt in record_types }}
+
+{{ include 'unreal-record-body.sbn' ~}}
+{{~ end ~}}
 {{~ for table in tables }}
 
 // Generated from {{ table.location }}
@@ -160,38 +168,11 @@ struct {{ variant.type_name }}
    array of arrays cost. The view flattened the nesting so this loop does not have to know how
    deep it went. spec/types/nested-multi-level.md. ##~}}
 {{~ for rt in field.record_types ~}}
-{{~ if rt.is_outermost ~}}
-/** One element of {{ rt.owner }}. */
-{{~ else ~}}
-/** A record inside {{ rt.owner }}. */
+{{~## The type itself, which a declaration's gets once above the tables instead.
+      spec/types/declared-struct-identity.md. ##~}}
+{{~ if !rt.is_shared ~}}
+{{ include 'unreal-record-body.sbn' ~}}
 {{~ end ~}}
-USTRUCT(BlueprintType)
-struct {{ api_macro }} {{ rt.type_name }}
-{
-    GENERATED_BODY()
-
-{{~ for member in rt.members ~}}
-{{~ for line in member.comment ~}}
-    /** {{ line }} */
-{{~ end ~}}
-{{~ if member.blueprint_visible ~}}
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "{{ table.raw_name }}")
-{{~ else ~}}
-    // No UPROPERTY: {{ member.not_visible_because }}
-{{~ end ~}}
-    {{ member.declaration }}
-
-{{~ end ~}}
-{{~## The second layer of a container's surface. The arrays above are the file's order; these
-   are the lookup, and neither of the engine's containers keeps one. No UPROPERTY: the header
-   tool has no property type for a map keyed by anything a sheet may key by, and what a
-   Blueprint reads is the array. spec/types/set-and-map.md section 7. ##~}}
-{{~ for line in rt.lookups ~}}
-    {{ line }}
-{{~ end ~}}
-{{~ if rt.lookups | array.size > 0 }}
-{{~ end ~}}};
-
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}

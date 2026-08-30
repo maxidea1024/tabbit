@@ -1,0 +1,37 @@
+{{~##
+   One declared record type, and the levels inside it that are its own.
+
+   **A struct is an entity beside a table and an enum, so it gets a module like one.** The
+   declaration says "this is one type", and the generated code says the same thing only if
+   there is one type. spec/types/declared-struct-identity.md.
+##~}}
+{{ include 'python-file-head.sbn' ~}}
+{{~ for rt in record.types }}
+
+
+class {{ rt.type_name }}:
+{{~ if rt.is_outermost ~}}
+{{~ if record.comment | array.size > 0 ~}}
+    """{{ record.comment[0] }}"""
+{{~ else ~}}
+    """One value of the declaration that names it."""
+{{~ end ~}}
+{{~ else ~}}
+    """A record inside {{ record.name }}."""
+{{~ end ~}}
+
+    __slots__ = ({{ rt.slot_names }})
+
+    def __init__(self):
+{{~ for member in rt.members ~}}
+{{~ for line in member.initializers ~}}
+        {{ line }}
+{{~ end ~}}
+{{~ end ~}}
+{{~ for line in rt.lookups ~}}
+        {{ line }}
+{{~ end ~}}
+
+    def __repr__(self):
+        return "{{ rt.type_name }}({{ rt.repr_format }})" % ({{ rt.repr_values }})
+{{~ end ~}}

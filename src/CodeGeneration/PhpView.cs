@@ -24,6 +24,9 @@ internal sealed class PhpFileView
 /// </remarks>
 internal sealed class PhpPartView
 {
+    /// <summary>The declared record type this file is for.</summary>
+    public PhpRecordFileView? Record { get; set; }
+
     public string? Namespace { get; set; }
 
     /// <summary>Complete `require_once` lines, in the order they must run.</summary>
@@ -365,6 +368,20 @@ internal sealed class PhpRecordMemberView
 /// where depth had to be reasoned about in template syntax. Innermost first.
 /// spec/types/nested-multi-level.md.
 /// </remarks>
+/// <summary>One declared record type, and the levels inside it that are its own.</summary>
+/// <remarks>spec/types/declared-struct-identity.md.</remarks>
+internal sealed class PhpRecordFileView
+{
+    /// <summary>The declaration itself, for what its members ask the file to bring in.</summary>
+    public required Models.RecordType Declared { get; init; }
+
+    public required string Name { get; init; }
+
+    public required IReadOnlyList<string> Comment { get; init; }
+
+    public required IReadOnlyList<PhpRecordTypeView> Types { get; init; }
+}
+
 internal sealed class PhpRecordTypeView
 {
     /// <summary>Name of the class.</summary>
@@ -376,6 +393,10 @@ internal sealed class PhpRecordTypeView
 
     /// <summary>Whether this is the group's own element type rather than a level below it.</summary>
     public required bool IsOutermost { get; set; }
+
+    /// <summary>Whether the type is a declaration's, so it is written once elsewhere.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    public bool IsShared { get; set; }
 
     /// <summary>
     /// The lookups this class declares beside its arrays, for a `set` or a `map`.

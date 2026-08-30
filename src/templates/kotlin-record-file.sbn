@@ -1,0 +1,37 @@
+{{~##
+   One declared record type, and the levels inside it that are its own.
+
+   **A struct is an entity beside a table and an enum, so it gets a file like one.** The
+   declaration says "this is one type", and the generated code says the same thing only if
+   there is one type. spec/types/declared-struct-identity.md.
+
+   The body is the same include a table uses for a group nobody declared, dedented by one
+   level rather than kept twice.
+##~}}
+{{ include 'kotlin-file-head.sbn' ~}}
+{{~ for rt in record.types }}
+{{~ if !for.first }}
+
+{{ end ~}}
+{{~ if rt.is_outermost ~}}
+{{~ if record.comment | array.size > 0 ~}}
+{{~ for line in record.comment ~}}
+/** {{ line }} */
+{{~ end ~}}
+{{~ else ~}}
+/** One value of the declaration that names it. */
+{{~ end ~}}
+{{~ else ~}}
+/** A record inside [{{ record.name }}]. */
+{{~ end ~}}
+{{~ capture body ~}}
+{{ include 'kotlin-record-body.sbn' ~}}
+{{~ end ~}}
+{{~## One replace: the four-space pattern matches the front of every deeper line as well, so
+      each loses one level. A newline goes in front so the first line is reached the same way
+      as the rest, and comes off again after. ##~}}
+{{ ("
+" + body) | string.replace("
+    ", "
+") | string.slice 1 | string.rstrip }}
+{{~ end ~}}

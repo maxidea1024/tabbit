@@ -119,31 +119,16 @@ class {{ table.record_name }} {
 {{~## One class per level, innermost first - the view flattened the nesting so this loop does
    not have to know how deep it went. spec/types/nested-multi-level.md. ##~}}
 {{~ for rt in field.record_types ~}}
+{{~## The type itself, which a shared one gets in a file of its own instead.
+      spec/types/declared-struct-identity.md. ##~}}
+{{~ if !rt.is_shared ~}}
 {{~ if rt.is_outermost ~}}
     /** One element of {{ rt.owner }}. */
 {{~ else ~}}
     /** A record inside {{ rt.owner }}. */
 {{~ end ~}}
-    class {{ rt.type_name }} {
-{{~ for member in rt.members ~}}
-{{~ for line in member.comment ~}}
-        /** {{ line }} */
+{{ include 'kotlin-record-body.sbn' ~}}
 {{~ end ~}}
-{{~ for line in member.declarations ~}}
-        {{ line }}
-{{~ end ~}}
-{{~ end ~}}
-{{~## The per-target accessors of every member of this class that reaches several tables. A
-   property where the member is one value; a function taking the element number where the member
-   is the array, which is the third place an element number sits.
-   spec/references/multi-target-accessors.md. ##~}}
-{{~## The second layer of a container's surface. The lists above are the file's order; these
-   are the lookup, and they keep insertion order so the two agree.
-   spec/types/set-and-map.md section 7. ##~}}
-{{~ for line in rt.lookups ~}}
-        {{ line }}
-{{~ end ~}}
-    }
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}

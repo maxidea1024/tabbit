@@ -27,6 +27,9 @@ internal sealed class SwiftFileView
 /// </remarks>
 internal sealed class SwiftPartView
 {
+    /// <summary>The declared record type this file is for.</summary>
+    public SwiftRecordFileView? Record { get; set; }
+
     /// <summary>The accessor's type name, for the doc comments that point at it.</summary>
     public string? AccessorName { get; set; }
 
@@ -321,6 +324,20 @@ internal sealed class SwiftRecordMemberView
 /// recursion belongs in the view, so no template has to reason about depth in template
 /// syntax. Innermost first. spec/types/nested-multi-level.md.
 /// </remarks>
+/// <summary>One declared record type, and the levels inside it that are its own.</summary>
+/// <remarks>spec/types/declared-struct-identity.md.</remarks>
+internal sealed class SwiftRecordFileView
+{
+    /// <summary>The declaration itself, for what its members ask the file to bring in.</summary>
+    public required Models.RecordType Declared { get; init; }
+
+    public required string Name { get; init; }
+
+    public required IReadOnlyList<string> Comment { get; init; }
+
+    public required IReadOnlyList<SwiftRecordTypeView> Types { get; init; }
+}
+
 internal sealed class SwiftRecordTypeView
 {
     /// <summary>Name of the struct.</summary>
@@ -331,6 +348,10 @@ internal sealed class SwiftRecordTypeView
 
     /// <summary>Whether this is the group's own element type rather than a level below it.</summary>
     public required bool IsOutermost { get; set; }
+
+    /// <summary>Whether the type is a declaration's, so it is written once elsewhere.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    public bool IsShared { get; set; }
 
     /// <summary>What the struct belongs to, for its doc comment.</summary>
     public required string Owner { get; set; }

@@ -24,6 +24,9 @@ internal sealed class PythonFileView
 /// </summary>
 internal sealed class PythonPartView
 {
+    /// <summary>The declared record type this module is for.</summary>
+    public PythonRecordFileView? Record { get; set; }
+
     /// <summary>What the accessor type is called, for the files that name it.</summary>
     public string? AccessorName { get; set; }
 
@@ -358,6 +361,22 @@ internal sealed class PythonRecordMemberView
 /// runs at import time, so the one it names has to exist already.
 /// spec/types/nested-multi-level.md.
 /// </remarks>
+/// <summary>One declared record type, and the levels inside it that are its own.</summary>
+/// <remarks>spec/types/declared-struct-identity.md.</remarks>
+internal sealed class PythonRecordFileView
+{
+    /// <summary>The declaration itself, for the imports its members ask for.</summary>
+    public required Models.RecordType Declared { get; init; }
+
+    public required string Name { get; init; }
+
+    public required string ModuleName { get; init; }
+
+    public required IReadOnlyList<string> Comment { get; init; }
+
+    public required IReadOnlyList<PythonRecordTypeView> Types { get; init; }
+}
+
 internal sealed class PythonRecordTypeView
 {
     /// <summary>Name of the class.</summary>
@@ -368,6 +387,10 @@ internal sealed class PythonRecordTypeView
 
     /// <summary>Whether this is the group's own element type rather than a level below it.</summary>
     public required bool IsOutermost { get; set; }
+
+    /// <summary>Whether the type is a declaration's, so it is written once elsewhere.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    public bool IsShared { get; set; }
 
     /// <summary>What the class belongs to, for its docstring.</summary>
     public required string Owner { get; set; }

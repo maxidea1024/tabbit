@@ -1,0 +1,33 @@
+{{~##
+   One record type, at four spaces of indent.
+
+   Included from two places and written once, because the type is the same shape wherever it is
+   declared: a group nobody declared gets it nested in the record class, and a group a `.tbs`
+   file typed gets a file of its own. spec/types/declared-struct-identity.md.
+##~}}
+    public static final class {{ rt.type_name }} {
+{{~ for member in rt.members ~}}
+{{~ for line in member.comment ~}}
+        /** {{ line }} */
+{{~ end ~}}
+{{~ for line in member.declarations ~}}
+        public {{ line }}
+{{~ end ~}}
+{{~ end ~}}
+{{~ for member in rt.members ~}}
+{{~ if member.fill != '' ~}}
+{{~## An instance initializer block: Java fills an array of objects with nulls, and a
+   member array gets the same empty-not-null guarantee a scalar member gets. ##~}}
+        { {{ member.fill }} }
+{{~ end ~}}
+{{~ end ~}}
+{{~## The per-target methods of every member of this class that reaches several tables. One
+   taking the element number where the member is the array, which is the third place an element
+   number sits. spec/references/multi-target-accessors.md. ##~}}
+{{~## The second layer of a container's surface. The arrays above are the file's order; these
+   are the lookup, and they keep insertion order so the two agree on what the second entry
+   is. spec/types/set-and-map.md section 7. ##~}}
+{{~ for line in rt.lookups ~}}
+        {{ line }}
+{{~ end ~}}
+    }

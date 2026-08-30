@@ -5,12 +5,14 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from loadout.tbs(38,6)
-/** What a reward is made of.
-Declared here rather than in a sheet, so the type cell that names it is reading adeclaration this run read from a file. */
-export enum Element {
-  /** Burns. */
-  Fire = 1,
-  /** Freezes. */
-  Ice = 2
+part of '../tables.dart';
+
+/// One thing a row hands out.
+class Reward {
+  /// Which item, as that table's key.
+  int itemId = 0;
+  /// How many of it.
+  int count = 0;
+  /// Shown beside the count. Blank where there is nothing to show.
+  String icon = '';
 }

@@ -362,6 +362,7 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
         Enums = _model.Enums.Select(BuildEnum).ToList(),
         Tables = _model.Tables.Select(BuildTable).ToList(),
         Structs = BuildStructs(),
+        RecordTypes = BuildDeclaredRecordTypes(),
         ConstantSets = _model.ConstantSets.Select(BuildConstantSet).ToList(),
         Accessor = new UnrealAccessorView
         {
@@ -653,8 +654,106 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     /// holding a `Slot` group would otherwise declare `FSlotEntry` twice, and UHT would
     /// reject the second.
     /// </remarks>
+    /// <summary>
+    /// The declared record types, ordered so that one is complete before another names it.
+    /// </summary>
+    /// <remarks>
+    /// The single header is read in order, so a declaration whose member is another
+    /// declaration's type has to come after it. spec/types/declared-struct-identity.md.
+    /// </remarks>
+    private IReadOnlyList<Models.RecordType> OrderedRecordTypes()
+    {
+        var result = new List<Models.RecordType>();
+        var placed = new HashSet<string>();
+
+        void Place(Models.RecordType declared)
+        {
+            if (!placed.Add(declared.Name))
+            {
+                return;
+            }
+
+            foreach (string name in declared.Members.SelectMany(NestedDeclaredNames).Distinct())
+            {
+                if (_model.RecordTypes.FirstOrDefault(
+                        candidate => candidate.Name == name) is { } needed)
+                {
+                    Place(needed);
+                }
+            }
+
+            result.Add(declared);
+        }
+
+        foreach (var declared in _model.RecordTypes)
+        {
+            Place(declared);
+        }
+
+        return result;
+    }
+
+    /// <summary>The declared types a member reaches, whatever depth they sit at.</summary>
+    private static IEnumerable<string> NestedDeclaredNames(RecordMember member)
+        => member.DeclaredType.Length > 0
+            ? new[] { member.DeclaredType }
+            : member.Members.SelectMany(NestedDeclaredNames);
+
+    /// <summary>
+    /// The declared record types, each with the levels inside it that are its own.
+    /// </summary>
+    /// <remarks>
+    /// This target writes one header, so they sit in it above the tables - but still one per
+    /// declaration, not one per table that named it, because a USTRUCT name is global and the
+    /// second one UHT reads is an error rather than a second type.
+    /// spec/types/declared-struct-identity.md.
+    /// </remarks>
+    private IReadOnlyList<UnrealRecordTypeView> BuildDeclaredRecordTypes()
+    {
+        var result = new List<UnrealRecordTypeView>();
+
+        foreach (var declared in OrderedRecordTypes())
+        {
+            var owner = _model.Tables.FirstOrDefault(
+                            table => table.SerialFields.Any(
+                                group => group.DeclaredType == declared.Name))
+                        ?? _model.Tables.First(
+                            table => table.SerialFields.Any(group => group.IsRecord));
+
+            var group = owner.SerialFields.FirstOrDefault(
+                            candidate => candidate.DeclaredType == declared.Name)
+                        ?? owner.SerialFields.First(candidate => candidate.IsRecord);
+
+            var levels = new List<UnrealRecordTypeView>();
+
+            var members = BuildRecordMembers(
+                owner, declared.Members, "F" + declared.Name, group, levels,
+                category: declared.Name);
+
+            levels.Add(new UnrealRecordTypeView
+            {
+                TypeName = "F" + declared.Name,
+                IsShared = true,
+                Category = declared.Name,
+                Members = members,
+                IsOutermost = true,
+                Lookups = LookupLines(declared.Members, ContainerKind.None, group),
+                Owner = declared.Name,
+            });
+
+            // A level inside this one that a declaration also named is its own entry in the
+            // list, so it is not written twice.
+            result.AddRange(levels.Where(level => level.TypeName == "F" + declared.Name
+                                                  || !level.IsShared));
+        }
+
+        return result;
+    }
+
     private static string RecordEntryName(Table table, SerialField sf)
-        => "F" + table.Name.ToPascalCase() + sf.Name.ToPascalCase() + "Entry";
+        => sf.DeclaredType.Length > 0
+            ? "F" + sf.DeclaredType
+            : "F" + table.Name.ToPascalCase() + sf.Name.ToPascalCase() + "Entry";
 
     /// <summary>
     /// Members of one level of a record, declaring a USTRUCT for each member that is itself a
@@ -669,11 +768,20 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
     /// no reflection - the opposite of what an array of arrays cost it.
     /// spec/types/nested-multi-level.md.
     /// </remarks>
+    /// <param name="inShared">
+    /// Whether these members sit inside a type a declaration owns. Such a type is written
+    /// once above the tables, and everything below it goes with it.
+    /// spec/types/declared-struct-identity.md.
+    /// </param>
     private List<UnrealRecordMemberView> BuildRecordMembers(
         Table table, List<RecordMember> members, string prefix, SerialField group,
-        List<UnrealRecordTypeView> declared)
+        List<UnrealRecordTypeView> declared, bool inShared = false, string? category = null)
     {
         var result = new List<UnrealRecordMemberView>();
+
+        // What the editor files these properties under. A declaration's type may be several
+        // tables', so it is filed under the declaration rather than under one of them.
+        category ??= table.RawName;
 
         foreach (var member in members)
         {
@@ -686,12 +794,21 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
             // A level below. Unreal's type names are global, so the name carries the path as
             // well as the table's - two records each holding a `Position` would otherwise
             // declare one struct twice and UHT would reject the second.
-            string typeName = prefix + member.Name.ToPascalCase();
-            var nested = BuildRecordMembers(table, member.Members, typeName, group, declared);
+            string typeName = member.DeclaredType.Length > 0
+                ? "F" + member.DeclaredType
+                : prefix + member.Name.ToPascalCase();
+
+            bool nestedIsShared = inShared || member.DeclaredType.Length > 0;
+
+            var nested = BuildRecordMembers(
+                table, member.Members, typeName, group, declared, nestedIsShared,
+                member.DeclaredType.Length > 0 ? member.DeclaredType : category);
 
             declared.Add(new UnrealRecordTypeView
             {
                 TypeName = typeName,
+                IsShared = nestedIsShared,
+                Category = category,
                 Members = nested,
                 IsOutermost = false,
                 Lookups = LookupLines(member.Members, member.Container, group),
@@ -732,7 +849,8 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
         var recordTypes = new List<UnrealRecordTypeView>();
 
         var recordMembers = (sf.IsRecord && !sf.MembersAreAnonymous)
-            ? BuildRecordMembers(table, sf.Members, RecordEntryName(table, sf), sf, recordTypes)
+            ? BuildRecordMembers(table, sf.Members, RecordEntryName(table, sf), sf, recordTypes,
+                                 inShared: sf.DeclaredType.Length > 0)
             : new List<UnrealRecordMemberView>();
 
         if (sf.IsRecord && !sf.MembersAreAnonymous)
@@ -740,6 +858,8 @@ public class UnrealCodeGenerator : CodeGenerator<UnrealRecipe>
             recordTypes.Add(new UnrealRecordTypeView
             {
                 TypeName = RecordEntryName(table, sf),
+                IsShared = sf.DeclaredType.Length > 0,
+                Category = sf.DeclaredType.Length > 0 ? sf.DeclaredType : table.RawName,
                 Members = recordMembers,
                 IsOutermost = true,
                 Lookups = LookupLines(sf.Members, sf.Container, sf),

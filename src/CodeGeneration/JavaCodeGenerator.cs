@@ -243,6 +243,19 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             });
         }
 
+        // And the declarations whose value is one shape, beside them for the same reason: a
+        // Java package is one namespace, and a public type wants a file of its own.
+        // spec/types/declared-struct-identity.md.
+        foreach (var record in BuildRecordFiles())
+        {
+            Write(record.Name, "java-record-file.sbn", new JavaPartView
+            {
+                PackageName = _recipe.PackageName,
+                Imports = Array.Empty<string>(),
+                Record = record,
+            });
+        }
+
         foreach (var pair in _model.ConstantSets.Zip(view.ConstantSets, (model, rendered) => (model, rendered)))
         {
             // A constant set names an enum when one of its constants is typed with one -
@@ -690,9 +703,50 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
     /// Java would otherwise leave it null, which is the same crash-one-field-later a null string
     /// member would be. spec/types/nested-multi-level.md.
     /// </remarks>
+    /// <param name="inShared">
+    /// Whether these members sit inside a type a declaration owns. Everything below such a
+    /// level is written where that type is. spec/types/declared-struct-identity.md.
+    /// </param>
+    /// <summary>The declared record types, each with the levels inside it that are its own.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    private IReadOnlyList<JavaRecordFileView> BuildRecordFiles()
+        => _model.RecordTypes
+            .Select(declared =>
+            {
+                var types = new List<JavaRecordTypeView>();
+
+                var group = _model.Tables
+                    .SelectMany(table => table.SerialFields)
+                    .FirstOrDefault(candidate => candidate.DeclaredType == declared.Name)
+                    ?? _model.Tables.SelectMany(table => table.SerialFields)
+                        .First(candidate => candidate.IsRecord);
+
+                var members = BuildRecordMembers(declared.Members, declared.Name, group, types);
+
+                types.Add(new JavaRecordTypeView
+                {
+                    TypeName = declared.Name,
+                    IsShared = true,
+                    Members = members,
+                    IsOutermost = true,
+                    Lookups = LookupLines(declared.Members, Models.ContainerKind.None, group),
+                    Owner = declared.Name,
+                });
+
+                return new JavaRecordFileView
+                {
+                    Declared = declared,
+                    Name = declared.Name,
+                    Comment = CommentLines(declared.Comment),
+                    Types = types.Where(type => type.TypeName == declared.Name
+                                                || !type.IsShared).ToList(),
+                };
+            })
+            .ToList();
+
     private List<JavaRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, SerialField group,
-        List<JavaRecordTypeView> declared)
+        List<JavaRecordTypeView> declared, bool inShared = false)
     {
         var result = new List<JavaRecordMemberView>();
 
@@ -771,12 +825,19 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
 
             // A level below. The class name carries the path: both are nested in the same
             // record, so two groups each holding a `Position` would otherwise collide.
-            string typeName = prefix + member.Name.ToPascalCase();
-            var nested = BuildRecordMembers(member.Members, typeName, group, declared);
+            string typeName = member.DeclaredType.Length > 0
+                ? member.DeclaredType
+                : prefix + member.Name.ToPascalCase();
+
+            bool nestedIsShared = inShared || member.DeclaredType.Length > 0;
+
+            var nested = BuildRecordMembers(
+                member.Members, typeName, group, declared, nestedIsShared);
 
             declared.Add(new JavaRecordTypeView
             {
                 TypeName = typeName,
+                IsShared = nestedIsShared,
                 Members = nested,
                 IsOutermost = false,
                 Owner = JavaName(group.Name),
@@ -819,16 +880,20 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             : null;
 
         string name = JavaName(sf.Name);
-        string entry = sf.Name.ToPascalCase() + "Entry";
+        string entry = sf.DeclaredType.Length > 0
+            ? sf.DeclaredType
+            : sf.Name.ToPascalCase() + "Entry";
         bool fixedArray = sf.IsArray && !table.TrimTrailingArrayElements;
 
         // Innermost first, so a class is declared before the one naming it.
         var recordTypes = new List<JavaRecordTypeView>();
-        var members = BuildRecordMembers(sf.Members, entry, sf, recordTypes);
+        var members = BuildRecordMembers(
+            sf.Members, entry, sf, recordTypes, inShared: sf.DeclaredType.Length > 0);
 
         recordTypes.Add(new JavaRecordTypeView
         {
             TypeName = entry,
+            IsShared = sf.DeclaredType.Length > 0,
             Members = members,
             IsOutermost = true,
             Lookups = LookupLines(sf.Members, sf.Container, sf),
@@ -937,10 +1002,13 @@ public class JavaCodeGenerator : CodeGenerator<JavaRecipe>
             MemberAt = wire.MemberAt,
 
             // Qualified, because the element class is nested in the record and this is read
-            // from the table class next door.
-            RecordTypeName = wire.Group.IsRecord
-                ? $"{table.Name.ToPascalCase()}Record.{wire.Group.Name.ToPascalCase()}Entry"
-                : "",
+            // from the table class next door - unless a declaration owns the type, and then it
+            // is a class of its own beside them. spec/types/declared-struct-identity.md.
+            RecordTypeName = !wire.Group.IsRecord
+                ? ""
+                : wire.Group.DeclaredType.Length > 0
+                    ? wire.Group.DeclaredType
+                    : $"{table.Name.ToPascalCase()}Record.{wire.Group.Name.ToPascalCase()}Entry",
 
             IsFirstMember = wire.IsFirstMember,
             ElementCount = wire.Cells.Count,

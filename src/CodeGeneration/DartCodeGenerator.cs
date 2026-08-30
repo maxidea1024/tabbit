@@ -231,6 +231,23 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
                        }));
         }
 
+        // And the declarations whose value is one shape, beside them for the same reason: the
+        // files are parts of one library, so a type declared per table would be the same name
+        // twice. spec/types/declared-struct-identity.md.
+        foreach (var record in BuildRecordFiles())
+        {
+            string name = record.Name.ToSnakeCase();
+
+            parts.Add(($"structs/{name}.dart", System.IO.Path.Combine("structs", name + ".dart"),
+                       "dart-record.sbn",
+                       new DartPartView
+                       {
+                           AccessorName = AccessorType,
+                           Library = library,
+                           Record = record,
+                       }));
+        }
+
         foreach (var set in view.ConstantSets)
         {
             string name = set.Name.ToSnakeCase();
@@ -564,9 +581,13 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// class - which is how every value inside it reaches the empty value a scalar member gets.
     /// spec/types/nested-multi-level.md.
     /// </remarks>
+    /// <param name="inShared">
+    /// Whether these members sit inside a type a declaration owns. Everything below such a
+    /// level is written where that type is. spec/types/declared-struct-identity.md.
+    /// </param>
     private List<DartRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, Table table, SerialField group,
-        List<DartRecordTypeView> declared)
+        List<DartRecordTypeView> declared, bool inShared = false)
     {
         var result = new List<DartRecordMemberView>();
 
@@ -641,12 +662,19 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
             // A level below. The class name carries the path so two records each holding a
             // `Position` do not name one class twice.
-            string typeName = prefix + member.Name.ToPascalCase();
-            var nested = BuildRecordMembers(member.Members, typeName, table, group, declared);
+            string typeName = member.DeclaredType.Length > 0
+                ? member.DeclaredType
+                : prefix + member.Name.ToPascalCase();
+
+            bool nestedIsShared = inShared || member.DeclaredType.Length > 0;
+
+            var nested = BuildRecordMembers(
+                member.Members, typeName, table, group, declared, nestedIsShared);
 
             declared.Add(new DartRecordTypeView
             {
                 TypeName = typeName,
+                IsShared = nestedIsShared,
                 Members = nested,
                 IsOutermost = false,
                 Owner = $"{table.Name.ToPascalCase()}Record.{DartName(group.Name)}",
@@ -734,11 +762,15 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
 
         // Innermost first, so a class is declared before the one naming it.
         var recordTypes = new List<DartRecordTypeView>();
-        var members = BuildRecordMembers(sf.Members, entry, table, sf, recordTypes);
+
+        var members = BuildRecordMembers(
+            sf.Members, entry, table, sf, recordTypes,
+            inShared: sf.DeclaredType.Length > 0);
 
         recordTypes.Add(new DartRecordTypeView
         {
             TypeName = entry,
+            IsShared = sf.DeclaredType.Length > 0,
             Members = members,
             IsOutermost = true,
             Lookups = LookupLines(sf.Members, sf.Container, sf),
@@ -851,8 +883,51 @@ public class DartCodeGenerator : CodeGenerator<DartRecipe>
     /// The generated files are parts of one library, so every type they declare shares a
     /// namespace - two tables each holding a `Slot` group would be the same name twice.
     /// </remarks>
+    /// <summary>The declared record types, each with the levels inside it that are its own.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    private IReadOnlyList<DartRecordFileView> BuildRecordFiles()
+        => _model.RecordTypes
+            .Select(declared =>
+            {
+                var types = new List<DartRecordTypeView>();
+
+                var owner = _model.Tables.FirstOrDefault(
+                                table => table.SerialFields.Any(
+                                    group => group.DeclaredType == declared.Name))
+                            ?? _model.Tables.First(
+                                table => table.SerialFields.Any(group => group.IsRecord));
+
+                var group = owner.SerialFields.FirstOrDefault(
+                                candidate => candidate.DeclaredType == declared.Name)
+                            ?? owner.SerialFields.First(candidate => candidate.IsRecord);
+
+                var members = BuildRecordMembers(
+                    declared.Members, declared.Name, owner, group, types);
+
+                types.Add(new DartRecordTypeView
+                {
+                    TypeName = declared.Name,
+                    IsShared = true,
+                    Members = members,
+                    IsOutermost = true,
+                    Lookups = LookupLines(declared.Members, Models.ContainerKind.None, group),
+                    Owner = declared.Name,
+                });
+
+                return new DartRecordFileView
+                {
+                    Name = declared.Name,
+                    Comment = CommentLines(declared.Comment),
+                    Types = types.Where(type => type.TypeName == declared.Name
+                                                || !type.IsShared).ToList(),
+                };
+            })
+            .ToList();
+
     private static string RecordTypeName(Table table, SerialField sf)
-        => table.Name.ToPascalCase() + sf.Name.ToPascalCase() + "Entry";
+        => sf.DeclaredType.Length > 0
+            ? sf.DeclaredType
+            : table.Name.ToPascalCase() + sf.Name.ToPascalCase() + "Entry";
 
     /// <summary>
     /// The property a nullable column's presence lands in.

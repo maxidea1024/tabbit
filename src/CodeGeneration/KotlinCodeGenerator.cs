@@ -201,6 +201,14 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
                   "kotlin-struct.sbn", Part(structure: BuildStruct(declared)));
         }
 
+        // And the declarations whose value is one shape, beside them for the same reason.
+        // spec/types/declared-struct-identity.md.
+        foreach (var record in BuildRecordFiles())
+        {
+            Write(System.IO.Path.Combine("structs", record.Name + ".kt"),
+                  "kotlin-record-file.sbn", Part(record: record));
+        }
+
         foreach (var set in view.ConstantSets)
             Write(System.IO.Path.Combine("constants", set.Name + ".kt"),
                   "kotlin-constants.sbn", Part(set: set));
@@ -214,7 +222,8 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
 
     private KotlinPartView Part(
         KotlinTableView? table = null, KotlinEnumView? enumm = null,
-        KotlinConstantSetView? set = null, KotlinPolymorphicTypeView? structure = null)
+        KotlinConstantSetView? set = null, KotlinPolymorphicTypeView? structure = null,
+        KotlinRecordFileView? record = null)
         => new KotlinPartView
         {
             PackageName = _recipe.PackageName,
@@ -223,6 +232,7 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
             Enumm = enumm,
             Set = set,
             Structure = structure,
+                    Record = record,
         };
 
     /// <summary>
@@ -578,9 +588,51 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
     /// class, which is how the values inside it reach the empty values a scalar member gets -
     /// Kotlin has no uninitialized property to leave it at. spec/types/nested-multi-level.md.
     /// </remarks>
+    /// <param name="inShared">
+    /// Whether these members sit inside a type a declaration owns. Everything below
+    /// such a level is written where that type is.
+    /// spec/types/declared-struct-identity.md.
+    /// </param>
+    /// <summary>The declared record types, each with the levels inside it that are its own.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    private IReadOnlyList<KotlinRecordFileView> BuildRecordFiles()
+        => _model.RecordTypes
+            .Select(declared =>
+            {
+                var types = new List<KotlinRecordTypeView>();
+
+                var group = _model.Tables
+                    .SelectMany(table => table.SerialFields)
+                    .FirstOrDefault(candidate => candidate.DeclaredType == declared.Name)
+                    ?? _model.Tables.SelectMany(table => table.SerialFields)
+                        .First(candidate => candidate.IsRecord);
+
+                var members = BuildRecordMembers(declared.Members, declared.Name, group, types);
+
+                types.Add(new KotlinRecordTypeView
+                {
+                    TypeName = declared.Name,
+                    IsShared = true,
+                    Members = members,
+                    IsOutermost = true,
+                    Lookups = LookupLines(declared.Members, Models.ContainerKind.None, group),
+                    Owner = declared.Name,
+                });
+
+                return new KotlinRecordFileView
+                {
+                    Declared = declared,
+                    Name = declared.Name,
+                    Comment = CommentLines(declared.Comment),
+                    Types = types.Where(type => type.TypeName == declared.Name
+                                                || !type.IsShared).ToList(),
+                };
+            })
+            .ToList();
+
     private List<KotlinRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, SerialField group,
-        List<KotlinRecordTypeView> declared)
+        List<KotlinRecordTypeView> declared, bool inShared = false)
     {
         var result = new List<KotlinRecordMemberView>();
 
@@ -654,12 +706,18 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
 
             // A level below. The class name carries the path: both levels are nested in the
             // same record, so two groups each holding a `Position` would otherwise collide.
-            string typeName = prefix + member.Name.ToPascalCase();
-            var nested = BuildRecordMembers(member.Members, typeName, group, declared);
+            string typeName = member.DeclaredType.Length > 0
+                ? member.DeclaredType
+                : prefix + member.Name.ToPascalCase();
+
+            bool nestedIsShared = inShared || member.DeclaredType.Length > 0;
+            var nested = BuildRecordMembers(
+                member.Members, typeName, group, declared, nestedIsShared);
 
             declared.Add(new KotlinRecordTypeView
             {
                 TypeName = typeName,
+                IsShared = nestedIsShared,
                 Members = nested,
                 IsOutermost = false,
                 Owner = KotlinName(group.Name),
@@ -688,15 +746,19 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
             : null;
 
         string name = KotlinName(sf.Name);
-        string entry = sf.Name.ToPascalCase() + "Entry";
+        string entry = sf.DeclaredType.Length > 0
+            ? sf.DeclaredType
+            : sf.Name.ToPascalCase() + "Entry";
 
         // Innermost first, so a class is declared before the one naming it.
         var recordTypes = new List<KotlinRecordTypeView>();
-        var members = BuildRecordMembers(sf.Members, entry, sf, recordTypes);
+        var members = BuildRecordMembers(
+            sf.Members, entry, sf, recordTypes, inShared: sf.DeclaredType.Length > 0);
 
         recordTypes.Add(new KotlinRecordTypeView
         {
             TypeName = entry,
+            IsShared = sf.DeclaredType.Length > 0,
             Members = members,
             IsOutermost = true,
             Lookups = LookupLines(sf.Members, sf.Container, sf),
@@ -795,9 +857,14 @@ public class KotlinCodeGenerator : CodeGenerator<KotlinRecipe>
 
             // Qualified, because the element class is nested in the record and this is read
             // from the table class beside it.
-            RecordTypeName = wire.Group.IsRecord
-                ? $"{table.Name.ToPascalCase()}Record.{wire.Group.Name.ToPascalCase()}Entry"
-                : "",
+            // Qualified, because the element type is nested in the record - unless a
+            // declaration owns it, and then it is a class of its own beside them.
+            // spec/types/declared-struct-identity.md.
+            RecordTypeName = !wire.Group.IsRecord
+                ? ""
+                : wire.Group.DeclaredType.Length > 0
+                    ? wire.Group.DeclaredType
+                    : $"{table.Name.ToPascalCase()}Record.{wire.Group.Name.ToPascalCase()}Entry",
 
             IsFirstMember = wire.IsFirstMember,
             ElementCount = wire.Cells.Count,

@@ -287,6 +287,26 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                 part => part.Set = pair.rendered));
         }
 
+        // A struct is an entity beside a table and an enum, so it gets a header of its own -
+        // and these are file-scope structs, so a type declared per table would be the same name
+        // declared twice. spec/types/declared-struct-identity.md.
+        foreach (var record in BuildRecordFiles())
+        {
+            Write(RecordHeaderPath(record.Name), "cpp-record.sbn", Part(
+                Guard("STRUCT_" + record.Name.ToSnakeCase()),
+                new[] { "<cstddef>", "<cstdint>", "<string>", "<unordered_map>", "<vector>" }
+                    .Append(ReaderInclude)
+                    .Append(ForwardHeader)
+                    .Concat(RecordEnumHeaders(record.Declared))
+                    // A level inside this one that a declaration also named is a header of its
+                    // own, and a member of it is a value rather than a pointer.
+                    .Concat(record.Declared.Members
+                            .SelectMany(NestedDeclaredNames)
+                            .Distinct()
+                            .Select(name => "\"" + RecordHeaderPath(name) + "\"")),
+                part => part.Record = record));
+        }
+
         foreach (var pair in _model.Tables.Zip(view.Tables, (model, rendered) => (model, rendered)))
         {
             // A table always holds a vector of rows and a map from index to position, always
@@ -315,6 +335,10 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
                     // hands back, so an incomplete type will not do.
                     // spec/types/polymorphism.md section 7.1.
                     .Concat(PolymorphicHeaders(pair.model))
+
+                    // And the declared record types its groups are, for the same reason.
+                    // spec/types/declared-struct-identity.md.
+                    .Concat(RecordHeaders(pair.model))
 
                     // A grid takes its column axis by reference and reads its rows, so the
                     // complete type is needed rather than the forward declaration.
@@ -865,9 +889,13 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// declaring it is enough for every value inside it to start where a scalar member would.
     /// spec/types/nested-multi-level.md.
     /// </remarks>
+    /// <param name="inShared">
+    /// Whether these members sit inside a type a declaration owns. Everything below such a
+    /// level is written where that type is. spec/types/declared-struct-identity.md.
+    /// </param>
     private List<CppRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, Table table, SerialField group,
-        List<CppRecordTypeView> declared)
+        List<CppRecordTypeView> declared, bool inShared = false)
     {
         var result = new List<CppRecordMemberView>();
 
@@ -887,12 +915,19 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
 
             // A level below. The type name carries the path so two records each holding a
             // `Position` do not name one struct twice.
-            string typeName = prefix + member.Name.ToPascalCase();
-            var nested = BuildRecordMembers(member.Members, typeName, table, group, declared);
+            string typeName = member.DeclaredType.Length > 0
+                ? member.DeclaredType
+                : prefix + member.Name.ToPascalCase();
+
+            bool nestedIsShared = inShared || member.DeclaredType.Length > 0;
+
+            var nested = BuildRecordMembers(
+                member.Members, typeName, table, group, declared, nestedIsShared);
 
             declared.Add(new CppRecordTypeView
             {
                 TypeName = typeName,
+                IsShared = nestedIsShared,
                 Members = nested,
                 IsOutermost = false,
                 Lookups = LookupLines(member.Members, member.Container, group),
@@ -982,7 +1017,8 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
         var recordTypes = new List<CppRecordTypeView>();
 
         var members = sf.IsRecord
-            ? BuildRecordMembers(sf.Members, RecordEntryName(table, sf), table, sf, recordTypes)
+            ? BuildRecordMembers(sf.Members, RecordEntryName(table, sf), table, sf, recordTypes,
+                                 inShared: sf.DeclaredType.Length > 0)
             : new List<CppRecordMemberView>();
 
         if (sf.IsRecord)
@@ -990,6 +1026,7 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
             recordTypes.Add(new CppRecordTypeView
             {
                 TypeName = RecordEntryName(table, sf),
+                IsShared = sf.DeclaredType.Length > 0,
                 Members = members,
                 IsOutermost = true,
                 Lookups = LookupLines(sf.Members, sf.Container, sf),
@@ -1051,8 +1088,81 @@ public class CppCodeGenerator : CodeGenerator<CppRecipe>
     /// each holding a `Pos` group would otherwise declare `pos_entry` twice, and C++ has no
     /// namespace here to keep them apart. The same reasoning gives the accessor its prefix.
     /// </remarks>
+    /// <summary>Where a declared record type's header goes.</summary>
+    private string RecordHeaderPath(string name)
+        => $"structs/{_cppRecipe.AccessorName}_struct_{name.ToSnakeCase()}.h";
+
+    /// <summary>The declared types a member reaches, so the file naming it can include them.</summary>
+    private static IEnumerable<string> NestedDeclaredNames(RecordMember member)
+        => member.DeclaredType.Length > 0
+            ? new[] { member.DeclaredType }
+            : member.Members.SelectMany(NestedDeclaredNames);
+
+    /// <summary>The headers of the declared record types a table's groups are.</summary>
+    private IEnumerable<string> RecordHeaders(Table table)
+        => table.SerialFields
+            .Where(group => group.IsRecord)
+            .SelectMany(group => group.DeclaredType.Length > 0
+                ? new[] { group.DeclaredType }
+                : group.Members.SelectMany(NestedDeclaredNames))
+            .Distinct()
+            .Select(name => "\"" + RecordHeaderPath(name) + "\"");
+
+    /// <summary>The enum headers a declared record type's members name.</summary>
+    private IEnumerable<string> RecordEnumHeaders(Models.RecordType declared)
+        => declared.Members
+            .SelectMany(member => member.AllFields)
+            .Where(field => field.ElementType == ValueType.Enum)
+            .Select(field => field.Enum)
+            .Distinct()
+            .Select(EnumHeaderFor);
+
+    /// <summary>The declared record types, each with the levels inside it that are its own.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    private IReadOnlyList<CppRecordFileView> BuildRecordFiles()
+        => _model.RecordTypes
+            .Select(declared =>
+            {
+                var types = new List<CppRecordTypeView>();
+
+                var owner = _model.Tables.FirstOrDefault(
+                                table => table.SerialFields.Any(
+                                    group => group.DeclaredType == declared.Name))
+                            ?? _model.Tables.First(
+                                table => table.SerialFields.Any(group => group.IsRecord));
+
+                var group = owner.SerialFields.FirstOrDefault(
+                                candidate => candidate.DeclaredType == declared.Name)
+                            ?? owner.SerialFields.First(candidate => candidate.IsRecord);
+
+                var members = BuildRecordMembers(
+                    declared.Members, declared.Name, owner, group, types);
+
+                types.Add(new CppRecordTypeView
+                {
+                    TypeName = declared.Name,
+                    IsShared = true,
+                    Members = members,
+                    IsOutermost = true,
+                    Lookups = LookupLines(declared.Members, Models.ContainerKind.None, group),
+                    Owner = declared.Name,
+                });
+
+                return new CppRecordFileView
+                {
+                    Declared = declared,
+                    Name = declared.Name,
+                    Comment = CommentLines(declared.Comment),
+                    Types = types.Where(type => type.TypeName == declared.Name
+                                                || !type.IsShared).ToList(),
+                };
+            })
+            .ToList();
+
     private string RecordEntryName(Table table, SerialField sf)
-        => RecordName(table) + "_" + CppName(sf.Name) + "_entry";
+        => sf.DeclaredType.Length > 0
+            ? sf.DeclaredType
+            : RecordName(table) + "_" + CppName(sf.Name) + "_entry";
 
     /// <summary>
     /// One column of the file: how it is checked, how it is decoded, and where it lands.

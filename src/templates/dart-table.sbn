@@ -10,6 +10,10 @@
 {{~## One class per level, innermost first - the view flattened the nesting so this loop does
    not have to know how deep it went. spec/types/nested-multi-level.md. ##~}}
 {{~ for rt in field.record_types ~}}
+{{~## A shared type is written once in a part of its own - the files are parts of one library,
+   so a type declared per table would be the same name twice.
+   spec/types/declared-struct-identity.md. ##~}}
+{{~ if !rt.is_shared ~}}
 {{~ if rt.is_outermost ~}}
 /// One element of [{{ rt.owner }}].
 {{~ else ~}}
@@ -35,6 +39,7 @@ class {{ rt.type_name }} {
 {{~ end ~}}
 }
 
+{{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}

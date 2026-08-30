@@ -221,6 +221,11 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                       Requires = new[] { "../tabbit/tcb_reader" }
                           .Concat(_model.PolymorphicTypes
                               .Select(s => "../structs/" + s.Name.ToSnakeCase()))
+
+                          // And the declarations its groups are typed by, each in a file of
+                          // its own. spec/types/declared-struct-identity.md.
+                          .Concat(_model.RecordTypes
+                              .Select(s => "../structs/" + s.Name.ToSnakeCase()))
                           .ToList(),
                       Table = table,
                   });
@@ -250,6 +255,21 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
                       ModuleName = _recipe.ModuleName,
                       Requires = Array.Empty<string>(),
                       Structure = BuildStruct(declared),
+                  });
+        }
+
+        // And the declarations whose value is one shape, beside them for the same reason: the
+        // module is one namespace, so a class declared per table would be two classes of one
+        // name. spec/types/declared-struct-identity.md.
+        foreach (var record in BuildRecordFiles())
+        {
+            Write(System.IO.Path.Combine("structs", record.Name.ToSnakeCase() + ".rb"),
+                  "ruby-record.sbn", new RubyPartView
+                  {
+                      AccessorName = AccessorType,
+                      ModuleName = _recipe.ModuleName,
+                      Requires = Array.Empty<string>(),
+                      Record = record,
                   });
         }
 
@@ -511,9 +531,13 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     /// prefers: the constructor naming the level below resolves that name when it runs.
     /// spec/types/nested-multi-level.md.
     /// </remarks>
+    /// <param name="inShared">
+    /// Whether these members sit inside a type a declaration owns. Everything below such
+    /// a level is written where that type is. spec/types/declared-struct-identity.md.
+    /// </param>
     private List<RubyRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, Table table, SerialField group,
-        List<RubyRecordTypeView> declared)
+        List<RubyRecordTypeView> declared, bool inShared = false)
     {
         var result = new List<RubyRecordMemberView>();
 
@@ -535,12 +559,17 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
             // A level below. The class name carries the path: every generated class sits in
             // one module, so two records each holding a `Position` would otherwise collide.
-            string typeName = prefix + member.Name.ToPascalCase();
-            var nested = BuildRecordMembers(member.Members, typeName, table, group, declared);
+            string typeName = member.DeclaredType.Length > 0
+                ? member.DeclaredType
+                : prefix + member.Name.ToPascalCase();
+
+            bool nestedIsShared = inShared || member.DeclaredType.Length > 0;
+            var nested = BuildRecordMembers(member.Members, typeName, table, group, declared, nestedIsShared);
 
             declared.Add(new RubyRecordTypeView
             {
                 TypeName = typeName,
+                IsShared = nestedIsShared,
                 Members = nested,
                 IsOutermost = false,
                 Lookups = LookupLines(member.Members, member.Container, group),
@@ -621,11 +650,13 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
 
         // Innermost first, so a class is defined before the constructor that names it runs.
         var recordTypes = new List<RubyRecordTypeView>();
-        var members = BuildRecordMembers(sf.Members, entry, table, sf, recordTypes);
+        var members = BuildRecordMembers(sf.Members, entry, table, sf, recordTypes,
+            inShared: sf.DeclaredType.Length > 0);
 
         recordTypes.Add(new RubyRecordTypeView
         {
             TypeName = entry,
+            IsShared = sf.DeclaredType.Length > 0,
             Members = members,
             IsOutermost = true,
             Lookups = LookupLines(sf.Members, sf.Container, sf),
@@ -747,8 +778,54 @@ public class RubyCodeGenerator : CodeGenerator<RubyRecipe>
     /// Every generated class sits in one module, so two tables each holding a `Slot` group
     /// would be the same constant twice.
     /// </remarks>
+    /// <summary>The declared record types, each with the levels inside it that are its own.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    private IReadOnlyList<RubyRecordFileView> BuildRecordFiles()
+        => _model.RecordTypes
+            .Select(declared =>
+            {
+                var types = new List<RubyRecordTypeView>();
+
+                var owner = _model.Tables.FirstOrDefault(
+                                table => table.SerialFields.Any(
+                                    group => group.DeclaredType == declared.Name))
+                            ?? _model.Tables.First(
+                                table => table.SerialFields.Any(group => group.IsRecord));
+
+                var group = owner.SerialFields.FirstOrDefault(
+                                candidate => candidate.DeclaredType == declared.Name)
+                            ?? owner.SerialFields.First(candidate => candidate.IsRecord);
+
+                var members = BuildRecordMembers(
+                    declared.Members, declared.Name, owner, group, types);
+
+                types.Add(new RubyRecordTypeView
+                {
+                    TypeName = declared.Name,
+                    IsShared = true,
+                    Members = members,
+                    IsOutermost = true,
+                    Lookups = LookupLines(declared.Members, Models.ContainerKind.None, group),
+                    Owner = declared.Name,
+                    AccessorNames = Symbols(
+                        MemberAccessorNames(declared.Members, Models.ContainerKind.None)),
+                });
+
+                return new RubyRecordFileView
+                {
+                    Declared = declared,
+                    Name = declared.Name,
+                    Comment = CommentLines(declared.Comment),
+                    Types = types.Where(type => type.TypeName == declared.Name
+                                                || !type.IsShared).ToList(),
+                };
+            })
+            .ToList();
+
     private static string RecordTypeName(Table table, SerialField sf)
-        => table.Name.ToPascalCase() + sf.Name.ToPascalCase() + "Entry";
+        => sf.DeclaredType.Length > 0
+            ? sf.DeclaredType
+            : table.Name.ToPascalCase() + sf.Name.ToPascalCase() + "Entry";
 
     /// <summary>
     /// The attribute a nullable column's presence lands in, without its `@`.

@@ -11,26 +11,26 @@ import (
 	"strconv"
 )
 
-// Element was generated from loadout.tbs(38,6).
+// Affinity was generated from loadout.tbs(38,6).
 // What a reward is made of.
 //
 // Declared here rather than in a sheet, so the type cell that names it is reading a
 // declaration this run read from a file.
-type Element int32
+type Affinity int32
 
 const (
 	// Burns.
-	ElementFire Element = 1
+	AffinityFire Affinity = 1
 	// Freezes.
-	ElementIce Element = 2
+	AffinityIce Affinity = 2
 )
 
 // String names the label, or renders the number when the value has none.
-func (v Element) String() string {
+func (v Affinity) String() string {
 	switch v {
-	case ElementFire:
+	case AffinityFire:
 		return "Fire"
-	case ElementIce:
+	case AffinityIce:
 		return "Ice"
 	}
 

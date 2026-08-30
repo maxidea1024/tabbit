@@ -22,6 +22,9 @@ internal sealed class LuaFileView
 /// </summary>
 internal sealed class LuaPartView
 {
+    /// <summary>The declared record type this file is for.</summary>
+    public LuaRecordFileView? Record { get; set; }
+
     /// <summary>
     /// The pattern that takes this file's own module name down to the mount prefix, so
     /// the output is relocatable: a file one directory deep strips two components, the
@@ -279,11 +282,29 @@ internal sealed class LuaFieldView
         = System.Array.Empty<LuaRecordTypeView>();
 }
 
+/// <summary>One declared record type, and the levels inside it that are its own.</summary>
+/// <remarks>spec/types/declared-struct-identity.md.</remarks>
+internal sealed class LuaRecordFileView
+{
+    /// <summary>The declaration itself, for what its members ask the file to bring in.</summary>
+    public required Models.RecordType Declared { get; init; }
+
+    public required string Name { get; init; }
+
+    public required IReadOnlyList<string> Comment { get; init; }
+
+    public required IReadOnlyList<LuaRecordTypeView> Types { get; init; }
+}
+
 internal sealed class LuaRecordTypeView
 {
     public required string TypeName { get; set; }
     public required string Owner { get; set; }
     public required bool IsOutermost { get; set; }
+
+    /// <summary>Whether the type is a declaration's, so it is written once elsewhere.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    public bool IsShared { get; set; }
     public required IReadOnlyList<LuaRecordMemberView> Members { get; set; }
 
     /// <summary>The element's declared field names, quoted and comma separated.</summary>

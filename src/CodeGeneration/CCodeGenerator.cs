@@ -261,6 +261,35 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             });
         }
 
+        // And the declarations whose value is one shape, beside them for the same reason: C
+        // has one namespace for struct tags, so a tag per table that named it would be the
+        // same tag declared twice. spec/types/declared-struct-identity.md.
+        foreach (var record in BuildRecordFiles())
+        {
+            Write(RecordHeader(record.Name), "c-record.sbn", new CPartView
+            {
+                Guard = Guard("STRUCT_" + record.Name.ToUpperSnakeCase()),
+                Includes = new[]
+                    {
+                        "#include <stdbool.h>", "#include <stddef.h>", "#include <stdint.h>",
+                        $"#include \"{ForwardHeader}\"",
+                    }
+                    .Concat(record.Declared.Members
+                        .SelectMany(member => member.AllFields)
+                        .Where(field => field.ElementType == Models.ValueType.Enum)
+                        .Select(field => field.Enum)
+                        .Distinct()
+                        .Select(enumm => $"#include \"{EnumHeaderFor(enumm)}\""))
+                    .Concat(record.Declared.Members
+                        .SelectMany(NestedDeclaredNames)
+                        .Distinct()
+                        .Select(name => $"#include \"{RecordHeader(name)}\""))
+                    .ToArray(),
+                Forwards = Array.Empty<string>(),
+                Record = record,
+            });
+        }
+
         foreach (var pair in _model.ConstantSets.Zip(view.ConstantSets, (model, rendered) => (model, rendered)))
         {
             bool anyExtern = pair.rendered.Constants.Any(constant => constant.IsExtern);
@@ -308,6 +337,10 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                         .Concat(TypeDependencies.EnumsNamedBy(pair.model)
                                 .Select(EnumHeaderFor))
                         .Concat(PolymorphicHeaders(pair.model))
+
+                        // And the declared record types its groups are, for the same reason.
+                        // spec/types/declared-struct-identity.md.
+                        .Concat(RecordHeaders(pair.model))
 
                         // A grid names its column axis as a member and reads its rows, so the
                         // complete type is needed rather than the forward declaration.
@@ -413,6 +446,68 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
                 candidate => candidate.Name == name))
             .Where(declared => declared is not null)
             .Select(declared => StructHeader(declared!));
+
+    /// <summary>Where a declared record type's header goes.</summary>
+    private string RecordHeader(string name) => $"structs/{FileBase}_Struct{name}.h";
+
+    /// <summary>The declared types a member reaches, so the file naming it can include them.</summary>
+    private static IEnumerable<string> NestedDeclaredNames(RecordMember member)
+        => member.DeclaredType.Length > 0
+            ? new[] { member.DeclaredType }
+            : member.Members.SelectMany(NestedDeclaredNames);
+
+    /// <summary>The headers of the declared record types a table's groups are.</summary>
+    private IEnumerable<string> RecordHeaders(Table table)
+        => table.SerialFields
+            .Where(group => group.IsRecord)
+            .SelectMany(group => group.DeclaredType.Length > 0
+                ? new[] { group.DeclaredType }
+                : group.Members.SelectMany(NestedDeclaredNames))
+            .Distinct()
+            .Select(RecordHeader);
+
+    /// <summary>The declared record types, each with the levels inside it that are its own.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    private IReadOnlyList<CRecordFileView> BuildRecordFiles()
+        => _model.RecordTypes
+            .Select(declared =>
+            {
+                var types = new List<CRecordTypeView>();
+
+                var owner = _model.Tables.FirstOrDefault(
+                                table => table.SerialFields.Any(
+                                    group => group.DeclaredType == declared.Name))
+                            ?? _model.Tables.First(
+                                table => table.SerialFields.Any(group => group.IsRecord));
+
+                var group = owner.SerialFields.FirstOrDefault(
+                                candidate => candidate.DeclaredType == declared.Name)
+                            ?? owner.SerialFields.First(candidate => candidate.IsRecord);
+
+                string tag = DeclaredRecordName(declared.Name);
+
+                var members = BuildRecordMembers(
+                    declared.Members, tag, owner, group, types, declared.Name);
+
+                types.Add(new CRecordTypeView
+                {
+                    TypeName = tag,
+                    IsShared = true,
+                    Members = members,
+                    IsOutermost = true,
+                    Lookups = LookupLines(declared.Members, Models.ContainerKind.None, group, tag),
+                    Owner = declared.Name,
+                });
+
+                return new CRecordFileView
+                {
+                    Declared = declared,
+                    Name = declared.Name,
+                    Comment = CommentLines(declared.Comment),
+                    Types = types.Where(type => type.TypeName == tag || !type.IsShared).ToList(),
+                };
+            })
+            .ToList();
 
     /// <summary>Where one declared abstract type's header goes.</summary>
     private string StructHeader(Models.PolymorphicType declared)
@@ -856,9 +951,13 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// frees it - the same choice every array member here makes.
     /// spec/types/nested-multi-level.md.
     /// </remarks>
+    /// <param name="inShared">
+    /// Whether these members sit inside a type a declaration owns. Everything below such a
+    /// level is written where that type is. spec/types/declared-struct-identity.md.
+    /// </param>
     private List<CRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, Table table, SerialField group,
-        List<CRecordTypeView> declared, string ownerPath)
+        List<CRecordTypeView> declared, string ownerPath, bool inShared = false)
     {
         var result = new List<CRecordMemberView>();
 
@@ -881,14 +980,20 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
             // A level below. The tag carries the path: C has one namespace for struct tags, so
             // two records each holding a `Position` would otherwise name one struct twice.
-            string typeName = prefix + member.Name.ToPascalCase();
+            string typeName = member.DeclaredType.Length > 0
+                ? DeclaredRecordName(member.DeclaredType)
+                : prefix + member.Name.ToPascalCase();
+
+            bool nestedIsShared = inShared || member.DeclaredType.Length > 0;
+
             var nested = BuildRecordMembers(
                 member.Members, typeName, table, group, declared,
-                ownerPath + member.Name.ToPascalCase());
+                ownerPath + member.Name.ToPascalCase(), nestedIsShared);
 
             declared.Add(new CRecordTypeView
             {
                 TypeName = typeName,
+                IsShared = nestedIsShared,
                 Members = nested,
                 IsOutermost = false,
                 Lookups = LookupLines(member.Members, member.Container, group, typeName),
@@ -922,7 +1027,8 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
 
         var members = sf.IsRecord
             ? BuildRecordMembers(sf.Members, RecordEntryName(table, sf), table, sf, recordTypes,
-                                 table.Name.ToPascalCase() + sf.Name.ToPascalCase())
+                                 table.Name.ToPascalCase() + sf.Name.ToPascalCase(),
+                                 inShared: sf.DeclaredType.Length > 0)
             : new List<CRecordMemberView>();
 
         if (sf.IsRecord)
@@ -930,6 +1036,7 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
             recordTypes.Add(new CRecordTypeView
             {
                 TypeName = RecordEntryName(table, sf),
+                IsShared = sf.DeclaredType.Length > 0,
                 Members = members,
                 IsOutermost = true,
                 Lookups = LookupLines(sf.Members, sf.Container, sf, RecordEntryName(table, sf)),
@@ -986,7 +1093,17 @@ public class CCodeGenerator : CodeGenerator<CRecipe>
     /// tables each holding a `Slot` group would otherwise declare the same type twice.
     /// </remarks>
     private string RecordEntryName(Table table, SerialField sf)
-        => RecordName(table) + "_" + CName(sf.Name) + "_entry";
+        => sf.DeclaredType.Length > 0
+            ? DeclaredRecordName(sf.DeclaredType)
+            : RecordName(table) + "_" + CName(sf.Name) + "_entry";
+
+    /// <summary>The struct tag of a record type a declaration named.</summary>
+    /// <remarks>
+    /// The accessor's prefix and nothing else: the declaration says there is one type, so the
+    /// tag has to be the same one wherever a table names it.
+    /// spec/types/declared-struct-identity.md.
+    /// </remarks>
+    private string DeclaredRecordName(string declaredType) => $"{Prefix}_{declaredType}";
 
     /// <summary>
     /// One column of the file: how it is checked, how it is decoded, and where it lands.

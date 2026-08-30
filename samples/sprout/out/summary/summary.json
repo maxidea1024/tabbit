@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-28T21:50:21.3728984+09:00",
+    "generatedAt": "2026-08-30T14:20:26.8811910+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "recipe.jsonc",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "3da18ee29dacbb4ae44f2b65035acd5d7097b932",
-      "shortHash": "3da18ee29dac",
+      "hash": "94048048842a66683d24e4187bd61b637172dffd",
+      "shortHash": "94048048842a",
       "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-28T21:29:43.0000000+09:00",
-      "subject": "docs: clover의 enum 레이블 설명 227개",
+      "committedAt": "2026-08-30T13:06:49.0000000+09:00",
+      "subject": "feat: 선언된 struct가 하나의 타입이 됩니다 - Rust",
       "origin": "git",
       "dirty": true,
       "attributable": false

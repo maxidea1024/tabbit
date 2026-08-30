@@ -20,7 +20,7 @@ struct Reward
     field icon string?
 
 /// What a reward is made of.
-enum Element
+enum Affinity
     value Fire = 1
     value Ice = 2
 

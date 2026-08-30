@@ -12,7 +12,7 @@ struct Reward
     field count int (min=2)
     field icon string? (notDefault, regex=^icon_[a-z]$)
 
-enum Element
+enum Affinity
     value Fire = 1
     value Ice = 2
 
