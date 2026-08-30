@@ -29,13 +29,30 @@ FONT = "Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace"
 FS = 12.5
 FS_SMALL = 11.5
 
-C_TEXT = "#1F2328"
-C_MUTED = "#5B6570"
-C_CODE = "#1A5FA8"
-C_LINE = "#BFC6CC"
-C_BOX_BG = "#F1F6FB"
-C_BOX_LINE = "#BFC6CC"
-C_NOTE = "#8A929B"
+# 색은 클래스로 나가고 어두운 테마의 값을 함께 둡니다. 그림은 이미지로 서비스되므로 질의가
+# 읽는 사람의 시스템 테마를 따르고, 문서 사이트의 어두운 테마에서도 글이 읽힙니다 —
+# 여기서 색을 인라인으로 적으면 배경이 어두워질 때 글자가 배경과 같은 어둠이 됩니다.
+STYLE = """
+  .bg  { fill: #FFFFFF; }
+  .box { fill: #F1F6FB; stroke: #BFC6CC; }
+  .hd  { fill: #1F2328; }
+  .mut { fill: #5B6570; }
+  .cod { fill: #1A5FA8; }
+  .nte { fill: #8A929B; }
+  .flw { stroke: #BFC6CC; fill: none; }
+  .arw { fill: #BFC6CC; }
+
+  @media (prefers-color-scheme: dark) {
+    .bg  { fill: #0D1117; }
+    .box { fill: #151B23; stroke: #3D444D; }
+    .hd  { fill: #F0F6FC; }
+    .mut { fill: #9198A1; }
+    .cod { fill: #6CB6FF; }
+    .nte { fill: #6A7381; }
+    .flw { stroke: #6A7381; }
+    .arw { fill: #6A7381; }
+  }
+"""
 
 ROW_H = 26          # 한 줄의 높이
 BOX_PAD_Y = 9       # 테두리 안쪽 위아래 여백
@@ -153,14 +170,15 @@ def build(name, items, out_dir, title=None):
     out = ['<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f" '
            'viewBox="0 0 %.0f %.0f" font-family="%s">'
            % (width, height, width, height, FONT)]
-    out.append('<rect width="100%%" height="100%%" fill="#FFFFFF"/>')
+    out.append('<style>%s</style>' % STYLE)
+    out.append('<rect class="bg" x="0" y="0" width="%.0f" height="%.0f"/>' % (width, height))
     out.append('<defs><marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" '
-               'markerHeight="6" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="%s"/>'
-               '</marker></defs>' % C_LINE)
+               'markerHeight="6" orient="auto"><path d="M0 0 L8 4 L0 8 z" class="arw"/>'
+               '</marker></defs>')
 
     if title:
-        out.append('<text x="%.1f" y="%.1f" font-size="%.1f" fill="%s">%s</text>'
-                   % (body_x, MARGIN + FS, FS, C_MUTED, _esc(title)))
+        out.append('<text class="mut" x="%.1f" y="%.1f" font-size="%.1f">%s</text>'
+                   % (body_x, MARGIN + FS, FS, _esc(title)))
 
     # ---------------------------------------------------------------- 연결선
     # 단계에서 다음 단계로. `edge` 는 선 옆에 글만 놓으므로 선은 그 위아래를 잇습니다.
@@ -172,44 +190,43 @@ def build(name, items, out_dir, title=None):
     for i in range(len(anchors) - 1):
         y0 = anchors[i][1]
         y1 = anchors[i + 1][0]
-        out.append('<path d="M%.1f %.1f L%.1f %.1f" stroke="%s" stroke-width="1.2" '
-                   'fill="none" marker-end="url(#a)"/>' % (cx, y0, cx, y1 - 1, C_LINE))
+        out.append('<path class="flw" d="M%.1f %.1f L%.1f %.1f" stroke-width="1.2" '
+                   'marker-end="url(#a)"/>' % (cx, y0, cx, y1 - 1))
 
     # ---------------------------------------------------------------- 내용
     for it, top, h in placed:
         if it["kind"] == "stage":
-            out.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="4" '
-                       'fill="%s" stroke="%s"/>'
-                       % (body_x, top, body_w, h, C_BOX_BG, C_BOX_LINE))
+            out.append('<rect class="box" x="%.1f" y="%.1f" width="%.1f" height="%.1f" '
+                       'rx="4"/>' % (body_x, top, body_w, h))
             ty = top + BOX_PAD_Y + FS + 2
-            out.append('<text x="%.1f" y="%.1f" font-size="%.1f" fill="%s" '
+            out.append('<text class="hd" x="%.1f" y="%.1f" font-size="%.1f" '
                        'font-weight="600">%s</text>'
-                       % (body_x + PAD, ty, FS, C_TEXT, _esc(it["title"])))
+                       % (body_x + PAD, ty, FS, _esc(it["title"])))
             for line in it["lines"]:
                 ty += ROW_H
-                out.append('<text x="%.1f" y="%.1f" font-size="%.1f" fill="%s">%s</text>'
-                           % (body_x + PAD, ty, FS, C_MUTED, _esc(line)))
+                out.append('<text class="mut" x="%.1f" y="%.1f" font-size="%.1f">%s</text>'
+                           % (body_x + PAD, ty, FS, _esc(line)))
 
         elif it["kind"] == "step":
-            out.append('<text x="%.1f" y="%.1f" font-size="%.1f" fill="%s" '
+            out.append('<text class="hd" x="%.1f" y="%.1f" font-size="%.1f" '
                        'text-anchor="middle">%s</text>'
-                       % (cx, top + FS + 4, FS, C_TEXT, _esc(it["label"])))
+                       % (cx, top + FS + 4, FS, _esc(it["label"])))
 
         else:
-            out.append('<text x="%.1f" y="%.1f" font-size="%.1f" fill="%s">%s</text>'
-                       % (cx + 12, top + FS_SMALL + 4, FS_SMALL, C_NOTE, _esc(it["label"])))
+            out.append('<text class="nte" x="%.1f" y="%.1f" font-size="%.1f">%s</text>'
+                       % (cx + 12, top + FS_SMALL + 4, FS_SMALL, _esc(it["label"])))
 
         ay = top + BOX_PAD_Y + FS + 2 if it["kind"] == "stage" else top + FS + 4
         for code, note in it.get("aside", []):
             if code:
-                out.append('<text x="%.1f" y="%.1f" font-size="%.1f" fill="%s">%s</text>'
-                           % (aside_x, ay, FS_SMALL, C_CODE, _esc(code)))
+                out.append('<text class="cod" x="%.1f" y="%.1f" font-size="%.1f">%s</text>'
+                           % (aside_x, ay, FS_SMALL, _esc(code)))
             if note:
                 # 코드가 없는 줄은 설명이 코드 칸에서 시작합니다 - 앞 줄의 코드 아래에
                 # 놓여야 그 코드의 설명으로 읽힙니다.
                 nx = aside_x + code_w + CODE_GAP if code else aside_x
-                out.append('<text x="%.1f" y="%.1f" font-size="%.1f" fill="%s">%s</text>'
-                           % (nx, ay, FS_SMALL, C_MUTED, _esc(note)))
+                out.append('<text class="mut" x="%.1f" y="%.1f" font-size="%.1f">%s</text>'
+                           % (nx, ay, FS_SMALL, _esc(note)))
             ay += ROW_H
 
     out.append('</svg>')

@@ -1,40 +1,61 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="645" height="538" viewBox="0 0 645 538" font-family="Consolas, 'Cascadia Mono', 'Malgun Gothic', monospace">
-<rect width="100%%" height="100%%" fill="#FFFFFF"/>
-<defs><marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#BFC6CC"/></marker></defs>
-<path d="M146.6 42.0 L146.6 57.0" stroke="#BFC6CC" stroke-width="1.2" fill="none" marker-end="url(#a)"/>
-<path d="M146.6 128.0 L146.6 161.0" stroke="#BFC6CC" stroke-width="1.2" fill="none" marker-end="url(#a)"/>
-<path d="M146.6 188.0 L146.6 203.0" stroke="#BFC6CC" stroke-width="1.2" fill="none" marker-end="url(#a)"/>
-<path d="M146.6 230.0 L146.6 245.0" stroke="#BFC6CC" stroke-width="1.2" fill="none" marker-end="url(#a)"/>
-<path d="M146.6 316.0 L146.6 349.0" stroke="#BFC6CC" stroke-width="1.2" fill="none" marker-end="url(#a)"/>
-<path d="M146.6 420.0 L146.6 453.0" stroke="#BFC6CC" stroke-width="1.2" fill="none" marker-end="url(#a)"/>
-<path d="M146.6 480.0 L146.6 495.0" stroke="#BFC6CC" stroke-width="1.2" fill="none" marker-end="url(#a)"/>
-<text x="146.6" y="32.5" font-size="12.5" fill="#1F2328" text-anchor="middle">recipe 로드</text>
-<rect x="16.0" y="58.0" width="261.3" height="70.0" rx="4" fill="#F1F6FB" stroke="#BFC6CC"/>
-<text x="26.0" y="81.5" font-size="12.5" fill="#1F2328" font-weight="600">① 사전 검증</text>
-<text x="26.0" y="107.5" font-size="12.5" fill="#5B6570">파일 이름 · 설정 · 환경</text>
-<text x="303.3" y="81.5" font-size="11.5" fill="#1A5FA8">rules/pre/*.cs</text>
-<text x="436.0" y="81.5" font-size="11.5" fill="#5B6570">시트를 읽기 전에 확인할 수 있는 것</text>
-<text x="158.6" y="147.5" font-size="11.5" fill="#8A929B">실패 → 종료. 아무것도 읽지 않았습니다</text>
-<text x="146.6" y="178.5" font-size="12.5" fill="#1F2328" text-anchor="middle">임포트 (셀 격자)</text>
-<text x="146.6" y="220.5" font-size="12.5" fill="#1F2328" text-anchor="middle">쿠킹 → Model</text>
-<rect x="16.0" y="246.0" width="261.3" height="70.0" rx="4" fill="#F1F6FB" stroke="#BFC6CC"/>
-<text x="26.0" y="269.5" font-size="12.5" fill="#1F2328" font-weight="600">② 정적 검증 (기존)</text>
-<text x="26.0" y="295.5" font-size="12.5" fill="#5B6570">타입 · 인덱스 유니크</text>
-<text x="303.3" y="269.5" font-size="11.5" fill="#1A5FA8">ModelCooker.Validation</text>
-<text x="303.3" y="295.5" font-size="11.5" fill="#5B6570">컬럼 제약 · 참조 해석 · 대상 사이드</text>
-<text x="158.6" y="335.5" font-size="11.5" fill="#8A929B">실패 → 종료</text>
-<rect x="16.0" y="350.0" width="261.3" height="70.0" rx="4" fill="#F1F6FB" stroke="#BFC6CC"/>
-<text x="26.0" y="373.5" font-size="12.5" fill="#1F2328" font-weight="600">③ 사후 검증</text>
-<text x="26.0" y="399.5" font-size="12.5" fill="#5B6570">이 문서가 추가하는 단계</text>
-<text x="303.3" y="373.5" font-size="11.5" fill="#1A5FA8">rules/tables/*.cs</text>
-<text x="436.0" y="373.5" font-size="11.5" fill="#5B6570">테이블별 규칙</text>
-<text x="303.3" y="399.5" font-size="11.5" fill="#1A5FA8">rules/global/*.cs</text>
-<text x="436.0" y="399.5" font-size="11.5" fill="#5B6570">전역 룰셋 (§4)</text>
-<text x="303.3" y="425.5" font-size="11.5" fill="#1A5FA8">rules/runtime/*.cs</text>
-<text x="436.0" y="425.5" font-size="11.5" fill="#5B6570">DB · Redis 교차 확인</text>
-<text x="158.6" y="439.5" font-size="11.5" fill="#8A929B">실패 → 종료. 어떤 산출물도 쓰지 않았습니다</text>
-<text x="146.6" y="470.5" font-size="12.5" fill="#1F2328" text-anchor="middle">타깃 실행</text>
-<text x="303.3" y="470.5" font-size="11.5" fill="#5B6570">파일은 스테이징으로, 데이터베이스는 섀도로</text>
-<text x="146.6" y="512.5" font-size="12.5" fill="#1F2328" text-anchor="middle">커밋</text>
-<text x="303.3" y="512.5" font-size="11.5" fill="#1A5FA8">staging → 실제 경로 · 섀도 교체</text>
+<style>
+  .bg  { fill: #FFFFFF; }
+  .box { fill: #F1F6FB; stroke: #BFC6CC; }
+  .hd  { fill: #1F2328; }
+  .mut { fill: #5B6570; }
+  .cod { fill: #1A5FA8; }
+  .nte { fill: #8A929B; }
+  .flw { stroke: #BFC6CC; fill: none; }
+  .arw { fill: #BFC6CC; }
+
+  @media (prefers-color-scheme: dark) {
+    .bg  { fill: #0D1117; }
+    .box { fill: #151B23; stroke: #3D444D; }
+    .hd  { fill: #F0F6FC; }
+    .mut { fill: #9198A1; }
+    .cod { fill: #6CB6FF; }
+    .nte { fill: #6A7381; }
+    .flw { stroke: #6A7381; }
+    .arw { fill: #6A7381; }
+  }
+</style>
+<rect class="bg" x="0" y="0" width="645" height="538"/>
+<defs><marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L8 4 L0 8 z" class="arw"/></marker></defs>
+<path class="flw" d="M146.6 42.0 L146.6 57.0" stroke-width="1.2" marker-end="url(#a)"/>
+<path class="flw" d="M146.6 128.0 L146.6 161.0" stroke-width="1.2" marker-end="url(#a)"/>
+<path class="flw" d="M146.6 188.0 L146.6 203.0" stroke-width="1.2" marker-end="url(#a)"/>
+<path class="flw" d="M146.6 230.0 L146.6 245.0" stroke-width="1.2" marker-end="url(#a)"/>
+<path class="flw" d="M146.6 316.0 L146.6 349.0" stroke-width="1.2" marker-end="url(#a)"/>
+<path class="flw" d="M146.6 420.0 L146.6 453.0" stroke-width="1.2" marker-end="url(#a)"/>
+<path class="flw" d="M146.6 480.0 L146.6 495.0" stroke-width="1.2" marker-end="url(#a)"/>
+<text class="hd" x="146.6" y="32.5" font-size="12.5" text-anchor="middle">recipe 로드</text>
+<rect class="box" x="16.0" y="58.0" width="261.3" height="70.0" rx="4"/>
+<text class="hd" x="26.0" y="81.5" font-size="12.5" font-weight="600">① 사전 검증</text>
+<text class="mut" x="26.0" y="107.5" font-size="12.5">파일 이름 · 설정 · 환경</text>
+<text class="cod" x="303.3" y="81.5" font-size="11.5">rules/pre/*.cs</text>
+<text class="mut" x="436.0" y="81.5" font-size="11.5">시트를 읽기 전에 확인할 수 있는 것</text>
+<text class="nte" x="158.6" y="147.5" font-size="11.5">실패 → 종료. 아무것도 읽지 않았습니다</text>
+<text class="hd" x="146.6" y="178.5" font-size="12.5" text-anchor="middle">임포트 (셀 격자)</text>
+<text class="hd" x="146.6" y="220.5" font-size="12.5" text-anchor="middle">쿠킹 → Model</text>
+<rect class="box" x="16.0" y="246.0" width="261.3" height="70.0" rx="4"/>
+<text class="hd" x="26.0" y="269.5" font-size="12.5" font-weight="600">② 정적 검증 (기존)</text>
+<text class="mut" x="26.0" y="295.5" font-size="12.5">타입 · 인덱스 유니크</text>
+<text class="cod" x="303.3" y="269.5" font-size="11.5">ModelCooker.Validation</text>
+<text class="mut" x="303.3" y="295.5" font-size="11.5">컬럼 제약 · 참조 해석 · 대상 사이드</text>
+<text class="nte" x="158.6" y="335.5" font-size="11.5">실패 → 종료</text>
+<rect class="box" x="16.0" y="350.0" width="261.3" height="70.0" rx="4"/>
+<text class="hd" x="26.0" y="373.5" font-size="12.5" font-weight="600">③ 사후 검증</text>
+<text class="mut" x="26.0" y="399.5" font-size="12.5">이 문서가 추가하는 단계</text>
+<text class="cod" x="303.3" y="373.5" font-size="11.5">rules/tables/*.cs</text>
+<text class="mut" x="436.0" y="373.5" font-size="11.5">테이블별 규칙</text>
+<text class="cod" x="303.3" y="399.5" font-size="11.5">rules/global/*.cs</text>
+<text class="mut" x="436.0" y="399.5" font-size="11.5">전역 룰셋 (§4)</text>
+<text class="cod" x="303.3" y="425.5" font-size="11.5">rules/runtime/*.cs</text>
+<text class="mut" x="436.0" y="425.5" font-size="11.5">DB · Redis 교차 확인</text>
+<text class="nte" x="158.6" y="439.5" font-size="11.5">실패 → 종료. 어떤 산출물도 쓰지 않았습니다</text>
+<text class="hd" x="146.6" y="470.5" font-size="12.5" text-anchor="middle">타깃 실행</text>
+<text class="mut" x="303.3" y="470.5" font-size="11.5">파일은 스테이징으로, 데이터베이스는 섀도로</text>
+<text class="hd" x="146.6" y="512.5" font-size="12.5" text-anchor="middle">커밋</text>
+<text class="cod" x="303.3" y="512.5" font-size="11.5">staging → 실제 경로 · 섀도 교체</text>
 </svg>
