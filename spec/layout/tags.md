@@ -10,7 +10,7 @@
 없습니다.** 빼려면 시트를 나눠야 하고, 나누면 스키마가 두 벌이 됩니다 —
 [행 벌](table-row-sets.md)이 이미 기재한 문제입니다.
 
-[로드맵](../../doc/roadmap.md#태그)의 항목이고, 조사는 [기능 대조 §5.1](../../notes/luban-comparison.md)에
+[로드맵](../../doc/roadmap.md#지난-작업)의 항목이고, 조사는 [기능 대조 §5.1](../../notes/luban-comparison.md)에
 있습니다.
 
 ---
