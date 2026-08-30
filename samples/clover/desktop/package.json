@@ -6,7 +6,7 @@
   "main": "main.cjs",
   "scripts": {
     "prestart": "npm --prefix ../web run build",
-    "start": "electron .",
+    "start": "node run.cjs",
     "prepack:win": "npm --prefix ../web run build",
     "pack:win": "electron-builder --win --dir",
     "predist:win": "npm --prefix ../web run build",
