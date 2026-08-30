@@ -8,8 +8,10 @@
 
 import { Container, Graphics, Text } from 'pixi.js'
 
-import { plate, FLOATING } from '../render/skin'
-import { COLOR, SIZE } from '../render/theme'
+import { COLOR } from '../render/theme'
+import { FOOTER_BAR, panelFrame, TITLE_BAR, type ModalPanel } from './modal'
+import { richBlock, type RichStyle } from './rich'
+import { Button } from './widgets'
 
 interface Section {
   head: string
@@ -76,75 +78,57 @@ const RIGHT_COLUMN: Section[] = [
   },
 ]
 
+/** 이 판의 글에 붙는 강조. */
+const RICH: RichStyle = {
+  base: { fontSize: 14, fill: 0xd2dcea },
+  number: COLOR.accentNumber,
+  term: COLOR.accentTerm,
+}
+
 const WIDTH = 940
-const HEIGHT = 616
+const HEIGHT = 616 + FOOTER_BAR - 40
 
-export class Guide extends Container {
-  private readonly body = new Container()
+/**
+ * 게임 방법.
+ *
+ * **뒤를 덮는 것도 가운데에 놓는 것도 이 판이 하지 않습니다** — `Modals` 가 맡습니다.
+ * 판이 저마다 자기를 띄우면 규칙이 저마다 달라집니다.
+ */
+export class Guide implements ModalPanel {
+  readonly view = new Container()
+  readonly size = { width: WIDTH, height: HEIGHT }
 
-  constructor(private readonly onClose: () => void) {
-    super()
-    this.visible = false
-    this.zIndex = 9_000
+  private readonly body = this.view
+
+  constructor(private readonly onClose: () => void,
+              private readonly onHandList: () => void) {
     this.build()
   }
 
-  open(): void {
-    this.visible = true
-  }
-
-  close(): void {
-    this.visible = false
-  }
-
   private build(): void {
-    // 뒤를 덮습니다. **덮지 않으면 뒤의 카드가 눌립니다.**
-    const veil = new Graphics()
-    veil.rect(-2000, -2000, SIZE.width + 4000, SIZE.height + 4000)
-      .fill({ color: 0x070a10, alpha: 0.86 })
-    veil.eventMode = 'static'
-    veil.cursor = 'pointer'
-    veil.on('pointertap', () => this.onClose())
-    this.addChild(veil, this.body)
-
-    const board = new Graphics()
-    // 광택 띠를 거의 없앱니다 — 판이 크면 띠의 끝이 가로줄로 보입니다.
-    plate(board, WIDTH, HEIGHT, { ...FLOATING, radius: 16, weight: 2.5, gloss: 0.06 })
-    this.body.addChild(board)
-    this.body.position.set((SIZE.width - WIDTH) / 2, (SIZE.height - HEIGHT) / 2)
-    this.body.eventMode = 'static'
-    this.body.cursor = 'pointer'
-    this.body.on('pointertap', () => this.onClose())
-
-    const title = new Text({
-      text: '게임 방법',
-      style: { fontSize: 28, fill: COLOR.ink, fontWeight: '800' },
-    })
-    title.anchor.set(0.5, 0)
-    title.position.set(WIDTH / 2, 24)
+    // **판 위를 누르는 것으로는 닫히지 않습니다.** 닫는 것은 바깥이거나 `Esc` 입니다.
+    // 족보 목록은 이 판에서 바로 열립니다. **판 위에 판이 얹힙니다** — 닫으면 이 판으로
+    // 돌아오므로, 규칙을 읽다 말고 처음부터 다시 찾아 들어갈 일이 없습니다.
+    const hands = new Button('족보 목록 보기', 168, 34, 0x3a4658, () => this.onHandList())
+    this.body.addChild(
+      panelFrame(WIDTH, HEIGHT, '게임 방법', () => this.onClose(), hands))
 
     const lead = new Text({
       text: '포커 족보로 점수를 내고, 조커로 그 점수를 불립니다.',
       style: { fontSize: 15, fill: 0xb4c4dc, fontWeight: '700' },
     })
     lead.anchor.set(0.5, 0)
-    lead.position.set(WIDTH / 2, 64)
-    this.body.addChild(title, lead)
+    lead.position.set(WIDTH / 2, TITLE_BAR + 18)
+    this.body.addChild(lead)
 
     this.column(LEFT_COLUMN, 44)
     this.column(RIGHT_COLUMN, WIDTH / 2 + 8)
 
-    const close = new Text({
-      text: '아무 곳이나 눌러 닫습니다',
-      style: { fontSize: 13, fill: COLOR.inkDim, fontWeight: '700' },
-    })
-    close.anchor.set(0.5, 1)
-    close.position.set(WIDTH / 2, HEIGHT - 16)
-    this.body.addChild(close)
+
   }
 
   private column(sections: Section[], x: number): void {
-    let y = 104
+    let y = TITLE_BAR + 58
     for (const section of sections) {
       const rule = new Graphics()
       rule.roundRect(x, y + 6, 4, 17, 2).fill(COLOR.chips)
@@ -155,10 +139,9 @@ export class Guide extends Container {
       })
       head.position.set(x + 14, y)
 
-      const text = new Text({
-        text: section.lines.join('\n'),
-        style: { fontSize: 14, fill: 0xd2dcea, lineHeight: 23 },
-      })
+      // **수와 이름은 다른 색입니다.** 「안테 8까지」에서 찾는 것은 8 이고, 그것이 문장과
+      // 같은 색이면 문장을 처음부터 읽어야 찾습니다.
+      const text = richBlock(section.lines, RICH, 23)
       text.position.set(x + 14, y + 30)
 
       this.body.addChild(rule, head, text)

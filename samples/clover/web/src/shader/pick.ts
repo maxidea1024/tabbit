@@ -43,9 +43,10 @@ in vec2 vTextureCoord;
 out vec4 finalColor;
 
 uniform sampler2D uTexture;
-uniform float uMode;    // 1 고름 · -1 고르지 않음 · 0 그대로
+uniform float uMode;    // 1 고름 · -1 고르지 않음 · 2 득점 · 0 그대로
 uniform float uTime;
 uniform vec3  uTint;
+uniform float uGlow;    // 0..1. 득점의 빛이 잦아드는 정도입니다.
 
 void main(void) {
   vec4 src = texture(uTexture, vTextureCoord);
@@ -57,7 +58,12 @@ void main(void) {
   vec3 color = src.rgb / max(src.a, 0.004);
   float gray = dot(color, vec3(0.299, 0.587, 0.114));
 
-  if (uMode > 0.5) {
+  if (uMode > 1.5) {
+    // **득점.** 테두리에 빛이 돌고 종이가 조금 밝아집니다 — 조각이 터지는 것보다 점잖고,
+    // 카드가 몇 장이든 화면이 시끄러워지지 않습니다.
+    float edge = 1.0 - smoothstep(0.30, 0.98, src.a);
+    color += uTint * (edge * 1.5 + 0.16) * uGlow;
+  } else if (uMode > 0.5) {
     // 고른 카드. 밝히고, 사선 광택을 흘리고, 테두리에 빛을 두릅니다.
     color = mix(color, color * 1.18 + uTint * 0.16, 1.0);
 
@@ -86,6 +92,7 @@ export class PickFilter extends Filter {
           uMode: { value: 0, type: 'f32' },
           uTime: { value: 0, type: 'f32' },
           uTint: { value: new Float32Array([0.55, 0.95, 0.7]), type: 'vec3<f32>' },
+          uGlow: { value: 0, type: 'f32' },
         },
       },
     })
@@ -106,6 +113,11 @@ export class PickFilter extends Filter {
 
   set time(value: number) {
     this.uniforms.uTime = value
+  }
+
+  /** 득점의 빛. 1 에서 0 으로 잦아듭니다. */
+  set glow(value: number) {
+    this.uniforms.uGlow = value
   }
 
   setTint(r: number, g: number, b: number): void {

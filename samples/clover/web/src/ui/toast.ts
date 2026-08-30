@@ -10,6 +10,16 @@ import { Container, Graphics, Text } from 'pixi.js'
 
 import { plate, FLOATING } from '../render/skin'
 import { COLOR, SIZE } from '../render/theme'
+import { richBlock, type RichStyle } from './rich'
+
+/** 이 줄의 글에 붙는 강조. */
+const RICH: RichStyle = {
+  base: { fontSize: 12, fill: 0xb4c4dc },
+  number: COLOR.accentNumber,
+  term: COLOR.accentTerm,
+}
+
+const NEWLINE = String.fromCharCode(10)
 
 const WIDTH = 380
 /** 두 줄이 들어가는 최소 높이. 글이 길면 그만큼 자랍니다. */
@@ -58,13 +68,8 @@ export class Toasts extends Container {
     })
     heading.position.set(24, 9)
 
-    const body = new Text({
-      text: note,
-      style: {
-        fontSize: 12, fill: 0xb4c4dc, lineHeight: 17,
-        wordWrap: true, wordWrapWidth: WIDTH - 44,
-      },
-    })
+    // **수와 이름은 다른 색입니다.** 「8 → 10」 에서 사람이 보는 것은 그 둘입니다.
+    const body = richBlock(note.split(NEWLINE), RICH, 17)
     body.position.set(24, 12 + heading.height)
 
     const height = Math.max(HEIGHT, body.y + body.height + 12)

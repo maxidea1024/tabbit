@@ -10,6 +10,7 @@ import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
 
 import { EditionKind } from '../generated/enums/edition-kind'
 import type { JokerInstance } from '../core/state'
+import { DissolveFilter } from '../shader/dissolve'
 import { EditionFilter, type EditionShader } from '../shader/editions'
 import { roundedMask } from '../shader/mask'
 import { artFor } from './art'
@@ -65,6 +66,15 @@ export class JokerView extends Container {
     text: '', style: { fontSize: 12, fill: COLOR.mult, fontWeight: '800' },
   })
   private edition?: EditionFilter
+  /**
+   * 타서 사라지는 중.
+   *
+   * **팔린 조커는 미끄러져 나가지 않습니다.** 나가는 것은 「치웠다」이고, 판 것은 없앤
+   * 것입니다 — 종이가 타는 모습이 그 둘을 가릅니다.
+   */
+  private readonly dissolve = new DissolveFilter()
+  private burn = 0
+  private burning = false
 
   hovered = false
   pointer = 0
@@ -176,6 +186,20 @@ export class JokerView extends Container {
     this.motion.to(x, y, 0)
   }
 
+  /** 태우기 시작합니다. 다 타면 `gone` 이 참이 됩니다. */
+  ignite(): void {
+    if (this.burning) return
+    this.burning = true
+    this.burn = 0
+    this.eventMode = 'none'
+    this.body.filters = [this.dissolve]
+  }
+
+  /** 다 탔는가. 그때 지웁니다. */
+  get gone(): boolean {
+    return this.burning && this.burn >= 1
+  }
+
   /** 발동할 때 튀어오릅니다. */
   pop(strength = 1): void {
     this.motion.y.kick(-300 * strength)
@@ -186,6 +210,15 @@ export class JokerView extends Container {
   advance(seconds: number, time: number): void {
     this.motion.advance(seconds)
     this.edition?.advance(seconds, this.pointer)
+
+    if (this.burning) {
+      // **아래에서 위로, 그리고 조금 떠오릅니다.** 종이가 타면 가벼워집니다.
+      this.burn = Math.min(1, this.burn + seconds * 1.6)
+      this.dissolve.burn = this.burn
+      this.y -= seconds * 26
+      this.rotation += seconds * 0.12
+      return
+    }
 
     const wobble = sway(time, this.motion.phase, 1.1, 1.1)
     this.x = this.motion.x.value

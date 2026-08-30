@@ -35,11 +35,28 @@ async function main(): Promise<void> {
     ?? `CLOVER-${Math.floor(Math.random() * 1e6).toString().padStart(6, '0')}`
 
   const game = new Game(app, data, seed)
-  // **논리 크기를 씁니다.** `renderer.width` 는 픽셀 밀도가 곱해진 물리 크기라,
-  // 그것으로 재면 배율이 커져 화면 오른쪽과 아래에 빈 곳이 남습니다.
-  const relayout = () => game.layout(app.renderer.screen.width, app.renderer.screen.height)
+
+  /**
+   * 화면 크기가 바뀔 때 다시 배치합니다.
+   *
+   * **렌더러가 다시 잰 뒤에 부릅니다.** 창의 `resize` 만 듣고 계산하면 아직 갱신되지 않은
+   * 크기를 읽습니다 — 전체 화면을 켜고 끌 때 배치가 어긋나던 것이 그것입니다.
+   *
+   * **논리 크기를 씁니다.** `renderer.width` 는 픽셀 밀도가 곱해진 물리 크기라, 그것으로 재면
+   * 배율이 커져 화면 오른쪽과 아래에 빈 곳이 남습니다.
+   */
+  const relayout = () => {
+    // 전체 화면으로 가면 다른 모니터의 밀도가 될 수 있습니다. 밀도가 바뀌었으면 렌더러의
+    // 것도 함께 바꿉니다 — 그러지 않으면 전체 화면에서 글씨가 뿌옇게 됩니다.
+    const density = Math.min(3, window.devicePixelRatio || 1)
+    if (Math.abs(app.renderer.resolution - density) > 0.01) {
+      app.renderer.resolution = density
+    }
+    game.layout(app.renderer.screen.width, app.renderer.screen.height)
+  }
+
+  app.renderer.on('resize', relayout)
   relayout()
-  window.addEventListener('resize', relayout)
 
   boot?.classList.add('gone')
   document.title = `clover — ${seed}`

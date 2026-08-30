@@ -11,8 +11,8 @@ import { SealKind } from '../generated/enums/seal-kind'
 import { ShopItemKind } from '../generated/enums/shop-item-kind'
 import { Rarity } from '../generated/enums/rarity'
 import type { Data } from './data'
-import type { RunState } from './state'
-import type { Vm } from './vm'
+import type { JokerInstance, RunState } from './state'
+import { newVm, sellPrice, type Vm } from './vm'
 
 /** 상점 칸 하나. */
 export interface ShopItem {
@@ -274,4 +274,14 @@ export function rerollCost(data: Data, state: RunState, shop: ShopState): number
 
   const row = data.tables.rerollCost.findByTimes(Math.min(shop.rerollsUsed, 9))
   return Math.max(0, (row?.cost ?? 5) + state.rules.rerollCostDelta)
+}
+
+/**
+ * 조커 하나를 팔면 얼마인가.
+ *
+ * **화면도 이 값을 물어야 합니다** — 무엇을 내놓을지 정하는 값이고, 그 값이 판마다 다르게
+ * 계산되면 화면에 적힌 값과 실제로 들어오는 값이 갈라집니다.
+ */
+export function sellValueOf(data: Data, state: RunState, joker: JokerInstance): number {
+  return sellPrice(newVm(data, state), joker)
 }

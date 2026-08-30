@@ -43,10 +43,14 @@ uniform vec3  uGlow;       // 무늬의 색
 uniform float uAspect;
 
 // 값싼 2D 노이즈. 격자에서 보간합니다.
+//
+// **좌표가 커져도 고르게 흩어져야 합니다.** 앞서 쓰던 fract(p.x * p.y) 꼴은 좌표가
+// 커질수록 값이 한쪽으로 몰리는데, 도메인 워핑이 좌표를 오른쪽 위로 밀어내므로 화면
+// 오른쪽이 늘 더 조밀해 보였습니다.
 float hash(vec2 p) {
-  p = fract(p * vec2(123.34, 456.21));
-  p += dot(p, p + 45.32);
-  return fract(p.x * p.y);
+  vec3 q = fract(vec3(p.xyx) * 0.1031);
+  q += dot(q, q.yzx + 33.33);
+  return fract((q.x + q.y) * q.z);
 }
 
 float noise(vec2 p) {
@@ -73,7 +77,9 @@ void main(void) {
   vec2 uv = vTextureCoord;
   vec2 p = vec2((uv.x - 0.5) * uAspect, uv.y - 0.5) * 2.4;
 
-  float t = uTime * (0.06 + uHeat * 0.22);
+  // 흐르는 빠르기. **열기가 올라도 조금만 빨라집니다** — 크게 걸면 점수가 오를 때마다
+  // 배경이 딴 화면처럼 됩니다.
+  float t = uTime * (0.05 + uHeat * 0.09);
 
   // 도메인 워핑 — 노이즈의 좌표를 노이즈로 밉니다. 무늬가 접히는 것이 이것입니다.
   vec2 q = vec2(fbm(p + vec2(0.0, t)), fbm(p + vec2(5.2, 1.3 - t)));

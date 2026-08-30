@@ -13,6 +13,7 @@ import { effectKey, RUN_HOST, type EffectHost, type Vm } from './context'
 
 export * from './context'
 export { sellPrice } from './operations'
+export { newVm } from './context'
 
 /** 조커 하나가 이번에 쓸 효과 행. 복사 조커는 남의 것을 씁니다. */
 export function rowsForJoker(vm: Vm, joker: JokerInstance, slot: number): readonly EffectRow[] {

@@ -6,6 +6,14 @@
 import { Container, Graphics, Text } from 'pixi.js'
 
 import { COLOR, rarityColor } from '../render/theme'
+import { richBlock, type RichStyle } from './rich'
+
+/** 이 쪽지의 글에 붙는 강조. */
+const RICH: RichStyle = {
+  base: { fontSize: 12, fill: 0xd8ecdc },
+  number: COLOR.accentNumber,
+  term: COLOR.accentTerm,
+}
 
 const WIDTH = 240
 
@@ -17,13 +25,8 @@ export class Tooltip extends Container {
   private readonly rarity = new Text({
     text: '', style: { fontSize: 10, fill: COLOR.inkDim, fontWeight: '700' },
   })
-  private readonly body = new Text({
-    text: '',
-    style: {
-      fontSize: 12, fill: 0xd8ecdc, lineHeight: 17,
-      wordWrap: true, wordWrapWidth: WIDTH - 24,
-    },
-  })
+  /** 설명 줄들. **수와 이름은 다른 색입니다** — 조커가 얼마를 주는지가 먼저 읽혀야 합니다. */
+  private readonly body = new Container()
 
   constructor() {
     super()
@@ -37,7 +40,9 @@ export class Tooltip extends Container {
     this.title.text = name
     this.rarity.text = rarityName
     this.rarity.style.fill = rarityColor(rarityValue)
-    this.body.text = lines.length > 0 ? lines.map(line => `· ${line}`).join('\n') : '—'
+    this.body.removeChildren().forEach(child => child.destroy())
+    const shown = lines.length > 0 ? lines.map(line => `· ${line}`) : ['—']
+    this.body.addChild(richBlock(shown, RICH, 17))
 
     this.title.position.set(12, 10)
     this.rarity.position.set(12, 30)

@@ -76,6 +76,13 @@ async function main(): Promise<number> {
 
   // 타이틀. **게임은 여기서 시작합니다.**
   await shoot('0a-title')
+  // 옵션. 탭 셋이고 여기 있는 것은 전부 화면에 걸립니다.
+  const optionSpot = await at(page, STAGE_W / 2, 568 + 22)
+  await page.mouse.click(optionSpot.x, optionSpot.y)
+  await page.waitForTimeout(700)
+  await shoot('0b-options')
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(600)
   const startSpot = await at(page, STAGE_W / 2, 446 + 27)
   await page.mouse.click(startSpot.x, startSpot.y)
   await page.waitForTimeout(700)
@@ -107,8 +114,22 @@ async function main(): Promise<number> {
   // **남은 카드.** 무엇이 덱에 남았는지 보는 판입니다.
   await openDeckView(page)
   await shoot('2c-deck')
-  await openDeckView(page)
-  await page.waitForTimeout(200)
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(500)
+
+  // **족보 목록.** 줄에 마우스를 올리면 그 족보가 카드로 보입니다.
+  const listSpot = await at(page, 16 - 2 + 59, 662 + 17)
+  await page.mouse.click(listSpot.x, listSpot.y)
+  await page.waitForTimeout(600)
+  // 족보 판의 높이는 `game.ts` 의 `drawHandList` 와 같은 계산입니다.
+  const listH = 46 + 20 + 12 * 36 + 14 + 56
+  const rowSpot = await at(page, STAGE_W / 2 - 60,
+    (STAGE_H - listH) / 2 + 46 + 20 + 2 * 36 + 10)
+  await page.mouse.move(rowSpot.x, rowSpot.y)
+  await page.waitForTimeout(400)
+  await shoot('2d-hand-list')
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(500)
 
   await pickCards(page, picks.slice(3))
   await page.waitForTimeout(150)
@@ -200,7 +221,7 @@ async function main(): Promise<number> {
 
     // 소모품이 손에 들어오면 써서 토스트를 찍습니다. 상점의 남은 칸을 사 봅니다.
     for (let slot = 0; slot < 2 && (await peek(page)).consumables === 0; slot++) {
-      const spot = await at(page, BOARD_X - 86 + slot * 172, SHOP_CARD_Y + 81)
+      const spot = await shopSlot(page, slot)
       await page.mouse.click(spot.x, spot.y)
       await page.waitForTimeout(400)
     }
@@ -350,26 +371,49 @@ async function settle(page: Page): Promise<void> {
 
 /** 살 수 있는 팩이 있으면 뜯습니다. */
 async function buyAffordablePack(page: Page): Promise<void> {
-  const spacing = 176
+  const tileW = 210
+  const gap = 16
   for (let slot = 0; slot < 2; slot++) {
-    if ((await peek(page)).packs <= slot) return
-    const spot = await at(page, BOARD_X - spacing / 2 + slot * spacing, 424 + 39)
+    const packs = (await peek(page)).packs
+    if (packs <= slot) return
+    const span = packs * tileW + (packs - 1) * gap
+    const left = BOARD_X - SHOP_W / 2 + (SHOP_W - span) / 2
+    const spot = await at(page, left + slot * (tileW + gap) + tileW / 2,
+      SHOP_Y + SHOP_ITEMS + 172 + 20 + 26 + 42)
     await page.mouse.click(spot.x, spot.y)
     await page.waitForTimeout(600)
     if ((await peek(page)).packOpen) return
   }
 }
 
-/** 상점의 첫 칸을 살 수 있으면 삽니다. */
+/**
+ * 상점의 칸을 살 수 있으면 삽니다.
+ *
+ * 자리는 `game.ts` 의 `syncShop` 과 같은 계산입니다 — 판이 가운데에 서고 물건이 그 안에서
+ * 가운데로 모입니다.
+ */
 async function buyFirstAffordable(page: Page): Promise<void> {
-  const spacing = 172
-  for (let slot = 0; slot < 2; slot++) {
-    const spot = await at(page, BOARD_X - spacing / 2 + slot * spacing, SHOP_CARD_Y + 81)
+  for (let slot = 0; slot < 4; slot++) {
+    const spot = await shopSlot(page, slot)
     await page.mouse.click(spot.x, spot.y)
     await page.waitForTimeout(500)
     if ((await peek(page)).jokers > 0) return
   }
 }
+
+/** 상점의 물건 칸 하나의 가운데. */
+async function shopSlot(page: Page, slot: number, count = 2): Promise<{ x: number; y: number }> {
+  const tileW = 158
+  const gap = 14
+  const span = count * tileW + (count - 1) * gap
+  const left = BOARD_X - SHOP_W / 2 + (SHOP_W - span) / 2
+  return at(page, left + slot * (tileW + gap) + tileW / 2, SHOP_Y + SHOP_ITEMS + 86)
+}
+
+/** `game.ts` 의 `syncShop` 과 같은 값들. */
+const SHOP_W = 780
+const SHOP_ITEMS = 86
+const SHOP_Y = 90
 
 /** 화면 좌표를 캔버스 위의 자리로. 기준 해상도는 1280 × 720 입니다. */
 /**
@@ -395,7 +439,6 @@ const BOARD_X = (16 + 264 + 20 + STAGE_W) / 2
 const HAND_Y = 620
 const CARD_SPACING = 100
 const BUTTON_Y = 742
-const SHOP_CARD_Y = 252
 
 /**
  * 가운데 큰 버튼. 블라인드 선택과 상점이 씁니다.
@@ -404,20 +447,20 @@ const SHOP_CARD_Y = 252
  */
 async function clickPrimary(page: Page): Promise<void> {
   if ((await peek(page)).phase === 'shop') {
-    const spot = await at(page, BOARD_X, 657)
+    // 상점의 밑단. **판 하나로 정돈되면서 버튼도 그 안으로 들어왔습니다.**
+    const spot = await at(page, BOARD_X + 83, SHOP_Y + 572 - 56 / 2)
     await page.mouse.click(spot.x, spot.y)
     return
   }
   // 블라인드 선택은 **판 셋이 나란히** 서고 지금 차례인 것만 자기 버튼을 가집니다.
-  // `game.ts` 의 `drawBlindPick` 과 같은 계산입니다.
+  // `game.ts` 의 `drawBlindPick` 과 같은 계산입니다 — 아랫변을 맞추므로 버튼의 자리는
+  // 판의 높이와 상관없이 아래에서 셉니다.
   const cardW = 226
   const gap = 20
-  const cardH = 306
-  const top = 236
+  const bottom = 754
   const index = { 1: 0, 2: 1, 3: 2 }[(await peek(page)).blind as 1 | 2 | 3] ?? 0
   const startX = BOARD_X - (2 * (cardW + gap)) / 2 - cardW / 2
-  const spot = await at(page, startX + index * (cardW + gap) + cardW / 2,
-    top - 16 + (cardH + 26) - 106 + 22)
+  const spot = await at(page, startX + index * (cardW + gap) + cardW / 2, bottom - 106 + 22)
   await page.mouse.click(spot.x, spot.y)
 }
 

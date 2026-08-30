@@ -128,8 +128,34 @@ export class CardView extends Container {
   private readonly pick = new PickFilter()
   /** 1 고름 · -1 고르지 않음 · 0 그대로. */
   private pickMode = 0
+  /**
+   * 득점의 빛. 1 에서 0 으로 잦아듭니다.
+   *
+   * **조각이 터지는 대신 빛이 돕니다.** 다섯 장이 차례로 터지면 화면이 시끄러워지고, 정작
+   * 카드 위에 뜬 숫자가 그 조각에 묻힙니다.
+   */
+  private glow = 0
   /** 지금 자리로 달라붙는 중인가. 닿으면 용수철을 원래대로 돌립니다. */
   private slamming = false
+  /**
+   * 뒷면으로 보이는가.
+   *
+   * **덱에서 오는 동안은 뒷면입니다.** 앞면인 채로 날아오면 이미 아는 카드가 자리를 옮기는
+   * 것이고, 뽑는다는 것은 무엇이 올지 모르는 채로 기다리는 일입니다.
+   */
+  private showBack = false
+  /** 뒤집는 중. 1 에서 0 으로 갑니다. 절반에서 앞뒤가 바뀝니다. */
+  private flip = 0
+  /**
+   * 뒤집기까지 남은 시간. 초입니다.
+   *
+   * **용수철이 멈추는 것을 기다리지 않습니다.** 멈추는 시각은 카드가 얼마나 멀리서 오는지에
+   * 따라 달라지고, 그러면 여덟 장이 거의 같은 순간에 뒤집힙니다 — 한 장씩 뽑은 것이 한
+   * 장씩으로 읽히려면 뒤집는 것도 한 장씩이어야 합니다.
+   */
+  private flipIn = 0
+  /** 마지막으로 받은 카드. 뒤집을 때 다시 그립니다. */
+  private last?: { card: CardInstance; look?: EditionLook }
 
   /** 마우스가 올라와 있는가. 기울기와 크기가 이것을 봅니다. */
   hovered = false
@@ -156,6 +182,13 @@ export class CardView extends Container {
   }
 
   set(card: CardInstance, look?: EditionLook): void {
+    this.last = { card, look }
+    this.render()
+  }
+
+  private render(): void {
+    if (!this.last) return
+    const { card, look } = this.last
     const w = SIZE.cardWidth
     const h = SIZE.cardHeight
     const stone = card.enhancement === EnhancementKind.Stone
@@ -165,7 +198,7 @@ export class CardView extends Container {
     this.shadow.roundRect(3, 6, w, h, SIZE.cardRadius).fill({ color: 0x000000, alpha: 0.35 })
 
     this.paper.clear()
-    if (card.faceDown) {
+    if (card.faceDown || this.showBack) {
       this.paper.roundRect(0, 0, w, h, SIZE.cardRadius).fill(COLOR.cardBack)
       this.paper.roundRect(7, 7, w - 14, h - 14, SIZE.cardRadius - 4)
         .stroke({ color: 0xd1626c, width: 2 })
@@ -281,7 +314,22 @@ export class CardView extends Container {
     // 에디션은 종이에만, 고름 표시는 카드 전체에. **고름 표시의 빛은 카드 밖으로 나가야
     // 하고, 에디션의 무늬는 카드 안에 머물러야 합니다.**
     this.body.filters = this.edition ? [this.edition] : []
-    this.filters = this.pickMode !== 0 ? [this.pick] : []
+    const lit = this.pickMode !== 0 || this.glow > 0
+    // 득점의 빛이 도는 동안은 그 모드가 앞섭니다 — 득점하는 카드는 물러나 있지 않습니다.
+    this.pick.mode = this.glow > 0 ? 2 : this.pickMode
+    this.filters = lit ? [this.pick] : []
+  }
+
+  /**
+   * 득점의 빛.
+   *
+   * `tint` 는 0..1 의 세 값입니다 — 칩이면 파랑, 배수면 붉은색.
+   */
+  shine(tint: [number, number, number], strength = 1): void {
+    this.glow = Math.max(this.glow, Math.min(1, strength))
+    this.pick.setTint(tint[0], tint[1], tint[2])
+    this.pick.glow = this.glow
+    this.restack()
   }
 
   /** 족보 도움. 이것도 고르면 더 높은 족보가 되는 카드입니다. */
@@ -322,6 +370,25 @@ export class CardView extends Container {
   }
 
   /**
+   * 덱에서 뽑혀 자리로 갑니다.
+   *
+   * **절도 있게 갑니다.** 손패에 놓일 때의 부드러운 용수철로 오면 카드가 흘러 들어오는
+   * 것으로 보이고, 한 장씩 뽑는 것이 한 장씩으로 읽히지 않습니다.
+   */
+  deal(x: number, y: number, rotation: number): void {
+    // 오는 동안은 뒷면입니다. 자리에 닿을 즈음 뒤집습니다.
+    this.showBack = true
+    this.flip = 0
+    this.flipIn = 0.2
+    this.render()
+    this.motion.hard()
+    this.motion.to(x, y, rotation)
+    this.motion.scale.snap(0.86)
+    this.motion.scale.target = 1
+    this.slamming = true
+  }
+
+  /**
    * 자리에 「짝」 달라붙습니다.
    *
    * 용수철을 세게 만들어 빠르게 가서 멈추고, 닿으면 원래 강성으로 돌아옵니다. 닿는 순간에
@@ -335,8 +402,15 @@ export class CardView extends Container {
     this.slamming = true
   }
 
+  /**
+   * 그 자리에 곧바로 놓습니다.
+   *
+   * **그리는 자리도 함께 옮깁니다.** 용수철만 옮기면 다음 프레임이 올 때까지 카드가 원점에
+   * 남아 있고, 새로 뽑은 카드가 화면 왼쪽 위에 한 프레임 번쩍입니다.
+   */
   placeNow(x: number, y: number): void {
     this.motion.snap(x, y)
+    this.position.set(x, y)
   }
 
   /**
@@ -371,8 +445,29 @@ export class CardView extends Container {
       this.slamming = false
       this.motion.soft()
     }
+
+    if (this.flipIn > 0) {
+      this.flipIn = Math.max(0, this.flipIn - seconds)
+      // 자리에 닿을 즈음입니다. **여기서 뒤집습니다.**
+      if (this.flipIn === 0 && this.showBack) this.flip = 1
+    }
+
+    if (this.flip > 0) {
+      this.flip = Math.max(0, this.flip - seconds * 6)
+      // 절반을 지나면 앞면으로 바뀝니다 — 좁아졌다가 벌어지는 그 순간입니다.
+      if (this.showBack && this.flip <= 0.5) {
+        this.showBack = false
+        this.render()
+      }
+    }
     this.edition?.advance(seconds, this.pointer)
-    if (this.pickMode !== 0) this.pick.time = time
+    if (this.pickMode !== 0 || this.glow > 0) this.pick.time = time
+
+    if (this.glow > 0) {
+      this.glow = Math.max(0, this.glow - seconds * 2.4)
+      this.pick.glow = this.glow
+      if (this.glow === 0) this.restack()
+    }
 
     // 숨쉬듯 밝아집니다. **한 번에 다 밝으면 눈이 가지 않고, 깜빡이면 거슬립니다.**
     if (this.hintRing.visible) {
@@ -397,7 +492,9 @@ export class CardView extends Container {
     if (!this.motion.scale.settled || Math.abs(this.motion.scale.target - want) > 0.001) {
       this.motion.scale.target = want
     }
-    this.scale.set(this.motion.scale.value)
+    // 뒤집는 동안 가로만 좁아집니다. **종이 한 장이 돌아가는 모습입니다.**
+    const turn = this.flip > 0 ? Math.abs(Math.cos((1 - this.flip) * Math.PI)) : 1
+    this.scale.set(this.motion.scale.value * Math.max(0.02, turn), this.motion.scale.value)
     this.zIndex = this.hovered ? 200 : this.selected ? 100 : 0
   }
 }

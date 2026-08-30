@@ -15,9 +15,25 @@ export class Audio {
   private master?: GainNode
   private readonly follows = new Map<string, boolean>()
 
-  volume = 0.35
   /** 소리를 끄는가. 옵션이 정합니다. */
   muted = false
+
+  private level = 0.35
+
+  /**
+   * 음량. 0 에서 1 입니다.
+   *
+   * **이미 열려 있는 소리 길에도 바로 걸립니다** — 값만 두고 다음 소리부터 적용하면, 옵션을
+   * 만지는 동안에는 무엇이 바뀌었는지 들리지 않습니다.
+   */
+  set volume(value: number) {
+    this.level = Math.max(0, Math.min(1, value))
+    if (this.master) this.master.gain.value = this.level
+  }
+
+  get volume(): number {
+    return this.level
+  }
 
   constructor(tables: CloverData) {
     for (const cue of tables.soundCue.records) {
@@ -32,7 +48,7 @@ export class Audio {
       ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)
     this.context = new Ctor()
     this.master = this.context.createGain()
-    this.master.gain.value = this.volume
+    this.master.gain.value = this.level
     this.master.connect(this.context.destination)
   }
 

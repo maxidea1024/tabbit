@@ -52,7 +52,7 @@ export class Button extends Container {
     this.cursor = 'pointer'
     this.on('pointertap', () => { if (this.enabledState) onPress() })
     this.on('pointerover', () => { if (this.enabledState) this.setLit(true) })
-    this.on('pointerout', () => this.setLit(false))
+    this.on('pointerout', () => this.setLit(this.held))
     this.on('pointerdown', () => { if (this.enabledState) this.caption.y = boxHeight / 2 + 2 })
     this.on('pointerup', () => { this.caption.y = boxHeight / 2 })
     this.draw()
@@ -70,7 +70,21 @@ export class Button extends Container {
     this.draw()
   }
 
+  /**
+   * 눌린 채로 두는 것.
+   *
+   * **탭에 씁니다** — 지금 보고 있는 탭이 어느 것인지가 보이지 않으면 그것은 탭이 아니라
+   * 버튼 줄입니다. 마우스를 올렸을 때와 같은 모습이라 따로 배울 것이 없습니다.
+   */
+  set highlight(value: boolean) {
+    this.held = value
+    this.setLit(value)
+  }
+
+  private held = false
+
   private setLit(value: boolean): void {
+    if (this.held && !value) return
     if (this.lit === value) return
     this.lit = value
     this.caption.y = this.boxHeight / 2

@@ -32,6 +32,8 @@ export type Action =
   | { t: 'sell_joker'; index: number }
   | { t: 'sell_consumable'; index: number }
   | { t: 'buy'; slot: number }
+  /** 자리가 없을 때. `index` 가 팔 것이고 `slot` 이 그 자리에 놓을 것입니다. */
+  | { t: 'swap'; slot: number; index: number }
   | { t: 'buy_pack'; slot: number }
   | { t: 'pick_pack'; index: number }
   | { t: 'skip_pack' }
@@ -381,6 +383,45 @@ function advance(vm: Vm): void {
   state.target = blindTarget(vm)
 }
 
+/**
+ * 조커 하나를 팝니다.
+ *
+ * `Eternal` 은 팔리지 않습니다 — 그때는 아무 일도 없고 `false` 를 냅니다.
+ */
+function sellJoker(vm: Vm, index: number): boolean {
+  const state = vm.state
+  const joker = state.jokers[index]
+  if (!joker || joker.sticker === 1) return false
+
+  for (const row of vm.data.jokerEffects.get(joker.jokerId) ?? []) {
+    if (row.trigger === Trigger.OnSell) {
+      runOne(vm, row, { kind: 'joker', joker, slot: index })
+    }
+  }
+
+  const price = sellPrice(vm, joker)
+  state.money += price
+  vm.events.push({ t: 'MoneyChanged', delta: price, reason: 'sell' })
+  state.jokers.splice(index, 1)
+  vm.events.push({ t: 'JokerDestroyed', uid: joker.uid, jokerId: joker.jokerId })
+  state.rules.debuffUntilJokerSold = false
+  runTrigger(vm, Trigger.OnJokerSold)
+  return true
+}
+
+/** 소모품 하나를 팝니다. 값은 어느 것이나 같습니다. */
+function sellConsumable(vm: Vm, index: number): boolean {
+  const state = vm.state
+  const item = state.consumables[index]
+  if (!item) return false
+
+  const price = vm.data.economy.sellMin
+  state.money += price
+  vm.events.push({ t: 'MoneyChanged', delta: price, reason: 'sell' })
+  state.consumables.splice(index, 1)
+  return true
+}
+
 /** 액션 하나. **코어의 표면이 이것 하나입니다.** */
 export function apply(data: Data, state: RunState, action: Action): Step {
   const vm = newVm(data, state)
@@ -498,34 +539,41 @@ export function apply(data: Data, state: RunState, action: Action): Step {
       break
     }
 
-    case 'sell_joker': {
-      const joker = state.jokers[action.index]
-      if (!joker || joker.sticker === 1) break
-      for (const row of data.jokerEffects.get(joker.jokerId) ?? []) {
-        if (row.trigger === Trigger.OnSell) {
-          runOne(vm, row, { kind: 'joker', joker, slot: action.index })
-        }
-      }
-      state.money += sellPrice(vm, joker)
-      state.jokers.splice(action.index, 1)
-      vm.events.push({ t: 'JokerDestroyed', uid: joker.uid, jokerId: joker.jokerId })
-      state.rules.debuffUntilJokerSold = false
-      runTrigger(vm, Trigger.OnJokerSold)
+    case 'sell_joker':
+      sellJoker(vm, action.index)
       break
-    }
 
-    case 'sell_consumable': {
-      const item = state.consumables[action.index]
-      if (!item) break
-      state.money += data.economy.sellMin
-      state.consumables.splice(action.index, 1)
+    case 'sell_consumable':
+      sellConsumable(vm, action.index)
       break
-    }
 
     case 'buy': {
       if (state.phase !== 'shop') break
       const item = state.shop.cards[action.slot]
       if (!item || state.money - item.cost < -state.rules.debtLimit) break
+      if (!takeItem(vm, item)) break
+      state.money -= item.cost
+      vm.events.push({ t: 'MoneyChanged', delta: -item.cost, reason: 'shop' })
+      state.shop.cards.splice(action.slot, 1)
+      break
+    }
+
+    /**
+     * 자리가 없을 때 하나를 팔고 그 자리에 새로 놓습니다.
+     *
+     * **파는 것과 사는 것이 한 액션입니다.** 둘로 나누면 판 값을 받은 다음 사기 전에 판이
+     * 한 번 멈추고, 그 사이에 다른 것을 눌러 값만 잃을 수 있습니다.
+     */
+    case 'swap': {
+      if (state.phase !== 'shop') break
+      const item = state.shop.cards[action.slot]
+      if (!item) break
+
+      const joker = item.kind === ShopItemKind.Joker
+      const sold = joker ? sellJoker(vm, action.index) : sellConsumable(vm, action.index)
+      if (!sold) break
+
+      if (state.money - item.cost < -state.rules.debtLimit) break
       if (!takeItem(vm, item)) break
       state.money -= item.cost
       vm.events.push({ t: 'MoneyChanged', delta: -item.cost, reason: 'shop' })
