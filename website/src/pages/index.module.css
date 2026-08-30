@@ -134,6 +134,10 @@
   overflow: hidden;
   background: var(--ifm-background-surface-color);
   min-width: 0;
+  /* 두 패널의 높이는 긴 쪽이 정합니다. 짧은 쪽의 내용은 남는 자리 가운데에 놓입니다 -
+     위에 붙여 두면 아래가 빈 채로 남아 패널이 덜 그려진 것처럼 보입니다. */
+  display: flex;
+  flex-direction: column;
 }
 
 .panelHead {
@@ -348,4 +352,15 @@
   font-size: 0.9rem;
   line-height: 1.6;
   color: var(--ifm-color-emphasis-700);
+}
+
+/* 첫 화면의 시트 그림. 격자이므로 좁은 화면에서는 줄이는 쪽이 옳습니다 - 가로로 미는 글자
+   덩어리가 되면 어느 칸이 어느 컬럼인지 세어야 합니다. */
+.sheetShot {
+  display: block;
+  width: 100%;
+  height: auto;
+  box-sizing: border-box;
+  padding: 1rem;
+  margin: auto 0;
 }

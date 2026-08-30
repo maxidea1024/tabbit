@@ -38,7 +38,7 @@ Tabbit이 읽는 세 가지 엔티티와, 그것이 각각 무엇으로 생성�
 
 ### 테이블 `ItemCategory`
 
-아이템이 가리킬 분류입니다.
+아이템이 가리킬 카테고리입니다.
 
 ![테이블 ItemCategory](figures/concepts-item-category.svg)
 

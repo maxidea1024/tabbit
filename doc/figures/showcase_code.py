@@ -65,16 +65,37 @@ SKIP_DIRS = {"node_modules", "obj", "bin", "target"}
 def _declaration_line(lines, type_name):
     """레코드 타입을 선언하는 줄. 없으면 None."""
     patterns = [
-        # class · struct · type · interface 뒤나 앞에 이름이 오는 모든 형태.
-        re.compile(r"\b(class|struct|type|interface|record)\b[^\n]*\b%s\b" % re.escape(type_name)),
+        # class · struct · type · interface · record 다음에 이름이 오는 형태. 키워드 앞뒤
+        # 어느 쪽에도 올 수 있는 것은 낱말뿐이고, 줄 앞에서부터 그렇습니다 - 앞은 접근
+        # 지정자와 어트리뷰트가, 뒤는 언리얼의 `struct DOC_API FRow` 가 그런 경우입니다.
+        #
+        # **낱말뿐이라는 것이 이 패턴의 전부입니다.** 사이에 무엇이 와도 되게 두면 선언이
+        # 아닌 줄이 선언으로 잡히고, 그 파일의 그 줄부터가 문서에 실립니다 - 실제로 둘이
+        # 그렇게 실려 있었습니다.
+        #
+        # |실려 있던 줄|왜 잡혔나|
+        # |--|--|
+        # |`record._result = default(PotionRecord);`|`record` 가 지역 변수 이름입니다|
+        # |`tcb.strictType("a record inside DeckRecord.home", ...)`|문자열 안의 낱말입니다|
+        re.compile(r"^[\w@\-\[\] ]*\b(class|struct|type|interface|record)\s+"
+                   r"(?:[A-Za-z_][A-Za-z0-9_]*\s+)*%s\b" % re.escape(type_name)),
         # Lua 는 선언이 주석 어노테이션입니다.
         re.compile(r"^\s*---@class\s+%s\b" % re.escape(type_name)),
     ]
 
     for i, line in enumerate(lines):
+        stripped = line.strip()
+
         # 앞선 줄에 이름만 나오는 것 - 전방 선언과 주석 - 은 고르지 않습니다.
-        if line.strip().endswith(";") and "{" not in line:
+        if stripped.endswith(";") and "{" not in line:
             continue
+
+        # 이름을 말하는 주석도 마찬가지입니다. Lua 의 `---@class` 만 예외이고, 그것은
+        # 아래의 두 번째 패턴이 자기 형태로 확인합니다.
+        if stripped[:1] == "*" or (stripped[:2] in ("//", "--", "/*", "# ")
+                                   and not stripped.startswith("---@class")):
+            continue
+
         for p in patterns:
             if p.search(line):
                 return i

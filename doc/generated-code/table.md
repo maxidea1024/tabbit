@@ -22,19 +22,54 @@
 <summary>C#</summary>
 
 ```csharp
-            record._result = default(PotionRecord); // will be assigned.
-        } while (--n > 0);
-    }
-    break;
+[System.Serializable]
+public partial class PotionRecord
+{
+    #region Values
+    /// <summary>
+    /// primary index
+    /// </summary>
+    public int Index => _index;
 
-case 3:
-    TcbTable.CheckColumn(column, "Craft.ResultName", TcbTable.KindScalar, false, TcbTable.ElementI32);
-    cursor = new TcbColumnCursor(reader, column, count, "Craft.ResultName");
-    for (int i = 0; i < count; )
+    /// <summary>
+    /// display name
+    /// </summary>
+    public string Name => _name;
+
+    /// <summary>
+    /// how rare
+    /// </summary>
+    public global::Tabbit.Fixtures.DocShowcase.Rarity Rarity => _rarity;
+
+    /// <summary>
+    /// shop price
+    /// </summary>
+    public int Price => _price;
+    #endregion
+
+    #region Storage
+    internal int _index;
+    internal string _name = "";
+    internal global::Tabbit.Fixtures.DocShowcase.Rarity _rarity;
+    internal int _price;
+    #endregion
+
+    #region ToString
+    public override string ToString()
     {
+        var sb = new StringBuilder("{");
+        sb.Append("\"Index\":"); ToStringHelper.ToString(Index, sb);
+        sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
+        sb.Append(",\"Rarity\":"); ToStringHelper.ToString(Rarity, sb);
+        sb.Append(",\"Price\":"); ToStringHelper.ToString(Price, sb);
+        sb.Append("}");
+        return sb.ToString();
+    }
+    #endregion
+}
 ```
 
-[CraftTable.cs](../../test/fixtures/golden/doc-showcase/csharp/tables/CraftTable.cs)
+[PotionTable.cs](../../test/fixtures/golden/doc-showcase/csharp/tables/PotionTable.cs)
 
 </details>
 <details data-lang="typescript">
@@ -137,34 +172,23 @@ class PotionRecord:
 <summary>C</summary>
 
 ```c
-    record->potion_by_parts = (const DocShowcase_PotionRecord_t**)tb_arena_alloc(
-      &table->arena, (size_t)element_count * sizeof *record->potion_by_parts);
-    record->parts = (int32_t*)tb_arena_alloc(
-      &table->arena, (size_t)element_count * sizeof *record->parts);
-
-    if (element_count > 0
-        && (record->potion_by_parts == NULL || record->parts == NULL))
-      return tb_fail_with(reader, "out of memory allocating an array");
-
-    for (element = 0; element < element_count && !tb_failed(reader); ++element)
-      (void)tb_cursor_next_i32(&cursor, &record->parts[element]);
-  }
-  break;
-
-case 5:
-  (void)tb_check_column(reader, column, "Craft.Substitute", TB_KIND_SCALAR, true, TB_ELEMENT_MASK(TB_ELEMENT_I32));
-
-  /* The bitmap is at the front of the block, so it is read before the values. The
-   * values are written for every row either way, which is what lets the read shapes
-   * below stay as they are. */
-  (void)tb_read_presence(reader, column, table->count, &presence);
-
-  (void)tb_cursor_init(&cursor, reader, column, table->count, "Craft.Substitute");
-
-  for (row = 0; row < table->count && !tb_failed(reader); ++row) {
+/* Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Potion : B2
+ *
+ * A key, two values and an enum.
+ */
+struct DocShowcase_PotionRecord_t {
+  /* primary index */
+  int32_t index;
+  /* display name */
+  const char* name;
+  /* how rare */
+  DocShowcase_Rarity_t rarity;
+  /* shop price */
+  int32_t price;
+};
 ```
 
-[DocShowcase_Craft.c](../../test/fixtures/golden/doc-showcase/c/tables/DocShowcase_Craft.c)
+[DocShowcase_Potion.h](../../test/fixtures/golden/doc-showcase/c/tables/DocShowcase_Potion.h)
 
 </details>
 <details data-lang="dart">

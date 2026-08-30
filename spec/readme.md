@@ -22,7 +22,7 @@
 - [구글 시트의 정의된 이름](layout/google-sheets-named-ranges.md)
 - [매트릭스 표 — 컬럼 이름이 행 id인 것](layout/matrix-tables.md)
 - [주 시트 레이아웃 — 설계](layout/primary-layout.md) *(5개로 나뉨)*
-- [태그 — 행 거르기와 임의 메타](layout/tags.md)
+- [행 태그와 메타 태그 — 빌드마다 빼는 행, 그리고 임의 메타](layout/tags.md)
 - [테이블의 행 벌 — 한 테이블에 데이터 여러 벌](layout/table-row-sets.md)
 
 ## 값과 타입

@@ -617,12 +617,44 @@ public partial class DeckRecord
 <summary>TypeScript</summary>
 
 ```typescript
-/** A record inside DeckRecord.home. */
-export interface HomeAtEntry {
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Spawn : G2
+/** An array of records, and a record inside a record. */
+export class DeckRecord {
+  /** Default constructor */
+  constructor() {
+  }
+
+  /** primary index */
+  public get index(): number { return this._index }
+
+  /** element 1 */
+  public get slot(): SlotEntry[] { return this._slot }
+
   /** two levels in */
-  x: number
-  /** two levels in */
-  y: number
+  public get home(): HomeEntry { return this._home }
+
+  public _index: number = 0
+  public _slot: SlotEntry[] = []
+  public _home: HomeEntry = { at: { x: 0, y: 0 } }
+
+  /** Populate field values. */
+  public populateFieldValues(dataRow: IDataRow): void {
+    this._index = dataRow.index
+    this._slot = dataRow.slot.map(e => ({ id: e.id, label: e.label }))
+    this._home = ((e: any) => ({ at: { x: Math.fround(e.at.x), y: Math.fround(e.at.y) } }))(dataRow.home)
+  }
+
+  /** Populate field values. */
+  public populateFieldValuesCompact(dataRow: any[]): void {
+    let offset = 0
+    this._index = dataRow[offset++]
+    const _slot_id = dataRow.slice(offset, offset + 2)
+    offset += 2
+    const _slot_label = dataRow.slice(offset, offset + 2)
+    offset += 2
+    this._slot = Array.from({ length: 2 }, (_, k) => ({ id: _slot_id[k], label: _slot_label[k] }))
+    this._home = { at: { x: Math.fround(dataRow[offset++]), y: Math.fround(dataRow[offset++]) } }
+  }
 }
 ```
 
@@ -633,12 +665,14 @@ export interface HomeAtEntry {
 <summary>C++</summary>
 
 ```cpp
-/// A record inside DeckRecord::home.
-struct DeckRecord_home_entryAt {
+/// An array of records, and a record inside a record.
+struct DeckRecord {
+  /// primary index
+  std::int32_t index = 0;
+  /// element 1
+  std::vector<DeckRecord_slot_entry> slot;
   /// two levels in
-  float x = 0.0f;
-  /// two levels in
-  float y = 0.0f;
+  DeckRecord_home_entry home;
 };
 ```
 
@@ -649,7 +683,21 @@ struct DeckRecord_home_entryAt {
 <summary>Python</summary>
 
 ```python
-"""A record inside DeckRecord.home."""
+class DeckRecord:
+    """Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Spawn : G2.
+
+    An array of records, and a record inside a record.
+    """
+
+    __slots__ = ("index", "slot", "home")
+
+    def __init__(self):
+        self.index = 0
+        self.slot = [DeckSlotEntry() for _ in range(2)]
+        self.home = DeckHomeEntry()
+
+    def __repr__(self):
+        return "DeckRecord(index=%r, slot=%r, home=%r)" % (self.index, self.slot, self.home)
 ```
 
 [deck_table.py](../../test/fixtures/golden/doc-showcase/python/doc_showcase_data/deck_table.py)
@@ -659,12 +707,14 @@ struct DeckRecord_home_entryAt {
 <summary>C</summary>
 
 ```c
-/* A record inside DocShowcase_DeckRecord_t::home. */
-struct DocShowcase_DeckRecord_t_home_entryAt {
+struct DocShowcase_DeckRecord_t {
+  /* primary index */
+  int32_t index;
+  /* element 1 */
+  struct DocShowcase_DeckRecord_t_slot_entry* slot;
+  int32_t slot_count;
   /* two levels in */
-  float x;
-  /* two levels in */
-  float y;
+  struct DocShowcase_DeckRecord_t_home_entry home;
 };
 ```
 
@@ -675,12 +725,16 @@ struct DocShowcase_DeckRecord_t_home_entryAt {
 <summary>Dart</summary>
 
 ```dart
-/// A record inside [DeckRecord.home].
-class DeckHomeEntryAt {
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Spawn : G2
+/// An array of records, and a record inside a record.
+class DeckRecord {
+  /// primary index
+  int index = 0;
+  /// element 1
+  List<DeckSlotEntry> slot = List.generate(2, (_) => DeckSlotEntry());
   /// two levels in
-  double x = 0.0;
-  /// two levels in
-  double y = 0.0;
+  DeckHomeEntry home = DeckHomeEntry();
+
 }
 ```
 
@@ -691,12 +745,15 @@ class DeckHomeEntryAt {
 <summary>Go</summary>
 
 ```go
-// DeckHomeEntryAt is a record inside DeckRecord.Home.
-type DeckHomeEntryAt struct {
+// DeckRecord was generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Spawn : G2.
+// An array of records, and a record inside a record.
+type DeckRecord struct {
+	// primary index
+	Index int32
+	// element 1
+	Slot []DeckSlotEntry
 	// two levels in
-	X float32
-	// two levels in
-	Y float32
+	Home DeckHomeEntry
 }
 ```
 
@@ -806,10 +863,13 @@ class DeckRecord {
 <summary>Lua</summary>
 
 ```lua
----@class DeckHomeEntryAt
----@field x number
----@field y number
-local DeckHomeEntryAtMeta = tcb.strictType("a record inside DeckRecord.home", { "x", "y" })
+-- Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Spawn : G2.
+-- An array of records, and a record inside a record.
+---@class DeckRecord
+---@field index integer
+---@field slot DeckSlotEntry[]
+---@field home DeckHomeEntry
+local DeckRecordMeta = tcb.strictType("a `Deck` row", { "index", "slot", "home" })
 ```
 
 [deck_table.lua](../../test/fixtures/golden/doc-showcase/lua/tables/deck_table.lua)
@@ -819,13 +879,35 @@ local DeckHomeEntryAtMeta = tcb.strictType("a record inside DeckRecord.home", { 
 <summary>PHP</summary>
 
 ```php
-/** A record inside DeckRecord::$home. */
-final class DeckHomeEntryAt
+/**
+ * Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Spawn : G2
+ *
+ * An array of records, and a record inside a record.
+ */
+final class DeckRecord
 {
+    /** primary index */
+    public int $index = 0;
+    /** element 1 */
+    /** @var list<DeckSlotEntry> */
+    public array $slot = [];
     /** two levels in */
-    public float $x = 0.0;
-    /** two levels in */
-    public float $y = 0.0;
+    public DeckHomeEntry $home;
+
+
+    /**
+     * A row with its record groups built.
+     *
+     * They cannot be built at the declaration: a PHP property initializer has to be a
+     * constant expression, and `new SlotEntry()` is not one.
+     */
+    public function __construct()
+    {
+        for ($i = 0; $i < 2; $i++) {
+            $this->slot[] = new DeckSlotEntry();
+        }
+        $this->home = new DeckHomeEntry();
+    }
 }
 ```
 
@@ -836,7 +918,16 @@ final class DeckHomeEntryAt
 <summary>Ruby</summary>
 
 ```ruby
-# A record inside DeckRecord#home.
+# Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Spawn : G2
+# An array of records, and a record inside a record.
+class DeckRecord
+  attr_accessor :index, :slot, :home
+
+  def initialize
+    @index = 0
+    @slot = Array.new(2) { DeckSlotEntry.new }
+    @home = DeckHomeEntry.new
+  end
 ```
 
 [deck_table.rb](../../test/fixtures/golden/doc-showcase/ruby/tables/deck_table.rb)
@@ -846,13 +937,16 @@ final class DeckHomeEntryAt
 <summary>Rust</summary>
 
 ```rust
-/// A record inside [`DeckRecord::home`].
+// Generated from test/fixtures/xlsx/doc-showcase/doc-showcase.xlsx : Spawn : G2
+/// An array of records, and a record inside a record.
 #[derive(Clone, Debug, Default)]
-pub struct DeckHomeEntryAt {
+pub struct DeckRecord {
+    /// primary index
+    pub index: i32,
+    /// element 1
+    pub slot: Vec<DeckSlotEntry>,
     /// two levels in
-    pub x: f32,
-    /// two levels in
-    pub y: f32,
+    pub home: DeckHomeEntry,
 }
 ```
 
@@ -919,19 +1013,23 @@ public final class DeckRecord {
 <summary>Unreal</summary>
 
 ```cpp
-/** A record inside FDeckRow::Home. */
+/** An array of records, and a record inside a record. */
 USTRUCT(BlueprintType)
-struct DOCSHOWCASE_API FDeckHomeEntryAt
+struct DOCSHOWCASE_API FDeckRow
 {
     GENERATED_BODY()
 
-    /** two levels in */
+    /** primary index */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Deck")
-    float X = 0.0f;
+    int32 Index = 0;
+
+    /** element 1 */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Deck")
+    TArray<FDeckSlotEntry> Slot;
 
     /** two levels in */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Deck")
-    float Y = 0.0f;
+    FDeckHomeEntry Home;
 
 };
 ```

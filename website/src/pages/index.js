@@ -7,16 +7,6 @@ import styles from './index.module.css'
 // 아래 시트와 코드는 doc/concepts.md 가 처음부터 끝까지 따라가는 예제이고, 그 문서의 그림은
 // `core` 픽스처를 그대로 옮긴 것입니다 — doc/figures/concepts-figures.py 가 정본입니다.
 // 여기를 고치면 그쪽도 함께 고칩니다.
-const SHEET = `:table Item      References ItemCategory by record.
-
-:field          index          Name           CategoryId             GradeField   Price
-:type           int            string         foreign ItemCategory   Grade        int
-:desc           primary index  item name      owning category        item grade   shop price
-:target         cs             cs             cs                     cs           s
-
-                1              Short Sword    1                      Common       100
-                2              Leather Armor  2                      Rare         250
-                3              Small Potion   3                      Epic          50`
 
 const FIGURES = [
   { value: '27배', label: '같은 데이터를 JSON으로 낼 때와 비교한 크기. 그만큼 덜 읽고 덜 만듭니다' },
@@ -129,7 +119,11 @@ export default function Home() {
             <div className={styles.pair}>
               <div className={styles.panel}>
                 <div className={styles.panelHead}>엑셀 · 구글 스프레드시트</div>
-                <pre>{SHEET}</pre>
+                <img
+                  className={styles.sheetShot}
+                  src={useBaseUrl('img/landing-sheet.svg')}
+                  alt="Item 테이블의 시트 배치 - 선언 셀, 헤더 행 넷, 데이터 행 셋"
+                />
               </div>
 
               <div className={styles.arrow}>→</div>
@@ -153,10 +147,10 @@ sword.GradeField;                          // Common`}
             </div>
 
             <p className={styles.note}>
-              <strong>분류 이름을 아이템 시트에 다시 적지 않아도 됩니다.</strong>{' '}
-              타입 칸에 <code>foreign ItemCategory</code>라고만 적으면, 코드에서는 분류 자체가
-              따라옵니다. 분류 이름이 바뀌면 한 곳만 고치면 되고, 없는 분류를 가리키면
-              변환이 멈추고 어느 셀인지 알려줍니다.
+              <strong>카테고리 이름을 아이템 시트에 다시 적지 않아도 됩니다.</strong>{' '}
+              타입 칸에 <code>foreign ItemCategory</code>라고만 적으면, 코드에서는 카테고리
+              자체가 따라옵니다. 카테고리 이름이 바뀌면 한 곳만 고치면 되고, 없는 카테고리를
+              가리키면 변환이 멈추고 어느 셀인지 알려줍니다.
             </p>
 
             <Targets />
