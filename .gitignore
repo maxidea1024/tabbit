@@ -234,3 +234,6 @@ samples/canopy/out-live/
 # `canopy` reads the same corpus twice, once per container; the second run is a comparison
 # rather than an output, so what it writes is not committed.
 samples/canopy/out-xlsb/
+
+# clover 의 확인용 그림. 도구가 판정에 쓰고 버리는 것이라 문서가 아닙니다.
+samples/clover/design-data/out/check/

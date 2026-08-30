@@ -13,34 +13,16 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
+import {
+  at, BOARD_X, buyAffordablePack, buyFirstAffordable, chooseFive, clickPrimary,
+  discardHand, hurry, openDeckView, peek, pickCards, playHand, pressPlay, rate, settle,
+  shopSlot, spare, STAGE_W,
+} from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '..', '..', 'design-data', 'out', 'shot')
 
 /** 화면이 밖에 내어 둔 것. `game.ts` 의 `__clover` 입니다. */
-interface Peek {
-  phase: string
-  ante: number
-  money: number
-  score: number
-  target: number
-  busy: boolean
-  discards: number
-  jokers: number
-  packOpen: boolean
-  packs: number
-  played: number
-  blind: number
-  coins: boolean
-  cleared: boolean
-  consumables: number
-  hand: { rank: number; suit: number }[]
-}
-
-async function peek(page: Page): Promise<Peek> {
-  return page.evaluate(() => (window as unknown as { __clover: Peek }).__clover)
-}
-
 async function main(): Promise<number> {
   fs.mkdirSync(OUT, { recursive: true })
 
@@ -250,6 +232,11 @@ async function main(): Promise<number> {
     console.log(`상점까지 가지 못했습니다 — 지금은 ${finished.phase} 입니다`)
   }
 
+  // **여기서부터는 빠르게 둡니다.** 연출을 찍는 구간은 위에서 끝났고, 아래는 판을 끝까지
+  // 두는 것이 목적입니다 — 한 손마다 뜸을 다 기다리면 20분이 넘습니다. 아래에서 찍는 것들은
+  // 뜸이 아니라 판의 상태를 찍는 것이고, 판이 끝나는 럼블은 이 속도를 타지 않습니다.
+  await hurry(page, 6)
+
   // 끝날 때까지 둡니다. 도중에 팩을 뜯을 수 있으면 뜯고, 끝난 판까지 찍습니다.
   for (let turn = 0; turn < 300; turn++) {
     await settle(page)
@@ -358,235 +345,6 @@ async function main(): Promise<number> {
 
   console.log('오류 없음')
   return 0
-}
-
-/** 연출이 끝날 때까지 기다립니다. */
-async function settle(page: Page): Promise<void> {
-  for (let wait = 0; wait < 60; wait++) {
-    const state = await peek(page)
-    if (!state.busy) return
-    await page.waitForTimeout(200)
-  }
-}
-
-/** 살 수 있는 팩이 있으면 뜯습니다. */
-async function buyAffordablePack(page: Page): Promise<void> {
-  const tileW = 210
-  const gap = 16
-  for (let slot = 0; slot < 2; slot++) {
-    const packs = (await peek(page)).packs
-    if (packs <= slot) return
-    const span = packs * tileW + (packs - 1) * gap
-    const left = BOARD_X - SHOP_W / 2 + (SHOP_W - span) / 2
-    const spot = await at(page, left + slot * (tileW + gap) + tileW / 2,
-      SHOP_Y + SHOP_ITEMS + 172 + 20 + 26 + 42)
-    await page.mouse.click(spot.x, spot.y)
-    await page.waitForTimeout(600)
-    if ((await peek(page)).packOpen) return
-  }
-}
-
-/**
- * 상점의 칸을 살 수 있으면 삽니다.
- *
- * 자리는 `game.ts` 의 `syncShop` 과 같은 계산입니다 — 판이 가운데에 서고 물건이 그 안에서
- * 가운데로 모입니다.
- */
-async function buyFirstAffordable(page: Page): Promise<void> {
-  for (let slot = 0; slot < 4; slot++) {
-    const spot = await shopSlot(page, slot)
-    await page.mouse.click(spot.x, spot.y)
-    await page.waitForTimeout(500)
-    if ((await peek(page)).jokers > 0) return
-  }
-}
-
-/** 상점의 물건 칸 하나의 가운데. */
-async function shopSlot(page: Page, slot: number, count = 2): Promise<{ x: number; y: number }> {
-  const tileW = 158
-  const gap = 14
-  const span = count * tileW + (count - 1) * gap
-  const left = BOARD_X - SHOP_W / 2 + (SHOP_W - span) / 2
-  return at(page, left + slot * (tileW + gap) + tileW / 2, SHOP_Y + SHOP_ITEMS + 86)
-}
-
-/** `game.ts` 의 `syncShop` 과 같은 값들. */
-const SHOP_W = 780
-const SHOP_ITEMS = 86
-const SHOP_Y = 90
-
-/** 화면 좌표를 캔버스 위의 자리로. 기준 해상도는 1280 × 720 입니다. */
-/**
- * 기준 좌표를 캔버스 위의 자리로.
- *
- * **판은 창을 꽉 채우지 않습니다** — 기준 비율에 맞춰 가운데에 놓이고 남는 자리는 배경이
- * 덮습니다. 그래서 캔버스의 비율만으로 환산하면 어긋납니다. `game.ts` 의 `layout` 과 같은
- * 계산을 여기서도 합니다.
- */
-async function at(page: Page, x: number, y: number): Promise<{ x: number; y: number }> {
-  const box = await (await page.$('#stage'))?.boundingBox()
-  if (!box) return { x, y }
-  const scale = Math.min(box.width / STAGE_W, box.height / STAGE_H)
-  const originX = box.x + Math.round((box.width - STAGE_W * scale) / 2)
-  const originY = box.y + Math.round((box.height - STAGE_H * scale) / 2)
-  return { x: originX + x * scale, y: originY + y * scale }
-}
-
-// 화면의 자리들. `render/game.ts` 의 상수와 같아야 합니다.
-const STAGE_W = 1280
-const STAGE_H = 800
-const BOARD_X = (16 + 264 + 20 + STAGE_W) / 2
-const HAND_Y = 620
-const CARD_SPACING = 100
-const BUTTON_Y = 742
-
-/**
- * 가운데 큰 버튼. 블라인드 선택과 상점이 씁니다.
- *
- * **상점에서는 자리가 다릅니다** — 바우처 딱지와 겹치지 않게 아래로 내려가 있습니다.
- */
-async function clickPrimary(page: Page): Promise<void> {
-  if ((await peek(page)).phase === 'shop') {
-    // 상점의 밑단. **판 하나로 정돈되면서 버튼도 그 안으로 들어왔습니다.**
-    const spot = await at(page, BOARD_X + 83, SHOP_Y + 572 - 56 / 2)
-    await page.mouse.click(spot.x, spot.y)
-    return
-  }
-  // 블라인드 선택은 **판 셋이 나란히** 서고 지금 차례인 것만 자기 버튼을 가집니다.
-  // `game.ts` 의 `drawBlindPick` 과 같은 계산입니다 — 아랫변을 맞추므로 버튼의 자리는
-  // 판의 높이와 상관없이 아래에서 셉니다.
-  const cardW = 226
-  const gap = 20
-  const bottom = 754
-  const index = { 1: 0, 2: 1, 3: 2 }[(await peek(page)).blind as 1 | 2 | 3] ?? 0
-  const startX = BOARD_X - (2 * (cardW + gap)) / 2 - cardW / 2
-  const spot = await at(page, startX + index * (cardW + gap) + cardW / 2, bottom - 106 + 22)
-  await page.mouse.click(spot.x, spot.y)
-}
-
-/**
- * 패에서 다섯 장을 골라 냅니다.
- *
- * **화면을 실제로 누르는 것이 요점입니다** — 코어를 직접 부르면 화면이 도는지를 확인하지
- * 못합니다. 카드는 108픽셀 간격으로 가운데 놓이고, 8장일 때 첫 장의 중심이 262 입니다.
- */
-async function playHand(page: Page, picks: number[] = [0, 1, 2, 3, 4]): Promise<void> {
-  await pickCards(page, picks)
-  await pressPlay(page)
-}
-
-/** 남은 카드 판을 열고 닫습니다. 왼쪽 패널 아래의 버튼입니다. */
-async function openDeckView(page: Page): Promise<void> {
-  const spot = await at(page, 16 - 2 + 59, 700 + 17)
-  await page.mouse.click(spot.x, spot.y)
-  await page.waitForTimeout(350)
-}
-
-/** 고르기만 합니다. 고른 카드의 셰이더를 찍으려면 낸다를 누르기 전에 멈춰야 합니다. */
-async function pickCards(page: Page, picks: number[]): Promise<void> {
-  const held = (await peek(page)).hand.length
-  await clickCards(page, picks, held)
-}
-
-async function pressPlay(page: Page): Promise<void> {
-  const play = await at(page, BOARD_X - 176 + 64, BUTTON_Y + 23)
-  await page.mouse.click(play.x, play.y)
-}
-
-/** 부채꼴로 편 패에서 몇 장을 누릅니다. */
-async function clickCards(page: Page, picks: number[], held: number): Promise<void> {
-  const spacing = Math.min(CARD_SPACING, 720 / Math.max(1, held))
-  const startX = BOARD_X - ((held - 1) * spacing) / 2
-
-  for (const i of picks) {
-    const offset = i - (held - 1) / 2
-    const spot = await at(page, startX + i * spacing, HAND_Y + offset * offset * 1.1)
-    await page.mouse.click(spot.x, spot.y)
-    await page.waitForTimeout(80)
-  }
-}
-
-/** 고른 것을 버립니다. */
-async function discardHand(page: Page, picks: number[]): Promise<void> {
-  const held = (await peek(page)).hand.length
-  await clickCards(page, picks, held)
-  const discard = await at(page, BOARD_X + 48 + 64, BUTTON_Y + 23)
-  await page.mouse.click(discard.x, discard.y)
-}
-
-/** 쓸 만한 다섯 장에 들지 못한 카드들. 버릴 대상입니다. */
-function spare(hand: { rank: number }[], picks: number[]): number[] {
-  const keep = new Set(picks)
-  return hand.map((_, index) => index).filter(index => !keep.has(index)).slice(0, 5)
-}
-
-/**
- * 패에서 쓸 만한 다섯 장.
- *
- * 다섯 장 조합 56가지를 전부 보고 가장 높은 족보를 고릅니다. **잘 두려는 것이 아니라
- * 상점까지 가려는 것입니다** — 무작정 왼쪽 다섯 장을 내면 안테 1 에서 끝납니다.
- *
- * 족보의 값은 여기 손으로 적혀 있습니다. 도구이므로 그래도 되고, 게임의 값은 시트에
- * 있습니다.
- */
-function chooseFive(hand: { rank: number; suit: number }[]): number[] {
-  let best: number[] = [0, 1, 2, 3, 4].filter(i => i < hand.length)
-  let bestScore = -1
-
-  const indices = hand.map((_, index) => index)
-  for (const combo of fiveOf(indices)) {
-    const value = rate(combo.map(index => hand[index]))
-    if (value > bestScore) {
-      bestScore = value
-      best = combo
-    }
-  }
-  return best.sort((a, b) => a - b)
-}
-
-function* fiveOf(indices: number[]): Generator<number[]> {
-  const want = Math.min(5, indices.length)
-  const combo: number[] = []
-  const walk = (start: number): Generator<number[]> | void => undefined
-  void walk
-
-  const stack: number[][] = [[]]
-  while (stack.length > 0) {
-    const current = stack.pop() as number[]
-    if (current.length === want) { yield current; continue }
-    const from = current.length === 0 ? 0 : current[current.length - 1] + 1
-    for (let i = indices.length - 1; i >= from; i--) stack.push([...current, indices[i]])
-  }
-  void combo
-}
-
-/** 족보의 대략적인 값. 순서만 맞으면 됩니다. */
-function rate(cards: { rank: number; suit: number }[]): number {
-  const ranks = new Map<number, number>()
-  const suits = new Map<number, number>()
-  for (const card of cards) {
-    ranks.set(card.rank, (ranks.get(card.rank) ?? 0) + 1)
-    suits.set(card.suit, (suits.get(card.suit) ?? 0) + 1)
-  }
-
-  const counts = [...ranks.values()].sort((a, b) => b - a)
-  const flush = [...suits.values()].some(count => count >= 5)
-  const sorted = [...ranks.keys()].sort((a, b) => a - b)
-  const straight = sorted.length >= 5
-    && sorted[sorted.length - 1] - sorted[0] === sorted.length - 1
-
-  const high = Math.max(...cards.map(card => card.rank)) / 100
-  if (counts[0] >= 5) return 400 + high
-  if (flush && counts[0] >= 3 && counts[1] >= 2) return 380 + high
-  if (flush && straight) return 300 + high
-  if (counts[0] >= 4) return 200 + high
-  if (counts[0] >= 3 && counts[1] >= 2) return 160 + high
-  if (flush) return 140 + high
-  if (straight) return 120 + high
-  if (counts[0] >= 3) return 90 + high
-  if (counts[0] >= 2 && counts[1] >= 2) return 60 + high
-  if (counts[0] >= 2) return 30 + high
-  return high
 }
 
 main().then(code => { process.exitCode = code })

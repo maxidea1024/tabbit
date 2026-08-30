@@ -1,0 +1,157 @@
+// 자리를 바꾸는 것이 실제로 되는지 봅니다.
+//
+// **자리가 규칙입니다** — 득점은 낸 카드의 왼쪽부터이고 조커는 슬롯의 왼쪽부터입니다. 그래서
+// 끌어서 자리를 바꾸는 것이 되는지, 그리고 조커를 누르는 것이 파는 것이 아니라 고르는 것인지를
+// 확인합니다.
+//
+//     npx tsx tools/check-order.ts
+
+import * as fs from 'fs'
+import * as path from 'path'
+import { fileURLToPath } from 'url'
+import { chromium, type Page } from 'playwright'
+import { createServer } from 'vite'
+import {
+  at, BOARD_X, clickPrimary, grantConsumable, grantJoker, HAND_Y, peek, settle, STAGE_W,
+} from './harness'
+
+const HERE = path.dirname(fileURLToPath(import.meta.url))
+const OUT = path.resolve(HERE, '../../design-data/out/check')
+/** 조커 줄의 첫 칸. `game.ts` 의 `JOKER_X` · `JOKER_Y` 와 같습니다. */
+const JOKER_X = 372
+const JOKER_Y = 108
+const JOKER_STEP = 88 + 12
+
+async function main(): Promise<number> {
+  fs.mkdirSync(OUT, { recursive: true })
+  const server = await createServer({ root: path.resolve(HERE, '..'), server: { port: 5179 } })
+  await server.listen()
+
+  const browser = await chromium.launch()
+  const page = await browser.newPage({ viewport: { width: 1680, height: 960 } })
+  const problems: string[] = []
+  page.on('pageerror', error => problems.push(String(error)))
+  page.on('console', message => {
+    if (message.type() === 'error') problems.push(message.text())
+  })
+
+  let failed = 0
+  const verdict = (good: boolean, line: string) => {
+    if (!good) failed++
+    console.log(`  ${good ? '✓' : '✗'} ${line}`)
+  }
+
+  await page.goto('http://localhost:5179/?seed=CLOVER-SHOT6', { waitUntil: 'networkidle' })
+  await page.waitForTimeout(1500)
+
+  // 타이틀 → 시작 → 안내 닫기 → 블라인드 고르기.
+  const start = await at(page, STAGE_W / 2, 446 + 27)
+  await page.mouse.click(start.x, start.y)
+  await page.waitForTimeout(800)
+  await page.mouse.click(20, 20)
+  await page.waitForTimeout(400)
+  await clickPrimary(page)
+  await settle(page)
+  await page.waitForTimeout(700)
+
+  // ------------------------------------------------------------ 손패의 자리
+  console.log('손패')
+  const before = (await peek(page)).handOrder
+  const held = before.length
+  const spacing = Math.min(100, 720 / Math.max(1, held))
+  const startX = BOARD_X - ((held - 1) * spacing) / 2
+
+  await dragBy(page, startX, HAND_Y, startX + spacing * 3, HAND_Y)
+  await page.screenshot({ path: path.join(OUT, 'hand-order.png') })
+
+  const after = (await peek(page)).handOrder
+  console.log(`  전 ${before.join(',')}`)
+  console.log(`  후 ${after.join(',')}`)
+  verdict(before[0] !== after[0] && before.length === after.length, '자리가 바뀝니다')
+
+  // ------------------------------------------------------------ 조커 둘
+  await grantJoker(page, 2)
+  await page.waitForTimeout(600)
+
+  const jokers = (await peek(page)).jokerOrder
+  console.log(`\n조커 ${jokers.length}장`)
+  if (jokers.length === 0) {
+    console.log('  ✗ 조커를 얻지 못해 확인하지 못했습니다')
+    failed++
+  }
+
+  // ------------------------------------------------------------ 눌러도 팔리지 않아야 합니다
+  if (jokers.length >= 1) {
+    const spot = await at(page, JOKER_X, JOKER_Y)
+    await page.mouse.click(spot.x, spot.y)
+    await page.waitForTimeout(400)
+    await page.mouse.move(40, 40)
+    await page.waitForTimeout(400)
+    await page.screenshot({ path: path.join(OUT, 'joker-held.png') })
+    verdict((await peek(page)).jokerOrder.length === jokers.length, '눌러도 팔리지 않습니다')
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(300)
+  }
+
+  // ------------------------------------------------------------ 조커의 자리
+  if (jokers.length >= 2) {
+    await dragBy(page, JOKER_X, JOKER_Y, JOKER_X + JOKER_STEP, JOKER_Y)
+    await page.screenshot({ path: path.join(OUT, 'joker-order.png') })
+    const moved = (await peek(page)).jokerOrder
+    console.log(`  전 ${jokers.join(',')}`)
+    console.log(`  후 ${moved.join(',')}`)
+    verdict(jokers[0] !== moved[0] && jokers.length === moved.length, '자리가 바뀝니다')
+  }
+
+  // ------------------------------------------------------------ 소모품도 같습니다
+  await grantConsumable(page, 1)
+  await page.waitForTimeout(500)
+  const items = (await peek(page)).consumables
+  console.log(`
+소모품 ${items}장`)
+  if (items >= 1) {
+    const spot = await at(page, 962, JOKER_Y)
+    await page.mouse.click(spot.x, spot.y)
+    await page.waitForTimeout(400)
+    await page.mouse.move(40, 40)
+    await page.waitForTimeout(400)
+    await page.screenshot({ path: path.join(OUT, 'consumable-held.png') })
+    verdict((await peek(page)).consumables === items, '눌러도 쓰이지 않습니다')
+  } else {
+    console.log('  ✗ 소모품을 얻지 못해 확인하지 못했습니다')
+    failed++
+  }
+
+  await browser.close()
+  await server.close()
+
+  for (const problem of problems.slice(0, 8)) console.error('오류: ' + problem)
+  console.log(failed === 0 && problems.length === 0 ? '\n다 통과했습니다' : `\n${failed}개 실패`)
+  return failed > 0 || problems.length > 0 ? 1 : 0
+}
+
+/**
+ * 한 자리에서 다른 자리로 끕니다.
+ *
+ * **한 번에 옮기지 않습니다** — 눌렀다 뗀 것과 끈 것은 손가락이 움직였는지로 갈리므로,
+ * 곧바로 옮기면 화면이 그것을 누른 것으로 봅니다. 끝나면 커서를 치웁니다. 놓은 것 위에
+ * 남아 있으면 그것만 들린 채로 찍힙니다.
+ */
+async function dragBy(page: Page, fromX: number, fromY: number,
+                      toX: number, toY: number): Promise<void> {
+  const from = await at(page, fromX, fromY)
+  const to = await at(page, toX, toY)
+  await page.mouse.move(from.x, from.y)
+  await page.mouse.down()
+  for (let step = 1; step <= 12; step++) {
+    await page.mouse.move(from.x + (to.x - from.x) * step / 12,
+      from.y + (to.y - from.y) * step / 12 - 14)
+    await page.waitForTimeout(30)
+  }
+  await page.mouse.up()
+  await page.waitForTimeout(300)
+  await page.mouse.move(40, 40)
+  await page.waitForTimeout(800)
+}
+
+main().then(code => process.exit(code))

@@ -261,6 +261,33 @@ export class Game {
   /** 타는 중인 조커들. 다 타면 치웁니다. */
   private readonly burning: JokerView[] = []
   private readonly selected = new Set<number>()
+  /**
+   * 고른 조커나 소모품 하나.
+   *
+   * **누르는 것만으로는 아무것도 팔리지 않습니다.** 조커가 판의 전부인 게임에서 한 번
+   * 잘못 누른 것이 판을 끝내면 안 됩니다 — 고르면 그 밑에 무엇을 할지가 버튼으로 서고,
+   * 그 버튼을 눌러야 일어납니다.
+   */
+  private held?: { kind: 'joker' | 'consumable'; uid: number }
+  /** 고른 것 밑에 서는 버튼들. */
+  private readonly heldBar = new Container()
+  /**
+   * 끌고 있는 것.
+   *
+   * **자리가 규칙입니다.** 득점은 낸 카드의 왼쪽부터이고 조커는 슬롯의 왼쪽부터이므로,
+   * 무엇을 어디에 두느냐가 최종 점수를 바꿉니다 — 그것을 정하지 못하면 판을 짜는 일의
+   * 절반이 없습니다.
+   */
+  private drag?: {
+    kind: 'hand' | 'joker'
+    uid: number
+    startX: number
+    startY: number
+    grabX: number
+    moved: boolean
+  }
+  /** 손패가 놓인 자리. 끌 때 어느 칸으로 가는지를 이것으로 셉니다. */
+  private handSpots = { startX: 0, spacing: 0 }
   /** 도움. 이것도 고르면 더 높은 족보가 되는 카드들입니다. */
   private readonly hinted = new Set<number>()
 
@@ -538,17 +565,31 @@ export class Game {
     this.optionButton.position.set(LEFT + 134, 700)
 
     app.canvas.addEventListener('pointerdown', () => this.audio.unlock())
+    // **누르는 순간 툴팁이 닫힙니다.** 툴팁은 마우스가 그것에서 벗어날 때 닫히는데, 누른
+    // 것이 사라지면(사거나 팔거나 쓰거나) 벗어나는 일이 영영 없어서 그 자리에 남습니다.
+    app.stage.on('pointerdown', () => this.tooltip.hide())
     app.stage.eventMode = 'static'
     app.stage.hitArea = { contains: () => true }
     app.stage.on('globalpointermove', event => {
       this.pointerAt = this.world.toLocal(event.global)
+      this.advanceDrag()
     })
+    // **판 밖에서 떼어도 끝나야 합니다.** 카드 위에서만 받으면 손가락이 판 밖으로 나간
+    // 채 떼었을 때 그 카드가 커서에 붙어 남습니다.
+    app.stage.on('pointerup', () => this.endDrag())
+    app.stage.on('pointerupoutside', () => this.endDrag())
     window.addEventListener('keydown', event => {
       this.audio.unlock()
       // 판이 떠 있으면 맨 위의 것을 닫습니다. **연출을 넘기는 것보다 앞섭니다** — 판을
       // 보고 있는 사람에게 아무 키나는 「닫기」입니다.
       if (this.modals.busy) {
         if (event.key === 'Escape') this.modals.closeTop()
+        return
+      }
+      // 고른 조커를 놓습니다. **판이 없을 때의 ESC 는 「무르기」입니다.**
+      if (event.key === 'Escape' && this.held) {
+        this.held = undefined
+        this.refresh()
         return
       }
       if (this.player.busy) this.player.hurry(this.feel)
@@ -682,7 +723,7 @@ export class Game {
     this.deckLayer.addChild(pile, this.deckLabel)
 
     this.board.addChild(this.deckLayer, this.headline, this.gauge, this.jokerCount,
-      this.consumableCount, this.consumableLayer, this.hint, this.panelFlash)
+      this.consumableCount, this.consumableLayer, this.heldBar, this.hint, this.panelFlash)
   }
 
   /** 조커와 소모품의 빈 자리. **비어 있어도 자리가 보여야 무엇을 모으는 게임인지 압니다.** */
@@ -747,6 +788,8 @@ export class Game {
 
   private act(action: Action): void {
     if (this.player.busy) return
+    // 무엇이 일어나면 가리키던 것이 그대로 있으리라는 보장이 없습니다.
+    this.tooltip.hide()
     const before = this.shown.hand
     const step = apply(this.data, this.state, action)
     this.rewind(step.events, before)
@@ -1851,6 +1894,45 @@ export class Game {
       played: this.playedViews.length, coins: this.coins.busy,
       cleared: this.headline.visible && this.headline.text === '넘겼습니다',
       consumables: state.consumables.length,
+      // **자리가 규칙입니다.** 득점은 낸 카드의 왼쪽부터이고 조커는 슬롯의 왼쪽부터이므로,
+      // 자리를 바꾸는 것이 되는지는 이 두 줄로만 확인할 수 있습니다.
+      handOrder: state.hand.slice(),
+      jokerOrder: state.jokers.map(joker => joker.uid),
+      // **판을 끝까지 두는 도구를 위한 손잡이입니다.** 사람이 보라고 넣은 뜸이 도구에게는
+      // 기다림일 뿐이고, 그 기다림이 실행 시간의 대부분입니다. 옵션의 속도와 같은 값입니다.
+      hurry: (times: number) => { this.player.base = times },
+      // **개발 서버에서만 있습니다.** 자리를 바꾸는 것이 되는지 보려면 조커가 둘 있어야
+      // 하는데, 그것을 사려고 판을 열 판 두는 동안 확인하려던 것과 상관없는 곳에서 도구가
+      // 멈춥니다. 구운 것에는 이 줄이 들어가지 않습니다.
+      ...(import.meta.env.DEV ? {
+        grantJoker: (count: number) => {
+          const rows = this.data.tables.joker.records
+          for (let i = 0; i < count && i < rows.length; i++) {
+            this.state.jokers.push({
+              uid: this.state.nextUid++,
+              jokerId: rows[i].jokerId,
+              edition: 0 as never,
+              sticker: 0 as never,
+              counters: newCounters(),
+              age: 0,
+              disabled: false,
+            })
+          }
+          this.refresh()
+        },
+        grantConsumable: (count: number) => {
+          const rows = this.data.tables.tarot.records
+          for (let i = 0; i < count && i < rows.length; i++) {
+            this.state.consumables.push({
+              uid: this.state.nextUid++,
+              kind: 1 as never,
+              id: rows[i].tarotId,
+              edition: 0 as never,
+            })
+          }
+          this.refresh()
+        },
+      } : {}),
       busy: this.player.busy || !this.score.settled || this.coins.busy,
       // **화면이 주장하는 패입니다.** 도구가 눌러야 하는 것은 지금 그려져 있는 카드입니다.
       hand: this.shown.hand.map(uid => {
@@ -2835,6 +2917,7 @@ export class Game {
 
     const spacing = Math.min(SIZE.cardWidth + 12, 720 / Math.max(1, hand.length))
     const startX = BOARD_X - ((hand.length - 1) * spacing) / 2
+    this.handSpots = { startX, spacing }
 
     hand.forEach((card, index) => {
       let view = this.cards.get(card.uid)
@@ -2844,7 +2927,10 @@ export class Game {
         view = new CardView(card, this.editionLook(card.edition))
         view.eventMode = 'static'
         view.cursor = 'pointer'
-        view.on('pointertap', () => this.toggle(card.uid))
+        // **누르기와 끌기가 한 손가락에 얹힙니다.** 뗄 때까지 움직이지 않았으면 고른
+        // 것이고, 움직였으면 자리를 옮긴 것입니다 — `pointertap` 은 이 둘을 갈라 주지
+        // 않아서 끌고 나서도 골라 버립니다.
+        view.on('pointerdown', () => this.beginDrag('hand', card.uid, view as CardView))
         this.cards.set(card.uid, view)
         this.board.addChild(view)
         // 덱에서 날아옵니다. **곧바로 자리에 있으면 뽑았다는 느낌이 없습니다.**
@@ -2868,6 +2954,8 @@ export class Game {
       const spotX = startX + index * spacing
       const spotY = HAND_Y + offset * offset * 1.1
       const tilt = offset * 2.2
+      // 끌고 있는 카드는 손가락이 자리를 정합니다. 여기서 다시 놓으면 커서에서 떨어집니다.
+      if (this.drag?.kind === 'hand' && this.drag.uid === card.uid && this.drag.moved) return
       // 갓 뽑힌 카드는 **절도 있게** 자리에 붙고, 나머지는 부드럽게 자리를 옮깁니다.
       if (fresh) view.deal(spotX, spotY, tilt)
       else view.place(spotX, spotY, tilt)
@@ -2900,7 +2988,7 @@ export class Game {
         view = new JokerView(joker, look)
         view.eventMode = 'static'
         view.cursor = 'pointer'
-        view.on('pointertap', () => this.act({ t: 'sell_joker', index }))
+        view.on('pointerdown', () => this.beginDrag('joker', joker.uid, view as JokerView))
         this.jokers.set(joker.uid, view)
         this.board.addChild(view)
         // 위에서 내려옵니다. **그리는 자리도 함께 옮깁니다** — 용수철만 옮기면 한
@@ -2912,8 +3000,171 @@ export class Game {
         view.set(joker, look)
       }
 
-      view.place(JOKER_X + index * (SIZE.jokerWidth + 12), JOKER_Y)
+      if (this.drag?.kind === 'joker' && this.drag.uid === joker.uid && this.drag.moved) return
+      const lifted = this.held?.kind === 'joker' && this.held.uid === joker.uid ? 12 : 0
+      view.place(JOKER_X + index * (SIZE.jokerWidth + 12), JOKER_Y - lifted)
     })
+
+    this.syncHeldBar()
+  }
+
+  /**
+   * 끌기를 시작합니다.
+   *
+   * 아직 끄는 것인지 누르는 것인지 모릅니다 — 손가락이 몇 px 움직이고 나서야 갈립니다.
+   */
+  private beginDrag(kind: 'hand' | 'joker', uid: number, view: Container): void {
+    if (this.player.busy || this.modals.busy) return
+    this.drag = {
+      kind, uid, moved: false,
+      startX: this.pointerAt.x, startY: this.pointerAt.y,
+      grabX: this.pointerAt.x - view.x,
+    }
+  }
+
+  /**
+   * 끄는 동안.
+   *
+   * **자리를 바로바로 바꿉니다** — 손을 뗀 뒤에 한 번에 정리하면 어디에 놓이는 것인지
+   * 모르는 채로 끌게 됩니다.
+   */
+  private advanceDrag(): void {
+    const drag = this.drag
+    if (!drag) return
+
+    if (!drag.moved) {
+      const far = Math.abs(this.pointerAt.x - drag.startX) > 6
+        || Math.abs(this.pointerAt.y - drag.startY) > 6
+      if (!far) return
+      drag.moved = true
+      this.audio.play('card_select', -4)
+    }
+
+    const x = this.pointerAt.x - drag.grabX
+    const order = drag.kind === 'hand'
+      ? this.state.hand
+      : this.state.jokers.map(joker => joker.uid)
+    const current = order.indexOf(drag.uid)
+    if (current < 0) return
+
+    const spacing = drag.kind === 'hand'
+      ? this.handSpots.spacing : SIZE.jokerWidth + 12
+    const startX = drag.kind === 'hand' ? this.handSpots.startX : JOKER_X
+    const target = Math.max(0, Math.min(order.length - 1,
+      Math.round((x - startX) / Math.max(1, spacing))))
+
+    if (target !== current) {
+      if (drag.kind === 'hand') {
+        const next = this.state.hand.slice()
+        next.splice(target, 0, ...next.splice(current, 1))
+        this.state.hand = next
+      } else {
+        const next = this.state.jokers.slice()
+        next.splice(target, 0, ...next.splice(current, 1))
+        this.state.jokers = next
+      }
+      this.audio.play('card_select', target * 2)
+      this.refresh()
+    }
+
+    // 끌리는 것은 커서를 따라오고 조금 들립니다. **다른 것들 위에 있어야** 어디로 가는지
+    // 보입니다.
+    const view = drag.kind === 'hand'
+      ? this.cards.get(drag.uid) : this.jokers.get(drag.uid)
+    if (view) {
+      this.board.setChildIndex(view, this.board.children.length - 1)
+      view.place(x, (drag.kind === 'hand' ? HAND_Y : JOKER_Y) - 22, 0)
+    }
+  }
+
+  /** 손을 뗍니다. 움직이지 않았으면 끈 것이 아니라 누른 것입니다. */
+  private endDrag(): void {
+    const drag = this.drag
+    this.drag = undefined
+    if (!drag) return
+
+    if (!drag.moved) {
+      if (drag.kind === 'hand') this.toggle(drag.uid)
+      else this.pick('joker', drag.uid)
+      return
+    }
+    this.audio.play('card_place')
+    this.refresh()
+
+    // **겹치는 차례도 되돌립니다.** 끄는 동안 맨 위로 올렸으므로, 그대로 두면 놓은 카드가
+    // 이웃을 계속 가려 부챗살이 한 장만 어긋나 보입니다.
+    if (drag.kind === 'hand') {
+      for (const uid of this.state.hand) {
+        const view = this.cards.get(uid)
+        if (view) this.board.addChild(view)
+      }
+    } else {
+      for (const joker of this.state.jokers) {
+        const view = this.jokers.get(joker.uid)
+        if (view) this.board.addChild(view)
+      }
+    }
+  }
+
+  /** 조커나 소모품 하나를 고릅니다. 같은 것을 다시 누르면 놓습니다. */
+  private pick(kind: 'joker' | 'consumable', uid: number): void {
+    if (this.player.busy) return
+    this.held = this.held?.kind === kind && this.held.uid === uid
+      ? undefined : { kind, uid }
+    this.audio.play('card_select')
+    this.refresh()
+  }
+
+  /**
+   * 고른 것 밑의 버튼들.
+   *
+   * **고른 자리 바로 밑입니다.** 화면 구석에 두면 무엇에 대한 버튼인지가 끊깁니다.
+   */
+  private syncHeldBar(): void {
+    this.heldBar.removeChildren().forEach(child => child.destroy())
+    const held = this.held
+    if (!held) return
+
+    let anchor = 0
+    const buttons: Button[] = []
+
+    if (held.kind === 'joker') {
+      const index = this.state.jokers.findIndex(joker => joker.uid === held.uid)
+      if (index < 0) {
+        this.held = undefined
+        return
+      }
+      anchor = JOKER_X + index * (SIZE.jokerWidth + 12)
+      const price = sellValueOf(this.data, this.state, this.state.jokers[index])
+      buttons.push(new Button(`판매 $${price}`, 92, 30, 0x7a3f4a, () => {
+        this.held = undefined
+        this.act({ t: 'sell_joker', index })
+      }))
+    } else {
+      const index = this.state.consumables.findIndex(item => item.uid === held.uid)
+      if (index < 0) {
+        this.held = undefined
+        return
+      }
+      anchor = CONSUMABLE_X + index * (SIZE.jokerWidth + 12)
+      buttons.push(new Button('사용', 68, 30, 0x3f5f8a, () => {
+        this.held = undefined
+        this.act({ t: 'use_consumable', index, targets: this.orderedSelection() })
+      }))
+      buttons.push(new Button(`판매 $${this.data.economy.sellMin}`, 92, 30, 0x7a3f4a, () => {
+        this.held = undefined
+        this.act({ t: 'sell_consumable', index })
+      }))
+    }
+
+    const gap = 8
+    const span = buttons.reduce((sum, one) => sum + one.width, 0) + gap * (buttons.length - 1)
+    let x = anchor - span / 2
+    for (const button of buttons) {
+      button.position.set(x, JOKER_Y + SIZE.jokerHeight / 2 + 10)
+      x += button.width + gap
+      this.heldBar.addChild(button)
+    }
   }
 
   private showTooltip(view: JokerView): void {
@@ -2946,12 +3197,10 @@ export class Game {
       tile.hitArea = new Rectangle(0, 0, SIZE.jokerWidth, SIZE.jokerHeight)
       tile.eventMode = 'static'
       tile.cursor = 'pointer'
-      tile.on('pointertap', () => {
-        this.audio.play('shop_buy')
-        this.particles.burst(tile.x + SIZE.jokerWidth / 2, tile.y + SIZE.jokerHeight / 2,
-          14, 0xb9a8ff, 1)
-        this.act({ t: 'use_consumable', index, targets: this.orderedSelection() })
-      })
+      // **누르면 고르는 것입니다.** 쓰는 것과 파는 것은 그 밑에 선 버튼이 합니다 —
+      // 소모품 하나가 판을 바꾸므로, 실수로 눌러 써 버리면 되돌릴 수 없습니다.
+      tile.on('pointertap', () => this.pick('consumable', item.uid))
+      if (this.held?.kind === 'consumable' && this.held.uid === item.uid) tile.y -= 12
       tile.on('pointerover', () => {
         this.tooltip.show(name, '소모품', 0, lines,
           tile.x + SIZE.jokerWidth / 2, tile.y + SIZE.jokerHeight, SIZE)
