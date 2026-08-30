@@ -33,6 +33,9 @@ internal sealed class RustPartView
     /// </summary>
     public IReadOnlyList<string>? Uses { get; set; }
 
+    /// <summary>The declared record type this module is for.</summary>
+    public RustRecordFileView? Record { get; set; }
+
     /// <summary>
     /// Lines for an inner doc comment, for the file whose whole contents are the subject.
     /// Empty for the files whose comment attaches to an item instead.
@@ -403,6 +406,19 @@ internal sealed class RustRecordMemberView
 /// where depth had to be reasoned about in template syntax. Innermost first.
 /// spec/types/nested-multi-level.md.
 /// </remarks>
+/// <summary>One declared record type, and the levels inside it that are its own.</summary>
+/// <remarks>spec/types/declared-struct-identity.md.</remarks>
+internal sealed class RustRecordFileView
+{
+    public required string Name { get; init; }
+
+    public required IReadOnlyList<string> Comment { get; init; }
+
+    public required IReadOnlyList<string> Uses { get; init; }
+
+    public required IReadOnlyList<RustRecordTypeView> Types { get; init; }
+}
+
 internal sealed class RustRecordTypeView
 {
     /// <summary>Name of the struct.</summary>
@@ -413,6 +429,10 @@ internal sealed class RustRecordTypeView
 
     /// <summary>Whether this is the group's own element type rather than a level below it.</summary>
     public required bool IsOutermost { get; set; }
+
+    /// <summary>Whether the type is a declaration's, so it is written once in its own module.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    public bool IsShared { get; set; }
 
     /// <summary>What the struct belongs to, for its doc comment.</summary>
     public required string Owner { get; set; }

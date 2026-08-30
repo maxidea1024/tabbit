@@ -1094,11 +1094,21 @@ public class GoCodeGenerator : CodeGenerator<GoRecipe>
             {
                 var types = new List<GoRecordTypeView>();
 
-                var owner = _model.Tables.FirstOrDefault(table => table.SerialFields.Any(
-                    group => group.DeclaredType == declared.Name))!;
+                // Some context for the builder below, which takes a table and a group
+                // because a nested type inside one names them. A declaration used only as a
+                // member - the value of a `map`, say - is no table's own group, so the first
+                // record group of the model stands in: what it is used for is a doc string
+                // this file overrides and the naming of the container lookups, neither of
+                // which reads the table. spec/types/declared-struct-identity.md.
+                var owner = _model.Tables.FirstOrDefault(
+                                table => table.SerialFields.Any(
+                                    group => group.DeclaredType == declared.Name))
+                            ?? _model.Tables.First(
+                                table => table.SerialFields.Any(group => group.IsRecord));
 
-                var group = owner?.SerialFields.First(
-                    candidate => candidate.DeclaredType == declared.Name)!;
+                var group = owner.SerialFields.FirstOrDefault(
+                                candidate => candidate.DeclaredType == declared.Name)
+                            ?? owner.SerialFields.First(candidate => candidate.IsRecord);
 
                 var members = BuildRecordMembers(
                     declared.Members, declared.Name, owner!, group!, types);

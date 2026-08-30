@@ -257,6 +257,13 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
                 Uses = Uses(new[] { "std::collections::HashMap", "std::path::Path" }, reader: true)
                     .Concat(TypeDependencies.EnumsNamedBy(pair.model).Select(EnumUse))
                     .Concat(PolymorphicUses(pair.model))
+
+                    // And the declarations its groups are typed by, each in a module of its
+                    // own. spec/types/declared-struct-identity.md.
+                    .Concat(pair.model.SerialFields
+                        .Where(group => group.DeclaredType.Length > 0)
+                        .Select(group => $"use crate::{group.DeclaredType};")
+                        .Distinct())
                     .ToList(),
                 Table = pair.rendered,
             });
@@ -288,6 +295,20 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
                 Uses = StructUses(declared).ToList(),
                 Structure = structure,
             });
+        }
+
+        // And the declarations whose value is one shape, beside them for the same reason: the
+        // modules are re-exported side by side, so a type declared per table would be the same
+        // path exported twice. spec/types/declared-struct-identity.md.
+        foreach (var record in BuildRecordFiles())
+        {
+            Write("struct_" + record.Name.ToSnakeCase(), "rust-record.sbn",
+                  new RustPartView
+                  {
+                      AccessorName = AccessorType,
+                      Uses = record.Uses,
+                      Record = record,
+                  });
         }
 
         foreach (var pair in _model.ConstantSets.Zip(view.ConstantSets, (model, rendered) => (model, rendered)))
@@ -448,6 +469,25 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             }
         }
 
+        Section(text, "The declared record types, one module each.",
+                _model.RecordTypes.Count > 0);
+
+        // Re-exported the way an abstract type is, and for the same reason: the declaration is
+        // the type, and the module it lives in stays an implementation detail.
+        // spec/types/declared-struct-identity.md.
+        foreach (var record in BuildRecordFiles())
+        {
+            string module = "struct_" + record.Name.ToSnakeCase();
+
+            text.Append("mod ").Append(module).Append(";\n");
+
+            foreach (var type in record.Types)
+            {
+                text.Append("pub use ").Append(module).Append("::").Append(type.TypeName)
+                    .Append(";\n");
+            }
+        }
+
         Section(text, "The constant sets, each keeping the module path it always had.",
                 view.ConstantSets.Count > 0);
 
@@ -467,8 +507,14 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
             // `record.slot[0]` is without following the module it was declared in. An array
             // of arrays declares none - its outer level has no name - so there is nothing to
             // re-export and naming one here would be an import of a type that does not exist.
-            foreach (var field in pair.rendered.Fields.Where(f => f.IsRecord && !f.MembersAreAnonymous))
-                text.Append(", ").Append(field.RecordTypeName);
+            // A shared type is exported from its own module, so naming it here would export
+            // one path twice. spec/types/declared-struct-identity.md.
+            foreach (var group in pair.model.SerialFields
+                         .Where(sf => sf.IsRecord && !sf.MembersAreAnonymous
+                                      && sf.DeclaredType.Length == 0))
+            {
+                text.Append(", ").Append(RecordTypeName(pair.model, group));
+            }
 
             text.Append("};\n");
         }
@@ -930,9 +976,13 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// line: the struct derives `Default`, so there is nothing to fill for it.
     /// spec/types/nested-multi-level.md.
     /// </remarks>
+    /// <param name="inShared">
+    /// Whether these members sit inside a type a declaration owns. Everything below such a
+    /// level is written where that type is. spec/types/declared-struct-identity.md.
+    /// </param>
     private List<RustRecordMemberView> BuildRecordMembers(
         List<RecordMember> members, string prefix, Table table, SerialField group,
-        List<RustRecordTypeView> declared)
+        List<RustRecordTypeView> declared, bool inShared = false)
     {
         var result = new List<RustRecordMemberView>();
 
@@ -979,12 +1029,19 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
 
             // A level below. The type name carries the path so two records each holding a
             // `Position` do not name one struct twice.
-            string typeName = prefix + member.Name.ToPascalCase();
-            var nested = BuildRecordMembers(member.Members, typeName, table, group, declared);
+            string typeName = member.DeclaredType.Length > 0
+                ? member.DeclaredType
+                : prefix + member.Name.ToPascalCase();
+
+            bool nestedIsShared = inShared || member.DeclaredType.Length > 0;
+
+            var nested = BuildRecordMembers(
+                member.Members, typeName, table, group, declared, nestedIsShared);
 
             declared.Add(new RustRecordTypeView
             {
                 TypeName = typeName,
+                IsShared = nestedIsShared,
                 Members = nested,
                 IsOutermost = false,
                 Owner = $"{table.Name.ToPascalCase()}Record::{RustName(group.Name)}",
@@ -1075,11 +1132,15 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
 
         // Innermost first, so a struct is declared before the one naming it.
         var recordTypes = new List<RustRecordTypeView>();
-        var members = BuildRecordMembers(sf.Members, elementType, table, sf, recordTypes);
+
+        var members = BuildRecordMembers(
+            sf.Members, elementType, table, sf, recordTypes,
+            inShared: sf.DeclaredType.Length > 0);
 
         recordTypes.Add(new RustRecordTypeView
         {
             TypeName = elementType,
+            IsShared = sf.DeclaredType.Length > 0,
             Members = members,
             IsOutermost = true,
             Lookups = LookupLines(sf.Members, sf.Container, sf),
@@ -1196,8 +1257,104 @@ public class RustCodeGenerator : CodeGenerator<RustRecipe>
     /// The generated modules are re-exported side by side from lib.rs, so two tables each
     /// holding a `Slot` group would be the same path exported twice.
     /// </remarks>
+    /// <summary>Every declaration named below these members, at any depth.</summary>
+    private static IEnumerable<string> NestedDeclarations(IEnumerable<RecordMember> members)
+    {
+        foreach (var member in members)
+        {
+            if (member.DeclaredType.Length > 0)
+                yield return member.DeclaredType;
+
+            foreach (string deeper in NestedDeclarations(member.Members))
+                yield return deeper;
+        }
+    }
+
+    /// <summary>The declared record types, each with the levels inside it that are its own.</summary>
+    /// <remarks>spec/types/declared-struct-identity.md.</remarks>
+    private IReadOnlyList<RustRecordFileView> BuildRecordFiles()
+        => _model.RecordTypes
+            .Select(declared =>
+            {
+                var types = new List<RustRecordTypeView>();
+
+                // Some context for the builder below, which takes a table and a group
+                // because a nested type inside one names them. A declaration used only as a
+                // member - the value of a `map`, say - is no table's own group, so the first
+                // record group of the model stands in: what it is used for is a doc string
+                // this file overrides and the naming of the container lookups, neither of
+                // which reads the table. spec/types/declared-struct-identity.md.
+                var owner = _model.Tables.FirstOrDefault(
+                                table => table.SerialFields.Any(
+                                    group => group.DeclaredType == declared.Name))
+                            ?? _model.Tables.First(
+                                table => table.SerialFields.Any(group => group.IsRecord));
+
+                var group = owner.SerialFields.FirstOrDefault(
+                                candidate => candidate.DeclaredType == declared.Name)
+                            ?? owner.SerialFields.First(candidate => candidate.IsRecord);
+
+                var members = BuildRecordMembers(
+                    declared.Members, declared.Name, owner, group, types);
+
+                types.Add(new RustRecordTypeView
+                {
+                    TypeName = declared.Name,
+                    IsShared = true,
+                    Members = members,
+                    IsOutermost = true,
+                    Lookups = LookupLines(declared.Members, Models.ContainerKind.None, group),
+                    Owner = declared.Name,
+                });
+
+                return new RustRecordFileView
+                {
+                    Name = declared.Name,
+                    Comment = CommentLines(declared.Comment),
+                    Uses = RecordUses(declared).ToList(),
+                    Types = types.Where(type => type.TypeName == declared.Name
+                                                || !type.IsShared).ToList(),
+                };
+            })
+            .ToList();
+
+    /// <summary>What a declared record type's module has to bring in.</summary>
+    /// <remarks>
+    /// The enums its members are typed with, the rows its references point at, and the other
+    /// declarations it holds - a member whose value is a declared struct lives in a module of
+    /// its own. spec/types/declared-struct-identity.md.
+    /// </remarks>
+    private IEnumerable<string> RecordUses(Models.RecordType declared)
+    {
+        var lines = new List<string>();
+
+        foreach (string nested in NestedDeclarations(declared.Members))
+            Add($"use crate::{nested};");
+
+        foreach (var field in declared.Members.SelectMany(member => member.AllFields))
+        {
+            if (field.ElementType == ValueType.Enum)
+                Add($"use crate::{field.Enum.Name};");
+            else if (field.ElementType == ValueType.ForeignRecord
+                     && field.ResolvedRefTable is { } refTable)
+            {
+                Add($"use crate::{refTable.Name.ToPascalCase()}Record;");
+            }
+        }
+
+        return lines;
+
+        void Add(string line)
+        {
+            if (!lines.Contains(line))
+                lines.Add(line);
+        }
+    }
+
     private static string RecordTypeName(Table table, SerialField sf)
-        => table.Name.ToPascalCase() + sf.Name.ToPascalCase() + "Entry";
+        => sf.DeclaredType.Length > 0
+            ? sf.DeclaredType
+            : table.Name.ToPascalCase() + sf.Name.ToPascalCase() + "Entry";
 
     /// <summary>
     /// The member a nullable column's presence lands in.

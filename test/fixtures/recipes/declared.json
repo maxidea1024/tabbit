@@ -36,6 +36,11 @@
       "Indented": true
     },
     {
+      "Type": "rust",
+      "Path": "test/fixtures/output/declared/rust",
+      "CrateName": "declared_data"
+    },
+    {
       "Type": "go",
       "Path": "test/fixtures/output/declared/go",
       "PackageName": "declareddata",
