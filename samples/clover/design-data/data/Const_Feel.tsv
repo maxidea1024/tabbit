@@ -18,6 +18,6 @@
 	ChromaticMaxPx	int	5	색수차의 최대 폭
 	CardHoverLiftPx	int	12	카드에 마우스를 올렸을 때 떠오르는 높이
 	CardHoverTiltDeg	int	6	그때의 기울기
-	DrawStaggerMs	int	70	카드를 뽑을 때 장마다의 간격
+	DrawStaggerMs	int	130	카드를 뽑을 때 장마다의 간격
 	PlayStaggerMs	int	90	낸 카드가 판으로 올라갈 때 장마다의 간격
 	PlayLandMs	int	260	마지막 장이 자리에 붙고 득점이 시작되기까지

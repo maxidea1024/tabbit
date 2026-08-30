@@ -64,7 +64,7 @@ export class FeelConst {
   public static readonly cardHoverTiltDeg: number = 6
 
   /** 카드를 뽑을 때 장마다의 간격 */
-  public static readonly drawStaggerMs: number = 70
+  public static readonly drawStaggerMs: number = 130
 
   /** 낸 카드가 판으로 올라갈 때 장마다의 간격 */
   public static readonly playStaggerMs: number = 90

@@ -37,11 +37,19 @@ npm run dist:linux        # AppImage
 npx electron . --shot ../design-data/out/shot/17-desktop.png
 ```
 
+**묶은 실행 파일은 환경 변수로 받습니다.** 크로미움이 모르는 `--` 스위치를 우리 코드가 돌기
+전에 거절하므로, 인자만으로는 묶은 것을 확인할 길이 없습니다.
+
+```
+$env:CLOVER_SHOT = "../design-data/out/shot/17-desktop.png"
+./out/win-unpacked/clover.exe
+```
+
 세 장이 나옵니다 — 창, 전체 화면, 전체 화면에서 돌아온 뒤. **셋을 다 찍는 이유가 있습니다.**
 창 크기가 바뀔 때 배치가 어긋나는 결함이 있었고, 한 장만 찍으면 그것이 드러나지 않습니다.
 콘솔에 오류가 하나라도 있으면 1로 끝냅니다.
 
-`--seed CLOVER-0001` 로 시드를 정할 수 있습니다. 같은 시드는 같은 판이므로 대조할 때 씁니다.
+`--seed CLOVER-0001`(묶은 것은 `CLOVER_SEED`)로 시드를 정할 수 있습니다. 같은 시드는 같은 판이므로 대조할 때 씁니다.
 
 ## 조작
 

@@ -12,9 +12,15 @@ const fs = require('node:fs')
 const path = require('node:path')
 const { pathToFileURL } = require('node:url')
 
-/** 웹 빌드가 있는 곳. 패키징하면 `resources/app/dist` 가 됩니다. */
+/**
+ * 웹 빌드가 있는 곳. 묶으면 `resources/web` 이 됩니다.
+ *
+ * **`resources/app` 에 두면 안 됩니다.** 일렉트론은 그 이름의 폴더를 앱 자체로 보고
+ * `app.asar` 보다 먼저 집으며, 그 안에 `package.json` 이 없으므로 창도 뜨지 않고
+ * 조용히 0으로 끝납니다.
+ */
 const ROOT = app.isPackaged
-  ? path.join(process.resourcesPath, 'app', 'dist')
+  ? path.join(process.resourcesPath, 'web')
   : path.join(__dirname, '..', 'web', 'dist')
 
 const SCHEME = 'clover'
@@ -36,6 +42,10 @@ protocol.registerSchemesAsPrivileged([{
  *     electron . --shot ../design-data/out/shot/17-desktop.png
  */
 function shotPathFromArgv(argv) {
+  // **묶은 실행 파일에서는 환경 변수로 받습니다.** 크로미움이 모르는 `--` 스위치를 우리
+  // 코드가 돌기 전에 거절하므로, 묶은 것을 확인할 길이 인자만으로는 없습니다.
+  if (process.env.CLOVER_SHOT) return process.env.CLOVER_SHOT
+
   const at = argv.findIndex(arg => arg === '--shot')
   if (at >= 0 && at + 1 < argv.length) return argv[at + 1]
   const inline = argv.find(arg => arg.startsWith('--shot='))
@@ -44,6 +54,8 @@ function shotPathFromArgv(argv) {
 
 /** 주소에서 시드를 받습니다. 같은 시드는 같은 판이므로 대조할 때 씁니다. */
 function seedFromArgv(argv) {
+  if (process.env.CLOVER_SEED) return process.env.CLOVER_SEED
+
   const at = argv.findIndex(arg => arg === '--seed')
   if (at >= 0 && at + 1 < argv.length) return argv[at + 1]
   const inline = argv.find(arg => arg.startsWith('--seed='))

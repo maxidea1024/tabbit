@@ -123,7 +123,7 @@ namespace Clover.Data
             ChromaticMaxPx = 5;
             CardHoverLiftPx = 12;
             CardHoverTiltDeg = 6;
-            DrawStaggerMs = 70;
+            DrawStaggerMs = 130;
             PlayStaggerMs = 90;
             PlayLandMs = 260;
         }
