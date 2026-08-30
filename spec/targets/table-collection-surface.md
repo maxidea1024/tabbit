@@ -262,7 +262,7 @@ public (int Key, Record Row) Current => (_rows[_at].Index, _rows[_at]);
 
 #### 주 키의 판정
 
-`KeyPlan.IsPrimary`가 답합니다. 생성기 10개는 `KeyPlans.Of(table)`를 순회하므로 그 값을
+`KeyPlan.IsPrimary`가 정합니다. 생성기 10개는 `KeyPlans.Of(table)`를 순회하므로 그 값을
 인덱스 뷰에 그대로 싣고, C#과 TypeScript는 `SerialFields`를 직접 거르므로
 `KeyPlans.PrimarySingleName(table)`과 컬럼 이름을 대조합니다. 어느 쪽이든 **판정은 한 곳에
 있고**, 「단일 컬럼인가」와 「주 키인가」를 생성기마다 다시 계산하지 않습니다.

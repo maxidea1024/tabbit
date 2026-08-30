@@ -79,7 +79,7 @@ as a plain `string` and look the row up through `Animation`'s own index.
 
 - **형식 버전이 올라가지 않습니다.** 새 element 코드가 필요 없습니다 — `ElementString`·`ElementI64`는
   이미 있고, 참조 컬럼이 그중 맞는 것을 고르게 되는 것뿐입니다.
-- **리더도 그대로입니다.** 리더는 파일이 선언한 element를 읽지 참조인지를 묻지 않습니다.
+- **리더도 그대로입니다.** 리더는 파일이 선언한 element를 읽지 참조인지를 가리지 않습니다.
 - **골든이 판정합니다.** 한 바이트라도 움직이면 그것은 이 개정이 검출한 것이 아니라 **부작용**이고
   diff를 봐야 합니다.
 

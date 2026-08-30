@@ -48,7 +48,7 @@ var buff = context.Tables.WorldBuff.FindByIndex(row.BuffId);
 |`context.Tables.Itme`이나 `row.MaxStak`은 실행 중의 드러나지 않는 미스가 아니라 **파일·줄 번호가 찍힌 컴파일 오류**입니다|
 |`row.Price`는 `int`, `row.GradeField`는 생성된 enum입니다|
 |**참조가 해석되어 있습니다** — 리더가 연결 단계를 수행하므로 `row.ItemCategoryByCategoryId.Name`처럼 따라갑니다|
-|자동 완성이 무엇이 있는지 알려줍니다. 테이블 275개의 컬럼을 기억할 필요가 없습니다|
+|자동 완성에 무엇이 있는지 나옵니다. 테이블 275개의 컬럼을 기억할 필요가 없습니다|
 
 이것이 가능한 이유는 검증이 프로젝트의 C#을 실제로 생성해서 컴파일하기 때문입니다.
 
@@ -180,7 +180,7 @@ var policy = context.Json(context.Option("ContentRoot") + "/policy.json");
 
 `FileMap`은 `Has(name)`, `PathOf(name)`, `Names`, `Count`를 냅니다.
 
-폴더와 패턴마다 한 번 스캔해서 실행 내내 공유하므로, 행마다 물어도 스캔은 한 번입니다.
+폴더와 패턴마다 한 번 스캔해서 실행 내내 공유하므로, 행마다 조회해도 스캔은 한 번입니다.
 
 에셋이 있는지는 이 도구가 판정하는 것이 아닙니다. 코어는 `.uasset`이 무엇인지 모릅니다.
 

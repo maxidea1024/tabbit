@@ -130,7 +130,7 @@ id를 움직인 것도 끝났으므로, 기다릴 것이 남아 있지 않습니
 |**참조의 「없음」**|전에도 거부됐지만 자리가 값 파서라 메시지가 「`Int32`로 파싱할 수 없습니다」였습니다 ([설계](../spec/references/reference-optionality.md))|
 |**`foreign[]`**|한 셀에 구분자로 이어 적으면 원소마다 행 하나로. **생성기는 한 줄도 안 바뀌었습니다** ([설계 §4](../spec/types/polymorphism.md))|
 |**다중 대상 참조**|**되돌렸습니다** — 셀렉터는 공통 분모가 없어 돌려줄 타입이 없습니다. 대신 대상별 접근자·판별자·대상 무관 슬롯 셋을 냅니다 ([설계](../spec/references/reference-surface-naming.md))|
-|**STRUCT DSL의 `set`·`map`**|`set<T>`·`map<K,V>`. **형식 무변경** — set은 배열 컬럼 하나, map은 길이가 같은 둘입니다. 모든 언어에 배열과 조회 두 겹으로. **조회를 순회한 순서는 보장하지 않고 배열이 답합니다** ([설계](../spec/types/set-and-map.md) · [쓰는 법](sheets/containers.md))|
+|**STRUCT DSL의 `set`·`map`**|`set<T>`·`map<K,V>`. **형식 무변경** — set은 배열 컬럼 하나, map은 길이가 같은 둘입니다. 모든 언어에 배열과 조회 두 겹으로. **조회를 순회한 순서는 보장하지 않고 배열이 정합니다** ([설계](../spec/types/set-and-map.md) · [쓰는 법](sheets/containers.md))|
 |**STRUCT DSL 1~5단계**|임베딩 오브젝트와 enum을 시트 밖 `.tbs`에서 선언. 형식 무변경 ([설계](../notes/struct-dsl-design.md))|
 |**struct 다형성**|`abstract struct`·`extends`·`$type`. 형식 무변경 — v103이 이미 실을 수 있던 형태였습니다 ([설계](../spec/types/polymorphism.md))|
 |**값 임베딩 다형의 와이어 측정**|**형식 개정이 필요 없습니다.** 변종 개수보다 **행의 순서**가 크게 작용해, 다형 그룹을 가진 테이블은 판별자로 정렬합니다 ([실측](../spec/types/polymorphism/wire.md#61-실측--형식의-수용과-행-순서의-비용))|
@@ -138,7 +138,7 @@ id를 움직인 것도 끝났으므로, 기다릴 것이 남아 있지 않습니
 |**행 태그와 메타 태그**|마커 열의 낱말이 그 행의 태그가 되고, 레시피의 `ExcludeTags`가 부르면 그 행이 빠집니다. **빠진 행은 시트에 없던 행**이라 그 아래는 특별 처리가 없습니다. 선언과 컬럼의 `tag=`는 담기까지 ([설계](../spec/layout/tags.md))|
 |**배열 상수**|표기는 받아들여지고 있었는데 **어느 생성기도 내지 못했습니다** ([표기](../spec/layout/primary-layout/entities.md#85-상수셋))|
 |**비트폭 패킹 (v105)**|인코딩 13 `BITPACK`과 presence 비트맵의 인코딩, 모든 런타임 ([설계](../spec/wire/tcb-v105-bit-width-packing.md))|
-|**동적 배열 단일화 (v107)**|배열은 한 종류가 되었고 길이는 언제나 로우가 말합니다 ([설계](../spec/wire/tcb-v107-dynamic-arrays.md))|
+|**동적 배열 단일화 (v107)**|배열은 한 종류가 되었고 길이는 언제나 로우가 정합니다 ([설계](../spec/wire/tcb-v107-dynamic-arrays.md))|
 |**`.tcb` v104**|컬럼 인코딩 9종 → 13종, 파일 암호화(ChaCha20). 크기는 [벤치마크](benchmark.md#데이터셋에-따른-차이)에 ([설계](../spec/wire/tcb-v104-composed-encodings.md))|
 |**변조 검출(MAC)과 파일 시그니처**|모든 런타임과 **게이트도 전부**. 버전은 105 그대로입니다 ([설계](../spec/wire/tcb-mac-and-signature.md))|
 |**큰 워크북의 메모리**|객체 모델을 걷어내고 스트리밍으로. peak이 GB 대에서 **2,757 MB**로 ([설계와 실측](../spec/import/streaming-workbook-reader.md))|

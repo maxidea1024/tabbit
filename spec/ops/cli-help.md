@@ -58,7 +58,7 @@ Copyright (C) 2026 Tabbit
 |짧은 스위치가 `-r` 하나입니다|44개 중 1개|
 |`--help`가 종료 코드 1|`--version`도, 인자 없는 실행도 전부 1. `tabbit --help && echo ok`가 실패합니다|
 |백틱이 그대로 보입니다|`` `client` `` — 터미널은 마크다운을 렌더하지 않습니다|
-|`--keep`만 기본값을 두 번 말합니다|`(Default: 100) Most recent snapshots to leave alone. 100 by default.`|
+|`--keep`만 기본값을 두 번 적습니다|`(Default: 100) Most recent snapshots to leave alone. 100 by default.`|
 |`--verbose`·`--silent`·`--debug`만 어체가 다릅니다|`Sets whether to output debugging log messages.` — 설명이 아니라 프로퍼티 서술입니다. `all logging message`는 오타입니다|
 |`--debug`가 문서와 다른 말을 합니다|help는 `internal debugging`, [doc/cli.md](../../doc/cli.md)는 「콜스택까지 출력」|
 

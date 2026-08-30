@@ -50,7 +50,7 @@ struct NoEffect extends Effect @3
 [effect.tbs](../../test/fixtures/schemas/doc-showcase/effect.tbs)
 
 시트에는 **모든 변형의 멤버를 나란히** 둡니다. `$type` 칸이 그 행이 어느
-모양인지 말하고, **그 행의 모양이 아닌 칸은 빈 칸**입니다 — `-` 가 아닙니다. 없는 값이 아니라
+모양인지 정하고, **그 행의 모양이 아닌 칸은 빈 칸**입니다 — `-` 가 아닙니다. 없는 값이 아니라
 그 변형이 가지지 않은 멤버이기 때문입니다.
 
 ![테이블 Skill](../figures/showcase-skill.svg)
@@ -834,7 +834,7 @@ struct DOCSHOWCASE_API FSkillRow
 </details>
 <!-- /tabbit:tabs -->
 
-**생성된 코드는 변형마다 타입 하나를 냅니다.** 어느 모양인지 묻는 방법과
+**생성된 코드는 변형마다 타입 하나를 냅니다.** 어느 모양인지 확인하는 방법과
 그 모양으로 받는 방법이 함께 나오고, 그 방법은 언어마다 다릅니다 — 상속이 있는 언어는 상속으로,
 합 타입이 있는 언어는 그것으로 냅니다.
 

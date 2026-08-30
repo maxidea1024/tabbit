@@ -90,7 +90,7 @@ recipe의 `Validation.Options`에 넣거나, 없어도 되는 값이면 `Option(
 ### 브라우저가 열리고 인증을 요구함
 
 첫 실행에는 OAuth 동의가 필요합니다. 토큰은 홈 디렉터리 아래
-`.credentials/sheets.googleapis.com-tabbit`에 저장되므로 다음부터는 묻지 않습니다.
+`.credentials/sheets.googleapis.com-tabbit`에 저장되므로 다음부터는 동의 화면이 뜨지 않습니다.
 
 ### `Recipe '...' names client secret file ...`
 

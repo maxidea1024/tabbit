@@ -43,7 +43,7 @@ snake_case로 바꾸면 같아지는 `ItemType`과 `Item_Type`. 시트에서 하
 
 값 타입을 새로 추가했는데 그 언어에 가르치지 않았습니다. 추가해야 할 곳은 `LanguageProfile`의
 표와, 필요하면 그 제너레이터의 enum·참조 처리입니다. `LanguageProfileTests`가 어느 언어의
-무엇이 빠졌는지 이름으로 알려줍니다.
+무엇이 빠졌는지 이름과 함께 보고합니다.
 
 ---
 

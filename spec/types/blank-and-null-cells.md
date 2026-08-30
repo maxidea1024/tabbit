@@ -105,7 +105,7 @@ Write one, or type the column `int?` so that a row may say it has none.
 ```
 
 **판정하는 자리는 검증입니다.** 읽는 쪽은 `-`를 없음으로 읽어 `HasValue`를 거짓으로 두고,
-그것이 허용되는지는 컬럼의 선언을 보는 검증이 답합니다 —
+그것이 허용되는지는 컬럼의 선언을 보는 검증이 판정합니다 —
 [참조의 「없음」](../references/reference-optionality.md)이
 같은 이유로 옮겨 둔 자리이고, 그래야 워크북 전체의 위반이 한 번에 보고됩니다.
 
@@ -254,7 +254,7 @@ Write one, or type the column `int?` so that a row may say it has none.
 
 **표기 자체는 옵션으로 켜지 않습니다.** 이 변경의 내용이 「한 표기가 한 가지만 뜻하게 하는
 것」인데, `-`를 읽을지 말지를 recipe가 정하면 표기의 뜻이 워크북마다 갈립니다. 4절의
-`OnBlankCell`은 그것과 다른 질문에 답합니다 — 빈 칸이 오류인지 0인지이지, `-`가 없음인지가
+`OnBlankCell`이 정하는 것은 그것과 다릅니다 — 빈 칸이 오류인지 0인지이지, `-`가 없음인지가
 아닙니다.
 
 **대신 한 릴리스 동안 경고합니다.** 조용히 바뀌는 것은 `string?` · `bool?` · `T[]?` 컬럼의 빈

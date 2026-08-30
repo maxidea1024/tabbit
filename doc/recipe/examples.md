@@ -231,7 +231,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe test/reserved-words/reserved-
 ```json
 {
   // 한 셀 안에 여러 값을 적을 때의 구분자 — 배열의 원소, set·map 셀의 항목.
-  // 타입이 자기 구분자를 말하면(구조체의 :sep) 그쪽이 우선하므로 이것은 기본값입니다.
+  // 타입에 자기 구분자가 적혀 있으면(구조체의 :sep) 그쪽이 우선하므로 이것은 기본값입니다.
   // 쉼표가 기본이 아닌 이유는 문장과 숫자 표기에 너무 흔하기 때문입니다.
   "DefaultDelimiter": ";",
 
@@ -266,7 +266,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe test/reserved-words/reserved-
         "Layout": "tabbit",
 
         // 읽을 워크북 목록. 비우면 Path 아래 전부. 상대 경로·파일명·확장자를 뗀 이름
-        // 중 무엇으로 적어도 되고, 여기 적었는데 없는 워크북은 오류로 알려줍니다.
+        // 중 무엇으로 적어도 되고, 여기 적었는데 없는 워크북은 오류로 보고합니다.
         "IncludeWorkbooks": [],
 
         // 제외할 워크북. IncludeWorkbooks 다음에 적용되고, 제외된 워크북은 열지도
@@ -275,7 +275,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe test/reserved-words/reserved-
 
         // 읽을 시트 목록. 비우면 전부. 배열로도, `;`로 이은 문자열로도 쓸 수 있습니다.
         // `*` `?` 와일드카드가 파일 글롭과 같게 동작하고, 여기 적었는데 없는 시트는
-        // 말없이 빠지는 대신 오류로 알려줍니다.
+        // 조용히 빠지는 대신 오류로 보고합니다.
         "IncludeSheets": [],
 
         // 제외할 시트. IncludeSheets 다음에 적용됩니다. `[워크북]시트`로 적으면 그

@@ -30,7 +30,7 @@
 
 |메서드|답|
 |--|--|
-|`initialize` · `initialized` · `shutdown` · `exit`|수명주기. `initialize` 가 아래 capabilities를 답합니다|
+|`initialize` · `initialized` · `shutdown` · `exit`|수명주기. `initialize` 가 아래 capabilities를 냅니다|
 |`textDocument/didOpen` · `didChange` · `didClose` · `didSave`|문서 동기화|
 |`textDocument/publishDiagnostics`|서버가 보내는 알림|
 |`textDocument/definition`|§5|
@@ -42,7 +42,7 @@
 capabilities는 `textDocumentSync: 1`(Full) · `definitionProvider` · `hoverProvider` ·
 `completionProvider` · `semanticTokensProvider` 입니다.
 
-**그 밖의 요청에는 `MethodNotFound` 를 답하고, 그 밖의 알림은 버립니다.** 알림에 오류를 답하는
+**그 밖의 요청에는 `MethodNotFound` 를 내고, 그 밖의 알림은 버립니다.** 알림에 오류를 내는
 것은 프로토콜 위반이므로 둘을 나누어 처리합니다. `$/` 로 시작하는 것은 규격이 무시를 허용하므로
 그대로 버립니다.
 
@@ -53,14 +53,14 @@ capabilities는 `textDocumentSync: 1`(Full) · `definitionProvider` · `hoverPro
 
 경계는 코드에 이미 그어져 있습니다.
 
-|호출|무엇을 답하는가|서버가 부르는가|
+|호출|무엇을 내는가|서버가 부르는가|
 |--|--|--|
 |`SchemaParser.Parse`|문법|**부릅니다**|
 |`SchemaDeclarations` 의 수집과 `LinkVariants`|중복 이름 · `extends` 해석 · 판별자 충돌 · 부분 번호 · 툼스톤 예약|**부릅니다**|
 |`SchemaDeclarations.Resolve`|테이블 이름 충돌 · 시트 enum 참조 거부 · 빈 변종 집합|**부르지 않습니다** — 시트가 있어야 답할 수 있습니다|
 
 그래서 **`foreign` 뒤의 테이블 이름은 이동도 호버도 되지 않습니다.** 그 이름이 무엇인지는
-워크북이 답하는 것이고, 서버가 추측하면 틀린 답을 냅니다. 색은 칠합니다 — 색칠은 그 이름이
+워크북이 정하는 것이고, 서버가 추측하면 틀린 값을 냅니다. 색은 칠합니다 — 색칠은 그 이름이
 무엇인지 몰라도 됩니다.
 
 ## 4. 문서와 해석 단위
@@ -168,7 +168,7 @@ capabilities는 `textDocumentSync: 1`(Full) · `definitionProvider` · `hoverPro
 ## 8. 시맨틱 토큰
 
 **정규식이 갈라내지 못하는 것을 선언 표가 갈라냅니다.** TextMate 문법은 타입 자리의 낱말 하나를
-볼 뿐, 그것이 struct인지 enum인지 이름을 잘못 적은 것인지 말하지 못합니다.
+볼 뿐, 그것이 struct인지 enum인지 이름을 잘못 적은 것인지 가리지 못합니다.
 
 |이름|토큰 종류|
 |--|--|
@@ -211,7 +211,7 @@ capabilities는 `textDocumentSync: 1`(Full) · `definitionProvider` · `hoverPro
 
 ## 11. 문법 파일의 어긋남
 
-**정본은 `Models.ScalarTypes` 와 `Models.CompositeTypes` 입니다.** 서버는 두 표에 묻습니다 —
+**정본은 `Models.ScalarTypes` 와 `Models.CompositeTypes` 입니다.** 서버는 두 표를 조회합니다 —
 자동완성이 내놓는 이름도, 시맨틱 토큰이 「내장 타입」으로 세는 이름도 거기서 나오므로 타입을
 추가하면 서버는 저절로 따라옵니다.
 

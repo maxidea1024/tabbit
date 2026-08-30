@@ -18,7 +18,7 @@
 
 ### `... has no ':field' row. It is the one header row that cannot be left out`
 
-생략할 수 없는 유일한 헤더 행입니다. 컬럼이 무엇인지 말하는 것이 그 행뿐입니다.
+생략할 수 없는 유일한 헤더 행입니다. 컬럼이 무엇인지 적히는 자리가 그 행뿐입니다.
 
 ### `... has no ':type' row. Every field column states its type`
 

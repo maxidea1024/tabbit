@@ -80,7 +80,7 @@ CDN이나 버킷에 올려둔 데이터를 받아 로컬 사본을 최신으로 
 **확장은 필요 없고, 설정 하나를 봅니다.** 전송은 PHP의 HTTP 스트림 래퍼라 `allow_url_fopen`이
 켜져 있어야 합니다(기본값 On). `ext-curl`을 쓰지 않은 이유는 그쪽이 항상 컴파일되어 있지 않기
 때문입니다 — 처음엔 curl로 썼고, 게이트를 돌린 인터프리터가
-`Call to undefined function curl_init()`로 답했습니다.
+`Call to undefined function curl_init()`가 나왔습니다.
 
 ```php
 require_once __DIR__ . '/gamedata/tabbit/TabbitUpdater.php';
