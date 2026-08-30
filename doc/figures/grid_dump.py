@@ -24,7 +24,7 @@ NS_MAIN = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
 NS_REL_DOC = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
 NS_REL_PKG = "{http://schemas.openxmlformats.org/package/2006/relationships}"
 
-KINDS = ("table", "enum", "const")
+KINDS = ("table", "enum", "const", "matrix")
 
 
 # -- 워크북 읽기.
@@ -186,9 +186,16 @@ def extract(grid, row, col):
     if field_row is None:
         raise ValueError("(%d, %d) 의 선언 아래에 `:field` 줄이 없습니다." % (row, col))
 
+    # 오른쪽 끝을 정하는 줄. 보통은 `:field` 이지만 **격자는 `:col` 입니다** - 격자의
+    # `:field` 줄은 행 축과 격자 두 칸으로 끝나고, 열 축의 키가 늘어선 것은 `:col` 줄입니다.
+    # spec/layout/matrix-declaration.md 2절.
+    col_row = next(
+        (h for h in header_rows if grid[(h, col)].strip().lower() == ":col"), None)
+    width_row = col_row if col_row is not None else field_row
+
     right = col
     c = col + 1
-    while (field_row, c) in grid and not grid[(field_row, c)].strip().startswith(":"):
+    while (width_row, c) in grid and not grid[(width_row, c)].strip().startswith(":"):
         right = c
         c += 1
 
@@ -262,6 +269,9 @@ WANTED = [
     ("core-item-category", "test/fixtures/xlsx/core/core.xlsx", "Refs", "ItemCategory"),
     ("core-item", "test/fixtures/xlsx/core/core.xlsx", "Refs", "Item"),
     ("core-grade", "test/fixtures/xlsx/core/core.xlsx", None, "Grade"),
+
+    # 격자. `core` 에는 없어서 매트릭스 픽스처에서 뜹니다.
+    ("matrix-town-price", "test/fixtures/xlsx/matrix/matrix.xlsx", "Grids", "TownPrice"),
 
     # 생성 코드와 나란히 놓는 것들. `generated-code.md` 의 왼쪽입니다.
     ("showcase-rarity", SHOWCASE, "Basics", "Rarity"),

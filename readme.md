@@ -4,13 +4,13 @@
 
 # Tabbit
 
-**Game Data Compiler** — 엑셀과 구글 스프레드시트에 적은 게임 데이터를 검증하고, 런타임이 그대로
-싣는 데이터와 그것을 읽는 코드로 빌드합니다.
-
 [![.NET](https://github.com/maxidea1024/tabbit/actions/workflows/dotnet.yml/badge.svg)](https://github.com/maxidea1024/tabbit/actions/workflows/dotnet.yml)
 [![Docs](https://github.com/maxidea1024/tabbit/actions/workflows/docs.yml/badge.svg)](https://maxidea1024.github.io/tabbit/)
 [![release](https://img.shields.io/github/v/release/maxidea1024/tabbit?sort=semver)](https://github.com/maxidea1024/tabbit/releases)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+**Game Data Compiler** — 엑셀과 구글 스프레드시트에 적은 게임 데이터를 검증하고, 런타임이 그대로
+싣는 데이터와 그것을 읽는 코드로 빌드합니다.
 
 엑셀을 읽어 게임 데이터로 만드는 스크립트는 어렵지 않습니다. 아마 이미 있을 것입니다.
 

@@ -162,7 +162,7 @@ recipe의 산출물은 이 설정이 없던 때와 같습니다.
 ```jsonc
 "Naming": {
   "Field": "camel",              // 필드 이름
-  "Entity": "pascal",            // 테이블·enum·상수셋 이름
+  "Entity": "pascal",            // 테이블·enum·상수셋·매트릭스 이름
   "Label": "pascal",             // enum 라벨
   "Constant": "upper-snake",     // 상수 이름
   "OnViolation": "error",

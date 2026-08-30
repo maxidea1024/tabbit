@@ -39,6 +39,19 @@ build("concepts-item-category", grid_dump.load("core-item-category")["rows"], no
     5: "마커 열이 비면 데이터 행",
 }, title="테이블 ItemCategory")
 
+# 격자. `:matrix` 는 선언 하나가 테이블 둘이 되므로, 그 둘이 어디서 나오는지가 이 그림이
+# 보여야 하는 것입니다 — B열이 행 축, C열부터가 격자, `:col` 줄이 열 축입니다.
+#
+# 메모 컬럼 하나는 빼고 옮깁니다. 픽스처에는 그 컬럼이 격자 가운데에 있는데, 여기서 보일 것은
+# 격자의 세 자리이지 메모 컬럼이 어디에 놓여도 된다는 사실이 아닙니다.
+_grid = [r[:4] + r[5:] for r in grid_dump.load("matrix-town-price")["rows"]]
+
+build("concepts-town-price", _grid, notes={
+    0: "선언 셀 하나. 여기서 테이블 둘이 나옵니다",
+    4: "열 축 — B칸이 이름과 타입, C칸부터가 그 키",
+    5: "행 축의 키와 격자의 값",
+}, title="매트릭스 TownPrice")
+
 build("concepts-enum-grade", grid_dump.load("core-grade")["rows"], notes={
     1: "헤더 행은 이것 하나뿐",
     2: "0이 없으므로 None = 0이 붙습니다",

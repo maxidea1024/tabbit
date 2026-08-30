@@ -61,4 +61,4 @@ python doc/figures/showcase.py      # 격자와 골든 -> 이 문서
 | --- | --- |
 | 시트에 적을 수 있는 것 전부 | [시트 작성](sheets.md) |
 | 생성된 코드를 프로젝트에 적용하는 방법 | [언어별 가이드](languages/readme.md) |
-| 세 가지 엔티티가 각각 무엇이 되는가 | [시트에 무엇을 적을 수 있나](concepts.md) |
+| 네 가지 선언이 각각 무엇이 되는가 | [시트에 무엇을 적을 수 있나](concepts.md) |

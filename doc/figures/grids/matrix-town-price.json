@@ -1,0 +1,77 @@
+{
+  "source": "test/fixtures/xlsx/matrix/matrix.xlsx",
+  "sheet": "Grids",
+  "kind": "matrix",
+  "name": "TownPrice",
+  "declaration": ":matrix TownPrice",
+  "origin": {
+    "row": 1,
+    "column": 1
+  },
+  "rows": [
+    [
+      ":matrix TownPrice",
+      "Price modifier by town and goods.",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      ":field",
+      "town",
+      "price",
+      "",
+      "",
+      ""
+    ],
+    [
+      ":type",
+      "int",
+      "int? (min=-200, max=200)",
+      "",
+      "",
+      ""
+    ],
+    [
+      ":desc",
+      "which town",
+      "the modifier",
+      "",
+      "",
+      ""
+    ],
+    [
+      ":col",
+      "goods foreign Goods",
+      "101",
+      "102",
+      "#",
+      "103"
+    ],
+    [
+      "",
+      "2001",
+      "0",
+      "-25",
+      "check",
+      "-125"
+    ],
+    [
+      "",
+      "2002",
+      "10",
+      "-",
+      "check",
+      "-40"
+    ],
+    [
+      "#",
+      "2003",
+      "1",
+      "2",
+      "left out",
+      "3"
+    ]
+  ]
+}
