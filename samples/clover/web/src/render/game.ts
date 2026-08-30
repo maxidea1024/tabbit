@@ -24,7 +24,7 @@ import { SuitKind } from '../generated/enums/suit-kind'
 import type { Data } from '../core/data'
 import { describe } from '../core/describe'
 import { evaluate } from '../core/hand'
-import { apply, newRun, targetOf, type Action } from '../core/run'
+import { apply, defaultRules, newRun, targetOf, type Action } from '../core/run'
 import { rerollCost, sellValueOf, type ShopItem } from '../core/shop'
 import { bestHand, valueOf } from '../core/suggest'
 import { newCounters, type CardInstance, type GameEvent, type RunState } from '../core/state'
@@ -271,6 +271,28 @@ export class Game {
   private held?: { kind: 'joker' | 'consumable'; uid: number }
   /** 고른 것 밑에 서는 버튼들. */
   private readonly heldBar = new Container()
+  /**
+   * 소모품이 들린 높이.
+   *
+   * **조커와 같은 용수철을 탑니다.** 조커는 `place` 로 목표만 정하고 용수철이 데려가는데,
+   * 소모품은 자리를 매번 새로 그리므로 그럴 것이 없습니다 — 높이 하나를 여기 두고 화면이
+   * 그것을 따라갑니다. 값이 다르면 나란히 선 둘이 다른 물건처럼 움직입니다.
+   */
+  private readonly consumableLift = new Map<number, Spring>()
+  /** 지금 그려져 있는 소모품 칸들. 매 프레임 높이를 다시 얹습니다. */
+  private readonly consumableTiles: { uid: number; tile: Container; baseY: number }[] = []
+  /**
+   * 지금 걸려 있는 것들.
+   *
+   * **토스트는 스치고 지나갑니다.** 무엇이 왜 그런지는 판이 도는 내내 볼 수 있어야 합니다 —
+   * 손패가 왜 11장인지, 이번 보스가 무엇을 막고 있는지, 들고 있는 태그가 언제 터지는지.
+   */
+  private readonly activeLayer = new Container()
+  /** 「적용 중」 을 펼친 판. */
+  private readonly activePanel: ModalPanel = {
+    view: new Container(),
+    size: { width: 460, height: 60 },
+  }
   /**
    * 끌고 있는 것.
    *
@@ -723,7 +745,8 @@ export class Game {
     this.deckLayer.addChild(pile, this.deckLabel)
 
     this.board.addChild(this.deckLayer, this.headline, this.gauge, this.jokerCount,
-      this.consumableCount, this.consumableLayer, this.heldBar, this.hint, this.panelFlash)
+      this.consumableCount, this.consumableLayer, this.heldBar, this.activeLayer,
+      this.hint, this.panelFlash)
   }
 
   /** 조커와 소모품의 빈 자리. **비어 있어도 자리가 보여야 무엇을 모으는 게임인지 압니다.** */
@@ -1661,6 +1684,7 @@ export class Game {
     else this.player.advance(deltaMs)
     this.publishPeek()
 
+    this.advanceConsumableLift(seconds)
     this.coins.advance(seconds)
     this.toasts.advance(seconds)
     this.decayFlashes(seconds)
@@ -1920,6 +1944,12 @@ export class Game {
           }
           this.refresh()
         },
+        grantActive: () => {
+          this.state.tagsPending = ['voucher', 'juggle']
+          this.state.vouchers = this.data.tables.voucher.records.slice(0, 2)
+            .map(row => row.voucherId)
+          this.refresh()
+        },
         grantConsumable: (count: number) => {
           const rows = this.data.tables.tarot.records
           for (let i = 0; i < count && i < rows.length; i++) {
@@ -1974,6 +2004,7 @@ export class Game {
     this.syncCards()
     this.syncJokers()
     this.syncConsumables()
+    this.syncActive()
     this.syncShop()
     this.syncPack()
     this.syncButtons()
@@ -3167,6 +3198,209 @@ export class Game {
     }
   }
 
+  /**
+   * 소모품이 들리는 것.
+   *
+   * **조커와 같은 용수철입니다** — `Motion` 의 `y` 와 같은 강성과 감쇠이므로, 나란히 선
+   * 조커와 소모품이 같은 빠르기로 올라갑니다.
+   */
+  private advanceConsumableLift(seconds: number): void {
+    for (const one of this.consumableTiles) {
+      let spring = this.consumableLift.get(one.uid)
+      if (!spring) {
+        spring = new Spring()
+        this.consumableLift.set(one.uid, spring)
+      }
+      spring.target = this.held?.kind === 'consumable' && this.held.uid === one.uid ? 12 : 0
+      spring.advance(seconds)
+      one.tile.y = one.baseY - spring.value
+    }
+  }
+
+  /**
+   * 지금 걸려 있는 것들.
+   *
+   * 셋을 한 목록으로 봅니다 — 들고 있는 태그, 산 바우처, **기본값과 다른 규칙**. 마지막
+   * 것이 요점입니다: 손패가 11장인 이유는 조커일 수도 덱일 수도 바우처일 수도 있고,
+   * 그것들을 하나씩 눌러 보게 할 수는 없습니다.
+   */
+  private activeEntries(): { label: string; value: string; lines: string[] }[] {
+    const out: { label: string; value: string; lines: string[] }[] = []
+
+    for (const tag of this.state.tagsPending) {
+      const row = this.data.tables.tag.findByTagId(tag)
+      out.push({
+        label: row?.name ?? tag,
+        value: '태그',
+        lines: describe(this.data, this.data.tagEffects.get(tag) ?? []),
+      })
+    }
+
+    for (const id of this.state.vouchers) {
+      const row = this.data.tables.voucher.findByVoucherId(id)
+      out.push({
+        label: row?.name ?? id,
+        value: '바우처',
+        lines: describe(this.data, this.data.voucherEffects.get(id) ?? []),
+      })
+    }
+
+    const base = defaultRules(this.data) as unknown as Record<string, unknown>
+    const now = this.state.rules as unknown as Record<string, unknown>
+    for (const key of Object.keys(base)) {
+      const was = base[key]
+      const is = now[key]
+      if (was === is) continue
+      if (typeof is === 'boolean') {
+        out.push({ label: this.ruleName(key), value: is ? '켜짐' : '꺼짐', lines: [] })
+        continue
+      }
+      if (typeof was !== 'number' || typeof is !== 'number') continue
+      const delta = is - was
+      out.push({
+        label: this.ruleName(key),
+        value: `${ruleValue(key, is)}   (${delta > 0 ? '+' : ''}${ruleValue(key, delta)})`,
+        lines: [],
+      })
+    }
+
+    return out
+  }
+
+  /**
+   * 왼쪽 패널의 「적용 중」.
+   *
+   * **자리가 좁습니다.** 다 넣으려 하면 글씨가 작아져 아무것도 안 읽히므로, 넷까지만 세우고
+   * 나머지는 개수로 적습니다 — 누르면 판이 펼쳐집니다.
+   */
+  private syncActive(): void {
+    this.activeLayer.removeChildren().forEach(child => child.destroy())
+    const entries = this.activeEntries()
+    if (entries.length === 0) return
+
+    const top = 508
+    const rowH = 26
+    const shown = Math.min(entries.length, entries.length > 4 ? 3 : 4)
+
+    const head = new Text({
+      text: `적용 중  ${entries.length}`,
+      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '800' },
+    })
+    head.position.set(LEFT + 4, top)
+    this.activeLayer.addChild(head)
+
+    entries.slice(0, shown).forEach((entry, index) => {
+      const y = top + 20 + index * rowH
+      const line = new Container()
+      line.position.set(LEFT, y)
+
+      const plate = new Graphics()
+      plate.roundRect(0, 0, PANEL_W, rowH - 4, 6).fill({ color: 0x0e1520, alpha: 0.85 })
+      plate.roundRect(0.5, 0.5, PANEL_W - 1, rowH - 5, 6)
+        .stroke({ color: COLOR.panelEdge, width: 1 })
+      line.addChild(plate)
+
+      const name = new Text({
+        text: entry.label,
+        style: { fontSize: 12, fill: COLOR.ink, fontWeight: '700' },
+      })
+      name.position.set(8, 4)
+      line.addChild(name)
+
+      const value = richLine(entry.value, {
+        base: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '700' },
+        number: COLOR.accentNumber, term: COLOR.accentTerm,
+      })
+      value.position.set(PANEL_W - 8 - value.width, 4)
+      line.addChild(value)
+
+      line.eventMode = 'static'
+      line.cursor = 'pointer'
+      line.hitArea = new Rectangle(0, 0, PANEL_W, rowH - 4)
+      line.on('pointerover', () => {
+        this.tooltip.show(entry.label, entry.value, 0, entry.lines,
+          LEFT + PANEL_W / 2, y + rowH, SIZE)
+      })
+      line.on('pointerout', () => this.tooltip.hide())
+      line.on('pointertap', () => this.toggleActive())
+      this.activeLayer.addChild(line)
+    })
+
+    if (entries.length > shown) {
+      const more = new Text({
+        text: `그 밖에 ${entries.length - shown}개  ·  눌러서 모두 보기`,
+        style: { fontSize: 11, fill: COLOR.inkDim, fontWeight: '700' },
+      })
+      more.position.set(LEFT + 4, top + 20 + shown * rowH + 4)
+      more.eventMode = 'static'
+      more.cursor = 'pointer'
+      more.on('pointertap', () => this.toggleActive())
+      this.activeLayer.addChild(more)
+    }
+  }
+
+  /** 「적용 중」 판을 열고 닫습니다. */
+  private toggleActive(): void {
+    if (this.modals.has(this.activePanel)) {
+      this.modals.close(this.activePanel)
+      return
+    }
+    this.drawActivePanel()
+    this.modals.open(this.activePanel)
+  }
+
+  private drawActivePanel(): void {
+    const layer = this.activePanel.view
+    layer.removeChildren().forEach(child => child.destroy())
+
+    const entries = this.activeEntries()
+    const width = 460
+    const rowH = 34
+    const top = TITLE_BAR + 18
+    const height = top + Math.max(1, entries.length) * rowH + 14 + FOOTER_BAR
+    ;(this.activePanel.size as { width: number; height: number }).height = height
+
+    layer.addChild(panelFrame(width, height, '적용 중', () => this.toggleActive()))
+
+    if (entries.length === 0) {
+      const empty = new Text({
+        text: '아직 아무것도 걸려 있지 않습니다.',
+        style: { fontSize: 13, fill: COLOR.inkDim },
+      })
+      empty.anchor.set(0.5, 0)
+      empty.position.set(width / 2, top + 6)
+      layer.addChild(empty)
+      return
+    }
+
+    entries.forEach((entry, index) => {
+      const y = top + index * rowH
+      const name = new Text({
+        text: entry.label,
+        style: { fontSize: 14, fill: COLOR.ink, fontWeight: '800' },
+      })
+      name.position.set(20, y + 6)
+      layer.addChild(name)
+
+      const value = richLine(entry.value, {
+        base: { fontSize: 13, fill: COLOR.inkDim, fontWeight: '700' },
+        number: COLOR.accentNumber, term: COLOR.accentTerm,
+      })
+      value.position.set(width - 20 - value.width, y + 7)
+      layer.addChild(value)
+
+      // 무엇을 하는 것인지는 그 줄 아래에 한 줄로. **이름만으로는 왜 걸렸는지 모릅니다.**
+      if (entry.lines.length > 0) {
+        const note = richLine(entry.lines[0], {
+          base: { fontSize: 11, fill: COLOR.inkDim },
+          number: COLOR.accentNumber, term: COLOR.accentTerm,
+        })
+        note.position.set(20, y + 22)
+        layer.addChild(note)
+      }
+    })
+  }
+
   private showTooltip(view: JokerView): void {
     const rarityName = ['', '커먼', '언커먼', '레어', '전설'][view.look.rarity] ?? ''
     this.tooltip.show(view.look.name, rarityName, view.look.rarity, view.look.lines,
@@ -3175,6 +3409,12 @@ export class Game {
 
   private syncConsumables(): void {
     this.consumableLayer.removeChildren().forEach(child => child.destroy())
+    this.consumableTiles.length = 0
+    // 없어진 것의 높이는 버립니다.
+    const alive = new Set(this.state.consumables.map(item => item.uid))
+    for (const uid of [...this.consumableLift.keys()]) {
+      if (!alive.has(uid)) this.consumableLift.delete(uid)
+    }
 
     this.state.consumables.forEach((item, index) => {
       const name = this.consumableName(item.kind, item.id)
@@ -3200,7 +3440,7 @@ export class Game {
       // **누르면 고르는 것입니다.** 쓰는 것과 파는 것은 그 밑에 선 버튼이 합니다 —
       // 소모품 하나가 판을 바꾸므로, 실수로 눌러 써 버리면 되돌릴 수 없습니다.
       tile.on('pointertap', () => this.pick('consumable', item.uid))
-      if (this.held?.kind === 'consumable' && this.held.uid === item.uid) tile.y -= 12
+      this.consumableTiles.push({ uid: item.uid, tile, baseY: tile.y })
       tile.on('pointerover', () => {
         this.tooltip.show(name, '소모품', 0, lines,
           tile.x + SIZE.jokerWidth / 2, tile.y + SIZE.jokerHeight, SIZE)
@@ -3926,6 +4166,18 @@ function ruleChange(event: { before: number | null; after: number | null;
   if (event.before === null || event.before === event.after) return String(event.after)
   const delta = event.after - event.before
   return `${event.before}  →  ${event.after}   (${delta > 0 ? '+' : ''}${delta})`
+}
+
+/**
+ * 규칙 값 하나를 읽을 수 있게.
+ *
+ * **단위는 규칙의 성질이고 읽는 법은 화면의 몫입니다** — `ruleChange` 와 같은 표를 봅니다.
+ */
+function ruleValue(rule: string, value: number): string {
+  if (RULE_IS_SCALE.has(rule)) return `×${(value / 10_000).toFixed(2)}`
+  if (RULE_IS_MULTIPLIER.has(rule)) return `×${value.toFixed(2)}`
+  if (rule === 'shopDiscount') return `${(value / 100).toFixed(0)}%`
+  return String(value)
 }
 
 /**

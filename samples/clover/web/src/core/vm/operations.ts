@@ -8,6 +8,7 @@ import { CardClass } from '../../generated/enums/card-class'
 import { CardTrait } from '../../generated/enums/card-trait'
 import { CounterField } from '../../generated/enums/counter-field'
 import { CreateKind } from '../../generated/enums/create-kind'
+import { Duration } from '../../generated/enums/duration'
 import { DebuffKind } from '../../generated/enums/debuff-kind'
 import { EditionKind } from '../../generated/enums/edition-kind'
 import { EnhancementKind } from '../../generated/enums/enhancement-kind'
@@ -21,6 +22,7 @@ import { RuleKind } from '../../generated/enums/rule-kind'
 import { Scope } from '../../generated/enums/scope'
 import { SealKind } from '../../generated/enums/seal-kind'
 import { SuitKind } from '../../generated/enums/suit-kind'
+import { Trigger } from '../../generated/enums/trigger'
 import { UnitKind } from '../../generated/enums/unit-kind'
 import type { EffectRow } from '../data'
 import { isFace } from '../hand'
@@ -169,6 +171,38 @@ function mulMult(vm: Vm, bp: number): void {
   if (!vm.scoring) return
   vm.scoring.mult = mulBp(vm.scoring.mult, bp)
   vm.events.push({ t: 'ChipsMultChanged', chips: vm.scoring.chips, mult: vm.scoring.mult })
+}
+
+/**
+ * 규칙 하나를 바꾸고, 그것이 언제까지인지를 적습니다.
+ *
+ * 세 갈래입니다.
+ *
+ * |어디서 왔는가|어떻게 남는가|
+ * |--|--|
+ * |`Passive`|아무 데도 적지 않습니다. 원인이 있는 동안만 걸리고, 다시 세울 때마다 새로 얹힙니다|
+ * |`Permanent` 인 그 밖의 것|`ruleDeltas` 에 남습니다. 유령 카드처럼 원인이 사라져도 남는 것들입니다|
+ * |`ThisRound` · `NextRound`|`roundRules` · `pendingRules`. 라운드가 끝나면 사라집니다|
+ */
+function recordRule(vm: Vm, row: EffectRow, rule: RuleKind, value: number,
+                    absolute: boolean, duration: number): void {
+  const delta = { rule: rule as number, value, absolute }
+
+  if (duration === Duration.NextRound) {
+    if (!vm.rebuilding) vm.state.pendingRules.push(delta)
+    return
+  }
+
+  if (duration === Duration.ThisRound) {
+    if (!vm.rebuilding) vm.state.roundRules.push(delta)
+    changeRule(vm, rule, value, absolute, row.suits)
+    return
+  }
+
+  // **`Passive` 는 적지 않습니다.** 원인이 있는 동안만 걸리는 것이고, 다시 세울 때 그 원인을
+  // 다시 훑으므로 적어 두면 두 번 얹힙니다.
+  if (row.trigger !== Trigger.Passive && !vm.rebuilding) vm.state.ruleDeltas.push(delta)
+  changeRule(vm, rule, value, absolute, row.suits)
 }
 
 /** 규칙 하나를 바꿉니다. **목록이 여기 한 곳입니다.** */
@@ -671,12 +705,14 @@ function runOp(vm: Vm, row: EffectRow, host: EffectHost, op: Operation,
       break
 
     case 'OpChangeRule':
-      changeRule(vm, op.rule, op.value, op.absolute === true, row.suits)
+      recordRule(vm, row, op.rule, op.value, op.absolute === true, op.duration)
       break
 
     case 'OpChangeRuleByCounter':
       if (host.joker) {
-        changeRule(vm, op.rule, counterOf(host.joker.counters, op.counter), false, row.suits)
+        // 누적값을 따라가는 것은 기간이 없습니다 — 누적값이 곧 기간입니다.
+        recordRule(vm, row, op.rule, counterOf(host.joker.counters, op.counter), false,
+          Duration.Permanent)
       }
       break
 

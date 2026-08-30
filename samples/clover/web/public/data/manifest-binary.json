@@ -1,7 +1,7 @@
 {
-  "LastUpdatedDate": "2026-08-30T18:01:33.747662+09:00",
-  "MasterHash": "353dc48a40c7a1013e4b8b00f41f53d9",
-  "TotalSize": 55720,
+  "LastUpdatedDate": "2026-08-31T04:39:54.7021521+09:00",
+  "MasterHash": "385c69f25fbc714f1329d464813143be",
+  "TotalSize": 55730,
   "Items": [
     {
       "Name": "Rank.tcb",
@@ -173,9 +173,9 @@
     },
     {
       "Name": "TagEffect.tcb",
-      "Size": 1009,
-      "Hash": "3108321f6e22b689cb5cfcdef82e9ade",
-      "LastUpdatedDate": "2026-08-27T10:55:50.2727269+09:00"
+      "Size": 1019,
+      "Hash": "c50f7922e0d155600b34e7f4fe113e8d",
+      "LastUpdatedDate": "2026-08-31T04:39:54.6771333+09:00"
     },
     {
       "Name": "ShopSlotWeight.tcb",

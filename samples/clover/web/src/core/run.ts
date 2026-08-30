@@ -8,6 +8,7 @@ import { BlindKind } from '../generated/enums/blind-kind'
 import { EditionKind } from '../generated/enums/edition-kind'
 import { EnhancementKind } from '../generated/enums/enhancement-kind'
 import { PokerHandKind } from '../generated/enums/poker-hand-kind'
+import { RuleKind } from '../generated/enums/rule-kind'
 import { SealKind } from '../generated/enums/seal-kind'
 import { Trigger } from '../generated/enums/trigger'
 import type { Data } from './data'
@@ -15,7 +16,7 @@ import { streamRng, type Pcg32 } from './rng'
 import { scoreHand } from './scoring'
 import { newCounters, type CardInstance, type GameEvent, type JokerInstance, type RunState, type Rules } from './state'
 import {
-  collect, newVm, RUN_HOST, runCardEffects, runRow, runTrigger, sellPrice,
+  changeRule, collect, newVm, RUN_HOST, runCardEffects, runRow, runTrigger, sellPrice,
   type EffectHost, type Vm,
 } from './vm'
 import { emptyShop, openPack, rerollCost, stock } from './shop'
@@ -51,7 +52,7 @@ const STREAMS = [
   'JokerProc', 'CardProc', 'Boss', 'Tag', 'Misprint',
 ]
 
-function defaultRules(data: Data): Rules {
+export function defaultRules(data: Data): Rules {
   const run = data.run
   const economy = data.economy
   return {
@@ -128,6 +129,9 @@ export function newRun(data: Data, seed: string, deckId: string, stake: string):
     consumables: [],
     vouchers: [],
     tagsPending: [],
+    ruleDeltas: [],
+    roundRules: [],
+    pendingRules: [],
     handLevels: {},
     handPlayCounts: {},
     handsPlayedThisRun: 0,
@@ -166,12 +170,43 @@ export function newRun(data: Data, seed: string, deckId: string, stake: string):
 
   const vm = newVm(data, state)
   runTrigger(vm, Trigger.OnRunStart)
-  runTrigger(vm, Trigger.Passive)
-  applyStake(vm)
+  rebuildRules(vm)
   pickBoss(vm)
   state.target = blindTarget(vm)
 
   return { state, events: vm.events }
+}
+
+/**
+ * 규칙을 처음부터 다시 세웁니다.
+ *
+ * **누적하지 않습니다.** 누적으로 두면 원인이 사라지거나 새로 생겼을 때 아무도 다시 계산하지
+ * 않습니다 — 보스가 걸어 둔 것이 보스가 지나가도 남고, 상점에서 산 조커의 것은 아예 걸리지
+ * 않았습니다. 그래서 무언가 달라질 때마다 기본값에서 다시 쌓습니다.
+ *
+ * 쌓는 차례가 규칙입니다.
+ *
+ * 1. 기본값과 스테이크
+ * 2. 한 번 걸리고 남는 것들 — 원인이 이미 없어진 것들입니다
+ * 3. 지금 있는 것들의 `Passive` — 덱 · 바우처 · 보스 · 조커 · 태그
+ * 4. 이번 라운드에만 걸린 것
+ */
+export function rebuildRules(vm: Vm): void {
+  const state = vm.state
+  state.rules = defaultRules(vm.data)
+  applyStake(vm)
+
+  // **다시 세우는 동안에는 아무것도 적지 않습니다.** 그러지 않으면 다시 얹는 것이 그때마다
+  // 목록에 한 줄씩 더해져 규칙이 걸릴수록 불어납니다.
+  vm.rebuilding = true
+  for (const delta of state.ruleDeltas) {
+    changeRule(vm, delta.rule as RuleKind, delta.value, delta.absolute, [])
+  }
+  runTrigger(vm, Trigger.Passive)
+  for (const delta of state.roundRules) {
+    changeRule(vm, delta.rule as RuleKind, delta.value, delta.absolute, [])
+  }
+  vm.rebuilding = false
 }
 
 /** 스테이크가 더하는 규칙. 표의 값이 그 스테이크에서의 최종값입니다. */
@@ -253,6 +288,15 @@ function beginRound(vm: Vm): void {
   const state = vm.state
   state.phase = 'round'
   state.score = 0
+
+  // **예약된 것이 이 라운드에 걸립니다.** 태그 하나가 다음 라운드의 손패를 늘리는 것이
+  // 이것이고, 라운드가 끝나면 사라집니다.
+  state.roundRules = state.pendingRules
+  state.pendingRules = []
+  // **보스가 여기서 규칙에 들어옵니다.** 보스는 자기 블라인드에서만 `collect` 에 잡히므로,
+  // 블라인드가 정해진 다음에 다시 세워야 그 효과가 걸립니다.
+  rebuildRules(vm)
+
   state.handsLeft = state.rules.handsPerRound
   state.discardsLeft = state.rules.discardsPerRound
   state.handTypesThisRound = []
@@ -290,6 +334,33 @@ function draw(vm: Vm, limit?: number): void {
     drawn.push(uid)
   }
   if (drawn.length > 0) vm.events.push({ t: 'HandDrawn', uids: drawn })
+}
+
+/**
+ * 그 시점에 뜻을 가지는 태그를 쓰고, 쓴 것을 버립니다.
+ *
+ * **태그는 한 번 쓰면 없어집니다.** 들고 있는 것으로만 두면 상점에 들어갈 때마다 같은 태그가
+ * 다시 돕니다.
+ */
+function useTags(vm: Vm, trigger: Trigger): void {
+  const state = vm.state
+  const spent: string[] = []
+
+  for (const tag of state.tagsPending) {
+    const rows = (vm.data.tagEffects.get(tag) ?? []).filter(row => row.trigger === trigger)
+    if (rows.length === 0) continue
+    for (const row of rows) runRow(vm, row, RUN_HOST)
+    spent.push(tag)
+  }
+
+  for (const tag of spent) {
+    const at = state.tagsPending.indexOf(tag)
+    if (at >= 0) state.tagsPending.splice(at, 1)
+    vm.events.push({ t: 'TagUsed', tagId: tag })
+  }
+
+  // 태그가 규칙을 걸었을 수 있습니다. 들고 있는 목록이 바뀌었으므로 다시 세웁니다.
+  if (spent.length > 0) rebuildRules(vm)
 }
 
 /** 라운드를 이깁니다. 보상과 이자를 정산합니다. */
@@ -332,6 +403,7 @@ function winRound(vm: Vm): void {
 
   if (state.blind === BlindKind.Boss) {
     runTrigger(vm, Trigger.OnBossDefeated)
+    useTags(vm, Trigger.OnBossDefeated)
     state.cardsPlayedThisAnte = []
   }
 
@@ -346,7 +418,14 @@ function winRound(vm: Vm): void {
   state.discarded = []
 
   state.phase = 'shop'
+
+  // **이번 라운드에만 걸린 것과 보스가 여기서 빠집니다.** 단계가 바뀐 다음이어야 합니다 —
+  // 보스는 판을 두는 동안에만 `collect` 에 잡히므로, 그 전에 세우면 아직 남아 있습니다.
+  state.roundRules = []
+  rebuildRules(vm)
+
   runTrigger(vm, Trigger.OnShopEnter)
+  useTags(vm, Trigger.OnShopEnter)
   state.shop.rerollsUsed = 0
   stock(vm, state.shop)
 }
@@ -404,8 +483,10 @@ function sellJoker(vm: Vm, index: number): boolean {
   vm.events.push({ t: 'MoneyChanged', delta: price, reason: 'sell' })
   state.jokers.splice(index, 1)
   vm.events.push({ t: 'JokerDestroyed', uid: joker.uid, jokerId: joker.jokerId })
-  state.rules.debuffUntilJokerSold = false
   runTrigger(vm, Trigger.OnJokerSold)
+  // **판 조커의 규칙이 여기서 빠집니다.** 다시 세우면 그것이 없는 상태로 계산됩니다.
+  rebuildRules(vm)
+  state.rules.debuffUntilJokerSold = false
   return true
 }
 
@@ -439,9 +520,10 @@ export function apply(data: Data, state: RunState, action: Action): Step {
       if (tags.length > 0) {
         const tag = tags[state.rng.Tag.below(tags.length)]
         state.tagsPending.push(tag.tagId)
-        for (const row of data.tagEffects.get(tag.tagId) ?? []) {
-          if (row.trigger === Trigger.OnUse) runRow(vm, row, RUN_HOST)
-        }
+        vm.events.push({ t: 'TagGained', tagId: tag.tagId })
+        // **뽑는 그 자리에서 도는 것은 `OnUse` 뿐입니다.** 나머지는 상점에 들어갈 때나 다음
+        // 라운드에 뜻을 가지므로 들고 있다가 그때 돕니다.
+        useTags(vm, Trigger.OnUse)
       }
       advance(vm)
       break
@@ -630,9 +712,9 @@ export function apply(data: Data, state: RunState, action: Action): Step {
       if (state.money - cost < -state.rules.debtLimit) break
       state.money -= cost
       state.vouchers.push(state.shop.voucher)
-      for (const row of data.voucherEffects.get(state.shop.voucher) ?? []) {
-        if (row.trigger === Trigger.Passive) runRow(vm, row, RUN_HOST)
-      }
+      // **다시 세우면 산 바우처가 함께 얹힙니다.** 그 자리에서 한 줄만 돌리면 나중에 다시
+      // 세울 때 그 바우처만 빠집니다.
+      rebuildRules(vm)
       state.shop.voucher = null
       state.shop.voucherBought = true
       break
@@ -684,6 +766,9 @@ function takeItem(vm: Vm, item: {
         disabled: false,
       })
       vm.events.push({ t: 'JokerAdded', uid: state.nextUid - 1, jokerId: item.id })
+      // **조커가 걸어 두는 규칙이 여기서 걸립니다.** 넣기만 하면 손패를 늘리는 조커를 사도
+      // 손패가 그대로였습니다.
+      rebuildRules(vm)
       return true
     }
 

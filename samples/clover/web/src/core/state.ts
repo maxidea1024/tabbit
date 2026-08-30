@@ -80,6 +80,19 @@ export interface RoundTargets {
   cardSuit: SuitKind
 }
 
+/**
+ * 규칙 하나를 바꾸는 것.
+ *
+ * **규칙은 누적이 아니라 매번 다시 세웁니다.** 누적으로 두면 원인이 사라지거나 새로 생겼을 때
+ * 아무도 다시 계산하지 않습니다 — 보스가 걸어 둔 것이 보스가 지나가도 남고, 상점에서 산 조커의
+ * 것은 아예 걸리지 않았습니다.
+ */
+export interface RuleDelta {
+  rule: number
+  value: number
+  absolute: boolean
+}
+
 /** 규칙의 지금 값. 효과가 이것을 바꿉니다. */
 export interface Rules {
   handSize: number
@@ -166,6 +179,18 @@ export interface RunState {
   vouchers: string[]
   tagsPending: string[]
 
+  /**
+   * 한 번 걸리고 남는 규칙 변경.
+   *
+   * **원인이 사라져도 남습니다** — 유령 카드가 손패를 하나 줄이면 그 카드는 없어져도 손패는
+   * 그대로입니다. 규칙을 다시 세울 때 이것들을 다시 얹습니다.
+   */
+  ruleDeltas: RuleDelta[]
+  /** 이번 라운드에만 걸린 것. 라운드가 끝나면 사라집니다. */
+  roundRules: RuleDelta[]
+  /** 다음 라운드에 걸릴 것. 라운드가 시작할 때 `roundRules` 로 옮겨집니다. */
+  pendingRules: RuleDelta[]
+
   handLevels: Record<string, number>
   handPlayCounts: Record<string, number>
   handsPlayedThisRun: number
@@ -206,6 +231,10 @@ export interface RunState {
  * `ChipsMultChanged` 가 따라와 지금의 칩과 배수를 알립니다.
  */
 export type GameEvent =
+  /** 블라인드를 건너뛰어 태그를 얻었습니다. */
+  | { t: 'TagGained'; tagId: string }
+  /** 들고 있던 태그가 쓰였습니다. **쓰면 없어집니다.** */
+  | { t: 'TagUsed'; tagId: string }
   | { t: 'HandPlayed'; uids: number[] }
   | { t: 'HandEvaluated'; hand: PokerHandKind; level: number; chips: number; mult: number; cards: number[] }
   | { t: 'CardScored'; uid: number; op: string; chips: number; mult: number; money: number; source: string }

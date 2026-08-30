@@ -2,14 +2,14 @@
 :field	owner	order	trigger	chance_num	chance_den	first_only	ranks	suits	scope	scope_count	condition.$type	condition.hand	condition.suit	condition.enhancement	condition.seal	condition.edition	condition.blind	condition.consumable	condition.target	condition.counter	condition.consume	condition.n	condition.compare	condition.num	condition.den	operation.$type	operation.chips	operation.mult	operation.money	operation.cap	operation.unit	operation.mode	operation.value	operation.base_value	operation.min	operation.max	operation.times	operation.counter	operation.step	operation.init	operation.floor	operation.reset	operation.hand_pick	operation.levels	operation.create	operation.count	operation.card_class	operation.edition	operation.rarity	operation.enhancement	operation.seal	operation.suit	operation.modify	operation.trait	operation.debuff	operation.pick	operation.rule	operation.absolute	operation.duration	operation.free	operation.random	operation.ref_id	operation.handler
 :type	foreign Tag	int (min=0, max=15)	Trigger	int?	int?	bool?	RankKind[]?	SuitKind[]?	Scope	int?	Condition															Operation																																					
 :desc	이 효과를 가진 것	같은 소유자 안의 순서	언제 보는가	확률의 분자	확률의 분모	조건을 만족한 첫 대상만	어느 랭크들인가	어느 무늬들인가	누구에게	대상 개수	무엇이 참이어야 하는가															무엇을 하는가																																					
-	uncommon	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpShopGift																			Joker				Uncommon											true			
-	rare	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpShopGift																			Joker				Rare											true			
-	negative	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpShopGift																			Joker			Negative												true			
-	foil	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpShopGift																			Joker			Foil												true			
-	holographic	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpShopGift																			Joker			Holographic												true			
-	polychrome	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpShopGift																			Joker			Polychrome												true			
+	uncommon	0	OnShopEnter	-	-	-	-	-	Run	-	CondAlways															OpShopGift																			Joker				Uncommon											true			
+	rare	0	OnShopEnter	-	-	-	-	-	Run	-	CondAlways															OpShopGift																			Joker				Rare											true			
+	negative	0	OnShopEnter	-	-	-	-	-	Run	-	CondAlways															OpShopGift																			Joker			Negative												true			
+	foil	0	OnShopEnter	-	-	-	-	-	Run	-	CondAlways															OpShopGift																			Joker			Foil												true			
+	holographic	0	OnShopEnter	-	-	-	-	-	Run	-	CondAlways															OpShopGift																			Joker			Holographic												true			
+	polychrome	0	OnShopEnter	-	-	-	-	-	Run	-	CondAlways															OpShopGift																			Joker			Polychrome												true			
 	investment	0	OnBossDefeated	-	-	-	-	-	Run	-	CondAlways															OpAddMoney			25																																		
-	voucher	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpShopGift																			Voucher	1																	
+	voucher	0	OnShopEnter	-	-	-	-	-	Run	-	CondAlways															OpShopGift																			Voucher	1																	
 	boss	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpRerollBoss																																					
 	standard	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpCreateCard																			Pack	1																standard_mega	
 	charm	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpCreateCard																			Pack	1																arcana_mega	
@@ -18,8 +18,8 @@
 	ethereal	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpCreateCard																			Pack	1																spectral_normal	
 	handy	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					HandsPlayedThisRun	AddMoney	1																														
 	garbage	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					DiscardsUnusedThisRun	AddMoney	1																														
-	coupon	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								NextShopFree		NextRound				
-	d6	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								RerollStartsFree		NextRound				
+	coupon	0	OnShopEnter	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								NextShopFree		ThisRound				
+	d6	0	OnShopEnter	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								RerollStartsFree		ThisRound				
 	double	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpDuplicateNextTag																																					
 	juggle	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							3																								HandSize		NextRound				
 	economy	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpMulMoney				40			20000																														

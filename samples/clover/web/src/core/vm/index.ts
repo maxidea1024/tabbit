@@ -12,7 +12,7 @@ import { apply } from './operations'
 import { effectKey, RUN_HOST, type EffectHost, type Vm } from './context'
 
 export * from './context'
-export { sellPrice } from './operations'
+export { changeRule, sellPrice } from './operations'
 export { newVm } from './context'
 
 /** 조커 하나가 이번에 쓸 효과 행. 복사 조커는 남의 것을 씁니다. */
@@ -57,13 +57,25 @@ export function collect(vm: Vm, trigger: Trigger): Array<[EffectRow, EffectHost]
   }
 
   // 2. 보스. 규칙을 바꾸므로 조커보다 앞입니다.
-  if (!state.bossDisabled && state.blind === 3) {
+  //
+  // **판을 두는 동안에만입니다.** 블라인드만 보면 라운드가 끝나고 상점에 있는 동안에도
+  // 보스가 규칙에 남습니다 — 다음 블라인드를 고를 때까지 `state.blind` 는 그대로이기
+  // 때문입니다.
+  if (!state.bossDisabled && state.blind === 3 && state.phase === 'round') {
     for (const row of vm.data.bossEffects.get(state.bossId) ?? []) {
       if (row.trigger === trigger) out.push([row, RUN_HOST])
     }
   }
 
-  // 3. 조커. **왼쪽에서 오른쪽으로.**
+  // 3. 들고 있는 태그. **가진 것이므로 매번 함께 봅니다** — 뽑을 때 한 번 돌리고 마는 것이
+  // 아닙니다. 대부분은 상점에 들어갈 때나 다음 라운드에 뜻을 가집니다.
+  for (const tag of state.tagsPending) {
+    for (const row of vm.data.tagEffects.get(tag) ?? []) {
+      if (row.trigger === trigger) out.push([row, RUN_HOST])
+    }
+  }
+
+  // 4. 조커. **왼쪽에서 오른쪽으로.**
   for (let slot = 0; slot < state.jokers.length; slot++) {
     const joker = state.jokers[slot]
     if (joker.disabled) continue
