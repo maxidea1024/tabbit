@@ -609,3 +609,54 @@
 	phrase.scope.SelfTarget	이것	this
 	phrase.scope.Run		
 	phrase.handler.pruning_shears	오른쪽 조커를 파괴하고 그 판매가의 2배를 배수로 얻습니다	destroy the joker to the right and gain double its sell value as mult
+	rule.hand_size.name	손패의 크기	Hand size
+	rule.hands_per_round.name	라운드마다의 핸드 수	Hands per round
+	rule.discards_per_round.name	라운드마다의 버리기 수	Discards per round
+	rule.joker_slots.name	조커 칸	Joker slots
+	rule.consumable_slots.name	소모품 칸	Consumable slots
+	rule.debt_limit.name	빚을 낼 수 있는 한도	Debt limit
+	rule.free_rerolls.name	공짜 리롤	Free rerolls
+	rule.reroll_cost_delta.name	리롤 값	Reroll cost
+	rule.reroll_starts_free.name	상점의 첫 리롤이 공짜	First reroll free
+	rule.interest_per5.name	보유 5마다 받는 이자	Interest per $5
+	rule.interest_cap.name	이자의 상한	Interest cap
+	rule.shop_card_slots.name	상점의 카드 칸	Shop card slots
+	rule.shop_discount.name	상점 할인	Shop discount
+	rule.shop_allows_playing_cards.name	상점에 플레잉 카드가 나옴	Playing cards in shop
+	rule.shop_allows_spectral.name	상점에 유령 카드가 나옴	Spectral cards in shop
+	rule.shop_weight_tarot.name	상점의 타로 가중치	Tarot weight in shop
+	rule.shop_weight_planet.name	상점의 행성 가중치	Planet weight in shop
+	rule.free_planets.name	상점의 행성이 공짜	Free planets
+	rule.all_cards_score.name	족보에 들지 않은 카드도 득점	All played cards score
+	rule.all_cards_are_face.name	모든 카드를 그림 카드로 봄	All cards count as face
+	rule.flush_straight_cards.name	플러시와 스트레이트에 드는 장수	Cards for flush and straight
+	rule.straight_gap.name	스트레이트가 건너뛸 수 있는 폭	Straight gap
+	rule.suits_merged.name	네 무늬를 하나로 봄	All suits count as one
+	rule.probability_scale.name	확률	Probability
+	rule.allow_duplicates.name	같은 것을 둘 이상 가질 수 있음	Duplicates allowed
+	rule.balance_chips_and_mult.name	칩과 배수를 평균으로 맞춤	Chips and mult balanced
+	rule.boss_rerolls_per_ante.name	안테마다의 보스 리롤	Boss rerolls per ante
+	rule.ante_delta.name	안테	Ante
+	rule.edition_weight_scale.name	에디션이 붙을 확률	Edition chance
+	rule.planet_gives_mult.name	행성이 배수도 올림	Planets raise mult too
+	rule.starting_money.name	시작 금액	Starting money
+	rule.no_interest.name	이자를 받지 않음	No interest
+	rule.money_per_hand_left.name	남긴 핸드마다 받는 금액	Money per unused hand
+	rule.money_per_discard_left.name	남긴 버리기마다 받는 금액	Money per unused discard
+	rule.randomize_deck.name	시작 덱의 랭크와 무늬를 다시 뽑음	Deck ranks and suits randomized
+	rule.double_tag_on_boss_defeat.name	보스를 깨면 태그를 둘 받음	Two tags on boss defeat
+	rule.blind_size_scale.name	블라인드의 요구 점수	Blind requirement
+	rule.set_discards_zero.name	버리기 횟수가 0이 됨	Discards set to zero
+	rule.spectral_in_arcana_packs.name	아르카나 팩에 유령 카드가 섞임	Spectral cards in arcana packs
+	rule.celestial_has_most_played.name	천체 팩에 가장 많이 낸 족보의 행성	Most-played planet in celestial packs
+	rule.shop_cards_have_modifiers.name	상점의 카드에 강화와 인장이 붙음	Shop cards carry modifiers
+	rule.no_repeat_hand_types.name	한 라운드에 같은 족보를 두 번 낼 수 없음	No repeated hand types
+	rule.single_hand_type_only.name	한 라운드에 한 가지 족보만	One hand type only
+	rule.must_play_five_cards.name	핸드마다 다섯 장을 내야 함	Must play five cards
+	rule.always_draw_three.name	언제나 세 장씩 뽑음	Always draw three
+	rule.halve_base_chips_and_mult.name	족보의 기본 칩과 배수가 절반	Base chips and mult halved
+	rule.debuff_until_joker_sold.name	조커를 팔 때까지 카드가 무력화	Debuffed until a joker is sold
+	rule.force_card_selected.name	카드 한 장이 반드시 골라짐	One card always selected
+	rule.remove_face_cards.name	시작 덱에서 그림 카드를 뺌	Face cards removed
+	rule.suits_only.name	시작 덱을 그 무늬들로만 채움	Deck limited to those suits
+	rule.next_shop_free.name	다음 상점의 처음 카드와 팩이 공짜	Next shop starts free

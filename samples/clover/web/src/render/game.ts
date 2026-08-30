@@ -652,8 +652,10 @@ export class Game {
           break
         }
 
+        // **무엇이 어떻게 바뀌었는가**가 두 줄입니다. 「규칙이 바뀌었습니다」와 식별자
+        // 하나로는 무엇을 얻은 것인지 알 수 없습니다.
         case 'RuleChanged':
-          this.toasts.push('규칙이 바뀌었습니다', ruleName(event.rule), COLOR.money, 2.6)
+          this.toasts.push(this.ruleName(event.rule), ruleChange(event), COLOR.money, 2.8)
           break
 
         case 'CardModified': modified++; break
@@ -2187,6 +2189,16 @@ export class Game {
       ?? EditionKind[kind]
   }
 
+  /**
+   * 규칙 하나의 이름.
+   *
+   * **글 표에서 옵니다.** `RuleKind` 의 이름은 `AllCardsScore` 같은 식별자이고, 그것이
+   * 화면에 그대로 뜨면 무엇이 바뀐 것인지 읽을 수 없습니다.
+   */
+  private ruleName(rule: string): string {
+    return this.data.tables.stringTable.findByStringId(`rule.${snake(rule)}.name`)?.ko ?? rule
+  }
+
   /** 글 표에 있으면 그 말, 없으면 적힌 그대로. */
   private localized(key: string | undefined): string | undefined {
     if (key === undefined || key === '') return undefined
@@ -2866,16 +2878,56 @@ function near(point: { x: number; y: number },
 
 /** 돈이 왜 오갔는가. 표에 없는 갈래는 적지 않습니다. */
 /** 바뀐 규칙의 이름. 표에 없는 것은 식별자를 그대로 적습니다. */
-function ruleName(rule: string): string {
-  switch (rule) {
-    case 'handSize': return '손패의 크기'
-    case 'handsPerRound': return '라운드마다의 핸드 수'
-    case 'discardsPerRound': return '라운드마다의 버리기 수'
-    case 'jokerSlots': return '조커 슬롯'
-    case 'consumableSlots': return '소모품 슬롯'
-    default: return rule
+/**
+ * 규칙 하나가 어떻게 바뀌었는가.
+ *
+ * **읽는 법이 셋입니다** — 켜고 끄는 것, 수를 세는 것, 만분율로 적힌 배수. 셋을 한 가지로
+ * 적으면 확률 배수가 `10000 → 20000` 으로 뜹니다.
+ *
+ * 값을 가지지 않는 규칙도 있습니다 — 덱을 다시 뽑거나 그림 카드를 빼는 것들이고, 그때는
+ * 이름 한 줄이 전부입니다.
+ */
+function ruleChange(event: { before: number | null; after: number | null;
+                             flag: boolean; rule: string }): string {
+  if (event.after === null) return '이번 런 내내 적용됩니다'
+  if (event.flag) return event.after !== 0 ? '켜졌습니다' : '꺼졌습니다'
+
+  if (RULE_IS_SCALE.has(event.rule) || RULE_IS_MULTIPLIER.has(event.rule)) {
+    const unit = RULE_IS_SCALE.has(event.rule) ? 10_000 : 1
+    const to = (event.after / unit).toFixed(2)
+    if (event.before === null || event.before === event.after) return `×${to}`
+    return `×${(event.before / unit).toFixed(2)}  →  ×${to}`
   }
+
+  // 할인은 만분율이고 **낮을수록 좋습니다.** 배수로 적으면 그 방향이 뒤집혀 읽힙니다.
+  if (event.rule === 'ShopDiscount') {
+    return `${(event.after / 100).toFixed(0)}% 싸게 삽니다`
+  }
+
+  if (event.before === null || event.before === event.after) return String(event.after)
+  const delta = event.after - event.before
+  return `${event.before}  →  ${event.after}   (${delta > 0 ? '+' : ''}${delta})`
 }
+
+/**
+ * 만분율로 적힌 규칙들.
+ *
+ * 값의 단위는 규칙의 성질이지만 **읽는 법은 화면의 몫이라** 여기 있습니다 —
+ * `moneyReason` · `valueText` 와 같은 자리입니다.
+ */
+const RULE_IS_SCALE = new Set([
+  'BlindSizeScale', 'PlanetGivesMult',
+])
+
+/**
+ * 백분율로 적힌 규칙들.
+ *
+ * 나머지 배수들은 만분율이 아니라 그냥 곱하는 수입니다 — `probabilityScale` 의 기본값이
+ * 1이고 2가 되면 두 배라는 뜻입니다. 단위를 지레짐작하면 `1 → 2` 가 `×0.00` 으로 뜹니다.
+ */
+const RULE_IS_MULTIPLIER = new Set([
+  'ShopWeightTarot', 'ShopWeightPlanet', 'ProbabilityScale', 'EditionWeightScale',
+])
 
 /**
  * 효과 하나가 낸 값을 글로.
@@ -2890,6 +2942,11 @@ function valueText(op: string, chips: number, mult: number, money: number): stri
   if (chips !== 0) return `+${chips}`
   if (mult !== 0) return `+${(mult / 10_000).toFixed(0)}`
   return '발동'
+}
+
+/** `AllCardsScore` 를 `all_cards_score` 로. 글 표의 식별자가 그 모양입니다. */
+function snake(name: string): string {
+  return name.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase()
 }
 
 function moneyReason(reason: string): string {

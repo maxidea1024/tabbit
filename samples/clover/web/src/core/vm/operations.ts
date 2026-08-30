@@ -178,6 +178,10 @@ function changeRule(vm: Vm, rule: RuleKind, value: number, absolute: boolean,
   const set = (key: keyof typeof rules, current: number) =>
     ((rules[key] as unknown as number) = absolute ? value : current + value)
 
+  // **무엇이 바뀌었는지는 견주어 찾습니다.** 규칙마다 어느 칸을 건드리는지는 아래 `switch`
+  // 하나에 적혀 있고, 그것을 이벤트 쪽에 한 번 더 적으면 두 목록이 갈라집니다.
+  const before = { ...rules }
+
   switch (rule) {
     case RuleKind.HandSize: set('handSize', rules.handSize); break
     case RuleKind.HandsPerRound: set('handsPerRound', rules.handsPerRound); break
@@ -233,7 +237,17 @@ function changeRule(vm: Vm, rule: RuleKind, value: number, absolute: boolean,
     default: break
   }
 
-  vm.events.push({ t: 'RuleChanged', rule: RuleKind[rule], value })
+  // 값을 가지지 않는 규칙도 있습니다 — 덱을 다시 뽑거나 그림 카드를 빼는 것들입니다.
+  const keys = Object.keys(rules) as (keyof typeof rules)[]
+  const moved = keys.find(key => rules[key] !== before[key])
+
+  vm.events.push({
+    t: 'RuleChanged',
+    rule: RuleKind[rule],
+    before: moved === undefined ? null : Number(before[moved]),
+    after: moved === undefined ? null : Number(rules[moved]),
+    flag: moved !== undefined && typeof before[moved] === 'boolean',
+  })
 }
 
 /** 시작 덱을 그 무늬들로만 채웁니다. 장수는 그대로입니다. */

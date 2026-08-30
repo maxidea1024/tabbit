@@ -231,4 +231,13 @@ export type GameEvent =
   | { t: 'ConsumableAdded'; uid: number; id: string }
   | { t: 'ConsumableUsed'; id: string }
   | { t: 'HandLevelled'; hand: PokerHandKind; level: number }
-  | { t: 'RuleChanged'; rule: string; value: number }
+  | {
+    t: 'RuleChanged'
+    /** 어느 규칙인가. `RuleKind` 의 이름입니다. */
+    rule: string
+    /** 바뀌기 전과 뒤의 값. 값을 가지지 않는 규칙이면 둘 다 `null` 입니다. */
+    before: number | null
+    after: number | null
+    /** 켜고 끄는 규칙인가. 수를 세는 규칙과 읽는 법이 다릅니다. */
+    flag: boolean
+  }
