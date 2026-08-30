@@ -190,6 +190,20 @@ function rewriteLinks(text, srcRel, destRel, report) {
 // ── 실행.
 await rm(outDir, { recursive: true, force: true })
 
+/**
+ * `jsonc` 코드 펜스를 `json5` 로. **Prism 에 `jsonc` 가 없어서 칠해지지 않고 나갑니다** -
+ * recipe 가 주석 달린 JSON 이라 저장소의 문서는 63곳에서 그렇게 적고 있습니다.
+ *
+ * 저장소 쪽을 고치지 않는 이유는 그 표기가 맞기 때문입니다 - recipe 는 JSON5 가 아니라
+ * 주석이 있는 JSON 이고, GitHub 은 `jsonc` 를 그대로 칠합니다. 사이트가 못 읽는 것이므로
+ * 사이트로 들어오는 사본에서만 바꿉니다.
+ */
+const JSONC_FENCE = /^(\s*(?:```|~~~))jsonc\b/gm
+
+function paintJsonc(text) {
+  return text.replace(JSONC_FENCE, '$1json5')
+}
+
 const report = { md: 0, asset: 0, rewritten: 0, tabs: 0 }
 
 for (const [srcRel, destRel] of plan) {
@@ -203,7 +217,7 @@ for (const [srcRel, destRel] of plan) {
     continue
   }
 
-  const text = rewriteLinks(await readFile(src, 'utf8'), srcRel, destRel, report)
+  const text = paintJsonc(rewriteLinks(await readFile(src, 'utf8'), srcRel, destRel, report))
   const tabbed = tabify(text)
 
   // 링크를 먼저 고치고 탭으로 바꿉니다. 반대 순서이면 `<TabItem>` 안의 링크가 코드 펜스

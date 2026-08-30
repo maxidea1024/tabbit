@@ -153,7 +153,12 @@ const config = {
         'ruby',
         'php',
         'dart',
+        'swift',
+        'lua',
         'json',
+        // `.jsonc` 를 칠하는 것이 이것입니다. Prism 에 `jsonc` 컴포넌트가 없어서,
+        // sync-docs.mjs 가 펜스를 `json5` 로 바꿔 넣습니다.
+        'json5',
         'bash',
         'powershell',
         'sql',
