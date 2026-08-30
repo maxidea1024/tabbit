@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 322" width="760" height="322"
+     role="img" aria-label="시트는 그대로 두고 그 뒤를 바꿉니다. 지금 쓰는 엑셀과 구글 스프레드시트가 그대로 입력이고, Tabbit이 데이터 검증 · 참조 검증 · 클라이언트 서버 분리 · 코드 생성 · 바이너리 빌드 · 런타임 리더를 맡으며, 나오는 것은 런타임이 그대로 싣는 게임 데이터와 그것을 읽는 생성된 타입입니다. 데이터를 적는 사람은 시트까지이고, 코드를 쓰는 사람은 생성된 타입부터입니다.">
+  <title>시트는 그대로이고, 그 뒤가 바뀝니다</title>
+  <desc>지금 쓰는 워크북이 그대로 입력입니다. 그 사이에 있던 변환 스크립트 자리를 Tabbit이 맡아 데이터 검증, 참조 검증, 클라이언트와 서버 분리, 코드 생성, 바이너리 빌드, 런타임 리더 여섯 가지를 한 실행으로 처리하고, 런타임이 그대로 싣는 게임 데이터와 그것을 읽는 생성된 타입을 냅니다. 데이터를 적는 사람의 작업은 시트에서 끝나고, 코드를 쓰는 사람은 생성된 타입에서 시작하므로, 양쪽 모두 새로 배우는 도구가 없습니다.</desc>
+
+  <style>
+    /*
+      이 그림이 말하는 것은 기능의 목록이 아니라 경계 둘입니다.
+
+      위 - 입력이 지금 쓰는 워크북 그대로라는 것. 옮겨오는 비용이 여기서 결정됩니다.
+      아래 - 소비 코드가 상대하는 것이 생성된 타입이라는 것.
+
+      가운데 상자만 새로 들어오고 위아래는 있던 자리입니다.
+
+      색은 GitHub의 것이고 어두운 테마의 값을 함께 둡니다 - 이미지로 서비스되므로
+      질의가 읽는 사람의 시스템 테마를 따릅니다.
+    */
+    .src   { fill: #ffffff; stroke: #d1d9e0; }
+    .core  { fill: #ddf4ff; stroke: #54aeff; }
+    .chip  { fill: #ffffff; stroke: #a5d6ff; }
+    .out   { fill: #dafbe1; stroke: #4ac26b; }
+    .step  { fill: #1f2328; font-weight: 600; }
+    .note  { fill: #59636e; }
+    .flow  { stroke: #9aa4b2; fill: none; }
+    .arrow { fill: #9aa4b2; }
+    .tie   { stroke: #d1d9e0; fill: none; stroke-dasharray: 3 3; }
+
+    @media (prefers-color-scheme: dark) {
+      .src   { fill: #151b23; stroke: #3d444d; }
+      .core  { fill: #0c2d6b; stroke: #388bfd; }
+      .chip  { fill: #0d1c3d; stroke: #316dca; }
+      .out   { fill: #0f2f1a; stroke: #3fb950; }
+      .step  { fill: #f0f6fc; }
+      .note  { fill: #9198a1; }
+      .flow  { stroke: #6a7381; }
+      .arrow { fill: #6a7381; }
+      .tie   { stroke: #3d444d; }
+    }
+
+    text {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+                   "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      text-anchor: middle;
+    }
+    .t13 { font-size: 13px; }
+    .t12 { font-size: 12px; }
+    .t11 { font-size: 11px; }
+    .left { text-anchor: start; }
+    .mono { font-family: ui-monospace, SFMono-Regular, "Cascadia Mono", Consolas, monospace; }
+  </style>
+
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="8" refY="5"
+            markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M 0.5 1 L 9 5 L 0.5 9 z" class="arrow"/>
+    </marker>
+  </defs>
+
+  <text x="300" y="24" class="t13 step">시트는 그대로이고, 그 사이에 있던 스크립트 자리가 바뀝니다</text>
+
+  <!-- 1. 입력 — 지금 쓰는 워크북 -->
+  <rect x="190" y="42" width="220" height="56" rx="10" class="src" stroke-width="1.5"/>
+  <text x="300" y="66" class="t13 step">엑셀 · 구글 스프레드시트</text>
+  <text x="300" y="84" class="t11 note">지금 쓰는 시트 그대로</text>
+
+  <path d="M 300 98 L 300 116" class="flow" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- 2. Tabbit — 한 실행이 맡는 여섯 -->
+  <rect x="70" y="118" width="460" height="112" rx="10" class="core" stroke-width="1.5"/>
+  <text x="300" y="141" class="t13 step">Tabbit</text>
+
+  <rect x="84" y="150" width="136" height="28" rx="6" class="chip"/>
+  <text x="152" y="169" class="t11 step">데이터 검증</text>
+  <rect x="232" y="150" width="136" height="28" rx="6" class="chip"/>
+  <text x="300" y="169" class="t11 step">참조 검증</text>
+  <rect x="380" y="150" width="136" height="28" rx="6" class="chip"/>
+  <text x="448" y="169" class="t11 step">클라이언트 · 서버 분리</text>
+
+  <rect x="84" y="184" width="136" height="28" rx="6" class="chip"/>
+  <text x="152" y="203" class="t11 step">코드 생성</text>
+  <rect x="232" y="184" width="136" height="28" rx="6" class="chip"/>
+  <text x="300" y="203" class="t11 step">바이너리 빌드</text>
+  <rect x="380" y="184" width="136" height="28" rx="6" class="chip"/>
+  <text x="448" y="203" class="t11 step">런타임 리더</text>
+
+  <!-- 3. 산출 — 데이터와 그것을 읽는 타입 -->
+  <path d="M 300 230 L 300 240" class="flow" stroke-width="1.5"/>
+  <path d="M 190 240 L 410 240" class="flow" stroke-width="1.5"/>
+  <path d="M 190 240 L 190 248" class="flow" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M 410 240 L 410 248" class="flow" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <rect x="90" y="250" width="200" height="56" rx="10" class="out" stroke-width="1.5"/>
+  <text x="190" y="274" class="t12 step">게임 데이터 <tspan class="mono">.tcb</tspan></text>
+  <text x="190" y="292" class="t11 note">런타임이 그대로 싣습니다</text>
+
+  <rect x="310" y="250" width="200" height="56" rx="10" class="out" stroke-width="1.5"/>
+  <text x="410" y="274" class="t12 step">생성된 타입과 리더</text>
+  <text x="410" y="292" class="t11 note">모든 언어가 같은 데이터를</text>
+
+  <!-- 두 경계 — 새로 배우는 것이 어느 쪽에도 없다는 것이 이 그림의 본론입니다 -->
+  <path d="M 414 70 L 546 70" class="tie" stroke-width="1"/>
+  <text x="552" y="66" class="t11 note left">데이터를 적는 사람은</text>
+  <text x="552" y="81" class="t11 step left">여기까지입니다</text>
+
+  <path d="M 514 274 L 546 274" class="tie" stroke-width="1"/>
+  <text x="552" y="270" class="t11 note left">코드를 쓰는 사람은</text>
+  <text x="552" y="285" class="t11 step left">여기부터입니다</text>
+</svg>

@@ -81,8 +81,12 @@ export default function Home() {
 
         {/*
           히어로 바로 다음입니다. 이 도구를 처음 보는 사람이 하는 일은 「이게 뭔가」가
-          아니라 「내가 뭘 하면 되나」이고, 그 답이 두 갈래입니다. 목록 안쪽에 두면
+          아니라 「내가 뭘 하면 되나」이고, 그 답이 세 갈래입니다. 목록 안쪽에 두면
           없는 것과 같습니다 — 실제로 그랬습니다.
+
+          셋째는 이미 자기 변환을 가진 사람의 자리입니다. 그쪽이 먼저 묻는 것은 기능이
+          아니라 「지금 것을 끄지 않고 시작할 수 있는가」이고, 답이 문서 안쪽에 있으면
+          그 질문은 답을 받지 못한 채로 끝납니다.
         */}
         <section className={styles.entry}>
           <div className={styles.entryGrid}>
@@ -100,6 +104,15 @@ export default function Home() {
               <strong>개발자용 빠른 시작</strong>
               <span className={styles.entryWhat}>
                 설치하고, recipe를 하나 쓰고, 생성된 코드로 값을 읽는 데까지.
+              </span>
+            </Link>
+
+            <Link className={styles.entryCard} to="/docs/guide/migration">
+              <span className={styles.entryWho}>지금 쓰는 변환이 있다면</span>
+              <strong>옮겨오기</strong>
+              <span className={styles.entryWhat}>
+                시트를 고치지 않고 테이블 하나만 내보내 지금 쓰는 파일과 대조합니다. 그동안
+                기존 변환은 그대로 돕니다.
               </span>
             </Link>
           </div>

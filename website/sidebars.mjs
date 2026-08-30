@@ -45,6 +45,7 @@ const sidebars = {
         },
         'guide/cli',
         'guide/recipe',
+        'guide/migration',
       ],
     },
 
