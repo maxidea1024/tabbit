@@ -33,6 +33,7 @@ import { newCounters, type CardInstance, type GameEvent, type RunState } from '.
 import { BackgroundFilter } from '../shader/background'
 import { PunchFilter } from '../shader/punch'
 import { FlameFilter } from '../shader/flame'
+import { DissolveFilter } from '../shader/dissolve'
 import { Audio } from './audio'
 import { CardView, type EditionLook } from './card-view'
 import { BlindBadge, Slot } from './hud'
@@ -67,6 +68,22 @@ const LEFT = 16
 const PANEL_W = 264
 /** 판이 놓이는 자리의 가운데. 왼쪽 패널을 뺀 나머지의 한가운데입니다. */
 const BOARD_X = (LEFT + PANEL_W + 20 + SIZE.width) / 2
+/**
+ * 판 위에 뜨는 것들의 가운데. **화면의 한가운데입니다.**
+ *
+ * 판의 한가운데에 두면 왼쪽 패널만큼 오른쪽으로 밀린 자리에 서고, 같은 화면에 뜨는
+ * 정산·옵션·게임 방법은 화면 한가운데에 서므로 뜰 때마다 자리가 달라집니다.
+ */
+const POPUP_X = SIZE.width / 2
+
+/** 상점의 것들이 하나씩 서는 간격. */
+const REVEAL_STEP = 0.13
+/** 하나가 다 서는 데 걸리는 시간. */
+const REVEAL_SPAN = 0.28
+/** 설 때 아래에서 올라오는 거리. */
+const REVEAL_RISE = 14
+/** 산 것이 제자리에 닿기까지. 용수철이 그만큼에 잦아듭니다. */
+const LAND_AT = 0.3
 const JOKER_Y = 108
 /** 조커 5칸이 시작하는 자리. */
 const JOKER_X = 372
@@ -304,6 +321,13 @@ export class Game {
   /** 지금 그려져 있는 소모품 칸들. 매 프레임 높이를 다시 얹습니다. */
   private readonly consumableTiles: { uid: number; tile: Container; baseY: number }[] = []
   /**
+   * 타고 있는 소모품.
+   *
+   * **쓴 것은 타서 사라집니다.** 그냥 없어지면 무엇이 없어진 것인지 · 정말 쓰인 것인지
+   * 눈이 따라가지 못합니다. 조커를 팔 때와 같은 불이고 같은 빠르기입니다.
+   */
+  private readonly burningItems: { tile: Container; filter: DissolveFilter; burn: number }[] = []
+  /**
    * 지금 걸려 있는 것들.
    *
    * **토스트는 스치고 지나갑니다.** 무엇이 왜 그런지는 판이 도는 내내 볼 수 있어야 합니다 —
@@ -320,6 +344,9 @@ export class Game {
   private readonly payout: ModalPanel = {
     view: new Container(),
     size: { width: 380, height: 240 },
+    // **다 닫힌 뒤에 상점이 섭니다.** 닫기를 누른 그 순간에 그리면 판이 아직 물러나는
+    // 중이라 상점이 비어 보입니다.
+    onClosed: () => this.refresh(),
   }
   /** 정산에 오른 줄들. 이벤트가 하나씩 더합니다. */
   private readonly payoutRows: { why: string; amount: number }[] = []
@@ -494,6 +521,37 @@ export class Game {
   private headlineSpan = 1
   /** 예약해 둔 소리. 음이 하나씩 올라가는 아르페지오를 이것으로 냅니다. */
   private readonly chimes: { at: number; cue: string; semitones: number }[] = []
+
+  /**
+   * 상점의 것들이 하나씩 서는 것.
+   *
+   * **한꺼번에 그려 놓으면 무엇이 놓여 있는지 훑어야 합니다.** 정산 판이 줄을 하나씩
+   * 쌓았던 것과 같은 이유입니다 — 하나씩 서면 눈이 그 하나를 따라가고, 다 서고 나면
+   * 그때가 고르는 때입니다.
+   */
+  private readonly shopReveals: { node: Container; at: number; from: number }[] = []
+  /**
+   * 잠시 뒤에 한 번 할 것.
+   *
+   * **닿는 순간에 해야 하는 것들이 있습니다** — 산 조커가 줄에 꽂히는 것은 날아가는
+   * 시간만큼 뒤입니다. 그때에 맞춰 소리와 조각을 냅니다.
+   */
+  private readonly later: { at: number; run: () => void }[] = []
+
+  /**
+   * 새 조커가 날아오는 자리.
+   *
+   * **산 것은 산 자리에서 옵니다.** 위에서 떨어지면 어느 칸을 눌러서 얻은 것인지가
+   * 남지 않습니다. 한 장에 한 번만 쓰이므로 쓰고 나면 비웁니다.
+   */
+  private arriveFrom: { x: number; y: number } | undefined
+
+  /** 상점이 선 시각. 그것을 기준으로 각자의 차례가 정해집니다. */
+  private shopRevealAt = 0
+  /** 지금 상점이 서 있는가. 서지 않았다가 서는 그 한 번만 차례를 다시 셉니다. */
+  private shopStanding = false
+  /** 이번에 새로 선 것인가. 그때만 소리가 하나씩 납니다. */
+  private shopOpening = false
   private wasBusy = false
   private gameOverShown = false
   private gameOverPop = 0
@@ -602,8 +660,13 @@ export class Game {
     this.optionButton = new Button(t('ui.button.options'), 118, 34, 0x3a4658,
       () => this.modals.open(this.optionsPanel))
 
+    // **상점은 판 안에 섭니다.** 조커와 소모품 줄이 그 위로 지나가야 — 무엇을 가지고
+    // 있는지를 보면서 사고, 산 것이 줄에 꽂히는 것도 보입니다.
+    this.shopLayer.zIndex = -1
+    this.board.addChild(this.shopLayer)
+
     this.overlay.addChild(this.playButton, this.discardButton, this.primaryButton,
-      this.clearButton, this.skipButton, this.rerollButton, this.shopLayer, this.packLayer,
+      this.clearButton, this.skipButton, this.rerollButton, this.packLayer,
       this.sortRankButton, this.sortSuitButton, this.infoButton, this.guideButton,
       this.optionButton, this.deckButton, this.preview, this.blindPick, this.gameOver)
 
@@ -771,6 +834,9 @@ export class Game {
   private buildPanel(): void {
     const panel = new Panel(PANEL_W + 24, SIZE.height - 44, 0x141b26)
     panel.position.set(LEFT - 12, 22)
+    // **빈 자리는 상점 아래에 그립니다.** 상점이 판 안에 서므로, 이 테두리가 위에 있으면
+    // 상점의 머리띠를 가로질러 빈 칸이 그려집니다.
+    this.frames.zIndex = -2
     this.board.addChild(panel, this.frames)
 
     this.badge.position.set(LEFT, 34)
@@ -1735,6 +1801,16 @@ export class Game {
     }
   }
 
+  /** 때가 된 것을 합니다. */
+  private advanceLater(): void {
+    for (let i = this.later.length - 1; i >= 0; i--) {
+      if (this.later[i].at > this.clock) continue
+      const one = this.later[i]
+      this.later.splice(i, 1)
+      one.run()
+    }
+  }
+
   private get presented(): boolean {
     return this.started && !this.player.busy && this.playedViews.length === 0
       && this.deals.length === 0 && !this.coins.busy
@@ -1750,7 +1826,7 @@ export class Game {
     if (pulse > 0) this.background.pulse(pulse)
   }
 
-  private popAt(target: Container | undefined, text: string, tint: number,
+  private popAt(target: { x: number; y: number } | undefined, text: string, tint: number,
                 intensity: number): void {
     const label = new Text({
       text,
@@ -1825,6 +1901,9 @@ export class Game {
     this.publishPeek()
 
     this.advanceConsumableLift(seconds)
+    this.advanceShopReveal()
+    this.advanceLater()
+    this.advanceBurningItems(seconds)
     this.coins.advance(seconds)
     this.toasts.advance(seconds)
     this.decayFlashes(seconds)
@@ -2950,9 +3029,7 @@ export class Game {
     again.position.set(-100, height / 2 - 76)
 
     board.addChild(title, lead, body, again)
-    // **판의 한가운데입니다.** 왼쪽 패널을 뺀 나머지의 가운데 — 화면의 가운데에 두면
-    // 그동안 카드가 서 있던 자리에서 비껴 나타납니다.
-    board.position.set(BOARD_X, SIZE.height / 2)
+    board.position.set(POPUP_X, SIZE.height / 2)
     this.gameOver.addChild(board)
     this.gameOverBoard = board
     this.gameOver.zIndex = 10_000
@@ -2961,7 +3038,7 @@ export class Game {
     this.audio.play(won ? 'run_win' : 'run_lose')
     this.jolt(won ? 22 : 16, won ? 3.4 : 2.6, 1)
     this.flashScreen(won ? COLOR.money : COLOR.bad, won ? 0.5 : 0.34)
-    if (won) this.particles.burst(BOARD_X, SIZE.height / 2, 90, COLOR.money, 2.6)
+    if (won) this.particles.burst(POPUP_X, SIZE.height / 2, 90, COLOR.money, 2.6)
   }
 
   /** 왜 끝났는가. **숫자가 있어야 다음 판에 무엇을 다르게 할지 압니다.** */
@@ -2989,13 +3066,13 @@ export class Game {
 
     board.scale.set(scale)
     board.position.set(
-      BOARD_X + (Math.random() - 0.5) * shiver,
+      POPUP_X + (Math.random() - 0.5) * shiver,
       SIZE.height / 2 + (Math.random() - 0.5) * shiver)
     board.rotation = (Math.random() - 0.5) * shiver * 0.0022
 
     if (this.gameOverPop <= 0) {
       board.scale.set(1)
-      board.position.set(BOARD_X, SIZE.height / 2)
+      board.position.set(POPUP_X, SIZE.height / 2)
       board.rotation = 0
     }
   }
@@ -3191,11 +3268,13 @@ export class Game {
         view.on('pointerdown', () => this.beginDrag('joker', joker.uid, view as JokerView))
         this.jokers.set(joker.uid, view)
         this.board.addChild(view)
-        // 위에서 내려옵니다. **그리는 자리도 함께 옮깁니다** — 용수철만 옮기면 한
-        // 프레임 동안 화면 왼쪽 위에 서 있습니다.
-        const from = JOKER_X + index * (SIZE.jokerWidth + 12)
-        view.motion.snap(from, JOKER_Y - 160)
-        view.position.set(from, JOKER_Y - 160)
+        // 위에서 내려옵니다 — **산 것이라면 산 자리에서 옵니다.** 그리는 자리도 함께
+        // 옮깁니다: 용수철만 옮기면 한 프레임 동안 화면 왼쪽 위에 서 있습니다.
+        const home = JOKER_X + index * (SIZE.jokerWidth + 12)
+        const from = this.arriveFrom ?? { x: home, y: JOKER_Y - 160 }
+        this.arriveFrom = undefined
+        view.motion.snap(from.x, from.y)
+        view.position.set(from.x, from.y)
       } else {
         view.set(joker, look)
       }
@@ -3645,10 +3724,17 @@ export class Game {
   }
 
   private syncConsumables(): void {
+    const alive = new Set(this.state.consumables.map(item => item.uid))
+
+    // **없어진 것은 곧바로 지우지 않습니다.** 판 밖으로 옮겨 태우고, 다 타면 그때 지웁니다.
+    for (const one of this.consumableTiles) {
+      if (alive.has(one.uid)) continue
+      this.igniteItem(one.tile)
+    }
+
     this.consumableLayer.removeChildren().forEach(child => child.destroy())
     this.consumableTiles.length = 0
     // 없어진 것의 높이는 버립니다.
-    const alive = new Set(this.state.consumables.map(item => item.uid))
     for (const uid of [...this.consumableLift.keys()]) {
       if (!alive.has(uid)) this.consumableLift.delete(uid)
     }
@@ -3687,6 +3773,37 @@ export class Game {
     })
   }
 
+  /** 한 장을 태웁니다. 자기 자리에서 그대로 타야 하므로 자리를 옮겨 담습니다. */
+  private igniteItem(tile: Container): void {
+    const spot = this.spotOf(tile)
+    tile.removeFromParent()
+    tile.position.set(spot.x, spot.y)
+    tile.eventMode = 'none'
+
+    const filter = new DissolveFilter()
+    tile.filters = [filter]
+    this.overlay.addChild(tile)
+    this.burningItems.push({ tile, filter, burn: 0 })
+
+    this.audio.play('joker_burn')
+    this.particles.burst(spot.x + SIZE.jokerWidth / 2, spot.y + SIZE.jokerHeight / 2,
+      18, 0xffa64a, 1, 1.2)
+  }
+
+  /** 타는 동안. 조커와 같은 빠르기로, 같이 떠오릅니다. */
+  private advanceBurningItems(seconds: number): void {
+    for (let i = this.burningItems.length - 1; i >= 0; i--) {
+      const one = this.burningItems[i]
+      one.burn = Math.min(1, one.burn + seconds * 1.6)
+      one.filter.burn = one.burn
+      one.tile.y -= seconds * 26
+      one.tile.rotation += seconds * 0.12
+      if (one.burn < 1) continue
+      this.burningItems.splice(i, 1)
+      one.tile.destroy({ children: true })
+    }
+  }
+
   private consumableName(kind: number, id: string): string {
     if (kind === 1) return this.data.tables.tarot.findByTarotId(id)?.name ?? id
     if (kind === 2) return this.data.tables.planet.findByPlanetId(id)?.name ?? id
@@ -3712,11 +3829,31 @@ export class Game {
    */
   private syncShop(): void {
     this.shopLayer.removeChildren().forEach(child => child.destroy())
-    this.shopLayer.visible = this.state.phase === 'shop' && this.presented
+    // **정산이 끝난 뒤에 섭니다.** 돈이 들어오는 것을 보는 동안 상점이 이미 뒤에 서 있으면
+    // 그 판이 무엇을 막고 있는 것으로 보이고, 순서가 뒤집힙니다.
+    // **차례는 새로 설 때만 다시 셉니다.** 하나 사면 다시 그리는데, 그때마다 처음부터
+    // 세우면 산 다음에 남은 것들이 또 한 번 나타납니다.
+    this.shopReveals.length = 0
+    this.shopOpening = false
+
+    // **동전이 나는 동안에도 서 있습니다.** 하나 샀다고 판이 통째로 사라지면 무엇을 샀는지
+    // 보다 판이 없어진 것이 먼저 보입니다. 득점 연출이 도는 동안만 물러납니다.
+    this.shopLayer.visible = this.state.phase === 'shop' && this.started && !this.player.busy
+      && !this.modals.has(this.payout)
+    // **국면으로 봅니다.** 눈에 보이는지로 보면 연출이 한 박자 도는 동안 — 조커를 살 때
+    // 동전이 날아가는 그 동안 — 상점이 잠깐 물러났다가 처음부터 다시 섭니다.
+    if (this.state.phase !== 'shop') this.shopStanding = false
     if (!this.shopLayer.visible) return
+    if (!this.shopStanding) {
+      this.shopStanding = true
+      this.shopOpening = true
+      this.shopRevealAt = this.clock
+    }
 
     const state = this.state
-    const width = 780
+    // **왼쪽 패널을 비껴야 합니다.** 화면 한가운데에 서므로, 이보다 넓으면 판돈과 금액이
+    // 적힌 칸을 덮습니다 — 무엇을 살 수 있는지를 보면서 사는 자리입니다.
+    const width = 700
 
     // **자리를 세어 가며 쌓습니다.** 높이를 못박으면 물건이 하나 늘거나 줄 때마다 아래가
     // 넘치거나 비고, 그 둘은 눈에 곧바로 보입니다.
@@ -3734,7 +3871,7 @@ export class Game {
     const voucherAt = voucherHead + HEAD
     const height = voucherAt + VOUCHER_H + 14 + FOOTER_BAR
 
-    const x = BOARD_X - width / 2
+    const x = POPUP_X - width / 2
     const y = Math.max(84, (SIZE.height - height) / 2 - 24)
 
     const foot = new Container()
@@ -3768,6 +3905,38 @@ export class Game {
   }
 
   /** 줄의 이름표. **셋을 가르는 것이 이 한 줄입니다.** */
+  /**
+   * 상점에 하나를 세웁니다.
+   *
+   * 한 번에 세우는 것들은 한 차례를 나눠 씁니다 — 칸 이름의 선과 글자가 그렇습니다.
+   * 상점이 선 지 오래되었으면 계산 결과가 이미 1이므로 그 자리에 그대로 섭니다.
+   */
+  private reveal(...nodes: Container[]): void {
+    const at = this.shopRevealAt + this.shopReveals.length * REVEAL_STEP
+    if (this.shopOpening) this.chimes.push({ at, cue: 'card_place', semitones: 0 })
+
+    for (const node of nodes) {
+      this.shopLayer.addChild(node)
+      const one = { node, at, from: node.y }
+      this.shopReveals.push(one)
+      this.advanceOne(one)
+    }
+  }
+
+  /** 하나가 지금 어디까지 섰는가. */
+  private advanceOne(one: { node: Container; at: number; from: number }): void {
+    const step = Math.max(0, Math.min(1, (this.clock - one.at) / REVEAL_SPAN))
+    const eased = 1 - (1 - step) * (1 - step) * (1 - step)
+    one.node.alpha = eased
+    one.node.y = one.from + (1 - eased) * REVEAL_RISE
+  }
+
+  private advanceShopReveal(): void {
+    for (const one of this.shopReveals) {
+      if (one.node.alpha < 1) this.advanceOne(one)
+    }
+  }
+
   private shopSection(x: number, y: number, width: number, title: string): void {
     const label = new Text({
       text: title,
@@ -3779,7 +3948,7 @@ export class Game {
     rule.rect(x + 26 + label.width + 12, y + 8, width - 64 - label.width - 12, 1)
       .fill({ color: COLOR.panelEdge, alpha: 0.8 })
 
-    this.shopLayer.addChild(rule, label)
+    this.reveal(rule, label)
   }
 
   /**
@@ -3844,7 +4013,7 @@ export class Game {
           tile.x + tileW / 2, tile.y + tileH, SIZE)
       })
       tile.on('pointerout', () => this.tooltip.hide())
-      this.shopLayer.addChild(tile)
+      this.reveal(tile)
     })
   }
 
@@ -3978,9 +4147,53 @@ export class Game {
       this.askSwap(slot, item)
       return
     }
+    // **산 것이 그 자리에서 튀어 오릅니다.** 값을 치른 자리가 밝아지고, 그 자리에서
+    // 조커가 날아가 줄에 꽂힙니다 — 조각 몇 개만으로는 눌린 것인지 산 것인지 모릅니다.
+    this.tooltip.hide()
     this.audio.play('joker_buy')
-    this.particles.burst(tile.x + 79, tile.y + 84, 16, COLOR.money, 1)
+    this.particles.burst(tile.x + 79, tile.y + 84, 30, COLOR.money, 1.4, 1.2)
+    this.particles.burst(tile.x + 79, tile.y + 84, 12, 0xffffff, 0.8, 0.7)
+    this.flashPanel(COLOR.money, 0.35)
+    this.arriveFrom = { x: tile.x + (158 - SIZE.jokerWidth) / 2, y: tile.y + 22 }
+
     this.act({ t: 'buy', slot })
+
+    // 날아가 닿는 데까지가 한 박자입니다. 닿는 자리에서 이름과 소리가 납니다.
+    this.later.push({ at: this.clock + LAND_AT, run: () => this.landed(item) })
+  }
+
+  /**
+   * 산 것이 제자리에 닿았습니다.
+   *
+   * **닿은 자리에 이름이 뜹니다.** 어디로 들어간 것인지가 그 한 번으로 남습니다 —
+   * 조커는 조커 줄로, 소모품은 소모품 칸으로 들어갑니다.
+   */
+  private landed(item: ShopItem): void {
+    const joker = item.kind === ShopItemKind.Joker
+    let spot: { x: number; y: number } | undefined
+
+    if (joker) {
+      const last = this.state.jokers[this.state.jokers.length - 1]
+      const view = last ? this.jokers.get(last.uid) : undefined
+      if (view) {
+        view.pop(1.2)
+        spot = { x: view.x + SIZE.jokerWidth / 2, y: view.y + SIZE.jokerHeight / 2 }
+      }
+    } else {
+      const last = this.consumableTiles[this.consumableTiles.length - 1]
+      if (last) spot = this.spotOf(last.tile, SIZE.jokerWidth / 2, SIZE.jokerHeight / 2)
+    }
+    if (!spot) return
+
+    this.audio.play('joker_add')
+    this.particles.burst(spot.x, spot.y, 20, COLOR.money, 1.1, 1.1)
+    this.popAt({ x: spot.x, y: spot.y }, shopLabel(item.kind, item.id, this.data),
+      COLOR.money, 0.5)
+  }
+
+  /** 그 자리를 판 위의 자리로 옮깁니다. 왼쪽 판 안의 것들은 자기 판 기준입니다. */
+  private spotOf(node: Container, dx = 0, dy = 0): { x: number; y: number } {
+    return this.overlay.toLocal(node.toGlobal({ x: dx, y: dy }))
   }
 
   /**
@@ -4071,6 +4284,8 @@ export class Game {
           this.modals.close(panel)
           this.audio.play('joker_buy')
           this.act({ t: 'swap', slot, index: held.index })
+          // 바꿔서 산 것도 산 것입니다. 닿는 자리에 같은 것이 납니다.
+          this.later.push({ at: this.clock + LAND_AT, run: () => this.landed(item) })
         })
       }
       layer.addChild(tile)
@@ -4172,7 +4387,7 @@ export class Game {
           tile.x + tileW / 2, tile.y + tileH, SIZE)
       })
       tile.on('pointerout', () => this.tooltip.hide())
-      this.shopLayer.addChild(tile)
+      this.reveal(tile)
     })
   }
 
@@ -4186,7 +4401,7 @@ export class Game {
       })
       none.anchor.set(0.5, 0)
       none.position.set(left + width / 2, top + 16)
-      this.shopLayer.addChild(none)
+      this.reveal(none)
       return
     }
 
@@ -4227,7 +4442,13 @@ export class Game {
     tile.cursor = afford ? 'pointer' : 'default'
     tile.on('pointertap', () => {
       if (!afford) return
+      // **바우처는 들어갈 칸이 없습니다.** 규칙으로 들어가므로, 산 자리에서 이름이 뜨는
+      // 것이 그것을 얻었다는 유일한 표시입니다.
       this.audio.play('voucher_buy')
+      this.particles.burst(tile.x + tileW / 2, tile.y + tileH / 2, 26, COLOR.money, 1.3, 1.2)
+      this.flashPanel(COLOR.money, 0.35)
+      this.popAt({ x: tile.x + tileW / 2, y: tile.y + tileH / 2 },
+        row?.name ?? '', COLOR.money, 0.5)
       this.act({ t: 'buy_voucher' })
     })
     tile.on('pointerover', () => {
@@ -4235,7 +4456,7 @@ export class Game {
         tile.x + tileW / 2, tile.y + tileH, SIZE)
     })
     tile.on('pointerout', () => this.tooltip.hide())
-    this.shopLayer.addChild(tile)
+    this.reveal(tile)
   }
 
   /**
@@ -4266,7 +4487,7 @@ export class Game {
     const height = 292
 
     const board = new Panel(width, height, ink)
-    board.position.set(BOARD_X - width / 2, 244)
+    board.position.set(POPUP_X - width / 2, 244)
     this.packLayer.addChild(board)
 
     const title = new Text({
@@ -4274,18 +4495,18 @@ export class Game {
       style: { fontSize: 22, fill: COLOR.ink, fontWeight: '800' },
     })
     title.anchor.set(0.5, 0)
-    title.position.set(BOARD_X, 262)
+    title.position.set(POPUP_X, 262)
 
     const note = new Text({
       text: tf('ui.pack.picks_left', { n: open.picksLeft }),
       style: { fontSize: 13, fill: 0xdbe4f0, fontWeight: '700' },
     })
     note.anchor.set(0.5, 0)
-    note.position.set(BOARD_X, 292)
+    note.position.set(POPUP_X, 292)
     this.packLayer.addChild(title, note)
 
     const spacing = 156
-    const startX = BOARD_X - ((open.options.length - 1) * spacing) / 2
+    const startX = POPUP_X - ((open.options.length - 1) * spacing) / 2
 
     open.options.forEach((item, index) => {
       if (open.taken[index]) return
@@ -4348,7 +4569,7 @@ export class Game {
 
     const skip = new Button(left.length === open.options.length ? t('ui.button.skip') : t('ui.button.clear'),
       160, 40, 0x4a5568, () => this.act({ t: 'skip_pack' }))
-    skip.position.set(BOARD_X - 80, 494)
+    skip.position.set(POPUP_X - 80, 494)
     this.packLayer.addChild(skip)
   }
 

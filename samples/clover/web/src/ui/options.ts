@@ -99,7 +99,14 @@ export function saveOptions(options: Options): void {
 }
 
 const WIDTH = 520
-const HEIGHT = 348 + FOOTER_BAR
+/**
+ * 판의 가장 낮은 높이.
+ *
+ * **글이 길면 그만큼 자랍니다.** 못박아 두면 말을 바꿨을 때 — 독일어가 한국어보다 깁니다 —
+ * 마지막 줄이 판 밖으로 나갑니다. 낮은 값을 두는 것은 탭을 옮길 때마다 판이 들썩이지 않게
+ * 하기 위한 것입니다.
+ */
+const MIN_HEIGHT = 348 + FOOTER_BAR
 /**
  * 탭 하나의 높이. **본문과 이어져 보여야 탭입니다.**
  *
@@ -114,6 +121,10 @@ const BODY = 0x1c2431
 const EDGE = 0x55637a
 /** 값을 고르는 줄 하나의 높이. */
 const ROW = 52
+/** 고를 것들이 서는 격자. 세 칸씩입니다. */
+const CHOICE_COLUMNS = 3
+const CHOICE_H = 36
+const CHOICE_GAP = 12
 
 interface Row {
   label: string
@@ -140,7 +151,16 @@ interface Tab {
 
 export class OptionsPanel implements ModalPanel {
   readonly view = new Container()
-  readonly size = { width: WIDTH, height: HEIGHT }
+  readonly size = { width: WIDTH, height: MIN_HEIGHT }
+
+  /** 지금 판의 높이. 가장 긴 탭이 정합니다. */
+  private get height(): number {
+    return this.size.height
+  }
+
+  private set height(value: number) {
+    ;(this.size as { width: number; height: number }).height = value
+  }
 
   private readonly body = new Container()
   private readonly tabRow = new Container()
@@ -159,11 +179,30 @@ export class OptionsPanel implements ModalPanel {
    * 고른 사람이 바뀌었는지를 이 화면에서 확인할 수 없습니다.
    */
   relabel(): void {
+    // **가장 긴 탭이 판의 높이를 정합니다.** 탭마다 다르게 하면 옮길 때마다 판이 들썩이고,
+    // 못박아 두면 말을 바꿨을 때 마지막 줄이 판 밖으로 나갑니다.
+    this.height = Math.max(MIN_HEIGHT, ...this.tabs().map(tab => this.measure(tab)))
+
     this.view.removeChildren().forEach(child => child.destroy())
-    this.view.addChild(panelFrame(WIDTH, HEIGHT, t('ui.button.options'), () => this.onClose()),
+    this.view.addChild(
+      panelFrame(WIDTH, this.height, t('ui.button.options'), () => this.onClose()),
       this.tabRow, this.body)
     this.buildTabs()
     this.draw()
+  }
+
+  /** 그 탭이 쓰는 높이. **그리지 않고 재기만 합니다.** */
+  private measure(tab: Tab): number {
+    let y = TAB_Y + TAB_H + 34
+    for (const row of tab.rows) {
+      if (row.choices === undefined) {
+        y += ROW
+        continue
+      }
+      const lines = Math.ceil(row.choices.length / CHOICE_COLUMNS)
+      y += 50 + lines * (CHOICE_H + CHOICE_GAP)
+    }
+    return y + 18 + FOOTER_BAR
   }
 
   private tabs(): Tab[] {
@@ -266,7 +305,7 @@ export class OptionsPanel implements ModalPanel {
     // 탭 줄은 본문과 같은 폭입니다. 그 안에서 고르게 나눕니다.
     const left = pageL
     const step = (pageR - pageL) / names.length
-    const pageB = ruleY + (HEIGHT - FOOTER_BAR - ruleY - 16)
+    const pageB = ruleY + (this.height - FOOTER_BAR - ruleY - 16)
     // 탭 위의 모서리와 본문 아래의 모서리.
     const tr = 9
     const pr = 10
@@ -394,10 +433,10 @@ export class OptionsPanel implements ModalPanel {
   private drawChoices(row: Row, top: number): number {
     const choices = row.choices ?? []
     const now = row.current?.()
-    const columns = 3
-    const gap = 12
+    const columns = CHOICE_COLUMNS
+    const gap = CHOICE_GAP
     const width = Math.floor((WIDTH - 88 - gap * (columns - 1)) / columns)
-    const height = 36
+    const height = CHOICE_H
 
     choices.forEach((choice, index) => {
       const column = index % columns

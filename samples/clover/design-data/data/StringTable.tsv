@@ -838,7 +838,7 @@
 	ui.deck_view.counts	남은 것 중  그림 {faces}   ·   에이스 {aces}   ·   강화 {enhanced}   ·   인장 {sealed}	Left  faces {faces}   ·   aces {aces}   ·   enhanced {enhanced}   ·   sealed {sealed}	残り  絵札 {faces}   ·   エース {aces}   ·   強化 {enhanced}   ·   封蝋 {sealed}	剩余  人头 {faces}   ·   A {aces}   ·   强化 {enhanced}   ·   封蜡 {sealed}	剩餘  人頭 {faces}   ·   A {aces}   ·   強化 {enhanced}   ·   封蠟 {sealed}	Übrig  Bilder {faces}   ·   Asse {aces}   ·   verbessert {enhanced}   ·   gesiegelt {sealed}
 	ui.stat.hands_played	낸 핸드  {n}	Hands played  {n}	出したハンド  {n}	已出牌  {n}	已出牌  {n}	Gespielte Hände  {n}
 	ui.stat.jokers	모은 조커  {n}	Jokers  {n}	集めたジョーカー  {n}	收集的小丑  {n}	收集的小丑  {n}	Joker  {n}
-	ui.stat.deck	덱  {left} / {all}	Deck  {left} / {all}	デッキ  {left} / {all}	牌组  {left} / {all}	牌組  {left} / {all}	Deck  {left} / {all}
+	ui.stat.deck	{left} / {all}	{left} / {all}	{left} / {all}	{left} / {all}	{left} / {all}	{left} / {all}
 	ui.stat.ante	안테  {at} / {all}	Ante  {at} / {all}	アンティ  {at} / {all}	底注  {at} / {all}	底注  {at} / {all}	Ante  {at} / {all}
 	ui.stat.seed	시드  {seed}	Seed  {seed}	シード  {seed}	种子  {seed}	種子  {seed}	Seed  {seed}
 	phrase.op.add_mult_value	배수 +{n}	+{n} Mult	倍率 +{n}	倍率 +{n}	倍率 +{n}	+{n} Mult

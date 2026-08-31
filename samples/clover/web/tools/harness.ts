@@ -97,7 +97,7 @@ export async function buyAffordablePack(page: Page): Promise<void> {
     const packs = (await peek(page)).packs
     if (packs <= slot) return
     const span = packs * tileW + (packs - 1) * gap
-    const left = BOARD_X - SHOP_W / 2 + (SHOP_W - span) / 2
+    const left = POPUP_X - SHOP_W / 2 + (SHOP_W - span) / 2
     const spot = await at(page, left + slot * (tileW + gap) + tileW / 2,
       SHOP_Y + SHOP_ITEMS + 172 + 20 + 26 + 42)
     await page.mouse.click(spot.x, spot.y)
@@ -126,12 +126,12 @@ export async function shopSlot(page: Page, slot: number, count = 2): Promise<{ x
   const tileW = 158
   const gap = 14
   const span = count * tileW + (count - 1) * gap
-  const left = BOARD_X - SHOP_W / 2 + (SHOP_W - span) / 2
+  const left = POPUP_X - SHOP_W / 2 + (SHOP_W - span) / 2
   return at(page, left + slot * (tileW + gap) + tileW / 2, SHOP_Y + SHOP_ITEMS + 86)
 }
 
 /** `game.ts` 의 `syncShop` 과 같은 값들. */
-export const SHOP_W = 780
+export const SHOP_W = 700
 export const SHOP_ITEMS = 86
 export const SHOP_Y = 90
 
@@ -156,6 +156,8 @@ export async function at(page: Page, x: number, y: number): Promise<{ x: number;
 export const STAGE_W = 1280
 export const STAGE_H = 800
 export const BOARD_X = (16 + 264 + 20 + STAGE_W) / 2
+/** 판 위에 뜨는 것들의 가운데. `game.ts` 의 `POPUP_X` 와 같습니다. */
+export const POPUP_X = STAGE_W / 2
 export const HAND_Y = 620
 export const CARD_SPACING = 100
 export const BUTTON_Y = 742
@@ -168,7 +170,7 @@ export const BUTTON_Y = 742
 export async function clickPrimary(page: Page): Promise<void> {
   if ((await peek(page)).phase === 'shop') {
     // 상점의 밑단. **판 하나로 정돈되면서 버튼도 그 안으로 들어왔습니다.**
-    const spot = await at(page, BOARD_X + 83, SHOP_Y + 572 - 56 / 2)
+    const spot = await at(page, POPUP_X + 83, SHOP_Y + 572 - 56 / 2)
     await page.mouse.click(spot.x, spot.y)
     return
   }
