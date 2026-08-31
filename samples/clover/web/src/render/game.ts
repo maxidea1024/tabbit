@@ -305,6 +305,20 @@ export class Game {
    * 손패가 왜 11장인지, 이번 보스가 무엇을 막고 있는지, 들고 있는 태그가 언제 터지는지.
    */
   private readonly activeLayer = new Container()
+  /**
+   * 정산 판.
+   *
+   * **돈이 어디서 나왔는지가 한자리에 모여야 합니다.** 동전이 날아가는 것만으로는 격파
+   * 보상과 남긴 핸드와 이자가 한 덩어리로 보이고, 다음 판에 무엇을 아껴야 하는지가
+   * 남지 않습니다.
+   */
+  private readonly payout: ModalPanel = {
+    view: new Container(),
+    size: { width: 380, height: 240 },
+  }
+  /** 정산에 오른 줄들. 이벤트가 하나씩 더합니다. */
+  private readonly payoutRows: { why: string; amount: number }[] = []
+
   /** 「적용 중」 을 펼친 판. */
   private readonly activePanel: ModalPanel = {
     view: new Container(),
@@ -1391,8 +1405,15 @@ export class Game {
         // **무엇으로 번 돈인가**를 적습니다. 합계만 굴러가면 이유를 알 수 없습니다.
         const why = moneyReason(event.reason)
         if (why) {
-          this.popAt(this.moneyLabelAnchor(), `${why}  ${event.delta > 0 ? '+' : ''}$${event.delta}`,
-            event.delta > 0 ? COLOR.money : COLOR.bad, 0.3)
+          // 정산 판이 떠 있으면 그 판에 한 줄로 쌓입니다. 아니면 그 자리에 한 번 뜹니다.
+          if (this.modals.has(this.payout)) {
+            this.payoutRows.push({ why, amount: event.delta })
+            this.drawPayout()
+          } else {
+            this.popAt(this.moneyLabelAnchor(),
+              `${why}  ${event.delta > 0 ? '+' : ''}$${event.delta}`,
+              event.delta > 0 ? COLOR.money : COLOR.bad, 0.3)
+          }
         }
         break
       }
@@ -1420,6 +1441,11 @@ export class Game {
         break
 
       case 'BlindCleared':
+        // **정산 판이 상점보다 먼저 섭니다.** 돈이 들어오는 것을 보고 나서 쓰는 것이
+        // 순서이고, 상점이 먼저 열리면 그 돈이 어디서 왔는지가 지나가 버립니다.
+        this.payoutRows.length = 0
+        this.drawPayout()
+        this.modals.open(this.payout)
         // **이 게임에서 사람이 기다리는 순간입니다.** 채널을 전부 씁니다 — 큰 글씨가 튀어
         // 나오고, 화면이 번쩍이고, 판이 흔들리고, 배경이 밝아지고, 음이 여섯 번 올라갑니다.
         this.say(t('ui.label.cleared'), COLOR.good, 2.2)
@@ -3545,6 +3571,57 @@ export class Game {
       layer.addChild(row.line)
       y += row.height
     }
+  }
+
+  /**
+   * 정산 판.
+   *
+   * 줄이 하나씩 쌓입니다 — 이벤트가 하나씩 오므로 그리는 것도 하나씩이고, 그 쌓이는 것이
+   * 곧 「어디서 얼마가 들어왔는가」입니다.
+   */
+  private drawPayout(): void {
+    const layer = this.payout.view
+    layer.removeChildren().forEach(child => child.destroy())
+
+    const width = 380
+    const rowH = 34
+    const top = TITLE_BAR + 16
+    // 줄들 · 가로선 · 단추. **밑단 띠는 이 판에 없습니다** — 닫는 것이 곧 받는 것이라
+    // 아래에 따로 둘 것이 없고, 두면 단추가 그 띠에 걸칩니다.
+    const body = Math.max(1, this.payoutRows.length) * rowH
+    const height = top + body + 14 + FOOTER_BAR
+    ;(this.payout.size as { width: number; height: number }).height = height
+
+    const sum = this.payoutRows.reduce((total, row) => total + row.amount, 0)
+    // **닫기 단추가 없습니다.** 받는 것이 이 판의 전부이고, 그것을 누르는 것이 닫는 것이라
+    // 밑단 띠에 그 단추 하나만 섭니다.
+    const take = new Button(tf('ui.payout.take', { n: sum }), 220, 40, 0x2f7a52, () => {
+      this.modals.close(this.payout)
+    })
+    layer.addChild(panelFrame(width, height, t('ui.payout.title'), undefined, take))
+
+    this.payoutRows.forEach((row, index) => {
+      const y = top + index * rowH
+
+      const label = new Text({
+        text: row.why,
+        style: { fontSize: 14, fill: COLOR.ink, fontWeight: '700' },
+      })
+      label.position.set(24, y + 5)
+      layer.addChild(label)
+
+      const amount = new Text({
+        text: `${row.amount > 0 ? '+' : ''}$${row.amount}`,
+        style: {
+          fontSize: 17, fill: row.amount > 0 ? COLOR.money : COLOR.bad, fontWeight: '800',
+          stroke: { color: 0x0a0f18, width: 3 },
+        },
+      })
+      amount.anchor.set(1, 0)
+      amount.position.set(width - 24, y + 2)
+      layer.addChild(amount)
+    })
+
   }
 
   private showTooltip(view: JokerView): void {

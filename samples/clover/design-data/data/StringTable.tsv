@@ -849,3 +849,5 @@
 	ui.toast.cards_destroyed	카드 {n}장이 사라졌습니다	{n} cards were destroyed	カードが {n} 枚消えました	{n} 张牌被摧毁	{n} 張牌被摧毀	{n} Karten wurden zerstört
 	ui.toast.cards_changed	카드 {n}장이 바뀌었습니다	{n} cards changed	カードが {n} 枚変わりました	{n} 张牌发生了变化	{n} 張牌發生了變化	{n} Karten haben sich geändert
 	ui.counter.chips	+{n}칩	+{n} chips	+{n} チップ	+{n} 筹码	+{n} 籌碼	+{n} Chips
+	ui.payout.title	정산	Cash Out	精算	结算	結算	Auszahlung
+	ui.payout.take	받는다  ${n}	Cash Out  ${n}	受け取る  ${n}	收下  ${n}	收下  ${n}	Kassieren  ${n}
