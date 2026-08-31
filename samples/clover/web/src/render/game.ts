@@ -82,6 +82,13 @@ const REVEAL_STEP = 0.13
 const REVEAL_SPAN = 0.28
 /** 설 때 아래에서 올라오는 거리. */
 const REVEAL_RISE = 14
+/**
+ * 상점이 서는 가장 높은 자리.
+ *
+ * **조커와 소모품 줄의 아래입니다** — 그 줄과 칸 수를 적은 글이 `y` 193 에서 끝납니다.
+ */
+const SHOP_TOP = 200
+
 /** 산 것이 제자리에 닿기까지. 용수철이 그만큼에 잦아듭니다. */
 const LAND_AT = 0.3
 const JOKER_Y = 108
@@ -296,6 +303,13 @@ export class Game {
   private readonly fades: { view: CardView; at: number; spark: boolean }[] = []
   /** 아직 깔리지 않은 뽑은 카드들. **덱에서 한 장씩 옵니다.** */
   private readonly deals: { uid: number; at: number }[] = []
+  /**
+   * 마지막 장이 자리를 잡을 때까지.
+   *
+   * **놓은 것과 앉은 것은 다릅니다** — 예약이 다 빠져도 카드는 아직 용수철로 날아가는
+   * 중이고, 그 동안에도 마우스가 닿으면 지나가는 카드가 들려 올라갑니다.
+   */
+  private dealtUntil = 0
   private readonly jokers = new Map<number, JokerView>()
   /** 타는 중인 조커들. 다 타면 치웁니다. */
   private readonly burning: JokerView[] = []
@@ -1031,6 +1045,7 @@ export class Game {
   /** 연출이 끝났습니다. 화면이 주장하는 것을 상태와 맞춥니다. */
   private settleShown(): void {
     this.deals.length = 0
+    this.dealtUntil = 0
     this.shown = {
       money: this.state.money,
       score: Number(this.state.score),
@@ -1253,7 +1268,9 @@ export class Game {
       this.shown.hand = [...this.shown.hand, next.uid]
       dealt = true
     }
-    if (dealt) this.refresh()
+    if (!dealt) return
+    this.dealtUntil = this.clock + 0.34
+    this.refresh()
   }
 
   /** 예약해 둔 한 장씩의 내보내기. */
@@ -2080,12 +2097,17 @@ export class Game {
   private updateHover(): void {
     const blocked = this.modals.busy || this.state.pack !== null
       || this.state.phase === 'lost' || this.state.phase === 'won'
+    // **뽑는 동안에는 카드에 올려지지 않습니다.** 마우스가 나오는 길목에 있으면 지나가는
+    // 카드마다 차례로 들려 올라가고, 그것은 고르는 것으로도 지나가는 것으로도 읽히지
+    // 않습니다.
+    const dealing = this.deals.length > 0 || this.clock < this.dealtUntil
 
     let card: CardView | undefined
     let joker: JokerView | undefined
 
     if (!blocked) {
       for (const view of this.cards.values()) {
+        if (dealing) break
         if (!near(this.pointerAt, view.motion, SIZE.cardWidth, SIZE.cardHeight)) continue
         if (!card || view.motion.x.target > card.motion.x.target) card = view
       }
@@ -3857,22 +3879,24 @@ export class Game {
 
     // **자리를 세어 가며 쌓습니다.** 높이를 못박으면 물건이 하나 늘거나 줄 때마다 아래가
     // 넘치거나 비고, 그 둘은 눈에 곧바로 보입니다.
-    const ITEM_H = SIZE.jokerHeight + 52
-    const PACK_H = SIZE.jokerHeight + 34
-    const VOUCHER_H = 68
-    const HEAD = 26
-    const GAP = 20
+    // **조커 줄 아래에서 시작합니다.** 그 줄 위로 올라오면 가지고 있는 것이 판에 가리고,
+    // 산 것이 줄에 꽂히는 것도 판 뒤에서 일어납니다. 그래서 칸의 높이가 빠듯합니다.
+    const ITEM_H = SIZE.jokerHeight + 36
+    const PACK_H = SIZE.jokerHeight + 30
+    const VOUCHER_H = 62
+    const HEAD = 22
+    const GAP = 12
 
-    const itemHead = TITLE_BAR + 14
+    const itemHead = TITLE_BAR + 10
     const itemsAt = itemHead + HEAD
     const packHead = itemsAt + ITEM_H + GAP
     const packsAt = packHead + HEAD
     const voucherHead = packsAt + PACK_H + GAP
     const voucherAt = voucherHead + HEAD
-    const height = voucherAt + VOUCHER_H + 14 + FOOTER_BAR
+    const height = voucherAt + VOUCHER_H + 8 + FOOTER_BAR
 
     const x = POPUP_X - width / 2
-    const y = Math.max(84, (SIZE.height - height) / 2 - 24)
+    const y = Math.max(SHOP_TOP, (SIZE.height - height) / 2 - 24)
 
     const foot = new Container()
     const reroll = new Button(tf('ui.shop.reroll_cost', { n: rerollCost(this.data, state, state.shop) }),

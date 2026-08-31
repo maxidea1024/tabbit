@@ -132,8 +132,10 @@ export async function shopSlot(page: Page, slot: number, count = 2): Promise<{ x
 
 /** `game.ts` 의 `syncShop` 과 같은 값들. */
 export const SHOP_W = 700
-export const SHOP_ITEMS = 86
-export const SHOP_Y = 90
+export const SHOP_ITEMS = 78
+export const SHOP_Y = 200
+/** 상점 판의 높이. `syncShop` 이 칸을 세어 얻는 값과 같습니다. */
+export const SHOP_H = 586
 
 /** 화면 좌표를 캔버스 위의 자리로. 기준 해상도는 1280 × 720 입니다. */
 /**
@@ -170,7 +172,7 @@ export const BUTTON_Y = 742
 export async function clickPrimary(page: Page): Promise<void> {
   if ((await peek(page)).phase === 'shop') {
     // 상점의 밑단. **판 하나로 정돈되면서 버튼도 그 안으로 들어왔습니다.**
-    const spot = await at(page, POPUP_X + 83, SHOP_Y + 572 - 56 / 2)
+    const spot = await at(page, POPUP_X + 83, SHOP_Y + SHOP_H - 56 / 2)
     await page.mouse.click(spot.x, spot.y)
     return
   }
