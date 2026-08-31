@@ -112,8 +112,13 @@ function widthOf(text: string, style: TextStyleOptions): number {
  */
 const CJK = /[぀-ヿ㐀-䶿一-鿿가-힣＀-ﾟ]/
 
-/** 그 글자 앞에서는 끊지 않습니다. 줄머리에 설 수 없는 것들입니다. */
-const NO_HEAD = /[。、，．・：；？！）」』】〉》〕｝々ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮー]/
+/**
+ * 그 글자 앞에서는 끊지 않습니다. 줄머리에 설 수 없는 것들입니다.
+ *
+ * **반각도 넣습니다.** 한국어는 온각 쉼표가 아니라 반각을 쓰므로, 온각만 막으면 「있고」
+ * 다음에서 끊겨 쉼표가 다음 줄의 첫 글자가 됩니다.
+ */
+const NO_HEAD = /[。、，．・：；？！）」』】〉》〕｝々,.!?:;）\)\]}ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮー]/
 
 /** 그 글자 뒤에서는 끊지 않습니다. 줄끝에 설 수 없는 것들입니다. */
 const NO_TAIL = /[（「『【〈《〔｛]/
@@ -178,8 +183,11 @@ function place(runs: Run[], style: RichStyle, into: Container,
     }
 
     const shape = styleOf(style, run.fill)
+    // **「」 로 묶은 이름은 쪼개지 않습니다.** 「리롤」 이 「리 / 롤」 로 끊기면 그것이 한
+    // 낱말이라는 것이 사라집니다 — 통보다 넓을 때만 어쩔 수 없이 나눕니다.
+    const whole = run.fill === style.term && widthOf(run.text, shape) <= maxWidth
     let buffer = ''
-    for (const piece of piecesOf(run.text, shape, maxWidth)) {
+    for (const piece of whole ? [run.text] : piecesOf(run.text, shape, maxWidth)) {
       const grown = buffer + piece
       if (x + widthOf(grown, shape) > maxWidth && (buffer !== '' || x > 0)) {
         // **줄 끝의 빈칸은 버립니다.** 남겨 두면 다음 줄이 한 칸 밀려 시작합니다.

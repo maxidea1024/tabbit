@@ -43,7 +43,8 @@ const RICH: RichStyle = {
 }
 
 const WIDTH = 940
-const HEIGHT = 616 + FOOTER_BAR - 40
+/** 판의 가장 낮은 높이. 글이 길면 그만큼 자랍니다. */
+const MIN_HEIGHT = 616 + FOOTER_BAR - 40
 
 /**
  * 게임 방법.
@@ -53,7 +54,16 @@ const HEIGHT = 616 + FOOTER_BAR - 40
  */
 export class Guide implements ModalPanel {
   readonly view = new Container()
-  readonly size = { width: WIDTH, height: HEIGHT }
+  readonly size = { width: WIDTH, height: MIN_HEIGHT }
+
+  /** 지금 판의 높이. 글이 정합니다. */
+  private set height(value: number) {
+    ;(this.size as { width: number; height: number }).height = value
+  }
+
+  private get height(): number {
+    return this.size.height
+  }
 
   private readonly body = this.view
 
@@ -69,12 +79,21 @@ export class Guide implements ModalPanel {
   }
 
   private build(): void {
+    // **글을 먼저 세우고 판을 나중에 그립니다.** 판의 높이를 글이 정하므로, 글이 얼마나
+    // 되는지 알기 전에는 판을 그릴 수 없습니다 — 못박아 두면 말을 바꿨을 때(독일어가
+    // 한국어보다 깁니다) 마지막 마디가 판 아래로 넘칩니다.
+    const content = new Container()
+    const left = this.column(content, sectionsOf(LEFT_KEYS), 44)
+    const right = this.column(content, sectionsOf(RIGHT_KEYS), WIDTH / 2 + 8)
+    this.height = Math.max(MIN_HEIGHT, Math.max(left, right) + 16 + FOOTER_BAR)
+
     // **판 위를 누르는 것으로는 닫히지 않습니다.** 닫는 것은 바깥이거나 `Esc` 입니다.
     // 족보 목록은 이 판에서 바로 열립니다. **판 위에 판이 얹힙니다** — 닫으면 이 판으로
     // 돌아오므로, 규칙을 읽다 말고 처음부터 다시 찾아 들어갈 일이 없습니다.
-    const hands = new Button(t('ui.button.hand_list_open'), 168, 34, 0x3a4658, () => this.onHandList())
+    const hands = new Button(t('ui.button.hand_list_open'), 168, 34, 0x3a4658,
+      () => this.onHandList())
     this.body.addChild(
-      panelFrame(WIDTH, HEIGHT, t('ui.button.guide'), () => this.onClose(), hands))
+      panelFrame(WIDTH, this.height, t('ui.button.guide'), () => this.onClose(), hands))
 
     const lead = new Text({
       text: t('ui.guide.lead'),
@@ -82,15 +101,11 @@ export class Guide implements ModalPanel {
     })
     lead.anchor.set(0.5, 0)
     lead.position.set(WIDTH / 2, TITLE_BAR + 18)
-    this.body.addChild(lead)
-
-    this.column(sectionsOf(LEFT_KEYS), 44)
-    this.column(sectionsOf(RIGHT_KEYS), WIDTH / 2 + 8)
-
-
+    this.body.addChild(lead, content)
   }
 
-  private column(sections: Section[], x: number): void {
+  /** 한 단을 세우고, 그 단이 쓴 높이를 돌려줍니다. */
+  private column(into: Container, sections: Section[], x: number): number {
     let y = TITLE_BAR + 58
     for (const section of sections) {
       const rule = new Graphics()
@@ -104,13 +119,15 @@ export class Guide implements ModalPanel {
 
       // **수와 이름은 다른 색입니다.** 「안테 8까지」에서 찾는 것은 8 이고, 그것이 문장과
       // 같은 색이면 문장을 처음부터 읽어야 찾습니다.
-      // **단이 둘이라 좁습니다.** 접지 않으면 긴 문장이 옆 단으로 넘어갑니다.
-      const text = richBlock([section.body], RICH, 23, WIDTH / 2 - 42)
+      // **단이 둘이라 좁습니다.** 왼쪽 단의 글이 오른쪽 단의 글머리(`WIDTH / 2 + 8` 에서
+      // 다시 14) 앞에서 끝나야 하므로, 반쪽 넓이에서 두 단의 안쪽 여백을 다 뺍니다.
+      const text = richBlock([section.body], RICH, 23, WIDTH / 2 - 72)
       text.position.set(x + 14, y + 30)
 
-      this.body.addChild(rule, head, text)
+      into.addChild(rule, head, text)
       // 접힌 줄만큼 아래가 밀립니다. 줄 수로 세면 긴 줄 하나가 다음 자리를 덮습니다.
       y += 30 + text.height + 20
     }
+    return y
   }
 }
