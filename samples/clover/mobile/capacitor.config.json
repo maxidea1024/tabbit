@@ -1,0 +1,11 @@
+{
+  "appId": "dev.tabbit.clover",
+  "appName": "clover",
+  "webDir": "../web/dist",
+  "android": {
+    "allowMixedContent": false
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "clover-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "description": "clover — 안드로이드 포장. 웹 빌드를 그대로 담습니다.",
+  "scripts": {
+    "web": "cd ../web && npm run build",
+    "sync": "cap sync android",
+    "prepare:android": "npm run web && npm run sync",
+    "apk": "npm run prepare:android && cd android && ./gradlew assembleDebug",
+    "apk:release": "npm run prepare:android && cd android && ./gradlew assembleRelease",
+    "open": "cap open android"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/core": "^7.0.0"
+  }
+}

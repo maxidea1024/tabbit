@@ -1,0 +1,18 @@
+# 웹 빌드를 그대로 베껴 담는 자리입니다. 16MB가 두 벌 들어가므로 담지 않습니다 —
+# `cap sync` 가 언제든 다시 만듭니다.
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+
+# 기계마다 다른 것. SDK 의 자리는 사람마다 다릅니다.
+android/local.properties
+
+# 낸 APK. `desktop/out/` 과 같습니다 — 산출물은 담지 않습니다.
+out/
+
+# 빌드 산출물과 그레이들의 작업 파일.
+android/.gradle/
+android/build/
+android/app/build/
+android/capacitor-cordova-android-plugins/
+android/.idea/

@@ -98,6 +98,22 @@ export function text(data: Data, key: string): string {
  * `{name}` 자리에 값이 들어갑니다. 한국어의 조사는 `{name:은}` 처럼 짝으로 적습니다 —
  * 앞 글자의 받침에 따라 갈리므로, 손으로 박으면 눈앞의 값에만 맞습니다.
  */
+/**
+ * 그 물건의 이름.
+ *
+ * **표의 `name` 칸이 아니라 글 표에서 찾습니다.** 표의 칸은 기획자가 시트에서 읽는
+ * 이름이고 한국어 하나뿐입니다 — 화면에 그것을 그대로 쓰면 말을 바꾸어도 조커와 태그와
+ * 보스의 이름만 한국어로 남습니다. 열쇠는 `<표>.<식별자>.name` 입니다.
+ *
+ * 글 표에 없으면 `fallback` 입니다. 열쇠를 그대로 보이는 것은 문장에는 맞지만 이름에는
+ * 맞지 않습니다 — 이름이 없는 물건은 없기 때문입니다.
+ */
+export function nameOf(data: Data, group: string, id: string, fallback: string): string {
+  const key = `${group}.${id}.name`
+  const found = text(data, key)
+  return found === key ? fallback : found
+}
+
 export function fill(template: string, values: Record<string, string | number>): string {
   return template.replace(/\{(\w+)(?::([은는이가을를와과로])?)?\}/g,
     (whole, name: string, particle: string | undefined) => {

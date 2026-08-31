@@ -3,7 +3,7 @@
 [`sprout`](../sprout)과 [`canopy`](../canopy)는 **남의 규칙으로 쓰인 시트를 읽어낸다**의
 증거이고, [`wildling`](../wildling)은 **우리 규칙으로 적은 데이터로 게임이 돈다**의 증거입니다.
 
-`clover`가 답하는 것은 그다음 질문입니다 — **같은 데이터셋이 서로 다른 두 런타임에서 같은
+`clover`가 두는 것은 그다음 질문입니다 — **같은 데이터셋이 서로 다른 두 런타임에서 같은
 게임이 되는가.**
 
 포커 로그라이크 한 편을 **규칙과 수치까지 그대로** 재현하고, 그것을 웹과 유니티에 각각
@@ -20,6 +20,8 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/clover/design-data/re
 |기획 데이터 전부|`design-data/` — 워크북 9개 · 테이블 40개 · `.tbs` 3개 · 검증 규칙 3개 · recipe|
 |웹 게임|`web/` — 코어 · 화면 · 연출. PixiJS v8 · Vite · TypeScript|
 |유니티 게임|`unity/` — URP 2D|
+|독립 실행|[desktop/](desktop/readme.md) — 웹 빌드를 담은 일렉트론 창. 포터블 exe 와 설치본|
+|안드로이드|[mobile/](mobile/readme.md) — 같은 웹 빌드를 담은 APK. Capacitor|
 |문서|[doc/](doc/readme.md)|
 
 ## 판정 기준

@@ -8,6 +8,7 @@
 
 import {
   BlurFilter, Container, Graphics, Rectangle, Sprite, Text, Texture,
+  type FederatedPointerEvent,
   type Application,
 } from 'pixi.js'
 
@@ -25,7 +26,7 @@ import type { Data } from '../core/data'
 import { describe } from '../core/describe'
 import { evaluate } from '../core/hand'
 import { apply, defaultRules, newRun, tagFor, targetOf, type Action } from '../core/run'
-import { language, setLanguage, t, text, tf } from '../core/strings'
+import { language, nameOf, setLanguage, t, text, tf } from '../core/strings'
 import { useFont } from '../ui/font'
 import { rerollCost, sellValueOf, type ShopItem } from '../core/shop'
 import { bestHand, valueOf } from '../core/suggest'
@@ -419,6 +420,8 @@ export class Game {
     startY: number
     grabX: number
     moved: boolean
+    /** 누른 것과 끈 것을 가르는 거리. **손가락은 마우스보다 넉넉해야 합니다.** */
+    slack: number
   }
   /** 손패가 놓인 자리. 끌 때 어느 칸으로 가는지를 이것으로 셉니다. */
   private handSpots = { startX: 0, spacing: 0 }
@@ -1193,9 +1196,8 @@ export class Game {
         // **태그를 받은 것이 보여야 합니다.** 받은 것이 화면 어디에도 나타나지 않으면
         // 건너뛴 대가가 없는 것으로 보입니다.
         case 'TagGained': {
-          const row = this.data.tables.tag.findByTagId(event.tagId)
           const lines = describe(this.data, this.data.tagEffects.get(event.tagId) ?? [])
-          this.toasts.push(row?.name ?? event.tagId,
+          this.toasts.push(nameOf(this.data, 'tag', event.tagId, event.tagId),
             lines.join(' · ') || t('ui.note.applied'), COLOR.accentTerm, 3.2)
           this.particles.burst(TAG_X + 17, JOKER_Y - 20, 22, COLOR.accentTerm, 1.2, 1.2)
           this.audio.play('joker_add', 4)
@@ -1203,8 +1205,9 @@ export class Game {
         }
 
         case 'JokerDestroyed': {
-          const row = this.data.tables.joker.findByJokerId(event.jokerId)
-          this.toasts.push(tf('ui.toast.destroyed', { name: row?.name ?? event.jokerId }), t('ui.note.joker_slot_free'),
+          this.toasts.push(tf('ui.toast.destroyed',
+            { name: nameOf(this.data, 'joker', event.jokerId, event.jokerId) }),
+          t('ui.note.joker_slot_free'),
             COLOR.bad, 2.6)
           break
         }
@@ -2837,7 +2840,9 @@ export class Game {
       const label = (text: string, size: number, fill: number, weight = '700') =>
         new Text({ text, style: { fontSize: size, fill, fontWeight: weight as never } })
 
-      const name = label(bossRow?.name ?? tf('ui.blind.named', { name: blindName(blind) }), 17, COLOR.ink, '800')
+      const name = label(bossRow
+        ? nameOf(this.data, 'boss', state.bossId, bossRow.name)
+        : tf('ui.blind.named', { name: blindName(blind) }), 17, COLOR.ink, '800')
       name.anchor.set(0.5, 0.5)
       name.position.set(cardW / 2, 23)
       group.addChild(name)
@@ -2941,7 +2946,6 @@ export class Game {
    * 모르는 채로 건너뛸지를 정하게 됩니다.
    */
   private tagPlate(tagId: string, width: number): { node: Container; height: number } {
-    const row = this.data.tables.tag.findByTagId(tagId)
     const lines = describe(this.data, this.data.tagEffects.get(tagId) ?? [])
 
     // **글을 먼저 만들고 딱지의 높이를 그것에 맞춥니다.** 못박으면 두 줄인 태그에서 아랫줄이
@@ -2967,7 +2971,7 @@ export class Game {
     node.addChild(face)
 
     const name = new Text({
-      text: row?.name ?? tagId,
+      text: nameOf(this.data, 'tag', tagId, tagId),
       style: { fontSize: 12, fill: COLOR.ink, fontWeight: '800' },
     })
     name.position.set(38, 4)
@@ -2980,7 +2984,8 @@ export class Game {
     node.hitArea = new Rectangle(0, 0, width, height)
     node.on('pointerover', () => {
       const spot = this.overlay.toLocal(node.toGlobal({ x: width / 2, y: height }))
-      this.tooltip.show(row?.name ?? tagId, t('ui.kind.tag'), 0, lines, spot.x, spot.y, SIZE)
+      this.tooltip.show(nameOf(this.data, 'tag', tagId, tagId), t('ui.kind.tag'), 0, lines,
+        spot.x, spot.y, SIZE)
     })
     node.on('pointerout', () => this.tooltip.hide())
     return { node, height }
@@ -3049,7 +3054,6 @@ export class Game {
     this.tagLayer.addChild(caption)
 
     held.slice(0, shown).forEach((tagId, index) => {
-      const row = this.data.tables.tag.findByTagId(tagId)
       const lines = describe(this.data, this.data.tagEffects.get(tagId) ?? [])
 
       const cell = new Container()
@@ -3073,7 +3077,7 @@ export class Game {
       cell.eventMode = 'static'
       cell.hitArea = new Rectangle(0, 0, size, size)
       cell.on('pointerover', () => {
-        this.tooltip.show(row?.name ?? tagId, t('ui.kind.tag'), 0, lines,
+        this.tooltip.show(nameOf(this.data, 'tag', tagId, tagId), t('ui.kind.tag'), 0, lines,
           TAG_X + size / 2, cell.y + size, SIZE)
       })
       cell.on('pointerout', () => this.tooltip.hide())
@@ -3465,7 +3469,9 @@ export class Game {
       : ''
 
     this.badge.set(
-      bossRow?.name ?? tf('ui.blind.named', { name: blindName(state.blind) }),
+      bossRow
+        ? nameOf(this.data, 'boss', state.bossId, bossRow.name)
+        : tf('ui.blind.named', { name: blindName(state.blind) }),
       Number(state.target), row?.reward ?? 0, note, boss, state.blind === BlindKind.Big)
   }
 
@@ -3573,7 +3579,8 @@ export class Game {
         // **누르기와 끌기가 한 손가락에 얹힙니다.** 뗄 때까지 움직이지 않았으면 고른
         // 것이고, 움직였으면 자리를 옮긴 것입니다 — `pointertap` 은 이 둘을 갈라 주지
         // 않아서 끌고 나서도 골라 버립니다.
-        view.on('pointerdown', () => this.beginDrag('hand', card.uid, view as CardView))
+        view.on('pointerdown', event =>
+          this.beginDrag('hand', card.uid, view as CardView, event))
         this.cards.set(card.uid, view)
         this.board.addChild(view)
         // 덱에서 날아옵니다. **곧바로 자리에 있으면 뽑았다는 느낌이 없습니다.**
@@ -3621,7 +3628,7 @@ export class Game {
     this.state.jokers.forEach((joker, index) => {
       const row = this.data.tables.joker.findByJokerId(joker.jokerId)
       const look = {
-        name: row?.name ?? joker.jokerId,
+        name: nameOf(this.data, 'joker', joker.jokerId, joker.jokerId),
         rarity: row?.rarity ?? 1,
         lines: describe(this.data, this.data.jokerEffects.get(joker.jokerId) ?? []),
         edition: this.editionLook(joker.edition),
@@ -3632,7 +3639,8 @@ export class Game {
         view = new JokerView(joker, look)
         view.eventMode = 'static'
         view.cursor = 'pointer'
-        view.on('pointerdown', () => this.beginDrag('joker', joker.uid, view as JokerView))
+        view.on('pointerdown', event =>
+          this.beginDrag('joker', joker.uid, view as JokerView, event))
         this.jokers.set(joker.uid, view)
         this.board.addChild(view)
         // 위에서 내려옵니다 — **산 것이라면 산 자리에서 옵니다.** 그리는 자리도 함께
@@ -3659,12 +3667,23 @@ export class Game {
    *
    * 아직 끄는 것인지 누르는 것인지 모릅니다 — 손가락이 몇 px 움직이고 나서야 갈립니다.
    */
-  private beginDrag(kind: 'hand' | 'joker', uid: number, view: Container): void {
+  private beginDrag(kind: 'hand' | 'joker', uid: number, view: Container,
+                    event?: FederatedPointerEvent): void {
     if (this.player.busy || this.modals.busy) return
+
+    // **누른 그 자리에서 시작합니다.** 마우스는 누르기 전에 움직이므로 마지막으로 지나간
+    // 자리가 곧 누른 자리이지만, **손가락은 누르는 그 순간에 처음 나타납니다** — 그때의
+    // 자리를 쓰지 않으면 지난 자리와의 차이만큼 카드가 튀고, 그 튐이 「끌었다」로 읽혀
+    // 손을 떼도 고르는 것이 되지 않습니다.
+    if (event) this.pointerAt = this.world.toLocal(event.global)
+
     this.drag = {
       kind, uid, moved: false,
       startX: this.pointerAt.x, startY: this.pointerAt.y,
       grabX: this.pointerAt.x - view.x,
+      // **손가락은 가만히 있어도 흔들립니다.** 마우스와 같은 문턱을 두면 누르려던 것이
+      // 끄는 것으로 읽힙니다.
+      slack: event?.pointerType === 'touch' ? 18 : 6,
     }
   }
 
@@ -3679,8 +3698,8 @@ export class Game {
     if (!drag) return
 
     if (!drag.moved) {
-      const far = Math.abs(this.pointerAt.x - drag.startX) > 6
-        || Math.abs(this.pointerAt.y - drag.startY) > 6
+      const far = Math.abs(this.pointerAt.x - drag.startX) > drag.slack
+        || Math.abs(this.pointerAt.y - drag.startY) > drag.slack
       if (!far) return
       drag.moved = true
       this.audio.play(drag.kind === 'hand' ? 'card_select' : 'joker_move', -4)
@@ -3846,18 +3865,16 @@ export class Game {
     const out: { label: string; value: string; lines: string[] }[] = []
 
     for (const tag of this.state.tagsPending) {
-      const row = this.data.tables.tag.findByTagId(tag)
       out.push({
-        label: row?.name ?? tag,
+        label: nameOf(this.data, 'tag', tag, tag),
         value: t('ui.kind.tag'),
         lines: describe(this.data, this.data.tagEffects.get(tag) ?? []),
       })
     }
 
     for (const id of this.state.vouchers) {
-      const row = this.data.tables.voucher.findByVoucherId(id)
       out.push({
-        label: row?.name ?? id,
+        label: nameOf(this.data, 'voucher', id, id),
         value: t('ui.kind.voucher'),
         lines: describe(this.data, this.data.voucherEffects.get(id) ?? []),
       })
@@ -4172,9 +4189,8 @@ export class Game {
   }
 
   private consumableName(kind: number, id: string): string {
-    if (kind === 1) return this.data.tables.tarot.findByTarotId(id)?.name ?? id
-    if (kind === 2) return this.data.tables.planet.findByPlanetId(id)?.name ?? id
-    return this.data.tables.spectral.findBySpectralId(id)?.name ?? id
+    const group = kind === 1 ? 'tarot' : kind === 2 ? 'planet' : 'spectral'
+    return nameOf(this.data, group, id, id)
   }
 
   private consumableLines(kind: number, id: string): string[] {
@@ -4627,10 +4643,9 @@ export class Game {
     const joker = item.kind === ShopItemKind.Joker
     const rows = joker
       ? this.state.jokers.map((held, index) => {
-        const row = this.data.tables.joker.findByJokerId(held.jokerId)
         return {
           index,
-          name: row?.name ?? held.jokerId,
+          name: nameOf(this.data, 'joker', held.jokerId, held.jokerId),
           note: describe(this.data, this.data.jokerEffects.get(held.jokerId) ?? [])[0] ?? '',
           price: sellValueOf(this.data, this.state, held),
           // `Eternal` 은 팔리지 않습니다.
@@ -4848,7 +4863,7 @@ export class Game {
     tile.position.set(left + (width - tileW) / 2, top)
 
     const label = new Text({
-      text: row?.name ?? '',
+      text: nameOf(this.data, 'voucher', id, row?.name ?? ''),
       style: { fontSize: 15, fill: COLOR.ink, fontWeight: '800' },
     })
     label.position.set(16, 11)
@@ -4881,11 +4896,12 @@ export class Game {
       this.particles.burst(tile.x + tileW / 2, tile.y + tileH / 2, 26, COLOR.money, 1.3, 1.2)
       this.flashPanel(COLOR.money, 0.35)
       this.popAt({ x: tile.x + tileW / 2, y: tile.y + tileH / 2 },
-        row?.name ?? '', COLOR.money, 0.5)
+        nameOf(this.data, 'voucher', id, row?.name ?? ''), COLOR.money, 0.5)
       this.act({ t: 'buy_voucher' })
     })
     tile.on('pointerover', () => {
-      this.tooltip.show(row?.name ?? '', t('ui.kind.voucher'), 0, lines,
+      this.tooltip.show(nameOf(this.data, 'voucher', id, row?.name ?? ''),
+        t('ui.kind.voucher'), 0, lines,
         tile.x + tileW / 2, tile.y + tileH, SIZE)
     })
     tile.on('pointerout', () => this.tooltip.hide())
@@ -5324,10 +5340,10 @@ function kindName(kind: ShopItemKind): string {
 
 function shopLabel(kind: ShopItemKind, id: string, data: Data): string {
   switch (kind) {
-    case ShopItemKind.Joker: return data.tables.joker.findByJokerId(id)?.name ?? id
-    case ShopItemKind.Tarot: return data.tables.tarot.findByTarotId(id)?.name ?? id
-    case ShopItemKind.Planet: return data.tables.planet.findByPlanetId(id)?.name ?? id
-    case ShopItemKind.Spectral: return data.tables.spectral.findBySpectralId(id)?.name ?? id
+    case ShopItemKind.Joker: return nameOf(data, 'joker', id, id)
+    case ShopItemKind.Tarot: return nameOf(data, 'tarot', id, id)
+    case ShopItemKind.Planet: return nameOf(data, 'planet', id, id)
+    case ShopItemKind.Spectral: return nameOf(data, 'spectral', id, id)
     default: return id
   }
 }
