@@ -131,10 +131,14 @@ export async function shopSlot(page: Page, slot: number, count = 2): Promise<{ x
 }
 
 /** `game.ts` 의 `syncShop` 과 같은 값들. */
-export const SHOP_W = 700
+export const SHOP_W = 660
 export const SHOP_ITEMS = 78
 export const SHOP_Y = 200
-/** 상점 판의 높이. `syncShop` 이 칸을 세어 얻는 값과 같습니다. */
+/**
+ * 상점 판의 높이.
+ *
+ * **칸 셋이 다 있을 때입니다** — 다 산 칸은 없어지므로 그만큼 판이 낮아집니다.
+ */
 export const SHOP_H = 586
 
 /** 화면 좌표를 캔버스 위의 자리로. 기준 해상도는 1280 × 720 입니다. */

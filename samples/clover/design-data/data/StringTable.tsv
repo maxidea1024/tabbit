@@ -780,6 +780,7 @@
 	ui.note.joker_slot_free	조커 슬롯이 비었습니다	A Joker slot is free	ジョーカー枠が空きました	小丑栏空出来了	小丑欄空出來了	Ein Jokerplatz ist frei
 	ui.note.cannot_sell	팔 수 없습니다	Cannot be sold	売れません	无法出售	無法出售	Nicht verkäuflich
 	ui.shop.voucher_taken	이번 안테의 바우처는 이미 샀습니다	You already bought this ante’s voucher	このアンティのバウチャーはもう買いました	本底注的优惠券已经买过了	本底注的優惠券已經買過了	Der Gutschein dieser Ante ist schon gekauft
+	ui.shop.sold_out	다 팔렸습니다	Everything is sold	すべて売れました	全部售出	全部售出	Alles ist verkauft
 	ui.edition.random	무작위 에디션	a random edition	ランダムなエディション	随机版本	隨機版本	eine zufällige Edition
 	ui.swap.title	자리가 없습니다	No Room	空きがありません	没有空位	沒有空位	Kein Platz
 	ui.swap.hint	자리 없음 — 눌러서 교체	No room — tap to swap	空きなし — 押して入れ替え	没有空位 — 点击替换	沒有空位 — 點擊替換	Kein Platz — antippen zum Tauschen

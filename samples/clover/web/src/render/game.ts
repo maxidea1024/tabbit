@@ -1829,8 +1829,18 @@ export class Game {
   }
 
   private get presented(): boolean {
+    return this.cardsQuiet && !this.coins.busy
+  }
+
+  /**
+   * 카드가 다 물러났는가.
+   *
+   * **동전은 세지 않습니다.** 동전이 나는 동안에도 서 있어야 하는 것들이 있고 — 상점이
+   * 그렇습니다 — 카드가 아직 걷히는 중인 것과는 다른 일입니다.
+   */
+  private get cardsQuiet(): boolean {
     return this.started && !this.player.busy && this.playedViews.length === 0
-      && this.deals.length === 0 && !this.coins.busy
+      && this.deals.length === 0 && this.fades.length === 0
   }
 
   private jolt(shake: number, chroma: number, pulse = 0): void {
@@ -3859,8 +3869,9 @@ export class Game {
     this.shopOpening = false
 
     // **동전이 나는 동안에도 서 있습니다.** 하나 샀다고 판이 통째로 사라지면 무엇을 샀는지
-    // 보다 판이 없어진 것이 먼저 보입니다. 득점 연출이 도는 동안만 물러납니다.
-    this.shopLayer.visible = this.state.phase === 'shop' && this.started && !this.player.busy
+    // 보다 판이 없어진 것이 먼저 보입니다. **카드가 걷히는 동안에는 서지 않습니다** — 낸
+    // 카드가 아직 물러나는 중인데 판이 그 위에 서면 그 둘이 겹칩니다.
+    this.shopLayer.visible = this.state.phase === 'shop' && this.cardsQuiet
       && !this.modals.has(this.payout)
     // **국면으로 봅니다.** 눈에 보이는지로 보면 연출이 한 박자 도는 동안 — 조커를 살 때
     // 동전이 날아가는 그 동안 — 상점이 잠깐 물러났다가 처음부터 다시 섭니다.
@@ -3874,8 +3885,8 @@ export class Game {
 
     const state = this.state
     // **왼쪽 패널을 비껴야 합니다.** 화면 한가운데에 서므로, 이보다 넓으면 판돈과 금액이
-    // 적힌 칸을 덮습니다 — 무엇을 살 수 있는지를 보면서 사는 자리입니다.
-    const width = 700
+    // 적힌 칸을 덮습니다 — 왼쪽 판은 `x` 292 에서 끝나고, 그것을 비껴야 합니다.
+    const width = 660
 
     // **자리를 세어 가며 쌓습니다.** 높이를 못박으면 물건이 하나 늘거나 줄 때마다 아래가
     // 넘치거나 비고, 그 둘은 눈에 곧바로 보입니다.
@@ -3887,16 +3898,37 @@ export class Game {
     const HEAD = 22
     const GAP = 12
 
-    const itemHead = TITLE_BAR + 10
-    const itemsAt = itemHead + HEAD
-    const packHead = itemsAt + ITEM_H + GAP
-    const packsAt = packHead + HEAD
-    const voucherHead = packsAt + PACK_H + GAP
-    const voucherAt = voucherHead + HEAD
-    const height = voucherAt + VOUCHER_H + 8 + FOOTER_BAR
+    // **다 산 칸은 없어집니다.** 이름만 남겨 두면 그만큼이 빈자리로 남고, 그 빈자리는
+    // 무엇이 있었는지도 무엇을 더 살 수 있는지도 알려 주지 않습니다.
+    const rows: { title: string; body: number; draw: (top: number, h: number) => void }[] = []
+    if (state.shop.cards.length > 0) {
+      rows.push({
+        title: t('ui.shop.wares'), body: ITEM_H,
+        draw: (top, h) => this.drawShopItems(x, top, width, h),
+      })
+    }
+    if (state.shop.packs.length > 0) {
+      rows.push({
+        title: t('ui.kind.pack'), body: PACK_H,
+        draw: (top, h) => this.drawPackRow(x, top, width, h),
+      })
+    }
+    // 바우처는 이미 산 것도 한 줄로 남깁니다 — **그것은 빈자리가 아니라 적힌 사실입니다.**
+    if (state.shop.voucher || state.shop.voucherBought) {
+      rows.push({
+        title: t('ui.kind.voucher'), body: state.shop.voucher ? VOUCHER_H : 30,
+        draw: (top, h) => this.drawVoucher(x, top, width, h),
+      })
+    }
+    // 하나도 남지 않았으면 그 사실을 한 줄로 적습니다. 빈 판을 보여 주지 않습니다.
+    const empty = rows.length === 0
+
+    const body = rows.reduce((sum, row) => sum + HEAD + row.body, 0)
+      + GAP * Math.max(0, rows.length - 1)
+    const height = TITLE_BAR + 10 + (empty ? 64 : body) + 8 + FOOTER_BAR
 
     const x = POPUP_X - width / 2
-    const y = Math.max(SHOP_TOP, (SIZE.height - height) / 2 - 24)
+    const y = SHOP_TOP
 
     const foot = new Container()
     const reroll = new Button(tf('ui.shop.reroll_cost', { n: rerollCost(this.data, state, state.shop) }),
@@ -3918,17 +3950,25 @@ export class Game {
     money.position.set(x + width - 26, y + TITLE_BAR / 2)
     this.shopLayer.addChild(money)
 
-    this.shopSection(x, y + itemHead, width, t('ui.shop.wares'))
-    this.drawShopItems(x, y + itemsAt, width, ITEM_H)
+    if (empty) {
+      const note = new Text({
+        text: t('ui.shop.sold_out'),
+        style: { fontSize: 14, fill: COLOR.inkDim },
+      })
+      note.anchor.set(0.5, 0.5)
+      note.position.set(x + width / 2, y + TITLE_BAR + 10 + 32)
+      this.reveal(note)
+      return
+    }
 
-    this.shopSection(x, y + packHead, width, t('ui.kind.pack'))
-    this.drawPackRow(x, y + packsAt, width, PACK_H)
-
-    this.shopSection(x, y + voucherHead, width, t('ui.kind.voucher'))
-    this.drawVoucher(x, y + voucherAt, width, VOUCHER_H)
+    let at = y + TITLE_BAR + 10
+    for (const row of rows) {
+      this.shopSection(x, at, width, row.title)
+      row.draw(at + HEAD, row.body)
+      at += HEAD + row.body + GAP
+    }
   }
 
-  /** 줄의 이름표. **셋을 가르는 것이 이 한 줄입니다.** */
   /**
    * 상점에 하나를 세웁니다.
    *
@@ -4423,8 +4463,8 @@ export class Game {
         text: t('ui.shop.voucher_taken'),
         style: { fontSize: 11, fill: COLOR.inkDim },
       })
-      none.anchor.set(0.5, 0)
-      none.position.set(left + width / 2, top + 16)
+      none.anchor.set(0.5, 0.5)
+      none.position.set(left + width / 2, top + tileH / 2)
       this.reveal(none)
       return
     }

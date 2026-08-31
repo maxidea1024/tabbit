@@ -63,6 +63,12 @@ async function main(): Promise<number> {
     await shot(page, `buy-${index + 1}`)
   }
 
+  // 그 칸을 다 삽니다. **칸이 비면 그 칸 자체가 없어져야 합니다.**
+  const rest = await shopSlot(page, 0, 1)
+  await page.mouse.click(rest.x, rest.y)
+  await page.waitForTimeout(900)
+  await shot(page, 'sold-1')
+
   await browser.close()
   await server.close()
   return 0
