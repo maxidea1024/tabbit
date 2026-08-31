@@ -93,7 +93,19 @@ const NEWLINE = String.fromCharCode(10)
 const CHIPS_Y = 286
 /** 불이 칸 밖으로 번지는 폭과, 칸 위로 오르는 높이. */
 const FIRE_PAD = 26
-const FIRE_RISE = 64
+/** 불길이 칸 위로 솟는 높이. */
+const FIRE_RISE = 60
+/** 뿌리가 칸 아래로 내려가는 깊이. **깊으면 가장 센 자리가 칸 밖에서 낭비됩니다.** */
+const FIRE_ROOT = 6
+/**
+ * 불의 크기와 자리.
+ *
+ * **칸 위로 솟습니다.** 칸 뒤에 두면 칸이 불투명이라 아무것도 보이지 않고, 칸 아래에 두면
+ * 불이 바닥에서 새어 나오는 것으로 보입니다 — 뿌리가 칸의 윗변에 살짝 물려 있어야 그 칸이
+ * 타는 것으로 읽힙니다.
+ */
+const FIRE_W = 124 + FIRE_PAD * 2
+const FIRE_H = FIRE_RISE + 78 + FIRE_ROOT
 
 /** 덱 판의 카드에 쓰는 것들. 손패의 카드와 같은 값이라 여기 한 벌만 둡니다. */
 const MINI_RANK: Record<number, string> = {
@@ -698,8 +710,6 @@ export class Game {
 
     // 불은 **칸 뒤**입니다. 앞에 두면 숫자를 가리고, 그러면 연출이 정보를 덮습니다.
     for (const fire of [this.chipsFire, this.multFire]) {
-      fire.width = 124 + FIRE_PAD * 2
-      fire.height = 78 + FIRE_PAD * 2 + FIRE_RISE
       fire.blendMode = 'add'
       fire.visible = false
     }
@@ -1446,6 +1456,10 @@ export class Game {
     const heat = this.fever
     this.chipsFlame.heat = heat * 0.72
     this.multFlame.heat = heat
+    // **칸이 비칩니다.** 불은 칸 뒤에 있고 칸은 불투명이라, 비치지 않으면 불이 칸 위로
+    // 삐져나온 자락만 보입니다.
+    this.chips.heat = heat * 0.72
+    this.mult.heat = heat
     this.chipsFlame.advance(seconds)
     this.multFlame.advance(seconds)
 
@@ -1455,9 +1469,12 @@ export class Game {
     if (!lit) return
 
     // 칸을 따라다닙니다. 합쳐지는 동안 칸이 움직이므로 자리를 매 프레임 맞춥니다.
+    //
+    // **크기는 곱해야 합니다.** 그림이 1 × 1 이라 배율이 곧 픽셀 크기이고, 칸의 배율을
+    // 그대로 넣으면 불이 1픽셀짜리가 됩니다.
     const follow = (fire: Sprite, slot: Slot) => {
-      fire.position.set(slot.x - FIRE_PAD, slot.y - FIRE_PAD - FIRE_RISE)
-      fire.scale.set(slot.scale.x, slot.scale.y)
+      fire.position.set(slot.x - FIRE_PAD, slot.y + 78 + FIRE_ROOT - FIRE_H)
+      fire.scale.set(FIRE_W * slot.scale.x, FIRE_H * slot.scale.y)
     }
     follow(this.chipsFire, this.chips)
     follow(this.multFire, this.mult)

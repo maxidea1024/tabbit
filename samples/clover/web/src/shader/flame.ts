@@ -83,13 +83,23 @@ void main(void) {
   float n = layers(flow);
 
   // 아래가 뿌리이고 위로 갈수록 사라집니다. **세기가 곧 불길의 높이입니다.**
-  float reach = mix(0.30, 1.0, uHeat);
-  float body = smoothstep(1.0, 1.0 - reach, uv.y);
+  //
+  // 걸러내기의 세로 좌표는 **위가 0** 입니다. 그것을 뒤집지 않으면 뿌리가 위에 서고 불이
+  // 아래로 사라져, 칸 위쪽에 얼룩 하나가 떠 있는 것으로 보입니다.
+  //
+  // 기울기는 곧게 내려갑니다. 부드러운 계단으로 두면 뿌리 근처에만 몰려, 칸을 지나기 전에
+  // 다 사라집니다.
+  float reach = mix(0.40, 1.0, uHeat);
+  float up = (1.0 - uv.y) / reach;
+  float body = clamp(1.0 - up * 0.82, 0.0, 1.0);
 
   // 좌우 끝은 좁힙니다. 칸을 넘어 번지면 불이 아니라 색판이 됩니다.
   float sides = smoothstep(0.0, 0.16, uv.x) * smoothstep(1.0, 0.84, uv.x);
 
-  float fire = clamp(n * body * sides * (0.55 + uHeat * 1.35) - 0.14, 0.0, 1.0);
+  // 맨 아래도 사라집니다. **끊긴 자리가 있으면 불이 아니라 잘린 그림으로 보입니다.**
+  float foot = smoothstep(1.0, 0.90, uv.y);
+
+  float fire = clamp(n * body * sides * foot * (0.9 + uHeat * 1.3) - 0.12, 0.0, 1.0);
   if (fire <= 0.002) {
     finalColor = vec4(0.0);
     return;

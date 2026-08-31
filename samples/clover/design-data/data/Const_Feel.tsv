@@ -10,8 +10,8 @@
 	HitStopMs	int	120	배수를 곱할 때 연출의 시계가 멈추는 길이
 	FastForwardScale	int	4	빠르게 넘기기의 배속
 	ShakeMaxPx	int	20	화면 흔들림의 최대 진폭
-	ShakeThresholdMult	int	200000	흔들림이 시작되는 배수. 만분율
-	ShakeMaxMult	int	3000000	흔들림이 최대가 되는 배수. 만분율
+	ShakeThresholdMult	int	40000	세기가 오르기 시작하는 배수. 만분율
+	ShakeMaxMult	int	3000000	세기가 최대가 되는 배수. 만분율
 	NumberScaleMaxBp	int	16000	숫자가 커지는 최대 배율. 만분율
 	PitchMaxSemitones	int	12	소리 음높이가 올라가는 최대 반음
 	ParticleMax	int	90	카드 뒤 파티클의 최대 개수

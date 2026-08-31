@@ -22,6 +22,14 @@ export class Slot extends Container {
     },
   })
 
+  /**
+   * 이 칸이 얼마나 타고 있는가. 0..1.
+   *
+   * **바탕이 비칩니다.** 불은 칸 뒤에 있고 칸은 불투명이라, 그대로 두면 아무것도 보이지
+   * 않습니다 — 위로 옮기면 점수 칸을 덮고, 아래로 옮기면 바닥에서 새어 나오는 것으로
+   * 보입니다. 타는 것은 이 칸이므로 이 칸이 비쳐야 합니다.
+   */
+  private burn = 0
   private shown = 0
   private wanted = 0
   private numeric = true
@@ -52,8 +60,18 @@ export class Slot extends Container {
     plate(this.plate, this.boxWidth, this.boxHeight, {
       ...style,
       top: glow > 0 ? mix(style.top, this.ink, glow * 0.35) : style.top,
-      weight: 1.5 + glow * 2,
+      weight: 1.5 + glow * 2 + this.burn * 1.5,
     })
+    this.plate.alpha = 1 - this.burn * 0.82
+  }
+
+  /** 이 칸이 타오르는 세기. 바탕이 그만큼 비칩니다. */
+  set heat(value: number) {
+    const next = Math.max(0, Math.min(1, value))
+    if (Math.abs(next - this.burn) < 0.01) return
+    this.burn = next
+    this.draw()
+    this.settledLook = false
   }
 
   /** 숫자가 아닌 값. 바뀌면 한 번 튑니다. */

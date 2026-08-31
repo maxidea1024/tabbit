@@ -56,11 +56,11 @@ namespace Clover.Data
         /// </summary>
         public static int ShakeMaxPx { get; }
         /// <summary>
-        /// 흔들림이 시작되는 배수. 만분율
+        /// 세기가 오르기 시작하는 배수. 만분율
         /// </summary>
         public static int ShakeThresholdMult { get; }
         /// <summary>
-        /// 흔들림이 최대가 되는 배수. 만분율
+        /// 세기가 최대가 되는 배수. 만분율
         /// </summary>
         public static int ShakeMaxMult { get; }
         /// <summary>
@@ -115,7 +115,7 @@ namespace Clover.Data
             HitStopMs = 120;
             FastForwardScale = 4;
             ShakeMaxPx = 20;
-            ShakeThresholdMult = 200000;
+            ShakeThresholdMult = 40000;
             ShakeMaxMult = 3000000;
             NumberScaleMaxBp = 16000;
             PitchMaxSemitones = 12;

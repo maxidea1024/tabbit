@@ -39,10 +39,10 @@ export class FeelConst {
   /** 화면 흔들림의 최대 진폭 */
   public static readonly shakeMaxPx: number = 20
 
-  /** 흔들림이 시작되는 배수. 만분율 */
-  public static readonly shakeThresholdMult: number = 200000
+  /** 세기가 오르기 시작하는 배수. 만분율 */
+  public static readonly shakeThresholdMult: number = 40000
 
-  /** 흔들림이 최대가 되는 배수. 만분율 */
+  /** 세기가 최대가 되는 배수. 만분율 */
   public static readonly shakeMaxMult: number = 3000000
 
   /** 숫자가 커지는 최대 배율. 만분율 */
