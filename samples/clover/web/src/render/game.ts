@@ -261,8 +261,13 @@ export class Game {
   private readonly coins = new Coins()
   private readonly punch = new PunchFilter(SIZE.width, SIZE.height)
   private readonly tooltip = new Tooltip()
-  /** 무엇이 일어났는지 알리는 줄들. 여러 개가 동시에 뜹니다. */
-  private readonly toasts = new Toasts(BOARD_X)
+  /**
+   * 무엇이 일어났는지 알리는 줄들.
+   *
+   * **판의 오른쪽에 섭니다.** 가운데에 세우면 낸 카드를 덮고, 그러면 읽는 것이 아니라
+   * 사라지기를 기다리게 됩니다.
+   */
+  private readonly toasts = new Toasts()
 
   private readonly cards = new Map<number, CardView>()
   private readonly playedViews: CardView[] = []
@@ -777,9 +782,18 @@ export class Game {
     this.money.position.set(LEFT, 450)
     this.anteSlot.position.set(LEFT + 134, 450)
 
-    const times = new Text({ text: '×', style: { fontSize: 28, fill: COLOR.ink } })
-    times.anchor.set(0.5)
-    times.position.set(LEFT + 132, CHIPS_Y + 42)
+    // **곱셈표는 글자가 아니라 그림입니다.** 글꼴마다 `×` 의 굵기와 세로 자리가 달라서,
+    // 글자로 두면 말을 바꿀 때마다 두 칸 사이에서 비뚤어집니다.
+    const times = new Graphics()
+    const armLength = 9
+    const armWidth = 3.4
+    for (const angle of [Math.PI / 4, -Math.PI / 4]) {
+      const dx = Math.cos(angle) * armLength
+      const dy = Math.sin(angle) * armLength
+      times.moveTo(-dx, -dy).lineTo(dx, dy)
+        .stroke({ color: COLOR.ink, width: armWidth, cap: 'round', alpha: 0.9 })
+    }
+    times.position.set(LEFT + 132, CHIPS_Y + 39)
 
     // 불은 **칸 뒤**입니다. 앞에 두면 숫자를 가리고, 그러면 연출이 정보를 덮습니다.
     for (const fire of [this.chipsFire, this.multFire]) {

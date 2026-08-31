@@ -21,12 +21,25 @@ const RICH: RichStyle = {
 
 const NEWLINE = String.fromCharCode(10)
 
-const WIDTH = 380
+/**
+ * 토스트의 넓이.
+ *
+ * **좁습니다.** 판 한가운데에 넓게 서면 둘째 것부터 낸 카드를 덮고, 그러면 읽는 것이 아니라
+ * 사라지기를 기다리게 됩니다. 오른쪽 빈 자리에 세우려면 그만큼 좁아야 합니다.
+ */
+const WIDTH = 236
 /** 두 줄이 들어가는 최소 높이. 글이 길면 그만큼 자랍니다. */
-const HEIGHT = 56
+const HEIGHT = 52
 const GAP = 8
-/** 첫 토스트의 자리. 조커 줄 아래이고 낸 카드 위입니다. */
-const TOP = 268
+/** 첫 토스트의 자리. **낸 카드의 오른쪽입니다.** */
+const TOP = 214
+/**
+ * 한 번에 서는 수.
+ *
+ * **넷째부터는 읽을 수 없습니다.** 앞의 것이 아직 있는데 새것이 오면 앞의 것을 서둘러
+ * 보냅니다 — 쌓아 두면 어느 것이 방금 온 것인지 알 수 없습니다.
+ */
+const STACK = 3
 
 interface Entry {
   box: Container
@@ -44,12 +57,13 @@ export class Toasts extends Container {
   private readonly live: Entry[] = []
 
   /**
-   * 줄이 가운데에 서는 자리.
+   * 줄이 서는 자리의 가운데.
    *
-   * **화면의 한가운데가 아닙니다.** 왼쪽에 패널이 서 있으므로 화면의 한가운데는 판의
-   * 한가운데보다 왼쪽이고, 거기에 띄우면 줄이 카드에서 비껴 보입니다.
+   * **판의 한가운데가 아닙니다.** 가운데에 세우면 낸 카드를 덮고, 그러면 읽는 것이 아니라
+   * 사라지기를 기다리게 됩니다 — 낸 카드는 오른쪽으로 x 1030 에서 끝나고 그 오른쪽은
+   * 덱까지 비어 있습니다.
    */
-  constructor(private readonly centerX: number = SIZE.width / 2) {
+  constructor(private readonly centerX: number = SIZE.width - 10 - WIDTH / 2) {
     super()
     this.eventMode = 'none'
     this.zIndex = 8_000
@@ -69,14 +83,14 @@ export class Toasts extends Container {
       text: title,
       style: {
         fontSize: 15, fill: COLOR.ink, fontWeight: '800', lineHeight: 21,
-        wordWrap: true, wordWrapWidth: WIDTH - 44,
+        wordWrap: true, wordWrapWidth: WIDTH - 40,
       },
     })
-    heading.position.set(24, 9)
+    heading.position.set(20, 8)
 
     // **수와 이름은 다른 색입니다.** 「8 → 10」 에서 사람이 보는 것은 그 둘입니다.
-    const body = richBlock(note.split(NEWLINE), RICH, 17, WIDTH - 32)
-    body.position.set(24, 12 + heading.height)
+    const body = richBlock(note.split(NEWLINE), RICH, 15, WIDTH - 30)
+    body.position.set(20, 10 + heading.height)
 
     const height = Math.max(HEIGHT, body.y + body.height + 12)
 
@@ -93,6 +107,11 @@ export class Toasts extends Container {
     box.addChild(board, stripe, heading, body)
     box.pivot.set(WIDTH / 2, 0)
     this.addChild(box)
+
+    // **셋까지만 섭니다.** 넘치면 가장 오래된 것을 서둘러 보냅니다.
+    for (let i = 0; i < this.live.length - (STACK - 1); i++) {
+      this.live[i].life = Math.min(this.live[i].life, 0.22)
+    }
 
     const slot = this.live.length
     // 처음 뜨는 것은 미끄러지지 않고 제자리에서 시작합니다.
@@ -133,7 +152,8 @@ export class Toasts extends Container {
       entry.shown += (want - entry.shown) * Math.min(1, seconds * 12)
 
       entry.box.scale.set(scale)
-      entry.box.position.set(this.centerX, entry.shown - (1 - enter) * 26)
+      // 오른쪽에서 미끄러져 들어옵니다. 위에서 내려오면 조커 줄을 가로지릅니다.
+      entry.box.position.set(this.centerX + (1 - enter) * 30, entry.shown)
       entry.box.alpha = Math.min(enter, Math.min(1, entry.life / 0.4))
     }
   }
