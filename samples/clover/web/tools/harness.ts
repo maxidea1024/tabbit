@@ -29,6 +29,8 @@ export interface Peek {
   grantConsumable?(count: number): void
   handOrder: number[]
   jokerOrder: number[]
+  /** 눌러야 하는 것들의 자리. `game.ts` 가 그린 그대로 알립니다. */
+  spots: Record<string, { x: number; y: number } | undefined>
 }
 
 /**
@@ -191,16 +193,16 @@ export async function clickPrimary(page: Page): Promise<void> {
     await page.mouse.click(spot.x, spot.y)
     return
   }
-  // 블라인드 선택은 **판 셋이 나란히** 서고 지금 차례인 것만 자기 버튼을 가집니다.
-  // `game.ts` 의 `drawBlindPick` 과 같은 계산입니다 — 아랫변을 맞추므로 버튼의 자리는
-  // 판의 높이와 상관없이 아래에서 셉니다.
-  const cardW = 226
-  const gap = 20
-  const bottom = 754
-  const index = { 1: 0, 2: 1, 3: 2 }[(await peek(page)).blind as 1 | 2 | 3] ?? 0
-  const startX = BOARD_X - (2 * (cardW + gap)) / 2 - cardW / 2
-  const spot = await at(page, startX + index * (cardW + gap) + cardW / 2, bottom - 106 + 22)
-  await page.mouse.click(spot.x, spot.y)
+  // 블라인드 선택은 **화면이 알린 자리를 누릅니다.** 판의 밑단이 글의 길이에 따라 자라므로
+  // 여기서 다시 계산하면 말을 바꾼 날에 어긋납니다.
+  const pick = (await peek(page)).spots?.pick
+  if (!pick) throw new Error('블라인드 판의 버튼 자리를 화면이 알리지 않았습니다')
+  const spot = await at(page, pick.x, pick.y)
+  await page.mouse.move(spot.x, spot.y)
+  await page.waitForTimeout(80)
+  await page.mouse.down()
+  await page.waitForTimeout(50)
+  await page.mouse.up()
 }
 
 /**

@@ -24,28 +24,14 @@ async function main(): Promise<number> {
   await page.waitForTimeout(600)
   await shot(page, 'tag-blind')
 
-  // 스몰의 「건너뛴다」. 판의 아랫변에서 셉니다.
-  const cardW = 226
-  const gap = 20
-  const boardX = (16 + 264 + 20 + STAGE_W) / 2
-  const startX = boardX - (2 * (cardW + gap)) / 2 - cardW / 2
-  const skip = await at(page, startX + cardW / 2, 754 - 52 + 18)
-  await page.mouse.move(skip.x, skip.y)
-  await page.waitForTimeout(120)
-  await page.mouse.down()
-  await page.waitForTimeout(60)
-  await page.mouse.up()
+  // 「건너뛴다」. **화면이 알린 자리를 누릅니다.**
+  await tapSkip(page)
   await settle(page)
   await page.waitForTimeout(700)
   await shot(page, 'tag-gained')
 
   // 빅도 건너뜁니다. 태그가 둘 쌓입니다.
-  const skip2 = await at(page, startX + (cardW + gap) + cardW / 2, 754 - 52 + 18)
-  await page.mouse.move(skip2.x, skip2.y)
-  await page.waitForTimeout(120)
-  await page.mouse.down()
-  await page.waitForTimeout(60)
-  await page.mouse.up()
+  await tapSkip(page)
   await settle(page)
   await page.waitForTimeout(1800)
   await shot(page, 'tag-two')
@@ -54,6 +40,18 @@ async function main(): Promise<number> {
   await browser.close()
   await server.close()
   return 0
+}
+
+/** 지금 블라인드의 「건너뛴다」 를 누릅니다. */
+async function tapSkip(page: Page): Promise<void> {
+  const skip = (await peek(page)).spots?.skip
+  if (!skip) throw new Error('건너뛰기 버튼의 자리를 화면이 알리지 않았습니다')
+  const spot = await at(page, skip.x, skip.y)
+  await page.mouse.move(spot.x, spot.y)
+  await page.waitForTimeout(100)
+  await page.mouse.down()
+  await page.waitForTimeout(60)
+  await page.mouse.up()
 }
 
 async function shot(page: Page, name: string): Promise<void> {

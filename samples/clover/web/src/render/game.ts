@@ -36,6 +36,7 @@ import { FlameFilter } from '../shader/flame'
 import { DissolveFilter } from '../shader/dissolve'
 import { Audio } from './audio'
 import { CardView, type EditionLook } from './card-view'
+import { Tokens } from './tokens'
 import { BlindBadge, Slot } from './hud'
 import { JokerView } from './joker-view'
 import {
@@ -310,6 +311,13 @@ export class Game {
   private readonly background = new BackgroundFilter()
   private readonly particles = new Particles()
   private readonly coins = new Coins()
+  /**
+   * 날아가는 칩.
+   *
+   * **칩이 숫자로만 오르면 무엇이 얼마를 낸 것인지 남지 않습니다.** 카드가 낸 칩은 그
+   * 카드에서 칩 칸으로 날아가고, 액면마다 색이 다르므로 개수와 색이 곧 얼마인지입니다.
+   */
+  private readonly tokens = new Tokens()
   private readonly punch = new PunchFilter(SIZE.width, SIZE.height)
   private readonly tooltip = new Tooltip()
   /**
@@ -549,6 +557,13 @@ export class Game {
    */
   private readonly blindPick = new Container()
   /**
+   * 눌러야 하는 것들의 자리.
+   *
+   * **자리를 계산하는 곳이 하나여야 합니다.** 판의 밑단은 글의 길이에 따라 자라므로,
+   * 바깥에서 같은 계산을 다시 하면 말을 바꾼 날에 어긋납니다.
+   */
+  private readonly spots: Record<string, { x: number; y: number }> = {}
+  /**
    * 블라인드 판이 들어오는 정도. 0 에서 1 로 갑니다.
    *
    * **떡하니 서 있으면 밋밋합니다.** 셋이 왼쪽부터 차례로 아래에서 올라와야 「고르는 자리에
@@ -694,8 +709,15 @@ export class Game {
     this.overlay.visible = false
     // **타이틀은 판 바깥입니다.** 판과 조각들을 통째로 끄고 그 위에 홀로 섭니다.
     this.scene.addChild(this.board, this.particles, this.overlay,
-      this.coins, this.toasts, this.screenFlash, this.title)
+      this.coins, this.tokens, this.toasts, this.screenFlash, this.title)
     this.world.addChild(this.scene, this.modals, this.tooltip)
+
+    // 칩이 꽂힐 때마다 칩 칸이 번쩍이고 음이 하나 올라갑니다. **값은 여기서 세지
+    // 않습니다** — 숫자는 박자가 올리고, 이것은 그것이 어디서 왔는지를 보이는 몫입니다.
+    this.tokens.onLand = index => {
+      this.audio.play('card_chip', 6 + index * 2)
+      this.flashPanel(COLOR.chips, 0.42)
+    }
 
     // 동전이 꽂힐 때마다 금액 칸이 튀고 음이 하나 올라갑니다.
     this.coins.onLand = (index, gain) => {
@@ -1504,6 +1526,11 @@ export class Game {
         if (event.money !== 0 && view) {
           this.coins.fly(event.money, { x: view.x, y: view.y }, this.moneySpot())
         }
+        // **낸 칩은 날아갑니다.** 배수는 날리지 않습니다 — 배수는 쌓이는 것이 아니라
+        // 곱하는 것이고, 그것을 칩과 같은 모양으로 날리면 둘이 섞입니다.
+        if (event.chips > 0 && view && this.settings.particles) {
+          this.tokens.fly(event.chips, { x: view.x, y: view.y }, this.chipsSpot())
+        }
         break
       }
 
@@ -1542,6 +1569,11 @@ export class Game {
 
         if (money && event.money !== 0 && view) {
           this.coins.fly(event.money, { x: view.x, y: view.y }, this.moneySpot())
+        }
+        // 조커가 낸 칩도 날아갑니다. **큰 액면이 여기서 나옵니다** — 카드 한 장은 10 남짓
+        // 이지만 조커는 100을 냅니다.
+        if (event.chips > 0 && view && this.settings.particles) {
+          this.tokens.fly(event.chips, { x: view.x, y: view.y }, this.chipsSpot())
         }
         break
       }
@@ -1814,6 +1846,11 @@ export class Game {
   }
 
   /** 금액 칸의 가운데. 동전이 여기로 꽂힙니다. */
+  /** 칩 칸의 한가운데. 날아간 칩이 여기에 꽂힙니다. */
+  private chipsSpot(): { x: number; y: number } {
+    return { x: LEFT + 61, y: CHIPS_Y + 34 }
+  }
+
   private moneySpot(): { x: number; y: number } {
     return { x: this.money.x + 62, y: this.money.y + 26 }
   }
@@ -2030,6 +2067,7 @@ export class Game {
     this.advanceLater()
     this.advanceBurningItems(seconds)
     this.coins.advance(seconds)
+    this.tokens.advance(seconds)
     this.toasts.advance(seconds)
     this.decayFlashes(seconds)
 
@@ -2269,6 +2307,9 @@ export class Game {
       consumables: state.consumables.length,
       // **자리가 규칙입니다.** 득점은 낸 카드의 왼쪽부터이고 조커는 슬롯의 왼쪽부터이므로,
       // 자리를 바꾸는 것이 되는지는 이 두 줄로만 확인할 수 있습니다.
+      // **버튼의 자리도 알립니다.** 도구가 같은 계산을 베껴 적으면 배치를 고칠 때 한쪽만
+      // 고쳐지고, 그 도구는 엉뚱한 곳을 눌러 놓고 아무 말도 하지 않습니다.
+      spots: this.spots,
       handOrder: state.hand.slice(),
       jokerOrder: state.jokers.map(joker => joker.uid),
       // **판을 끝까지 두는 도구를 위한 손잡이입니다.** 사람이 보라고 넣은 뜸이 도구에게는
@@ -2712,6 +2753,8 @@ export class Game {
    */
   private drawBlindPick(): void {
     this.blindPick.removeChildren().forEach(child => child.destroy())
+    delete this.spots.pick
+    delete this.spots.skip
     const state = this.state
     this.blindPick.visible = state.phase === 'blind-select' && this.presented
     if (!this.blindPick.visible) return
@@ -2863,6 +2906,7 @@ export class Game {
               this.act({ t: 'skip_blind' })
             })
           place(skip, 36)
+          this.spots.skip = { x: group.x + cardW / 2, y: group.y + skip.y + 18 }
           // **무엇을 받는지가 그 버튼 위에 적혀 있습니다.** 적혀 있지 않으면 건너뛸지를
           // 찍게 됩니다 — 태그 하나가 조커 하나이거나 바우처 하나입니다.
           if (tag) place(tag.node, tag.height)
@@ -2870,6 +2914,7 @@ export class Game {
         const pick = new Button(t('ui.button.select_blind'), cardW - 36, 44, 0x2f6fb5,
           () => this.act({ t: 'select_blind' }))
         place(pick, 44)
+        this.spots.pick = { x: group.x + cardW / 2, y: group.y + pick.y + 22 }
       }
 
       this.blindPick.addChild(group)
