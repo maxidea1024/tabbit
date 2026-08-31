@@ -178,6 +178,14 @@ export interface RunState {
   consumables: ConsumableInstance[]
   vouchers: string[]
   tagsPending: string[]
+  /**
+   * 이번 안테의 스몰·빅을 건너뛰면 받는 태그. `[스몰, 빅]` 입니다.
+   *
+   * **건너뛰기 전에 정해져 있어야 합니다.** 건너뛴 다음에 뽑으면 무엇을 받는지 모르는 채로
+   * 건너뛸지를 정하게 되고, 그것은 선택이 아니라 찍기입니다. 안테가 바뀔 때 둘을 함께
+   * 뽑습니다 — 스몰과 빅이 한 화면에 나란히 서므로 둘 다 적혀 있어야 합니다.
+   */
+  tagOffer: string[]
 
   /**
    * 한 번 걸리고 남는 규칙 변경.

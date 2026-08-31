@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """그림 프롬프트를 뽑습니다.
 
-조커 150종과 소모품 52종의 그림을 생성하는데, **프롬프트를 손으로 202번 적지 않습니다** —
+조커 150종과 소모품 52종과 태그 24종의 그림을 생성하는데, **프롬프트를 손으로 202번 적지 않습니다** —
 식별자가 이미 영어의 구체적인 낱말이므로 그것을 문장으로 바꾸고, 어색한 것만 아래의 표에
 적어 둡니다.
 
@@ -47,15 +47,36 @@ PROMPT = (
     'Palette: deep navy, teal, warm gold, crimson. Vertical composition. '
     'No text, no letters, no numbers, no signature.')
 
-# 그림의 크기. **카드의 비율이고, 이 비율을 내는 모델로 뽑아야 합니다** —
-# `flux-1-schnell` 은 가로세로를 무시하고 정사각형만 냅니다.
+# **태그는 카드가 아니라 칩입니다.** 조커와 소모품은 손에 드는 카드이고, 태그는 판에 놓는
+# 포커 칩입니다 — 원작에서도 그렇습니다. 그래서 세로 카드 틀이 아니라 정사각 칩으로 뽑습니다.
+#
+# 문장에 「POKER CHIP」 이라고 적는 것이 요점입니다. 「뱃지」 나 「토큰」 으로 적으면 테두리
+# 없는 납작한 문양에 그림자만 늘어뜨린 것이 나오고, 34픽셀로 줄이면 무엇인지 읽히지 않습니다.
+TAG_PROMPT = (
+    'Bold flat 2D icon of a round POKER CHIP with %s stamped in its centre. '
+    'The chip is a circle with an inner ring and evenly spaced rectangular edge dashes '
+    'around its rim, seen straight on, centred, filling most of the square frame. '
+    'Thick clean outlines, screen-print poster art, limited flat colour palette, no realism, '
+    'no photography, no gradients, no soft shading, no drop shadow. '
+    'Flat DEEP NAVY background with a fine dot grid. '
+    'Palette: deep navy, teal, warm gold, crimson. Square composition. '
+    'No text, no letters, no numbers, no signature.')
+
+# 그림의 크기. **카드는 카드의 비율이고 뱃지는 정사각입니다** — 그리고 이 비율을 내는
+# 모델로 뽑아야 합니다. `flux-1-schnell` 은 가로세로를 무시하고 정사각형만 냅니다.
 SIZE = (640, 960)
+TAG_SIZE = (640, 640)
 MODEL = 'lucid-origin'
 
 
-def prompt_for(subject):
-    """그 대상 하나의 프롬프트. **화풍은 위에 한 벌만 있습니다.**"""
-    return PROMPT % (subject[0].lower() + subject[1:])
+def prompt_for(kind, subject):
+    """그 대상 하나의 프롬프트. **화풍은 갈래마다 한 벌씩 위에 있습니다.**"""
+    lowered = subject[0].lower() + subject[1:]
+    return (TAG_PROMPT if kind == 'tag' else PROMPT) % lowered
+
+
+def size_for(kind):
+    return TAG_SIZE if kind == 'tag' else SIZE
 
 # 식별자를 그대로 읽으면 어색한 것들. **여기 없는 것은 식별자를 그대로 문장으로 만듭니다.**
 # 그림 생성기가 낱말만 보고 거절하는 것들이 있습니다. **뜻은 그대로 두고 낱말만 바꿉니다** —
@@ -107,6 +128,41 @@ FLAVOUR = {
     'tarot': 'an arcana emblem of ',
     'planet': 'the planet ',
     'spectral': 'a ghostly sigil of ',
+    # **태그의 갈래말은 비어 있습니다.** 화풍의 문장이 이미 「둥근 뱃지」 라고 적고 있어서,
+    # 여기에 또 적으면 「뱃지에 찍힌 뱃지」 가 됩니다.
+    'tag': '',
+}
+
+# 태그 24종. **식별자를 그대로 읽으면 그릴 것이 없습니다** — `uncommon` 이나 `topup` 은
+# 낱말이지 그림이 아니므로, 그 태그가 하는 일을 그림 하나로 옮겨 적습니다.
+#
+# 24개가 같은 둥근 뱃지이고 찍힌 문양만 다릅니다 — 34픽셀로 줄여도 「태그」 라는 것이 먼저
+# 읽혀야 하고, 그러려면 테두리가 같아야 합니다.
+TAG_SUBJECT = {
+    'uncommon': 'a single bold star',
+    'rare': 'three stars in a row',
+    'negative': 'an inverted black diamond',
+    'foil': 'a metallic chevron',
+    'holographic': 'a prismatic rainbow band',
+    'polychrome': 'three overlapping colour circles',
+    'investment': 'a stack of coins',
+    'voucher': 'a folded coupon ticket',
+    'boss': 'a horned crown',
+    'standard': 'a cluster of playing-card pips',
+    'charm': 'a lucky horseshoe',
+    'meteor': 'a falling meteor with a tail',
+    'buffoon': 'a jester hat with bells',
+    'ethereal': 'a ghostly wisp',
+    'handy': 'an open palm',
+    'garbage': 'a crumpled ball of paper',
+    'coupon': 'a ticket cut by scissors',
+    'd6': 'a six-sided die',
+    'double': 'two mirrored arrows',
+    'juggle': 'three juggling balls in an arc',
+    'economy': 'a rising coin graph',
+    'speed': 'a winged boot',
+    'orbital': 'a ring orbiting a dot',
+    'topup': 'an overflowing cup',
 }
 
 
@@ -144,6 +200,9 @@ def entries():
                     FLAVOUR['planet'] + body + ' with rings and moons'))
     for identifier, display in read_table('Spectral.tsv', 'spectral_id'):
         out.append(('spectral', identifier, display, FLAVOUR['spectral'] + phrase(identifier)))
+    for identifier, display in read_table('Tag.tsv', 'tag_id'):
+        out.append(('tag', identifier, display,
+                    FLAVOUR['tag'] + TAG_SUBJECT.get(identifier, phrase(identifier))))
     return out
 
 
@@ -168,7 +227,7 @@ def main():
             have = '1' if os.path.exists(target(kind, identifier)) else ''
             handle.write('%s\t%s\t%s\t%s\t%s\t%s\n'
                          % (kind, identifier, display, subject,
-                            prompt_for(subject), have))
+                            prompt_for(kind, subject), have))
 
     # **화면이 읽는 목록.** 이것이 없으면 그림마다 없는 파일을 찾아 404를 냅니다.
     art_dir = os.path.join(SAMPLE, 'web', 'public', 'art')
@@ -196,7 +255,7 @@ def main():
 
     if only_missing:
         for kind, identifier, _display, subject in missing:
-            print('%s/%s\t%s' % (kind, identifier, prompt_for(subject)))
+            print('%s/%s\t%s' % (kind, identifier, prompt_for(kind, subject)))
 
 
 if __name__ == '__main__':

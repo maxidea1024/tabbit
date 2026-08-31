@@ -67,6 +67,10 @@ export function canonical(state: RunState): string {
           `.${item.seal ?? 0}.${item.edition}${state.pack!.taken[at] ? 'x' : ''}`).join(',')
     : '')
 
+  // **이번 안테의 태그 둘.** 끝에 붙입니다 — 가운데에 끼우면 예전 리플레이의 해시가 전부
+  // 달라집니다.
+  parts.push(state.tagOffer.join(','))
+
   return parts.join('|')
 }
 

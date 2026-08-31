@@ -24,7 +24,7 @@ import { SuitKind } from '../generated/enums/suit-kind'
 import type { Data } from '../core/data'
 import { describe } from '../core/describe'
 import { evaluate } from '../core/hand'
-import { apply, defaultRules, newRun, targetOf, type Action } from '../core/run'
+import { apply, defaultRules, newRun, tagFor, targetOf, type Action } from '../core/run'
 import { language, setLanguage, t, text, tf } from '../core/strings'
 import { useFont } from '../ui/font'
 import { rerollCost, sellValueOf, type ShopItem } from '../core/shop'
@@ -47,7 +47,7 @@ import { Motion, Spring } from './motion'
 import { Particles } from './particles'
 import { artFor, onArtReady, type ArtKind } from './art'
 import { drawCardBack } from './card-back'
-import { shade } from './glyph'
+import { drawGlyph, glyphFor, hashOf, hsl, shade } from './glyph'
 import { cardArtId, drawFace } from './pips'
 import { COLOR, SIZE } from './theme'
 import { Button, Panel } from '../ui/widgets'
@@ -109,6 +109,13 @@ const JOKER_Y = 108
 /** 조커 5칸이 시작하는 자리. */
 const JOKER_X = 372
 const CONSUMABLE_X = 962
+/**
+ * 들고 있는 태그가 서는 자리.
+ *
+ * **소모품 줄 오른쪽입니다.** 조커와 소모품과 나란히 있어야 「지금 들고 있는 것」 으로
+ * 읽힙니다 — 왼쪽 패널의 글 한 줄로 두면 그것이 물건이라는 것이 읽히지 않습니다.
+ */
+const TAG_X = 1120
 const PLAY_Y = 366
 /**
  * 고른 카드가 무슨 족보인지 뜨는 자리.
@@ -502,6 +509,8 @@ export class Game {
   /** 뜯어 놓은 팩. 상점 위를 덮습니다. */
   private readonly packLayer = new Container()
   private readonly consumableLayer = new Container()
+  /** 들고 있는 태그의 딱지들. */
+  private readonly tagLayer = new Container()
   /** 고른 카드가 무슨 족보인지. **이것이 없으면 감으로 내야 합니다.** */
   private readonly preview = new Container()
   private readonly previewPlate = new Graphics()
@@ -1010,7 +1019,7 @@ export class Game {
     this.deckLayer.addChild(pile, this.deckLabel)
 
     this.board.addChild(this.deckLayer, this.headline, this.gauge, this.jokerCount,
-      this.consumableCount, this.consumableLayer, this.heldBar, this.activeLayer,
+      this.consumableCount, this.consumableLayer, this.tagLayer, this.heldBar, this.activeLayer,
       this.hint, this.panelFlash)
   }
 
@@ -1158,6 +1167,18 @@ export class Game {
           this.toasts.push(tf('ui.hand.level', { name: this.handName(event.hand), level: event.level }),
             t('ui.hand.leveled'), COLOR.chips, 2.8)
           break
+
+        // **태그를 받은 것이 보여야 합니다.** 받은 것이 화면 어디에도 나타나지 않으면
+        // 건너뛴 대가가 없는 것으로 보입니다.
+        case 'TagGained': {
+          const row = this.data.tables.tag.findByTagId(event.tagId)
+          const lines = describe(this.data, this.data.tagEffects.get(event.tagId) ?? [])
+          this.toasts.push(row?.name ?? event.tagId,
+            lines.join(' · ') || t('ui.note.applied'), COLOR.accentTerm, 3.2)
+          this.particles.burst(TAG_X + 17, JOKER_Y - 20, 22, COLOR.accentTerm, 1.2, 1.2)
+          this.audio.play('joker_add', 4)
+          break
+        }
 
         case 'JokerDestroyed': {
           const row = this.data.tables.joker.findByJokerId(event.jokerId)
@@ -2336,6 +2357,7 @@ export class Game {
     this.syncCards()
     this.syncJokers()
     this.syncConsumables()
+    this.syncTags()
     this.syncActive()
     this.syncShop()
     this.syncPack()
@@ -2717,10 +2739,24 @@ export class Game {
       const done = blind < state.blind
       const tint = boss ? 0x8e3a5c : blind === BlindKind.Big ? 0x8a6a2e : 0x2f6a52
 
+      // 건너뛸 수 있으면 태그 딱지가 들어갑니다. 보스는 건너뛸 수 없고, 이미 지난 것도
+      // 건너뛸 것이 없습니다.
+      const skippable = row.skippable && blind !== BlindKind.Boss && !done
+      // **건너뛰면 무엇을 받는가.** 스몰과 빅이 나란히 서므로 둘 다 적혀 있어야 지금 것을
+      // 건너뛸지 다음 것을 건너뛸지를 견줄 수 있습니다.
+      const offer = skippable ? tagFor(state, blind) : undefined
+      const tag = offer ? this.tagPlate(offer, cardW - 36) : undefined
+
+      // 밑단에 쌓이는 것들의 높이. 아래에서 위로 쌓습니다.
+      const stack: number[] = now
+        ? [...(skippable ? [36, tag?.height ?? 0] : []), 44]
+        : [20, ...(tag ? [tag.height] : [])]
+      const stackH = stack.reduce((sum, one) => sum + one + 8, 0)
+
       const group = new Container()
       // 지금 차례인 것만 앞으로 나옵니다. **아랫변을 맞춥니다** — 위로 자라면 줄이
-      // 들쭉날쭉해 보입니다.
-      const height = cardH + (now ? 26 : 0)
+      // 들쭉날쭉해 보입니다. 밑단에 쌓인 만큼은 반드시 자랍니다.
+      const height = Math.max(cardH + (now ? 26 : 0), 222 + stackH + 12)
 
       // 왼쪽부터 차례로 아래에서 올라옵니다. 셋이 같이 나타나면 셋이 한 덩어리로 보입니다.
       const enter = Math.max(0, Math.min(1, (this.blindEnter - index * 0.16) / 0.44))
@@ -2798,32 +2834,42 @@ export class Game {
       noteText.position.set(cardW / 2, 172)
       group.addChild(noteText)
 
+      // 아래에서 위로 쌓습니다. **아랫변이 맞아야 셋이 한 줄로 보입니다.**
+      let at = height - 12
+      const place = (node: Container, h: number): void => {
+        at -= h
+        node.position.set(18, at)
+        at -= 8
+        group.addChild(node)
+      }
+
       if (done) {
         const mark = label(t('ui.label.cleared'), 14, COLOR.good, '800')
         mark.anchor.set(0.5, 0)
-        mark.position.set(cardW / 2, height - 52)
+        mark.position.set(cardW / 2, height - 40)
         group.addChild(mark)
       } else if (!now) {
         const mark = label(t('ui.label.next_up'), 13, COLOR.inkDim, '700')
         mark.anchor.set(0.5, 0)
-        mark.position.set(cardW / 2, height - 50)
+        mark.position.set(cardW / 2, height - 32)
         group.addChild(mark)
+        at = height - 40
+        if (tag) place(tag.node, tag.height)
       } else {
-        const pick = new Button(t('ui.button.select_blind'), cardW - 36, 44, 0x2f6fb5,
-          () => this.act({ t: 'select_blind' }))
-        pick.position.set(18, height - 106)
-        group.addChild(pick)
-
-        // 보스는 건너뛸 수 없습니다.
-        if (row.skippable && blind !== BlindKind.Boss) {
-          const skip = new Button(t('ui.button.skip_tag'), cardW - 36, 36, 0x4a5568,
+        if (skippable) {
+          const skip = new Button(t('ui.button.skip'), cardW - 36, 36, 0x4a5568,
             () => {
               this.audio.play('blind_skip')
               this.act({ t: 'skip_blind' })
             })
-          skip.position.set(18, height - 52)
-          group.addChild(skip)
+          place(skip, 36)
+          // **무엇을 받는지가 그 버튼 위에 적혀 있습니다.** 적혀 있지 않으면 건너뛸지를
+          // 찍게 됩니다 — 태그 하나가 조커 하나이거나 바우처 하나입니다.
+          if (tag) place(tag.node, tag.height)
         }
+        const pick = new Button(t('ui.button.select_blind'), cardW - 36, 44, 0x2f6fb5,
+          () => this.act({ t: 'select_blind' }))
+        place(pick, 44)
       }
 
       this.blindPick.addChild(group)
@@ -2843,6 +2889,163 @@ export class Game {
    * 카드를 누르면 그 한 장의 설명이 뜹니다. 강화와 인장과 에디션은 얼굴의 색과 점 하나로만
    * 구분되므로, **누르면 글로 읽을 수 있어야 합니다.**
    */
+  /**
+   * 태그 딱지 하나.
+   *
+   * **이름과 하는 일이 함께 적혀 있어야 합니다.** 이름만 있으면 「저글 태그」 가 무엇인지
+   * 모르는 채로 건너뛸지를 정하게 됩니다.
+   */
+  private tagPlate(tagId: string, width: number): { node: Container; height: number } {
+    const row = this.data.tables.tag.findByTagId(tagId)
+    const lines = describe(this.data, this.data.tagEffects.get(tagId) ?? [])
+
+    // **글을 먼저 만들고 딱지의 높이를 그것에 맞춥니다.** 못박으면 두 줄인 태그에서 아랫줄이
+    // 딱지 밖으로 나갑니다 — 어느 태그의 설명이 긴지는 데이터가 정합니다.
+    const note = new Text({
+      text: lines.join(' · '),
+      style: {
+        fontSize: 10, fill: COLOR.inkDim,
+        wordWrap: true, wordWrapWidth: width - 48, lineHeight: 12,
+      },
+    })
+    const height = Math.max(42, 20 + note.height + 8)
+
+    const node = new Container()
+    const plate = new Graphics()
+    plate.roundRect(0, 0, width, height, 8).fill({ color: 0x1c2436, alpha: 0.95 })
+    plate.roundRect(0.5, 0.5, width - 1, height - 1, 8)
+      .stroke({ color: COLOR.accentTerm, width: 1.5, alpha: 0.7 })
+    node.addChild(plate)
+
+    const face = this.tagFace(tagId, 22)
+    face.position.set(21, 13)
+    node.addChild(face)
+
+    const name = new Text({
+      text: row?.name ?? tagId,
+      style: { fontSize: 12, fill: COLOR.ink, fontWeight: '800' },
+    })
+    name.position.set(38, 4)
+    node.addChild(name)
+
+    note.position.set(38, 20)
+    node.addChild(note)
+
+    node.eventMode = 'static'
+    node.hitArea = new Rectangle(0, 0, width, height)
+    node.on('pointerover', () => {
+      const spot = this.overlay.toLocal(node.toGlobal({ x: width / 2, y: height }))
+      this.tooltip.show(row?.name ?? tagId, t('ui.kind.tag'), 0, lines, spot.x, spot.y, SIZE)
+    })
+    node.on('pointerout', () => this.tooltip.hide())
+    return { node, height }
+  }
+
+  /**
+   * 태그의 얼굴.
+   *
+   * 그림이 있으면 그림, 없으면 문양입니다 — **그림이 오기 전에도 종류가 갈려 보여야
+   * 합니다.**
+   */
+  private tagFace(tagId: string, size: number): Container {
+    const face = new Container()
+    const texture = artFor('tag', tagId)
+    if (texture) {
+      // **동그라미로 오려 냅니다.** 그림마다 바탕의 여백이 조금씩 달라서 그대로 넣으면
+      // 어떤 것은 네모 액자에 든 칩으로 보입니다 — 칩만 남기면 그 차이가 없어집니다.
+      const grown = size * 1.16
+      const sprite = new Sprite(texture)
+      sprite.width = grown
+      sprite.height = grown
+      sprite.position.set(-grown / 2, -grown / 2)
+
+      const round = new Graphics()
+      round.circle(0, 0, size / 2).fill(0xffffff)
+      sprite.mask = round
+
+      face.addChild(round, sprite)
+      return face
+    }
+
+    // 문양 하나와 그 태그의 색. 색은 이름에서 나오므로 태그마다 다릅니다.
+    const hue = hashOf(tagId) % 360
+    const art = new Graphics()
+    art.circle(0, 0, size / 2).fill({ color: hsl(hue, 0.5, 0.32) })
+    art.circle(0, 0, size / 2).stroke({ color: hsl(hue, 0.6, 0.6), width: 1.5 })
+    drawGlyph(art, glyphFor(tagId), 0, 0, size * 0.3, {
+      fill: hsl(hue, 0.7, 0.78), line: hsl(hue, 0.4, 0.22), weight: 1.4,
+    })
+    face.addChild(art)
+    return face
+  }
+
+  /**
+   * 들고 있는 태그.
+   *
+   * **상점에 들어갈 때까지 들고 있는 것입니다.** 「적용 중」 목록의 한 줄로만 두면 그것이
+   * 지금 들고 있는 물건이라는 것이 읽히지 않습니다 — 조커와 소모품 줄 옆에 딱지로 섭니다.
+   */
+  private syncTags(): void {
+    this.tagLayer.removeChildren().forEach(child => child.destroy())
+    const held = this.state.tagsPending
+    this.tagLayer.visible = held.length > 0 && this.started
+    if (!this.tagLayer.visible) return
+
+    const size = 40
+    const gap = 6
+    const shown = Math.min(held.length, 3)
+
+    const caption = new Text({
+      text: t('ui.kind.tag'),
+      style: { fontSize: 10, fill: COLOR.inkDim, fontWeight: '800' },
+    })
+    caption.anchor.set(0.5, 0)
+    caption.position.set(TAG_X + size / 2, JOKER_Y - 62)
+    this.tagLayer.addChild(caption)
+
+    held.slice(0, shown).forEach((tagId, index) => {
+      const row = this.data.tables.tag.findByTagId(tagId)
+      const lines = describe(this.data, this.data.tagEffects.get(tagId) ?? [])
+
+      const cell = new Container()
+      cell.position.set(TAG_X, JOKER_Y - 44 + index * (size + gap))
+
+      // **그림이 이미 칩입니다.** 그 뒤에 또 네모 딱지를 깔면 칩이 액자에 든 것으로
+      // 보입니다 — 그림이 없을 때만 딱지를 깝니다.
+      const texture = artFor('tag', tagId)
+      if (!texture) {
+        const plate = new Graphics()
+        plate.roundRect(0, 0, size, size, 8).fill({ color: 0x1c2436, alpha: 0.95 })
+        plate.roundRect(0.5, 0.5, size - 1, size - 1, 8)
+          .stroke({ color: COLOR.accentTerm, width: 1.5, alpha: 0.7 })
+        cell.addChild(plate)
+      }
+
+      const face = this.tagFace(tagId, texture ? size : size - 10)
+      face.position.set(size / 2, size / 2)
+      cell.addChild(face)
+
+      cell.eventMode = 'static'
+      cell.hitArea = new Rectangle(0, 0, size, size)
+      cell.on('pointerover', () => {
+        this.tooltip.show(row?.name ?? tagId, t('ui.kind.tag'), 0, lines,
+          TAG_X + size / 2, cell.y + size, SIZE)
+      })
+      cell.on('pointerout', () => this.tooltip.hide())
+      this.tagLayer.addChild(cell)
+    })
+
+    if (held.length > shown) {
+      const more = new Text({
+        text: `+${held.length - shown}`,
+        style: { fontSize: 11, fill: COLOR.inkDim, fontWeight: '800' },
+      })
+      more.anchor.set(0.5, 0)
+      more.position.set(TAG_X + size / 2, JOKER_Y - 44 + shown * (size + gap) + 3)
+      this.tagLayer.addChild(more)
+    }
+  }
+
   private drawDeckView(): void {
     const layer = this.deckView.view
     layer.removeChildren().forEach(child => child.destroy())

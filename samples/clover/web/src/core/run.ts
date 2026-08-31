@@ -102,6 +102,27 @@ export function defaultRules(data: Data): Rules {
   }
 }
 
+/**
+ * 이번 안테의 태그 둘을 뽑습니다.
+ *
+ * **`Tag` 흐름만 씁니다.** 흐름이 갈라져 있으므로 이 자리에서 난수를 더 쓰더라도 덱 섞기와
+ * 상점과 확률 발동은 같은 시드에서 그대로입니다.
+ */
+function rollTagOffer(data: Data, state: RunState): void {
+  const pool = data.tables.tag.records.filter(row => row.minAnte <= state.ante)
+  state.tagOffer = pool.length === 0 ? [] : [
+    pool[state.rng.Tag.below(pool.length)].tagId,
+    pool[state.rng.Tag.below(pool.length)].tagId,
+  ]
+}
+
+/** 지금 블라인드를 건너뛰면 받는 태그. 보스는 건너뛸 수 없으므로 없습니다. */
+export function tagFor(state: RunState, blind: BlindKind): string | undefined {
+  if (blind === BlindKind.Small) return state.tagOffer[0]
+  if (blind === BlindKind.Big) return state.tagOffer[1]
+  return undefined
+}
+
 /** 런 하나를 시작합니다. */
 export function newRun(data: Data, seed: string, deckId: string, stake: string): Step {
   const rng: Record<string, Pcg32> = {}
@@ -129,6 +150,7 @@ export function newRun(data: Data, seed: string, deckId: string, stake: string):
     consumables: [],
     vouchers: [],
     tagsPending: [],
+    tagOffer: [],
     ruleDeltas: [],
     roundRules: [],
     pendingRules: [],
@@ -172,6 +194,7 @@ export function newRun(data: Data, seed: string, deckId: string, stake: string):
   runTrigger(vm, Trigger.OnRunStart)
   rebuildRules(vm)
   pickBoss(vm)
+  rollTagOffer(data, state)
   state.target = blindTarget(vm)
 
   return { state, events: vm.events }
@@ -448,6 +471,7 @@ function advance(vm: Vm): void {
     state.blind = BlindKind.Small
     state.bossesSeen = []
     pickBoss(vm)
+    rollTagOffer(vm.data, state)
     if (state.ante > vm.data.run.winAnte) {
       state.phase = 'won'
       vm.events.push({ t: 'RunWon', ante: state.ante - 1 })
@@ -516,11 +540,11 @@ export function apply(data: Data, state: RunState, action: Action): Step {
     case 'skip_blind': {
       if (state.phase !== 'blind-select' || state.blind === BlindKind.Boss) break
       state.blindsSkipped++
-      const tags = data.tables.tag.records.filter(row => row.minAnte <= state.ante)
-      if (tags.length > 0) {
-        const tag = tags[state.rng.Tag.below(tags.length)]
-        state.tagsPending.push(tag.tagId)
-        vm.events.push({ t: 'TagGained', tagId: tag.tagId })
+      // **적혀 있던 그 태그를 받습니다.** 여기서 뽑으면 카드에 적힌 것과 달라집니다.
+      const tag = tagFor(state, state.blind)
+      if (tag) {
+        state.tagsPending.push(tag)
+        vm.events.push({ t: 'TagGained', tagId: tag })
         // **뽑는 그 자리에서 도는 것은 `OnUse` 뿐입니다.** 나머지는 상점에 들어갈 때나 다음
         // 라운드에 뜻을 가지므로 들고 있다가 그때 돕니다.
         useTags(vm, Trigger.OnUse)

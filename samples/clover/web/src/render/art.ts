@@ -9,7 +9,7 @@
 
 import { Assets, Texture } from 'pixi.js'
 
-export type ArtKind = 'joker' | 'tarot' | 'planet' | 'spectral' | 'card'
+export type ArtKind = 'joker' | 'tarot' | 'planet' | 'spectral' | 'card' | 'tag'
 
 let base = './art'
 const known = new Set<string>()
