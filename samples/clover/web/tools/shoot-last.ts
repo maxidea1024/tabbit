@@ -62,7 +62,7 @@ async function main(): Promise<number> {
   await page.waitForTimeout(300)
   await pressPlay(page)
 
-  for (let i = 0; i < 14; i++) {
+  for (let i = 0; i < 20; i++) {
     await page.waitForTimeout(260)
     const now = await peek(page)
     await shot(page, `last-${String(i).padStart(2, '0')}`)

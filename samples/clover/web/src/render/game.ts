@@ -84,6 +84,8 @@ const REVEAL_STEP = 0.13
 const REVEAL_SPAN = 0.28
 /** 설 때 아래에서 올라오는 거리. */
 const REVEAL_RISE = 14
+/** 정산의 줄이 하나씩 서는 간격. */
+const PAYOUT_STEP = 0.16
 /**
  * 상점이 서는 가장 높은 자리.
  *
@@ -396,10 +398,29 @@ export class Game {
     size: { width: 380, height: 240 },
     // **다 닫힌 뒤에 상점이 섭니다.** 닫기를 누른 그 순간에 그리면 판이 아직 물러나는
     // 중이라 상점이 비어 보입니다.
-    onClosed: () => this.refresh(),
+    onClosed: () => {
+      this.payoutWanted = false
+      this.refresh()
+    },
   }
   /** 정산에 오른 줄들. 이벤트가 하나씩 더합니다. */
   private readonly payoutRows: { why: string; amount: number }[] = []
+  /**
+   * 정산 판을 세울 차례인가.
+   *
+   * **카드가 다 걷힌 뒤에 섭니다.** 판이 떠 있는 채로 그 밑에서 카드가 물러나면, 끝난
+   * 것과 끝나는 중인 것이 한 화면에 겹칩니다 — 격파는 이미 정해졌지만 그것을 보는 순서는
+   * 카드가 물러나고 나서입니다.
+   */
+  private payoutWanted = false
+  /**
+   * 정산의 줄이 하나씩 서는 것.
+   *
+   * 판이 열릴 때 이미 줄이 다 모여 있으므로, 쌓이는 것은 **그리는 쪽에서** 만듭니다 —
+   * 상점이 하나씩 서는 것과 같은 계산이고, 다만 목록을 따로 둡니다: `reveals` 는
+   * `refresh` 가 비우므로 판이 열리는 그 프레임에 지워집니다.
+   */
+  private readonly payoutNodes: { node: Container; at: number; from: number }[] = []
 
   /** 「적용 중」 을 펼친 판. */
   private readonly activePanel: ModalPanel = {
@@ -1649,10 +1670,10 @@ export class Game {
         // **무엇으로 번 돈인가**를 적습니다. 합계만 굴러가면 이유를 알 수 없습니다.
         const why = moneyReason(event.reason)
         if (why) {
-          // 정산 판이 떠 있으면 그 판에 한 줄로 쌓입니다. 아니면 그 자리에 한 번 뜹니다.
-          if (this.modals.has(this.payout)) {
+          // 정산에 오를 것이면 그 판의 한 줄이 됩니다. 아니면 그 자리에 한 번 뜹니다.
+          if (this.payoutWanted) {
             this.payoutRows.push({ why, amount: event.delta })
-            this.drawPayout()
+            if (this.modals.has(this.payout)) this.drawPayout()
           } else {
             this.popAt(this.moneyLabelAnchor(),
               `${why}  ${event.delta > 0 ? '+' : ''}$${event.delta}`,
@@ -1688,8 +1709,7 @@ export class Game {
         // **정산 판이 상점보다 먼저 섭니다.** 돈이 들어오는 것을 보고 나서 쓰는 것이
         // 순서이고, 상점이 먼저 열리면 그 돈이 어디서 왔는지가 지나가 버립니다.
         this.payoutRows.length = 0
-        this.drawPayout()
-        this.modals.open(this.payout)
+        this.payoutWanted = true
         // **이 게임에서 사람이 기다리는 순간입니다.** 채널을 전부 씁니다 — 큰 글씨가 튀어
         // 나오고, 화면이 번쩍이고, 판이 흔들리고, 배경이 밝아지고, 음이 여섯 번 올라갑니다.
         this.say(t('ui.label.cleared'), COLOR.good, 2.2)
@@ -2005,6 +2025,32 @@ export class Game {
     this.audio.play('score_count', Math.round((1 - rolling) * 14) - 4)
   }
 
+  /**
+   * 정산 판이 서는 때.
+   *
+   * **카드가 다 걷혀야 섭니다** — 낸 카드가 물러났고, 타서 사라지는 것도 끝났고, 손패도
+   * 걷혔을 때입니다. 그러고 나서 줄이 하나씩 쌓입니다.
+   */
+  private advancePayout(seconds: number): void {
+    void seconds
+
+    if (this.payoutWanted && !this.modals.has(this.payout)) {
+      const swept = this.playedViews.length === 0 && this.fades.length === 0
+        && this.shown.hand.length === 0 && this.deals.length === 0
+      if (swept && !this.player.busy) {
+        this.drawPayout()
+        this.modals.open(this.payout)
+        // **상점은 정산 뒤입니다.** 판이 열린 것을 상점이 알아야 물러납니다 — 카드가
+        // 걷히는 그 프레임에 상점이 이미 그려져 있습니다.
+        this.refresh()
+      }
+    }
+
+    for (const one of this.payoutNodes) {
+      if (one.node.alpha < 1) this.advanceOne(one)
+    }
+  }
+
   /** 때가 된 것을 합니다. */
   private advanceLater(): void {
     for (let i = this.later.length - 1; i >= 0; i--) {
@@ -2118,6 +2164,7 @@ export class Game {
     this.advanceReveals()
     this.advancePack(seconds)
     this.advanceLater()
+    this.advancePayout(seconds)
     this.advanceRatchet(seconds)
     this.advanceBurningItems(seconds)
     this.coins.advance(seconds)
@@ -2362,12 +2409,15 @@ export class Game {
       consumables: state.consumables.length,
       // **자리가 규칙입니다.** 득점은 낸 카드의 왼쪽부터이고 조커는 슬롯의 왼쪽부터이므로,
       // 자리를 바꾸는 것이 되는지는 이 두 줄로만 확인할 수 있습니다.
+      //
+      // 패는 **화면이 그리는 차례**를 알립니다. 코어의 차례를 알리면 끌어다 놓아도 화면은
+      // 제자리로 돌아가는데 도구는 통과합니다 — 실제로 그런 결함이 있었습니다.
       // **버튼의 자리도 알립니다.** 도구가 같은 계산을 베껴 적으면 배치를 고칠 때 한쪽만
       // 고쳐지고, 그 도구는 엉뚱한 곳을 눌러 놓고 아무 말도 하지 않습니다.
       spots: this.spots,
       // 소리가 비는 자리를 찾을 때 씁니다 — 시계로 재면 배속과 히트스톱에서 어긋납니다.
       coming: this.player.coming ?? '',
-      handOrder: state.hand.slice(),
+      handOrder: this.shown.hand.slice(),
       jokerOrder: state.jokers.map(joker => joker.uid),
       // **판을 끝까지 두는 도구를 위한 손잡이입니다.** 사람이 보라고 넣은 뜸이 도구에게는
       // 기다림일 뿐이고, 그 기다림이 실행 시간의 대부분입니다. 옵션의 속도와 같은 값입니다.
@@ -3780,6 +3830,10 @@ export class Game {
         const next = this.state.hand.slice()
         next.splice(target, 0, ...next.splice(current, 1))
         this.state.hand = next
+        // **화면이 그리는 것은 `shown.hand` 입니다.** 이것을 함께 바꾸지 않으면 끌어다
+        // 놓아도 자리가 하나도 움직이지 않고 제자리로 돌아갑니다 — 정렬과 같습니다.
+        const seen = new Set(this.shown.hand)
+        this.shown.hand = next.filter(uid => seen.has(uid))
       } else {
         const next = this.state.jokers.slice()
         next.splice(target, 0, ...next.splice(current, 1))
@@ -4116,6 +4170,7 @@ export class Game {
   private drawPayout(): void {
     const layer = this.payout.view
     layer.removeChildren().forEach(child => child.destroy())
+    this.payoutNodes.length = 0
 
     const width = 380
     const rowH = 34
@@ -4134,15 +4189,18 @@ export class Game {
     })
     layer.addChild(panelFrame(width, height, t('ui.payout.title'), undefined, take))
 
+    // **줄이 하나씩 쌓입니다.** 판이 열릴 때 줄은 이미 다 모여 있으므로, 쌓이는 것은
+    // 그리는 쪽에서 만듭니다 — 한꺼번에 그려 놓으면 어디서 얼마가 들어왔는지를 훑어야
+    // 합니다. 설 때마다 동전 소리가 하나 나고 음이 올라갑니다.
     this.payoutRows.forEach((row, index) => {
       const y = top + index * rowH
+      const at = this.clock + 0.12 + index * PAYOUT_STEP
 
       const label = new Text({
         text: row.why,
         style: { fontSize: 14, fill: COLOR.ink, fontWeight: '700' },
       })
       label.position.set(24, y + 5)
-      layer.addChild(label)
 
       const amount = new Text({
         text: `${row.amount > 0 ? '+' : ''}$${row.amount}`,
@@ -4153,9 +4211,15 @@ export class Game {
       })
       amount.anchor.set(1, 0)
       amount.position.set(width - 24, y + 2)
-      layer.addChild(amount)
-    })
 
+      layer.addChild(label, amount)
+      for (const node of [label, amount]) {
+        const one = { node: node as Container, at, from: node.y }
+        this.payoutNodes.push(one)
+        this.advanceOne(one)
+      }
+      this.chimes.push({ at, cue: 'coin_land', semitones: index * 3 })
+    })
   }
 
   private showTooltip(view: JokerView): void {

@@ -56,7 +56,15 @@ async function main(): Promise<number> {
 
   // ------------------------------------------------------------ 손패의 자리
   console.log('손패')
-  const before = (await peek(page)).handOrder
+  // **다 깔릴 때까지 기다립니다.** 깔리는 중에 재면 앞뒤의 장수가 달라, 자리가 바뀌었는지가
+  // 아니라 장수가 늘었는지를 보게 됩니다.
+  let before = (await peek(page)).handOrder
+  for (let i = 0; i < 40; i++) {
+    await page.waitForTimeout(200)
+    const now = (await peek(page)).handOrder
+    if (now.length >= 8 && now.join() === before.join()) break
+    before = now
+  }
   const held = before.length
   const spacing = Math.min(100, 720 / Math.max(1, held))
   const startX = BOARD_X - ((held - 1) * spacing) / 2
