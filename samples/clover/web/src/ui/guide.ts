@@ -62,6 +62,12 @@ export class Guide implements ModalPanel {
     this.build()
   }
 
+  /** 글을 다시 읽습니다. **말이 바뀌면 이 판도 바뀌어야 합니다.** */
+  relabel(): void {
+    this.view.removeChildren().forEach(child => child.destroy())
+    this.build()
+  }
+
   private build(): void {
     // **판 위를 누르는 것으로는 닫히지 않습니다.** 닫는 것은 바깥이거나 `Esc` 입니다.
     // 족보 목록은 이 판에서 바로 열립니다. **판 위에 판이 얹힙니다** — 닫으면 이 판으로

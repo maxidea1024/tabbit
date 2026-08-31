@@ -12,7 +12,7 @@ import { COLOR } from './theme'
 /** 값 하나가 들어가는 칸. */
 export class Slot extends Container {
   private readonly plate = new Graphics()
-  private readonly caption = new Text({
+  private readonly caption_ = new Text({
     text: '', style: { fontSize: 10, fill: COLOR.inkDim, fontWeight: '700' },
   })
   private readonly value = new Text({
@@ -45,10 +45,10 @@ export class Slot extends Container {
               valueSize = 23) {
     super()
     this.value.style.fontSize = valueSize
-    this.addChild(this.plate, this.caption, this.value)
-    this.caption.text = caption
-    this.caption.anchor.set(0.5, 0)
-    this.caption.position.set(boxWidth / 2, 6)
+    this.addChild(this.plate, this.caption_, this.value)
+    this.caption_.text = caption
+    this.caption_.anchor.set(0.5, 0)
+    this.caption_.position.set(boxWidth / 2, 6)
     this.value.anchor.set(0.5, 0.5)
     this.value.position.set(boxWidth / 2, boxHeight / 2 + 6)
     this.value.style.fill = ink
@@ -64,6 +64,11 @@ export class Slot extends Container {
       weight: 1.5 + glow * 2 + this.burn * 1.5,
     })
     this.plate.alpha = 1 - this.burn * 0.82
+  }
+
+  /** 칸의 이름. **말이 바뀌면 갈아 끼웁니다** — 만들 때 한 번 읽고 마는 글입니다. */
+  set caption(value: string) {
+    this.caption_.text = value
   }
 
   /** 이 칸이 타오르는 세기. 바탕이 그만큼 비칩니다. */

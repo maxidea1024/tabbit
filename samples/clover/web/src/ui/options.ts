@@ -100,8 +100,12 @@ export function saveOptions(options: Options): void {
 
 const WIDTH = 520
 const HEIGHT = 348 + FOOTER_BAR
-/** 탭 하나의 크기. **본문과 이어져 보여야 탭입니다.** */
-const TAB_W = 132
+/**
+ * 탭 하나의 높이. **본문과 이어져 보여야 탭입니다.**
+ *
+ * 폭은 못박지 않고 탭 수로 나눕니다 — 못박아 두면 탭이 하나 늘었을 때 마지막 것이 판
+ * 밖으로 나가고, 그것을 아무도 보지 않습니다.
+ */
 const TAB_H = 36
 /** 탭 줄의 윗변. */
 const TAB_Y = TITLE_BAR + 14
@@ -118,6 +122,15 @@ interface Row {
   /** 눌렀을 때. **다음 값으로 넘어갑니다** — 값이 둘이나 셋뿐이라 이것으로 충분합니다. */
   next: () => void
   note?: string
+  /**
+   * 고를 것이 여럿이면 목록으로 세웁니다.
+   *
+   * **넘기는 단추로는 여섯 개를 고를 수 없습니다.** 하나를 지나치면 다섯 번을 더 눌러야
+   * 돌아오고, 무엇이 있는지도 다 눌러 봐야 압니다.
+   */
+  choices?: { key: string; label: string }[]
+  current?: () => string
+  pick?: (key: string) => void
 }
 
 interface Tab {
@@ -136,6 +149,17 @@ export class OptionsPanel implements ModalPanel {
   constructor(private readonly options: Options,
               private readonly onChange: () => void,
               private readonly onClose: () => void) {
+    this.relabel()
+  }
+
+  /**
+   * 글을 다시 읽습니다.
+   *
+   * **말을 바꾼 그 자리에서 바뀌어야 합니다.** 이 판에서 말을 고르므로, 다시 그리지 않으면
+   * 고른 사람이 바뀌었는지를 이 화면에서 확인할 수 없습니다.
+   */
+  relabel(): void {
+    this.view.removeChildren().forEach(child => child.destroy())
     this.view.addChild(panelFrame(WIDTH, HEIGHT, t('ui.button.options'), () => this.onClose()),
       this.tabRow, this.body)
     this.buildTabs()
@@ -158,12 +182,13 @@ export class OptionsPanel implements ModalPanel {
         rows: [
           {
             label: t('ui.option.language'),
-            read: () => LANGUAGE_NAMES[chosen(options)],
-            next: () => {
-              const at = LANGUAGES.indexOf(chosen(options))
-              options.language = LANGUAGES[(at + 1) % LANGUAGES.length]
-            },
             note: t('ui.option.note.language'),
+            read: () => LANGUAGE_NAMES[chosen(options)],
+            next: () => undefined,
+            // **그 말로 적습니다** — 찾는 사람이 그 말의 사람입니다.
+            choices: LANGUAGES.map(one => ({ key: one, label: LANGUAGE_NAMES[one] })),
+            current: () => chosen(options),
+            pick: (key: string) => { options.language = key as Language },
           },
         ],
       },
@@ -235,22 +260,24 @@ export class OptionsPanel implements ModalPanel {
   private buildTabs(): void {
     this.tabRow.removeChildren().forEach(child => child.destroy())
     const names = this.tabs().map(tab => tab.name)
-    const left = (WIDTH - names.length * TAB_W) / 2
     const ruleY = TAB_Y + TAB_H + 10
     const pageL = 24
     const pageR = WIDTH - 24
+    // 탭 줄은 본문과 같은 폭입니다. 그 안에서 고르게 나눕니다.
+    const left = pageL
+    const step = (pageR - pageL) / names.length
     const pageB = ruleY + (HEIGHT - FOOTER_BAR - ruleY - 16)
     // 탭 위의 모서리와 본문 아래의 모서리.
     const tr = 9
     const pr = 10
-    const tabW = TAB_W - 4
+    const tabW = step - 4
 
     const g = new Graphics()
 
     // 1. 고르지 않은 탭. 한 단 내려가 있고, 아랫단은 곧 본문에 덮입니다.
     names.forEach((_name, index) => {
       if (index === this.tab) return
-      const x = left + index * TAB_W + 2
+      const x = left + index * step + 2
       const top = TAB_Y + 6
       g.moveTo(x, ruleY + 4)
         .lineTo(x, top + tr)
@@ -270,7 +297,7 @@ export class OptionsPanel implements ModalPanel {
     })
 
     // 2. 고른 탭과 본문. **길 하나입니다.**
-    const sx = left + this.tab * TAB_W + 2
+    const sx = left + this.tab * step + 2
     const merged = (target: Graphics) => {
       target.moveTo(pageL, ruleY)
         .lineTo(sx, ruleY)
@@ -294,7 +321,7 @@ export class OptionsPanel implements ModalPanel {
     this.tabRow.addChild(g)
 
     names.forEach((name, index) => {
-      const x = left + index * TAB_W + 2
+      const x = left + index * step + 2
       const chosen = index === this.tab
       const top = TAB_Y + (chosen ? 0 : 6)
       const label = new Text({
@@ -326,9 +353,9 @@ export class OptionsPanel implements ModalPanel {
     this.body.removeChildren().forEach(child => child.destroy())
 
     const rows = this.tabs()[this.tab]?.rows ?? []
-    rows.forEach((row, index) => {
-      const y = TAB_Y + TAB_H + 34 + index * ROW
+    let y = TAB_Y + TAB_H + 34
 
+    for (const row of rows) {
       const label = new Text({
         text: row.label,
         style: { fontSize: 15, fill: COLOR.ink, fontWeight: '700' },
@@ -337,18 +364,56 @@ export class OptionsPanel implements ModalPanel {
       this.body.addChild(label)
 
       if (row.note !== undefined) {
-        const note = richLine(row.note, RICH)
+        const note = richLine(row.note, RICH, WIDTH - 220, 14)
         note.position.set(44, y + 24)
         this.body.addChild(note)
       }
 
-      const value = new Button(row.read(), 128, 34, 0x3a4658, () => {
-        row.next()
-        this.onChange()
-        this.draw()
-      })
-      value.position.set(WIDTH - 172, y)
-      this.body.addChild(value)
+      if (row.choices === undefined) {
+        const value = new Button(row.read(), 128, 34, 0x3a4658, () => {
+          row.next()
+          this.onChange()
+          this.draw()
+        })
+        value.position.set(WIDTH - 172, y)
+        this.body.addChild(value)
+        y += ROW
+        continue
+      }
+
+      y += this.drawChoices(row, y + 50)
+    }
+  }
+
+  /**
+   * 고를 것들을 격자로 세웁니다.
+   *
+   * 세 칸씩 놓습니다. 한 줄에 여섯을 세우면 글씨가 작아지고, 한 줄에 하나면 아래로 길어져
+   * 판이 그만큼 커집니다.
+   */
+  private drawChoices(row: Row, top: number): number {
+    const choices = row.choices ?? []
+    const now = row.current?.()
+    const columns = 3
+    const gap = 12
+    const width = Math.floor((WIDTH - 88 - gap * (columns - 1)) / columns)
+    const height = 36
+
+    choices.forEach((choice, index) => {
+      const column = index % columns
+      const line = Math.floor(index / columns)
+      const button = new Button(choice.label, width, height,
+        choice.key === now ? 0x2f6f52 : 0x3a4658, () => {
+          row.pick?.(choice.key)
+          this.onChange()
+          this.draw()
+        })
+      button.highlight = choice.key === now
+      button.position.set(44 + column * (width + gap), top + line * (height + gap))
+      this.body.addChild(button)
     })
+
+    const lines = Math.ceil(choices.length / columns)
+    return 50 + lines * (height + gap)
   }
 }

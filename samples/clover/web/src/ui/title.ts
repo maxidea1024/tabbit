@@ -40,6 +40,8 @@ export class Title extends Container {
   /** 클로버 잎. 이름 위에서 천천히 흔들립니다. */
   private readonly leaf = new Graphics()
   private time = 0
+  /** 글을 다시 읽어야 하는 것들. 말이 바뀌면 이 셋을 갈아 끼웁니다. */
+  private readonly buttons: { key: string; button: Button }[] = []
 
   constructor(seed: string, onStart: () => void, onGuide: () => void,
               onOptions: () => void) {
@@ -76,6 +78,9 @@ export class Title extends Container {
     guide.position.set(bx, 512)
     const option = new Button(t('ui.button.options'), bw, 44, 0x3a4658, onOptions)
     option.position.set(bx, 568)
+    this.buttons.push({ key: 'ui.button.start', button: start },
+      { key: 'ui.button.guide', button: guide },
+      { key: 'ui.button.options', button: option })
 
     this.seedText.text = tf('ui.stat.seed', { seed })
     this.seedText.anchor.set(0.5, 0)
@@ -87,6 +92,18 @@ export class Title extends Container {
     // 뒤를 눌러도 아무 일도 없습니다. **시작은 눌러서 시작하는 것입니다.**
     this.eventMode = 'static'
     this.on('pointertap', () => undefined)
+  }
+
+  /**
+   * 글을 다시 읽습니다.
+   *
+   * **말을 바꾼 그 자리에서 바뀌어야 합니다.** 글은 만들 때 한 번 읽히므로, 다시 읽지
+   * 않으면 이 화면은 다음에 열 때까지 옛 말로 남습니다.
+   */
+  relabel(): void {
+    this.tagline.text = t('ui.title.tagline')
+    this.note.text = t('ui.title.note')
+    for (const one of this.buttons) one.button.text = t(one.key)
   }
 
   /** 네 잎. 원 넷을 돌려 붙인 모양입니다. */

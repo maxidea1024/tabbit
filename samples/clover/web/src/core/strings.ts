@@ -85,10 +85,11 @@ export function detectLanguage(tags: readonly string[]): Language {
  */
 export function text(data: Data, key: string): string {
   const row = data.tables.stringTable.findByStringId(key)
+  // **열쇠가 없는 것과 값이 빈 것은 다릅니다.** 빈 값은 일부러 비운 것이고 — 조건이 없는
+  // 효과의 조건문이 그렇습니다 — 그것을 「없음」으로 보면 화면에 열쇠가 튀어나옵니다.
   if (!row) return key
   const mine = row[COLUMN[current]]
-  if (mine !== '') return mine
-  return row.ko !== '' ? row.ko : key
+  return mine !== '' ? mine : row.ko
 }
 
 /**

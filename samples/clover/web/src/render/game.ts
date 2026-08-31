@@ -661,7 +661,40 @@ export class Game {
     // 도움 표시는 켜고 끄는 그 자리에서 바로 사라져야 합니다.
     this.updateHints()
     this.syncCards()
-    if (changed) this.refresh()
+    if (changed) this.relabel()
+  }
+
+  /**
+   * 말이 바뀌었을 때 글을 다시 읽습니다.
+   *
+   * **`refresh` 로는 모자랍니다.** 그것은 매번 다시 그리는 것들을 그리고, 여기 있는 것들은
+   * 만들 때 한 번 읽은 글을 그대로 들고 있습니다 — 칸의 이름, 왼쪽 아래 버튼, 타이틀.
+   */
+  private relabel(): void {
+    this.score.caption = t('ui.slot.round_score')
+    this.chips.caption = t('ui.slot.chips')
+    this.mult.caption = t('ui.slot.mult')
+    this.hands.caption = t('ui.slot.hands')
+    this.discards.caption = t('ui.slot.discards')
+    this.money.caption = t('ui.slot.money')
+    this.anteSlot.caption = t('ui.slot.ante')
+
+    this.playButton.text = t('ui.button.play')
+    this.discardButton.text = t('ui.button.discard')
+    this.primaryButton.text = t('ui.button.select_blind')
+    this.skipButton.text = t('ui.button.skip')
+    this.rerollButton.text = t('ui.button.reroll')
+    this.sortRankButton.text = t('ui.button.sort_rank')
+    this.sortSuitButton.text = t('ui.button.sort_suit')
+    this.infoButton.text = t('ui.button.hand_list')
+    this.deckButton.text = t('ui.button.deck_view')
+    this.guideButton.text = t('ui.button.guide')
+    this.optionButton.text = t('ui.button.options')
+
+    this.title.relabel()
+    this.optionsPanel.relabel()
+    this.guide.relabel()
+    this.refresh()
   }
 
   /**
