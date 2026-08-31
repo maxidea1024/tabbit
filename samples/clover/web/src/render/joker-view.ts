@@ -7,6 +7,7 @@
 // 모양이고, 희귀도가 테두리 색입니다.
 
 import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
+import { tf } from '../core/strings'
 
 import { EditionKind } from '../generated/enums/edition-kind'
 import type { JokerInstance } from '../core/state'
@@ -176,7 +177,7 @@ export class JokerView extends Container {
     // 누적값을 얼굴에 적습니다 — 늘어나는 조커는 그것이 전부이기 때문입니다.
     const { chips, multAdd, multMul } = joker.counters
     const parts: string[] = []
-    if (chips !== 0) parts.push(`+${chips}칩`)
+    if (chips !== 0) parts.push(tf('ui.counter.chips', { n: chips }))
     if (multAdd !== 0) parts.push(`+${(multAdd / 10_000).toFixed(0)}`)
     // 0 은 「곱이 없다」가 아니라 「아직 값이 없다」입니다. 적지 않습니다.
     if (multMul !== 10_000 && multMul !== 0) parts.push(`×${(multMul / 10_000).toFixed(2)}`)

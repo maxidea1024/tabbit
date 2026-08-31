@@ -40,8 +40,30 @@ function main(): number {
   setLanguage('ja')
   const ja = text(data, 'joker.twig.name')
   console.log(`  ko=${ko}  en=${en}  ja=${ja}`)
-  verdict(ko !== en, '말을 바꾸면 이름이 바뀝니다')
-  verdict(ja === ko, '번역이 없으면 한국어로 떨어집니다')
+  verdict(ko !== en && ko !== ja, '말을 바꾸면 이름이 바뀝니다')
+
+  // **없는 열쇠는 한국어로 떨어집니다.** 지어낸 표 하나로 봅니다 — 실제 열쇠로 보면 그것을
+  // 채우는 순간 이 게이트가 뜻을 잃습니다.
+  const fake = {
+    tables: {
+      stringTable: {
+        findByStringId: () => ({ stringId: 'x', ko: '한국어', en: 'English', ja: '',
+                                 zhHans: '', zhHant: '', de: '' }),
+      },
+    },
+  } as unknown as Parameters<typeof text>[0]
+  setLanguage('ja')
+  verdict(text(fake, 'x') === '한국어', '번역이 없으면 한국어로 떨어집니다')
+  setLanguage('ko')
+
+  console.log('')
+  console.log('빠진 번역')
+  for (const lang of ['en', 'ja', 'zhHans', 'zhHant', 'de'] as const) {
+    const missing = data.tables.stringTable.records
+      .filter(row => row.ko !== '' && row[lang] === '')
+    verdict(missing.length === 0,
+      `${lang}: ${missing.length === 0 ? '없음' : `${missing.length}개 — ${missing[0].stringId}`}`)
+  }
   verdict(text(data, 'nope.nope') === 'nope.nope', '열쇠가 없으면 열쇠가 그대로 보입니다')
 
   console.log('\n조사')

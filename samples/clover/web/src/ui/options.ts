@@ -8,7 +8,7 @@
 
 import { Container, Graphics, Rectangle, Text } from 'pixi.js'
 
-import { detectLanguage, LANGUAGE_NAMES, LANGUAGES, type Language } from '../core/strings'
+import { detectLanguage, type Language, LANGUAGE_NAMES, LANGUAGES, t, tf } from '../core/strings'
 import { COLOR } from '../render/theme'
 import { FOOTER_BAR, panelFrame, TITLE_BAR, type ModalPanel } from './modal'
 import { richLine, type RichStyle } from './rich'
@@ -136,7 +136,7 @@ export class OptionsPanel implements ModalPanel {
   constructor(private readonly options: Options,
               private readonly onChange: () => void,
               private readonly onClose: () => void) {
-    this.view.addChild(panelFrame(WIDTH, HEIGHT, '옵션', () => this.onClose()),
+    this.view.addChild(panelFrame(WIDTH, HEIGHT, t('ui.button.options'), () => this.onClose()),
       this.tabRow, this.body)
     this.buildTabs()
     this.draw()
@@ -148,15 +148,31 @@ export class OptionsPanel implements ModalPanel {
       options[key] = !options[key]
     }
     const onOff = (key: 'sound' | 'shake' | 'particles' | 'chromatic' | 'hints') =>
-      () => (options[key] ? '켜짐' : '꺼짐')
+      () => (options[key] ? t('ui.option.on') : t('ui.option.off'))
 
     return [
+      // **언어는 「일반」 의 첫 줄입니다.** 이 화면에서 사람이 가장 먼저 찾는 것이고,
+      // 「소리」나 「화면」 아래에 두면 그 둘을 다 열어 본 뒤에야 찾습니다.
       {
-        name: '소리',
+        name: t('ui.tab.general'),
         rows: [
-          { label: '소리', read: onOff('sound'), next: flip('sound') },
           {
-            label: '음량',
+            label: t('ui.option.language'),
+            read: () => LANGUAGE_NAMES[chosen(options)],
+            next: () => {
+              const at = LANGUAGES.indexOf(chosen(options))
+              options.language = LANGUAGES[(at + 1) % LANGUAGES.length]
+            },
+            note: t('ui.option.note.language'),
+          },
+        ],
+      },
+      {
+        name: t('ui.tab.sound'),
+        rows: [
+          { label: t('ui.tab.sound'), read: onOff('sound'), next: flip('sound') },
+          {
+            label: t('ui.option.volume'),
             read: () => `${options.volume}`,
             // 0 에서 100 까지 20씩. **끄는 자리는 위에 있습니다** — 음량 0 과 소리 꺼짐은
             // 다른 것이고, 둘을 한 줄에 두면 어느 쪽으로 껐는지 알 수 없습니다.
@@ -165,48 +181,34 @@ export class OptionsPanel implements ModalPanel {
         ],
       },
       {
-        name: '화면',
+        name: t('ui.tab.video'),
         rows: [
           {
-            label: '화면 흔들림', read: onOff('shake'), next: flip('shake'),
-            note: '큰 값에서 판이 흔들립니다',
+            label: t('ui.option.shake'), read: onOff('shake'), next: flip('shake'),
+            note: t('ui.option.note.shake'),
           },
           {
-            label: '파티클', read: onOff('particles'), next: flip('particles'),
-            note: '카드 뒤에서 터지는 조각들입니다',
+            label: t('ui.option.particles'), read: onOff('particles'), next: flip('particles'),
+            note: t('ui.option.note.particles'),
           },
           {
-            label: '색수차', read: onOff('chromatic'), next: flip('chromatic'),
-            note: '한 방 먹을 때 색이 갈라집니다',
+            label: t('ui.option.chromatic'), read: onOff('chromatic'), next: flip('chromatic'),
+            note: t('ui.option.note.chromatic'),
           },
         ],
       },
       {
-        name: '언어',
+        name: t('ui.tab.game'),
         rows: [
           {
-            label: '화면의 글',
-            read: () => LANGUAGE_NAMES[chosen(options)],
-            next: () => {
-              const at = LANGUAGES.indexOf(chosen(options))
-              options.language = LANGUAGES[(at + 1) % LANGUAGES.length]
-            },
-            note: '고르지 않으면 이 기계의 언어를 따릅니다',
-          },
-        ],
-      },
-      {
-        name: '게임',
-        rows: [
-          {
-            label: '연출 속도',
-            read: () => `${options.speed}배`,
+            label: t('ui.option.speed'),
+            read: () => tf('ui.option.speed_value', { n: options.speed }),
             next: () => { options.speed = options.speed >= 4 ? 1 : options.speed * 2 },
-            note: '득점 연출이 도는 빠르기입니다',
+            note: t('ui.option.note.speed'),
           },
           {
-            label: '족보 도움', read: onOff('hints'), next: flip('hints'),
-            note: '고르면 더 높은 족보가 되는 카드를 표시합니다',
+            label: t('ui.option.hints'), read: onOff('hints'), next: flip('hints'),
+            note: t('ui.option.note.hints'),
           },
         ],
       },

@@ -9,7 +9,7 @@ import type { Condition } from '../generated/structs/condition'
 import type { Operation } from '../generated/structs/operation'
 import { PerUnitMode } from '../generated/enums/per-unit-mode'
 import type { Data, EffectRow } from './data'
-import { text } from './strings'
+import { t, text, tf } from './strings'
 import { MULT_ONE } from './units'
 
 /** 문구 하나를 꺼냅니다. 없으면 열쇠를 그대로 돌려주어 빠진 것이 눈에 띄게 합니다. */
@@ -41,7 +41,7 @@ export function describeRow(data: Data, row: EffectRow): string {
   const cond = describeCondition(data, row)
   const op = describeOperation(data, row)
   const chance = row.chanceNum !== null && row.chanceDen !== null
-    ? `${row.chanceNum}/${row.chanceDen} 확률로 `
+    ? tf('phrase.chance', { num: row.chanceNum, den: row.chanceDen })
     : ''
 
   const template = phrase(data, `trigger.${enums.Trigger[row.trigger] ?? row.trigger}`)
@@ -121,7 +121,7 @@ function describeOperation(data: Data, row: EffectRow): string {
       break
     }
     case 'OpRandomRange':
-      values.per = op.mode === PerUnitMode.AddChips ? '칩' : '배수'
+      values.per = op.mode === PerUnitMode.AddChips ? t('ui.slot.chips') : t('ui.slot.mult')
       values.min = String(op.mode === PerUnitMode.AddChips ? op.min : op.min / MULT_ONE)
       values.max = String(op.mode === PerUnitMode.AddChips ? op.max : op.max / MULT_ONE)
       break
@@ -156,7 +156,7 @@ function describeOperation(data: Data, row: EffectRow): string {
       values.modify = named(data, 'modify', op.modify, enums.ModifyKind)
       break
     case 'OpModifyJoker':
-      values.edition = data.tables.edition.findByEdition(op.edition)?.display ?? '무작위 에디션'
+      values.edition = data.tables.edition.findByEdition(op.edition)?.display ?? t('ui.edition.random')
       break
     case 'OpDestroyJoker':
     case 'OpCopyJoker':
@@ -204,12 +204,12 @@ function signed(rule: string | undefined, value: number): string {
 
 function perUnit(data: Data, mode: PerUnitMode, value: number, base: number): string {
   switch (mode) {
-    case PerUnitMode.AddChips: return `칩 +${value}`
-    case PerUnitMode.AddMult: return `배수 +${bp(value)}`
+    case PerUnitMode.AddChips: return tf('phrase.op.add_chips_value', { n: value })
+    case PerUnitMode.AddMult: return tf('phrase.op.add_mult_value', { n: bp(value) })
     case PerUnitMode.AddMoney: return `$${value}`
-    case PerUnitMode.MulEach: return `배수 ×${bp(value)}`
+    case PerUnitMode.MulEach: return tf('phrase.op.mul_mult_value', { n: bp(value) })
     case PerUnitMode.MulMult:
-      return base === 0 ? `배수 ×${bp(value)}` : `배수 ×${bp(value)} 씩`
+      return base === 0 ? tf('phrase.op.mul_mult_value', { n: bp(value) }) : tf('phrase.op.mul_mult_each', { n: bp(value) })
     default: return ''
   }
   void data

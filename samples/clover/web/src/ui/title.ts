@@ -10,6 +10,7 @@
 // 규칙은 모릅니다. 시작을 누르면 화면이 알아서 판을 폅니다.
 
 import { Container, Graphics, Text } from 'pixi.js'
+import { t, tf } from '../core/strings'
 
 import { COLOR, SIZE } from '../render/theme'
 import { Button } from './widgets'
@@ -25,11 +26,11 @@ export class Title extends Container {
     },
   })
   private readonly tagline = new Text({
-    text: '포커 로그라이크 한 편',
+    text: t('ui.title.tagline'),
     style: { fontSize: 20, fill: COLOR.ink, fontWeight: '700', letterSpacing: 4 },
   })
   private readonly note = new Text({
-    text: '규칙과 수치는 시트에 있고, 이 화면은 그것을 읽는 한쪽 구현입니다.',
+    text: t('ui.title.note'),
     style: { fontSize: 13, fill: COLOR.inkDim },
   })
   private readonly seedText = new Text({
@@ -69,14 +70,14 @@ export class Title extends Container {
     // 버튼은 **아래에 세로로** 섭니다. 눈이 이름에서 한 번 내려오면 그다음은 순서대로입니다.
     const bw = 236
     const bx = SIZE.width / 2 - bw / 2
-    const start = new Button('시작', bw, 54, 0x2f8f52, onStart)
+    const start = new Button(t('ui.button.start'), bw, 54, 0x2f8f52, onStart)
     start.position.set(bx, 446)
-    const guide = new Button('게임 방법', bw, 44, 0x3a4658, onGuide)
+    const guide = new Button(t('ui.button.guide'), bw, 44, 0x3a4658, onGuide)
     guide.position.set(bx, 512)
-    const option = new Button('옵션', bw, 44, 0x3a4658, onOptions)
+    const option = new Button(t('ui.button.options'), bw, 44, 0x3a4658, onOptions)
     option.position.set(bx, 568)
 
-    this.seedText.text = `시드  ${seed}`
+    this.seedText.text = tf('ui.stat.seed', { seed })
     this.seedText.anchor.set(0.5, 0)
     this.seedText.position.set(SIZE.width / 2, SIZE.height - 42)
 

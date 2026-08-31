@@ -9,6 +9,7 @@
 // 물러나는 것도 · 들어오고 나가는 움직임도 여기 한 벌만 있습니다.
 
 import { Container, Graphics, Rectangle, Text } from 'pixi.js'
+import { t } from '../core/strings'
 
 import { plate, FLOATING } from '../render/skin'
 import { Button } from './widgets'
@@ -288,7 +289,7 @@ export function panelFrame(width: number, height: number, title: string,
   node.addChild(shutMark)
 
   // 밑단의 버튼들. **닫기는 판마다 같은 자리에 같은 모습입니다.**
-  const shut = new Button('닫기', 132, 34, 0x3a4658, onClose)
+  const shut = new Button(t('ui.button.close'), 132, 34, 0x3a4658, onClose)
   const extraWidth = extra ? extra.width + 12 : 0
   const row = 132 + extraWidth
   const left = (width - row) / 2

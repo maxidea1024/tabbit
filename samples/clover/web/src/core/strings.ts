@@ -36,6 +36,18 @@ const COLUMN: Record<Language, 'ko' | 'en' | 'ja' | 'zhHans' | 'zhHant' | 'de'> 
 
 let current: Language = 'ko'
 
+/**
+ * 글 표.
+ *
+ * **한 벌뿐이므로 여기 둡니다.** 화면의 조각 하나하나에 표를 넘겨 주려면 통과 판과 버튼까지
+ * 전부 그것을 들고 다녀야 하고, 그 배선이 글 하나보다 깁니다.
+ */
+let table: Data | undefined
+
+export function useStrings(data: Data): void {
+  table = data
+}
+
 export function setLanguage(language: Language): void {
   current = language
 }
@@ -97,6 +109,16 @@ export function fill(template: string, values: Record<string, string | number>):
 export function textWith(data: Data, key: string,
                          values: Record<string, string | number>): string {
   return fill(text(data, key), values)
+}
+
+/** 열쇠 하나의 글. 표는 `useStrings` 로 미리 넘겨 둔 것을 씁니다. */
+export function t(key: string): string {
+  return table === undefined ? key : text(table, key)
+}
+
+/** 값을 채운 글. */
+export function tf(key: string, values: Record<string, string | number>): string {
+  return fill(t(key), values)
 }
 
 /**

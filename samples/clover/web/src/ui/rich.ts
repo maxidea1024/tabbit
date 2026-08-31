@@ -56,6 +56,39 @@ function runsOf(text: string, style: RichStyle): Run[] {
   return runs
 }
 
+/**
+ * 글을 접을 수 있는 조각으로.
+ *
+ * 로마자와 한글 낱말은 빈칸 뒤에서, 한중일 글자는 글자마다 끊습니다.
+ */
+function splitWords(text: string): string[] {
+  const out: string[] = []
+  let buffer = ''
+
+  const flush = () => {
+    if (buffer !== '') out.push(buffer)
+    buffer = ''
+  }
+
+  const letters = [...text]
+  for (let i = 0; i < letters.length; i++) {
+    const letter = letters[i]
+    buffer += letter
+    if (/\s/.test(letter)) {
+      flush()
+      continue
+    }
+    if (!CJK.test(letter)) continue
+    // 다음 글자가 줄머리에 설 수 없으면 여기서 끊지 않습니다.
+    const next = letters[i + 1]
+    if (next !== undefined && NO_HEAD.test(next)) continue
+    if (NO_TAIL.test(letter)) continue
+    flush()
+  }
+  flush()
+  return out
+}
+
 /** 그 토막의 모습. 강조는 굵게 갑니다. */
 function styleOf(style: RichStyle, fill?: number): TextStyleOptions {
   return fill === undefined ? style.base : { ...style.base, fill, fontWeight: '800' }
@@ -72,13 +105,31 @@ function widthOf(text: string, style: TextStyleOptions): number {
 }
 
 /**
+ * 한중일 글자.
+ *
+ * **이 글자들은 낱말 사이에 빈칸이 없습니다.** 빈칸에서만 끊으면 문장 하나가 통째로 한
+ * 덩어리가 되어, 접을 자리를 못 찾고 한 줄이 넘칩니다.
+ */
+const CJK = /[぀-ヿ㐀-䶿一-鿿가-힣＀-ﾟ]/
+
+/** 그 글자 앞에서는 끊지 않습니다. 줄머리에 설 수 없는 것들입니다. */
+const NO_HEAD = /[。、，．・：；？！）」』】〉》〕｝々ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮー]/
+
+/** 그 글자 뒤에서는 끊지 않습니다. 줄끝에 설 수 없는 것들입니다. */
+const NO_TAIL = /[（「『【〈《〔｛]/
+
+/**
  * 접을 수 있는 자리로 나눕니다.
  *
- * 빈칸 뒤에서 나눕니다. **한 낱말이 통보다 넓으면 글자로 나눕니다** — 그러지 않으면 그
- * 낱말 하나가 통 밖으로 나갑니다.
+ * 빈칸 뒤에서 나눕니다. **한중일 글자는 글자마다 나눕니다** — 그 말들은 낱말 사이에 빈칸이
+ * 없어서, 빈칸만 보면 문장 하나가 통째로 한 덩어리가 됩니다. 다만 줄머리에 설 수 없는
+ * 글자와 줄끝에 설 수 없는 글자는 앞 조각에 붙입니다.
+ *
+ * **한 낱말이 통보다 넓으면 글자로 나눕니다** — 그러지 않으면 그 낱말 하나가 통 밖으로
+ * 나갑니다.
  */
 function piecesOf(text: string, style: TextStyleOptions, maxWidth: number): string[] {
-  const words = text.split(/(?<=\s)/)
+  const words = splitWords(text)
   const out: string[] = []
 
   for (const word of words) {

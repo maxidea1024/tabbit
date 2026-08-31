@@ -6,6 +6,7 @@
 // 튀어오르고, 득점하면 한 번 커집니다. 곧바로 목표 자리로 가는 카드는 죽어 보입니다.
 
 import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
+import { t } from '../core/strings'
 
 import { EditionKind } from '../generated/enums/edition-kind'
 import { EnhancementKind } from '../generated/enums/enhancement-kind'
@@ -42,14 +43,14 @@ const ENHANCEMENT_TINT: Partial<Record<EnhancementKind, number>> = {
 }
 
 const ENHANCEMENT_MARK: Partial<Record<EnhancementKind, string>> = {
-  [EnhancementKind.Bonus]: '+칩',
-  [EnhancementKind.Mult]: '+배수',
-  [EnhancementKind.Wild]: '와일드',
-  [EnhancementKind.Glass]: '유리',
-  [EnhancementKind.Steel]: '강철',
-  [EnhancementKind.Stone]: '석재',
-  [EnhancementKind.Gold]: '황금',
-  [EnhancementKind.Lucky]: '행운',
+  [EnhancementKind.Bonus]: t('ui.label.plus_chips'),
+  [EnhancementKind.Mult]: t('ui.label.plus_mult'),
+  [EnhancementKind.Wild]: t('ui.enhancement.wild'),
+  [EnhancementKind.Glass]: t('ui.enhancement.glass'),
+  [EnhancementKind.Steel]: t('ui.enhancement.steel'),
+  [EnhancementKind.Stone]: t('ui.enhancement.stone'),
+  [EnhancementKind.Gold]: t('ui.enhancement.gold'),
+  [EnhancementKind.Lucky]: t('ui.enhancement.lucky'),
 }
 
 const SEAL_COLOR: Partial<Record<SealKind, number>> = {

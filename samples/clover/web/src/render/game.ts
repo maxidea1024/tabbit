@@ -25,7 +25,7 @@ import type { Data } from '../core/data'
 import { describe } from '../core/describe'
 import { evaluate } from '../core/hand'
 import { apply, defaultRules, newRun, targetOf, type Action } from '../core/run'
-import { language, setLanguage, text } from '../core/strings'
+import { language, setLanguage, t, text, tf } from '../core/strings'
 import { rerollCost, sellValueOf, type ShopItem } from '../core/shop'
 import { bestHand, valueOf } from '../core/suggest'
 import { newCounters, type CardInstance, type GameEvent, type RunState } from '../core/state'
@@ -328,11 +328,11 @@ export class Game {
   private readonly hinted = new Set<number>()
 
   private readonly badge = new BlindBadge(PANEL_W)
-  private readonly score = new Slot('라운드 점수', PANEL_W, 68, COLOR.ink)
+  private readonly score = new Slot(t('ui.slot.round_score'), PANEL_W, 68, COLOR.ink)
   // **이 둘이 화면에서 가장 큰 두 숫자입니다.** 점수는 이 둘의 곱이고, 나머지 칸들은
   // 그것을 설명하는 것들입니다 — 크기가 그 서열을 그대로 보여야 합니다.
-  private readonly chips = new Slot('칩', 124, 78, COLOR.chips, 34)
-  private readonly mult = new Slot('배수', 124, 78, COLOR.mult, 34)
+  private readonly chips = new Slot(t('ui.slot.chips'), 124, 78, COLOR.chips, 34)
+  private readonly mult = new Slot(t('ui.slot.mult'), 124, 78, COLOR.mult, 34)
   /** 두 칸 뒤에서 타오르는 불. 배수가 커지면 불길이 높아집니다. */
   private readonly chipsFire = new Sprite(Texture.WHITE)
   private readonly multFire = new Sprite(Texture.WHITE)
@@ -340,10 +340,10 @@ export class Game {
   private readonly multFlame = new FlameFilter([0.85, 0.16, 0.12], [1.0, 0.85, 0.35])
   /** 지금 얼마나 뜨거운가. 박자가 올리고 시간이 내립니다. */
   private fever = 0
-  private readonly hands = new Slot('핸드', 124, 52, COLOR.good)
-  private readonly discards = new Slot('버리기', 124, 52, 0xff9d5c)
-  private readonly money = new Slot('금액', 124, 52, COLOR.money)
-  private readonly anteSlot = new Slot('안테', 124, 52, COLOR.ink)
+  private readonly hands = new Slot(t('ui.slot.hands'), 124, 52, COLOR.good)
+  private readonly discards = new Slot(t('ui.slot.discards'), 124, 52, 0xff9d5c)
+  private readonly money = new Slot(t('ui.slot.money'), 124, 52, COLOR.money)
+  private readonly anteSlot = new Slot(t('ui.slot.ante'), 124, 52, COLOR.ink)
 
   private readonly headline = new Text({
     text: '',
@@ -559,22 +559,22 @@ export class Game {
 
     this.buildPanel()
 
-    this.playButton = new Button('낸다', 128, 46, 0x2f6fb5, () => this.play())
-    this.discardButton = new Button('버린다', 128, 46, 0xa63f3f, () => this.discard())
+    this.playButton = new Button(t('ui.button.play'), 128, 46, 0x2f6fb5, () => this.play())
+    this.discardButton = new Button(t('ui.button.discard'), 128, 46, 0xa63f3f, () => this.discard())
     // **가운데 버튼이 곧 몇 장 골랐는가입니다.** 점 다섯을 따로 두면 같은 것을 두 곳에서
     // 세게 되고, 그 둘 사이를 눈이 오갑니다.
     this.clearButton = new Button('-', 60, 46, 0x4a5568, () => this.clearSelection())
-    this.primaryButton = new Button('이 블라인드로', 210, 50, 0x2f6fb5, () => this.primary())
-    this.skipButton = new Button('건너뛴다', 150, 38, 0x4a5568,
+    this.primaryButton = new Button(t('ui.button.select_blind'), 210, 50, 0x2f6fb5, () => this.primary())
+    this.skipButton = new Button(t('ui.button.skip'), 150, 38, 0x4a5568,
       () => this.act({ t: 'skip_blind' }))
-    this.rerollButton = new Button('리롤', 128, 44, 0x3f5f8f, () => this.reroll())
-    this.sortRankButton = new Button('랭크순', 92, 32, 0x333e4e, () => this.sortHand('rank'))
-    this.sortSuitButton = new Button('무늬순', 92, 32, 0x333e4e, () => this.sortHand('suit'))
-    this.infoButton = new Button('족보 목록', 118, 34, 0x3a4658, () => this.toggleHandList())
-    this.deckButton = new Button('남은 카드', 118, 34, 0x3a4658, () => this.toggleDeckView())
-    this.guideButton = new Button('게임 방법', 118, 34, 0x3a4658,
+    this.rerollButton = new Button(t('ui.button.reroll'), 128, 44, 0x3f5f8f, () => this.reroll())
+    this.sortRankButton = new Button(t('ui.button.sort_rank'), 92, 32, 0x333e4e, () => this.sortHand('rank'))
+    this.sortSuitButton = new Button(t('ui.button.sort_suit'), 92, 32, 0x333e4e, () => this.sortHand('suit'))
+    this.infoButton = new Button(t('ui.button.hand_list'), 118, 34, 0x3a4658, () => this.toggleHandList())
+    this.deckButton = new Button(t('ui.button.deck_view'), 118, 34, 0x3a4658, () => this.toggleDeckView())
+    this.guideButton = new Button(t('ui.button.guide'), 118, 34, 0x3a4658,
       () => this.modals.open(this.guide))
-    this.optionButton = new Button('옵션', 118, 34, 0x3a4658,
+    this.optionButton = new Button(t('ui.button.options'), 118, 34, 0x3a4658,
       () => this.modals.open(this.optionsPanel))
 
     this.overlay.addChild(this.playButton, this.discardButton, this.primaryButton,
@@ -913,20 +913,20 @@ export class Game {
         case 'ConsumableUsed': {
           const kind = this.state.consumables.find(item => item.id === event.id)?.kind
           const name = this.consumableName(kind ?? 1, event.id)
-          this.toasts.push(`${name} 사용`,
-            this.consumableLines(kind ?? 1, event.id).join(' · ') || '효과가 적용되었습니다',
+          this.toasts.push(tf('ui.toast.used', { name }),
+            this.consumableLines(kind ?? 1, event.id).join(' · ') || t('ui.note.applied'),
             0xb9a8ff, 3)
           break
         }
 
         case 'HandLevelled':
-          this.toasts.push(`${this.handName(event.hand)}  레벨 ${event.level}`,
-            '이 족보의 칩과 배수가 올랐습니다', COLOR.chips, 2.8)
+          this.toasts.push(tf('ui.hand.level', { name: this.handName(event.hand), level: event.level }),
+            t('ui.hand.leveled'), COLOR.chips, 2.8)
           break
 
         case 'JokerDestroyed': {
           const row = this.data.tables.joker.findByJokerId(event.jokerId)
-          this.toasts.push(`${row?.name ?? event.jokerId} 파괴`, '조커 슬롯이 비었습니다',
+          this.toasts.push(tf('ui.toast.destroyed', { name: row?.name ?? event.jokerId }), t('ui.note.joker_slot_free'),
             COLOR.bad, 2.6)
           break
         }
@@ -945,14 +945,14 @@ export class Game {
     }
 
     if (modified > 0) {
-      this.toasts.push(`카드 ${modified}장이 바뀌었습니다`, '덱의 카드가 달라졌습니다',
+      this.toasts.push(tf('ui.toast.cards_changed', { n: modified }), t('ui.deck.changed'),
         COLOR.good, 2.4)
     }
     if (destroyed > 0) {
-      this.toasts.push(`카드 ${destroyed}장이 사라졌습니다`, '덱에서 빠졌습니다', COLOR.bad, 2.4)
+      this.toasts.push(tf('ui.toast.cards_destroyed', { n: destroyed }), t('ui.deck.removed'), COLOR.bad, 2.4)
     }
     if (added > 0) {
-      this.toasts.push(`카드 ${added}장이 들어왔습니다`, '덱에 더해졌습니다', COLOR.good, 2.4)
+      this.toasts.push(tf('ui.toast.cards_added', { n: added }), t('ui.deck.added'), COLOR.good, 2.4)
     }
   }
 
@@ -1202,7 +1202,7 @@ export class Game {
         // **득점하지 않는 카드는 물러납니다.** 다섯 장을 냈는데 셋만 세는 것이 화면에
         // 보이지 않으면, 점수가 왜 그것뿐인지 알 수 없습니다.
         this.dimNonScoring(event.cards)
-        this.say(`${this.handName(event.hand)}   레벨 ${event.level}`, COLOR.ink, 3, 0.35)
+        this.say(tf('ui.hand.level', { name: this.handName(event.hand), level: event.level }), COLOR.ink, 3, 0.35)
         this.audio.play('score_count', semitones)
         this.flashPanel(COLOR.ink, 0.5)
         break
@@ -1305,7 +1305,7 @@ export class Game {
           view.pop(1)
           view.shine(rgbOf(COLOR.good), 0.9)
         }
-        this.popAt(view, '다시', COLOR.good, beat.intensity + 0.3)
+        this.popAt(view, t('ui.button.again'), COLOR.good, beat.intensity + 0.3)
         this.audio.play('retrigger', semitones + this.chain * 2)
         this.jolt(5, 0.9, 0.2)
         this.flashPanel(COLOR.good, 0.5)
@@ -1360,7 +1360,7 @@ export class Game {
       case 'BlindCleared':
         // **이 게임에서 사람이 기다리는 순간입니다.** 채널을 전부 씁니다 — 큰 글씨가 튀어
         // 나오고, 화면이 번쩍이고, 판이 흔들리고, 배경이 밝아지고, 음이 여섯 번 올라갑니다.
-        this.say('넘겼습니다', COLOR.good, 2.2)
+        this.say(t('ui.label.cleared'), COLOR.good, 2.2)
         this.audio.play('blind_clear')
         this.chime('coin_land', 6, 3, 0.07)
         this.burstAcrossPlayArea(46, COLOR.good, 2.4, 2.6)
@@ -1374,7 +1374,7 @@ export class Game {
         break
 
       case 'RunLost':
-        this.say('점수가 모자랍니다', COLOR.bad, 2)
+        this.say(t('ui.label.short'), COLOR.bad, 2)
         this.audio.play('blind_fail')
         this.jolt(9, 1.6, 0.5)
         this.flashScreen(COLOR.bad, 0.2)
@@ -1382,7 +1382,7 @@ export class Game {
         break
 
       case 'RunWon':
-        this.say('전부 넘겼습니다', COLOR.money, 2.8)
+        this.say(t('ui.label.all_cleared'), COLOR.money, 2.8)
         this.chime('coin_land', 10, 2, 0.06)
         this.audio.play('blind_clear')
         this.particles.burst(BOARD_X, SIZE.height / 2, 120, COLOR.money, 2.6)
@@ -1954,7 +1954,7 @@ export class Game {
       jokers: state.jokers.length, discards: state.discardsLeft,
       packOpen: state.pack !== null, packs: state.shop.packs.length,
       played: this.playedViews.length, coins: this.coins.busy,
-      cleared: this.headline.visible && this.headline.text === '넘겼습니다',
+      cleared: this.headline.visible && this.headline.text === t('ui.label.cleared'),
       consumables: state.consumables.length,
       // **자리가 규칙입니다.** 득점은 낸 카드의 왼쪽부터이고 조커는 슬롯의 왼쪽부터이므로,
       // 자리를 바꾸는 것이 되는지는 이 두 줄로만 확인할 수 있습니다.
@@ -2030,7 +2030,7 @@ export class Game {
     this.hands.text = String(state.handsLeft)
     this.discards.text = String(state.discardsLeft)
     this.anteSlot.text = `${state.ante} / ${this.data.run.winAnte}`
-    this.deckLabel.text = `덱  ${state.drawPile.length} / ${state.deck.length}`
+    this.deckLabel.text = tf('ui.stat.deck', { left: state.drawPile.length, all: state.deck.length })
     this.jokerCount.text = `${state.jokers.length} / ${state.rules.jokerSlots}`
     this.consumableCount.text =
       `${state.consumables.length} / ${state.rules.consumableSlots}`
@@ -2153,17 +2153,17 @@ export class Game {
       case 'round':
         if (this.selected.size === 0) {
           return this.hinted.size > 0
-            ? `테두리가 도는 ${this.hinted.size}장이 지금 가장 높은 족보입니다`
-              + `   ·   남은 핸드 ${state.handsLeft}회`
-            : `카드를 눌러 고릅니다 — 최대 ${this.data.run.maxPlayedCards}장`
-              + `   ·   남은 핸드 ${state.handsLeft}회`
+            ? tf('ui.hint.best_hand', { n: this.hinted.size })
+              + tf('ui.hint.hands_left', { n: state.handsLeft })
+            : tf('ui.hint.pick_cards', { n: this.data.run.maxPlayedCards })
+              + tf('ui.hint.hands_left', { n: state.handsLeft })
         }
-        return `${this.selected.size}장 골랐습니다   ·   「낸다」 로 점수를 내거나`
-          + ' 「버린다」 로 바꿉니다'
+        return tf('ui.hint.selected', { n: this.selected.size })
+          + t('ui.hint.discard_to_swap')
       case 'shop':
         if (state.pack) {
-          return `펼쳐진 것 중에서 ${state.pack.picksLeft}장을 고릅니다`
-            + '   ·   마음에 안 들면 건너뜁니다'
+          return tf('ui.pack.pick_from', { n: state.pack.picksLeft })
+            + t('ui.hint.skip_if_unwanted')
         }
         // 상점은 판 하나이고 그 안에 다 적혀 있습니다.
         return ''
@@ -2202,10 +2202,10 @@ export class Game {
 
     const ink = hinting ? COLOR.money : COLOR.chips
     this.previewHand.text = hinting
-      ? `이 ${cards.length}장이면  ${this.handName(hand)}`
-      : `${this.handName(hand)}   레벨 ${level}`
+      ? tf('ui.hand.preview', { n: cards.length, name: this.handName(hand) })
+      : tf('ui.hand.level', { name: this.handName(hand), level })
     this.previewHand.style.fill = ink
-    this.previewValue.text = `칩 ${chips}  ×  배수 ${mult}   =   ${chips * mult}`
+    this.previewValue.text = tf('ui.hand.preview_math', { chips, mult, total: chips * mult })
 
     const width = Math.max(this.previewHand.width, this.previewValue.width) + 40
     this.previewPlate.clear()
@@ -2235,7 +2235,7 @@ export class Game {
     const top = TITLE_BAR + 20
     const height = top + rows.length * rowH + 14 + FOOTER_BAR
 
-    layer.addChild(panelFrame(width, height, '족보', () => this.toggleHandList()))
+    layer.addChild(panelFrame(width, height, t('ui.kind.poker_hand'), () => this.toggleHandList()))
 
     const band = new Graphics()
     layer.addChild(band)
@@ -2267,7 +2267,7 @@ export class Game {
       value.position.set(318, y + 2)
 
       const played = new Text({
-        text: `${this.state.handPlayCounts[key] ?? 0}회`,
+        text: tf('ui.hand.times', { n: this.state.handPlayCounts[key] ?? 0 }),
         style: { fontSize: 12, fill: COLOR.inkDim },
       })
       played.anchor.set(1, 0)
@@ -2360,7 +2360,7 @@ export class Game {
 
     if (!shape) {
       const veiled = new Text({
-        text: '아직 내 본 적이 없는 족보입니다',
+        text: t('ui.hand.never_played'),
         style: { fontSize: 12, fill: COLOR.inkDim },
       })
       veiled.anchor.set(0.5, 0.5)
@@ -2451,7 +2451,7 @@ export class Game {
       const label = (text: string, size: number, fill: number, weight = '700') =>
         new Text({ text, style: { fontSize: size, fill, fontWeight: weight as never } })
 
-      const name = label(bossRow?.name ?? `${blindName(blind)} 블라인드`, 17, COLOR.ink, '800')
+      const name = label(bossRow?.name ?? tf('ui.blind.named', { name: blindName(blind) }), 17, COLOR.ink, '800')
       name.anchor.set(0.5, 0.5)
       name.position.set(cardW / 2, 23)
       group.addChild(name)
@@ -2461,12 +2461,12 @@ export class Game {
       need.position.set(cardW / 2, 72)
       group.addChild(need)
 
-      const needCaption = label('요구 점수', 11, COLOR.inkDim)
+      const needCaption = label(t('ui.label.target'), 11, COLOR.inkDim)
       needCaption.anchor.set(0.5, 0)
       needCaption.position.set(cardW / 2, 114)
       group.addChild(needCaption)
 
-      const reward = label(`격파 보상  $${row.reward}`, 13, COLOR.money, '800')
+      const reward = label(tf('ui.blind.reward', { n: row.reward }), 13, COLOR.money, '800')
       reward.anchor.set(0.5, 0)
       reward.position.set(cardW / 2, 138)
       group.addChild(reward)
@@ -2474,7 +2474,7 @@ export class Game {
       // 보스의 효과. **건너뛸지를 정하는 것이 대부분 이 한 줄입니다.**
       const note = bossRow
         ? describe(this.data, this.data.bossEffects.get(state.bossId) ?? []).join(NEWLINE)
-        : '아무 규칙도 걸리지 않습니다'
+        : t('ui.note.no_rules')
       // **수와 이름은 다른 색입니다.** 「패에서 2장을 버립니다」에서 판단을 가르는 것은
       // 그 2 입니다.
       const noteLines = note.split(NEWLINE)
@@ -2492,24 +2492,24 @@ export class Game {
       group.addChild(noteText)
 
       if (done) {
-        const mark = label('넘겼습니다', 14, COLOR.good, '800')
+        const mark = label(t('ui.label.cleared'), 14, COLOR.good, '800')
         mark.anchor.set(0.5, 0)
         mark.position.set(cardW / 2, height - 52)
         group.addChild(mark)
       } else if (!now) {
-        const mark = label('다음 차례', 13, COLOR.inkDim, '700')
+        const mark = label(t('ui.label.next_up'), 13, COLOR.inkDim, '700')
         mark.anchor.set(0.5, 0)
         mark.position.set(cardW / 2, height - 50)
         group.addChild(mark)
       } else {
-        const pick = new Button('이 블라인드로', cardW - 36, 44, 0x2f6fb5,
+        const pick = new Button(t('ui.button.select_blind'), cardW - 36, 44, 0x2f6fb5,
           () => this.act({ t: 'select_blind' }))
         pick.position.set(18, height - 106)
         group.addChild(pick)
 
         // 보스는 건너뛸 수 없습니다.
         if (row.skippable && blind !== BlindKind.Boss) {
-          const skip = new Button('건너뛴다 — 태그', cardW - 36, 36, 0x4a5568,
+          const skip = new Button(t('ui.button.skip_tag'), cardW - 36, 36, 0x4a5568,
             () => this.act({ t: 'skip_blind' }))
           skip.position.set(18, height - 52)
           group.addChild(skip)
@@ -2560,7 +2560,7 @@ export class Game {
     const gridTop = TITLE_BAR + 62
     const height = gridTop + rows.length * rowH + 16 + FOOTER_BAR
 
-    layer.addChild(panelFrame(width, height, '남은 카드', () => this.toggleDeckView()))
+    layer.addChild(panelFrame(width, height, t('ui.button.deck_view'), () => this.toggleDeckView()))
 
     const label = (text: string, size: number, fill: number, weight = '700') =>
       new Text({ text, style: { fontSize: size, fill, fontWeight: weight as never } })
@@ -2569,7 +2569,7 @@ export class Game {
     total.anchor.set(0.5, 0)
     total.position.set(width / 2, TITLE_BAR + 12)
     const legend = label(
-      '밝은 것이 덱에 남은 카드입니다. 카드를 누르면 그 한 장의 설명이 뜹니다.',
+      t('ui.deck_view.note'),
       11, COLOR.inkDim, '600')
     legend.anchor.set(0.5, 0)
     legend.position.set(width / 2, TITLE_BAR + 34)
@@ -2618,7 +2618,7 @@ export class Game {
     const sealed = remaining.filter(card => card.seal !== SealKind.None).length
 
     const foot = label(
-      `남은 것 중  그림 ${faces}   ·   에이스 ${aces}   ·   강화 ${enhanced}   ·   인장 ${sealed}`,
+      tf('ui.deck_view.counts', { faces, aces, enhanced, sealed }),
       12, COLOR.inkDim)
     foot.anchor.set(0.5, 1)
     foot.position.set(width / 2, height - FOOTER_BAR - 10)
@@ -2694,21 +2694,21 @@ export class Game {
     const name = `${MINI_RANK[card.rank] ?? '?'} ${SUIT_PIP[card.suit] ?? ''}`
 
     const lines: string[] = [
-      alive ? '덱에 남아 있습니다' : inHand ? '지금 손에 있습니다' : '이미 나갔습니다',
-      `칩 ${(rank?.chips ?? 0) + card.bonusChips}`
-        + (card.bonusChips > 0 ? ` — 기본 ${rank?.chips ?? 0} + 덤 ${card.bonusChips}` : ''),
+      alive ? t('ui.deck.left') : inHand ? t('ui.deck.in_hand') : t('ui.deck.gone'),
+      tf('ui.card.chips', { n: (rank?.chips ?? 0) + card.bonusChips })
+        + (card.bonusChips > 0 ? tf('ui.card.chips_split', { base: rank?.chips ?? 0, bonus: card.bonusChips }) : ''),
     ]
     if (card.enhancement !== EnhancementKind.None) {
-      lines.push(`강화 — ${this.enhancementName(card.enhancement)}`)
+      lines.push(tf('ui.card.enhancement', { name: this.enhancementName(card.enhancement) }))
     }
-    if (card.seal !== SealKind.None) lines.push(`인장 — ${this.sealName(card.seal)}`)
+    if (card.seal !== SealKind.None) lines.push(tf('ui.card.seal', { name: this.sealName(card.seal) }))
     if (card.edition !== EditionKind.Base) {
-      lines.push(`에디션 — ${this.editionName(card.edition)}`)
+      lines.push(tf('ui.card.edition', { name: this.editionName(card.edition) }))
     }
-    if (card.debuffed) lines.push('이번 라운드에는 무력화되어 있습니다')
+    if (card.debuffed) lines.push(t('ui.note.disabled_this_round'))
 
     const spot = this.world.toLocal(at.getGlobalPosition())
-    this.tooltip.show(name, alive ? '덱' : inHand ? '손' : '나감', alive ? 3 : 1,
+    this.tooltip.show(name, alive ? t('ui.kind.deck') : inHand ? t('ui.kind.hand') : t('ui.kind.gone'), alive ? 3 : 1,
       lines, spot.x + 30, spot.y + 46, { width: SIZE.width, height: SIZE.height })
   }
 
@@ -2790,7 +2790,7 @@ export class Game {
     board.addChild(plate)
 
     const title = new Text({
-      text: won ? '승리' : '패배',
+      text: won ? t('ui.label.won') : t('ui.label.lost'),
       style: {
         fontSize: 52, fill: won ? COLOR.good : COLOR.bad, fontWeight: '800',
         stroke: { color: 0x0a0f18, width: 6 },
@@ -2810,10 +2810,10 @@ export class Game {
     lead.position.set(0, -height / 2 + 100)
 
     const lines = [
-      `안테  ${this.state.ante} / ${this.data.run.winAnte}`,
-      `낸 핸드  ${this.state.handsPlayedThisRun}`,
-      `모은 조커  ${this.state.jokers.length}`,
-      `시드  ${this.state.seed}`,
+      tf('ui.stat.ante', { at: this.state.ante, all: this.data.run.winAnte }),
+      tf('ui.stat.hands_played', { n: this.state.handsPlayedThisRun }),
+      tf('ui.stat.jokers', { n: this.state.jokers.length }),
+      tf('ui.stat.seed', { seed: this.state.seed }),
     ]
     const body = new Text({
       text: lines.join('\n'),
@@ -2822,7 +2822,7 @@ export class Game {
     body.anchor.set(0.5, 0)
     body.position.set(0, -height / 2 + 150)
 
-    const again = new Button('다시 시작', 200, 52, won ? 0x2f7a52 : 0xa63f3f, () => {
+    const again = new Button(t('ui.button.restart'), 200, 52, won ? 0x2f7a52 : 0xa63f3f, () => {
       const seed = `CLOVER-${Math.floor(Math.random() * 1e6).toString().padStart(6, '0')}`
       location.href = `${location.pathname}?seed=${seed}`
     })
@@ -2845,12 +2845,12 @@ export class Game {
 
   /** 왜 끝났는가. **숫자가 있어야 다음 판에 무엇을 다르게 할지 압니다.** */
   private endLine(won: boolean): string {
-    if (won) return `안테 ${this.data.run.winAnte}까지 넘겼습니다.`
+    if (won) return tf('ui.over.won', { n: this.data.run.winAnte })
     const short = Number(this.state.target) - Number(this.state.score)
-    const where = `안테 ${this.state.ante} · ${blindName(this.state.blind)} 블라인드`
+    const where = tf('ui.over.where', { ante: this.state.ante, blind: blindName(this.state.blind) })
     return short > 0
-      ? `${where}에서 ${short.toLocaleString('en-US')}점이 모자랐습니다.`
-      : `${where}에서 멈췄습니다.`
+      ? tf('ui.over.short', { where, n: short.toLocaleString('en-US') })
+      : tf('ui.over.stopped', { where })
   }
 
   /** 럼블. 크기가 넘쳤다가 잦아들고, 그동안 판이 조금씩 떱니다. */
@@ -2886,8 +2886,8 @@ export class Game {
     if (!this.presented) return
 
     if (state.phase === 'shop') {
-      this.badge.set('상점', 0, 0,
-        '조커와 소모품을 삽니다. 바우처는 런 내내 남습니다.', false)
+      this.badge.set(t('ui.guide.shop.head'), 0, 0,
+        t('ui.shop.note'), false)
       return
     }
 
@@ -2900,7 +2900,7 @@ export class Game {
       : ''
 
     this.badge.set(
-      bossRow?.name ?? `${blindName(state.blind)} 블라인드`,
+      bossRow?.name ?? tf('ui.blind.named', { name: blindName(state.blind) }),
       Number(state.target), row?.reward ?? 0, note, boss, state.blind === BlindKind.Big)
   }
 
@@ -3205,7 +3205,7 @@ export class Game {
       }
       anchor = JOKER_X + index * (SIZE.jokerWidth + 12)
       const price = sellValueOf(this.data, this.state, this.state.jokers[index])
-      buttons.push(new Button(`판매 $${price}`, 92, 30, 0x7a3f4a, () => {
+      buttons.push(new Button(tf('ui.button.sell', { n: price }), 92, 30, 0x7a3f4a, () => {
         this.held = undefined
         this.act({ t: 'sell_joker', index })
       }))
@@ -3216,11 +3216,11 @@ export class Game {
         return
       }
       anchor = CONSUMABLE_X + index * (SIZE.jokerWidth + 12)
-      buttons.push(new Button('사용', 68, 30, 0x3f5f8a, () => {
+      buttons.push(new Button(t('ui.button.use'), 68, 30, 0x3f5f8a, () => {
         this.held = undefined
         this.act({ t: 'use_consumable', index, targets: this.orderedSelection() })
       }))
-      buttons.push(new Button(`판매 $${this.data.economy.sellMin}`, 92, 30, 0x7a3f4a, () => {
+      buttons.push(new Button(tf('ui.button.sell', { n: this.data.economy.sellMin }), 92, 30, 0x7a3f4a, () => {
         this.held = undefined
         this.act({ t: 'sell_consumable', index })
       }))
@@ -3269,7 +3269,7 @@ export class Game {
       const row = this.data.tables.tag.findByTagId(tag)
       out.push({
         label: row?.name ?? tag,
-        value: '태그',
+        value: t('ui.kind.tag'),
         lines: describe(this.data, this.data.tagEffects.get(tag) ?? []),
       })
     }
@@ -3278,7 +3278,7 @@ export class Game {
       const row = this.data.tables.voucher.findByVoucherId(id)
       out.push({
         label: row?.name ?? id,
-        value: '바우처',
+        value: t('ui.kind.voucher'),
         lines: describe(this.data, this.data.voucherEffects.get(id) ?? []),
       })
     }
@@ -3290,7 +3290,7 @@ export class Game {
       const is = now[key]
       if (was === is) continue
       if (typeof is === 'boolean') {
-        out.push({ label: this.ruleName(key), value: is ? '켜짐' : '꺼짐', lines: [] })
+        out.push({ label: this.ruleName(key), value: is ? t('ui.option.on') : t('ui.option.off'), lines: [] })
         continue
       }
       if (typeof was !== 'number' || typeof is !== 'number') continue
@@ -3321,7 +3321,7 @@ export class Game {
     const shown = Math.min(entries.length, entries.length > 4 ? 3 : 4)
 
     const head = new Text({
-      text: `적용 중  ${entries.length}`,
+      text: tf('ui.active.count', { n: entries.length }),
       style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '800' },
     })
     head.position.set(LEFT + 4, top)
@@ -3366,7 +3366,7 @@ export class Game {
 
     if (entries.length > shown) {
       const more = new Text({
-        text: `그 밖에 ${entries.length - shown}개  ·  눌러서 모두 보기`,
+        text: tf('ui.active.more', { n: entries.length - shown }),
         style: { fontSize: 11, fill: COLOR.inkDim, fontWeight: '700' },
       })
       more.position.set(LEFT + 4, top + 20 + shown * rowH + 4)
@@ -3432,11 +3432,11 @@ export class Game {
     const height = top + Math.max(30, body) + 14 + FOOTER_BAR
     ;(this.activePanel.size as { width: number; height: number }).height = height
 
-    layer.addChild(panelFrame(width, height, '적용 중', () => this.toggleActive()))
+    layer.addChild(panelFrame(width, height, t('ui.active.head'), () => this.toggleActive()))
 
     if (entries.length === 0) {
       const empty = new Text({
-        text: '아직 아무것도 걸려 있지 않습니다.',
+        text: t('ui.active.empty'),
         style: { fontSize: 13, fill: COLOR.inkDim },
       })
       empty.anchor.set(0.5, 0)
@@ -3454,7 +3454,7 @@ export class Game {
   }
 
   private showTooltip(view: JokerView): void {
-    const rarityName = ['', '커먼', '언커먼', '레어', '전설'][view.look.rarity] ?? ''
+    const rarityName = ['', t('ui.rarity.common'), t('ui.rarity.uncommon'), t('ui.rarity.rare'), t('ui.rarity.legendary')][view.look.rarity] ?? ''
     this.tooltip.show(view.look.name, rarityName, view.look.rarity, view.look.lines,
       view.x, view.y + SIZE.jokerHeight / 2, SIZE)
   }
@@ -3494,7 +3494,7 @@ export class Game {
       tile.on('pointertap', () => this.pick('consumable', item.uid))
       this.consumableTiles.push({ uid: item.uid, tile, baseY: tile.y })
       tile.on('pointerover', () => {
-        this.tooltip.show(name, '소모품', 0, lines,
+        this.tooltip.show(name, t('ui.kind.consumable'), 0, lines,
           tile.x + SIZE.jokerWidth / 2, tile.y + SIZE.jokerHeight, SIZE)
       })
       tile.on('pointerout', () => this.tooltip.hide())
@@ -3512,7 +3512,7 @@ export class Game {
     if (kind === 1) return describe(this.data, this.data.tarotEffects.get(id) ?? [])
     if (kind === 3) return describe(this.data, this.data.spectralEffects.get(id) ?? [])
     const planet = this.data.tables.planet.findByPlanetId(id)
-    return planet ? [`${this.handName(planet.hand)} 레벨 +1`] : []
+    return planet ? [tf('ui.hand.level_up', { name: this.handName(planet.hand) })] : []
   }
 
   /**
@@ -3553,14 +3553,14 @@ export class Game {
     const y = Math.max(84, (SIZE.height - height) / 2 - 24)
 
     const foot = new Container()
-    const reroll = new Button(`리롤  $${rerollCost(this.data, state, state.shop)}`,
+    const reroll = new Button(tf('ui.shop.reroll_cost', { n: rerollCost(this.data, state, state.shop) }),
       150, 40, 0x3f5f8f, () => this.reroll())
     reroll.enabled = state.money >= rerollCost(this.data, state, state.shop)
-    const leave = new Button('다음 블라인드로', 190, 40, 0x2f6fb5, () => this.primary())
+    const leave = new Button(t('ui.button.next_blind'), 190, 40, 0x2f6fb5, () => this.primary())
     leave.position.set(166, 0)
     foot.addChild(reroll, leave)
 
-    const frame = panelFrame(width, height, '상점', undefined, foot)
+    const frame = panelFrame(width, height, t('ui.guide.shop.head'), undefined, foot)
     frame.position.set(x, y)
     this.shopLayer.addChild(frame)
 
@@ -3572,13 +3572,13 @@ export class Game {
     money.position.set(x + width - 26, y + TITLE_BAR / 2)
     this.shopLayer.addChild(money)
 
-    this.shopSection(x, y + itemHead, width, '상품')
+    this.shopSection(x, y + itemHead, width, t('ui.shop.wares'))
     this.drawShopItems(x, y + itemsAt, width, ITEM_H)
 
-    this.shopSection(x, y + packHead, width, '팩')
+    this.shopSection(x, y + packHead, width, t('ui.kind.pack'))
     this.drawPackRow(x, y + packsAt, width, PACK_H)
 
-    this.shopSection(x, y + voucherHead, width, '바우처')
+    this.shopSection(x, y + voucherHead, width, t('ui.kind.voucher'))
     this.drawVoucher(x, y + voucherAt, width, VOUCHER_H)
   }
 
@@ -3641,7 +3641,7 @@ export class Game {
       // 가장 나쁩니다.
       if (!room) {
         const full = new Text({
-          text: '자리 없음 — 눌러서 교체',
+          text: t('ui.swap.hint'),
           style: { fontSize: 10, fill: 0xffb4c8, fontWeight: '800' },
         })
         full.anchor.set(0.5, 0)
@@ -3838,11 +3838,11 @@ export class Game {
       size: { width, height },
     }
     const layer = panel.view
-    layer.addChild(panelFrame(width, height, '자리가 없습니다',
+    layer.addChild(panelFrame(width, height, t('ui.swap.title'),
       () => this.modals.close(panel)))
 
     const lead = richLine(
-      `「${shopLabel(item.kind, item.id, this.data)}」 를 놓을 자리를 비웁니다`, {
+      tf('ui.swap.lead', { name: shopLabel(item.kind, item.id, this.data) }), {
         base: { fontSize: 12, fill: COLOR.inkDim },
         number: COLOR.accentNumber,
         term: COLOR.accentTerm,
@@ -3862,7 +3862,7 @@ export class Game {
       name.position.set(14, 8)
 
       const note = new Text({
-        text: held.locked ? '팔 수 없습니다' : held.note,
+        text: held.locked ? t('ui.note.cannot_sell') : held.note,
         style: {
           fontSize: 11, fill: held.locked ? 0xffb4c8 : COLOR.inkDim,
           wordWrap: true, wordWrapWidth: width - 200,
@@ -3950,7 +3950,7 @@ export class Game {
       label.anchor.set(0.5, 0.5)
       label.position.set(tileW / 2, h * 0.52)
 
-      const note = richLine(`${row.cards}장 중 ${row.picks}장`, {
+      const note = richLine(tf('ui.pack.of', { cards: row.cards, picks: row.picks }), {
         base: { fontSize: 11, fill: 0xdbe4f0 },
         number: COLOR.accentNumber,
         term: COLOR.accentTerm,
@@ -3982,8 +3982,8 @@ export class Game {
         this.act({ t: 'buy_pack', slot })
       })
       tile.on('pointerover', () => {
-        this.tooltip.show(packName(row.kind, row.size), '팩', 0,
-          [packBlurb(row.kind), `${row.cards}장이 펼쳐지고 ${row.picks}장을 고릅니다`],
+        this.tooltip.show(packName(row.kind, row.size), t('ui.kind.pack'), 0,
+          [packBlurb(row.kind), tf('ui.pack.spread', { cards: row.cards, picks: row.picks })],
           tile.x + tileW / 2, tile.y + tileH, SIZE)
       })
       tile.on('pointerout', () => this.tooltip.hide())
@@ -3996,7 +3996,7 @@ export class Game {
     const id = this.state.shop.voucher
     if (!id) {
       const none = new Text({
-        text: '이번 안테의 바우처는 이미 샀습니다',
+        text: t('ui.shop.voucher_taken'),
         style: { fontSize: 11, fill: COLOR.inkDim },
       })
       none.anchor.set(0.5, 0)
@@ -4020,7 +4020,7 @@ export class Game {
     })
     label.position.set(16, 11)
 
-    const note = richLine(lines[0] ?? '런 내내 남습니다', {
+    const note = richLine(lines[0] ?? t('ui.note.rest_of_run'), {
       base: { fontSize: 11, fill: 0x9fc4e8 },
       number: COLOR.accentNumber,
       term: COLOR.accentTerm,
@@ -4046,7 +4046,7 @@ export class Game {
       this.act({ t: 'buy_voucher' })
     })
     tile.on('pointerover', () => {
-      this.tooltip.show(row?.name ?? '', '바우처', 0, lines,
+      this.tooltip.show(row?.name ?? '', t('ui.kind.voucher'), 0, lines,
         tile.x + tileW / 2, tile.y + tileH, SIZE)
     })
     tile.on('pointerout', () => this.tooltip.hide())
@@ -4085,14 +4085,14 @@ export class Game {
     this.packLayer.addChild(board)
 
     const title = new Text({
-      text: row ? packName(row.kind, row.size) : '팩',
+      text: row ? packName(row.kind, row.size) : t('ui.kind.pack'),
       style: { fontSize: 22, fill: COLOR.ink, fontWeight: '800' },
     })
     title.anchor.set(0.5, 0)
     title.position.set(BOARD_X, 262)
 
     const note = new Text({
-      text: `${open.picksLeft}장 더 고릅니다`,
+      text: tf('ui.pack.picks_left', { n: open.picksLeft }),
       style: { fontSize: 13, fill: 0xdbe4f0, fontWeight: '700' },
     })
     note.anchor.set(0.5, 0)
@@ -4161,7 +4161,7 @@ export class Game {
       this.packLayer.addChild(tile)
     })
 
-    const skip = new Button(left.length === open.options.length ? '건너뛴다' : '그만 고른다',
+    const skip = new Button(left.length === open.options.length ? t('ui.button.skip') : t('ui.button.clear'),
       160, 40, 0x4a5568, () => this.act({ t: 'skip_pack' }))
     skip.position.set(BOARD_X - 80, 494)
     this.packLayer.addChild(skip)
@@ -4200,8 +4200,8 @@ function near(point: { x: number; y: number },
  */
 function ruleChange(event: { before: number | null; after: number | null;
                              flag: boolean; rule: string }): string {
-  if (event.after === null) return '이번 런 내내 적용됩니다'
-  if (event.flag) return event.after !== 0 ? '켜졌습니다' : '꺼졌습니다'
+  if (event.after === null) return t('ui.note.applies_all_run')
+  if (event.flag) return event.after !== 0 ? t('ui.note.turned_on') : t('ui.note.turned_off')
 
   if (RULE_IS_SCALE.has(event.rule) || RULE_IS_MULTIPLIER.has(event.rule)) {
     const unit = RULE_IS_SCALE.has(event.rule) ? 10_000 : 1
@@ -4212,7 +4212,7 @@ function ruleChange(event: { before: number | null; after: number | null;
 
   // 할인은 만분율이고 **낮을수록 좋습니다.** 배수로 적으면 그 방향이 뒤집혀 읽힙니다.
   if (event.rule === 'ShopDiscount') {
-    return `${(event.after / 100).toFixed(0)}% 싸게 삽니다`
+    return tf('ui.rule.discount', { n: (event.after / 100).toFixed(0) })
   }
 
   if (event.before === null || event.before === event.after) return String(event.after)
@@ -4260,11 +4260,11 @@ const RULE_IS_MULTIPLIER = new Set([
  */
 function valueText(op: string, chips: number, mult: number, money: number): string {
   if (op === 'MulMult') return `×${(mult / 10_000).toFixed(2)}`
-  if (op === 'GrowSelf') return '늘었습니다'
+  if (op === 'GrowSelf') return t('ui.note.grew')
   if (money !== 0) return `${money > 0 ? '+' : ''}$${money}`
   if (chips !== 0) return `+${chips}`
   if (mult !== 0) return `+${(mult / 10_000).toFixed(0)}`
-  return '발동'
+  return t('ui.label.triggered')
 }
 
 /** `AllCardsScore` 를 `all_cards_score` 로. 글 표의 식별자가 그 모양입니다. */
@@ -4283,16 +4283,16 @@ function rgbOf(color: number): [number, number, number] {
 
 function moneyReason(reason: string): string {
   switch (reason) {
-    case 'blind': return '격파 보상'
-    case 'interest': return '이자'
-    case 'hands_left': return '남은 핸드'
-    case 'discards_left': return '남은 버리기'
+    case 'blind': return t('ui.label.reward')
+    case 'interest': return t('ui.money.interest')
+    case 'hands_left': return t('ui.label.hands_left')
+    case 'discards_left': return t('ui.label.discards_left')
     default: return ''
   }
 }
 
 function blindName(blind: BlindKind): string {
-  return blind === BlindKind.Small ? '스몰' : blind === BlindKind.Big ? '빅' : '보스'
+  return blind === BlindKind.Small ? t('ui.blind.small') : blind === BlindKind.Big ? t('ui.blind.big') : t('ui.blind.boss')
 }
 
 /**
@@ -4358,22 +4358,22 @@ const SUIT_PIP: Record<number, string> = {
 
 /** 팩 이름. 표가 갈래와 크기만 정하므로 이름은 여기서 짓습니다. */
 function packName(kind: PackKind, size: PackSize): string {
-  const body = kind === PackKind.Arcana ? '비전'
-    : kind === PackKind.Celestial ? '천체'
-    : kind === PackKind.Spectral ? '유령'
-    : kind === PackKind.Buffoon ? '어릿광대'
-    : '표준'
-  const scale = size === PackSize.Jumbo ? '점보 ' : size === PackSize.Mega ? '메가 ' : ''
-  return `${scale}${body} 팩`
+  const body = kind === PackKind.Arcana ? t('ui.pack.arcana')
+    : kind === PackKind.Celestial ? t('ui.pack.celestial')
+    : kind === PackKind.Spectral ? t('ui.kind.spectral')
+    : kind === PackKind.Buffoon ? t('ui.enhancement.mult')
+    : t('ui.pack.standard')
+  const scale = size === PackSize.Jumbo ? t('ui.pack.size.jumbo') : size === PackSize.Mega ? t('ui.pack.size.mega') : ''
+  return tf('ui.pack.named', { scale, body })
 }
 
 function packBlurb(kind: PackKind): string {
   switch (kind) {
-    case PackKind.Arcana: return '타로가 들어 있습니다'
-    case PackKind.Celestial: return '행성이 들어 있습니다'
-    case PackKind.Spectral: return '유령이 들어 있습니다'
-    case PackKind.Buffoon: return '조커가 들어 있습니다'
-    default: return '강화·인장이 붙은 카드가 들어 있습니다'
+    case PackKind.Arcana: return t('ui.pack.note.arcana')
+    case PackKind.Celestial: return t('ui.pack.note.celestial')
+    case PackKind.Spectral: return t('ui.pack.note.spectral')
+    case PackKind.Buffoon: return t('ui.pack.note.buffoon')
+    default: return t('ui.pack.note.standard')
   }
 }
 
@@ -4389,11 +4389,11 @@ function packInk(kind: PackKind): number {
 
 function kindName(kind: ShopItemKind): string {
   switch (kind) {
-    case ShopItemKind.Joker: return '조커'
-    case ShopItemKind.Tarot: return '타로'
-    case ShopItemKind.Planet: return '행성'
-    case ShopItemKind.Spectral: return '유령'
-    default: return '카드'
+    case ShopItemKind.Joker: return t('ui.guide.joker.head')
+    case ShopItemKind.Tarot: return t('ui.kind.tarot')
+    case ShopItemKind.Planet: return t('ui.kind.planet')
+    case ShopItemKind.Spectral: return t('ui.kind.spectral')
+    default: return t('ui.kind.card')
   }
 }
 

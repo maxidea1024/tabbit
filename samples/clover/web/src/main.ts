@@ -6,6 +6,8 @@
 import { Application } from 'pixi.js'
 
 import { loadFromUrl } from './core/load'
+import { setLanguage, useStrings } from './core/strings'
+import { chosen, loadOptions } from './ui/options'
 import { loadArtIndex } from './render/art'
 import { Game } from './render/game'
 import { COLOR } from './render/theme'
@@ -27,6 +29,10 @@ async function main(): Promise<void> {
   })
 
   const data = await loadFromUrl('./data')
+  // **화면을 만들기 전에 글 표를 넘깁니다.** 클래스의 필드는 생성자 본문보다 먼저 만들어지고,
+  // 그 자리에서 이미 글을 읽습니다 — 생성자 안에서 넘기면 그것들이 열쇠를 그대로 답니다.
+  useStrings(data)
+  setLanguage(chosen(loadOptions()))
   // 그림 목록. 없으면 문양으로 갑니다.
   await loadArtIndex('./art')
 

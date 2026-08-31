@@ -2,661 +2,850 @@
 :field	string_id	ko	en	ja	zh_hans	zh_hant	de
 :type	string	string	string	string	string	string	string
 :desc	식별자	한국어	영어	일본어	중국어 간체	중국어 번체	독일어
-	joker.twig.name	둥근 잔가지	Twig				
-	joker.quartz_bloom.name	석영꽃	Quartz Bloom				
-	joker.poppy_bloom.name	양귀비꽃	Poppy Bloom				
-	joker.nettle_bloom.name	쐐기풀꽃	Nettle Bloom				
-	joker.clover_bloom.name	클로버꽃	Clover Bloom				
-	joker.warbler.name	휘파람새	Warbler				
-	joker.starling.name	찌르레기	Starling				
-	joker.magpie.name	까치	Magpie				
-	joker.swallow.name	제비	Swallow				
-	joker.finch.name	되새	Finch				
-	joker.cricket.name	귀뚜라미	Cricket				
-	joker.mantis.name	사마귀	Mantis				
-	joker.beetle.name	딱정벌레	Beetle				
-	joker.centipede.name	그리마	Centipede				
-	joker.firefly.name	개똥벌레	Firefly				
-	joker.half_pot.name	반쪽 화분	Half Pot				
-	joker.ledger_note.name	외상 장부	Ledger Note				
-	joker.bunting.name	깃발천	Bunting				
-	joker.last_ridge.name	마지막 능선	Last Ridge				
-	joker.eight_bell.name	여덟째 종	Eight Bell				
-	joker.smudge.name	번짐	Smudge				
-	joker.low_branch.name	낮은 가지	Low Branch				
-	joker.muddle.name	헝클림	Muddle				
-	joker.grim_mask.name	무서운 가면	Grim Mask				
-	joker.tangle.name	엉킴	Tangle				
-	joker.slow_pot.name	더딘 항아리	Slow Pot				
-	joker.windfall_pear.name	바람 맞은 배	Windfall Pear				
-	joker.even_ivy.name	짝수 담쟁이	Even Ivy				
-	joker.odd_alder.name	홀수 오리나무	Odd Alder				
-	joker.almanac.name	낡은 연감	Almanac				
-	joker.trade_card.name	거래 명함	Trade Card				
-	joker.nova_bud.name	새로 뜬 별	Nova Bud				
-	joker.long_path.name	긴 길	Long Path				
-	joker.seed_pod.name	씨주머니	Seed Pod				
-	joker.creeper.name	덩굴손	Creeper				
-	joker.frost_pane.name	서린 유리	Frost Pane				
-	joker.downpour.name	소나기	Downpour				
-	joker.blue_lantern.name	파란 등	Blue Lantern				
-	joker.blank_mask.name	빈 가면	Blank Mask				
-	joker.green_shoot.name	초록 싹	Green Shoot				
-	joker.twin_state.name	겹친 상태	Twin State				
-	joker.chore_list.name	할 일 목록	Chore List				
-	joker.orchard_pear.name	과수원 배	Orchard Pear				
-	joker.red_ticket.name	붉은 표	Red Ticket				
-	joker.square_trellis.name	네모 격자	Square Trellis				
-	joker.rabble.name	잡것들	Rabble				
-	joker.tintype.name	은판 사진	Tintype				
-	joker.garden_bench.name	정원 벤치	Garden Bench				
-	joker.rebate_slip.name	환급 전표	Rebate Slip				
-	joker.daydream.name	백일몽	Daydream				
-	joker.palm_reader.name	손금 읽는 이	Palm Reader				
-	joker.spinner.name	던지는 이	Spinner				
-	joker.tippler.name	한잔하는 이	Tippler				
-	joker.gilt_coin.name	금박 동전	Gilt Coin				
-	joker.puffball.name	먼지버섯	Puffball				
-	joker.tin_horn.name	양철 나팔	Tin Horn				
-	joker.glad_mask.name	웃는 가면	Glad Mask				
-	joker.gilt_stub.name	금박 표	Gilt Stub				
-	joker.bramble_blade.name	가시 칼	Bramble Blade				
-	joker.moonshot.name	달 겨눔	Moonshot				
-	joker.torn_tab.name	찢긴 쪽지	Torn Tab				
-	joker.empty_frame.name	빈 액자	Empty Frame				
-	joker.four_knuckles.name	네 마디	Four Knuckles				
-	joker.mummer.name	무언극배우	Mummer				
-	joker.pruning_shears.name	전정 가위	Pruning Shears				
-	joker.pebble_jar.name	자갈 항아리	Pebble Jar				
-	joker.punch_card.name	도장 카드	Punch Card				
-	joker.twilight.name	해거름	Twilight				
-	joker.spiral_shell.name	나선 껍질	Spiral Shell				
-	joker.steel_trellis.name	강철 격자	Steel Trellis				
-	joker.notch.name	눈금	Notch				
-	joker.face_pattern.name	얼굴 무늬	Face Pattern				
-	joker.comet_tail.name	혜성 꼬리	Comet Tail				
-	joker.night_thief.name	밤손님	Night Thief				
-	joker.slate_board.name	점판암 판	Slate Board				
-	joker.hunch.name	예감	Hunch				
-	joker.star_chart.name	별자리표	Star Chart				
-	joker.wanderer.name	나그네	Wanderer				
-	joker.sharper.name	타짜	Sharper				
-	joker.fever.name	열병	Fever				
-	joker.vigil.name	밤샘	Vigil				
-	joker.leech_vine.name	거머리 덩굴	Leech Vine				
-	joker.stepping_stone.name	디딤돌	Stepping Stone				
-	joker.glass_ghost.name	유리 그림자	Glass Ghost				
-	joker.ninth_cloud.name	아홉째 구름	Ninth Cloud				
-	joker.sky_rocket.name	불화살	Sky Rocket				
-	joker.gilt_mask.name	금박 가면	Gilt Mask				
-	joker.ring_fighter.name	링의 투사	Ring Fighter				
-	joker.gift_tag.name	선물 꼬리표	Gift Tag				
-	joker.broad_bean.name	넓은 콩	Broad Bean				
-	joker.washout.name	씻김	Washout				
-	joker.moon_ladder.name	달 사다리	Moon Ladder				
-	joker.cairn.name	돌무지	Cairn				
-	joker.lucky_toad.name	복 두꺼비	Lucky Toad				
-	joker.soda_cap.name	음료 뚜껑	Soda Cap				
-	joker.swap_note.name	교환 쪽지	Swap Note				
-	joker.flash_note.name	섬광 쪽지	Flash Note				
-	joker.spare_gloves.name	여벌 장갑	Spare Gloves				
-	joker.noodle_pot.name	국수 냄비	Noodle Pot				
-	joker.fizz_bottle.name	탄산병	Fizz Bottle				
-	joker.stone_keep.name	돌 성채	Stone Keep				
-	joker.tumbler.name	곡예사	Tumbler				
-	joker.two_masks.name	두 가면	Two Masks				
-	joker.fiddler.name	악사	Fiddler				
-	joker.deed_stamp.name	증서 도장	Deed Stamp				
-	joker.smudged_pane.name	번진 유리	Smudged Pane				
-	joker.old_route.name	옛 길	Old Route				
-	joker.raw_gem.name	원석	Raw Gem				
-	joker.heartstone.name	피돌	Heartstone				
-	joker.arrow_flint.name	화살 부싯돌	Arrow Flint				
-	joker.onyx_leaf.name	검은 잎	Onyx Leaf				
-	joker.shard_jar.name	파편 항아리	Shard Jar				
-	joker.barker.name	호객꾼	Barker				
-	joker.four_beds.name	네 화단	Four Beds				
-	joker.glad_fool.name	즐거운 광대	Glad Fool				
-	joker.loaded_dice.name	납 주사위	Loaded Dice				
-	joker.the_effigy.name	목각 인형	The Effigy				
-	joker.double_sight.name	겹보임	Double Sight				
-	joker.bullfighter.name	투우사	Bullfighter				
-	joker.orbit_dish.name	접시 안테나	Orbit Dish				
-	joker.card_reader.name	카드 읽는 이	Card Reader				
-	joker.stargazer.name	별 보는 이	Stargazer				
-	joker.bootlace.name	구두끈	Bootlace				
-	joker.ox_yoke.name	황소 멍에	Ox Yoke				
-	joker.old_bones.name	낡은 뼈	Old Bones				
-	joker.graft.name	접붙임	Graft				
-	joker.drifter.name	떠돌이	Drifter				
-	joker.steward.name	집사	Steward				
-	joker.standing_stone.name	선돌	Standing Stone				
-	joker.rookie_card.name	신인 카드	Rookie Card				
-	joker.old_sigil.name	옛 인장	Old Sigil				
-	joker.bonfire.name	모닥불	Bonfire				
-	joker.tracing.name	덧그림	Tracing				
-	joker.tiny_tot.name	꼬맹이	Tiny Tot				
-	joker.open_road.name	열린 길	Open Road				
-	joker.the_bond.name	맺음	The Bond				
-	joker.the_braid.name	세 갈래	The Braid				
-	joker.the_brood.name	한 배	The Brood				
-	joker.the_march.name	행렬	The March				
-	joker.the_flock.name	무리	The Flock				
-	joker.deadweight.name	짐덩이	Deadweight				
-	joker.faint_outline.name	희미한 윤곽	Faint Outline				
-	joker.mirror_note.name	거울 쪽지	Mirror Note				
-	joker.road_permit.name	통행 허가	Road Permit				
-	joker.scorch_mark.name	그을음	Scorch Mark				
-	joker.verdigris.name	녹빛	Verdigris				
-	joker.coronet.name	작은 관	Coronet				
-	joker.gravebloom.name	무덤꽃	Gravebloom				
-	joker.hushbell.name	잠잠종	Hushbell				
-	joker.echoseed.name	메아리씨	Echoseed				
-	tarot.the_fool.name	바보	The Fool				
-	tarot.the_magician.name	마법사	The Magician				
-	tarot.the_high_priestess.name	고위 여사제	The High Priestess				
-	tarot.the_empress.name	여제	The Empress				
-	tarot.the_emperor.name	황제	The Emperor				
-	tarot.the_hierophant.name	교황	The Hierophant				
-	tarot.the_lovers.name	연인	The Lovers				
-	tarot.the_chariot.name	전차	The Chariot				
-	tarot.justice.name	정의	Justice				
-	tarot.the_hermit.name	은둔자	The Hermit				
-	tarot.the_wheel_of_fortune.name	운명의 수레바퀴	The Wheel of Fortune				
-	tarot.strength.name	힘	Strength				
-	tarot.the_hanged_man.name	매달린 사람	The Hanged Man				
-	tarot.death.name	죽음	Death				
-	tarot.temperance.name	절제	Temperance				
-	tarot.the_devil.name	악마	The Devil				
-	tarot.the_tower.name	탑	The Tower				
-	tarot.the_star.name	별	The Star				
-	tarot.the_moon.name	달	The Moon				
-	tarot.the_sun.name	태양	The Sun				
-	tarot.judgement.name	심판	Judgement				
-	tarot.the_world.name	세계	The World				
-	planet.pluto.name	명왕성	Pluto				
-	planet.mercury.name	수성	Mercury				
-	planet.uranus.name	천왕성	Uranus				
-	planet.venus.name	금성	Venus				
-	planet.saturn.name	토성	Saturn				
-	planet.jupiter.name	목성	Jupiter				
-	planet.earth.name	지구	Earth				
-	planet.mars.name	화성	Mars				
-	planet.neptune.name	해왕성	Neptune				
-	planet.planet_x.name	플래닛 X	Planet X				
-	planet.ceres.name	세레스	Ceres				
-	planet.eris.name	에리스	Eris				
-	spectral.familiar.name	사역마	Familiar				
-	spectral.grim.name	암울	Grim				
-	spectral.incantation.name	주문	Incantation				
-	spectral.talisman.name	부적	Talisman				
-	spectral.aura.name	아우라	Aura				
-	spectral.wraith.name	망령	Wraith				
-	spectral.sigil.name	상징	Sigil				
-	spectral.ouija.name	점판	Ouija				
-	spectral.ectoplasm.name	심령체	Ectoplasm				
-	spectral.immolate.name	화형	Immolate				
-	spectral.ankh.name	앙크	Ankh				
-	spectral.deja_vu.name	데자뷰	Deja Vu				
-	spectral.hex.name	주술	Hex				
-	spectral.trance.name	최면	Trance				
-	spectral.medium.name	영매	Medium				
-	spectral.cryptid.name	괴물	Cryptid				
-	spectral.the_soul.name	영혼	The Soul				
-	spectral.black_hole.name	블랙홀	Black Hole				
-	voucher.overstock.name	재고 과잉	Overstock				
-	voucher.overstock_plus.name	재고 과잉 플러스	Overstock Plus				
-	voucher.clearance_sale.name	떨이	Clearance Sale				
-	voucher.liquidation.name	창고 정리	Liquidation				
-	voucher.hone.name	갈기	Hone				
-	voucher.glow_up.name	광내기	Glow Up				
-	voucher.reroll_surplus.name	리롤 여유	Reroll Surplus				
-	voucher.reroll_glut.name	리롤 과잉	Reroll Glut				
-	voucher.crystal_ball.name	수정 구슬	Crystal Ball				
-	voucher.omen_globe.name	조짐 구슬	Omen Globe				
-	voucher.telescope.name	망원경	Telescope				
-	voucher.observatory.name	천문대	Observatory				
-	voucher.grabber.name	집게	Grabber				
-	voucher.nacho_tong.name	나초 집게	Nacho Tong				
-	voucher.wasteful.name	낭비	Wasteful				
-	voucher.recyclomancy.name	재활용술	Recyclomancy				
-	voucher.tarot_merchant.name	타로 상인	Tarot Merchant				
-	voucher.tarot_tycoon.name	타로 거상	Tarot Tycoon				
-	voucher.planet_merchant.name	행성 상인	Planet Merchant				
-	voucher.planet_tycoon.name	행성 거상	Planet Tycoon				
-	voucher.seed_money.name	종잣돈	Seed Money				
-	voucher.money_tree.name	돈나무	Money Tree				
-	voucher.blank.name	백지	Blank				
-	voucher.antimatter.name	반물질	Antimatter				
-	voucher.magic_trick.name	요술	Magic Trick				
-	voucher.illusion.name	착시	Illusion				
-	voucher.hieroglyph.name	상형문자	Hieroglyph				
-	voucher.petroglyph.name	암각화	Petroglyph				
-	voucher.directors_cut.name	감독판	Director's Cut				
-	voucher.retcon.name	설정 변경	Retcon				
-	voucher.paint_brush.name	붓	Paint Brush				
-	voucher.palette.name	팔레트	Palette				
-	tag.uncommon.name	언커먼 태그	Uncommon Tag				
-	tag.rare.name	레어 태그	Rare Tag				
-	tag.negative.name	네거티브 태그	Negative Tag				
-	tag.foil.name	포일 태그	Foil Tag				
-	tag.holographic.name	홀로그래픽 태그	Holographic Tag				
-	tag.polychrome.name	폴리크롬 태그	Polychrome Tag				
-	tag.investment.name	투자 태그	Investment Tag				
-	tag.voucher.name	바우처 태그	Voucher Tag				
-	tag.boss.name	보스 태그	Boss Tag				
-	tag.standard.name	스탠다드 태그	Standard Tag				
-	tag.charm.name	부적 태그	Charm Tag				
-	tag.meteor.name	유성 태그	Meteor Tag				
-	tag.buffoon.name	어릿광대 태그	Buffoon Tag				
-	tag.ethereal.name	무형 태그	Ethereal Tag				
-	tag.handy.name	손재주 태그	Handy Tag				
-	tag.garbage.name	쓰레기 태그	Garbage Tag				
-	tag.coupon.name	쿠폰 태그	Coupon Tag				
-	tag.d6.name	D6 태그	D6 Tag				
-	tag.double.name	더블 태그	Double Tag				
-	tag.juggle.name	저글 태그	Juggle Tag				
-	tag.economy.name	경제 태그	Economy Tag				
-	tag.speed.name	속도 태그	Speed Tag				
-	tag.orbital.name	궤도 태그	Orbital Tag				
-	tag.topup.name	보충 태그	Top-up Tag				
-	deck.red_deck.name	붉은 덱	Red Deck				
-	deck.blue_deck.name	파란 덱	Blue Deck				
-	deck.yellow_deck.name	노란 덱	Yellow Deck				
-	deck.green_deck.name	초록 덱	Green Deck				
-	deck.black_deck.name	검은 덱	Black Deck				
-	deck.magic_deck.name	마법 덱	Magic Deck				
-	deck.nebula_deck.name	성운 덱	Nebula Deck				
-	deck.ghost_deck.name	유령 덱	Ghost Deck				
-	deck.abandoned_deck.name	버려진 덱	Abandoned Deck				
-	deck.checkered_deck.name	체크무늬 덱	Checkered Deck				
-	deck.zodiac_deck.name	황도대 덱	Zodiac Deck				
-	deck.painted_deck.name	물감 덱	Painted Deck				
-	deck.anaglyph_deck.name	입체사진 덱	Anaglyph Deck				
-	deck.plasma_deck.name	플라스마 덱	Plasma Deck				
-	deck.erratic_deck.name	불규칙한 덱	Erratic Deck				
-	boss.the_hook.name	갈고리	The Hook				
-	boss.the_club.name	클럽	The Club				
-	boss.the_psychic.name	심령술사	The Psychic				
-	boss.the_goad.name	자극	The Goad				
-	boss.the_window.name	창문	The Window				
-	boss.the_manacle.name	수갑	The Manacle				
-	boss.the_pillar.name	기둥	The Pillar				
-	boss.the_head.name	머리	The Head				
-	boss.the_house.name	집	The House				
-	boss.the_wall.name	벽	The Wall				
-	boss.the_wheel.name	바퀴	The Wheel				
-	boss.the_arm.name	팔	The Arm				
-	boss.the_fish.name	물고기	The Fish				
-	boss.the_water.name	물	The Water				
-	boss.the_mouth.name	입	The Mouth				
-	boss.the_needle.name	바늘	The Needle				
-	boss.the_flint.name	부싯돌	The Flint				
-	boss.the_mark.name	표적	The Mark				
-	boss.the_eye.name	눈	The Eye				
-	boss.the_tooth.name	이빨	The Tooth				
-	boss.the_plant.name	초목	The Plant				
-	boss.the_serpent.name	뱀	The Serpent				
-	boss.the_ox.name	황소	The Ox				
-	boss.amber_acorn.name	호박 도토리	Amber Acorn				
-	boss.verdant_leaf.name	푸른 잎	Verdant Leaf				
-	boss.violet_vessel.name	자주색 그릇	Violet Vessel				
-	boss.crimson_heart.name	진홍 심장	Crimson Heart				
-	boss.cerulean_bell.name	하늘빛 종	Cerulean Bell				
-	blind.small.name	스몰 블라인드	Small Blind				
-	blind.big.name	빅 블라인드	Big Blind				
-	blind.boss.name	보스 블라인드	Boss Blind				
-	stake.white.name	흰색	White Stake				
-	stake.red.name	붉은색	Red Stake				
-	stake.green.name	초록색	Green Stake				
-	stake.black.name	검은색	Black Stake				
-	stake.blue.name	파란색	Blue Stake				
-	stake.purple.name	보라색	Purple Stake				
-	stake.orange.name	주황색	Orange Stake				
-	stake.gold.name	황금색	Gold Stake				
-	enhancement.none.name	없음	None				
-	enhancement.bonus.name	보너스	Bonus				
-	enhancement.mult.name	배수	Mult				
-	enhancement.wild.name	와일드	Wild				
-	enhancement.glass.name	유리	Glass				
-	enhancement.steel.name	강철	Steel				
-	enhancement.stone.name	석재	Stone				
-	enhancement.gold.name	황금	Gold				
-	enhancement.lucky.name	행운	Lucky				
-	seal.none.name	없음	None				
-	seal.red.name	붉은	Red				
-	seal.blue.name	파란	Blue				
-	seal.gold.name	금색	Gold				
-	seal.purple.name	보라	Purple				
-	edition.base.name	기본	Base				
-	edition.foil.name	포일	Foil				
-	edition.holographic.name	홀로그래픽	Holographic				
-	edition.polychrome.name	폴리크롬	Polychrome				
-	edition.negative.name	네거티브	Negative				
-	achievement.first_blood.name	첫 관문	First Blood				
-	achievement.ante_four.name	중반	Ante Four				
-	achievement.ante_eight.name	완주	Ante Eight				
-	achievement.endless.name	그 너머	Endless				
-	achievement.ten_thousand.name	만 점	Ten Thousand				
-	achievement.million.name	백만 점	Million				
-	achievement.royal.name	로열	Royal				
-	achievement.five_of_a_kind.name	다섯 장	Five Of A Kind				
-	achievement.flush_five.name	한 장으로 다섯	Flush Five				
-	achievement.full_tray.name	가득 찬 줄	Full Tray				
-	achievement.legendary.name	전설	Legendary				
-	achievement.all_tarot.name	대아르카나	All Tarot				
-	achievement.all_planet.name	태양계	All Planet				
-	achievement.no_discard.name	군더더기 없이	No Discard				
-	achievement.broke.name	빈손	Broke				
-	achievement.rich.name	부자	Rich				
-	achievement.skipper.name	건너뛰기	Skipper				
-	achievement.every_deck.name	모든 덱	Every Deck				
-	achievement.gold_stake.name	황금	Gold Stake				
-	achievement.collector.name	수집가	Collector				
-	hand.HighCard.name	하이 카드	High Card				
-	hand.Pair.name	페어	Pair				
-	hand.TwoPair.name	투 페어	Two Pair				
-	hand.ThreeOfAKind.name	트리플	Three of a Kind				
-	hand.Straight.name	스트레이트	Straight				
-	hand.Flush.name	플러시	Flush				
-	hand.FullHouse.name	풀 하우스	Full House				
-	hand.FourOfAKind.name	포 카드	Four of a Kind				
-	hand.StraightFlush.name	스트레이트 플러시	Straight Flush				
-	hand.FiveOfAKind.name	파이브 오브 어 카인드	Five of a Kind				
-	hand.FlushHouse.name	플러시 하우스	Flush House				
-	hand.FlushFive.name	플러시 파이브	Flush Five				
-	phrase.trigger.Passive	{cond} {op}	{cond} {op}				
-	phrase.trigger.OnCardScored	{cond} 득점할 때마다 {op}	for each scoring {cond}{op}				
-	phrase.trigger.OnCardHeld	패에 든 {cond} 마다 {op}	for each {cond}held in hand, {op}				
-	phrase.trigger.OnHandPlayed	{cond} {op}	{cond} {op}				
-	phrase.trigger.OnHandDiscarded	{cond} 버리면 {op}	when discarding {cond}{op}				
-	phrase.trigger.OnCardDiscarded	{cond} 버릴 때마다 {op}	for each discarded {cond}{op}				
-	phrase.trigger.OnRoundStart	라운드가 시작할 때 {cond} {op}	at round start, {cond}{op}				
-	phrase.trigger.OnRoundEnd	라운드 종료 시 {cond} {op}	at end of round, {cond}{op}				
-	phrase.trigger.OnBlindSelect	블라인드를 고를 때 {cond} {op}	when a blind is selected, {cond}{op}				
-	phrase.trigger.OnBossDefeated	보스를 격파하면 {op}	when a boss is defeated, {op}				
-	phrase.trigger.OnShopEnter	상점에 들어갈 때 {op}	on entering the shop, {op}				
-	phrase.trigger.OnShopExit	상점을 나갈 때 {op}	on leaving the shop, {op}				
-	phrase.trigger.OnReroll	상점에서 리롤할 때마다 {op}	for each shop reroll, {op}				
-	phrase.trigger.OnPackSkipped	팩을 넘길 때마다 {op}	for each skipped pack, {op}				
-	phrase.trigger.OnPackOpened	팩을 열 때 {op}	when a pack is opened, {op}				
-	phrase.trigger.OnCardAdded	덱에 카드가 더해질 때마다 {op}	when a card joins the deck, {op}				
-	phrase.trigger.OnCardDestroyed	{cond} 파괴될 때마다 {op}	when {cond}is destroyed, {op}				
-	phrase.trigger.OnJokerSold	조커를 팔 때마다 {op}	when a joker is sold, {op}				
-	phrase.trigger.OnConsumableUsed	{cond} 쓸 때마다 {op}	when {cond}is used, {op}				
-	phrase.trigger.OnSell	팔면 {op}	sell this card to {op}				
-	phrase.trigger.OnUse	{cond} {op}	{cond} {op}				
-	phrase.trigger.OnScoreResolved	{cond} {op}	{cond} {op}				
-	phrase.trigger.OnRunStart	런을 시작할 때 {op}	at the start of the run, {op}				
-	phrase.trigger.OnLuckyTriggered	`행운` 카드가 발동할 때마다 {op}	when a Lucky card triggers, {op}				
+	joker.twig.name	둥근 잔가지	Twig	小枝	细枝	細枝	Zweig
+	joker.quartz_bloom.name	석영꽃	Quartz Bloom	石英の花	石英花	石英花	Quarzblüte
+	joker.poppy_bloom.name	양귀비꽃	Poppy Bloom	ケシの花	罂粟花	罌粟花	Mohnblüte
+	joker.nettle_bloom.name	쐐기풀꽃	Nettle Bloom	イラクサの花	荨麻花	蕁麻花	Nesselblüte
+	joker.clover_bloom.name	클로버꽃	Clover Bloom	クローバーの花	苜蓿花	苜蓿花	Kleeblüte
+	joker.warbler.name	휘파람새	Warbler	ウグイス	柳莺	柳鶯	Grasmücke
+	joker.starling.name	찌르레기	Starling	ムクドリ	椋鸟	椋鳥	Star
+	joker.magpie.name	까치	Magpie	カササギ	喜鹊	喜鵲	Elster
+	joker.swallow.name	제비	Swallow	ツバメ	燕子	燕子	Schwalbe
+	joker.finch.name	되새	Finch	アトリ	燕雀	燕雀	Fink
+	joker.cricket.name	귀뚜라미	Cricket	コオロギ	蟋蟀	蟋蟀	Grille
+	joker.mantis.name	사마귀	Mantis	カマキリ	螳螂	螳螂	Gottesanbeterin
+	joker.beetle.name	딱정벌레	Beetle	カブトムシ	甲虫	甲蟲	Käfer
+	joker.centipede.name	그리마	Centipede	ゲジ	蚰蜒	蚰蜒	Hundertfüßer
+	joker.firefly.name	개똥벌레	Firefly	ホタル	萤火虫	螢火蟲	Glühwürmchen
+	joker.half_pot.name	반쪽 화분	Half Pot	半分の鉢	半个花盆	半個花盆	Halber Topf
+	joker.ledger_note.name	외상 장부	Ledger Note	つけ帳	赊账簿	賒帳簿	Kontobuch
+	joker.bunting.name	깃발천	Bunting	飾り旗	彩旗	彩旗	Wimpel
+	joker.last_ridge.name	마지막 능선	Last Ridge	最後の尾根	最后的山脊	最後的山脊	Letzter Grat
+	joker.eight_bell.name	여덟째 종	Eight Bell	八つの鐘	第八声钟	第八聲鐘	Achte Glocke
+	joker.smudge.name	번짐	Smudge	にじみ	晕染	暈染	Fleck
+	joker.low_branch.name	낮은 가지	Low Branch	低い枝	低枝	低枝	Tiefer Ast
+	joker.muddle.name	헝클림	Muddle	もつれ	纷乱	紛亂	Wirrwarr
+	joker.grim_mask.name	무서운 가면	Grim Mask	恐ろしい仮面	狰狞面具	猙獰面具	Grimmige Maske
+	joker.tangle.name	엉킴	Tangle	絡まり	缠结	纏結	Gewirr
+	joker.slow_pot.name	더딘 항아리	Slow Pot	のろい壺	慢瓮	慢甕	Träger Topf
+	joker.windfall_pear.name	바람 맞은 배	Windfall Pear	落ち梨	落地梨	落地梨	Fallbirne
+	joker.even_ivy.name	짝수 담쟁이	Even Ivy	偶数のツタ	偶数常春藤	偶數常春藤	Gerader Efeu
+	joker.odd_alder.name	홀수 오리나무	Odd Alder	奇数のハンノキ	奇数赤杨	奇數赤楊	Ungerade Erle
+	joker.almanac.name	낡은 연감	Almanac	古い暦	旧年历	舊年曆	Almanach
+	joker.trade_card.name	거래 명함	Trade Card	取引の名刺	交易名片	交易名片	Handelskarte
+	joker.nova_bud.name	새로 뜬 별	Nova Bud	新しい星	新星	新星	Novaknospe
+	joker.long_path.name	긴 길	Long Path	長い道	长路	長路	Langer Pfad
+	joker.seed_pod.name	씨주머니	Seed Pod	種袋	种荚	種莢	Samenkapsel
+	joker.creeper.name	덩굴손	Creeper	巻きひげ	卷须	卷鬚	Ranke
+	joker.frost_pane.name	서린 유리	Frost Pane	霜の窓	霜窗	霜窗	Frostscheibe
+	joker.downpour.name	소나기	Downpour	夕立	骤雨	驟雨	Wolkenbruch
+	joker.blue_lantern.name	파란 등	Blue Lantern	青い提灯	蓝灯	藍燈	Blaue Laterne
+	joker.blank_mask.name	빈 가면	Blank Mask	のっぺら仮面	空白面具	空白面具	Leere Maske
+	joker.green_shoot.name	초록 싹	Green Shoot	緑の芽	绿芽	綠芽	Grüner Trieb
+	joker.twin_state.name	겹친 상태	Twin State	重なった状態	双重状态	雙重狀態	Zwillingszustand
+	joker.chore_list.name	할 일 목록	Chore List	やることリスト	待办清单	待辦清單	Aufgabenliste
+	joker.orchard_pear.name	과수원 배	Orchard Pear	果樹園の梨	果园梨	果園梨	Gartenbirne
+	joker.red_ticket.name	붉은 표	Red Ticket	赤い札	红票	紅票	Rote Karte
+	joker.square_trellis.name	네모 격자	Square Trellis	四角い格子	方格棚架	方格棚架	Vierkantspalier
+	joker.rabble.name	잡것들	Rabble	雑多な者ども	乌合之众	烏合之眾	Pöbel
+	joker.tintype.name	은판 사진	Tintype	銀板写真	锡版照片	錫版照片	Ferrotypie
+	joker.garden_bench.name	정원 벤치	Garden Bench	庭のベンチ	花园长椅	花園長椅	Gartenbank
+	joker.rebate_slip.name	환급 전표	Rebate Slip	払戻の伝票	退款单	退款單	Rückzahlungsbeleg
+	joker.daydream.name	백일몽	Daydream	白昼夢	白日梦	白日夢	Tagtraum
+	joker.palm_reader.name	손금 읽는 이	Palm Reader	手相見	看手相的人	看手相的人	Handleser
+	joker.spinner.name	던지는 이	Spinner	投げる者	掷者	擲者	Werfer
+	joker.tippler.name	한잔하는 이	Tippler	ほろ酔い	小酌者	小酌者	Zecher
+	joker.gilt_coin.name	금박 동전	Gilt Coin	金箔の硬貨	金箔硬币	金箔硬幣	Vergoldete Münze
+	joker.puffball.name	먼지버섯	Puffball	ホコリタケ	马勃菌	馬勃菌	Bovist
+	joker.tin_horn.name	양철 나팔	Tin Horn	ブリキのラッパ	铁皮喇叭	鐵皮喇叭	Blechhorn
+	joker.glad_mask.name	웃는 가면	Glad Mask	笑う仮面	笑面具	笑面具	Frohe Maske
+	joker.gilt_stub.name	금박 표	Gilt Stub	金箔の半券	金箔票根	金箔票根	Vergoldeter Abriss
+	joker.bramble_blade.name	가시 칼	Bramble Blade	茨の刃	荆棘之刃	荊棘之刃	Dornenklinge
+	joker.moonshot.name	달 겨눔	Moonshot	月狙い	瞄月	瞄月	Mondschuss
+	joker.torn_tab.name	찢긴 쪽지	Torn Tab	破れた紙片	撕破的纸条	撕破的紙條	Zerrissener Zettel
+	joker.empty_frame.name	빈 액자	Empty Frame	空の額縁	空画框	空畫框	Leerer Rahmen
+	joker.four_knuckles.name	네 마디	Four Knuckles	四つの節	四指节	四指節	Vier Knöchel
+	joker.mummer.name	무언극배우	Mummer	無言劇の役者	哑剧演员	啞劇演員	Mime
+	joker.pruning_shears.name	전정 가위	Pruning Shears	剪定ばさみ	修枝剪	修枝剪	Gartenschere
+	joker.pebble_jar.name	자갈 항아리	Pebble Jar	小石の壺	卵石罐	卵石罐	Kieselkrug
+	joker.punch_card.name	도장 카드	Punch Card	スタンプカード	打卡券	打卡券	Stempelkarte
+	joker.twilight.name	해거름	Twilight	たそがれ	暮色	暮色	Dämmerung
+	joker.spiral_shell.name	나선 껍질	Spiral Shell	らせんの貝	螺壳	螺殼	Spiralschale
+	joker.steel_trellis.name	강철 격자	Steel Trellis	鋼の格子	钢格棚架	鋼格棚架	Stahlspalier
+	joker.notch.name	눈금	Notch	刻み目	刻痕	刻痕	Kerbe
+	joker.face_pattern.name	얼굴 무늬	Face Pattern	顔の模様	面纹	面紋	Gesichtsmuster
+	joker.comet_tail.name	혜성 꼬리	Comet Tail	彗星の尾	彗尾	彗尾	Kometenschweif
+	joker.night_thief.name	밤손님	Night Thief	夜の客	夜盗	夜盜	Nachtdieb
+	joker.slate_board.name	점판암 판	Slate Board	粘板岩の板	石板	石板	Schiefertafel
+	joker.hunch.name	예감	Hunch	虫の知らせ	预感	預感	Ahnung
+	joker.star_chart.name	별자리표	Star Chart	星座表	星图	星圖	Sternkarte
+	joker.wanderer.name	나그네	Wanderer	旅人	旅人	旅人	Wanderer
+	joker.sharper.name	타짜	Sharper	いかさま師	老千	老千	Falschspieler
+	joker.fever.name	열병	Fever	熱病	热病	熱病	Fieber
+	joker.vigil.name	밤샘	Vigil	夜通し	守夜	守夜	Nachtwache
+	joker.leech_vine.name	거머리 덩굴	Leech Vine	ヒルの蔓	蛭藤	蛭藤	Blutegelranke
+	joker.stepping_stone.name	디딤돌	Stepping Stone	飛び石	踏脚石	踏腳石	Trittstein
+	joker.glass_ghost.name	유리 그림자	Glass Ghost	ガラスの影	玻璃之影	玻璃之影	Glasgeist
+	joker.ninth_cloud.name	아홉째 구름	Ninth Cloud	九つめの雲	第九朵云	第九朵雲	Neunte Wolke
+	joker.sky_rocket.name	불화살	Sky Rocket	火矢	火箭	火箭	Feuerpfeil
+	joker.gilt_mask.name	금박 가면	Gilt Mask	金箔の仮面	金箔面具	金箔面具	Vergoldete Maske
+	joker.ring_fighter.name	링의 투사	Ring Fighter	闘技場の戦士	擂台斗士	擂台鬥士	Ringkämpfer
+	joker.gift_tag.name	선물 꼬리표	Gift Tag	贈り物の札	礼品吊牌	禮品吊牌	Geschenkanhänger
+	joker.broad_bean.name	넓은 콩	Broad Bean	そら豆	蚕豆	蠶豆	Saubohne
+	joker.washout.name	씻김	Washout	洗い流し	冲刷	沖刷	Ausschwemmung
+	joker.moon_ladder.name	달 사다리	Moon Ladder	月の梯子	月梯	月梯	Mondleiter
+	joker.cairn.name	돌무지	Cairn	石積み	石堆	石堆	Steinmal
+	joker.lucky_toad.name	복 두꺼비	Lucky Toad	福ガエル	福蟾	福蟾	Glückskröte
+	joker.soda_cap.name	음료 뚜껑	Soda Cap	瓶の王冠	汽水瓶盖	汽水瓶蓋	Kronkorken
+	joker.swap_note.name	교환 쪽지	Swap Note	交換の紙片	交换纸条	交換紙條	Tauschzettel
+	joker.flash_note.name	섬광 쪽지	Flash Note	閃光の紙片	闪光纸条	閃光紙條	Blitzzettel
+	joker.spare_gloves.name	여벌 장갑	Spare Gloves	予備の手袋	备用手套	備用手套	Ersatzhandschuhe
+	joker.noodle_pot.name	국수 냄비	Noodle Pot	麺の鍋	面锅	麵鍋	Nudeltopf
+	joker.fizz_bottle.name	탄산병	Fizz Bottle	炭酸の瓶	汽水瓶	汽水瓶	Sprudelflasche
+	joker.stone_keep.name	돌 성채	Stone Keep	石の砦	石堡	石堡	Steinfeste
+	joker.tumbler.name	곡예사	Tumbler	軽業師	杂技者	雜技者	Akrobat
+	joker.two_masks.name	두 가면	Two Masks	二つの仮面	双面具	雙面具	Zwei Masken
+	joker.fiddler.name	악사	Fiddler	楽士	琴师	琴師	Fiedler
+	joker.deed_stamp.name	증서 도장	Deed Stamp	証書の判	契据印章	契據印章	Urkundenstempel
+	joker.smudged_pane.name	번진 유리	Smudged Pane	にじんだ窓	模糊的玻璃	模糊的玻璃	Verschmierte Scheibe
+	joker.old_route.name	옛 길	Old Route	古い道	旧路	舊路	Alte Route
+	joker.raw_gem.name	원석	Raw Gem	原石	原石	原石	Rohstein
+	joker.heartstone.name	피돌	Heartstone	血の石	心石	心石	Herzstein
+	joker.arrow_flint.name	화살 부싯돌	Arrow Flint	矢の火打石	箭镞燧石	箭鏃燧石	Pfeilfeuerstein
+	joker.onyx_leaf.name	검은 잎	Onyx Leaf	黒い葉	玄叶	玄葉	Onyxblatt
+	joker.shard_jar.name	파편 항아리	Shard Jar	かけらの壺	碎片罐	碎片罐	Scherbenkrug
+	joker.barker.name	호객꾼	Barker	呼び込み	招客人	招客人	Marktschreier
+	joker.four_beds.name	네 화단	Four Beds	四つの花壇	四畦花圃	四畦花圃	Vier Beete
+	joker.glad_fool.name	즐거운 광대	Glad Fool	陽気な道化	快活的愚者	快活的愚者	Froher Narr
+	joker.loaded_dice.name	납 주사위	Loaded Dice	いかさまサイコロ	灌铅骰子	灌鉛骰子	Gezinkter Würfel
+	joker.the_effigy.name	목각 인형	The Effigy	木彫りの人形	木偶像	木偶像	Das Bildnis
+	joker.double_sight.name	겹보임	Double Sight	二重の見え	重影	重影	Doppelsicht
+	joker.bullfighter.name	투우사	Bullfighter	闘牛士	斗牛士	鬥牛士	Stierkämpfer
+	joker.orbit_dish.name	접시 안테나	Orbit Dish	パラボラ	碟形天线	碟形天線	Parabolschüssel
+	joker.card_reader.name	카드 읽는 이	Card Reader	カード読み	读牌人	讀牌人	Kartenleser
+	joker.stargazer.name	별 보는 이	Stargazer	星見	观星者	觀星者	Sternengucker
+	joker.bootlace.name	구두끈	Bootlace	靴ひも	鞋带	鞋帶	Schnürsenkel
+	joker.ox_yoke.name	황소 멍에	Ox Yoke	牛のくびき	牛轭	牛軛	Ochsenjoch
+	joker.old_bones.name	낡은 뼈	Old Bones	古い骨	旧骨	舊骨	Alte Knochen
+	joker.graft.name	접붙임	Graft	接ぎ木	嫁接	嫁接	Pfropfreis
+	joker.drifter.name	떠돌이	Drifter	流れ者	漂泊者	漂泊者	Treibgut
+	joker.steward.name	집사	Steward	執事	管家	管家	Verwalter
+	joker.standing_stone.name	선돌	Standing Stone	立石	立石	立石	Menhir
+	joker.rookie_card.name	신인 카드	Rookie Card	新人カード	新秀卡	新秀卡	Rookie-Karte
+	joker.old_sigil.name	옛 인장	Old Sigil	古い印	古印	古印	Altes Siegel
+	joker.bonfire.name	모닥불	Bonfire	焚き火	篝火	篝火	Freudenfeuer
+	joker.tracing.name	덧그림	Tracing	なぞり絵	摹图	摹圖	Pause
+	joker.tiny_tot.name	꼬맹이	Tiny Tot	ちびっ子	小不点	小不點	Knirps
+	joker.open_road.name	열린 길	Open Road	開けた道	通途	通途	Offene Straße
+	joker.the_bond.name	맺음	The Bond	結び	结缘	結緣	Das Band
+	joker.the_braid.name	세 갈래	The Braid	三つ編み	三股辫	三股辮	Der Zopf
+	joker.the_brood.name	한 배	The Brood	ひと腹	一窝	一窩	Die Brut
+	joker.the_march.name	행렬	The March	行進	行列	行列	Der Marsch
+	joker.the_flock.name	무리	The Flock	群れ	鸟群	鳥群	Der Schwarm
+	joker.deadweight.name	짐덩이	Deadweight	お荷物	累赘	累贅	Ballast
+	joker.faint_outline.name	희미한 윤곽	Faint Outline	かすかな輪郭	淡淡的轮廓	淡淡的輪廓	Blasser Umriss
+	joker.mirror_note.name	거울 쪽지	Mirror Note	鏡の紙片	镜面纸条	鏡面紙條	Spiegelzettel
+	joker.road_permit.name	통행 허가	Road Permit	通行許可	通行许可	通行許可	Wegerlaubnis
+	joker.scorch_mark.name	그을음	Scorch Mark	焦げ跡	焦痕	焦痕	Brandfleck
+	joker.verdigris.name	녹빛	Verdigris	緑青	铜绿	銅綠	Grünspan
+	joker.coronet.name	작은 관	Coronet	小さな冠	小冠	小冠	Diadem
+	joker.gravebloom.name	무덤꽃	Gravebloom	墓の花	墓花	墓花	Grabblüte
+	joker.hushbell.name	잠잠종	Hushbell	沈黙の鐘	静铃	靜鈴	Stilleglocke
+	joker.echoseed.name	메아리씨	Echoseed	こだまの種	回声种子	回聲種子	Echosaat
+	tarot.the_fool.name	바보	The Fool	愚者	愚者	愚者	Der Narr
+	tarot.the_magician.name	마법사	The Magician	魔術師	魔术师	魔術師	Der Magier
+	tarot.the_high_priestess.name	고위 여사제	The High Priestess	女教皇	女祭司	女祭司	Die Hohepriesterin
+	tarot.the_empress.name	여제	The Empress	女帝	女皇	女皇	Die Herrscherin
+	tarot.the_emperor.name	황제	The Emperor	皇帝	皇帝	皇帝	Der Herrscher
+	tarot.the_hierophant.name	교황	The Hierophant	教皇	教皇	教皇	Der Hierophant
+	tarot.the_lovers.name	연인	The Lovers	恋人	恋人	戀人	Die Liebenden
+	tarot.the_chariot.name	전차	The Chariot	戦車	战车	戰車	Der Wagen
+	tarot.justice.name	정의	Justice	正義	正义	正義	Gerechtigkeit
+	tarot.the_hermit.name	은둔자	The Hermit	隠者	隐者	隱者	Der Eremit
+	tarot.the_wheel_of_fortune.name	운명의 수레바퀴	The Wheel of Fortune	運命の輪	命运之轮	命運之輪	Rad des Schicksals
+	tarot.strength.name	힘	Strength	力	力量	力量	Die Kraft
+	tarot.the_hanged_man.name	매달린 사람	The Hanged Man	吊るされた男	倒吊人	倒吊人	Der Gehängte
+	tarot.death.name	죽음	Death	死神	死神	死神	Der Tod
+	tarot.temperance.name	절제	Temperance	節制	节制	節制	Mäßigkeit
+	tarot.the_devil.name	악마	The Devil	悪魔	恶魔	惡魔	Der Teufel
+	tarot.the_tower.name	탑	The Tower	塔	塔	塔	Der Turm
+	tarot.the_star.name	별	The Star	星	星星	星星	Der Stern
+	tarot.the_moon.name	달	The Moon	月	月亮	月亮	Der Mond
+	tarot.the_sun.name	태양	The Sun	太陽	太阳	太陽	Die Sonne
+	tarot.judgement.name	심판	Judgement	審判	审判	審判	Das Gericht
+	tarot.the_world.name	세계	The World	世界	世界	世界	Die Welt
+	planet.pluto.name	명왕성	Pluto	冥王星	冥王星	冥王星	Pluto
+	planet.mercury.name	수성	Mercury	水星	水星	水星	Merkur
+	planet.uranus.name	천왕성	Uranus	天王星	天王星	天王星	Uranus
+	planet.venus.name	금성	Venus	金星	金星	金星	Venus
+	planet.saturn.name	토성	Saturn	土星	土星	土星	Saturn
+	planet.jupiter.name	목성	Jupiter	木星	木星	木星	Jupiter
+	planet.earth.name	지구	Earth	地球	地球	地球	Erde
+	planet.mars.name	화성	Mars	火星	火星	火星	Mars
+	planet.neptune.name	해왕성	Neptune	海王星	海王星	海王星	Neptun
+	planet.planet_x.name	플래닛 X	Planet X	プラネット X	行星 X	行星 X	Planet X
+	planet.ceres.name	세레스	Ceres	ケレス	谷神星	穀神星	Ceres
+	planet.eris.name	에리스	Eris	エリス	阋神星	鬩神星	Eris
+	spectral.familiar.name	사역마	Familiar	使い魔	魔宠	魔寵	Vertrauter
+	spectral.grim.name	암울	Grim	陰鬱	阴森	陰森	Grimm
+	spectral.incantation.name	주문	Incantation	呪文	咒语	咒語	Beschwörung
+	spectral.talisman.name	부적	Talisman	護符	护符	護符	Talisman
+	spectral.aura.name	아우라	Aura	オーラ	灵光	靈光	Aura
+	spectral.wraith.name	망령	Wraith	亡霊	亡魂	亡魂	Schemen
+	spectral.sigil.name	상징	Sigil	紋章	符印	符印	Sigill
+	spectral.ouija.name	점판	Ouija	ウィジャ盤	通灵板	通靈板	Ouija
+	spectral.ectoplasm.name	심령체	Ectoplasm	エクトプラズム	灵质	靈質	Ektoplasma
+	spectral.immolate.name	화형	Immolate	焚身	焚身	焚身	Verbrennung
+	spectral.ankh.name	앙크	Ankh	アンク	安卡	安卡	Anch
+	spectral.deja_vu.name	데자뷰	Deja Vu	デジャヴ	既视感	既視感	Déjà-vu
+	spectral.hex.name	주술	Hex	呪い	巫术	巫術	Hexerei
+	spectral.trance.name	최면	Trance	トランス	恍惚	恍惚	Trance
+	spectral.medium.name	영매	Medium	霊媒	灵媒	靈媒	Medium
+	spectral.cryptid.name	괴물	Cryptid	未確認生物	神秘生物	神秘生物	Kryptid
+	spectral.the_soul.name	영혼	The Soul	魂	灵魂	靈魂	Die Seele
+	spectral.black_hole.name	블랙홀	Black Hole	ブラックホール	黑洞	黑洞	Schwarzes Loch
+	voucher.overstock.name	재고 과잉	Overstock	在庫過多	库存过剩	庫存過剩	Überbestand
+	voucher.overstock_plus.name	재고 과잉 플러스	Overstock Plus	在庫過多プラス	库存过剩＋	庫存過剩＋	Überbestand Plus
+	voucher.clearance_sale.name	떨이	Clearance Sale	見切り品	清仓	清倉	Räumungsverkauf
+	voucher.liquidation.name	창고 정리	Liquidation	倉庫整理	清算	清算	Liquidation
+	voucher.hone.name	갈기	Hone	研ぎ	磨砺	磨礪	Schleifen
+	voucher.glow_up.name	광내기	Glow Up	磨き上げ	焕新	煥新	Aufpolieren
+	voucher.reroll_surplus.name	리롤 여유	Reroll Surplus	リロールの余裕	刷新余裕	刷新餘裕	Neumisch-Überschuss
+	voucher.reroll_glut.name	리롤 과잉	Reroll Glut	リロール過多	刷新过剩	刷新過剩	Neumisch-Fülle
+	voucher.crystal_ball.name	수정 구슬	Crystal Ball	水晶玉	水晶球	水晶球	Kristallkugel
+	voucher.omen_globe.name	조짐 구슬	Omen Globe	前兆の玉	预兆之球	預兆之球	Omenkugel
+	voucher.telescope.name	망원경	Telescope	望遠鏡	望远镜	望遠鏡	Teleskop
+	voucher.observatory.name	천문대	Observatory	天文台	天文台	天文台	Sternwarte
+	voucher.grabber.name	집게	Grabber	つかみ	夹子	夾子	Greifer
+	voucher.nacho_tong.name	나초 집게	Nacho Tong	ナチョトング	玉米片夹	玉米片夾	Nacho-Zange
+	voucher.wasteful.name	낭비	Wasteful	浪費	浪费	浪費	Verschwenderisch
+	voucher.recyclomancy.name	재활용술	Recyclomancy	再利用術	回收术	回收術	Recyclomantie
+	voucher.tarot_merchant.name	타로 상인	Tarot Merchant	タロット商人	塔罗商人	塔羅商人	Tarot-Händler
+	voucher.tarot_tycoon.name	타로 거상	Tarot Tycoon	タロット豪商	塔罗巨贾	塔羅巨賈	Tarot-Magnat
+	voucher.planet_merchant.name	행성 상인	Planet Merchant	プラネット商人	星球商人	星球商人	Planeten-Händler
+	voucher.planet_tycoon.name	행성 거상	Planet Tycoon	プラネット豪商	星球巨贾	星球巨賈	Planeten-Magnat
+	voucher.seed_money.name	종잣돈	Seed Money	元手	本钱	本錢	Startkapital
+	voucher.money_tree.name	돈나무	Money Tree	金のなる木	摇钱树	搖錢樹	Geldbaum
+	voucher.blank.name	백지	Blank	白紙	空白	空白	Leerstelle
+	voucher.antimatter.name	반물질	Antimatter	反物質	反物质	反物質	Antimaterie
+	voucher.magic_trick.name	요술	Magic Trick	手品	魔术	魔術	Zaubertrick
+	voucher.illusion.name	착시	Illusion	錯覚	幻觉	幻覺	Illusion
+	voucher.hieroglyph.name	상형문자	Hieroglyph	象形文字	象形文字	象形文字	Hieroglyphe
+	voucher.petroglyph.name	암각화	Petroglyph	岩絵	岩画	岩畫	Petroglyphe
+	voucher.directors_cut.name	감독판	Director's Cut	ディレクターズカット	导演剪辑版	導演剪輯版	Director’s Cut
+	voucher.retcon.name	설정 변경	Retcon	設定変更	设定重写	設定重寫	Retcon
+	voucher.paint_brush.name	붓	Paint Brush	絵筆	画笔	畫筆	Pinsel
+	voucher.palette.name	팔레트	Palette	パレット	调色板	調色板	Palette
+	tag.uncommon.name	언커먼 태그	Uncommon Tag	アンコモンタグ	罕见标签	罕見標籤	Ungewöhnlich-Marke
+	tag.rare.name	레어 태그	Rare Tag	レアタグ	稀有标签	稀有標籤	Selten-Marke
+	tag.negative.name	네거티브 태그	Negative Tag	ネガティブタグ	负片标签	負片標籤	Negativ-Marke
+	tag.foil.name	포일 태그	Foil Tag	フォイルタグ	闪箔标签	閃箔標籤	Folien-Marke
+	tag.holographic.name	홀로그래픽 태그	Holographic Tag	ホログラフィックタグ	全息标签	全息標籤	Holo-Marke
+	tag.polychrome.name	폴리크롬 태그	Polychrome Tag	ポリクロームタグ	多彩标签	多彩標籤	Polychrom-Marke
+	tag.investment.name	투자 태그	Investment Tag	投資タグ	投资标签	投資標籤	Investitions-Marke
+	tag.voucher.name	바우처 태그	Voucher Tag	バウチャータグ	优惠券标签	優惠券標籤	Gutschein-Marke
+	tag.boss.name	보스 태그	Boss Tag	ボスタグ	Boss 标签	Boss 標籤	Boss-Marke
+	tag.standard.name	스탠다드 태그	Standard Tag	スタンダードタグ	标准标签	標準標籤	Standard-Marke
+	tag.charm.name	부적 태그	Charm Tag	チャームタグ	护符标签	護符標籤	Zauber-Marke
+	tag.meteor.name	유성 태그	Meteor Tag	メテオタグ	流星标签	流星標籤	Meteor-Marke
+	tag.buffoon.name	어릿광대 태그	Buffoon Tag	道化タグ	小丑标签	小丑標籤	Possen-Marke
+	tag.ethereal.name	무형 태그	Ethereal Tag	エーテルタグ	虚无标签	虛無標籤	Ätherische Marke
+	tag.handy.name	손재주 태그	Handy Tag	手練れタグ	巧手标签	巧手標籤	Geschick-Marke
+	tag.garbage.name	쓰레기 태그	Garbage Tag	ゴミタグ	垃圾标签	垃圾標籤	Abfall-Marke
+	tag.coupon.name	쿠폰 태그	Coupon Tag	クーポンタグ	优惠标签	優惠標籤	Coupon-Marke
+	tag.d6.name	D6 태그	D6 Tag	D6 タグ	D6 标签	D6 標籤	D6-Marke
+	tag.double.name	더블 태그	Double Tag	ダブルタグ	双倍标签	雙倍標籤	Doppel-Marke
+	tag.juggle.name	저글 태그	Juggle Tag	ジャグルタグ	杂耍标签	雜耍標籤	Jonglier-Marke
+	tag.economy.name	경제 태그	Economy Tag	エコノミータグ	经济标签	經濟標籤	Wirtschafts-Marke
+	tag.speed.name	속도 태그	Speed Tag	スピードタグ	速度标签	速度標籤	Tempo-Marke
+	tag.orbital.name	궤도 태그	Orbital Tag	オービタルタグ	轨道标签	軌道標籤	Orbital-Marke
+	tag.topup.name	보충 태그	Top-up Tag	補充タグ	补充标签	補充標籤	Auffüll-Marke
+	deck.red_deck.name	붉은 덱	Red Deck	レッドデッキ	红色牌组	紅色牌組	Rotes Deck
+	deck.blue_deck.name	파란 덱	Blue Deck	ブルーデッキ	蓝色牌组	藍色牌組	Blaues Deck
+	deck.yellow_deck.name	노란 덱	Yellow Deck	イエローデッキ	黄色牌组	黃色牌組	Gelbes Deck
+	deck.green_deck.name	초록 덱	Green Deck	グリーンデッキ	绿色牌组	綠色牌組	Grünes Deck
+	deck.black_deck.name	검은 덱	Black Deck	ブラックデッキ	黑色牌组	黑色牌組	Schwarzes Deck
+	deck.magic_deck.name	마법 덱	Magic Deck	マジックデッキ	魔法牌组	魔法牌組	Magisches Deck
+	deck.nebula_deck.name	성운 덱	Nebula Deck	ネビュラデッキ	星云牌组	星雲牌組	Nebel-Deck
+	deck.ghost_deck.name	유령 덱	Ghost Deck	ゴーストデッキ	幽灵牌组	幽靈牌組	Geister-Deck
+	deck.abandoned_deck.name	버려진 덱	Abandoned Deck	アバンダンドデッキ	遗弃牌组	遺棄牌組	Verlassenes Deck
+	deck.checkered_deck.name	체크무늬 덱	Checkered Deck	チェッカーデッキ	格纹牌组	格紋牌組	Karo-Deck
+	deck.zodiac_deck.name	황도대 덱	Zodiac Deck	ゾディアックデッキ	黄道牌组	黃道牌組	Tierkreis-Deck
+	deck.painted_deck.name	물감 덱	Painted Deck	ペイントデッキ	彩绘牌组	彩繪牌組	Bemaltes Deck
+	deck.anaglyph_deck.name	입체사진 덱	Anaglyph Deck	アナグリフデッキ	立体牌组	立體牌組	Anaglyph-Deck
+	deck.plasma_deck.name	플라스마 덱	Plasma Deck	プラズマデッキ	等离子牌组	電漿牌組	Plasma-Deck
+	deck.erratic_deck.name	불규칙한 덱	Erratic Deck	エラティックデッキ	无序牌组	無序牌組	Unberechenbares Deck
+	boss.the_hook.name	갈고리	The Hook	鉤	钩子	鉤子	Der Haken
+	boss.the_club.name	클럽	The Club	クラブ	梅花	梅花	Der Kreuz
+	boss.the_psychic.name	심령술사	The Psychic	霊能者	通灵者	通靈者	Der Hellseher
+	boss.the_goad.name	자극	The Goad	突き棒	刺棒	刺棒	Der Stachel
+	boss.the_window.name	창문	The Window	窓	窗	窗	Das Fenster
+	boss.the_manacle.name	수갑	The Manacle	手枷	镣铐	鐐銬	Die Fessel
+	boss.the_pillar.name	기둥	The Pillar	柱	柱	柱	Die Säule
+	boss.the_head.name	머리	The Head	頭	头	頭	Der Kopf
+	boss.the_house.name	집	The House	家	房子	房子	Das Haus
+	boss.the_wall.name	벽	The Wall	壁	墙	牆	Die Wand
+	boss.the_wheel.name	바퀴	The Wheel	車輪	轮子	輪子	Das Rad
+	boss.the_arm.name	팔	The Arm	腕	手臂	手臂	Der Arm
+	boss.the_fish.name	물고기	The Fish	魚	鱼	魚	Der Fisch
+	boss.the_water.name	물	The Water	水	水	水	Das Wasser
+	boss.the_mouth.name	입	The Mouth	口	嘴	嘴	Der Mund
+	boss.the_needle.name	바늘	The Needle	針	针	針	Die Nadel
+	boss.the_flint.name	부싯돌	The Flint	火打石	燧石	燧石	Der Feuerstein
+	boss.the_mark.name	표적	The Mark	的	标记	標記	Das Mal
+	boss.the_eye.name	눈	The Eye	目	眼	眼	Das Auge
+	boss.the_tooth.name	이빨	The Tooth	牙	牙	牙	Der Zahn
+	boss.the_plant.name	초목	The Plant	草木	草木	草木	Die Pflanze
+	boss.the_serpent.name	뱀	The Serpent	蛇	蛇	蛇	Die Schlange
+	boss.the_ox.name	황소	The Ox	雄牛	公牛	公牛	Der Ochse
+	boss.amber_acorn.name	호박 도토리	Amber Acorn	琥珀のどんぐり	琥珀橡实	琥珀橡實	Bernsteineichel
+	boss.verdant_leaf.name	푸른 잎	Verdant Leaf	青葉	翠叶	翠葉	Grünes Blatt
+	boss.violet_vessel.name	자주색 그릇	Violet Vessel	紫の器	紫色容器	紫色容器	Violettes Gefäß
+	boss.crimson_heart.name	진홍 심장	Crimson Heart	深紅の心臓	深红之心	深紅之心	Purpurherz
+	boss.cerulean_bell.name	하늘빛 종	Cerulean Bell	空色の鐘	天蓝之铃	天藍之鈴	Azurglocke
+	blind.small.name	스몰 블라인드	Small Blind	スモールブラインド	小盲注	小盲注	Kleiner Blind
+	blind.big.name	빅 블라인드	Big Blind	ビッグブラインド	大盲注	大盲注	Großer Blind
+	blind.boss.name	보스 블라인드	Boss Blind	ボスブラインド	Boss 盲注	Boss 盲注	Boss-Blind
+	stake.white.name	흰색	White Stake	ホワイトステーク	白色赌注	白色賭注	Weißer Einsatz
+	stake.red.name	붉은색	Red Stake	レッドステーク	红色赌注	紅色賭注	Roter Einsatz
+	stake.green.name	초록색	Green Stake	グリーンステーク	绿色赌注	綠色賭注	Grüner Einsatz
+	stake.black.name	검은색	Black Stake	ブラックステーク	黑色赌注	黑色賭注	Schwarzer Einsatz
+	stake.blue.name	파란색	Blue Stake	ブルーステーク	蓝色赌注	藍色賭注	Blauer Einsatz
+	stake.purple.name	보라색	Purple Stake	パープルステーク	紫色赌注	紫色賭注	Violetter Einsatz
+	stake.orange.name	주황색	Orange Stake	オレンジステーク	橙色赌注	橙色賭注	Oranger Einsatz
+	stake.gold.name	황금색	Gold Stake	ゴールドステーク	金色赌注	金色賭注	Goldener Einsatz
+	enhancement.none.name	없음	None	なし	无	無	Keine
+	enhancement.bonus.name	보너스	Bonus	ボーナス	奖励	獎勵	Bonus
+	enhancement.mult.name	배수	Mult	マルチ	倍率	倍率	Mult
+	enhancement.wild.name	와일드	Wild	ワイルド	万能	萬能	Wild
+	enhancement.glass.name	유리	Glass	ガラス	玻璃	玻璃	Glas
+	enhancement.steel.name	강철	Steel	スチール	钢铁	鋼鐵	Stahl
+	enhancement.stone.name	석재	Stone	ストーン	石头	石頭	Stein
+	enhancement.gold.name	황금	Gold	ゴールド	黄金	黃金	Gold
+	enhancement.lucky.name	행운	Lucky	ラッキー	幸运	幸運	Glück
+	seal.none.name	없음	None	なし	无	無	Keins
+	seal.red.name	붉은	Red	赤	红	紅	Rot
+	seal.blue.name	파란	Blue	青	蓝	藍	Blau
+	seal.gold.name	금색	Gold	金	金	金	Gold
+	seal.purple.name	보라	Purple	紫	紫	紫	Violett
+	edition.base.name	기본	Base	通常	普通	普通	Normal
+	edition.foil.name	포일	Foil	フォイル	闪箔	閃箔	Folie
+	edition.holographic.name	홀로그래픽	Holographic	ホログラフィック	全息	全息	Holografisch
+	edition.polychrome.name	폴리크롬	Polychrome	ポリクローム	多彩	多彩	Polychrom
+	edition.negative.name	네거티브	Negative	ネガティブ	负片	負片	Negativ
+	achievement.first_blood.name	첫 관문	First Blood	最初の関門	首关	首關	Erstes Blut
+	achievement.ante_four.name	중반	Ante Four	中盤	中盘	中盤	Ante vier
+	achievement.ante_eight.name	완주	Ante Eight	完走	走完全程	走完全程	Ante acht
+	achievement.endless.name	그 너머	Endless	その先へ	更远处	更遠處	Endlos
+	achievement.ten_thousand.name	만 점	Ten Thousand	一万点	一万分	一萬分	Zehntausend
+	achievement.million.name	백만 점	Million	百万点	百万分	百萬分	Million
+	achievement.royal.name	로열	Royal	ロイヤル	皇家同花顺	皇家同花順	Royal
+	achievement.five_of_a_kind.name	다섯 장	Five Of A Kind	五枚	五条	五條	Fünfling
+	achievement.flush_five.name	한 장으로 다섯	Flush Five	同じスートで五枚	同花五条	同花五條	Flush Five
+	achievement.full_tray.name	가득 찬 줄	Full Tray	満杯の列	满栏	滿欄	Volles Regal
+	achievement.legendary.name	전설	Legendary	レジェンド	传奇	傳奇	Legendär
+	achievement.all_tarot.name	대아르카나	All Tarot	大アルカナ	大阿卡纳	大阿卡納	Alle Tarot
+	achievement.all_planet.name	태양계	All Planet	太陽系	太阳系	太陽系	Alle Planeten
+	achievement.no_discard.name	군더더기 없이	No Discard	捨てずに	不弃一牌	不棄一牌	Ohne Ablage
+	achievement.broke.name	빈손	Broke	無一文	空手	空手	Pleite
+	achievement.rich.name	부자	Rich	富豪	富豪	富豪	Reich
+	achievement.skipper.name	건너뛰기	Skipper	スキップ	跳过	跳過	Überspringer
+	achievement.every_deck.name	모든 덱	Every Deck	すべてのデッキ	所有牌组	所有牌組	Jedes Deck
+	achievement.gold_stake.name	황금	Gold Stake	ゴールド	黄金	黃金	Gold
+	achievement.collector.name	수집가	Collector	収集家	收藏家	收藏家	Sammler
+	hand.HighCard.name	하이 카드	High Card	ハイカード	高牌	高牌	Höchste Karte
+	hand.Pair.name	페어	Pair	ワンペア	对子	對子	Paar
+	hand.TwoPair.name	투 페어	Two Pair	ツーペア	两对	兩對	Zwei Paare
+	hand.ThreeOfAKind.name	트리플	Three of a Kind	スリーカード	三条	三條	Drilling
+	hand.Straight.name	스트레이트	Straight	ストレート	顺子	順子	Straße
+	hand.Flush.name	플러시	Flush	フラッシュ	同花	同花	Flush
+	hand.FullHouse.name	풀 하우스	Full House	フルハウス	葫芦	葫蘆	Full House
+	hand.FourOfAKind.name	포 카드	Four of a Kind	フォーカード	四条	四條	Vierling
+	hand.StraightFlush.name	스트레이트 플러시	Straight Flush	ストレートフラッシュ	同花顺	同花順	Straight Flush
+	hand.FiveOfAKind.name	파이브 오브 어 카인드	Five of a Kind	ファイブカード	五条	五條	Fünfling
+	hand.FlushHouse.name	플러시 하우스	Flush House	フラッシュハウス	同花葫芦	同花葫蘆	Flush House
+	hand.FlushFive.name	플러시 파이브	Flush Five	フラッシュファイブ	同花五条	同花五條	Flush Five
+	phrase.trigger.Passive	{cond} {op}	{cond} {op}	{cond} {op}	{cond} {op}	{cond} {op}	{cond} {op}
+	phrase.trigger.OnCardScored	{cond} 득점할 때마다 {op}	for each scoring {cond}{op}	{cond}が得点するたび、{op}	每有一张{cond}得分，{op}	每有一張{cond}得分，{op}	für jede wertende {cond}{op}
+	phrase.trigger.OnCardHeld	패에 든 {cond} 마다 {op}	for each {cond}held in hand, {op}	手札の{cond}ごとに、{op}	手中每张{cond}，{op}	手中每張{cond}，{op}	für jede {cond}auf der Hand, {op}
+	phrase.trigger.OnHandPlayed	{cond} {op}	{cond} {op}	{cond} {op}	{cond} {op}	{cond} {op}	{cond} {op}
+	phrase.trigger.OnHandDiscarded	{cond} 버리면 {op}	when discarding {cond}{op}	{cond}を捨てると、{op}	弃掉{cond}时，{op}	棄掉{cond}時，{op}	beim Ablegen von {cond}{op}
+	phrase.trigger.OnCardDiscarded	{cond} 버릴 때마다 {op}	for each discarded {cond}{op}	{cond}を捨てるたび、{op}	每弃掉一张{cond}，{op}	每棄掉一張{cond}，{op}	für jede abgelegte {cond}{op}
+	phrase.trigger.OnRoundStart	라운드가 시작할 때 {cond} {op}	at round start, {cond}{op}	ラウンド開始時、{cond}{op}	回合开始时，{cond}{op}	回合開始時，{cond}{op}	zu Rundenbeginn, {cond}{op}
+	phrase.trigger.OnRoundEnd	라운드 종료 시 {cond} {op}	at end of round, {cond}{op}	ラウンド終了時、{cond}{op}	回合结束时，{cond}{op}	回合結束時，{cond}{op}	am Rundenende, {cond}{op}
+	phrase.trigger.OnBlindSelect	블라인드를 고를 때 {cond} {op}	when a blind is selected, {cond}{op}	ブラインドを選ぶとき、{cond}{op}	选择盲注时，{cond}{op}	選擇盲注時，{cond}{op}	bei der Blind-Wahl, {cond}{op}
+	phrase.trigger.OnBossDefeated	보스를 격파하면 {op}	when a boss is defeated, {op}	ボスを倒すと、{op}	击败 Boss 时，{op}	擊敗 Boss 時，{op}	wenn ein Boss besiegt wird, {op}
+	phrase.trigger.OnShopEnter	상점에 들어갈 때 {op}	on entering the shop, {op}	ショップに入るとき、{op}	进入商店时，{op}	進入商店時，{op}	beim Betreten des Ladens, {op}
+	phrase.trigger.OnShopExit	상점을 나갈 때 {op}	on leaving the shop, {op}	ショップを出るとき、{op}	离开商店时，{op}	離開商店時，{op}	beim Verlassen des Ladens, {op}
+	phrase.trigger.OnReroll	상점에서 리롤할 때마다 {op}	for each shop reroll, {op}	ショップでリロールするたび、{op}	每次在商店刷新，{op}	每次在商店刷新，{op}	bei jedem Neumischen im Laden, {op}
+	phrase.trigger.OnPackSkipped	팩을 넘길 때마다 {op}	for each skipped pack, {op}	パックを飛ばすたび、{op}	每跳过一个卡包，{op}	每跳過一個卡包，{op}	für jedes übersprungene Päckchen, {op}
+	phrase.trigger.OnPackOpened	팩을 열 때 {op}	when a pack is opened, {op}	パックを開くとき、{op}	打开卡包时，{op}	打開卡包時，{op}	wenn ein Päckchen geöffnet wird, {op}
+	phrase.trigger.OnCardAdded	덱에 카드가 더해질 때마다 {op}	when a card joins the deck, {op}	デッキにカードが加わるたび、{op}	每有一张牌加入牌组，{op}	每有一張牌加入牌組，{op}	wenn eine Karte ins Deck kommt, {op}
+	phrase.trigger.OnCardDestroyed	{cond} 파괴될 때마다 {op}	when {cond}is destroyed, {op}	{cond}が壊れるたび、{op}	每当{cond}被摧毁，{op}	每當{cond}被摧毀，{op}	wenn {cond}zerstört wird, {op}
+	phrase.trigger.OnJokerSold	조커를 팔 때마다 {op}	when a joker is sold, {op}	ジョーカーを売るたび、{op}	每卖出一个小丑，{op}	每賣出一個小丑，{op}	wenn ein Joker verkauft wird, {op}
+	phrase.trigger.OnConsumableUsed	{cond} 쓸 때마다 {op}	when {cond}is used, {op}	{cond}を使うたび、{op}	每次使用{cond}，{op}	每次使用{cond}，{op}	wenn {cond}benutzt wird, {op}
+	phrase.trigger.OnSell	팔면 {op}	sell this card to {op}	売ると、{op}	卖出时，{op}	賣出時，{op}	beim Verkauf, {op}
+	phrase.trigger.OnUse	{cond} {op}	{cond} {op}	{cond} {op}	{cond} {op}	{cond} {op}	{cond} {op}
+	phrase.trigger.OnScoreResolved	{cond} {op}	{cond} {op}	{cond} {op}	{cond} {op}	{cond} {op}	{cond} {op}
+	phrase.trigger.OnRunStart	런을 시작할 때 {op}	at the start of the run, {op}	ラン開始時、{op}	开局时，{op}	開局時，{op}	zu Beginn des Laufs, {op}
+	phrase.trigger.OnLuckyTriggered	`행운` 카드가 발동할 때마다 {op}	when a Lucky card triggers, {op}	「ラッキー」カードが発動するたび、{op}	每当「幸运」牌触发，{op}	每當「幸運」牌觸發，{op}	wenn eine Glückskarte auslöst, {op}
 	phrase.cond.CondAlways						
-	phrase.cond.CondHandContains	{hand} 포함 시	if the hand contains a {hand}, 				
-	phrase.cond.CondHandIs	족보가 {hand}면	if the hand is a {hand}, 				
-	phrase.cond.CondCardSuit	{suit} 카드가	{suit} card 				
-	phrase.cond.CondCardRankSet	{ranks} 카드가	{ranks} 				
-	phrase.cond.CondCardIsFace	그림 카드가	face card 				
-	phrase.cond.CondCardEnhancement	`{enhancement}` 카드가	{enhancement} card 				
-	phrase.cond.CondCardEnhanced	강화된 카드가	enhanced card 				
-	phrase.cond.CondCardSeal	`{seal}` 인장이 붙은 카드가	card with a {seal} seal 				
-	phrase.cond.CondCardEdition	`{edition}` 카드가	{edition} card 				
-	phrase.cond.CondCardCount	낸 카드가 {n}장 {compare}	if played cards are {compare} {n}, 				
-	phrase.cond.CondAllSuitsPresent	네 무늬가 모두 있으면	if all four suits score, 				
-	phrase.cond.CondSuitPair	{suit} 하나와 다른 무늬 하나가 득점하면	if a {suit} and another suit both score, 				
-	phrase.cond.CondAllHeldSuit	패가 전부 {suits} 면	if all cards held are {suits}, 				
-	phrase.cond.CondBlindKind	{blind} 블라인드에서	on a {blind} blind, 				
-	phrase.cond.CondMoney	보유 금액이 ${n} {compare}	if money is {compare} ${n}, 				
-	phrase.cond.CondDiscardsLeft	남은 버리기가 {n} {compare}	if discards left are {compare} {n}, 				
-	phrase.cond.CondHandsLeft	남은 핸드가 {n} {compare}	if hands left are {compare} {n}, 				
-	phrase.cond.CondDiscardsUnused	버리기를 쓰지 않았으면	if no discards were used, 				
-	phrase.cond.CondHandRepeated	이번 라운드에 이미 낸 족보면	if this hand was already played this round, 				
-	phrase.cond.CondIsMostPlayedHand	최다 사용 족보면	if this is your most played hand, 				
-	phrase.cond.CondNotMostPlayedHand	최다 사용 족보가 아니면	if this is not your most played hand, 				
-	phrase.cond.CondFirstHand	라운드의 첫 핸드면	on the first hand of the round, 				
-	phrase.cond.CondLastHand	라운드의 마지막 핸드면	on the final hand of the round, 				
-	phrase.cond.CondFirstDiscard	라운드의 첫 버리기면	on the first discard of the round, 				
-	phrase.cond.CondEveryNHands	{n}핸드마다	every {n} hands, 				
-	phrase.cond.CondCounterAtLeast	{counter}가 {n} 이상이면	if {counter} reaches {n}, 				
-	phrase.cond.CondCounterAtMost	{counter}가 {n} 이하가 되면	if {counter} drops to {n}, 				
-	phrase.cond.CondChargeLeft	남은 횟수가 있으면	while charges remain, 				
-	phrase.cond.CondTargetMatch	지정된 {target}과 맞으면	if it matches the chosen {target}, 				
-	phrase.cond.CondDeckEnhancedAtLeast	덱에 강화 카드가 {n}장 이상이면	if the deck holds {n} or more enhanced cards, 				
-	phrase.cond.CondBossTriggered	보스 능력을 발동시키면	if the boss ability triggers, 				
-	phrase.cond.CondScoreRatioAtLeast	점수가 요구의 {num}/{den} 이상이면	if the score is at least {num}/{den} of the target, 				
-	phrase.cond.CondNoFaceScored	그림 카드가 득점하지 않은 핸드마다	for each hand with no scoring face card, 				
-	phrase.cond.CondFaceScored	그림 카드가 득점하면	if a face card scores, 				
-	phrase.cond.CondDiscardedFaceAtLeast	그림 카드를 {n}장 이상 한 번에	{n} or more face cards at once, 				
-	phrase.cond.CondHandContainsRankAndHand	{hand} 안에 {ranks} 카드가 있으면	if a {hand} contains {ranks}, 				
-	phrase.cond.CondFirstHandSingleCard	라운드의 첫 핸드가 카드 한 장이면	if the first hand is a single card, 				
-	phrase.cond.CondFirstHandSingleRank	라운드의 첫 핸드가 {ranks} 카드 한 장이면	if the first hand is a single {ranks}, 				
-	phrase.cond.CondFirstDiscardSingleCard	라운드의 첫 버리기가 카드 한 장이면	if the first discard is a single card, 				
-	phrase.cond.CondConsumableKind	{consumable} 카드를	{consumable} card 				
-	phrase.op.OpAddChips	칩 +{chips}	+{chips} chips				
-	phrase.op.OpAddMult	배수 +{mult}	+{mult} mult				
-	phrase.op.OpMulMult	배수 ×{mult}	X{mult} mult				
-	phrase.op.OpAddMoney	${money}	earn ${money}				
-	phrase.op.OpSetMoney	금액이 ${money}이 됩니다	set money to ${money}				
-	phrase.op.OpPerUnit	{unit} 마다 {per}	{per} for each {unit}				
-	phrase.op.OpRandomRange	{per} +{min}~{max}	{per} +{min} to +{max}				
-	phrase.op.OpRetrigger	{times}회 재발동	retrigger {times} more times				
-	phrase.op.OpGrowSelf	{counter}가 {step}씩 늘어납니다	gains {step} {counter}				
-	phrase.op.OpResetSelf	{counter}가 처음으로 돌아갑니다	resets {counter}				
-	phrase.op.OpGrowOthers	{scope}의 {counter}가 {step}씩 늘어납니다	{scope} gain {step} {counter}				
-	phrase.op.OpLevelUpHand	{hand_pick} 레벨 {levels}	level up {hand_pick} by {levels}				
-	phrase.op.OpCreateCard	{create}를 {count}장 만듭니다	create {count} {create}				
-	phrase.op.OpAddCard	{create}를 {count}장 더합니다	add {count} {create}				
-	phrase.op.OpDestroyCard	카드 {count}장을 파괴합니다	destroy {count} cards				
-	phrase.op.OpModifyCard	{scope}를 {modify}로 바꿉니다	change {scope} {modify}				
-	phrase.op.OpModifyJoker	{scope}에 `{edition}`을 붙입니다	add {edition} to {scope}				
-	phrase.op.OpDestroyJoker	{pick}를 파괴합니다	destroy {pick}				
-	phrase.op.OpCopyJoker	{pick}의 능력을 복사합니다	copy the ability of {pick}				
-	phrase.op.OpDebuff	{debuff}를 무력화합니다	debuff {debuff}				
-	phrase.op.OpDisableBoss	보스 효과를 끕니다	disable the boss blind				
-	phrase.op.OpPreventLoss	패배를 막습니다	prevent death				
-	phrase.op.OpChangeRule	{rule}	{rule}				
-	phrase.op.OpChangeRuleByCounter	{rule} — 누적값만큼	{rule}, by the counter				
-	phrase.op.OpCardTrait	{trait}	{trait}				
-	phrase.op.OpMulMoney	금액이 {value}배가 됩니다	multiply money by {value}				
-	phrase.op.OpShopGift	다음 상점에 {create}를 놓습니다	the next shop offers {create}				
-	phrase.op.OpDuplicateNextTag	다음 태그를 복제합니다	duplicate the next tag				
-	phrase.op.OpRerollBoss	보스 블라인드를 다시 뽑습니다	reroll the boss blind				
-	phrase.op.OpForceDiscard	패에서 {count}장을 버립니다	discard {count} cards from hand				
-	phrase.op.OpDrawFaceDown	카드를 뒤집힌 채로 뽑습니다	cards are drawn face down				
-	phrase.op.OpFlipJokers	조커를 뒤집고 섞습니다	flip and shuffle all jokers				
-	phrase.op.OpDisableRandomJoker	핸드마다 조커 하나가 꺼집니다	one random joker is disabled				
-	phrase.op.OpGrant	{create}를 {count}개 가지고 시작합니다	start with {count} {create}				
-	phrase.op.OpNothing	아무것도 하지 않습니다	does nothing				
-	phrase.op.OpCustom	{handler}	{handler}				
-	phrase.unit.JokerCount	조커 하나	joker				
-	phrase.unit.EmptyJokerSlots	빈 조커 슬롯 하나	empty joker slot				
-	phrase.unit.DeckRemaining	덱에 남은 카드 한 장	card left in deck				
-	phrase.unit.DeckDeficit	덱에서 모자란 카드 한 장	card below the deck size				
-	phrase.unit.Money	보유 $1	$1				
-	phrase.unit.MoneyPer5	보유 $5	$5				
-	phrase.unit.DiscardsLeft	남은 버리기	remaining discard				
-	phrase.unit.HandsLeft	남은 핸드	remaining hand				
-	phrase.unit.BlindsSkipped	스킵한 블라인드	skipped blind				
-	phrase.unit.TarotUsed	이번 런에 쓴 타로	tarot used this run				
-	phrase.unit.UniquePlanetUsed	이번 런에 쓴 고유 행성	unique planet used this run				
-	phrase.unit.DeckRankCount	덱의 {ranks} 한 장	{ranks} in the deck				
-	phrase.unit.DeckEnhancementCount	덱의 `{enhancement}` 카드 한 장	{enhancement} card in the deck				
-	phrase.unit.JokerRarityCount	{rarity} 조커 하나	{rarity} joker				
-	phrase.unit.HandPlayCount	이 족보를 낸 횟수	time this hand was played				
-	phrase.unit.OtherJokerSellValue	다른 조커의 판매가 $1	$1 of other jokers sell value				
-	phrase.unit.LowestHeldRankChips	패의 최저 랭크 칩값	chip of the lowest held rank				
-	phrase.unit.CardsPlayed	낸 카드 한 장	played card				
-	phrase.unit.SelfCounterMoney	누적한 $1	$1 accumulated				
-	phrase.unit.HandsPlayedThisRun	이번 런에 낸 핸드	hand played this run				
-	phrase.unit.DiscardsUnusedThisRun	이번 런에 쓰지 않은 버리기	unused discard this run				
-	phrase.rule.HandSize	패 크기 {value}	hand size {value}				
-	phrase.rule.HandsPerRound	라운드당 핸드 {value}	{value} hands each round				
-	phrase.rule.DiscardsPerRound	라운드당 버리기 {value}	{value} discards each round				
-	phrase.rule.JokerSlots	조커 슬롯 {value}	{value} joker slots				
-	phrase.rule.ConsumableSlots	소모품 슬롯 {value}	{value} consumable slots				
-	phrase.rule.DebtLimit	빚을 {value}까지 집니다	go up to ${value} in debt				
-	phrase.rule.FreeRerolls	상점마다 무료 리롤 {value}회	{value} free reroll each shop				
-	phrase.rule.RerollCostDelta	리롤 비용 ${value}	rerolls cost ${value} less				
-	phrase.rule.RerollStartsFree	다음 상점의 리롤이 $0에서 시작합니다	rerolls start at $0 in the next shop				
-	phrase.rule.InterestPer5	보유 $5마다 이자 ${value}	${value} extra interest per $5				
-	phrase.rule.InterestCap	이자 상한 ${value}	interest cap ${value}				
-	phrase.rule.ShopCardSlots	상점 카드 칸 {value}	{value} shop card slots				
-	phrase.rule.ShopDiscount	상점 {value}% 할인	shop is {value}% off				
-	phrase.rule.ShopAllowsPlayingCards	상점에서 플레잉 카드를 살 수 있습니다	playing cards appear in the shop				
-	phrase.rule.ShopAllowsSpectral	상점에 유령 카드가 나옵니다	spectral cards appear in the shop				
-	phrase.rule.ShopWeightTarot	상점 타로 등장 {value}배	tarot cards appear {value}X as often				
-	phrase.rule.ShopWeightPlanet	상점 행성 등장 {value}배	planet cards appear {value}X as often				
-	phrase.rule.FreePlanets	상점의 행성 카드와 천체 팩이 무료입니다	planet cards and celestial packs are free				
-	phrase.rule.AllCardsScore	낸 카드 전부가 득점합니다	every played card scores				
-	phrase.rule.AllCardsAreFace	모든 카드를 그림 카드로 봅니다	all cards count as face cards				
-	phrase.rule.FlushStraightCards	플러시와 스트레이트를 {value}장으로 이룹니다	flushes and straights need {value} cards				
-	phrase.rule.StraightGap	스트레이트에 {value}칸 빈틈을 허용합니다	straights may skip {value} rank				
-	phrase.rule.SuitsMerged	하트와 다이아를, 스페이드와 클럽을 한 무늬로 봅니다	hearts count as diamonds and spades as clubs				
-	phrase.rule.ProbabilityScale	모든 확률이 {value}배가 됩니다	all listed odds are {value}X				
-	phrase.rule.AllowDuplicates	같은 카드가 여러 번 나올 수 있습니다	cards may appear more than once				
-	phrase.rule.BalanceChipsAndMult	칩과 배수를 평균으로 맞춥니다	chips and mult are balanced				
-	phrase.rule.BossRerollsPerAnte	안테마다 보스를 {value}회 다시 뽑습니다	reroll the boss {value} times per ante				
-	phrase.rule.AnteDelta	안테 {value}	ante {value}				
-	phrase.rule.EditionWeightScale	에디션 등장 {value}배	editions appear {value}X as often				
-	phrase.rule.PlanetGivesMult	행성 카드가 해당 족보에 배수 ×{value}	planet cards give X{value} mult to their hand				
-	phrase.rule.StartingMoney	${value}을 더 가지고 시작합니다	start with ${value} more				
-	phrase.rule.NoInterest	이자를 받지 않습니다	earn no interest				
-	phrase.rule.MoneyPerHandLeft	남은 핸드마다 ${value}	${value} per remaining hand				
-	phrase.rule.MoneyPerDiscardLeft	남은 버리기마다 ${value}	${value} per remaining discard				
-	phrase.rule.RandomizeDeck	덱 52장의 랭크와 무늬가 무작위입니다	all ranks and suits are randomized				
-	phrase.rule.DoubleTagOnBossDefeat	보스 격파마다 `Double Tag`	gain a Double Tag after each boss				
-	phrase.rule.BlindSizeScale	블라인드 요구 점수 {value}배	blind size {value}X				
-	phrase.rule.SetDiscardsZero	버리기 0으로 시작합니다	start with 0 discards				
-	phrase.rule.SpectralInArcanaPacks	아르카나 팩에 유령 카드가 섞입니다	spectral cards appear in arcana packs				
-	phrase.rule.CelestialHasMostPlayed	천체 팩에 최다 사용 족보의 행성이 반드시 들어갑니다	celestial packs always contain your most played hand				
-	phrase.rule.ShopCardsHaveModifiers	상점의 플레잉 카드가 강화와 인장을 가집니다	shop playing cards may be enhanced				
-	phrase.rule.NoRepeatHandTypes	같은 족보를 두 번 낼 수 없습니다	no repeat hand types this round				
-	phrase.rule.SingleHandTypeOnly	한 종류의 족보만 낼 수 있습니다	only one hand type may be played				
-	phrase.rule.MustPlayFiveCards	반드시 5장을 내야 합니다	must play 5 cards				
-	phrase.rule.AlwaysDrawThree	항상 3장만 뽑습니다	always draw 3 cards				
-	phrase.rule.HalveBaseChipsAndMult	기본 칩과 배수가 절반이 됩니다	base chips and mult are halved				
-	phrase.rule.DebuffUntilJokerSold	조커 하나를 팔기 전까지 모든 카드가 무력화됩니다	all cards are debuffed until a joker is sold				
-	phrase.rule.ForceCardSelected	카드 한 장이 항상 선택된 상태가 됩니다	one card is always forced to be selected				
-	phrase.rule.RemoveFaceCards	그림 카드 없이 시작합니다	start with no face cards				
-	phrase.rule.SuitsOnly	{suits} 로만 시작합니다	start with only {suits}				
-	phrase.rule.NextShopFree	다음 상점의 처음 카드와 팩이 무료입니다	the next shop starts free				
-	phrase.suit.Spade	스페이드	Spade				
-	phrase.suit.Heart	하트	Heart				
-	phrase.suit.Club	클럽	Club				
-	phrase.suit.Diamond	다이아	Diamond				
-	phrase.counter.Chips	칩	chips				
-	phrase.counter.MultAdd	배수	mult				
-	phrase.counter.MultMul	곱 배수	X mult				
-	phrase.counter.Money	금액	money				
-	phrase.counter.SellValue	판매가	sell value				
-	phrase.counter.Charge	남은 횟수	charges				
-	phrase.counter.Tick	지난 라운드	rounds				
-	phrase.compare.AtLeast	이상이면	at least				
-	phrase.compare.AtMost	이하면	at most				
-	phrase.compare.Exactly	이면	exactly				
-	phrase.pick.Right	오른쪽 조커	the joker to the right				
-	phrase.pick.Leftmost	맨 왼쪽 조커	the leftmost joker				
-	phrase.pick.Random	무작위 조커	a random joker				
-	phrase.pick.AllOther	나머지 조커 전부	every other joker				
-	phrase.pick.SelfPick	이 조커	this joker				
-	phrase.create.Tarot	타로 카드	a tarot card				
-	phrase.create.Planet	행성 카드	a planet card				
-	phrase.create.Spectral	유령 카드	a spectral card				
-	phrase.create.Joker	조커	a joker				
-	phrase.create.PlayingCard	플레잉 카드	a playing card				
-	phrase.create.Tag	태그	a tag				
-	phrase.create.LastUsed	마지막으로 쓴 소모품	the last used consumable				
-	phrase.create.CopyOfScored	그 카드의 사본	a copy of that card				
-	phrase.create.CopyOfSelected	고른 카드의 사본	a copy of the selected card				
-	phrase.create.Pack	팩	a pack				
-	phrase.create.Voucher	바우처	a voucher				
-	phrase.modify.Enhancement	강화	enhancement				
-	phrase.modify.Seal	인장	seal				
-	phrase.modify.Edition	에디션	edition				
-	phrase.modify.Suit	무늬	suit				
-	phrase.modify.RankStep	랭크	rank				
-	phrase.modify.BonusChips	영구 칩	permanent chips				
-	phrase.modify.CopyRight	오른쪽 카드와 같게	into the card on the right				
-	phrase.modify.RankTo	같은 랭크로	to one rank				
-	phrase.debuff.BySuit	그 무늬의 카드	cards of that suit				
-	phrase.debuff.FaceCards	그림 카드	face cards				
-	phrase.debuff.PlayedThisAnte	이번 안테에 이미 낸 카드	cards played this ante				
-	phrase.debuff.AllCards	모든 카드	all cards				
-	phrase.target.Hand	족보	hand				
-	phrase.target.Rank	랭크	rank				
-	phrase.target.Suit	무늬	suit				
-	phrase.target.Card	카드	card				
-	phrase.trait.AnySuit	모든 무늬로 취급됩니다	counts as every suit				
-	phrase.trait.NoRankSuit	랭크와 무늬가 없습니다	has no rank or suit				
-	phrase.trait.AlwaysScores	항상 득점합니다	always scores				
-	phrase.handpick.Played	낸 족보의	the played hand				
-	phrase.handpick.FirstDiscarded	처음 버린 족보의	the first discarded hand				
-	phrase.handpick.MostPlayed	최다 사용 족보의	your most played hand				
-	phrase.handpick.Random	무작위 족보의	a random hand				
-	phrase.handpick.All	모든 족보의	every hand				
-	phrase.rarity.Common	커먼	common				
-	phrase.rarity.Uncommon	언커먼	uncommon				
-	phrase.rarity.Rare	레어	rare				
-	phrase.rarity.Legendary	전설	legendary				
-	phrase.scope.AllJokers	모든 조커	all jokers				
-	phrase.scope.AllOtherJokers	나머지 조커	other jokers				
-	phrase.scope.AllConsumables	모든 소모품	all consumables				
-	phrase.scope.RandomJoker	무작위 조커	a random joker				
-	phrase.scope.Selected	고른 카드	the selected cards				
-	phrase.scope.RandomInHand	패의 무작위 카드	random cards in hand				
-	phrase.scope.AllInHand	패의 모든 카드	all cards in hand				
-	phrase.scope.ScoredCard	그 카드	that card				
-	phrase.scope.HeldCard	그 카드	that card				
-	phrase.scope.AllInDeck	덱의 모든 카드	all cards in the deck				
-	phrase.scope.SelfTarget	이것	this				
+	phrase.cond.CondHandContains	{hand} 포함 시	if the hand contains a {hand}, 	役に {hand} が含まれるなら、	牌型中含有 {hand} 时，	牌型中含有 {hand} 時，	wenn das Blatt {hand} enthält, 
+	phrase.cond.CondHandIs	족보가 {hand}면	if the hand is a {hand}, 	役が {hand} なら、	牌型是 {hand} 时，	牌型是 {hand} 時，	wenn das Blatt {hand} ist, 
+	phrase.cond.CondCardSuit	{suit} 카드가	{suit} card 	{suit} のカード	{suit} 的牌	{suit} 的牌	{suit}-Karte 
+	phrase.cond.CondCardRankSet	{ranks} 카드가	{ranks} 	{ranks} のカード	{ranks} 的牌	{ranks} 的牌	{ranks} 
+	phrase.cond.CondCardIsFace	그림 카드가	face card 	絵札	人头牌	人頭牌	Bildkarte 
+	phrase.cond.CondCardEnhancement	`{enhancement}` 카드가	{enhancement} card 	「{enhancement}」のカード	「{enhancement}」的牌	「{enhancement}」的牌	{enhancement}-Karte 
+	phrase.cond.CondCardEnhanced	강화된 카드가	enhanced card 	強化されたカード	被强化的牌	被強化的牌	verbesserte Karte 
+	phrase.cond.CondCardSeal	`{seal}` 인장이 붙은 카드가	card with a {seal} seal 	「{seal}」の封蝋が付いたカード	带「{seal}」封蜡的牌	帶「{seal}」封蠟的牌	Karte mit {seal}-Siegel 
+	phrase.cond.CondCardEdition	`{edition}` 카드가	{edition} card 	「{edition}」のカード	「{edition}」的牌	「{edition}」的牌	{edition}-Karte 
+	phrase.cond.CondCardCount	낸 카드가 {n}장 {compare}	if played cards are {compare} {n}, 	出したカードが {n} 枚 {compare} なら、	打出的牌 {compare} {n} 张时，	打出的牌 {compare} {n} 張時，	wenn {compare} {n} Karten gespielt werden, 
+	phrase.cond.CondAllSuitsPresent	네 무늬가 모두 있으면	if all four suits score, 	四つのスートがすべて揃うなら、	四种花色齐全时，	四種花色齊全時，	wenn alle vier Farben werten, 
+	phrase.cond.CondSuitPair	{suit} 하나와 다른 무늬 하나가 득점하면	if a {suit} and another suit both score, 	{suit} と別のスートが得点するなら、	{suit} 与另一花色同时得分时，	{suit} 與另一花色同時得分時，	wenn {suit} und eine andere Farbe werten, 
+	phrase.cond.CondAllHeldSuit	패가 전부 {suits} 면	if all cards held are {suits}, 	手札がすべて {suits} なら、	手牌全是 {suits} 时，	手牌全是 {suits} 時，	wenn alle Handkarten {suits} sind, 
+	phrase.cond.CondBlindKind	{blind} 블라인드에서	on a {blind} blind, 	{blind} ブラインドで、	在 {blind} 盲注中，	在 {blind} 盲注中，	bei einem {blind}-Blind, 
+	phrase.cond.CondMoney	보유 금액이 ${n} {compare}	if money is {compare} ${n}, 	所持金が ${n} {compare} なら、	金钱 {compare} ${n} 时，	金錢 {compare} ${n} 時，	wenn das Geld {compare} ${n} ist, 
+	phrase.cond.CondDiscardsLeft	남은 버리기가 {n} {compare}	if discards left are {compare} {n}, 	残り捨て札が {n} {compare} なら、	剩余弃牌 {compare} {n} 时，	剩餘棄牌 {compare} {n} 時，	wenn {compare} {n} Ablagen übrig sind, 
+	phrase.cond.CondHandsLeft	남은 핸드가 {n} {compare}	if hands left are {compare} {n}, 	残りハンドが {n} {compare} なら、	剩余出牌 {compare} {n} 时，	剩餘出牌 {compare} {n} 時，	wenn {compare} {n} Hände übrig sind, 
+	phrase.cond.CondDiscardsUnused	버리기를 쓰지 않았으면	if no discards were used, 	捨て札を使っていないなら、	未使用过弃牌时，	未使用過棄牌時，	wenn keine Ablage genutzt wurde, 
+	phrase.cond.CondHandRepeated	이번 라운드에 이미 낸 족보면	if this hand was already played this round, 	このラウンドで既に出した役なら、	本轮已打出过该牌型时，	本輪已打出過該牌型時，	wenn dieses Blatt in dieser Runde schon kam, 
+	phrase.cond.CondIsMostPlayedHand	최다 사용 족보면	if this is your most played hand, 	最も多く出した役なら、	是最常打出的牌型时，	是最常打出的牌型時，	wenn es dein meistgespieltes Blatt ist, 
+	phrase.cond.CondNotMostPlayedHand	최다 사용 족보가 아니면	if this is not your most played hand, 	最も多く出した役でないなら、	不是最常打出的牌型时，	不是最常打出的牌型時，	wenn es nicht dein meistgespieltes Blatt ist, 
+	phrase.cond.CondFirstHand	라운드의 첫 핸드면	on the first hand of the round, 	ラウンド最初のハンドで、	本轮第一次出牌时，	本輪第一次出牌時，	bei der ersten Hand der Runde, 
+	phrase.cond.CondLastHand	라운드의 마지막 핸드면	on the final hand of the round, 	ラウンド最後のハンドで、	本轮最后一次出牌时，	本輪最後一次出牌時，	bei der letzten Hand der Runde, 
+	phrase.cond.CondFirstDiscard	라운드의 첫 버리기면	on the first discard of the round, 	ラウンド最初の捨て札で、	本轮第一次弃牌时，	本輪第一次棄牌時，	bei der ersten Ablage der Runde, 
+	phrase.cond.CondEveryNHands	{n}핸드마다	every {n} hands, 	{n} ハンドごとに、	每 {n} 次出牌，	每 {n} 次出牌，	alle {n} Hände, 
+	phrase.cond.CondCounterAtLeast	{counter}가 {n} 이상이면	if {counter} reaches {n}, 	{counter}が {n} 以上なら、	{counter}达到 {n} 时，	{counter}達到 {n} 時，	wenn {counter} {n} erreicht, 
+	phrase.cond.CondCounterAtMost	{counter}가 {n} 이하가 되면	if {counter} drops to {n}, 	{counter}が {n} 以下になったら、	{counter}降到 {n} 时，	{counter}降到 {n} 時，	wenn {counter} auf {n} fällt, 
+	phrase.cond.CondChargeLeft	남은 횟수가 있으면	while charges remain, 	残り回数があるあいだ、	还有次数时，	還有次數時，	solange Ladungen bleiben, 
+	phrase.cond.CondTargetMatch	지정된 {target}과 맞으면	if it matches the chosen {target}, 	指定した{target}と一致するなら、	与指定的{target}一致时，	與指定的{target}一致時，	wenn es zum gewählten {target} passt, 
+	phrase.cond.CondDeckEnhancedAtLeast	덱에 강화 카드가 {n}장 이상이면	if the deck holds {n} or more enhanced cards, 	デッキに強化カードが {n} 枚以上あるなら、	牌组中有 {n} 张以上强化牌时，	牌組中有 {n} 張以上強化牌時，	wenn das Deck {n} oder mehr verbesserte Karten hat, 
+	phrase.cond.CondBossTriggered	보스 능력을 발동시키면	if the boss ability triggers, 	ボス能力を発動させたなら、	触发 Boss 能力时，	觸發 Boss 能力時，	wenn die Boss-Fähigkeit auslöst, 
+	phrase.cond.CondScoreRatioAtLeast	점수가 요구의 {num}/{den} 이상이면	if the score is at least {num}/{den} of the target, 	得点が目標の {num}/{den} 以上なら、	得分达到目标的 {num}/{den} 时，	得分達到目標的 {num}/{den} 時，	wenn die Punkte mindestens {num}/{den} des Ziels sind, 
+	phrase.cond.CondNoFaceScored	그림 카드가 득점하지 않은 핸드마다	for each hand with no scoring face card, 	絵札が得点しなかったハンドごとに、	每有一次出牌没有人头牌得分，	每有一次出牌沒有人頭牌得分，	für jede Hand ohne wertende Bildkarte, 
+	phrase.cond.CondFaceScored	그림 카드가 득점하면	if a face card scores, 	絵札が得点するなら、	有人头牌得分时，	有人頭牌得分時，	wenn eine Bildkarte wertet, 
+	phrase.cond.CondDiscardedFaceAtLeast	그림 카드를 {n}장 이상 한 번에	{n} or more face cards at once, 	絵札を一度に {n} 枚以上、	一次弃掉 {n} 张以上人头牌，	一次棄掉 {n} 張以上人頭牌，	{n} oder mehr Bildkarten auf einmal, 
+	phrase.cond.CondHandContainsRankAndHand	{hand} 안에 {ranks} 카드가 있으면	if a {hand} contains {ranks}, 	{hand} の中に {ranks} があるなら、	{hand} 中含有 {ranks} 时，	{hand} 中含有 {ranks} 時，	wenn ein {hand} {ranks} enthält, 
+	phrase.cond.CondFirstHandSingleCard	라운드의 첫 핸드가 카드 한 장이면	if the first hand is a single card, 	ラウンド最初のハンドがカード 1 枚なら、	本轮第一次出牌只有一张时，	本輪第一次出牌只有一張時，	wenn die erste Hand eine einzelne Karte ist, 
+	phrase.cond.CondFirstHandSingleRank	라운드의 첫 핸드가 {ranks} 카드 한 장이면	if the first hand is a single {ranks}, 	ラウンド最初のハンドが {ranks} 1 枚なら、	本轮第一次出牌只有一张 {ranks} 时，	本輪第一次出牌只有一張 {ranks} 時，	wenn die erste Hand eine einzelne {ranks} ist, 
+	phrase.cond.CondFirstDiscardSingleCard	라운드의 첫 버리기가 카드 한 장이면	if the first discard is a single card, 	ラウンド最初の捨て札がカード 1 枚なら、	本轮第一次弃牌只有一张时，	本輪第一次棄牌只有一張時，	wenn die erste Ablage eine einzelne Karte ist, 
+	phrase.cond.CondConsumableKind	{consumable} 카드를	{consumable} card 	{consumable} カードを	{consumable} 牌	{consumable} 牌	{consumable}-Karte 
+	phrase.op.OpAddChips	칩 +{chips}	+{chips} chips	チップ +{chips}	筹码 +{chips}	籌碼 +{chips}	+{chips} Chips
+	phrase.op.OpAddMult	배수 +{mult}	+{mult} mult	倍率 +{mult}	倍率 +{mult}	倍率 +{mult}	+{mult} Mult
+	phrase.op.OpMulMult	배수 ×{mult}	X{mult} mult	倍率 ×{mult}	倍率 ×{mult}	倍率 ×{mult}	×{mult} Mult
+	phrase.op.OpAddMoney	${money}	earn ${money}	${money}	${money}	${money}	${money}
+	phrase.op.OpSetMoney	금액이 ${money}이 됩니다	set money to ${money}	所持金が ${money} になります	金钱变为 ${money}	金錢變為 ${money}	setzt das Geld auf ${money}
+	phrase.op.OpPerUnit	{unit} 마다 {per}	{per} for each {unit}	{unit}ごとに {per}	每{unit} {per}	每{unit} {per}	{per} je {unit}
+	phrase.op.OpRandomRange	{per} +{min}~{max}	{per} +{min} to +{max}	{per} +{min}〜{max}	{per} +{min}~{max}	{per} +{min}~{max}	{per} +{min} bis +{max}
+	phrase.op.OpRetrigger	{times}회 재발동	retrigger {times} more times	{times} 回再発動	再触发 {times} 次	再觸發 {times} 次	löst {times} mal erneut aus
+	phrase.op.OpGrowSelf	{counter}가 {step}씩 늘어납니다	gains {step} {counter}	{counter}が {step} ずつ増えます	{counter}每次增加 {step}	{counter}每次增加 {step}	gewinnt {step} {counter}
+	phrase.op.OpResetSelf	{counter}가 처음으로 돌아갑니다	resets {counter}	{counter}が最初に戻ります	{counter}重置	{counter}重置	setzt {counter} zurück
+	phrase.op.OpGrowOthers	{scope}의 {counter}가 {step}씩 늘어납니다	{scope} gain {step} {counter}	{scope}の{counter}が {step} ずつ増えます	{scope}的{counter}各增加 {step}	{scope}的{counter}各增加 {step}	{scope} gewinnen {step} {counter}
+	phrase.op.OpLevelUpHand	{hand_pick} 레벨 {levels}	level up {hand_pick} by {levels}	{hand_pick}レベル {levels}	{hand_pick}等级 {levels}	{hand_pick}等級 {levels}	hebt {hand_pick} um {levels}
+	phrase.op.OpCreateCard	{create}를 {count}장 만듭니다	create {count} {create}	{create}を {count} 枚作ります	生成 {count} 张{create}	生成 {count} 張{create}	erzeugt {count} {create}
+	phrase.op.OpAddCard	{create}를 {count}장 더합니다	add {count} {create}	{create}を {count} 枚加えます	加入 {count} 张{create}	加入 {count} 張{create}	fügt {count} {create} hinzu
+	phrase.op.OpDestroyCard	카드 {count}장을 파괴합니다	destroy {count} cards	カードを {count} 枚壊します	摧毁 {count} 张牌	摧毀 {count} 張牌	zerstört {count} Karten
+	phrase.op.OpModifyCard	{scope}를 {modify}로 바꿉니다	change {scope} {modify}	{scope}を{modify}に変えます	把{scope}变为{modify}	把{scope}變為{modify}	ändert {scope} {modify}
+	phrase.op.OpModifyJoker	{scope}에 `{edition}`을 붙입니다	add {edition} to {scope}	{scope}に「{edition}」を付けます	给{scope}加上「{edition}」	給{scope}加上「{edition}」	gibt {scope} {edition}
+	phrase.op.OpDestroyJoker	{pick}를 파괴합니다	destroy {pick}	{pick}を壊します	摧毁{pick}	摧毀{pick}	zerstört {pick}
+	phrase.op.OpCopyJoker	{pick}의 능력을 복사합니다	copy the ability of {pick}	{pick}の能力をコピーします	复制{pick}的能力	複製{pick}的能力	kopiert die Fähigkeit von {pick}
+	phrase.op.OpDebuff	{debuff}를 무력화합니다	debuff {debuff}	{debuff}を無効にします	削弱{debuff}	削弱{debuff}	schwächt {debuff}
+	phrase.op.OpDisableBoss	보스 효과를 끕니다	disable the boss blind	ボス効果を消します	关闭 Boss 效果	關閉 Boss 效果	schaltet den Boss-Blind ab
+	phrase.op.OpPreventLoss	패배를 막습니다	prevent death	敗北を防ぎます	防止失败	防止失敗	verhindert die Niederlage
+	phrase.op.OpChangeRule	{rule}	{rule}	{rule}	{rule}	{rule}	{rule}
+	phrase.op.OpChangeRuleByCounter	{rule} — 누적값만큼	{rule}, by the counter	{rule} — 累積値のぶん	{rule} — 按累计值	{rule} — 按累計值	{rule}, nach dem Zähler
+	phrase.op.OpCardTrait	{trait}	{trait}	{trait}	{trait}	{trait}	{trait}
+	phrase.op.OpMulMoney	금액이 {value}배가 됩니다	multiply money by {value}	所持金が {value} 倍になります	金钱变为 {value} 倍	金錢變為 {value} 倍	vervielfacht das Geld um {value}
+	phrase.op.OpShopGift	다음 상점에 {create}를 놓습니다	the next shop offers {create}	次のショップに{create}を置きます	下个商店会出现{create}	下個商店會出現{create}	der nächste Laden bietet {create}
+	phrase.op.OpDuplicateNextTag	다음 태그를 복제합니다	duplicate the next tag	次のタグを複製します	复制下一个标签	複製下一個標籤	verdoppelt die nächste Marke
+	phrase.op.OpRerollBoss	보스 블라인드를 다시 뽑습니다	reroll the boss blind	ボスブラインドを引き直します	重新抽取 Boss 盲注	重新抽取 Boss 盲注	mischt den Boss-Blind neu
+	phrase.op.OpForceDiscard	패에서 {count}장을 버립니다	discard {count} cards from hand	手札から {count} 枚捨てます	从手牌中弃掉 {count} 张	從手牌中棄掉 {count} 張	legt {count} Karten von der Hand ab
+	phrase.op.OpDrawFaceDown	카드를 뒤집힌 채로 뽑습니다	cards are drawn face down	カードを裏向きで引きます	摸到的牌是背面朝上	摸到的牌是背面朝上	Karten werden verdeckt gezogen
+	phrase.op.OpFlipJokers	조커를 뒤집고 섞습니다	flip and shuffle all jokers	ジョーカーを裏返して混ぜます	翻转并打乱小丑	翻轉並打亂小丑	dreht und mischt alle Joker
+	phrase.op.OpDisableRandomJoker	핸드마다 조커 하나가 꺼집니다	one random joker is disabled	ハンドごとにジョーカーが一つ止まります	每次出牌随机禁用一个小丑	每次出牌隨機禁用一個小丑	ein zufälliger Joker wird deaktiviert
+	phrase.op.OpGrant	{create}를 {count}개 가지고 시작합니다	start with {count} {create}	{create}を {count} 個持って始めます	开局带有 {count} 个{create}	開局帶有 {count} 個{create}	beginnt mit {count} {create}
+	phrase.op.OpNothing	아무것도 하지 않습니다	does nothing	何もしません	没有效果	沒有效果	tut nichts
+	phrase.op.OpCustom	{handler}	{handler}	{handler}	{handler}	{handler}	{handler}
+	phrase.unit.JokerCount	조커 하나	joker	ジョーカー 1 つ	每个小丑	每個小丑	Joker
+	phrase.unit.EmptyJokerSlots	빈 조커 슬롯 하나	empty joker slot	空きジョーカー枠 1 つ	每个空小丑栏	每個空小丑欄	leeren Jokerplatz
+	phrase.unit.DeckRemaining	덱에 남은 카드 한 장	card left in deck	デッキの残り 1 枚	牌组中每剩一张牌	牌組中每剩一張牌	Karte im Deck
+	phrase.unit.DeckDeficit	덱에서 모자란 카드 한 장	card below the deck size	デッキに足りない 1 枚	牌组每少一张牌	牌組每少一張牌	Karte unter der Decksollgröße
+	phrase.unit.Money	보유 $1	$1	所持 $1	每 $1	每 $1	$1
+	phrase.unit.MoneyPer5	보유 $5	$5	所持 $5	每 $5	每 $5	$5
+	phrase.unit.DiscardsLeft	남은 버리기	remaining discard	残り捨て札	每次剩余弃牌	每次剩餘棄牌	übrige Ablage
+	phrase.unit.HandsLeft	남은 핸드	remaining hand	残りハンド	每次剩余出牌	每次剩餘出牌	übrige Hand
+	phrase.unit.BlindsSkipped	스킵한 블라인드	skipped blind	スキップしたブラインド	每个跳过的盲注	每個跳過的盲注	übersprungenen Blind
+	phrase.unit.TarotUsed	이번 런에 쓴 타로	tarot used this run	このランで使ったタロット	本局用过的塔罗	本局用過的塔羅	in diesem Lauf genutzten Tarot
+	phrase.unit.UniquePlanetUsed	이번 런에 쓴 고유 행성	unique planet used this run	このランで使った固有プラネット	本局用过的不同星球	本局用過的不同星球	einzigartigen Planeten dieses Laufs
+	phrase.unit.DeckRankCount	덱의 {ranks} 한 장	{ranks} in the deck	デッキの {ranks} 1 枚	牌组中每张 {ranks}	牌組中每張 {ranks}	{ranks} im Deck
+	phrase.unit.DeckEnhancementCount	덱의 `{enhancement}` 카드 한 장	{enhancement} card in the deck	デッキの「{enhancement}」カード 1 枚	牌组中每张「{enhancement}」牌	牌組中每張「{enhancement}」牌	{enhancement}-Karte im Deck
+	phrase.unit.JokerRarityCount	{rarity} 조커 하나	{rarity} joker	{rarity} ジョーカー 1 つ	每个 {rarity} 小丑	每個 {rarity} 小丑	{rarity} Joker
+	phrase.unit.HandPlayCount	이 족보를 낸 횟수	time this hand was played	この役を出した回数	打出该牌型的次数	打出該牌型的次數	Mal, das dieses Blatt gespielt wurde
+	phrase.unit.OtherJokerSellValue	다른 조커의 판매가 $1	$1 of other jokers sell value	他のジョーカーの売値 $1	其他小丑售价每 $1	其他小丑售價每 $1	$1 Verkaufswert anderer Joker
+	phrase.unit.LowestHeldRankChips	패의 최저 랭크 칩값	chip of the lowest held rank	手札の最低ランクのチップ値	手牌中最低点数的筹码值	手牌中最低點數的籌碼值	Chip des niedrigsten Handwerts
+	phrase.unit.CardsPlayed	낸 카드 한 장	played card	出したカード 1 枚	每张打出的牌	每張打出的牌	gespielte Karte
+	phrase.unit.SelfCounterMoney	누적한 $1	$1 accumulated	貯めた $1	每累计 $1	每累計 $1	$1 angesammelt
+	phrase.unit.HandsPlayedThisRun	이번 런에 낸 핸드	hand played this run	このランで出したハンド	本局已出牌次数	本局已出牌次數	in diesem Lauf gespielte Hand
+	phrase.unit.DiscardsUnusedThisRun	이번 런에 쓰지 않은 버리기	unused discard this run	このランで使わなかった捨て札	本局未使用的弃牌	本局未使用的棄牌	ungenutzte Ablage in diesem Lauf
+	phrase.rule.HandSize	패 크기 {value}	hand size {value}	手札 {value} 枚	手牌 {value} 张	手牌 {value} 張	Handgröße {value}
+	phrase.rule.HandsPerRound	라운드당 핸드 {value}	{value} hands each round	ラウンドごとにハンド {value}	每轮出牌 {value} 次	每輪出牌 {value} 次	{value} Hände pro Runde
+	phrase.rule.DiscardsPerRound	라운드당 버리기 {value}	{value} discards each round	ラウンドごとに捨て札 {value}	每轮弃牌 {value} 次	每輪棄牌 {value} 次	{value} Ablagen pro Runde
+	phrase.rule.JokerSlots	조커 슬롯 {value}	{value} joker slots	ジョーカー枠 {value}	小丑栏位 {value}	小丑欄位 {value}	{value} Jokerplätze
+	phrase.rule.ConsumableSlots	소모품 슬롯 {value}	{value} consumable slots	消耗品枠 {value}	消耗品栏位 {value}	消耗品欄位 {value}	{value} Verbrauchsplätze
+	phrase.rule.DebtLimit	빚을 {value}까지 집니다	go up to ${value} in debt	${value} まで借りられます	可负债至 ${value}	可負債至 ${value}	bis ${value} Schulden möglich
+	phrase.rule.FreeRerolls	상점마다 무료 리롤 {value}회	{value} free reroll each shop	ショップごとに無料リロール {value} 回	每个商店免费刷新 {value} 次	每個商店免費刷新 {value} 次	{value} Gratis-Neumischen je Laden
+	phrase.rule.RerollCostDelta	리롤 비용 ${value}	rerolls cost ${value} less	リロール費用 ${value}	刷新费用 ${value}	刷新費用 ${value}	Neumischen ${value} günstiger
+	phrase.rule.RerollStartsFree	다음 상점의 리롤이 $0에서 시작합니다	rerolls start at $0 in the next shop	次のショップのリロールが $0 から始まります	下个商店的刷新从 $0 开始	下個商店的刷新從 $0 開始	Neumischen startet im nächsten Laden bei $0
+	phrase.rule.InterestPer5	보유 $5마다 이자 ${value}	${value} extra interest per $5	所持 $5 ごとに利息 ${value}	每持有 $5 额外利息 ${value}	每持有 $5 額外利息 ${value}	${value} Zinsen je $5
+	phrase.rule.InterestCap	이자 상한 ${value}	interest cap ${value}	利息の上限 ${value}	利息上限 ${value}	利息上限 ${value}	Zinsobergrenze ${value}
+	phrase.rule.ShopCardSlots	상점 카드 칸 {value}	{value} shop card slots	ショップのカード枠 {value}	商店卡牌栏位 {value}	商店卡牌欄位 {value}	{value} Kartenplätze im Laden
+	phrase.rule.ShopDiscount	상점 {value}% 할인	shop is {value}% off	ショップ {value}% 引き	商店打折 {value}%	商店打折 {value}%	Laden {value}% günstiger
+	phrase.rule.ShopAllowsPlayingCards	상점에서 플레잉 카드를 살 수 있습니다	playing cards appear in the shop	ショップでトランプを買えます	商店可以买到扑克牌	商店可以買到撲克牌	Spielkarten erscheinen im Laden
+	phrase.rule.ShopAllowsSpectral	상점에 유령 카드가 나옵니다	spectral cards appear in the shop	ショップにスペクトルが並びます	商店会出现幻灵牌	商店會出現幻靈牌	Spektralkarten erscheinen im Laden
+	phrase.rule.ShopWeightTarot	상점 타로 등장 {value}배	tarot cards appear {value}X as often	ショップのタロット登場 {value} 倍	商店塔罗出现率 {value} 倍	商店塔羅出現率 {value} 倍	Tarotkarten erscheinen {value}× so oft
+	phrase.rule.ShopWeightPlanet	상점 행성 등장 {value}배	planet cards appear {value}X as often	ショップのプラネット登場 {value} 倍	商店星球出现率 {value} 倍	商店星球出現率 {value} 倍	Planetenkarten erscheinen {value}× so oft
+	phrase.rule.FreePlanets	상점의 행성 카드와 천체 팩이 무료입니다	planet cards and celestial packs are free	ショップのプラネットとセレスティアルパックが無料です	商店的星球牌与天体卡包免费	商店的星球牌與天體卡包免費	Planetenkarten und Himmels-Päckchen sind gratis
+	phrase.rule.AllCardsScore	낸 카드 전부가 득점합니다	every played card scores	出したカードすべてが得点します	打出的每张牌都得分	打出的每張牌都得分	jede gespielte Karte wertet
+	phrase.rule.AllCardsAreFace	모든 카드를 그림 카드로 봅니다	all cards count as face cards	すべてのカードを絵札として扱います	所有牌都视为人头牌	所有牌都視為人頭牌	alle Karten gelten als Bildkarten
+	phrase.rule.FlushStraightCards	플러시와 스트레이트를 {value}장으로 이룹니다	flushes and straights need {value} cards	フラッシュとストレートを {value} 枚で作ります	同花与顺子需要 {value} 张	同花與順子需要 {value} 張	Flush und Straße brauchen {value} Karten
+	phrase.rule.StraightGap	스트레이트에 {value}칸 빈틈을 허용합니다	straights may skip {value} rank	ストレートに {value} つの飛びを許します	顺子可跳过 {value} 个点数	順子可跳過 {value} 個點數	Straßen dürfen {value} Wert überspringen
+	phrase.rule.SuitsMerged	하트와 다이아를, 스페이드와 클럽을 한 무늬로 봅니다	hearts count as diamonds and spades as clubs	ハートとダイヤ、スペードとクラブを同じスートとして扱います	红桃与方块、黑桃与梅花视为同一花色	紅心與方塊、黑桃與梅花視為同一花色	Herz zählt als Karo und Pik als Kreuz
+	phrase.rule.ProbabilityScale	모든 확률이 {value}배가 됩니다	all listed odds are {value}X	すべての確率が {value} 倍になります	所有概率变为 {value} 倍	所有機率變為 {value} 倍	alle Chancen sind {value}×
+	phrase.rule.AllowDuplicates	같은 카드가 여러 번 나올 수 있습니다	cards may appear more than once	同じカードが何度も出ることがあります	同一张牌可能重复出现	同一張牌可能重複出現	Karten können mehrfach erscheinen
+	phrase.rule.BalanceChipsAndMult	칩과 배수를 평균으로 맞춥니다	chips and mult are balanced	チップと倍率を平均で揃えます	筹码与倍率取平均	籌碼與倍率取平均	Chips und Mult werden ausgeglichen
+	phrase.rule.BossRerollsPerAnte	안테마다 보스를 {value}회 다시 뽑습니다	reroll the boss {value} times per ante	アンティごとにボスを {value} 回引き直します	每底注可重抽 Boss {value} 次	每底注可重抽 Boss {value} 次	Boss {value}× pro Ante neu mischen
+	phrase.rule.AnteDelta	안테 {value}	ante {value}	アンティ {value}	底注 {value}	底注 {value}	Ante {value}
+	phrase.rule.EditionWeightScale	에디션 등장 {value}배	editions appear {value}X as often	エディション登場 {value} 倍	版本出现率 {value} 倍	版本出現率 {value} 倍	Editionen {value}× so oft
+	phrase.rule.PlanetGivesMult	행성 카드가 해당 족보에 배수 ×{value}	planet cards give X{value} mult to their hand	プラネットがその役に倍率 ×{value} を与えます	星球牌为该牌型提供 ×{value} 倍率	星球牌為該牌型提供 ×{value} 倍率	Planeten geben ihrem Blatt ×{value} Mult
+	phrase.rule.StartingMoney	${value}을 더 가지고 시작합니다	start with ${value} more	${value} 多く持って始めます	开局多带 ${value}	開局多帶 ${value}	beginnt mit ${value} mehr
+	phrase.rule.NoInterest	이자를 받지 않습니다	earn no interest	利息を受け取りません	不获得利息	不獲得利息	bringt keine Zinsen
+	phrase.rule.MoneyPerHandLeft	남은 핸드마다 ${value}	${value} per remaining hand	残りハンドごとに ${value}	每次剩余出牌 ${value}	每次剩餘出牌 ${value}	${value} je übriger Hand
+	phrase.rule.MoneyPerDiscardLeft	남은 버리기마다 ${value}	${value} per remaining discard	残り捨て札ごとに ${value}	每次剩余弃牌 ${value}	每次剩餘棄牌 ${value}	${value} je übriger Ablage
+	phrase.rule.RandomizeDeck	덱 52장의 랭크와 무늬가 무작위입니다	all ranks and suits are randomized	デッキ 52 枚のランクとスートがランダムです	牌组 52 张的点数与花色随机	牌組 52 張的點數與花色隨機	alle Werte und Farben sind zufällig
+	phrase.rule.DoubleTagOnBossDefeat	보스 격파마다 `Double Tag`	gain a Double Tag after each boss	ボスを倒すたび「Double Tag」	每击败 Boss 获得一个「Double Tag」	每擊敗 Boss 獲得一個「Double Tag」	nach jedem Boss eine Double-Marke
+	phrase.rule.BlindSizeScale	블라인드 요구 점수 {value}배	blind size {value}X	ブラインドの目標点 {value} 倍	盲注目标分 {value} 倍	盲注目標分 {value} 倍	Blind-Größe {value}×
+	phrase.rule.SetDiscardsZero	버리기 0으로 시작합니다	start with 0 discards	捨て札 0 で始まります	弃牌次数从 0 开始	棄牌次數從 0 開始	beginnt mit 0 Ablagen
+	phrase.rule.SpectralInArcanaPacks	아르카나 팩에 유령 카드가 섞입니다	spectral cards appear in arcana packs	アルカナパックにスペクトルが混じります	奥秘卡包中会出现幻灵牌	奧秘卡包中會出現幻靈牌	Spektralkarten in Arkana-Päckchen
+	phrase.rule.CelestialHasMostPlayed	천체 팩에 최다 사용 족보의 행성이 반드시 들어갑니다	celestial packs always contain your most played hand	セレスティアルパックに最多使用の役のプラネットが必ず入ります	天体卡包必定含有最常打出牌型的星球牌	天體卡包必定含有最常打出牌型的星球牌	Himmels-Päckchen enthalten immer dein meistgespieltes Blatt
+	phrase.rule.ShopCardsHaveModifiers	상점의 플레잉 카드가 강화와 인장을 가집니다	shop playing cards may be enhanced	ショップのトランプに強化と封蝋が付きます	商店的扑克牌可能带有强化	商店的撲克牌可能帶有強化	Spielkarten im Laden können verbessert sein
+	phrase.rule.NoRepeatHandTypes	같은 족보를 두 번 낼 수 없습니다	no repeat hand types this round	同じ役を二度出せません	不能重复打出同一牌型	不能重複打出同一牌型	kein Blatt-Typ zweimal in dieser Runde
+	phrase.rule.SingleHandTypeOnly	한 종류의 족보만 낼 수 있습니다	only one hand type may be played	一種類の役しか出せません	只能打出一种牌型	只能打出一種牌型	nur ein Blatt-Typ erlaubt
+	phrase.rule.MustPlayFiveCards	반드시 5장을 내야 합니다	must play 5 cards	必ず 5 枚出さねばなりません	必须打出 5 张牌	必須打出 5 張牌	es müssen 5 Karten gespielt werden
+	phrase.rule.AlwaysDrawThree	항상 3장만 뽑습니다	always draw 3 cards	いつも 3 枚だけ引きます	每次只摸 3 张	每次只摸 3 張	zieht immer 3 Karten
+	phrase.rule.HalveBaseChipsAndMult	기본 칩과 배수가 절반이 됩니다	base chips and mult are halved	基本チップと倍率が半分になります	基础筹码与倍率减半	基礎籌碼與倍率減半	Grundchips und Mult werden halbiert
+	phrase.rule.DebuffUntilJokerSold	조커 하나를 팔기 전까지 모든 카드가 무력화됩니다	all cards are debuffed until a joker is sold	ジョーカーを一つ売るまで全カードが無効になります	在卖出一个小丑之前所有牌都被削弱	在賣出一個小丑之前所有牌都被削弱	alle Karten geschwächt, bis ein Joker verkauft wird
+	phrase.rule.ForceCardSelected	카드 한 장이 항상 선택된 상태가 됩니다	one card is always forced to be selected	カード 1 枚が常に選ばれた状態になります	总有一张牌被强制选中	總有一張牌被強制選中	eine Karte ist immer gewählt
+	phrase.rule.RemoveFaceCards	그림 카드 없이 시작합니다	start with no face cards	絵札なしで始めます	开局没有人头牌	開局沒有人頭牌	beginnt ohne Bildkarten
+	phrase.rule.SuitsOnly	{suits} 로만 시작합니다	start with only {suits}	{suits} だけで始めます	只用 {suits} 开局	只用 {suits} 開局	beginnt nur mit {suits}
+	phrase.rule.NextShopFree	다음 상점의 처음 카드와 팩이 무료입니다	the next shop starts free	次のショップの最初のカードとパックが無料です	下个商店的初始卡牌与卡包免费	下個商店的初始卡牌與卡包免費	der nächste Laden startet gratis
+	phrase.suit.Spade	스페이드	Spade	スペード	黑桃	黑桃	Pik
+	phrase.suit.Heart	하트	Heart	ハート	红桃	紅心	Herz
+	phrase.suit.Club	클럽	Club	クラブ	梅花	梅花	Kreuz
+	phrase.suit.Diamond	다이아	Diamond	ダイヤ	方块	方塊	Karo
+	phrase.counter.Chips	칩	chips	チップ	筹码	籌碼	Chips
+	phrase.counter.MultAdd	배수	mult	倍率	倍率	倍率	Mult
+	phrase.counter.MultMul	곱 배수	X mult	掛け倍率	乘算倍率	乘算倍率	× Mult
+	phrase.counter.Money	금액	money	所持金	金钱	金錢	Geld
+	phrase.counter.SellValue	판매가	sell value	売値	售价	售價	Verkaufswert
+	phrase.counter.Charge	남은 횟수	charges	残り回数	剩余次数	剩餘次數	Ladungen
+	phrase.counter.Tick	지난 라운드	rounds	経過ラウンド	经过的回合	經過的回合	Runden
+	phrase.compare.AtLeast	이상이면	at least	以上なら	至少	至少	mindestens
+	phrase.compare.AtMost	이하면	at most	以下なら	至多	至多	höchstens
+	phrase.compare.Exactly	이면	exactly	ちょうどなら	恰好	恰好	genau
+	phrase.pick.Right	오른쪽 조커	the joker to the right	右のジョーカー	右侧的小丑	右側的小丑	den Joker rechts
+	phrase.pick.Leftmost	맨 왼쪽 조커	the leftmost joker	一番左のジョーカー	最左侧的小丑	最左側的小丑	den linkesten Joker
+	phrase.pick.Random	무작위 조커	a random joker	ランダムなジョーカー	随机一个小丑	隨機一個小丑	einen zufälligen Joker
+	phrase.pick.AllOther	나머지 조커 전부	every other joker	他のジョーカー全部	其他所有小丑	其他所有小丑	alle anderen Joker
+	phrase.pick.SelfPick	이 조커	this joker	このジョーカー	这个小丑	這個小丑	diesen Joker
+	phrase.create.Tarot	타로 카드	a tarot card	タロットカード	塔罗牌	塔羅牌	eine Tarotkarte
+	phrase.create.Planet	행성 카드	a planet card	プラネットカード	星球牌	星球牌	eine Planetenkarte
+	phrase.create.Spectral	유령 카드	a spectral card	スペクトルカード	幻灵牌	幻靈牌	eine Spektralkarte
+	phrase.create.Joker	조커	a joker	ジョーカー	小丑	小丑	einen Joker
+	phrase.create.PlayingCard	플레잉 카드	a playing card	トランプ	扑克牌	撲克牌	eine Spielkarte
+	phrase.create.Tag	태그	a tag	タグ	标签	標籤	eine Marke
+	phrase.create.LastUsed	마지막으로 쓴 소모품	the last used consumable	最後に使った消耗品	最后使用的消耗品	最後使用的消耗品	den zuletzt benutzten Verbrauchsgegenstand
+	phrase.create.CopyOfScored	그 카드의 사본	a copy of that card	そのカードの複製	该牌的复制	該牌的複製	eine Kopie dieser Karte
+	phrase.create.CopyOfSelected	고른 카드의 사본	a copy of the selected card	選んだカードの複製	所选牌的复制	所選牌的複製	eine Kopie der gewählten Karte
+	phrase.create.Pack	팩	a pack	パック	卡包	卡包	ein Päckchen
+	phrase.create.Voucher	바우처	a voucher	バウチャー	优惠券	優惠券	einen Gutschein
+	phrase.modify.Enhancement	강화	enhancement	強化	强化	強化	Verbesserung
+	phrase.modify.Seal	인장	seal	封蝋	封蜡	封蠟	Siegel
+	phrase.modify.Edition	에디션	edition	エディション	版本	版本	Edition
+	phrase.modify.Suit	무늬	suit	スート	花色	花色	Farbe
+	phrase.modify.RankStep	랭크	rank	ランク	点数	點數	Wert
+	phrase.modify.BonusChips	영구 칩	permanent chips	永久チップ	永久筹码	永久籌碼	dauerhafte Chips
+	phrase.modify.CopyRight	오른쪽 카드와 같게	into the card on the right	右のカードと同じに	变得与右边的牌相同	變得與右邊的牌相同	zur Karte rechts
+	phrase.modify.RankTo	같은 랭크로	to one rank	同じランクに	变为同一点数	變為同一點數	auf einen Wert
+	phrase.debuff.BySuit	그 무늬의 카드	cards of that suit	そのスートのカード	该花色的牌	該花色的牌	Karten dieser Farbe
+	phrase.debuff.FaceCards	그림 카드	face cards	絵札	人头牌	人頭牌	Bildkarten
+	phrase.debuff.PlayedThisAnte	이번 안테에 이미 낸 카드	cards played this ante	このアンティで既に出したカード	本底注已打出过的牌	本底注已打出過的牌	in dieser Ante gespielte Karten
+	phrase.debuff.AllCards	모든 카드	all cards	すべてのカード	所有牌	所有牌	alle Karten
+	phrase.target.Hand	족보	hand	役	牌型	牌型	Blatt
+	phrase.target.Rank	랭크	rank	ランク	点数	點數	Wert
+	phrase.target.Suit	무늬	suit	スート	花色	花色	Farbe
+	phrase.target.Card	카드	card	カード	卡牌	卡牌	Karte
+	phrase.trait.AnySuit	모든 무늬로 취급됩니다	counts as every suit	すべてのスートとして扱われます	视为所有花色	視為所有花色	zählt als jede Farbe
+	phrase.trait.NoRankSuit	랭크와 무늬가 없습니다	has no rank or suit	ランクもスートもありません	没有点数与花色	沒有點數與花色	hat weder Wert noch Farbe
+	phrase.trait.AlwaysScores	항상 득점합니다	always scores	常に得点します	总是得分	總是得分	wertet immer
+	phrase.handpick.Played	낸 족보의	the played hand	出した役の	打出的牌型	打出的牌型	das gespielte Blatt
+	phrase.handpick.FirstDiscarded	처음 버린 족보의	the first discarded hand	最初に捨てた役の	第一次弃掉的牌型	第一次棄掉的牌型	das erste abgelegte Blatt
+	phrase.handpick.MostPlayed	최다 사용 족보의	your most played hand	最多使用の役の	最常打出的牌型	最常打出的牌型	dein meistgespieltes Blatt
+	phrase.handpick.Random	무작위 족보의	a random hand	ランダムな役の	随机牌型	隨機牌型	ein zufälliges Blatt
+	phrase.handpick.All	모든 족보의	every hand	すべての役の	所有牌型	所有牌型	jedes Blatt
+	phrase.rarity.Common	커먼	common	コモン	普通	普通	gewöhnlichen
+	phrase.rarity.Uncommon	언커먼	uncommon	アンコモン	罕见	罕見	ungewöhnlichen
+	phrase.rarity.Rare	레어	rare	レア	稀有	稀有	seltenen
+	phrase.rarity.Legendary	전설	legendary	レジェンド	传奇	傳奇	legendären
+	phrase.scope.AllJokers	모든 조커	all jokers	すべてのジョーカー	所有小丑	所有小丑	alle Joker
+	phrase.scope.AllOtherJokers	나머지 조커	other jokers	他のジョーカー	其他小丑	其他小丑	andere Joker
+	phrase.scope.AllConsumables	모든 소모품	all consumables	すべての消耗品	所有消耗品	所有消耗品	alle Verbrauchsgegenstände
+	phrase.scope.RandomJoker	무작위 조커	a random joker	ランダムなジョーカー	随机一个小丑	隨機一個小丑	einen zufälligen Joker
+	phrase.scope.Selected	고른 카드	the selected cards	選んだカード	所选的牌	所選的牌	die gewählten Karten
+	phrase.scope.RandomInHand	패의 무작위 카드	random cards in hand	手札のランダムなカード	手牌中随机的牌	手牌中隨機的牌	zufällige Karten auf der Hand
+	phrase.scope.AllInHand	패의 모든 카드	all cards in hand	手札のすべてのカード	手牌中所有的牌	手牌中所有的牌	alle Karten auf der Hand
+	phrase.scope.ScoredCard	그 카드	that card	そのカード	该牌	該牌	diese Karte
+	phrase.scope.HeldCard	그 카드	that card	そのカード	该牌	該牌	diese Karte
+	phrase.scope.AllInDeck	덱의 모든 카드	all cards in the deck	デッキのすべてのカード	牌组中所有的牌	牌組中所有的牌	alle Karten im Deck
+	phrase.scope.SelfTarget	이것	this	これ	它自己	它自己	dies
 	phrase.scope.Run						
-	phrase.handler.pruning_shears	오른쪽 조커를 파괴하고 그 판매가의 2배를 배수로 얻습니다	destroy the joker to the right and gain double its sell value as mult				
-	rule.hand_size.name	손패의 크기	Hand size				
-	rule.hands_per_round.name	라운드마다의 핸드 수	Hands per round				
-	rule.discards_per_round.name	라운드마다의 버리기 수	Discards per round				
-	rule.joker_slots.name	조커 칸	Joker slots				
-	rule.consumable_slots.name	소모품 칸	Consumable slots				
-	rule.debt_limit.name	빚을 낼 수 있는 한도	Debt limit				
-	rule.free_rerolls.name	공짜 리롤	Free rerolls				
-	rule.reroll_cost_delta.name	리롤 값	Reroll cost				
-	rule.reroll_starts_free.name	상점의 첫 리롤이 공짜	First reroll free				
-	rule.interest_per5.name	보유 5마다 받는 이자	Interest per $5				
-	rule.interest_cap.name	이자의 상한	Interest cap				
-	rule.shop_card_slots.name	상점의 카드 칸	Shop card slots				
-	rule.shop_discount.name	상점 할인	Shop discount				
-	rule.shop_allows_playing_cards.name	상점에 플레잉 카드가 나옴	Playing cards in shop				
-	rule.shop_allows_spectral.name	상점에 유령 카드가 나옴	Spectral cards in shop				
-	rule.shop_weight_tarot.name	상점의 타로 가중치	Tarot weight in shop				
-	rule.shop_weight_planet.name	상점의 행성 가중치	Planet weight in shop				
-	rule.free_planets.name	상점의 행성이 공짜	Free planets				
-	rule.all_cards_score.name	족보에 들지 않은 카드도 득점	All played cards score				
-	rule.all_cards_are_face.name	모든 카드를 그림 카드로 봄	All cards count as face				
-	rule.flush_straight_cards.name	플러시와 스트레이트에 드는 장수	Cards for flush and straight				
-	rule.straight_gap.name	스트레이트가 건너뛸 수 있는 폭	Straight gap				
-	rule.suits_merged.name	네 무늬를 하나로 봄	All suits count as one				
-	rule.probability_scale.name	확률	Probability				
-	rule.allow_duplicates.name	같은 것을 둘 이상 가질 수 있음	Duplicates allowed				
-	rule.balance_chips_and_mult.name	칩과 배수를 평균으로 맞춤	Chips and mult balanced				
-	rule.boss_rerolls_per_ante.name	안테마다의 보스 리롤	Boss rerolls per ante				
-	rule.ante_delta.name	안테	Ante				
-	rule.edition_weight_scale.name	에디션이 붙을 확률	Edition chance				
-	rule.planet_gives_mult.name	행성이 배수도 올림	Planets raise mult too				
-	rule.starting_money.name	시작 금액	Starting money				
-	rule.no_interest.name	이자를 받지 않음	No interest				
-	rule.money_per_hand_left.name	남긴 핸드마다 받는 금액	Money per unused hand				
-	rule.money_per_discard_left.name	남긴 버리기마다 받는 금액	Money per unused discard				
-	rule.randomize_deck.name	시작 덱의 랭크와 무늬를 다시 뽑음	Deck ranks and suits randomized				
-	rule.double_tag_on_boss_defeat.name	보스를 깨면 태그를 둘 받음	Two tags on boss defeat				
-	rule.blind_size_scale.name	블라인드의 요구 점수	Blind requirement				
-	rule.set_discards_zero.name	버리기 횟수가 0이 됨	Discards set to zero				
-	rule.spectral_in_arcana_packs.name	아르카나 팩에 유령 카드가 섞임	Spectral cards in arcana packs				
-	rule.celestial_has_most_played.name	천체 팩에 가장 많이 낸 족보의 행성	Most-played planet in celestial packs				
-	rule.shop_cards_have_modifiers.name	상점의 카드에 강화와 인장이 붙음	Shop cards carry modifiers				
-	rule.no_repeat_hand_types.name	한 라운드에 같은 족보를 두 번 낼 수 없음	No repeated hand types				
-	rule.single_hand_type_only.name	한 라운드에 한 가지 족보만	One hand type only				
-	rule.must_play_five_cards.name	핸드마다 다섯 장을 내야 함	Must play five cards				
-	rule.always_draw_three.name	언제나 세 장씩 뽑음	Always draw three				
-	rule.halve_base_chips_and_mult.name	족보의 기본 칩과 배수가 절반	Base chips and mult halved				
-	rule.debuff_until_joker_sold.name	조커를 팔 때까지 카드가 무력화	Debuffed until a joker is sold				
-	rule.force_card_selected.name	카드 한 장이 반드시 골라짐	One card always selected				
-	rule.remove_face_cards.name	시작 덱에서 그림 카드를 뺌	Face cards removed				
-	rule.suits_only.name	시작 덱을 그 무늬들로만 채움	Deck limited to those suits				
-	rule.next_shop_free.name	다음 상점의 처음 카드와 팩이 공짜	Next shop starts free				
+	phrase.handler.pruning_shears	오른쪽 조커를 파괴하고 그 판매가의 2배를 배수로 얻습니다	destroy the joker to the right and gain double its sell value as mult	右のジョーカーを壊し、その売値の 2 倍を倍率として得ます	摧毁右侧的小丑，获得其售价两倍的倍率	摧毀右側的小丑，獲得其售價兩倍的倍率	zerstört den Joker rechts und gibt das Doppelte seines Verkaufswerts als Mult
+	rule.hand_size.name	손패의 크기	Hand size	手札の枚数	手牌数量	手牌數量	Handgröße
+	rule.hands_per_round.name	라운드마다의 핸드 수	Hands per round	ラウンドごとのハンド数	每轮出牌次数	每輪出牌次數	Hände pro Runde
+	rule.discards_per_round.name	라운드마다의 버리기 수	Discards per round	ラウンドごとの捨て札回数	每轮弃牌次数	每輪棄牌次數	Ablagen pro Runde
+	rule.joker_slots.name	조커 칸	Joker slots	ジョーカー枠	小丑栏位	小丑欄位	Jokerplätze
+	rule.consumable_slots.name	소모품 칸	Consumable slots	消耗品枠	消耗品栏位	消耗品欄位	Verbrauchsplätze
+	rule.debt_limit.name	빚을 낼 수 있는 한도	Debt limit	借りられる上限	负债上限	負債上限	Schuldengrenze
+	rule.free_rerolls.name	공짜 리롤	Free rerolls	無料リロール	免费刷新	免費刷新	Gratis-Neumischen
+	rule.reroll_cost_delta.name	리롤 값	Reroll cost	リロール費用	刷新费用	刷新費用	Kosten fürs Neumischen
+	rule.reroll_starts_free.name	상점의 첫 리롤이 공짜	First reroll free	ショップの最初のリロールが無料	商店首次刷新免费	商店首次刷新免費	Erstes Neumischen gratis
+	rule.interest_per5.name	보유 5마다 받는 이자	Interest per $5	所持金 $5 ごとの利息	每持有 $5 的利息	每持有 $5 的利息	Zinsen je $5
+	rule.interest_cap.name	이자의 상한	Interest cap	利息の上限	利息上限	利息上限	Zinsobergrenze
+	rule.shop_card_slots.name	상점의 카드 칸	Shop card slots	ショップのカード枠	商店卡牌栏位	商店卡牌欄位	Kartenplätze im Laden
+	rule.shop_discount.name	상점 할인	Shop discount	ショップ割引	商店折扣	商店折扣	Ladenrabatt
+	rule.shop_allows_playing_cards.name	상점에 플레잉 카드가 나옴	Playing cards in shop	ショップにトランプが並ぶ	商店出售扑克牌	商店出售撲克牌	Spielkarten im Laden
+	rule.shop_allows_spectral.name	상점에 유령 카드가 나옴	Spectral cards in shop	ショップにスペクトルが並ぶ	商店出售幻灵牌	商店出售幻靈牌	Spektralkarten im Laden
+	rule.shop_weight_tarot.name	상점의 타로 가중치	Tarot weight in shop	ショップのタロット重み	商店塔罗权重	商店塔羅權重	Tarot-Gewicht im Laden
+	rule.shop_weight_planet.name	상점의 행성 가중치	Planet weight in shop	ショップのプラネット重み	商店星球权重	商店星球權重	Planeten-Gewicht im Laden
+	rule.free_planets.name	상점의 행성이 공짜	Free planets	ショップのプラネットが無料	商店星球牌免费	商店星球牌免費	Planeten gratis
+	rule.all_cards_score.name	족보에 들지 않은 카드도 득점	All played cards score	役に入らないカードも得点	未组成牌型的牌也得分	未組成牌型的牌也得分	Alle gespielten Karten werten
+	rule.all_cards_are_face.name	모든 카드를 그림 카드로 봄	All cards count as face	すべてのカードを絵札として扱う	所有牌视为人头牌	所有牌視為人頭牌	Alle Karten gelten als Bildkarten
+	rule.flush_straight_cards.name	플러시와 스트레이트에 드는 장수	Cards for flush and straight	フラッシュとストレートに要る枚数	同花与顺子所需张数	同花與順子所需張數	Karten für Flush und Straße
+	rule.straight_gap.name	스트레이트가 건너뛸 수 있는 폭	Straight gap	ストレートが飛ばせる幅	顺子可跳过的间隔	順子可跳過的間隔	Lücke in der Straße
+	rule.suits_merged.name	네 무늬를 하나로 봄	All suits count as one	四つのスートを一つとして扱う	四种花色视为同一种	四種花色視為同一種	Alle Farben gelten als eine
+	rule.probability_scale.name	확률	Probability	確率	概率	機率	Wahrscheinlichkeit
+	rule.allow_duplicates.name	같은 것을 둘 이상 가질 수 있음	Duplicates allowed	同じものを二つ以上持てる	可以拥有重复的物品	可以擁有重複的物品	Duplikate erlaubt
+	rule.balance_chips_and_mult.name	칩과 배수를 평균으로 맞춤	Chips and mult balanced	チップと倍率を平均で揃える	筹码与倍率取平均	籌碼與倍率取平均	Chips und Mult ausgleichen
+	rule.boss_rerolls_per_ante.name	안테마다의 보스 리롤	Boss rerolls per ante	アンティごとのボスリロール	每底注的 Boss 刷新次数	每底注的 Boss 刷新次數	Boss-Neumischen pro Ante
+	rule.ante_delta.name	안테	Ante	アンティ	底注	底注	Ante
+	rule.edition_weight_scale.name	에디션이 붙을 확률	Edition chance	エディションが付く確率	版本出现概率	版本出現機率	Editions-Chance
+	rule.planet_gives_mult.name	행성이 배수도 올림	Planets raise mult too	プラネットが倍率も上げる	星球牌也提升倍率	星球牌也提升倍率	Planeten erhöhen auch Mult
+	rule.starting_money.name	시작 금액	Starting money	開始時の所持金	初始金钱	初始金錢	Startgeld
+	rule.no_interest.name	이자를 받지 않음	No interest	利息が付かない	不产生利息	不產生利息	Keine Zinsen
+	rule.money_per_hand_left.name	남긴 핸드마다 받는 금액	Money per unused hand	残したハンドごとの金額	每剩余一次出牌的金钱	每剩餘一次出牌的金錢	Geld je ungenutzter Hand
+	rule.money_per_discard_left.name	남긴 버리기마다 받는 금액	Money per unused discard	残した捨て札ごとの金額	每剩余一次弃牌的金钱	每剩餘一次棄牌的金錢	Geld je ungenutzter Ablage
+	rule.randomize_deck.name	시작 덱의 랭크와 무늬를 다시 뽑음	Deck ranks and suits randomized	開始デッキの数字とスートを引き直す	初始牌组的点数与花色重新随机	初始牌組的點數與花色重新隨機	Werte und Farben des Startdecks zufällig
+	rule.double_tag_on_boss_defeat.name	보스를 깨면 태그를 둘 받음	Two tags on boss defeat	ボスを倒すとタグを二つ得る	击败 Boss 获得两个标签	擊敗 Boss 獲得兩個標籤	Zwei Marken beim Boss-Sieg
+	rule.blind_size_scale.name	블라인드의 요구 점수	Blind requirement	ブラインドの目標点	盲注目标分	盲注目標分	Blind-Anforderung
+	rule.set_discards_zero.name	버리기 횟수가 0이 됨	Discards set to zero	捨て札の回数が 0 になる	弃牌次数归零	棄牌次數歸零	Ablagen auf null
+	rule.spectral_in_arcana_packs.name	아르카나 팩에 유령 카드가 섞임	Spectral cards in arcana packs	アルカナパックにスペクトルが混じる	奥秘卡包中混入幻灵牌	奧秘卡包中混入幻靈牌	Spektralkarten in Arkana-Päckchen
+	rule.celestial_has_most_played.name	천체 팩에 가장 많이 낸 족보의 행성	Most-played planet in celestial packs	セレスティアルパックに一番出した役のプラネット	天体卡包含最常打出牌型的星球牌	天體卡包含最常打出牌型的星球牌	Meistgespielter Planet in Himmels-Päckchen
+	rule.shop_cards_have_modifiers.name	상점의 카드에 강화와 인장이 붙음	Shop cards carry modifiers	ショップのカードに強化と封蝋が付く	商店的牌带有强化与封蜡	商店的牌帶有強化與封蠟	Ladenkarten mit Verbesserungen
+	rule.no_repeat_hand_types.name	한 라운드에 같은 족보를 두 번 낼 수 없음	No repeated hand types	1 ラウンドで同じ役を二度出せない	一轮内不能重复相同牌型	一輪內不能重複相同牌型	Kein Blatt-Typ zweimal pro Runde
+	rule.single_hand_type_only.name	한 라운드에 한 가지 족보만	One hand type only	1 ラウンドで一種類の役だけ	一轮内只能用一种牌型	一輪內只能用一種牌型	Nur ein Blatt-Typ
+	rule.must_play_five_cards.name	핸드마다 다섯 장을 내야 함	Must play five cards	ハンドごとに 5 枚出さねばならない	每次必须打出五张牌	每次必須打出五張牌	Immer fünf Karten spielen
+	rule.always_draw_three.name	언제나 세 장씩 뽑음	Always draw three	いつも 3 枚ずつ引く	每次只摸三张	每次只摸三張	Immer drei ziehen
+	rule.halve_base_chips_and_mult.name	족보의 기본 칩과 배수가 절반	Base chips and mult halved	役の基本チップと倍率が半分	牌型基础筹码与倍率减半	牌型基礎籌碼與倍率減半	Grundchips und Mult halbiert
+	rule.debuff_until_joker_sold.name	조커를 팔 때까지 카드가 무력화	Debuffed until a joker is sold	ジョーカーを売るまでカードが無効	直到卖出小丑前牌被削弱	直到賣出小丑前牌被削弱	Karten geschwächt, bis ein Joker verkauft wird
+	rule.force_card_selected.name	카드 한 장이 반드시 골라짐	One card always selected	カード 1 枚が必ず選ばれる	总有一张牌被强制选中	總有一張牌被強制選中	Eine Karte immer gewählt
+	rule.remove_face_cards.name	시작 덱에서 그림 카드를 뺌	Face cards removed	開始デッキから絵札を抜く	初始牌组移除人头牌	初始牌組移除人頭牌	Bildkarten aus dem Startdeck
+	rule.suits_only.name	시작 덱을 그 무늬들로만 채움	Deck limited to those suits	開始デッキをそのスートだけにする	初始牌组只留这些花色	初始牌組只留這些花色	Deck nur mit diesen Farben
+	rule.next_shop_free.name	다음 상점의 처음 카드와 팩이 공짜	Next shop starts free	次のショップの最初のカードとパックが無料	下个商店的初始卡牌与卡包免费	下個商店的初始卡牌與卡包免費	Nächster Laden startet gratis
+	ui.tab.game	게임	Game	ゲーム	游戏	遊戲	Spiel
+	ui.tab.general	일반	General	一般	常规	一般	Allgemein
+	ui.tab.sound	소리	Sound	サウンド	声音	聲音	Ton
+	ui.tab.video	화면	Video	画面	画面	畫面	Bild
+	ui.button.guide	게임 방법	How to Play	遊び方	玩法	玩法	Anleitung
+	ui.button.options	옵션	Options	設定	选项	選項	Optionen
+	ui.button.start	시작	Play	はじめる	开始	開始	Spielen
+	ui.button.close	닫기	Close	閉じる	关闭	關閉	Schließen
+	ui.button.again	다시	Again	もう一度	再来	再來	Nochmal
+	ui.button.restart	다시 시작	New Run	新しいラン	重新开始	重新開始	Neuer Lauf
+	ui.button.play	낸다	Play	出す	出牌	出牌	Ausspielen
+	ui.button.discard	버린다	Discard	捨てる	弃牌	棄牌	Ablegen
+	ui.button.clear	그만 고른다	Clear	選び直す	取消选择	取消選擇	Aufheben
+	ui.button.sort_rank	랭크순	By Rank	数字順	按点数	按點數	Nach Wert
+	ui.button.sort_suit	무늬순	By Suit	スート順	按花色	按花色	Nach Farbe
+	ui.button.hand_list	족보 목록	Hands	役一覧	牌型	牌型	Blätter
+	ui.button.hand_list_open	족보 목록 보기	View Hands	役一覧を見る	查看牌型	查看牌型	Blätter ansehen
+	ui.button.deck_view	남은 카드	Deck	残りカード	剩余牌	剩餘牌	Deck
+	ui.button.reroll	리롤	Reroll	リロール	刷新	刷新	Neu mischen
+	ui.button.use	사용	Use	使う	使用	使用	Benutzen
+	ui.button.skip	건너뛴다	Skip	スキップ	跳过	跳過	Überspringen
+	ui.button.skip_tag	건너뛴다 — 태그	Skip for Tag	スキップ — タグ	跳过 — 标签	跳過 — 標籤	Überspringen — Marke
+	ui.button.select_blind	이 블라인드로	Play Blind	このブラインドへ	进入盲注	進入盲注	Blind spielen
+	ui.button.next_blind	다음 블라인드로	Next Blind	次のブラインドへ	下一盲注	下一盲注	Nächster Blind
+	ui.slot.chips	칩	Chips	チップ	筹码	籌碼	Chips
+	ui.slot.mult	배수	Mult	倍率	倍率	倍率	Mult
+	ui.label.plus_chips	+칩	+Chips	+チップ	+筹码	+籌碼	+Chips
+	ui.label.plus_mult	+배수	+Mult	+倍率	+倍率	+倍率	+Mult
+	ui.slot.hands	핸드	Hands	ハンド	出牌	出牌	Hände
+	ui.slot.discards	버리기	Discards	捨て札	弃牌	棄牌	Ablagen
+	ui.slot.money	금액	Money	所持金	金钱	金錢	Geld
+	ui.slot.ante	안테	Ante	アンティ	底注	底注	Ante
+	ui.slot.round_score	라운드 점수	Round Score	ラウンド得点	本轮得分	本輪得分	Rundenpunkte
+	ui.label.target	요구 점수	Target	目標点	目标分	目標分	Ziel
+	ui.label.reward	격파 보상	Reward	報酬	奖励	獎勵	Belohnung
+	ui.label.short	점수가 모자랍니다	Not enough	点数が足りません	分数不足	分數不足	Zu wenig Punkte
+	ui.label.cleared	넘겼습니다	Cleared	クリア	通过	通過	Geschafft
+	ui.label.all_cleared	전부 넘겼습니다	All Cleared	全クリア	全部通过	全部通過	Alles geschafft
+	ui.label.won	승리	Victory	勝利	胜利	勝利	Sieg
+	ui.label.lost	패배	Defeat	敗北	失败	失敗	Niederlage
+	ui.label.next_up	다음 차례	Next up	次	接下来	接下來	Als Nächstes
+	ui.label.triggered	발동	Triggered	発動	触发	觸發	Ausgelöst
+	ui.money.interest	이자	Interest	利息	利息	利息	Zinsen
+	ui.blind.small	스몰	Small	スモール	小盲	小盲	Klein
+	ui.blind.big	빅	Big	ビッグ	大盲	大盲	Groß
+	ui.blind.boss	보스	Boss	ボス	Boss	Boss	Boss
+	ui.guide.joker.head	조커	Joker	ジョーカー	小丑	小丑	Joker
+	ui.kind.consumable	소모품	Consumable	消耗品	消耗品	消耗品	Verbrauch
+	ui.kind.voucher	바우처	Voucher	バウチャー	优惠券	優惠券	Gutschein
+	ui.kind.pack	팩	Pack	パック	卡包	卡包	Päckchen
+	ui.kind.tarot	타로	Tarot	タロット	塔罗	塔羅	Tarot
+	ui.kind.planet	행성	Planet	プラネット	星球	星球	Planet
+	ui.kind.spectral	유령	Spectral	スペクトル	幻灵	幻靈	Spektral
+	ui.kind.card	카드	Card	カード	卡牌	卡牌	Karte
+	ui.kind.deck	덱	Deck	デッキ	牌组	牌組	Deck
+	ui.kind.hand	손	Hand	手札	手牌	手牌	Hand
+	ui.kind.gone	나감	Gone	場外	已用	已用	Weg
+	ui.kind.poker_hand	족보	Hand	役	牌型	牌型	Blatt
+	ui.kind.tag	태그	Tag	タグ	标签	標籤	Marke
+	ui.guide.shop.head	상점	Shop	ショップ	商店	商店	Laden
+	ui.shop.wares	상품	Wares	商品	商品	商品	Waren
+	ui.active.head	적용 중	Active	適用中	生效中	生效中	Aktiv
+	ui.rarity.common	커먼	Common	コモン	普通	普通	Gewöhnlich
+	ui.rarity.uncommon	언커먼	Uncommon	アンコモン	罕见	罕見	Ungewöhnlich
+	ui.rarity.rare	레어	Rare	レア	稀有	稀有	Selten
+	ui.rarity.legendary	전설	Legendary	レジェンド	传奇	傳奇	Legendär
+	ui.enhancement.gold	황금	Gold	ゴールド	黄金	黃金	Gold
+	ui.enhancement.steel	강철	Steel	スチール	钢铁	鋼鐵	Stahl
+	ui.enhancement.glass	유리	Glass	ガラス	玻璃	玻璃	Glas
+	ui.enhancement.stone	석재	Stone	ストーン	石头	石頭	Stein
+	ui.enhancement.wild	와일드	Wild	ワイルド	万能	萬能	Wild
+	ui.enhancement.lucky	행운	Lucky	ラッキー	幸运	幸運	Glück
+	ui.enhancement.mult	어릿광대	Mult	マルチ	倍率	倍率	Mult
+	ui.pack.standard	표준	Standard	スタンダード	标准	標準	Standard
+	ui.pack.arcana	비전	Arcana	アルカナ	奥秘	奧秘	Arkana
+	ui.pack.celestial	천체	Celestial	セレスティアル	天体	天體	Himmels
+	ui.pack.size.mega	메가 	Mega 	メガ	超级	超級	Mega-
+	ui.pack.size.jumbo	점보 	Jumbo 	ジャンボ	巨型	巨型	Jumbo-
+	ui.option.on	켜짐	On	オン	开	開	An
+	ui.option.off	꺼짐	Off	オフ	关	關	Aus
+	ui.option.volume	음량	Volume	音量	音量	音量	Lautstärke
+	ui.option.shake	화면 흔들림	Screen Shake	画面の揺れ	画面震动	畫面震動	Bildschirmwackeln
+	ui.option.particles	파티클	Particles	パーティクル	粒子	粒子	Partikel
+	ui.option.chromatic	색수차	Chromatic	色収差	色差	色差	Farbsaum
+	ui.option.speed	연출 속도	Animation Speed	演出速度	动画速度	動畫速度	Tempo
+	ui.option.hints	족보 도움	Hand Hints	役ヒント	牌型提示	牌型提示	Blatt-Hinweise
+	ui.option.language	화면의 글	Language	言語	语言	語言	Sprache
+	ui.hint.skip_if_unwanted	   ·   마음에 안 들면 건너뜁니다	   ·   skip it if you would rather not	   ·   気に入らなければスキップ	   ·   不满意可以跳过	   ·   不滿意可以跳過	   ·   überspringen, wenn er nicht passt
+	ui.hint.discard_to_swap	 「버린다」 로 바꿉니다	 — press Discard to swap them	「捨てる」で入れ替えます	按「弃牌」换掉	按「棄牌」換掉	 — mit Ablegen tauschen
+	ui.pack.note.standard	강화·인장이 붙은 카드가 들어 있습니다	Holds cards with enhancements and seals.	強化・封蝋のついたカードが入っています。	内含带强化与封蜡的卡牌。	內含帶強化與封蠟的卡牌。	Enthält Karten mit Verbesserungen und Siegeln.
+	ui.pack.note.arcana	타로가 들어 있습니다	Holds Tarot cards.	タロットが入っています。	内含塔罗牌。	內含塔羅牌。	Enthält Tarotkarten.
+	ui.pack.note.celestial	행성이 들어 있습니다	Holds Planet cards.	プラネットが入っています。	内含星球牌。	內含星球牌。	Enthält Planetenkarten.
+	ui.pack.note.buffoon	조커가 들어 있습니다	Holds Jokers.	ジョーカーが入っています。	内含小丑牌。	內含小丑牌。	Enthält Joker.
+	ui.pack.note.spectral	유령이 들어 있습니다	Holds Spectral cards.	スペクトルが入っています。	内含幻灵牌。	內含幻靈牌。	Enthält Spektralkarten.
+	ui.option.note.hints	고르면 더 높은 족보가 되는 카드를 표시합니다	Marks cards that would make a better hand	選ぶとより高い役になるカードを示します	标出选中后能凑成更好牌型的牌	標出選中後能湊成更好牌型的牌	Zeigt Karten, die ein besseres Blatt ergeben
+	ui.option.note.language	고르지 않으면 이 기계의 언어를 따릅니다	Follows the system language unless you choose	選ばなければこの端末の言語に従います	未选择时跟随系统语言	未選擇時跟隨系統語言	Folgt der Systemsprache, wenn nichts gewählt ist
+	ui.option.note.speed	득점 연출이 도는 빠르기입니다	How fast the scoring animation runs	得点演出が流れる速さです	得分演出的播放速度	得分演出的播放速度	Wie schnell die Punktewertung abläuft
+	ui.option.note.particles	카드 뒤에서 터지는 조각들입니다	Bits that burst behind the cards	カードの後ろではじける粒です	卡牌后方迸出的碎片	卡牌後方迸出的碎片	Teilchen, die hinter den Karten aufplatzen
+	ui.option.note.shake	큰 값에서 판이 흔들립니다	The board shakes on big values	大きな値で盤が揺れます	数值大时画面会震动	數值大時畫面會震動	Das Feld wackelt bei großen Werten
+	ui.option.note.chromatic	한 방 먹을 때 색이 갈라집니다	Colours split apart on a big hit	大きな一撃で色がずれます	大幅得分时颜色分离	大幅得分時顏色分離	Farben trennen sich bei einem großen Treffer
+	ui.deck.left	덱에 남아 있습니다	Still in the deck	デッキに残っています	仍在牌组中	仍在牌組中	Noch im Deck
+	ui.deck.in_hand	지금 손에 있습니다	In your hand now	今、手札にあります	现在在手牌中	現在在手牌中	Jetzt auf der Hand
+	ui.deck.gone	이미 나갔습니다	Already played	すでに出ました	已经打出	已經打出	Schon gespielt
+	ui.deck.added	덱에 더해졌습니다	Added to the deck	デッキに加わりました	已加入牌组	已加入牌組	Zum Deck hinzugefügt
+	ui.deck.removed	덱에서 빠졌습니다	Removed from the deck	デッキから抜けました	已从牌组移除	已從牌組移除	Aus dem Deck entfernt
+	ui.deck.changed	덱의 카드가 달라졌습니다	Cards in the deck changed	デッキのカードが変わりました	牌组中的牌发生了变化	牌組中的牌發生了變化	Karten im Deck haben sich geändert
+	ui.note.rest_of_run	런 내내 남습니다	Lasts the whole run	ラン中ずっと残ります	本次运行内一直有效	本次運行內一直有效	Gilt den ganzen Lauf
+	ui.note.applies_all_run	이번 런 내내 적용됩니다	Applies for the whole run	このラン中ずっと適用されます	本次运行内始终生效	本次運行內始終生效	Gilt für den ganzen Lauf
+	ui.note.disabled_this_round	이번 라운드에는 무력화되어 있습니다	Disabled for this round	このラウンドは無効になっています	本轮被禁用	本輪被禁用	In dieser Runde deaktiviert
+	ui.note.no_rules	아무 규칙도 걸리지 않습니다	No rules are in effect	規則は何もかかっていません	没有任何规则生效	沒有任何規則生效	Keine Regeln in Kraft
+	ui.active.empty	아직 아무것도 걸려 있지 않습니다.	Nothing is active yet.	まだ何も適用されていません。	目前没有任何效果。	目前沒有任何效果。	Noch ist nichts aktiv.
+	ui.hand.never_played	아직 내 본 적이 없는 족보입니다	You have never played this hand	まだ出したことのない役です	你还没有打出过这个牌型	你還沒有打出過這個牌型	Dieses Blatt hast du noch nie gespielt
+	ui.hand.leveled	이 족보의 칩과 배수가 올랐습니다	This hand gained chips and mult	この役のチップと倍率が上がりました	这个牌型的筹码与倍率提升了	這個牌型的籌碼與倍率提升了	Chips und Mult dieses Blatts sind gestiegen
+	ui.note.grew	늘었습니다	Grew	増えました	增加了	增加了	Gewachsen
+	ui.note.turned_on	켜졌습니다	Turned on	オンになりました	已开启	已開啟	Eingeschaltet
+	ui.note.turned_off	꺼졌습니다	Turned off	オフになりました	已关闭	已關閉	Ausgeschaltet
+	ui.note.applied	효과가 적용되었습니다	The effect took hold	効果が適用されました	效果已生效	效果已生效	Der Effekt greift
+	ui.note.joker_slot_free	조커 슬롯이 비었습니다	A Joker slot is free	ジョーカー枠が空きました	小丑栏空出来了	小丑欄空出來了	Ein Jokerplatz ist frei
+	ui.note.cannot_sell	팔 수 없습니다	Cannot be sold	売れません	无法出售	無法出售	Nicht verkäuflich
+	ui.shop.voucher_taken	이번 안테의 바우처는 이미 샀습니다	You already bought this ante’s voucher	このアンティのバウチャーはもう買いました	本底注的优惠券已经买过了	本底注的優惠券已經買過了	Der Gutschein dieser Ante ist schon gekauft
+	ui.edition.random	무작위 에디션	a random edition	ランダムなエディション	随机版本	隨機版本	eine zufällige Edition
+	ui.swap.title	자리가 없습니다	No Room	空きがありません	没有空位	沒有空位	Kein Platz
+	ui.swap.hint	자리 없음 — 눌러서 교체	No room — tap to swap	空きなし — 押して入れ替え	没有空位 — 点击替换	沒有空位 — 點擊替換	Kein Platz — antippen zum Tauschen
+	ui.deck_view.note	밝은 것이 덱에 남은 카드입니다. 카드를 누르면 그 한 장의 설명이 뜹니다.	The bright ones are still in the deck. Tap a card to read it.	明るいものがデッキに残っているカードです。カードを押すとその一枚の説明が出ます。	较亮的是仍在牌组中的牌。点击一张牌可查看说明。	較亮的是仍在牌組中的牌。點擊一張牌可查看說明。	Die hellen Karten sind noch im Deck. Tippe eine Karte an, um sie zu lesen.
+	ui.shop.note	조커와 소모품을 삽니다. 바우처는 런 내내 남습니다.	Buy Jokers and consumables. Vouchers last the whole run.	ジョーカーと消耗品を買います。バウチャーはラン中ずっと残ります。	购买小丑与消耗品。优惠券在本次运行内一直有效。	購買小丑與消耗品。優惠券在本次運行內一直有效。	Kaufe Joker und Verbrauchsgegenstände. Gutscheine gelten den ganzen Lauf.
+	ui.title.tagline	조커를 모아 점수를 불리는 포커 로그라이크	A poker roguelike about stacking Jokers	ジョーカーを重ねて得点を膨らませるポーカーローグライク	收集小丑、放大分数的扑克 Roguelike	收集小丑、放大分數的撲克 Roguelike	Ein Poker-Roguelike, in dem Joker die Punkte türmen
+	ui.title.note	안테 8까지. 조커 150종과 소모품 52종이 같은 패를 다른 점수로 만듭니다.	Eight antes. 150 Jokers and 52 consumables turn the same hand into a different score.	アンティ8まで。ジョーカー150種と消耗品52種が、同じ手札を違う得点に変えます。	一路打到底注 8。150 种小丑与 52 种消耗品，让同一手牌得出不同的分数。	一路打到底注 8。150 種小丑與 52 種消耗品，讓同一手牌得出不同的分數。	Acht Antes. 150 Joker und 52 Verbrauchsgegenstände machen aus derselben Hand eine andere Punktzahl.
+	ui.guide.lead	포커 족보로 점수를 내고, 조커로 그 점수를 불립니다.	Score with poker hands, then grow that score with Jokers.	ポーカーの役で得点し、ジョーカーでその点を膨らませます。	用扑克牌型得分，再用小丑把分数放大。	用撲克牌型得分，再用小丑把分數放大。	Punkte mit Pokerblättern, dann mit Jokern vervielfachen.
+	ui.label.hands_left	남은 핸드	Hands left	残りハンド	剩余出牌	剩餘出牌	Hände übrig
+	ui.label.discards_left	남은 버리기	Discards left	残り捨て札	剩余弃牌	剩餘棄牌	Ablagen übrig
+	ui.guide.goal.head	목표	Goal	目標	目标	目標	Ziel
+	ui.guide.goal.body	안테 8까지 블라인드를 차례로 격파합니다. 블라인드마다 요구 점수가 있고, 정해진 핸드 수 안에 그 점수를 넘겨야 합니다. 넘기지 못하면 그 자리에서 런이 끝납니다.	Beat the blinds one after another up to Ante 8. Each blind has a target score, and you must pass it within a fixed number of hands. Fail and the run ends there.	アンティ8までブラインドを順に撃破します。ブラインドごとに目標点があり、決められたハンド数以内にその点を超えなければなりません。超えられなければそこでランが終わります。	依次击破盲注，直到底注 8。每个盲注都有目标分，必须在规定的出牌次数内超过它。做不到，本次运行就此结束。	依次擊破盲注，直到底注 8。每個盲注都有目標分，必須在規定的出牌次數內超過它。做不到，本次運行就此結束。	Schlage die Blinds nacheinander bis Ante 8. Jeder Blind hat eine Zielpunktzahl, die du in einer festen Zahl von Händen überschreiten musst. Schaffst du es nicht, endet der Lauf.
+	ui.guide.score.head	점수	Score	得点	得分	得分	Punkte
+	ui.guide.score.body	점수 = 칩 × 배수 입니다. 낸 카드가 만드는 족보가 기본 칩과 배수를 정하고, 득점한 카드의 숫자가 칩에 더해집니다 (A 는 11, 그림은 10).	Score = Chips × Mult. The poker hand you play sets the base chips and mult, and each scoring card adds its rank to the chips (Ace is 11, face cards are 10).	得点 = チップ × 倍率です。出したカードが作る役が基本のチップと倍率を決め、得点したカードの数字がチップに加わります（A は 11、絵札は 10）。	得分 = 筹码 × 倍率。打出的牌型决定基础筹码与倍率，参与得分的牌把点数加到筹码上（A 为 11，人头牌为 10）。	得分 = 籌碼 × 倍率。打出的牌型決定基礎籌碼與倍率，參與得分的牌把點數加到籌碼上（A 為 11，人頭牌為 10）。	Punkte = Chips × Mult. Das gespielte Pokerblatt setzt Grundchips und Mult, und jede wertende Karte addiert ihren Wert zu den Chips (Ass 11, Bildkarten 10).
+	ui.guide.round.head	한 라운드	A Round	1 ラウンド	一轮	一輪	Eine Runde
+	ui.guide.round.body	1. 패에서 최대 5장을 눌러 고릅니다.  2. 「낸다」 로 점수를 냅니다.  3. 패가 시원찮으면 「버린다」 — 버린 만큼 다시 뽑습니다. 버리기도 횟수가 있습니다.	1. Pick up to five cards from your hand.  2. Press Play to score them.  3. If the hand is poor, press Discard — you draw as many as you threw away. Discards are limited too.	1. 手札から最大5枚を選びます。 2.「出す」で得点します。 3. 手札が弱ければ「捨てる」— 捨てた分だけ引き直します。捨て札にも回数があります。	1. 从手牌中最多选五张。 2. 按「出牌」得分。 3. 手牌不好就按「弃牌」——弃掉几张就补几张。弃牌次数也有限。	1. 從手牌中最多選五張。 2. 按「出牌」得分。 3. 手牌不好就按「棄牌」——棄掉幾張就補幾張。棄牌次數也有限。	1. Wähle bis zu fünf Karten aus der Hand.  2. Drücke Ausspielen, um zu werten.  3. Ist das Blatt schwach, drücke Ablegen — du ziehst so viele nach, wie du abgelegt hast. Auch Ablagen sind begrenzt.
+	ui.guide.joker.body	이 게임의 알맹이입니다. 상점에서 사고, 위쪽 줄에 최대 5개까지 세웁니다. 왼쪽부터 차례로 발동하므로 순서가 점수를 바꿉니다. 마우스를 올리면 무엇을 하는지 보입니다.	These are the heart of the game. Buy them in the shop and line up to five along the top. They trigger left to right, so their order changes your score. Hover one to see what it does.	このゲームの核です。ショップで買い、上の列に最大5枚まで並べます。左から順に発動するので、並び順が得点を変えます。カーソルを乗せると何をするか分かります。	它们是这个游戏的核心。在商店购买，最多在上排摆五个。它们从左到右依次触发，所以顺序会改变得分。把鼠标移上去可以看到效果。	它們是這個遊戲的核心。在商店購買，最多在上排擺五個。它們從左到右依次觸發，所以順序會改變得分。把滑鼠移上去可以看到效果。	Sie sind das Herz des Spiels. Kaufe sie im Laden und stelle bis zu fünf in die obere Reihe. Sie lösen von links nach rechts aus, die Reihenfolge ändert also deine Punkte. Fahre über einen, um zu sehen, was er tut.
+	ui.guide.shop.body	블라인드를 격파하면 열립니다. 조커·소모품·바우처를 삽니다. 「리롤」 로 물건을 바꿀 수 있습니다. 돈은 격파 보상 + 남은 핸드 + 이자로 들어옵니다.	It opens after you beat a blind. Buy Jokers, consumables and vouchers; press Reroll to swap the wares. Money comes from the blind reward, unused hands and interest.	ブラインドを撃破すると開きます。ジョーカー・消耗品・バウチャーを買い、「リロール」で品を入れ替えられます。お金は報酬と残りハンドと利息で入ります。	击破盲注后开启。可以买小丑、消耗品与优惠券，按「刷新」更换商品。金钱来自击破奖励、剩余出牌次数与利息。	擊破盲注後開啟。可以買小丑、消耗品與優惠券，按「刷新」更換商品。金錢來自擊破獎勵、剩餘出牌次數與利息。	Er öffnet, wenn du einen Blind schlägst. Kaufe Joker, Verbrauchsgegenstände und Gutscheine; mit Neu mischen tauschst du die Waren. Geld kommt aus Belohnung, ungenutzten Händen und Zinsen.
+	ui.guide.controls.head	조작	Controls	操作	操作	操作	Steuerung
+	ui.guide.controls.body	카드를 누르면 고르고, 다시 누르면 풉니다. 은은하게 물든 카드는 그것도 고르면 더 높은 족보가 되는 카드입니다. 「족보 목록」 은 어느 족보가 몇 점인지 보여줍니다.	Tap a card to pick it, tap again to let it go. A faintly tinted card is one that would make a better hand if you picked it too. Hands shows what each poker hand is worth.	カードを押すと選び、もう一度押すと外れます。ほのかに色づいたカードは、それも選べばより高い役になるカードです。「役一覧」でどの役が何点かを見られます。	点击一张牌选中，再点一次取消。淡淡着色的牌表示把它也选上会凑成更好的牌型。「牌型」里可以看到每种牌型值多少分。	點擊一張牌選中，再點一次取消。淡淡著色的牌表示把它也選上會湊成更好的牌型。「牌型」裡可以看到每種牌型值多少分。	Tippe eine Karte an, um sie zu wählen, nochmal zum Abwählen. Eine leicht getönte Karte würde das Blatt verbessern, wenn du sie mitnimmst. Blätter zeigt, was jedes Pokerblatt wert ist.
+	ui.hint.hands_left	   ·   남은 핸드 {n}회	   ·   {n} hands left	   ·   残りハンド {n} 回	   ·   剩余出牌 {n} 次	   ·   剩餘出牌 {n} 次	   ·   noch {n} Hände
+	ui.card.chips_split	 — 기본 {base} + 덤 {bonus}	 — base {base} + bonus {bonus}	 — 基本 {base} + ボーナス {bonus}	 — 基础 {base} + 附加 {bonus}	 — 基礎 {base} + 附加 {bonus}	 — Basis {base} + Bonus {bonus}
+	ui.rule.discount	{n}% 싸게 삽니다	{n}% cheaper	{n}% 安く買えます	便宜 {n}%	便宜 {n}%	{n}% günstiger
+	ui.blind.named	{name} 블라인드	{name} Blind	{name} ブラインド	{name} 盲注	{name} 盲注	{name}-Blind
+	ui.toast.used	{name} 사용	Used {name}	{name} を使いました	使用了 {name}	使用了 {name}	{name} benutzt
+	ui.toast.destroyed	{name} 파괴	{name} destroyed	{name} が壊れました	{name} 被摧毁	{name} 被摧毀	{name} zerstört
+	ui.pack.picks_left	{n}장 더 고릅니다	Pick {n} more	あと {n} 枚選びます	再选 {n} 张	再選 {n} 張	Noch {n} wählen
+	ui.pack.pick_from	펼쳐진 것 중에서 {n}장을 고릅니다	Pick {n} of these	この中から {n} 枚選びます	从中选 {n} 张	從中選 {n} 張	Wähle {n} davon
+	ui.pack.of	{cards}장 중 {picks}장	{picks} of {cards}	{cards} 枚中 {picks} 枚	{cards} 选 {picks}	{cards} 選 {picks}	{picks} von {cards}
+	ui.pack.spread	{cards}장이 펼쳐지고 {picks}장을 고릅니다	{cards} are dealt and you pick {picks}	{cards} 枚が並び、{picks} 枚を選びます	摊开 {cards} 张，从中选 {picks} 张	攤開 {cards} 張，從中選 {picks} 張	{cards} werden ausgelegt, du wählst {picks}
+	ui.pack.named	{scale}{body} 팩	{scale}{body} Pack	{scale}{body} パック	{scale}{body} 卡包	{scale}{body} 卡包	{scale}{body}-Päckchen
+	ui.option.speed_value	{n}배	{n}×	{n} 倍	{n} 倍	{n} 倍	{n}×
+	phrase.chance	{num}/{den} 확률로 	with a {num}/{den} chance, 	{num}/{den} の確率で 	有 {num}/{den} 的概率 	有 {num}/{den} 的機率 	mit {num}/{den} Chance 
+	ui.hand.level	{name}   레벨 {level}	{name}   Level {level}	{name}   レベル {level}	{name}   等级 {level}	{name}   等級 {level}	{name}   Stufe {level}
+	ui.hand.level_up	{name} 레벨 +1	{name} Level +1	{name} レベル +1	{name} 等级 +1	{name} 等級 +1	{name} Stufe +1
+	ui.hand.times	{n}회	{n}×	{n} 回	{n} 次	{n} 次	{n}×
+	ui.hand.preview	이 {n}장이면  {name}	These {n} make  {name}	この {n} 枚なら  {name}	这 {n} 张是  {name}	這 {n} 張是  {name}	Diese {n} ergeben  {name}
+	ui.hand.preview_math	칩 {chips}  ×  배수 {mult}   =   {total}	Chips {chips}  ×  Mult {mult}   =   {total}	チップ {chips}  ×  倍率 {mult}   =   {total}	筹码 {chips}  ×  倍率 {mult}   =   {total}	籌碼 {chips}  ×  倍率 {mult}   =   {total}	Chips {chips}  ×  Mult {mult}   =   {total}
+	ui.hint.selected	{n}장 골랐습니다   ·   「낸다」 로 점수를 내거나	{n} picked   ·   press Play to score, or	{n} 枚選びました   ·   「出す」で得点するか	已选 {n} 张   ·   按「出牌」得分，或	已選 {n} 張   ·   按「出牌」得分，或	{n} gewählt   ·   Ausspielen zum Werten, oder
+	ui.hint.pick_cards	카드를 눌러 고릅니다 — 최대 {n}장	Tap cards to pick — up to {n}	カードを押して選びます — 最大 {n} 枚	点击卡牌选择 — 最多 {n} 张	點擊卡牌選擇 — 最多 {n} 張	Karten antippen — bis zu {n}
+	ui.hint.best_hand	테두리가 도는 {n}장이 지금 가장 높은 족보입니다	The {n} outlined cards make the best hand right now	枠が付いた {n} 枚が今いちばん高い役です	带边框的 {n} 张是当前最高的牌型	帶邊框的 {n} 張是當前最高的牌型	Die {n} umrandeten Karten ergeben gerade das beste Blatt
+	ui.over.short	{where}에서 {n}점이 모자랐습니다.	You were {n} short at {where}.	{where} で {n} 点足りませんでした。	在{where}还差 {n} 分。	在{where}還差 {n} 分。	Bei {where} fehlten dir {n} Punkte.
+	ui.over.stopped	{where}에서 멈췄습니다.	You stopped at {where}.	{where} で止まりました。	在{where}停下了。	在{where}停下了。	Bei {where} war Schluss.
+	ui.over.won	안테 {n}까지 넘겼습니다.	You cleared through Ante {n}.	アンティ {n} まで突破しました。	通过了底注 {n}。	通過了底注 {n}。	Du hast bis Ante {n} geschafft.
+	ui.over.where	안테 {ante} · {blind} 블라인드	Ante {ante} · {blind} Blind	アンティ {ante} · {blind} ブラインド	底注 {ante} · {blind} 盲注	底注 {ante} · {blind} 盲注	Ante {ante} · {blind}-Blind
+	ui.swap.lead	「{name}」 를 놓을 자리를 비웁니다	Free up a slot for 「{name}」	「{name}」 を置く場所を空けます	腾出位置来放「{name}」	騰出位置來放「{name}」	Mach Platz für 「{name}」
+	ui.card.enhancement	강화 — {name}	Enhancement — {name}	強化 — {name}	强化 — {name}	強化 — {name}	Verbesserung — {name}
+	ui.card.edition	에디션 — {name}	Edition — {name}	エディション — {name}	版本 — {name}	版本 — {name}	Edition — {name}
+	ui.card.seal	인장 — {name}	Seal — {name}	封蝋 — {name}	封蜡 — {name}	封蠟 — {name}	Siegel — {name}
+	ui.card.chips	칩 {n}	Chips {n}	チップ {n}	筹码 {n}	籌碼 {n}	Chips {n}
+	ui.blind.reward	격파 보상  ${n}	Reward  ${n}	報酬  ${n}	奖励  ${n}	獎勵  ${n}	Belohnung  ${n}
+	ui.shop.reroll_cost	리롤  ${n}	Reroll  ${n}	リロール  ${n}	刷新  ${n}	刷新  ${n}	Neu mischen  ${n}
+	ui.button.sell	판매 ${n}	Sell ${n}	売る ${n}	出售 ${n}	出售 ${n}	Verkaufen ${n}
+	ui.active.more	그 밖에 {n}개  ·  눌러서 모두 보기	{n} more  ·  tap to see them all	ほか {n} 件  ·  押すとすべて見られます	还有 {n} 项  ·  点击查看全部	還有 {n} 項  ·  點擊查看全部	{n} weitere  ·  antippen für alle
+	ui.active.count	적용 중  {n}	Active  {n}	適用中  {n}	生效中  {n}	生效中  {n}	Aktiv  {n}
+	ui.deck_view.counts	남은 것 중  그림 {faces}   ·   에이스 {aces}   ·   강화 {enhanced}   ·   인장 {sealed}	Left  faces {faces}   ·   aces {aces}   ·   enhanced {enhanced}   ·   sealed {sealed}	残り  絵札 {faces}   ·   エース {aces}   ·   強化 {enhanced}   ·   封蝋 {sealed}	剩余  人头 {faces}   ·   A {aces}   ·   强化 {enhanced}   ·   封蜡 {sealed}	剩餘  人頭 {faces}   ·   A {aces}   ·   強化 {enhanced}   ·   封蠟 {sealed}	Übrig  Bilder {faces}   ·   Asse {aces}   ·   verbessert {enhanced}   ·   gesiegelt {sealed}
+	ui.stat.hands_played	낸 핸드  {n}	Hands played  {n}	出したハンド  {n}	已出牌  {n}	已出牌  {n}	Gespielte Hände  {n}
+	ui.stat.jokers	모은 조커  {n}	Jokers  {n}	集めたジョーカー  {n}	收集的小丑  {n}	收集的小丑  {n}	Joker  {n}
+	ui.stat.deck	덱  {left} / {all}	Deck  {left} / {all}	デッキ  {left} / {all}	牌组  {left} / {all}	牌組  {left} / {all}	Deck  {left} / {all}
+	ui.stat.ante	안테  {at} / {all}	Ante  {at} / {all}	アンティ  {at} / {all}	底注  {at} / {all}	底注  {at} / {all}	Ante  {at} / {all}
+	ui.stat.seed	시드  {seed}	Seed  {seed}	シード  {seed}	种子  {seed}	種子  {seed}	Seed  {seed}
+	phrase.op.add_mult_value	배수 +{n}	+{n} Mult	倍率 +{n}	倍率 +{n}	倍率 +{n}	+{n} Mult
+	phrase.op.mul_mult_value	배수 ×{n}	×{n} Mult	倍率 ×{n}	倍率 ×{n}	倍率 ×{n}	×{n} Mult
+	phrase.op.mul_mult_each	배수 ×{n} 씩	×{n} Mult each	それぞれ 倍率 ×{n}	每个 倍率 ×{n}	每個 倍率 ×{n}	je ×{n} Mult
+	phrase.op.add_chips_value	칩 +{n}	+{n} Chips	チップ +{n}	筹码 +{n}	籌碼 +{n}	+{n} Chips
+	ui.toast.cards_added	카드 {n}장이 들어왔습니다	{n} cards came in	カードが {n} 枚入りました	加入了 {n} 张牌	加入了 {n} 張牌	{n} Karten kamen dazu
+	ui.toast.cards_destroyed	카드 {n}장이 사라졌습니다	{n} cards were destroyed	カードが {n} 枚消えました	{n} 张牌被摧毁	{n} 張牌被摧毀	{n} Karten wurden zerstört
+	ui.toast.cards_changed	카드 {n}장이 바뀌었습니다	{n} cards changed	カードが {n} 枚変わりました	{n} 张牌发生了变化	{n} 張牌發生了變化	{n} Karten haben sich geändert
+	ui.counter.chips	+{n}칩	+{n} chips	+{n} チップ	+{n} 筹码	+{n} 籌碼	+{n} Chips

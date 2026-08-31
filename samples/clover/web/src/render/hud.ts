@@ -4,6 +4,7 @@
 // 얼마인지가 한 덩어리로 붙어 있어야 판단이 됩니다.
 
 import { Container, Graphics, Text } from 'pixi.js'
+import { tf } from '../core/strings'
 
 import { mix, plate, slotStyle } from './skin'
 import { COLOR } from './theme'
@@ -213,7 +214,7 @@ export class BlindBadge extends Container {
     this.need.anchor.set(0.5, 0)
     this.need.position.set(this.boxWidth / 2, 52)
 
-    this.reward.text = `격파 보상  $${reward}`
+    this.reward.text = tf('ui.blind.reward', { n: reward })
     this.reward.anchor.set(0.5, 0)
     this.reward.position.set(this.boxWidth / 2, 92)
 
