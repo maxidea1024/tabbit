@@ -580,6 +580,17 @@ export class Game {
   /** 머리글이 얼마나 남았는가. **계속 떠 있으면 지난 일이 지금 일처럼 보입니다.** */
   private headlineLife = 0
   private headlineSpan = 1
+  /**
+   * 점수가 굴러가는 동안 나는 소리의 시계.
+   *
+   * **숫자가 굴러가는 1초가 무음이었습니다.** 재어 보면 낸 뒤 8초 동안 소리가 14번이고
+   * 그 사이에 1089밀리초가 비었는데, 비는 그 자리가 칩과 배수가 곱해져 점수가 올라가는
+   * 바로 그 순간입니다.
+   */
+  private ratchet = 0
+  /** 곱해지기를 기다리는 동안 얼마나 조여들었는가. 0 에서 1 로 갑니다. */
+  private build = 0
+
   /** 예약해 둔 소리. 음이 하나씩 올라가는 아르페지오를 이것으로 냅니다. */
   private readonly chimes: { at: number; cue: string; semitones: number }[] = []
 
@@ -1519,8 +1530,11 @@ export class Game {
         this.popAt(view, valueText(event.op, event.chips, event.mult, event.money),
           tint, beat.intensity + step * 0.4 + (mul ? 0.5 : 0))
         // 랭크의 칩과 강화·인장·에디션이 낸 것은 소리가 달라야 갈립니다.
+        // **카드가 낸 것과 조커가 낸 것은 소리가 갈립니다.** 같은 배수라도 어디서 온
+        // 것인지가 들려야 무엇을 세는 중인지 따라갈 수 있습니다.
         this.audio.play(event.source === 'rank' ? 'card_chip'
-          : mul ? 'joker_mul' : 'joker_add', semitones + this.chain * 2)
+          : event.chips !== 0 ? 'card_chip'
+            : mul ? 'card_mult' : 'joker_add', semitones + this.chain * 2)
         // **화면은 흔들지 않습니다.** 한 장이 점수를 내는 것은 다섯 번, 여덟 번 이어지는
         // 일이고, 그때마다 화면이 흔들리면 카드 위의 숫자를 읽을 수 없습니다 — 일어난 자리를
         // 가리키는 것은 그 카드에 도는 빛 하나로 충분합니다.
@@ -1955,6 +1969,41 @@ export class Game {
     }
   }
 
+  /**
+   * 굴러가는 숫자에 소리를 붙입니다.
+   *
+   * **간격이 좁아지고 음이 오릅니다.** 남은 거리가 줄면 빨라지므로, 끝으로 갈수록 촘촘해지고
+   * 높아집니다 — 그 조여드는 것이 「쌓이고 있다」입니다.
+   */
+  private advanceRatchet(seconds: number): void {
+    if (!this.settings.sound) return
+
+    // **곱해지기를 기다리는 동안.** 마지막 카드가 득점하고 두 숫자가 곱해질 때까지가
+    // 이 게임에서 사람이 가장 크게 기다리는 자리인데, 재어 보니 그 1초가 무음이었습니다.
+    // 조여들며 올라가는 소리로 채웁니다.
+    if (this.player.coming === 'ScoreResolved') {
+      this.ratchet -= seconds
+      if (this.ratchet > 0) return
+      this.build = Math.min(1, this.build + 0.12)
+      this.ratchet = 0.10 - this.build * 0.055
+      this.audio.play('score_count', Math.round(this.build * 16) - 4)
+      return
+    }
+    this.build = 0
+
+    // **숫자가 굴러가는 동안.** 남은 거리가 줄면 촘촘해지고 음이 오릅니다.
+    const rolling = this.score.rolling
+    if (rolling <= 0) {
+      this.ratchet = 0
+      return
+    }
+
+    this.ratchet -= seconds
+    if (this.ratchet > 0) return
+    this.ratchet = 0.05 + rolling * 0.06
+    this.audio.play('score_count', Math.round((1 - rolling) * 14) - 4)
+  }
+
   /** 때가 된 것을 합니다. */
   private advanceLater(): void {
     for (let i = this.later.length - 1; i >= 0; i--) {
@@ -2068,6 +2117,7 @@ export class Game {
     this.advanceReveals()
     this.advancePack(seconds)
     this.advanceLater()
+    this.advanceRatchet(seconds)
     this.advanceBurningItems(seconds)
     this.coins.advance(seconds)
     this.tokens.advance(seconds)
@@ -2313,6 +2363,8 @@ export class Game {
       // **버튼의 자리도 알립니다.** 도구가 같은 계산을 베껴 적으면 배치를 고칠 때 한쪽만
       // 고쳐지고, 그 도구는 엉뚱한 곳을 눌러 놓고 아무 말도 하지 않습니다.
       spots: this.spots,
+      // 소리가 비는 자리를 찾을 때 씁니다 — 시계로 재면 배속과 히트스톱에서 어긋납니다.
+      coming: this.player.coming ?? '',
       handOrder: state.hand.slice(),
       jokerOrder: state.jokers.map(joker => joker.uid),
       // **판을 끝까지 두는 도구를 위한 손잡이입니다.** 사람이 보라고 넣은 뜸이 도구에게는
@@ -2766,6 +2818,9 @@ export class Game {
     if (this.blindShown !== state.blind) {
       this.blindShown = state.blind
       this.blindEnter = 0
+      // **보스 차례가 되면 그것이 들립니다.** 판 셋 중 붉은 것 하나가 앞으로 나오는 것을
+      // 눈으로만 알리면, 안테의 마지막이라는 것이 지나가 버립니다.
+      if (state.blind === BlindKind.Boss) this.audio.play('boss_reveal')
     }
 
     const order = [BlindKind.Small, BlindKind.Big, BlindKind.Boss]
@@ -4585,7 +4640,8 @@ export class Game {
     // **산 것이 그 자리에서 튀어 오릅니다.** 값을 치른 자리가 밝아지고, 그 자리에서
     // 조커가 날아가 줄에 꽂힙니다 — 조각 몇 개만으로는 눌린 것인지 산 것인지 모릅니다.
     this.tooltip.hide()
-    this.audio.play('joker_buy')
+    // 조커를 사는 것과 소모품을 사는 것은 소리가 갈립니다.
+    this.audio.play(item.kind === ShopItemKind.Joker ? 'joker_buy' : 'shop_buy')
     this.particles.burst(tile.x + 79, tile.y + 84, 30, COLOR.money, 1.4, 1.2)
     this.particles.burst(tile.x + 79, tile.y + 84, 12, 0xffffff, 0.8, 0.7)
     this.flashPanel(COLOR.money, 0.35)
@@ -5009,7 +5065,8 @@ export class Game {
         at: this.clock + 0.12 + index * 0.11,
         run: () => {
           node.alpha = 1
-          this.audio.play('card_draw', index * 2)
+          // **뜯은 팩에서 나오는 것은 뒤집히는 소리입니다.** 손에 깔리는 것과 갈립니다.
+          this.audio.play('card_flip', index * 2)
           this.particles.burst(from.x, from.y, 8, ink, 0.7, 0.6)
         },
       })

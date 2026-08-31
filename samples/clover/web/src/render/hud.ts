@@ -106,6 +106,17 @@ export class Slot extends Container {
   get settled(): boolean { return this.shown === this.wanted }
 
   /**
+   * 굴러가는 정도. 0 이면 다 왔고 1 이면 아직 멉니다.
+   *
+   * **소리가 이것을 따라 오릅니다.** 숫자가 굴러가는 동안 무음이면 그 1초가 비고, 그
+   * 1초가 이 게임에서 가장 중요한 순간입니다.
+   */
+  get rolling(): number {
+    if (!this.numeric || this.shown === this.wanted) return 0
+    return Math.min(1, Math.abs(this.wanted - this.shown) / 400)
+  }
+
+  /**
    * 남은 거리의 일부씩 좁힙니다. 큰 수일수록 오래 굴러갑니다.
    *
    * **굴러가는 동안 숫자가 떱니다.** 값이 매끄럽게 올라가기만 하면 「바뀌었다」로 읽히고,

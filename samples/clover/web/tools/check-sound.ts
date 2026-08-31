@@ -34,13 +34,14 @@ async function main(): Promise<number> {
 
   const found = await page.evaluate(async ([list, target]: [string[], number]) => {
     const context = new AudioContext()
-    const out: { cue: string; ok: boolean; seconds: number; gain: number }[] = []
+    const out: { cue: string; ok: boolean; seconds: number; gain: number;
+                 lead: number }[] = []
 
     for (const cue of list) {
       try {
         const file = await fetch(`./sound/${cue}.ogg`)
         if (!file.ok) {
-          out.push({ cue, ok: false, seconds: 0, gain: 0 })
+          out.push({ cue, ok: false, seconds: 0, gain: 0, lead: 0 })
           continue
         }
         const buffer = await context.decodeAudioData(await file.arrayBuffer())
@@ -49,13 +50,19 @@ async function main(): Promise<number> {
         let sum = 0
         for (let i = 0; i < span; i++) sum += wave[i] * wave[i]
         const rms = Math.sqrt(sum / Math.max(1, span))
+        // **앞의 묵음.** 소리가 처음 문턱을 넘는 자리입니다 — 그만큼 늦게 들립니다.
+        let lead = 0
+        for (let i = 0; i < wave.length; i++) {
+          if (Math.abs(wave[i]) > 0.01) { lead = i / buffer.sampleRate; break }
+        }
         out.push({
           cue, ok: true,
           seconds: Number(buffer.duration.toFixed(2)),
           gain: Number(Math.max(0.05, Math.min(6, target / Math.max(rms, 1e-5))).toFixed(2)),
+          lead: Number((lead * 1000).toFixed(1)),
         })
       } catch {
-        out.push({ cue, ok: false, seconds: 0, gain: 0 })
+        out.push({ cue, ok: false, seconds: 0, gain: 0, lead: 0 })
       }
     }
     return out
@@ -81,6 +88,13 @@ async function main(): Promise<number> {
     if (brief.length > 0) {
       console.log('0.06초보다 짧은 것: '
         + brief.map(one => `${one.cue} ${one.seconds}s`).join(' · '))
+    }
+    const leads = ok.map(one => one.lead).sort((a, b) => b - a)
+    console.log(`앞의 묵음 ${leads[leads.length - 1]}~${leads[0]}ms`)
+    const late = ok.filter(one => one.lead > 8).sort((a, b) => b.lead - a.lead)
+    if (late.length > 0) {
+      console.log(`8ms 를 넘는 것 ${late.length}개: `
+        + late.map(one => `${one.cue} ${one.lead}ms`).join(' · '))
     }
     const loud = ok.filter(one => one.gain <= 0.2)
     if (loud.length > 0) console.log('원래 아주 큰 것: ' + loud.map(one => one.cue).join(' '))

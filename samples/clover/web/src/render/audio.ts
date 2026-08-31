@@ -40,7 +40,8 @@ export class Audio {
    * 없는 신호는 합성으로 갑니다. **읽기를 기다리지 않습니다** — 읽히기 전에 난 소리는
    * 합성으로 나고, 읽힌 다음부터 녹음된 것으로 바뀝니다.
    */
-  private readonly samples = new Map<string, { buffer: AudioBuffer; gain: number }>()
+  private readonly samples = new Map<string,
+    { buffer: AudioBuffer; gain: number; lead: number }>()
   /**
    * 아직 풀지 않은 소리의 바이트.
    *
@@ -138,6 +139,7 @@ export class Audio {
         this.samples.set(cue, {
           buffer,
           gain: this.levelFor(buffer) * (this.wanted.get(cue) ?? 1),
+          lead: this.leadOf(buffer),
         })
       } catch {
         // 풀지 못한 것은 합성으로 갑니다.
@@ -145,13 +147,32 @@ export class Audio {
     }))
   }
 
+  /**
+   * 앞의 묵음이 몇 초인가.
+   *
+   * **꾸러미의 파일은 앞이 비어 있습니다.** 재어 보면 38개 중 18개가 8밀리초를 넘고
+   * 가장 긴 것은 97밀리초입니다 — 그만큼 늦게 들리므로 카드가 놓이는 그림과 어긋납니다.
+   * 파일을 고치지 않고 **그 자리부터 재생합니다.**
+   */
+  private leadOf(buffer: AudioBuffer): number {
+    const wave = buffer.getChannelData(0)
+    // 앞의 0.3초 안에서만 찾습니다. 그보다 뒤라면 묵음이 아니라 뜸입니다.
+    const span = Math.min(wave.length, Math.floor(buffer.sampleRate * 0.3))
+    for (let i = 0; i < span; i++) {
+      if (Math.abs(wave[i]) > 0.01) return i / buffer.sampleRate
+    }
+    return 0
+  }
+
   /** 그 소리를 한 크기로 맞추는 배수. 실효값을 재서 정합니다. */
   private levelFor(buffer: AudioBuffer): number {
     const wave = buffer.getChannelData(0)
-    // 앞의 0.4초만 봅니다. 꼬리의 잔향까지 세면 짧고 센 소리가 작게 맞춰집니다.
-    const span = Math.min(wave.length, Math.floor(buffer.sampleRate * 0.4))
+    // **묵음 다음부터 0.4초를 봅니다.** 앞의 빈 자리까지 세면 그만큼 작게 재어져,
+    // 묵음이 긴 파일이 더 크게 나옵니다.
+    const from = Math.floor(this.leadOf(buffer) * buffer.sampleRate)
+    const span = Math.min(wave.length - from, Math.floor(buffer.sampleRate * 0.4))
     let sum = 0
-    for (let i = 0; i < span; i++) sum += wave[i] * wave[i]
+    for (let i = 0; i < span; i++) sum += wave[from + i] * wave[from + i]
     const rms = Math.sqrt(sum / Math.max(1, span))
     if (rms < 1e-5) return 1
     return Math.max(GAIN_RANGE[0], Math.min(GAIN_RANGE[1], TARGET_RMS / rms))
@@ -180,7 +201,8 @@ export class Audio {
       const gain = context.createGain()
       gain.gain.value = sample.gain
       source.connect(gain).connect(master)
-      source.start(context.currentTime)
+      // **묵음을 건너뛰고 시작합니다.** 그것이 곧 「소리가 그림과 같이 난다」입니다.
+      source.start(context.currentTime, sample.lead)
       return
     }
 

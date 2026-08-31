@@ -220,6 +220,16 @@ export class TimelinePlayer {
    */
   blocked?: () => boolean
 
+  /**
+   * 다음에 올 박자가 무엇인가.
+   *
+   * **기다리는 동안을 채우려면 무엇을 기다리는지 알아야 합니다.** 시계로 재면 배속과
+   * 히트스톱에서 어긋나므로, 박자를 보고 정합니다.
+   */
+  get coming(): string | undefined {
+    return this.beats[this.cursor]?.event.t
+  }
+
   advance(deltaMs: number): void {
     if (!this.busy) return
     if (this.blocked?.() === true) return

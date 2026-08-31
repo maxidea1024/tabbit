@@ -31,6 +31,8 @@ export interface Peek {
   jokerOrder: number[]
   /** 눌러야 하는 것들의 자리. `game.ts` 가 그린 그대로 알립니다. */
   spots: Record<string, { x: number; y: number } | undefined>
+  /** 연출이 다음에 낼 박자. 소리가 비는 자리를 찾을 때 씁니다. */
+  coming: string
 }
 
 /**
