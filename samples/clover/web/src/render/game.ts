@@ -43,13 +43,13 @@ import {
   type Beat, type Feel,
 } from './juice'
 import { Coins } from './coins'
-import { Spring } from './motion'
+import { Motion, Spring } from './motion'
 import { Particles } from './particles'
 import { artFor, onArtReady, type ArtKind } from './art'
 import { drawCardBack } from './card-back'
-import { drawGlyph, glyphFor, hashOf, hsl, shade, type GlyphName } from './glyph'
+import { shade } from './glyph'
 import { cardArtId, drawFace } from './pips'
-import { COLOR, rarityColor, SIZE } from './theme'
+import { COLOR, SIZE } from './theme'
 import { Button, Panel } from '../ui/widgets'
 import { Guide } from '../ui/guide'
 import { Title } from '../ui/title'
@@ -88,6 +88,20 @@ const REVEAL_RISE = 14
  * **조커와 소모품 줄의 아래입니다** — 그 줄과 칸 수를 적은 글이 `y` 193 에서 끝납니다.
  */
 const SHOP_TOP = 200
+
+/** 뜯은 팩의 이름이 서는 자리. */
+const PACK_TITLE_Y = 236
+/** 펼친 카드의 가운데 높이. */
+const PACK_CARDS_Y = 420
+/**
+ * 펼친 카드의 크기.
+ *
+ * **줄에 선 것보다 큽니다.** 지금 하는 일이 그 카드 하나를 고르는 것이므로, 다른 것과
+ * 같은 크기로 두면 어느 것을 보아야 하는지가 정해지지 않습니다.
+ */
+const PACK_SCALE = 1.55
+const PACK_CARD_W = SIZE.jokerWidth * PACK_SCALE
+const PACK_CARD_H = SIZE.jokerHeight * PACK_SCALE
 
 /** 산 것이 제자리에 닿기까지. 용수철이 그만큼에 잦아듭니다. */
 const LAND_AT = 0.3
@@ -543,7 +557,9 @@ export class Game {
    * 쌓았던 것과 같은 이유입니다 — 하나씩 서면 눈이 그 하나를 따라가고, 다 서고 나면
    * 그때가 고르는 때입니다.
    */
-  private readonly shopReveals: { node: Container; at: number; from: number }[] = []
+  private readonly reveals: { node: Container; at: number; from: number }[] = []
+  /** 지금 무엇을 세우고 있는가. 판이 그리기 전에 정합니다. */
+  private revealing = { layer: this.shopLayer, base: 0, slot: 0, sound: false }
   /**
    * 잠시 뒤에 한 번 할 것.
    *
@@ -566,6 +582,28 @@ export class Game {
   private shopStanding = false
   /** 이번에 새로 선 것인가. 그때만 소리가 하나씩 납니다. */
   private shopOpening = false
+
+  /**
+   * 펼친 팩의 카드들.
+   *
+   * **낱장이 자기 용수철을 가집니다.** 한 장을 집으면 남은 것들이 새 자리로 미끄러져야
+   * 하고, 매번 다시 만들면 그 자리에 순간이동합니다.
+   */
+  private readonly packViews = new Map<number, { node: Container; motion: Motion;
+                                                 index: number; item: ShopItem }>()
+  /** 물러나는 중인 카드들. 집은 그 한 장이 옅어지며 커집니다. */
+  private readonly packGone: { node: Container; life: number }[] = []
+  /** 지금 그려진 팩. 바뀌면 처음부터 다시 폅니다. */
+  private packShown = ''
+  /** 덮개가 짙어진 정도. 0 에서 1 로 갑니다. */
+  private packEnter = 0
+  private packVeil?: Graphics
+  private packNote?: Text
+  private packSkip?: Button
+  /** 지금 마우스가 올려진 카드. 없으면 -1 입니다. */
+  private packHovered = -1
+  /** 뜯은 딱지의 자리. 카드가 거기서 나옵니다. */
+  private packFrom?: { x: number; y: number }
   private wasBusy = false
   private gameOverShown = false
   private gameOverPop = 0
@@ -734,7 +772,10 @@ export class Game {
     })
 
     // 그림이 새로 들어오면 다시 그립니다. 문양이 그림으로 바뀝니다.
-    onArtReady(() => this.refresh())
+    onArtReady(() => {
+      this.repaintPack()
+      this.refresh()
+    })
 
     // **카드가 다 닿은 뒤에 셉니다.** 카드는 실제 시계로 날아가고 연출은 배속과 히트스톱을
     // 타므로, 시간으로만 맞추면 배속을 올린 순간 어긋납니다.
@@ -1928,7 +1969,8 @@ export class Game {
     this.publishPeek()
 
     this.advanceConsumableLift(seconds)
-    this.advanceShopReveal()
+    this.advanceReveals()
+    this.advancePack(seconds)
     this.advanceLater()
     this.advanceBurningItems(seconds)
     this.coins.advance(seconds)
@@ -2238,6 +2280,10 @@ export class Game {
     const state = this.state
     this.publishPeek()
 
+    // **세울 것 목록은 여기서 비웁니다.** 상점과 팩이 같이 쓰므로, 어느 한쪽이 비우면
+    // 다른 쪽이 이미 담아 둔 것을 지우게 됩니다.
+    this.reveals.length = 0
+
     this.money.target = this.shown.money
     this.score.target = this.shown.score
     this.hands.text = String(state.handsLeft)
@@ -2374,11 +2420,8 @@ export class Game {
         return tf('ui.hint.selected', { n: this.selected.size })
           + t('ui.hint.discard_to_swap')
       case 'shop':
-        if (state.pack) {
-          return tf('ui.pack.pick_from', { n: state.pack.picksLeft })
-            + t('ui.hint.skip_if_unwanted')
-        }
-        // 상점은 판 하나이고 그 안에 다 적혀 있습니다.
+        // **뜯은 팩에는 그 판이 적습니다.** 여기에도 적으면 덮개 뒤에서 흐릿하게 읽히고,
+        // 그것은 남은 글자로 보입니다. 상점도 판 하나이고 그 안에 다 적혀 있습니다.
         return ''
       default:
         return ''
@@ -3056,7 +3099,16 @@ export class Game {
 
     const again = new Button(t('ui.button.restart'), 200, 52, won ? 0x2f7a52 : 0xa63f3f, () => {
       const seed = `CLOVER-${Math.floor(Math.random() * 1e6).toString().padStart(6, '0')}`
-      location.href = `${location.pathname}?seed=${seed}`
+      // **시계를 먼저 세웁니다.** 되읽는 동안에도 프레임이 돌면 문맥이 걷히는 중인
+      // 렌더러를 그리게 되고, 그때 렌더러가 죽으면 창이 빈 채로 남습니다.
+      // 판을 통째로 걷지는 않습니다 — 걷는 길에서 나는 오류가 되읽기 자체를 막습니다.
+      try {
+        this.app.ticker.stop()
+      } catch {
+        // 세우지 못해도 갑니다. 되읽는 것이 그것보다 중요합니다.
+      }
+      // 주소는 통째로 만듭니다. 상대 경로는 스킴에 따라 다르게 풀립니다.
+      location.replace(new URL(`?seed=${seed}`, location.href).toString())
     })
     again.position.set(-100, height / 2 - 76)
 
@@ -3865,7 +3917,6 @@ export class Game {
     // 그 판이 무엇을 막고 있는 것으로 보이고, 순서가 뒤집힙니다.
     // **차례는 새로 설 때만 다시 셉니다.** 하나 사면 다시 그리는데, 그때마다 처음부터
     // 세우면 산 다음에 남은 것들이 또 한 번 나타납니다.
-    this.shopReveals.length = 0
     this.shopOpening = false
 
     // **동전이 나는 동안에도 서 있습니다.** 하나 샀다고 판이 통째로 사라지면 무엇을 샀는지
@@ -3882,6 +3933,7 @@ export class Game {
       this.shopOpening = true
       this.shopRevealAt = this.clock
     }
+    this.beginReveal(this.shopLayer, this.shopRevealAt, this.shopOpening)
 
     const state = this.state
     // **왼쪽 패널을 비껴야 합니다.** 화면 한가운데에 서므로, 이보다 넓으면 판돈과 금액이
@@ -3970,19 +4022,30 @@ export class Game {
   }
 
   /**
-   * 상점에 하나를 세웁니다.
+   * 이제부터 세우는 것은 이 판의 것입니다.
+   *
+   * **소리는 새로 설 때만 냅니다.** 다시 그릴 때마다 내면 하나 살 때 남은 것들의 소리가
+   * 한꺼번에 다시 납니다.
+   */
+  private beginReveal(layer: Container, base: number, sound: boolean): void {
+    this.revealing = { layer, base, slot: 0, sound }
+  }
+
+  /**
+   * 하나를 세웁니다.
    *
    * 한 번에 세우는 것들은 한 차례를 나눠 씁니다 — 칸 이름의 선과 글자가 그렇습니다.
-   * 상점이 선 지 오래되었으면 계산 결과가 이미 1이므로 그 자리에 그대로 섭니다.
+   * 판이 선 지 오래되었으면 계산 결과가 이미 1이므로 그 자리에 그대로 섭니다.
    */
   private reveal(...nodes: Container[]): void {
-    const at = this.shopRevealAt + this.shopReveals.length * REVEAL_STEP
-    if (this.shopOpening) this.chimes.push({ at, cue: 'card_place', semitones: 0 })
+    const at = this.revealing.base + this.revealing.slot * REVEAL_STEP
+    this.revealing.slot += 1
+    if (this.revealing.sound) this.chimes.push({ at, cue: 'card_place', semitones: 0 })
 
     for (const node of nodes) {
-      this.shopLayer.addChild(node)
+      this.revealing.layer.addChild(node)
       const one = { node, at, from: node.y }
-      this.shopReveals.push(one)
+      this.reveals.push(one)
       this.advanceOne(one)
     }
   }
@@ -3995,8 +4058,8 @@ export class Game {
     one.node.y = one.from + (1 - eased) * REVEAL_RISE
   }
 
-  private advanceShopReveal(): void {
-    for (const one of this.shopReveals) {
+  private advanceReveals(): void {
+    for (const one of this.reveals) {
       if (one.node.alpha < 1) this.advanceOne(one)
     }
   }
@@ -4124,9 +4187,18 @@ export class Game {
     plate.roundRect(0, 0, w, h, 9).fill(0x141b26)
     node.addChild(plate)
 
-    const clip = new Graphics()
-    clip.roundRect(0, 0, w, h, 9).fill(0xffffff)
-    node.addChild(clip)
+    /**
+     * 그림을 카드 모양으로 자르는 것.
+     *
+     * **쓸 때 만듭니다.** 미리 만들어 붙여 두면 그림이 아직 오지 않은 동안 이 흰 사각형이
+     * 그대로 카드 얼굴로 그려집니다 — 카드가 하얗게 나오던 것이 그것입니다.
+     */
+    const cutout = (): Graphics => {
+      const clip = new Graphics()
+      clip.roundRect(0, 0, w, h, 9).fill(0xffffff)
+      node.addChild(clip)
+      return clip
+    }
 
     if (item.kind === ShopItemKind.PlayingCard) {
       const row = this.data.tables.baseDeckCard.findByCardId(item.id)
@@ -4157,7 +4229,7 @@ export class Game {
         sprite.width = texture.width * scale
         sprite.height = texture.height * scale
         sprite.position.set((w - sprite.width) / 2, (h - sprite.height) / 2)
-        sprite.mask = clip
+        sprite.mask = cutout()
         node.addChild(sprite)
       }
     }
@@ -4291,9 +4363,24 @@ export class Game {
       }))
 
     const width = 460
-    const rowH = 58
     const top = TITLE_BAR + 52
-    const height = top + rows.length * rowH + 14 + FOOTER_BAR
+    const GAP = 10
+
+    // **글을 먼저 만들고 줄의 높이를 그것에 맞춥니다.** 높이를 못박으면 설명이 두 줄인
+    // 조커에서 아랫줄이 딱지 밖으로 나갑니다 — 어느 조커의 설명이 긴지는 데이터가 정합니다.
+    const built = rows.map(held => {
+      const note = new Text({
+        text: held.locked ? t('ui.note.cannot_sell') : held.note,
+        style: {
+          fontSize: 11, fill: held.locked ? 0xffb4c8 : COLOR.inkDim,
+          wordWrap: true, wordWrapWidth: width - 200, lineHeight: 14,
+        },
+      })
+      return { held, note, height: Math.max(48, 26 + note.height + 8) }
+    })
+
+    const body = built.reduce((sum, one) => sum + one.height + GAP, 0)
+    const height = top + body + 4 + FOOTER_BAR
 
     const panel: ModalPanel = {
       view: new Container(),
@@ -4312,32 +4399,28 @@ export class Game {
     lead.position.set((width - lead.width) / 2, TITLE_BAR + 20)
     layer.addChild(lead)
 
-    rows.forEach((held, line) => {
-      const y = top + line * rowH
-      const tile = new Panel(width - 48, rowH - 10, held.locked ? 0x241c26 : 0x1b2331)
-      tile.position.set(24, y)
+    let at = top
+    built.forEach(one => {
+      const held = one.held
+      const tile = new Panel(width - 48, one.height, held.locked ? 0x241c26 : 0x1b2331)
+      tile.position.set(24, at)
+      at += one.height + GAP
 
       const name = new Text({
         text: held.name,
         style: { fontSize: 14, fill: COLOR.ink, fontWeight: '800' },
       })
-      name.position.set(14, 8)
+      name.position.set(14, 7)
 
-      const note = new Text({
-        text: held.locked ? t('ui.note.cannot_sell') : held.note,
-        style: {
-          fontSize: 11, fill: held.locked ? 0xffb4c8 : COLOR.inkDim,
-          wordWrap: true, wordWrapWidth: width - 200,
-        },
-      })
-      note.position.set(14, 28)
+      const note = one.note
+      note.position.set(14, 26)
 
       const price = new Text({
         text: held.locked ? '—' : `+$${held.price}`,
         style: { fontSize: 15, fill: held.locked ? 0x7a6a45 : COLOR.money, fontWeight: '800' },
       })
       price.anchor.set(1, 0.5)
-      price.position.set(width - 62, (rowH - 10) / 2)
+      price.position.set(width - 62, one.height / 2)
 
       tile.addChild(name, note, price)
       tile.alpha = held.locked ? 0.5 : 1
@@ -4440,9 +4523,12 @@ export class Game {
       tile.cursor = afford ? 'pointer' : 'default'
       tile.on('pointertap', () => {
         if (!afford) return
+        this.tooltip.hide()
         this.audio.play('pack_open')
         this.particles.burst(tile.x + tileW / 2, tile.y + h / 2, 20, ink, 1.2)
         this.jolt(5, 3)
+        // **카드가 이 딱지에서 나옵니다.** 어느 것을 뜯었는지가 그 움직임에 남습니다.
+        this.packFrom = { x: tile.x + tileW / 2, y: tile.y + h / 2 }
         this.act({ t: 'buy_pack', slot })
       })
       tile.on('pointerover', () => {
@@ -4526,13 +4612,38 @@ export class Game {
   /**
    * 뜯어 놓은 팩.
    *
-   * **고르기 전에는 아무것도 못 합니다** — 뒤를 덮어 상점이 눌리지 않게 합니다.
+   * **펼쳐 놓고 하나를 집습니다.** 딱지에 설명을 적어 나란히 세우면 읽고 나서 고르는 일이
+   * 되고, 그것은 카드 게임이 아니라 목록입니다.
+   *
+   * **판을 매 프레임 다시 만들지 않습니다.** 다시 만들면 한 장을 집었을 때 남은 카드가
+   * 새 자리에 순간이동합니다 — 카드는 미끄러져 가야 하고, 그러려면 그 카드가 같은 카드로
+   * 남아 있어야 합니다. 그래서 뜯을 때 한 번 짓고, 그다음은 자리만 다시 정합니다.
    */
   private syncPack(): void {
-    this.packLayer.removeChildren().forEach(child => child.destroy())
     const open = this.state.pack
-    this.packLayer.visible = open !== null
+    // 어느 팩을 뜯었는가. 바뀌면 처음부터 다시 폅니다.
+    const key = open ? open.packId + ':' + open.options.length : ''
+
+    if (key !== this.packShown) {
+      this.packShown = key
+      if (open) this.buildPack()
+    }
+    if (open) this.layoutPack()
+  }
+
+  /** 판을 짓습니다. 뜯을 때 한 번입니다. */
+  private buildPack(): void {
+    this.packLayer.removeChildren().forEach(child => child.destroy())
+    this.packViews.clear()
+    this.packGone.length = 0
+    this.packHovered = -1
+
+    const open = this.state.pack
     if (!open) return
+
+    this.packLayer.sortableChildren = true
+    this.packLayer.visible = true
+    this.packEnter = 0
 
     // 팩 딱지에 떠 있던 설명을 걷습니다. 뜯은 판 뒤에 남으면 지저분합니다.
     this.tooltip.hide()
@@ -4540,101 +4651,214 @@ export class Game {
     const row = this.data.tables.boosterPack.findByPackId(open.packId)
     const ink = packInk(open.kind)
 
+    // **뒤가 비쳐서는 안 됩니다.** 상점의 카드와 값이 흐릿하게 남으면 펼친 카드와 섞여
+    // 어느 것을 고르는 것인지 흐려집니다.
     const veil = new Graphics()
-    veil.rect(-2000, -2000, SIZE.width + 4000, SIZE.height + 4000)
-      .fill({ color: 0x070a10, alpha: 0.78 })
+    veil.rect(-2000, -2000, SIZE.width + 4000, SIZE.height + 4000).fill(0x070a10)
     veil.eventMode = 'static'
+    veil.zIndex = -10
+    this.packVeil = veil
     this.packLayer.addChild(veil)
-
-    const left = open.options.filter((_, index) => !open.taken[index])
-    const width = Math.max(520, 60 + open.options.length * 156)
-    const height = 292
-
-    const board = new Panel(width, height, ink)
-    board.position.set(POPUP_X - width / 2, 244)
-    this.packLayer.addChild(board)
 
     const title = new Text({
       text: row ? packName(row.kind, row.size) : t('ui.kind.pack'),
-      style: { fontSize: 22, fill: COLOR.ink, fontWeight: '800' },
+      style: {
+        fontSize: 26, fill: ink, fontWeight: '800',
+        stroke: { color: 0x070a10, width: 5 },
+      },
     })
     title.anchor.set(0.5, 0)
-    title.position.set(POPUP_X, 262)
+    title.position.set(POPUP_X, PACK_TITLE_Y)
 
+    // **지시문은 여기 한 곳입니다.** 화면 아래에도 같은 말을 두면 덮개 뒤에서 흐릿하게
+    // 읽히고, 그것은 남은 글자로 보입니다.
     const note = new Text({
-      text: tf('ui.pack.picks_left', { n: open.picksLeft }),
-      style: { fontSize: 13, fill: 0xdbe4f0, fontWeight: '700' },
+      text: this.packLine(open.picksLeft),
+      style: { fontSize: 14, fill: 0xdbe4f0, fontWeight: '700' },
     })
     note.anchor.set(0.5, 0)
-    note.position.set(POPUP_X, 292)
-    this.packLayer.addChild(title, note)
+    note.position.set(POPUP_X, PACK_TITLE_Y + 34)
+    this.packNote = note
 
-    const spacing = 156
-    const startX = POPUP_X - ((open.options.length - 1) * spacing) / 2
+    const skip = new Button(t('ui.button.skip'), 160, 40, 0x4a5568,
+      () => this.act({ t: 'skip_pack' }))
+    // **설명 아래입니다.** 카드 바로 밑에 두면 마우스를 올릴 때 뜨는 설명이 그 위를 덮습니다.
+    skip.position.set(POPUP_X - 80, PACK_CARDS_Y + PACK_CARD_H / 2 + 130)
+    this.packSkip = skip
+
+    this.packLayer.addChild(title, note, skip)
+
+    // **카드는 팩에서 나옵니다.** 자기 자리에 그냥 나타나면 무엇이 뜯긴 것인지가 남지
+    // 않습니다. 누른 그 딱지의 자리에서 하나씩 미끄러져 나옵니다.
+    const from = this.packFrom ?? { x: POPUP_X, y: PACK_CARDS_Y }
 
     open.options.forEach((item, index) => {
       if (open.taken[index]) return
 
-      const name = shopLabel(item.kind, item.id, this.data)
-      const lines = this.shopLines(item)
-      const rarity = item.kind === ShopItemKind.Joker
-        ? this.data.tables.joker.findByJokerId(item.id)?.rarity ?? 1 : 0
+      const node = this.packCard(item, index, ink)
+      const motion = new Motion()
+      motion.snap(from.x, from.y)
+      motion.rotation.snap(0)
+      node.position.set(from.x, from.y)
+      node.alpha = 0
 
-      const tile = new Panel(144, 158, 0x1b2331)
-      tile.position.set(startX + index * spacing - 72, 322)
+      this.packViews.set(index, { node, motion, index, item })
+      this.packLayer.addChild(node)
 
-      const label = new Text({
-        text: name,
-        style: {
-          fontSize: 12, fill: COLOR.ink, fontWeight: '700',
-          wordWrap: true, wordWrapWidth: 118,
+      // 하나씩 나옵니다. 나오는 순간에 소리가 하나.
+      this.later.push({
+        at: this.clock + 0.12 + index * 0.11,
+        run: () => {
+          node.alpha = 1
+          this.audio.play('card_draw', index * 2)
+          this.particles.burst(from.x, from.y, 8, ink, 0.7, 0.6)
         },
       })
-      label.position.set(12, 11)
-
-      const face = itemFace(item.kind, item.id, this.data, 40)
-      face.position.set(116, 72)
-
-      const blurb = new Text({
-        text: lines.slice(0, 4).join('\n'),
-        style: {
-          fontSize: 10, fill: 0xb4c4dc, lineHeight: 13,
-          wordWrap: true, wordWrapWidth: 84,
-        },
-      })
-      blurb.position.set(12, 44)
-
-      const kindLabel = new Text({
-        text: kindName(item.kind),
-        style: {
-          fontSize: 10, fontWeight: '700',
-          fill: rarity > 0 ? rarityColor(rarity) : 0x9b8fd0,
-        },
-      })
-      kindLabel.anchor.set(0, 1)
-      kindLabel.position.set(12, 146)
-
-      tile.addChild(label, face, blurb, kindLabel)
-      tile.eventMode = 'static'
-      tile.cursor = 'pointer'
-      tile.on('pointertap', () => {
-        this.audio.play('pack_pick')
-        this.particles.burst(tile.x + 72, tile.y + 79, 22, ink, 1.3)
-        this.jolt(6, 4)
-        this.act({ t: 'pick_pack', index })
-      })
-      tile.on('pointerover', () => {
-        this.tooltip.show(name, kindName(item.kind), rarity, lines,
-          tile.x + 72, tile.y + 158, SIZE)
-      })
-      tile.on('pointerout', () => this.tooltip.hide())
-      this.packLayer.addChild(tile)
     })
+  }
 
-    const skip = new Button(left.length === open.options.length ? t('ui.button.skip') : t('ui.button.clear'),
-      160, 40, 0x4a5568, () => this.act({ t: 'skip_pack' }))
-    skip.position.set(POPUP_X - 80, 494)
-    this.packLayer.addChild(skip)
+  /**
+   * 자리를 다시 정합니다.
+   *
+   * **남은 것만 다시 가운데로 모읍니다** — 집어 간 자리를 비워 두면 부챗살에 이가 빠지고,
+   * 순간이동하면 어느 카드가 어디로 갔는지가 남지 않습니다.
+   */
+  private layoutPack(): void {
+    const open = this.state.pack
+    if (!open) return
+
+    if (this.packNote) this.packNote.text = this.packLine(open.picksLeft)
+    if (this.packSkip) {
+      const untouched = open.taken.every(one => !one)
+      this.packSkip.text = untouched ? t('ui.button.skip') : t('ui.button.clear')
+    }
+
+    // 집어 간 것은 판에서 물러납니다.
+    for (const [index, one] of [...this.packViews]) {
+      if (!open.taken[index]) continue
+      this.packViews.delete(index)
+      this.packGone.push({ node: one.node, life: 0 })
+    }
+
+    const left = [...this.packViews.values()].sort((a, b) => a.index - b.index)
+    const spacing = PACK_CARD_W + 26
+    const startX = POPUP_X - ((left.length - 1) * spacing) / 2
+
+    left.forEach((one, slot) => {
+      // 부챗살. 가운데가 높고 양끝이 조금 내려가며 바깥으로 눕습니다.
+      const bend = left.length > 1 ? (slot / (left.length - 1)) * 2 - 1 : 0
+      one.motion.to(startX + slot * spacing, PACK_CARDS_Y + bend * bend * 24, bend * 4)
+    })
+  }
+
+  /**
+   * 펼친 카드의 얼굴을 다시 그립니다.
+   *
+   * **판을 다시 짓지 않습니다.** 그림은 처음 물어볼 때부터 읽히기 시작하므로 팩을 뜯는
+   * 순간에는 아직 없을 수 있고, 그때 판을 다시 지으면 부챗살이 처음부터 다시 펴집니다 —
+   * 자리와 용수철은 그대로 두고 얼굴만 바꿉니다.
+   */
+  private repaintPack(): void {
+    for (const one of this.packViews.values()) {
+      one.node.removeChildren().forEach(child => child.destroy())
+      one.node.addChild(this.itemCard(one.item))
+    }
+  }
+
+  /** 몇 장을 더 고르는가. 건너뛸 수 있다는 것도 함께 적습니다. */
+  private packLine(left: number): string {
+    return tf('ui.pack.pick_from', { n: left }) + t('ui.hint.skip_if_unwanted')
+  }
+
+  /** 펼쳐 놓는 카드 한 장. */
+  private packCard(item: ShopItem, index: number, ink: number): Container {
+    const name = shopLabel(item.kind, item.id, this.data)
+    const lines = this.shopLines(item)
+    const rarity = item.kind === ShopItemKind.Joker
+      ? this.data.tables.joker.findByJokerId(item.id)?.rarity ?? 1 : 0
+
+    const node = new Container()
+    node.pivot.set(SIZE.jokerWidth / 2, SIZE.jokerHeight / 2)
+    node.scale.set(PACK_SCALE)
+    node.addChild(this.itemCard(item))
+
+    node.eventMode = 'static'
+    node.cursor = 'pointer'
+    node.hitArea = new Rectangle(0, 0, SIZE.jokerWidth, SIZE.jokerHeight)
+    node.on('pointerover', () => {
+      this.packHovered = index
+      this.tooltip.show(name, kindName(item.kind), rarity, lines,
+        node.x, node.y + PACK_CARD_H / 2 + 8, SIZE)
+    })
+    node.on('pointerout', () => {
+      if (this.packHovered === index) this.packHovered = -1
+      this.tooltip.hide()
+    })
+    node.on('pointertap', () => {
+      this.tooltip.hide()
+      this.packHovered = -1
+      this.audio.play('pack_pick')
+      this.particles.burst(node.x, node.y, 26, ink, 1.4, 1.2)
+      this.particles.burst(node.x, node.y, 12, 0xffffff, 0.8, 0.7)
+      // 집은 카드도 산 것과 같이 제자리에서 옵니다.
+      this.arriveFrom = { x: node.x - SIZE.jokerWidth / 2, y: node.y - SIZE.jokerHeight / 2 }
+      this.jolt(4, 3)
+      this.act({ t: 'pick_pack', index })
+      this.later.push({ at: this.clock + LAND_AT, run: () => this.landed(item) })
+    })
+    return node
+  }
+
+  /**
+   * 펼친 팩이 도는 것.
+   *
+   * 덮개가 짙어지고 · 카드가 자리로 미끄러지고 · 마우스를 올린 한 장이 올라오고 · 집어 간
+   * 것이 물러납니다. 다 닫혔으면 판을 걷습니다.
+   */
+  private advancePack(seconds: number): void {
+    const open = this.state.pack !== null
+    // **덮개는 서서히 짙어집니다.** 한 프레임에 덮이면 상점이 툭 꺼진 것으로 보입니다.
+    this.packEnter += ((open ? 1 : 0) - this.packEnter) * Math.min(1, seconds * 11)
+    if (this.packVeil) this.packVeil.alpha = 0.93 * this.packEnter
+
+    if (!this.packLayer.visible) return
+
+    if (!open && this.packEnter < 0.03) {
+      this.packLayer.removeChildren().forEach(child => child.destroy())
+      this.packViews.clear()
+      this.packGone.length = 0
+      this.packVeil = undefined
+      this.packNote = undefined
+      this.packSkip = undefined
+      this.packLayer.visible = false
+      return
+    }
+
+    // 글과 버튼은 덮개와 함께 들고 납니다.
+    if (this.packNote) this.packNote.alpha = this.packEnter
+    if (this.packSkip) this.packSkip.alpha = this.packEnter
+
+    for (const one of this.packViews.values()) {
+      one.motion.advance(seconds)
+      const up = this.packHovered === one.index
+      one.motion.scale.target = up ? PACK_SCALE * 1.07 : PACK_SCALE
+      one.node.position.set(one.motion.x.value, one.motion.y.value - (up ? 22 : 0))
+      one.node.rotation = one.motion.rotation.value * (Math.PI / 180)
+      one.node.scale.set(one.motion.scale.value)
+      one.node.zIndex = up ? 10 : 0
+      // 닫히는 동안에는 카드도 함께 물러납니다.
+      if (!open) one.node.alpha = this.packEnter
+    }
+
+    for (let i = this.packGone.length - 1; i >= 0; i--) {
+      const gone = this.packGone[i]
+      gone.life += seconds / 0.18
+      gone.node.alpha = Math.max(0, 1 - gone.life)
+      gone.node.scale.set(PACK_SCALE * (1 + gone.life * 0.3))
+      if (gone.life < 1) continue
+      this.packGone.splice(i, 1)
+      gone.node.destroy({ children: true })
+    }
   }
 
   private shopLines(item: { kind: ShopItemKind; id: string }): string[] {
@@ -4765,58 +4989,6 @@ function blindName(blind: BlindKind): string {
   return blind === BlindKind.Small ? t('ui.blind.small') : blind === BlindKind.Big ? t('ui.blind.big') : t('ui.blind.boss')
 }
 
-/**
- * 상점 칸과 팩 칸에 들어가는 작은 얼굴.
- *
- * **글씨만 있는 칸은 무엇을 사는 것인지 눈에 들어오지 않습니다.** 갈래마다 다른 문양을
- * 두어 값과 이름을 읽기 전에 「무엇」이 먼저 읽히게 합니다.
- */
-function itemFace(kind: ShopItemKind, id: string, data: Data, size = 44): Container {
-  const face = new Container()
-  const art = new Graphics()
-  const hue = hashOf(id) % 360
-
-  if (kind === ShopItemKind.PlayingCard) {
-    // 플레잉 카드는 문양이 아니라 그 카드입니다.
-    const row = data.tables.baseDeckCard.findByCardId(id)
-    const red = row?.suit === SuitKind.Heart || row?.suit === SuitKind.Diamond
-    art.roundRect(-size * 0.32, -size / 2, size * 0.64, size, 4).fill(COLOR.cardFace)
-    art.roundRect(-size * 0.32, -size / 2, size * 0.64, size, 4)
-      .stroke({ color: COLOR.cardEdge, width: 1.5 })
-    const pip = new Text({
-      text: row ? SUIT_PIP[row.suit] ?? '' : '',
-      style: { fontSize: size * 0.42, fill: red ? COLOR.red : COLOR.black },
-    })
-    pip.anchor.set(0.5)
-    face.addChild(art, pip)
-    return face
-  }
-
-  const artKind: ArtKind | undefined = kind === ShopItemKind.Joker ? 'joker'
-    : kind === ShopItemKind.Tarot ? 'tarot'
-      : kind === ShopItemKind.Planet ? 'planet'
-        : kind === ShopItemKind.Spectral ? 'spectral' : undefined
-  const texture = artKind ? artFor(artKind, id) : undefined
-  if (texture) {
-    const sprite = new Sprite(texture)
-    sprite.width = size
-    sprite.height = size
-    sprite.position.set(-size / 2, -size / 2)
-    face.addChild(sprite)
-    return face
-  }
-
-  const glyph: GlyphName = kind === ShopItemKind.Planet ? 'planet'
-    : kind === ShopItemKind.Spectral ? 'sigil'
-      : glyphFor(id)
-  const ink = kind === ShopItemKind.Planet ? hsl(hue, 0.6, 0.6)
-    : kind === ShopItemKind.Spectral ? hsl((hue + 200) % 360, 0.5, 0.66)
-      : hsl(hue, 0.64, 0.62)
-
-  drawGlyph(art, glyph, 0, 0, size, { fill: ink, line: shade(ink, 0.6) })
-  face.addChild(art)
-  return face
-}
 
 /** 무늬 하나의 글자. 작은 카드 얼굴이 씁니다. */
 const SUIT_PIP: Record<number, string> = {

@@ -77,7 +77,43 @@
           }
         }
 
-        document.getElementById('boot').textContent = say[lang]
+        var boot = document.getElementById('boot')
+        boot.textContent = say[lang]
+
+        // **읽다 멈추면 멈춘 채로 두지 않습니다.** 그림 200여 장과 표 40개를 읽는 길에서
+        // 하나가 답을 돌려주지 않으면 이 줄만 남아 기다리게 되고, 그것은 사람 눈에
+        // 무한 루프입니다. 20초가 지나도 첫 화면이 서지 않았으면 다시 읽습니다.
+        var stuck = {
+          ko: '읽는 데 오래 걸립니다. 다시 읽습니다',
+          en: 'Loading is slow. Retrying',
+          ja: '読み込みに時間がかかっています。もう一度読み込みます',
+          'zh-Hans': '读取过慢，正在重试',
+          'zh-Hant': '讀取過慢，正在重試',
+          de: 'Das Laden dauert. Neuer Versuch',
+        }
+        // 다시 읽는 것은 두 번까지입니다. **끝없이 다시 읽으면 그것이 무한 루프입니다.**
+        var tries = 0
+        try {
+          tries = Number(sessionStorage.getItem('clover.retry') || '0') || 0
+        } catch (error) {
+          tries = 0
+        }
+        var once = false
+        setTimeout(function () {
+          if (once || boot.className.indexOf('gone') >= 0) return
+          once = true
+          if (tries >= 2) {
+            boot.textContent = (stuck[lang] || stuck.en) + ' — ' + tries
+            return
+          }
+          try {
+            sessionStorage.setItem('clover.retry', String(tries + 1))
+          } catch (error) {
+            // 저장소가 막혀 있으면 셈을 못 합니다. 그래도 한 번은 다시 읽습니다.
+          }
+          boot.textContent = stuck[lang] || stuck.en
+          setTimeout(function () { location.reload() }, 900)
+        }, 20000)
       })()
     </script>
     <script type="module" src="/src/main.ts"></script>

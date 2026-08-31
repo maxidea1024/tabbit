@@ -91,19 +91,27 @@ export async function settle(page: Page): Promise<void> {
 
 /** 살 수 있는 팩이 있으면 뜯습니다. */
 export async function buyAffordablePack(page: Page): Promise<void> {
-  const tileW = 210
-  const gap = 16
   for (let slot = 0; slot < 2; slot++) {
     const packs = (await peek(page)).packs
     if (packs <= slot) return
-    const span = packs * tileW + (packs - 1) * gap
-    const left = POPUP_X - SHOP_W / 2 + (SHOP_W - span) / 2
-    const spot = await at(page, left + slot * (tileW + gap) + tileW / 2,
-      SHOP_Y + SHOP_ITEMS + 172 + 20 + 26 + 42)
-    await page.mouse.click(spot.x, spot.y)
+    const spot = await packSlot(page, slot, packs)
+    await page.mouse.move(spot.x, spot.y)
+    await page.waitForTimeout(100)
+    await page.mouse.down()
+    await page.waitForTimeout(60)
+    await page.mouse.up()
     await page.waitForTimeout(600)
     if ((await peek(page)).packOpen) return
   }
+}
+
+/** 상점의 팩 칸. `drawPackRow` 와 같은 계산입니다. */
+export async function packSlot(page: Page, slot: number, count = 2): Promise<{ x: number; y: number }> {
+  const tileW = 104
+  const gap = 26
+  const span = count * tileW + (count - 1) * gap
+  const left = POPUP_X - SHOP_W / 2 + (SHOP_W - span) / 2
+  return at(page, left + slot * (tileW + gap) + tileW / 2, SHOP_PACKS + 62)
 }
 
 /**
@@ -134,6 +142,9 @@ export async function shopSlot(page: Page, slot: number, count = 2): Promise<{ x
 export const SHOP_W = 660
 export const SHOP_ITEMS = 78
 export const SHOP_Y = 200
+/** 상점의 팩 줄이 시작하는 자리. 칸 셋이 다 있을 때입니다. */
+export const SHOP_PACKS = SHOP_Y + SHOP_ITEMS + 160 + 12 + 22
+
 /**
  * 상점 판의 높이.
  *

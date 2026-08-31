@@ -82,6 +82,38 @@ function createWindow() {
 
   window.once('ready-to-show', () => window.show())
 
+  // 페이지를 읽지 못하면 한 번 다시 읽습니다.
+  //
+  // **게임이 끝나고 새 판으로 넘어갈 때 페이지를 다시 읽습니다.** 그때 렌더러 프로세스가
+  // 사라지면 — 옛 WebGL 문맥이 아직 정리되지 않은 채 새 문맥이 만들어지면서 — 창은
+  // 그대로 남고 안은 빈 화면이 됩니다. 다시 읽으면 대개 복구됩니다.
+  let retried = false
+  const retry = why => {
+    console.error('Window failed: ' + why)
+    // 한 번만 다시 읽습니다. 계속 다시 읽으면 그 자체가 멈춘 것과 같습니다.
+    if (retried) return
+    retried = true
+    setTimeout(() => window.webContents.reload(), 400)
+  }
+
+  // 렌더러 프로세스가 죽거나 강제 종료된 경우입니다.
+  window.webContents.on('render-process-gone', (_event, details) => retry(details.reason))
+
+  window.webContents.on('did-fail-load', (_event, code, note, url, isMain) => {
+    // 부수 자원(그림 한 장 같은 것)의 실패는 페이지 전체와 무관합니다.
+    if (!isMain) return
+    // 코드 -3 은 ERR_ABORTED 입니다. 새 주소로 넘어가면서 앞의 읽기가 중단된 것이므로
+    // 실패가 아닙니다.
+    if (code === -3) return
+    retry(`${code} ${note} ${url}`)
+  })
+
+  // 페이지를 끝까지 읽었으면 다시 읽기 횟수를 초기화합니다. 다음에 또 실패하면 그때
+  // 한 번 더 시도할 수 있습니다.
+  window.webContents.on('did-finish-load', () => {
+    retried = false
+  })
+
   // 바깥 링크는 기본 브라우저로. 창 안에서 다른 곳으로 가지 않게 합니다.
   window.webContents.setWindowOpenHandler(({ url }) => {
     void shell.openExternal(url)
@@ -99,17 +131,33 @@ app.whenReady().then(() => {
   // 메뉴를 없앱니다. 게임 창에 파일 · 편집 메뉴가 있을 이유가 없습니다.
   Menu.setApplicationMenu(null)
 
-  protocol.handle(SCHEME, request => {
-    const url = new URL(request.url)
-    const wanted = decodeURIComponent(url.pathname)
+  // **모든 요청에 응답을 돌려줍니다.** 이 처리기가 예외를 던지면 그 요청은 응답 없이
+  // 남아 브라우저가 계속 기다리게 되고, 그 요청이 `index.html` 이면 창 안이 빈 화면으로
+  // 남습니다. 그래서 없는 파일에는 404, 읽지 못한 것에는 500 을 돌려줍니다.
+  protocol.handle(SCHEME, async request => {
+    let wanted = '/index.html'
+    try {
+      wanted = decodeURIComponent(new URL(request.url).pathname)
+    } catch {
+      return new Response('Bad request URL', { status: 400 })
+    }
+    // 폴더를 가리키면 그 안의 index.html 입니다.
+    if (wanted === '' || wanted.endsWith('/')) wanted += 'index.html'
 
-    // **경로를 묶습니다.** `..` 로 빌드 밖의 파일을 읽지 못하게 합니다.
+    // 경로를 빌드 폴더 안으로 제한합니다. `..` 로 그 밖의 파일을 읽지 못하게 합니다.
     const target = path.normalize(path.join(ROOT, wanted))
     if (!target.startsWith(ROOT)) {
-      return new Response('경로가 빌드 밖입니다', { status: 403 })
+      return new Response('Path escapes the build root', { status: 403 })
+    }
+    if (!fs.existsSync(target) || !fs.statSync(target).isFile()) {
+      return new Response('Not found: ' + wanted, { status: 404 })
     }
 
-    return net.fetch(pathToFileURL(target).toString())
+    try {
+      return await net.fetch(pathToFileURL(target).toString())
+    } catch (error) {
+      return new Response('Read failed: ' + String(error), { status: 500 })
+    }
   })
 
   const window = createWindow()
@@ -134,7 +182,7 @@ app.whenReady().then(() => {
       problems.push(message)
     })
     window.webContents.on('render-process-gone', (_event, details) => {
-      problems.push(`렌더러가 죽었습니다: ${details.reason}`)
+      problems.push(`Renderer gone: ${details.reason}`)
     })
 
     const capture = async target => {
@@ -163,12 +211,12 @@ app.whenReady().then(() => {
         await capture(shot.replace(/\.png$/, '-back.png'))
 
         if (problems.length > 0) {
-          console.error('창이 오류를 냈습니다:')
+          console.error('Window reported errors:')
           for (const problem of problems.slice(0, 10)) console.error('  ' + problem)
           app.exit(1)
           return
         }
-        console.log(`${shot}\n오류 없음`)
+        console.log(`${shot}\nNo errors`)
         app.exit(0)
       }, 3_500)
     })
