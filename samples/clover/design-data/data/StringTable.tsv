@@ -788,6 +788,10 @@
 	ui.shop.note	조커와 소모품을 삽니다. 바우처는 런 내내 남습니다.	Buy Jokers and consumables. Vouchers last the whole run.	ジョーカーと消耗品を買います。バウチャーはラン中ずっと残ります。	购买小丑与消耗品。优惠券在本次运行内一直有效。	購買小丑與消耗品。優惠券在本次運行內一直有效。	Kaufe Joker und Verbrauchsgegenstände. Gutscheine gelten den ganzen Lauf.
 	ui.title.tagline	숫자가 미쳐 날뛰는 포커 로그라이크	The poker roguelike where the numbers go feral	数字が暴れ出すポーカーローグライク	数字疯狂飙升的扑克 Roguelike	數字瘋狂飆升的撲克 Roguelike	Das Poker-Roguelike, in dem die Zahlen durchdrehen
 	ui.title.note	조커 하나가 배수를 두 배로, 그다음 조커가 또 두 배로. 한 판이면 안 멈춥니다.	One Joker doubles the mult. The next one doubles it again. One run is never one run.	ジョーカー1枚が倍率を2倍に、次の1枚がまた2倍に。1ランでは終わりません。	一个小丑让倍率翻倍，下一个再翻一倍。一局根本停不下来。	一個小丑讓倍率翻倍，下一個再翻一倍。一局根本停不下來。	Ein Joker verdoppelt den Mult. Der nächste verdoppelt ihn wieder. Ein Lauf bleibt nie einer.
+	ui.title.seed	시드	Seed	シード	种子	種子	Seed
+	ui.title.seed_hint	같은 시드를 넣으면 같은 판이 나옵니다	The same seed gives the same run	同じシードなら同じゲームになります	相同的种子会生成相同的一局	相同的種子會生成相同的一局	Derselbe Seed ergibt denselben Durchgang
+	ui.title.seed_note	덱 섞기 · 상점 · 팩 · 확률 발동이 모두 이 글에서 갈라집니다	Deck shuffle, shop, packs and procs all derive from it	デッキのシャッフル・ショップ・パック・確率発動がすべてこの文字列から決まります	洗牌、商店、卡包、概率触发全部由它决定	洗牌、商店、卡包、機率觸發全部由它決定	Mischen, Shop, Packs und Auslöser gehen alle daraus hervor
+	ui.button.random	무작위	Random	ランダム	随机	隨機	Zufall
 	ui.guide.lead	포커 족보로 점수를 내고, 조커로 그 점수를 불립니다.	Score with poker hands, then grow that score with Jokers.	ポーカーの役で得点し、ジョーカーでその点を膨らませます。	用扑克牌型得分，再用小丑把分数放大。	用撲克牌型得分，再用小丑把分數放大。	Punkte mit Pokerblättern, dann mit Jokern vervielfachen.
 	ui.label.hands_left	남은 핸드	Hands left	残りハンド	剩余出牌	剩餘出牌	Hände übrig
 	ui.label.discards_left	남은 버리기	Discards left	残り捨て札	剩余弃牌	剩餘棄牌	Ablagen übrig

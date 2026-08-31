@@ -52,7 +52,7 @@ import { cardArtId, drawFace } from './pips'
 import { COLOR, SIZE } from './theme'
 import { Button, Panel } from '../ui/widgets'
 import { Guide } from '../ui/guide'
-import { Title } from '../ui/title'
+import { randomSeed, Title } from '../ui/title'
 import { FOOTER_BAR, panelFrame, TITLE_BAR } from '../ui/modal'
 import { Modals, type ModalPanel } from '../ui/modal'
 import { richLine } from '../ui/rich'
@@ -290,7 +290,13 @@ export class Game {
   /** 지금 흐린 정도. 판이 열리고 닫힐 때 잦아듭니다. */
   private blurShown = 0
 
-  private readonly state: RunState
+  /**
+   * 판의 상태.
+   *
+   * **코어가 제자리에서 고칩니다** — `apply` 는 이 객체를 받아 바꾸고 이벤트만 돌려줍니다.
+   * 이 객체를 갈아 끼우는 곳은 **시작 전의 `useSeed` 하나뿐**입니다.
+   */
+  private state: RunState
   private readonly feel: Feel
   private readonly audio: Audio
   private readonly player: TimelinePlayer
@@ -660,6 +666,7 @@ export class Game {
     this.player = new TimelinePlayer(beat => this.showBeat(beat))
     this.title = new Title(seed, () => this.start(),
       () => this.modals.open(this.guide), () => this.modals.open(this.optionsPanel))
+    this.title.onSeed = next => this.useSeed(next)
     this.optionsPanel = new OptionsPanel(this.settings, () => this.applyOptions(),
       () => this.modals.close(this.optionsPanel))
 
@@ -756,6 +763,8 @@ export class Game {
     app.stage.on('pointerupoutside', () => this.endDrag())
     window.addEventListener('keydown', event => {
       this.audio.unlock()
+      // 타이틀에서 시드를 적는 동안에는 그 화면의 키입니다.
+      if (this.title.typing) return
       // 판이 떠 있으면 맨 위의 것을 닫습니다. **연출을 넘기는 것보다 앞섭니다** — 판을
       // 보고 있는 사람에게 아무 키나는 「닫기」입니다.
       if (this.modals.busy) {
@@ -857,6 +866,32 @@ export class Game {
    * 게임 방법은 **처음 여는 사람에게만** 저절로 펼쳐집니다. 두 번째부터는 타이틀의 버튼과
    * 왼쪽 아래 버튼으로 엽니다.
    */
+  /**
+   * 시드를 갈아 끼웁니다.
+   *
+   * **시드는 판 하나를 정하는 문자열입니다.** 덱 섞기 · 상점 · 팩 · 확률 발동이 저마다
+   * 다른 난수 흐름을 쓰지만 그 흐름 전부가 이 문자열에서 갈라져 나오므로, 같은 시드는
+   * 같은 판입니다.
+   *
+   * 시작하기 전에만 됩니다 — 판이 돌기 시작하면 그 판의 시드입니다.
+   */
+  private useSeed(seed: string): void {
+    if (this.started) return
+    this.state = newRun(this.data, seed, 'red_deck', 'White').state
+    this.settleShown()
+    this.refresh()
+
+    // 주소도 함께 바꿉니다. **그 주소를 열면 같은 판입니다** — 지금 페이지를 다시 읽지는
+    // 않으므로 타이틀에 그대로 있습니다.
+    try {
+      history.replaceState(null, '',
+        new URL(`?seed=${encodeURIComponent(seed)}`, location.href).toString())
+      document.title = `clover — ${seed}`
+    } catch {
+      // 주소를 바꿀 수 없는 자리에서는 판만 바뀝니다.
+    }
+  }
+
   private start(): void {
     if (this.started) return
     this.started = true
@@ -3098,7 +3133,7 @@ export class Game {
     body.position.set(0, -height / 2 + 150)
 
     const again = new Button(t('ui.button.restart'), 200, 52, won ? 0x2f7a52 : 0xa63f3f, () => {
-      const seed = `CLOVER-${Math.floor(Math.random() * 1e6).toString().padStart(6, '0')}`
+      const seed = randomSeed()
       // **시계를 먼저 세웁니다.** 되읽는 동안에도 프레임이 돌면 문맥이 걷히는 중인
       // 렌더러를 그리게 되고, 그때 렌더러가 죽으면 창이 빈 채로 남습니다.
       // 판을 통째로 걷지는 않습니다 — 걷는 길에서 나는 오류가 되읽기 자체를 막습니다.

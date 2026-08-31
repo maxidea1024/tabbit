@@ -8,6 +8,7 @@ import { Application } from 'pixi.js'
 import { loadFromUrl } from './core/load'
 import { setLanguage, useStrings } from './core/strings'
 import { loadFonts, useFont } from './ui/font'
+import { randomSeed } from './ui/title'
 import { chosen, loadOptions } from './ui/options'
 import { loadArtIndex } from './render/art'
 import { Game } from './render/game'
@@ -43,8 +44,7 @@ async function main(): Promise<void> {
   await loadArtIndex('./art')
 
   // 시드는 주소에서 받습니다 — 같은 주소를 열면 같은 판입니다. 대조할 때 그 편이 편합니다.
-  const seed = new URLSearchParams(location.search).get('seed')
-    ?? `CLOVER-${Math.floor(Math.random() * 1e6).toString().padStart(6, '0')}`
+  const seed = new URLSearchParams(location.search).get('seed') ?? randomSeed()
 
   const game = new Game(app, data, seed)
 
