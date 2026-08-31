@@ -1141,25 +1141,26 @@ export class Game {
     let money = this.state.money
     let score = Number(this.state.score)
     const drawn = new Set<number>()
-    const leaving = new Set<number>()
 
     for (const event of events) {
       switch (event.t) {
         case 'MoneyChanged': money -= event.delta; break
         case 'ScoreResolved': score -= event.score; break
         case 'HandDrawn': for (const uid of event.uids) drawn.add(uid); break
-        case 'HandPlayed':
-        case 'HandDiscarded': for (const uid of event.uids) leaving.add(uid); break
         default: break
       }
     }
 
-    const held = new Set(this.state.hand)
     this.shown = {
       money,
       score,
-      // 아직 패에 있는 것과, 이번에 패를 떠나지만 아직 떠나는 것이 보이지 않은 것.
-      hand: before.filter(uid => (held.has(uid) && !drawn.has(uid)) || leaving.has(uid)),
+      // **누르기 전의 패 그대로입니다.** 뽑은 것만 뺍니다 — 낸 것은 박자가 도달할 때
+      // 물러나고, 남은 것은 계속 손에 있어야 합니다.
+      //
+      // 코어의 패를 보고 정하면 **마지막 핸드에서 남은 카드가 즉시 사라집니다.** 그 한
+      // 판으로 격파하면 코어가 라운드를 끝내며 패를 비우는데, 화면은 아직 카드가 날아가는
+      // 중이고 득점도 시작하지 않았습니다.
+      hand: before.filter(uid => !drawn.has(uid)),
     }
   }
 
@@ -2354,6 +2355,7 @@ export class Game {
       phase: state.phase, ante: state.ante, blind: state.blind,
       money: state.money, score: Number(state.score), target: Number(state.target),
       jokers: state.jokers.length, discards: state.discardsLeft,
+      hands: state.handsLeft,
       packOpen: state.pack !== null, packs: state.shop.packs.length,
       played: this.playedViews.length, coins: this.coins.busy,
       cleared: this.headline.visible && this.headline.text === t('ui.label.cleared'),

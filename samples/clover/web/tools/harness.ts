@@ -16,6 +16,7 @@ export interface Peek {
   target: number
   jokers: number
   discards: number
+  hands: number
   packOpen: boolean
   packs: number
   played: number
