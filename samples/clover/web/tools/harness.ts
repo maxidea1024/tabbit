@@ -28,12 +28,16 @@ export interface Peek {
   hurry(times: number): void
   grantJoker?(count: number): void
   grantConsumable?(count: number): void
+  /** 조커 첫 장이 지금 그려진 자리. 흔들림을 재는 도구가 씁니다. */
+  jokerX?(): number | undefined
   handOrder: number[]
   jokerOrder: number[]
   /** 눌러야 하는 것들의 자리. `game.ts` 가 그린 그대로 알립니다. */
   spots: Record<string, { x: number; y: number } | undefined>
   /** 연출이 다음에 낼 박자. 소리가 비는 자리를 찾을 때 씁니다. */
   coming: string
+  /** 정산 판이 떠 있는가. */
+  payout: boolean
 }
 
 /**

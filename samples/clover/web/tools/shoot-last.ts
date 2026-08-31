@@ -71,6 +71,16 @@ async function main(): Promise<number> {
       + ` · 낸 카드 ${now.played} · 다음 박자 ${now.coming || '-'}`)
   }
 
+  // 「받는다」 를 누릅니다. **눌러서 닫히는지가 이 확인의 요점입니다.**
+  const h = 46 + 16 + 2 * 34 + 14 + 56
+  await tap(page, STAGE_W / 2, (800 - h) / 2 + h - 56 / 2)
+  for (const wait of [300, 600, 1200]) {
+    await page.waitForTimeout(wait)
+    const now = await peek(page)
+    console.log(`받는다 뒤 · 국면 ${now.phase} · 정산 ${now.payout ? '떠 있음' : '닫힘'}`)
+  }
+  await shot(page, 'last-taken')
+
   await browser.close()
   await server.close()
   return 0

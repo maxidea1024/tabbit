@@ -91,6 +91,10 @@ export class JokerView extends Container {
 
   hovered = false
   pointer = 0
+  /** 발동해서 흔들리는 정도. 0 이면 조용합니다. */
+  private rattle = 0
+  /** 흔들리는 위상. 잦아드는 동안 좌우로 오갑니다. */
+  private shiver = 0
 
   constructor(joker: JokerInstance, look: JokerLook) {
     super()
@@ -229,11 +233,19 @@ export class JokerView extends Container {
     return this.burning && this.burn >= 1
   }
 
-  /** 발동할 때 튀어오릅니다. */
+  /**
+   * 발동할 때 튀어오르고 좌우로 흔들립니다.
+   *
+   * **조각을 터뜨리지 않습니다.** 조커는 한 판에 열 번도 발동하는데 그때마다 조각이
+   * 터지면 화면이 시끄러워지고, 정작 카드 위에 뜬 숫자가 그 조각에 묻힙니다 — 좌우로
+   * 정신없이 흔들리는 것이 훨씬 생동감 있습니다.
+   */
   pop(strength = 1): void {
     this.motion.y.kick(-300 * strength)
     this.motion.rotation.kick((Math.random() - 0.5) * 22)
     this.motion.scale.target = 1 + 0.16 * strength
+    // 흔들림은 겹칩니다 — 잇달아 발동하면 아직 흔들리는 위에 더 얹힙니다.
+    this.rattle = Math.min(1.6, this.rattle + strength)
   }
 
   advance(seconds: number, time: number): void {
@@ -249,11 +261,24 @@ export class JokerView extends Container {
       return
     }
 
+    // **좌우로 정신없이.** 잦아드는 동안 빠르게 오가고, 세로가 아니라 가로입니다 —
+    // 세로로 흔들면 튀어오르는 것과 섞여 무엇이 일어난 것인지 흐려집니다.
+    if (this.rattle > 0) {
+      this.rattle = Math.max(0, this.rattle - seconds * 1.9)
+      this.shiver += seconds * 52
+    } else {
+      this.shiver = 0
+    }
+    const shake = this.rattle * this.rattle
+    const aside = Math.sin(this.shiver) * 15 * shake
+      + Math.sin(this.shiver * 2.7) * 7 * shake
+
     const wobble = sway(time, this.motion.phase, 1.1, 1.1)
-    this.x = this.motion.x.value
+    this.x = this.motion.x.value + aside
     this.y = this.motion.y.value - (this.hovered ? 10 : 0)
       + sway(time, this.motion.phase * 1.3, 1.8, 0.7)
-    this.rotation = (this.motion.rotation.value + wobble) * (Math.PI / 180)
+    this.rotation = (this.motion.rotation.value + wobble
+      + Math.sin(this.shiver * 1.3) * 8 * shake) * (Math.PI / 180)
 
     const want = this.hovered ? 1.1 : 1
     if (Math.abs(this.motion.scale.target - want) > 0.001) this.motion.scale.target = want

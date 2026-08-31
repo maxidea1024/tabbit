@@ -399,6 +399,7 @@ export class Game {
     // **다 닫힌 뒤에 상점이 섭니다.** 닫기를 누른 그 순간에 그리면 판이 아직 물러나는
     // 중이라 상점이 비어 보입니다.
     onClosed: () => {
+      this.payoutOpen = false
       this.payoutWanted = false
       this.refresh()
     },
@@ -413,6 +414,14 @@ export class Game {
    * 카드가 물러나고 나서입니다.
    */
   private payoutWanted = false
+  /**
+   * 정산 판이 지금 떠 있는가.
+   *
+   * **`modals.has` 를 쓰지 않습니다.** 그것은 닫히는 중인 판을 곧바로 없는 것으로 세므로,
+   * 「받는다」 를 누른 다음 프레임에 이 코드가 판을 다시 엽니다 — 창이 닫히지 않고 계속
+   * 눌리던 것이 그것입니다.
+   */
+  private payoutOpen = false
   /**
    * 정산의 줄이 하나씩 서는 것.
    *
@@ -1585,12 +1594,9 @@ export class Game {
             : mul || event.chips === 0 ? COLOR.mult : COLOR.chips
 
         this.chain++
-        if (view) {
-          view.pop(mul ? 1.6 : 1.1)
-          this.particles.burst(view.x, view.y, 18 + dust * 3,
-            mul ? COLOR.mult : event.chips !== 0 ? COLOR.chips : COLOR.money,
-            1.4 + (mul ? 0.8 : 0))
-        }
+        // **조각을 터뜨리지 않습니다.** 조커는 한 판에 열 번도 발동하고, 그때마다 조각이
+        // 터지면 화면이 시끄러워집니다 — 좌우로 흔들리는 것 하나로 충분합니다.
+        if (view) view.pop(mul ? 1.6 : 1.1)
         this.popAt(view, text, tint, beat.intensity + (mul ? 0.6 : 0.2))
         this.audio.play(cue, semitones + this.chain)
 
@@ -2034,10 +2040,11 @@ export class Game {
   private advancePayout(seconds: number): void {
     void seconds
 
-    if (this.payoutWanted && !this.modals.has(this.payout)) {
+    if (this.payoutWanted && !this.payoutOpen) {
       const swept = this.playedViews.length === 0 && this.fades.length === 0
         && this.shown.hand.length === 0 && this.deals.length === 0
       if (swept && !this.player.busy) {
+        this.payoutOpen = true
         this.drawPayout()
         this.modals.open(this.payout)
         // **상점은 정산 뒤입니다.** 판이 열린 것을 상점이 알아야 물러납니다 — 카드가
@@ -2417,6 +2424,7 @@ export class Game {
       spots: this.spots,
       // 소리가 비는 자리를 찾을 때 씁니다 — 시계로 재면 배속과 히트스톱에서 어긋납니다.
       coming: this.player.coming ?? '',
+      payout: this.payoutOpen,
       handOrder: this.shown.hand.slice(),
       jokerOrder: state.jokers.map(joker => joker.uid),
       // **판을 끝까지 두는 도구를 위한 손잡이입니다.** 사람이 보라고 넣은 뜸이 도구에게는
@@ -2446,6 +2454,10 @@ export class Game {
           this.state.vouchers = this.data.tables.voucher.records.slice(0, 2)
             .map(row => row.voucherId)
           this.refresh()
+        },
+        jokerX: () => {
+          const first = this.state.jokers[0]
+          return first ? this.jokers.get(first.uid)?.x : undefined
         },
         grantConsumable: (count: number) => {
           const rows = this.data.tables.tarot.records
@@ -4185,6 +4197,8 @@ export class Game {
     // **닫기 단추가 없습니다.** 받는 것이 이 판의 전부이고, 그것을 누르는 것이 닫는 것이라
     // 밑단 띠에 그 단추 하나만 섭니다.
     const take = new Button(tf('ui.payout.take', { n: sum }), 220, 40, 0x2f7a52, () => {
+      // **누른 그 자리에서 차례를 지웁니다.** 닫히는 것을 기다리면 그 사이에 다시 섭니다.
+      this.payoutWanted = false
       this.modals.close(this.payout)
     })
     layer.addChild(panelFrame(width, height, t('ui.payout.title'), undefined, take))
