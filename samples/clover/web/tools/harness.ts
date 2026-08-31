@@ -266,18 +266,16 @@ export function chooseFive(hand: { rank: number; suit: number }[]): number[] {
 
 export function* fiveOf(indices: number[]): Generator<number[]> {
   const want = Math.min(5, indices.length)
-  const combo: number[] = []
-  const walk = (start: number): Generator<number[]> | void => undefined
-  void walk
-
   const stack: number[][] = [[]]
   while (stack.length > 0) {
     const current = stack.pop() as number[]
-    if (current.length === want) { yield current; continue }
+    if (current.length === want) {
+      yield current
+      continue
+    }
     const from = current.length === 0 ? 0 : current[current.length - 1] + 1
     for (let i = indices.length - 1; i >= from; i--) stack.push([...current, indices[i]])
   }
-  void combo
 }
 
 /** 족보의 대략적인 값. 순서만 맞으면 됩니다. */

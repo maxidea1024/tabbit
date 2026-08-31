@@ -11,12 +11,12 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
-import { chromium, type Page } from 'playwright'
+import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
   at, BOARD_X, buyAffordablePack, buyFirstAffordable, chooseFive, clickPrimary,
   discardHand, hurry, openDeckView, peek, pickCards, playHand, pressPlay, rate, settle,
-  shopSlot, spare, STAGE_W,
+  shopSlot, spare, STAGE_H, STAGE_W,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))

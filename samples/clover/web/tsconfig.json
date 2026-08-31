@@ -25,6 +25,6 @@
     "isolatedModules": true
   },
   "references": [{ "path": "./src/generated" }],
-  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "tools/**/*.ts"],
   "exclude": ["src/generated/**"]
 }

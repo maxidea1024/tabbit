@@ -43,6 +43,7 @@ import { Coins } from './coins'
 import { Spring } from './motion'
 import { Particles } from './particles'
 import { artFor, onArtReady, type ArtKind } from './art'
+import { drawCardBack } from './card-back'
 import { drawGlyph, glyphFor, hashOf, hsl, shade, type GlyphName } from './glyph'
 import { cardArtId, drawFace } from './pips'
 import { COLOR, rarityColor, SIZE } from './theme'
@@ -726,14 +727,25 @@ export class Game {
     this.deckLabel.position.set(DECK_X, DECK_Y + 76)
 
     // 덱 더미. **카드가 어디에서 오는지 보여야 뽑는 연출이 뜻을 가집니다.**
-    const pile = new Graphics()
+    //
+    // 맨 위 한 장만 무늬를 그립니다 — 아래 넉 장은 옆구리만 보이므로 무늬가 보이지 않고,
+    // 다섯 장을 다 그리면 같은 선화가 다섯 겹으로 비쳐 두께가 지저분해집니다.
+    const pile = new Container()
     for (let i = 4; i >= 0; i--) {
-      pile.roundRect(DECK_X - SIZE.cardWidth / 2 + i * 2, DECK_Y - SIZE.cardHeight / 2 - i * 3,
-        SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius)
-        .fill(COLOR.cardBack)
-      pile.roundRect(DECK_X - SIZE.cardWidth / 2 + i * 2, DECK_Y - SIZE.cardHeight / 2 - i * 3,
-        SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius)
-        .stroke({ color: COLOR.cardBackEdge, width: 1.5 })
+      const sheet = new Graphics()
+      const x = DECK_X - SIZE.cardWidth / 2 + i * 2
+      const y = DECK_Y - SIZE.cardHeight / 2 - i * 3
+      if (i === 0) {
+        sheet.position.set(x, y)
+        drawCardBack(sheet, SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius,
+          { ground: COLOR.cardBack, ink: COLOR.cardBackEdge })
+      } else {
+        sheet.roundRect(x, y, SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius)
+          .fill(COLOR.cardBack)
+        sheet.roundRect(x, y, SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius)
+          .stroke({ color: COLOR.cardBackEdge, width: 1.5 })
+      }
+      pile.addChild(sheet)
     }
 
     // **지시문은 누를 버튼 바로 위입니다.** 패널 아래에 두면 눈이 화면 왼쪽 끝까지 갔다
@@ -3355,9 +3367,43 @@ export class Game {
 
     const entries = this.activeEntries()
     const width = 460
-    const rowH = 34
     const top = TITLE_BAR + 18
-    const height = top + Math.max(1, entries.length) * rowH + 14 + FOOTER_BAR
+
+    // **줄 높이가 저마다 다릅니다.** 설명이 접히면 그만큼 아래가 밀리므로, 자리를 먼저 잡고
+    // 그 합으로 판의 높이를 정합니다.
+    const rows = entries.map(entry => {
+      const line = new Container()
+      const name = new Text({
+        text: entry.label,
+        style: { fontSize: 14, fill: COLOR.ink, fontWeight: '800' },
+      })
+      name.position.set(20, 6)
+      line.addChild(name)
+
+      const value = richLine(entry.value, {
+        base: { fontSize: 13, fill: COLOR.inkDim, fontWeight: '700' },
+        number: COLOR.accentNumber, term: COLOR.accentTerm,
+      })
+      value.position.set(width - 20 - value.width, 7)
+      line.addChild(value)
+
+      let height = 30
+      // 무엇을 하는 것인지는 그 줄 아래에. **이름만으로는 왜 걸렸는지 모릅니다.**
+      if (entry.lines.length > 0) {
+        // **값 칸을 피해 접습니다.** 오른쪽 끝에 값이 서 있으므로 거기까지 가면 겹칩니다.
+        const note = richLine(entry.lines[0], {
+          base: { fontSize: 11, fill: COLOR.inkDim },
+          number: COLOR.accentNumber, term: COLOR.accentTerm,
+        }, width - 130, 13)
+        note.position.set(20, 22)
+        line.addChild(note)
+        height = 26 + note.height
+      }
+      return { line, height }
+    })
+
+    const body = rows.reduce((sum, row) => sum + row.height, 0)
+    const height = top + Math.max(30, body) + 14 + FOOTER_BAR
     ;(this.activePanel.size as { width: number; height: number }).height = height
 
     layer.addChild(panelFrame(width, height, '적용 중', () => this.toggleActive()))
@@ -3373,32 +3419,12 @@ export class Game {
       return
     }
 
-    entries.forEach((entry, index) => {
-      const y = top + index * rowH
-      const name = new Text({
-        text: entry.label,
-        style: { fontSize: 14, fill: COLOR.ink, fontWeight: '800' },
-      })
-      name.position.set(20, y + 6)
-      layer.addChild(name)
-
-      const value = richLine(entry.value, {
-        base: { fontSize: 13, fill: COLOR.inkDim, fontWeight: '700' },
-        number: COLOR.accentNumber, term: COLOR.accentTerm,
-      })
-      value.position.set(width - 20 - value.width, y + 7)
-      layer.addChild(value)
-
-      // 무엇을 하는 것인지는 그 줄 아래에 한 줄로. **이름만으로는 왜 걸렸는지 모릅니다.**
-      if (entry.lines.length > 0) {
-        const note = richLine(entry.lines[0], {
-          base: { fontSize: 11, fill: COLOR.inkDim },
-          number: COLOR.accentNumber, term: COLOR.accentTerm,
-        })
-        note.position.set(20, y + 22)
-        layer.addChild(note)
-      }
-    })
+    let y = top
+    for (const row of rows) {
+      row.line.position.set(0, y)
+      layer.addChild(row.line)
+      y += row.height
+    }
   }
 
   private showTooltip(view: JokerView): void {
@@ -3794,7 +3820,7 @@ export class Game {
         base: { fontSize: 12, fill: COLOR.inkDim },
         number: COLOR.accentNumber,
         term: COLOR.accentTerm,
-      })
+      }, width - 48)
     lead.position.set((width - lead.width) / 2, TITLE_BAR + 20)
     layer.addChild(lead)
 
@@ -3972,7 +3998,7 @@ export class Game {
       base: { fontSize: 11, fill: 0x9fc4e8 },
       number: COLOR.accentNumber,
       term: COLOR.accentTerm,
-    })
+    }, width - 110, 14)
     note.position.set(16, 36)
 
     const price = new Text({

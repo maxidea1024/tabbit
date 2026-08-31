@@ -75,7 +75,7 @@ export class Toasts extends Container {
     heading.position.set(24, 9)
 
     // **수와 이름은 다른 색입니다.** 「8 → 10」 에서 사람이 보는 것은 그 둘입니다.
-    const body = richBlock(note.split(NEWLINE), RICH, 17)
+    const body = richBlock(note.split(NEWLINE), RICH, 17, WIDTH - 32)
     body.position.set(24, 12 + heading.height)
 
     const height = Math.max(HEIGHT, body.y + body.height + 12)

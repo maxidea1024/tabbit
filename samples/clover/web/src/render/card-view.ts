@@ -18,6 +18,7 @@ import { PickFilter } from '../shader/pick'
 import { artFor } from './art'
 import { cardArtId, drawFace, drawSuit } from './pips'
 import { Motion, sway } from './motion'
+import { clearCardBack, drawCardBack } from './card-back'
 import { COLOR, SIZE } from './theme'
 
 /** 족보 도움의 색. **고른 카드의 초록과 달라야 헷갈리지 않습니다.** */
@@ -198,13 +199,10 @@ export class CardView extends Container {
     this.shadow.roundRect(3, 6, w, h, SIZE.cardRadius).fill({ color: 0x000000, alpha: 0.35 })
 
     this.paper.clear()
+    clearCardBack(this.paper)
     if (card.faceDown || this.showBack) {
-      this.paper.roundRect(0, 0, w, h, SIZE.cardRadius).fill(COLOR.cardBack)
-      this.paper.roundRect(7, 7, w - 14, h - 14, SIZE.cardRadius - 4)
-        .stroke({ color: 0xd1626c, width: 2 })
-      for (let i = 0; i < 4; i++) {
-        this.paper.circle(w / 2, 22 + i * 30, 6).stroke({ color: 0xd1626c, width: 1.5 })
-      }
+      drawCardBack(this.paper, w, h, SIZE.cardRadius,
+        { ground: COLOR.cardBack, ink: COLOR.cardBackEdge })
       this.cornerTop.visible = false
       this.cornerBottom.visible = false
       this.face.clear()

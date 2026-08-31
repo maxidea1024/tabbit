@@ -27,8 +27,14 @@ export const COLOR = {
 
   cardFace: 0xf6f2e8,
   cardEdge: 0x2b2a26,
-  cardBack: 0x8f2f3c,
-  cardBackEdge: 0xd1626c,
+  /**
+   * 뒷면.
+   *
+   * **바탕은 크림이고 무늬가 붉습니다.** 붉은 바탕에 무늬를 얹으면 앞면과 뒤집힌 관계가
+   * 되어, 뒤집히는 순간 종이가 바뀐 것으로 보입니다 — 같은 종이의 반대쪽이어야 합니다.
+   */
+  cardBack: 0xf2ece0,
+  cardBackEdge: 0xc0392f,
   red: 0xd7343f,
   black: 0x1f2024,
 

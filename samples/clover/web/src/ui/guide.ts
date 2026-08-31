@@ -141,11 +141,13 @@ export class Guide implements ModalPanel {
 
       // **수와 이름은 다른 색입니다.** 「안테 8까지」에서 찾는 것은 8 이고, 그것이 문장과
       // 같은 색이면 문장을 처음부터 읽어야 찾습니다.
-      const text = richBlock(section.lines, RICH, 23)
+      // **단이 둘이라 좁습니다.** 접지 않으면 긴 문장이 옆 단으로 넘어갑니다.
+      const text = richBlock(section.lines, RICH, 23, WIDTH / 2 - 42)
       text.position.set(x + 14, y + 30)
 
       this.body.addChild(rule, head, text)
-      y += 30 + section.lines.length * 23 + 20
+      // 접힌 줄만큼 아래가 밀립니다. 줄 수로 세면 긴 줄 하나가 다음 자리를 덮습니다.
+      y += 30 + text.height + 20
     }
   }
 }

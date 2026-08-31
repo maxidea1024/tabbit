@@ -42,7 +42,7 @@ export class Tooltip extends Container {
     this.rarity.style.fill = rarityColor(rarityValue)
     this.body.removeChildren().forEach(child => child.destroy())
     const shown = lines.length > 0 ? lines.map(line => `· ${line}`) : ['—']
-    this.body.addChild(richBlock(shown, RICH, 17))
+    this.body.addChild(richBlock(shown, RICH, 17, WIDTH - 24))
 
     this.title.position.set(12, 10)
     this.rarity.position.set(12, 30)
