@@ -34,7 +34,52 @@
   </head>
   <body>
     <canvas id="stage"></canvas>
-    <div id="boot">데이터를 읽는 중입니다</div>
+    <div id="boot"></div>
+    <script>
+      // **이 한 줄만 코드에 있습니다.** 글 표를 읽기 전에 보이는 글이라 그 표에서 찾아올
+      // 수 없습니다 — 대신 이 기계의 언어만 보고 고릅니다.
+      //
+      // 옵션에서 고른 것이 있으면 그것이 앞섭니다. `ui/options.ts` 와 같은 열쇠입니다.
+      ;(function () {
+        var say = {
+          ko: '데이터를 읽는 중입니다',
+          en: 'Loading data',
+          ja: 'データを読み込んでいます',
+          'zh-Hans': '正在读取数据',
+          'zh-Hant': '正在讀取資料',
+          de: 'Daten werden geladen',
+        }
+
+        var lang = ''
+        try {
+          lang = (JSON.parse(localStorage.getItem('clover.options') || '{}') || {}).language || ''
+        } catch (error) {
+          lang = ''
+        }
+
+        if (!say[lang]) {
+          // `core/strings.ts` 의 detectLanguage 와 같은 규칙입니다. 중국어는 지역이 아니라
+          // 글자로 갈립니다 — 번체를 쓰는 홍콩·마카오가 간체로 떨어지지 않게.
+          var tags = (navigator.languages || [navigator.language || '']).slice()
+          lang = 'en'
+          for (var i = 0; i < tags.length; i++) {
+            var tag = String(tags[i]).toLowerCase()
+            if (tag.indexOf('ko') === 0) { lang = 'ko'; break }
+            if (tag.indexOf('ja') === 0) { lang = 'ja'; break }
+            if (tag.indexOf('de') === 0) { lang = 'de'; break }
+            if (tag.indexOf('zh') === 0) {
+              var hant = tag.indexOf('hant') >= 0 || tag.indexOf('-tw') >= 0
+                || tag.indexOf('-hk') >= 0 || tag.indexOf('-mo') >= 0
+              lang = hant ? 'zh-Hant' : 'zh-Hans'
+              break
+            }
+            if (tag.indexOf('en') === 0) { lang = 'en'; break }
+          }
+        }
+
+        document.getElementById('boot').textContent = say[lang]
+      })()
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
