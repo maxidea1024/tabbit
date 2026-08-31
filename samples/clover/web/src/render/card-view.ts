@@ -464,7 +464,7 @@ export class CardView extends Container {
         this.onFlipped?.()
       }
     }
-    this.edition?.advance(seconds, this.pointer)
+    this.edition?.at(time, this.pointer)
     if (this.pickMode !== 0 || this.glow > 0) this.pick.time = time
 
     if (this.glow > 0) {

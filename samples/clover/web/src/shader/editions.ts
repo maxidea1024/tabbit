@@ -188,9 +188,19 @@ export class EditionFilter extends Filter {
     })
   }
 
-  advance(seconds: number, tilt: number): void {
+  /**
+   * 지금이 몇 초인가.
+   *
+   * **자기 시계를 갖지 않습니다.** 초를 받아 스스로 더하면 필터를 다시 만들 때마다 0에서
+   * 시작하고, 그러면 화면을 다시 그리는 것만으로 무늬의 흐름이 끊깁니다 — 패를 한 장 깔
+   * 때마다 조커의 무늬가 처음으로 돌아가던 것이 그것입니다.
+   *
+   * 판 전체의 시계를 그대로 받습니다. 게임 엔진이 엔진 시간을 넘기는 것과 같습니다 —
+   * 카드마다 따로 돌 이유가 없고, 같이 돌면 줄에 선 것들의 무늬가 한 결로 흐릅니다.
+   */
+  at(time: number, tilt: number): void {
     const uniforms = this.resources.editionUniforms.uniforms as Record<string, number>
-    uniforms.uTime += seconds
+    uniforms.uTime = time
     uniforms.uTilt = tilt
   }
 }

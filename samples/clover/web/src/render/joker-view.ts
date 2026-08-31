@@ -80,6 +80,13 @@ export class JokerView extends Container {
   })
   private edition?: EditionFilter
   /**
+   * 지금 걸려 있는 에디션.
+   *
+   * **같은 것이면 다시 만들지 않습니다.** 새로 만들면 셰이더의 시계가 0으로 돌아가는데,
+   * `set` 은 화면을 다시 그릴 때마다 불립니다 — 패를 한 장 깔 때마다 흐름이 끊깁니다.
+   */
+  private editionKind?: EditionKind
+  /**
    * 타서 사라지는 중.
    *
    * **팔린 조커는 미끄러져 나가지 않습니다.** 나가는 것은 「치웠다」이고, 판 것은 없앤
@@ -202,16 +209,20 @@ export class JokerView extends Container {
 
     const shader = EDITION_SHADER[joker.edition]
     if (shader && look.edition) {
-      this.edition = new EditionFilter(shader, {
-        strength: look.edition.strength,
-        flowSpeed: look.edition.flowSpeed,
-        noise: look.edition.noise,
-        shape: roundedMask(SIZE.jokerWidth, SIZE.jokerHeight, RADIUS),
-      })
-      this.body.filters = [this.edition]
-    } else {
-      this.body.filters = []
+      if (this.editionKind !== joker.edition) {
+        this.editionKind = joker.edition
+        this.edition = new EditionFilter(shader, {
+          strength: look.edition.strength,
+          flowSpeed: look.edition.flowSpeed,
+          noise: look.edition.noise,
+          shape: roundedMask(SIZE.jokerWidth, SIZE.jokerHeight, RADIUS),
+        })
+        this.body.filters = [this.edition]
+      }
+    } else if (this.editionKind !== undefined) {
+      this.editionKind = undefined
       this.edition = undefined
+      this.body.filters = []
     }
   }
 
@@ -260,7 +271,7 @@ export class JokerView extends Container {
 
   advance(seconds: number, time: number): void {
     this.motion.advance(seconds)
-    this.edition?.advance(seconds, this.pointer)
+    this.edition?.at(time, this.pointer)
 
     if (this.burning) {
       // **아래에서 위로, 그리고 조금 떠오릅니다.** 종이가 타면 가벼워집니다.
