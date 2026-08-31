@@ -26,6 +26,7 @@ import { describe } from '../core/describe'
 import { evaluate } from '../core/hand'
 import { apply, defaultRules, newRun, targetOf, type Action } from '../core/run'
 import { language, setLanguage, t, text, tf } from '../core/strings'
+import { useFont } from '../ui/font'
 import { rerollCost, sellValueOf, type ShopItem } from '../core/shop'
 import { bestHand, valueOf } from '../core/suggest'
 import { newCounters, type CardInstance, type GameEvent, type RunState } from '../core/state'
@@ -656,6 +657,7 @@ export class Game {
     const want = chosen(this.settings)
     const changed = want !== language()
     setLanguage(want)
+    if (changed) useFont(want)
 
     saveOptions(this.settings)
     // 도움 표시는 켜고 끄는 그 자리에서 바로 사라져야 합니다.
@@ -1040,6 +1042,14 @@ export class Game {
       : a.suit - b.suit || b.rank - a.rank)
 
     this.state.hand = cards.map(card => card.uid)
+    // **화면이 그리는 것은 `shown.hand` 입니다.** 연출이 도달한 것만 그리기 위한 것이라,
+    // 정렬이 그것을 함께 바꾸지 않으면 자리가 하나도 움직이지 않습니다.
+    //
+    // 화면에 이미 있는 것만 그 차례로 다시 세웁니다 — 아직 날아오는 중인 카드를 여기서
+    // 끌어오면 뽑는 연출이 끊깁니다.
+    const seen = new Set(this.shown.hand)
+    this.shown.hand = this.state.hand.filter(uid => seen.has(uid))
+
     this.audio.play('card_select')
     this.refresh()
   }

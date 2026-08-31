@@ -237,3 +237,4 @@ samples/canopy/out-xlsb/
 
 # clover 의 확인용 그림. 도구가 판정에 쓰고 버리는 것이라 문서가 아닙니다.
 samples/clover/design-data/out/check/
+samples/clover/design-data/out/font-src/
