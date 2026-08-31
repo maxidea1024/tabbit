@@ -268,6 +268,8 @@ export class Game {
   private readonly playedViews: CardView[] = []
   /** 아직 날아가지 않은 카드들. 왼쪽부터 한 장씩 차례로 갑니다. */
   private readonly slams: { view: CardView; x: number; at: number }[] = []
+  /** 마지막 카드가 자리에 닿는 시각. **그때까지 득점을 세지 않습니다.** */
+  private playLanded = 0
   /** 아직 나가지 않은 버린 카드들. 이것도 왼쪽부터 한 장씩입니다. */
   private readonly fades: { view: CardView; at: number; spark: boolean }[] = []
   /** 아직 깔리지 않은 뽑은 카드들. **덱에서 한 장씩 옵니다.** */
@@ -567,7 +569,10 @@ export class Game {
     this.clearButton = new Button('-', 60, 46, 0x4a5568, () => this.clearSelection())
     this.primaryButton = new Button(t('ui.button.select_blind'), 210, 50, 0x2f6fb5, () => this.primary())
     this.skipButton = new Button(t('ui.button.skip'), 150, 38, 0x4a5568,
-      () => this.act({ t: 'skip_blind' }))
+      () => {
+        this.audio.play('blind_skip')
+        this.act({ t: 'skip_blind' })
+      })
     this.rerollButton = new Button(t('ui.button.reroll'), 128, 44, 0x3f5f8f, () => this.reroll())
     this.sortRankButton = new Button(t('ui.button.sort_rank'), 92, 32, 0x333e4e, () => this.sortHand('rank'))
     this.sortSuitButton = new Button(t('ui.button.sort_suit'), 92, 32, 0x333e4e, () => this.sortHand('suit'))
@@ -634,6 +639,16 @@ export class Game {
 
     // 그림이 새로 들어오면 다시 그립니다. 문양이 그림으로 바뀝니다.
     onArtReady(() => this.refresh())
+
+    // **카드가 다 닿은 뒤에 셉니다.** 카드는 실제 시계로 날아가고 연출은 배속과 히트스톱을
+    // 타므로, 시간으로만 맞추면 배속을 올린 순간 어긋납니다.
+    this.player.blocked = () => this.slams.length > 0 || this.clock < this.playLanded
+
+    // **버튼과 판의 소리는 여기 한 자리입니다.** 부르는 쪽마다 걸면 새로 만드는 것에서
+    // 반드시 하나가 빠지고, 그것만 소리 없이 눌립니다.
+    Button.onPressed = () => this.audio.play('button')
+    this.modals.onOpened = () => this.audio.play('panel_open')
+    this.modals.onClosed = () => this.audio.play('panel_close')
 
     this.refresh()
     app.ticker.add(ticker => this.tick(ticker.deltaMS))
@@ -992,6 +1007,7 @@ export class Game {
   }
 
   private primary(): void {
+    this.audio.play(this.state.phase === 'blind-select' ? 'blind_select' : 'shop_enter')
     if (this.state.phase === 'blind-select') this.act({ t: 'select_blind' })
     else if (this.state.phase === 'shop') this.act({ t: 'leave_shop' })
   }
@@ -1167,6 +1183,9 @@ export class Game {
       next.view.slam(next.x, PLAY_Y)
       this.audio.play('card_slam')
       this.jolt(2.2, 0.35)
+      // **마지막 카드가 닿을 때까지 세지 않습니다.** 날아가는 중인 카드 위에 숫자가 뜨면
+      // 다섯 장이 한 덩어리로 보입니다.
+      this.playLanded = this.clock + this.feel.playLandMs / 1000
     }
   }
 
@@ -2569,7 +2588,10 @@ export class Game {
         // 보스는 건너뛸 수 없습니다.
         if (row.skippable && blind !== BlindKind.Boss) {
           const skip = new Button(t('ui.button.skip_tag'), cardW - 36, 36, 0x4a5568,
-            () => this.act({ t: 'skip_blind' }))
+            () => {
+              this.audio.play('blind_skip')
+              this.act({ t: 'skip_blind' })
+            })
           skip.position.set(18, height - 52)
           group.addChild(skip)
         }
@@ -3107,6 +3129,7 @@ export class Game {
       // **곧바로 지우지 않습니다.** 타서 사라지는 것이 보여야 무엇이 없어진 것인지
       // 눈이 따라갑니다. 다 타면 `tick` 이 치웁니다.
       view.ignite()
+      this.audio.play('joker_burn')
       this.jokers.delete(uid)
       this.burning.push(view)
     }
@@ -3174,7 +3197,7 @@ export class Game {
         || Math.abs(this.pointerAt.y - drag.startY) > 6
       if (!far) return
       drag.moved = true
-      this.audio.play('card_select', -4)
+      this.audio.play(drag.kind === 'hand' ? 'card_select' : 'joker_move', -4)
     }
 
     const x = this.pointerAt.x - drag.grabX
@@ -3200,7 +3223,7 @@ export class Game {
         next.splice(target, 0, ...next.splice(current, 1))
         this.state.jokers = next
       }
-      this.audio.play('card_select', target * 2)
+      this.audio.play(drag.kind === 'hand' ? 'card_select' : 'joker_move', target * 2)
       this.refresh()
     }
 
@@ -3225,7 +3248,7 @@ export class Game {
       else this.pick('joker', drag.uid)
       return
     }
-    this.audio.play('card_place')
+    this.audio.play(drag.kind === 'hand' ? 'card_place' : 'joker_move')
     this.refresh()
 
     // **겹치는 차례도 되돌립니다.** 끄는 동안 맨 위로 올렸으므로, 그대로 두면 놓은 카드가
@@ -3275,6 +3298,7 @@ export class Game {
       const price = sellValueOf(this.data, this.state, this.state.jokers[index])
       buttons.push(new Button(tf('ui.button.sell', { n: price }), 92, 30, 0x7a3f4a, () => {
         this.held = undefined
+        this.audio.play('joker_sell')
         this.act({ t: 'sell_joker', index })
       }))
     } else {
@@ -3286,10 +3310,12 @@ export class Game {
       anchor = CONSUMABLE_X + index * (SIZE.jokerWidth + 12)
       buttons.push(new Button(t('ui.button.use'), 68, 30, 0x3f5f8a, () => {
         this.held = undefined
+        this.audio.play('consumable_use')
         this.act({ t: 'use_consumable', index, targets: this.orderedSelection() })
       }))
       buttons.push(new Button(tf('ui.button.sell', { n: this.data.economy.sellMin }), 92, 30, 0x7a3f4a, () => {
         this.held = undefined
+        this.audio.play('joker_sell')
         this.act({ t: 'sell_consumable', index })
       }))
     }
@@ -3861,7 +3887,7 @@ export class Game {
       this.askSwap(slot, item)
       return
     }
-    this.audio.play('shop_buy')
+    this.audio.play('joker_buy')
     this.particles.burst(tile.x + 79, tile.y + 84, 16, COLOR.money, 1)
     this.act({ t: 'buy', slot })
   }
@@ -3952,7 +3978,7 @@ export class Game {
         tile.cursor = 'pointer'
         tile.on('pointertap', () => {
           this.modals.close(panel)
-          this.audio.play('shop_buy')
+          this.audio.play('joker_buy')
           this.act({ t: 'swap', slot, index: held.index })
         })
       }
@@ -4044,7 +4070,7 @@ export class Game {
       tile.cursor = afford ? 'pointer' : 'default'
       tile.on('pointertap', () => {
         if (!afford) return
-        this.audio.play('shop_buy')
+        this.audio.play('pack_open')
         this.particles.burst(tile.x + tileW / 2, tile.y + h / 2, 20, ink, 1.2)
         this.jolt(5, 3)
         this.act({ t: 'buy_pack', slot })
@@ -4110,7 +4136,7 @@ export class Game {
     tile.cursor = afford ? 'pointer' : 'default'
     tile.on('pointertap', () => {
       if (!afford) return
-      this.audio.play('shop_buy')
+      this.audio.play('voucher_buy')
       this.act({ t: 'buy_voucher' })
     })
     tile.on('pointerover', () => {
@@ -4216,7 +4242,7 @@ export class Game {
       tile.eventMode = 'static'
       tile.cursor = 'pointer'
       tile.on('pointertap', () => {
-        this.audio.play('shop_buy')
+        this.audio.play('pack_pick')
         this.particles.burst(tile.x + 72, tile.y + 79, 22, ink, 1.3)
         this.jolt(6, 4)
         this.act({ t: 'pick_pack', index })

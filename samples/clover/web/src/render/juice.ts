@@ -212,11 +212,31 @@ export class TimelinePlayer {
     return this.cursor < this.beats.length
   }
 
+  /**
+   * 다음 박자를 미룰 것인가.
+   *
+   * **카드가 자리에 닿기 전에는 세지 않습니다.** 카드는 실제 시계로 날아가고 연출은 배속과
+   * 히트스톱을 타므로, 시간만으로 맞추면 배속을 올린 순간 어긋납니다.
+   */
+  blocked?: () => boolean
+
   advance(deltaMs: number): void {
     if (!this.busy) return
+    if (this.blocked?.() === true) return
+
     this.clock += deltaMs * this.speed
-    while (this.cursor < this.beats.length && this.beats[this.cursor].at <= this.clock) {
+
+    // **한 프레임에 한 박자입니다.** 득점은 한 장씩 세는 것이고, 둘이 같은 프레임에 뜨면
+    // 그 둘은 한 번에 일어난 것으로 보입니다 — 프레임이 길어지면(탭을 전환했다 오거나
+    // 그림을 굽느라 멈추면) 밀린 박자가 한 번에 터집니다.
+    //
+    // **빠르게 넘기는 중에는 그러지 않습니다.** 그때는 넘기는 것이 목적이고, 한 프레임에
+    // 하나씩이면 넘기는 데 오히려 더 걸립니다.
+    const hurrying = this.speed > this.base
+    do {
+      if (this.cursor >= this.beats.length) break
+      if (this.beats[this.cursor].at > this.clock) break
       this.onBeat(this.beats[this.cursor++])
-    }
+    } while (hurrying)
   }
 }

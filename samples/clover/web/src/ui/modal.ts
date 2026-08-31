@@ -86,6 +86,10 @@ export class Modals extends Container {
    * 이미 떠 있으면 다시 얹지 않고 **맨 위로 올립니다** — 같은 판이 둘 쌓이면 하나를 닫아도
    * 남아 있습니다.
    */
+  /** 판이 뜨고 닫힐 때. 소리를 내는 쪽이 겁니다. */
+  onOpened?: () => void
+  onClosed?: () => void
+
   open(panel: ModalPanel): void {
     const found = this.entries.find(entry => entry.panel === panel)
     if (found) {
@@ -98,6 +102,7 @@ export class Modals extends Container {
 
     this.addChild(panel.view)
     this.entries.push({ panel, t: 0, leaving: false, rumble: 1, depth: 0 })
+    this.onOpened?.()
     this.sync()
   }
 
@@ -112,6 +117,7 @@ export class Modals extends Container {
   close(panel: ModalPanel): void {
     const found = this.entries.find(entry => entry.panel === panel && !entry.leaving)
     if (!found) return
+    this.onClosed?.()
     found.leaving = true
     this.sync()
   }

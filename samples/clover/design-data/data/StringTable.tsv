@@ -785,8 +785,8 @@
 	ui.swap.hint	자리 없음 — 눌러서 교체	No room — tap to swap	空きなし — 押して入れ替え	没有空位 — 点击替换	沒有空位 — 點擊替換	Kein Platz — antippen zum Tauschen
 	ui.deck_view.note	밝은 것이 덱에 남은 카드입니다. 카드를 누르면 그 한 장의 설명이 뜹니다.	The bright ones are still in the deck. Tap a card to read it.	明るいものがデッキに残っているカードです。カードを押すとその一枚の説明が出ます。	较亮的是仍在牌组中的牌。点击一张牌可查看说明。	較亮的是仍在牌組中的牌。點擊一張牌可查看說明。	Die hellen Karten sind noch im Deck. Tippe eine Karte an, um sie zu lesen.
 	ui.shop.note	조커와 소모품을 삽니다. 바우처는 런 내내 남습니다.	Buy Jokers and consumables. Vouchers last the whole run.	ジョーカーと消耗品を買います。バウチャーはラン中ずっと残ります。	购买小丑与消耗品。优惠券在本次运行内一直有效。	購買小丑與消耗品。優惠券在本次運行內一直有效。	Kaufe Joker und Verbrauchsgegenstände. Gutscheine gelten den ganzen Lauf.
-	ui.title.tagline	조커를 모아 점수를 불리는 포커 로그라이크	A poker roguelike about stacking Jokers	ジョーカーを重ねて得点を膨らませるポーカーローグライク	收集小丑、放大分数的扑克 Roguelike	收集小丑、放大分數的撲克 Roguelike	Ein Poker-Roguelike, in dem Joker die Punkte türmen
-	ui.title.note	안테 8까지. 조커 150종과 소모품 52종이 같은 패를 다른 점수로 만듭니다.	Eight antes. 150 Jokers and 52 consumables turn the same hand into a different score.	アンティ8まで。ジョーカー150種と消耗品52種が、同じ手札を違う得点に変えます。	一路打到底注 8。150 种小丑与 52 种消耗品，让同一手牌得出不同的分数。	一路打到底注 8。150 種小丑與 52 種消耗品，讓同一手牌得出不同的分數。	Acht Antes. 150 Joker und 52 Verbrauchsgegenstände machen aus derselben Hand eine andere Punktzahl.
+	ui.title.tagline	숫자가 미쳐 날뛰는 포커 로그라이크	The poker roguelike where the numbers go feral	数字が暴れ出すポーカーローグライク	数字疯狂飙升的扑克 Roguelike	數字瘋狂飆升的撲克 Roguelike	Das Poker-Roguelike, in dem die Zahlen durchdrehen
+	ui.title.note	조커 하나가 배수를 두 배로, 그다음 조커가 또 두 배로. 한 판이면 안 멈춥니다.	One Joker doubles the mult. The next one doubles it again. One run is never one run.	ジョーカー1枚が倍率を2倍に、次の1枚がまた2倍に。1ランでは終わりません。	一个小丑让倍率翻倍，下一个再翻一倍。一局根本停不下来。	一個小丑讓倍率翻倍，下一個再翻一倍。一局根本停不下來。	Ein Joker verdoppelt den Mult. Der nächste verdoppelt ihn wieder. Ein Lauf bleibt nie einer.
 	ui.guide.lead	포커 족보로 점수를 내고, 조커로 그 점수를 불립니다.	Score with poker hands, then grow that score with Jokers.	ポーカーの役で得点し、ジョーカーでその点を膨らませます。	用扑克牌型得分，再用小丑把分数放大。	用撲克牌型得分，再用小丑把分數放大。	Punkte mit Pokerblättern, dann mit Jokern vervielfachen.
 	ui.label.hands_left	남은 핸드	Hands left	残りハンド	剩余出牌	剩餘出牌	Hände übrig
 	ui.label.discards_left	남은 버리기	Discards left	残り捨て札	剩余弃牌	剩餘棄牌	Ablagen übrig

@@ -39,6 +39,9 @@ export class Button extends Container {
   private enabledState = true
   private lit = false
 
+  /** 아무 버튼이나 눌렸을 때. 소리를 내는 쪽이 겁니다. */
+  static onPressed?: () => void
+
   constructor(text: string, private readonly boxWidth: number,
               private readonly boxHeight: number,
               private readonly base: number, onPress: () => void) {
@@ -50,7 +53,13 @@ export class Button extends Container {
 
     this.eventMode = 'static'
     this.cursor = 'pointer'
-    this.on('pointertap', () => { if (this.enabledState) onPress() })
+    // **버튼 소리는 여기 한 자리입니다.** 부르는 쪽마다 걸면 새로 만드는 버튼에서 반드시
+    // 하나가 빠지고, 그 버튼만 소리 없이 눌립니다.
+    this.on('pointertap', () => {
+      if (!this.enabledState) return
+      Button.onPressed?.()
+      onPress()
+    })
     this.on('pointerover', () => { if (this.enabledState) this.setLit(true) })
     this.on('pointerout', () => this.setLit(this.held))
     this.on('pointerdown', () => { if (this.enabledState) this.caption.y = boxHeight / 2 + 2 })

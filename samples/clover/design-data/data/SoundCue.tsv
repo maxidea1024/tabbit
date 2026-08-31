@@ -22,3 +22,21 @@
 	boss_reveal	보스가 나타날 때	false
 	run_win	승리할 때	false
 	run_lose	패배할 때	false
+	card_place	카드를 손패 자리에 놓을 때	false
+	card_slam	낸 카드가 판에 붙을 때	false
+	card_flip	뒷면이 앞면으로 뒤집힐 때	false
+	coin_land	동전이 꽂힐 때	true
+	coin_lose	돈이 나갈 때	false
+	joker_buy	조커를 살 때	false
+	joker_sell	조커를 팔 때	false
+	joker_burn	조커가 타 사라질 때	false
+	joker_move	조커의 자리를 바꿀 때	false
+	consumable_use	소모품을 쓸 때	false
+	pack_open	팩을 뜯을 때	false
+	pack_pick	팩에서 고를 때	false
+	voucher_buy	바우처를 살 때	false
+	blind_select	블라인드를 고를 때	false
+	blind_skip	블라인드를 건너뛸 때	false
+	button	버튼을 누를 때	false
+	panel_open	판이 뜰 때	false
+	panel_close	판이 닫힐 때	false

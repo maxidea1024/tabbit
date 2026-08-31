@@ -137,6 +137,8 @@ export class CardView extends Container {
    * 카드 위에 뜬 숫자가 그 조각에 묻힙니다.
    */
   private glow = 0
+  /** 앞면으로 뒤집힌 순간. 소리를 내는 쪽이 겁니다. */
+  onFlipped?: () => void
   /** 지금 자리로 달라붙는 중인가. 닿으면 용수철을 원래대로 돌립니다. */
   private slamming = false
   /**
@@ -457,6 +459,9 @@ export class CardView extends Container {
       if (this.showBack && this.flip <= 0.5) {
         this.showBack = false
         this.render()
+        // **뒤집히는 그 순간에 소리가 나야 합니다.** 뽑는 것은 무엇이 올지 모르는 채로
+        // 기다리는 일이고, 그 기다림이 끝나는 자리가 여기입니다.
+        this.onFlipped?.()
       }
     }
     this.edition?.advance(seconds, this.pointer)
