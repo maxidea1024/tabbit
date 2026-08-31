@@ -9,11 +9,14 @@ import type { Condition } from '../generated/structs/condition'
 import type { Operation } from '../generated/structs/operation'
 import { PerUnitMode } from '../generated/enums/per-unit-mode'
 import type { Data, EffectRow } from './data'
+import { text } from './strings'
 import { MULT_ONE } from './units'
 
 /** 문구 하나를 꺼냅니다. 없으면 열쇠를 그대로 돌려주어 빠진 것이 눈에 띄게 합니다. */
 function phrase(data: Data, key: string): string {
-  return data.tables.stringTable.findByStringId(`phrase.${key}`)?.ko ?? `«${key}»`
+  const found = text(data, `phrase.${key}`)
+  // **없는 것은 눈에 띄어야 합니다.** 열쇠를 그대로 두면 문장에 섞여 지나가므로 표시를 답니다.
+  return found === `phrase.${key}` ? `«${key}»` : found
 }
 
 function named(data: Data, kind: string, value: number, enumName: Record<number, string>): string {
@@ -214,7 +217,7 @@ function perUnit(data: Data, mode: PerUnitMode, value: number, base: number): st
 
 function handName(data: Data, hand: number): string {
   const key = data.enumNames.PokerHandKind[hand]
-  return data.tables.stringTable.findByStringId(`hand.${key}.name`)?.ko ?? key
+  return text(data, `hand.${key}.name`)
 }
 
 function rankText(data: Data, rank: number): string {

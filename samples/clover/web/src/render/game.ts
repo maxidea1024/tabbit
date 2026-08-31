@@ -25,6 +25,7 @@ import type { Data } from '../core/data'
 import { describe } from '../core/describe'
 import { evaluate } from '../core/hand'
 import { apply, defaultRules, newRun, targetOf, type Action } from '../core/run'
+import { language, setLanguage, text } from '../core/strings'
 import { rerollCost, sellValueOf, type ShopItem } from '../core/shop'
 import { bestHand, valueOf } from '../core/suggest'
 import { newCounters, type CardInstance, type GameEvent, type RunState } from '../core/state'
@@ -54,7 +55,7 @@ import { FOOTER_BAR, panelFrame, TITLE_BAR } from '../ui/modal'
 import { Modals, type ModalPanel } from '../ui/modal'
 import { richLine } from '../ui/rich'
 import {
-  loadOptions, OptionsPanel, saveOptions, type Options,
+  chosen, loadOptions, OptionsPanel, saveOptions, type Options,
 } from '../ui/options'
 import { Toasts } from '../ui/toast'
 import { Tooltip } from '../ui/tooltip'
@@ -649,10 +650,18 @@ export class Game {
     this.audio.volume = this.settings.volume / 100
     this.player.base = this.settings.speed
     this.particles.enabled = this.settings.particles
+
+    // **말이 바뀌면 화면을 다시 그립니다.** 글은 그릴 때 한 번 읽히므로, 다시 그리지 않으면
+    // 고른 그 순간에는 아무것도 바뀌지 않고 다음 판부터 바뀝니다.
+    const want = chosen(this.settings)
+    const changed = want !== language()
+    setLanguage(want)
+
     saveOptions(this.settings)
     // 도움 표시는 켜고 끄는 그 자리에서 바로 사라져야 합니다.
     this.updateHints()
     this.syncCards()
+    if (changed) this.refresh()
   }
 
   /**
@@ -1690,7 +1699,7 @@ export class Game {
 
   private handName(hand: PokerHandKind): string {
     const key = `hand.${PokerHandKind[hand]}.name`
-    return this.data.tables.stringTable.findByStringId(key)?.ko ?? PokerHandKind[hand]
+    return text(this.data, key)
   }
 
   private viewOf(uid: number): CardView | undefined {
@@ -2730,13 +2739,13 @@ export class Game {
    * 화면에 그대로 뜨면 무엇이 바뀐 것인지 읽을 수 없습니다.
    */
   private ruleName(rule: string): string {
-    return this.data.tables.stringTable.findByStringId(`rule.${snake(rule)}.name`)?.ko ?? rule
+    return text(this.data, `rule.${snake(rule)}.name`)
   }
 
   /** 글 표에 있으면 그 말, 없으면 적힌 그대로. */
   private localized(key: string | undefined): string | undefined {
     if (key === undefined || key === '') return undefined
-    return this.data.tables.stringTable.findByStringId(key)?.ko ?? key
+    return text(this.data, key)
   }
 
   /**

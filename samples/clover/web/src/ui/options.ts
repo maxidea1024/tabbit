@@ -8,6 +8,7 @@
 
 import { Container, Graphics, Rectangle, Text } from 'pixi.js'
 
+import { detectLanguage, LANGUAGE_NAMES, LANGUAGES, type Language } from '../core/strings'
 import { COLOR } from '../render/theme'
 import { FOOTER_BAR, panelFrame, TITLE_BAR, type ModalPanel } from './modal'
 import { richLine, type RichStyle } from './rich'
@@ -41,13 +42,33 @@ export interface Options {
   chromatic: boolean
   /** 어느 카드를 고르면 좋은지 표시하는가. */
   hints: boolean
+  /**
+   * 화면의 글이 어느 말인가.
+   *
+   * **고른 적이 없으면 비어 있습니다.** 그때는 이 기계의 언어를 따릅니다 — 기본값을 한국어로
+   * 박아 두면 독일에서 처음 여는 사람이 한국어를 보게 됩니다.
+   */
+  language: Language | ''
 }
 
 export function defaultOptions(): Options {
   return {
     sound: true, volume: 60, speed: 1,
     shake: true, particles: true, chromatic: true, hints: true,
+    language: '',
   }
+}
+
+/**
+ * 지금 쓸 언어.
+ *
+ * 고른 적이 있으면 그것이고, 없으면 이 기계의 언어입니다. **매번 다시 재는 이유**는 기계의
+ * 언어가 바뀔 수 있기 때문입니다.
+ */
+export function chosen(options: Options): Language {
+  if (options.language !== '') return options.language
+  return detectLanguage(typeof navigator === 'undefined'
+    ? [] : [...(navigator.languages ?? []), navigator.language ?? ''])
 }
 
 const KEY = 'clover.options'
@@ -157,6 +178,20 @@ export class OptionsPanel implements ModalPanel {
           {
             label: '색수차', read: onOff('chromatic'), next: flip('chromatic'),
             note: '한 방 먹을 때 색이 갈라집니다',
+          },
+        ],
+      },
+      {
+        name: '언어',
+        rows: [
+          {
+            label: '화면의 글',
+            read: () => LANGUAGE_NAMES[chosen(options)],
+            next: () => {
+              const at = LANGUAGES.indexOf(chosen(options))
+              options.language = LANGUAGES[(at + 1) % LANGUAGES.length]
+            },
+            note: '고르지 않으면 이 기계의 언어를 따릅니다',
           },
         ],
       },

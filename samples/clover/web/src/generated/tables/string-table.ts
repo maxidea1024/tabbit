@@ -18,6 +18,10 @@ interface IDataRow {
   stringId: string
   ko: string
   en: string
+  ja: string
+  zhHans: string
+  zhHant: string
+  de: string
 }
 
 // Generated from samples/clover/design-data/xlsx/Text.xlsx : StringTable : A1
@@ -36,15 +40,35 @@ export class StringTableRecord {
   /** 영어 */
   public get en(): string { return this._en }
 
+  /** 일본어 */
+  public get ja(): string { return this._ja }
+
+  /** 중국어 간체 */
+  public get zhHans(): string { return this._zhHans }
+
+  /** 중국어 번체 */
+  public get zhHant(): string { return this._zhHant }
+
+  /** 독일어 */
+  public get de(): string { return this._de }
+
   public _stringId: string = ''
   public _ko: string = ''
   public _en: string = ''
+  public _ja: string = ''
+  public _zhHans: string = ''
+  public _zhHant: string = ''
+  public _de: string = ''
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._stringId = dataRow.stringId
     this._ko = dataRow.ko
     this._en = dataRow.en
+    this._ja = dataRow.ja
+    this._zhHans = dataRow.zhHans
+    this._zhHant = dataRow.zhHant
+    this._de = dataRow.de
   }
 
   /** Populate field values. */
@@ -53,6 +77,10 @@ export class StringTableRecord {
     this._stringId = dataRow[offset++]
     this._ko = dataRow[offset++]
     this._en = dataRow[offset++]
+    this._ja = dataRow[offset++]
+    this._zhHans = dataRow[offset++]
+    this._zhHant = dataRow[offset++]
+    this._de = dataRow[offset++]
   }
 }
 
@@ -226,6 +254,42 @@ export class StringTableTable {
             const { n, value } = cursor.nextSameString(rowCount - i)
             for (let left = n; left > 0; --left, ++i)
               records[i]._en = value
+          }
+          break
+        case 4:
+          tabbit.checkColumn(column, 'StringTable.Ja', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'StringTable.Ja')
+          for (let i = 0; i < rowCount; ) {
+            const { n, value } = cursor.nextSameString(rowCount - i)
+            for (let left = n; left > 0; --left, ++i)
+              records[i]._ja = value
+          }
+          break
+        case 5:
+          tabbit.checkColumn(column, 'StringTable.ZhHans', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'StringTable.ZhHans')
+          for (let i = 0; i < rowCount; ) {
+            const { n, value } = cursor.nextSameString(rowCount - i)
+            for (let left = n; left > 0; --left, ++i)
+              records[i]._zhHans = value
+          }
+          break
+        case 6:
+          tabbit.checkColumn(column, 'StringTable.ZhHant', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'StringTable.ZhHant')
+          for (let i = 0; i < rowCount; ) {
+            const { n, value } = cursor.nextSameString(rowCount - i)
+            for (let left = n; left > 0; --left, ++i)
+              records[i]._zhHant = value
+          }
+          break
+        case 7:
+          tabbit.checkColumn(column, 'StringTable.De', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'StringTable.De')
+          for (let i = 0; i < rowCount; ) {
+            const { n, value } = cursor.nextSameString(rowCount - i)
+            for (let left = n; left > 0; --left, ++i)
+              records[i]._de = value
           }
           break
         default:

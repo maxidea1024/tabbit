@@ -36,12 +36,36 @@ namespace Clover.Data
         /// 영어
         /// </summary>
         public string En => _en;
+
+        /// <summary>
+        /// 일본어
+        /// </summary>
+        public string Ja => _ja;
+
+        /// <summary>
+        /// 중국어 간체
+        /// </summary>
+        public string ZhHans => _zhHans;
+
+        /// <summary>
+        /// 중국어 번체
+        /// </summary>
+        public string ZhHant => _zhHant;
+
+        /// <summary>
+        /// 독일어
+        /// </summary>
+        public string De => _de;
         #endregion
 
         #region Storage
         internal string _stringId = "";
         internal string _ko = "";
         internal string _en = "";
+        internal string _ja = "";
+        internal string _zhHans = "";
+        internal string _zhHant = "";
+        internal string _de = "";
         #endregion
 
         #region ToString
@@ -51,6 +75,10 @@ namespace Clover.Data
             sb.Append("\"StringId\":"); ToStringHelper.ToString(StringId, sb);
             sb.Append(",\"Ko\":"); ToStringHelper.ToString(Ko, sb);
             sb.Append(",\"En\":"); ToStringHelper.ToString(En, sb);
+            sb.Append(",\"Ja\":"); ToStringHelper.ToString(Ja, sb);
+            sb.Append(",\"ZhHans\":"); ToStringHelper.ToString(ZhHans, sb);
+            sb.Append(",\"ZhHant\":"); ToStringHelper.ToString(ZhHant, sb);
+            sb.Append(",\"De\":"); ToStringHelper.ToString(De, sb);
             sb.Append("}");
             return sb.ToString();
         }
@@ -66,7 +94,7 @@ namespace Clover.Data
         /// <summary>
         /// Field names.
         /// </summary>
-        public static readonly string[] FieldNames = { "StringId", "Ko", "En" };
+        public static readonly string[] FieldNames = { "StringId", "Ko", "En", "Ja", "ZhHans", "ZhHant", "De" };
 
         /// <summary>
         /// Build object value map.
@@ -75,7 +103,7 @@ namespace Clover.Data
         {
             var result = new List<object[]>();
             foreach (var r in _records)
-                result.Add(new object[] { r.StringId, r.Ko, r.En });
+                result.Add(new object[] { r.StringId, r.Ko, r.En, r.Ja, r.ZhHans, r.ZhHant, r.De });
 
             return result;
         }
@@ -301,6 +329,70 @@ namespace Clover.Data
                             {
                                 var record = records[i++];
                                 record._en = value;
+                            } while (--n > 0);
+                        }
+                        break;
+
+                    case 4:
+                        TcbTable.CheckColumn(column, "StringTable.Ja", TcbTable.KindScalar, false, TcbTable.ElementString);
+                        cursor = new TcbColumnCursor(reader, column, count, "StringTable.Ja");
+                        for (int i = 0; i < count; )
+                        {
+                            // One call per run of equal values, not one per row - over a
+                            // run-length encoded column this is most of the decode.
+                            int n = cursor.NextSameString(count - i, out var value);
+                            do
+                            {
+                                var record = records[i++];
+                                record._ja = value;
+                            } while (--n > 0);
+                        }
+                        break;
+
+                    case 5:
+                        TcbTable.CheckColumn(column, "StringTable.ZhHans", TcbTable.KindScalar, false, TcbTable.ElementString);
+                        cursor = new TcbColumnCursor(reader, column, count, "StringTable.ZhHans");
+                        for (int i = 0; i < count; )
+                        {
+                            // One call per run of equal values, not one per row - over a
+                            // run-length encoded column this is most of the decode.
+                            int n = cursor.NextSameString(count - i, out var value);
+                            do
+                            {
+                                var record = records[i++];
+                                record._zhHans = value;
+                            } while (--n > 0);
+                        }
+                        break;
+
+                    case 6:
+                        TcbTable.CheckColumn(column, "StringTable.ZhHant", TcbTable.KindScalar, false, TcbTable.ElementString);
+                        cursor = new TcbColumnCursor(reader, column, count, "StringTable.ZhHant");
+                        for (int i = 0; i < count; )
+                        {
+                            // One call per run of equal values, not one per row - over a
+                            // run-length encoded column this is most of the decode.
+                            int n = cursor.NextSameString(count - i, out var value);
+                            do
+                            {
+                                var record = records[i++];
+                                record._zhHant = value;
+                            } while (--n > 0);
+                        }
+                        break;
+
+                    case 7:
+                        TcbTable.CheckColumn(column, "StringTable.De", TcbTable.KindScalar, false, TcbTable.ElementString);
+                        cursor = new TcbColumnCursor(reader, column, count, "StringTable.De");
+                        for (int i = 0; i < count; )
+                        {
+                            // One call per run of equal values, not one per row - over a
+                            // run-length encoded column this is most of the decode.
+                            int n = cursor.NextSameString(count - i, out var value);
+                            do
+                            {
+                                var record = records[i++];
+                                record._de = value;
                             } while (--n > 0);
                         }
                         break;
