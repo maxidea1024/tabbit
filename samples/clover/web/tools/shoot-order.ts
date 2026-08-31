@@ -55,6 +55,7 @@ async function main(): Promise<number> {
     await shot(page, `open-${index + 1}`)
   }
 
+  console.log('산 뒤를 봅니다 — 조커', (await peek(page)).jokers, '장')
   // 첫째 칸을 삽니다. 살 수 없으면 그대로 한 장 찍습니다.
   const tile = await shopSlot(page, 0)
   await page.mouse.click(tile.x, tile.y)
@@ -68,6 +69,9 @@ async function main(): Promise<number> {
   await page.mouse.click(rest.x, rest.y)
   await page.waitForTimeout(900)
   await shot(page, 'sold-1')
+
+  const after = await peek(page)
+  console.log('산 뒤 · 조커', after.jokers, '장 · 소모품', after.consumables, '장 · 금액', after.money)
 
   await browser.close()
   await server.close()

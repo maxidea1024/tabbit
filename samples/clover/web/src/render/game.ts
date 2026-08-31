@@ -4747,7 +4747,8 @@ export class Game {
       const last = this.state.jokers[this.state.jokers.length - 1]
       const view = last ? this.jokers.get(last.uid) : undefined
       if (view) {
-        view.pop(1.2)
+        // **발동이 아니라 도착입니다.** 흔들리면 아무 이유 없이 난리치는 것으로 보입니다.
+        view.bounce(1.2)
         spot = { x: view.x + SIZE.jokerWidth / 2, y: view.y + SIZE.jokerHeight / 2 }
       }
     } else {

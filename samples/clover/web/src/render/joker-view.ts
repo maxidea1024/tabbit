@@ -241,11 +241,21 @@ export class JokerView extends Container {
    * 정신없이 흔들리는 것이 훨씬 생동감 있습니다.
    */
   pop(strength = 1): void {
+    this.bounce(strength)
+    // 흔들림은 겹칩니다 — 잇달아 발동하면 아직 흔들리는 위에 더 얹힙니다.
+    this.rattle = Math.min(1.6, this.rattle + strength)
+  }
+
+  /**
+   * 자리에 닿을 때 한 번 튀어오릅니다.
+   *
+   * **흔들리지 않습니다.** 흔들림은 「발동했다」는 뜻이므로, 사서 줄에 꽂히는 것에 그것을
+   * 걸면 아무 이유 없이 난리치는 것으로 보입니다.
+   */
+  bounce(strength = 1): void {
     this.motion.y.kick(-300 * strength)
     this.motion.rotation.kick((Math.random() - 0.5) * 22)
     this.motion.scale.target = 1 + 0.16 * strength
-    // 흔들림은 겹칩니다 — 잇달아 발동하면 아직 흔들리는 위에 더 얹힙니다.
-    this.rattle = Math.min(1.6, this.rattle + strength)
   }
 
   advance(seconds: number, time: number): void {
