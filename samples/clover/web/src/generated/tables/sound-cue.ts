@@ -18,6 +18,7 @@ interface IDataRow {
   cueId: string
   note: string
   pitchFollowsValue: boolean
+  gain: number
 }
 
 // Generated from samples/clover/design-data/xlsx/Feel.xlsx : SoundCue : A1
@@ -36,15 +37,20 @@ export class SoundCueRecord {
   /** 음높이가 값을 따라가는가 */
   public get pitchFollowsValue(): boolean { return this._pitchFollowsValue }
 
+  /** 이 소리의 크기. 다 같은 크기로 맞춘 다음 곱합니다 */
+  public get gain(): number { return this._gain }
+
   public _cueId: string = ''
   public _note: string = ''
   public _pitchFollowsValue: boolean = false
+  public _gain: number = 0
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
     this._cueId = dataRow.cueId
     this._note = dataRow.note
     this._pitchFollowsValue = dataRow.pitchFollowsValue
+    this._gain = Math.fround(dataRow.gain)
   }
 
   /** Populate field values. */
@@ -53,6 +59,7 @@ export class SoundCueRecord {
     this._cueId = dataRow[offset++]
     this._note = dataRow[offset++]
     this._pitchFollowsValue = dataRow[offset++]
+    this._gain = Math.fround(dataRow[offset++])
   }
 }
 
@@ -225,6 +232,14 @@ export class SoundCueTable {
           for (let i = 0; i < rowCount; ++i) {
             const record = records[i]
             record._pitchFollowsValue = cursor.nextBool()
+          }
+          break
+        case 4:
+          tabbit.checkColumn(column, 'SoundCue.Gain', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_F32])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'SoundCue.Gain')
+          for (let i = 0; i < rowCount; ++i) {
+            const record = records[i]
+            record._gain = cursor.nextF32()
           }
           break
         default:

@@ -238,3 +238,6 @@ samples/canopy/out-xlsb/
 # clover 의 확인용 그림. 도구가 판정에 쓰고 버리는 것이라 문서가 아닙니다.
 samples/clover/design-data/out/check/
 samples/clover/design-data/out/font-src/
+# 받아 온 소리 꾸러미. CC0 이지만 담지 않습니다 — `sound.py --fetch` 가 다시 받고,
+# 거기서 뽑아 놓은 것만 `web/public/sound/` 에 담습니다.
+samples/clover/design-data/out/sound-packs/

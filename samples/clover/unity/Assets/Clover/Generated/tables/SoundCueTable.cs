@@ -36,12 +36,18 @@ namespace Clover.Data
         /// 음높이가 값을 따라가는가
         /// </summary>
         public bool PitchFollowsValue => _pitchFollowsValue;
+
+        /// <summary>
+        /// 이 소리의 크기. 다 같은 크기로 맞춘 다음 곱합니다
+        /// </summary>
+        public float Gain => _gain;
         #endregion
 
         #region Storage
         internal string _cueId = "";
         internal string _note = "";
         internal bool _pitchFollowsValue;
+        internal float _gain;
         #endregion
 
         #region ToString
@@ -51,6 +57,7 @@ namespace Clover.Data
             sb.Append("\"CueId\":"); ToStringHelper.ToString(CueId, sb);
             sb.Append(",\"Note\":"); ToStringHelper.ToString(Note, sb);
             sb.Append(",\"PitchFollowsValue\":"); ToStringHelper.ToString(PitchFollowsValue, sb);
+            sb.Append(",\"Gain\":"); ToStringHelper.ToString(Gain, sb);
             sb.Append("}");
             return sb.ToString();
         }
@@ -66,7 +73,7 @@ namespace Clover.Data
         /// <summary>
         /// Field names.
         /// </summary>
-        public static readonly string[] FieldNames = { "CueId", "Note", "PitchFollowsValue" };
+        public static readonly string[] FieldNames = { "CueId", "Note", "PitchFollowsValue", "Gain" };
 
         /// <summary>
         /// Build object value map.
@@ -75,7 +82,7 @@ namespace Clover.Data
         {
             var result = new List<object[]>();
             foreach (var r in _records)
-                result.Add(new object[] { r.CueId, r.Note, r.PitchFollowsValue });
+                result.Add(new object[] { r.CueId, r.Note, r.PitchFollowsValue, r.Gain });
 
             return result;
         }
@@ -296,6 +303,16 @@ namespace Clover.Data
                         {
                             var record = records[i];
                             record._pitchFollowsValue = cursor.NextBool();
+                        }
+                        break;
+
+                    case 4:
+                        TcbTable.CheckColumn(column, "SoundCue.Gain", TcbTable.KindScalar, false, TcbTable.ElementF32);
+                        cursor = new TcbColumnCursor(reader, column, count, "SoundCue.Gain");
+                        for (int i = 0; i < count; i++)
+                        {
+                            var record = records[i];
+                            record._gain = cursor.NextF32();
                         }
                         break;
 

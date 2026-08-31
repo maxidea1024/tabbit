@@ -1,19 +1,54 @@
 // 소리.
 //
-// **음원 파일이 없습니다.** 소리를 파형으로 만듭니다 — 칩이 더해질 때의 음높이가 값을 따라
-// 올라가야 하는데, 그것은 녹음된 소리로는 되지 않습니다. 어느 소리가 값을 따라가는지는
-// `SoundCue` 테이블에 있습니다.
+// **녹음된 것을 쓰고, 합성은 바탕으로 남습니다.** 종이가 스치는 소리와 칩이 부딪히는 소리는
+// 물리적으로 복잡해서 오실레이터 하나로는 되지 않습니다 — `public/sound/<신호>.ogg` 가 있으면
+// 그것을 내고, 없거나 읽지 못하면 아래의 파형으로 냅니다. 소리가 아예 안 나는 것보다는
+// 전자음이라도 나는 편이 낫습니다.
 //
-// 원작의 음원을 쓰지 않습니다.
+// 음높이가 값을 따라 오르는 것은 **재생 속도**로 합니다. 칩이 하나씩 더해질 때마다 음이
+// 오르는 그 소리가 원작의 그것이고, 녹음된 소리로도 됩니다.
+//
+// **크기는 스스로 맞춥니다.** 꾸러미에서 온 파일은 저마다 음량이 달라서, 그대로 두면 어떤
+// 것은 들리지 않고 어떤 것은 귀를 찌릅니다 — 읽을 때 실효값을 재서 한 크기로 맞추고, 뜻으로
+// 키우거나 줄이는 것만 `SoundCue.gain` 에 둡니다.
+//
+// 원작의 음원을 쓰지 않습니다. 가져온 것은 CC0 이고 `public/sound/readme.md` 에 적혀 있습니다.
 
 import type { CloverData } from '../generated/clover-data'
 
 const BASE_HZ = 220
 
+/**
+ * 맞추는 크기. 실효값이 이것이 되도록 곱합니다.
+ *
+ * **꾸러미의 파일은 저마다 음량이 다릅니다.** 카드가 스치는 소리는 작고 확인음은 큽니다 —
+ * 그것을 그대로 두면 어떤 신호는 안 들리고 어떤 신호는 찌릅니다.
+ */
+const TARGET_RMS = 0.09
+/** 맞추는 정도의 상한과 하한. 거의 빈 파일이 폭발하지 않게 합니다. */
+const GAIN_RANGE = [0.05, 6] as const
+
 export class Audio {
   private context?: AudioContext
   private master?: GainNode
   private readonly follows = new Map<string, boolean>()
+  /** 신호마다의 크기. 데이터가 정합니다. */
+  private readonly wanted = new Map<string, number>()
+  /**
+   * 읽어 둔 소리.
+   *
+   * 없는 신호는 합성으로 갑니다. **읽기를 기다리지 않습니다** — 읽히기 전에 난 소리는
+   * 합성으로 나고, 읽힌 다음부터 녹음된 것으로 바뀝니다.
+   */
+  private readonly samples = new Map<string, { buffer: AudioBuffer; gain: number }>()
+  /**
+   * 아직 풀지 않은 소리의 바이트.
+   *
+   * **받는 것은 누르기를 기다리지 않습니다.** 소리 길은 사람이 무언가를 누른 뒤에만 열리지만
+   * 파일을 받는 것은 그 전에 됩니다 — 미리 받아 두지 않으면 첫 두어 소리가 합성으로 나고,
+   * 그 둘이 첫인상입니다.
+   */
+  private bytes?: Promise<Map<string, ArrayBuffer>>
   /**
    * 잡음 한 토막.
    *
@@ -44,10 +79,26 @@ export class Audio {
     return this.level
   }
 
-  constructor(tables: CloverData) {
+  constructor(private readonly tables: CloverData) {
     for (const cue of tables.soundCue.records) {
       this.follows.set(cue.cueId, cue.pitchFollowsValue)
+      this.wanted.set(cue.cueId, cue.gain)
     }
+    this.bytes = this.grab()
+  }
+
+  /** 파일을 받아 둡니다. 푸는 것은 소리 길이 열린 뒤입니다. */
+  private async grab(): Promise<Map<string, ArrayBuffer>> {
+    const out = new Map<string, ArrayBuffer>()
+    await Promise.all(this.tables.soundCue.records.map(async cue => {
+      try {
+        const answer = await fetch(`./sound/${cue.cueId}.ogg`)
+        if (answer.ok) out.set(cue.cueId, await answer.arrayBuffer())
+      } catch {
+        // 없는 것은 합성으로 갑니다.
+      }
+    }))
+    return out
   }
 
   /** 브라우저는 사람이 무언가를 누른 뒤에만 소리를 냅니다. */
@@ -65,6 +116,45 @@ export class Audio {
     this.hiss = this.context.createBuffer(1, frames, this.context.sampleRate)
     const wave = this.hiss.getChannelData(0)
     for (let i = 0; i < frames; i++) wave[i] = Math.random() * 2 - 1
+
+    void this.load()
+  }
+
+  /**
+   * 소리를 읽어 둡니다.
+   *
+   * **하나가 없어도 나머지는 읽습니다.** 파일 하나가 빠졌다고 소리가 통째로 없어지면,
+   * 빠진 것을 찾는 것이 더 어려워집니다.
+   */
+  private async load(): Promise<void> {
+    const context = this.context
+    if (!context || !this.bytes) return
+
+    const bytes = await this.bytes
+    await Promise.all([...bytes].map(async ([cue, raw]) => {
+      try {
+        // **한 번만 풉니다.** `decodeAudioData` 는 넘긴 버퍼를 비우므로 베껴 넘깁니다.
+        const buffer = await context.decodeAudioData(raw.slice(0))
+        this.samples.set(cue, {
+          buffer,
+          gain: this.levelFor(buffer) * (this.wanted.get(cue) ?? 1),
+        })
+      } catch {
+        // 풀지 못한 것은 합성으로 갑니다.
+      }
+    }))
+  }
+
+  /** 그 소리를 한 크기로 맞추는 배수. 실효값을 재서 정합니다. */
+  private levelFor(buffer: AudioBuffer): number {
+    const wave = buffer.getChannelData(0)
+    // 앞의 0.4초만 봅니다. 꼬리의 잔향까지 세면 짧고 센 소리가 작게 맞춰집니다.
+    const span = Math.min(wave.length, Math.floor(buffer.sampleRate * 0.4))
+    let sum = 0
+    for (let i = 0; i < span; i++) sum += wave[i] * wave[i]
+    const rms = Math.sqrt(sum / Math.max(1, span))
+    if (rms < 1e-5) return 1
+    return Math.max(GAIN_RANGE[0], Math.min(GAIN_RANGE[1], TARGET_RMS / rms))
   }
 
   /**
@@ -79,6 +169,21 @@ export class Audio {
     if (!context || !master || this.muted) return
 
     const follows = this.follows.get(cueId) ?? false
+
+    // **녹음된 것이 있으면 그것입니다.** 음높이는 재생 속도로 올립니다.
+    const sample = this.samples.get(cueId)
+    if (sample) {
+      const source = context.createBufferSource()
+      source.buffer = sample.buffer
+      source.playbackRate.value = Math.pow(2, (follows ? semitones : 0) / 12)
+
+      const gain = context.createGain()
+      gain.gain.value = sample.gain
+      source.connect(gain).connect(master)
+      source.start(context.currentTime)
+      return
+    }
+
     const shape = SHAPE[cueId] ?? DEFAULT_SHAPE
     const now = context.currentTime
     const hz = BASE_HZ * Math.pow(2, ((follows ? semitones : 0) + shape.offset) / 12)

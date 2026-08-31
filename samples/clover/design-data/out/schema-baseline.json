@@ -2148,6 +2148,13 @@
         "Kind": 0,
         "Retired": false,
         "ExplicitTag": false
+      },
+      "4": {
+        "Name": "Gain",
+        "Element": 4,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
       }
     },
     "Joker": {

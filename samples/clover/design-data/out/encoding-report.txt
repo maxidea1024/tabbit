@@ -3,19 +3,19 @@ TCB encoding report
 
 Totals
   tables    36
-  columns   684
-  unencoded 181,310
-  encoded   117,536  (64.8 % of unencoded)
-  deflated  76,367  (65.0 % of encoded)  - what a compression layer over the chosen blocks would come to
+  columns   685
+  unencoded 181,462
+  encoded   117,615  (64.8 % of unencoded)
+  deflated  76,431  (65.0 % of encoded)  - what a compression layer over the chosen blocks would come to
 
 By encoding
   encoding        columns        bytes    share
   DICT_FRONT          11       72,276   61.5 %
   DICT_SEG             8       31,242   26.6 %
   RAW                 47        9,252    7.9 %
-  RLE                477        2,293    2.0 %
+  RLE                477        2,293    1.9 %
   BITPACK             67        1,312    1.1 %
-  DICT                 3          391    0.3 %
+  DICT                 4          470    0.4 %
   ARRAY               16          210    0.2 %
   VARINT              17          181    0.2 %
   DICT_RLE            15          175    0.1 %
@@ -24,12 +24,13 @@ By encoding
 
 By element
   element         columns    unencoded        bytes    share
-  string              69      131,755      113,270   96.4 %
+  string              69      131,755      113,270   96.3 %
   i32                254       35,792        2,146    1.8 %
   varint             309       11,707        1,882    1.6 %
   bool                52        2,056          238    0.2 %
+  f32                  1          152           79    0.1 %
 
-Largest columns (40 of 684)
+Largest columns (40 of 685)
 
   StringTable.Ja  [string]  854 rows
     chosen DICT_FRONT  16,832  (83.3 % of unencoded)
@@ -200,6 +201,12 @@ Headroom outside the encodings
     elements 40
     today    222
     encoded  201  (90.5 % of today) · saved 21
+
+  Float columns (dictionary only today)
+    columns  1
+    elements 38
+    today    79
+    encoded  79  (100.0 % of today) · saved 0
 
 Bit-width packing headroom
   What the integer columns would come to at the width their own range
