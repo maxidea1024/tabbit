@@ -2472,13 +2472,29 @@ export class Game {
       group.alpha = (now ? 1 : done ? 0.5 : 0.72) * eased
 
       const plate = new Graphics()
-      plate.roundRect(0, 0, cardW, height, 14)
+      const radius = 14
+      plate.roundRect(0, 0, cardW, height, radius)
         .fill({ color: now ? 0x18202e : 0x141a24, alpha: 0.97 })
-      plate.roundRect(0.5, 0.5, cardW - 1, height - 1, 14)
-        .stroke({ color: now ? tint : COLOR.panelEdge, width: now ? 3 : 1.5 })
+
       // 머리 띠. 어느 블라인드인지가 색으로 먼저 읽힙니다.
-      plate.roundRect(0, 0, cardW, 46, 14).fill({ color: tint, alpha: now ? 0.95 : 0.6 })
-      plate.rect(0, 34, cardW, 12).fill({ color: tint, alpha: now ? 0.95 : 0.6 })
+      //
+      // **길 하나로 그립니다.** 둥근 사각형에 네모를 겹쳐 아랫단을 메우면 그 겹친 자리가
+      // 두 번 칠해지고, 반투명일 때 그 띠가 그대로 보입니다.
+      //
+      // 그리고 **테두리보다 먼저입니다.** 나중에 그리면 띠의 모서리가 테두리 바깥으로
+      // 넘칩니다 — 테두리는 반 칸 안쪽에 있어서 두 모서리의 호가 어긋납니다.
+      const band = 46
+      plate.moveTo(0, band)
+        .lineTo(0, radius)
+        .quadraticCurveTo(0, 0, radius, 0)
+        .lineTo(cardW - radius, 0)
+        .quadraticCurveTo(cardW, 0, cardW, radius)
+        .lineTo(cardW, band)
+        .closePath()
+        .fill({ color: tint, alpha: now ? 0.95 : 0.6 })
+
+      plate.roundRect(0.5, 0.5, cardW - 1, height - 1, radius)
+        .stroke({ color: now ? tint : COLOR.panelEdge, width: now ? 3 : 1.5 })
       group.addChild(plate)
 
       const label = (text: string, size: number, fill: number, weight = '700') =>
@@ -2945,6 +2961,15 @@ export class Game {
    */
   private syncMood(): void {
     const state = this.state
+
+    // **타이틀에서는 배경 자체가 어둡습니다.** 글을 읽히게 하려고 반투명 사각형을 얹으면
+    // 그 겹의 변이 그대로 가로선으로 보입니다 — 어둡게 할 것은 배경이므로 배경을 어둡게
+    // 합니다.
+    if (!this.started) {
+      this.background.setMood([0.012, 0.030, 0.020], [0.10, 0.34, 0.20])
+      return
+    }
+
     // 배경도 연출이 끝난 뒤에 갑니다. 득점 중에 색이 바뀌면 무엇이 끝난 것인지 흐려집니다.
     if (!this.presented) return
 

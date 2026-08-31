@@ -16,7 +16,6 @@ import { COLOR, SIZE } from '../render/theme'
 import { Button } from './widgets'
 
 export class Title extends Container {
-  private readonly ground = new Graphics()
   private readonly logo = new Text({
     text: 'clover',
     style: {
@@ -47,15 +46,10 @@ export class Title extends Container {
               onOptions: () => void) {
     super()
 
-    // **배경이 비쳐야 합니다.** 판이 없는 화면이라 덮을 것이 없고, 흐르는 배경이 이 화면에
-    // 남은 유일한 움직임입니다 — 진하게 덮으면 멈춰 있는 그림이 됩니다.
+    // **덮는 층이 없습니다.** 글이 읽히게 하려고 반투명 사각형을 얹으면 그 겹의 변이
+    // 그대로 가로선으로 보입니다 — 어둡게 할 것은 배경이므로 배경을 어둡게 합니다.
     //
-    // 글이 앉는 아래쪽만 짙어집니다. 층 넷으로 나누면 띠가 보이지 않습니다.
-    for (let i = 0; i < 4; i++) {
-      this.ground.rect(-SIZE.width, SIZE.height * (0.30 + i * 0.10),
-        SIZE.width * 3, SIZE.height * 2)
-        .fill({ color: 0x060a11, alpha: 0.15 })
-    }
+    // `game.ts` 의 `syncMood` 가 타이틀에서 그렇게 넘깁니다.
 
     this.drawLeaf()
     this.leaf.position.set(SIZE.width / 2, 132)
@@ -86,7 +80,7 @@ export class Title extends Container {
     this.seedText.anchor.set(0.5, 0)
     this.seedText.position.set(SIZE.width / 2, SIZE.height - 42)
 
-    this.addChild(this.ground, this.leaf, this.logo, this.tagline, this.note,
+    this.addChild(this.leaf, this.logo, this.tagline, this.note,
       start, guide, option, this.seedText)
 
     // 뒤를 눌러도 아무 일도 없습니다. **시작은 눌러서 시작하는 것입니다.**
