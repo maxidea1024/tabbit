@@ -230,7 +230,8 @@ export const FOOTER_BAR = 56
  * 바깥을 누르거나 `Esc` 로도 닫힙니다. `✕` 는 그 둘을 모르는 사람을 위한 자리입니다.
  */
 export function panelFrame(width: number, height: number, title: string,
-                           onClose?: () => void, extra?: Container): Container {
+                           onClose?: () => void, extra?: Container,
+                           foot = true): Container {
   const node = new Container()
 
   const board = new Graphics()
@@ -243,10 +244,15 @@ export function panelFrame(width: number, height: number, title: string,
   bars.rect(1.5, TITLE_BAR - 12, width - 3, 12).fill({ color: 0x232e40, alpha: 0.95 })
   bars.rect(1.5, TITLE_BAR, width - 3, 1.5).fill({ color: COLOR.panelEdge, alpha: 0.9 })
 
+  // **밑단이 없는 판도 있습니다.** 누를 것이 그 판의 내용뿐이면 밑단은 빈 띠일 뿐입니다 —
+  // 머리의 `✕` 와 바깥 누르기와 `Esc` 로 닫히므로 닫기를 또 둘 이유가 없습니다.
   const footTop = height - FOOTER_BAR - 1.5
-  bars.roundRect(1.5, footTop, width - 3, FOOTER_BAR, 14).fill({ color: 0x232e40, alpha: 0.95 })
-  bars.rect(1.5, footTop, width - 3, 12).fill({ color: 0x232e40, alpha: 0.95 })
-  bars.rect(1.5, footTop - 1.5, width - 3, 1.5).fill({ color: COLOR.panelEdge, alpha: 0.9 })
+  if (foot) {
+    bars.roundRect(1.5, footTop, width - 3, FOOTER_BAR, 14)
+      .fill({ color: 0x232e40, alpha: 0.95 })
+    bars.rect(1.5, footTop, width - 3, 12).fill({ color: 0x232e40, alpha: 0.95 })
+    bars.rect(1.5, footTop - 1.5, width - 3, 1.5).fill({ color: COLOR.panelEdge, alpha: 0.9 })
+  }
 
   const heading = new Text({
     text: title,
@@ -268,8 +274,8 @@ export function panelFrame(width: number, height: number, title: string,
     return node
   }
 
-  // 머리의 `✕`. **밑단의 닫기와 둘 다 둡니다** — 창을 닫는 두 손버릇이 다르고, 둘 다
-  // 같은 자리에 있으면 어느 쪽으로도 닫힙니다.
+  // 머리의 `✕`. **밑단에 닫기가 있으면 둘 다 둡니다** — 창을 닫는 두 손버릇이 다르고,
+  // 둘 다 같은 자리에 있으면 어느 쪽으로도 닫힙니다.
   const shutMark = new Container()
   const mark = new Graphics()
   const paint = (lit: boolean) => {
@@ -293,6 +299,11 @@ export function panelFrame(width: number, height: number, title: string,
   shutMark.on('pointertap', () => onClose())
 
   node.addChild(shutMark)
+
+  if (!foot) {
+    node.eventMode = 'static'
+    return node
+  }
 
   // 밑단의 버튼들. **닫기는 판마다 같은 자리에 같은 모습입니다.**
   //

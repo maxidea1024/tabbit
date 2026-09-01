@@ -36,6 +36,16 @@ const TARGET_RMS = 0.09
 /** 맞추는 정도의 상한과 하한. 거의 빈 파일이 폭발하지 않게 합니다. */
 const GAIN_RANGE = [0.05, 6] as const
 
+/**
+ * 겹친 것으로 세는 시간.
+ *
+ * **소리 하나가 그만큼 남아 있다고 봅니다.** 카드 소리는 0.1초 남짓이고, 잇달아 나는
+ * 것들의 사이가 그보다 짧으면 귀에는 한 덩어리입니다.
+ */
+const CROWD_SPAN = 0.18
+/** 이 수를 넘으면 내지 않습니다. */
+const CROWD_MOST = 4
+
 export class Audio {
   private context?: AudioContext
   private master?: GainNode
@@ -67,6 +77,14 @@ export class Audio {
    * 한 번 만들어 두고 돌려 씁니다 — 소리마다 만들면 그 만드는 값이 소리보다 큽니다.
    */
   private hiss?: AudioBuffer
+  /**
+   * 신호마다 마지막으로 난 시각들.
+   *
+   * **같은 소리가 겹치면 커집니다.** 카드 다섯 장이 잇달아 사라질 때 그 소리가 다섯 번
+   * 나는데, 소리는 힘으로 더해지므로 다섯이면 하나보다 곱절 넘게 큽니다 — 그것이 「볼륨
+   * 게이지가 올라가는」 느낌이고, 그 순간만 화면의 다른 소리를 다 덮습니다.
+   */
+  private readonly recent = new Map<string, number[]>()
 
   /** 소리를 끄는가. 옵션이 정합니다. */
   muted = false
@@ -202,6 +220,11 @@ export class Audio {
     const master = this.master
     if (!context || !master || this.muted) return
 
+    // **겹치는 만큼 줄입니다.** 넘치면 아예 내지 않습니다 — 이미 넉이 울리고 있으면 다섯째는
+    // 들리지 않고 크기만 보탭니다.
+    const room = this.crowding(cueId, context.currentTime)
+    if (room <= 0) return
+
     const follows = this.follows.get(cueId) ?? false
 
     // **녹음된 것이 있으면 그것입니다.** 음높이는 재생 속도로 올립니다.
@@ -212,7 +235,7 @@ export class Audio {
       source.playbackRate.value = Math.pow(2, (follows ? semitones : 0) / 12)
 
       const gain = context.createGain()
-      gain.gain.value = sample.gain
+      gain.gain.value = sample.gain * room
       source.connect(gain).connect(master)
       // **묵음을 건너뛰고 시작합니다.** 그것이 곧 「소리가 그림과 같이 난다」입니다.
       source.start(context.currentTime, sample.lead)
@@ -234,7 +257,7 @@ export class Audio {
 
       const gain = context.createGain()
       gain.gain.setValueAtTime(0, now)
-      gain.gain.linearRampToValueAtTime(shape.gain, now + 0.006)
+      gain.gain.linearRampToValueAtTime(shape.gain * room, now + 0.006)
       gain.gain.exponentialRampToValueAtTime(0.0001, now + shape.length)
 
       osc.connect(gain).connect(master)
@@ -242,7 +265,24 @@ export class Audio {
       osc.stop(now + shape.length + 0.02)
     }
 
-    if (shape.noise !== undefined) this.hissAt(shape.noise, now)
+    if (shape.noise !== undefined) this.hissAt(shape.noise, now, room)
+  }
+
+  /**
+   * 이 신호가 지금 몇 개나 겹쳐 있는가.
+   *
+   * **소리는 힘으로 더해집니다.** 같은 소리 넷이 겹치면 하나보다 두 배쯤 큰데, 각자를
+   * 겹친 수의 제곱근으로 나누면 합이 하나만큼으로 남습니다 — 개수로 나누면 도리어 작아지고,
+   * 그러면 한 장씩 사라지는 소리가 들리지 않습니다.
+   *
+   * 넷을 넘기면 0 입니다. 다섯째는 들리지 않고 크기만 보탭니다.
+   */
+  private crowding(cueId: string, now: number): number {
+    const times = (this.recent.get(cueId) ?? []).filter(at => now - at < CROWD_SPAN)
+    times.push(now)
+    this.recent.set(cueId, times)
+    if (times.length > CROWD_MOST) return 0
+    return 1 / Math.sqrt(times.length)
   }
 
   /**
@@ -307,7 +347,7 @@ export class Audio {
    * 좁은 대역만 남깁니다 — 그 대역이 어디냐가 「종이」와 「금속」과 「바람」을 가릅니다.
    * 대역이 움직이면 쓸리는 소리가 됩니다.
    */
-  private hissAt(noise: Noise, now: number): void {
+  private hissAt(noise: Noise, now: number, room = 1): void {
     const context = this.context
     const master = this.master
     if (!context || !master || !this.hiss) return
@@ -327,7 +367,7 @@ export class Audio {
 
     const gain = context.createGain()
     gain.gain.setValueAtTime(0, now)
-    gain.gain.linearRampToValueAtTime(noise.gain, now + 0.004)
+    gain.gain.linearRampToValueAtTime(noise.gain * room, now + 0.004)
     gain.gain.exponentialRampToValueAtTime(0.0001, now + noise.length)
 
     source.connect(band).connect(gain).connect(master)

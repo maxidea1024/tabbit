@@ -3,7 +3,9 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import { at, clickPrimary, settle, STAGE_W , TITLE_START_Y } from './harness'
+import {
+  at, clickPrimary, MENU_BUTTON, settle, STAGE_W, TITLE_START_Y,
+} from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
@@ -26,7 +28,7 @@ async function main(): Promise<number> {
   await settle(page)
 
   // 왼쪽 아래의 「메뉴」.
-  const menu = await at(page, 16 + 134 + 59, 700 + 17)
+  const menu = await at(page, MENU_BUTTON.x, MENU_BUTTON.y)
   await page.mouse.click(menu.x, menu.y)
   await page.waitForTimeout(700)
   await page.screenshot({ path: path.join(OUT, 'menu-1.png') })

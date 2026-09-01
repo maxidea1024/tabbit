@@ -13,7 +13,6 @@ import { EnhancementKind } from '../generated/enums/enhancement-kind'
 import { SealKind } from '../generated/enums/seal-kind'
 import { SuitKind } from '../generated/enums/suit-kind'
 import type { CardInstance } from '../core/state'
-import { DissolveFilter } from '../shader/dissolve'
 import { EditionFilter, type EditionShader } from '../shader/editions'
 import { roundedMask } from '../shader/mask'
 import { PickFilter } from '../shader/pick'
@@ -87,8 +86,6 @@ export class CardView extends Container {
    * 보이지만, 그림자가 남아 있으면 그 자리에서 손으로 밀어 올린 것으로 보입니다.
    */
   private readonly lift = new Spring(0, 380, 39)
-  /** 버린 카드가 타는 불. **필요할 때 한 번만 걸립니다.** */
-  private readonly dissolve = new DissolveFilter()
   /**
    * 카드의 종이 자체. **에디션 셰이더가 이것에만 걸립니다.**
    *
@@ -430,47 +427,28 @@ export class CardView extends Container {
     this.position.set(x, y)
   }
 
-  /**
-   * 물러납니다.
-   *
-   * **곧바로 지우지 않습니다** — 카드가 사라지는 것이 보여야 「이 판이 끝났다」가 읽힙니다.
-   */
   /** 득점하는 카드인가. 그렇다면 그 자리에서 살며시 올라갑니다. */
   set scoring(value: boolean) {
     this.lift.target = value ? 8 : 0
   }
 
+  /**
+   * 물러납니다.
+   *
+   * **곧게 나갑니다.** 위로 40픽셀 띄우고 26도 기울여 보냈는데, 그러면 카드가 위로 휘어
+   * 올라가며 사라집니다 — 카드는 치워지는 것이고, 승천하는 것이 아닙니다.
+   */
   retire(): void {
     this.retiring = true
     this.eventMode = 'none'
-    this.motion.to(SIZE.width + 120, this.motion.y.target - 40, 26)
-    this.motion.scale.target = 0.82
-  }
-
-  /**
-   * 제자리에서 타서 사라집니다.
-   *
-   * **버린 카드의 길입니다.** 오른쪽으로 미끄러져 나가면 덱으로 되돌아가는 것으로 보이고,
-   * 판 가운데로 올려 보내면 낸 카드처럼 판에 올라섰다가 없어지는 것으로 보입니다 —
-   * 버리는 것은 손에서 그대로 없애는 것입니다.
-   */
-  burnAway(): void {
-    if (this.retiring) return
-    this.retiring = true
-    this.burning = true
-    this.eventMode = 'none'
-    this.hovered = false
-    this.selected = false
-    this.body.filters = [this.dissolve]
+    this.motion.to(SIZE.width + 120, this.motion.y.target, 0)
+    this.motion.scale.target = 0.9
   }
 
   retiring = false
-  private burning = false
-  private burn = 0
 
-  /** 물러나기가 끝났는가. 화면 밖으로 나가거나 다 타면 지웁니다. */
+  /** 물러나기가 끝났는가. 화면 밖으로 나가면 지웁니다. */
   get gone(): boolean {
-    if (this.burning) return this.burn >= 1
     return this.retiring && this.motion.x.value > SIZE.width + 40
   }
 
@@ -484,15 +462,6 @@ export class CardView extends Container {
   advance(seconds: number, time: number): void {
     this.motion.advance(seconds)
 
-    if (this.burning) {
-      // **아래에서 위로, 그리고 조금 떠오릅니다.** 종이가 타면 가벼워집니다 — 조커와
-      // 소모품이 사라지는 것과 같은 불이고 같은 빠르기입니다.
-      this.burn = Math.min(1, this.burn + seconds * 2.1)
-      this.dissolve.burn = this.burn
-      this.y -= seconds * 22
-      this.rotation += seconds * 0.1
-      return
-    }
     if (this.slamming && this.motion.x.settled && this.motion.y.settled) {
       this.slamming = false
       this.motion.soft()

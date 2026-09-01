@@ -46,6 +46,8 @@ export interface Peek {
   grantMoney?(amount: number): void
   /** 조커 첫 장이 지금 그려진 자리. 흔들림을 재는 도구가 씁니다. */
   jokerX?(): number | undefined
+  /** 소모품 마지막 칸이 지금 그려진 자리. 사서 오는 길을 재는 데 씁니다. */
+  itemX?(): number | undefined
   handOrder: number[]
   jokerOrder: number[]
   /** 눌러야 하는 것들의 자리. `game.ts` 가 그린 그대로 알립니다. */
@@ -215,6 +217,16 @@ export const CARD_SPACING = 100
 export const BUTTON_Y = 742
 
 /**
+ * 왼쪽 아래 버튼 둘의 가운데. 왼쪽이 족보 목록, 오른쪽이 메뉴입니다.
+ *
+ * **`game.ts` 와 같아야 합니다.** 판의 밑단에 붙어 있어서, 그 자리를 고치면 여기도 따라
+ * 옵니다.
+ */
+export const PANEL_BUTTON_Y = 726 + 17
+export const HAND_LIST_BUTTON = { x: 16 - 2 + 59, y: PANEL_BUTTON_Y }
+export const MENU_BUTTON = { x: 16 + 134 + 59, y: PANEL_BUTTON_Y }
+
+/**
  * 타이틀의 「시작」 가운데.
  *
  * **`ui/title.ts` 와 같아야 합니다.** 도구마다 따로 적어 두면 배치를 고칠 때 한쪽만
@@ -270,7 +282,7 @@ export async function playHand(page: Page, picks: number[] = [0, 1, 2, 3, 4]): P
 
 /** 남은 카드 판을 열고 닫습니다. 왼쪽 패널 아래의 버튼입니다. */
 export async function openDeckView(page: Page): Promise<void> {
-  const spot = await at(page, 16 - 2 + 59, 700 + 17)
+  const spot = await at(page, HAND_LIST_BUTTON.x, HAND_LIST_BUTTON.y)
   await page.mouse.click(spot.x, spot.y)
   await page.waitForTimeout(350)
 }

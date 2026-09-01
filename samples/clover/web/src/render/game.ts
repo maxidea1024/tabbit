@@ -197,7 +197,7 @@ const NEWLINE = String.fromCharCode(10)
  * **위로 불의 자리를 비워 둡니다.** 불은 이 윗변에 뿌리를 두고 위로 솟으므로, 그만큼
  * 위에는 아무것도 두지 않습니다 — 족보 이름은 그 불 위입니다.
  */
-const CHIPS_Y = 356
+const CHIPS_Y = 353
 /**
  * 칩 × 배수 덩어리.
  *
@@ -215,7 +215,7 @@ const CHIPS_GAP = 34
  * **상자 위에 붙습니다.** 상자 안에서 태우면 불이 숫자를 덮어 아무것도 읽히지 않습니다 —
  * 사람 머리가 타는 것처럼 윗변에 뿌리를 두고 위로 솟습니다.
  */
-const FIRE_RISE = 48
+const FIRE_RISE = 40
 const FIRE_BITE = 5
 /**
  * 불은 **자기 반 안에서** 탑니다.
@@ -452,7 +452,13 @@ export class Game {
    */
   private readonly consumableLift = new Map<number, Spring>()
   /** 지금 그려져 있는 소모품 칸들. 매 프레임 높이를 다시 얹습니다. */
-  private readonly consumableTiles: { uid: number; tile: Container; baseY: number }[] = []
+  private readonly consumableTiles: {
+    uid: number
+    tile: Container
+    /** 이 칸의 제자리. 들리는 것과 오는 것이 이 자리를 기준으로 얹힙니다. */
+    baseX: number
+    baseY: number
+  }[] = []
   /**
    * 타고 있는 소모품.
    *
@@ -826,7 +832,22 @@ export class Game {
    * 때마다 새로 만들어지므로, 걸어 둔 셰이더가 그 자리에서 없어집니다. 그래서 화면이
    * 들고 있다가 그릴 때마다 다시 겁니다.
    */
-  private itemArrive?: { uid: number; warp: number; glow: number; filter: ArriveFilter }
+  private itemArrive?: {
+    uid: number
+    warp: number
+    glow: number
+    filter: ArriveFilter
+    /**
+     * 산 자리.
+     *
+     * **소모품도 산 자리에서 옵니다.** 조커는 뷰가 용수철을 들고 있어서 날아오는데,
+     * 소모품 칸은 화면을 다시 그릴 때마다 새로 만들어지므로 그럴 것이 없습니다 — 그래서
+     * 제 칸에 툭 나타났습니다. 오는 동안의 어긋남을 화면이 들고 있다가 매 프레임 얹습니다.
+     */
+    from: { x: number; y: number }
+    /** 오는 길을 얼마나 왔는가. 0 에서 1 로 갑니다. */
+    travel: number
+  }
 
   /**
    * 방금 「쓴다」를 누른 소모품.
@@ -928,6 +949,16 @@ export class Game {
    */
   private pressAte = false
   /**
+   * 지금 떠 있는 쪽지가 꾸욱 눌러 띄운 것인가.
+   *
+   * **떼어도 남아 있어야 합니다.** 손가락을 떼면 Pixi 가 「벗어났다」 를 내는데, 그것으로
+   * 닫으면 누르고 있는 동안에만 보입니다 — 읽을 시간이 없습니다. 조커는 그 길을 타지 않아서
+   * 남아 있었고, 소모품과 태그와 팩은 닫혔습니다.
+   *
+   * 다음에 무엇을 누르면 지워집니다.
+   */
+  private pressShown = false
+  /**
    * 마지막으로 쓴 것이 손가락인가.
    *
    * **조커와 손패의 설명은 마우스의 자리를 보고 뜁니다.** 손가락은 뗀 뒤에도 그 자리가
@@ -1025,8 +1056,10 @@ export class Game {
     this.rerollButton.position.set(BOARD_X - 64, 578)
     this.sortRankButton.position.set(LEFT + PANEL_W + 30, BUTTON_Y + 7)
     this.sortSuitButton.position.set(LEFT + PANEL_W + 130, BUTTON_Y + 7)
-    this.infoButton.position.set(LEFT - 2, 700)
-    this.menuButton.position.set(LEFT + 134, 700)
+    // **판의 밑단에 붙입니다.** 위에 두면 그 아래가 통째로 빈 자리로 남습니다 — 왼쪽 판은
+    // 화면 아래 22픽셀까지 내려오고, 버튼은 그 안쪽에 있으면 됩니다.
+    this.infoButton.position.set(LEFT - 2, 726)
+    this.menuButton.position.set(LEFT + 134, 726)
 
     app.canvas.addEventListener('pointerdown', () => this.audio.unlock())
     // **누르는 순간 툴팁이 닫힙니다.** 툴팁은 마우스가 그것에서 벗어날 때 닫히는데, 누른
@@ -1041,6 +1074,7 @@ export class Game {
     app.stage.addEventListener('pointerdown', event => {
       this.touching = event.pointerType !== 'mouse'
       this.pressAte = false
+      this.pressShown = false
       this.press = undefined
       this.tooltip.hide()
     }, { capture: true })
@@ -1393,10 +1427,10 @@ export class Game {
 
     this.badge.position.set(LEFT, 34)
     this.score.position.set(LEFT, 208)
-    this.hands.position.set(LEFT, 426)
-    this.discards.position.set(LEFT + 134, 426)
-    this.money.position.set(LEFT, 490)
-    this.anteSlot.position.set(LEFT + 134, 490)
+    this.hands.position.set(LEFT, 423)
+    this.discards.position.set(LEFT + 134, 423)
+    this.money.position.set(LEFT, 487)
+    this.anteSlot.position.set(LEFT + 134, 487)
 
     // **상자 둘과 그 사이의 곱셈표입니다.** 원작의 배치이고, 붙여 놓는 것보다 이 편이
     // 「칩 곱하기 배수」 라는 식으로 읽힙니다.
@@ -1445,7 +1479,7 @@ export class Game {
     // 위에서 아래로 라운드 점수 · 족보 이름 · 불꽃 · 칩 × 배수 순서이고, 눈이 한 번
     // 내려오면서 「이 판은 무슨 족보이고, 그래서 이만큼 타고 있고, 값은 이것이다」 로
     // 읽힙니다 — 아래에 두면 그 순서가 끊깁니다.
-    putText(this.handLabel, box(LEFT, 280, PANEL_W, 24), CENTER)
+    putText(this.handLabel, box(LEFT, 292, PANEL_W, 24), CENTER)
 
     this.board.addChild(this.badge, this.score, this.handLabel, this.scoreBox,
       this.chipsFire, this.multFire, this.chips, this.mult, times,
@@ -1852,7 +1886,7 @@ export class Game {
    *
    * **곧바로 지우지 않습니다** — 사라지는 것이 보여야 몇 장을 버렸는지가 남습니다.
    */
-  private throwAway(uids: readonly number[]): void {
+  private throwAway(uids: readonly number[], spark = true): void {
     uids.forEach((uid, index) => {
       const view = this.cards.get(uid)
       if (!view) return
@@ -1863,11 +1897,11 @@ export class Game {
       view.selected = false
       view.setPick(0, PICK_TINT)
       view.hint = false
-      // **제자리에서 탑니다.** 오른쪽으로 미끄러지면 덱으로 되돌아가는 것으로 보이고, 판
-      // 가운데로 올려 보내면 낸 카드처럼 판에 올라섰다가 없어지는 것으로 보입니다 —
-      // 그 둘을 다 해 봤고, 버리는 것은 손에서 그대로 없애는 것입니다.
+      // **제자리에서 곧바로 나갑니다.** 판 가운데로 한 번 올려 보냈는데, 그러면 버린 카드가
+      // 낸 카드처럼 판에 올라섰다가 없어지는 것으로 보입니다 — 버리는 것은 그 자리에서
+      // 화면 밖으로 치우는 것입니다.
       this.fades.push({
-        view, at: this.clock + index * (this.feel.playStaggerMs / 1000), spark: true,
+        view, at: this.clock + index * (this.feel.playStaggerMs / 1000), spark,
       })
     })
   }
@@ -1891,15 +1925,12 @@ export class Game {
     while (this.fades.length > 0 && this.fades[0].at <= this.clock) {
       const next = this.fades.shift()
       if (!next) break
-      // **버린 것과 낸 것은 나가는 길이 다릅니다.** 버린 것은 제자리에서 타고, 득점하고
-      // 물러나는 것은 오른쪽으로 미끄러져 나갑니다 — 하나는 없애는 것이고 하나는 치우는
-      // 것입니다.
-      if (next.spark) {
-        next.view.burnAway()
-        this.particles.burst(next.view.x, next.view.y, 6, 0xff9d5c, 0.6)
-      } else {
-        next.view.retire()
-      }
+      // **밖으로 나갑니다.** 버린 것도 낸 것도 화면 밖으로 물러납니다 — 태워 없애는 것은
+      // 조커와 소모품의 것이고, 카드는 치우는 것입니다.
+      next.view.retire()
+      // 버린 카드만 조각이 흩어집니다. **득점하고 물러나는 카드는 조용히 나갑니다** —
+      // 방금 빛이 돌았던 카드가 다시 터지면 무엇이 끝난 것인지 흐려집니다.
+      if (next.spark) this.particles.burst(next.view.x, next.view.y, 6, 0xff9d5c, 0.6)
       this.audio.play('card_destroy')
     }
   }
@@ -1937,6 +1968,22 @@ export class Game {
         spark: false,
       })
     })
+  }
+
+  /**
+   * 판이 끝났습니다. 손에 남은 카드를 걷습니다.
+   *
+   * **끝났다는 판은 빈 자리 위에 섭니다.** 손에 카드가 그대로 있는데 그 위에 판이 덮이면,
+   * 끝난 것과 아직 쥐고 있는 것이 한 화면에 겹칩니다 — 코어는 진 판의 손패를 비우지 않으므로
+   * 화면이 걷습니다.
+   *
+   * 태우지 않고 물러나게 합니다. 버리는 것은 없애는 것이고, 이것은 치우는 것입니다.
+   */
+  private sweepHand(): void {
+    const left = [...this.cards.keys()]
+    if (left.length === 0) return
+    this.throwAway(left, false)
+    this.shown.hand = []
   }
 
   /** 물러난 카드를 치웁니다. */
@@ -2207,6 +2254,7 @@ export class Game {
         break
 
       case 'RunLost':
+        this.sweepHand()
         // **글은 적지 않습니다.** 끝났다는 판이 곧 서고 거기에 몇 점이 모자랐는지까지
         // 적히므로, 머리글은 그 판이 할 말을 미리 하는 것입니다.
         this.audio.play('blind_fail')
@@ -2216,6 +2264,7 @@ export class Game {
         break
 
       case 'RunWon':
+        this.sweepHand()
         this.say(t('ui.label.all_cleared'), COLOR.money, 2.8)
         this.chime('coin_land', 10, 2, 0.06)
         this.audio.play('blind_clear')
@@ -2753,8 +2802,12 @@ export class Game {
 
     // **끝났다는 판은 연출이 다 끝난 뒤에 띄웁니다.** 마지막 카드의 결과를 보기 전에 덮이면
     // 무엇 때문에 끝난 것인지 알 수 없습니다.
+    // **카드가 다 걷힌 뒤에 섭니다.** 손패와 낸 카드가 물러나는 중인데 그 위에 판이 덮이면,
+    // 끝난 것과 끝나는 중인 것이 한 화면에 겹칩니다 — 정산 판과 같은 규칙입니다.
     const finished = this.state.phase === 'lost' || this.state.phase === 'won'
-    if (finished && !this.gameOverShown
+    const swept = this.playedViews.length === 0 && this.fades.length === 0
+      && this.cards.size === 0 && this.deals.length === 0
+    if (finished && swept && !this.gameOverShown
         && !this.player.busy && this.score.settled && !this.coins.busy) {
       this.drawGameOver()
     }
@@ -2875,6 +2928,7 @@ export class Game {
     // **그 손가락이 떼어질 때의 누름을 먹습니다.** 설명을 보려고 누른 것이 그대로
     // 고르기·사기·쓰기가 되면 안 됩니다.
     this.pressAte = true
+    this.pressShown = true
     this.audio.play('button')
     press.show()
   }
@@ -2903,7 +2957,11 @@ export class Game {
       show()
     })
     node.on('pointerdown', event => this.armPress(event, show))
-    node.on('pointerout', () => this.tooltip.hide())
+    // **꾸욱 눌러 띄운 것은 떼어도 닫지 않습니다.** 손가락을 떼면 「벗어났다」 가 나므로,
+    // 그것으로 닫으면 누르고 있는 동안에만 보입니다 — 읽을 시간이 없습니다.
+    node.on('pointerout', () => {
+      if (!this.pressShown) this.tooltip.hide()
+    })
   }
 
   private updateHover(): void {
@@ -3040,6 +3098,8 @@ export class Game {
         setFever: (value: number) => {
           this.fever = value
         },
+        // 소모품 첫 칸이 지금 그려진 자리. 사서 오는 길을 재는 도구가 씁니다.
+        itemX: () => this.consumableTiles[this.consumableTiles.length - 1]?.tile.x,
         jokerX: () => {
           const first = this.state.jokers[0]
           return first ? this.jokers.get(first.uid)?.x : undefined
@@ -4383,7 +4443,11 @@ export class Game {
 
   private syncCards(): void {
     // **화면이 주장하는 패입니다.** 다음 패는 득점 연출이 끝난 뒤에 깔립니다.
-    const wanted = new Set(this.shown.hand)
+    //
+    // **끝난 판에서는 아무것도 깔지 않습니다.** 코어는 진 판의 손패를 비우지 않으므로,
+    // 걷어 낸 뒤에 다시 그리면 그 카드들이 도로 손에 섭니다.
+    const over = this.state.phase === 'lost' || this.state.phase === 'won'
+    const wanted = new Set(over ? [] : this.shown.hand)
 
     for (const [uid, view] of this.cards) {
       if (!wanted.has(uid)) {
@@ -4705,17 +4769,36 @@ export class Game {
    * **조커의 `advance` 가 하는 일과 같습니다.** 다만 소모품 칸은 화면을 다시 그릴 때마다
    * 새로 만들어지므로 그 몫을 화면이 대신 듭니다.
    */
+  /**
+   * 방금 들어온 소모품이 그 자리에서 옵니다.
+   *
+   * **조커는 뷰가 용수철을 들고 있어서 날아옵니다.** 소모품 칸은 화면을 다시 그릴 때마다
+   * 새로 만들어지므로 그럴 것이 없어서 제 칸에 툭 나타났습니다 — 오는 동안의 어긋남을
+   * 화면이 들고 있다가 매 프레임 얹습니다.
+   *
+   * 상점에서 사는 것과 팩에서 집는 것 둘이 부릅니다. **자리만 다르고 나머지는 같습니다.**
+   */
+  private itemFlying(from: { x: number; y: number }): void {
+    const last = this.state.consumables[this.state.consumables.length - 1]
+    if (!last) return
+    this.itemArrive = {
+      uid: last.uid, warp: 1, glow: 0, filter: new ArriveFilter(), from, travel: 0,
+    }
+    this.syncConsumables()
+  }
+
   private advanceItemArrive(seconds: number): void {
     const one = this.itemArrive
     if (!one) return
 
     one.warp = Math.max(0, one.warp - seconds * 1.6)
     one.glow = Math.max(0, one.glow - seconds * 2.2)
+    one.travel = Math.min(1, one.travel + seconds / LAND_AT)
     one.filter.at(this.clock)
     one.filter.warp = one.warp
     one.filter.flash = one.glow * one.glow
 
-    if (one.warp > 0 || one.glow > 0) return
+    if (one.warp > 0 || one.glow > 0 || one.travel < 1) return
     // 다 썼으면 놓습니다. **판이 도는 내내 물결을 굽고 있을 이유가 없습니다.**
     this.itemArrive = undefined
     for (const tile of this.consumableTiles) {
@@ -4734,6 +4817,15 @@ export class Game {
       spring.target = this.held?.kind === 'consumable' && this.held.uid === one.uid ? 12 : 0
       spring.advance(seconds)
       one.tile.y = one.baseY - spring.value
+
+      // 사서 오는 중인 한 장은 산 자리에서 제 칸으로 미끄러집니다.
+      const coming = this.itemArrive
+      if (!coming || coming.uid !== one.uid) continue
+      const left = 1 - coming.travel
+      // 끝에서 느려집니다. **곧게 오면 자리에 「툭」 서고, 그것이 순간이동으로 보입니다.**
+      const ease = left * left * left
+      one.tile.x = one.baseX + (coming.from.x - one.baseX) * ease
+      one.tile.y += (coming.from.y - one.baseY) * ease
     }
   }
 
@@ -4798,7 +4890,7 @@ export class Game {
 
     // **금액과 안테 칸 아래입니다.** 그 칸들이 내려온 만큼 이것도 내려옵니다 — 위에 두면
     // 「적용 중」 이 금액 칸에 겹칩니다.
-    const top = 558
+    const top = 555
     const rowH = 26
     const shown = Math.min(entries.length, entries.length > 4 ? 3 : 4)
 
@@ -5036,17 +5128,19 @@ export class Game {
     layer.removeChildren().forEach(child => child.destroy())
 
     const width = 260
+    // **옵션이 위입니다.** 판이 도는 동안 여는 것은 대개 소리나 속도를 고치려는 것이고,
+    // 게임 방법은 첫 판에 한 번 보는 것입니다.
     const rows: { label: string; press: () => void }[] = [
-      { label: t('ui.button.guide'), press: () => this.modals.open(this.guide) },
       { label: t('ui.button.options'), press: () => this.openOptions() },
+      { label: t('ui.button.guide'), press: () => this.modals.open(this.guide) },
     ]
-    const height = TITLE_BAR + rows.length * 46 + 14 + FOOTER_BAR
+    // **밑단이 없습니다.** 머리의 `✕` 와 바깥 누르기와 `Esc` 로 닫히므로, 닫기를 또 두면
+    // 같은 일을 하는 것이 판 하나에 둘입니다.
+    const height = TITLE_BAR + rows.length * 46 + 14
     ;(this.menu.size as { width: number; height: number }).height = height
 
-    // **닫기를 따로 만들지 않습니다.** 껍데기가 머리의 `✕` 와 밑단의 닫기를 이미 답니다 —
-    // 여기서 하나 더 넘기면 닫기가 둘이 되고, 그 둘이 판보다 넓어서 밖으로 나갔습니다.
     layer.addChild(panelFrame(width, height, t('ui.button.menu'),
-      () => this.modals.close(this.menu)))
+      () => this.modals.close(this.menu), undefined, false))
 
     rows.forEach((row, index) => {
       const button = new Button(row.label, width - 48, 38, 0x3a4658, () => {
@@ -5113,7 +5207,7 @@ export class Game {
         if (this.ate()) return
         this.pick('consumable', item.uid)
       })
-      this.consumableTiles.push({ uid: item.uid, tile, baseY: tile.y })
+      this.consumableTiles.push({ uid: item.uid, tile, baseX: tile.x, baseY: tile.y })
       this.tipOn(tile, () => {
         this.tooltip.show(name, t('ui.kind.consumable'), 0, lines,
           tile.x + SIZE.jokerWidth / 2, tile.y + SIZE.jokerHeight, SIZE)
@@ -5633,6 +5727,9 @@ export class Game {
         this.sellFrom = item.kind === ShopItemKind.Joker
           ? this.jokerSpot(held) : this.itemSpot(held)
         this.act({ t: 'swap', slot, index: held })
+        if (item.kind !== ShopItemKind.Joker) {
+          this.itemFlying({ x: tile.x + (158 - SIZE.jokerWidth) / 2, y: tile.y + 22 })
+        }
       })
       return
     }
@@ -5651,11 +5748,7 @@ export class Game {
     // 소모품은 자기 칸에 그대로 나타납니다. **나타나는 그 동안 울렁입니다** — 조커가
     // 날아오는 동안 울렁이는 것과 같은 자리의 몸짓입니다.
     if (item.kind !== ShopItemKind.Joker) {
-      const last = this.state.consumables[this.state.consumables.length - 1]
-      if (last) {
-        this.itemArrive = { uid: last.uid, warp: 1, glow: 0, filter: new ArriveFilter() }
-        this.syncConsumables()
-      }
+      this.itemFlying({ x: tile.x + (158 - SIZE.jokerWidth) / 2, y: tile.y + 22 })
     }
 
     // 날아가 닿는 데까지가 한 박자입니다. 닿는 자리에서 이름과 소리가 납니다.
@@ -6238,7 +6331,7 @@ export class Game {
     })
     node.on('pointerout', () => {
       if (this.packHovered === index) this.packHovered = -1
-      this.tooltip.hide()
+      if (!this.pressShown) this.tooltip.hide()
     })
     node.on('pointertap', () => {
       if (this.ate()) return
@@ -6264,6 +6357,7 @@ export class Game {
           this.sellFrom = item.kind === ShopItemKind.Joker
             ? this.jokerSpot(held) : this.itemSpot(held)
           this.act({ t: 'swap_pack', index, held })
+          if (item.kind !== ShopItemKind.Joker) this.itemFlying(from)
         })
         return
       }
@@ -6274,6 +6368,9 @@ export class Game {
       this.arriveFrom = from
       this.jolt(4, 3)
       this.act({ t: 'pick_pack', index })
+      // **소모품도 집은 자리에서 옵니다.** 조커는 `arriveFrom` 을 뷰가 받아 날아오는데,
+      // 소모품은 화면이 그 몫을 들어야 합니다.
+      if (item.kind !== ShopItemKind.Joker) this.itemFlying(from)
       this.later.push({ at: this.clock + LAND_AT, run: () => this.landed(item) })
     })
     return { node, card, mark, plate, label }
