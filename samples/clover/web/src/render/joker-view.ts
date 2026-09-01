@@ -6,12 +6,13 @@
 // 그림 파일이 아직 없으므로 식별자에서 만든 문양으로 그립니다. 같은 조커는 언제나 같은
 // 모양이고, 희귀도가 테두리 색입니다.
 
-import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
+import { Container, type Filter, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
 import { tf } from '../core/strings'
 
 import { EditionKind } from '../generated/enums/edition-kind'
 import type { JokerInstance } from '../core/state'
 import { DissolveFilter } from '../shader/dissolve'
+import { ArriveFilter } from '../shader/arrive'
 import { EditionFilter, type EditionShader } from '../shader/editions'
 import { roundedMask } from '../shader/mask'
 import { artFor } from './art'
@@ -95,6 +96,17 @@ export class JokerView extends Container {
   private readonly dissolve = new DissolveFilter()
   private burn = 0
   private burning = false
+  /**
+   * 사서 오는 동안 걸리는 것.
+   *
+   * **살 때 한 번 만들고 다 쓰면 놓습니다.** 판이 도는 내내 물결을 굽고 있을 이유가
+   * 없습니다 — 조커 줄에 다섯이 서 있으면 그 다섯이 전부 도는 것이 됩니다.
+   */
+  private arrive?: ArriveFilter
+  /** 울렁이는 정도. 오는 동안 1 에서 0 으로 잦아듭니다. */
+  private warp = 0
+  /** 번쩍이는 정도. 닿는 순간 1 이고 곧 0 으로 갑니다. */
+  private glow = 0
 
   hovered = false
   pointer = 0
@@ -217,13 +229,30 @@ export class JokerView extends Container {
           noise: look.edition.noise,
           shape: roundedMask(SIZE.jokerWidth, SIZE.jokerHeight, RADIUS),
         })
-        this.body.filters = [this.edition]
+        this.restack()
       }
     } else if (this.editionKind !== undefined) {
       this.editionKind = undefined
       this.edition = undefined
-      this.body.filters = []
+      this.restack()
     }
+  }
+
+  /**
+   * 지금 걸릴 것들을 한자리에서 쌓습니다.
+   *
+   * **`body` 에만 겁니다 — 그림자는 뺍니다.** 통째로 걸면 그림자에도 걸려, 딱지가 들려
+   * 있는 동안 빛나는 얼룩 하나가 그 아래에 따로 남습니다.
+   */
+  private restack(): void {
+    if (this.burning) {
+      this.body.filters = [this.dissolve]
+      return
+    }
+    const stack: Filter[] = []
+    if (this.edition) stack.push(this.edition)
+    if (this.arrive) stack.push(this.arrive)
+    this.body.filters = stack
   }
 
   place(x: number, y: number): void {
@@ -236,7 +265,8 @@ export class JokerView extends Container {
     this.burning = true
     this.burn = 0
     this.eventMode = 'none'
-    this.body.filters = [this.dissolve]
+    this.arrive = undefined
+    this.restack()
   }
 
   /** 다 탔는가. 그때 지웁니다. */
@@ -269,9 +299,46 @@ export class JokerView extends Container {
     this.motion.scale.target = 1 + 0.16 * strength
   }
 
+  /**
+   * 사서 오기 시작합니다. **오는 내내 울렁입니다.**
+   *
+   * 산 자리에서 줄까지 날아오는 그 동안이고, 닿으면 `landing` 이 이어받습니다.
+   */
+  buying(): void {
+    this.arrive ??= new ArriveFilter()
+    this.warp = 1
+    // 오는 길이 보이도록 느리게 갑니다. 닿으면 원래 용수철로 돌아옵니다.
+    this.motion.drift()
+    this.restack()
+  }
+
+  /** 자리에 닿았습니다. **딱지 전체가 한 번 하얗게 번쩍입니다.** */
+  landing(): void {
+    this.arrive ??= new ArriveFilter()
+    this.glow = 1
+    this.warp = 0
+    this.motion.soft()
+    this.restack()
+  }
+
   advance(seconds: number, time: number): void {
     this.motion.advance(seconds)
     this.edition?.at(time, this.pointer)
+
+    if (this.arrive) {
+      // 울렁임은 천천히, 번쩍임은 빠르게 잦아듭니다. **번쩍임이 오래 남으면 그 자리가
+      // 하얀 딱지가 되고, 무엇을 산 것인지 도리어 안 보입니다.**
+      this.warp = Math.max(0, this.warp - seconds * 1.6)
+      this.glow = Math.max(0, this.glow - seconds * 2.2)
+      this.arrive.at(time)
+      this.arrive.warp = this.warp
+      // 잦아드는 끝이 밋밋하지 않게 제곱으로 뺍니다.
+      this.arrive.flash = this.glow * this.glow
+      if (this.warp <= 0 && this.glow <= 0) {
+        this.arrive = undefined
+        this.restack()
+      }
+    }
 
     if (this.burning) {
       // **아래에서 위로, 그리고 조금 떠오릅니다.** 종이가 타면 가벼워집니다.

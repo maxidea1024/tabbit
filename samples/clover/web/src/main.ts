@@ -2,6 +2,11 @@
 //
 // 데이터를 읽고 화면을 세우는 것이 전부입니다. **규칙은 `core/` 에 있고 이 파일은 그것을
 // 모릅니다.**
+//
+// **씬 셋 중 첫째가 여기 있습니다** — 로딩 · 타이틀 · 판 순서이고, 이 파일은 로딩을 맡아
+// 다 읽고 나서 `Game` 에 넘깁니다. 나머지 둘은 `Game` 안에서 오갑니다. 그래서 판을 접고
+// 타이틀로 가는 데 이 파일을 다시 지날 일이 없습니다 — **다시 지나면 데이터를 처음부터
+// 읽고 로딩이 한 번 더 보입니다.**
 
 import { Application } from 'pixi.js'
 
@@ -11,12 +16,13 @@ import { loadFonts, useFont } from './ui/font'
 import { randomSeed } from './ui/title'
 import { chosen, loadOptions } from './ui/options'
 import { loadArtIndex } from './render/art'
+import { Boot } from './ui/boot'
 import { Game } from './render/game'
 import { COLOR } from './render/theme'
 
 async function main(): Promise<void> {
   const canvas = document.getElementById('stage') as HTMLCanvasElement
-  const boot = document.getElementById('boot')
+  const boot = new Boot()
 
   const app = new Application()
   await app.init({
@@ -30,6 +36,7 @@ async function main(): Promise<void> {
     preference: 'webgl',
   })
 
+  boot.step('data')
   const data = await loadFromUrl('./data')
   // **화면을 만들기 전에 글 표를 넘깁니다.** 클래스의 필드는 생성자 본문보다 먼저 만들어지고,
   // 그 자리에서 이미 글을 읽습니다 — 생성자 안에서 넘기면 그것들이 열쇠를 그대로 답니다.
@@ -38,9 +45,11 @@ async function main(): Promise<void> {
   setLanguage(language)
   // **글꼴을 다 읽고 나서 화면을 세웁니다.** 글을 그리는 것은 글자를 그림으로 굽는 일이고,
   // 그때 글꼴이 없으면 대체 글꼴로 구워져 그대로 남습니다.
+  boot.step('font')
   await loadFonts()
   useFont(language)
   // 그림 목록. 없으면 문양으로 갑니다.
+  boot.step('art')
   await loadArtIndex('./art')
 
   // 시드는 주소에서 받습니다 — 같은 주소를 열면 같은 판입니다. 대조할 때 그 편이 편합니다.
@@ -76,12 +85,12 @@ async function main(): Promise<void> {
   } catch {
     // 저장소가 막힌 브라우저에서는 셀 것이 없습니다.
   }
-  boot?.classList.add('gone')
+  // 로딩이 끝났습니다. **타이틀이 이 자리를 이어받습니다.**
+  boot.done()
   document.title = `clover — ${seed}`
 }
 
 main().catch((error: unknown) => {
-  const boot = document.getElementById('boot')
-  if (boot) boot.textContent = `열지 못했습니다: ${String(error)}`
+  new Boot().fail(`열지 못했습니다: ${String(error)}`)
   console.error(error)
 })

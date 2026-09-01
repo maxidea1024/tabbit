@@ -124,6 +124,12 @@ export class Toasts extends Container {
     return this.live.length > 0
   }
 
+  /** 떠 있는 줄을 전부 지웁니다. 판이 없어질 때뿐입니다. */
+  clear(): void {
+    for (const entry of this.live) entry.box.destroy()
+    this.live.length = 0
+  }
+
   advance(seconds: number): void {
     for (let i = this.live.length - 1; i >= 0; i--) {
       const entry = this.live[i]

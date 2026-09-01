@@ -8,6 +8,17 @@ import type { Page } from 'playwright'
 
 /** 화면이 스스로 알리는 것들. `game.ts` 의 `publishPeek` 이 씁니다. */
 export interface Peek {
+  /** 지금 어느 씬인가. 로딩 · 타이틀 · 판 셋뿐입니다. */
+  scene: string
+  /** 화면에 살아 있는 카드·조커 뷰의 수. 판을 접었으면 0 입니다. */
+  views: number
+  seed: string
+  /** 지금 칩이 날고 있는가. */
+  flying: boolean
+  /** 상점 판이 지금 서 있는가. */
+  shopUp: boolean
+  /** 연출의 시계. 초입니다. */
+  clock: number
   phase: string
   ante: number
   blind: number

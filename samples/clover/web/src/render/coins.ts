@@ -76,6 +76,12 @@ export class Coins extends Container {
     return this.live.length > 0
   }
 
+  /** 날고 있는 것을 전부 지웁니다. 판이 없어질 때뿐입니다. */
+  clear(): void {
+    this.live.length = 0
+    this.canvas.clear()
+  }
+
   advance(seconds: number): void {
     this.canvas.clear()
     if (this.live.length === 0) return

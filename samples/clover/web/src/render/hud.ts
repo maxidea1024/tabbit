@@ -220,13 +220,22 @@ export class BlindBadge extends Container {
     text: '', style: { fontSize: 13, fill: COLOR.money, fontWeight: '700' },
   })
 
+  /**
+   * 이름 옆에 붙는 표시.
+   *
+   * **보스에만 붙습니다.** 스물여덟이 이름 하나로만 갈리면 어느 것과 붙고 있는지가 판이
+   * 도는 내내 이름 한 줄에만 남습니다. 무엇을 그릴지는 화면이 정하고 이 클래스는 자리만
+   * 냅니다 — 그림이 어디서 오는지를 여기가 알 이유가 없습니다.
+   */
+  private seal?: Container
+
   constructor(private readonly boxWidth: number) {
     super()
     this.addChild(this.plate, this.title, this.need, this.reward, this.note)
   }
 
   set(name: string, target: number, reward: number, note: string,
-      boss: boolean, big = false): void {
+      boss: boolean, big = false, seal?: Container): void {
     const height = 138 + (note.length > 0 ? 26 : 0)
     const tint = boss ? 0x3d1622 : big ? 0x2a2140 : 0x1b2c44
     const edge = boss ? COLOR.bad : big ? 0xa279e0 : 0x5d92d6
@@ -240,9 +249,21 @@ export class BlindBadge extends Container {
     this.plate.roundRect(6, 6, this.boxWidth - 12, 32, 8)
       .fill({ color: edge, alpha: 0.28 })
 
+    // 앞의 표시를 걷고 새것을 답니다. **그대로 두면 보스가 바뀌어도 앞의 것이 남습니다.**
+    this.seal?.destroy()
+    this.seal = undefined
+
     this.title.text = name
     this.title.anchor.set(0.5, 0)
     this.title.position.set(this.boxWidth / 2, 12)
+
+    if (seal) {
+      this.seal = seal
+      seal.position.set(24, 22)
+      this.addChild(seal)
+      // 표시가 앉은 만큼 이름이 오른쪽으로 비켜섭니다.
+      this.title.position.set(this.boxWidth / 2 + 12, 12)
+    }
 
     this.need.text = target.toLocaleString('en-US')
     this.need.anchor.set(0.5, 0)

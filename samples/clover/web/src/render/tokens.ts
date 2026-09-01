@@ -26,7 +26,8 @@ const FACES: { value: number; face: number; edge: number }[] = [
   { value: 25, face: 0x2f7a52, edge: 0x8fe3b4 },
   { value: 10, face: 0x2f6a9c, edge: 0x9fd4ff },
   { value: 5, face: 0x9c3341, edge: 0xffa8b4 },
-  { value: 1, face: 0xdfe6f2, edge: 0x8c96a8 },
+  // 1짜리는 **테두리가 짙습니다.** 흰 칩이 밝은 카드 위를 지나면 그대로 사라집니다.
+  { value: 1, face: 0xdfe6f2, edge: 0x4a5261 },
 ]
 
 /**
@@ -93,7 +94,9 @@ export class Tokens extends Container {
         },
         delay: i * 0.05,
         life: 0,
-        span: 0.34 + Math.random() * 0.14,
+        // **0.34초는 눈이 따라가기 전에 끝납니다.** 카드에서 칸까지 가는 길이 보여야
+        // 무엇이 얼마를 낸 것인지 남습니다.
+        span: 0.52 + Math.random() * 0.16,
         spin: 7 + Math.random() * 5,
         index: i,
         landed: false,
@@ -103,6 +106,12 @@ export class Tokens extends Container {
 
   get busy(): boolean {
     return this.live.length > 0
+  }
+
+  /** 날고 있는 것을 전부 지웁니다. 판이 없어질 때뿐입니다. */
+  clear(): void {
+    this.live.length = 0
+    this.canvas.clear()
   }
 
   advance(seconds: number): void {
@@ -131,18 +140,22 @@ export class Tokens extends Container {
       const y = u * u * chip.from.y + 2 * u * t * chip.bend.y + t * t * chip.to.y
 
       // 앞뒤로 돌아가는 것처럼 가로만 눌립니다. **원판이 도는 것으로 읽힙니다.**
-      const squash = Math.abs(Math.cos(chip.life * chip.spin))
-      const radius = 9
-      const width = Math.max(1.4, radius * squash)
+      //
+      // **다 눌리게 두지 않습니다.** 옆에서 본 원판은 선 하나가 되는데, 그 순간이 절반쯤
+      // 되므로 화면에서는 티끌이 스치는 것으로 보입니다 — 0.42 아래로는 내려가지 않게
+      // 잡으면 도는 것은 그대로이고 언제나 원판으로 읽힙니다.
+      const squash = 0.42 + 0.58 * Math.abs(Math.cos(chip.life * chip.spin))
+      const radius = 13
+      const width = radius * squash
 
       const look = FACES.find(one => one.value === chip.value) ?? FACES[FACES.length - 1]
-      this.canvas.ellipse(x, y + 2, width, radius).fill({ color: 0x000000, alpha: 0.28 })
+      this.canvas.ellipse(x, y + 3, width, radius).fill({ color: 0x000000, alpha: 0.34 })
       this.canvas.ellipse(x, y, width, radius).fill({ color: look.face })
       this.canvas.ellipse(x, y, width, radius)
-        .stroke({ color: look.edge, width: 1.6, alpha: 0.95 })
+        .stroke({ color: look.edge, width: 2.2, alpha: 0.95 })
       // 테두리의 눈금 하나. **이것이 있어야 동전이 아니라 칩으로 읽힙니다.**
-      this.canvas.ellipse(x, y, Math.max(0.8, width * 0.52), radius * 0.52)
-        .stroke({ color: look.edge, width: 1, alpha: 0.7 })
+      this.canvas.ellipse(x, y, width * 0.52, radius * 0.52)
+        .stroke({ color: look.edge, width: 1.4, alpha: 0.75 })
     }
   }
 }

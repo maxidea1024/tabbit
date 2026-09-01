@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """그림 프롬프트를 뽑습니다.
 
-조커 150종과 소모품 52종과 태그 24종의 그림을 생성하는데, **프롬프트를 손으로 202번 적지 않습니다** —
+조커와 소모품과 태그와 보스의 그림을 생성하는데, **프롬프트를 하나하나 손으로 적지 않습니다** —
 식별자가 이미 영어의 구체적인 낱말이므로 그것을 문장으로 바꾸고, 어색한 것만 아래의 표에
 적어 둡니다.
 
@@ -62,6 +62,19 @@ TAG_PROMPT = (
     'Palette: deep navy, teal, warm gold, crimson. Square composition. '
     'No text, no letters, no numbers, no signature.')
 
+# **보스는 인장입니다.** 태그가 판에 놓는 칩이라면 보스는 그 안테를 막고 선 것이고, 붉은
+# 돌에 표시 하나를 새긴 것이 그것입니다 — 태그의 칩과 한눈에 갈려야 하므로 색과 테두리가
+# 다릅니다.
+BOSS_PROMPT = (
+    'Bold flat 2D icon of a round dark stone SEAL with %s carved into its centre. '
+    'The seal is a circle with a heavy notched rim and one large carved symbol at its '
+    'centre, seen straight on, centred, filling most of the square frame. '
+    'Thick clean outlines, screen-print poster art, limited flat colour palette, no realism, '
+    'no photography, no gradients, no soft shading, no drop shadow. '
+    'Flat DARK CRIMSON background with a fine dot grid. '
+    'Palette: dark crimson, black, cold grey, warm gold. Square composition. '
+    'No text, no letters, no numbers, no signature.')
+
 # 그림의 크기. **카드는 카드의 비율이고 뱃지는 정사각입니다** — 그리고 이 비율을 내는
 # 모델로 뽑아야 합니다. `flux-1-schnell` 은 가로세로를 무시하고 정사각형만 냅니다.
 SIZE = (640, 960)
@@ -69,14 +82,20 @@ TAG_SIZE = (640, 640)
 MODEL = 'lucid-origin'
 
 
+# 갈래마다의 화풍. **여기 없는 갈래는 카드의 화풍으로 갑니다.**
+STYLE = {'tag': TAG_PROMPT, 'boss': BOSS_PROMPT}
+# 정사각으로 뽑는 갈래들. 칩과 인장이 그렇습니다.
+SQUARE = ('tag', 'boss')
+
+
 def prompt_for(kind, subject):
     """그 대상 하나의 프롬프트. **화풍은 갈래마다 한 벌씩 위에 있습니다.**"""
     lowered = subject[0].lower() + subject[1:]
-    return (TAG_PROMPT if kind == 'tag' else PROMPT) % lowered
+    return STYLE.get(kind, PROMPT) % lowered
 
 
 def size_for(kind):
-    return TAG_SIZE if kind == 'tag' else SIZE
+    return TAG_SIZE if kind in SQUARE else SIZE
 
 # 식별자를 그대로 읽으면 어색한 것들. **여기 없는 것은 식별자를 그대로 문장으로 만듭니다.**
 # 그림 생성기가 낱말만 보고 거절하는 것들이 있습니다. **뜻은 그대로 두고 낱말만 바꿉니다** —
@@ -203,7 +222,44 @@ def entries():
     for identifier, display in read_table('Tag.tsv', 'tag_id'):
         out.append(('tag', identifier, display,
                     FLAVOUR['tag'] + TAG_SUBJECT.get(identifier, phrase(identifier))))
+    for identifier, display in read_table('BossBlind.tsv', 'boss_id'):
+        out.append(('boss', identifier, display,
+                    BOSS_SUBJECT.get(identifier, phrase(identifier))))
     return out
+
+
+# 보스 28종의 대상. **표시 하나로 새길 수 있어야 합니다** — 「the psychic」 처럼 사람을
+# 가리키는 낱말은 그대로 두면 초상화가 나오고, 인장에는 초상화가 들어가지 않습니다.
+BOSS_SUBJECT = {
+    'the_hook': 'a heavy curved iron hook',
+    'the_club': 'a club suit symbol',
+    'the_psychic': 'an open eye inside an open palm',
+    'the_goad': 'a long pointed cattle prod',
+    'the_window': 'a four-pane window frame',
+    'the_manacle': 'an open iron shackle with a broken chain link',
+    'the_pillar': 'a fluted stone column',
+    'the_head': 'a featureless profile of a head',
+    'the_house': 'a small steep-roofed house',
+    'the_wall': 'a section of stacked brick wall',
+    'the_wheel': 'a spoked cart wheel',
+    'the_arm': 'a bent arm flexing',
+    'the_fish': 'a fish seen from the side',
+    'the_water': 'three stacked wave lines',
+    'the_mouth': 'a closed mouth with sealed lips',
+    'the_needle': 'a sewing needle with thread through its eye',
+    'the_flint': 'a flint stone striking sparks',
+    'the_mark': 'a target with crossed lines',
+    'the_eye': 'a single wide-open eye',
+    'the_tooth': 'a single pointed tooth',
+    'the_plant': 'a sprouting seedling with two leaves',
+    'the_serpent': 'a coiled snake',
+    'the_ox': 'an ox skull with heavy horns',
+    'amber_acorn': 'an oak nut sitting in its scaled cup',
+    'verdant_leaf': 'a single broad leaf with veins',
+    'violet_vessel': 'a wide-bellied urn with two handles',
+    'crimson_heart': 'a heart suit symbol split by a jagged fracture line',
+    'cerulean_bell': 'a hanging bell with its clapper',
+}
 
 
 def target(kind, identifier):

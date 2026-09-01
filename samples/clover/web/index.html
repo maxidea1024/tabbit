@@ -36,18 +36,24 @@
     <canvas id="stage"></canvas>
     <div id="boot"></div>
     <script>
-      // **이 한 줄만 코드에 있습니다.** 글 표를 읽기 전에 보이는 글이라 그 표에서 찾아올
-      // 수 없습니다 — 대신 이 기계의 언어만 보고 고릅니다.
+      // 로딩 씬.
       //
-      // 옵션에서 고른 것이 있으면 그것이 앞섭니다. `ui/options.ts` 와 같은 열쇠입니다.
+      // **씬 셋 중 첫째이고, 이 하나만 DOM 입니다.** 여기서 읽는 것 중에 글꼴이 있어서,
+      // 글꼴이 있어야 그릴 수 있는 것으로는 이 화면을 그릴 수 없습니다. 나머지 둘 —
+      // 타이틀과 판 — 은 `render/game.ts` 안에 있습니다.
+      //
+      // **글도 여기 적혀 있습니다.** 글 표를 읽기 전에 보이는 글이라 그 표에서 찾아올 수
+      // 없습니다 — 대신 이 기계의 언어만 보고 고릅니다. 옵션에서 고른 것이 있으면 그것이
+      // 앞섭니다. `ui/options.ts` 와 같은 열쇠입니다.
       ;(function () {
+        // 읽는 차례대로 셋. `ui/boot.ts` 의 단계와 같은 순서입니다.
         var say = {
-          ko: '데이터를 읽는 중입니다',
-          en: 'Loading data',
-          ja: 'データを読み込んでいます',
-          'zh-Hans': '正在读取数据',
-          'zh-Hant': '正在讀取資料',
-          de: 'Daten werden geladen',
+          ko: ['데이터를 읽는 중입니다', '글꼴을 읽는 중입니다', '그림을 읽는 중입니다'],
+          en: ['Loading data', 'Loading fonts', 'Loading art'],
+          ja: ['データを読み込んでいます', 'フォントを読み込んでいます', '画像を読み込んでいます'],
+          'zh-Hans': ['正在读取数据', '正在读取字体', '正在读取图像'],
+          'zh-Hant': ['正在讀取資料', '正在讀取字型', '正在讀取圖像'],
+          de: ['Daten werden geladen', 'Schriften werden geladen', 'Grafiken werden geladen'],
         }
 
         var lang = ''
@@ -78,7 +84,16 @@
         }
 
         var boot = document.getElementById('boot')
-        boot.textContent = say[lang]
+        var line = say[lang] || say.en
+        boot.textContent = line[0]
+
+        // **화면이 이 씬을 몰라도 되게 창구를 하나 둡니다.** 진입점은 「지금 몇째를 읽는
+        // 중」만 알리고, 글과 다시 읽기 감시는 여기 남습니다.
+        window.__boot = {
+          at: function (index) { boot.textContent = line[index] || line[0] },
+          fail: function (text) { boot.textContent = text },
+          done: function () { boot.classList.add('gone') },
+        }
 
         // **읽다 멈추면 멈춘 채로 두지 않습니다.** 그림 200여 장과 표 40개를 읽는 길에서
         // 하나가 답을 돌려주지 않으면 이 줄만 남아 기다리게 되고, 그것은 사람 눈에

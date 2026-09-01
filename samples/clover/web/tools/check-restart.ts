@@ -55,8 +55,8 @@ async function main(): Promise<number> {
     return 1
   }
 
-  // 「다시 시작」. 판의 가운데에서 아래로 126.
-  const again = await at(page, STAGE_W / 2, 400 + 126)
+  // 「다시 시작」. 판의 가운데에서 왼쪽으로 92, 아래로 126. 그 오른쪽이 「타이틀로」입니다.
+  const again = await at(page, STAGE_W / 2 - 92, 400 + 126)
   await page.mouse.click(again.x, again.y)
 
   // 다시 서는 데 얼마나 걸리는가.

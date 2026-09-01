@@ -95,6 +95,18 @@ export class Motion {
     this.rotation.hard(900, 44)
   }
 
+  /**
+   * 이번 이동만 느리게.
+   *
+   * **산 것이 오는 길이 보여야 합니다.** 기본 용수철은 0.2초 안에 자리에 붙어서, 사는
+   * 순간과 닿는 순간이 한 순간이 됩니다 — 그러면 「울렁이다 · 오다 · 닿다」 셋 중 가운데가
+   * 없어집니다.
+   */
+  drift(): void {
+    this.x.hard(120, 23)
+    this.y.hard(120, 23)
+  }
+
   soft(): void {
     this.x.soft()
     this.y.soft()

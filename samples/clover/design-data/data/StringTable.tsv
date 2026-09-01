@@ -670,6 +670,7 @@
 	ui.button.close	닫기	Close	閉じる	关闭	關閉	Schließen
 	ui.button.again	다시	Again	もう一度	再来	再來	Nochmal
 	ui.button.restart	다시 시작	New Run	新しいラン	重新开始	重新開始	Neuer Lauf
+	ui.button.to_title	타이틀로	Title Screen	タイトルへ	返回标题	返回標題	Zum Titel
 	ui.button.play	낸다	Play	出す	出牌	出牌	Ausspielen
 	ui.button.discard	버린다	Discard	捨てる	弃牌	棄牌	Ablegen
 	ui.button.clear	그만 고른다	Clear	選び直す	取消选择	取消選擇	Aufheben
