@@ -733,13 +733,6 @@ export class Game {
    * 그래서 화면은 **박자가 도달한 데까지만** 압니다. 연출이 끝나면 상태와 같아집니다.
    */
   private shown = { score: 0, money: 0, hand: [] as number[] }
-  /**
-   * 칩 칸과 배수 칸이 가운데로 모인 정도. 1 에서 0 으로 잦아듭니다.
-   *
-   * **곱하기가 화면에서 일어나야 합니다.** 두 숫자가 제자리에 있는 채로 점수만 튀어나오면,
-   * 그 점수가 어디서 온 것인지 눈으로 이어지지 않습니다.
-   */
-  private merge = 0
   /** 배경이 지금 그리고 있는 열기. 목표로 천천히 따라갑니다. */
   private heatShown = 0.1
   private clock = 0
@@ -1727,10 +1720,6 @@ export class Game {
         this.score.target = this.shown.score
         this.audio.play('score_settle', semitones)
 
-        // **칩 칸과 배수 칸이 가운데로 모여 하나가 됩니다.** 이 게임에서 가장 큰 장면이
-        // 두 숫자가 곱해지는 순간이고, 그것이 화면에서 일어나야 합니다.
-        this.merge = 1
-
         // **마지막 한 방이 앞의 것들보다 확실히 커야 합니다.** 그것이 없으면 득점이
         // 어디서 끝났는지 읽히지 않습니다.
         this.jolt(14 + shakeOf(beat.intensity, this.feel), 2.4 + beat.intensity * 2, 0.9)
@@ -1810,36 +1799,6 @@ export class Game {
       // 올리면 날아가는 중에 들리는 일이 없습니다.
       view.scoring = counts
     }
-  }
-
-  /**
-   * 두 칸이 가운데로 모였다 돌아옵니다.
-   *
-   * 잦아드는 시간은 `MultiplyMs` 입니다 — 점수가 굴러가는 시간과 같아야 둘이 한 동작으로
-   * 보입니다.
-   */
-  private advanceMerge(deltaMs: number): void {
-    const restChips = LEFT
-    const restMult = LEFT + 140
-    const middle = (restChips + restMult) / 2
-
-    if (this.merge > 0) {
-      this.merge = Math.max(0, this.merge - deltaMs / Math.max(1, this.feel.multiplyMs))
-      // 모였다가 풀립니다. 가운데에 가장 가까운 것이 절반 지점입니다.
-      const pull = Math.sin(Math.min(1, 1 - this.merge) * Math.PI)
-      this.chips.position.set(restChips + (middle - restChips) * pull, CHIPS_Y - pull * 6)
-      this.mult.position.set(restMult + (middle - restMult) * pull, CHIPS_Y - pull * 6)
-      const swell = 1 + pull * 0.18
-      this.chips.scale.set(swell)
-      this.mult.scale.set(swell)
-    } else if (this.chips.x !== restChips) {
-      this.chips.position.set(restChips, CHIPS_Y)
-      this.mult.position.set(restMult, CHIPS_Y)
-      this.chips.scale.set(1)
-      this.mult.scale.set(1)
-    }
-
-    this.advanceFire(deltaMs)
   }
 
   /**
@@ -2230,7 +2189,9 @@ export class Game {
     this.particles.advance(seconds)
 
     for (const slot of [this.score, this.chips, this.mult, this.money]) slot.advance(deltaMs)
-    this.advanceMerge(deltaMs)
+    // 칩과 배수 칸은 제자리에 있습니다. **모였다 흩어지는 것은 걷어냈습니다** — 그 사이에
+    // 두 수를 읽을 수 없고 옆의 칸들과 줄도 어긋납니다.
+    this.advanceFire(deltaMs)
 
     this.updateHover()
     this.updateHandHover()
