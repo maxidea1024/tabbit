@@ -49,7 +49,7 @@ import { Coins } from './coins'
 import { Motion, Spring } from './motion'
 import { Particles } from './particles'
 import { artFor, onArtReady, type ArtKind } from './art'
-import { drawCardBack } from './card-back'
+import { backLookOf, cardBack, drawCardBack, setCardBack } from './card-back'
 import { drawGlyph, glyphFor, hashOf, hsl, shade } from './glyph'
 import { cardArtId, drawFace } from './pips'
 import { mix } from './skin'
@@ -72,6 +72,14 @@ import { Tooltip } from '../ui/tooltip'
 // 소모품이 나란히 서고, 가운데에서 카드를 내고, 아래에 패가 부챗살로 펴집니다.
 const LEFT = 16
 const PANEL_W = 264
+/**
+ * 왼쪽 판의 오른쪽 칸이 시작하는 자리.
+ *
+ * **두 칸이 판을 꽉 채웁니다.** 칸 하나가 124이고 사이가 16이면 둘이 264 — 판의 너비
+ * 그대로입니다. 예전에는 오른쪽 칸을 `LEFT + 134` 에 두었고, 그러면 줄이 6픽셀 일찍
+ * 끝나서 **오른쪽에만 여백이 남았습니다.**
+ */
+const RIGHT_COL = LEFT + 140
 /** 판이 놓이는 자리의 가운데. 왼쪽 패널을 뺀 나머지의 한가운데입니다. */
 const BOARD_X = (LEFT + PANEL_W + 20 + SIZE.width) / 2
 /**
@@ -212,7 +220,16 @@ const NEWLINE = String.fromCharCode(10)
  * **위로 불의 자리를 비워 둡니다.** 불은 이 윗변에 뿌리를 두고 위로 솟으므로, 그만큼
  * 위에는 아무것도 두지 않습니다 — 족보 이름은 그 불 위입니다.
  */
-const CHIPS_Y = 353
+/**
+ * 떠오르는 차이 글의 개수와 목숨.
+ *
+ * **여덟이면 넉넉합니다.** 한 프레임에 바뀌는 칸은 많아야 셋(핸드·버리기·안테)이고,
+ * 0.62초는 그 셋이 두 번 겹칠 만큼입니다.
+ */
+const DELTA_POOL = 8
+const DELTA_LIFE = 0.62
+
+const CHIPS_Y = 345
 /**
  * 칩 × 배수 덩어리.
  *
@@ -487,7 +504,22 @@ export class Game {
   /** 마지막 카드가 자리에 닿는 시각. **그때까지 득점을 세지 않습니다.** */
   private playLanded = 0
   /** 아직 나가지 않은 버린 카드들. 이것도 왼쪽부터 한 장씩입니다. */
-  private readonly fades: { view: CardView; at: number; spark: boolean }[] = []
+  private readonly fades: { view: CardView; at: number }[] = []
+  /**
+   * 이번 블라인드에서 화면 밖으로 나간 카드가 몇 장인가.
+   *
+   * **세는 것은 돌려보내기 위해서입니다.** 낸 것도 버린 것도 오른쪽으로 빠져나가는데,
+   * 그것으로 끝나면 한 판을 도는 동안 덱이 계속 줄기만 하고 아무것도 돌아오지 않습니다 —
+   * 카드는 없어지는 것이 아니라 다음 판에 다시 나오는 것입니다.
+   */
+  private retired = 0
+  /**
+   * 덱으로 돌아오는 중인 카드들.
+   *
+   * **되돌아오는 것은 낱장이 아니라 장수입니다.** 어느 카드가 어느 자리로 돌아가는지는
+   * 아무도 세지 않으므로, 돌아오는 것은 뒷면 한 장씩이면 됩니다.
+   */
+  private readonly recalls: { node: Graphics; motion: Motion; at: number; sent: boolean }[] = []
   /** 아직 깔리지 않은 뽑은 카드들. **덱에서 한 장씩 옵니다.** */
   private readonly deals: { uid: number; at: number }[] = []
   /**
@@ -699,6 +731,23 @@ export class Game {
   private readonly multFlame = new FlameFilter(...flamePair(COLOR.mult, CORE_WARM))
   /** 지금 얼마나 뜨거운가. 박자가 올리고 시간이 내립니다. */
   private fever = 0
+  /**
+   * 왼쪽 판의 칸들이 마지막으로 보여 준 수.
+   *
+   * **차이를 적으려면 앞의 값을 들고 있어야 합니다.** 상태에는 지금 값만 있고 「얼마에서
+   * 얼마가 되었는가」는 없으므로, 화면이 자기가 보여 준 것을 기억합니다 — 판을 새로 깔면
+   * 이것도 함께 되돌립니다.
+   *
+   * `-1` 은 아직 아무것도 보여 주지 않았다는 뜻이고, 그때는 차이를 적지 않습니다.
+   */
+  private panelShown = { hands: -1, discards: -1, ante: -1 }
+  /**
+   * 떠오르는 차이 글의 풀.
+   *
+   * 안 보이는 것이 노는 것입니다 — 따로 표를 두면 그 표와 화면이 어긋날 수 있고, 어긋나면
+   * 보이는 글을 다시 쓰거나 노는 글이 영영 노는 채로 남습니다.
+   */
+  private readonly deltas: { node: Text; life: number; homeY: number }[] = []
   private readonly hands = new Slot(t('ui.slot.hands'), 124, 52, COLOR.good)
   private readonly discards = new Slot(t('ui.slot.discards'), 124, 52, 0xff9d5c)
   private readonly money = new Slot(t('ui.slot.money'), 124, 52, COLOR.money)
@@ -715,6 +764,13 @@ export class Game {
   private readonly frames = new Graphics()
   /** 덱 더미. 상점에서는 화면 밖으로 밀려 나갑니다. */
   private readonly deckLayer = new Container()
+  /**
+   * 덱 더미.
+   *
+   * **뒷면이 바뀌면 다시 그립니다.** 판마다 덱이 다르고 덱마다 뒷면이 다르므로, 한 번
+   * 그려 놓고 두면 두 번째 판의 더미가 첫 판의 뒷면입니다.
+   */
+  private readonly deckPile = new Container()
   private readonly deckSlide = new Spring(0, 150, 20)
   /** 패널 위에 얹는 빛. `panelGlow` 가 세기입니다. */
   private readonly panelFlash = new Graphics()
@@ -956,6 +1012,8 @@ export class Game {
   private packEnter = 0
   private packVeil?: Graphics
   private packNote?: Text
+  /** 뜯은 팩의 이름. 덮개와 함께 들고 납니다. */
+  private packTitle?: Text
   private packSkip?: Button
   /** 지금 마우스가 올려진 카드. 없으면 -1 입니다. */
   private packHovered = -1
@@ -1086,6 +1144,11 @@ export class Game {
     }
     this.board.sortableChildren = true
 
+    // **더미를 세우기 전에 뒷면을 정합니다.** `buildPanel` 이 덱 더미를 그리므로, 순서가
+    // 거꾸로면 첫 화면의 더미만 첫 덱의 뒷면입니다.
+    const first = data.tables.deck.findByDeckId(this.state.deckId)
+    if (first) setCardBack(backLookOf(first))
+
     this.buildPanel()
 
     this.playButton = new Button(t('ui.button.play'), PLAY_W, PLAY_H, 0x2f6fb5, () => this.play())
@@ -1103,8 +1166,9 @@ export class Game {
     this.rerollButton = new Button(t('ui.button.reroll'), 128, 44, 0x3f5f8f, () => this.reroll())
     this.sortRankButton = new Button(t('ui.button.sort_rank'), 92, 32, 0x333e4e, () => this.sortHand('rank'))
     this.sortSuitButton = new Button(t('ui.button.sort_suit'), 92, 32, 0x333e4e, () => this.sortHand('suit'))
-    this.infoButton = new Button(t('ui.button.hand_list'), 118, 34, 0x3a4658, () => this.toggleHandList())
-    this.menuButton = new Button(t('ui.button.menu'), 118, 34, 0x3a4658, () => this.openMenu())
+    // 위의 칸들과 같은 격자입니다 — 너비도 자리도.
+    this.infoButton = new Button(t('ui.button.hand_list'), 124, 34, 0x3a4658, () => this.toggleHandList())
+    this.menuButton = new Button(t('ui.button.menu'), 124, 34, 0x3a4658, () => this.openMenu())
 
     // **상점은 판 안에 섭니다.** 조커와 소모품 줄이 그 위로 지나가야 — 무엇을 가지고
     // 있는지를 보면서 사고, 산 것이 줄에 꽂히는 것도 보입니다.
@@ -1142,8 +1206,8 @@ export class Game {
     this.sortSuitButton.position.set(LEFT + PANEL_W + 130, BUTTON_Y + (PLAY_H - 32) / 2)
     // **판의 밑단에 붙입니다.** 위에 두면 그 아래가 통째로 빈 자리로 남습니다 — 왼쪽 판은
     // 화면 아래 22픽셀까지 내려오고, 버튼은 그 안쪽에 있으면 됩니다.
-    this.infoButton.position.set(LEFT - 2, 726)
-    this.menuButton.position.set(LEFT + 134, 726)
+    this.infoButton.position.set(LEFT, 726)
+    this.menuButton.position.set(RIGHT_COL, 726)
 
     app.canvas.addEventListener('pointerdown', () => this.audio.unlock())
     // **누르는 순간 툴팁이 닫힙니다.** 툴팁은 마우스가 그것에서 벗어날 때 닫히는데, 누른
@@ -1316,6 +1380,9 @@ export class Game {
    */
   private layRun(seed: string): void {
     this.state = newRun(this.data, seed, 'red_deck', 'White').state
+    // **뒷면부터입니다.** 손패를 다시 그리기 전에 정해야, 새로 깔리는 카드가 이 판의
+    // 뒷면으로 깔립니다.
+    this.syncCardBack()
     this.settleShown()
     this.refresh()
 
@@ -1415,6 +1482,14 @@ export class Game {
     this.slams.length = 0
     this.fades.length = 0
     this.deals.length = 0
+    // 돌아오는 중이던 카드들. **판을 접으면 갈 곳이 없습니다** — 덱째로 사라지므로,
+    // 남겨 두면 타이틀 화면 오른쪽에 뒷면 몇 장이 떠 있습니다.
+    for (const one of this.recalls) one.node.destroy()
+    this.recalls.length = 0
+    this.retired = 0
+    // 떠오르던 차이 글. **글은 두고 상태만 되돌립니다** — 풀이므로 다시 쓰입니다.
+    for (const one of this.deltas) one.node.visible = false
+    this.panelShown = { hands: -1, discards: -1, ante: -1 }
 
     // 판 위에 그려 둔 겹들. 매번 다시 그리는 것들이므로 비우면 됩니다.
     for (const layer of [this.shopLayer, this.packLayer, this.consumableLayer, this.tagLayer,
@@ -1451,6 +1526,7 @@ export class Game {
     this.packVeil = undefined
     this.packNote = undefined
     this.packSkip = undefined
+    this.packTitle = undefined
     this.packFrom = undefined
     this.reveals.length = 0
     this.later.length = 0
@@ -1501,6 +1577,42 @@ export class Game {
 
   // ---------------------------------------------------------------- 뼈대
 
+  /**
+   * 덱 더미를 그립니다.
+   *
+   * **다섯 장이 다 진짜 뒷면입니다.** 맨 위 한 장만 무늬를 그리고 아래 넉 장은 색만 칠한
+   * 네모였습니다 — 옆구리만 보이니 무늬가 보이지 않는다는 이유였는데, 옆구리가 보인다는
+   * 것은 그 옆구리에 테두리와 점선 띠가 있다는 뜻입니다. 색만 칠한 네모는 카드가 아니라
+   * 카드 두께를 흉내 낸 무엇이고, 덱에서 나가는 카드와 덱으로 돌아오는 카드는 진짜 뒷면을
+   * 들고 다니므로 더미만 다른 것을 쓰면 그 둘이 같은 카드로 보이지 않습니다.
+   *
+   * 매 프레임이 아니라 뒷면이 바뀔 때만 부릅니다.
+   */
+  private drawDeckPile(): void {
+    this.deckPile.removeChildren().forEach(child => child.destroy())
+    const look = cardBack()
+    for (let i = 4; i >= 0; i--) {
+      const sheet = new Graphics()
+      sheet.position.set(DECK_X - SIZE.cardWidth / 2 + i * 2,
+                         DECK_Y - SIZE.cardHeight / 2 - i * 3)
+      drawCardBack(sheet, SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius, look)
+      this.deckPile.addChild(sheet)
+    }
+  }
+
+  /**
+   * 이 판의 뒷면을 정합니다.
+   *
+   * **판이 시작될 때 한 번입니다.** 덱이 뒷면을 정하고 덱은 판이 도는 동안 바뀌지 않으므로,
+   * 매 프레임 표를 뒤질 이유가 없습니다. 표에 없는 덱이면 첫 덱의 뒷면 그대로입니다 —
+   * 뒷면이 없다고 판이 서지 못할 이유는 없습니다.
+   */
+  private syncCardBack(): void {
+    const row = this.data.tables.deck.findByDeckId(this.state.deckId)
+    if (row) setCardBack(backLookOf(row))
+    this.drawDeckPile()
+  }
+
   private buildPanel(): void {
     const panel = new Panel(PANEL_W + 24, SIZE.height - 44, 0x141b26)
     panel.position.set(LEFT - 12, 22)
@@ -1511,10 +1623,13 @@ export class Game {
 
     this.badge.position.set(LEFT, 34)
     this.score.position.set(LEFT, 208)
-    this.hands.position.set(LEFT, 423)
-    this.discards.position.set(LEFT + 134, 423)
-    this.money.position.set(LEFT, 487)
-    this.anteSlot.position.set(LEFT + 134, 487)
+    // **칩 × 배수와 사이를 벌립니다.** 이 넷은 판이 도는 동안 가끔 보는 것이고 칩과 배수는
+    // 매 순간 보는 것인데, 12픽셀을 사이에 두고 붙어 있으면 여섯 칸이 한 덩어리로 보여서
+    // 그중 어느 둘이 지금 중요한지가 자리로 드러나지 않습니다.
+    this.hands.position.set(LEFT, 437)
+    this.discards.position.set(RIGHT_COL, 437)
+    this.money.position.set(LEFT, 501)
+    this.anteSlot.position.set(RIGHT_COL, 501)
 
     // **상자 둘과 그 사이의 곱셈표입니다.** 원작의 배치이고, 붙여 놓는 것보다 이 편이
     // 「칩 곱하기 배수」 라는 식으로 읽힙니다.
@@ -1563,7 +1678,7 @@ export class Game {
     // 위에서 아래로 라운드 점수 · 족보 이름 · 불꽃 · 칩 × 배수 순서이고, 눈이 한 번
     // 내려오면서 「이 판은 무슨 족보이고, 그래서 이만큼 타고 있고, 값은 이것이다」 로
     // 읽힙니다 — 아래에 두면 그 순서가 끊깁니다.
-    putText(this.handLabel, box(LEFT, 292, PANEL_W, 24), CENTER)
+    putText(this.handLabel, box(LEFT, 286, PANEL_W, 24), CENTER)
 
     this.board.addChild(this.badge, this.score, this.handLabel, this.scoreBox,
       this.chipsFire, this.multFire, this.chips, this.mult, times,
@@ -1585,27 +1700,8 @@ export class Game {
     this.deckLabel.anchor.set(0.5, 0)
     this.deckLabel.position.set(DECK_X, DECK_Y + 76)
 
-    // 덱 더미. **카드가 어디에서 오는지 보여야 뽑는 연출이 뜻을 가집니다.**
-    //
-    // 맨 위 한 장만 무늬를 그립니다 — 아래 넉 장은 옆구리만 보이므로 무늬가 보이지 않고,
-    // 다섯 장을 다 그리면 같은 선화가 다섯 겹으로 비쳐 두께가 지저분해집니다.
-    const pile = new Container()
-    for (let i = 4; i >= 0; i--) {
-      const sheet = new Graphics()
-      const x = DECK_X - SIZE.cardWidth / 2 + i * 2
-      const y = DECK_Y - SIZE.cardHeight / 2 - i * 3
-      if (i === 0) {
-        sheet.position.set(x, y)
-        drawCardBack(sheet, SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius,
-          { ground: COLOR.cardBack, ink: COLOR.cardBackEdge })
-      } else {
-        sheet.roundRect(x, y, SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius)
-          .fill(COLOR.cardBack)
-        sheet.roundRect(x, y, SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius)
-          .stroke({ color: COLOR.cardBackEdge, width: 1.5 })
-      }
-      pile.addChild(sheet)
-    }
+    const pile = this.deckPile
+    this.drawDeckPile()
 
     // **지시문은 누를 버튼 바로 위입니다.** 패널 아래에 두면 눈이 화면 왼쪽 끝까지 갔다
     // 와야 하고, 정작 누를 것은 가운데에 있습니다.
@@ -1969,8 +2065,12 @@ export class Game {
    * 버린 카드를 한 장씩 내보냅니다.
    *
    * **곧바로 지우지 않습니다** — 사라지는 것이 보여야 몇 장을 버렸는지가 남습니다.
+   *
+   * **낸 카드가 물러나는 것과 같은 몸짓입니다.** 버리는 것과 득점하고 물러나는 것은 다음에
+   * 일어나는 일이 다르지만 화면에서 하는 일은 하나입니다 — 그 카드가 이 판에서 없어지는
+   * 것입니다. 나가는 자리도, 나가는 길도, 조각을 흩는지도 같습니다.
    */
-  private throwAway(uids: readonly number[], spark = true): void {
+  private throwAway(uids: readonly number[]): void {
     uids.forEach((uid, index) => {
       const view = this.cards.get(uid)
       if (!view) return
@@ -1985,7 +2085,7 @@ export class Game {
       // 낸 카드처럼 판에 올라섰다가 없어지는 것으로 보입니다 — 버리는 것은 그 자리에서
       // 화면 밖으로 치우는 것입니다.
       this.fades.push({
-        view, at: this.clock + index * (this.feel.playStaggerMs / 1000), spark,
+        view, at: this.clock + index * (this.feel.playStaggerMs / 1000),
       })
     })
   }
@@ -2004,6 +2104,71 @@ export class Game {
     this.refresh()
   }
 
+  /**
+   * 나갔던 카드들이 덱으로 돌아옵니다.
+   *
+   * **한 판을 도는 동안 카드는 나가기만 했습니다.** 낸 것도 버린 것도 오른쪽 화면 밖으로
+   * 빠지고 그것으로 끝이라, 덱은 줄기만 하고 다음 블라인드의 첫 패가 어디에서 오는지가
+   * 화면에 없었습니다 — 카드는 없어진 것이 아니라 덱으로 돌아간 것입니다.
+   *
+   * **아주 빠릅니다.** 이것은 볼 것이 아니라 셈이 맞는다는 표시입니다: 눈이 따라갈 만큼
+   * 느리면 격파한 뒤의 그 한숨이 카드 세는 시간이 되고, 그 자리에 서야 할 것은 정산입니다.
+   * 스무 장이 0.4초 안에 다 들어옵니다.
+   *
+   * 돌아오는 것은 뒷면입니다 — 어느 카드가 어느 자리로 가는지는 아무도 세지 않으므로,
+   * 얼굴을 그리는 것은 그리는 값만 치르고 아무것도 알리지 않습니다.
+   */
+  private recallToDeck(): void {
+    const many = this.retired
+    this.retired = 0
+    if (many === 0) return
+
+    for (let i = 0; i < many; i++) {
+      const sheet = new Graphics()
+      drawCardBack(sheet, SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius, cardBack())
+      sheet.pivot.set(SIZE.cardWidth / 2, SIZE.cardHeight / 2)
+
+      const motion = new Motion()
+      // 나갔던 그 자리에서 돌아옵니다. **한 줄로 오면 한 장이 길어진 것으로 보입니다** —
+      // 나갈 때 흩어졌던 만큼 높이를 벌려 둡니다.
+      motion.snap(SIZE.width + 130, PLAY_Y + ((i % 5) - 2) * 11)
+      motion.rotation.snap(((i % 3) - 1) * 7)
+      motion.hard()
+      sheet.position.set(motion.x.value, motion.y.value)
+      sheet.zIndex = 60 + i
+
+      // 덱과 같은 층입니다. 덱이 물러나기 시작해도 돌아오는 카드가 그것을 따라갑니다 —
+      // 판이 끝나면 덱은 오른쪽으로 빠지는데, 층이 다르면 카드만 빈자리로 들어갑니다.
+      this.deckLayer.addChild(sheet)
+      this.recalls.push({ node: sheet, motion, at: this.clock + i * 0.018, sent: false })
+    }
+  }
+
+  /** 돌아오는 카드들. 덱에 닿은 것부터 지웁니다. */
+  private advanceRecalls(seconds: number): void {
+    for (let i = this.recalls.length - 1; i >= 0; i--) {
+      const one = this.recalls[i]
+      if (one.at > this.clock) continue
+
+      if (!one.sent) {
+        one.sent = true
+        one.motion.to(DECK_X, DECK_Y, 0)
+        one.motion.scale.target = 0.92
+      }
+      one.motion.advance(seconds)
+      one.node.position.set(one.motion.x.value, one.motion.y.value)
+      one.node.rotation = one.motion.rotation.value * (Math.PI / 180)
+      one.node.scale.set(one.motion.scale.value)
+
+      // 덱에 닿았습니다. **소리는 몇 장에 한 번입니다** — 스무 장이 저마다 소리를 내면
+      // 그것은 카드가 쌓이는 소리가 아니라 잡음입니다.
+      if (one.motion.x.value > DECK_X + 12) continue
+      this.recalls.splice(i, 1)
+      one.node.destroy()
+      if (i % 4 === 0) this.audio.play('card_flip', 6 + (i % 5) * 2)
+    }
+  }
+
   /** 예약해 둔 한 장씩의 내보내기. */
   private advanceFades(): void {
     while (this.fades.length > 0 && this.fades[0].at <= this.clock) {
@@ -2011,10 +2176,16 @@ export class Game {
       if (!next) break
       // **밖으로 나갑니다.** 버린 것도 낸 것도 화면 밖으로 물러납니다 — 태워 없애는 것은
       // 조커와 소모품의 것이고, 카드는 치우는 것입니다.
-      next.view.retire()
-      // 버린 카드만 조각이 흩어집니다. **득점하고 물러나는 카드는 조용히 나갑니다** —
-      // 방금 빛이 돌았던 카드가 다시 터지면 무엇이 끝난 것인지 흐려집니다.
-      if (next.spark) this.particles.burst(next.view.x, next.view.y, 6, 0xff9d5c, 0.6)
+      //
+      // **높이는 판의 높이 하나입니다.** 저마다 자기 자리의 높이로 나가면 손에서 나가는
+      // 카드가 손의 높이로 오른쪽에 빠지는데, 그 높이 그 자리에 덱이 있습니다 — 버린
+      // 카드가 덱으로 되돌아가는 것으로 보였습니다. 득점하고 물러나는 카드가 나가는
+      // 그 자리로 함께 나갑니다.
+      next.view.retire(PLAY_Y)
+      this.retired++
+      // **조용히 나갑니다.** 버린 카드에만 조각을 흩뿌렸는데, 그러면 버리는 것과 득점하고
+      // 물러나는 것이 화면에서 다른 일로 보입니다 — 둘 다 그 카드가 이 판에서 없어지는
+      // 것이고, 무엇이 없어졌는지는 카드가 나가는 것으로 이미 보입니다.
       this.audio.play('card_destroy')
     }
   }
@@ -2049,7 +2220,6 @@ export class Game {
       this.fades.push({
         view,
         at: this.clock + ITEM_SETTLE + index * (this.feel.playStaggerMs / 1000),
-        spark: false,
       })
     })
   }
@@ -2066,7 +2236,7 @@ export class Game {
   private sweepHand(): void {
     const left = [...this.cards.keys()]
     if (left.length === 0) return
-    this.throwAway(left, false)
+    this.throwAway(left)
     this.shown.hand = []
   }
 
@@ -2330,8 +2500,12 @@ export class Game {
         this.burstAcrossPlayArea(46, COLOR.good, 2.4, 2.6)
         this.particles.burst(BOARD_X, PLAY_Y - 60, 70, COLOR.money, 2.6, 2.8)
         this.particles.burst(BOARD_X, 210, 44, COLOR.good, 2.2, 2.4)
-        this.jolt(26, 4.2, 1)
+        // **국면이 넘어가는 자리입니다.** 흔들림은 판 전체를 움직이므로, 여기서 큰 값을
+        // 쓰면 격파한 것이 아니라 땅이 흔들린 것으로 읽힙니다 — 알릴 것은 이미 터지는
+        // 것과 번쩍이는 것과 소리 셋이 하고 있습니다.
+        this.jolt(9, 4.2, 1)
         this.flashScreen(COLOR.good, 0.46)
+        this.recallToDeck()
         this.stop(280)
         this.chain = 0
         this.fever = 0
@@ -2342,7 +2516,7 @@ export class Game {
         // **글은 적지 않습니다.** 끝났다는 판이 곧 서고 거기에 몇 점이 모자랐는지까지
         // 적히므로, 머리글은 그 판이 할 말을 미리 하는 것입니다.
         this.audio.play('blind_fail')
-        this.jolt(9, 1.6, 0.5)
+        this.jolt(5, 1.6, 0.5)
         this.flashScreen(COLOR.bad, 0.2)
         this.stop(160)
         break
@@ -2353,7 +2527,7 @@ export class Game {
         this.chime('coin_land', 10, 2, 0.06)
         this.audio.play('blind_clear')
         this.particles.burst(BOARD_X, SIZE.height / 2, 120, COLOR.money, 2.6)
-        this.jolt(22, 3.4, 1)
+        this.jolt(8, 3.4, 1)
         this.flashScreen(COLOR.money, 0.44)
         this.stop(220)
         break
@@ -2765,6 +2939,82 @@ export class Game {
     this.app.ticker.add(rise)
   }
 
+  /**
+   * 왼쪽 판의 수가 오르내린 것을 그 자리에 적습니다.
+   *
+   * **바뀐 것을 보여 주는 것과 지금 값을 보여 주는 것은 다른 일입니다.** 칸의 숫자는
+   * 언제나 지금 값이라 「4」 가 「3」 이 되는 것은 눈을 그 칸에 두고 있어야만 보이고,
+   * 화면 한가운데를 보고 있으면 그 사이에 무엇이 줄었는지 모른 채 지나갑니다 — 그래서
+   * 줄어든 만큼이 그 칸에서 한 번 떠오릅니다.
+   *
+   * **글을 만들지 않고 돌려 씁니다.** 이것이 뜨는 자리는 사람이 누르는 자리가 아니라
+   * 상태가 바뀌는 자리라, 조커 하나가 라운드마다 버리기를 주고 태그가 핸드를 주고 하는
+   * 판에서는 한 프레임에 여럿이 겹칠 수 있습니다 — 그때마다 `Text` 하나와 티커 콜백
+   * 하나를 만들면 만드는 값이 보여 주는 값보다 커집니다.
+   *
+   * **여덟이 넘으면 가장 오래된 것을 빼앗습니다.** 아홉째를 그리지 않고 버리는 쪽은
+   * 그 순간 무엇이 바뀌었는지를 통째로 잃는 것이고, 가장 오래된 것은 이미 옅어져
+   * 사라지는 중이므로 잃는 것이 적습니다.
+   */
+  private slotDelta(slot: Container, before: number, after: number, tint: number): void {
+    if (before < 0 || after === before) return
+
+    const delta = after - before
+    const one = this.freeDelta()
+    one.life = 0
+    one.homeY = slot.y + 16
+    one.node.text = `${delta > 0 ? '+' : ''}${delta}`
+    one.node.style.fill = delta > 0 ? tint : COLOR.bad
+    one.node.position.set(slot.x + 108, one.homeY)
+    one.node.scale.set(0.6)
+    one.node.alpha = 1
+    one.node.visible = true
+  }
+
+  /**
+   * 쓸 수 있는 글 하나.
+   *
+   * 노는 것이 있으면 그것이고, 없으면 만들고, 다 찼으면 가장 오래된 것입니다.
+   */
+  private freeDelta(): { node: Text; life: number; homeY: number } {
+    const idle = this.deltas.find(one => !one.node.visible)
+    if (idle) return idle
+
+    if (this.deltas.length < DELTA_POOL) {
+      const node = new Text({
+        text: '', style: { fontSize: 19, fontWeight: '800', fill: COLOR.ink,
+                           stroke: { color: 0x0a0f18, width: 4 } },
+      })
+      // 칸의 오른쪽 위에서 뜹니다. **칸 위가 아니라 모서리입니다** — 위에 두면 그 칸의
+      // 이름표를 덮고, 안에 두면 지금 값과 겹쳐 어느 것이 값인지 흐려집니다.
+      node.anchor.set(0.5, 1)
+      node.resolution = this.textScale
+      node.visible = false
+      this.board.addChild(node)
+      const made = { node, life: 0, homeY: 0 }
+      this.deltas.push(made)
+      return made
+    }
+
+    return this.deltas.reduce((oldest, one) => one.life > oldest.life ? one : oldest)
+  }
+
+  /** 떠오르는 차이 글들. 다 떠오른 것은 다시 풀로 돌아갑니다. */
+  private advanceDeltas(seconds: number): void {
+    for (const one of this.deltas) {
+      if (!one.node.visible) continue
+      one.life += seconds
+      const t = Math.min(1, one.life / DELTA_LIFE)
+      // 튀어올랐다가 천천히 올라가며 옅어집니다. 앞의 0.1초가 튀는 구간입니다.
+      one.node.scale.set(one.life < 0.1
+        ? 0.6 + 0.55 * (one.life / 0.1)
+        : 1.15 - 0.15 * Math.min(1, (one.life - 0.1) / 0.26))
+      one.node.y = one.homeY - t * 26
+      one.node.alpha = 1 - t * t
+      if (t >= 1) one.node.visible = false
+    }
+  }
+
   private handName(hand: PokerHandKind): string {
     const key = `hand.${PokerHandKind[hand]}.name`
     return text(this.data, key)
@@ -2872,6 +3122,8 @@ export class Game {
     this.deckSlide.advance(seconds)
     this.deckLayer.x = this.deckSlide.value
     this.deckLayer.visible = this.deckSlide.value < 296
+    this.advanceRecalls(seconds)
+    this.advanceDeltas(seconds)
     this.advanceGameOver(seconds)
     this.title.advance(seconds)
     this.modals.advance(seconds)
@@ -3241,6 +3493,18 @@ export class Game {
     // **세울 것 목록은 여기서 비웁니다.** 상점과 팩이 같이 쓰므로, 어느 한쪽이 비우면
     // 다른 쪽이 이미 담아 둔 것을 지우게 됩니다.
     this.reveals.length = 0
+
+    // **오르내린 만큼이 그 칸에서 한 번 떠오릅니다.** 칸의 숫자는 언제나 지금 값이므로,
+    // 눈을 그 칸에 두고 있지 않으면 무엇이 줄었는지 모른 채 지나갑니다.
+    //
+    // 돈은 여기서 세지 않습니다 — 동전이 날아가 꽂히는 것이 이미 그 일을 하고 있고,
+    // 둘이 겹치면 같은 말이 한 자리에서 두 번입니다.
+    this.slotDelta(this.hands, this.panelShown.hands, state.handsLeft, COLOR.good)
+    this.slotDelta(this.discards, this.panelShown.discards, state.discardsLeft, 0xff9d5c)
+    this.slotDelta(this.anteSlot, this.panelShown.ante, state.ante, COLOR.ink)
+    this.panelShown.hands = state.handsLeft
+    this.panelShown.discards = state.discardsLeft
+    this.panelShown.ante = state.ante
 
     this.money.target = this.shown.money
     this.score.target = this.shown.score
@@ -4364,9 +4628,11 @@ export class Game {
     this.gameOverBoard = board
     this.gameOver.zIndex = 10_000
 
-    // 럼블. **판이 그냥 나타나면 아무 무게가 없습니다.**
+    // 럼블. **판이 그냥 나타나면 아무 무게가 없습니다.** 다만 무게는 색수차와 배경이
+    // 지고, 흔들림은 거들기만 합니다 — 판이 뜨는 그 순간에 화면까지 크게 움직이면
+    // 판을 읽으려는 눈이 먼저 흔들립니다.
     this.audio.play(won ? 'run_win' : 'run_lose')
-    this.jolt(won ? 22 : 16, won ? 3.4 : 2.6, 1)
+    this.jolt(won ? 8 : 6, won ? 3.4 : 2.6, 1)
     this.flashScreen(won ? COLOR.money : COLOR.bad, won ? 0.5 : 0.34)
     if (won) this.particles.burst(POPUP_X, SIZE.height / 2, 90, COLOR.money, 2.6)
   }
@@ -6248,11 +6514,14 @@ export class Game {
     this.packVeil = veil
     this.packLayer.addChild(veil)
 
+    // **뜯은 것의 이름입니다.** 26픽셀에 자간 없이 두었더니 그 아래의 지시문과 굵기만
+    // 다른 두 줄이 되어서, 무엇을 뜯었는지가 읽히지 않고 지나갔습니다 — 이름은 크게,
+    // 자간을 벌려서, 그리고 지시문과 사이를 두어야 이름으로 읽힙니다.
     const title = new Text({
       text: row ? packName(row.kind, row.size) : t('ui.kind.pack'),
       style: {
-        fontSize: 26, fill: ink, fontWeight: '800',
-        stroke: { color: 0x070a10, width: 5 },
+        fontSize: 34, fill: ink, fontWeight: '800', letterSpacing: 2,
+        stroke: { color: 0x070a10, width: 6 },
       },
     })
     title.anchor.set(0.5, 0)
@@ -6265,7 +6534,7 @@ export class Game {
       style: { fontSize: 14, fill: 0xdbe4f0, fontWeight: '700' },
     })
     note.anchor.set(0.5, 0)
-    note.position.set(POPUP_X, PACK_TITLE_Y + 34)
+    note.position.set(POPUP_X, PACK_TITLE_Y + 60)
     this.packNote = note
 
     const skip = new Button(t('ui.button.skip'), 160, 40, 0x4a5568,
@@ -6273,6 +6542,8 @@ export class Game {
     // **설명 아래입니다.** 카드 바로 밑에 두면 마우스를 올릴 때 뜨는 설명이 그 위를 덮습니다.
     skip.position.set(POPUP_X - 80, PACK_CARDS_Y + PACK_CARD_H / 2 + 130)
     this.packSkip = skip
+
+    this.packTitle = title
 
     this.packLayer.addChild(title, note, skip)
 
@@ -6508,6 +6779,43 @@ export class Game {
   }
 
   /**
+   * 나오는 한 장이 반짝이는 것.
+   *
+   * **팩에서 나오는 그 순간의 한 장에만 붙습니다.** 카드가 자기 자리로 미끄러지는 것은
+   * 이미 있었고, 없던 것은 「지금 이 한 장이 나왔다」입니다 — 다섯 장이 0.11초 간격으로
+   * 나오므로 그 사이를 채우는 것이 없으면 다섯 장이 한꺼번에 놓인 것으로 읽힙니다.
+   *
+   * **켜지는 것도 꺼지는 것도 사인 한 마디입니다.** 1 에서 시작해 잦아드는 쪽은 켜지는
+   * 순간이 계단이 되고, 그것은 부드럽게 반짝이는 것이 아니라 한 번 터지는 것입니다.
+   * 조커가 자리에 닿을 때의 번쩍임이 그쪽이고, 그것은 「닿았다」라서 그렇습니다.
+   *
+   * 필터는 반짝이는 동안에만 붙입니다 — 필터 하나가 곧 렌더 텍스처 하나이고, 다 반짝인
+   * 카드가 그것을 계속 들고 있을 이유가 없습니다.
+   */
+  private advancePackGlow(one: PackView, seconds: number): void {
+    if (one.glow < 0 || one.glow >= 1) return
+
+    one.glow = Math.min(1, one.glow + seconds / 0.46)
+    const wave = Math.sin(one.glow * Math.PI)
+
+    if (one.glow >= 1) {
+      one.face.node.filters = []
+      one.arrive = undefined
+      return
+    }
+
+    if (!one.arrive) {
+      one.arrive = new ArriveFilter()
+      one.face.node.filters = [one.arrive]
+    }
+    one.arrive.at(this.clock)
+    // 빛은 물결 그대로, 울렁임은 그 절반보다 작게. **둘이 같은 세기면 반짝이는 것이
+    // 아니라 카드가 녹습니다.**
+    one.arrive.flash = wave * 0.85
+    one.arrive.warp = wave * 0.3
+  }
+
+  /**
    * 펼친 팩이 도는 것.
    *
    * 덮개가 짙어지고 · 카드가 자리로 미끄러지고 · 마우스를 올린 한 장이 올라오고 · 집어 간
@@ -6517,7 +6825,9 @@ export class Game {
     const open = this.state.pack !== null
     // **덮개는 서서히 짙어집니다.** 한 프레임에 덮이면 상점이 툭 꺼진 것으로 보입니다.
     this.packEnter += ((open ? 1 : 0) - this.packEnter) * Math.min(1, seconds * 11)
-    if (this.packVeil) this.packVeil.alpha = 0.93 * this.packEnter
+    // **판을 덮는 것보다 짙습니다.** 다른 덮개는 뒤가 무엇이었는지 남기려고 옅지만, 이
+    // 덮개가 가리는 것은 상점이고 상점의 카드와 값이 흐릿하게 남으면 펼친 카드와 섞입니다.
+    if (this.packVeil) this.packVeil.alpha = 0.86 * this.packEnter
 
     if (!this.packLayer.visible) return
 
@@ -6528,6 +6838,7 @@ export class Game {
       this.packVeil = undefined
       this.packNote = undefined
       this.packSkip = undefined
+      this.packTitle = undefined
       this.packLayer.visible = false
       return
     }
@@ -6535,6 +6846,7 @@ export class Game {
     // 글과 버튼은 덮개와 함께 들고 납니다.
     if (this.packNote) this.packNote.alpha = this.packEnter
     if (this.packSkip) this.packSkip.alpha = this.packEnter
+    if (this.packTitle) this.packTitle.alpha = this.packEnter
 
     for (const one of this.packViews.values()) {
       one.motion.advance(seconds)

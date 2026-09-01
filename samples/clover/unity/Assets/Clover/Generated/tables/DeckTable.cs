@@ -41,6 +41,21 @@ namespace Clover.Data
         /// 고르는 화면에서의 순서
         /// </summary>
         public int SortOrder => _sortOrder;
+
+        /// <summary>
+        /// 뒷면의 무늬
+        /// </summary>
+        public global::Clover.Data.CardBackKind Back => _back;
+
+        /// <summary>
+        /// 뒷면의 바탕색
+        /// </summary>
+        public string BackGround => _backGround;
+
+        /// <summary>
+        /// 뒷면의 선 색
+        /// </summary>
+        public string BackInk => _backInk;
         #endregion
 
         #region Storage
@@ -48,6 +63,9 @@ namespace Clover.Data
         internal string _name = "";
         internal string _unlock = "";
         internal int _sortOrder;
+        internal global::Clover.Data.CardBackKind _back;
+        internal string _backGround = "";
+        internal string _backInk = "";
         #endregion
 
         #region ToString
@@ -58,6 +76,9 @@ namespace Clover.Data
             sb.Append(",\"Name\":"); ToStringHelper.ToString(Name, sb);
             sb.Append(",\"Unlock\":"); ToStringHelper.ToString(Unlock, sb);
             sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
+            sb.Append(",\"Back\":"); ToStringHelper.ToString(Back, sb);
+            sb.Append(",\"BackGround\":"); ToStringHelper.ToString(BackGround, sb);
+            sb.Append(",\"BackInk\":"); ToStringHelper.ToString(BackInk, sb);
             sb.Append("}");
             return sb.ToString();
         }
@@ -65,7 +86,7 @@ namespace Clover.Data
     }
 
     /// <summary>
-    /// 런의 시작 조건입니다. 카드 52장 자체를 바꾸는 덱과 자원을 바꾸는 덱이 갈립니다.
+    /// 런의 시작 조건입니다. 카드 52장 자체를 바꾸는 덱과 자원을 바꾸는 덱이 갈립니다. 뒷면도 여기 있습니다 — 덱이 정하는 것 중 한 판 내내 보이는 유일한 것입니다.
     /// </summary>
     [System.Serializable]
     public partial class DeckTable : IEnumerable<DeckRecord>
@@ -73,7 +94,7 @@ namespace Clover.Data
         /// <summary>
         /// Field names.
         /// </summary>
-        public static readonly string[] FieldNames = { "DeckId", "Name", "Unlock", "SortOrder" };
+        public static readonly string[] FieldNames = { "DeckId", "Name", "Unlock", "SortOrder", "Back", "BackGround", "BackInk" };
 
         /// <summary>
         /// Build object value map.
@@ -82,7 +103,7 @@ namespace Clover.Data
         {
             var result = new List<object[]>();
             foreach (var r in _records)
-                result.Add(new object[] { r.DeckId, r.Name, r.Unlock, r.SortOrder });
+                result.Add(new object[] { r.DeckId, r.Name, r.Unlock, r.SortOrder, r.Back, r.BackGround, r.BackInk });
 
             return result;
         }
@@ -324,6 +345,54 @@ namespace Clover.Data
                             {
                                 var record = records[i++];
                                 record._sortOrder = value;
+                            } while (--n > 0);
+                        }
+                        break;
+
+                    case 5:
+                        TcbTable.CheckColumn(column, "Deck.Back", TcbTable.KindScalar, false, TcbTable.ElementVarint);
+                        cursor = new TcbColumnCursor(reader, column, count, "Deck.Back");
+                        for (int i = 0; i < count; )
+                        {
+                            // One call per run of equal values, not one per row - over a
+                            // run-length encoded column this is most of the decode.
+                            int n = cursor.NextSameI32(count - i, out var value);
+                            do
+                            {
+                                var record = records[i++];
+                                record._back = (global::Clover.Data.CardBackKind)value;
+                            } while (--n > 0);
+                        }
+                        break;
+
+                    case 6:
+                        TcbTable.CheckColumn(column, "Deck.BackGround", TcbTable.KindScalar, false, TcbTable.ElementString);
+                        cursor = new TcbColumnCursor(reader, column, count, "Deck.BackGround");
+                        for (int i = 0; i < count; )
+                        {
+                            // One call per run of equal values, not one per row - over a
+                            // run-length encoded column this is most of the decode.
+                            int n = cursor.NextSameString(count - i, out var value);
+                            do
+                            {
+                                var record = records[i++];
+                                record._backGround = value;
+                            } while (--n > 0);
+                        }
+                        break;
+
+                    case 7:
+                        TcbTable.CheckColumn(column, "Deck.BackInk", TcbTable.KindScalar, false, TcbTable.ElementString);
+                        cursor = new TcbColumnCursor(reader, column, count, "Deck.BackInk");
+                        for (int i = 0; i < count; )
+                        {
+                            // One call per run of equal values, not one per row - over a
+                            // run-length encoded column this is most of the decode.
+                            int n = cursor.NextSameString(count - i, out var value);
+                            do
+                            {
+                                var record = records[i++];
+                                record._backInk = value;
                             } while (--n > 0);
                         }
                         break;

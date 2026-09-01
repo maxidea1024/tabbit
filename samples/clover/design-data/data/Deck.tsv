@@ -1,19 +1,19 @@
-:table Deck(key=deck_id)	런의 시작 조건입니다. 카드 52장 자체를 바꾸는 덱과 자원을 바꾸는 덱이 갈립니다.
-:field	deck_id	name	unlock	sort_order
-:type	string (regex="^[a-z][a-z0-9_]*$")	string (text=Deck)	string	int (min=1, max=15)
-:desc	식별자	표시 이름	해금 조건	고르는 화면에서의 순서
-	red_deck	붉은 덱	처음부터	1
-	blue_deck	파란 덱	수집 20종	2
-	yellow_deck	노란 덱	수집 50종	3
-	green_deck	초록 덱	수집 75종	4
-	black_deck	검은 덱	수집 100종	5
-	magic_deck	마법 덱	붉은 덱 승리	6
-	nebula_deck	성운 덱	파란 덱 승리	7
-	ghost_deck	유령 덱	노란 덱 승리	8
-	abandoned_deck	버려진 덱	초록 덱 승리	9
-	checkered_deck	체크무늬 덱	검은 덱 승리	10
-	zodiac_deck	황도대 덱	붉은 스테이크 승리	11
-	painted_deck	물감 덱	초록 스테이크 승리	12
-	anaglyph_deck	입체사진 덱	검은 스테이크 승리	13
-	plasma_deck	플라스마 덱	파란 스테이크 승리	14
-	erratic_deck	불규칙한 덱	주황 스테이크 승리	15
+:table Deck(key=deck_id)	런의 시작 조건입니다. 카드 52장 자체를 바꾸는 덱과 자원을 바꾸는 덱이 갈립니다. 뒷면도 여기 있습니다 — 덱이 정하는 것 중 한 판 내내 보이는 유일한 것입니다.
+:field	deck_id	name	unlock	sort_order	back	back_ground	back_ink
+:type	string (regex="^[a-z][a-z0-9_]*$")	string (text=Deck)	string	int (min=1, max=15)	CardBackKind	string (regex="^#[0-9a-f]{6}$")	string (regex="^#[0-9a-f]{6}$")
+:desc	식별자	표시 이름	해금 조건	고르는 화면에서의 순서	뒷면의 무늬	뒷면의 바탕색	뒷면의 선 색
+	red_deck	붉은 덱	처음부터	1	Classic	#f2ece0	#c0392f
+	blue_deck	파란 덱	수집 20종	2	Classic	#f2ece0	#2f6fc0
+	yellow_deck	노란 덱	수집 50종	3	Classic	#f7f0d8	#c99a2e
+	green_deck	초록 덱	수집 75종	4	Classic	#eef2e4	#3d8b52
+	black_deck	검은 덱	수집 100종	5	Classic	#26262c	#d8d2c4
+	magic_deck	마법 덱	붉은 덱 승리	6	Arcane	#1e1830	#d8b45a
+	nebula_deck	성운 덱	파란 덱 승리	7	Starfield	#141b2e	#8ea2f5
+	ghost_deck	유령 덱	노란 덱 승리	8	Veil	#e6ecf0	#63788d
+	abandoned_deck	버려진 덱	초록 덱 승리	9	Worn	#e2d6bd	#9a5b3d
+	checkered_deck	체크무늬 덱	검은 덱 승리	10	Checker	#f2ece0	#c0392f
+	zodiac_deck	황도대 덱	붉은 스테이크 승리	11	Zodiac	#1c1830	#e0b53b
+	painted_deck	물감 덱	초록 스테이크 승리	12	Brush	#f4efe2	#2f8b8b
+	anaglyph_deck	입체사진 덱	검은 스테이크 승리	13	Anaglyph	#f2ece0	#d02f3a
+	plasma_deck	플라스마 덱	파란 스테이크 승리	14	Plasma	#1a0f18	#ff6b9d
+	erratic_deck	불규칙한 덱	주황 스테이크 승리	15	Erratic	#f2ece0	#7a4fd0

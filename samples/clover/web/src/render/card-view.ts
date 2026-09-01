@@ -19,7 +19,7 @@ import { PickFilter } from '../shader/pick'
 import { artFor } from './art'
 import { cardArtId, drawFace, drawSuit } from './pips'
 import { Motion, sway, Spring } from './motion'
-import { clearCardBack, drawCardBack } from './card-back'
+import { cardBack, clearCardBack, drawCardBack } from './card-back'
 import { COLOR, SIZE } from './theme'
 
 /** 족보 도움의 색. **고른 카드의 초록과 달라야 헷갈리지 않습니다.** */
@@ -220,8 +220,7 @@ export class CardView extends Container {
     this.paper.clear()
     clearCardBack(this.paper)
     if (card.faceDown || this.showBack) {
-      drawCardBack(this.paper, w, h, SIZE.cardRadius,
-        { ground: COLOR.cardBack, ink: COLOR.cardBackEdge })
+      drawCardBack(this.paper, w, h, SIZE.cardRadius, cardBack())
       this.cornerTop.visible = false
       this.cornerBottom.visible = false
       this.face.clear()
@@ -456,11 +455,15 @@ export class CardView extends Container {
    *
    * **곧게 나갑니다.** 위로 40픽셀 띄우고 26도 기울여 보냈는데, 그러면 카드가 위로 휘어
    * 올라가며 사라집니다 — 카드는 치워지는 것이고, 승천하는 것이 아닙니다.
+   *
+   * **나가는 높이는 부르는 쪽이 정합니다.** 자기 자리의 높이를 그대로 쓰면 손에서 나가는
+   * 카드가 손의 높이로 오른쪽에 빠지는데, 그 높이 그 자리에 덱이 있습니다 — 버린 카드가
+   * 덱으로 들어가는 것으로 보였습니다. 버린 것은 덱으로 돌아가지 않습니다.
    */
-  retire(): void {
+  retire(exitY = this.motion.y.target): void {
     this.retiring = true
     this.eventMode = 'none'
-    this.motion.to(SIZE.width + 120, this.motion.y.target, 0)
+    this.motion.to(SIZE.width + 120, exitY, 0)
     this.motion.scale.target = 0.9
   }
 

@@ -7,10 +7,11 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
     rollupOptions: {
-      // 에디션 셰이더를 나란히 보는 페이지도 같이 굽습니다.
+      // 나란히 놓고 보는 페이지들도 같이 굽습니다 — 에디션 셰이더와 덱 15종의 뒷면.
       input: {
         main: new URL('./index.html', import.meta.url).pathname,
         editions: new URL('./editions.html', import.meta.url).pathname,
+        backs: new URL('./backs.html', import.meta.url).pathname,
         artcheck: new URL('./artcheck.html', import.meta.url).pathname,
       },
     },

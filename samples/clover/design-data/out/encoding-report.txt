@@ -3,18 +3,18 @@ TCB encoding report
 
 Totals
   tables    36
-  columns   685
-  unencoded 183,534
-  encoded   119,317  (65.0 % of unencoded)
-  deflated  77,519  (65.0 % of encoded)  - what a compression layer over the chosen blocks would come to
+  columns   688
+  unencoded 183,789
+  encoded   119,546  (65.0 % of unencoded)
+  deflated  77,701  (65.0 % of encoded)  - what a compression layer over the chosen blocks would come to
 
 By encoding
   encoding        columns        bytes    share
-  DICT_FRONT          11       73,459   61.6 %
+  DICT_FRONT          12       73,557   61.5 %
   DICT_SEG             8       31,757   26.6 %
-  RAW                 47        9,252    7.8 %
+  RAW                 48        9,372    7.8 %
   RLE                477        2,293    1.9 %
-  BITPACK             67        1,312    1.1 %
+  BITPACK             68        1,323    1.1 %
   DICT                 4          474    0.4 %
   ARRAY               16          210    0.2 %
   VARINT              17          181    0.2 %
@@ -24,13 +24,13 @@ By encoding
 
 By element
   element         columns    unencoded        bytes    share
-  string              69      133,827      114,968   96.4 %
+  string              71      134,067      115,186   96.4 %
   i32                254       35,792        2,146    1.8 %
-  varint             309       11,707        1,882    1.6 %
+  varint             310       11,722        1,893    1.6 %
   bool                52        2,056          238    0.2 %
   f32                  1          152           83    0.1 %
 
-Largest columns (40 of 685)
+Largest columns (40 of 688)
 
   StringTable.Ja  [string]  868 rows
     chosen DICT_FRONT  17,160  (83.4 % of unencoded)
@@ -214,10 +214,10 @@ Bit-width packing headroom
 
   element     columns        today       packed        saved
   bool             52          238          350         -112
-  varint          294        1,779        2,422         -643
+  varint          295        1,790        2,433         -643
   i32             254        2,146        3,663       -1,517
 
-  Keeping the smaller of the two per column: 4,163 → 4,107 · saved 56 over 3 of 600 columns.
+  Keeping the smaller of the two per column: 4,174 → 4,118 · saved 56 over 3 of 601 columns.
 
     width            base        today       packed  inner         column
         4               2           86           43  RAW           JokerEffect.Ranks
@@ -309,19 +309,19 @@ String dictionary headroom
         15          220          148          120          179          179          101  BoosterPack.PackId
         18          142          140          177          177          177          134  Spectral.Name
 
-  Over all 69 string columns:
-    plain      130,653
-    front      104,323  (79.8 % of plain)
-    segment    113,715  (109.0 % of front)
-    template   124,809  (119.6 % of front)
-    delta      124,809  (119.6 % of front)
-    deflate    61,598  (59.0 % of front)
+  Over all 71 string columns:
+    plain      130,855
+    front      104,514  (79.9 % of plain)
+    segment    114,047  (109.1 % of front)
+    template   125,131  (119.7 % of front)
+    delta      125,131  (119.7 % of front)
+    deflate    61,753  (59.1 % of front)
 
-  Best per column, layout chosen per column: 102,393  (98.1 % of front)
+  Best per column, layout chosen per column: 102,584  (98.2 % of front)
   Headroom against what is in the format today: 1,930
 
   Where each layout wins, and what it saves against front coding
     layout      columns       saved
     segment          11       1,930
-    front            58           0
+    front            60           0
 

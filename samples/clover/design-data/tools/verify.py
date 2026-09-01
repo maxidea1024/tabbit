@@ -13,6 +13,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DESIGN = os.path.dirname(HERE)
@@ -25,6 +26,9 @@ if hasattr(sys.stdout, 'reconfigure'):
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
 PASS, FAIL = [], []
+#: 갈래마다 걸린 시간. **어디가 오래 걸리는지 물으면 이 도구가 답해야 합니다** —
+#: 「검증이 오래 걸린다」는 말에 재는 것부터 시작하면 그때마다 처음부터 재게 됩니다.
+SPENT = []
 
 
 def check(name, ok, detail=''):
@@ -189,19 +193,26 @@ def core_checks():
     check('구운 리플레이가 있습니다', len(replays) >= 10, '%d개' % len(replays))
 
     # 리플레이가 같은 해시를 다시 냅니다. **여기가 유니티와 대조할 자리입니다.**
-    same = 0
-    for name in sorted(replays):
-        path = os.path.join(DESIGN, 'out', 'replay', name)
-        replay = json.loads(read(path))
-        result = subprocess.run(
-            ['npx', 'tsx', 'src/headless.ts', '--replay', path],
-            cwd=WEB, capture_output=True, text=True, encoding='utf-8',
-            errors='replace', shell=(os.name == 'nt'))
-        if result.returncode == 0 and replay['hashes'][-1] in (result.stdout or ''):
-            same += 1
+    #
+    # **한 번에 열셋을 봅니다.** 리플레이마다 `npx tsx` 를 따로 띄웠고, 그 열셋의 값은
+    # 판을 도는 값이 아니라 **띄우는 값**이었습니다 — 한 번 띄우는 데 npx 가 프로그램을
+    # 찾고 tsx 가 타입스크립트를 얹는 몇 초가 들고, 판 열세 판을 도는 것은 그보다 짧습니다.
+    checked = subprocess.run(
+        ['npx', 'tsx', 'tools/bake-replays.ts', '--check'],
+        cwd=WEB, capture_output=True, text=True, encoding='utf-8',
+        errors='replace', shell=(os.name == 'nt'))
+    # 줄머리의 표만 셉니다. **줄 안에도 `=` 가 있습니다** — 「앞 해시 = 뒤 해시」라고
+    # 적으므로, 글자로 세면 한 줄이 둘로 세어져 열셋이 스물여섯이 됩니다.
+    out = (checked.stdout or '') + (checked.stderr or '')
+    same = sum(1 for line in out.splitlines() if line.strip().startswith('='))
 
+    # 어긋났으면 무엇을 해야 하는지까지 적습니다. **「0 / 13」 만으로는 코어가 깨진 것인지
+    # 다시 구울 때가 된 것인지 갈리지 않고**, 갈리지 않으면 아무도 손대지 않습니다 — 실제로
+    # 그 상태로 열 번 넘는 커밋이 지나갔습니다.
     check('리플레이가 같은 해시를 다시 냅니다', same == len(replays),
-          '%d / %d' % (same, len(replays)))
+          '%d / %d%s' % (same, len(replays),
+                         '' if same == len(replays)
+                         else '  —  코어가 바뀌었으면 `npm run bake:replays` 로 다시 굽습니다'))
 
     built = npm('run', 'build')
     check('웹 번들이 나옵니다', built.returncode == 0)
@@ -217,20 +228,26 @@ def core_checks():
     check('구운 화면이 있습니다', len(shots) >= 5, '%d장' % len(shots))
 
 
+def timed(title, *steps):
+    print('\n' + title)
+    began = time.monotonic()
+    for step in steps:
+        step()
+    SPENT.append((title, time.monotonic() - began))
+
+
 def main():
-    print('데이터')
-    data_checks()
-    print('\n변환')
-    convert()
-    output_checks()
-    print('\n코어')
-    core_checks()
-    print('\n문서')
-    doc_checks()
-    print('\n우회')
-    workaround_checks()
+    began = time.monotonic()
+    timed('데이터', data_checks)
+    timed('변환', convert, output_checks)
+    timed('코어', core_checks)
+    timed('문서', doc_checks)
+    timed('우회', workaround_checks)
 
     print('\n' + '-' * 60)
+    for title, spent in SPENT:
+        print('  %-6s %6.1f 초' % (title, spent))
+    print('  %-6s %6.1f 초' % ('전체', time.monotonic() - began))
     print('통과 %d · 실패 %d' % (len(PASS), len(FAIL)))
     return 1 if FAIL else 0
 

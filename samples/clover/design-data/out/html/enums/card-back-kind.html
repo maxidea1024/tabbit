@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Deck</title>
+<title>CardBackKind</title>
 <style>
 :root {
   --bg: #fff; --fg: #1f2328; --muted: #59636e; --faint: #818b98;
@@ -575,10 +575,10 @@ tbody [data-pick] { cursor: pointer; }
 <span class="brand"><img class="mark" src="data:image/png;base64,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" alt="" width="18" height="18">Tabbit</span>
 <nav>
 <a href="../index.html"><svg class="i"><use href="#i-overview"></use></svg>개요</a>
-<a href="../tables.html" class="on"><svg class="i"><use href="#i-table"></use></svg>테이블</a>
+<a href="../tables.html"><svg class="i"><use href="#i-table"></use></svg>테이블</a>
 <a href="../fields.html"><svg class="i"><use href="#i-column"></use></svg>컬럼</a>
 <a href="../references.html"><svg class="i"><use href="#i-graph"></use></svg>참조</a>
-<a href="../enums.html"><svg class="i"><use href="#i-enum"></use></svg>enum</a>
+<a href="../enums.html" class="on"><svg class="i"><use href="#i-enum"></use></svg>enum</a>
 <a href="../structs.html"><svg class="i"><use href="#i-struct"></use></svg>구조체</a>
 <a href="../constantsets.html"><svg class="i"><use href="#i-const"></use></svg>상수 세트</a>
 </nav>
@@ -588,150 +588,150 @@ tbody [data-pick] { cursor: pointer; }
 </header>
 <p class="crumbs">
 <span><a href="../index.html">개요</a></span>
-<span><a href="../tables.html">테이블</a></span>
-<span>Deck</span>
+<span><a href="../enums.html">enum</a></span>
+<span>CardBackKind</span>
 </p>
 <div class="page">
 <aside>
-<div class="side-head"><svg class="i"><use href="#i-table"></use></svg>테이블</div>
+<div class="side-head"><svg class="i"><use href="#i-enum"></use></svg>enum</div>
 <input type="search" data-filter="side" placeholder="이름 필터">
 <ul class="side-list">
-<li><a href="../tables/achievement.html"><svg class="i"><use href="#i-table"></use></svg>Achievement</a></li>
-<li><a href="../tables/ante.html"><svg class="i"><use href="#i-table"></use></svg>Ante</a></li>
-<li><a href="../tables/base-deck-card.html"><svg class="i"><use href="#i-table"></use></svg>BaseDeckCard</a></li>
-<li><a href="../tables/blind.html"><svg class="i"><use href="#i-table"></use></svg>Blind</a></li>
-<li><a href="../tables/booster-pack.html"><svg class="i"><use href="#i-table"></use></svg>BoosterPack</a></li>
-<li><a href="../tables/boss-blind.html"><svg class="i"><use href="#i-table"></use></svg>BossBlind</a></li>
-<li><a href="../tables/boss-effect.html"><svg class="i"><use href="#i-table"></use></svg>BossEffect</a></li>
-<li class="on"><a href="../tables/deck.html"><svg class="i"><use href="#i-table"></use></svg>Deck</a></li>
-<li><a href="../tables/deck-effect.html"><svg class="i"><use href="#i-table"></use></svg>DeckEffect</a></li>
-<li><a href="../tables/edition.html"><svg class="i"><use href="#i-table"></use></svg>Edition</a></li>
-<li><a href="../tables/edition-visual.html"><svg class="i"><use href="#i-table"></use></svg>EditionVisual</a></li>
-<li><a href="../tables/enhancement.html"><svg class="i"><use href="#i-table"></use></svg>Enhancement</a></li>
-<li><a href="../tables/enhancement-effect.html"><svg class="i"><use href="#i-table"></use></svg>EnhancementEffect</a></li>
-<li><a href="../tables/joker.html"><svg class="i"><use href="#i-table"></use></svg>Joker</a></li>
-<li><a href="../tables/joker-effect.html"><svg class="i"><use href="#i-table"></use></svg>JokerEffect</a></li>
-<li><a href="../tables/joker-rarity-weight.html"><svg class="i"><use href="#i-table"></use></svg>JokerRarityWeight</a></li>
-<li><a href="../tables/planet.html"><svg class="i"><use href="#i-table"></use></svg>Planet</a></li>
-<li><a href="../tables/poker-hand.html"><svg class="i"><use href="#i-table"></use></svg>PokerHand</a></li>
-<li><a href="../tables/rank.html"><svg class="i"><use href="#i-table"></use></svg>Rank</a></li>
-<li><a href="../tables/reroll-cost.html"><svg class="i"><use href="#i-table"></use></svg>RerollCost</a></li>
-<li><a href="../tables/rng-stream.html"><svg class="i"><use href="#i-table"></use></svg>RngStream</a></li>
-<li><a href="../tables/seal.html"><svg class="i"><use href="#i-table"></use></svg>Seal</a></li>
-<li><a href="../tables/seal-effect.html"><svg class="i"><use href="#i-table"></use></svg>SealEffect</a></li>
-<li><a href="../tables/shop-slot-weight.html"><svg class="i"><use href="#i-table"></use></svg>ShopSlotWeight</a></li>
-<li><a href="../tables/sound-cue.html"><svg class="i"><use href="#i-table"></use></svg>SoundCue</a></li>
-<li><a href="../tables/spectral.html"><svg class="i"><use href="#i-table"></use></svg>Spectral</a></li>
-<li><a href="../tables/spectral-effect.html"><svg class="i"><use href="#i-table"></use></svg>SpectralEffect</a></li>
-<li><a href="../tables/stake.html"><svg class="i"><use href="#i-table"></use></svg>Stake</a></li>
-<li><a href="../tables/string-table.html"><svg class="i"><use href="#i-table"></use></svg>StringTable</a></li>
-<li><a href="../tables/suit.html"><svg class="i"><use href="#i-table"></use></svg>Suit</a></li>
-<li><a href="../tables/tag.html"><svg class="i"><use href="#i-table"></use></svg>Tag</a></li>
-<li><a href="../tables/tag-effect.html"><svg class="i"><use href="#i-table"></use></svg>TagEffect</a></li>
-<li><a href="../tables/tarot.html"><svg class="i"><use href="#i-table"></use></svg>Tarot</a></li>
-<li><a href="../tables/tarot-effect.html"><svg class="i"><use href="#i-table"></use></svg>TarotEffect</a></li>
-<li><a href="../tables/voucher.html"><svg class="i"><use href="#i-table"></use></svg>Voucher</a></li>
-<li><a href="../tables/voucher-effect.html"><svg class="i"><use href="#i-table"></use></svg>VoucherEffect</a></li>
+<li><a href="../enums/blind-kind.html#enum_BlindKind"><svg class="i"><use href="#i-enum"></use></svg>BlindKind</a></li>
+<li class="on"><a href="../enums/card-back-kind.html#enum_CardBackKind"><svg class="i"><use href="#i-enum"></use></svg>CardBackKind</a></li>
+<li><a href="../enums/card-class.html#enum_CardClass"><svg class="i"><use href="#i-enum"></use></svg>CardClass</a></li>
+<li><a href="../enums/card-trait.html#enum_CardTrait"><svg class="i"><use href="#i-enum"></use></svg>CardTrait</a></li>
+<li><a href="../enums/compare.html#enum_Compare"><svg class="i"><use href="#i-enum"></use></svg>Compare</a></li>
+<li><a href="../enums/consumable-kind.html#enum_ConsumableKind"><svg class="i"><use href="#i-enum"></use></svg>ConsumableKind</a></li>
+<li><a href="../enums/counter-field.html#enum_CounterField"><svg class="i"><use href="#i-enum"></use></svg>CounterField</a></li>
+<li><a href="../enums/create-kind.html#enum_CreateKind"><svg class="i"><use href="#i-enum"></use></svg>CreateKind</a></li>
+<li><a href="../enums/debuff-kind.html#enum_DebuffKind"><svg class="i"><use href="#i-enum"></use></svg>DebuffKind</a></li>
+<li><a href="../enums/duration.html#enum_Duration"><svg class="i"><use href="#i-enum"></use></svg>Duration</a></li>
+<li><a href="../enums/edition-kind.html#enum_EditionKind"><svg class="i"><use href="#i-enum"></use></svg>EditionKind</a></li>
+<li><a href="../enums/enhancement-kind.html#enum_EnhancementKind"><svg class="i"><use href="#i-enum"></use></svg>EnhancementKind</a></li>
+<li><a href="../enums/hand-pick.html#enum_HandPick"><svg class="i"><use href="#i-enum"></use></svg>HandPick</a></li>
+<li><a href="../enums/joker-pick.html#enum_JokerPick"><svg class="i"><use href="#i-enum"></use></svg>JokerPick</a></li>
+<li><a href="../enums/modify-kind.html#enum_ModifyKind"><svg class="i"><use href="#i-enum"></use></svg>ModifyKind</a></li>
+<li><a href="../enums/pack-kind.html#enum_PackKind"><svg class="i"><use href="#i-enum"></use></svg>PackKind</a></li>
+<li><a href="../enums/pack-size.html#enum_PackSize"><svg class="i"><use href="#i-enum"></use></svg>PackSize</a></li>
+<li><a href="../enums/per-unit-mode.html#enum_PerUnitMode"><svg class="i"><use href="#i-enum"></use></svg>PerUnitMode</a></li>
+<li><a href="../enums/poker-hand-kind.html#enum_PokerHandKind"><svg class="i"><use href="#i-enum"></use></svg>PokerHandKind</a></li>
+<li><a href="../enums/rank-kind.html#enum_RankKind"><svg class="i"><use href="#i-enum"></use></svg>RankKind</a></li>
+<li><a href="../enums/rarity.html#enum_Rarity"><svg class="i"><use href="#i-enum"></use></svg>Rarity</a></li>
+<li><a href="../enums/reset-kind.html#enum_ResetKind"><svg class="i"><use href="#i-enum"></use></svg>ResetKind</a></li>
+<li><a href="../enums/rng-stream-kind.html#enum_RngStreamKind"><svg class="i"><use href="#i-enum"></use></svg>RngStreamKind</a></li>
+<li><a href="../enums/rule-kind.html#enum_RuleKind"><svg class="i"><use href="#i-enum"></use></svg>RuleKind</a></li>
+<li><a href="../enums/scope.html#enum_Scope"><svg class="i"><use href="#i-enum"></use></svg>Scope</a></li>
+<li><a href="../enums/seal-kind.html#enum_SealKind"><svg class="i"><use href="#i-enum"></use></svg>SealKind</a></li>
+<li><a href="../enums/shop-item-kind.html#enum_ShopItemKind"><svg class="i"><use href="#i-enum"></use></svg>ShopItemKind</a></li>
+<li><a href="../enums/stake-kind.html#enum_StakeKind"><svg class="i"><use href="#i-enum"></use></svg>StakeKind</a></li>
+<li><a href="../enums/sticker-kind.html#enum_StickerKind"><svg class="i"><use href="#i-enum"></use></svg>StickerKind</a></li>
+<li><a href="../enums/suit-kind.html#enum_SuitKind"><svg class="i"><use href="#i-enum"></use></svg>SuitKind</a></li>
+<li><a href="../enums/target-kind.html#enum_TargetKind"><svg class="i"><use href="#i-enum"></use></svg>TargetKind</a></li>
+<li><a href="../enums/trigger.html#enum_Trigger"><svg class="i"><use href="#i-enum"></use></svg>Trigger</a></li>
+<li><a href="../enums/unit-kind.html#enum_UnitKind"><svg class="i"><use href="#i-enum"></use></svg>UnitKind</a></li>
 </ul>
 </aside>
 <main class="fill">
-<h1>Deck</h1>
-<p class="lead"><svg class="i"><use href="#i-table"></use></svg>Deck &middot; 행 15개 &middot; 컬럼 7개 <span class="hint">&middot; <span class="book" title="samples/clover/design-data/xlsx/Setup.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Setup.xlsx</span> &middot; <svg class="i"><use href="#i-sheet"></use></svg>Deck : A1</span></p>
-<p class="comment">런의 시작 조건입니다. 카드 52장 자체를 바꾸는 덱과 자원을 바꾸는 덱이 갈립니다. 뒷면도 여기 있습니다 — 덱이 정하는 것 중 한 판 내내 보이는 유일한 것입니다.</p>
-<p class="hint">이 테이블을 가리키는 컬럼:
-<a href="../tables/deck-effect.html#col_DeckEffect.Owner">DeckEffect.Owner</a>
-</p>
-<div data-table>
-<div class="tools">
-<input type="search" data-filter="rows" placeholder="행 필터">
-<span class="hint" data-shown>15행 중 15행</span>
-</div>
-<div class="scroll">
-<table id="table_Deck" data-sortable>
-<thead>
-<tr class="names">
-<th id="col_Deck.DeckId" title="기본 인덱스 &#183; 생성 이름 DeckId &#183; 패턴 ^[a-z][a-z0-9_]*$">deck_id</th>
-<th id="col_Deck.Name" title="생성 이름 Name">name</th>
-<th id="col_Deck.Unlock" title="생성 이름 Unlock">unlock</th>
-<th id="col_Deck.SortOrder" title="생성 이름 SortOrder &#183; 최소 1 &#183; 최대 15">sort_order</th>
-<th id="col_Deck.Back" title="생성 이름 Back">back</th>
-<th id="col_Deck.BackGround" title="생성 이름 BackGround &#183; 패턴 ^#[0-9a-f]{6}$">back_ground</th>
-<th id="col_Deck.BackInk" title="생성 이름 BackInk &#183; 패턴 ^#[0-9a-f]{6}$">back_ink</th>
-</tr>
-<tr class="about">
-<th>식별자</th>
-<th>표시 이름</th>
-<th>해금 조건</th>
-<th>고르는 화면에서의 순서</th>
-<th>뒷면의 무늬</th>
-<th>뒷면의 바탕색</th>
-<th>뒷면의 선 색</th>
-</tr>
-<tr class="types">
-<th><span class="type">string</span> <span class="keymark" title="기본 인덱스">🔑</span></th>
-<th><span class="type">text(Deck)</span></th>
-<th><span class="type">string</span></th>
-<th><span class="type">int</span></th>
-<th><a href="../enums/card-back-kind.html#enum_CardBackKind" data-enum="CardBackKind">enum.CardBackKind</a></th>
-<th><span class="type">string</span></th>
-<th><span class="type">string</span></th>
-</tr>
-<tr class="side">
-<th>cs</th>
-<th>cs</th>
-<th>cs</th>
-<th>cs</th>
-<th>cs</th>
-<th>cs</th>
-<th>cs</th>
-</tr>
-</thead>
-<tbody>
-<tr><td class="key" id="row_Deck.red_deck"><code><span class="str">&quot;red_deck&quot;</span></code></td><td><span class="str">&quot;붉은 덱&quot;</span></td><td><span class="str">&quot;처음부터&quot;</span></td><td class="num">1</td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Classic" data-enum="CardBackKind" data-label="Classic">Classic</a></td><td><span class="str">&quot;#f2ece0&quot;</span></td><td><span class="str">&quot;#c0392f&quot;</span></td></tr>
-<tr><td class="key" id="row_Deck.blue_deck"><code><span class="str">&quot;blue_deck&quot;</span></code></td><td><span class="str">&quot;파란 덱&quot;</span></td><td><span class="str">&quot;수집 20종&quot;</span></td><td class="num">2</td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Classic" data-enum="CardBackKind" data-label="Classic">Classic</a></td><td><span class="str">&quot;#f2ece0&quot;</span></td><td><span class="str">&quot;#2f6fc0&quot;</span></td></tr>
-<tr><td class="key" id="row_Deck.yellow_deck"><code><span class="str">&quot;yellow_deck&quot;</span></code></td><td><span class="str">&quot;노란 덱&quot;</span></td><td><span class="str">&quot;수집 50종&quot;</span></td><td class="num">3</td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Classic" data-enum="CardBackKind" data-label="Classic">Classic</a></td><td><span class="str">&quot;#f7f0d8&quot;</span></td><td><span class="str">&quot;#c99a2e&quot;</span></td></tr>
-<tr><td class="key" id="row_Deck.green_deck"><code><span class="str">&quot;green_deck&quot;</span></code></td><td><span class="str">&quot;초록 덱&quot;</span></td><td><span class="str">&quot;수집 75종&quot;</span></td><td class="num">4</td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Classic" data-enum="CardBackKind" data-label="Classic">Classic</a></td><td><span class="str">&quot;#eef2e4&quot;</span></td><td><span class="str">&quot;#3d8b52&quot;</span></td></tr>
-<tr><td class="key" id="row_Deck.black_deck"><code><span class="str">&quot;black_deck&quot;</span></code></td><td><span class="str">&quot;검은 덱&quot;</span></td><td><span class="str">&quot;수집 100종&quot;</span></td><td class="num">5</td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Classic" data-enum="CardBackKind" data-label="Classic">Classic</a></td><td><span class="str">&quot;#26262c&quot;</span></td><td><span class="str">&quot;#d8d2c4&quot;</span></td></tr>
-<tr><td class="key" id="row_Deck.magic_deck"><code><span class="str">&quot;magic_deck&quot;</span></code></td><td><span class="str">&quot;마법 덱&quot;</span></td><td><span class="str">&quot;붉은 덱 승리&quot;</span></td><td class="num">6</td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Arcane" data-enum="CardBackKind" data-label="Arcane">Arcane</a></td><td><span class="str">&quot;#1e1830&quot;</span></td><td><span class="str">&quot;#d8b45a&quot;</span></td></tr>
-<tr><td class="key" id="row_Deck.nebula_deck"><code><span class="str">&quot;nebula_deck&quot;</span></code></td><td><span class="str">&quot;성운 덱&quot;</span></td><td><span class="str">&quot;파란 덱 승리&quot;</span></td><td class="num">7</td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Starfield" data-enum="CardBackKind" data-label="Starfield">Starfield</a></td><td><span class="str">&quot;#141b2e&quot;</span></td><td><span class="str">&quot;#8ea2f5&quot;</span></td></tr>
-<tr><td class="key" id="row_Deck.ghost_deck"><code><span class="str">&quot;ghost_deck&quot;</span></code></td><td><span class="str">&quot;유령 덱&quot;</span></td><td><span class="str">&quot;노란 덱 승리&quot;</span></td><td class="num">8</td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Veil" data-enum="CardBackKind" data-label="Veil">Veil</a></td><td><span class="str">&quot;#e6ecf0&quot;</span></td><td><span class="str">&quot;#63788d&quot;</span></td></tr>
-<tr><td class="key" id="row_Deck.abandoned_deck"><code><span class="str">&quot;abandoned_deck&quot;</span></code></td><td><span class="str">&quot;버려진 덱&quot;</span></td><td><span class="str">&quot;초록 덱 승리&quot;</span></td><td class="num">9</td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Worn" data-enum="CardBackKind" data-label="Worn">Worn</a></td><td><span class="str">&quot;#e2d6bd&quot;</span></td><td><span class="str">&quot;#9a5b3d&quot;</span></td></tr>
-<tr><td class="key" id="row_Deck.checkered_deck"><code><span class="str">&quot;checkered_deck&quot;</span></code></td><td><span class="str">&quot;체크무늬 덱&quot;</span></td><td><span class="str">&quot;검은 덱 승리&quot;</span></td><td class="num">10</td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Checker" data-enum="CardBackKind" data-label="Checker">Checker</a></td><td><span class="str">&quot;#f2ece0&quot;</span></td><td><span class="str">&quot;#c0392f&quot;</span></td></tr>
-<tr><td class="key" id="row_Deck.zodiac_deck"><code><span class="str">&quot;zodiac_deck&quot;</span></code></td><td><span class="str">&quot;황도대 덱&quot;</span></td><td><span class="str">&quot;붉은 스테이크 승리&quot;</span></td><td class="num">11</td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Zodiac" data-enum="CardBackKind" data-label="Zodiac">Zodiac</a></td><td><span class="str">&quot;#1c1830&quot;</span></td><td><span class="str">&quot;#e0b53b&quot;</span></td></tr>
-<tr><td class="key" id="row_Deck.painted_deck"><code><span class="str">&quot;painted_deck&quot;</span></code></td><td><span class="str">&quot;물감 덱&quot;</span></td><td><span class="str">&quot;초록 스테이크 승리&quot;</span></td><td class="num">12</td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Brush" data-enum="CardBackKind" data-label="Brush">Brush</a></td><td><span class="str">&quot;#f4efe2&quot;</span></td><td><span class="str">&quot;#2f8b8b&quot;</span></td></tr>
-<tr><td class="key" id="row_Deck.anaglyph_deck"><code><span class="str">&quot;anaglyph_deck&quot;</span></code></td><td><span class="str">&quot;입체사진 덱&quot;</span></td><td><span class="str">&quot;검은 스테이크 승리&quot;</span></td><td class="num">13</td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Anaglyph" data-enum="CardBackKind" data-label="Anaglyph">Anaglyph</a></td><td><span class="str">&quot;#f2ece0&quot;</span></td><td><span class="str">&quot;#d02f3a&quot;</span></td></tr>
-<tr><td class="key" id="row_Deck.plasma_deck"><code><span class="str">&quot;plasma_deck&quot;</span></code></td><td><span class="str">&quot;플라스마 덱&quot;</span></td><td><span class="str">&quot;파란 스테이크 승리&quot;</span></td><td class="num">14</td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Plasma" data-enum="CardBackKind" data-label="Plasma">Plasma</a></td><td><span class="str">&quot;#1a0f18&quot;</span></td><td><span class="str">&quot;#ff6b9d&quot;</span></td></tr>
-<tr><td class="key" id="row_Deck.erratic_deck"><code><span class="str">&quot;erratic_deck&quot;</span></code></td><td><span class="str">&quot;불규칙한 덱&quot;</span></td><td><span class="str">&quot;주황 스테이크 승리&quot;</span></td><td class="num">15</td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Erratic" data-enum="CardBackKind" data-label="Erratic">Erratic</a></td><td><span class="str">&quot;#f2ece0&quot;</span></td><td><span class="str">&quot;#7a4fd0&quot;</span></td></tr>
-</tbody>
-</table>
-</div>
-</div>
-</main>
-</div>
-<div id="enumdefs" hidden>
-<div data-enum-def="CardBackKind">
-<p class="lead"><b>enum.CardBackKind</b> <span class="hint">카드 뒷면의 무늬.
+<h1>CardBackKind</h1>
+<p class="lead" id="enum_CardBackKind"><svg class="i"><use href="#i-enum"></use></svg>CardBackKind &middot; 레이블 11개</p>
+<p class="comment">카드 뒷면의 무늬.
 
 <b>덱마다 다릅니다.</b> 덱을 고르는 것이 시작 조건을 고르는 것이면서 한 판 내내 손에 들고
 있을 뒷면을 고르는 것이기도 하고, 그 뒷면이 전부 같으면 무엇을 골랐는지가 화면에
 남지 않습니다.
 
 바깥은 어느 무늬나 같습니다 — 굵은 테두리와 점선 띠와 가는 안쪽 테두리입니다. 그것이
-「이것은 트럼프 뒷면이다」이고, 갈리는 것은 안쪽 판에 무엇이 있는가입니다.</span></p>
-<table><tbody>
-<tr data-label="Classic"><td>Classic</td><td class="num">1</td><td class="hint">동심원이 겹쳐 만드는 렌즈 문양. 색만 다른 덱들이 이것을 함께 씁니다.</td></tr>
-<tr data-label="Checker"><td>Checker</td><td class="num">2</td><td class="hint">비스듬한 체크무늬.</td></tr>
-<tr data-label="Starfield"><td>Starfield</td><td class="num">3</td><td class="hint">별과 성운.</td></tr>
-<tr data-label="Arcane"><td>Arcane</td><td class="num">4</td><td class="hint">달과 룬.</td></tr>
-<tr data-label="Zodiac"><td>Zodiac</td><td class="num">5</td><td class="hint">황도 십이궁의 눈금 원반.</td></tr>
-<tr data-label="Veil"><td>Veil</td><td class="num">6</td><td class="hint">희미하게 어긋난 고리 여럿.</td></tr>
-<tr data-label="Worn"><td>Worn</td><td class="num">7</td><td class="hint">닳아 끊긴 격자.</td></tr>
-<tr data-label="Brush"><td>Brush</td><td class="num">8</td><td class="hint">붓으로 한 번에 그은 꽃.</td></tr>
-<tr data-label="Anaglyph"><td>Anaglyph</td><td class="num">9</td><td class="hint">어긋나 겹친 두 색의 같은 그림.</td></tr>
-<tr data-label="Plasma"><td>Plasma</td><td class="num">10</td><td class="hint">안에서 밖으로 도는 소용돌이.</td></tr>
-<tr data-label="Erratic"><td>Erratic</td><td class="num">11</td><td class="hint">아무 규칙 없이 뒤섞인 조각들.</td></tr>
-</tbody></table>
+「이것은 트럼프 뒷면이다」이고, 갈리는 것은 안쪽 판에 무엇이 있는가입니다.</p>
+<p class="hint">사용하는 컬럼:
+<a href="../tables/deck.html#col_Deck.Back">Deck.Back</a>
+</p>
+<div class="scroll">
+<table>
+<thead>
+<tr class="names"><th>번호</th><th>이름</th><th>값</th><th>설명</th></tr>
+</thead>
+<tbody>
+<tr>
+<td class="num">1</td>
+<td id="const_CardBackKind.Classic">Classic</td>
+<td class="num"><code>1</code></td>
+
+<td>동심원이 겹쳐 만드는 렌즈 문양. 색만 다른 덱들이 이것을 함께 씁니다.</td>
+</tr>
+<tr>
+<td class="num">2</td>
+<td id="const_CardBackKind.Checker">Checker</td>
+<td class="num"><code>2</code></td>
+
+<td>비스듬한 체크무늬.</td>
+</tr>
+<tr>
+<td class="num">3</td>
+<td id="const_CardBackKind.Starfield">Starfield</td>
+<td class="num"><code>3</code></td>
+
+<td>별과 성운.</td>
+</tr>
+<tr>
+<td class="num">4</td>
+<td id="const_CardBackKind.Arcane">Arcane</td>
+<td class="num"><code>4</code></td>
+
+<td>달과 룬.</td>
+</tr>
+<tr>
+<td class="num">5</td>
+<td id="const_CardBackKind.Zodiac">Zodiac</td>
+<td class="num"><code>5</code></td>
+
+<td>황도 십이궁의 눈금 원반.</td>
+</tr>
+<tr>
+<td class="num">6</td>
+<td id="const_CardBackKind.Veil">Veil</td>
+<td class="num"><code>6</code></td>
+
+<td>희미하게 어긋난 고리 여럿.</td>
+</tr>
+<tr>
+<td class="num">7</td>
+<td id="const_CardBackKind.Worn">Worn</td>
+<td class="num"><code>7</code></td>
+
+<td>닳아 끊긴 격자.</td>
+</tr>
+<tr>
+<td class="num">8</td>
+<td id="const_CardBackKind.Brush">Brush</td>
+<td class="num"><code>8</code></td>
+
+<td>붓으로 한 번에 그은 꽃.</td>
+</tr>
+<tr>
+<td class="num">9</td>
+<td id="const_CardBackKind.Anaglyph">Anaglyph</td>
+<td class="num"><code>9</code></td>
+
+<td>어긋나 겹친 두 색의 같은 그림.</td>
+</tr>
+<tr>
+<td class="num">10</td>
+<td id="const_CardBackKind.Plasma">Plasma</td>
+<td class="num"><code>10</code></td>
+
+<td>안에서 밖으로 도는 소용돌이.</td>
+</tr>
+<tr>
+<td class="num">11</td>
+<td id="const_CardBackKind.Erratic">Erratic</td>
+<td class="num"><code>11</code></td>
+
+<td>아무 규칙 없이 뒤섞인 조각들.</td>
+</tr>
+</tbody>
+</table>
 </div>
+</main>
 </div>
 <script>
 (function () {

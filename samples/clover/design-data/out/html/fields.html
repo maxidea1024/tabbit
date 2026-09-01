@@ -593,11 +593,11 @@ tbody [data-pick] { cursor: pointer; }
 <div class="page">
 <main class="fill">
 <h1>컬럼</h1>
-<p class="lead">테이블 36개의 컬럼 226개 <span class="hint">&middot; 접힌 것을 펼치면 시트 컬럼 685개</span></p>
+<p class="lead">테이블 36개의 컬럼 229개 <span class="hint">&middot; 접힌 것을 펼치면 시트 컬럼 688개</span></p>
 <div data-table>
 <div class="tools">
 <input type="search" data-filter="rows" placeholder="컬럼 필터">
-<span class="hint" data-shown>226행 중 226행</span>
+<span class="hint" data-shown>229행 중 229행</span>
 <span class="hint">제목을 누르면 정렬됩니다.</span>
 </div>
 <div class="scroll">
@@ -612,6 +612,9 @@ tbody [data-pick] { cursor: pointer; }
 <tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Ante">ante</span></td><td><a href="tables/ante.html#col_Ante.Ante"><svg class="i"><use href="#i-table"></use></svg>Ante</a></td><td><span class="type">int</span> <span class="keymark" title="기본 인덱스">🔑</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>안테</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 AnteColumn">ante_column</span></td><td><a href="tables/stake.html#col_Stake.AnteColumn"><svg class="i"><use href="#i-table"></use></svg>Stake</a></td><td><span class="type">int</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td><code>Ante</code> 의 어느 열을 읽는가</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Art">art</span></td><td><a href="tables/joker.html#col_Joker.Art"><svg class="i"><use href="#i-table"></use></svg>Joker</a></td><td><span class="type">asset(joker)</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>그림</td></tr>
+<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Back">back</span></td><td><a href="tables/deck.html#col_Deck.Back"><svg class="i"><use href="#i-table"></use></svg>Deck</a></td><td><a href="enums/card-back-kind.html#enum_CardBackKind" data-enum="CardBackKind">enum.CardBackKind</a></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>뒷면의 무늬</td></tr>
+<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 BackGround">back_ground</span></td><td><a href="tables/deck.html#col_Deck.BackGround"><svg class="i"><use href="#i-table"></use></svg>Deck</a></td><td><span class="type">string</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>뒷면의 바탕색</td></tr>
+<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 BackInk">back_ink</span></td><td><a href="tables/deck.html#col_Deck.BackInk"><svg class="i"><use href="#i-table"></use></svg>Deck</a></td><td><span class="type">string</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>뒷면의 선 색</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 BaseChips">base_chips</span></td><td><a href="tables/poker-hand.html#col_PokerHand.BaseChips"><svg class="i"><use href="#i-table"></use></svg>PokerHand</a></td><td><span class="type">int</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>레벨 1의 칩</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 BaseGreen">base_green</span></td><td><a href="tables/ante.html#col_Ante.BaseGreen"><svg class="i"><use href="#i-table"></use></svg>Ante</a></td><td><span class="type">int</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>초록~파란 스테이크</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 BaseMult">base_mult</span></td><td><a href="tables/poker-hand.html#col_PokerHand.BaseMult"><svg class="i"><use href="#i-table"></use></svg>PokerHand</a></td><td><span class="type">int</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>레벨 1의 배수</td></tr>
@@ -847,6 +850,29 @@ tbody [data-pick] { cursor: pointer; }
 <tr data-label="Small"><td>Small</td><td class="num">1</td><td class="hint">안테의 첫 라운드. 건너뛸 수 있습니다.</td></tr>
 <tr data-label="Big"><td>Big</td><td class="num">2</td><td class="hint">안테의 두 번째 라운드. 건너뛸 수 있습니다.</td></tr>
 <tr data-label="Boss"><td>Boss</td><td class="num">3</td><td class="hint">안테의 마지막 라운드. 규칙 하나가 붙고 건너뛸 수 없습니다.</td></tr>
+</tbody></table>
+</div>
+<div data-enum-def="CardBackKind">
+<p class="lead"><b>enum.CardBackKind</b> <span class="hint">카드 뒷면의 무늬.
+
+<b>덱마다 다릅니다.</b> 덱을 고르는 것이 시작 조건을 고르는 것이면서 한 판 내내 손에 들고
+있을 뒷면을 고르는 것이기도 하고, 그 뒷면이 전부 같으면 무엇을 골랐는지가 화면에
+남지 않습니다.
+
+바깥은 어느 무늬나 같습니다 — 굵은 테두리와 점선 띠와 가는 안쪽 테두리입니다. 그것이
+「이것은 트럼프 뒷면이다」이고, 갈리는 것은 안쪽 판에 무엇이 있는가입니다.</span></p>
+<table><tbody>
+<tr data-label="Classic"><td>Classic</td><td class="num">1</td><td class="hint">동심원이 겹쳐 만드는 렌즈 문양. 색만 다른 덱들이 이것을 함께 씁니다.</td></tr>
+<tr data-label="Checker"><td>Checker</td><td class="num">2</td><td class="hint">비스듬한 체크무늬.</td></tr>
+<tr data-label="Starfield"><td>Starfield</td><td class="num">3</td><td class="hint">별과 성운.</td></tr>
+<tr data-label="Arcane"><td>Arcane</td><td class="num">4</td><td class="hint">달과 룬.</td></tr>
+<tr data-label="Zodiac"><td>Zodiac</td><td class="num">5</td><td class="hint">황도 십이궁의 눈금 원반.</td></tr>
+<tr data-label="Veil"><td>Veil</td><td class="num">6</td><td class="hint">희미하게 어긋난 고리 여럿.</td></tr>
+<tr data-label="Worn"><td>Worn</td><td class="num">7</td><td class="hint">닳아 끊긴 격자.</td></tr>
+<tr data-label="Brush"><td>Brush</td><td class="num">8</td><td class="hint">붓으로 한 번에 그은 꽃.</td></tr>
+<tr data-label="Anaglyph"><td>Anaglyph</td><td class="num">9</td><td class="hint">어긋나 겹친 두 색의 같은 그림.</td></tr>
+<tr data-label="Plasma"><td>Plasma</td><td class="num">10</td><td class="hint">안에서 밖으로 도는 소용돌이.</td></tr>
+<tr data-label="Erratic"><td>Erratic</td><td class="num">11</td><td class="hint">아무 규칙 없이 뒤섞인 조각들.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="CardClass">

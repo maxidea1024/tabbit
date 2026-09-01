@@ -8,6 +8,7 @@
 
 // Enums
 export { BlindKind } from './enums/blind-kind'
+export { CardBackKind } from './enums/card-back-kind'
 export { CardClass } from './enums/card-class'
 export { CardTrait } from './enums/card-trait'
 export { Compare } from './enums/compare'

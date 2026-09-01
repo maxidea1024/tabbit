@@ -15,6 +15,31 @@ def grant(create, ref_id, count=1):
     return E('OnRunStart', ALWAYS, O('Grant', create=create, count=count, ref_id=ref_id))
 
 
+# 뒷면. 무늬 하나와 색 두 개입니다.
+#
+# **덱을 고르는 것이 뒷면을 고르는 것이기도 합니다.** 시작 조건은 첫 판에만 눈에 띄지만
+# 뒷면은 한 판 내내 손에 들려 있으므로, 무엇을 골랐는지가 화면에 남는 자리는 여기입니다.
+#
+# 색 이름이 있는 덱 다섯은 무늬를 함께 씁니다 — 붉은 덱과 파란 덱이 서로 다른 무늬를 쓰면
+# 그 둘을 가르는 것이 색이라는 것이 흐려집니다. 나머지 열은 저마다의 무늬입니다.
+BACK = {
+    'red_deck':       ('Classic',   '#f2ece0', '#c0392f'),
+    'blue_deck':      ('Classic',   '#f2ece0', '#2f6fc0'),
+    'yellow_deck':    ('Classic',   '#f7f0d8', '#c99a2e'),
+    'green_deck':     ('Classic',   '#eef2e4', '#3d8b52'),
+    'black_deck':     ('Classic',   '#26262c', '#d8d2c4'),
+    'magic_deck':     ('Arcane',    '#1e1830', '#d8b45a'),
+    'nebula_deck':    ('Starfield', '#141b2e', '#8ea2f5'),
+    'ghost_deck':     ('Veil',      '#e6ecf0', '#7f93a8'),
+    'abandoned_deck': ('Worn',      '#e2d6bd', '#9a5b3d'),
+    'checkered_deck': ('Checker',   '#f2ece0', '#c0392f'),
+    'zodiac_deck':    ('Zodiac',    '#1c1830', '#e0b53b'),
+    'painted_deck':   ('Brush',     '#f4efe2', '#2f8b8b'),
+    'anaglyph_deck':  ('Anaglyph',  '#f2ece0', '#d02f3a'),
+    'plasma_deck':    ('Plasma',    '#1a0f18', '#ff6b9d'),
+    'erratic_deck':   ('Erratic',   '#f2ece0', '#7a4fd0'),
+}
+
 # 식별자, 표시 이름, 영문 이름, 해금 조건, 효과
 DECK = [
     ('red_deck', '붉은 덱', 'Red Deck', '처음부터',
@@ -126,15 +151,20 @@ TAG = [
 def seed():
     assert len(DECK) == 15, '덱이 %d종입니다' % len(DECK)
     assert len(TAG) == 24, '태그가 %d종입니다' % len(TAG)
+    missing = [d[0] for d in DECK if d[0] not in BACK]
+    assert not missing, '뒷면이 없는 덱: %s' % ', '.join(missing)
 
     write('Deck', table(
         'Deck(key=deck_id)',
-        '런의 시작 조건입니다. 카드 52장 자체를 바꾸는 덱과 자원을 바꾸는 덱이 갈립니다.',
-        ['deck_id', 'name', 'unlock', 'sort_order'],
+        '런의 시작 조건입니다. 카드 52장 자체를 바꾸는 덱과 자원을 바꾸는 덱이 갈립니다. '
+        '뒷면도 여기 있습니다 — 덱이 정하는 것 중 한 판 내내 보이는 유일한 것입니다.',
+        ['deck_id', 'name', 'unlock', 'sort_order', 'back', 'back_ground', 'back_ink'],
         ['string (regex="^[a-z][a-z0-9_]*$")', 'string (text=Deck)', 'string',
-         'int (min=1, max=15)'],
-        ['식별자', '표시 이름', '해금 조건', '고르는 화면에서의 순서'],
-        [[d[0], d[1], d[3], i + 1] for i, d in enumerate(DECK)]))
+         'int (min=1, max=15)', 'CardBackKind',
+         'string (regex="^#[0-9a-f]{6}$")', 'string (regex="^#[0-9a-f]{6}$")'],
+        ['식별자', '표시 이름', '해금 조건', '고르는 화면에서의 순서', '뒷면의 무늬',
+         '뒷면의 바탕색', '뒷면의 선 색'],
+        [[d[0], d[1], d[3], i + 1, *BACK[d[0]]] for i, d in enumerate(DECK)]))
 
     write('Stake', table(
         'Stake(key=stake)',

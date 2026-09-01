@@ -593,11 +593,11 @@ tbody [data-pick] { cursor: pointer; }
 <div class="page">
 <main class="fill">
 <h1>enum</h1>
-<p class="lead">enum 32개 · 레이블 270개</p>
+<p class="lead">enum 33개 · 레이블 281개</p>
 <div data-table>
 <div class="tools">
 <input type="search" data-filter="rows" placeholder="enum 필터">
-<span class="hint" data-shown>32행 중 32행</span>
+<span class="hint" data-shown>33행 중 33행</span>
 <span class="hint">제목을 누르면 정렬됩니다.</span>
 </div>
 <div class="scroll">
@@ -609,6 +609,14 @@ tbody [data-pick] { cursor: pointer; }
 </thead>
 <tbody>
 <tr><td><a href="enums/blind-kind.html#enum_BlindKind" data-enum="BlindKind"><svg class="i"><use href="#i-enum"></use></svg>BlindKind</a></td><td class="num">3</td><td class="num">10</td><td><span class="book" title="run.tbs"><svg class="i"><use href="#i-workbook"></use></svg>run.tbs</span></td><td>안테 하나 안의 세 라운드.</td></tr>
+<tr><td><a href="enums/card-back-kind.html#enum_CardBackKind" data-enum="CardBackKind"><svg class="i"><use href="#i-enum"></use></svg>CardBackKind</a></td><td class="num">11</td><td class="num">1</td><td><span class="book" title="run.tbs"><svg class="i"><use href="#i-workbook"></use></svg>run.tbs</span></td><td>카드 뒷면의 무늬.
+
+<b>덱마다 다릅니다.</b> 덱을 고르는 것이 시작 조건을 고르는 것이면서 한 판 내내 손에 들고
+있을 뒷면을 고르는 것이기도 하고, 그 뒷면이 전부 같으면 무엇을 골랐는지가 화면에
+남지 않습니다.
+
+바깥은 어느 무늬나 같습니다 — 굵은 테두리와 점선 띠와 가는 안쪽 테두리입니다. 그것이
+「이것은 트럼프 뒷면이다」이고, 갈리는 것은 안쪽 판에 무엇이 있는가입니다.</td></tr>
 <tr><td><a href="enums/card-class.html#enum_CardClass" data-enum="CardClass"><svg class="i"><use href="#i-enum"></use></svg>CardClass</a></td><td class="num">4</td><td class="num">9</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>만들거나 더하는 플레잉 카드의 갈래.</td></tr>
 <tr><td><a href="enums/card-trait.html#enum_CardTrait" data-enum="CardTrait"><svg class="i"><use href="#i-enum"></use></svg>CardTrait</a></td><td class="num">3</td><td class="num">9</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>카드가 가지는 성질. 값을 더하지 않고 그 카드가 무엇으로 취급되는지를 바꿉니다.</td></tr>
 <tr><td><a href="enums/compare.html#enum_Compare" data-enum="Compare"><svg class="i"><use href="#i-enum"></use></svg>Compare</a></td><td class="num">3</td><td class="num">9</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>수 비교의 방향.</td></tr>
@@ -660,6 +668,29 @@ tbody [data-pick] { cursor: pointer; }
 <tr data-label="Small"><td>Small</td><td class="num">1</td><td class="hint">안테의 첫 라운드. 건너뛸 수 있습니다.</td></tr>
 <tr data-label="Big"><td>Big</td><td class="num">2</td><td class="hint">안테의 두 번째 라운드. 건너뛸 수 있습니다.</td></tr>
 <tr data-label="Boss"><td>Boss</td><td class="num">3</td><td class="hint">안테의 마지막 라운드. 규칙 하나가 붙고 건너뛸 수 없습니다.</td></tr>
+</tbody></table>
+</div>
+<div data-enum-def="CardBackKind">
+<p class="lead"><b>enum.CardBackKind</b> <span class="hint">카드 뒷면의 무늬.
+
+<b>덱마다 다릅니다.</b> 덱을 고르는 것이 시작 조건을 고르는 것이면서 한 판 내내 손에 들고
+있을 뒷면을 고르는 것이기도 하고, 그 뒷면이 전부 같으면 무엇을 골랐는지가 화면에
+남지 않습니다.
+
+바깥은 어느 무늬나 같습니다 — 굵은 테두리와 점선 띠와 가는 안쪽 테두리입니다. 그것이
+「이것은 트럼프 뒷면이다」이고, 갈리는 것은 안쪽 판에 무엇이 있는가입니다.</span></p>
+<table><tbody>
+<tr data-label="Classic"><td>Classic</td><td class="num">1</td><td class="hint">동심원이 겹쳐 만드는 렌즈 문양. 색만 다른 덱들이 이것을 함께 씁니다.</td></tr>
+<tr data-label="Checker"><td>Checker</td><td class="num">2</td><td class="hint">비스듬한 체크무늬.</td></tr>
+<tr data-label="Starfield"><td>Starfield</td><td class="num">3</td><td class="hint">별과 성운.</td></tr>
+<tr data-label="Arcane"><td>Arcane</td><td class="num">4</td><td class="hint">달과 룬.</td></tr>
+<tr data-label="Zodiac"><td>Zodiac</td><td class="num">5</td><td class="hint">황도 십이궁의 눈금 원반.</td></tr>
+<tr data-label="Veil"><td>Veil</td><td class="num">6</td><td class="hint">희미하게 어긋난 고리 여럿.</td></tr>
+<tr data-label="Worn"><td>Worn</td><td class="num">7</td><td class="hint">닳아 끊긴 격자.</td></tr>
+<tr data-label="Brush"><td>Brush</td><td class="num">8</td><td class="hint">붓으로 한 번에 그은 꽃.</td></tr>
+<tr data-label="Anaglyph"><td>Anaglyph</td><td class="num">9</td><td class="hint">어긋나 겹친 두 색의 같은 그림.</td></tr>
+<tr data-label="Plasma"><td>Plasma</td><td class="num">10</td><td class="hint">안에서 밖으로 도는 소용돌이.</td></tr>
+<tr data-label="Erratic"><td>Erratic</td><td class="num">11</td><td class="hint">아무 규칙 없이 뒤섞인 조각들.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="CardClass">

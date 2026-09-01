@@ -1,7 +1,7 @@
 {
-  "LastUpdatedDate": "2026-09-01T16:23:01.1167146+09:00",
-  "MasterHash": "18a73dfd849d0f939efad89e33c64ef7",
-  "TotalSize": 125699,
+  "LastUpdatedDate": "2026-09-01T18:33:22.6836856+09:00",
+  "MasterHash": "efe1baae88072b009ed19fbcf16b31fe",
+  "TotalSize": 125949,
   "Items": [
     {
       "Name": "Rank.tcb",
@@ -149,9 +149,9 @@
     },
     {
       "Name": "Deck.tcb",
-      "Size": 645,
-      "Hash": "10afd9561ae08e1905e1fd8defcd7613",
-      "LastUpdatedDate": "2026-08-27T10:55:50.2595677+09:00"
+      "Size": 895,
+      "Hash": "9ec87aa283d2fa299658f9fa0019b6a3",
+      "LastUpdatedDate": "2026-09-01T18:33:22.5306732+09:00"
     },
     {
       "Name": "DeckEffect.tcb",

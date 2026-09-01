@@ -3256,6 +3256,27 @@
         "Kind": 0,
         "Retired": false,
         "ExplicitTag": false
+      },
+      "5": {
+        "Name": "Back",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "6": {
+        "Name": "BackGround",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "7": {
+        "Name": "BackInk",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
       }
     },
     "DeckEffect": {

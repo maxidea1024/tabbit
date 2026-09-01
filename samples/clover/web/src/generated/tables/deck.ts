@@ -13,16 +13,22 @@ import * as tabbit from '../tabbit/tcb-reader'
 // finished evaluating - so neither one is half built when the binding is used.
 import { CloverData } from '../clover-data'
 
+// Automatically import to handle external type references.
+import { CardBackKind } from '../enums/card-back-kind'
+
 /** A type for handling rows when parsing .json. */
 interface IDataRow {
   deckId: string
   name: string
   unlock: string
   sortOrder: number
+  back: CardBackKind
+  backGround: string
+  backInk: string
 }
 
 // Generated from samples/clover/design-data/xlsx/Setup.xlsx : Deck : A1
-/** 런의 시작 조건입니다. 카드 52장 자체를 바꾸는 덱과 자원을 바꾸는 덱이 갈립니다. */
+/** 런의 시작 조건입니다. 카드 52장 자체를 바꾸는 덱과 자원을 바꾸는 덱이 갈립니다. 뒷면도 여기 있습니다 — 덱이 정하는 것 중 한 판 내내 보이는 유일한 것입니다. */
 export class DeckRecord {
   /** Default constructor */
   constructor() {
@@ -40,10 +46,22 @@ export class DeckRecord {
   /** 고르는 화면에서의 순서 */
   public get sortOrder(): number { return this._sortOrder }
 
+  /** 뒷면의 무늬 */
+  public get back(): CardBackKind { return this._back }
+
+  /** 뒷면의 바탕색 */
+  public get backGround(): string { return this._backGround }
+
+  /** 뒷면의 선 색 */
+  public get backInk(): string { return this._backInk }
+
   public _deckId: string = ''
   public _name: string = ''
   public _unlock: string = ''
   public _sortOrder: number = 0
+  public _back: CardBackKind = 0 as CardBackKind
+  public _backGround: string = ''
+  public _backInk: string = ''
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
@@ -51,6 +69,9 @@ export class DeckRecord {
     this._name = dataRow.name
     this._unlock = dataRow.unlock
     this._sortOrder = dataRow.sortOrder
+    this._back = dataRow.back
+    this._backGround = dataRow.backGround
+    this._backInk = dataRow.backInk
   }
 
   /** Populate field values. */
@@ -60,11 +81,14 @@ export class DeckRecord {
     this._name = dataRow[offset++]
     this._unlock = dataRow[offset++]
     this._sortOrder = dataRow[offset++]
+    this._back = dataRow[offset++]
+    this._backGround = dataRow[offset++]
+    this._backInk = dataRow[offset++]
   }
 }
 
 // Generated from samples/clover/design-data/xlsx/Setup.xlsx : Deck : A1
-/** 런의 시작 조건입니다. 카드 52장 자체를 바꾸는 덱과 자원을 바꾸는 덱이 갈립니다. */
+/** 런의 시작 조건입니다. 카드 52장 자체를 바꾸는 덱과 자원을 바꾸는 덱이 갈립니다. 뒷면도 여기 있습니다 — 덱이 정하는 것 중 한 판 내내 보이는 유일한 것입니다. */
 export class DeckTable {
   /** Default constructor. */
   constructor() {
@@ -242,6 +266,33 @@ export class DeckTable {
             const { n, value } = cursor.nextSameI32(rowCount - i)
             for (let left = n; left > 0; --left, ++i)
               records[i]._sortOrder = value
+          }
+          break
+        case 5:
+          tabbit.checkColumn(column, 'Deck.Back', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_VARINT])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Deck.Back')
+          for (let i = 0; i < rowCount; ) {
+            const { n, value } = cursor.nextSameI32(rowCount - i)
+            for (let left = n; left > 0; --left, ++i)
+              records[i]._back = value as CardBackKind
+          }
+          break
+        case 6:
+          tabbit.checkColumn(column, 'Deck.BackGround', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Deck.BackGround')
+          for (let i = 0; i < rowCount; ) {
+            const { n, value } = cursor.nextSameString(rowCount - i)
+            for (let left = n; left > 0; --left, ++i)
+              records[i]._backGround = value
+          }
+          break
+        case 7:
+          tabbit.checkColumn(column, 'Deck.BackInk', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_STRING])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Deck.BackInk')
+          for (let i = 0; i < rowCount; ) {
+            const { n, value } = cursor.nextSameString(rowCount - i)
+            for (let left = n; left > 0; --left, ++i)
+              records[i]._backInk = value
           }
           break
         default:

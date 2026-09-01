@@ -11,6 +11,11 @@ npm run apk:release      # 서명하지 않은 릴리스 APK
 npm run open             # 안드로이드 스튜디오로 열기
 ```
 
+**윈도우에서는 `:win` 을 붙입니다** — `npm run apk:win` · `npm run apk:release:win`.
+래퍼를 부르는 방법이 갈리기 때문입니다: POSIX 셸은 `./gradlew` 라야 현재 폴더의 것을
+찾고, `cmd.exe` 는 `./gradlew` 를 알아듣지 못하고 `gradlew` 라야 `gradlew.bat` 를 찾습니다.
+**한 줄로 둘 다 되는 표기가 없어서** 두 줄입니다.
+
 |무엇|파일|
 |--|--|
 |디버그|`android/app/build/outputs/apk/debug/app-debug.apk`. 손에 쥐고 옮길 것은 `out/clover-0.2.0.apk` 로 베껴 둡니다|
