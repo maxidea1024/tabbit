@@ -11,7 +11,7 @@
 |워크북|테이블|행 수 대략|
 |--|--|--|
 |`Cards.xlsx`|`Rank` · `Suit` · `BaseDeckCard` · `PokerHand` · `Enhancement` · `EnhancementEffect` · `Seal` · `SealEffect` · `Edition`|13 · 4 · 52 · 12 · 9 · 12 · 5 · 4 · 5|
-|`Jokers.xlsx`|`Joker` · `JokerRarityWeight` · `JokerEffect`|150 · 4 · **178**|
+|`Jokers.xlsx`|`Joker` · `JokerRarityWeight` · `JokerEffect`|**500** · 4 · **588**|
 |`Consumables.xlsx`|`Tarot` · `TarotEffect` · `Planet` · `Spectral` · `SpectralEffect`|22 · 22 · 12 · 18 · 27|
 |`Progression.xlsx`|`Ante` · `Blind` · `BossBlind` · `BossEffect`|9 · 3 · 28 · 26|
 |`Shop.xlsx`|`ShopSlotWeight` · `BoosterPack` · `Voucher` · `VoucherEffect` · `RerollCost`|5 · 15 · 32 · 34 · 10|
@@ -103,8 +103,8 @@
 
 |규칙|무엇을 보는가|
 |--|--|
-|희귀도 분포|커먼 61 · 언커먼 64 · 레어 20 · 전설 5. **숫자가 어긋나면 조커를 빠뜨린 것입니다**|
-|효과 행의 존재|조커 150종 전부가 효과 행을 하나 이상 가지는가|
+|희귀도 분포|`JokerRarityWeight` 의 `count` 가 실제 종수와 같은가. **숫자가 어긋나면 조커를 빠뜨린 것입니다** — 지금 커먼 181 · 언커먼 214 · 레어 85 · 전설 20|
+|효과 행의 존재|조커 전부가 효과 행을 하나 이상 가지는가|
 |`Custom` 목록|`handler_id` 가 [문서](effect-vm.md#custom-탈출구)에 적힌 것과 일치하는가|
 |`PerUnit` 의 단위|`UnitKind` 가 그 트리거에서 의미가 있는가 — `DiscardsLeft` 를 `OnShopEnter` 에서 보면 규격 위반입니다|
 |행성과 족보|행성 12종이 족보 12종과 일대일인가|

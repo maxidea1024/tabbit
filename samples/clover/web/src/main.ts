@@ -18,6 +18,7 @@ import { chosen, loadOptions } from './ui/options'
 import { loadArtIndex } from './render/art'
 import { Boot } from './ui/boot'
 import { loadIcons } from './ui/icon'
+import { JokerPool } from './generated/enums/joker-pool'
 import { Game } from './render/game'
 import { COLOR } from './render/theme'
 
@@ -61,7 +62,13 @@ async function main(): Promise<void> {
   // 시드는 주소에서 받습니다 — 같은 주소를 열면 같은 판입니다. 대조할 때 그 편이 편합니다.
   const seed = new URLSearchParams(location.search).get('seed') ?? randomSeed()
 
-  const game = new Game(app, data, seed)
+  // 확장 350종을 켜는 자리입니다. 덱 선택 화면이 생기면 그쪽으로 엮깁니다 — 지금은
+  // 시드와 같은 방식이 유지보수가 적은 자리입니다.
+  const pools = new URLSearchParams(location.search).get('expansion') === '1'
+    ? [JokerPool.Base, JokerPool.Greenhouse]
+    : [JokerPool.Base]
+
+  const game = new Game(app, data, seed, pools)
 
   /**
    * 화면 크기가 바뀔 때 다시 배치합니다.

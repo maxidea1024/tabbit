@@ -9,7 +9,7 @@
 
 namespace Clover.Data
 {
-    // Generated from run.tbs(15,6)
+    // Generated from run.tbs(23,6)
     /// <summary>
     /// 조커 개체에 붙는 상태. 조커의 성질이 아니므로 테이블이 아니라 런 상태입니다.
     /// </summary>

@@ -9,7 +9,7 @@
 
 namespace Clover.Data
 {
-    // Generated from run.tbs(48,6)
+    // Generated from run.tbs(56,6)
     /// <summary>
     /// 팩의 크기. 값과 장수와 고르는 수가 달라집니다.
     /// </summary>

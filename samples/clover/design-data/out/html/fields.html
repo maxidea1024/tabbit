@@ -593,11 +593,11 @@ tbody [data-pick] { cursor: pointer; }
 <div class="page">
 <main class="fill">
 <h1>컬럼</h1>
-<p class="lead">테이블 36개의 컬럼 229개 <span class="hint">&middot; 접힌 것을 펼치면 시트 컬럼 688개</span></p>
+<p class="lead">테이블 36개의 컬럼 230개 <span class="hint">&middot; 접힌 것을 펼치면 시트 컬럼 689개</span></p>
 <div data-table>
 <div class="tools">
 <input type="search" data-filter="rows" placeholder="컬럼 필터">
-<span class="hint" data-shown>229행 중 229행</span>
+<span class="hint" data-shown>230행 중 230행</span>
 <span class="hint">제목을 누르면 정렬됩니다.</span>
 </div>
 <div class="scroll">
@@ -748,6 +748,7 @@ tbody [data-pick] { cursor: pointer; }
 <tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Picks">picks</span></td><td><a href="tables/booster-pack.html#col_BoosterPack.Picks"><svg class="i"><use href="#i-table"></use></svg>BoosterPack</a></td><td><span class="type">int</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>고르는 장수</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 PitchFollowsValue">pitch_follows_value</span></td><td><a href="tables/sound-cue.html#col_SoundCue.PitchFollowsValue"><svg class="i"><use href="#i-table"></use></svg>SoundCue</a></td><td><span class="type">bool</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>음높이가 값을 따라가는가</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 PlanetId">planet_id</span></td><td><a href="tables/planet.html#col_Planet.PlanetId"><svg class="i"><use href="#i-table"></use></svg>Planet</a></td><td><span class="type">string</span> <span class="keymark" title="기본 인덱스">🔑</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>식별자</td></tr>
+<tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Pool">pool</span></td><td><a href="tables/joker.html#col_Joker.Pool"><svg class="i"><use href="#i-table"></use></svg>Joker</a></td><td><a href="enums/joker-pool.html#enum_JokerPool" data-enum="JokerPool">enum.JokerPool</a></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>어느 풀에 드는가</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Rank">rank</span></td><td><a href="tables/base-deck-card.html#col_BaseDeckCard.Rank"><svg class="i"><use href="#i-table"></use></svg>BaseDeckCard</a></td><td><a href="enums/rank-kind.html#enum_RankKind" data-enum="RankKind">enum.RankKind</a></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>랭크</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Rank">rank</span></td><td><a href="tables/rank.html#col_Rank.Rank"><svg class="i"><use href="#i-table"></use></svg>Rank</a></td><td><a href="enums/rank-kind.html#enum_RankKind" data-enum="RankKind">enum.RankKind</a> <span class="keymark" title="기본 인덱스">🔑</span></td><td>cs</td><td><span class="yes" title="필수">&#x2714;</span></td><td>랭크</td></tr>
 <tr><td><svg class="i"><use href="#i-column"></use></svg><span title="생성 이름 Ranks">ranks</span></td><td><a href="tables/boss-effect.html#col_BossEffect.Ranks"><svg class="i"><use href="#i-table"></use></svg>BossEffect</a></td><td><a href="enums/rank-kind.html#enum_RankKind" data-enum="RankKind">enum.RankKind</a>[]?</td><td>cs</td><td><span class="no" title="옵셔널">&#x2718;</span></td><td>어느 랭크들인가</td></tr>
@@ -999,6 +1000,14 @@ tbody [data-pick] { cursor: pointer; }
 <tr data-label="Random"><td>Random</td><td class="num">3</td><td class="hint">무작위 조커 하나.</td></tr>
 <tr data-label="AllOther"><td>AllOther</td><td class="num">4</td><td class="hint">자기를 뺀 모든 조커.</td></tr>
 <tr data-label="SelfPick"><td>SelfPick</td><td class="num">5</td><td class="hint">자기 자신.</td></tr>
+</tbody></table>
+</div>
+<div data-enum-def="JokerPool">
+<p class="lead"><b>enum.JokerPool</b> <span class="hint">조커가 어느 풀에 드는가. **런이 시작할 때 어느 풀을 쓰는지 정하고, 정하지 않으면
+<code>Base</code> 만 씁니다** — 그래야 구워 둔 리플레이가 같은 해시를 다시 냅니다.</span></p>
+<table><tbody>
+<tr data-label="Base"><td>Base</td><td class="num">1</td><td class="hint">기본 150종. 원작 대조본입니다.</td></tr>
+<tr data-label="Greenhouse"><td>Greenhouse</td><td class="num">2</td><td class="hint">확장 350종. 자작이고 런을 시작할 때 켜집니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="ModifyKind">

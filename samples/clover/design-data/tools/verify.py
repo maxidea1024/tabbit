@@ -50,6 +50,76 @@ def count_rows(grid):
 # 데이터 자체
 # ---------------------------------------------------------------------------
 
+def grid_rows(grid):
+    """격자의 데이터 행을 컬럼 목록으로. 선언 3줄은 빼고 돌려줍니다."""
+    path = os.path.join(DESIGN, 'data', grid + '.tsv')
+    lines = read(path).splitlines()
+    fields = lines[1].split('\t')[1:]
+    out = []
+    for line in lines[4:]:
+        if not line.startswith('\t'):
+            continue
+        cells = line.split('\t')[1:]
+        out.append(dict(zip(fields, cells)))
+    return out
+
+
+def joker_checks():
+    """조커 500종의 배분과 확장의 판정 기준. 규격은 `doc/expansion.md` 입니다."""
+    sys.path.insert(0, HERE)
+    from seedlib import expansion
+
+    rows = grid_rows('Joker')
+    check('조커 500종', len(rows) == 500, '%d종' % len(rows))
+
+    pools = {}
+    for row in rows:
+        pools[row['pool']] = pools.get(row['pool'], 0) + 1
+    check('풀이 기본 150 · 확장 350',
+          pools.get('Base') == 150 and pools.get('Greenhouse') == 350,
+          '기본 %s · 확장 %s' % (pools.get('Base'), pools.get('Greenhouse')))
+
+    want = {'Common': 181, 'Uncommon': 214, 'Rare': 85, 'Legendary': 20}
+    got = {}
+    for row in rows:
+        got[row['rarity']] = got.get(row['rarity'], 0) + 1
+    check('희귀도가 181 · 214 · 85 · 20', got == want,
+          ' · '.join('%s %d' % (r, got.get(r, 0))
+                     for r in ('Common', 'Uncommon', 'Rare', 'Legendary')))
+
+    sizes = sorted(set(len(entries) for _, entries in expansion.FAMILIES))
+    check('계열 14개가 각 25종',
+          len(expansion.FAMILIES) == 14 and sizes == [25],
+          '계열 %d개 · 종수 %s' % (len(expansion.FAMILIES), sizes))
+
+    ids = [row['joker_id'] for row in rows]
+    check('식별자 중복 0', len(set(ids)) == len(ids),
+          '%d개 중 %d개' % (len(ids), len(set(ids))))
+    names = [row['name'] for row in rows]
+    check('표시 이름 중복 0', len(set(names)) == len(names),
+          '%d개 중 %d개' % (len(names), len(set(names))))
+
+    effects = {}
+    for row in grid_rows('JokerEffect'):
+        effects.setdefault(row['owner'], []).append(row)
+
+    # 확장 조커마다 효과가 한 행 이상. 효과 없는 조커는 상점에서 값이 없습니다.
+    orphan = [row['joker_id'] for row in rows
+              if row['pool'] == 'Greenhouse' and row['joker_id'] not in effects]
+    check('확장 조커 전부에 효과 행이 있음', not orphan,
+          '없는 것 %d종 %s' % (len(orphan), ', '.join(orphan[:5])))
+
+    # 판정 기준 — 조건 없는 배수 가산 하나뿐인 것은 목록에 들어오지 않습니다.
+    bare = []
+    for jid in expansion.FAMILY_OF:
+        mine = effects.get(jid, [])
+        if (len(mine) == 1 and mine[0]['condition.$type'] == 'CondAlways'
+                and mine[0]['operation.$type'] == 'OpAddMult'):
+            bare.append(jid)
+    check('판정 기준에 걸리는 확장 조커 0종', not bare,
+          '%d종 %s' % (len(bare), ', '.join(bare[:5])))
+
+
 def data_checks():
     grids = [f for f in os.listdir(os.path.join(DESIGN, 'data')) if f.endswith('.tsv')]
     check('격자 40개', len(grids) == 40, '%d개' % len(grids))
@@ -59,7 +129,8 @@ def data_checks():
     check('workbooks.tsv 가 격자 전부를 배치', len(mapped) == len(grids),
           '%d개 배치' % len(mapped))
 
-    check('조커 150종', count_rows('Joker') == 150, '%d종' % count_rows('Joker'))
+    joker_checks()
+
     check('보스 28종', count_rows('BossBlind') == 28)
     check('바우처 32종', count_rows('Voucher') == 32)
     check('태그 24종', count_rows('Tag') == 24)
@@ -91,7 +162,28 @@ def convert():
     check('변환이 끝까지 돕니다', result.returncode == 0,
           '' if result.returncode == 0 else '종료 코드 %d' % result.returncode)
     check('검증 규칙이 통과합니다', 'Validation: 0 error(s)' in out)
+    art_checks(out)
     return out
+
+
+def art_checks(out):
+    """빠진 그림이 확장 350종뿐인가.
+
+    `recipe.jsonc` 의 `Assets.OnMissing` 이 `error` 에서 `warn` 으로 내려와 있습니다. 그
+    한 칸을 여기서 메웁니다 — **기본 150종에서 하나라도 빠지면 이 검사가 실패합니다.**
+    그림이 다 들어오면 `error` 로 되돌리고 이 함수를 지웁니다.
+    """
+    base = set(row['joker_id'] for row in grid_rows('Joker') if row['pool'] == 'Base')
+    missing = set()
+    for line in out.splitlines():
+        if '`Joker.Art` names `' not in line:
+            continue
+        missing.add(line.split('`Joker.Art` names `', 1)[1].split('`', 1)[0])
+
+    check('빠진 그림이 확장 350종뿐입니다', len(missing) == 350,
+          '%d종' % len(missing))
+    check('기본 150종의 그림은 전부 있습니다', not (missing & base),
+          '빠진 것 %d종 %s' % (len(missing & base), ', '.join(sorted(missing & base)[:5])))
 
 
 def output_checks():

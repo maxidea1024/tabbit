@@ -9,7 +9,7 @@
 
 namespace Clover.Data
 {
-    // Generated from run.tbs(129,6)
+    // Generated from run.tbs(137,6)
     /// <summary>
     /// 카드 뒷면의 무늬.
     ///

@@ -25,6 +25,7 @@ import { SuitKind } from '../../generated/enums/suit-kind'
 import { Trigger } from '../../generated/enums/trigger'
 import { UnitKind } from '../../generated/enums/unit-kind'
 import type { EffectRow } from '../data'
+import { jokerPool } from '../pool'
 import { isFace } from '../hand'
 import { mulBp, MULT_ONE } from '../units'
 import type { CardInstance, GameEvent, JokerInstance } from '../state'
@@ -335,8 +336,7 @@ function randomBaseCard(vm: Vm, cardClass: CardClass) {
 /** 무작위 조커 하나를 만듭니다. 희귀도를 정하면 그 풀에서 고릅니다. */
 function createJoker(vm: Vm, rarity: Rarity | undefined, edition: EditionKind): void {
   const rng = vm.state.rng.ShopRarity
-  const all = vm.data.tables.joker.records
-  const pool = rarity ? all.filter(row => row.rarity === rarity) : all
+  const pool = jokerPool(vm.data, vm.state, rarity)
   if (pool.length === 0) return
   if (vm.state.jokers.length >= vm.state.rules.jokerSlots
       && edition !== EditionKind.Negative) return

@@ -5,7 +5,7 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from run.tbs(85,6)
+// Generated from run.tbs(93,6)
 /** 상점의 카드 칸에 올 수 있는 것. 가중치 추첨의 후보입니다. */
 export enum ShopItemKind {
   /** 조커. */

@@ -12,6 +12,7 @@ import {
   type Application,
 } from 'pixi.js'
 
+import { JokerPool } from '../generated/enums/joker-pool'
 import { BlindKind } from '../generated/enums/blind-kind'
 import { EditionKind } from '../generated/enums/edition-kind'
 import { PackKind } from '../generated/enums/pack-kind'
@@ -1211,10 +1212,11 @@ export class Game {
    */
   private touching = false
 
-  constructor(private readonly app: Application, private readonly data: Data, seed: string) {
+  constructor(private readonly app: Application, private readonly data: Data, seed: string,
+              private readonly pools: JokerPool[] = [JokerPool.Base]) {
     this.feel = readFeel(data.feel)
     this.audio = new Audio(data.tables)
-    this.state = newRun(data, seed, 'red_deck', 'White').state
+    this.state = newRun(data, seed, 'red_deck', 'White', pools).state
     this.player = new TimelinePlayer(beat => this.showBeat(beat))
     this.title = new Title(() => this.enterRun(),
       () => this.modals.open(this.guide), () => this.openOptions())
@@ -1489,7 +1491,7 @@ export class Game {
    * 패를 그대로 들고 있습니다.
    */
   private layRun(seed: string): void {
-    this.state = newRun(this.data, seed, 'red_deck', 'White').state
+    this.state = newRun(this.data, seed, 'red_deck', 'White', this.pools).state
     // **뒷면부터입니다.** 손패를 다시 그리기 전에 정해야, 새로 깔리는 카드가 이 판의
     // 뒷면으로 깔립니다.
     this.syncCardBack()

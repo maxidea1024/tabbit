@@ -4,6 +4,7 @@
 // 시간을 모르고 프레임을 모르고 애니메이션을 모릅니다. 연출이 이벤트를 자기 속도로
 // 재생합니다.
 
+import { JokerPool } from '../generated/enums/joker-pool'
 import { BlindKind } from '../generated/enums/blind-kind'
 import { EditionKind } from '../generated/enums/edition-kind'
 import { EnhancementKind } from '../generated/enums/enhancement-kind'
@@ -132,12 +133,13 @@ export function tagFor(state: RunState, blind: BlindKind): string | undefined {
 }
 
 /** 런 하나를 시작합니다. */
-export function newRun(data: Data, seed: string, deckId: string, stake: string): Step {
+export function newRun(data: Data, seed: string, deckId: string, stake: string,
+                       pools: JokerPool[] = [JokerPool.Base]): Step {
   const rng: Record<string, Pcg32> = {}
   for (const stream of STREAMS) rng[stream] = streamRng(seed, stream)
 
   const state: RunState = {
-    seed, deckId, stake,
+    seed, deckId, stake, pools,
     phase: 'blind-select',
     ante: 1,
     blind: BlindKind.Small,

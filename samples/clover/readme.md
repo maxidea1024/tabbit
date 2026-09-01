@@ -47,6 +47,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/clover/design-data/re
 |`Joker` · `Tarot` · `Blind` · `Ante` 같은 범주의 일반명사|**그대로.** 트럼프와 포커의 낱말입니다|
 |대아르카나 22종 · 행성명 · 포커 족보 이름|**그대로.** 원작보다 앞서는 이름입니다|
 |조커 150종의 이름 · 설명문 · 그림|**자작.** [대조표](doc/parity/jokers.md)에 「원작 X = 우리 Y」가 있습니다|
+|조커 350종|**원작에 대응이 없습니다.** 규칙과 수치까지 우리가 정한 [확장](doc/expansion.md)입니다|
 |트럼프 52장의 얼굴|**가져온 것.** 공유 재산의 English pattern 한 벌입니다 — [어디서 왔는가](web/public/art/card/readme.md)|
 
 원작의 그림을 보지 않고 만듭니다. **트럼프만 예외입니다** — 그 얼굴은 몇백 년째 같은 모양이고

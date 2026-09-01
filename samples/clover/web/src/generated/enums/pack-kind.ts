@@ -5,7 +5,7 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from run.tbs(35,6)
+// Generated from run.tbs(43,6)
 /** 팩의 갈래. 무엇이 담기는가입니다. */
 export enum PackKind {
   /** 타로가 담깁니다. */

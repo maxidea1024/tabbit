@@ -1,154 +1,504 @@
 :table Joker(key=joker_id)	조커 한 종입니다. 효과는 `JokerEffect` 에 있고 여기에는 그 종의 성질만 있습니다.
-:field	joker_id	rarity	cost	name	art	blueprint_ok	sort_order
-:type	string (regex="^[a-z][a-z0-9_]*$")	Rarity	int (min=1, max=10)	string (text=Joker)	string (asset=joker)	bool	int (min=1, max=150)
-:desc	식별자	희귀도	상점에서의 값	표시 이름	그림	복사 조커가 복사할 수 있는가	수집 목록에서의 순서
-	twig	Common	2	둥근 잔가지	twig	true	1
-	quartz_bloom	Common	5	석영꽃	quartz_bloom	true	2
-	poppy_bloom	Common	5	양귀비꽃	poppy_bloom	true	3
-	nettle_bloom	Common	5	쐐기풀꽃	nettle_bloom	true	4
-	clover_bloom	Common	5	클로버꽃	clover_bloom	true	5
-	warbler	Common	3	휘파람새	warbler	true	6
-	starling	Common	4	찌르레기	starling	true	7
-	magpie	Common	4	까치	magpie	true	8
-	swallow	Common	4	제비	swallow	true	9
-	finch	Common	4	되새	finch	true	10
-	cricket	Common	3	귀뚜라미	cricket	true	11
-	mantis	Common	4	사마귀	mantis	true	12
-	beetle	Common	4	딱정벌레	beetle	true	13
-	centipede	Common	4	그리마	centipede	true	14
-	firefly	Common	4	개똥벌레	firefly	true	15
-	half_pot	Common	5	반쪽 화분	half_pot	true	16
-	ledger_note	Common	1	외상 장부	ledger_note	false	17
-	bunting	Common	5	깃발천	bunting	true	18
-	last_ridge	Common	5	마지막 능선	last_ridge	true	19
-	eight_bell	Common	5	여덟째 종	eight_bell	true	20
-	smudge	Common	4	번짐	smudge	true	21
-	low_branch	Common	5	낮은 가지	low_branch	true	22
-	muddle	Common	4	헝클림	muddle	false	23
-	grim_mask	Common	4	무서운 가면	grim_mask	true	24
-	tangle	Common	4	엉킴	tangle	true	25
-	slow_pot	Common	4	더딘 항아리	slow_pot	true	26
-	windfall_pear	Common	5	바람 맞은 배	windfall_pear	true	27
-	even_ivy	Common	4	짝수 담쟁이	even_ivy	true	28
-	odd_alder	Common	4	홀수 오리나무	odd_alder	true	29
-	almanac	Common	4	낡은 연감	almanac	true	30
-	trade_card	Common	4	거래 명함	trade_card	true	31
-	nova_bud	Common	5	새로 뜬 별	nova_bud	true	32
-	long_path	Common	6	긴 길	long_path	true	33
-	seed_pod	Common	4	씨주머니	seed_pod	true	34
-	creeper	Common	5	덩굴손	creeper	true	35
-	frost_pane	Common	5	서린 유리	frost_pane	true	36
-	downpour	Common	3	소나기	downpour	false	37
-	blue_lantern	Common	5	파란 등	blue_lantern	true	38
-	blank_mask	Common	4	빈 가면	blank_mask	true	39
-	green_shoot	Common	4	초록 싹	green_shoot	true	40
-	twin_state	Common	4	겹친 상태	twin_state	true	41
-	chore_list	Common	4	할 일 목록	chore_list	true	42
-	orchard_pear	Common	4	과수원 배	orchard_pear	true	43
-	red_ticket	Common	5	붉은 표	red_ticket	true	44
-	square_trellis	Common	4	네모 격자	square_trellis	true	45
-	rabble	Common	6	잡것들	rabble	true	46
-	tintype	Common	5	은판 사진	tintype	true	47
-	garden_bench	Common	6	정원 벤치	garden_bench	true	48
-	rebate_slip	Common	4	환급 전표	rebate_slip	true	49
-	daydream	Common	4	백일몽	daydream	true	50
-	palm_reader	Common	6	손금 읽는 이	palm_reader	true	51
-	spinner	Common	4	던지는 이	spinner	false	52
-	tippler	Common	4	한잔하는 이	tippler	false	53
-	gilt_coin	Common	6	금박 동전	gilt_coin	true	54
-	puffball	Common	5	먼지버섯	puffball	true	55
-	tin_horn	Common	4	양철 나팔	tin_horn	true	56
-	glad_mask	Common	4	웃는 가면	glad_mask	true	57
-	gilt_stub	Common	5	금박 표	gilt_stub	true	58
-	bramble_blade	Common	4	가시 칼	bramble_blade	true	59
-	moonshot	Common	5	달 겨눔	moonshot	true	60
-	torn_tab	Common	4	찢긴 쪽지	torn_tab	true	61
-	empty_frame	Uncommon	8	빈 액자	empty_frame	true	62
-	four_knuckles	Uncommon	7	네 마디	four_knuckles	false	63
-	mummer	Uncommon	5	무언극배우	mummer	true	64
-	pruning_shears	Uncommon	6	전정 가위	pruning_shears	true	65
-	pebble_jar	Uncommon	6	자갈 항아리	pebble_jar	true	66
-	punch_card	Uncommon	5	도장 카드	punch_card	true	67
-	twilight	Uncommon	5	해거름	twilight	true	68
-	spiral_shell	Uncommon	8	나선 껍질	spiral_shell	true	69
-	steel_trellis	Uncommon	7	강철 격자	steel_trellis	true	70
-	notch	Uncommon	6	눈금	notch	true	71
-	face_pattern	Uncommon	5	얼굴 무늬	face_pattern	false	72
-	comet_tail	Uncommon	5	혜성 꼬리	comet_tail	true	73
-	night_thief	Uncommon	6	밤손님	night_thief	true	74
-	slate_board	Uncommon	6	점판암 판	slate_board	true	75
-	hunch	Uncommon	6	예감	hunch	true	76
-	star_chart	Uncommon	6	별자리표	star_chart	true	77
-	wanderer	Uncommon	5	나그네	wanderer	true	78
-	sharper	Uncommon	6	타짜	sharper	true	79
-	fever	Uncommon	7	열병	fever	true	80
-	vigil	Uncommon	6	밤샘	vigil	true	81
-	leech_vine	Uncommon	7	거머리 덩굴	leech_vine	true	82
-	stepping_stone	Uncommon	7	디딤돌	stepping_stone	false	83
-	glass_ghost	Uncommon	7	유리 그림자	glass_ghost	true	84
-	ninth_cloud	Uncommon	7	아홉째 구름	ninth_cloud	true	85
-	sky_rocket	Uncommon	6	불화살	sky_rocket	true	86
-	gilt_mask	Uncommon	7	금박 가면	gilt_mask	true	87
-	ring_fighter	Uncommon	5	링의 투사	ring_fighter	false	88
-	gift_tag	Uncommon	6	선물 꼬리표	gift_tag	true	89
-	broad_bean	Uncommon	6	넓은 콩	broad_bean	true	90
-	washout	Uncommon	6	씻김	washout	true	91
-	moon_ladder	Uncommon	5	달 사다리	moon_ladder	false	92
-	cairn	Uncommon	6	돌무지	cairn	true	93
-	lucky_toad	Uncommon	6	복 두꺼비	lucky_toad	true	94
-	soda_cap	Uncommon	6	음료 뚜껑	soda_cap	false	95
-	swap_note	Uncommon	6	교환 쪽지	swap_note	true	96
-	flash_note	Uncommon	5	섬광 쪽지	flash_note	true	97
-	spare_gloves	Uncommon	6	여벌 장갑	spare_gloves	true	98
-	noodle_pot	Uncommon	6	국수 냄비	noodle_pot	true	99
-	fizz_bottle	Uncommon	6	탄산병	fizz_bottle	true	100
-	stone_keep	Uncommon	6	돌 성채	stone_keep	true	101
-	tumbler	Uncommon	6	곡예사	tumbler	true	102
-	two_masks	Uncommon	6	두 가면	two_masks	true	103
-	fiddler	Uncommon	6	악사	fiddler	false	104
-	deed_stamp	Uncommon	6	증서 도장	deed_stamp	true	105
-	smudged_pane	Uncommon	7	번진 유리	smudged_pane	false	106
-	old_route	Uncommon	6	옛 길	old_route	true	107
-	raw_gem	Uncommon	7	원석	raw_gem	true	108
-	heartstone	Uncommon	7	피돌	heartstone	true	109
-	arrow_flint	Uncommon	7	화살 부싯돌	arrow_flint	true	110
-	onyx_leaf	Uncommon	7	검은 잎	onyx_leaf	true	111
-	shard_jar	Uncommon	6	파편 항아리	shard_jar	true	112
-	barker	Uncommon	5	호객꾼	barker	false	113
-	four_beds	Uncommon	6	네 화단	four_beds	true	114
-	glad_fool	Uncommon	7	즐거운 광대	glad_fool	false	115
-	loaded_dice	Uncommon	4	납 주사위	loaded_dice	false	116
-	the_effigy	Uncommon	6	목각 인형	the_effigy	true	117
-	double_sight	Uncommon	6	겹보임	double_sight	true	118
-	bullfighter	Uncommon	7	투우사	bullfighter	true	119
-	orbit_dish	Uncommon	6	접시 안테나	orbit_dish	true	120
-	card_reader	Uncommon	6	카드 읽는 이	card_reader	true	121
-	stargazer	Uncommon	8	별 보는 이	stargazer	false	122
-	bootlace	Uncommon	7	구두끈	bootlace	true	123
-	ox_yoke	Uncommon	6	황소 멍에	ox_yoke	true	124
-	old_bones	Uncommon	5	낡은 뼈	old_bones	true	125
-	graft	Rare	8	접붙임	graft	true	126
-	drifter	Rare	8	떠돌이	drifter	true	127
-	steward	Rare	8	집사	steward	true	128
-	standing_stone	Rare	8	선돌	standing_stone	true	129
-	rookie_card	Rare	8	신인 카드	rookie_card	true	130
-	old_sigil	Rare	8	옛 인장	old_sigil	true	131
-	bonfire	Rare	9	모닥불	bonfire	true	132
-	tracing	Rare	10	덧그림	tracing	false	133
-	tiny_tot	Rare	8	꼬맹이	tiny_tot	true	134
-	open_road	Rare	8	열린 길	open_road	true	135
-	the_bond	Rare	8	맺음	the_bond	true	136
-	the_braid	Rare	8	세 갈래	the_braid	true	137
-	the_brood	Rare	8	한 배	the_brood	true	138
-	the_march	Rare	8	행렬	the_march	true	139
-	the_flock	Rare	8	무리	the_flock	true	140
-	deadweight	Rare	7	짐덩이	deadweight	true	141
-	faint_outline	Rare	8	희미한 윤곽	faint_outline	false	142
-	mirror_note	Rare	10	거울 쪽지	mirror_note	false	143
-	road_permit	Rare	7	통행 허가	road_permit	true	144
-	scorch_mark	Rare	8	그을음	scorch_mark	true	145
-	verdigris	Legendary	10	녹빛	verdigris	true	146
-	coronet	Legendary	10	작은 관	coronet	true	147
-	gravebloom	Legendary	10	무덤꽃	gravebloom	true	148
-	hushbell	Legendary	10	잠잠종	hushbell	false	149
-	echoseed	Legendary	10	메아리씨	echoseed	true	150
+:field	joker_id	rarity	cost	name	art	blueprint_ok	sort_order	pool
+:type	string (regex="^[a-z][a-z0-9_]*$")	Rarity	int (min=1, max=10)	string (text=Joker)	string (asset=joker)	bool	int (min=1, max=500)	JokerPool
+:desc	식별자	희귀도	상점에서의 값	표시 이름	그림	복사 조커가 복사할 수 있는가	수집 목록에서의 순서	어느 풀에 드는가
+	twig	Common	2	둥근 잔가지	twig	true	1	Base
+	quartz_bloom	Common	5	석영꽃	quartz_bloom	true	2	Base
+	poppy_bloom	Common	5	양귀비꽃	poppy_bloom	true	3	Base
+	nettle_bloom	Common	5	쐐기풀꽃	nettle_bloom	true	4	Base
+	clover_bloom	Common	5	클로버꽃	clover_bloom	true	5	Base
+	warbler	Common	3	휘파람새	warbler	true	6	Base
+	starling	Common	4	찌르레기	starling	true	7	Base
+	magpie	Common	4	까치	magpie	true	8	Base
+	swallow	Common	4	제비	swallow	true	9	Base
+	finch	Common	4	되새	finch	true	10	Base
+	cricket	Common	3	귀뚜라미	cricket	true	11	Base
+	mantis	Common	4	사마귀	mantis	true	12	Base
+	beetle	Common	4	딱정벌레	beetle	true	13	Base
+	centipede	Common	4	그리마	centipede	true	14	Base
+	firefly	Common	4	개똥벌레	firefly	true	15	Base
+	half_pot	Common	5	반쪽 화분	half_pot	true	16	Base
+	ledger_note	Common	1	외상 장부	ledger_note	false	17	Base
+	bunting	Common	5	깃발천	bunting	true	18	Base
+	last_ridge	Common	5	마지막 능선	last_ridge	true	19	Base
+	eight_bell	Common	5	여덟째 종	eight_bell	true	20	Base
+	smudge	Common	4	번짐	smudge	true	21	Base
+	low_branch	Common	5	낮은 가지	low_branch	true	22	Base
+	muddle	Common	4	헝클림	muddle	false	23	Base
+	grim_mask	Common	4	무서운 가면	grim_mask	true	24	Base
+	tangle	Common	4	엉킴	tangle	true	25	Base
+	slow_pot	Common	4	더딘 항아리	slow_pot	true	26	Base
+	windfall_pear	Common	5	바람 맞은 배	windfall_pear	true	27	Base
+	even_ivy	Common	4	짝수 담쟁이	even_ivy	true	28	Base
+	odd_alder	Common	4	홀수 오리나무	odd_alder	true	29	Base
+	almanac	Common	4	낡은 연감	almanac	true	30	Base
+	trade_card	Common	4	거래 명함	trade_card	true	31	Base
+	nova_bud	Common	5	새로 뜬 별	nova_bud	true	32	Base
+	long_path	Common	6	긴 길	long_path	true	33	Base
+	seed_pod	Common	4	씨주머니	seed_pod	true	34	Base
+	creeper	Common	5	덩굴손	creeper	true	35	Base
+	frost_pane	Common	5	서린 유리	frost_pane	true	36	Base
+	downpour	Common	3	소나기	downpour	false	37	Base
+	blue_lantern	Common	5	파란 등	blue_lantern	true	38	Base
+	blank_mask	Common	4	빈 가면	blank_mask	true	39	Base
+	green_shoot	Common	4	초록 싹	green_shoot	true	40	Base
+	twin_state	Common	4	겹친 상태	twin_state	true	41	Base
+	chore_list	Common	4	할 일 목록	chore_list	true	42	Base
+	orchard_pear	Common	4	과수원 배	orchard_pear	true	43	Base
+	red_ticket	Common	5	붉은 표	red_ticket	true	44	Base
+	square_trellis	Common	4	네모 격자	square_trellis	true	45	Base
+	rabble	Common	6	잡것들	rabble	true	46	Base
+	tintype	Common	5	은판 사진	tintype	true	47	Base
+	garden_bench	Common	6	정원 벤치	garden_bench	true	48	Base
+	rebate_slip	Common	4	환급 전표	rebate_slip	true	49	Base
+	daydream	Common	4	백일몽	daydream	true	50	Base
+	palm_reader	Common	6	손금 읽는 이	palm_reader	true	51	Base
+	spinner	Common	4	던지는 이	spinner	false	52	Base
+	tippler	Common	4	한잔하는 이	tippler	false	53	Base
+	gilt_coin	Common	6	금박 동전	gilt_coin	true	54	Base
+	puffball	Common	5	먼지버섯	puffball	true	55	Base
+	tin_horn	Common	4	양철 나팔	tin_horn	true	56	Base
+	glad_mask	Common	4	웃는 가면	glad_mask	true	57	Base
+	gilt_stub	Common	5	금박 표	gilt_stub	true	58	Base
+	bramble_blade	Common	4	가시 칼	bramble_blade	true	59	Base
+	moonshot	Common	5	달 겨눔	moonshot	true	60	Base
+	torn_tab	Common	4	찢긴 쪽지	torn_tab	true	61	Base
+	empty_frame	Uncommon	8	빈 액자	empty_frame	true	62	Base
+	four_knuckles	Uncommon	7	네 마디	four_knuckles	false	63	Base
+	mummer	Uncommon	5	무언극배우	mummer	true	64	Base
+	pruning_shears	Uncommon	6	전정 가위	pruning_shears	true	65	Base
+	pebble_jar	Uncommon	6	자갈 항아리	pebble_jar	true	66	Base
+	punch_card	Uncommon	5	도장 카드	punch_card	true	67	Base
+	twilight	Uncommon	5	해거름	twilight	true	68	Base
+	spiral_shell	Uncommon	8	나선 껍질	spiral_shell	true	69	Base
+	steel_trellis	Uncommon	7	강철 격자	steel_trellis	true	70	Base
+	notch	Uncommon	6	눈금	notch	true	71	Base
+	face_pattern	Uncommon	5	얼굴 무늬	face_pattern	false	72	Base
+	comet_tail	Uncommon	5	혜성 꼬리	comet_tail	true	73	Base
+	night_thief	Uncommon	6	밤손님	night_thief	true	74	Base
+	slate_board	Uncommon	6	점판암 판	slate_board	true	75	Base
+	hunch	Uncommon	6	예감	hunch	true	76	Base
+	star_chart	Uncommon	6	별자리표	star_chart	true	77	Base
+	wanderer	Uncommon	5	나그네	wanderer	true	78	Base
+	sharper	Uncommon	6	타짜	sharper	true	79	Base
+	fever	Uncommon	7	열병	fever	true	80	Base
+	vigil	Uncommon	6	밤샘	vigil	true	81	Base
+	leech_vine	Uncommon	7	거머리 덩굴	leech_vine	true	82	Base
+	stepping_stone	Uncommon	7	디딤돌	stepping_stone	false	83	Base
+	glass_ghost	Uncommon	7	유리 그림자	glass_ghost	true	84	Base
+	ninth_cloud	Uncommon	7	아홉째 구름	ninth_cloud	true	85	Base
+	sky_rocket	Uncommon	6	불화살	sky_rocket	true	86	Base
+	gilt_mask	Uncommon	7	금박 가면	gilt_mask	true	87	Base
+	ring_fighter	Uncommon	5	링의 투사	ring_fighter	false	88	Base
+	gift_tag	Uncommon	6	선물 꼬리표	gift_tag	true	89	Base
+	broad_bean	Uncommon	6	넓은 콩	broad_bean	true	90	Base
+	washout	Uncommon	6	씻김	washout	true	91	Base
+	moon_ladder	Uncommon	5	달 사다리	moon_ladder	false	92	Base
+	cairn	Uncommon	6	돌무지	cairn	true	93	Base
+	lucky_toad	Uncommon	6	복 두꺼비	lucky_toad	true	94	Base
+	soda_cap	Uncommon	6	음료 뚜껑	soda_cap	false	95	Base
+	swap_note	Uncommon	6	교환 쪽지	swap_note	true	96	Base
+	flash_note	Uncommon	5	섬광 쪽지	flash_note	true	97	Base
+	spare_gloves	Uncommon	6	여벌 장갑	spare_gloves	true	98	Base
+	noodle_pot	Uncommon	6	국수 냄비	noodle_pot	true	99	Base
+	fizz_bottle	Uncommon	6	탄산병	fizz_bottle	true	100	Base
+	stone_keep	Uncommon	6	돌 성채	stone_keep	true	101	Base
+	tumbler	Uncommon	6	곡예사	tumbler	true	102	Base
+	two_masks	Uncommon	6	두 가면	two_masks	true	103	Base
+	fiddler	Uncommon	6	악사	fiddler	false	104	Base
+	deed_stamp	Uncommon	6	증서 도장	deed_stamp	true	105	Base
+	smudged_pane	Uncommon	7	번진 유리	smudged_pane	false	106	Base
+	old_route	Uncommon	6	옛 길	old_route	true	107	Base
+	raw_gem	Uncommon	7	원석	raw_gem	true	108	Base
+	heartstone	Uncommon	7	피돌	heartstone	true	109	Base
+	arrow_flint	Uncommon	7	화살 부싯돌	arrow_flint	true	110	Base
+	onyx_leaf	Uncommon	7	검은 잎	onyx_leaf	true	111	Base
+	shard_jar	Uncommon	6	파편 항아리	shard_jar	true	112	Base
+	barker	Uncommon	5	호객꾼	barker	false	113	Base
+	four_beds	Uncommon	6	네 화단	four_beds	true	114	Base
+	glad_fool	Uncommon	7	즐거운 광대	glad_fool	false	115	Base
+	loaded_dice	Uncommon	4	납 주사위	loaded_dice	false	116	Base
+	the_effigy	Uncommon	6	목각 인형	the_effigy	true	117	Base
+	double_sight	Uncommon	6	겹보임	double_sight	true	118	Base
+	bullfighter	Uncommon	7	투우사	bullfighter	true	119	Base
+	orbit_dish	Uncommon	6	접시 안테나	orbit_dish	true	120	Base
+	card_reader	Uncommon	6	카드 읽는 이	card_reader	true	121	Base
+	stargazer	Uncommon	8	별 보는 이	stargazer	false	122	Base
+	bootlace	Uncommon	7	구두끈	bootlace	true	123	Base
+	ox_yoke	Uncommon	6	황소 멍에	ox_yoke	true	124	Base
+	old_bones	Uncommon	5	낡은 뼈	old_bones	true	125	Base
+	graft	Rare	8	접붙임	graft	true	126	Base
+	drifter	Rare	8	떠돌이	drifter	true	127	Base
+	steward	Rare	8	집사	steward	true	128	Base
+	standing_stone	Rare	8	선돌	standing_stone	true	129	Base
+	rookie_card	Rare	8	신인 카드	rookie_card	true	130	Base
+	old_sigil	Rare	8	옛 인장	old_sigil	true	131	Base
+	bonfire	Rare	9	모닥불	bonfire	true	132	Base
+	tracing	Rare	10	덧그림	tracing	false	133	Base
+	tiny_tot	Rare	8	꼬맹이	tiny_tot	true	134	Base
+	open_road	Rare	8	열린 길	open_road	true	135	Base
+	the_bond	Rare	8	맺음	the_bond	true	136	Base
+	the_braid	Rare	8	세 갈래	the_braid	true	137	Base
+	the_brood	Rare	8	한 배	the_brood	true	138	Base
+	the_march	Rare	8	행렬	the_march	true	139	Base
+	the_flock	Rare	8	무리	the_flock	true	140	Base
+	deadweight	Rare	7	짐덩이	deadweight	true	141	Base
+	faint_outline	Rare	8	희미한 윤곽	faint_outline	false	142	Base
+	mirror_note	Rare	10	거울 쪽지	mirror_note	false	143	Base
+	road_permit	Rare	7	통행 허가	road_permit	true	144	Base
+	scorch_mark	Rare	8	그을음	scorch_mark	true	145	Base
+	verdigris	Legendary	10	녹빛	verdigris	true	146	Base
+	coronet	Legendary	10	작은 관	coronet	true	147	Base
+	gravebloom	Legendary	10	무덤꽃	gravebloom	true	148	Base
+	hushbell	Legendary	10	잠잠종	hushbell	false	149	Base
+	echoseed	Legendary	10	메아리씨	echoseed	true	150	Base
+	ash_rose	Common	4	잿빛 장미	ash_rose	true	151	Greenhouse
+	dusk_iris	Common	4	어스름 붓꽃	dusk_iris	true	152	Greenhouse
+	paint_pot	Common	5	물감통	paint_pot	true	153	Greenhouse
+	dye_vat	Common	5	염료 통	dye_vat	true	154	Greenhouse
+	pollen_veil	Common	4	꽃가루 너울	pollen_veil	true	155	Greenhouse
+	petal_drift	Common	5	꽃잎 흘림	petal_drift	true	156	Greenhouse
+	glass_petal	Common	6	유리 꽃잎	glass_petal	true	157	Greenhouse
+	ochre_brush	Common	5	황토 붓	ochre_brush	true	158	Greenhouse
+	woad_brush	Common	5	쪽빛 붓	woad_brush	true	159	Greenhouse
+	slate_ring	Uncommon	7	슬레이트 고리	slate_ring	true	160	Greenhouse
+	crimson_ring	Uncommon	7	붉은 고리	crimson_ring	true	161	Greenhouse
+	moss_ring	Uncommon	7	이끼 고리	moss_ring	true	162	Greenhouse
+	amber_ring	Uncommon	8	호박 고리	amber_ring	true	163	Greenhouse
+	night_veil	Uncommon	8	밤 너울	night_veil	true	164	Greenhouse
+	dawn_veil	Uncommon	8	새벽 너울	dawn_veil	true	165	Greenhouse
+	tinted_pane	Uncommon	6	물든 유리	tinted_pane	true	166	Greenhouse
+	bleach_jar	Uncommon	6	탈색 항아리	bleach_jar	true	167	Greenhouse
+	pigment_mill	Uncommon	8	안료 방앗간	pigment_mill	true	168	Greenhouse
+	veiled_lamp	Uncommon	6	가린 등	veiled_lamp	true	169	Greenhouse
+	coral_ring	Uncommon	7	산호 고리	coral_ring	true	170	Greenhouse
+	black_coronet	Rare	8	검은 화관	black_coronet	true	171	Greenhouse
+	red_coronet	Rare	9	붉은 화관	red_coronet	true	172	Greenhouse
+	dye_press	Rare	8	염료 압착기	dye_press	true	173	Greenhouse
+	sunfast_glaze	Rare	9	볕에 굳은 유약	sunfast_glaze	true	174	Greenhouse
+	full_palette	Legendary	10	온 팔레트	full_palette	true	175	Greenhouse
+	plum_stone	Common	4	자두씨	plum_stone	true	176	Greenhouse
+	acorn_cup	Common	4	도토리 깍정이	acorn_cup	true	177	Greenhouse
+	rose_hip	Common	4	장미 열매	rose_hip	true	178	Greenhouse
+	hazel_shell	Common	5	개암 껍질	hazel_shell	true	179	Greenhouse
+	bean_row	Common	5	콩 줄	bean_row	true	180	Greenhouse
+	millet_ear	Common	4	조 이삭	millet_ear	true	181	Greenhouse
+	sloe_berry	Common	5	야생 자두	sloe_berry	true	182	Greenhouse
+	pip_pouch	Common	5	씨앗 주머니	pip_pouch	true	183	Greenhouse
+	chaff_sieve	Common	4	쭉정이 체	chaff_sieve	true	184	Greenhouse
+	quince_jar	Uncommon	7	마르멜로 항아리	quince_jar	true	185	Greenhouse
+	king_pod	Uncommon	7	왕 꼬투리	king_pod	true	186	Greenhouse
+	ace_husk	Uncommon	8	으뜸 껍질	ace_husk	true	187	Greenhouse
+	seed_ledger	Uncommon	6	씨앗 대장	seed_ledger	true	188	Greenhouse
+	bitter_pip	Uncommon	6	쓴 씨	bitter_pip	true	189	Greenhouse
+	sweet_pip	Uncommon	6	단 씨	sweet_pip	true	190	Greenhouse
+	walnut_press	Uncommon	7	호두 압착기	walnut_press	true	191	Greenhouse
+	husk_lamp	Uncommon	7	껍질 등	husk_lamp	true	192	Greenhouse
+	chestnut_burr	Uncommon	7	밤송이	chestnut_burr	true	193	Greenhouse
+	date_stone	Uncommon	8	대추씨	date_stone	true	194	Greenhouse
+	pomace_cask	Uncommon	6	사과 찌끼 통	pomace_cask	true	195	Greenhouse
+	thirteen_seeds	Rare	9	열세 씨앗	thirteen_seeds	true	196	Greenhouse
+	stone_fruit	Rare	8	씨 굳은 열매	stone_fruit	true	197	Greenhouse
+	ripe_year	Rare	10	익은 해	ripe_year	true	198	Greenhouse
+	regal_pair	Rare	8	왕과 으뜸	regal_pair	true	199	Greenhouse
+	granary	Legendary	10	곳간	granary	true	200	Greenhouse
+	wren	Common	3	굴뚝새	wren	true	201	Greenhouse
+	dipper	Common	4	물까마귀	dipper	true	202	Greenhouse
+	crake	Common	4	뜸부기	crake	true	203	Greenhouse
+	plover	Common	4	물떼새	plover	true	204	Greenhouse
+	shrike	Common	5	때까치	shrike	true	205	Greenhouse
+	nuthatch	Common	5	동고비	nuthatch	true	206	Greenhouse
+	flock_call	Common	5	떼 부름	flock_call	true	207	Greenhouse
+	heron_watch	Common	5	왜가리 지킴	heron_watch	true	208	Greenhouse
+	swift_line	Common	4	칼새 줄	swift_line	true	209	Greenhouse
+	godwit	Uncommon	7	마도요	godwit	true	210	Greenhouse
+	curlew	Uncommon	7	알락꼬리	curlew	true	211	Greenhouse
+	lapwing	Uncommon	8	댕기물떼새	lapwing	true	212	Greenhouse
+	rookery	Uncommon	7	새 둥지터	rookery	true	213	Greenhouse
+	kestrel	Uncommon	6	황조롱이	kestrel	true	214	Greenhouse
+	migrant_line	Uncommon	7	철새 줄	migrant_line	true	215	Greenhouse
+	wing_beat	Uncommon	7	날갯짓	wing_beat	true	216	Greenhouse
+	pinion_case	Uncommon	6	깃 상자	pinion_case	true	217	Greenhouse
+	covey	Uncommon	7	메추라기 떼	covey	true	218	Greenhouse
+	lone_gull	Uncommon	6	외로운 갈매기	lone_gull	true	219	Greenhouse
+	great_bustard	Rare	9	느시	great_bustard	true	220	Greenhouse
+	firecrest	Rare	8	상모솔새	firecrest	true	221	Greenhouse
+	albatross	Rare	9	알바트로스	albatross	true	222	Greenhouse
+	swan_song	Rare	9	백조의 노래	swan_song	true	223	Greenhouse
+	sandpiper	Rare	8	삑삑도요	sandpiper	true	224	Greenhouse
+	great_flock	Legendary	10	큰 무리	great_flock	true	225	Greenhouse
+	leaf_fall	Common	4	낙엽	leaf_fall	true	226	Greenhouse
+	compost_bin	Common	5	퇴비통	compost_bin	true	227	Greenhouse
+	rake_head	Common	4	갈퀴	rake_head	true	228	Greenhouse
+	dry_twine	Common	4	마른 끈	dry_twine	true	229	Greenhouse
+	weed_fork	Common	5	잡초 갈퀴	weed_fork	true	230	Greenhouse
+	chaff_pile	Common	5	쭉정이 더미	chaff_pile	true	231	Greenhouse
+	hedge_snips	Common	4	산울타리 가위	hedge_snips	true	232	Greenhouse
+	windrow	Common	5	마른 풀 줄	windrow	true	233	Greenhouse
+	sap_pail	Common	4	수액 통	sap_pail	true	234	Greenhouse
+	mulch_bed	Uncommon	7	뿌리덮개	mulch_bed	true	235	Greenhouse
+	sieve_frame	Uncommon	6	체 틀	sieve_frame	true	236	Greenhouse
+	long_shears	Uncommon	6	긴 가위	long_shears	false	237	Greenhouse
+	thinning_hook	Uncommon	7	솎음 낫	thinning_hook	true	238	Greenhouse
+	bramble_gate	Uncommon	7	가시 문	bramble_gate	true	239	Greenhouse
+	full_basket	Uncommon	7	가득 찬 바구니	full_basket	true	240	Greenhouse
+	wither_line	Uncommon	6	시든 줄	wither_line	true	241	Greenhouse
+	dross_jar	Uncommon	7	찌끼 항아리	dross_jar	true	242	Greenhouse
+	stubble_field	Uncommon	7	그루터기 밭	stubble_field	true	243	Greenhouse
+	smoke_ring	Uncommon	6	연기 고리	smoke_ring	true	244	Greenhouse
+	cut_flowers	Uncommon	8	꺾은 꽃	cut_flowers	true	245	Greenhouse
+	scythe_moon	Rare	8	낫 같은 달	scythe_moon	true	246	Greenhouse
+	great_compost	Rare	9	큰 퇴비	great_compost	true	247	Greenhouse
+	bare_bed	Rare	8	맨 화단	bare_bed	true	248	Greenhouse
+	winnow_wind	Rare	9	키질 바람	winnow_wind	true	249	Greenhouse
+	endless_autumn	Legendary	10	끝없는 가을	endless_autumn	true	250	Greenhouse
+	copper_scale	Common	4	구리 저울	copper_scale	true	251	Greenhouse
+	tin_till	Common	5	양철 금고	tin_till	true	252	Greenhouse
+	debt_slate	Common	2	빚 서판	debt_slate	true	253	Greenhouse
+	coin_purse	Common	5	돈주머니	coin_purse	true	254	Greenhouse
+	market_stall	Common	5	장터 좌판	market_stall	true	255	Greenhouse
+	haggler	Common	4	값 깎는 이	haggler	false	256	Greenhouse
+	brass_weight	Common	5	놋 분동	brass_weight	true	257	Greenhouse
+	empty_purse	Common	4	빈 주머니	empty_purse	true	258	Greenhouse
+	toll_gate	Common	4	통행 문	toll_gate	true	259	Greenhouse
+	interest_book	Uncommon	7	이자 책	interest_book	false	260	Greenhouse
+	coin_press	Uncommon	7	동전 압착기	coin_press	true	261	Greenhouse
+	strongbox	Uncommon	7	금고	strongbox	true	262	Greenhouse
+	gilt_ledger	Uncommon	8	금박 장부	gilt_ledger	true	263	Greenhouse
+	usurer	Uncommon	6	돈놀이꾼	usurer	false	264	Greenhouse
+	spent_note	Uncommon	6	쓴 어음	spent_note	true	265	Greenhouse
+	alms_bowl	Uncommon	6	구휼 그릇	alms_bowl	true	266	Greenhouse
+	weighbridge	Uncommon	7	계량대	weighbridge	true	267	Greenhouse
+	broker	Uncommon	7	거래인	broker	true	268	Greenhouse
+	sealed_chest	Uncommon	8	봉한 상자	sealed_chest	true	269	Greenhouse
+	royal_mint	Rare	10	왕실 주조소	royal_mint	true	270	Greenhouse
+	debt_spiral	Rare	8	빚의 나선	debt_spiral	true	271	Greenhouse
+	tithe_barn	Rare	9	십일조 곳간	tithe_barn	true	272	Greenhouse
+	counting_house	Rare	9	셈방	counting_house	true	273	Greenhouse
+	iron_reserve	Rare	8	무쇠 준비금	iron_reserve	false	274	Greenhouse
+	golden_hoard	Legendary	10	황금 무더기	golden_hoard	true	275	Greenhouse
+	tap_root	Common	5	곧은 뿌리	tap_root	true	276	Greenhouse
+	year_ring	Common	5	나이테	year_ring	true	277	Greenhouse
+	runner_vine	Common	4	기는 덩굴	runner_vine	true	278	Greenhouse
+	bud_scale	Common	4	눈 비늘	bud_scale	true	279	Greenhouse
+	sap_rise	Common	5	수액 오름	sap_rise	true	280	Greenhouse
+	moss_stair	Common	4	이끼 계단	moss_stair	true	281	Greenhouse
+	bark_fold	Common	5	껍질 주름	bark_fold	true	282	Greenhouse
+	first_leaf	Common	4	첫 잎	first_leaf	true	283	Greenhouse
+	heartwood	Uncommon	7	심재	heartwood	true	284	Greenhouse
+	girdle_band	Uncommon	7	두름 띠	girdle_band	true	285	Greenhouse
+	pollard_stump	Uncommon	7	잘린 그루	pollard_stump	true	286	Greenhouse
+	graft_union	Uncommon	8	접합부	graft_union	true	287	Greenhouse
+	spore_cloud	Uncommon	7	홀씨 구름	spore_cloud	true	288	Greenhouse
+	deep_root	Uncommon	8	깊은 뿌리	deep_root	true	289	Greenhouse
+	climbing_rose	Uncommon	7	오르는 장미	climbing_rose	true	290	Greenhouse
+	withy_band	Uncommon	6	고리버들 띠	withy_band	true	291	Greenhouse
+	knot_wood	Uncommon	7	옹이	knot_wood	true	292	Greenhouse
+	shade_leaf	Uncommon	6	그늘잎	shade_leaf	true	293	Greenhouse
+	bind_weed	Uncommon	8	메꽃	bind_weed	true	294	Greenhouse
+	old_oak	Rare	9	늙은 참나무	old_oak	true	295	Greenhouse
+	crown_gall	Rare	8	뿌리혹	crown_gall	true	296	Greenhouse
+	wild_stock	Rare	9	대목	wild_stock	true	297	Greenhouse
+	standing_grove	Rare	9	선 숲	standing_grove	true	298	Greenhouse
+	everbearing	Rare	10	사철 열림	everbearing	true	299	Greenhouse
+	world_tree	Legendary	10	세계나무	world_tree	true	300	Greenhouse
+	thorn_ring	Common	4	가시 고리	thorn_ring	true	301	Greenhouse
+	nightshade_cup	Common	5	까마중 잔	nightshade_cup	true	302	Greenhouse
+	frost_bite	Common	5	서릿발	frost_bite	true	303	Greenhouse
+	bee_sting	Common	4	벌 침	bee_sting	true	304	Greenhouse
+	hemlock_leaf	Common	5	독당근 잎	hemlock_leaf	true	305	Greenhouse
+	cracked_pot	Common	4	갈라진 화분	cracked_pot	true	306	Greenhouse
+	wasp_nest	Common	5	말벌집	wasp_nest	true	307	Greenhouse
+	brittle_glass	Common	4	여린 유리	brittle_glass	true	308	Greenhouse
+	bloodroot	Uncommon	7	피뿌리	bloodroot	true	309	Greenhouse
+	viper_coil	Uncommon	8	살무사 고리	viper_coil	true	310	Greenhouse
+	dead_wood	Uncommon	7	죽은 가지	dead_wood	true	311	Greenhouse
+	sacrifice_bowl	Uncommon	7	제물 그릇	sacrifice_bowl	true	312	Greenhouse
+	hollow_seed	Uncommon	6	빈 씨	hollow_seed	true	313	Greenhouse
+	iron_thorn	Uncommon	7	무쇠 가시	iron_thorn	true	314	Greenhouse
+	blight_spot	Uncommon	6	마름병 자리	blight_spot	true	315	Greenhouse
+	rust_pin	Uncommon	6	녹슨 핀	rust_pin	true	316	Greenhouse
+	snake_pit	Uncommon	8	뱀 구덩이	snake_pit	true	317	Greenhouse
+	poison_ivy	Uncommon	7	덩굴옻나무	poison_ivy	true	318	Greenhouse
+	crow_bait	Uncommon	6	까마귀 밥	crow_bait	true	319	Greenhouse
+	hemlock_crown	Rare	9	독당근 화관	hemlock_crown	true	320	Greenhouse
+	wolf_trap	Rare	9	이빨 덫	wolf_trap	true	321	Greenhouse
+	black_frost	Rare	8	검은 서리	black_frost	true	322	Greenhouse
+	last_stand	Rare	10	마지막 버팀	last_stand	true	323	Greenhouse
+	martyr_stone	Rare	9	순교의 돌	martyr_stone	true	324	Greenhouse
+	winter_king	Legendary	10	겨울의 왕	winter_king	true	325	Greenhouse
+	wax_seal	Common	5	밀랍 인장	wax_seal	true	326	Greenhouse
+	blue_wax	Common	5	파란 밀랍	blue_wax	true	327	Greenhouse
+	gold_wax	Common	5	금 밀랍	gold_wax	true	328	Greenhouse
+	purple_wax	Common	5	자주 밀랍	purple_wax	true	329	Greenhouse
+	foil_strip	Common	4	박 띠	foil_strip	true	330	Greenhouse
+	holo_strip	Common	4	홀로 띠	holo_strip	true	331	Greenhouse
+	bonus_pin	Common	4	덧칩 핀	bonus_pin	true	332	Greenhouse
+	mult_pin	Common	4	배수 핀	mult_pin	true	333	Greenhouse
+	wild_pin	Common	5	들 카드 핀	wild_pin	true	334	Greenhouse
+	glazier	Uncommon	7	유리장이	glazier	true	335	Greenhouse
+	smith_tongs	Uncommon	7	대장 집게	smith_tongs	true	336	Greenhouse
+	seal_press	Uncommon	7	인장 압착기	seal_press	true	337	Greenhouse
+	gilder	Uncommon	8	금박장이	gilder	true	338	Greenhouse
+	wax_tally	Uncommon	7	밀랍 셈	wax_tally	true	339	Greenhouse
+	glass_tally	Uncommon	7	유리 셈	glass_tally	true	340	Greenhouse
+	lucky_tally	Uncommon	7	행운 셈	lucky_tally	true	341	Greenhouse
+	stone_setter	Uncommon	6	돌 놓는 이	stone_setter	true	342	Greenhouse
+	edition_case	Uncommon	8	판본 상자	edition_case	false	343	Greenhouse
+	enamel_kiln	Uncommon	8	에나멜 가마	enamel_kiln	true	344	Greenhouse
+	sealed_deck	Uncommon	7	봉인된 덱	sealed_deck	true	345	Greenhouse
+	master_glazier	Rare	9	유리 장인	master_glazier	true	346	Greenhouse
+	seal_ring	Rare	9	인장 반지	seal_ring	true	347	Greenhouse
+	foil_forge	Rare	10	박 대장간	foil_forge	true	348	Greenhouse
+	alloy_bed	Rare	9	합금 화단	alloy_bed	true	349	Greenhouse
+	crown_glass	Legendary	10	왕관 유리	crown_glass	true	350	Greenhouse
+	star_dust	Common	4	별가루	star_dust	true	351	Greenhouse
+	moon_dish	Common	5	달 접시	moon_dish	true	352	Greenhouse
+	steam_vent	Common	5	증기 구멍	steam_vent	true	353	Greenhouse
+	rain_gauge	Common	4	우량계	rain_gauge	true	354	Greenhouse
+	dew_glass	Common	4	이슬 유리	dew_glass	true	355	Greenhouse
+	comet_ash	Common	5	혜성 재	comet_ash	true	356	Greenhouse
+	sky_lens	Common	5	하늘 렌즈	sky_lens	false	357	Greenhouse
+	card_case	Common	4	카드 갑	card_case	false	358	Greenhouse
+	nebula_jar	Uncommon	7	성운 항아리	nebula_jar	true	359	Greenhouse
+	tide_pool	Uncommon	7	물웅덩이	tide_pool	true	360	Greenhouse
+	mist_bell	Uncommon	6	안개 종	mist_bell	true	361	Greenhouse
+	spirit_kettle	Uncommon	8	넋 주전자	spirit_kettle	true	362	Greenhouse
+	astrolabe	Uncommon	8	아스트롤라베	astrolabe	false	363	Greenhouse
+	arcana_case	Uncommon	7	비법 상자	arcana_case	false	364	Greenhouse
+	planet_dial	Uncommon	7	행성 다이얼	planet_dial	true	365	Greenhouse
+	tarot_press	Uncommon	8	타로 압착기	tarot_press	true	366	Greenhouse
+	salt_bowl	Uncommon	6	소금 그릇	salt_bowl	true	367	Greenhouse
+	cloud_ladder	Uncommon	7	구름 사다리	cloud_ladder	true	368	Greenhouse
+	orrery	Uncommon	8	천구의	orrery	true	369	Greenhouse
+	great_conjunction	Rare	9	큰 합	great_conjunction	true	370	Greenhouse
+	spirit_gate	Rare	9	넋의 문	spirit_gate	false	371	Greenhouse
+	star_forge	Rare	10	별 대장간	star_forge	true	372	Greenhouse
+	moon_mirror	Rare	9	달 거울	moon_mirror	true	373	Greenhouse
+	void_lens	Rare	9	빈 렌즈	void_lens	false	374	Greenhouse
+	celestial_engine	Legendary	10	천체 기관	celestial_engine	true	375	Greenhouse
+	paired_glass	Common	5	짝 유리	paired_glass	true	376	Greenhouse
+	shadow_box	Common	4	그림자 상자	shadow_box	true	377	Greenhouse
+	twin_pot	Common	5	쌍 화분	twin_pot	true	378	Greenhouse
+	sale_tag	Common	4	값표	sale_tag	true	379	Greenhouse
+	spare_frame	Common	5	여벌 액자	spare_frame	false	380	Greenhouse
+	dust_sheet	Common	4	덮개천	dust_sheet	true	381	Greenhouse
+	price_card	Common	5	가격표	price_card	true	382	Greenhouse
+	dim_mirror	Common	5	흐린 거울	dim_mirror	true	383	Greenhouse
+	frame_shop	Uncommon	7	액자 가게	frame_shop	true	384	Greenhouse
+	rarity_ledger	Uncommon	7	희귀 대장	rarity_ledger	true	385	Greenhouse
+	full_shelf	Uncommon	8	가득한 선반	full_shelf	true	386	Greenhouse
+	hand_me_down	Uncommon	6	물림	hand_me_down	true	387	Greenhouse
+	swap_frame	Uncommon	7	바꿈 액자	swap_frame	true	388	Greenhouse
+	estate_note	Uncommon	6	유산 쪽지	estate_note	false	389	Greenhouse
+	slot_pin	Uncommon	7	자리 핀	slot_pin	false	390	Greenhouse
+	auction_bell	Uncommon	7	경매 종	auction_bell	true	391	Greenhouse
+	mirror_dust	Uncommon	8	거울 가루	mirror_dust	true	392	Greenhouse
+	understudy	Uncommon	7	대역	understudy	true	393	Greenhouse
+	hall_of_mirrors	Rare	10	거울의 방	hall_of_mirrors	true	394	Greenhouse
+	black_frame	Rare	9	검은 액자	black_frame	true	395	Greenhouse
+	prompt_book	Rare	10	대본	prompt_book	true	396	Greenhouse
+	pawnbroker	Rare	8	전당포	pawnbroker	true	397	Greenhouse
+	twin_seed	Rare	9	쌍씨	twin_seed	true	398	Greenhouse
+	stagehand	Rare	9	무대 일꾼	stagehand	false	399	Greenhouse
+	grand_gallery	Legendary	10	큰 화랑	grand_gallery	true	400	Greenhouse
+	spade_head	Common	5	삽날	spade_head	true	401	Greenhouse
+	seed_tray	Common	5	모판	seed_tray	true	402	Greenhouse
+	sorting_sieve	Common	4	고르는 체	sorting_sieve	true	403	Greenhouse
+	thin_rows	Common	5	성긴 줄	thin_rows	true	404	Greenhouse
+	face_bed	Common	4	그림 화단	face_bed	true	405	Greenhouse
+	ace_bed	Common	5	으뜸 화단	ace_bed	true	406	Greenhouse
+	hand_spade	Common	4	손삽	hand_spade	true	407	Greenhouse
+	garden_line	Common	5	정원 줄	garden_line	true	408	Greenhouse
+	weed_pull	Common	4	잡초 뽑기	weed_pull	true	409	Greenhouse
+	graft_knife	Uncommon	7	접칼	graft_knife	true	410	Greenhouse
+	nursery_bed	Uncommon	7	온상	nursery_bed	true	411	Greenhouse
+	soil_test	Uncommon	6	흙 검사	soil_test	true	412	Greenhouse
+	deep_bed	Uncommon	8	깊은 화단	deep_bed	true	413	Greenhouse
+	crop_rotation	Uncommon	7	돌려짓기	crop_rotation	true	414	Greenhouse
+	chalk_line	Uncommon	6	백묵 줄	chalk_line	true	415	Greenhouse
+	stone_row	Uncommon	6	돌 줄	stone_row	true	416	Greenhouse
+	culling_fork	Uncommon	7	솎는 갈퀴	culling_fork	true	417	Greenhouse
+	wide_bed	Uncommon	6	넓은 화단	wide_bed	false	418	Greenhouse
+	seed_drill	Uncommon	8	씨 뿌리개	seed_drill	true	419	Greenhouse
+	gold_furrow	Uncommon	7	금 이랑	gold_furrow	true	420	Greenhouse
+	great_graft	Rare	9	큰 접붙임	great_graft	true	421	Greenhouse
+	terraced_bed	Rare	9	계단 화단	terraced_bed	true	422	Greenhouse
+	hothouse	Rare	10	유리 온실	hothouse	true	423	Greenhouse
+	stone_garden	Rare	9	돌 정원	stone_garden	true	424	Greenhouse
+	first_garden	Legendary	10	첫 정원	first_garden	true	425	Greenhouse
+	hand_cart	Common	5	손수레	hand_cart	false	426	Greenhouse
+	paint_sign	Common	4	그린 간판	paint_sign	false	427	Greenhouse
+	free_wheel	Common	4	헛바퀴	free_wheel	false	428	Greenhouse
+	regular	Common	5	단골	regular	true	429	Greenhouse
+	barrow_boy	Common	4	수레 끄는 아이	barrow_boy	true	430	Greenhouse
+	chalk_board	Common	5	칠판	chalk_board	false	431	Greenhouse
+	paper_bag	Common	4	종이 봉지	paper_bag	true	432	Greenhouse
+	window_shopper	Common	5	구경꾼	window_shopper	true	433	Greenhouse
+	till_bell	Common	5	계산대 종	till_bell	true	434	Greenhouse
+	two_carts	Uncommon	7	두 수레	two_carts	false	435	Greenhouse
+	coupon_book	Uncommon	7	할인 책	coupon_book	false	436	Greenhouse
+	sale_board	Uncommon	7	할인 간판	sale_board	false	437	Greenhouse
+	modifier_case	Uncommon	8	성질 상자	modifier_case	false	438	Greenhouse
+	crier	Uncommon	6	외치는 이	crier	false	439	Greenhouse
+	porter	Uncommon	7	짐꾼	porter	false	440	Greenhouse
+	dealer_hand	Uncommon	8	딜러의 손	dealer_hand	false	441	Greenhouse
+	spendthrift	Uncommon	6	낭비꾼	spendthrift	true	442	Greenhouse
+	reroll_rig	Uncommon	7	리롤 장치	reroll_rig	false	443	Greenhouse
+	night_market	Uncommon	7	밤 장터	night_market	false	444	Greenhouse
+	foil_stall	Uncommon	8	박 좌판	foil_stall	false	445	Greenhouse
+	grand_bazaar	Rare	9	큰 장	grand_bazaar	false	446	Greenhouse
+	free_market	Rare	9	자유 시장	free_market	false	447	Greenhouse
+	patron	Rare	10	후원자	patron	false	448	Greenhouse
+	gilt_cart	Rare	9	금박 수레	gilt_cart	false	449	Greenhouse
+	high_street	Legendary	10	큰 거리	high_street	false	450	Greenhouse
+	fog_bank	Common	5	안개 띠	fog_bank	false	451	Greenhouse
+	even_scales	Common	5	고른 저울	even_scales	false	452	Greenhouse
+	half_light	Common	3	반쪽 빛	half_light	true	453	Greenhouse
+	dream_pane	Common	5	꿈 유리	dream_pane	false	454	Greenhouse
+	gap_stone	Common	5	틈 돌	gap_stone	false	455	Greenhouse
+	crooked_pane	Common	5	굽은 유리	crooked_pane	true	456	Greenhouse
+	omen_slate	Common	4	조짐 서판	omen_slate	true	457	Greenhouse
+	sign_reader	Common	5	조짐 읽는 이	sign_reader	true	458	Greenhouse
+	three_line	Uncommon	8	셋 줄	three_line	false	459	Greenhouse
+	weighted_air	Uncommon	7	무게 실은 공기	weighted_air	false	460	Greenhouse
+	dream_ladder	Uncommon	7	꿈 사다리	dream_ladder	true	461	Greenhouse
+	rank_omen	Uncommon	6	랭크 조짐	rank_omen	true	462	Greenhouse
+	mist_gate	Uncommon	7	안개 문	mist_gate	true	463	Greenhouse
+	small_hours	Uncommon	6	이른 시간	small_hours	true	464	Greenhouse
+	big_hours	Uncommon	6	늦은 시간	big_hours	true	465	Greenhouse
+	sixth_sense	Uncommon	7	여섯째 감각	sixth_sense	true	466	Greenhouse
+	bent_ladder	Uncommon	7	굽은 사다리	bent_ladder	false	467	Greenhouse
+	waking_dream	Uncommon	8	깬 꿈	waking_dream	true	468	Greenhouse
+	long_odds	Uncommon	8	긴 승산	long_odds	true	469	Greenhouse
+	broken_rule	Rare	9	부러진 자	broken_rule	false	470	Greenhouse
+	dream_engine	Rare	10	꿈 기관	dream_engine	true	471	Greenhouse
+	all_face	Rare	9	온 얼굴	all_face	true	472	Greenhouse
+	omen_crown	Rare	9	조짐 화관	omen_crown	true	473	Greenhouse
+	two_line	Rare	10	둘 줄	two_line	false	474	Greenhouse
+	waking_world	Legendary	10	깬 세계	waking_world	false	475	Greenhouse
+	iron_key	Common	5	무쇠 열쇠	iron_key	true	476	Greenhouse
+	brass_lock	Common	5	놋 자물쇠	brass_lock	true	477	Greenhouse
+	spring_gate	Common	4	봄 문	spring_gate	true	478	Greenhouse
+	autumn_gate	Common	5	가을 문	autumn_gate	true	479	Greenhouse
+	winter_gate	Common	5	겨울 문	winter_gate	true	480	Greenhouse
+	summer_gate	Common	4	여름 문	summer_gate	true	481	Greenhouse
+	ward_stone	Common	5	지킴돌	ward_stone	true	482	Greenhouse
+	door_chime	Common	4	문 종	door_chime	true	483	Greenhouse
+	boss_key	Uncommon	7	보스 열쇠	boss_key	false	484	Greenhouse
+	double_gate	Uncommon	7	겹문	double_gate	false	485	Greenhouse
+	season_ring	Uncommon	7	계절 고리	season_ring	true	486	Greenhouse
+	skeleton_key	Uncommon	8	만능 열쇠	skeleton_key	false	487	Greenhouse
+	toll_house	Uncommon	6	통행 집	toll_house	true	488	Greenhouse
+	open_gate	Uncommon	7	열린 문	open_gate	true	489	Greenhouse
+	lock_pick	Uncommon	7	자물쇠 따개	lock_pick	false	490	Greenhouse
+	harvest_gate	Uncommon	8	추수 문	harvest_gate	true	491	Greenhouse
+	small_door	Uncommon	6	작은 문	small_door	true	492	Greenhouse
+	ante_stone	Uncommon	8	안테 돌	ante_stone	false	493	Greenhouse
+	great_key	Rare	9	큰 열쇠	great_key	true	494	Greenhouse
+	boss_ward	Rare	9	보스 지킴	boss_ward	true	495	Greenhouse
+	season_wheel	Rare	10	계절 바퀴	season_wheel	false	496	Greenhouse
+	iron_gate	Rare	9	무쇠 문	iron_gate	false	497	Greenhouse
+	warden	Rare	10	문지기	warden	false	498	Greenhouse
+	year_gate	Legendary	10	해의 문	year_gate	true	499	Greenhouse
+	last_door	Legendary	10	마지막 문	last_door	false	500	Greenhouse

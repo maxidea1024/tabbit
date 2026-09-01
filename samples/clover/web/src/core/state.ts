@@ -3,6 +3,7 @@
 // **테이블은 변하지 않는 것이고 여기 있는 것이 변합니다.** 규격은
 // `doc/effect-vm/state.md` 이고, 세이브와 리플레이가 이 모양을 그대로 씁니다.
 
+import type { JokerPool } from '../generated/enums/joker-pool'
 import type { RankKind } from '../generated/enums/rank-kind'
 import type { SuitKind } from '../generated/enums/suit-kind'
 import type { EnhancementKind } from '../generated/enums/enhancement-kind'
@@ -152,6 +153,14 @@ export interface RunState {
   seed: string
   deckId: string
   stake: string
+  /**
+   * 이 런에서 쓰는 조커 풀. 시작할 때 정해지고 런 도중에 바뀌지 않습니다.
+   *
+   * **해심에는 들어가지 않습니다.** `seed` · `deckId` · `stake` 와 같은 런의 설정이고,
+   * 설정이 다르면 그 결과가 상황에서 갈라집니다 — 설정 자슴를 다으면 예전 리플레이의
+   * 해시가 전부 달라집니다.
+   */
+  pools: JokerPool[]
 
   phase: Phase
   ante: number

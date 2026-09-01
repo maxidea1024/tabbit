@@ -108,6 +108,11 @@ def E(trigger, cond, op, scope='Run', count=None, chance=None, first=None):
 ALWAYS = C('Always')
 
 
+def j(jid, ko, en, rarity, cost, effects, blueprint=True, unlock=None, pool='Base'):
+    """조커 한 종. `pool` 이 기본 대조본인지 확장인지를 가릅니다."""
+    return (jid, ko, en, rarity, cost, blueprint, unlock, effects, pool)
+
+
 # 자주 쓰는 연산. 배수는 만분율이므로 여기서 한 번만 곱합니다.
 
 def AM(n):
