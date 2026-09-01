@@ -131,6 +131,16 @@ const CONSUMABLE_X = 962
 const TAG_X = 1120
 const PLAY_Y = 366
 /**
+ * 쓴 소모품의 네 마디.
+ *
+ * **눈이 따라갈 수 있는 길이여야 합니다.** 넷을 합쳐 1.5초 남짓이고, 그 사이에 판이 멈추지는
+ * 않습니다 — 코어는 이미 처리했고 이것은 그 결과를 보이는 몫입니다.
+ */
+const ITEM_WARP = 0.30
+const ITEM_ARRIVE = 0.62
+const ITEM_FLASH = 0.34
+const ITEM_HOLD = 1.05
+/**
  * 고른 카드가 무슨 족보인지 뜨는 자리.
  *
  * **고른 카드는 줄에서 위로 올라옵니다.** 그만큼 띄워 두지 않으면 이 쪽지가 올라온 카드에
@@ -290,6 +300,20 @@ const MINI_SEAL: Partial<Record<number, number>> = {
 const DECK_X = SIZE.width - 62
 const DECK_Y = 620
 
+/**
+ * 펼친 팩의 카드 하나.
+ *
+ * **띠를 따로 들고 있습니다.** 자리가 없다는 표시는 팩이 열려 있는 동안에도 바뀌므로 —
+ * 소모품을 쓰면 자리가 생깁니다 — 매 프레임 켜고 끄려면 그 조각을 찾을 수 있어야 합니다.
+ */
+interface PackFace {
+  node: Container
+  card: Container
+  mark: Container
+  plate: Graphics
+  label: Text
+}
+
 export class Game {
   private readonly world = new Container()
   private readonly backdrop = new Container()
@@ -388,7 +412,22 @@ export class Game {
    * **쓴 것은 타서 사라집니다.** 그냥 없어지면 무엇이 없어진 것인지 · 정말 쓰인 것인지
    * 눈이 따라가지 못합니다. 조커를 팔 때와 같은 불이고 같은 빠르기입니다.
    */
-  private readonly burningItems: { tile: Container; filter: DissolveFilter; burn: number }[] = []
+  private readonly burningItems: {
+    tile: Container
+    /** 얼굴. **그림자는 뺍니다** — 울렁임과 번쩍임이 그림자에도 걸리면 얼룩이 따로 남습니다. */
+    face: Container
+    arrive: ArriveFilter
+    dissolve: DissolveFilter
+    from: { x: number; y: number }
+    to: { x: number; y: number }
+    /** 쓰기 시작한 뒤 지난 시간. 이것 하나로 네 마디가 갈립니다. */
+    life: number
+    burn: number
+    /** 번쩍임을 한 번 냈는가. 자리에 닿는 그 한 프레임입니다. */
+    flashed: boolean
+    /** 나오면서 커지는가. 쓴 것만 그렇습니다. */
+    grows: boolean
+  }[] = []
   /**
    * 지금 걸려 있는 것들.
    *
@@ -694,6 +733,14 @@ export class Game {
    */
   private itemArrive?: { uid: number; warp: number; glow: number; filter: ArriveFilter }
 
+  /**
+   * 방금 「쓴다」를 누른 소모품.
+   *
+   * **쓴 것과 판 것을 가릅니다.** 화면은 소모품이 목록에서 없어진 것만 보므로 어느 쪽인지
+   * 알 수 없습니다 — 쓴 것은 판 가운데로 나와 번쩍이고, 판 것은 제자리에서 탑니다.
+   */
+  private usedItem?: number
+
   /** 상점이 선 시각. 그것을 기준으로 각자의 차례가 정해집니다. */
   private shopRevealAt = 0
   /** 지금 상점이 서 있는가. 서지 않았다가 서는 그 한 번만 차례를 다시 셉니다. */
@@ -707,7 +754,7 @@ export class Game {
    * **낱장이 자기 용수철을 가집니다.** 한 장을 집으면 남은 것들이 새 자리로 미끄러져야
    * 하고, 매번 다시 만들면 그 자리에 순간이동합니다.
    */
-  private readonly packViews = new Map<number, { node: Container; motion: Motion;
+  private readonly packViews = new Map<number, { face: PackFace; motion: Motion;
                                                  index: number; item: ShopItem }>()
   /** 물러나는 중인 카드들. 집은 그 한 장이 옅어지며 커집니다. */
   private readonly packGone: { node: Container; life: number }[] = []
@@ -836,6 +883,10 @@ export class Game {
       this.clearButton, this.skipButton, this.rerollButton, this.packLayer,
       this.sortRankButton, this.sortSuitButton, this.infoButton, this.menuButton,
       this.preview, this.blindPick, this.gameOver)
+    // **뜯은 팩은 판 위의 모든 것을 덮습니다.** 붙인 순서로만 두면 그 뒤에 붙는 버튼들이
+    // 덮개 위로 올라옵니다 — 왼쪽 아래 버튼 둘이 팩을 뜯은 화면에 그대로 떠 있었습니다.
+    this.overlay.sortableChildren = true
+    this.packLayer.zIndex = 500
 
     this.preview.addChild(this.previewPlate, this.previewHand, this.previewValue)
     this.preview.visible = false
@@ -1149,6 +1200,7 @@ export class Game {
 
     // 소모품.
     this.itemArrive = undefined
+    this.usedItem = undefined
     this.consumableLift.clear()
     this.consumableTiles.length = 0
     this.burningItems.length = 0
@@ -2664,6 +2716,14 @@ export class Game {
         jokerX: () => {
           const first = this.state.jokers[0]
           return first ? this.jokers.get(first.uid)?.x : undefined
+        },
+        // **돈이 없어서 못 사는 것과 자리가 없어서 못 넣는 것은 다른 일입니다.** 자리
+        // 쪽을 보려면 돈은 걸림돌이 아니어야 합니다.
+        grantMoney: (amount: number) => {
+          this.state.money += amount
+          this.money.reset(this.state.money)
+          this.settleShown()
+          this.refresh()
         },
         grantConsumable: (count: number) => {
           const rows = this.data.tables.tarot.records
@@ -4263,7 +4323,9 @@ export class Game {
       anchor = CONSUMABLE_X + index * (SIZE.jokerWidth + 12)
       buttons.push(new Button(t('ui.button.use'), 68, 30, 0x3f5f8a, () => {
         this.held = undefined
-        this.audio.play('consumable_use')
+        // **쓴 것과 판 것은 없어지는 모습이 다릅니다.** 쓴 것은 판 가운데로 나와 번쩍이고,
+        // 판 것은 제자리에서 탑니다 — 화면은 어느 쪽인지 모르므로 여기서 적어 둡니다.
+        this.usedItem = held.uid
         this.act({ t: 'use_consumable', index, targets: this.orderedSelection() })
       }))
       buttons.push(new Button(tf('ui.button.sell', { n: this.data.economy.sellMin }), 92, 30, 0x7a3f4a, () => {
@@ -4635,7 +4697,9 @@ export class Game {
     // **없어진 것은 곧바로 지우지 않습니다.** 판 밖으로 옮겨 태우고, 다 타면 그때 지웁니다.
     for (const one of this.consumableTiles) {
       if (alive.has(one.uid)) continue
-      this.igniteItem(one.tile)
+      const used = this.usedItem === one.uid
+      if (used) this.usedItem = undefined
+      this.igniteItem(one.tile, used)
     }
 
     this.consumableLayer.removeChildren().forEach(child => child.destroy())
@@ -4686,28 +4750,84 @@ export class Game {
   }
 
   /** 한 장을 태웁니다. 자기 자리에서 그대로 타야 하므로 자리를 옮겨 담습니다. */
-  private igniteItem(tile: Container): void {
+  private igniteItem(tile: Container, used: boolean): void {
     const spot = this.spotOf(tile)
     tile.removeFromParent()
     tile.position.set(spot.x, spot.y)
     tile.eventMode = 'none'
 
-    const filter = new DissolveFilter()
-    tile.filters = [filter]
-    this.overlay.addChild(tile)
-    this.burningItems.push({ tile, filter, burn: 0 })
+    // 얼굴만 골라 냅니다. 셰이더가 걸리는 자리입니다.
+    const first = tile.children[0]
+    const face = first instanceof Container ? this.faceOf(first) : tile
 
-    this.audio.play('joker_burn')
-    this.particles.burst(spot.x + SIZE.jokerWidth / 2, spot.y + SIZE.jokerHeight / 2,
-      18, 0xffa64a, 1, 1.2)
+    const arrive = new ArriveFilter()
+    const dissolve = new DissolveFilter()
+    face.filters = [arrive]
+    tile.filters = [dissolve]
+    // **판 위의 버튼들보다 위입니다.** 판 가운데로 나오는 길에 그것들을 지나갑니다.
+    tile.zIndex = 400
+    this.overlay.addChild(tile)
+    this.burningItems.push({
+      tile, face, arrive, dissolve,
+      from: { x: spot.x, y: spot.y },
+      // **판 가운데로 갑니다.** 카드가 놓이는 자리이므로, 쓴 것이 무엇에 걸리는지가 그
+      // 자리에서 보입니다 — 오른쪽 칸에서 그대로 타 없어지면 화면 구석의 일이 됩니다.
+      // **판 것은 제자리에서 탑니다.** 나와서 번쩍이는 것은 「썼다」의 몸짓이고, 파는 것은
+      // 그 자리에서 없애는 것입니다.
+      to: used
+        ? { x: BOARD_X - SIZE.jokerWidth / 2, y: PLAY_Y - SIZE.jokerHeight / 2 - 24 }
+        : { x: spot.x, y: spot.y },
+      life: used ? 0 : ITEM_HOLD,
+      burn: 0, flashed: !used, grows: used,
+    })
+
+    if (used) this.audio.play('consumable_use')
   }
 
-  /** 타는 동안. 조커와 같은 빠르기로, 같이 떠오릅니다. */
+  /**
+   * 쓴 것이 없어지는 네 마디.
+   *
+   * **울렁 → 이동 → 번쩍 → 타서 사라짐**입니다. 제자리에서 그냥 타면 무엇을 쓴 것인지가
+   * 오른쪽 구석의 일로 남고, 그냥 없어지면 정말 쓰인 것인지 눈이 따라가지 못합니다 —
+   * 사는 것이 「울렁 · 이동 · 안착」인 것과 짝이고, 다만 마지막이 안착이 아니라 사라짐입니다.
+   */
   private advanceBurningItems(seconds: number): void {
     for (let i = this.burningItems.length - 1; i >= 0; i--) {
       const one = this.burningItems[i]
+      one.life += seconds
+
+      // 첫 마디. 제자리에서 울렁입니다.
+      const warp = Math.max(0, 1 - one.life / ITEM_WARP)
+      one.arrive.at(this.clock)
+      one.arrive.warp = warp
+
+      // 둘째 마디. 판 가운데로 갑니다.
+      const travel = Math.max(0, Math.min(1,
+        (one.life - ITEM_WARP) / (ITEM_ARRIVE - ITEM_WARP)))
+      const eased = 1 - Math.pow(1 - travel, 3)
+      one.tile.position.set(
+        one.from.x + (one.to.x - one.from.x) * eased,
+        one.from.y + (one.to.y - one.from.y) * eased)
+      // 가는 동안 조금 커집니다. **쓰는 것은 그 판에서 가장 큰 한 수입니다.** 판 것은
+      // 나오지 않으므로 커지지도 않습니다.
+      if (one.grows) one.tile.scale.set(1 + 0.22 * eased)
+
+      // 셋째 마디. 닿는 그 한 번만 번쩍입니다.
+      if (travel >= 1 && !one.flashed) {
+        one.flashed = true
+        this.audio.play('card_slam')
+        this.jolt(7, 1.4, 0.3)
+        this.flashPanel(0x9b8fd0, 0.6)
+      }
+      const since = one.life - ITEM_ARRIVE
+      const glow = one.flashed ? Math.max(0, 1 - since / ITEM_FLASH) : 0
+      one.arrive.flash = glow * glow
+
+      // 넷째 마디. 잠시 머물렀다가 탑니다.
+      if (one.life < ITEM_HOLD) continue
+      if (one.burn <= 0) this.audio.play('joker_burn')
       one.burn = Math.min(1, one.burn + seconds * 1.6)
-      one.filter.burn = one.burn
+      one.dissolve.burn = one.burn
       one.tile.y -= seconds * 26
       one.tile.rotation += seconds * 0.12
       if (one.burn < 1) continue
@@ -5127,7 +5247,10 @@ export class Game {
     if (this.shown.money < item.cost) return
     if (!this.roomFor(item.kind)) {
       this.tooltip.hide()
-      this.askSwap(slot, item)
+      this.askSwap(item, held => {
+        this.audio.play('joker_buy')
+        this.act({ t: 'swap', slot, index: held })
+      })
       return
     }
     // **산 것이 그 자리에서 튀어 오릅니다.** 값을 치른 자리가 밝아지고, 그 자리에서
@@ -5205,7 +5328,14 @@ export class Game {
    *
    * 파는 값이 줄마다 적혀 있습니다 — 그것이 무엇을 내놓을지를 정하는 값입니다.
    */
-  private askSwap(slot: number, item: ShopItem): void {
+  private canSwap(item: ShopItem): boolean {
+    return item.kind === ShopItemKind.Joker
+      // `Eternal` 은 팔리지 않습니다. 그것만 들고 있으면 내놓을 것이 없습니다.
+      ? this.state.jokers.some(held => held.sticker !== 1)
+      : this.state.consumables.length > 0
+  }
+
+  private askSwap(item: ShopItem, commit: (held: number) => void): void {
     const joker = item.kind === ShopItemKind.Joker
     const rows = joker
       ? this.state.jokers.map((held, index) => {
@@ -5293,9 +5423,8 @@ export class Game {
         tile.cursor = 'pointer'
         tile.on('pointertap', () => {
           this.modals.close(panel)
-          this.audio.play('joker_buy')
-          this.act({ t: 'swap', slot, index: held.index })
-          // 바꿔서 산 것도 산 것입니다. 닿는 자리에 같은 것이 납니다.
+          commit(held.index)
+          // 바꿔서 얻은 것도 얻은 것입니다. 닿는 자리에 같은 것이 납니다.
           this.later.push({ at: this.clock + LAND_AT, run: () => this.landed(item) })
         })
       }
@@ -5560,14 +5689,15 @@ export class Game {
     open.options.forEach((item, index) => {
       if (open.taken[index]) return
 
-      const node = this.packCard(item, index, ink)
+      const face = this.packCard(item, index, ink)
+      const node = face.node
       const motion = new Motion()
       motion.snap(from.x, from.y)
       motion.rotation.snap(0)
       node.position.set(from.x, from.y)
       node.alpha = 0
 
-      this.packViews.set(index, { node, motion, index, item })
+      this.packViews.set(index, { face, motion, index, item })
       this.packLayer.addChild(node)
 
       // 하나씩 나옵니다. 나오는 순간에 소리가 하나.
@@ -5603,7 +5733,7 @@ export class Game {
     for (const [index, one] of [...this.packViews]) {
       if (!open.taken[index]) continue
       this.packViews.delete(index)
-      this.packGone.push({ node: one.node, life: 0 })
+      this.packGone.push({ node: one.face.node, life: 0 })
     }
 
     const left = [...this.packViews.values()].sort((a, b) => a.index - b.index)
@@ -5626,8 +5756,13 @@ export class Game {
    */
   private repaintPack(): void {
     for (const one of this.packViews.values()) {
-      one.node.removeChildren().forEach(child => child.destroy())
-      one.node.addChild(this.itemCard(one.item))
+      // **띠는 두고 카드만 갈아 끼웁니다.** 통째로 비우면 띠까지 지워지고, 그러면 자리가
+      // 없다는 표시가 그림이 들어오는 순간에 사라집니다.
+      const fresh = this.itemCard(one.item)
+      one.face.node.removeChild(one.face.card)
+      one.face.card.destroy({ children: true })
+      one.face.card = fresh
+      one.face.node.addChildAt(fresh, 0)
     }
   }
 
@@ -5637,7 +5772,17 @@ export class Game {
   }
 
   /** 펼쳐 놓는 카드 한 장. */
-  private packCard(item: ShopItem, index: number, ink: number): Container {
+  /**
+   * 어느 자리가 찼는가.
+   *
+   * **「자리가 없습니다」로는 모자랍니다.** 조커 칸이 찬 것과 소모품 칸이 찬 것은 다음에
+   * 할 일이 다릅니다 — 하나는 조커를 팔아야 하고 하나는 소모품을 써야 합니다.
+   */
+  private fullNote(kind: ShopItemKind): string {
+    return t(kind === ShopItemKind.Joker ? 'ui.pack.jokers_full' : 'ui.pack.consumables_full')
+  }
+
+  private packCard(item: ShopItem, index: number, ink: number): PackFace {
     const name = shopLabel(item.kind, item.id, this.data)
     const lines = this.shopLines(item)
     const rarity = item.kind === ShopItemKind.Joker
@@ -5646,7 +5791,25 @@ export class Game {
     const node = new Container()
     node.pivot.set(SIZE.jokerWidth / 2, SIZE.jokerHeight / 2)
     node.scale.set(PACK_SCALE)
-    node.addChild(this.itemCard(item))
+    const card = this.itemCard(item)
+    node.addChild(card)
+
+    // **자리가 있는지가 카드에 보여야 합니다.** 눌러 보고서야 아는 것은 「고르는 것」이
+    // 아니라 「찍는 것」입니다. 띠는 미리 만들어 두고 매 프레임 켜고 끕니다 — 팩이 열려
+    // 있는 동안 소모품을 쓰거나 조커를 팔면 자리가 생기기 때문입니다.
+    const w = SIZE.jokerWidth
+    const mark = new Container()
+    const plate = new Graphics()
+    plate.roundRect(4, SIZE.jokerHeight / 2 - 11, w - 8, 22, 5)
+      .fill({ color: 0x1b2331, alpha: 0.95 })
+    const label = new Text({
+      text: '', style: { fontSize: 9, fill: COLOR.ink, fontWeight: '800' },
+    })
+    label.anchor.set(0.5)
+    label.position.set(w / 2, SIZE.jokerHeight / 2)
+    mark.addChild(plate, label)
+    mark.visible = false
+    node.addChild(mark)
 
     node.eventMode = 'static'
     node.cursor = 'pointer'
@@ -5663,16 +5826,64 @@ export class Game {
     node.on('pointertap', () => {
       this.tooltip.hide()
       this.packHovered = -1
+      // 집은 카드도 산 것과 같이 제자리에서 옵니다.
+      const from = { x: node.x - SIZE.jokerWidth / 2, y: node.y - SIZE.jokerHeight / 2 }
+
+      // **자리가 없으면 무엇과 바꿀지를 묻습니다.** 코어는 자리가 없으면 아무것도 하지
+      // 않는데, 화면이 그것을 모른 채 소리와 조각을 내고 있었습니다 — 눌렀는데 아무 일도
+      // 일어나지 않고 이름만 한 번 떴습니다.
+      if (!this.roomFor(item.kind)) {
+        if (!this.canSwap(item)) {
+          // 내놓을 것도 없습니다. **왜 안 되는지는 적혀야 합니다.**
+          this.audio.play('joker_fizzle')
+          // **줄로 알립니다.** 머리글은 팩의 제목과 같은 자리라 둘이 겹칩니다.
+          this.toasts.push(t('ui.swap.title'), this.fullNote(item.kind), COLOR.bad, 3)
+          return
+        }
+        this.askSwap(item, held => {
+          this.audio.play('pack_pick')
+          this.arriveFrom = from
+          this.act({ t: 'swap_pack', index, held })
+        })
+        return
+      }
+
       this.audio.play('pack_pick')
       this.particles.burst(node.x, node.y, 26, ink, 1.4, 1.2)
       this.particles.burst(node.x, node.y, 12, 0xffffff, 0.8, 0.7)
-      // 집은 카드도 산 것과 같이 제자리에서 옵니다.
-      this.arriveFrom = { x: node.x - SIZE.jokerWidth / 2, y: node.y - SIZE.jokerHeight / 2 }
+      this.arriveFrom = from
       this.jolt(4, 3)
       this.act({ t: 'pick_pack', index })
       this.later.push({ at: this.clock + LAND_AT, run: () => this.landed(item) })
     })
-    return node
+    return { node, card, mark, plate, label }
+  }
+
+  /**
+   * 자리가 없는 카드에 띠를 답니다.
+   *
+   * **매 프레임 다시 정합니다.** 팩이 열려 있는 동안에도 소모품을 쓰거나 조커를 팔 수 있고,
+   * 그러면 방금까지 못 집던 것을 집을 수 있게 됩니다 — 그릴 때 한 번 정하면 그 띠가 실제와
+   * 어긋납니다.
+   */
+  private markPackFace(face: PackFace, item: ShopItem): void {
+    const room = this.roomFor(item.kind)
+    face.card.alpha = room ? 1 : 0.62
+    face.mark.visible = !room
+    if (room) return
+
+    const swap = this.canSwap(item)
+    const want = t(swap ? 'ui.pack.swap_mark' : 'ui.pack.full_mark')
+    if (face.label.text === want) return
+
+    const w = SIZE.jokerWidth
+    face.label.text = want
+    face.label.style.fill = swap ? COLOR.ink : 0xffc4cc
+    face.plate.clear()
+    face.plate.roundRect(4, SIZE.jokerHeight / 2 - 11, w - 8, 22, 5)
+      .fill({ color: swap ? 0x2f3a4e : 0x4a1f28, alpha: 0.95 })
+    face.plate.roundRect(4.5, SIZE.jokerHeight / 2 - 10.5, w - 9, 21, 5)
+      .stroke({ color: swap ? COLOR.accentTerm : COLOR.bad, width: 1.2, alpha: 0.9 })
   }
 
   /**
@@ -5706,14 +5917,16 @@ export class Game {
 
     for (const one of this.packViews.values()) {
       one.motion.advance(seconds)
+      const node = one.face.node
       const up = this.packHovered === one.index
       one.motion.scale.target = up ? PACK_SCALE * 1.07 : PACK_SCALE
-      one.node.position.set(one.motion.x.value, one.motion.y.value - (up ? 22 : 0))
-      one.node.rotation = one.motion.rotation.value * (Math.PI / 180)
-      one.node.scale.set(one.motion.scale.value)
-      one.node.zIndex = up ? 10 : 0
+      node.position.set(one.motion.x.value, one.motion.y.value - (up ? 22 : 0))
+      node.rotation = one.motion.rotation.value * (Math.PI / 180)
+      node.scale.set(one.motion.scale.value)
+      node.zIndex = up ? 10 : 0
+      this.markPackFace(one.face, one.item)
       // 닫히는 동안에는 카드도 함께 물러납니다.
-      if (!open) one.node.alpha = this.packEnter
+      if (!open) node.alpha = this.packEnter
     }
 
     for (let i = this.packGone.length - 1; i >= 0; i--) {

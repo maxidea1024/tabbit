@@ -530,10 +530,6 @@ tbody [data-pick] { cursor: pointer; }
 .graph .node.walk:hover .go { fill: var(--accent); }
 .graph .node.near rect { stroke: var(--accent); }
 
-.foot {
-  flex: 0 0 auto; color: var(--faint); font-size: 12px;
-  padding: 0 20px 10px; text-align: right;
-}
 @media (max-width: 900px) {
   html, body { height: auto; }
   body { display: block; overflow: auto; }
@@ -640,12 +636,12 @@ tbody [data-pick] { cursor: pointer; }
 </aside>
 <main class="fill">
 <h1>StringTable</h1>
-<p class="lead"><svg class="i"><use href="#i-table"></use></svg>StringTable &middot; 행 860개 &middot; 컬럼 7개 <span class="hint">&middot; <span class="book" title="samples/clover/design-data/xlsx/Text.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Text.xlsx</span> &middot; <svg class="i"><use href="#i-sheet"></use></svg>StringTable : A1</span></p>
+<p class="lead"><svg class="i"><use href="#i-table"></use></svg>StringTable &middot; 행 864개 &middot; 컬럼 7개 <span class="hint">&middot; <span class="book" title="samples/clover/design-data/xlsx/Text.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Text.xlsx</span> &middot; <svg class="i"><use href="#i-sheet"></use></svg>StringTable : A1</span></p>
 <p class="comment">번역 대조본입니다. 시트의 표시 이름이 한국어이고 영어가 여기 있습니다.</p>
 <div data-table>
 <div class="tools">
 <input type="search" data-filter="rows" placeholder="행 필터">
-<span class="hint" data-shown>860행 중 860행</span>
+<span class="hint" data-shown>864행 중 864행</span>
 </div>
 <div class="scroll">
 <table id="table_StringTable" data-sortable>
@@ -1508,6 +1504,10 @@ tbody [data-pick] { cursor: pointer; }
 <tr><td class="key" id="row_StringTable.ui.pack.of"><code><span class="str">&quot;ui.pack.of&quot;</span></code></td><td><span class="str">&quot;{cards}장 중 {picks}장&quot;</span></td><td><span class="str">&quot;{picks} of {cards}&quot;</span></td><td><span class="str">&quot;{cards} 枚中 {picks} 枚&quot;</span></td><td><span class="str">&quot;{cards} 选 {picks}&quot;</span></td><td><span class="str">&quot;{cards} 選 {picks}&quot;</span></td><td><span class="str">&quot;{picks} von {cards}&quot;</span></td></tr>
 <tr><td class="key" id="row_StringTable.ui.pack.spread"><code><span class="str">&quot;ui.pack.spread&quot;</span></code></td><td><span class="str">&quot;{cards}장이 펼쳐지고 {picks}장을 고릅니다&quot;</span></td><td><span class="str">&quot;{cards} are dealt and you pick {picks}&quot;</span></td><td><span class="str">&quot;{cards} 枚が並び、{picks} 枚を選びます&quot;</span></td><td><span class="str">&quot;摊开 {cards} 张，从中选 {picks} 张&quot;</span></td><td><span class="str">&quot;攤開 {cards} 張，從中選 {picks} 張&quot;</span></td><td><span class="str">&quot;{cards} werden ausgelegt, du w&#228;hlst {picks}&quot;</span></td></tr>
 <tr><td class="key" id="row_StringTable.ui.pack.named"><code><span class="str">&quot;ui.pack.named&quot;</span></code></td><td><span class="str">&quot;{scale}{body} 팩&quot;</span></td><td><span class="str">&quot;{scale}{body} Pack&quot;</span></td><td><span class="str">&quot;{scale}{body} パック&quot;</span></td><td><span class="str">&quot;{scale}{body} 卡包&quot;</span></td><td><span class="str">&quot;{scale}{body} 卡包&quot;</span></td><td><span class="str">&quot;{scale}{body}-P&#228;ckchen&quot;</span></td></tr>
+<tr><td class="key" id="row_StringTable.ui.pack.swap_mark"><code><span class="str">&quot;ui.pack.swap_mark&quot;</span></code></td><td><span class="str">&quot;바꿔서&quot;</span></td><td><span class="str">&quot;Swap in&quot;</span></td><td><span class="str">&quot;入れ替え&quot;</span></td><td><span class="str">&quot;替换&quot;</span></td><td><span class="str">&quot;替換&quot;</span></td><td><span class="str">&quot;Tauschen&quot;</span></td></tr>
+<tr><td class="key" id="row_StringTable.ui.pack.full_mark"><code><span class="str">&quot;ui.pack.full_mark&quot;</span></code></td><td><span class="str">&quot;자리 없음&quot;</span></td><td><span class="str">&quot;No room&quot;</span></td><td><span class="str">&quot;空きなし&quot;</span></td><td><span class="str">&quot;无空位&quot;</span></td><td><span class="str">&quot;無空位&quot;</span></td><td><span class="str">&quot;Kein Platz&quot;</span></td></tr>
+<tr><td class="key" id="row_StringTable.ui.pack.jokers_full"><code><span class="str">&quot;ui.pack.jokers_full&quot;</span></code></td><td><span class="str">&quot;조커 칸이 찼고 내놓을 조커도 없습니다&quot;</span></td><td><span class="str">&quot;Joker slots are full and none can be sold&quot;</span></td><td><span class="str">&quot;ジョーカー枠が満杯で、売れるものもありません&quot;</span></td><td><span class="str">&quot;小丑位已满，也没有可卖出的&quot;</span></td><td><span class="str">&quot;小丑位已滿，也沒有可賣出的&quot;</span></td><td><span class="str">&quot;Joker-Pl&#228;tze sind voll und keiner ist verk&#228;uflich&quot;</span></td></tr>
+<tr><td class="key" id="row_StringTable.ui.pack.consumables_full"><code><span class="str">&quot;ui.pack.consumables_full&quot;</span></code></td><td><span class="str">&quot;소모품 칸이 찼습니다. 하나 쓰거나 팔아야 합니다&quot;</span></td><td><span class="str">&quot;Consumable slots are full. Use or sell one&quot;</span></td><td><span class="str">&quot;消費アイテム枠が満杯です。使うか売ってください&quot;</span></td><td><span class="str">&quot;消耗品位已满，请使用或卖出一个&quot;</span></td><td><span class="str">&quot;消耗品位已滿，請使用或賣出一個&quot;</span></td><td><span class="str">&quot;Verbrauchspl&#228;tze sind voll. Nutze oder verkaufe einen&quot;</span></td></tr>
 <tr><td class="key" id="row_StringTable.ui.option.speed_value"><code><span class="str">&quot;ui.option.speed_value&quot;</span></code></td><td><span class="str">&quot;{n}배&quot;</span></td><td><span class="str">&quot;{n}&#215;&quot;</span></td><td><span class="str">&quot;{n} 倍&quot;</span></td><td><span class="str">&quot;{n} 倍&quot;</span></td><td><span class="str">&quot;{n} 倍&quot;</span></td><td><span class="str">&quot;{n}&#215;&quot;</span></td></tr>
 <tr><td class="key" id="row_StringTable.phrase.chance"><code><span class="str">&quot;phrase.chance&quot;</span></code></td><td><span class="str">&quot;{num}/{den} 확률로&quot;</span></td><td><span class="str">&quot;with a {num}/{den} chance,&quot;</span></td><td><span class="str">&quot;{num}/{den} の確率で&quot;</span></td><td><span class="str">&quot;有 {num}/{den} 的概率&quot;</span></td><td><span class="str">&quot;有 {num}/{den} 的機率&quot;</span></td><td><span class="str">&quot;mit {num}/{den} Chance&quot;</span></td></tr>
 <tr><td class="key" id="row_StringTable.ui.hand.level"><code><span class="str">&quot;ui.hand.level&quot;</span></code></td><td><span class="str">&quot;{name}   레벨 {level}&quot;</span></td><td><span class="str">&quot;{name}   Level {level}&quot;</span></td><td><span class="str">&quot;{name}   レベル {level}&quot;</span></td><td><span class="str">&quot;{name}   等级 {level}&quot;</span></td><td><span class="str">&quot;{name}   等級 {level}&quot;</span></td><td><span class="str">&quot;{name}   Stufe {level}&quot;</span></td></tr>
@@ -1554,7 +1554,6 @@ tbody [data-pick] { cursor: pointer; }
 </div>
 </main>
 </div>
-<p class="foot">생성 시각 2026-09-01 15:02:55</p>
 <script>
 (function () {
   "use strict";

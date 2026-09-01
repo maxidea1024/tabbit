@@ -37,6 +37,14 @@ export type Action =
   | { t: 'swap'; slot: number; index: number }
   | { t: 'buy_pack'; slot: number }
   | { t: 'pick_pack'; index: number }
+  /**
+   * 자리를 비우고 팩의 한 장을 집습니다.
+   *
+   * **`pick_pack` 은 자리가 없으면 아무것도 하지 않습니다.** 그러면 화면에서는 눌렀는데
+   * 아무 일도 일어나지 않는 것이 되므로, 무엇을 내놓을지 정하는 길이 따로 있어야 합니다 —
+   * 상점의 `swap` 과 같은 짝이고 다만 값이 오가지 않습니다.
+   */
+  | { t: 'swap_pack'; index: number; held: number }
   | { t: 'skip_pack' }
   | { t: 'buy_voucher' }
   | { t: 'reroll' }
@@ -713,6 +721,26 @@ export function apply(data: Data, state: RunState, action: Action): Step {
       if (!item || open.taken[action.index]) break
       // **자리가 없으면 고르지 못합니다.** 팩은 그대로 열려 있으므로 다른 것을 고르거나
       // 건너뜁니다.
+      if (!takeItem(vm, item)) break
+
+      open.taken[action.index] = true
+      open.picksLeft--
+      if (open.picksLeft <= 0) {
+        state.pack = null
+        vm.events.push({ t: 'PackClosed' })
+      }
+      break
+    }
+
+    case 'swap_pack': {
+      const open = state.pack
+      if (!open || open.picksLeft <= 0) break
+      const item = open.options[action.index]
+      if (!item || open.taken[action.index]) break
+
+      const joker = item.kind === ShopItemKind.Joker
+      const sold = joker ? sellJoker(vm, action.held) : sellConsumable(vm, action.held)
+      if (!sold) break
       if (!takeItem(vm, item)) break
 
       open.taken[action.index] = true

@@ -822,6 +822,10 @@
 	ui.pack.of	{cards}장 중 {picks}장	{picks} of {cards}	{cards} 枚中 {picks} 枚	{cards} 选 {picks}	{cards} 選 {picks}	{picks} von {cards}
 	ui.pack.spread	{cards}장이 펼쳐지고 {picks}장을 고릅니다	{cards} are dealt and you pick {picks}	{cards} 枚が並び、{picks} 枚を選びます	摊开 {cards} 张，从中选 {picks} 张	攤開 {cards} 張，從中選 {picks} 張	{cards} werden ausgelegt, du wählst {picks}
 	ui.pack.named	{scale}{body} 팩	{scale}{body} Pack	{scale}{body} パック	{scale}{body} 卡包	{scale}{body} 卡包	{scale}{body}-Päckchen
+	ui.pack.swap_mark	바꿔서	Swap in	入れ替え	替换	替換	Tauschen
+	ui.pack.full_mark	자리 없음	No room	空きなし	无空位	無空位	Kein Platz
+	ui.pack.jokers_full	조커 칸이 찼고 내놓을 조커도 없습니다	Joker slots are full and none can be sold	ジョーカー枠が満杯で、売れるものもありません	小丑位已满，也没有可卖出的	小丑位已滿，也沒有可賣出的	Joker-Plätze sind voll und keiner ist verkäuflich
+	ui.pack.consumables_full	소모품 칸이 찼습니다. 하나 쓰거나 팔아야 합니다	Consumable slots are full. Use or sell one	消費アイテム枠が満杯です。使うか売ってください	消耗品位已满，请使用或卖出一个	消耗品位已滿，請使用或賣出一個	Verbrauchsplätze sind voll. Nutze oder verkaufe einen
 	ui.option.speed_value	{n}배	{n}×	{n} 倍	{n} 倍	{n} 倍	{n}×
 	phrase.chance	{num}/{den} 확률로 	with a {num}/{den} chance, 	{num}/{den} の確率で 	有 {num}/{den} 的概率 	有 {num}/{den} 的機率 	mit {num}/{den} Chance 
 	ui.hand.level	{name}   레벨 {level}	{name}   Level {level}	{name}   レベル {level}	{name}   等级 {level}	{name}   等級 {level}	{name}   Stufe {level}

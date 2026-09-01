@@ -39,6 +39,7 @@ export interface Peek {
   hurry(times: number): void
   grantJoker?(count: number): void
   grantConsumable?(count: number): void
+  grantMoney?(amount: number): void
   /** 조커 첫 장이 지금 그려진 자리. 흔들림을 재는 도구가 씁니다. */
   jokerX?(): number | undefined
   handOrder: number[]
@@ -77,6 +78,16 @@ export async function grantJoker(page: Page, count: number): Promise<void> {
     }).__clover
     hook.grantJoker?.(many)
   }, count)
+}
+
+/** 돈을 그냥 놓습니다. **개발 서버에서만 됩니다.** */
+export async function grantMoney(page: Page, amount: number): Promise<void> {
+  await page.evaluate(many => {
+    const hook = (window as unknown as {
+      __clover: { grantMoney?(amount: number): void }
+    }).__clover
+    hook.grantMoney?.(many)
+  }, amount)
 }
 
 /** 소모품을 그냥 놓습니다. **개발 서버에서만 됩니다.** */
