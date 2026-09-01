@@ -212,9 +212,27 @@ export const STAGE_H = 800
 export const BOARD_X = (16 + 264 + 20 + STAGE_W) / 2
 /** 판 위에 뜨는 것들의 가운데. `game.ts` 의 `POPUP_X` 와 같습니다. */
 export const POPUP_X = STAGE_W / 2
-export const HAND_Y = 620
+export const HAND_Y = 608
 export const CARD_SPACING = 100
-export const BUTTON_Y = 742
+/**
+ * 판 아래 버튼 줄. **`game.ts` 와 같아야 합니다.**
+ *
+ * 손가락에 맞게 키운 뒤로 줄이 위로 올라왔습니다 — 자리를 여기 한곳에 두고 셈도 같이 둡니다.
+ */
+export const BUTTON_Y = 728
+const PLAY_W = 148
+const PLAY_H = 56
+const CLEAR_W = 76
+const BUTTON_GAP = 8
+const ROW_LEFT = BOARD_X - (PLAY_W * 2 + CLEAR_W + BUTTON_GAP * 2) / 2
+/** 낸다·취소·버린다의 가운데. */
+export const PLAY_BUTTON = { x: ROW_LEFT + PLAY_W / 2, y: BUTTON_Y + PLAY_H / 2 }
+export const CLEAR_BUTTON = {
+  x: ROW_LEFT + PLAY_W + BUTTON_GAP + CLEAR_W / 2, y: BUTTON_Y + PLAY_H / 2,
+}
+export const DISCARD_BUTTON = {
+  x: ROW_LEFT + PLAY_W + CLEAR_W + BUTTON_GAP * 2 + PLAY_W / 2, y: BUTTON_Y + PLAY_H / 2,
+}
 
 /**
  * 왼쪽 아래 버튼 둘의 가운데. 왼쪽이 족보 목록, 오른쪽이 메뉴입니다.
@@ -294,7 +312,7 @@ export async function pickCards(page: Page, picks: number[]): Promise<void> {
 }
 
 export async function pressPlay(page: Page): Promise<void> {
-  const play = await at(page, BOARD_X - 176 + 64, BUTTON_Y + 23)
+  const play = await at(page, PLAY_BUTTON.x, PLAY_BUTTON.y)
   await page.mouse.click(play.x, play.y)
 }
 
@@ -315,7 +333,7 @@ export async function clickCards(page: Page, picks: number[], held: number): Pro
 export async function discardHand(page: Page, picks: number[]): Promise<void> {
   const held = (await peek(page)).hand.length
   await clickCards(page, picks, held)
-  const discard = await at(page, BOARD_X + 48 + 64, BUTTON_Y + 23)
+  const discard = await at(page, DISCARD_BUTTON.x, DISCARD_BUTTON.y)
   await page.mouse.click(discard.x, discard.y)
 }
 

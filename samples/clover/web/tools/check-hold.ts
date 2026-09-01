@@ -9,7 +9,9 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
-import { at, clickPrimary, peek, settle, STAGE_W , TITLE_START_Y } from './harness'
+import {
+  at, clickPrimary, HAND_Y, peek, settle, STAGE_W, TITLE_START_Y,
+} from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
@@ -46,7 +48,7 @@ async function main(): Promise<number> {
   // 첫 장의 자리. `harness` 의 셈과 같습니다.
   const spacing = Math.min(100 + 12, 720 / Math.max(1, held))
   const cardX = (16 + 264 + 20 + STAGE_W) / 2 - ((held - 1) * spacing) / 2
-  const spot = await at(page, cardX, 620)
+  const spot = await at(page, cardX, HAND_Y)
 
   // 1. 짧게 누릅니다. 뜨지 않고 골라져야 합니다.
   await tap(page, spot, 120)

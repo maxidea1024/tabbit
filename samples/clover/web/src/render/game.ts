@@ -178,9 +178,23 @@ const HOLD_SLACK = 16
  * 걸터앉습니다.
  */
 const PREVIEW_Y = 430
-const HAND_Y = 620
+const HAND_Y = 608
 /** 버튼 줄. **패 아래입니다** — 패와 겹치면 카드를 고를 수가 없습니다. */
-const BUTTON_Y = 742
+/**
+ * 판 아래 버튼 줄의 윗변.
+ *
+ * **손가락에 맞게 키웠습니다.** 46픽셀 높이는 마우스에는 넉넉하지만 손가락에는 빠듯해서,
+ * 낸다와 버린다 사이의 취소를 잘못 누릅니다 — 키운 만큼 줄이 위로 올라오고, 손패와 지시문도
+ * 그만큼 비켜섭니다.
+ */
+const BUTTON_Y = 728
+/** 낸다·버린다의 크기. */
+const PLAY_W = 148
+const PLAY_H = 56
+/** 취소. 가운데에 서고 그 둘보다 좁습니다. */
+const CLEAR_W = 76
+/** 버튼 사이. **손가락 하나가 들어가야 합니다.** */
+const BUTTON_GAP = 8
 /** 상점의 줄들. **팩 줄이 카드 줄과 바우처 사이에 들어갑니다.** */
 const SHOP_CARD_Y = 252
 
@@ -345,8 +359,37 @@ const MINI_SEAL: Partial<Record<number, number>> = {
   [SealKind.Purple]: 0x9a5bd2,
 }
 
+/**
+ * 불의 층 둘.
+ *
+ * **바깥은 상자의 색입니다.** 그래야 불의 뿌리가 상자와 같은 색이라 그 상자가 타는 것으로
+ * 보입니다 — 손으로 적어 두었더니 상자는 칩의 파랑인데 불은 다른 파랑이었습니다.
+ *
+ * **안쪽 심지는 흰쪽이지만 그냥 흰색이 아닙니다.** 순전한 흰색으로 끌어오면 붉은 불이
+ * 분홍이 됩니다 — 불의 심지는 노랗고, 찬 불의 심지는 희읍스름한 하늘색입니다. 그 둘만
+ * 색으로 적어 둡니다.
+ */
+function flameOf(tint: number, core: number): {
+  cool: [number, number, number]
+  hot: [number, number, number]
+} {
+  return { cool: rgbOf(tint), hot: rgbOf(mix(tint, core, 0.62)) }
+}
+
+/** 셰이더가 받는 차례 그대로. */
+function flamePair(tint: number, core: number):
+[[number, number, number], [number, number, number]] {
+  const pair = flameOf(tint, core)
+  return [pair.cool, pair.hot]
+}
+
+/** 뜨거운 불의 심지. 노랗습니다. */
+const CORE_WARM = 0xffd76a
+/** 찬 불의 심지. 희읍스름한 하늘색입니다. */
+const CORE_COLD = 0xd8f4ff
+
 const DECK_X = SIZE.width - 62
-const DECK_Y = 620
+const DECK_Y = 608
 
 /**
  * 펼친 팩의 카드 하나.
@@ -360,6 +403,30 @@ interface PackFace {
   mark: Container
   plate: Graphics
   label: Text
+}
+
+/** 펼친 팩의 카드 한 장. 얼굴과, 그 한 장이 자기만 아는 것들입니다. */
+interface PackView {
+  face: PackFace
+  motion: Motion
+  index: number
+  item: ShopItem
+  /**
+   * 갸웃거리는 물결의 자리.
+   *
+   * **낱장이 저마다 다른 자리에서 시작합니다.** 같은 자리에서 시작하면 다섯 장이 한
+   * 몸으로 기울어지고, 그것은 살아 있는 것이 아니라 판이 통째로 흔들리는 것입니다.
+   */
+  sway: number
+  /**
+   * 나오면서 한 번 반짝이는 것. 아직 나오지 않았으면 `-1`, 나온 뒤 0 에서 1 로 갑니다.
+   *
+   * **끝을 세는 것이지 남은 것을 세는 것이 아닙니다.** 세기는 이 값의 사인이므로 0 에서
+   * 올라 1 에서 내려오고, 그래서 켜지는 것도 꺼지는 것도 부드럽습니다.
+   */
+  glow: number
+  /** 반짝이는 동안에만 붙습니다. 다 반짝이면 떼어 냅니다 — 필터 하나가 곧 텍스처 하나입니다. */
+  arrive?: ArriveFilter
 }
 
 export class Game {
@@ -619,8 +686,17 @@ export class Game {
   /** 두 칸 뒤에서 타오르는 불. 배수가 커지면 불길이 높아집니다. */
   private readonly chipsFire = new Sprite(Texture.WHITE)
   private readonly multFire = new Sprite(Texture.WHITE)
-  private readonly chipsFlame = new FlameFilter([0.16, 0.45, 0.95], [0.72, 0.94, 1.0])
-  private readonly multFlame = new FlameFilter([0.85, 0.16, 0.12], [1.0, 0.85, 0.35])
+  /**
+   * 불의 색.
+   *
+   * **상자의 색에서 나옵니다.** 손으로 적어 두었더니 상자와 불이 따로 놀았습니다 — 상자는
+   * 칩의 파랑인데 불은 다른 파랑이었고, 색을 고치면 한쪽만 따라왔습니다.
+   *
+   * 바깥 층이 상자의 색이고 안쪽 심지는 그것을 흰쪽으로 끌어온 것입니다 — 그러면 불의
+   * 뿌리가 상자와 같은 색이라 그 상자가 타는 것으로 보입니다.
+   */
+  private readonly chipsFlame = new FlameFilter(...flamePair(COLOR.chips, CORE_COLD))
+  private readonly multFlame = new FlameFilter(...flamePair(COLOR.mult, CORE_WARM))
   /** 지금 얼마나 뜨거운가. 박자가 올리고 시간이 내립니다. */
   private fever = 0
   private readonly hands = new Slot(t('ui.slot.hands'), 124, 52, COLOR.good)
@@ -871,8 +947,7 @@ export class Game {
    * **낱장이 자기 용수철을 가집니다.** 한 장을 집으면 남은 것들이 새 자리로 미끄러져야
    * 하고, 매번 다시 만들면 그 자리에 순간이동합니다.
    */
-  private readonly packViews = new Map<number, { face: PackFace; motion: Motion;
-                                                 index: number; item: ShopItem }>()
+  private readonly packViews = new Map<number, PackView>()
   /** 물러나는 중인 카드들. 집은 그 한 장이 옅어지며 커집니다. */
   private readonly packGone: { node: Container; life: number }[] = []
   /** 지금 그려진 팩. 바뀌면 처음부터 다시 폅니다. */
@@ -1013,11 +1088,12 @@ export class Game {
 
     this.buildPanel()
 
-    this.playButton = new Button(t('ui.button.play'), 128, 46, 0x2f6fb5, () => this.play())
-    this.discardButton = new Button(t('ui.button.discard'), 128, 46, 0xa63f3f, () => this.discard())
+    this.playButton = new Button(t('ui.button.play'), PLAY_W, PLAY_H, 0x2f6fb5, () => this.play())
+    this.discardButton = new Button(t('ui.button.discard'), PLAY_W, PLAY_H, 0xa63f3f,
+      () => this.discard())
     // **가운데 버튼이 곧 몇 장 골랐는가입니다.** 점 다섯을 따로 두면 같은 것을 두 곳에서
     // 세게 되고, 그 둘 사이를 눈이 오갑니다.
-    this.clearButton = new Button('-', 60, 46, 0x4a5568, () => this.clearSelection())
+    this.clearButton = new Button('-', CLEAR_W, PLAY_H, 0x4a5568, () => this.clearSelection())
     this.primaryButton = new Button(t('ui.button.select_blind'), 210, 50, 0x2f6fb5, () => this.primary())
     this.skipButton = new Button(t('ui.button.skip'), 150, 38, 0x4a5568,
       () => {
@@ -1049,14 +1125,21 @@ export class Game {
     this.gameOver.visible = false
     // 낸다 · 취소 · 버린다. **취소가 가운데인 것이 맞습니다** — 둘 중 어느 쪽으로도
     // 가기 전에 되돌리는 것이기 때문입니다.
-    this.playButton.position.set(BOARD_X - 176, BUTTON_Y)
-    this.clearButton.position.set(BOARD_X - 30, BUTTON_Y)
-    this.discardButton.position.set(BOARD_X + 48, BUTTON_Y)
+    // **줄을 세어 가운데에 놓습니다.** 자리를 하나하나 적어 두면 버튼 크기를 고친 날에
+    // 가운데가 어긋납니다.
+    const row = splitX(
+      box(BOARD_X - (PLAY_W * 2 + CLEAR_W + BUTTON_GAP * 2) / 2, BUTTON_Y,
+        PLAY_W * 2 + CLEAR_W + BUTTON_GAP * 2, PLAY_H),
+      [PLAY_W, CLEAR_W, PLAY_W], BUTTON_GAP)
+    this.playButton.position.set(row[0].x, row[0].y)
+    this.clearButton.position.set(row[1].x, row[1].y)
+    this.discardButton.position.set(row[2].x, row[2].y)
     this.primaryButton.position.set(BOARD_X - 105, 520)
     this.skipButton.position.set(BOARD_X - 75, 586)
     this.rerollButton.position.set(BOARD_X - 64, 578)
-    this.sortRankButton.position.set(LEFT + PANEL_W + 30, BUTTON_Y + 7)
-    this.sortSuitButton.position.set(LEFT + PANEL_W + 130, BUTTON_Y + 7)
+    // 정렬 둘은 그 줄의 세로 가운데에 섭니다.
+    this.sortRankButton.position.set(LEFT + PANEL_W + 30, BUTTON_Y + (PLAY_H - 32) / 2)
+    this.sortSuitButton.position.set(LEFT + PANEL_W + 130, BUTTON_Y + (PLAY_H - 32) / 2)
     // **판의 밑단에 붙입니다.** 위에 두면 그 아래가 통째로 빈 자리로 남습니다 — 왼쪽 판은
     // 화면 아래 22픽셀까지 내려오고, 버튼은 그 안쪽에 있으면 됩니다.
     this.infoButton.position.set(LEFT - 2, 726)
@@ -1526,7 +1609,7 @@ export class Game {
 
     // **지시문은 누를 버튼 바로 위입니다.** 패널 아래에 두면 눈이 화면 왼쪽 끝까지 갔다
     // 와야 하고, 정작 누를 것은 가운데에 있습니다.
-    this.hint.position.set(BOARD_X, BUTTON_Y - 36)
+    this.hint.position.set(BOARD_X, BUTTON_Y - 30)
 
     // **덱은 판이 도는 동안만 화면에 있습니다.** 상점에서는 오른쪽으로 밀려 나가고,
     // 다음 블라인드로 가면 다시 들어옵니다 — 상점의 물건과 자리를 다투지 않습니다.
@@ -2317,7 +2400,9 @@ export class Game {
    */
   private advanceFire(deltaMs: number): void {
     const seconds = deltaMs / 1000
-    this.fever = Math.max(0, this.fever - seconds * 0.85)
+    // **잦아드는 데 여유를 둡니다.** 빠르게 꺼지면 득점이 끝나기도 전에 불이 없어져서,
+    // 그 판이 뜨거웠다는 것이 남지 않습니다.
+    this.fever = Math.max(0, this.fever - seconds * 0.5)
 
     const heat = this.fever
     // **칩 쪽이 조금 낮습니다.** 배수가 이 게임의 큰 수이므로 그쪽이 더 타야 하고, 다만
@@ -4213,9 +4298,11 @@ export class Game {
     this.gameOver.removeChildren().forEach(child => child.destroy())
     this.gameOver.visible = true
 
+    // 판 하나가 뜨는 것과 같은 정도로 덮습니다. 끝난 판이라고 더 짙게 덮으면, 끝난
+    // 화면만 다른 규칙으로 그려집니다.
     const veil = new Graphics()
     veil.rect(-2000, -2000, SIZE.width + 4000, SIZE.height + 4000)
-      .fill({ color: 0x070a10, alpha: 0.82 })
+      .fill({ color: 0x070a10, alpha: 0.66 })
     this.gameOver.addChild(veil)
 
     const board = new Container()
@@ -5049,8 +5136,11 @@ export class Game {
     const top = TITLE_BAR + 16
     // 줄들 · 가로선 · 단추. **밑단 띠는 이 판에 없습니다** — 닫는 것이 곧 받는 것이라
     // 아래에 따로 둘 것이 없고, 두면 단추가 그 띠에 걸칩니다.
+    //
+    // 줄 아래의 26은 「정산 중」 이 앉을 자리입니다. 줄이 다 서면 그 글이 사라지고 그만큼이
+    // 여백으로 남습니다 — 글이 있고 없고에 판의 높이가 달라지면 판이 자라 보입니다.
     const body = Math.max(1, this.payoutRows.length) * rowH
-    const height = top + body + 14 + FOOTER_BAR
+    const height = top + body + 26 + FOOTER_BAR
     ;(this.payout.size as { width: number; height: number }).height = height
 
     const sum = this.payoutRows.reduce((total, row) => total + row.amount, 0)
@@ -5061,22 +5151,24 @@ export class Game {
       this.payoutWanted = false
       this.modals.close(this.payout)
     })
-    // **제목이 없습니다.** 밑단의 「받는다」 가 이 판이 무엇인지를 이미 말하므로, 머리에
-    // 「정산」 을 또 적으면 같은 말이 한 판에 두 번 있습니다.
-    layer.addChild(panelFrame(width, height, '', undefined, take))
+    // **제목을 답니다.** 한동안 비워 두었습니다 — 밑단의 「받는다」 가 이 판이 무엇인지를
+    // 이미 말한다는 이유였습니다. 그런데 머리띠가 비어 있는 판은 이 판 하나뿐이라, 다른
+    // 판과 한 벌로 보이지 않고 띠 자체가 그리다 만 것으로 보입니다. 「받는다」 는 누를
+    // 것의 이름이고 「정산」 은 판의 이름이므로, 같은 말이 두 번 있는 것도 아닙니다.
+    layer.addChild(panelFrame(width, height, t('ui.payout.title'), undefined, take))
 
     // **줄이 서기 전의 판이 휑했습니다.** 판은 먼저 열리고 줄은 하나씩 쌓이므로 그 사이가
     // 빈 상자입니다.
     //
     // 뼈대 줄을 깔아 둡니다 — 웹에서 글이 오기 전에 회색 막대를 깔아 두는 것과 같고,
-    // **그 자리에 무엇이 올지까지 말해 줍니다.** 「정산 중」 은 머리띠에 적습니다: 제목을
-    // 걷어내 그 자리가 비어 있고, 무엇을 기다리는 중인가는 제목이 아닙니다.
+    // **그 자리에 무엇이 올지까지 말해 줍니다.** 「정산 중」 은 줄 아래에 적습니다:
+    // 머리띠는 제목의 자리이고, 무엇을 기다리는 중인가는 제목이 아닙니다.
     const head = new Text({
       text: t('ui.payout.counting'),
       style: { fontSize: 13, fill: COLOR.inkDim, fontWeight: '700', letterSpacing: 1 },
     })
     head.anchor.set(0.5, 0.5)
-    head.position.set(width / 2, TITLE_BAR / 2)
+    head.position.set(width / 2, top + body + 11)
     const bones = new Graphics()
     layer.addChild(bones, head)
     this.payoutWait = {
@@ -6199,7 +6291,13 @@ export class Game {
       node.position.set(from.x, from.y)
       node.alpha = 0
 
-      this.packViews.set(index, { face, motion, index, item })
+      this.packViews.set(index, {
+        face, motion, index, item,
+        // 황금비만큼씩 벌려 둡니다. 정수 배로 벌리면 장수가 짝수일 때 두 장씩 같은 자리가
+        // 됩니다.
+        sway: index * 2.399_96,
+        glow: -1,
+      })
       this.packLayer.addChild(node)
 
       // 하나씩 나옵니다. 나오는 순간에 소리가 하나.
@@ -6207,6 +6305,11 @@ export class Game {
         at: this.clock + 0.12 + index * 0.11,
         run: () => {
           node.alpha = 1
+          // **나오는 그 한 장이 반짝입니다.** 소리만 나고 그림은 그냥 있으면 다섯 장이
+          // 한꺼번에 놓인 것으로 보입니다 — 하나씩 나온다는 것은 하나씩 눈에 띈다는
+          // 것이고, 눈에 띄게 하는 것은 그 순간의 빛입니다.
+          const one = this.packViews.get(index)
+          if (one) one.glow = 0
           // **뜯은 팩에서 나오는 것은 뒤집히는 소리입니다.** 손에 깔리는 것과 갈립니다.
           this.audio.play('card_flip', index * 2)
           this.particles.burst(from.x, from.y, 8, ink, 0.7, 0.6)
@@ -6437,12 +6540,24 @@ export class Game {
       one.motion.advance(seconds)
       const node = one.face.node
       const up = this.packHovered === one.index
+
+      // **펼쳐 놓은 카드는 가만히 있지 않습니다.** 자리에 닿은 뒤로 아무것도 움직이지
+      // 않으면 고르는 화면이 그림 한 장이 됩니다. 살짝 갸웃거리고 아주 조금 떠 있습니다 —
+      // 눈에 띄면 그것은 이미 큰 것이라, 각도는 1.6도이고 높이는 2픽셀입니다.
+      //
+      // **올린 한 장은 잦아듭니다.** 들여다보는 중인 카드가 계속 흔들리면 읽기 어렵고,
+      // 멈추는 것 자체가 「이것을 보고 있다」가 됩니다.
+      const alive = up ? 0.22 : 1
+      const tilt = Math.sin(this.clock * 1.15 + one.sway) * 1.6 * alive
+      const bob = Math.sin(this.clock * 0.83 + one.sway * 1.6) * 2 * alive
+
       one.motion.scale.target = up ? PACK_SCALE * 1.07 : PACK_SCALE
-      node.position.set(one.motion.x.value, one.motion.y.value - (up ? 22 : 0))
-      node.rotation = one.motion.rotation.value * (Math.PI / 180)
+      node.position.set(one.motion.x.value, one.motion.y.value - (up ? 22 : 0) + bob)
+      node.rotation = (one.motion.rotation.value + tilt) * (Math.PI / 180)
       node.scale.set(one.motion.scale.value)
       node.zIndex = up ? 10 : 0
       this.markPackFace(one.face, one.item)
+      this.advancePackGlow(one, seconds)
       // 닫히는 동안에는 카드도 함께 물러납니다.
       if (!open) node.alpha = this.packEnter
     }
