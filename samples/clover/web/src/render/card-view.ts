@@ -85,7 +85,7 @@ export class CardView extends Container {
    * **그림자는 그대로 두고 종이만 올립니다.** 카드 전체를 올리면 자리를 옮긴 것으로
    * 보이지만, 그림자가 남아 있으면 그 자리에서 손으로 밀어 올린 것으로 보입니다.
    */
-  private readonly lift = new Spring(0, 200, 28)
+  private readonly lift = new Spring(0, 380, 39)
   /**
    * 카드의 종이 자체. **에디션 셰이더가 이것에만 걸립니다.**
    *
