@@ -386,4 +386,17 @@ export class BlindBadge extends Container {
   get chipCount(): number {
     return this.tags.length
   }
+
+  /**
+   * 칩들이 실제로 그려진 자리. **피벗을 뺀 왼쪽 위 모서리입니다.**
+   *
+   * 재는 쪽이 보는 것은 화면에 보이는 자리이고, `position` 은 피벗만큼 어긋납니다.
+   */
+  get chipSpots(): { x: number; y: number; scale: number }[] {
+    return this.tags.map(one => ({
+      x: Math.round(one.x - one.pivot.x),
+      y: Math.round(one.y - one.pivot.y),
+      scale: Math.round(one.scale.x * 100) / 100,
+    }))
+  }
 }

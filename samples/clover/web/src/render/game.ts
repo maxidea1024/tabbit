@@ -606,8 +606,6 @@ export class Game {
   /** 상점의 팩 딱지들. 카드 딱지와 높이가 달라 그것도 함께 들고 있습니다. */
   private readonly packSlotTiles =
     new Map<number, { tile: Container; height: number; baseY: number; price: Container }>()
-  /** 상점 딱지 하나의 높이. 고른 칸 밑에 단추를 세울 자리를 여기서 셉니다. */
-  private shopTileH = 0
   /**
    * 소모품이 들린 높이.
    *
@@ -3605,6 +3603,9 @@ export class Game {
       // 나옵니다 — 상태에 없으면 규칙이고, 있는데 안 그렸으면 화면입니다.
       tags: state.tagsPending.slice(),
       tagChips: this.badge.chipCount,
+      // **칩이 실제로 어디에 그려졌는가.** 「잠깐 왼쪽 위로 튄다」는 프레임 몇 개짜리라
+      // 눈으로는 어느 프레임에 어디였는지를 말할 수 없습니다.
+      tagAt: this.badge.chipSpots,
       played: this.playedViews.length, coins: this.coins.busy,
       // **머리글이 아니라 국면으로 봅니다.** 「넘겼습니다」 라는 글은 걷어냈습니다 —
       // 곧 정산 판이 서서 무엇을 얼마나 받는지가 적히므로, 그 글은 그 판이 할 말을 한 번
@@ -5125,20 +5126,16 @@ export class Game {
       }
 
       // 새로 선 칩 하나만 한 번 하얗게 번쩍이며 나옵니다.
+      //
+      // **셰이더를 걸지 않습니다.** `ArriveFilter` 는 카드 한 장의 크기에 맞춰 여백을 잡아
+      // 두었고, 26픽셀짜리 칩에서는 그 여백이 차지하는 비율이 딴판이라 그림이 왼쪽 위로
+      // 밀립니다 — 「안착했다가 한 번 튄다」가 그것이었습니다. 작은 것에 필요한 것은
+      // 왜곡이 아니라 밝아짐 하나입니다.
+      //
+      // 켜지는 것도 꺼지는 것도 사인 한 마디입니다. **꼭대기가 0.8입니다** — 1이면 그
+      // 순간 칩이 통째로 하얘져서 무엇이 생겼는지가 도리어 안 보입니다.
       const life = tagId === this.tagFlashId ? this.tagFlashLife : 1
-      if (life < 1) {
-        const flash = new ArriveFilter()
-        flash.at(this.clock)
-        // 켜지는 것도 꺼지는 것도 사인 한 마디입니다 — 1에서 잦아들면 켜지는 순간이
-        // 계단이 되고, 그것은 부우 하고 나오는 것이 아니라 한 번 터지는 것입니다.
-        // **꼭대기가 0.8입니다.** 1이면 그 순간 칩이 통째로 하얘져서 무엇이 생겼는지가
-        // 도리어 안 보입니다 — 부우 하고 밝아졌다 돌아오는 것이지 흰 딱지가 되었다가
-        // 그림이 돌아오는 것이 아닙니다.
-        const wave = Math.sin(life * Math.PI) * 0.8
-        flash.flash = wave
-        flash.warp = wave * 0.5
-        cell.filters = [flash]
-      }
+      if (life < 1) cell.addChild(glare(size, Math.sin(life * Math.PI) * 0.8))
 
       cell.eventMode = 'static'
       cell.hitArea = new Rectangle(0, 0, size, size)
@@ -5529,10 +5526,13 @@ export class Game {
         return
       }
       anchor = one.tile.x + 158 / 2
-      // **딱지 안쪽입니다.** 밑변 밖으로 내면 그 아래의 팩 줄에 걸칩니다 — 값이 적힌 줄과
-      // 딱지의 밑변 사이가 이 단추의 자리입니다. **쉬는 자리로 셉니다** — 고른 딱지는
-      // 들려 있고, 들린 만큼 단추도 따라 올라가면 단추가 딱지 안으로 파고듭니다.
-      baseline = one.baseY + this.shopTileH - 26
+      // **값이 있던 그 줄입니다.** 고른 칸은 값을 감추고 그 자리를 단추가 대신하므로,
+      // 자리를 따로 세지 않고 **값에게 묻습니다** — 따로 세면 딱지의 높이가 바뀔 때마다
+      // 어긋나고, 실제로 어긋나 있었습니다.
+      //
+      // **쉬는 자리로 셉니다.** 고른 딱지는 들려 있고, 들린 만큼 단추도 따라 올라가면
+      // 단추가 딱지 안으로 파고듭니다.
+      baseline = one.baseY + one.price.y - 4
       const room = this.roomFor(item.kind)
       const swap = !room && this.canSwap(item)
       // 자리가 없으면 무엇과 바꿀지를 묻는 판이 뜹니다. 그 말은 단추에 적힙니다.
@@ -5552,7 +5552,8 @@ export class Game {
         return
       }
       anchor = spot.tile.x + 158 / 2
-      baseline = spot.baseY + spot.height + 34
+      // 카드 딱지와 같은 규칙입니다 — 값이 있던 그 줄.
+      baseline = spot.baseY + spot.price.y - 4
       buttons.push(new Button(t('ui.button.buy'), 84, 32, 0x2f7a52, () => {
         this.held = undefined
         this.openPackSlot(held.uid)
@@ -6410,7 +6411,6 @@ export class Game {
    */
   private drawShopItems(left: number, top: number, width: number, tileH: number): void {
     const slots = this.state.shop.cards
-    this.shopTileH = tileH
     const tileW = 158
     const gap = 14
     const span = slots.length * tileW + Math.max(0, slots.length - 1) * gap
@@ -7520,6 +7520,20 @@ export class Game {
       default: return []
     }
   }
+}
+
+/**
+ * 작은 것 위에 얹는 흰 빛.
+ *
+ * **셰이더 대신입니다.** 카드에 쓰는 `ArriveFilter` 는 카드 크기에 맞춰 여백을 잡아 두어서
+ * 작은 것에 걸면 그림이 밀립니다 — 26픽셀짜리에 필요한 것은 왜곡이 아니라 밝아짐 하나이고,
+ * 그것은 흰 원 하나를 얹는 것으로 됩니다.
+ */
+function glare(size: number, strength: number): Graphics {
+  const lit = new Graphics()
+  lit.circle(size / 2, size / 2, size / 2).fill({ color: 0xffffff, alpha: strength })
+  lit.blendMode = 'add'
+  return lit
 }
 
 /** 점 하나가 쉬는 자리의 네모 안에 있는가. */

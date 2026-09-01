@@ -47,6 +47,8 @@ export interface Peek {
   /** 들고 있는 태그와, 딱지에 실제로 그린 칩 수. */
   tags?: string[]
   tagChips?: number
+  /** 칩들이 실제로 그려진 자리. 피벗을 뺀 왼쪽 위 모서리입니다. */
+  tagAt?: { x: number; y: number; scale: number }[]
   /** 카드 뷰가 어느 통에 몇 장 있는가. */
   bins?: { hand: number; played: number; fades: number; deals: number; shown: number }
   busy: boolean
