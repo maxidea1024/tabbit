@@ -85,7 +85,7 @@ export class CardView extends Container {
    * **그림자는 그대로 두고 종이만 올립니다.** 카드 전체를 올리면 자리를 옮긴 것으로
    * 보이지만, 그림자가 남아 있으면 그 자리에서 손으로 밀어 올린 것으로 보입니다.
    */
-  private readonly lift = new Spring(0, 70, 17)
+  private readonly lift = new Spring(0, 200, 28)
   /**
    * 카드의 종이 자체. **에디션 셰이더가 이것에만 걸립니다.**
    *
@@ -428,7 +428,7 @@ export class CardView extends Container {
    */
   /** 득점하는 카드인가. 그렇다면 그 자리에서 살며시 올라갑니다. */
   set scoring(value: boolean) {
-    this.lift.target = value ? 11 : 0
+    this.lift.target = value ? 8 : 0
   }
 
   retire(): void {
