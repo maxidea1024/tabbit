@@ -13,7 +13,7 @@
 	score_settle	점수가 확정될 때	false	1.4
 	blind_clear	요구 점수를 넘겼을 때	false	1.6
 	blind_fail	넘기지 못했을 때	false	1.5
-	card_draw	카드를 뽑을 때	false	0.8
+	card_draw	카드를 뽑을 때	false	0.5
 	card_select	카드를 고를 때	false	0.8
 	card_destroy	카드가 파괴될 때	false	1.0
 	shop_enter	상점에 들어갈 때	false	1.0

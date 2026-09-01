@@ -4,18 +4,18 @@ TCB encoding report
 Totals
   tables    36
   columns   685
-  unencoded 181,649
-  encoded   117,770  (64.8 % of unencoded)
-  deflated  76,547  (65.0 % of encoded)  - what a compression layer over the chosen blocks would come to
+  unencoded 181,910
+  encoded   117,993  (64.9 % of unencoded)
+  deflated  76,664  (65.0 % of encoded)  - what a compression layer over the chosen blocks would come to
 
 By encoding
   encoding        columns        bytes    share
-  DICT_FRONT          11       72,380   61.5 %
-  DICT_SEG             8       31,293   26.6 %
-  RAW                 47        9,252    7.9 %
+  DICT_FRONT          11       72,538   61.5 %
+  DICT_SEG             8       31,354   26.6 %
+  RAW                 47        9,252    7.8 %
   RLE                477        2,293    1.9 %
   BITPACK             67        1,312    1.1 %
-  DICT                 4          470    0.4 %
+  DICT                 4          474    0.4 %
   ARRAY               16          210    0.2 %
   VARINT              17          181    0.2 %
   DICT_RLE            15          175    0.1 %
@@ -24,41 +24,41 @@ By encoding
 
 By element
   element         columns    unencoded        bytes    share
-  string              69      131,942      113,425   96.3 %
+  string              69      132,203      113,644   96.3 %
   i32                254       35,792        2,146    1.8 %
   varint             309       11,707        1,882    1.6 %
   bool                52        2,056          238    0.2 %
-  f32                  1          152           79    0.1 %
+  f32                  1          152           83    0.1 %
 
 Largest columns (40 of 685)
 
-  StringTable.Ja  [string]  856 rows
-    chosen DICT_FRONT  16,850  (83.3 % of unencoded)
-    candidates RAW 20,231  ·  DICT 21,442  ·  DICT_RLE 22,292  ·  DICT_FRONT 16,850  ·  DICT_FRONT_RLE 17,701  ·  DICT_SEG 18,645  ·  DICT_SEG_RLE 19,495
+  StringTable.Ja  [string]  858 rows
+    chosen DICT_FRONT  16,902  (83.3 % of unencoded)
+    candidates RAW 20,284  ·  DICT 21,499  ·  DICT_RLE 22,351  ·  DICT_FRONT 16,902  ·  DICT_FRONT_RLE 17,755  ·  DICT_SEG 18,696  ·  DICT_SEG_RLE 19,548
 
-  StringTable.Ko  [string]  856 rows
-    chosen DICT_SEG  14,682  (82.5 % of unencoded)
-    candidates RAW 17,796  ·  DICT 19,158  ·  DICT_RLE 20,008  ·  DICT_FRONT 15,720  ·  DICT_FRONT_RLE 16,571  ·  DICT_SEG 14,682  ·  DICT_SEG_RLE 15,532
+  StringTable.Ko  [string]  858 rows
+    chosen DICT_SEG  14,703  (82.4 % of unencoded)
+    candidates RAW 17,840  ·  DICT 19,206  ·  DICT_RLE 20,058  ·  DICT_FRONT 15,765  ·  DICT_FRONT_RLE 16,618  ·  DICT_SEG 14,703  ·  DICT_SEG_RLE 15,555
 
-  StringTable.De  [string]  856 rows
-    chosen DICT_SEG  14,384  (89.9 % of unencoded)
-    candidates RAW 15,997  ·  DICT 17,377  ·  DICT_RLE 18,227  ·  DICT_FRONT 14,931  ·  DICT_FRONT_RLE 15,781  ·  DICT_SEG 14,384  ·  DICT_SEG_RLE 15,234
+  StringTable.De  [string]  858 rows
+    chosen DICT_SEG  14,424  (89.9 % of unencoded)
+    candidates RAW 16,039  ·  DICT 17,423  ·  DICT_RLE 18,275  ·  DICT_FRONT 14,972  ·  DICT_FRONT_RLE 15,824  ·  DICT_SEG 14,424  ·  DICT_SEG_RLE 15,276
 
-  StringTable.En  [string]  856 rows
-    chosen DICT_FRONT  13,661  (96.0 % of unencoded)
-    candidates RAW 14,233  ·  DICT 15,693  ·  DICT_RLE 16,543  ·  DICT_FRONT 13,661  ·  DICT_FRONT_RLE 14,511  ·  DICT_SEG 13,714  ·  DICT_SEG_RLE 14,564
+  StringTable.En  [string]  858 rows
+    chosen DICT_FRONT  13,692  (96.0 % of unencoded)
+    candidates RAW 14,264  ·  DICT 15,728  ·  DICT_RLE 16,580  ·  DICT_FRONT 13,692  ·  DICT_FRONT_RLE 14,544  ·  DICT_SEG 13,738  ·  DICT_SEG_RLE 14,590
 
-  StringTable.ZhHant  [string]  856 rows
-    chosen DICT_FRONT  13,153  (92.5 % of unencoded)
-    candidates RAW 14,219  ·  DICT 15,439  ·  DICT_RLE 16,289  ·  DICT_FRONT 13,153  ·  DICT_FRONT_RLE 14,004  ·  DICT_SEG 15,069  ·  DICT_SEG_RLE 15,919
+  StringTable.ZhHant  [string]  858 rows
+    chosen DICT_FRONT  13,182  (92.5 % of unencoded)
+    candidates RAW 14,251  ·  DICT 15,475  ·  DICT_RLE 16,327  ·  DICT_FRONT 13,182  ·  DICT_FRONT_RLE 14,035  ·  DICT_SEG 15,097  ·  DICT_SEG_RLE 15,949
 
-  StringTable.ZhHans  [string]  856 rows
-    chosen DICT_FRONT  13,129  (92.3 % of unencoded)
-    candidates RAW 14,222  ·  DICT 15,442  ·  DICT_RLE 16,292  ·  DICT_FRONT 13,129  ·  DICT_FRONT_RLE 13,980  ·  DICT_SEG 15,040  ·  DICT_SEG_RLE 15,890
+  StringTable.ZhHans  [string]  858 rows
+    chosen DICT_FRONT  13,160  (92.3 % of unencoded)
+    candidates RAW 14,254  ·  DICT 15,478  ·  DICT_RLE 16,330  ·  DICT_FRONT 13,160  ·  DICT_FRONT_RLE 14,013  ·  DICT_SEG 15,070  ·  DICT_SEG_RLE 15,922
 
-  StringTable.StringId  [string]  856 rows
-    chosen DICT_FRONT  12,643  (66.9 % of unencoded)
-    candidates RAW 18,893  ·  DICT 20,543  ·  DICT_RLE 21,399  ·  DICT_FRONT 12,643  ·  DICT_FRONT_RLE 13,499  ·  DICT_SEG 15,020  ·  DICT_SEG_RLE 15,876
+  StringTable.StringId  [string]  858 rows
+    chosen DICT_FRONT  12,658  (66.9 % of unencoded)
+    candidates RAW 18,920  ·  DICT 20,574  ·  DICT_RLE 21,432  ·  DICT_FRONT 12,658  ·  DICT_FRONT_RLE 13,516  ·  DICT_SEG 15,044  ·  DICT_SEG_RLE 15,902
 
   Joker.Name  [string]  150 rows
     chosen RAW  1,824  (100.0 % of unencoded)
@@ -205,8 +205,8 @@ Headroom outside the encodings
   Float columns (dictionary only today)
     columns  1
     elements 38
-    today    79
-    encoded  79  (100.0 % of today) · saved 0
+    today    83
+    encoded  83  (100.0 % of today) · saved 0
 
 Bit-width packing headroom
   What the integer columns would come to at the width their own range
@@ -268,13 +268,13 @@ String dictionary headroom
   floor none of them can pass.
 
   distinct        plain        front      segment     template        delta      deflate  column
-       819       19,794       15,206       16,997       17,687       17,687        7,951  StringTable.Ja
-       821       17,510       14,076       13,034       16,517       16,517        7,703  StringTable.Ko
-       823       15,729       13,286       12,736       15,723       15,723        7,473  StringTable.De
-       829       14,045       12,015       12,066       14,470       14,470        6,930  StringTable.En
-       810       13,791       11,510       13,421       13,910       13,910        7,060  StringTable.ZhHant
-       810       13,794       11,487       13,392       13,887       13,887        7,056  StringTable.ZhHans
-       856       18,895       10,995       13,372       13,509       13,509        6,168  StringTable.StringId
+       821       19,847       15,254       17,044       17,741       17,741        7,968  StringTable.Ja
+       823       17,554       14,117       13,051       16,564       16,564        7,717  StringTable.Ko
+       825       15,771       13,323       12,772       15,766       15,766        7,490  StringTable.De
+       831       14,076       12,042       12,086       14,503       14,503        6,943  StringTable.En
+       812       13,823       11,535       13,445       13,941       13,941        7,071  StringTable.ZhHant
+       812       13,826       11,514       13,418       13,920       13,920        7,068  StringTable.ZhHans
+       858       18,922       11,006       13,392       13,526       13,526        6,178  StringTable.StringId
        150        1,826        1,693        2,092        2,081        2,081        1,225  Joker.Name
        150        1,521        1,421        1,891        1,809        1,809          954  Joker.Art
        150        1,521        1,421        1,891        1,809        1,809          954  Joker.JokerId
@@ -310,18 +310,18 @@ String dictionary headroom
         18          142          140          177          177          177          134  Spectral.Name
 
   Over all 69 string columns:
-    plain      128,779
-    front      102,861  (79.9 % of plain)
-    segment    112,239  (109.1 % of front)
-    template   123,098  (119.7 % of front)
-    delta      123,098  (119.7 % of front)
-    deflate    60,803  (59.1 % of front)
+    plain      129,040
+    front      103,077  (79.9 % of plain)
+    segment    112,429  (109.1 % of front)
+    template   123,356  (119.7 % of front)
+    delta      123,356  (119.7 % of front)
+    deflate    60,897  (59.1 % of front)
 
-  Best per column, layout chosen per column: 101,018  (98.2 % of front)
-  Headroom against what is in the format today: 1,843
+  Best per column, layout chosen per column: 101,209  (98.2 % of front)
+  Headroom against what is in the format today: 1,868
 
   Where each layout wins, and what it saves against front coding
     layout      columns       saved
-    segment          11       1,843
+    segment          11       1,868
     front            58           0
 

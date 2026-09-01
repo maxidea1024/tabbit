@@ -678,6 +678,8 @@
 	ui.button.hand_list	족보 목록	Hands	役一覧	牌型	牌型	Blätter
 	ui.button.hand_list_open	족보 목록 보기	View Hands	役一覧を見る	查看牌型	查看牌型	Blätter ansehen
 	ui.button.deck_view	남은 카드	Deck	残りカード	剩余牌	剩餘牌	Deck
+	ui.button.menu	메뉴	Menu	メニュー	菜单	選單	Menü
+	ui.deck.tip	눌러서 남은 카드를 봅니다	Tap to see the cards left	押すと残りのカードを見ます	点击查看剩余的牌	點擊查看剩餘的牌	Antippen für die restlichen Karten
 	ui.button.reroll	리롤	Reroll	リロール	刷新	刷新	Neu mischen
 	ui.button.use	사용	Use	使う	使用	使用	Benutzen
 	ui.button.skip	건너뛴다	Skip	スキップ	跳过	跳過	Überspringen

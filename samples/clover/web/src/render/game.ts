@@ -141,22 +141,22 @@ const PICK_TINT: [number, number, number] = [0.45, 1.0, 0.68]
 const NEWLINE = String.fromCharCode(10)
 
 /** 칩과 배수 칸의 윗변. 불이 이 자리를 따라다닙니다. */
-const CHIPS_Y = 286
+// 칩과 배수의 줄. **점수 칸과 사이를 벌립니다** — 그 사이에 고른 족보의 이름이 섭니다.
+const CHIPS_Y = 296
 /** 불이 칸 밖으로 번지는 폭과, 칸 위로 오르는 높이. */
 const FIRE_PAD = 26
 /** 불길이 칸 위로 솟는 높이. */
-const FIRE_RISE = 60
-/** 뿌리가 칸 아래로 내려가는 깊이. **깊으면 가장 센 자리가 칸 밖에서 낭비됩니다.** */
-const FIRE_ROOT = 6
+const FIRE_RISE = 74
 /**
- * 불의 크기와 자리.
+ * 뿌리가 칸의 **윗변** 안으로 물리는 깊이.
  *
- * **칸 위로 솟습니다.** 칸 뒤에 두면 칸이 불투명이라 아무것도 보이지 않고, 칸 아래에 두면
- * 불이 바닥에서 새어 나오는 것으로 보입니다 — 뿌리가 칸의 윗변에 살짝 물려 있어야 그 칸이
- * 타는 것으로 읽힙니다.
+ * 셰이더의 불은 아래에서 위로 탑니다 — 뿌리가 가장 세고 위로 갈수록 옅어집니다. 그래서
+ * 뿌리를 칸의 아랫변에 두면 가장 센 자리가 칸에 가려지고, 칸이 반투명인 만큼만 바닥에서
+ * 어른거립니다. **칸의 윗변에 물려야 그 칸에 불이 붙어 타는 것으로 읽힙니다.**
  */
+const FIRE_BITE = 12
 const FIRE_W = 124 + FIRE_PAD * 2
-const FIRE_H = FIRE_RISE + 78 + FIRE_ROOT
+const FIRE_H = FIRE_RISE + FIRE_BITE
 
 /** 덱 판의 카드에 쓰는 것들. 손패의 카드와 같은 값이라 여기 한 벌만 둡니다. */
 const MINI_RANK: Record<number, string> = {
@@ -462,8 +462,18 @@ export class Game {
   private readonly score = new Slot(t('ui.slot.round_score'), PANEL_W, 68, COLOR.ink)
   // **이 둘이 화면에서 가장 큰 두 숫자입니다.** 점수는 이 둘의 곱이고, 나머지 칸들은
   // 그것을 설명하는 것들입니다 — 크기가 그 서열을 그대로 보여야 합니다.
-  private readonly chips = new Slot(t('ui.slot.chips'), 124, 78, COLOR.chips, 34)
-  private readonly mult = new Slot(t('ui.slot.mult'), 124, 78, COLOR.mult, 34)
+  // 칩은 오른쪽으로, 배수는 왼쪽으로 붙습니다 — 사이의 곱셈표와 함께 한 식으로 읽힙니다.
+  /**
+   * 고른 것이 무슨 족보인가.
+   *
+   * **칩과 배수 칸 바로 위입니다.** 그 두 수가 어디서 온 것인지가 바로 위에 적혀 있어야
+   * 한 덩어리로 읽힙니다 — 판 가운데에만 띄우면 눈이 왼쪽과 가운데를 오갑니다.
+   */
+  private readonly handLabel = new Text({
+    text: '', style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '800' },
+  })
+  private readonly chips = new Slot(t('ui.slot.chips'), 124, 78, COLOR.chips, 34, 1)
+  private readonly mult = new Slot(t('ui.slot.mult'), 124, 78, COLOR.mult, 34, 0)
   /** 두 칸 뒤에서 타오르는 불. 배수가 커지면 불길이 높아집니다. */
   private readonly chipsFire = new Sprite(Texture.WHITE)
   private readonly multFire = new Sprite(Texture.WHITE)
@@ -518,9 +528,18 @@ export class Game {
   private readonly sortRankButton: Button
   private readonly sortSuitButton: Button
   private readonly infoButton: Button
-  private readonly guideButton: Button
-  private readonly deckButton: Button
-  private readonly optionButton: Button
+  /**
+   * 나머지를 모아 둔 자리.
+   *
+   * **판 아래의 버튼은 둘입니다.** 넷이 늘어서 있으면 그 자리가 화면에서 가장 복잡한
+   * 자리가 되는데, 정작 판을 두는 동안에는 하나도 누르지 않습니다 — 자주 쓰는 족보 목록만
+   * 남기고 나머지는 이 안으로 들어갑니다.
+   */
+  private readonly menuButton: Button
+  private readonly menu: ModalPanel = {
+    view: new Container(),
+    size: { width: 260, height: 60 },
+  }
   /** 게임 방법. **첫 판에서 저절로 한 번 열립니다.** */
   /**
    * 떠 있는 판들.
@@ -788,11 +807,7 @@ export class Game {
     this.sortRankButton = new Button(t('ui.button.sort_rank'), 92, 32, 0x333e4e, () => this.sortHand('rank'))
     this.sortSuitButton = new Button(t('ui.button.sort_suit'), 92, 32, 0x333e4e, () => this.sortHand('suit'))
     this.infoButton = new Button(t('ui.button.hand_list'), 118, 34, 0x3a4658, () => this.toggleHandList())
-    this.deckButton = new Button(t('ui.button.deck_view'), 118, 34, 0x3a4658, () => this.toggleDeckView())
-    this.guideButton = new Button(t('ui.button.guide'), 118, 34, 0x3a4658,
-      () => this.modals.open(this.guide))
-    this.optionButton = new Button(t('ui.button.options'), 118, 34, 0x3a4658,
-      () => this.modals.open(this.optionsPanel))
+    this.menuButton = new Button(t('ui.button.menu'), 118, 34, 0x3a4658, () => this.openMenu())
 
     // **상점은 판 안에 섭니다.** 조커와 소모품 줄이 그 위로 지나가야 — 무엇을 가지고
     // 있는지를 보면서 사고, 산 것이 줄에 꽂히는 것도 보입니다.
@@ -801,8 +816,8 @@ export class Game {
 
     this.overlay.addChild(this.playButton, this.discardButton, this.primaryButton,
       this.clearButton, this.skipButton, this.rerollButton, this.packLayer,
-      this.sortRankButton, this.sortSuitButton, this.infoButton, this.guideButton,
-      this.optionButton, this.deckButton, this.preview, this.blindPick, this.gameOver)
+      this.sortRankButton, this.sortSuitButton, this.infoButton, this.menuButton,
+      this.preview, this.blindPick, this.gameOver)
 
     this.preview.addChild(this.previewPlate, this.previewHand, this.previewValue)
     this.preview.visible = false
@@ -817,10 +832,8 @@ export class Game {
     this.rerollButton.position.set(BOARD_X - 64, 578)
     this.sortRankButton.position.set(LEFT + PANEL_W + 30, BUTTON_Y + 7)
     this.sortSuitButton.position.set(LEFT + PANEL_W + 130, BUTTON_Y + 7)
-    this.infoButton.position.set(LEFT - 2, 662)
-    this.guideButton.position.set(LEFT + 134, 662)
-    this.deckButton.position.set(LEFT - 2, 700)
-    this.optionButton.position.set(LEFT + 134, 700)
+    this.infoButton.position.set(LEFT - 2, 700)
+    this.menuButton.position.set(LEFT + 134, 700)
 
     app.canvas.addEventListener('pointerdown', () => this.audio.unlock())
     // **누르는 순간 툴팁이 닫힙니다.** 툴팁은 마우스가 그것에서 벗어날 때 닫히는데, 누른
@@ -927,9 +940,7 @@ export class Game {
     this.sortRankButton.text = t('ui.button.sort_rank')
     this.sortSuitButton.text = t('ui.button.sort_suit')
     this.infoButton.text = t('ui.button.hand_list')
-    this.deckButton.text = t('ui.button.deck_view')
-    this.guideButton.text = t('ui.button.guide')
-    this.optionButton.text = t('ui.button.options')
+    this.menuButton.text = t('ui.button.menu')
 
     this.title.relabel()
     this.optionsPanel.relabel()
@@ -1036,7 +1047,10 @@ export class Game {
     this.chipsFire.filters = [this.chipsFlame]
     this.multFire.filters = [this.multFlame]
 
-    this.board.addChild(this.badge, this.score,
+    this.handLabel.anchor.set(0.5, 1)
+    this.handLabel.position.set(LEFT + PANEL_W / 2, CHIPS_Y - 4)
+
+    this.board.addChild(this.badge, this.score, this.handLabel,
       this.chipsFire, this.multFire, this.chips, times, this.mult,
       this.hands, this.discards, this.money, this.anteSlot)
 
@@ -1084,6 +1098,17 @@ export class Game {
 
     // **덱은 판이 도는 동안만 화면에 있습니다.** 상점에서는 오른쪽으로 밀려 나가고,
     // 다음 블라인드로 가면 다시 들어옵니다 — 상점의 물건과 자리를 다투지 않습니다.
+    // **덱을 누르면 남은 카드가 보입니다.** 그것을 여는 버튼을 따로 두면 판 아래가
+    // 복잡해지고, 정작 눌러야 할 것은 화면에 이미 그려져 있습니다.
+    pile.eventMode = 'static'
+    pile.cursor = 'pointer'
+    pile.on('pointertap', () => this.toggleDeckView())
+    pile.on('pointerover', () => {
+      this.tooltip.show(t('ui.button.deck_view'), '', 0, [t('ui.deck.tip')],
+        DECK_X, DECK_Y + 96, SIZE)
+    })
+    pile.on('pointerout', () => this.tooltip.hide())
+
     this.deckLayer.addChild(pile, this.deckLabel)
 
     this.board.addChild(this.deckLayer, this.headline, this.gauge, this.jokerCount,
@@ -1419,6 +1444,10 @@ export class Game {
       view.selected = false
       view.setPick(0, PICK_TINT)
       view.hint = false
+      // **낸 카드와 같은 길로 나갑니다.** 손패의 줄과 덱이 같은 높이라, 그 자리에서 곧바로
+      // 오른쪽으로 미끄러지면 덱으로 되돌아가는 것처럼 보입니다 — 위로 한 번 올라갔다가
+      // 나가면 「버렸다」로 읽힙니다.
+      view.place(view.x, PLAY_Y, 0)
       this.fades.push({
         view, at: this.clock + index * (this.feel.playStaggerMs / 1000), spark: true,
       })
@@ -1776,6 +1805,9 @@ export class Game {
       const counts = scoring.includes(view.uid)
       view.setPick(counts ? 0 : -1, PICK_TINT)
       view.idle = counts ? 0.4 : 0.15
+      // **안착한 다음에 살며시 올라갑니다.** 이 박자는 카드가 다 닿은 뒤에 오므로, 여기서
+      // 올리면 날아가는 중에 들리는 일이 없습니다.
+      view.scoring = counts
     }
   }
 
@@ -1842,7 +1874,7 @@ export class Game {
     // **크기는 곱해야 합니다.** 그림이 1 × 1 이라 배율이 곧 픽셀 크기이고, 칸의 배율을
     // 그대로 넣으면 불이 1픽셀짜리가 됩니다.
     const follow = (fire: Sprite, slot: Slot) => {
-      fire.position.set(slot.x - FIRE_PAD, slot.y + 78 + FIRE_ROOT - FIRE_H)
+      fire.position.set(slot.x - FIRE_PAD, slot.y + FIRE_BITE - FIRE_H)
       fire.scale.set(FIRE_W * slot.scale.x, FIRE_H * slot.scale.y)
     }
     follow(this.chipsFire, this.chips)
@@ -2527,6 +2559,7 @@ export class Game {
     this.syncMood()
     this.syncMusic()
     this.drawPreview()
+    this.previewSlots()
     // 떠 있는 판만 다시 그립니다. **닫힌 판을 그리는 것은 낭비이고**, 남은 카드는 덱
     // 52장을 매번 만듭니다.
     if (this.modals.has(this.handList)) this.drawHandList()
@@ -2653,6 +2686,42 @@ export class Game {
    *
    * **조커를 뺀 순수한 값입니다** — 조커까지 미리 세면 득점 연출이 볼 것이 없어집니다.
    */
+  /**
+   * 고른 것의 칩과 배수를 먼저 보입니다.
+   *
+   * **내기 전에 보여야 고를 수 있습니다.** 두 수가 득점할 때에야 나타나면, 무엇을 고를지는
+   * 판 가운데의 작은 상자를 읽어서 정하게 됩니다 — 값이 나오는 자리에 값이 미리 있어야
+   * 합니다.
+   *
+   * 연출이 도는 동안에는 손대지 않습니다. 그때의 두 칸은 지금 세고 있는 값입니다.
+   */
+  private previewSlots(): void {
+    // 라운드가 아니면 지웁니다. **그대로 두면 상점에 든 뒤에도 족보 이름이 남습니다.**
+    if (this.state.phase !== 'round') {
+      this.handLabel.text = ''
+      return
+    }
+    if (!this.presented) return
+
+    const picked = this.orderedSelection()
+      .map(uid => this.state.deck.find(card => card.uid === uid))
+      .filter((card): card is CardInstance => card !== undefined)
+
+    if (picked.length === 0) {
+      this.handLabel.text = ''
+      this.chips.target = 0
+      this.mult.target = 0
+      return
+    }
+
+    const { hand } = evaluate(picked, this.state.rules)
+    const row = this.data.tables.pokerHand.findByHand(hand)
+    const level = this.state.handLevels[PokerHandKind[hand]] ?? 1
+    this.handLabel.text = tf('ui.hand.level', { name: this.handName(hand), level })
+    this.chips.target = (row?.baseChips ?? 0) + (row?.chipsPerLevel ?? 0) * (level - 1)
+    this.mult.target = (row?.baseMult ?? 0) + (row?.multPerLevel ?? 0) * (level - 1)
+  }
+
   private drawPreview(): void {
     const picked = this.orderedSelection()
       .map(uid => this.state.deck.find(card => card.uid === uid))
@@ -3682,11 +3751,9 @@ export class Game {
     this.sortSuitButton.visible = inRound
     const playing = state.phase !== 'lost' && state.phase !== 'won'
     this.infoButton.visible = playing
-    this.guideButton.visible = playing
-    this.optionButton.visible = playing
-    // 남은 카드는 판이 도는 동안만 뜻이 있습니다.
-    this.deckButton.visible = playing && this.state.phase === 'round'
-    if (!this.deckButton.visible) this.modals.close(this.deckView)
+    this.menuButton.visible = playing
+    // 남은 카드는 판이 도는 동안만 뜻이 있습니다. 덱을 눌러 엽니다.
+    if (this.state.phase !== 'round') this.modals.close(this.deckView)
     // 리롤도 상점 판의 밑단에 있습니다.
     this.rerollButton.visible = false
   }
@@ -4257,6 +4324,43 @@ export class Game {
       }
       this.chimes.push({ at, cue: 'coin_land', semitones: index * 3 })
     })
+  }
+
+  /**
+   * 나머지를 모아 둔 판.
+   *
+   * **줄 하나에 하나씩입니다.** 자주 쓰지 않는 것들이므로 찾기 쉬운 것이 빠른 것보다
+   * 낫습니다.
+   */
+  private openMenu(): void {
+    const layer = this.menu.view
+    layer.removeChildren().forEach(child => child.destroy())
+
+    const width = 260
+    const rows: { label: string; press: () => void }[] = [
+      { label: t('ui.button.guide'), press: () => this.modals.open(this.guide) },
+      { label: t('ui.button.options'), press: () => this.modals.open(this.optionsPanel) },
+    ]
+    const height = TITLE_BAR + rows.length * 46 + 14 + FOOTER_BAR
+    ;(this.menu.size as { width: number; height: number }).height = height
+
+    const close = new Button(t('ui.button.close'), 140, 40, 0x4a5568,
+      () => this.modals.close(this.menu))
+    layer.addChild(panelFrame(width, height, t('ui.button.menu'),
+      () => this.modals.close(this.menu), close))
+
+    rows.forEach((row, index) => {
+      const button = new Button(row.label, width - 48, 38, 0x3a4658, () => {
+        // **닫고 나서 엽니다.** 이 판 위에 또 판이 서면 뒤로 물러난 것이 보이고, 그것은
+        // 메뉴가 아니라 판이 쌓인 것으로 보입니다.
+        this.modals.close(this.menu)
+        row.press()
+      })
+      button.position.set(24, TITLE_BAR + 6 + index * 46)
+      layer.addChild(button)
+    })
+
+    this.modals.open(this.menu)
   }
 
   private showTooltip(view: JokerView): void {

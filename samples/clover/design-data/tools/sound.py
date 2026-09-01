@@ -62,7 +62,10 @@ MAP = {
     'boss_reveal': ('interface', 'bong_001'),
 
     # 카드.
-    'card_draw': ('casino', 'card-slide-1'),
+    # **뽑는 것과 고르는 것은 갈려야 합니다.** 둘 다 같은 계열의 미끄러지는 소리이면,
+    # 패가 깔릴 때 여덟 번 나는 그 소리가 「누가 카드를 고르고 있다」로 들립니다 — 뽑는
+    # 것은 판에 놓이는 소리이고, 고르는 것은 집어 드는 소리입니다.
+    'card_draw': ('casino', 'card-place-4'),
     'card_select': ('casino', 'card-slide-5'),
     'card_place': ('casino', 'card-place-1'),
     'card_slam': ('casino', 'card-shove-1'),

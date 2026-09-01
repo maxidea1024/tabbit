@@ -40,19 +40,37 @@ export class Slot extends Container {
   /** 이미 조용한 모습으로 돌려놓았는가. 매 프레임 다시 그리지 않기 위한 것입니다. */
   private settledLook = true
 
+  /**
+   * 값이 놓이는 가로 자리. 0 이면 왼쪽, 0.5 면 가운데, 1 이면 오른쪽입니다.
+   *
+   * **칩과 배수는 가운데가 아닙니다.** 둘 사이에 곱셈표가 있으므로 칩은 오른쪽으로,
+   * 배수는 왼쪽으로 붙어야 세 개가 한 식으로 읽힙니다 — 가운데로 두면 자릿수가 늘어날
+   * 때마다 곱셈표와의 사이가 벌어졌다 좁아집니다.
+   */
+  private readonly pull: number
+
   constructor(caption: string, private readonly boxWidth: number,
               private readonly boxHeight: number, private readonly ink: number,
-              valueSize = 23) {
+              valueSize = 23, pull = 0.5) {
     super()
+    this.pull = pull
     this.value.style.fontSize = valueSize
     this.addChild(this.plate, this.caption_, this.value)
     this.caption_.text = caption
     this.caption_.anchor.set(0.5, 0)
     this.caption_.position.set(boxWidth / 2, 6)
-    this.value.anchor.set(0.5, 0.5)
-    this.value.position.set(boxWidth / 2, boxHeight / 2 + 6)
+    this.value.anchor.set(pull, 0.5)
+    this.value.position.set(this.valueX, boxHeight / 2 + 6)
     this.value.style.fill = ink
     this.draw()
+  }
+
+  /** 값의 가로 자리. 가장자리에 붙는 것은 여백만큼 안쪽입니다. */
+  private get valueX(): number {
+    const inset = 14
+    if (this.pull <= 0) return inset
+    if (this.pull >= 1) return this.boxWidth - inset
+    return this.boxWidth / 2
   }
 
   private draw(glow = 0): void {
@@ -136,14 +154,14 @@ export class Slot extends Container {
     if (shake > 0.002) {
       // 튀는 것과 떠는 것을 같이 얹습니다.
       this.value.scale.set(1 + ease * 0.42 + heat * 0.14)
-      this.value.x = this.boxWidth / 2 + (Math.random() - 0.5) * 7 * shake
+      this.value.x = this.valueX + (Math.random() - 0.5) * 7 * shake
       this.value.y = this.boxHeight / 2 + 6 - ease * 5 + (Math.random() - 0.5) * 6 * shake
       this.value.rotation = (Math.random() - 0.5) * 0.13 * shake
       this.draw(Math.min(1, shake))
     } else if (this.settledLook !== true) {
       this.settledLook = true
       this.value.scale.set(1)
-      this.value.position.set(this.boxWidth / 2, this.boxHeight / 2 + 6)
+      this.value.position.set(this.valueX, this.boxHeight / 2 + 6)
       this.value.rotation = 0
       this.draw()
     }
