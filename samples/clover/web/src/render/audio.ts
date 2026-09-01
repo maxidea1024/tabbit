@@ -15,6 +15,14 @@
 // 원작의 음원을 쓰지 않습니다. 가져온 것은 CC0 이고 `public/sound/readme.md` 에 적혀 있습니다.
 
 import type { CloverData } from '../generated/clover-data'
+import { Music } from './music'
+
+/**
+ * 배경음의 곡들.
+ *
+ * **파일 이름이 곧 그 화면입니다** — 효과음이 신호의 이름을 쓰는 것과 같습니다.
+ */
+const MUSIC = ['title', 'round', 'shop'] as const
 
 const BASE_HZ = 220
 
@@ -62,6 +70,9 @@ export class Audio {
 
   /** 소리를 끄는가. 옵션이 정합니다. */
   muted = false
+
+  /** 배경음. 효과음과 길은 같고 음량은 따로입니다. */
+  readonly music = new Music(MUSIC)
 
   private level = 0.35
 
@@ -111,6 +122,8 @@ export class Audio {
     this.master = this.context.createGain()
     this.master.gain.value = this.level
     this.master.connect(this.context.destination)
+    // **배경음도 같은 길을 씁니다.** 소리 길은 하나이고, 음량만 따로입니다.
+    this.music.open(this.context, this.context.destination)
 
     const seconds = 0.5
     const frames = Math.floor(this.context.sampleRate * seconds)

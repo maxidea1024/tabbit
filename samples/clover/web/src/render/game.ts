@@ -885,6 +885,8 @@ export class Game {
   private applyOptions(): void {
     this.audio.muted = !this.settings.sound
     this.audio.volume = this.settings.volume / 100
+    this.audio.music.muted = !this.settings.music
+    this.audio.music.volume = this.settings.musicVolume / 100
     this.player.base = this.settings.speed
     this.particles.enabled = this.settings.particles
 
@@ -2523,6 +2525,7 @@ export class Game {
     this.syncPack()
     this.syncButtons()
     this.syncMood()
+    this.syncMusic()
     this.drawPreview()
     // 떠 있는 판만 다시 그립니다. **닫힌 판을 그리는 것은 낭비이고**, 남은 카드는 덱
     // 52장을 매번 만듭니다.
@@ -3600,6 +3603,26 @@ export class Game {
    * **어디에 있는지가 배경만 보고도 읽혀야 합니다.** 스몰은 초록, 빅은 호박, 보스는 붉고,
    * 상점은 푸르고, 끝났으면 색이 빠집니다.
    */
+  /**
+   * 어느 곡이 흐르는가.
+   *
+   * **화면마다 하나입니다.** 타이틀과 판과 상점은 하는 일이 다르므로 분위기도 달라야 하고,
+   * 넘어갈 때는 겹쳐서 넘어가므로 끊긴 자리가 들리지 않습니다.
+   */
+  private syncMusic(): void {
+    if (!this.started) {
+      this.audio.music.play('title')
+      return
+    }
+    // 끝난 판에서는 조용합니다. **끝난 것 위로 음악이 계속 흐르면 끝난 것이 아닙니다.**
+    const phase = this.state.phase
+    if (phase === 'lost' || phase === 'won') {
+      this.audio.music.play(undefined)
+      return
+    }
+    this.audio.music.play(phase === 'shop' ? 'shop' : 'round')
+  }
+
   private syncMood(): void {
     const state = this.state
 

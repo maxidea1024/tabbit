@@ -32,6 +32,15 @@ export interface Options {
   sound: boolean
   /** 음량. 0 에서 100 입니다. */
   volume: number
+  /**
+   * 배경음을 내는가.
+   *
+   * **효과음과 따로입니다.** 효과음은 무엇이 일어났는지를 알리는 것이라 켜 두고, 배경음은
+   * 취향이라 끄고 싶은 사람이 있습니다.
+   */
+  music: boolean
+  /** 배경음의 음량. 효과음이 잘 들리는 크기와 배경음이 방해되지 않는 크기는 다릅니다. */
+  musicVolume: number
   /** 연출의 배속. 1 · 2 · 4 중 하나입니다. */
   speed: number
   /** 화면이 흔들리는가. */
@@ -53,7 +62,7 @@ export interface Options {
 
 export function defaultOptions(): Options {
   return {
-    sound: true, volume: 60, speed: 1,
+    sound: true, volume: 60, music: true, musicVolume: 40, speed: 1,
     shake: true, particles: true, chromatic: true, hints: true,
     language: '',
   }
@@ -207,10 +216,10 @@ export class OptionsPanel implements ModalPanel {
 
   private tabs(): Tab[] {
     const options = this.options
-    const flip = (key: 'sound' | 'shake' | 'particles' | 'chromatic' | 'hints') => () => {
+    const flip = (key: 'sound' | 'music' | 'shake' | 'particles' | 'chromatic' | 'hints') => () => {
       options[key] = !options[key]
     }
-    const onOff = (key: 'sound' | 'shake' | 'particles' | 'chromatic' | 'hints') =>
+    const onOff = (key: 'sound' | 'music' | 'shake' | 'particles' | 'chromatic' | 'hints') =>
       () => (options[key] ? t('ui.option.on') : t('ui.option.off'))
 
     return [
@@ -241,6 +250,14 @@ export class OptionsPanel implements ModalPanel {
             // 0 에서 100 까지 20씩. **끄는 자리는 위에 있습니다** — 음량 0 과 소리 꺼짐은
             // 다른 것이고, 둘을 한 줄에 두면 어느 쪽으로 껐는지 알 수 없습니다.
             next: () => { options.volume = options.volume >= 100 ? 20 : options.volume + 20 },
+          },
+          { label: t('ui.option.music'), read: onOff('music'), next: flip('music') },
+          {
+            label: t('ui.option.music_volume'),
+            read: () => `${options.musicVolume}`,
+            next: () => {
+              options.musicVolume = options.musicVolume >= 100 ? 20 : options.musicVolume + 20
+            },
           },
         ],
       },

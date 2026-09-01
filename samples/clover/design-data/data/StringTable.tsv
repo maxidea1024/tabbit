@@ -741,6 +741,8 @@
 	ui.option.on	켜짐	On	オン	开	開	An
 	ui.option.off	꺼짐	Off	オフ	关	關	Aus
 	ui.option.volume	음량	Volume	音量	音量	音量	Lautstärke
+	ui.option.music	배경음	Music	BGM	背景音乐	背景音樂	Musik
+	ui.option.music_volume	배경음 크기	Music volume	BGM 音量	背景音乐音量	背景音樂音量	Musiklautstärke
 	ui.option.shake	화면 흔들림	Screen Shake	画面の揺れ	画面震动	畫面震動	Bildschirmwackeln
 	ui.option.particles	파티클	Particles	パーティクル	粒子	粒子	Partikel
 	ui.option.chromatic	색수차	Chromatic	色収差	色差	色差	Farbsaum
