@@ -7,7 +7,7 @@
 // </auto-generated>
 // ------------------------------------------------------------------------------
 
-// Generated from run.tbs(28,6)
+// Generated from run.tbs(36,6)
 /** 팩의 갈래. 무엇이 담기는가입니다. */
 export enum PackKind {
   Arcana = 1,

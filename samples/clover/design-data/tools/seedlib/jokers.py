@@ -9,12 +9,9 @@
 아무 일이 없으므로 `False` 입니다. `doc/parity/economy-and-shop.md` 의 남은 조사에 있습니다.
 """
 
+from . import expansion
 from .grid import (AC, ALWAYS, AM, C, E, FACE, GROW, HC, MONEY, O, PER, RANKS, RULE, XM,
-                   effect_grid, table, write)
-
-
-def j(jid, ko, en, rarity, cost, effects, blueprint=True, unlock=None):
-    return (jid, ko, en, rarity, cost, blueprint, unlock, effects)
+                   effect_grid, j, table, write)
 
 
 # ---------------------------------------------------------------------------
@@ -433,10 +430,15 @@ LEGENDARY = [
          'RandomConsumable')]),
 ]
 
-JOKERS = COMMON + UNCOMMON + RARE + LEGENDARY
+# 기본 150종은 원작 대조본이고 그 다음이 확장 350종입니다.
+BASE = COMMON + UNCOMMON + RARE + LEGENDARY
+JOKERS = BASE + expansion.JOKERS
 
+# 희귀도의 가중치는 그대로이고 `count` 만 다시 셉니다.
+WEIGHT = [('Common', 70), ('Uncommon', 25), ('Rare', 5), ('Legendary', 0)]
 RARITY_WEIGHT = [
-    ('Common', 70, 61), ('Uncommon', 25, 64), ('Rare', 5, 20), ('Legendary', 0, 5),
+    (rarity, weight, sum(1 for e in JOKERS if e[3] == rarity))
+    for rarity, weight in WEIGHT
 ]
 
 
@@ -445,16 +447,28 @@ def seed():
     assert len(UNCOMMON) == 64, '언커먼이 %d종입니다' % len(UNCOMMON)
     assert len(RARE) == 20, '레어가 %d종입니다' % len(RARE)
     assert len(LEGENDARY) == 5, '전설이 %d종입니다' % len(LEGENDARY)
+    assert len(BASE) == 150, '기본이 %d종입니다' % len(BASE)
+
+    expansion.check()
+
+    ids = [e[0] for e in JOKERS]
+    assert len(set(ids)) == len(ids), '식별자가 겹칩니다'
+    for lang, index in (('한국어', 1), ('영어', 2)):
+        names = [e[index] for e in JOKERS]
+        assert len(set(names)) == len(names), '%s 이름이 겹칩니다' % lang
 
     write('Joker', table(
         'Joker(key=joker_id)',
         '조커 한 종입니다. 효과는 `JokerEffect` 에 있고 여기에는 그 종의 성질만 있습니다.',
-        ['joker_id', 'rarity', 'cost', 'name', 'art', 'blueprint_ok', 'sort_order'],
+        ['joker_id', 'rarity', 'cost', 'name', 'art', 'blueprint_ok', 'sort_order',
+         'pool'],
         ['string (regex="^[a-z][a-z0-9_]*$")', 'Rarity', 'int (min=1, max=10)',
-         'string (text=Joker)', 'string (asset=joker)', 'bool', 'int (min=1, max=150)'],
+         'string (text=Joker)', 'string (asset=joker)', 'bool',
+         'int (min=1, max=500)', 'JokerPool'],
         ['식별자', '희귀도', '상점에서의 값', '표시 이름', '그림',
-         '복사 조커가 복사할 수 있는가', '수집 목록에서의 순서'],
-        [[e[0], e[3], e[4], e[1], 'joker_' + e[0], e[5], i + 1]
+         '복사 조커가 복사할 수 있는가', '수집 목록에서의 순서',
+         '어느 풀에 드는가'],
+        [[e[0], e[3], e[4], e[1], e[0], e[5], i + 1, e[8]]
          for i, e in enumerate(JOKERS)]))
 
     write('JokerRarityWeight', table(

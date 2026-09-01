@@ -1,7 +1,7 @@
 {
-  "LastUpdatedDate": "2026-08-27T16:15:35.9152766+09:00",
-  "MasterHash": "3c1a423925e9f161db760cb67516db4c",
-  "TotalSize": 52858,
+  "LastUpdatedDate": "2026-09-02T01:44:04.9305228+09:00",
+  "MasterHash": "2b2b1c0722afbd9fde53360ed5c5ac38",
+  "TotalSize": 85254,
   "Items": [
     {
       "Name": "Rank.bytes",
@@ -107,21 +107,21 @@
     },
     {
       "Name": "Joker.bytes",
-      "Size": 5213,
-      "Hash": "6e43d13d35caae075ff3fa7d60f8d01e",
-      "LastUpdatedDate": "2026-08-27T10:55:50.412965+09:00"
+      "Size": 17457,
+      "Hash": "c1725a3d815e315c7a1bb70109b20380",
+      "LastUpdatedDate": "2026-09-02T01:36:27.2552402+09:00"
     },
     {
       "Name": "JokerRarityWeight.bytes",
-      "Size": 78,
-      "Hash": "34bcfffbb5c7bf156ea0891bdef37f40",
-      "LastUpdatedDate": "2026-08-27T10:55:50.4129655+09:00"
+      "Size": 81,
+      "Hash": "946fb7030083813b40b2b3630a4d4afc",
+      "LastUpdatedDate": "2026-09-02T01:36:27.2552413+09:00"
     },
     {
       "Name": "JokerEffect.bytes",
-      "Size": 4009,
-      "Hash": "14b94972617b9636e5e9941690a2d11d",
-      "LastUpdatedDate": "2026-08-27T10:55:50.4129659+09:00"
+      "Size": 10708,
+      "Hash": "588e04f43cea3afd2126e54ee5d81e16",
+      "LastUpdatedDate": "2026-09-02T01:36:27.2552417+09:00"
     },
     {
       "Name": "Ante.bytes",
@@ -209,15 +209,15 @@
     },
     {
       "Name": "StringTable.bytes",
-      "Size": 27785,
-      "Hash": "43be489854a5764c202d65feeb98de74",
-      "LastUpdatedDate": "2026-08-27T13:35:52.1304839+09:00"
+      "Size": 41166,
+      "Hash": "de081fa8bafb908963d03a27c0a62b46",
+      "LastUpdatedDate": "2026-09-02T01:44:04.9305195+09:00"
     },
     {
       "Name": "Achievement.bytes",
-      "Size": 1180,
-      "Hash": "0233e717a71fb0961407d2d2b1c948bf",
-      "LastUpdatedDate": "2026-08-27T10:55:50.4129725+09:00"
+      "Size": 1249,
+      "Hash": "c6cc8ffac843c50c9f217b20953c9316",
+      "LastUpdatedDate": "2026-09-02T01:44:04.9305212+09:00"
     }
   ]
 }

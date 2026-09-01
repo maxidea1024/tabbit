@@ -9,7 +9,7 @@
 
 namespace Clover.Data
 {
-    // Generated from run.tbs(59,6)
+    // Generated from run.tbs(67,6)
     /// <summary>
     /// 상점의 카드 칸에 올 수 있는 것. 가중치 추첨의 후보입니다.
     /// </summary>

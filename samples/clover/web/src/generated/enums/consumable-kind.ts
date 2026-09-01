@@ -7,7 +7,7 @@
 // </auto-generated>
 // ------------------------------------------------------------------------------
 
-// Generated from run.tbs(42,6)
+// Generated from run.tbs(50,6)
 /** 소모품의 갈래. 슬롯을 공유합니다. */
 export enum ConsumableKind {
   Tarot = 1,

@@ -1,6 +1,6 @@
 :table Achievement(key=achievement_id)	도전과제입니다. **원작의 57종을 옮기지 않고 우리 목록을 만들었습니다.**
 :field	achievement_id	name	condition	sort_order
-:type	string (regex="^[a-z][a-z0-9_]*$")	string (text=Achievement)	string	int (min=1, max=20)
+:type	string (regex="^[a-z][a-z0-9_]*$")	string (text=Achievement)	string	int (min=1, max=30)
 :desc	식별자	표시 이름	조건	표시 순서
 	first_blood	첫 관문	스몰 블라인드를 처음 격파합니다	1
 	ante_four	중반	안테 4에 도달합니다	2
@@ -21,4 +21,5 @@
 	skipper	건너뛰기	한 런에서 블라인드 8개를 스킵합니다	17
 	every_deck	모든 덱	덱 15종으로 각각 승리합니다	18
 	gold_stake	황금	황금 스테이크로 승리합니다	19
-	collector	수집가	조커 150종을 모두 발견합니다	20
+	collector	수집가	기본 조커 150종을 모두 발견합니다	20
+	greenhouse	온실	확장 조커의 한 계열 25종을 모두 발견합니다	21

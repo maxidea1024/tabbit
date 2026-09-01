@@ -9,7 +9,7 @@
 
 namespace Clover.Data
 {
-    // Generated from run.tbs(68,6)
+    // Generated from run.tbs(76,6)
     /// <summary>
     /// 난수 스트림. **시드 하나에서 스트림마다 다른 상태를 파생합니다** — 같은 스트림을 쓰면
     /// 상점에서 리롤 한 번이 득점의 확률을 바꿉니다.

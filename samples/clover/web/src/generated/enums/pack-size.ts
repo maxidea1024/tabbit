@@ -7,7 +7,7 @@
 // </auto-generated>
 // ------------------------------------------------------------------------------
 
-// Generated from run.tbs(36,6)
+// Generated from run.tbs(44,6)
 /** 팩의 크기. 값과 장수와 고르는 수가 달라집니다. */
 export enum PackSize {
   Normal = 1,

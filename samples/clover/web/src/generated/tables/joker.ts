@@ -17,6 +17,7 @@ import { CloverData } from '../clover-data'
 
 // Automatically import to handle external type references.
 import { Rarity } from '../enums/rarity'
+import { JokerPool } from '../enums/joker-pool'
 
 /** A type for handling rows when parsing .json. */
 interface IDataRow {
@@ -27,6 +28,7 @@ interface IDataRow {
   art: string
   blueprintOk: boolean
   sortOrder: number
+  pool: JokerPool
 }
 
 // Generated from samples/clover/design-data/xlsx/Jokers.xlsx : Joker : A1
@@ -57,6 +59,9 @@ export class JokerRecord {
   /** 수집 목록에서의 순서 */
   public get sortOrder(): number { return this._sortOrder }
 
+  /** 어느 풀에 드는가 */
+  public get pool(): JokerPool { return this._pool }
+
   public _jokerId: string = ''
   public _rarity: Rarity = 0 as Rarity
   public _cost: number = 0
@@ -64,6 +69,7 @@ export class JokerRecord {
   public _art: string = ''
   public _blueprintOk: boolean = false
   public _sortOrder: number = 0
+  public _pool: JokerPool = 0 as JokerPool
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
@@ -74,6 +80,7 @@ export class JokerRecord {
     this._art = dataRow.art
     this._blueprintOk = dataRow.blueprintOk
     this._sortOrder = dataRow.sortOrder
+    this._pool = dataRow.pool
   }
 
   /** Populate field values. */
@@ -86,6 +93,7 @@ export class JokerRecord {
     this._art = dataRow[offset++]
     this._blueprintOk = dataRow[offset++]
     this._sortOrder = dataRow[offset++]
+    this._pool = dataRow[offset++]
   }
 }
 
@@ -263,6 +271,15 @@ export class JokerTable {
             const { n, value } = cursor.nextSameI32(rowCount - i)
             for (let left = n; left > 0; --left, ++i)
               records[i]._sortOrder = value
+          }
+          break
+        case 8:
+          tabbit.checkColumn(column, 'Joker.Pool', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_VARINT])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Joker.Pool')
+          for (let i = 0; i < rowCount; ) {
+            const { n, value } = cursor.nextSameI32(rowCount - i)
+            for (let left = n; left > 0; --left, ++i)
+              records[i]._pool = value as JokerPool
           }
           break
         default:

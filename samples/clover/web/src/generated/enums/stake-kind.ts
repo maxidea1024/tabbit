@@ -7,7 +7,7 @@
 // </auto-generated>
 // ------------------------------------------------------------------------------
 
-// Generated from run.tbs(48,6)
+// Generated from run.tbs(56,6)
 /** 난이도. 누적입니다 — 뒤의 것은 앞의 것을 전부 포함합니다. */
 export enum StakeKind {
   White = 1,

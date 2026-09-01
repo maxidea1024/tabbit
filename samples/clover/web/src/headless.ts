@@ -15,6 +15,7 @@ import type { Data } from './core/data'
 import { bestHand } from './core/suggest'
 import { loadFromDisk } from './core/load-node'
 import { snapshotHash } from './core/hash'
+import { JokerPool } from './generated/enums/joker-pool'
 import { apply, newRun, type Action } from './core/run'
 import type { CardInstance, RunState } from './core/state'
 
@@ -80,9 +81,11 @@ export function play(replay: Replay, dataPath = DATA): RunReport {
  * 파일로 굽습니다. 그러면 리플레이가 코어를 따라 늘어납니다.
  */
 export function autoplay(seed: string, deck: string, stake: string, limit: number,
-                        dataPath = DATA): { replay: Replay; report: RunReport } {
+                        dataPath = DATA,
+                        pools: JokerPool[] = [JokerPool.Base]):
+                        { replay: Replay; report: RunReport } {
   const data = loadFromDisk(dataPath)
-  const start = newRun(data, seed, deck, stake)
+  const start = newRun(data, seed, deck, stake, pools)
   let state = start.state
 
   const actions: Action[] = []
@@ -221,8 +224,13 @@ function main(argv: string[]): number {
   const deck = arg('--deck') ?? 'red_deck'
   const stake = arg('--stake') ?? 'White'
   const limit = Number(arg('--random') ?? 200)
+  // `--expansion` 없으면 기본 150종만 돕니다 — 리플레이를 굽는 것이 이 경로이므로
+  // 기본값이 바뀌면 굽힌 리플레이가 한번에 어긋납니다.
+  const pools = argv.includes('--expansion')
+    ? [JokerPool.Base, JokerPool.Greenhouse]
+    : [JokerPool.Base]
 
-  const { replay, report } = autoplay(seed, deck, stake, limit)
+  const { replay, report } = autoplay(seed, deck, stake, limit, DATA, pools)
   if (out) fs.writeFileSync(out, JSON.stringify(replay, null, 2), 'utf8')
   console.log(`${seed}  ${report.phase}  안테 ${report.ante}  액션 ${report.actions}  ${report.finalHash}`)
   return 0

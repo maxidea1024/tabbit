@@ -2,7 +2,7 @@
 :field	rarity	weight	count
 :type	Rarity	int (min=0, max=100)	int (min=1)
 :desc	희귀도	백분율 가중치	이 희귀도의 종수
-	Common	70	61
-	Uncommon	25	64
-	Rare	5	20
-	Legendary	0	5
+	Common	70	181
+	Uncommon	25	214
+	Rare	5	85
+	Legendary	0	20

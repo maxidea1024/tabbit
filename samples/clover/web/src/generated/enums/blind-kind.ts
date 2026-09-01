@@ -7,7 +7,7 @@
 // </auto-generated>
 // ------------------------------------------------------------------------------
 
-// Generated from run.tbs(22,6)
+// Generated from run.tbs(30,6)
 /** 안테 하나 안의 세 라운드. */
 export enum BlindKind {
   Small = 1,

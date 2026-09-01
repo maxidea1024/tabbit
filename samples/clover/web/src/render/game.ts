@@ -8,6 +8,7 @@
 
 import { Container, Graphics, Sprite, Text, Texture, type Application } from 'pixi.js'
 
+import { JokerPool } from '../generated/enums/joker-pool'
 import { BlindKind } from '../generated/enums/blind-kind'
 import { EditionKind } from '../generated/enums/edition-kind'
 import { PackKind } from '../generated/enums/pack-kind'
@@ -223,10 +224,11 @@ export class Game {
   /** 지금 설명이 떠 있는 조커. 바뀔 때만 다시 그립니다. */
   private hoveredJoker?: JokerView
 
-  constructor(private readonly app: Application, private readonly data: Data, seed: string) {
+  constructor(private readonly app: Application, private readonly data: Data, seed: string,
+              pools: JokerPool[] = [JokerPool.Base]) {
     this.feel = readFeel(data.feel)
     this.audio = new Audio(data.tables)
-    this.state = newRun(data, seed, 'red_deck', 'White').state
+    this.state = newRun(data, seed, 'red_deck', 'White', pools).state
     this.player = new TimelinePlayer(beat => this.showBeat(beat))
 
     // 배경은 흰 스프라이트 한 장에 셰이더를 얹은 것입니다.

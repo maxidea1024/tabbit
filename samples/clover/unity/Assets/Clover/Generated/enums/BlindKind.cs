@@ -9,7 +9,7 @@
 
 namespace Clover.Data
 {
-    // Generated from run.tbs(22,6)
+    // Generated from run.tbs(30,6)
     /// <summary>
     /// 안테 하나 안의 세 라운드.
     /// </summary>

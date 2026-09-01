@@ -11,6 +11,7 @@ import { SealKind } from '../generated/enums/seal-kind'
 import { ShopItemKind } from '../generated/enums/shop-item-kind'
 import { Rarity } from '../generated/enums/rarity'
 import type { Data } from './data'
+import { jokerPool } from './pool'
 import type { RunState } from './state'
 import type { Vm } from './vm'
 
@@ -101,7 +102,7 @@ function rollPackCard(vm: Vm, kind: PackKind): ShopItem | undefined {
     case PackKind.Buffoon: {
       const rarity = rng.pickWeighted(
         data.tables.jokerRarityWeight.records, row => row.weight)?.rarity ?? Rarity.Common
-      const pool = data.tables.joker.records.filter(row => row.rarity === rarity)
+      const pool = jokerPool(data, vm.state, rarity)
       if (pool.length === 0) return undefined
       return { kind: ShopItemKind.Joker, id: pool[rng.below(pool.length)].jokerId, cost: 0, edition: rollEdition(vm) }
     }
@@ -179,7 +180,7 @@ function rollCard(vm: Vm): ShopItem | undefined {
     case ShopItemKind.Joker: {
       const rarity = vm.state.rng.ShopRarity.pickWeighted(
         data.tables.jokerRarityWeight.records, row => row.weight)?.rarity ?? Rarity.Common
-      const pool = data.tables.joker.records.filter(row => row.rarity === rarity)
+      const pool = jokerPool(data, vm.state, rarity)
       if (pool.length === 0) return undefined
       const row = pool[vm.state.rng.ShopSlot.below(pool.length)]
       return {
@@ -249,8 +250,7 @@ export function stock(vm: Vm, shop: ShopState): void {
 
   // 태그가 남긴 선물. 무료 조커가 이렇게 옵니다.
   for (const gift of vm.shopGifts) {
-    const pool = data.tables.joker.records.filter(
-      row => gift.rarity === undefined || row.rarity === gift.rarity)
+    const pool = jokerPool(data, state, gift.rarity)
     if (pool.length === 0) continue
     const row = pool[state.rng.ShopSlot.below(pool.length)]
     shop.cards.unshift({

@@ -63,6 +63,11 @@ namespace Clover.Data
             /// 수집 목록에서의 순서
             /// </summary>
             public int SortOrder => _sortOrder;
+
+            /// <summary>
+            /// 어느 풀에 드는가
+            /// </summary>
+            public global::Clover.Data.JokerPool Pool => _pool;
             #endregion
 
             #region Storage
@@ -73,6 +78,7 @@ namespace Clover.Data
             internal string _art = "";
             internal bool _blueprintOk;
             internal int _sortOrder;
+            internal global::Clover.Data.JokerPool _pool;
             #endregion
 
             #region ToString
@@ -86,6 +92,7 @@ namespace Clover.Data
                 sb.Append(",\"Art\":"); ToStringHelper.ToString(Art, sb);
                 sb.Append(",\"BlueprintOk\":"); ToStringHelper.ToString(BlueprintOk, sb);
                 sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
+                sb.Append(",\"Pool\":"); ToStringHelper.ToString(Pool, sb);
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -96,7 +103,7 @@ namespace Clover.Data
         /// <summary>
         /// Field names.
         /// </summary>
-        public static readonly string[] FieldNames = { "JokerId", "Rarity", "Cost", "Name", "Art", "BlueprintOk", "SortOrder" };
+        public static readonly string[] FieldNames = { "JokerId", "Rarity", "Cost", "Name", "Art", "BlueprintOk", "SortOrder", "Pool" };
 
         /// <summary>
         /// Build object value map.
@@ -105,7 +112,7 @@ namespace Clover.Data
         {
             var result = new List<object[]>();
             foreach (var r in _records)
-                result.Add(new object[] { r.JokerId, r.Rarity, r.Cost, r.Name, r.Art, r.BlueprintOk, r.SortOrder });
+                result.Add(new object[] { r.JokerId, r.Rarity, r.Cost, r.Name, r.Art, r.BlueprintOk, r.SortOrder, r.Pool });
 
             return result;
         }
@@ -312,6 +319,22 @@ namespace Clover.Data
                             {
                                 var record = records[i++];
                                 record._sortOrder = value;
+                            } while (--n > 0);
+                        }
+                        break;
+
+                    case 8:
+                        TcbTable.CheckColumn(column, "Joker.Pool", TcbTable.KindScalar, false, TcbTable.ElementVarint);
+                        cursor = new TcbColumnCursor(reader, column, count, "Joker.Pool");
+                        for (int i = 0; i < count; )
+                        {
+                            // One call per run of equal values, not one per row - over a
+                            // run-length encoded column this is most of the decode.
+                            int n = cursor.NextSameI32(count - i, out var value);
+                            do
+                            {
+                                var record = records[i++];
+                                record._pool = (global::Clover.Data.JokerPool)value;
                             } while (--n > 0);
                         }
                         break;

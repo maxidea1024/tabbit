@@ -4,6 +4,7 @@
 // 시간을 모르고 프레임을 모르고 애니메이션을 모릅니다. 연출이 이벤트를 자기 속도로
 // 재생합니다.
 
+import { JokerPool } from '../generated/enums/joker-pool'
 import { BlindKind } from '../generated/enums/blind-kind'
 import { EditionKind } from '../generated/enums/edition-kind'
 import { EnhancementKind } from '../generated/enums/enhancement-kind'
@@ -99,13 +100,19 @@ function defaultRules(data: Data): Rules {
   }
 }
 
-/** 런 하나를 시작합니다. */
-export function newRun(data: Data, seed: string, deckId: string, stake: string): Step {
+/**
+ * 런 하나를 시작합니다.
+ *
+ * `pools` 를 넘기지 않으면 **기본 150종만** 씁니다 — 구워 둔 리플레이가 그대로 같은 해시를
+ * 내야 하므로, 확장을 켜는 것은 부르는 쪽이 정합니다.
+ */
+export function newRun(data: Data, seed: string, deckId: string, stake: string,
+                       pools: JokerPool[] = [JokerPool.Base]): Step {
   const rng: Record<string, Pcg32> = {}
   for (const stream of STREAMS) rng[stream] = streamRng(seed, stream)
 
   const state: RunState = {
-    seed, deckId, stake,
+    seed, deckId, stake, pools,
     phase: 'blind-select',
     ante: 1,
     blind: BlindKind.Small,

@@ -5,6 +5,7 @@
 
 import { Application } from 'pixi.js'
 
+import { JokerPool } from './generated/enums/joker-pool'
 import { loadFromUrl } from './core/load'
 import { loadArtIndex } from './render/art'
 import { Game } from './render/game'
@@ -34,7 +35,14 @@ async function main(): Promise<void> {
   const seed = new URLSearchParams(location.search).get('seed')
     ?? `CLOVER-${Math.floor(Math.random() * 1e6).toString().padStart(6, '0')}`
 
-  const game = new Game(app, data, seed)
+  // 확장 350종을 켜는 자리입니다. 덱 선택 화면이 생기면 그쪽으로 엮깁니다 — 지금은
+  // 시드와 같은 방식이 유지보시가 적은 자리입니다.
+  const query = new URLSearchParams(location.search)
+  const pools = query.get('expansion') === '1'
+    ? [JokerPool.Base, JokerPool.Greenhouse]
+    : [JokerPool.Base]
+
+  const game = new Game(app, data, seed, pools)
 
   /**
    * 화면 크기가 바뀔 때 다시 배치합니다.

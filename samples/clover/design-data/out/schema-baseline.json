@@ -2199,6 +2199,13 @@
         "Kind": 0,
         "Retired": false,
         "ExplicitTag": false
+      },
+      "8": {
+        "Name": "Pool",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
       }
     },
     "JokerRarityWeight": {

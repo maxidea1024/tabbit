@@ -9,7 +9,7 @@
 
 namespace Clover.Data
 {
-    // Generated from run.tbs(42,6)
+    // Generated from run.tbs(50,6)
     /// <summary>
     /// 소모품의 갈래. 슬롯을 공유합니다.
     /// </summary>
