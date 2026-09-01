@@ -6,7 +6,7 @@ import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
   at, buyAffordablePack, chooseFive, clickPrimary, discardHand, peek, playHand, rate, settle,
-  spare, STAGE_W,
+  spare, STAGE_W, TITLE_START_Y,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -21,7 +21,7 @@ async function main(): Promise<number> {
   await page.goto('http://localhost:5199/?seed=CLOVER-PACK1', { waitUntil: 'networkidle' })
   await page.waitForTimeout(1500)
 
-  const start = await at(page, STAGE_W / 2, 436 + 27)
+  const start = await at(page, STAGE_W / 2, TITLE_START_Y)
   await page.mouse.click(start.x, start.y)
   await page.waitForTimeout(900)
   await page.mouse.click(20, 20)

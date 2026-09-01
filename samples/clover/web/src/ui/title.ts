@@ -13,7 +13,7 @@ import { Container, Graphics, Text } from 'pixi.js'
 import { t } from '../core/strings'
 
 import { COLOR, SIZE } from '../render/theme'
-import { Button } from './widgets'
+import { Button, IconButton } from './widgets'
 
 /**
  * 무작위 시드 하나.
@@ -68,20 +68,25 @@ export class Title extends Container {
     this.note.anchor.set(0.5, 0)
     this.note.position.set(SIZE.width / 2, 356)
 
-    // 버튼은 **아래에 세로로** 섭니다. 눈이 이름에서 한 번 내려오면 그다음은 순서대로입니다.
+    // **누를 것은 하나입니다.** 셋이 같은 크기로 나란히 서 있으면 무엇을 눌러야 하는지가
+    // 셋 중에서 골라야 하는 일이 되고, 손가락으로는 잘못 누르는 일까지 생깁니다 — 시작
+    // 하나만 판 가운데에 크게 두고, 나머지 둘은 구석의 아이콘으로 갑니다.
     const bw = 236
-    const bx = SIZE.width / 2 - bw / 2
-    const start = new Button(t('ui.button.start'), bw, 54, 0x2f8f52, onStart)
-    // **사이를 넉넉히 둡니다.** 12픽셀은 마우스에는 넉넉하지만 손가락에는 좁아서, 시작을
-    // 누르려다 게임 방법이 열립니다.
-    start.position.set(bx, 436)
-    const guide = new Button(t('ui.button.guide'), bw, 44, 0x3a4658, onGuide)
-    guide.position.set(bx, 516)
-    const option = new Button(t('ui.button.options'), bw, 44, 0x3a4658, onOptions)
-    option.position.set(bx, 586)
-    this.buttons.push({ key: 'ui.button.start', button: start },
-      { key: 'ui.button.guide', button: guide },
-      { key: 'ui.button.options', button: option })
+    const bh = 72
+    const start = new Button(t('ui.button.start'), bw, bh, 0x2f8f52, onStart)
+    start.position.set(SIZE.width / 2 - bw / 2, 452)
+    this.buttons.push({ key: 'ui.button.start', button: start })
+
+    // 게임 방법과 옵션. **오른쪽 아래 구석입니다** — 판을 여는 것이 아니라 판 바깥의
+    // 일이므로, 가운데의 줄에서 빠져 나와야 시작이 혼자 남습니다.
+    const icon = 58
+    const gap = 14
+    const edge = 30
+    const iconY = SIZE.height - edge - icon
+    const guide = new IconButton(icon, 'circle-question-mark', onGuide)
+    guide.position.set(SIZE.width - edge - icon * 2 - gap, iconY)
+    const option = new IconButton(icon, 'settings', onOptions)
+    option.position.set(SIZE.width - edge - icon, iconY)
 
     this.addChild(this.leaf, this.logo, this.tagline, this.note, start, guide, option)
 

@@ -342,16 +342,6 @@ export class OptionsPanel implements ModalPanel {
         ],
       },
       {
-        name: t('ui.title.seed'),
-        rows: [{
-          label: t('ui.title.seed'),
-          read: () => this.seedText,
-          next: () => undefined,
-          note: this.seedEditable ? t('ui.title.seed_note') : t('ui.seed.locked'),
-          seed: true,
-        }],
-      },
-      {
         name: t('ui.tab.video'),
         rows: [
           {
@@ -382,6 +372,16 @@ export class OptionsPanel implements ModalPanel {
             note: t('ui.option.note.hints'),
           },
         ],
+      },
+      {
+        name: t('ui.title.seed'),
+        rows: [{
+          label: t('ui.title.seed'),
+          read: () => this.seedText,
+          next: () => undefined,
+          note: this.seedEditable ? t('ui.title.seed_note') : t('ui.seed.locked'),
+          seed: true,
+        }],
       },
     ]
   }

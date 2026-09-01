@@ -3,10 +3,11 @@
 // 그리는 규칙은 `render/skin.ts` 에 있고 여기는 그것을 쓰는 자리입니다. **버튼과 패널이 같은
 // 손으로 그려져야 화면이 한 벌로 보입니다.**
 
-import { Container, Graphics, Text } from 'pixi.js'
+import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
 
 import { buttonStyle, mix, plate, PANEL, type PlateStyle } from '../render/skin'
 import { COLOR } from '../render/theme'
+import { iconFor, type IconName } from './icon'
 
 export class Panel extends Container {
   private readonly board = new Graphics()
@@ -103,5 +104,67 @@ export class Button extends Container {
   private draw(): void {
     this.board.clear()
     plate(this.board, this.boxWidth, this.boxHeight, buttonStyle(this.base, this.lit))
+  }
+}
+
+/**
+ * 아이콘 하나짜리 버튼.
+ *
+ * **글이 없습니다.** 화면 구석에 서는 것들이라, 글을 넣으면 그 글의 길이가 자리를 정하고
+ * 말이 바뀌는 날마다 배치가 흔들립니다 — 물음표와 톱니는 어느 말에서나 같은 것을 뜻합니다.
+ *
+ * 아이콘은 **가져온 것**입니다(`ui/icon.ts`). 직접 그려 보았는데 톱니가 해처럼 보였습니다.
+ */
+export class IconButton extends Container {
+  private readonly board = new Graphics()
+  private readonly mark?: Sprite
+  private lit = false
+
+  constructor(private readonly box: number, icon: IconName, onPress: () => void) {
+    super()
+    this.addChild(this.board)
+
+    const texture = iconFor(icon)
+    if (texture) {
+      // **아이콘은 칸의 절반 조금 넘게.** 꽉 채우면 테두리에 붙어 답답하고, 작으면 무엇인지
+      // 읽히지 않습니다.
+      const size = box * 0.52
+      this.mark = new Sprite(texture)
+      this.mark.width = size
+      this.mark.height = size
+      this.mark.position.set((box - size) / 2, (box - size) / 2)
+      this.addChild(this.mark)
+    }
+
+    this.eventMode = 'static'
+    this.cursor = 'pointer'
+    this.hitArea = new Rectangle(0, 0, box, box)
+    this.on('pointertap', () => {
+      Button.onPressed?.()
+      onPress()
+    })
+    this.on('pointerover', () => this.setLit(true))
+    this.on('pointerout', () => this.setLit(false))
+    this.on('pointerdown', () => { if (this.mark) this.mark.y += 2 })
+    this.on('pointerup', () => this.place())
+    this.draw()
+  }
+
+  private place(): void {
+    if (!this.mark) return
+    this.mark.y = (this.box - this.mark.height) / 2
+  }
+
+  private setLit(value: boolean): void {
+    if (this.lit === value) return
+    this.lit = value
+    this.place()
+    this.draw()
+  }
+
+  private draw(): void {
+    this.board.clear()
+    plate(this.board, this.box, this.box, buttonStyle(0x3a4658, this.lit))
+    if (this.mark) this.mark.tint = this.lit ? COLOR.ink : COLOR.inkDim
   }
 }

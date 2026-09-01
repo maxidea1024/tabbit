@@ -17,6 +17,7 @@ import { randomSeed } from './ui/title'
 import { chosen, loadOptions } from './ui/options'
 import { loadArtIndex } from './render/art'
 import { Boot } from './ui/boot'
+import { loadIcons } from './ui/icon'
 import { Game } from './render/game'
 import { COLOR } from './render/theme'
 
@@ -51,6 +52,9 @@ async function main(): Promise<void> {
   // 그림 목록. 없으면 문양으로 갑니다.
   boot.step('art')
   await loadArtIndex('./art')
+  // 아이콘 둘. 화면을 세우기 전에 읽습니다 — 그리는 자리에서 읽으면 첫 프레임에 빈 칸이
+  // 한 번 보입니다.
+  await loadIcons('./icon')
 
   // 시드는 주소에서 받습니다 — 같은 주소를 열면 같은 판입니다. 대조할 때 그 편이 편합니다.
   const seed = new URLSearchParams(location.search).get('seed') ?? randomSeed()

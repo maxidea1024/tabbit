@@ -295,10 +295,15 @@ export function panelFrame(width: number, height: number, title: string,
   node.addChild(shutMark)
 
   // 밑단의 버튼들. **닫기는 판마다 같은 자리에 같은 모습입니다.**
+  //
+  // 부르는 쪽은 닫기를 만들지 않습니다 — 여기서 답니다. `extra` 는 그 판이 할 일이고,
+  // 닫는 것이 아닙니다.
   const shut = new Button(t('ui.button.close'), 132, 34, 0x3a4658, onClose)
   const extraWidth = extra ? extra.width + 12 : 0
   const row = 132 + extraWidth
-  const left = (width - row) / 2
+  // **판보다 넓어지지 않게 잡습니다.** 넘치면 버튼이 판의 좌우로 삐져나가고, 그것은
+  // 판이 아니라 부서진 것으로 보입니다.
+  const left = Math.max(14, (width - row) / 2)
   if (extra) {
     extra.position.set(left, footTop + (FOOTER_BAR - 34) / 2)
     node.addChild(extra)

@@ -1,27 +1,25 @@
-// 상점에서 하나 사는 그 동안.
-//
-// **울렁 → 이동 → 안착**입니다. 그리고 그 내내 상점 판이 서 있어야 합니다 — 큰 판이
-// 사라졌다 다시 서면 무엇을 산 것보다 판이 없어진 것이 먼저 보입니다.
+// 타이틀과 정산 판. **누를 것이 하나로 남았는지, 정산의 뼈대 줄이 도는지 봅니다.**
 import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, chooseFive, clickPrimary, discardHand, peek, playHand, rate, settle, shopSlot, spare,
-  STAGE_W, TITLE_START_Y,
+  at, chooseFive, clickPrimary, discardHand, peek, playHand, rate, settle, spare, STAGE_W,
+  TITLE_START_Y,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
-const PORT = 5209
+const PORT = 5215
 
 async function main(): Promise<number> {
   const server = await createServer({ root: path.resolve(HERE, '..'), server: { port: PORT } })
   await server.listen()
   const browser = await chromium.launch()
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
-  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-BUY1`, { waitUntil: 'networkidle' })
-  await page.waitForTimeout(1500)
+  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-TITLE1`, { waitUntil: 'networkidle' })
+  await page.waitForTimeout(1600)
+  await shot(page, 'title-1')
 
   const start = await at(page, STAGE_W / 2, TITLE_START_Y)
   await page.mouse.click(start.x, start.y)
@@ -31,6 +29,7 @@ async function main(): Promise<number> {
   await clickPrimary(page)
   await settle(page)
 
+  // 블라인드를 넘깁니다. 정산 판이 서는 그 순간을 잡습니다.
   for (let turn = 0; turn < 40; turn++) {
     const state = await peek(page)
     if (state.phase !== 'round') break
@@ -43,29 +42,16 @@ async function main(): Promise<number> {
     await settle(page)
     await page.waitForTimeout(200)
   }
-  await page.waitForTimeout(1400)
-  const h = 46 + 16 + 2 * 34 + 14 + 56
-  const take = await at(page, STAGE_W / 2, (800 - h) / 2 + h - 56 / 2)
-  await page.mouse.click(take.x, take.y)
-  await page.waitForTimeout(1800)
 
-  await shot(page, 'buy-0')
-
-  // 첫 칸을 삽니다.
-  const tile = await shopSlot(page, 0)
-  await page.mouse.move(tile.x, tile.y)
-  await page.waitForTimeout(120)
-  await page.mouse.down()
-  await page.waitForTimeout(60)
-  await page.mouse.up()
-
-  // 사는 그 동안을 여덟 장으로. **연출의 시계로 잡습니다** — 스크린샷 자체가 시간을
-  // 먹으므로 기다린 시간만으로는 어느 순간인지 알 수 없습니다.
-  for (let i = 1; i <= 8; i++) {
-    await shot(page, `buy-${i}`)
+  // 판이 열리자마자 · 줄이 쌓이는 중 · 다 선 뒤.
+  for (let i = 0; i < 90; i++) {
+    if ((await peek(page)).payout) break
+    await page.waitForTimeout(50)
   }
-  await page.waitForTimeout(600)
-  await shot(page, 'buy-9')
+  await shot(page, 'payout-1')
+  await shot(page, 'payout-2')
+  await page.waitForTimeout(700)
+  await shot(page, 'payout-3')
 
   await browser.close()
   await server.close()

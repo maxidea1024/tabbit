@@ -7,7 +7,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import { at, clickPrimary, peek, pickCards, pressPlay, settle, STAGE_W } from './harness'
+import { at, clickPrimary, peek, pickCards, pressPlay, settle, STAGE_W , TITLE_START_Y } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
@@ -40,7 +40,7 @@ async function main(): Promise<number> {
   const first = await peek(page)
   console.log('처음 씬', first.scene, '· 로딩 줄', bootAfterLoad ? '보임' : '걷힘')
 
-  const start = await at(page, STAGE_W / 2, 436 + 27)
+  const start = await at(page, STAGE_W / 2, TITLE_START_Y)
   await page.mouse.click(start.x, start.y)
   await page.waitForTimeout(900)
   await page.mouse.click(20, 20)
@@ -82,7 +82,7 @@ async function main(): Promise<number> {
   await page.screenshot({ path: path.join(OUT, 'scene-2.png') })
 
   // 다시 시작해서 판이 서는가.
-  const again = await at(page, STAGE_W / 2, 436 + 27)
+  const again = await at(page, STAGE_W / 2, TITLE_START_Y)
   await page.mouse.click(again.x, again.y)
   await page.waitForTimeout(1200)
   const second = await peek(page)

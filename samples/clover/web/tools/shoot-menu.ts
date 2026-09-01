@@ -1,20 +1,20 @@
-// 득점하는 동안 칩이 날아가는가.
+// 인게임의 메뉴 판. **닫는 길이 몇 개인지, 안에 든 것이 판을 넘지 않는지 봅니다.**
 import * as path from 'path'
 import { fileURLToPath } from 'url'
-import { chromium, type Page } from 'playwright'
+import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import { at, chooseFive, clickPrimary, peek, pickCards, pressPlay, STAGE_W , TITLE_START_Y } from './harness'
+import { at, clickPrimary, settle, STAGE_W , TITLE_START_Y } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
-const PORT = 5205
+const PORT = 5214
 
 async function main(): Promise<number> {
   const server = await createServer({ root: path.resolve(HERE, '..'), server: { port: PORT } })
   await server.listen()
   const browser = await chromium.launch()
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
-  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-CHIP1`, { waitUntil: 'networkidle' })
+  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-MENU1`, { waitUntil: 'networkidle' })
   await page.waitForTimeout(1500)
 
   const start = await at(page, STAGE_W / 2, TITLE_START_Y)
@@ -23,26 +23,17 @@ async function main(): Promise<number> {
   await page.mouse.click(20, 20)
   await page.waitForTimeout(400)
   await clickPrimary(page)
-  await page.waitForTimeout(2000)
+  await settle(page)
 
-  const state = await peek(page)
-  await pickCards(page, chooseFive(state.hand))
-  await page.waitForTimeout(400)
-  await pressPlay(page)
-
-  // 득점이 도는 동안을 여섯 장으로.
-  for (const [index, wait] of [700, 300, 300, 300, 300, 400].entries()) {
-    await page.waitForTimeout(wait)
-    await shot(page, `chip-${index + 1}`)
-  }
+  // 왼쪽 아래의 「메뉴」.
+  const menu = await at(page, 16 + 134 + 59, 700 + 17)
+  await page.mouse.click(menu.x, menu.y)
+  await page.waitForTimeout(700)
+  await page.screenshot({ path: path.join(OUT, 'menu-1.png') })
 
   await browser.close()
   await server.close()
   return 0
-}
-
-async function shot(page: Page, name: string): Promise<void> {
-  await page.screenshot({ path: path.join(OUT, `${name}.png`) })
 }
 
 main().then(code => process.exit(code))

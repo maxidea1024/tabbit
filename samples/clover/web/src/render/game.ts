@@ -89,6 +89,13 @@ const REVEAL_RISE = 14
 /** 정산의 줄이 하나씩 서는 간격. */
 const PAYOUT_STEP = 0.16
 /**
+ * 판이 열리고 첫 줄이 서기까지.
+ *
+ * **그 사이에 「정산 중」 이 뜹니다.** 0.12초는 그 글을 읽을 수 없고, 그보다 길면 기다리는
+ * 것이 됩니다.
+ */
+const PAYOUT_WAIT = 0.52
+/**
  * 상점이 서는 가장 높은 자리.
  *
  * **조커와 소모품 줄의 아래입니다** — 그 줄과 칸 수를 적은 글이 `y` 193 에서 끝납니다.
@@ -140,6 +147,27 @@ const ITEM_WARP = 0.30
 const ITEM_ARRIVE = 0.62
 const ITEM_FLASH = 0.34
 const ITEM_HOLD = 1.05
+
+/**
+ * 꾸욱 누르고 있으면 설명이 뜨는 데까지.
+ *
+ * **마우스에는 「올린다」가 있고 손가락에는 없습니다.** 손가락은 누르거나 안 누르거나
+ * 둘뿐이라, 올리는 것으로 뜨는 설명은 손가락으로는 뜨게 할 방법이 없습니다 — 누르고
+ * 기다리는 것이 그 자리를 대신합니다.
+ *
+ * 0.34초는 짧아서 고르려고 누른 것에도 뜨고, 0.7초는 길어서 뜨기 전에 손을 뗍니다.
+ */
+/**
+ * 들린 카드가 제자리로 내려오는 데까지.
+ *
+ * **용수철의 시간입니다.** 380·39 짜리 용수철이 8픽셀을 내려오는 데 그만큼 걸립니다 —
+ * 이보다 짧으면 내려오는 도중에 나가고, 길면 다 내려온 카드가 가만히 기다립니다.
+ */
+const ITEM_SETTLE = 0.22
+
+const HOLD_TIP = 0.45
+/** 그 사이에 손가락이 이만큼 움직이면 누른 것이 아니라 끈 것입니다. */
+const HOLD_SLACK = 16
 /**
  * 고른 카드가 무슨 족보인지 뜨는 자리.
  *
@@ -479,6 +507,23 @@ export class Game {
    * `refresh` 가 비우므로 판이 열리는 그 프레임에 지워집니다.
    */
   private readonly payoutNodes: { node: Container; at: number; from: number }[] = []
+  /**
+   * 줄이 서기 전에 뜨는 「정산 중」.
+   *
+   * **판은 먼저 열리고 줄은 하나씩 쌓입니다.** 그 사이가 빈 상자라, 무엇을 기다리는
+   * 중인지가 적혀 있지 않으면 판이 잘못 열린 것으로 보입니다.
+   */
+  private payoutWait?: {
+    head: Text
+    /** 뼈대 줄. 매 프레임 다시 그립니다 — 줄마다 옅어지는 정도가 다릅니다. */
+    bones: Graphics
+    width: number
+    rows: number
+    top: number
+    rowH: number
+    /** 첫 줄이 서는 시각. 그 뒤로 `PAYOUT_STEP` 마다 하나씩입니다. */
+    begin: number
+  }
 
   /** 「적용 중」 을 펼친 판. */
   private readonly activePanel: ModalPanel = {
@@ -820,6 +865,35 @@ export class Game {
   /** 지금 설명이 떠 있는 조커. 바뀔 때만 다시 그립니다. */
   private hoveredJoker?: JokerView
 
+  /**
+   * 꾸욱 누르고 있는 것.
+   *
+   * **손가락으로 설명을 보는 길입니다.** 마우스는 올리면 뜨지만 손가락에는 「올린다」가
+   * 없습니다 — 누른 자리와 시각을 적어 두고, 그 자리에서 오래 있으면 설명을 띄웁니다.
+   */
+  private press?: {
+    at: number
+    x: number
+    y: number
+    show: () => void
+    /** 이미 띄웠는가. 한 번만 띄웁니다. */
+    fired: boolean
+  }
+  /**
+   * 꾸욱 눌러 설명을 띄웠는가.
+   *
+   * **그 손가락이 떼어질 때의 누름을 먹습니다.** 그러지 않으면 설명을 보려고 누른 것이
+   * 그대로 고르기·사기·쓰기가 됩니다.
+   */
+  private pressAte = false
+  /**
+   * 마지막으로 쓴 것이 손가락인가.
+   *
+   * **조커와 손패의 설명은 마우스의 자리를 보고 뜁니다.** 손가락은 뗀 뒤에도 그 자리가
+   * 그대로 남으므로, 그 길로는 설명이 떼고 나서도 붙어 있습니다.
+   */
+  private touching = false
+
   constructor(private readonly app: Application, private readonly data: Data, seed: string) {
     this.feel = readFeel(data.feel)
     this.audio = new Audio(data.tables)
@@ -916,17 +990,37 @@ export class Game {
     app.canvas.addEventListener('pointerdown', () => this.audio.unlock())
     // **누르는 순간 툴팁이 닫힙니다.** 툴팁은 마우스가 그것에서 벗어날 때 닫히는데, 누른
     // 것이 사라지면(사거나 팔거나 쓰거나) 벗어나는 일이 영영 없어서 그 자리에 남습니다.
-    app.stage.on('pointerdown', () => this.tooltip.hide())
+    //
+    // **꾸욱 누르기는 여기서 시작하지 않습니다** — 누른 것이 무엇인지는 그 물건이 알고,
+    // 이 자리는 화면 전체라 무엇을 눌렀는지 모릅니다. 여기서는 앞의 것을 걷을 뿐입니다.
+    //
+    // **잡는 단계에서 받습니다.** 이벤트는 눌린 것에서 시작해 화면까지 올라오므로, 여기서
+    // 그냥 받으면 그 물건이 방금 걸어 둔 꾸욱 누르기를 이 줄이 곧바로 걷어냅니다 —
+    // 잡는 단계는 그 반대로 화면에서 물건으로 내려가므로 여기가 먼저입니다.
+    app.stage.addEventListener('pointerdown', event => {
+      this.touching = event.pointerType !== 'mouse'
+      this.pressAte = false
+      this.press = undefined
+      this.tooltip.hide()
+    }, { capture: true })
     app.stage.eventMode = 'static'
     app.stage.hitArea = { contains: () => true }
     app.stage.on('globalpointermove', event => {
       this.pointerAt = this.world.toLocal(event.global)
+      if (event.pointerType === 'mouse') this.touching = false
       this.advanceDrag()
+      this.advancePressMove()
     })
     // **판 밖에서 떼어도 끝나야 합니다.** 카드 위에서만 받으면 손가락이 판 밖으로 나간
     // 채 떼었을 때 그 카드가 커서에 붙어 남습니다.
-    app.stage.on('pointerup', () => this.endDrag())
-    app.stage.on('pointerupoutside', () => this.endDrag())
+    app.stage.on('pointerup', () => {
+      this.endDrag()
+      this.press = undefined
+    })
+    app.stage.on('pointerupoutside', () => {
+      this.endDrag()
+      this.press = undefined
+    })
     window.addEventListener('keydown', event => {
       this.audio.unlock()
       // 판이 떠 있으면 맨 위의 것을 닫습니다. **연출을 넘기는 것보다 앞섭니다** — 판을
@@ -1218,6 +1312,7 @@ export class Game {
     // 정산.
     this.payoutRows.length = 0
     this.payoutNodes.length = 0
+    this.payoutWait = undefined
     this.payoutWanted = false
     this.payoutOpen = false
 
@@ -1340,12 +1435,16 @@ export class Game {
     // 복잡해지고, 정작 눌러야 할 것은 화면에 이미 그려져 있습니다.
     pile.eventMode = 'static'
     pile.cursor = 'pointer'
-    pile.on('pointertap', () => this.toggleDeckView())
-    pile.on('pointerover', () => {
+    // 꾸욱 눌러 설명을 본 것이면 열지 않습니다. 누름을 다루는 자리마다 `ate` 를 먼저
+    // 물어봅니다 — 그러지 않으면 설명을 보려던 손가락이 그대로 판을 엽니다.
+    pile.on('pointertap', () => {
+      if (this.ate()) return
+      this.toggleDeckView()
+    })
+    this.tipOn(pile, () => {
       this.tooltip.show(t('ui.button.deck_view'), '', 0, [t('ui.deck.tip')],
         DECK_X, DECK_Y + 96, SIZE)
     })
-    pile.on('pointerout', () => this.tooltip.hide())
 
     this.deckLayer.addChild(pile, this.deckLabel)
 
@@ -1682,10 +1781,9 @@ export class Game {
       view.selected = false
       view.setPick(0, PICK_TINT)
       view.hint = false
-      // **낸 카드와 같은 길로 나갑니다.** 손패의 줄과 덱이 같은 높이라, 그 자리에서 곧바로
-      // 오른쪽으로 미끄러지면 덱으로 되돌아가는 것처럼 보입니다 — 위로 한 번 올라갔다가
-      // 나가면 「버렸다」로 읽힙니다.
-      view.place(view.x, PLAY_Y, 0)
+      // **제자리에서 탑니다.** 오른쪽으로 미끄러지면 덱으로 되돌아가는 것으로 보이고, 판
+      // 가운데로 올려 보내면 낸 카드처럼 판에 올라섰다가 없어지는 것으로 보입니다 —
+      // 그 둘을 다 해 봤고, 버리는 것은 손에서 그대로 없애는 것입니다.
       this.fades.push({
         view, at: this.clock + index * (this.feel.playStaggerMs / 1000), spark: true,
       })
@@ -1711,10 +1809,15 @@ export class Game {
     while (this.fades.length > 0 && this.fades[0].at <= this.clock) {
       const next = this.fades.shift()
       if (!next) break
-      next.view.retire()
-      // 버린 카드만 흩어집니다. **득점하고 물러나는 카드는 조용히 나갑니다** — 방금 빛이
-      // 돌았던 카드가 다시 터지면 무엇이 끝난 것인지 흐려집니다.
-      if (next.spark) this.particles.burst(next.view.x, next.view.y, 6, 0xff9d5c, 0.6)
+      // **버린 것과 낸 것은 나가는 길이 다릅니다.** 버린 것은 제자리에서 타고, 득점하고
+      // 물러나는 것은 오른쪽으로 미끄러져 나갑니다 — 하나는 없애는 것이고 하나는 치우는
+      // 것입니다.
+      if (next.spark) {
+        next.view.burnAway()
+        this.particles.burst(next.view.x, next.view.y, 6, 0xff9d5c, 0.6)
+      } else {
+        next.view.retire()
+      }
       this.audio.play('card_destroy')
     }
   }
@@ -1740,10 +1843,16 @@ export class Game {
    * 보이고, 낸 것이 다섯 장이었다는 것이 마지막에 지워집니다.
    */
   private clearPlayArea(): void {
+    // **들린 카드는 먼저 내려옵니다.** 득점한 카드는 8픽셀 들려 있는데, 그 채로 나가면
+    // 매칭된 것과 아닌 것이 어긋난 줄로 물러나고 들렸던 것이 도로 내려오는 것을 보지
+    // 못합니다 — 올라간 것은 내려와서 없어져야 한 몸짓으로 읽힙니다.
+    for (const view of this.playedViews) view.scoring = false
     this.playedViews.forEach((view, index) => {
       if (view.retiring) return
       this.fades.push({
-        view, at: this.clock + index * (this.feel.playStaggerMs / 1000), spark: false,
+        view,
+        at: this.clock + ITEM_SETTLE + index * (this.feel.playStaggerMs / 1000),
+        spark: false,
       })
     })
   }
@@ -1991,9 +2100,11 @@ export class Game {
         // 순서이고, 상점이 먼저 열리면 그 돈이 어디서 왔는지가 지나가 버립니다.
         this.payoutRows.length = 0
         this.payoutWanted = true
-        // **이 게임에서 사람이 기다리는 순간입니다.** 채널을 전부 씁니다 — 큰 글씨가 튀어
-        // 나오고, 화면이 번쩍이고, 판이 흔들리고, 배경이 밝아지고, 음이 여섯 번 올라갑니다.
-        this.say(t('ui.label.cleared'), COLOR.good, 2.2)
+        // **이 게임에서 사람이 기다리는 순간입니다.** 채널을 전부 씁니다 — 화면이
+        // 번쩍이고, 판이 흔들리고, 배경이 밝아지고, 음이 여섯 번 올라갑니다.
+        //
+        // **글은 적지 않습니다.** 곧 정산 판이 서서 무엇을 얼마나 받는지가 적히므로,
+        // 「넘겼습니다」는 그 판이 할 말을 한 번 미리 하는 것일 뿐입니다.
         this.audio.play('blind_clear')
         this.chime('coin_land', 6, 3, 0.07)
         this.burstAcrossPlayArea(46, COLOR.good, 2.4, 2.6)
@@ -2007,7 +2118,8 @@ export class Game {
         break
 
       case 'RunLost':
-        this.say(t('ui.label.short'), COLOR.bad, 2)
+        // **글은 적지 않습니다.** 끝났다는 판이 곧 서고 거기에 몇 점이 모자랐는지까지
+        // 적히므로, 머리글은 그 판이 할 말을 미리 하는 것입니다.
         this.audio.play('blind_fail')
         this.jolt(9, 1.6, 0.5)
         this.flashScreen(COLOR.bad, 0.2)
@@ -2301,9 +2413,47 @@ export class Game {
       }
     }
 
+    this.advancePayoutBones()
+
     for (const one of this.payoutNodes) {
       if (one.node.alpha < 1) this.advanceOne(one)
     }
+  }
+
+  /**
+   * 뼈대 줄.
+   *
+   * **줄마다 자기 차례에 걷힙니다.** 한꺼번에 걷으면 빈 상자가 한 번 보이고, 그러면
+   * 뼈대를 깔아 둔 뜻이 없어집니다 — 실제 줄이 그 자리에 서는 그때 그 자리의 뼈대만
+   * 사라집니다.
+   */
+  private advancePayoutBones(): void {
+    const wait = this.payoutWait
+    if (!wait) return
+
+    wait.bones.clear()
+    let left = 0
+    for (let i = 0; i < wait.rows; i++) {
+      const at = wait.begin + i * PAYOUT_STEP
+      const fade = Math.max(0, Math.min(1, (at - this.clock) / 0.18))
+      if (fade <= 0) continue
+      left++
+
+      // 물결. **가만히 있는 회색 막대는 멈춘 화면으로 보입니다.**
+      const wave = 0.42 + 0.26 * Math.sin(this.clock * 5 - i * 0.9)
+      const alpha = fade * wave
+      const y = wait.top + i * wait.rowH + 8
+      // 왼쪽이 이유, 오른쪽이 금액. 실제 줄과 같은 자리입니다.
+      wait.bones.roundRect(24, y, 132, 15, 7).fill({ color: 0x8ea2bd, alpha })
+      wait.bones.roundRect(wait.width - 24 - 62, y, 62, 15, 7)
+        .fill({ color: 0x8ea2bd, alpha: alpha * 0.86 })
+    }
+
+    wait.head.alpha = Math.max(0, Math.min(1, (wait.begin - this.clock) / 0.2))
+    if (left > 0) return
+    wait.bones.destroy()
+    wait.head.destroy()
+    this.payoutWait = undefined
   }
 
   /** 때가 된 것을 합니다. */
@@ -2430,6 +2580,7 @@ export class Game {
 
     this.advanceConsumableLift(seconds)
     this.advanceItemArrive(seconds)
+    this.advancePress()
     this.advanceReveals()
     this.advancePack(seconds)
     this.advanceLater()
@@ -2612,8 +2763,78 @@ export class Game {
    *
    * 겹쳐 있을 때는 오른쪽 것이 위입니다. 손패를 그리는 순서가 그렇습니다.
    */
+  /**
+   * 꾸욱 누르기를 시작합니다.
+   *
+   * **마우스에는 걸지 않습니다.** 마우스는 올리면 그 자리에서 뜨므로, 누르고 기다리게 하면
+   * 마우스로는 되던 것이 느려지기만 합니다.
+   */
+  private armPress(event: FederatedPointerEvent, show: () => void): void {
+    if (event.pointerType === 'mouse') return
+    const at = this.world.toLocal(event.global)
+    this.press = { at: this.clock, x: at.x, y: at.y, show, fired: false }
+  }
+
+  /**
+   * 손가락이 움직였으면 누른 것이 아닙니다.
+   *
+   * 카드를 끌어 자리를 바꾸는 것과 겹치기 때문입니다 — 끄는 중에 설명이 뜨면 끌고 있는
+   * 카드를 그 쪽지가 덮습니다.
+   */
+  private advancePressMove(): void {
+    const press = this.press
+    if (!press || press.fired) return
+    const dx = this.pointerAt.x - press.x
+    const dy = this.pointerAt.y - press.y
+    if (dx * dx + dy * dy > HOLD_SLACK * HOLD_SLACK) this.press = undefined
+  }
+
+  /** 오래 눌렀으면 띄웁니다. 한 번만입니다. */
+  private advancePress(): void {
+    const press = this.press
+    if (!press || press.fired) return
+    if (this.clock - press.at < HOLD_TIP) return
+    press.fired = true
+    // **그 손가락이 떼어질 때의 누름을 먹습니다.** 설명을 보려고 누른 것이 그대로
+    // 고르기·사기·쓰기가 되면 안 됩니다.
+    this.pressAte = true
+    this.audio.play('button')
+    press.show()
+  }
+
+  /**
+   * 이 누름이 설명을 띄운 것이었는가.
+   *
+   * **한 번만 참입니다.** 누름을 다루는 자리마다 맨 앞에서 물어봅니다 — 참이면 그 누름은
+   * 설명을 본 것이므로 아무것도 하지 않습니다.
+   */
+  private ate(): boolean {
+    if (!this.pressAte) return false
+    this.pressAte = false
+    return true
+  }
+
+  /**
+   * 설명이 뜨는 자리 하나를 답니다.
+   *
+   * **마우스와 손가락의 길이 다릅니다.** 마우스는 올리면 뜨고 벗어나면 닫히고, 손가락은
+   * 꾸욱 누르면 뜹니다 — 부르는 자리마다 그 둘을 따로 적으면 언젠가 한쪽이 빠집니다.
+   */
+  private tipOn(node: Container, show: () => void): void {
+    node.on('pointerover', event => {
+      if (event.pointerType !== 'mouse') return
+      show()
+    })
+    node.on('pointerdown', event => this.armPress(event, show))
+    node.on('pointerout', () => this.tooltip.hide())
+  }
+
   private updateHover(): void {
-    const blocked = this.modals.busy || this.state.pack !== null
+    // **손가락에는 「올려 둔다」 가 없습니다.** 손가락은 떼고 나서도 그 자리가 마지막으로
+    // 지나간 자리로 남으므로, 누른 조커가 계속 올려진 것으로 셉니다 — 골랐다가 다시 눌러
+    // 놓아도 그 카드만 조금 들린 채로 있었고, 다른 카드를 눌러 그 자리가 옮겨질 때에야
+    // 내려왔습니다.
+    const blocked = this.touching || this.modals.busy || this.state.pack !== null
       || this.state.phase === 'lost' || this.state.phase === 'won'
     // **뽑는 동안에는 카드에 올려지지 않습니다.** 마우스가 나오는 길목에 있으면 지나가는
     // 카드마다 차례로 들려 올라가고, 그것은 고르는 것으로도 지나가는 것으로도 읽히지
@@ -2638,7 +2859,9 @@ export class Game {
     for (const view of this.cards.values()) view.hovered = view === card
     for (const view of this.jokers.values()) view.hovered = view === joker
 
-    if (joker) {
+    // **손가락으로는 이 길을 쓰지 않습니다.** 손가락은 뗀 뒤에도 그 자리가 그대로 남아서,
+    // 설명이 떼고 나서도 붙어 있습니다 — 손가락은 꾸욱 눌러서 봅니다.
+    if (joker && !this.touching) {
       if (joker !== this.hoveredJoker) this.showTooltip(joker)
     } else if (this.hoveredJoker) {
       this.tooltip.hide()
@@ -2672,6 +2895,10 @@ export class Game {
     ;(window as unknown as { __clover?: unknown }).__clover = {
       // 어느 씬인가. **판을 접고 타이틀로 갔는지를 이것으로 봅니다.**
       scene: this.scene,
+      // 설명 쪽지가 지금 떠 있는가. 꾸욱 누르기를 재는 도구가 씁니다.
+      tip: this.tooltip.visible,
+      // 지금 몇 장 골라 두었는가. 꾸욱 눌렀을 때 골라지지 않는지를 봅니다.
+      picked: this.selected.size,
       // 화면에 카드 뷰가 몇 장 살아 있는가. 접었으면 0 이어야 합니다.
       views: this.cards.size + this.playedViews.length + this.jokers.size,
       seed: state.seed,
@@ -2687,7 +2914,10 @@ export class Game {
       hands: state.handsLeft,
       packOpen: state.pack !== null, packs: state.shop.packs.length,
       played: this.playedViews.length, coins: this.coins.busy,
-      cleared: this.headline.visible && this.headline.text === t('ui.label.cleared'),
+      // **머리글이 아니라 국면으로 봅니다.** 「넘겼습니다」 라는 글은 걷어냈습니다 —
+      // 곧 정산 판이 서서 무엇을 얼마나 받는지가 적히므로, 그 글은 그 판이 할 말을 한 번
+      // 미리 하는 것이었습니다.
+      cleared: this.payoutWanted || this.payoutOpen,
       consumables: state.consumables.length,
       // **자리가 규칙입니다.** 득점은 낸 카드의 왼쪽부터이고 조커는 슬롯의 왼쪽부터이므로,
       // 자리를 바꾸는 것이 되는지는 이 두 줄로만 확인할 수 있습니다.
@@ -3439,12 +3669,11 @@ export class Game {
 
     node.eventMode = 'static'
     node.hitArea = new Rectangle(0, 0, width, height)
-    node.on('pointerover', () => {
+    this.tipOn(node, () => {
       const spot = this.overlay.toLocal(node.toGlobal({ x: width / 2, y: height }))
       this.tooltip.show(nameOf(this.data, 'tag', tagId, tagId), t('ui.kind.tag'), 0, lines,
         spot.x, spot.y, SIZE)
     })
-    node.on('pointerout', () => this.tooltip.hide())
     return { node, height }
   }
 
@@ -3581,11 +3810,10 @@ export class Game {
 
       cell.eventMode = 'static'
       cell.hitArea = new Rectangle(0, 0, size, size)
-      cell.on('pointerover', () => {
+      this.tipOn(cell, () => {
         this.tooltip.show(nameOf(this.data, 'tag', tagId, tagId), t('ui.kind.tag'), 0, lines,
           TAG_X + size / 2, cell.y + size, SIZE)
       })
-      cell.on('pointerout', () => this.tooltip.hide())
       this.tagLayer.addChild(cell)
     })
 
@@ -3669,6 +3897,7 @@ export class Game {
         mini.cursor = 'pointer'
         mini.on('pointertap', event => {
           event.stopPropagation()
+          if (this.ate()) return
           this.showCardTip(card, alive.has(card.uid), held.has(card.uid), mini)
         })
         layer.addChild(mini)
@@ -4209,6 +4438,18 @@ export class Game {
       // 끄는 것으로 읽힙니다.
       slack: event?.pointerType === 'touch' ? 18 : 6,
     }
+
+    // **손가락으로 설명을 보는 길입니다.** 마우스는 올리면 뜨지만 손가락에는 그것이
+    // 없으므로, 누른 채로 기다리면 뜹니다 — 그러면 그 누름은 고르는 것이 아닙니다.
+    if (!event) return
+    if (kind === 'joker') {
+      const view = this.jokers.get(uid)
+      if (view) this.armPress(event, () => this.showTooltip(view))
+      return
+    }
+    const card = this.state.deck.find(one => one.uid === uid)
+    // 손에 있는 것이므로 「덱에 남았다」가 아니라 「손에 있다」입니다.
+    if (card) this.armPress(event, () => this.showCardTip(card, false, true, view))
   }
 
   /**
@@ -4277,6 +4518,8 @@ export class Game {
     if (!drag) return
 
     if (!drag.moved) {
+      // 꾸욱 눌러 설명을 본 것이면 고르지 않습니다.
+      if (this.ate()) return
       if (drag.kind === 'hand') this.toggle(drag.uid)
       else this.pick('joker', drag.uid)
       return
@@ -4509,12 +4752,14 @@ export class Game {
       line.eventMode = 'static'
       line.cursor = 'pointer'
       line.hitArea = new Rectangle(0, 0, PANEL_W, rowH - 4)
-      line.on('pointerover', () => {
+      this.tipOn(line, () => {
         this.tooltip.show(entry.label, entry.value, 0, entry.lines,
           LEFT + PANEL_W / 2, y + rowH, SIZE)
       })
-      line.on('pointerout', () => this.tooltip.hide())
-      line.on('pointertap', () => this.toggleActive())
+      line.on('pointertap', () => {
+        if (this.ate()) return
+        this.toggleActive()
+      })
       this.activeLayer.addChild(line)
     })
 
@@ -4526,7 +4771,10 @@ export class Game {
       more.position.set(LEFT + 4, top + 20 + shown * rowH + 4)
       more.eventMode = 'static'
       more.cursor = 'pointer'
-      more.on('pointertap', () => this.toggleActive())
+      more.on('pointertap', () => {
+        if (this.ate()) return
+        this.toggleActive()
+      })
       this.activeLayer.addChild(more)
     }
   }
@@ -4635,14 +4883,36 @@ export class Game {
       this.payoutWanted = false
       this.modals.close(this.payout)
     })
-    layer.addChild(panelFrame(width, height, t('ui.payout.title'), undefined, take))
+    // **제목이 없습니다.** 밑단의 「받는다」 가 이 판이 무엇인지를 이미 말하므로, 머리에
+    // 「정산」 을 또 적으면 같은 말이 한 판에 두 번 있습니다.
+    layer.addChild(panelFrame(width, height, '', undefined, take))
+
+    // **줄이 서기 전의 판이 휑했습니다.** 판은 먼저 열리고 줄은 하나씩 쌓이므로 그 사이가
+    // 빈 상자입니다.
+    //
+    // 뼈대 줄을 깔아 둡니다 — 웹에서 글이 오기 전에 회색 막대를 깔아 두는 것과 같고,
+    // **그 자리에 무엇이 올지까지 말해 줍니다.** 「정산 중」 은 머리띠에 적습니다: 제목을
+    // 걷어내 그 자리가 비어 있고, 무엇을 기다리는 중인가는 제목이 아닙니다.
+    const head = new Text({
+      text: t('ui.payout.counting'),
+      style: { fontSize: 13, fill: COLOR.inkDim, fontWeight: '700', letterSpacing: 1 },
+    })
+    head.anchor.set(0.5, 0.5)
+    head.position.set(width / 2, TITLE_BAR / 2)
+    const bones = new Graphics()
+    layer.addChild(bones, head)
+    this.payoutWait = {
+      head, bones, width,
+      rows: Math.max(1, this.payoutRows.length), top, rowH,
+      begin: this.clock + PAYOUT_WAIT,
+    }
 
     // **줄이 하나씩 쌓입니다.** 판이 열릴 때 줄은 이미 다 모여 있으므로, 쌓이는 것은
     // 그리는 쪽에서 만듭니다 — 한꺼번에 그려 놓으면 어디서 얼마가 들어왔는지를 훑어야
     // 합니다. 설 때마다 동전 소리가 하나 나고 음이 올라갑니다.
     this.payoutRows.forEach((row, index) => {
       const y = top + index * rowH
-      const at = this.clock + 0.12 + index * PAYOUT_STEP
+      const at = this.clock + PAYOUT_WAIT + index * PAYOUT_STEP
 
       const label = new Text({
         text: row.why,
@@ -4688,10 +4958,10 @@ export class Game {
     const height = TITLE_BAR + rows.length * 46 + 14 + FOOTER_BAR
     ;(this.menu.size as { width: number; height: number }).height = height
 
-    const close = new Button(t('ui.button.close'), 140, 40, 0x4a5568,
-      () => this.modals.close(this.menu))
+    // **닫기를 따로 만들지 않습니다.** 껍데기가 머리의 `✕` 와 밑단의 닫기를 이미 답니다 —
+    // 여기서 하나 더 넘기면 닫기가 둘이 되고, 그 둘이 판보다 넓어서 밖으로 나갔습니다.
     layer.addChild(panelFrame(width, height, t('ui.button.menu'),
-      () => this.modals.close(this.menu), close))
+      () => this.modals.close(this.menu)))
 
     rows.forEach((row, index) => {
       const button = new Button(row.label, width - 48, 38, 0x3a4658, () => {
@@ -4754,13 +5024,15 @@ export class Game {
       tile.cursor = 'pointer'
       // **누르면 고르는 것입니다.** 쓰는 것과 파는 것은 그 밑에 선 버튼이 합니다 —
       // 소모품 하나가 판을 바꾸므로, 실수로 눌러 써 버리면 되돌릴 수 없습니다.
-      tile.on('pointertap', () => this.pick('consumable', item.uid))
+      tile.on('pointertap', () => {
+        if (this.ate()) return
+        this.pick('consumable', item.uid)
+      })
       this.consumableTiles.push({ uid: item.uid, tile, baseY: tile.y })
-      tile.on('pointerover', () => {
+      this.tipOn(tile, () => {
         this.tooltip.show(name, t('ui.kind.consumable'), 0, lines,
           tile.x + SIZE.jokerWidth / 2, tile.y + SIZE.jokerHeight, SIZE)
       })
-      tile.on('pointerout', () => this.tooltip.hide())
       // 사서 오는 중인 한 장에만 겁니다. **얼굴에만입니다** — 그림자까지 걸면 카드 옆에
       // 빛나는 얼룩 하나가 따로 남습니다.
       if (this.itemArrive?.uid === item.uid) {
@@ -5106,12 +5378,14 @@ export class Game {
       tile.eventMode = 'static'
       tile.hitArea = new Rectangle(0, 0, tileW, tileH)
       tile.cursor = afford ? 'pointer' : 'default'
-      tile.on('pointertap', () => this.buyFrom(slot, item, tile))
-      tile.on('pointerover', () => {
+      tile.on('pointertap', () => {
+        if (this.ate()) return
+        this.buyFrom(slot, item, tile)
+      })
+      this.tipOn(tile, () => {
         this.tooltip.show(name, kindName(item.kind), rarity, lines,
           tile.x + tileW / 2, tile.y + tileH, SIZE)
       })
-      tile.on('pointerout', () => this.tooltip.hide())
       this.reveal(tile)
     })
   }
@@ -5470,6 +5744,7 @@ export class Game {
         tile.eventMode = 'static'
         tile.cursor = 'pointer'
         tile.on('pointertap', () => {
+          if (this.ate()) return
           this.modals.close(panel)
           commit(held.index)
           // 바꿔서 얻은 것도 얻은 것입니다. 닿는 자리에 같은 것이 납니다.
@@ -5563,6 +5838,7 @@ export class Game {
       tile.hitArea = new Rectangle(0, 0, tileW, tileH)
       tile.cursor = afford ? 'pointer' : 'default'
       tile.on('pointertap', () => {
+        if (this.ate()) return
         if (!afford) return
         this.tooltip.hide()
         this.audio.play('pack_open')
@@ -5572,12 +5848,11 @@ export class Game {
         this.packFrom = { x: tile.x + tileW / 2, y: tile.y + h / 2 }
         this.act({ t: 'buy_pack', slot })
       })
-      tile.on('pointerover', () => {
+      this.tipOn(tile, () => {
         this.tooltip.show(packName(row.kind, row.size), t('ui.kind.pack'), 0,
           [packBlurb(row.kind), tf('ui.pack.spread', { cards: row.cards, picks: row.picks })],
           tile.x + tileW / 2, tile.y + tileH, SIZE)
       })
-      tile.on('pointerout', () => this.tooltip.hide())
       this.reveal(tile)
     })
   }
@@ -5632,6 +5907,7 @@ export class Game {
     tile.eventMode = 'static'
     tile.cursor = afford ? 'pointer' : 'default'
     tile.on('pointertap', () => {
+      if (this.ate()) return
       if (!afford) return
       // **바우처는 들어갈 칸이 없습니다.** 규칙으로 들어가므로, 산 자리에서 이름이 뜨는
       // 것이 그것을 얻었다는 유일한 표시입니다.
@@ -5642,12 +5918,11 @@ export class Game {
         nameOf(this.data, 'voucher', id, row?.name ?? ''), COLOR.money, 0.5)
       this.act({ t: 'buy_voucher' })
     })
-    tile.on('pointerover', () => {
+    this.tipOn(tile, () => {
       this.tooltip.show(nameOf(this.data, 'voucher', id, row?.name ?? ''),
         t('ui.kind.voucher'), 0, lines,
         tile.x + tileW / 2, tile.y + tileH, SIZE)
     })
-    tile.on('pointerout', () => this.tooltip.hide())
     this.reveal(tile)
   }
 
@@ -5862,16 +6137,26 @@ export class Game {
     node.eventMode = 'static'
     node.cursor = 'pointer'
     node.hitArea = new Rectangle(0, 0, SIZE.jokerWidth, SIZE.jokerHeight)
-    node.on('pointerover', () => {
-      this.packHovered = index
+    // 카드가 들리는 것과 설명이 뜨는 것이 함께 있어서 `tipOn` 을 쓰지 않습니다 —
+    // **손가락으로는 들리는 것만 먼저 일어나고, 설명은 꾸욱 눌러야 뜹니다.**
+    const tip = (): void => {
       this.tooltip.show(name, kindName(item.kind), rarity, lines,
         node.x, node.y + PACK_CARD_H / 2 + 8, SIZE)
+    }
+    node.on('pointerover', event => {
+      this.packHovered = index
+      if (event.pointerType === 'mouse') tip()
+    })
+    node.on('pointerdown', event => {
+      this.packHovered = index
+      this.armPress(event, tip)
     })
     node.on('pointerout', () => {
       if (this.packHovered === index) this.packHovered = -1
       this.tooltip.hide()
     })
     node.on('pointertap', () => {
+      if (this.ate()) return
       this.tooltip.hide()
       this.packHovered = -1
       // 집은 카드도 산 것과 같이 제자리에서 옵니다.

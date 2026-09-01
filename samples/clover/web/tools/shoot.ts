@@ -16,7 +16,7 @@ import { createServer } from 'vite'
 import {
   at, BOARD_X, buyAffordablePack, buyFirstAffordable, chooseFive, clickPrimary,
   discardHand, hurry, openDeckView, peek, pickCards, playHand, pressPlay, rate, settle,
-  shopSlot, spare, STAGE_H, STAGE_W,
+  shopSlot, spare, STAGE_H, STAGE_W, TITLE_START_Y,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -65,7 +65,7 @@ async function main(): Promise<number> {
   await shoot('0b-options')
   await page.keyboard.press('Escape')
   await page.waitForTimeout(600)
-  const startSpot = await at(page, STAGE_W / 2, 436 + 27)
+  const startSpot = await at(page, STAGE_W / 2, TITLE_START_Y)
   await page.mouse.click(startSpot.x, startSpot.y)
   await page.waitForTimeout(700)
 

@@ -15,6 +15,10 @@ export interface Peek {
   seed: string
   /** 지금 칩이 날고 있는가. */
   flying: boolean
+  /** 설명 쪽지가 떠 있는가. */
+  tip: boolean
+  /** 지금 골라 둔 카드의 수. */
+  picked: number
   /** 상점 판이 지금 서 있는가. */
   shopUp: boolean
   /** 연출의 시계. 초입니다. */
@@ -209,6 +213,25 @@ export const POPUP_X = STAGE_W / 2
 export const HAND_Y = 620
 export const CARD_SPACING = 100
 export const BUTTON_Y = 742
+
+/**
+ * 타이틀의 「시작」 가운데.
+ *
+ * **`ui/title.ts` 와 같아야 합니다.** 도구마다 따로 적어 두면 배치를 고칠 때 한쪽만
+ * 고쳐지고, 그 도구는 엉뚱한 곳을 눌러 놓고 아무 말도 하지 않습니다.
+ */
+export const TITLE_START_Y = 452 + 72 / 2
+/** 타이틀 오른쪽 아래의 아이콘 둘. 왼쪽이 게임 방법, 오른쪽이 옵션입니다. */
+const TITLE_ICON = 58
+const TITLE_EDGE = 30
+export const TITLE_GUIDE = {
+  x: STAGE_W - TITLE_EDGE - TITLE_ICON * 2 - 14 + TITLE_ICON / 2,
+  y: STAGE_H - TITLE_EDGE - TITLE_ICON / 2,
+}
+export const TITLE_OPTIONS = {
+  x: STAGE_W - TITLE_EDGE - TITLE_ICON / 2,
+  y: STAGE_H - TITLE_EDGE - TITLE_ICON / 2,
+}
 
 /**
  * 가운데 큰 버튼. 블라인드 선택과 상점이 씁니다.
