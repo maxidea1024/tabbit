@@ -13,6 +13,7 @@ import { COLOR } from '../render/theme'
 import { FOOTER_BAR, panelFrame, TITLE_BAR, type ModalPanel } from './modal'
 import { richLine, type RichStyle } from './rich'
 import { Button } from './widgets'
+import { randomSeed } from './title'
 
 /** 이 판의 설명 줄에 붙는 강조. */
 const RICH: RichStyle = {
@@ -130,6 +131,10 @@ const BODY = 0x1c2431
 const EDGE = 0x55637a
 /** 값을 고르는 줄 하나의 높이. */
 const ROW = 52
+/** 시드를 적을 수 있는 길이. 주소에 실려 나가므로 길게 둘 이유가 없습니다. */
+const SEED_MAX = 28
+/** 시드 줄의 높이. 칸과 「무작위」 가 나란히 섭니다. */
+const SEED_ROW = 96
 /** 고를 것들이 서는 격자. 세 칸씩입니다. */
 const CHOICE_COLUMNS = 3
 const CHOICE_H = 36
@@ -151,6 +156,8 @@ interface Row {
   choices?: { key: string; label: string }[]
   current?: () => string
   pick?: (key: string) => void
+  /** 글을 적는 줄. 지금은 시드 하나뿐입니다. */
+  seed?: true
 }
 
 interface Tab {
@@ -175,11 +182,80 @@ export class OptionsPanel implements ModalPanel {
   private readonly tabRow = new Container()
   private tab = 0
 
+  /**
+   * 시드.
+   *
+   * **판 밖에서만 고칠 수 있습니다.** 판이 돌기 시작하면 그 판의 시드이고, 도는 중에
+   * 바꾸면 지금 보고 있는 패와 적힌 시드가 어긋납니다.
+   */
+  private seedText = ''
+  private seedEditable = false
+  private editing = false
+  private buffer = ''
+  /** 시드가 정해졌을 때. 화면이 판을 다시 만듭니다. */
+  onSeed?: (seed: string) => void
+
   constructor(private readonly options: Options,
               private readonly onChange: () => void,
               private readonly onClose: () => void) {
     this.relabel()
+
+    // **적는 동안의 키는 이 판의 것입니다.** 뒤에 있는 화면이 같은 키를 받으면 `Esc` 로
+    // 판이 닫히거나 연출이 건너뛰어집니다.
+    window.addEventListener('keydown', event => {
+      if (!this.editing) return
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      this.typed(event.key)
+    })
+    window.addEventListener('paste', event => {
+      if (!this.editing) return
+      event.preventDefault()
+      for (const one of event.clipboardData?.getData('text') ?? '') this.typed(one)
+    })
   }
+
+  /** 지금 시드와, 그것을 고칠 수 있는지. 판을 열기 전에 화면이 정합니다. */
+  setSeed(seed: string, editable: boolean): void {
+    if (this.seedText === seed && this.seedEditable === editable) return
+    this.seedText = seed
+    this.seedEditable = editable
+    this.editing = false
+    this.buffer = ''
+    this.draw()
+  }
+
+  private typed(key: string): void {
+    if (key === 'Enter') {
+      const next = this.buffer.trim()
+      this.editing = false
+      this.buffer = ''
+      if (next !== '' && next !== this.seedText) {
+        this.seedText = next
+        this.onSeed?.(next)
+      }
+      this.draw()
+      return
+    }
+    if (key === 'Escape') {
+      this.editing = false
+      this.buffer = ''
+      this.draw()
+      return
+    }
+    if (key === 'Backspace') {
+      this.buffer = this.buffer.slice(0, -1)
+      this.draw()
+      return
+    }
+    // **글자와 숫자와 `-` `_` 만 받습니다.** 시드는 주소에 실려 나가므로 그 밖의 글자는
+    // 옮겨 적히는 사이에 달라집니다.
+    if (key.length !== 1 || !/[A-Za-z0-9\-_]/.test(key)) return
+    if (this.buffer.length >= SEED_MAX) return
+    this.buffer += key
+    this.draw()
+  }
+
 
   /**
    * 글을 다시 읽습니다.
@@ -204,6 +280,10 @@ export class OptionsPanel implements ModalPanel {
   private measure(tab: Tab): number {
     let y = TAB_Y + TAB_H + 34
     for (const row of tab.rows) {
+      if (row.seed) {
+        y += SEED_ROW
+        continue
+      }
       if (row.choices === undefined) {
         y += ROW
         continue
@@ -260,6 +340,16 @@ export class OptionsPanel implements ModalPanel {
             },
           },
         ],
+      },
+      {
+        name: t('ui.title.seed'),
+        rows: [{
+          label: t('ui.title.seed'),
+          read: () => this.seedText,
+          next: () => undefined,
+          note: this.seedEditable ? t('ui.title.seed_note') : t('ui.seed.locked'),
+          seed: true,
+        }],
       },
       {
         name: t('ui.tab.video'),
@@ -425,6 +515,12 @@ export class OptionsPanel implements ModalPanel {
         this.body.addChild(note)
       }
 
+      if (row.seed) {
+        // 설명 줄 아래입니다 — `y + 24` 에 설명이 서므로 그보다 내려야 겹치지 않습니다.
+        y += this.drawSeed(y + 46)
+        continue
+      }
+
       if (row.choices === undefined) {
         const value = new Button(row.read(), 128, 34, 0x3a4658, () => {
           row.next()
@@ -439,6 +535,73 @@ export class OptionsPanel implements ModalPanel {
 
       y += this.drawChoices(row, y + 50)
     }
+  }
+
+  /**
+   * 시드를 적는 줄.
+   *
+   * **판 밖에서만 고칠 수 있습니다.** 도는 중에는 지금 시드를 읽기만 합니다 — 바꾸면
+   * 보고 있는 패와 적힌 시드가 어긋납니다.
+   */
+  private drawSeed(top: number): number {
+    const width = WIDTH - 88
+    const fieldW = width - 108
+    const height = 38
+
+    const plate = new Graphics()
+    plate.roundRect(44, top, fieldW, height, 8)
+      .fill({ color: 0x121a26, alpha: this.seedEditable ? 0.92 : 0.5 })
+    plate.roundRect(44.5, top + 0.5, fieldW - 1, height - 1, 8)
+      .stroke({
+        color: this.editing ? COLOR.good : COLOR.panelEdge,
+        width: 1.5, alpha: this.seedEditable ? 0.9 : 0.4,
+      })
+    if (this.seedEditable) {
+      plate.eventMode = 'static'
+      plate.cursor = 'text'
+      plate.on('pointertap', event => {
+        event.stopPropagation()
+        if (this.editing) return
+        this.editing = true
+        this.buffer = this.seedText
+        this.draw()
+      })
+    }
+    this.body.addChild(plate)
+
+    const value = new Text({
+      text: this.editing ? this.buffer : this.seedText,
+      style: {
+        fontSize: 15, fill: this.seedEditable ? COLOR.ink : COLOR.inkDim,
+        fontWeight: '800', letterSpacing: 1,
+      },
+    })
+    value.anchor.set(0, 0.5)
+    value.position.set(58, top + height / 2)
+    value.eventMode = 'none'
+    this.body.addChild(value)
+
+    if (this.editing) {
+      const caret = new Graphics()
+      caret.rect(value.x + value.width + 2, top + 9, 2, height - 18)
+        .fill({ color: COLOR.ink, alpha: 0.9 })
+      caret.eventMode = 'none'
+      this.body.addChild(caret)
+    }
+
+    if (this.seedEditable) {
+      const dice = new Button(t('ui.button.random'), 96, height, 0x3a4658, () => {
+        this.editing = false
+        this.buffer = ''
+        this.seedText = randomSeed()
+        this.onSeed?.(this.seedText)
+        this.draw()
+      })
+      dice.position.set(44 + fieldW + 12, top)
+      this.body.addChild(dice)
+    }
+
+    return SEED_ROW
   }
 
   /**

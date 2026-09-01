@@ -45,7 +45,7 @@ async function main(): Promise<number> {
   await page.waitForTimeout(1500)
 
   // 타이틀 → 시작 → 안내 닫기 → 블라인드 고르기.
-  const start = await at(page, STAGE_W / 2, 446 + 27)
+  const start = await at(page, STAGE_W / 2, 436 + 27)
   await page.mouse.click(start.x, start.y)
   await page.waitForTimeout(800)
   await page.mouse.click(20, 20)

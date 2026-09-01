@@ -11,9 +11,11 @@ const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
 const PORT = 5203
 
-/** 시드 줄. `ui/title.ts` 의 `SEED_Y` 와 같습니다. */
-const SEED_Y = 634
-const SEED_H = 36
+/** 타이틀의 「옵션」 버튼과, 그 판의 「시드」 탭과 칸. */
+const OPTION_Y = 586 + 22
+const TAB_Y = 279
+const FIELD_X = 560
+const FIELD_Y = 390
 const SEED = 'SEED-TEST-42'
 
 async function main(): Promise<number> {
@@ -22,13 +24,12 @@ async function main(): Promise<number> {
   const browser = await chromium.launch()
 
   const typed = await firstHand(browser, undefined, async page => {
-    // 시드 칸을 누르고, 지운 뒤 새로 적습니다.
-    const field = await at(page, STAGE_W / 2 - 100, SEED_Y + SEED_H / 2)
-    await page.mouse.move(field.x, field.y)
-    await page.waitForTimeout(120)
-    await page.mouse.down()
-    await page.waitForTimeout(60)
-    await page.mouse.up()
+    // 옵션 → 시드 탭 → 칸을 누르고 새로 적습니다.
+    await tap(page, STAGE_W / 2, OPTION_Y)
+    await page.waitForTimeout(700)
+    await tap(page, STAGE_W / 2, TAB_Y)
+    await page.waitForTimeout(400)
+    await tap(page, FIELD_X, FIELD_Y)
     await page.waitForTimeout(300)
     await page.screenshot({ path: path.join(OUT, 'seed-edit.png') })
 
@@ -38,6 +39,9 @@ async function main(): Promise<number> {
     await page.screenshot({ path: path.join(OUT, 'seed-typed.png') })
     await page.keyboard.press('Enter')
     await page.waitForTimeout(300)
+    // 판을 닫습니다. 바깥을 누르면 닫힙니다.
+    await tap(page, 60, 60)
+    await page.waitForTimeout(500)
   })
 
   const direct = await firstHand(browser, SEED)
@@ -64,7 +68,7 @@ async function firstHand(browser: Browser, seed?: string,
   if (before) await before(page)
   const title = await page.title()
 
-  const start = await at(page, STAGE_W / 2, 446 + 27)
+  const start = await at(page, STAGE_W / 2, 436 + 27)
   await page.mouse.click(start.x, start.y)
   await page.waitForTimeout(900)
   await page.mouse.click(20, 20)
@@ -85,6 +89,16 @@ async function firstHand(browser: Browser, seed?: string,
   }
   await page.close()
   return { title, hand }
+}
+
+/** 한 번 누릅니다. `mouse.click` 은 너무 빨라 `pointertap` 이 서지 않는 자리가 있습니다. */
+async function tap(page: Page, x: number, y: number): Promise<void> {
+  const spot = await at(page, x, y)
+  await page.mouse.move(spot.x, spot.y)
+  await page.waitForTimeout(90)
+  await page.mouse.down()
+  await page.waitForTimeout(60)
+  await page.mouse.up()
 }
 
 main().then(code => process.exit(code))

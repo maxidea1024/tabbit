@@ -795,6 +795,7 @@
 	ui.title.seed	시드	Seed	シード	种子	種子	Seed
 	ui.title.seed_hint	같은 시드를 넣으면 같은 판이 나옵니다	The same seed gives the same run	同じシードなら同じゲームになります	相同的种子会生成相同的一局	相同的種子會生成相同的一局	Derselbe Seed ergibt denselben Durchgang
 	ui.title.seed_note	덱 섞기 · 상점 · 팩 · 확률 발동이 모두 이 글에서 갈라집니다	Deck shuffle, shop, packs and procs all derive from it	デッキのシャッフル・ショップ・パック・確率発動がすべてこの文字列から決まります	洗牌、商店、卡包、概率触发全部由它决定	洗牌、商店、卡包、機率觸發全部由它決定	Mischen, Shop, Packs und Auslöser gehen alle daraus hervor
+	ui.seed.locked	판이 도는 동안에는 바꿀 수 없습니다	It cannot change while a run is going	ゲーム中は変えられません	游戏进行中无法更改	遊戲進行中無法更改	Nicht änderbar während eines Durchgangs
 	ui.button.random	무작위	Random	ランダム	随机	隨機	Zufall
 	ui.guide.lead	포커 족보로 점수를 내고, 조커로 그 점수를 불립니다.	Score with poker hands, then grow that score with Jokers.	ポーカーの役で得点し、ジョーカーでその点を膨らませます。	用扑克牌型得分，再用小丑把分数放大。	用撲克牌型得分，再用小丑把分數放大。	Punkte mit Pokerblättern, dann mit Jokern vervielfachen.
 	ui.label.hands_left	남은 핸드	Hands left	残りハンド	剩余出牌	剩餘出牌	Hände übrig

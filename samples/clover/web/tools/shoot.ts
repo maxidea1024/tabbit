@@ -65,7 +65,7 @@ async function main(): Promise<number> {
   await shoot('0b-options')
   await page.keyboard.press('Escape')
   await page.waitForTimeout(600)
-  const startSpot = await at(page, STAGE_W / 2, 446 + 27)
+  const startSpot = await at(page, STAGE_W / 2, 436 + 27)
   await page.mouse.click(startSpot.x, startSpot.y)
   await page.waitForTimeout(700)
 

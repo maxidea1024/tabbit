@@ -745,11 +745,11 @@ export class Game {
     this.audio = new Audio(data.tables)
     this.state = newRun(data, seed, 'red_deck', 'White').state
     this.player = new TimelinePlayer(beat => this.showBeat(beat))
-    this.title = new Title(seed, () => this.start(),
-      () => this.modals.open(this.guide), () => this.modals.open(this.optionsPanel))
-    this.title.onSeed = next => this.useSeed(next)
+    this.title = new Title(() => this.start(),
+      () => this.modals.open(this.guide), () => this.openOptions())
     this.optionsPanel = new OptionsPanel(this.settings, () => this.applyOptions(),
       () => this.modals.close(this.optionsPanel))
+    this.optionsPanel.onSeed = next => this.useSeed(next)
 
     // 배경은 흰 스프라이트 한 장에 셰이더를 얹은 것입니다.
     this.sheet.filters = [this.background]
@@ -845,8 +845,6 @@ export class Game {
     app.stage.on('pointerupoutside', () => this.endDrag())
     window.addEventListener('keydown', event => {
       this.audio.unlock()
-      // 타이틀에서 시드를 적는 동안에는 그 화면의 키입니다.
-      if (this.title.typing) return
       // 판이 떠 있으면 맨 위의 것을 닫습니다. **연출을 넘기는 것보다 앞섭니다** — 판을
       // 보고 있는 사람에게 아무 키나는 「닫기」입니다.
       if (this.modals.busy) {
@@ -948,6 +946,17 @@ export class Game {
    * 게임 방법은 **처음 여는 사람에게만** 저절로 펼쳐집니다. 두 번째부터는 타이틀의 버튼과
    * 왼쪽 아래 버튼으로 엽니다.
    */
+  /**
+   * 옵션을 엽니다.
+   *
+   * **시드는 판 밖에서만 고칩니다.** 판이 돌기 시작하면 그 판의 시드이고, 도는 중에
+   * 바꾸면 보고 있는 패와 적힌 시드가 어긋납니다.
+   */
+  private openOptions(): void {
+    this.optionsPanel.setSeed(this.state.seed, !this.started)
+    this.modals.open(this.optionsPanel)
+  }
+
   /**
    * 시드를 갈아 끼웁니다.
    *
@@ -4304,7 +4313,7 @@ export class Game {
     const width = 260
     const rows: { label: string; press: () => void }[] = [
       { label: t('ui.button.guide'), press: () => this.modals.open(this.guide) },
-      { label: t('ui.button.options'), press: () => this.modals.open(this.optionsPanel) },
+      { label: t('ui.button.options'), press: () => this.openOptions() },
     ]
     const height = TITLE_BAR + rows.length * 46 + 14 + FOOTER_BAR
     ;(this.menu.size as { width: number; height: number }).height = height

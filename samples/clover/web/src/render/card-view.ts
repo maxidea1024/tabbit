@@ -5,7 +5,7 @@
 // 움직임이 절반입니다 — 카드는 늘 조금씩 흔들리고, 마우스를 따라 기울고, 골라지면
 // 튀어오르고, 득점하면 한 번 커집니다. 곧바로 목표 자리로 가는 카드는 죽어 보입니다.
 
-import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
+import { Container, Graphics, Rectangle, Sprite, Text, type Filter } from 'pixi.js'
 import { t } from '../core/strings'
 
 import { EditionKind } from '../generated/enums/edition-kind'
@@ -319,13 +319,19 @@ export class CardView extends Container {
    * 뿌옇게 됩니다.
    */
   private restack(): void {
-    // 에디션은 종이에만, 고름 표시는 카드 전체에. **고름 표시의 빛은 카드 밖으로 나가야
-    // 하고, 에디션의 무늬는 카드 안에 머물러야 합니다.**
-    this.body.filters = this.edition ? [this.edition] : []
     const lit = this.pickMode !== 0 || this.glow > 0
     // 득점의 빛이 도는 동안은 그 모드가 앞섭니다 — 득점하는 카드는 물러나 있지 않습니다.
     this.pick.mode = this.glow > 0 ? 2 : this.pickMode
-    this.filters = lit ? [this.pick] : []
+
+    // **둘 다 종이에만 겁니다.** 카드 전체에 걸면 그림자까지 함께 빛나고, 득점하는 카드가
+    // 들려 있는 동안에는 그 그림자가 카드에서 떨어져 있어 빛나는 얼룩 하나가 따로 남습니다.
+    //
+    // 차례가 있습니다 — 무늬를 먼저 얹고 그 결과의 둘레에 빛을 두릅니다.
+    const stack: Filter[] = []
+    if (this.edition) stack.push(this.edition)
+    if (lit) stack.push(this.pick)
+    this.body.filters = stack
+    this.filters = []
   }
 
   /**

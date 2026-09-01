@@ -110,16 +110,20 @@ void main(void) {
   float gray = dot(color, vec3(0.299, 0.587, 0.114));
 
   if (uMode > 0.5) {
-    // 고른 카드. 밝히고, 사선 광택을 흘리고, 테두리에 빛을 두릅니다.
-    color = mix(color, color * 1.18 + uTint * 0.16, 1.0);
+    // 고른 카드.
+    //
+    // **얼굴은 거의 건드리지 않습니다.** 카드의 종이는 이미 밝아서, 거기에 빛과 색을 더하면
+    // 무늬와 숫자가 씻겨 나갑니다 — 작은 화면에서 특히 그렇습니다. 고른 것은 카드가 위로
+    // 올라오는 것으로 이미 보이므로, 셰이더는 **테두리 하나**만 맡습니다.
+    color = color * 1.04 + uTint * 0.05;
 
     float band = fract((vTextureCoord.x + vTextureCoord.y) * 1.6 - uTime * 0.55);
     float sheen = smoothstep(0.46, 0.5, band) - smoothstep(0.5, 0.56, band);
-    color += uTint * sheen * 0.55;
+    color += uTint * sheen * 0.16;
 
     // 알파의 기울기가 곧 테두리입니다 — 카드 모서리가 둥글어도 따라갑니다.
     float edge = 1.0 - smoothstep(0.35, 0.98, src.a);
-    color += uTint * edge * 1.1;
+    color += uTint * edge * 1.3;
   } else if (uMode < -0.5) {
     // 고르지 않은 카드. 색을 빼고 어둡게 합니다. **물러나 있어야 고른 것이 보입니다.**
     color = mix(vec3(gray), color, 0.45) * 0.62;
