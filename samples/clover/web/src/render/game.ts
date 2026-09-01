@@ -144,9 +144,10 @@ const NEWLINE = String.fromCharCode(10)
 // 칩과 배수의 줄. **점수 칸과 사이를 벌립니다** — 그 사이에 고른 족보의 이름이 섭니다.
 const CHIPS_Y = 296
 /** 불이 칸 밖으로 번지는 폭과, 칸 위로 오르는 높이. */
-const FIRE_PAD = 26
+// **좁아야 불입니다.** 넓게 퍼지면 칸 위에 구름이 얹힌 것으로 보입니다.
+const FIRE_PAD = 12
 /** 불길이 칸 위로 솟는 높이. */
-const FIRE_RISE = 74
+const FIRE_RISE = 96
 /**
  * 뿌리가 칸의 **윗변** 안으로 물리는 깊이.
  *
@@ -154,7 +155,7 @@ const FIRE_RISE = 74
  * 뿌리를 칸의 아랫변에 두면 가장 센 자리가 칸에 가려지고, 칸이 반투명인 만큼만 바닥에서
  * 어른거립니다. **칸의 윗변에 물려야 그 칸에 불이 붙어 타는 것으로 읽힙니다.**
  */
-const FIRE_BITE = 12
+const FIRE_BITE = 4
 const FIRE_W = 124 + FIRE_PAD * 2
 const FIRE_H = FIRE_RISE + FIRE_BITE
 
@@ -2489,6 +2490,9 @@ export class Game {
             .map(row => row.voucherId)
           this.refresh()
         },
+        setFever: (value: number) => {
+          this.fever = value
+        },
         jokerX: () => {
           const first = this.state.jokers[0]
           return first ? this.jokers.get(first.uid)?.x : undefined
@@ -4483,8 +4487,11 @@ export class Game {
     // **동전이 나는 동안에도 서 있습니다.** 하나 샀다고 판이 통째로 사라지면 무엇을 샀는지
     // 보다 판이 없어진 것이 먼저 보입니다. **카드가 걷히는 동안에는 서지 않습니다** — 낸
     // 카드가 아직 물러나는 중인데 판이 그 위에 서면 그 둘이 겹칩니다.
+    // **정산을 기다리는 동안에도 서지 않습니다.** 카드가 걷힌 그 프레임에 상점이 먼저
+    // 그려지고 정산은 그다음 프레임에 열리므로, 판이 떠 있는지만 보면 그 사이에 상점이
+    // 한 번 번쩍입니다.
     this.shopLayer.visible = this.state.phase === 'shop' && this.cardsQuiet
-      && !this.modals.has(this.payout)
+      && !this.payoutWanted && !this.modals.has(this.payout)
     // **국면으로 봅니다.** 눈에 보이는지로 보면 연출이 한 박자 도는 동안 — 조커를 살 때
     // 동전이 날아가는 그 동안 — 상점이 잠깐 물러났다가 처음부터 다시 섭니다.
     if (this.state.phase !== 'shop') this.shopStanding = false
