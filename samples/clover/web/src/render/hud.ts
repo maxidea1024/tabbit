@@ -21,6 +21,13 @@ const CAPTION_H = 22
  * 딱지에 닿습니다 — 그 딱지의 절반과 사이의 숨이 이 값입니다.
  */
 const VALUE_PAD = 28
+/**
+ * 이름이 없는 칸의 여백. 칩과 배수가 그렇습니다.
+ *
+ * **곱셈표가 상자 밖의 빈 자리에 서므로** 숫자가 상자 끝까지 가도 그것에 닿지 않습니다 —
+ * 좁을수록 세 개가 한 식으로 읽힙니다.
+ */
+const BARE_PAD = 12
 
 export class Slot extends Container {
   private readonly plate = new Graphics()
@@ -92,7 +99,7 @@ export class Slot extends Container {
     if (named) putText(this.caption_, head, BOTTOM, { y: -2 })
     // **이름이 없으면 여백이 좁아도 됩니다.** 곱셈표가 상자 밖의 빈 자리에 서므로 숫자가
     // 그것에 닿지 않습니다.
-    putText(this.value, inset(body, 0, named ? VALUE_PAD : 12), { x: pull, y: 0.5 })
+    putText(this.value, inset(body, 0, named ? VALUE_PAD : BARE_PAD), { x: pull, y: 0.5 })
     this.baseY = this.value.y
     this.value.style.fill = ink
     this.draw()
@@ -106,8 +113,12 @@ export class Slot extends Container {
    */
   private baseY = 0
   private get valueX(): number {
-    return this.boxWidth * this.pull + (this.pull <= 0 ? VALUE_PAD
-      : this.pull >= 1 ? -VALUE_PAD : 0)
+    // **이름이 있는 칸과 없는 칸의 여백이 다릅니다.** 28은 이름이 붙은 칸의 여백인데
+    // 여기서 한 값만 쓰고 있었고, 그래서 칩과 배수의 숫자가 곱셈표 쪽에서 28픽셀 물러나
+    // 있었습니다 — 한 자리일 때는 칸 가운데에 있는 것으로 보이고, 자릿수가 늘면 그만큼
+    // **반대쪽으로 넘칩니다.** 붙어야 할 쪽이 곱셈표 쪽이므로 여백은 좁아야 합니다.
+    const pad = this.bare ? BARE_PAD : VALUE_PAD
+    return this.boxWidth * this.pull + (this.pull <= 0 ? pad : this.pull >= 1 ? -pad : 0)
   }
 
   private draw(glow = 0): void {
@@ -253,7 +264,7 @@ export class BlindBadge extends Container {
     text: '',
     style: {
       fontSize: 11, fill: COLOR.inkDim, lineHeight: 15,
-      wordWrap: true, wordWrapWidth: 234,
+      wordWrap: true, wordWrapWidth: 234, breakWords: true,
     },
   })
   private readonly reward = new Text({
@@ -274,9 +285,27 @@ export class BlindBadge extends Container {
     this.addChild(this.plate, this.title, this.need, this.reward, this.note)
   }
 
+  /**
+   * 이 딱지가 지금 얼마나 높은가. **들고 있는 태그가 늘면 자랍니다.**
+   *
+   * 아래에 무엇을 둘 자리를 세는 쪽이 알아야 합니다 — 화면이 같은 계산을 베껴 적으면
+   * 여기를 고칠 때 그쪽만 남습니다.
+   */
+  boxHeight = 138
+
   set(name: string, target: number, reward: number, note: string,
-      boss: boolean, big = false, seal?: Container): void {
-    const height = 138 + (note.length > 0 ? 26 : 0)
+      boss: boolean, big = false, seal?: Container, tags: Container[] = []): void {
+    // **딱지는 자라지 않습니다.**
+    //
+    // 두 가지가 키우고 있었습니다 — 들고 있는 태그를 아래에 한 줄로 세운 것과, 보스의
+    // 규칙 한 줄이 있을 때만 26픽셀을 더한 것입니다. 태그는 머리띠의 오른쪽 끝으로
+    // 옮겼고(`setTags`), 규칙의 자리는 규칙이 없을 때도 비워 둡니다.
+    //
+    // **비워 두는 자리가 아까운 것보다 흔들리는 것이 나쁩니다.** 이 딱지는 왼쪽 판의 맨
+    // 위이고, 높이가 바뀌면 그 아래가 전부 따라 움직입니다 — 블라인드를 넘길 때마다 판이
+    // 한 번씩 출렁이던 것이 그것입니다.
+    const height = 164
+    this.boxHeight = height
     const tint = boss ? 0x3d1622 : big ? 0x2a2140 : 0x1b2c44
     const edge = boss ? COLOR.bad : big ? 0xa279e0 : 0x5d92d6
 
@@ -293,6 +322,9 @@ export class BlindBadge extends Container {
     this.seal?.destroy()
     this.seal = undefined
 
+    // **이름은 언제나 가운데입니다.** 인장이 붙으면 그만큼 오른쪽으로 비켜세웠는데,
+    // 그러면 보스일 때만 이름이 다른 자리에 있습니다 — 띠에 얹히는 것들은 이름의 옆에
+    // 서는 것이 아니라 띠의 양 끝에 서는 것이고, 이름은 그것과 무관하게 띠의 가운데입니다.
     this.title.text = name
     this.title.anchor.set(0.5, 0)
     this.title.position.set(this.boxWidth / 2, 12)
@@ -301,8 +333,6 @@ export class BlindBadge extends Container {
       this.seal = seal
       seal.position.set(24, 22)
       this.addChild(seal)
-      // 표시가 앉은 만큼 이름이 오른쪽으로 비켜섭니다.
-      this.title.position.set(this.boxWidth / 2 + 12, 12)
     }
 
     this.need.text = target.toLocaleString('en-US')
@@ -316,5 +346,44 @@ export class BlindBadge extends Container {
     this.note.text = note
     this.note.anchor.set(0.5, 0)
     this.note.position.set(this.boxWidth / 2, 116)
+
+    this.setTags(tags)
+  }
+
+  /**
+   * 들고 있는 태그만 갈아 끼웁니다.
+   *
+   * **딱지 전체와 갈라 두었습니다.** 딱지는 연출이 도는 동안 건드리지 않습니다 — 득점이
+   * 끝나기 전에 다음 블라인드의 이름이 뜨면 순서가 뒤집히기 때문입니다. 그런데 태그는 그
+   * 연출 안에서 들어오므로, 함께 묶어 두면 **딱지가 언제나 한 번씩 뒤처집니다** — 첫
+   * 스킵의 태그가 보이지 않고 다음 스킵에서야 그 앞의 것이 뜨던 것이 그것입니다.
+   */
+  setTags(tags: Container[]): void {
+    const chips = 26
+
+    // 앞의 태그를 걷고 새것을 답니다. **그대로 두면 쓰인 태그가 띠에 남습니다.**
+    for (const one of this.tags) one.destroy()
+    this.tags.length = 0
+
+    // 머리띠의 오른쪽 끝에서 왼쪽으로 쌓습니다. 새로 받은 것이 바깥쪽입니다.
+    const gap = 4
+    let x = this.boxWidth - 10 - chips
+    for (const one of tags) {
+      // **피벗만큼 되돌립니다.** 발동할 때 가운데를 기준으로 부풀리려고 피벗을 옮기는데,
+      // 자리를 그대로 두면 그 옮긴 만큼 왼쪽 위로 밀립니다 — 발동이 끝나 피벗이 돌아오면
+      // 다시 제자리로 튀고, 그것이 「안착했다가 한 번 튄다」로 보입니다.
+      one.position.set(x + one.pivot.x, 22 - chips / 2 + one.pivot.y)
+      x -= chips + gap
+      this.addChild(one)
+      this.tags.push(one)
+    }
+  }
+
+  /** 지금 달려 있는 태그 칩들. 다시 그릴 때 걷습니다. */
+  private readonly tags: Container[] = []
+
+  /** 지금 띠에 몇 개를 그려 두었는가. 재는 쪽이 상태와 견주는 값입니다. */
+  get chipCount(): number {
+    return this.tags.length
   }
 }

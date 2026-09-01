@@ -592,9 +592,20 @@ export function apply(data: Data, state: RunState, action: Action): Step {
 
       if (state.score >= state.target) {
         winRound(vm)
-      } else if (state.handsLeft <= 0 && !vm.lossPrevented) {
-        state.phase = 'lost'
-        vm.events.push({ t: 'RunLost', ante: state.ante })
+      } else if (state.handsLeft <= 0) {
+        // **패배를 막는 것은 라운드를 넘기는 것입니다.**
+        //
+        // 막기만 하고 아무것도 하지 않았습니다 — 판정을 건너뛰고 다음 패를 깔았는데, 낼
+        // 핸드가 0이므로 그 패로는 아무것도 할 수 없습니다. 버리기가 남아 있으면 버리는 것만
+        // 되고, 그것으로는 점수가 오르지 않으므로 **그 라운드가 영영 끝나지 않습니다.**
+        // 「패배를 막습니다」는 죽지 않는다는 뜻이고, 죽지 않았으면 그 블라인드를 넘긴
+        // 것입니다.
+        if (vm.lossPrevented) {
+          winRound(vm)
+        } else {
+          state.phase = 'lost'
+          vm.events.push({ t: 'RunLost', ante: state.ante })
+        }
       } else {
         draw(vm)
       }

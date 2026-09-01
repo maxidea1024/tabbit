@@ -43,10 +43,16 @@ export class Button extends Container {
   /** 아무 버튼이나 눌렸을 때. 소리를 내는 쪽이 겁니다. */
   static onPressed?: () => void
 
+  /**
+   * @param textSize 글자 크기. **큰 단추는 글자도 커야 합니다** — 236 × 72 짜리 시작
+   *   단추에 15픽셀 글자를 얹으면 단추 가운데에 작은 딱지가 하나 놓인 것으로 보입니다.
+   *   판 안의 단추들은 기본값 그대로입니다.
+   */
   constructor(text: string, private readonly boxWidth: number,
               private readonly boxHeight: number,
-              private readonly base: number, onPress: () => void) {
+              private readonly base: number, onPress: () => void, textSize = 15) {
     super()
+    this.caption.style.fontSize = textSize
     this.addChild(this.board, this.caption)
     this.caption.anchor.set(0.5)
     this.caption.position.set(boxWidth / 2, boxHeight / 2)

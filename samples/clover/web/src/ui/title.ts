@@ -73,7 +73,7 @@ export class Title extends Container {
     // 하나만 판 가운데에 크게 두고, 나머지 둘은 구석의 아이콘으로 갑니다.
     const bw = 236
     const bh = 72
-    const start = new Button(t('ui.button.start'), bw, bh, 0x2f8f52, onStart)
+    const start = new Button(t('ui.button.start'), bw, bh, 0x2f8f52, onStart, 30)
     start.position.set(SIZE.width / 2 - bw / 2, 452)
     this.buttons.push({ key: 'ui.button.start', button: start })
 

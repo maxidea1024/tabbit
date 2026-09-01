@@ -215,9 +215,22 @@ export class Audio {
    * `semitones` 는 값의 크기에서 옵니다 — `SoundCue.pitch_follows_value` 가 참인 것만
    * 그것을 씁니다.
    */
+  /**
+   * 최근에 난 소리들. 새것이 뒤입니다.
+   *
+   * **「이 순간에 왜 이 소리가 나느냐」는 물음에 답할 자리입니다.** 소리는 화면과 달리
+   * 굽어 볼 수가 없어서, 어느 자리가 냈는지를 코드에서 눈으로 찾아야 했습니다 — 부르는
+   * 자리가 쉰 곳이 넘습니다.
+   */
+  readonly played: string[] = []
+
   play(cueId: string, semitones = 0): void {
     const context = this.context
     const master = this.master
+    // **꺼져 있어도 적습니다.** 무엇이 부르려 했는지가 물음의 답이고, 실제로 울렸는지는
+    // 그다음입니다.
+    this.played.push(cueId)
+    if (this.played.length > 48) this.played.shift()
     if (!context || !master || this.muted) return
 
     // **겹치는 만큼 줄입니다.** 넘치면 아예 내지 않습니다 — 이미 넉이 울리고 있으면 다섯째는

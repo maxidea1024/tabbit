@@ -83,7 +83,7 @@ export class Toasts extends Container {
       text: title,
       style: {
         fontSize: 15, fill: COLOR.ink, fontWeight: '800', lineHeight: 21,
-        wordWrap: true, wordWrapWidth: WIDTH - 40,
+        wordWrap: true, wordWrapWidth: WIDTH - 40, breakWords: true,
       },
     })
     heading.position.set(20, 8)

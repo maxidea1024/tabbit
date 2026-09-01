@@ -683,6 +683,14 @@
 	ui.deck.tip	눌러서 남은 카드를 봅니다	Tap to see the cards left	押すと残りのカードを見ます	点击查看剩余的牌	點擊查看剩餘的牌	Antippen für die restlichen Karten
 	ui.button.reroll	리롤	Reroll	リロール	刷新	刷新	Neu mischen
 	ui.button.use	사용	Use	使う	使用	使用	Benutzen
+	ui.button.buy	산다	Buy	買う	购买	購買	Kaufen
+	ui.button.take	집는다	Take	取る	拿取	拿取	Nehmen
+	ui.button.swap_take	바꿔 집는다	Swap for It	入れ替える	换取	換取	Tauschen
+	ui.run_info.title	런 정보	Run Info	ラン情報	本局信息	本局資訊	Rundeninfo
+	ui.tab.blinds	블라인드	Blinds	ブラインド	盲注	盲注	Blinds
+	ui.tab.stakes	스테이크	Stakes	ステーク	难度	難度	Einsätze
+	ui.run_info.current	지금	Current	現在	当前	當前	Aktuell
+	ui.stake.note	안테 표 {column}열 · 스몰 보상 ${reward} · 버리기 {discards}	Ante col. {column} · Small reward ${reward} · Discards {discards}	アンティ表 {column}列 · スモール報酬 ${reward} · 捨て札 {discards}	底注表第 {column} 列 · 小盲奖励 ${reward} · 弃牌 {discards}	底注表第 {column} 列 · 小盲獎勵 ${reward} · 棄牌 {discards}	Ante-Spalte {column} · Small-Belohnung ${reward} · Ablegen {discards}
 	ui.button.skip	건너뛴다	Skip	スキップ	跳过	跳過	Überspringen
 	ui.button.skip_tag	건너뛴다 — 태그	Skip for Tag	スキップ — タグ	跳过 — 标签	跳過 — 標籤	Überspringen — Marke
 	ui.button.select_blind	이 블라인드로	Play Blind	このブラインドへ	进入盲注	進入盲注	Blind spielen

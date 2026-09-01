@@ -164,9 +164,15 @@ function piecesOf(text: string, style: TextStyleOptions, maxWidth: number): stri
  * **몇 줄이 되었는가** 입니다 — 부르는 쪽이 다음 글을 어디에 놓을지 그것으로 정합니다.
  */
 function place(runs: Run[], style: RichStyle, into: Container,
-               top: number, lineHeight: number, maxWidth?: number): number {
+               top: number, lineHeight: number, maxWidth?: number,
+               align: Align = 'left'): number {
   let x = 0
   let row = 0
+
+  // **줄마다 무엇이 놓였는지 들고 있습니다.** 가운데로 모으려면 그 줄이 얼마나 넓은지를
+  // 알아야 하는데, 그것은 그 줄을 다 놓아 본 뒤에야 알 수 있습니다 — 조각을 놓으면서
+  // 가운데로 밀 수는 없습니다.
+  const rows: { nodes: Text[]; width: number }[] = []
 
   const put = (part: string, fill?: number) => {
     if (part === '') return
@@ -174,6 +180,9 @@ function place(runs: Run[], style: RichStyle, into: Container,
     node.position.set(x, top + row * lineHeight)
     into.addChild(node)
     x += node.width
+    const line = rows[row] ?? (rows[row] = { nodes: [], width: 0 })
+    line.nodes.push(node)
+    line.width = x
   }
 
   for (const run of runs) {
@@ -201,6 +210,18 @@ function place(runs: Run[], style: RichStyle, into: Container,
     put(buffer, run.fill)
   }
 
+  // 가운데로 모읍니다. **줄마다 따로입니다** — 접혀서 둘이 된 글은 두 줄의 너비가 다르고,
+  // 한 덩어리로 밀면 짧은 줄이 긴 줄에 딸려가 어느 쪽으로도 맞지 않습니다.
+  if (align === 'center' && maxWidth !== undefined) {
+    for (const line of rows) {
+      // 빈 칸이 있을 수 있습니다 — 아무것도 놓이지 않은 줄은 통을 만들지 않습니다.
+      if (!line) continue
+      const shift = Math.round((maxWidth - line.width) / 2)
+      if (shift <= 0) continue
+      for (const node of line.nodes) node.x += shift
+    }
+  }
+
   return row + 1
 }
 
@@ -223,12 +244,17 @@ export function richLine(text: string, style: RichStyle,
  * **접힌 줄만큼 아래가 밀립니다.** 줄 수를 미리 세어 두고 자리를 잡으면, 긴 줄 하나가
  * 다음 줄 위에 겹쳐 그려집니다.
  */
+/** 줄을 어느 쪽으로 모으는가. 가운데로 모으려면 접는 폭이 있어야 합니다. */
+export type Align = 'left' | 'center'
+
 export function richBlock(lines: readonly string[], style: RichStyle,
-                          lineHeight: number, maxWidth?: number): Container {
+                          lineHeight: number, maxWidth?: number,
+                          align: Align = 'left'): Container {
   const block = new Container()
   let row = 0
   for (const text of lines) {
-    row += place(runsOf(text, style), style, block, row * lineHeight, lineHeight, maxWidth)
+    row += place(runsOf(text, style), style, block, row * lineHeight, lineHeight,
+      maxWidth, align)
   }
   return block
 }

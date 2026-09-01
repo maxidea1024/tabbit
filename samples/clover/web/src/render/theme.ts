@@ -21,7 +21,7 @@ export const COLOR = {
   inkDim: 0x93a1b5,
 
   /** 칩은 파랑, 배수는 빨강, 돈은 금색. **이 셋만 채도가 높습니다.** */
-  chips: 0x3f9dff,
+  chips: 0x0093ff,
   mult: 0xfe5f55,
   money: 0xffc53d,
 

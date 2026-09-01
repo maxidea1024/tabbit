@@ -14,7 +14,6 @@ export interface Peek {
   views: number
   seed: string
   /** 지금 칩이 날고 있는가. */
-  flying: boolean
   /** 설명 쪽지가 떠 있는가. */
   tip: boolean
   /** 지금 골라 둔 카드의 수. */
@@ -38,6 +37,18 @@ export interface Peek {
   coins: boolean
   cleared: boolean
   consumables: number
+  /** 상점 칸마다 무엇이 서 있는가. `ShopItemKind` 의 값입니다 — 조커가 1, 소모품이 2~5. */
+  shopKinds?: number[]
+  /** 소모품이 올 자리를 잡아 준 횟수와, 잡을 것이 없어 그냥 돌아온 횟수. */
+  flyAsked?: number
+  flyMissed?: number
+  /** 최근에 난 소리들. 새것이 뒤입니다. */
+  sounds?: string[]
+  /** 들고 있는 태그와, 딱지에 실제로 그린 칩 수. */
+  tags?: string[]
+  tagChips?: number
+  /** 카드 뷰가 어느 통에 몇 장 있는가. */
+  bins?: { hand: number; played: number; fades: number; deals: number; shown: number }
   busy: boolean
   hand: { rank: number, suit: number }[]
   hurry(times: number): void

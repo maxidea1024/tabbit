@@ -73,7 +73,7 @@ export class JokerView extends Container {
     text: '',
     style: {
       fontSize: 11, fill: COLOR.ink, align: 'center', fontWeight: '800',
-      wordWrap: true, wordWrapWidth: SIZE.jokerWidth - 8, lineHeight: 12,
+      wordWrap: true, wordWrapWidth: SIZE.jokerWidth - 8, breakWords: true, lineHeight: 12,
     },
   })
   private readonly counter = new Text({
