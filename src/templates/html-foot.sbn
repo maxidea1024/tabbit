@@ -1,7 +1,7 @@
 {{~##
-   The closing markup every generated page shares: the footer line, the enum definitions
-   a hover card is built from, and the script driving filtering, sorting, that card and
-   the theme control.
+   The closing markup every generated page shares: the enum definitions a hover card is
+   built from, and the script driving filtering, sorting, that card and the theme
+   control.
 
    Do not write a Scriban delimiter inside one of these comment blocks. The closing brace
    pair ends the block wherever it appears, including inside a backtick, and the rest of
@@ -9,10 +9,11 @@
    six lines of its own commentary into every page of every project - and a golden
    comparison recorded it as correct, because it had been that way from the start.
 
-   The footer used to end with the machine's account name. Generated pages get committed,
-   so that put whoever ran the conversion into somebody's repository and made the file
-   churn for every contributor who regenerated it. The timestamp answers what the line
-   was for. Its wording is what the golden normalizer masks on, so it stays as it is.
+   There is no footer line any more. It carried the machine's account name first and then
+   the wall clock, and both had the same defect: generated pages get committed, so the
+   line rewrote itself on every run and every regeneration produced a diff of pages whose
+   content had not changed. What a page was built from belongs to the summary target,
+   which records it once for the run rather than once per page.
 
    The enum blocks are the page's own copy of every enum it mentions, once each, and the
    cells carry only the name of one. Putting each cell's tooltip in a `title` would repeat
@@ -39,7 +40,6 @@
 {{~ end ~}}
 </div>
 {{~ end ~}}
-<p class="foot">생성 시각 {{ created_at }}</p>
 <script>
 (function () {
   "use strict";

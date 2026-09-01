@@ -313,8 +313,8 @@ public class HtmlTargetTests
     /// The footer template's own commentary was in every page of every project: a Scriban
     /// comment block ends at the first closing brace pair, one appeared inside the comment
     /// (in a backtick, which the parser does not care about), and the six lines after it
-    /// were page text from then on. It rendered directly under each table, which is where
-    /// the timestamp is, so what a reader saw was the timestamp preceded by garbage.
+    /// were page text from then on. It rendered directly under each table, so what a
+    /// reader saw at the end of a page was six lines of the template's own commentary.
     ///
     /// The golden trees recorded it as correct - all six of them - because it had been
     /// that way since the templates were written, and a golden comparison answers "did

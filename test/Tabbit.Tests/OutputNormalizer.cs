@@ -8,13 +8,15 @@ namespace Tabbit.Tests;
 /// Masks the parts of Tabbit's output that legitimately change between runs, so
 /// golden comparison reacts to behaviour changes rather than to the clock.
 ///
-/// Three things are non-deterministic today:
+/// Two things are non-deterministic today:
 ///
 ///   * manifest files stamp DateTime.Now on the manifest and on every item
-///   * the HTML footer embeds the wall clock and the machine's user name
 ///   * a summary's `run` block holds the clock, the tool version and the commit
 ///
-/// Binary tables and the generated C#/TypeScript are already byte-stable.
+/// Binary tables, the generated pages and the generated C#/TypeScript are already
+/// byte-stable. The pages were the third entry here until the footer that carried the
+/// wall clock - and the machine's user name before that - was dropped: a generated page
+/// gets committed, so a per-run value in it made every regeneration a diff.
 ///
 /// This runs when a golden tree is recorded as well as when one is compared, so what
 /// is committed is the masked text rather than one machine's copy of the volatile
@@ -33,10 +35,6 @@ internal static class OutputNormalizer
         @"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:\d{2}|Z)",
         RegexOptions.Compiled);
 
-    private static readonly Regex HtmlFooter = new Regex(
-        @"(생성 시각|This file was created at) [^<]*",
-        RegexOptions.Compiled);
-
     public static string Normalize(string relativePath, string content)
     {
         string path = relativePath.Replace('\\', '/');
@@ -45,12 +43,6 @@ internal static class OutputNormalizer
 
         if (path.Contains("manifest"))
             content = IsoTimestamp.Replace(content, "<TIMESTAMP>");
-
-        // No angle brackets in the replacement: the pattern stops at the first `<`, so
-        // a `<TIMESTAMP>` in it would leave the tail unmatched and the next pass would
-        // mask the masked text again.
-        if (path.EndsWith(".html"))
-            content = HtmlFooter.Replace(content, "생성 시각 TIMESTAMP");
 
         if (path.EndsWith("summary.json"))
             content = MaskRun(content);

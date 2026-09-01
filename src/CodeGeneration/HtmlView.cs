@@ -4,27 +4,21 @@ using System.Collections.Generic;
 namespace Tabbit.CodeGeneration;
 
 /// <summary>
-/// What every generated page carries: its title, the shell around it, and the line
-/// recording when it was built.
+/// What every generated page carries: its title and the shell around it.
 /// </summary>
 /// <remarks>
 /// The shell members are on the base rather than on each page because the head and foot
 /// templates read them, and a template reads what the view it was handed exposes. They
-/// have defaults rather than being required for the same reason <see cref="CreatedAt"/>
-/// does: the generator fills them in one place, after the page-specific parts are built.
+/// have defaults rather than being required because the generator fills them in one
+/// place, after the page-specific parts are built.
+///
+/// Nothing here records when the page was built. Generated pages get committed, so a
+/// value that differs per run makes every regeneration a diff of pages whose content is
+/// unchanged - and it is what kept this target out of the build cache.
 /// </remarks>
 internal abstract class HtmlPageView
 {
     public required string Title { get; set; }
-
-    /// <summary>
-    /// Build time, already formatted. The golden comparison normalizes it away.
-    /// </summary>
-    /// <remarks>
-    /// Stamped by `Write` rather than by whoever built the view, so it is the same on
-    /// every page of one run.
-    /// </remarks>
-    public string CreatedAt { get; set; } = "";
 
     /// <summary>
     /// How to get from this page to the output root: empty for a page at the root,

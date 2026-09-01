@@ -12,8 +12,8 @@ namespace Tabbit.Tests;
 /// </summary>
 public class NormalizerTests
 {
-    private const string HtmlFooter =
-        "<div>x</div>\n<p class=\"foot\">생성 시각 2026-08-03 12:05:46</p></body></html>\n";
+    private const string Page =
+        "<div>x</div>\n</body></html>\n";
 
     private const string Summary =
         "{\n  \"schemaVersion\": 1,\n" +
@@ -24,7 +24,7 @@ public class NormalizerTests
         "{ \"LastUpdatedDate\": \"2026-08-03T12:05:46.1234567+09:00\", \"TotalSize\": 12 }\n";
 
     [Theory]
-    [InlineData("html/index.html", HtmlFooter)]
+    [InlineData("html/index.html", Page)]
     [InlineData("summary/summary.json", Summary)]
     [InlineData("binary/manifest-binary.json", Manifest)]
     [InlineData("csharp/Accessor.cs", "public class Accessor { }\n")]
@@ -35,29 +35,17 @@ public class NormalizerTests
         Assert.Equal(once, OutputNormalizer.Normalize(path, once));
     }
 
-    [Fact]
-    public void The_clock_is_masked_out_of_a_page()
-    {
-        string masked = OutputNormalizer.Normalize("html/index.html", HtmlFooter);
-
-        Assert.DoesNotContain("2026-08-03 12:05:46", masked);
-    }
-
     /// <summary>
-    /// The footer used to end with the machine's account name, which the mask replaced
-    /// along with the clock. It is not written any more - a generated page gets committed,
-    /// so that put whoever ran the conversion into somebody's repository - and the mask
-    /// still has to swallow whatever an older page carries.
+    /// A page is compared as it was written, line endings apart.
+    ///
+    /// It carried a footer with the wall clock until 2026-09-01 - and the machine's
+    /// account name before that - and this file masked both. Neither is written any more,
+    /// so the mask went with them and every byte of a page is now compared.
     /// </summary>
     [Fact]
-    public void A_page_written_before_the_user_name_was_dropped_still_masks()
+    public void A_page_is_left_alone()
     {
-        string old = "<br><h4>This file was created at 2026-08-03 12:05:46 by someone</h4></body></html>\n";
-
-        string masked = OutputNormalizer.Normalize("html/index.html", old);
-
-        Assert.DoesNotContain("someone", masked);
-        Assert.DoesNotContain("2026-08-03 12:05:46", masked);
+        Assert.Equal(Page, OutputNormalizer.Normalize("html/index.html", "<div>x</div>\r\n</body></html>\r\n"));
     }
 
     /// <summary>

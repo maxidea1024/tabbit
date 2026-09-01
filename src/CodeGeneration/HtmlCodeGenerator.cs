@@ -76,9 +76,7 @@ public class HtmlRecipe : IOutputRecipe
 /// which is where the type-dependent decisions are, and the links, which is where the
 /// decisions about where a page lives are.
 /// </summary>
-// Not deterministic: the page carries the time it was generated, so the same model
-// produces different bytes on every run. spec/ops/build-cache.md §5.
-[TabbitTarget("html", TargetKind.CodeGeneration, Order = 40, Deterministic = false)]
+[TabbitTarget("html", TargetKind.CodeGeneration, Order = 40)]
 public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 {
     /// <summary>
@@ -3773,8 +3771,6 @@ public partial class HtmlCodeGenerator : CodeGenerator<HtmlRecipe>
 
     private void Write(string filename, string templateName, HtmlPageView view)
     {
-        view.CreatedAt = DateTime.Now.ToString("yyyy-MM-dd HH':'mm':'ss");
-
         string fullPath = Path.Combine(_htmlRecipe.Path, filename);
 
         StagingFiles.WriteAllTextToFile(

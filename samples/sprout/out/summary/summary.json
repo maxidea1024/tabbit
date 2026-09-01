@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-08-30T14:20:26.8811910+09:00",
+    "generatedAt": "2026-09-01T17:44:14.4333202+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "recipe.jsonc",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "94048048842a66683d24e4187bd61b637172dffd",
-      "shortHash": "94048048842a",
+      "hash": "13770b1b5911fd98037b7279dbd03a02553d9624",
+      "shortHash": "13770b1b5911",
       "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-08-30T13:06:49.0000000+09:00",
-      "subject": "feat: 선언된 struct가 하나의 타입이 됩니다 - Rust",
+      "committedAt": "2026-09-01T17:40:21.0000000+09:00",
+      "subject": "fix: 득점한 카드가 내려오는 것을 두 배 빠르게",
       "origin": "git",
       "dirty": true,
       "attributable": false

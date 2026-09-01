@@ -47,6 +47,27 @@
     <Deterministic>true</Deterministic>
 
     <!--
+      And the same bytes in every configuration. `Deterministic` settles one build against
+      another of the same kind; it says nothing about Debug against Release, and those two
+      differ by the optimization flag and the debug directory. That was enough: whoever
+      regenerated the samples last decided which of the two got committed, so this file
+      flipped back and forth between contributors with nothing about it having changed.
+
+      Nothing is given up. There are no method bodies in here to optimize and no `#if` to
+      resolve - the assembly is interfaces, an enum and an attribute - and a symbol file for
+      a surface an editor only reads names from has no reader.
+    -->
+    <Optimize>true</Optimize>
+    <DebugType>none</DebugType>
+
+    <!--
+      The last thing the configuration reached: the SDK writes `[assembly: AssemblyConfiguration]`
+      with the configuration's name in it, so the word `Debug` or `Release` was in the file even
+      once the code generation matched.
+    -->
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+
+    <!--
       And free of where it was built. `Deterministic` settles the content; it does not touch
       the paths, so the debug directory carried the absolute path of whoever's machine ran the
       build - which is both a diff that says nothing and a way for a directory name to reach a
