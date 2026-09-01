@@ -84,9 +84,12 @@ async function main(): Promise<number> {
 
   const before = await peek(page)
   // 바꾸기 판의 첫 줄. 판이 화면 가운데에 서고 첫 줄은 그 가운데에서 조금 위입니다.
-  const row = await at(page, STAGE_W / 2, 385)
+  const row = await at(page, STAGE_W / 2, 403)
   await page.mouse.click(row.x, row.y)
-  await page.waitForTimeout(1600)
+  // 판 돈이 솟는 그 순간을 잡습니다.
+  await page.waitForTimeout(320)
+  await shot(page, 'packfull-coin')
+  await page.waitForTimeout(1400)
   const after = await peek(page)
   console.log('팩', before.packOpen, '->', after.packOpen,
     '· 소모품', before.consumables, '->', after.consumables,

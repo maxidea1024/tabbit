@@ -725,6 +725,15 @@ export class Game {
   private arriveFrom: { x: number; y: number } | undefined
 
   /**
+   * 판 돈이 나오는 자리.
+   *
+   * **내놓은 그 물건의 자리입니다.** 판 가운데에서 동전이 솟으면 어느 것을 내놓아 들어온
+   * 돈인지가 남지 않습니다 — 특히 바꿀 때는 들어온 것과 나간 것이 잇달아 일어나므로,
+   * 둘이 서로 다른 자리에서 시작해야 갈립니다. 한 번 쓰면 비웁니다.
+   */
+  private sellFrom: { x: number; y: number } | undefined
+
+  /**
    * 사서 오는 소모품 하나.
    *
    * **조커와 달리 뷰가 자기 것을 들고 있지 못합니다** — 소모품 칸은 화면을 다시 그릴
@@ -1194,6 +1203,7 @@ export class Game {
     this.later.length = 0
     this.chimes.length = 0
     this.arriveFrom = undefined
+    this.sellFrom = undefined
     this.shopRevealAt = 0
     this.shopStanding = false
     this.shopOpening = false
@@ -1924,9 +1934,14 @@ export class Game {
         this.shown.money += event.delta
         this.money.target = this.shown.money
         const spot = this.moneySpot()
-        const from = this.state.phase === 'shop' && event.reason === 'shop'
-          ? { x: BOARD_X, y: SHOP_CARD_Y + 81 }
-          : { x: BOARD_X, y: PLAY_Y }
+        // **판 돈은 내놓은 그 자리에서 나옵니다.** 그것이 어느 것을 내놓아 들어온 돈인지를
+        // 말하는 유일한 표시입니다.
+        const sold = event.reason === 'sell' ? this.sellFrom : undefined
+        if (event.reason === 'sell') this.sellFrom = undefined
+        const from = sold
+          ?? (this.state.phase === 'shop' && event.reason === 'shop'
+            ? { x: BOARD_X, y: SHOP_CARD_Y + 81 }
+            : { x: BOARD_X, y: PLAY_Y })
         this.coins.fly(event.delta, from, spot)
         this.flashPanel(event.delta > 0 ? COLOR.money : COLOR.bad, 0.7)
         this.audio.play(event.delta > 0 ? 'joker_money' : 'shop_reroll')
@@ -1940,9 +1955,14 @@ export class Game {
             this.payoutRows.push({ why, amount: event.delta })
             if (this.modals.has(this.payout)) this.drawPayout()
           } else {
-            this.popAt(this.moneyLabelAnchor(),
-              `${why}  ${event.delta > 0 ? '+' : ''}$${event.delta}`,
-              event.delta > 0 ? COLOR.money : COLOR.bad, 0.3)
+            // **판 돈은 내놓은 자리에 뜹니다.** 금액 칸 옆에 뜨면 사는 것과 파는 것이 같은
+            // 자리에서 잇달아 떠서 뒤의 것이 앞의 것을 덮습니다.
+            const line = `${why}  ${event.delta > 0 ? '+' : ''}$${event.delta}`
+            const tint = event.delta > 0 ? COLOR.money : COLOR.bad
+            // **칸 아래에서 올라옵니다.** 조커와 소모품 줄은 화면 맨 위라, 칸의 가운데에서
+            // 시작하면 글이 화면 밖으로 올라가 잘립니다.
+            if (sold) this.popAt({ x: sold.x, y: sold.y + SIZE.jokerHeight }, line, tint, 0.7)
+            else this.popAt(this.moneyLabelAnchor(), line, tint, 0.3)
           }
         }
         break
@@ -4312,6 +4332,7 @@ export class Game {
       buttons.push(new Button(tf('ui.button.sell', { n: price }), 92, 30, 0x7a3f4a, () => {
         this.held = undefined
         this.audio.play('joker_sell')
+        this.sellFrom = this.jokerSpot(index)
         this.act({ t: 'sell_joker', index })
       }))
     } else {
@@ -4331,6 +4352,7 @@ export class Game {
       buttons.push(new Button(tf('ui.button.sell', { n: this.data.economy.sellMin }), 92, 30, 0x7a3f4a, () => {
         this.held = undefined
         this.audio.play('joker_sell')
+        this.sellFrom = this.itemSpot(index)
         this.act({ t: 'sell_consumable', index })
       }))
     }
@@ -5249,6 +5271,8 @@ export class Game {
       this.tooltip.hide()
       this.askSwap(item, held => {
         this.audio.play('joker_buy')
+        this.sellFrom = item.kind === ShopItemKind.Joker
+          ? this.jokerSpot(held) : this.itemSpot(held)
         this.act({ t: 'swap', slot, index: held })
       })
       return
@@ -5315,6 +5339,20 @@ export class Game {
       COLOR.money, 0.5)
   }
 
+  /**
+   * 조커 칸과 소모품 칸의 가운데.
+   *
+   * **한 자리에서 셉니다.** 파는 자리에서 동전이 솟아야 하는데, 부르는 쪽마다 다시 세면
+   * 줄의 자리를 고친 날에 한쪽만 고쳐집니다.
+   */
+  private jokerSpot(index: number): { x: number; y: number } {
+    return { x: JOKER_X + index * (SIZE.jokerWidth + 12), y: JOKER_Y }
+  }
+
+  private itemSpot(index: number): { x: number; y: number } {
+    return { x: CONSUMABLE_X + index * (SIZE.jokerWidth + 12), y: JOKER_Y }
+  }
+
   /** 그 자리를 판 위의 자리로 옮깁니다. 왼쪽 판 안의 것들은 자기 판 기준입니다. */
   private spotOf(node: Container, dx = 0, dy = 0): { x: number; y: number } {
     return this.overlay.toLocal(node.toGlobal({ x: dx, y: dy }))
@@ -5357,7 +5395,7 @@ export class Game {
       }))
 
     const width = 460
-    const top = TITLE_BAR + 52
+    const top = TITLE_BAR + 70
     const GAP = 10
 
     // **글을 먼저 만들고 줄의 높이를 그것에 맞춥니다.** 높이를 못박으면 설명이 두 줄인
@@ -5390,8 +5428,18 @@ export class Game {
         number: COLOR.accentNumber,
         term: COLOR.accentTerm,
       }, width - 48)
-    lead.position.set((width - lead.width) / 2, TITLE_BAR + 20)
+    lead.position.set((width - lead.width) / 2, TITLE_BAR + 16)
     layer.addChild(lead)
+
+    // **값이 들어온다는 것을 적어 둡니다.** 줄마다 `+$N` 이 적혀 있어도, 그것이 「이만큼
+    // 받는다」인지 「이만큼 버린다」인지는 적혀 있지 않으면 알 수 없습니다.
+    const paid = new Text({
+      text: t('ui.swap.paid'),
+      style: { fontSize: 11, fill: COLOR.money, fontWeight: '700' },
+    })
+    paid.anchor.set(0.5, 0)
+    paid.position.set(width / 2, TITLE_BAR + 40)
+    layer.addChild(paid)
 
     let at = top
     built.forEach(one => {
@@ -5843,6 +5891,8 @@ export class Game {
         this.askSwap(item, held => {
           this.audio.play('pack_pick')
           this.arriveFrom = from
+          this.sellFrom = item.kind === ShopItemKind.Joker
+            ? this.jokerSpot(held) : this.itemSpot(held)
           this.act({ t: 'swap_pack', index, held })
         })
         return
@@ -6060,6 +6110,10 @@ function moneyReason(reason: string): string {
     case 'interest': return t('ui.money.interest')
     case 'hands_left': return t('ui.label.hands_left')
     case 'discards_left': return t('ui.label.discards_left')
+    // **파는 것과 사는 것도 적습니다.** 이 둘이 비어 있어서 금액만 조용히 바뀌었고,
+    // 바꿀 때는 들어온 것과 나간 것이 한 프레임 안에 섞여 「알아서 들어갔네」가 되었습니다.
+    case 'sell': return t('ui.money.sell')
+    case 'shop': return t('ui.money.spent')
     default: return ''
   }
 }

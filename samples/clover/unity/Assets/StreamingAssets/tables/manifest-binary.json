@@ -1,7 +1,7 @@
 {
-  "LastUpdatedDate": "2026-09-01T15:35:49.3604783+09:00",
-  "MasterHash": "dbb3398e8779c2ae814d1321b2d3f3d9",
-  "TotalSize": 125315,
+  "LastUpdatedDate": "2026-09-01T15:57:25.6065899+09:00",
+  "MasterHash": "6f757d8946a5692fad12ae965e27fda8",
+  "TotalSize": 125612,
   "Items": [
     {
       "Name": "Rank.bytes",
@@ -209,9 +209,9 @@
     },
     {
       "Name": "StringTable.bytes",
-      "Size": 99755,
-      "Hash": "6bebe324c96dc0fda5aeb45ef21cc9e0",
-      "LastUpdatedDate": "2026-09-01T15:35:49.3604761+09:00"
+      "Size": 100052,
+      "Hash": "2ef01063c5d12ebe883389506bff446a",
+      "LastUpdatedDate": "2026-09-01T15:57:25.6065874+09:00"
     },
     {
       "Name": "Achievement.bytes",

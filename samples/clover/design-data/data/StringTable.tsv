@@ -706,6 +706,8 @@
 	ui.label.next_up	다음 차례	Next up	次	接下来	接下來	Als Nächstes
 	ui.label.triggered	발동	Triggered	発動	触发	觸發	Ausgelöst
 	ui.money.interest	이자	Interest	利息	利息	利息	Zinsen
+	ui.money.sell	판 값	Sold	売却	出售所得	出售所得	Verkauf
+	ui.money.spent	구입	Bought	購入	购买	購買	Kauf
 	ui.blind.small	스몰	Small	スモール	小盲	小盲	Klein
 	ui.blind.big	빅	Big	ビッグ	大盲	大盲	Groß
 	ui.blind.boss	보스	Boss	ボス	Boss	Boss	Boss
@@ -841,6 +843,7 @@
 	ui.over.won	안테 {n}까지 넘겼습니다.	You cleared through Ante {n}.	アンティ {n} まで突破しました。	通过了底注 {n}。	通過了底注 {n}。	Du hast bis Ante {n} geschafft.
 	ui.over.where	안테 {ante} · {blind} 블라인드	Ante {ante} · {blind} Blind	アンティ {ante} · {blind} ブラインド	底注 {ante} · {blind} 盲注	底注 {ante} · {blind} 盲注	Ante {ante} · {blind}-Blind
 	ui.swap.lead	「{name}」 를 놓을 자리를 비웁니다	Free up a slot for 「{name}」	「{name}」 を置く場所を空けます	腾出位置来放「{name}」	騰出位置來放「{name}」	Mach Platz für 「{name}」
+	ui.swap.paid	내놓은 것의 값은 그대로 들어옵니다	You receive the full sell value	手放したものの値段はそのまま入ります	出售所得会全额入账	出售所得會全額入帳	Du erhältst den vollen Verkaufswert
 	ui.card.enhancement	강화 — {name}	Enhancement — {name}	強化 — {name}	强化 — {name}	強化 — {name}	Verbesserung — {name}
 	ui.card.edition	에디션 — {name}	Edition — {name}	エディション — {name}	版本 — {name}	版本 — {name}	Edition — {name}
 	ui.card.seal	인장 — {name}	Seal — {name}	封蝋 — {name}	封蜡 — {name}	封蠟 — {name}	Siegel — {name}
