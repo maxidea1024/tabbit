@@ -12,7 +12,7 @@ import { Application } from 'pixi.js'
 
 import { loadFromUrl } from './core/load'
 import { setLanguage, useStrings } from './core/strings'
-import { loadFonts, useFont } from './ui/font'
+import { loadFonts, loadNumerals, useFont } from './ui/font'
 import { randomSeed } from './ui/title'
 import { chosen, loadOptions } from './ui/options'
 import { loadArtIndex } from './render/art'
@@ -47,7 +47,9 @@ async function main(): Promise<void> {
   // **글꼴을 다 읽고 나서 화면을 세웁니다.** 글을 그리는 것은 글자를 그림으로 굽는 일이고,
   // 그때 글꼴이 없으면 대체 글꼴로 구워져 그대로 남습니다.
   boot.step('font')
-  await loadFonts()
+  // **숫자 글꼴을 함께 읽습니다.** 글자를 그림으로 굽는 것은 한 번뿐이라, 나중에 오면 그
+  // 숫자는 대체 글꼴로 구워진 채 남습니다.
+  await Promise.all([loadFonts(), loadNumerals()])
   useFont(language)
   // 그림 목록. 없으면 문양으로 갑니다.
   boot.step('art')

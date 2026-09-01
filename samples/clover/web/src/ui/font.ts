@@ -60,6 +60,46 @@ export async function loadFonts(base = './font'): Promise<void> {
 }
 
 /**
+ * 숫자에 쓰는 글꼴의 이름.
+ *
+ * **글의 글꼴과 다릅니다.** 판을 읽는 사람이 보는 것은 수이고, 본문용 글꼴의 숫자는 어느
+ * 화면에서나 같은 모습이라 이 게임의 것으로 보이지 않습니다 — 두꺼운 표제용 글꼴은 자릿수가
+ * 늘어도 덩어리로 읽힙니다.
+ *
+ * 라틴 글꼴을 뒤에 둡니다. 숫자만 잘라 둔 글꼴이라 `1 / 8` 의 빗금 같은 것이 없으면 그것만
+ * 뒤의 글꼴로 갑니다.
+ */
+export const NUMERALS = ['clover-num', 'clover-latin', 'system-ui', 'sans-serif']
+
+/**
+ * 숫자 글꼴의 파일 이름.
+ *
+ * **Bungee 입니다.** 간판용 글꼴이라 획이 굵고 각져서, 작은 칸에서도 각이 살아 범용 글꼴
+ * 느낌이 빠집니다 — Archivo Black 과 Titan One 도 놓고 봤는데, 앞의 것은 Noto 의 굵은
+ * 숫자와 실루엣이 비슷해 바꾼 표가 덜 나고 뒤의 것은 `0` 이 좁아 「점수 0」 이 작게
+ * 보였습니다.
+ */
+const NUMERAL_FILE = 'bungee-700'
+
+/**
+ * 숫자 글꼴을 읽습니다.
+ *
+ * **본문 글꼴과 함께 읽습니다.** 글자를 그림으로 굽는 것은 한 번뿐이라, 나중에 오면 그
+ * 숫자는 대체 글꼴로 구워진 채 남습니다.
+ */
+export async function loadNumerals(base = './font'): Promise<void> {
+  if (typeof document === 'undefined' || document.fonts === undefined) return
+  const face = new FontFace('clover-num',
+    `url(${base}/${NUMERAL_FILE}.woff2) format('woff2')`,
+    { weight: '700', display: 'block' })
+  try {
+    document.fonts.add(await face.load())
+  } catch {
+    // 없으면 본문 글꼴의 숫자로 갑니다.
+  }
+}
+
+/**
  * 그 말의 글꼴을 화면 전체에 겁니다.
  *
  * **한 자리에서 겁니다.** 글 하나하나에 글꼴 이름을 적으면 새로 만드는 글에서 반드시

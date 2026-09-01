@@ -13,7 +13,7 @@ npm run open             # 안드로이드 스튜디오로 열기
 
 |무엇|파일|
 |--|--|
-|디버그|`android/app/build/outputs/apk/debug/app-debug.apk`. 손에 쥐고 옮길 것은 `out/clover-0.1.0.apk` 로 베껴 둡니다|
+|디버그|`android/app/build/outputs/apk/debug/app-debug.apk`. 손에 쥐고 옮길 것은 `out/clover-0.2.0.apk` 로 베껴 둡니다|
 |릴리스(서명 없음)|`android/app/build/outputs/apk/release/app-release-unsigned.apk`|
 
 ## 필요한 것

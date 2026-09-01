@@ -6,10 +6,22 @@
 import { Container, Graphics, Text } from 'pixi.js'
 import { tf } from '../core/strings'
 
+import { NUMERALS } from '../ui/font'
+import { box, BOTTOM, inset, putText, splitY } from '../ui/layout'
 import { mix, plate, slotStyle } from './skin'
 import { COLOR } from './theme'
 
 /** 값 하나가 들어가는 칸. */
+/** 이름이 앉는 띠의 높이. 숫자는 그 아래의 남은 자리를 씁니다. */
+const CAPTION_H = 22
+/**
+ * 가장자리에 붙는 숫자가 벽에서 떨어지는 만큼.
+ *
+ * **넓습니다.** 칩과 배수가 맞닿는 자리에 곱셈표 딱지가 앉으므로, 좁게 두면 숫자가 그
+ * 딱지에 닿습니다 — 그 딱지의 절반과 사이의 숨이 이 값입니다.
+ */
+const VALUE_PAD = 28
+
 export class Slot extends Container {
   private readonly plate = new Graphics()
   private readonly caption_ = new Text({
@@ -18,7 +30,7 @@ export class Slot extends Container {
   private readonly value = new Text({
     text: '0',
     style: {
-      fontSize: 23, fill: COLOR.ink, fontWeight: '800',
+      fontSize: 23, fill: COLOR.ink, fontWeight: '800', fontFamily: NUMERALS,
       stroke: { color: 0x0a0f18, width: 3 },
     },
   })
@@ -49,31 +61,57 @@ export class Slot extends Container {
    */
   private readonly pull: number
 
+  /**
+   * 자기 판을 그리지 않는가.
+   *
+   * **칩과 배수는 한 덩어리입니다.** 둘이 각자 테두리를 두르면 그 사이에 곱셈표가 어디에도
+   * 속하지 않은 채로 걸치고, 불은 테두리 밖으로 새어 나옵니다 — 바탕은 화면이 통째로
+   * 그리고, 이 칸은 이름과 숫자만 얹습니다.
+   */
+  private readonly bare: boolean
+
   constructor(caption: string, private readonly boxWidth: number,
               private readonly boxHeight: number, private readonly ink: number,
-              valueSize = 23, pull = 0.5) {
+              valueSize = 23, pull = 0.5, bare = false) {
     super()
     this.pull = pull
+    this.bare = bare
     this.value.style.fontSize = valueSize
     this.addChild(this.plate, this.caption_, this.value)
     this.caption_.text = caption
-    this.caption_.anchor.set(0.5, 0)
-    this.caption_.position.set(boxWidth / 2, 6)
-    this.value.anchor.set(pull, 0.5)
-    this.value.position.set(this.valueX, boxHeight / 2 + 6)
+    // 이름은 위 가운데, 숫자는 그 아래의 남은 자리에. **기울기는 `pull` 이 정합니다** —
+    // 칩은 오른쪽으로, 배수는 왼쪽으로 붙습니다.
+    //
+    // **이름이 없는 칸도 있습니다.** 칩과 배수가 그렇습니다 — 그 둘은 색과 자리로 이미
+    // 갈리므로 이름이 자리만 잡아먹고, 그러면 숫자가 칸 아래로 밀려납니다.
+    const inner = box(0, 0, boxWidth, boxHeight)
+    const named = caption !== ''
+    this.caption_.visible = named
+    const [head, rest] = splitY(inner, [CAPTION_H, boxHeight - CAPTION_H])
+    const body = named ? rest : inner
+    if (named) putText(this.caption_, head, BOTTOM, { y: -2 })
+    // **이름이 없으면 여백이 좁아도 됩니다.** 곱셈표가 상자 밖의 빈 자리에 서므로 숫자가
+    // 그것에 닿지 않습니다.
+    putText(this.value, inset(body, 0, named ? VALUE_PAD : 12), { x: pull, y: 0.5 })
+    this.baseY = this.value.y
     this.value.style.fill = ink
     this.draw()
   }
 
-  /** 값의 가로 자리. 가장자리에 붙는 것은 여백만큼 안쪽입니다. */
+  /**
+   * 숫자가 쉬는 자리.
+   *
+   * **한 번 세고 그것을 지킵니다.** 떨리는 동안에도 이 자리를 기준으로 흔들리므로, 두 칸의
+   * 숫자가 같은 높이에서 흔들립니다 — 칸마다 다시 세면 그 둘의 기준선이 어긋납니다.
+   */
+  private baseY = 0
   private get valueX(): number {
-    const inset = 14
-    if (this.pull <= 0) return inset
-    if (this.pull >= 1) return this.boxWidth - inset
-    return this.boxWidth / 2
+    return this.boxWidth * this.pull + (this.pull <= 0 ? VALUE_PAD
+      : this.pull >= 1 ? -VALUE_PAD : 0)
   }
 
   private draw(glow = 0): void {
+    if (this.bare) return
     const style = slotStyle(this.ink)
     this.plate.clear()
     plate(this.plate, this.boxWidth, this.boxHeight, {
@@ -155,13 +193,15 @@ export class Slot extends Container {
       // 튀는 것과 떠는 것을 같이 얹습니다.
       this.value.scale.set(1 + ease * 0.42 + heat * 0.14)
       this.value.x = this.valueX + (Math.random() - 0.5) * 7 * shake
-      this.value.y = this.boxHeight / 2 + 6 - ease * 5 + (Math.random() - 0.5) * 6 * shake
+      // **세로로는 조금만 흔듭니다.** 두 칸의 숫자가 나란히 서 있어서, 세로로 크게 흔들면
+      // 그 둘의 기준선이 서로 어긋나 보입니다.
+      this.value.y = this.baseY - ease * 4 + (Math.random() - 0.5) * 2.4 * shake
       this.value.rotation = (Math.random() - 0.5) * 0.13 * shake
       this.draw(Math.min(1, shake))
     } else if (this.settledLook !== true) {
       this.settledLook = true
       this.value.scale.set(1)
-      this.value.position.set(this.valueX, this.boxHeight / 2 + 6)
+      this.value.position.set(this.valueX, this.baseY)
       this.value.rotation = 0
       this.draw()
     }
@@ -205,7 +245,7 @@ export class BlindBadge extends Container {
   private readonly need = new Text({
     text: '',
     style: {
-      fontSize: 30, fill: COLOR.chips, fontWeight: '800',
+      fontSize: 30, fill: COLOR.chips, fontWeight: '800', fontFamily: NUMERALS,
       stroke: { color: 0x0a0f18, width: 4 },
     },
   })

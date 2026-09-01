@@ -246,6 +246,62 @@ export class Audio {
   }
 
   /**
+   * 조커가 웅얼거리는 소리.
+   *
+   * **말이 아닙니다.** 무슨 말인지 알아들을 수 있으면 그때부터 그 말이 매번 같은 말이 되고,
+   * 한 판에 열 번 발동하는 조커에서 그것은 곧 지겨움입니다 — 알아들을 수 없는 웅얼거림은
+   * 매번 달라도 같은 것으로 들립니다.
+   *
+   * 만드는 것이지 녹음이 아닙니다. **녹음은 반복이 들립니다** — 같은 파일이 열 번 나면
+   * 열 번째에는 그 파일이 들립니다. 목청 하나(톱니파)를 입 모양(띠 통과 여과기) 뒤에 두고
+   * 음절마다 그 입 모양을 옮기면 「아」 와 「우」 사이의 무엇이 되고, 그 값을 매번 조금씩
+   * 흔들면 같은 조커가 같은 목소리로 다른 말을 합니다.
+   *
+   * `voice` 는 그 조커를 가리키는 수입니다 — **목소리는 조커마다 고정입니다.** 발동할 때마다
+   * 목소리가 바뀌면 누가 말한 것인지 남지 않습니다.
+   */
+  mumble(voice: number, strength = 1): void {
+    const context = this.context
+    const master = this.master
+    if (!context || !master || this.muted) return
+
+    // 그 조커의 목소리. 낮게도 높게도 갑니다 — 한 옥타브 안입니다.
+    const tone = ((voice * 2_654_435_761) % 12) / 12
+    const base = 112 * Math.pow(2, tone)
+    // 음절 둘에서 넷. **하나는 「윽」 이고 다섯이면 문장입니다.**
+    const beats = 2 + (voice % 3)
+
+    const osc = context.createOscillator()
+    osc.type = 'sawtooth'
+    // 입. **띠 하나만 남깁니다** — 그 띠가 어디냐가 모음을 가릅니다.
+    const mouth = context.createBiquadFilter()
+    mouth.type = 'bandpass'
+    mouth.Q.value = 5.5
+    const gain = context.createGain()
+    gain.gain.setValueAtTime(0, context.currentTime)
+    osc.connect(mouth).connect(gain).connect(master)
+
+    const now = context.currentTime
+    let at = now
+    for (let i = 0; i < beats; i++) {
+      const span = 0.062 + Math.random() * 0.05
+      // 모음 하나. 낮으면 「우」 쪽이고 높으면 「애」 쪽입니다.
+      const vowel = 480 + Math.random() * 760
+      osc.frequency.setValueAtTime(base * (0.92 + Math.random() * 0.2), at)
+      osc.frequency.linearRampToValueAtTime(base * (0.84 + Math.random() * 0.3), at + span)
+      mouth.frequency.setValueAtTime(vowel, at)
+      mouth.frequency.linearRampToValueAtTime(vowel * (0.68 + Math.random() * 0.7), at + span)
+      // 음절의 앞이 서고 뒤가 눕습니다. 네모난 봉투는 말이 아니라 신호음입니다.
+      gain.gain.linearRampToValueAtTime(0.135 * strength, at + 0.018)
+      gain.gain.linearRampToValueAtTime(0.0001, at + span)
+      at += span + 0.026
+    }
+
+    osc.start(now)
+    osc.stop(at + 0.05)
+  }
+
+  /**
    * 잡음 한 번.
    *
    * 좁은 대역만 남깁니다 — 그 대역이 어디냐가 「종이」와 「금속」과 「바람」을 가릅니다.

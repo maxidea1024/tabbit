@@ -49,6 +49,17 @@ SOURCE = {
 # 굵기 둘입니다. 화면이 700 과 800 을 쓰는데, 800 은 700 으로 그려도 눈에 띄지 않습니다.
 WEIGHTS = [400, 700]
 
+# **숫자는 다른 글꼴입니다.** 판을 읽는 사람이 보는 것은 수이고, 본문용 글꼴의 숫자는 어느
+# 화면에서나 같은 모습이라 이 게임의 것으로 보이지 않습니다 — 간판용 글꼴은 획이 굵고 각져서
+# 작은 칸에서도 각이 살아 있습니다.
+#
+# 숫자와 그 사이에 끼는 기호만 남깁니다. 나머지 글자는 본문 글꼴이 그립니다.
+NUMERALS = ('bungee',
+            'https://raw.githubusercontent.com/google/fonts/main/ofl/bungee/'
+            'Bungee-Regular.ttf')
+NUMERAL_LETTERS = '0123456789,./$+-x*eE ()%'
+NUMERAL_WEIGHT = 700
+
 
 def fetch(url: str, into: str) -> str:
     """원본을 받아 둡니다. 이미 있으면 다시 받지 않습니다 — 하나가 15MB 입니다."""
@@ -113,6 +124,15 @@ def main() -> None:
             total += size
             print('%-20s %7.1f KB  글자 %d' % (os.path.basename(target), size / 1024,
                                               len(letters)))
+
+    # 숫자 글꼴. **가변 축이 없는 글꼴이라 굵기를 고정할 것이 없습니다.**
+    name, url = NUMERALS
+    source = fetch(url, name + '.ttf')
+    target = os.path.join(OUT, '%s-%d.woff2' % (name, NUMERAL_WEIGHT))
+    size = cut(source, NUMERAL_LETTERS, NUMERAL_WEIGHT, target)
+    total += size
+    print('%-20s %7.1f KB  글자 %d' % (os.path.basename(target), size / 1024,
+                                      len(NUMERAL_LETTERS)))
 
     print('합 %.1f KB' % (total / 1024))
 

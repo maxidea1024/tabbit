@@ -52,14 +52,16 @@ import { artFor, onArtReady, type ArtKind } from './art'
 import { drawCardBack } from './card-back'
 import { drawGlyph, glyphFor, hashOf, hsl, shade } from './glyph'
 import { cardArtId, drawFace } from './pips'
+import { mix } from './skin'
 import { COLOR, SIZE } from './theme'
+import { box, type Box, CENTER, pointOf, putText, splitX } from '../ui/layout'
 import { Button, Panel } from '../ui/widgets'
 import { Guide } from '../ui/guide'
 import { randomSeed, Title } from '../ui/title'
 import type { Scene } from './scene'
 import { FOOTER_BAR, panelFrame, TITLE_BAR } from '../ui/modal'
 import { Modals, type ModalPanel } from '../ui/modal'
-import { richLine } from '../ui/rich'
+import { richBlock, richLine } from '../ui/rich'
 import {
   chosen, loadOptions, OptionsPanel, saveOptions, type Options,
 } from '../ui/options'
@@ -189,22 +191,39 @@ const NEWLINE = String.fromCharCode(10)
 
 /** 칩과 배수 칸의 윗변. 불이 이 자리를 따라다닙니다. */
 // 칩과 배수의 줄. **점수 칸과 사이를 벌립니다** — 그 사이에 고른 족보의 이름이 섭니다.
-const CHIPS_Y = 296
-/** 불이 칸 밖으로 번지는 폭과, 칸 위로 오르는 높이. */
-// **좁아야 불입니다.** 넓게 퍼지면 칸 위에 구름이 얹힌 것으로 보입니다.
-const FIRE_PAD = 12
-/** 불길이 칸 위로 솟는 높이. */
-const FIRE_RISE = 96
 /**
- * 뿌리가 칸의 **윗변** 안으로 물리는 깊이.
+ * 칩 × 배수 상자의 윗변.
  *
- * 셰이더의 불은 아래에서 위로 탑니다 — 뿌리가 가장 세고 위로 갈수록 옅어집니다. 그래서
- * 뿌리를 칸의 아랫변에 두면 가장 센 자리가 칸에 가려지고, 칸이 반투명인 만큼만 바닥에서
- * 어른거립니다. **칸의 윗변에 물려야 그 칸에 불이 붙어 타는 것으로 읽힙니다.**
+ * **위로 불의 자리를 비워 둡니다.** 불은 이 윗변에 뿌리를 두고 위로 솟으므로, 그만큼
+ * 위에는 아무것도 두지 않습니다 — 족보 이름은 그 불 위입니다.
  */
-const FIRE_BITE = 4
-const FIRE_W = 124 + FIRE_PAD * 2
-const FIRE_H = FIRE_RISE + FIRE_BITE
+const CHIPS_Y = 356
+/**
+ * 칩 × 배수 덩어리.
+ *
+ * **하나입니다.** 칸 둘이 각자 테두리를 두르고 있었고, 곱셈표가 그 사이의 빈 자리에 글자
+ * 하나로 떠 있어서 어디에도 속하지 않은 채 걸쳐 보였습니다 — 바탕을 색으로 갈라 두면
+ * 테두리가 할 일이 없어지고, 곱셈표는 두 색이 만나는 자리에 앉습니다.
+ */
+const CHIPS_H = 58
+const CHIPS_R = 10
+/** 두 상자 사이. **곱셈표가 그 사이에 섭니다.** */
+const CHIPS_GAP = 34
+/**
+ * 불이 상자 위로 솟는 높이와, 뿌리가 상자 안으로 물리는 깊이.
+ *
+ * **상자 위에 붙습니다.** 상자 안에서 태우면 불이 숫자를 덮어 아무것도 읽히지 않습니다 —
+ * 사람 머리가 타는 것처럼 윗변에 뿌리를 두고 위로 솟습니다.
+ */
+const FIRE_RISE = 48
+const FIRE_BITE = 5
+/**
+ * 불은 **자기 반 안에서** 탑니다.
+ *
+ * 예전에는 칸 뒤에 두고 칸을 반투명하게 만들어 비치게 했는데, 그러면 테두리 밖으로 자락이
+ * 새어 나오고 칸 위에 얼룩이 얹힌 것으로 보였습니다 — 바탕이 색으로 갈린 지금은 그 색 위에
+ * 그대로 얹으면 되고, 반 밖으로 나가지 않게 가려 둡니다.
+ */
 
 /** 덱 판의 카드에 쓰는 것들. 손패의 카드와 같은 값이라 여기 한 벌만 둡니다. */
 const MINI_RANK: Record<number, string> = {
@@ -564,10 +583,32 @@ export class Game {
    * 한 덩어리로 읽힙니다 — 판 가운데에만 띄우면 눈이 왼쪽과 가운데를 오갑니다.
    */
   private readonly handLabel = new Text({
-    text: '', style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '800' },
+    text: '',
+    style: {
+      // **12픽셀은 작았습니다.** 지금 고른 것이 무슨 족보인가는 화면에서 점수 다음으로
+      // 중요한 글이고, 칩과 배수가 어디서 나온 값인지를 잇는 유일한 줄입니다.
+      fontSize: 17, fill: COLOR.ink, fontWeight: '800', letterSpacing: 0.5,
+      stroke: { color: 0x0a0f18, width: 3 },
+    },
   })
-  private readonly chips = new Slot(t('ui.slot.chips'), 124, 78, COLOR.chips, 34, 1)
-  private readonly mult = new Slot(t('ui.slot.mult'), 124, 78, COLOR.mult, 34, 0)
+  /**
+   * 칩 × 배수의 바탕.
+   *
+   * **칸이 아니라 이것이 테두리를 대신합니다.** 색이 갈리면 경계가 색으로 읽히므로 선이
+   * 필요 없고, 불이 그 색 위에 그대로 얹힙니다.
+   */
+  private readonly scoreBox = new Graphics()
+  /**
+   * 칩과 배수.
+   *
+   * **이름이 없습니다.** 파란 상자의 수와 붉은 상자의 수 사이에 `×` 가 있으면 그것이 무엇인지
+   * 더 적을 것이 없습니다 — 이름은 자리만 잡아먹고 숫자를 아래로 밀어냅니다.
+   *
+   * 숫자는 흰색입니다. 상자의 색이 이미 칩과 배수를 가르므로, 숫자까지 그 색이면 색만
+   * 남고 수가 흐려집니다.
+   */
+  private readonly chips = new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, COLOR.ink, 34, 1, true)
+  private readonly mult = new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, COLOR.ink, 34, 0, true)
   /** 두 칸 뒤에서 타오르는 불. 배수가 커지면 불길이 높아집니다. */
   private readonly chipsFire = new Sprite(Texture.WHITE)
   private readonly multFire = new Sprite(Texture.WHITE)
@@ -1352,39 +1393,62 @@ export class Game {
 
     this.badge.position.set(LEFT, 34)
     this.score.position.set(LEFT, 208)
-    this.chips.position.set(LEFT, CHIPS_Y)
-    this.mult.position.set(LEFT + 140, CHIPS_Y)
-    this.hands.position.set(LEFT, 386)
-    this.discards.position.set(LEFT + 134, 386)
-    this.money.position.set(LEFT, 450)
-    this.anteSlot.position.set(LEFT + 134, 450)
+    this.hands.position.set(LEFT, 426)
+    this.discards.position.set(LEFT + 134, 426)
+    this.money.position.set(LEFT, 490)
+    this.anteSlot.position.set(LEFT + 134, 490)
+
+    // **상자 둘과 그 사이의 곱셈표입니다.** 원작의 배치이고, 붙여 놓는 것보다 이 편이
+    // 「칩 곱하기 배수」 라는 식으로 읽힙니다.
+    const block = box(LEFT, CHIPS_Y, PANEL_W, CHIPS_H)
+    const [chipsBox, gapBox, multBox] =
+      splitX(block, [1, CHIPS_GAP / (PANEL_W - CHIPS_GAP) * 2, 1])
+    this.paintScoreBox(chipsBox, multBox)
+    this.chips.position.set(chipsBox.x, chipsBox.y)
+    this.mult.position.set(multBox.x, multBox.y)
 
     // **곱셈표는 글자가 아니라 그림입니다.** 글꼴마다 `×` 의 굵기와 세로 자리가 달라서,
     // 글자로 두면 말을 바꿀 때마다 두 칸 사이에서 비뚤어집니다.
+    //
+    // **두 색이 만나는 자리에 딱지로 앉습니다.** 사이의 빈 자리에 글자 하나로 두면 어느
+    // 칸의 것도 아닌 것이 되고, 그것이 애매하게 걸쳐 보이던 까닭입니다.
     const times = new Graphics()
-    const armLength = 9
-    const armWidth = 3.4
     for (const angle of [Math.PI / 4, -Math.PI / 4]) {
-      const dx = Math.cos(angle) * armLength
-      const dy = Math.sin(angle) * armLength
+      const dx = Math.cos(angle) * 8.5
+      const dy = Math.sin(angle) * 8.5
       times.moveTo(-dx, -dy).lineTo(dx, dy)
-        .stroke({ color: COLOR.ink, width: armWidth, cap: 'round', alpha: 0.9 })
+        .stroke({ color: 0xdfe8f5, width: 4, cap: 'round' })
     }
-    times.position.set(LEFT + 132, CHIPS_Y + 39)
+    const seam = pointOf(gapBox, CENTER)
+    times.position.set(seam.x, seam.y)
 
-    // 불은 **칸 뒤**입니다. 앞에 두면 숫자를 가리고, 그러면 연출이 정보를 덮습니다.
-    for (const fire of [this.chipsFire, this.multFire]) {
+    // 불은 **바탕 위, 숫자 아래**입니다. 각자 자기 반에 갇혀서 그 반의 바탕이 타는 것으로
+    // 보입니다 — 예전에는 칸 뒤에 두고 칸을 비치게 했고, 그러면 테두리 밖으로 자락이
+    // 새어 나왔습니다.
+    for (const [fire, area] of [[this.chipsFire, chipsBox], [this.multFire, multBox]] as const) {
       fire.blendMode = 'add'
       fire.visible = false
+      // 뿌리가 상자의 윗변 안으로 조금 물리고, 거기서 위로 솟습니다.
+      fire.position.set(area.x, area.y + FIRE_BITE - FIRE_RISE)
+      fire.scale.set(area.width, FIRE_RISE)
+      // **숫자 위로는 넘어오지 않습니다.** 물린 만큼까지만 보입니다.
+      const mask = new Graphics()
+      mask.rect(area.x, area.y - FIRE_RISE, area.width, FIRE_RISE + FIRE_BITE).fill(0xffffff)
+      fire.mask = mask
+      this.board.addChild(mask)
     }
     this.chipsFire.filters = [this.chipsFlame]
     this.multFire.filters = [this.multFlame]
 
-    this.handLabel.anchor.set(0.5, 1)
-    this.handLabel.position.set(LEFT + PANEL_W / 2, CHIPS_Y - 4)
+    // 족보 이름. **불꽃 위입니다.**
+    //
+    // 위에서 아래로 라운드 점수 · 족보 이름 · 불꽃 · 칩 × 배수 순서이고, 눈이 한 번
+    // 내려오면서 「이 판은 무슨 족보이고, 그래서 이만큼 타고 있고, 값은 이것이다」 로
+    // 읽힙니다 — 아래에 두면 그 순서가 끊깁니다.
+    putText(this.handLabel, box(LEFT, 280, PANEL_W, 24), CENTER)
 
-    this.board.addChild(this.badge, this.score, this.handLabel,
-      this.chipsFire, this.multFire, this.chips, times, this.mult,
+    this.board.addChild(this.badge, this.score, this.handLabel, this.scoreBox,
+      this.chipsFire, this.multFire, this.chips, this.mult, times,
       this.hands, this.discards, this.money, this.anteSlot)
 
     // 가운데에서 커집니다. 위쪽을 붙잡고 키우면 글씨가 아래로 자라 보입니다.
@@ -1454,6 +1518,24 @@ export class Game {
   }
 
   /** 조커와 소모품의 빈 자리. **비어 있어도 자리가 보여야 무엇을 모으는 게임인지 압니다.** */
+  /**
+   * 칩과 배수의 상자.
+   *
+   * **깔끔한 단색 둘입니다.** 숫자가 앉는 자리이므로 그 자리는 조용해야 하고, 불은 이 상자
+   * **위에** 붙습니다 — 안에서 태우면 불이 숫자를 덮어 아무것도 읽히지 않습니다.
+   */
+  private paintScoreBox(chipsBox: Box, multBox: Box): void {
+    const g = this.scoreBox
+    g.clear()
+    for (const [area, tint] of [[chipsBox, COLOR.chips], [multBox, COLOR.mult]] as const) {
+      // 짙게 눌러 씁니다. **원색 그대로는 흰 숫자가 눌러앉지 못합니다.**
+      // **단색 하나입니다.** 광택이나 그라디언트를 얹으면 그 위에 앉는 흰 숫자가 자리마다
+      // 다른 바탕을 만나 흐릿해집니다 — 숫자가 앉는 자리는 조용해야 합니다.
+      g.roundRect(area.x, area.y, area.width, area.height, CHIPS_R)
+        .fill(mix(tint, 0x0a1018, 0.52))
+    }
+  }
+
   private drawFrames(): void {
     const g = this.frames
     g.clear()
@@ -1977,6 +2059,13 @@ export class Game {
         if (view) view.pop(mul ? 1.6 : 1.1)
         this.popAt(view, text, tint, beat.intensity + (mul ? 0.6 : 0.2))
         this.audio.play(cue, semitones + this.chain)
+        // **조커가 웅얼거립니다.** 값이 오르는 소리만으로는 그것이 누가 낸 값인지가 남지
+        // 않습니다 — 목소리는 조커마다 고정이라, 같은 조커가 두 번 발동하면 같은 목소리로
+        // 두 번 웅얼거립니다.
+        //
+        // 이어질수록 잦아듭니다. 한 판에 열 번 발동하는 것이라, 매번 같은 크기로 나면
+        // 웅얼거림이 득점 소리를 덮습니다.
+        if (view) this.audio.mumble(view.uid, Math.max(0.35, 1 - this.chain * 0.12))
 
         // **배수를 곱하는 것이 이 게임에서 가장 큰 사건입니다.** 그 하나만 크게 다룹니다.
         if (mul) {
@@ -2181,30 +2270,18 @@ export class Game {
     this.fever = Math.max(0, this.fever - seconds * 0.85)
 
     const heat = this.fever
-    this.chipsFlame.heat = heat * 0.72
+    // **칩 쪽이 조금 낮습니다.** 배수가 이 게임의 큰 수이므로 그쪽이 더 타야 하고, 다만
+    // 너무 낮추면 문턱을 넘지 못해 파란 쪽이 꺼진 것처럼 보입니다.
+    this.chipsFlame.heat = heat * 0.88
     this.multFlame.heat = heat
-    // **칸이 비칩니다.** 불은 칸 뒤에 있고 칸은 불투명이라, 비치지 않으면 불이 칸 위로
-    // 삐져나온 자락만 보입니다.
-    this.chips.heat = heat * 0.72
-    this.mult.heat = heat
     this.chipsFlame.advance(seconds)
     this.multFlame.advance(seconds)
 
+    // **자리는 한 번만 잡습니다.** 불은 이제 자기 반 안에 갇혀 있고 그 반은 움직이지
+    // 않으므로, 매 프레임 따라다닐 것이 없습니다.
     const lit = heat > 0.004
     this.chipsFire.visible = lit
     this.multFire.visible = lit
-    if (!lit) return
-
-    // 칸을 따라다닙니다. 합쳐지는 동안 칸이 움직이므로 자리를 매 프레임 맞춥니다.
-    //
-    // **크기는 곱해야 합니다.** 그림이 1 × 1 이라 배율이 곧 픽셀 크기이고, 칸의 배율을
-    // 그대로 넣으면 불이 1픽셀짜리가 됩니다.
-    const follow = (fire: Sprite, slot: Slot) => {
-      fire.position.set(slot.x - FIRE_PAD, slot.y + FIRE_BITE - FIRE_H)
-      fire.scale.set(FIRE_W * slot.scale.x, FIRE_H * slot.scale.y)
-    }
-    follow(this.chipsFire, this.chips)
-    follow(this.multFire, this.mult)
   }
 
   /**
@@ -2969,6 +3046,9 @@ export class Game {
         },
         // **돈이 없어서 못 사는 것과 자리가 없어서 못 넣는 것은 다른 일입니다.** 자리
         // 쪽을 보려면 돈은 걸림돌이 아니어야 합니다.
+        // **소리는 조용히 실패합니다.** WebAudio 는 잘못된 값에 예외를 내는데 그것을 받는
+        // 곳이 없어서, 웅얼거림이 안 나는 것과 예외로 죽은 것을 화면에서 가릴 수 없습니다.
+        mumble: (voice: number) => this.audio.mumble(voice),
         grantMoney: (amount: number) => {
           this.state.money += amount
           this.money.reset(this.state.money)
@@ -3529,7 +3609,10 @@ export class Game {
         name.position.set(cardW / 2 + 16, 23)
       }
 
-      const need = label(String(targetOf(this.data, state, blind)), 34, COLOR.chips, '800')
+      // **세 자리마다 쉼표를 찍습니다.** 요구 점수는 안테가 오르면 네 자리 다섯 자리가
+      // 되고, 쉼표가 없으면 30000 과 300000 을 한눈에 가릴 수 없습니다.
+      const need = label(
+        targetOf(this.data, state, blind).toLocaleString('en-US'), 34, COLOR.chips, '800')
       need.anchor.set(0.5, 0)
       need.position.set(cardW / 2, 72)
       group.addChild(need)
@@ -3550,18 +3633,18 @@ export class Game {
         : t('ui.note.no_rules')
       // **수와 이름은 다른 색입니다.** 「패에서 2장을 버립니다」에서 판단을 가르는 것은
       // 그 2 입니다.
-      const noteLines = note.split(NEWLINE)
-      const noteText = new Container()
-      noteLines.forEach((one, line) => {
-        const drawn = richLine(one, {
-          base: { fontSize: 12, fill: boss ? 0xffb4c8 : COLOR.inkDim },
-          number: COLOR.accentNumber,
-          term: COLOR.accentTerm,
-        })
-        drawn.position.set(-drawn.width / 2, line * 17)
-        noteText.addChild(drawn)
-      })
-      noteText.position.set(cardW / 2, 172)
+      // **접습니다.** 접는 폭을 주지 않으면 한 줄로 뻗어 카드 밖으로 나갑니다 — 보스의
+      // 효과는 「패에서 무늬가 같은 카드를 2장 버립니다」 처럼 깁니다.
+      //
+      // 그리고 **`richBlock` 으로 쌓습니다.** 줄마다 따로 그려 17픽셀씩 내리면, 접혀서 두
+      // 줄이 된 것이 다음 줄 위에 겹칩니다.
+      const noteWidth = cardW - 36
+      const noteText = richBlock(note.split(NEWLINE), {
+        base: { fontSize: 12, fill: boss ? 0xffb4c8 : COLOR.inkDim },
+        number: COLOR.accentNumber,
+        term: COLOR.accentTerm,
+      }, 17, noteWidth)
+      noteText.position.set((cardW - noteWidth) / 2, 172)
       group.addChild(noteText)
 
       // 아래에서 위로 쌓습니다. **아랫변이 맞아야 셋이 한 줄로 보입니다.**
@@ -4713,7 +4796,9 @@ export class Game {
     const entries = this.activeEntries()
     if (entries.length === 0) return
 
-    const top = 508
+    // **금액과 안테 칸 아래입니다.** 그 칸들이 내려온 만큼 이것도 내려옵니다 — 위에 두면
+    // 「적용 중」 이 금액 칸에 겹칩니다.
+    const top = 558
     const rowH = 26
     const shown = Math.min(entries.length, entries.length > 4 ? 3 : 4)
 
