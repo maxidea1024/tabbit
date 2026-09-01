@@ -74,6 +74,15 @@ export interface EditionLook {
   noise: number
 }
 
+/**
+ * 득점한 카드가 내려올 때의 용수철.
+ *
+ * 올라갈 때는 380·39 입니다. **네 배 강성이 두 배 빠르기**이고, 감쇠는 그 비율을 지켜야
+ * 튀지 않고 자리에 섭니다.
+ */
+const LIFT_DOWN_K = 1_520
+const LIFT_DOWN_D = 78
+
 export class CardView extends Container {
   readonly uid: number
   readonly motion = new Motion()
@@ -427,8 +436,18 @@ export class CardView extends Container {
     this.position.set(x, y)
   }
 
-  /** 득점하는 카드인가. 그렇다면 그 자리에서 살며시 올라갑니다. */
+  /**
+   * 득점하는 카드인가. 그렇다면 그 자리에서 살며시 올라갑니다.
+   *
+   * **내려오는 것은 올라가는 것보다 두 배 빠릅니다.** 올라가는 것은 「이 카드가 센다」 를
+   * 알리는 것이라 눈이 따라갈 만큼 느려야 하고, 내려오는 것은 그 일이 끝났다는 것이라
+   * 밍기적거릴 이유가 없습니다.
+   *
+   * 빠르기는 강성이 정하고, 강성은 제곱근으로 빠르기가 됩니다 — 두 배 빠르려면 네 배입니다.
+   */
   set scoring(value: boolean) {
+    if (value) this.lift.soft()
+    else this.lift.hard(LIFT_DOWN_K, LIFT_DOWN_D)
     this.lift.target = value ? 8 : 0
   }
 
