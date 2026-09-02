@@ -160,6 +160,20 @@ const ITEM_WARP = 0.30
 const ITEM_ARRIVE = 0.62
 const ITEM_FLASH = 0.34
 const ITEM_HOLD = 1.05
+/** 상점의 팝 딱지 하나의 너버. **상점 카드의 158 과 다릅니다.** */
+const PACK_TILE_W = 104
+
+/**
+ * 소모품 슬롯으로 가는 갈래인가.
+ *
+ * **플레잉 카드는 아닙니다.** 「조커가 아니면 소모품」으로 세고 있어서, 표준 팩에서 카드를
+ * 집으면 아무 상관 없는 소모품 하나가 팩에서 날아오는 연출이 붙었습니다 — 카드는 덱으로
+ * 들어가고 소모품 칸은 그대로인데 화면만 그렇게 보였습니다.
+ */
+function isConsumable(kind: ShopItemKind): boolean {
+  return kind === ShopItemKind.Tarot || kind === ShopItemKind.Planet
+    || kind === ShopItemKind.Spectral
+}
 
 /**
  * 꾸욱 누르고 있으면 설명이 뜨는 데까지.
@@ -1131,8 +1145,6 @@ export class Game {
   /** 뜯은 팩의 이름. 덮개와 함께 들고 납니다. */
   private packTitle?: Text
   private packSkip?: Button
-  /** 지금 마우스가 올려진 카드. 없으면 -1 입니다. */
-  private packHovered = -1
   /** 뜯은 딱지의 자리. 카드가 거기서 나옵니다. */
   private packFrom?: { x: number; y: number }
   private wasBusy = false
@@ -1644,7 +1656,6 @@ export class Game {
     this.drag = undefined
     this.hoveredJoker = undefined
     this.handHovered = -1
-    this.packHovered = -1
     this.handBand = undefined
     this.handPreview = undefined
     this.handRows.length = 0
@@ -5570,7 +5581,9 @@ export class Game {
         this.held = undefined
         return
       }
-      anchor = spot.tile.x + 158 / 2
+      // **팩의 너비로 셉니다.** 상점 카드의 158 을 쓰고 있어서 단추가 27px 오른쪽으로
+      // 밀려 옆 팩의 값에 걸쳤습니다.
+      anchor = spot.tile.x + PACK_TILE_W / 2
       // 카드 딱지와 같은 규칙입니다 — 값이 있던 그 줄.
       baseline = spot.baseY + spot.price.y - 4
       buttons.push(new Button(t('ui.button.buy'), 84, 32, 0x2f7a52, () => {
@@ -5587,8 +5600,11 @@ export class Game {
       // **부챗살 아래의 한 줄입니다.** 고른 그 카드 바로 밑에 세웠더니 옆 카드에 걸쳤고,
       // 고른 카드는 올라오므로 그 단추도 함께 올라와 자리가 카드마다 달랐습니다 — 어느
       // 카드를 고르든 단추는 같은 줄에 섭니다.
+      //
+      // **간격은 상점과 같은 4px 입니다.** 66px 였고, 그만큼 떨어지면 카드와 단추가 한
+      // 덩이로 읽히지 않습니다 — 상점의 칸은 값이 있던 자리(카드 밑 4px)에 단추가 섭니다.
       anchor = view.face.node.x
-      baseline = PACK_CARDS_Y + PACK_CARD_H / 2 + 66
+      baseline = PACK_CARDS_Y + PACK_CARD_H / 2 + 4
       const room = this.roomFor(view.item.kind)
       const swap = !room && this.canSwap(view.item)
       buttons.push(new Button(
@@ -6482,7 +6498,10 @@ export class Game {
       // **누르면 고르기만 합니다.** 사는 것은 그 밑에 서는 단추가 합니다.
       tile.on('pointertap', () => {
         if (this.ate()) return
-        if (!afford) return
+        // **밝힐 금액은 지금 금액이 아니라 보이는 금액입니다.** 동전이 날아가는 동안에
+        // 그려진 딱지는 `afford` 가 거짓으로 굳어 있고, 다시 그려질 이유가 없으면 돈이
+        // 다 온 뒤에도 눌러지지 않습니다 — 누를 때 다시 봅니다.
+        if (!this.canPay(item.cost)) return
         this.pick('shop', slot)
       })
       this.tipOn(tile, () => {
@@ -6644,6 +6663,16 @@ export class Game {
   }
 
   /** 그 갈래를 받을 자리가 있는가. */
+  /**
+   * 이 값을 낼 수 있는가.
+   *
+   * **코어와 같은 판정입니다.** 빚 한도까지는 낼 수 있으므로 금액이 값보다 적어도 살 수
+   * 있고, `shown.money` 는 동전이 날아가는 동안의 값이라 이 판정에 쓰지 않습니다.
+   */
+  private canPay(cost: number): boolean {
+    return this.state.money - cost >= -this.state.rules.debtLimit
+  }
+
   private roomFor(kind: ShopItemKind): boolean {
     const state = this.state
     if (kind === ShopItemKind.Joker) return state.jokers.length < state.rules.jokerSlots
@@ -6678,7 +6707,7 @@ export class Game {
         this.sellFrom = item.kind === ShopItemKind.Joker
           ? this.jokerSpot(held) : this.itemSpot(held)
         this.act({ t: 'swap', slot, index: held })
-        if (item.kind !== ShopItemKind.Joker) this.itemFlying(from)
+        if (isConsumable(item.kind)) this.itemFlying(from)
       })
       return
     }
@@ -6705,7 +6734,7 @@ export class Game {
 
     // 소모품은 산 자리에서 제 칸으로 미끄러집니다. **조커는 뷰가 용수철을 들고 있어 오는
     // 길이 있고, 소모품 칸은 매번 새로 만들어지므로 화면이 그 몫을 듭니다.**
-    if (item.kind !== ShopItemKind.Joker) this.itemFlying(from)
+    if (isConsumable(item.kind)) this.itemFlying(from)
 
     // 날아가 닿는 데까지가 한 박자입니다. 닿는 자리에서 이름과 소리가 납니다.
     this.later.push({ at: this.clock + LAND_AT, run: () => this.landed(item) })
@@ -6900,7 +6929,7 @@ export class Game {
    */
   private drawPackRow(left: number, top: number, width: number, tileH: number): void {
     const packs = this.state.shop.packs
-    const tileW = 104
+    const tileW = PACK_TILE_W
     const gap = 26
     const span = packs.length * tileW + Math.max(0, packs.length - 1) * gap
     const startX = left + (width - span) / 2
@@ -6976,7 +7005,7 @@ export class Game {
       this.packSlotTiles.set(slot, { tile, height: h, baseY: tile.y, price })
       tile.on('pointertap', () => {
         if (this.ate()) return
-        if (!afford) return
+        if (!this.canPay(row.cost)) return
         this.pick('pack_slot', slot)
       })
       this.tipOn(tile, () => {
@@ -7002,7 +7031,7 @@ export class Game {
     // **카드가 이 딱지에서 나옵니다.** 어느 것을 뜯었는지가 그 움직임에 남습니다. 딱지가
     // 이미 지워졌으면 상점 한가운데에서 나옵니다.
     const from = spot
-      ? { x: spot.tile.x + 158 / 2, y: spot.baseY + spot.height / 2 }
+      ? { x: spot.tile.x + PACK_TILE_W / 2, y: spot.baseY + spot.height / 2 }
       : { x: BOARD_X, y: SHOP_CARD_Y }
     const row = this.data.tables.boosterPack.findByPackId(this.state.shop.packs[slot])
     this.particles.burst(from.x, from.y, 20, row ? packInk(row.kind) : COLOR.ink, 1.2)
@@ -7107,7 +7136,6 @@ export class Game {
     this.packLayer.removeChildren().forEach(child => child.destroy())
     this.packViews.clear()
     this.packGone.length = 0
-    this.packHovered = -1
 
     const open = this.state.pack
     if (!open) return
@@ -7320,16 +7348,14 @@ export class Game {
       this.tooltip.show(name, kindName(item.kind), rarity, lines,
         node.x, node.y + PACK_CARD_H / 2 + 8, SIZE)
     }
+    // **마우스를 올리는 것은 설명까지입니다.** 올리기만 해도 카드가 들리면 상점의 칸과
+    // 몸짓이 갈립니다 — 상점은 눌러서 고른 것만 들리고, 팩도 그래야 어느 것을 집으려는
+    // 중인지가 한 가지로 읽힙니다.
     node.on('pointerover', event => {
-      this.packHovered = index
       if (event.pointerType === 'mouse') tip()
     })
-    node.on('pointerdown', event => {
-      this.packHovered = index
-      this.armPress(event, tip)
-    })
+    node.on('pointerdown', event => this.armPress(event, tip))
     node.on('pointerout', () => {
-      if (this.packHovered === index) this.packHovered = -1
       if (!this.pressShown) this.tooltip.hide()
     })
     // **누르면 고르기만 합니다.** 집는 것은 그 밑에 서는 단추가 합니다 — 집는 것은
@@ -7357,7 +7383,6 @@ export class Game {
     const item = view.item
     const node = view.face.node
     const ink = packInk(open.kind)
-    this.packHovered = -1
     // 집은 카드도 산 것과 같이 제자리에서 옵니다.
     const from = { x: node.x - SIZE.jokerWidth / 2, y: node.y - SIZE.jokerHeight / 2 }
 
@@ -7377,7 +7402,7 @@ export class Game {
         this.sellFrom = item.kind === ShopItemKind.Joker
           ? this.jokerSpot(held) : this.itemSpot(held)
         this.act({ t: 'swap_pack', index, held })
-        if (item.kind !== ShopItemKind.Joker) this.itemFlying(from)
+        if (isConsumable(item.kind)) this.itemFlying(from)
       })
       return
     }
@@ -7390,7 +7415,7 @@ export class Game {
     this.act({ t: 'pick_pack', index })
     // **소모품도 집은 자리에서 옵니다.** 조커는 `arriveFrom` 을 뷰가 받아 날아오는데,
     // 소모품은 화면이 그 몫을 들어야 합니다.
-    if (item.kind !== ShopItemKind.Joker) this.itemFlying(from)
+    if (isConsumable(item.kind)) this.itemFlying(from)
     this.later.push({ at: this.clock + LAND_AT, run: () => this.landed(item) })
   }
 
@@ -7494,10 +7519,9 @@ export class Game {
     for (const one of this.packViews.values()) {
       one.motion.advance(seconds)
       const node = one.face.node
-      // 올라오는 것은 마우스를 올린 것과 **고른 것**입니다. 고른 카드는 손을 떼어도
-      // 올라와 있어야 무엇을 집으려는 중인지가 남습니다.
-      const up = this.packHovered === one.index
-        || (this.held?.kind === 'pack' && this.held.uid === one.index)
+      // 올라오는 것은 **고른 것 하나**입니다. 상점의 칸과 같은 규칙이고, 고른 카드는 손을
+      // 떼어도 올라와 있어야 무엇을 집으려는 중인지가 남습니다.
+      const up = this.held?.kind === 'pack' && this.held.uid === one.index
 
       // **펼쳐 놓은 카드는 가만히 있지 않습니다.** 자리에 닿은 뒤로 아무것도 움직이지
       // 않으면 고르는 화면이 그림 한 장이 됩니다. 살짝 갸웃거리고 아주 조금 떠 있습니다 —

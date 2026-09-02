@@ -139,20 +139,39 @@ export async function settle(page: Page): Promise<void> {
   }
 }
 
-/** 살 수 있는 팩이 있으면 뜯습니다. */
+/**
+ * 살 수 있는 팩이 있으면 뜯습니다.
+ *
+ * **딱지를 누르는 것은 고르는 것까지입니다.** 뜯는 것은 그 밑에 서는 「산다」가 하므로
+ * 두 번 누릅니다 — 한 번만 누르고 열렸는지 묻고 있어서, 이 도구는 팩을 한 번도 뜯지
+ * 못한 채 「돈이 모자랍니다」를 적고 있었습니다.
+ */
 export async function buyAffordablePack(page: Page): Promise<void> {
   for (let slot = 0; slot < 2; slot++) {
     const packs = (await peek(page)).packs
     if (packs <= slot) return
     const spot = await packSlot(page, slot, packs)
-    await page.mouse.move(spot.x, spot.y)
-    await page.waitForTimeout(100)
-    await page.mouse.down()
-    await page.waitForTimeout(60)
-    await page.mouse.up()
-    await page.waitForTimeout(600)
+    await page.mouse.click(spot.x, spot.y)
+    await page.waitForTimeout(350)
+    const buy = await packBuySpot(page, slot, packs)
+    await page.mouse.click(buy.x, buy.y)
+    await page.waitForTimeout(700)
     if ((await peek(page)).packOpen) return
   }
+}
+
+/**
+ * 고른 팩 밑의 「산다」 단추.
+ *
+ * `syncHeldBar` 과 같은 계산입니다 — 딱지의 가운데이고, 값이 있던 그 줄입니다.
+ */
+export async function packBuySpot(page: Page, slot: number, count = 2):
+    Promise<{ x: number; y: number }> {
+  const tileW = 104
+  const gap = 26
+  const span = count * tileW + (count - 1) * gap
+  const left = POPUP_X - SHOP_W / 2 + (SHOP_W - span) / 2
+  return at(page, left + slot * (tileW + gap) + tileW / 2, SHOP_PACKS + 144)
 }
 
 /** 상점의 팩 칸. `drawPackRow` 와 같은 계산입니다. */
