@@ -31,7 +31,7 @@ const STAKE_Y = GRID_Y + 3 * CELL_H + 18
 const STAKE_W = 80
 const SIDE_X = GRID_X + 5 * CELL_W + 20
 const SIDE_W = PANEL.width - SIDE_X - 30
-const SIDE_H = STAKE_Y + 52 - GRID_Y
+const SIDE_H = STAKE_Y + 58 - GRID_Y
 
 /** 타이틀의 덱 단추. 시작의 왼쪽입니다 — `ui/title.ts` 의 값과 같습니다. */
 const SETUP_BUTTON = { x: 640 - 118 - 16 - 100, y: 452 + (72 - 44) / 2 + 22 }

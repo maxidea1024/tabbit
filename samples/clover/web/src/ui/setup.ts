@@ -43,7 +43,7 @@ const BACK_H = Math.round(SIZE.cardHeight * 0.62)
 /** 스테이크 줄. 덱 격자 아래에 한 줄로 섭니다. */
 const STAKE_Y = GRID_Y + 3 * CELL_H + 18
 const STAKE_W = 80
-const STAKE_H = 52
+const STAKE_H = 58
 
 /** 오른쪽의 설명 자리. */
 const SIDE_X = GRID_X + COLUMNS * CELL_W + 20
@@ -287,14 +287,20 @@ export class SetupPanel implements ModalPanel {
         .stroke({ color: 0x0d0d10, width: 1 })
       cell.addChild(board)
 
+      // **두 줄까지 접힙니다.** 한국어의 이름은 색 하나(`흰색`)이지만 다른 말에는
+      // 「스테이크」가 붙어(`ホワイトステーク` · `Weißer Einsatz`) 한 줄로는 칸을 넘칩니다.
       const name = new Text({
         text: row.name,
         style: {
-          fontSize: 11, fill: here ? COLOR.ink : COLOR.inkDim, fontWeight: '800',
+          fontSize: 10, fill: here ? COLOR.ink : COLOR.inkDim, fontWeight: '800',
+          wordWrap: true, wordWrapWidth: STAKE_W - 18, align: 'center', lineHeight: 12,
+          // **글자 단위로 끊습니다.** 일본어와 중국어에는 공백이 없어 낱말 단위로만
+          // 접으면 `ホワイトステーク` 가 한 줄로 남아 옆 칸을 덮습니다.
+          breakWords: true,
         },
       })
       name.anchor.set(0.5, 0)
-      name.position.set((STAKE_W - 10) / 2, 30)
+      name.position.set((STAKE_W - 10) / 2, 27)
       cell.addChild(name)
 
       cell.eventMode = 'static'

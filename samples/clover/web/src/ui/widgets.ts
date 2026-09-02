@@ -52,6 +52,7 @@ export class Button extends Container {
               private readonly boxHeight: number,
               private readonly base: number, onPress: () => void, textSize = 15) {
     super()
+    this.textSize = textSize
     this.caption.style.fontSize = textSize
     this.addChild(this.board, this.caption)
     this.caption.anchor.set(0.5)
@@ -74,8 +75,30 @@ export class Button extends Container {
     this.draw()
   }
 
+  /** 넘겨받은 글자 크기. 글이 길어 줄였다가 되돌릴 때 씁니다. */
+  private textSize = 15
+
+  /**
+   * 단추에 적히는 글.
+   *
+   * **칸을 넘치면 글자를 줄입니다.** 말마다 길이가 다르므로 한국어에 맞춘 칸이 독일어에서
+   * 넘칩니다 — 「Plasma-Deck · Violetter Einsatz」 가 200픽셀 칸의 양쪽으로 삐져나와 있었고,
+   * 넘친 글은 잘리지도 않고 옆의 단추 위에 그려집니다.
+   *
+   * 칸을 넓히는 것으로는 끝나지 않습니다. 어느 말이 가장 긴지는 데이터가 정하고, 덱 15종과
+   * 스테이크 8종의 조합이므로 가장 긴 것을 미리 셀 수도 없습니다.
+   */
   set text(value: string) {
+    this.caption.style.fontSize = this.textSize
     this.caption.text = value
+
+    // 양쪽에 8픽셀씩 남깁니다. 글이 테두리에 닿으면 칸이 터진 것으로 보입니다.
+    const room = this.boxWidth - 16
+    let size = this.textSize
+    while (size > 9 && this.caption.width > room) {
+      size -= 1
+      this.caption.style.fontSize = size
+    }
   }
 
   set enabled(value: boolean) {
