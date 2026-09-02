@@ -27,6 +27,7 @@ interface IDataRow {
   blueprintOk: boolean
   sortOrder: number
   pool: JokerPool
+  eternalOk: boolean
 }
 
 // Generated from samples/clover/design-data/xlsx/Jokers.xlsx : Joker : A1
@@ -60,6 +61,9 @@ export class JokerRecord {
   /** 어느 풀에 드는가 */
   public get pool(): JokerPool { return this._pool }
 
+  /** `Eternal` 이 붙을 수 있는가 */
+  public get eternalOk(): boolean { return this._eternalOk }
+
   public _jokerId: string = ''
   public _rarity: Rarity = 0 as Rarity
   public _cost: number = 0
@@ -68,6 +72,7 @@ export class JokerRecord {
   public _blueprintOk: boolean = false
   public _sortOrder: number = 0
   public _pool: JokerPool = 0 as JokerPool
+  public _eternalOk: boolean = false
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
@@ -79,6 +84,7 @@ export class JokerRecord {
     this._blueprintOk = dataRow.blueprintOk
     this._sortOrder = dataRow.sortOrder
     this._pool = dataRow.pool
+    this._eternalOk = dataRow.eternalOk
   }
 
   /** Populate field values. */
@@ -92,6 +98,7 @@ export class JokerRecord {
     this._blueprintOk = dataRow[offset++]
     this._sortOrder = dataRow[offset++]
     this._pool = dataRow[offset++]
+    this._eternalOk = dataRow[offset++]
   }
 }
 
@@ -309,6 +316,14 @@ export class JokerTable {
             const { n, value } = cursor.nextSameI32(rowCount - i)
             for (let left = n; left > 0; --left, ++i)
               records[i]._pool = value as JokerPool
+          }
+          break
+        case 9:
+          tabbit.checkColumn(column, 'Joker.EternalOk', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_BOOL])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'Joker.EternalOk')
+          for (let i = 0; i < rowCount; ++i) {
+            const record = records[i]
+            record._eternalOk = cursor.nextBool()
           }
           break
         default:

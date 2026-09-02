@@ -123,6 +123,8 @@ export interface EconomyConstants {
   shopPackSlots: number
   soulChanceNum: number
   soulChanceDen: number
+  moneyPerHandLeft: number
+  moneyPerDiscardLeft: number
 }
 
 export interface FeelConstants {

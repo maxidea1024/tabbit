@@ -83,6 +83,14 @@ namespace Clover.Data
         /// `The Soul` 이 나올 확률의 분모
         /// </summary>
         public static int SoulChanceDen { get; }
+        /// <summary>
+        /// 라운드 종료 시 남은 핸드 하나마다 받는 금액
+        /// </summary>
+        public static int MoneyPerHandLeft { get; }
+        /// <summary>
+        /// 라운드 종료 시 남은 버리기 하나마다 받는 금액
+        /// </summary>
+        public static int MoneyPerDiscardLeft { get; }
 
         /// <summary>
         /// Static constructor for initialize static variables.
@@ -106,6 +114,8 @@ namespace Clover.Data
             PackEditionChanceBp = 800;
             SoulChanceNum = 3;
             SoulChanceDen = 1000;
+            MoneyPerHandLeft = 1;
+            MoneyPerDiscardLeft = 0;
         }
     }
 } // namespace Clover.Data

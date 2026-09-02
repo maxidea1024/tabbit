@@ -1,7 +1,7 @@
 {
-  "LastUpdatedDate": "2026-09-02T12:25:43.8842862+09:00",
-  "MasterHash": "a7c137cee2c5671335ca168f379c2f22",
-  "TotalSize": 176016,
+  "LastUpdatedDate": "2026-09-02T14:24:19.1915961+09:00",
+  "MasterHash": "cb3577729373e60b4f058d9609d2b381",
+  "TotalSize": 176123,
   "Items": [
     {
       "Name": "Rank.bytes",
@@ -107,9 +107,9 @@
     },
     {
       "Name": "Joker.bytes",
-      "Size": 17457,
-      "Hash": "c1725a3d815e315c7a1bb70109b20380",
-      "LastUpdatedDate": "2026-09-02T02:10:51.5924601+09:00"
+      "Size": 17527,
+      "Hash": "e58e66f98e2e7704ca02458283c2937d",
+      "LastUpdatedDate": "2026-09-02T14:24:19.191587+09:00"
     },
     {
       "Name": "JokerRarityWeight.bytes",
@@ -119,9 +119,9 @@
     },
     {
       "Name": "JokerEffect.bytes",
-      "Size": 10708,
-      "Hash": "588e04f43cea3afd2126e54ee5d81e16",
-      "LastUpdatedDate": "2026-09-02T02:10:51.5924632+09:00"
+      "Size": 10734,
+      "Hash": "e7b1fdc7a9a9f37602f77aca734cf9f0",
+      "LastUpdatedDate": "2026-09-02T14:24:19.1915889+09:00"
     },
     {
       "Name": "Ante.bytes",
@@ -137,9 +137,9 @@
     },
     {
       "Name": "BossBlind.bytes",
-      "Size": 609,
-      "Hash": "60fc48448d87b548a95cb8f949b5eb90",
-      "LastUpdatedDate": "2026-08-27T10:55:50.412967+09:00"
+      "Size": 620,
+      "Hash": "17e2b82282fa20e4f169bf89e36852d5",
+      "LastUpdatedDate": "2026-09-02T14:24:19.1915903+09:00"
     },
     {
       "Name": "BossEffect.bytes",

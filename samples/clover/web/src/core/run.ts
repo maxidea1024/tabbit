@@ -96,8 +96,8 @@ export function defaultRules(data: Data): Rules {
     editionWeightScale: 1,
     planetGivesMultBp: 0,
     noInterest: false,
-    moneyPerHandLeft: 0,
-    moneyPerDiscardLeft: 0,
+    moneyPerHandLeft: economy.moneyPerHandLeft,
+    moneyPerDiscardLeft: economy.moneyPerDiscardLeft,
     doubleTagOnBossDefeat: false,
     blindSizeScaleBp: 10_000,
     nextShopFree: false,
@@ -405,6 +405,13 @@ function winRound(vm: Vm): void {
   const stake = vm.data.tables.stake.records.find(
     row => row.name === state.stake || String(row.stake) === state.stake)
   if (state.blind === BlindKind.Small && stake) reward = stake.smallBlindReward
+
+  // **보스는 자기 보상을 가집니다.** 최종 보스가 나머지보다 많이 주므로, 블라인드의 값
+  // 하나로는 그 둘이 구분되지 않습니다.
+  if (state.blind === BlindKind.Boss) {
+    const boss = vm.data.tables.bossBlind.findByBossId(state.bossId)
+    if (boss) reward = boss.reward
+  }
 
   state.money += reward
   vm.events.push({ t: 'BlindCleared', blind: state.blind, reward })

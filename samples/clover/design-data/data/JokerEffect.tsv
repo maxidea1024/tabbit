@@ -118,7 +118,8 @@
 	swap_note	1	OnHandDiscarded	-	-	-	-	-	Run	-	CondFirstDiscardSingleCard															OpAddMoney			3																																		
 	flash_note	0	OnReroll	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												MultAdd	20000			Never																					
 	spare_gloves	0	OnScoreResolved	-	-	-	-	-	SelfTarget	-	CondHandContains	TwoPair														OpGrowSelf												MultAdd	20000			Never																					
-	noodle_pot	0	OnCardDiscarded	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												MultMul	-100	20000	0	Never																					
+	noodle_pot	0	OnCardDiscarded	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												MultMul	-100	20000	10000	Never																					
+	noodle_pot	1	OnCardDiscarded	-	-	-	-	-	SelfTarget	-	CondCounterAtMost									MultMul		10000				OpDestroyJoker																														SelfPick							
 	fizz_bottle	0	OnCardScored	-	-	-	-	-	ScoredCard	-	CondChargeLeft															OpRetrigger											1																										
 	fizz_bottle	1	OnScoreResolved	-	-	-	-	-	SelfTarget	-	CondAlways															OpGrowSelf												Charge	-1	10	0	Never																					
 	fizz_bottle	2	OnScoreResolved	-	-	-	-	-	SelfTarget	-	CondCounterAtMost									Charge		0				OpDestroyJoker																														SelfPick							

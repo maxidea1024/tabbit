@@ -51,6 +51,11 @@ namespace Clover.Data
         /// 수집 목록에서의 순서
         /// </summary>
         public int SortOrder => _sortOrder;
+
+        /// <summary>
+        /// 격파 보상
+        /// </summary>
+        public int Reward => _reward;
         #endregion
 
         #region Storage
@@ -60,6 +65,7 @@ namespace Clover.Data
         internal int _scoreMul;
         internal bool _isShowdown;
         internal int _sortOrder;
+        internal int _reward;
         #endregion
 
         #region ToString
@@ -72,6 +78,7 @@ namespace Clover.Data
             sb.Append(",\"ScoreMul\":"); ToStringHelper.ToString(ScoreMul, sb);
             sb.Append(",\"IsShowdown\":"); ToStringHelper.ToString(IsShowdown, sb);
             sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
+            sb.Append(",\"Reward\":"); ToStringHelper.ToString(Reward, sb);
             sb.Append("}");
             return sb.ToString();
         }
@@ -87,7 +94,7 @@ namespace Clover.Data
         /// <summary>
         /// Field names.
         /// </summary>
-        public static readonly string[] FieldNames = { "BossId", "Name", "MinAnte", "ScoreMul", "IsShowdown", "SortOrder" };
+        public static readonly string[] FieldNames = { "BossId", "Name", "MinAnte", "ScoreMul", "IsShowdown", "SortOrder", "Reward" };
 
         /// <summary>
         /// Build object value map.
@@ -96,7 +103,7 @@ namespace Clover.Data
         {
             var result = new List<object[]>();
             foreach (var r in _records)
-                result.Add(new object[] { r.BossId, r.Name, r.MinAnte, r.ScoreMul, r.IsShowdown, r.SortOrder });
+                result.Add(new object[] { r.BossId, r.Name, r.MinAnte, r.ScoreMul, r.IsShowdown, r.SortOrder, r.Reward });
 
             return result;
         }
@@ -364,6 +371,22 @@ namespace Clover.Data
                             {
                                 var record = records[i++];
                                 record._sortOrder = value;
+                            } while (--n > 0);
+                        }
+                        break;
+
+                    case 7:
+                        TcbTable.CheckColumn(column, "BossBlind.Reward", TcbTable.KindScalar, false, TcbTable.ElementI32, TcbTable.ElementVarint);
+                        cursor = new TcbColumnCursor(reader, column, count, "BossBlind.Reward");
+                        for (int i = 0; i < count; )
+                        {
+                            // One call per run of equal values, not one per row - over a
+                            // run-length encoded column this is most of the decode.
+                            int n = cursor.NextSameI32(count - i, out var value);
+                            do
+                            {
+                                var record = records[i++];
+                                record._reward = value;
                             } while (--n > 0);
                         }
                         break;

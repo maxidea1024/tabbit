@@ -21,6 +21,7 @@ interface IDataRow {
   scoreMul: number
   isShowdown: boolean
   sortOrder: number
+  reward: number
 }
 
 // Generated from samples/clover/design-data/xlsx/Progression.xlsx : BossBlind : A1
@@ -48,12 +49,16 @@ export class BossBlindRecord {
   /** 수집 목록에서의 순서 */
   public get sortOrder(): number { return this._sortOrder }
 
+  /** 격파 보상 */
+  public get reward(): number { return this._reward }
+
   public _bossId: string = ''
   public _name: string = ''
   public _minAnte: number = 0
   public _scoreMul: number = 0
   public _isShowdown: boolean = false
   public _sortOrder: number = 0
+  public _reward: number = 0
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
@@ -63,6 +68,7 @@ export class BossBlindRecord {
     this._scoreMul = dataRow.scoreMul
     this._isShowdown = dataRow.isShowdown
     this._sortOrder = dataRow.sortOrder
+    this._reward = dataRow.reward
   }
 
   /** Populate field values. */
@@ -74,6 +80,7 @@ export class BossBlindRecord {
     this._scoreMul = dataRow[offset++]
     this._isShowdown = dataRow[offset++]
     this._sortOrder = dataRow[offset++]
+    this._reward = dataRow[offset++]
   }
 }
 
@@ -273,6 +280,15 @@ export class BossBlindTable {
             const { n, value } = cursor.nextSameI32(rowCount - i)
             for (let left = n; left > 0; --left, ++i)
               records[i]._sortOrder = value
+          }
+          break
+        case 7:
+          tabbit.checkColumn(column, 'BossBlind.Reward', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_I32, tabbit.ELEMENT_VARINT])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'BossBlind.Reward')
+          for (let i = 0; i < rowCount; ) {
+            const { n, value } = cursor.nextSameI32(rowCount - i)
+            for (let left = n; left > 0; --left, ++i)
+              records[i]._reward = value
           }
           break
         default:

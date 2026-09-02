@@ -1,32 +1,32 @@
 :table BossBlind(key=boss_id)	보스 28종입니다. 최종 보스 5종은 안테 8의 배수에서만 나옵니다.
-:field	boss_id	name	min_ante	score_mul	is_showdown	sort_order
-:type	string (regex="^[a-z][a-z0-9_]*$")	string (text=Boss)	int (min=1, max=8)	int (min=1)	bool	int (min=1, max=28)
-:desc	식별자	표시 이름	나올 수 있는 가장 이른 안테	기준 점수의 배율. 만분율	최종 보스인가	수집 목록에서의 순서
-	the_hook	갈고리	1	20000	false	1
-	the_club	클럽	1	20000	false	2
-	the_psychic	심령술사	1	20000	false	3
-	the_goad	자극	1	20000	false	4
-	the_window	창문	1	20000	false	5
-	the_manacle	수갑	1	20000	false	6
-	the_pillar	기둥	1	20000	false	7
-	the_head	머리	1	20000	false	8
-	the_house	집	2	20000	false	9
-	the_wall	벽	2	40000	false	10
-	the_wheel	바퀴	2	20000	false	11
-	the_arm	팔	2	20000	false	12
-	the_fish	물고기	2	20000	false	13
-	the_water	물	2	20000	false	14
-	the_mouth	입	2	20000	false	15
-	the_needle	바늘	2	10000	false	16
-	the_flint	부싯돌	2	20000	false	17
-	the_mark	표적	2	20000	false	18
-	the_eye	눈	3	20000	false	19
-	the_tooth	이빨	3	20000	false	20
-	the_plant	초목	4	20000	false	21
-	the_serpent	뱀	5	20000	false	22
-	the_ox	황소	6	20000	false	23
-	amber_acorn	호박 도토리	8	20000	true	24
-	verdant_leaf	푸른 잎	8	20000	true	25
-	violet_vessel	자주색 그릇	8	60000	true	26
-	crimson_heart	진홍 심장	8	20000	true	27
-	cerulean_bell	하늘빛 종	8	20000	true	28
+:field	boss_id	name	min_ante	score_mul	is_showdown	sort_order	reward
+:type	string (regex="^[a-z][a-z0-9_]*$")	string (text=Boss)	int (min=1, max=8)	int (min=1)	bool	int (min=1, max=28)	int (min=0)
+:desc	식별자	표시 이름	나올 수 있는 가장 이른 안테	기준 점수의 배율. 만분율	최종 보스인가	수집 목록에서의 순서	격파 보상
+	the_hook	갈고리	1	20000	false	1	5
+	the_club	클럽	1	20000	false	2	5
+	the_psychic	심령술사	1	20000	false	3	5
+	the_goad	자극	1	20000	false	4	5
+	the_window	창문	1	20000	false	5	5
+	the_manacle	수갑	1	20000	false	6	5
+	the_pillar	기둥	1	20000	false	7	5
+	the_head	머리	1	20000	false	8	5
+	the_house	집	2	20000	false	9	5
+	the_wall	벽	2	40000	false	10	5
+	the_wheel	바퀴	2	20000	false	11	5
+	the_arm	팔	2	20000	false	12	5
+	the_fish	물고기	2	20000	false	13	5
+	the_water	물	2	20000	false	14	5
+	the_mouth	입	2	20000	false	15	5
+	the_needle	바늘	2	10000	false	16	5
+	the_flint	부싯돌	2	20000	false	17	5
+	the_mark	표적	2	20000	false	18	5
+	the_eye	눈	3	20000	false	19	5
+	the_tooth	이빨	3	20000	false	20	5
+	the_plant	초목	4	20000	false	21	5
+	the_serpent	뱀	5	20000	false	22	5
+	the_ox	황소	6	20000	false	23	5
+	amber_acorn	호박 도토리	8	20000	true	24	8
+	verdant_leaf	푸른 잎	8	20000	true	25	8
+	violet_vessel	자주색 그릇	8	60000	true	26	8
+	crimson_heart	진홍 심장	8	20000	true	27	8
+	cerulean_bell	하늘빛 종	8	20000	true	28	8

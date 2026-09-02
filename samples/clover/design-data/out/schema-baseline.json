@@ -2213,6 +2213,13 @@
         "Kind": 0,
         "Retired": false,
         "ExplicitTag": false
+      },
+      "9": {
+        "Name": "EternalOk",
+        "Element": 1,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
       }
     },
     "JokerRarityWeight": {
@@ -2786,6 +2793,13 @@
       },
       "6": {
         "Name": "SortOrder",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "7": {
+        "Name": "Reward",
         "Element": 2,
         "Kind": 0,
         "Retired": false,

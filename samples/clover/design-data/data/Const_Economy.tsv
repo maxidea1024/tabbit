@@ -17,3 +17,5 @@
 	PackEditionChanceBp	int	800	표준 팩의 카드 한 장이 에디션을 달고 나올 확률 (만분율)
 	SoulChanceNum	int	3	`The Soul` 이 나올 확률의 분자
 	SoulChanceDen	int	1000	`The Soul` 이 나올 확률의 분모
+	MoneyPerHandLeft	int	1	라운드 종료 시 남은 핸드 하나마다 받는 금액
+	MoneyPerDiscardLeft	int	0	라운드 종료 시 남은 버리기 하나마다 받는 금액

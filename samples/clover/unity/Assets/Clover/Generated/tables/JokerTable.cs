@@ -61,6 +61,11 @@ namespace Clover.Data
         /// 어느 풀에 드는가
         /// </summary>
         public global::Clover.Data.JokerPool Pool => _pool;
+
+        /// <summary>
+        /// `Eternal` 이 붙을 수 있는가
+        /// </summary>
+        public bool EternalOk => _eternalOk;
         #endregion
 
         #region Storage
@@ -72,6 +77,7 @@ namespace Clover.Data
         internal bool _blueprintOk;
         internal int _sortOrder;
         internal global::Clover.Data.JokerPool _pool;
+        internal bool _eternalOk;
         #endregion
 
         #region ToString
@@ -86,6 +92,7 @@ namespace Clover.Data
             sb.Append(",\"BlueprintOk\":"); ToStringHelper.ToString(BlueprintOk, sb);
             sb.Append(",\"SortOrder\":"); ToStringHelper.ToString(SortOrder, sb);
             sb.Append(",\"Pool\":"); ToStringHelper.ToString(Pool, sb);
+            sb.Append(",\"EternalOk\":"); ToStringHelper.ToString(EternalOk, sb);
             sb.Append("}");
             return sb.ToString();
         }
@@ -101,7 +108,7 @@ namespace Clover.Data
         /// <summary>
         /// Field names.
         /// </summary>
-        public static readonly string[] FieldNames = { "JokerId", "Rarity", "Cost", "Name", "Art", "BlueprintOk", "SortOrder", "Pool" };
+        public static readonly string[] FieldNames = { "JokerId", "Rarity", "Cost", "Name", "Art", "BlueprintOk", "SortOrder", "Pool", "EternalOk" };
 
         /// <summary>
         /// Build object value map.
@@ -110,7 +117,7 @@ namespace Clover.Data
         {
             var result = new List<object[]>();
             foreach (var r in _records)
-                result.Add(new object[] { r.JokerId, r.Rarity, r.Cost, r.Name, r.Art, r.BlueprintOk, r.SortOrder, r.Pool });
+                result.Add(new object[] { r.JokerId, r.Rarity, r.Cost, r.Name, r.Art, r.BlueprintOk, r.SortOrder, r.Pool, r.EternalOk });
 
             return result;
         }
@@ -411,6 +418,16 @@ namespace Clover.Data
                                 var record = records[i++];
                                 record._pool = (global::Clover.Data.JokerPool)value;
                             } while (--n > 0);
+                        }
+                        break;
+
+                    case 9:
+                        TcbTable.CheckColumn(column, "Joker.EternalOk", TcbTable.KindScalar, false, TcbTable.ElementBool);
+                        cursor = new TcbColumnCursor(reader, column, count, "Joker.EternalOk");
+                        for (int i = 0; i < count; i++)
+                        {
+                            var record = records[i];
+                            record._eternalOk = cursor.NextBool();
                         }
                         break;
 

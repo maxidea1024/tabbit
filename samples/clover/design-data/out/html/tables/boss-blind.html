@@ -636,7 +636,7 @@ tbody [data-pick] { cursor: pointer; }
 </aside>
 <main class="fill">
 <h1>BossBlind</h1>
-<p class="lead"><svg class="i"><use href="#i-table"></use></svg>BossBlind &middot; 행 28개 &middot; 컬럼 6개 <span class="hint">&middot; <span class="book" title="samples/clover/design-data/xlsx/Progression.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Progression.xlsx</span> &middot; <svg class="i"><use href="#i-sheet"></use></svg>BossBlind : A1</span></p>
+<p class="lead"><svg class="i"><use href="#i-table"></use></svg>BossBlind &middot; 행 28개 &middot; 컬럼 7개 <span class="hint">&middot; <span class="book" title="samples/clover/design-data/xlsx/Progression.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Progression.xlsx</span> &middot; <svg class="i"><use href="#i-sheet"></use></svg>BossBlind : A1</span></p>
 <p class="comment">보스 28종입니다. 최종 보스 5종은 안테 8의 배수에서만 나옵니다.</p>
 <p class="hint">이 테이블을 가리키는 컬럼:
 <a href="../tables/boss-effect.html#col_BossEffect.Owner">BossEffect.Owner</a>
@@ -656,6 +656,7 @@ tbody [data-pick] { cursor: pointer; }
 <th id="col_BossBlind.ScoreMul" title="생성 이름 ScoreMul &#183; 최소 1">score_mul</th>
 <th id="col_BossBlind.IsShowdown" title="생성 이름 IsShowdown">is_showdown</th>
 <th id="col_BossBlind.SortOrder" title="생성 이름 SortOrder &#183; 최소 1 &#183; 최대 28">sort_order</th>
+<th id="col_BossBlind.Reward" title="생성 이름 Reward &#183; 최소 0">reward</th>
 </tr>
 <tr class="about">
 <th>식별자</th>
@@ -664,6 +665,7 @@ tbody [data-pick] { cursor: pointer; }
 <th>기준 점수의 배율. 만분율</th>
 <th>최종 보스인가</th>
 <th>수집 목록에서의 순서</th>
+<th>격파 보상</th>
 </tr>
 <tr class="types">
 <th><span class="type">string</span> <span class="keymark" title="기본 인덱스">🔑</span></th>
@@ -671,6 +673,7 @@ tbody [data-pick] { cursor: pointer; }
 <th><span class="type">int</span></th>
 <th><span class="type">int</span></th>
 <th><span class="type">bool</span></th>
+<th><span class="type">int</span></th>
 <th><span class="type">int</span></th>
 </tr>
 <tr class="side">
@@ -680,37 +683,38 @@ tbody [data-pick] { cursor: pointer; }
 <th>cs</th>
 <th>cs</th>
 <th>cs</th>
+<th>cs</th>
 </tr>
 </thead>
 <tbody>
-<tr><td class="key" id="row_BossBlind.the_hook"><code><span class="str">&quot;the_hook&quot;</span></code></td><td><span class="str">&quot;갈고리&quot;</span></td><td class="num">1</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">1</td></tr>
-<tr><td class="key" id="row_BossBlind.the_club"><code><span class="str">&quot;the_club&quot;</span></code></td><td><span class="str">&quot;클럽&quot;</span></td><td class="num">1</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">2</td></tr>
-<tr><td class="key" id="row_BossBlind.the_psychic"><code><span class="str">&quot;the_psychic&quot;</span></code></td><td><span class="str">&quot;심령술사&quot;</span></td><td class="num">1</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">3</td></tr>
-<tr><td class="key" id="row_BossBlind.the_goad"><code><span class="str">&quot;the_goad&quot;</span></code></td><td><span class="str">&quot;자극&quot;</span></td><td class="num">1</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">4</td></tr>
-<tr><td class="key" id="row_BossBlind.the_window"><code><span class="str">&quot;the_window&quot;</span></code></td><td><span class="str">&quot;창문&quot;</span></td><td class="num">1</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">5</td></tr>
-<tr><td class="key" id="row_BossBlind.the_manacle"><code><span class="str">&quot;the_manacle&quot;</span></code></td><td><span class="str">&quot;수갑&quot;</span></td><td class="num">1</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">6</td></tr>
-<tr><td class="key" id="row_BossBlind.the_pillar"><code><span class="str">&quot;the_pillar&quot;</span></code></td><td><span class="str">&quot;기둥&quot;</span></td><td class="num">1</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">7</td></tr>
-<tr><td class="key" id="row_BossBlind.the_head"><code><span class="str">&quot;the_head&quot;</span></code></td><td><span class="str">&quot;머리&quot;</span></td><td class="num">1</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">8</td></tr>
-<tr><td class="key" id="row_BossBlind.the_house"><code><span class="str">&quot;the_house&quot;</span></code></td><td><span class="str">&quot;집&quot;</span></td><td class="num">2</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">9</td></tr>
-<tr><td class="key" id="row_BossBlind.the_wall"><code><span class="str">&quot;the_wall&quot;</span></code></td><td><span class="str">&quot;벽&quot;</span></td><td class="num">2</td><td class="num">40000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">10</td></tr>
-<tr><td class="key" id="row_BossBlind.the_wheel"><code><span class="str">&quot;the_wheel&quot;</span></code></td><td><span class="str">&quot;바퀴&quot;</span></td><td class="num">2</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">11</td></tr>
-<tr><td class="key" id="row_BossBlind.the_arm"><code><span class="str">&quot;the_arm&quot;</span></code></td><td><span class="str">&quot;팔&quot;</span></td><td class="num">2</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">12</td></tr>
-<tr><td class="key" id="row_BossBlind.the_fish"><code><span class="str">&quot;the_fish&quot;</span></code></td><td><span class="str">&quot;물고기&quot;</span></td><td class="num">2</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">13</td></tr>
-<tr><td class="key" id="row_BossBlind.the_water"><code><span class="str">&quot;the_water&quot;</span></code></td><td><span class="str">&quot;물&quot;</span></td><td class="num">2</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">14</td></tr>
-<tr><td class="key" id="row_BossBlind.the_mouth"><code><span class="str">&quot;the_mouth&quot;</span></code></td><td><span class="str">&quot;입&quot;</span></td><td class="num">2</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">15</td></tr>
-<tr><td class="key" id="row_BossBlind.the_needle"><code><span class="str">&quot;the_needle&quot;</span></code></td><td><span class="str">&quot;바늘&quot;</span></td><td class="num">2</td><td class="num">10000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">16</td></tr>
-<tr><td class="key" id="row_BossBlind.the_flint"><code><span class="str">&quot;the_flint&quot;</span></code></td><td><span class="str">&quot;부싯돌&quot;</span></td><td class="num">2</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">17</td></tr>
-<tr><td class="key" id="row_BossBlind.the_mark"><code><span class="str">&quot;the_mark&quot;</span></code></td><td><span class="str">&quot;표적&quot;</span></td><td class="num">2</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">18</td></tr>
-<tr><td class="key" id="row_BossBlind.the_eye"><code><span class="str">&quot;the_eye&quot;</span></code></td><td><span class="str">&quot;눈&quot;</span></td><td class="num">3</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">19</td></tr>
-<tr><td class="key" id="row_BossBlind.the_tooth"><code><span class="str">&quot;the_tooth&quot;</span></code></td><td><span class="str">&quot;이빨&quot;</span></td><td class="num">3</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">20</td></tr>
-<tr><td class="key" id="row_BossBlind.the_plant"><code><span class="str">&quot;the_plant&quot;</span></code></td><td><span class="str">&quot;초목&quot;</span></td><td class="num">4</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">21</td></tr>
-<tr><td class="key" id="row_BossBlind.the_serpent"><code><span class="str">&quot;the_serpent&quot;</span></code></td><td><span class="str">&quot;뱀&quot;</span></td><td class="num">5</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">22</td></tr>
-<tr><td class="key" id="row_BossBlind.the_ox"><code><span class="str">&quot;the_ox&quot;</span></code></td><td><span class="str">&quot;황소&quot;</span></td><td class="num">6</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">23</td></tr>
-<tr><td class="key" id="row_BossBlind.amber_acorn"><code><span class="str">&quot;amber_acorn&quot;</span></code></td><td><span class="str">&quot;호박 도토리&quot;</span></td><td class="num">8</td><td class="num">20000</td><td><span class="yes" title="true">&#x2714;</span></td><td class="num">24</td></tr>
-<tr><td class="key" id="row_BossBlind.verdant_leaf"><code><span class="str">&quot;verdant_leaf&quot;</span></code></td><td><span class="str">&quot;푸른 잎&quot;</span></td><td class="num">8</td><td class="num">20000</td><td><span class="yes" title="true">&#x2714;</span></td><td class="num">25</td></tr>
-<tr><td class="key" id="row_BossBlind.violet_vessel"><code><span class="str">&quot;violet_vessel&quot;</span></code></td><td><span class="str">&quot;자주색 그릇&quot;</span></td><td class="num">8</td><td class="num">60000</td><td><span class="yes" title="true">&#x2714;</span></td><td class="num">26</td></tr>
-<tr><td class="key" id="row_BossBlind.crimson_heart"><code><span class="str">&quot;crimson_heart&quot;</span></code></td><td><span class="str">&quot;진홍 심장&quot;</span></td><td class="num">8</td><td class="num">20000</td><td><span class="yes" title="true">&#x2714;</span></td><td class="num">27</td></tr>
-<tr><td class="key" id="row_BossBlind.cerulean_bell"><code><span class="str">&quot;cerulean_bell&quot;</span></code></td><td><span class="str">&quot;하늘빛 종&quot;</span></td><td class="num">8</td><td class="num">20000</td><td><span class="yes" title="true">&#x2714;</span></td><td class="num">28</td></tr>
+<tr><td class="key" id="row_BossBlind.the_hook"><code><span class="str">&quot;the_hook&quot;</span></code></td><td><span class="str">&quot;갈고리&quot;</span></td><td class="num">1</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">1</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_club"><code><span class="str">&quot;the_club&quot;</span></code></td><td><span class="str">&quot;클럽&quot;</span></td><td class="num">1</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">2</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_psychic"><code><span class="str">&quot;the_psychic&quot;</span></code></td><td><span class="str">&quot;심령술사&quot;</span></td><td class="num">1</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">3</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_goad"><code><span class="str">&quot;the_goad&quot;</span></code></td><td><span class="str">&quot;자극&quot;</span></td><td class="num">1</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">4</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_window"><code><span class="str">&quot;the_window&quot;</span></code></td><td><span class="str">&quot;창문&quot;</span></td><td class="num">1</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">5</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_manacle"><code><span class="str">&quot;the_manacle&quot;</span></code></td><td><span class="str">&quot;수갑&quot;</span></td><td class="num">1</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">6</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_pillar"><code><span class="str">&quot;the_pillar&quot;</span></code></td><td><span class="str">&quot;기둥&quot;</span></td><td class="num">1</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">7</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_head"><code><span class="str">&quot;the_head&quot;</span></code></td><td><span class="str">&quot;머리&quot;</span></td><td class="num">1</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">8</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_house"><code><span class="str">&quot;the_house&quot;</span></code></td><td><span class="str">&quot;집&quot;</span></td><td class="num">2</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">9</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_wall"><code><span class="str">&quot;the_wall&quot;</span></code></td><td><span class="str">&quot;벽&quot;</span></td><td class="num">2</td><td class="num">40000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">10</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_wheel"><code><span class="str">&quot;the_wheel&quot;</span></code></td><td><span class="str">&quot;바퀴&quot;</span></td><td class="num">2</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">11</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_arm"><code><span class="str">&quot;the_arm&quot;</span></code></td><td><span class="str">&quot;팔&quot;</span></td><td class="num">2</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">12</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_fish"><code><span class="str">&quot;the_fish&quot;</span></code></td><td><span class="str">&quot;물고기&quot;</span></td><td class="num">2</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">13</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_water"><code><span class="str">&quot;the_water&quot;</span></code></td><td><span class="str">&quot;물&quot;</span></td><td class="num">2</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">14</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_mouth"><code><span class="str">&quot;the_mouth&quot;</span></code></td><td><span class="str">&quot;입&quot;</span></td><td class="num">2</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">15</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_needle"><code><span class="str">&quot;the_needle&quot;</span></code></td><td><span class="str">&quot;바늘&quot;</span></td><td class="num">2</td><td class="num">10000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">16</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_flint"><code><span class="str">&quot;the_flint&quot;</span></code></td><td><span class="str">&quot;부싯돌&quot;</span></td><td class="num">2</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">17</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_mark"><code><span class="str">&quot;the_mark&quot;</span></code></td><td><span class="str">&quot;표적&quot;</span></td><td class="num">2</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">18</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_eye"><code><span class="str">&quot;the_eye&quot;</span></code></td><td><span class="str">&quot;눈&quot;</span></td><td class="num">3</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">19</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_tooth"><code><span class="str">&quot;the_tooth&quot;</span></code></td><td><span class="str">&quot;이빨&quot;</span></td><td class="num">3</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">20</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_plant"><code><span class="str">&quot;the_plant&quot;</span></code></td><td><span class="str">&quot;초목&quot;</span></td><td class="num">4</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">21</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_serpent"><code><span class="str">&quot;the_serpent&quot;</span></code></td><td><span class="str">&quot;뱀&quot;</span></td><td class="num">5</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">22</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.the_ox"><code><span class="str">&quot;the_ox&quot;</span></code></td><td><span class="str">&quot;황소&quot;</span></td><td class="num">6</td><td class="num">20000</td><td><span class="no" title="false">&#x2718;</span></td><td class="num">23</td><td class="num">5</td></tr>
+<tr><td class="key" id="row_BossBlind.amber_acorn"><code><span class="str">&quot;amber_acorn&quot;</span></code></td><td><span class="str">&quot;호박 도토리&quot;</span></td><td class="num">8</td><td class="num">20000</td><td><span class="yes" title="true">&#x2714;</span></td><td class="num">24</td><td class="num">8</td></tr>
+<tr><td class="key" id="row_BossBlind.verdant_leaf"><code><span class="str">&quot;verdant_leaf&quot;</span></code></td><td><span class="str">&quot;푸른 잎&quot;</span></td><td class="num">8</td><td class="num">20000</td><td><span class="yes" title="true">&#x2714;</span></td><td class="num">25</td><td class="num">8</td></tr>
+<tr><td class="key" id="row_BossBlind.violet_vessel"><code><span class="str">&quot;violet_vessel&quot;</span></code></td><td><span class="str">&quot;자주색 그릇&quot;</span></td><td class="num">8</td><td class="num">60000</td><td><span class="yes" title="true">&#x2714;</span></td><td class="num">26</td><td class="num">8</td></tr>
+<tr><td class="key" id="row_BossBlind.crimson_heart"><code><span class="str">&quot;crimson_heart&quot;</span></code></td><td><span class="str">&quot;진홍 심장&quot;</span></td><td class="num">8</td><td class="num">20000</td><td><span class="yes" title="true">&#x2714;</span></td><td class="num">27</td><td class="num">8</td></tr>
+<tr><td class="key" id="row_BossBlind.cerulean_bell"><code><span class="str">&quot;cerulean_bell&quot;</span></code></td><td><span class="str">&quot;하늘빛 종&quot;</span></td><td class="num">8</td><td class="num">20000</td><td><span class="yes" title="true">&#x2714;</span></td><td class="num">28</td><td class="num">8</td></tr>
 </tbody>
 </table>
 </div>

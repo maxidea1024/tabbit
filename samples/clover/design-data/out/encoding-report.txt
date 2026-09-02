@@ -3,18 +3,18 @@ TCB encoding report
 
 Totals
   tables    36
-  columns   689
-  unencoded 292,214
-  encoded   169,606  (58.0 % of unencoded)
-  deflated  108,102  (63.7 % of encoded)  - what a compression layer over the chosen blocks would come to
+  columns   691
+  unencoded 292,968
+  encoded   169,699  (57.9 % of unencoded)
+  deflated  108,181  (63.7 % of encoded)  - what a compression layer over the chosen blocks would come to
 
 By encoding
   encoding        columns        bytes    share
-  DICT_FRONT          14      124,569   73.4 %
+  DICT_FRONT          14      124,571   73.4 %
   DICT_SEG             7       21,788   12.8 %
   RAW                 47       15,272    9.0 %
-  RLE                469        4,036    2.4 %
-  BITPACK             78        2,681    1.6 %
+  RLE                471        4,123    2.4 %
+  BITPACK             78        2,685    1.6 %
   DICT                 4          474    0.3 %
   ARRAY               16          274    0.2 %
   DICT_RLE            15          196    0.1 %
@@ -24,13 +24,13 @@ By encoding
 
 By element
   element         columns    unencoded        bytes    share
-  string              71      185,557      162,150   95.6 %
-  i32                254       76,312        3,887    2.3 %
-  varint             311       25,737        3,161    1.9 %
-  bool                52        4,456          325    0.2 %
+  string              71      185,570      162,152   95.6 %
+  i32                255       76,516        3,911    2.3 %
+  varint             311       25,769        3,165    1.9 %
+  bool                53        4,961          388    0.2 %
   f32                  1          152           83    0.0 %
 
-Largest columns (40 of 689)
+Largest columns (40 of 691)
 
   StringTable.Ja  [string]  1238 rows
     chosen DICT_FRONT  21,736  (85.3 % of unencoded)
@@ -64,9 +64,9 @@ Largest columns (40 of 689)
     chosen DICT_FRONT  6,144  (98.2 % of unencoded)
     candidates RAW 6,259  ·  DICT 7,197  ·  DICT_RLE 7,697  ·  DICT_FRONT 6,144  ·  DICT_FRONT_RLE 6,644  ·  DICT_SEG 6,983  ·  DICT_SEG_RLE 7,483
 
-  JokerEffect.Owner  [string]  588 rows
-    chosen DICT_FRONT  5,616  (88.1 % of unencoded)
-    candidates RAW 6,372  ·  DICT 6,464  ·  DICT_RLE 6,987  ·  DICT_FRONT 5,616  ·  DICT_FRONT_RLE 6,140  ·  DICT_SEG 6,721  ·  DICT_SEG_RLE 7,244
+  JokerEffect.Owner  [string]  589 rows
+    chosen DICT_FRONT  5,618  (88.0 % of unencoded)
+    candidates RAW 6,383  ·  DICT 6,466  ·  DICT_RLE 6,990  ·  DICT_FRONT 5,618  ·  DICT_FRONT_RLE 6,143  ·  DICT_SEG 6,723  ·  DICT_SEG_RLE 7,247
 
   Joker.Art  [string]  500 rows
     chosen RAW  5,381  (100.0 % of unencoded)
@@ -84,17 +84,17 @@ Largest columns (40 of 689)
     chosen DICT_SEG  691  (91.6 % of unencoded)
     candidates RAW 754  ·  DICT 775  ·  DICT_RLE 795  ·  DICT_FRONT 745  ·  DICT_FRONT_RLE 765  ·  DICT_SEG 691  ·  DICT_SEG_RLE 711
 
-  JokerEffect.Operation.Mult  [i32]  588 rows
+  JokerEffect.Operation.Mult  [i32]  589 rows
     chosen RLE  455  (19.3 % of unencoded)
-    candidates RAW 2,352  ·  VARINT 814  ·  DELTA 822  ·  RLE 455  ·  DELTA_RLE 516  ·  BITPACK 704
+    candidates RAW 2,356  ·  VARINT 815  ·  DELTA 823  ·  RLE 455  ·  DELTA_RLE 516  ·  BITPACK 701
 
   VoucherEffect.Owner  [string]  34 rows
     chosen RAW  382  (100.0 % of unencoded)
     candidates RAW 382  ·  DICT 395  ·  DICT_RLE 425  ·  DICT_FRONT 383  ·  DICT_FRONT_RLE 413  ·  DICT_SEG 452  ·  DICT_SEG_RLE 482
 
-  JokerEffect.Trigger  [varint]  588 rows
-    chosen BITPACK  371  (63.1 % of unencoded)
-    candidates RAW 588  ·  RLE 482  ·  BITPACK 371
+  JokerEffect.Trigger  [varint]  589 rows
+    chosen BITPACK  372  (63.2 % of unencoded)
+    candidates RAW 589  ·  RLE 484  ·  BITPACK 372
 
   Voucher.Name  [string]  32 rows
     chosen RAW  361  (100.0 % of unencoded)
@@ -104,9 +104,9 @@ Largest columns (40 of 689)
     chosen RAW  360  (100.0 % of unencoded)
     candidates RAW 360  ·  DICT 393  ·  DICT_RLE 425  ·  DICT_FRONT 381  ·  DICT_FRONT_RLE 413  ·  DICT_SEG 450  ·  DICT_SEG_RLE 482
 
-  JokerEffect.Operation.Value  [i32]  588 rows
+  JokerEffect.Operation.Value  [i32]  589 rows
     chosen RLE  351  (14.9 % of unencoded)
-    candidates RAW 2,352  ·  VARINT 650  ·  DELTA 671  ·  RLE 351  ·  DELTA_RLE 431  ·  BITPACK 1,180
+    candidates RAW 2,356  ·  VARINT 651  ·  DELTA 672  ·  RLE 351  ·  DELTA_RLE 431  ·  BITPACK 1,182
 
   Tag.Name  [string]  24 rows
     chosen DICT_SEG  343  (91.0 % of unencoded)
@@ -116,13 +116,13 @@ Largest columns (40 of 689)
     chosen DICT_FRONT  342  (82.6 % of unencoded)
     candidates RAW 414  ·  DICT 453  ·  DICT_RLE 491  ·  DICT_FRONT 342  ·  DICT_FRONT_RLE 380  ·  DICT_SEG 424  ·  DICT_SEG_RLE 462
 
-  JokerEffect.Operation.Step  [i32]  588 rows
-    chosen RLE  340  (14.5 % of unencoded)
-    candidates RAW 2,352  ·  VARINT 680  ·  DELTA 725  ·  RLE 340  ·  DELTA_RLE 430  ·  BITPACK 1,255
+  JokerEffect.Operation.Step  [i32]  589 rows
+    chosen RLE  340  (14.4 % of unencoded)
+    candidates RAW 2,356  ·  VARINT 681  ·  DELTA 726  ·  RLE 340  ·  DELTA_RLE 430  ·  BITPACK 1,257
 
-  JokerEffect.Operation.Type  [i32]  588 rows
+  JokerEffect.Operation.Type  [i32]  589 rows
     chosen RLE  287  (12.2 % of unencoded)
-    candidates RAW 2,352  ·  VARINT 588  ·  DELTA 588  ·  RLE 287  ·  DELTA_RLE 400  ·  BITPACK 444
+    candidates RAW 2,356  ·  VARINT 589  ·  DELTA 589  ·  RLE 287  ·  DELTA_RLE 400  ·  BITPACK 445
 
   Joker.Cost  [i32]  500 rows
     chosen BITPACK  253  (12.7 % of unencoded)
@@ -160,9 +160,9 @@ Largest columns (40 of 689)
     chosen DICT  207  (69.7 % of unencoded)
     candidates RAW 297  ·  DICT 207  ·  DICT_RLE 216  ·  DICT_FRONT 217  ·  DICT_FRONT_RLE 226  ·  DICT_SEG 209  ·  DICT_SEG_RLE 218
 
-  JokerEffect.Operation.Rule  [varint]  588 rows
-    chosen BITPACK  207  (35.2 % of unencoded)
-    candidates RAW 588  ·  RLE 210  ·  BITPACK 207
+  JokerEffect.Operation.Rule  [varint]  589 rows
+    chosen BITPACK  207  (35.1 % of unencoded)
+    candidates RAW 589  ·  RLE 210  ·  BITPACK 207
 
   ShopSlotWeight.Note  [string]  5 rows
     chosen RAW  204  (100.0 % of unencoded)
@@ -176,9 +176,9 @@ Largest columns (40 of 689)
     chosen RAW  197  (100.0 % of unencoded)
     candidates RAW 197  ·  DICT 218  ·  DICT_RLE 238  ·  DICT_FRONT 222  ·  DICT_FRONT_RLE 242  ·  DICT_SEG 288  ·  DICT_SEG_RLE 308
 
-  JokerEffect.Scope  [varint]  588 rows
-    chosen BITPACK  197  (33.5 % of unencoded)
-    candidates RAW 588  ·  RLE 202  ·  BITPACK 197
+  JokerEffect.Scope  [varint]  589 rows
+    chosen BITPACK  197  (33.4 % of unencoded)
+    candidates RAW 589  ·  RLE 202  ·  BITPACK 197
 
   Deck.Name  [string]  15 rows
     chosen RAW  195  (100.0 % of unencoded)
@@ -213,11 +213,11 @@ Bit-width packing headroom
   needs, against what they cost today. Nothing here is in the format.
 
   element     columns        today       packed        saved
-  bool             52          325          433         -108
-  varint          296        3,058        3,651         -593
-  i32             254        3,887        7,797       -3,910
+  bool             53          388          496         -108
+  varint          296        3,062        3,657         -595
+  i32             255        3,911        7,871       -3,960
 
-  Keeping the smaller of the two per column: 7,270 → 7,180 · saved 90 over 3 of 602 columns.
+  Keeping the smaller of the two per column: 7,361 → 7,271 · saved 90 over 3 of 604 columns.
 
     width            base        today       packed  inner         column
         4               2          141           71  RAW           JokerEffect.Ranks
@@ -235,12 +235,12 @@ Presence bitmaps
   26 of 55 bitmaps got smaller.
 
        rows    unencoded      encoded  column
-        588           74            4  JokerEffect.ScopeCount
-        588           74            8  JokerEffect.Suits
-        588           74           16  JokerEffect.FirstOnly
-        588           74           29  JokerEffect.Ranks
-        588           74           53  JokerEffect.ChanceNum
-        588           74           53  JokerEffect.ChanceDen
+        589           74            4  JokerEffect.ScopeCount
+        589           74            8  JokerEffect.Suits
+        589           74           16  JokerEffect.FirstOnly
+        589           74           29  JokerEffect.Ranks
+        589           74           53  JokerEffect.ChanceNum
+        589           74           53  JokerEffect.ChanceDen
          34            5            3  VoucherEffect.ChanceNum
          34            5            3  VoucherEffect.ChanceDen
          34            5            3  VoucherEffect.FirstOnly

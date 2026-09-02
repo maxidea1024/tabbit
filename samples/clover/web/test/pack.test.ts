@@ -124,7 +124,11 @@ describe('팩', () => {
   it('리플레이에 팩이 들어가도 해시가 같습니다', () => {
     // **자동으로 두는 쪽이 팩을 사므로** 리플레이에 `buy_pack` 과 `pick_pack` 이 들어갑니다.
     // 그 둘이 결정론을 깨면 유니티와 대조할 것이 없어집니다.
-    const run = autoplay('CLOVER-0002', 'red_deck', 'White', 400, DATA)
+    //
+    // **시드가 고정인 것은 이 전제 때문입니다.** 경제가 달라지면 사는 것도 달라지므로,
+    // 팩을 사지 않게 된 시드는 해시가 아니라 전제에서 걸립니다 — `CLOVER-0002` 가
+    // 그렇게 되어 여기를 옮겼습니다.
+    const run = autoplay('CLOVER-0003', 'red_deck', 'White', 400, DATA)
     const kinds = new Set(run.replay.actions.map((action: Action) => action.t))
     expect(kinds.has('buy_pack')).toBe(true)
 
