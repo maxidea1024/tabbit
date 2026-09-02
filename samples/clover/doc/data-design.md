@@ -80,7 +80,7 @@
 |컬럼|왜 있는가|
 |--|--|
 |`blueprint_ok`|`tracing` · `mirror_note` 가 복사할 수 있는가. 원작이 조커마다 정해 둡니다|
-|`eternal_ok` · `perishable_ok`|그 스티커가 붙을 수 있는가. `old_bones` 는 `Eternal` 이 붙으면 성립하지 않습니다|
+|`eternal_ok`|`Eternal` 이 붙을 수 있는가. `old_bones` 는 붙으면 성립하지 않습니다. **`Perishable` 쪽 목록은 수집되지 않았습니다** — 추측으로 채우지 않습니다|
 |`unlock`|해금 조건. 105종이 처음부터이고 45종이 조건입니다|
 |`art`|`asset=joker` 검사. **자리표가 아니라 게임이 띄우는 파일**을 봅니다|
 

@@ -27,5 +27,7 @@ export enum RngStreamKind {
   /** 건너뛸 때 어느 태그를 줄지 고르는 것. */
   Tag = 9,
   /** 값의 폭이 있는 조커가 이번에 얼마일지 고르는 것. */
-  Misprint = 10
+  Misprint = 10,
+  /** 스테이크가 조커에 스티커를 붙일지 고르는 것. */
+  Sticker = 11
 }

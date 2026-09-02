@@ -4,17 +4,17 @@ TCB encoding report
 Totals
   tables    42
   columns   793
-  unencoded 323,368
-  encoded   185,603  (57.4 % of unencoded)
-  deflated  118,580  (63.9 % of encoded)  - what a compression layer over the chosen blocks would come to
+  unencoded 323,405
+  encoded   185,642  (57.4 % of unencoded)
+  deflated  118,612  (63.9 % of encoded)  - what a compression layer over the chosen blocks would come to
 
 By encoding
   encoding        columns        bytes    share
   DICT_FRONT          16      134,382   72.4 %
   DICT_SEG             9       25,407   13.7 %
-  RAW                 53       16,376    8.8 %
+  RAW                 53       16,412    8.8 %
   RLE                539        4,399    2.4 %
-  BITPACK             88        2,857    1.5 %
+  BITPACK             88        2,860    1.5 %
   DICT_RLE            18          618    0.3 %
   DICT                 5          534    0.3 %
   ARRAY               20          337    0.2 %
@@ -25,9 +25,9 @@ By encoding
 
 By element
   element         columns    unencoded        bytes    share
-  string              85      206,373      177,471   95.6 %
+  string              85      206,409      177,507   95.6 %
   i32                285       82,680        4,137    2.2 %
-  varint             364       28,907        3,502    1.9 %
+  varint             364       28,908        3,505    1.9 %
   bool                58        5,256          410    0.2 %
   f32                  1          152           83    0.0 %
 
@@ -153,6 +153,10 @@ Largest columns (40 of 793)
     chosen DICT_RLE  283  (42.6 % of unencoded)
     candidates RAW 664  ·  DICT 284  ·  DICT_RLE 283  ·  DICT_FRONT 288  ·  DICT_FRONT_RLE 287  ·  DICT_SEG 345  ·  DICT_SEG_RLE 344
 
+  RngStream.Note  [string]  11 rows
+    chosen RAW  262  (100.0 % of unencoded)
+    candidates RAW 262  ·  DICT 274  ·  DICT_RLE 285  ·  DICT_FRONT 273  ·  DICT_FRONT_RLE 284  ·  DICT_SEG 316  ·  DICT_SEG_RLE 327
+
   Joker.Cost  [i32]  500 rows
     chosen BITPACK  253  (12.7 % of unencoded)
     candidates RAW 2,000  ·  VARINT 500  ·  DELTA 500  ·  RLE 666  ·  DELTA_RLE 825  ·  BITPACK 253
@@ -172,10 +176,6 @@ Largest columns (40 of 793)
   BossEffect.Owner  [string]  26 rows
     chosen DICT_FRONT  226  (84.0 % of unencoded)
     candidates RAW 269  ·  DICT 296  ·  DICT_RLE 322  ·  DICT_FRONT 226  ·  DICT_FRONT_RLE 252  ·  DICT_SEG 308  ·  DICT_SEG_RLE 334
-
-  RngStream.Note  [string]  10 rows
-    chosen RAW  226  (100.0 % of unencoded)
-    candidates RAW 226  ·  DICT 237  ·  DICT_RLE 247  ·  DICT_FRONT 236  ·  DICT_FRONT_RLE 246  ·  DICT_SEG 276  ·  DICT_SEG_RLE 286
 
   Challenge.ChallengeId  [string]  20 rows
     chosen RAW  224  (100.0 % of unencoded)
@@ -215,10 +215,10 @@ Bit-width packing headroom
 
   element     columns        today       packed        saved
   bool             58          410          530         -120
-  varint          346        3,379        4,136         -757
+  varint          346        3,382        4,139         -757
   i32             285        4,137        8,242       -4,105
 
-  Keeping the smaller of the two per column: 7,926 → 7,827 · saved 99 over 4 of 689 columns.
+  Keeping the smaller of the two per column: 7,929 → 7,830 · saved 99 over 4 of 689 columns.
 
     width            base        today       packed  inner         column
         4               2          141           71  RAW           JokerEffect.Ranks
@@ -299,12 +299,12 @@ String dictionary headroom
         32          362          330          379          395          395          274  Voucher.Name
         16          315          313          309          348          348          215  Challenge.Unlock
         38          415          304          386          381          381          234  SoundCue.CueId
+        11          263          262          305          285          285          231  RngStream.Note
         24          268          255          327          304          304          193  ChallengeEffect.Operation.RefId
         15          292          254          179          272          272          143  Deck.Unlock
         20          245          242          310          283          283          217  Challenge.Name
         20          225          229          286          270          270          168  Challenge.ChallengeId
         20          225          229          286          270          270          168  ChallengeEffect.Owner
-        10          227          226          266          247          247          210  RngStream.Note
         28          229          224          288          281          281          216  BossBlind.Name
         20          218          222          272          263          263          202  Achievement.Name
         28          293          218          306          275          275          180  BossBlind.BossId
@@ -318,14 +318,14 @@ String dictionary headroom
         22          251          196          263          241          241          163  Tarot.TarotId
 
   Over all 85 string columns:
-    plain      199,107
-    front      156,369  (78.5 % of plain)
-    segment    174,062  (111.3 % of front)
-    template   191,530  (122.5 % of front)
-    delta      191,530  (122.5 % of front)
-    deflate    94,591  (60.5 % of front)
+    plain      199,143
+    front      156,405  (78.5 % of plain)
+    segment    174,101  (111.3 % of front)
+    template   191,568  (122.5 % of front)
+    delta      191,568  (122.5 % of front)
+    deflate    94,612  (60.5 % of front)
 
-  Best per column, layout chosen per column: 154,559  (98.8 % of front)
+  Best per column, layout chosen per column: 154,595  (98.8 % of front)
   Headroom against what is in the format today: 1,810
 
   Where each layout wins, and what it saves against front coding

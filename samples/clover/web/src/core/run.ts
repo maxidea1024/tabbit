@@ -60,7 +60,7 @@ export interface Step {
 
 const STREAMS = [
   'Shuffle', 'ShopSlot', 'ShopRarity', 'ShopVoucher', 'Pack',
-  'JokerProc', 'CardProc', 'Boss', 'Tag', 'Misprint',
+  'JokerProc', 'CardProc', 'Boss', 'Tag', 'Misprint', 'Sticker',
 ]
 
 export function defaultRules(data: Data): Rules {

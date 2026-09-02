@@ -142,10 +142,9 @@
 |Invisible Joker|`faint_outline`|팔아야 효과가 납니다|
 |Mr. Bones|`old_bones`|막고 나서 스스로 파괴됩니다|
 
-**지금은 이 칸을 읽는 코드가 없습니다.** 스테이크의 `sticker` 와 `sticker_percent` 가
-데이터에 선언되어 있는데 **읽는 코드가 없어** 조커는 언제나 스티커 없이 만들어집니다.
-스티커를 붙이는 자리가 생길 때 — 스테이크이든 `AllJokersEternal` 이든 — 그 자리가 이
-칸을 봅니다.
+**읽는 자리는 `core/vm/operations.ts` 의 `stickerFor` 하나입니다.** 상점과 팩과 태그와
+`CreateCard` 와 챌린지의 시작 소지품이 전부 그것을 거치므로, 이 칸을 보는 곳도 하나입니다.
+`AllJokersEternal` 과 스테이크의 추첨이 그 안에서 갈립니다 — 둘 다 이 11종은 건너뜁니다.
 
 ---
 

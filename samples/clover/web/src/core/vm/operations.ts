@@ -21,6 +21,7 @@ import { Rarity } from '../../generated/enums/rarity'
 import { RuleKind } from '../../generated/enums/rule-kind'
 import { Scope } from '../../generated/enums/scope'
 import { SealKind } from '../../generated/enums/seal-kind'
+import { StickerKind } from '../../generated/enums/sticker-kind'
 import { SuitKind } from '../../generated/enums/suit-kind'
 import { Trigger } from '../../generated/enums/trigger'
 import { UnitKind } from '../../generated/enums/unit-kind'
@@ -28,6 +29,7 @@ import type { EffectRow } from '../data'
 import { jokerPool, planetPool, spectralPool, tarotPool } from '../pool'
 import { isFace } from '../hand'
 import { mulBp, MULT_ONE } from '../units'
+import { stakeRow } from '../stake'
 import type { CardInstance, GameEvent, JokerInstance } from '../state'
 import { newCounters } from '../state'
 import { cardOf, counterOf, hasSuit, setCounter } from './conditions'
@@ -359,8 +361,20 @@ function randomBaseCard(vm: Vm, cardClass: CardClass) {
 export function stickerFor(vm: Vm, jokerId: string, want: number): number {
   const ok = vm.data.tables.joker.findByJokerId(jokerId)?.eternalOk ?? true
   if (want === 1 && !ok) return 0
-  if (want === 0 && vm.state.rules.allJokersEternal && ok) return 1
-  return want
+  // 붙일 것이 정해져 온 것은 추첨하지 않습니다 — 챌린지의 시작 소지품이 그렇습니다.
+  if (want !== 0) return want
+
+  if (vm.state.rules.allJokersEternal && ok) return 1
+
+  const stake = stakeRow(vm.data, vm.state.stake)
+  if (!stake || stake.sticker === StickerKind.None || stake.stickerPercent <= 0) return 0
+
+  // **자격을 보기 전에 굴립니다.** 조커 하나에 한 번씩 굴려야 그 뒤의 추첨이 어느 조커가
+  // 나왔는지에 흔들리지 않습니다.
+  const hit = vm.state.rng.Sticker.below(100) < stake.stickerPercent
+  if (!hit) return 0
+  if (stake.sticker === StickerKind.Eternal && !ok) return 0
+  return stake.sticker
 }
 
 /** 무작위 조커 하나를 만듭니다. 희귀도를 정하면 그 풀에서 고릅니다. */

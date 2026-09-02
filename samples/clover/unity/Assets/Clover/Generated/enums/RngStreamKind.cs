@@ -55,6 +55,10 @@ namespace Clover.Data
         /// <summary>
         /// 값의 폭이 있는 조커가 이번에 얼마일지 고르는 것.
         /// </summary>
-        Misprint = 10
+        Misprint = 10,
+        /// <summary>
+        /// 스테이크가 조커에 스티커를 붙일지 고르는 것.
+        /// </summary>
+        Sticker = 11
     }
 } // namespace Clover.Data
