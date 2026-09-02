@@ -26,6 +26,13 @@ export interface Replay {
   seed: string
   deck: string
   stake: string
+  /**
+   * 이 런의 챌린지. **없으면 챌린지가 아닙니다.**
+   *
+   * 옵셔널인 것은 구워 둔 리플레이를 그대로 두기 위해서입니다 — 챌린지는 런 설정이고
+   * 해시에 들어가지 않으므로, 이 칸이 비면 예전 리플레이가 같은 해시를 다시 냅니다.
+   */
+  challenge?: string
   actions: Action[]
   /** 액션마다의 상태 해시. 갈라진 지점을 이분해서 찾는 데 씁니다. */
   hashes?: string[]
@@ -47,7 +54,8 @@ export interface RunReport {
 /** 리플레이 하나를 돌립니다. */
 export function play(replay: Replay, dataPath = DATA): RunReport {
   const data = loadFromDisk(dataPath)
-  const start = newRun(data, replay.seed, replay.deck, replay.stake)
+  const start = newRun(data, replay.seed, replay.deck, replay.stake,
+                       [JokerPool.Base], replay.challenge ?? '')
   let state: RunState = start.state
 
   const hashes = [snapshotHash(state)]
@@ -82,10 +90,11 @@ export function play(replay: Replay, dataPath = DATA): RunReport {
  */
 export function autoplay(seed: string, deck: string, stake: string, limit: number,
                         dataPath = DATA,
-                        pools: JokerPool[] = [JokerPool.Base]):
+                        pools: JokerPool[] = [JokerPool.Base],
+                        challenge = ''):
                         { replay: Replay; report: RunReport } {
   const data = loadFromDisk(dataPath)
-  const start = newRun(data, seed, deck, stake, pools)
+  const start = newRun(data, seed, deck, stake, pools, challenge)
   let state = start.state
 
   const actions: Action[] = []
@@ -101,7 +110,11 @@ export function autoplay(seed: string, deck: string, stake: string, limit: numbe
     if (state.phase === 'won' || state.phase === 'lost') break
   }
 
-  const replay: Replay = { seed, deck, stake, actions, hashes }
+  // **챌린지가 아니면 칸을 두지 않습니다.** 빈 문자열을 적어 두면 구워 둔 리플레이의
+  // 파일이 전부 달라집니다.
+  const replay: Replay = { seed, deck, stake, actions, hashes,
+    ...(challenge === '' ? {} : { challenge }),
+  }
   return {
     replay,
     report: {

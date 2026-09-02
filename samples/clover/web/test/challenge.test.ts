@@ -13,6 +13,7 @@ import { loadFromDisk } from '../src/core/load-node'
 import { apply, newRun } from '../src/core/run'
 import { snapshotHash } from '../src/core/hash'
 import { bestHand } from '../src/core/suggest'
+import { autoplay, play } from '../src/headless'
 import type { RunState } from '../src/core/state'
 
 const DATA = 'public/data'
@@ -26,10 +27,11 @@ const IDS = data.tables.challenge.records
 /**
  * 자동으로 끝까지 둡니다.
  *
- * **`headless.ts` 의 것을 쓰지 않고 여기 둡니다** — 그쪽은 챌린지를 아직 받지 않고,
- * 여기서 필요한 것은 「예외 없이 종료 상태에 닿는가」뿐입니다.
+ * **`headless.ts` 의 `autoplay` 와 다른 것입니다.** 그쪽은 무작위로 두면서 리플레이를
+ * 만들고, 이것은 가장 값이 높은 조합만 내리 냅니다 — 여기서 필요한 것은 「예외 없이 종료
+ * 상태에 닿는가」뿐입니다.
  */
-function autoplay(challengeId: string, seed = 'CLOVER-0001', limit = 2000) {
+function runToEnd(challengeId: string, seed = 'CLOVER-0001', limit = 2000) {
   const start = newRun(data, seed, 'red_deck', 'White', [JokerPool.Base], challengeId)
   let state: RunState = start.state
   let acted = 0
@@ -84,7 +86,7 @@ describe('챌린지', () => {
 
   it('20종 전부 예외 없이 종료 상태까지 돕니다', () => {
     for (const id of IDS) {
-      const run = autoplay(id)
+      const run = runToEnd(id)
       expect(['won', 'lost'], id).toContain(run.state.phase)
     }
   })
@@ -268,6 +270,32 @@ describe('챌린지', () => {
       // `evergreen` 은 그중 기본 11종을 금지하고, 확장 6종은 풀에 없으므로 만나지 않습니다.
       const base = cannot.filter(row => row.pool === JokerPool.Base)
       expect(base).toHaveLength(11)
+    })
+  })
+
+  // **리플레이가 챌린지를 들고 다녀야 대조할 것이 생깁니다.** 챌린지는 런 설정이므로
+  // 해시에 들어가지 않고, 그래서 재생할 때 다시 넘겨 주지 않으면 조용히 다른 판이 됩니다.
+  describe('리플레이', () => {
+    it('챌린지 런을 다시 돌리면 같은 해시가 나옵니다', () => {
+      const run = autoplay('CLOVER-0001', 'red_deck', 'White', 600, DATA,
+                           [JokerPool.Base], 'evergreen')
+      expect(run.replay.challenge).toBe('evergreen')
+      const again = play(run.replay, DATA)
+      expect(again.hashes).toEqual(run.report.hashes)
+    })
+
+    it('챌린지가 아닌 리플레이에는 그 칸이 없습니다', () => {
+      const run = autoplay('CLOVER-0001', 'red_deck', 'White', 600, DATA)
+      expect('challenge' in run.replay).toBe(false)
+      const again = play(run.replay, DATA)
+      expect(again.hashes).toEqual(run.report.hashes)
+    })
+
+    it('챌린지를 잃으면 다른 판이 됩니다', () => {
+      const run = autoplay('CLOVER-0001', 'red_deck', 'White', 600, DATA,
+                           [JokerPool.Base], 'low_field')
+      const bare = play({ ...run.replay, challenge: undefined }, DATA)
+      expect(bare.finalHash).not.toBe(run.report.finalHash)
     })
   })
 
