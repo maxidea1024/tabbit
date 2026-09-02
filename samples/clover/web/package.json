@@ -11,6 +11,7 @@
     "check:version": "tsx tools/write-version.ts --check",
     "check:leaderboard": "tsx tools/check-leaderboard.ts",
     "check:ranked": "tsx tools/check-ranked.ts",
+    "check:relabel": "tsx tools/check-relabel.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "headless": "tsx src/headless.ts",

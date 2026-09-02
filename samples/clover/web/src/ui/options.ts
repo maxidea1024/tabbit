@@ -383,6 +383,22 @@ export class OptionsPanel implements ModalPanel {
 
 
   /**
+   * 고른 것을 적용하고 다시 그립니다. **한 박자 뒤입니다.**
+   *
+   * `onChange` 가 말이 바뀌었으면 화면 전체를 다시 그리고, 그 안에 이 판도 들어 있습니다 —
+   * 그러면 **지금 눌린 칸이 그 눌림을 처리하는 중에 지워집니다.** 그다음 차례를 기다리던
+   * 것이 없어진 객체를 만나고, 화면이 거기서 멈춥니다.
+   *
+   * 말을 바꾸었을 때만 나는 일이지만, 미루는 데 드는 것이 없으므로 셋 다 미룹니다.
+   */
+  private applyLater(): void {
+    queueMicrotask(() => {
+      this.onChange()
+      this.draw()
+    })
+  }
+
+  /**
    * 글을 다시 읽습니다.
    *
    * **말을 바꾼 그 자리에서 바뀌어야 합니다.** 이 판에서 말을 고르므로, 다시 그리지 않으면
@@ -736,8 +752,7 @@ export class OptionsPanel implements ModalPanel {
       if (row.choices === undefined) {
         const value = new Button(row.read(), 128, 34, 0x3a4658, () => {
           row.next()
-          this.onChange()
-          this.draw()
+          this.applyLater()
         })
         value.position.set(WIDTH - 172, y)
         this.body.addChild(value)
@@ -877,8 +892,7 @@ export class OptionsPanel implements ModalPanel {
       cell.cursor = 'pointer'
       cell.on('pointertap', () => {
         row.pick?.(one.key)
-        this.onChange()
-        this.draw()
+        this.applyLater()
       })
       // **출처는 쪽지로 뜹니다.** 판에 한 줄로 적어 두면 자작 세트에서는 빈 줄이 되고,
       // 정본 하나에만 있는 글이 줄 하나를 늘 차지합니다.
@@ -952,8 +966,7 @@ export class OptionsPanel implements ModalPanel {
       const button = new Button(choice.label, width, height,
         choice.key === now ? 0x2f6f52 : 0x3a4658, () => {
           row.pick?.(choice.key)
-          this.onChange()
-          this.draw()
+          this.applyLater()
         })
       button.highlight = choice.key === now
       button.position.set(44 + column * (width + gap), top + line * (height + gap))

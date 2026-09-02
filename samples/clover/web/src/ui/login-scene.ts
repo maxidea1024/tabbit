@@ -54,6 +54,14 @@ export class LoginScene extends Container {
   private bandClock = 0
   /** 말 고르기가 펼쳐져 있는가. */
   private langOpen = false
+  /**
+   * 다시 그려야 하는가.
+   *
+   * **누른 그 자리에서 다시 그리지 않습니다.** 눌린 것을 지우는 일이 그 눌림을 처리하는
+   * 중에 일어나면, 그다음 차례를 기다리던 것이 없어진 객체를 만납니다 — 화면이 거기서
+   * 멈춥니다. 다음 프레임에 그립니다.
+   */
+  private dirty = false
   private list: Provider[] = []
   private dev = false
   private note = t('ui.lb.loading')
@@ -350,7 +358,7 @@ export class LoginScene extends Container {
     chip.cursor = 'pointer'
     chip.on('pointertap', () => {
       this.langOpen = !this.langOpen
-      this.redraw()
+      this.dirty = true
     })
     this.body.addChild(chip)
 
@@ -381,11 +389,13 @@ export class LoginScene extends Container {
       row.cursor = 'pointer'
       row.on('pointertap', () => {
         this.langOpen = false
+        this.dirty = true
         if (code !== now) {
           setLanguage(code)
+          // **부르는 쪽이 화면 전체를 다시 그립니다.** 그 안에 이 화면도 들어 있으므로
+          // 여기서 또 그리지 않습니다.
           this.onLanguage?.(code)
         }
-        this.redraw()
       })
       list.addChild(row)
     }
@@ -410,7 +420,7 @@ export class LoginScene extends Container {
   }
 
   relabel(): void {
-    this.redraw()
+    this.dirty = true
   }
 
   /** 네 잎. 타이틀의 것과 같은 모양입니다 — 같은 게임의 화면입니다. */
@@ -426,6 +436,12 @@ export class LoginScene extends Container {
   }
 
   advance(seconds: number): void {
+    // **다시 그리는 것은 여기 한 자리입니다.** 보이지 않을 때도 그려야 합니다 — 말이
+    // 바뀐 것을 이 화면이 다음에 뜰 때까지 모르고 있으면 안 됩니다.
+    if (this.dirty) {
+      this.dirty = false
+      this.redraw()
+    }
     if (!this.visible) return
     this.time += seconds
     this.leaf.rotation = Math.sin(this.time * 0.8) * 0.16

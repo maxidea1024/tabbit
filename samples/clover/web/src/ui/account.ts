@@ -83,8 +83,8 @@ export class HandlePanel implements ModalPanel {
 
   private async submit(): Promise<void> {
     if (this.typed.length < 3) {
+      // `advance` 가 다음 프레임에 그립니다. **누른 그 자리에서 지우지 않습니다.**
       this.problem = t('ui.lb.fail.shape')
-      this.redraw()
       return
     }
     try {
@@ -338,7 +338,9 @@ export class ProfilePanel implements ModalPanel {
                               this.confirming ? 0xa63f3f : 0x8f3f3f, () => {
       if (!this.confirming) {
         this.confirming = true
-        this.redraw()
+        // **누른 그 자리에서 다시 그리지 않습니다.** 눌린 단추를 그 눌림을 처리하는 중에
+        // 지우면 화면이 거기서 멈춥니다.
+        queueMicrotask(() => this.redraw())
         return
       }
       void account.deleteAccount().then(() => {

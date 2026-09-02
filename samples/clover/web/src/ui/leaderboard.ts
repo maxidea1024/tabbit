@@ -255,6 +255,17 @@ export class LeaderboardPanel implements ModalPanel {
       .sort((one, two) => one.sortOrder - two.sortOrder)
   }
 
+  /**
+   * 누른 그 자리에서 다시 그리지 않습니다.
+   *
+   * **눌린 것을 지우는 일이 그 눌림을 처리하는 중에 일어나면 화면이 멈춥니다.** 그다음
+   * 차례를 기다리던 것이 없어진 객체를 만나기 때문입니다 — 이 게임의 판들이 전부 다시
+   * 그리는 식이므로, 누름에서 시작하는 것은 한 박자 뒤로 미룹니다.
+   */
+  private later(work: () => void): void {
+    queueMicrotask(work)
+  }
+
   private async loadPage(around?: 'me'): Promise<void> {
     if (this.picked === '') {
       this.shown = undefined
@@ -303,7 +314,7 @@ export class LeaderboardPanel implements ModalPanel {
         this.tab = tab
         this.pickFirstInTab()
         this.listScroll.toTop()
-        void this.loadPage()
+        this.later(() => void this.loadPage())
       })
       chip.position.set(x, TOP)
       this.tabsRow.addChild(chip)
@@ -317,7 +328,7 @@ export class LeaderboardPanel implements ModalPanel {
         if (this.period === period) return
         this.period = period
         this.page = 0
-        void this.loadPage()
+        this.later(() => void this.loadPage())
       })
       chip.position.set(right - chip.width, TOP)
       this.tabsRow.addChild(chip)
@@ -387,7 +398,7 @@ export class LeaderboardPanel implements ModalPanel {
         if (this.picked === one.boardId) return
         this.picked = one.boardId
         this.page = 0
-        void this.loadPage()
+        this.later(() => void this.loadPage())
       })
       list.addChild(row)
     }
@@ -618,7 +629,7 @@ export class LeaderboardPanel implements ModalPanel {
     const onPage = shown.rows.some(row => row.rank === shown.me?.rank)
     if (!onPage) {
       const jump = new Button(t('ui.button.toMe'), 96, 26, 0x2f5f8f,
-                              () => void this.loadPage('me'), 12)
+                              () => this.later(() => void this.loadPage('me')), 12)
       jump.position.set(TABLE_X + COL.value - amount.width - 118, y + (MINE_H - 26) / 2)
       this.mineBar.addChild(jump)
     }
@@ -658,12 +669,12 @@ export class LeaderboardPanel implements ModalPanel {
 
     const back = this.arrow('◂', at > 1, () => {
       this.page--
-      void this.loadPage()
+      this.later(() => void this.loadPage())
     })
     back.position.set(TABLE_X + TABLE_W - 104, middle - 15)
     const next = this.arrow('▸', at < pages, () => {
       this.page++
-      void this.loadPage()
+      this.later(() => void this.loadPage())
     })
     next.position.set(TABLE_X + TABLE_W - 30, middle - 15)
     this.foot.addChild(back, next)
