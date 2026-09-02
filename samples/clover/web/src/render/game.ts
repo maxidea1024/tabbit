@@ -6486,8 +6486,10 @@ export class Game {
         this.pick('shop', slot)
       })
       this.tipOn(tile, () => {
+        // 상점의 것은 **가격도 칩으로** 섭니다 — 사는 자리이므로 얼마인지가 이름 옆에
+        // 있어야 합니다.
         this.tooltip.show(name, kindName(item.kind), rarity, lines,
-          tile.x + tileW / 2, tile.y + tileH, SIZE)
+          tile.x + tileW / 2, tile.y + tileH, SIZE, item.cost)
       })
       this.reveal(tile)
     })

@@ -1233,7 +1233,7 @@
 	ui.pool.base	기본 150종	Base 150	基本 150 種	基础 150 种	基礎 150 種	Basis 150
 	ui.pool.all	확장 500종	All 500	拡張 500 種	扩展 500 种	擴展 500 種	Alle 500
 	ui.pool.page	{at} / {of} 쪽	{at} / {of}	{at} / {of}	{at} / {of}	{at} / {of}	{at} / {of}
-	ui.pool.hint	카드를 누르면 효과가 적힙니다.	Tap a card to read its effect.	カードを押すと効果が出ます。	点击卡牌查看效果。	點擊卡牌查看效果。	Tippe eine Karte an, um ihre Wirkung zu lesen.
+	ui.pool.hint	카드를 가리키면 효과가 뜹니다.	Point at a card to see its effect.	カードを指すと効果が出ます。	指向卡牌查看效果。	指向卡牌查看效果。	Zeige auf eine Karte, um ihre Wirkung zu sehen.
 	ui.pool.baseNote	원작을 그대로 옮긴 150종입니다.	The 150 jokers ported one to one.	原作をそのまま移した 150 種です。	原封不动移植的 150 种。	原封不動移植的 150 種。	Die 150 eins zu eins übertragenen Joker.
 	ui.pool.allNote	자작 350종이 함께 나옵니다.	Adds 350 original jokers.	自作 350 種が加わります。	加入自制 350 种。	加入自製 350 種。	Zusätzlich 350 eigene Joker.
 	ui.pool.sortOrder	순서	Order	順	顺序	順序	Folge
