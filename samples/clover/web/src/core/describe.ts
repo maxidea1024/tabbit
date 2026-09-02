@@ -9,7 +9,7 @@ import type { Condition } from '../generated/structs/condition'
 import type { Operation } from '../generated/structs/operation'
 import { PerUnitMode } from '../generated/enums/per-unit-mode'
 import type { Data, EffectRow } from './data'
-import { t, text, tf } from './strings'
+import { nameOf, t, text, tf } from './strings'
 import { MULT_ONE } from './units'
 
 /** 문구 하나를 꺼냅니다. 없으면 열쇠를 그대로 돌려주어 빠진 것이 눈에 띄게 합니다. */
@@ -147,6 +147,9 @@ function describeOperation(data: Data, row: EffectRow): string {
     case 'OpGrant':
       values.create = named(data, 'create', op.create, enums.CreateKind)
       values.count = String('count' in op ? op.count || 1 : 1)
+      // **무엇을 주는지가 이름입니다.** 「바우처를 1개」로만 적으면 어느 바우처인지 알 수
+      // 없고, 그러면 이 줄이 챌린지를 고르는 데 쓰이지 않습니다.
+      values.name = grantName(data, op.create, 'refId' in op ? op.refId : '')
       break
     case 'OpDestroyCard':
     case 'OpForceDiscard':
@@ -170,7 +173,8 @@ function describeOperation(data: Data, row: EffectRow): string {
       const rule = phrase(data, `rule.${enums.RuleKind[op.rule] ?? op.rule}`)
       const raw = 'value' in op ? op.value : 1
       values.rule = fill(rule, {
-        value: signed(enums.RuleKind[op.rule], raw),
+        value: signed(enums.RuleKind[op.rule], raw,
+                      'absolute' in op ? op.absolute : false),
         suits: row.suits.map(suit => named(data, 'suit', suit, enums.SuitKind)).join(' · '),
       })
       break
@@ -190,16 +194,41 @@ function describeOperation(data: Data, row: EffectRow): string {
   return fill(template, values)
 }
 
-/** 규칙의 값. 늘고 주는 것은 부호를 붙이고, 정하는 것은 그대로 적습니다. */
-function signed(rule: string | undefined, value: number): string {
+/**
+ * 규칙의 값. 늘고 주는 것은 부호를 붙이고, 정하는 것은 그대로 적습니다.
+ *
+ * **행의 `absolute` 가 먼저입니다.** 규칙 이름으로만 판정하면 같은 규칙이 증감으로 걸릴
+ * 때와 절대값으로 걸릴 때가 구분되지 않습니다 — 「$100 으로 시작」이 「$+100 을 더
+ * 가지고」로 적혀 있었습니다.
+ */
+function signed(rule: string | undefined, value: number, absoluteRow = false): string {
   const absolute = new Set([
     'ShopDiscount', 'ShopWeightTarot', 'ShopWeightPlanet', 'EditionWeightScale',
     'ProbabilityScale', 'BlindSizeScale', 'FlushStraightCards', 'StraightGap',
     'BossRerollsPerAnte', 'InterestCap', 'PlanetGivesMult',
   ])
   if (rule === 'PlanetGivesMult' || rule === 'BlindSizeScale') return bp(value)
+  if (absoluteRow) return String(value)
   if (rule !== undefined && absolute.has(rule)) return String(value)
   return value >= 0 ? `+${value}` : String(value)
+}
+
+/**
+ * `OpGrant` 가 주는 것의 표시 이름.
+ *
+ * **갈래마다 이름이 다른 표에 있습니다.** `CreateKind` 가 어느 표인지를 정하고, 못 찾으면
+ * 식별자를 그대로 돌려주어 빠진 것이 눈에 띄게 합니다.
+ */
+function grantName(data: Data, create: number, refId: string): string {
+  if (refId === '') return ''
+  const kind = GRANT_KINDS[create]
+  if (kind === undefined) return refId
+  return nameOf(data, kind, refId, refId)
+}
+
+/** `CreateKind` 의 값마다 이름이 어느 표에 있는가. */
+const GRANT_KINDS: Record<number, string> = {
+  1: 'tarot', 2: 'planet', 3: 'spectral', 4: 'joker', 6: 'tag', 11: 'voucher',
 }
 
 function perUnit(data: Data, mode: PerUnitMode, value: number, base: number): string {

@@ -122,7 +122,7 @@ def joker_checks():
 
 def data_checks():
     grids = [f for f in os.listdir(os.path.join(DESIGN, 'data')) if f.endswith('.tsv')]
-    check('격자 40개', len(grids) == 40, '%d개' % len(grids))
+    check('격자 44개', len(grids) == 44, '%d개' % len(grids))
 
     plan = read(os.path.join(HERE, 'workbooks.tsv')).splitlines()
     mapped = [line for line in plan if line and not line.startswith('#')]
@@ -135,6 +135,20 @@ def data_checks():
     check('바우처 32종', count_rows('Voucher') == 32)
     check('태그 24종', count_rows('Tag') == 24)
     check('덱 15종', count_rows('Deck') == 15)
+    check('챌린지 20종', count_rows('Challenge') == 20, '%d종' % count_rows('Challenge'))
+
+    # **금지 목록이 실재하는 것을 가리키는가.** 오타 하나가 「금지했는데 나온다」가
+    # 됩니다 — 없는 식별자를 거르면 아무것도 걸러지지 않습니다.
+    known = set()
+    for grid, column in (('Joker', 'joker_id'), ('Voucher', 'voucher_id'),
+                         ('Tarot', 'tarot_id'), ('Planet', 'planet_id'),
+                         ('Spectral', 'spectral_id'), ('Tag', 'tag_id'),
+                         ('BoosterPack', 'pack_id'), ('BossBlind', 'boss_id')):
+        known |= {row[column] for row in grid_rows(grid)}
+    bans = grid_rows('ChallengeBan')
+    ghost = sorted({row['ref_id'] for row in bans if row['ref_id'] not in known})
+    check('금지 목록의 식별자가 전부 실재합니다', not ghost,
+          '없는 것: ' + ', '.join(ghost[:5]) if ghost else '%d줄' % len(bans))
     check('소모품 52종',
           count_rows('Tarot') + count_rows('Planet') + count_rows('Spectral') == 52)
 
@@ -230,7 +244,7 @@ def doc_checks():
 
     conds = sum(1 for name in declared if name.startswith('Cond'))
     ops = len(declared) - conds
-    check('조건 41종 · 연산 36종', conds == 41 and ops == 36, '%d · %d' % (conds, ops))
+    check('조건 42종 · 연산 36종', conds == 42 and ops == 36, '%d · %d' % (conds, ops))
 
 
 # ---------------------------------------------------------------------------

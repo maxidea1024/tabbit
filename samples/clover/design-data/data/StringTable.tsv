@@ -813,7 +813,7 @@
 	phrase.op.OpDrawFaceDown	카드를 뒤집힌 채로 뽑습니다	cards are drawn face down	カードを裏向きで引きます	摸到的牌是背面朝上	摸到的牌是背面朝上	Karten werden verdeckt gezogen
 	phrase.op.OpFlipJokers	조커를 뒤집고 섞습니다	flip and shuffle all jokers	ジョーカーを裏返して混ぜます	翻转并打乱小丑	翻轉並打亂小丑	dreht und mischt alle Joker
 	phrase.op.OpDisableRandomJoker	핸드마다 조커 하나가 꺼집니다	one random joker is disabled	ハンドごとにジョーカーが一つ止まります	每次出牌随机禁用一个小丑	每次出牌隨機禁用一個小丑	ein zufälliger Joker wird deaktiviert
-	phrase.op.OpGrant	{create}를 {count}개 가지고 시작합니다	start with {count} {create}	{create}を {count} 個持って始めます	开局带有 {count} 个{create}	開局帶有 {count} 個{create}	beginnt mit {count} {create}
+	phrase.op.OpGrant	{create} 「{name}」 {count}개를 가지고 시작합니다	start with {count}× {create} "{name}"	{create}「{name}」を{count}個持って始めます	携带{count}个{create}「{name}」开局	攜帶{count}個{create}「{name}」開局	startet mit {count}× {create} „{name}“
 	phrase.op.OpNothing	아무것도 하지 않습니다	does nothing	何もしません	没有效果	沒有效果	tut nichts
 	phrase.op.OpCustom	{handler}	{handler}	{handler}	{handler}	{handler}	{handler}
 	phrase.unit.JokerCount	조커 하나	joker	ジョーカー 1 つ	每个小丑	每個小丑	Joker
@@ -867,7 +867,7 @@
 	phrase.rule.AnteDelta	안테 {value}	ante {value}	アンティ {value}	底注 {value}	底注 {value}	Ante {value}
 	phrase.rule.EditionWeightScale	에디션 등장 {value}배	editions appear {value}X as often	エディション登場 {value} 倍	版本出现率 {value} 倍	版本出現率 {value} 倍	Editionen {value}× so oft
 	phrase.rule.PlanetGivesMult	행성 카드가 해당 족보에 배수 ×{value}	planet cards give X{value} mult to their hand	プラネットがその役に倍率 ×{value} を与えます	星球牌为该牌型提供 ×{value} 倍率	星球牌為該牌型提供 ×{value} 倍率	Planeten geben ihrem Blatt ×{value} Mult
-	phrase.rule.StartingMoney	${value}을 더 가지고 시작합니다	start with ${value} more	${value} 多く持って始めます	开局多带 ${value}	開局多帶 ${value}	beginnt mit ${value} mehr
+	phrase.rule.StartingMoney	시작 금액 ${value}	starting money ${value}	開始金額 ${value}	起始金额 ${value}	起始金額 ${value}	Startgeld ${value}
 	phrase.rule.NoInterest	이자를 받지 않습니다	earn no interest	利息を受け取りません	不获得利息	不獲得利息	bringt keine Zinsen
 	phrase.rule.MoneyPerHandLeft	남은 핸드마다 ${value}	${value} per remaining hand	残りハンドごとに ${value}	每次剩余出牌 ${value}	每次剩餘出牌 ${value}	${value} je übriger Hand
 	phrase.rule.MoneyPerDiscardLeft	남은 버리기마다 ${value}	${value} per remaining discard	残り捨て札ごとに ${value}	每次剩余弃牌 ${value}	每次剩餘棄牌 ${value}	${value} je übriger Ablage
@@ -1260,3 +1260,48 @@
 	challenge.single_thread.name	한 올	Single Thread	一筋	一线	一線	Einzelner Faden
 	challenge.barren_road.name	메마른 길	Barren Road	枯れ道	荒路	荒路	Karger Weg
 	challenge.bare_field.name	맨 밭	Bare Field	裸の畑	裸田	裸田	Nacktes Feld
+	ui.challenge.title	챌린지	Challenges	チャレンジ	挑战	挑戰	Herausforderungen
+	ui.challenge.start	이 챌린지로 시작	Start Challenge	これで始める	以此开始	以此開始	Herausforderung starten
+	ui.challenge.rules	규칙	RULES	ルール	规则	規則	REGELN
+	ui.challenge.bans	금지	BANNED	禁止	禁用	禁用	GESPERRT
+	ui.challenge.noRules	시작 조건만 다릅니다.	Only the starting setup differs.	開始条件だけが違います。	仅起始条件不同。	僅起始條件不同。	Nur der Startaufbau unterscheidet sich.
+	ui.challenge.locked	앞의 챌린지를 깨면 열립니다.	Beat the previous challenge to unlock.	前のチャレンジを倒すと開きます。	击败前一个挑战后开启。	擊敗前一個挑戰後開啟。	Besiege die vorherige Herausforderung.
+	ui.challenge.open	열려 있습니다	Unlocked	開いています	已开启	已開啟	Freigeschaltet
+	ui.challenge.beaten	깼습니다	Beaten	クリア済み	已通过	已通過	Geschlagen
+	ui.challenge.banLine	{what} {n}종	{what} ×{n}	{what} {n}種	{what} {n}种	{what} {n}種	{what} ×{n}
+	ui.challenge.banJoker	조커	Jokers	ジョーカー	小丑牌	小丑牌	Joker
+	ui.challenge.banVoucher	바우처	Vouchers	バウチャー	兑换券	兌換券	Gutscheine
+	ui.challenge.banTarot	타로	Tarots	タロット	塔罗牌	塔羅牌	Tarot
+	ui.challenge.banPlanet	행성	Planets	プラネット	星球牌	星球牌	Planeten
+	ui.challenge.banSpectral	유령	Spectrals	スペクトル	幻灵牌	幻靈牌	Spektral
+	ui.challenge.banTag	태그	Tags	タグ	标签	標籤	Marken
+	ui.challenge.banPack	부스터 팩	Packs	パック	补充包	補充包	Päckchen
+	ui.challenge.banBoss	보스	Bosses	ボス	Boss盲注	Boss盲注	Bosse
+	ui.challenge.basePool	챌린지는 기본 조커 150종으로 돕니다. 확장을 켜 두어도 그렇습니다.	Challenges always run on the base 150 jokers, even with the expansion on.	チャレンジは基本ジョーカー150種で回ります。拡張を入れていても同じです。	挑战始终使用基础150种小丑牌，即使开启扩展。	挑戰始終使用基礎150種小丑牌，即使開啟擴充。	Herausforderungen nutzen stets die 150 Basis-Joker.
+	ui.button.challenges	챌린지	Challenges	チャレンジ	挑战	挑戰	Herausforderungen
+	ui.challenge.lockedAll	런을 한 번 이기면 챌린지가 열립니다.	Win a run to unlock challenges.	ランに一度勝つとチャレンジが開きます。	赢下一局后开启挑战。	贏下一局後開啟挑戰。	Gewinne einen Run, um Herausforderungen freizuschalten.
+	phrase.rule.NoSmallBlindReward	스몰 블라인드의 보상이 없습니다	small blinds give no reward	スモールブラインドの報酬がありません	小盲注无奖励	小盲注無獎勵	kleine Blinds geben kein Geld
+	phrase.rule.NoBigBlindReward	빅 블라인드의 보상이 없습니다	big blinds give no reward	ビッグブラインドの報酬がありません	大盲注无奖励	大盲注無獎勵	große Blinds geben kein Geld
+	phrase.rule.NoBossBlindReward	보스 블라인드의 보상이 없습니다	boss blinds give no reward	ボスブラインドの報酬がありません	Boss盲注无奖励	Boss盲注無獎勵	Boss-Blinds geben kein Geld
+	phrase.rule.ChipsCappedByMoney	칩이 보유액을 넘지 못합니다	chips cannot exceed your money	チップは所持金を超えません	筹码不能超过持有金额	籌碼不能超過持有金額	Chips können das Geld nicht übersteigen
+	phrase.rule.FaceDownDrawRate	{value}장에 1장이 뒤집혀 뽑힙니다	1 in {value} cards are drawn face down	{value}枚に1枚が伏せて引かれます	每{value}张有1张背面朝上	每{value}張有1張背面朝上	1 von {value} Karten kommt verdeckt
+	phrase.rule.HandSizePerMoney	보유 ${value} 마다 패 크기 -1	-1 hand size per ${value} held	所持金${value} ごとに手札 -1	每持有${value} 手牌 -1	每持有${value} 手牌 -1	-1 Handkarte je ${value}
+	phrase.rule.AllJokersEternal	모든 조커가 `Eternal` 입니다	all jokers are Eternal	すべてのジョーカーが `Eternal` です	所有小丑牌为 `Eternal`	所有小丑牌為 `Eternal`	alle Joker sind Eternal
+	phrase.rule.DebuffPlayedAfterScoring	낸 카드가 득점 뒤에 무력화됩니다	played cards are debuffed after scoring	出したカードは得点後に無効化されます	打出的牌计分后被废除	打出的牌計分後被廢除	gespielte Karten werden nach dem Punkten entwertet
+	phrase.rule.PriceRisePerPurchase	살 때마다 값이 ${value} 오릅니다	prices rise ${value} per purchase	購入ごとに値が${value} 上がります	每次购买价格上涨${value}	每次購買價格上漲${value}	Preise steigen um ${value} je Kauf
+	phrase.rule.NoJokersInShop	상점에 조커가 나오지 않습니다	jokers no longer appear in the shop	ショップにジョーカーが出ません	商店不再出现小丑牌	商店不再出現小丑牌	Joker erscheinen nicht im Shop
+	phrase.rule.DiscardCost	버릴 때마다 ${value} 를 냅니다	discards each cost ${value}	捨てるたびに${value} かかります	每次弃牌花费${value}	每次棄牌花費${value}	jedes Abwerfen kostet ${value}
+	phrase.rule.PinnedJokerSlot	{value}번째 조커를 옮길 수 없습니다	joker {value} cannot be moved	{value}番目のジョーカーは動かせません	第{value}个小丑牌无法移动	第{value}個小丑牌無法移動	Joker {value} lässt sich nicht bewegen
+	rule.no_small_blind_reward.name	스몰 블라인드의 격파 보상	small blind reward	スモールブラインドの報酬	小盲注奖励	小盲注獎勵	Belohnung kleiner Blind
+	rule.no_big_blind_reward.name	빅 블라인드의 격파 보상	big blind reward	ビッグブラインドの報酬	大盲注奖励	大盲注獎勵	Belohnung großer Blind
+	rule.no_boss_blind_reward.name	보스 블라인드의 격파 보상	boss blind reward	ボスブラインドの報酬	Boss盲注奖励	Boss盲注獎勵	Belohnung Boss-Blind
+	rule.chips_capped_by_money.name	칩의 상한이 보유액	chips capped by money	チップの上限は所持金	筹码上限为持有金额	籌碼上限為持有金額	Chips durch Geld begrenzt
+	rule.face_down_draw_rate.name	뒤집혀 뽑히는 비율	face-down draw rate	伏せて引く割合	背面抽牌比例	背面抽牌比例	Verdeckt-Zieh-Rate
+	rule.hand_size_per_money.name	보유액에 따른 패 크기 감소	hand size lost per money	所持金による手札減少	按金额减少手牌	按金額減少手牌	Handgröße je Geld
+	rule.all_jokers_eternal.name	모든 조커가 `Eternal`	all jokers Eternal	全ジョーカーが `Eternal`	所有小丑牌为 `Eternal`	所有小丑牌為 `Eternal`	Alle Joker Eternal
+	rule.debuff_played_after_scoring.name	득점 뒤 낸 카드 무력화	played cards debuffed after scoring	得点後に出した札を無効化	计分后废除打出的牌	計分後廢除打出的牌	Gespielte Karten entwertet
+	rule.price_rise_per_purchase.name	구매마다 오르는 값	price rise per purchase	購入ごとの値上がり	每次购买涨价	每次購買漲價	Preisanstieg je Kauf
+	rule.no_jokers_in_shop.name	상점의 조커	jokers in shop	ショップのジョーカー	商店的小丑牌	商店的小丑牌	Joker im Shop
+	rule.discard_cost.name	버리기의 값	discard cost	捨てる費用	弃牌费用	棄牌費用	Abwurfkosten
+	rule.pinned_joker_slot.name	옮길 수 없는 조커 자리	pinned joker slot	固定されたジョーカー枠	固定小丑牌位	固定小丑牌位	Fixierter Joker-Platz
+	ui.button.toTitle	타이틀로	Back to Title	タイトルへ	返回标题	返回標題	Zum Titel

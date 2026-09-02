@@ -13,6 +13,7 @@ import { Container, Graphics, Text } from 'pixi.js'
 import { t } from '../core/strings'
 
 import { COLOR, SIZE } from '../render/theme'
+import { Tooltip } from './tooltip'
 import { Button, IconButton } from './widgets'
 
 /**
@@ -48,8 +49,17 @@ export class Title extends Container {
   /** 글을 다시 읽어야 하는 것들. 말이 바뀌면 이 셋을 갈아 끼웁니다. */
   private readonly buttons: { key: string; button: Button }[] = []
 
+  /**
+   * 잠긴 단추에 올렸을 때 뜨는 쪽지.
+   *
+   * **판 안의 쪽지와 같은 것입니다.** 타이틀에만 따로 만들면 모습이 두 가지가 되고, 잠긴
+   * 것을 알리는 자리가 화면마다 달라집니다.
+   */
+  private readonly tip = new Tooltip()
+  private challenges?: Button
+
   constructor(onStart: () => void, onGuide: () => void, onOptions: () => void,
-              onJokers?: () => void) {
+              onJokers?: () => void, onChallenges?: () => void) {
     super()
 
     // **덮는 층이 없습니다.** 글이 읽히게 하려고 반투명 사각형을 얹으면 그 겹의 변이
@@ -96,14 +106,47 @@ export class Title extends Container {
     pool.position.set(SIZE.width / 2 - bw / 2, 452 + bh + 14)
     this.buttons.push({ key: 'ui.button.jokers', button: pool })
 
-    this.addChild(this.leaf, this.logo, this.tagline, this.note, start, pool,
-                  guide, option)
+    // 챌린지. **조커 풀 아래입니다** — 둘 다 판에 무엇이 들어가는지를 정하는 일이므로
+    // 같은 줄에 있어야 하고, 시작만 위에 혼자 남습니다.
+    //
+    // **열리기 전에는 비활성입니다.** 눌러서 잠긴 것을 알게 하는 것보다, 눌리지 않는 것이
+    // 보이고 올렸을 때 무엇으로 열리는지 적히는 쪽이 그 자리에서 끝납니다.
+    const dare = new Button(t('ui.button.challenges'), bw, 52, 0x8f5f2f,
+                            () => onChallenges?.(), 20)
+    dare.position.set(SIZE.width / 2 - bw / 2, 452 + bh + 14 + 52 + 14)
+    this.buttons.push({ key: 'ui.button.challenges', button: dare })
+    this.challenges = dare
+    dare.enabled = false
+
+    // **쪽지는 단추 아래에 가운데로 섭니다.** `show` 가 `x` 를 가운데로 보고 `y` 아래에
+    // 16픽셀을 띄우므로, 단추의 가운데와 아랫변을 넘깁니다 — 오른쪽에 두려고 `x` 에
+    // 단추의 오른쪽 끝을 넘겼다가 쪽지가 단추를 덮었습니다.
+    dare.on('pointerover', () => {
+      if (this.locked) {
+        this.tip.show(t('ui.button.challenges'), '', 0, [t('ui.challenge.lockedAll')],
+                      dare.x + bw / 2, dare.y + 52, SIZE)
+      }
+    })
+    dare.on('pointerout', () => this.tip.hide())
+
+    this.addChild(this.leaf, this.logo, this.tagline, this.note, start, pool, dare,
+                  guide, option, this.tip)
 
     this.relabel()
 
     // 뒤를 눌러도 아무 일도 없습니다. **시작은 눌러서 시작하는 것입니다.**
     this.eventMode = 'static'
     this.on('pointertap', () => undefined)
+  }
+
+  /** 챌린지가 잠겨 있는가. 쪽지를 띄울지가 이것으로 갈립니다. */
+  private locked = true
+
+  /** 챌린지가 열렸는지 알립니다. 저장을 읽는 쪽이 겁니다. */
+  setChallengesOpen(open: boolean): void {
+    this.locked = !open
+    if (this.challenges) this.challenges.enabled = open
+    if (open) this.tip.hide()
   }
 
   relabel(): void {

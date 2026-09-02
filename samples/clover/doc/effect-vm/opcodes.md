@@ -44,7 +44,7 @@
 |자기 자신|`OnSell` · `OnUse`|
 |기타|`OnJokerSold` · `OnConsumableUsed`|
 
-## `condition` — 성립 조건 41종
+## `condition` — 성립 조건 42종
 
 |묶음|변종|
 |--|--|
@@ -53,7 +53,7 @@
 |카드|`CardSuit` · `CardRankSet` · `CardIsFace` · `CardEnhancement` · `CardEnhanced` · `CardSeal` · `CardEdition`|
 |낸 카드|`CardCount` · `AllSuitsPresent` · `SuitPair` · `AllHeldSuit` · `NoFaceScored` · `FaceScored`|
 |자원|`Money` · `DiscardsLeft` · `HandsLeft` · `DiscardsUnused`|
-|시점|`FirstHand` · `LastHand` · `FirstDiscard` · `EveryNHands`|
+|시점|`FirstHand` · `LastHand` · `FirstDiscard` · `EveryNHands` · `AnteAtLeast`|
 |한 장|`FirstHandSingleCard` · `FirstHandSingleRank` · `FirstDiscardSingleCard`|
 |누적|`CounterAtLeast` · `CounterAtMost` · `ChargeLeft`|
 |기타|`BlindKind` · `TargetMatch` · `DeckEnhancedAtLeast` · `DiscardedFaceAtLeast` · `BossTriggered` · `ScoreRatioAtLeast` · `ConsumableKind`|

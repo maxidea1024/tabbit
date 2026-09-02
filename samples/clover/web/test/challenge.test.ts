@@ -57,7 +57,7 @@ describe('챌린지', () => {
   it('20종이 표에 있고 해금 순서가 1부터 20까지입니다', () => {
     expect(IDS).toHaveLength(20)
     const orders = data.tables.challenge.records.map(row => row.sortOrder).sort((a, b) => a - b)
-    expect(orders).toEqual(Array.from({ length: 20 }, (unused, i) => i + 1))
+    expect(orders).toEqual([...Array(20).keys()].map(i => i + 1))
   })
 
   it('20종 전부 효과 행을 가집니다', () => {
@@ -90,7 +90,7 @@ describe('챌린지', () => {
   })
 
   // **챌린지는 조커 150종으로 돕니다.** 원작의 금지 목록이 그 150종을 상대로 쓰였으므로,
-  // 확장이 켜지면 금지가 걸린 채로 금지의 뜻이 없어집니다.
+  // 확장이 켜지면 금지가 걸린 채로 금지가 무효가 됩니다.
   it('확장을 켜도 챌린지의 풀은 기본 150종입니다', () => {
     const run = newRun(data, 'CLOVER-0001', 'red_deck', 'White',
                        [JokerPool.Base, JokerPool.Greenhouse], 'evergreen')

@@ -81,7 +81,7 @@ export function collect(vm: Vm, trigger: Trigger): Array<[EffectRow, EffectHost]
   }
 
   // 3. 들고 있는 태그. **가진 것이므로 매번 함께 봅니다** — 뽑을 때 한 번 돌리고 마는 것이
-  // 아닙니다. 대부분은 상점에 들어갈 때나 다음 라운드에 뜻을 가집니다.
+  // 아닙니다. 대부분은 상점에 들어갈 때나 다음 라운드에 유효합니다.
   for (const tag of state.tagsPending) {
     for (const row of vm.data.tagEffects.get(tag) ?? []) {
       if (row.trigger === trigger) out.push([row, RUN_HOST])

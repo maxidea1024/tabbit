@@ -26,7 +26,9 @@ import { SuitKind } from '../generated/enums/suit-kind'
 import type { Data } from '../core/data'
 import { describe } from '../core/describe'
 import { evaluate } from '../core/hand'
-import { apply, defaultRules, newRun, tagFor, targetOf, type Action } from '../core/run'
+import {
+  apply, defaultRules, newRun, rewardOf, tagFor, targetOf, type Action,
+} from '../core/run'
 import { language, nameOf, setLanguage, t, text, tf } from '../core/strings'
 import { useFont } from '../ui/font'
 import { rerollCost, sellValueOf, type ShopItem } from '../core/shop'
@@ -59,6 +61,9 @@ import { Button, Panel } from '../ui/widgets'
 import { poolsOf, type PoolChoice } from '../core/pool'
 import { Guide } from '../ui/guide'
 import { JokerPoolPanel } from '../ui/joker-pool'
+import {
+  ChallengePanel, loadProgress, saveProgress, type ChallengeProgress,
+} from '../ui/challenge'
 import { randomSeed, Title } from '../ui/title'
 import type { Scene } from './scene'
 import { FOOTER_BAR, panelFrame, TITLE_BAR } from '../ui/modal'
@@ -965,6 +970,11 @@ export class Game {
   private readonly optionsPanel: OptionsPanel
   /** 조커 풀을 고르고 들여다보는 판. 팀이틀에서만 엽니다. */
   private readonly jokerPool: JokerPoolPanel
+  private readonly challengePanel: ChallengePanel
+  /** 깬 챌린지의 목록. 저장에 남습니다. */
+  private readonly challenges: ChallengeProgress = loadProgress()
+  /** 지금 도는 판의 챌린지. 빈 문자열이면 챌린지가 아닙니다. */
+  private challengeId = ''
   /** 타이틀. **시작을 누르기 전에는 판이 없습니다.** */
   private readonly title: Title
   /**
@@ -1251,7 +1261,8 @@ export class Game {
     this.player = new TimelinePlayer(beat => this.showBeat(beat))
     this.title = new Title(() => this.enterRun(),
       () => this.modals.open(this.guide), () => this.openOptions(),
-      () => this.modals.open(this.jokerPool))
+      () => this.modals.open(this.jokerPool),
+      () => this.openChallenges())
     this.jokerPool = new JokerPoolPanel(data, this.settings.pool,
       () => this.modals.close(this.jokerPool))
     // **고른 것은 다음 판에 적용됩니다.** 도는 판의 풀을 바꾸면 상점이 이미 채워진
@@ -1263,6 +1274,19 @@ export class Game {
     this.optionsPanel = new OptionsPanel(this.settings, () => this.applyOptions(),
       () => this.modals.close(this.optionsPanel))
     this.optionsPanel.onSeed = next => this.useSeed(next)
+
+    this.challengePanel = new ChallengePanel(data, this.challenges,
+      () => this.modals.close(this.challengePanel))
+    // **고른 챌린지로 곧바로 판을 엽니다.** 판을 닫고 시작을 다시 누르게 하면 무엇으로
+    // 시작하는지가 두 화면에 걸쳐 있게 됩니다.
+    // **저장을 읽은 뒤에 알립니다.** 타이틀의 단추가 잠겨 있어야 하는지는 그때 정해집니다.
+    this.title.setChallengesOpen(this.challenges.unlocked)
+    this.challengePanel.onStart = (challengeId: string) => {
+      this.modals.close(this.challengePanel)
+      this.challengeId = challengeId
+      this.layRun(randomSeed())
+      this.enterRun()
+    }
 
     // 배경은 흰 스프라이트 한 장에 셰이더를 얹은 것입니다.
     this.sheet.filters = [this.background]
@@ -1512,6 +1536,40 @@ export class Game {
   }
 
   /**
+   * 이긴 것을 저장에 남깁니다.
+   *
+   * **챌린지 런이면 그 챌린지가 깬 것으로 들어갑니다.** 다음 하나가 열리는 것이 그
+   * 목록의 길이로 정해지므로, 여기 적히지 않으면 20종이 다섯에서 멈춥니다.
+   */
+  private recordWin(): void {
+    let changed = false
+    if (!this.challenges.unlocked) {
+      this.challenges.unlocked = true
+      changed = true
+    }
+    if (this.challengeId !== '' && !this.challenges.beaten.includes(this.challengeId)) {
+      this.challenges.beaten.push(this.challengeId)
+      changed = true
+    }
+    if (changed) {
+      saveProgress(this.challenges)
+      this.title.setChallengesOpen(true)
+    }
+  }
+
+  /**
+   * 챌린지 판.
+   *
+   * **아직 안 열렸어도 판을 엽니다.** 처음에는 쪽지로 알렸는데, 쪽지가 서는 자리는 판
+   * 안의 덱 옆이라 타이틀에서는 누른 곳과 먼 빈 구석에 떴습니다 — 알릴 것은 판 안에
+   * 적히고, 20칸이 잠긴 채로 보이는 것이 무엇이 남았는지를 함께 알립니다.
+   */
+  private openChallenges(): void {
+    this.challengePanel.relabel()
+    this.modals.open(this.challengePanel)
+  }
+
+  /**
    * 시드를 갈아 끼웁니다.
    *
    * **시드는 판 하나를 정하는 문자열입니다.** 덱 섞기 · 상점 · 팩 · 확률 발동이 저마다
@@ -1533,7 +1591,7 @@ export class Game {
    */
   private layRun(seed: string): void {
     this.state = newRun(this.data, seed, 'red_deck', 'White',
-                        poolsOf(this.settings.pool)).state
+                        poolsOf(this.settings.pool), this.challengeId).state
     // **뒷면부터입니다.** 손패를 다시 그리기 전에 정해야, 새로 깔리는 카드가 이 판의
     // 뒷면으로 깔립니다.
     this.syncCardBack()
@@ -1594,6 +1652,10 @@ export class Game {
     this.title.visible = true
     this.board.visible = false
     this.overlay.visible = false
+
+    // **챌린지는 타이틀로 돌아갈 때 놓습니다.** 들고 있으면 타이틀의 시작 단추가 조용히
+    // 챌린지를 여는 것이 됩니다.
+    this.challengeId = ''
 
     // 새 판을 새 시드로 미리 깔아 둡니다. 타이틀에서 옵션을 열면 이 시드가 적혀 있고,
     // 시작을 누르면 이 판이 펼쳐집니다.
@@ -2770,6 +2832,10 @@ export class Game {
         break
 
       case 'RunWon':
+        // **이긴 것을 저장에 남깁니다.** 챌린지를 열어 주는 것도 여기입니다 — 원작은 덱
+        // 여러 종으로 이겨야 열리지만 우리에게는 덱을 고르는 화면이 아직 없으므로, 한 번
+        // 이기는 것을 조건으로 둡니다.
+        this.recordWin()
         this.sweepHand()
         this.say(t('ui.label.all_cleared'), COLOR.money, 2.8)
         this.chime('coin_land', 10, 2, 0.06)
@@ -4151,7 +4217,6 @@ export class Game {
     if (this.runInfoTab === 'blinds') {
       // 이 안테의 세 라운드. **요구 점수는 안테가 정하므로 판마다 다릅니다.**
       for (const blind of [BlindKind.Small, BlindKind.Big, BlindKind.Boss]) {
-        const row = this.data.tables.blind.findByBlind(blind)
         const bossRow = blind === BlindKind.Boss
           ? this.data.tables.bossBlind.findByBossId(this.state.bossId) : undefined
         rows.push({
@@ -4162,7 +4227,7 @@ export class Game {
             ? describe(this.data, this.data.bossEffects.get(this.state.bossId) ?? []).join(' · ')
             : t('ui.note.no_rules'),
           value: `${targetOf(this.data, this.state, blind).toLocaleString('en-US')}`
-            + `   ${tf('ui.blind.reward', { n: row?.reward ?? 0 })}`,
+            + `   ${tf('ui.blind.reward', { n: rewardOf(this.data, this.state, blind) })}`,
           here: this.state.blind === blind,
         })
       }
@@ -4441,7 +4506,8 @@ export class Game {
       needCaption.position.set(cardW / 2, 114)
       group.addChild(needCaption)
 
-      const reward = label(tf('ui.blind.reward', { n: row.reward }), 13, COLOR.money, '800')
+      const reward = label(tf('ui.blind.reward',
+        { n: rewardOf(this.data, this.state, row.blind) }), 13, COLOR.money, '800')
       reward.anchor.set(0.5, 0)
       reward.position.set(cardW / 2, 138)
       group.addChild(reward)
@@ -5094,7 +5160,6 @@ export class Game {
     }
 
     const boss = state.blind === BlindKind.Boss
-    const row = this.data.tables.blind.findByBlind(state.blind)
     const bossRow = boss ? this.data.tables.bossBlind.findByBossId(state.bossId) : undefined
 
     const note = bossRow
@@ -5105,7 +5170,8 @@ export class Game {
       bossRow
         ? nameOf(this.data, 'boss', state.bossId, bossRow.name)
         : tf('ui.blind.named', { name: blindName(state.blind) }),
-      Number(state.target), row?.reward ?? 0, note, boss, state.blind === BlindKind.Big,
+      Number(state.target), rewardOf(this.data, state, state.blind), note, boss,
+      state.blind === BlindKind.Big,
       // **판이 도는 내내 보이는 자리입니다.** 고르는 판은 한 번 지나가지만 이 딱지는
       // 남습니다 — 어느 보스와 붙고 있는지가 여기 있어야 합니다.
       this.blindFace(state.blind, 34),
@@ -6085,6 +6151,9 @@ export class Game {
     const rows: { label: string; press: () => void }[] = [
       { label: t('ui.button.options'), press: () => this.openOptions() },
       { label: t('ui.button.guide'), press: () => this.modals.open(this.guide) },
+      // **타이틀로는 맨 아래입니다.** 판을 접는 것이므로 옵션과 게임 방법과 같은 무게로
+      // 가운데에 두면 잘못 누르는 일이 생깁니다.
+      { label: t('ui.button.toTitle'), press: () => this.enterTitle() },
     ]
     // **밑단이 없습니다.** 머리의 `✕` 와 바깥 누르기와 `Esc` 로 닫히므로, 닫기를 또 두면
     // 같은 일을 하는 것이 판 하나에 둘입니다.

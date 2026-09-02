@@ -448,28 +448,39 @@ function useTags(vm: Vm, trigger: Trigger): void {
   if (spent.length > 0) rebuildRules(vm)
 }
 
-/** 라운드를 이깁니다. 보상과 이자를 정산합니다. */
-function winRound(vm: Vm): void {
-  const state = vm.state
-  const blindRow = vm.data.tables.blind.getByBlindOrThrow(state.blind)
+/**
+ * 그 블라인드를 깨면 받는 금액.
+ *
+ * **화면도 이 함수를 씁니다.** `Blind` 표의 값을 화면이 직접 읽으면 규칙이 보상을 껐을 때
+ * 화면에는 그대로 적혀 있게 됩니다 — `dry_season` 에서 「격파 보상 $3」이 적혀 있었습니다.
+ */
+export function rewardOf(data: Data, state: RunState, blind: BlindKind): number {
+  let reward = data.tables.blind.findByBlind(blind)?.reward ?? 0
 
-  let reward = blindRow.reward
-  const stake = vm.data.tables.stake.records.find(
+  const stake = data.tables.stake.records.find(
     row => row.name === state.stake || String(row.stake) === state.stake)
-  if (state.blind === BlindKind.Small && stake) reward = stake.smallBlindReward
+  if (blind === BlindKind.Small && stake) reward = stake.smallBlindReward
 
   // **보스는 자기 보상을 가집니다.** 최종 보스가 나머지보다 많이 주므로, 블라인드의 값
   // 하나로는 그 둘이 구분되지 않습니다.
-  if (state.blind === BlindKind.Boss) {
-    const boss = vm.data.tables.bossBlind.findByBossId(state.bossId)
+  if (blind === BlindKind.Boss) {
+    const boss = data.tables.bossBlind.findByBossId(state.bossId)
     if (boss) reward = boss.reward
   }
 
   // 챌린지가 갈래마다 따로 끕니다 — 셋 다인 것과 스몰·빅만인 것이 있습니다.
   const rules = state.rules
-  if ((state.blind === BlindKind.Small && rules.noSmallBlindReward)
-      || (state.blind === BlindKind.Big && rules.noBigBlindReward)
-      || (state.blind === BlindKind.Boss && rules.noBossBlindReward)) reward = 0
+  if ((blind === BlindKind.Small && rules.noSmallBlindReward)
+      || (blind === BlindKind.Big && rules.noBigBlindReward)
+      || (blind === BlindKind.Boss && rules.noBossBlindReward)) reward = 0
+
+  return reward
+}
+
+/** 라운드를 이깁니다. 보상과 이자를 정산합니다. */
+function winRound(vm: Vm): void {
+  const state = vm.state
+  const reward = rewardOf(vm.data, state, state.blind)
 
   state.money += reward
   vm.events.push({ t: 'BlindCleared', blind: state.blind, reward })

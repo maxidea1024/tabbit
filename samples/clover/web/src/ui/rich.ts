@@ -256,5 +256,13 @@ export function richBlock(lines: readonly string[], style: RichStyle,
     row += place(runsOf(text, style), style, block, row * lineHeight, lineHeight,
       maxWidth, align)
   }
+  // **줄 수가 아니라 실제로 쓴 줄입니다.** 한 줄이 넘쳐 두 줄이 되면 부르는 쪽이 그것을
+  // 모르고, 다음 글을 그 위에 겹쳐 그립니다.
+  ;(block as Container & { rows?: number }).rows = row
   return block
+}
+
+/** `richBlock` 이 실제로 쓴 줄 수. 넘쳐 나뉜 줄까지 셉니다. */
+export function rowsOf(block: Container): number {
+  return (block as Container & { rows?: number }).rows ?? 0
 }
