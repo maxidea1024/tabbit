@@ -13,7 +13,7 @@
 
 커먼 9 · 언커먼 11 · 레어 4 · 전설 1
 
-|이름|영어|`id`|희귀도|값|효과|
+|이름|영어|`id`|희귀도|가격|효과|
 |--|--|--|--|--|--|
 |손수레|Hand Cart|`hand_cart`|커먼|$5|`Passive` Always → ChangeRule|
 |그린 간판|Paint Sign|`paint_sign`|커먼|$4|`Passive` Always → ChangeRule|
@@ -45,7 +45,7 @@
 
 커먼 8 · 언커먼 11 · 레어 5 · 전설 1
 
-|이름|영어|`id`|희귀도|값|효과|
+|이름|영어|`id`|희귀도|가격|효과|
 |--|--|--|--|--|--|
 |안개 띠|Fog Bank|`fog_bank`|커먼|$5|`Passive` Always → ChangeRule|
 |고른 저울|Even Scales|`even_scales`|커먼|$5|`Passive` Always → ChangeRule|
@@ -77,7 +77,7 @@
 
 커먼 8 · 언커먼 10 · 레어 5 · 전설 2
 
-|이름|영어|`id`|희귀도|값|효과|
+|이름|영어|`id`|희귀도|가격|효과|
 |--|--|--|--|--|--|
 |무쇠 열쇠|Iron Key|`iron_key`|커먼|$5|`OnBossDefeated` Always → AddMoney|
 |놋 자물쇠|Brass Lock|`brass_lock`|커먼|$5|`OnHandPlayed` BlindKind → AddMult|

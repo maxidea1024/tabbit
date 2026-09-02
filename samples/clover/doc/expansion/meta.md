@@ -13,7 +13,7 @@
 
 커먼 8 · 언커먼 11 · 레어 5 · 전설 1
 
-|이름|영어|`id`|희귀도|값|효과|
+|이름|영어|`id`|희귀도|가격|효과|
 |--|--|--|--|--|--|
 |별가루|Star Dust|`star_dust`|커먼|$4|`OnRoundEnd` Always → CreateCard (1/3)|
 |달 접시|Moon Dish|`moon_dish`|커먼|$5|`OnBossDefeated` Always → CreateCard|
@@ -45,7 +45,7 @@
 
 커먼 8 · 언커먼 10 · 레어 6 · 전설 1
 
-|이름|영어|`id`|희귀도|값|효과|
+|이름|영어|`id`|희귀도|가격|효과|
 |--|--|--|--|--|--|
 |짝 유리|Paired Glass|`paired_glass`|커먼|$5|`OnHandPlayed` Always → PerUnit|
 |그림자 상자|Shadow Box|`shadow_box`|커먼|$4|`OnHandPlayed` Always → PerUnit|
@@ -77,7 +77,7 @@
 
 커먼 9 · 언커먼 11 · 레어 4 · 전설 1
 
-|이름|영어|`id`|희귀도|값|효과|
+|이름|영어|`id`|희귀도|가격|효과|
 |--|--|--|--|--|--|
 |삽날|Spade Head|`spade_head`|커먼|$5|`OnRoundStart` Always → AddCard|
 |모판|Seed Tray|`seed_tray`|커먼|$5|`OnBlindSelect` Always → AddCard|

@@ -33,7 +33,7 @@ namespace Clover.Data
         public global::Clover.Data.Rarity Rarity => _rarity;
 
         /// <summary>
-        /// 상점에서의 값
+        /// 상점에서의 가격
         /// </summary>
         public int Cost => _cost;
 

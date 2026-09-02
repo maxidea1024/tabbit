@@ -82,7 +82,7 @@ def write_group(slug, title, module, lead):
         lines.append('')
         lines.append(summary)
         lines.append('')
-        lines.append('|이름|영어|`id`|희귀도|값|효과|')
+        lines.append('|이름|영어|`id`|희귀도|가격|효과|')
         lines.append('|--|--|--|--|--|--|')
         lines.extend(rows_of(entries))
         lines.append('')

@@ -6,7 +6,7 @@
 
 상점 조커의 25%가 여기서 나옵니다. 값은 $4 ~ $8입니다.
 
-|원작|우리|`id`|값|효과|VM 변종|
+|원작|우리|`id`|가격|효과|VM 변종|
 |--|--|--|--|--|--|
 |Joker Stencil|빈 액자|`empty_frame`|$8|빈 조커 슬롯마다 배수 ×1|`MulMult` × `EmptySlots`|
 |Four Fingers|네 마디|`four_knuckles`|$7|플러시와 스트레이트를 4장으로 이룹니다|`ChangeRule`|

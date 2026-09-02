@@ -13,7 +13,7 @@
 
 커먼 9 · 언커먼 10 · 레어 5 · 전설 1
 
-|이름|영어|`id`|희귀도|값|효과|
+|이름|영어|`id`|희귀도|가격|효과|
 |--|--|--|--|--|--|
 |구리 저울|Copper Scale|`copper_scale`|커먼|$4|`OnHandPlayed` Always → PerUnit|
 |양철 금고|Tin Till|`tin_till`|커먼|$5|`OnRoundEnd` Always → PerUnit|
@@ -45,7 +45,7 @@
 
 커먼 8 · 언커먼 11 · 레어 5 · 전설 1
 
-|이름|영어|`id`|희귀도|값|효과|
+|이름|영어|`id`|희귀도|가격|효과|
 |--|--|--|--|--|--|
 |곧은 뿌리|Tap Root|`tap_root`|커먼|$5|`OnRoundEnd` Always → GrowSelf|
 |나이테|Year Ring|`year_ring`|커먼|$5|`OnBossDefeated` Always → GrowSelf|
@@ -77,7 +77,7 @@
 
 커먼 8 · 언커먼 11 · 레어 5 · 전설 1
 
-|이름|영어|`id`|희귀도|값|효과|
+|이름|영어|`id`|희귀도|가격|효과|
 |--|--|--|--|--|--|
 |가시 고리|Thorn Ring|`thorn_ring`|커먼|$4|`OnHandPlayed` Always → MulMult · `OnRoundEnd` Always → DestroyJoker (1/8)|
 |까마중 잔|Nightshade Cup|`nightshade_cup`|커먼|$5|`OnHandPlayed` Always → AddMult · `OnRoundEnd` Always → GrowSelf · `OnRoundEnd` CounterAtMost → DestroyJoker|
@@ -109,7 +109,7 @@
 
 커먼 9 · 언커먼 11 · 레어 4 · 전설 1
 
-|이름|영어|`id`|희귀도|값|효과|
+|이름|영어|`id`|희귀도|가격|효과|
 |--|--|--|--|--|--|
 |밀랍 인장|Wax Seal|`wax_seal`|커먼|$5|`OnCardScored` CardSeal → AddMult|
 |파란 밀랍|Blue Wax|`blue_wax`|커먼|$5|`OnCardScored` CardSeal → AddChips|

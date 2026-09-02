@@ -42,7 +42,7 @@ export class JokerRecord {
   /** 희귀도 */
   public get rarity(): Rarity { return this._rarity }
 
-  /** 상점에서의 값 */
+  /** 상점에서의 가격 */
   public get cost(): number { return this._cost }
 
   /** 표시 이름 */

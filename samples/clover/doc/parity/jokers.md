@@ -19,10 +19,10 @@
 
 ## 공통 성질
 
-|무엇|값|
+|무엇|가격|
 |--|--|
 |슬롯|기본 5. `Black Deck` · `Antimatter` · `Negative` 가 늘리고 `Painted Deck` 이 줄입니다|
-|값|$1 ~ $10. 조커마다 정해져 있습니다|
+|가격|$1 ~ $10. 조커마다 정해져 있습니다|
 |판매가|구입가의 절반을 내림. 최소 $1|
 |에디션|`Foil` 칩 +50 · `Holographic` 배수 +10 · `Polychrome` 배수 ×1.5 · `Negative` 슬롯 +1|
 |스티커|`Eternal` · `Perishable` · `Rental`. [스테이크](decks-and-stakes.md#스티커-3종)가 붙입니다|

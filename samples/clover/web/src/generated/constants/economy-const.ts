@@ -21,19 +21,19 @@ export class EconomyConst {
   /** 판매가의 하한 */
   public static readonly sellMin: number = 1
 
-  /** 전설 조커는 값이 없으므로 판매가의 기준이 이것입니다 */
+  /** 전설 조커는 가격이 없으므로 판매가의 기준이 이것입니다 */
   public static readonly legendaryBaseCost: number = 10
 
-  /** 상점의 타로 값 */
+  /** 상점의 타로 가격 */
   public static readonly tarotCost: number = 3
 
-  /** 상점의 행성 값 */
+  /** 상점의 행성 가격 */
   public static readonly planetCost: number = 3
 
-  /** 상점의 유령 값 */
+  /** 상점의 유령 가격 */
   public static readonly spectralCost: number = 4
 
-  /** 상점의 플레잉 카드 값 */
+  /** 상점의 플레잉 카드 가격 */
   public static readonly playingCardCost: number = 1
 
   /** 바우처 값 */

@@ -32,23 +32,23 @@ namespace Clover.Data
         /// </summary>
         public static int SellMin { get; }
         /// <summary>
-        /// 전설 조커는 값이 없으므로 판매가의 기준이 이것입니다
+        /// 전설 조커는 가격이 없으므로 판매가의 기준이 이것입니다
         /// </summary>
         public static int LegendaryBaseCost { get; }
         /// <summary>
-        /// 상점의 타로 값
+        /// 상점의 타로 가격
         /// </summary>
         public static int TarotCost { get; }
         /// <summary>
-        /// 상점의 행성 값
+        /// 상점의 행성 가격
         /// </summary>
         public static int PlanetCost { get; }
         /// <summary>
-        /// 상점의 유령 값
+        /// 상점의 유령 가격
         /// </summary>
         public static int SpectralCost { get; }
         /// <summary>
-        /// 상점의 플레잉 카드 값
+        /// 상점의 플레잉 카드 가격
         /// </summary>
         public static int PlayingCardCost { get; }
         /// <summary>

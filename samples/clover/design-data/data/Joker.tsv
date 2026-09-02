@@ -1,7 +1,7 @@
 :table Joker(key=joker_id)	조커 한 종입니다. 효과는 `JokerEffect` 에 있고 여기에는 그 종의 성질만 있습니다.
 :field	joker_id	rarity	cost	name	art	blueprint_ok	sort_order	pool
 :type	string (regex="^[a-z][a-z0-9_]*$")	Rarity	int (min=1, max=10)	string (text=Joker)	string (asset=joker)	bool	int (min=1, max=500)	JokerPool
-:desc	식별자	희귀도	상점에서의 값	표시 이름	그림	복사 조커가 복사할 수 있는가	수집 목록에서의 순서	어느 풀에 드는가
+:desc	식별자	희귀도	상점에서의 가격	표시 이름	그림	복사 조커가 복사할 수 있는가	수집 목록에서의 순서	어느 풀에 드는가
 	twig	Common	2	둥근 잔가지	twig	true	1	Base
 	quartz_bloom	Common	5	석영꽃	quartz_bloom	true	2	Base
 	poppy_bloom	Common	5	양귀비꽃	poppy_bloom	true	3	Base

@@ -13,7 +13,7 @@
 
 커먼 9 · 언커먼 11 · 레어 4 · 전설 1
 
-|이름|영어|`id`|희귀도|값|효과|
+|이름|영어|`id`|희귀도|가격|효과|
 |--|--|--|--|--|--|
 |잿빛 장미|Ash Rose|`ash_rose`|커먼|$4|`OnCardHeld` CardSuit → AddChips|
 |어스름 붓꽃|Dusk Iris|`dusk_iris`|커먼|$4|`OnCardHeld` CardSuit → AddMult|
@@ -45,7 +45,7 @@
 
 커먼 9 · 언커먼 11 · 레어 4 · 전설 1
 
-|이름|영어|`id`|희귀도|값|효과|
+|이름|영어|`id`|희귀도|가격|효과|
 |--|--|--|--|--|--|
 |자두씨|Plum Stone|`plum_stone`|커먼|$4|`OnCardScored` CardRankSet → AddMult|
 |도토리 깍정이|Acorn Cup|`acorn_cup`|커먼|$4|`OnCardScored` CardRankSet → AddChips|
@@ -77,7 +77,7 @@
 
 커먼 9 · 언커먼 10 · 레어 5 · 전설 1
 
-|이름|영어|`id`|희귀도|값|효과|
+|이름|영어|`id`|희귀도|가격|효과|
 |--|--|--|--|--|--|
 |굴뚝새|Wren|`wren`|커먼|$3|`OnHandPlayed` HandContains → AddMult|
 |물까마귀|Dipper|`dipper`|커먼|$4|`OnHandPlayed` HandContains → AddMult|
@@ -109,7 +109,7 @@
 
 커먼 9 · 언커먼 11 · 레어 4 · 전설 1
 
-|이름|영어|`id`|희귀도|값|효과|
+|이름|영어|`id`|희귀도|가격|효과|
 |--|--|--|--|--|--|
 |낙엽|Leaf Fall|`leaf_fall`|커먼|$4|`OnCardDiscarded` Always → GrowSelf|
 |퇴비통|Compost Bin|`compost_bin`|커먼|$5|`OnHandDiscarded` Always → GrowSelf|
