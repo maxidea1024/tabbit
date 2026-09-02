@@ -463,5 +463,13 @@
     "c15fa00e",
     "16bc932d",
     "6dd8a50d"
-  ]
+  ],
+  "metrics": {
+    "ascent": 5,
+    "bestHand": 2500,
+    "handsPlayed": 16,
+    "money": 3,
+    "skips": 0,
+    "won": false
+  }
 }

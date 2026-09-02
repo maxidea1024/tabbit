@@ -781,5 +781,13 @@
     "d57e1b93",
     "6cdae719",
     "6c78c37d"
-  ]
+  ],
+  "metrics": {
+    "ascent": 11,
+    "bestHand": 5168,
+    "handsPlayed": 22,
+    "money": 10,
+    "skips": 0,
+    "won": false
+  }
 }

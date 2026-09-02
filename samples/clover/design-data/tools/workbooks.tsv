@@ -34,6 +34,10 @@ Setup	DeckEffect	DeckEffect
 Setup	Stake	Stake
 Setup	Tag	Tag
 Setup	TagEffect	TagEffect
+Setup	Challenge	Challenge
+Setup	ChallengeEffect	ChallengeEffect
+Setup	ChallengeBan	ChallengeBan
+Setup	ChallengeCard	ChallengeCard
 Const	Const_Run	Const_Run
 Const	Const_Score	Const_Score
 Const	Const_Economy	Const_Economy

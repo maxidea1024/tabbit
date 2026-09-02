@@ -811,5 +811,13 @@
     "9842ae84",
     "3f522fb8",
     "3d80854e"
-  ]
+  ],
+  "metrics": {
+    "ascent": 10,
+    "bestHand": 3304,
+    "handsPlayed": 28,
+    "money": 261,
+    "skips": 0,
+    "won": false
+  }
 }

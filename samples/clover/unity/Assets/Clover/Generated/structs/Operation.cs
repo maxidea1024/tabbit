@@ -587,10 +587,15 @@ namespace Clover.Data
     {
         public global::Clover.Data.CreateKind Create;
         public int Count;
+        public global::Clover.Data.EditionKind Edition;
         /// <summary>
         /// 특정 행을 가리킬 때의 식별자. 팩과 바우처와 태그가 씁니다.
         /// </summary>
         public string RefId;
+        /// <summary>
+        /// 붙여서 줄 스티커. 비우면 `None`. 조커에만 걸립니다.
+        /// </summary>
+        public global::Clover.Data.StickerKind Sticker;
     }
 
     /// <summary>

@@ -123,5 +123,13 @@
     "9d91f0e7",
     "810c7711",
     "caa1997e"
-  ]
+  ],
+  "metrics": {
+    "ascent": 1,
+    "bestHand": 232,
+    "handsPlayed": 6,
+    "money": 2,
+    "skips": 0,
+    "won": false
+  }
 }

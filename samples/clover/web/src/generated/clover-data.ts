@@ -36,6 +36,10 @@ import { DeckEffectTable } from './tables/deck-effect'
 import { StakeTable } from './tables/stake'
 import { TagTable } from './tables/tag'
 import { TagEffectTable } from './tables/tag-effect'
+import { ChallengeTable } from './tables/challenge'
+import { ChallengeEffectTable } from './tables/challenge-effect'
+import { ChallengeBanTable } from './tables/challenge-ban'
+import { ChallengeCardTable } from './tables/challenge-card'
 import { ShopSlotWeightTable } from './tables/shop-slot-weight'
 import { BoosterPackTable } from './tables/booster-pack'
 import { VoucherTable } from './tables/voucher'
@@ -213,6 +217,22 @@ export class CloverData {
   public get tagEffect(): TagEffectTable { return this._tagEffect }
   private _tagEffect: TagEffectTable = new TagEffectTable()
 
+  /** Peroperty for table Challenge */
+  public get challenge(): ChallengeTable { return this._challenge }
+  private _challenge: ChallengeTable = new ChallengeTable()
+
+  /** Peroperty for table ChallengeEffect */
+  public get challengeEffect(): ChallengeEffectTable { return this._challengeEffect }
+  private _challengeEffect: ChallengeEffectTable = new ChallengeEffectTable()
+
+  /** Peroperty for table ChallengeBan */
+  public get challengeBan(): ChallengeBanTable { return this._challengeBan }
+  private _challengeBan: ChallengeBanTable = new ChallengeBanTable()
+
+  /** Peroperty for table ChallengeCard */
+  public get challengeCard(): ChallengeCardTable { return this._challengeCard }
+  private _challengeCard: ChallengeCardTable = new ChallengeCardTable()
+
   /** Peroperty for table ShopSlotWeight */
   public get shopSlotWeight(): ShopSlotWeightTable { return this._shopSlotWeight }
   private _shopSlotWeight: ShopSlotWeightTable = new ShopSlotWeightTable()
@@ -306,6 +326,14 @@ export class CloverData {
     await tag.read(path.join(basePath, `Tag${fileExtension}`))
     const tagEffect = new TagEffectTable()
     await tagEffect.read(path.join(basePath, `TagEffect${fileExtension}`))
+    const challenge = new ChallengeTable()
+    await challenge.read(path.join(basePath, `Challenge${fileExtension}`))
+    const challengeEffect = new ChallengeEffectTable()
+    await challengeEffect.read(path.join(basePath, `ChallengeEffect${fileExtension}`))
+    const challengeBan = new ChallengeBanTable()
+    await challengeBan.read(path.join(basePath, `ChallengeBan${fileExtension}`))
+    const challengeCard = new ChallengeCardTable()
+    await challengeCard.read(path.join(basePath, `ChallengeCard${fileExtension}`))
     const shopSlotWeight = new ShopSlotWeightTable()
     await shopSlotWeight.read(path.join(basePath, `ShopSlotWeight${fileExtension}`))
     const boosterPack = new BoosterPackTable()
@@ -321,7 +349,7 @@ export class CloverData {
     const achievement = new AchievementTable()
     await achievement.read(path.join(basePath, `Achievement${fileExtension}`))
 
-    this.publish(rank, suit, baseDeckCard, pokerHand, enhancement, enhancementEffect, seal, sealEffect, edition, rngStream, tarot, tarotEffect, planet, spectral, spectralEffect, editionVisual, soundCue, joker, jokerRarityWeight, jokerEffect, ante, blind, bossBlind, bossEffect, deck, deckEffect, stake, tag, tagEffect, shopSlotWeight, boosterPack, voucher, voucherEffect, rerollCost, stringTable, achievement)
+    this.publish(rank, suit, baseDeckCard, pokerHand, enhancement, enhancementEffect, seal, sealEffect, edition, rngStream, tarot, tarotEffect, planet, spectral, spectralEffect, editionVisual, soundCue, joker, jokerRarityWeight, jokerEffect, ante, blind, bossBlind, bossEffect, deck, deckEffect, stake, tag, tagEffect, challenge, challengeEffect, challengeBan, challengeCard, shopSlotWeight, boosterPack, voucher, voucherEffect, rerollCost, stringTable, achievement)
   }
 
   /** Read all tables synchronously. */
@@ -384,6 +412,14 @@ export class CloverData {
     tag.readSync(path.join(basePath, `Tag${fileExtension}`))
     const tagEffect = new TagEffectTable()
     tagEffect.readSync(path.join(basePath, `TagEffect${fileExtension}`))
+    const challenge = new ChallengeTable()
+    challenge.readSync(path.join(basePath, `Challenge${fileExtension}`))
+    const challengeEffect = new ChallengeEffectTable()
+    challengeEffect.readSync(path.join(basePath, `ChallengeEffect${fileExtension}`))
+    const challengeBan = new ChallengeBanTable()
+    challengeBan.readSync(path.join(basePath, `ChallengeBan${fileExtension}`))
+    const challengeCard = new ChallengeCardTable()
+    challengeCard.readSync(path.join(basePath, `ChallengeCard${fileExtension}`))
     const shopSlotWeight = new ShopSlotWeightTable()
     shopSlotWeight.readSync(path.join(basePath, `ShopSlotWeight${fileExtension}`))
     const boosterPack = new BoosterPackTable()
@@ -399,7 +435,7 @@ export class CloverData {
     const achievement = new AchievementTable()
     achievement.readSync(path.join(basePath, `Achievement${fileExtension}`))
 
-    this.publish(rank, suit, baseDeckCard, pokerHand, enhancement, enhancementEffect, seal, sealEffect, edition, rngStream, tarot, tarotEffect, planet, spectral, spectralEffect, editionVisual, soundCue, joker, jokerRarityWeight, jokerEffect, ante, blind, bossBlind, bossEffect, deck, deckEffect, stake, tag, tagEffect, shopSlotWeight, boosterPack, voucher, voucherEffect, rerollCost, stringTable, achievement)
+    this.publish(rank, suit, baseDeckCard, pokerHand, enhancement, enhancementEffect, seal, sealEffect, edition, rngStream, tarot, tarotEffect, planet, spectral, spectralEffect, editionVisual, soundCue, joker, jokerRarityWeight, jokerEffect, ante, blind, bossBlind, bossEffect, deck, deckEffect, stake, tag, tagEffect, challenge, challengeEffect, challengeBan, challengeCard, shopSlotWeight, boosterPack, voucher, voucherEffect, rerollCost, stringTable, achievement)
   }
 
   /**
@@ -468,6 +504,14 @@ export class CloverData {
     tag.readBinarySync(path.join(basePath, `Tag${fileExtension}`))
     const tagEffect = new TagEffectTable()
     tagEffect.readBinarySync(path.join(basePath, `TagEffect${fileExtension}`))
+    const challenge = new ChallengeTable()
+    challenge.readBinarySync(path.join(basePath, `Challenge${fileExtension}`))
+    const challengeEffect = new ChallengeEffectTable()
+    challengeEffect.readBinarySync(path.join(basePath, `ChallengeEffect${fileExtension}`))
+    const challengeBan = new ChallengeBanTable()
+    challengeBan.readBinarySync(path.join(basePath, `ChallengeBan${fileExtension}`))
+    const challengeCard = new ChallengeCardTable()
+    challengeCard.readBinarySync(path.join(basePath, `ChallengeCard${fileExtension}`))
     const shopSlotWeight = new ShopSlotWeightTable()
     shopSlotWeight.readBinarySync(path.join(basePath, `ShopSlotWeight${fileExtension}`))
     const boosterPack = new BoosterPackTable()
@@ -483,7 +527,7 @@ export class CloverData {
     const achievement = new AchievementTable()
     achievement.readBinarySync(path.join(basePath, `Achievement${fileExtension}`))
 
-    this.publish(rank, suit, baseDeckCard, pokerHand, enhancement, enhancementEffect, seal, sealEffect, edition, rngStream, tarot, tarotEffect, planet, spectral, spectralEffect, editionVisual, soundCue, joker, jokerRarityWeight, jokerEffect, ante, blind, bossBlind, bossEffect, deck, deckEffect, stake, tag, tagEffect, shopSlotWeight, boosterPack, voucher, voucherEffect, rerollCost, stringTable, achievement)
+    this.publish(rank, suit, baseDeckCard, pokerHand, enhancement, enhancementEffect, seal, sealEffect, edition, rngStream, tarot, tarotEffect, planet, spectral, spectralEffect, editionVisual, soundCue, joker, jokerRarityWeight, jokerEffect, ante, blind, bossBlind, bossEffect, deck, deckEffect, stake, tag, tagEffect, challenge, challengeEffect, challengeBan, challengeCard, shopSlotWeight, boosterPack, voucher, voucherEffect, rerollCost, stringTable, achievement)
   }
 
   /**
@@ -494,7 +538,7 @@ export class CloverData {
    * what it held, which is the answer a running program wants: the data it already had, and
    * an exception saying why the new data was not taken.
    */
-  private publish(rank: RankTable, suit: SuitTable, baseDeckCard: BaseDeckCardTable, pokerHand: PokerHandTable, enhancement: EnhancementTable, enhancementEffect: EnhancementEffectTable, seal: SealTable, sealEffect: SealEffectTable, edition: EditionTable, rngStream: RngStreamTable, tarot: TarotTable, tarotEffect: TarotEffectTable, planet: PlanetTable, spectral: SpectralTable, spectralEffect: SpectralEffectTable, editionVisual: EditionVisualTable, soundCue: SoundCueTable, joker: JokerTable, jokerRarityWeight: JokerRarityWeightTable, jokerEffect: JokerEffectTable, ante: AnteTable, blind: BlindTable, bossBlind: BossBlindTable, bossEffect: BossEffectTable, deck: DeckTable, deckEffect: DeckEffectTable, stake: StakeTable, tag: TagTable, tagEffect: TagEffectTable, shopSlotWeight: ShopSlotWeightTable, boosterPack: BoosterPackTable, voucher: VoucherTable, voucherEffect: VoucherEffectTable, rerollCost: RerollCostTable, stringTable: StringTableTable, achievement: AchievementTable): void {
+  private publish(rank: RankTable, suit: SuitTable, baseDeckCard: BaseDeckCardTable, pokerHand: PokerHandTable, enhancement: EnhancementTable, enhancementEffect: EnhancementEffectTable, seal: SealTable, sealEffect: SealEffectTable, edition: EditionTable, rngStream: RngStreamTable, tarot: TarotTable, tarotEffect: TarotEffectTable, planet: PlanetTable, spectral: SpectralTable, spectralEffect: SpectralEffectTable, editionVisual: EditionVisualTable, soundCue: SoundCueTable, joker: JokerTable, jokerRarityWeight: JokerRarityWeightTable, jokerEffect: JokerEffectTable, ante: AnteTable, blind: BlindTable, bossBlind: BossBlindTable, bossEffect: BossEffectTable, deck: DeckTable, deckEffect: DeckEffectTable, stake: StakeTable, tag: TagTable, tagEffect: TagEffectTable, challenge: ChallengeTable, challengeEffect: ChallengeEffectTable, challengeBan: ChallengeBanTable, challengeCard: ChallengeCardTable, shopSlotWeight: ShopSlotWeightTable, boosterPack: BoosterPackTable, voucher: VoucherTable, voucherEffect: VoucherEffectTable, rerollCost: RerollCostTable, stringTable: StringTableTable, achievement: AchievementTable): void {
     this._rank = rank
     this._suit = suit
     this._baseDeckCard = baseDeckCard
@@ -524,6 +568,10 @@ export class CloverData {
     this._stake = stake
     this._tag = tag
     this._tagEffect = tagEffect
+    this._challenge = challenge
+    this._challengeEffect = challengeEffect
+    this._challengeBan = challengeBan
+    this._challengeCard = challengeCard
     this._shopSlotWeight = shopSlotWeight
     this._boosterPack = boosterPack
     this._voucher = voucher
@@ -587,6 +635,30 @@ export class CloverData {
       if (record._owner_Tag_index !== "") {
         const target = this._tag.getByTagIdOrThrow(
           record._owner_Tag_index)
+        record.setReference_owner_INTERNAL(target)
+      }
+    }
+
+    for (const record of this._challengeEffect.records) {
+      if (record._owner_Challenge_index !== "") {
+        const target = this._challenge.getByChallengeIdOrThrow(
+          record._owner_Challenge_index)
+        record.setReference_owner_INTERNAL(target)
+      }
+    }
+
+    for (const record of this._challengeBan.records) {
+      if (record._owner_Challenge_index !== "") {
+        const target = this._challenge.getByChallengeIdOrThrow(
+          record._owner_Challenge_index)
+        record.setReference_owner_INTERNAL(target)
+      }
+    }
+
+    for (const record of this._challengeCard.records) {
+      if (record._owner_Challenge_index !== "") {
+        const target = this._challenge.getByChallengeIdOrThrow(
+          record._owner_Challenge_index)
         record.setReference_owner_INTERNAL(target)
       }
     }

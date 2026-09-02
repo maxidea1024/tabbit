@@ -7,6 +7,7 @@
 
 
 // Enums
+export { BanKind } from './enums/ban-kind'
 export { BlindKind } from './enums/blind-kind'
 export { CardBackKind } from './enums/card-back-kind'
 export { CardClass } from './enums/card-class'
@@ -101,6 +102,14 @@ export { TagRecord } from './tables/tag'
 export { TagTable } from './tables/tag'
 export { TagEffectRecord } from './tables/tag-effect'
 export { TagEffectTable } from './tables/tag-effect'
+export { ChallengeRecord } from './tables/challenge'
+export { ChallengeTable } from './tables/challenge'
+export { ChallengeEffectRecord } from './tables/challenge-effect'
+export { ChallengeEffectTable } from './tables/challenge-effect'
+export { ChallengeBanRecord } from './tables/challenge-ban'
+export { ChallengeBanTable } from './tables/challenge-ban'
+export { ChallengeCardRecord } from './tables/challenge-card'
+export { ChallengeCardTable } from './tables/challenge-card'
 export { ShopSlotWeightRecord } from './tables/shop-slot-weight'
 export { ShopSlotWeightTable } from './tables/shop-slot-weight'
 export { BoosterPackRecord } from './tables/booster-pack'

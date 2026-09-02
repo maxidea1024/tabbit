@@ -1,31 +1,31 @@
 :table SpectralEffect(key="owner,order")	유령 카드가 하는 일입니다.
-:field	owner	order	trigger	chance_num	chance_den	first_only	ranks	suits	scope	scope_count	condition.$type	condition.hand	condition.suit	condition.enhancement	condition.seal	condition.edition	condition.blind	condition.consumable	condition.target	condition.counter	condition.consume	condition.n	condition.compare	condition.num	condition.den	operation.$type	operation.chips	operation.mult	operation.money	operation.cap	operation.unit	operation.mode	operation.value	operation.base_value	operation.min	operation.max	operation.times	operation.counter	operation.step	operation.init	operation.floor	operation.reset	operation.hand_pick	operation.levels	operation.create	operation.count	operation.card_class	operation.edition	operation.rarity	operation.enhancement	operation.seal	operation.suit	operation.modify	operation.trait	operation.debuff	operation.pick	operation.rule	operation.absolute	operation.duration	operation.free	operation.random	operation.ref_id	operation.handler
-:type	foreign Spectral	int (min=0, max=15)	Trigger	int?	int?	bool?	RankKind[]?	SuitKind[]?	Scope	int?	Condition															Operation																																					
-:desc	이 효과를 가진 것	같은 소유자 안의 순서	언제 보는가	확률의 분자	확률의 분모	조건을 만족한 첫 대상만	어느 랭크들인가	어느 무늬들인가	누구에게	대상 개수	무엇이 참이어야 하는가															무엇을 하는가																																					
-	familiar	0	OnUse	-	-	-	-	-	RandomInHand	1	CondAlways															OpDestroyCard																				1																	
-	familiar	1	OnUse	-	-	-	-	-	AllInHand	-	CondAlways															OpAddCard																			PlayingCard	3	Face														true		
-	grim	0	OnUse	-	-	-	-	-	RandomInHand	1	CondAlways															OpDestroyCard																				1																	
-	grim	1	OnUse	-	-	-	-	-	AllInHand	-	CondAlways															OpAddCard																			PlayingCard	2	Ace														true		
-	incantation	0	OnUse	-	-	-	-	-	RandomInHand	1	CondAlways															OpDestroyCard																				1																	
-	incantation	1	OnUse	-	-	-	-	-	AllInHand	-	CondAlways															OpAddCard																			PlayingCard	4	Numbered														true		
-	talisman	0	OnUse	-	-	-	-	-	Selected	1	CondAlways															OpModifyCard																									Gold		Seal										
-	aura	0	OnUse	-	-	-	-	-	Selected	1	CondAlways															OpModifyCard																											Edition								true		
-	wraith	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpCreateCard																			Joker	1			Rare												true		
-	wraith	1	OnUse	-	-	-	-	-	Run	-	CondAlways															OpSetMoney			0																																		
-	sigil	0	OnUse	-	-	-	-	-	AllInHand	-	CondAlways															OpModifyCard																											Suit								true		
-	ouija	0	OnUse	-	-	-	-	-	AllInHand	-	CondAlways															OpModifyCard																											RankTo								true		
-	ouija	1	OnUse	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-1																								HandSize						
-	ectoplasm	0	OnUse	-	-	-	-	-	RandomJoker	-	CondAlways															OpModifyJoker																						Negative															
-	ectoplasm	1	OnUse	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-1																								HandSize						
-	immolate	0	OnUse	-	-	-	-	-	RandomInHand	5	CondAlways															OpDestroyCard																				5																	
-	immolate	1	OnUse	-	-	-	-	-	Run	-	CondAlways															OpAddMoney			20																																		
-	ankh	0	OnUse	-	-	-	-	-	RandomJoker	-	CondAlways															OpCopyJoker																														Random							
-	ankh	1	OnUse	-	-	-	-	-	AllOtherJokers	-	CondAlways															OpDestroyJoker																														AllOther							
-	deja_vu	0	OnUse	-	-	-	-	-	Selected	1	CondAlways															OpModifyCard																									Red		Seal										
-	hex	0	OnUse	-	-	-	-	-	RandomJoker	-	CondAlways															OpModifyJoker																						Polychrome															
-	hex	1	OnUse	-	-	-	-	-	AllOtherJokers	-	CondAlways															OpDestroyJoker																														AllOther							
-	trance	0	OnUse	-	-	-	-	-	Selected	1	CondAlways															OpModifyCard																									Blue		Seal										
-	medium	0	OnUse	-	-	-	-	-	Selected	1	CondAlways															OpModifyCard																									Purple		Seal										
-	cryptid	0	OnUse	-	-	-	-	-	Selected	1	CondAlways															OpAddCard																			CopyOfSelected	2																	
-	the_soul	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpCreateCard																			Joker	1			Legendary												true		
-	black_hole	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpLevelUpHand																	All	1																			
+:field	owner	order	trigger	chance_num	chance_den	first_only	ranks	suits	scope	scope_count	condition.$type	condition.hand	condition.suit	condition.enhancement	condition.seal	condition.edition	condition.blind	condition.consumable	condition.target	condition.counter	condition.consume	condition.n	condition.compare	condition.num	condition.den	operation.$type	operation.chips	operation.mult	operation.money	operation.cap	operation.unit	operation.mode	operation.value	operation.base_value	operation.min	operation.max	operation.times	operation.counter	operation.step	operation.init	operation.floor	operation.reset	operation.hand_pick	operation.levels	operation.create	operation.count	operation.card_class	operation.edition	operation.rarity	operation.enhancement	operation.seal	operation.suit	operation.modify	operation.trait	operation.debuff	operation.pick	operation.rule	operation.absolute	operation.duration	operation.free	operation.random	operation.ref_id	operation.handler	operation.sticker
+:type	foreign Spectral	int (min=0, max=15)	Trigger	int?	int?	bool?	RankKind[]?	SuitKind[]?	Scope	int?	Condition															Operation																																						
+:desc	이 효과를 가진 것	같은 소유자 안의 순서	언제 보는가	확률의 분자	확률의 분모	조건을 만족한 첫 대상만	어느 랭크들인가	어느 무늬들인가	누구에게	대상 개수	무엇이 참이어야 하는가															무엇을 하는가																																						
+	familiar	0	OnUse	-	-	-	-	-	RandomInHand	1	CondAlways															OpDestroyCard																				1																		
+	familiar	1	OnUse	-	-	-	-	-	AllInHand	-	CondAlways															OpAddCard																			PlayingCard	3	Face														true			
+	grim	0	OnUse	-	-	-	-	-	RandomInHand	1	CondAlways															OpDestroyCard																				1																		
+	grim	1	OnUse	-	-	-	-	-	AllInHand	-	CondAlways															OpAddCard																			PlayingCard	2	Ace														true			
+	incantation	0	OnUse	-	-	-	-	-	RandomInHand	1	CondAlways															OpDestroyCard																				1																		
+	incantation	1	OnUse	-	-	-	-	-	AllInHand	-	CondAlways															OpAddCard																			PlayingCard	4	Numbered														true			
+	talisman	0	OnUse	-	-	-	-	-	Selected	1	CondAlways															OpModifyCard																									Gold		Seal											
+	aura	0	OnUse	-	-	-	-	-	Selected	1	CondAlways															OpModifyCard																											Edition								true			
+	wraith	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpCreateCard																			Joker	1			Rare												true			
+	wraith	1	OnUse	-	-	-	-	-	Run	-	CondAlways															OpSetMoney			0																																			
+	sigil	0	OnUse	-	-	-	-	-	AllInHand	-	CondAlways															OpModifyCard																											Suit								true			
+	ouija	0	OnUse	-	-	-	-	-	AllInHand	-	CondAlways															OpModifyCard																											RankTo								true			
+	ouija	1	OnUse	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-1																								HandSize							
+	ectoplasm	0	OnUse	-	-	-	-	-	RandomJoker	-	CondAlways															OpModifyJoker																						Negative																
+	ectoplasm	1	OnUse	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-1																								HandSize							
+	immolate	0	OnUse	-	-	-	-	-	RandomInHand	5	CondAlways															OpDestroyCard																				5																		
+	immolate	1	OnUse	-	-	-	-	-	Run	-	CondAlways															OpAddMoney			20																																			
+	ankh	0	OnUse	-	-	-	-	-	RandomJoker	-	CondAlways															OpCopyJoker																														Random								
+	ankh	1	OnUse	-	-	-	-	-	AllOtherJokers	-	CondAlways															OpDestroyJoker																														AllOther								
+	deja_vu	0	OnUse	-	-	-	-	-	Selected	1	CondAlways															OpModifyCard																									Red		Seal											
+	hex	0	OnUse	-	-	-	-	-	RandomJoker	-	CondAlways															OpModifyJoker																						Polychrome																
+	hex	1	OnUse	-	-	-	-	-	AllOtherJokers	-	CondAlways															OpDestroyJoker																														AllOther								
+	trance	0	OnUse	-	-	-	-	-	Selected	1	CondAlways															OpModifyCard																									Blue		Seal											
+	medium	0	OnUse	-	-	-	-	-	Selected	1	CondAlways															OpModifyCard																									Purple		Seal											
+	cryptid	0	OnUse	-	-	-	-	-	Selected	1	CondAlways															OpAddCard																			CopyOfSelected	2																		
+	the_soul	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpCreateCard																			Joker	1			Legendary												true			
+	black_hole	0	OnUse	-	-	-	-	-	Run	-	CondAlways															OpLevelUpHand																	All	1																				

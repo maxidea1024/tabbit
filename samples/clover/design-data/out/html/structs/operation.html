@@ -606,6 +606,7 @@ tbody [data-pick] { cursor: pointer; }
 <p class="comment">효과가 하는 일.</p>
 <p class="hint">이 타입으로 선언된 그룹:
 <a href="../tables/boss-effect.html#col_BossEffect.OperationType">BossEffect.Operation</a>,
+<a href="../tables/challenge-effect.html#col_ChallengeEffect.OperationType">ChallengeEffect.Operation</a>,
 <a href="../tables/deck-effect.html#col_DeckEffect.OperationType">DeckEffect.Operation</a>,
 <a href="../tables/enhancement-effect.html#col_EnhancementEffect.OperationType">EnhancementEffect.Operation</a>,
 <a href="../tables/joker-effect.html#col_JokerEffect.OperationType">JokerEffect.Operation</a>,
@@ -855,7 +856,7 @@ tbody [data-pick] { cursor: pointer; }
 <tr><td>HandPick</td><td><a href="../enums/hand-pick.html#enum_HandPick" data-enum="HandPick">enum.HandPick</a>?</td><td><span class="hint">OpLevelUpHand</span></td><td></td></tr>
 <tr><td>Create</td><td><a href="../enums/create-kind.html#enum_CreateKind" data-enum="CreateKind">enum.CreateKind</a>?</td><td><span class="hint">OpAddCard, OpShopGift, OpGrant</span></td><td></td></tr>
 <tr><td>Count</td><td><span class="type">int?</span></td><td><span class="hint">OpAddCard, OpDestroyCard, OpShopGift, OpForceDiscard, OpGrant</span></td><td></td></tr>
-<tr><td>Edition</td><td><a href="../enums/edition-kind.html#enum_EditionKind" data-enum="EditionKind">enum.EditionKind</a>?</td><td><span class="hint">OpModifyCard, OpModifyJoker, OpShopGift</span></td><td></td></tr>
+<tr><td>Edition</td><td><a href="../enums/edition-kind.html#enum_EditionKind" data-enum="EditionKind">enum.EditionKind</a>?</td><td><span class="hint">OpModifyCard, OpModifyJoker, OpShopGift, OpGrant</span></td><td></td></tr>
 <tr><td>Rarity</td><td><a href="../enums/rarity.html#enum_Rarity" data-enum="Rarity">enum.Rarity</a>?</td><td><span class="hint">OpPerUnit, OpShopGift</span></td><td><code>JokerRarityCount</code> 가 어느 희귀도를 세는가.</td></tr>
 <tr><td>Random</td><td><span class="type">bool?</span></td><td><span class="hint">OpAddCard, OpModifyCard, OpModifyJoker</span></td><td>정하지 않은 성질을 무작위로 채웁니다.</td></tr>
 <tr><td>RefId</td><td><span class="type">string?</span></td><td><span class="hint">OpGrant</span></td><td>특정 행을 가리킬 때의 식별자. 팩과 바우처와 태그가 씁니다.</td></tr>
@@ -906,7 +907,7 @@ tbody [data-pick] { cursor: pointer; }
 </thead>
 <tbody>
 <tr><td>Value</td><td><span class="type">int?</span></td><td><span class="hint">OpPerUnit, OpChangeRule, OpMulMoney</span></td><td></td></tr>
-<tr><td>Edition</td><td><a href="../enums/edition-kind.html#enum_EditionKind" data-enum="EditionKind">enum.EditionKind</a>?</td><td><span class="hint">OpCreateCard, OpModifyJoker, OpShopGift</span></td><td></td></tr>
+<tr><td>Edition</td><td><a href="../enums/edition-kind.html#enum_EditionKind" data-enum="EditionKind">enum.EditionKind</a>?</td><td><span class="hint">OpCreateCard, OpModifyJoker, OpShopGift, OpGrant</span></td><td></td></tr>
 <tr><td>Enhancement</td><td><a href="../enums/enhancement-kind.html#enum_EnhancementKind" data-enum="EnhancementKind">enum.EnhancementKind</a>?</td><td><span class="hint">OpPerUnit, OpAddCard</span></td><td><code>DeckEnhancementCount</code> 가 어느 강화를 세는가.</td></tr>
 <tr><td>Seal</td><td><a href="../enums/seal-kind.html#enum_SealKind" data-enum="SealKind">enum.SealKind</a>?</td><td><span class="hint">OpAddCard</span></td><td></td></tr>
 <tr><td>Suit</td><td><a href="../enums/suit-kind.html#enum_SuitKind" data-enum="SuitKind">enum.SuitKind</a>?</td><td><span class="hint">OpDebuff</span></td><td></td></tr>
@@ -925,7 +926,7 @@ tbody [data-pick] { cursor: pointer; }
 <tr class="names"><th>이름</th><th>타입</th><th title="같은 멤버를 선언하는 다른 변종">공유</th><th>설명</th></tr>
 </thead>
 <tbody>
-<tr><td>Edition</td><td><a href="../enums/edition-kind.html#enum_EditionKind" data-enum="EditionKind">enum.EditionKind</a>?</td><td><span class="hint">OpCreateCard, OpModifyCard, OpShopGift</span></td><td></td></tr>
+<tr><td>Edition</td><td><a href="../enums/edition-kind.html#enum_EditionKind" data-enum="EditionKind">enum.EditionKind</a>?</td><td><span class="hint">OpCreateCard, OpModifyCard, OpShopGift, OpGrant</span></td><td></td></tr>
 <tr><td>Random</td><td><span class="type">bool?</span></td><td><span class="hint">OpCreateCard, OpAddCard, OpModifyCard</span></td><td>정하지 않은 성질을 무작위로 채웁니다.</td></tr>
 </tbody>
 </table>
@@ -1054,7 +1055,7 @@ tbody [data-pick] { cursor: pointer; }
 <tbody>
 <tr><td>Create</td><td><a href="../enums/create-kind.html#enum_CreateKind" data-enum="CreateKind">enum.CreateKind</a>?</td><td><span class="hint">OpCreateCard, OpAddCard, OpGrant</span></td><td></td></tr>
 <tr><td>Count</td><td><span class="type">int?</span></td><td><span class="hint">OpCreateCard, OpAddCard, OpDestroyCard, OpForceDiscard, OpGrant</span></td><td></td></tr>
-<tr><td>Edition</td><td><a href="../enums/edition-kind.html#enum_EditionKind" data-enum="EditionKind">enum.EditionKind</a>?</td><td><span class="hint">OpCreateCard, OpModifyCard, OpModifyJoker</span></td><td></td></tr>
+<tr><td>Edition</td><td><a href="../enums/edition-kind.html#enum_EditionKind" data-enum="EditionKind">enum.EditionKind</a>?</td><td><span class="hint">OpCreateCard, OpModifyCard, OpModifyJoker, OpGrant</span></td><td></td></tr>
 <tr><td>Rarity</td><td><a href="../enums/rarity.html#enum_Rarity" data-enum="Rarity">enum.Rarity</a>?</td><td><span class="hint">OpPerUnit, OpCreateCard</span></td><td><code>JokerRarityCount</code> 가 어느 희귀도를 세는가.</td></tr>
 <tr><td>Free</td><td><span class="type">bool?</span></td><td></td><td></td></tr>
 </tbody>
@@ -1110,8 +1111,11 @@ tbody [data-pick] { cursor: pointer; }
 <p class="none">이 변종이 따로 선언하는 멤버가 없습니다.</p>
 </div>
 <div class="variant" id="variant_Operation.OpGrant">
-<h3><svg class="i"><use href="#i-struct"></use></svg>OpGrant<span class="tag" title="파일이 싣는 번호">@34</span><span class="tag">멤버 3개</span></h3>
-<p class="comment">런을 시작할 때 무언가를 줍니다. 덱이 씁니다.</p>
+<h3><svg class="i"><use href="#i-struct"></use></svg>OpGrant<span class="tag" title="파일이 싣는 번호">@34</span><span class="tag">멤버 5개</span></h3>
+<p class="comment">런을 시작할 때 무언가를 줍니다. 덱과 챌린지가 씁니다.
+
+**<code>ref_id</code> 를 비우면 아무것도 주지 않습니다.** 무작위로 주는 것은 <code>OpCreateCard</code> 의
+몫이고, 이것은 「무엇을 주는가」가 정해져 있는 자리입니다.</p>
 <div class="scroll">
 <table>
 <thead>
@@ -1120,7 +1124,9 @@ tbody [data-pick] { cursor: pointer; }
 <tbody>
 <tr><td>Create</td><td><a href="../enums/create-kind.html#enum_CreateKind" data-enum="CreateKind">enum.CreateKind</a>?</td><td><span class="hint">OpCreateCard, OpAddCard, OpShopGift</span></td><td></td></tr>
 <tr><td>Count</td><td><span class="type">int?</span></td><td><span class="hint">OpCreateCard, OpAddCard, OpDestroyCard, OpShopGift, OpForceDiscard</span></td><td></td></tr>
+<tr><td>Edition</td><td><a href="../enums/edition-kind.html#enum_EditionKind" data-enum="EditionKind">enum.EditionKind</a>?</td><td><span class="hint">OpCreateCard, OpModifyCard, OpModifyJoker, OpShopGift</span></td><td></td></tr>
 <tr><td>RefId</td><td><span class="type">string?</span></td><td><span class="hint">OpCreateCard</span></td><td>특정 행을 가리킬 때의 식별자. 팩과 바우처와 태그가 씁니다.</td></tr>
+<tr><td>Sticker</td><td><a href="../enums/sticker-kind.html#enum_StickerKind" data-enum="StickerKind">enum.StickerKind</a>?</td><td></td><td>붙여서 줄 스티커. 비우면 <code>None</code>. 조커에만 걸립니다.</td></tr>
 </tbody>
 </table>
 </div>
@@ -1354,6 +1360,18 @@ tbody [data-pick] { cursor: pointer; }
 <tr data-label="RemoveFaceCards"><td>RemoveFaceCards</td><td class="num">49</td><td class="hint">시작 덱에서 그림 카드를 뺍니다.</td></tr>
 <tr data-label="SuitsOnly"><td>SuitsOnly</td><td class="num">50</td><td class="hint">시작 덱을 그 무늬들로만 채웁니다. <code>suits</code> 가 어느 무늬인지 적습니다.</td></tr>
 <tr data-label="NextShopFree"><td>NextShopFree</td><td class="num">51</td><td class="hint">다음 상점의 처음 카드와 팩이 무료입니다. <code>Coupon Tag</code>.</td></tr>
+<tr data-label="NoSmallBlindReward"><td>NoSmallBlindReward</td><td class="num">52</td><td class="hint">스몰 블라인드를 깨도 보상이 없습니다.</td></tr>
+<tr data-label="NoBigBlindReward"><td>NoBigBlindReward</td><td class="num">53</td><td class="hint">빅 블라인드를 깨도 보상이 없습니다.</td></tr>
+<tr data-label="NoBossBlindReward"><td>NoBossBlindReward</td><td class="num">54</td><td class="hint">보스 블라인드를 깨도 보상이 없습니다.</td></tr>
+<tr data-label="ChipsCappedByMoney"><td>ChipsCappedByMoney</td><td class="num">55</td><td class="hint">칩이 지금 보유액을 넘지 못합니다.</td></tr>
+<tr data-label="FaceDownDrawRate"><td>FaceDownDrawRate</td><td class="num">56</td><td class="hint">뽑는 카드가 뒤집혀 나올 확률의 분모. <code>4</code> 면 넷에 하나입니다. 0이면 없습니다.</td></tr>
+<tr data-label="HandSizePerMoney"><td>HandSizePerMoney</td><td class="num">57</td><td class="hint">보유액이 이만큼일 때마다 패 크기가 하나 줄어듭니다. 0이면 없습니다.</td></tr>
+<tr data-label="AllJokersEternal"><td>AllJokersEternal</td><td class="num">58</td><td class="hint">모든 조커에 <code>Eternal</code> 이 붙습니다. <code>Joker.eternal_ok</code> 가 거짓인 것은 빠집니다.</td></tr>
+<tr data-label="DebuffPlayedAfterScoring"><td>DebuffPlayedAfterScoring</td><td class="num">59</td><td class="hint">낸 카드가 득점을 마치면 무력화됩니다. 라운드가 끝나도 풀리지 않습니다.</td></tr>
+<tr data-label="PriceRisePerPurchase"><td>PriceRisePerPurchase</td><td class="num">60</td><td class="hint">무언가를 살 때마다 상점의 값이 이만큼 영구히 오릅니다.</td></tr>
+<tr data-label="NoJokersInShop"><td>NoJokersInShop</td><td class="num">61</td><td class="hint">상점의 카드 칸에 조커가 나오지 않습니다.</td></tr>
+<tr data-label="DiscardCost"><td>DiscardCost</td><td class="num">62</td><td class="hint">카드를 버릴 때마다 내는 금액.</td></tr>
+<tr data-label="PinnedJokerSlot"><td>PinnedJokerSlot</td><td class="num">63</td><td class="hint">이 자리의 조커를 옮길 수 없습니다. 1부터 세고 0이면 없습니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="SealKind">
@@ -1364,6 +1382,15 @@ tbody [data-pick] { cursor: pointer; }
 <tr data-label="Blue"><td>Blue</td><td class="num">2</td><td class="hint">라운드가 끝날 때 패에 있으면 행성을 만듭니다.</td></tr>
 <tr data-label="Gold"><td>Gold</td><td class="num">3</td><td class="hint">득점하면 금액을 줍니다.</td></tr>
 <tr data-label="Purple"><td>Purple</td><td class="num">4</td><td class="hint">버려지면 타로를 만듭니다.</td></tr>
+</tbody></table>
+</div>
+<div data-enum-def="StickerKind">
+<p class="lead"><b>enum.StickerKind</b> <span class="hint">조커 개체에 붙는 상태. 조커의 성질이 아니므로 테이블이 아니라 런 상태입니다.</span></p>
+<table><tbody>
+<tr data-label="None"><td>None</td><td class="num">0</td><td class="hint">아무 상태도 붙지 않았습니다.</td></tr>
+<tr data-label="Eternal"><td>Eternal</td><td class="num">1</td><td class="hint">팔 수 없고 파괴되지 않습니다.</td></tr>
+<tr data-label="Perishable"><td>Perishable</td><td class="num">2</td><td class="hint">5라운드 뒤에 무력화됩니다.</td></tr>
+<tr data-label="Rental"><td>Rental</td><td class="num">3</td><td class="hint">$1 에 삽니다. 라운드마다 $3 을 잃습니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="SuitKind">

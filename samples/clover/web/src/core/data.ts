@@ -51,7 +51,7 @@ export interface EffectRow {
 
 export type EffectSource =
   | 'joker' | 'tarot' | 'spectral' | 'boss' | 'voucher' | 'tag' | 'deck'
-  | 'enhancement' | 'seal'
+  | 'enhancement' | 'seal' | 'challenge'
 
 /** 같은 소유자의 효과를 순서대로 묶어 둔 것. */
 export type EffectIndex = ReadonlyMap<string, readonly EffectRow[]>
@@ -67,6 +67,7 @@ export interface Data {
   readonly voucherEffects: EffectIndex
   readonly tagEffects: EffectIndex
   readonly deckEffects: EffectIndex
+  readonly challengeEffects: EffectIndex
   readonly enhancementEffects: EffectIndex
   readonly sealEffects: EffectIndex
 
@@ -241,6 +242,8 @@ export function build(tables: CloverData): Data {
     voucherEffects: index('voucher', tables.voucherEffect.records as unknown as RawEffect[]),
     tagEffects: index('tag', tables.tagEffect.records as unknown as RawEffect[]),
     deckEffects: index('deck', tables.deckEffect.records as unknown as RawEffect[]),
+    challengeEffects:
+      index('challenge', tables.challengeEffect.records as unknown as RawEffect[]),
     enhancementEffects:
       indexByEnum('enhancement', tables.enhancementEffect.records as unknown as RawEffect[]),
     sealEffects: indexByEnum('seal', tables.sealEffect.records as unknown as RawEffect[]),

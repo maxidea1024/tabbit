@@ -600,6 +600,13 @@
         "Kind": 0,
         "Retired": false,
         "ExplicitTag": false
+      },
+      "64": {
+        "Name": "Operation.Sticker",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
       }
     },
     "Seal": {
@@ -1056,6 +1063,13 @@
       "63": {
         "Name": "Operation.Handler",
         "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "64": {
+        "Name": "Operation.Sticker",
+        "Element": 0,
         "Kind": 0,
         "Retired": false,
         "ExplicitTag": false
@@ -1592,6 +1606,13 @@
         "Kind": 0,
         "Retired": false,
         "ExplicitTag": false
+      },
+      "64": {
+        "Name": "Operation.Sticker",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
       }
     },
     "Planet": {
@@ -2085,6 +2106,13 @@
       "63": {
         "Name": "Operation.Handler",
         "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "64": {
+        "Name": "Operation.Sticker",
+        "Element": 0,
         "Kind": 0,
         "Retired": false,
         "ExplicitTag": false
@@ -2686,6 +2714,13 @@
         "Kind": 0,
         "Retired": false,
         "ExplicitTag": false
+      },
+      "64": {
+        "Name": "Operation.Sticker",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
       }
     },
     "Ante": {
@@ -3247,6 +3282,13 @@
         "Kind": 0,
         "Retired": false,
         "ExplicitTag": false
+      },
+      "64": {
+        "Name": "Operation.Sticker",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
       }
     },
     "Deck": {
@@ -3738,6 +3780,13 @@
       "63": {
         "Name": "Operation.Handler",
         "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "64": {
+        "Name": "Operation.Sticker",
+        "Element": 0,
         "Kind": 0,
         "Retired": false,
         "ExplicitTag": false
@@ -4262,6 +4311,581 @@
       "63": {
         "Name": "Operation.Handler",
         "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "64": {
+        "Name": "Operation.Sticker",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "Challenge": {
+      "1": {
+        "Name": "ChallengeId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Name",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "Unlock",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "SortOrder",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "ChallengeEffect": {
+      "1": {
+        "Name": "Owner",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Order",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "Trigger",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "ChanceNum",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "ChanceDen",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "6": {
+        "Name": "FirstOnly",
+        "Element": 1,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "7": {
+        "Name": "Ranks",
+        "Element": 0,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "8": {
+        "Name": "Suits",
+        "Element": 0,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "9": {
+        "Name": "Scope",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "10": {
+        "Name": "ScopeCount",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "11": {
+        "Name": "Condition.Type",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "12": {
+        "Name": "Condition.Hand",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "13": {
+        "Name": "Condition.Suit",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "14": {
+        "Name": "Condition.Enhancement",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "15": {
+        "Name": "Condition.Seal",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "16": {
+        "Name": "Condition.Edition",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "17": {
+        "Name": "Condition.Blind",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "18": {
+        "Name": "Condition.Consumable",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "19": {
+        "Name": "Condition.Target",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "20": {
+        "Name": "Condition.Counter",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "21": {
+        "Name": "Condition.Consume",
+        "Element": 1,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "22": {
+        "Name": "Condition.N",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "23": {
+        "Name": "Condition.Compare",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "24": {
+        "Name": "Condition.Num",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "25": {
+        "Name": "Condition.Den",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "26": {
+        "Name": "Operation.Type",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "27": {
+        "Name": "Operation.Chips",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "28": {
+        "Name": "Operation.Mult",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "29": {
+        "Name": "Operation.Money",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "30": {
+        "Name": "Operation.Cap",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "31": {
+        "Name": "Operation.Unit",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "32": {
+        "Name": "Operation.Mode",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "33": {
+        "Name": "Operation.Value",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "34": {
+        "Name": "Operation.BaseValue",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "35": {
+        "Name": "Operation.Min",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "36": {
+        "Name": "Operation.Max",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "37": {
+        "Name": "Operation.Times",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "38": {
+        "Name": "Operation.Counter",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "39": {
+        "Name": "Operation.Step",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "40": {
+        "Name": "Operation.Init",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "41": {
+        "Name": "Operation.Floor",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "42": {
+        "Name": "Operation.Reset",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "43": {
+        "Name": "Operation.HandPick",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "44": {
+        "Name": "Operation.Levels",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "45": {
+        "Name": "Operation.Create",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "46": {
+        "Name": "Operation.Count",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "47": {
+        "Name": "Operation.CardClass",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "48": {
+        "Name": "Operation.Edition",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "49": {
+        "Name": "Operation.Rarity",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "50": {
+        "Name": "Operation.Enhancement",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "51": {
+        "Name": "Operation.Seal",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "52": {
+        "Name": "Operation.Suit",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "53": {
+        "Name": "Operation.Modify",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "54": {
+        "Name": "Operation.Trait",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "55": {
+        "Name": "Operation.Debuff",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "56": {
+        "Name": "Operation.Pick",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "57": {
+        "Name": "Operation.Rule",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "58": {
+        "Name": "Operation.Absolute",
+        "Element": 1,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "59": {
+        "Name": "Operation.Duration",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "60": {
+        "Name": "Operation.Free",
+        "Element": 1,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "61": {
+        "Name": "Operation.Random",
+        "Element": 1,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "62": {
+        "Name": "Operation.RefId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "63": {
+        "Name": "Operation.Handler",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "64": {
+        "Name": "Operation.Sticker",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "ChallengeBan": {
+      "1": {
+        "Name": "Owner",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Order",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "Kind",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "RefId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "ChallengeCard": {
+      "1": {
+        "Name": "Owner",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Order",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "Ranks",
+        "Element": 0,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "Suits",
+        "Element": 0,
+        "Kind": 1,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "Copies",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "6": {
+        "Name": "Enhancement",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "7": {
+        "Name": "Seal",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "8": {
+        "Name": "Edition",
+        "Element": 0,
         "Kind": 0,
         "Retired": false,
         "ExplicitTag": false
@@ -4809,6 +5433,13 @@
       "63": {
         "Name": "Operation.Handler",
         "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "64": {
+        "Name": "Operation.Sticker",
+        "Element": 0,
         "Kind": 0,
         "Retired": false,
         "ExplicitTag": false

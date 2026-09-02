@@ -425,6 +425,30 @@ enum RuleKind
     value SuitsOnly                = 50
     /// 다음 상점의 처음 카드와 팩이 무료입니다. `Coupon Tag`.
     value NextShopFree             = 51
+    /// 스몰 블라인드를 깨도 보상이 없습니다.
+    value NoSmallBlindReward       = 52
+    /// 빅 블라인드를 깨도 보상이 없습니다.
+    value NoBigBlindReward         = 53
+    /// 보스 블라인드를 깨도 보상이 없습니다.
+    value NoBossBlindReward        = 54
+    /// 칩이 지금 보유액을 넘지 못합니다.
+    value ChipsCappedByMoney       = 55
+    /// 뽑는 카드가 뒤집혀 나올 확률의 분모. `4` 면 넷에 하나입니다. 0이면 없습니다.
+    value FaceDownDrawRate         = 56
+    /// 보유액이 이만큼일 때마다 패 크기가 하나 줄어듭니다. 0이면 없습니다.
+    value HandSizePerMoney         = 57
+    /// 모든 조커에 `Eternal` 이 붙습니다. `Joker.eternal_ok` 가 거짓인 것은 빠집니다.
+    value AllJokersEternal         = 58
+    /// 낸 카드가 득점을 마치면 무력화됩니다. 라운드가 끝나도 풀리지 않습니다.
+    value DebuffPlayedAfterScoring = 59
+    /// 무언가를 살 때마다 상점의 값이 이만큼 영구히 오릅니다.
+    value PriceRisePerPurchase     = 60
+    /// 상점의 카드 칸에 조커가 나오지 않습니다.
+    value NoJokersInShop           = 61
+    /// 카드를 버릴 때마다 내는 금액.
+    value DiscardCost              = 62
+    /// 이 자리의 조커를 옮길 수 없습니다. 1부터 세고 0이면 없습니다.
+    value PinnedJokerSlot          = 63
 
 // ---------------------------------------------------------------------------
 // 조건 — 무엇이 참이어야 하는가
@@ -577,6 +601,10 @@ struct CondNotMostPlayedHand extends Condition @39
 
 /// 이 카드가 강화를 가지고 있는가. 어느 강화인지는 묻지 않습니다.
 struct CondCardEnhanced extends Condition @40
+
+/// 지금 안테가 `n` 이상입니다.
+struct CondAnteAtLeast extends Condition @42
+    field n int (min=1, max=8)
 
 /// 쓴 소모품의 갈래.
 struct CondConsumableKind extends Condition @41
@@ -766,11 +794,18 @@ struct OpFlipJokers extends Operation @32
 /// 무작위 조커 하나를 이번 핸드 동안 끕니다. `Crimson Heart` 하나입니다.
 struct OpDisableRandomJoker extends Operation @33
 
-/// 런을 시작할 때 무언가를 줍니다. 덱이 씁니다.
+/// 런을 시작할 때 무언가를 줍니다. 덱과 챌린지가 씁니다.
+///
+/// **`ref_id` 를 비우면 아무것도 주지 않습니다.** 무작위로 주는 것은 `OpCreateCard` 의
+/// 몫이고, 이것은 「무엇을 주는가」가 정해져 있는 자리입니다.
 struct OpGrant extends Operation @34
-    field create CreateKind
-    field count  int (min=1)
-    field ref_id string?
+    field create  CreateKind
+    field count   int (min=1)
+    field ref_id  string?
+    /// 붙여서 줄 에디션. 비우면 `Base`.
+    field edition EditionKind?
+    /// 붙여서 줄 스티커. 비우면 `None`. 조커에만 걸립니다.
+    field sticker StickerKind?
 
 /// 아무것도 하지 않습니다. `Blank` 바우처가 씁니다 — 상위를 열기 위한 자리이므로 결함이
 /// 아닙니다.

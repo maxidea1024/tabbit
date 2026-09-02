@@ -801,5 +801,13 @@
     "844a5093",
     "5f48f2b9",
     "850930de"
-  ]
+  ],
+  "metrics": {
+    "ascent": 11,
+    "bestHand": 3930,
+    "handsPlayed": 27,
+    "money": 1,
+    "skips": 0,
+    "won": false
+  }
 }

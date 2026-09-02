@@ -25,7 +25,7 @@ import { SuitKind } from '../../generated/enums/suit-kind'
 import { Trigger } from '../../generated/enums/trigger'
 import { UnitKind } from '../../generated/enums/unit-kind'
 import type { EffectRow } from '../data'
-import { jokerPool } from '../pool'
+import { jokerPool, planetPool, spectralPool, tarotPool } from '../pool'
 import { isFace } from '../hand'
 import { mulBp, MULT_ONE } from '../units'
 import type { CardInstance, GameEvent, JokerInstance } from '../state'
@@ -248,7 +248,11 @@ function changeRule(vm: Vm, rule: RuleKind, value: number, absolute: boolean,
     case RuleKind.AnteDelta: set('anteDelta', rules.anteDelta); break
     case RuleKind.EditionWeightScale: rules.editionWeightScale = value; break
     case RuleKind.PlanetGivesMult: rules.planetGivesMultBp = value; break
-    case RuleKind.StartingMoney: addMoney(vm, value, 'deck'); break
+    // **절대값이면 그 금액으로 맞춥니다.** 더하기만 하면 「$100 으로 시작」을 적을 수
+    // 없고, 기본 금액이 얹혀 $104 가 됩니다.
+    case RuleKind.StartingMoney:
+      addMoney(vm, absolute ? value - vm.state.money : value, 'deck')
+      break
     case RuleKind.NoInterest: rules.noInterest = value !== 0; break
     case RuleKind.MoneyPerHandLeft: set('moneyPerHandLeft', rules.moneyPerHandLeft); break
     case RuleKind.MoneyPerDiscardLeft: set('moneyPerDiscardLeft', rules.moneyPerDiscardLeft); break
@@ -264,6 +268,18 @@ function changeRule(vm: Vm, rule: RuleKind, value: number, absolute: boolean,
     case RuleKind.HalveBaseChipsAndMult: rules.halveBaseChipsAndMult = value !== 0; break
     case RuleKind.DebuffUntilJokerSold: rules.debuffUntilJokerSold = value !== 0; break
     case RuleKind.ForceCardSelected: rules.forceCardSelected = value !== 0; break
+    case RuleKind.NoSmallBlindReward: rules.noSmallBlindReward = value !== 0; break
+    case RuleKind.NoBigBlindReward: rules.noBigBlindReward = value !== 0; break
+    case RuleKind.NoBossBlindReward: rules.noBossBlindReward = value !== 0; break
+    case RuleKind.ChipsCappedByMoney: rules.chipsCappedByMoney = value !== 0; break
+    case RuleKind.FaceDownDrawRate: rules.faceDownDrawRate = value; break
+    case RuleKind.HandSizePerMoney: rules.handSizePerMoney = value; break
+    case RuleKind.AllJokersEternal: rules.allJokersEternal = value !== 0; break
+    case RuleKind.DebuffPlayedAfterScoring: rules.debuffPlayedAfterScoring = value !== 0; break
+    case RuleKind.PriceRisePerPurchase: rules.priceRisePerPurchase = value; break
+    case RuleKind.NoJokersInShop: rules.noJokersInShop = value !== 0; break
+    case RuleKind.DiscardCost: rules.discardCost = value; break
+    case RuleKind.PinnedJokerSlot: rules.pinnedJokerSlot = value; break
     case RuleKind.RemoveFaceCards:
       vm.state.deck = vm.state.deck.filter(card => !isFace(card, rules))
       break
@@ -333,6 +349,20 @@ function randomBaseCard(vm: Vm, cardClass: CardClass) {
   return pool[vm.state.rng.CardProc.below(pool.length)]
 }
 
+/**
+ * 조커 하나에 붙을 스티커.
+ *
+ * **붙이는 자리가 여럿이므로 판정을 한 곳에 둡니다** — 상점 · 팩 · 태그 · `CreateCard` ·
+ * 챌린지의 시작 소지품입니다. `Eternal` 이 붙지 않는 조커에 붙이면 스스로 파괴되는 조커가
+ * 파괴되지 않고 남거나, 팔아야 효과가 나는 조커를 팔 수 없게 됩니다.
+ */
+export function stickerFor(vm: Vm, jokerId: string, want: number): number {
+  const ok = vm.data.tables.joker.findByJokerId(jokerId)?.eternalOk ?? true
+  if (want === 1 && !ok) return 0
+  if (want === 0 && vm.state.rules.allJokersEternal && ok) return 1
+  return want
+}
+
 /** 무작위 조커 하나를 만듭니다. 희귀도를 정하면 그 풀에서 고릅니다. */
 function createJoker(vm: Vm, rarity: Rarity | undefined, edition: EditionKind): void {
   const rng = vm.state.rng.ShopRarity
@@ -346,7 +376,7 @@ function createJoker(vm: Vm, rarity: Rarity | undefined, edition: EditionKind): 
     uid: vm.state.nextUid++,
     jokerId: row.jokerId,
     edition,
-    sticker: 0 as JokerInstance['sticker'],
+    sticker: stickerFor(vm, row.jokerId, 0) as JokerInstance['sticker'],
     counters: newCounters(),
     age: 0,
     disabled: false,
@@ -364,15 +394,15 @@ function createConsumable(vm: Vm, kind: CreateKind, edition: EditionKind): void 
   let consumableKind: 1 | 2 | 3 = 1
 
   if (kind === CreateKind.Tarot) {
-    const pool = vm.data.tables.tarot.records
+    const pool = tarotPool(vm.data, vm.state)
     id = pool[rng.below(pool.length)].tarotId
     consumableKind = 1
   } else if (kind === CreateKind.Planet) {
-    const pool = vm.data.tables.planet.records
+    const pool = planetPool(vm.data, vm.state)
     id = pool[rng.below(pool.length)].planetId
     consumableKind = 2
   } else if (kind === CreateKind.Spectral) {
-    const pool = vm.data.tables.spectral.records
+    const pool = spectralPool(vm.data, vm.state)
     id = pool[rng.below(pool.length)].spectralId
     consumableKind = 3
   }
@@ -785,6 +815,21 @@ function runOp(vm: Vm, row: EffectRow, host: EffectHost, op: Operation,
     case 'OpGrant':
       if (op.create === CreateKind.Voucher && op.refId !== '') {
         state.vouchers.push(op.refId)
+      } else if (op.create === CreateKind.Joker && op.refId !== '') {
+        // **에디션과 스티커가 함께 옵니다.** 챌린지의 시작 조커는 대개 `Eternal` 이고
+        // `Negative` 가 붙는 것도 있으므로, 준 다음에 따로 붙이면 두 곳이 됩니다.
+        for (let i = 0; i < op.count; i++) {
+          state.jokers.push({
+            uid: state.nextUid++,
+            jokerId: op.refId,
+            edition: op.edition ?? EditionKind.Base,
+            sticker: stickerFor(vm, op.refId, op.sticker ?? 0),
+            counters: newCounters(),
+            age: 0,
+            disabled: false,
+          })
+          vm.events.push({ t: 'JokerAdded', uid: state.nextUid - 1, jokerId: op.refId })
+        }
       } else if (op.refId !== '') {
         for (let i = 0; i < op.count; i++) {
           state.consumables.push({

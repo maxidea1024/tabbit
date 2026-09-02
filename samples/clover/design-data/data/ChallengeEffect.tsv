@@ -1,0 +1,63 @@
+:table ChallengeEffect(key="owner,order")	챌린지가 정하는 시작 조건입니다. `DeckEffect` 와 컬럼 구성이 같고 소유자만 다릅니다.
+:field	owner	order	trigger	chance_num	chance_den	first_only	ranks	suits	scope	scope_count	condition.$type	condition.hand	condition.suit	condition.enhancement	condition.seal	condition.edition	condition.blind	condition.consumable	condition.target	condition.counter	condition.consume	condition.n	condition.compare	condition.num	condition.den	operation.$type	operation.chips	operation.mult	operation.money	operation.cap	operation.unit	operation.mode	operation.value	operation.base_value	operation.min	operation.max	operation.times	operation.counter	operation.step	operation.init	operation.floor	operation.reset	operation.hand_pick	operation.levels	operation.create	operation.count	operation.card_class	operation.edition	operation.rarity	operation.enhancement	operation.seal	operation.suit	operation.modify	operation.trait	operation.debuff	operation.pick	operation.rule	operation.absolute	operation.duration	operation.free	operation.random	operation.ref_id	operation.handler	operation.sticker
+:type	foreign Challenge	int (min=0, max=15)	Trigger	int?	int?	bool?	RankKind[]?	SuitKind[]?	Scope	int?	Condition															Operation																																						
+:desc	이 효과를 가진 것	같은 소유자 안의 순서	언제 보는가	확률의 분자	확률의 분모	조건을 만족한 첫 대상만	어느 랭크들인가	어느 무늬들인가	누구에게	대상 개수	무엇이 참이어야 하는가															무엇을 하는가																																						
+	dry_season	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								NoSmallBlindReward							
+	dry_season	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								NoBigBlindReward							
+	dry_season	2	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								NoBossBlindReward							
+	dry_season	3	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							0																								MoneyPerHandLeft	true						
+	dry_season	4	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								NoInterest							
+	dry_season	5	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Joker	5																seed_pod		
+	face_town	0	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Joker	1																long_path		Eternal
+	face_town	1	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Joker	1																stepping_stone		Eternal
+	coin_ceiling	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							100																								StartingMoney	true						
+	coin_ceiling	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								ChipsCappedByMoney							
+	coin_ceiling	2	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Voucher	1																seed_money		
+	coin_ceiling	3	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Voucher	1																money_tree		
+	shear_edge	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								PinnedJokerSlot							
+	shear_edge	1	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Joker	1																pruning_shears		Eternal
+	blind_draw	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							4																								FaceDownDrawRate							
+	low_field	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							0																								MoneyPerHandLeft	true						
+	low_field	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								NoInterest							
+	low_field	2	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Joker	1		Negative														face_pattern		Eternal
+	low_field	3	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Joker	1																trade_card		Eternal
+	heavy_purse	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							10																								HandSize	true						
+	heavy_purse	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							5																								HandSizePerMoney							
+	evergreen	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								AllJokersEternal							
+	stone_court	0	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Joker	1																pebble_jar		Eternal
+	red_wax	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								DebuffPlayedAfterScoring							
+	sealed_fate	0	OnBossDefeated	-	-	-	-	-	Run	-	CondAnteAtLeast											4				OpChangeRule							1																								AllJokersEternal							
+	sealed_fate	1	OnBossDefeated	-	-	-	-	-	Run	-	CondAnteAtLeast											4				OpChangeRule							0																								JokerSlots	true						
+	rising_price	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								PriceRisePerPurchase							
+	rising_price	1	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Joker	1																ledger_note		
+	vine_night	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								NoJokersInShop							
+	vine_night	1	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Joker	1																leech_vine		Eternal
+	vine_night	2	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Tarot	1																the_emperor		
+	vine_night	3	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Tarot	1																the_empress		
+	vine_night	4	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Voucher	1																magic_trick		
+	vine_night	5	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Voucher	1																illusion		
+	glass_field	0	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Joker	2		Negative														loaded_dice		Eternal
+	stone_row	0	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Joker	1																standing_stone		Eternal
+	stone_row	1	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Joker	1		Negative														pebble_jar		Eternal
+	sky_road	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							2																								HandsPerRound	true						
+	sky_road	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							2																								DiscardsPerRound	true						
+	sky_road	2	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							4																								JokerSlots	true						
+	sky_road	3	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Joker	1																star_chart		Eternal
+	sky_road	4	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Joker	1																sky_rocket		Eternal
+	sky_road	5	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Voucher	1																planet_merchant		
+	sky_road	6	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Voucher	1																planet_tycoon		
+	five_leaves	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							5																								HandSize	true						
+	five_leaves	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							6																								DiscardsPerRound	true						
+	five_leaves	2	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							7																								JokerSlots	true						
+	five_leaves	3	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Joker	1																sharper		
+	five_leaves	4	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Joker	1																twig		
+	single_thread	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							10																								StartingMoney	true						
+	single_thread	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								HandsPerRound	true						
+	single_thread	2	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							6																								DiscardsPerRound	true						
+	single_thread	3	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								DiscardCost							
+	single_thread	4	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Joker	1																ledger_note		
+	barren_road	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							3																								JokerSlots	true						
+	barren_road	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								NoSmallBlindReward							
+	barren_road	2	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								NoBigBlindReward							
+	bare_field	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							0																								JokerSlots	true						
+	bare_field	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								NoJokersInShop							

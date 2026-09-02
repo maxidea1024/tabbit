@@ -1240,3 +1240,23 @@
 	ui.pool.sortRarity	희귀	Rarity	レア	稀有	稀有	Selten
 	ui.pool.sortName	이름	Name	名前	名称	名稱	Name
 	ui.pool.sortCost	가격	Cost	価格	价格	價格	Preis
+	challenge.dry_season.name	마른 철	Dry Season	枯れ季	旱季	旱季	Dürre
+	challenge.face_town.name	그림 마을	Court Town	絵札の町	花牌小镇	花牌小鎮	Bilderstadt
+	challenge.coin_ceiling.name	동전 천장	Coin Ceiling	硬貨の天井	硬币天花板	硬幣天花板	Münzdecke
+	challenge.shear_edge.name	가위날	Shear Edge	鋏の刃	剪刃	剪刃	Scherenschneide
+	challenge.blind_draw.name	엎어진 패	Blind Draw	伏せ札	暗抽	暗抽	Blindzug
+	challenge.low_field.name	낮은 들	Low Field	低い野	低野	低野	Tiefes Feld
+	challenge.heavy_purse.name	무거운 지갑	Heavy Purse	重い財布	沉重钱袋	沉重錢袋	Schwere Geldbörse
+	challenge.evergreen.name	상록	Evergreen	常緑	常绿	常綠	Immergrün
+	challenge.stone_court.name	돌이 된 얼굴	Stone Court	石の顔	石面	石面	Steinhof
+	challenge.red_wax.name	붉은 밀랍	Red Wax	赤い蝋	红蜡	紅蠟	Rotes Wachs
+	challenge.sealed_fate.name	굳는 편성	Sealed Fate	固まる編成	定型	定型	Besiegeltes Los
+	challenge.rising_price.name	오르는 값	Rising Price	上がる値	涨价	漲價	Steigender Preis
+	challenge.vine_night.name	덩굴의 밤	Vine Night	蔓の夜	藤夜	藤夜	Rebennacht
+	challenge.glass_field.name	유리밭	Glass Field	硝子畑	玻璃田	玻璃田	Glasfeld
+	challenge.stone_row.name	돌의 줄	Stone Row	石の列	石列	石列	Steinreihe
+	challenge.sky_road.name	하늘길	Sky Road	空の道	天路	天路	Himmelsweg
+	challenge.five_leaves.name	다섯 잎	Five Leaves	五葉	五叶	五葉	Fünf Blätter
+	challenge.single_thread.name	한 올	Single Thread	一筋	一线	一線	Einzelner Faden
+	challenge.barren_road.name	메마른 길	Barren Road	枯れ道	荒路	荒路	Karger Weg
+	challenge.bare_field.name	맨 밭	Bare Field	裸の畑	裸田	裸田	Nacktes Feld

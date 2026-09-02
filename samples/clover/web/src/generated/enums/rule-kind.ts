@@ -109,5 +109,29 @@ export enum RuleKind {
   /** 시작 덱을 그 무늬들로만 채웁니다. `suits` 가 어느 무늬인지 적습니다. */
   SuitsOnly = 50,
   /** 다음 상점의 처음 카드와 팩이 무료입니다. `Coupon Tag`. */
-  NextShopFree = 51
+  NextShopFree = 51,
+  /** 스몰 블라인드를 깨도 보상이 없습니다. */
+  NoSmallBlindReward = 52,
+  /** 빅 블라인드를 깨도 보상이 없습니다. */
+  NoBigBlindReward = 53,
+  /** 보스 블라인드를 깨도 보상이 없습니다. */
+  NoBossBlindReward = 54,
+  /** 칩이 지금 보유액을 넘지 못합니다. */
+  ChipsCappedByMoney = 55,
+  /** 뽑는 카드가 뒤집혀 나올 확률의 분모. `4` 면 넷에 하나입니다. 0이면 없습니다. */
+  FaceDownDrawRate = 56,
+  /** 보유액이 이만큼일 때마다 패 크기가 하나 줄어듭니다. 0이면 없습니다. */
+  HandSizePerMoney = 57,
+  /** 모든 조커에 `Eternal` 이 붙습니다. `Joker.eternal_ok` 가 거짓인 것은 빠집니다. */
+  AllJokersEternal = 58,
+  /** 낸 카드가 득점을 마치면 무력화됩니다. 라운드가 끝나도 풀리지 않습니다. */
+  DebuffPlayedAfterScoring = 59,
+  /** 무언가를 살 때마다 상점의 값이 이만큼 영구히 오릅니다. */
+  PriceRisePerPurchase = 60,
+  /** 상점의 카드 칸에 조커가 나오지 않습니다. */
+  NoJokersInShop = 61,
+  /** 카드를 버릴 때마다 내는 금액. */
+  DiscardCost = 62,
+  /** 이 자리의 조커를 옮길 수 없습니다. 1부터 세고 0이면 없습니다. */
+  PinnedJokerSlot = 63
 }

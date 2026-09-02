@@ -578,6 +578,20 @@ namespace Clover.Data
     /// One shape of <c>Condition</c>.
     /// </summary>
     /// <remarks>
+    /// The file carries <c>42</c> for it. That number rather than the
+    /// name is what lets this variant be renamed without a deployed reader reading a different
+    /// one.
+    /// </remarks>
+    [System.Serializable]
+    public sealed partial class CondAnteAtLeast : Condition
+    {
+        public int N;
+    }
+
+    /// <summary>
+    /// One shape of <c>Condition</c>.
+    /// </summary>
+    /// <remarks>
     /// The file carries <c>41</c> for it. That number rather than the
     /// name is what lets this variant be renamed without a deployed reader reading a different
     /// one.

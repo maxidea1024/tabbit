@@ -40,6 +40,7 @@ import { DebuffKind } from '../enums/debuff-kind'
 import { JokerPick } from '../enums/joker-pick'
 import { RuleKind } from '../enums/rule-kind'
 import { Duration } from '../enums/duration'
+import { StickerKind } from '../enums/sticker-kind'
 import { Condition } from '../structs/condition'
 import { Operation } from '../structs/operation'
 
@@ -253,6 +254,11 @@ function buildCondition(e: ConditionEntry): Condition {
       return {
         kind: 'CondCardEnhanced',
       }
+    case 42:
+      return {
+        kind: 'CondAnteAtLeast',
+        n: e.n,
+      }
     case 41:
       return {
         kind: 'CondConsumableKind',
@@ -260,7 +266,7 @@ function buildCondition(e: ConditionEntry): Condition {
       }
   }
 
-  throw new Error(`Condition: no variant is numbered ${e.type}. This build knows CondAlways, CondHandContains, CondHandIs, CondCardSuit, CondCardRankSet, CondCardIsFace, CondCardEnhancement, CondCardSeal, CondCardEdition, CondCardCount, CondAllSuitsPresent, CondSuitPair, CondAllHeldSuit, CondBlindKind, CondMoney, CondDiscardsLeft, CondHandsLeft, CondDiscardsUnused, CondHandRepeated, CondFirstHand, CondLastHand, CondIsMostPlayedHand, CondFirstDiscard, CondEveryNHands, CondCounterAtLeast, CondChargeLeft, CondTargetMatch, CondDeckEnhancedAtLeast, CondBossTriggered, CondScoreRatioAtLeast, CondNoFaceScored, CondFaceScored, CondCounterAtMost, CondDiscardedFaceAtLeast, CondHandContainsRankAndHand, CondFirstHandSingleCard, CondFirstHandSingleRank, CondFirstDiscardSingleCard, CondNotMostPlayedHand, CondCardEnhanced, CondConsumableKind.`)
+  throw new Error(`Condition: no variant is numbered ${e.type}. This build knows CondAlways, CondHandContains, CondHandIs, CondCardSuit, CondCardRankSet, CondCardIsFace, CondCardEnhancement, CondCardSeal, CondCardEdition, CondCardCount, CondAllSuitsPresent, CondSuitPair, CondAllHeldSuit, CondBlindKind, CondMoney, CondDiscardsLeft, CondHandsLeft, CondDiscardsUnused, CondHandRepeated, CondFirstHand, CondLastHand, CondIsMostPlayedHand, CondFirstDiscard, CondEveryNHands, CondCounterAtLeast, CondChargeLeft, CondTargetMatch, CondDeckEnhancedAtLeast, CondBossTriggered, CondScoreRatioAtLeast, CondNoFaceScored, CondFaceScored, CondCounterAtMost, CondDiscardedFaceAtLeast, CondHandContainsRankAndHand, CondFirstHandSingleCard, CondFirstHandSingleRank, CondFirstDiscardSingleCard, CondNotMostPlayedHand, CondCardEnhanced, CondAnteAtLeast, CondConsumableKind.`)
 }
 
 /** ConditionEntry as the .json export carries it. */
@@ -329,6 +335,8 @@ export interface OperationEntry {
   /** 특정 행을 가리킬 때의 식별자. 팩과 바우처와 태그가 씁니다. */
   refId: string
   handler: string
+  /** 붙여서 줄 스티커. 비우면 `None`. 조커에만 걸립니다. */
+  sticker: StickerKind
 }
 
 function buildOperation(e: OperationEntry): Operation {
@@ -541,7 +549,9 @@ function buildOperation(e: OperationEntry): Operation {
         kind: 'OpGrant',
         create: e.create,
         count: e.count,
+        edition: e.edition,
         refId: e.refId,
+        sticker: e.sticker,
       }
     case 35:
       return {
@@ -597,6 +607,7 @@ interface OperationEntryJson {
   random: boolean
   refId: string
   handler: string
+  sticker: StickerKind
 }
 
 /** A type for handling rows when parsing .json. */
@@ -695,7 +706,7 @@ export class SealEffectRecord {
   public _scopeCount: number = 0
   public _scopeCountHasValue: boolean = false
   public _condition: ConditionEntry = { type: 0, hand: 0 as PokerHandKind, suit: 0 as SuitKind, enhancement: 0 as EnhancementKind, seal: 0 as SealKind, edition: 0 as EditionKind, blind: 0 as BlindKind, consumable: 0 as ConsumableKind, target: 0 as TargetKind, counter: 0 as CounterField, consume: false, n: 0, compare: 0 as Compare, num: 0, den: 0 }
-  public _operation: OperationEntry = { type: 0, chips: 0, mult: 0, money: 0, cap: 0, unit: 0 as UnitKind, mode: 0 as PerUnitMode, value: 0, baseValue: 0, min: 0, max: 0, times: 0, counter: 0 as CounterField, step: 0, init: 0, floor: 0, reset: 0 as ResetKind, handPick: 0 as HandPick, levels: 0, create: 0 as CreateKind, count: 0, cardClass: 0 as CardClass, edition: 0 as EditionKind, rarity: 0 as Rarity, enhancement: 0 as EnhancementKind, seal: 0 as SealKind, suit: 0 as SuitKind, modify: 0 as ModifyKind, trait: 0 as CardTrait, debuff: 0 as DebuffKind, pick: 0 as JokerPick, rule: 0 as RuleKind, absolute: false, duration: 0 as Duration, free: false, random: false, refId: '', handler: '' }
+  public _operation: OperationEntry = { type: 0, chips: 0, mult: 0, money: 0, cap: 0, unit: 0 as UnitKind, mode: 0 as PerUnitMode, value: 0, baseValue: 0, min: 0, max: 0, times: 0, counter: 0 as CounterField, step: 0, init: 0, floor: 0, reset: 0 as ResetKind, handPick: 0 as HandPick, levels: 0, create: 0 as CreateKind, count: 0, cardClass: 0 as CardClass, edition: 0 as EditionKind, rarity: 0 as Rarity, enhancement: 0 as EnhancementKind, seal: 0 as SealKind, suit: 0 as SuitKind, modify: 0 as ModifyKind, trait: 0 as CardTrait, debuff: 0 as DebuffKind, pick: 0 as JokerPick, rule: 0 as RuleKind, absolute: false, duration: 0 as Duration, free: false, random: false, refId: '', handler: '', sticker: 0 as StickerKind }
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
@@ -710,7 +721,7 @@ export class SealEffectRecord {
     this._scope = dataRow.scope
     this._scopeCountHasValue = dataRow.scopeCount !== null && dataRow.scopeCount !== undefined; if (this._scopeCountHasValue) this._scopeCount = dataRow.scopeCount
     this._condition = ((e: any) => ({ type: e.type, hand: e.hand, suit: e.suit, enhancement: e.enhancement, seal: e.seal, edition: e.edition, blind: e.blind, consumable: e.consumable, target: e.target, counter: e.counter, consume: e.consume, n: e.n, compare: e.compare, num: e.num, den: e.den }))(dataRow.condition)
-    this._operation = ((e: any) => ({ type: e.type, chips: e.chips, mult: e.mult, money: e.money, cap: e.cap, unit: e.unit, mode: e.mode, value: e.value, baseValue: e.baseValue, min: e.min, max: e.max, times: e.times, counter: e.counter, step: e.step, init: e.init, floor: e.floor, reset: e.reset, handPick: e.handPick, levels: e.levels, create: e.create, count: e.count, cardClass: e.cardClass, edition: e.edition, rarity: e.rarity, enhancement: e.enhancement, seal: e.seal, suit: e.suit, modify: e.modify, trait: e.trait, debuff: e.debuff, pick: e.pick, rule: e.rule, absolute: e.absolute, duration: e.duration, free: e.free, random: e.random, refId: e.refId, handler: e.handler }))(dataRow.operation)
+    this._operation = ((e: any) => ({ type: e.type, chips: e.chips, mult: e.mult, money: e.money, cap: e.cap, unit: e.unit, mode: e.mode, value: e.value, baseValue: e.baseValue, min: e.min, max: e.max, times: e.times, counter: e.counter, step: e.step, init: e.init, floor: e.floor, reset: e.reset, handPick: e.handPick, levels: e.levels, create: e.create, count: e.count, cardClass: e.cardClass, edition: e.edition, rarity: e.rarity, enhancement: e.enhancement, seal: e.seal, suit: e.suit, modify: e.modify, trait: e.trait, debuff: e.debuff, pick: e.pick, rule: e.rule, absolute: e.absolute, duration: e.duration, free: e.free, random: e.random, refId: e.refId, handler: e.handler, sticker: e.sticker }))(dataRow.operation)
   }
 
   /** Populate field values. */
@@ -735,7 +746,7 @@ export class SealEffectRecord {
     this._scopeCountHasValue = _scopeCount_raw !== null && _scopeCount_raw !== undefined
     if (this._scopeCountHasValue) this._scopeCount = _scopeCount_raw
     this._condition = { type: dataRow[offset++], hand: dataRow[offset++], suit: dataRow[offset++], enhancement: dataRow[offset++], seal: dataRow[offset++], edition: dataRow[offset++], blind: dataRow[offset++], consumable: dataRow[offset++], target: dataRow[offset++], counter: dataRow[offset++], consume: dataRow[offset++], n: dataRow[offset++], compare: dataRow[offset++], num: dataRow[offset++], den: dataRow[offset++] }
-    this._operation = { type: dataRow[offset++], chips: dataRow[offset++], mult: dataRow[offset++], money: dataRow[offset++], cap: dataRow[offset++], unit: dataRow[offset++], mode: dataRow[offset++], value: dataRow[offset++], baseValue: dataRow[offset++], min: dataRow[offset++], max: dataRow[offset++], times: dataRow[offset++], counter: dataRow[offset++], step: dataRow[offset++], init: dataRow[offset++], floor: dataRow[offset++], reset: dataRow[offset++], handPick: dataRow[offset++], levels: dataRow[offset++], create: dataRow[offset++], count: dataRow[offset++], cardClass: dataRow[offset++], edition: dataRow[offset++], rarity: dataRow[offset++], enhancement: dataRow[offset++], seal: dataRow[offset++], suit: dataRow[offset++], modify: dataRow[offset++], trait: dataRow[offset++], debuff: dataRow[offset++], pick: dataRow[offset++], rule: dataRow[offset++], absolute: dataRow[offset++], duration: dataRow[offset++], free: dataRow[offset++], random: dataRow[offset++], refId: dataRow[offset++], handler: dataRow[offset++] }
+    this._operation = { type: dataRow[offset++], chips: dataRow[offset++], mult: dataRow[offset++], money: dataRow[offset++], cap: dataRow[offset++], unit: dataRow[offset++], mode: dataRow[offset++], value: dataRow[offset++], baseValue: dataRow[offset++], min: dataRow[offset++], max: dataRow[offset++], times: dataRow[offset++], counter: dataRow[offset++], step: dataRow[offset++], init: dataRow[offset++], floor: dataRow[offset++], reset: dataRow[offset++], handPick: dataRow[offset++], levels: dataRow[offset++], create: dataRow[offset++], count: dataRow[offset++], cardClass: dataRow[offset++], edition: dataRow[offset++], rarity: dataRow[offset++], enhancement: dataRow[offset++], seal: dataRow[offset++], suit: dataRow[offset++], modify: dataRow[offset++], trait: dataRow[offset++], debuff: dataRow[offset++], pick: dataRow[offset++], rule: dataRow[offset++], absolute: dataRow[offset++], duration: dataRow[offset++], free: dataRow[offset++], random: dataRow[offset++], refId: dataRow[offset++], handler: dataRow[offset++], sticker: dataRow[offset++] }
   }
 }
 
@@ -1503,6 +1514,15 @@ export class SealEffectTable {
             const { n, value } = cursor.nextSameString(rowCount - i)
             for (let left = n; left > 0; --left, ++i)
               records[i]._operation.handler = value
+          }
+          break
+        case 64:
+          tabbit.checkColumn(column, 'SealEffect.Operation.Sticker', tabbit.KIND_SCALAR, false, [tabbit.ELEMENT_VARINT])
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'SealEffect.Operation.Sticker')
+          for (let i = 0; i < rowCount; ) {
+            const { n, value } = cursor.nextSameI32(rowCount - i)
+            for (let left = n; left > 0; --left, ++i)
+              records[i]._operation.sticker = value as StickerKind
           }
           break
         default:

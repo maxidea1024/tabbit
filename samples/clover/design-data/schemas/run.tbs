@@ -30,6 +30,28 @@ enum StickerKind
     /// $1 에 삽니다. 라운드마다 $3 을 잃습니다.
     value Rental     = 3
 
+/// 챌린지가 금지하는 것의 갈래. `ref_id` 가 어느 표의 식별자인지를 이것이 정합니다.
+///
+/// **`foreign` 컬럼 여덟을 두고 하나만 채우지 않습니다** — 그러면 행마다 빈 칸 일곱이
+/// 남습니다.
+enum BanKind
+    /// 조커.
+    value Joker   = 1
+    /// 바우처.
+    value Voucher = 2
+    /// 타로.
+    value Tarot   = 3
+    /// 행성.
+    value Planet  = 4
+    /// 유령.
+    value Spectral = 5
+    /// 태그.
+    value Tag     = 6
+    /// 부스터 팩.
+    value Pack    = 7
+    /// 보스 블라인드.
+    value Boss    = 8
+
 /// 안테 하나 안의 세 라운드.
 enum BlindKind
     /// 안테의 첫 라운드. 건너뛸 수 있습니다.

@@ -5,7 +5,7 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from effect.tbs(784,6)
+// Generated from effect.tbs(819,6)
 /** 카드가 가지는 성질. 값을 더하지 않고 그 카드가 무엇으로 취급되는지를 바꿉니다. */
 export enum CardTrait {
   /** 모든 무늬로 취급합니다. `Wild Card`. */

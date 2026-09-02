@@ -219,6 +219,54 @@ namespace Clover.Data
         /// <summary>
         /// 다음 상점의 처음 카드와 팩이 무료입니다. `Coupon Tag`.
         /// </summary>
-        NextShopFree = 51
+        NextShopFree = 51,
+        /// <summary>
+        /// 스몰 블라인드를 깨도 보상이 없습니다.
+        /// </summary>
+        NoSmallBlindReward = 52,
+        /// <summary>
+        /// 빅 블라인드를 깨도 보상이 없습니다.
+        /// </summary>
+        NoBigBlindReward = 53,
+        /// <summary>
+        /// 보스 블라인드를 깨도 보상이 없습니다.
+        /// </summary>
+        NoBossBlindReward = 54,
+        /// <summary>
+        /// 칩이 지금 보유액을 넘지 못합니다.
+        /// </summary>
+        ChipsCappedByMoney = 55,
+        /// <summary>
+        /// 뽑는 카드가 뒤집혀 나올 확률의 분모. `4` 면 넷에 하나입니다. 0이면 없습니다.
+        /// </summary>
+        FaceDownDrawRate = 56,
+        /// <summary>
+        /// 보유액이 이만큼일 때마다 패 크기가 하나 줄어듭니다. 0이면 없습니다.
+        /// </summary>
+        HandSizePerMoney = 57,
+        /// <summary>
+        /// 모든 조커에 `Eternal` 이 붙습니다. `Joker.eternal_ok` 가 거짓인 것은 빠집니다.
+        /// </summary>
+        AllJokersEternal = 58,
+        /// <summary>
+        /// 낸 카드가 득점을 마치면 무력화됩니다. 라운드가 끝나도 풀리지 않습니다.
+        /// </summary>
+        DebuffPlayedAfterScoring = 59,
+        /// <summary>
+        /// 무언가를 살 때마다 상점의 값이 이만큼 영구히 오릅니다.
+        /// </summary>
+        PriceRisePerPurchase = 60,
+        /// <summary>
+        /// 상점의 카드 칸에 조커가 나오지 않습니다.
+        /// </summary>
+        NoJokersInShop = 61,
+        /// <summary>
+        /// 카드를 버릴 때마다 내는 금액.
+        /// </summary>
+        DiscardCost = 62,
+        /// <summary>
+        /// 이 자리의 조커를 옮길 수 없습니다. 1부터 세고 0이면 없습니다.
+        /// </summary>
+        PinnedJokerSlot = 63
     }
 } // namespace Clover.Data

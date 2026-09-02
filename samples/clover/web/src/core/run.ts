@@ -18,9 +18,10 @@ import { scoreHand } from './scoring'
 import { newCounters, type CardInstance, type GameEvent, type JokerInstance, type RunState, type Rules } from './state'
 import {
   changeRule, collect, newVm, RUN_HOST, runCardEffects, runRow, runTrigger, sellPrice,
-  type EffectHost, type Vm,
+  stickerFor, type EffectHost, type Vm,
 } from './vm'
 import { emptyShop, openPack, rerollCost, stock } from './shop'
+import { bossPool, tagPool } from './pool'
 import { ShopItemKind } from '../generated/enums/shop-item-kind'
 import { newCounters as freshCounters } from './state'
 import type { EffectRow } from './data'
@@ -101,6 +102,18 @@ export function defaultRules(data: Data): Rules {
     doubleTagOnBossDefeat: false,
     blindSizeScaleBp: 10_000,
     nextShopFree: false,
+    noSmallBlindReward: false,
+    noBigBlindReward: false,
+    noBossBlindReward: false,
+    chipsCappedByMoney: false,
+    faceDownDrawRate: 0,
+    handSizePerMoney: 0,
+    allJokersEternal: false,
+    debuffPlayedAfterScoring: false,
+    priceRisePerPurchase: 0,
+    noJokersInShop: false,
+    discardCost: 0,
+    pinnedJokerSlot: 0,
     noRepeatHandTypes: false,
     singleHandTypeOnly: false,
     mustPlayFiveCards: false,
@@ -118,7 +131,7 @@ export function defaultRules(data: Data): Rules {
  * 상점과 확률 발동은 같은 시드에서 그대로입니다.
  */
 function rollTagOffer(data: Data, state: RunState): void {
-  const pool = data.tables.tag.records.filter(row => row.minAnte <= state.ante)
+  const pool = tagPool(data, state).filter(row => row.minAnte <= state.ante)
   state.tagOffer = pool.length === 0 ? [] : [
     pool[state.rng.Tag.below(pool.length)].tagId,
     pool[state.rng.Tag.below(pool.length)].tagId,
@@ -134,12 +147,17 @@ export function tagFor(state: RunState, blind: BlindKind): string | undefined {
 
 /** 런 하나를 시작합니다. */
 export function newRun(data: Data, seed: string, deckId: string, stake: string,
-                       pools: JokerPool[] = [JokerPool.Base]): Step {
+                       pools: JokerPool[] = [JokerPool.Base],
+                       challengeId = ''): Step {
+  // **챌린지는 조커 150종으로 돕니다.** 원작의 금지 목록이 그 150종을 상대로 쓰였으므로,
+  // 확장 350종이 켜지면 금지가 걸린 채로 금지의 뜻이 없어집니다.
+  if (challengeId !== '') pools = [JokerPool.Base]
+
   const rng: Record<string, Pcg32> = {}
   for (const stream of STREAMS) rng[stream] = streamRng(seed, stream)
 
   const state: RunState = {
-    seed, deckId, stake, pools,
+    seed, deckId, stake, pools, challengeId,
     phase: 'blind-select',
     ante: 1,
     blind: BlindKind.Small,
@@ -180,24 +198,38 @@ export function newRun(data: Data, seed: string, deckId: string, stake: string,
     duplicateNextTag: false,
     shop: emptyShop(),
     pack: null,
+    priceRise: 0,
     nextUid: 1,
     rng,
   }
 
   // 표준 52장. 덱 효과가 이 뒤에 걸러내거나 바꿉니다.
+  //
+  // **챌린지가 시작 덱을 적어 두었으면 그것이 표준을 대신합니다.** 연산으로 더하고 빼는
+  // 것이 아니라 「무엇이 몇 벌」의 목록이므로, 덱에 몇 장이 있는지를 표에서 셀 수 있습니다.
+  const spec = challengeId === ''
+    ? [] : (data.tables.challengeCard.records.filter(row => row.owner === challengeId))
   for (const row of data.tables.baseDeckCard.records) {
-    state.deck.push({
-      uid: state.nextUid++,
-      baseCardId: row.cardId,
-      rank: row.rank,
-      suit: row.suit,
-      enhancement: EnhancementKind.None,
-      seal: SealKind.None,
-      edition: EditionKind.Base,
-      bonusChips: 0,
-      debuffed: false,
-      faceDown: false,
-    })
+    const copies = spec.length === 0 ? 1 : spec.reduce((sum, one) =>
+      sum + ((one.ranks.length === 0 || one.ranks.includes(row.rank))
+             && (one.suits.length === 0 || one.suits.includes(row.suit)) ? one.copies : 0), 0)
+    const look = spec.find(one =>
+      (one.ranks.length === 0 || one.ranks.includes(row.rank))
+      && (one.suits.length === 0 || one.suits.includes(row.suit)))
+    for (let i = 0; i < copies; i++) {
+      state.deck.push({
+        uid: state.nextUid++,
+        baseCardId: row.cardId,
+        rank: row.rank,
+        suit: row.suit,
+        enhancement: look?.enhancement ?? EnhancementKind.None,
+        seal: look?.seal ?? SealKind.None,
+        edition: look?.edition ?? EditionKind.Base,
+        bonusChips: 0,
+        debuffed: false,
+        faceDown: false,
+      })
+    }
   }
 
   const vm = newVm(data, state)
@@ -268,7 +300,7 @@ function rollTargets(data: Data, rng: Pcg32) {
 function pickBoss(vm: Vm): void {
   const state = vm.state
   const showdown = state.ante % vm.data.run.showdownEvery === 0
-  let pool = vm.data.tables.bossBlind.records.filter(
+  let pool = bossPool(vm.data, state).filter(
     row => row.isShowdown === showdown && row.minAnte <= state.ante)
 
   const fresh = pool.filter(row => !state.bossesSeen.includes(row.bossId))
@@ -357,14 +389,34 @@ function beginRound(vm: Vm): void {
  * **뽑은 것을 알립니다.** 화면은 이 이벤트를 받을 때까지 새 카드를 그리지 않습니다 — 득점
  * 연출이 도는 동안 다음 패가 이미 깔려 있으면, 무엇을 낸 판인지가 흐려집니다.
  */
+/**
+ * 지금의 패 크기.
+ *
+ * **규칙이 아니라 그 시점의 값입니다.** 보유액이 라운드 도중에 바뀌므로, 규칙에 담으면
+ * 규칙을 다시 세울 때까지 따라오지 않습니다 — 그래서 쓰는 자리에서 셉니다.
+ */
+export function handSizeNow(state: RunState): number {
+  const per = state.rules.handSizePerMoney
+  if (per <= 0) return state.rules.handSize
+  return Math.max(1, state.rules.handSize - Math.floor(Math.max(0, state.money) / per))
+}
+
 function draw(vm: Vm, limit?: number): void {
   const state = vm.state
-  const want = limit ?? state.rules.handSize
+  const want = limit ?? handSizeNow(state)
   const drawn: number[] = []
   while (state.hand.length < want && state.drawPile.length > 0) {
     const uid = state.drawPile.shift() as number
     state.hand.push(uid)
     drawn.push(uid)
+
+    // **뽑을 때마다 굴립니다.** 세는 것으로 적으면 뽑는 장수가 라운드마다 달라질 때
+    // 어디서부터 세는지가 정해지지 않습니다. `CardProc` 흐름이므로 덱 섞기와 갈라집니다.
+    const rate = state.rules.faceDownDrawRate
+    if (rate > 0) {
+      const card = state.deck.find(entry => entry.uid === uid)
+      if (card && state.rng.CardProc.below(rate) === 0) card.faceDown = true
+    }
   }
   if (drawn.length > 0) vm.events.push({ t: 'HandDrawn', uids: drawn })
 }
@@ -412,6 +464,12 @@ function winRound(vm: Vm): void {
     const boss = vm.data.tables.bossBlind.findByBossId(state.bossId)
     if (boss) reward = boss.reward
   }
+
+  // 챌린지가 갈래마다 따로 끕니다 — 셋 다인 것과 스몰·빅만인 것이 있습니다.
+  const rules = state.rules
+  if ((state.blind === BlindKind.Small && rules.noSmallBlindReward)
+      || (state.blind === BlindKind.Big && rules.noBigBlindReward)
+      || (state.blind === BlindKind.Boss && rules.noBossBlindReward)) reward = 0
 
   state.money += reward
   vm.events.push({ t: 'BlindCleared', blind: state.blind, reward })
@@ -596,6 +654,14 @@ export function apply(data: Data, state: RunState, action: Action): Step {
       vm.scoring = undefined
       runTrigger(vm, Trigger.OnScoreResolved)
 
+      // **라운드가 끝나도 풀리지 않습니다.** 보스가 거는 무력화와 다른 갈래입니다.
+      if (state.rules.debuffPlayedAfterScoring) {
+        for (const uid of state.played) {
+          const card = state.deck.find(entry => entry.uid === uid)
+          if (card) card.debuffed = true
+        }
+      }
+
       // 낸 카드는 덱으로 돌아가지 않습니다 — 이번 라운드에는 다시 뽑히지 않습니다.
       state.played = []
 
@@ -623,7 +689,14 @@ export function apply(data: Data, state: RunState, action: Action): Step {
 
     case 'discard': {
       if (state.phase !== 'round' || state.discardsLeft <= 0) break
+      // **돈이 모자라면 버릴 수 없습니다.** 빚 한도가 있으면 그만큼까지입니다.
+      const cost = state.rules.discardCost
+      if (cost > 0 && state.money - cost < state.rules.debtLimit) break
       state.discardsLeft--
+      if (cost > 0) {
+        state.money -= cost
+        vm.events.push({ t: 'MoneyChanged', delta: -cost, reason: 'discard' })
+      }
       state.discarded = action.cards.slice()
       state.hand = state.hand.filter(uid => !action.cards.includes(uid))
       vm.events.push({ t: 'HandDiscarded', uids: action.cards.slice() })
@@ -687,6 +760,7 @@ export function apply(data: Data, state: RunState, action: Action): Step {
       if (!item || state.money - item.cost < -state.rules.debtLimit) break
       if (!takeItem(vm, item)) break
       state.money -= item.cost
+      state.priceRise += state.rules.priceRisePerPurchase
       vm.events.push({ t: 'MoneyChanged', delta: -item.cost, reason: 'shop' })
       state.shop.cards.splice(action.slot, 1)
       break
@@ -710,6 +784,7 @@ export function apply(data: Data, state: RunState, action: Action): Step {
       if (state.money - item.cost < -state.rules.debtLimit) break
       if (!takeItem(vm, item)) break
       state.money -= item.cost
+      state.priceRise += state.rules.priceRisePerPurchase
       vm.events.push({ t: 'MoneyChanged', delta: -item.cost, reason: 'shop' })
       state.shop.cards.splice(action.slot, 1)
       break
@@ -727,6 +802,7 @@ export function apply(data: Data, state: RunState, action: Action): Step {
       if (!open) break
 
       state.money -= row.cost
+      state.priceRise += state.rules.priceRisePerPurchase
       vm.events.push({ t: 'MoneyChanged', delta: -row.cost, reason: 'shop' })
       state.shop.packs.splice(action.slot, 1)
       state.pack = open
@@ -832,7 +908,7 @@ function takeItem(vm: Vm, item: {
         uid: state.nextUid++,
         jokerId: item.id,
         edition: item.edition as never,
-        sticker: 0 as never,
+        sticker: stickerFor(vm, item.id, 0) as never,
         counters: freshCounters(),
         age: 0,
         disabled: false,

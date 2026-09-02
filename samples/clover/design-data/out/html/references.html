@@ -593,15 +593,15 @@ tbody [data-pick] { cursor: pointer; }
 <div class="page">
 <main>
 <h1>참조</h1>
-<p class="lead">그래프의 테이블 14개 · 참조 8개. 끌어서 이동하고, 휠로 확대하고, 테이블을 누르면 그 테이블의 참조만 봅니다.</p>
+<p class="lead">그래프의 테이블 18개 · 참조 11개. 끌어서 이동하고, 휠로 확대하고, 테이블을 누르면 그 테이블의 참조만 봅니다.</p>
 
 <div class="graphrow">
 <div class="picker">
-<h2><svg class="i"><use href="#i-table"></use></svg>연결 정도<span class="count">14</span></h2>
+<h2><svg class="i"><use href="#i-table"></use></svg>연결 정도<span class="count">18</span></h2>
 <div data-table>
 <div class="tools">
 <input type="search" data-filter="rows" placeholder="테이블 필터">
-<span class="hint" data-shown>14행 중 14행</span>
+<span class="hint" data-shown>18행 중 18행</span>
 </div>
 <div class="scroll">
 <table data-sortable>
@@ -611,9 +611,13 @@ tbody [data-pick] { cursor: pointer; }
 </tr>
 </thead>
 <tbody>
+<tr data-pick="Challenge"><td class="pick"><button type="button" title="Challenge의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/challenge.html"><svg class="i"><use href="#i-table"></use></svg>Challenge</a></td><td class="num">0</td><td class="num">3</td></tr>
 <tr data-pick="Voucher"><td class="pick"><button type="button" title="Voucher의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/voucher.html"><svg class="i"><use href="#i-table"></use></svg>Voucher</a></td><td class="num">1</td><td class="num">2</td></tr>
 <tr data-pick="BossBlind"><td class="pick"><button type="button" title="BossBlind의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/boss-blind.html"><svg class="i"><use href="#i-table"></use></svg>BossBlind</a></td><td class="num">0</td><td class="num">1</td></tr>
 <tr data-pick="BossEffect"><td class="pick"><button type="button" title="BossEffect의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/boss-effect.html"><svg class="i"><use href="#i-table"></use></svg>BossEffect</a></td><td class="num">1</td><td class="num">0</td></tr>
+<tr data-pick="ChallengeBan"><td class="pick"><button type="button" title="ChallengeBan의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/challenge-ban.html"><svg class="i"><use href="#i-table"></use></svg>ChallengeBan</a></td><td class="num">1</td><td class="num">0</td></tr>
+<tr data-pick="ChallengeCard"><td class="pick"><button type="button" title="ChallengeCard의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/challenge-card.html"><svg class="i"><use href="#i-table"></use></svg>ChallengeCard</a></td><td class="num">1</td><td class="num">0</td></tr>
+<tr data-pick="ChallengeEffect"><td class="pick"><button type="button" title="ChallengeEffect의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/challenge-effect.html"><svg class="i"><use href="#i-table"></use></svg>ChallengeEffect</a></td><td class="num">1</td><td class="num">0</td></tr>
 <tr data-pick="Deck"><td class="pick"><button type="button" title="Deck의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/deck.html"><svg class="i"><use href="#i-table"></use></svg>Deck</a></td><td class="num">0</td><td class="num">1</td></tr>
 <tr data-pick="DeckEffect"><td class="pick"><button type="button" title="DeckEffect의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/deck-effect.html"><svg class="i"><use href="#i-table"></use></svg>DeckEffect</a></td><td class="num">1</td><td class="num">0</td></tr>
 <tr data-pick="Joker"><td class="pick"><button type="button" title="Joker의 참조를 그립니다"><svg class="i"><use href="#i-graph"></use></svg></button></td><td><a href="tables/joker.html"><svg class="i"><use href="#i-table"></use></svg>Joker</a></td><td class="num">0</td><td class="num">1</td></tr>
@@ -639,7 +643,7 @@ tbody [data-pick] { cursor: pointer; }
 <button type="button" data-graph="out" title="축소">&#x2212;</button>
 <button type="button" data-graph="in" title="확대">+</button>
 <button type="button" data-graph="fit" title="창에 맞춤">맞춤</button>
-<a class="hint" data-graph="open" href="tables/voucher.html" hidden>테이블 열기</a>
+<a class="hint" data-graph="open" href="tables/challenge.html" hidden>테이블 열기</a>
 </div>
 <div class="viewport">
 <svg class="graph" id="graph" width="100%" height="100%">
@@ -649,86 +653,109 @@ tbody [data-pick] { cursor: pointer; }
 </marker>
 </defs>
 <g id="viewport">
-<g id="all" data-width="376" data-height="310">
+<g id="all" data-width="384" data-height="436">
 <g id="edges">
-<path class="edge" d="M144,23 C192,23 192,23 240,23" data-from="BossEffect" data-to="BossBlind" marker-end="url(#arrow)"><title>BossEffect → BossBlind (Owner)</title></path>
-<path class="edge" d="M144,65 C192,65 192,65 240,65" data-from="DeckEffect" data-to="Deck" marker-end="url(#arrow)"><title>DeckEffect → Deck (Owner)</title></path>
-<path class="edge" d="M144,107 C192,107 192,107 240,107" data-from="JokerEffect" data-to="Joker" marker-end="url(#arrow)"><title>JokerEffect → Joker (Owner)</title></path>
-<path class="edge" d="M144,149 C192,149 192,149 240,149" data-from="SpectralEffect" data-to="Spectral" marker-end="url(#arrow)"><title>SpectralEffect → Spectral (Owner)</title></path>
-<path class="edge" d="M144,191 C192,191 192,191 240,191" data-from="TagEffect" data-to="Tag" marker-end="url(#arrow)"><title>TagEffect → Tag (Owner)</title></path>
-<path class="edge" d="M144,233 C192,233 192,233 240,233" data-from="TarotEffect" data-to="Tarot" marker-end="url(#arrow)"><title>TarotEffect → Tarot (Owner)</title></path>
-<path class="edge self" d="M336,269 C370,249 370,301 336,281" data-from="Voucher" data-to="Voucher" marker-end="url(#arrow)"><title>Voucher → Voucher (UpgradesFrom)</title></path>
-<path class="edge" d="M144,275 C192,275 192,275 240,275" data-from="VoucherEffect" data-to="Voucher" marker-end="url(#arrow)"><title>VoucherEffect → Voucher (Owner)</title></path>
+<path class="edge" d="M152,23 C200,23 200,23 248,23" data-from="BossEffect" data-to="BossBlind" marker-end="url(#arrow)"><title>BossEffect → BossBlind (Owner)</title></path>
+<path class="edge" d="M152,65 C200,65 200,65 248,65" data-from="ChallengeBan" data-to="Challenge" marker-end="url(#arrow)"><title>ChallengeBan → Challenge (Owner)</title></path>
+<path class="edge" d="M152,107 C200,107 200,65 248,65" data-from="ChallengeCard" data-to="Challenge" marker-end="url(#arrow)"><title>ChallengeCard → Challenge (Owner)</title></path>
+<path class="edge" d="M152,149 C200,149 200,65 248,65" data-from="ChallengeEffect" data-to="Challenge" marker-end="url(#arrow)"><title>ChallengeEffect → Challenge (Owner)</title></path>
+<path class="edge" d="M152,191 C200,191 200,107 248,107" data-from="DeckEffect" data-to="Deck" marker-end="url(#arrow)"><title>DeckEffect → Deck (Owner)</title></path>
+<path class="edge" d="M152,233 C200,233 200,149 248,149" data-from="JokerEffect" data-to="Joker" marker-end="url(#arrow)"><title>JokerEffect → Joker (Owner)</title></path>
+<path class="edge" d="M152,275 C200,275 200,191 248,191" data-from="SpectralEffect" data-to="Spectral" marker-end="url(#arrow)"><title>SpectralEffect → Spectral (Owner)</title></path>
+<path class="edge" d="M152,317 C200,317 200,233 248,233" data-from="TagEffect" data-to="Tag" marker-end="url(#arrow)"><title>TagEffect → Tag (Owner)</title></path>
+<path class="edge" d="M152,359 C200,359 200,275 248,275" data-from="TarotEffect" data-to="Tarot" marker-end="url(#arrow)"><title>TarotEffect → Tarot (Owner)</title></path>
+<path class="edge self" d="M344,311 C378,291 378,343 344,323" data-from="Voucher" data-to="Voucher" marker-end="url(#arrow)"><title>Voucher → Voucher (UpgradesFrom)</title></path>
+<path class="edge" d="M152,401 C200,401 200,317 248,317" data-from="VoucherEffect" data-to="Voucher" marker-end="url(#arrow)"><title>VoucherEffect → Voucher (Owner)</title></path>
 </g>
 <g id="lit"></g>
 <g class="node" data-node="BossEffect" data-href="tables/boss-effect.html">
-<rect x="8" y="8" width="136" height="30" rx="6"></rect>
+<rect x="8" y="8" width="144" height="30" rx="6"></rect>
 <text x="18" y="28">BossEffect</text>
 <title>BossEffect — 가리킴 1, 가리켜짐 0</title>
 </g>
+<g class="node" data-node="ChallengeBan" data-href="tables/challenge-ban.html">
+<rect x="8" y="50" width="144" height="30" rx="6"></rect>
+<text x="18" y="70">ChallengeBan</text>
+<title>ChallengeBan — 가리킴 1, 가리켜짐 0</title>
+</g>
+<g class="node" data-node="ChallengeCard" data-href="tables/challenge-card.html">
+<rect x="8" y="92" width="144" height="30" rx="6"></rect>
+<text x="18" y="112">ChallengeCard</text>
+<title>ChallengeCard — 가리킴 1, 가리켜짐 0</title>
+</g>
+<g class="node" data-node="ChallengeEffect" data-href="tables/challenge-effect.html">
+<rect x="8" y="134" width="144" height="30" rx="6"></rect>
+<text x="18" y="154">ChallengeEffect</text>
+<title>ChallengeEffect — 가리킴 1, 가리켜짐 0</title>
+</g>
 <g class="node" data-node="DeckEffect" data-href="tables/deck-effect.html">
-<rect x="8" y="50" width="136" height="30" rx="6"></rect>
-<text x="18" y="70">DeckEffect</text>
+<rect x="8" y="176" width="144" height="30" rx="6"></rect>
+<text x="18" y="196">DeckEffect</text>
 <title>DeckEffect — 가리킴 1, 가리켜짐 0</title>
 </g>
 <g class="node" data-node="JokerEffect" data-href="tables/joker-effect.html">
-<rect x="8" y="92" width="136" height="30" rx="6"></rect>
-<text x="18" y="112">JokerEffect</text>
+<rect x="8" y="218" width="144" height="30" rx="6"></rect>
+<text x="18" y="238">JokerEffect</text>
 <title>JokerEffect — 가리킴 1, 가리켜짐 0</title>
 </g>
 <g class="node" data-node="SpectralEffect" data-href="tables/spectral-effect.html">
-<rect x="8" y="134" width="136" height="30" rx="6"></rect>
-<text x="18" y="154">SpectralEffect</text>
+<rect x="8" y="260" width="144" height="30" rx="6"></rect>
+<text x="18" y="280">SpectralEffect</text>
 <title>SpectralEffect — 가리킴 1, 가리켜짐 0</title>
 </g>
 <g class="node" data-node="TagEffect" data-href="tables/tag-effect.html">
-<rect x="8" y="176" width="136" height="30" rx="6"></rect>
-<text x="18" y="196">TagEffect</text>
+<rect x="8" y="302" width="144" height="30" rx="6"></rect>
+<text x="18" y="322">TagEffect</text>
 <title>TagEffect — 가리킴 1, 가리켜짐 0</title>
 </g>
 <g class="node" data-node="TarotEffect" data-href="tables/tarot-effect.html">
-<rect x="8" y="218" width="136" height="30" rx="6"></rect>
-<text x="18" y="238">TarotEffect</text>
+<rect x="8" y="344" width="144" height="30" rx="6"></rect>
+<text x="18" y="364">TarotEffect</text>
 <title>TarotEffect — 가리킴 1, 가리켜짐 0</title>
 </g>
 <g class="node" data-node="VoucherEffect" data-href="tables/voucher-effect.html">
-<rect x="8" y="260" width="136" height="30" rx="6"></rect>
-<text x="18" y="280">VoucherEffect</text>
+<rect x="8" y="386" width="144" height="30" rx="6"></rect>
+<text x="18" y="406">VoucherEffect</text>
 <title>VoucherEffect — 가리킴 1, 가리켜짐 0</title>
 </g>
 <g class="node" data-node="BossBlind" data-href="tables/boss-blind.html">
-<rect x="240" y="8" width="96" height="30" rx="6"></rect>
-<text x="250" y="28">BossBlind</text>
+<rect x="248" y="8" width="96" height="30" rx="6"></rect>
+<text x="258" y="28">BossBlind</text>
 <title>BossBlind — 가리킴 0, 가리켜짐 1</title>
 </g>
+<g class="node" data-node="Challenge" data-href="tables/challenge.html">
+<rect x="248" y="50" width="96" height="30" rx="6"></rect>
+<text x="258" y="70">Challenge</text>
+<title>Challenge — 가리킴 0, 가리켜짐 3</title>
+</g>
 <g class="node" data-node="Deck" data-href="tables/deck.html">
-<rect x="240" y="50" width="96" height="30" rx="6"></rect>
-<text x="250" y="70">Deck</text>
+<rect x="248" y="92" width="96" height="30" rx="6"></rect>
+<text x="258" y="112">Deck</text>
 <title>Deck — 가리킴 0, 가리켜짐 1</title>
 </g>
 <g class="node" data-node="Joker" data-href="tables/joker.html">
-<rect x="240" y="92" width="96" height="30" rx="6"></rect>
-<text x="250" y="112">Joker</text>
+<rect x="248" y="134" width="96" height="30" rx="6"></rect>
+<text x="258" y="154">Joker</text>
 <title>Joker — 가리킴 0, 가리켜짐 1</title>
 </g>
 <g class="node" data-node="Spectral" data-href="tables/spectral.html">
-<rect x="240" y="134" width="96" height="30" rx="6"></rect>
-<text x="250" y="154">Spectral</text>
+<rect x="248" y="176" width="96" height="30" rx="6"></rect>
+<text x="258" y="196">Spectral</text>
 <title>Spectral — 가리킴 0, 가리켜짐 1</title>
 </g>
 <g class="node" data-node="Tag" data-href="tables/tag.html">
-<rect x="240" y="176" width="96" height="30" rx="6"></rect>
-<text x="250" y="196">Tag</text>
+<rect x="248" y="218" width="96" height="30" rx="6"></rect>
+<text x="258" y="238">Tag</text>
 <title>Tag — 가리킴 0, 가리켜짐 1</title>
 </g>
 <g class="node" data-node="Tarot" data-href="tables/tarot.html">
-<rect x="240" y="218" width="96" height="30" rx="6"></rect>
-<text x="250" y="238">Tarot</text>
+<rect x="248" y="260" width="96" height="30" rx="6"></rect>
+<text x="258" y="280">Tarot</text>
 <title>Tarot — 가리킴 0, 가리켜짐 1</title>
 </g>
 <g class="node" data-node="Voucher" data-href="tables/voucher.html">
-<rect x="240" y="260" width="96" height="30" rx="6"></rect>
-<text x="250" y="280">Voucher</text>
+<rect x="248" y="302" width="96" height="30" rx="6"></rect>
+<text x="258" y="322">Voucher</text>
 <title>Voucher — 가리킴 1, 가리켜짐 2</title>
 </g>
 </g>
@@ -745,7 +772,7 @@ tbody [data-pick] { cursor: pointer; }
 <text data-proto="label" class="glyph"></text>
 </svg>
 
-<div id="adjacency" hidden>{&quot;BossEffect&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;BossBlind&quot;,&quot;Owner&quot;]]},&quot;BossBlind&quot;:{&quot;in&quot;:[[&quot;BossEffect&quot;,&quot;Owner&quot;]],&quot;out&quot;:[]},&quot;DeckEffect&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Deck&quot;,&quot;Owner&quot;]]},&quot;Deck&quot;:{&quot;in&quot;:[[&quot;DeckEffect&quot;,&quot;Owner&quot;]],&quot;out&quot;:[]},&quot;JokerEffect&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Joker&quot;,&quot;Owner&quot;]]},&quot;Joker&quot;:{&quot;in&quot;:[[&quot;JokerEffect&quot;,&quot;Owner&quot;]],&quot;out&quot;:[]},&quot;SpectralEffect&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Spectral&quot;,&quot;Owner&quot;]]},&quot;Spectral&quot;:{&quot;in&quot;:[[&quot;SpectralEffect&quot;,&quot;Owner&quot;]],&quot;out&quot;:[]},&quot;TagEffect&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Tag&quot;,&quot;Owner&quot;]]},&quot;Tag&quot;:{&quot;in&quot;:[[&quot;TagEffect&quot;,&quot;Owner&quot;]],&quot;out&quot;:[]},&quot;TarotEffect&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Tarot&quot;,&quot;Owner&quot;]]},&quot;Tarot&quot;:{&quot;in&quot;:[[&quot;TarotEffect&quot;,&quot;Owner&quot;]],&quot;out&quot;:[]},&quot;Voucher&quot;:{&quot;in&quot;:[[&quot;Voucher&quot;,&quot;UpgradesFrom&quot;],[&quot;VoucherEffect&quot;,&quot;Owner&quot;]],&quot;out&quot;:[[&quot;Voucher&quot;,&quot;UpgradesFrom&quot;]]},&quot;VoucherEffect&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Voucher&quot;,&quot;Owner&quot;]]}}</div>
+<div id="adjacency" hidden>{&quot;BossEffect&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;BossBlind&quot;,&quot;Owner&quot;]]},&quot;BossBlind&quot;:{&quot;in&quot;:[[&quot;BossEffect&quot;,&quot;Owner&quot;]],&quot;out&quot;:[]},&quot;ChallengeBan&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Challenge&quot;,&quot;Owner&quot;]]},&quot;Challenge&quot;:{&quot;in&quot;:[[&quot;ChallengeBan&quot;,&quot;Owner&quot;],[&quot;ChallengeCard&quot;,&quot;Owner&quot;],[&quot;ChallengeEffect&quot;,&quot;Owner&quot;]],&quot;out&quot;:[]},&quot;ChallengeCard&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Challenge&quot;,&quot;Owner&quot;]]},&quot;ChallengeEffect&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Challenge&quot;,&quot;Owner&quot;]]},&quot;DeckEffect&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Deck&quot;,&quot;Owner&quot;]]},&quot;Deck&quot;:{&quot;in&quot;:[[&quot;DeckEffect&quot;,&quot;Owner&quot;]],&quot;out&quot;:[]},&quot;JokerEffect&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Joker&quot;,&quot;Owner&quot;]]},&quot;Joker&quot;:{&quot;in&quot;:[[&quot;JokerEffect&quot;,&quot;Owner&quot;]],&quot;out&quot;:[]},&quot;SpectralEffect&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Spectral&quot;,&quot;Owner&quot;]]},&quot;Spectral&quot;:{&quot;in&quot;:[[&quot;SpectralEffect&quot;,&quot;Owner&quot;]],&quot;out&quot;:[]},&quot;TagEffect&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Tag&quot;,&quot;Owner&quot;]]},&quot;Tag&quot;:{&quot;in&quot;:[[&quot;TagEffect&quot;,&quot;Owner&quot;]],&quot;out&quot;:[]},&quot;TarotEffect&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Tarot&quot;,&quot;Owner&quot;]]},&quot;Tarot&quot;:{&quot;in&quot;:[[&quot;TarotEffect&quot;,&quot;Owner&quot;]],&quot;out&quot;:[]},&quot;Voucher&quot;:{&quot;in&quot;:[[&quot;Voucher&quot;,&quot;UpgradesFrom&quot;],[&quot;VoucherEffect&quot;,&quot;Owner&quot;]],&quot;out&quot;:[[&quot;Voucher&quot;,&quot;UpgradesFrom&quot;]]},&quot;VoucherEffect&quot;:{&quot;in&quot;:[],&quot;out&quot;:[[&quot;Voucher&quot;,&quot;Owner&quot;]]}}</div>
 <h2><svg class="i"><use href="#i-table"></use></svg>그래프에 없는 테이블<span class="count">22</span></h2>
 <p class="hint">다른 테이블을 가리키지도, 가리켜지지도 않습니다.</p>
 <ul class="entities">
@@ -769,7 +796,7 @@ tbody [data-pick] { cursor: pointer; }
 <li><svg class="i"><use href="#i-table"></use></svg><a href="tables/shop-slot-weight.html">ShopSlotWeight</a> <span class="n-of">행 5개</span></li>
 <li><svg class="i"><use href="#i-table"></use></svg><a href="tables/sound-cue.html">SoundCue</a> <span class="n-of">행 38개</span></li>
 <li><svg class="i"><use href="#i-table"></use></svg><a href="tables/stake.html">Stake</a> <span class="n-of">행 8개</span></li>
-<li><svg class="i"><use href="#i-table"></use></svg><a href="tables/string-table.html">StringTable</a> <span class="n-of">행 1,238개</span></li>
+<li><svg class="i"><use href="#i-table"></use></svg><a href="tables/string-table.html">StringTable</a> <span class="n-of">행 1,258개</span></li>
 <li><svg class="i"><use href="#i-table"></use></svg><a href="tables/suit.html">Suit</a> <span class="n-of">행 4개</span></li>
 </ul>
 </main>

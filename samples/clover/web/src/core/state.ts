@@ -132,6 +132,28 @@ export interface Rules {
   doubleTagOnBossDefeat: boolean
   blindSizeScaleBp: number
   nextShopFree: boolean
+  /** 블라인드 갈래마다 격파 보상을 끕니다. 챌린지가 씁니다. */
+  noSmallBlindReward: boolean
+  noBigBlindReward: boolean
+  noBossBlindReward: boolean
+  /** 칩이 지금 보유액을 넘지 못합니다. */
+  chipsCappedByMoney: boolean
+  /** 뽑는 카드가 뒤집힐 확률의 분모. 0이면 없습니다. */
+  faceDownDrawRate: number
+  /** 보유액이 이만큼일 때마다 패 크기가 하나 줄어듭니다. 0이면 없습니다. */
+  handSizePerMoney: number
+  /** 모든 조커에 `Eternal`. `Joker.eternalOk` 가 거짓인 것은 빠집니다. */
+  allJokersEternal: boolean
+  /** 낸 카드가 득점을 마치면 무력화됩니다. **라운드가 끝나도 풀리지 않습니다.** */
+  debuffPlayedAfterScoring: boolean
+  /** 살 때마다 상점의 값이 이만큼 영구히 오릅니다. */
+  priceRisePerPurchase: number
+  /** 상점의 카드 칸에 조커가 나오지 않습니다. */
+  noJokersInShop: boolean
+  /** 카드를 버릴 때마다 내는 금액. */
+  discardCost: number
+  /** 옮길 수 없는 조커의 자리. 1부터 세고 0이면 없습니다. */
+  pinnedJokerSlot: number
   /** 보스가 켜는 것들. 라운드가 끝나면 꺼집니다. */
   noRepeatHandTypes: boolean
   singleHandTypeOnly: boolean
@@ -153,6 +175,13 @@ export interface RunState {
   seed: string
   deckId: string
   stake: string
+  /**
+   * 이 런의 챌린지. 빈 문자열이면 챌린지가 아닙니다.
+   *
+   * **`pools` 와 같은 갈래의 런 설정입니다** — 해시에 들어가지 않으므로 구워 둔 리플레이가
+   * 그대로 유효합니다.
+   */
+  challengeId: string
   /**
    * 이 런에서 쓰는 조커 풀. 시작할 때 정해지고 런 도중에 바뀌지 않습니다.
    *
@@ -231,6 +260,14 @@ export interface RunState {
   shop: ShopState
   /** 지금 뜯어 놓은 팩. 고를 것을 다 고르면 `null` 로 돌아갑니다. */
   pack: PackOpen | null
+
+  /**
+   * 지금까지 오른 상점 가격. `priceRisePerPurchase` 가 쌓는 값입니다.
+   *
+   * **규칙이 아니라 상태입니다** — 규칙은 「한 번에 얼마씩 오르는가」이고 매번 다시 세우므로,
+   * 누적값을 거기 두면 다시 세울 때마다 0으로 돌아갑니다.
+   */
+  priceRise: number
 
   nextUid: number
   rng: Record<string, Pcg32>

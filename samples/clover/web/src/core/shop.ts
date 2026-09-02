@@ -10,7 +10,9 @@ import { PackKind } from '../generated/enums/pack-kind'
 import { SealKind } from '../generated/enums/seal-kind'
 import { ShopItemKind } from '../generated/enums/shop-item-kind'
 import { Rarity } from '../generated/enums/rarity'
-import { jokerPool } from './pool'
+import {
+  jokerPool, packPool, planetPool, spectralPool, tarotPool, voucherPool,
+} from './pool'
 import type { Data } from './data'
 import type { JokerInstance, RunState } from './state'
 import { newVm, sellPrice, type Vm } from './vm'
@@ -85,17 +87,17 @@ function rollPackCard(vm: Vm, kind: PackKind): ShopItem | undefined {
 
   switch (kind) {
     case PackKind.Arcana: {
-      const pool = data.tables.tarot.records
+      const pool = tarotPool(data, vm.state)
       return { kind: ShopItemKind.Tarot, id: pool[rng.below(pool.length)].tarotId, cost: 0, edition: EditionKind.Base }
     }
 
     case PackKind.Celestial: {
-      const pool = data.tables.planet.records
+      const pool = planetPool(data, vm.state)
       return { kind: ShopItemKind.Planet, id: pool[rng.below(pool.length)].planetId, cost: 0, edition: EditionKind.Base }
     }
 
     case PackKind.Spectral: {
-      const pool = data.tables.spectral.records
+      const pool = spectralPool(data, vm.state)
       return { kind: ShopItemKind.Spectral, id: pool[rng.below(pool.length)].spectralId, cost: 0, edition: EditionKind.Base }
     }
 
@@ -149,16 +151,25 @@ function rollKind(vm: Vm): ShopItemKind | undefined {
     if (kind === ShopItemKind.Planet) return base * rules.shopWeightPlanetScale
     if (kind === ShopItemKind.PlayingCard) return rules.shopAllowsPlayingCards ? Math.max(base, 4) : 0
     if (kind === ShopItemKind.Spectral) return rules.shopAllowsSpectral ? Math.max(base, 2) : 0
+    // **상점 칸에서만 뺍니다.** 팩과 태그로는 그대로 나와야 하는 챌린지가 있습니다.
+    if (kind === ShopItemKind.Joker && rules.noJokersInShop) return 0
     return base
   }
 
   return vm.state.rng.ShopSlot.pickWeighted(rows, row => weight(row.item, row.weight))?.item
 }
 
+/**
+ * 상점의 값 하나.
+ *
+ * **오른 값을 먼저 얹고 할인을 뒤에 적용합니다** — 순서를 뒤집으면 할인이 오른 값에 걸리지
+ * 않아 값이 오르는 뜻이 없어집니다.
+ */
 function discounted(vm: Vm, cost: number): number {
+  const raised = cost + vm.state.priceRise
   const off = vm.state.rules.shopDiscount
-  if (off <= 0) return cost
-  return Math.max(1, Math.floor((cost * (100 - off)) / 100))
+  if (off <= 0) return raised
+  return Math.max(1, Math.floor((raised * (100 - off)) / 100))
 }
 
 /** 에디션 추첨. `Hone` 계열이 배율을 올립니다. */
@@ -191,20 +202,20 @@ function rollCard(vm: Vm): ShopItem | undefined {
     }
 
     case ShopItemKind.Tarot: {
-      const pool = data.tables.tarot.records
+      const pool = tarotPool(data, vm.state)
       const row = pool[vm.state.rng.ShopSlot.below(pool.length)]
       return { kind, id: row.tarotId, cost: discounted(vm, data.economy.tarotCost), edition: EditionKind.Base }
     }
 
     case ShopItemKind.Planet: {
-      const pool = data.tables.planet.records
+      const pool = planetPool(data, vm.state)
       const row = pool[vm.state.rng.ShopSlot.below(pool.length)]
       const cost = vm.state.rules.freePlanets ? 0 : discounted(vm, data.economy.planetCost)
       return { kind, id: row.planetId, cost, edition: EditionKind.Base }
     }
 
     case ShopItemKind.Spectral: {
-      const pool = data.tables.spectral.records
+      const pool = spectralPool(data, vm.state)
       const row = pool[vm.state.rng.ShopSlot.below(pool.length)]
       return { kind, id: row.spectralId, cost: discounted(vm, data.economy.spectralCost), edition: EditionKind.Base }
     }
@@ -232,7 +243,7 @@ export function stock(vm: Vm, shop: ShopState): void {
   }
 
   shop.packs = []
-  const packs = data.tables.boosterPack.records
+  const packs = packPool(data, vm.state)
   for (let slot = 0; slot < data.economy.shopPackSlots; slot++) {
     shop.packs.push(packs[state.rng.Pack.below(packs.length)].packId)
   }
@@ -240,7 +251,7 @@ export function stock(vm: Vm, shop: ShopState): void {
   // 바우처는 안테마다 하나입니다. 상위는 자기 하위를 산 뒤에만 나옵니다.
   if (!shop.voucherBought) {
     const owned = new Set(state.vouchers)
-    const pool = data.tables.voucher.records.filter(row =>
+    const pool = voucherPool(data, state).filter(row =>
       !owned.has(row.voucherId)
       && (row.upgradesFrom === '' || owned.has(row.upgradesFrom)))
     shop.voucher = pool.length > 0

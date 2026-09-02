@@ -5,7 +5,7 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from run.tbs(65,6)
+// Generated from run.tbs(87,6)
 /** 소모품의 갈래. 슬롯을 공유합니다. */
 export enum ConsumableKind {
   /** 카드를 바꾸거나 무언가를 만듭니다. */

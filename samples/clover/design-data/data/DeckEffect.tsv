@@ -1,29 +1,29 @@
 :table DeckEffect(key="owner,order")	덱이 정하는 시작 조건입니다.
-:field	owner	order	trigger	chance_num	chance_den	first_only	ranks	suits	scope	scope_count	condition.$type	condition.hand	condition.suit	condition.enhancement	condition.seal	condition.edition	condition.blind	condition.consumable	condition.target	condition.counter	condition.consume	condition.n	condition.compare	condition.num	condition.den	operation.$type	operation.chips	operation.mult	operation.money	operation.cap	operation.unit	operation.mode	operation.value	operation.base_value	operation.min	operation.max	operation.times	operation.counter	operation.step	operation.init	operation.floor	operation.reset	operation.hand_pick	operation.levels	operation.create	operation.count	operation.card_class	operation.edition	operation.rarity	operation.enhancement	operation.seal	operation.suit	operation.modify	operation.trait	operation.debuff	operation.pick	operation.rule	operation.absolute	operation.duration	operation.free	operation.random	operation.ref_id	operation.handler
-:type	foreign Deck	int (min=0, max=15)	Trigger	int?	int?	bool?	RankKind[]?	SuitKind[]?	Scope	int?	Condition															Operation																																					
-:desc	이 효과를 가진 것	같은 소유자 안의 순서	언제 보는가	확률의 분자	확률의 분모	조건을 만족한 첫 대상만	어느 랭크들인가	어느 무늬들인가	누구에게	대상 개수	무엇이 참이어야 하는가															무엇을 하는가																																					
-	red_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								DiscardsPerRound						
-	blue_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								HandsPerRound						
-	yellow_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							10																								StartingMoney						
-	green_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								NoInterest						
-	green_deck	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							2																								MoneyPerHandLeft						
-	green_deck	2	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								MoneyPerDiscardLeft						
-	black_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								JokerSlots						
-	black_deck	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-1																								HandsPerRound						
-	magic_deck	0	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Voucher	1																crystal_ball	
-	magic_deck	1	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Tarot	2																the_fool	
-	nebula_deck	0	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Voucher	1																telescope	
-	nebula_deck	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-1																								ConsumableSlots						
-	ghost_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								ShopAllowsSpectral						
-	ghost_deck	1	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Spectral	1																hex	
-	abandoned_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								RemoveFaceCards						
-	checkered_deck	0	Passive	-	-	-	-	Spade;Heart	Run	-	CondAlways															OpChangeRule							1																								SuitsOnly						
-	zodiac_deck	0	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Voucher	1																tarot_merchant	
-	zodiac_deck	1	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Voucher	1																planet_merchant	
-	zodiac_deck	2	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Voucher	1																overstock	
-	painted_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							2																								HandSize						
-	painted_deck	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-1																								JokerSlots						
-	anaglyph_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								DoubleTagOnBossDefeat						
-	plasma_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								BalanceChipsAndMult						
-	plasma_deck	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							20000																								BlindSizeScale	true					
-	erratic_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								RandomizeDeck						
+:field	owner	order	trigger	chance_num	chance_den	first_only	ranks	suits	scope	scope_count	condition.$type	condition.hand	condition.suit	condition.enhancement	condition.seal	condition.edition	condition.blind	condition.consumable	condition.target	condition.counter	condition.consume	condition.n	condition.compare	condition.num	condition.den	operation.$type	operation.chips	operation.mult	operation.money	operation.cap	operation.unit	operation.mode	operation.value	operation.base_value	operation.min	operation.max	operation.times	operation.counter	operation.step	operation.init	operation.floor	operation.reset	operation.hand_pick	operation.levels	operation.create	operation.count	operation.card_class	operation.edition	operation.rarity	operation.enhancement	operation.seal	operation.suit	operation.modify	operation.trait	operation.debuff	operation.pick	operation.rule	operation.absolute	operation.duration	operation.free	operation.random	operation.ref_id	operation.handler	operation.sticker
+:type	foreign Deck	int (min=0, max=15)	Trigger	int?	int?	bool?	RankKind[]?	SuitKind[]?	Scope	int?	Condition															Operation																																						
+:desc	이 효과를 가진 것	같은 소유자 안의 순서	언제 보는가	확률의 분자	확률의 분모	조건을 만족한 첫 대상만	어느 랭크들인가	어느 무늬들인가	누구에게	대상 개수	무엇이 참이어야 하는가															무엇을 하는가																																						
+	red_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								DiscardsPerRound							
+	blue_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								HandsPerRound							
+	yellow_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							10																								StartingMoney							
+	green_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								NoInterest							
+	green_deck	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							2																								MoneyPerHandLeft							
+	green_deck	2	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								MoneyPerDiscardLeft							
+	black_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								JokerSlots							
+	black_deck	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-1																								HandsPerRound							
+	magic_deck	0	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Voucher	1																crystal_ball		
+	magic_deck	1	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Tarot	2																the_fool		
+	nebula_deck	0	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Voucher	1																telescope		
+	nebula_deck	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-1																								ConsumableSlots							
+	ghost_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								ShopAllowsSpectral							
+	ghost_deck	1	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Spectral	1																hex		
+	abandoned_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								RemoveFaceCards							
+	checkered_deck	0	Passive	-	-	-	-	Spade;Heart	Run	-	CondAlways															OpChangeRule							1																								SuitsOnly							
+	zodiac_deck	0	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Voucher	1																tarot_merchant		
+	zodiac_deck	1	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Voucher	1																planet_merchant		
+	zodiac_deck	2	OnRunStart	-	-	-	-	-	Run	-	CondAlways															OpGrant																			Voucher	1																overstock		
+	painted_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							2																								HandSize							
+	painted_deck	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-1																								JokerSlots							
+	anaglyph_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								DoubleTagOnBossDefeat							
+	plasma_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								BalanceChipsAndMult							
+	plasma_deck	1	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							20000																								BlindSizeScale	true						
+	erratic_deck	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								RandomizeDeck							

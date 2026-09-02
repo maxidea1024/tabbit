@@ -800,5 +800,13 @@
     "e307450d",
     "c229a9d0",
     "e711ea96"
-  ]
+  ],
+  "metrics": {
+    "ascent": 11,
+    "bestHand": 3960,
+    "handsPlayed": 22,
+    "money": 1,
+    "skips": 0,
+    "won": false
+  }
 }

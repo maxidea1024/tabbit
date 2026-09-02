@@ -284,6 +284,11 @@ namespace Clover.Data
                     return new CondCardEnhanced
                     {
                     };
+                case 42:
+                    return new CondAnteAtLeast
+                    {
+                        N = _condition.N,
+                    };
                 case 41:
                     return new CondConsumableKind
                     {
@@ -517,7 +522,9 @@ namespace Clover.Data
                     {
                         Create = _operation.Create,
                         Count = _operation.Count,
+                        Edition = _operation.Edition,
                         RefId = _operation.RefId,
+                        Sticker = _operation.Sticker,
                     };
                 case 35:
                     return new OpNothing
@@ -630,6 +637,8 @@ namespace Clover.Data
             /// 특정 행을 가리킬 때의 식별자. 팩과 바우처와 태그가 씁니다.
             public string RefId;
             public string Handler;
+            /// 붙여서 줄 스티커. 비우면 `None`. 조커에만 걸립니다.
+            public global::Clover.Data.StickerKind Sticker;
 
             public override string ToString()
             {
@@ -672,6 +681,7 @@ namespace Clover.Data
                 sb.Append(",\"Random\":"); ToStringHelper.ToString(Random, sb);
                 sb.Append(",\"RefId\":"); ToStringHelper.ToString(RefId, sb);
                 sb.Append(",\"Handler\":"); ToStringHelper.ToString(Handler, sb);
+                sb.Append(",\"Sticker\":"); ToStringHelper.ToString(Sticker, sb);
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -1938,6 +1948,22 @@ namespace Clover.Data
                             {
                                 var record = records[i++];
                                 record._operation.Handler = value;
+                            } while (--n > 0);
+                        }
+                        break;
+
+                    case 64:
+                        TcbTable.CheckColumn(column, "EnhancementEffect.Operation.Sticker", TcbTable.KindScalar, false, TcbTable.ElementVarint);
+                        cursor = new TcbColumnCursor(reader, column, count, "EnhancementEffect.Operation.Sticker");
+                        for (int i = 0; i < count; )
+                        {
+                            // One call per run of equal values, not one per row - over a
+                            // run-length encoded column this is most of the decode.
+                            int n = cursor.NextSameI32(count - i, out var value);
+                            do
+                            {
+                                var record = records[i++];
+                                record._operation.Sticker = (global::Clover.Data.StickerKind)value;
                             } while (--n > 0);
                         }
                         break;

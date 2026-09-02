@@ -1,0 +1,11 @@
+:table ChallengeCard(key="owner,order")	챌린지의 시작 덱입니다. **행이 없으면 표준 52장입니다** — 20종 중 15종이 그렇습니다.
+:field	owner	order	ranks	suits	copies	enhancement	seal	edition
+:type	foreign Challenge	int (min=0, max=15)	RankKind[]?	SuitKind[]?	int (min=0, max=4)	EnhancementKind	SealKind	EditionKind
+:desc	어느 챌린지	순서	어느 랭크들	어느 무늬들. 비우면 넷 다	몇 벌	강화	인장	에디션
+	face_town	0	Four;Five;Six;Seven;Eight;Nine;Ten	-	1	None	None	Base
+	face_town	1	Jack;Queen;King	-	2	None	None	Base
+	low_field	0	Two;Three;Four;Five;Six;Seven;Eight;Nine	-	1	None	None	Base
+	stone_court	0	Two;Three;Four;Five;Six;Seven;Eight;Nine;Ten;Ace	-	1	None	None	Base
+	stone_court	1	Jack;Queen;King	-	1	Stone	None	Base
+	red_wax	0	Two;Three;Four;Five;Six;Seven;Eight;Nine;Ten;Jack;Queen;King;Ace	-	1	None	Red	Base
+	glass_field	0	Two;Three;Four;Five;Six;Seven;Eight;Nine;Ten;Jack;Queen;King;Ace	-	1	Glass	None	Base

@@ -808,5 +808,13 @@
     "61040dcd",
     "2353949f",
     "6a1ea3c5"
-  ]
+  ],
+  "metrics": {
+    "ascent": 10,
+    "bestHand": 4440,
+    "handsPlayed": 20,
+    "money": 1,
+    "skips": 0,
+    "won": false
+  }
 }

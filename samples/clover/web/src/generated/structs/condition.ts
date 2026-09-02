@@ -64,6 +64,7 @@ export type Condition =
   | CondFirstDiscardSingleCard
   | CondNotMostPlayedHand
   | CondCardEnhanced
+  | CondAnteAtLeast
   | CondConsumableKind
 
 /** What every Condition carries, whichever shape it is. */
@@ -496,6 +497,17 @@ export interface CondNotMostPlayedHand extends ConditionBase {
  */
 export interface CondCardEnhanced extends ConditionBase {
   readonly kind: 'CondCardEnhanced'
+}
+
+/**
+ * One shape of Condition.
+ *
+ * The file carries 42 for it. That number rather than the name is what
+ * lets this variant be renamed without a deployed reader reading a different one.
+ */
+export interface CondAnteAtLeast extends ConditionBase {
+  readonly kind: 'CondAnteAtLeast'
+  n: number
 }
 
 /**

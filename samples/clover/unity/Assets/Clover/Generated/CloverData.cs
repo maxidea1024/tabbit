@@ -145,6 +145,10 @@ namespace Clover.Data
             public StakeTable Stake = new StakeTable();
             public TagTable Tag = new TagTable();
             public TagEffectTable TagEffect = new TagEffectTable();
+            public ChallengeTable Challenge = new ChallengeTable();
+            public ChallengeEffectTable ChallengeEffect = new ChallengeEffectTable();
+            public ChallengeBanTable ChallengeBan = new ChallengeBanTable();
+            public ChallengeCardTable ChallengeCard = new ChallengeCardTable();
             public ShopSlotWeightTable ShopSlotWeight = new ShopSlotWeightTable();
             public BoosterPackTable BoosterPack = new BoosterPackTable();
             public VoucherTable Voucher = new VoucherTable();
@@ -309,6 +313,26 @@ namespace Clover.Data
         public static TagEffectTable TagEffect => Current.TagEffect;
 
         /// <summary>
+        /// Property for Challenge table.
+        /// </summary>
+        public static ChallengeTable Challenge => Current.Challenge;
+
+        /// <summary>
+        /// Property for ChallengeEffect table.
+        /// </summary>
+        public static ChallengeEffectTable ChallengeEffect => Current.ChallengeEffect;
+
+        /// <summary>
+        /// Property for ChallengeBan table.
+        /// </summary>
+        public static ChallengeBanTable ChallengeBan => Current.ChallengeBan;
+
+        /// <summary>
+        /// Property for ChallengeCard table.
+        /// </summary>
+        public static ChallengeCardTable ChallengeCard => Current.ChallengeCard;
+
+        /// <summary>
         /// Property for ShopSlotWeight table.
         /// </summary>
         public static ShopSlotWeightTable ShopSlotWeight => Current.ShopSlotWeight;
@@ -385,6 +409,10 @@ namespace Clover.Data
             tasks.Add(snapshot.Stake.ReadAsync(System.IO.Path.Combine(basePath, $"Stake{fileExtension}")));
             tasks.Add(snapshot.Tag.ReadAsync(System.IO.Path.Combine(basePath, $"Tag{fileExtension}")));
             tasks.Add(snapshot.TagEffect.ReadAsync(System.IO.Path.Combine(basePath, $"TagEffect{fileExtension}")));
+            tasks.Add(snapshot.Challenge.ReadAsync(System.IO.Path.Combine(basePath, $"Challenge{fileExtension}")));
+            tasks.Add(snapshot.ChallengeEffect.ReadAsync(System.IO.Path.Combine(basePath, $"ChallengeEffect{fileExtension}")));
+            tasks.Add(snapshot.ChallengeBan.ReadAsync(System.IO.Path.Combine(basePath, $"ChallengeBan{fileExtension}")));
+            tasks.Add(snapshot.ChallengeCard.ReadAsync(System.IO.Path.Combine(basePath, $"ChallengeCard{fileExtension}")));
             tasks.Add(snapshot.ShopSlotWeight.ReadAsync(System.IO.Path.Combine(basePath, $"ShopSlotWeight{fileExtension}")));
             tasks.Add(snapshot.BoosterPack.ReadAsync(System.IO.Path.Combine(basePath, $"BoosterPack{fileExtension}")));
             tasks.Add(snapshot.Voucher.ReadAsync(System.IO.Path.Combine(basePath, $"Voucher{fileExtension}")));
@@ -480,6 +508,30 @@ namespace Clover.Data
                 if (record._owner_Tag_index is { Length: > 0 })
                 {
                     record.SetReference_Owner_INTERNAL(snapshot.Tag.GetByTagIdOrThrow(record._owner_Tag_index));
+                }
+            }
+
+            foreach (var record in snapshot.ChallengeEffect.Records)
+            {
+                if (record._owner_Challenge_index is { Length: > 0 })
+                {
+                    record.SetReference_Owner_INTERNAL(snapshot.Challenge.GetByChallengeIdOrThrow(record._owner_Challenge_index));
+                }
+            }
+
+            foreach (var record in snapshot.ChallengeBan.Records)
+            {
+                if (record._owner_Challenge_index is { Length: > 0 })
+                {
+                    record.SetReference_Owner_INTERNAL(snapshot.Challenge.GetByChallengeIdOrThrow(record._owner_Challenge_index));
+                }
+            }
+
+            foreach (var record in snapshot.ChallengeCard.Records)
+            {
+                if (record._owner_Challenge_index is { Length: > 0 })
+                {
+                    record.SetReference_Owner_INTERNAL(snapshot.Challenge.GetByChallengeIdOrThrow(record._owner_Challenge_index));
                 }
             }
 

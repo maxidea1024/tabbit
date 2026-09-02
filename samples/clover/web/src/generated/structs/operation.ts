@@ -25,6 +25,7 @@ import { DebuffKind } from '../enums/debuff-kind'
 import { RuleKind } from '../enums/rule-kind'
 import { Duration } from '../enums/duration'
 import { CardTrait } from '../enums/card-trait'
+import { StickerKind } from '../enums/sticker-kind'
 
 /**
  * One value of Operation, whichever shape it took.
@@ -500,8 +501,11 @@ export interface OpGrant extends OperationBase {
   readonly kind: 'OpGrant'
   create: CreateKind
   count: number
+  edition: EditionKind
   /** 특정 행을 가리킬 때의 식별자. 팩과 바우처와 태그가 씁니다. */
   refId: string
+  /** 붙여서 줄 스티커. 비우면 `None`. 조커에만 걸립니다. */
+  sticker: StickerKind
 }
 
 /**

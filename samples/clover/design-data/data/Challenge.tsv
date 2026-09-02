@@ -1,0 +1,24 @@
+:table Challenge(key=challenge_id)	런의 시작 조건을 통째로 바꾼 판입니다. 덱·스테이크와 나란한 세 번째 축이고, 앞의 것을 깨야 다음이 열립니다.
+:field	challenge_id	name	unlock	sort_order
+:type	string (regex="^[a-z][a-z0-9_]*$")	string (text=Challenge)	string	int (min=1, max=20)
+:desc	식별자	표시 이름	해금 조건	해금 순서
+	dry_season	마른 철	덱 5종으로 승리	1
+	face_town	그림 마을	덱 5종으로 승리	2
+	coin_ceiling	동전 천장	덱 5종으로 승리	3
+	shear_edge	가위날	덱 5종으로 승리	4
+	blind_draw	엎어진 패	덱 5종으로 승리	5
+	low_field	낮은 들	엎어진 패 격파	6
+	heavy_purse	무거운 지갑	낮은 들 격파	7
+	evergreen	상록	무거운 지갑 격파	8
+	stone_court	돌이 된 얼굴	상록 격파	9
+	red_wax	붉은 밀랍	돌이 된 얼굴 격파	10
+	sealed_fate	굳는 편성	붉은 밀랍 격파	11
+	rising_price	오르는 값	굳는 편성 격파	12
+	vine_night	덩굴의 밤	오르는 값 격파	13
+	glass_field	유리밭	덩굴의 밤 격파	14
+	stone_row	돌의 줄	유리밭 격파	15
+	sky_road	하늘길	돌의 줄 격파	16
+	five_leaves	다섯 잎	하늘길 격파	17
+	single_thread	한 올	다섯 잎 격파	18
+	barren_road	메마른 길	한 올 격파	19
+	bare_field	맨 밭	메마른 길 격파	20

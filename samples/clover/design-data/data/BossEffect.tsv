@@ -1,30 +1,30 @@
 :table BossEffect(key="owner,order")	보스가 바꾸는 규칙입니다. 규칙만 바꾸고 점수는 배율이 정합니다.
-:field	owner	order	trigger	chance_num	chance_den	first_only	ranks	suits	scope	scope_count	condition.$type	condition.hand	condition.suit	condition.enhancement	condition.seal	condition.edition	condition.blind	condition.consumable	condition.target	condition.counter	condition.consume	condition.n	condition.compare	condition.num	condition.den	operation.$type	operation.chips	operation.mult	operation.money	operation.cap	operation.unit	operation.mode	operation.value	operation.base_value	operation.min	operation.max	operation.times	operation.counter	operation.step	operation.init	operation.floor	operation.reset	operation.hand_pick	operation.levels	operation.create	operation.count	operation.card_class	operation.edition	operation.rarity	operation.enhancement	operation.seal	operation.suit	operation.modify	operation.trait	operation.debuff	operation.pick	operation.rule	operation.absolute	operation.duration	operation.free	operation.random	operation.ref_id	operation.handler
-:type	foreign BossBlind	int (min=0, max=15)	Trigger	int?	int?	bool?	RankKind[]?	SuitKind[]?	Scope	int?	Condition															Operation																																					
-:desc	이 효과를 가진 것	같은 소유자 안의 순서	언제 보는가	확률의 분자	확률의 분모	조건을 만족한 첫 대상만	어느 랭크들인가	어느 무늬들인가	누구에게	대상 개수	무엇이 참이어야 하는가															무엇을 하는가																																					
-	the_hook	0	OnHandPlayed	-	-	-	-	-	AllInHand	-	CondAlways															OpForceDiscard																				2																	
-	the_club	0	Passive	-	-	-	-	-	AllInDeck	-	CondAlways															OpDebuff																										Club			BySuit								
-	the_psychic	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								MustPlayFiveCards						
-	the_goad	0	Passive	-	-	-	-	-	AllInDeck	-	CondAlways															OpDebuff																										Spade			BySuit								
-	the_window	0	Passive	-	-	-	-	-	AllInDeck	-	CondAlways															OpDebuff																										Diamond			BySuit								
-	the_manacle	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-1																								HandSize						
-	the_pillar	0	Passive	-	-	-	-	-	AllInDeck	-	CondAlways															OpDebuff																													PlayedThisAnte								
-	the_head	0	Passive	-	-	-	-	-	AllInDeck	-	CondAlways															OpDebuff																										Heart			BySuit								
-	the_house	0	OnRoundStart	-	-	-	-	-	AllInHand	-	CondFirstHand															OpDrawFaceDown																																					
-	the_wheel	0	Passive	1	7	-	-	-	AllInHand	-	CondAlways															OpDrawFaceDown																																					
-	the_arm	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpLevelUpHand																	Played	-1																			
-	the_fish	0	OnHandPlayed	-	-	-	-	-	AllInHand	-	CondAlways															OpDrawFaceDown																																					
-	the_water	0	OnRoundStart	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								SetDiscardsZero		ThisRound				
-	the_mouth	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								SingleHandTypeOnly						
-	the_needle	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								HandsPerRound	true					
-	the_flint	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								HalveBaseChipsAndMult						
-	the_mark	0	Passive	-	-	-	-	-	AllInHand	-	CondAlways															OpDrawFaceDown																					Face																
-	the_eye	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								NoRepeatHandTypes						
-	the_tooth	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					CardsPlayed	AddMoney	-1																														
-	the_plant	0	Passive	-	-	-	-	-	AllInDeck	-	CondAlways															OpDebuff																													FaceCards								
-	the_serpent	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								AlwaysDrawThree						
-	the_ox	0	OnHandPlayed	-	-	-	-	-	Run	-	CondIsMostPlayedHand															OpSetMoney			0																																		
-	amber_acorn	0	OnRoundStart	-	-	-	-	-	AllJokers	-	CondAlways															OpFlipJokers																																					
-	verdant_leaf	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								DebuffUntilJokerSold						
-	crimson_heart	0	OnHandPlayed	-	-	-	-	-	RandomJoker	-	CondAlways															OpDisableRandomJoker																																					
-	cerulean_bell	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								ForceCardSelected						
+:field	owner	order	trigger	chance_num	chance_den	first_only	ranks	suits	scope	scope_count	condition.$type	condition.hand	condition.suit	condition.enhancement	condition.seal	condition.edition	condition.blind	condition.consumable	condition.target	condition.counter	condition.consume	condition.n	condition.compare	condition.num	condition.den	operation.$type	operation.chips	operation.mult	operation.money	operation.cap	operation.unit	operation.mode	operation.value	operation.base_value	operation.min	operation.max	operation.times	operation.counter	operation.step	operation.init	operation.floor	operation.reset	operation.hand_pick	operation.levels	operation.create	operation.count	operation.card_class	operation.edition	operation.rarity	operation.enhancement	operation.seal	operation.suit	operation.modify	operation.trait	operation.debuff	operation.pick	operation.rule	operation.absolute	operation.duration	operation.free	operation.random	operation.ref_id	operation.handler	operation.sticker
+:type	foreign BossBlind	int (min=0, max=15)	Trigger	int?	int?	bool?	RankKind[]?	SuitKind[]?	Scope	int?	Condition															Operation																																						
+:desc	이 효과를 가진 것	같은 소유자 안의 순서	언제 보는가	확률의 분자	확률의 분모	조건을 만족한 첫 대상만	어느 랭크들인가	어느 무늬들인가	누구에게	대상 개수	무엇이 참이어야 하는가															무엇을 하는가																																						
+	the_hook	0	OnHandPlayed	-	-	-	-	-	AllInHand	-	CondAlways															OpForceDiscard																				2																		
+	the_club	0	Passive	-	-	-	-	-	AllInDeck	-	CondAlways															OpDebuff																										Club			BySuit									
+	the_psychic	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								MustPlayFiveCards							
+	the_goad	0	Passive	-	-	-	-	-	AllInDeck	-	CondAlways															OpDebuff																										Spade			BySuit									
+	the_window	0	Passive	-	-	-	-	-	AllInDeck	-	CondAlways															OpDebuff																										Diamond			BySuit									
+	the_manacle	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							-1																								HandSize							
+	the_pillar	0	Passive	-	-	-	-	-	AllInDeck	-	CondAlways															OpDebuff																													PlayedThisAnte									
+	the_head	0	Passive	-	-	-	-	-	AllInDeck	-	CondAlways															OpDebuff																										Heart			BySuit									
+	the_house	0	OnRoundStart	-	-	-	-	-	AllInHand	-	CondFirstHand															OpDrawFaceDown																																						
+	the_wheel	0	Passive	1	7	-	-	-	AllInHand	-	CondAlways															OpDrawFaceDown																																						
+	the_arm	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpLevelUpHand																	Played	-1																				
+	the_fish	0	OnHandPlayed	-	-	-	-	-	AllInHand	-	CondAlways															OpDrawFaceDown																																						
+	the_water	0	OnRoundStart	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								SetDiscardsZero		ThisRound					
+	the_mouth	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								SingleHandTypeOnly							
+	the_needle	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								HandsPerRound	true						
+	the_flint	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								HalveBaseChipsAndMult							
+	the_mark	0	Passive	-	-	-	-	-	AllInHand	-	CondAlways															OpDrawFaceDown																					Face																	
+	the_eye	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								NoRepeatHandTypes							
+	the_tooth	0	OnHandPlayed	-	-	-	-	-	Run	-	CondAlways															OpPerUnit					CardsPlayed	AddMoney	-1																															
+	the_plant	0	Passive	-	-	-	-	-	AllInDeck	-	CondAlways															OpDebuff																													FaceCards									
+	the_serpent	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								AlwaysDrawThree							
+	the_ox	0	OnHandPlayed	-	-	-	-	-	Run	-	CondIsMostPlayedHand															OpSetMoney			0																																			
+	amber_acorn	0	OnRoundStart	-	-	-	-	-	AllJokers	-	CondAlways															OpFlipJokers																																						
+	verdant_leaf	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								DebuffUntilJokerSold							
+	crimson_heart	0	OnHandPlayed	-	-	-	-	-	RandomJoker	-	CondAlways															OpDisableRandomJoker																																						
+	cerulean_bell	0	Passive	-	-	-	-	-	Run	-	CondAlways															OpChangeRule							1																								ForceCardSelected							

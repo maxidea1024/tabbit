@@ -1,7 +1,7 @@
 {
-  "LastUpdatedDate": "2026-09-02T14:24:19.1915961+09:00",
-  "MasterHash": "cb3577729373e60b4f058d9609d2b381",
-  "TotalSize": 176123,
+  "LastUpdatedDate": "2026-09-02T15:13:56.431624+09:00",
+  "MasterHash": "1b4eb943573f81375d28ac5d82c440d5",
+  "TotalSize": 181284,
   "Items": [
     {
       "Name": "Rank.bytes",
@@ -35,9 +35,9 @@
     },
     {
       "Name": "EnhancementEffect.bytes",
-      "Size": 711,
-      "Hash": "08aec930b5283e5307709b593a16d310",
-      "LastUpdatedDate": "2026-08-27T10:55:50.4129596+09:00"
+      "Size": 722,
+      "Hash": "a917599f6dd4ba652215ec70f3e249fb",
+      "LastUpdatedDate": "2026-09-02T15:13:56.431606+09:00"
     },
     {
       "Name": "Seal.bytes",
@@ -47,9 +47,9 @@
     },
     {
       "Name": "SealEffect.bytes",
-      "Size": 649,
-      "Hash": "9f91228440c9e9357aa5856b69c38ba4",
-      "LastUpdatedDate": "2026-08-27T10:55:50.4129606+09:00"
+      "Size": 660,
+      "Hash": "580f79706245e8f86a324faf66e6f7aa",
+      "LastUpdatedDate": "2026-09-02T15:13:56.4316079+09:00"
     },
     {
       "Name": "Edition.bytes",
@@ -71,9 +71,9 @@
     },
     {
       "Name": "TarotEffect.bytes",
-      "Size": 957,
-      "Hash": "6950491400107a8801c2eef57993d677",
-      "LastUpdatedDate": "2026-08-27T10:55:50.4129624+09:00"
+      "Size": 968,
+      "Hash": "db76b66abe11c05adc42c3a65084a406",
+      "LastUpdatedDate": "2026-09-02T15:13:56.4316093+09:00"
     },
     {
       "Name": "Planet.bytes",
@@ -89,9 +89,9 @@
     },
     {
       "Name": "SpectralEffect.bytes",
-      "Size": 941,
-      "Hash": "ba8e3e1da03a398cd89eac43c76d1d4d",
-      "LastUpdatedDate": "2026-08-27T10:55:50.4129635+09:00"
+      "Size": 952,
+      "Hash": "9e1b8643fb09694bb4ab2ccc2bc0de6b",
+      "LastUpdatedDate": "2026-09-02T15:13:56.4316104+09:00"
     },
     {
       "Name": "EditionVisual.bytes",
@@ -119,9 +119,9 @@
     },
     {
       "Name": "JokerEffect.bytes",
-      "Size": 10734,
-      "Hash": "e7b1fdc7a9a9f37602f77aca734cf9f0",
-      "LastUpdatedDate": "2026-09-02T14:24:19.1915889+09:00"
+      "Size": 10746,
+      "Hash": "75f9f5fdd173c41709d6e02ca403127f",
+      "LastUpdatedDate": "2026-09-02T15:13:56.4316126+09:00"
     },
     {
       "Name": "Ante.bytes",
@@ -143,9 +143,9 @@
     },
     {
       "Name": "BossEffect.bytes",
-      "Size": 996,
-      "Hash": "c7b919c2e8225a1b024bb8bcba9e1be6",
-      "LastUpdatedDate": "2026-08-27T10:55:50.4129674+09:00"
+      "Size": 1007,
+      "Hash": "3404c20a257d4ecbf2ca1857f4b66b38",
+      "LastUpdatedDate": "2026-09-02T15:13:56.431614+09:00"
     },
     {
       "Name": "Deck.bytes",
@@ -155,9 +155,9 @@
     },
     {
       "Name": "DeckEffect.bytes",
-      "Size": 1018,
-      "Hash": "fb12cb2bef0f8d34df97513ca932299b",
-      "LastUpdatedDate": "2026-08-27T10:55:50.4129681+09:00"
+      "Size": 1029,
+      "Hash": "ca204474c695f6ce4e36177c9d972e68",
+      "LastUpdatedDate": "2026-09-02T15:13:56.4316146+09:00"
     },
     {
       "Name": "Stake.bytes",
@@ -173,9 +173,9 @@
     },
     {
       "Name": "TagEffect.bytes",
-      "Size": 1019,
-      "Hash": "c50f7922e0d155600b34e7f4fe113e8d",
-      "LastUpdatedDate": "2026-08-31T04:39:54.8141633+09:00"
+      "Size": 1030,
+      "Hash": "97e469f0ce352c3dbb9b208888e68e2b",
+      "LastUpdatedDate": "2026-09-02T15:13:56.4316157+09:00"
     },
     {
       "Name": "ShopSlotWeight.bytes",
@@ -197,9 +197,9 @@
     },
     {
       "Name": "VoucherEffect.bytes",
-      "Size": 1093,
-      "Hash": "9ef77bedbaa7b3b997bb50ae2a63b92e",
-      "LastUpdatedDate": "2026-08-27T10:55:50.412971+09:00"
+      "Size": 1104,
+      "Hash": "921200a43a4178b31fb404192cc7e187",
+      "LastUpdatedDate": "2026-09-02T15:13:56.4316212+09:00"
     },
     {
       "Name": "RerollCost.bytes",
@@ -209,15 +209,39 @@
     },
     {
       "Name": "StringTable.bytes",
-      "Size": 131116,
-      "Hash": "78f92e786d77f00db2e2c2d3a4bd1975",
-      "LastUpdatedDate": "2026-09-02T12:25:43.8842838+09:00"
+      "Size": 132614,
+      "Hash": "10ce97bcc30f52328e9f20bfcf79b353",
+      "LastUpdatedDate": "2026-09-02T15:13:56.431622+09:00"
     },
     {
       "Name": "Achievement.bytes",
       "Size": 1180,
       "Hash": "0233e717a71fb0961407d2d2b1c948bf",
       "LastUpdatedDate": "2026-08-27T10:55:50.4129725+09:00"
+    },
+    {
+      "Name": "Challenge.bytes",
+      "Size": 872,
+      "Hash": "af3e9b0feb1275bc2b231480ccecf7c3",
+      "LastUpdatedDate": "2026-09-02T15:13:56.4316164+09:00"
+    },
+    {
+      "Name": "ChallengeEffect.bytes",
+      "Size": 1427,
+      "Hash": "5eaa304a1e7f2c5f1fd3e62c2c230ea2",
+      "LastUpdatedDate": "2026-09-02T15:13:56.4316175+09:00"
+    },
+    {
+      "Name": "ChallengeBan.bytes",
+      "Size": 1035,
+      "Hash": "43a6eabea8a036b572d9f4752ddabf06",
+      "LastUpdatedDate": "2026-09-02T15:13:56.4316189+09:00"
+    },
+    {
+      "Name": "ChallengeCard.bytes",
+      "Size": 229,
+      "Hash": "7b06956858b471b6a4e98e5aa4cad40e",
+      "LastUpdatedDate": "2026-09-02T15:13:56.4316193+09:00"
     }
   ]
 }

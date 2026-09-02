@@ -602,10 +602,11 @@ tbody [data-pick] { cursor: pointer; }
 </aside>
 <main>
 <h1>Condition</h1>
-<p class="lead" id="struct_Condition"><svg class="i"><use href="#i-struct"></use></svg>Condition &middot; 변종 41개 &middot; 공통 멤버 0개</p>
+<p class="lead" id="struct_Condition"><svg class="i"><use href="#i-struct"></use></svg>Condition &middot; 변종 42개 &middot; 공통 멤버 0개</p>
 <p class="comment">효과가 성립하는 조건.</p>
 <p class="hint">이 타입으로 선언된 그룹:
 <a href="../tables/boss-effect.html#col_BossEffect.ConditionType">BossEffect.Condition</a>,
+<a href="../tables/challenge-effect.html#col_ChallengeEffect.ConditionType">ChallengeEffect.Condition</a>,
 <a href="../tables/deck-effect.html#col_DeckEffect.ConditionType">DeckEffect.Condition</a>,
 <a href="../tables/enhancement-effect.html#col_EnhancementEffect.ConditionType">EnhancementEffect.Condition</a>,
 <a href="../tables/joker-effect.html#col_JokerEffect.ConditionType">JokerEffect.Condition</a>,
@@ -657,6 +658,7 @@ tbody [data-pick] { cursor: pointer; }
 <a href="#variant_Condition.CondFirstDiscardSingleCard">CondFirstDiscardSingleCard</a>
 <a href="#variant_Condition.CondNotMostPlayedHand">CondNotMostPlayedHand</a>
 <a href="#variant_Condition.CondCardEnhanced">CondCardEnhanced</a>
+<a href="#variant_Condition.CondAnteAtLeast">CondAnteAtLeast</a>
 <a href="#variant_Condition.CondConsumableKind">CondConsumableKind</a>
 </div>
 
@@ -771,7 +773,7 @@ tbody [data-pick] { cursor: pointer; }
 <tr class="names"><th>이름</th><th>타입</th><th title="같은 멤버를 선언하는 다른 변종">공유</th><th>설명</th></tr>
 </thead>
 <tbody>
-<tr><td>N</td><td><span class="type">int?</span></td><td><span class="hint">CondMoney, CondDiscardsLeft, CondHandsLeft, CondEveryNHands, CondCounterAtLeast, CondDeckEnhancedAtLeast, CondCounterAtMost, CondDiscardedFaceAtLeast</span></td><td></td></tr>
+<tr><td>N</td><td><span class="type">int?</span></td><td><span class="hint">CondMoney, CondDiscardsLeft, CondHandsLeft, CondEveryNHands, CondCounterAtLeast, CondDeckEnhancedAtLeast, CondCounterAtMost, CondDiscardedFaceAtLeast, CondAnteAtLeast</span></td><td></td></tr>
 <tr><td>Compare</td><td><a href="../enums/compare.html#enum_Compare" data-enum="Compare">enum.Compare</a>?</td><td><span class="hint">CondMoney, CondDiscardsLeft, CondHandsLeft</span></td><td></td></tr>
 </tbody>
 </table>
@@ -823,7 +825,7 @@ tbody [data-pick] { cursor: pointer; }
 <tr class="names"><th>이름</th><th>타입</th><th title="같은 멤버를 선언하는 다른 변종">공유</th><th>설명</th></tr>
 </thead>
 <tbody>
-<tr><td>N</td><td><span class="type">int?</span></td><td><span class="hint">CondCardCount, CondDiscardsLeft, CondHandsLeft, CondEveryNHands, CondCounterAtLeast, CondDeckEnhancedAtLeast, CondCounterAtMost, CondDiscardedFaceAtLeast</span></td><td></td></tr>
+<tr><td>N</td><td><span class="type">int?</span></td><td><span class="hint">CondCardCount, CondDiscardsLeft, CondHandsLeft, CondEveryNHands, CondCounterAtLeast, CondDeckEnhancedAtLeast, CondCounterAtMost, CondDiscardedFaceAtLeast, CondAnteAtLeast</span></td><td></td></tr>
 <tr><td>Compare</td><td><a href="../enums/compare.html#enum_Compare" data-enum="Compare">enum.Compare</a>?</td><td><span class="hint">CondCardCount, CondDiscardsLeft, CondHandsLeft</span></td><td></td></tr>
 </tbody>
 </table>
@@ -837,7 +839,7 @@ tbody [data-pick] { cursor: pointer; }
 <tr class="names"><th>이름</th><th>타입</th><th title="같은 멤버를 선언하는 다른 변종">공유</th><th>설명</th></tr>
 </thead>
 <tbody>
-<tr><td>N</td><td><span class="type">int?</span></td><td><span class="hint">CondCardCount, CondMoney, CondHandsLeft, CondEveryNHands, CondCounterAtLeast, CondDeckEnhancedAtLeast, CondCounterAtMost, CondDiscardedFaceAtLeast</span></td><td></td></tr>
+<tr><td>N</td><td><span class="type">int?</span></td><td><span class="hint">CondCardCount, CondMoney, CondHandsLeft, CondEveryNHands, CondCounterAtLeast, CondDeckEnhancedAtLeast, CondCounterAtMost, CondDiscardedFaceAtLeast, CondAnteAtLeast</span></td><td></td></tr>
 <tr><td>Compare</td><td><a href="../enums/compare.html#enum_Compare" data-enum="Compare">enum.Compare</a>?</td><td><span class="hint">CondCardCount, CondMoney, CondHandsLeft</span></td><td></td></tr>
 </tbody>
 </table>
@@ -851,7 +853,7 @@ tbody [data-pick] { cursor: pointer; }
 <tr class="names"><th>이름</th><th>타입</th><th title="같은 멤버를 선언하는 다른 변종">공유</th><th>설명</th></tr>
 </thead>
 <tbody>
-<tr><td>N</td><td><span class="type">int?</span></td><td><span class="hint">CondCardCount, CondMoney, CondDiscardsLeft, CondEveryNHands, CondCounterAtLeast, CondDeckEnhancedAtLeast, CondCounterAtMost, CondDiscardedFaceAtLeast</span></td><td></td></tr>
+<tr><td>N</td><td><span class="type">int?</span></td><td><span class="hint">CondCardCount, CondMoney, CondDiscardsLeft, CondEveryNHands, CondCounterAtLeast, CondDeckEnhancedAtLeast, CondCounterAtMost, CondDiscardedFaceAtLeast, CondAnteAtLeast</span></td><td></td></tr>
 <tr><td>Compare</td><td><a href="../enums/compare.html#enum_Compare" data-enum="Compare">enum.Compare</a>?</td><td><span class="hint">CondCardCount, CondMoney, CondDiscardsLeft</span></td><td></td></tr>
 </tbody>
 </table>
@@ -893,7 +895,7 @@ tbody [data-pick] { cursor: pointer; }
 <tr class="names"><th>이름</th><th>타입</th><th title="같은 멤버를 선언하는 다른 변종">공유</th><th>설명</th></tr>
 </thead>
 <tbody>
-<tr><td>N</td><td><span class="type">int?</span></td><td><span class="hint">CondCardCount, CondMoney, CondDiscardsLeft, CondHandsLeft, CondCounterAtLeast, CondDeckEnhancedAtLeast, CondCounterAtMost, CondDiscardedFaceAtLeast</span></td><td></td></tr>
+<tr><td>N</td><td><span class="type">int?</span></td><td><span class="hint">CondCardCount, CondMoney, CondDiscardsLeft, CondHandsLeft, CondCounterAtLeast, CondDeckEnhancedAtLeast, CondCounterAtMost, CondDiscardedFaceAtLeast, CondAnteAtLeast</span></td><td></td></tr>
 </tbody>
 </table>
 </div>
@@ -909,7 +911,7 @@ tbody [data-pick] { cursor: pointer; }
 <tbody>
 <tr><td>Counter</td><td><a href="../enums/counter-field.html#enum_CounterField" data-enum="CounterField">enum.CounterField</a>?</td><td><span class="hint">CondCounterAtMost</span></td><td></td></tr>
 <tr><td>Consume</td><td><span class="type">bool?</span></td><td></td><td></td></tr>
-<tr><td>N</td><td><span class="type">int?</span></td><td><span class="hint">CondCardCount, CondMoney, CondDiscardsLeft, CondHandsLeft, CondEveryNHands, CondDeckEnhancedAtLeast, CondCounterAtMost, CondDiscardedFaceAtLeast</span></td><td></td></tr>
+<tr><td>N</td><td><span class="type">int?</span></td><td><span class="hint">CondCardCount, CondMoney, CondDiscardsLeft, CondHandsLeft, CondEveryNHands, CondDeckEnhancedAtLeast, CondCounterAtMost, CondDiscardedFaceAtLeast, CondAnteAtLeast</span></td><td></td></tr>
 </tbody>
 </table>
 </div>
@@ -942,7 +944,7 @@ tbody [data-pick] { cursor: pointer; }
 <tr class="names"><th>이름</th><th>타입</th><th title="같은 멤버를 선언하는 다른 변종">공유</th><th>설명</th></tr>
 </thead>
 <tbody>
-<tr><td>N</td><td><span class="type">int?</span></td><td><span class="hint">CondCardCount, CondMoney, CondDiscardsLeft, CondHandsLeft, CondEveryNHands, CondCounterAtLeast, CondCounterAtMost, CondDiscardedFaceAtLeast</span></td><td></td></tr>
+<tr><td>N</td><td><span class="type">int?</span></td><td><span class="hint">CondCardCount, CondMoney, CondDiscardsLeft, CondHandsLeft, CondEveryNHands, CondCounterAtLeast, CondCounterAtMost, CondDiscardedFaceAtLeast, CondAnteAtLeast</span></td><td></td></tr>
 </tbody>
 </table>
 </div>
@@ -987,7 +989,7 @@ tbody [data-pick] { cursor: pointer; }
 </thead>
 <tbody>
 <tr><td>Counter</td><td><a href="../enums/counter-field.html#enum_CounterField" data-enum="CounterField">enum.CounterField</a>?</td><td><span class="hint">CondCounterAtLeast</span></td><td></td></tr>
-<tr><td>N</td><td><span class="type">int?</span></td><td><span class="hint">CondCardCount, CondMoney, CondDiscardsLeft, CondHandsLeft, CondEveryNHands, CondCounterAtLeast, CondDeckEnhancedAtLeast, CondDiscardedFaceAtLeast</span></td><td></td></tr>
+<tr><td>N</td><td><span class="type">int?</span></td><td><span class="hint">CondCardCount, CondMoney, CondDiscardsLeft, CondHandsLeft, CondEveryNHands, CondCounterAtLeast, CondDeckEnhancedAtLeast, CondDiscardedFaceAtLeast, CondAnteAtLeast</span></td><td></td></tr>
 </tbody>
 </table>
 </div>
@@ -1001,7 +1003,7 @@ tbody [data-pick] { cursor: pointer; }
 <tr class="names"><th>이름</th><th>타입</th><th title="같은 멤버를 선언하는 다른 변종">공유</th><th>설명</th></tr>
 </thead>
 <tbody>
-<tr><td>N</td><td><span class="type">int?</span></td><td><span class="hint">CondCardCount, CondMoney, CondDiscardsLeft, CondHandsLeft, CondEveryNHands, CondCounterAtLeast, CondDeckEnhancedAtLeast, CondCounterAtMost</span></td><td></td></tr>
+<tr><td>N</td><td><span class="type">int?</span></td><td><span class="hint">CondCardCount, CondMoney, CondDiscardsLeft, CondHandsLeft, CondEveryNHands, CondCounterAtLeast, CondDeckEnhancedAtLeast, CondCounterAtMost, CondAnteAtLeast</span></td><td></td></tr>
 </tbody>
 </table>
 </div>
@@ -1044,6 +1046,20 @@ tbody [data-pick] { cursor: pointer; }
 <h3><svg class="i"><use href="#i-struct"></use></svg>CondCardEnhanced<span class="tag" title="파일이 싣는 번호">@40</span></h3>
 <p class="comment">이 카드가 강화를 가지고 있는가. 어느 강화인지는 묻지 않습니다.</p>
 <p class="none">이 변종이 따로 선언하는 멤버가 없습니다.</p>
+</div>
+<div class="variant" id="variant_Condition.CondAnteAtLeast">
+<h3><svg class="i"><use href="#i-struct"></use></svg>CondAnteAtLeast<span class="tag" title="파일이 싣는 번호">@42</span><span class="tag">멤버 1개</span></h3>
+<p class="comment">지금 안테가 <code>n</code> 이상입니다.</p>
+<div class="scroll">
+<table>
+<thead>
+<tr class="names"><th>이름</th><th>타입</th><th title="같은 멤버를 선언하는 다른 변종">공유</th><th>설명</th></tr>
+</thead>
+<tbody>
+<tr><td>N</td><td><span class="type">int?</span></td><td><span class="hint">CondCardCount, CondMoney, CondDiscardsLeft, CondHandsLeft, CondEveryNHands, CondCounterAtLeast, CondDeckEnhancedAtLeast, CondCounterAtMost, CondDiscardedFaceAtLeast</span></td><td></td></tr>
+</tbody>
+</table>
+</div>
 </div>
 <div class="variant" id="variant_Condition.CondConsumableKind">
 <h3><svg class="i"><use href="#i-struct"></use></svg>CondConsumableKind<span class="tag" title="파일이 싣는 번호">@41</span><span class="tag">멤버 1개</span></h3>

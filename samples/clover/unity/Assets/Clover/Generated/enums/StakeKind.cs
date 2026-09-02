@@ -9,7 +9,7 @@
 
 namespace Clover.Data
 {
-    // Generated from run.tbs(74,6)
+    // Generated from run.tbs(96,6)
     /// <summary>
     /// 난이도. 누적입니다 — 뒤의 것은 앞의 것을 전부 포함합니다.
     /// </summary>

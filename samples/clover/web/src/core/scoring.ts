@@ -239,6 +239,9 @@ export function scoreHand(vm: Vm, played: CardInstance[]): ScoreResult {
     finalMult = average * MULT_ONE
   }
 
+  // **칩이 보유액을 넘지 못합니다.** 배수가 아니라 칩입니다 — 곱하기 직전에 자릅니다.
+  if (rules.chipsCappedByMoney) finalChips = Math.min(finalChips, Math.max(0, state.money))
+
   const score = Math.floor((finalChips * finalMult) / MULT_ONE)
 
   vm.events.push({ t: 'ScoreResolved', score, target: state.target })

@@ -5,7 +5,7 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-// Generated from run.tbs(34,6)
+// Generated from run.tbs(56,6)
 /** 안테 하나 안의 세 라운드. */
 export enum BlindKind {
   /** 안테의 첫 라운드. 건너뛸 수 있습니다. */

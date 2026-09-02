@@ -12,7 +12,7 @@ import { apply } from './operations'
 import { effectKey, RUN_HOST, type EffectHost, type Vm } from './context'
 
 export * from './context'
-export { changeRule, sellPrice } from './operations'
+export { changeRule, sellPrice, stickerFor } from './operations'
 export { newVm } from './context'
 
 /** 조커 하나가 이번에 쓸 효과 행. 복사 조커는 남의 것을 씁니다. */
@@ -46,9 +46,22 @@ export function collect(vm: Vm, trigger: Trigger): Array<[EffectRow, EffectHost]
   const out: Array<[EffectRow, EffectHost]> = []
   const state = vm.state
 
-  // 1. 덱과 바우처. 런의 규칙을 정하는 것들이 먼저입니다.
-  for (const row of vm.data.deckEffects.get(state.deckId) ?? []) {
-    if (row.trigger === trigger) out.push([row, RUN_HOST])
+  // 1. 챌린지와 덱과 바우처. 런의 규칙을 정하는 것들이 먼저입니다.
+  //
+  // **챌린지가 덱보다 앞입니다** — 챌린지의 규칙은 덱이 아니라 판 전체를 정하는 것이므로,
+  // 덱이 그 위에 얹히는 순서여야 합니다.
+  if (state.challengeId !== '') {
+    for (const row of vm.data.challengeEffects.get(state.challengeId) ?? []) {
+      if (row.trigger === trigger) out.push([row, RUN_HOST])
+    }
+  }
+  // **챌린지 런에는 덱 효과가 걸리지 않습니다.** 원작에서 챌린지가 덱의 자리를 대신하므로,
+  // 둘을 함께 걸면 챌린지가 정한 절대값 위에 덱의 증감이 얹힙니다 — `sky_road` 의 버리기
+  // 2가 붉은 덱의 +1 을 받아 3이 되어 있었습니다.
+  if (state.challengeId === '') {
+    for (const row of vm.data.deckEffects.get(state.deckId) ?? []) {
+      if (row.trigger === trigger) out.push([row, RUN_HOST])
+    }
   }
   for (const voucher of state.vouchers) {
     for (const row of vm.data.voucherEffects.get(voucher) ?? []) {
