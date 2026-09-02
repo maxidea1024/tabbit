@@ -42,15 +42,22 @@ const ENHANCEMENT_TINT: Partial<Record<EnhancementKind, number>> = {
   [EnhancementKind.Lucky]: 0xd2f0c6,
 }
 
-const ENHANCEMENT_MARK: Partial<Record<EnhancementKind, string>> = {
-  [EnhancementKind.Bonus]: t('ui.label.plus_chips'),
-  [EnhancementKind.Mult]: t('ui.label.plus_mult'),
-  [EnhancementKind.Wild]: t('ui.enhancement.wild'),
-  [EnhancementKind.Glass]: t('ui.enhancement.glass'),
-  [EnhancementKind.Steel]: t('ui.enhancement.steel'),
-  [EnhancementKind.Stone]: t('ui.enhancement.stone'),
-  [EnhancementKind.Gold]: t('ui.enhancement.gold'),
-  [EnhancementKind.Lucky]: t('ui.enhancement.lucky'),
+/**
+ * 강화가 카드에 다는 글의 열쇠.
+ *
+ * **글이 아니라 열쇠를 둡니다.** 모듈의 상수는 임포트할 때 만들어지고 그것은 `useStrings`
+ * 로 글 표를 넘기기 전입니다 — 여기서 `t()` 를 부르면 8개가 열쇠 그대로 고정되고, 나중에
+ * 말을 바꾸어도 그대로 남습니다. 찾는 것은 그리는 자리에서 합니다.
+ */
+const ENHANCEMENT_MARK_KEY: Partial<Record<EnhancementKind, string>> = {
+  [EnhancementKind.Bonus]: 'ui.label.plus_chips',
+  [EnhancementKind.Mult]: 'ui.label.plus_mult',
+  [EnhancementKind.Wild]: 'ui.enhancement.wild',
+  [EnhancementKind.Glass]: 'ui.enhancement.glass',
+  [EnhancementKind.Steel]: 'ui.enhancement.steel',
+  [EnhancementKind.Stone]: 'ui.enhancement.stone',
+  [EnhancementKind.Gold]: 'ui.enhancement.gold',
+  [EnhancementKind.Lucky]: 'ui.enhancement.lucky',
 }
 
 const SEAL_COLOR: Partial<Record<SealKind, number>> = {
@@ -285,10 +292,10 @@ export class CardView extends Container {
     this.cornerBottom.anchor.set(1, 1)
     this.cornerBottom.position.set(w - 8, h - 5)
 
-    const markText = ENHANCEMENT_MARK[card.enhancement]
-    this.mark.visible = markText !== undefined
-    if (markText !== undefined) {
-      this.mark.text = markText
+    const markKey = ENHANCEMENT_MARK_KEY[card.enhancement]
+    this.mark.visible = markKey !== undefined
+    if (markKey !== undefined) {
+      this.mark.text = t(markKey)
       this.mark.anchor.set(0.5, 0)
       this.mark.position.set(w / 2, h - 22)
     }
