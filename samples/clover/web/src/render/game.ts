@@ -170,6 +170,19 @@ const PACK_TILE_W = 104
  * 집으면 아무 상관 없는 소모품 하나가 팩에서 날아오는 연출이 붙었습니다 — 카드는 덱으로
  * 들어가고 소모품 칸은 그대로인데 화면만 그렇게 보였습니다.
  */
+/**
+ * 그 자리에서 잔액이 바뀌어야 하는 돈인가.
+ *
+ * **플레이어가 직접 낸 돈과 받은 돈입니다** — 사는 것과 파는 것. 그것은 누른 그 순간의
+ * 일이므로 잔액이 바로 따라야 하고, 동전은 그 뒤로 날아가면 됩니다.
+ *
+ * 블라인드 보상과 이자와 조커가 주는 돈은 아닙니다 — 그것들은 하나씩 세어 올리는 것이
+ * 정산의 몫이고, 미리 합계를 보여 주면 무엇으로 번 돈인지가 사라집니다.
+ */
+function paidNow(reason: string): boolean {
+  return reason === 'shop' || reason === 'sell'
+}
+
 function isConsumable(kind: ShopItemKind): boolean {
   return kind === ShopItemKind.Tarot || kind === ShopItemKind.Planet
     || kind === ShopItemKind.Spectral
@@ -611,7 +624,8 @@ export class Game {
    * 새로 만드므로 그때마다 여기도 새로 채웁니다.
    */
   private readonly shopTiles =
-    new Map<number, { tile: Container; baseY: number; price: Container }>()
+    new Map<number, { tile: Container; baseY: number; price: Container;
+                     mid: number }>()
   /**
    * 고른 것이 들리는 높이.
    *
@@ -622,7 +636,8 @@ export class Game {
   private readonly shopLift = new Spring()
   /** 상점의 팩 딱지들. 카드 딱지와 높이가 달라 그것도 함께 들고 있습니다. */
   private readonly packSlotTiles =
-    new Map<number, { tile: Container; height: number; baseY: number; price: Container }>()
+    new Map<number, { tile: Container; height: number; baseY: number;
+                     price: Container; mid: number }>()
   /**
    * 소모품이 들린 높이.
    *
@@ -1985,7 +2000,7 @@ export class Game {
 
     for (const event of events) {
       switch (event.t) {
-        case 'MoneyChanged': money -= event.delta; break
+        case 'MoneyChanged': if (!paidNow(event.reason)) money -= event.delta; break
         case 'ScoreResolved': score -= event.score; break
         case 'HandDrawn': for (const uid of event.uids) drawn.add(uid); break
         default: break
@@ -2660,7 +2675,10 @@ export class Game {
 
       case 'MoneyChanged': {
         if (event.delta === 0) break
-        this.shown.money += event.delta
+        // **상점에서 오간 돈은 되감지 않았으니 다시 더하지도 않습니다.** 상점은 누른
+        // 그 자리에서 잡액이 바뀌어야 하므로 `rewind` 가 그만큼을 되돌리지 않습니다 —
+        // 동전은 그대로 날아가고, 잡액만 발보다 먼저 갑니다.
+        if (!paidNow(event.reason)) this.shown.money += event.delta
         this.money.target = this.shown.money
         const spot = this.moneySpot()
         // **판 돈은 내놓은 그 자리에서 나옵니다.** 그것이 어느 것을 내놓아 들어온 돈인지를
@@ -3622,6 +3640,9 @@ export class Game {
       clock: this.clock,
       phase: state.phase, ante: state.ante, blind: state.blind,
       money: state.money, score: Number(state.score), target: Number(state.target),
+      // **화면에 적힌 잔액입니다.** 위의 `money` 는 코어의 값이라 연출이 어디까지
+      // 왜는지와 무관하게 항상 맞습니다 — 「잔액이 언제 바뀌는가」를 재려면 이쪽입니다.
+      shownMoney: this.shown.money,
       jokers: state.jokers.length, discards: state.discardsLeft,
       hands: state.handsLeft,
       packOpen: state.pack !== null, packs: state.shop.packs.length,
@@ -5555,7 +5576,7 @@ export class Game {
         this.held = undefined
         return
       }
-      anchor = one.tile.x + 158 / 2
+      anchor = one.mid
       // **값이 있던 그 줄입니다.** 고른 칸은 값을 감추고 그 자리를 단추가 대신하므로,
       // 자리를 따로 세지 않고 **값에게 묻습니다** — 따로 세면 딱지의 높이가 바뀔 때마다
       // 어긋나고, 실제로 어긋나 있었습니다.
@@ -5581,9 +5602,9 @@ export class Game {
         this.held = undefined
         return
       }
-      // **팩의 너비로 셉니다.** 상점 카드의 158 을 쓰고 있어서 단추가 27px 오른쪽으로
-      // 밀려 옆 팩의 값에 걸쳤습니다.
-      anchor = spot.tile.x + PACK_TILE_W / 2
+      // **가운데를 딱지가 들고 있습니다.** 상점 카드의 158 을 쓰고 있어서 단추가 27px
+      // 오른쪽으로 밀려 옆 팩의 값에 걸쳤습니다.
+      anchor = spot.mid
       // 카드 딱지와 같은 규칙입니다 — 값이 있던 그 줄.
       baseline = spot.baseY + spot.price.y - 4
       buttons.push(new Button(t('ui.button.buy'), 84, 32, 0x2f7a52, () => {
@@ -6448,7 +6469,12 @@ export class Game {
     const slots = this.state.shop.cards
     const tileW = 158
     const gap = 14
-    const span = slots.length * tileW + Math.max(0, slots.length - 1) * gap
+    // **칸이 늘어나도 줄은 판 안에 있어야 합니다.** 기본은 2칸이지만 상점 칸을
+    // 늘리는 조커가 있으면 3칸도 5칸도 됩니다 — 그대로 다 그리면 오른으로 벗어납니다.
+    const full = slots.length * tileW + Math.max(0, slots.length - 1) * gap
+    const room = width - 52
+    const fit = full > room ? room / full : 1
+    const span = full * fit
     const startX = left + (width - span) / 2
 
     slots.forEach((item, slot) => {
@@ -6460,7 +6486,8 @@ export class Game {
       const room = this.roomFor(item.kind)
 
       const tile = new Container()
-      tile.position.set(startX + slot * (tileW + gap), top)
+      tile.position.set(startX + slot * (tileW + gap) * fit, top)
+      tile.scale.set(fit)
 
       const card = this.itemCard(item)
       card.position.set((tileW - SIZE.jokerWidth) / 2, 0)
@@ -6494,7 +6521,10 @@ export class Game {
       tile.eventMode = 'static'
       tile.hitArea = new Rectangle(0, 0, tileW, tileH)
       tile.cursor = afford ? 'pointer' : 'default'
-      this.shopTiles.set(slot, { tile, baseY: tile.y, price })
+      // **가운데를 딱지가 알고 있습니다.** 단추를 세우는 쪽이 너버를 다시 셀면
+      // 배율이 붙을 때 어긋납니다 — 팝의 158 이 그러했습니다.
+      this.shopTiles.set(slot, { tile, baseY: tile.y, price,
+                                 mid: tile.x + tileW * fit / 2 })
       // **누르면 고르기만 합니다.** 사는 것은 그 밑에 서는 단추가 합니다.
       tile.on('pointertap', () => {
         if (this.ate()) return
@@ -6696,7 +6726,7 @@ export class Game {
    * 그려지는 것은 딱지를 통째로 없애는 것입니다 — 자리는 부르는 그때 칸 번호로 찾습니다.
    */
   private buyFrom(slot: number, item: ShopItem): void {
-    if (this.shown.money < item.cost) return
+    if (!this.canPay(item.cost)) return
     if (!this.roomFor(item.kind)) {
       this.tooltip.hide()
       this.askSwap(item, held => {
@@ -6931,7 +6961,11 @@ export class Game {
     const packs = this.state.shop.packs
     const tileW = PACK_TILE_W
     const gap = 26
-    const span = packs.length * tileW + Math.max(0, packs.length - 1) * gap
+    // 상품 줄과 같은 셈입니다 — 팩 칸도 늘어날 수 있습니다.
+    const full = packs.length * tileW + Math.max(0, packs.length - 1) * gap
+    const room = width - 52
+    const fit = full > room ? room / full : 1
+    const span = full * fit
     const startX = left + (width - span) / 2
 
     packs.forEach((packId, slot) => {
@@ -6942,7 +6976,8 @@ export class Game {
       const afford = this.shown.money >= row.cost
       const h = SIZE.jokerHeight
       const tile = new Container()
-      tile.position.set(startX + slot * (tileW + gap), top)
+      tile.position.set(startX + slot * (tileW + gap) * fit, top)
+      tile.scale.set(fit)
 
       const bag = new Graphics()
       bag.roundRect(3, 5, tileW, h, 10).fill({ color: 0x000000, alpha: 0.4 })
@@ -7002,7 +7037,8 @@ export class Game {
       tile.cursor = afford ? 'pointer' : 'default'
       // **누르면 고르기만 합니다.** 뜯는 것은 그 밑에 서는 단추가 합니다 — 상점의
       // 카드와 같은 규칙이고, 뜯은 팩은 무르지 못합니다.
-      this.packSlotTiles.set(slot, { tile, height: h, baseY: tile.y, price })
+      this.packSlotTiles.set(slot, { tile, height: h, baseY: tile.y, price,
+                                     mid: tile.x + tileW * fit / 2 })
       tile.on('pointertap', () => {
         if (this.ate()) return
         if (!this.canPay(row.cost)) return
@@ -7031,7 +7067,7 @@ export class Game {
     // **카드가 이 딱지에서 나옵니다.** 어느 것을 뜯었는지가 그 움직임에 남습니다. 딱지가
     // 이미 지워졌으면 상점 한가운데에서 나옵니다.
     const from = spot
-      ? { x: spot.tile.x + PACK_TILE_W / 2, y: spot.baseY + spot.height / 2 }
+      ? { x: spot.mid, y: spot.baseY + spot.height / 2 }
       : { x: BOARD_X, y: SHOP_CARD_Y }
     const row = this.data.tables.boosterPack.findByPackId(this.state.shop.packs[slot])
     this.particles.burst(from.x, from.y, 20, row ? packInk(row.kind) : COLOR.ink, 1.2)
@@ -7091,7 +7127,7 @@ export class Game {
     tile.cursor = afford ? 'pointer' : 'default'
     tile.on('pointertap', () => {
       if (this.ate()) return
-      if (!afford) return
+      if (!this.canPay(cost)) return
       // **바우처는 들어갈 칸이 없습니다.** 규칙으로 들어가므로, 산 자리에서 이름이 뜨는
       // 것이 그것을 얻었다는 유일한 표시입니다.
       this.audio.play('voucher_buy')

@@ -165,13 +165,14 @@ export async function buyAffordablePack(page: Page): Promise<void> {
  *
  * `syncHeldBar` 과 같은 계산입니다 — 딱지의 가운데이고, 값이 있던 그 줄입니다.
  */
+/** 고른 팩 밑의 「산다」. 상점 칸과 같은 셈입니다. */
 export async function packBuySpot(page: Page, slot: number, count = 2):
     Promise<{ x: number; y: number }> {
   const tileW = 104
   const gap = 26
   const span = count * tileW + (count - 1) * gap
   const left = POPUP_X - SHOP_W / 2 + (SHOP_W - span) / 2
-  return at(page, left + slot * (tileW + gap) + tileW / 2, SHOP_PACKS + 144)
+  return at(page, left + slot * (tileW + gap) + tileW / 2, SHOP_PACKS + 62 + 82)
 }
 
 /** 상점의 팩 칸. `drawPackRow` 와 같은 계산입니다. */
@@ -193,9 +194,29 @@ export async function buyFirstAffordable(page: Page): Promise<void> {
   for (let slot = 0; slot < 4; slot++) {
     const spot = await shopSlot(page, slot)
     await page.mouse.click(spot.x, spot.y)
+    await page.waitForTimeout(350)
+    // **딱지를 누르는 것은 고르는 것까지입니다.** 사는 것은 그 밑의 단추입니다 —
+    // `buyAffordablePack` 과 같은 이유로 낡아 있었습니다.
+    const buy = await shopBuySpot(page, slot)
+    await page.mouse.click(buy.x, buy.y)
     await page.waitForTimeout(500)
     if ((await peek(page)).jokers > 0) return
   }
+}
+
+/**
+ * 고른 상점 칸 밑의 사기 단추.
+ *
+ * `syncHeldBar` 과 같은 계산입니다 — 값이 있던 줄이고, 딱지 가운데에서 82px 아래입니다.
+ */
+export async function shopBuySpot(page: Page, slot: number, count = 2):
+    Promise<{ x: number; y: number }> {
+  const tileW = 158
+  const gap = 14
+  const span = count * tileW + (count - 1) * gap
+  const left = POPUP_X - SHOP_W / 2 + (SHOP_W - span) / 2
+  return at(page, left + slot * (tileW + gap) + tileW / 2,
+            SHOP_Y + SHOP_ITEMS + 86 + 82)
 }
 
 /** 상점의 물건 칸 하나의 가운데. */
