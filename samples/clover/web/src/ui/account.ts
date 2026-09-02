@@ -1,7 +1,9 @@
 // 로그인 · 이름 · 프로필.
 //
-// 판이 셋이고 크기가 같습니다 — [`options.ts`](options.ts) 의 판과 같은 폭입니다. 셋 다
-// 계정에 관한 것이므로 한 파일에 둡니다.
+// 판이 둘이고 크기가 같습니다 — [`options.ts`](options.ts) 의 판과 같은 폭입니다.
+//
+// **로그인은 여기 없습니다.** 계정을 정하는 것은 게임 위에 잠깐 뜨는 일이 아니라 게임에
+// 들어가기 전에 지나는 자리이고, 그것은 [`login-scene.ts`](login-scene.ts) 입니다.
 //
 // **`/me` 와 `/profiles/{handle}` 이 같은 모양을 돌려줍니다.** 그래서 프로필 판도 하나이고,
 // 내 것일 때만 아래에 관리 단추가 붙습니다 — 판을 둘로 만들면 한쪽만 고쳐지는 날이 옵니다.
@@ -10,8 +12,8 @@ import { Container, Graphics, Text } from 'pixi.js'
 
 import type { Data } from '../core/data'
 import { t, tf } from '../core/strings'
-import * as api from '../net/api'
-import type { Me, Provider } from '../net/api'
+import * as account from '../net/session'
+import type { Me } from '../net/session'
 import { COLOR } from '../render/theme'
 import { valueLabel } from './leaderboard'
 import type { ModalPanel } from './modal'
@@ -19,90 +21,6 @@ import { panelFrame } from './modal'
 import { Button } from './widgets'
 
 const WIDTH = 520
-
-// ---------------------------------------------------------------------------
-// 로그인
-// ---------------------------------------------------------------------------
-
-export class LoginPanel implements ModalPanel {
-  readonly view = new Container()
-  readonly size = { width: WIDTH, height: 380 }
-
-  private readonly body = new Container()
-  private list: Provider[] = []
-  private note = t('ui.lb.loading')
-
-  constructor(private readonly onClose: () => void) {
-    this.view.addChild(this.body)
-    this.redraw()
-    void this.load()
-  }
-
-  private async load(): Promise<void> {
-    try {
-      this.list = await api.providers()
-      // **서버가 켠 것과 이 빌드에 단추가 있는 것이 겹치는 것만 그립니다.** GitHub 단추는
-      // `import.meta.env.DEV` 안에 있으므로 배포 빌드에는 그 코드 자체가 없습니다.
-      this.list = this.list.filter(one => one.id !== 'github' || import.meta.env.DEV)
-      this.note = this.list.length === 0 ? t('ui.lb.login.none') : ''
-    } catch {
-      this.note = t('ui.lb.fail.offline')
-    }
-    this.redraw()
-  }
-
-  private redraw(): void {
-    this.body.removeChildren().forEach(child => child.destroy({ children: true }))
-
-    const height = Math.max(300, 208 + this.list.length * 58)
-    this.size.height = height
-    this.body.addChild(panelFrame(WIDTH, height, t('ui.button.login'), this.onClose,
-                                  undefined, false))
-
-    // **왜 로그인해야 하는지가 먼저입니다.**
-    const why = new Text({
-      text: t('ui.lb.login.why'),
-      style: {
-        fontSize: 15, fill: COLOR.ink, fontWeight: '700',
-        wordWrap: true, wordWrapWidth: WIDTH - 72, align: 'center',
-      },
-    })
-    why.anchor.set(0.5, 0)
-    why.position.set(WIDTH / 2, 76)
-    this.body.addChild(why)
-
-    let y = 124
-    for (const provider of this.list) {
-      const button = new Button(provider.label, WIDTH - 100, 46, 0x2f5f8f,
-                                () => api.goToProvider(provider.id), 17)
-      button.position.set(50, y)
-      this.body.addChild(button)
-      y += 58
-    }
-
-    if (this.note !== '') {
-      const note = new Text({
-        text: this.note,
-        style: { fontSize: 13, fill: COLOR.inkDim, wordWrap: true,
-                 wordWrapWidth: WIDTH - 72, align: 'center' },
-      })
-      note.anchor.set(0.5, 0)
-      note.position.set(WIDTH / 2, y + 4)
-      this.body.addChild(note)
-      y += note.height + 12
-    }
-
-    // **들고 있는 것을 적습니다.** 무엇을 주는지 모른 채로 누르게 하지 않습니다.
-    const keep = new Text({
-      text: t('ui.lb.login.keep'),
-      style: { fontSize: 11, fill: 0x7d8ca0, wordWrap: true,
-               wordWrapWidth: WIDTH - 72, align: 'center' },
-    })
-    keep.anchor.set(0.5, 0)
-    keep.position.set(WIDTH / 2, height - 62)
-    this.body.addChild(keep)
-  }
-}
 
 // ---------------------------------------------------------------------------
 // 이름
@@ -170,14 +88,14 @@ export class HandlePanel implements ModalPanel {
       return
     }
     try {
-      await api.setHandle(this.typed)
+      await account.setHandle(this.typed)
       this.detach?.()
       this.onDone?.(this.typed)
       this.onClose()
     } catch (error) {
       // **이 갈래는 물어본 판이 그 자리에서 적습니다.** 화면 구석에 한 번 더 뜨면 같은
       // 말이 두 번입니다.
-      this.problem = t(api.failKey(error))
+      this.problem = t(account.failKey(error))
       this.shake = 1
       this.redraw()
     }
@@ -258,6 +176,9 @@ export class ProfilePanel implements ModalPanel {
   /** 이름을 바꾸겠다고 했습니다. */
   onRename?: () => void
   /** 로그아웃했습니다. */
+  /** 로그아웃하겠다고 했습니다. **묻는 것은 화면이 합니다.** */
+  onSignOut?: () => void
+  /** 계정을 지웠습니다. */
   onSignedOut?: () => void
 
   constructor(private readonly data: Data, private readonly handle: string | undefined,
@@ -273,7 +194,7 @@ export class ProfilePanel implements ModalPanel {
 
   private async load(): Promise<void> {
     try {
-      this.shown = this.mine ? await api.me() : await api.profile(this.handle as string)
+      this.shown = this.mine ? await account.me() : await account.profile(this.handle as string)
       this.note = ''
     } catch {
       this.note = t('ui.lb.fail.title')
@@ -404,11 +325,11 @@ export class ProfilePanel implements ModalPanel {
                               () => this.onRename?.(), 14)
     rename.position.set(40, height - 62)
 
+    // **여기서 곧바로 나가지 않습니다.** 묻는 것과 그 뒤의 화면 전환이 한 곳에 있어야
+    // 하므로, 판은 부탁만 하고 화면이 합니다.
     const out = new Button(t('ui.button.logout'), bw, 40, 0x4a5568, () => {
-      void api.logout().then(() => {
-        this.onSignedOut?.()
-        this.onClose()
-      })
+      this.onClose()
+      this.onSignOut?.()
     }, 14)
     out.position.set(40 + bw + gap, height - 62)
 
@@ -420,8 +341,8 @@ export class ProfilePanel implements ModalPanel {
         this.redraw()
         return
       }
-      void api.deleteAccount().then(() => {
-        api.forget()
+      void account.deleteAccount().then(() => {
+        account.forget()
         this.onSignedOut?.()
         this.onClose()
       })

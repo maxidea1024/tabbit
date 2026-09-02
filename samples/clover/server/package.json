@@ -11,6 +11,8 @@
     "start": "tsx src/app.ts",
     "test": "vitest run",
     "seed:fake": "tsx tools/seed-fake.ts",
+    "season:new": "tsx tools/new-season.ts",
+    "season:check": "tsx tools/new-season.ts --check",
     "bench": "tsx tools/bench.ts"
   },
   "dependencies": {

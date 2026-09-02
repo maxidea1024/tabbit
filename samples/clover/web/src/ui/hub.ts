@@ -13,11 +13,13 @@ import type { Action } from '../core/run'
 import type { RunState } from '../core/state'
 import { seal, type MetricsAcc } from '../core/metrics'
 import { t, tf } from '../core/strings'
-import * as api from '../net/api'
-import type { Me, Submission } from '../net/api'
+import * as account from '../net/session'
+import * as board from '../net/leaderboard'
+import type { Me } from '../net/session'
+import type { Submission } from '../net/leaderboard'
 import { COLOR } from '../render/theme'
-import { HandlePanel, LoginPanel, ProfilePanel } from './account'
-import { LeaderboardPanel, valueLabel } from './leaderboard'
+import { HandlePanel, ProfilePanel } from './account'
+import { LeaderboardPanel } from './leaderboard'
 import type { Modals } from './modal'
 import type { Toasts } from './toast'
 
@@ -70,8 +72,9 @@ export class LeaderboardHub {
    * 것이 다른 무엇보다 앞입니다.
    */
   async boot(): Promise<void> {
-    const arrived = await api.claimFromUrl()
-    if (!api.loggedIn()) {
+    const arrived = await account.claimFromUrl()
+    // 돌아온 길이면 로그인한 것입니다 — 「정하지 않음」이 아니게 됩니다.
+    if (!account.loggedIn()) {
       this.card.show(undefined)
       return
     }
@@ -80,35 +83,57 @@ export class LeaderboardHub {
 
     // **이름이 없으면 그 자리에서 받습니다.** 이름 없는 계정은 순위표에 놓을 자리가
     // 없습니다.
-    if (this.profile && this.profile.handle === '') {
-      this.askHandle(true)
-    } else if (arrived) {
-      this.openLeaderboard()
-    }
+    //
+    // **로그인하고 돌아온 길이어도 리더보드를 열지 않습니다.** 로그인은 리더보드를 위한
+    // 것이 아니라 계정을 위한 것이고, 다음 화면은 타이틀입니다.
+    if (this.profile && this.profile.handle === '') this.askHandle(true)
+    void arrived
 
     // 지난번에 보내지 못한 것이 있으면 지금 보냅니다.
-    const sent = await api.flushPending()
+    const sent = await board.flushPending()
     if (sent > 0) await this.refresh()
   }
 
+  /** 계정 상태가 바뀌면 부릅니다. 화면이 이것으로 칩을 갱신합니다. */
+  onAccountChanged?: () => void
+
   /** 서버에서 내 것을 다시 읽습니다. */
   async refresh(): Promise<void> {
-    if (!api.loggedIn()) {
+    if (!account.loggedIn()) {
       this.profile = undefined
       this.card.show(undefined)
       return
     }
     try {
-      this.profile = await api.me()
+      this.profile = await account.me()
     } catch {
       // 알림은 `NetStatus` 가 띄웁니다. 카드는 지금 아는 것을 그대로 둡니다.
       return
     }
     this.card.show(this.profile)
+    this.onAccountChanged?.()
   }
 
   get signedIn(): boolean {
-    return api.loggedIn()
+    return account.loggedIn()
+  }
+
+  /** 지금 이름. 없으면 빈 문자열입니다. */
+  get handle(): string {
+    return this.profile?.handle ?? ''
+  }
+
+  /**
+   * 로그아웃합니다.
+   *
+   * **이 기계만입니다.** 다른 기계의 세션은 그대로이고, 그것이 여러 기계에서 동시에
+   * 로그인하는 것의 반쪽입니다.
+   */
+  async signOut(): Promise<void> {
+    await account.logout()
+    this.profile = undefined
+    this.card.show(undefined)
+    this.onAccountChanged?.()
   }
 
   // -------------------------------------------------------------------------
@@ -116,7 +141,7 @@ export class LeaderboardHub {
   // -------------------------------------------------------------------------
 
   openLeaderboard(): void {
-    if (!api.loggedIn()) {
+    if (!account.loggedIn()) {
       this.openLogin()
       return
     }
@@ -134,13 +159,23 @@ export class LeaderboardHub {
     this.modals.open(panel)
   }
 
+  /** 프로필 판에서 로그아웃을 눌렀습니다. **묻는 것은 화면이 합니다.** */
+  onSignOut?: () => void
+
+  /**
+   * 로그인 화면으로 보내 달라고 합니다.
+   *
+   * **판이 아니라 씬이므로 여기서 열지 못합니다.** 씬을 바꾸는 것은 화면의 몫이고, 허브는
+   * 그것을 부탁만 합니다.
+   */
+  onNeedLogin?: () => void
+
   private openLogin(): void {
-    const panel = new LoginPanel(() => this.modals.close(panel))
-    this.modals.open(panel)
+    this.onNeedLogin?.()
   }
 
   openProfile(handle?: string): void {
-    if (!api.loggedIn()) {
+    if (!account.loggedIn()) {
       this.openLogin()
       return
     }
@@ -149,9 +184,11 @@ export class LeaderboardHub {
       this.modals.close(panel)
       this.askHandle(false)
     }
+    panel.onSignOut = () => this.onSignOut?.()
     panel.onSignedOut = () => {
       this.profile = undefined
       this.card.show(undefined)
+      this.onAccountChanged?.()
     }
     this.modals.open(panel)
   }
@@ -182,9 +219,9 @@ export class LeaderboardHub {
    */
   async requestRanked(options: { deck?: string; stake?: string; pool?: string
                                  challenge?: string }): Promise<string | undefined> {
-    if (!api.loggedIn()) return undefined
+    if (!account.loggedIn()) return undefined
     try {
-      const issued = await api.rankedSeed(options)
+      const issued = await board.rankedSeed(options)
       this.ranked = {
         seed: issued.seed,
         deck: issued.deck,
@@ -220,7 +257,7 @@ export class LeaderboardHub {
   async finishRun(state: RunState, actions: readonly Action[],
                   acc: MetricsAcc): Promise<EndLine | undefined> {
     const ranked = this.ranked
-    if (!ranked || ranked.seed !== state.seed || !api.loggedIn()) return undefined
+    if (!ranked || ranked.seed !== state.seed || !account.loggedIn()) return undefined
     this.ranked = undefined
 
     const before = new Map((this.profile?.ranks ?? []).map(one => [one.boardId, one.rank]))
@@ -233,21 +270,21 @@ export class LeaderboardHub {
       pool: ranked.pool,
       challenge: ranked.challenge,
       actions: actions.slice(),
-      fingerprint: await api.fingerprint(),
+      fingerprint: await board.fingerprint(),
       // **순위에 쓰이지 않습니다.** 서버가 센 것과 다르면 그 사실만 기록에 남습니다.
       claimed: seal(this.data, acc, state) as unknown as Record<string, number | boolean>,
     }
 
     let verdict
     try {
-      verdict = await api.submitRun(run)
+      verdict = await board.submitRun(run)
     } catch (error) {
-      const kind = error instanceof api.ApiError ? error.kind : 'unknown'
+      const kind = error instanceof account.ApiError ? error.kind : 'unknown'
       if (kind === 'offline') {
-        api.keepPending(run)
+        board.keepPending(run)
         return { text: t('ui.lb.end.later'), tone: COLOR.inkDim }
       }
-      return { text: tf('ui.lb.end.rejected', { why: t(api.failKey(error)) }),
+      return { text: tf('ui.lb.end.rejected', { why: t(account.failKey(error)) }),
                tone: COLOR.inkDim }
     }
 
@@ -343,8 +380,9 @@ export class LeaderboardHub {
 // 내 카드
 // ---------------------------------------------------------------------------
 
-const CARD_W = 250
-const CARD_H = 84
+/** **타이틀의 계정 자리와 같은 크기입니다.** 그 자리에 놓이므로 거기서 정한 값입니다. */
+const CARD_W = 200
+const CARD_H = 72
 
 /**
  * 제목 화면 오른쪽 위에 **항상** 있는 작은 판.
@@ -373,8 +411,8 @@ export class MyCard extends Container {
     if (!profile) return
 
     const plate = new Graphics()
-    plate.roundRect(0, 0, CARD_W, CARD_H, 12)
-      .fill({ color: 0x151d2a, alpha: 0.88 })
+    plate.roundRect(0, 0, CARD_W, CARD_H, 10)
+      .fill({ color: 0x151d2a, alpha: 0.9 })
       .stroke({ color: 0x2c3849, width: 1.5 })
     this.body.addChild(plate)
 
@@ -382,11 +420,13 @@ export class MyCard extends Container {
       one.name === profile.tier || String(one.tier) === profile.tier)
     const color = tierRow ? Number.parseInt(tierRow.color.slice(1), 16) : 0x6f7d90
 
+    const hasTier = profile.tier !== '' && profile.tier !== 'None'
+
     // 1줄 — 배지와 이름.
-    if (profile.tier !== '' && profile.tier !== 'None') {
+    if (hasTier) {
       const badge = new Graphics()
-      badge.moveTo(0, -6).lineTo(6, 0).lineTo(0, 6).lineTo(-6, 0).closePath().fill(color)
-      badge.position.set(20, 22)
+      badge.moveTo(0, -5).lineTo(5, 0).lineTo(0, 5).lineTo(-5, 0).closePath().fill(color)
+      badge.position.set(19, 20)
       this.body.addChild(badge)
     }
 
@@ -394,7 +434,8 @@ export class MyCard extends Container {
       text: profile.handle,
       style: { fontSize: 15, fill: COLOR.ink, fontWeight: '800' },
     })
-    name.position.set(34, 14)
+    name.anchor.set(0, 0.5)
+    name.position.set(hasTier ? 32 : 14, 20)
     this.body.addChild(name)
 
     // 2줄 — 등급과 등정 순위. **등급의 근거인 보드이므로 이것이 첫 줄입니다.**
@@ -410,7 +451,8 @@ export class MyCard extends Container {
       text: second,
       style: { fontSize: 12, fill: color },
     })
-    line2.position.set(20, 38)
+    line2.anchor.set(0, 0.5)
+    line2.position.set(14, 40)
     this.body.addChild(line2)
 
     // 3줄 — 그 밖에서 내 순위가 가장 높은 것 하나. **자랑할 것이 있으면 그것이 보입니다.**
@@ -419,11 +461,11 @@ export class MyCard extends Container {
       .sort((one, two) => one.rank - two.rank)[0]
     if (other) {
       const line3 = new Text({
-        text: `${boardLabel2(other.name)} #${other.rank} · `
-          + valueLabel(this.data, other.metric, other.value),
+        text: `${boardLabel2(other.name)} #${other.rank}`,
         style: { fontSize: 11, fill: 0x8a99ad },
       })
-      line3.position.set(20, 58)
+      line3.anchor.set(0, 0.5)
+      line3.position.set(14, 58)
       this.body.addChild(line3)
     }
   }
@@ -438,5 +480,5 @@ export class MyCard extends Container {
 
 /** 시트의 이름은 기획자가 읽는 것이라 길 수 있습니다. 카드에서는 줄입니다. */
 function boardLabel2(name: string): string {
-  return name.length > 12 ? `${name.slice(0, 11)}…` : name
+  return name.length > 10 ? `${name.slice(0, 9)}…` : name
 }

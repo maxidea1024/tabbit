@@ -1,7 +1,14 @@
+import { readFileSync } from 'fs'
 import { defineConfig } from 'vite'
+
+// **판 번호는 `package.json` 하나에서 옵니다.** 화면에 적어 두면 두 곳이 되고, 올릴 때
+// 한쪽을 잊습니다.
+const pkg = JSON.parse(
+  readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }
 
 export default defineConfig({
   base: './',
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   build: {
     target: 'es2022',
     outDir: 'dist',

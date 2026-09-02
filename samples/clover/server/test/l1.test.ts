@@ -127,9 +127,11 @@ describe('부팅', () => {
   })
 })
 
-describe('구워 둔 리플레이 13개', () => {
-  it('13개입니다', () => {
-    expect(baked.length).toBe(13)
+describe('구워 둔 리플레이', () => {
+  // **수를 못박지 않습니다.** 리플레이는 코어를 따라 늘어나고, 늘어난 것도 전부
+  // 받아들여져야 합니다 — 못박으면 하나 굽는 날마다 이 줄을 고칩니다.
+  it('하나 이상 있습니다', () => {
+    expect(baked.length).toBeGreaterThan(0)
   })
 
   for (let index = 0; index < baked.length; index++) {

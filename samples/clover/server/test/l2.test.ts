@@ -167,9 +167,15 @@ describe('동점과 방향', () => {
 })
 
 describe('만명의 순위표', () => {
-  it('합성 계정이 들어 있습니다', async () => {
-    const [row] = await context.db('profile').count<{ count: number }[]>('* as count')
-    expect(Number(row.count)).toBeGreaterThanOrEqual(10_000)
+  it('합성 계정이 이번 시즌에 들어 있습니다', async () => {
+    // **시즌 안의 제출을 셉니다.** 계정 수만 보면 시즌을 나눈 뒤에도 통과하는데, 그때
+    // 순위표는 비어 있습니다 — `npx tsx tools/seed-fake.ts` 를 다시 부릅니다.
+    const [row] = await context.db('submission')
+      .where('season_id', context.season.id).andWhere('status', 'accepted')
+      .count<{ count: number }[]>('* as count')
+    expect(Number(row.count),
+           '이번 시즌의 합성 제출이 모자랍니다. tools/seed-fake.ts 를 다시 부릅니다')
+      .toBeGreaterThanOrEqual(10_000)
   })
 
   it(`보드 목록이 ${BUDGET_MS}ms 안에`, async () => {

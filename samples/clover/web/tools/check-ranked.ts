@@ -18,15 +18,22 @@ import { createServer } from 'vite'
 
 import {
   chooseFive, clickPrimary, peek, playHand, settle, spare, discardHand,
-  TITLE_START_Y,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5195
 const API = 'http://localhost:8787'
 
-/** 랭크 단추의 자리. 시작 오른쪽입니다. */
-const RANKED = { x: 858, y: TITLE_START_Y }
+/**
+ * 랭크 단추의 자리.
+ *
+ * **값이 `ui/title.ts` 의 상수에서 나옵니다.** 바가 216 이고 안쪽 여백이 26, 윗줄이 34,
+ * 틈이 10, 아랫줄이 62 입니다.
+ */
+const DOCK_Y = 800 - 216
+const UPPER_Y = DOCK_Y + 26
+const LEFT = Math.round((1280 - (196 + 132 * 3 + 10 * 3)) / 2)
+const RANKED = { x: LEFT + 196 + 10 + (132 + 10) * 2 + 66, y: UPPER_Y + 17 }
 
 /** 한 판이 끝날 때까지의 상한. 지지 않으면 여기서 멈춥니다. */
 const LIMIT = 240

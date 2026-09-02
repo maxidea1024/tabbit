@@ -8,7 +8,7 @@
 
 import * as crypto from 'crypto'
 import { Router } from 'express'
-import { accountFor } from '../accounts'
+import { accountFor, profileOf, setHandle } from '../accounts'
 import { KEY } from '../redis'
 import { fail, guard, requireLogin, type Context } from '../http'
 import { PROVIDERS, authorizeUrl, secretsOf, subjectOf } from './providers'
@@ -35,6 +35,8 @@ export function authRouter(context: Context): Router {
     // 그립니다 — GitHub 단추는 배포 빌드에 아예 없습니다.
     res.json({
       providers: env.providers.map(name => ({ id: name, label: PROVIDERS[name].label })),
+      // **개발용 로그인이 있는가.** 화면이 이것을 보고 그 단추를 그릴지 정합니다.
+      dev: !env.production,
     })
   })
 
@@ -96,6 +98,28 @@ export function authRouter(context: Context): Router {
   router.get('/auth/:provider/callback', callback)
   // Apple 은 `form_post` 로 돌려줍니다.
   router.post('/auth/:provider/callback', callback)
+
+  // **개발용 로그인.** 제공자의 열쇠 없이 계정 하나를 만들어 곧바로 세션을 줍니다 —
+  // 화면을 고치는 동안 OAuth 를 매번 지나지 않기 위한 것입니다.
+  //
+  // **배포에서는 이 길이 아예 없습니다.** 켜고 끄는 값이 아니라 등록되지 않으므로,
+  // 환경변수를 잘못 두어도 404 입니다.
+  if (!env.production) {
+    router.post('/auth/dev', guard(async (req, res) => {
+      const handle = String(req.body?.handle ?? '').trim()
+      if (!/^[A-Za-z0-9_]{3,16}$/.test(handle)) {
+        fail(res, 400, 'shape', '영문 · 숫자 · 밑줄 3~16자입니다')
+        return
+      }
+
+      // 같은 이름으로 다시 부르면 같은 계정입니다 — 고치는 동안 계정이 늘지 않습니다.
+      const accountId = await accountFor(db, 'github', `dev:${handle}`)
+      const already = await profileOf(db, accountId)
+      if (!already || already.handle === '') await setHandle(db, accountId, handle)
+
+      res.json(await startSession(db, env.jwtSecret, accountId, 'dev'))
+    }))
+  }
 
   router.post('/auth/exchange', guard(async (req, res) => {
     const handoff = String(req.body?.code ?? '')

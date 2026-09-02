@@ -1,7 +1,8 @@
-// 서버와의 통신.
+// 계정과 세션.
 //
-// **코어를 건드리지 않습니다.** 리더보드는 런이 끝난 뒤의 일이고, 코어는 그런 것이 있는지
-// 모릅니다 — 로그아웃 상태의 게임이 지금과 한 줄도 다르지 않은 것이 그 결과입니다.
+// **로그인은 리더보드의 것이 아닙니다.** 지금은 순위표가 그것을 쓰는 유일한 자리지만,
+// 저장 동기화도 도전과제도 같은 계정 위에 올라갑니다 — 그래서 이 파일이 리더보드를
+// 모르고, 리더보드가 이 파일을 압니다.
 //
 // **쿠키가 아니라 token 입니다.** 같은 웹 빌드가 `file://` 과 Capacitor 안에서도 도는데
 // 거기에서 쿠키는 각각 다르게 동작합니다. 우리가 들고 헤더로 보내면 셋에서 같습니다.
@@ -11,9 +12,6 @@ const BASE = '/api'
 
 /** 세션을 두는 자리. 옵션과 같은 자리이고 같은 방어입니다. */
 const KEY = 'clover.session'
-
-/** 아직 보내지 못한 제출. 다음 부팅에서 다시 보냅니다. */
-const PENDING = 'clover.pending'
 
 export interface Session {
   access: string
@@ -27,13 +25,6 @@ export interface Device {
   usedAt: string
 }
 
-export interface RankRow {
-  rank: number
-  accountId: number
-  handle: string
-  tier: string
-  value: number
-}
 
 export interface Me {
   handle: string
@@ -46,37 +37,6 @@ export interface Me {
   }[]
 }
 
-export interface BoardInfo {
-  boardId: string
-  name: string
-  metric: string
-  pool: 'base' | 'all'
-  split: string
-  splitRef: string
-  group: string
-  sortOrder: number
-  smallerIsBetter: boolean
-}
-
-export interface BoardPage {
-  boardId: string
-  metric: string
-  smallerIsBetter: boolean
-  period: 'season' | 'all'
-  total: number
-  from: number
-  rows: RankRow[]
-  me: { rank: number; value: number } | null
-}
-
-export interface Verdict {
-  submissionId: number
-  status: 'pending' | 'accepted' | 'rejected'
-  reason: string
-  metrics: Record<string, number | boolean> | null
-}
-
-/** 보낸 것이 무엇으로 거절되었는가. 화면이 이것으로 글을 고릅니다. */
 export type FailKind =
   | 'offline' | 'unauthorized' | 'bad_seed' | 'bad_fingerprint'
   | 'too_many' | 'taken' | 'cooldown' | 'shape' | 'unknown'
@@ -139,6 +99,52 @@ export function loggedIn(): boolean {
 
 export function forget(): void {
   save(undefined)
+}
+
+// ---------------------------------------------------------------------------
+// 계정을 만들지 말지의 결정
+// ---------------------------------------------------------------------------
+
+/**
+ * 사람이 무엇을 골랐는가.
+ *
+ * **묻지 않은 것과 「하지 않겠다」는 다릅니다.** 그 둘을 가르지 않으면 로그인 화면이
+ * 켤 때마다 뜨거나, 아니면 한 번도 뜨지 않습니다.
+ */
+export type Mode = 'undecided' | 'single' | 'social'
+
+const MODE_KEY = 'clover.account.mode'
+
+export function mode(): Mode {
+  if (session !== undefined) return 'social'
+  try {
+    return localStorage.getItem(MODE_KEY) === 'single' ? 'single' : 'undecided'
+  } catch {
+    // 저장소가 막혀 있으면 켤 때마다 묻게 됩니다. 그 브라우저에서는 그것이 맞습니다.
+    return 'undecided'
+  }
+}
+
+/**
+ * 로그인 없이 하기로 정했습니다.
+ *
+ * **되돌릴 수 있습니다.** 타이틀의 계정 단추가 다시 로그인 화면으로 갑니다.
+ */
+export function chooseSingle(): void {
+  try {
+    localStorage.setItem(MODE_KEY, 'single')
+  } catch {
+    // 적어 두지 못하면 다음에 다시 묻습니다.
+  }
+}
+
+/** 다시 묻습니다. 로그아웃할 때 이것을 함께 부르지 않습니다 — 로그아웃은 싱글플레이입니다. */
+export function askAgain(): void {
+  try {
+    localStorage.removeItem(MODE_KEY)
+  } catch {
+    // 지우지 못해도 화면은 지금 상태로 갑니다.
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -206,7 +212,7 @@ function leave(): void {
   if (inFlight === 0) for (const watcher of watchers) watcher(false)
 }
 
-async function once<T>(path: string, init: RequestInit, token?: string): Promise<T> {
+export async function once<T>(path: string, init: RequestInit, token?: string): Promise<T> {
   enter()
   try {
     return await send<T>(path, init, token)
@@ -254,7 +260,7 @@ async function send<T>(path: string, init: RequestInit, token?: string): Promise
  * **401 이면 한 번 새로 받아 다시 부릅니다.** access token 이 15분이므로 게임을 켜 두면
  * 반드시 지나가는 자리이고, 여기서 다시 부르지 않으면 사람이 이유 없이 로그아웃됩니다.
  */
-async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
+export async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (!session) throw new ApiError('unauthorized', 401)
 
   try {
@@ -288,10 +294,31 @@ export interface Provider {
   label: string
 }
 
+/** 서버가 켜 둔 것들. `dev` 는 개발 서버에서만 참입니다. */
+export interface Offered {
+  providers: Provider[]
+  dev: boolean
+}
+
 /** 서버가 켜 둔 제공자. **빌드에 단추가 있는 것만 그립니다.** */
-export async function providers(): Promise<Provider[]> {
-  const body = await once<{ providers: Provider[] }>('/auth/providers', {})
-  return body.providers
+export async function providers(): Promise<Offered> {
+  const body = await once<{ providers?: Provider[]; dev?: boolean }>('/auth/providers', {})
+  return { providers: body.providers ?? [], dev: body.dev === true }
+}
+
+/**
+ * 개발용 로그인.
+ *
+ * **배포에서는 이 길이 서버에 없습니다.** 그리고 이것을 부르는 코드는
+ * `import.meta.env.DEV` 안에만 있으므로 배포 빌드에 들어가지도 않습니다 — 막는 자리가
+ * 둘이고, 하나가 잘못되어도 다른 하나가 남습니다.
+ */
+export async function devSignIn(handle: string): Promise<void> {
+  if (!import.meta.env.DEV) return
+  save(await once<Session>('/auth/dev', {
+    method: 'POST',
+    body: JSON.stringify({ handle }),
+  }))
 }
 
 /** 제공자로 갑니다. **게임이 다시 뜹니다** — 팝업은 안드로이드에서 막힙니다. */
@@ -364,141 +391,4 @@ export function deleteAccount(): Promise<{ deleted: boolean }> {
 
 export function profile(handle: string): Promise<Me> {
   return call<Me>(`/profiles/${encodeURIComponent(handle)}`)
-}
-
-export async function boards(): Promise<BoardInfo[]> {
-  return (await call<{ boards: BoardInfo[] }>('/boards')).boards
-}
-
-export function boardPage(boardId: string,
-                          options: { period?: 'season' | 'all'; page?: number
-                                     around?: 'me' } = {}): Promise<BoardPage> {
-  const query = new URLSearchParams()
-  if (options.period) query.set('period', options.period)
-  if (options.page !== undefined) query.set('page', String(options.page))
-  if (options.around) query.set('around', options.around)
-  const tail = query.toString()
-  return call<BoardPage>(`/boards/${boardId}${tail === '' ? '' : `?${tail}`}`)
-}
-
-// ---------------------------------------------------------------------------
-// 랭크 런
-// ---------------------------------------------------------------------------
-
-export interface RankedSeed {
-  seed: string
-  deck: string
-  stake: string
-  pool: string
-  challenge: string
-  expiresAt: string
-}
-
-export function rankedSeed(options: { deck?: string; stake?: string; pool?: string
-                                      challenge?: string }): Promise<RankedSeed> {
-  return call<RankedSeed>('/ranked/seed', {
-    method: 'POST',
-    body: JSON.stringify(options),
-  })
-}
-
-export interface Submission {
-  seed: string
-  deck: string
-  stake: string
-  pool: string
-  challenge: string
-  actions: unknown[]
-  fingerprint: string
-  claimed?: Record<string, number | boolean>
-}
-
-/** 판정을 기다리는 동안의 간격과 횟수. 재현이 0.1초이므로 대개 첫 조회에서 끝나 있습니다. */
-const JUDGE_TRIES = 12
-const JUDGE_GAP_MS = 400
-
-export async function submitRun(run: Submission): Promise<Verdict> {
-  const posted = await call<{ submissionId: number }>('/runs', {
-    method: 'POST',
-    body: JSON.stringify(run),
-  })
-
-  // **재현은 worker 가 합니다.** 큐에 적체가 있으면 `pending` 으로 돌아오므로, 몇 번
-  // 되물어봅니다 — 한 번만 보고 끝내면 붐비는 시각에 늘 「세는 중」으로 남습니다.
-  let seen = await call<Verdict>(`/runs/${posted.submissionId}`)
-  for (let tries = 0; tries < JUDGE_TRIES && seen.status === 'pending'; tries++) {
-    await new Promise(done => setTimeout(done, JUDGE_GAP_MS))
-    seen = await call<Verdict>(`/runs/${posted.submissionId}`)
-  }
-  return seen
-}
-
-/**
- * 보내지 못한 것을 남겨 둡니다.
- *
- * **시드의 24시간 안이면 다음 부팅에서 받습니다.** 서버가 잠시 없었다고 한 판이 없어지지
- * 않아야 합니다.
- */
-export function keepPending(run: Submission): void {
-  try {
-    const kept = pending()
-    kept.push(run)
-    localStorage.setItem(PENDING, JSON.stringify(kept.slice(-8)))
-  } catch {
-    // 저장하지 못하면 이번 판만 잃습니다.
-  }
-}
-
-export function pending(): Submission[] {
-  try {
-    const raw = localStorage.getItem(PENDING)
-    if (raw === null) return []
-    const kept = JSON.parse(raw) as unknown
-    return Array.isArray(kept) ? kept as Submission[] : []
-  } catch {
-    return []
-  }
-}
-
-/** 남아 있던 것을 보냅니다. 받아들여진 것과 영영 거절된 것을 지웁니다. */
-export async function flushPending(): Promise<number> {
-  const kept = pending()
-  if (kept.length === 0 || !loggedIn()) return 0
-
-  const left: Submission[] = []
-  let sent = 0
-  for (const run of kept) {
-    try {
-      await submitRun(run)
-      sent++
-    } catch (error) {
-      // **다시 보내도 안 되는 것은 버립니다.** 시드가 만료되었거나 클라이언트가 낡은
-      // 것이고, 둘 다 기다린다고 달라지지 않습니다.
-      const kind = error instanceof ApiError ? error.kind : 'unknown'
-      if (kind === 'offline' || kind === 'too_many') left.push(run)
-    }
-  }
-
-  try {
-    if (left.length === 0) localStorage.removeItem(PENDING)
-    else localStorage.setItem(PENDING, JSON.stringify(left))
-  } catch {
-    // 지우지 못해도 다음에 다시 시도합니다.
-  }
-  return sent
-}
-
-/** 이 빌드의 규칙 지문. **없으면 랭크 런을 시작하지 않습니다.** */
-let fingerprintCache: string | undefined
-
-export async function fingerprint(): Promise<string> {
-  if (fingerprintCache !== undefined) return fingerprintCache
-  try {
-    const response = await fetch('data/version.json')
-    const body = await response.json() as { fingerprint?: string }
-    fingerprintCache = body.fingerprint ?? ''
-  } catch {
-    fingerprintCache = ''
-  }
-  return fingerprintCache
 }

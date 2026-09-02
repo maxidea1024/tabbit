@@ -1403,3 +1403,25 @@
 	ui.lb.fail.shape	영문 · 숫자 · 밑줄 3~16자입니다.	Use 3-16 letters, digits or underscores.	英字・数字・アンダースコアで3〜16文字です。	需为字母、数字或下划线，3~16 个字符。	需為字母、數字或底線，3~16 個字元。	3-16 Buchstaben, Zahlen oder Unterstriche.
 	ui.lb.fail.unknown	서버가 이 요청을 받지 않았습니다.	The server refused the request.	サーバーがこの要求を受け付けませんでした。	服务器拒绝了该请求。	伺服器拒絕了該請求。	Der Server hat die Anfrage abgelehnt.
 	ui.lb.cleared	완주	cleared	完走	通关	通關	geschafft
+	ui.account.single	싱글플레이로 시작	Play without an account			
+	ui.account.singleNote	언제든지 나중에 계정을 연결할 수 있습니다.	You can link an account later at any time.			
+	ui.account.chip	계정	Account			
+	ui.account.guest	싱글플레이	Single player			
+	ui.account.link	계정 연결	Link account			
+	ui.account.needLink	순위표에 오르려면 계정을 연결해야 합니다.	Link an account to appear on the leaderboard.			
+	ui.button.back	뒤로	Back			
+	ui.account.why	계정이 있으면 순위표에 오르고, 기록이 이 기계에만 남지 않습니다.	An account puts you on the leaderboard and keeps your records off this device alone.			
+	ui.account.devLogin	개발용 로그인	Dev sign-in			
+	ui.account.continueWith	{name} 로 계속하기	Continue with {name}			
+	ui.account.or	또는	or			
+	ui.account.guestStart	계정 없이 시작하기	Start without an account			
+	ui.account.legal	계속하면 이용약관과 개인정보처리방침에 동의하는 것으로 봅니다.	By continuing you agree to the Terms of Service and Privacy Policy.			
+	ui.account.signedInAs	{name} 으로 하고 있습니다	Signed in as {name}			
+	ui.lb.rankedStart	랭크 시작	Start ranked			
+	ui.lb.rankedOff	랭크	Ranked			
+	ui.button.no	아니오	No			
+	ui.button.yes	예	Yes			
+	ui.account.signOutAsk	로그아웃할까요?	Sign out?			
+	ui.account.signOutBody	이 기계에서만 로그아웃합니다. 다시 로그인하면 기록이 그대로 있습니다.	Signs out on this device only. Your records stay when you sign back in.			
+	ui.account.signingIn	로그인 중	Signing in			
+	ui.account.signingOut	로그아웃 중	Signing out			

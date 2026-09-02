@@ -25,6 +25,26 @@ interface Peek {
   seed: string
 }
 
+/** 로그인 화면의 「계정 없이 시작하기」. **자리가 고정입니다.** */
+const SINGLE = { x: 640, y: 800 - 214 + 26 }
+
+/**
+ * 타이틀의 자리들.
+ *
+ * **아래 바 하나에 전부 들어 있습니다.** 값이 `ui/title.ts` 의 상수에서 그대로 나옵니다 —
+ * 바가 216 이고 안쪽 여백이 26, 윗줄이 34, 틈이 10, 아랫줄이 62 입니다.
+ */
+const DOCK_Y = 800 - 216
+const UPPER_Y = DOCK_Y + 26
+const ROW_Y = UPPER_Y + 34 + 10
+const LEFT = Math.round((1280 - (196 + 132 * 3 + 10 * 3)) / 2)
+const TITLE = {
+  start: { x: LEFT + 98, y: ROW_Y + 31 },
+  leaderboard: { x: LEFT + 196 + 10 + (132 + 10) * 2 + 66, y: ROW_Y + 31 },
+  ranked: { x: LEFT + 196 + 10 + (132 + 10) * 2 + 66, y: UPPER_Y + 17 },
+  account: { x: 26 + 100, y: UPPER_Y + 53 },
+}
+
 let failed = 0
 
 function check(name: string, good: boolean, detail = ''): void {
@@ -82,8 +102,27 @@ async function main(): Promise<number> {
   await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' })
   const first = await peek(page)
 
-  check('타이틀이 뜹니다', first.scene === 'title', first.scene)
-  check('판이 떠 있지 않습니다', !first.modalUp)
+  // **처음 여는 사람에게는 로그인 화면입니다.** 계정을 만들지 말지를 그 자리에서
+  // 정하고, 그다음부터는 뜨지 않습니다.
+  //
+  // 세션을 넣어 두었으면 이미 정해진 사람이므로 이 대목을 지납니다.
+  if (!given) {
+    check('처음에는 로그인 화면입니다', first.scene === 'login', first.scene)
+
+    await press(page, SINGLE.x, SINGLE.y)
+    await page.waitForTimeout(900)
+    const chosen = await peek(page)
+    check('싱글플레이를 고르면 타이틀입니다', chosen.scene === 'title', chosen.scene)
+    check('판이 떠 있지 않습니다', !chosen.modalUp)
+
+    // 다시 열면 묻지 않습니다.
+    await page.reload({ waitUntil: 'domcontentloaded' })
+    await page.waitForTimeout(1_600)
+    const again = await peek(page)
+    check('다시 열면 곧바로 타이틀입니다', again.scene === 'title', again.scene)
+  } else {
+    check('세션이 있으면 곧바로 타이틀입니다', first.scene === 'title', first.scene)
+  }
 
   const up = await fetch(`http://localhost:${PORT}/api/health`)
     .then(response => response.ok).catch(() => false)
@@ -94,20 +133,28 @@ async function main(): Promise<number> {
     check('로그아웃이면 랭크 런이 아닙니다', !first.ranked)
   }
 
-  // 리더보드 단추. 시작 · 조커 풀 · 챌린지 다음의 넷째 줄입니다.
-  await press(page, 640, 696)
+  // 리더보드 단추. 줄의 오른쪽 끝입니다.
+  //
+  // **로그인 상태에 따라 가는 곳이 다릅니다.** 순위표는 계정이 있어야 하므로, 싱글플레이인
+  // 사람에게는 판이 아니라 로그인 화면이 그다음입니다.
+  await press(page, TITLE.leaderboard.x, TITLE.leaderboard.y)
   await page.waitForTimeout(1_400)
   const opened = await peek(page)
-  check('리더보드를 누르면 판이 뜹니다', opened.modalUp)
-
-  // 뒤를 눌러 닫습니다.
-  await page.keyboard.press('Escape')
-  await page.waitForTimeout(600)
-  const closed = await peek(page)
-  check('Esc 로 닫힙니다', !closed.modalUp)
+  if (given) {
+    check('리더보드를 누르면 판이 뜹니다', opened.modalUp)
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(600)
+    check('Esc 로 닫힙니다', !(await peek(page)).modalUp)
+  } else {
+    check('싱글플레이면 리더보드가 로그인 화면으로 보냅니다',
+          opened.scene === 'login', opened.scene)
+    await press(page, SINGLE.x, SINGLE.y)
+    await page.waitForTimeout(900)
+    check('거기서 다시 타이틀로 옵니다', (await peek(page)).scene === 'title')
+  }
 
   // 그냥 시작. **로그아웃이든 아니든 이 길은 지금과 같아야 합니다.**
-  await press(page, 640, 488)
+  await press(page, TITLE.start.x, TITLE.start.y)
   await page.waitForTimeout(1_400)
   const inRun = await peek(page)
   check('시작이 그대로 판을 엽니다', inRun.scene === 'run', inRun.scene)
@@ -120,9 +167,11 @@ async function main(): Promise<number> {
     await page.waitForTimeout(1_800)
     const signedIn = await peek(page)
     check('세션이 있으면 로그인 상태입니다', signedIn.signedIn)
+    check('로그인되어 있으면 로그인 화면을 지나지 않습니다', signedIn.scene === 'title',
+          signedIn.scene)
 
-    // 랭크 단추는 시작 오른쪽입니다.
-    await press(page, 858, 488)
+    // 랭크 단추는 시작 위, 설정 단추 오른쪽입니다.
+    await press(page, TITLE.ranked.x, TITLE.ranked.y)
     await page.waitForTimeout(2_600)
     const ranked = await peek(page)
     check('랭크를 누르면 랭크 런이 시작됩니다', ranked.scene === 'run' && ranked.ranked,

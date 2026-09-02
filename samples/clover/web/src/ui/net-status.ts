@@ -12,7 +12,7 @@
 import { Container, Graphics } from 'pixi.js'
 
 import { t } from '../core/strings'
-import { failKey, onBusy, onFail, type ApiError } from '../net/api'
+import { failKey, onBusy, onFail, type ApiError } from '../net/session'
 import { COLOR, SIZE } from '../render/theme'
 import type { Toasts } from './toast'
 

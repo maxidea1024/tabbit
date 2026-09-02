@@ -66,10 +66,12 @@ async function main(argv: string[]): Promise<number> {
       'INSERT INTO account (created_at) SELECT now() FROM generate_series(1, ?) RETURNING id',
       [size])).rows as { id: number }[]
 
-    await db('profile').insert(accounts.map((row, index) => ({
+    // **이름을 계정 식별자에서 만듭니다.** 순번으로 지으면 두 번째 실행이 첫 번째의
+    // 이름과 겹쳐 유일 제약에 걸립니다 — 시즌을 나눈 뒤 다시 채우는 것이 그런 경우입니다.
+    await db('profile').insert(accounts.map(row => ({
       account_id: row.id,
-      handle: `fake_${made + index}`,
-      handle_folded: `fake_${made + index}`,
+      handle: `fake_${row.id}`,
+      handle_folded: `fake_${row.id}`,
     })))
 
     const submissions = accounts.map((row, index) => {
@@ -81,7 +83,7 @@ async function main(argv: string[]): Promise<number> {
       return {
         account_id: row.id,
         season_id: season.id,
-        seed: `FAKE-${made + index}`,
+        seed: `FAKE-${row.id}`,
         deck: source.deck,
         stake: stakes[stakeIndex],
         pool: 'base',

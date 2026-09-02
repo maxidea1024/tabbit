@@ -70,7 +70,10 @@ import {
 import { randomSeed, Title } from '../ui/title'
 import { LeaderboardHub, type EndLine } from '../ui/hub'
 import { NetStatus } from '../ui/net-status'
-import { busy as netBusy } from '../net/api'
+import { LoginScene } from '../ui/login-scene'
+import { ConfirmPanel } from '../ui/confirm'
+import * as account from '../net/session'
+import { busy as netBusy } from '../net/session'
 import { newMetrics, observe, type MetricsAcc } from '../core/metrics'
 
 import type { Scene } from './scene'
@@ -1291,6 +1294,7 @@ export class Game {
   /** 이 런의 지표. 이벤트를 지나가며 쌓입니다. */
   private metrics: MetricsAcc = newMetrics()
   private readonly hub: LeaderboardHub
+  private readonly login: LoginScene
   private readonly netStatus: NetStatus
   /** 끝난 판에 얹을 순위 한 줄. 판정이 오기 전에는 `undefined` 입니다. */
   private rankLine?: EndLine
@@ -1308,13 +1312,35 @@ export class Game {
     this.player = new TimelinePlayer(beat => this.showBeat(beat))
     this.hub = new LeaderboardHub(data, this.modals, this.toasts)
     this.netStatus = new NetStatus(this.toasts)
-    this.title = new Title(() => this.enterRun(),
-      () => this.modals.open(this.guide), () => this.openOptions(),
-      () => this.modals.open(this.jokerPool),
-      () => this.openChallenges(),
-      () => this.hub.openLeaderboard(),
-      () => void this.startRanked(),
-      () => this.openSetup())
+    this.title = new Title({
+      onStart: () => this.enterRun(),
+      onGuide: () => this.modals.open(this.guide),
+      onOptions: () => this.openOptions(),
+      onJokers: () => this.modals.open(this.jokerPool),
+      onChallenges: () => this.openChallenges(),
+      onLeaderboard: () => this.hub.openLeaderboard(),
+      onRanked: () => void this.startRanked(),
+      onSetup: () => this.openSetup(),
+      onAccount: () => this.openAccount(),
+      onSignOut: () => this.signOut(),
+    })
+    this.hub.onAccountChanged = () => this.syncAccount()
+    this.hub.onNeedLogin = () => this.enterLogin()
+    this.hub.onSignOut = () => this.signOut()
+    this.login = new LoginScene()
+    // **로그인 화면에서 고른 말이 옵션에도 남습니다.** 그러지 않으면 다음에 켤 때
+    // 되돌아가고, 사람은 같은 것을 두 번 고르게 됩니다.
+    this.login.onLanguage = language => {
+      this.settings.language = language
+      saveOptions(this.settings)
+      this.applyOptions()
+    }
+    this.login.onSingle = () => {
+      account.chooseSingle()
+      this.enterTitle()
+    }
+    // 개발용 로그인은 제공자를 지난 것과 같은 자리입니다 — 내 것을 읽고 타이틀로 갑니다.
+    this.login.onSignedIn = () => void this.hub.refresh().then(() => this.enterTitle())
     this.jokerPool = new JokerPoolPanel(data, this.settings.pool,
       () => this.modals.close(this.jokerPool))
     // **고른 것은 다음 판에 적용됩니다.** 도는 판의 풀을 바꾸면 상점이 이미 채워진
@@ -1382,16 +1408,18 @@ export class Game {
       this.coins, this.toasts, this.screenFlash, this.title)
     this.world.addChild(this.recede, this.modals, this.tooltip)
 
-    // **내 카드는 타이틀 오른쪽 위에 상시로 있습니다.** 게임을 켤 때마다 자기 자리를
-    // 봅니다 — 리더보드 판을 열지 않아도 됩니다.
-    this.hub.card.position.set(SIZE.width - 250 - 30, 30)
-    this.title.addChild(this.hub.card)
+    // **내 카드가 계정 칩의 자리에 놓입니다.** 이름을 두 곳에 적으면 같은 것을 두 번 보게
+    // 되고, 카드에는 순위까지 있으므로 칩이 남을 이유가 없습니다.
+    this.title.accountSlot.addChild(this.hub.card)
+    this.login.visible = false
+    this.recede.addChild(this.login)
 
     // 통신 표시와 입력 막이. **판보다 위입니다.**
     this.world.addChild(this.netStatus)
 
-    // 되돌아온 주소를 보고, 로그인되어 있으면 내 것을 읽습니다.
-    void this.hub.boot().then(() => this.title.setSignedIn(this.hub.signedIn))
+    // 되돌아온 주소를 보고, 로그인되어 있으면 내 것을 읽습니다. 그다음에 어느 씬으로
+    // 갈지가 정해집니다 — **로그인했거나 싱글플레이로 정했으면 타이틀입니다.**
+    void this.hub.boot().then(() => this.openingScene())
 
     // 동전이 꽂힐 때마다 금액 칸이 튀고 음이 하나 올라갑니다.
     this.coins.onLand = (index, gain) => {
@@ -1608,7 +1636,9 @@ export class Game {
     this.menuButton.text = t('ui.button.menu')
 
     this.title.relabel()
+    this.login.relabel()
     this.hub.relabel()
+    this.syncAccount()
     this.optionsPanel.relabel()
     this.guide.relabel()
     this.jokerPool.relabel()
@@ -1748,11 +1778,69 @@ export class Game {
   }
 
   /**
+   * 부팅이 끝나고 처음 서는 자리.
+   *
+   * **묻지 않은 사람에게만 로그인 화면입니다.** 로그인했거나 싱글플레이로 정했으면
+   * 곧바로 타이틀이고, 타이틀의 계정 칩이 다시 이 화면으로 보냅니다.
+   */
+  private openingScene(): void {
+    this.syncAccount()
+    if (account.mode() === 'undecided') this.enterLogin()
+    else this.enterTitle()
+  }
+
+  /** 계정 상태를 화면에 알립니다. 로그인·로그아웃·이름 바꾸기 뒤에 부릅니다. */
+  private syncAccount(): void {
+    this.title.setAccount(this.hub.signedIn, this.hub.handle)
+  }
+
+  /** 계정 칩을 눌렀습니다. */
+  private openAccount(): void {
+    if (this.hub.signedIn) this.hub.openProfile()
+    else this.enterLogin()
+  }
+
+  /**
+   * 로그아웃합니다.
+   *
+   * **묻고 나서 합니다.** 한 번 눌러서 일어나면 잘못 누른 사람에게는 사고입니다.
+   *
+   * **끝나면 로그인 화면입니다.** 로그아웃은 「계정을 쓰지 않겠다」가 아니라 「이 계정에서
+   * 나가겠다」이므로, 다음에 무엇으로 할지를 다시 정하는 자리로 갑니다 — 다시 켰을 때도
+   * 로그인 화면인 것이 그 때문입니다.
+   */
+  private signOut(): void {
+    const ask = new ConfirmPanel(
+      t('ui.account.signOutAsk'), t('ui.account.signOutBody'), t('ui.button.logout'), false,
+      () => void this.doSignOut(),
+      () => this.modals.close(ask))
+    this.modals.open(ask)
+  }
+
+  private async doSignOut(): Promise<void> {
+    await this.hub.signOut()
+    // **다시 묻습니다.** 「싱글플레이로 정했다」가 아니므로 그 표시를 지웁니다.
+    account.askAgain()
+    this.syncAccount()
+    this.enterLogin()
+  }
+
+  /** 로그인 화면으로. **나가는 길은 「계정 없이 시작하기」 하나입니다.** */
+  private enterLogin(): void {
+    this.scene = 'login'
+    this.login.visible = true
+    this.title.visible = false
+    this.board.visible = false
+    this.overlay.visible = false
+  }
+
+  /**
    * 판으로 들어갑니다. **타이틀에서만 갑니다.**
    */
   private enterRun(): void {
     if (this.scene === 'run') return
     this.scene = 'run'
+    this.login.visible = false
     this.title.visible = false
     this.board.visible = true
     this.overlay.visible = true
@@ -1787,6 +1875,7 @@ export class Game {
   private enterTitle(): void {
     this.dropRun()
     this.scene = 'title'
+    this.login.visible = false
     this.title.visible = true
     this.board.visible = false
     this.overlay.visible = false
@@ -2563,6 +2652,7 @@ export class Game {
     this.shopLift.target = this.held?.kind === 'shop' || this.held?.kind === 'pack_slot' ? 10 : 0
     this.shopLift.advance(seconds)
     this.hub.advance(seconds)
+    this.login.advance(seconds)
     this.netStatus.advance(seconds)
     this.rollRank(seconds)
     const lift = this.shopLift.value
