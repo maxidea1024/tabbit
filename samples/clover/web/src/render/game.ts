@@ -54,7 +54,7 @@ import { Motion, Spring } from './motion'
 import { Particles } from './particles'
 import { artFor, onArtReady, type ArtKind } from './art'
 import { backLookOf, cardBack, drawCardBack, setCardBack } from './card-back'
-import { cardArtDir, cardPaper, drawsIndex, setCardSet, setLookOf, suitInk } from './card-set'
+import { cardArtDir, cardBackMotif, cardPaper, drawsIndex, setCardSet, setLookOf, suitInk } from './card-set'
 import { drawGlyph, glyphFor, hashOf, hsl, shade } from './glyph'
 import { cardArtId, drawFace } from './pips'
 import { mix } from './skin'
@@ -1403,11 +1403,11 @@ export class Game {
 
     // **더미를 세우기 전에 뒷면을 정합니다.** `buildPanel` 이 덱 더미를 그리므로, 순서가
     // 거꾸로면 첫 화면의 더미만 첫 덱의 뒷면입니다.
-    const back = data.tables.deck.findByDeckId(this.state.deckId)
-    if (back) setCardBack(backLookOf(back))
-    // **뒷면과 같은 자리에서 앞면도 정합니다.** 둘 다 카드를 그리기 전에 한 번이고, 한쪽만
-    // 여기 있으면 첫 화면의 카드만 다른 벌이 됩니다.
+    // **앞면을 먼저 정합니다.** 뒷면의 무늬를 세트가 정하므로 순서가 거꾸로면 첫 화면의
+    // 더미만 덱의 무늬로 섭니다.
     setCardSet(setLookOf(data, this.settings.cardSet))
+    const back = data.tables.deck.findByDeckId(this.state.deckId)
+    if (back) setCardBack({ ...backLookOf(back), motif: cardBackMotif() ?? back.back })
 
     this.buildPanel()
 
@@ -1573,6 +1573,9 @@ export class Game {
     // **고른 그 자리에서 갈아입습니다.** 다음 판까지 기다릴 이유가 없습니다 — 겉모습이므로
     // 도는 판의 규칙에 닿지 않습니다.
     setCardSet(setLookOf(this.data, this.settings.cardSet))
+    // **뒷면도 함께 갈아입습니다.** 무늬를 세트가 정하므로, 여기서 다시 정하지 않으면
+    // 앞면만 바뀌고 뒷면은 앞 세트의 무늬로 남습니다.
+    this.syncCardBack()
     // 도움 표시는 켜고 끄는 그 자리에서 바로 사라져야 합니다.
     this.updateHints()
     this.syncCards()
@@ -1963,7 +1966,10 @@ export class Game {
    */
   private syncCardBack(): void {
     const row = this.data.tables.deck.findByDeckId(this.state.deckId)
-    if (row) setCardBack(backLookOf(row))
+    // **무늬는 세트가, 색 두 개는 덱이 정합니다.** 덱이 정하는 것 중 한 판 내내 보이는
+    // 것이 뒷면이므로, 세트가 그것을 통째로 가져가면 어느 덱으로 하고 있는지가 화면에서
+    // 사라집니다 — 「붉은 덱 + 뼈의 궁정」은 붉은 룬 뒷면입니다.
+    if (row) setCardBack({ ...backLookOf(row), motif: cardBackMotif() ?? row.back })
     this.drawDeckPile()
   }
 

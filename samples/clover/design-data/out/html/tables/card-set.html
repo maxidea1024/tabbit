@@ -644,7 +644,7 @@ tbody [data-pick] { cursor: pointer; }
 </aside>
 <main class="fill">
 <h1>CardSet</h1>
-<p class="lead"><svg class="i"><use href="#i-table"></use></svg>CardSet &middot; 행 17개 &middot; 컬럼 7개 <span class="hint">&middot; <span class="book" title="samples/clover/design-data/xlsx/Feel.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Feel.xlsx</span> &middot; <svg class="i"><use href="#i-sheet"></use></svg>CardSet : A1</span></p>
+<p class="lead"><svg class="i"><use href="#i-table"></use></svg>CardSet &middot; 행 17개 &middot; 컬럼 8개 <span class="hint">&middot; <span class="book" title="samples/clover/design-data/xlsx/Feel.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Feel.xlsx</span> &middot; <svg class="i"><use href="#i-sheet"></use></svg>CardSet : A1</span></p>
 <p class="comment">트럼프 한 벌의 겉모습입니다. <b>덱과 다른 축입니다</b> — 덱은 런의 시작 조건이고 이것은 그 52장이 어떻게 보이는가입니다. 그림이 있으면 그림이 얼굴이고, 없으면 무늬와 랭크를 그립니다.</p>
 <p class="hint">이 테이블을 가리키는 컬럼:
 <a href="../tables/card-set-suit.html#col_CardSetSuit.SetId">CardSetSuit.SetId</a>
@@ -665,6 +665,7 @@ tbody [data-pick] { cursor: pointer; }
 <th id="col_CardSet.Credit" title="생성 이름 Credit &#183; 옵셔널">credit</th>
 <th id="col_CardSet.ArtHasIndex" title="생성 이름 ArtHasIndex">art_has_index</th>
 <th id="col_CardSet.Paper" title="생성 이름 Paper &#183; 패턴 ^#[0-9a-f]{6}$">paper</th>
+<th id="col_CardSet.Back" title="생성 이름 Back &#183; 옵셔널">back</th>
 </tr>
 <tr class="about">
 <th>식별자</th>
@@ -674,6 +675,7 @@ tbody [data-pick] { cursor: pointer; }
 <th>그림이 어디서 왔는가</th>
 <th>그림에 모서리의 랭크와 무늬가 들어 있는가</th>
 <th>종이의 색. <b>강화의 색과 겹치지 않아야 합니다</b> — 바탕에 색이 들면 강화로 읽힙니다</th>
+<th>뒷면의 무늬. <b>색 두 개는 덱이 정합니다</b> — 비면 무늬도 덱의 것입니다</th>
 </tr>
 <tr class="types">
 <th><span class="type">string</span> <span class="keymark" title="기본 인덱스">🔑</span></th>
@@ -683,8 +685,10 @@ tbody [data-pick] { cursor: pointer; }
 <th><span class="type">string?</span></th>
 <th><span class="type">bool</span></th>
 <th><span class="type">string</span></th>
+<th><a href="../enums/card-back-kind.html#enum_CardBackKind" data-enum="CardBackKind">enum.CardBackKind</a>?</th>
 </tr>
 <tr class="side">
+<th>cs</th>
 <th>cs</th>
 <th>cs</th>
 <th>cs</th>
@@ -695,28 +699,53 @@ tbody [data-pick] { cursor: pointer; }
 </tr>
 </thead>
 <tbody>
-<tr><td class="key" id="row_CardSet.classic"><code><span class="str">&quot;classic&quot;</span></code></td><td><span class="str">&quot;정본&quot;</span></td><td class="num">1</td><td><span class="str">&quot;card&quot;</span></td><td><span class="str">&quot;위키미디어 공용의 English pattern 한 벌 &#183; Dmitry Fomin &#183; 공유 재산&quot;</span></td><td><span class="yes" title="true">&#x2714;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td></tr>
-<tr><td class="key" id="row_CardSet.line"><code><span class="str">&quot;line&quot;</span></code></td><td><span class="str">&quot;선화&quot;</span></td><td class="num">2</td><td><span class="null" title="값 없음">null</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td></tr>
-<tr><td class="key" id="row_CardSet.four_color"><code><span class="str">&quot;four_color&quot;</span></code></td><td><span class="str">&quot;4색&quot;</span></td><td class="num">3</td><td><span class="null" title="값 없음">null</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td></tr>
-<tr><td class="key" id="row_CardSet.cats"><code><span class="str">&quot;cats&quot;</span></code></td><td><span class="str">&quot;고양이&quot;</span></td><td class="num">4</td><td><span class="str">&quot;card/cats&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td></tr>
-<tr><td class="key" id="row_CardSet.geckos"><code><span class="str">&quot;geckos&quot;</span></code></td><td><span class="str">&quot;게코&quot;</span></td><td class="num">5</td><td><span class="str">&quot;card/geckos&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td></tr>
-<tr><td class="key" id="row_CardSet.forest_kin"><code><span class="str">&quot;forest_kin&quot;</span></code></td><td><span class="str">&quot;숲의 아이들&quot;</span></td><td class="num">6</td><td><span class="str">&quot;card/forest_kin&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td></tr>
-<tr><td class="key" id="row_CardSet.dragons"><code><span class="str">&quot;dragons&quot;</span></code></td><td><span class="str">&quot;용&quot;</span></td><td class="num">7</td><td><span class="str">&quot;card/dragons&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td></tr>
-<tr><td class="key" id="row_CardSet.bone_court"><code><span class="str">&quot;bone_court&quot;</span></code></td><td><span class="str">&quot;뼈의 궁정&quot;</span></td><td class="num">8</td><td><span class="str">&quot;card/bone_court&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td></tr>
-<tr><td class="key" id="row_CardSet.tin_kings"><code><span class="str">&quot;tin_kings&quot;</span></code></td><td><span class="str">&quot;양철 왕&quot;</span></td><td class="num">9</td><td><span class="str">&quot;card/tin_kings&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td></tr>
-<tr><td class="key" id="row_CardSet.baseball"><code><span class="str">&quot;baseball&quot;</span></code></td><td><span class="str">&quot;야구&quot;</span></td><td class="num">10</td><td><span class="str">&quot;card/baseball&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td></tr>
-<tr><td class="key" id="row_CardSet.basketball"><code><span class="str">&quot;basketball&quot;</span></code></td><td><span class="str">&quot;농구&quot;</span></td><td class="num">11</td><td><span class="str">&quot;card/basketball&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td></tr>
-<tr><td class="key" id="row_CardSet.soccer"><code><span class="str">&quot;soccer&quot;</span></code></td><td><span class="str">&quot;축구&quot;</span></td><td class="num">12</td><td><span class="str">&quot;card/soccer&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td></tr>
-<tr><td class="key" id="row_CardSet.dogs"><code><span class="str">&quot;dogs&quot;</span></code></td><td><span class="str">&quot;강아지&quot;</span></td><td class="num">13</td><td><span class="str">&quot;card/dogs&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td></tr>
-<tr><td class="key" id="row_CardSet.otters"><code><span class="str">&quot;otters&quot;</span></code></td><td><span class="str">&quot;수달&quot;</span></td><td class="num">14</td><td><span class="str">&quot;card/otters&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td></tr>
-<tr><td class="key" id="row_CardSet.squirrels"><code><span class="str">&quot;squirrels&quot;</span></code></td><td><span class="str">&quot;다람쥐&quot;</span></td><td class="num">15</td><td><span class="str">&quot;card/squirrels&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td></tr>
-<tr><td class="key" id="row_CardSet.bugs"><code><span class="str">&quot;bugs&quot;</span></code></td><td><span class="str">&quot;곤충&quot;</span></td><td class="num">16</td><td><span class="str">&quot;card/bugs&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td></tr>
-<tr><td class="key" id="row_CardSet.blooms"><code><span class="str">&quot;blooms&quot;</span></code></td><td><span class="str">&quot;꽃&quot;</span></td><td class="num">17</td><td><span class="str">&quot;card/blooms&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td></tr>
+<tr><td class="key" id="row_CardSet.classic"><code><span class="str">&quot;classic&quot;</span></code></td><td><span class="str">&quot;정본&quot;</span></td><td class="num">1</td><td><span class="str">&quot;card&quot;</span></td><td><span class="str">&quot;위키미디어 공용의 English pattern 한 벌 &#183; Dmitry Fomin &#183; 공유 재산&quot;</span></td><td><span class="yes" title="true">&#x2714;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td><td><span class="null" title="값 없음">null</span></td></tr>
+<tr><td class="key" id="row_CardSet.line"><code><span class="str">&quot;line&quot;</span></code></td><td><span class="str">&quot;선화&quot;</span></td><td class="num">2</td><td><span class="null" title="값 없음">null</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td><td><span class="null" title="값 없음">null</span></td></tr>
+<tr><td class="key" id="row_CardSet.four_color"><code><span class="str">&quot;four_color&quot;</span></code></td><td><span class="str">&quot;4색&quot;</span></td><td class="num">3</td><td><span class="null" title="값 없음">null</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td><td><span class="null" title="값 없음">null</span></td></tr>
+<tr><td class="key" id="row_CardSet.cats"><code><span class="str">&quot;cats&quot;</span></code></td><td><span class="str">&quot;고양이&quot;</span></td><td class="num">4</td><td><span class="str">&quot;card/cats&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td><td><span class="null" title="값 없음">null</span></td></tr>
+<tr><td class="key" id="row_CardSet.geckos"><code><span class="str">&quot;geckos&quot;</span></code></td><td><span class="str">&quot;게코&quot;</span></td><td class="num">5</td><td><span class="str">&quot;card/geckos&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td><td><span class="null" title="값 없음">null</span></td></tr>
+<tr><td class="key" id="row_CardSet.forest_kin"><code><span class="str">&quot;forest_kin&quot;</span></code></td><td><span class="str">&quot;숲의 아이들&quot;</span></td><td class="num">6</td><td><span class="str">&quot;card/forest_kin&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Brush" data-enum="CardBackKind" data-label="Brush">Brush</a></td></tr>
+<tr><td class="key" id="row_CardSet.dragons"><code><span class="str">&quot;dragons&quot;</span></code></td><td><span class="str">&quot;용&quot;</span></td><td class="num">7</td><td><span class="str">&quot;card/dragons&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Zodiac" data-enum="CardBackKind" data-label="Zodiac">Zodiac</a></td></tr>
+<tr><td class="key" id="row_CardSet.bone_court"><code><span class="str">&quot;bone_court&quot;</span></code></td><td><span class="str">&quot;뼈의 궁정&quot;</span></td><td class="num">8</td><td><span class="str">&quot;card/bone_court&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Arcane" data-enum="CardBackKind" data-label="Arcane">Arcane</a></td></tr>
+<tr><td class="key" id="row_CardSet.tin_kings"><code><span class="str">&quot;tin_kings&quot;</span></code></td><td><span class="str">&quot;양철 왕&quot;</span></td><td class="num">9</td><td><span class="str">&quot;card/tin_kings&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Checker" data-enum="CardBackKind" data-label="Checker">Checker</a></td></tr>
+<tr><td class="key" id="row_CardSet.baseball"><code><span class="str">&quot;baseball&quot;</span></code></td><td><span class="str">&quot;야구&quot;</span></td><td class="num">10</td><td><span class="str">&quot;card/baseball&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td><td><span class="null" title="값 없음">null</span></td></tr>
+<tr><td class="key" id="row_CardSet.basketball"><code><span class="str">&quot;basketball&quot;</span></code></td><td><span class="str">&quot;농구&quot;</span></td><td class="num">11</td><td><span class="str">&quot;card/basketball&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td><td><span class="null" title="값 없음">null</span></td></tr>
+<tr><td class="key" id="row_CardSet.soccer"><code><span class="str">&quot;soccer&quot;</span></code></td><td><span class="str">&quot;축구&quot;</span></td><td class="num">12</td><td><span class="str">&quot;card/soccer&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td><td><span class="null" title="값 없음">null</span></td></tr>
+<tr><td class="key" id="row_CardSet.dogs"><code><span class="str">&quot;dogs&quot;</span></code></td><td><span class="str">&quot;강아지&quot;</span></td><td class="num">13</td><td><span class="str">&quot;card/dogs&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td><td><span class="null" title="값 없음">null</span></td></tr>
+<tr><td class="key" id="row_CardSet.otters"><code><span class="str">&quot;otters&quot;</span></code></td><td><span class="str">&quot;수달&quot;</span></td><td class="num">14</td><td><span class="str">&quot;card/otters&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td><td><span class="null" title="값 없음">null</span></td></tr>
+<tr><td class="key" id="row_CardSet.squirrels"><code><span class="str">&quot;squirrels&quot;</span></code></td><td><span class="str">&quot;다람쥐&quot;</span></td><td class="num">15</td><td><span class="str">&quot;card/squirrels&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td><td><span class="null" title="값 없음">null</span></td></tr>
+<tr><td class="key" id="row_CardSet.bugs"><code><span class="str">&quot;bugs&quot;</span></code></td><td><span class="str">&quot;곤충&quot;</span></td><td class="num">16</td><td><span class="str">&quot;card/bugs&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Worn" data-enum="CardBackKind" data-label="Worn">Worn</a></td></tr>
+<tr><td class="key" id="row_CardSet.blooms"><code><span class="str">&quot;blooms&quot;</span></code></td><td><span class="str">&quot;꽃&quot;</span></td><td class="num">17</td><td><span class="str">&quot;card/blooms&quot;</span></td><td><span class="null" title="값 없음">null</span></td><td><span class="no" title="false">&#x2718;</span></td><td><span class="str">&quot;#f6f2e8&quot;</span></td><td><a class="enum" href="../enums/card-back-kind.html#const_CardBackKind.Brush" data-enum="CardBackKind" data-label="Brush">Brush</a></td></tr>
 </tbody>
 </table>
 </div>
 </div>
 </main>
+</div>
+<div id="enumdefs" hidden>
+<div data-enum-def="CardBackKind">
+<p class="lead"><b>enum.CardBackKind</b> <span class="hint">카드 뒷면의 무늬.
+
+<b>덱마다 다릅니다.</b> 덱을 고르는 것이 시작 조건을 고르는 것이면서 한 판 내내 손에 들고
+있을 뒷면을 고르는 것이기도 하고, 그 뒷면이 전부 같으면 무엇을 골랐는지가 화면에
+남지 않습니다.
+
+바깥은 어느 무늬나 같습니다 — 굵은 테두리와 점선 띠와 가는 안쪽 테두리입니다. 그것이
+「이것은 트럼프 뒷면이다」이고, 갈리는 것은 안쪽 판에 무엇이 있는가입니다.</span></p>
+<table><tbody>
+<tr data-label="Classic"><td>Classic</td><td class="num">1</td><td class="hint">동심원이 겹쳐 만드는 렌즈 문양. 색만 다른 덱들이 이것을 함께 씁니다.</td></tr>
+<tr data-label="Checker"><td>Checker</td><td class="num">2</td><td class="hint">비스듬한 체크무늬.</td></tr>
+<tr data-label="Starfield"><td>Starfield</td><td class="num">3</td><td class="hint">별과 성운.</td></tr>
+<tr data-label="Arcane"><td>Arcane</td><td class="num">4</td><td class="hint">달과 룬.</td></tr>
+<tr data-label="Zodiac"><td>Zodiac</td><td class="num">5</td><td class="hint">황도 십이궁의 눈금 원반.</td></tr>
+<tr data-label="Veil"><td>Veil</td><td class="num">6</td><td class="hint">희미하게 어긋난 고리 여럿.</td></tr>
+<tr data-label="Worn"><td>Worn</td><td class="num">7</td><td class="hint">닳아 끊긴 격자.</td></tr>
+<tr data-label="Brush"><td>Brush</td><td class="num">8</td><td class="hint">붓으로 한 번에 그은 꽃.</td></tr>
+<tr data-label="Anaglyph"><td>Anaglyph</td><td class="num">9</td><td class="hint">어긋나 겹친 두 색의 같은 그림.</td></tr>
+<tr data-label="Plasma"><td>Plasma</td><td class="num">10</td><td class="hint">안에서 밖으로 도는 소용돌이.</td></tr>
+<tr data-label="Erratic"><td>Erratic</td><td class="num">11</td><td class="hint">아무 규칙 없이 뒤섞인 조각들.</td></tr>
+</tbody></table>
+</div>
 </div>
 <script>
 (function () {

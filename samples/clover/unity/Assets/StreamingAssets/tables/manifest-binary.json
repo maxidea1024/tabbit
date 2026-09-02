@@ -1,7 +1,7 @@
 {
-  "LastUpdatedDate": "2026-09-03T01:12:09.2482711+09:00",
-  "MasterHash": "21601afa0c6e87f4fc8fb1d88681d6ad",
-  "TotalSize": 201607,
+  "LastUpdatedDate": "2026-09-03T01:38:15.7149238+09:00",
+  "MasterHash": "259273d81c12a6fc99b8331405505eac",
+  "TotalSize": 201630,
   "Items": [
     {
       "Name": "Rank.bytes",
@@ -96,8 +96,8 @@
     {
       "Name": "EditionVisual.bytes",
       "Size": 137,
-      "Hash": "ff22a047ef7762b5ec43b89bb3f9af1c",
-      "LastUpdatedDate": "2026-08-27T16:15:35.9152647+09:00"
+      "Hash": "c5432777946d57aaf0a773de8d856db8",
+      "LastUpdatedDate": "2026-09-03T01:36:31.3959636+09:00"
     },
     {
       "Name": "SoundCue.bytes",
@@ -257,9 +257,9 @@
     },
     {
       "Name": "CardSet.bytes",
-      "Size": 633,
-      "Hash": "a5ce51ac4715eeac949c52918b0fad41",
-      "LastUpdatedDate": "2026-09-03T00:53:26.7629812+09:00"
+      "Size": 656,
+      "Hash": "2beb0fdbdecaf85c6d7e33c2dfb83f1e",
+      "LastUpdatedDate": "2026-09-03T01:38:15.7149077+09:00"
     },
     {
       "Name": "CardSetSuit.bytes",

@@ -13,6 +13,9 @@ import * as tabbit from '../tabbit/tcb-reader'
 // finished evaluating - so neither one is half built when the binding is used.
 import { CloverData } from '../clover-data'
 
+// Automatically import to handle external type references.
+import { CardBackKind } from '../enums/card-back-kind'
+
 /** A type for handling rows when parsing .json. */
 interface IDataRow {
   setId: string
@@ -22,6 +25,7 @@ interface IDataRow {
   credit: string
   artHasIndex: boolean
   paper: string
+  back: CardBackKind
 }
 
 // Generated from samples/clover/design-data/xlsx/Feel.xlsx : CardSet : A1
@@ -56,6 +60,11 @@ export class CardSetRecord {
   /** 종이의 색. **강화의 색과 겹치지 않아야 합니다** — 바탕에 색이 들면 강화로 읽힙니다 */
   public get paper(): string { return this._paper }
 
+  /** 뒷면의 무늬. **색 두 개는 덱이 정합니다** — 비면 무늬도 덱의 것입니다 */
+  public get back(): CardBackKind { return this._back }
+  /** Whether this row has a value for `back`. */
+  public get hasBack(): boolean { return this._backHasValue }
+
   public _setId: string = ''
   public _name: string = ''
   public _sortOrder: number = 0
@@ -65,6 +74,8 @@ export class CardSetRecord {
   public _creditHasValue: boolean = false
   public _artHasIndex: boolean = false
   public _paper: string = ''
+  public _back: CardBackKind = 0 as CardBackKind
+  public _backHasValue: boolean = false
 
   /** Populate field values. */
   public populateFieldValues(dataRow: IDataRow): void {
@@ -75,6 +86,7 @@ export class CardSetRecord {
     this._creditHasValue = dataRow.credit !== null && dataRow.credit !== undefined; if (this._creditHasValue) this._credit = dataRow.credit
     this._artHasIndex = dataRow.artHasIndex
     this._paper = dataRow.paper
+    this._backHasValue = dataRow.back !== null && dataRow.back !== undefined; if (this._backHasValue) this._back = dataRow.back
   }
 
   /** Populate field values. */
@@ -91,6 +103,9 @@ export class CardSetRecord {
     if (this._creditHasValue) this._credit = _credit_raw
     this._artHasIndex = dataRow[offset++]
     this._paper = dataRow[offset++]
+    const _back_raw = dataRow[offset++]
+    this._backHasValue = _back_raw !== null && _back_raw !== undefined
+    if (this._backHasValue) this._back = _back_raw
   }
 }
 
@@ -320,6 +335,25 @@ export class CardSetTable {
             const { n, value } = cursor.nextSameString(rowCount - i)
             for (let left = n; left > 0; --left, ++i)
               records[i]._paper = value
+          }
+          break
+        case 8:
+          tabbit.checkColumn(column, 'CardSet.Back', tabbit.KIND_SCALAR, true, [tabbit.ELEMENT_VARINT])
+          presence = tabbit.readPresence(reader, column, rowCount)
+          cursor = new tabbit.TcbColumnCursor(reader, column, rowCount, 'CardSet.Back')
+          for (let i = 0; i < rowCount; ) {
+            const { n, value } = cursor.nextSameI32(rowCount - i)
+            for (let left = n; left > 0; --left, ++i)
+              records[i]._back = value as CardBackKind
+          }
+          for (let i = 0; i < rowCount; ++i) {
+            records[i]._backHasValue = tabbit.isPresent(presence, i)
+
+            // The block carries a value for every row, so an absent one has just been
+            // given whatever was there. Putting the empty value back is what makes this
+            // path agree with the JSON one.
+            if (!records[i]._backHasValue)
+              records[i]._back = 0 as CardBackKind
           }
           break
         default:

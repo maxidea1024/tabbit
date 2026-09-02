@@ -60,6 +60,13 @@ namespace Clover.Data
         /// 종이의 색. **강화의 색과 겹치지 않아야 합니다** — 바탕에 색이 들면 강화로 읽힙니다
         /// </summary>
         public string Paper => _paper;
+
+        /// <summary>
+        /// 뒷면의 무늬. **색 두 개는 덱이 정합니다** — 비면 무늬도 덱의 것입니다
+        /// </summary>
+        public global::Clover.Data.CardBackKind Back => _back;
+        /// <summary>Whether this row has a value for <see cref="Back"/>.</summary>
+        public bool HasBack => _backHasValue;
         #endregion
 
         #region Storage
@@ -72,6 +79,8 @@ namespace Clover.Data
         internal bool _creditHasValue;
         internal bool _artHasIndex;
         internal string _paper = "";
+        internal global::Clover.Data.CardBackKind _back;
+        internal bool _backHasValue;
         #endregion
 
         #region ToString
@@ -85,6 +94,7 @@ namespace Clover.Data
             sb.Append(",\"Credit\":"); ToStringHelper.ToString(Credit, sb);
             sb.Append(",\"ArtHasIndex\":"); ToStringHelper.ToString(ArtHasIndex, sb);
             sb.Append(",\"Paper\":"); ToStringHelper.ToString(Paper, sb);
+            sb.Append(",\"Back\":"); ToStringHelper.ToString(Back, sb);
             sb.Append("}");
             return sb.ToString();
         }
@@ -100,7 +110,7 @@ namespace Clover.Data
         /// <summary>
         /// Field names.
         /// </summary>
-        public static readonly string[] FieldNames = { "SetId", "Name", "SortOrder", "ArtDir", "Credit", "ArtHasIndex", "Paper" };
+        public static readonly string[] FieldNames = { "SetId", "Name", "SortOrder", "ArtDir", "Credit", "ArtHasIndex", "Paper", "Back" };
 
         /// <summary>
         /// Build object value map.
@@ -109,7 +119,7 @@ namespace Clover.Data
         {
             var result = new List<object[]>();
             foreach (var r in _records)
-                result.Add(new object[] { r.SetId, r.Name, r.SortOrder, r.ArtDir, r.Credit, r.ArtHasIndex, r.Paper });
+                result.Add(new object[] { r.SetId, r.Name, r.SortOrder, r.ArtDir, r.Credit, r.ArtHasIndex, r.Paper, r.Back });
 
             return result;
         }
@@ -417,6 +427,33 @@ namespace Clover.Data
                                 var record = records[i++];
                                 record._paper = value;
                             } while (--n > 0);
+                        }
+                        break;
+
+                    case 8:
+                        TcbTable.CheckColumn(column, "CardSet.Back", TcbTable.KindScalar, true, TcbTable.ElementVarint);
+                        presence = TcbTable.ReadPresence(reader, column, count);
+                        cursor = new TcbColumnCursor(reader, column, count, "CardSet.Back");
+                        for (int i = 0; i < count; )
+                        {
+                            // One call per run of equal values, not one per row - over a
+                            // run-length encoded column this is most of the decode.
+                            int n = cursor.NextSameI32(count - i, out var value);
+                            do
+                            {
+                                var record = records[i++];
+                                record._back = (global::Clover.Data.CardBackKind)value;
+                            } while (--n > 0);
+                        }
+                        for (int i = 0; i < count; i++)
+                        {
+                            records[i]._backHasValue = TcbTable.IsPresent(presence, i);
+
+                            // The block carries a value for every row, so an absent one has
+                            // just been given whatever was there. Putting the empty value
+                            // back is what makes this path agree with the JSON one.
+                            if (!records[i]._backHasValue)
+                                records[i]._back = default(global::Clover.Data.CardBackKind);
                         }
                         break;
 

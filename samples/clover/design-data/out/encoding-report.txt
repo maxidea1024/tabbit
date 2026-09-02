@@ -3,10 +3,10 @@ TCB encoding report
 
 Totals
   tables    44
-  columns   803
-  unencoded 334,661
-  encoded   194,024  (58.0 % of unencoded)
-  deflated  123,889  (63.9 % of encoded)  - what a compression layer over the chosen blocks would come to
+  columns   804
+  unencoded 334,678
+  encoded   194,040  (58.0 % of unencoded)
+  deflated  123,905  (63.9 % of encoded)  - what a compression layer over the chosen blocks would come to
 
 By encoding
   encoding        columns        bytes    share
@@ -14,24 +14,24 @@ By encoding
   DICT_SEG             9       25,723   13.3 %
   RAW                 55       16,690    8.6 %
   RLE                540        4,403    2.3 %
-  BITPACK             89        2,866    1.5 %
+  BITPACK             90        2,882    1.5 %
   DICT_RLE            21          895    0.5 %
   DICT                 5          534    0.3 %
   ARRAY               20          337    0.2 %
   DICT_FRONT_RLE       1          309    0.2 %
-  VARINT              18          188    0.1 %
+  VARINT              17          179    0.1 %
   DELTA_RLE           20          112    0.1 %
-  DELTA                7           87    0.0 %
+  DELTA                8           96    0.0 %
 
 By element
   element         columns    unencoded        bytes    share
   string              92      217,512      185,876   95.8 %
   i32                286       82,748        4,140    2.1 %
-  varint             365       28,976        3,511    1.8 %
+  varint             366       28,993        3,527    1.8 %
   bool                59        5,273          414    0.2 %
   f32                  1          152           83    0.0 %
 
-Largest columns (40 of 803)
+Largest columns (40 of 804)
 
   StringTable.Ja  [string]  1401 rows
     chosen DICT_FRONT  24,852  (83.6 % of unencoded)
@@ -215,10 +215,10 @@ Bit-width packing headroom
 
   element     columns        today       packed        saved
   bool             59          414          536         -122
-  varint          347        3,388        4,145         -757
-  i32             286        4,140        8,256       -4,116
+  varint          348        3,404        4,161         -757
+  i32             286        4,140        8,257       -4,117
 
-  Keeping the smaller of the two per column: 7,942 → 7,843 · saved 99 over 4 of 692 columns.
+  Keeping the smaller of the two per column: 7,958 → 7,859 · saved 99 over 4 of 693 columns.
 
     width            base        today       packed  inner         column
         4               2          141           71  RAW           JokerEffect.Ranks
@@ -230,11 +230,11 @@ Presence bitmaps
   A bit per row, saying which rows have a value. Encoded by the same choice
   a bit-packed value block uses; `unencoded` is what a bit a row would cost.
 
-    columns    66
-    unencoded  668
-    encoded    331  (49.6 % of unencoded) · saved 337
+    columns    67
+    unencoded  671
+    encoded    334  (49.8 % of unencoded) · saved 337
 
-  32 of 66 bitmaps got smaller.
+  32 of 67 bitmaps got smaller.
 
        rows    unencoded      encoded  column
         589           74            4  JokerEffect.ScopeCount

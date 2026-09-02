@@ -38,7 +38,7 @@ namespace Clover.Data
         public int Strength => _strength;
 
         /// <summary>
-        /// 흐르는 속도. 만분율
+        /// 흐르는 속도. 만분율 — 초당 라디안입니다
         /// </summary>
         public int FlowSpeed => _flowSpeed;
 

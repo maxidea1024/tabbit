@@ -96,10 +96,22 @@ void main(void) {
 }
 `
 
-/** 포일 — 카드 좌표에 시간 위상을 더한 사인파로 밝기 띠 하나. */
+/**
+ * 포일 — 카드 좌표에 시간 위상을 더한 사인파로 밝기 띠 하나.
+ *
+ * **무늬의 좌표는 `vShapeCoord` 입니다.** `vTextureCoord` 는 필터가 받은 텍스처 위의
+ * 자리이고, 그 텍스처는 Pixi 가 2의 거듭제곱으로 잡아 줍니다 — 조커가 늘 흔들려 화면에서
+ * 차지한 사각형이 프레임마다 1픽셀씩 달라지므로, 그 나눗셈의 값도 함께 달라집니다.
+ *
+ * 실측으로 그 떨림이 **의도한 흐름의 20배**였습니다. 흐름이 프레임당 0.005 rad 인데 사각형
+ * 1픽셀이 0.09 rad 을 주고, 사각형의 폭이 2의 거듭제곱 경계를 넘으면 배율이 절반이 되어
+ * 위상이 6 rad 뛰었습니다 — 띠가 지나가는 것이 아니라 제자리에서 덜컹거린 것이 그것입니다.
+ *
+ * `vShapeCoord` 는 필터가 도는 사각형 위의 0..1 이므로 그 나눗셈이 없습니다.
+ */
 const FOIL = `${HEAD}
 vec3 tone(vec3 color) {
-  float band = sin((vTextureCoord.x + vTextureCoord.y) * 12.0 + uTime * uFlow + uTilt * 2.0);
+  float band = sin((vShapeCoord.x + vShapeCoord.y) * 12.0 + uTime * uFlow + uTilt * 0.6);
   float light = smoothstep(0.55, 1.0, band) * clamp(uStrength, 0.0, 1.0) * 0.6;
   return color + light * 0.55;
 }
@@ -114,10 +126,15 @@ vec3 tone(vec3 color) {
  */
 const HOLO = `${HEAD}
 vec3 tone(vec3 color) {
-  float t = vTextureCoord.y * 1.4 + vTextureCoord.x * 0.35 + uTime * uFlow + uTilt;
+  float t = vShapeCoord.y * 1.4 + vShapeCoord.x * 0.35 + uTime * uFlow + uTilt * 0.6;
   vec3 tint = rainbow(t);
 
-  float grain = (hash(floor(vTextureCoord * 90.0)) - 0.5) * clamp(uNoise, 0.0, 1.0) * 0.14;
+  // **잡티도 같은 좌표입니다.** 필터 텍스처의 좌표로 두면 조커가 흔들릴 때마다 잡티가
+  // 자리를 옮겨, 종이의 결이 아니라 화면의 잡음으로 보입니다.
+  //
+  // 셰이더 소스는 템플릿 문자열 안이므로 **주석에 백틱을 쓸 수 없습니다** — 하나가
+  // 문자열을 끊고, 끊긴 자리부터 GLSL 이 아니라 자바스크립트로 읽힙니다.
+  float grain = (hash(floor(vShapeCoord * 90.0)) - 0.5) * clamp(uNoise, 0.0, 1.0) * 0.14;
   float amount = clamp(uStrength, 0.0, 1.0) * 0.45;
 
   vec3 sheet = color * 0.55 + tint * 0.8;
@@ -134,7 +151,7 @@ vec3 tone(vec3 color) {
 const POLY = `${HEAD}
 vec3 tone(vec3 color) {
   float luma = dot(color, vec3(0.299, 0.587, 0.114));
-  float t = luma * 1.2 + uTime * uFlow + vTextureCoord.x * 0.7 + uTilt;
+  float t = luma * 1.2 + uTime * uFlow + vShapeCoord.x * 0.7 + uTilt * 0.6;
   vec3 tint = rainbow(t);
   float amount = smoothstep(0.5, 0.95, luma) * clamp(uStrength, 0.0, 1.0) * 0.62;
   return mix(color, tint, clamp(amount, 0.0, 1.0));

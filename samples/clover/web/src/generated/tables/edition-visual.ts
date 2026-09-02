@@ -41,7 +41,7 @@ export class EditionVisualRecord {
   /** 세기. 만분율 */
   public get strength(): number { return this._strength }
 
-  /** 흐르는 속도. 만분율 */
+  /** 흐르는 속도. 만분율 — 초당 라디안입니다 */
   public get flowSpeed(): number { return this._flowSpeed }
 
   /** 노이즈. 만분율 */

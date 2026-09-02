@@ -9,6 +9,7 @@
 // 됩니다. 뒷면을 `card-back.ts` 한 곳에 둔 것과 같은 이유입니다.
 
 import type { Data } from '../core/data'
+import type { CardBackKind } from '../generated/enums/card-back-kind'
 import { SuitKind } from '../generated/enums/suit-kind'
 import { COLOR } from './theme'
 
@@ -33,6 +34,14 @@ export interface SetLook {
   paper: number
   /** 무늬마다의 색. 그림이 없는 자리에서 보입니다. */
   ink: Record<number, number>
+  /**
+   * 뒷면의 무늬.
+   *
+   * **색 두 개는 덱이 정합니다.** 덱이 정하는 것 중 한 판 내내 보이는 것이 뒷면이므로,
+   * 세트가 그것을 통째로 가져가면 어느 덱으로 하고 있는지가 화면에서 사라집니다 — 무늬는
+   * 세트이고 색은 덱입니다. 비면 무늬도 덱의 것입니다.
+   */
+  back?: CardBackKind
   /** 그림이 어디서 왔는가. 고르는 자리에 적힙니다. */
   credit?: string
 }
@@ -86,6 +95,11 @@ export function drawsIndex(): boolean {
   return !inPlay.artHasIndex
 }
 
+/** 지금 세트가 정하는 뒷면의 무늬. 없으면 덱의 것입니다. */
+export function cardBackMotif(): CardBackKind | undefined {
+  return inPlay.back
+}
+
 /**
  * `CardSet` 표의 한 줄이 한 벌이 됩니다.
  *
@@ -108,6 +122,7 @@ export function setLookOf(data: Data, setId: string): SetLook {
     artDir: row.artDir === '' ? undefined : row.artDir,
     artHasIndex: row.artHasIndex,
     paper: hex(row.paper),
+    back: row.hasBack ? row.back : undefined,
     ink,
     credit: row.credit === '' ? undefined : row.credit,
   }

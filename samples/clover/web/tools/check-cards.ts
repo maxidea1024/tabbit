@@ -26,7 +26,7 @@ const OUT = path.resolve(HERE, '..', '..', 'design-data', 'out', 'check')
  * 다른 몇을 고릅니다 — 열일곱을 다 돌리면 3분이고, 고르는 화면의 그림 하나가 열일곱을
  * 함께 보여 줍니다.
  */
-const SETS = ['classic', 'line', 'four_color', 'cats', 'dragons', 'blooms']
+const SETS = ['classic', 'line', 'four_color', 'cats', 'dragons', 'bone_court']
 
 async function main(): Promise<number> {
   const server = await createServer({
