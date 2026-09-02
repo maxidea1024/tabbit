@@ -136,6 +136,8 @@ namespace Clover.Data
             public JokerTable Joker = new JokerTable();
             public JokerRarityWeightTable JokerRarityWeight = new JokerRarityWeightTable();
             public JokerEffectTable JokerEffect = new JokerEffectTable();
+            public LeaderboardTable Leaderboard = new LeaderboardTable();
+            public TierTable Tier = new TierTable();
             public AnteTable Ante = new AnteTable();
             public BlindTable Blind = new BlindTable();
             public BossBlindTable BossBlind = new BossBlindTable();
@@ -266,6 +268,16 @@ namespace Clover.Data
         /// Property for JokerEffect table.
         /// </summary>
         public static JokerEffectTable JokerEffect => Current.JokerEffect;
+
+        /// <summary>
+        /// Property for Leaderboard table.
+        /// </summary>
+        public static LeaderboardTable Leaderboard => Current.Leaderboard;
+
+        /// <summary>
+        /// Property for Tier table.
+        /// </summary>
+        public static TierTable Tier => Current.Tier;
 
         /// <summary>
         /// Property for Ante table.
@@ -400,6 +412,8 @@ namespace Clover.Data
             tasks.Add(snapshot.Joker.ReadAsync(System.IO.Path.Combine(basePath, $"Joker{fileExtension}")));
             tasks.Add(snapshot.JokerRarityWeight.ReadAsync(System.IO.Path.Combine(basePath, $"JokerRarityWeight{fileExtension}")));
             tasks.Add(snapshot.JokerEffect.ReadAsync(System.IO.Path.Combine(basePath, $"JokerEffect{fileExtension}")));
+            tasks.Add(snapshot.Leaderboard.ReadAsync(System.IO.Path.Combine(basePath, $"Leaderboard{fileExtension}")));
+            tasks.Add(snapshot.Tier.ReadAsync(System.IO.Path.Combine(basePath, $"Tier{fileExtension}")));
             tasks.Add(snapshot.Ante.ReadAsync(System.IO.Path.Combine(basePath, $"Ante{fileExtension}")));
             tasks.Add(snapshot.Blind.ReadAsync(System.IO.Path.Combine(basePath, $"Blind{fileExtension}")));
             tasks.Add(snapshot.BossBlind.ReadAsync(System.IO.Path.Combine(basePath, $"BossBlind{fileExtension}")));

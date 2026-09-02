@@ -7,6 +7,8 @@
   "scripts": {
     "check": "tsc -b",
     "check:replays": "tsx tools/bake-replays.ts --check",
+    "version": "tsx tools/write-version.ts",
+    "check:version": "tsx tools/write-version.ts --check",
     "test": "vitest run",
     "test:watch": "vitest",
     "headless": "tsx src/headless.ts",

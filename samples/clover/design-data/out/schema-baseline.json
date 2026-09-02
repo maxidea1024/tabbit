@@ -2723,6 +2723,101 @@
         "ExplicitTag": false
       }
     },
+    "Leaderboard": {
+      "1": {
+        "Name": "BoardId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Name",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "Metric",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "Pool",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "Split",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "6": {
+        "Name": "SplitRef",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "7": {
+        "Name": "Group",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "8": {
+        "Name": "SortOrder",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "Tier": {
+      "1": {
+        "Name": "Tier",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Name",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "TopPercent",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "MinPlayers",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "Color",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
     "Ante": {
       "1": {
         "Name": "Ante",

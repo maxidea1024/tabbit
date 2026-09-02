@@ -1,0 +1,10 @@
+:table Tier(key=tier)	시즌 등정 보드의 백분위에서 나오는 등급입니다. **절대값이 아닌 이유는 시즌마다 밸런스가 바뀌기 때문입니다** — 「등정 150 이상이 골드」 같은 표는 시즌마다 다시 적어야 하고, 그러면 표가 시즌을 따라가지 못합니다.
+:field	tier	name	top_percent	min_players	color
+:type	TierKind	string	int (min=1, max=100)	int (min=1)	string (regex="^#[0-9a-f]{6}$")
+:desc	등급	표시 이름	**이 안에 들면 이 등급.** 위에서부터 봅니다	보드에 이만큼 없으면 이 등급이 없습니다	배지 색
+	Bronze	브론즈	100	1	#a2703c
+	Silver	실버	65	20	#9fb0c4
+	Gold	골드	35	50	#e0b64a
+	Platinum	플래티넘	15	100	#6fd3c7
+	Diamond	다이아몬드	5	200	#7fb4ff
+	Clover	클로버	1	500	#5fd67a

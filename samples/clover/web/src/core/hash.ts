@@ -10,7 +10,7 @@
 import type { RunState } from './state'
 
 /** FNV-1a 32비트. 언어의 문자열 해시를 쓰지 않는 이유는 `rng.ts` 와 같습니다. */
-function fnv1a32(text: string): number {
+export function fnv1a32(text: string): number {
   let hash = 0x811c9dc5
   for (let i = 0; i < text.length; i++) {
     hash ^= text.charCodeAt(i)

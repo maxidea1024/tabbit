@@ -1,0 +1,68 @@
+:table Leaderboard(key=board_id)	리더보드 한 판입니다. **지표 하나를 축 하나로 나눈 것**이고, 보드를 더하는 데 코드가 바뀌지 않습니다. 화면에 적히는 이름은 지표와 축의 이름에서 조립하므로, 여기 `name` 은 기획자가 시트에서 읽는 것입니다.
+:field	board_id	name	metric	pool	split	split_ref	group	sort_order
+:type	string (regex="^[a-z][a-z0-9_]*$")	string	LeaderboardMetric	PoolChoice	SplitKind	string?	BoardGroup	int (min=1, max=99)
+:desc	식별자	기획자가 읽는 이름. **화면의 이름은 지표와 축에서 조립됩니다**	순위를 매기는 값	조커 풀. 「전부」가 없습니다	무엇으로 나누는가	나누는 값. `split` 이 `None` 이면 비어 있습니다	판의 어느 탭	탭 안의 순서
+	ascent	등정	Ascent	Base	None	-	Main	1
+	besthand	한 손 최고 점수	BestHand	Base	None	-	Main	2
+	fewesthands	최소 핸드 완주	FewestHands	Base	None	-	Main	3
+	moneyatwin	완주 소지금	MoneyAtWin	Base	None	-	Main	4
+	wins	완주 횟수	Wins	Base	None	-	Main	5
+	skips	건너뛴 블라인드	Skips	Base	None	-	Main	6
+	ascent_all	등정 (확장)	Ascent	All	None	-	Main	7
+	besthand_all	한 손 최고 점수 (확장)	BestHand	All	None	-	Main	8
+	fewesthands_all	최소 핸드 완주 (확장)	FewestHands	All	None	-	Main	9
+	moneyatwin_all	완주 소지금 (확장)	MoneyAtWin	All	None	-	Main	10
+	wins_all	완주 횟수 (확장)	Wins	All	None	-	Main	11
+	skips_all	건너뛴 블라인드 (확장)	Skips	All	None	-	Main	12
+	best_white	흰색 한 손 최고	BestHand	Base	Stake	White	Stake	1
+	best_red	붉은색 한 손 최고	BestHand	Base	Stake	Red	Stake	2
+	best_green	초록색 한 손 최고	BestHand	Base	Stake	Green	Stake	3
+	best_black	검은색 한 손 최고	BestHand	Base	Stake	Black	Stake	4
+	best_blue	파란색 한 손 최고	BestHand	Base	Stake	Blue	Stake	5
+	best_purple	보라색 한 손 최고	BestHand	Base	Stake	Purple	Stake	6
+	best_orange	주황색 한 손 최고	BestHand	Base	Stake	Orange	Stake	7
+	best_gold	황금색 한 손 최고	BestHand	Base	Stake	Gold	Stake	8
+	best_white_all	흰색 한 손 최고 (확장)	BestHand	All	Stake	White	Stake	9
+	best_red_all	붉은색 한 손 최고 (확장)	BestHand	All	Stake	Red	Stake	10
+	best_green_all	초록색 한 손 최고 (확장)	BestHand	All	Stake	Green	Stake	11
+	best_black_all	검은색 한 손 최고 (확장)	BestHand	All	Stake	Black	Stake	12
+	best_blue_all	파란색 한 손 최고 (확장)	BestHand	All	Stake	Blue	Stake	13
+	best_purple_all	보라색 한 손 최고 (확장)	BestHand	All	Stake	Purple	Stake	14
+	best_orange_all	주황색 한 손 최고 (확장)	BestHand	All	Stake	Orange	Stake	15
+	best_gold_all	황금색 한 손 최고 (확장)	BestHand	All	Stake	Gold	Stake	16
+	ascent_red_deck	붉은 덱 등정	Ascent	Base	Deck	red_deck	Deck	1
+	ascent_blue_deck	파란 덱 등정	Ascent	Base	Deck	blue_deck	Deck	2
+	ascent_yellow_deck	노란 덱 등정	Ascent	Base	Deck	yellow_deck	Deck	3
+	ascent_green_deck	초록 덱 등정	Ascent	Base	Deck	green_deck	Deck	4
+	ascent_black_deck	검은 덱 등정	Ascent	Base	Deck	black_deck	Deck	5
+	ascent_magic_deck	마법 덱 등정	Ascent	Base	Deck	magic_deck	Deck	6
+	ascent_nebula_deck	성운 덱 등정	Ascent	Base	Deck	nebula_deck	Deck	7
+	ascent_ghost_deck	유령 덱 등정	Ascent	Base	Deck	ghost_deck	Deck	8
+	ascent_abandoned_deck	버려진 덱 등정	Ascent	Base	Deck	abandoned_deck	Deck	9
+	ascent_checkered_deck	체크무늬 덱 등정	Ascent	Base	Deck	checkered_deck	Deck	10
+	ascent_zodiac_deck	황도대 덱 등정	Ascent	Base	Deck	zodiac_deck	Deck	11
+	ascent_painted_deck	물감 덱 등정	Ascent	Base	Deck	painted_deck	Deck	12
+	ascent_anaglyph_deck	입체사진 덱 등정	Ascent	Base	Deck	anaglyph_deck	Deck	13
+	ascent_plasma_deck	플라스마 덱 등정	Ascent	Base	Deck	plasma_deck	Deck	14
+	ascent_erratic_deck	불규칙한 덱 등정	Ascent	Base	Deck	erratic_deck	Deck	15
+	challenges_beaten	깬 챌린지 수	ChallengesBeaten	Base	None	-	Challenge	1
+	clear_dry_season	마른 철 최소 핸드	FewestHands	Base	Challenge	dry_season	Challenge	2
+	clear_face_town	그림 마을 최소 핸드	FewestHands	Base	Challenge	face_town	Challenge	3
+	clear_coin_ceiling	동전 천장 최소 핸드	FewestHands	Base	Challenge	coin_ceiling	Challenge	4
+	clear_shear_edge	가위날 최소 핸드	FewestHands	Base	Challenge	shear_edge	Challenge	5
+	clear_blind_draw	엎어진 패 최소 핸드	FewestHands	Base	Challenge	blind_draw	Challenge	6
+	clear_low_field	낮은 들 최소 핸드	FewestHands	Base	Challenge	low_field	Challenge	7
+	clear_heavy_purse	무거운 지갑 최소 핸드	FewestHands	Base	Challenge	heavy_purse	Challenge	8
+	clear_evergreen	상록 최소 핸드	FewestHands	Base	Challenge	evergreen	Challenge	9
+	clear_stone_court	돌이 된 얼굴 최소 핸드	FewestHands	Base	Challenge	stone_court	Challenge	10
+	clear_red_wax	붉은 밀랍 최소 핸드	FewestHands	Base	Challenge	red_wax	Challenge	11
+	clear_sealed_fate	굳는 편성 최소 핸드	FewestHands	Base	Challenge	sealed_fate	Challenge	12
+	clear_rising_price	오르는 값 최소 핸드	FewestHands	Base	Challenge	rising_price	Challenge	13
+	clear_vine_night	덩굴의 밤 최소 핸드	FewestHands	Base	Challenge	vine_night	Challenge	14
+	clear_glass_field	유리밭 최소 핸드	FewestHands	Base	Challenge	glass_field	Challenge	15
+	clear_stone_row	돌의 줄 최소 핸드	FewestHands	Base	Challenge	stone_row	Challenge	16
+	clear_sky_road	하늘길 최소 핸드	FewestHands	Base	Challenge	sky_road	Challenge	17
+	clear_five_leaves	다섯 잎 최소 핸드	FewestHands	Base	Challenge	five_leaves	Challenge	18
+	clear_single_thread	한 올 최소 핸드	FewestHands	Base	Challenge	single_thread	Challenge	19
+	clear_barren_road	메마른 길 최소 핸드	FewestHands	Base	Challenge	barren_road	Challenge	20
+	clear_bare_field	맨 밭 최소 핸드	FewestHands	Base	Challenge	bare_field	Challenge	21

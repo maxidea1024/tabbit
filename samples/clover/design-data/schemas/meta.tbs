@@ -1,0 +1,68 @@
+// 런 바깥의 값들 — 리더보드의 보드와 등급.
+//
+// **런이 끝난 뒤에 뜻을 가지는 것들입니다.** 코어는 이 값들을 읽지 않습니다 — 지표를 세는
+// 것은 코어이지만 어느 지표를 어느 축으로 나누어 줄 세우는가는 서버와 화면의 몫입니다.
+
+/// 순위를 매기는 값. **어느 것이 큰 쪽이 위인지는 보드가 아니라 이 갈래가 정합니다.**
+enum LeaderboardMetric
+    /// 등정. `(스테이크 − 1) × 24 + 지나온 블라인드`. 큰 것이 위입니다.
+    value Ascent           = 1
+    /// 한 손이 낸 가장 큰 점수. 큰 것이 위입니다.
+    value BestHand         = 2
+    /// 완주까지 낸 핸드 수. **작은 것이 위이고 완주한 런만 오릅니다.**
+    value FewestHands      = 3
+    /// 완주했을 때의 소지금. 큰 것이 위이고 완주한 런만 오릅니다.
+    value MoneyAtWin       = 4
+    /// 시즌 완주 횟수. **런 하나가 아니라 계정의 값입니다.**
+    value Wins             = 5
+    /// 완주한 런에서 건너뛴 블라인드 수. 큰 것이 위입니다.
+    value Skips            = 6
+    /// 깬 챌린지 수. 계정의 값입니다.
+    value ChallengesBeaten = 7
+
+/// 보드를 무엇으로 나누는가.
+///
+/// **`foreign` 컬럼 셋을 두고 하나만 채우지 않습니다** — `ChallengeBan` 이 같은 이유로
+/// `kind` 와 `ref_id` 로 나뉘어 있습니다. 식별자가 표마다 따로 나므로 갈래를 따로 적습니다.
+enum SplitKind
+    /// 나누지 않습니다. `split_ref` 가 비어 있습니다.
+    value None      = 0
+    /// 스테이크마다. `split_ref` 가 `StakeKind` 의 이름입니다.
+    value Stake     = 1
+    /// 덱마다. `split_ref` 가 `deck_id` 입니다.
+    value Deck      = 2
+    /// 챌린지마다. `split_ref` 가 `challenge_id` 입니다.
+    value Challenge = 3
+
+/// 리더보드 판의 어느 탭인가.
+///
+/// **`SplitKind` 와 따로 두는 것은 뜻이 다르기 때문입니다** — 이것은 사람이 어디에서 찾는가이고
+/// 저것은 그 보드가 무엇으로 걸러졌는가입니다. 챌린지 탭에는 나누지 않은 보드가 하나 있습니다.
+enum BoardGroup
+    /// 전체. 지표마다 하나씩입니다.
+    value Main      = 1
+    /// 스테이크별.
+    value Stake     = 2
+    /// 덱별.
+    value Deck      = 3
+    /// 챌린지별과 깬 챌린지 수.
+    value Challenge = 4
+
+/// 런이 쓰는 조커 풀. **필터가 아니라 벽입니다** — 「전부」가 없습니다.
+enum PoolChoice
+    /// 기본 150종만.
+    value Base = 1
+    /// 기본과 확장 500종.
+    value All  = 2
+
+/// 시즌 순위에서 나오는 등급. **백분위이지 절대값이 아닙니다.**
+enum TierKind
+    /// 아직 순위표에 없습니다.
+    value None      = 0
+    value Bronze    = 1
+    value Silver    = 2
+    value Gold      = 3
+    value Platinum  = 4
+    value Diamond   = 5
+    /// 가장 위. 시즌 등정 보드의 1%입니다.
+    value Clover    = 6

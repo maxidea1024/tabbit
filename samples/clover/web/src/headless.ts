@@ -17,6 +17,7 @@ import { loadFromDisk } from './core/load-node'
 import { snapshotHash } from './core/hash'
 import { JokerPool } from './generated/enums/joker-pool'
 import { apply, newRun, type Action } from './core/run'
+import { newMetrics, observe, seal, type Metrics } from './core/metrics'
 import type { CardInstance, RunState } from './core/state'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -36,6 +37,13 @@ export interface Replay {
   actions: Action[]
   /** 액션마다의 상태 해시. 갈라진 지점을 이분해서 찾는 데 씁니다. */
   hashes?: string[]
+  /**
+   * 이 런의 지표.
+   *
+   * **해시와 나란한 골든입니다.** 해시는 상태가 같은지를 보고 이것은 그 상태에서 뽑아낸
+   * 값이 같은지를 봅니다 — 지표를 세는 셈만 바뀌면 해시는 그대로이고 순위만 달라집니다.
+   */
+  metrics?: Metrics
 }
 
 export interface RunReport {
@@ -49,6 +57,13 @@ export interface RunReport {
   finalHash: string
   hashes: string[]
   customs: string[]
+  /**
+   * 리더보드의 지표.
+   *
+   * **골든에 함께 적힙니다** — 지표를 세는 셈이 바뀌면 해시가 그대로여도 순위가 달라지므로,
+   * 해시 옆에 값이 있어야 그것이 보입니다.
+   */
+  metrics: Metrics
 }
 
 /** 리플레이 하나를 돌립니다. */
@@ -60,10 +75,13 @@ export function play(replay: Replay, dataPath = DATA): RunReport {
 
   const hashes = [snapshotHash(state)]
   const customs: string[] = []
+  const acc = newMetrics()
+  observe(acc, start.events)
 
   for (const action of replay.actions) {
     const step = apply(data, state, action)
     state = step.state
+    observe(acc, step.events)
     hashes.push(snapshotHash(state))
     if (state.phase === 'won' || state.phase === 'lost') break
   }
@@ -79,6 +97,7 @@ export function play(replay: Replay, dataPath = DATA): RunReport {
     finalHash: hashes[hashes.length - 1],
     hashes,
     customs,
+    metrics: seal(data, acc, state),
   }
 }
 
@@ -99,20 +118,25 @@ export function autoplay(seed: string, deck: string, stake: string, limit: numbe
 
   const actions: Action[] = []
   const hashes = [snapshotHash(state)]
+  const acc = newMetrics()
+  observe(acc, start.events)
 
   for (let step = 0; step < limit; step++) {
     const action = decide(data, state)
     if (!action) break
 
     actions.push(action)
-    state = apply(data, state, action).state
+    const next = apply(data, state, action)
+    state = next.state
+    observe(acc, next.events)
     hashes.push(snapshotHash(state))
     if (state.phase === 'won' || state.phase === 'lost') break
   }
 
   // **챌린지가 아니면 칸을 두지 않습니다.** 빈 문자열을 적어 두면 구워 둔 리플레이의
   // 파일이 전부 달라집니다.
-  const replay: Replay = { seed, deck, stake, actions, hashes,
+  const replay: Replay = {
+    seed, deck, stake, actions, hashes, metrics: seal(data, acc, state),
     ...(challenge === '' ? {} : { challenge }),
   }
   return {
@@ -126,6 +150,7 @@ export function autoplay(seed: string, deck: string, stake: string, limit: numbe
       finalHash: hashes[hashes.length - 1],
       hashes,
       customs: [],
+      metrics: seal(data, acc, state),
     },
   }
 }

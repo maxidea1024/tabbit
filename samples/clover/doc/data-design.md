@@ -6,7 +6,7 @@
 
 원작의 규칙을 [대조표](parity.md)가 적었고, 그것을 시트로 옮기는 방법이 여기 있습니다.
 
-## 워크북 9개 · 테이블 40개
+## 워크북 10개 · 테이블 46개
 
 |워크북|테이블|행 수 대략|
 |--|--|--|
@@ -15,9 +15,10 @@
 |`Consumables.xlsx`|`Tarot` · `TarotEffect` · `Planet` · `Spectral` · `SpectralEffect`|22 · 22 · 12 · 18 · 27|
 |`Progression.xlsx`|`Ante` · `Blind` · `BossBlind` · `BossEffect`|9 · 3 · 28 · 26|
 |`Shop.xlsx`|`ShopSlotWeight` · `BoosterPack` · `Voucher` · `VoucherEffect` · `RerollCost`|5 · 15 · 32 · 34 · 10|
-|`Setup.xlsx`|`Deck` · `DeckEffect` · `Stake` · `Tag` · `TagEffect`|15 · 25 · 8 · 24 · 24|
+|`Setup.xlsx`|`Deck` · `DeckEffect` · `Stake` · `Tag` · `TagEffect` · `Challenge` · `ChallengeEffect` · `ChallengeBan` · `ChallengeCard`|15 · 25 · 8 · 24 · 24 · 20 · 59 · 74 · 7|
 |`Const.xlsx`|`Const_Run` · `Const_Score` · `Const_Economy` · `RngStream`|상수셋 3개 · 10|
 |`Feel.xlsx`|`Const_Feel` · `EditionVisual` · `SoundCue`|상수셋 1개 · 5 · 20|
+|`Meta.xlsx`|`Leaderboard` · `Tier`|64 · 6|
 |`Text.xlsx`|`StringTable` · `Achievement`|351 · 20|
 
 워크북을 갈래로 나눈 이유는 **한 사람이 한 갈래를 고치는 동안 다른 갈래가 잠기지 않게** 하는
@@ -43,13 +44,14 @@
 `Condition`이 테이블마다 따로 선언되던 것이 하나가 되었습니다. 형식은 무변경이므로 데이터는
 그대로입니다.
 
-## `.tbs` 3개
+## `.tbs` 4개
 
 |파일|무엇|
 |--|--|
 |`card.tbs`|`SuitKind` · `RankKind` · `PokerHandKind` · `EnhancementKind` · `SealKind` · `EditionKind` enum|
 |`effect.tbs`|`Trigger` · `Scope` · `RuleKind` · `UnitKind` 등 enum 15개, **조건 41종 · 연산 36종**|
-|`run.tbs`|`Rarity` · `StickerKind` · `BlindKind` · `PackKind` · `PackSize` · `ConsumableKind` · `StakeKind` · `ShopItemKind` · `RngStreamKind` enum|
+|`run.tbs`|`Rarity` · `StickerKind` · `BlindKind` · `PackKind` · `PackSize` · `ConsumableKind` · `StakeKind` · `ShopItemKind` · `RngStreamKind` · `BanKind` enum|
+|`meta.tbs`|`LeaderboardMetric` · `SplitKind` · `BoardGroup` · `PoolChoice` · `TierKind` enum. **런 바깥의 값들입니다** — 코어가 읽지 않습니다|
 
 **enum 이 `.tbs` 에 있는 이유**는 규격입니다 — 선언된 struct 의 멤버 타입은 `.tbs` 안에서
 찾을 수 있어야 하고, `Condition` 이 `SuitKind` 를 멤버로 가지므로 그것이 시트의 enum이면
@@ -119,7 +121,7 @@
 ```
 design-data/data/*.tsv          격자. 사람이 고치는 정본
         ↓  tools/Authoring      서식만 얹습니다
-design-data/xlsx/*.xlsx         워크북 9개
+design-data/xlsx/*.xlsx         워크북 10개
         ↓  recipe.jsonc
 web/src/generated · web/public/data          typescript · binary
 unity/Assets/Clover/Generated · StreamingAssets   csharp · binary

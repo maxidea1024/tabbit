@@ -1,0 +1,78 @@
+# 개발 환경. **넷이 함께 뜹니다.**
+#
+#     docker compose up
+#     cd ../web && npm run dev
+#
+# worker 가 따로 뜨는 것은 개발에서도 같습니다 — 한 프로세스에 합치면 개발에서는 되고
+# 배포에서 큐에 적체가 생기는 것을 개발이 보지 못합니다.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: clover
+      POSTGRES_USER: clover
+      POSTGRES_PASSWORD: clover
+    # **호스트 포트를 비켜 둡니다.** 이 기계에 다른 스택의 postgres 와 redis 가 이미
+    # 떠 있습니다. 컨테이너 안에서는 기본 포트 그대로이므로 서버의 설정은 바뀌지 않습니다.
+    ports: ["55432:5432"]
+    volumes: [pg:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clover"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports: ["56379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  server:
+    build: .
+    command: npx tsx watch src/app.ts
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgres://clover:clover@postgres:5432/clover
+      REDIS_URL: redis://redis:6379
+      # 개발은 이것 하나로 충분합니다. **배포에서 켜면 부팅하지 않습니다.**
+      AUTH_PROVIDERS: github
+      PUBLIC_URL: http://localhost:8787
+      RETURN_ALLOWLIST: http://localhost:5173
+    env_file:
+      # 제공자의 client id 와 secret. **커밋하지 않습니다.**
+      - path: .env
+        required: false
+    # 코어를 임포트하므로 web 도 함께 올립니다. `/app/src` 에서 `../../web` 이 `/web` 입니다.
+    volumes:
+      - .:/app
+      - ../web:/web
+      - ../design-data:/design-data
+      - /app/node_modules
+    ports: ["8787:8787"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  worker:
+    build: .
+    command: npx tsx watch src/worker.ts
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgres://clover:clover@postgres:5432/clover
+      REDIS_URL: redis://redis:6379
+    volumes:
+      - .:/app
+      - ../web:/web
+      - ../design-data:/design-data
+      - /app/node_modules
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+volumes:
+  pg: {}

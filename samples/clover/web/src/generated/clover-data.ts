@@ -27,6 +27,8 @@ import { SoundCueTable } from './tables/sound-cue'
 import { JokerTable } from './tables/joker'
 import { JokerRarityWeightTable } from './tables/joker-rarity-weight'
 import { JokerEffectTable } from './tables/joker-effect'
+import { LeaderboardTable } from './tables/leaderboard'
+import { TierTable } from './tables/tier'
 import { AnteTable } from './tables/ante'
 import { BlindTable } from './tables/blind'
 import { BossBlindTable } from './tables/boss-blind'
@@ -181,6 +183,14 @@ export class CloverData {
   public get jokerEffect(): JokerEffectTable { return this._jokerEffect }
   private _jokerEffect: JokerEffectTable = new JokerEffectTable()
 
+  /** Peroperty for table Leaderboard */
+  public get leaderboard(): LeaderboardTable { return this._leaderboard }
+  private _leaderboard: LeaderboardTable = new LeaderboardTable()
+
+  /** Peroperty for table Tier */
+  public get tier(): TierTable { return this._tier }
+  private _tier: TierTable = new TierTable()
+
   /** Peroperty for table Ante */
   public get ante(): AnteTable { return this._ante }
   private _ante: AnteTable = new AnteTable()
@@ -308,6 +318,10 @@ export class CloverData {
     await jokerRarityWeight.read(path.join(basePath, `JokerRarityWeight${fileExtension}`))
     const jokerEffect = new JokerEffectTable()
     await jokerEffect.read(path.join(basePath, `JokerEffect${fileExtension}`))
+    const leaderboard = new LeaderboardTable()
+    await leaderboard.read(path.join(basePath, `Leaderboard${fileExtension}`))
+    const tier = new TierTable()
+    await tier.read(path.join(basePath, `Tier${fileExtension}`))
     const ante = new AnteTable()
     await ante.read(path.join(basePath, `Ante${fileExtension}`))
     const blind = new BlindTable()
@@ -349,7 +363,7 @@ export class CloverData {
     const achievement = new AchievementTable()
     await achievement.read(path.join(basePath, `Achievement${fileExtension}`))
 
-    this.publish(rank, suit, baseDeckCard, pokerHand, enhancement, enhancementEffect, seal, sealEffect, edition, rngStream, tarot, tarotEffect, planet, spectral, spectralEffect, editionVisual, soundCue, joker, jokerRarityWeight, jokerEffect, ante, blind, bossBlind, bossEffect, deck, deckEffect, stake, tag, tagEffect, challenge, challengeEffect, challengeBan, challengeCard, shopSlotWeight, boosterPack, voucher, voucherEffect, rerollCost, stringTable, achievement)
+    this.publish(rank, suit, baseDeckCard, pokerHand, enhancement, enhancementEffect, seal, sealEffect, edition, rngStream, tarot, tarotEffect, planet, spectral, spectralEffect, editionVisual, soundCue, joker, jokerRarityWeight, jokerEffect, leaderboard, tier, ante, blind, bossBlind, bossEffect, deck, deckEffect, stake, tag, tagEffect, challenge, challengeEffect, challengeBan, challengeCard, shopSlotWeight, boosterPack, voucher, voucherEffect, rerollCost, stringTable, achievement)
   }
 
   /** Read all tables synchronously. */
@@ -394,6 +408,10 @@ export class CloverData {
     jokerRarityWeight.readSync(path.join(basePath, `JokerRarityWeight${fileExtension}`))
     const jokerEffect = new JokerEffectTable()
     jokerEffect.readSync(path.join(basePath, `JokerEffect${fileExtension}`))
+    const leaderboard = new LeaderboardTable()
+    leaderboard.readSync(path.join(basePath, `Leaderboard${fileExtension}`))
+    const tier = new TierTable()
+    tier.readSync(path.join(basePath, `Tier${fileExtension}`))
     const ante = new AnteTable()
     ante.readSync(path.join(basePath, `Ante${fileExtension}`))
     const blind = new BlindTable()
@@ -435,7 +453,7 @@ export class CloverData {
     const achievement = new AchievementTable()
     achievement.readSync(path.join(basePath, `Achievement${fileExtension}`))
 
-    this.publish(rank, suit, baseDeckCard, pokerHand, enhancement, enhancementEffect, seal, sealEffect, edition, rngStream, tarot, tarotEffect, planet, spectral, spectralEffect, editionVisual, soundCue, joker, jokerRarityWeight, jokerEffect, ante, blind, bossBlind, bossEffect, deck, deckEffect, stake, tag, tagEffect, challenge, challengeEffect, challengeBan, challengeCard, shopSlotWeight, boosterPack, voucher, voucherEffect, rerollCost, stringTable, achievement)
+    this.publish(rank, suit, baseDeckCard, pokerHand, enhancement, enhancementEffect, seal, sealEffect, edition, rngStream, tarot, tarotEffect, planet, spectral, spectralEffect, editionVisual, soundCue, joker, jokerRarityWeight, jokerEffect, leaderboard, tier, ante, blind, bossBlind, bossEffect, deck, deckEffect, stake, tag, tagEffect, challenge, challengeEffect, challengeBan, challengeCard, shopSlotWeight, boosterPack, voucher, voucherEffect, rerollCost, stringTable, achievement)
   }
 
   /**
@@ -486,6 +504,10 @@ export class CloverData {
     jokerRarityWeight.readBinarySync(path.join(basePath, `JokerRarityWeight${fileExtension}`))
     const jokerEffect = new JokerEffectTable()
     jokerEffect.readBinarySync(path.join(basePath, `JokerEffect${fileExtension}`))
+    const leaderboard = new LeaderboardTable()
+    leaderboard.readBinarySync(path.join(basePath, `Leaderboard${fileExtension}`))
+    const tier = new TierTable()
+    tier.readBinarySync(path.join(basePath, `Tier${fileExtension}`))
     const ante = new AnteTable()
     ante.readBinarySync(path.join(basePath, `Ante${fileExtension}`))
     const blind = new BlindTable()
@@ -527,7 +549,7 @@ export class CloverData {
     const achievement = new AchievementTable()
     achievement.readBinarySync(path.join(basePath, `Achievement${fileExtension}`))
 
-    this.publish(rank, suit, baseDeckCard, pokerHand, enhancement, enhancementEffect, seal, sealEffect, edition, rngStream, tarot, tarotEffect, planet, spectral, spectralEffect, editionVisual, soundCue, joker, jokerRarityWeight, jokerEffect, ante, blind, bossBlind, bossEffect, deck, deckEffect, stake, tag, tagEffect, challenge, challengeEffect, challengeBan, challengeCard, shopSlotWeight, boosterPack, voucher, voucherEffect, rerollCost, stringTable, achievement)
+    this.publish(rank, suit, baseDeckCard, pokerHand, enhancement, enhancementEffect, seal, sealEffect, edition, rngStream, tarot, tarotEffect, planet, spectral, spectralEffect, editionVisual, soundCue, joker, jokerRarityWeight, jokerEffect, leaderboard, tier, ante, blind, bossBlind, bossEffect, deck, deckEffect, stake, tag, tagEffect, challenge, challengeEffect, challengeBan, challengeCard, shopSlotWeight, boosterPack, voucher, voucherEffect, rerollCost, stringTable, achievement)
   }
 
   /**
@@ -538,7 +560,7 @@ export class CloverData {
    * what it held, which is the answer a running program wants: the data it already had, and
    * an exception saying why the new data was not taken.
    */
-  private publish(rank: RankTable, suit: SuitTable, baseDeckCard: BaseDeckCardTable, pokerHand: PokerHandTable, enhancement: EnhancementTable, enhancementEffect: EnhancementEffectTable, seal: SealTable, sealEffect: SealEffectTable, edition: EditionTable, rngStream: RngStreamTable, tarot: TarotTable, tarotEffect: TarotEffectTable, planet: PlanetTable, spectral: SpectralTable, spectralEffect: SpectralEffectTable, editionVisual: EditionVisualTable, soundCue: SoundCueTable, joker: JokerTable, jokerRarityWeight: JokerRarityWeightTable, jokerEffect: JokerEffectTable, ante: AnteTable, blind: BlindTable, bossBlind: BossBlindTable, bossEffect: BossEffectTable, deck: DeckTable, deckEffect: DeckEffectTable, stake: StakeTable, tag: TagTable, tagEffect: TagEffectTable, challenge: ChallengeTable, challengeEffect: ChallengeEffectTable, challengeBan: ChallengeBanTable, challengeCard: ChallengeCardTable, shopSlotWeight: ShopSlotWeightTable, boosterPack: BoosterPackTable, voucher: VoucherTable, voucherEffect: VoucherEffectTable, rerollCost: RerollCostTable, stringTable: StringTableTable, achievement: AchievementTable): void {
+  private publish(rank: RankTable, suit: SuitTable, baseDeckCard: BaseDeckCardTable, pokerHand: PokerHandTable, enhancement: EnhancementTable, enhancementEffect: EnhancementEffectTable, seal: SealTable, sealEffect: SealEffectTable, edition: EditionTable, rngStream: RngStreamTable, tarot: TarotTable, tarotEffect: TarotEffectTable, planet: PlanetTable, spectral: SpectralTable, spectralEffect: SpectralEffectTable, editionVisual: EditionVisualTable, soundCue: SoundCueTable, joker: JokerTable, jokerRarityWeight: JokerRarityWeightTable, jokerEffect: JokerEffectTable, leaderboard: LeaderboardTable, tier: TierTable, ante: AnteTable, blind: BlindTable, bossBlind: BossBlindTable, bossEffect: BossEffectTable, deck: DeckTable, deckEffect: DeckEffectTable, stake: StakeTable, tag: TagTable, tagEffect: TagEffectTable, challenge: ChallengeTable, challengeEffect: ChallengeEffectTable, challengeBan: ChallengeBanTable, challengeCard: ChallengeCardTable, shopSlotWeight: ShopSlotWeightTable, boosterPack: BoosterPackTable, voucher: VoucherTable, voucherEffect: VoucherEffectTable, rerollCost: RerollCostTable, stringTable: StringTableTable, achievement: AchievementTable): void {
     this._rank = rank
     this._suit = suit
     this._baseDeckCard = baseDeckCard
@@ -559,6 +581,8 @@ export class CloverData {
     this._joker = joker
     this._jokerRarityWeight = jokerRarityWeight
     this._jokerEffect = jokerEffect
+    this._leaderboard = leaderboard
+    this._tier = tier
     this._ante = ante
     this._blind = blind
     this._bossBlind = bossBlind

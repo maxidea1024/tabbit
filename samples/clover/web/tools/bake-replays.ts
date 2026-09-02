@@ -16,6 +16,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 
 import { autoplay, type Replay } from '../src/headless'
+import type { Metrics } from '../src/core/metrics'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const REPLAYS = path.resolve(HERE, '../../design-data/out/replay')
@@ -41,7 +42,9 @@ function main(argv: string[]): number {
 
     const before = was.hashes?.[was.hashes.length - 1] ?? '(없음)'
     const after = report.finalHash
-    const same = before === after
+    // **지표도 함께 봅니다.** 상태가 같아도 지표를 세는 셈이 바뀌면 순위가 달라지고,
+    // 해시만 보면 그것이 지나갑니다.
+    const same = before === after && sameMetrics(was.metrics, report.metrics)
     if (!same) moved++
 
     if (!same && !checkOnly) {
@@ -62,6 +65,12 @@ function main(argv: string[]): number {
     : `\n${moved} / ${names.length} 을 다시 구웠습니다`)
   // 다시 구운 것은 성공입니다. 어긋난 것을 알리기만 한 `--check` 만 실패로 끝납니다.
   return checkOnly ? 1 : 0
+}
+
+/** 지표가 그대로인가. 적혀 있지 않던 것은 어긋난 것으로 봅니다 — 채워 넣어야 합니다. */
+function sameMetrics(was: Metrics | undefined, now: Metrics): boolean {
+  if (!was) return false
+  return (Object.keys(now) as (keyof Metrics)[]).every(key => was[key] === now[key])
 }
 
 process.exitCode = main(process.argv.slice(2))

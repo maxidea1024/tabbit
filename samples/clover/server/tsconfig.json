@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "es2022",
+    "moduleResolution": "bundler",
+    "lib": ["es2023"],
+    "types": ["node"],
+
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true
+  },
+  // **생성 코드는 자기 프로젝트에서 검사됩니다.** 웹이 그러려고 나누어 둔 것이고
+  // (`web/src/generated/tsconfig.json`), 여기서도 참조로 두면 소스가 아니라 그 프로젝트의
+  // `.d.ts` 를 읽습니다 — 그래서 **우리 코드의 `strict` 를 내리지 않아도 됩니다.**
+  "references": [{ "path": "../web/src/generated" }],
+  // 웹의 코어를 임포트하지만 트리에 넣지 않습니다 — 넣으면 화면 코드까지 딸려 들어오고,
+  // 그것은 브라우저의 타입을 요구합니다. 임포트를 따라가는 것으로 충분합니다.
+  "include": ["src/**/*.ts", "tools/**/*.ts", "test/**/*.ts"]
+}
