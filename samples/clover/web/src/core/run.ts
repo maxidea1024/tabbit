@@ -15,6 +15,7 @@ import { Trigger } from '../generated/enums/trigger'
 import type { Data } from './data'
 import { streamRng, type Pcg32 } from './rng'
 import { scoreHand } from './scoring'
+import { stakeRow } from './stake'
 import { newCounters, type CardInstance, type GameEvent, type JokerInstance, type RunState, type Rules } from './state'
 import {
   changeRule, collect, newVm, RUN_HOST, runCardEffects, runRow, runTrigger, sellPrice,
@@ -276,8 +277,7 @@ export function rebuildRules(vm: Vm): void {
 
 /** 스테이크가 더하는 규칙. 표의 값이 그 스테이크에서의 최종값입니다. */
 function applyStake(vm: Vm): void {
-  const row = vm.data.tables.stake.records.find(
-    entry => entry.name === vm.state.stake || String(entry.stake) === vm.state.stake)
+  const row = stakeRow(vm.data, vm.state.stake)
   if (!row) return
   vm.state.rules.discardsPerRound += row.discardsDelta
 }
@@ -320,9 +320,7 @@ function pickBoss(vm: Vm): void {
  * 오지 않은 것의 요구 점수도 화면에 적혀야 합니다.
  */
 export function targetOf(data: Data, state: RunState, blind: BlindKind): number {
-  const stake = data.tables.stake.records.find(
-    row => row.name === state.stake || String(row.stake) === state.stake)
-  const column = stake?.anteColumn ?? 1
+  const column = stakeRow(data, state.stake)?.anteColumn ?? 1
 
   const ante = Math.max(0, state.ante + state.rules.anteDelta)
   const row = data.tables.ante.findByAnte(Math.min(ante, 8))
@@ -457,8 +455,7 @@ function useTags(vm: Vm, trigger: Trigger): void {
 export function rewardOf(data: Data, state: RunState, blind: BlindKind): number {
   let reward = data.tables.blind.findByBlind(blind)?.reward ?? 0
 
-  const stake = data.tables.stake.records.find(
-    row => row.name === state.stake || String(row.stake) === state.stake)
+  const stake = stakeRow(data, state.stake)
   if (blind === BlindKind.Small && stake) reward = stake.smallBlindReward
 
   // **보스는 자기 보상을 가집니다.** 최종 보스가 나머지보다 많이 주므로, 블라인드의 값

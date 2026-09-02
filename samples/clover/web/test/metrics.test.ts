@@ -24,8 +24,10 @@ const names = fs.readdirSync(REPLAYS).filter(name => name.endsWith('.json')).sor
 const data = loadFromDisk(DATA)
 
 describe('구워 둔 리플레이의 지표', () => {
-  it('13개가 전부 지표를 들고 있습니다', () => {
-    expect(names.length).toBe(13)
+  it('구워 둔 것이 전부 지표를 들고 있습니다', () => {
+    // **개수를 못박습니다.** 리플레이 하나가 폴더에서 빠지면 그 아래의 대조가 조용히
+    // 줄어들 뿐이고, 줄어든 것은 통과로 보입니다.
+    expect(names.length).toBe(21)
     for (const name of names) {
       const replay = JSON.parse(fs.readFileSync(path.join(REPLAYS, name), 'utf8')) as Replay
       expect(replay.metrics, name).toBeDefined()

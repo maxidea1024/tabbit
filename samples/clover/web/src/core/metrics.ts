@@ -14,6 +14,7 @@
 import { BlindKind } from '../generated/enums/blind-kind'
 import { StakeKind } from '../generated/enums/stake-kind'
 import type { Data } from './data'
+import { stakeRow } from './stake'
 import type { GameEvent, RunState } from './state'
 
 /** 한 안테의 블라인드 수. 스몰 · 빅 · 보스입니다. */
@@ -86,14 +87,11 @@ export function progressOf(data: Data, state: RunState): number {
 /**
  * 이 스테이크가 몇 번째인가. 흰색이 1이고 금색이 8입니다.
  *
- * **적히는 형태가 셋입니다.** 리플레이와 `newRun` 은 enum 의 이름(`White`)을 적고, 화면에서
- * 값이 문자열로 오기도 하며(`1`), 시트의 `name` 칸은 표시 이름(`흰색`)입니다. 셋 다
- * 받습니다 — 하나만 받으면 나머지 둘이 조용히 흰색으로 떨어집니다.
+ * 적히는 형태가 셋이고 그 셋을 받는 것은 `stake.ts` 입니다. 없는 스테이크는 흰색으로 봅니다 —
+ * 지표 하나 때문에 판이 서지 못할 이유는 없습니다.
  */
 export function stakeIndexOf(data: Data, stake: string): number {
-  const row = data.tables.stake.records.find(entry =>
-    StakeKind[entry.stake] === stake || String(entry.stake) === stake || entry.name === stake)
-  return row ? Number(row.stake) : 1
+  return Number(stakeRow(data, stake)?.stake ?? StakeKind.White)
 }
 
 /**

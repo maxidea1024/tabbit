@@ -30,6 +30,7 @@ import {
   apply, defaultRules, newRun, rewardOf, tagFor, targetOf, type Action,
 } from '../core/run'
 import { language, nameOf, setLanguage, t, text, tf } from '../core/strings'
+import { stakeRow, stakeSlug } from '../core/stake'
 import { useFont } from '../ui/font'
 import { rerollCost, sellValueOf, type ShopItem } from '../core/shop'
 import { bestHand, valueOf } from '../core/suggest'
@@ -4322,14 +4323,15 @@ export class Game {
       }
     } else {
       // 난이도. **누적입니다** — 뒤의 것은 앞의 것을 전부 포함합니다.
+      const here = stakeRow(this.data, this.state.stake)?.stake
       for (const row of this.data.tables.stake.records) {
         rows.push({
-          name: this.localized(row.name) ?? String(row.stake),
+          name: nameOf(this.data, 'stake', stakeSlug(row.stake), row.name),
           note: tf('ui.stake.note', {
             column: row.anteColumn, reward: row.smallBlindReward, discards: row.discardsDelta,
           }),
           value: '',
-          here: String(row.stake) === this.state.stake || row.name === this.state.stake,
+          here: row.stake === here,
         })
       }
     }
