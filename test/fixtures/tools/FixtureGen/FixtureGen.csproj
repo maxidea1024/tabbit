@@ -17,7 +17,7 @@
     <!-- Same transitive pull-up as src/Tabbit.csproj: NPOI brings in
          System.Security.Cryptography.Xml 8.0.2, which has known high-severity
          advisories. Both NPOI consumers need the pin until NPOI ships a fixed one. -->
-    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.10" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.11" />
   </ItemGroup>
 
 </Project>
