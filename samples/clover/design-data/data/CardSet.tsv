@@ -1,0 +1,21 @@
+:table CardSet(key=set_id)	트럼프 한 벌의 겉모습입니다. **덱과 다른 축입니다** — 덱은 런의 시작 조건이고 이것은 그 52장이 어떻게 보이는가입니다. 그림이 있으면 그림이 얼굴이고, 없으면 무늬와 랭크를 그립니다.
+:field	set_id	name	sort_order	art_dir	credit	art_has_index	paper
+:type	string (regex="^[a-z][a-z0-9_]*$")	string (text=CardSet)	int (min=1, max=99)	string?	string?	bool	string (regex="^#[0-9a-f]{6}$")
+:desc	식별자	표시 이름	고르는 화면에서의 순서	그림이 있는 폴더. 비면 그립니다	그림이 어디서 왔는가	그림에 모서리의 랭크와 무늬가 들어 있는가	종이의 색. **강화의 색과 겹치지 않아야 합니다** — 바탕에 색이 들면 강화로 읽힙니다
+	classic	정본	1	card	위키미디어 공용의 English pattern 한 벌 · Dmitry Fomin · 공유 재산	true	#f6f2e8
+	line	선화	2	-	-	false	#f6f2e8
+	four_color	4색	3	-	-	false	#f6f2e8
+	cats	고양이	4	card/cats	-	false	#f6f2e8
+	geckos	게코	5	card/geckos	-	false	#f6f2e8
+	forest_kin	숲의 아이들	6	card/forest_kin	-	false	#f6f2e8
+	dragons	용	7	card/dragons	-	false	#f6f2e8
+	bone_court	뼈의 궁정	8	card/bone_court	-	false	#f6f2e8
+	tin_kings	양철 왕	9	card/tin_kings	-	false	#f6f2e8
+	baseball	야구	10	card/baseball	-	false	#f6f2e8
+	basketball	농구	11	card/basketball	-	false	#f6f2e8
+	soccer	축구	12	card/soccer	-	false	#f6f2e8
+	dogs	강아지	13	card/dogs	-	false	#f6f2e8
+	otters	수달	14	card/otters	-	false	#f6f2e8
+	squirrels	다람쥐	15	card/squirrels	-	false	#f6f2e8
+	bugs	곤충	16	card/bugs	-	false	#f6f2e8
+	blooms	꽃	17	card/blooms	-	false	#f6f2e8

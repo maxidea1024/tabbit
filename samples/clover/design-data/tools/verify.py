@@ -122,7 +122,7 @@ def joker_checks():
 
 def data_checks():
     grids = [f for f in os.listdir(os.path.join(DESIGN, 'data')) if f.endswith('.tsv')]
-    check('격자 46개', len(grids) == 46, '%d개' % len(grids))
+    check('격자 48개', len(grids) == 48, '%d개' % len(grids))
 
     plan = read(os.path.join(HERE, 'workbooks.tsv')).splitlines()
     mapped = [line for line in plan if line and not line.startswith('#')]

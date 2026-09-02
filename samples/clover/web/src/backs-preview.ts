@@ -9,7 +9,7 @@
 // **큰 것과 작은 것을 함께 세웁니다** — 선화는 작아질 때 뭉개지고, 뭉개지는 것은 큰
 // 그림에서 보이지 않습니다.
 
-import { Application, Container, Graphics, Text } from 'pixi.js'
+import { Application, Container, Text } from 'pixi.js'
 
 import { loadFromUrl } from './core/load'
 import { backLookOf, drawCardBack } from './render/card-back'
@@ -47,14 +47,14 @@ async function main(): Promise<void> {
 
     const look = backLookOf(row)
 
-    const big = new Graphics()
+    const big = new Container()
     big.position.set(x, y)
     big.scale.set(BIG)
     drawCardBack(big, SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius, look)
     world.addChild(big)
 
     // 손패의 크기 그대로. **여기서 뭉개지면 게임에서 뭉개집니다.**
-    const small = new Graphics()
+    const small = new Container()
     small.position.set(x + SIZE.cardWidth * BIG + 16, y + SIZE.cardHeight * (BIG - 1))
     drawCardBack(small, SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius, look)
     world.addChild(small)

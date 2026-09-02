@@ -55,6 +55,8 @@ export interface Peek {
   /** 카드 뷰가 어느 통에 몇 장 있는가. */
   bins?: { hand: number; played: number; fades: number; deals: number; shown: number }
   busy: boolean
+  /** 맨 위 판이 화면에서 차지한 사각형. 다 떠오른 판만 값이 있습니다. */
+  modalBox?: { x: number; y: number; width: number; height: number }
   hand: { rank: number, suit: number }[]
   hurry(times: number): void
   grantJoker?(count: number): void

@@ -19,6 +19,32 @@ function phrase(data: Data, key: string): string {
   return found === `phrase.${key}` ? `«${key}»` : found
 }
 
+/**
+ * 문구를 가진 갈래와 그 enum 의 이름.
+ *
+ * **여기 없는 갈래는 문장에 열쇠가 그대로 나옵니다.** `phrase.<갈래>.<이름>` 이 시트에
+ * 있어야 하고, 그것을 세는 게이트가 이 표를 읽습니다 — `phrase.scope.RandomInDeck` 이
+ * 없어서 조커의 설명에 열쇠가 그대로 적혀 있던 것이 그렇게 지나갔습니다.
+ */
+export const PHRASE_FAMILIES: Record<string, string> = {
+  blind: 'BlindKind',
+  compare: 'Compare',
+  counter: 'CounterField',
+  create: 'CreateKind',
+  debuff: 'DebuffKind',
+  handpick: 'HandPick',
+  modify: 'ModifyKind',
+  pick: 'JokerPick',
+  rarity: 'Rarity',
+  rule: 'RuleKind',
+  scope: 'Scope',
+  suit: 'SuitKind',
+  target: 'TargetKind',
+  trait: 'CardTrait',
+  trigger: 'Trigger',
+  unit: 'UnitKind',
+}
+
 function named(data: Data, kind: string, value: number, enumName: Record<number, string>): string {
   return phrase(data, `${kind}.${enumName[value] ?? value}`)
 }

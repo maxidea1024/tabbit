@@ -2185,6 +2185,80 @@
         "ExplicitTag": false
       }
     },
+    "CardSet": {
+      "1": {
+        "Name": "SetId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Name",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "SortOrder",
+        "Element": 2,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "4": {
+        "Name": "ArtDir",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "5": {
+        "Name": "Credit",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "6": {
+        "Name": "ArtHasIndex",
+        "Element": 1,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "7": {
+        "Name": "Paper",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
+    "CardSetSuit": {
+      "1": {
+        "Name": "SetId",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "2": {
+        "Name": "Suit",
+        "Element": 0,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      },
+      "3": {
+        "Name": "Ink",
+        "Element": 6,
+        "Kind": 0,
+        "Retired": false,
+        "ExplicitTag": false
+      }
+    },
     "Joker": {
       "1": {
         "Name": "JokerId",

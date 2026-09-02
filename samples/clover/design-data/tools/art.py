@@ -91,6 +91,8 @@ SQUARE = ('tag', 'boss')
 def prompt_for(kind, subject):
     """그 대상 하나의 프롬프트. **화풍은 갈래마다 한 벌씩 위에 있습니다.**"""
     lowered = subject[0].lower() + subject[1:]
+    if kind.startswith('card/'):
+        return CARD_SET_STYLE[kind[len('card/'):]] % lowered
     return STYLE.get(kind, PROMPT) % lowered
 
 
@@ -216,6 +218,199 @@ def read_table(name, key):
     return [(row[at], row[name_at] if name_at is not None else '') for row in rows[4:] if row]
 
 
+# ---------------------------------------------------------------- 카드 세트
+
+# **액자 안쪽만입니다.** 종이와 모서리의 랭크와 무늬는 화면이 그리므로, 여기서 만드는 것은
+# 그림 카드의 안쪽 한 장입니다 — 그래서 세트 하나가 52컷이 아니라 12컷입니다.
+#
+# 바탕을 **크림**으로 못박는 것이 요점입니다. 카드의 종이가 크림이므로 남색으로 뽑으면
+# 크림 카드 안에 남색 사각형이 앉습니다.
+#
+# 테두리를 그리지 말라고 적는 것도 요점입니다. 카드가 자기 테두리를 이미 가지고 있고,
+# 그림에 테두리가 또 있으면 액자 안에 액자가 됩니다.
+SET_STYLE_TAIL = (
+    'Thick clean outlines, screen-print poster art, limited flat colour palette, no realism, '
+    'no photography, no gradients, no soft shading, no drop shadow. '
+    'Plain warm CREAM background, no border, no frame, no vignette. '
+    'The character is large and fills the whole vertical frame, seen from the front, centred. '
+    'Vertical composition. No text, no letters, no numbers, no signature.')
+
+#: 세트마다의 화풍과 팔레트. **한 줄이 한 벌입니다.**
+CARD_SET_STYLE = {
+    'cats': ('Bold flat 2D illustration of %s. Cute round-faced cat character with big calm '
+             'eyes. Palette: warm cream, soft charcoal, dusty apricot, muted teal. '
+             + SET_STYLE_TAIL),
+    'geckos': ('Bold flat 2D illustration of %s. Cute round-eyed gecko character with soft '
+               'toe pads. Palette: warm cream, leaf green, deep teal, sand ochre. '
+               + SET_STYLE_TAIL),
+    'forest_kin': ('Bold flat 2D illustration of %s. Small round forest spirit with a simple '
+                   'calm face, soft and gentle. Palette: warm cream, misty blue-grey, pale '
+                   'pink, soft charcoal. ' + SET_STYLE_TAIL),
+    'dragons': ('Bold flat 2D illustration of %s. Stylised dragon character with big eyes, '
+                'short snout and small folded wings. Palette: warm cream, deep crimson, '
+                'warm gold, charcoal. ' + SET_STYLE_TAIL),
+    'bone_court': ('Bold flat 2D illustration of %s. Friendly stylised skeleton, bone-white '
+                   'skull with simple round eye sockets, not gory. Palette: warm cream, bone '
+                   'white, deep violet, charcoal. ' + SET_STYLE_TAIL),
+    'tin_kings': ('Bold flat 2D illustration of %s. Retro tin robot character with a boxy '
+                  'head, round rivets and a single antenna. Palette: warm cream, steel blue, '
+                  'warm orange, charcoal. ' + SET_STYLE_TAIL),
+    'baseball': ('Bold flat 2D illustration of %s. Cute stylised baseball player with a round '
+                 'head, simple calm face and a peaked cap. Palette: warm cream, dusty navy, '
+                 'brick red, charcoal. ' + SET_STYLE_TAIL),
+    'basketball': ('Bold flat 2D illustration of %s. Cute stylised basketball player with a '
+                   'round head, simple calm face and a sleeveless jersey. Palette: warm cream, '
+                   'burnt orange, deep teal, charcoal. ' + SET_STYLE_TAIL),
+    'soccer': ('Bold flat 2D illustration of %s. Cute stylised football player with a round '
+               'head, simple calm face and a striped jersey. Palette: warm cream, grass green, '
+               'royal blue, charcoal. ' + SET_STYLE_TAIL),
+    'dogs': ('Bold flat 2D illustration of %s. Cute round-faced dog character with floppy ears '
+             'and a calm friendly face. Palette: warm cream, warm tan, soft brown, charcoal. '
+             + SET_STYLE_TAIL),
+    'otters': ('Bold flat 2D illustration of %s. Cute round-faced otter character with whiskers '
+               'and small round ears. Palette: warm cream, river brown, slate blue, sage green. '
+               + SET_STYLE_TAIL),
+    'squirrels': ('Bold flat 2D illustration of %s. Cute round-faced squirrel character with a '
+                  'big curled tail and tufted ears. Palette: warm cream, rust orange, acorn '
+                  'brown, moss green. ' + SET_STYLE_TAIL),
+    'bugs': ('Bold flat 2D illustration of %s. Cute stylised insect character standing upright '
+             'with a simple calm face. Palette: warm cream, beetle emerald, warm amber, '
+             'charcoal. ' + SET_STYLE_TAIL),
+    'blooms': ('Bold flat 2D illustration of %s. Cute flower sprite with a blossom for a head '
+               'and a slender leafy body. Palette: warm cream, rose pink, buttercup yellow, '
+               'leaf green. ' + SET_STYLE_TAIL),
+}
+
+#: 무늬마다 다른 개체. **넷이 같은 그림이면 세트 하나에 그림 셋뿐입니다.**
+SET_SUIT_TRAIT = {
+    'cats': {
+        'spade': 'a sleek black cat',
+        'heart': 'a ginger cat',
+        'club': 'a grey tabby cat',
+        'diamond': 'a cream-white cat',
+    },
+    'geckos': {
+        'spade': 'a charcoal gecko',
+        'heart': 'a coral-red gecko',
+        'club': 'a leaf-green gecko',
+        'diamond': 'a pale gold gecko',
+    },
+    'forest_kin': {
+        'spade': 'a slate-grey forest spirit',
+        'heart': 'a blush-pink forest spirit',
+        'club': 'a moss-green forest spirit',
+        'diamond': 'a pale cream forest spirit',
+    },
+    'dragons': {
+        'spade': 'a charcoal-black dragon',
+        'heart': 'a crimson dragon',
+        'club': 'a jade-green dragon',
+        'diamond': 'a golden dragon',
+    },
+    'bone_court': {
+        'spade': 'a skeleton in a black iron helm',
+        'heart': 'a skeleton in a crimson hood',
+        # 「wreathed in green moss」 는 생성기가 거절했습니다. 뜻은 그대로 두고 낱말만 바꿉니다.
+        'club': 'a mossy green-tinted skeleton',
+        'diamond': 'a skeleton in a gilded circlet',
+    },
+    'tin_kings': {
+        'spade': 'a gunmetal tin robot',
+        'heart': 'a red-painted tin robot',
+        'club': 'a verdigris copper tin robot',
+        'diamond': 'a polished chrome tin robot',
+    },
+    'baseball': {
+        'spade': 'a baseball player in a charcoal uniform',
+        'heart': 'a baseball player in a crimson uniform',
+        'club': 'a baseball player in a green uniform',
+        'diamond': 'a baseball player in a cream and gold uniform',
+    },
+    'basketball': {
+        'spade': 'a basketball player in a black jersey',
+        'heart': 'a basketball player in a red jersey',
+        'club': 'a basketball player in a green jersey',
+        'diamond': 'a basketball player in a white and gold jersey',
+    },
+    'soccer': {
+        'spade': 'a football player in a black kit',
+        'heart': 'a football player in a red kit',
+        'club': 'a football player in a green kit',
+        'diamond': 'a football player in a white and gold kit',
+    },
+    'dogs': {
+        'spade': 'a black-coated dog',
+        'heart': 'a ginger-coated dog',
+        'club': 'a brindle-coated dog',
+        'diamond': 'a cream-coated dog',
+    },
+    'otters': {
+        'spade': 'a dark-furred otter',
+        'heart': 'a russet-furred otter',
+        'club': 'a moss-brown otter',
+        'diamond': 'a pale sandy otter',
+    },
+    'squirrels': {
+        'spade': 'a charcoal-furred squirrel',
+        'heart': 'a rust-red squirrel',
+        'club': 'a grey-brown squirrel',
+        'diamond': 'a pale golden squirrel',
+    },
+    'bugs': {
+        'spade': 'a black stag beetle',
+        'heart': 'a crimson ladybird',
+        'club': 'a green praying mantis',
+        'diamond': 'a golden honey bee',
+    },
+    'blooms': {
+        'spade': 'a deep violet iris sprite',
+        'heart': 'a rose-pink camellia sprite',
+        'club': 'a green hellebore sprite',
+        'diamond': 'a buttercup-yellow sprite',
+    },
+}
+
+#: 랭크마다의 소지품. 칼 · 잔 · 왕관이고 `pips.ts` 의 문양 셋과 같은 이야기입니다.
+SET_RANK_PROP = {
+    'jack': 'holding a slender sword upright with both hands',
+    'queen': 'holding a tall goblet with both hands',
+    'king': 'wearing a tall pointed crown',
+}
+
+#: 소지품이 세트에 맞지 않는 것들. **J·Q·K 의 서열은 그대로 읽혀야 합니다** — 도구를 든
+#: 것이 J, 잔을 든 것이 Q, 왕관을 쓴 것이 K 이고, 스포츠에서는 그 도구가 배트와 공입니다.
+SET_RANK_PROP_OVERRIDE = {
+    'baseball': {
+        'jack': 'holding a baseball bat upright over one shoulder',
+        'queen': 'holding up a tall gleaming trophy cup with both hands',
+        'king': 'wearing a tall pointed crown',
+    },
+    'basketball': {
+        'jack': 'holding a basketball up on one hand',
+        'queen': 'holding up a tall gleaming trophy cup with both hands',
+        'king': 'wearing a tall pointed crown',
+    },
+    'soccer': {
+        'jack': 'resting one foot on a football',
+        'queen': 'holding up a tall gleaming trophy cup with both hands',
+        'king': 'wearing a tall pointed crown',
+    },
+}
+
+
+def card_set_entries():
+    """세트마다 12컷. 무늬 4종 × 그림 카드 3종입니다."""
+    out = []
+    for set_id, _style in sorted(CARD_SET_STYLE.items()):
+        props = SET_RANK_PROP_OVERRIDE.get(set_id, SET_RANK_PROP)
+        for suit, trait in sorted(SET_SUIT_TRAIT[set_id].items()):
+            for rank, prop in sorted(props.items()):
+                out.append(('card/%s' % set_id, '%s_%s' % (suit, rank),
+                            '%s %s %s' % (set_id, suit, rank),
+                            '%s %s' % (trait, prop)))
+    return out
+
+
 def entries():
     out = []
     for identifier, display in read_table('Joker.tsv', 'joker_id'):
@@ -235,6 +430,7 @@ def entries():
     for identifier, display in read_table('BossBlind.tsv', 'boss_id'):
         out.append(('boss', identifier, display,
                     BOSS_SUBJECT.get(identifier, phrase(identifier))))
+    out.extend(card_set_entries())
     return out
 
 

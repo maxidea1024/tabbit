@@ -54,6 +54,7 @@ import { Motion, Spring } from './motion'
 import { Particles } from './particles'
 import { artFor, onArtReady, type ArtKind } from './art'
 import { backLookOf, cardBack, drawCardBack, setCardBack } from './card-back'
+import { cardArtDir, cardPaper, drawsIndex, setCardSet, setLookOf, suitInk } from './card-set'
 import { drawGlyph, glyphFor, hashOf, hsl, shade } from './glyph'
 import { cardArtId, drawFace } from './pips'
 import { mix } from './skin'
@@ -596,7 +597,7 @@ export class Game {
    * **되돌아오는 것은 낱장이 아니라 장수입니다.** 어느 카드가 어느 자리로 돌아가는지는
    * 아무도 세지 않으므로, 돌아오는 것은 뒷면 한 장씩이면 됩니다.
    */
-  private readonly recalls: { node: Graphics; motion: Motion; at: number; sent: boolean }[] = []
+  private readonly recalls: { node: Container; motion: Motion; at: number; sent: boolean }[] = []
   /** 아직 깔리지 않은 뽑은 카드들. **덱에서 한 장씩 옵니다.** */
   private readonly deals: { uid: number; at: number }[] = []
   /**
@@ -1322,7 +1323,7 @@ export class Game {
       this.settings.pool = choice
       saveOptions(this.settings)
     }
-    this.optionsPanel = new OptionsPanel(this.settings, () => this.applyOptions(),
+    this.optionsPanel = new OptionsPanel(data, this.settings, () => this.applyOptions(),
       () => this.modals.close(this.optionsPanel))
     this.optionsPanel.onSeed = next => this.useSeed(next)
 
@@ -1404,6 +1405,9 @@ export class Game {
     // 거꾸로면 첫 화면의 더미만 첫 덱의 뒷면입니다.
     const back = data.tables.deck.findByDeckId(this.state.deckId)
     if (back) setCardBack(backLookOf(back))
+    // **뒷면과 같은 자리에서 앞면도 정합니다.** 둘 다 카드를 그리기 전에 한 번이고, 한쪽만
+    // 여기 있으면 첫 화면의 카드만 다른 벌이 됩니다.
+    setCardSet(setLookOf(data, this.settings.cardSet))
 
     this.buildPanel()
 
@@ -1566,6 +1570,9 @@ export class Game {
     if (changed) useFont(want)
 
     saveOptions(this.settings)
+    // **고른 그 자리에서 갈아입습니다.** 다음 판까지 기다릴 이유가 없습니다 — 겉모습이므로
+    // 도는 판의 규칙에 닿지 않습니다.
+    setCardSet(setLookOf(this.data, this.settings.cardSet))
     // 도움 표시는 켜고 끄는 그 자리에서 바로 사라져야 합니다.
     this.updateHints()
     this.syncCards()
@@ -1939,7 +1946,7 @@ export class Game {
     this.deckPile.removeChildren().forEach(child => child.destroy())
     const look = cardBack()
     for (let i = 4; i >= 0; i--) {
-      const sheet = new Graphics()
+      const sheet = new Container()
       sheet.position.set(DECK_X - SIZE.cardWidth / 2 + i * 2,
                          DECK_Y - SIZE.cardHeight / 2 - i * 3)
       drawCardBack(sheet, SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius, look)
@@ -2519,7 +2526,7 @@ export class Game {
     if (many === 0) return
 
     for (let i = 0; i < many; i++) {
-      const sheet = new Graphics()
+      const sheet = new Container()
       drawCardBack(sheet, SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius, cardBack())
       sheet.pivot.set(SIZE.cardWidth / 2, SIZE.cardHeight / 2)
 
@@ -3860,6 +3867,8 @@ export class Game {
       signedIn: this.hub.signedIn,
       // 판이 하나라도 떠 있는가. 리더보드와 로그인 판이 떴는지를 봅니다.
       modalUp: this.modals.busy,
+      // 맨 위 판이 화면에서 차지한 사각형. **판을 누르는 도구가 자리를 다시 세지 않습니다.**
+      modalBox: this.modals.box,
       // 통신이 지금 오가는가. 도는 동안 입력이 막힙니다.
       netBusy: netBusy(),
       // 랭크 런인가.
@@ -4983,11 +4992,13 @@ export class Game {
 
     rows.forEach((row, line) => {
       const y = gridTop + line * rowH
-      const red = row.suit.suit === SuitKind.Heart || row.suit.suit === SuitKind.Diamond
       const leftIn = row.cards.filter(card => alive.has(card.uid)).length
 
+      // **어두운 판 위이므로 검정이 아니라 잉크색으로 그립니다.** 세트가 검정으로 정한
+      // 무늬는 이 판에서 보이지 않습니다.
+      const dark = suitInk(row.suit.suit) === COLOR.black
       const mark = label(SUIT_PIP[row.suit.suit] ?? row.suit.letter, 26,
-        red ? COLOR.red : COLOR.ink, '800')
+        dark ? COLOR.ink : suitInk(row.suit.suit), '800')
       mark.anchor.set(0.5, 0)
       mark.position.set(34, y + 16)
       const count = label(`${leftIn}/${row.cards.length}`, 11, COLOR.inkDim, '700')
@@ -5043,28 +5054,32 @@ export class Game {
    */
   private miniCard(card: CardInstance, alive: boolean, w: number, h: number): Container {
     const node = new Container()
-    const red = card.suit === SuitKind.Heart || card.suit === SuitKind.Diamond
-    const paint = MINI_TINT[card.enhancement] ?? COLOR.cardFace
+    const paint = MINI_TINT[card.enhancement] ?? cardPaper()
 
     // **나간 카드도 불투명합니다.** 반투명하면 뒤의 카드가 비쳐 겹친 자리가 지저분해지고,
     // 겹쳐 놓은 줄에서는 그 자리가 카드마다 다릅니다 — 어둡게만 두면 깔끔합니다.
     const body = new Graphics()
-    body.roundRect(0, 0, w, h, 5).fill(alive ? COLOR.cardFace : 0x39414f)
-    body.roundRect(0.5, 0.5, w - 1, h - 1, 5)
-      .stroke({ color: alive ? COLOR.cardEdge : 0x2a3140, width: 1 })
+    body.roundRect(0, 0, w, h, 5).fill(alive ? cardPaper() : 0x39414f)
     node.addChild(body)
 
-    const ink = alive ? (red ? COLOR.red : COLOR.black) : 0x5d6879
-    const texture = artFor('card', cardArtId(card.suit, card.rank))
+    const ink = alive ? suitInk(card.suit) : 0x5d6879
+    const dir = cardArtDir()
+    const texture = dir === undefined
+      ? undefined : artFor(dir, cardArtId(card.suit, card.rank))
     if (texture) {
       const picture = new Sprite(texture)
       picture.width = w
       picture.height = h
       picture.tint = alive ? paint : 0x4c5566
       node.addChild(picture)
-    } else {
+    }
+
+    // **모서리의 랭크는 그림 위에도 적힙니다.** 정본 한 벌만 그림에 랭크가 들어 있고,
+    // 우리가 굽는 세트는 그림 카드 12컷뿐입니다 — 여기서 빼면 이 판에서 J·Q·K 를 서로
+    // 구별할 수 없습니다.
+    if (texture === undefined || drawsIndex()) {
       const face = new Graphics()
-      drawFace(face, card.suit, card.rank, w, h, ink)
+      if (texture === undefined) drawFace(face, card.suit, card.rank, w, h, ink)
       const rank = new Text({
         text: MINI_RANK[card.rank] ?? '?',
         style: { fontSize: 11, fill: ink, fontWeight: '800' },
@@ -5072,6 +5087,12 @@ export class Game {
       rank.position.set(3, 1)
       node.addChild(face, rank)
     }
+
+    // **테두리는 그림 위에 그립니다.** 그림이 카드를 덮으므로 종이에 그으면 가려집니다.
+    const edge = new Graphics()
+    edge.roundRect(0.5, 0.5, w - 1, h - 1, 5)
+      .stroke({ color: alive ? COLOR.cardEdge : 0x2a3140, width: 1 })
+    node.addChild(edge)
 
     if (card.seal !== SealKind.None) {
       const seal = new Graphics()
@@ -6953,7 +6974,9 @@ export class Game {
     if (item.kind === ShopItemKind.PlayingCard) {
       const row = this.data.tables.baseDeckCard.findByCardId(item.id)
       if (row) {
-        const texture = artFor('card', cardArtId(row.suit, row.rank))
+        const setDir = cardArtDir()
+        const texture = setDir === undefined
+          ? undefined : artFor(setDir, cardArtId(row.suit, row.rank))
         if (texture) {
           const picture = new Sprite(texture)
           picture.width = w
@@ -6962,9 +6985,7 @@ export class Game {
         } else {
           const face = new Graphics()
           face.roundRect(0, 0, w, h, 9).fill(COLOR.cardFace)
-          drawFace(face, row.suit, row.rank, w, h,
-            row.suit === SuitKind.Heart || row.suit === SuitKind.Diamond
-              ? COLOR.red : COLOR.black)
+          drawFace(face, row.suit, row.rank, w, h, suitInk(row.suit))
           paper.addChild(face)
         }
       }

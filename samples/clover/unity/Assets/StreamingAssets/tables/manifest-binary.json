@@ -1,7 +1,7 @@
 {
-  "LastUpdatedDate": "2026-09-02T22:59:08.6129135+09:00",
-  "MasterHash": "99ebfef92dac63472d7010ffe4f9984b",
-  "TotalSize": 198635,
+  "LastUpdatedDate": "2026-09-03T01:12:09.2482711+09:00",
+  "MasterHash": "21601afa0c6e87f4fc8fb1d88681d6ad",
+  "TotalSize": 201607,
   "Items": [
     {
       "Name": "Rank.bytes",
@@ -209,9 +209,9 @@
     },
     {
       "Name": "StringTable.bytes",
-      "Size": 147257,
-      "Hash": "892e0821da5ab53846063655faa85c27",
-      "LastUpdatedDate": "2026-09-02T22:59:08.6129083+09:00"
+      "Size": 149252,
+      "Hash": "1184a96249ca0d04c826a39cdc759b9d",
+      "LastUpdatedDate": "2026-09-03T01:12:09.2482677+09:00"
     },
     {
       "Name": "Achievement.bytes",
@@ -254,6 +254,18 @@
       "Size": 211,
       "Hash": "0e995f6624551c435f4bd604a32d1e36",
       "LastUpdatedDate": "2026-09-02T16:43:23.5121199+09:00"
+    },
+    {
+      "Name": "CardSet.bytes",
+      "Size": 633,
+      "Hash": "a5ce51ac4715eeac949c52918b0fad41",
+      "LastUpdatedDate": "2026-09-03T00:53:26.7629812+09:00"
+    },
+    {
+      "Name": "CardSetSuit.bytes",
+      "Size": 344,
+      "Hash": "68bd049a4b388c803db3db31edfae590",
+      "LastUpdatedDate": "2026-09-03T00:53:26.7629823+09:00"
     }
   ]
 }

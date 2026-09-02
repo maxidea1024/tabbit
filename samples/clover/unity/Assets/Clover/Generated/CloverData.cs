@@ -133,6 +133,8 @@ namespace Clover.Data
             public SpectralEffectTable SpectralEffect = new SpectralEffectTable();
             public EditionVisualTable EditionVisual = new EditionVisualTable();
             public SoundCueTable SoundCue = new SoundCueTable();
+            public CardSetTable CardSet = new CardSetTable();
+            public CardSetSuitTable CardSetSuit = new CardSetSuitTable();
             public JokerTable Joker = new JokerTable();
             public JokerRarityWeightTable JokerRarityWeight = new JokerRarityWeightTable();
             public JokerEffectTable JokerEffect = new JokerEffectTable();
@@ -253,6 +255,16 @@ namespace Clover.Data
         /// Property for SoundCue table.
         /// </summary>
         public static SoundCueTable SoundCue => Current.SoundCue;
+
+        /// <summary>
+        /// Property for CardSet table.
+        /// </summary>
+        public static CardSetTable CardSet => Current.CardSet;
+
+        /// <summary>
+        /// Property for CardSetSuit table.
+        /// </summary>
+        public static CardSetSuitTable CardSetSuit => Current.CardSetSuit;
 
         /// <summary>
         /// Property for Joker table.
@@ -409,6 +421,8 @@ namespace Clover.Data
             tasks.Add(snapshot.SpectralEffect.ReadAsync(System.IO.Path.Combine(basePath, $"SpectralEffect{fileExtension}")));
             tasks.Add(snapshot.EditionVisual.ReadAsync(System.IO.Path.Combine(basePath, $"EditionVisual{fileExtension}")));
             tasks.Add(snapshot.SoundCue.ReadAsync(System.IO.Path.Combine(basePath, $"SoundCue{fileExtension}")));
+            tasks.Add(snapshot.CardSet.ReadAsync(System.IO.Path.Combine(basePath, $"CardSet{fileExtension}")));
+            tasks.Add(snapshot.CardSetSuit.ReadAsync(System.IO.Path.Combine(basePath, $"CardSetSuit{fileExtension}")));
             tasks.Add(snapshot.Joker.ReadAsync(System.IO.Path.Combine(basePath, $"Joker{fileExtension}")));
             tasks.Add(snapshot.JokerRarityWeight.ReadAsync(System.IO.Path.Combine(basePath, $"JokerRarityWeight{fileExtension}")));
             tasks.Add(snapshot.JokerEffect.ReadAsync(System.IO.Path.Combine(basePath, $"JokerEffect{fileExtension}")));
@@ -490,6 +504,14 @@ namespace Clover.Data
                 if (record._owner_Spectral_index is { Length: > 0 })
                 {
                     record.SetReference_Owner_INTERNAL(snapshot.Spectral.GetBySpectralIdOrThrow(record._owner_Spectral_index));
+                }
+            }
+
+            foreach (var record in snapshot.CardSetSuit.Records)
+            {
+                if (record._setId_CardSet_index is { Length: > 0 })
+                {
+                    record.SetReference_SetId_INTERNAL(snapshot.CardSet.GetBySetIdOrThrow(record._setId_CardSet_index));
                 }
             }
 

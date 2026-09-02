@@ -14,7 +14,7 @@
 // 그림 파일이 아닌 이유는 앞면과 같습니다 — 크기가 여럿(손패 · 덱 더미 · 남은 카드 보기)이고,
 // 선화라 어느 크기에서도 다시 그리는 편이 낫습니다.
 
-import { Graphics } from 'pixi.js'
+import { Container, Graphics } from 'pixi.js'
 
 import { CardBackKind } from '../generated/enums/card-back-kind'
 import { COLOR } from './theme'
@@ -86,10 +86,14 @@ interface Panel {
 /**
  * 뒷면 하나를 그립니다. `(0, 0)` 이 왼쪽 위입니다.
  */
-export function drawCardBack(g: Graphics, width: number, height: number,
+export function drawCardBack(node: Container, width: number, height: number,
                              radius: number, look: BackLook): void {
   const cx = width / 2
   const cy = height / 2
+  // **자기 Graphics 를 만들어 담습니다.** 부르는 쪽의 `Graphics` 에 자식을 붙이면 Pixi 가
+  // 예고 폐기로 알리고, 콘솔이 그 경고로 덮이면 진짜 오류가 그 밑에 묻힙니다.
+  const g = new Graphics()
+  node.addChild(g)
 
   // 1. 바탕.
   g.roundRect(0, 0, width, height, radius).fill(look.ground)
@@ -142,7 +146,7 @@ export function drawCardBack(g: Graphics, width: number, height: number,
   const clip = new Graphics()
   clip.rect(inset + hair, inset + hair, panelW - hair * 2, panelH - hair * 2).fill(0xffffff)
   field.mask = clip
-  g.addChild(clip, field)
+  node.addChild(clip, field)
 }
 
 /**
@@ -151,8 +155,8 @@ export function drawCardBack(g: Graphics, width: number, height: number,
  * `Graphics.clear()` 는 그린 선만 지웁니다 — 문양을 담은 통은 자식이라 그대로 남고, 다시
  * 그릴 때마다 한 겹씩 쌓입니다.
  */
-export function clearCardBack(g: Graphics): void {
-  g.removeChildren().forEach(child => child.destroy())
+export function clearCardBack(node: Container): void {
+  node.removeChildren().forEach(child => child.destroy({ children: true }))
 }
 
 // ------------------------------------------------------------------ 무늬

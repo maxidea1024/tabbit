@@ -45,6 +45,8 @@ Const	RngStream	RngStream
 Feel	Const_Feel	Const_Feel
 Feel	EditionVisual	EditionVisual
 Feel	SoundCue	SoundCue
+Feel	CardSet	CardSet
+Feel	CardSetSuit	CardSetSuit
 Meta	Leaderboard	Leaderboard
 Meta	Tier	Tier
 Text	StringTable	StringTable

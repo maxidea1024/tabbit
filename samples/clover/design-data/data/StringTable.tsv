@@ -610,6 +610,23 @@
 	tag.speed.name	속도 태그	Speed Tag	スピードタグ	速度标签	速度標籤	Tempo-Marke
 	tag.orbital.name	궤도 태그	Orbital Tag	オービタルタグ	轨道标签	軌道標籤	Orbital-Marke
 	tag.topup.name	보충 태그	Top-up Tag	補充タグ	补充标签	補充標籤	Auffüll-Marke
+	cardset.classic.name	정본	Classic	クラシック	经典	經典	Klassisch
+	cardset.line.name	선화	Line Art	線画	线描	線描	Strichzeichnung
+	cardset.four_color.name	4색	Four Colors	4色	四色	四色	Vierfarbig
+	cardset.cats.name	고양이	Cats	ねこ	猫	貓	Katzen
+	cardset.geckos.name	게코	Geckos	ヤモリ	壁虎	壁虎	Geckos
+	cardset.forest_kin.name	숲의 아이들	Forest Kin	森の子	森之子	森之子	Waldwesen
+	cardset.dragons.name	용	Dragons	ドラゴン	龙	龍	Drachen
+	cardset.bone_court.name	뼈의 궁정	Bone Court	骨の宮廷	白骨宫廷	白骨宮廷	Knochenhof
+	cardset.tin_kings.name	양철 왕	Tin Kings	ブリキの王	铁皮之王	鐵皮之王	Blechkönige
+	cardset.baseball.name	야구	Baseball	野球	棒球	棒球	Baseball
+	cardset.basketball.name	농구	Basketball	バスケ	篮球	籃球	Basketball
+	cardset.soccer.name	축구	Football	サッカー	足球	足球	Fußball
+	cardset.dogs.name	강아지	Dogs	いぬ	狗	狗	Hunde
+	cardset.otters.name	수달	Otters	カワウソ	水獺	水獺	Otter
+	cardset.squirrels.name	다람쥐	Squirrels	リス	松鼠	松鼠	Eichhörnchen
+	cardset.bugs.name	곤충	Bugs	むし	昆虫	昆蟲	Käfer
+	cardset.blooms.name	꽃	Blooms	はな	花	花	Blüten
 	deck.red_deck.name	붉은 덱	Red Deck	レッドデッキ	红色牌组	紅色牌組	Rotes Deck
 	deck.blue_deck.name	파란 덱	Blue Deck	ブルーデッキ	蓝色牌组	藍色牌組	Blaues Deck
 	deck.yellow_deck.name	노란 덱	Yellow Deck	イエローデッキ	黄色牌组	黃色牌組	Gelbes Deck
@@ -957,6 +974,13 @@
 	phrase.scope.HeldCard	그 카드	that card	そのカード	该牌	該牌	diese Karte
 	phrase.scope.AllInDeck	덱의 모든 카드	all cards in the deck	デッキのすべてのカード	牌组中所有的牌	牌組中所有的牌	alle Karten im Deck
 	phrase.scope.SelfTarget	이것	this	これ	它自己	它自己	dies
+	phrase.scope.RandomInDeck	덱의 무작위 카드	random cards in the deck	デッキのランダムなカード	牌组中随机的牌	牌組中隨機的牌	zufällige Karten im Deck
+	phrase.scope.RandomConsumable	무작위 소모품	a random consumable	ランダムな消耗品	随机一个消耗品	隨機一個消耗品	einen zufälligen Verbrauchsgegenstand
+	phrase.scope.JokerRight	오른쪽 조커	the joker to the right	右のジョーカー	右侧的小丑	右側的小丑	den Joker rechts
+	phrase.scope.JokerLeftmost	맨 왼쪽 조커	the leftmost joker	一番左のジョーカー	最左侧的小丑	最左側的小丑	den Joker ganz links
+	phrase.blind.Small	스몰 블라인드	the Small Blind	スモールブラインド	小盲注	小盲注	den Kleinen Blind
+	phrase.blind.Big	빅 블라인드	the Big Blind	ビッグブラインド	大盲注	大盲注	den Großen Blind
+	phrase.blind.Boss	보스 블라인드	the Boss Blind	ボスブラインド	Boss 盲注	Boss 盲注	den Boss-Blind
 	phrase.scope.Run						
 	phrase.handler.pruning_shears	오른쪽 조커를 파괴하고 그 판매가의 2배를 배수로 얻습니다	destroy the joker to the right and gain double its sell value as mult	右のジョーカーを壊し、その売値の 2 倍を倍率として得ます	摧毁右侧的小丑，获得其售价两倍的倍率	摧毀右側的小丑，獲得其售價兩倍的倍率	zerstört den Joker rechts und gibt das Doppelte seines Verkaufswerts als Mult
 	rule.hand_size.name	손패의 크기	Hand size	手札の枚数	手牌数量	手牌數量	Handgröße
@@ -1014,6 +1038,9 @@
 	ui.tab.general	일반	General	一般	常规	一般	Allgemein
 	ui.tab.sound	소리	Sound	サウンド	声音	聲音	Ton
 	ui.tab.video	화면	Video	画面	画面	畫面	Bild
+	ui.tab.cards	카드	Cards	カード	卡牌	卡牌	Karten
+	ui.option.cardSet	카드 한 벌	Card set	カードセット	卡牌样式	卡牌樣式	Kartenset
+	ui.option.note.cardSet	겉모습만 바뀝니다. 규칙과 순위에는 닿지 않습니다.	Looks only. Rules and rankings are untouched.	見た目だけが変わります。規則と順位には影響しません。	只改变外观。不影响规则与排名。	只改變外觀。不影響規則與排名。	Nur die Optik. Regeln und Rangliste bleiben unberührt.
 	ui.button.guide	게임 방법	How to Play	遊び方	玩法	玩法	Anleitung
 	ui.button.options	옵션	Options	設定	选项	選項	Optionen
 	ui.button.start	시작	Play	はじめる	开始	開始	Spielen

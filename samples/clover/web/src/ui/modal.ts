@@ -79,6 +79,23 @@ export class Modals extends Container {
     return this.entries.filter(entry => !entry.leaving).length
   }
 
+  /**
+   * 맨 위 판이 화면에서 차지한 사각형.
+   *
+   * **판을 누르는 도구가 이것을 씁니다.** 판은 가운데에 놓이고 높이는 내용이 정하므로,
+   * 도구가 그 값을 다시 세면 판이 자란 날에 엉뚱한 곳을 누르고 아무 말도 하지 않습니다.
+   */
+  get box(): { x: number; y: number; width: number; height: number } | undefined {
+    const top = this.entries[this.entries.length - 1]
+    if (!top || top.t < 0.99) return undefined
+    const view = top.panel.view
+    const size = top.panel.size
+    return {
+      x: view.x, y: view.y,
+      width: size.width * view.scale.x, height: size.height * view.scale.y,
+    }
+  }
+
   get busy(): boolean {
     return this.entries.length > 0
   }

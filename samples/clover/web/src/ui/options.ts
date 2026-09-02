@@ -7,12 +7,18 @@
 // 「소리가 크다」와 「연출이 느리다」는 서로 다른 자리에서 찾게 됩니다.
 
 import type { PoolChoice } from '../core/pool'
-import { Container, Graphics, Rectangle, Text } from 'pixi.js'
+import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
 
 import { detectLanguage, type Language, LANGUAGE_NAMES, LANGUAGES, t, tf } from '../core/strings'
-import { COLOR } from '../render/theme'
+import type { Data } from '../core/data'
+import { artFor, onArtReady } from '../render/art'
+import { setLookOf, setsOf, type SetLook } from '../render/card-set'
+import { cardArtId, drawFace, drawSuit } from '../render/pips'
+import { SuitKind } from '../generated/enums/suit-kind'
+import { COLOR, SIZE } from '../render/theme'
 import { FOOTER_BAR, panelFrame, TITLE_BAR, type ModalPanel } from './modal'
 import { richLine, type RichStyle } from './rich'
+import { Tooltip } from './tooltip'
 import { Button } from './widgets'
 import { randomSeed } from './title'
 
@@ -70,6 +76,13 @@ export interface Options {
   /** 어느 스테이크로 시작하는가. `StakeKind` 의 이름입니다. */
   stake: string
   /**
+   * 트럼프 52장을 어느 벌로 보는가. `CardSet.set_id` 입니다.
+   *
+   * **겉모습뿐입니다.** 규칙에 닿지 않으므로 도는 판에도 곧바로 적용되고, 리플레이와
+   * 해시에는 들어가지 않습니다.
+   */
+  cardSet: string
+  /**
    * 어느 조커 풀로 하는가.
    *
    * **기본이 `base` 입니다.** 켜진 채로 시작하면 원작을 기대한 사람이 모를 조커를
@@ -82,7 +95,7 @@ export function defaultOptions(): Options {
   return {
     sound: true, volume: 60, music: true, musicVolume: 40, speed: 1,
     shake: true, particles: true, chromatic: true, hints: true,
-    language: '', deck: 'red_deck', stake: 'White', pool: 'base',
+    language: '', deck: 'red_deck', stake: 'White', cardSet: 'classic', pool: 'base',
   }
 }
 
@@ -132,7 +145,13 @@ export function saveOptions(options: Options): void {
   }
 }
 
-const WIDTH = 520
+/**
+ * 판의 폭.
+ *
+ * **여섯 말을 세 칸씩 세우고 카드 여섯 벌을 세 칸씩 세우는 폭입니다.** 좁으면 칸마다의
+ * 카드가 무엇인지 보이지 않고, 고르는 것이 겉모습이므로 그것이 보이지 않으면 뜻이 없어집니다.
+ */
+const WIDTH = 720
 /**
  * 판의 가장 낮은 높이.
  *
@@ -141,6 +160,15 @@ const WIDTH = 520
  * 하기 위한 것입니다.
  */
 const MIN_HEIGHT = 348 + FOOTER_BAR
+/**
+ * 판의 가장 높은 높이.
+ *
+ * **판이 내용만큼 자라게 두지 않습니다.** 화면이 800이므로 탭 하나가 길어지면 판이 화면
+ * 밖으로 나가고, 그때 마지막 줄은 어디에도 없습니다 — 넘치는 만큼은 본문이 굴러갑니다.
+ */
+const MAX_HEIGHT = 620
+/** 굴림 한 번에 움직이는 거리. */
+const WHEEL_STEP = 48
 /**
  * 탭 하나의 높이. **본문과 이어져 보여야 탭입니다.**
  *
@@ -163,6 +191,36 @@ const SEED_ROW = 96
 const CHOICE_COLUMNS = 3
 const CHOICE_H = 36
 const CHOICE_GAP = 12
+/**
+ * 카드 넉 장을 세운 칸.
+ *
+ * **손패보다 작지만 무늬의 색이 읽히는 크기입니다.** 넉 장이 어긋나 겹쳐 서므로 칸의 폭은
+ * 한 장의 폭에 걸음 셋을 더한 것입니다.
+ */
+const CARD_W = 54
+const CARD_H = 76
+const CARD_STEP = 37
+/** 카드와 이름과 테두리를 합친 한 칸의 높이. */
+const CARD_ROW_H = CARD_H + 34
+/**
+ * 겉모습을 고르는 격자의 열 수.
+ *
+ * **한 줄에 밀어넣지 않습니다.** 세트가 늘어나면 칸이 좁아지고, 좁아진 칸의 카드는 무엇을
+ * 고르는지 보이지 않습니다 — 고르는 것이 겉모습이므로 그것이 보이지 않으면 이 줄의 뜻이
+ * 없어집니다. 판의 높이는 가장 긴 탭이 정하므로 줄이 늘어나면 판이 자랍니다.
+ */
+const CARD_COLUMNS = 3
+/** 미리보기의 모서리에 적히는 글자. `card-view.ts` 의 것과 같습니다. */
+const RANK_TEXT: Record<number, string> = {
+  4: '4', 7: '7', 13: 'K', 14: 'A',
+}
+/** 칸마다 세우는 넉 장. **무늬가 넷이므로 넷입니다** — 랭크는 그림이 있는 벌이 잘 보이게 섞습니다. */
+const PREVIEW: { suit: SuitKind; rank: number }[] = [
+  { suit: SuitKind.Spade, rank: 13 },
+  { suit: SuitKind.Heart, rank: 7 },
+  { suit: SuitKind.Club, rank: 4 },
+  { suit: SuitKind.Diamond, rank: 14 },
+]
 
 interface Row {
   label: string
@@ -182,6 +240,14 @@ interface Row {
   pick?: (key: string) => void
   /** 글을 적는 줄. 지금은 시드 하나뿐입니다. */
   seed?: true
+  /**
+   * 고르는 것이 겉모습일 때.
+   *
+   * **글자로는 고를 수 없습니다.** 무엇을 고르는가가 「그 카드가 어떻게 보이는가」이므로,
+   * 이름만 적힌 단추 셋에서는 고르고 판을 열어 본 뒤에야 무엇을 골랐는지 알게 됩니다 —
+   * 그래서 칸마다 그 벌의 카드 넉 장을 그립니다.
+   */
+  cards?: { key: string; label: string }[]
 }
 
 interface Tab {
@@ -204,6 +270,16 @@ export class OptionsPanel implements ModalPanel {
 
   private readonly body = new Container()
   private readonly tabRow = new Container()
+  /** 본문이 담기는 창. 이 밖으로 나간 줄은 잘립니다. */
+  private readonly viewport = new Container()
+  /** 창의 모양. `viewport` 의 마스크입니다. */
+  private readonly clip = new Graphics()
+  /** 오른쪽의 손잡이. 넘치는 만큼만 섭니다. */
+  private readonly bar = new Graphics()
+  /** 본문이 얼마나 굴러갔는가. 0 이 맨 위입니다. */
+  private scroll = 0
+  /** 이 탭의 본문이 창보다 얼마나 긴가. 0 이면 굴러갈 것이 없습니다. */
+  private over = 0
   private tab = 0
 
   /**
@@ -219,10 +295,35 @@ export class OptionsPanel implements ModalPanel {
   /** 시드가 정해졌을 때. 화면이 판을 다시 만듭니다. */
   onSeed?: (seed: string) => void
 
-  constructor(private readonly options: Options,
+  constructor(data: Data, private readonly options: Options,
               private readonly onChange: () => void,
               private readonly onClose: () => void) {
+    // **표를 먼저 읽습니다.** 탭을 세우는 것이 `relabel` 이고 카드 탭이 이 목록을 씁니다.
+    for (const one of setsOf(data)) {
+      this.sets.push(one)
+      this.looks.set(one.setId, setLookOf(data, one.setId))
+    }
+    // **그림은 나중에 옵니다.** `artFor` 는 처음에 없다고 답하고 읽기를 시작하므로, 다시
+    // 그리지 않으면 미리보기가 영원히 그린 얼굴로 남습니다 — 판에서 카드가 그렇게 그려지는
+    // 것과 같은 규약이고, 판은 매 프레임 다시 그리지만 이 판은 그렇지 않습니다.
+    for (const look of this.looks.values()) {
+      if (look.artDir === undefined) continue
+      for (const want of PREVIEW) artFor(look.artDir, cardArtId(want.suit, want.rank))
+    }
+    onArtReady(() => { if (this.view.parent) this.draw() })
     this.relabel()
+
+    // **바퀴는 판 위에서만 받습니다.** 화면 전체에 걸면 판이 닫힌 뒤에도 받게 되고, 뒤의
+    // 화면이 같은 바퀴로 움직입니다.
+    this.view.eventMode = 'static'
+    this.view.on('wheel', event => {
+      if (this.over <= 0) return
+      event.preventDefault()
+      this.scroll -= Math.sign(event.deltaY) * WHEEL_STEP
+      this.scroll = Math.max(-this.over, Math.min(0, this.scroll))
+      this.body.y = this.scroll
+      this.fitScroll(this.over + this.windowHeight)
+    })
 
     // **적는 동안의 키는 이 판의 것입니다.** 뒤에 있는 화면이 같은 키를 받으면 `Esc` 로
     // 판이 닫히거나 연출이 건너뛰어집니다.
@@ -290,22 +391,53 @@ export class OptionsPanel implements ModalPanel {
   relabel(): void {
     // **가장 긴 탭이 판의 높이를 정합니다.** 탭마다 다르게 하면 옮길 때마다 판이 들썩이고,
     // 못박아 두면 말을 바꿨을 때 마지막 줄이 판 밖으로 나갑니다.
-    this.height = Math.max(MIN_HEIGHT, ...this.tabs().map(tab => this.measure(tab)))
+    this.height = Math.min(
+      MAX_HEIGHT, Math.max(MIN_HEIGHT, ...this.tabs().map(tab => this.measure(tab))))
 
     this.view.removeChildren().forEach(child => child.destroy())
     this.view.addChild(
       panelFrame(WIDTH, this.height, t('ui.button.options'), () => this.onClose()),
-      this.tabRow, this.body)
+      this.tabRow, this.viewport, this.bar, this.tip)
+    // **본문은 창 안에서 움직입니다.** 창을 판보다 작게 두고 그 밖으로 나간 줄은 자릅니다 —
+    // 자르지 않으면 굴러간 줄이 머리띠와 밑단 위에 그려집니다.
+    this.viewport.addChild(this.body)
+    this.viewport.mask = this.clip
+    this.viewport.addChild(this.clip)
     this.buildTabs()
     this.draw()
   }
 
   /** 그 탭이 쓰는 높이. **그리지 않고 재기만 합니다.** */
+  /**
+   * 고를 수 있는 세트들.
+   *
+   * **판을 세울 때 한 번 읽습니다.** 표는 판이 도는 동안 바뀌지 않고, 매번 정렬하면 탭을
+   * 그릴 때마다 15줄을 다시 셉니다.
+   */
+  private readonly sets: { setId: string; name: string; credit?: string }[] = []
+  /** 세트마다의 겉모습. 미리보기를 그릴 때마다 표를 다시 읽지 않습니다. */
+  private readonly looks = new Map<string, SetLook>()
+  /**
+   * 그림의 출처가 뜨는 쪽지.
+   *
+   * **판 안의 쪽지와 같은 것입니다.** 옵션에만 따로 만들면 모습이 두 가지가 됩니다.
+   */
+  private readonly tip = new Tooltip()
+
+  private setName(setId: string): string {
+    return this.sets.find(one => one.setId === setId)?.name ?? setId
+  }
+
   private measure(tab: Tab): number {
     let y = TAB_Y + TAB_H + 34
     for (const row of tab.rows) {
       if (row.seed) {
         y += SEED_ROW
+        continue
+      }
+      if (row.cards !== undefined) {
+        const lines = Math.ceil(row.cards.length / CARD_COLUMNS)
+        y += 50 + lines * (CARD_ROW_H + CHOICE_GAP)
         continue
       }
       if (row.choices === undefined) {
@@ -379,6 +511,22 @@ export class OptionsPanel implements ModalPanel {
           {
             label: t('ui.option.chromatic'), read: onOff('chromatic'), next: flip('chromatic'),
             note: t('ui.option.note.chromatic'),
+          },
+        ],
+      },
+      // **카드가 「화면」 과 따로입니다.** 화면의 나머지는 켜고 끄는 것이고 이것은 고르는
+      // 것이며, 세트가 늘어나면 여기에 미리보기가 들어옵니다.
+      {
+        name: t('ui.tab.cards'),
+        rows: [
+          {
+            label: t('ui.option.cardSet'),
+            note: t('ui.option.note.cardSet'),
+            read: () => this.setName(options.cardSet),
+            next: () => undefined,
+            cards: this.sets.map(one => ({ key: one.setId, label: one.name })),
+            current: () => options.cardSet,
+            pick: (key: string) => { options.cardSet = key },
           },
         ],
       },
@@ -519,6 +667,41 @@ export class OptionsPanel implements ModalPanel {
     })
   }
 
+  /** 창의 위와 아래. 탭 줄 밑에서 밑단 위까지입니다. */
+  private get windowTop(): number {
+    return TAB_Y + TAB_H + 10
+  }
+
+  private get windowHeight(): number {
+    return this.height - FOOTER_BAR - this.windowTop - 10
+  }
+
+  /**
+   * 굴러갈 것이 얼마인지 재고 손잡이를 세웁니다.
+   *
+   * **넘치지 않으면 손잡이가 없습니다.** 늘 서 있으면 굴릴 것이 없는 탭에서도 굴릴 수 있는
+   * 것으로 보입니다.
+   */
+  private fitScroll(content: number): void {
+    this.over = Math.max(0, content - this.windowHeight)
+    this.scroll = Math.max(-this.over, Math.min(0, this.scroll))
+    this.body.y = this.scroll
+
+    this.clip.clear()
+    this.clip.rect(6, this.windowTop, WIDTH - 12, this.windowHeight).fill(0xffffff)
+
+    this.bar.clear()
+    if (this.over <= 0) return
+
+    const track = this.windowHeight - 8
+    const height = Math.max(34, track * (this.windowHeight / content))
+    const at = this.over === 0 ? 0 : (-this.scroll / this.over) * (track - height)
+    this.bar.roundRect(WIDTH - 16, this.windowTop + 4, 4, track, 2)
+      .fill({ color: 0xffffff, alpha: 0.07 })
+    this.bar.roundRect(WIDTH - 16, this.windowTop + 4 + at, 4, height, 2)
+      .fill({ color: 0xffffff, alpha: 0.30 })
+  }
+
   private draw(): void {
     this.body.removeChildren().forEach(child => child.destroy())
 
@@ -545,6 +728,11 @@ export class OptionsPanel implements ModalPanel {
         continue
       }
 
+      if (row.cards !== undefined) {
+        y += this.drawCardChoices(row, y + 50)
+        continue
+      }
+
       if (row.choices === undefined) {
         const value = new Button(row.read(), 128, 34, 0x3a4658, () => {
           row.next()
@@ -559,6 +747,10 @@ export class OptionsPanel implements ModalPanel {
 
       y += this.drawChoices(row, y + 50)
     }
+
+    // **그린 뒤에 잽니다.** 줄의 높이가 글의 길이에 달려 있으므로 그리기 전에는 알 수
+    // 없습니다 — `measure` 는 판의 높이를 정하는 어림이고 이것이 실제입니다.
+    this.fitScroll(y + 18 - this.windowTop)
   }
 
   /**
@@ -634,6 +826,118 @@ export class OptionsPanel implements ModalPanel {
    * 세 칸씩 놓습니다. 한 줄에 여섯을 세우면 글씨가 작아지고, 한 줄에 하나면 아래로 길어져
    * 판이 그만큼 커집니다.
    */
+  /**
+   * 겉모습을 고르는 줄.
+   *
+   * 칸마다 그 벌의 카드 넉 장을 그립니다. **그 벌의 색으로 그립니다** — 지금 고른 벌의
+   * 색으로 그리면 셋이 같아 보이고, 그러면 글자 단추와 다를 것이 없습니다.
+   */
+  private drawCardChoices(row: Row, top: number): number {
+    const cards = row.cards ?? []
+    const now = row.current?.()
+    const gap = CHOICE_GAP
+    const columns = CARD_COLUMNS
+    const width = Math.floor((WIDTH - 88 - gap * (columns - 1)) / columns)
+    const lines = Math.ceil(cards.length / columns)
+
+    cards.forEach((one, index) => {
+      const look = this.looks.get(one.key)
+      const here = one.key === now
+      const cell = new Container()
+      cell.position.set(44 + (index % columns) * (width + gap),
+                        top + Math.floor(index / columns) * (CARD_ROW_H + gap))
+
+      const board = new Graphics()
+      board.roundRect(0, 0, width, CARD_ROW_H, 8)
+        .fill({ color: here ? 0x1d3a26 : 0x252b36 })
+        .stroke({ color: here ? COLOR.good : 0x3a4658, width: here ? 3 : 2 })
+      cell.addChild(board)
+
+      // 넉 장이 어긋나 겹쳐 섭니다. 왼쪽 위가 첫 장입니다.
+      const fan = CARD_W + CARD_STEP * (PREVIEW.length - 1)
+      PREVIEW.forEach((want, at) => {
+        const card = this.previewCard(look, want.suit, want.rank)
+        card.position.set((width - fan) / 2 + at * CARD_STEP, 8)
+        cell.addChild(card)
+      })
+
+      const name = new Text({
+        text: one.label,
+        style: {
+          fontSize: 12, fill: here ? COLOR.ink : COLOR.inkDim, fontWeight: '800',
+          wordWrap: true, wordWrapWidth: width - 10, align: 'center', breakWords: true,
+          lineHeight: 13,
+        },
+      })
+      name.anchor.set(0.5, 0)
+      name.position.set(width / 2, CARD_H + 14)
+      cell.addChild(name)
+
+      cell.eventMode = 'static'
+      cell.cursor = 'pointer'
+      cell.on('pointertap', () => {
+        row.pick?.(one.key)
+        this.onChange()
+        this.draw()
+      })
+      // **출처는 쪽지로 뜹니다.** 판에 한 줄로 적어 두면 자작 세트에서는 빈 줄이 되고,
+      // 정본 하나에만 있는 글이 줄 하나를 늘 차지합니다.
+      const credit = this.sets.find(two => two.setId === one.key)?.credit
+      if (credit !== undefined) {
+        cell.on('pointerover', () => this.tip.show(
+          one.label, '', 0, [credit],
+          cell.x + width / 2, cell.y + CARD_ROW_H, this.size))
+        cell.on('pointerout', () => this.tip.hide())
+      }
+      this.body.addChild(cell)
+    })
+
+    return 50 + lines * (CARD_ROW_H + gap)
+  }
+
+  /**
+   * 미리보기 카드 한 장.
+   *
+   * **그림이 있으면 그림이 얼굴입니다.** 없으면 그 벌의 색으로 문양을 그립니다 — 판에서
+   * 카드를 그리는 것과 같은 순서이므로, 여기서 맞으면 판에서도 맞습니다.
+   */
+  private previewCard(look: SetLook | undefined, suit: SuitKind, rank: number): Container {
+    const node = new Container()
+    const ink = look?.ink[suit] ?? COLOR.black
+    const paper = new Graphics()
+    paper.roundRect(0, 0, CARD_W, CARD_H, 4).fill(look?.paper ?? COLOR.cardFace)
+    paper.roundRect(0.5, 0.5, CARD_W - 1, CARD_H - 1, 4)
+      .stroke({ color: COLOR.cardEdge, width: 1 })
+    node.addChild(paper)
+
+    const texture = look?.artDir === undefined
+      ? undefined : artFor(look.artDir, cardArtId(suit, rank))
+    const face = new Graphics()
+    if (texture) {
+      const picture = new Sprite(texture)
+      picture.width = CARD_W
+      picture.height = CARD_H
+      node.addChild(picture)
+    } else {
+      drawFace(face, suit, rank, CARD_W, CARD_H, ink)
+    }
+
+    // **판에서 그리는 것과 같은 순서입니다.** 모서리를 그림 위에 그리는 벌은 여기서도
+    // 그려야 하고, 그러지 않으면 미리보기가 실제와 다른 카드가 됩니다.
+    if (texture === undefined || look?.artHasIndex === false) {
+      const scale = CARD_H / SIZE.cardHeight
+      const mark = new Text({
+        text: RANK_TEXT[rank] ?? '?',
+        style: { fontSize: Math.round(19 * scale), fill: ink, fontWeight: '800' },
+      })
+      mark.position.set(Math.round(8 * scale), Math.round(5 * scale))
+      node.addChild(mark)
+      drawSuit(face, suit, 14 * scale, 33 * scale, 12 * scale, ink)
+    }
+    node.addChild(face)
+    return node
+  }
+
   private drawChoices(row: Row, top: number): number {
     const choices = row.choices ?? []
     const now = row.current?.()

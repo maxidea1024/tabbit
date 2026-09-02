@@ -24,6 +24,8 @@ import { SpectralTable } from './tables/spectral'
 import { SpectralEffectTable } from './tables/spectral-effect'
 import { EditionVisualTable } from './tables/edition-visual'
 import { SoundCueTable } from './tables/sound-cue'
+import { CardSetTable } from './tables/card-set'
+import { CardSetSuitTable } from './tables/card-set-suit'
 import { JokerTable } from './tables/joker'
 import { JokerRarityWeightTable } from './tables/joker-rarity-weight'
 import { JokerEffectTable } from './tables/joker-effect'
@@ -171,6 +173,14 @@ export class CloverData {
   public get soundCue(): SoundCueTable { return this._soundCue }
   private _soundCue: SoundCueTable = new SoundCueTable()
 
+  /** Peroperty for table CardSet */
+  public get cardSet(): CardSetTable { return this._cardSet }
+  private _cardSet: CardSetTable = new CardSetTable()
+
+  /** Peroperty for table CardSetSuit */
+  public get cardSetSuit(): CardSetSuitTable { return this._cardSetSuit }
+  private _cardSetSuit: CardSetSuitTable = new CardSetSuitTable()
+
   /** Peroperty for table Joker */
   public get joker(): JokerTable { return this._joker }
   private _joker: JokerTable = new JokerTable()
@@ -312,6 +322,10 @@ export class CloverData {
     await editionVisual.read(path.join(basePath, `EditionVisual${fileExtension}`))
     const soundCue = new SoundCueTable()
     await soundCue.read(path.join(basePath, `SoundCue${fileExtension}`))
+    const cardSet = new CardSetTable()
+    await cardSet.read(path.join(basePath, `CardSet${fileExtension}`))
+    const cardSetSuit = new CardSetSuitTable()
+    await cardSetSuit.read(path.join(basePath, `CardSetSuit${fileExtension}`))
     const joker = new JokerTable()
     await joker.read(path.join(basePath, `Joker${fileExtension}`))
     const jokerRarityWeight = new JokerRarityWeightTable()
@@ -363,7 +377,7 @@ export class CloverData {
     const achievement = new AchievementTable()
     await achievement.read(path.join(basePath, `Achievement${fileExtension}`))
 
-    this.publish(rank, suit, baseDeckCard, pokerHand, enhancement, enhancementEffect, seal, sealEffect, edition, rngStream, tarot, tarotEffect, planet, spectral, spectralEffect, editionVisual, soundCue, joker, jokerRarityWeight, jokerEffect, leaderboard, tier, ante, blind, bossBlind, bossEffect, deck, deckEffect, stake, tag, tagEffect, challenge, challengeEffect, challengeBan, challengeCard, shopSlotWeight, boosterPack, voucher, voucherEffect, rerollCost, stringTable, achievement)
+    this.publish(rank, suit, baseDeckCard, pokerHand, enhancement, enhancementEffect, seal, sealEffect, edition, rngStream, tarot, tarotEffect, planet, spectral, spectralEffect, editionVisual, soundCue, cardSet, cardSetSuit, joker, jokerRarityWeight, jokerEffect, leaderboard, tier, ante, blind, bossBlind, bossEffect, deck, deckEffect, stake, tag, tagEffect, challenge, challengeEffect, challengeBan, challengeCard, shopSlotWeight, boosterPack, voucher, voucherEffect, rerollCost, stringTable, achievement)
   }
 
   /** Read all tables synchronously. */
@@ -402,6 +416,10 @@ export class CloverData {
     editionVisual.readSync(path.join(basePath, `EditionVisual${fileExtension}`))
     const soundCue = new SoundCueTable()
     soundCue.readSync(path.join(basePath, `SoundCue${fileExtension}`))
+    const cardSet = new CardSetTable()
+    cardSet.readSync(path.join(basePath, `CardSet${fileExtension}`))
+    const cardSetSuit = new CardSetSuitTable()
+    cardSetSuit.readSync(path.join(basePath, `CardSetSuit${fileExtension}`))
     const joker = new JokerTable()
     joker.readSync(path.join(basePath, `Joker${fileExtension}`))
     const jokerRarityWeight = new JokerRarityWeightTable()
@@ -453,7 +471,7 @@ export class CloverData {
     const achievement = new AchievementTable()
     achievement.readSync(path.join(basePath, `Achievement${fileExtension}`))
 
-    this.publish(rank, suit, baseDeckCard, pokerHand, enhancement, enhancementEffect, seal, sealEffect, edition, rngStream, tarot, tarotEffect, planet, spectral, spectralEffect, editionVisual, soundCue, joker, jokerRarityWeight, jokerEffect, leaderboard, tier, ante, blind, bossBlind, bossEffect, deck, deckEffect, stake, tag, tagEffect, challenge, challengeEffect, challengeBan, challengeCard, shopSlotWeight, boosterPack, voucher, voucherEffect, rerollCost, stringTable, achievement)
+    this.publish(rank, suit, baseDeckCard, pokerHand, enhancement, enhancementEffect, seal, sealEffect, edition, rngStream, tarot, tarotEffect, planet, spectral, spectralEffect, editionVisual, soundCue, cardSet, cardSetSuit, joker, jokerRarityWeight, jokerEffect, leaderboard, tier, ante, blind, bossBlind, bossEffect, deck, deckEffect, stake, tag, tagEffect, challenge, challengeEffect, challengeBan, challengeCard, shopSlotWeight, boosterPack, voucher, voucherEffect, rerollCost, stringTable, achievement)
   }
 
   /**
@@ -498,6 +516,10 @@ export class CloverData {
     editionVisual.readBinarySync(path.join(basePath, `EditionVisual${fileExtension}`))
     const soundCue = new SoundCueTable()
     soundCue.readBinarySync(path.join(basePath, `SoundCue${fileExtension}`))
+    const cardSet = new CardSetTable()
+    cardSet.readBinarySync(path.join(basePath, `CardSet${fileExtension}`))
+    const cardSetSuit = new CardSetSuitTable()
+    cardSetSuit.readBinarySync(path.join(basePath, `CardSetSuit${fileExtension}`))
     const joker = new JokerTable()
     joker.readBinarySync(path.join(basePath, `Joker${fileExtension}`))
     const jokerRarityWeight = new JokerRarityWeightTable()
@@ -549,7 +571,7 @@ export class CloverData {
     const achievement = new AchievementTable()
     achievement.readBinarySync(path.join(basePath, `Achievement${fileExtension}`))
 
-    this.publish(rank, suit, baseDeckCard, pokerHand, enhancement, enhancementEffect, seal, sealEffect, edition, rngStream, tarot, tarotEffect, planet, spectral, spectralEffect, editionVisual, soundCue, joker, jokerRarityWeight, jokerEffect, leaderboard, tier, ante, blind, bossBlind, bossEffect, deck, deckEffect, stake, tag, tagEffect, challenge, challengeEffect, challengeBan, challengeCard, shopSlotWeight, boosterPack, voucher, voucherEffect, rerollCost, stringTable, achievement)
+    this.publish(rank, suit, baseDeckCard, pokerHand, enhancement, enhancementEffect, seal, sealEffect, edition, rngStream, tarot, tarotEffect, planet, spectral, spectralEffect, editionVisual, soundCue, cardSet, cardSetSuit, joker, jokerRarityWeight, jokerEffect, leaderboard, tier, ante, blind, bossBlind, bossEffect, deck, deckEffect, stake, tag, tagEffect, challenge, challengeEffect, challengeBan, challengeCard, shopSlotWeight, boosterPack, voucher, voucherEffect, rerollCost, stringTable, achievement)
   }
 
   /**
@@ -560,7 +582,7 @@ export class CloverData {
    * what it held, which is the answer a running program wants: the data it already had, and
    * an exception saying why the new data was not taken.
    */
-  private publish(rank: RankTable, suit: SuitTable, baseDeckCard: BaseDeckCardTable, pokerHand: PokerHandTable, enhancement: EnhancementTable, enhancementEffect: EnhancementEffectTable, seal: SealTable, sealEffect: SealEffectTable, edition: EditionTable, rngStream: RngStreamTable, tarot: TarotTable, tarotEffect: TarotEffectTable, planet: PlanetTable, spectral: SpectralTable, spectralEffect: SpectralEffectTable, editionVisual: EditionVisualTable, soundCue: SoundCueTable, joker: JokerTable, jokerRarityWeight: JokerRarityWeightTable, jokerEffect: JokerEffectTable, leaderboard: LeaderboardTable, tier: TierTable, ante: AnteTable, blind: BlindTable, bossBlind: BossBlindTable, bossEffect: BossEffectTable, deck: DeckTable, deckEffect: DeckEffectTable, stake: StakeTable, tag: TagTable, tagEffect: TagEffectTable, challenge: ChallengeTable, challengeEffect: ChallengeEffectTable, challengeBan: ChallengeBanTable, challengeCard: ChallengeCardTable, shopSlotWeight: ShopSlotWeightTable, boosterPack: BoosterPackTable, voucher: VoucherTable, voucherEffect: VoucherEffectTable, rerollCost: RerollCostTable, stringTable: StringTableTable, achievement: AchievementTable): void {
+  private publish(rank: RankTable, suit: SuitTable, baseDeckCard: BaseDeckCardTable, pokerHand: PokerHandTable, enhancement: EnhancementTable, enhancementEffect: EnhancementEffectTable, seal: SealTable, sealEffect: SealEffectTable, edition: EditionTable, rngStream: RngStreamTable, tarot: TarotTable, tarotEffect: TarotEffectTable, planet: PlanetTable, spectral: SpectralTable, spectralEffect: SpectralEffectTable, editionVisual: EditionVisualTable, soundCue: SoundCueTable, cardSet: CardSetTable, cardSetSuit: CardSetSuitTable, joker: JokerTable, jokerRarityWeight: JokerRarityWeightTable, jokerEffect: JokerEffectTable, leaderboard: LeaderboardTable, tier: TierTable, ante: AnteTable, blind: BlindTable, bossBlind: BossBlindTable, bossEffect: BossEffectTable, deck: DeckTable, deckEffect: DeckEffectTable, stake: StakeTable, tag: TagTable, tagEffect: TagEffectTable, challenge: ChallengeTable, challengeEffect: ChallengeEffectTable, challengeBan: ChallengeBanTable, challengeCard: ChallengeCardTable, shopSlotWeight: ShopSlotWeightTable, boosterPack: BoosterPackTable, voucher: VoucherTable, voucherEffect: VoucherEffectTable, rerollCost: RerollCostTable, stringTable: StringTableTable, achievement: AchievementTable): void {
     this._rank = rank
     this._suit = suit
     this._baseDeckCard = baseDeckCard
@@ -578,6 +600,8 @@ export class CloverData {
     this._spectralEffect = spectralEffect
     this._editionVisual = editionVisual
     this._soundCue = soundCue
+    this._cardSet = cardSet
+    this._cardSetSuit = cardSetSuit
     this._joker = joker
     this._jokerRarityWeight = jokerRarityWeight
     this._jokerEffect = jokerEffect
@@ -628,6 +652,14 @@ export class CloverData {
         const target = this._spectral.getBySpectralIdOrThrow(
           record._owner_Spectral_index)
         record.setReference_owner_INTERNAL(target)
+      }
+    }
+
+    for (const record of this._cardSetSuit.records) {
+      if (record._setId_CardSet_index !== "") {
+        const target = this._cardSet.getBySetIdOrThrow(
+          record._setId_CardSet_index)
+        record.setReference_setId_INTERNAL(target)
       }
     }
 

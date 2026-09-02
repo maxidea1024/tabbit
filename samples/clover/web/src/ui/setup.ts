@@ -233,7 +233,7 @@ export class SetupPanel implements ModalPanel {
         .stroke({ color: here ? COLOR.good : 0x33313c, width: here ? 3 : 2 })
       cell.addChild(board)
 
-      const back = new Graphics()
+      const back = new Container()
       back.position.set((CELL_W - 10 - BACK_W) / 2, 10)
       drawCardBack(back, BACK_W, BACK_H, Math.round(SIZE.cardRadius * 0.62),
                    backLookOf(row))
