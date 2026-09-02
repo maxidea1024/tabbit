@@ -100,7 +100,14 @@ export function loadOptions(): Options {
     const saved = JSON.parse(raw) as Partial<Options>
     for (const key of Object.keys(options) as (keyof Options)[]) {
       const value = saved[key]
-      if (typeof value === typeof options[key]) (options[key] as unknown) = value
+      if (typeof value !== typeof options[key]) continue
+      // **모르는 값은 받지 않습니다.** 저장된 말 코드가 목록에 없으면 그 칸을 찾는
+      // 자리가 빈 값을 읽고, 게임이 부팅에서 멈춥니다 — 손으로 고친 저장소나 예전
+      // 판의 값이 그러합니다.
+      if (key === 'language' && value !== ''
+          && !LANGUAGES.includes(value as Language)) continue
+      if (key === 'pool' && value !== 'base' && value !== 'all') continue
+      (options[key] as unknown) = value
     }
   } catch {
     // 저장소가 막혀 있으면 기본값으로 갑니다. 옵션 하나 때문에 화면이 서지 않습니다.

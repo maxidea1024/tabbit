@@ -110,10 +110,28 @@ export class JokerPoolPanel implements ModalPanel {
     onArtReady(() => { this.dirty = true })
   }
 
+  /**
+   * 틀을 세웁니다.
+   *
+   * **말이 바뇌 때 다시 세웁니다.** 제목은 `panelFrame` 안에 그려지므로
+   * 한 번 만들고 두면 판을 처음 세운 때의 말로 남습니다 — 일본어로 바꿔도
+   * 제목만 영어였던 것이 그것입니다.
+   */
+  private frame?: Container
+
+  private buildFrame(): void {
+    if (this.frame) {
+      this.view.removeChild(this.frame)
+      this.frame.destroy({ children: true })
+    }
+    this.frame = panelFrame(WIDTH, HEIGHT, t('ui.pool.title'), this.onClose,
+                            undefined, false)
+    this.view.addChildAt(this.frame, 0)
+  }
+
   private build(): void {
-    const frame = panelFrame(WIDTH, HEIGHT, t('ui.pool.title'), this.onClose,
-                             undefined, false)
-    this.view.addChild(frame, this.body)
+    this.buildFrame()
+    this.view.addChild(this.body)
 
     // 풀 단추 둘. **나란히 둡니다** — 하나를 고르는 일이므로 목록이 아니라 두 갈래입니다.
     const bw = 250
@@ -261,6 +279,7 @@ export class JokerPoolPanel implements ModalPanel {
   }
 
   relabel(): void {
+    this.buildFrame()
     this.rebuild()
   }
 

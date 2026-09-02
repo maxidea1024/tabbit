@@ -73,7 +73,10 @@ export class JokerView extends Container {
     text: '',
     style: {
       fontSize: 11, fill: COLOR.ink, align: 'center', fontWeight: '800',
-      wordWrap: true, wordWrapWidth: SIZE.jokerWidth - 8, breakWords: true, lineHeight: 12,
+      // **낙말을 중간에서 자르지 않습니다.** 자르면 독일어의 합성어가
+      // 「Messinggewic / ht」처럼 끝어져 읽힐 수 없게 됩니다 — 넘치는 것은
+      // 아래에서 글자를 줄여 맞춥니다.
+      wordWrap: true, wordWrapWidth: SIZE.jokerWidth - 8, breakWords: false, lineHeight: 12,
     },
   })
   private readonly counter = new Text({
@@ -196,6 +199,12 @@ export class JokerView extends Container {
     this.nameText.text = look.name
     this.nameText.anchor.set(0.5, 0.5)
     this.nameText.position.set(w / 2, h - BAND / 2)
+    // 한 낙말이 카드보다 길면 줄바꿈으로는 들어가지 않습니다. 그때만 줄입니다.
+    this.nameText.scale.set(1)
+    const room = w - 8
+    if (this.nameText.width > room) {
+      this.nameText.scale.set(Math.max(0.62, room / this.nameText.width))
+    }
 
     // 누적값을 얼굴에 적습니다 — 늘어나는 조커는 그것이 전부이기 때문입니다.
     const { chips, multAdd, multMul } = joker.counters

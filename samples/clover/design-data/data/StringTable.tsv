@@ -152,356 +152,356 @@
 	joker.gravebloom.name	무덤꽃	Gravebloom	墓の花	墓花	墓花	Grabblüte
 	joker.hushbell.name	잠잠종	Hushbell	沈黙の鐘	静铃	靜鈴	Stilleglocke
 	joker.echoseed.name	메아리씨	Echoseed	こだまの種	回声种子	回聲種子	Echosaat
-	joker.ash_rose.name	잿빛 장미	Ash Rose				
-	joker.dusk_iris.name	어스름 붓꽃	Dusk Iris				
-	joker.paint_pot.name	물감통	Paint Pot				
-	joker.dye_vat.name	염료 통	Dye Vat				
-	joker.pollen_veil.name	꽃가루 너울	Pollen Veil				
-	joker.petal_drift.name	꽃잎 흘림	Petal Drift				
-	joker.glass_petal.name	유리 꽃잎	Glass Petal				
-	joker.ochre_brush.name	황토 붓	Ochre Brush				
-	joker.woad_brush.name	쪽빛 붓	Woad Brush				
-	joker.slate_ring.name	슬레이트 고리	Slate Ring				
-	joker.crimson_ring.name	붉은 고리	Crimson Ring				
-	joker.moss_ring.name	이끼 고리	Moss Ring				
-	joker.amber_ring.name	호박 고리	Amber Ring				
-	joker.night_veil.name	밤 너울	Night Veil				
-	joker.dawn_veil.name	새벽 너울	Dawn Veil				
-	joker.tinted_pane.name	물든 유리	Tinted Pane				
-	joker.bleach_jar.name	탈색 항아리	Bleach Jar				
-	joker.pigment_mill.name	안료 방앗간	Pigment Mill				
-	joker.veiled_lamp.name	가린 등	Veiled Lamp				
-	joker.coral_ring.name	산호 고리	Coral Ring				
-	joker.black_coronet.name	검은 화관	Black Coronet				
-	joker.red_coronet.name	붉은 화관	Red Coronet				
-	joker.dye_press.name	염료 압착기	Dye Press				
-	joker.sunfast_glaze.name	볕에 굳은 유약	Sunfast Glaze				
-	joker.full_palette.name	온 팔레트	Full Palette				
-	joker.plum_stone.name	자두씨	Plum Stone				
-	joker.acorn_cup.name	도토리 깍정이	Acorn Cup				
-	joker.rose_hip.name	장미 열매	Rose Hip				
-	joker.hazel_shell.name	개암 껍질	Hazel Shell				
-	joker.bean_row.name	콩 줄	Bean Row				
-	joker.millet_ear.name	조 이삭	Millet Ear				
-	joker.sloe_berry.name	야생 자두	Sloe Berry				
-	joker.pip_pouch.name	씨앗 주머니	Pip Pouch				
-	joker.chaff_sieve.name	쭉정이 체	Chaff Sieve				
-	joker.quince_jar.name	마르멜로 항아리	Quince Jar				
-	joker.king_pod.name	왕 꼬투리	King Pod				
-	joker.ace_husk.name	으뜸 껍질	Ace Husk				
-	joker.seed_ledger.name	씨앗 대장	Seed Ledger				
-	joker.bitter_pip.name	쓴 씨	Bitter Pip				
-	joker.sweet_pip.name	단 씨	Sweet Pip				
-	joker.walnut_press.name	호두 압착기	Walnut Press				
-	joker.husk_lamp.name	껍질 등	Husk Lamp				
-	joker.chestnut_burr.name	밤송이	Chestnut Burr				
-	joker.date_stone.name	대추씨	Date Stone				
-	joker.pomace_cask.name	사과 찌끼 통	Pomace Cask				
-	joker.thirteen_seeds.name	열세 씨앗	Thirteen Seeds				
-	joker.stone_fruit.name	씨 굳은 열매	Stone Fruit				
-	joker.ripe_year.name	익은 해	Ripe Year				
-	joker.regal_pair.name	왕과 으뜸	Regal Pair				
-	joker.granary.name	곳간	Granary				
-	joker.wren.name	굴뚝새	Wren				
-	joker.dipper.name	물까마귀	Dipper				
-	joker.crake.name	뜸부기	Crake				
-	joker.plover.name	물떼새	Plover				
-	joker.shrike.name	때까치	Shrike				
-	joker.nuthatch.name	동고비	Nuthatch				
-	joker.flock_call.name	떼 부름	Flock Call				
-	joker.heron_watch.name	왜가리 지킴	Heron Watch				
-	joker.swift_line.name	칼새 줄	Swift Line				
-	joker.godwit.name	마도요	Godwit				
-	joker.curlew.name	알락꼬리	Curlew				
-	joker.lapwing.name	댕기물떼새	Lapwing				
-	joker.rookery.name	새 둥지터	Rookery				
-	joker.kestrel.name	황조롱이	Kestrel				
-	joker.migrant_line.name	철새 줄	Migrant Line				
-	joker.wing_beat.name	날갯짓	Wing Beat				
-	joker.pinion_case.name	깃 상자	Pinion Case				
-	joker.covey.name	메추라기 떼	Covey				
-	joker.lone_gull.name	외로운 갈매기	Lone Gull				
-	joker.great_bustard.name	느시	Great Bustard				
-	joker.firecrest.name	상모솔새	Firecrest				
-	joker.albatross.name	알바트로스	Albatross				
-	joker.swan_song.name	백조의 노래	Swan Song				
-	joker.sandpiper.name	삑삑도요	Sandpiper				
-	joker.great_flock.name	큰 무리	Great Flock				
-	joker.leaf_fall.name	낙엽	Leaf Fall				
-	joker.compost_bin.name	퇴비통	Compost Bin				
-	joker.rake_head.name	갈퀴	Rake Head				
-	joker.dry_twine.name	마른 끈	Dry Twine				
-	joker.weed_fork.name	잡초 갈퀴	Weed Fork				
-	joker.chaff_pile.name	쭉정이 더미	Chaff Pile				
-	joker.hedge_snips.name	산울타리 가위	Hedge Snips				
-	joker.windrow.name	마른 풀 줄	Windrow				
-	joker.sap_pail.name	수액 통	Sap Pail				
-	joker.mulch_bed.name	뿌리덮개	Mulch Bed				
-	joker.sieve_frame.name	체 틀	Sieve Frame				
-	joker.long_shears.name	긴 가위	Long Shears				
-	joker.thinning_hook.name	솎음 낫	Thinning Hook				
-	joker.bramble_gate.name	가시 문	Bramble Gate				
-	joker.full_basket.name	가득 찬 바구니	Full Basket				
-	joker.wither_line.name	시든 줄	Wither Line				
-	joker.dross_jar.name	찌끼 항아리	Dross Jar				
-	joker.stubble_field.name	그루터기 밭	Stubble Field				
-	joker.smoke_ring.name	연기 고리	Smoke Ring				
-	joker.cut_flowers.name	꺾은 꽃	Cut Flowers				
-	joker.scythe_moon.name	낫 같은 달	Scythe Moon				
-	joker.great_compost.name	큰 퇴비	Great Compost				
-	joker.bare_bed.name	맨 화단	Bare Bed				
-	joker.winnow_wind.name	키질 바람	Winnow Wind				
-	joker.endless_autumn.name	끝없는 가을	Endless Autumn				
-	joker.copper_scale.name	구리 저울	Copper Scale				
-	joker.tin_till.name	양철 금고	Tin Till				
-	joker.debt_slate.name	빚 서판	Debt Slate				
-	joker.coin_purse.name	돈주머니	Coin Purse				
-	joker.market_stall.name	장터 좌판	Market Stall				
-	joker.haggler.name	값 깎는 이	Haggler				
-	joker.brass_weight.name	놋 분동	Brass Weight				
-	joker.empty_purse.name	빈 주머니	Empty Purse				
-	joker.toll_gate.name	통행 문	Toll Gate				
-	joker.interest_book.name	이자 책	Interest Book				
-	joker.coin_press.name	동전 압착기	Coin Press				
-	joker.strongbox.name	금고	Strongbox				
-	joker.gilt_ledger.name	금박 장부	Gilt Ledger				
-	joker.usurer.name	돈놀이꾼	Usurer				
-	joker.spent_note.name	쓴 어음	Spent Note				
-	joker.alms_bowl.name	구휼 그릇	Alms Bowl				
-	joker.weighbridge.name	계량대	Weighbridge				
-	joker.broker.name	거래인	Broker				
-	joker.sealed_chest.name	봉한 상자	Sealed Chest				
-	joker.royal_mint.name	왕실 주조소	Royal Mint				
-	joker.debt_spiral.name	빚의 나선	Debt Spiral				
-	joker.tithe_barn.name	십일조 곳간	Tithe Barn				
-	joker.counting_house.name	셈방	Counting House				
-	joker.iron_reserve.name	무쇠 준비금	Iron Reserve				
-	joker.golden_hoard.name	황금 무더기	Golden Hoard				
-	joker.tap_root.name	곧은 뿌리	Tap Root				
-	joker.year_ring.name	나이테	Year Ring				
-	joker.runner_vine.name	기는 덩굴	Runner Vine				
-	joker.bud_scale.name	눈 비늘	Bud Scale				
-	joker.sap_rise.name	수액 오름	Sap Rise				
-	joker.moss_stair.name	이끼 계단	Moss Stair				
-	joker.bark_fold.name	껍질 주름	Bark Fold				
-	joker.first_leaf.name	첫 잎	First Leaf				
-	joker.heartwood.name	심재	Heartwood				
-	joker.girdle_band.name	두름 띠	Girdle Band				
-	joker.pollard_stump.name	잘린 그루	Pollard Stump				
-	joker.graft_union.name	접합부	Graft Union				
-	joker.spore_cloud.name	홀씨 구름	Spore Cloud				
-	joker.deep_root.name	깊은 뿌리	Deep Root				
-	joker.climbing_rose.name	오르는 장미	Climbing Rose				
-	joker.withy_band.name	고리버들 띠	Withy Band				
-	joker.knot_wood.name	옹이	Knot Wood				
-	joker.shade_leaf.name	그늘잎	Shade Leaf				
-	joker.bind_weed.name	메꽃	Bind Weed				
-	joker.old_oak.name	늙은 참나무	Old Oak				
-	joker.crown_gall.name	뿌리혹	Crown Gall				
-	joker.wild_stock.name	대목	Wild Stock				
-	joker.standing_grove.name	선 숲	Standing Grove				
-	joker.everbearing.name	사철 열림	Everbearing				
-	joker.world_tree.name	세계나무	World Tree				
-	joker.thorn_ring.name	가시 고리	Thorn Ring				
-	joker.nightshade_cup.name	까마중 잔	Nightshade Cup				
-	joker.frost_bite.name	서릿발	Frost Bite				
-	joker.bee_sting.name	벌 침	Bee Sting				
-	joker.hemlock_leaf.name	독당근 잎	Hemlock Leaf				
-	joker.cracked_pot.name	갈라진 화분	Cracked Pot				
-	joker.wasp_nest.name	말벌집	Wasp Nest				
-	joker.brittle_glass.name	여린 유리	Brittle Glass				
-	joker.bloodroot.name	피뿌리	Bloodroot				
-	joker.viper_coil.name	살무사 고리	Viper Coil				
-	joker.dead_wood.name	죽은 가지	Dead Wood				
-	joker.sacrifice_bowl.name	제물 그릇	Sacrifice Bowl				
-	joker.hollow_seed.name	빈 씨	Hollow Seed				
-	joker.iron_thorn.name	무쇠 가시	Iron Thorn				
-	joker.blight_spot.name	마름병 자리	Blight Spot				
-	joker.rust_pin.name	녹슨 핀	Rust Pin				
-	joker.snake_pit.name	뱀 구덩이	Snake Pit				
-	joker.poison_ivy.name	덩굴옻나무	Poison Ivy				
-	joker.crow_bait.name	까마귀 밥	Crow Bait				
-	joker.hemlock_crown.name	독당근 화관	Hemlock Crown				
-	joker.wolf_trap.name	이빨 덫	Wolf Trap				
-	joker.black_frost.name	검은 서리	Black Frost				
-	joker.last_stand.name	마지막 버팀	Last Stand				
-	joker.martyr_stone.name	순교의 돌	Martyr Stone				
-	joker.winter_king.name	겨울의 왕	Winter King				
-	joker.wax_seal.name	밀랍 인장	Wax Seal				
-	joker.blue_wax.name	파란 밀랍	Blue Wax				
-	joker.gold_wax.name	금 밀랍	Gold Wax				
-	joker.purple_wax.name	자주 밀랍	Purple Wax				
-	joker.foil_strip.name	박 띠	Foil Strip				
-	joker.holo_strip.name	홀로 띠	Holo Strip				
-	joker.bonus_pin.name	덧칩 핀	Bonus Pin				
-	joker.mult_pin.name	배수 핀	Mult Pin				
-	joker.wild_pin.name	들 카드 핀	Wild Pin				
-	joker.glazier.name	유리장이	Glazier				
-	joker.smith_tongs.name	대장 집게	Smith Tongs				
-	joker.seal_press.name	인장 압착기	Seal Press				
-	joker.gilder.name	금박장이	Gilder				
-	joker.wax_tally.name	밀랍 셈	Wax Tally				
-	joker.glass_tally.name	유리 셈	Glass Tally				
-	joker.lucky_tally.name	행운 셈	Lucky Tally				
-	joker.stone_setter.name	돌 놓는 이	Stone Setter				
-	joker.edition_case.name	판본 상자	Edition Case				
-	joker.enamel_kiln.name	에나멜 가마	Enamel Kiln				
-	joker.sealed_deck.name	봉인된 덱	Sealed Deck				
-	joker.master_glazier.name	유리 장인	Master Glazier				
-	joker.seal_ring.name	인장 반지	Seal Ring				
-	joker.foil_forge.name	박 대장간	Foil Forge				
-	joker.alloy_bed.name	합금 화단	Alloy Bed				
-	joker.crown_glass.name	왕관 유리	Crown Glass				
-	joker.star_dust.name	별가루	Star Dust				
-	joker.moon_dish.name	달 접시	Moon Dish				
-	joker.steam_vent.name	증기 구멍	Steam Vent				
-	joker.rain_gauge.name	우량계	Rain Gauge				
-	joker.dew_glass.name	이슬 유리	Dew Glass				
-	joker.comet_ash.name	혜성 재	Comet Ash				
-	joker.sky_lens.name	하늘 렌즈	Sky Lens				
-	joker.card_case.name	카드 갑	Card Case				
-	joker.nebula_jar.name	성운 항아리	Nebula Jar				
-	joker.tide_pool.name	물웅덩이	Tide Pool				
-	joker.mist_bell.name	안개 종	Mist Bell				
-	joker.spirit_kettle.name	넋 주전자	Spirit Kettle				
-	joker.astrolabe.name	아스트롤라베	Astrolabe				
-	joker.arcana_case.name	비법 상자	Arcana Case				
-	joker.planet_dial.name	행성 다이얼	Planet Dial				
-	joker.tarot_press.name	타로 압착기	Tarot Press				
-	joker.salt_bowl.name	소금 그릇	Salt Bowl				
-	joker.cloud_ladder.name	구름 사다리	Cloud Ladder				
-	joker.orrery.name	천구의	Orrery				
-	joker.great_conjunction.name	큰 합	Great Conjunction				
-	joker.spirit_gate.name	넋의 문	Spirit Gate				
-	joker.star_forge.name	별 대장간	Star Forge				
-	joker.moon_mirror.name	달 거울	Moon Mirror				
-	joker.void_lens.name	빈 렌즈	Void Lens				
-	joker.celestial_engine.name	천체 기관	Celestial Engine				
-	joker.paired_glass.name	짝 유리	Paired Glass				
-	joker.shadow_box.name	그림자 상자	Shadow Box				
-	joker.twin_pot.name	쌍 화분	Twin Pot				
-	joker.sale_tag.name	값표	Sale Tag				
-	joker.spare_frame.name	여벌 액자	Spare Frame				
-	joker.dust_sheet.name	덮개천	Dust Sheet				
-	joker.price_card.name	가격표	Price Card				
-	joker.dim_mirror.name	흐린 거울	Dim Mirror				
-	joker.frame_shop.name	액자 가게	Frame Shop				
-	joker.rarity_ledger.name	희귀 대장	Rarity Ledger				
-	joker.full_shelf.name	가득한 선반	Full Shelf				
-	joker.hand_me_down.name	물림	Hand Me Down				
-	joker.swap_frame.name	바꿈 액자	Swap Frame				
-	joker.estate_note.name	유산 쪽지	Estate Note				
-	joker.slot_pin.name	자리 핀	Slot Pin				
-	joker.auction_bell.name	경매 종	Auction Bell				
-	joker.mirror_dust.name	거울 가루	Mirror Dust				
-	joker.understudy.name	대역	Understudy				
-	joker.hall_of_mirrors.name	거울의 방	Hall of Mirrors				
-	joker.black_frame.name	검은 액자	Black Frame				
-	joker.prompt_book.name	대본	Prompt Book				
-	joker.pawnbroker.name	전당포	Pawnbroker				
-	joker.twin_seed.name	쌍씨	Twin Seed				
-	joker.stagehand.name	무대 일꾼	Stagehand				
-	joker.grand_gallery.name	큰 화랑	Grand Gallery				
-	joker.spade_head.name	삽날	Spade Head				
-	joker.seed_tray.name	모판	Seed Tray				
-	joker.sorting_sieve.name	고르는 체	Sorting Sieve				
-	joker.thin_rows.name	성긴 줄	Thin Rows				
-	joker.face_bed.name	그림 화단	Face Bed				
-	joker.ace_bed.name	으뜸 화단	Ace Bed				
-	joker.hand_spade.name	손삽	Hand Spade				
-	joker.garden_line.name	정원 줄	Garden Line				
-	joker.weed_pull.name	잡초 뽑기	Weed Pull				
-	joker.graft_knife.name	접칼	Graft Knife				
-	joker.nursery_bed.name	온상	Nursery Bed				
-	joker.soil_test.name	흙 검사	Soil Test				
-	joker.deep_bed.name	깊은 화단	Deep Bed				
-	joker.crop_rotation.name	돌려짓기	Crop Rotation				
-	joker.chalk_line.name	백묵 줄	Chalk Line				
-	joker.stone_row.name	돌 줄	Stone Row				
-	joker.culling_fork.name	솎는 갈퀴	Culling Fork				
-	joker.wide_bed.name	넓은 화단	Wide Bed				
-	joker.seed_drill.name	씨 뿌리개	Seed Drill				
-	joker.gold_furrow.name	금 이랑	Gold Furrow				
-	joker.great_graft.name	큰 접붙임	Great Graft				
-	joker.terraced_bed.name	계단 화단	Terraced Bed				
-	joker.hothouse.name	유리 온실	Hothouse				
-	joker.stone_garden.name	돌 정원	Stone Garden				
-	joker.first_garden.name	첫 정원	First Garden				
-	joker.hand_cart.name	손수레	Hand Cart				
-	joker.paint_sign.name	그린 간판	Paint Sign				
-	joker.free_wheel.name	헛바퀴	Free Wheel				
-	joker.regular.name	단골	Regular				
-	joker.barrow_boy.name	수레 끄는 아이	Barrow Boy				
-	joker.chalk_board.name	칠판	Chalk Board				
-	joker.paper_bag.name	종이 봉지	Paper Bag				
-	joker.window_shopper.name	구경꾼	Window Shopper				
-	joker.till_bell.name	계산대 종	Till Bell				
-	joker.two_carts.name	두 수레	Two Carts				
-	joker.coupon_book.name	할인 책	Coupon Book				
-	joker.sale_board.name	할인 간판	Sale Board				
-	joker.modifier_case.name	성질 상자	Modifier Case				
-	joker.crier.name	외치는 이	Crier				
-	joker.porter.name	짐꾼	Porter				
-	joker.dealer_hand.name	딜러의 손	Dealer Hand				
-	joker.spendthrift.name	낭비꾼	Spendthrift				
-	joker.reroll_rig.name	리롤 장치	Reroll Rig				
-	joker.night_market.name	밤 장터	Night Market				
-	joker.foil_stall.name	박 좌판	Foil Stall				
-	joker.grand_bazaar.name	큰 장	Grand Bazaar				
-	joker.free_market.name	자유 시장	Free Market				
-	joker.patron.name	후원자	Patron				
-	joker.gilt_cart.name	금박 수레	Gilt Cart				
-	joker.high_street.name	큰 거리	High Street				
-	joker.fog_bank.name	안개 띠	Fog Bank				
-	joker.even_scales.name	고른 저울	Even Scales				
-	joker.half_light.name	반쪽 빛	Half Light				
-	joker.dream_pane.name	꿈 유리	Dream Pane				
-	joker.gap_stone.name	틈 돌	Gap Stone				
-	joker.crooked_pane.name	굽은 유리	Crooked Pane				
-	joker.omen_slate.name	조짐 서판	Omen Slate				
-	joker.sign_reader.name	조짐 읽는 이	Sign Reader				
-	joker.three_line.name	셋 줄	Three Line				
-	joker.weighted_air.name	무게 실은 공기	Weighted Air				
-	joker.dream_ladder.name	꿈 사다리	Dream Ladder				
-	joker.rank_omen.name	랭크 조짐	Rank Omen				
-	joker.mist_gate.name	안개 문	Mist Gate				
-	joker.small_hours.name	이른 시간	Small Hours				
-	joker.big_hours.name	늦은 시간	Big Hours				
-	joker.sixth_sense.name	여섯째 감각	Sixth Sense				
-	joker.bent_ladder.name	굽은 사다리	Bent Ladder				
-	joker.waking_dream.name	깬 꿈	Waking Dream				
-	joker.long_odds.name	긴 승산	Long Odds				
-	joker.broken_rule.name	부러진 자	Broken Rule				
-	joker.dream_engine.name	꿈 기관	Dream Engine				
-	joker.all_face.name	온 얼굴	All Face				
-	joker.omen_crown.name	조짐 화관	Omen Crown				
-	joker.two_line.name	둘 줄	Two Line				
-	joker.waking_world.name	깬 세계	Waking World				
-	joker.iron_key.name	무쇠 열쇠	Iron Key				
-	joker.brass_lock.name	놋 자물쇠	Brass Lock				
-	joker.spring_gate.name	봄 문	Spring Gate				
-	joker.autumn_gate.name	가을 문	Autumn Gate				
-	joker.winter_gate.name	겨울 문	Winter Gate				
-	joker.summer_gate.name	여름 문	Summer Gate				
-	joker.ward_stone.name	지킴돌	Ward Stone				
-	joker.door_chime.name	문 종	Door Chime				
-	joker.boss_key.name	보스 열쇠	Boss Key				
-	joker.double_gate.name	겹문	Double Gate				
-	joker.season_ring.name	계절 고리	Season Ring				
-	joker.skeleton_key.name	만능 열쇠	Skeleton Key				
-	joker.toll_house.name	통행 집	Toll House				
-	joker.open_gate.name	열린 문	Open Gate				
-	joker.lock_pick.name	자물쇠 따개	Lock Pick				
-	joker.harvest_gate.name	추수 문	Harvest Gate				
-	joker.small_door.name	작은 문	Small Door				
-	joker.ante_stone.name	안테 돌	Ante Stone				
-	joker.great_key.name	큰 열쇠	Great Key				
-	joker.boss_ward.name	보스 지킴	Boss Ward				
-	joker.season_wheel.name	계절 바퀴	Season Wheel				
-	joker.iron_gate.name	무쇠 문	Iron Gate				
-	joker.warden.name	문지기	Warden				
-	joker.year_gate.name	해의 문	Year Gate				
-	joker.last_door.name	마지막 문	Last Door				
+	joker.ash_rose.name	잿빛 장미	Ash Rose	灰のバラ	灰蔷薇	灰薔薇	Aschenrose
+	joker.dusk_iris.name	어스름 붓꽃	Dusk Iris	黄昏のアヤメ	暮色鸢尾	暮色鳶尾	Abendlilie
+	joker.paint_pot.name	물감통	Paint Pot	絵の具壺	颜料罐	顏料罐	Farbtopf
+	joker.dye_vat.name	염료 통	Dye Vat	染料桶	染缸	染缸	Färbebottich
+	joker.pollen_veil.name	꽃가루 너울	Pollen Veil	花粉の帳	花粉之纱	花粉之紗	Pollenschleier
+	joker.petal_drift.name	꽃잎 흘림	Petal Drift	花びらの流れ	飘落花瓣	飄落花瓣	Blütentreiben
+	joker.glass_petal.name	유리 꽃잎	Glass Petal	硝子の花びら	玻璃花瓣	玻璃花瓣	Glasblütenblatt
+	joker.ochre_brush.name	황토 붓	Ochre Brush	黄土の筆	赭石笔	赭石筆	Ockerpinsel
+	joker.woad_brush.name	쪽빛 붓	Woad Brush	藍の筆	菘蓝笔	菘藍筆	Waidpinsel
+	joker.slate_ring.name	슬레이트 고리	Slate Ring	粘板岩の輪	板岩环	板岩環	Schieferring
+	joker.crimson_ring.name	붉은 고리	Crimson Ring	紅の輪	绯红环	緋紅環	Purpurring
+	joker.moss_ring.name	이끼 고리	Moss Ring	苔の輪	苔环	苔環	Moosring
+	joker.amber_ring.name	호박 고리	Amber Ring	琥珀の輪	琥珀环	琥珀環	Bernsteinring
+	joker.night_veil.name	밤 너울	Night Veil	夜の帳	夜之纱	夜之紗	Nachtschleier
+	joker.dawn_veil.name	새벽 너울	Dawn Veil	暁の帳	晨之纱	晨之紗	Morgenschleier
+	joker.tinted_pane.name	물든 유리	Tinted Pane	色硝子	染色玻璃	染色玻璃	Getönte Scheibe
+	joker.bleach_jar.name	탈색 항아리	Bleach Jar	漂白の壺	漂白罐	漂白罐	Bleichkrug
+	joker.pigment_mill.name	안료 방앗간	Pigment Mill	顔料挽き	颜料磨	顏料磨	Pigmentmühle
+	joker.veiled_lamp.name	가린 등	Veiled Lamp	覆われた灯	帷中之灯	帷中之燈	Verhüllte Lampe
+	joker.coral_ring.name	산호 고리	Coral Ring	珊瑚の輪	珊瑚环	珊瑚環	Korallenring
+	joker.black_coronet.name	검은 화관	Black Coronet	黒の小冠	黑色小冠	黑色小冠	Schwarzkrone
+	joker.red_coronet.name	붉은 화관	Red Coronet	紅の小冠	红色小冠	紅色小冠	Rotes Krönchen
+	joker.dye_press.name	염료 압착기	Dye Press	染料圧搾機	染料压榨机	染料壓榨機	Färbepresse
+	joker.sunfast_glaze.name	볕에 굳은 유약	Sunfast Glaze	日焼けの釉	耐晒釉	耐曬釉	Sonnenglasur
+	joker.full_palette.name	온 팔레트	Full Palette	満ちた絵皿	满色调色板	滿色調色板	Volle Palette
+	joker.plum_stone.name	자두씨	Plum Stone	梅の核	李核	李核	Pflaumenkern
+	joker.acorn_cup.name	도토리 깍정이	Acorn Cup	団栗の殻斗	橡实壳斗	橡實殼斗	Eichelbecher
+	joker.rose_hip.name	장미 열매	Rose Hip	薔薇の実	玫瑰果	玫瑰果	Hagebutte
+	joker.hazel_shell.name	개암 껍질	Hazel Shell	榛の殻	榛壳	榛殼	Haselschale
+	joker.bean_row.name	콩 줄	Bean Row	豆の畝	豆垄	豆壟	Bohnenreihe
+	joker.millet_ear.name	조 이삭	Millet Ear	粟の穂	粟穗	粟穗	Hirseähre
+	joker.sloe_berry.name	야생 자두	Sloe Berry	スピノサスモモ	黑刺李	黑刺李	Schlehe
+	joker.pip_pouch.name	씨앗 주머니	Pip Pouch	種の袋	籽袋	籽袋	Kernbeutel
+	joker.chaff_sieve.name	쭉정이 체	Chaff Sieve	籾殻の篩	糠筛	糠篩	Spreusieb
+	joker.quince_jar.name	마르멜로 항아리	Quince Jar	花梨の瓶	木瓜罐	木瓜罐	Quittenglas
+	joker.king_pod.name	왕 꼬투리	King Pod	王の莢	王荚	王莢	Königsschote
+	joker.ace_husk.name	으뜸 껍질	Ace Husk	エースの殻	尖牌之壳	尖牌之殼	Ass-Hülse
+	joker.seed_ledger.name	씨앗 대장	Seed Ledger	種の帳簿	种子账簿	種子帳簿	Saatbuch
+	joker.bitter_pip.name	쓴 씨	Bitter Pip	苦い種	苦籽	苦籽	Bitterkern
+	joker.sweet_pip.name	단 씨	Sweet Pip	甘い種	甜籽	甜籽	Süßkern
+	joker.walnut_press.name	호두 압착기	Walnut Press	胡桃割り	核桃压榨机	核桃壓榨機	Walnusspresse
+	joker.husk_lamp.name	껍질 등	Husk Lamp	殻の灯	壳灯	殼燈	Hülsenlampe
+	joker.chestnut_burr.name	밤송이	Chestnut Burr	栗のいが	栗蓬	栗蓬	Kastanienigel
+	joker.date_stone.name	대추씨	Date Stone	棗の核	枣核	棗核	Dattelkern
+	joker.pomace_cask.name	사과 찌끼 통	Pomace Cask	搾りかすの樽	果渣桶	果渣桶	Tresterfass
+	joker.thirteen_seeds.name	열세 씨앗	Thirteen Seeds	十三の種	十三粒种子	十三粒種子	Dreizehn Samen
+	joker.stone_fruit.name	씨 굳은 열매	Stone Fruit	核果	核果	核果	Steinfrucht
+	joker.ripe_year.name	익은 해	Ripe Year	熟れた年	熟年	熟年	Reifes Jahr
+	joker.regal_pair.name	왕과 으뜸	Regal Pair	王と一	王与尖	王與尖	Königspaar
+	joker.granary.name	곳간	Granary	穀倉	谷仓	穀倉	Kornspeicher
+	joker.wren.name	굴뚝새	Wren	ミソサザイ	鹪鹩	鷦鷯	Zaunkönig
+	joker.dipper.name	물까마귀	Dipper	カワガラス	河乌	河烏	Wasseramsel
+	joker.crake.name	뜸부기	Crake	クイナ	秧鸡	秧雞	Ralle
+	joker.plover.name	물떼새	Plover	チドリ	鸻	鴴	Regenpfeifer
+	joker.shrike.name	때까치	Shrike	モズ	伯劳	伯勞	Würger
+	joker.nuthatch.name	동고비	Nuthatch	ゴジュウカラ	䴓	鳾	Kleiber
+	joker.flock_call.name	떼 부름	Flock Call	群れの呼び声	群鸣	群鳴	Schwarmruf
+	joker.heron_watch.name	왜가리 지킴	Heron Watch	鷺の見張り	鹭之守望	鷺之守望	Reiherwacht
+	joker.swift_line.name	칼새 줄	Swift Line	アマツバメの列	雨燕之列	雨燕之列	Seglerreihe
+	joker.godwit.name	마도요	Godwit	オグロシギ	塍鹬	塍鷸	Uferschnepfe
+	joker.curlew.name	알락꼬리	Curlew	ダイシャクシギ	杓鹬	杓鷸	Brachvogel
+	joker.lapwing.name	댕기물떼새	Lapwing	タゲリ	凤头麦鸡	鳳頭麥雞	Kiebitz
+	joker.rookery.name	새 둥지터	Rookery	鴉の営巣地	鸦巢林	鴉巢林	Krähenkolonie
+	joker.kestrel.name	황조롱이	Kestrel	チョウゲンボウ	红隼	紅隼	Turmfalke
+	joker.migrant_line.name	철새 줄	Migrant Line	渡りの列	候鸟之列	候鳥之列	Zugvogelreihe
+	joker.wing_beat.name	날갯짓	Wing Beat	羽ばたき	振翅	振翅	Flügelschlag
+	joker.pinion_case.name	깃 상자	Pinion Case	風切羽の箱	飞羽匣	飛羽匣	Federkasten
+	joker.covey.name	메추라기 떼	Covey	鶉の群れ	鹑群	鶉群	Wachtelkette
+	joker.lone_gull.name	외로운 갈매기	Lone Gull	孤独な鴎	孤鸥	孤鷗	Einsame Möwe
+	joker.great_bustard.name	느시	Great Bustard	ノガン	大鸨	大鴇	Großtrappe
+	joker.firecrest.name	상모솔새	Firecrest	マミジロキクイタダキ	火冠戴菊	火冠戴菊	Goldhähnchen
+	joker.albatross.name	알바트로스	Albatross	アホウドリ	信天翁	信天翁	Albatros
+	joker.swan_song.name	백조의 노래	Swan Song	白鳥の歌	天鹅之歌	天鵝之歌	Schwanengesang
+	joker.sandpiper.name	삑삑도요	Sandpiper	イソシギ	矶鹬	磯鷸	Flussuferläufer
+	joker.great_flock.name	큰 무리	Great Flock	大群	大群	大群	Großer Schwarm
+	joker.leaf_fall.name	낙엽	Leaf Fall	落ち葉	落叶	落葉	Laubfall
+	joker.compost_bin.name	퇴비통	Compost Bin	堆肥箱	堆肥箱	堆肥箱	Komposter
+	joker.rake_head.name	갈퀴	Rake Head	熊手の頭	耙头	耙頭	Rechenkopf
+	joker.dry_twine.name	마른 끈	Dry Twine	乾いた紐	干麻绳	乾麻繩	Trockene Schnur
+	joker.weed_fork.name	잡초 갈퀴	Weed Fork	草取りフォーク	除草叉	除草叉	Unkrautgabel
+	joker.chaff_pile.name	쭉정이 더미	Chaff Pile	籾殻の山	糠堆	糠堆	Spreuhaufen
+	joker.hedge_snips.name	산울타리 가위	Hedge Snips	生垣鋏	篱笆剪	籬笆剪	Heckenschere
+	joker.windrow.name	마른 풀 줄	Windrow	干し草の列	草垄	草壟	Schwad
+	joker.sap_pail.name	수액 통	Sap Pail	樹液の桶	树液桶	樹液桶	Safteimer
+	joker.mulch_bed.name	뿌리덮개	Mulch Bed	敷き藁の床	覆盖层苗床	覆蓋層苗床	Mulchbeet
+	joker.sieve_frame.name	체 틀	Sieve Frame	篩の枠	筛框	篩框	Siebrahmen
+	joker.long_shears.name	긴 가위	Long Shears	長鋏	长柄剪	長柄剪	Lange Schere
+	joker.thinning_hook.name	솎음 낫	Thinning Hook	間引き鎌	疏苗钩	疏苗鉤	Jäthaken
+	joker.bramble_gate.name	가시 문	Bramble Gate	茨の門	荆棘门	荊棘門	Dornentor
+	joker.full_basket.name	가득 찬 바구니	Full Basket	満ちた籠	满篮	滿籃	Voller Korb
+	joker.wither_line.name	시든 줄	Wither Line	枯れた列	枯茎行	枯莖行	Welkreihe
+	joker.dross_jar.name	찌끼 항아리	Dross Jar	滓の壺	渣罐	渣罐	Schlackenkrug
+	joker.stubble_field.name	그루터기 밭	Stubble Field	刈り株の畑	茬地	茬地	Stoppelfeld
+	joker.smoke_ring.name	연기 고리	Smoke Ring	煙の輪	烟圈	煙圈	Rauchring
+	joker.cut_flowers.name	꺾은 꽃	Cut Flowers	切り花	切花	切花	Schnittblumen
+	joker.scythe_moon.name	낫 같은 달	Scythe Moon	鎌の月	镰月	鐮月	Sichelmond
+	joker.great_compost.name	큰 퇴비	Great Compost	大堆肥	大堆肥	大堆肥	Großer Kompost
+	joker.bare_bed.name	맨 화단	Bare Bed	裸の花壇	空苗床	空苗床	Kahles Beet
+	joker.winnow_wind.name	키질 바람	Winnow Wind	箕の風	簸风	簸風	Worfelwind
+	joker.endless_autumn.name	끝없는 가을	Endless Autumn	終わらぬ秋	无尽之秋	無盡之秋	Endloser Herbst
+	joker.copper_scale.name	구리 저울	Copper Scale	銅の天秤	铜秤	銅秤	Kupferwaage
+	joker.tin_till.name	양철 금고	Tin Till	ブリキの金庫	锡钱箱	錫錢箱	Blechkasse
+	joker.debt_slate.name	빚 서판	Debt Slate	借りの石板	赊账石板	賒賬石板	Schuldtafel
+	joker.coin_purse.name	돈주머니	Coin Purse	小銭入れ	钱袋	錢袋	Geldbeutel
+	joker.market_stall.name	장터 좌판	Market Stall	市の露店	市集摊	市集攤	Marktstand
+	joker.haggler.name	값 깎는 이	Haggler	値切る者	讨价者	討價者	Feilscher
+	joker.brass_weight.name	놋 분동	Brass Weight	真鍮の分銅	黄铜砝码	黃銅砝碼	Messinggewicht
+	joker.empty_purse.name	빈 주머니	Empty Purse	空の財布	空钱袋	空錢袋	Leerer Beutel
+	joker.toll_gate.name	통행 문	Toll Gate	料金所	收费门	收費門	Zollschranke
+	joker.interest_book.name	이자 책	Interest Book	利息の書	利息簿	利息簿	Zinsbuch
+	joker.coin_press.name	동전 압착기	Coin Press	貨幣圧印機	铸币机	鑄幣機	Münzpresse
+	joker.strongbox.name	금고	Strongbox	金庫	保险箱	保險箱	Geldkassette
+	joker.gilt_ledger.name	금박 장부	Gilt Ledger	金縁の帳簿	金边账簿	金邊帳簿	Goldrandbuch
+	joker.usurer.name	돈놀이꾼	Usurer	高利貸し	放贷人	放貸人	Wucherer
+	joker.spent_note.name	쓴 어음	Spent Note	使い古しの手形	用尽的票据	用盡的票據	Alter Schein
+	joker.alms_bowl.name	구휼 그릇	Alms Bowl	施しの鉢	施舍钵	施捨缽	Almosenschale
+	joker.weighbridge.name	계량대	Weighbridge	計量台	地磅	地磅	Brückenwaage
+	joker.broker.name	거래인	Broker	仲買人	经纪人	經紀人	Makler
+	joker.sealed_chest.name	봉한 상자	Sealed Chest	封印の櫃	封缄之箱	封緘之箱	Siegeltruhe
+	joker.royal_mint.name	왕실 주조소	Royal Mint	王立造幣局	皇家铸币厂	皇家鑄幣廠	Königsmünze
+	joker.debt_spiral.name	빚의 나선	Debt Spiral	借金の渦	债务漩涡	債務漩渦	Schuldenspirale
+	joker.tithe_barn.name	십일조 곳간	Tithe Barn	十分の一の倉	什一税仓	什一稅倉	Zehntscheune
+	joker.counting_house.name	셈방	Counting House	勘定所	账房	帳房	Kontor
+	joker.iron_reserve.name	무쇠 준비금	Iron Reserve	鉄の準備金	铁储备	鐵儲備	Eiserne Reserve
+	joker.golden_hoard.name	황금 무더기	Golden Hoard	黄金の山	黄金堆	黃金堆	Goldhort
+	joker.tap_root.name	곧은 뿌리	Tap Root	直根	主根	主根	Pfahlwurzel
+	joker.year_ring.name	나이테	Year Ring	年輪	年轮	年輪	Jahresring
+	joker.runner_vine.name	기는 덩굴	Runner Vine	匍匐する蔓	匍匐藤	匍匐藤	Ausläuferranke
+	joker.bud_scale.name	눈 비늘	Bud Scale	芽鱗	芽鳞	芽鱗	Knospenschuppe
+	joker.sap_rise.name	수액 오름	Sap Rise	樹液の上昇	树液上涌	樹液上湧	Saftstieg
+	joker.moss_stair.name	이끼 계단	Moss Stair	苔の階段	苔阶	苔階	Moostreppe
+	joker.bark_fold.name	껍질 주름	Bark Fold	樹皮の皺	树皮褶	樹皮褶	Rindenfalte
+	joker.first_leaf.name	첫 잎	First Leaf	初葉	初叶	初葉	Erstes Blatt
+	joker.heartwood.name	심재	Heartwood	心材	心材	心材	Kernholz
+	joker.girdle_band.name	두름 띠	Girdle Band	締めの帯	环剥带	環剝帶	Gürtelband
+	joker.pollard_stump.name	잘린 그루	Pollard Stump	台切りの株	截头树桩	截頭樹樁	Kopfbaumstumpf
+	joker.graft_union.name	접합부	Graft Union	接ぎ目	嫁接口	嫁接口	Veredelstelle
+	joker.spore_cloud.name	홀씨 구름	Spore Cloud	胞子の雲	孢子云	孢子雲	Sporenwolke
+	joker.deep_root.name	깊은 뿌리	Deep Root	深い根	深根	深根	Tiefe Wurzel
+	joker.climbing_rose.name	오르는 장미	Climbing Rose	蔓薔薇	藤本月季	藤本月季	Kletterrose
+	joker.withy_band.name	고리버들 띠	Withy Band	柳の帯	柳条带	柳條帶	Weidenband
+	joker.knot_wood.name	옹이	Knot Wood	節のある木	节木	節木	Astknotenholz
+	joker.shade_leaf.name	그늘잎	Shade Leaf	陰葉	阴叶	陰葉	Schattenblatt
+	joker.bind_weed.name	메꽃	Bind Weed	昼顔	旋花	旋花	Ackerwinde
+	joker.old_oak.name	늙은 참나무	Old Oak	老いた樫	老橡	老橡	Alte Eiche
+	joker.crown_gall.name	뿌리혹	Crown Gall	根頭癌腫	根癌	根癌	Wurzelkropf
+	joker.wild_stock.name	대목	Wild Stock	野生台木	野生砧木	野生砧木	Wildunterlage
+	joker.standing_grove.name	선 숲	Standing Grove	立ち並ぶ木立	立林	立林	Stehender Hain
+	joker.everbearing.name	사철 열림	Everbearing	四季なり	四季结果	四季結果	Immertragend
+	joker.world_tree.name	세계나무	World Tree	世界樹	世界树	世界樹	Weltenbaum
+	joker.thorn_ring.name	가시 고리	Thorn Ring	茨の輪	荆环	荊環	Dornenring
+	joker.nightshade_cup.name	까마중 잔	Nightshade Cup	ナス科の杯	茄科之杯	茄科之杯	Tollkirschkelch
+	joker.frost_bite.name	서릿발	Frost Bite	霜焼け	霜灼	霜灼	Frostbrand
+	joker.bee_sting.name	벌 침	Bee Sting	蜂の針	蜂刺	蜂刺	Bienenstich
+	joker.hemlock_leaf.name	독당근 잎	Hemlock Leaf	毒人参の葉	毒芹叶	毒芹葉	Schierling
+	joker.cracked_pot.name	갈라진 화분	Cracked Pot	罅の入った鉢	裂盆	裂盆	Rissiger Topf
+	joker.wasp_nest.name	말벌집	Wasp Nest	蜂の巣	蜂巢	蜂巢	Wespennest
+	joker.brittle_glass.name	여린 유리	Brittle Glass	脆い硝子	脆玻璃	脆玻璃	Sprödes Glas
+	joker.bloodroot.name	피뿌리	Bloodroot	血根草	血根草	血根草	Blutwurz
+	joker.viper_coil.name	살무사 고리	Viper Coil	蝮の蜷局	蝮蛇盘	蝮蛇盤	Vipernwindung
+	joker.dead_wood.name	죽은 가지	Dead Wood	枯れ枝	枯木	枯木	Totholz
+	joker.sacrifice_bowl.name	제물 그릇	Sacrifice Bowl	供物の鉢	祭钵	祭缽	Opferschale
+	joker.hollow_seed.name	빈 씨	Hollow Seed	うろの種	空籽	空籽	Hohler Samen
+	joker.iron_thorn.name	무쇠 가시	Iron Thorn	鉄の棘	铁刺	鐵刺	Eisendorn
+	joker.blight_spot.name	마름병 자리	Blight Spot	胴枯れの斑	枯病斑	枯病斑	Brandfleck
+	joker.rust_pin.name	녹슨 핀	Rust Pin	錆びた針	锈针	鏽針	Rostnadel
+	joker.snake_pit.name	뱀 구덩이	Snake Pit	蛇の穴	蛇窟	蛇窟	Schlangengrube
+	joker.poison_ivy.name	덩굴옻나무	Poison Ivy	ツタウルシ	毒漆藤	毒漆藤	Giftefeu
+	joker.crow_bait.name	까마귀 밥	Crow Bait	鴉の餌	鸦食	鴉食	Krähenköder
+	joker.hemlock_crown.name	독당근 화관	Hemlock Crown	毒人参の冠	毒芹之冠	毒芹之冠	Giftkrone
+	joker.wolf_trap.name	이빨 덫	Wolf Trap	狼の罠	狼夹	狼夾	Wolfsfalle
+	joker.black_frost.name	검은 서리	Black Frost	黒い霜	黑霜	黑霜	Schwarzfrost
+	joker.last_stand.name	마지막 버팀	Last Stand	最後の抵抗	最后据守	最後據守	Letztes Gefecht
+	joker.martyr_stone.name	순교의 돌	Martyr Stone	殉教の石	殉道石	殉道石	Märtyrerstein
+	joker.winter_king.name	겨울의 왕	Winter King	冬の王	冬王	冬王	Winterkönig
+	joker.wax_seal.name	밀랍 인장	Wax Seal	赤い封蝋	红火漆	紅火漆	Rotes Siegel
+	joker.blue_wax.name	파란 밀랍	Blue Wax	青い封蝋	蓝火漆	藍火漆	Blaues Siegel
+	joker.gold_wax.name	금 밀랍	Gold Wax	金の封蝋	金火漆	金火漆	Goldenes Siegel
+	joker.purple_wax.name	자주 밀랍	Purple Wax	紫の封蝋	紫火漆	紫火漆	Lila Siegel
+	joker.foil_strip.name	박 띠	Foil Strip	箔の帯	箔条	箔條	Folienstreifen
+	joker.holo_strip.name	홀로 띠	Holo Strip	ホロの帯	全息条	全息條	Holostreifen
+	joker.bonus_pin.name	덧칩 핀	Bonus Pin	加点の針	加值别针	加值別針	Bonusnadel
+	joker.mult_pin.name	배수 핀	Mult Pin	倍率の針	倍率别针	倍率別針	Multinadel
+	joker.wild_pin.name	들 카드 핀	Wild Pin	万能の針	万用别针	萬用別針	Jokernadel
+	joker.glazier.name	유리장이	Glazier	硝子職人	玻璃匠	玻璃匠	Glaser
+	joker.smith_tongs.name	대장 집게	Smith Tongs	鍛冶の鋏	铁匠钳	鐵匠鉗	Schmiedezange
+	joker.seal_press.name	인장 압착기	Seal Press	封蝋の圧印器	火漆压印器	火漆壓印器	Siegelpresse
+	joker.gilder.name	금박장이	Gilder	金箔師	贴金匠	貼金匠	Vergolder
+	joker.wax_tally.name	밀랍 셈	Wax Tally	封蝋の勘定	火漆计数	火漆計數	Siegelzählung
+	joker.glass_tally.name	유리 셈	Glass Tally	硝子の勘定	玻璃计数	玻璃計數	Glaszählung
+	joker.lucky_tally.name	행운 셈	Lucky Tally	幸運の勘定	幸运计数	幸運計數	Glückszählung
+	joker.stone_setter.name	돌 놓는 이	Stone Setter	石を据える者	置石人	置石人	Steinsetzer
+	joker.edition_case.name	판본 상자	Edition Case	版の箱	版本匣	版本匣	Editionskasten
+	joker.enamel_kiln.name	에나멜 가마	Enamel Kiln	七宝窯	珐琅窑	琺瑯窯	Emailleofen
+	joker.sealed_deck.name	봉인된 덱	Sealed Deck	封印の山札	封缄牌堆	封緘牌堆	Siegeldeck
+	joker.master_glazier.name	유리 장인	Master Glazier	硝子の名工	玻璃大师	玻璃大師	Glasermeister
+	joker.seal_ring.name	인장 반지	Seal Ring	印章の指輪	印戒	印戒	Siegelring
+	joker.foil_forge.name	박 대장간	Foil Forge	箔の鍛冶場	箔锻炉	箔鍛爐	Folienschmiede
+	joker.alloy_bed.name	합금 화단	Alloy Bed	合金の床	合金床	合金床	Legierungsbett
+	joker.crown_glass.name	왕관 유리	Crown Glass	クラウン硝子	冠玻璃	冠玻璃	Kronglas
+	joker.star_dust.name	별가루	Star Dust	星屑	星尘	星塵	Sternenstaub
+	joker.moon_dish.name	달 접시	Moon Dish	月の皿	月盘	月盤	Mondschale
+	joker.steam_vent.name	증기 구멍	Steam Vent	蒸気孔	蒸汽口	蒸汽口	Dampfschlot
+	joker.rain_gauge.name	우량계	Rain Gauge	雨量計	雨量计	雨量計	Regenmesser
+	joker.dew_glass.name	이슬 유리	Dew Glass	露の硝子	露珠玻璃	露珠玻璃	Tauglas
+	joker.comet_ash.name	혜성 재	Comet Ash	彗星の灰	彗星之灰	彗星之灰	Kometenasche
+	joker.sky_lens.name	하늘 렌즈	Sky Lens	天のレンズ	天空透镜	天空透鏡	Himmelslinse
+	joker.card_case.name	카드 갑	Card Case	カード入れ	卡匣	卡匣	Kartenetui
+	joker.nebula_jar.name	성운 항아리	Nebula Jar	星雲の壺	星云罐	星雲罐	Nebelkrug
+	joker.tide_pool.name	물웅덩이	Tide Pool	潮だまり	潮池	潮池	Gezeitentümpel
+	joker.mist_bell.name	안개 종	Mist Bell	霧の鐘	雾钟	霧鐘	Nebelglocke
+	joker.spirit_kettle.name	넋 주전자	Spirit Kettle	霊の薬缶	灵魂水壶	靈魂水壺	Geisterkessel
+	joker.astrolabe.name	아스트롤라베	Astrolabe	アストロラーベ	星盘	星盤	Astrolabium
+	joker.arcana_case.name	비법 상자	Arcana Case	秘儀の箱	秘仪匣	祕儀匣	Arkanakasten
+	joker.planet_dial.name	행성 다이얼	Planet Dial	惑星の文字盤	行星刻度盘	行星刻度盤	Planetenscheibe
+	joker.tarot_press.name	타로 압착기	Tarot Press	タロットの圧印機	塔罗压印机	塔羅壓印機	Tarotpresse
+	joker.salt_bowl.name	소금 그릇	Salt Bowl	塩の鉢	盐钵	鹽缽	Salzschale
+	joker.cloud_ladder.name	구름 사다리	Cloud Ladder	雲の梯子	云梯	雲梯	Wolkenleiter
+	joker.orrery.name	천구의	Orrery	太陽系儀	太阳系仪	太陽系儀	Orrery
+	joker.great_conjunction.name	큰 합	Great Conjunction	大合	大合	大合	Konjunktion
+	joker.spirit_gate.name	넋의 문	Spirit Gate	霊の門	灵门	靈門	Geistertor
+	joker.star_forge.name	별 대장간	Star Forge	星の鍛冶場	星辰锻炉	星辰鍛爐	Sternenschmiede
+	joker.moon_mirror.name	달 거울	Moon Mirror	月の鏡	月镜	月鏡	Mondspiegel
+	joker.void_lens.name	빈 렌즈	Void Lens	虚のレンズ	虚空透镜	虛空透鏡	Leerlinse
+	joker.celestial_engine.name	천체 기관	Celestial Engine	天体機関	天体机关	天體機關	Himmelsmaschine
+	joker.paired_glass.name	짝 유리	Paired Glass	対の硝子	成对玻璃	成對玻璃	Doppelglas
+	joker.shadow_box.name	그림자 상자	Shadow Box	影の箱	影箱	影箱	Schattenkasten
+	joker.twin_pot.name	쌍 화분	Twin Pot	双子の鉢	双生盆	雙生盆	Zwillingstopf
+	joker.sale_tag.name	값표	Sale Tag	値札	标价签	標價籤	Preisschild
+	joker.spare_frame.name	여벌 액자	Spare Frame	予備の額	备用画框	備用畫框	Ersatzrahmen
+	joker.dust_sheet.name	덮개천	Dust Sheet	覆いの布	防尘布	防塵布	Staubtuch
+	joker.price_card.name	가격표	Price Card	値段札	价目卡	價目卡	Preiskarte
+	joker.dim_mirror.name	흐린 거울	Dim Mirror	曇った鏡	昏镜	昏鏡	Trüber Spiegel
+	joker.frame_shop.name	액자 가게	Frame Shop	額縁屋	画框店	畫框店	Rahmenladen
+	joker.rarity_ledger.name	희귀 대장	Rarity Ledger	稀少の帳簿	稀有度账簿	稀有度帳簿	Seltenheitsbuch
+	joker.full_shelf.name	가득한 선반	Full Shelf	満ちた棚	满架	滿架	Volles Regal
+	joker.hand_me_down.name	물림	Hand Me Down	お下がり	传下之物	傳下之物	Erbstück
+	joker.swap_frame.name	바꿈 액자	Swap Frame	入れ替えの額	换框	換框	Tauschrahmen
+	joker.estate_note.name	유산 쪽지	Estate Note	遺産の証書	遗产文书	遺產文書	Nachlassbrief
+	joker.slot_pin.name	자리 핀	Slot Pin	枠の針	槽位别针	槽位別針	Platznadel
+	joker.auction_bell.name	경매 종	Auction Bell	競売の鐘	拍卖铃	拍賣鈴	Auktionsglocke
+	joker.mirror_dust.name	거울 가루	Mirror Dust	鏡の粉	镜尘	鏡塵	Spiegelstaub
+	joker.understudy.name	대역	Understudy	代役	替角	替角	Zweitbesetzung
+	joker.hall_of_mirrors.name	거울의 방	Hall of Mirrors	鏡の間	镜厅	鏡廳	Spiegelsaal
+	joker.black_frame.name	검은 액자	Black Frame	黒い額	黑框	黑框	Schwarzrahmen
+	joker.prompt_book.name	대본	Prompt Book	台本	提词本	提詞本	Soufflierbuch
+	joker.pawnbroker.name	전당포	Pawnbroker	質屋	当铺	當鋪	Pfandleiher
+	joker.twin_seed.name	쌍씨	Twin Seed	双子の種	双生籽	雙生籽	Zwillingssamen
+	joker.stagehand.name	무대 일꾼	Stagehand	裏方	舞台工	舞台工	Bühnenarbeiter
+	joker.grand_gallery.name	큰 화랑	Grand Gallery	大画廊	大画廊	大畫廊	Große Galerie
+	joker.spade_head.name	삽날	Spade Head	鋤の刃	锹头	鍬頭	Spatenblatt
+	joker.seed_tray.name	모판	Seed Tray	育苗トレイ	育苗盘	育苗盤	Saatschale
+	joker.sorting_sieve.name	고르는 체	Sorting Sieve	選別の篩	分选筛	分選篩	Sortiersieb
+	joker.thin_rows.name	성긴 줄	Thin Rows	疎らな畝	疏垄	疏壟	Dünne Reihen
+	joker.face_bed.name	그림 화단	Face Bed	絵札の花壇	花牌苗床	花牌苗床	Bildkartenbeet
+	joker.ace_bed.name	으뜸 화단	Ace Bed	エースの花壇	尖牌苗床	尖牌苗床	Assbeet
+	joker.hand_spade.name	손삽	Hand Spade	移植ごて	手铲	手鏟	Handschaufel
+	joker.garden_line.name	정원 줄	Garden Line	庭の水糸	园艺定线	園藝定線	Gartenschnur
+	joker.weed_pull.name	잡초 뽑기	Weed Pull	草抜き	拔草	拔草	Unkrautzug
+	joker.graft_knife.name	접칼	Graft Knife	接ぎ木ナイフ	嫁接刀	嫁接刀	Pfropfmesser
+	joker.nursery_bed.name	온상	Nursery Bed	苗床	苗床	苗床	Anzuchtbeet
+	joker.soil_test.name	흙 검사	Soil Test	土壌検査	土壤检测	土壤檢測	Bodenprobe
+	joker.deep_bed.name	깊은 화단	Deep Bed	深い花壇	深床	深床	Tiefbeet
+	joker.crop_rotation.name	돌려짓기	Crop Rotation	輪作	轮作	輪作	Fruchtfolge
+	joker.chalk_line.name	백묵 줄	Chalk Line	墨縄	粉线	粉線	Schlagschnur
+	joker.stone_row.name	돌 줄	Stone Row	石の列	石列	石列	Steinreihe
+	joker.culling_fork.name	솎는 갈퀴	Culling Fork	間引きの熊手	汰选叉	汰選叉	Auslesegabel
+	joker.wide_bed.name	넓은 화단	Wide Bed	広い花壇	宽床	寬床	Breitbeet
+	joker.seed_drill.name	씨 뿌리개	Seed Drill	条播機	条播机	條播機	Sämaschine
+	joker.gold_furrow.name	금 이랑	Gold Furrow	金の畝溝	金垄沟	金壟溝	Goldene Furche
+	joker.great_graft.name	큰 접붙임	Great Graft	大接ぎ	大嫁接	大嫁接	Großpfropfung
+	joker.terraced_bed.name	계단 화단	Terraced Bed	段々の花壇	梯田苗床	梯田苗床	Terrassenbeet
+	joker.hothouse.name	유리 온실	Hothouse	温室	温室	溫室	Treibhaus
+	joker.stone_garden.name	돌 정원	Stone Garden	石庭	石庭	石庭	Steingarten
+	joker.first_garden.name	첫 정원	First Garden	最初の庭	最初之园	最初之園	Erster Garten
+	joker.hand_cart.name	손수레	Hand Cart	手押し車	手推车	手推車	Handkarren
+	joker.paint_sign.name	그린 간판	Paint Sign	描かれた看板	彩绘招牌	彩繪招牌	Gemaltes Schild
+	joker.free_wheel.name	헛바퀴	Free Wheel	空回りの輪	空转轮	空轉輪	Freilauf
+	joker.regular.name	단골	Regular	常連	常客	常客	Stammkunde
+	joker.barrow_boy.name	수레 끄는 아이	Barrow Boy	荷車の少年	推车少年	推車少年	Karrenjunge
+	joker.chalk_board.name	칠판	Chalk Board	黒板	黑板	黑板	Kreidetafel
+	joker.paper_bag.name	종이 봉지	Paper Bag	紙袋	纸袋	紙袋	Papiertüte
+	joker.window_shopper.name	구경꾼	Window Shopper	冷やかし客	闲逛顾客	閒逛顧客	Bummler
+	joker.till_bell.name	계산대 종	Till Bell	会計の鐘	柜台铃	櫃檯鈴	Ladenglocke
+	joker.two_carts.name	두 수레	Two Carts	二台の荷車	两辆手推车	兩輛手推車	Zwei Karren
+	joker.coupon_book.name	할인 책	Coupon Book	割引券の冊子	优惠券册	優惠券冊	Gutscheinheft
+	joker.sale_board.name	할인 간판	Sale Board	値引きの看板	折扣牌	折扣牌	Rabattschild
+	joker.modifier_case.name	성질 상자	Modifier Case	性質の箱	属性匣	屬性匣	Merkmalskasten
+	joker.crier.name	외치는 이	Crier	触れ役	传报人	傳報人	Ausrufer
+	joker.porter.name	짐꾼	Porter	荷運び	搬运工	搬運工	Träger
+	joker.dealer_hand.name	딜러의 손	Dealer Hand	親の手	荷官之手	荷官之手	Geberhand
+	joker.spendthrift.name	낭비꾼	Spendthrift	浪費家	挥霍者	揮霍者	Verschwender
+	joker.reroll_rig.name	리롤 장치	Reroll Rig	仕込みの賽	作弊骰具	作弊骰具	Würfeltrick
+	joker.night_market.name	밤 장터	Night Market	夜市	夜市	夜市	Nachtmarkt
+	joker.foil_stall.name	박 좌판	Foil Stall	箔の露店	箔摊	箔攤	Folienstand
+	joker.grand_bazaar.name	큰 장	Grand Bazaar	大市場	大集市	大集市	Großer Basar
+	joker.free_market.name	자유 시장	Free Market	自由市場	自由市场	自由市場	Freier Markt
+	joker.patron.name	후원자	Patron	後援者	赞助人	贊助人	Gönner
+	joker.gilt_cart.name	금박 수레	Gilt Cart	金箔の荷車	鎏金手推车	鎏金手推車	Goldkarren
+	joker.high_street.name	큰 거리	High Street	目抜き通り	主街	主街	Hauptstraße
+	joker.fog_bank.name	안개 띠	Fog Bank	霧の帯	雾带	霧帶	Nebelbank
+	joker.even_scales.name	고른 저울	Even Scales	釣り合う天秤	平衡之秤	平衡之秤	Gleiche Waage
+	joker.half_light.name	반쪽 빛	Half Light	半分の灯	半明之灯	半明之燈	Halbes Licht
+	joker.dream_pane.name	꿈 유리	Dream Pane	夢の硝子	梦之窗	夢之窗	Traumscheibe
+	joker.gap_stone.name	틈 돌	Gap Stone	欠けた石	缺口石	缺口石	Lückenstein
+	joker.crooked_pane.name	굽은 유리	Crooked Pane	歪んだ硝子	歪窗	歪窗	Schiefe Scheibe
+	joker.omen_slate.name	조짐 서판	Omen Slate	兆しの石板	兆石板	兆石板	Omentafel
+	joker.sign_reader.name	조짐 읽는 이	Sign Reader	兆しを読む者	解兆者	解兆者	Zeichendeuter
+	joker.three_line.name	셋 줄	Three Line	三枚の列	三张之列	三張之列	Dreierreihe
+	joker.weighted_air.name	무게 실은 공기	Weighted Air	重い空気	沉重之气	沉重之氣	Schwere Luft
+	joker.dream_ladder.name	꿈 사다리	Dream Ladder	夢の梯子	梦梯	夢梯	Traumleiter
+	joker.rank_omen.name	랭크 조짐	Rank Omen	位の兆し	点数之兆	點數之兆	Rangomen
+	joker.mist_gate.name	안개 문	Mist Gate	霧の門	雾门	霧門	Nebeltor
+	joker.small_hours.name	이른 시간	Small Hours	早い時刻	凌晨时分	凌晨時分	Frühe Stunden
+	joker.big_hours.name	늦은 시간	Big Hours	遅い時刻	深夜时分	深夜時分	Späte Stunden
+	joker.sixth_sense.name	여섯째 감각	Sixth Sense	第六感	第六感	第六感	Sechster Sinn
+	joker.bent_ladder.name	굽은 사다리	Bent Ladder	曲がった梯子	弯梯	彎梯	Krumme Leiter
+	joker.waking_dream.name	깬 꿈	Waking Dream	白昼夢	醒梦	醒夢	Wachtraum
+	joker.long_odds.name	긴 승산	Long Odds	低い勝ち目	渺茫胜算	渺茫勝算	Geringe Chancen
+	joker.broken_rule.name	부러진 자	Broken Rule	折れた定規	断尺	斷尺	Bruchlineal
+	joker.dream_engine.name	꿈 기관	Dream Engine	夢の機関	梦机关	夢機關	Traummaschine
+	joker.all_face.name	온 얼굴	All Face	総絵札	全花牌	全花牌	Nur Bildkarten
+	joker.omen_crown.name	조짐 화관	Omen Crown	兆しの冠	兆之冠	兆之冠	Omenkrone
+	joker.two_line.name	둘 줄	Two Line	二枚の列	两张之列	兩張之列	Zweierreihe
+	joker.waking_world.name	깬 세계	Waking World	目覚めの世界	醒世	醒世	Wache Welt
+	joker.iron_key.name	무쇠 열쇠	Iron Key	鉄の鍵	铁钥匙	鐵鑰匙	Eisenschlüssel
+	joker.brass_lock.name	놋 자물쇠	Brass Lock	真鍮の錠	黄铜锁	黃銅鎖	Messingschloss
+	joker.spring_gate.name	봄 문	Spring Gate	春の門	春门	春門	Frühlingstor
+	joker.autumn_gate.name	가을 문	Autumn Gate	秋の門	秋门	秋門	Herbsttor
+	joker.winter_gate.name	겨울 문	Winter Gate	冬の門	冬门	冬門	Wintertor
+	joker.summer_gate.name	여름 문	Summer Gate	夏の門	夏门	夏門	Sommertor
+	joker.ward_stone.name	지킴돌	Ward Stone	守りの石	守护石	守護石	Schutzstein
+	joker.door_chime.name	문 종	Door Chime	扉の鈴	门铃	門鈴	Türglocke
+	joker.boss_key.name	보스 열쇠	Boss Key	ボスの鍵	首领钥匙	首領鑰匙	Bossschlüssel
+	joker.double_gate.name	겹문	Double Gate	二重の門	双门	雙門	Doppeltor
+	joker.season_ring.name	계절 고리	Season Ring	季節の輪	四季环	四季環	Saisonring
+	joker.skeleton_key.name	만능 열쇠	Skeleton Key	合鍵	万能钥匙	萬能鑰匙	Dietrich
+	joker.toll_house.name	통행 집	Toll House	料金小屋	收费屋	收費屋	Zollhaus
+	joker.open_gate.name	열린 문	Open Gate	開いた門	开门	開門	Offenes Tor
+	joker.lock_pick.name	자물쇠 따개	Lock Pick	鍵開け	开锁工具	開鎖工具	Dietrichsatz
+	joker.harvest_gate.name	추수 문	Harvest Gate	収穫の門	丰收之门	豐收之門	Erntetor
+	joker.small_door.name	작은 문	Small Door	小さな扉	小门	小門	Kleine Tür
+	joker.ante_stone.name	안테 돌	Ante Stone	アンティの石	底注石	底注石	Antestein
+	joker.great_key.name	큰 열쇠	Great Key	大いなる鍵	巨钥	巨鑰	Großschlüssel
+	joker.boss_ward.name	보스 지킴	Boss Ward	ボスの守り	首领护符	首領護符	Bossschutz
+	joker.season_wheel.name	계절 바퀴	Season Wheel	季節の輪盤	四季轮	四季輪	Jahreszeitenrad
+	joker.iron_gate.name	무쇠 문	Iron Gate	鉄の門	铁门	鐵門	Eisentor
+	joker.warden.name	문지기	Warden	門番	守门人	守門人	Wärter
+	joker.year_gate.name	해의 문	Year Gate	年の門	年门	年門	Jahrestor
+	joker.last_door.name	마지막 문	Last Door	最後の扉	最后之门	最後之門	Letzte Tür
 	tarot.the_fool.name	바보	The Fool	愚者	愚者	愚者	Der Narr
 	tarot.the_magician.name	마법사	The Magician	魔術師	魔术师	魔術師	Der Magier
 	tarot.the_high_priestess.name	고위 여사제	The High Priestess	女教皇	女祭司	女祭司	Die Hohepriesterin
