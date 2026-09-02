@@ -9,6 +9,8 @@
     "check:replays": "tsx tools/bake-replays.ts --check",
     "version": "tsx tools/write-version.ts",
     "check:version": "tsx tools/write-version.ts --check",
+    "check:leaderboard": "tsx tools/check-leaderboard.ts",
+    "check:ranked": "tsx tools/check-ranked.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "headless": "tsx src/headless.ts",

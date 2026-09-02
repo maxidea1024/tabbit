@@ -414,7 +414,8 @@ export function boardsRouter(context: Context): Router {
  * 됩니다 — 부팅마다 부르는 길이라 그 값이 그대로 첫 화면의 시간입니다.
  */
 export async function ranksOf(context: Context, accountId: number): Promise<{
-  boardId: string; name: string; group: string; rank: number; value: number
+  boardId: string; name: string; group: string; metric: string
+  rank: number; value: number
 }[]> {
   const boards = loadBoards(context.env.dataPath)
   const member = String(accountId)
@@ -436,6 +437,8 @@ export async function ranksOf(context: Context, accountId: number): Promise<{
       boardId: boards[at].boardId,
       name: boards[at].name,
       group: BoardGroup[boards[at].group],
+      // 화면이 값을 사람이 읽는 꼴로 적으려면 어느 지표인지를 알아야 합니다.
+      metric: LeaderboardMetric[boards[at].metric],
       rank: Number(rank) + 1,
       value: valueFromScore(boards[at].metric, Number(score)),
     })

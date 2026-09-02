@@ -37,7 +37,14 @@ public partial class ModelCooker
     /// A misspelled kind is a fact about the column, and a table of 90,000 rows would
     /// otherwise state it 90,000 times - which buries every other finding in the run.
     /// </remarks>
-    private readonly HashSet<Field> _unknownKinds = new HashSet<Field>();
+    /// <remarks>
+    /// Concurrent because the per-table checks run in parallel and this is written from
+    /// inside that loop. A plain <c>HashSet</c> throws there - intermittently, and only once
+    /// the run is large enough for two tables to reach a misspelled kind at the same moment.
+    /// <c>TryAdd</c> keeps "reported once" exact: only one caller sees true.
+    /// </remarks>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<Field, byte>
+        _unknownKinds = new();
 
     /// <summary>
     /// How much of the "this id is a row of one of these tables" check actually ran.
@@ -1167,7 +1174,7 @@ public partial class ModelCooker
             // The column is wrong rather than the row, so it is reported once and its cells
             // are not each reported as a missing file on top of it. A table with 90,000 rows
             // and one misspelled kind should produce one message.
-            if (_unknownKinds.Add(field))
+            if (_unknownKinds.TryAdd(field, 0))
             {
                 string configured = string.Join(", ",
                     _assets.Kinds.Select(known => known.Length == 0 ? "(no kind)" : known));
@@ -1293,7 +1300,13 @@ public partial class ModelCooker
         return known;
     }
 
-    private readonly Dictionary<Field, System.Text.RegularExpressions.Regex?> _patterns = new();
+    /// <remarks>
+    /// Concurrent for the same reason as <see cref="_unknownKinds"/>. Two threads compiling
+    /// the same pattern is harmless - the result is the same object's worth of behavior and
+    /// the last write wins - but a plain <c>Dictionary</c> written from both corrupts.
+    /// </remarks>
+    private readonly System.Collections.Concurrent
+        .ConcurrentDictionary<Field, System.Text.RegularExpressions.Regex?> _patterns = new();
 
     /// <summary>
     /// Whether a value is the one a type holds when nobody wrote anything.

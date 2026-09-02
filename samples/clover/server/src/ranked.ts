@@ -9,6 +9,21 @@ import { Router } from 'express'
 import { KEY, underLimit } from './redis'
 import { fail, guard, requireLogin, type Context } from './http'
 import { isPoolChoice, loadData } from './core'
+import { stakeIndexOf } from '../../web/src/core/metrics'
+import { StakeKind } from '../../web/src/generated/enums/stake-kind'
+import type { Data } from '../../web/src/core/data'
+
+/**
+ * 흰 스테이크를 가리키는 꼴인가.
+ *
+ * **`stakeIndexOf` 는 모르는 것도 1을 돌려줍니다** — 순위를 부풀리지 않는 방향이지만,
+ * 받아들일지를 정하는 자리에서는 「흰색인 것」과 「모르는 것」을 갈라야 합니다.
+ */
+function isWhite(data: Data, stake: string): boolean {
+  const row = data.tables.stake.records.find(one => Number(one.stake) === StakeKind.White)
+  if (!row) return false
+  return StakeKind[row.stake] === stake || String(row.stake) === stake || row.name === stake
+}
 
 /** 시드의 수명. 받아 두고 하루 안에 시작합니다. */
 export const SEED_HOURS = 24
@@ -76,14 +91,12 @@ export function rankedRouter(context: Context): Router {
         fail(res, 400, 'unknown_deck', '없는 덱입니다')
         return
       }
-      if (!data.tables.stake.records.some(row => row.name === stake
-          || String(row.stake) === stake)) {
-        // 이름과 값 둘 다 받습니다. enum 의 이름으로 오는 것도 아래에서 확인합니다.
-        const known = data.enumNames.StakeKind ?? {}
-        if (!Object.values(known).includes(stake)) {
-          fail(res, 400, 'unknown_stake', '없는 스테이크입니다')
-          return
-        }
+      // **스테이크는 세 가지 꼴로 옵니다.** enum 의 이름(`White`)과 값(`1`)과 시트의
+      // 표시 이름(`흰색`)입니다 — `stakeIndexOf` 가 셋을 다 받고, 여기서 따로 판정하면
+      // 그 하나가 빠집니다. 실제로 `White` 가 빠져 있었습니다.
+      if (stakeIndexOf(data, stake) === 1 && !isWhite(data, stake)) {
+        fail(res, 400, 'unknown_stake', '없는 스테이크입니다')
+        return
       }
       if (!isPoolChoice(pool)) {
         fail(res, 400, 'unknown_pool', '풀은 base 또는 all 입니다')

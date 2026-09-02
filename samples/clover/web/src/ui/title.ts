@@ -59,7 +59,8 @@ export class Title extends Container {
   private challenges?: Button
 
   constructor(onStart: () => void, onGuide: () => void, onOptions: () => void,
-              onJokers?: () => void, onChallenges?: () => void) {
+              onJokers?: () => void, onChallenges?: () => void,
+              onLeaderboard?: () => void, onRanked?: () => void) {
     super()
 
     // **덮는 층이 없습니다.** 글이 읽히게 하려고 반투명 사각형을 얹으면 그 겹의 변이
@@ -129,14 +130,42 @@ export class Title extends Container {
     })
     dare.on('pointerout', () => this.tip.hide())
 
+    // 리더보드. **구석의 아이콘이 아니라 줄에 있습니다** — 판 바깥의 설정이 아니라
+    // 게임에 딸린 내용이고, 조커 풀과 챌린지가 같은 줄에 있습니다.
+    const board = new Button(t('ui.button.leaderboard'), bw, 52, 0x5f2f8f,
+                             () => onLeaderboard?.(), 20)
+    board.position.set(SIZE.width / 2 - bw / 2, 452 + bh + 14 + (52 + 14) * 2)
+    this.buttons.push({ key: 'ui.button.leaderboard', button: board })
+
+    // **랭크 런은 로그인한 사람에게만 보입니다.** 로그아웃 상태의 타이틀이 지금과 같아야
+    // 합니다.
+    const rankedStart = new Button(t('ui.lb.ranked'), 168, 44, 0x2f8f52,
+                                   () => onRanked?.(), 16)
+    rankedStart.position.set(SIZE.width / 2 + bw / 2 + 16, 452 + (bh - 44) / 2)
+    rankedStart.visible = false
+    this.rankedButton = rankedStart
+    this.buttons.push({ key: 'ui.lb.ranked', button: rankedStart })
+
     this.addChild(this.leaf, this.logo, this.tagline, this.note, start, pool, dare,
-                  guide, option, this.tip)
+                  board, rankedStart, guide, option, this.tip)
 
     this.relabel()
 
     // 뒤를 눌러도 아무 일도 없습니다. **시작은 눌러서 시작하는 것입니다.**
     this.eventMode = 'static'
     this.on('pointertap', () => undefined)
+  }
+
+  private rankedButton?: Button
+
+  /**
+   * 로그인 상태를 알립니다.
+   *
+   * **로그아웃이면 랭크 단추가 없습니다.** 눌러서 로그인 창이 뜨는 것보다, 없는 편이
+   * 「게임은 혼자 하는 것」이라는 것과 어긋나지 않습니다.
+   */
+  setSignedIn(signedIn: boolean): void {
+    if (this.rankedButton) this.rankedButton.visible = signedIn
   }
 
   /** 챌린지가 잠겨 있는가. 쪽지를 띄울지가 이것으로 갈립니다. */

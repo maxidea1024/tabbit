@@ -19,9 +19,20 @@ import type { GameEvent, RunState } from './state'
 /** 한 안테의 블라인드 수. 스몰 · 빅 · 보스입니다. */
 const BLINDS_PER_ANTE = 3
 
+/**
+ * 등정에서 한 스테이크가 차지하는 폭.
+ *
+ * **블라인드 수보다 하나 넓습니다.** 지나온 블라인드가 0부터 24까지 **25가지**이므로,
+ * 24로 잡으면 「흰 스테이크 완주」와 「붉은 스테이크 시작」이 같은 수가 됩니다 — 순서는
+ * 맞지만 그 수에서 스테이크와 자리를 되읽을 수 없게 됩니다.
+ */
+export function ascentPerStake(data: Data): number {
+  return data.run.winAnte * BLINDS_PER_ANTE + 1
+}
+
 /** 순위에 올라가는 값들. */
 export interface Metrics {
-  /** 등정. `(스테이크 − 1) × 안테당 블라인드 × 승리 안테 + 지나온 블라인드`. */
+  /** 등정. `(스테이크 − 1) × 25 + 지나온 블라인드`. 흰 완주가 24, 금 완주가 199 입니다. */
   ascent: number
   /** 한 손이 낸 가장 큰 점수. */
   bestHand: number
@@ -93,7 +104,7 @@ export function stakeIndexOf(data: Data, stake: string): number {
  * 정하지 않습니다.
  */
 export function seal(data: Data, acc: MetricsAcc, state: RunState): Metrics {
-  const perStake = data.run.winAnte * BLINDS_PER_ANTE
+  const perStake = ascentPerStake(data)
   const stake = stakeIndexOf(data, state.stake)
   return {
     ascent: (stake - 1) * perStake + progressOf(data, state),

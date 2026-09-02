@@ -9,13 +9,15 @@
 
 |  |수|
 |--|--|
-|찾은 것|**6**|
-|닫힌 것|0|
+|찾은 것|**7**|
+|닫힌 것|**1**|
 |우회한 것|**6**|
 
-앞의 셋은 [데이터 저작](progress.md#p2--데이터-저작-끝)에서, 뒤의 셋은
-[코어](progress.md#p3--코어-typescript-끝)에서 나왔습니다. **뒤의 셋은 생성 코드를 실제로
+앞의 셋은 [데이터 저작](progress.md#p2--데이터-저작-끝)에서, 그다음 셋은
+[코어](progress.md#p3--코어-typescript-끝)에서 나왔습니다. **그 셋은 생성 코드를 실제로
 읽고 돌려 보아야 나오는 것들입니다** — 변환은 셋 다 성공으로 끝납니다.
+
+**일곱째는 격자를 더하다 나왔고 고쳤습니다.** 변환을 여러 번 돌려야 나옵니다.
 
 ## 1. 배열인 변종 멤버에서의 C# 생성 예외
 
@@ -56,7 +58,7 @@ C# 생성이 예외를 던집니다.
 
 ## 2. enum 이 키인 테이블에 대한 `foreign` 의 제약
 
-**설계된 제약이고, 메시지가 그렇게 말합니다.**
+**설계된 제약이고, 메시지에 그렇게 적혀 있습니다.**
 
 ```
 `Planet.Hand` references `PokerHand`, whose index is an enum. Every other key type can be
@@ -78,7 +80,7 @@ generated readers have no call for it here.
 
 ## 3. 변종이 공유하는 컬럼의 타입과 제약
 
-**설계의 결과이고, 메시지가 그렇게 말합니다.** 다만 **처음 만나는 자리가 늦습니다.**
+**설계의 결과이고, 메시지에 그렇게 적혀 있습니다.** 다만 **처음 만나는 자리가 늦습니다.**
 
 ```
 Column `Operation.Value` of `JokerEffect` is declared `int?` by `OpPerUnit` and `int` by
@@ -210,6 +212,49 @@ if (typeof shim.require === 'undefined') shim.require = createRequire(import.met
 **닫는 방법**은 `import { readFileSync } from 'node:fs'` 를 쓰거나, 파일에서 읽는 것을
 생성 코드에서 빼고 호출자가 바이트를 넘기게 하는 것입니다. 후자는 이미 `readBinaryFrom`
 으로 있습니다.
+
+---
+
+## 7. 병렬 검증에서의 공유 컬렉션
+
+**결함이고 고쳤습니다.** 이 문서에서 닫힌 첫 항목입니다.
+
+리더보드 격자 2개를 더하고 변환을 돌리다 났습니다.
+
+```
+[F] [Tabbit] One or more errors occurred. (Operations that change non-concurrent
+    collections must have exclusive access. A concurrent update was performed on
+    this collection and corrupted its state.)
+```
+
+**한 번 나고 그다음에는 나지 않습니다.** 그래서 처음에는 그 실행만의 일로 보였습니다.
+
+### 원인
+
+`ModelCooker.Validation.cs` 의 검증이 표마다 `Parallel.For` 로 돕니다. 그 루프가 보고를
+표마다 따로 모아 순서대로 합치는 것까지 맞추어 두었는데, **공유 컬렉션 둘이 그 안에서
+쓰이고 있었습니다.**
+
+|무엇|어디에 쓰입니까|
+|--|--|
+|`HashSet<Field> _unknownKinds`|모르는 `asset` 종류를 한 번만 보고하려고 기억합니다|
+|`Dictionary<Field, Regex?> _patterns`|컬럼의 정규식을 컴파일해 두고 다시 씁니다|
+
+둘 다 `Add` 와 인덱서 대입이 여러 갈래에서 동시에 일어납니다. 같은 파일의 `_foreignKeys`
+는 이미 `ConcurrentDictionary` 였습니다 — **병렬로 바꾼 사람이 하나는 고치고 둘을
+지나쳤습니다.**
+
+### 고친 것
+
+둘 다 `ConcurrentDictionary` 로 바꾸었습니다. `_unknownKinds` 는 `TryAdd` 가 「한 번만
+보고」를 정확히 유지합니다 — 참을 받는 갈래가 하나뿐입니다.
+
+**드러나는 조건이 좁습니다.** 서로 다른 표 둘이 같은 순간에 그 컬렉션에 닿아야 하고,
+`asset` 종류가 잘못 적혀 있거나 정규식 제약이 있는 컬럼이어야 합니다. 표가 46개가 되고
+나서 났습니다.
+
+**예외로 끝나는 것이 오히려 나은 쪽입니다.** 손상된 `Dictionary` 가 예외 없이 잘못된 값을
+돌려주면, 정규식 제약 하나가 조용히 건너뛰어집니다.
 
 ---
 

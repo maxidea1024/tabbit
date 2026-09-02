@@ -1305,3 +1305,69 @@
 	rule.discard_cost.name	버리기의 값	discard cost	捨てる費用	弃牌费用	棄牌費用	Abwurfkosten
 	rule.pinned_joker_slot.name	옮길 수 없는 조커 자리	pinned joker slot	固定されたジョーカー枠	固定小丑牌位	固定小丑牌位	Fixierter Joker-Platz
 	ui.button.toTitle	타이틀로	Back to Title	タイトルへ	返回标题	返回標題	Zum Titel
+	ui.button.leaderboard	리더보드	Leaderboard			
+	ui.button.login	로그인	Sign in			
+	ui.button.logout	로그아웃	Sign out			
+	ui.button.toMe	내 자리로	Find me			
+	ui.button.confirmName	이 이름으로	Use this name			
+	ui.button.deleteAccount	계정 삭제	Delete account			
+	ui.button.report	신고	Report			
+	ui.lb.title	리더보드	Leaderboard			
+	ui.lb.login.why	리더보드는 계정이 있어야 합니다.	The leaderboard needs an account.			
+	ui.lb.login.keep	들고 있는 것: 표시 이름과 제공자의 식별자. 이메일은 받지 않습니다.	We keep a display name and the provider id. We do not take your email.			
+	ui.lb.login.none	지금은 로그인할 수 있는 곳이 없습니다.	No sign-in provider is available.			
+	ui.lb.handle.ask	순위표에 적힐 이름을 정합니다.	Choose the name shown on the board.			
+	ui.lb.handle.rule	영문 · 숫자 · 밑줄 3~16자. 30일에 한 번 바꿀 수 있습니다.	Letters, digits, underscore. 3-16 characters. Changeable once every 30 days.			
+	ui.lb.tab.Main	전체	Overall			
+	ui.lb.tab.Stake	스테이크	Stake			
+	ui.lb.tab.Deck	덱	Deck			
+	ui.lb.tab.Challenge	챌린지	Challenge			
+	ui.lb.metric.Ascent	등정	Ascent			
+	ui.lb.metric.BestHand	한 손 최고 점수	Best hand			
+	ui.lb.metric.FewestHands	최소 핸드 완주	Fewest hands			
+	ui.lb.metric.MoneyAtWin	완주 소지금	Money at win			
+	ui.lb.metric.Wins	완주 횟수	Wins			
+	ui.lb.metric.Skips	건너뛴 블라인드	Blinds skipped			
+	ui.lb.metric.ChallengesBeaten	깬 챌린지 수	Challenges beaten			
+	ui.lb.period.season	이번 시즌	This season			
+	ui.lb.period.all	전체 기간	All time			
+	ui.lb.pool.all	확장	Expanded			
+	ui.lb.col.rank	#	#			
+	ui.lb.col.name	이름	Name			
+	ui.lb.col.tier	등급	Tier			
+	ui.lb.col.value	값	Value			
+	ui.lb.empty	아직 아무도 오르지 않았습니다.	Nobody here yet.			
+	ui.lb.noRecord	아직 기록이 없습니다.	No record yet.			
+	ui.lb.mine	내 자리	You			
+	ui.lb.loading	불러오는 중	Loading			
+	ui.lb.total	{n}명	{n} players			
+	ui.lb.page	{at} / {all}	{at} / {all}			
+	ui.lb.hands	{n} 핸드	{n} hands			
+	ui.lb.beaten	{at} / {all}	{at} / {all}			
+	ui.lb.card.signedOut					
+	ui.lb.card.noTier	등급 없음	Unranked			
+	ui.lb.profile.lastSeason	지난 시즌 {tier}	Last season {tier}			
+	ui.lb.profile.devices	로그인된 기계 {n}대	{n} signed-in devices			
+	ui.lb.profile.deleteWarn	계정과 모든 기록이 지워집니다. 되돌리지 않습니다.	The account and every record are removed. This cannot be undone.			
+	ui.lb.ranked	랭크	Ranked			
+	ui.lb.ranked.on	이 런은 끝나면 순위에 오릅니다.	This run will be ranked.			
+	ui.lb.ranked.off	이 런은 순위에 오르지 않습니다.	This run will not be ranked.			
+	ui.lb.ranked.cannot	지금은 랭크 런을 시작할 수 없습니다.	Cannot start a ranked run now.			
+	ui.lb.end.judging	순위를 세는 중	Ranking			
+	ui.lb.end.same	{name} #{rank} · 그대로	{name} #{rank} · unchanged			
+	ui.lb.end.up	{name} #{rank} ↑{by}	{name} #{rank} ↑{by}			
+	ui.lb.end.first	순위표에 올랐습니다 — {name} #{rank}	You are on the board — {name} #{rank}			
+	ui.lb.end.rejected	이 런은 순위에 오르지 않았습니다 — {why}	This run was not ranked — {why}			
+	ui.lb.end.later	나중에 다시 보냅니다.	We will send it again later.			
+	ui.lb.end.tierUp	등급이 {tier} 가 되었습니다	You reached {tier}			
+	ui.lb.fail.title	되지 않았습니다	That did not work			
+	ui.lb.fail.offline	서버에 닿지 못했습니다. 게임은 그대로 하실 수 있습니다.	Could not reach the server. The game keeps working.			
+	ui.lb.fail.unauthorized	다시 로그인해야 합니다.	Please sign in again.			
+	ui.lb.fail.bad_seed	이 시드로 시작한 랭크 런이 아닙니다.	This run did not start from that ranked seed.			
+	ui.lb.fail.bad_fingerprint	게임이 낡았습니다. 새로 고치면 다시 올릴 수 있습니다.	This build is out of date. Reload and try again.			
+	ui.lb.fail.too_many	너무 잦습니다. 잠시 뒤에 다시 하십시오.	Too many requests. Try again shortly.			
+	ui.lb.fail.taken	이미 쓰이는 이름입니다.	That name is taken.			
+	ui.lb.fail.cooldown	아직 이름을 바꿀 수 없습니다.	You cannot change the name yet.			
+	ui.lb.fail.shape	영문 · 숫자 · 밑줄 3~16자입니다.	Use 3-16 letters, digits or underscores.			
+	ui.lb.fail.unknown	서버가 이 요청을 받지 않았습니다.	The server refused the request.			
+	ui.lb.cleared	완주	cleared			

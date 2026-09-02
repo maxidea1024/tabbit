@@ -49,19 +49,30 @@ describe('등정', () => {
   })
 
   it('스테이크가 앞자리입니다', () => {
-    // 흰 스테이크의 상한이 24 이므로, 그 위의 스테이크에서 아무것도 못 깬 것이 흰
-    // 스테이크 완주보다 위입니다. **스테이크를 올린 것이 그 자체로 등정입니다.**
+    // **한 스테이크의 폭이 25 입니다.** 지나온 블라인드가 0부터 24까지 25가지이므로,
+    // 24로 잡으면 「흰 완주」와 「붉은 시작」이 같은 수가 되어 되읽을 수 없습니다.
     const start = newRun(data, 'CLOVER-0001', 'red_deck', 'Red')
-    expect(seal(data, newMetrics(), start.state).ascent).toBe(24)
+    expect(seal(data, newMetrics(), start.state).ascent).toBe(25)
   })
 
-  it('금 스테이크 완주가 192 입니다', () => {
+  it('완주와 다음 스테이크의 시작이 겹치지 않습니다', () => {
+    const white = newRun(data, 'CLOVER-0001', 'red_deck', 'White').state
+    white.ante = data.run.winAnte + 1
+    const red = newRun(data, 'CLOVER-0001', 'red_deck', 'Red').state
+    const whiteDone = seal(data, newMetrics(), white).ascent
+    const redStart = seal(data, newMetrics(), red).ascent
+    expect(whiteDone).toBe(24)
+    expect(redStart).toBe(25)
+    expect(redStart).toBeGreaterThan(whiteDone)
+  })
+
+  it('금 스테이크 완주가 199 입니다', () => {
     const state = newRun(data, 'CLOVER-0001', 'red_deck', 'Gold').state
     // 완주하면 `ante` 가 승리 안테를 넘어섭니다.
     state.ante = data.run.winAnte + 1
     state.phase = 'won'
     const metrics = seal(data, newMetrics(), state)
-    expect(metrics.ascent).toBe(192)
+    expect(metrics.ascent).toBe(199)
     expect(metrics.won).toBe(true)
   })
 

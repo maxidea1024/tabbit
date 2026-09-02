@@ -77,6 +77,7 @@ async function main(argv: string[]): Promise<number> {
       // 등정을 흔들어 분포를 만듭니다. 스테이크가 앞자리이므로 자리가 넓게 퍼집니다.
       const stakeIndex = Math.floor(next() * stakes.length)
       const progress = 1 + Math.floor(next() * 24)
+      // 한 스테이크의 폭은 25 입니다 — `metrics.ts` 의 `ascentPerStake` 와 같아야 합니다.
       return {
         account_id: row.id,
         season_id: season.id,
@@ -90,7 +91,7 @@ async function main(argv: string[]): Promise<number> {
         reason: '',
         submitted_at: new Date(started - Math.floor(next() * 86_400_000)),
         judged_at: new Date(),
-        _ascent: stakeIndex * 24 + progress,
+        _ascent: stakeIndex * 25 + progress,
         _best: Math.floor(source.metrics.bestHand * (0.5 + next() * 2)),
         _hands: source.metrics.handsPlayed + Math.floor(next() * 10),
         _money: source.metrics.money + Math.floor(next() * 50),

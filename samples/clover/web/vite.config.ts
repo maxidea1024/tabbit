@@ -16,6 +16,17 @@ export default defineConfig({
       },
     },
   },
+  // 개발에서만 씁니다. **배포에서는 같은 곳에서 서빙하거나 앞단이 넘깁니다** — 주소를
+  // 코드에 두면 배포마다 빌드를 다시 해야 합니다.
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8787',
+        changeOrigin: true,
+        rewrite: (path: string) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
   resolve: {
     alias: {
       // 생성된 테이블 코드가 `fs` 와 `path` 를 정적으로 임포트합니다. 브라우저에서는 그

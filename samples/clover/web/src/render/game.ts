@@ -65,6 +65,11 @@ import {
   ChallengePanel, loadProgress, saveProgress, type ChallengeProgress,
 } from '../ui/challenge'
 import { randomSeed, Title } from '../ui/title'
+import { LeaderboardHub, type EndLine } from '../ui/hub'
+import { NetStatus } from '../ui/net-status'
+import { busy as netBusy } from '../net/api'
+import { newMetrics, observe, type MetricsAcc } from '../core/metrics'
+
 import type { Scene } from './scene'
 import { FOOTER_BAR, panelFrame, TITLE_BAR } from '../ui/modal'
 import { Modals, type ModalPanel } from '../ui/modal'
@@ -74,6 +79,14 @@ import {
 } from '../ui/options'
 import { Toasts } from '../ui/toast'
 import { Tooltip } from '../ui/tooltip'
+
+/**
+ * 순위 글 안에서 숫자가 있는 자리.
+ *
+ * **글이 6개 언어이므로 자리를 수로 찾습니다.** 「등정 #412 ↑12」 에서 첫 `#숫자` 하나가
+ * 굴러 내려가는 값이고, 그 앞뒤의 말은 언어마다 다릅니다.
+ */
+const RANK_MARK = /#\d+/
 
 // 화면의 자리. **원작의 배치를 따릅니다** — 왼쪽에 판돈과 점수가 세로로 쌓이고, 위에 조커와
 // 소모품이 나란히 서고, 가운데에서 카드를 내고, 아래에 패가 부챗살로 펴집니다.
@@ -1253,16 +1266,38 @@ export class Game {
    */
   private touching = false
 
+  /**
+   * 이 런의 액션.
+   *
+   * **랭크 런을 올리려면 처음부터 끝까지가 필요합니다.** 이어하기도 같은 것을 쓰므로,
+   * 상태를 저장하는 것보다 이것을 저장하는 편이 상태 구조가 바뀌어도 살아남습니다.
+   */
+  private actions: Action[] = []
+  /** 이 런의 지표. 이벤트를 지나가며 쌓입니다. */
+  private metrics: MetricsAcc = newMetrics()
+  private readonly hub: LeaderboardHub
+  private readonly netStatus: NetStatus
+  /** 끝난 판에 얹을 순위 한 줄. 판정이 오기 전에는 `undefined` 입니다. */
+  private rankLine?: EndLine
+  /** 그 줄을 그린 자리. 숫자가 굴러 내려가는 동안 여기에 다시 그립니다. */
+  private rankNode?: Container
+  /** 굴러 내려가는 중의 값. */
+  private rankRoll = 0
+
   constructor(private readonly app: Application, private readonly data: Data, seed: string,
               pools: JokerPool[] = [JokerPool.Base]) {
     this.feel = readFeel(data.feel)
     this.audio = new Audio(data.tables)
     this.state = newRun(data, seed, 'red_deck', 'White', pools).state
     this.player = new TimelinePlayer(beat => this.showBeat(beat))
+    this.hub = new LeaderboardHub(data, this.modals, this.toasts)
+    this.netStatus = new NetStatus(this.toasts)
     this.title = new Title(() => this.enterRun(),
       () => this.modals.open(this.guide), () => this.openOptions(),
       () => this.modals.open(this.jokerPool),
-      () => this.openChallenges())
+      () => this.openChallenges(),
+      () => this.hub.openLeaderboard(),
+      () => void this.startRanked())
     this.jokerPool = new JokerPoolPanel(data, this.settings.pool,
       () => this.modals.close(this.jokerPool))
     // **고른 것은 다음 판에 적용됩니다.** 도는 판의 풀을 바꾸면 상점이 이미 채워진
@@ -1305,6 +1340,17 @@ export class Game {
     this.recede.addChild(this.board, this.particles, this.overlay,
       this.coins, this.toasts, this.screenFlash, this.title)
     this.world.addChild(this.recede, this.modals, this.tooltip)
+
+    // **내 카드는 타이틀 오른쪽 위에 상시로 있습니다.** 게임을 켤 때마다 자기 자리를
+    // 봅니다 — 리더보드 판을 열지 않아도 됩니다.
+    this.hub.card.position.set(SIZE.width - 250 - 30, 30)
+    this.title.addChild(this.hub.card)
+
+    // 통신 표시와 입력 막이. **판보다 위입니다.**
+    this.world.addChild(this.netStatus)
+
+    // 되돌아온 주소를 보고, 로그인되어 있으면 내 것을 읽습니다.
+    void this.hub.boot().then(() => this.title.setSignedIn(this.hub.signedIn))
 
     // 동전이 꽂힐 때마다 금액 칸이 튀고 음이 하나 올라갑니다.
     this.coins.onLand = (index, gain) => {
@@ -1512,6 +1558,7 @@ export class Game {
     this.menuButton.text = t('ui.button.menu')
 
     this.title.relabel()
+    this.hub.relabel()
     this.optionsPanel.relabel()
     this.guide.relabel()
     this.jokerPool.relabel()
@@ -1592,6 +1639,10 @@ export class Game {
   private layRun(seed: string): void {
     this.state = newRun(this.data, seed, 'red_deck', 'White',
                         poolsOf(this.settings.pool), this.challengeId).state
+    this.actions = []
+    this.metrics = newMetrics()
+    this.rankLine = undefined
+    this.rankNode = undefined
     // **뒷면부터입니다.** 손패를 다시 그리기 전에 정해야, 새로 깔리는 카드가 이 판의
     // 뒷면으로 깔립니다.
     this.syncCardBack()
@@ -1607,6 +1658,28 @@ export class Game {
     } catch {
       // 주소를 바꿀 수 없는 자리에서는 판만 바뀝니다.
     }
+  }
+
+  /**
+   * 랭크 런을 시작합니다.
+   *
+   * **서버가 준 시드로만 시작합니다.** 시드를 고르게 두면 좋은 시드를 오프라인에서 찾아
+   * 오는 것이 가능하고, 그것은 실력이 아니라 계산입니다.
+   *
+   * 받지 못하면 시작하지 않습니다 — 그냥 시작은 옆의 단추가 그대로 합니다.
+   */
+  private async startRanked(): Promise<void> {
+    const seed = await this.hub.requestRanked({
+      deck: 'red_deck',
+      stake: 'White',
+      pool: this.settings.pool,
+    })
+    if (seed === undefined) return
+
+    this.challengeId = ''
+    this.layRun(seed)
+    this.enterRun()
+    this.toasts.push(t('ui.lb.ranked'), t('ui.lb.ranked.on'), COLOR.good, 2.6)
   }
 
   /**
@@ -2043,6 +2116,9 @@ export class Game {
     this.tooltip.hide()
     const before = this.shown.hand
     const step = apply(this.data, this.state, action)
+    // **코어를 지난 액션만 적습니다.** 화면이 막은 것은 런에 들어가지 않았습니다.
+    this.actions.push(action)
+    observe(this.metrics, step.events)
     this.rewind(step.events, before)
     this.announce(step.events)
     this.startTimeline(step.events)
@@ -2418,6 +2494,9 @@ export class Game {
   private advanceShopLift(seconds: number): void {
     this.shopLift.target = this.held?.kind === 'shop' || this.held?.kind === 'pack_slot' ? 10 : 0
     this.shopLift.advance(seconds)
+    this.hub.advance(seconds)
+    this.netStatus.advance(seconds)
+    this.rollRank(seconds)
     const lift = this.shopLift.value
 
     // 표를 지우는 자리와 여기가 갈라져 있으므로 한 겹 더 막습니다 — 지워진 것의 자리를
@@ -3718,6 +3797,16 @@ export class Game {
       shopKinds: state.shop.cards.map(card => card.kind),
       // **들고 있는 태그와, 딱지에 실제로 그린 칩 수.** 둘이 갈라져야 어디가 틀렸는지
       // 나옵니다 — 상태에 없으면 규칙이고, 있는데 안 그렸으면 화면입니다.
+      // 리더보드. **로그아웃 상태의 게임이 지금과 같은지**를 도구가 이것으로 봅니다.
+      signedIn: this.hub.signedIn,
+      // 판이 하나라도 떠 있는가. 리더보드와 로그인 판이 떴는지를 봅니다.
+      modalUp: this.modals.busy,
+      // 통신이 지금 오가는가. 도는 동안 입력이 막힙니다.
+      netBusy: netBusy(),
+      // 랭크 런인가.
+      ranked: this.hub.isRanked(state.seed),
+      // 끝난 판이 떴는가. **제출은 그 판이 뜰 때 나갑니다** — 카드가 다 걷힌 뒤입니다.
+      gameOver: this.gameOverShown,
       tags: state.tagsPending.slice(),
       tagChips: this.badge.chipCount,
       // **칩이 실제로 어디에 그려졌는가.** 「잠깐 왼쪽 위로 튄다」는 프레임 몇 개짜리라
@@ -5040,7 +5129,10 @@ export class Game {
 
     const board = new Container()
     const width = 480
-    const height = 352
+    // **랭크 런이면 그만큼 큽니다.** 순위 두 줄이 들어갈 자리를 미리 두지 않으면 그 줄이
+    // 시드 줄과 겹칩니다 — 판정은 나중에 오지만 자리는 지금 정해야 합니다.
+    const ranked = this.hub.isRanked(this.state.seed)
+    const height = 352 + (ranked ? 58 : 0)
 
     const plate = new Graphics()
     plate.roundRect(-width / 2, -height / 2, width, height, 16)
@@ -5095,6 +5187,15 @@ export class Game {
     board.position.set(POPUP_X, SIZE.height / 2)
     this.gameOver.addChild(board)
     this.gameOverBoard = board
+
+    // **순위는 판정이 온 뒤에 붙습니다.** 랭크 런이 아니면 붙는 것이 없고, 그때의 판은
+    // 지금과 한 줄도 다르지 않습니다.
+    if (ranked) {
+      this.rankNode = new Container()
+      this.rankNode.position.set(0, height / 2 - 145)
+      board.addChild(this.rankNode)
+      void this.judgeRun()
+    }
     this.gameOver.zIndex = 10_000
 
     // 럼블. **판이 그냥 나타나면 아무 무게가 없습니다.** 다만 무게는 색수차와 배경이
@@ -5104,6 +5205,109 @@ export class Game {
     this.jolt(won ? 8 : 6, won ? 3.4 : 2.6, 1)
     this.flashScreen(won ? COLOR.money : COLOR.bad, won ? 0.5 : 0.34)
     if (won) this.particles.burst(POPUP_X, SIZE.height / 2, 90, COLOR.money, 2.6)
+  }
+
+  /**
+   * 끝난 런을 올리고 그 결과를 판에 적습니다.
+   *
+   * **랭크 런이 아니면 아무것도 하지 않습니다.**
+   */
+  private async judgeRun(): Promise<void> {
+    if (!this.hub.isRanked(this.state.seed)) return
+
+    this.rankLine = { text: t('ui.lb.end.judging'), tone: COLOR.inkDim }
+    this.drawRankLine()
+
+    const line = await this.hub.finishRun(this.state, this.actions, this.metrics)
+    this.rankLine = line
+    this.rankRoll = line?.from ?? line?.to ?? 0
+    this.drawRankLine()
+    if (!line) return
+
+    // **순위가 오른 것은 연출이 있어야 무게가 있습니다.** 그냥 적혀 있으면 아무 일도
+    // 아닙니다.
+    if (line.moved !== undefined && line.moved > 0) {
+      this.audio.play('blind_clear')
+      this.jolt(4, 2.2, 1)
+      if (line.moved >= 25) {
+        this.particles.burst(POPUP_X, SIZE.height / 2, 40, COLOR.money, 2.2)
+      }
+    }
+    if (line.tier !== undefined) {
+      this.audio.play('run_win')
+      this.flashScreen(COLOR.money, 0.3)
+      this.toasts.push(t('ui.lb.title'), tf('ui.lb.end.tierUp', { tier: line.tier }),
+                       COLOR.money, 3.4)
+    }
+  }
+
+  /**
+   * 순위 숫자를 새 자리까지 굴립니다.
+   *
+   * **내려가는 동안 소리가 한 음씩 오릅니다.** 득점 연출의 카운터와 같은 규칙이고, 그
+   * 규칙이 같아야 이 판의 것으로 읽힙니다.
+   */
+  private rollRank(seconds: number): void {
+    const line = this.rankLine
+    if (!line || line.to === undefined || line.from === undefined) return
+    if (Math.round(this.rankRoll) === line.to) return
+
+    const span = Math.max(1, Math.abs(line.from - line.to))
+    const before = Math.round(this.rankRoll)
+    // **폭이 넓어도 곧 끝납니다.** 자리마다 같은 속도로 굴리면 100자리가 오른 판이
+    // 한참 동안 숫자만 굴립니다.
+    this.rankRoll += (line.to - this.rankRoll) * Math.min(1, seconds * 5)
+    if (Math.abs(this.rankRoll - line.to) < 0.6) this.rankRoll = line.to
+
+    const now = Math.round(this.rankRoll)
+    if (now !== before) {
+      const step = 1 - Math.abs(now - line.to) / span
+      this.audio.play('coin_land', Math.floor(step * 12))
+      this.drawRankLine()
+    }
+  }
+
+  /**
+   * 순위 한 줄을 그립니다.
+   *
+   * **숫자가 굴러 내려갑니다.** 예전 순위에서 새 순위로 내려가는 동안 그 값을 글에
+   * 끼워 넣으므로, 그 사이에는 매 프레임 다시 그립니다.
+   */
+  private drawRankLine(): void {
+    const node = this.rankNode
+    if (!node) return
+    node.removeChildren().forEach(child => child.destroy({ children: true }))
+
+    const line = this.rankLine
+    if (!line) return
+
+    const rolling = line.to !== undefined && Math.round(this.rankRoll) !== line.to
+    const shown = rolling ? line.text.replace(RANK_MARK, '#' + String(Math.round(this.rankRoll))) : line.text
+
+    const text = new Text({
+      text: shown,
+      style: {
+        fontSize: 14, fill: line.tone, fontWeight: '700',
+        wordWrap: true, wordWrapWidth: 420, align: 'center',
+      },
+    })
+    text.anchor.set(0.5, 0)
+    node.addChild(text)
+
+    // 나머지 보드는 작은 글로. **하나씩 다 연출하면 끝난 판이 30초가 됩니다.**
+    const others = this.hub.otherRanks()
+    if (others !== '' && line.moved !== undefined) {
+      const small = new Text({
+        text: others,
+        style: {
+          fontSize: 11, fill: 0x7d8ca0, wordWrap: true, wordWrapWidth: 420,
+          align: 'center',
+        },
+      })
+      small.anchor.set(0.5, 0)
+      small.position.set(0, text.height + 4)
+      node.addChild(small)
+    }
   }
 
   /** 왜 끝났는가. **숫자가 있어야 다음 판에 무엇을 다르게 할지 압니다.** */
