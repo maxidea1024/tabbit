@@ -60,7 +60,8 @@ export class Title extends Container {
 
   constructor(onStart: () => void, onGuide: () => void, onOptions: () => void,
               onJokers?: () => void, onChallenges?: () => void,
-              onLeaderboard?: () => void, onRanked?: () => void) {
+              onLeaderboard?: () => void, onRanked?: () => void,
+              onSetup?: () => void) {
     super()
 
     // **덮는 층이 없습니다.** 글이 읽히게 하려고 반투명 사각형을 얹으면 그 겹의 변이
@@ -137,6 +138,15 @@ export class Title extends Container {
     board.position.set(SIZE.width / 2 - bw / 2, 452 + bh + 14 + (52 + 14) * 2)
     this.buttons.push({ key: 'ui.button.leaderboard', button: board })
 
+    // 덱과 스테이크. **시작의 왼쪽입니다** — 아래 줄에 한 칸 더 두면 구석의 아이콘과
+    // 겹치고, 무엇보다 이것은 「무엇으로 시작하는가」이므로 시작에 붙어 있어야 합니다.
+    //
+    // **단추에 고른 것이 적힙니다.** 「덱」이라고만 적혀 있으면 무엇으로 시작하는지 알려면
+    // 판을 한 번 열어 봐야 하고, 그 판을 열지 않고 시작을 누르는 것이 보통입니다.
+    const setup = new Button('', 200, 44, 0x2f5f8f, () => onSetup?.(), 16)
+    setup.position.set(SIZE.width / 2 - bw / 2 - 16 - 200, 452 + (bh - 44) / 2)
+    this.setupButton = setup
+
     // **랭크 런은 로그인한 사람에게만 보입니다.** 로그아웃 상태의 타이틀이 지금과 같아야
     // 합니다.
     const rankedStart = new Button(t('ui.lb.ranked'), 168, 44, 0x2f8f52,
@@ -147,7 +157,7 @@ export class Title extends Container {
     this.buttons.push({ key: 'ui.lb.ranked', button: rankedStart })
 
     this.addChild(this.leaf, this.logo, this.tagline, this.note, start, pool, dare,
-                  board, rankedStart, guide, option, this.tip)
+                  board, setup, rankedStart, guide, option, this.tip)
 
     this.relabel()
 
@@ -157,6 +167,17 @@ export class Title extends Container {
   }
 
   private rankedButton?: Button
+  private setupButton?: Button
+
+  /**
+   * 무엇으로 시작하는지를 단추에 적습니다.
+   *
+   * **말을 여기서 만들지 않습니다** — 덱과 스테이크의 표시 이름이므로 데이터에서 나오고,
+   * 그것을 한 줄로 잇는 것은 `ui/setup.ts` 가 합니다.
+   */
+  setSetupLabel(label: string): void {
+    if (this.setupButton) this.setupButton.text = label
+  }
 
   /**
    * 로그인 상태를 알립니다.

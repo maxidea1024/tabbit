@@ -1262,6 +1262,11 @@
 	challenge.bare_field.name	맨 밭	Bare Field	裸の畑	裸田	裸田	Nacktes Feld
 	ui.challenge.title	챌린지	Challenges	チャレンジ	挑战	挑戰	Herausforderungen
 	ui.challenge.start	이 챌린지로 시작	Start Challenge	これで始める	以此开始	以此開始	Herausforderung starten
+	ui.setup.title	덱과 스테이크	Deck & Stake	デッキとステーク	牌组与赌注	牌組與賭注	Deck & Einsatz
+	ui.setup.decks	덱	DECK	デッキ	牌组	牌組	DECK
+	ui.setup.stakes	스테이크	STAKE	ステーク	赌注	賭注	EINSATZ
+	ui.setup.effects	시작 조건	STARTING RULES	開始条件	起始条件	起始條件	STARTREGELN
+	ui.setup.start	이 덱으로 시작	Start Run	これで始める	以此开始	以此開始	Runde starten
 	ui.challenge.rules	규칙	RULES	ルール	规则	規則	REGELN
 	ui.challenge.bans	금지	BANNED	禁止	禁用	禁用	GESPERRT
 	ui.challenge.noRules	시작 조건만 다릅니다.	Only the starting setup differs.	開始条件だけが違います。	仅起始条件不同。	僅起始條件不同。	Nur der Startaufbau unterscheidet sich.

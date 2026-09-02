@@ -61,6 +61,15 @@ export interface Options {
    */
   language: Language | ''
   /**
+   * 다음 판을 어느 덱으로 시작하는가. `Deck.deck_id` 입니다.
+   *
+   * **표에 없는 값일 수 있습니다.** 손으로 고친 저장소나 예전 판의 값이 그러하므로, 쓰는
+   * 쪽이 `validSetup` 으로 걸러 붉은 덱으로 되돌립니다 — 여기서 표를 볼 수는 없습니다.
+   */
+  deck: string
+  /** 어느 스테이크로 시작하는가. `StakeKind` 의 이름입니다. */
+  stake: string
+  /**
    * 어느 조커 풀로 하는가.
    *
    * **기본이 `base` 입니다.** 켜진 채로 시작하면 원작을 기대한 사람이 모를 조커를
@@ -73,7 +82,7 @@ export function defaultOptions(): Options {
   return {
     sound: true, volume: 60, music: true, musicVolume: 40, speed: 1,
     shake: true, particles: true, chromatic: true, hints: true,
-    language: '', pool: 'base',
+    language: '', deck: 'red_deck', stake: 'White', pool: 'base',
   }
 }
 

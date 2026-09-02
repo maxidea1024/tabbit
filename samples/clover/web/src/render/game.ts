@@ -31,6 +31,7 @@ import {
 } from '../core/run'
 import { language, nameOf, setLanguage, t, text, tf } from '../core/strings'
 import { stakeRow, stakeSlug } from '../core/stake'
+import { SetupPanel, setupLabel, validSetup, type RunSetup } from '../ui/setup'
 import { useFont } from '../ui/font'
 import { rerollCost, sellValueOf, type ShopItem } from '../core/shop'
 import { bestHand, valueOf } from '../core/suggest'
@@ -985,6 +986,7 @@ export class Game {
   /** 조커 풀을 고르고 들여다보는 판. 팀이틀에서만 엽니다. */
   private readonly jokerPool: JokerPoolPanel
   private readonly challengePanel: ChallengePanel
+  private readonly setupPanel: SetupPanel
   /** 깬 챌린지의 목록. 저장에 남습니다. */
   private readonly challenges: ChallengeProgress = loadProgress()
   /** 지금 도는 판의 챌린지. 빈 문자열이면 챌린지가 아닙니다. */
@@ -1000,6 +1002,17 @@ export class Game {
   private scene: Scene = 'title'
   /** 옵션. 타이틀이 고치고 화면이 읽습니다. */
   private readonly settings: Options = loadOptions()
+
+  /**
+   * 다음 판을 무엇으로 시작하는가.
+   *
+   * **표에 있는 것으로 걸러 읽습니다.** 저장된 값이 표에 없는 덱을 가리키면 시작 조건이
+   * 하나도 걸리지 않은 판이 조용히 돌아갑니다.
+   */
+  private setup(): RunSetup {
+    return validSetup(this.data,
+                      { deckId: this.settings.deck, stake: this.settings.stake })
+  }
   /**
    * 지금 무엇을 하면 되는가.
    *
@@ -1289,7 +1302,8 @@ export class Game {
               pools: JokerPool[] = [JokerPool.Base]) {
     this.feel = readFeel(data.feel)
     this.audio = new Audio(data.tables)
-    this.state = newRun(data, seed, 'red_deck', 'White', pools).state
+    const first = this.setup()
+    this.state = newRun(data, seed, first.deckId, first.stake, pools).state
     this.player = new TimelinePlayer(beat => this.showBeat(beat))
     this.hub = new LeaderboardHub(data, this.modals, this.toasts)
     this.netStatus = new NetStatus(this.toasts)
@@ -1298,7 +1312,8 @@ export class Game {
       () => this.modals.open(this.jokerPool),
       () => this.openChallenges(),
       () => this.hub.openLeaderboard(),
-      () => void this.startRanked())
+      () => void this.startRanked(),
+      () => this.openSetup())
     this.jokerPool = new JokerPoolPanel(data, this.settings.pool,
       () => this.modals.close(this.jokerPool))
     // **고른 것은 다음 판에 적용됩니다.** 도는 판의 풀을 바꾸면 상점이 이미 채워진
@@ -1310,6 +1325,30 @@ export class Game {
     this.optionsPanel = new OptionsPanel(this.settings, () => this.applyOptions(),
       () => this.modals.close(this.optionsPanel))
     this.optionsPanel.onSeed = next => this.useSeed(next)
+
+    this.setupPanel = new SetupPanel(data, this.setup(),
+      () => this.modals.close(this.setupPanel))
+    // **고른 그 자리에서 저장하고 단추의 글도 함께 맞춥니다.** 다음 판에 적용되는 것이므로
+    // 도는 판은 건드리지 않습니다.
+    this.setupPanel.onPick = (next: RunSetup) => {
+      this.settings.deck = next.deckId
+      this.settings.stake = next.stake
+      saveOptions(this.settings)
+      this.title.setSetupLabel(setupLabel(data, next))
+    }
+    // **고른 것으로 곧바로 판을 엽니다.** 챌린지 판과 같은 이유입니다 — 판을 닫고 시작을
+    // 다시 누르게 하면 무엇으로 시작하는지가 두 화면에 걸쳐 있게 됩니다.
+    this.setupPanel.onStart = (next: RunSetup) => {
+      this.modals.close(this.setupPanel)
+      this.challengeId = ''
+      this.settings.deck = next.deckId
+      this.settings.stake = next.stake
+      saveOptions(this.settings)
+      this.title.setSetupLabel(setupLabel(data, next))
+      this.layRun(randomSeed())
+      this.enterRun()
+    }
+    this.title.setSetupLabel(setupLabel(data, this.setup()))
 
     this.challengePanel = new ChallengePanel(data, this.challenges,
       () => this.modals.close(this.challengePanel))
@@ -1363,8 +1402,8 @@ export class Game {
 
     // **더미를 세우기 전에 뒷면을 정합니다.** `buildPanel` 이 덱 더미를 그리므로, 순서가
     // 거꾸로면 첫 화면의 더미만 첫 덱의 뒷면입니다.
-    const first = data.tables.deck.findByDeckId(this.state.deckId)
-    if (first) setCardBack(backLookOf(first))
+    const back = data.tables.deck.findByDeckId(this.state.deckId)
+    if (back) setCardBack(backLookOf(back))
 
     this.buildPanel()
 
@@ -1563,6 +1602,8 @@ export class Game {
     this.optionsPanel.relabel()
     this.guide.relabel()
     this.jokerPool.relabel()
+    this.setupPanel.relabel()
+    this.title.setSetupLabel(setupLabel(this.data, this.setup()))
     this.refresh()
   }
 
@@ -1612,6 +1653,18 @@ export class Game {
    * 안의 덱 옆이라 타이틀에서는 누른 곳과 먼 빈 구석에 떴습니다 — 알릴 것은 판 안에
    * 적히고, 20칸이 잠긴 채로 보이는 것이 무엇이 남았는지를 함께 알립니다.
    */
+  /**
+   * 덱과 스테이크를 고르는 판을 엽니다.
+   *
+   * **지금 저장된 것에 표시를 맞춰 엽니다** — 판을 한 번 세워 두고 다시 여는 것이므로,
+   * 맞추지 않으면 처음 열 때의 자리에 표시가 남습니다.
+   */
+  private openSetup(): void {
+    this.setupPanel.relabel()
+    this.setupPanel.setSetup(this.setup())
+    this.modals.open(this.setupPanel)
+  }
+
   private openChallenges(): void {
     this.challengePanel.relabel()
     this.modals.open(this.challengePanel)
@@ -1638,7 +1691,8 @@ export class Game {
    * 패를 그대로 들고 있습니다.
    */
   private layRun(seed: string): void {
-    this.state = newRun(this.data, seed, 'red_deck', 'White',
+    const setup = this.setup()
+    this.state = newRun(this.data, seed, setup.deckId, setup.stake,
                         poolsOf(this.settings.pool), this.challengeId).state
     this.actions = []
     this.metrics = newMetrics()
@@ -3780,6 +3834,10 @@ export class Game {
         shown: this.shown.hand.length,
       },
       seed: state.seed,
+      // 무엇으로 시작한 판인가. **고른 것이 실제로 걸렸는지는 이 둘로만 확인됩니다** —
+      // 화면에는 뒷면과 시작 조건으로만 나타나므로 그림으로는 갈리지 않습니다.
+      deck: state.deckId,
+      stake: state.stake,
       // 상점 판이 지금 서 있는가. 하나 사는 동안 접히지 않는지를 봅니다.
       shopUp: this.shopLayer.visible,
       // 연출의 시계. 스크린샷 사이의 시간을 재는 데 씁니다.

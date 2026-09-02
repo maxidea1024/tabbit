@@ -13,6 +13,9 @@ export interface Peek {
   /** 화면에 살아 있는 카드·조커 뷰의 수. 판을 접었으면 0 입니다. */
   views: number
   seed: string
+  /** 무엇으로 시작한 판인가. `Deck.deck_id` 와 `StakeKind` 의 이름입니다. */
+  deck: string
+  stake: string
   /** 지금 칩이 날고 있는가. */
   /** 설명 쪽지가 떠 있는가. */
   tip: boolean
