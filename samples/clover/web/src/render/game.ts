@@ -56,7 +56,9 @@ import { mix } from './skin'
 import { COLOR, SIZE } from './theme'
 import { box, type Box, CENTER, pointOf, putText, splitX } from '../ui/layout'
 import { Button, Panel } from '../ui/widgets'
+import { poolsOf, type PoolChoice } from '../core/pool'
 import { Guide } from '../ui/guide'
+import { JokerPoolPanel } from '../ui/joker-pool'
 import { randomSeed, Title } from '../ui/title'
 import type { Scene } from './scene'
 import { FOOTER_BAR, panelFrame, TITLE_BAR } from '../ui/modal'
@@ -932,6 +934,8 @@ export class Game {
   private readonly guide = new Guide(
     () => this.modals.close(this.guide), () => this.toggleHandList())
   private readonly optionsPanel: OptionsPanel
+  /** 조커 풀을 고르고 들여다보는 판. 팀이틀에서만 엽니다. */
+  private readonly jokerPool: JokerPoolPanel
   /** 타이틀. **시작을 누르기 전에는 판이 없습니다.** */
   private readonly title: Title
   /**
@@ -1213,13 +1217,22 @@ export class Game {
   private touching = false
 
   constructor(private readonly app: Application, private readonly data: Data, seed: string,
-              private readonly pools: JokerPool[] = [JokerPool.Base]) {
+              pools: JokerPool[] = [JokerPool.Base]) {
     this.feel = readFeel(data.feel)
     this.audio = new Audio(data.tables)
     this.state = newRun(data, seed, 'red_deck', 'White', pools).state
     this.player = new TimelinePlayer(beat => this.showBeat(beat))
     this.title = new Title(() => this.enterRun(),
-      () => this.modals.open(this.guide), () => this.openOptions())
+      () => this.modals.open(this.guide), () => this.openOptions(),
+      () => this.modals.open(this.jokerPool))
+    this.jokerPool = new JokerPoolPanel(data, this.settings.pool,
+      () => this.modals.close(this.jokerPool))
+    // **고른 것은 다음 판에 적용됩니다.** 도는 판의 풀을 바꾸면 상점이 이미 채워진
+    // 뒤에 무엇이 나올 수 있었는가가 달라짐니다.
+    this.jokerPool.onPick = (choice: PoolChoice) => {
+      this.settings.pool = choice
+      saveOptions(this.settings)
+    }
     this.optionsPanel = new OptionsPanel(this.settings, () => this.applyOptions(),
       () => this.modals.close(this.optionsPanel))
     this.optionsPanel.onSeed = next => this.useSeed(next)
@@ -1450,6 +1463,7 @@ export class Game {
     this.title.relabel()
     this.optionsPanel.relabel()
     this.guide.relabel()
+    this.jokerPool.relabel()
     this.refresh()
   }
 
@@ -1491,7 +1505,8 @@ export class Game {
    * 패를 그대로 들고 있습니다.
    */
   private layRun(seed: string): void {
-    this.state = newRun(this.data, seed, 'red_deck', 'White', this.pools).state
+    this.state = newRun(this.data, seed, 'red_deck', 'White',
+                        poolsOf(this.settings.pool)).state
     // **뒷면부터입니다.** 손패를 다시 그리기 전에 정해야, 새로 깔리는 카드가 이 판의
     // 뒷면으로 깔립니다.
     this.syncCardBack()
@@ -3331,6 +3346,8 @@ export class Game {
     this.advanceGameOver(seconds)
     this.title.advance(seconds)
     this.modals.advance(seconds)
+    // 조커 풀의 카드도 살아 있어야 합니다 — 에디션 무늬가 시간을 읽고 손을 올리면 들립니다.
+    this.jokerPool.advance(seconds, this.clock)
 
     // 블라인드 판이 들어오는 동안 매 프레임 다시 그립니다.
     if (this.state.phase === 'blind-select' && this.blindEnter < 1) {

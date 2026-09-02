@@ -6,6 +6,7 @@
 // 갈래가 셋이라 탭입니다 — 한 줄로 늘어놓으면 무엇을 찾는지 알고 있어야 찾을 수 있고,
 // 「소리가 크다」와 「연출이 느리다」는 서로 다른 자리에서 찾게 됩니다.
 
+import type { PoolChoice } from '../core/pool'
 import { Container, Graphics, Rectangle, Text } from 'pixi.js'
 
 import { detectLanguage, type Language, LANGUAGE_NAMES, LANGUAGES, t, tf } from '../core/strings'
@@ -59,13 +60,20 @@ export interface Options {
    * 박아 두면 독일에서 처음 여는 사람이 한국어를 보게 됩니다.
    */
   language: Language | ''
+  /**
+   * 어느 조커 풀로 하는가.
+   *
+   * **기본이 `base` 입니다.** 켜진 채로 시작하면 원작을 기대한 사람이 모를 조커를
+   * 만나게 되고, 굽어 둔 리플레이와도 어긋납니다.
+   */
+  pool: PoolChoice
 }
 
 export function defaultOptions(): Options {
   return {
     sound: true, volume: 60, music: true, musicVolume: 40, speed: 1,
     shake: true, particles: true, chromatic: true, hints: true,
-    language: '',
+    language: '', pool: 'base',
   }
 }
 

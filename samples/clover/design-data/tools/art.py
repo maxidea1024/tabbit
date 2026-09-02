@@ -101,6 +101,9 @@ def size_for(kind):
 # 그림 생성기가 낱말만 보고 거절하는 것들이 있습니다. **뜻은 그대로 두고 낱말만 바꿉니다** —
 # 「a seed pod」·「a tiny tot」·「strength」 같은 것이 오탐으로 걸렀습니다.
 OVERRIDE = {
+    # **얻어걸린 실입니다.** 적지 않으면 모델이 네모난 소용돌이를 그리고, 그것은
+    # 회전에 따라 다른 것으로 읽힙니다 — 게임에 넣을 수 없는 모양입니다.
+    'tangle': 'a loose tangle of knotted string, irregular and organic',
     'smudge': 'a smudged ink thumbprint on paper',
     'almanac': 'an open almanac book showing moon phases',
     'seed_pod': 'a dried poppy capsule with a ring of vents',
@@ -183,6 +186,13 @@ TAG_SUBJECT = {
     'orbital': 'a ring orbiting a dot',
     'topup': 'an overflowing cup',
 }
+
+
+# 확장 350종의 구절은 파이일 하나에 따로 담았습니다 — 수가 많아 이 표에 섞으면
+# 어느 것이 원작 대조본의 것인지 보이지 않습니다.
+from art_expansion import EXPANSION  # noqa: E402
+
+OVERRIDE.update(EXPANSION)
 
 
 def phrase(identifier):

@@ -48,7 +48,8 @@ export class Title extends Container {
   /** 글을 다시 읽어야 하는 것들. 말이 바뀌면 이 셋을 갈아 끼웁니다. */
   private readonly buttons: { key: string; button: Button }[] = []
 
-  constructor(onStart: () => void, onGuide: () => void, onOptions: () => void) {
+  constructor(onStart: () => void, onGuide: () => void, onOptions: () => void,
+              onJokers?: () => void) {
     super()
 
     // **덮는 층이 없습니다.** 글이 읽히게 하려고 반투명 사각형을 얹으면 그 겹의 변이
@@ -88,7 +89,15 @@ export class Title extends Container {
     const option = new IconButton(icon, 'settings', onOptions)
     option.position.set(SIZE.width - edge - icon, iconY)
 
-    this.addChild(this.leaf, this.logo, this.tagline, this.note, start, guide, option)
+    // 조커 풀. **시작 바로 아래입니다** — 판에 무엇이 들어가는지를 정하는 일이므로
+    // 시작과 가장 가깝고, 구석의 아이쵘으로 보내면 눈에 들지 않습니다.
+    const pool = new Button(t('ui.button.jokers'), bw, 52, 0x2f5f8f,
+                            () => onJokers?.(), 20)
+    pool.position.set(SIZE.width / 2 - bw / 2, 452 + bh + 14)
+    this.buttons.push({ key: 'ui.button.jokers', button: pool })
+
+    this.addChild(this.leaf, this.logo, this.tagline, this.note, start, pool,
+                  guide, option)
 
     this.relabel()
 

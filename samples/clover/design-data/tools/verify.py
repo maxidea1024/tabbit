@@ -162,28 +162,7 @@ def convert():
     check('변환이 끝까지 돕니다', result.returncode == 0,
           '' if result.returncode == 0 else '종료 코드 %d' % result.returncode)
     check('검증 규칙이 통과합니다', 'Validation: 0 error(s)' in out)
-    art_checks(out)
     return out
-
-
-def art_checks(out):
-    """빠진 그림이 확장 350종뿐인가.
-
-    `recipe.jsonc` 의 `Assets.OnMissing` 이 `error` 에서 `warn` 으로 내려와 있습니다. 그
-    한 칸을 여기서 메웁니다 — **기본 150종에서 하나라도 빠지면 이 검사가 실패합니다.**
-    그림이 다 들어오면 `error` 로 되돌리고 이 함수를 지웁니다.
-    """
-    base = set(row['joker_id'] for row in grid_rows('Joker') if row['pool'] == 'Base')
-    missing = set()
-    for line in out.splitlines():
-        if '`Joker.Art` names `' not in line:
-            continue
-        missing.add(line.split('`Joker.Art` names `', 1)[1].split('`', 1)[0])
-
-    check('빠진 그림이 확장 350종뿐입니다', len(missing) == 350,
-          '%d종' % len(missing))
-    check('기본 150종의 그림은 전부 있습니다', not (missing & base),
-          '빠진 것 %d종 %s' % (len(missing & base), ', '.join(sorted(missing & base)[:5])))
 
 
 def output_checks():

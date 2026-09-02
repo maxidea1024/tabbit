@@ -11,6 +11,7 @@ import type { Data } from './data'
 import type { RunState } from './state'
 import type { JokerRecord } from '../generated/tables/joker'
 import type { Rarity } from '../generated/enums/rarity'
+import { JokerPool } from '../generated/enums/joker-pool'
 
 /**
  * 이 런에서 나올 수 있는 조커들. `rarity` 를 주면 그 희귀도만 남깁니다.
@@ -21,4 +22,16 @@ import type { Rarity } from '../generated/enums/rarity'
 export function jokerPool(data: Data, state: RunState, rarity?: Rarity): JokerRecord[] {
   return data.tables.joker.records.filter(row =>
     state.pools.includes(row.pool) && (rarity === undefined || row.rarity === rarity))
+}
+
+/**
+ * 사람이 고를는 것. 옵션에 이 값이 적혀 다음 판에 쓰입니다.
+ *
+ * **풀의 목록이 아니라 둘 중 하나입니다.** 확장만 켜고 기본을 끄는 조합은 둔
+ * 이유가 없습니다 — 기본 150종이 원작 대조본이고 그것이 한 토대이기 때문입니다.
+ */
+export type PoolChoice = 'base' | 'all'
+
+export function poolsOf(choice: PoolChoice): JokerPool[] {
+  return choice === 'all' ? [JokerPool.Base, JokerPool.Greenhouse] : [JokerPool.Base]
 }
