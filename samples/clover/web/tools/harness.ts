@@ -42,6 +42,8 @@ export interface Peek {
   consumables: number
   /** 상점 칸마다 무엇이 서 있는가. `ShopItemKind` 의 값입니다 — 조커가 1, 소모품이 2~5. */
   shopKinds?: number[]
+  /** 상점의 줄마다 몸통이 시작하는 `y`. 판이 서 있지 않으면 비어 있습니다. */
+  shopRows?: { items?: number; packs?: number; voucher?: number }
   /** 소모품이 올 자리를 잡아 준 횟수와, 잡을 것이 없어 그냥 돌아온 횟수. */
   flyAsked?: number
   flyMissed?: number
@@ -245,7 +247,8 @@ export async function packBuySpot(page: Page, slot: number, count = 2):
   const gap = 26
   const span = count * tileW + (count - 1) * gap
   const left = POPUP_X - SHOP_W / 2 + (SHOP_W - span) / 2
-  return at(page, left + slot * (tileW + gap) + tileW / 2, SHOP_PACKS + 62 + 82)
+  return at(page, left + slot * (tileW + gap) + tileW / 2,
+            await shopRow(page, 'packs') + 62 + 82)
 }
 
 /** 상점의 팩 칸. `drawPackRow` 와 같은 계산입니다. */
@@ -254,7 +257,7 @@ export async function packSlot(page: Page, slot: number, count = 2): Promise<{ x
   const gap = 26
   const span = count * tileW + (count - 1) * gap
   const left = POPUP_X - SHOP_W / 2 + (SHOP_W - span) / 2
-  return at(page, left + slot * (tileW + gap) + tileW / 2, SHOP_PACKS + 62)
+  return at(page, left + slot * (tileW + gap) + tileW / 2, await shopRow(page, 'packs') + 62)
 }
 
 /**
@@ -289,7 +292,7 @@ export async function shopBuySpot(page: Page, slot: number, count = 2):
   const span = count * tileW + (count - 1) * gap
   const left = POPUP_X - SHOP_W / 2 + (SHOP_W - span) / 2
   return at(page, left + slot * (tileW + gap) + tileW / 2,
-            SHOP_Y + SHOP_ITEMS + 86 + 82)
+            await shopRow(page, 'items') + 86 + 82)
 }
 
 /** 상점의 물건 칸 하나의 가운데. */
@@ -298,22 +301,32 @@ export async function shopSlot(page: Page, slot: number, count = 2): Promise<{ x
   const gap = 14
   const span = count * tileW + (count - 1) * gap
   const left = POPUP_X - SHOP_W / 2 + (SHOP_W - span) / 2
-  return at(page, left + slot * (tileW + gap) + tileW / 2, SHOP_Y + SHOP_ITEMS + 86)
+  return at(page, left + slot * (tileW + gap) + tileW / 2, await shopRow(page, 'items') + 86)
 }
 
-/** `game.ts` 의 `syncShop` 과 같은 값들. */
+/** `game.ts` 의 `syncShop` 과 같은 값. 판의 너비입니다. */
 export const SHOP_W = 660
-export const SHOP_ITEMS = 78
-export const SHOP_Y = 200
-/** 상점의 팩 줄이 시작하는 자리. 칸 셋이 다 있을 때입니다. */
-export const SHOP_PACKS = SHOP_Y + SHOP_ITEMS + 160 + 12 + 22
 
 /**
- * 상점 판의 높이.
+ * 상점의 한 줄이 시작하는 `y`. 화면이 알립니다.
  *
- * **칸 셋이 다 있을 때입니다** — 다 산 칸은 없어지므로 그만큼 판이 낮아집니다.
+ * **상수가 아닙니다.** 판이 바닥에 맞춰 서므로 윗변은 줄 수에 따라 움직이고, 다 산 줄은
+ * 없어져 나머지가 내려옵니다 — 윗변 200 을 전제로 셌던 값은 첫 구매 뒤부터 빈자리를
+ * 눌렀습니다. 그 줄이 없으면 오류입니다.
  */
-export const SHOP_H = 586
+export async function shopRow(page: Page, key: 'items' | 'packs' | 'voucher'): Promise<number> {
+  const top = (await peek(page)).shopRows?.[key]
+  if (top === undefined) throw new Error(`상점에 ${key} 줄이 없습니다`)
+  return top
+}
+
+/**
+ * 상점 판의 바닥. `game.ts` 의 `SHOP_BOTTOM` 과 같습니다.
+ *
+ * **바닥이 고정이고 윗변이 움직입니다** — 다 산 줄은 없어지고 그만큼 윗변이 내려오므로,
+ * 밑단의 단추는 줄 수와 무관하게 이 자리입니다. 화면 높이 800 에서 14 위입니다.
+ */
+export const SHOP_BOTTOM = 800 - 14
 
 /** 화면 좌표를 캔버스 위의 자리로. 기준 해상도는 1280 × 720 입니다. */
 /**
@@ -443,7 +456,7 @@ export const TITLE_OPTIONS = {
 export async function clickPrimary(page: Page): Promise<void> {
   if ((await peek(page)).phase === 'shop') {
     // 상점의 밑단. **판 하나로 정돈되면서 버튼도 그 안으로 들어왔습니다.**
-    const spot = await at(page, POPUP_X + 83, SHOP_Y + SHOP_H - 56 / 2)
+    const spot = await at(page, POPUP_X + 83, SHOP_BOTTOM - 56 / 2)
     await page.mouse.click(spot.x, spot.y)
     return
   }

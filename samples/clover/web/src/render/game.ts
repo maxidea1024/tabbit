@@ -132,11 +132,16 @@ const PAYOUT_STEP = 0.16
  */
 const PAYOUT_WAIT = 0.52
 /**
- * 상점이 서는 가장 높은 자리.
+ * 상점의 바닥이 서는 자리.
  *
- * **조커와 소모품 줄의 아래입니다** — 그 줄과 칸 수를 적은 글이 `y` 193 에서 끝납니다.
+ * **바닥이 고정이고 윗변이 움직입니다.** 다 사서 줄이 없어지면 판이 아래에서 줄어들지
+ * 않고 위에서 줄어듭니다 — 단추가 있는 바닥이 움직이면 같은 단추를 누를 자리가 살 때마다
+ * 달라집니다. 세 줄이 다 있을 때의 높이가 586 이므로 그때 윗변이 `y` 200 에 서고, 그것이
+ * 조커와 소모품 줄(칸 수를 적은 글이 `y` 193 에서 끝납니다)의 바로 아래입니다.
  */
-const SHOP_TOP = 200
+const SHOP_BOTTOM = SIZE.height - 14
+/** 상점 판이 아래에서 올라와 서는 데 걸리는 시간. 줄은 그 뒤부터 채워집니다. */
+const SHOP_RISE = 0.34
 
 /** 뜯은 팩의 이름이 서는 자리. */
 const PACK_TITLE_Y = 236
@@ -269,9 +274,6 @@ const PLAY_H = 56
 const CLEAR_W = 76
 /** 버튼 사이. **손가락 하나가 들어가야 합니다.** */
 const BUTTON_GAP = 8
-/** 상점의 줄들. **팩 줄이 카드 줄과 바우처 사이에 들어갑니다.** */
-const SHOP_CARD_Y = 252
-
 /** 고른 카드에 도는 빛의 색. 셰이더가 0..1 로 받습니다. */
 const PICK_TINT: [number, number, number] = [0.45, 1.0, 0.68]
 
@@ -726,6 +728,25 @@ export class Game {
    * 조커와 소모품이 들리는 것과 같은 몸짓입니다.
    */
   private readonly shopLift = new Spring()
+  /**
+   * 상점 판이 화면 아래에서 올라오는 동안의 세로 어긋남. 0 이면 제자리입니다.
+   *
+   * **판이 먼저 오고 줄은 그 뒤에 채워집니다.** 서 있던 자리에 갑자기 나타나면 무엇이
+   * 열린 것인지가 남지 않습니다.
+   */
+  private readonly shopSlide = new Spring(0, 200, 24)
+  /**
+   * 상점 판의 지금 높이.
+   *
+   * **줄이 없어지면 목표만 바뀌고 높이가 따라갑니다.** 바닥이 고정이므로 윗변이 내려오는
+   * 것으로 보이고, 한 프레임에 줄어들면 판이 바뀐 것이 아니라 다른 판이 선 것으로 보입니다.
+   */
+  private readonly shopHeight = new Spring(0, 180, 22)
+  /** 지금 그려진 상점 판의 틀. 높이가 움직이는 동안 매 프레임 다시 그립니다. */
+  private shopFrame?: {
+    node?: Container; foot: Container; body: Container
+    x: number; width: number; height: number; drawn: number
+  }
   /** 상점의 팩 딱지들. 카드 딱지와 높이가 달라 그것도 함께 들고 있습니다. */
   private readonly packSlotTiles =
     new Map<number, { tile: Container; height: number; baseY: number;
@@ -1212,6 +1233,26 @@ export class Game {
    * 둘이 서로 다른 자리에서 시작해야 갈립니다. 한 번 쓰면 비웁니다.
    */
   private sellFrom: { x: number; y: number } | undefined
+
+  /**
+   * 산 값이 빠져나가는 자리.
+   *
+   * **산 그 물건의 가운데입니다.** 판 가운데 아래에 뜨면 상점 판의 구석에 걸리고, 무엇을
+   * 사서 나간 돈인지가 남지 않습니다. `sellFrom` 과 같이 액션 앞에서 적고 한 번 쓰면
+   * 비웁니다 — 액션이 상점을 다시 그리며 딱지를 없애므로, 그 뒤에는 자리를 셀 수 없습니다.
+   */
+  private boughtFrom: { x: number; y: number } | undefined
+
+  /**
+   * 지금 서 있는 상점 판의 자리.
+   *
+   * 딱지가 이미 없어졌을 때의 예비 자리이고, 도구가 줄의 자리를 읽는 곳입니다 — 바닥이
+   * 고정이라 윗변은 줄 수에 따라 움직이므로 상수로는 셀 수 없습니다.
+   */
+  private shopBox: { x: number; y: number; width: number; height: number } | undefined
+
+  /** 상점의 줄마다 몸통이 시작하는 `y`. 없는 줄은 없습니다. */
+  private shopRows: { items?: number; packs?: number; voucher?: number } = {}
 
   /**
    * 사서 오는 소모품 하나.
@@ -2089,6 +2130,12 @@ export class Game {
     this.chimes.length = 0
     this.arriveFrom = undefined
     this.sellFrom = undefined
+    this.boughtFrom = undefined
+    this.shopBox = undefined
+    this.shopRows = {}
+    this.shopFrame = undefined
+    this.shopSlide.snap(0)
+    this.shopLayer.y = 0
     this.shopRevealAt = 0
     this.shopStanding = false
     this.shopOpening = false
@@ -3138,10 +3185,11 @@ export class Game {
         // 말하는 유일한 표시입니다.
         const sold = event.reason === 'sell' ? this.sellFrom : undefined
         if (event.reason === 'sell') this.sellFrom = undefined
-        const from = sold
-          ?? (this.state.phase === 'shop' && event.reason === 'shop'
-            ? { x: BOARD_X, y: SHOP_CARD_Y + 81 }
-            : { x: BOARD_X, y: PLAY_Y })
+        // **산 값은 산 물건의 가운데에서 나갑니다.** 같은 이유입니다.
+        const bought = event.reason === 'shop' ? this.boughtFrom : undefined
+        if (event.reason === 'shop') this.boughtFrom = undefined
+        const from = sold ?? bought
+          ?? (this.state.phase === 'shop' ? this.shopMiddle() : { x: BOARD_X, y: PLAY_Y })
         this.coins.fly(event.delta, from, spot)
         this.flashPanel(event.delta > 0 ? COLOR.money : COLOR.bad, 0.7)
         this.audio.play(event.delta > 0 ? 'joker_money' : 'shop_reroll')
@@ -3162,6 +3210,9 @@ export class Game {
             // **칸 아래에서 올라옵니다.** 조커와 소모품 줄은 화면 맨 위라, 칸의 가운데에서
             // 시작하면 글이 화면 밖으로 올라가 잘립니다.
             if (sold) this.popAt({ x: sold.x, y: sold.y + SIZE.jokerHeight }, line, tint, 0.7)
+            // **산 것은 그 물건의 가운데에서 올라옵니다.** `popAt` 이 46 위에서 시작하므로
+            // 그만큼 내려 잡아야 글의 밑이 물건의 가운데에 옵니다.
+            else if (bought) this.popAt({ x: bought.x, y: bought.y + 46 }, line, tint, 0.5)
             else this.popAt(this.moneyLabelAnchor(), line, tint, 0.3)
           }
         }
@@ -3843,6 +3894,7 @@ export class Game {
     this.advanceRecalls(seconds)
     this.advanceDeltas(seconds)
     this.advanceShopLift(seconds)
+    this.advanceShopPanel(seconds)
     this.advanceTagFlash(seconds)
     this.advanceGameOver(seconds)
     this.title.advance(seconds)
@@ -4178,6 +4230,9 @@ export class Game {
       // 재는 도구가 네 칸을 차례로 눌러 보고 있었고, 조커만 서 있는 상점에서는 아무것도
       // 사지 못한 채 「사지 못했습니다」 로 끝났습니다.
       shopKinds: state.shop.cards.map(card => card.kind),
+      // 상점의 줄마다 몸통이 시작하는 `y`. **판이 바닥에 맞춰 서므로 도구가 상수로 셀 수
+      // 없습니다** — 줄이 하나 없어지면 나머지 줄이 그만큼 내려옵니다.
+      shopRows: this.shopRows,
       // **들고 있는 태그와, 딱지에 실제로 그린 칩 수.** 둘이 갈라져야 어디가 틀렸는지
       // 나옵니다 — 상태에 없으면 규칙이고, 있는데 안 그렸으면 화면입니다.
       // 리더보드. **로그아웃 상태의 게임이 지금과 같은지**를 도구가 이것으로 봅니다.
@@ -6422,8 +6477,11 @@ export class Game {
       this.flyMissed++
       return
     }
+    // **받는 것은 카드의 가운데이고, 미끄러지는 것은 칸의 왼쪽 위입니다.** 조커 뷰와 같은
+    // 자리를 받아야 부르는 쪽이 둘을 달리 셀 필요가 없습니다.
     this.itemArrive = {
-      uid: last.uid, warp: 1, glow: 0, filter: new ArriveFilter(), from, travel: 0,
+      uid: last.uid, warp: 1, glow: 0, filter: new ArriveFilter(),
+      from: { x: from.x - SIZE.jokerWidth / 2, y: from.y - SIZE.jokerHeight / 2 }, travel: 0,
     }
     this.syncConsumables()
   }
@@ -7004,6 +7062,7 @@ export class Game {
     this.shopLayer.removeChildren().forEach(child => child.destroy())
     this.shopTiles.clear()
     this.packSlotTiles.clear()
+    this.shopFrame = undefined
     // **정산이 끝난 뒤에 섭니다.** 돈이 들어오는 것을 보는 동안 상점이 이미 뒤에 서 있으면
     // 그 판이 무엇을 막고 있는 것으로 보이고, 순서가 뒤집힙니다.
     // **차례는 새로 설 때만 다시 셉니다.** 하나 사면 다시 그리는데, 그때마다 처음부터
@@ -7018,6 +7077,8 @@ export class Game {
     // 한 번 번쩍입니다.
     this.shopLayer.visible = this.state.phase === 'shop' && this.shopReady
       && !this.payoutWanted && !this.modals.has(this.payout)
+    this.shopBox = undefined
+    this.shopRows = {}
     // **국면으로 봅니다.** 눈에 보이는지로 보면 연출이 한 박자 도는 동안 — 조커를 살 때
     // 동전이 날아가는 그 동안 — 상점이 잠깐 물러났다가 처음부터 다시 섭니다.
     if (this.state.phase !== 'shop') this.shopStanding = false
@@ -7025,9 +7086,9 @@ export class Game {
     if (!this.shopStanding) {
       this.shopStanding = true
       this.shopOpening = true
-      this.shopRevealAt = this.clock
+      // 판이 올라와 선 다음부터 줄이 채워집니다.
+      this.shopRevealAt = this.clock + SHOP_RISE
     }
-    this.beginReveal(this.shopLayer, this.shopRevealAt, this.shopOpening)
 
     const state = this.state
     // **왼쪽 패널을 비껴야 합니다.** 화면 한가운데에 서므로, 이보다 넓으면 판돈과 금액이
@@ -7046,23 +7107,26 @@ export class Game {
 
     // **다 산 칸은 없어집니다.** 이름만 남겨 두면 그만큼이 빈자리로 남고, 그 빈자리는
     // 무엇이 있었는지도 무엇을 더 살 수 있는지도 알려 주지 않습니다.
-    const rows: { title: string; body: number; draw: (top: number, h: number) => void }[] = []
+    const rows: {
+      key: keyof Game['shopRows']; title: string; body: number
+      draw: (top: number, h: number) => void
+    }[] = []
     if (state.shop.cards.length > 0) {
       rows.push({
-        title: t('ui.shop.wares'), body: ITEM_H,
+        key: 'items', title: t('ui.shop.wares'), body: ITEM_H,
         draw: (top, h) => this.drawShopItems(x, top, width, h),
       })
     }
     if (state.shop.packs.length > 0) {
       rows.push({
-        title: t('ui.kind.pack'), body: PACK_H,
+        key: 'packs', title: t('ui.kind.pack'), body: PACK_H,
         draw: (top, h) => this.drawPackRow(x, top, width, h),
       })
     }
     // 바우처는 이미 산 것도 한 줄로 남깁니다 — **그것은 빈자리가 아니라 적힌 사실입니다.**
     if (state.shop.voucher || state.shop.voucherBought) {
       rows.push({
-        title: t('ui.kind.voucher'), body: state.shop.voucher ? VOUCHER_H : 30,
+        key: 'voucher', title: t('ui.kind.voucher'), body: state.shop.voucher ? VOUCHER_H : 30,
         draw: (top, h) => this.drawVoucher(x, top, width, h),
       })
     }
@@ -7073,8 +7137,10 @@ export class Game {
       + GAP * Math.max(0, rows.length - 1)
     const height = TITLE_BAR + 10 + (empty ? 64 : body) + 8 + FOOTER_BAR
 
+    // **바닥에 맞춰 섭니다.** 줄이 없어지면 윗변이 내려오고 바닥과 단추는 그 자리입니다.
     const x = POPUP_X - width / 2
-    const y = SHOP_TOP
+    const y = SHOP_BOTTOM - height
+    this.shopBox = { x, y, width, height }
 
     const foot = new Container()
     const reroll = new Button(tf('ui.shop.reroll_cost', { n: rerollCost(this.data, state, state.shop) }),
@@ -7084,9 +7150,21 @@ export class Game {
     leave.position.set(166, 0)
     foot.addChild(reroll, leave)
 
-    const frame = panelFrame(width, height, t('ui.guide.shop.head'), undefined, foot)
-    frame.position.set(x, y)
-    this.shopLayer.addChild(frame)
+    // **틀과 몸통이 갈립니다.** 틀은 높이가 움직이는 동안 매 프레임 다시 그리고, 몸통은
+    // 마지막 자리에 그려 둔 채 윗변을 따라 통째로 옮깁니다 — 바닥과 단추는 그 자리입니다.
+    const inner = new Container()
+    this.shopFrame = { foot, body: inner, x, width, height, drawn: -1 }
+    if (this.shopOpening) {
+      // 새로 서는 것은 제 높이로 곧바로 서고, 대신 화면 아래에서 올라옵니다.
+      this.shopHeight.snap(height)
+      this.shopSlide.snap(SIZE.height - y)
+      this.shopSlide.target = 0
+    } else {
+      this.shopHeight.target = height
+    }
+    this.redrawShopFrame()
+    this.shopLayer.addChild(inner)
+    this.beginReveal(inner, this.shopRevealAt, this.shopOpening)
 
     const money = new Text({
       text: `$${this.shown.money}`,
@@ -7094,7 +7172,7 @@ export class Game {
     })
     money.anchor.set(1, 0.5)
     money.position.set(x + width - 26, y + TITLE_BAR / 2)
-    this.shopLayer.addChild(money)
+    inner.addChild(money)
 
     if (empty) {
       const note = new Text({
@@ -7110,9 +7188,46 @@ export class Game {
     let at = y + TITLE_BAR + 10
     for (const row of rows) {
       this.shopSection(x, at, width, row.title)
+      // 도구가 이 값으로 칸을 짚습니다. 윗변이 움직이므로 상수로는 셀 수 없습니다.
+      this.shopRows[row.key] = at + HEAD
       row.draw(at + HEAD, row.body)
       at += HEAD + row.body + GAP
     }
+  }
+
+  /**
+   * 상점 판의 틀을 지금 높이로 그립니다.
+   *
+   * **높이가 목표와 다를 때만 다시 그립니다.** 서 있는 동안은 한 번도 다시 그리지 않고,
+   * 줄이 없어져 높이가 움직이는 0.3초 동안만 매 프레임 그립니다. 밑단의 단추는 같은 것을
+   * 새 틀로 옮겨 붙이므로 누르던 채로 남습니다.
+   */
+  private redrawShopFrame(): void {
+    const one = this.shopFrame
+    if (!one) return
+    const spring = this.shopHeight
+    // 다 왔으면 목표에 딱 맞춥니다. 반 픽셀 어긋난 자리에 글이 서면 흐려집니다.
+    const shown = Math.abs(spring.value - spring.target) < 0.5 ? spring.target : spring.value
+    if (Math.abs(shown - one.drawn) < 0.5) return
+
+    one.foot.parent?.removeChild(one.foot)
+    one.node?.destroy()
+    const node = panelFrame(one.width, shown, t('ui.guide.shop.head'), undefined, one.foot)
+    node.position.set(one.x, SHOP_BOTTOM - shown)
+    this.shopLayer.addChildAt(node, 0)
+    one.node = node
+    one.drawn = shown
+    // 몸통은 윗변을 따라갑니다. 마지막 자리에 그려 두었으므로 그 차이만큼입니다.
+    one.body.y = one.height - shown
+  }
+
+  /** 상점 판이 올라오는 것과 높이가 따라가는 것을 한 단계 진행합니다. */
+  private advanceShopPanel(seconds: number): void {
+    if (!this.shopLayer.visible) return
+    this.shopSlide.advance(seconds)
+    this.shopLayer.y = Math.abs(this.shopSlide.value) < 0.3 ? 0 : this.shopSlide.value
+    this.shopHeight.advance(seconds)
+    this.redrawShopFrame()
   }
 
   /**
@@ -7401,8 +7516,18 @@ export class Game {
     // **없으면 상점 한가운데입니다.** 딱지는 상점을 다시 그릴 때마다 새로 만들어지므로,
     // 붙들고 있던 것이 이미 지워졌을 수 있습니다 — 그때 그 딱지에게 자리를 물으면 예외가
     // 나고, 누르는 자리의 예외는 조용히 삼켜져 그 뒤가 통째로 죽습니다.
-    if (!tile) return { x: BOARD_X, y: SHOP_CARD_Y }
-    return { x: tile.x + (158 - SIZE.jokerWidth) / 2, y: tile.y + 22 }
+    if (!tile) return this.shopMiddle()
+    // **카드의 가운데입니다.** 조커 뷰의 피벗이 가운데이고, 소모품이 오는 길은 `itemFlying`
+    // 이 가운데를 받아 제 셈으로 옮깁니다. 딱지에 배율이 붙어 있으면 그만큼 줄어든 카드의
+    // 가운데입니다.
+    return { x: one.mid, y: tile.y + SIZE.jokerHeight / 2 * tile.scale.x }
+  }
+
+  /** 상점 판의 한가운데. 딱지가 이미 없어졌을 때의 예비 자리입니다. */
+  private shopMiddle(): { x: number; y: number } {
+    const box = this.shopBox
+    if (!box) return { x: POPUP_X, y: SIZE.height / 2 }
+    return { x: box.x + box.width / 2, y: box.y + box.height / 2 }
   }
 
   /** 그 갈래를 받을 자리가 있는가. */
@@ -7449,6 +7574,7 @@ export class Game {
         this.audio.play('joker_buy')
         this.sellFrom = item.kind === ShopItemKind.Joker
           ? this.jokerSpot(held) : this.itemSpot(held)
+        this.boughtFrom = from
         this.act({ t: 'swap', slot, index: held })
         if (isConsumable(item.kind)) this.itemFlying(from)
       })
@@ -7472,6 +7598,7 @@ export class Game {
     // 읽으므로 멀쩡했고, 팩에서 집는 것은 딱지가 없어지지 않으므로 멀쩡했습니다.
     const from = this.shopSpot(slot)
     this.arriveFrom = from
+    this.boughtFrom = from
 
     this.act({ t: 'buy', slot })
 
@@ -7500,7 +7627,9 @@ export class Game {
         // **발동이 아니라 도착입니다.** 흔들리면 아무 이유 없이 난리치는 것으로 보입니다.
         view.bounce(1.2)
         view.landing()
-        spot = { x: view.x + SIZE.jokerWidth / 2, y: view.y + SIZE.jokerHeight / 2 }
+        // **뷰의 자리가 곧 가운데입니다.** 피벗이 카드 가운데에 있으므로 반 칸을 더하면
+        // 글이 카드의 오른쪽 가장자리에 섭니다.
+        spot = { x: view.x, y: view.y }
       }
     } else {
       const last = this.consumableTiles[this.consumableTiles.length - 1]
@@ -7781,11 +7910,12 @@ export class Game {
     // 이미 지워졌으면 상점 한가운데에서 나옵니다.
     const from = spot
       ? { x: spot.mid, y: spot.baseY + spot.height / 2 }
-      : { x: BOARD_X, y: SHOP_CARD_Y }
+      : this.shopMiddle()
     const row = this.data.tables.boosterPack.findByPackId(this.state.shop.packs[slot])
     this.particles.burst(from.x, from.y, 20, row ? packInk(row.kind) : COLOR.ink, 1.2)
     this.jolt(5, 3)
     this.packFrom = from
+    this.boughtFrom = from
     this.act({ t: 'buy_pack', slot })
   }
 
@@ -7848,6 +7978,7 @@ export class Game {
       this.flashPanel(COLOR.money, 0.35)
       this.popAt({ x: tile.x + tileW / 2, y: tile.y + tileH / 2 },
         nameOf(this.data, 'voucher', id, row?.name ?? ''), COLOR.money, 0.5)
+      this.boughtFrom = { x: tile.x + tileW / 2, y: tile.y + tileH / 2 }
       this.act({ t: 'buy_voucher' })
     })
     this.tipOn(tile, () => {
@@ -8132,8 +8263,9 @@ export class Game {
     const item = view.item
     const node = view.face.node
     const ink = packInk(open.kind)
-    // 집은 카드도 산 것과 같이 제자리에서 옵니다.
-    const from = { x: node.x - SIZE.jokerWidth / 2, y: node.y - SIZE.jokerHeight / 2 }
+    // 집은 카드도 산 것과 같이 제자리에서 옵니다. **카드의 가운데입니다** — 조커 뷰의
+    // 피벗이 가운데이고, 소모품 쪽은 `itemFlying` 이 제 셈으로 옮깁니다.
+    const from = { x: node.x, y: node.y }
 
     // **자리가 없으면 무엇과 바꿀지를 묻습니다.** 코어는 자리가 없으면 아무것도 하지
     // 않는데, 화면이 그것을 모른 채 소리와 조각을 내고 있었습니다.
