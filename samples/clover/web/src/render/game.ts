@@ -32,13 +32,12 @@ import {
 import { language, nameOf, setLanguage, t, text, tf } from '../core/strings'
 import { stakeRow, stakeSlug } from '../core/stake'
 import { SetupPanel, setupLabel, validSetup, type RunSetup } from '../ui/setup'
-import { useFont } from '../ui/font'
+import { NUMERALS, useFont } from '../ui/font'
 import { rerollCost, sellValueOf, type ShopItem } from '../core/shop'
 import { bestHand, valueOf } from '../core/suggest'
 import { newCounters, type CardInstance, type GameEvent, type RunState } from '../core/state'
 import { BackgroundFilter } from '../shader/background'
 import { PunchFilter } from '../shader/punch'
-import { FlameFilter } from '../shader/flame'
 import { ArriveFilter } from '../shader/arrive'
 import { DissolveFilter } from '../shader/dissolve'
 import { Audio } from './audio'
@@ -57,7 +56,7 @@ import { backLookOf, bakeCardBacks, cardBack, drawCardBack, setCardBack } from '
 import { cardArtDir, cardBackMotif, cardPaper, drawsIndex, setCardSet, setLookOf, suitInk } from './card-set'
 import { drawGlyph, glyphFor, hashOf, hsl, shade } from './glyph'
 import { cardArtId, drawFace } from './pips'
-import { mix } from './skin'
+import { groove, mix } from './skin'
 import { COLOR, SIZE } from './theme'
 import { box, type Box, CENTER, pointOf, putText, splitX } from '../ui/layout'
 import { Button, Panel } from '../ui/widgets'
@@ -281,14 +280,7 @@ const PICK_TINT: [number, number, number] = [0.45, 1.0, 0.68]
 /** 줄바꿈. 문자열 안에 그대로 적으면 이 파일을 고치는 도구들이 자꾸 끊어 놓습니다. */
 const NEWLINE = String.fromCharCode(10)
 
-/** 칩과 배수 칸의 윗변. 불이 이 자리를 따라다닙니다. */
-// 칩과 배수의 줄. **점수 칸과 사이를 벌립니다** — 그 사이에 고른 족보의 이름이 섭니다.
-/**
- * 칩 × 배수 상자의 윗변.
- *
- * **위로 불의 자리를 비워 둡니다.** 불은 이 윗변에 뿌리를 두고 위로 솟으므로, 그만큼
- * 위에는 아무것도 두지 않습니다 — 족보 이름은 그 불 위입니다.
- */
+/** 칩 × 배수 상자의 윗변. 바로 위에 고른 족보의 이름이 섭니다. */
 /**
  * 떠오르는 차이 글의 개수와 목숨.
  *
@@ -304,7 +296,13 @@ const TAG_FIRE_WAIT = 0.5
 
 
 const DELTA_POOL = 8
-const DELTA_LIFE = 0.62
+/**
+ * ±N 글 하나가 화면에 있는 시간.
+ *
+ * **앞의 0.4는 제자리에 앉아 있습니다.** 칸의 숫자와 같은 크기로 뜨므로 읽을 시간이 있어야
+ * 하고, 곧바로 떠오르면 크게 띄운 뜻이 없어집니다.
+ */
+const DELTA_LIFE = 0.8
 
 /**
  * 고정 단계의 길이. 밀리초.
@@ -367,6 +365,34 @@ interface BlindGroup {
 
 const CHIPS_Y = 336
 /**
+ * 왼쪽 판의 줄들이 서는 자리.
+ *
+ * **네 무리이고 무리 사이가 26픽셀입니다.** 낱개로 적어 두었더니 사이가 12·30·12로
+ * 제각각이었고, 그러면 여섯 칸이 한 덩어리로 보입니다 — 어느 둘이 한 벌인지는 사이의
+ * 넓이가 말하는 것이고, 그 넓이가 고르지 않으면 아무것도 말하지 않습니다.
+ *
+ * |무리|담기는 것|
+ * |--|--|
+ * |블라인드|딱지 34–198 · 라운드 득점 210–278|
+ * |이번 손|족보 이름 304–328 · 칩 × 배수 336–394|
+ * |자원|핸드 · 버리기 420–472 · 소지금 · 안티 484–536|
+ * |적용 중|562부터|
+ *
+ * 딱지와 칩 × 배수와 아래 버튼은 자리가 그대로입니다 — 움직인 것은 족보 이름과 아래 넷,
+ * 그리고 적용 중입니다.
+ */
+const PANEL_ROWS = {
+  score: 210,
+  /** 족보 이름이 앉는 띠의 윗변. 높이는 24 입니다. */
+  handLabel: 304,
+  hands: 420,
+  money: 484,
+  /** 적용 중 목록의 머리글. */
+  active: 562,
+} as const
+/** 무리를 가르는 줄들. 각 사이의 한가운데입니다. */
+const PANEL_GROOVES = [291, 407, 549] as const
+/**
  * 칩 × 배수 덩어리.
  *
  * **하나입니다.** 칸 둘이 각자 테두리를 두르고 있었고, 곱셈표가 그 사이의 빈 자리에 글자
@@ -377,21 +403,8 @@ const CHIPS_H = 58
 const CHIPS_R = 10
 /** 두 상자 사이. **곱셈표가 그 사이에 섭니다.** */
 const CHIPS_GAP = 34
-/**
- * 불이 상자 위로 솟는 높이와, 뿌리가 상자 안으로 물리는 깊이.
- *
- * **상자 위에 붙습니다.** 상자 안에서 태우면 불이 숫자를 덮어 아무것도 읽히지 않습니다 —
- * 사람 머리가 타는 것처럼 윗변에 뿌리를 두고 위로 솟습니다.
- */
-const FIRE_RISE = 40
-const FIRE_BITE = 5
-/**
- * 불은 **자기 반 안에서** 탑니다.
- *
- * 예전에는 칸 뒤에 두고 칸을 반투명하게 만들어 비치게 했는데, 그러면 테두리 밖으로 자락이
- * 새어 나오고 칸 위에 얼룩이 얹힌 것으로 보였습니다 — 바탕이 색으로 갈린 지금은 그 색 위에
- * 그대로 얹으면 되고, 반 밖으로 나가지 않게 가려 둡니다.
- */
+/** 구분선 하나가 차지하는 높이. 줄은 그 한가운데입니다. */
+const RULE_H = 14
 
 /** 덱 판의 카드에 쓰는 것들. 손패의 카드와 같은 값이라 여기 한 벌만 둡니다. */
 const MINI_RANK: Record<number, string> = {
@@ -513,33 +526,13 @@ const MINI_SEAL: Partial<Record<number, number>> = {
 }
 
 /**
- * 불의 층 둘.
+ * 칩·배수 상자의 채움색.
  *
- * **바깥은 상자의 색입니다.** 그래야 불의 뿌리가 상자와 같은 색이라 그 상자가 타는 것으로
- * 보입니다 — 손으로 적어 두었더니 상자는 칩의 파랑인데 불은 다른 파랑이었습니다.
- *
- * **안쪽 심지는 흰쪽이지만 그냥 흰색이 아닙니다.** 순전한 흰색으로 끌어오면 붉은 불이
- * 분홍이 됩니다 — 불의 심지는 노랗고, 찬 불의 심지는 희읍스름한 하늘색입니다. 그 둘만
- * 색으로 적어 둡니다.
+ * **짙게 눌러 씁니다.** 원색 그대로는 흰 숫자가 눌러앉지 못합니다.
  */
-function flameOf(tint: number, core: number): {
-  cool: [number, number, number]
-  hot: [number, number, number]
-} {
-  return { cool: rgbOf(tint), hot: rgbOf(mix(tint, core, 0.62)) }
+function boxInk(tint: number): number {
+  return mix(tint, 0x0a1018, 0.52)
 }
-
-/** 셰이더가 받는 차례 그대로. */
-function flamePair(tint: number, core: number):
-[[number, number, number], [number, number, number]] {
-  const pair = flameOf(tint, core)
-  return [pair.cool, pair.hot]
-}
-
-/** 뜨거운 불의 심지. 노랗습니다. */
-const CORE_WARM = 0xffd76a
-/** 찬 불의 심지. 희읍스름한 하늘색입니다. */
-const CORE_COLD = 0xd8f4ff
 
 const DECK_X = SIZE.width - 62
 const DECK_Y = 608
@@ -711,6 +704,16 @@ export class Game {
    * **통째로 내려갑니다.** 딱지가 들고 있는 태그만큼 자라므로 그 아래가 그만큼 밀립니다.
    */
   private readonly panelStack = new Container()
+  /**
+   * 왼쪽 판의 무리를 가르는 줄들.
+   *
+   * **여섯 칸이 한 덩어리로 보이던 것을 가릅니다.** 사이가 12·30·12로 제각각이라 어느
+   * 둘이 한 벌인지가 자리로 드러나지 않았습니다 — 사이를 26으로 맞추고 그 한가운데에 줄을
+   * 하나씩 둡니다.
+   *
+   * 자리가 상수이므로 **한 번 그리고 그대로 둡니다.**
+   */
+  private readonly panelGrooves = new Graphics()
   /**
    * 상점 칸의 딱지들.
    *
@@ -910,7 +913,7 @@ export class Game {
    * 칩 × 배수의 바탕.
    *
    * **칸이 아니라 이것이 테두리를 대신합니다.** 색이 갈리면 경계가 색으로 읽히므로 선이
-   * 필요 없고, 불이 그 색 위에 그대로 얹힙니다.
+   * 필요 없습니다.
    */
   private readonly scoreBox = new Graphics()
   /**
@@ -924,22 +927,6 @@ export class Game {
    */
   private readonly chips = new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, COLOR.ink, 34, 1, true)
   private readonly mult = new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, COLOR.ink, 34, 0, true)
-  /** 두 칸 뒤에서 타오르는 불. 배수가 커지면 불길이 높아집니다. */
-  private readonly chipsFire = new Sprite(Texture.WHITE)
-  private readonly multFire = new Sprite(Texture.WHITE)
-  /**
-   * 불의 색.
-   *
-   * **상자의 색에서 나옵니다.** 손으로 적어 두었더니 상자와 불이 따로 놀았습니다 — 상자는
-   * 칩의 파랑인데 불은 다른 파랑이었고, 색을 고치면 한쪽만 따라왔습니다.
-   *
-   * 바깥 층이 상자의 색이고 안쪽 심지는 그것을 흰쪽으로 끌어온 것입니다 — 그러면 불의
-   * 뿌리가 상자와 같은 색이라 그 상자가 타는 것으로 보입니다.
-   */
-  private readonly chipsFlame = new FlameFilter(...flamePair(COLOR.chips, CORE_COLD))
-  private readonly multFlame = new FlameFilter(...flamePair(COLOR.mult, CORE_WARM))
-  /** 지금 얼마나 뜨거운가. 박자가 올리고 시간이 내립니다. */
-  private fever = 0
   /**
    * 왼쪽 판의 칸들이 마지막으로 보여 준 수.
    *
@@ -1948,6 +1935,7 @@ export class Game {
 
     // 주소도 함께 바꿉니다. **그 주소를 열면 같은 판입니다** — 지금 페이지를 다시 읽지는
     // 않으므로 타이틀에 그대로 있습니다.
+    //
     // **시드만 갈아 끼웁니다.** 물음표 뒤를 통째로 새로 쓰면 함께 실려 있던 것이 지워지고,
     // `?tick=manual` 로 연 판이 그 자리에서 그것을 잃습니다.
     try {
@@ -2230,7 +2218,6 @@ export class Game {
     this.headlineLife = 0
     this.ratchet = 0
     this.build = 0
-    this.fever = 0
     this.chain = 0
     this.holdAfterScore = 0
     this.wasBusy = false
@@ -2296,14 +2283,20 @@ export class Game {
     this.board.addChild(panel, this.frames)
 
     this.badge.position.set(LEFT, 34)
-    this.score.position.set(LEFT, 210)
-    // **칩 × 배수와 사이를 벌립니다.** 이 넷은 판이 도는 동안 가끔 보는 것이고 칩과 배수는
-    // 매 순간 보는 것인데, 12픽셀을 사이에 두고 붙어 있으면 여섯 칸이 한 덩어리로 보여서
+    this.score.position.set(LEFT, PANEL_ROWS.score)
+    // **네 무리이고 사이가 26입니다.** 이 넷은 판이 도는 동안 가끔 보는 것이고 칩과 배수는
+    // 매 순간 보는 것인데, 사이가 12·30·12로 제각각이면 여섯 칸이 한 덩어리로 보여서
     // 그중 어느 둘이 지금 중요한지가 자리로 드러나지 않습니다.
-    this.hands.position.set(LEFT, 424)
-    this.discards.position.set(RIGHT_COL, 424)
-    this.money.position.set(LEFT, 488)
-    this.anteSlot.position.set(RIGHT_COL, 488)
+    this.hands.position.set(LEFT, PANEL_ROWS.hands)
+    this.discards.position.set(RIGHT_COL, PANEL_ROWS.hands)
+    this.money.position.set(LEFT, PANEL_ROWS.money)
+    this.anteSlot.position.set(RIGHT_COL, PANEL_ROWS.money)
+
+    // 무리를 가르는 줄 셋. **각 사이의 한가운데입니다.**
+    //
+    // 아래 버튼 앞에는 두지 않습니다 — 적용 중이 넷까지 차면 남는 자리가 20픽셀뿐이라,
+    // 거기에 줄이 서면 그 줄이 목록에 딸린 것으로 보입니다.
+    for (const at of PANEL_GROOVES) groove(this.panelGrooves, LEFT, at, PANEL_W)
 
     // **상자 둘과 그 사이의 곱셈표입니다.** 원작의 배치이고, 붙여 놓는 것보다 이 편이
     // 「칩 곱하기 배수」 라는 식으로 읽힙니다.
@@ -2329,39 +2322,22 @@ export class Game {
     const seam = pointOf(gapBox, CENTER)
     times.position.set(seam.x, seam.y)
 
-    // 불은 **바탕 위, 숫자 아래**입니다. 각자 자기 반에 갇혀서 그 반의 바탕이 타는 것으로
-    // 보입니다 — 예전에는 칸 뒤에 두고 칸을 비치게 했고, 그러면 테두리 밖으로 자락이
-    // 새어 나왔습니다.
-    for (const [fire, area] of [[this.chipsFire, chipsBox], [this.multFire, multBox]] as const) {
-      fire.blendMode = 'add'
-      fire.visible = false
-      // 뿌리가 상자의 윗변 안으로 조금 물리고, 거기서 위로 솟습니다.
-      fire.position.set(area.x, area.y + FIRE_BITE - FIRE_RISE)
-      fire.scale.set(area.width, FIRE_RISE)
-      // **숫자 위로는 넘어오지 않습니다.** 물린 만큼까지만 보입니다.
-      const mask = new Graphics()
-      mask.rect(area.x, area.y - FIRE_RISE, area.width, FIRE_RISE + FIRE_BITE).fill(0xffffff)
-      fire.mask = mask
-      this.board.addChild(mask)
-    }
-    this.chipsFire.filters = [this.chipsFlame]
-    this.multFire.filters = [this.multFlame]
-
-    // 족보 이름. **불꽃 위입니다.**
+    // 족보 이름. **칩 × 배수 바로 위입니다.**
     //
-    // 위에서 아래로 라운드 점수 · 족보 이름 · 불꽃 · 칩 × 배수 순서이고, 눈이 한 번
-    // 내려오면서 「이 판은 무슨 족보이고, 그래서 이만큼 타고 있고, 값은 이것이다」 로
-    // 읽힙니다 — 아래에 두면 그 순서가 끊깁니다.
-    // **위와 아래의 한가운데입니다.** 점수 칸 바로 밑에 붙어 있었고, 그러면 이 글이 그 칸에
-    // 딸린 부제로 보입니다 — 이것은 점수의 설명이 아니라 지금 고른 것이 무엇인가입니다.
-    // 점수 칸이 276에서 끝나고 칩 × 배수가 345에서 시작하므로 그 사이의 한가운데입니다.
-    putText(this.handLabel, box(LEFT, 288, PANEL_W, 24), CENTER)
+    // 위에서 아래로 라운드 점수 · 족보 이름 · 칩 × 배수 순서이고, 눈이 한 번 내려오면서
+    // 「이 판은 무슨 족보이고, 값은 이것이다」 로 읽힙니다.
+    //
+    // **두 무리의 한가운데가 아니라 아래 무리의 머리입니다.** 사이의 한가운데에 두었더니
+    // 위의 점수와 아래의 두 수 어느 쪽에도 붙지 않은 글 한 줄이 되었습니다 — 이 글이
+    // 설명하는 것은 아래의 두 수이므로, 그 상자와 8픽셀을 두고 붙습니다.
+    putText(this.handLabel, box(LEFT, PANEL_ROWS.handLabel, PANEL_W, 24), CENTER)
 
     // **딱지 아래의 것들은 한 통에 담습니다.** 블라인드 딱지는 들고 있는 태그만큼 자라고,
     // 그러면 그 아래가 통째로 내려가야 합니다 — 낱개로 자리를 다시 세면 여섯 곳을 고쳐야
     // 하고 그중 하나를 빠뜨리면 그것만 겹칩니다.
-    this.panelStack.addChild(this.score, this.handLabel, this.scoreBox,
-      this.chipsFire, this.multFire, this.chips, this.mult, times,
+    //
+    this.panelStack.addChild(this.panelGrooves, this.score, this.scoreBox,
+      this.chips, this.mult, times, this.handLabel,
       this.hands, this.discards, this.money, this.anteSlot)
     this.board.addChild(this.badge, this.panelStack)
 
@@ -2418,8 +2394,8 @@ export class Game {
   /**
    * 칩과 배수의 상자.
    *
-   * **깔끔한 단색 둘입니다.** 숫자가 앉는 자리이므로 그 자리는 조용해야 하고, 불은 이 상자
-   * **위에** 붙습니다 — 안에서 태우면 불이 숫자를 덮어 아무것도 읽히지 않습니다.
+   * **깔끔한 단색 둘입니다.** 숫자가 앉는 자리이므로 그 자리는 조용해야 합니다 —
+   * 광택이나 그라디언트를 얹으면 그 위에 앉는 흰 숫자가 자리마다 다른 바탕을 만납니다.
    */
   private paintScoreBox(chipsBox: Box, multBox: Box): void {
     const g = this.scoreBox
@@ -2429,7 +2405,7 @@ export class Game {
       // **단색 하나입니다.** 광택이나 그라디언트를 얹으면 그 위에 앉는 흰 숫자가 자리마다
       // 다른 바탕을 만나 흐릿해집니다 — 숫자가 앉는 자리는 조용해야 합니다.
       g.roundRect(area.x, area.y, area.width, area.height, CHIPS_R)
-        .fill(mix(tint, 0x0a1018, 0.52))
+        .fill(boxInk(tint))
     }
   }
 
@@ -3328,7 +3304,6 @@ export class Game {
         this.recallToDeck()
         this.stop(280)
         this.chain = 0
-        this.fever = 0
         break
 
       case 'RunLost':
@@ -3366,8 +3341,6 @@ export class Game {
     if (beat.mult !== undefined) this.mult.target = Math.round(beat.mult / 10_000)
     this.chips.emphasize(scaleOf(beat.intensity, this.feel))
     this.mult.emphasize(scaleOf(beat.intensity, this.feel))
-    // **오를 때는 즉시.** 배수가 커진 그 박자에서 불이 붙어야 그 조커가 한 일로 읽힙니다.
-    this.fever = Math.max(this.fever, beat.intensity)
   }
 
   /**
@@ -3385,39 +3358,6 @@ export class Game {
       // 올리면 날아가는 중에 들리는 일이 없습니다.
       view.scoring = counts
     }
-  }
-
-  /**
-   * 두 칸이 타오릅니다.
-   *
-   * **세기는 흔들림과 같은 값입니다** — `Const_Feel` 의 문턱을 넘은 배수부터 불이 붙고,
-   * 상한에서 가장 높습니다. 채널마다 따로 재면 어느 하나만 사납게 반응하는 화면이 됩니다.
-   *
-   * 불은 곧바로 꺼지지 않습니다. 박자마다 한 번씩 붙었다 꺼지면 깜빡이는 것으로 보이므로,
-   * 오를 때는 즉시 오르고 내릴 때만 잦아듭니다.
-   */
-  private advanceFire(deltaMs: number): void {
-    const seconds = deltaMs / 1000
-    // **잦아드는 데 여유를 둡니다.** 빠르게 꺼지면 득점이 끝나기도 전에 불이 없어져서,
-    // 그 판이 뜨거웠다는 것이 남지 않습니다.
-    // **잦아드는 데 여유를 둡니다.** 0.5는 두 배수가 이어질 때 그 사이에 불이 꺼져서,
-    // 한 판이 뜨거웠다는 것이 남지 않고 번쩍임 여럿으로 흩어집니다 — 득점이 끝나고도
-    // 잠깐 타고 있어야 그 판이 뜨거웠던 것이 됩니다.
-    this.fever = Math.max(0, this.fever - seconds * 0.22)
-
-    const heat = this.fever
-    // **칩 쪽이 조금 낮습니다.** 배수가 이 게임의 큰 수이므로 그쪽이 더 타야 하고, 다만
-    // 너무 낮추면 문턱을 넘지 못해 파란 쪽이 꺼진 것처럼 보입니다.
-    this.chipsFlame.heat = heat * 0.88
-    this.multFlame.heat = heat
-    this.chipsFlame.advance(seconds)
-    this.multFlame.advance(seconds)
-
-    // **자리는 한 번만 잡습니다.** 불은 이제 자기 반 안에 갇혀 있고 그 반은 움직이지
-    // 않으므로, 매 프레임 따라다닐 것이 없습니다.
-    const lit = heat > 0.004
-    this.chipsFire.visible = lit
-    this.multFire.visible = lit
   }
 
   /**
@@ -3784,19 +3724,28 @@ export class Game {
    * 그 순간 무엇이 바뀌었는지를 통째로 잃는 것이고, 가장 오래된 것은 이미 옅어져
    * 사라지는 중이므로 잃는 것이 적습니다.
    */
-  private slotDelta(slot: Container, before: number, after: number, tint: number): void {
+  private slotDelta(slot: Slot, before: number, after: number, tint: number): void {
     if (before < 0 || after === before) return
 
     const delta = after - before
+    // **숫자가 앉은 그 자리, 그 크기입니다.** 모서리에 작게 띄우면 그것은 곁에 적어 둔
+    // 주석이고, 눈이 그 칸을 보고 있지 않으면 지나갑니다 — 바뀐 것이 값 자체의 자리를
+    // 차지해야 화면 가운데를 보고 있어도 그것이 보입니다.
+    const spot = slot.valueSpot
     const one = this.freeDelta()
     one.life = 0
-    one.homeY = slot.y + 16
+    one.homeY = slot.y + spot.y
     one.node.text = `${delta > 0 ? '+' : ''}${delta}`
     one.node.style.fill = delta > 0 ? tint : COLOR.bad
-    one.node.position.set(slot.x + 108, one.homeY)
-    one.node.scale.set(0.6)
+    one.node.style.fontSize = spot.size
+    one.node.anchor.set(spot.pull, 0.5)
+    one.node.position.set(slot.x + spot.x, one.homeY)
+    one.node.scale.set(1.5)
     one.node.alpha = 1
     one.node.visible = true
+    // 같은 자리에 같은 크기의 수가 둘이면 어느 것도 읽히지 않습니다. 칸의 숫자가 그동안
+    // 물러납니다.
+    slot.mute()
   }
 
   /**
@@ -3810,12 +3759,13 @@ export class Game {
 
     if (this.deltas.length < DELTA_POOL) {
       const node = new Text({
-        text: '', style: { fontSize: 19, fontWeight: '800', fill: COLOR.ink,
+        text: '', style: { fontSize: 23, fontWeight: '800', fill: COLOR.ink,
+                           fontFamily: NUMERALS,
                            stroke: { color: 0x0a0f18, width: 4 } },
       })
-      // 칸의 오른쪽 위에서 뜹니다. **칸 위가 아니라 모서리입니다** — 위에 두면 그 칸의
-      // 이름표를 덮고, 안에 두면 지금 값과 겹쳐 어느 것이 값인지 흐려집니다.
-      node.anchor.set(0.5, 1)
+      // 크기와 기준은 뜰 때마다 그 칸의 숫자에서 받습니다. **칸마다 글자 크기가 다르므로**
+      // 여기서 정해 두면 어느 칸에서는 그 칸의 수보다 크거나 작게 뜹니다.
+      node.anchor.set(0.5, 0.5)
       node.resolution = this.textScale
       node.visible = false
       this.board.addChild(node)
@@ -3833,12 +3783,14 @@ export class Game {
       if (!one.node.visible) continue
       one.life += seconds
       const t = Math.min(1, one.life / DELTA_LIFE)
-      // 튀어올랐다가 천천히 올라가며 옅어집니다. 앞의 0.1초가 튀는 구간입니다.
-      one.node.scale.set(one.life < 0.1
-        ? 0.6 + 0.55 * (one.life / 0.1)
-        : 1.15 - 0.15 * Math.min(1, (one.life - 0.1) / 0.26))
-      one.node.y = one.homeY - t * 26
-      one.node.alpha = 1 - t * t
+      // **튀어나와 제 크기로 앉습니다.** 앞의 0.12초가 그 구간이고, 그 뒤로는 칸의 숫자와
+      // 같은 크기입니다.
+      one.node.scale.set(one.life < 0.12 ? 1.5 - 0.5 * (one.life / 0.12) : 1)
+      // **앉아 있다가 떠오릅니다.** 곧바로 올라가기 시작하면 읽기 전에 자리를 떠나고,
+      // 그러면 크게 띄운 뜻이 없어집니다.
+      const rise = Math.max(0, (t - 0.4) / 0.6)
+      one.node.y = one.homeY - rise * rise * 34
+      one.node.alpha = 1 - rise * rise
       if (t >= 1) one.node.visible = false
     }
   }
@@ -3907,10 +3859,6 @@ export class Game {
       this.stepDebt -= STEP_MS
       this.step(STEP_MS)
     }
-    // 칩과 배수 칸은 제자리에 있습니다. **모였다 흩어지는 것은 걷어냈습니다** — 그 사이에
-    // 두 수를 읽을 수 없고 옆의 칸들과 줄도 어긋납니다.
-    this.advanceFire(deltaMs)
-
     this.updateHover()
     this.updateHandHover()
 
@@ -4411,9 +4359,6 @@ export class Game {
           this.state.vouchers = this.data.tables.voucher.records.slice(0, 2)
             .map(row => row.voucherId)
           this.refresh()
-        },
-        setFever: (value: number) => {
-          this.fever = value
         },
         // 소모품 첫 칸이 지금 그려진 자리. 사서 오는 길을 재는 도구가 씁니다.
         itemX: () => this.consumableTiles[this.consumableTiles.length - 1]?.tile.x,
@@ -5075,8 +5020,11 @@ export class Game {
       const tag = offer ? this.tagPlate(offer, cardW - 36) : undefined
 
       // 밑단에 쌓이는 것들의 높이. 아래에서 위로 쌓습니다.
+      //
+      // 지금 차례인 칸에는 **하는 일 둘이 들어갑니다** — 이 블라인드로 가는 것과 건너뛰는
+      // 것이고, 그 사이에 구분선 하나가 섭니다.
       const stack: number[] = now
-        ? [...(skippable ? [36, tag?.height ?? 0] : []), 44]
+        ? [RULE_H, ...(skippable ? [36, tag?.height ?? 0, RULE_H] : []), 44]
         : [20, ...(tag ? [tag.height] : [])]
       const stackH = stack.reduce((sum, one) => sum + one + 8, 0)
 
@@ -5184,6 +5132,14 @@ export class Game {
         group.addChild(node)
       }
 
+      // 하는 일 둘을 가르는 줄. **왼쪽 판의 구분선과 같은 것입니다** — 화면에서 무리를
+      // 가르는 표시가 자리마다 다르면 그것은 표시가 아니라 장식입니다.
+      const rule = (): Container => {
+        const line = new Graphics()
+        groove(line, 0, RULE_H / 2, cardW - 36)
+        return line
+      }
+
       if (done) {
         const mark = label(t('ui.label.cleared'), 14, COLOR.good, '800')
         mark.anchor.set(0.5, 0)
@@ -5197,7 +5153,22 @@ export class Game {
         at = height - 40
         if (tag) place(tag.node, tag.height)
       } else {
+        // **이 블라인드로 가는 것이 맨 아래입니다.** 셋 중 지금 차례인 칸에서만 뜨는
+        // 단추이고, 밑단에 붙어 있어야 다음 안테에서도 같은 자리입니다.
+        const pick = new Button(t('ui.button.select_blind'), cardW - 36, 44, 0x2f6fb5,
+          () => this.act({ t: 'select_blind' }))
+        place(pick, 44)
+        entry.pickY = pick.y + 22
+        this.spots.pick = { x: group.x + cardW / 2, y: group.y + entry.pickY }
+
         if (skippable) {
+          place(rule(), RULE_H)
+
+          // **받는 것이 건너뛰기 단추 아래입니다.** 위에 두었더니 그 태그가 「이
+          // 블라인드로 간다」의 딸린 글로 읽혔습니다 — 태그는 건너뛰었을 때 받는 것이고,
+          // 무엇을 하면 무엇을 받는가는 그 차례로 읽혀야 합니다.
+          if (tag) place(tag.node, tag.height)
+
           const skip = new Button(t('ui.button.skip'), cardW - 36, 36, 0x4a5568,
             () => {
               this.audio.play('blind_skip')
@@ -5206,15 +5177,12 @@ export class Game {
           place(skip, 36)
           entry.skipY = skip.y + 18
           this.spots.skip = { x: group.x + cardW / 2, y: group.y + entry.skipY }
-          // **무엇을 받는지가 그 버튼 위에 적혀 있습니다.** 적혀 있지 않으면 건너뛸지를
-          // 찍게 됩니다 — 태그 하나가 조커 하나이거나 바우처 하나입니다.
-          if (tag) place(tag.node, tag.height)
         }
-        const pick = new Button(t('ui.button.select_blind'), cardW - 36, 44, 0x2f6fb5,
-          () => this.act({ t: 'select_blind' }))
-        place(pick, 44)
-        entry.pickY = pick.y + 22
-        this.spots.pick = { x: group.x + cardW / 2, y: group.y + entry.pickY }
+
+        // 적힌 것과 하는 것을 가르는 줄. **위쪽은 이 블라인드가 무엇인가이고 아래쪽은
+        // 그래서 무엇을 하는가입니다** — 그 둘이 이어져 있으면 보스의 규칙 한 줄과 단추가
+        // 한 덩어리로 보입니다.
+        place(rule(), RULE_H)
       }
 
       this.blindPick.addChild(group)
@@ -6690,10 +6658,9 @@ export class Game {
     const entries = this.activeEntries()
     if (entries.length === 0) return
 
-    // **금액과 안테 칸 아래입니다.** 555는 그 칸의 밑변에서 2픽셀이라 글이 칸에 붙어
-    // 있었습니다 — 붙어 있으면 그 칸에 딸린 설명으로 보이고, 이것은 그 칸과 상관없는
-    // 다른 목록입니다.
-    const top = 552
+    // **자기 무리입니다.** 552는 금액·안테 칸의 밑변에서 12픽셀이라 그 칸에 딸린 설명으로
+    // 보였습니다 — 이것은 그 칸과 상관없는 다른 목록이고, 무리 사이는 26입니다.
+    const top = PANEL_ROWS.active
     const rowH = 26
     const shown = Math.min(entries.length, entries.length > 4 ? 3 : 4)
 
@@ -6705,7 +6672,9 @@ export class Game {
     this.activeLayer.addChild(head)
 
     entries.slice(0, shown).forEach((entry, index) => {
-      const y = top + 20 + index * rowH
+      // 머리글과 첫 줄 사이는 22 입니다. 20 은 머리글의 밑변에서 6픽셀이라 그 글이 첫
+      // 줄의 딱지에 닿아 있었습니다.
+      const y = top + 22 + index * rowH
       const line = new Container()
       line.position.set(LEFT, y)
 
@@ -6748,7 +6717,7 @@ export class Game {
         text: tf('ui.active.more', { n: entries.length - shown }),
         style: { fontSize: 11, fill: COLOR.inkDim, fontWeight: '700' },
       })
-      more.position.set(LEFT + 4, top + 20 + shown * rowH + 4)
+      more.position.set(LEFT + 4, top + 22 + shown * rowH + 4)
       more.eventMode = 'static'
       more.cursor = 'pointer'
       more.on('pointertap', () => {

@@ -28,6 +28,8 @@ const VALUE_PAD = 28
  * 좁을수록 세 개가 한 식으로 읽힙니다.
  */
 const BARE_PAD = 12
+/** 숫자가 물러났다 돌아오는 데 걸리는 시간. ±N 글이 그 자리에 서 있는 동안입니다. */
+const MUTE_MS = 320
 
 export class Slot extends Container {
   private readonly plate = new Graphics()
@@ -42,14 +44,6 @@ export class Slot extends Container {
     },
   })
 
-  /**
-   * 이 칸이 얼마나 타고 있는가. 0..1.
-   *
-   * **바탕이 비칩니다.** 불은 칸 뒤에 있고 칸은 불투명이라, 그대로 두면 아무것도 보이지
-   * 않습니다 — 위로 옮기면 점수 칸을 덮고, 아래로 옮기면 바닥에서 새어 나오는 것으로
-   * 보입니다. 타는 것은 이 칸이므로 이 칸이 비쳐야 합니다.
-   */
-  private burn = 0
   private shown = 0
   private wanted = 0
   private numeric = true
@@ -74,8 +68,7 @@ export class Slot extends Container {
    * 자기 판을 그리지 않는가.
    *
    * **칩과 배수는 한 덩어리입니다.** 둘이 각자 테두리를 두르면 그 사이에 곱셈표가 어디에도
-   * 속하지 않은 채로 걸치고, 불은 테두리 밖으로 새어 나옵니다 — 바탕은 화면이 통째로
-   * 그리고, 이 칸은 이름과 숫자만 얹습니다.
+   * 속하지 않은 채로 걸칩니다 — 바탕은 화면이 통째로 그리고, 이 칸은 이름과 숫자만 얹습니다.
    */
   private readonly bare: boolean
 
@@ -114,6 +107,37 @@ export class Slot extends Container {
    * 숫자가 같은 높이에서 흔들립니다 — 칸마다 다시 세면 그 둘의 기준선이 어긋납니다.
    */
   private baseY = 0
+  /**
+   * 숫자가 물러나 있는 정도. 1 에서 0 으로 갑니다.
+   *
+   * **±N 글이 숫자와 같은 자리, 같은 크기로 뜹니다.** 그 둘이 함께 서 있으면 어느 것이
+   * 지금 값인지 알 수 없으므로, 뜬 동안 칸의 숫자가 옅어졌다 돌아옵니다.
+   */
+  private muted = 0
+  /**
+   * 숫자가 쉬는 자리와 그 크기.
+   *
+   * **재는 쪽이 좌표를 베껴 적지 않게 하는 것이 목적입니다.** ±N 글이 뜨는 자리가 그것이고,
+   * 예전에는 화면이 `칸 + 108, 칸 + 16` 을 손으로 적어 두었습니다 — 칸의 크기나 여백을
+   * 고치면 그 글만 엉뚱한 자리에 남습니다.
+   *
+   * `pull` 은 숫자가 어느 쪽에 붙어 있는가입니다. 같은 자리에 겹쳐 세우려면 앉히는 쪽도
+   * 같은 기준을 써야 합니다.
+   */
+  get valueSpot(): { x: number; y: number; size: number; pull: number } {
+    return {
+      x: this.valueX,
+      y: this.baseY,
+      size: this.value.style.fontSize as number,
+      pull: this.pull,
+    }
+  }
+
+  /** 숫자를 잠깐 물러나게 합니다. ±N 글이 그 자리를 씁니다. */
+  mute(): void {
+    this.muted = 1
+  }
+
   private get valueX(): number {
     // **이름이 있는 칸과 없는 칸의 여백이 다릅니다.** 28은 이름이 붙은 칸의 여백인데
     // 여기서 한 값만 쓰고 있었고, 그래서 칩과 배수의 숫자가 곱셈표 쪽에서 28픽셀 물러나
@@ -129,7 +153,7 @@ export class Slot extends Container {
     // 세기를 16단계로 끊어 그 단계가 바뀔 때만 판때기를 다시 만듭니다 — 눈에는 같고,
     // 초당 240번이던 재삼각화가 몇 번으로 줍니다.
     const step = Math.round(glow * 16) / 16
-    const key = `${step}|${Math.round(this.burn * 100)}`
+    const key = `${step}`
     if (key === this.plateKey) return
     this.plateKey = key
     const style = slotStyle(this.ink)
@@ -137,23 +161,13 @@ export class Slot extends Container {
     plate(this.plate, this.boxWidth, this.boxHeight, {
       ...style,
       top: step > 0 ? mix(style.top, this.ink, step * 0.35) : style.top,
-      weight: 1.5 + step * 2 + this.burn * 1.5,
+      weight: 1.5 + step * 2,
     })
-    this.plate.alpha = 1 - this.burn * 0.82
   }
 
   /** 칸의 이름. **말이 바뀌면 갈아 끼웁니다** — 만들 때 한 번 읽고 마는 글입니다. */
   set caption(value: string) {
     this.caption_.text = value
-  }
-
-  /** 이 칸이 타오르는 세기. 바탕이 그만큼 비칩니다. */
-  set heat(value: number) {
-    const next = Math.max(0, Math.min(1, value))
-    if (Math.abs(next - this.burn) < 0.01) return
-    this.burn = next
-    this.draw()
-    this.settledLook = false
   }
 
   /** 숫자가 아닌 값. 바뀌면 한 번 튑니다. */
@@ -170,6 +184,9 @@ export class Slot extends Container {
     this.numeric = true
     this.shown = value
     this.wanted = value
+    // 판을 새로 깔면 물러나 있던 것도 돌아옵니다.
+    this.muted = 0
+    this.value.alpha = 1
     this.redraw()
   }
 
@@ -206,6 +223,13 @@ export class Slot extends Container {
       : 0
 
     if (this.pop > 0) this.pop = Math.max(0, this.pop - deltaMs / 260)
+
+    // **곧바로 물러나고 천천히 돌아옵니다.** 옅어지는 데 시간을 쓰면 그 사이 두 수가 같은
+    // 자리에 겹쳐 있고, 겹친 동안에는 어느 것도 읽히지 않습니다.
+    if (this.muted > 0) {
+      this.muted = Math.max(0, this.muted - deltaMs / MUTE_MS)
+      this.value.alpha = 1 - this.muted * 0.85
+    }
 
     const ease = this.pop * this.pop
     const shake = Math.max(heat, ease)
