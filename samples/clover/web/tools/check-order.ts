@@ -12,16 +12,12 @@ import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, BOARD_X, clickPrimary, grantConsumable, grantJoker, HAND_Y, peek, settle, skipLogin,
-  TITLE_START, pass,
+  at, BOARD_X, clickPrimary, grantConsumable, grantJoker, HAND_Y, itemSpot, jokerSpot,
+  peek, settle, skipLogin, TITLE_START, pass,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
-/** 조커 줄의 첫 칸. `game.ts` 의 `JOKER_X` · `JOKER_Y` 와 같습니다. */
-const JOKER_X = 372
-const JOKER_Y = 108
-const JOKER_STEP = 88 + 12
 
 async function main(): Promise<number> {
   fs.mkdirSync(OUT, { recursive: true })
@@ -71,7 +67,8 @@ async function main(): Promise<number> {
   const spacing = Math.min(100, 720 / Math.max(1, held))
   const startX = BOARD_X - ((held - 1) * spacing) / 2
 
-  await dragBy(page, startX, HAND_Y, startX + spacing * 3, HAND_Y)
+  await dragBy(page, await at(page, startX, HAND_Y),
+    await at(page, startX + spacing * 3, HAND_Y))
   await page.screenshot({ path: path.join(OUT, 'hand-order.png') })
 
   const after = (await peek(page)).handOrder
@@ -92,8 +89,8 @@ async function main(): Promise<number> {
 
   // ------------------------------------------------------------ 눌러도 팔리지 않아야 합니다
   if (jokers.length >= 1) {
-    const spot = await at(page, JOKER_X, JOKER_Y)
-    await page.mouse.click(spot.x, spot.y)
+    const where = await jokerSpot(page, 0)
+    await page.mouse.click(where.x, where.y)
     await pass(page, 400)
     await page.mouse.move(40, 40)
     await pass(page, 400)
@@ -105,7 +102,7 @@ async function main(): Promise<number> {
 
   // ------------------------------------------------------------ 조커의 자리
   if (jokers.length >= 2) {
-    await dragBy(page, JOKER_X, JOKER_Y, JOKER_X + JOKER_STEP, JOKER_Y)
+    await dragBy(page, await jokerSpot(page, 0), await jokerSpot(page, 1))
     await page.screenshot({ path: path.join(OUT, 'joker-order.png') })
     const moved = (await peek(page)).jokerOrder
     console.log(`  전 ${jokers.join(',')}`)
@@ -120,8 +117,8 @@ async function main(): Promise<number> {
   console.log(`
 소모품 ${items}장`)
   if (items >= 1) {
-    const spot = await at(page, 962, JOKER_Y)
-    await page.mouse.click(spot.x, spot.y)
+    const where = await itemSpot(page, 0)
+    await page.mouse.click(where.x, where.y)
     await pass(page, 400)
     await page.mouse.move(40, 40)
     await pass(page, 400)
@@ -147,10 +144,8 @@ async function main(): Promise<number> {
  * 곧바로 옮기면 화면이 그것을 누른 것으로 봅니다. 끝나면 커서를 치웁니다. 놓은 것 위에
  * 남아 있으면 그것만 들린 채로 찍힙니다.
  */
-async function dragBy(page: Page, fromX: number, fromY: number,
-                      toX: number, toY: number): Promise<void> {
-  const from = await at(page, fromX, fromY)
-  const to = await at(page, toX, toY)
+async function dragBy(page: Page, from: { x: number; y: number },
+                      to: { x: number; y: number }): Promise<void> {
   await page.mouse.move(from.x, from.y)
   await page.mouse.down()
   for (let step = 1; step <= 12; step++) {

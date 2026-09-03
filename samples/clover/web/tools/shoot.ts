@@ -15,8 +15,9 @@ import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
   at, BOARD_X, buyAffordablePack, buyFirstAffordable, chooseFive, clickPrimary,
-  discardHand, hurry, openDeckView, peek, pickCards, playHand, pressPlay, rate, settle,
-  shopSlot, spare, STAGE_H, STAGE_W, TITLE_START, TITLE_OPTIONS, skipLogin,
+  discardHand, hurry, itemSpot, jokerSpot, openDeckView, peek, pickCards, playHand,
+  pressPlay, rate, settle, shopSlot, spare, STAGE_H, STAGE_W, TITLE_START, TITLE_OPTIONS,
+  skipLogin,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -195,8 +196,9 @@ async function main(): Promise<number> {
     await page.waitForTimeout(700)
     await shoot('6-joker')
 
-    // 조커 위에 마우스를 올려 설명을 띄웁니다.
-    const spot = await at(page, 372, 108)
+    // 조커 위에 마우스를 올려 설명을 띄웁니다. **자리는 화면이 알립니다** — 조커는
+    // 자기 자리 안에서 가운데로 모이므로 몇 장 들었는지에 따라 달라집니다.
+    const spot = await jokerSpot(page, 0)
     await page.mouse.move(spot.x, spot.y)
     await page.waitForTimeout(500)
     await shoot('7-tooltip')
@@ -212,7 +214,7 @@ async function main(): Promise<number> {
     }
     if ((await peek(page)).consumables > 0) {
       shotToast = true
-      const spot = await at(page, 962, 108)
+      const spot = await itemSpot(page, 0)
       await page.mouse.click(spot.x, spot.y)
       await page.waitForTimeout(340)
       await shoot('15-toast')
@@ -278,7 +280,7 @@ async function main(): Promise<number> {
     // 소모품을 써서 토스트를 띄웁니다. **무엇을 썼는지가 글로 남아야 합니다.**
     if (!shotToast && state.consumables > 0 && state.phase !== 'round') {
       shotToast = true
-      const spot = await at(page, 962, 108)
+      const spot = await itemSpot(page, 0)
       await page.mouse.click(spot.x, spot.y)
       await page.waitForTimeout(320)
       await shoot('15-toast')

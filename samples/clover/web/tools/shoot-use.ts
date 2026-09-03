@@ -6,15 +6,11 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
-import { at, grantConsumable, openRun, peek, skipLogin } from './harness'
+import { grantConsumable, heldButton, itemSpot, openRun, peek, skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
 const PORT = 5212
-// `game.ts` 의 자리들.
-const CONSUMABLE_X = 962
-const JOKER_Y = 108
-const JOKER_H = 124
 
 async function main(): Promise<number> {
   const server = await createServer({ root: path.resolve(HERE, '..'), server: { port: PORT } })
@@ -31,8 +27,9 @@ async function main(): Promise<number> {
   await grantConsumable(page, 1)
   await page.waitForTimeout(600)
 
-  // 칸을 눌러 고릅니다.
-  const tile = await at(page, CONSUMABLE_X, JOKER_Y)
+  // 카드를 눌러 고릅니다. **자리는 화면이 알립니다** — 소모품은 자기 자리 안에서
+  // 가운데로 모이므로 좌표를 적어 두면 빈자리를 누릅니다.
+  const tile = await itemSpot(page, 0)
   await page.mouse.move(tile.x, tile.y)
   await page.waitForTimeout(120)
   await page.mouse.down()
@@ -41,8 +38,8 @@ async function main(): Promise<number> {
   await page.waitForTimeout(500)
   await shot(page, 'use-0')
 
-  // 「쓴다」. 칸 아래 왼쪽입니다.
-  const use = await at(page, CONSUMABLE_X - 80 + 34, JOKER_Y + JOKER_H / 2 + 10 + 15)
+  // 「쓴다」. 고른 카드 아래에 선 첫 단추이고, 화면이 그 자리를 알립니다.
+  const use = await heldButton(page)
   await page.mouse.click(use.x, use.y)
 
   // 네 마디를 여섯 장으로. **연출의 시계도 함께 적습니다.**

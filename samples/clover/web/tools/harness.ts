@@ -6,6 +6,14 @@
 
 import type { Page } from 'playwright'
 
+/** 사각형 하나. */
+export interface Rect {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 /** 화면이 스스로 알리는 것들. `game.ts` 의 `publishPeek` 이 씁니다. */
 export interface Peek {
   /** 지금 어느 씬인가. 로딩 · 타이틀 · 판 셋뿐입니다. */
@@ -59,6 +67,17 @@ export interface Peek {
   busy: boolean
   /** 맨 위 판이 화면에서 차지한 사각형. 다 떠오른 판만 값이 있습니다. */
   modalBox?: { x: number; y: number; width: number; height: number }
+  /** 조커와 소모품의 자리. `game.ts` 의 `JOKER_TRAY`·`CONSUMABLE_TRAY` 그대로입니다. */
+  trays?: { joker: Rect; item: Rect }
+  /**
+   * 줄에 선 카드들이 차지한 사각형.
+   *
+   * **자리를 넘어가지 않는지는 이 둘을 견주어야만 확인됩니다** — 눈으로는 몇 개까지
+   * 담기는지 세어 볼 수 없고, 넘어간 한 장은 옆 줄이나 화면 밖에 섭니다.
+   */
+  trayCards?: { joker: Rect[]; item: Rect[] }
+  /** 고른 것 아래에 선 단추 줄이 차지한 사각형. 고른 것이 없으면 없습니다. */
+  heldBox?: Rect
   hand: { rank: number, suit: number }[]
   hurry(times: number): void
   grantJoker?(count: number): void
@@ -498,12 +517,34 @@ export const POPUP_X = STAGE_W / 2
 export const HAND_Y = 608
 export const CARD_SPACING = 100
 /**
- * 조커 줄의 칸 하나가 서는 자리. **`game.ts` 의 `JOKER_X`·`JOKER_Y` 와 같아야 합니다.**
+ * 조커 한 장이 지금 그려진 자리. **화면이 알린 것을 그대로 씁니다.**
  *
- * 칸은 왼쪽부터 고정된 자리에 섭니다 — 조커가 늘어도 앞의 것은 옮기지 않습니다.
+ * **자리는 개수마다 달라집니다.** 조커는 정해진 넓이 안에서 가운데로 모이므로 몇 번째
+ * 칸의 좌표를 셈할 수 없고, 셈하려 든 도구는 배치를 고친 날부터 빈자리를 눌러 놓고
+ * 통과합니다 — `372 + index * 100` 이 그렇게 적혀 있었습니다.
  */
-export function jokerSpot(index: number): { x: number; y: number } {
-  return { x: 372 + index * (88 + 12), y: 108 }
+export async function jokerSpot(page: Page, index: number):
+    Promise<{ x: number; y: number }> {
+  return spot(page, `joker:${index}`)
+}
+
+/** 소모품 한 장이 지금 그려진 자리. 조커와 같은 규칙입니다. */
+export async function itemSpot(page: Page, index: number):
+    Promise<{ x: number; y: number }> {
+  return spot(page, `item:${index}`)
+}
+
+/**
+ * 조커 자리 안의, 카드가 없는 곳.
+ *
+ * **카드가 가운데로 모이므로 자리의 왼쪽 끝이 빕니다.** 자리를 눌러도 아무 일이 없는지를
+ * 보는 도구가 씁니다.
+ */
+export async function trayGap(page: Page, which: 'joker' | 'item'):
+    Promise<{ x: number; y: number }> {
+  const tray = (await peek(page)).trays?.[which]
+  if (!tray) throw new Error(`화면이 ${which} 자리를 알리지 않습니다`)
+  return at(page, tray.x + 6, tray.y + tray.height / 2)
 }
 /**
  * 판 아래 버튼 줄. **`game.ts` 와 같아야 합니다.**

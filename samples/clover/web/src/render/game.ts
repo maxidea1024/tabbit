@@ -175,10 +175,66 @@ const PACK_CARD_H = SIZE.jokerHeight * PACK_SCALE
  * 같이 정해지는 값입니다.
  */
 const LAND_AT = 0.52
+/** 조커와 소모품이 나란히 서는 줄의 가운데 높이. */
 const JOKER_Y = 108
-/** 조커 5칸이 시작하는 자리. */
-const JOKER_X = 372
-const CONSUMABLE_X = 962
+/**
+ * 조커와 소모품의 자리.
+ *
+ * **칸을 하나씩 그리지 않습니다.** 칸 수는 규칙이 정하므로(덱·바우처·챌린지가 늘리고
+ * 줄입니다) 칸마다 사각형을 그리면 줄의 너비가 규칙에 따라 달라집니다 — 조커가 8칸이면
+ * 그 줄이 소모품 줄과 겹치고, 그것을 막을 것이 아무것도 없습니다.
+ *
+ * **그래서 자리는 고정된 사각형 둘이고, 몇 개든 그 안에서 배치됩니다.** 넘칠 만큼
+ * 많아지면 서로 겹쳐 서고, 자리 밖으로는 나가지 않습니다.
+ */
+const TRAY_LEFT = LEFT + PANEL_W + 20
+const TRAY_RIGHT = SIZE.width - LEFT
+/** 두 자리 사이. */
+const TRAY_GAP = 20
+/** 자리 안쪽의 좌우 여백. 카드가 테두리에 닿지 않을 만큼입니다. */
+const TRAY_PAD_X = 10
+/**
+ * 자리의 위아래 여백.
+ *
+ * **6픽셀입니다.** 자리의 아랫변이 176 이어야 하고, 상점 판의 윗변이 200 입니다 — 여백을
+ * 더 두면 그 둘 사이가 없어집니다. 위로는 칸 수를 적은 글이 서므로 같은 값입니다.
+ */
+const TRAY_PAD_Y = 6
+/**
+ * 두 자리의 너비 비율.
+ *
+ * **기본 칸 수입니다**(조커 5 · 소모품 2). 규칙이 칸을 늘려도 자리의 너비는 그대로이고,
+ * 늘어난 것은 그 안에서 좁게 섭니다 — 자리가 칸 수를 따라가면 고치려던 것이 그대로
+ * 남습니다.
+ */
+const TRAY_SHARE = [5, 2] as const
+/** 카드 하나와 그 옆의 것 사이. 자리가 넉넉할 때의 간격입니다. */
+const SLOT_STEP = SIZE.jokerWidth + 12
+const TRAY_H = SIZE.jokerHeight + TRAY_PAD_Y * 2
+const [JOKER_TRAY, CONSUMABLE_TRAY] = splitX(
+  box(TRAY_LEFT, JOKER_Y - TRAY_H / 2, TRAY_RIGHT - TRAY_LEFT, TRAY_H),
+  TRAY_SHARE, TRAY_GAP)
+
+/**
+ * 자리 안에 `count` 개를 늘어놓습니다. 첫 장의 가운데와 그다음까지의 간격입니다.
+ *
+ * **넘치면 겹칩니다.** 자리에 맞는 간격까지 좁히고 그 뒤로는 서로 겹쳐 서므로, 몇 개가
+ * 되어도 자리 밖으로 나가지 않습니다 — 손패가 같은 규칙입니다.
+ *
+ * **가운데에 모입니다.** 왼쪽부터 채우면 자리의 오른쪽이 늘 비어 보이고, 그 빈 자리가
+ * 자리의 테두리와 함께 「아직 못 채운 칸」으로 읽힙니다.
+ */
+function trayRow(tray: Box, count: number): { startX: number; spacing: number } {
+  const room = tray.width - TRAY_PAD_X * 2
+  const spacing = count > 1
+    ? Math.min(SLOT_STEP, (room - SIZE.jokerWidth) / (count - 1))
+    : SLOT_STEP
+  const span = SIZE.jokerWidth + spacing * Math.max(0, count - 1)
+  return { startX: tray.x + (tray.width - span) / 2 + SIZE.jokerWidth / 2, spacing }
+}
+
+/** 고른 것 아래의 단추 줄이 화면 끝에서 남기는 여백. */
+const HELD_EDGE = 10
 const PLAY_Y = 366
 /**
  * 쓴 소모품의 네 마디.
@@ -962,6 +1018,8 @@ export class Game {
   }
   /** 손패가 놓인 자리. 끌 때 어느 칸으로 가는지를 이것으로 셉니다. */
   private handSpots = { startX: 0, spacing: 0 }
+  /** 고른 것 아래에 선 단추 줄이 차지한 사각형. 검증 도구가 읽습니다. */
+  private heldBox?: Box
   /** 도움. 이것도 고르면 더 높은 족보가 되는 카드들입니다. */
   private readonly hinted = new Set<number>()
 
@@ -2366,10 +2424,13 @@ export class Game {
   private buildPanel(): void {
     const panel = new Panel(PANEL_W + 24, SIZE.height - 44, 0x141b26)
     panel.position.set(LEFT - 12, 22)
-    // **빈 자리는 상점 아래에 그립니다.** 상점이 판 안에 서므로, 이 테두리가 위에 있으면
-    // 상점의 머리띠를 가로질러 빈 칸이 그려집니다.
+    // **조커와 소모품의 자리는 상점 아래에 그립니다.** 상점이 판 안에 서므로, 이 사각형이
+    // 위에 있으면 상점의 머리띠를 가로질러 자리가 그려집니다.
     this.frames.zIndex = -2
     this.board.addChild(panel, this.frames)
+    // **한 번만 그립니다.** 규칙에 따라 달라지는 것이 없으므로 `refresh` 가 다시 부를
+    // 이유가 없습니다.
+    this.drawFrames()
 
     this.badge.position.set(LEFT, 34)
     this.score.position.set(LEFT, PANEL_ROWS.score)
@@ -2434,14 +2495,18 @@ export class Game {
     this.headline.anchor.set(0.5, 0.5)
     this.headline.position.set(BOARD_X, 214)
 
-    // **칸 아래입니다.** 위에 두면 줄과 화면 위쪽 사이가 좁아 글이 끼어 있는 것으로
-    // 보이고, 아래에 두면 줄에 딸린 것으로 읽힙니다.
-    this.jokerCount.anchor.set(0.5, 0)
-    this.jokerCount.position.set(
-      JOKER_X + (SIZE.jokerWidth + 12) * 2, JOKER_Y + SIZE.jokerHeight / 2 + 9)
-    this.consumableCount.anchor.set(0.5, 0)
+    // **자리의 바깥쪽 끝에 붙입니다** — 조커는 왼쪽, 소모품은 오른쪽입니다. 가운데에
+    // 두면 카드가 가운데로 모이므로 글과 카드가 한 줄에 겹쳐 읽힙니다.
+    //
+    // **자리 위입니다.** 아래에 두었더니 고른 것 밑에 서는 「쓴다 · 판다」가 그 글을
+    // 덮었습니다 — 그 단추는 카드 아래 가운데에 서고 화면 안으로 당겨지므로, 소모품
+    // 줄의 끝 칸을 고르면 단추 줄의 오른쪽 끝이 바로 그 글의 자리입니다.
+    const countY = JOKER_TRAY.y - 19
+    this.jokerCount.anchor.set(0, 0)
+    this.jokerCount.position.set(JOKER_TRAY.x + TRAY_PAD_X, countY)
+    this.consumableCount.anchor.set(1, 0)
     this.consumableCount.position.set(
-      CONSUMABLE_X + (SIZE.jokerWidth + 12) / 2, JOKER_Y + SIZE.jokerHeight / 2 + 9)
+      CONSUMABLE_TRAY.x + CONSUMABLE_TRAY.width - TRAY_PAD_X, countY)
 
     this.deckLabel.anchor.set(0.5, 0)
     this.deckLabel.position.set(DECK_X, DECK_Y + 76)
@@ -2479,7 +2544,6 @@ export class Game {
       this.hint, this.panelFlash)
   }
 
-  /** 조커와 소모품의 빈 자리. **비어 있어도 자리가 보여야 무엇을 모으는 게임인지 압니다.** */
   /**
    * 칩과 배수의 상자.
    *
@@ -2498,28 +2562,28 @@ export class Game {
     }
   }
 
+  /**
+   * 조커와 소모품의 자리.
+   *
+   * **비어 있어도 자리가 보여야 무엇을 모으는 게임인지 압니다.** 그러나 칸을 하나씩
+   * 그리지는 않습니다 — 칸 수는 규칙이 정하는 값이고, 자리는 그것과 무관하게 늘 같은
+   * 사각형이어야 합니다.
+   *
+   * **한 번만 그립니다.** 규칙에 따라 달라지는 것이 없어졌으므로 `refresh` 마다 다시
+   * 삼각화할 이유가 없습니다.
+   */
   private drawFrames(): void {
     const g = this.frames
     g.clear()
 
-    for (let i = 0; i < this.state.rules.jokerSlots; i++) {
-      const x = JOKER_X + i * (SIZE.jokerWidth + 12)
-      g.roundRect(x - SIZE.jokerWidth / 2, JOKER_Y - SIZE.jokerHeight / 2,
-        SIZE.jokerWidth, SIZE.jokerHeight, 9)
-        .fill({ color: 0x161d29, alpha: 0.6 })
-      g.roundRect(x - SIZE.jokerWidth / 2, JOKER_Y - SIZE.jokerHeight / 2,
-        SIZE.jokerWidth, SIZE.jokerHeight, 9)
-        .stroke({ color: COLOR.panelEdge, width: 1.5, alpha: 0.8 })
-    }
-
-    for (let i = 0; i < this.state.rules.consumableSlots; i++) {
-      const x = CONSUMABLE_X + i * (SIZE.jokerWidth + 12)
-      g.roundRect(x - SIZE.jokerWidth / 2, JOKER_Y - SIZE.jokerHeight / 2,
-        SIZE.jokerWidth, SIZE.jokerHeight, 9)
-        .fill({ color: 0x1d1a2c, alpha: 0.6 })
-      g.roundRect(x - SIZE.jokerWidth / 2, JOKER_Y - SIZE.jokerHeight / 2,
-        SIZE.jokerWidth, SIZE.jokerHeight, 9)
-        .stroke({ color: 0x5a4d80, width: 1.5, alpha: 0.9 })
+    for (const [tray, fill, edge] of [
+      [JOKER_TRAY, 0x101724, COLOR.panelEdge],
+      [CONSUMABLE_TRAY, 0x161327, 0x5a4d80],
+    ] as const) {
+      g.roundRect(tray.x, tray.y, tray.width, tray.height, 12)
+        .fill({ color: fill, alpha: 0.55 })
+      g.roundRect(tray.x, tray.y, tray.width, tray.height, 12)
+        .stroke({ color: edge, width: 1.5, alpha: 0.5 })
     }
   }
 
@@ -4434,6 +4498,20 @@ export class Game {
       // 「부르지 않았다」인지 「불렀는데 잡을 것이 없었다」인지 갈립니다.**
       flyAsked: this.flyAsked,
       flyMissed: this.flyMissed,
+      // 조커와 소모품의 자리, 그리고 카드가 실제로 그려진 사각형들.
+      //
+      // **넘어가지 않는다는 것은 이 둘을 견주어야만 확인됩니다.** 눈으로는 몇 개까지
+      // 담기는지 세어 볼 수 없고, 자리를 넘어간 한 장은 옆 줄이나 화면 밖에 섭니다.
+      trays: {
+        joker: { ...JOKER_TRAY },
+        item: { ...CONSUMABLE_TRAY },
+      },
+      // 고른 것 아래에 선 단추 줄. **화면 밖으로 나가지 않는지를 봅니다.**
+      heldBox: this.heldBox ? { ...this.heldBox } : undefined,
+      trayCards: {
+        joker: state.jokers.map((_, i) => this.cardRect(this.jokerSpot(i).x)),
+        item: state.consumables.map((_, i) => this.cardRect(this.itemSpot(i).x)),
+      },
       handOrder: this.shown.hand.slice(),
       jokerOrder: state.jokers.map(joker => joker.uid),
       // **판을 끝까지 두는 도구를 위한 손잡이입니다.** 사람이 보라고 넣은 뜸이 도구에게는
@@ -4581,7 +4659,6 @@ export class Game {
     this.updateHints()
 
     this.syncBadge()
-    this.drawFrames()
     this.syncCards()
     this.syncJokers()
     this.syncConsumables()
@@ -6340,6 +6417,10 @@ export class Game {
       this.burning.push(view)
     }
 
+    // 자리 안에서 몇 개가 어디에 서는가. **개수마다 달라지므로 한 번 세어 돌려 씁니다.**
+    const spots = trayRow(JOKER_TRAY, this.state.jokers.length)
+    this.publishRowSpots('joker', spots, this.state.jokers.length)
+
     this.state.jokers.forEach((joker, index) => {
       const row = this.data.tables.joker.findByJokerId(joker.jokerId)
       const look = {
@@ -6360,7 +6441,7 @@ export class Game {
         this.board.addChild(view)
         // 위에서 내려옵니다 — **산 것이라면 산 자리에서 옵니다.** 그리는 자리도 함께
         // 옮깁니다: 용수철만 옮기면 한 프레임 동안 화면 왼쪽 위에 서 있습니다.
-        const home = JOKER_X + index * (SIZE.jokerWidth + 12)
+        const home = spots.startX + index * spots.spacing
         const bought = this.arriveFrom !== undefined
         const from = this.arriveFrom ?? { x: home, y: JOKER_Y - 160 }
         this.arriveFrom = undefined
@@ -6375,7 +6456,7 @@ export class Game {
 
       if (this.drag?.kind === 'joker' && this.drag.uid === joker.uid && this.drag.moved) return
       const lifted = this.held?.kind === 'joker' && this.held.uid === joker.uid ? 12 : 0
-      view.place(JOKER_X + index * (SIZE.jokerWidth + 12), JOKER_Y - lifted)
+      view.place(spots.startX + index * spots.spacing, JOKER_Y - lifted)
     })
 
     this.syncHeldBar()
@@ -6443,11 +6524,12 @@ export class Game {
     const current = order.indexOf(drag.uid)
     if (current < 0) return
 
-    const spacing = drag.kind === 'hand'
-      ? this.handSpots.spacing : SIZE.jokerWidth + 12
-    const startX = drag.kind === 'hand' ? this.handSpots.startX : JOKER_X
+    // **조커도 손패처럼 개수에 따라 자리가 달라집니다.** 간격을 고정으로 세면 좁게 선
+    // 줄에서 손가락이 있는 칸과 계산한 칸이 어긋납니다.
+    const row = drag.kind === 'hand'
+      ? this.handSpots : trayRow(JOKER_TRAY, order.length)
     const target = Math.max(0, Math.min(order.length - 1,
-      Math.round((x - startX) / Math.max(1, spacing))))
+      Math.round((x - row.startX) / Math.max(1, row.spacing))))
 
     if (target !== current) {
       if (drag.kind === 'hand') {
@@ -6525,6 +6607,7 @@ export class Game {
   private syncHeldBar(): void {
     this.heldBar.removeChildren().forEach(child => child.destroy())
     delete this.spots.held
+    this.heldBox = undefined
     const held = this.held
     if (!held) return
 
@@ -6606,7 +6689,7 @@ export class Game {
         this.held = undefined
         return
       }
-      anchor = JOKER_X + index * (SIZE.jokerWidth + 12)
+      anchor = this.jokerSpot(index).x
       const price = sellValueOf(this.data, this.state, this.state.jokers[index])
       buttons.push(new Button(tf('ui.button.sell', { n: price }), 92, 30, 0x7a3f4a, () => {
         this.held = undefined
@@ -6620,7 +6703,7 @@ export class Game {
         this.held = undefined
         return
       }
-      anchor = CONSUMABLE_X + index * (SIZE.jokerWidth + 12)
+      anchor = this.itemSpot(index).x
       buttons.push(new Button(t('ui.button.use'), 68, 30, 0x3f5f8a, () => {
         this.held = undefined
         // **쓴 것과 판 것은 없어지는 모습이 다릅니다.** 쓴 것은 판 가운데로 나와 번쩍이고,
@@ -6638,11 +6721,18 @@ export class Game {
 
     const gap = 8
     const span = buttons.reduce((sum, one) => sum + one.width, 0) + gap * (buttons.length - 1)
-    let x = anchor - span / 2
+    // **화면 안으로 당깁니다.** 고른 것이 자기 줄의 끝에 서 있으면 그 아래에 가운데를
+    // 맞춘 단추 줄이 화면 밖으로 나갑니다 — 소모품 줄은 화면 오른쪽에 붙어 있어서
+    // 마지막 칸의 「쓴다 · 판다」가 30픽셀쯤 잘렸습니다.
+    let x = Math.max(HELD_EDGE,
+      Math.min(SIZE.width - HELD_EDGE - span, anchor - span / 2))
     // **첫 단추의 자리를 알립니다.** 이제 사는 것도 집는 것도 두 번 눌러야 하므로, 도구가
     // 두 번째 누를 자리를 알아야 합니다 — 계산을 도구가 베껴 적으면 배치를 고칠 때
     // 한쪽만 고쳐지고 그 도구는 엉뚱한 곳을 눌러 놓고 아무 말도 하지 않습니다.
     this.spots.held = { x: x + (buttons[0]?.width ?? 0) / 2, y: baseline + 16 }
+    // **단추 줄이 화면 안에 있는지는 이 사각형으로만 확인됩니다.** 첫 단추의 가운데만
+    // 알리면 줄이 얼마나 긴지 알 수 없고, 잘린 것은 줄의 오른쪽 끝입니다.
+    this.heldBox = box(x, baseline, span, 32)
     for (const button of buttons) {
       button.position.set(x, baseline)
       x += button.width + gap
@@ -7109,6 +7199,10 @@ export class Game {
       if (!alive.has(uid)) this.consumableLift.delete(uid)
     }
 
+    // 조커와 같습니다 — 자리 안에서 가운데로 모이고, 넘칠 만큼 많으면 좁게 섭니다.
+    const spots = trayRow(CONSUMABLE_TRAY, this.state.consumables.length)
+    this.publishRowSpots('item', spots, this.state.consumables.length)
+
     this.state.consumables.forEach((item, index) => {
       const name = this.consumableName(item.kind, item.id)
       const lines = this.consumableLines(item.kind, item.id)
@@ -7117,7 +7211,7 @@ export class Game {
       // 물건으로 보이고, 실제로는 둘 다 손에 든 카드입니다.
       const tile = new Container()
       tile.position.set(
-        CONSUMABLE_X + index * (SIZE.jokerWidth + 12) - SIZE.jokerWidth / 2,
+        spots.startX + index * spots.spacing - SIZE.jokerWidth / 2,
         JOKER_Y - SIZE.jokerHeight / 2)
 
       tile.addChild(this.faceCard({
@@ -7858,18 +7952,46 @@ export class Game {
       COLOR.money, 0.5)
   }
 
+  /** 줄에 선 카드 한 장이 차지하는 사각형. 가운데의 `x` 하나로 정해집니다. */
+  private cardRect(x: number): Box {
+    return box(x - SIZE.jokerWidth / 2, JOKER_Y - SIZE.jokerHeight / 2,
+      SIZE.jokerWidth, SIZE.jokerHeight)
+  }
+
   /**
-   * 조커 칸과 소모품 칸의 가운데.
+   * 줄에 선 것들을 누를 자리를 알립니다.
    *
-   * **한 자리에서 셉니다.** 파는 자리에서 동전이 솟아야 하는데, 부르는 쪽마다 다시 세면
-   * 줄의 자리를 고친 날에 한쪽만 고쳐집니다.
+   * **도구가 셈하지 못합니다.** 카드가 자리 안에서 가운데로 모이므로 자리는 개수마다
+   * 달라지고, 좌표를 적어 둔 도구는 아무것도 없는 곳을 눌러 놓고 그다음 줄로 넘어갑니다.
+   */
+  private publishRowSpots(prefix: string,
+                          row: { startX: number; spacing: number },
+                          count: number): void {
+    for (const key of Object.keys(this.spots)) {
+      if (key.startsWith(`${prefix}:`)) delete this.spots[key]
+    }
+    for (let i = 0; i < count; i++) {
+      this.spots[`${prefix}:${i}`] = { x: row.startX + i * row.spacing, y: JOKER_Y }
+    }
+  }
+
+  /**
+   * 조커와 소모품이 지금 서는 자리의 가운데.
+   *
+   * **한 자리에서 셉니다.** 파는 자리에서 동전이 솟아야 하고 그 아래에 단추가 서야 하는데,
+   * 부르는 쪽마다 다시 세면 줄의 자리를 고친 날에 한쪽만 고쳐집니다.
+   *
+   * **지금 든 개수로 셉니다.** 자리 안에서 가운데로 모이므로 하나를 사면 앞의 것도
+   * 함께 옮겨 섭니다 — 칸 번호만으로는 자리가 정해지지 않습니다.
    */
   private jokerSpot(index: number): { x: number; y: number } {
-    return { x: JOKER_X + index * (SIZE.jokerWidth + 12), y: JOKER_Y }
+    const row = trayRow(JOKER_TRAY, this.state.jokers.length)
+    return { x: row.startX + index * row.spacing, y: JOKER_Y }
   }
 
   private itemSpot(index: number): { x: number; y: number } {
-    return { x: CONSUMABLE_X + index * (SIZE.jokerWidth + 12), y: JOKER_Y }
+    const row = trayRow(CONSUMABLE_TRAY, this.state.consumables.length)
+    return { x: row.startX + index * row.spacing, y: JOKER_Y }
   }
 
   /** 그 자리를 판 위의 자리로 옮깁니다. 왼쪽 판 안의 것들은 자기 판 기준입니다. */

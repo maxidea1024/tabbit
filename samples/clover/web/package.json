@@ -2,7 +2,7 @@
   "name": "clover",
   "private": true,
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "포커 로그라이크 한 편. 규칙은 시트에 있고 여기는 그것을 읽는 한쪽 구현입니다.",
   "scripts": {
     "check": "tsc -b",
@@ -13,6 +13,7 @@
     "check:ranked": "tsx tools/check-ranked.ts",
     "check:relabel": "tsx tools/check-relabel.ts",
     "check:haptics": "tsx tools/check-haptics.ts",
+    "check:tray": "tsx tools/check-tray.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "headless": "tsx src/headless.ts",
