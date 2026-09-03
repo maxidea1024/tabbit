@@ -526,6 +526,18 @@ const MINI_SEAL: Partial<Record<number, number>> = {
 }
 
 /**
+ * 가장자리 픽셀을 늘려 쓰는 흐림 하나.
+ *
+ * **생성 옵션에 없는 값입니다.** `repeatEdgePixels` 는 프로퍼티로만 있고, 그것을 세우면
+ * 여백을 다시 셈해 0 으로 둡니다.
+ */
+function edgeBlur(): BlurFilter {
+  const one = new BlurFilter({ strength: 0, quality: 3, resolution: 0.5 })
+  one.repeatEdgePixels = true
+  return one
+}
+
+/**
  * 칩·배수 상자의 채움색.
  *
  * **짙게 눌러 씁니다.** 원색 그대로는 흰 숫자가 눌러앉지 못합니다.
@@ -604,10 +616,23 @@ export class Game {
    * **반 해상도로 굽습니다.** 흐림은 화면 전체를 그림으로 한 번 구워 여섯 번 지나가는 것이고,
    * 흐린 그림은 해상도를 낮춰도 흐린 그림입니다 — 텍셀이 4분의 1이면 그 여섯 번이 4분의 1
    * 값입니다. 반지름은 텍셀 단위라 반으로 적어야 화면에서 같은 크기입니다.
+   *
+   * **가장자리 픽셀을 늘려 씁니다.** 이것이 판이 열리고 닫힐 때 화면이 한 번씩 어긋나던
+   * 까닭입니다 — `repeatEdgePixels` 가 꺼져 있으면 Pixi 가 흐림의 여백을 반지름의 두 배로
+   * 잡고, 그 여백이 정수로 잘려 들어갑니다(`padding | 0`). 반지름이 0에서 1.5로 오르는
+   * 동안 여백이 0 · 1 · 2 · 3 으로 뚝뚝 넘어가고, 굽는 자리가 그때마다 커집니다.
+   *
+   * 게다가 그 자리는 **반 해상도의 텍셀 격자에 맞춰 잘립니다**(`scale(0.5).ceil()`). 자리가
+   * 바뀌면 격자에 맞추는 자리도 바뀌므로 화면 전체가 최대 2픽셀 옮겨 그려집니다 — 뜰 때
+   * 한 번, 사라질 때 한 번 어긋나던 것이 그것입니다.
+   *
+   * 여백을 0으로 두면 흐림이 자리 밖에서 투명한 검정을 끌어오는데, 여기서 흐리는 것은
+   * 화면 전체이므로 **밖에서 끌어올 것이 애초에 없습니다.** 가장자리 픽셀을 늘려 쓰는 것이
+   * 맞는 답입니다.
    */
-  private readonly blur = new BlurFilter({ strength: 0, quality: 3, resolution: 0.5 })
+  private readonly blur = edgeBlur()
   /** 배경도 함께 흐립니다. **필터 하나를 둘에 걸지 않습니다** — 같은 프레임에 두 번 쓰입니다. */
-  private readonly blurBack = new BlurFilter({ strength: 0, quality: 3, resolution: 0.5 })
+  private readonly blurBack = edgeBlur()
   /** 지금 흐린 정도. 판이 열리고 닫힐 때 잦아듭니다. */
   private blurShown = 0
 
@@ -1557,6 +1582,18 @@ export class Game {
       this.layRun(randomSeed())
       this.enterRun()
     }
+
+    /**
+     * 흐림이 굽는 자리를 **못박아 둡니다.**
+     *
+     * 정하지 않으면 Pixi 가 이 통에 든 것들의 경계를 매 프레임 재고, 그 경계가 굽는 자리가
+     * 됩니다 — 카드와 조각이 움직이므로 그 자리가 프레임마다 달라지고, 반 해상도의 텍셀
+     * 격자에 맞추는 자리도 함께 달라집니다. 그러면 흐린 그림이 계속 미세하게 떱니다.
+     *
+     * 이 통의 좌표는 언제나 기준 해상도입니다 — 창에 맞추는 것은 바깥의 `world` 가
+     * 합니다. 그래서 값 하나를 한 번 적어 두면 됩니다.
+     */
+    this.recede.filterArea = new Rectangle(0, 0, SIZE.width, SIZE.height)
 
     // 배경은 흰 스프라이트 한 장에 셰이더를 얹은 것입니다.
     this.sheet.filters = [this.background]
@@ -3369,6 +3406,15 @@ export class Game {
   private advanceBlur(seconds: number): void {
     const want = this.modals.busy ? 1 : 0
     this.blurShown += (want - this.blurShown) * fraction(seconds, 11)
+    /**
+     * 꼬리를 자릅니다.
+     *
+     * **잦아드는 것이 지수라 0 에 닿지 않습니다.** 0.1 에서 0.01 사이에 프레임 네댓이
+     * 들어가고, 그 프레임들은 흐리지도 않은데 반 해상도로 구워집니다 — 판을 닫은 뒤 화면이
+     * 잠깐 무르다가 또렷해지는 것이 그것입니다. 그만큼은 흐림이라고 할 것이 없으므로
+     * 그 자리에서 놓습니다.
+     */
+    if (want === 0 && this.blurShown < 0.08) this.blurShown = 0
 
     const on = this.blurShown > 0.01
     const filtered = (this.recede.filters as unknown[] | null)?.length ?? 0
@@ -4360,6 +4406,24 @@ export class Game {
             .map(row => row.voucherId)
           this.refresh()
         },
+        /**
+         * 흐림이 굽는 자리.
+         *
+         * **눈으로는 한 프레임짜리 어긋남을 잡을 수 없습니다.** 판이 열리고 닫힐 때 화면이
+         * 한 번씩 옮겨 그려지던 결함이고, 원인은 흐림의 여백이 반지름에 따라 0 · 1 · 2 · 3
+         * 으로 넘어가며 굽는 자리를 바꾼 것이었습니다 — 그 자리가 안 바뀐다는 것을 재는 쪽이
+         * 확인할 수 있어야 합니다.
+         */
+        blurRegion: () => ({
+          padding: this.blur.padding,
+          backPadding: this.blurBack.padding,
+          strength: Math.round(this.blur.strength * 100) / 100,
+          area: this.recede.filterArea
+            ? [this.recede.filterArea.x, this.recede.filterArea.y,
+               this.recede.filterArea.width, this.recede.filterArea.height]
+            : undefined,
+          filtered: ((this.recede.filters as unknown[] | null)?.length ?? 0) > 0,
+        }),
         // 소모품 첫 칸이 지금 그려진 자리. 사서 오는 길을 재는 도구가 씁니다.
         itemX: () => this.consumableTiles[this.consumableTiles.length - 1]?.tile.x,
         jokerX: () => {
