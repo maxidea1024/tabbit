@@ -530,12 +530,41 @@ const MINI_SEAL: Partial<Record<number, number>> = {
  *
  * **생성 옵션에 없는 값입니다.** `repeatEdgePixels` 는 프로퍼티로만 있고, 그것을 세우면
  * 여백을 다시 셈해 0 으로 둡니다.
+ *
+ * 해상도는 렌더러를 받은 뒤 `layout` 이 정합니다.
  */
 function edgeBlur(): BlurFilter {
   const one = new BlurFilter({ strength: 0, quality: 3, resolution: 0.5 })
   one.repeatEdgePixels = true
   return one
 }
+
+/**
+ * 흐림을 굽는 해상도. **화면 해상도의 절반입니다.**
+ *
+ * `0.5` 를 못박아 두었더니 **손전화에서 흐림이 뭉개졌습니다.** 필터의 `resolution` 은
+ * 비율이 아니라 절대값이고, 화면은 픽셀 밀도만큼 — 손전화는 2에서 3 — 굽습니다. 그래서
+ * 0.5 는 데스크탑에서 2분의 1이지만 손전화에서는 **4분의 1에서 6분의 1**이었습니다.
+ *
+ * 뭉갠 그림 위에 판이 떠 있다가 판이 사라질 때 필터를 놓으면, 그 순간 화면이 뭉갠 것에서
+ * 온전한 것으로 한 프레임에 돌아옵니다 — 흐림이 잦아드는 것이 아니라 뚝 끊기는 것으로
+ * 보이던 까닭입니다.
+ *
+ * 절반으로 두면 텍셀이 어느 기계에서나 4분의 1이므로 값싼 것은 그대로이고, 놓을 때의
+ * 차이는 데스크탑에서와 같은 만큼입니다.
+ */
+function blurResolution(rendered: number): number {
+  return Math.max(0.5, Math.min(1.5, rendered * 0.5))
+}
+
+/**
+ * 흐림의 반지름. **CSS 픽셀입니다.**
+ *
+ * 필터가 받는 값은 그 필터가 굽는 텍셀 단위이므로, 해상도가 달라지면 같은 값이 화면에서
+ * 다른 크기가 됩니다 — 화면에서의 크기를 적어 두고 해상도를 곱합니다.
+ */
+const BLUR_PX = 3
+const BLUR_BACK_PX = 2
 
 /**
  * 칩·배수 상자의 채움색.
@@ -635,6 +664,13 @@ export class Game {
   private readonly blurBack = edgeBlur()
   /** 지금 흐린 정도. 판이 열리고 닫힐 때 잦아듭니다. */
   private blurShown = 0
+  /**
+   * 흐림을 굽는 해상도. `layout` 이 화면의 픽셀 밀도에서 냅니다.
+   *
+   * **반지름을 셈할 때 씁니다.** 필터의 `resolution` 은 `'inherit'` 일 수도 있는 값이라
+   * 그것으로 곱셈을 할 수 없습니다.
+   */
+  private blurDensity = 0.5
 
   /**
    * 판의 상태.
@@ -2479,6 +2515,12 @@ export class Game {
       Math.round((width - SIZE.width * scale) / 2),
       Math.round((height - SIZE.height * scale) / 2))
 
+    // **흐림은 화면 해상도의 절반으로 굽습니다.** 픽셀 밀도는 창을 다른 화면으로 옮기면
+    // 달라지므로 여기서 함께 정합니다.
+    this.blurDensity = blurResolution(this.app.renderer.resolution ?? 1)
+    this.blur.resolution = this.blurDensity
+    this.blurBack.resolution = this.blurDensity
+
     this.sheet.width = width
     this.sheet.height = height
     this.background.setAspect(width / Math.max(1, height))
@@ -3404,18 +3446,21 @@ export class Game {
    * 걸어 두면 매 프레임 그 값을 냅니다.
    */
   private advanceBlur(seconds: number): void {
-    const want = this.modals.busy ? 1 : 0
-    this.blurShown += (want - this.blurShown) * fraction(seconds, 11)
+    void seconds
     /**
-     * 꼬리를 자릅니다.
+     * **덮개의 짙기를 그대로 씁니다.**
      *
-     * **잦아드는 것이 지수라 0 에 닿지 않습니다.** 0.1 에서 0.01 사이에 프레임 네댓이
-     * 들어가고, 그 프레임들은 흐리지도 않은데 반 해상도로 구워집니다 — 판을 닫은 뒤 화면이
-     * 잠깐 무르다가 또렷해지는 것이 그것입니다. 그만큼은 흐림이라고 할 것이 없으므로
-     * 그 자리에서 놓습니다.
+     * 「판이 떠 있는가」 만 보고 따로 잦아들게 했더니 둘의 때가 어긋났습니다 — 그 값은
+     * 닫는 움직임이 다 끝난 다음에야 거짓이 되므로, 판이 줄어들며 사라지는 내내 흐림은
+     * 그대로 있다가 판이 없어진 뒤에 혼자 잦아들었습니다. 덮개가 0 이 되는 순간에 흐림이
+     * 아직 남아 있고, 그 나머지가 뚝 끊기는 것으로 보입니다.
+     *
+     * 판의 `t` 가 이미 눌린 값이므로 여기서 다시 눌 것이 없습니다.
      */
-    if (want === 0 && this.blurShown < 0.08) this.blurShown = 0
+    this.blurShown = this.modals.cover
 
+    // 덮개가 보이지 않는 자리와 같은 문턱입니다. 둘이 같은 프레임에 서고 같은 프레임에
+    // 없어져야 한 가지 일로 보입니다.
     const on = this.blurShown > 0.01
     const filtered = (this.recede.filters as unknown[] | null)?.length ?? 0
     if (on && filtered === 0) {
@@ -3428,9 +3473,8 @@ export class Game {
     // **약하게.** 뒤가 무엇인지는 알아볼 수 있어야 합니다 — 판을 닫고 어디로 돌아가는지가
     // 보이지 않으면 판이 화면을 갈아치운 것으로 보입니다.
     if (on) {
-      // 반 해상도의 텍셀이므로 화면에서는 3픽셀과 2픽셀입니다.
-      this.blur.strength = this.blurShown * 1.5
-      this.blurBack.strength = this.blurShown * 1
+      this.blur.strength = this.blurShown * BLUR_PX * this.blurDensity
+      this.blurBack.strength = this.blurShown * BLUR_BACK_PX * this.blurDensity
     }
   }
 
@@ -4423,6 +4467,11 @@ export class Game {
                this.recede.filterArea.width, this.recede.filterArea.height]
             : undefined,
           filtered: ((this.recede.filters as unknown[] | null)?.length ?? 0) > 0,
+          // 굽는 해상도와 화면의 해상도. **손전화에서 흐림이 뭉개지던 것을 재는 자리입니다.**
+          density: this.blurDensity,
+          rendered: this.app.renderer.resolution ?? 1,
+          // 덮개의 짙기. **흐림과 같은 값으로 서고 같은 값으로 없어져야 합니다.**
+          cover: Math.round(this.modals.cover * 1000) / 1000,
         }),
         // 소모품 첫 칸이 지금 그려진 자리. 사서 오는 길을 재는 도구가 씁니다.
         itemX: () => this.consumableTiles[this.consumableTiles.length - 1]?.tile.x,

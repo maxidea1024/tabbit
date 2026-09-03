@@ -29,6 +29,9 @@ interface Region {
   strength: number
   area?: [number, number, number, number]
   filtered: boolean
+  density: number
+  rendered: number
+  cover: number
 }
 
 async function region(page: Page): Promise<Region> {
@@ -44,7 +47,12 @@ async function main(): Promise<number> {
   const server = await createServer({ root: path.resolve(HERE, '..'), server: { port: PORT } })
   await server.listen()
   const browser = await chromium.launch()
-  const page = await browser.newPage({ viewport: { width: STAGE_W, height: STAGE_H } })
+  // **픽셀 밀도를 걸고 봅니다.** 흐림의 해상도가 절대값이면 밀도가 높은 기계에서만
+  // 뭉개지고, 밀도 1 에서는 그것이 드러나지 않습니다.
+  const dpr = Number(process.argv[2] ?? 3)
+  const page = await browser.newPage({
+    viewport: { width: STAGE_W, height: STAGE_H }, deviceScaleFactor: dpr,
+  })
   await skipLogin(page)
   await page.goto(`http://localhost:${PORT}/?seed=CLOVER-BLUR`, { waitUntil: 'networkidle' })
   await page.waitForTimeout(1500)
@@ -80,6 +88,16 @@ async function main(): Promise<number> {
     if (one.area?.join(',') !== want) {
       bad.push(`굽는 자리가 못박혀 있지 않습니다 — ${one.area?.join(',') ?? '없음'}`)
     }
+    // **화면 해상도의 절반이어야 합니다.** 절대값으로 못박으면 밀도가 높은 기계에서
+    // 4분의 1에서 6분의 1로 구워지고, 놓는 순간 화면이 뭉갠 것에서 온전한 것으로 돌아옵니다.
+    const at = Math.max(0.5, Math.min(1.5, one.rendered * 0.5))
+    if (Math.abs(one.density - at) > 0.001) {
+      bad.push(`화면이 ${one.rendered} 인데 흐림을 ${one.density} 로 굽습니다 — ${at} 이어야 합니다`)
+    }
+    // **덮개가 없는데 흐림이 남아 있으면 그 나머지가 뚝 끊깁니다.**
+    if (one.filtered && one.cover === 0) {
+      bad.push(`덮개가 0 인데 흐림이 반지름 ${one.strength} 로 남아 있습니다`)
+    }
   }
   // 흐림이 실제로 걸렸는지도 봅니다. **걸리지 않았으면 위의 둘은 아무것도 재지 않습니다.**
   if (!seen.some(one => one.filtered && one.strength > 0.3)) {
@@ -87,7 +105,9 @@ async function main(): Promise<number> {
   }
 
   for (const line of new Set(bad)) console.log(`  ${line}`)
-  console.log(bad.length === 0 ? '흐림 자리 고정' : `어긋난 것 ${new Set(bad).size}가지`)
+  console.log(bad.length === 0
+    ? `흐림 자리 고정 — 화면 ${seen[0]?.rendered}, 굽는 해상도 ${seen[0]?.density}`
+    : `어긋난 것 ${new Set(bad).size}가지`)
   return bad.length === 0 ? 0 : 1
 }
 

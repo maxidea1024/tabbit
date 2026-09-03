@@ -101,6 +101,21 @@ export class Modals extends Container {
     return this.entries.length > 0
   }
 
+  /**
+   * 판이 화면을 얼마나 덮고 있는가. 0..1.
+   *
+   * **덮개의 짙기와 같은 값입니다.** 뒤를 흐리는 쪽이 「판이 떠 있는가」 만 보고 있었고,
+   * 그것은 닫는 움직임이 다 끝난 다음에야 거짓이 됩니다 — 판이 줄어들며 사라지는 동안
+   * 흐림은 그대로 있다가, 판이 없어진 뒤에 혼자 잦아들었습니다. 덮개가 0 이 되는 순간에
+   * 흐림이 아직 남아 있으므로 그 나머지가 뚝 끊기는 것으로 보입니다.
+   */
+  get cover(): number {
+    return this.coverShown
+  }
+
+  /** 마지막으로 셈한 덮개의 짙기. `sync` 가 채웁니다. */
+  private coverShown = 0
+
   has(panel: ModalPanel): boolean {
     return this.entries.some(entry => entry.panel === panel && !entry.leaving)
   }
@@ -213,6 +228,7 @@ export class Modals extends Container {
       this.place(entry)
     }
 
+    this.coverShown = cover
     this.veil.alpha = VEIL * cover
     this.veil.visible = cover > 0.01
     this.visible = this.entries.length > 0
