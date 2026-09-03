@@ -5,7 +5,6 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-import * as fs from 'fs'
 import * as tabbit from '../tabbit/tcb-reader'
 
 // The accessor, for the encryption key it holds. `tables` imports this module back, and
@@ -139,19 +138,14 @@ export class ElementAffinityTable {
     }
   }
 
-  /** Read a table from specified file. */
-  public async read(filename: string): Promise<void> {
-    const json = await fs.promises.readFile(filename, "utf8")
-    this.readFromJson(json)
-  }
-
-  /** Read a table from specified file synchronously. */
-  public readSync(filename: string): void {
-    const json = fs.readFileSync(filename, "utf8")
-    this.readFromJson(json)
-  }
-
-  private readFromJson(json: string): void {
+  /**
+   * Read a table from the text of its JSON export.
+   *
+   * The text, not a path: where it comes from - a file, a fetch, an asset bundle - is the
+   * caller's, so this module names no runtime module and loads wherever TypeScript runs.
+   * Either row shape the exporter writes is accepted.
+   */
+  public readJsonFrom(json: string): void {
     const dataRows: any[] = JSON.parse(json)
     const records: ElementAffinityRecord[] = []
 
@@ -176,25 +170,22 @@ export class ElementAffinityTable {
     return rows.length > 0 && Array.isArray(rows[0])
   }
 
-  /** Read a table from a binary .tcb file. */
-  public readBinarySync(filename: string): void {
-    // Unconditionally, and with whatever `Tables.encryptionKey` and `Tables.macKey` hold -
-    // which is null unless the project set them. A file that is neither encrypted nor signed
-    // comes back from this untouched, so the load path is the same either way and there is
-    // no condition here that could be the wrong way round. spec/wire/tcb-mac-and-signature.md.
-    this.readBinaryFrom(tabbit.open(
-      tabbit.readAllBytes(filename),
-      Tables.encryptionKey, Tables.macKey, Tables.verifyMac))
-  }
-
   /**
-   * Read a table from binary data already in memory.
+   * Read a table from the bytes of its binary export.
    *
-   * Column by column, matched by tag rather than position: a column this build does not
+   * The bytes as the file holds them; the envelope is opened here. Unconditionally, and with
+   * whatever `Tables.encryptionKey` and `Tables.macKey` hold - which is null
+   * unless the project set them. A file that is neither encrypted nor signed comes back from
+   * that untouched, so the load path is the same either way and there is no condition here
+   * that could be the wrong way round. spec/wire/tcb-mac-and-signature.md.
+   *
+   * Then column by column, matched by tag rather than position: a column this build does not
    * know is skipped by its block length, and one whose type changed incompatibly fails
    * naming the field.
    */
-  public readBinaryFrom(data: Uint8Array): void {
+  public readBinaryFrom(fileBytes: Uint8Array): void {
+    const data = tabbit.open(
+      fileBytes, Tables.encryptionKey, Tables.macKey, Tables.verifyMac)
     const reader = new tabbit.TcbReader(data)
     const { rowCount, columns } = tabbit.readTableHeader(reader)
     let cursor: tabbit.TcbColumnCursor

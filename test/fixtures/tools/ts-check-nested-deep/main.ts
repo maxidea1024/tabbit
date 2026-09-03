@@ -14,6 +14,8 @@
 //
 // Prints JSON on stdout for the C# harness to assert against.
 
+import * as fs from 'fs'
+
 import { DeepTable } from './generated/tables/deep'
 
 /** A single disagreement between the read paths. */
@@ -62,14 +64,14 @@ function main(): number {
     }
 
     const fromJson = new DeepTable()
-    fromJson.readSync(`${jsonDir}/Deep.json`)
+    fromJson.readJsonFrom(fs.readFileSync(`${jsonDir}/Deep.json`, 'utf8'))
 
     const fromBinary = new DeepTable()
-    fromBinary.readBinarySync(`${binaryDir}/Deep.tcb`)
+    fromBinary.readBinaryFrom(new Uint8Array(fs.readFileSync(`${binaryDir}/Deep.tcb`)))
 
     // The compact row, read through the same class - a third route over the same cells.
     const fromCompact = new DeepTable()
-    fromCompact.readSync(`${jsonDir}/../json-compact/Deep.json`)
+    fromCompact.readJsonFrom(fs.readFileSync(`${jsonDir}/../json-compact/Deep.json`, 'utf8'))
 
     compare('Deep', -1, 'recordCount', fromJson.records.length, fromBinary.records.length)
 

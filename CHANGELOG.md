@@ -5,6 +5,19 @@
 
 ## 0.2.0
 
+- **TypeScript 생성 코드가 파일을 열지 않습니다.** `fs`·`path` 임포트와 리더의 `readAllBytes`가
+  없어졌고, 접근자의 `readAll`·`readAllSync`·`readAllBinarySync`는 디렉터리 대신 「파일 이름을
+  받아 내용을 돌려주는 함수」를 받습니다. 비동기 짝 `readAllBinary`가 더해졌습니다. 그래서 같은
+  산출물이 Node·브라우저·번들러에서 그대로 로드됩니다 — `"type": "module"` 프로젝트에서
+  `require is not defined` 로 막히던 것이 그 결함입니다
+  ([쓰는 법](doc/languages/typescript.md#쓰는-법) ·
+  [설계](spec/targets/cocos-creator-support.md)).
+  - **호출 쪽이 바뀝니다.** 문자열을 넘기던 자리는 컴파일 오류로 보입니다. Node에서는
+    `tables.readAllBinarySync(name => new Uint8Array(fs.readFileSync(path.join(dir, name))))`
+  - 테이블 하나짜리 `read`·`readSync`·`readBinarySync`도 없어졌습니다. `readJsonFrom(text)`·
+    `readBinaryFrom(bytes)`가 그 자리이고, `readBinaryFrom`이 봉인을 열므로 파일의 바이트를
+    그대로 넘기면 됩니다
+
 - **숫자 셀의 표기가 C#의 숫자 리터럴과 같아졌습니다.** 자릿수 구분자 `_`와 지수 표기가
   더해집니다 — 접미사(`1.5f`·`100L`)는 없습니다. 타입 행이 이미 타입을 말하기 때문입니다
   ([쓰는 법](doc/sheets/layout.md#숫자-표기) ·

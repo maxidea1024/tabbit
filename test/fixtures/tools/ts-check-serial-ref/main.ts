@@ -13,6 +13,8 @@
 //
 // Prints JSON on stdout for the C# harness to assert against.
 
+import * as fs from 'fs'
+
 import { Tables } from './generated/tables'
 
 /** A single disagreement between the read paths. */
@@ -53,10 +55,10 @@ function main(): number {
     }
 
     const fromJson = new Tables()
-    fromJson.readAllSync(jsonDir, '.json')
+    fromJson.readAllSync(name => fs.readFileSync(`${jsonDir}/${name}`, 'utf8'), '.json')
 
     const fromBinary = new Tables()
-    fromBinary.readAllBinarySync(binaryDir, '.tcb')
+    fromBinary.readAllBinarySync(name => new Uint8Array(fs.readFileSync(`${binaryDir}/${name}`)), '.tcb')
 
     for (let i = 0; i < fromJson.kit.records.length; i++) {
         const j = fromJson.kit.records[i]

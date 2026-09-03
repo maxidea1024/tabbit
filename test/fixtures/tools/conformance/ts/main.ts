@@ -7,6 +7,7 @@
 declare function require(moduleName: string): any
 declare const process: any
 
+const fs = require('fs')
 const path = require('path')
 
 import { VectorsTable } from './tables/vectors'
@@ -34,7 +35,7 @@ if (macKeyText) {
 }
 
 const table = new VectorsTable()
-table.readBinarySync(path.join(binaryDir, 'Vectors.tcb'))
+table.readBinaryFrom(new Uint8Array(fs.readFileSync(path.join(binaryDir, 'Vectors.tcb'))))
 
 // Ticks rather than the reader's formatted strings: the contract asks for the exact
 // value, and a tick count has no formatting to disagree about.

@@ -52,7 +52,7 @@ function main(): number {
     const rows: any[] = JSON.parse(fs.readFileSync(`${jsonDir}/Listing.json`, 'utf8'))
 
     const table = new ListingTable()
-    table.readBinarySync(`${binaryDir}/Listing.tcb`)
+    table.readBinaryFrom(new Uint8Array(fs.readFileSync(`${binaryDir}/Listing.tcb`)))
 
     compare(-1, 'recordCount', rows.length, table.records.length)
 

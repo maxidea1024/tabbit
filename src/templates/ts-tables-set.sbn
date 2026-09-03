@@ -1,7 +1,5 @@
 {{~## The accessor holding every table, and the calls that load them all. ##~}}
 {{ include 'ts-head.sbn' ~}}
-import * as path from 'path'
-
 {{~ for table in tables ~}}
 import { {{ table.name }}Table } from './tables/{{ table.file }}'
 {{~ end ~}}
@@ -69,41 +67,59 @@ export class {{ accessor_name }} {
 {{~ end ~}}
 
   /**
-   * Read all tables asynchronously.
+   * Read all tables from the JSON export, asynchronously.
+   *
+   * `load` is given a file name - `Item.json`, say - and returns
+   * that file's text. Where it looks is the caller's: a directory under Node, a URL in a
+   * browser, an asset store in an engine. Nothing here names a runtime module, which is
+   * what lets the same generated code load in all three.
    *
    * `fileExtension` defaults to what the JSON exporter writes. Pass a different one when the
    * data files were renamed after export.
    */
-  public async readAll(basePath: string, fileExtension: string = '.json'): Promise<void> {
+  public async readAll(load: (fileName: string) => Promise<string>, fileExtension: string = '.json'): Promise<void> {
 {{~ for table in tables ~}}
     const {{ table.local }} = new {{ table.name }}Table()
-    await {{ table.local }}.read(path.join(basePath, `{{ table.data_file_name }}${fileExtension}`))
+    {{ table.local }}.readJsonFrom(await load(`{{ table.data_file_name }}${fileExtension}`))
 {{~ end ~}}
 
     this.publish({{ for table in tables }}{{ if !for.first }}, {{ end }}{{ table.local }}{{ end }})
   }
 
-  /** Read all tables synchronously. */
-  public readAllSync(basePath: string, fileExtension: string = '.json'): void {
+  /** Read all tables from the JSON export, synchronously. `load` returns a file's text. */
+  public readAllSync(load: (fileName: string) => string, fileExtension: string = '.json'): void {
 {{~ for table in tables ~}}
     const {{ table.local }} = new {{ table.name }}Table()
-    {{ table.local }}.readSync(path.join(basePath, `{{ table.data_file_name }}${fileExtension}`))
+    {{ table.local }}.readJsonFrom(load(`{{ table.data_file_name }}${fileExtension}`))
 {{~ end ~}}
 
     this.publish({{ for table in tables }}{{ if !for.first }}, {{ end }}{{ table.local }}{{ end }})
   }
 
   /**
-   * Read all tables from the binary export.
+   * Read all tables from the binary export, asynchronously.
    *
-   * The counterpart of `readAllSync`, and the one to use when the data is binary: reading a
-   * table on its own with `readBinarySync` leaves its references unlinked, because linking
+   * The counterpart of `readAll`, and the one to use when the data is binary: reading a
+   * table on its own with `readBinaryFrom` leaves its references unlinked, because linking
    * needs every table. Both formats produce the same values.
+   *
+   * `load` returns a file's bytes as the file holds them; each table opens its own envelope.
+   * Asynchronous because that is what a fetch and an engine's asset loader are.
    */
-  public readAllBinarySync(basePath: string, fileExtension: string = '{{ binary_file_extension }}'): void {
+  public async readAllBinary(load: (fileName: string) => Promise<Uint8Array>, fileExtension: string = '{{ binary_file_extension }}'): Promise<void> {
 {{~ for table in tables ~}}
     const {{ table.local }} = new {{ table.name }}Table()
-    {{ table.local }}.readBinarySync(path.join(basePath, `{{ table.data_file_name }}${fileExtension}`))
+    {{ table.local }}.readBinaryFrom(await load(`{{ table.data_file_name }}${fileExtension}`))
+{{~ end ~}}
+
+    this.publish({{ for table in tables }}{{ if !for.first }}, {{ end }}{{ table.local }}{{ end }})
+  }
+
+  /** Read all tables from the binary export, synchronously. `load` returns a file's bytes. */
+  public readAllBinarySync(load: (fileName: string) => Uint8Array, fileExtension: string = '{{ binary_file_extension }}'): void {
+{{~ for table in tables ~}}
+    const {{ table.local }} = new {{ table.name }}Table()
+    {{ table.local }}.readBinaryFrom(load(`{{ table.data_file_name }}${fileExtension}`))
 {{~ end ~}}
 
     this.publish({{ for table in tables }}{{ if !for.first }}, {{ end }}{{ table.local }}{{ end }})

@@ -11,6 +11,8 @@
 //
 // Prints JSON on stdout for the C# harness to assert against.
 
+import * as fs from 'fs'
+
 import { GuideTable } from './generated/tables/guide'
 /** A single disagreement between the two read paths. */
 interface Mismatch {
@@ -58,10 +60,10 @@ function main(): number {
     }
 
     const fromJson = new GuideTable()
-    fromJson.readSync(`${jsonDir}/Guide.json`)
+    fromJson.readJsonFrom(fs.readFileSync(`${jsonDir}/Guide.json`, 'utf8'))
 
     const fromBinary = new GuideTable()
-    fromBinary.readBinarySync(`${binaryDir}/Guide.tcb`)
+    fromBinary.readBinaryFrom(new Uint8Array(fs.readFileSync(`${binaryDir}/Guide.tcb`)))
 
     compare('Guide', -1, 'recordCount', fromJson.records.length, fromBinary.records.length)
 

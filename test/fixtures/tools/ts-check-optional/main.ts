@@ -7,6 +7,8 @@
 //
 // Prints JSON on stdout for the C# harness to assert against.
 
+import * as fs from 'fs'
+
 import { DropTable } from './generated/tables/drop'
 
 interface Mismatch {
@@ -48,10 +50,10 @@ function main(): number {
     }
 
     const fromJson = new DropTable()
-    fromJson.readSync(`${jsonDir}/Drop.json`)
+    fromJson.readJsonFrom(fs.readFileSync(`${jsonDir}/Drop.json`, 'utf8'))
 
     const fromBinary = new DropTable()
-    fromBinary.readBinarySync(`${binaryDir}/Drop.tcb`)
+    fromBinary.readBinaryFrom(new Uint8Array(fs.readFileSync(`${binaryDir}/Drop.tcb`)))
 
     compare(-1, 'recordCount', fromJson.records.length, fromBinary.records.length)
 

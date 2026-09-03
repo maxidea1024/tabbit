@@ -38,7 +38,8 @@
 // of the two paths.
 //
 // No dependencies. Works over a Uint8Array, so it runs in Node and in a browser
-// alike; only the convenience file read needs `fs`.
+// alike: where the bytes come from - a file, a fetch, an engine's asset store - is the
+// caller's, and nothing here names a runtime module.
 // ---------------------------------------------------------------------------
 
 /** Thrown when a table file is truncated, malformed, or not a table file. */
@@ -1470,25 +1471,6 @@ export function checkBlockEnd(reader: TcbReader, column: TcbColumn, expectedEnd:
       `column tag ${column.tag}: its block declared ${column.byteLength} bytes but the read ` +
       `ended ${expectedEnd - reader.position} bytes short of its boundary`)
   }
-}
-
-// Declared here rather than pulled from @types/node.
-//
-// This file is a module, so the declaration is local to it: a consumer that does
-// have @types/node is unaffected, and one that does not - a browser project, say -
-// is not made to install it for a function they will never call.
-declare function require(moduleName: string): any
-
-/**
- * Reads a whole file into memory.
- *
- * Node only, and resolved lazily, so the module still loads in a browser where the
- * binary arrives from fetch rather than the filesystem. Pass the bytes to a table's
- * readBinaryFrom in that case.
- */
-export function readAllBytes(filename: string): Uint8Array {
-  const fs = require('fs')
-  return new Uint8Array(fs.readFileSync(filename))
 }
 
 // ---------------------------------------------------------------------- mac

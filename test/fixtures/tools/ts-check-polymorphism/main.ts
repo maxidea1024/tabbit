@@ -14,6 +14,8 @@
 //
 // Prints JSON on stdout for the C# harness to assert against.
 
+import * as fs from 'fs'
+
 import { Tables } from './generated/tables'
 import { Effect } from './generated/structs/effect'
 
@@ -38,7 +40,7 @@ function main(): void {
     const binaryDir = process.argv[3]
 
     const tables = new Tables()
-    tables.readAllBinarySync(binaryDir, '.tcb')
+    tables.readAllBinarySync(name => new Uint8Array(fs.readFileSync(`${binaryDir}/${name}`)), '.tcb')
 
     const rows = tables.skill.records.map(row => ({
         index: row.index,

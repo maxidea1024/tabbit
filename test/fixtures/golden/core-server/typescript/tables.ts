@@ -5,8 +5,6 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-import * as path from 'path'
-
 import { TestFieldTypesTable } from './tables/test-field-types'
 import { ItemCategoryTable } from './tables/item-category'
 import { ItemTable } from './tables/item'
@@ -92,66 +90,92 @@ export class Tables {
   private _serverTuning: ServerTuningTable = new ServerTuningTable()
 
   /**
-   * Read all tables asynchronously.
+   * Read all tables from the JSON export, asynchronously.
+   *
+   * `load` is given a file name - `Item.json`, say - and returns
+   * that file's text. Where it looks is the caller's: a directory under Node, a URL in a
+   * browser, an asset store in an engine. Nothing here names a runtime module, which is
+   * what lets the same generated code load in all three.
    *
    * `fileExtension` defaults to what the JSON exporter writes. Pass a different one when the
    * data files were renamed after export.
    */
-  public async readAll(basePath: string, fileExtension: string = '.json'): Promise<void> {
+  public async readAll(load: (fileName: string) => Promise<string>, fileExtension: string = '.json'): Promise<void> {
     const testFieldTypes = new TestFieldTypesTable()
-    await testFieldTypes.read(path.join(basePath, `TestFieldTypes${fileExtension}`))
+    testFieldTypes.readJsonFrom(await load(`TestFieldTypes${fileExtension}`))
     const itemCategory = new ItemCategoryTable()
-    await itemCategory.read(path.join(basePath, `ItemCategory${fileExtension}`))
+    itemCategory.readJsonFrom(await load(`ItemCategory${fileExtension}`))
     const item = new ItemTable()
-    await item.read(path.join(basePath, `Item${fileExtension}`))
+    item.readJsonFrom(await load(`Item${fileExtension}`))
     const localization = new LocalizationTable()
-    await localization.read(path.join(basePath, `Localization${fileExtension}`))
+    localization.readJsonFrom(await load(`Localization${fileExtension}`))
     const arrayTypes = new ArrayTypesTable()
-    await arrayTypes.read(path.join(basePath, `ArrayTypes${fileExtension}`))
+    arrayTypes.readJsonFrom(await load(`ArrayTypes${fileExtension}`))
     const serverTuning = new ServerTuningTable()
-    await serverTuning.read(path.join(basePath, `ServerTuning${fileExtension}`))
+    serverTuning.readJsonFrom(await load(`ServerTuning${fileExtension}`))
 
     this.publish(testFieldTypes, itemCategory, item, localization, arrayTypes, serverTuning)
   }
 
-  /** Read all tables synchronously. */
-  public readAllSync(basePath: string, fileExtension: string = '.json'): void {
+  /** Read all tables from the JSON export, synchronously. `load` returns a file's text. */
+  public readAllSync(load: (fileName: string) => string, fileExtension: string = '.json'): void {
     const testFieldTypes = new TestFieldTypesTable()
-    testFieldTypes.readSync(path.join(basePath, `TestFieldTypes${fileExtension}`))
+    testFieldTypes.readJsonFrom(load(`TestFieldTypes${fileExtension}`))
     const itemCategory = new ItemCategoryTable()
-    itemCategory.readSync(path.join(basePath, `ItemCategory${fileExtension}`))
+    itemCategory.readJsonFrom(load(`ItemCategory${fileExtension}`))
     const item = new ItemTable()
-    item.readSync(path.join(basePath, `Item${fileExtension}`))
+    item.readJsonFrom(load(`Item${fileExtension}`))
     const localization = new LocalizationTable()
-    localization.readSync(path.join(basePath, `Localization${fileExtension}`))
+    localization.readJsonFrom(load(`Localization${fileExtension}`))
     const arrayTypes = new ArrayTypesTable()
-    arrayTypes.readSync(path.join(basePath, `ArrayTypes${fileExtension}`))
+    arrayTypes.readJsonFrom(load(`ArrayTypes${fileExtension}`))
     const serverTuning = new ServerTuningTable()
-    serverTuning.readSync(path.join(basePath, `ServerTuning${fileExtension}`))
+    serverTuning.readJsonFrom(load(`ServerTuning${fileExtension}`))
 
     this.publish(testFieldTypes, itemCategory, item, localization, arrayTypes, serverTuning)
   }
 
   /**
-   * Read all tables from the binary export.
+   * Read all tables from the binary export, asynchronously.
    *
-   * The counterpart of `readAllSync`, and the one to use when the data is binary: reading a
-   * table on its own with `readBinarySync` leaves its references unlinked, because linking
+   * The counterpart of `readAll`, and the one to use when the data is binary: reading a
+   * table on its own with `readBinaryFrom` leaves its references unlinked, because linking
    * needs every table. Both formats produce the same values.
+   *
+   * `load` returns a file's bytes as the file holds them; each table opens its own envelope.
+   * Asynchronous because that is what a fetch and an engine's asset loader are.
    */
-  public readAllBinarySync(basePath: string, fileExtension: string = '.tcb'): void {
+  public async readAllBinary(load: (fileName: string) => Promise<Uint8Array>, fileExtension: string = '.tcb'): Promise<void> {
     const testFieldTypes = new TestFieldTypesTable()
-    testFieldTypes.readBinarySync(path.join(basePath, `TestFieldTypes${fileExtension}`))
+    testFieldTypes.readBinaryFrom(await load(`TestFieldTypes${fileExtension}`))
     const itemCategory = new ItemCategoryTable()
-    itemCategory.readBinarySync(path.join(basePath, `ItemCategory${fileExtension}`))
+    itemCategory.readBinaryFrom(await load(`ItemCategory${fileExtension}`))
     const item = new ItemTable()
-    item.readBinarySync(path.join(basePath, `Item${fileExtension}`))
+    item.readBinaryFrom(await load(`Item${fileExtension}`))
     const localization = new LocalizationTable()
-    localization.readBinarySync(path.join(basePath, `Localization${fileExtension}`))
+    localization.readBinaryFrom(await load(`Localization${fileExtension}`))
     const arrayTypes = new ArrayTypesTable()
-    arrayTypes.readBinarySync(path.join(basePath, `ArrayTypes${fileExtension}`))
+    arrayTypes.readBinaryFrom(await load(`ArrayTypes${fileExtension}`))
     const serverTuning = new ServerTuningTable()
-    serverTuning.readBinarySync(path.join(basePath, `ServerTuning${fileExtension}`))
+    serverTuning.readBinaryFrom(await load(`ServerTuning${fileExtension}`))
+
+    this.publish(testFieldTypes, itemCategory, item, localization, arrayTypes, serverTuning)
+  }
+
+  /** Read all tables from the binary export, synchronously. `load` returns a file's bytes. */
+  public readAllBinarySync(load: (fileName: string) => Uint8Array, fileExtension: string = '.tcb'): void {
+    const testFieldTypes = new TestFieldTypesTable()
+    testFieldTypes.readBinaryFrom(load(`TestFieldTypes${fileExtension}`))
+    const itemCategory = new ItemCategoryTable()
+    itemCategory.readBinaryFrom(load(`ItemCategory${fileExtension}`))
+    const item = new ItemTable()
+    item.readBinaryFrom(load(`Item${fileExtension}`))
+    const localization = new LocalizationTable()
+    localization.readBinaryFrom(load(`Localization${fileExtension}`))
+    const arrayTypes = new ArrayTypesTable()
+    arrayTypes.readBinaryFrom(load(`ArrayTypes${fileExtension}`))
+    const serverTuning = new ServerTuningTable()
+    serverTuning.readBinaryFrom(load(`ServerTuning${fileExtension}`))
 
     this.publish(testFieldTypes, itemCategory, item, localization, arrayTypes, serverTuning)
   }

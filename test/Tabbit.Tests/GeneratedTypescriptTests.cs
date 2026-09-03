@@ -98,10 +98,11 @@ internal static class TypescriptToolchain
         string checkDir = RepoLayout.WorkDir("_tscheck", "typecheck");
         Directory.CreateDirectory(checkDir);
 
-        // The generated code imports `fs` and `path`. Declaring them as
-        // opaque modules keeps the gate pointed at the generated code's own
-        // correctness - unresolved names, bad syntax, wrong types - without
-        // requiring an npm install of @types/node on every run.
+        // The generated tables name no runtime module, but the updater written beside
+        // them imports `fs`, `path` and `crypto`. Declaring them as opaque modules keeps
+        // the gate pointed at the generated code's own correctness - unresolved names,
+        // bad syntax, wrong types - without requiring an npm install of @types/node on
+        // every run.
         File.WriteAllText(Path.Combine(checkDir, "ambient.d.ts"), @"declare module 'fs'
 declare module 'path'
 declare module 'crypto'

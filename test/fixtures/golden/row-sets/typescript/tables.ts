@@ -5,8 +5,6 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-import * as path from 'path'
-
 import { ColourTable } from './tables/colour'
 import { BrushTable } from './tables/brush'
 import { NarrowTable } from './tables/narrow'
@@ -82,54 +80,76 @@ export class Tables {
   private _paint: PaintTable = new PaintTable()
 
   /**
-   * Read all tables asynchronously.
+   * Read all tables from the JSON export, asynchronously.
+   *
+   * `load` is given a file name - `Item.json`, say - and returns
+   * that file's text. Where it looks is the caller's: a directory under Node, a URL in a
+   * browser, an asset store in an engine. Nothing here names a runtime module, which is
+   * what lets the same generated code load in all three.
    *
    * `fileExtension` defaults to what the JSON exporter writes. Pass a different one when the
    * data files were renamed after export.
    */
-  public async readAll(basePath: string, fileExtension: string = '.json'): Promise<void> {
+  public async readAll(load: (fileName: string) => Promise<string>, fileExtension: string = '.json'): Promise<void> {
     const colour = new ColourTable()
-    await colour.read(path.join(basePath, `Colour${fileExtension}`))
+    colour.readJsonFrom(await load(`Colour${fileExtension}`))
     const brush = new BrushTable()
-    await brush.read(path.join(basePath, `Brush${fileExtension}`))
+    brush.readJsonFrom(await load(`Brush${fileExtension}`))
     const narrow = new NarrowTable()
-    await narrow.read(path.join(basePath, `Narrow${fileExtension}`))
+    narrow.readJsonFrom(await load(`Narrow${fileExtension}`))
     const paint = new PaintTable()
-    await paint.read(path.join(basePath, `Paint${fileExtension}`))
+    paint.readJsonFrom(await load(`Paint${fileExtension}`))
 
     this.publish(colour, brush, narrow, paint)
   }
 
-  /** Read all tables synchronously. */
-  public readAllSync(basePath: string, fileExtension: string = '.json'): void {
+  /** Read all tables from the JSON export, synchronously. `load` returns a file's text. */
+  public readAllSync(load: (fileName: string) => string, fileExtension: string = '.json'): void {
     const colour = new ColourTable()
-    colour.readSync(path.join(basePath, `Colour${fileExtension}`))
+    colour.readJsonFrom(load(`Colour${fileExtension}`))
     const brush = new BrushTable()
-    brush.readSync(path.join(basePath, `Brush${fileExtension}`))
+    brush.readJsonFrom(load(`Brush${fileExtension}`))
     const narrow = new NarrowTable()
-    narrow.readSync(path.join(basePath, `Narrow${fileExtension}`))
+    narrow.readJsonFrom(load(`Narrow${fileExtension}`))
     const paint = new PaintTable()
-    paint.readSync(path.join(basePath, `Paint${fileExtension}`))
+    paint.readJsonFrom(load(`Paint${fileExtension}`))
 
     this.publish(colour, brush, narrow, paint)
   }
 
   /**
-   * Read all tables from the binary export.
+   * Read all tables from the binary export, asynchronously.
    *
-   * The counterpart of `readAllSync`, and the one to use when the data is binary: reading a
-   * table on its own with `readBinarySync` leaves its references unlinked, because linking
+   * The counterpart of `readAll`, and the one to use when the data is binary: reading a
+   * table on its own with `readBinaryFrom` leaves its references unlinked, because linking
    * needs every table. Both formats produce the same values.
+   *
+   * `load` returns a file's bytes as the file holds them; each table opens its own envelope.
+   * Asynchronous because that is what a fetch and an engine's asset loader are.
    */
-  public readAllBinarySync(basePath: string, fileExtension: string = '.tcb'): void {
+  public async readAllBinary(load: (fileName: string) => Promise<Uint8Array>, fileExtension: string = '.tcb'): Promise<void> {
     const colour = new ColourTable()
-    colour.readBinarySync(path.join(basePath, `Colour${fileExtension}`))
+    colour.readBinaryFrom(await load(`Colour${fileExtension}`))
     const brush = new BrushTable()
-    brush.readBinarySync(path.join(basePath, `Brush${fileExtension}`))
+    brush.readBinaryFrom(await load(`Brush${fileExtension}`))
     const narrow = new NarrowTable()
-    narrow.readBinarySync(path.join(basePath, `Narrow${fileExtension}`))
+    narrow.readBinaryFrom(await load(`Narrow${fileExtension}`))
     const paint = new PaintTable()
-    paint.readBinarySync(path.join(basePath, `Paint${fileExtension}`))
+    paint.readBinaryFrom(await load(`Paint${fileExtension}`))
+
+    this.publish(colour, brush, narrow, paint)
+  }
+
+  /** Read all tables from the binary export, synchronously. `load` returns a file's bytes. */
+  public readAllBinarySync(load: (fileName: string) => Uint8Array, fileExtension: string = '.tcb'): void {
+    const colour = new ColourTable()
+    colour.readBinaryFrom(load(`Colour${fileExtension}`))
+    const brush = new BrushTable()
+    brush.readBinaryFrom(load(`Brush${fileExtension}`))
+    const narrow = new NarrowTable()
+    narrow.readBinaryFrom(load(`Narrow${fileExtension}`))
+    const paint = new PaintTable()
+    paint.readBinaryFrom(load(`Paint${fileExtension}`))
 
     this.publish(colour, brush, narrow, paint)
   }

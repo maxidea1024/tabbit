@@ -5,8 +5,6 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-import * as path from 'path'
-
 import { LoadoutTable } from './tables/loadout'
 import { RouteTable } from './tables/route'
 import { GridTable } from './tables/grid'
@@ -102,78 +100,108 @@ export class Tables {
   private _moveNote: MoveNoteTable = new MoveNoteTable()
 
   /**
-   * Read all tables asynchronously.
+   * Read all tables from the JSON export, asynchronously.
+   *
+   * `load` is given a file name - `Item.json`, say - and returns
+   * that file's text. Where it looks is the caller's: a directory under Node, a URL in a
+   * browser, an asset store in an engine. Nothing here names a runtime module, which is
+   * what lets the same generated code load in all three.
    *
    * `fileExtension` defaults to what the JSON exporter writes. Pass a different one when the
    * data files were renamed after export.
    */
-  public async readAll(basePath: string, fileExtension: string = '.json'): Promise<void> {
+  public async readAll(load: (fileName: string) => Promise<string>, fileExtension: string = '.json'): Promise<void> {
     const loadout = new LoadoutTable()
-    await loadout.read(path.join(basePath, `Loadout${fileExtension}`))
+    loadout.readJsonFrom(await load(`Loadout${fileExtension}`))
     const route = new RouteTable()
-    await route.read(path.join(basePath, `Route${fileExtension}`))
+    route.readJsonFrom(await load(`Route${fileExtension}`))
     const grid = new GridTable()
-    await grid.read(path.join(basePath, `Grid${fileExtension}`))
+    grid.readJsonFrom(await load(`Grid${fileExtension}`))
     const beast = new BeastTable()
-    await beast.read(path.join(basePath, `Beast${fileExtension}`))
+    beast.readJsonFrom(await load(`Beast${fileExtension}`))
     const move = new MoveTable()
-    await move.read(path.join(basePath, `Move${fileExtension}`))
+    move.readJsonFrom(await load(`Move${fileExtension}`))
     const beastMove = new BeastMoveTable()
-    await beastMove.read(path.join(basePath, `BeastMove${fileExtension}`))
+    beastMove.readJsonFrom(await load(`BeastMove${fileExtension}`))
     const beastNote = new BeastNoteTable()
-    await beastNote.read(path.join(basePath, `BeastNote${fileExtension}`))
+    beastNote.readJsonFrom(await load(`BeastNote${fileExtension}`))
     const moveNote = new MoveNoteTable()
-    await moveNote.read(path.join(basePath, `MoveNote${fileExtension}`))
+    moveNote.readJsonFrom(await load(`MoveNote${fileExtension}`))
 
     this.publish(loadout, route, grid, beast, move, beastMove, beastNote, moveNote)
   }
 
-  /** Read all tables synchronously. */
-  public readAllSync(basePath: string, fileExtension: string = '.json'): void {
+  /** Read all tables from the JSON export, synchronously. `load` returns a file's text. */
+  public readAllSync(load: (fileName: string) => string, fileExtension: string = '.json'): void {
     const loadout = new LoadoutTable()
-    loadout.readSync(path.join(basePath, `Loadout${fileExtension}`))
+    loadout.readJsonFrom(load(`Loadout${fileExtension}`))
     const route = new RouteTable()
-    route.readSync(path.join(basePath, `Route${fileExtension}`))
+    route.readJsonFrom(load(`Route${fileExtension}`))
     const grid = new GridTable()
-    grid.readSync(path.join(basePath, `Grid${fileExtension}`))
+    grid.readJsonFrom(load(`Grid${fileExtension}`))
     const beast = new BeastTable()
-    beast.readSync(path.join(basePath, `Beast${fileExtension}`))
+    beast.readJsonFrom(load(`Beast${fileExtension}`))
     const move = new MoveTable()
-    move.readSync(path.join(basePath, `Move${fileExtension}`))
+    move.readJsonFrom(load(`Move${fileExtension}`))
     const beastMove = new BeastMoveTable()
-    beastMove.readSync(path.join(basePath, `BeastMove${fileExtension}`))
+    beastMove.readJsonFrom(load(`BeastMove${fileExtension}`))
     const beastNote = new BeastNoteTable()
-    beastNote.readSync(path.join(basePath, `BeastNote${fileExtension}`))
+    beastNote.readJsonFrom(load(`BeastNote${fileExtension}`))
     const moveNote = new MoveNoteTable()
-    moveNote.readSync(path.join(basePath, `MoveNote${fileExtension}`))
+    moveNote.readJsonFrom(load(`MoveNote${fileExtension}`))
 
     this.publish(loadout, route, grid, beast, move, beastMove, beastNote, moveNote)
   }
 
   /**
-   * Read all tables from the binary export.
+   * Read all tables from the binary export, asynchronously.
    *
-   * The counterpart of `readAllSync`, and the one to use when the data is binary: reading a
-   * table on its own with `readBinarySync` leaves its references unlinked, because linking
+   * The counterpart of `readAll`, and the one to use when the data is binary: reading a
+   * table on its own with `readBinaryFrom` leaves its references unlinked, because linking
    * needs every table. Both formats produce the same values.
+   *
+   * `load` returns a file's bytes as the file holds them; each table opens its own envelope.
+   * Asynchronous because that is what a fetch and an engine's asset loader are.
    */
-  public readAllBinarySync(basePath: string, fileExtension: string = '.tcb'): void {
+  public async readAllBinary(load: (fileName: string) => Promise<Uint8Array>, fileExtension: string = '.tcb'): Promise<void> {
     const loadout = new LoadoutTable()
-    loadout.readBinarySync(path.join(basePath, `Loadout${fileExtension}`))
+    loadout.readBinaryFrom(await load(`Loadout${fileExtension}`))
     const route = new RouteTable()
-    route.readBinarySync(path.join(basePath, `Route${fileExtension}`))
+    route.readBinaryFrom(await load(`Route${fileExtension}`))
     const grid = new GridTable()
-    grid.readBinarySync(path.join(basePath, `Grid${fileExtension}`))
+    grid.readBinaryFrom(await load(`Grid${fileExtension}`))
     const beast = new BeastTable()
-    beast.readBinarySync(path.join(basePath, `Beast${fileExtension}`))
+    beast.readBinaryFrom(await load(`Beast${fileExtension}`))
     const move = new MoveTable()
-    move.readBinarySync(path.join(basePath, `Move${fileExtension}`))
+    move.readBinaryFrom(await load(`Move${fileExtension}`))
     const beastMove = new BeastMoveTable()
-    beastMove.readBinarySync(path.join(basePath, `BeastMove${fileExtension}`))
+    beastMove.readBinaryFrom(await load(`BeastMove${fileExtension}`))
     const beastNote = new BeastNoteTable()
-    beastNote.readBinarySync(path.join(basePath, `BeastNote${fileExtension}`))
+    beastNote.readBinaryFrom(await load(`BeastNote${fileExtension}`))
     const moveNote = new MoveNoteTable()
-    moveNote.readBinarySync(path.join(basePath, `MoveNote${fileExtension}`))
+    moveNote.readBinaryFrom(await load(`MoveNote${fileExtension}`))
+
+    this.publish(loadout, route, grid, beast, move, beastMove, beastNote, moveNote)
+  }
+
+  /** Read all tables from the binary export, synchronously. `load` returns a file's bytes. */
+  public readAllBinarySync(load: (fileName: string) => Uint8Array, fileExtension: string = '.tcb'): void {
+    const loadout = new LoadoutTable()
+    loadout.readBinaryFrom(load(`Loadout${fileExtension}`))
+    const route = new RouteTable()
+    route.readBinaryFrom(load(`Route${fileExtension}`))
+    const grid = new GridTable()
+    grid.readBinaryFrom(load(`Grid${fileExtension}`))
+    const beast = new BeastTable()
+    beast.readBinaryFrom(load(`Beast${fileExtension}`))
+    const move = new MoveTable()
+    move.readBinaryFrom(load(`Move${fileExtension}`))
+    const beastMove = new BeastMoveTable()
+    beastMove.readBinaryFrom(load(`BeastMove${fileExtension}`))
+    const beastNote = new BeastNoteTable()
+    beastNote.readBinaryFrom(load(`BeastNote${fileExtension}`))
+    const moveNote = new MoveNoteTable()
+    moveNote.readBinaryFrom(load(`MoveNote${fileExtension}`))
 
     this.publish(loadout, route, grid, beast, move, beastMove, beastNote, moveNote)
   }

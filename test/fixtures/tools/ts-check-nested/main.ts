@@ -11,6 +11,8 @@
 //
 // Prints JSON on stdout for the C# harness to assert against.
 
+import * as fs from 'fs'
+
 import { LoadoutTable } from './generated/tables/loadout'
 
 /** A single disagreement between the two read paths. */
@@ -59,10 +61,10 @@ function main(): number {
     }
 
     const fromJson = new LoadoutTable()
-    fromJson.readSync(`${jsonDir}/Loadout.json`)
+    fromJson.readJsonFrom(fs.readFileSync(`${jsonDir}/Loadout.json`, 'utf8'))
 
     const fromBinary = new LoadoutTable()
-    fromBinary.readBinarySync(`${binaryDir}/Loadout.tcb`)
+    fromBinary.readBinaryFrom(new Uint8Array(fs.readFileSync(`${binaryDir}/Loadout.tcb`)))
 
     compare('Loadout', -1, 'recordCount', fromJson.records.length, fromBinary.records.length)
 

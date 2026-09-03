@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "run": {
-    "generatedAt": "2026-09-01T17:44:14.4333202+09:00",
+    "generatedAt": "2026-09-03T11:09:05.7034557+09:00",
     "toolVersion": "0.0.0.0",
     "environment": null,
     "recipe": "recipe.jsonc",
     "requestedTargetSide": "cs",
     "commit": {
-      "hash": "13770b1b5911fd98037b7279dbd03a02553d9624",
-      "shortHash": "13770b1b5911",
+      "hash": "95917b855f0a59daaee4d4d972c744555b97b9c3",
+      "shortHash": "95917b855f0a",
       "branch": "main",
       "authorName": null,
       "authorEmail": null,
-      "committedAt": "2026-09-01T17:40:21.0000000+09:00",
-      "subject": "fix: 득점한 카드가 내려오는 것을 두 배 빠르게",
+      "committedAt": "2026-09-03T11:01:45.0000000+09:00",
+      "subject": "feat: 순위표는 계정 없이도 보고 · 앱의 로그인 되돌아오는 길 · 제공자 등록 문서",
       "origin": "git",
       "dirty": true,
       "attributable": false

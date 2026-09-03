@@ -5,8 +5,6 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-import * as path from 'path'
-
 import { PotionTable } from './tables/potion'
 import { SampleTable } from './tables/sample'
 import { MarkerTable } from './tables/marker'
@@ -157,144 +155,196 @@ export class Tables {
   private _skill: SkillTable = new SkillTable()
 
   /**
-   * Read all tables asynchronously.
+   * Read all tables from the JSON export, asynchronously.
+   *
+   * `load` is given a file name - `Item.json`, say - and returns
+   * that file's text. Where it looks is the caller's: a directory under Node, a URL in a
+   * browser, an asset store in an engine. Nothing here names a runtime module, which is
+   * what lets the same generated code load in all three.
    *
    * `fileExtension` defaults to what the JSON exporter writes. Pass a different one when the
    * data files were renamed after export.
    */
-  public async readAll(basePath: string, fileExtension: string = '.json'): Promise<void> {
+  public async readAll(load: (fileName: string) => Promise<string>, fileExtension: string = '.json'): Promise<void> {
     const potion = new PotionTable()
-    await potion.read(path.join(basePath, `Potion${fileExtension}`))
+    potion.readJsonFrom(await load(`Potion${fileExtension}`))
     const sample = new SampleTable()
-    await sample.read(path.join(basePath, `Sample${fileExtension}`))
+    sample.readJsonFrom(await load(`Sample${fileExtension}`))
     const marker = new MarkerTable()
-    await marker.read(path.join(basePath, `Marker${fileExtension}`))
+    marker.readJsonFrom(await load(`Marker${fileExtension}`))
     const access = new AccessTable()
-    await access.read(path.join(basePath, `Access${fileExtension}`))
+    access.readJsonFrom(await load(`Access${fileExtension}`))
     const line = new LineTable()
-    await line.read(path.join(basePath, `Line${fileExtension}`))
+    line.readJsonFrom(await load(`Line${fileExtension}`))
     const animation = new AnimationTable()
-    await animation.read(path.join(basePath, `Animation${fileExtension}`))
+    animation.readJsonFrom(await load(`Animation${fileExtension}`))
     const wire = new WireTable()
-    await wire.read(path.join(basePath, `Wire${fileExtension}`))
+    wire.readJsonFrom(await load(`Wire${fileExtension}`))
     const shop = new ShopTable()
-    await shop.read(path.join(basePath, `Shop${fileExtension}`))
+    shop.readJsonFrom(await load(`Shop${fileExtension}`))
     const shopEntry = new ShopEntryTable()
-    await shopEntry.read(path.join(basePath, `ShopEntry${fileExtension}`))
+    shopEntry.readJsonFrom(await load(`ShopEntry${fileExtension}`))
     const craft = new CraftTable()
-    await craft.read(path.join(basePath, `Craft${fileExtension}`))
+    craft.readJsonFrom(await load(`Craft${fileExtension}`))
     const loot = new LootTable()
-    await loot.read(path.join(basePath, `Loot${fileExtension}`))
+    loot.readJsonFrom(await load(`Loot${fileExtension}`))
     const drop = new DropTable()
-    await drop.read(path.join(basePath, `Drop${fileExtension}`))
+    drop.readJsonFrom(await load(`Drop${fileExtension}`))
     const spawn = new SpawnTable()
-    await spawn.read(path.join(basePath, `Spawn${fileExtension}`))
+    spawn.readJsonFrom(await load(`Spawn${fileExtension}`))
     const deck = new DeckTable()
-    await deck.read(path.join(basePath, `Deck${fileExtension}`))
+    deck.readJsonFrom(await load(`Deck${fileExtension}`))
     const quest = new QuestTable()
-    await quest.read(path.join(basePath, `Quest${fileExtension}`))
+    quest.readJsonFrom(await load(`Quest${fileExtension}`))
     const stageReward = new StageRewardTable()
-    await stageReward.read(path.join(basePath, `StageReward${fileExtension}`))
+    stageReward.readJsonFrom(await load(`StageReward${fileExtension}`))
     const serverTuning = new ServerTuningTable()
-    await serverTuning.read(path.join(basePath, `ServerTuning${fileExtension}`))
+    serverTuning.readJsonFrom(await load(`ServerTuning${fileExtension}`))
     const price = new PriceTable()
-    await price.read(path.join(basePath, `Price${fileExtension}`))
+    price.readJsonFrom(await load(`Price${fileExtension}`))
     const skill = new SkillTable()
-    await skill.read(path.join(basePath, `Skill${fileExtension}`))
+    skill.readJsonFrom(await load(`Skill${fileExtension}`))
 
     this.publish(potion, sample, marker, access, line, animation, wire, shop, shopEntry, craft, loot, drop, spawn, deck, quest, stageReward, serverTuning, price, skill)
   }
 
-  /** Read all tables synchronously. */
-  public readAllSync(basePath: string, fileExtension: string = '.json'): void {
+  /** Read all tables from the JSON export, synchronously. `load` returns a file's text. */
+  public readAllSync(load: (fileName: string) => string, fileExtension: string = '.json'): void {
     const potion = new PotionTable()
-    potion.readSync(path.join(basePath, `Potion${fileExtension}`))
+    potion.readJsonFrom(load(`Potion${fileExtension}`))
     const sample = new SampleTable()
-    sample.readSync(path.join(basePath, `Sample${fileExtension}`))
+    sample.readJsonFrom(load(`Sample${fileExtension}`))
     const marker = new MarkerTable()
-    marker.readSync(path.join(basePath, `Marker${fileExtension}`))
+    marker.readJsonFrom(load(`Marker${fileExtension}`))
     const access = new AccessTable()
-    access.readSync(path.join(basePath, `Access${fileExtension}`))
+    access.readJsonFrom(load(`Access${fileExtension}`))
     const line = new LineTable()
-    line.readSync(path.join(basePath, `Line${fileExtension}`))
+    line.readJsonFrom(load(`Line${fileExtension}`))
     const animation = new AnimationTable()
-    animation.readSync(path.join(basePath, `Animation${fileExtension}`))
+    animation.readJsonFrom(load(`Animation${fileExtension}`))
     const wire = new WireTable()
-    wire.readSync(path.join(basePath, `Wire${fileExtension}`))
+    wire.readJsonFrom(load(`Wire${fileExtension}`))
     const shop = new ShopTable()
-    shop.readSync(path.join(basePath, `Shop${fileExtension}`))
+    shop.readJsonFrom(load(`Shop${fileExtension}`))
     const shopEntry = new ShopEntryTable()
-    shopEntry.readSync(path.join(basePath, `ShopEntry${fileExtension}`))
+    shopEntry.readJsonFrom(load(`ShopEntry${fileExtension}`))
     const craft = new CraftTable()
-    craft.readSync(path.join(basePath, `Craft${fileExtension}`))
+    craft.readJsonFrom(load(`Craft${fileExtension}`))
     const loot = new LootTable()
-    loot.readSync(path.join(basePath, `Loot${fileExtension}`))
+    loot.readJsonFrom(load(`Loot${fileExtension}`))
     const drop = new DropTable()
-    drop.readSync(path.join(basePath, `Drop${fileExtension}`))
+    drop.readJsonFrom(load(`Drop${fileExtension}`))
     const spawn = new SpawnTable()
-    spawn.readSync(path.join(basePath, `Spawn${fileExtension}`))
+    spawn.readJsonFrom(load(`Spawn${fileExtension}`))
     const deck = new DeckTable()
-    deck.readSync(path.join(basePath, `Deck${fileExtension}`))
+    deck.readJsonFrom(load(`Deck${fileExtension}`))
     const quest = new QuestTable()
-    quest.readSync(path.join(basePath, `Quest${fileExtension}`))
+    quest.readJsonFrom(load(`Quest${fileExtension}`))
     const stageReward = new StageRewardTable()
-    stageReward.readSync(path.join(basePath, `StageReward${fileExtension}`))
+    stageReward.readJsonFrom(load(`StageReward${fileExtension}`))
     const serverTuning = new ServerTuningTable()
-    serverTuning.readSync(path.join(basePath, `ServerTuning${fileExtension}`))
+    serverTuning.readJsonFrom(load(`ServerTuning${fileExtension}`))
     const price = new PriceTable()
-    price.readSync(path.join(basePath, `Price${fileExtension}`))
+    price.readJsonFrom(load(`Price${fileExtension}`))
     const skill = new SkillTable()
-    skill.readSync(path.join(basePath, `Skill${fileExtension}`))
+    skill.readJsonFrom(load(`Skill${fileExtension}`))
 
     this.publish(potion, sample, marker, access, line, animation, wire, shop, shopEntry, craft, loot, drop, spawn, deck, quest, stageReward, serverTuning, price, skill)
   }
 
   /**
-   * Read all tables from the binary export.
+   * Read all tables from the binary export, asynchronously.
    *
-   * The counterpart of `readAllSync`, and the one to use when the data is binary: reading a
-   * table on its own with `readBinarySync` leaves its references unlinked, because linking
+   * The counterpart of `readAll`, and the one to use when the data is binary: reading a
+   * table on its own with `readBinaryFrom` leaves its references unlinked, because linking
    * needs every table. Both formats produce the same values.
+   *
+   * `load` returns a file's bytes as the file holds them; each table opens its own envelope.
+   * Asynchronous because that is what a fetch and an engine's asset loader are.
    */
-  public readAllBinarySync(basePath: string, fileExtension: string = '.tcb'): void {
+  public async readAllBinary(load: (fileName: string) => Promise<Uint8Array>, fileExtension: string = '.tcb'): Promise<void> {
     const potion = new PotionTable()
-    potion.readBinarySync(path.join(basePath, `Potion${fileExtension}`))
+    potion.readBinaryFrom(await load(`Potion${fileExtension}`))
     const sample = new SampleTable()
-    sample.readBinarySync(path.join(basePath, `Sample${fileExtension}`))
+    sample.readBinaryFrom(await load(`Sample${fileExtension}`))
     const marker = new MarkerTable()
-    marker.readBinarySync(path.join(basePath, `Marker${fileExtension}`))
+    marker.readBinaryFrom(await load(`Marker${fileExtension}`))
     const access = new AccessTable()
-    access.readBinarySync(path.join(basePath, `Access${fileExtension}`))
+    access.readBinaryFrom(await load(`Access${fileExtension}`))
     const line = new LineTable()
-    line.readBinarySync(path.join(basePath, `Line${fileExtension}`))
+    line.readBinaryFrom(await load(`Line${fileExtension}`))
     const animation = new AnimationTable()
-    animation.readBinarySync(path.join(basePath, `Animation${fileExtension}`))
+    animation.readBinaryFrom(await load(`Animation${fileExtension}`))
     const wire = new WireTable()
-    wire.readBinarySync(path.join(basePath, `Wire${fileExtension}`))
+    wire.readBinaryFrom(await load(`Wire${fileExtension}`))
     const shop = new ShopTable()
-    shop.readBinarySync(path.join(basePath, `Shop${fileExtension}`))
+    shop.readBinaryFrom(await load(`Shop${fileExtension}`))
     const shopEntry = new ShopEntryTable()
-    shopEntry.readBinarySync(path.join(basePath, `ShopEntry${fileExtension}`))
+    shopEntry.readBinaryFrom(await load(`ShopEntry${fileExtension}`))
     const craft = new CraftTable()
-    craft.readBinarySync(path.join(basePath, `Craft${fileExtension}`))
+    craft.readBinaryFrom(await load(`Craft${fileExtension}`))
     const loot = new LootTable()
-    loot.readBinarySync(path.join(basePath, `Loot${fileExtension}`))
+    loot.readBinaryFrom(await load(`Loot${fileExtension}`))
     const drop = new DropTable()
-    drop.readBinarySync(path.join(basePath, `Drop${fileExtension}`))
+    drop.readBinaryFrom(await load(`Drop${fileExtension}`))
     const spawn = new SpawnTable()
-    spawn.readBinarySync(path.join(basePath, `Spawn${fileExtension}`))
+    spawn.readBinaryFrom(await load(`Spawn${fileExtension}`))
     const deck = new DeckTable()
-    deck.readBinarySync(path.join(basePath, `Deck${fileExtension}`))
+    deck.readBinaryFrom(await load(`Deck${fileExtension}`))
     const quest = new QuestTable()
-    quest.readBinarySync(path.join(basePath, `Quest${fileExtension}`))
+    quest.readBinaryFrom(await load(`Quest${fileExtension}`))
     const stageReward = new StageRewardTable()
-    stageReward.readBinarySync(path.join(basePath, `StageReward${fileExtension}`))
+    stageReward.readBinaryFrom(await load(`StageReward${fileExtension}`))
     const serverTuning = new ServerTuningTable()
-    serverTuning.readBinarySync(path.join(basePath, `ServerTuning${fileExtension}`))
+    serverTuning.readBinaryFrom(await load(`ServerTuning${fileExtension}`))
     const price = new PriceTable()
-    price.readBinarySync(path.join(basePath, `Price${fileExtension}`))
+    price.readBinaryFrom(await load(`Price${fileExtension}`))
     const skill = new SkillTable()
-    skill.readBinarySync(path.join(basePath, `Skill${fileExtension}`))
+    skill.readBinaryFrom(await load(`Skill${fileExtension}`))
+
+    this.publish(potion, sample, marker, access, line, animation, wire, shop, shopEntry, craft, loot, drop, spawn, deck, quest, stageReward, serverTuning, price, skill)
+  }
+
+  /** Read all tables from the binary export, synchronously. `load` returns a file's bytes. */
+  public readAllBinarySync(load: (fileName: string) => Uint8Array, fileExtension: string = '.tcb'): void {
+    const potion = new PotionTable()
+    potion.readBinaryFrom(load(`Potion${fileExtension}`))
+    const sample = new SampleTable()
+    sample.readBinaryFrom(load(`Sample${fileExtension}`))
+    const marker = new MarkerTable()
+    marker.readBinaryFrom(load(`Marker${fileExtension}`))
+    const access = new AccessTable()
+    access.readBinaryFrom(load(`Access${fileExtension}`))
+    const line = new LineTable()
+    line.readBinaryFrom(load(`Line${fileExtension}`))
+    const animation = new AnimationTable()
+    animation.readBinaryFrom(load(`Animation${fileExtension}`))
+    const wire = new WireTable()
+    wire.readBinaryFrom(load(`Wire${fileExtension}`))
+    const shop = new ShopTable()
+    shop.readBinaryFrom(load(`Shop${fileExtension}`))
+    const shopEntry = new ShopEntryTable()
+    shopEntry.readBinaryFrom(load(`ShopEntry${fileExtension}`))
+    const craft = new CraftTable()
+    craft.readBinaryFrom(load(`Craft${fileExtension}`))
+    const loot = new LootTable()
+    loot.readBinaryFrom(load(`Loot${fileExtension}`))
+    const drop = new DropTable()
+    drop.readBinaryFrom(load(`Drop${fileExtension}`))
+    const spawn = new SpawnTable()
+    spawn.readBinaryFrom(load(`Spawn${fileExtension}`))
+    const deck = new DeckTable()
+    deck.readBinaryFrom(load(`Deck${fileExtension}`))
+    const quest = new QuestTable()
+    quest.readBinaryFrom(load(`Quest${fileExtension}`))
+    const stageReward = new StageRewardTable()
+    stageReward.readBinaryFrom(load(`StageReward${fileExtension}`))
+    const serverTuning = new ServerTuningTable()
+    serverTuning.readBinaryFrom(load(`ServerTuning${fileExtension}`))
+    const price = new PriceTable()
+    price.readBinaryFrom(load(`Price${fileExtension}`))
+    const skill = new SkillTable()
+    skill.readBinaryFrom(load(`Skill${fileExtension}`))
 
     this.publish(potion, sample, marker, access, line, animation, wire, shop, shopEntry, craft, loot, drop, spawn, deck, quest, stageReward, serverTuning, price, skill)
   }

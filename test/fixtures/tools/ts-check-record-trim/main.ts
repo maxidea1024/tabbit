@@ -11,6 +11,8 @@
 //
 // Prints JSON on stdout for the C# harness to assert against.
 
+import * as fs from 'fs'
+
 import { LootTable } from './generated/tables/loot'
 
 /** A single disagreement between the two read paths. */
@@ -53,10 +55,10 @@ function main(): number {
     }
 
     const fromJson = new LootTable()
-    fromJson.readSync(`${jsonDir}/Loot.json`)
+    fromJson.readJsonFrom(fs.readFileSync(`${jsonDir}/Loot.json`, 'utf8'))
 
     const fromBinary = new LootTable()
-    fromBinary.readBinarySync(`${binaryDir}/Loot.tcb`)
+    fromBinary.readBinaryFrom(new Uint8Array(fs.readFileSync(`${binaryDir}/Loot.tcb`)))
 
     compare('Loot', -1, 'recordCount', fromJson.records.length, fromBinary.records.length)
 

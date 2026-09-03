@@ -12,6 +12,8 @@
 //
 // Prints JSON on stdout for the C# harness to assert against.
 
+import * as fs from 'fs'
+
 import { ShopTable } from './generated/tables/shop'
 
 /** A single disagreement between the two read paths. */
@@ -60,10 +62,10 @@ function main(): number {
     }
 
     const fromJson = new ShopTable()
-    fromJson.readSync(`${jsonDir}/Shop.json`)
+    fromJson.readJsonFrom(fs.readFileSync(`${jsonDir}/Shop.json`, 'utf8'))
 
     const fromBinary = new ShopTable()
-    fromBinary.readBinarySync(`${binaryDir}/Shop.tcb`)
+    fromBinary.readBinaryFrom(new Uint8Array(fs.readFileSync(`${binaryDir}/Shop.tcb`)))
 
     compare('Shop', -1, 'recordCount', fromJson.records.length, fromBinary.records.length)
 

@@ -5,8 +5,6 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-import * as path from 'path'
-
 import { LoadoutTable } from './tables/loadout'
 import { BonusesTable } from './tables/bonuses'
 import { ChestTable } from './tables/chest'
@@ -77,48 +75,68 @@ export class Tables {
   private _chest: ChestTable = new ChestTable()
 
   /**
-   * Read all tables asynchronously.
+   * Read all tables from the JSON export, asynchronously.
+   *
+   * `load` is given a file name - `Item.json`, say - and returns
+   * that file's text. Where it looks is the caller's: a directory under Node, a URL in a
+   * browser, an asset store in an engine. Nothing here names a runtime module, which is
+   * what lets the same generated code load in all three.
    *
    * `fileExtension` defaults to what the JSON exporter writes. Pass a different one when the
    * data files were renamed after export.
    */
-  public async readAll(basePath: string, fileExtension: string = '.json'): Promise<void> {
+  public async readAll(load: (fileName: string) => Promise<string>, fileExtension: string = '.json'): Promise<void> {
     const loadout = new LoadoutTable()
-    await loadout.read(path.join(basePath, `Loadout${fileExtension}`))
+    loadout.readJsonFrom(await load(`Loadout${fileExtension}`))
     const bonuses = new BonusesTable()
-    await bonuses.read(path.join(basePath, `Bonuses${fileExtension}`))
+    bonuses.readJsonFrom(await load(`Bonuses${fileExtension}`))
     const chest = new ChestTable()
-    await chest.read(path.join(basePath, `Chest${fileExtension}`))
+    chest.readJsonFrom(await load(`Chest${fileExtension}`))
 
     this.publish(loadout, bonuses, chest)
   }
 
-  /** Read all tables synchronously. */
-  public readAllSync(basePath: string, fileExtension: string = '.json'): void {
+  /** Read all tables from the JSON export, synchronously. `load` returns a file's text. */
+  public readAllSync(load: (fileName: string) => string, fileExtension: string = '.json'): void {
     const loadout = new LoadoutTable()
-    loadout.readSync(path.join(basePath, `Loadout${fileExtension}`))
+    loadout.readJsonFrom(load(`Loadout${fileExtension}`))
     const bonuses = new BonusesTable()
-    bonuses.readSync(path.join(basePath, `Bonuses${fileExtension}`))
+    bonuses.readJsonFrom(load(`Bonuses${fileExtension}`))
     const chest = new ChestTable()
-    chest.readSync(path.join(basePath, `Chest${fileExtension}`))
+    chest.readJsonFrom(load(`Chest${fileExtension}`))
 
     this.publish(loadout, bonuses, chest)
   }
 
   /**
-   * Read all tables from the binary export.
+   * Read all tables from the binary export, asynchronously.
    *
-   * The counterpart of `readAllSync`, and the one to use when the data is binary: reading a
-   * table on its own with `readBinarySync` leaves its references unlinked, because linking
+   * The counterpart of `readAll`, and the one to use when the data is binary: reading a
+   * table on its own with `readBinaryFrom` leaves its references unlinked, because linking
    * needs every table. Both formats produce the same values.
+   *
+   * `load` returns a file's bytes as the file holds them; each table opens its own envelope.
+   * Asynchronous because that is what a fetch and an engine's asset loader are.
    */
-  public readAllBinarySync(basePath: string, fileExtension: string = '.tcb'): void {
+  public async readAllBinary(load: (fileName: string) => Promise<Uint8Array>, fileExtension: string = '.tcb'): Promise<void> {
     const loadout = new LoadoutTable()
-    loadout.readBinarySync(path.join(basePath, `Loadout${fileExtension}`))
+    loadout.readBinaryFrom(await load(`Loadout${fileExtension}`))
     const bonuses = new BonusesTable()
-    bonuses.readBinarySync(path.join(basePath, `Bonuses${fileExtension}`))
+    bonuses.readBinaryFrom(await load(`Bonuses${fileExtension}`))
     const chest = new ChestTable()
-    chest.readBinarySync(path.join(basePath, `Chest${fileExtension}`))
+    chest.readBinaryFrom(await load(`Chest${fileExtension}`))
+
+    this.publish(loadout, bonuses, chest)
+  }
+
+  /** Read all tables from the binary export, synchronously. `load` returns a file's bytes. */
+  public readAllBinarySync(load: (fileName: string) => Uint8Array, fileExtension: string = '.tcb'): void {
+    const loadout = new LoadoutTable()
+    loadout.readBinaryFrom(load(`Loadout${fileExtension}`))
+    const bonuses = new BonusesTable()
+    bonuses.readBinaryFrom(load(`Bonuses${fileExtension}`))
+    const chest = new ChestTable()
+    chest.readBinaryFrom(load(`Chest${fileExtension}`))
 
     this.publish(loadout, bonuses, chest)
   }

@@ -5,8 +5,6 @@
 // regenerated.
 // ------------------------------------------------------------------------------
 
-import * as path from 'path'
-
 import { VectorsTable } from './tables/vectors'
 
 /** Tables */
@@ -67,36 +65,52 @@ export class Tables {
   private _vectors: VectorsTable = new VectorsTable()
 
   /**
-   * Read all tables asynchronously.
+   * Read all tables from the JSON export, asynchronously.
+   *
+   * `load` is given a file name - `Item.json`, say - and returns
+   * that file's text. Where it looks is the caller's: a directory under Node, a URL in a
+   * browser, an asset store in an engine. Nothing here names a runtime module, which is
+   * what lets the same generated code load in all three.
    *
    * `fileExtension` defaults to what the JSON exporter writes. Pass a different one when the
    * data files were renamed after export.
    */
-  public async readAll(basePath: string, fileExtension: string = '.json'): Promise<void> {
+  public async readAll(load: (fileName: string) => Promise<string>, fileExtension: string = '.json'): Promise<void> {
     const vectors = new VectorsTable()
-    await vectors.read(path.join(basePath, `Vectors${fileExtension}`))
+    vectors.readJsonFrom(await load(`Vectors${fileExtension}`))
 
     this.publish(vectors)
   }
 
-  /** Read all tables synchronously. */
-  public readAllSync(basePath: string, fileExtension: string = '.json'): void {
+  /** Read all tables from the JSON export, synchronously. `load` returns a file's text. */
+  public readAllSync(load: (fileName: string) => string, fileExtension: string = '.json'): void {
     const vectors = new VectorsTable()
-    vectors.readSync(path.join(basePath, `Vectors${fileExtension}`))
+    vectors.readJsonFrom(load(`Vectors${fileExtension}`))
 
     this.publish(vectors)
   }
 
   /**
-   * Read all tables from the binary export.
+   * Read all tables from the binary export, asynchronously.
    *
-   * The counterpart of `readAllSync`, and the one to use when the data is binary: reading a
-   * table on its own with `readBinarySync` leaves its references unlinked, because linking
+   * The counterpart of `readAll`, and the one to use when the data is binary: reading a
+   * table on its own with `readBinaryFrom` leaves its references unlinked, because linking
    * needs every table. Both formats produce the same values.
+   *
+   * `load` returns a file's bytes as the file holds them; each table opens its own envelope.
+   * Asynchronous because that is what a fetch and an engine's asset loader are.
    */
-  public readAllBinarySync(basePath: string, fileExtension: string = '.tcb'): void {
+  public async readAllBinary(load: (fileName: string) => Promise<Uint8Array>, fileExtension: string = '.tcb'): Promise<void> {
     const vectors = new VectorsTable()
-    vectors.readBinarySync(path.join(basePath, `Vectors${fileExtension}`))
+    vectors.readBinaryFrom(await load(`Vectors${fileExtension}`))
+
+    this.publish(vectors)
+  }
+
+  /** Read all tables from the binary export, synchronously. `load` returns a file's bytes. */
+  public readAllBinarySync(load: (fileName: string) => Uint8Array, fileExtension: string = '.tcb'): void {
+    const vectors = new VectorsTable()
+    vectors.readBinaryFrom(load(`Vectors${fileExtension}`))
 
     this.publish(vectors)
   }

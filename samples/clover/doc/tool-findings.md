@@ -10,8 +10,8 @@
 |  |수|
 |--|--|
 |찾은 것|**7**|
-|닫힌 것|**1**|
-|우회한 것|**6**|
+|닫힌 것|**2**|
+|우회한 것|**5**|
 
 앞의 셋은 [데이터 저작](progress.md#p2--데이터-저작-끝)에서, 그다음 셋은
 [코어](progress.md#p3--코어-typescript-끝)에서 나왔습니다. **그 셋은 생성 코드를 실제로
@@ -171,7 +171,9 @@ src/generated/tables/voucher.ts(241,15): error TS2322:
 
 ## 6. ESM 에서 돌지 않는 `readAllBytes`
 
-**결함입니다.** 생성된 `tcb-reader.ts` 가 파일을 이렇게 엽니다.
+**결함이었고, 2026-09-03 에 닫혔습니다.** 아래는 닫히기 전의 기록입니다.
+
+생성된 `tcb-reader.ts` 가 파일을 이렇게 열었습니다.
 
 ```ts
 declare function require(moduleName: string): any
@@ -209,9 +211,17 @@ if (typeof shim.require === 'undefined') shim.require = createRequire(import.met
 **브라우저 쪽과 파일이 갈린 이유가 이것입니다** — 이 한 줄을 공용 로더에 두면 브라우저
 번들이 `module` 을 끌어옵니다. 결함이 닫히면 파일 둘이 하나가 됩니다.
 
-**닫는 방법**은 `import { readFileSync } from 'node:fs'` 를 쓰거나, 파일에서 읽는 것을
-생성 코드에서 빼고 호출자가 바이트를 넘기게 하는 것입니다. 후자는 이미 `readBinaryFrom`
-으로 있습니다.
+### 닫힌 방법
+
+**파일 읽기가 생성 코드에서 빠졌습니다.** `readAllBytes` 와 `require` 가 리더에서 없어지고,
+접근자의 `readAll*` 은 디렉터리 대신 「파일 이름을 받아 내용을 돌려주는 함수」를 받습니다.
+그래서 생성물에 `fs`·`path` 임포트가 없고, Node 와 브라우저가 같은 메서드를 부릅니다 —
+다른 것은 넘기는 로더 한 줄입니다.
+
+**`load-node.ts` 의 `require` 심은 지웠습니다.** 파일은 남습니다 — 디스크를 읽는 `fs` 임포트는
+브라우저 번들에 들어갈 수 없으므로, 갈린 이유가 「결함 우회」에서 「Node 전용 코드의 자리」로
+바뀐 것입니다. 브라우저 쪽 `load.ts` 는 접근자의 프로퍼티를 걷어 테이블 이름을 뽑던 것을
+생성된 `readAllBinary(loader)` 한 줄로 바꿨습니다.
 
 ---
 

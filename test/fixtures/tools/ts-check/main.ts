@@ -7,6 +7,8 @@
 //
 // Prints JSON on stdout for the C# harness to assert against.
 
+import * as fs from 'fs'
+
 import { ArrayTypesTable } from './generated/tables/array-types'
 import { ItemTable } from './generated/tables/item'
 import { LocalizationTable } from './generated/tables/localization'
@@ -56,10 +58,10 @@ function main(): number {
     // --- every primitive type -------------------------------------------------
     {
         const fromJson = new TestFieldTypesTable()
-        fromJson.readSync(`${jsonDir}/TestFieldTypes.json`)
+        fromJson.readJsonFrom(fs.readFileSync(`${jsonDir}/TestFieldTypes.json`, 'utf8'))
 
         const fromBinary = new TestFieldTypesTable()
-        fromBinary.readBinarySync(`${binaryDir}/TestFieldTypes.tcb`)
+        fromBinary.readBinaryFrom(new Uint8Array(fs.readFileSync(`${binaryDir}/TestFieldTypes.tcb`)))
 
         for (let i = 0; i < fromJson.records.length; i++) {
             const j = fromJson.records[i]
@@ -89,10 +91,10 @@ function main(): number {
     // --- both array kinds -----------------------------------------------------
     {
         const fromJson = new ArrayTypesTable()
-        fromJson.readSync(`${jsonDir}/ArrayTypes.json`)
+        fromJson.readJsonFrom(fs.readFileSync(`${jsonDir}/ArrayTypes.json`, 'utf8'))
 
         const fromBinary = new ArrayTypesTable()
-        fromBinary.readBinarySync(`${binaryDir}/ArrayTypes.tcb`)
+        fromBinary.readBinaryFrom(new Uint8Array(fs.readFileSync(`${binaryDir}/ArrayTypes.tcb`)))
 
         for (let i = 0; i < fromJson.records.length; i++) {
             const j = fromJson.records[i]
@@ -109,10 +111,10 @@ function main(): number {
     // --- serial fields --------------------------------------------------------
     {
         const fromJson = new LocalizationTable()
-        fromJson.readSync(`${jsonDir}/Localization.json`)
+        fromJson.readJsonFrom(fs.readFileSync(`${jsonDir}/Localization.json`, 'utf8'))
 
         const fromBinary = new LocalizationTable()
-        fromBinary.readBinarySync(`${binaryDir}/Localization.tcb`)
+        fromBinary.readBinaryFrom(new Uint8Array(fs.readFileSync(`${binaryDir}/Localization.tcb`)))
 
         for (let i = 0; i < fromJson.records.length; i++) {
             compare('Localization', i, 'textEn',
@@ -128,7 +130,7 @@ function main(): number {
     // what the accessor below is for.
     {
         const fromBinary = new ItemTable()
-        fromBinary.readBinarySync(`${binaryDir}/Item.tcb`)
+        fromBinary.readBinaryFrom(new Uint8Array(fs.readFileSync(`${binaryDir}/Item.tcb`)))
 
         console.log(JSON.stringify({
             itemNames: fromBinary.records.map(r => r.name),
@@ -147,10 +149,10 @@ function main(): number {
     // the JSON path assigned the raw key into it - a number in a member typed as a row.
     {
         const fromJson = new Tables()
-        fromJson.readAllSync(jsonDir)
+        fromJson.readAllSync(name => fs.readFileSync(`${jsonDir}/${name}`, 'utf8'))
 
         const fromBinary = new Tables()
-        fromBinary.readAllBinarySync(binaryDir)
+        fromBinary.readAllBinarySync(name => new Uint8Array(fs.readFileSync(`${binaryDir}/${name}`)))
 
         for (let i = 0; i < fromJson.item.records.length; i++) {
             const j = fromJson.item.records[i]
