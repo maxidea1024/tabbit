@@ -15,6 +15,7 @@
     "check:haptics": "tsx tools/check-haptics.ts",
     "check:tray": "tsx tools/check-tray.ts",
     "check:crop": "tsx tools/check-crop.ts",
+    "check:shop-rise": "tsx tools/check-shop-rise.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "headless": "tsx src/headless.ts",

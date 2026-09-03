@@ -31,6 +31,8 @@ export interface Peek {
   picked: number
   /** 상점 판이 지금 서 있는가. */
   shopUp: boolean
+  /** 상점 판이 서 있는 높이. 0 이 다 선 자리이고, 클수록 화면 아래입니다. */
+  shopY?: number
   /** 연출의 시계. 초입니다. */
   clock: number
   phase: string

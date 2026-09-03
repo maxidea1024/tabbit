@@ -4455,6 +4455,9 @@ export class Game {
       stake: state.stake,
       // 상점 판이 지금 서 있는가. 하나 사는 동안 접히지 않는지를 봅니다.
       shopUp: this.shopLayer.visible,
+      // 상점 판이 지금 서 있는 높이. **0 이면 다 선 것이고, 클수록 아래에 있습니다.**
+      // 서기 시작하는 프레임에 이 값이 0 이면 다 선 모습이 한 번 그려진 것입니다.
+      shopY: Math.round(this.shopLayer.y),
       // 연출의 시계. 스크린샷 사이의 시간을 재는 데 씁니다.
       clock: this.clock,
       phase: state.phase, ante: state.ante, blind: state.blind,
@@ -7509,6 +7512,11 @@ export class Game {
       this.shopHeight.snap(height)
       this.shopSlide.snap(SIZE.height - y)
       this.shopSlide.target = 0
+      // **그리는 자리도 함께 옮깁니다.** 용수철만 옮기면 그 값이 다음 틱에야 판에 닿으므로,
+      // 이 프레임에는 판이 **다 선 자리에** 한 번 그려집니다 — 그다음 프레임에 화면 아래로
+      // 내려가 올라오므로 눈에는 한 번 튀는 것으로 보이고, 판 안의 것들도 그 한 프레임
+      // 동안 제자리에 보입니다. 조커가 설 때 같은 것을 이미 겪었습니다.
+      this.placeShopLayer()
     } else {
       this.shopHeight.target = height
     }
@@ -7575,9 +7583,21 @@ export class Game {
   private advanceShopPanel(seconds: number): void {
     if (!this.shopLayer.visible) return
     this.shopSlide.advance(seconds)
-    this.shopLayer.y = Math.abs(this.shopSlide.value) < 0.3 ? 0 : this.shopSlide.value
+    this.placeShopLayer()
     this.shopHeight.advance(seconds)
     this.redrawShopFrame()
+  }
+
+  /**
+   * 용수철이 든 값을 판에 옮깁니다.
+   *
+   * **한 자리에서 옮깁니다.** 세우는 곳과 프레임마다 진행하는 곳 둘이 각자 옮기면 그중
+   * 한쪽이 빠지고, 빠진 쪽은 한 프레임짜리 어긋남이라 눈에는 「한 번 튄다」로만 보입니다.
+   *
+   * 0.3 아래는 0 으로 봅니다 — 다 선 판이 반 픽셀 어긋난 자리에 있으면 글씨가 흐려집니다.
+   */
+  private placeShopLayer(): void {
+    this.shopLayer.y = Math.abs(this.shopSlide.value) < 0.3 ? 0 : this.shopSlide.value
   }
 
   /**
