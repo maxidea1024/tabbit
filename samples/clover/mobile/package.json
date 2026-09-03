@@ -1,6 +1,6 @@
 {
   "name": "clover-mobile",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "description": "clover — 안드로이드 포장. 웹 빌드를 그대로 담습니다.",
   "scripts": {

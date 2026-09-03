@@ -14,7 +14,9 @@ import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 
-import { MENU_BUTTON, TITLE_START } from './harness'
+import {
+  closeGuide, MENU_BUTTON, TITLE_START
+} from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5215
@@ -118,7 +120,7 @@ async function main(): Promise<number> {
   // 통과합니다 — 이 확인이 한동안 그러했습니다.
   await page.mouse.click(TITLE_START.x, TITLE_START.y)
   await page.waitForTimeout(1_200)
-  await page.mouse.click(20, 20)
+  await closeGuide(page)
   await page.waitForTimeout(400)
   check('판이 섰습니다', (await peek(page)).scene === 'run', (await peek(page)).scene)
 

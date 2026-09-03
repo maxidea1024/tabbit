@@ -219,6 +219,21 @@ export async function pressTitle(page: Page, name = 'start'): Promise<void> {
 }
 
 /**
+ * 처음 여는 사람에게 펼쳐지는 게임 방법을 닫습니다.
+ *
+ * **화면 왼쪽 위를 누르던 것을 걷었습니다.** 도구 7개가 `(20, 20)` 을 눌러 판 밖을
+ * 맞히는 것으로 닫고 있었는데, 판 밖은 이제 잘라 낸 자리라 아무것도 맞지 않습니다 —
+ * 창의 비율이 기준과 다른 도구에서 그 누름이 조용히 아무 일도 하지 않았습니다.
+ *
+ * 떠 있지 않으면 아무것도 하지 않습니다.
+ */
+export async function closeGuide(page: Page): Promise<void> {
+  if ((await peek(page)).modalUp !== true) return
+  await page.keyboard.press('Escape')
+  await pass(page, 400)
+}
+
+/**
  * 타이틀에서 판을 열고 블라인드를 고릅니다.
  *
  * **도구 15개가 이 다섯 줄을 저마다 베껴 적고 있었습니다.** 시작을 누르고, 처음 여는

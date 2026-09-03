@@ -29,7 +29,9 @@ async function main(): Promise<void> {
   const app = new Application()
   await app.init({
     canvas,
-    background: COLOR.ground,
+    // **판 밖에 보이는 색입니다.** 판은 기준 해상도 하나에 맞춰 그려지고 그 밖은
+    // 잘라 내므로, 지우는 색이 곧 잘라 낸 자리의 색입니다.
+    background: COLOR.crop,
     antialias: true,
     // 글씨가 뿌옇지 않게 화면의 픽셀 밀도를 그대로 씁니다.
     resolution: Math.min(3, window.devicePixelRatio || 1),

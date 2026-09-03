@@ -8,7 +8,8 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, clickPrimary, clickSpot, peek, pickCards, pressPlay, settle, skipLogin, TITLE_START, pass,
+  at, clickPrimary, clickSpot, closeGuide, pass, peek, pickCards, pressPlay, settle,
+  skipLogin, TITLE_START
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -46,7 +47,7 @@ async function main(): Promise<number> {
   const start = await at(page, TITLE_START.x, TITLE_START.y)
   await page.mouse.click(start.x, start.y)
   await pass(page, 900)
-  await page.mouse.click(20, 20)
+  await closeGuide(page)
   await pass(page, 400)
   const inRun = await peek(page)
   console.log('시작 뒤 씬', inRun.scene)

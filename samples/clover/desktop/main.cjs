@@ -68,7 +68,8 @@ function createWindow() {
     height: 900,
     minWidth: 960,
     minHeight: 600,
-    backgroundColor: '#0e1420',
+    // 판 밖의 색. `web/src/render/theme.ts` 의 `COLOR.crop` 과 같은 값입니다.
+    backgroundColor: '#000000',
     // 창이 다 만들어지기 전에 흰 화면이 번쩍이지 않게 합니다.
     show: false,
     autoHideMenuBar: true,

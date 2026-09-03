@@ -3,7 +3,9 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
-import { at, peek, settle, skipLogin, TITLE_START } from './harness'
+import {
+  at, closeGuide, peek, settle, skipLogin, TITLE_START
+} from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
@@ -21,7 +23,7 @@ async function main(): Promise<number> {
   const start = await at(page, TITLE_START.x, TITLE_START.y)
   await page.mouse.click(start.x, start.y)
   await page.waitForTimeout(900)
-  await page.mouse.click(20, 20)
+  await closeGuide(page)
   await page.waitForTimeout(600)
   await shot(page, 'tag-blind')
 

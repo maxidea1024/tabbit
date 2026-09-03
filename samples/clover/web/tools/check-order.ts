@@ -12,8 +12,8 @@ import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, BOARD_X, clickPrimary, grantConsumable, grantJoker, HAND_Y, itemSpot, jokerSpot,
-  peek, settle, skipLogin, TITLE_START, pass,
+  at, BOARD_X, clickPrimary, closeGuide, grantConsumable, grantJoker, HAND_Y, itemSpot,
+  jokerSpot, pass, peek, settle, skipLogin, TITLE_START
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -46,7 +46,7 @@ async function main(): Promise<number> {
   const start = await at(page, TITLE_START.x, TITLE_START.y)
   await page.mouse.click(start.x, start.y)
   await pass(page, 800)
-  await page.mouse.click(20, 20)
+  await closeGuide(page)
   await pass(page, 400)
   await clickPrimary(page)
   await settle(page)

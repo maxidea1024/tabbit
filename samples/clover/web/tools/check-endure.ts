@@ -13,8 +13,8 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, chooseFive, clickPrimary, discardHand, peek, playHand, rate, settle, shopSlot, spare,
-  skipLogin, takePayout, TITLE_START, pass,
+  at, chooseFive, clickPrimary, closeGuide, discardHand, pass, peek, playHand, rate,
+  settle, shopSlot, skipLogin, spare, takePayout, TITLE_START
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -43,7 +43,7 @@ async function main(argv: string[]): Promise<number> {
   const start = await at(page, TITLE_START.x, TITLE_START.y)
   await page.mouse.click(start.x, start.y)
   await pass(page, 900)
-  await page.mouse.click(20, 20)
+  await closeGuide(page)
   await pass(page, 400)
 
   let same = 0

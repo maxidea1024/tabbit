@@ -11,7 +11,9 @@
       html, body {
         margin: 0;
         height: 100%;
-        background: #0b1410;
+        /* 판 밖의 색. `theme.ts` 의 `COLOR.crop` 과 같은 값입니다 — 캔버스가 서기
+           전에는 이 색이 보이고, 선 뒤로는 잘라 낸 자리에 이 색이 남습니다. */
+        background: #000000;
         overflow: hidden;
         font-family: 'Pretendard', 'Noto Sans KR', system-ui, sans-serif;
       }

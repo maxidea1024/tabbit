@@ -684,6 +684,16 @@ interface PackView {
 export class Game {
   private readonly world = new Container()
   private readonly backdrop = new Container()
+  /**
+   * 판 밖을 잘라 내는 사각형.
+   *
+   * **무대의 마스크입니다.** 판은 1280 × 800 하나이고 창의 비율은 기계마다 다릅니다 —
+   * 남는 자리를 배경으로 채우면 판이 더 넓은 화면 가운데에 놓인 사각형으로 보이고, 비율
+   * 마다 다른 화면이 됩니다.
+   */
+  private readonly cropBox = new Graphics()
+  /** 잘라 낸 사각형. 검증 도구가 읽습니다. */
+  private cropRect?: Box
   /** 배경을 칠하는 흰 판. 창 크기를 그대로 받습니다. */
   private readonly sheet = new Sprite(Texture.WHITE)
   private readonly board = new Container()
@@ -1708,9 +1718,18 @@ export class Game {
     this.sheet.filters = [this.background]
     this.backdrop.addChild(this.sheet)
 
-    // **배경은 세계 밖에 있습니다.** 판은 기준 해상도에 맞춰 가운데에 놓이므로 창의 비율이
-    // 다르면 옆이나 아래가 남습니다 — 그 자리를 검정으로 두지 않고 배경이 창 전체를 덮습니다.
-    app.stage.addChild(this.backdrop, this.world)
+    // **판 밖은 잘라 냅니다.** 판은 1280 × 800 하나에 맞춰 그려지고, 창의 비율이 다르면
+    // 옆이나 아래가 남습니다 — 배경이 그 자리까지 덮고 있었고, 그러면 판이 더 넓은 화면
+    // 가운데에 놓인 사각형 하나로 보입니다. 폰을 가로로 쥐면 좌우가 26%씩 그렇게 남습니다.
+    //
+    // **비율이 제각각인 것을 한 규칙으로 처리하려면 자르는 편이 낫습니다.** 갤럭시 폴드는
+    // 접으면 2.56, 펴면 1.25 이고, 그 사이의 어느 값에서도 판의 자리는 그대로여야 합니다 —
+    // 남는 자리를 화면의 일부로 두면 그 값마다 다른 화면이 됩니다.
+    //
+    // 마스크 하나로 무대 전체를 자릅니다. 판 밖으로 나가는 것이 배경만이 아니기
+    // 때문입니다 — 번쩍임은 `-2000` 부터 그리고 모달의 막은 판의 3배입니다.
+    app.stage.addChild(this.backdrop, this.world, this.cropBox)
+    app.stage.mask = this.cropBox
 
     // **타이틀은 독립된 화면입니다.** 시작을 누르기 전에는 판도 조각들도 그리지 않습니다 —
     // 가려 두는 것과 없는 것은 다르고, 반투명한 판 뒤로 카드가 비치면 시작 전인지가
@@ -2591,9 +2610,17 @@ export class Game {
     const scale = Math.min(width / SIZE.width, height / SIZE.height)
     this.world.scale.set(scale)
     // 자리를 정수로 맞춥니다. 반 픽셀이 남으면 글씨가 흐려집니다.
-    this.world.position.set(
-      Math.round((width - SIZE.width * scale) / 2),
-      Math.round((height - SIZE.height * scale) / 2))
+    const left = Math.round((width - SIZE.width * scale) / 2)
+    const top = Math.round((height - SIZE.height * scale) / 2)
+    this.world.position.set(left, top)
+
+    // **자르는 자리는 판이 놓인 그 사각형입니다.** 올림으로 셉니다 — 내림하면 판의
+    // 오른쪽과 아래에 배경색 한 줄이 남습니다.
+    const boxW = Math.ceil(SIZE.width * scale)
+    const boxH = Math.ceil(SIZE.height * scale)
+    this.cropBox.clear()
+    this.cropBox.rect(left, top, boxW, boxH).fill(0xffffff)
+    this.cropRect = box(left, top, boxW, boxH)
 
     // **흐림은 화면 해상도의 절반으로 굽습니다.** 픽셀 밀도는 창을 다른 화면으로 옮기면
     // 달라지므로 여기서 함께 정합니다.
@@ -2601,9 +2628,13 @@ export class Game {
     this.blur.resolution = this.blurDensity
     this.blurBack.resolution = this.blurDensity
 
-    this.sheet.width = width
-    this.sheet.height = height
-    this.background.setAspect(width / Math.max(1, height))
+    // **배경도 판의 사각형입니다.** 창 전체를 덮으면 잘라 낸 자리에 그것만 남습니다.
+    this.sheet.position.set(left, top)
+    this.sheet.width = boxW
+    this.sheet.height = boxH
+    // **비율이 고정입니다.** 배경이 판의 사각형에만 그려지므로 창의 비율과 상관이 없고,
+    // 그래서 무늬가 기계마다 달라지지 않습니다.
+    this.background.setAspect(SIZE.width / SIZE.height)
     this.sharpen(scale)
     // 뒷면은 글씨와 같은 배율로 굽습니다.
     bakeCardBacks(this.app.renderer, this.textScale)
@@ -4562,6 +4593,21 @@ export class Game {
          * 으로 넘어가며 굽는 자리를 바꾼 것이었습니다 — 그 자리가 안 바뀐다는 것을 재는 쪽이
          * 확인할 수 있어야 합니다.
          */
+        /**
+         * 잘라 내는 자리와, 실제로 잘리고 있는가.
+         *
+         * **마스크가 걸려 있는지를 함께 알립니다.** 사각형만 알리면 그것이 옳은 자리에
+         * 그려져 있어도 무대에 걸리지 않은 채일 수 있고, 그러면 판 밖으로 배경과 번쩍임과
+         * 모달의 막이 그대로 새어 나갑니다 — 화면은 그것을 아무 말도 하지 않습니다.
+         */
+        cropRegion: () => ({
+          box: this.cropRect
+            ? [this.cropRect.x, this.cropRect.y, this.cropRect.width, this.cropRect.height]
+            : undefined,
+          masked: this.app.stage.mask === this.cropBox,
+          // 배경이 덮은 자리. **판의 사각형과 같아야 합니다.**
+          sheet: [this.sheet.x, this.sheet.y, this.sheet.width, this.sheet.height],
+        }),
         blurRegion: () => ({
           padding: this.blur.padding,
           backPadding: this.blurBack.padding,

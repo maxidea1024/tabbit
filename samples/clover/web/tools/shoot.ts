@@ -15,9 +15,9 @@ import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
   at, BOARD_X, buyAffordablePack, buyFirstAffordable, chooseFive, clickPrimary,
-  discardHand, hurry, itemSpot, jokerSpot, openDeckView, peek, pickCards, playHand,
-  pressPlay, rate, settle, shopSlot, spare, STAGE_H, STAGE_W, TITLE_START, TITLE_OPTIONS,
-  skipLogin,
+  closeGuide, discardHand, hurry, itemSpot, jokerSpot, openDeckView, peek, pickCards,
+  playHand, pressPlay, rate, settle, shopSlot, skipLogin, spare, STAGE_H, STAGE_W,
+  TITLE_OPTIONS, TITLE_START
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -73,7 +73,7 @@ async function main(): Promise<number> {
 
   // 처음 여는 사람에게 저절로 펼쳐지는 판입니다. 찍어 두고 닫습니다.
   await shoot('0-guide')
-  await page.mouse.click(20, 20)
+  await closeGuide(page)
   await page.waitForTimeout(300)
 
   await shoot('1-blind-select')
