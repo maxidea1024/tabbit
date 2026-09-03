@@ -1378,26 +1378,8 @@ export class Game {
   private heatShown = 0.1
   private clock = 0
   private pointerAt = { x: 0, y: 0 }
-  /**
-   * 지난 프레임 이후 포인터가 실제로 자리를 옮겼는가.
-   *
-   * **설명이 뜨는 조건은 「밑에 있는 것이 달라졌다」가 아니라 「커서가 옮겨 가서 들어왔다」
-   * 입니다.** 조커 줄은 사고 팔고 순서를 바꿀 때마다 다시 배치되므로, 달라진 것만 보면
-   * 커서가 한 픽셀도 움직이지 않았는데 지나가는 조커마다 차례로 설명이 뜹니다.
-   *
-   * 같은 자리로 오는 이동 사건이 있으므로 좌표를 견주어서 세웁니다.
-   */
-  private pointerMoved = false
-  /** 지금 커서 밑에 있는 조커. **들림이 이것을 씁니다.** */
+  /** 지금 설명이 떠 있는 조커. 바뀔 때만 다시 그립니다. */
   private hoveredJoker?: JokerView
-  /**
-   * 설명 쪽지가 지금 설명하고 있는 조커.
-   *
-   * **밑에 있는 것과 따로 셉니다.** 하나로 두면 「커서가 옮겨 오지 않았으니 띄우지
-   * 않는다」가 곧 「다음에 커서를 움직여도 달라진 것이 없으니 띄우지 않는다」가 되어,
-   * 한 번 그렇게 들어온 조커는 벗어났다 돌아와야 설명이 뜹니다.
-   */
-  private tipJoker?: JokerView
 
   /**
    * 꾸욱 누르고 있는 것.
@@ -1679,11 +1661,7 @@ export class Game {
     app.stage.eventMode = 'static'
     app.stage.hitArea = { contains: () => true }
     app.stage.on('globalpointermove', event => {
-      const at = this.world.toLocal(event.global)
-      // **자리가 실제로 달라졌을 때만 세웁니다.** 같은 자리로 오는 이동 사건이 있고,
-      // 그것을 움직인 것으로 세면 가만히 있어도 설명이 뜨는 길이 그대로 남습니다.
-      if (at.x !== this.pointerAt.x || at.y !== this.pointerAt.y) this.pointerMoved = true
-      this.pointerAt = at
+      this.pointerAt = this.world.toLocal(event.global)
       if (event.pointerType === 'mouse') this.touching = false
       this.advanceDrag()
       this.advancePressMove()
@@ -4176,24 +4154,14 @@ export class Game {
     for (const view of this.cards.values()) view.hovered = view === card
     for (const view of this.jokers.values()) view.hovered = view === joker
 
-    // **여는 쪽만 커서의 움직임을 묻습니다.** 밑에 아무것도 없으면 커서가 가만히 있어도
-    // 닫습니다 — 팔려 없어진 조커의 설명이 화면에 남으면 안 됩니다.
-    //
     // **손가락으로는 이 길을 쓰지 않습니다.** 손가락은 뗀 뒤에도 그 자리가 그대로 남아서,
     // 설명이 떼고 나서도 붙어 있습니다 — 손가락은 꾸욱 눌러서 봅니다.
-    if (!joker) {
-      if (this.tipJoker) {
-        this.tooltip.hide()
-        this.tipJoker = undefined
-      }
-    } else if (joker !== this.tipJoker && this.pointerMoved && !this.touching) {
-      this.showTooltip(joker)
-      this.tipJoker = joker
+    if (joker && !this.touching) {
+      if (joker !== this.hoveredJoker) this.showTooltip(joker)
+    } else if (this.hoveredJoker) {
+      this.tooltip.hide()
     }
     this.hoveredJoker = joker
-    // 이 프레임의 움직임은 여기서 다 쓰였습니다. **`updateHover` 가 프레임마다 한 번
-    // 불리는 유일한 자리이므로** 여기서 내립니다.
-    this.pointerMoved = false
   }
 
   private tiltFor(view: Container): number {
