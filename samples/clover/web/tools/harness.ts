@@ -126,6 +126,58 @@ export async function grantJoker(page: Page, count: number): Promise<void> {
   }, count)
 }
 
+/**
+ * 이 라운드를 곧바로 이깁니다. **개발 서버에서만 됩니다.**
+ *
+ * 점수를 요구치로 올려 놓고 한 장을 내므로 라운드가 그 자리에서 끝납니다. 연출이 다 돌
+ * 때까지 기다립니다.
+ */
+export async function clearBlind(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const hook = (window as unknown as { __clover: { clearBlind?(): void } }).__clover
+    hook.clearBlind?.()
+  })
+  await settle(page)
+}
+
+/**
+ * 정산 판의 「받는다」 를 누르고 상점이 설 때까지 기다립니다.
+ *
+ * **단추의 자리는 화면이 알립니다.** 정산 판의 높이는 줄 수를 따르는데, 도구가 줄 둘을
+ * 전제로 셈하고 있어서 이자 줄이 붙으면 빈자리를 눌렀습니다. 줄이 하나씩 서므로 단추가
+ * 설 때까지 조금 기다립니다.
+ */
+export async function takePayout(page: Page): Promise<void> {
+  for (let wait = 0; wait < 40; wait++) {
+    const spot = (await peek(page)).spots?.take
+    if (spot) {
+      const here = await at(page, spot.x, spot.y)
+      await page.mouse.click(here.x, here.y)
+      break
+    }
+    await pass(page, 200)
+  }
+  for (let wait = 0; wait < 40; wait++) {
+    if ((await peek(page)).shopUp) return
+    await pass(page, 100)
+  }
+}
+
+/**
+ * 라운드를 이기고 정산을 받아 상점까지 갑니다.
+ *
+ * **자동 진행으로 이기지 않습니다.** 다섯 장을 고르는 봇은 안테 1 의 스몰 블라인드도 자주
+ * 지고, 지면 상점에 닿지 못한 채 도구가 「사지 못했습니다」 로 끝납니다 — 상점을 보려는
+ * 도구에 라운드의 승패는 확인하려는 것이 아닙니다.
+ */
+export async function winRound(page: Page): Promise<void> {
+  await clearBlind(page)
+  await pass(page, 1400)
+  await takePayout(page)
+  // 판이 아래에서 올라와 줄을 채우는 동안입니다.
+  await pass(page, 1400)
+}
+
 /** 돈을 그냥 놓습니다. **개발 서버에서만 됩니다.** */
 export async function grantMoney(page: Page, amount: number): Promise<void> {
   await page.evaluate(many => {
@@ -228,7 +280,7 @@ export async function buyAffordablePack(page: Page): Promise<void> {
     const spot = await packSlot(page, slot, packs)
     await page.mouse.click(spot.x, spot.y)
     await pass(page, 350)
-    const buy = await packBuySpot(page, slot, packs)
+    const buy = await packBuySpot(page)
     await page.mouse.click(buy.x, buy.y)
     await pass(page, 700)
     if ((await peek(page)).packOpen) return
@@ -241,14 +293,8 @@ export async function buyAffordablePack(page: Page): Promise<void> {
  * `syncHeldBar` 과 같은 계산입니다 — 딱지의 가운데이고, 값이 있던 그 줄입니다.
  */
 /** 고른 팩 밑의 「산다」. 상점 칸과 같은 셈입니다. */
-export async function packBuySpot(page: Page, slot: number, count = 2):
-    Promise<{ x: number; y: number }> {
-  const tileW = 104
-  const gap = 26
-  const span = count * tileW + (count - 1) * gap
-  const left = POPUP_X - SHOP_W / 2 + (SHOP_W - span) / 2
-  return at(page, left + slot * (tileW + gap) + tileW / 2,
-            await shopRow(page, 'packs') + 62 + 82)
+export async function packBuySpot(page: Page): Promise<{ x: number; y: number }> {
+  return heldButton(page)
 }
 
 /** 상점의 팩 칸. `drawPackRow` 와 같은 계산입니다. */
@@ -273,7 +319,7 @@ export async function buyFirstAffordable(page: Page): Promise<void> {
     await pass(page, 350)
     // **딱지를 누르는 것은 고르는 것까지입니다.** 사는 것은 그 밑의 단추입니다 —
     // `buyAffordablePack` 과 같은 이유로 낡아 있었습니다.
-    const buy = await shopBuySpot(page, slot)
+    const buy = await shopBuySpot(page)
     await page.mouse.click(buy.x, buy.y)
     await pass(page, 500)
     if ((await peek(page)).jokers > 0) return
@@ -285,14 +331,23 @@ export async function buyFirstAffordable(page: Page): Promise<void> {
  *
  * `syncHeldBar` 과 같은 계산입니다 — 값이 있던 줄이고, 딱지 가운데에서 82px 아래입니다.
  */
-export async function shopBuySpot(page: Page, slot: number, count = 2):
-    Promise<{ x: number; y: number }> {
-  const tileW = 158
-  const gap = 14
-  const span = count * tileW + (count - 1) * gap
-  const left = POPUP_X - SHOP_W / 2 + (SHOP_W - span) / 2
-  return at(page, left + slot * (tileW + gap) + tileW / 2,
-            await shopRow(page, 'items') + 86 + 82)
+export async function shopBuySpot(page: Page): Promise<{ x: number; y: number }> {
+  return heldButton(page)
+}
+
+/**
+ * 고른 것 밑에 선 첫 단추. 상점 칸의 「산다」, 팩 카드의 「집는다」 가 이것입니다.
+ *
+ * **자리는 화면이 알립니다.** 딱지 가운데에서 몇 픽셀 아래인지를 도구가 베껴 적고 있었고,
+ * 단추 줄이 위로 올라간 뒤로 24픽셀 아래의 빈자리를 누르며 「사지 못했습니다」 로 끝났습니다.
+ */
+export async function heldButton(page: Page): Promise<{ x: number; y: number }> {
+  for (let wait = 0; wait < 10; wait++) {
+    const held = (await peek(page)).spots?.held
+    if (held) return at(page, held.x, held.y)
+    await pass(page, 100)
+  }
+  throw new Error('고른 것 밑에 단추가 서지 않았습니다')
 }
 
 /** 상점의 물건 칸 하나의 가운데. */

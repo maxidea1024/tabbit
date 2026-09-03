@@ -14,7 +14,7 @@ import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
   at, chooseFive, clickPrimary, discardHand, peek, playHand, rate, settle, shopSlot, spare,
-  skipLogin, TITLE_START, pass,
+  skipLogin, takePayout, TITLE_START, pass,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -103,7 +103,14 @@ async function main(argv: string[]): Promise<number> {
       // **상점에서는 한 칸을 골라 봅니다.** 고르면 그 칸이 들리고 그 밑에 단추가 서는데,
       // 그 둘은 매 프레임 도는 코드입니다 — 골라 보지 않으면 그 코드에 닿지 않고, 닿지
       // 않으면 거기서 터지는 것을 이 도구가 보지 못합니다. 실제로 그렇게 지나갔습니다.
-      if (state.phase === 'shop') {
+      if (state.phase === 'shop' && state.payout) {
+        // 정산 판이 아직 서 있습니다. 「받는다」 를 눌러야 상점이 섭니다.
+        await takePayout(page)
+        acted++
+        continue
+      }
+      // **상품 줄이 있을 때만 짚습니다.** 다 산 줄은 없어지므로 짚을 칸이 없습니다.
+      if (state.phase === 'shop' && state.shopUp && (state.shopKinds?.length ?? 0) > 0) {
         const tile = await shopSlot(page, 0)
         await page.mouse.click(tile.x, tile.y)
         await pass(page, 320)

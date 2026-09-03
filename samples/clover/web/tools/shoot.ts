@@ -204,6 +204,8 @@ async function main(): Promise<number> {
 
     // 소모품이 손에 들어오면 써서 토스트를 찍습니다. 상점의 남은 칸을 사 봅니다.
     for (let slot = 0; slot < 2 && (await peek(page)).consumables === 0; slot++) {
+      // 상품 줄이 없어졌으면 짚을 칸이 없습니다.
+      if (slot >= ((await peek(page)).shopKinds?.length ?? 0)) break
       const spot = await shopSlot(page, slot)
       await page.mouse.click(spot.x, spot.y)
       await page.waitForTimeout(400)

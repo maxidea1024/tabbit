@@ -4,8 +4,7 @@ import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, chooseFive, clickPrimary, discardHand, grantJoker, peek, playHand, rate, settle,
-  shopSlot, spare, STAGE_W, skipLogin, TITLE_START,
+  at, clickPrimary, grantJoker, settle, shopSlot, skipLogin, TITLE_START, winRound,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -28,23 +27,8 @@ async function main(): Promise<number> {
   await clickPrimary(page)
   await settle(page)
 
-  for (let turn = 0; turn < 40; turn++) {
-    const state = await peek(page)
-    if (state.phase !== 'round') break
-    const picks = chooseFive(state.hand)
-    if (rate(picks.map(i => state.hand[i])) < 60 && state.discards > 0) {
-      await discardHand(page, spare(state.hand, picks))
-    } else {
-      await playHand(page, picks)
-    }
-    await settle(page)
-    await page.waitForTimeout(200)
-  }
-  await page.waitForTimeout(1400)
-  const h = 46 + 16 + 2 * 34 + 14 + 56
-  const take = await at(page, STAGE_W / 2, (800 - h) / 2 + h - 56 / 2)
-  await page.mouse.click(take.x, take.y)
-  await page.waitForTimeout(1600)
+  // 봇이 이기기를 기다리지 않습니다. 훅으로 이기고 정산을 받아 상점까지 갑니다.
+  await winRound(page)
 
   // 조커 칸을 꽉 채우고 조커를 삽니다.
   await grantJoker(page, 5)

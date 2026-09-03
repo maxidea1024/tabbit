@@ -7,7 +7,8 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
-  chooseFive, clickPrimary, discardHand, peek, playHand, rate, settle, shopSlot, spare, at, STAGE_W, skipLogin, TITLE_START, pass, shopBuySpot,
+  at, clickPrimary, grantMoney, pass, peek, settle, shopBuySpot, shopSlot, skipLogin, TITLE_START,
+  winRound,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -30,34 +31,31 @@ async function main(): Promise<number> {
   await clickPrimary(page)
   await settle(page)
 
-  for (let turn = 0; turn < 40; turn++) {
-    const state = await peek(page)
-    if (state.phase !== 'round') break
-    const picks = chooseFive(state.hand)
-    if (rate(picks.map(i => state.hand[i])) < 60 && state.discards > 0) {
-      await discardHand(page, spare(state.hand, picks))
-    } else {
-      await playHand(page, picks)
-    }
-    await settle(page)
-    await pass(page, 200)
-  }
-  await pass(page, 1400)
-  const h = 46 + 16 + 2 * 34 + 14 + 56
-  const take = await at(page, STAGE_W / 2, (800 - h) / 2 + h - 56 / 2)
-  await page.mouse.click(take.x, take.y)
-  await pass(page, 1800)
+  // 봇이 이기기를 기다리지 않습니다. 훅으로 이기고 정산을 받아 상점까지 갑니다.
+  await winRound(page)
 
   // **딱지를 누르는 것은 고르는 것까지입니다.** 사는 것은 그 밑의 「산다」 입니다 —
   // 딱지만 누르고 오는 길을 재고 있어서, 아무것도 사지 않은 채 「어긋납니다」 로 끝났습니다.
-  const tile = await shopSlot(page, 0)
+  // **살 돈을 넣고 조커가 선 칸을 짚습니다.** 훅으로 이긴 라운드의 정산은 조커 값에 못
+  // 미치고, 소모품 칸을 사면 `jokerX` 가 잴 것이 없습니다.
+  await grantMoney(page, 40)
+  await settle(page)
+  await pass(page, 600)
+  const slot = ((await peek(page)).shopKinds ?? []).indexOf(1)
+  if (slot < 0) {
+    console.log('상점에 조커가 없습니다. 시드를 바꿔야 합니다')
+    await browser.close()
+    await server.close()
+    return 1
+  }
+  const tile = await shopSlot(page, slot)
   await page.mouse.move(tile.x, tile.y)
   await pass(page, 120)
   await page.mouse.down()
   await pass(page, 60)
   await page.mouse.up()
   await pass(page, 350)
-  const buy = await shopBuySpot(page, 0)
+  const buy = await shopBuySpot(page)
   await page.mouse.click(buy.x, buy.y)
 
   // 자리와 상점이 서 있는지를 함께 봅니다.

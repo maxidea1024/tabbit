@@ -9,8 +9,8 @@ import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, buyAffordablePack, chooseFive, clickPrimary, discardHand, grantConsumable, grantJoker,
-  grantMoney, peek, playHand, rate, settle, spare, STAGE_W, skipLogin, TITLE_START,
+  at, buyAffordablePack, clickPrimary, grantConsumable, grantJoker, grantMoney, peek, settle,
+  STAGE_W, skipLogin, TITLE_START, winRound,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -35,23 +35,8 @@ async function main(): Promise<number> {
   await clickPrimary(page)
   await settle(page)
 
-  for (let turn = 0; turn < 40; turn++) {
-    const state = await peek(page)
-    if (state.phase !== 'round') break
-    const picks = chooseFive(state.hand)
-    if (rate(picks.map(i => state.hand[i])) < 60 && state.discards > 0) {
-      await discardHand(page, spare(state.hand, picks))
-    } else {
-      await playHand(page, picks)
-    }
-    await settle(page)
-    await page.waitForTimeout(200)
-  }
-  await page.waitForTimeout(1400)
-  const h = 46 + 16 + 2 * 34 + 14 + 56
-  const take = await at(page, STAGE_W / 2, (800 - h) / 2 + h - 56 / 2)
-  await page.mouse.click(take.x, take.y)
-  await page.waitForTimeout(1600)
+  // 봇이 이기기를 기다리지 않습니다. 훅으로 이기고 정산을 받아 상점까지 갑니다.
+  await winRound(page)
 
   // 칸을 전부 채우고 돈을 넉넉히 둡니다. **어느 갈래의 팩이 나와도 자리가 없어야 합니다.**
   await grantConsumable(page, 2)
@@ -80,6 +65,18 @@ async function main(): Promise<number> {
   await page.mouse.down()
   await page.waitForTimeout(60)
   await page.mouse.up()
+  await page.waitForTimeout(400)
+  // **누르는 것은 고르는 것까지입니다.** 집는 것은 그 밑에 서는 「바꿔 집는다」 이고, 그
+  // 자리는 화면이 알립니다. 자리가 없으므로 그것을 누르면 바꾸기 판이 섭니다.
+  const pick = (await peek(page)).spots?.held
+  if (!pick) {
+    console.log('고른 뒤에도 집는 단추가 서지 않았습니다')
+    await browser.close()
+    await server.close()
+    return 1
+  }
+  const pickAt = await at(page, pick.x, pick.y)
+  await page.mouse.click(pickAt.x, pickAt.y)
   await page.waitForTimeout(700)
   await shot(page, 'packfull-2')
 
@@ -96,7 +93,10 @@ async function main(): Promise<number> {
     '· 소모품', before.consumables, '->', after.consumables,
     '· 금액', before.money, '->', after.money)
   await shot(page, 'packfull-3')
-  if (after.packOpen) {
+  // **바꾼 것은 판 돈으로 봅니다.** 내놓은 것의 값이 들어오므로 금액이 오릅니다. 팩이
+  // 닫혔는지로 보면 두 장을 집는 팩에서는 한 장을 바꿔 집고도 열려 있어 「못 바꿨다」 가
+  // 되고, 소모품 수로 보면 하나 나가고 하나 들어와 그대로입니다.
+  if (after.money <= before.money) {
     console.log('바꾸지 못했습니다')
     await browser.close()
     await server.close()

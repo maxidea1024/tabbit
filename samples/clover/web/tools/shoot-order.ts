@@ -5,8 +5,7 @@ import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, chooseFive, clickPrimary, discardHand, peek, playHand, rate, settle, shopSlot, spare,
-  skipLogin, TITLE_START,
+  at, clearBlind, clickPrimary, peek, settle, shopSlot, skipLogin, takePayout, TITLE_START,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -30,25 +29,13 @@ async function main(): Promise<number> {
   await clickPrimary(page)
   await settle(page)
 
-  for (let turn = 0; turn < 40; turn++) {
-    const state = await peek(page)
-    if (state.phase !== 'round') break
-    const picks = chooseFive(state.hand)
-    if (rate(picks.map(i => state.hand[i])) < 60 && state.discards > 0) {
-      await discardHand(page, spare(state.hand, picks))
-    } else {
-      await playHand(page, picks)
-    }
-    await settle(page)
-    await page.waitForTimeout(200)
-  }
+  // 봇이 이기기를 기다리지 않습니다. 훅으로 이기고 정산 판이 서는 것을 봅니다.
+  await clearBlind(page)
   await page.waitForTimeout(1400)
   await shot(page, 'order-1')
 
-  // 「받는다」 를 누릅니다. 판의 밑단 띠 가운데입니다.
-  const h = 46 + 16 + 2 * 34 + 14 + 56
-  const spot = await at(page, 1280 / 2, (800 - h) / 2 + h - 56 / 2)
-  await page.mouse.click(spot.x, spot.y)
+  // 「받는다」 를 누릅니다. 자리는 화면이 알립니다.
+  await takePayout(page)
 
   // 하나씩 서는 동안을 넉 장으로 봅니다.
   for (const [index, wait] of [200, 250, 300, 700].entries()) {

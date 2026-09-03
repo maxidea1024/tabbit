@@ -7,8 +7,7 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, chooseFive, clickPrimary, discardHand, grantMoney, peek, playHand, rate, settle,
-  shopSlot, spare, STAGE_W, skipLogin, TITLE_START, pass,
+  at, clickPrimary, grantMoney, pass, peek, settle, shopSlot, skipLogin, TITLE_START, winRound,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -46,23 +45,8 @@ async function main(): Promise<number> {
   await clickPrimary(page)
   await settle(page)
 
-  for (let turn = 0; turn < 40; turn++) {
-    const state = await peek(page)
-    if (state.phase !== 'round') break
-    const picks = chooseFive(state.hand)
-    if (rate(picks.map(i => state.hand[i])) < 60 && state.discards > 0) {
-      await discardHand(page, spare(state.hand, picks))
-    } else {
-      await playHand(page, picks)
-    }
-    await settle(page)
-    await pass(page, 200)
-  }
-  await pass(page, 1400)
-  const h = 46 + 16 + 2 * 34 + 14 + 56
-  const take = await at(page, STAGE_W / 2, (800 - h) / 2 + h - 56 / 2)
-  await page.mouse.click(take.x, take.y)
-  await pass(page, 1700)
+  // 봇이 이기기를 기다리지 않습니다. 훅으로 이기고 정산을 받아 상점까지 갑니다.
+  await winRound(page)
   await grantMoney(page, 40)
   // **돈이 다 세어질 때까지 기다립니다.** 사는 것은 화면이 주장하는 금액으로 판정하고,
   // 그 금액은 동전이 날아가 꽂히는 동안 올라갑니다 — 400밀리초에 누르면 아직 모자라서
