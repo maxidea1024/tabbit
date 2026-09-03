@@ -104,9 +104,16 @@ export interface Options {
   pool: PoolChoice
 }
 
+/**
+ * 처음 켰을 때의 값.
+ *
+ * **음량 둘이 같은 숫자인 것은 같은 크기라는 뜻이 아닙니다.** 배경음 파일은 효과음보다
+ * 낮게 맞춰 구워져 있어서(`design-data/tools/music.py` 의 `TARGET_RMS`), 눈금이 같아도
+ * 배경은 효과음 아래에 깔립니다. 눈금에서 더 낮추면 들리지 않는 자리로 갑니다.
+ */
 export function defaultOptions(): Options {
   return {
-    sound: true, volume: 60, music: true, musicVolume: 40, speed: 1,
+    sound: true, volume: 60, music: true, musicVolume: 60, speed: 1,
     shake: true, particles: true, chromatic: true, hints: true, haptics: true,
     language: '', deck: 'red_deck', stake: 'White', cardSet: 'classic', pool: 'base',
   }
