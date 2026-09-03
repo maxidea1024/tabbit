@@ -60,6 +60,8 @@ export class PunchFilter extends Filter {
   constructor(width: number, height: number) {
     super({
       glProgram: GlProgram.from({ vertex: VERTEX, fragment: FRAGMENT }),
+      // 화면의 배율로. 이유는 `editions.ts` 에 있습니다.
+      resolution: 'inherit',
       resources: {
         punchUniforms: {
           uAmount: { value: 0, type: 'f32' },

@@ -83,6 +83,8 @@ export class ArriveFilter extends Filter {
       glProgram: GlProgram.from({ vertex: VERTEX, fragment: FRAGMENT }),
       // **울렁이면 그림이 자기 자리 밖으로 나갑니다.** 여백이 없으면 그만큼 잘립니다.
       padding: 6,
+      // 화면의 배율로. 이유는 `editions.ts` 에 있습니다.
+      resolution: 'inherit',
       resources: {
         arriveUniforms: {
           uWarp: { value: 0, type: 'f32' },

@@ -191,6 +191,10 @@ export class EditionFilter extends Filter {
   constructor(shader: EditionShader, params: EditionParams) {
     super({
       glProgram: GlProgram.from({ vertex: VERTEX, fragment: SOURCE[shader] }),
+      // **화면의 배율로 굽습니다.** 필터의 기본값은 1배이고 화면은 2~3배이므로, 기본값으로
+      // 두면 카드가 1배로 구워진 뒤 늘려져 그 위의 것이 전부 뿌옇게 됩니다. 한 통에 걸린
+      // 필터 가운데 하나라도 1배이면 통째로 1배가 되므로, 카드에 걸리는 필터는 전부 같습니다.
+      resolution: 'inherit',
       resources: {
         editionUniforms: {
           uTime: { value: 0, type: 'f32' },

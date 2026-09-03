@@ -99,6 +99,8 @@ export class DissolveFilter extends Filter {
   constructor(ember: [number, number, number] = [1.0, 0.55, 0.18]) {
     super({
       glProgram: GlProgram.from({ vertex: VERTEX, fragment: FRAGMENT }),
+      // 화면의 배율로. 이유는 `editions.ts` 에 있습니다.
+      resolution: 'inherit',
       resources: {
         dissolveUniforms: {
           uBurn: { value: 0, type: 'f32' },

@@ -51,12 +51,27 @@ export class JokerView extends Container {
 
   private readonly shadow = new Graphics()
   /**
-   * 조커 딱지 자체. **에디션 셰이더가 이것에만 걸립니다.**
+   * 그림자를 뺀 딱지 전부 — 그림과 그 위의 글. **타고 울렁이는 것은 이것에 걸립니다.**
    *
-   * 그림자까지 함께 감싸면 필터가 도는 사각형이 딱지보다 커지고, 셰이더에 넘긴 모양 그림이
-   * 딱지와 어긋납니다. `card-view.ts` 와 같은 이유입니다.
+   * 그림자까지 함께 감싸면 필터가 도는 사각형이 딱지보다 커지고, 딱지가 들려 있는 동안
+   * 빛나는 얼룩 하나가 그 아래에 따로 남습니다. `card-view.ts` 와 같은 이유입니다.
+   */
+  private readonly sheet = new Container()
+  /**
+   * 그림 부분. **에디션 셰이더가 이것에만 걸립니다.**
+   *
+   * 셰이더에 넘긴 모양 그림이 딱지와 겹치도록 넓이를 딱지 크기로 고정합니다.
    */
   private readonly body = new Container()
+  /**
+   * 글 부분 — 이름 띠·테두리·이름·누적값. **에디션 셰이더 밖입니다.**
+   *
+   * 글은 선명해야 읽힙니다. 셰이더를 거치면 그림으로 한 번 구워져 글자의 가장자리가
+   * 흐려지고, 네거티브는 띠를 밝게 뒤집어 그 위의 밝은 글자가 읽히지 않습니다. 띠와 테두리도
+   * 함께 나옵니다 — 띠만 나오면 테두리의 아랫변을 덮고, 테두리는 희귀도의 색이므로
+   * 뒤집히면 안 됩니다.
+   */
+  private readonly face = new Container()
   private readonly plate = new Graphics()
   /** 그림을 카드 모양으로 오려 내는 것. */
   private readonly clip = new Graphics()
@@ -122,10 +137,12 @@ export class JokerView extends Container {
     super()
     this.uid = joker.uid
     this.look = look
-    this.body.addChild(this.plate, this.emblem, this.clip, this.band, this.frame,
-      this.nameText, this.counterPlate, this.counter)
+    this.body.addChild(this.plate, this.emblem, this.clip)
+    this.face.addChild(this.band, this.frame, this.nameText, this.counterPlate, this.counter)
     this.body.boundsArea = new Rectangle(0, 0, SIZE.jokerWidth, SIZE.jokerHeight)
-    this.addChild(this.shadow, this.body)
+    this.sheet.boundsArea = new Rectangle(0, 0, SIZE.jokerWidth, SIZE.jokerHeight)
+    this.sheet.addChild(this.body, this.face)
+    this.addChild(this.shadow, this.sheet)
     this.pivot.set(SIZE.jokerWidth / 2, SIZE.jokerHeight / 2)
     this.set(joker, look)
   }
@@ -250,18 +267,25 @@ export class JokerView extends Container {
   /**
    * 지금 걸릴 것들을 한자리에서 쌓습니다.
    *
-   * **`body` 에만 겁니다 — 그림자는 뺍니다.** 통째로 걸면 그림자에도 걸려, 딱지가 들려
-   * 있는 동안 빛나는 얼룩 하나가 그 아래에 따로 남습니다.
+   * **에디션은 그림에만, 타고 울렁이는 것은 글까지.** 에디션은 판이 도는 내내 걸려 있으므로
+   * 글이 그 안에 있으면 이름이 내내 뿌옇습니다. 타는 것은 글도 함께 타야 하고, 울렁이는
+   * 것은 잠깐이며 글만 제자리에 남으면 딱지에서 떨어진 것으로 보입니다.
+   *
+   * 그림자는 어디에도 넣지 않습니다 — 통째로 걸면 그림자에도 걸려, 딱지가 들려 있는 동안
+   * 빛나는 얼룩 하나가 그 아래에 따로 남습니다.
    */
   private restack(): void {
     if (this.burning) {
-      this.body.filters = [this.dissolve]
+      this.body.filters = []
+      this.sheet.filters = [this.dissolve]
       return
     }
-    const stack: Filter[] = []
-    if (this.edition) stack.push(this.edition)
-    if (this.arrive) stack.push(this.arrive)
-    this.body.filters = stack
+    const onBody: Filter[] = []
+    if (this.edition) onBody.push(this.edition)
+    this.body.filters = onBody
+    const onSheet: Filter[] = []
+    if (this.arrive) onSheet.push(this.arrive)
+    this.sheet.filters = onSheet
   }
 
   place(x: number, y: number): void {

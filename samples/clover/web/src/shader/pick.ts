@@ -140,6 +140,8 @@ export class PickFilter extends Filter {
       // **빛이 카드 밖으로 나가므로 자리를 넓힙니다.** 여백이 없으면 둘레의 빛이 카드
       // 경계에서 잘려 네모난 테가 보입니다.
       padding: 32,
+      // 화면의 배율로. 이유는 `editions.ts` 에 있습니다.
+      resolution: 'inherit',
       resources: {
         pickUniforms: {
           uMode: { value: 0, type: 'f32' },
