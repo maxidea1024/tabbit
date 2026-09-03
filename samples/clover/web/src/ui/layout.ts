@@ -121,3 +121,15 @@ export function put(node: Container, one: Box, at: Anchor,
     one.x + (one.width - size.width) * at.x + (offset.x ?? 0),
     one.y + (one.height - size.height) * at.y + (offset.y ?? 0))
 }
+
+/**
+ * 검증 도구가 짚을 한 자리. 어느 컨테이너의 어디인가입니다.
+ *
+ * **화면 좌표로 바꾸는 것은 화면을 띄운 쪽이 합니다.** 판이 어디에 서는지는 그쪽이 알고,
+ * 그리는 쪽은 자기 안에서의 자리만 압니다.
+ */
+export interface ToolSpot {
+  node: Container
+  cx: number
+  cy: number
+}

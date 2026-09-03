@@ -3,9 +3,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import {
-  at, chooseFive, clickPrimary, peek, pickCards, settle, skipLogin, TITLE_START,
-} from './harness'
+import { chooseFive, openRun, peek, pickCards, skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
@@ -20,13 +18,7 @@ async function main(): Promise<number> {
   await page.goto(`http://localhost:${PORT}/?seed=CLOVER-FIRE1`, { waitUntil: 'networkidle' })
   await page.waitForTimeout(1500)
 
-  const start = await at(page, TITLE_START.x, TITLE_START.y)
-  await page.mouse.click(start.x, start.y)
-  await page.waitForTimeout(900)
-  await page.mouse.click(20, 20)
-  await page.waitForTimeout(400)
-  await clickPrimary(page)
-  await settle(page)
+  await openRun(page)
 
   // **실제 값으로 봅니다.** 0 으로는 자릿수가 늘 때 어떻게 보이는지 알 수 없습니다.
   const held = await peek(page)

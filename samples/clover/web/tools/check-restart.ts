@@ -5,9 +5,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import {
-  at, clickPrimary, peek, pressPlay, pickCards, settle, STAGE_W, skipLogin, TITLE_START, pass,
-} from './harness'
+import { clickSpot, openRun, pass, peek, pickCards, pressPlay, settle, skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
@@ -28,13 +26,7 @@ async function main(): Promise<number> {
   await page.goto('http://localhost:5201/?seed=CLOVER-LOSE1&tick=manual', { waitUntil: 'networkidle' })
   await pass(page, 1500)
 
-  const start = await at(page, TITLE_START.x, TITLE_START.y)
-  await page.mouse.click(start.x, start.y)
-  await pass(page, 900)
-  await page.mouse.click(20, 20)
-  await pass(page, 400)
-  await clickPrimary(page)
-  await settle(page)
+  await openRun(page)
 
   // 한 장씩만 내서 집니다.
   for (let turn = 0; turn < 12; turn++) {
@@ -58,9 +50,9 @@ async function main(): Promise<number> {
     return 1
   }
 
-  // 「다시 시작」. 판의 가운데에서 왼쪽으로 92, 아래로 126. 그 오른쪽이 「타이틀로」입니다.
-  const again = await at(page, STAGE_W / 2 - 92, 400 + 126)
-  await page.mouse.click(again.x, again.y)
+  // 「다시 시작」. **자리는 화면이 알립니다** — 끝난 판의 높이는 랭크 런인지에 따라
+  // 달라지므로, 적어 두면 랭크 판에서는 단추 아래를 누릅니다.
+  await clickSpot(page, 'again')
 
   // 다시 서는 데 얼마나 걸리는가.
   const began = Date.now()

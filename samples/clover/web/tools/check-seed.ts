@@ -5,9 +5,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium, type Browser, type Page } from 'playwright'
 import { createServer } from 'vite'
-import {
-  at, clickPrimary, peek, settle, TITLE_OPTIONS, skipLogin, TITLE_START, pass,
-} from './harness'
+import { at, openRun, pass, peek, skipLogin, TITLE_OPTIONS } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
@@ -88,13 +86,7 @@ async function firstHand(browser: Browser, seed?: string,
   if (before) await before(page)
   const title = await page.title()
 
-  const start = await at(page, TITLE_START.x, TITLE_START.y)
-  await page.mouse.click(start.x, start.y)
-  await pass(page, 900)
-  await page.mouse.click(20, 20)
-  await pass(page, 400)
-  await clickPrimary(page)
-  await settle(page)
+  await openRun(page)
 
   // **다 깔릴 때까지 기다립니다.** `settle` 은 연출만 보므로 깔리는 중에 읽으면 한 장만
   // 읽힙니다 — 한 장이 같은 것은 같은 판의 증거가 되지 못합니다.

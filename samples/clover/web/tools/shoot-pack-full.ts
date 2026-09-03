@@ -9,8 +9,8 @@ import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, buyAffordablePack, clickPrimary, grantConsumable, grantJoker, grantMoney, peek, settle,
-  STAGE_W, skipLogin, TITLE_START, winRound,
+  buyAffordablePack, clickSpot, grantConsumable, grantJoker, grantMoney, openRun, peek,
+  skipLogin, spot, winRound,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -27,13 +27,7 @@ async function main(): Promise<number> {
   await page.goto(`http://localhost:${PORT}/?seed=CLOVER-PACK1`, { waitUntil: 'networkidle' })
   await page.waitForTimeout(1500)
 
-  const start = await at(page, TITLE_START.x, TITLE_START.y)
-  await page.mouse.click(start.x, start.y)
-  await page.waitForTimeout(900)
-  await page.mouse.click(20, 20)
-  await page.waitForTimeout(400)
-  await clickPrimary(page)
-  await settle(page)
+  await openRun(page)
 
   // 봇이 이기기를 기다리지 않습니다. 훅으로 이기고 정산을 받아 상점까지 갑니다.
   await winRound(page)
@@ -58,8 +52,8 @@ async function main(): Promise<number> {
     return { 소모품: hook.consumables, 팩: hook.packOpen }
   }))
 
-  // 가운데 카드를 누릅니다. 바꾸기 판이 서야 합니다.
-  const middle = await at(page, STAGE_W / 2, 430)
+  // 펼쳐진 첫 장을 누릅니다. 바꾸기 판이 서야 합니다. **자리는 화면이 알립니다.**
+  const middle = await spot(page, 'pack:0')
   await page.mouse.move(middle.x, middle.y)
   await page.waitForTimeout(200)
   await page.mouse.down()
@@ -68,22 +62,14 @@ async function main(): Promise<number> {
   await page.waitForTimeout(400)
   // **누르는 것은 고르는 것까지입니다.** 집는 것은 그 밑에 서는 「바꿔 집는다」 이고, 그
   // 자리는 화면이 알립니다. 자리가 없으므로 그것을 누르면 바꾸기 판이 섭니다.
-  const pick = (await peek(page)).spots?.held
-  if (!pick) {
-    console.log('고른 뒤에도 집는 단추가 서지 않았습니다')
-    await browser.close()
-    await server.close()
-    return 1
-  }
-  const pickAt = await at(page, pick.x, pick.y)
-  await page.mouse.click(pickAt.x, pickAt.y)
+  await clickSpot(page, 'held')
   await page.waitForTimeout(700)
   await shot(page, 'packfull-2')
 
   const before = await peek(page)
-  // 바꾸기 판의 첫 줄. 판이 화면 가운데에 서고 첫 줄은 그 가운데에서 조금 위입니다.
-  const row = await at(page, STAGE_W / 2, 403)
-  await page.mouse.click(row.x, row.y)
+  // 바꾸기 판의 첫 줄. **자리는 화면이 알립니다** — 줄의 높이가 설명글의 길이로 정해지고
+  // 그 길이는 말에 따라 달라지므로, 적어 두면 다른 말에서는 줄 사이를 누릅니다.
+  await clickSpot(page, 'swap:0')
   // 판 돈이 솟는 그 순간을 잡습니다.
   await page.waitForTimeout(320)
   await shot(page, 'packfull-coin')

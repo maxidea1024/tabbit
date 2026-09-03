@@ -8,7 +8,9 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
-import { at, chooseFive, peek, pickCards, pressPlay, STAGE_W, skipLogin, pass } from './harness'
+import {
+  at, chooseFive, peek, pickCards, pressPlay, skipLogin, TITLE_START, pass,
+} from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5215
@@ -28,13 +30,26 @@ async function main(): Promise<number> {
   await page.goto(`http://localhost:${PORT}/?seed=CLOVER-SOUND2&tick=manual`, { waitUntil: 'networkidle' })
   await pass(page, 1800)
 
-  await tap(page, STAGE_W / 2, 473)
+  // 타이틀의 「시작」. **자리를 적어 두지 않습니다** — 여기 (640, 473) 이 적혀 있었고
+  // 아래 바가 새로 짜인 뒤로 그것은 아무것도 없는 곳입니다. 그래서 이 도구는 판에 들어가지
+  // 못한 채 타이틀에서 「소리 0번」 을 재고 통과했습니다.
+  await tap(page, TITLE_START.x, TITLE_START.y)
   await pass(page, 1100)
   await tap(page, 20, 20)
   await pass(page, 700)
   const pick = (await peek(page)).spots?.pick
   if (pick) await tap(page, pick.x, pick.y)
   await pass(page, 2600)
+
+  // **판에 들어갔는지를 먼저 봅니다.** 들어가지 못했으면 그 뒤의 재기는 아무 뜻이 없고,
+  // 그런데도 「비는 자리 없음」 으로 끝납니다.
+  const began = await peek(page)
+  if (began.phase !== 'round') {
+    console.log(`판에 들어가지 못했습니다 — 씬 ${began.scene} · 국면 ${began.phase}`)
+    await browser.close()
+    await server.close()
+    return 1
+  }
 
   const hand = (await peek(page)).hand
   await pickCards(page, chooseFive(hand))

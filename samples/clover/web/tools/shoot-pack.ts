@@ -4,9 +4,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
-import {
-  at, buyAffordablePack, clickPrimary, peek, settle, STAGE_W, skipLogin, TITLE_START, winRound,
-} from './harness'
+import { buyAffordablePack, openRun, peek, skipLogin, spot, winRound } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
@@ -21,13 +19,7 @@ async function main(): Promise<number> {
   await page.goto('http://localhost:5199/?seed=CLOVER-PACK1', { waitUntil: 'networkidle' })
   await page.waitForTimeout(1500)
 
-  const start = await at(page, TITLE_START.x, TITLE_START.y)
-  await page.mouse.click(start.x, start.y)
-  await page.waitForTimeout(900)
-  await page.mouse.click(20, 20)
-  await page.waitForTimeout(400)
-  await clickPrimary(page)
-  await settle(page)
+  await openRun(page)
 
   // 블라인드를 하나 넘기고 정산을 받습니다.
   // 봇이 이기기를 기다리지 않습니다. 훅으로 이기고 정산을 받아 상점까지 갑니다.
@@ -48,8 +40,9 @@ async function main(): Promise<number> {
     await shot(page, `pack-${index + 1}`)
   }
 
-  // 가운데 카드에 마우스를 올립니다.
-  const middle = await at(page, STAGE_W / 2, 430)
+  // 펼쳐진 첫 장에 마우스를 올립니다. **자리는 화면이 알립니다** — 몇 장이 펼쳐지는지는
+  // 팩의 갈래가 정하므로, 가운데를 짚으면 장수가 짝수인 팩에서는 두 장 사이입니다.
+  const middle = await spot(page, 'pack:0')
   await page.mouse.move(middle.x, middle.y)
   await page.waitForTimeout(400)
   await shot(page, 'pack-hover')

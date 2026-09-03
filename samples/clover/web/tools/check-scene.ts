@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, clickPrimary, peek, pickCards, pressPlay, settle, STAGE_W, skipLogin, TITLE_START, pass,
+  at, clickPrimary, clickSpot, peek, pickCards, pressPlay, settle, skipLogin, TITLE_START, pass,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -73,9 +73,8 @@ async function main(): Promise<number> {
   }
   await page.screenshot({ path: path.join(OUT, 'scene-1.png') })
 
-  // 「타이틀로」. 판의 가운데에서 아래로 126, 오른쪽으로 92.
-  const home = await at(page, STAGE_W / 2 + 92, 400 + 126)
-  await page.mouse.click(home.x, home.y)
+  // 「타이틀로」. **자리는 화면이 알립니다** — 끝난 판의 높이가 랭크 런인지에 따라 달라집니다.
+  await clickSpot(page, 'home')
   await pass(page, 1400)
 
   const back = await peek(page)

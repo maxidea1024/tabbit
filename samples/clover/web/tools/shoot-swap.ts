@@ -3,9 +3,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
-import {
-  at, clickPrimary, grantJoker, settle, shopSlot, skipLogin, TITLE_START, winRound,
-} from './harness'
+import { grantJoker, openRun, shopSlot, skipLogin, winRound } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
@@ -19,13 +17,7 @@ async function main(): Promise<number> {
   await page.goto('http://localhost:5202/?seed=CLOVER-SHOT6', { waitUntil: 'networkidle' })
   await page.waitForTimeout(1500)
 
-  const start = await at(page, TITLE_START.x, TITLE_START.y)
-  await page.mouse.click(start.x, start.y)
-  await page.waitForTimeout(900)
-  await page.mouse.click(20, 20)
-  await page.waitForTimeout(400)
-  await clickPrimary(page)
-  await settle(page)
+  await openRun(page)
 
   // 봇이 이기기를 기다리지 않습니다. 훅으로 이기고 정산을 받아 상점까지 갑니다.
   await winRound(page)

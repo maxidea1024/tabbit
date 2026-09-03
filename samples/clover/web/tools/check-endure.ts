@@ -117,6 +117,13 @@ async function main(argv: string[]): Promise<number> {
         // 고른 채로 상점을 나갑니다. **고른 것이 지워지는 그 순간이 위험한 자리입니다.**
       }
       // 블라인드를 고르거나 상점을 나갑니다. **누를 것이 하나로 남는 자리입니다.**
+      //
+      // **상점 판이 아직 서지 않았으면 그 차례는 넘깁니다.** 국면이 상점이 되는 것과 판이
+      // 서는 것은 다른 순간이고, 서지 않은 판의 단추를 누를 수는 없습니다.
+      if (state.phase === 'shop' && !state.shopUp) {
+        await pass(page, 300)
+        continue
+      }
       await clickPrimary(page)
       acted++
     }

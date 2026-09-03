@@ -8,10 +8,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import {
-  at, chooseFive, clickPrimary, peek, playHand, settle, STAGE_W, skipLogin, swept, TITLE_START,
-  pass,
-} from './harness'
+import { STAGE_W, at, chooseFive, openRun, pass, peek, playHand, settle, skipLogin, swept } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5232
@@ -25,13 +22,7 @@ async function main(): Promise<number> {
   await page.goto(`http://localhost:${PORT}/?seed=CLOVER-HINT1&tick=manual`, { waitUntil: 'networkidle' })
   await pass(page, 1500)
 
-  const start = await at(page, TITLE_START.x, TITLE_START.y)
-  await page.mouse.click(start.x, start.y)
-  await pass(page, 900)
-  await page.mouse.click(20, 20)
-  await pass(page, 400)
-  await clickPrimary(page)
-  await settle(page)
+  await openRun(page)
   await pass(page, 1200)
 
   // 여기서부터가 재는 구간입니다. **패는 이미 다 깔렸고 아무것도 누르지 않습니다** —

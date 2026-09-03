@@ -25,6 +25,7 @@ import { Container, Graphics, Text } from 'pixi.js'
 import { t } from '../core/strings'
 
 import { COLOR, SIZE } from '../render/theme'
+import type { ToolSpot } from './layout'
 import { Tooltip } from './tooltip'
 import { Button, IconButton } from './widgets'
 
@@ -103,6 +104,20 @@ export class Title extends Container {
   /** 클로버 잎. 이름 위에서 천천히 흔들립니다. */
   private readonly leaf = new Graphics()
   private time = 0
+  /**
+   * 검증 도구가 짚을 단추들.
+   *
+   * **좌표를 도구에 적어 두지 않기 위한 것입니다.** 이 화면의 단추는 아래 바의 폭을 나눠
+   * 서므로 단추가 하나 늘거나 바가 다시 짜이면 자리가 전부 옮겨 갑니다 — 도구가 그 셈을
+   * 베껴 적고 있었고, 바가 새로 짜인 뒤로 어떤 도구는 아무것도 없는 곳을 눌렀습니다.
+   */
+  private readonly toolNodes = new Map<string, ToolSpot>()
+
+  /** 그 단추들의 자리. 화면 좌표로 바꾸는 것은 이 화면을 띄운 쪽이 합니다. */
+  get toolSpots(): [string, ToolSpot][] {
+    return [...this.toolNodes]
+  }
+
   /** 글을 다시 읽어야 하는 것들. 말이 바뀌면 갈아 끼웁니다. */
   private readonly buttons: { key: string; button: Button }[] = []
 
@@ -168,12 +183,14 @@ export class Title extends Container {
                              hooks.onStart, 26)
     start.position.set(x, ROW_Y)
     this.buttons.push({ key: 'ui.button.start', button: start })
+    this.toolNodes.set('start', { node: start, cx: START_W / 2, cy: ROW_H / 2 })
     x += START_W + BTN_GAP
 
     const pool = new Button(t('ui.button.jokers'), OTHER_W, ROW_H, 0x2f5f8f,
                             hooks.onJokers, 17)
     pool.position.set(x, ROW_Y)
     this.buttons.push({ key: 'ui.button.jokers', button: pool })
+    this.toolNodes.set('jokers', { node: pool, cx: OTHER_W / 2, cy: ROW_H / 2 })
     x += OTHER_W + BTN_GAP
 
     // **열리기 전에는 비활성입니다.** 눌러서 잠긴 것을 알게 하는 것보다, 눌리지 않는 것이
@@ -182,6 +199,7 @@ export class Title extends Container {
                             hooks.onChallenges, 17)
     dare.position.set(x, ROW_Y)
     this.buttons.push({ key: 'ui.button.challenges', button: dare })
+    this.toolNodes.set('challenges', { node: dare, cx: OTHER_W / 2, cy: ROW_H / 2 })
     this.challenges = dare
     dare.enabled = false
     x += OTHER_W + BTN_GAP
@@ -190,6 +208,7 @@ export class Title extends Container {
                              hooks.onLeaderboard, 17)
     board.position.set(x, ROW_Y)
     this.buttons.push({ key: 'ui.button.leaderboard', button: board })
+    this.toolNodes.set('leaderboard', { node: board, cx: OTHER_W / 2, cy: ROW_H / 2 })
 
     dare.on('pointerover', () => {
       if (this.locked) {
@@ -212,6 +231,7 @@ export class Title extends Container {
 
     const setup = new Button('', setupW, UPPER_H, 0x2f5f8f, hooks.onSetup, 14)
     setup.position.set(left, UPPER_Y)
+    this.toolNodes.set('setup', { node: setup, cx: setupW / 2, cy: UPPER_H / 2 })
     this.setupButton = setup
 
     // **랭크는 그 옆입니다.** 시작과 같은 일이고 다만 오르는 판이므로, 아래 줄에 다섯째로
@@ -220,6 +240,7 @@ export class Title extends Container {
     const ranked = new Button(t('ui.lb.ranked'), rankedW, UPPER_H, 0x27603f,
                               hooks.onRanked, 13)
     ranked.position.set(left + setupW + BTN_GAP, UPPER_Y)
+    this.toolNodes.set('ranked', { node: ranked, cx: rankedW / 2, cy: UPPER_H / 2 })
     ranked.enabled = false
     this.rankedButton = ranked
     this.buttons.push({ key: 'ui.lb.ranked', button: ranked })
@@ -254,8 +275,10 @@ export class Title extends Container {
     const iconY = ROW_Y
     const guide = new IconButton(icon, 'circle-question-mark', hooks.onGuide)
     guide.position.set(SIZE.width - DOCK_PAD - icon * 2 - BTN_GAP, iconY)
+    this.toolNodes.set('guide', { node: guide, cx: icon / 2, cy: icon / 2 })
     const option = new IconButton(icon, 'settings', hooks.onOptions)
     option.position.set(SIZE.width - DOCK_PAD - icon, iconY)
+    this.toolNodes.set('options', { node: option, cx: icon / 2, cy: icon / 2 })
 
     // 판 번호. **로그인 화면과 같은 구석입니다.**
     const version = new Text({

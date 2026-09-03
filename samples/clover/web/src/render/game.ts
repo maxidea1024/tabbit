@@ -79,6 +79,7 @@ import { newMetrics, observe, type MetricsAcc } from '../core/metrics'
 import type { Scene } from './scene'
 import { FOOTER_BAR, panelFrame, TITLE_BAR } from '../ui/modal'
 import { Modals, type ModalPanel } from '../ui/modal'
+import type { ToolSpot } from '../ui/layout'
 import { richBlock, richLine } from '../ui/rich'
 import {
   chosen, loadOptions, OptionsPanel, saveOptions, type Options,
@@ -1224,6 +1225,23 @@ export class Game {
    * 남지 않습니다. 한 장에 한 번만 쓰이므로 쓰고 나면 비웁니다.
    */
   /**
+   * 아무것도 없는 곳을 누른 횟수.
+   *
+   * **도구가 자기 좌표가 맞는지 물을 수 있는 유일한 창구입니다.** 사람은 눌러 보면 아무
+   * 일도 없는 것을 곧 알아채지만, 도구는 그다음 줄로 그냥 넘어갑니다.
+   */
+  private blankTaps = 0
+
+  /**
+   * 나중에 세는 자리들.
+   *
+   * **`spots` 와 갈립니다.** 그쪽은 그리는 그 자리에서 셈이 끝나는 것들이고, 이쪽은 판이
+   * 화면의 어디에 서는지가 그 뒤에 정해지는 것들입니다 — 판을 세우는 중에 세면 아직
+   * 자리가 정해지지 않은 판의 왼쪽 위가 나옵니다.
+   */
+  private readonly spotNodes = new Map<string, ToolSpot>()
+
+  /**
    * 주소에 적혀 온 시드. **아직 쓰지 않은 동안만 값이 있습니다.**
    *
    * 타이틀에 서면 새 시드로 판을 미리 깔고, 부팅도 그 길을 지납니다 — 그래서 이것이 없으면
@@ -1669,6 +1687,15 @@ export class Game {
     }, { capture: true })
     app.stage.eventMode = 'static'
     app.stage.hitArea = { contains: () => true }
+    // **아무것도 없는 곳을 눌렀는가.**
+    //
+    // 검증 도구가 화면을 누르는데, 누른 자리에 아무것도 없으면 브라우저도 게임도 아무 말을
+    // 하지 않습니다 — 그래서 배치를 고친 날에 그 도구는 빈자리를 눌러 놓고 **통과합니다.**
+    // 오늘만 그런 자리가 다섯 곳이었고, 그중 하나는 「소리 0번」을 타이틀 화면에서 재고
+    // 있었습니다. 눌린 것이 무대 자신이면 그 누름은 아무것도 맞히지 못한 것입니다.
+    app.stage.on('pointerdown', event => {
+      if (event.target === app.stage) this.blankTaps++
+    })
     app.stage.on('globalpointermove', event => {
       this.pointerAt = this.world.toLocal(event.global)
       if (event.pointerType === 'mouse') this.touching = false
@@ -2116,6 +2143,8 @@ export class Game {
       layer.removeChildren().forEach(child => child.destroy())
     }
     this.gameOver.visible = false
+    delete this.spots.again
+    delete this.spots.home
 
     // 날고 있는 것들.
     this.particles.clear()
@@ -4284,7 +4313,9 @@ export class Game {
       // 제자리로 돌아가는데 도구는 통과합니다 — 실제로 그런 결함이 있었습니다.
       // **버튼의 자리도 알립니다.** 도구가 같은 계산을 베껴 적으면 배치를 고칠 때 한쪽만
       // 고쳐지고, 그 도구는 엉뚱한 곳을 눌러 놓고 아무 말도 하지 않습니다.
-      spots: { ...this.spots, ...this.optionSpots() },
+      spots: { ...this.spots, ...this.lateSpots(), ...this.optionSpots() },
+      // 아무것도 없는 곳을 누른 횟수. **도구가 자기 좌표를 검사하는 자리입니다.**
+      blankTaps: this.blankTaps,
       // 소리가 비는 자리를 찾을 때 씁니다 — 시계로 재면 배속과 히트스톱에서 어긋납니다.
       coming: this.player.coming ?? '',
       // 최근에 난 소리들. **「이 순간에 왜 이 소리가 나느냐」를 도구가 물을 자리입니다.**
@@ -5612,6 +5643,8 @@ export class Game {
       this.gameOver.removeChildren().forEach(child => child.destroy())
       this.gameOver.visible = false
       this.gameOverShown = false
+      delete this.spots.again
+      delete this.spots.home
       return
     }
 
@@ -5692,6 +5725,10 @@ export class Game {
     board.position.set(POPUP_X, SIZE.height / 2)
     this.gameOver.addChild(board)
     this.gameOverBoard = board
+    // **단추 둘의 자리를 알립니다.** 판의 높이가 랭크 런인지에 따라 달라지므로 도구가
+    // 셈할 수 없고, 셈하려 든 도구는 랭크가 아닌 판에서만 맞는 값을 적어 두었습니다.
+    this.spots.again = this.spotOf(again, 84, 26)
+    this.spots.home = this.spotOf(home, 84, 26)
 
     // **순위는 판정이 온 뒤에 붙습니다.** 랭크 런이 아니면 붙는 것이 없고, 그때의 판은
     // 지금과 한 줄도 다르지 않습니다.
@@ -7172,6 +7209,10 @@ export class Game {
     const leave = new Button(t('ui.button.next_blind'), 190, 40, 0x2f6fb5, () => this.primary())
     leave.position.set(166, 0)
     foot.addChild(reroll, leave)
+    // 밑단의 단추 둘. **판이 바닥에 맞춰 서고 높이가 남은 줄 수를 따르므로** 도구가 셈하면
+    // 하나 살 때마다 어긋납니다.
+    this.spotNodes.set('reroll', { node: reroll, cx: 75, cy: 20 })
+    this.spotNodes.set('nextBlind', { node: leave, cx: 95, cy: 20 })
 
     // **틀과 몸통이 갈립니다.** 틀은 높이가 움직이는 동안 매 프레임 다시 그리고, 몸통은
     // 마지막 자리에 그려 둔 채 윗변을 따라 통째로 옮깁니다 — 바닥과 단추는 그 자리입니다.
@@ -7691,6 +7732,28 @@ export class Game {
   }
 
   /**
+   * 나중에 세는 자리들이 지금 어디에 있는가.
+   *
+   * **화면에 붙어 있는 것만 셉니다.** 판이 닫히면 그 판은 무대에서 떼어지므로, 떼어진 것의
+   * 자리를 알리면 도구가 아무것도 없는 곳을 누르고도 눌렀다고 봅니다.
+   */
+  private lateSpots(): Record<string, { x: number; y: number }> {
+    const out: Record<string, { x: number; y: number }> = {}
+    for (const [key, one] of this.spotNodes) {
+      if (one.node.destroyed || one.node.parent === null) continue
+      out[key] = this.spotOf(one.node, one.cx, one.cy)
+    }
+    // 타이틀의 단추들. **그 화면이 보일 때만입니다.**
+    if (this.title.visible) {
+      for (const [key, one] of this.title.toolSpots) {
+        if (one.node.destroyed) continue
+        out[`title:${key}`] = this.spotOf(one.node, one.cx, one.cy)
+      }
+    }
+    return out
+  }
+
+  /**
    * 옵션 판 안의 칸들이 지금 어디에 있는가.
    *
    * **판이 떠 있을 때만 값이 있습니다.** 자리는 탭과 글 길이와 굴린 만큼에 따라 달라지므로
@@ -7791,11 +7854,23 @@ export class Game {
     paid.position.set(width / 2, TITLE_BAR + 40)
     layer.addChild(paid)
 
+    // 지난번에 물었던 줄은 버립니다. 무엇을 들고 있는지에 따라 줄 수가 다릅니다.
+    for (const key of [...this.spotNodes.keys()]) {
+      if (key.startsWith('swap:')) this.spotNodes.delete(key)
+    }
+
     let at = top
-    built.forEach(one => {
+    built.forEach((one, index) => {
       const held = one.held
       const tile = new Panel(width - 48, one.height, held.locked ? 0x241c26 : 0x1b2331)
       tile.position.set(24, at)
+      // **줄의 자리를 알립니다.** 줄의 높이가 설명글의 길이로 정해지고 그 길이는 말에 따라
+      // 달라지므로, 도구가 첫 줄의 자리를 적어 두면 다른 말에서는 줄 사이를 누릅니다.
+      //
+      // **자리는 나중에 셉니다.** 판이 화면의 어디에 서는지는 `modals.open` 이 정하고 그것은
+      // 이 줄들을 다 세운 뒤이므로, 지금 세면 판이 아직 왼쪽 위에 있습니다.
+      this.spotNodes.set(`swap:${index}`,
+                         { node: tile, cx: (width - 48) / 2, cy: one.height / 2 })
       at += one.height + GAP
 
       const name = new Text({
@@ -8182,11 +8257,19 @@ export class Game {
     const spacing = PACK_CARD_W + 26
     const startX = POPUP_X - ((left.length - 1) * spacing) / 2
 
+    // 지난번에 펼쳐져 있던 자리는 버립니다. 뜯을 때마다 장수가 다릅니다.
+    for (const key of Object.keys(this.spots)) {
+      if (key.startsWith('pack:')) delete this.spots[key]
+    }
+
     left.forEach((one, slot) => {
       // **한 줄로 폅니다.** 부챗살이 보기에는 좋았는데, 집는 단추가 그 곡선 아래 어디에
       // 서든 어느 카드와는 붙고 어느 카드와는 벌어집니다 — 카드가 한 높이에 있어야 그
       // 아래의 한 줄이 셋 모두의 것이 됩니다.
       one.motion.to(startX + slot * spacing, PACK_CARDS_Y, 0)
+      // **펼쳐진 낱장의 자리를 알립니다.** 몇 장이 펼쳐지는지는 팩의 갈래가 정하므로
+      // 도구가 가운데 한 장만 짚어 왔고, 그것은 장수가 짝수인 팩에서는 두 장 사이입니다.
+      this.spots[`pack:${slot}`] = { x: startX + slot * spacing, y: PACK_CARDS_Y }
     })
   }
 

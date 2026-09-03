@@ -16,6 +16,7 @@ import { setLookOf, setsOf, type SetLook } from '../render/card-set'
 import { cardArtId, drawFace, drawSuit } from '../render/pips'
 import { SuitKind } from '../generated/enums/suit-kind'
 import { COLOR, SIZE } from '../render/theme'
+import type { ToolSpot } from './layout'
 import { FOOTER_BAR, panelFrame, TITLE_BAR, type ModalPanel } from './modal'
 import { richLine, type RichStyle } from './rich'
 import { Tooltip } from './tooltip'
@@ -268,13 +269,6 @@ interface Tab {
   id: string
   name: string
   rows: Row[]
-}
-
-/** 도구가 짚을 한 자리. 어느 컨테이너의 어디인가입니다. */
-export interface ToolSpot {
-  node: Container
-  cx: number
-  cy: number
 }
 
 export class OptionsPanel implements ModalPanel {

@@ -6,9 +6,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import {
-  at, BUTTON_Y, clickPrimary, peek, settle, skipLogin, TITLE_START, pass,
-} from './harness'
+import { BUTTON_Y, at, openRun, pass, peek, skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 
@@ -29,13 +27,7 @@ async function main(): Promise<number> {
 
   await page.goto('http://localhost:5190/?seed=CLOVER-SHOT6&tick=manual', { waitUntil: 'networkidle' })
   await pass(page, 1500)
-  const start = await at(page, TITLE_START.x, TITLE_START.y)
-  await page.mouse.click(start.x, start.y)
-  await pass(page, 900)
-  await page.mouse.click(20, 20)
-  await pass(page, 400)
-  await clickPrimary(page)
-  await settle(page)
+  await openRun(page)
   await pass(page, 800)
 
   const before = (await peek(page)).hand.map(c => `${c.rank}${c.suit}`).join(' ')

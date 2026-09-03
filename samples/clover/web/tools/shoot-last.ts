@@ -6,7 +6,8 @@ import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, chooseFive, clickPrimary, grantJoker, peek, pickCards, pressPlay, settle, STAGE_W, skipLogin,
+  at, chooseFive, clickPrimary, clickSpot, grantJoker, peek, pickCards, pressPlay, settle,
+  skipLogin, TITLE_START,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -22,7 +23,7 @@ async function main(): Promise<number> {
   await page.goto(`http://localhost:${PORT}/?seed=CLOVER-LAST1`, { waitUntil: 'networkidle' })
   await page.waitForTimeout(1500)
 
-  await tap(page, STAGE_W / 2, 473)
+  await tap(page, TITLE_START.x, TITLE_START.y)
   await page.waitForTimeout(1000)
   await tap(page, 20, 20)
   await page.waitForTimeout(600)
@@ -72,9 +73,9 @@ async function main(): Promise<number> {
       + ` · 낸 카드 ${now.played} · 다음 박자 ${now.coming || '-'}`)
   }
 
-  // 「받는다」 를 누릅니다. **눌러서 닫히는지가 이 확인의 요점입니다.**
-  const h = 46 + 16 + 2 * 34 + 14 + 56
-  await tap(page, STAGE_W / 2, (800 - h) / 2 + h - 56 / 2)
+  // 「받는다」 를 누릅니다. **눌러서 닫히는지가 이 확인의 요점입니다.** 자리는 화면이
+  // 알립니다 — 정산 판의 높이는 줄 수를 따르는데 줄 둘을 전제로 적어 두었습니다.
+  await clickSpot(page, 'take')
   for (const wait of [300, 600, 1200]) {
     await page.waitForTimeout(wait)
     const now = await peek(page)

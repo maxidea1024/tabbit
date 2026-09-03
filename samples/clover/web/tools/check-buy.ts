@@ -7,8 +7,7 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, clickPrimary, grantMoney, pass, peek, settle, shopBuySpot, shopSlot, skipLogin, TITLE_START,
-  winRound,
+  grantMoney, openRun, pass, peek, settle, shopBuySpot, shopSlot, skipLogin, winRound,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -23,13 +22,7 @@ async function main(): Promise<number> {
   await page.goto(`http://localhost:${PORT}/?seed=CLOVER-BUY1&tick=manual`, { waitUntil: 'networkidle' })
   await pass(page, 1500)
 
-  const start = await at(page, TITLE_START.x, TITLE_START.y)
-  await page.mouse.click(start.x, start.y)
-  await pass(page, 900)
-  await page.mouse.click(20, 20)
-  await pass(page, 400)
-  await clickPrimary(page)
-  await settle(page)
+  await openRun(page)
 
   // 봇이 이기기를 기다리지 않습니다. 훅으로 이기고 정산을 받아 상점까지 갑니다.
   await winRound(page)

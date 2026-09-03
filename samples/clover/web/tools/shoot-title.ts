@@ -3,10 +3,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
-import {
-  at, chooseFive, clickPrimary, discardHand, peek, playHand, rate, settle, spare, skipLogin,
-  TITLE_START,
-} from './harness'
+import { chooseFive, discardHand, openRun, peek, playHand, rate, settle, skipLogin, spare } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
@@ -22,13 +19,7 @@ async function main(): Promise<number> {
   await page.waitForTimeout(1600)
   await shot(page, 'title-1')
 
-  const start = await at(page, TITLE_START.x, TITLE_START.y)
-  await page.mouse.click(start.x, start.y)
-  await page.waitForTimeout(900)
-  await page.mouse.click(20, 20)
-  await page.waitForTimeout(400)
-  await clickPrimary(page)
-  await settle(page)
+  await openRun(page)
 
   // 블라인드를 넘깁니다. 정산 판이 서는 그 순간을 잡습니다.
   for (let turn = 0; turn < 40; turn++) {

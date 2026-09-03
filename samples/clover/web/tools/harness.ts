@@ -72,6 +72,15 @@ export interface Peek {
   jokerOrder: number[]
   /** 눌러야 하는 것들의 자리. `game.ts` 가 그린 그대로 알립니다. */
   spots: Record<string, { x: number; y: number } | undefined>
+  /**
+   * 아무것도 없는 곳을 누른 횟수.
+   *
+   * **도구가 자기 좌표를 검사하는 자리입니다.** 눌린 것이 없으면 화면은 아무 말도 하지
+   * 않으므로, 좌표가 낡은 도구는 빈자리를 눌러 놓고 그다음 줄로 넘어가 통과합니다.
+   */
+  blankTaps?: number
+  /** 판이 하나라도 떠 있는가. */
+  modalUp?: boolean
   /** 연출이 다음에 낼 박자. 소리가 비는 자리를 찾을 때 씁니다. */
   coming: string
   /** 정산 판이 떠 있는가. */
@@ -124,6 +133,86 @@ export async function grantJoker(page: Page, count: number): Promise<void> {
     }).__clover
     hook.grantJoker?.(many)
   }, count)
+}
+
+/**
+ * 화면이 알린 자리 하나. 아직 없으면 잠깐 기다립니다.
+ *
+ * **좌표를 도구에 적어 두지 않기 위한 것입니다.** 적어 두면 배치를 고친 날에 그 도구는
+ * 빈자리를 눌러 놓고 아무 말도 하지 않습니다 — 그리는 쪽이 그린 자리를 그대로 알립니다.
+ */
+export async function spot(page: Page, name: string, tries = 20):
+    Promise<{ x: number; y: number }> {
+  for (let wait = 0; wait < tries; wait++) {
+    const found = (await peek(page)).spots?.[name]
+    if (found) return at(page, found.x, found.y)
+    await pass(page, 100)
+  }
+  throw new Error(`화면이 ${name} 의 자리를 알리지 않습니다`)
+}
+
+/**
+ * 화면이 알린 자리를 누릅니다. **맞혔는지 확인합니다.**
+ *
+ * 화면이 알린 자리는 늘 무언가가 있는 자리이므로, 눌러서 아무것도 맞히지 못했다면 그것은
+ * 이 도구의 결함입니다 — 판이 아직 서지 않았거나, 눌린 것이 다른 판에 덮여 있습니다.
+ * 그것을 여기서 말하지 않으면 도구는 그다음 줄로 넘어가 통과합니다.
+ */
+export async function clickSpot(page: Page, name: string): Promise<void> {
+  const where = await spot(page, name)
+  const before = (await peek(page)).blankTaps ?? 0
+  await page.mouse.click(where.x, where.y)
+  await pass(page, 100)
+  const after = (await peek(page)).blankTaps ?? 0
+  if (after > before) {
+    throw new Error(`${name} 을 눌렀는데 아무것도 맞히지 못했습니다`
+      + ` — (${Math.round(where.x)}, ${Math.round(where.y)})`)
+  }
+}
+
+/**
+ * 이 동안 아무것도 없는 곳을 누르지 않았는가.
+ *
+ * 좌표를 스스로 셈하는 자리를 감싸는 데 씁니다 — 눌러 보고 아무 일도 없었으면 그 좌표가
+ * 낡은 것입니다.
+ */
+export async function mustHit(page: Page, what: string,
+                              press: () => Promise<void>): Promise<void> {
+  const before = (await peek(page)).blankTaps ?? 0
+  await press()
+  await pass(page, 100)
+  const after = (await peek(page)).blankTaps ?? 0
+  if (after > before) throw new Error(`${what} 을 눌렀는데 아무것도 맞히지 못했습니다`)
+}
+
+/**
+ * 타이틀의 단추 하나를 누릅니다.
+ *
+ * **좌표를 여기 적어 두지 않습니다.** 이 화면의 단추는 아래 바의 폭을 나눠 서므로 바가
+ * 다시 짜이면 자리가 전부 옮겨 가고, 베껴 적은 값은 그날부터 빈자리를 가리킵니다 —
+ * `check-gaps` 와 `shoot-last` 가 그렇게 아무것도 없는 곳을 눌러 놓고 통과했습니다.
+ *
+ * 이름은 `start` · `jokers` · `challenges` · `leaderboard` · `setup` · `ranked` ·
+ * `guide` · `options` 입니다.
+ */
+export async function pressTitle(page: Page, name = 'start'): Promise<void> {
+  await clickSpot(page, `title:${name}`)
+}
+
+/**
+ * 타이틀에서 판을 열고 블라인드를 고릅니다.
+ *
+ * **도구 15개가 이 다섯 줄을 저마다 베껴 적고 있었습니다.** 시작을 누르고, 처음 여는
+ * 사람에게 펼쳐지는 게임 방법을 닫고, 블라인드를 고르는 순서입니다.
+ */
+export async function openRun(page: Page): Promise<void> {
+  await pressTitle(page, 'start')
+  await pass(page, 900)
+  // 게임 방법이 펼쳐져 있으면 닫습니다. **떠 있지 않으면 누를 것이 없습니다.**
+  if ((await peek(page)).modalUp === true) await page.keyboard.press('Escape')
+  await pass(page, 400)
+  await clickPrimary(page)
+  await settle(page)
 }
 
 /**
@@ -510,9 +599,16 @@ export const TITLE_OPTIONS = {
  */
 export async function clickPrimary(page: Page): Promise<void> {
   if ((await peek(page)).phase === 'shop') {
-    // 상점의 밑단. **판 하나로 정돈되면서 버튼도 그 안으로 들어왔습니다.**
-    const spot = await at(page, POPUP_X + 83, SHOP_BOTTOM - 56 / 2)
-    await page.mouse.click(spot.x, spot.y)
+    // 상점의 밑단. **자리는 화면이 알립니다** — 판이 바닥에 맞춰 서고 그 높이는 남은 줄
+    // 수를 따르므로, 여기서 다시 셈하면 하나 살 때마다 어긋납니다.
+    //
+    // **판이 서기를 기다립니다.** 국면이 상점이 되는 것과 상점 판이 서는 것은 다른
+    // 순간입니다 — 낸 카드가 걷히고 정산을 받은 뒤에 판이 아래에서 올라옵니다.
+    for (let wait = 0; wait < 40; wait++) {
+      if ((await peek(page)).shopUp) break
+      await pass(page, 200)
+    }
+    await clickSpot(page, 'nextBlind')
     return
   }
   // 블라인드 선택은 **화면이 알린 자리를 누릅니다.** 판의 밑단이 글의 길이에 따라 자라므로
@@ -547,13 +643,20 @@ export async function openDeckView(page: Page): Promise<void> {
 
 /** 고르기만 합니다. 고른 카드의 셰이더를 찍으려면 낸다를 누르기 전에 멈춰야 합니다. */
 export async function pickCards(page: Page, picks: number[]): Promise<void> {
+  // **다 깔린 뒤에 누릅니다.** 깔리는 중인 카드는 오는 길에 있으므로 셈한 자리에 없고,
+  // 그것을 누르면 카드 사이의 빈 곳을 누르는 것이 됩니다.
+  await swept(page)
   const held = (await peek(page)).hand.length
-  await clickCards(page, picks, held)
+  // **맞혔는지 봅니다.** 패는 부챗살로 펴지고 그 셈이 여기 적혀 있으므로, 손패의 배치를
+  // 고친 날에 이 도구들은 카드 사이의 빈 곳을 눌러 놓고 「고른 것 0장」 으로 갑니다.
+  await mustHit(page, '손패', () => clickCards(page, picks, held))
 }
 
 export async function pressPlay(page: Page): Promise<void> {
-  const play = await at(page, PLAY_BUTTON.x, PLAY_BUTTON.y)
-  await page.mouse.click(play.x, play.y)
+  await mustHit(page, '낸다', async () => {
+    const play = await at(page, PLAY_BUTTON.x, PLAY_BUTTON.y)
+    await page.mouse.click(play.x, play.y)
+  })
 }
 
 /** 부채꼴로 편 패에서 몇 장을 누릅니다. */
