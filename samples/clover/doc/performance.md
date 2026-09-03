@@ -1,0 +1,107 @@
+# 렌더 성능 규약
+
+> [문서로](readme.md)
+
+화면 코드를 고칠 때 지키는 것과, 고치기 전에 보는 목록입니다. 2026-09-03 에 전수 조사를
+하였고 그 결과가 이 문서의 바탕입니다. 코어(`core/`)는 액션 하나가 0.3~0.6ms 로 가볍고,
+성능의 문제는 전부 렌더(`render/` · `ui/`)에 있었습니다.
+
+---
+
+## 요지 셋
+
+|규칙|왜|
+|--|--|
+|**매 프레임 만들지 않습니다.** `tick` 과 `advance` 안에서는 `new Graphics` · `new Text` · `new Filter` · `removeChildren().destroy()` 를 하지 않습니다. 값(`alpha` · `position` · `scale` · 유니폼)만 바꿉니다|`Graphics` 는 명령마다 다시 삼각화되고, `Text` 는 캔버스에 글자를 다시 구워 GPU 에 올립니다. 프레임마다 하면 그 값이 초당 60번입니다|
+|**같으면 다시 그리지 않습니다.** 모습을 정하는 값들로 열쇠를 만들어 마지막 열쇠와 같으면 돌아갑니다|점수 게이지·판때기·번쩍임은 대부분의 프레임에 모습이 같습니다. 값이 연속이면 8~16단계로 끊어 열쇠를 만듭니다. 눈에는 같습니다|
+|**한 번 그린 것은 그림으로 남깁니다.** 크기가 같은 벡터 그림은 `renderer.generateTexture` 로 한 번 구워 `Sprite` 로 씁니다|카드 뒷면 하나가 명령 80~190개와 스텐실 마스크 하나입니다. 뽑는 카드마다 그것을 다시 그릴 이유가 없습니다|
+
+---
+
+## 자리마다의 빈도
+
+고치기 전에 그 코드가 어느 줄에 있는지 봅니다.
+
+|자리|빈도|여기서 해도 되는 것|여기서 하지 않는 것|
+|--|--|--|--|
+|`tick()` · `advance()` · `step()`|초당 60번|값 바꾸기, 열쇠가 바뀌었을 때만 다시 그리기|객체 만들기, 트리 걷기, 배열 만들기|
+|`refresh()`|액션마다, 카드 한 장 뽑을 때마다, 연출이 끝날 때마다. **호출 지점이 25곳입니다**|바뀐 것만 갈아 끼우기(`syncCards` · `syncJokers` 처럼 uid 로 diff)|층을 통째로 버리고 다시 만들기|
+|생성자 · `layout()` · `relabel()`|한 번, 또는 드물게|무엇이든|—|
+
+`refresh()` 가 부르는 것 중 아직 통째로 다시 만드는 것이 남아 있습니다. 아래 「남은 것」에
+있습니다.
+
+---
+
+## 하지 않는 것과 하는 것
+
+|하지 않습니다|합니다|고친 자리|
+|--|--|--|
+|번쩍이는 동안 매 프레임 `setTags(tagChips())` 로 칩 전부를 다시 만들고 칩마다 `new ArriveFilter()`|칩은 `refresh` 에서 한 번 만들고 `TagCell` 기록을 남깁니다. `advanceTagFlash` 는 알파·크기·유니폼만 만지고 필터는 칩마다 하나를 재사용합니다|`render/game.ts` `advanceTagFlash` · `tagChips`|
+|블라인드 판이 들어오는 1초 동안 매 프레임 카드 셋과 글 25개를 다시 만들기|`drawBlindPick` 이 만들고 `BlindGroup` 을 남깁니다. 프레임마다는 `placeBlindGroup` 이 자리와 알파만 옮깁니다|`render/game.ts` `placeBlindGroup`|
+|판때기를 그릴 때마다 `new FillGradient`|높이와 두 색이 같으면 같은 그라디언트입니다. `Map` 에 둡니다|`render/skin.ts` `gradient`|
+|점수가 굴러가는 동안 단계마다 판때기 재삼각화|빛의 세기를 16단계로 끊어 열쇠가 바뀔 때만 그립니다|`render/hud.ts` `Slot.draw`|
+|게이지를 매 프레임 `clear()` 후 3개 `roundRect`|채운 길이(픽셀)가 같으면 돌아갑니다|`render/game.ts` `drawGauge`|
+|번쩍임의 모양을 매 프레임 다시 그려 잦아들게 하기|모양은 테두리 굵기 8단계로만 다시 그리고, 잦아드는 것은 컨테이너의 `alpha` 입니다|`render/game.ts` `decayFlashes`|
+|`refresh` 마다 `world` 아래 노드 전부를 걷어 `Text` 해상도 맞추기|화면 배율이 1 이하면 새 글은 이미 렌더러 해상도입니다. 배율이 1을 넘을 때만 걷습니다|`render/game.ts` `refresh`|
+|그림 파일 하나가 도착할 때마다 `refresh()` 전체|`artDirty` 표시만 남기고 `tick` 이 한 프레임에 한 번 처리합니다|`render/game.ts` `onArtReady`|
+|검증 도구용 `window.__clover` 를 매 프레임 40개 키로 다시 만들기|`Object.defineProperty` 의 getter 입니다. 읽는 순간에만 만듭니다|`render/game.ts` `peek`|
+|`refresh` 마다 같은 에디션의 `EditionFilter` 를 새로 만들기|에디션이 같으면 그대로 둡니다. `joker-view.ts` 가 하던 방식을 `card-view.ts` 에도 두었습니다|`render/card-view.ts` `applyEdition`|
+|`set()` 마다 조커의 아트 `Sprite` 를 버리고 새로 만들기|텍스처가 같으면 그대로 둡니다|`render/joker-view.ts` `set`|
+|카드 뒷면을 인스턴스마다 벡터로 그리기|`generateTexture` 로 무늬·색·크기·밀도별 한 번 굽고 `Sprite` 를 냅니다. 렌더러를 받기 전에는 벡터로 그립니다|`render/card-back.ts` `bakeCardBacks`|
+|파티클이 0개일 때도 매 프레임 `clear()`, 죽은 조각마다 `splice`, 합계 상한 없음|비어 있으면 손대지 않습니다. 앞으로 당겨 쓰고, 합계는 400개입니다|`render/particles.ts`|
+|닫힌 판을 계속 `advance` 하기|`view.parent` 가 없으면 돌아갑니다(조커 풀). 닉네임 판은 닫히면 `hub.typing` 을 놓습니다|`ui/joker-pool.ts` · `ui/hub.ts`|
+|커서 깜빡임을 위해 판 전체를 매 프레임 다시 만들기|글 하나의 글자만 바꿉니다. 흔들리는 0.3초만 다시 그립니다|`ui/account.ts` `HandlePanel.advance`|
+|낱말마다 `new TextStyle` 과 누적 문자열 재측정|모습마다 `TextStyle` 하나를 `WeakMap` 에 두고, 조각의 너비를 더해 갑니다|`ui/rich.ts`|
+|휠 한 칸마다 `content.height` 로 자식 전부의 경계 세기|내용이 바뀌는 길(`refresh` · `toTop` · `reveal`)에서만 재고 굴릴 때는 그 값을 씁니다|`ui/scroll.ts` `setOffset`|
+|같은 글을 다시 적어 단추 글자를 최대 6번 다시 굽기|같은 글이면 돌아갑니다|`ui/widgets.ts` `Button.text`|
+|쪽을 넘길 때마다 500행을 두 번 정렬|기준이 같으면 세워 둔 줄을 씁니다. 말이 바뀌면 비웁니다|`ui/joker-pool.ts` `rows`|
+|전체화면 블러 2개를 렌더러 해상도로|`resolution: 0.5`. 흐린 그림은 해상도를 낮춰도 흐린 그림이고 텍셀이 4분의 1입니다. 반지름은 텍셀 단위라 반으로 적었습니다|`render/game.ts` `blur` · `blurBack`|
+|상점 칸마다 조커 500행을 다시 거르기|풀·챌린지·희귀도로 한 번 거른 것을 데이터별로 둡니다|`core/pool.ts` `jokerPool`|
+|부분집합 2ⁿ 개를 전부 배열로 만들고 나서 5장 넘는 것을 버리기|비트 수를 먼저 세어 만들지 않습니다. `refresh` 마다 도는 힌트는 패가 같으면 다시 세지 않고 `act` 가 비웁니다|`core/suggest.ts` · `render/game.ts` `updateHints`|
+
+---
+
+## 남은 것
+
+큰 것부터입니다. 위의 것들과 달리 구조를 바꾸는 일이라 따로 둡니다.
+
+|무엇|지금|하는 방법|
+|--|--|--|
+|**카드 앞면을 그림으로 굽기**|카드 한 장이 `Graphics` 6개 + `Text` 3개 + `Sprite` 1개이고, 10♣ 한 장이 채우기 명령 약 48개입니다. `set()` 마다 전부 다시 그리고, `set()` 은 `refresh` 마다 손패 전부에 불립니다|`(카드 한 벌, 무늬, 숫자, 종이색, 디버프, 밀도)` 를 열쇠로 `generateTexture`. 카드는 `Sprite` 하나와 위에 얹는 것(인장·힌트 고리)만 남습니다. 그러면 아래의 필터도 FBO 없이 `Sprite` 의 셰이더가 됩니다|
+|**카드마다 필터 한 장씩**|카드 하나를 고르면 손패 8장 전부에 `PickFilter` 가 걸려 프레임마다 FBO 8개(여백 32, 해상도 inherit)입니다. 득점 모드의 둘레 흐림은 픽셀당 28회 샘플링인데 카드의 실루엣은 고정입니다|둘레 흐림을 `roundedMask` 처럼 텍스처로 한 번 구워 샘플링합니다. `PickFilter` 인스턴스는 고름·물러남 둘만 공유합니다(색과 시간은 이미 전역입니다)|
+|**스텐실 마스크**|조커 아트 클립 · 상점 `faceCard` 컷아웃 · 태그와 보스의 원형이 `Graphics` 마스크입니다. 보통 판에서 12개, 조커 풀 한 쪽에서 40개이고 마스크마다 배치가 끊깁니다|`fill({ texture, matrix })` 텍스처 채우기로 바꾸거나, 둥근 아트를 조커별로 한 번 굽습니다|
+|**`syncShop` · `syncConsumables` · `syncActive` · `drawDeckView`**|`refresh` 마다 층을 통째로 버리고 다시 만듭니다. 상점에서는 카드를 누를 때마다이고, 덱 보기는 고를 때마다 52장입니다|`syncJokers` 처럼 uid 로 diff 합니다. 상점은 `state.shop` 의 서명이 바뀌었을 때만 다시 세웁니다|
+|**파티클**|`Graphics` 하나에 조각마다 `circle().fill()` 을 매 프레임 다시 적습니다|원 텍스처 하나를 나누는 `ParticleContainer`|
+|**글 해상도 상한**|`Text.resolution` 이 배율 × 픽셀 밀도로 최대 3입니다. 글 굽기가 1배 대비 9배 픽셀입니다|상한을 2로. 위의 모든 글 굽기 비용이 절반 아래로 내려갑니다|
+|**`popAt` 의 글**|득점 한 판에 10~20개 `new Text`|`DELTA_POOL` 처럼 풀로|
+|**`state.deck.find(uid)`**|9곳에서 손패 × 덱 선형 탐색. 조건 평가 안에서는 조커 행 × 카드마다입니다|`Map<uid, CardInstance>` 하나를 VM 에 두고 `newCard` · `destroyCard` 가 갱신합니다|
+
+---
+
+## 고치기 전에 보는 목록
+
+새 화면 코드나 연출을 넣을 때 이 다섯을 봅니다.
+
+1. **이 코드는 어느 빈도의 자리에 있는가.** `tick` 계열이면 위의 표 첫 줄이 기준입니다.
+2. **`new` 가 있는가.** `Graphics` · `Text` · `Filter` · `Container` · 배열·클로저. 매 프레임 자리에
+   있으면 한 번 만들고 값만 바꾸는 방법을 먼저 찾습니다.
+3. **같은 모습을 다시 그리는가.** 모습을 정하는 값으로 열쇠를 만들어 비교합니다.
+4. **`removeChildren().destroy()` 가 있는가.** 그 층에서 바뀐 것이 무엇인지 적고, 그것만 갈아
+   끼울 수 있는지 봅니다.
+5. **필터·마스크를 새로 거는가.** 필터 하나가 FBO 하나입니다. 인스턴스를 재사용하고, 걸었다
+   떼는 것은 `filters` 배열의 길이를 보고 바뀔 때만 합니다(`advanceBlur` 가 그 예입니다).
+
+---
+
+## 재는 방법
+
+- **크롬의 Performance 탭**이 기준입니다. 판 하나를 득점하는 동안 기록하고, `Graphics` 의
+  `build` · `Text` 의 `updateText` · `Filter` 의 `push` 가 프레임의 몇 할인지 봅니다.
+- **헤드리스가 느린 것이 단서입니다.** 검증 도구는 GPU 없이 돌아서 필터의 비용이 그대로
+  드러납니다. 판이 떠 있는 동안 초당 2~3프레임까지 떨어진 것이 전체화면 블러 2개였습니다.
+- **도구는 정해진 시간을 기다리지 않습니다.** 연출이 끝나기를 `settle` 로, 낸 카드가 다 나가기를
+  `swept` 로, 판이 닫히기를 `modalUp` 으로 기다립니다. 정해진 시간만 기다리면 느린 기계에서
+  「닫히지 않는다」로 읽힙니다. `pass` 는 `?tick=manual` 이 아닌 판에서 실제로 기다립니다.
+- **자리는 하네스의 상수로.** 타이틀의 단추 자리를 도구 안에 수로 적어 두면 배치가 바뀐 날에
+  빈 곳을 누릅니다. `tools/harness.ts` 의 `TITLE_*` 를 `at()` 으로 화면 좌표로 바꿔 씁니다.

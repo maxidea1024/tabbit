@@ -40,6 +40,10 @@ export class HandlePanel implements ModalPanel {
   private typed = ''
   private problem = ''
   private caret = 0
+  /** 커서가 지금 보이는가. 바뀔 때만 글을 고칩니다. */
+  private caretShown = true
+  /** 입력 칸의 글. 커서 깜빡임이 이것 하나만 고칩니다. */
+  private value?: Text
   private detach?: () => void
 
   /** 이름이 정해졌습니다. */
@@ -106,8 +110,18 @@ export class HandlePanel implements ModalPanel {
 
   advance(seconds: number): void {
     this.caret = (this.caret + seconds) % 1
-    if (this.shake > 0) this.shake = Math.max(0, this.shake - seconds * 3.4)
-    this.redraw()
+    // **흔들리는 동안만 판을 다시 그립니다.** 그 밖에 매 프레임 바뀌는 것은 커서 하나이고,
+    // 커서는 글 하나의 글자를 바꾸는 것으로 됩니다 — 판 전체를 매 프레임 버리고 다시
+    // 만들면 글을 서너 개 굽는 일이 초당 60번이고, 판을 닫은 뒤에도 그것이 이어졌습니다.
+    if (this.shake > 0) {
+      this.shake = Math.max(0, this.shake - seconds * 3.4)
+      this.redraw()
+      return
+    }
+    const on = this.caret < 0.5
+    if (on === this.caretShown || !this.value) return
+    this.caretShown = on
+    this.value.text = this.typed + (on ? '|' : ' ')
   }
 
   private redraw(): void {
@@ -133,7 +147,8 @@ export class HandlePanel implements ModalPanel {
       .stroke({ color: this.shake > 0 ? COLOR.bad : 0x2c3849, width: 2 })
     this.body.addChild(box)
 
-    const shown = this.typed + (this.caret < 0.5 ? '|' : ' ')
+    this.caretShown = this.caret < 0.5
+    const shown = this.typed + (this.caretShown ? '|' : ' ')
     const value = new Text({
       text: shown,
       style: { fontSize: 20, fill: COLOR.ink, fontWeight: '700' },
@@ -141,6 +156,7 @@ export class HandlePanel implements ModalPanel {
     value.anchor.set(0.5, 0.5)
     value.position.set(WIDTH / 2 + wobble, 145)
     this.body.addChild(value)
+    this.value = value
 
     if (this.problem !== '') {
       const problem = new Text({

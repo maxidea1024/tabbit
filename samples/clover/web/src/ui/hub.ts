@@ -375,6 +375,8 @@ export class LeaderboardHub {
   // -------------------------------------------------------------------------
 
   advance(seconds: number): void {
+    // 닫힌 판은 놓습니다. **놓지 않으면 닫힌 뒤에도 매 프레임 그 판을 돌립니다.**
+    if (this.typing && !this.typing.view.parent) this.typing = undefined
     this.typing?.advance(seconds)
     this.card.advance(seconds)
   }

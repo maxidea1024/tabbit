@@ -14,7 +14,7 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 
-import { clickPrimary, settle, type Peek, skipLogin, pass } from './harness'
+import { at, clickPrimary, settle, type Peek, skipLogin, pass, TITLE_SETUP } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '..', '..', 'design-data', 'out', 'check')
@@ -34,8 +34,6 @@ const SIDE_W = PANEL.width - SIDE_X - 30
 const SIDE_H = STAKE_Y + 58 - GRID_Y
 
 /** 타이틀의 덱 단추. 시작의 왼쪽입니다 — `ui/title.ts` 의 값과 같습니다. */
-const SETUP_BUTTON = { x: 640 - 118 - 16 - 100, y: 452 + (72 - 44) / 2 + 22 }
-
 function deckCell(index: number): { x: number; y: number } {
   return {
     x: LEFT + GRID_X + (index % 5) * CELL_W + (CELL_W - 10) / 2,
@@ -82,7 +80,10 @@ async function main(): Promise<number> {
         before?.deck === 'red_deck' && before?.stake === 'White',
         `${before?.deck} · ${before?.stake}`)
 
-  await page.mouse.click(SETUP_BUTTON.x, SETUP_BUTTON.y)
+  // **자리는 하네스의 상수입니다.** 여기 수로 적어 두면 타이틀의 배치가 바뀐 날에 빈 곳을
+  // 누르고, 그 뒤의 검사가 전부 「저장되지 않았다」로 끝납니다.
+  const setup = await at(page, TITLE_SETUP.x, TITLE_SETUP.y)
+  await page.mouse.click(setup.x, setup.y)
   await pass(page, 900)
   await page.screenshot({ path: path.join(OUT, 'setup-1-panel.png') })
 

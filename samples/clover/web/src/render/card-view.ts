@@ -153,6 +153,8 @@ export class CardView extends Container {
    */
   private readonly hintRing = new Graphics()
   private edition?: EditionFilter
+  /** 지금 걸린 에디션 필터가 어느 에디션의 것인가. 같으면 다시 만들지 않습니다. */
+  private editionKind?: EditionKind
   /**
    * 고름 표시.
    *
@@ -244,6 +246,7 @@ export class CardView extends Container {
       this.mark.visible = false
       this.seal.clear()
       this.edition = undefined
+      this.editionKind = undefined
       this.restack()
       return
     }
@@ -339,14 +342,20 @@ export class CardView extends Container {
 
   private applyEdition(edition: EditionKind, look?: EditionLook): void {
     const shader = EDITION_SHADER[edition]
-    this.edition = shader && look
-      ? new EditionFilter(shader, {
+    if (!shader || !look) {
+      this.edition = undefined
+      this.editionKind = undefined
+    } else if (this.editionKind !== edition || !this.edition) {
+      // **같은 에디션이면 필터를 그대로 둡니다.** 다시 그릴 때마다 새로 만들면 유니폼
+      // 묶음이 그만큼 생기고, 뽑히는 카드는 뒤집히면서 두 번 그려집니다.
+      this.editionKind = edition
+      this.edition = new EditionFilter(shader, {
         strength: look.strength,
         flowSpeed: look.flowSpeed,
         noise: look.noise,
         shape: roundedMask(SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius),
       })
-      : undefined
+    }
     this.restack()
   }
 

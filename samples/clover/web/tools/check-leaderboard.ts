@@ -142,8 +142,14 @@ async function main(): Promise<number> {
   check('리더보드가 열립니다', (await peek(page)).modalUp)
 
   await page.keyboard.press('Escape')
-  await page.waitForTimeout(600)
-  check('Esc 로 닫힙니다', !(await peek(page)).modalUp)
+  // **닫히는 연출이 끝나기를 기다립니다.** 정해진 시간만 기다리면 헤드리스처럼 느린 화면에서
+  // 연출이 덜 끝난 채로 재고, 그것은 「닫히지 않는다」가 아니라 「아직 닫히는 중」입니다.
+  let closed = false
+  for (let wait = 0; wait < 30 && !closed; wait++) {
+    await page.waitForTimeout(200)
+    closed = !(await peek(page)).modalUp
+  }
+  check('Esc 로 닫힙니다', closed)
 
   // 그냥 시작. **로그아웃이든 아니든 이 길은 지금과 같아야 합니다.**
   await press(page, TITLE.start.x, TITLE.start.y)

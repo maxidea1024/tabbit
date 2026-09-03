@@ -91,8 +91,23 @@ function splitWords(text: string): string[] {
 
 /** 그 토막의 모습. 강조는 굵게 갑니다. */
 function styleOf(style: RichStyle, fill?: number): TextStyleOptions {
-  return fill === undefined ? style.base : { ...style.base, fill, fontWeight: '800' }
+  if (fill === undefined) return style.base
+  // **바탕과 색이 같으면 같은 객체입니다.** 그래야 아래의 재는 스타일이 그것을 열쇠로
+  // 다시 쓸 수 있습니다.
+  let byFill = FILLED.get(style.base)
+  if (!byFill) {
+    byFill = new Map()
+    FILLED.set(style.base, byFill)
+  }
+  let found = byFill.get(fill)
+  if (!found) {
+    found = { ...style.base, fill, fontWeight: '800' }
+    byFill.set(fill, found)
+  }
+  return found
 }
+
+const FILLED = new WeakMap<TextStyleOptions, Map<number, TextStyleOptions>>()
 
 /**
  * 글자를 세지 않고 넓이만 잽니다.
@@ -101,8 +116,25 @@ function styleOf(style: RichStyle, fill?: number): TextStyleOptions {
  * 올릴 때마다 수십 개를 만들었다 버립니다.
  */
 function widthOf(text: string, style: TextStyleOptions): number {
-  return CanvasTextMetrics.measureText(text, new TextStyle(style)).width
+  return CanvasTextMetrics.measureText(text, metricStyle(style)).width
 }
+
+/**
+ * 재는 데 쓰는 `TextStyle`.
+ *
+ * **모습 하나에 하나입니다.** 낱말마다 새로 만들면 한국어 한 줄에 40개를 만들었다
+ * 버리고, 그 하나하나가 스타일 열쇠를 다시 셉니다.
+ */
+function metricStyle(style: TextStyleOptions): TextStyle {
+  let found = METRIC_STYLES.get(style)
+  if (!found) {
+    found = new TextStyle(style)
+    METRIC_STYLES.set(style, found)
+  }
+  return found
+}
+
+const METRIC_STYLES = new WeakMap<TextStyleOptions, TextStyle>()
 
 /**
  * 한중일 글자.
@@ -196,16 +228,21 @@ function place(runs: Run[], style: RichStyle, into: Container,
     // 낱말이라는 것이 사라집니다 — 통보다 넓을 때만 어쩔 수 없이 나눕니다.
     const whole = run.fill === style.term && widthOf(run.text, shape) <= maxWidth
     let buffer = ''
+    // **조각의 너비를 더해 갑니다.** 쌓인 글을 조각마다 다시 재면 조각 수 × 줄 길이만큼
+    // 캔버스를 재고, 글자 사이 간격의 차이는 한 픽셀에 못 미칩니다.
+    let bufferW = 0
     for (const piece of whole ? [run.text] : piecesOf(run.text, shape, maxWidth)) {
-      const grown = buffer + piece
-      if (x + widthOf(grown, shape) > maxWidth && (buffer !== '' || x > 0)) {
+      const pieceW = widthOf(piece, shape)
+      if (x + bufferW + pieceW > maxWidth && (buffer !== '' || x > 0)) {
         // **줄 끝의 빈칸은 버립니다.** 남겨 두면 다음 줄이 한 칸 밀려 시작합니다.
         put(buffer.replace(/\s+$/, ''), run.fill)
         buffer = ''
+        bufferW = 0
         x = 0
         row++
       }
       buffer += piece
+      bufferW += pieceW
     }
     put(buffer, run.fill)
   }

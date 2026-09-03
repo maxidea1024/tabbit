@@ -58,6 +58,8 @@ export class Slot extends Container {
   private lastText = ''
   /** 이미 조용한 모습으로 돌려놓았는가. 매 프레임 다시 그리지 않기 위한 것입니다. */
   private settledLook = true
+  /** 마지막으로 그린 판때기의 모습. 같으면 다시 그리지 않습니다. */
+  private plateKey = ''
 
   /**
    * 값이 놓이는 가로 자리. 0 이면 왼쪽, 0.5 면 가운데, 1 이면 오른쪽입니다.
@@ -123,12 +125,19 @@ export class Slot extends Container {
 
   private draw(glow = 0): void {
     if (this.bare) return
+    // **모습이 같으면 다시 그리지 않습니다.** 숫자가 굴러가는 동안 매 단계 불리므로, 빛의
+    // 세기를 16단계로 끊어 그 단계가 바뀔 때만 판때기를 다시 만듭니다 — 눈에는 같고,
+    // 초당 240번이던 재삼각화가 몇 번으로 줍니다.
+    const step = Math.round(glow * 16) / 16
+    const key = `${step}|${Math.round(this.burn * 100)}`
+    if (key === this.plateKey) return
+    this.plateKey = key
     const style = slotStyle(this.ink)
     this.plate.clear()
     plate(this.plate, this.boxWidth, this.boxHeight, {
       ...style,
-      top: glow > 0 ? mix(style.top, this.ink, glow * 0.35) : style.top,
-      weight: 1.5 + glow * 2 + this.burn * 1.5,
+      top: step > 0 ? mix(style.top, this.ink, step * 0.35) : style.top,
+      weight: 1.5 + step * 2 + this.burn * 1.5,
     })
     this.plate.alpha = 1 - this.burn * 0.82
   }
@@ -360,6 +369,10 @@ export class BlindBadge extends Container {
    */
   setTags(tags: Container[]): void {
     const chips = 26
+
+    // **이미 달려 있는 그 칩들이면 그대로 둡니다.** 딱지 전체를 다시 그리는 길이 태그를
+    // 한 번 더 넘기는데, 같은 것을 걷고 다시 달면 만든 것을 그 자리에서 버리는 일입니다.
+    if (tags.length === this.tags.length && tags.every((one, i) => one === this.tags[i])) return
 
     // 앞의 태그를 걷고 새것을 답니다. **그대로 두면 쓰인 태그가 띠에 남습니다.**
     for (const one of this.tags) one.destroy()

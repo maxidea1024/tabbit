@@ -19,9 +19,20 @@ interface Particle {
   tint: number
 }
 
+/**
+ * 한꺼번에 살아 있을 수 있는 조각의 수.
+ *
+ * **한 번의 상한은 부르는 쪽이 정하지만, 여러 번이 겹치면 그 합에는 상한이 없었습니다.**
+ * 블라인드를 깨는 순간에 500개 가까이가 2.5초 동안 살아 있었고, 조각 하나가 매 프레임
+ * 채우기 명령 하나입니다. 넘치면 가장 오래된 것부터 놓습니다 — 어차피 먼저 꺼질 것들입니다.
+ */
+const MAX_LIVE = 400
+
 export class Particles extends Container {
   private readonly canvas = new Graphics()
   private readonly live: Particle[] = []
+  /** 캔버스에 무엇이 그려져 있는가. 비어 있으면 손대지 않기 위한 것입니다. */
+  private drawn = false
 
   constructor() {
     super()
@@ -46,6 +57,9 @@ export class Particles extends Container {
   burst(x: number, y: number, count: number, tint: number, power = 1, linger = 1): void {
     if (!this.enabled) return
 
+    const overflow = this.live.length + count - MAX_LIVE
+    if (overflow > 0) this.live.splice(0, overflow)
+
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2
       const speed = (60 + Math.random() * 240) * power
@@ -65,19 +79,27 @@ export class Particles extends Container {
   clear(): void {
     this.live.length = 0
     this.canvas.clear()
+    this.drawn = false
   }
 
   advance(seconds: number): void {
-    this.canvas.clear()
-    if (this.live.length === 0) return
+    if (this.live.length === 0) {
+      // **비어 있으면 손대지 않습니다.** `clear()` 는 지오메트리를 더럽혀 매 프레임 빈 것을
+      // 다시 만들게 합니다.
+      if (this.drawn) {
+        this.canvas.clear()
+        this.drawn = false
+      }
+      return
+    }
 
-    for (let i = this.live.length - 1; i >= 0; i--) {
+    // **남는 것을 앞으로 당겨 씁니다.** 죽은 것마다 `splice` 하면 한 번에 수백 개가 함께
+    // 꺼질 때 n² 입니다. 차례는 그대로여야 겹치는 색이 흔들리지 않습니다.
+    let keep = 0
+    for (let i = 0; i < this.live.length; i++) {
       const p = this.live[i]
       p.life += seconds
-      if (p.life >= p.span) {
-        this.live.splice(i, 1)
-        continue
-      }
+      if (p.life >= p.span) continue
 
       p.vy += 900 * seconds
       // 가로 감속. **초 단위입니다** — 프레임당 0.98 로 적으면 144Hz 에서 조각이 절반도
@@ -85,7 +107,15 @@ export class Particles extends Container {
       p.vx *= Math.exp(-1.2 * seconds)
       p.x += p.vx * seconds
       p.y += p.vy * seconds
+      this.live[keep++] = p
+    }
+    this.live.length = keep
 
+    this.canvas.clear()
+    this.drawn = keep > 0
+    // 새것이 아래, 오래된 것이 위입니다 — 전부터 그 차례였습니다.
+    for (let i = keep - 1; i >= 0; i--) {
+      const p = this.live[i]
       const alpha = 1 - p.life / p.span
       this.canvas.circle(p.x, p.y, p.size * alpha).fill({ color: p.tint, alpha })
     }

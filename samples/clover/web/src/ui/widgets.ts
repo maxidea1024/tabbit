@@ -38,6 +38,8 @@ export class Button extends Container {
   })
 
   private enabledState = true
+  /** 마지막으로 적은 글. 같은 글을 다시 적지 않기 위한 것입니다. */
+  private captionShown?: string
   private lit = false
 
   /** 아무 버튼이나 눌렸을 때. 소리를 내는 쪽이 겁니다. */
@@ -89,6 +91,10 @@ export class Button extends Container {
    * 스테이크 8종의 조합이므로 가장 긴 것을 미리 셀 수도 없습니다.
    */
   set text(value: string) {
+    // **같은 글이면 손대지 않습니다.** 아래의 줄이기가 글자 크기를 바꿀 때마다 글을 다시
+    // 굽고, 조커 풀은 쪽을 넘길 때마다 단추 7개에 같은 글을 다시 적습니다.
+    if (value === this.captionShown) return
+    this.captionShown = value
     this.caption.style.fontSize = this.textSize
     this.caption.text = value
 

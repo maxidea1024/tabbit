@@ -54,26 +54,42 @@ export class ScrollView extends Container {
 
     this.addChild(hit, mask, this.window, this.shade, this.bar)
 
-    hit.on('wheel', (event: FederatedWheelEvent) => {
+    // **듣는 것은 이 컨테이너입니다.** 빈 자리 위에서 시작한 것은 `hit` 에서, 줄 위에서
+    // 시작한 것은 그 줄에서 올라옵니다 — 둘 다 여기를 지납니다. `hit` 에서만 들으면 줄은
+    // `hit` 의 형제라 줄 위에서 누른 손가락이 여기에 닿지 않고, 목록은 줄로 가득하므로
+    // 손가락으로는 굴릴 자리가 없었습니다. 휠도 같습니다 — 줄 위에서는 그 줄이 받습니다.
+    this.eventMode = 'static'
+
+    this.on('wheel', (event: FederatedWheelEvent) => {
       this.scrollBy(Math.sign(event.deltaY) * STEP)
       event.preventDefault()
     })
 
-    hit.on('pointerdown', (event: FederatedPointerEvent) => {
+    this.on('pointerdown', (event: FederatedPointerEvent) => {
       this.dragging = true
-      this.grabbedAt = event.global.y
+      this.grabbedAt = this.localY(event)
       this.grabbedOffset = this.offset
       this.moved = 0
     })
     const release = (): void => { this.dragging = false }
-    hit.on('pointerup', release)
-    hit.on('pointerupoutside', release)
-    hit.on('globalpointermove', (event: FederatedPointerEvent) => {
+    this.on('pointerup', release)
+    this.on('pointerupoutside', release)
+    this.on('globalpointermove', (event: FederatedPointerEvent) => {
       if (!this.dragging) return
-      const delta = event.global.y - this.grabbedAt
+      const delta = this.localY(event) - this.grabbedAt
       this.moved = Math.max(this.moved, Math.abs(delta))
-      this.setOffset(this.grabbedOffset + delta)
+      this.setOffset(this.grabbedOffset + delta, false)
     })
+  }
+
+  /**
+   * 손가락의 세로 자리. **이 컨테이너의 좌표입니다.**
+   *
+   * 화면 좌표로 재면 판이 화면에 맞춰 줄어든 만큼 손가락보다 덜 움직입니다 — 작은 화면에서
+   * 목록이 손가락을 따라오지 않던 것이 그것입니다.
+   */
+  private localY(event: FederatedPointerEvent): number {
+    return this.toLocal(event.global).y
   }
 
   /**
@@ -105,15 +121,24 @@ export class ScrollView extends Container {
   }
 
   private scrollBy(delta: number): void {
-    this.setOffset(this.offset - delta)
+    this.setOffset(this.offset - delta, false)
   }
 
-  private setOffset(next: number): void {
-    const over = Math.max(0, this.content.height - this.height_)
+  private setOffset(next: number, measure = true): void {
+    // **굴리는 동안은 재지 않습니다.** `content.height` 는 자식 전부의 경계를 다시 세는
+    // 것이라 휠 한 칸마다 순위표 125개 노드를 걷습니다 — 내용이 바뀌는 길(`refresh` ·
+    // `toTop` · `reveal`)에서만 재고, 휠과 끌기는 그 값을 씁니다.
+    if (measure) this.contentH = this.content.height
+    const over = Math.max(0, this.contentH - this.height_)
+    const was = this.content.y
     this.offset = Math.min(0, Math.max(-over, next))
     this.content.y = Math.round(this.offset)
+    if (!measure && this.content.y === was) return
     this.drawBar(over)
   }
+
+  /** 마지막으로 잰 내용의 높이. */
+  private contentH = 0
 
   /**
    * 막대와 가장자리의 그늘.
@@ -129,7 +154,7 @@ export class ScrollView extends Container {
 
     if (over <= 0) return
 
-    const ratio = this.height_ / this.content.height
+    const ratio = this.height_ / this.contentH
     const barH = Math.max(28, this.height_ * ratio)
     const at = (-this.offset / over) * (this.height_ - barH)
 

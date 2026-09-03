@@ -165,6 +165,21 @@ export async function settle(page: Page): Promise<void> {
 }
 
 /**
+ * 판이 다 걷히기를 기다립니다.
+ *
+ * **`settle` 은 연출이 끝난 것이고, 낸 카드는 그 뒤에도 잠깐 남습니다** — 읽을 시간을 주고
+ * 한 장씩 밖으로 나가며, 나갈 때마다 소리가 납니다. 다음 패가 깔린 뒤를 재려면 낸 카드와
+ * 나가는 카드와 들어오는 카드가 모두 0이어야 합니다.
+ */
+export async function swept(page: Page): Promise<void> {
+  for (let wait = 0; wait < 60; wait++) {
+    const bins = (await peek(page)).bins
+    if (bins && bins.played === 0 && bins.fades === 0 && bins.deals === 0) return
+    await pass(page, 200)
+  }
+}
+
+/**
  * 시간을 보냅니다.
  *
  * **판을 `?tick=manual` 로 열었으면 그만큼 틱을 돌리고, 아니면 실제로 기다립니다.** 틱으로
@@ -174,15 +189,27 @@ export async function settle(page: Page): Promise<void> {
  * 화면이 상태를 알리기 전에는 실제로 기다립니다 — 그때는 아직 틱을 돌릴 판이 없습니다.
  */
 export async function pass(page: Page, ms: number): Promise<void> {
-  const stepped = await page.evaluate(async wanted => {
-    const hook = (window as unknown as {
-      __clover?: { advance?(ms: number): Promise<void> }
-    }).__clover
-    if (!hook?.advance) return false
-    await hook.advance(wanted)
-    return true
-  }, ms)
-  if (!stepped) await pass(page, ms)
+  for (let wait = 0; ; wait++) {
+    const state = await page.evaluate(async wanted => {
+      const hook = (window as unknown as {
+        __clover?: { advance?(ms: number): Promise<void> }
+      }).__clover
+      if (!hook) return 'booting'
+      if (!hook.advance) return 'realtime'
+      await hook.advance(wanted)
+      return 'stepped'
+    }, ms)
+    if (state === 'stepped') return
+    // **수동 틱이 아닌 판이면 실제로 기다립니다.** 전에는 손잡이가 생기기를 기다리며 자기를
+    // 다시 불렀고, `?tick=manual` 없이 연 판에서는 그 손잡이가 영영 없어서 호출 스택이
+    // 바닥날 때까지 돌았습니다 — `check-setup` 이 10분을 그렇게 서 있었습니다.
+    if (state === 'realtime' || wait >= 50) {
+      await page.waitForTimeout(ms)
+      return
+    }
+    // 아직 화면이 서기 전입니다. 잠깐 실제로 기다리고 다시 봅니다.
+    await page.waitForTimeout(200)
+  }
 }
 
 /**

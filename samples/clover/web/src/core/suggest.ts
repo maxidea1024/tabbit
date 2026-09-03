@@ -61,10 +61,24 @@ export function valueOf(data: Data, state: RunState,
 export function* subsets(cards: CardInstance[], max: number): Generator<CardInstance[]> {
   const total = 1 << cards.length
   for (let mask = 1; mask < total; mask++) {
+    // **개수를 먼저 셉니다.** `max` 장을 넘는 조합은 만들지 않고 넘어갑니다 — 패가 12장이면
+    // 4,095개 중 1,585개만 쓰이고, 나머지 배열을 만들었다 버릴 이유가 없습니다.
+    // 차례는 그대로입니다 — 같은 값이면 먼저 나온 조합이 남으므로 차례가 답을 정합니다.
+    if (popcount(mask) > max) continue
     const chosen: CardInstance[] = []
     for (let i = 0; i < cards.length; i++) {
       if (mask & (1 << i)) chosen.push(cards[i])
     }
-    if (chosen.length <= max) yield chosen
+    yield chosen
   }
+}
+
+/** 켜진 비트의 수. */
+function popcount(n: number): number {
+  let count = 0
+  while (n) {
+    n &= n - 1
+    count++
+  }
+  return count
 }

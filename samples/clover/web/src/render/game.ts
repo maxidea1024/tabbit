@@ -53,7 +53,7 @@ import { Coins } from './coins'
 import { fraction, Motion, Spring } from './motion'
 import { Particles } from './particles'
 import { artFor, onArtReady, type ArtKind } from './art'
-import { backLookOf, cardBack, drawCardBack, setCardBack } from './card-back'
+import { backLookOf, bakeCardBacks, cardBack, drawCardBack, setCardBack } from './card-back'
 import { cardArtDir, cardBackMotif, cardPaper, drawsIndex, setCardSet, setLookOf, suitInk } from './card-set'
 import { drawGlyph, glyphFor, hashOf, hsl, shade } from './glyph'
 import { cardArtId, drawFace } from './pips'
@@ -324,6 +324,44 @@ interface Riser {
   rumble: number
 }
 
+/**
+ * 머리띠에 달린 태그 칩 하나.
+ *
+ * **칩은 `refresh` 에서 한 번 만들고, 번쩍임과 발동은 이것을 매 프레임 만집니다.** 전에는
+ * 번쩍이는 1초 동안 매 프레임 칩 전부를 버리고 다시 만들었고, 칩마다 필터를 새로 걸었습니다.
+ */
+interface TagCell {
+  cell: Container
+  tagId: string
+  /** 쓴 태그인가. 발동이 끝나면 이 밝기로 돌아갑니다. */
+  used: boolean
+  size: number
+  /** 발동하는 동안 걸린 필터. 끝나면 뗍니다. */
+  lit?: ArriveFilter
+  /** 새로 들어온 칩의 흰 번쩍임. 끝나면 지웁니다. */
+  shine?: Graphics
+}
+
+/**
+ * 블라인드 고르기 판의 카드 하나.
+ *
+ * **들어오는 동안 매 프레임 바뀌는 것은 자리와 알파뿐입니다.** 전에는 그 1초 동안 매 프레임
+ * 카드 셋을 글 25개와 함께 버리고 다시 만들었습니다.
+ */
+interface BlindGroup {
+  group: Container
+  index: number
+  x: number
+  bottom: number
+  width: number
+  height: number
+  now: boolean
+  done: boolean
+  /** 건너뛰기 단추의 가운데. 카드 위쪽 기준입니다. 도구가 누르는 자리를 매 프레임 맞춥니다. */
+  skipY?: number
+  pickY?: number
+}
+
 const CHIPS_Y = 336
 /**
  * 칩 × 배수 덩어리.
@@ -564,9 +602,16 @@ export class Game {
    * 쪽지는 이 통 밖이라 또렷하게 남습니다.
    */
   private readonly recede = new Container()
-  private readonly blur = new BlurFilter({ strength: 0, quality: 3 })
+  /**
+   * 판 뒤를 흐리는 필터 둘.
+   *
+   * **반 해상도로 굽습니다.** 흐림은 화면 전체를 그림으로 한 번 구워 여섯 번 지나가는 것이고,
+   * 흐린 그림은 해상도를 낮춰도 흐린 그림입니다 — 텍셀이 4분의 1이면 그 여섯 번이 4분의 1
+   * 값입니다. 반지름은 텍셀 단위라 반으로 적어야 화면에서 같은 크기입니다.
+   */
+  private readonly blur = new BlurFilter({ strength: 0, quality: 3, resolution: 0.5 })
   /** 배경도 함께 흐립니다. **필터 하나를 둘에 걸지 않습니다** — 같은 프레임에 두 번 쓰입니다. */
-  private readonly blurBack = new BlurFilter({ strength: 0, quality: 3 })
+  private readonly blurBack = new BlurFilter({ strength: 0, quality: 3, resolution: 0.5 })
   /** 지금 흐린 정도. 판이 열리고 닫힐 때 잦아듭니다. */
   private blurShown = 0
 
@@ -926,6 +971,8 @@ export class Game {
   private tagSpent: string[] = []
   /** 이 줄이 어느 안테의 것인가. 바뀌면 비웁니다. */
   private tagSpentAnte = 0
+  /** 지금 머리띠에 달린 칩들. `tagChips` 가 채우고 `advanceTagFlash` 가 만집니다. */
+  private tagCells: TagCell[] = []
   /**
    * 떠오르는 차이 글의 풀.
    *
@@ -946,6 +993,8 @@ export class Game {
     },
   })
   private readonly gauge = new Graphics()
+  /** 마지막으로 그린 게이지의 모습. 같으면 다시 그리지 않습니다. */
+  private gaugeKey = ''
   private readonly frames = new Graphics()
   /** 덱 더미. 상점에서는 화면 밖으로 밀려 나갑니다. */
   private readonly deckLayer = new Container()
@@ -1247,6 +1296,16 @@ export class Game {
   /** 화면 전체의 번쩍임. 큰 것에만 씁니다. */
   private screenGlow = 0
   private panelDrawn = false
+  /** 마지막으로 그린 패널 번쩍임의 모양(색과 테두리 굵기 단계). 밝기는 알파로 따로 갑니다. */
+  private panelKey = ''
+  /** 마지막으로 그린 화면 번쩍임의 색. */
+  private screenKey = -1
+  /** 그림이 새로 들어왔는가. `tick` 이 한 프레임에 한 번 처리합니다. */
+  private artDirty = false
+  /** 마지막으로 센 최선의 조합. 패가 같으면 다시 세지 않습니다. `act` 가 비웁니다. */
+  private hintCache?: { key: string; best: ReturnType<typeof bestHand> }
+  /** 블라인드 고르기 판의 카드 셋. 들어오는 동안 자리만 옮깁니다. */
+  private blindGroups: BlindGroup[] = []
   private screenDrawn = false
   private screenTint: number = COLOR.ink
   /** 점수가 멈춘 뒤 낸 카드를 얼마나 붙잡아 두었는가. */
@@ -1594,10 +1653,14 @@ export class Game {
     })
 
     // 그림이 새로 들어오면 다시 그립니다. 문양이 그림으로 바뀝니다.
-    onArtReady(() => {
-      this.repaintPack()
-      this.refresh()
-    })
+    // **그 자리에서 다시 그리지 않고 표시만 남깁니다.** 그림 하나마다 부르므로 조커 풀을
+    // 열면 40번이 오고, 그때마다 화면 전체를 다시 세우면 한 번에 40번입니다 — `tick` 이
+    // 한 프레임에 한 번으로 모아 처리합니다.
+    onArtReady(() => { this.artDirty = true })
+
+    // **도구가 읽을 때만 셉니다.** 매 프레임 40개 키를 만들어 두던 것을, 읽는 쪽이 그 순간에
+    // 만드는 것으로 바꿨습니다 — 값은 같고, 아무도 읽지 않는 프레임에는 아무 일도 없습니다.
+    Object.defineProperty(window, '__clover', { configurable: true, get: () => this.peek() })
 
     // **카드가 다 닿은 뒤에 셉니다.** 카드는 실제 시계로 날아가고 연출은 배속과 히트스톱을
     // 타므로, 시간으로만 맞추면 배속을 올린 순간 어긋납니다.
@@ -1773,6 +1836,7 @@ export class Game {
    */
   private layRun(seed: string): void {
     const setup = this.setup()
+    this.hintCache = undefined
     this.state = newRun(this.data, seed, setup.deckId, setup.stake,
                         poolsOf(this.settings.pool), this.challengeId).state
     this.actions = []
@@ -2291,6 +2355,8 @@ export class Game {
     this.sheet.height = height
     this.background.setAspect(width / Math.max(1, height))
     this.sharpen(scale)
+    // 뒷면은 글씨와 같은 배율로 굽습니다.
+    bakeCardBacks(this.app.renderer, this.textScale)
   }
 
   /**
@@ -2319,6 +2385,7 @@ export class Game {
     this.tooltip.hide()
     const before = this.shown.hand
     const step = apply(this.data, this.state, action)
+    this.hintCache = undefined
     // **코어를 지난 액션만 적습니다.** 화면이 막은 것은 런에 들어가지 않았습니다.
     this.actions.push(action)
     observe(this.metrics, step.events)
@@ -2740,8 +2807,38 @@ export class Game {
       if (next >= 1) this.tagFire.delete(tagId)
       else this.tagFire.set(tagId, next)
     }
-    // 번쩍이거나 발동하는 동안은 매 프레임 다시 그립니다.
-    this.badge.setTags(this.tagChips())
+    // **칩은 그대로 두고 밝기·크기·필터만 만집니다.** 전에는 이 1초 동안 매 프레임 칩 전부를
+    // 버리고 다시 만들었고, 발동하는 칩마다 필터를 새로 걸었습니다.
+    for (const one of this.tagCells) {
+      if (one.cell.destroyed) continue
+      const fire = this.tagFire.get(one.tagId)
+      if (fire !== undefined && fire >= 0) {
+        const wave = Math.sin(fire * Math.PI)
+        one.cell.alpha = 0.42 + wave * 0.58
+        one.cell.scale.set(1 + wave * 0.3)
+        if (!one.lit) {
+          one.lit = new ArriveFilter()
+          one.cell.filters = [one.lit]
+        }
+        one.lit.at(this.clock)
+        one.lit.flash = wave * 0.9
+        one.lit.warp = wave * 0.35
+      } else if (one.lit) {
+        one.lit = undefined
+        one.cell.filters = []
+        one.cell.alpha = one.used ? 0.42 : 1
+        one.cell.scale.set(1)
+      }
+      if (one.shine) {
+        const life = one.tagId === this.tagFlashId ? this.tagFlashLife : 1
+        if (life < 1) {
+          one.shine.alpha = Math.sin(life * Math.PI) * 0.8
+        } else {
+          one.shine.destroy()
+          one.shine = undefined
+        }
+      }
+    }
   }
 
   /** 돌아오는 카드들. 덱에 닿은 것부터 지웁니다. */
@@ -3226,8 +3323,9 @@ export class Game {
     // **약하게.** 뒤가 무엇인지는 알아볼 수 있어야 합니다 — 판을 닫고 어디로 돌아가는지가
     // 보이지 않으면 판이 화면을 갈아치운 것으로 보입니다.
     if (on) {
-      this.blur.strength = this.blurShown * 3
-      this.blurBack.strength = this.blurShown * 2
+      // 반 해상도의 텍셀이므로 화면에서는 3픽셀과 2픽셀입니다.
+      this.blur.strength = this.blurShown * 1.5
+      this.blurBack.strength = this.blurShown * 1
     }
   }
 
@@ -3645,11 +3743,16 @@ export class Game {
     const seconds = deltaMs / 1000
     this.clock += seconds
 
+    if (this.artDirty) {
+      this.artDirty = false
+      this.repaintPack()
+      this.refresh()
+    }
+
     // **히트스톱.** 연출의 시계만 멈춥니다 — 용수철과 파티클은 계속 움직여야 화면이
     // 얼어붙은 것으로 보이지 않습니다.
     if (this.freeze > 0) this.freeze = Math.max(0, this.freeze - deltaMs)
     else this.player.advance(deltaMs)
-    this.publishPeek()
 
     this.advanceConsumableLift(seconds)
     this.advanceItemArrive(seconds)
@@ -3747,10 +3850,10 @@ export class Game {
     // 조커 풀의 카드도 살아 있어야 합니다 — 에디션 무늬가 시간을 읽고 손을 올리면 들립니다.
     this.jokerPool.advance(seconds, this.clock)
 
-    // 블라인드 판이 들어오는 동안 매 프레임 다시 그립니다.
+    // 블라인드 판이 들어오는 동안 매 프레임 자리를 옮깁니다. **다시 만들지 않습니다.**
     if (this.state.phase === 'blind-select' && this.blindEnter < 1) {
       this.blindEnter = Math.min(1, this.blindEnter + seconds * 1.5)
-      this.drawBlindPick()
+      for (const entry of this.blindGroups) this.placeBlindGroup(entry)
     } else if (this.state.phase !== 'blind-select') {
       this.blindEnter = 0
       this.blindShown = -1
@@ -3800,7 +3903,10 @@ export class Game {
    * `tick` 에 있습니다.
    */
   private step(stepMs: number): void {
-    for (const slot of [this.score, this.chips, this.mult, this.money]) slot.advance(stepMs)
+    this.score.advance(stepMs)
+    this.chips.advance(stepMs)
+    this.mult.advance(stepMs)
+    this.money.advance(stepMs)
     this.advanceRisers(stepMs)
 
     // 흔들림은 줄어듭니다. **판만 흔들고 배경은 가만히 둡니다** — 둘 다 흔들면 무엇이
@@ -3836,28 +3942,44 @@ export class Game {
 
   /** 번쩍임은 줄어듭니다. 패널은 빠르게, 화면은 더 빠르게 — 오래 남으면 눈이 아픕니다. */
   private decayFlashes(seconds: number): void {
+    // **모양은 몇 번만, 밝기는 매 프레임.** 지오메트리를 다시 만드는 것이 비싼 쪽이고 알파는
+    // 값 하나입니다 — 테두리 굵기만 모양에 들어가므로 그것을 8단계로 끊어 단계가 바뀔 때만
+    // 다시 그리고, 잦아드는 것은 알파로 합니다. 득점 중에는 카드마다 번쩍이므로 이것이
+    // 사실상 매 프레임 돌던 것입니다.
     if (this.panelGlow > 0.002) {
       this.panelGlow = Math.max(0, this.panelGlow - seconds * 3.6)
       const ease = this.panelGlow * this.panelGlow
-      this.panelFlash.clear()
-      this.panelFlash.roundRect(LEFT - 12, 22, PANEL_W + 24, SIZE.height - 44, 12)
-        .fill({ color: this.panelTint, alpha: ease * 0.3 })
-      this.panelFlash.roundRect(LEFT - 11, 23, PANEL_W + 22, SIZE.height - 46, 11)
-        .stroke({ color: this.panelTint, width: 1 + ease * 4, alpha: ease })
+      const step = Math.round(ease * 8) / 8
+      const key = `${this.panelTint}|${step}`
+      if (key !== this.panelKey) {
+        this.panelKey = key
+        this.panelFlash.clear()
+        this.panelFlash.roundRect(LEFT - 12, 22, PANEL_W + 24, SIZE.height - 44, 12)
+          .fill({ color: this.panelTint, alpha: 0.3 })
+        this.panelFlash.roundRect(LEFT - 11, 23, PANEL_W + 22, SIZE.height - 46, 11)
+          .stroke({ color: this.panelTint, width: 1 + step * 4, alpha: 1 })
+      }
+      this.panelFlash.alpha = ease
       this.panelDrawn = true
     } else if (this.panelDrawn) {
       this.panelFlash.clear()
+      this.panelKey = ''
       this.panelDrawn = false
     }
 
     if (this.screenGlow > 0.002) {
       this.screenGlow = Math.max(0, this.screenGlow - seconds * 4.4)
-      this.screenFlash.clear()
-      this.screenFlash.rect(-2000, -2000, SIZE.width + 4000, SIZE.height + 4000)
-        .fill({ color: this.screenTint, alpha: this.screenGlow * this.screenGlow })
+      if (this.screenTint !== this.screenKey) {
+        this.screenKey = this.screenTint
+        this.screenFlash.clear()
+        this.screenFlash.rect(-2000, -2000, SIZE.width + 4000, SIZE.height + 4000)
+          .fill({ color: this.screenTint, alpha: 1 })
+      }
+      this.screenFlash.alpha = this.screenGlow * this.screenGlow
       this.screenDrawn = true
     } else if (this.screenDrawn) {
       this.screenFlash.clear()
+      this.screenKey = -1
       this.screenDrawn = false
     }
   }
@@ -3999,9 +4121,14 @@ export class Game {
     const width = 440
     const height = 12
 
-    this.gauge.clear()
     const ratio = this.state.target > 0
       ? this.shown.score / Number(this.state.target) : 0
+    // **채운 길이가 같으면 다시 그리지 않습니다.** 판이 도는 내내 매 프레임 불리는데
+    // 점수는 대부분의 프레임에 그대로입니다.
+    const key = `${Math.round(width * Math.min(1, ratio))}|${ratio >= 1}`
+    if (key === this.gaugeKey) return
+    this.gaugeKey = key
+    this.gauge.clear()
 
     this.gauge.roundRect(x, y, width, height, 6).fill(0x101724)
     this.gauge.roundRect(x, y, width * Math.min(1, ratio), height, 6)
@@ -4010,9 +4137,9 @@ export class Game {
       .stroke({ color: COLOR.panelEdge, width: 1 })
   }
 
-  private publishPeek(): void {
+  private peek(): unknown {
     const state = this.state
-    ;(window as unknown as { __clover?: unknown }).__clover = {
+    return {
       // 어느 씬인가. **판을 접고 타이틀로 갔는지를 이것으로 봅니다.**
       scene: this.scene,
       // 설명 쪽지가 지금 떠 있는가. 꾸욱 누르기를 재는 도구가 씁니다.
@@ -4203,7 +4330,6 @@ export class Game {
 
   private refresh(): void {
     const state = this.state
-    this.publishPeek()
 
     // **세울 것 목록은 여기서 비웁니다.** 상점과 팩이 같이 쓰므로, 어느 한쪽이 비우면
     // 다른 쪽이 이미 담아 둔 것을 지우게 됩니다.
@@ -4261,7 +4387,10 @@ export class Game {
     // 무엇을 하라는 말인지가 아니라 무엇을 했었는지가 됩니다.
     this.drawHint(this.presented ? this.hintText() : '')
     this.drawPips()
-    this.sharpen(this.world.scale.x)
+    // **기본 해상도면 걷지 않습니다.** 새로 만든 글은 렌더러의 해상도로 구워지므로, 화면
+    // 배율이 1 이하일 때 원하는 값은 그 기본값과 같습니다 — 트리 전체를 걷는 것은 배율이
+    // 1을 넘을 때만 필요하고, 그때도 `layout` 이 이미 한 번 걸었습니다.
+    if (this.world.scale.x > 1) this.sharpen(this.world.scale.x)
   }
 
   /**
@@ -4287,7 +4416,14 @@ export class Game {
       .filter((card): card is CardInstance => card !== undefined)
     if (held.length === 0) return
 
-    const best = bestHand(this.data, this.state, held)
+    // **같은 패면 다시 세지 않습니다.** 부분집합 전수라 패가 8장이면 218번, 12장이면
+    // 1,585번 족보를 세고, 카드를 고르고 푸는 것마다 `refresh` 가 여기를 지납니다 — 패와
+    // 규칙은 액션으로만 바뀌므로 `act` 와 새 판이 이것을 비웁니다.
+    const key = this.state.hand.join(',')
+    if (this.hintCache?.key !== key) {
+      this.hintCache = { key, best: bestHand(this.data, this.state, held) }
+    }
+    const best = this.hintCache.best
     if (!best) return
 
     const picked = held.filter(card => this.selected.has(card.uid))
@@ -4739,8 +4875,28 @@ export class Game {
    * 건너뛰기가 뜻을 가지려면 **다음에 무엇이 오는지가 보여야 합니다.** 보스의 효과가
    * 그중에서도 가장 중요하고, 그래서 보스 칸에는 무엇을 하는 보스인지가 적힙니다.
    */
+  /**
+   * 카드 하나를 들어오는 정도에 맞춰 놓습니다.
+   *
+   * 왼쪽부터 차례로 아래에서 올라옵니다. 셋이 같이 나타나면 셋이 한 덩어리로 보입니다.
+   * 도구가 누르는 자리도 카드를 따라갑니다.
+   */
+  private placeBlindGroup(entry: BlindGroup): void {
+    const enter = Math.max(0, Math.min(1, (this.blindEnter - entry.index * 0.16) / 0.44))
+    const eased = 1 - Math.pow(1 - enter, 3)
+    entry.group.position.set(entry.x, entry.bottom - entry.height + (1 - eased) * 70)
+    entry.group.alpha = (entry.now ? 1 : entry.done ? 0.5 : 0.72) * eased
+    if (entry.skipY !== undefined) {
+      this.spots.skip = { x: entry.x + entry.width / 2, y: entry.group.y + entry.skipY }
+    }
+    if (entry.pickY !== undefined) {
+      this.spots.pick = { x: entry.x + entry.width / 2, y: entry.group.y + entry.pickY }
+    }
+  }
+
   private drawBlindPick(): void {
     this.blindPick.removeChildren().forEach(child => child.destroy())
+    this.blindGroups = []
     delete this.spots.pick
     delete this.spots.skip
     const state = this.state
@@ -4792,12 +4948,11 @@ export class Game {
       // 들쭉날쭉해 보입니다. 밑단에 쌓인 만큼은 반드시 자랍니다.
       const height = Math.max(cardH + (now ? 26 : 0), 222 + stackH + 12)
 
-      // 왼쪽부터 차례로 아래에서 올라옵니다. 셋이 같이 나타나면 셋이 한 덩어리로 보입니다.
-      const enter = Math.max(0, Math.min(1, (this.blindEnter - index * 0.16) / 0.44))
-      const eased = 1 - Math.pow(1 - enter, 3)
-      group.position.set(startX + index * (cardW + gap),
-        bottom - height + (1 - eased) * 70)
-      group.alpha = (now ? 1 : done ? 0.5 : 0.72) * eased
+      const entry: BlindGroup = {
+        group, index, x: startX + index * (cardW + gap), bottom, width: cardW, height, now, done,
+      }
+      this.blindGroups.push(entry)
+      this.placeBlindGroup(entry)
 
       const plate = new Graphics()
       const radius = 14
@@ -4912,7 +5067,8 @@ export class Game {
               this.act({ t: 'skip_blind' })
             })
           place(skip, 36)
-          this.spots.skip = { x: group.x + cardW / 2, y: group.y + skip.y + 18 }
+          entry.skipY = skip.y + 18
+          this.spots.skip = { x: group.x + cardW / 2, y: group.y + entry.skipY }
           // **무엇을 받는지가 그 버튼 위에 적혀 있습니다.** 적혀 있지 않으면 건너뛸지를
           // 찍게 됩니다 — 태그 하나가 조커 하나이거나 바우처 하나입니다.
           if (tag) place(tag.node, tag.height)
@@ -4920,7 +5076,8 @@ export class Game {
         const pick = new Button(t('ui.button.select_blind'), cardW - 36, 44, 0x2f6fb5,
           () => this.act({ t: 'select_blind' }))
         place(pick, 44)
-        this.spots.pick = { x: group.x + cardW / 2, y: group.y + pick.y + 22 }
+        entry.pickY = pick.y + 22
+        this.spots.pick = { x: group.x + cardW / 2, y: group.y + entry.pickY }
       }
 
       this.blindPick.addChild(group)
@@ -5626,7 +5783,8 @@ export class Game {
     // **태그는 연출과 상관없이 지금 것입니다.** 딱지 전체는 연출이 끝난 뒤에 바꾸지만,
     // 태그는 그 연출 안에서 들어오므로 함께 묶으면 딱지가 한 번씩 뒤처집니다 — 첫 스킵의
     // 태그가 보이지 않고 다음 스킵에서야 그 앞의 것이 뜨던 것이 그것입니다.
-    this.badge.setTags(this.tagChips())
+    const chips = this.tagChips()
+    this.badge.setTags(chips)
 
     // 연출이 도는 중에는 앞 국면의 딱지를 그대로 둡니다.
     if (!this.presented) return
@@ -5655,7 +5813,8 @@ export class Game {
       this.blindFace(state.blind, 34),
       // 들고 있는 태그. **딱지 안 아래에 가운데로 섭니다** — 화면 구석에 따로 두었더니
       // 무엇에 딸린 것인지가 끊겼고, 조커 줄과 덱 사이에 낀 셋째 줄처럼 보였습니다.
-      this.tagChips())
+      // **위에서 만든 그 칩들입니다.** 다시 만들면 위의 것을 그 자리에서 버립니다.
+      chips)
   }
 
   /**
@@ -5665,6 +5824,7 @@ export class Game {
    * 그 아래의 점수 칸을 밀어냅니다.
    */
   private tagChips(): Container[] {
+    this.tagCells = []
     if (this.scene !== 'run') return []
     // 머리띠 안에 앉으므로 띠보다 작아야 합니다. 띠가 32이고 그 안에 26입니다.
     const size = 26
@@ -5708,16 +5868,18 @@ export class Game {
 
       // **다만 발동하는 그 순간에는 켜집니다.** 그 태그가 한 일이 그 순간이고, 흐려지는
       // 것은 그 뒤에 남는 상태입니다.
+      const record: TagCell = { cell, tagId, used, size }
+      this.tagCells.push(record)
       const fire = this.tagFire.get(tagId)
       if (fire !== undefined && fire >= 0) {
         const wave = Math.sin(fire * Math.PI)
         cell.alpha = 0.42 + wave * 0.58
         cell.scale.set(1 + wave * 0.3)
-        const lit = new ArriveFilter()
-        lit.at(this.clock)
-        lit.flash = wave * 0.9
-        lit.warp = wave * 0.35
-        cell.filters = [lit]
+        record.lit = new ArriveFilter()
+        record.lit.at(this.clock)
+        record.lit.flash = wave * 0.9
+        record.lit.warp = wave * 0.35
+        cell.filters = [record.lit]
       }
 
       // 새로 선 칩 하나만 한 번 하얗게 번쩍이며 나옵니다.
@@ -5730,7 +5892,11 @@ export class Game {
       // 켜지는 것도 꺼지는 것도 사인 한 마디입니다. **꼭대기가 0.8입니다** — 1이면 그
       // 순간 칩이 통째로 하얘져서 무엇이 생겼는지가 도리어 안 보입니다.
       const life = tagId === this.tagFlashId ? this.tagFlashLife : 1
-      if (life < 1) cell.addChild(glare(size, Math.sin(life * Math.PI) * 0.8))
+      if (life < 1) {
+        record.shine = glare(size, 1)
+        record.shine.alpha = Math.sin(life * Math.PI) * 0.8
+        cell.addChild(record.shine)
+      }
 
       cell.eventMode = 'static'
       cell.hitArea = new Rectangle(0, 0, size, size)

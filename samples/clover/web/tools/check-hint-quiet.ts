@@ -9,7 +9,8 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, chooseFive, clickPrimary, peek, playHand, settle, STAGE_W, skipLogin, TITLE_START, pass,
+  at, chooseFive, clickPrimary, peek, playHand, settle, STAGE_W, skipLogin, swept, TITLE_START,
+  pass,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -63,6 +64,9 @@ async function main(): Promise<number> {
   const held = await peek(page)
   await playHand(page, chooseFive(held.hand))
   await settle(page)
+  // **낸 카드가 다 나간 뒤부터입니다.** 연출이 끝나도 낸 카드는 1.1초 더 남았다가 한 장씩
+  // 나가며 소리를 내고, 정해진 시간만 기다리면 그 꼬리가 재는 구간에 들어옵니다.
+  await swept(page)
   await pass(page, 1600)
   const mark3 = ((await peek(page)).sounds ?? []).length
   await pass(page, 2500)

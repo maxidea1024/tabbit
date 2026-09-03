@@ -13,7 +13,9 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 
-import { at, clickPrimary, settle, type Peek, skipLogin, pass, TITLE_START } from './harness'
+import {
+  at, clickPrimary, settle, type Peek, skipLogin, pass, TITLE_OPTIONS, TITLE_START,
+} from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '..', '..', 'design-data', 'out', 'check')
@@ -89,8 +91,10 @@ async function main(): Promise<number> {
   await page.addInitScript(`localStorage.setItem('clover.guide.seen', '1')`)
   await page.goto('http://localhost:5191/?tick=manual', { waitUntil: 'domcontentloaded' })
   await pass(page, 2600)
-  // 타이틀 오른쪽 아래의 톱니. `ui/title.ts` 의 자리입니다.
-  await page.mouse.click(1280 - 30 - 29, 800 - 30 - 29)
+  // 타이틀 오른쪽의 톱니. **자리는 하네스의 상수입니다** — 여기 수로 적어 두면 타이틀의
+  // 배치가 바뀐 날에 빈 곳을 누르고 「판의 자리를 알 수 없습니다」 로 끝납니다.
+  const gear = await at(page, TITLE_OPTIONS.x, TITLE_OPTIONS.y)
+  await page.mouse.click(gear.x, gear.y)
   await pass(page, 900)
   await page.screenshot({ path: path.join(OUT, 'cards-options.png') })
 

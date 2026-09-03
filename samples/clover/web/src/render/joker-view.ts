@@ -167,14 +167,17 @@ export class JokerView extends Container {
     // 사각형으로 그려져 카드를 덮습니다.
     this.clip.clear()
 
-    this.art?.destroy()
-    this.art = undefined
-
     // **그림이 카드를 가득 채웁니다.** 액자 안의 작은 그림으로 두면 카드가 아니라 아이콘이
     // 되고, 무엇을 사는 것인지 줄에서 읽히지 않습니다.
     const texture = artFor('joker', joker.jokerId)
-    if (texture) {
-      this.clip.roundRect(0, 0, w, h, RADIUS).fill(0xffffff)
+    // **같은 그림이면 스프라이트를 그대로 둡니다.** 다시 그릴 때마다 버리고 새로 만들면
+    // 들고 있는 조커 다섯이 `refresh` 마다 다섯 번 그 일을 합니다.
+    if (this.art && this.art.texture !== texture) {
+      this.art.destroy()
+      this.art = undefined
+    }
+    if (texture) this.clip.roundRect(0, 0, w, h, RADIUS).fill(0xffffff)
+    if (texture && !this.art) {
       const sprite = new Sprite(texture)
       // 넓이에 맞추고 남는 세로를 가운데에서 자릅니다. 그림에 테두리가 있으므로 조금
       // 잘려도 티가 나지 않습니다.

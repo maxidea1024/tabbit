@@ -21,11 +21,28 @@ import { BanKind } from '../generated/enums/ban-kind'
  * 그때 뽑기를 건너뜁니다.
  */
 export function jokerPool(data: Data, state: RunState, rarity?: Rarity): JokerRecord[] {
-  const no = banned(data, state, BanKind.Joker)
-  return data.tables.joker.records.filter(row =>
-    state.pools.includes(row.pool) && (rarity === undefined || row.rarity === rarity)
-    && !no.has(row.jokerId))
+  // **같은 조건이면 한 번 고른 것을 다시 씁니다.** 상점 칸마다 500행을 다시 거르고 있었고,
+  // 풀과 챌린지는 런 안에서 바뀌지 않습니다. 부르는 쪽은 읽기만 합니다 — 넷 다 한 장을
+  // 뽑아 갈 뿐입니다.
+  let byKey = POOL_CACHE.get(data)
+  if (!byKey) {
+    byKey = new Map()
+    POOL_CACHE.set(data, byKey)
+  }
+  const key = `${state.pools.join(',')}|${state.challengeId}|${rarity ?? ''}`
+  let found = byKey.get(key)
+  if (found === undefined) {
+    const no = banned(data, state, BanKind.Joker)
+    found = data.tables.joker.records.filter(row =>
+      state.pools.includes(row.pool) && (rarity === undefined || row.rarity === rarity)
+      && !no.has(row.jokerId))
+    byKey.set(key, found)
+  }
+  return found
 }
+
+/** 풀·챌린지·희귀도로 고른 조커들. 데이터마다 따로입니다 — 테스트는 표를 바꾼 데이터를 씁니다. */
+const POOL_CACHE = new WeakMap<Data, Map<string, JokerRecord[]>>()
 
 /**
  * 사람이 고를는 것. 옵션에 이 값이 적혀 다음 판에 쓰입니다.

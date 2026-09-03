@@ -29,17 +29,29 @@ export interface PlateStyle {
  * **좌표를 낱개로 넘기지 않습니다** — 그 형태는 Pixi 가 예고 폐기로 알리고, 콘솔이 그 경고로
  * 덮이면 진짜 오류가 그 밑에 묻힙니다.
  */
+/** 만들어 둔 그라디언트. 높이와 두 색이 열쇠입니다. */
+const GRADIENTS = new Map<string, FillGradient>()
+
 function gradient(width: number, height: number, top: number, bottom: number): FillGradient {
   void width
-  return new FillGradient({
-    start: { x: 0, y: 0 },
-    end: { x: 0, y: height },
-    colorStops: [
-      { offset: 0, color: top },
-      { offset: 1, color: bottom },
-    ],
-    textureSpace: 'global',
-  })
+  // **같은 그라디언트는 한 번만 만듭니다.** `FillGradient` 하나가 캔버스 하나와 텍스처
+  // 하나이고, 판때기를 다시 그릴 때마다 새로 만들면 점수가 굴러가는 동안 초당 240개가
+  // 생기고 지워지지 않습니다 — 색과 높이가 같으면 같은 텍스처입니다.
+  const key = `${height}|${top}|${bottom}`
+  let found = GRADIENTS.get(key)
+  if (!found) {
+    found = new FillGradient({
+      start: { x: 0, y: 0 },
+      end: { x: 0, y: height },
+      colorStops: [
+        { offset: 0, color: top },
+        { offset: 1, color: bottom },
+      ],
+      textureSpace: 'global',
+    })
+    GRADIENTS.set(key, found)
+  }
+  return found
 }
 
 /** 판때기 하나. 그림자부터 하이라이트까지 한 번에 그립니다. */

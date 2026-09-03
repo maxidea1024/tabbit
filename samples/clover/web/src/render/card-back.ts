@@ -14,7 +14,7 @@
 // 그림 파일이 아닌 이유는 앞면과 같습니다 — 크기가 여럿(손패 · 덱 더미 · 남은 카드 보기)이고,
 // 선화라 어느 크기에서도 다시 그리는 편이 낫습니다.
 
-import { Container, Graphics } from 'pixi.js'
+import { Container, Graphics, Rectangle, Sprite, type Renderer, type Texture } from 'pixi.js'
 
 import { CardBackKind } from '../generated/enums/card-back-kind'
 import { COLOR } from './theme'
@@ -85,9 +85,66 @@ interface Panel {
 
 /**
  * 뒷면 하나를 그립니다. `(0, 0)` 이 왼쪽 위입니다.
+ *
+ * **한 번 그린 것은 그림으로 남깁니다.** 뒷면 하나가 채우기·선 명령 80~190개이고 안쪽
+ * 판에 스텐실 마스크가 하나 붙는데, 부르는 자리는 전부 같은 크기입니다 — 뽑는 카드마다,
+ * 되돌아오는 카드 20장마다 그것을 다시 그릴 이유가 없습니다. 렌더러를 받기 전(타이틀 ·
+ * 미리보기)에는 선으로 그립니다.
  */
 export function drawCardBack(node: Container, width: number, height: number,
                              radius: number, look: BackLook): void {
+  const texture = bakedBack(width, height, radius, look)
+  if (!texture) {
+    drawCardBackVector(node, width, height, radius, look)
+    return
+  }
+  const sprite = new Sprite(texture)
+  sprite.width = width
+  sprite.height = height
+  node.addChild(sprite)
+}
+
+/** 구울 때 쓰는 렌더러와 화면 밀도. `bakeCardBacks` 가 넘깁니다. */
+let baker: { renderer: Renderer; density: number } | undefined
+
+/** 구워 둔 뒷면들. 크기·무늬·색·밀도가 열쇠입니다. 밀도가 바뀌면 그 밀도의 것을 새로 굽습니다. */
+const BAKED = new Map<string, Texture>()
+
+/**
+ * 뒷면을 그림으로 구울 렌더러를 받습니다.
+ *
+ * `density` 는 글씨와 같은 배율입니다 — 화면 배율 × 픽셀 밀도이고, 그보다 낮게 구우면
+ * 늘려 놓은 그림이 됩니다. 이미 만들어진 스프라이트는 그대로 두고 다음 것부터 새 밀도로
+ * 굽습니다.
+ */
+export function bakeCardBacks(renderer: Renderer, density: number): void {
+  baker = { renderer, density: Math.min(3, Math.max(1, density)) }
+}
+
+function bakedBack(width: number, height: number, radius: number,
+                   look: BackLook): Texture | undefined {
+  if (!baker) return undefined
+  const key = `${width}|${height}|${radius}|${look.motif}|${look.ground}|${look.ink}|${baker.density}`
+  let found = BAKED.get(key)
+  if (!found) {
+    const node = new Container()
+    drawCardBackVector(node, width, height, radius, look)
+    found = baker.renderer.generateTexture({
+      target: node,
+      resolution: baker.density,
+      antialias: true,
+      // 경계를 직접 줍니다. 마스크가 있는 노드의 경계를 세는 데 기대지 않습니다.
+      frame: new Rectangle(0, 0, width, height),
+    })
+    node.destroy({ children: true })
+    BAKED.set(key, found)
+  }
+  return found
+}
+
+/** 뒷면 하나를 선으로 그립니다. 굽는 쪽과 렌더러가 없는 쪽이 씁니다. */
+function drawCardBackVector(node: Container, width: number, height: number,
+                            radius: number, look: BackLook): void {
   const cx = width / 2
   const cy = height / 2
   // **자기 Graphics 를 만들어 담습니다.** 부르는 쪽의 `Graphics` 에 자식을 붙이면 Pixi 가

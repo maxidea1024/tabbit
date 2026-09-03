@@ -15,6 +15,7 @@
 // 없으므로** 이 판이 데이터와 어긋날 자리가 없습니다.
 
 import { Container, Text } from 'pixi.js'
+import type { JokerRecord } from '../generated/tables/joker'
 
 import type { Data } from '../core/data'
 import { poolsOf, type PoolChoice } from '../core/pool'
@@ -183,6 +184,10 @@ export class JokerPoolPanel implements ModalPanel {
 
   /** 지금 풀의 조커들을 고른 기준으로 세운 것. */
   private rows() {
+    // **같은 기준이면 세워 둔 줄을 다시 씁니다.** 쪽을 넘길 때마다 500행을 두 번 걸러
+    // 정렬하고 있었고, 이름 정렬은 비교마다 글 표를 읽습니다.
+    const key = `${this.choice}|${this.sort}|${this.ascending}`
+    if (this.rowsCache?.key === key) return this.rowsCache.rows
     const pools = poolsOf(this.choice)
     const all = this.data.tables.joker.records.filter(row => pools.includes(row.pool))
 
@@ -203,8 +208,12 @@ export class JokerPoolPanel implements ModalPanel {
       sorted.sort((a, b) => a.sortOrder - b.sortOrder)
     }
     if (!this.ascending) sorted.reverse()
+    this.rowsCache = { key, rows: sorted }
     return sorted
   }
+
+  /** 마지막으로 세운 줄. 기준이 같으면 그대로 씁니다. 말이 바뀌면 비웁니다. */
+  private rowsCache?: { key: string; rows: JokerRecord[] }
 
   private choose(choice: PoolChoice): void {
     if (this.choice === choice) return
@@ -310,6 +319,8 @@ export class JokerPoolPanel implements ModalPanel {
   }
 
   relabel(): void {
+    // 이름 정렬은 말을 따르므로 세워 둔 줄을 버립니다.
+    this.rowsCache = undefined
     this.buildFrame()
     this.rebuild()
   }
@@ -319,6 +330,10 @@ export class JokerPoolPanel implements ModalPanel {
   }
 
   advance(seconds: number, clock: number): void {
+    // **떠 있지 않으면 아무것도 하지 않습니다.** 판을 닫아도 카드 40장은 남아 있고, 그것을
+    // 매 프레임 움직이면 한 번 열어 본 뒤로 세션 끝까지 그 값을 냅니다. 그림이 들어왔다는
+    // 표시도 다음에 열 때 한 번에 처리합니다.
+    if (!this.view.parent) return
     if (this.dirty) {
       this.dirty = false
       this.rebuild()

@@ -165,15 +165,13 @@ export function drawGlyph(g: Graphics, name: GlyphName,
     }
 
     case 'gear': {
-      const teeth = 8
-      for (let i = 0; i < teeth; i++) {
-        const a = (i / teeth) * Math.PI * 2
-        g.roundRect(cx - r * 0.14, cy - r * 0.98, r * 0.28, r * 0.34, r * 0.06)
-        g.fill(fill)
-        void a
-      }
+      // 톱니 하나. **같은 자리에 8번 겹쳐 그리던 것입니다** — 돌리지 않았으므로 모습은
+      // 하나와 같고, 채우기 7번이 낭비였습니다.
+      g.roundRect(cx - r * 0.14, cy - r * 0.98, r * 0.28, r * 0.34, r * 0.06)
+      g.fill(fill)
       // 톱니를 돌려 그리는 대신 원 하나에 홈을 냅니다. 작은 크기에서 더 깔끔합니다.
       g.circle(cx, cy, r * 0.86).fill(fill).stroke(stroke)
+      const teeth = 8
       for (let i = 0; i < teeth; i++) {
         const a = (i / teeth) * Math.PI * 2
         g.circle(cx + Math.cos(a) * r * 0.86, cy + Math.sin(a) * r * 0.86, r * 0.16)
