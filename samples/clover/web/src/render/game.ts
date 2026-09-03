@@ -1223,6 +1223,14 @@ export class Game {
    * **산 것은 산 자리에서 옵니다.** 위에서 떨어지면 어느 칸을 눌러서 얻은 것인지가
    * 남지 않습니다. 한 장에 한 번만 쓰이므로 쓰고 나면 비웁니다.
    */
+  /**
+   * 주소에 적혀 온 시드. **아직 쓰지 않은 동안만 값이 있습니다.**
+   *
+   * 타이틀에 서면 새 시드로 판을 미리 깔고, 부팅도 그 길을 지납니다 — 그래서 이것이 없으면
+   * `?seed=` 는 화면이 처음 뜨는 그 순간에 버려집니다.
+   */
+  private bootSeed?: string
+
   private arriveFrom: { x: number; y: number } | undefined
 
   /**
@@ -1444,6 +1452,7 @@ export class Game {
               /** 시간이 `__clover.advance` 로만 흐릅니다. 검증 도구가 `?tick=manual` 로 켭니다. */
               private readonly manualTick = false) {
     this.feel = readFeel(data.feel)
+    this.bootSeed = seed
     this.audio = new Audio(data.tables)
     const first = this.setup()
     this.state = newRun(data, seed, first.deckId, first.stake, pools).state
@@ -1892,9 +1901,12 @@ export class Game {
 
     // 주소도 함께 바꿉니다. **그 주소를 열면 같은 판입니다** — 지금 페이지를 다시 읽지는
     // 않으므로 타이틀에 그대로 있습니다.
+    // **시드만 갈아 끼웁니다.** 물음표 뒤를 통째로 새로 쓰면 함께 실려 있던 것이 지워지고,
+    // `?tick=manual` 로 연 판이 그 자리에서 그것을 잃습니다.
     try {
-      history.replaceState(null, '',
-        new URL(`?seed=${encodeURIComponent(seed)}`, location.href).toString())
+      const url = new URL(location.href)
+      url.searchParams.set('seed', seed)
+      history.replaceState(null, '', url.toString())
       document.title = `clover — ${seed}`
     } catch {
       // 주소를 바꿀 수 없는 자리에서는 판만 바뀝니다.
@@ -2037,7 +2049,13 @@ export class Game {
 
     // 새 판을 새 시드로 미리 깔아 둡니다. 타이틀에서 옵션을 열면 이 시드가 적혀 있고,
     // 시작을 누르면 이 판이 펼쳐집니다.
-    this.useSeed(randomSeed())
+    //
+    // **처음 한 번은 주소에 적혀 온 시드를 그대로 씁니다.** 부팅도 이 길을 지나므로 새
+    // 시드를 여기서 만들면 `?seed=` 로 연 판이 타이틀에 서는 그 순간 버려졌습니다 —
+    // 주소는 새 시드로 다시 적히고, 그래서 **그 주소를 남에게 보내도 다른 판이 열렸습니다.**
+    const boot = this.bootSeed
+    this.bootSeed = undefined
+    this.useSeed(boot ?? randomSeed())
   }
 
   /**
@@ -4266,7 +4284,7 @@ export class Game {
       // 제자리로 돌아가는데 도구는 통과합니다 — 실제로 그런 결함이 있었습니다.
       // **버튼의 자리도 알립니다.** 도구가 같은 계산을 베껴 적으면 배치를 고칠 때 한쪽만
       // 고쳐지고, 그 도구는 엉뚱한 곳을 눌러 놓고 아무 말도 하지 않습니다.
-      spots: this.spots,
+      spots: { ...this.spots, ...this.optionSpots() },
       // 소리가 비는 자리를 찾을 때 씁니다 — 시계로 재면 배속과 히트스톱에서 어긋납니다.
       coming: this.player.coming ?? '',
       // 최근에 난 소리들. **「이 순간에 왜 이 소리가 나느냐」를 도구가 물을 자리입니다.**
@@ -7670,6 +7688,24 @@ export class Game {
   /** 그 자리를 판 위의 자리로 옮깁니다. 왼쪽 판 안의 것들은 자기 판 기준입니다. */
   private spotOf(node: Container, dx = 0, dy = 0): { x: number; y: number } {
     return this.overlay.toLocal(node.toGlobal({ x: dx, y: dy }))
+  }
+
+  /**
+   * 옵션 판 안의 칸들이 지금 어디에 있는가.
+   *
+   * **판이 떠 있을 때만 값이 있습니다.** 자리는 탭과 글 길이와 굴린 만큼에 따라 달라지므로
+   * 도구가 셈할 수 없고, 셈하려 든 도구는 좌표를 못박아 두고 빈자리를 눌러 놓고 통과했습니다 —
+   * 말을 바꾸면 화면이 멈추는 결함이 그 사이로 지나갔습니다.
+   */
+  private optionSpots(): Record<string, { x: number; y: number }> {
+    if (!this.modals.has(this.optionsPanel)) return {}
+    const out: Record<string, { x: number; y: number }> = {}
+    for (const [key, one] of this.optionsPanel.toolSpots) {
+      // 그리는 사이의 한 프레임에는 이미 지워진 칸이 남아 있을 수 있습니다.
+      if (one.node.destroyed) continue
+      out[`option:${key}`] = this.spotOf(one.node, one.cx, one.cy)
+    }
+    return out
   }
 
   /**

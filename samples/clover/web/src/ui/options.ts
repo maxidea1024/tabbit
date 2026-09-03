@@ -236,6 +236,14 @@ interface Row {
    * 돌아오고, 무엇이 있는지도 다 눌러 봐야 압니다.
    */
   choices?: { key: string; label: string }[]
+  /**
+   * 이 줄을 도구가 짚을 이름.
+   *
+   * **글로 짚을 수 없습니다.** 줄의 이름은 말에 따라 달라지고, 자리는 탭과 글 길이에 따라
+   * 달라집니다 — 검증 도구가 좌표를 못박고 있어서 줄이 하나 늘 때마다 빈자리를 눌러 놓고
+   * 통과했습니다.
+   */
+  id?: string
   current?: () => string
   pick?: (key: string) => void
   /** 글을 적는 줄. 지금은 시드 하나뿐입니다. */
@@ -251,12 +259,47 @@ interface Row {
 }
 
 interface Tab {
+  /**
+   * 이 탭을 도구가 짚을 이름.
+   *
+   * **`name` 으로 짚을 수 없습니다.** 그것은 말에 따라 달라지므로, 도구가 그것으로 찾으면
+   * 말을 바꾼 판에서는 찾지 못합니다.
+   */
+  id: string
   name: string
   rows: Row[]
 }
 
+/** 도구가 짚을 한 자리. 어느 컨테이너의 어디인가입니다. */
+export interface ToolSpot {
+  node: Container
+  cx: number
+  cy: number
+}
+
 export class OptionsPanel implements ModalPanel {
   readonly view = new Container()
+  /**
+   * 판의 머리띠와 밑단.
+   *
+   * **매번 새로 만드는 유일한 자식입니다.** 높이가 탭의 길이로 정해지고 그 길이는 말에
+   * 따라 달라지므로 다시 그려야 하며, 나머지 자식들은 그대로 두고 이것만 지웁니다.
+   */
+  private frame?: Container
+  /** 이름이 붙은 칸들. **검증 도구가 짚을 자리입니다.** */
+  private readonly choiceNodes = new Map<string, ToolSpot>()
+  /** 탭 줄의 칸들. **본문과 따로 셉니다** — 지워지는 때가 다릅니다. */
+  private readonly tabNodes = new Map<string, ToolSpot>()
+
+  /**
+   * 검증 도구가 짚을 것들.
+   *
+   * **자리를 화면 좌표로 바꾸는 것은 이 판의 일이 아닙니다.** 판이 어디에 섰는지는 판을
+   * 띄운 쪽이 알므로, 어느 컨테이너의 어디인지까지만 넘기고 셈은 그쪽에서 합니다.
+   */
+  get toolSpots(): [string, ToolSpot][] {
+    return [...this.tabNodes, ...this.choiceNodes]
+  }
   readonly size = { width: WIDTH, height: MIN_HEIGHT }
 
   /** 지금 판의 높이. 가장 긴 탭이 정합니다. */
@@ -410,10 +453,17 @@ export class OptionsPanel implements ModalPanel {
     this.height = Math.min(
       MAX_HEIGHT, Math.max(MIN_HEIGHT, ...this.tabs().map(tab => this.measure(tab))))
 
-    this.view.removeChildren().forEach(child => child.destroy())
-    this.view.addChild(
-      panelFrame(WIDTH, this.height, t('ui.button.options'), () => this.onClose()),
-      this.tabRow, this.viewport, this.bar, this.tip)
+    // **제 것을 지우지 않습니다.** 판의 자식은 매번 새로 만드는 틀 하나와, 이 판이 처음부터
+    // 끝까지 들고 있는 것 넷입니다 — 넷까지 함께 지우면 그 뒤로 이 판은 지워진 것들을
+    // 다시 붙이고 그것들에 그리려 합니다. 지워진 컨테이너는 속이 비어 있어서 마스크를
+    // 거는 그 자리에서 예외가 나고, **말을 바꾸는 첫 번째 순간에 화면이 통째로 멈췄습니다.**
+    //
+    // 처음 세울 때는 판이 비어 있어 아무것도 지워지지 않으므로, 이 결함은 두 번째 호출부터
+    // 나타납니다 — 그리고 이 함수를 두 번 부르는 것은 말을 바꾸는 것뿐입니다.
+    this.view.removeChildren()
+    this.frame?.destroy({ children: true })
+    this.frame = panelFrame(WIDTH, this.height, t('ui.button.options'), () => this.onClose())
+    this.view.addChild(this.frame, this.tabRow, this.viewport, this.bar, this.tip)
     // **본문은 창 안에서 움직입니다.** 창을 판보다 작게 두고 그 밖으로 나간 줄은 자릅니다 —
     // 자르지 않으면 굴러간 줄이 머리띠와 밑단 위에 그려집니다.
     this.viewport.addChild(this.body)
@@ -478,9 +528,11 @@ export class OptionsPanel implements ModalPanel {
       // **언어는 「일반」 의 첫 줄입니다.** 이 화면에서 사람이 가장 먼저 찾는 것이고,
       // 「소리」나 「화면」 아래에 두면 그 둘을 다 열어 본 뒤에야 찾습니다.
       {
+        id: 'general',
         name: t('ui.tab.general'),
         rows: [
           {
+            id: 'language',
             label: t('ui.option.language'),
             note: t('ui.option.note.language'),
             read: () => LANGUAGE_NAMES[chosen(options)],
@@ -493,6 +545,7 @@ export class OptionsPanel implements ModalPanel {
         ],
       },
       {
+        id: 'sound',
         name: t('ui.tab.sound'),
         rows: [
           { label: t('ui.tab.sound'), read: onOff('sound'), next: flip('sound') },
@@ -514,6 +567,7 @@ export class OptionsPanel implements ModalPanel {
         ],
       },
       {
+        id: 'video',
         name: t('ui.tab.video'),
         rows: [
           {
@@ -533,6 +587,7 @@ export class OptionsPanel implements ModalPanel {
       // **카드가 「화면」 과 따로입니다.** 화면의 나머지는 켜고 끄는 것이고 이것은 고르는
       // 것이며, 세트가 늘어나면 여기에 미리보기가 들어옵니다.
       {
+        id: 'cards',
         name: t('ui.tab.cards'),
         rows: [
           {
@@ -547,6 +602,7 @@ export class OptionsPanel implements ModalPanel {
         ],
       },
       {
+        id: 'game',
         name: t('ui.tab.game'),
         rows: [
           {
@@ -562,6 +618,7 @@ export class OptionsPanel implements ModalPanel {
         ],
       },
       {
+        id: 'seed',
         name: t('ui.title.seed'),
         rows: [{
           label: t('ui.title.seed'),
@@ -593,7 +650,9 @@ export class OptionsPanel implements ModalPanel {
    */
   private buildTabs(): void {
     this.tabRow.removeChildren().forEach(child => child.destroy())
-    const names = this.tabs().map(tab => tab.name)
+    this.tabNodes.clear()
+    const all = this.tabs()
+    const names = all.map(tab => tab.name)
     const ruleY = TAB_Y + TAB_H + 10
     const pageL = 24
     const pageR = WIDTH - 24
@@ -680,6 +739,13 @@ export class OptionsPanel implements ModalPanel {
         this.draw()
       })
       this.tabRow.addChild(hit)
+      // 도구가 짚을 자리. **누르는 칸의 가운데입니다** — 고른 탭과 그렇지 않은 탭이 한 단
+      // 어긋나 있으므로, 위쪽 끝이 아니라 가운데를 넘겨야 둘 다 맞습니다.
+      const id = all[index]?.id
+      if (id !== undefined) {
+        this.tabNodes.set(`tab:${id}`,
+                          { node: this.tabRow, cx: x + tabW / 2, cy: top + TAB_H / 2 })
+      }
     })
   }
 
@@ -720,6 +786,8 @@ export class OptionsPanel implements ModalPanel {
 
   private draw(): void {
     this.body.removeChildren().forEach(child => child.destroy())
+    // **지워진 칸을 표에 남기지 않습니다.** 도구가 그것을 짚으면 없는 것의 자리를 묻습니다.
+    this.choiceNodes.clear()
 
     const rows = this.tabs()[this.tab]?.rows ?? []
     let y = TAB_Y + TAB_H + 34
@@ -799,6 +867,10 @@ export class OptionsPanel implements ModalPanel {
       })
     }
     this.body.addChild(plate)
+    // 적는 칸의 자리를 도구에 알립니다. **판의 높이가 말에 따라 달라지므로** 도구가
+    // 좌표를 못박으면 다른 말에서는 빈자리를 누릅니다.
+    this.choiceNodes.set('field:seed',
+                         { node: this.body, cx: 44 + fieldW / 2, cy: top + height / 2 })
 
     const value = new Text({
       text: this.editing ? this.buffer : this.seedText,
@@ -971,6 +1043,11 @@ export class OptionsPanel implements ModalPanel {
       button.highlight = choice.key === now
       button.position.set(44 + column * (width + gap), top + line * (height + gap))
       this.body.addChild(button)
+      // 이름이 붙은 줄은 도구가 짚을 수 있게 칸의 가운데를 남깁니다.
+      if (row.id !== undefined) {
+        this.choiceNodes.set(`${row.id}:${choice.key}`,
+                             { node: button, cx: width / 2, cy: height / 2 })
+      }
     })
 
     const lines = Math.ceil(choices.length / columns)

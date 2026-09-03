@@ -6,29 +6,33 @@ import { fileURLToPath } from 'url'
 import { chromium, type Browser, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, clickPrimary, peek, settle, STAGE_W, TITLE_OPTIONS, skipLogin, TITLE_START, pass,
+  at, clickPrimary, peek, settle, TITLE_OPTIONS, skipLogin, TITLE_START, pass,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
 const PORT = 5203
 
-/** 타이틀의 「옵션」 버튼과, 그 판의 「시드」 탭과 칸. */
-// 타이틀의 옵션은 오른쪽 아래의 톱니 아이콘입니다.
-const TAB_Y = 279
 /**
- * 시드 탭의 가운데.
+ * 시드 탭과 적는 칸.
  *
- * **맨 오른쪽입니다** — 판을 정하는 것이라 판 안에서 고치는 것들 뒤에 섭니다. `options.ts` 의
- * `buildTabs` 와 같은 셈입니다: 판이 화면 가운데에 서고, 탭 줄이 판의 안쪽 폭을 고르게
- * 나눕니다.
+ * **좌표를 적어 두지 않습니다.** 탭 줄은 판의 안쪽 폭을 탭 수로 고르게 나누고 판의 높이는
+ * 말에 따라 달라지므로, 여기 적어 둔 값은 탭이 하나 늘거나 글이 길어지는 날에 어긋납니다 —
+ * 그런데 이 도구는 어긋난 자리를 눌러 놓고도 「시드가 걸리지 않았습니다」 라고만 하므로,
+ * 무엇이 잘못된 것인지가 남지 않습니다. 실제로 **탭 대신 「日本語」 를 누르고 있었습니다.**
+ *
+ * 그래서 화면이 알리는 자리를 짚습니다. `options.ts` 의 `toolSpots` 가 그리는 그 자리를
+ * 그대로 알립니다.
  */
-const PANEL_W = 520
-const TABS = 5
-const TAB_X = STAGE_W / 2 - PANEL_W / 2 + 24
-  + ((PANEL_W - 48) / TABS) * (TABS - 0.5)
-const FIELD_X = 560
-const FIELD_Y = 390
+async function optionSpot(page: Page, name: string): Promise<{ x: number; y: number }> {
+  for (let wait = 0; wait < 20; wait++) {
+    const spot = (await peek(page)).spots?.[`option:${name}`]
+    if (spot) return spot
+    await pass(page, 100)
+  }
+  throw new Error(`옵션 판에 ${name} 이 없습니다`)
+}
+
 const SEED = 'SEED-TEST-42'
 
 async function main(): Promise<number> {
@@ -40,9 +44,11 @@ async function main(): Promise<number> {
     // 옵션 → 시드 탭 → 칸을 누르고 새로 적습니다.
     await tap(page, TITLE_OPTIONS.x, TITLE_OPTIONS.y)
     await pass(page, 700)
-    await tap(page, TAB_X, TAB_Y)
+    const tab = await optionSpot(page, 'tab:seed')
+    await tap(page, tab.x, tab.y)
     await pass(page, 400)
-    await tap(page, FIELD_X, FIELD_Y)
+    const field = await optionSpot(page, 'field:seed')
+    await tap(page, field.x, field.y)
     await pass(page, 300)
     await page.screenshot({ path: path.join(OUT, 'seed-edit.png') })
 
