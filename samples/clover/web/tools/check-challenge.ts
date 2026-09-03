@@ -10,7 +10,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import { skipLogin } from './harness'
+import { skipLogin, pass, at, TITLE_CHALLENGES } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '..', '..', 'design-data', 'out', 'check')
@@ -34,18 +34,19 @@ async function main(): Promise<number> {
 
   await page.goto('http://localhost:5193/', { waitUntil: 'domcontentloaded' })
   // 데이터를 읽고 타이틀이 서기까지 기다립니다.
-  await page.waitForTimeout(2600)
+  await pass(page, 2600)
 
   // **처음에는 잠겨 있습니다.** 저장이 비었으면 챌린지를 누르면 쪽지만 뜹니다.
   await page.evaluate(() => localStorage.removeItem('clover.challenge'))
   await page.reload({ waitUntil: 'domcontentloaded' })
-  await page.waitForTimeout(2600)
+  await pass(page, 2600)
   await page.screenshot({ path: path.join(OUT, 'challenge-0-title.png') })
 
-  // 타이틀의 챌린지 단추. 시작 아래 두 번째 줄입니다.
+  // 타이틀의 챌린지 단추. 아래 바의 셋째 칸입니다.
   // **잠겨 있으면 눌리지 않습니다.** 올려서 쪽지가 뜨는지를 봅니다.
-  await page.mouse.move(640, 452 + 72 + 14 + 52 + 14 + 26)
-  await page.waitForTimeout(500)
+  const challenges = await at(page, TITLE_CHALLENGES.x, TITLE_CHALLENGES.y)
+  await page.mouse.move(challenges.x, challenges.y)
+  await pass(page, 500)
   await page.screenshot({ path: path.join(OUT, 'challenge-1-locked.png') })
 
   // 열어 둔 채로 다시 봅니다.
@@ -56,29 +57,29 @@ async function main(): Promise<number> {
     localStorage.setItem('clover.guide.seen', '1')
   })
   await page.reload({ waitUntil: 'domcontentloaded' })
-  await page.waitForTimeout(2600)
-  await page.mouse.click(640, 452 + 72 + 14 + 52 + 14 + 26)
-  await page.waitForTimeout(900)
+  await pass(page, 2600)
+  await page.mouse.click(challenges.x, challenges.y)
+  await pass(page, 900)
   await page.screenshot({ path: path.join(OUT, 'challenge-2-panel.png') })
 
   // 칸 하나를 눌러 규칙이 오른쪽에 적히는지 봅니다. 판이 가운데에 놓이므로 그만큼 옮깁니다.
   const left = (1280 - 1180) / 2
   const top = (800 - 744) / 2
   await page.mouse.click(left + 34 + 118 * 2 + 50, top + 108 + 46)
-  await page.waitForTimeout(500)
+  await pass(page, 500)
   await page.screenshot({ path: path.join(OUT, 'challenge-3-picked.png') })
 
   // 첫 칸으로 돌아가 시작을 누릅니다.
   await page.mouse.click(left + 34 + 50, top + 108 + 46)
-  await page.waitForTimeout(400)
+  await pass(page, 400)
   await page.mouse.click(left + 34 + 118 * 5 + 22 + (1180 - 34 - 118 * 5 - 22 - 30) / 2,
                          top + 108 + (744 - 108 - 96) + 16 + 23)
-  await page.waitForTimeout(1800)
+  await pass(page, 1800)
   await page.screenshot({ path: path.join(OUT, 'challenge-4-run.png') })
 
   // 판이 도는 동안의 메뉴. 맨 아래에 타이틀로가 있어야 합니다.
   await page.mouse.click(217, 742)
-  await page.waitForTimeout(600)
+  await pass(page, 600)
   await page.screenshot({ path: path.join(OUT, 'challenge-5-menu.png') })
 
   const scene = await page.evaluate(() =>

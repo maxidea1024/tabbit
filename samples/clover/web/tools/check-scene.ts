@@ -7,7 +7,9 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import { at, clickPrimary, peek, pickCards, pressPlay, settle, STAGE_W , TITLE_START_Y, skipLogin } from './harness'
+import {
+  at, clickPrimary, peek, pickCards, pressPlay, settle, STAGE_W, skipLogin, TITLE_START, pass,
+} from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
@@ -32,8 +34,8 @@ async function main(): Promise<number> {
     if (request.url().includes('/data/')) reads++
   })
 
-  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-LOSE1`, { waitUntil: 'networkidle' })
-  await page.waitForTimeout(1500)
+  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-LOSE1&tick=manual`, { waitUntil: 'networkidle' })
+  await pass(page, 1500)
 
   const bootAfterLoad = await bootText(page)
   // 첫 화면이 서기까지 데이터를 읽은 횟수. **접었다 편 뒤에도 이 수가 그대로여야 합니다.**
@@ -41,11 +43,11 @@ async function main(): Promise<number> {
   const first = await peek(page)
   console.log('처음 씬', first.scene, '· 로딩 줄', bootAfterLoad ? '보임' : '걷힘')
 
-  const start = await at(page, STAGE_W / 2, TITLE_START_Y)
+  const start = await at(page, TITLE_START.x, TITLE_START.y)
   await page.mouse.click(start.x, start.y)
-  await page.waitForTimeout(900)
+  await pass(page, 900)
   await page.mouse.click(20, 20)
-  await page.waitForTimeout(400)
+  await pass(page, 400)
   const inRun = await peek(page)
   console.log('시작 뒤 씬', inRun.scene)
 
@@ -59,9 +61,9 @@ async function main(): Promise<number> {
     await pickCards(page, [0])
     await pressPlay(page)
     await settle(page)
-    await page.waitForTimeout(200)
+    await pass(page, 200)
   }
-  await page.waitForTimeout(2400)
+  await pass(page, 2400)
   const lost = await peek(page)
   if (lost.phase !== 'lost') {
     console.log('지지 않았습니다 — 확인할 수 없습니다')
@@ -74,7 +76,7 @@ async function main(): Promise<number> {
   // 「타이틀로」. 판의 가운데에서 아래로 126, 오른쪽으로 92.
   const home = await at(page, STAGE_W / 2 + 92, 400 + 126)
   await page.mouse.click(home.x, home.y)
-  await page.waitForTimeout(1400)
+  await pass(page, 1400)
 
   const back = await peek(page)
   const bootBack = await bootText(page)
@@ -83,9 +85,9 @@ async function main(): Promise<number> {
   await page.screenshot({ path: path.join(OUT, 'scene-2.png') })
 
   // 다시 시작해서 판이 서는가.
-  const again = await at(page, STAGE_W / 2, TITLE_START_Y)
+  const again = await at(page, TITLE_START.x, TITLE_START.y)
   await page.mouse.click(again.x, again.y)
-  await page.waitForTimeout(1200)
+  await pass(page, 1200)
   const second = await peek(page)
   console.log('두 번째 판', second.scene, '· 국면', second.phase, '· 시드가 바뀌었는가',
     second.seed !== first.seed ? '예' : '아니오')

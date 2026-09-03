@@ -7,8 +7,7 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
-  chooseFive, clickPrimary, discardHand, peek, playHand, rate, settle, shopSlot, spare, at,
-  STAGE_W, TITLE_START_Y, skipLogin,
+  chooseFive, clickPrimary, discardHand, peek, playHand, rate, settle, shopSlot, spare, at, STAGE_W, skipLogin, TITLE_START, pass, shopBuySpot,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -20,14 +19,14 @@ async function main(): Promise<number> {
   const browser = await chromium.launch()
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
   await skipLogin(page)
-  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-BUY1`, { waitUntil: 'networkidle' })
-  await page.waitForTimeout(1500)
+  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-BUY1&tick=manual`, { waitUntil: 'networkidle' })
+  await pass(page, 1500)
 
-  const start = await at(page, STAGE_W / 2, TITLE_START_Y)
+  const start = await at(page, TITLE_START.x, TITLE_START.y)
   await page.mouse.click(start.x, start.y)
-  await page.waitForTimeout(900)
+  await pass(page, 900)
   await page.mouse.click(20, 20)
-  await page.waitForTimeout(400)
+  await pass(page, 400)
   await clickPrimary(page)
   await settle(page)
 
@@ -41,20 +40,25 @@ async function main(): Promise<number> {
       await playHand(page, picks)
     }
     await settle(page)
-    await page.waitForTimeout(200)
+    await pass(page, 200)
   }
-  await page.waitForTimeout(1400)
+  await pass(page, 1400)
   const h = 46 + 16 + 2 * 34 + 14 + 56
   const take = await at(page, STAGE_W / 2, (800 - h) / 2 + h - 56 / 2)
   await page.mouse.click(take.x, take.y)
-  await page.waitForTimeout(1800)
+  await pass(page, 1800)
 
+  // **딱지를 누르는 것은 고르는 것까지입니다.** 사는 것은 그 밑의 「산다」 입니다 —
+  // 딱지만 누르고 오는 길을 재고 있어서, 아무것도 사지 않은 채 「어긋납니다」 로 끝났습니다.
   const tile = await shopSlot(page, 0)
   await page.mouse.move(tile.x, tile.y)
-  await page.waitForTimeout(120)
+  await pass(page, 120)
   await page.mouse.down()
-  await page.waitForTimeout(60)
+  await pass(page, 60)
   await page.mouse.up()
+  await pass(page, 350)
+  const buy = await shopBuySpot(page, 0)
+  await page.mouse.click(buy.x, buy.y)
 
   // 자리와 상점이 서 있는지를 함께 봅니다.
   const track: { at: number; x: number; shop: boolean }[] = []
@@ -67,7 +71,7 @@ async function main(): Promise<number> {
       return { x: hook.jokerX?.() ?? -1, shop: hook.shopUp === true, clock: hook.clock ?? 0 }
     })
     track.push({ at: sample.clock - began, x: Math.round(sample.x), shop: sample.shop })
-    await page.waitForTimeout(30)
+    await pass(page, 30)
   }
 
   const moving = track.filter(one => one.x >= 0)

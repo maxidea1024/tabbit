@@ -80,7 +80,9 @@ export class Particles extends Container {
       }
 
       p.vy += 900 * seconds
-      p.vx *= 0.98
+      // 가로 감속. **초 단위입니다** — 프레임당 0.98 로 적으면 144Hz 에서 조각이 절반도
+      // 퍼지지 못합니다. 60Hz 에서 프레임당 0.98 이던 것과 같은 값입니다.
+      p.vx *= Math.exp(-1.2 * seconds)
       p.x += p.vx * seconds
       p.y += p.vy * seconds
 

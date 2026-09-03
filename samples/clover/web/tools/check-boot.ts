@@ -13,13 +13,15 @@ async function main(): Promise<number> {
   const browser = await chromium.launch()
   let failed = 0
 
+  // **세 줄 중 어느 것이든 그 말이면 됩니다.** 데이터 · 글꼴 · 그림 순서로 읽고, 개발
+  // 서버에서는 400밀리초 안에 셋째까지 갑니다 — 첫 줄만 기다리면 기계가 빠를수록 실패합니다.
   for (const [locale, want] of [
-    ['ko-KR', '데이터를 읽는 중입니다'],
-    ['ja-JP', 'データを読み込んでいます'],
-    ['de-DE', 'Daten werden geladen'],
-    ['zh-TW', '正在讀取資料'],
-    ['zh-CN', '正在读取数据'],
-    ['fr-FR', 'Loading data'],
+    ['ko-KR', ['데이터를 읽는 중입니다', '글꼴을 읽는 중입니다', '그림을 읽는 중입니다']],
+    ['ja-JP', ['データを読み込んでいます', 'フォントを読み込んでいます', '画像を読み込んでいます']],
+    ['de-DE', ['Daten werden geladen', 'Schriften werden geladen', 'Grafiken werden geladen']],
+    ['zh-TW', ['正在讀取資料', '正在讀取字型', '正在讀取圖像']],
+    ['zh-CN', ['正在读取数据', '正在读取字体', '正在读取图像']],
+    ['fr-FR', ['Loading data', 'Loading fonts', 'Loading art']],
   ] as const) {
     const page = await browser.newPage({ locale })
     await skipLogin(page)
@@ -29,7 +31,7 @@ async function main(): Promise<number> {
     const got = await page.evaluate(() => document.getElementById('boot')?.textContent ?? '(없음)')
     const errors = await page.evaluate(() => (window as unknown as { __bootError?: string }).__bootError ?? '')
     if (errors !== '') console.log('    오류: ' + errors)
-    const good = got === want
+    const good = (want as readonly string[]).includes(got)
     if (!good) failed++
     console.log(`  ${good ? '✓' : '✗'} ${locale} → ${got}`)
     await page.close()

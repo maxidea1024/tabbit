@@ -121,6 +121,17 @@ export class Motion {
   }
 }
 
+/**
+ * 이 시간 동안 남은 거리의 몇 할을 좁히는가.
+ *
+ * **`Math.min(1, seconds * rate)` 가 아닙니다.** 그것은 프레임당 비율이라 주사율에 따라
+ * 수렴 속도가 2배까지 달라집니다 — 144Hz 에서는 느리고 30Hz 에서는 빠릅니다. 지수로
+ * 적으면 프레임을 어떻게 나눠도 같은 시간에 같은 자리에 옵니다.
+ */
+export function fraction(seconds: number, rate: number): number {
+  return 1 - Math.exp(-rate * seconds)
+}
+
 /** 늘 조금씩 흔들리는 값. 멈춘 화면이 죽어 보이는 것을 막습니다. */
 export function sway(time: number, phase: number, amount: number, speed = 1): number {
   return Math.sin(time * speed + phase) * amount

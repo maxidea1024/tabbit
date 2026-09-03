@@ -6,7 +6,9 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import { at, BUTTON_Y, clickPrimary, peek, settle, STAGE_W , TITLE_START_Y, skipLogin } from './harness'
+import {
+  at, BUTTON_Y, clickPrimary, peek, settle, skipLogin, TITLE_START, pass,
+} from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 
@@ -25,22 +27,22 @@ async function main(): Promise<number> {
     console.log(`  ${good ? '✓' : '✗'} ${line}`)
   }
 
-  await page.goto('http://localhost:5190/?seed=CLOVER-SHOT6', { waitUntil: 'networkidle' })
-  await page.waitForTimeout(1500)
-  const start = await at(page, STAGE_W / 2, TITLE_START_Y)
+  await page.goto('http://localhost:5190/?seed=CLOVER-SHOT6&tick=manual', { waitUntil: 'networkidle' })
+  await pass(page, 1500)
+  const start = await at(page, TITLE_START.x, TITLE_START.y)
   await page.mouse.click(start.x, start.y)
-  await page.waitForTimeout(900)
+  await pass(page, 900)
   await page.mouse.click(20, 20)
-  await page.waitForTimeout(400)
+  await pass(page, 400)
   await clickPrimary(page)
   await settle(page)
-  await page.waitForTimeout(800)
+  await pass(page, 800)
 
   const before = (await peek(page)).hand.map(c => `${c.rank}${c.suit}`).join(' ')
 
   const rank = await at(page, 16 + 264 + 30 + 46, BUTTON_Y + 7 + 16)
   await page.mouse.click(rank.x, rank.y)
-  await page.waitForTimeout(600)
+  await pass(page, 600)
   const byRank = (await peek(page)).hand
   console.log(`  전     ${before}`)
   console.log(`  랭크순 ${byRank.map(c => `${c.rank}${c.suit}`).join(' ')}`)
@@ -49,7 +51,7 @@ async function main(): Promise<number> {
 
   const suit = await at(page, 16 + 264 + 130 + 46, BUTTON_Y + 7 + 16)
   await page.mouse.click(suit.x, suit.y)
-  await page.waitForTimeout(600)
+  await pass(page, 600)
   const bySuit = (await peek(page)).hand
   console.log(`  무늬순 ${bySuit.map(c => `${c.rank}${c.suit}`).join(' ')}`)
   verdict(bySuit.every((c, i) => i === 0 || bySuit[i - 1].suit <= c.suit),

@@ -12,6 +12,7 @@ import { Container, Graphics, Rectangle, Text } from 'pixi.js'
 import { t } from '../core/strings'
 
 import { plate, FLOATING } from '../render/skin'
+import { fraction } from '../render/motion'
 import { Button } from './widgets'
 import { COLOR, SIZE } from '../render/theme'
 
@@ -183,7 +184,7 @@ export class Modals extends Container {
   advance(seconds: number): void {
     if (this.entries.length === 0) return
 
-    const step = Math.min(1, seconds * 9)
+    const step = fraction(seconds, 9)
 
     for (let i = this.entries.length - 1; i >= 0; i--) {
       const entry = this.entries[i]

@@ -12,7 +12,8 @@ import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, BOARD_X, clickPrimary, grantConsumable, grantJoker, HAND_Y, peek, settle, STAGE_W, TITLE_START_Y, skipLogin,
+  at, BOARD_X, clickPrimary, grantConsumable, grantJoker, HAND_Y, peek, settle, skipLogin,
+  TITLE_START, pass,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -42,18 +43,18 @@ async function main(): Promise<number> {
     console.log(`  ${good ? '✓' : '✗'} ${line}`)
   }
 
-  await page.goto('http://localhost:5179/?seed=CLOVER-SHOT6', { waitUntil: 'networkidle' })
-  await page.waitForTimeout(1500)
+  await page.goto('http://localhost:5179/?seed=CLOVER-SHOT6&tick=manual', { waitUntil: 'networkidle' })
+  await pass(page, 1500)
 
   // 타이틀 → 시작 → 안내 닫기 → 블라인드 고르기.
-  const start = await at(page, STAGE_W / 2, TITLE_START_Y)
+  const start = await at(page, TITLE_START.x, TITLE_START.y)
   await page.mouse.click(start.x, start.y)
-  await page.waitForTimeout(800)
+  await pass(page, 800)
   await page.mouse.click(20, 20)
-  await page.waitForTimeout(400)
+  await pass(page, 400)
   await clickPrimary(page)
   await settle(page)
-  await page.waitForTimeout(700)
+  await pass(page, 700)
 
   // ------------------------------------------------------------ 손패의 자리
   console.log('손패')
@@ -61,7 +62,7 @@ async function main(): Promise<number> {
   // 아니라 장수가 늘었는지를 보게 됩니다.
   let before = (await peek(page)).handOrder
   for (let i = 0; i < 40; i++) {
-    await page.waitForTimeout(200)
+    await pass(page, 200)
     const now = (await peek(page)).handOrder
     if (now.length >= 8 && now.join() === before.join()) break
     before = now
@@ -80,7 +81,7 @@ async function main(): Promise<number> {
 
   // ------------------------------------------------------------ 조커 둘
   await grantJoker(page, 2)
-  await page.waitForTimeout(600)
+  await pass(page, 600)
 
   const jokers = (await peek(page)).jokerOrder
   console.log(`\n조커 ${jokers.length}장`)
@@ -93,13 +94,13 @@ async function main(): Promise<number> {
   if (jokers.length >= 1) {
     const spot = await at(page, JOKER_X, JOKER_Y)
     await page.mouse.click(spot.x, spot.y)
-    await page.waitForTimeout(400)
+    await pass(page, 400)
     await page.mouse.move(40, 40)
-    await page.waitForTimeout(400)
+    await pass(page, 400)
     await page.screenshot({ path: path.join(OUT, 'joker-held.png') })
     verdict((await peek(page)).jokerOrder.length === jokers.length, '눌러도 팔리지 않습니다')
     await page.keyboard.press('Escape')
-    await page.waitForTimeout(300)
+    await pass(page, 300)
   }
 
   // ------------------------------------------------------------ 조커의 자리
@@ -114,16 +115,16 @@ async function main(): Promise<number> {
 
   // ------------------------------------------------------------ 소모품도 같습니다
   await grantConsumable(page, 1)
-  await page.waitForTimeout(500)
+  await pass(page, 500)
   const items = (await peek(page)).consumables
   console.log(`
 소모품 ${items}장`)
   if (items >= 1) {
     const spot = await at(page, 962, JOKER_Y)
     await page.mouse.click(spot.x, spot.y)
-    await page.waitForTimeout(400)
+    await pass(page, 400)
     await page.mouse.move(40, 40)
-    await page.waitForTimeout(400)
+    await pass(page, 400)
     await page.screenshot({ path: path.join(OUT, 'consumable-held.png') })
     verdict((await peek(page)).consumables === items, '눌러도 쓰이지 않습니다')
   } else {
@@ -155,12 +156,12 @@ async function dragBy(page: Page, fromX: number, fromY: number,
   for (let step = 1; step <= 12; step++) {
     await page.mouse.move(from.x + (to.x - from.x) * step / 12,
       from.y + (to.y - from.y) * step / 12 - 14)
-    await page.waitForTimeout(30)
+    await pass(page, 30)
   }
   await page.mouse.up()
-  await page.waitForTimeout(300)
+  await pass(page, 300)
   await page.mouse.move(40, 40)
-  await page.waitForTimeout(800)
+  await pass(page, 800)
 }
 
 main().then(code => process.exit(code))

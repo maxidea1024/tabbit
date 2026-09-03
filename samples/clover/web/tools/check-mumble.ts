@@ -7,7 +7,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import { at, clickPrimary, settle, STAGE_W, TITLE_START_Y, skipLogin } from './harness'
+import { at, clickPrimary, settle, skipLogin, TITLE_START, pass } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5217
@@ -25,15 +25,15 @@ async function main(): Promise<number> {
   })
   page.on('pageerror', error => problems.push(String(error)))
 
-  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-MUMBLE1`, { waitUntil: 'networkidle' })
-  await page.waitForTimeout(1500)
+  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-MUMBLE1&tick=manual`, { waitUntil: 'networkidle' })
+  await pass(page, 1500)
 
   // **소리 길은 누른 뒤에 열립니다.** 시작을 눌러 그것을 엽니다.
-  const start = await at(page, STAGE_W / 2, TITLE_START_Y)
+  const start = await at(page, TITLE_START.x, TITLE_START.y)
   await page.mouse.click(start.x, start.y)
-  await page.waitForTimeout(900)
+  await pass(page, 900)
   await page.mouse.click(20, 20)
-  await page.waitForTimeout(400)
+  await pass(page, 400)
   await clickPrimary(page)
   await settle(page)
 

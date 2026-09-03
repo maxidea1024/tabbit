@@ -9,6 +9,7 @@
 import { Container, Graphics, Text } from 'pixi.js'
 
 import { plate, FLOATING } from '../render/skin'
+import { fraction } from '../render/motion'
 import { COLOR, SIZE } from '../render/theme'
 import { richBlock, type RichStyle } from './rich'
 
@@ -171,7 +172,7 @@ export class Toasts extends Container {
         if (above.slot < entry.slot) want += above.height + GAP
       }
       // 자리로 미끄러집니다. 위의 것이 사라져 자리가 바뀌어도 튀지 않습니다.
-      entry.shown += (want - entry.shown) * Math.min(1, seconds * 12)
+      entry.shown += (want - entry.shown) * fraction(seconds, 12)
 
       entry.box.scale.set(scale)
       // 오른쪽에서 미끄러져 들어옵니다. 위에서 내려오면 조커 줄을 가로지릅니다.

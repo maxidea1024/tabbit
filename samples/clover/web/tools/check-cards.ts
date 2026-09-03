@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 
-import { at, clickPrimary, settle, type Peek, skipLogin } from './harness'
+import { at, clickPrimary, settle, type Peek, skipLogin, pass, TITLE_START } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '..', '..', 'design-data', 'out', 'check')
@@ -56,12 +56,13 @@ async function main(): Promise<number> {
     await page.addInitScript(`localStorage.setItem('clover.options', JSON.stringify({
       cardSet: ${JSON.stringify(set)}, deck: 'red_deck', stake: 'White' }));
       localStorage.setItem('clover.guide.seen', '1')`)
-    await page.goto('http://localhost:5191/', { waitUntil: 'domcontentloaded' })
-    await page.waitForTimeout(2600)
+    await page.goto('http://localhost:5191/?tick=manual', { waitUntil: 'domcontentloaded' })
+    await pass(page, 2600)
 
     // 시작 · 블라인드 선택 · 손패까지. 카드가 화면에 서야 봅니다.
-    await page.mouse.click(640, 488)
-    await page.waitForTimeout(1600)
+    const start = await at(page, TITLE_START.x, TITLE_START.y)
+    await page.mouse.click(start.x, start.y)
+    await pass(page, 1600)
     await clickPrimary(page)
     await settle(page)
     await page.screenshot({ path: path.join(OUT, `cards-${set}.png`) })
@@ -71,7 +72,7 @@ async function main(): Promise<number> {
     // 덱 더미를 누르면 남은 카드가 무늬별로 섭니다. `game.ts` 의 `DECK_X`·`DECK_Y` 입니다.
     const pile = await at(page, 1280 - 62, 608)
     await page.mouse.click(pile.x, pile.y)
-    await page.waitForTimeout(900)
+    await pass(page, 900)
     await page.screenshot({ path: path.join(OUT, `cards-${set}-deck.png`) })
 
     const seen = await page.evaluate(() =>
@@ -86,11 +87,11 @@ async function main(): Promise<number> {
   await skipLogin(page)
   page.on('pageerror', one => errors.push(`options: ${one.message}`))
   await page.addInitScript(`localStorage.setItem('clover.guide.seen', '1')`)
-  await page.goto('http://localhost:5191/', { waitUntil: 'domcontentloaded' })
-  await page.waitForTimeout(2600)
+  await page.goto('http://localhost:5191/?tick=manual', { waitUntil: 'domcontentloaded' })
+  await pass(page, 2600)
   // 타이틀 오른쪽 아래의 톱니. `ui/title.ts` 의 자리입니다.
   await page.mouse.click(1280 - 30 - 29, 800 - 30 - 29)
-  await page.waitForTimeout(900)
+  await pass(page, 900)
   await page.screenshot({ path: path.join(OUT, 'cards-options.png') })
 
   // 탭 여섯 가운데 넷째가 카드입니다 — 일반 · 소리 · 화면 · 카드 · 게임 · 시드.
@@ -104,7 +105,7 @@ async function main(): Promise<number> {
   } else {
     const step = (box.width - 48) / 6
     await page.mouse.click(box.x + 24 + step * 3 + step / 2, box.y + 46 + 14 + 18)
-    await page.waitForTimeout(700)
+    await pass(page, 700)
     await page.screenshot({ path: path.join(OUT, 'cards-tab.png') })
     check('옵션 판이 떴습니다', true, `${Math.round(box.width)} × ${Math.round(box.height)}`)
 
@@ -112,7 +113,7 @@ async function main(): Promise<number> {
     // 마지막 줄은 어디에도 없습니다.
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
     for (let i = 0; i < 6; i++) await page.mouse.wheel(0, 120)
-    await page.waitForTimeout(500)
+    await pass(page, 500)
     await page.screenshot({ path: path.join(OUT, 'cards-tab-scrolled.png') })
   }
   await page.close()

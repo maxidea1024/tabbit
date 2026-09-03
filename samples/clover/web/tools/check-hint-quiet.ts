@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, chooseFive, clickPrimary, peek, playHand, settle, STAGE_W, TITLE_START_Y, skipLogin,
+  at, chooseFive, clickPrimary, peek, playHand, settle, STAGE_W, skipLogin, TITLE_START, pass,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -21,22 +21,22 @@ async function main(): Promise<number> {
   const browser = await chromium.launch()
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
   await skipLogin(page)
-  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-HINT1`, { waitUntil: 'networkidle' })
-  await page.waitForTimeout(1500)
+  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-HINT1&tick=manual`, { waitUntil: 'networkidle' })
+  await pass(page, 1500)
 
-  const start = await at(page, STAGE_W / 2, TITLE_START_Y)
+  const start = await at(page, TITLE_START.x, TITLE_START.y)
   await page.mouse.click(start.x, start.y)
-  await page.waitForTimeout(900)
+  await pass(page, 900)
   await page.mouse.click(20, 20)
-  await page.waitForTimeout(400)
+  await pass(page, 400)
   await clickPrimary(page)
   await settle(page)
-  await page.waitForTimeout(1200)
+  await pass(page, 1200)
 
   // 여기서부터가 재는 구간입니다. **패는 이미 다 깔렸고 아무것도 누르지 않습니다** —
   // 이 사이에 나는 소리는 전부 사람이 시키지 않은 것입니다.
   const before = ((await peek(page)).sounds ?? []).length
-  await page.waitForTimeout(2500)
+  await pass(page, 2500)
   const after = (await peek(page)).sounds ?? []
   const during = after.slice(before)
 
@@ -47,14 +47,14 @@ async function main(): Promise<number> {
   const spot = await at(page, STAGE_W / 2 - 120, 608)
   const mark = ((await peek(page)).sounds ?? []).length
   await page.mouse.click(spot.x, spot.y)
-  await page.waitForTimeout(900)
+  await pass(page, 900)
   const picked = ((await peek(page)).sounds ?? []).slice(mark)
   console.log('한 장 고를 때  ', picked.length === 0 ? '없음' : picked.join(' · '))
 
   // 물립니다. 같은 소리 하나여야 합니다.
   const mark2 = ((await peek(page)).sounds ?? []).length
   await page.mouse.click(spot.x, spot.y)
-  await page.waitForTimeout(900)
+  await pass(page, 900)
   const off = ((await peek(page)).sounds ?? []).slice(mark2)
   console.log('물릴 때      ', off.length === 0 ? '없음' : off.join(' · '))
 
@@ -63,9 +63,9 @@ async function main(): Promise<number> {
   const held = await peek(page)
   await playHand(page, chooseFive(held.hand))
   await settle(page)
-  await page.waitForTimeout(1600)
+  await pass(page, 1600)
   const mark3 = ((await peek(page)).sounds ?? []).length
-  await page.waitForTimeout(2500)
+  await pass(page, 2500)
   const later = ((await peek(page)).sounds ?? []).slice(mark3)
   console.log('낸 뒤 가만히 ', later.length === 0 ? '없음' : later.join(' · '))
 

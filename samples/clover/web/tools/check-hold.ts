@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, clickPrimary, HAND_Y, peek, settle, STAGE_W, TITLE_START_Y, skipLogin,
+  at, clickPrimary, HAND_Y, peek, settle, STAGE_W, skipLogin, TITLE_START, pass,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -27,14 +27,14 @@ async function main(): Promise<number> {
   })
   const page = await context.newPage()
   await skipLogin(page)
-  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-HOLD1`, { waitUntil: 'networkidle' })
-  await page.waitForTimeout(1500)
+  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-HOLD1&tick=manual`, { waitUntil: 'networkidle' })
+  await pass(page, 1500)
 
-  const start = await at(page, STAGE_W / 2, TITLE_START_Y)
+  const start = await at(page, TITLE_START.x, TITLE_START.y)
   await page.touchscreen.tap(start.x, start.y)
-  await page.waitForTimeout(900)
+  await pass(page, 900)
   await page.touchscreen.tap(20, 20)
-  await page.waitForTimeout(400)
+  await pass(page, 400)
   await clickPrimary(page)
   await settle(page)
 
@@ -53,22 +53,22 @@ async function main(): Promise<number> {
 
   // 1. 짧게 누릅니다. 뜨지 않고 골라져야 합니다.
   await tap(page, spot, 120)
-  await page.waitForTimeout(260)
+  await pass(page, 260)
   const quick = await peek(page)
   console.log('짧게 — 쪽지', quick.tip ? '떠 있음' : '없음', '· 고른 수', quick.picked)
 
   // 되돌립니다.
   await tap(page, spot, 120)
-  await page.waitForTimeout(260)
+  await pass(page, 260)
 
   // 2. 오래 누릅니다. 뜨고, 골라지지 않아야 합니다.
   await page.touchscreen.tap(spot.x, spot.y - 300)
-  await page.waitForTimeout(300)
+  await pass(page, 300)
   const before = await peek(page)
   await hold(page, spot, 900)
   const during = await shotPeek(page, 'hold-1')
   await press(page, spot, 'up')
-  await page.waitForTimeout(300)
+  await pass(page, 300)
   const after = await peek(page)
   console.log('오래 — 누르는 중 쪽지', during.tip ? '떠 있음' : '없음',
     '· 뗀 뒤 고른 수', before.picked, '->', after.picked)
@@ -103,14 +103,14 @@ async function press(page: Page, spot: { x: number; y: number },
 /** 짧게 누릅니다. */
 async function tap(page: Page, spot: { x: number; y: number }, ms: number): Promise<void> {
   await press(page, spot, 'down')
-  await page.waitForTimeout(ms)
+  await pass(page, ms)
   await press(page, spot, 'up')
 }
 
 /** 누른 채로 기다립니다. **떼지 않고 그 사이를 재야 합니다.** */
 async function hold(page: Page, spot: { x: number; y: number }, ms: number): Promise<void> {
   await press(page, spot, 'down')
-  await page.waitForTimeout(ms)
+  await pass(page, ms)
 }
 
 /** 누르고 있는 그 순간을 재고 찍습니다. 떼는 것은 부르는 쪽에서 합니다. */

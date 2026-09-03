@@ -8,7 +8,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
-import { at, chooseFive, peek, pickCards, pressPlay, STAGE_W, skipLogin } from './harness'
+import { at, chooseFive, peek, pickCards, pressPlay, STAGE_W, skipLogin, pass } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5215
@@ -25,20 +25,20 @@ async function main(): Promise<number> {
   await skipLogin(page)
   const errors: string[] = []
   page.on('pageerror', error => errors.push(String(error)))
-  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-SOUND2`, { waitUntil: 'networkidle' })
-  await page.waitForTimeout(1800)
+  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-SOUND2&tick=manual`, { waitUntil: 'networkidle' })
+  await pass(page, 1800)
 
   await tap(page, STAGE_W / 2, 473)
-  await page.waitForTimeout(1100)
+  await pass(page, 1100)
   await tap(page, 20, 20)
-  await page.waitForTimeout(700)
+  await pass(page, 700)
   const pick = (await peek(page)).spots?.pick
   if (pick) await tap(page, pick.x, pick.y)
-  await page.waitForTimeout(2600)
+  await pass(page, 2600)
 
   const hand = (await peek(page)).hand
   await pickCards(page, chooseFive(hand))
-  await page.waitForTimeout(300)
+  await pass(page, 300)
 
   // 소리가 난 시각과, 100밀리초마다 무엇을 기다리는지.
   await page.evaluate(watch => {
@@ -67,7 +67,7 @@ async function main(): Promise<number> {
   }, WATCH_MS)
 
   await pressPlay(page)
-  await page.waitForTimeout(WATCH_MS + 500)
+  await pass(page, WATCH_MS + 500)
 
   const { sound, wait } = await page.evaluate(() => {
     const one = window as unknown as { __sound: number[]; __wait: [number, string][] }
@@ -100,9 +100,9 @@ async function main(): Promise<number> {
 async function tap(page: Page, x: number, y: number): Promise<void> {
   const spot = await at(page, x, y)
   await page.mouse.move(spot.x, spot.y)
-  await page.waitForTimeout(80)
+  await pass(page, 80)
   await page.mouse.down()
-  await page.waitForTimeout(55)
+  await pass(page, 55)
   await page.mouse.up()
 }
 

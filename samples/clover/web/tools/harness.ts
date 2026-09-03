@@ -160,8 +160,29 @@ export async function peek(page: Page): Promise<Peek> {
 export async function settle(page: Page): Promise<void> {
   for (let wait = 0; wait < 60; wait++) {
     if (!(await peek(page)).busy) return
-    await page.waitForTimeout(200)
+    await pass(page, 200)
   }
+}
+
+/**
+ * 시간을 보냅니다.
+ *
+ * **판을 `?tick=manual` 로 열었으면 그만큼 틱을 돌리고, 아니면 실제로 기다립니다.** 틱으로
+ * 돌리면 기계의 부하와 무관하게 같은 수의 프레임이 지나므로 결과가 같습니다 — 실제로
+ * 기다리는 도구는 느린 기계에서 모자라고 빠른 기계에서 남습니다. 60Hz 로 셉니다.
+ *
+ * 화면이 상태를 알리기 전에는 실제로 기다립니다 — 그때는 아직 틱을 돌릴 판이 없습니다.
+ */
+export async function pass(page: Page, ms: number): Promise<void> {
+  const stepped = await page.evaluate(async wanted => {
+    const hook = (window as unknown as {
+      __clover?: { advance?(ms: number): Promise<void> }
+    }).__clover
+    if (!hook?.advance) return false
+    await hook.advance(wanted)
+    return true
+  }, ms)
+  if (!stepped) await pass(page, ms)
 }
 
 /**
@@ -177,10 +198,10 @@ export async function buyAffordablePack(page: Page): Promise<void> {
     if (packs <= slot) return
     const spot = await packSlot(page, slot, packs)
     await page.mouse.click(spot.x, spot.y)
-    await page.waitForTimeout(350)
+    await pass(page, 350)
     const buy = await packBuySpot(page, slot, packs)
     await page.mouse.click(buy.x, buy.y)
-    await page.waitForTimeout(700)
+    await pass(page, 700)
     if ((await peek(page)).packOpen) return
   }
 }
@@ -219,12 +240,12 @@ export async function buyFirstAffordable(page: Page): Promise<void> {
   for (let slot = 0; slot < 4; slot++) {
     const spot = await shopSlot(page, slot)
     await page.mouse.click(spot.x, spot.y)
-    await page.waitForTimeout(350)
+    await pass(page, 350)
     // **딱지를 누르는 것은 고르는 것까지입니다.** 사는 것은 그 밑의 단추입니다 —
     // `buyAffordablePack` 과 같은 이유로 낡아 있었습니다.
     const buy = await shopBuySpot(page, slot)
     await page.mouse.click(buy.x, buy.y)
-    await page.waitForTimeout(500)
+    await pass(page, 500)
     if ((await peek(page)).jokers > 0) return
   }
 }
@@ -405,9 +426,9 @@ export async function clickPrimary(page: Page): Promise<void> {
   if (!pick) throw new Error('블라인드 판의 버튼 자리를 화면이 알리지 않았습니다')
   const spot = await at(page, pick.x, pick.y)
   await page.mouse.move(spot.x, spot.y)
-  await page.waitForTimeout(80)
+  await pass(page, 80)
   await page.mouse.down()
-  await page.waitForTimeout(50)
+  await pass(page, 50)
   await page.mouse.up()
 }
 
@@ -426,7 +447,7 @@ export async function playHand(page: Page, picks: number[] = [0, 1, 2, 3, 4]): P
 export async function openDeckView(page: Page): Promise<void> {
   const spot = await at(page, HAND_LIST_BUTTON.x, HAND_LIST_BUTTON.y)
   await page.mouse.click(spot.x, spot.y)
-  await page.waitForTimeout(350)
+  await pass(page, 350)
 }
 
 /** 고르기만 합니다. 고른 카드의 셰이더를 찍으려면 낸다를 누르기 전에 멈춰야 합니다. */
@@ -449,7 +470,7 @@ export async function clickCards(page: Page, picks: number[], held: number): Pro
     const offset = i - (held - 1) / 2
     const spot = await at(page, startX + i * spacing, HAND_Y + offset * offset * 1.1)
     await page.mouse.click(spot.x, spot.y)
-    await page.waitForTimeout(80)
+    await pass(page, 80)
   }
 }
 

@@ -8,7 +8,7 @@ import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
   at, chooseFive, clickPrimary, discardHand, grantMoney, peek, playHand, rate, settle,
-  shopSlot, spare, STAGE_W, TITLE_START_Y, skipLogin,
+  shopSlot, spare, STAGE_W, skipLogin, TITLE_START, pass,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -35,14 +35,14 @@ async function main(): Promise<number> {
   page.on('console', one => {
     if (one.type() === 'error') console.log('  [콘솔]', one.text().slice(0, 200))
   })
-  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-FLY1`, { waitUntil: 'networkidle' })
-  await page.waitForTimeout(1500)
+  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-FLY1&tick=manual`, { waitUntil: 'networkidle' })
+  await pass(page, 1500)
 
-  const start = await at(page, STAGE_W / 2, TITLE_START_Y)
+  const start = await at(page, TITLE_START.x, TITLE_START.y)
   await page.mouse.click(start.x, start.y)
-  await page.waitForTimeout(900)
+  await pass(page, 900)
   await page.mouse.click(20, 20)
-  await page.waitForTimeout(400)
+  await pass(page, 400)
   await clickPrimary(page)
   await settle(page)
 
@@ -56,19 +56,19 @@ async function main(): Promise<number> {
       await playHand(page, picks)
     }
     await settle(page)
-    await page.waitForTimeout(200)
+    await pass(page, 200)
   }
-  await page.waitForTimeout(1400)
+  await pass(page, 1400)
   const h = 46 + 16 + 2 * 34 + 14 + 56
   const take = await at(page, STAGE_W / 2, (800 - h) / 2 + h - 56 / 2)
   await page.mouse.click(take.x, take.y)
-  await page.waitForTimeout(1700)
+  await pass(page, 1700)
   await grantMoney(page, 40)
   // **돈이 다 세어질 때까지 기다립니다.** 사는 것은 화면이 주장하는 금액으로 판정하고,
   // 그 금액은 동전이 날아가 꽂히는 동안 올라갑니다 — 400밀리초에 누르면 아직 모자라서
   // 그 누름이 아무 일도 하지 않고, 도구는 「샀다」고 볼 근거가 없는 채로 다음으로 갑니다.
   await settle(page)
-  await page.waitForTimeout(600)
+  await pass(page, 600)
 
   // 소모품이 선 칸을 짚습니다.
   //
@@ -95,7 +95,7 @@ async function main(): Promise<number> {
     const tile = await shopSlot(page, slot)
     // **이제 두 번 누릅니다.** 한 번은 고르는 것이고, 사는 것은 그 밑에 서는 단추입니다.
     await page.mouse.click(tile.x, tile.y)
-    await page.waitForTimeout(260)
+    await pass(page, 260)
     const buy = (await peek(page)).spots?.held
     if (!buy) {
       console.log(`  칸 ${slot}: 고른 뒤에도 단추가 서지 않았습니다`)
@@ -114,7 +114,7 @@ async function main(): Promise<number> {
         return hook.fly ?? null
       })
       if (spot) track.push(spot)
-      await page.waitForTimeout(25)
+      await pass(page, 25)
     }
     const now = await peek(page)
     bought = now.consumables > before

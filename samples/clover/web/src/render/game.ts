@@ -50,7 +50,7 @@ import {
   type Beat, type Feel,
 } from './juice'
 import { Coins } from './coins'
-import { Motion, Spring } from './motion'
+import { fraction, Motion, Spring } from './motion'
 import { Particles } from './particles'
 import { artFor, onArtReady, type ArtKind } from './art'
 import { backLookOf, cardBack, drawCardBack, setCardBack } from './card-back'
@@ -302,6 +302,27 @@ const TAG_FIRE_WAIT = 0.5
 
 const DELTA_POOL = 8
 const DELTA_LIFE = 0.62
+
+/**
+ * 고정 단계의 길이. 밀리초.
+ *
+ * **60Hz 입니다.** 단계마다 난수를 뽑는 떨림들이 이 빠르기로 떨고, 단계당 비율로 줄어드는
+ * 것들이 이 빠르기로 줄어듭니다. 화면 주사율과 무관합니다.
+ */
+const STEP_MS = 1000 / 60
+
+/** 떠오르는 글자가 사라지기까지. 밀리초. */
+const RISER_SPAN = 760
+
+/** 떠오르는 글자 하나. */
+interface Riser {
+  label: Text
+  life: number
+  homeX: number
+  homeY: number
+  drift: number
+  rumble: number
+}
 
 const CHIPS_Y = 336
 /**
@@ -1230,6 +1251,19 @@ export class Game {
   private screenTint: number = COLOR.ink
   /** 점수가 멈춘 뒤 낸 카드를 얼마나 붙잡아 두었는가. */
   private holdAfterScore = 0
+
+  /**
+   * 고정 단계에 아직 쓰지 않은 시간. 밀리초.
+   *
+   * **매 프레임 난수를 새로 뽑는 것들은 고정 단계에서만 전진합니다.** 판의 흔들림 ·
+   * 숫자 칸의 떨림 · 떠오르는 글자의 떨림이 그것입니다 — 프레임마다 뽑으면 떨림의
+   * 주파수가 모니터 주사율이 되어 144Hz 에서는 잔떨림이고 30Hz 에서는 흔들거림입니다.
+   * 용수철과 예약 큐는 여기 없습니다. 그것들은 이미 시간으로만 움직입니다.
+   */
+  private stepDebt = 0
+
+  /** 떠오르는 글자들. `popAt` 이 만들고 고정 단계가 올립니다. */
+  private readonly risers: Riser[] = []
   /**
    * 화면이 지금 주장하고 있는 것.
    *
@@ -1306,7 +1340,9 @@ export class Game {
   private rankRoll = 0
 
   constructor(private readonly app: Application, private readonly data: Data, seed: string,
-              pools: JokerPool[] = [JokerPool.Base]) {
+              pools: JokerPool[] = [JokerPool.Base],
+              /** 시간이 `__clover.advance` 로만 흐릅니다. 검증 도구가 `?tick=manual` 로 켭니다. */
+              private readonly manualTick = false) {
     this.feel = readFeel(data.feel)
     this.audio = new Audio(data.tables)
     const first = this.setup()
@@ -1574,7 +1610,10 @@ export class Game {
     this.modals.onClosed = () => this.audio.play('panel_close')
 
     this.refresh()
-    app.ticker.add(ticker => this.tick(ticker.deltaMS))
+    // **수동 틱.** 검증 도구가 `?tick=manual` 로 열면 시간은 `advance` 로만 흐릅니다 — 실제
+    // 시간을 기다리는 대신 틱 수를 정해 돌리므로 기계의 부하와 무관하게 같은 결과입니다.
+    // 그리는 것은 틱커가 그대로 하므로 스크린샷은 언제든 찍힙니다.
+    if (!this.manualTick) app.ticker.add(ticker => this.tick(ticker.deltaMS))
 
   }
 
@@ -2751,6 +2790,17 @@ export class Game {
     }
   }
 
+  /**
+   * 이 카드가 나가는 중이거나 나가기로 잡혀 있는가.
+   *
+   * **잡혀 있는 것도 셉니다.** `retiring` 은 물러남이 실제로 시작될 때 서는데, 예약과 시작
+   * 사이의 0.3초 동안 `retiring` 만 보면 매 틱 다시 예약합니다 — 한 판에 같은 카드가 큐에
+   * 99번까지 들어가 있었고, 그동안 `fades` 가 비지 않아 상점이 서지 못했습니다.
+   */
+  private leaving(view: CardView): boolean {
+    return view.retiring || this.fades.some(one => one.view === view)
+  }
+
   /** 예약해 둔 한 장씩의 이동. */
   private advanceSlams(): void {
     while (this.slams.length > 0 && this.slams[0].at <= this.clock) {
@@ -2777,7 +2827,7 @@ export class Game {
     // 못합니다 — 올라간 것은 내려와서 없어져야 한 몸짓으로 읽힙니다.
     for (const view of this.playedViews) view.scoring = false
     this.playedViews.forEach((view, index) => {
-      if (view.retiring) return
+      if (this.leaving(view)) return
       this.fades.push({
         view,
         at: this.clock + ITEM_SETTLE + ITEM_LINGER + index * (this.feel.playStaggerMs / 1000),
@@ -3162,7 +3212,7 @@ export class Game {
    */
   private advanceBlur(seconds: number): void {
     const want = this.modals.busy ? 1 : 0
-    this.blurShown += (want - this.blurShown) * Math.min(1, seconds * 11)
+    this.blurShown += (want - this.blurShown) * fraction(seconds, 11)
 
     const on = this.blurShown > 0.01
     const filtered = (this.recede.filters as unknown[] | null)?.length ?? 0
@@ -3463,37 +3513,41 @@ export class Game {
     this.overlay.addChild(label)
 
     // **그냥 뜨면 심심합니다.** 튀어나왔다가 부르르 떨며 올라갑니다.
-    const homeX = label.x
-    const homeY = label.y
-    const drift = (Math.random() - 0.5) * 34
-    const rumble = 3 + intensity * 7
-    const span = 760
-    let life = 0
-
+    // **`tick` 을 거칩니다.** 틱커에 자기 콜백을 따로 걸면 히트스톱도 고정 단계도 타지
+    // 않는 유일한 자리가 됩니다.
     label.scale.set(0.4)
-    const rise = () => {
-      life += this.app.ticker.deltaMS
-      const t = Math.min(1, life / span)
+    this.risers.push({
+      label, life: 0,
+      homeX: label.x, homeY: label.y,
+      drift: (Math.random() - 0.5) * 34,
+      rumble: 3 + intensity * 7,
+    })
+  }
+
+  /** 떠오르는 글자를 한 단계 올립니다. */
+  private advanceRisers(stepMs: number): void {
+    for (let i = this.risers.length - 1; i >= 0; i--) {
+      const one = this.risers[i]
+      one.life += stepMs
+      const t = Math.min(1, one.life / RISER_SPAN)
 
       // 처음 120밀리초는 튀어나오는 구간입니다. 1을 넘겼다가 돌아옵니다.
-      const grow = life < 120
-        ? 0.4 + 0.85 * (life / 120)
-        : 1.25 - 0.25 * Math.min(1, (life - 120) / 220)
-      label.scale.set(grow + t * 0.18)
+      const grow = one.life < 120
+        ? 0.4 + 0.85 * (one.life / 120)
+        : 1.25 - 0.25 * Math.min(1, (one.life - 120) / 220)
+      one.label.scale.set(grow + t * 0.18)
 
       const fade = Math.max(0, 1 - t)
-      const shiver = rumble * fade * fade
-      label.x = homeX + drift * t + (Math.random() - 0.5) * shiver
-      label.y = homeY - t * 46 + (Math.random() - 0.5) * shiver
-      label.rotation = (Math.random() - 0.5) * 0.05 * fade
-      label.alpha = fade
+      const shiver = one.rumble * fade * fade
+      one.label.x = one.homeX + one.drift * t + (Math.random() - 0.5) * shiver
+      one.label.y = one.homeY - t * 46 + (Math.random() - 0.5) * shiver
+      one.label.rotation = (Math.random() - 0.5) * 0.05 * fade
+      one.label.alpha = fade
 
-      if (life >= span) {
-        this.app.ticker.remove(rise)
-        label.destroy()
-      }
+      if (one.life < RISER_SPAN) continue
+      one.label.destroy()
+      this.risers.splice(i, 1)
     }
-    this.app.ticker.add(rise)
   }
 
   /**
@@ -3621,11 +3675,16 @@ export class Game {
     else if (!punching && filtered > 0) this.board.filters = []
     // **배경의 빠르기는 천천히 따라갑니다.** 점수가 한 박자에 크게 뛰므로 그대로 먹이면
     // 블라인드가 그대로인데도 배경이 휘리릭 돕니다.
-    this.heatShown += (this.heat() - this.heatShown) * Math.min(1, seconds * 0.9)
+    this.heatShown += (this.heat() - this.heatShown) * fraction(seconds, 0.9)
     this.background.setHeat(this.heatShown)
     this.particles.advance(seconds)
 
-    for (const slot of [this.score, this.chips, this.mult, this.money]) slot.advance(deltaMs)
+    // **고정 단계.** 틱커가 한 프레임을 100밀리초로 자르므로 한 프레임에 많아야 6단계입니다.
+    this.stepDebt += deltaMs
+    while (this.stepDebt >= STEP_MS) {
+      this.stepDebt -= STEP_MS
+      this.step(STEP_MS)
+    }
     // 칩과 배수 칸은 제자리에 있습니다. **모였다 흩어지는 것은 걷어냈습니다** — 그 사이에
     // 두 수를 읽을 수 없고 옆의 칸들과 줄도 어긋납니다.
     this.advanceFire(deltaMs)
@@ -3713,6 +3772,37 @@ export class Game {
     this.gauge.visible = this.state.phase === 'round'
     if (this.gauge.visible) this.drawGauge()
 
+    if (!this.player.busy) {
+      this.chips.emphasize(1)
+      this.mult.emphasize(1)
+      // **결과를 읽을 시간을 둡니다.** 점수가 다 굴러간 뒤에도 잠깐 남아 있어야
+      // 무엇을 냈고 얼마가 되었는지가 보입니다.
+      if (this.playedViews.length > 0 && this.score.settled) {
+        this.holdAfterScore += deltaMs
+        if (this.holdAfterScore > 1_100 && !this.leaving(this.playedViews[0])) {
+          this.clearPlayArea()
+        }
+      } else {
+        this.holdAfterScore = 0
+      }
+      if (this.state.phase !== 'round') {
+        this.chips.target = 0
+        this.mult.target = 0
+      }
+    }
+  }
+
+  /**
+   * 고정 단계. 초당 60번, 프레임과 무관합니다.
+   *
+   * **여기 있는 것은 전부 단계마다 난수를 뽑거나 단계당 비율로 줄어드는 것들입니다.**
+   * 그래서 이것들은 단계의 길이가 늘 같아야 같은 모습입니다. 시간으로만 움직이는 것은
+   * `tick` 에 있습니다.
+   */
+  private step(stepMs: number): void {
+    for (const slot of [this.score, this.chips, this.mult, this.money]) slot.advance(stepMs)
+    this.advanceRisers(stepMs)
+
     // 흔들림은 줄어듭니다. **판만 흔들고 배경은 가만히 둡니다** — 둘 다 흔들면 무엇이
     // 맞은 것인지 읽히지 않습니다.
     if (this.shake > 0.08) {
@@ -3726,24 +3816,21 @@ export class Game {
       this.overlay.position.set(0, 0)
       this.shake = 0
     }
+  }
 
-    if (!this.player.busy) {
-      this.chips.emphasize(1)
-      this.mult.emphasize(1)
-      // **결과를 읽을 시간을 둡니다.** 점수가 다 굴러간 뒤에도 잠깐 남아 있어야
-      // 무엇을 냈고 얼마가 되었는지가 보입니다.
-      if (this.playedViews.length > 0 && this.score.settled) {
-        this.holdAfterScore += deltaMs
-        if (this.holdAfterScore > 1_100 && !this.playedViews[0].retiring) {
-          this.clearPlayArea()
-        }
-      } else {
-        this.holdAfterScore = 0
-      }
-      if (this.state.phase !== 'round') {
-        this.chips.target = 0
-        this.mult.target = 0
-      }
+  /**
+   * 정해진 시간만큼 틱을 돌립니다. 수동 틱에서만 부릅니다.
+   *
+   * **100밀리초어치마다 한 번 이벤트 루프에 자리를 내줍니다.** 그림과 소리는 비동기로
+   * 오므로 한 번에 다 돌리면 그것들이 도착할 틈이 없습니다. 틱의 수는 그와 무관하게 같습니다.
+   */
+  private async advanceManually(ms: number): Promise<void> {
+    let left = Math.max(1, Math.round(ms / STEP_MS))
+    while (left > 0) {
+      const burst = Math.min(left, 6)
+      for (let i = 0; i < burst; i++) this.tick(STEP_MS)
+      left -= burst
+      await new Promise<void>(done => setTimeout(done, 0))
     }
   }
 
@@ -4024,6 +4111,9 @@ export class Game {
       // **판을 끝까지 두는 도구를 위한 손잡이입니다.** 사람이 보라고 넣은 뜸이 도구에게는
       // 기다림일 뿐이고, 그 기다림이 실행 시간의 대부분입니다. 옵션의 속도와 같은 값입니다.
       hurry: (times: number) => { this.player.base = times },
+      // **틱을 정해진 수만큼 돌립니다.** `?tick=manual` 로 열었을 때만 있습니다 — 하네스의
+      // `pass` 가 이것이 있으면 틱을 돌리고 없으면 실제로 기다립니다.
+      ...(this.manualTick ? { advance: (ms: number) => this.advanceManually(ms) } : {}),
       // **개발 서버에서만 있습니다.** 자리를 바꾸는 것이 되는지 보려면 조커가 둘 있어야
       // 하는데, 그것을 사려고 판을 열 판 두는 동안 확인하려던 것과 상관없는 곳에서 도구가
       // 멈춥니다. 구운 것에는 이 줄이 들어가지 않습니다.
@@ -5440,7 +5530,7 @@ export class Game {
     const before = Math.round(this.rankRoll)
     // **폭이 넓어도 곧 끝납니다.** 자리마다 같은 속도로 굴리면 100자리가 오른 판이
     // 한참 동안 숫자만 굴립니다.
-    this.rankRoll += (line.to - this.rankRoll) * Math.min(1, seconds * 5)
+    this.rankRoll += (line.to - this.rankRoll) * fraction(seconds, 5)
     if (Math.abs(this.rankRoll - line.to) < 0.6) this.rankRoll = line.to
 
     const now = Math.round(this.rankRoll)
@@ -7985,7 +8075,7 @@ export class Game {
   private advancePack(seconds: number): void {
     const open = this.state.pack !== null
     // **덮개는 서서히 짙어집니다.** 한 프레임에 덮이면 상점이 툭 꺼진 것으로 보입니다.
-    this.packEnter += ((open ? 1 : 0) - this.packEnter) * Math.min(1, seconds * 11)
+    this.packEnter += ((open ? 1 : 0) - this.packEnter) * fraction(seconds, 11)
     // **판을 덮는 것보다 짙습니다.** 다른 덮개는 뒤가 무엇이었는지 남기려고 옅지만, 이
     // 덮개가 가리는 것은 상점이고 상점의 카드와 값이 흐릿하게 남으면 펼친 카드와 섞입니다.
     if (this.packVeil) this.packVeil.alpha = 0.86 * this.packEnter

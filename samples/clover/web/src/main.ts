@@ -68,7 +68,10 @@ async function main(): Promise<void> {
     ? [JokerPool.Base, JokerPool.Greenhouse]
     : [JokerPool.Base]
 
-  const game = new Game(app, data, seed, pools)
+  // 검증 도구의 수동 틱. 시간이 `__clover.advance` 로만 흐릅니다.
+  const manualTick = new URLSearchParams(location.search).get('tick') === 'manual'
+
+  const game = new Game(app, data, seed, pools, manualTick)
 
   /**
    * 화면 크기가 바뀔 때 다시 배치합니다.

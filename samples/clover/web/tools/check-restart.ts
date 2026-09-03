@@ -5,7 +5,9 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import { at, clickPrimary, peek, pressPlay, pickCards, settle, STAGE_W , TITLE_START_Y, skipLogin } from './harness'
+import {
+  at, clickPrimary, peek, pressPlay, pickCards, settle, STAGE_W, skipLogin, TITLE_START, pass,
+} from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
@@ -23,14 +25,14 @@ async function main(): Promise<number> {
   })
   page.on('pageerror', error => problems.push(String(error)))
 
-  await page.goto('http://localhost:5201/?seed=CLOVER-LOSE1', { waitUntil: 'networkidle' })
-  await page.waitForTimeout(1500)
+  await page.goto('http://localhost:5201/?seed=CLOVER-LOSE1&tick=manual', { waitUntil: 'networkidle' })
+  await pass(page, 1500)
 
-  const start = await at(page, STAGE_W / 2, TITLE_START_Y)
+  const start = await at(page, TITLE_START.x, TITLE_START.y)
   await page.mouse.click(start.x, start.y)
-  await page.waitForTimeout(900)
+  await pass(page, 900)
   await page.mouse.click(20, 20)
-  await page.waitForTimeout(400)
+  await pass(page, 400)
   await clickPrimary(page)
   await settle(page)
 
@@ -41,10 +43,10 @@ async function main(): Promise<number> {
     await pickCards(page, [0])
     await pressPlay(page)
     await settle(page)
-    await page.waitForTimeout(200)
+    await pass(page, 200)
   }
 
-  await page.waitForTimeout(2200)
+  await pass(page, 2200)
   const after = await peek(page)
   console.log('국면', after.phase)
   await page.screenshot({ path: path.join(OUT, 'restart-1.png') })
@@ -64,7 +66,7 @@ async function main(): Promise<number> {
   const began = Date.now()
   let back = false
   for (let i = 0; i < 40; i++) {
-    await page.waitForTimeout(500)
+    await pass(page, 500)
     try {
       const now = await peek(page)
       if (now.phase === 'blind-select' || now.phase === 'round') {

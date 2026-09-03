@@ -14,7 +14,7 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 
-import { clickPrimary, settle, type Peek, skipLogin } from './harness'
+import { clickPrimary, settle, type Peek, skipLogin, pass } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '..', '..', 'design-data', 'out', 'check')
@@ -67,14 +67,14 @@ async function main(): Promise<number> {
     (window as unknown as { __clover?: Peek }).__clover)
 
   await page.goto('http://localhost:5198/', { waitUntil: 'domcontentloaded' })
-  await page.waitForTimeout(2600)
+  await pass(page, 2600)
   // 저장을 비우고 다시 엽니다. **처음 여는 사람의 상태**가 붉은 덱 · 흰색이어야 합니다.
   await page.evaluate(() => {
     localStorage.removeItem('clover.options')
     localStorage.setItem('clover.guide.seen', '1')
   })
   await page.reload({ waitUntil: 'domcontentloaded' })
-  await page.waitForTimeout(2600)
+  await pass(page, 2600)
   await page.screenshot({ path: path.join(OUT, 'setup-0-title.png') })
 
   const before = await peek()
@@ -83,14 +83,14 @@ async function main(): Promise<number> {
         `${before?.deck} · ${before?.stake}`)
 
   await page.mouse.click(SETUP_BUTTON.x, SETUP_BUTTON.y)
-  await page.waitForTimeout(900)
+  await pass(page, 900)
   await page.screenshot({ path: path.join(OUT, 'setup-1-panel.png') })
 
   // 검은 덱(다섯째 칸)과 파란 스테이크(다섯째 칸).
   await page.mouse.click(deckCell(4).x, deckCell(4).y)
-  await page.waitForTimeout(400)
+  await pass(page, 400)
   await page.mouse.click(stakeCell(4).x, stakeCell(4).y)
-  await page.waitForTimeout(500)
+  await pass(page, 500)
   await page.screenshot({ path: path.join(OUT, 'setup-2-picked.png') })
 
   const saved = await page.evaluate(() => localStorage.getItem('clover.options'))
@@ -101,17 +101,17 @@ async function main(): Promise<number> {
 
   // 마지막 덱까지 눌러 봅니다. **뒷면 무늬 11종이 전부 그려지는 자리는 여기뿐입니다.**
   await page.mouse.click(deckCell(14).x, deckCell(14).y)
-  await page.waitForTimeout(400)
+  await pass(page, 400)
   await page.screenshot({ path: path.join(OUT, 'setup-3-last.png') })
   await page.mouse.click(deckCell(4).x, deckCell(4).y)
-  await page.waitForTimeout(300)
+  await pass(page, 300)
 
   const start = {
     x: LEFT + SIDE_X + SIDE_W / 2,
     y: TOP + GRID_Y + SIDE_H + 14 + 23,
   }
   await page.mouse.click(start.x, start.y)
-  await page.waitForTimeout(2000)
+  await pass(page, 2000)
   await page.screenshot({ path: path.join(OUT, 'setup-4-run.png') })
 
   const after = await peek()

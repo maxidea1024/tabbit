@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url'
 import { chromium, type Browser, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, clickPrimary, peek, settle, STAGE_W, TITLE_OPTIONS, TITLE_START_Y, skipLogin,
+  at, clickPrimary, peek, settle, STAGE_W, TITLE_OPTIONS, skipLogin, TITLE_START, pass,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -39,22 +39,22 @@ async function main(): Promise<number> {
   const typed = await firstHand(browser, undefined, async page => {
     // 옵션 → 시드 탭 → 칸을 누르고 새로 적습니다.
     await tap(page, TITLE_OPTIONS.x, TITLE_OPTIONS.y)
-    await page.waitForTimeout(700)
+    await pass(page, 700)
     await tap(page, TAB_X, TAB_Y)
-    await page.waitForTimeout(400)
+    await pass(page, 400)
     await tap(page, FIELD_X, FIELD_Y)
-    await page.waitForTimeout(300)
+    await pass(page, 300)
     await page.screenshot({ path: path.join(OUT, 'seed-edit.png') })
 
     for (let i = 0; i < 30; i++) await page.keyboard.press('Backspace')
     await page.keyboard.type(SEED)
-    await page.waitForTimeout(250)
+    await pass(page, 250)
     await page.screenshot({ path: path.join(OUT, 'seed-typed.png') })
     await page.keyboard.press('Enter')
-    await page.waitForTimeout(300)
+    await pass(page, 300)
     // 판을 닫습니다. 바깥을 누르면 닫힙니다.
     await tap(page, 60, 60)
-    await page.waitForTimeout(500)
+    await pass(page, 500)
   })
 
   const direct = await firstHand(browser, SEED)
@@ -75,18 +75,18 @@ async function firstHand(browser: Browser, seed?: string,
                          Promise<{ title: string; hand: string }> {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
   await skipLogin(page)
-  const query = seed ? `?seed=${seed}` : ''
+  const query = seed ? `?seed=${seed}&tick=manual` : '?tick=manual'
   await page.goto(`http://localhost:${PORT}/${query}`, { waitUntil: 'networkidle' })
-  await page.waitForTimeout(1500)
+  await pass(page, 1500)
 
   if (before) await before(page)
   const title = await page.title()
 
-  const start = await at(page, STAGE_W / 2, TITLE_START_Y)
+  const start = await at(page, TITLE_START.x, TITLE_START.y)
   await page.mouse.click(start.x, start.y)
-  await page.waitForTimeout(900)
+  await pass(page, 900)
   await page.mouse.click(20, 20)
-  await page.waitForTimeout(400)
+  await pass(page, 400)
   await clickPrimary(page)
   await settle(page)
 
@@ -99,7 +99,7 @@ async function firstHand(browser: Browser, seed?: string,
       hand = now.map(card => `${card.rank}.${card.suit}`).join(' ')
       break
     }
-    await page.waitForTimeout(200)
+    await pass(page, 200)
   }
   await page.close()
   return { title, hand }
@@ -109,9 +109,9 @@ async function firstHand(browser: Browser, seed?: string,
 async function tap(page: Page, x: number, y: number): Promise<void> {
   const spot = await at(page, x, y)
   await page.mouse.move(spot.x, spot.y)
-  await page.waitForTimeout(90)
+  await pass(page, 90)
   await page.mouse.down()
-  await page.waitForTimeout(60)
+  await pass(page, 60)
   await page.mouse.up()
 }
 

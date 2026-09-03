@@ -9,7 +9,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import { at, peek, STAGE_W, TITLE_START_Y, skipLogin } from './harness'
+import { at, peek, skipLogin, TITLE_START, pass } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5242
@@ -22,11 +22,11 @@ async function main(): Promise<number> {
   await skipLogin(page)
   page.on('pageerror', error => console.log('  [터짐]', error.stack ?? error.message))
 
-  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-TAGSPOT`, { waitUntil: 'networkidle' })
-  await page.waitForTimeout(1500)
-  const start = await at(page, STAGE_W / 2, TITLE_START_Y)
+  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-TAGSPOT&tick=manual`, { waitUntil: 'networkidle' })
+  await pass(page, 1500)
+  const start = await at(page, TITLE_START.x, TITLE_START.y)
   await page.mouse.click(start.x, start.y)
-  await page.waitForTimeout(1600)
+  await pass(page, 1600)
 
   // 태그를 쥐어 줍니다. **개발 서버에서만 있는 손잡이입니다.**
   await page.evaluate(() => {
@@ -36,7 +36,7 @@ async function main(): Promise<number> {
 
   const seen: string[] = []
   for (let i = 0; i < 40; i++) {
-    await page.waitForTimeout(50)
+    await pass(page, 50)
     const spots = (await peek(page)).tagAt ?? []
     const mark = spots.map(one => `${one.x},${one.y}`).join(' | ')
     if (mark !== seen[seen.length - 1]) seen.push(mark)

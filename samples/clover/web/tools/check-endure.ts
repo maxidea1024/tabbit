@@ -14,7 +14,7 @@ import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
   at, chooseFive, clickPrimary, discardHand, peek, playHand, rate, settle, shopSlot, spare,
-  STAGE_W, TITLE_START_Y, skipLogin,
+  skipLogin, TITLE_START, pass,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -37,14 +37,14 @@ async function main(argv: string[]): Promise<number> {
     if (one.type() === 'error') blew.push(one.text())
   })
 
-  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-ENDURE`, { waitUntil: 'networkidle' })
-  await page.waitForTimeout(1500)
+  await page.goto(`http://localhost:${PORT}/?seed=CLOVER-ENDURE&tick=manual`, { waitUntil: 'networkidle' })
+  await pass(page, 1500)
 
-  const start = await at(page, STAGE_W / 2, TITLE_START_Y)
+  const start = await at(page, TITLE_START.x, TITLE_START.y)
   await page.mouse.click(start.x, start.y)
-  await page.waitForTimeout(900)
+  await pass(page, 900)
   await page.mouse.click(20, 20)
-  await page.waitForTimeout(400)
+  await pass(page, 400)
 
   let same = 0
   let mark = ''
@@ -70,7 +70,7 @@ async function main(argv: string[]): Promise<number> {
       console.log(`판이 끝났습니다 — ${state.phase}, 안테 ${state.ante}`)
       // **끝난 판에는 카드가 남지 않아야 합니다.** 끝났다는 판이 그 위에 서는데 그 밑에
       // 손패가 그대로 있으면, 끝난 것과 아직 쥐고 있는 것이 한 화면에 겹칩니다.
-      await page.waitForTimeout(2600)
+      await pass(page, 2600)
       const after = await peek(page)
       const bins = after.bins
       console.log(`끝난 뒤 카드 ${after.views}장`
@@ -88,7 +88,7 @@ async function main(argv: string[]): Promise<number> {
           hook.clearBlind?.()
         })
         await settle(page)
-        await page.waitForTimeout(400)
+        await pass(page, 400)
         acted++
         continue
       }
@@ -106,7 +106,7 @@ async function main(argv: string[]): Promise<number> {
       if (state.phase === 'shop') {
         const tile = await shopSlot(page, 0)
         await page.mouse.click(tile.x, tile.y)
-        await page.waitForTimeout(320)
+        await pass(page, 320)
         // 고른 채로 상점을 나갑니다. **고른 것이 지워지는 그 순간이 위험한 자리입니다.**
       }
       // 블라인드를 고르거나 상점을 나갑니다. **누를 것이 하나로 남는 자리입니다.**
@@ -114,7 +114,7 @@ async function main(argv: string[]): Promise<number> {
       acted++
     }
     await settle(page)
-    await page.waitForTimeout(120)
+    await pass(page, 120)
   }
 
   const last = await peek(page)
