@@ -101,6 +101,14 @@ export interface Rules {
   discardsPerRound: number
   jokerSlots: number
   consumableSlots: number
+  /**
+   * 돈이 내려갈 수 있는 바닥. **0 이하의 값입니다.**
+   *
+   * 기본 0 이면 빚을 낼 수 없고, `-20` 이면 잔액이 `-20` 까지 내려갈 수 있습니다. 데이터의
+   * `OpChangeRule DebtLimit -20` 이 그대로 더해지는 값이고, 돈이 나가는 곳은 모두
+   * `money - cost < debtLimit` 하나로 판정합니다 — 코어의 상점·버리기와 화면의 `canPay` 가
+   * 같은 식입니다.
+   */
   debtLimit: number
   freeRerolls: number
   rerollCostDelta: number

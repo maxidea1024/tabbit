@@ -1093,6 +1093,7 @@
 	ui.money.interest	이자	Interest	利息	利息	利息	Zinsen
 	ui.money.sell	판 값	Sold	売却	出售所得	出售所得	Verkauf
 	ui.money.spent	구입	Bought	購入	购买	購買	Kauf
+	ui.money.rental	임대료	Rent	レンタル料	租金	租金	Miete
 	ui.blind.small	스몰	Small	スモール	小盲	小盲	Klein
 	ui.blind.big	빅	Big	ビッグ	大盲	大盲	Groß
 	ui.blind.boss	보스	Boss	ボス	Boss	Boss	Boss

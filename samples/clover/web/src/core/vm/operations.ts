@@ -150,9 +150,17 @@ export function sellPrice(vm: Vm, joker: JokerInstance): number {
   return base + joker.counters.sellValue
 }
 
+/**
+ * 돈을 더하거나 뺍니다.
+ *
+ * **빼는 것은 빚 한도에서 멈춥니다.** 데이터의 음수 `OpAddMoney` 가 잔액을 바닥 아래로
+ * 내리지 못하고, 이미 바닥 아래라면 아무것도 빼지 않습니다. 더하는 쪽에는 상한이 없습니다.
+ */
 function addMoney(vm: Vm, amount: number, reason: string, cap?: number | null): void {
   let delta = amount
   if (cap !== null && cap !== undefined) delta = Math.min(delta, cap)
+  if (delta < 0) delta = Math.max(delta, Math.min(0, vm.state.rules.debtLimit - vm.state.money))
+  if (delta === 0) return
   vm.state.money += delta
   vm.events.push({ t: 'MoneyChanged', delta, reason })
 }

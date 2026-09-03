@@ -536,12 +536,23 @@ function winRound(vm: Vm): void {
   stock(vm, state.shop)
 }
 
-/** `Perishable` 은 5라운드 뒤에 무력화됩니다. */
+/**
+ * `Perishable` 은 5라운드 뒤에 무력화되고, `Rental` 은 라운드마다 $3 을 가져갑니다.
+ *
+ * **임대료도 빚 한도를 넘지 못합니다.** 잔액이 바닥에 닿으면 그만큼만 나가고, 나간 만큼은
+ * `MoneyChanged` 로 알립니다 — 조용히 빼면 화면의 잔액이 코어와 어긋납니다.
+ */
 function ageJokers(vm: Vm): void {
-  for (const joker of vm.state.jokers) {
+  const state = vm.state
+  for (const joker of state.jokers) {
     joker.age++
     if (joker.sticker === 2 && joker.age >= 5) joker.disabled = true
-    if (joker.sticker === 3) vm.state.money -= 3
+    if (joker.sticker === 3) {
+      const rent = Math.max(0, Math.min(3, state.money - state.rules.debtLimit))
+      if (rent === 0) continue
+      state.money -= rent
+      vm.events.push({ t: 'MoneyChanged', delta: -rent, reason: 'rental' })
+    }
   }
 }
 
@@ -765,7 +776,7 @@ export function apply(data: Data, state: RunState, action: Action): Step {
     case 'buy': {
       if (state.phase !== 'shop') break
       const item = state.shop.cards[action.slot]
-      if (!item || state.money - item.cost < -state.rules.debtLimit) break
+      if (!item || state.money - item.cost < state.rules.debtLimit) break
       if (!takeItem(vm, item)) break
       state.money -= item.cost
       state.priceRise += state.rules.priceRisePerPurchase
@@ -786,10 +797,14 @@ export function apply(data: Data, state: RunState, action: Action): Step {
       if (!item) break
 
       const joker = item.kind === ShopItemKind.Joker
+      // **팔기 전에 셈합니다.** 팔고 나서 걸리면 판 것만 사라지고 산 것은 없습니다.
+      const held = joker ? state.jokers[action.index] : state.consumables[action.index]
+      if (!held) break
+      const price = joker ? sellPrice(vm, held as JokerInstance) : data.economy.sellMin
+      if (state.money + price - item.cost < state.rules.debtLimit) break
+
       const sold = joker ? sellJoker(vm, action.index) : sellConsumable(vm, action.index)
       if (!sold) break
-
-      if (state.money - item.cost < -state.rules.debtLimit) break
       if (!takeItem(vm, item)) break
       state.money -= item.cost
       state.priceRise += state.rules.priceRisePerPurchase
@@ -804,7 +819,7 @@ export function apply(data: Data, state: RunState, action: Action): Step {
       const packId = state.shop.packs[action.slot]
       if (!packId) break
       const row = data.tables.boosterPack.findByPackId(packId)
-      if (!row || state.money - row.cost < -state.rules.debtLimit) break
+      if (!row || state.money - row.cost < state.rules.debtLimit) break
 
       const open = openPack(vm, packId)
       if (!open) break
@@ -865,7 +880,7 @@ export function apply(data: Data, state: RunState, action: Action): Step {
     case 'buy_voucher': {
       if (state.phase !== 'shop' || !state.shop.voucher) break
       const cost = data.economy.voucherCost
-      if (state.money - cost < -state.rules.debtLimit) break
+      if (state.money - cost < state.rules.debtLimit) break
       state.money -= cost
       state.vouchers.push(state.shop.voucher)
       // **다시 세우면 산 바우처가 함께 얹힙니다.** 그 자리에서 한 줄만 돌리면 나중에 다시
@@ -879,7 +894,7 @@ export function apply(data: Data, state: RunState, action: Action): Step {
     case 'reroll': {
       if (state.phase !== 'shop') break
       const cost = rerollCost(data, state, state.shop)
-      if (state.money - cost < -state.rules.debtLimit) break
+      if (state.money - cost < state.rules.debtLimit) break
       state.money -= cost
       state.shop.rerollsUsed++
       runTrigger(vm, Trigger.OnReroll)

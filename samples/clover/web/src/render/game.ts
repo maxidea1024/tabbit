@@ -7150,7 +7150,7 @@ export class Game {
    * 있고, `shown.money` 는 동전이 날아가는 동안의 값이라 이 판정에 쓰지 않습니다.
    */
   private canPay(cost: number): boolean {
-    return this.state.money - cost >= -this.state.rules.debtLimit
+    return this.state.money - cost >= this.state.rules.debtLimit
   }
 
   private roomFor(kind: ShopItemKind): boolean {
@@ -8179,6 +8179,7 @@ function moneyReason(reason: string): string {
     // 바꿀 때는 들어온 것과 나간 것이 한 프레임 안에 섞여 「알아서 들어갔네」가 되었습니다.
     case 'sell': return t('ui.money.sell')
     case 'shop': return t('ui.money.spent')
+    case 'rental': return t('ui.money.rental')
     default: return ''
   }
 }

@@ -234,6 +234,8 @@ function signed(rule: string | undefined, value: number, absoluteRow = false): s
     'BossRerollsPerAnte', 'InterestCap', 'PlanetGivesMult',
   ])
   if (rule === 'PlanetGivesMult' || rule === 'BlindSizeScale') return bp(value)
+  // 빚 한도는 바닥의 값이 음수로 적혀 있습니다. 「-20까지 빚을」이 아니라 「20까지 빚을」입니다.
+  if (rule === 'DebtLimit') return String(Math.abs(value))
   if (absoluteRow) return String(value)
   if (rule !== undefined && absolute.has(rule)) return String(value)
   return value >= 0 ? `+${value}` : String(value)
