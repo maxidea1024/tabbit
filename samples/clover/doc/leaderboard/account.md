@@ -130,12 +130,19 @@ code 는 60초 안에 한 번 바꿀 수 있고 그다음은 없습니다.
 
 |플랫폼|되돌아오는 길|상태|
 |--|--|--|
-|웹|`https://<게임 주소>/#session=…`|**이 문서의 범위**|
-|데스크탑 (Electron)|`clover://auth#session=…` 커스텀 스킴. 시스템 브라우저에서 로그인|보류. 포장이 되어 있으므로 스킴 등록만 남습니다|
-|안드로이드 (Capacitor)|같은 커스텀 스킴 · `App.addListener('appUrlOpen')`|보류|
+|웹|`https://<게임 주소>/#session=…`|**끝**|
+|안드로이드 (Capacitor)|`clover://auth#session=…` · `App.addListener('appUrlOpen')`|**끝**|
+|데스크탑 (Electron)|같은 커스텀 스킴. 시스템 브라우저에서 로그인|보류. 스킴 등록만 남습니다|
 
-**보류인 둘은 서버가 아니라 되돌아오는 길만 다릅니다.** 서버의 `return` 이 허용 목록에
+**셋이 서버에서는 같습니다.** 되돌아오는 주소만 다르고, 그 주소가 `RETURN_ALLOWLIST` 에
 있으면 어느 스킴이든 같은 code 를 붙여 보냅니다.
+
+**앱은 주소가 아니라 사건으로 받습니다.** `launchMode="singleTask"` 이므로 앱이 새로 뜨는
+것이 아니라 돌던 것이 앞으로 나오고, 그때 읽을 주소가 없습니다 — 열린 주소가 알림으로
+오고 그 안의 code 는 웹의 것과 같습니다.
+
+**`AndroidManifest.xml` 의 `intent-filter` 와 `session.ts` 의 `APP_RETURN` 이 같아야
+합니다.** 한쪽만 고치면 제공자가 보낸 사람이 아무 데도 도착하지 않습니다.
 
 ## 삭제
 

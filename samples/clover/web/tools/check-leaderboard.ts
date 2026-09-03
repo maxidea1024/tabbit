@@ -135,23 +135,15 @@ async function main(): Promise<number> {
 
   // 리더보드 단추. 줄의 오른쪽 끝입니다.
   //
-  // **로그인 상태에 따라 가는 곳이 다릅니다.** 순위표는 계정이 있어야 하므로, 싱글플레이인
-  // 사람에게는 판이 아니라 로그인 화면이 그다음입니다.
+  // **계정이 없어도 열립니다.** 오르는 데 계정이 필요한 것이지 보는 데 필요한 것이
+  // 아닙니다 — 무엇을 위해 만드는지는 그 표를 봐야 압니다.
   await press(page, TITLE.leaderboard.x, TITLE.leaderboard.y)
-  await page.waitForTimeout(1_400)
-  const opened = await peek(page)
-  if (given) {
-    check('리더보드를 누르면 판이 뜹니다', opened.modalUp)
-    await page.keyboard.press('Escape')
-    await page.waitForTimeout(600)
-    check('Esc 로 닫힙니다', !(await peek(page)).modalUp)
-  } else {
-    check('싱글플레이면 리더보드가 로그인 화면으로 보냅니다',
-          opened.scene === 'login', opened.scene)
-    await press(page, SINGLE.x, SINGLE.y)
-    await page.waitForTimeout(900)
-    check('거기서 다시 타이틀로 옵니다', (await peek(page)).scene === 'title')
-  }
+  await page.waitForTimeout(1_600)
+  check('리더보드가 열립니다', (await peek(page)).modalUp)
+
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(600)
+  check('Esc 로 닫힙니다', !(await peek(page)).modalUp)
 
   // 그냥 시작. **로그아웃이든 아니든 이 길은 지금과 같아야 합니다.**
   await press(page, TITLE.start.x, TITLE.start.y)

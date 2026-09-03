@@ -27,6 +27,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!--
+                로그인을 마치고 돌아오는 길.
+
+                **웹에서는 주소가 그대로 돌아오지만 앱에는 그 주소가 없습니다.**
+                제공자는 시스템 브라우저에서 열리고, 그 브라우저가 `clover://auth#session=…`
+                를 열면 안드로이드가 이 앱을 깨웁니다 — `launchMode="singleTask"` 이므로
+                돌아오는 것은 지금 돌고 있는 그 앱입니다.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="clover" android:host="auth" />
+            </intent-filter>
+
         </activity>
 
         <provider

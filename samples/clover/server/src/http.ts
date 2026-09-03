@@ -53,6 +53,28 @@ export function requireLogin(context: Context) {
   }
 }
 
+/**
+ * 로그인했으면 누구인지 적고, 아니어도 지나갑니다.
+ *
+ * **순위표는 계정이 없어도 볼 수 있습니다.** 오르는 데 계정이 필요한 것이지 보는 데
+ * 필요한 것이 아니고, 무엇을 위해 계정을 만드는지는 그 표를 봐야 압니다 — 로그인 창부터
+ * 띄우면 사람이 무엇을 얻는지 모르는 채로 고르게 됩니다.
+ *
+ * 로그인한 사람에게만 「내 자리」가 있습니다. `req.accountId` 가 없으면 그 줄이 없습니다.
+ */
+export function readLogin(context: Context) {
+  return (req: Request, _res: Response, next: NextFunction): void => {
+    const header = req.header('authorization') ?? ''
+    const token = header.startsWith('Bearer ') ? header.slice(7) : ''
+    const claims = token === '' ? undefined : readAccess(context.env.jwtSecret, token)
+    if (claims) {
+      req.accountId = claims.accountId
+      req.sessionId = claims.sessionId
+    }
+    next()
+  }
+}
+
 /** `throw` 된 것을 500 으로 바꿉니다. `async` 라우트에서 `throw` 하면 express 4 가 `catch` 하지 못합니다. */
 export function guard(handler: (req: Request, res: Response) => Promise<void>) {
   return (req: Request, res: Response, next: NextFunction): void => {

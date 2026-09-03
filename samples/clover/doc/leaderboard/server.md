@@ -112,13 +112,17 @@ run_metric   (submission_id PK, ascent, best_hand, fewest_hands,
 |`POST`|`/ranked/seed`|랭크 시드 발급. `{deck, stake, pool}` 또는 `{challenge}`|필요|
 |`POST`|`/runs`|제출|필요|
 |`GET`|`/runs/{id}`|판정과 순위|필요|
-|`GET`|`/boards`|보드 목록 64개. **시트에서 읽은 것을 그대로**|필요|
-|`GET`|`/boards/{id}?period=season\|all&page=&around=me`|순위표 한 쪽. `around=me` 면 내 자리를 가운데로|필요|
+|`GET`|`/boards`|보드 목록 64개. **시트에서 읽은 것을 그대로**|**아니오**|
+|`GET`|`/boards/{id}?period=season\|all&page=&around=me`|순위표 한 쪽. `around=me` 면 내 자리를 가운데로|**아니오** — 로그인하면 「내 자리」가 붙습니다|
 |`GET`|`/profiles/{handle}`|다른 사람의 등급과 보드별 순위|필요|
 |`GET`|`/health`|PostgreSQL · Redis · 지문|—|
 
-**`/boards` 가 로그인을 요구하는 것은 결정 그대로입니다** — 리더보드는 로그인한 사람의
-것입니다. 나중에 열려면 그 한 줄을 빼면 됩니다.
+**`/boards` 는 계정이 없어도 열립니다.** 오르는 데 계정이 필요한 것이지 보는 데 필요한
+것이 아니고, 무엇을 위해 계정을 만드는지는 그 표를 봐야 압니다 — 로그인 창부터 띄우면
+사람이 무엇을 얻는지 모르는 채로 고르게 됩니다.
+
+`readLogin` 이 그 자리입니다. 서명이 있으면 누구인지 적고 없으면 그냥 지납니다 —
+**「내 자리」 줄만 빠집니다.**
 
 한 쪽은 25행입니다. `page` 는 0 부터이고 `around=me` 가 있으면 `page` 를 무시합니다.
 

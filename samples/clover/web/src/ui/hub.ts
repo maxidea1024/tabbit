@@ -140,12 +140,15 @@ export class LeaderboardHub {
   // 판
   // -------------------------------------------------------------------------
 
+  /**
+   * 순위표를 엽니다.
+   *
+   * **계정이 없어도 엽니다.** 오르는 데 계정이 필요한 것이지 보는 데 필요한 것이
+   * 아닙니다 — 무엇을 위해 계정을 만드는지는 그 표를 봐야 알고, 판 안의 「내 자리」 줄이
+   * 거기서 계정을 연결하는 자리입니다.
+   */
   openLeaderboard(): void {
-    if (!account.loggedIn()) {
-      this.openLogin()
-      return
-    }
-    if (this.profile && this.profile.handle === '') {
+    if (account.loggedIn() && this.profile && this.profile.handle === '') {
       this.askHandle(true)
       return
     }
@@ -155,6 +158,12 @@ export class LeaderboardHub {
       this.panel = undefined
     })
     panel.onProfile = handle => this.openProfile(handle)
+    // 「내 자리」 줄에서 계정을 연결하겠다고 하면 로그인 화면으로 갑니다.
+    panel.onNeedAccount = () => {
+      this.modals.close(panel)
+      this.panel = undefined
+      this.onNeedLogin?.()
+    }
     this.panel = panel
     this.modals.open(panel)
   }

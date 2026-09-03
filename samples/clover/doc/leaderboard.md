@@ -18,12 +18,13 @@
 |랭크 시드 · 제출 · 서버 재현 · 판정 · 버전 지문|[제출과 검증](leaderboard/submission.md)|
 |Express · Redis · PostgreSQL · API · docker-compose|[서버](leaderboard/server.md)|
 |들어가는 자리 · 판 · 런 끝의 연출|[화면](leaderboard/screens.md)|
+|제공자 앱을 만들고 열쇠를 적는 절차|[제공자 등록](leaderboard/providers.md)|
 
 ## 결정 7개
 
 |결정|이유|
 |--|--|
-|**보기도 오르기도 로그인이 필요합니다**|로그인 전에는 판 자체가 없습니다. 제목 화면의 단추가 로그인 창을 엽니다|
+|**보는 것은 누구나, 오르는 것은 계정이**|무엇을 위해 계정을 만드는지는 그 표를 봐야 압니다. 「내 자리」 줄이 계정을 연결하는 자리입니다|
 |**서버가 다시 돕니다.** 점수는 받지 않고 리플레이를 받습니다|코어가 결정론적이고 헤드리스 러너가 이미 있습니다. 클라이언트의 숫자를 믿을 이유가 없습니다|
 |**랭크 런은 서버가 준 시드로만 시작합니다**|시드를 고르게 두면 좋은 시드를 찾아 오는 것이 실력이 됩니다. 시드는 한 번 쓰고 없어집니다|
 |**보드는 시트의 행입니다**|어느 지표를 어느 축으로 나누는가가 데이터입니다. 보드 하나를 더하는 데 코드가 바뀌지 않습니다|
@@ -65,7 +66,7 @@
 |L1|서버 — 계정 · 세션 · 랭크 시드 · 제출 · 재현. docker-compose 로 뜹니다|리플레이 13개를 API 로 넣어 전부 `accepted`. 액션 하나를 바꾼 것은 `rejected`|
 |L2|보드 — Redis 순위와 조회 API. 등급 산정|1만 계정을 합성해 넣고 어느 쪽 순위도 100ms 안에|
 |L3|클라이언트 — 로그인 판 · 리더보드 판 · 프로필 판 · 내 카드 · 런 끝의 순위|`check-ranked.ts` 가 브라우저에서 랭크 런을 두어 순위에 오르는 것까지 봅니다|
-|L4|Google · Discord · Apple 실제 연결. GitHub 은 개발 환경에만|`vite build` 산출물에 `github` 문자열이 없고, `NODE_ENV=production` 서버가 `AUTH_PROVIDERS=github` 으로 뜨지 않습니다|
+|L4|Google · Discord · Apple 실제 연결. GitHub 은 개발 환경에만|`vite build` 산출물에 `github` 문자열이 없고, `NODE_ENV=production` 서버가 `AUTH_PROVIDERS=github` 으로 뜨지 않습니다. **등록 절차는 [제공자 등록](leaderboard/providers.md)**|
 
 **L0 과 L1 은 화면이 없습니다.** 헤드리스와 API 만으로 판정이 끝나고, 화면은 그 위에
 얹습니다.

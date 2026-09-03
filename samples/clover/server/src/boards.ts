@@ -15,7 +15,7 @@ import type { LeaderboardRecord } from '../../web/src/generated/tables/leaderboa
 import type { Metrics } from '../../web/src/core/metrics'
 import { loadData, type PoolChoice } from './core'
 import { KEY, type Cache } from './redis'
-import { fail, guard, requireLogin, type Context } from './http'
+import { fail, guard, readLogin, type Context } from './http'
 import type { Db } from './db'
 
 /** 한 쪽에 몇 행인가. */
@@ -357,7 +357,9 @@ export function boardsRouter(context: Context): Router {
   const find = (boardId: string): Board | undefined =>
     loadBoards(context.env.dataPath).find(one => one.boardId === boardId)
 
-  router.get('/boards', requireLogin(context), (_req, res) => {
+  // **계정이 없어도 봅니다.** 오르는 데 계정이 필요한 것이지 보는 데 필요한 것이
+  // 아닙니다 — 무엇을 위해 만드는지는 그 표를 봐야 압니다.
+  router.get('/boards', readLogin(context), (_req, res) => {
     res.json({
       boards: loadBoards(context.env.dataPath).map(board => ({
         boardId: board.boardId,
@@ -373,16 +375,20 @@ export function boardsRouter(context: Context): Router {
     })
   })
 
-  router.get('/boards/:id', requireLogin(context), guard(async (req, res) => {
+  router.get('/boards/:id', readLogin(context), guard(async (req, res) => {
     const board = find(String(req.params.id))
     if (!board) {
       fail(res, 404, 'not_found', '없는 보드입니다')
       return
     }
     const season: number | 'all' = req.query.period === 'all' ? 'all' : context.season.id
-    const accountId = req.accountId as number
+    const accountId = req.accountId
 
-    const mine = await rankOf(context.cache, board.boardId, season, accountId)
+    // **로그인하지 않았으면 「내 자리」가 없습니다.** 그 줄에 무엇을 적을지는 화면이
+    // 정합니다 — 서버는 없다는 사실만 알립니다.
+    const mine = accountId === undefined
+      ? undefined
+      : await rankOf(context.cache, board.boardId, season, accountId)
 
     let from = Math.max(0, Number(req.query.page ?? 0)) * PAGE_SIZE
     if (req.query.around === 'me' && mine) {

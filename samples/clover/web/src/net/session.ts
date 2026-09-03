@@ -261,7 +261,9 @@ async function send<T>(path: string, init: RequestInit, token?: string): Promise
  * 반드시 지나가는 자리이고, 여기서 다시 부르지 않으면 사람이 이유 없이 로그아웃됩니다.
  */
 export async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
-  if (!session) throw new ApiError('unauthorized', 401)
+  // **계정이 없어도 지나는 길이 있습니다.** 순위표를 보는 것이 그것입니다 — 그때는
+  // 서명 없이 보내고, 서버가 「내 자리」만 빼고 돌려줍니다.
+  if (!session) return await once<T>(path, init)
 
   try {
     return await once<T>(path, init, session.access)
@@ -323,8 +325,26 @@ export async function devSignIn(handle: string): Promise<void> {
 
 /** 제공자로 갑니다. **게임이 다시 뜹니다** — 팝업은 안드로이드에서 막힙니다. */
 export function goToProvider(id: string): void {
-  const back = `${location.origin}${location.pathname}`
-  location.href = `${BASE}/auth/${id}?return=${encodeURIComponent(back)}`
+  location.href = `${BASE}/auth/${id}?return=${encodeURIComponent(returnUrl())}`
+}
+
+/**
+ * 어디로 돌아올 것인가.
+ *
+ * **웹과 앱이 다릅니다.** 웹은 지금 보고 있는 주소로 그대로 돌아오지만, 앱에는 그 주소가
+ * 없습니다 — 제공자는 시스템 브라우저에서 열리고, 그 브라우저가 우리 앱을 다시 깨울 길이
+ * 커스텀 스킴 하나뿐입니다.
+ *
+ * 서버의 `RETURN_ALLOWLIST` 에 이 값이 들어 있어야 합니다.
+ */
+export function returnUrl(): string {
+  return inApp() ? APP_RETURN : `${location.origin}${location.pathname}`
+}
+
+/** 앱 안에서 돌고 있는가. Capacitor 가 자기 표시를 남깁니다. */
+function inApp(): boolean {
+  const flag = (globalThis as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor
+  return flag?.isNativePlatform?.() === true
 }
 
 /**
@@ -340,8 +360,36 @@ export async function claimFromUrl(): Promise<boolean> {
 
   const code = hash.slice(at + 'session='.length).split('&')[0]
   history.replaceState(null, '', `${location.pathname}${location.search}`)
-  if (code === '') return false
+  return await claimCode(code)
+}
 
+/**
+ * 앱이 스킴으로 깨어났을 때.
+ *
+ * **주소가 아니라 사건으로 옵니다.** 앱은 새로 뜨는 것이 아니라 돌던 것이 앞으로 나오는
+ * 것이므로(`launchMode="singleTask"`), 읽을 주소가 없고 대신 열린 주소가 알림으로
+ * 옵니다 — 그 안의 code 는 웹에서 오는 것과 같습니다.
+ *
+ * 걸어 두는 것은 부팅에서 한 번이고, Capacitor 가 없는 곳에서는 아무 일도 하지 않습니다.
+ */
+export function listenForAppLink(onArrived: () => void): void {
+  const app = (globalThis as {
+    Capacitor?: { Plugins?: { App?: { addListener?: (
+      name: string, run: (event: { url: string }) => void) => void } } }
+  }).Capacitor?.Plugins?.App
+  if (!app?.addListener) return
+
+  app.addListener('appUrlOpen', event => {
+    const at = event.url.indexOf('session=')
+    if (at < 0) return
+    void claimCode(event.url.slice(at + 'session='.length).split('&')[0])
+      .then(got => { if (got) onArrived() })
+  })
+}
+
+/** code 하나를 세션으로 바꿉니다. 웹과 앱이 같은 길을 지납니다. */
+async function claimCode(code: string): Promise<boolean> {
+  if (code === '') return false
   try {
     save(await once<Session>('/auth/exchange', {
       method: 'POST',
@@ -352,6 +400,14 @@ export async function claimFromUrl(): Promise<boolean> {
     return false
   }
 }
+
+/**
+ * 앱이 돌아오는 주소.
+ *
+ * **`AndroidManifest.xml` 의 `intent-filter` 와 같아야 합니다.** 한쪽만 고치면 제공자가
+ * 보낸 사람이 아무 데도 도착하지 않습니다.
+ */
+const APP_RETURN = 'clover://auth'
 
 /** 사람이 자기 기계를 알아보는 표시. **신뢰하지 않습니다** — 표시일 뿐입니다. */
 function deviceLabel(): string {

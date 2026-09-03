@@ -26,6 +26,7 @@ import type { Data } from '../core/data'
 import { ascentPerStake } from '../core/metrics'
 import { nameOf, t, tf } from '../core/strings'
 import * as board from '../net/leaderboard'
+import { loggedIn } from '../net/session'
 import type { BoardInfo, BoardPage } from '../net/leaderboard'
 import { COLOR } from '../render/theme'
 import type { ModalPanel } from './modal'
@@ -172,6 +173,13 @@ export class LeaderboardPanel implements ModalPanel {
 
   /** 이름을 눌렀을 때. 프로필 판을 여는 자리입니다. */
   onProfile?: (handle: string) => void
+  /**
+   * 계정을 연결하겠다고 했습니다.
+   *
+   * **여기가 로그인으로 가는 자리입니다.** 순위표를 보고 나서 그 표에 오르고 싶어진
+   * 사람이 누르는 것이므로, 무엇을 얻는지를 이미 본 뒤입니다.
+   */
+  onNeedAccount?: () => void
 
   constructor(private readonly data: Data, private readonly onClose: () => void) {
     this.view.addChild(panelFrame(WIDTH, HEIGHT, t('ui.lb.title'), this.onClose,
@@ -589,13 +597,23 @@ export class LeaderboardPanel implements ModalPanel {
     this.mineBar.addChild(tag)
 
     if (!shown?.me) {
+      // **계정이 없는 사람과 아직 기록이 없는 사람이 다릅니다.** 앞의 사람에게는 여기가
+      // 계정을 연결하는 자리이고, 뒤의 사람에게는 한 판 더 두라는 말입니다.
+      const guest = !loggedIn()
       const none = new Text({
-        text: t('ui.lb.noRecord'),
+        text: guest ? t('ui.account.needLink') : t('ui.lb.noRecord'),
         style: { fontSize: 13, fill: 0x76869b },
       })
       none.anchor.set(0, 0.5)
       none.position.set(TABLE_X + 68, y + MINE_H / 2)
       this.mineBar.addChild(none)
+
+      if (guest) {
+        const link = new Button(t('ui.account.link'), 120, 26, 0x2f8f52,
+                                () => this.later(() => this.onNeedAccount?.()), 12)
+        link.position.set(TABLE_X + TABLE_W - 132, y + (MINE_H - 26) / 2)
+        this.mineBar.addChild(link)
+      }
       return
     }
 

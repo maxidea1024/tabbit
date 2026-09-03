@@ -63,11 +63,27 @@ export class Toasts extends Container {
    * 사라지기를 기다리게 됩니다 — 낸 카드는 오른쪽으로 x 1030 에서 끝나고 그 오른쪽은
    * 덱까지 비어 있습니다.
    */
-  constructor(private readonly centerX: number = SIZE.width - 10 - WIDTH / 2) {
+  constructor(private centerX: number = SIZE.width - 10 - WIDTH / 2) {
     super()
     this.eventMode = 'none'
     this.zIndex = 8_000
   }
+
+  /**
+   * 줄이 서는 자리를 옮깁니다.
+   *
+   * **판 밖에서는 가운데입니다.** 오른쪽으로 붙여 둔 것은 낸 카드를 덮지 않으려는
+   * 것이므로, 카드가 없는 화면에서까지 구석에 붙어 있으면 그것은 그냥 구석입니다 —
+   * 타이틀과 로그인 화면에서 알림이 오른쪽 끝에 나던 것이 그 때문입니다.
+   */
+  setCenter(x: number): void {
+    this.centerX = x
+  }
+
+  /** 판 안에서의 자리. 낸 카드의 오른쪽입니다. */
+  static readonly IN_RUN = SIZE.width - 10 - WIDTH / 2
+  /** 판 밖에서의 자리. */
+  static readonly OUT_RUN = SIZE.width / 2
 
   /**
    * 한 줄 띄웁니다.

@@ -576,7 +576,9 @@ export class Game {
    * **판의 오른쪽에 섭니다.** 가운데에 세우면 낸 카드를 덮고, 그러면 읽는 것이 아니라
    * 사라지기를 기다리게 됩니다.
    */
-  private readonly toasts = new Toasts()
+  // **처음 서는 자리는 판 밖입니다.** 게임이 뜨는 곳이 로그인 화면이나 타이틀이므로,
+  // 판 안의 자리로 시작하면 첫 알림 하나가 구석에 납니다.
+  private readonly toasts = new Toasts(Toasts.OUT_RUN)
 
   private readonly cards = new Map<number, CardView>()
   private readonly playedViews: CardView[] = []
@@ -1828,6 +1830,9 @@ export class Game {
   /** 로그인 화면으로. **나가는 길은 「계정 없이 시작하기」 하나입니다.** */
   private enterLogin(): void {
     this.scene = 'login'
+    // **알림이 서는 자리가 씬마다 다릅니다.** 판 안에서는 낸 카드를 덮지 않으려고
+    // 오른쪽에 붙지만, 카드가 없는 화면에서는 그냥 구석에 붙은 것이 됩니다.
+    this.toasts.setCenter(Toasts.OUT_RUN)
     this.login.visible = true
     this.title.visible = false
     this.board.visible = false
@@ -1840,6 +1845,7 @@ export class Game {
   private enterRun(): void {
     if (this.scene === 'run') return
     this.scene = 'run'
+    this.toasts.setCenter(Toasts.IN_RUN)
     this.login.visible = false
     this.title.visible = false
     this.board.visible = true
@@ -1875,6 +1881,7 @@ export class Game {
   private enterTitle(): void {
     this.dropRun()
     this.scene = 'title'
+    this.toasts.setCenter(Toasts.OUT_RUN)
     this.login.visible = false
     this.title.visible = true
     this.board.visible = false
