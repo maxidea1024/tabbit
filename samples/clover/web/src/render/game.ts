@@ -49,6 +49,7 @@ import {
   type Beat, type Feel,
 } from './juice'
 import { Coins } from './coins'
+import { Haptics } from './haptics'
 import { fraction, Motion, Spring } from './motion'
 import { Particles } from './particles'
 import { artFor, onArtReady, type ArtKind } from './art'
@@ -684,6 +685,14 @@ export class Game {
   private readonly player: TimelinePlayer
   private readonly background = new BackgroundFilter()
   private readonly particles = new Particles()
+  /**
+   * 진동.
+   *
+   * **폰에만 있는 채널이고, 소리와 같은 자리에서 나지 않습니다** — 소리는 무엇이
+   * 일어났는지 낱낱이 알리지만 진동은 중요한 순간 여섯에만 납니다. 진동자가 없는
+   * 기계에서는 이 객체가 아무것도 하지 않고, 옵션의 「입력」 탭도 서지 않습니다.
+   */
+  private readonly haptics = new Haptics()
   private readonly coins = new Coins()
   /**
    * 날아가는 칩.
@@ -707,6 +716,12 @@ export class Game {
   private readonly playedViews: CardView[] = []
   /** 아직 날아가지 않은 카드들. 왼쪽부터 한 장씩 차례로 갑니다. */
   private readonly slams: { view: CardView; x: number; at: number }[] = []
+  /**
+   * 이번에 낸 카드에서 진동이 이미 났는가.
+   *
+   * **한 벌이 한 번입니다.** 카드마다 세면 다섯 번이고, 그것은 한 번의 알림이 아닙니다.
+   */
+  private slamTapped = false
   /** 마지막 카드가 자리에 닿는 시각. **그때까지 득점을 세지 않습니다.** */
   private playLanded = 0
   /** 아직 나가지 않은 버린 카드들. 이것도 왼쪽부터 한 장씩입니다. */
@@ -1850,6 +1865,7 @@ export class Game {
     this.audio.music.volume = this.settings.musicVolume / 100
     this.player.base = this.settings.speed
     this.particles.enabled = this.settings.particles
+    this.haptics.enabled = this.settings.haptics
 
     // **말이 바뀌면 화면을 다시 그립니다.** 글은 그릴 때 한 번 읽히므로, 다시 그리지 않으면
     // 고른 그 순간에는 아무것도 바뀌지 않고 다음 판부터 바뀝니다.
@@ -2827,6 +2843,7 @@ export class Game {
         at: this.clock + index * (this.feel.playStaggerMs / 1000),
       })
     })
+    this.slamTapped = false
   }
 
   /**
@@ -3075,6 +3092,13 @@ export class Game {
       if (!next) break
       next.view.slam(next.x, PLAY_Y)
       this.audio.play('card_slam')
+      // **한 판에 한 번입니다.** 다섯 장이 `PlayStaggerMs` 사이로 닿으므로, 장마다 떨면
+      // 그것은 다섯 번의 알림이 아니라 한 번의 긴 떨림입니다 — 진동의 간격에 맡기면
+      // 그 값과 스태거의 비에 따라 세 번이 되기도 하므로 여기서 셉니다.
+      if (!this.slamTapped) {
+        this.slamTapped = true
+        this.haptics.play('play')
+      }
       this.jolt(2.2, 0.35)
       // **마지막 카드가 닿을 때까지 세지 않습니다.** 날아가는 중인 카드 위에 숫자가 뜨면
       // 다섯 장이 한 덩어리로 보입니다.
@@ -3347,6 +3371,7 @@ export class Game {
         this.shown.score += event.score
         this.score.target = this.shown.score
         this.audio.play('score_settle', semitones)
+        this.haptics.play('settle')
 
         // **마지막 한 방이 앞의 것들보다 확실히 커야 합니다.** 그것이 없으면 득점이
         // 어디서 끝났는지 읽히지 않습니다.
@@ -3371,6 +3396,7 @@ export class Game {
         // **글은 적지 않습니다.** 곧 정산 판이 서서 무엇을 얼마나 받는지가 적히므로,
         // 「넘겼습니다」는 그 판이 할 말을 한 번 미리 하는 것일 뿐입니다.
         this.audio.play('blind_clear')
+        this.haptics.play('clear')
         this.chime('coin_land', 6, 3, 0.07)
         this.burstAcrossPlayArea(46, COLOR.good, 2.4, 2.6)
         this.particles.burst(BOARD_X, PLAY_Y - 60, 70, COLOR.money, 2.6, 2.8)
@@ -5104,7 +5130,10 @@ export class Game {
       this.blindEnter = 0
       // **보스 차례가 되면 그것이 들립니다.** 판 셋 중 붉은 것 하나가 앞으로 나오는 것을
       // 눈으로만 알리면, 안테의 마지막이라는 것이 지나가 버립니다.
-      if (state.blind === BlindKind.Boss) this.audio.play('boss_reveal')
+      if (state.blind === BlindKind.Boss) {
+        this.audio.play('boss_reveal')
+        this.haptics.play('boss')
+      }
     }
 
     const order = [BlindKind.Small, BlindKind.Big, BlindKind.Boss]
@@ -5857,6 +5886,9 @@ export class Game {
     // 지고, 흔들림은 거들기만 합니다 — 판이 뜨는 그 순간에 화면까지 크게 움직이면
     // 판을 읽으려는 눈이 먼저 흔들립니다.
     this.audio.play(won ? 'run_win' : 'run_lose')
+    // **박자가 아니라 판에 걸립니다.** `RunWon`·`RunLost` 박자 바로 뒤에 이 판이 서므로,
+    // 양쪽에 걸면 한 번의 끝이 두 번 떨립니다.
+    this.haptics.play(won ? 'win' : 'lose')
     this.jolt(won ? 8 : 6, won ? 3.4 : 2.6, 1)
     this.flashScreen(won ? COLOR.money : COLOR.bad, won ? 0.5 : 0.34)
     if (won) this.particles.burst(POPUP_X, SIZE.height / 2, 90, COLOR.money, 2.6)

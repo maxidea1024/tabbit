@@ -1039,6 +1039,7 @@
 	ui.tab.sound	소리	Sound	サウンド	声音	聲音	Ton
 	ui.tab.video	화면	Video	画面	画面	畫面	Bild
 	ui.tab.cards	카드	Cards	カード	卡牌	卡牌	Karten
+	ui.tab.input	입력	Input	入力	输入	輸入	Eingabe
 	ui.option.cardSet	카드 한 벌	Card set	カードセット	卡牌样式	卡牌樣式	Kartenset
 	ui.option.note.cardSet	겉모습만 바뀝니다. 규칙과 순위에는 닿지 않습니다.	Looks only. Rules and rankings are untouched.	見た目だけが変わります。規則と順位には影響しません。	只改变外观。不影响规则与排名。	只改變外觀。不影響規則與排名。	Nur die Optik. Regeln und Rangliste bleiben unberührt.
 	ui.button.guide	게임 방법	How to Play	遊び方	玩法	玩法	Anleitung
@@ -1139,6 +1140,7 @@
 	ui.option.chromatic	색수차	Chromatic	色収差	色差	色差	Farbsaum
 	ui.option.speed	연출 속도	Animation Speed	演出速度	动画速度	動畫速度	Tempo
 	ui.option.hints	족보 도움	Hand Hints	役ヒント	牌型提示	牌型提示	Blatt-Hinweise
+	ui.option.haptics	진동	Vibration	振動	振动	振動	Vibration
 	ui.option.language	화면의 글	Language	言語	语言	語言	Sprache
 	ui.hint.skip_if_unwanted	   ·   마음에 안 들면 건너뜁니다	   ·   skip it if you would rather not	   ·   気に入らなければスキップ	   ·   不满意可以跳过	   ·   不滿意可以跳過	   ·   überspringen, wenn er nicht passt
 	ui.hint.discard_to_swap	 「버린다」 로 바꿉니다	 — press Discard to swap them	「捨てる」で入れ替えます	按「弃牌」换掉	按「棄牌」換掉	 — mit Ablegen tauschen
@@ -1153,6 +1155,7 @@
 	ui.option.note.particles	카드 뒤에서 터지는 조각들입니다	Bits that burst behind the cards	カードの後ろではじける粒です	卡牌后方迸出的碎片	卡牌後方迸出的碎片	Teilchen, die hinter den Karten aufplatzen
 	ui.option.note.shake	큰 값에서 판이 흔들립니다	The board shakes on big values	大きな値で盤が揺れます	数值大时画面会震动	數值大時畫面會震動	Das Feld wackelt bei großen Werten
 	ui.option.note.chromatic	한 방 먹을 때 색이 갈라집니다	Colours split apart on a big hit	大きな一撃で色がずれます	大幅得分时颜色分离	大幅得分時顏色分離	Farben trennen sich bei einem großen Treffer
+	ui.option.note.haptics	중요한 순간에 기계가 떱니다	The device buzzes at the moments that matter	大事な場面で端末が震えます	关键时刻设备会振动	關鍵時刻裝置會震動	Das Gerät vibriert in wichtigen Momenten
 	ui.deck.left	덱에 남아 있습니다	Still in the deck	デッキに残っています	仍在牌组中	仍在牌組中	Noch im Deck
 	ui.deck.in_hand	지금 손에 있습니다	In your hand now	今、手札にあります	现在在手牌中	現在在手牌中	Jetzt auf der Hand
 	ui.deck.gone	이미 나갔습니다	Already played	すでに出ました	已经打出	已經打出	Schon gespielt

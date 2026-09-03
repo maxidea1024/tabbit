@@ -37,6 +37,11 @@ npm run open             # 안드로이드 스튜디오로 열기
 |--|--|
 |가로 고정|`AndroidManifest.xml` 의 `screenOrientation="sensorLandscape"`. 판이 1280 × 800 가로 하나에 맞춰 그려지므로 세로로 돌리면 좌우가 잘립니다|
 |상태 표시줄|`styles.xml` 에서 상태 표시줄과 내비게이션 바를 반투명으로. 게임 화면에 그것들이 있을 이유가 없습니다|
+|진동|`@capacitor/haptics`. **웹 빌드는 이 꾸러미를 담지 않습니다** — 다리의 `Capacitor.nativePromise('Haptics', …)` 로 부르므로, 여기서 깔면 웹 코드를 고치지 않고 네이티브 파형이 됩니다. 깔지 않아도 `navigator.vibrate` 로 떨지만, `VIBRATE` 권한이 이 꾸러미에서 오므로 그때는 조용합니다|
+
+**진동은 폰에서만 있습니다.** 데스크탑에는 진동자가 없으므로 옵션의 「입력」 탭이 아예 서지
+않고, 나는 순간은 여섯입니다 — 규격과 그 이유가
+[연출](../doc/presentation.md#진동) 에 있습니다.
 
 ## 여기서 멈춘 자리
 

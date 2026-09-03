@@ -3,8 +3,11 @@
 // **여기 있는 것은 전부 실제로 무언가를 합니다.** 켜고 끄는 자리를 늘어놓고 아무것도 하지
 // 않으면 그것은 옵션이 아니라 장식입니다.
 //
-// 갈래가 셋이라 탭입니다 — 한 줄로 늘어놓으면 무엇을 찾는지 알고 있어야 찾을 수 있고,
+// 갈래마다 탭입니다 — 한 줄로 늘어놓으면 무엇을 찾는지 알고 있어야 찾을 수 있고,
 // 「소리가 크다」와 「연출이 느리다」는 서로 다른 자리에서 찾게 됩니다.
+//
+// **탭 하나는 기계에 따라 서고 없어집니다.** 「입력」이 그렇습니다 — 진동자가 없는 기계에서
+// 진동을 켜고 끄는 자리는 옵션이 아니라 장식입니다.
 
 import type { PoolChoice } from '../core/pool'
 import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
@@ -15,6 +18,7 @@ import { artFor, onArtReady } from '../render/art'
 import { setLookOf, setsOf, type SetLook } from '../render/card-set'
 import { cardArtId, drawFace, drawSuit } from '../render/pips'
 import { SuitKind } from '../generated/enums/suit-kind'
+import { hapticsAvailable } from '../render/haptics'
 import { COLOR, SIZE } from '../render/theme'
 import type { ToolSpot } from './layout'
 import { FOOTER_BAR, panelFrame, TITLE_BAR, type ModalPanel } from './modal'
@@ -61,6 +65,14 @@ export interface Options {
   /** 어느 카드를 고르면 좋은지 표시하는가. */
   hints: boolean
   /**
+   * 중요한 순간에 기계가 떠는가.
+   *
+   * **폰에서만 뜻이 있습니다.** 데스크탑에는 진동자가 없으므로 「입력」 탭이 아예 서지
+   * 않고, 값은 남아 있습니다 — 같은 계정을 폰에서 열었을 때 되돌아가지 않게 하기
+   * 위한 것입니다.
+   */
+  haptics: boolean
+  /**
    * 화면의 글이 어느 말인가.
    *
    * **고른 적이 없으면 비어 있습니다.** 그때는 이 기계의 언어를 따릅니다 — 기본값을 한국어로
@@ -95,7 +107,7 @@ export interface Options {
 export function defaultOptions(): Options {
   return {
     sound: true, volume: 60, music: true, musicVolume: 40, speed: 1,
-    shake: true, particles: true, chromatic: true, hints: true,
+    shake: true, particles: true, chromatic: true, hints: true, haptics: true,
     language: '', deck: 'red_deck', stake: 'White', cardSet: 'classic', pool: 'base',
   }
 }
@@ -512,10 +524,12 @@ export class OptionsPanel implements ModalPanel {
 
   private tabs(): Tab[] {
     const options = this.options
-    const flip = (key: 'sound' | 'music' | 'shake' | 'particles' | 'chromatic' | 'hints') => () => {
+    type Switch = 'sound' | 'music' | 'shake' | 'particles' | 'chromatic' | 'hints'
+      | 'haptics'
+    const flip = (key: Switch) => () => {
       options[key] = !options[key]
     }
-    const onOff = (key: 'sound' | 'music' | 'shake' | 'particles' | 'chromatic' | 'hints') =>
+    const onOff = (key: Switch) =>
       () => (options[key] ? t('ui.option.on') : t('ui.option.off'))
 
     return [
@@ -611,6 +625,19 @@ export class OptionsPanel implements ModalPanel {
           },
         ],
       },
+      // **이 기계에 진동자가 없으면 이 탭이 없습니다.** 켤 수 없는 것을 꺼진 채로
+      // 늘어놓으면, 고친 사람은 무엇이 달라졌는지 확인할 길이 없습니다.
+      ...(hapticsAvailable() ? [{
+        id: 'input',
+        name: t('ui.tab.input'),
+        rows: [
+          {
+            id: 'haptics',
+            label: t('ui.option.haptics'), read: onOff('haptics'), next: flip('haptics'),
+            note: t('ui.option.note.haptics'),
+          },
+        ],
+      }] : []),
       {
         id: 'seed',
         name: t('ui.title.seed'),
@@ -818,6 +845,11 @@ export class OptionsPanel implements ModalPanel {
         })
         value.position.set(WIDTH - 172, y)
         this.body.addChild(value)
+        // 넘기는 단추도 이름이 붙어 있으면 알립니다. **줄의 `y` 는 그 위에 선 줄들의 글
+        // 길이가 정하므로** 도구가 셈하면 말을 바꾼 판에서 어긋납니다.
+        if (row.id !== undefined) {
+          this.choiceNodes.set(`value:${row.id}`, { node: value, cx: 64, cy: 17 })
+        }
         y += ROW
         continue
       }

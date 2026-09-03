@@ -12,6 +12,7 @@
     "check:leaderboard": "tsx tools/check-leaderboard.ts",
     "check:ranked": "tsx tools/check-ranked.ts",
     "check:relabel": "tsx tools/check-relabel.ts",
+    "check:haptics": "tsx tools/check-haptics.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "headless": "tsx src/headless.ts",
