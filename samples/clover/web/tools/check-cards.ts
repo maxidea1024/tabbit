@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 
-import { at, clickPrimary, settle, type Peek } from './harness'
+import { at, clickPrimary, settle, type Peek, skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '..', '..', 'design-data', 'out', 'check')
@@ -45,6 +45,7 @@ async function main(): Promise<number> {
   for (const set of SETS) {
     const page = await browser.newPage({ viewport: { width: 1280, height: 800 },
                                          locale: 'ko-KR' })
+    await skipLogin(page)
     page.on('pageerror', one => errors.push(`${set}: ${one.message}`))
     page.on('console', one => {
       if (one.type() === 'error') errors.push(`${set}: ${one.text()}`)
@@ -82,6 +83,7 @@ async function main(): Promise<number> {
   // 옵션의 카드 탭. **눌러서 고르는 자리가 있는지는 그림으로 봅니다.**
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 },
                                        locale: 'ko-KR' })
+  await skipLogin(page)
   page.on('pageerror', one => errors.push(`options: ${one.message}`))
   await page.addInitScript(`localStorage.setItem('clover.guide.seen', '1')`)
   await page.goto('http://localhost:5191/', { waitUntil: 'domcontentloaded' })

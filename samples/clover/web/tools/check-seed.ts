@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url'
 import { chromium, type Browser, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, clickPrimary, peek, settle, STAGE_W, TITLE_OPTIONS, TITLE_START_Y,
+  at, clickPrimary, peek, settle, STAGE_W, TITLE_OPTIONS, TITLE_START_Y, skipLogin,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -74,6 +74,7 @@ async function firstHand(browser: Browser, seed?: string,
                          before?: (page: Page) => Promise<void>):
                          Promise<{ title: string; hand: string }> {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
+  await skipLogin(page)
   const query = seed ? `?seed=${seed}` : ''
   await page.goto(`http://localhost:${PORT}/${query}`, { waitUntil: 'networkidle' })
   await page.waitForTimeout(1500)

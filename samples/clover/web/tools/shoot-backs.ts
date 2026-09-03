@@ -6,6 +6,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
+import { skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
@@ -17,6 +18,7 @@ async function main(): Promise<number> {
   const browser = await chromium.launch()
   // 큰 창입니다 — 열다섯을 한 장에 담으면서 작은 쪽도 알아볼 수 있어야 합니다.
   const page = await browser.newPage({ viewport: { width: 1600, height: 1100 } })
+  await skipLogin(page)
   await page.goto(`http://localhost:${PORT}/backs.html`, { waitUntil: 'networkidle' })
   await page.waitForTimeout(1800)
   await page.screenshot({ path: path.join(OUT, 'backs.png') })

@@ -8,7 +8,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
-import { at, chooseFive, peek, pickCards, pressPlay, STAGE_W } from './harness'
+import { at, chooseFive, peek, pickCards, pressPlay, STAGE_W, skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5215
@@ -22,6 +22,7 @@ async function main(): Promise<number> {
   await server.listen()
   const browser = await chromium.launch()
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
+  await skipLogin(page)
   const errors: string[] = []
   page.on('pageerror', error => errors.push(String(error)))
   await page.goto(`http://localhost:${PORT}/?seed=CLOVER-SOUND2`, { waitUntil: 'networkidle' })

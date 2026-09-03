@@ -9,7 +9,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import { at, peek, STAGE_W, TITLE_START_Y } from './harness'
+import { at, peek, STAGE_W, TITLE_START_Y, skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5242
@@ -19,6 +19,7 @@ async function main(): Promise<number> {
   await server.listen()
   const browser = await chromium.launch()
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
+  await skipLogin(page)
   page.on('pageerror', error => console.log('  [터짐]', error.stack ?? error.message))
 
   await page.goto(`http://localhost:${PORT}/?seed=CLOVER-TAGSPOT`, { waitUntil: 'networkidle' })

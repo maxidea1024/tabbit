@@ -9,6 +9,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
+import { skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5206
@@ -29,6 +30,7 @@ async function main(): Promise<number> {
   await server.listen()
   const browser = await chromium.launch()
   const page = await browser.newPage()
+  await skipLogin(page)
   await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' })
   await page.waitForTimeout(800)
 

@@ -3,6 +3,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
+import { skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 
@@ -21,6 +22,7 @@ async function main(): Promise<number> {
     ['fr-FR', 'Loading data'],
   ] as const) {
     const page = await browser.newPage({ locale })
+    await skipLogin(page)
     // 화면이 뜨기 전에 그 글을 읽어야 합니다. 데이터를 다 읽으면 사라집니다.
     await page.goto('http://localhost:5189/', { waitUntil: 'domcontentloaded' })
     await page.waitForTimeout(400)

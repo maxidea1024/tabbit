@@ -16,7 +16,7 @@ import { createServer } from 'vite'
 import {
   at, BOARD_X, buyAffordablePack, buyFirstAffordable, chooseFive, clickPrimary,
   discardHand, hurry, openDeckView, peek, pickCards, playHand, pressPlay, rate, settle,
-  shopSlot, spare, STAGE_H, STAGE_W, TITLE_START_Y,
+  shopSlot, spare, STAGE_H, STAGE_W, TITLE_START, TITLE_OPTIONS, skipLogin,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -37,6 +37,7 @@ async function main(): Promise<number> {
     viewport: { width: 1680, height: 960 },
     deviceScaleFactor: 2,
   })
+  await skipLogin(page)
 
   let shotPack = false
   let shotCoins = false
@@ -59,13 +60,13 @@ async function main(): Promise<number> {
   // 타이틀. **게임은 여기서 시작합니다.**
   await shoot('0a-title')
   // 옵션. 탭 셋이고 여기 있는 것은 전부 화면에 걸립니다.
-  const optionSpot = await at(page, STAGE_W / 2, 568 + 22)
+  const optionSpot = await at(page, TITLE_OPTIONS.x, TITLE_OPTIONS.y)
   await page.mouse.click(optionSpot.x, optionSpot.y)
   await page.waitForTimeout(700)
   await shoot('0b-options')
   await page.keyboard.press('Escape')
   await page.waitForTimeout(600)
-  const startSpot = await at(page, STAGE_W / 2, TITLE_START_Y)
+  const startSpot = await at(page, TITLE_START.x, TITLE_START.y)
   await page.mouse.click(startSpot.x, startSpot.y)
   await page.waitForTimeout(700)
 

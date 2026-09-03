@@ -83,6 +83,26 @@ export interface Peek {
  * 잡습니다 — 사람이 보라고 넣은 뜸을 지우는 것이므로, 그 뜸을 찍는 자리에서는 지우면 안
  * 됩니다.
  */
+/**
+ * 도구가 여는 판이 곧바로 타이틀이게 합니다.
+ *
+ * **게임의 첫 화면은 로그인 씬입니다.** 계정을 만들지 말지를 한 번 묻고, 정한 다음부터는
+ * 묻지 않습니다 — 도구는 그 물음의 대상이 아니므로 「정해 둔 것」으로 시작합니다.
+ *
+ * 페이지를 만든 직후에 겁니다.
+ *
+ *     const page = await browser.newPage(...)
+ *     await skipLogin(page)
+ *     await page.goto(...)
+ *
+ * **로그인 화면 자체를 보는 도구는 부르지 않습니다.** `check-leaderboard` 와
+ * `check-relabel` 이 그렇습니다.
+ */
+export async function skipLogin(page: Page): Promise<void> {
+  await page.addInitScript(
+    'try { localStorage.setItem("clover.account.mode", "single") } catch {}')
+}
+
 export async function hurry(page: Page, times: number): Promise<void> {
   await page.evaluate(fast => {
     ;(window as unknown as { __clover: { hurry(times: number): void } }).__clover.hurry(fast)
@@ -303,22 +323,68 @@ export const HAND_LIST_BUTTON = { x: 16 - 2 + 59, y: PANEL_BUTTON_Y }
 export const MENU_BUTTON = { x: 16 + 134 + 59, y: PANEL_BUTTON_Y }
 
 /**
- * 타이틀의 「시작」 가운데.
+ * 타이틀의 자리들.
  *
  * **`ui/title.ts` 와 같아야 합니다.** 도구마다 따로 적어 두면 배치를 고칠 때 한쪽만
  * 고쳐지고, 그 도구는 엉뚱한 곳을 눌러 놓고 아무 말도 하지 않습니다.
+ *
+ * 아래 바 하나에 전부 들어 있습니다 — 바가 216 이고 안쪽 여백이 26, 윗줄이 34, 틈이 10,
+ * 아랫줄이 62 입니다.
  */
-export const TITLE_START_Y = 452 + 72 / 2
-/** 타이틀 오른쪽 아래의 아이콘 둘. 왼쪽이 게임 방법, 오른쪽이 옵션입니다. */
-const TITLE_ICON = 58
-const TITLE_EDGE = 30
+const DOCK_H = 216
+const DOCK_PAD = 26
+const TITLE_UPPER_H = 34
+const TITLE_ROW_H = 62
+const TITLE_GAP = 10
+const TITLE_UPPER_Y = STAGE_H - DOCK_H + DOCK_PAD
+const TITLE_ROW_Y = TITLE_UPPER_Y + TITLE_UPPER_H + TITLE_GAP
+
+/** 아래 줄의 네 칸. 시작만 넓습니다. */
+const TITLE_START_W = 196
+const TITLE_OTHER_W = 132
+const TITLE_LEFT = Math.round(
+  (STAGE_W - (TITLE_START_W + TITLE_OTHER_W * 3 + TITLE_GAP * 3)) / 2)
+
+/** 「시작」 가운데의 세로 자리. 예전 도구들이 이 이름을 씁니다. */
+export const TITLE_START_Y = TITLE_ROW_Y + TITLE_ROW_H / 2
+/** 「시작」 가운데. **가로도 가운데가 아닙니다** — 왼쪽 첫 칸입니다. */
+export const TITLE_START = {
+  x: TITLE_LEFT + TITLE_START_W / 2,
+  y: TITLE_START_Y,
+}
+export const TITLE_JOKERS = {
+  x: TITLE_LEFT + TITLE_START_W + TITLE_GAP + TITLE_OTHER_W / 2,
+  y: TITLE_START_Y,
+}
+export const TITLE_CHALLENGES = {
+  x: TITLE_LEFT + TITLE_START_W + (TITLE_GAP + TITLE_OTHER_W) * 1 + TITLE_OTHER_W / 2,
+  y: TITLE_START_Y,
+}
+export const TITLE_LEADERBOARD = {
+  x: TITLE_LEFT + TITLE_START_W + (TITLE_GAP + TITLE_OTHER_W) * 2 + TITLE_OTHER_W / 2,
+  y: TITLE_START_Y,
+}
+/** 무엇으로 시작하는가. 시작 위의 줄입니다. */
+export const TITLE_SETUP = {
+  x: TITLE_LEFT + 120,
+  y: TITLE_UPPER_Y + TITLE_UPPER_H / 2,
+}
+/** 랭크. 그 줄의 오른쪽 끝이고 **로그인해야 눌립니다.** */
+export const TITLE_RANKED = {
+  x: TITLE_LEFT + TITLE_START_W + TITLE_GAP + TITLE_OTHER_W * 2 + TITLE_GAP
+     + TITLE_OTHER_W / 2,
+  y: TITLE_UPPER_Y + TITLE_UPPER_H / 2,
+}
+
+/** 타이틀 오른쪽의 아이콘 둘. 왼쪽이 게임 방법, 오른쪽이 옵션입니다. */
+const TITLE_ICON = TITLE_ROW_H
 export const TITLE_GUIDE = {
-  x: STAGE_W - TITLE_EDGE - TITLE_ICON * 2 - 14 + TITLE_ICON / 2,
-  y: STAGE_H - TITLE_EDGE - TITLE_ICON / 2,
+  x: STAGE_W - DOCK_PAD - TITLE_ICON * 2 - TITLE_GAP + TITLE_ICON / 2,
+  y: TITLE_ROW_Y + TITLE_ICON / 2,
 }
 export const TITLE_OPTIONS = {
-  x: STAGE_W - TITLE_EDGE - TITLE_ICON / 2,
-  y: STAGE_H - TITLE_EDGE - TITLE_ICON / 2,
+  x: STAGE_W - DOCK_PAD - TITLE_ICON / 2,
+  y: TITLE_ROW_Y + TITLE_ICON / 2,
 }
 
 /**

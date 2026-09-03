@@ -6,7 +6,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import { at, BUTTON_Y, clickPrimary, peek, settle, STAGE_W , TITLE_START_Y } from './harness'
+import { at, BUTTON_Y, clickPrimary, peek, settle, STAGE_W , TITLE_START_Y, skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 
@@ -15,6 +15,7 @@ async function main(): Promise<number> {
   await server.listen()
   const browser = await chromium.launch()
   const page = await browser.newPage({ viewport: { width: 1680, height: 960 } })
+  await skipLogin(page)
   const problems: string[] = []
   page.on('pageerror', error => problems.push(String(error)))
 

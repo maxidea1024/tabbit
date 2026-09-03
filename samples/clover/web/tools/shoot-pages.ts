@@ -11,6 +11,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
+import { skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/shot')
@@ -30,6 +31,7 @@ async function main(): Promise<number> {
     viewport: { width: 1680, height: 960 },
     deviceScaleFactor: 2,
   })
+  await skipLogin(page)
 
   for (const one of PAGES) {
     await page.goto(`http://localhost:5178/${one.url}`, { waitUntil: 'networkidle' })

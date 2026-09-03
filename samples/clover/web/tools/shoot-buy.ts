@@ -8,7 +8,7 @@ import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
   at, chooseFive, clickPrimary, discardHand, peek, playHand, rate, settle, shopSlot, spare,
-  STAGE_W, TITLE_START_Y,
+  STAGE_W, TITLE_START_Y, skipLogin,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -20,6 +20,7 @@ async function main(): Promise<number> {
   await server.listen()
   const browser = await chromium.launch()
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
+  await skipLogin(page)
   await page.goto(`http://localhost:${PORT}/?seed=CLOVER-BUY1`, { waitUntil: 'networkidle' })
   await page.waitForTimeout(1500)
 

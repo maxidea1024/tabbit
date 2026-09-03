@@ -17,7 +17,7 @@ import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 
 import {
-  chooseFive, clickPrimary, peek, playHand, settle, spare, discardHand,
+  chooseFive, clickPrimary, peek, playHand, settle, spare, discardHand, skipLogin,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -79,6 +79,7 @@ async function main(): Promise<number> {
   await server.listen()
   const browser = await chromium.launch()
   const page = await browser.newPage({ locale: 'ko-KR', viewport: { width: 1280, height: 800 } })
+  await skipLogin(page)
 
   const errors: string[] = []
   page.on('pageerror', error => errors.push(String(error)))

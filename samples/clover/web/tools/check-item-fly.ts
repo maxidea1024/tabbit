@@ -8,7 +8,7 @@ import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
   at, chooseFive, clickPrimary, discardHand, grantMoney, peek, playHand, rate, settle,
-  shopSlot, spare, STAGE_W, TITLE_START_Y,
+  shopSlot, spare, STAGE_W, TITLE_START_Y, skipLogin,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -28,6 +28,7 @@ async function main(): Promise<number> {
   await server.listen()
   const browser = await chromium.launch()
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
+  await skipLogin(page)
   // **누르는 자리에서 터진 것은 조용히 삼켜집니다.** 브라우저가 콘솔에만 적고 화면은
   // 그대로 도는데, 그러면 「샀는데 오는 길이 없다」 같은 결함이 원인 없이 남습니다.
   page.on('pageerror', error => console.log('  [터짐]', error.stack ?? error.message))
