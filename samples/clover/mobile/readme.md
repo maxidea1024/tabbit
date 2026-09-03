@@ -16,9 +16,12 @@ npm run open             # 안드로이드 스튜디오로 열기
 찾고, `cmd.exe` 는 `./gradlew` 를 알아듣지 못하고 `gradlew` 라야 `gradlew.bat` 를 찾습니다.
 **한 줄로 둘 다 되는 표기가 없어서** 두 줄입니다.
 
+**판 번호는 여기 적지 않습니다** — `package.json` 의 `version` 이 그것이고, 베껴 적으면
+판을 올린 날부터 없는 파일을 가리킵니다. `desktop/` 의 표가 실제로 그렇게 어긋나 있었습니다.
+
 |무엇|파일|
 |--|--|
-|디버그|`android/app/build/outputs/apk/debug/app-debug.apk`. 손에 쥐고 옮길 것은 `out/clover-0.2.0.apk` 로 베껴 둡니다|
+|디버그|`android/app/build/outputs/apk/debug/app-debug.apk`. 손에 쥐고 옮길 것은 `out/clover-<판>.apk` 로 베껴 둡니다|
 |릴리스(서명 없음)|`android/app/build/outputs/apk/release/app-release-unsigned.apk`|
 
 ## 필요한 것

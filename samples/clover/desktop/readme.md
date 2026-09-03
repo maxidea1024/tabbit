@@ -27,13 +27,18 @@ npm run dist:linux        # AppImage
 첫 화면이 20초 안에 그려지지 않으면 `index.html` 이 스스로 다시 읽습니다. **두 번까지입니다** —
 끝없이 다시 읽으면 그것 자체로 멈춘 것과 같습니다.
 
-산출물은 `out/` 에 나옵니다.
+산출물은 `out/` 에 나옵니다. **판 번호는 여기 적지 않습니다** — `package.json` 의
+`version` 이 그것이고, 베껴 적으면 판을 올린 날부터 없는 파일을 가리킵니다. 실제로
+`0.1.0` 인 채로 두 판을 지났습니다.
 
 |무엇|파일|
 |--|--|
-|한 파일로 실행|`out/clover-0.1.0-portable.exe`|
-|설치본|`out/clover-0.1.0-setup.exe`|
+|한 파일로 실행|`out/clover-<판>-portable.exe`|
+|설치본|`out/clover-<판>-setup.exe`|
 |압축하지 않은 것|`out/win-unpacked/clover.exe`|
+
+이름의 틀은 `package.json` 의 `build.portable.artifactName` 과 `build.nsis.artifactName`
+에 있습니다.
 
 ## `file://` 로 열지 않는 이유
 
