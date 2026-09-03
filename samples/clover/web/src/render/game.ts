@@ -1404,8 +1404,24 @@ export class Game {
   private heatShown = 0.1
   private clock = 0
   private pointerAt = { x: 0, y: 0 }
-  /** 지금 설명이 떠 있는 조커. 바뀔 때만 다시 그립니다. */
-  private hoveredJoker?: JokerView
+  /**
+   * 지난 프레임 이후 포인터가 실제로 자리를 옮겼는가.
+   *
+   * **설명이 뜨는 조건은 「밑에 있는 것이 달라졌다」가 아니라 「커서가 옮겨 가서 들어왔다」
+   * 입니다.** 조커 줄은 사고 팔고 순서를 바꿀 때마다 다시 배치되므로, 달라진 것만 보면
+   * 커서가 한 픽셀도 움직이지 않았는데 지나가는 조커마다 차례로 설명이 뜹니다.
+   *
+   * 같은 자리로 오는 이동 사건이 있으므로 좌표를 견주어서 세웁니다.
+   */
+  private pointerMoved = false
+  /**
+   * 설명 쪽지가 지금 설명하고 있는 조커.
+   *
+   * **커서 밑에 있는 것과 따로 셉니다.** 밑에 있는 것은 `JokerView.hovered` 가 이미
+   * 나타내고, 그것은 계속되는 상태입니다 — 설명은 들어온 그 한 번의 사건이므로 무엇을
+   * 띄웠는지를 따로 기억해야 합니다.
+   */
+  private tipJoker?: JokerView
 
   /**
    * 꾸욱 누르고 있는 것.
@@ -1697,7 +1713,11 @@ export class Game {
       if (event.target === app.stage) this.blankTaps++
     })
     app.stage.on('globalpointermove', event => {
-      this.pointerAt = this.world.toLocal(event.global)
+      const at = this.world.toLocal(event.global)
+      // **자리가 실제로 달라졌을 때만 세웁니다.** 같은 자리로 오는 이동 사건이 있고,
+      // 그것을 움직인 것으로 세면 가만히 있어도 설명이 뜨는 길이 그대로 남습니다.
+      if (at.x !== this.pointerAt.x || at.y !== this.pointerAt.y) this.pointerMoved = true
+      this.pointerAt = at
       if (event.pointerType === 'mouse') this.touching = false
       this.advanceDrag()
       this.advancePressMove()
@@ -2156,7 +2176,7 @@ export class Game {
     this.hinted.clear()
     this.held = undefined
     this.drag = undefined
-    this.hoveredJoker = undefined
+    this.tipJoker = undefined
     this.handHovered = -1
     this.handBand = undefined
     this.handPreview = undefined
@@ -4201,14 +4221,26 @@ export class Game {
     for (const view of this.cards.values()) view.hovered = view === card
     for (const view of this.jokers.values()) view.hovered = view === joker
 
+    // **여는 쪽만 커서의 움직임을 묻습니다.** 밑에 아무것도 없으면 커서가 가만히 있어도
+    // 닫습니다 — 팔려 없어진 조커의 설명이 화면에 남으면 안 됩니다.
+    //
     // **손가락으로는 이 길을 쓰지 않습니다.** 손가락은 뗀 뒤에도 그 자리가 그대로 남아서,
     // 설명이 떼고 나서도 붙어 있습니다 — 손가락은 꾸욱 눌러서 봅니다.
-    if (joker && !this.touching) {
-      if (joker !== this.hoveredJoker) this.showTooltip(joker)
-    } else if (this.hoveredJoker) {
-      this.tooltip.hide()
+    if (joker !== this.tipJoker) {
+      // 밑에 있는 것이 달라졌으면 앞의 설명은 더 이상 그 자리의 것이 아닙니다. 팔려
+      // 없어진 조커의 설명이 남지 않게, 닫는 것은 커서의 움직임을 묻지 않습니다.
+      if (this.tipJoker) {
+        this.tooltip.hide()
+        this.tipJoker = undefined
+      }
+      if (joker && this.pointerMoved && !this.touching) {
+        this.showTooltip(joker)
+        this.tipJoker = joker
+      }
     }
-    this.hoveredJoker = joker
+    // 이 프레임의 움직임은 여기서 다 쓰였습니다. **`updateHover` 가 프레임마다 한 번
+    // 불리는 유일한 자리이므로** 여기서 내립니다.
+    this.pointerMoved = false
   }
 
   private tiltFor(view: Container): number {
@@ -8586,12 +8618,26 @@ function glare(size: number, strength: number): Graphics {
   return lit
 }
 
-/** 점 하나가 쉬는 자리의 네모 안에 있는가. */
+/** 점 하나가 어느 자리를 가운데로 하는 네모 안에 있는가. */
+function inBox(point: { x: number; y: number }, cx: number, cy: number,
+               width: number, height: number): boolean {
+  return Math.abs(point.x - cx) <= width / 2 && Math.abs(point.y - cy) <= height / 2
+}
+
+/**
+ * 점 하나가 이 뷰 위에 있는가.
+ *
+ * **쉬는 자리와 그려진 자리를 둘 다 요구합니다.** 쉬는 자리만 보면 아직 오지도 않은
+ * 카드가 잡히고 — 용수철의 목적지는 배치가 바뀌는 그 프레임에 갈아 끼워지므로 카드는
+ * 아직 화면 저쪽에 있습니다 — 그려진 자리만 보면 앞을 지나가는 카드가 차례로 잡힙니다.
+ * 둘 다 요구하면 **쉬는 자리가 커서 밑이고 실제로 거기 그려져 있을 때**만 잡힙니다.
+ */
 function near(point: { x: number; y: number },
-              motion: { x: { target: number }; y: { target: number } },
+              motion: { x: { target: number; value: number }
+                        y: { target: number; value: number } },
               width: number, height: number): boolean {
-  return Math.abs(point.x - motion.x.target) <= width / 2
-    && Math.abs(point.y - motion.y.target) <= height / 2
+  return inBox(point, motion.x.target, motion.y.target, width, height)
+    && inBox(point, motion.x.value, motion.y.value, width, height)
 }
 
 /** 돈이 왜 오갔는가. 표에 없는 갈래는 적지 않습니다. */

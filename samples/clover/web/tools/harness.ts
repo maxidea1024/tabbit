@@ -498,6 +498,14 @@ export const POPUP_X = STAGE_W / 2
 export const HAND_Y = 608
 export const CARD_SPACING = 100
 /**
+ * 조커 줄의 칸 하나가 서는 자리. **`game.ts` 의 `JOKER_X`·`JOKER_Y` 와 같아야 합니다.**
+ *
+ * 칸은 왼쪽부터 고정된 자리에 섭니다 — 조커가 늘어도 앞의 것은 옮기지 않습니다.
+ */
+export function jokerSpot(index: number): { x: number; y: number } {
+  return { x: 372 + index * (88 + 12), y: 108 }
+}
+/**
  * 판 아래 버튼 줄. **`game.ts` 와 같아야 합니다.**
  *
  * 손가락에 맞게 키운 뒤로 줄이 위로 올라왔습니다 — 자리를 여기 한곳에 두고 셈도 같이 둡니다.
