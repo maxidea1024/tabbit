@@ -21,8 +21,8 @@ npm run open             # 안드로이드 스튜디오로 열기
 
 |무엇|파일|
 |--|--|
-|디버그|`android/app/build/outputs/apk/debug/app-debug.apk`. 손에 쥐고 옮길 것은 `out/clover-<판>.apk` 로 베껴 둡니다|
-|릴리스(서명 없음)|`android/app/build/outputs/apk/release/app-release-unsigned.apk`|
+|디버그|`out/clover-<판>.apk`. 그 자리의 이름은 `android/app/build/outputs/apk/debug/app-debug.apk` 이고, **빌드가 끝나면 저 이름으로 베껴 둡니다** — `app/build.gradle` 이 합니다|
+|릴리스(서명 없음)|`out/clover-<판>-release.apk`. 그 자리의 이름은 `android/app/build/outputs/apk/release/app-release-unsigned.apk` 입니다|
 
 ## 필요한 것
 

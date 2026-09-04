@@ -24,6 +24,33 @@ android {
     }
 }
 
+// 손에 쥐고 옮길 것을 `mobile/out/` 에 베껴 둡니다.
+//
+// **그 자리의 이름은 `app-debug.apk` 입니다** — 모듈 이름이 `app` 이라 그렇고, 그 이름에는
+// 무엇의 무슨 판인지가 없습니다. `readme.md` 가 적어 둔 규약이 `out/clover-<판>.apk` 이고,
+// 그것을 손으로 베끼던 것을 여기서 합니다.
+//
+// **판 번호는 여기 적지 않습니다.** `versionName` 에서 가져옵니다.
+//
+// **디버그만 이름에 갈래가 없습니다.** 손에 쥐고 옮기는 것이 그것이므로 짧은 이름을 줍니다 —
+// 릴리스는 `-release` 를 달아, 한 자리에 둘이 있어도 어느 것인지 이름으로 갈립니다.
+def handout = file("${rootDir}/../out")
+
+android.applicationVariants.all { variant ->
+    def suffix = variant.buildType.name == 'debug' ? '' : "-${variant.buildType.name}"
+    // **옮기지 않고 베낍니다.** 그 자리의 것을 치우면 그 폴더를 보는 다른 도구가 없는
+    // 파일을 찾습니다.
+    variant.assembleProvider.configure { assemble ->
+        assemble.doLast {
+            copy {
+                from variant.outputs.collect { it.outputFile }
+                into handout
+                rename { "clover-${variant.versionName}${suffix}.apk" }
+            }
+        }
+    }
+}
+
 repositories {
     flatDir{
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
