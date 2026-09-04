@@ -121,7 +121,14 @@ async function main(argv: string[]): Promise<number> {
       // **상점 판이 아직 서지 않았으면 그 차례는 넘깁니다.** 국면이 상점이 되는 것과 판이
       // 서는 것은 다른 순간이고, 서지 않은 판의 단추를 누를 수는 없습니다.
       if (state.phase === 'shop' && !state.shopUp) {
-        await pass(page, 300)
+        // **카드가 걷혀 덱으로 돌아가고 정산이 서기까지입니다.** 격파한 뒤 낸 카드와 손패가
+        // 물러나고 뒷면이 덱으로 돌아온 다음에 정산 판이 서므로, 그 사이가 2초 가까이
+        // 됩니다 — 300밀리초씩 여섯 번이면 멈춘 것으로 잘못 봅니다.
+        for (let wait = 0; wait < 20; wait++) {
+          const now = await peek(page)
+          if (now.payout || now.shopUp) break
+          await pass(page, 200)
+        }
         continue
       }
       await clickPrimary(page)

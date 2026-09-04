@@ -63,12 +63,24 @@ export class FeelConst {
   /** 그때의 기울기 */
   public static readonly cardHoverTiltDeg: number = 6
 
-  /** 카드를 뽑을 때 장마다의 간격 */
-  public static readonly drawStaggerMs: number = 130
+  /** 카드를 뽑을 때 장마다의 간격. 뒷면으로 자리에 붙는 간격입니다 */
+  public static readonly drawStaggerMs: number = 35
+
+  /** 마지막 장이 뒷면으로 자리에 붙기까지 */
+  public static readonly drawLandMs: number = 200
+
+  /** 다 붙은 뒤 왼쪽부터 뒤집는 장마다의 간격 */
+  public static readonly flipStaggerMs: number = 25
 
   /** 낸 카드가 판으로 올라갈 때 장마다의 간격 */
   public static readonly playStaggerMs: number = 90
 
   /** 마지막 장이 자리에 붙고 득점이 시작되기까지 */
   public static readonly playLandMs: number = 260
+
+  /** 건너뛰어 받은 태그 칩이 커져서 머리띠로 날아가 앉기까지 */
+  public static readonly tagGainMs: number = 760
+
+  /** 받자마자 쓰이는 태그가 발동하는 시간 */
+  public static readonly tagUseMs: number = 300
 }

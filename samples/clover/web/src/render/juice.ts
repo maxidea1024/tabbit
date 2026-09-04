@@ -50,11 +50,20 @@ export interface Feel {
   chromaticMaxPx: number
   cardHoverLiftPx: number
   cardHoverTiltDeg: number
+  /** 뽑은 카드가 뒷면으로 자리에 붙는 장마다의 간격. */
   drawStaggerMs: number
+  /** 마지막 장이 뒷면으로 자리에 붙기까지. */
+  drawLandMs: number
+  /** 다 붙은 뒤 왼쪽부터 뒤집는 장마다의 간격. */
+  flipStaggerMs: number
   /** 낸 카드가 판으로 올라갈 때 장마다의 간격. */
   playStaggerMs: number
   /** 마지막 장이 자리에 붙고 득점이 시작되기까지. */
   playLandMs: number
+  /** 건너뛰어 받은 태그 칩이 커져서 머리띠로 날아가 앉기까지. */
+  tagGainMs: number
+  /** 받자마자 쓰이는 태그가 발동하는 시간. */
+  tagUseMs: number
 }
 
 export function readFeel(feel: FeelConstants): Feel {
@@ -94,10 +103,16 @@ function holdOf(event: GameEvent, feel: Feel): number {
     case 'MoneyChanged': return event.delta === 0 ? 0 : feel.moneyStepMs
     case 'RunLost':
     case 'RunWon': return feel.settleMs * 2
+    // **건너뛰기도 사건입니다.** 받은 태그가 카드에서 머리띠로 날아가 앉는 동안 판은 그대로
+    // 있고, 그 자리에서 쓰이는 태그는 앉은 뒤에 발동합니다. 둘이 자기 시간을 씁니다.
+    case 'TagGained': return feel.tagGainMs
+    case 'TagUsed': return feel.tagUseMs
     // 버린 카드도 한 장씩 나갑니다.
     case 'HandDiscarded': return event.uids.length * feel.playStaggerMs
-    // 다음 패는 득점이 끝난 뒤에 깔립니다. 장마다의 간격이 자기 몫입니다.
-    case 'HandDrawn': return event.uids.length * feel.drawStaggerMs
+    // 다음 패는 득점이 끝난 뒤에 깔립니다. **나오기와 까기가 두 단계입니다** — 뒷면으로
+    // 우르르 붙고, 다 붙은 뒤에 왼쪽부터 파도로 뒤집힙니다. 둘을 합한 것이 자기 몫입니다.
+    case 'HandDrawn':
+      return event.uids.length * (feel.drawStaggerMs + feel.flipStaggerMs) + feel.drawLandMs
     // 값이 바뀐 것을 알리는 이벤트는 자기 시간을 쓰지 않습니다 — 앞의 박자에 얹힙니다.
     case 'ChipsMultChanged': return 0
     default: return 0

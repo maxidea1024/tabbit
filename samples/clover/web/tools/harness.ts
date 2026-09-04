@@ -273,9 +273,13 @@ export async function clearBlind(page: Page): Promise<void> {
  * 설 때까지 조금 기다립니다.
  */
 export async function takePayout(page: Page): Promise<void> {
-  for (let wait = 0; wait < 40; wait++) {
+  for (let wait = 0; wait < 60; wait++) {
     const spot = (await peek(page)).spots?.take
     if (spot) {
+      // **판이 다 들어온 뒤에 누릅니다.** 자리가 알려지는 것은 판이 열리는 그 프레임이고,
+      // 판은 그 뒤 잠깐 움직이며 들어오므로 그 자리를 곧바로 누르면 빗나갑니다 — 카드가
+      // 덱으로 돌아간 뒤에 정산이 서게 되면서 도구의 첫 조회가 그 프레임에 닿았습니다.
+      await pass(page, 400)
       const here = await at(page, spot.x, spot.y)
       await page.mouse.click(here.x, here.y)
       break

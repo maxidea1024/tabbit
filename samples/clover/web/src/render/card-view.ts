@@ -185,13 +185,14 @@ export class CardView extends Container {
   /** 뒤집는 중. 1 에서 0 으로 갑니다. 절반에서 앞뒤가 바뀝니다. */
   private flip = 0
   /**
-   * 뒤집기까지 남은 시간. 초입니다.
+   * 뒤집는 시각. 화면의 시계입니다.
    *
-   * **용수철이 멈추는 것을 기다리지 않습니다.** 멈추는 시각은 카드가 얼마나 멀리서 오는지에
-   * 따라 달라지고, 그러면 여덟 장이 거의 같은 순간에 뒤집힙니다 — 한 장씩 뽑은 것이 한
-   * 장씩으로 읽히려면 뒤집는 것도 한 장씩이어야 합니다.
+   * **부르는 쪽이 정합니다.** 카드마다 자기 시계로 세면 여덟 장이 저마다 도착한 뒤 따로
+   * 뒤집히고, 그것은 한 장씩 뽑아 한 장씩 까는 것입니다 — 뽑기는 뒷면으로 우르르 붙고,
+   * 다 붙은 뒤에 왼쪽부터 파도로 뒤집히는 두 단계이므로, 뒤집는 시각은 그 패 전체를 아는
+   * 쪽이 정해 넘겨 줍니다.
    */
-  private flipIn = 0
+  private flipAt?: number
   /** 마지막으로 받은 카드. 뒤집을 때 다시 그립니다. */
   private last?: { card: CardInstance; look?: EditionLook }
 
@@ -434,13 +435,14 @@ export class CardView extends Container {
    * 덱에서 뽑혀 자리로 갑니다.
    *
    * **절도 있게 갑니다.** 손패에 놓일 때의 부드러운 용수철로 오면 카드가 흘러 들어오는
-   * 것으로 보이고, 한 장씩 뽑는 것이 한 장씩으로 읽히지 않습니다.
+   * 것으로 보이고, 뽑은 것이 뽑은 것으로 읽히지 않습니다.
+   *
+   * `flipAt` 은 뒤집는 시각입니다. 오는 동안은 뒷면이고 그 시각에 뒤집힙니다.
    */
-  deal(x: number, y: number, rotation: number): void {
-    // 오는 동안은 뒷면입니다. 자리에 닿을 즈음 뒤집습니다.
+  deal(x: number, y: number, rotation: number, flipAt: number): void {
     this.showBack = true
     this.flip = 0
-    this.flipIn = 0.2
+    this.flipAt = flipAt
     this.render()
     this.motion.hard()
     this.motion.to(x, y, rotation)
@@ -492,18 +494,20 @@ export class CardView extends Container {
   /**
    * 물러납니다.
    *
-   * **곧게 나갑니다.** 위로 40픽셀 띄우고 26도 기울여 보냈는데, 그러면 카드가 위로 휘어
-   * 올라가며 사라집니다 — 카드는 치워지는 것이고, 승천하는 것이 아닙니다.
+   * **딜러에게 갑니다.** 나가는 자리는 부르는 쪽이 정하고, 그 자리는 화면 오른쪽 위 밖의
+   * 한 점입니다 — 보이지는 않지만 카드를 거두는 사람이 있는 자리입니다. 같은 높이로 곧게
+   * 빠지면 카드가 옆으로 치워지는 것이고, 그 높이 그 자리에는 덱이 있어 버린 카드가 덱으로
+   * 들어가는 것으로 보였습니다.
    *
-   * **나가는 높이는 부르는 쪽이 정합니다.** 자기 자리의 높이를 그대로 쓰면 손에서 나가는
-   * 카드가 손의 높이로 오른쪽에 빠지는데, 그 높이 그 자리에 덱이 있습니다 — 버린 카드가
-   * 덱으로 들어가는 것으로 보였습니다. 버린 것은 덱으로 돌아가지 않습니다.
+   * **직선입니다.** 위로 띄우고 26도 기울여 보낸 적이 있는데, 그러면 카드가 휘어 올라가며
+   * 사라집니다 — 목표점 자체가 위에 있으면 비스듬한 직선이고 휘지 않습니다. 기울기는 나가는
+   * 방향으로 조금만 줍니다.
    */
-  retire(exitY = this.motion.y.target): void {
+  retire(x: number, y: number): void {
     this.retiring = true
     this.eventMode = 'none'
-    this.motion.to(SIZE.width + 120, exitY, 0)
-    this.motion.scale.target = 0.9
+    this.motion.to(x, y, -9)
+    this.motion.scale.target = 0.84
   }
 
   retiring = false
@@ -528,14 +532,14 @@ export class CardView extends Container {
       this.motion.soft()
     }
 
-    if (this.flipIn > 0) {
-      this.flipIn = Math.max(0, this.flipIn - seconds)
-      // 자리에 닿을 즈음입니다. **여기서 뒤집습니다.**
-      if (this.flipIn === 0 && this.showBack) this.flip = 1
+    if (this.flipAt !== undefined && time >= this.flipAt) {
+      this.flipAt = undefined
+      if (this.showBack) this.flip = 1
     }
 
+    // 8분의 1초입니다. 파도로 뒤집히므로 한 장이 길면 앞 장과 겹쳐 한 덩어리로 보입니다.
     if (this.flip > 0) {
-      this.flip = Math.max(0, this.flip - seconds * 6)
+      this.flip = Math.max(0, this.flip - seconds * 8)
       // 절반을 지나면 앞면으로 바뀝니다 — 좁아졌다가 벌어지는 그 순간입니다.
       if (this.showBack && this.flip <= 0.5) {
         this.showBack = false

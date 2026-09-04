@@ -88,9 +88,17 @@ namespace Clover.Data
         /// </summary>
         public static int CardHoverTiltDeg { get; }
         /// <summary>
-        /// 카드를 뽑을 때 장마다의 간격
+        /// 카드를 뽑을 때 장마다의 간격. 뒷면으로 자리에 붙는 간격입니다
         /// </summary>
         public static int DrawStaggerMs { get; }
+        /// <summary>
+        /// 마지막 장이 뒷면으로 자리에 붙기까지
+        /// </summary>
+        public static int DrawLandMs { get; }
+        /// <summary>
+        /// 다 붙은 뒤 왼쪽부터 뒤집는 장마다의 간격
+        /// </summary>
+        public static int FlipStaggerMs { get; }
         /// <summary>
         /// 낸 카드가 판으로 올라갈 때 장마다의 간격
         /// </summary>
@@ -99,6 +107,14 @@ namespace Clover.Data
         /// 마지막 장이 자리에 붙고 득점이 시작되기까지
         /// </summary>
         public static int PlayLandMs { get; }
+        /// <summary>
+        /// 건너뛰어 받은 태그 칩이 커져서 머리띠로 날아가 앉기까지
+        /// </summary>
+        public static int TagGainMs { get; }
+        /// <summary>
+        /// 받자마자 쓰이는 태그가 발동하는 시간
+        /// </summary>
+        public static int TagUseMs { get; }
 
         /// <summary>
         /// Static constructor for initialize static variables.
@@ -123,9 +139,13 @@ namespace Clover.Data
             ChromaticMaxPx = 5;
             CardHoverLiftPx = 12;
             CardHoverTiltDeg = 6;
-            DrawStaggerMs = 130;
+            DrawStaggerMs = 35;
+            DrawLandMs = 200;
+            FlipStaggerMs = 25;
             PlayStaggerMs = 90;
             PlayLandMs = 260;
+            TagGainMs = 760;
+            TagUseMs = 300;
         }
     }
 } // namespace Clover.Data

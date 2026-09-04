@@ -32,8 +32,12 @@ const FEEL: Feel = {
   cardHoverLiftPx: 12,
   cardHoverTiltDeg: 6,
   drawStaggerMs: 40,
+  drawLandMs: 200,
+  flipStaggerMs: 25,
   playStaggerMs: 90,
   playLandMs: 260,
+  tagGainMs: 760,
+  tagUseMs: 300,
 }
 
 const HAND: GameEvent = {

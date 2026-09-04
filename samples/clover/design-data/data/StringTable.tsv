@@ -1259,6 +1259,8 @@
 	ui.payout.title	정산	Cash Out	精算	结算	結算	Auszahlung
 	ui.payout.take	받는다  ${n}	Cash Out  ${n}	受け取る  ${n}	收下  ${n}	收下  ${n}	Kassieren  ${n}
 	ui.payout.counting	정산 중	Counting up	精算中	正在结算	正在結算	Wird abgerechnet
+	ui.payout.nothing	받을 것이 없습니다	Nothing to cash out	受け取るものがありません	没有可收下的	沒有可收下的	Nichts zu kassieren
+	ui.payout.next	다음	Next	次へ	下一步	下一步	Weiter
 	ui.button.jokers	조커	Jokers	ジョーカー	小丑牌	小丑牌	Joker
 	ui.pool.title	조커 풀	Joker Pool	ジョーカープール	小丑牌池	小丑牌池	Joker-Pool
 	ui.pool.base	기본 150종	Base 150	基本 150 種	基础 150 种	基礎 150 種	Basis 150

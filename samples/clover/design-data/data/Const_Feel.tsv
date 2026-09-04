@@ -18,6 +18,10 @@
 	ChromaticMaxPx	int	5	색수차의 최대 폭
 	CardHoverLiftPx	int	12	카드에 마우스를 올렸을 때 떠오르는 높이
 	CardHoverTiltDeg	int	6	그때의 기울기
-	DrawStaggerMs	int	130	카드를 뽑을 때 장마다의 간격
+	DrawStaggerMs	int	35	카드를 뽑을 때 장마다의 간격. 뒷면으로 자리에 붙는 간격입니다
+	DrawLandMs	int	200	마지막 장이 뒷면으로 자리에 붙기까지
+	FlipStaggerMs	int	25	다 붙은 뒤 왼쪽부터 뒤집는 장마다의 간격
 	PlayStaggerMs	int	90	낸 카드가 판으로 올라갈 때 장마다의 간격
 	PlayLandMs	int	260	마지막 장이 자리에 붙고 득점이 시작되기까지
+	TagGainMs	int	760	건너뛰어 받은 태그 칩이 커져서 머리띠로 날아가 앉기까지
+	TagUseMs	int	300	받자마자 쓰이는 태그가 발동하는 시간

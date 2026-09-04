@@ -603,7 +603,7 @@ tbody [data-pick] { cursor: pointer; }
 </aside>
 <main>
 <h1>상수 세트</h1>
-<p class="lead">상수 세트 4개 · 상수 54개</p>
+<p class="lead">상수 세트 4개 · 상수 58개</p>
 <div data-table>
 <div class="tools">
 <input type="search" data-filter="rows" placeholder="상수 세트 필터">
@@ -619,7 +619,7 @@ tbody [data-pick] { cursor: pointer; }
 </thead>
 <tbody>
 <tr><td><a href="constantsets.html#constantset_EconomyConst"><svg class="i"><use href="#i-const"></use></svg>EconomyConst</a></td><td class="num">19</td><td><span class="book" title="samples/clover/design-data/xlsx/Const.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Const.xlsx</span> <span class="hint">&middot;</span> Const_Economy</td><td>금액에 관한 값입니다.</td></tr>
-<tr><td><a href="constantsets.html#constantset_FeelConst"><svg class="i"><use href="#i-const"></use></svg>FeelConst</a></td><td class="num">21</td><td><span class="book" title="samples/clover/design-data/xlsx/Feel.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Feel.xlsx</span> <span class="hint">&middot;</span> Const_Feel</td><td>연출의 길이와 문턱입니다. <b>두 런타임이 같은 값을 읽습니다.</b></td></tr>
+<tr><td><a href="constantsets.html#constantset_FeelConst"><svg class="i"><use href="#i-const"></use></svg>FeelConst</a></td><td class="num">25</td><td><span class="book" title="samples/clover/design-data/xlsx/Feel.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Feel.xlsx</span> <span class="hint">&middot;</span> Const_Feel</td><td>연출의 길이와 문턱입니다. <b>두 런타임이 같은 값을 읽습니다.</b></td></tr>
 <tr><td><a href="constantsets.html#constantset_RunConst"><svg class="i"><use href="#i-const"></use></svg>RunConst</a></td><td class="num">10</td><td><span class="book" title="samples/clover/design-data/xlsx/Const.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Const.xlsx</span> <span class="hint">&middot;</span> Const_Run</td><td>런 하나의 시작값과 상한입니다.</td></tr>
 <tr><td><a href="constantsets.html#constantset_ScoreConst"><svg class="i"><use href="#i-const"></use></svg>ScoreConst</a></td><td class="num">4</td><td><span class="book" title="samples/clover/design-data/xlsx/Const.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Const.xlsx</span> <span class="hint">&middot;</span> Const_Score</td><td>득점의 단위와 규격입니다. <b>두 구현이 같아야 하는 값들입니다.</b></td></tr>
 </tbody>
@@ -771,7 +771,7 @@ tbody [data-pick] { cursor: pointer; }
 </tbody>
 </table>
 </div>
-<h2 id="constantset_FeelConst"><svg class="i"><use href="#i-const"></use></svg>FeelConst<span class="count">상수 21개</span></h2>
+<h2 id="constantset_FeelConst"><svg class="i"><use href="#i-const"></use></svg>FeelConst<span class="count">상수 25개</span></h2>
 <p class="lead">FeelConst <span class="hint"><span class="book" title="samples/clover/design-data/xlsx/Feel.xlsx"><svg class="i"><use href="#i-workbook"></use></svg>Feel.xlsx</span> &middot; <svg class="i"><use href="#i-sheet"></use></svg>Const_Feel : A1</span></p>
 <p class="comment">연출의 길이와 문턱입니다. <b>두 런타임이 같은 값을 읽습니다.</b></p>
 <div class="scroll">
@@ -910,22 +910,50 @@ tbody [data-pick] { cursor: pointer; }
 <td class="num">19</td>
 <td id="const_FeelConst.DrawStaggerMs">DrawStaggerMs</td>
 <td><span class="type">int</span></td>
-<td>130</td>
-<td>카드를 뽑을 때 장마다의 간격</td>
+<td>35</td>
+<td>카드를 뽑을 때 장마다의 간격. 뒷면으로 자리에 붙는 간격입니다</td>
 </tr>
 <tr>
 <td class="num">20</td>
+<td id="const_FeelConst.DrawLandMs">DrawLandMs</td>
+<td><span class="type">int</span></td>
+<td>200</td>
+<td>마지막 장이 뒷면으로 자리에 붙기까지</td>
+</tr>
+<tr>
+<td class="num">21</td>
+<td id="const_FeelConst.FlipStaggerMs">FlipStaggerMs</td>
+<td><span class="type">int</span></td>
+<td>25</td>
+<td>다 붙은 뒤 왼쪽부터 뒤집는 장마다의 간격</td>
+</tr>
+<tr>
+<td class="num">22</td>
 <td id="const_FeelConst.PlayStaggerMs">PlayStaggerMs</td>
 <td><span class="type">int</span></td>
 <td>90</td>
 <td>낸 카드가 판으로 올라갈 때 장마다의 간격</td>
 </tr>
 <tr>
-<td class="num">21</td>
+<td class="num">23</td>
 <td id="const_FeelConst.PlayLandMs">PlayLandMs</td>
 <td><span class="type">int</span></td>
 <td>260</td>
 <td>마지막 장이 자리에 붙고 득점이 시작되기까지</td>
+</tr>
+<tr>
+<td class="num">24</td>
+<td id="const_FeelConst.TagGainMs">TagGainMs</td>
+<td><span class="type">int</span></td>
+<td>760</td>
+<td>건너뛰어 받은 태그 칩이 커져서 머리띠로 날아가 앉기까지</td>
+</tr>
+<tr>
+<td class="num">25</td>
+<td id="const_FeelConst.TagUseMs">TagUseMs</td>
+<td><span class="type">int</span></td>
+<td>300</td>
+<td>받자마자 쓰이는 태그가 발동하는 시간</td>
 </tr>
 </tbody>
 </table>
