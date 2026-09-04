@@ -201,6 +201,17 @@ export class Slot extends Container {
     })
   }
 
+  /**
+   * 겉면이 바뀌었으니 판때기를 다시 그립니다.
+   *
+   * **모습이 같으면 그리지 않는 기억을 지웁니다.** 그 기억은 「빛의 세기」 만 보므로, 색이
+   * 바뀐 것을 알지 못합니다.
+   */
+  restyle(): void {
+    this.plateKey = ''
+    this.draw()
+  }
+
   /** 칸의 이름. **말이 바뀌면 갈아 끼웁니다** — 만들 때 한 번 읽고 마는 글입니다. */
   set caption(value: string) {
     this.caption_.text = value

@@ -11,7 +11,7 @@
 import { Container, Graphics, Rectangle, Text } from 'pixi.js'
 import { t } from '../core/strings'
 
-import { plate, FLOATING } from '../render/skin'
+import { plate, floatingStyle } from '../render/skin'
 import { UI } from '../render/theme'
 import { fraction } from '../render/motion'
 import { Button } from './widgets'
@@ -277,7 +277,7 @@ export function panelFrame(width: number, height: number, title: string,
   const node = new Container()
 
   const board = new Graphics()
-  plate(board, width, height, FLOATING)
+  plate(board, width, height, floatingStyle())
 
   // 머리. **띠가 아니라 선 하나입니다.** 제목 아래의 선이 머리와 몸통을 가르고, 밑단은
   // 단추가 있을 때만 그 위에 선 하나가 섭니다 — 띠 둘로 위아래를 물리던 것을 걷었습니다.

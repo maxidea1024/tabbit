@@ -5,7 +5,7 @@
 
 import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
 
-import { buttonStyle, mix, plate, PANEL, type PlateStyle } from '../render/skin'
+import { buttonStyle, mix, panelStyle, plate, type PlateStyle } from '../render/skin'
 import { COLOR, UI } from '../render/theme'
 import { iconFor, type IconName } from './icon'
 
@@ -20,8 +20,8 @@ export class Panel extends Container {
 
   resize(width: number, height: number, tint?: number): void {
     const style: PlateStyle = tint === undefined
-      ? PANEL
-      : { ...PANEL, top: mix(tint, 0xffffff, 0.1), bottom: tint }
+      ? panelStyle()
+      : { ...panelStyle(), top: mix(tint, 0xffffff, 0.1), bottom: tint }
     this.board.clear()
     plate(this.board, width, height, style)
   }

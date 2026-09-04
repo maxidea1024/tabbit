@@ -101,14 +101,21 @@ export function groove(g: Graphics, x: number, y: number, width: number,
   g.rect(x, y, width, 1.5).fill(color)
 }
 
-/** 화면 위에 뜨는 판. */
-export const FLOATING: PlateStyle = {
-  top: UI.panel, bottom: UI.panel, border: UI.panelEdge, alpha: UI.panelAlpha, radius: 8,
+/**
+ * 화면 위에 뜨는 판.
+ *
+ * **상수가 아니라 함수입니다.** 상수로 두면 불러올 때의 색을 베껴 두므로, 옵션에서 겉면을
+ * 갈아 끼워도 판때기만 옛 색으로 남습니다 — 그릴 때 읽어야 합니다.
+ */
+export function floatingStyle(): PlateStyle {
+  return {
+    top: UI.panel, bottom: UI.panel, border: UI.panelEdge, alpha: UI.panelAlpha, radius: 8,
+  }
 }
 
 /** 붙박이 패널. 떠 있는 판과 같은 색입니다 — 둘이 다르면 판이 둘로 보입니다. */
-export const PANEL: PlateStyle = {
-  top: UI.panel, bottom: UI.panel, border: UI.panelEdge, alpha: UI.panelAlpha, radius: 8,
+export function panelStyle(): PlateStyle {
+  return floatingStyle()
 }
 
 /**

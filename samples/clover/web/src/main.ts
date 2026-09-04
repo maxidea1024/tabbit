@@ -20,7 +20,7 @@ import { Boot } from './ui/boot'
 import { loadIcons } from './ui/icon'
 import { JokerPool } from './generated/enums/joker-pool'
 import { Game } from './render/game'
-import { COLOR } from './render/theme'
+import { COLOR, setUiSurface } from './render/theme'
 
 async function main(): Promise<void> {
   const canvas = document.getElementById('stage') as HTMLCanvasElement
@@ -45,8 +45,12 @@ async function main(): Promise<void> {
   // **화면을 만들기 전에 글 표를 넘깁니다.** 클래스의 필드는 생성자 본문보다 먼저 만들어지고,
   // 그 자리에서 이미 글을 읽습니다 — 생성자 안에서 넘기면 그것들이 열쇠를 그대로 답니다.
   useStrings(data)
-  const language = chosen(loadOptions())
+  const saved = loadOptions()
+  const language = chosen(saved)
   setLanguage(language)
+  // **판의 겉면도 화면을 세우기 전에 정합니다.** 판때기는 그릴 때의 색으로 삼각화되므로,
+  // 세운 뒤에 정하면 첫 화면만 기본 겉면으로 남습니다.
+  setUiSurface(saved.uiTheme)
   // **글꼴을 다 읽고 나서 화면을 세웁니다.** 글을 그리는 것은 글자를 그림으로 굽는 일이고,
   // 그때 글꼴이 없으면 대체 글꼴로 구워져 그대로 남습니다.
   boot.step('font')

@@ -59,7 +59,7 @@ import { cardArtDir, cardBackMotif, cardPaper, drawsIndex, setCardSet, setLookOf
 import { drawGlyph, glyphFor, hashOf, hsl, shade } from './glyph'
 import { cardArtId, drawFace } from './pips'
 import { groove, mix } from './skin'
-import { COLOR, rarityColor, SIZE, UI } from './theme'
+import { COLOR, rarityColor, setUiSurface, SIZE, UI } from './theme'
 import { box, type Box, CENTER, pointOf, putText, splitX } from '../ui/layout'
 import { Button, Panel } from '../ui/widgets'
 import { poolsOf, type PoolChoice } from '../core/pool'
@@ -919,6 +919,13 @@ export class Game {
    * 자리가 상수이므로 **한 번 그리고 그대로 둡니다.**
    */
   private readonly panelGrooves = new Graphics()
+  /**
+   * 왼쪽 판의 판때기.
+   *
+   * **붙들어 둡니다.** 판이 도는 내내 한 번 그리고 마는 것이므로, 옵션에서 겉면을 갈아
+   * 끼웠을 때 다시 그려 줄 곳이 필요합니다.
+   */
+  private panelPlate?: Panel
   /**
    * 상점 칸의 딱지들.
    *
@@ -1920,6 +1927,9 @@ export class Game {
     this.infoButton = new Button(t('ui.run_info.title'), 124, 34, UI.slate,
       () => this.toggleHandList())
     this.menuButton = new Button(t('ui.button.menu'), 124, 34, UI.slate, () => this.openMenu())
+    // **자리는 화면이 알립니다.** 도구가 좌표를 베껴 적으면 판을 고칠 때 한쪽만 고쳐집니다.
+    this.spotNodes.set('runInfo', { node: this.infoButton, cx: 62, cy: 17 })
+    this.spotNodes.set('menu', { node: this.menuButton, cx: 62, cy: 17 })
 
     // **상점은 판 안에 섭니다.** 조커와 소모품 줄이 그 위로 지나가야 — 무엇을 가지고
     // 있는지를 보면서 사고, 산 것이 줄에 꽂히는 것도 보입니다.
@@ -2090,7 +2100,39 @@ export class Game {
     this.updateHints()
     this.syncCards()
     if (changed) this.relabel()
+
+    // **판의 겉면.** 고른 그 자리에서 갈아입습니다 — 겉모습이므로 도는 판의 규칙에 닿지
+    // 않습니다.
+    if (this.settings.uiTheme !== this.surfaceShown) {
+      this.surfaceShown = this.settings.uiTheme
+      setUiSurface(this.settings.uiTheme)
+      this.restyle()
+    }
   }
+
+  /**
+   * 겉면을 갈아 끼운 뒤 그려 둔 것을 다시 그립니다.
+   *
+   * **한 번 그리고 마는 것만 여기 있습니다.** 판때기는 그릴 때의 색으로 삼각화되어 있어서
+   * 색을 바꿨다고 저절로 바뀌지 않습니다 — 떠 있는 판들은 열 때마다 다시 그리므로 여기서
+   * 손댈 것이 없고, 남는 것이 왼쪽 판과 그 안의 칸들입니다.
+   */
+  private restyle(): void {
+    this.panelPlate?.resize(PANEL_W + 24, SIZE.height - 44)
+    this.drawFrames()
+    this.panelGrooves.clear()
+    for (const at of PANEL_GROOVES) groove(this.panelGrooves, LEFT, at, PANEL_W)
+    for (const slot of [this.score, this.chips, this.mult,
+                        this.hands, this.discards, this.money, this.anteSlot]) {
+      slot.restyle()
+    }
+    // 게이지는 채운 길이가 같으면 다시 그리지 않으므로, 그 기억을 지웁니다.
+    this.gaugeKey = ''
+    this.refresh()
+  }
+
+  /** 마지막으로 갈아입은 겉면. 같으면 다시 그리지 않습니다. */
+  private surfaceShown = loadOptions().uiTheme
 
   /**
    * 말이 바뀌었을 때 글을 다시 읽습니다.
@@ -2585,7 +2627,8 @@ export class Game {
   }
 
   private buildPanel(): void {
-    const panel = new Panel(PANEL_W + 24, SIZE.height - 44, 0x141b26)
+    const panel = new Panel(PANEL_W + 24, SIZE.height - 44)
+    this.panelPlate = panel
     panel.position.set(LEFT - 12, 22)
     // **조커와 소모품의 자리는 상점 아래에 그립니다.** 상점이 판 안에 서므로, 이 사각형이
     // 위에 있으면 상점의 머리띠를 가로질러 자리가 그려집니다.
@@ -7750,12 +7793,12 @@ export class Game {
     const width = 260
     // **옵션이 위입니다.** 판이 도는 동안 여는 것은 대개 소리나 속도를 고치려는 것이고,
     // 게임 방법은 첫 판에 한 번 보는 것입니다.
-    const rows: { label: string; press: () => void }[] = [
-      { label: t('ui.button.options'), press: () => this.openOptions() },
-      { label: t('ui.button.guide'), press: () => this.modals.open(this.guide) },
+    const rows: { key: string; label: string; press: () => void }[] = [
+      { key: 'options', label: t('ui.button.options'), press: () => this.openOptions() },
+      { key: 'guide', label: t('ui.button.guide'), press: () => this.modals.open(this.guide) },
       // **타이틀로는 맨 아래입니다.** 판을 접는 것이므로 옵션과 게임 방법과 같은 무게로
       // 가운데에 두면 잘못 누르는 일이 생깁니다.
-      { label: t('ui.button.toTitle'), press: () => this.enterTitle() },
+      { key: 'toTitle', label: t('ui.button.toTitle'), press: () => this.enterTitle() },
     ]
     // **밑단이 없습니다.** 머리의 `✕` 와 바깥 누르기와 `Esc` 로 닫히므로, 닫기를 또 두면
     // 같은 일을 하는 것이 판 하나에 둘입니다.
@@ -7774,6 +7817,10 @@ export class Game {
       })
       button.position.set(24, TITLE_BAR + MENU_PAD + index * 46)
       layer.addChild(button)
+      // **자리는 화면이 알립니다.** 판이 닫히면 이 단추는 지워지고, 지워진 것의 자리는
+      // 알리지 않습니다 — `lateSpots` 가 그것을 봅니다.
+      this.spotNodes.set(`menu:${row.key}`,
+                         { node: button, cx: (width - 48) / 2, cy: 19 })
     })
 
     this.modals.open(this.menu)

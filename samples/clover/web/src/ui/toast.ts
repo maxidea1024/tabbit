@@ -8,7 +8,7 @@
 
 import { Container, Graphics, Text } from 'pixi.js'
 
-import { plate, FLOATING } from '../render/skin'
+import { plate, floatingStyle } from '../render/skin'
 import { fraction } from '../render/motion'
 import { COLOR, SIZE } from '../render/theme'
 import { richBlock, type RichStyle } from './rich'
@@ -113,7 +113,7 @@ export class Toasts extends Container {
 
     const board = new Graphics()
     plate(board, WIDTH, height, {
-      ...FLOATING,
+      ...floatingStyle(),
       top: 0x212b3a, bottom: 0x141b26, border: tint, radius: 12, weight: 2, gloss: 0.1,
     })
 

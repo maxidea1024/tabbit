@@ -60,26 +60,72 @@ export const COLOR = {
 } as const
 
 /**
- * 판의 색 한 벌.
+ * 판의 겉면.
  *
- * **채도가 있는 것은 여기 적힌 것뿐입니다.** 판은 남흑색 하나, 테는 얇은 갈색 하나, 구획은
- * 선 하나로 나누고, 색은 값 · 단추 · 진행 바 · 고른 것에만 듭니다. 판마다 다른 색 테를
- * 두르던 것을 그만두었습니다 — 무엇의 값인지는 값의 색이 말합니다.
+ * **테마가 바꾸는 것이 이 일곱입니다.** 바탕 · 테 · 선 둘 · 칸 · 진행 바의 바탕이고, 전부
+ * 어두운 무채색입니다 — 강조색은 테마와 무관하게 고정입니다. 그래야 「돈은 노랑」 같은
+ * 약속이 테마를 바꿔도 그대로 남습니다.
+ */
+export interface UiSurface {
+  /** 판. 배경 위에 얹히므로 조금 비칩니다. */
+  panel: number
+  panelAlpha: number
+  /** 판의 바깥 테. */
+  panelEdge: number
+  /** 구획을 나누는 선. */
+  rule: number
+  /** 줄과 줄을 가르는 더 옅은 선 · 칸의 테. */
+  hairline: number
+  /** 칸 · 입력 · 물건 칸의 바탕. 판보다 한 단 어둡습니다. */
+  cell: number
+  /** 진행 바의 바탕. */
+  well: number
+}
+
+/**
+ * 고를 수 있는 겉면들.
+ *
+ * **넷 다 어둡습니다.** 밝은 테마를 두지 않은 이유는 카드가 크림색 종이이기 때문입니다 —
+ * 판이 밝으면 카드가 판에 묻히고, 이 게임에서 가장 먼저 읽혀야 하는 것이 카드입니다.
+ */
+export const UI_SURFACES: Record<string, UiSurface> = {
+  /** 남흑. 따뜻한 갈색 테 — 참고한 카드룸의 것입니다. */
+  slate: {
+    panel: 0x1b1d25, panelAlpha: 0.96, panelEdge: 0x4a3f36,
+    rule: 0x3a3d4a, hairline: 0x2c2f3a, cell: 0x14161c, well: 0x0f1117,
+  },
+  /** 먹. 중성 검정에 회색 테. 색이 가장 적습니다. */
+  ink: {
+    panel: 0x17181c, panelAlpha: 0.96, panelEdge: 0x3d3d40,
+    rule: 0x343437, hairline: 0x292a2d, cell: 0x101113, well: 0x0b0c0d,
+  },
+  /** 청. 차가운 남색 — 이 게임이 오래 쓰던 색입니다. */
+  navy: {
+    panel: 0x1a2130, panelAlpha: 0.96, panelEdge: 0x3f4a5c,
+    rule: 0x35404f, hairline: 0x28303c, cell: 0x131a26, well: 0x0d121b,
+  },
+  /** 밝게. 판과 선이 한 단 밝아 테두리가 뚜렷합니다. */
+  bright: {
+    panel: 0x232733, panelAlpha: 0.98, panelEdge: 0x6a6f7d,
+    rule: 0x4b5160, hairline: 0x3a3f4b, cell: 0x1a1e28, well: 0x12151d,
+  },
+}
+
+/** 고를 수 있는 겉면의 이름들. 옵션의 칸이 이 순서로 섭니다. */
+export const UI_SURFACE_KEYS = ['slate', 'ink', 'navy', 'bright'] as const
+
+/**
+ * 지금 쓰는 색 한 벌.
+ *
+ * **객체 하나를 계속 씁니다.** `setUiSurface` 가 그 안의 값만 갈아 끼우므로, 그리는 자리는
+ * `UI.panel` 처럼 그때그때 읽으면 됩니다 — 값을 미리 베껴 둔 자리는 테마를 바꿔도 옛 색을
+ * 그대로 씁니다(그래서 `skin.ts` 의 판때기 규격이 상수가 아니라 함수입니다).
+ *
+ * **강조색은 테마에 없습니다.** 값 · 돈 · 고른 것 · 잠긴 것의 색은 약속이므로 고정입니다.
  */
 export const UI = {
-  /** 판. 배경 위에 얹히므로 조금 비칩니다. */
-  panel: 0x1b1d25,
-  panelAlpha: 0.96,
-  /** 판의 바깥 테. 따뜻한 어두운 갈색 — 차가운 남흑색 위에서 판의 끝을 알립니다. */
-  panelEdge: 0x4a3f36,
-  /** 구획을 나누는 선. */
-  rule: 0x3a3d4a,
-  /** 줄과 줄을 가르는 더 옅은 선 · 칸의 테. */
-  hairline: 0x2c2f3a,
-  /** 칸 · 입력 · 물건 칸의 바탕. 판보다 한 단 어둡습니다. */
-  cell: 0x14161c,
-  /** 진행 바의 바탕. */
-  well: 0x0f1117,
+  ...UI_SURFACES.slate,
+
   /** 구획 머리의 마름모. */
   mark: 0xcfd6e2,
   /** 모든 테의 잉크. 단추와 카드의 테입니다. */
@@ -105,7 +151,17 @@ export const UI = {
   red: 0xf07a6a,
   /** 밝은 단추 위의 글. */
   onLight: 0x1b1a17,
-} as const
+}
+
+/**
+ * 겉면을 갈아 끼웁니다. 없는 이름이면 기본입니다.
+ *
+ * **그린 것이 저절로 바뀌지는 않습니다.** 이미 그려 둔 판때기는 그때의 색으로 삼각화되어
+ * 있으므로, 부르는 쪽이 다시 그려야 합니다.
+ */
+export function setUiSurface(key: string): void {
+  Object.assign(UI, UI_SURFACES[key] ?? UI_SURFACES.slate)
+}
 
 export const SIZE = {
   /** 기준 해상도. 화면이 이보다 크면 통째로 키웁니다. */

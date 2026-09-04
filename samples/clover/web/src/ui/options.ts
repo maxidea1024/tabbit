@@ -19,7 +19,7 @@ import { setLookOf, setsOf, type SetLook } from '../render/card-set'
 import { cardArtId, drawFace, drawSuit } from '../render/pips'
 import { SuitKind } from '../generated/enums/suit-kind'
 import { hapticsAvailable } from '../render/haptics'
-import { COLOR, SIZE, UI } from '../render/theme'
+import { COLOR, SIZE, UI, UI_SURFACE_KEYS } from '../render/theme'
 import type { ToolSpot } from './layout'
 import { FOOTER_BAR, panelFrame, TITLE_BAR, type ModalPanel } from './modal'
 import { richLine, type RichStyle } from './rich'
@@ -102,6 +102,12 @@ export interface Options {
    * 만나게 되고, 굽어 둔 리플레이와도 어긋납니다.
    */
   pool: PoolChoice
+  /**
+   * 판의 겉면. `UI_SURFACES` 의 이름입니다.
+   *
+   * **겉모습이므로 도는 판의 규칙에 닿지 않습니다.** 고른 그 자리에서 갈아입습니다.
+   */
+  uiTheme: string
 }
 
 /**
@@ -116,6 +122,7 @@ export function defaultOptions(): Options {
     sound: true, volume: 60, music: true, musicVolume: 60, speed: 1,
     shake: true, particles: true, chromatic: true, hints: true, haptics: true,
     language: '', deck: 'red_deck', stake: 'White', cardSet: 'classic', pool: 'base',
+    uiTheme: 'slate',
   }
 }
 
@@ -149,6 +156,8 @@ export function loadOptions(): Options {
       if (key === 'language' && value !== ''
           && !LANGUAGES.includes(value as Language)) continue
       if (key === 'pool' && value !== 'base' && value !== 'all') continue
+      // 없는 겉면 이름이 저장되어 있으면 기본으로 둡니다.
+      if (key === 'uiTheme' && !UI_SURFACE_KEYS.includes(value as never)) continue
       (options[key] as unknown) = value
     }
   } catch {
@@ -596,6 +605,18 @@ export class OptionsPanel implements ModalPanel {
           {
             label: t('ui.option.chromatic'), read: onOff('chromatic'), next: flip('chromatic'),
             note: t('ui.option.note.chromatic'),
+          },
+          // **켜고 끄는 것들 아래에 고르는 것 하나입니다.** 판의 겉면이고, 값과 단추의
+          // 색은 바뀌지 않으므로 「돈은 노랑」 같은 약속은 그대로 남습니다.
+          {
+            id: 'uiTheme',
+            label: t('ui.option.uiTheme'),
+            note: t('ui.option.note.uiTheme'),
+            read: () => t(`ui.theme.${options.uiTheme}`),
+            next: () => undefined,
+            choices: UI_SURFACE_KEYS.map(one => ({ key: one, label: t(`ui.theme.${one}`) })),
+            current: () => options.uiTheme,
+            pick: (key: string) => { options.uiTheme = key },
           },
         ],
       },
