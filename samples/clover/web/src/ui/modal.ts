@@ -12,6 +12,7 @@ import { Container, Graphics, Rectangle, Text } from 'pixi.js'
 import { t } from '../core/strings'
 
 import { plate, FLOATING } from '../render/skin'
+import { UI } from '../render/theme'
 import { fraction } from '../render/motion'
 import { Button } from './widgets'
 import { COLOR, SIZE } from '../render/theme'
@@ -276,28 +277,23 @@ export function panelFrame(width: number, height: number, title: string,
   const node = new Container()
 
   const board = new Graphics()
-  // 광택 띠를 거의 없앱니다 — 판이 크면 띠의 끝이 가로줄로 보입니다.
-  plate(board, width, height, { ...FLOATING, radius: 16, weight: 2.5, gloss: 0.06 })
+  plate(board, width, height, FLOATING)
 
-  // 머리와 밑단. **같은 띠 둘이 위아래를 맞물어야 판이 끝난 것으로 보입니다.**
+  // 머리. **띠가 아니라 선 하나입니다.** 제목 아래의 선이 머리와 몸통을 가르고, 밑단은
+  // 단추가 있을 때만 그 위에 선 하나가 섭니다 — 띠 둘로 위아래를 물리던 것을 걷었습니다.
   const bars = new Graphics()
-  bars.roundRect(1.5, 1.5, width - 3, TITLE_BAR, 14).fill({ color: 0x232e40, alpha: 0.95 })
-  bars.rect(1.5, TITLE_BAR - 12, width - 3, 12).fill({ color: 0x232e40, alpha: 0.95 })
-  bars.rect(1.5, TITLE_BAR, width - 3, 1.5).fill({ color: COLOR.panelEdge, alpha: 0.9 })
+  bars.rect(1.5, TITLE_BAR, width - 3, 1.5).fill(UI.rule)
 
   // **밑단이 없는 판도 있습니다.** 누를 것이 그 판의 내용뿐이면 밑단은 빈 띠일 뿐입니다 —
   // 머리의 `✕` 와 바깥 누르기와 `Esc` 로 닫히므로 닫기를 또 둘 이유가 없습니다.
   const footTop = height - FOOTER_BAR - 1.5
   if (foot) {
-    bars.roundRect(1.5, footTop, width - 3, FOOTER_BAR, 14)
-      .fill({ color: 0x232e40, alpha: 0.95 })
-    bars.rect(1.5, footTop, width - 3, 12).fill({ color: 0x232e40, alpha: 0.95 })
-    bars.rect(1.5, footTop - 1.5, width - 3, 1.5).fill({ color: COLOR.panelEdge, alpha: 0.9 })
+    bars.rect(24, footTop, width - 48, 1).fill(UI.hairline)
   }
 
   const heading = new Text({
     text: title,
-    style: { fontSize: 18, fill: COLOR.ink, fontWeight: '800', letterSpacing: 1 },
+    style: { fontSize: 16, fill: COLOR.ink, fontWeight: '800', letterSpacing: 1 },
   })
   heading.anchor.set(0.5, 0.5)
   heading.position.set(width / 2, TITLE_BAR / 2)
@@ -321,10 +317,10 @@ export function panelFrame(width: number, height: number, title: string,
   const mark = new Graphics()
   const paint = (lit: boolean) => {
     mark.clear()
-    mark.roundRect(0, 0, 28, 28, 8)
-      .fill({ color: lit ? 0x3d4a60 : 0x2a3446, alpha: lit ? 1 : 0.9 })
-    mark.roundRect(0.5, 0.5, 27, 27, 8)
-      .stroke({ color: lit ? 0x7d8ba4 : 0x46536a, width: 1.2 })
+    mark.roundRect(0, 0, 28, 28, 6)
+      .fill({ color: lit ? UI.slate : UI.cell })
+    mark.roundRect(0.75, 0.75, 26.5, 26.5, 6)
+      .stroke({ color: UI.rule, width: 1.5 })
     const ink = lit ? COLOR.ink : COLOR.inkDim
     mark.moveTo(9.5, 9.5).lineTo(18.5, 18.5).stroke({ color: ink, width: 2 })
     mark.moveTo(18.5, 9.5).lineTo(9.5, 18.5).stroke({ color: ink, width: 2 })
@@ -350,7 +346,7 @@ export function panelFrame(width: number, height: number, title: string,
   //
   // 부르는 쪽은 닫기를 만들지 않습니다 — 여기서 답니다. `extra` 는 그 판이 할 일이고,
   // 닫는 것이 아닙니다.
-  const shut = new Button(t('ui.button.close'), 132, 34, 0x3a4658, onClose)
+  const shut = new Button(t('ui.button.close'), 132, 34, UI.slate, onClose)
   const extraWidth = extra ? extra.width + 12 : 0
   const row = 132 + extraWidth
   // **판보다 넓어지지 않게 잡습니다.** 넘치면 버튼이 판의 좌우로 삐져나가고, 그것은

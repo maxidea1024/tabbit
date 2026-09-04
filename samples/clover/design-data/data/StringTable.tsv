@@ -1431,3 +1431,12 @@
 	ui.account.signOutBody	이 기계에서만 로그아웃합니다. 다시 로그인하면 기록이 그대로 있습니다.	Signs out on this device only. Your records stay when you sign back in.			
 	ui.account.signingIn	로그인 중	Signing in			
 	ui.account.signingOut	로그아웃 중	Signing out			
+	ui.payout.earned	받는 돈	Earned	受け取る額	所得	所得	Erhalten
+	ui.payout.sum	합계	Total	合計	合计	合計	Summe
+	ui.stat.score	득점	Scored	得点	得分	得分	Punkte
+	ui.over.run	이번 런	This run	このラン	本局	本局	Dieser Lauf
+	ui.over.best_hand	최고 핸드	Best hand	最高ハンド	最高牌	最高牌	Beste Hand
+	ui.over.money	소지금	Money	所持金	持有金	持有金	Geld
+	ui.over.copy	복사	Copy	コピー	复制	複製	Kopieren
+	ui.over.copied	복사했습니다	Copied	コピーしました	已复制	已複製	Kopiert
+	ui.shop.empty_cell	빈 칸	Empty	空き	空位	空位	Leer

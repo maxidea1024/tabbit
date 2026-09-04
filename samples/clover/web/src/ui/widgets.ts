@@ -6,7 +6,7 @@
 import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
 
 import { buttonStyle, mix, plate, PANEL, type PlateStyle } from '../render/skin'
-import { COLOR } from '../render/theme'
+import { COLOR, UI } from '../render/theme'
 import { iconFor, type IconName } from './icon'
 
 export class Panel extends Container {
@@ -25,6 +25,14 @@ export class Panel extends Container {
     this.board.clear()
     plate(this.board, width, height, style)
   }
+}
+
+/** 색의 밝기. 0 이 검정, 1 이 흰색입니다. */
+function luminance(color: number): number {
+  const r = ((color >> 16) & 0xff) / 255
+  const g = ((color >> 8) & 0xff) / 255
+  const b = (color & 0xff) / 255
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
 }
 
 export class Button extends Container {
@@ -56,6 +64,12 @@ export class Button extends Container {
     super()
     this.textSize = textSize
     this.caption.style.fontSize = textSize
+    // **밝은 단추 위의 글은 어둡고 테가 없습니다.** 노랑 · 하늘 · 크림 위에 흰 글을 검은
+    // 테로 두르면 읽히지 않습니다 — 단추의 밝기가 글의 색을 정합니다.
+    if (luminance(base) > 0.5) {
+      this.caption.style.fill = UI.onLight
+      this.caption.style.stroke = { color: 0x000000, width: 0 }
+    }
     this.addChild(this.board, this.caption)
     this.caption.anchor.set(0.5)
     this.caption.position.set(boxWidth / 2, boxHeight / 2)
@@ -199,7 +213,7 @@ export class IconButton extends Container {
 
   private draw(): void {
     this.board.clear()
-    plate(this.board, this.box, this.box, buttonStyle(0x3a4658, this.lit))
+    plate(this.board, this.box, this.box, buttonStyle(UI.cell, this.lit))
     if (this.mark) this.mark.tint = this.lit ? COLOR.ink : COLOR.inkDim
   }
 }

@@ -54,6 +54,10 @@ export interface Peek {
   shopKinds?: number[]
   /** 상점의 줄마다 몸통이 시작하는 `y`. 판이 서 있지 않으면 비어 있습니다. */
   shopRows?: { items?: number; packs?: number; voucher?: number }
+  /** 상점 칸마다 `[칸, x, 쉬는 x, 가운데 x, 가운데 y]`. 도구가 칸을 짚는 값입니다. */
+  shopAt?: number[][]
+  /** 팩 칸마다 `[칸, 가운데 x, 가운데 y]`. */
+  packAt?: number[][]
   /** 소모품이 올 자리를 잡아 준 횟수와, 잡을 것이 없어 그냥 돌아온 횟수. */
   flyAsked?: number
   flyMissed?: number
@@ -426,13 +430,20 @@ export async function packBuySpot(page: Page): Promise<{ x: number; y: number }>
   return heldButton(page)
 }
 
-/** 상점의 팩 칸. `drawPackRow` 와 같은 계산입니다. */
+/**
+ * 상점의 팩 칸 하나의 가운데. **화면이 알립니다.**
+ *
+ * 칸의 너비와 사이를 도구가 베껴 적고 있었고, 칸이 바뀔 때마다 빈자리를 눌렀습니다.
+ */
 export async function packSlot(page: Page, slot: number, count = 2): Promise<{ x: number; y: number }> {
-  const tileW = 104
-  const gap = 26
-  const span = count * tileW + (count - 1) * gap
-  const left = POPUP_X - SHOP_W / 2 + (SHOP_W - span) / 2
-  return at(page, left + slot * (tileW + gap) + tileW / 2, await shopRow(page, 'packs') + 62)
+  void count
+  for (let wait = 0; wait < 10; wait++) {
+    const spots = (await peek(page)).packAt ?? []
+    const one = spots.find(entry => entry[0] === slot)
+    if (one) return at(page, one[1], one[2])
+    await pass(page, 100)
+  }
+  throw new Error(`상점에 ${slot}번 팩 칸이 없습니다`)
 }
 
 /**
@@ -479,13 +490,16 @@ export async function heldButton(page: Page): Promise<{ x: number; y: number }> 
   throw new Error('고른 것 밑에 단추가 서지 않았습니다')
 }
 
-/** 상점의 물건 칸 하나의 가운데. */
+/** 상점의 물건 칸 하나의 가운데. **화면이 알립니다.** */
 export async function shopSlot(page: Page, slot: number, count = 2): Promise<{ x: number; y: number }> {
-  const tileW = 158
-  const gap = 14
-  const span = count * tileW + (count - 1) * gap
-  const left = POPUP_X - SHOP_W / 2 + (SHOP_W - span) / 2
-  return at(page, left + slot * (tileW + gap) + tileW / 2, await shopRow(page, 'items') + 86)
+  void count
+  for (let wait = 0; wait < 10; wait++) {
+    const spots = (await peek(page)).shopAt ?? []
+    const one = spots.find(entry => entry[0] === slot)
+    if (one) return at(page, one[3], one[4])
+    await pass(page, 100)
+  }
+  throw new Error(`상점에 ${slot}번 칸이 없습니다`)
 }
 
 /** `game.ts` 의 `syncShop` 과 같은 값. 판의 너비입니다. */

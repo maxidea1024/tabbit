@@ -19,6 +19,8 @@
 
 import { FillGradient, Graphics } from 'pixi.js'
 
+import { UI } from './theme'
+
 export interface PlateStyle {
   /** 바탕. 위에서 아래로 흐릅니다. */
   top: number
@@ -65,100 +67,26 @@ function gradient(width: number, height: number, top: number, bottom: number): F
   return found
 }
 
-/** 판때기 하나. 그림자부터 하이라이트까지 한 번에 그립니다. */
+/**
+ * 판때기 하나. **채우기 하나와 테 하나입니다.**
+ *
+ * 그림자 · 그라디언트 · 광택 · 안쪽 하이라이트 · 꺾쇠가 있었습니다. 다 걷었습니다 — 판의
+ * 문법을 「남흑색 단색에 얇은 테」 하나로 두면 판 · 칸 · 단추가 같은 손으로 그려진 것으로
+ * 보이고, 층을 겹칠수록 웹의 설정 창으로 돌아갑니다. `PlateStyle` 의 `bottom` · `drop` ·
+ * `gloss` 는 부르는 쪽이 아직 넘기므로 받되 쓰지 않습니다.
+ */
 export function plate(g: Graphics, width: number, height: number, style: PlateStyle): void {
-  const radius = style.radius ?? 10
+  const radius = style.radius ?? 8
   const weight = style.weight ?? 1.5
-  const drop = style.drop ?? 4
   const alpha = style.alpha ?? 1
 
-  if (drop > 0) {
-    g.roundRect(0, drop, width, height, radius).fill({ color: 0x000000, alpha: 0.35 })
-  }
-
-  g.roundRect(0, 0, width, height, radius)
-    .fill({ fill: gradient(width, height, style.top, style.bottom), alpha })
-
-  if ((style.gloss ?? 0) > 0) {
-    g.roundRect(2, 2, width - 4, height * (style.gloss ?? 0), radius - 1)
-      .fill({ color: 0xffffff, alpha: 0.06 })
-  }
-
-  // 안쪽 한 겹. 물건에 두께가 있어 보입니다.
-  //
-  // **빛이 한 방향에서 옵니다.** 사방에 같은 밝기로 두르면 그것은 두께가 아니라 윤곽선이고,
-  // 윤곽선은 그린 것을 납작하게 만듭니다 — 위·왼쪽이 밝고 아래·오른쪽이 어두워야 눈이
-  // 그것을 「위에서 빛을 받는 판」으로 읽습니다.
-  bevel(g, width, height, radius)
-
+  g.roundRect(0, 0, width, height, radius).fill({ color: style.top, alpha })
   g.roundRect(weight / 2, weight / 2, width - weight, height - weight, radius)
     .stroke({ color: style.border, width: weight })
-
-  // **넉넉한 판때기에만 붙습니다.** 작은 칸에 테를 한 겹 더 두르면 남는 자리가 없어서,
-  // 그 안의 글자가 테에 끼인 것으로 보입니다.
-  if (width < 96 || height < 44) return
-
-  const step = weight + 2
-  const inner = Math.max(1, radius - step)
-  // 어두운 홈 한 줄과 그 안의 밝은 실선 한 줄. **둘이 한 쌍입니다** — 홈만 두면 그은
-  // 자리가 지저분하고, 실선만 두면 테두리가 굵어진 것으로 보입니다.
-  g.roundRect(step, step, width - step * 2, height - step * 2, inner)
-    .stroke({ color: 0x000000, width: 1, alpha: 0.45 })
-  g.roundRect(step + 1.5, step + 1.5, width - step * 2 - 3, height - step * 2 - 3,
-    Math.max(1, inner - 1.5))
-    .stroke({ color: mix(style.border, 0xffffff, 0.22), width: 1, alpha: 0.5 })
-
-  // **꺾쇠는 큰 판때기에만.** 화면의 판때기마다 같은 귀 표시가 붙으면 그것은 디테일이
-  // 아니라 무늬이고, 작은 칸에서는 네 귀의 획이 글자와 자리를 다툽니다 — 판과 블라인드
-  // 딱지와 떠 있는 판들이 다는 것이고, 값이 들어가는 칸과 단추는 달지 않습니다.
-  if (width < 200 || height < 96) return
-
-  brackets(g, width, height, radius, mix(style.border, 0xffffff, 0.5))
 }
 
-/**
- * 안쪽 한 겹. 위·왼쪽이 밝고 아래·오른쪽이 어둡습니다.
- *
- * **네 변을 낱개로 긋습니다.** 둥근 사각형 하나로 두르면 굵기와 색이 사방에 같아지고,
- * 그것은 두께가 아닙니다 — 귀의 둥근 자리는 비워 두므로 네 변이 서로 닿지 않습니다.
- */
-function bevel(g: Graphics, width: number, height: number, radius: number): void {
-  const at = 1.5
-  const from = radius + 1
-  const to = (span: number) => span - radius - 1
-  if (to(width) <= from || to(height) <= from) return
-
-  g.moveTo(from, at).lineTo(to(width), at)
-    .stroke({ color: 0xffffff, width: 1.5, alpha: 0.16 })
-  g.moveTo(at, from).lineTo(at, to(height))
-    .stroke({ color: 0xffffff, width: 1.5, alpha: 0.1 })
-  g.moveTo(from, height - at).lineTo(to(width), height - at)
-    .stroke({ color: 0x000000, width: 1.5, alpha: 0.32 })
-  g.moveTo(width - at, from).lineTo(width - at, to(height))
-    .stroke({ color: 0x000000, width: 1.5, alpha: 0.24 })
-}
-
-/**
- * 네 귀의 꺾쇠.
- *
- * **귀의 둥근 자리 안쪽에 섭니다.** 귀의 꼭짓점에 두면 둥글린 바깥으로 밀려 나가므로,
- * 반지름의 0.7배만큼 안으로 들인 자리를 꺾이는 점으로 씁니다.
- */
-function brackets(g: Graphics, width: number, height: number,
-                  radius: number, color: number): void {
-  const pad = radius * 0.7 + 1.5
-  const leg = 9
-  const corners: [number, number, number, number][] = [
-    [pad, pad, 1, 1],
-    [width - pad, pad, -1, 1],
-    [pad, height - pad, 1, -1],
-    [width - pad, height - pad, -1, -1],
-  ]
-  for (const [x, y, sx, sy] of corners) {
-    g.moveTo(x, y + sy * leg).lineTo(x, y).lineTo(x + sx * leg, y)
-      .stroke({ color, width: 2, alpha: 0.85, join: 'miter', cap: 'butt' })
-  }
-}
+/** 그라디언트를 쓰는 곳이 남아 있을 때를 위해 둡니다. 판때기는 더 쓰지 않습니다. */
+export { gradient }
 
 /**
  * 무리를 가르는 줄 하나.
@@ -168,62 +96,45 @@ function brackets(g: Graphics, width: number, height: number,
  * 보입니다 — 양 끝은 실선이고 사이가 대시이며 가운데에 마름모가 앉습니다.
  */
 export function groove(g: Graphics, x: number, y: number, width: number,
-                       color = 0x46536a): void {
-  const mid = x + width / 2
-  const gem = 5
-  const cap = 14
-  const dash = 6
-  const gap = 5
-
-  const paint = (from: number, to: number): void => {
-    if (to - from < 0.5) return
-    g.moveTo(from, y + 1).lineTo(to, y + 1)
-      .stroke({ color: 0x0a0f18, width: 1, alpha: 0.7 })
-    g.moveTo(from, y).lineTo(to, y)
-      .stroke({ color, width: 1, alpha: 0.9 })
-  }
-
-  // 양 끝은 실선입니다. **대시로 시작하면 줄이 흩어진 것으로 보입니다.**
-  paint(x, x + cap)
-  paint(x + width - cap, x + width)
-
-  // 사이는 대시이고, 가운데의 마름모가 앉을 자리는 비웁니다.
-  for (let at = x + cap + gap; at < x + width - cap; at += dash + gap) {
-    const to = Math.min(at + dash, x + width - cap)
-    if (to > mid - gem - 3 && at < mid + gem + 3) continue
-    paint(at, to)
-  }
-
-  const points = [mid, y - gem, mid + gem, y, mid, y + gem, mid - gem, y]
-  g.poly(points).fill({ color: 0x0f1620 })
-  g.poly(points).stroke({ color: mix(color, 0xffffff, 0.35), width: 1.2 })
+                       color = UI.rule): void {
+  // **선 하나입니다.** 홈과 대시와 마름모가 있었고, 그것은 판의 장식이었습니다.
+  g.rect(x, y, width, 1.5).fill(color)
 }
 
-/** 화면 위에 뜨는 것. 그림자가 더 깊고 테두리가 밝습니다. */
+/** 화면 위에 뜨는 판. */
 export const FLOATING: PlateStyle = {
-  top: 0x2e3849, bottom: 0x18202c, border: 0x55637a, drop: 6, gloss: 0.4,
+  top: UI.panel, bottom: UI.panel, border: UI.panelEdge, alpha: UI.panelAlpha, radius: 8,
 }
 
-/** 붙박이 패널. */
+/** 붙박이 패널. 떠 있는 판과 같은 색입니다 — 둘이 다르면 판이 둘로 보입니다. */
 export const PANEL: PlateStyle = {
-  top: 0x1d2431, bottom: 0x111721, border: 0x36404f, drop: 3, gloss: 0.16,
+  top: UI.panel, bottom: UI.panel, border: UI.panelEdge, alpha: UI.panelAlpha, radius: 8,
 }
 
-/** 값이 들어가는 작은 칸. */
+/**
+ * 값이 들어가는 작은 칸.
+ *
+ * **테의 색은 값의 색을 따르지 않습니다.** 칸마다 다른 색 테를 두르면 왼쪽 판에 색이
+ * 다섯입니다 — 테는 옅은 선 하나이고, 무엇의 값인지는 숫자의 색이 말합니다. `ink` 는
+ * 부르는 쪽이 아직 넘기므로 받되 쓰지 않습니다.
+ */
 export function slotStyle(ink: number): PlateStyle {
-  return { top: 0x1a212c, bottom: 0x0f141d, border: ink, weight: 1.5, drop: 2, gloss: 0.3 }
+  void ink
+  return { top: UI.cell, bottom: UI.cell, border: UI.hairline, weight: 1, radius: 6 }
 }
 
-/** 누를 수 있는 것. 색은 그 버튼의 성격이 정합니다. */
+/**
+ * 누를 수 있는 것. 색은 그 버튼의 성격이 정합니다.
+ *
+ * **납작합니다.** 위에 마우스가 오면 조금 밝아지는 것이 전부이고, 테는 잉크색 하나입니다.
+ */
 export function buttonStyle(base: number, lit: boolean): PlateStyle {
   return {
-    top: lit ? mix(base, 0xffffff, 0.28) : mix(base, 0xffffff, 0.12),
-    bottom: lit ? base : mix(base, 0x000000, 0.25),
-    border: mix(base, 0xffffff, 0.45),
-    radius: 9,
+    top: lit ? mix(base, 0xffffff, 0.1) : base,
+    bottom: base,
+    border: UI.ink,
+    radius: 6,
     weight: 1.5,
-    drop: lit ? 2 : 4,
-    gloss: 0.45,
   }
 }
 

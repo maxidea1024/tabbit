@@ -59,7 +59,7 @@ import { cardArtDir, cardBackMotif, cardPaper, drawsIndex, setCardSet, setLookOf
 import { drawGlyph, glyphFor, hashOf, hsl, shade } from './glyph'
 import { cardArtId, drawFace } from './pips'
 import { groove, mix } from './skin'
-import { COLOR, SIZE } from './theme'
+import { COLOR, rarityColor, SIZE, UI } from './theme'
 import { box, type Box, CENTER, pointOf, putText, splitX } from '../ui/layout'
 import { Button, Panel } from '../ui/widgets'
 import { poolsOf, type PoolChoice } from '../core/pool'
@@ -79,6 +79,7 @@ import { newMetrics, observe, type MetricsAcc } from '../core/metrics'
 
 import type { Scene } from './scene'
 import { FOOTER_BAR, panelFrame, TITLE_BAR } from '../ui/modal'
+import { cellPlate, hairline, priceText, ProgressBar, sectionHead, SECTION_H, valueCell } from '../ui/parts'
 import { Modals, type ModalPanel } from '../ui/modal'
 import type { ToolSpot } from '../ui/layout'
 import { richBlock, richLine } from '../ui/rich'
@@ -282,7 +283,19 @@ const ITEM_ARRIVE = 0.62
 const ITEM_FLASH = 0.34
 const ITEM_HOLD = 1.05
 /** 상점의 팝 딱지 하나의 너버. **상점 카드의 158 과 다릅니다.** */
-const PACK_TILE_W = 104
+/**
+ * 상점의 물건 칸.
+ *
+ * **물건 하나가 칸 하나입니다.** 카드(88 × 124)가 안에 서고 그 아래 한 줄이 값입니다. 팔린
+ * 자리는 칸이 비어 남습니다 — 판이 줄어들지 않습니다.
+ */
+const CELL_W = 104
+const CELL_H = 166
+const CELL_GAP = 12
+/** 상품 · 팩 · 바우처 무리 사이. */
+const GROUP_GAP = 20
+/** 물건이 칸에 내려와 앉는 거리. 위에서 옵니다 — 진열하는 손이 위에서 내려놓는 것입니다. */
+const STOCK_DROP = 22
 
 /**
  * 소모품 슬롯으로 가는 갈래인가.
@@ -1415,7 +1428,7 @@ export class Game {
    * 쌓았던 것과 같은 이유입니다 — 하나씩 서면 눈이 그 하나를 따라가고, 다 서고 나면
    * 그때가 고르는 때입니다.
    */
-  private readonly reveals: { node: Container; at: number; from: number }[] = []
+  private readonly reveals: { node: Container; at: number; from: number; rise?: number }[] = []
   /** 지금 무엇을 세우고 있는가. 판이 그리기 전에 정합니다. */
   private revealing = { layer: this.shopLayer, base: 0, slot: 0, sound: false }
   /**
@@ -1498,6 +1511,19 @@ export class Game {
 
   /** 상점의 줄마다 몸통이 시작하는 `y`. 없는 줄은 없습니다. */
   private shopRows: { items?: number; packs?: number; voucher?: number } = {}
+  /**
+   * 상점이 열릴 때의 칸 수. **팔린 자리는 비어 남습니다** — 물건 수로 칸을 세면 하나 살
+   * 때마다 칸이 없어지고 판이 다시 짜입니다.
+   */
+  private shopCardCells = 0
+  private shopPackCells = 0
+  /** 정산 판의 득점 바와 합계. 줄이 설 때마다 합계가 그만큼 셉니다. */
+  private payoutBar?: {
+    bar: ProgressBar; begin: number; ratio: number
+    sum: Text; shown: number; poppedAt: number; rowAt: number[]; amounts: number[]
+  }
+  /** 게임오버 판의 득점 바. */
+  private overBar?: { bar: ProgressBar; begin: number; ratio: number }
 
   /**
    * 사서 오는 소모품 하나.
@@ -1538,6 +1564,8 @@ export class Game {
   private shopRevealAt = 0
   /** 지금 상점이 서 있는가. 서지 않았다가 서는 그 한 번만 차례를 다시 셉니다. */
   private shopStanding = false
+  /** 지난 프레임에 상점 판이 보였는가. 숨었다 다시 보이는 순간을 잡습니다. */
+  private shopWasVisible = false
   /** 이번에 새로 선 것인가. 그때만 소리가 하나씩 납니다. */
   private shopOpening = false
 
@@ -3998,6 +4026,7 @@ export class Game {
     }
 
     this.advancePayoutBones()
+    this.advancePayoutBar()
 
     for (const one of this.payoutNodes) {
       if (one.node.alpha < 1) this.advanceOne(one)
@@ -4723,7 +4752,11 @@ export class Game {
       drawnItems: this.consumableTiles.length,
       drawnJokers: this.jokers.size,
       shopAt: [...this.shopTiles.entries()].map(([slot, one]) =>
-        [slot, Math.round(one.tile.x), Math.round(one.baseX)]),
+        [slot, Math.round(one.tile.x), Math.round(one.baseX), Math.round(one.mid),
+          Math.round(one.baseY + CELL_H * one.tile.scale.x / 2)]),
+      // 팩 칸의 가운데. 도구가 상수로 셈하던 것입니다.
+      packAt: [...this.packSlotTiles.entries()].map(([slot, one]) =>
+        [slot, Math.round(one.mid), Math.round(one.baseY + one.height * one.tile.scale.x / 2)]),
       // 상점 판이 지금 서 있는 높이. **0 이면 다 선 것이고, 클수록 아래에 있습니다.**
       // 서기 시작하는 프레임에 이 값이 0 이면 다 선 모습이 한 번 그려진 것입니다.
       shopY: Math.round(this.shopLayer.y),
@@ -6210,6 +6243,7 @@ export class Game {
       this.gameOver.removeChildren().forEach(child => child.destroy())
       this.gameOver.visible = false
       this.gameOverShown = false
+      this.overBar = undefined
       delete this.spots.again
       delete this.spots.home
       return
@@ -6225,98 +6259,208 @@ export class Game {
     this.gameOver.removeChildren().forEach(child => child.destroy())
     this.gameOver.visible = true
 
-    // 판 하나가 뜨는 것과 같은 정도로 덮습니다. 끝난 판이라고 더 짙게 덮으면, 끝난
-    // 화면만 다른 규칙으로 그려집니다.
+    // 판 하나가 뜨는 것과 같은 정도로 덮습니다.
     const veil = new Graphics()
     veil.rect(-2000, -2000, SIZE.width + 4000, SIZE.height + 4000)
       .fill({ color: 0x070a10, alpha: 0.66 })
     this.gameOver.addChild(veil)
 
     const board = new Container()
-    const width = 480
-    // **랭크 런이면 그만큼 큽니다.** 순위 두 줄이 들어갈 자리를 미리 두지 않으면 그 줄이
-    // 시드 줄과 겹칩니다 — 판정은 나중에 오지만 자리는 지금 정해야 합니다.
-    const ranked = this.hub.isRanked(this.state.seed)
-    const height = 352 + (ranked ? 58 : 0)
+    const width = 520
+    const pad = 24
+    const inner = width - pad * 2
+    const state = this.state
+    const ranked = this.hub.isRanked(state.seed)
+    const tone = won ? UI.green : UI.red
+
+    // 위에서부터 — 머리 · 어디서(바) · 이번 런(칸 넷) · 조커(카드 한 줄) · [순위] · 밑단.
+    // **끝난 런을 돌아보는 판입니다.** 「패배」 와 수 넷으로 끝내면 무엇으로 싸웠는지가 남지
+    // 않습니다.
+    const headH = 56
+    const barBlock = SECTION_H + 46 + 22
+    const statBlock = SECTION_H + 10 + 40 * 2 + 8
+    const jokerBlock = SECTION_H + 10 + 84
+    const rankBlock = ranked ? SECTION_H + 40 + 14 : 0
+    const height = headH + 14 + barBlock + 6 + statBlock + 14 + jokerBlock + rankBlock
+      + 16 + 1 + 14 + 40 + 20
+    const top = -height / 2
+    const left = -width / 2 + pad
 
     const plate = new Graphics()
-    plate.roundRect(-width / 2, -height / 2, width, height, 16)
-      .fill(won ? 0x1d2c22 : 0x2c1a22)
-    plate.roundRect(-width / 2 + 0.5, -height / 2 + 0.5, width - 1, height - 1, 16)
-      .stroke({ color: won ? COLOR.good : COLOR.bad, width: 2.5 })
+    plate.roundRect(-width / 2, top, width, height, 8).fill({ color: UI.panel, alpha: UI.panelAlpha })
+    plate.roundRect(-width / 2 + 0.75, top + 0.75, width - 1.5, height - 1.5, 8)
+      .stroke({ color: UI.panelEdge, width: 1.5 })
+    plate.rect(-width / 2 + 1.5, top + headH, width - 3, 1.5).fill(UI.rule)
     board.addChild(plate)
 
+    // 결과 한 낱말. **색은 여기와 바에만 듭니다** — 판 전체를 붉게 물들이지 않습니다.
     const title = new Text({
       text: won ? t('ui.label.won') : t('ui.label.lost'),
-      style: {
-        fontSize: 52, fill: won ? COLOR.good : COLOR.bad, fontWeight: '800',
-        stroke: { color: 0x0a0f18, width: 6 },
-      },
+      style: { fontSize: 22, fill: tone, fontWeight: '900', letterSpacing: 4 },
     })
     title.anchor.set(0.5)
-    title.position.set(0, -height / 2 + 62)
+    title.position.set(0, top + headH / 2)
+    board.addChild(title)
 
+    let yy = top + headH + 14
+
+    // 어디서 · 얼마나. 득점 / 요구 바 하나와 한 줄.
+    const where = won
+      ? tf('ui.over.where', { ante: this.data.run.winAnte, blind: blindName(state.blind) })
+      : tf('ui.over.where', { ante: state.ante, blind: blindName(state.blind) })
+    const whereHead = sectionHead(inner, where)
+    whereHead.position.set(left, yy)
+    yy += SECTION_H
+    const score = Number(state.score)
+    const target = Number(state.target)
+    const barY = yy + 23
+    const scored = new Text({
+      text: `${t('ui.stat.score')}  ${score.toLocaleString('en-US')}`,
+      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '700' },
+    })
+    scored.anchor.set(0, 0.5)
+    scored.position.set(left, barY)
+    const wanted = new Text({
+      text: `${t('ui.label.target')}  ${target.toLocaleString('en-US')}`,
+      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '700' },
+    })
+    wanted.anchor.set(1, 0.5)
+    wanted.position.set(left + inner, barY)
+    const bar = new ProgressBar(220, 8, won ? UI.green : UI.bar)
+    bar.position.set(-110, barY - 4)
+    this.overBar = { bar, begin: this.clock + 0.3, ratio: target > 0 ? Math.min(1, score / target) : 1 }
+    yy += 46
     const lead = new Text({
       text: this.endLine(won),
       style: {
-        fontSize: 15, fill: COLOR.ink, fontWeight: '700',
-        wordWrap: true, wordWrapWidth: width - 60, breakWords: true, align: 'center',
+        fontSize: 13, fill: tone, fontWeight: '700',
+        wordWrap: true, wordWrapWidth: inner, breakWords: true, align: 'center',
       },
     })
-    lead.anchor.set(0.5, 0)
-    lead.position.set(0, -height / 2 + 100)
+    lead.anchor.set(0.5, 0.5)
+    lead.position.set(0, yy + 8)
+    yy += 22 + 6
+    board.addChild(whereHead, scored, wanted, bar, lead)
 
-    const lines = [
-      tf('ui.stat.ante', { at: this.state.ante, all: this.data.run.winAnte }),
-      tf('ui.stat.hands_played', { n: this.state.handsPlayedThisRun }),
-      tf('ui.stat.jokers', { n: this.state.jokers.length }),
-      tf('ui.stat.seed', { seed: this.state.seed }),
+    // 이번 런. 안테 · 낸 핸드 · 최고 핸드 · 소지금.
+    const runHead = sectionHead(inner, t('ui.over.run'))
+    runHead.position.set(left, yy)
+    board.addChild(runHead)
+    yy += SECTION_H + 10
+    const cellW = (inner - 8) / 2
+    const cells: [string, string, number][] = [
+      [t('ui.slot.ante'), `${state.ante} / ${this.data.run.winAnte}`, COLOR.ink],
+      [tf('ui.stat.hands_played', { n: '' }).trim(), `${state.handsPlayedThisRun}`, COLOR.ink],
+      [t('ui.over.best_hand'), this.metrics.bestHand.toLocaleString('en-US'), UI.bar],
+      [t('ui.over.money'), `$${state.money}`, UI.yellow],
     ]
-    const body = new Text({
-      text: lines.join('\n'),
-      style: { fontSize: 14, fill: 0xd2dcea, lineHeight: 24, align: 'center' },
+    cells.forEach(([label, value, ink], index) => {
+      const cell = valueCell(cellW, 40, label, value, ink)
+      cell.position.set(left + (index % 2) * (cellW + 8), yy + Math.floor(index / 2) * 48)
+      board.addChild(cell)
     })
-    body.anchor.set(0.5, 0)
-    body.position.set(0, -height / 2 + 150)
+    yy += 40 * 2 + 8 + 14
 
-    // **둘 다 페이지를 다시 읽지 않습니다.** 판을 접는 것은 화면이 하는 일이고, 다시
-    // 읽으면 데이터·글꼴·그림을 처음부터 읽어 로딩 씬이 한 번 더 보입니다.
-    const again = new Button(t('ui.button.restart'), 168, 52, won ? 0x2f7a52 : 0xa63f3f,
-      () => this.restartRun())
-    again.position.set(-176, height / 2 - 76)
-    const home = new Button(t('ui.button.to_title'), 168, 52, 0x4a5568,
-      () => this.enterTitle())
-    home.position.set(8, height / 2 - 76)
+    // 조커. **들고 끝난 것을 카드로.** 빈 자리는 빈 칸으로 남아 몇을 채웠는지가 보입니다.
+    const slots = Math.max(state.jokers.length, state.rules.jokerSlots)
+    const jokerHead = sectionHead(inner, t('ui.button.jokers'),
+      `${state.jokers.length} / ${state.rules.jokerSlots}`)
+    jokerHead.position.set(left, yy)
+    board.addChild(jokerHead)
+    yy += SECTION_H + 10
+    const small = 60 / SIZE.jokerWidth
+    for (let i = 0; i < slots; i++) {
+      const jx = left + i * 70
+      const joker = state.jokers[i]
+      if (!joker) {
+        const empty = cellPlate(60, 84, UI.hairline, true)
+        empty.position.set(jx, yy)
+        board.addChild(empty)
+        continue
+      }
+      const row = this.data.tables.joker.findByJokerId(joker.jokerId)
+      const view = new JokerView(joker, {
+        name: row?.name ?? joker.jokerId,
+        rarity: row?.rarity ?? 1,
+        lines: describe(this.data, this.data.jokerEffects.get(joker.jokerId) ?? []),
+        edition: this.editionLook(joker.edition as EditionKind),
+      })
+      view.pivot.set(0, 0)
+      view.position.set(jx, yy)
+      view.scale.set(small)
+      board.addChild(view)
+    }
+    yy += 84 + 14
 
-    board.addChild(title, lead, body, again, home)
+    // 순위. **판정이 온 뒤에 적힙니다.** 랭크 런이 아니면 이 구획이 없습니다.
+    if (ranked) {
+      const rankHead = sectionHead(inner, t('ui.button.leaderboard'))
+      rankHead.position.set(left, yy)
+      board.addChild(rankHead)
+      this.rankNode = new Container()
+      this.rankNode.position.set(0, yy + SECTION_H + 20)
+      board.addChild(this.rankNode)
+      yy += rankBlock
+    }
+
+    // 밑단. 시드와 복사, 단추 둘.
+    const foot = hairline(inner)
+    foot.position.set(left, yy + 16)
+    board.addChild(foot)
+    yy += 16 + 1 + 14
+    const seedLabel = new Text({
+      text: t('ui.title.seed'),
+      style: { fontSize: 11, fill: COLOR.inkDim, fontWeight: '700' },
+    })
+    seedLabel.anchor.set(0, 0.5)
+    seedLabel.position.set(left, yy + 20)
+    const seed = new Text({
+      text: state.seed,
+      style: { fontSize: 13, fill: UI.mark, fontWeight: '700', fontFamily: NUMERALS, letterSpacing: 1 },
+    })
+    seed.anchor.set(0, 0.5)
+    seed.position.set(left + seedLabel.width + 8, yy + 20)
+    // **시드는 다시 돌리려고 적는 것입니다.** 손으로 옮겨 적게 두지 않습니다.
+    const copy = new Button(t('ui.over.copy'), 52, 24, UI.cell, () => {
+      const clip = globalThis.navigator?.clipboard
+      if (!clip) return
+      void clip.writeText(state.seed).then(() => { copy.text = t('ui.over.copied') })
+    }, 11)
+    copy.position.set(seed.x + seed.width + 8, yy + 8)
+    board.addChild(seedLabel, seed, copy)
+
+    // **둘 다 페이지를 다시 읽지 않습니다.** 판을 접는 것은 화면이 하는 일입니다.
+    const again = new Button(t('ui.button.restart'), 140, 40, UI.yellow, () => this.restartRun())
+    again.position.set(width / 2 - pad - 140, yy)
+    const home = new Button(t('ui.button.to_title'), 96, 40, UI.slate, () => this.enterTitle())
+    home.position.set(again.x - 8 - 96, yy)
+    board.addChild(home, again)
+
     board.position.set(POPUP_X, SIZE.height / 2)
     this.gameOver.addChild(board)
     this.gameOverBoard = board
     // **단추 둘의 자리를 알립니다.** 판의 높이가 랭크 런인지에 따라 달라지므로 도구가
-    // 셈할 수 없고, 셈하려 든 도구는 랭크가 아닌 판에서만 맞는 값을 적어 두었습니다.
-    this.spots.again = this.spotOf(again, 84, 26)
-    this.spots.home = this.spotOf(home, 84, 26)
+    // 셈할 수 없습니다.
+    this.spots.again = this.spotOf(again, 70, 20)
+    this.spots.home = this.spotOf(home, 48, 20)
 
-    // **순위는 판정이 온 뒤에 붙습니다.** 랭크 런이 아니면 붙는 것이 없고, 그때의 판은
-    // 지금과 한 줄도 다르지 않습니다.
-    if (ranked) {
-      this.rankNode = new Container()
-      this.rankNode.position.set(0, height / 2 - 145)
-      board.addChild(this.rankNode)
-      void this.judgeRun()
-    }
+    if (ranked) void this.judgeRun()
     this.gameOver.zIndex = 10_000
 
-    // 럼블. **판이 그냥 나타나면 아무 무게가 없습니다.** 다만 무게는 색수차와 배경이
-    // 지고, 흔들림은 거들기만 합니다 — 판이 뜨는 그 순간에 화면까지 크게 움직이면
-    // 판을 읽으려는 눈이 먼저 흔들립니다.
+    // 럼블. **판이 그냥 나타나면 아무 무게가 없습니다.**
     this.audio.play(won ? 'run_win' : 'run_lose')
-    // **박자가 아니라 판에 걸립니다.** `RunWon`·`RunLost` 박자 바로 뒤에 이 판이 서므로,
-    // 양쪽에 걸면 한 번의 끝이 두 번 떨립니다.
     this.haptics.play(won ? 'win' : 'lose')
     this.jolt(won ? 8 : 6, won ? 3.4 : 2.6, 1)
     this.flashScreen(won ? COLOR.money : COLOR.bad, won ? 0.5 : 0.34)
     if (won) this.particles.burst(POPUP_X, SIZE.height / 2, 90, COLOR.money, 2.6)
+  }
+
+  /** 게임오버 판의 득점 바를 한 단계 진행합니다. 0.6초에 걸쳐 득점까지 찹니다. */
+  private advanceOverBar(): void {
+    const one = this.overBar
+    if (!one || one.bar.destroyed) return
+    const step = Math.max(0, Math.min(1, (this.clock - one.begin) / 0.6))
+    one.bar.set(one.ratio * (1 - (1 - step) * (1 - step)))
   }
 
   /**
@@ -6434,6 +6578,7 @@ export class Game {
 
   /** 럼블. 크기가 넘쳤다가 잦아들고, 그동안 판이 조금씩 떱니다. */
   private advanceGameOver(seconds: number): void {
+    this.advanceOverBar()
     const board = this.gameOverBoard
     if (!board || this.gameOverPop <= 0) return
 
@@ -7422,87 +7567,94 @@ export class Game {
     const layer = this.payout.view
     layer.removeChildren().forEach(child => child.destroy())
     this.payoutNodes.length = 0
+    this.payoutBar = undefined
 
-    const width = 380
-    const rowH = 34
-    const top = TITLE_BAR + 16
-    // 줄들 · 가로선 · 단추. **밑단 띠는 이 판에 없습니다** — 닫는 것이 곧 받는 것이라
-    // 아래에 따로 둘 것이 없고, 두면 단추가 그 띠에 걸칩니다.
-    //
-    // 줄 아래의 26은 「정산 중」 이 앉을 자리입니다. 줄이 다 서면 그 글이 사라지고 그만큼이
-    // 여백으로 남습니다 — 글이 있고 없고에 판의 높이가 달라지면 판이 자라 보입니다.
-    const body = Math.max(1, this.payoutRows.length) * rowH
-    const height = top + body + 26 + FOOTER_BAR
+    const width = 420
+    const pad = 24
+    const inner = width - pad * 2
+    const rowH = 42
+    const rows = Math.max(1, this.payoutRows.length)
+    // 위에서부터 — 머리 · 블라인드 구획(득점 / 요구 바) · 받는 돈 구획(줄들과 합계) · 단추.
+    // **판의 높이는 줄 수를 따릅니다.** 줄이 하나씩 서는 동안은 뼈대 줄이 그 자리를 잡습니다.
+    const barTop = TITLE_BAR + 16
+    const listTop = barTop + SECTION_H + 44 + 8
+    const rowsTop = listTop + SECTION_H + 4
+    const sumTop = rowsTop + rows * rowH + 6
+    const buttonTop = sumTop + 56 + 14
+    const height = buttonTop + 48 + 22
     ;(this.payout.size as { width: number; height: number }).height = height
     // **「받는다」 의 자리를 도구에 알립니다.** 판은 화면 가운데에 서고 높이는 줄 수를
     // 따르므로, 도구가 줄 수를 짐작해 셈하면 줄이 하나 늘 때마다 빈자리를 누릅니다.
-    this.spots.take = { x: POPUP_X, y: SIZE.height / 2 + height / 2 - FOOTER_BAR / 2 }
+    this.spots.take = { x: POPUP_X, y: SIZE.height / 2 - height / 2 + buttonTop + 24 }
 
     const sum = this.payoutRows.reduce((total, row) => total + row.amount, 0)
-    // **받을 것이 없으면 없다고 적습니다.** 보상이 0인 보스 규칙과 이자 0과 남은 핸드 0이
-    // 겹치면 줄이 하나도 없는데, 그러면 빈 줄 하나와 「$0 받는다」 만 남아 그리다 만 판으로
-    // 보입니다. 단추도 「다음」 입니다 — 0원을 받는 것은 받는 것이 아닙니다.
+    // **받을 것이 없으면 없다고 적습니다.** 단추도 「다음」 입니다 — 0원을 받는 것은 받는
+    // 것이 아닙니다.
     const empty = this.payoutRows.length === 0
-    // **닫기 단추가 없습니다.** 받는 것이 이 판의 전부이고, 그것을 누르는 것이 닫는 것이라
-    // 밑단 띠에 그 단추 하나만 섭니다.
-    const label = empty ? t('ui.payout.next') : tf('ui.payout.take', { n: sum })
-    const take = new Button(label, 220, 40, 0x2f7a52, () => {
-      // **누른 그 자리에서 차례를 지웁니다.** 닫히는 것을 기다리면 그 사이에 다시 섭니다.
-      this.payoutWanted = false
-      delete this.spots.take
-      this.modals.close(this.payout)
-    })
-    // **제목을 답니다.** 한동안 비워 두었습니다 — 밑단의 「받는다」 가 이 판이 무엇인지를
-    // 이미 말한다는 이유였습니다. 그런데 머리띠가 비어 있는 판은 이 판 하나뿐이라, 다른
-    // 판과 한 벌로 보이지 않고 띠 자체가 그리다 만 것으로 보입니다. 「받는다」 는 누를
-    // 것의 이름이고 「정산」 은 판의 이름이므로, 같은 말이 두 번 있는 것도 아닙니다.
-    layer.addChild(panelFrame(width, height, t('ui.payout.title'), undefined, take))
+    layer.addChild(panelFrame(width, height, t('ui.payout.title'), undefined, undefined, false))
 
-    // **줄이 서기 전의 판이 휑했습니다.** 판은 먼저 열리고 줄은 하나씩 쌓이므로 그 사이가
-    // 빈 상자입니다.
-    //
-    // 뼈대 줄을 깔아 둡니다 — 웹에서 글이 오기 전에 회색 막대를 깔아 두는 것과 같고,
-    // **그 자리에 무엇이 올지까지 말해 줍니다.** 「정산 중」 은 줄 아래에 적습니다:
-    // 머리띠는 제목의 자리이고, 무엇을 기다리는 중인가는 제목이 아닙니다.
-    const head = new Text({
-      text: t('ui.payout.counting'),
-      style: { fontSize: 13, fill: COLOR.inkDim, fontWeight: '700', letterSpacing: 1 },
+    // 어디를 넘겼는가. **득점 / 요구 바 하나입니다** — 얼마나 넘겼는지가 수 둘이 아니라
+    // 바의 채움으로 읽힙니다.
+    const score = Number(this.state.score)
+    const target = Number(this.state.target)
+    const where = tf('ui.over.where', { ante: this.state.ante, blind: blindName(this.state.blind) })
+    const head = sectionHead(inner, where)
+    head.position.set(pad, barTop)
+    const barY = barTop + SECTION_H + 22
+    const scored = new Text({
+      text: `${t('ui.stat.score')}  ${score.toLocaleString('en-US')}`,
+      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '700' },
     })
-    head.anchor.set(0.5, 0.5)
-    head.position.set(width / 2, top + body + 11)
-    const bones = new Graphics()
-    layer.addChild(bones, head)
-    this.payoutWait = {
-      head, bones, width,
-      rows: Math.max(1, this.payoutRows.length), top, rowH,
-      begin: this.clock + PAYOUT_WAIT,
-    }
+    scored.anchor.set(0, 0.5)
+    scored.position.set(pad, barY)
+    const wanted = new Text({
+      text: `${t('ui.label.target')}  ${target.toLocaleString('en-US')}`,
+      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '700' },
+    })
+    wanted.anchor.set(1, 0.5)
+    wanted.position.set(width - pad, barY)
+    const bar = new ProgressBar(180, 8)
+    bar.position.set(width / 2 - 90, barY - 4)
+    layer.addChild(head, scored, wanted, bar)
+
+    // 받는 돈. 줄마다 어디서 얼마가 왔는가이고, 아래에 합계 하나입니다.
+    const earned = sectionHead(inner, t('ui.payout.earned'))
+    earned.position.set(pad, listTop)
+    layer.addChild(earned)
 
     // **줄이 하나씩 쌓입니다.** 판이 열릴 때 줄은 이미 다 모여 있으므로, 쌓이는 것은
     // 그리는 쪽에서 만듭니다 — 한꺼번에 그려 놓으면 어디서 얼마가 들어왔는지를 훑어야
     // 합니다. 설 때마다 동전 소리가 하나 나고 음이 올라갑니다.
+    const rowAt: number[] = []
+    const amounts: number[] = []
     this.payoutRows.forEach((row, index) => {
-      const y = top + index * rowH
+      const y = rowsTop + index * rowH
       const at = this.clock + PAYOUT_WAIT + index * PAYOUT_STEP
+      rowAt.push(at)
+      amounts.push(row.amount)
 
       const label = new Text({
         text: row.why,
         style: { fontSize: 14, fill: COLOR.ink, fontWeight: '700' },
       })
-      label.position.set(24, y + 5)
+      label.anchor.set(0, 0.5)
+      label.position.set(pad + 4, y + rowH / 2)
 
       const amount = new Text({
         text: `${row.amount > 0 ? '+' : ''}$${row.amount}`,
         style: {
-          fontSize: 17, fill: row.amount > 0 ? COLOR.money : COLOR.bad, fontWeight: '800',
-          stroke: { color: 0x0a0f18, width: 3 },
+          fontSize: 16, fill: row.amount > 0 ? UI.yellow : UI.red, fontWeight: '800',
+          fontFamily: NUMERALS,
         },
       })
-      amount.anchor.set(1, 0)
-      amount.position.set(width - 24, y + 2)
+      amount.anchor.set(1, 0.5)
+      amount.position.set(width - pad - 4, y + rowH / 2)
 
-      layer.addChild(label, amount)
-      for (const node of [label, amount]) {
+      const line = hairline(inner)
+      line.position.set(pad, y + rowH - 1)
+
+      layer.addChild(label, amount, line)
+      for (const node of [label, amount, line]) {
         const one = { node: node as Container, at, from: node.y }
         this.payoutNodes.push(one)
         this.advanceOne(one)
@@ -7510,19 +7662,84 @@ export class Game {
       this.chimes.push({ at, cue: 'coin_land', semitones: index * 3 })
     })
 
-    // 줄이 없을 때의 한 줄. 줄이 서는 자리에 줄이 서는 때에 섭니다.
+    // 줄이 없을 때의 한 줄.
     if (empty) {
       const none = new Text({
         text: t('ui.payout.nothing'),
         style: { fontSize: 14, fill: COLOR.inkDim, fontWeight: '700' },
       })
-      none.anchor.set(0.5, 0)
-      none.position.set(width / 2, top + 6)
+      none.anchor.set(0.5, 0.5)
+      none.position.set(width / 2, rowsTop + rowH / 2)
       layer.addChild(none)
       const one = { node: none as Container, at: this.clock + PAYOUT_WAIT, from: none.y }
       this.payoutNodes.push(one)
       this.advanceOne(one)
     }
+
+    // 뼈대 줄. **줄이 서기 전의 판이 휑했습니다.** 줄이 서는 그 자리의 뼈대가 그때 걷힙니다.
+    const bones = new Graphics()
+    const headless = new Text({ text: '', style: { fontSize: 1 } })
+    layer.addChild(bones, headless)
+    this.payoutWait = {
+      head: headless, bones, width,
+      rows, top: rowsTop + (rowH - 15) / 2 - 8, rowH,
+      begin: this.clock + PAYOUT_WAIT,
+    }
+
+    // 합계. **줄이 설 때마다 그만큼 셉니다.** 큰 수 하나가 이 판의 무게입니다.
+    const sumLabel = new Text({
+      text: t('ui.payout.sum'),
+      style: { fontSize: 13, fill: COLOR.inkDim, fontWeight: '700' },
+    })
+    sumLabel.anchor.set(0, 0.5)
+    sumLabel.position.set(pad + 4, sumTop + 28)
+    const sumText = new Text({
+      text: '$0',
+      style: { fontSize: 40, fill: UI.yellow, fontWeight: '800', fontFamily: NUMERALS },
+    })
+    sumText.anchor.set(1, 0.5)
+    sumText.position.set(width - pad - 4, sumTop + 28)
+    layer.addChild(sumLabel, sumText)
+    this.payoutBar = {
+      bar, begin: this.clock + PAYOUT_WAIT * 0.5, ratio: target > 0 ? Math.min(1, score / target) : 1,
+      sum: sumText, shown: 0, poppedAt: -1, rowAt, amounts,
+    }
+
+    // **닫기 단추가 없습니다.** 받는 것이 이 판의 전부이고, 그것을 누르는 것이 닫는 것입니다.
+    const label = empty ? t('ui.payout.next') : tf('ui.payout.take', { n: sum })
+    const take = new Button(label, 240, 48, empty ? UI.slate : UI.yellow, () => {
+      // **누른 그 자리에서 차례를 지웁니다.** 닫히는 것을 기다리면 그 사이에 다시 섭니다.
+      this.payoutWanted = false
+      delete this.spots.take
+      this.modals.close(this.payout)
+    }, 16)
+    take.position.set((width - 240) / 2, buttonTop)
+    layer.addChild(take)
+  }
+
+  /**
+   * 정산 판의 바와 합계를 한 단계 진행합니다.
+   *
+   * 바는 판이 선 뒤 0.42초에 걸쳐 득점까지 차고, 합계는 줄이 서는 그 순간 그만큼 셉니다 —
+   * 셀 때 한 번 커졌다 돌아옵니다.
+   */
+  private advancePayoutBar(): void {
+    const one = this.payoutBar
+    if (!one || one.sum.destroyed) return
+    const step = Math.max(0, Math.min(1, (this.clock - one.begin) / 0.42))
+    one.bar.set(one.ratio * (1 - (1 - step) * (1 - step)))
+
+    let total = 0
+    for (let i = 0; i < one.amounts.length; i++) {
+      if (this.clock >= one.rowAt[i]) total += one.amounts[i]
+    }
+    if (total !== one.shown) {
+      one.shown = total
+      one.sum.text = `$${total}`
+      one.poppedAt = this.clock
+    }
+    const pop = one.poppedAt < 0 ? 0 : Math.max(0, 1 - (this.clock - one.poppedAt) / 0.18)
+    one.sum.scale.set(1 + 0.14 * pop)
   }
 
   /**
@@ -7788,14 +8005,20 @@ export class Game {
     // **정산을 기다리는 동안에도 서지 않습니다.** 카드가 걷힌 그 프레임에 상점이 먼저
     // 그려지고 정산은 그다음 프레임에 열리므로, 판이 떠 있는지만 보면 그 사이에 상점이
     // 한 번 번쩍입니다.
-    this.shopLayer.visible = this.state.phase === 'shop' && this.shopReady
+    const visible = this.state.phase === 'shop' && this.shopReady
       && !this.payoutWanted && !this.modals.has(this.payout)
+    this.shopLayer.visible = visible
     this.shopBox = undefined
     this.shopRows = {}
     // **국면으로 봅니다.** 눈에 보이는지로 보면 연출이 한 박자 도는 동안 — 조커를 살 때
     // 동전이 날아가는 그 동안 — 상점이 잠깐 물러났다가 처음부터 다시 섭니다.
     if (this.state.phase !== 'shop') this.shopStanding = false
-    if (!this.shopLayer.visible) return
+    // **숨었다 다시 보이면 새로 서는 것입니다.** 카드가 걷히는 그 프레임에 판이 한 번 서고
+    // 정산 판 뒤에 숨는데, 그때 잡아 둔 진열의 시각은 정산이 끝났을 때 이미 지난 것이라
+    // 물건이 한꺼번에 나타났습니다 — 진열은 판이 보이는 순간부터 셉니다.
+    if (visible && !this.shopWasVisible) this.shopStanding = false
+    this.shopWasVisible = visible
+    if (!visible) return
     if (!this.shopStanding) {
       this.shopStanding = true
       this.shopOpening = true
@@ -7808,78 +8031,61 @@ export class Game {
     // 적힌 칸을 덮습니다 — 왼쪽 판은 `x` 292 에서 끝나고, 그것을 비껴야 합니다.
     const width = 660
 
-    // **자리를 세어 가며 쌓습니다.** 높이를 못박으면 물건이 하나 늘거나 줄 때마다 아래가
-    // 넘치거나 비고, 그 둘은 눈에 곧바로 보입니다.
-    // **조커 줄 아래에서 시작합니다.** 그 줄 위로 올라오면 가지고 있는 것이 판에 가리고,
-    // 산 것이 줄에 꽂히는 것도 판 뒤에서 일어납니다. 그래서 칸의 높이가 빠듯합니다.
-    const ITEM_H = SIZE.jokerHeight + 36
-    const PACK_H = SIZE.jokerHeight + 30
-    const VOUCHER_H = 62
-    const HEAD = 22
-    const GAP = 12
-
-    // **다 산 칸은 없어집니다.** 이름만 남겨 두면 그만큼이 빈자리로 남고, 그 빈자리는
-    // 무엇이 있었는지도 무엇을 더 살 수 있는지도 알려 주지 않습니다.
-    const rows: {
-      key: keyof Game['shopRows']; title: string; body: number
-      draw: (top: number, h: number) => void
-    }[] = []
-    if (state.shop.cards.length > 0) {
-      rows.push({
-        key: 'items', title: t('ui.shop.wares'), body: ITEM_H,
-        draw: (top, h) => this.drawShopItems(x, top, width, h),
-      })
+    // **칸 수는 열릴 때 셉니다.** 팔린 자리는 빈 칸으로 남고 판은 움직이지 않습니다 — 판이
+    // 줄어들면 눈이 판을 따라가고 남은 물건을 놓칩니다.
+    if (this.shopOpening) {
+      this.shopCardCells = state.shop.cards.length
+      this.shopPackCells = state.shop.packs.length
     }
-    if (state.shop.packs.length > 0) {
-      rows.push({
-        key: 'packs', title: t('ui.kind.pack'), body: PACK_H,
-        draw: (top, h) => this.drawPackRow(x, top, width, h),
-      })
-    }
-    // 바우처는 이미 산 것도 한 줄로 남깁니다 — **그것은 빈자리가 아니라 적힌 사실입니다.**
-    if (state.shop.voucher || state.shop.voucherBought) {
-      rows.push({
-        key: 'voucher', title: t('ui.kind.voucher'), body: state.shop.voucher ? VOUCHER_H : 30,
-        draw: (top, h) => this.drawVoucher(x, top, width, h),
-      })
-    }
-    // 하나도 남지 않았으면 그 사실을 한 줄로 적습니다. 빈 판을 보여 주지 않습니다.
-    const empty = rows.length === 0
+    const cardCells = Math.max(this.shopCardCells, state.shop.cards.length, 1)
+    const packCells = Math.max(this.shopPackCells, state.shop.packs.length, 1)
+    const groups: { key: keyof Game['shopRows']; title: string; cells: number }[] = [
+      { key: 'items', title: t('ui.shop.wares'), cells: cardCells },
+      { key: 'packs', title: t('ui.kind.pack'), cells: packCells },
+      { key: 'voucher', title: t('ui.kind.voucher'), cells: 1 },
+    ]
+    const spanOf = (cells: number) => cells * CELL_W + (cells - 1) * CELL_GAP
+    const full = groups.reduce((sum, group) => sum + spanOf(group.cells), 0)
+      + GROUP_GAP * (groups.length - 1)
+    // **칸이 늘어나도 한 줄은 판 안에 있어야 합니다.** 상점 칸을 늘리는 조커가 있으면
+    // 3칸도 5칸도 됩니다 — 넘치면 줄 전체를 줄입니다.
+    const room = width - 48
+    const fit = full > room ? room / full : 1
 
-    const body = rows.reduce((sum, row) => sum + HEAD + row.body, 0)
-      + GAP * Math.max(0, rows.length - 1)
-    const height = TITLE_BAR + 10 + (empty ? 64 : body) + 8 + FOOTER_BAR
+    const headY = TITLE_BAR + 16
+    const cellY = headY + SECTION_H + 10
+    const footY = cellY + CELL_H * fit + 14
+    const height = footY + 12 + 34 + 16
 
-    // **바닥에 맞춰 섭니다.** 줄이 없어지면 윗변이 내려오고 바닥과 단추는 그 자리입니다.
+    // **바닥에 맞춰 섭니다.** 높이가 고정이므로 윗변도 고정입니다.
     const x = POPUP_X - width / 2
     const y = SHOP_BOTTOM - height
     this.shopBox = { x, y, width, height }
 
+    // 밑단 · 선 하나와 단추 둘. **둘은 색도 크기도 다릅니다** — 나아가는 것이 노랑입니다.
     const foot = new Container()
-    const reroll = new Button(tf('ui.shop.reroll_cost', { n: rerollCost(this.data, state, state.shop) }),
-      150, 40, 0x3f5f8f, () => this.reroll())
-    reroll.enabled = state.money >= rerollCost(this.data, state, state.shop)
-    const leave = new Button(t('ui.button.next_blind'), 190, 40, 0x2f6fb5, () => this.primary())
-    leave.position.set(166, 0)
-    foot.addChild(reroll, leave)
-    // 밑단의 단추 둘. **판이 바닥에 맞춰 서고 높이가 남은 줄 수를 따르므로** 도구가 셈하면
-    // 하나 살 때마다 어긋납니다.
-    this.spotNodes.set('reroll', { node: reroll, cx: 75, cy: 20 })
-    this.spotNodes.set('nextBlind', { node: leave, cx: 95, cy: 20 })
+    const cost = rerollCost(this.data, state, state.shop)
+    const reroll = new Button(tf('ui.shop.reroll_cost', { n: cost }), 140, 34, UI.sky,
+      () => this.reroll())
+    reroll.enabled = state.money >= cost
+    const leave = new Button(t('ui.button.next_blind'), 190, 34, UI.yellow, () => this.primary())
+    const rule = hairline(width - 48)
+    rule.position.set(24, footY)
+    reroll.position.set(24, footY + 12)
+    leave.position.set(width - 24 - 190, footY + 12)
+    foot.addChild(rule, reroll, leave)
+    this.spotNodes.set('reroll', { node: reroll, cx: 70, cy: 17 })
+    this.spotNodes.set('nextBlind', { node: leave, cx: 95, cy: 17 })
 
-    // **틀과 몸통이 갈립니다.** 틀은 높이가 움직이는 동안 매 프레임 다시 그리고, 몸통은
-    // 마지막 자리에 그려 둔 채 윗변을 따라 통째로 옮깁니다 — 바닥과 단추는 그 자리입니다.
+    // **틀과 몸통이 갈립니다.** 틀은 판이 올라오는 동안 자리만 따라가고, 몸통은 한 번 그립니다.
     const inner = new Container()
     this.shopFrame = { foot, body: inner, x, width, height, drawn: -1 }
     if (this.shopOpening) {
-      // 새로 서는 것은 제 높이로 곧바로 서고, 대신 화면 아래에서 올라옵니다.
+      // 새로 서는 것은 화면 아래에서 올라옵니다.
       this.shopHeight.snap(height)
       this.shopSlide.snap(SIZE.height - y)
       this.shopSlide.target = 0
-      // **그리는 자리도 함께 옮깁니다.** 용수철만 옮기면 그 값이 다음 틱에야 판에 닿으므로,
-      // 이 프레임에는 판이 **다 선 자리에** 한 번 그려집니다 — 그다음 프레임에 화면 아래로
-      // 내려가 올라오므로 눈에는 한 번 튀는 것으로 보이고, 판 안의 것들도 그 한 프레임
-      // 동안 제자리에 보입니다. 조커가 설 때 같은 것을 이미 겪었습니다.
+      // **그리는 자리도 함께 옮깁니다.** 용수철만 옮기면 그 값이 다음 틱에야 판에 닿습니다.
       this.placeShopLayer()
     } else {
       this.shopHeight.target = height
@@ -7888,58 +8094,63 @@ export class Game {
     this.shopLayer.addChild(inner)
     this.beginReveal(inner, this.shopRevealAt, this.shopOpening)
 
+    // 지갑. 머리의 오른쪽에 어두운 칸 하나.
+    const wallet = new Container()
+    wallet.addChild(cellPlate(80, 30, UI.rule))
     const money = new Text({
       text: `$${this.shown.money}`,
-      style: { fontSize: 19, fill: COLOR.money, fontWeight: '800' },
+      style: { fontSize: 16, fill: COLOR.ink, fontWeight: '800', fontFamily: NUMERALS },
     })
-    money.anchor.set(1, 0.5)
-    money.position.set(x + width - 26, y + TITLE_BAR / 2)
-    inner.addChild(money)
+    money.anchor.set(0.5, 0.5)
+    money.position.set(40, 15)
+    wallet.addChild(money)
+    wallet.position.set(x + width - 24 - 80, y + (TITLE_BAR - 30) / 2)
+    inner.addChild(wallet)
 
-    if (empty) {
-      const note = new Text({
-        text: t('ui.shop.sold_out'),
-        style: { fontSize: 14, fill: COLOR.inkDim },
-      })
-      note.anchor.set(0.5, 0.5)
-      note.position.set(x + width / 2, y + TITLE_BAR + 10 + 32)
-      this.reveal(note)
-      return
+    // **진열은 두 번에 나눕니다.** 구획 머리와 빈 칸이 먼저 다 서고, 그다음 물건이 왼쪽부터
+    // 하나씩 칸에 내려와 앉습니다 — 칸 하나마다 물건을 얹으면 진열이 아니라 나열입니다.
+    const stock: (() => void)[] = []
+    let gx = x + (width - full * fit) / 2
+    for (const group of groups) {
+      const span = spanOf(group.cells) * fit
+      const head = sectionHead(span, group.title)
+      head.position.set(gx, y + headY)
+      this.reveal(head)
+      // 도구가 이 값으로 칸을 짚습니다.
+      this.shopRows[group.key] = y + cellY
+      for (let i = 0; i < group.cells; i++) {
+        const cx = gx + i * (CELL_W + CELL_GAP) * fit
+        if (group.key === 'items') stock.push(this.shopCardCell(i, cx, y + cellY, fit))
+        else if (group.key === 'packs') stock.push(this.shopPackCell(i, cx, y + cellY, fit))
+        else stock.push(this.shopVoucherCell(cx, y + cellY, fit))
+      }
+      gx += span + GROUP_GAP * fit
     }
-
-    let at = y + TITLE_BAR + 10
-    for (const row of rows) {
-      this.shopSection(x, at, width, row.title)
-      // 도구가 이 값으로 칸을 짚습니다. 윗변이 움직이므로 상수로는 셀 수 없습니다.
-      this.shopRows[row.key] = at + HEAD
-      row.draw(at + HEAD, row.body)
-      at += HEAD + row.body + GAP
-    }
+    for (const put of stock) put()
   }
 
   /**
-   * 상점 판의 틀을 지금 높이로 그립니다.
+   * 상점 판의 틀을 지금 자리로 그립니다.
    *
-   * **높이가 목표와 다를 때만 다시 그립니다.** 서 있는 동안은 한 번도 다시 그리지 않고,
-   * 줄이 없어져 높이가 움직이는 0.3초 동안만 매 프레임 그립니다. 밑단의 단추는 같은 것을
-   * 새 틀로 옮겨 붙이므로 누르던 채로 남습니다.
+   * 높이는 고정이지만 판이 올라오는 동안 자리가 움직이므로, 용수철이 목표에 닿을 때까지만
+   * 다시 그립니다. 밑단의 단추는 같은 것을 새 틀로 옮겨 붙이므로 누르던 채로 남습니다.
    */
   private redrawShopFrame(): void {
     const one = this.shopFrame
     if (!one) return
     const spring = this.shopHeight
-    // 다 왔으면 목표에 딱 맞춥니다. 반 픽셀 어긋난 자리에 글이 서면 흐려집니다.
     const shown = Math.abs(spring.value - spring.target) < 0.5 ? spring.target : spring.value
     if (Math.abs(shown - one.drawn) < 0.5) return
 
     one.foot.parent?.removeChild(one.foot)
     one.node?.destroy()
-    const node = panelFrame(one.width, shown, t('ui.guide.shop.head'), undefined, one.foot)
+    const node = panelFrame(one.width, shown, t('ui.guide.shop.head'), undefined, undefined, false)
     node.position.set(one.x, SHOP_BOTTOM - shown)
+    one.foot.position.set(one.x, SHOP_BOTTOM - shown)
     this.shopLayer.addChildAt(node, 0)
+    this.shopLayer.addChild(one.foot)
     one.node = node
     one.drawn = shown
-    // 몸통은 윗변을 따라갑니다. 마지막 자리에 그려 두었으므로 그 차이만큼입니다.
     one.body.y = one.height - shown
   }
 
@@ -7981,24 +8192,36 @@ export class Game {
    * 판이 선 지 오래되었으면 계산 결과가 이미 1이므로 그 자리에 그대로 섭니다.
    */
   private reveal(...nodes: Container[]): void {
+    this.revealInto(this.revealing.layer, 0, REVEAL_RISE, ...nodes)
+  }
+
+  /**
+   * 하나를 세우되 어디에 · 몇 박자 쉬고 · 어느 쪽에서 올지를 정합니다.
+   *
+   * **상점의 진열이 씁니다.** 칸이 먼저 서고, 물건은 한 박자 쉬고 위에서 내려와 칸에
+   * 앉고, 값은 그 뒤에 적힙니다 — 물건을 하나씩 놓는 손이 보이는 것이 진열입니다.
+   * `rise` 가 양수면 아래에서 올라오고 음수면 위에서 내려옵니다.
+   */
+  private revealInto(parent: Container, pause: number, rise: number, ...nodes: Container[]): void {
+    this.revealing.slot += pause
     const at = this.revealing.base + this.revealing.slot * REVEAL_STEP
     this.revealing.slot += 1
     if (this.revealing.sound) this.chimes.push({ at, cue: 'card_place', semitones: 0 })
 
     for (const node of nodes) {
-      this.revealing.layer.addChild(node)
-      const one = { node, at, from: node.y }
+      parent.addChild(node)
+      const one = { node, at, from: node.y, rise }
       this.reveals.push(one)
       this.advanceOne(one)
     }
   }
 
   /** 하나가 지금 어디까지 섰는가. */
-  private advanceOne(one: { node: Container; at: number; from: number }): void {
+  private advanceOne(one: { node: Container; at: number; from: number; rise?: number }): void {
     const step = Math.max(0, Math.min(1, (this.clock - one.at) / REVEAL_SPAN))
     const eased = 1 - (1 - step) * (1 - step) * (1 - step)
     one.node.alpha = eased
-    one.node.y = one.from + (1 - eased) * REVEAL_RISE
+    one.node.y = one.from + (1 - eased) * (one.rise ?? REVEAL_RISE)
   }
 
   private advanceReveals(): void {
@@ -8007,111 +8230,79 @@ export class Game {
     }
   }
 
-  private shopSection(x: number, y: number, width: number, title: string): void {
-    const label = new Text({
-      text: title,
-      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '800', letterSpacing: 1 },
-    })
-    label.position.set(x + 26, y)
-
-    const rule = new Graphics()
-    rule.rect(x + 26 + label.width + 12, y + 8, width - 64 - label.width - 12, 1)
-      .fill({ color: COLOR.panelEdge, alpha: 0.8 })
-
-    this.reveal(rule, label)
-  }
-
   /**
-   * 살 것들.
+   * 상품 칸 하나.
    *
    * **줄에 서는 것은 카드입니다.** 아이콘을 얹은 딱지로 두면 살 때와 산 뒤의 모습이 달라
-   * 같은 물건으로 보이지 않습니다 — 상점에 선 그 카드가 그대로 조커 줄에 섭니다.
+   * 같은 물건으로 보이지 않습니다 — 상점에 선 그 카드가 그대로 조커 줄에 섭니다. 칸의
+   * 테는 그 물건의 희귀도입니다.
+   *
+   * 칸은 지금 서고, 물건을 놓는 것은 돌려주는 함수가 합니다 — 칸이 다 선 뒤에 물건을 놓는
+   * 순서를 부르는 쪽이 정합니다.
    */
-  private drawShopItems(left: number, top: number, width: number, tileH: number): void {
-    const slots = this.state.shop.cards
-    const tileW = 158
-    const gap = 14
-    // **칸이 늘어나도 줄은 판 안에 있어야 합니다.** 기본은 2칸이지만 상점 칸을
-    // 늘리는 조커가 있으면 3칸도 5칸도 됩니다 — 그대로 다 그리면 오른으로 벗어납니다.
-    const full = slots.length * tileW + Math.max(0, slots.length - 1) * gap
-    const room = width - 52
-    const fit = full > room ? room / full : 1
-    const span = full * fit
-    const startX = left + (width - span) / 2
-
-    slots.forEach((item, slot) => {
-      const name = shopLabel(item.kind, item.id, this.data)
-      const lines = this.shopLines(item)
-      const rarity = item.kind === ShopItemKind.Joker
-        ? this.data.tables.joker.findByJokerId(item.id)?.rarity ?? 1 : 0
-      const afford = this.shown.money >= item.cost
-      const room = this.roomFor(item.kind)
-
-      const tile = new Container()
-      tile.position.set(startX + slot * (tileW + gap) * fit, top)
-      tile.scale.set(fit)
-
-      const card = this.itemCard(item)
-      card.position.set((tileW - SIZE.jokerWidth) / 2, 0)
-      tile.addChild(card)
-
-      const price = new Text({
-        text: `$${item.cost}`,
-        style: {
-          fontSize: 20, fontWeight: '800',
-          fill: afford ? COLOR.money : 0x7a6a45,
-          stroke: { color: 0x0a0f18, width: 4 },
-        },
-      })
-      price.anchor.set(0.5, 0)
-      price.position.set(tileW / 2, SIZE.jokerHeight + 8)
-      tile.addChild(price)
-
-      // **자리가 없으면 그것이 값보다 먼저 읽혀야 합니다.** 눌러 보고 아무 일도 없는 것이
-      // 가장 나쁩니다.
-      if (!room) {
-        const full = new Text({
-          text: t('ui.swap.hint'),
-          style: { fontSize: 10, fill: 0xffb4c8, fontWeight: '800' },
-        })
-        full.anchor.set(0.5, 0)
-        full.position.set(tileW / 2, SIZE.jokerHeight + 34)
-        tile.addChild(full)
-      }
-
-      tile.alpha = afford ? 1 : 0.55
-      tile.eventMode = 'static'
-      tile.hitArea = new Rectangle(0, 0, tileW, tileH)
-      tile.cursor = afford ? 'pointer' : 'default'
-      // **가운데를 딱지가 알고 있습니다.** 단추를 세우는 쪽이 너버를 다시 셀면
-      // 배율이 붙을 때 어긋납니다 — 팝의 158 이 그러했습니다.
-      // **지난 자리에서 미끄러져 옵니다.** 같은 물건이 이 줄에 둘 이상 서면 앞의 것부터
-      // 하나씩 가져갑니다 — 어느 쪽이 어느 쪽인지는 아무도 세지 않고, 둘 다 제자리로
-      // 오는 것으로 족합니다.
-      const key = `${item.kind}:${item.id}:${item.cost}:${item.edition}`
-      const was = this.shopWas.get(key)
-      this.shopWas.delete(key)
-      const slide = was === undefined ? 0 : was - tile.x
-      this.shopTiles.set(slot, { tile, baseX: tile.x, baseY: tile.y, price, key, slide,
-                                 mid: tile.x + tileW * fit / 2 })
-      tile.x += slide
-      // **누르면 고르기만 합니다.** 사는 것은 그 밑에 서는 단추가 합니다.
-      tile.on('pointertap', () => {
-        if (this.ate()) return
-        // **밝힐 금액은 지금 금액이 아니라 보이는 금액입니다.** 동전이 날아가는 동안에
-        // 그려진 딱지는 `afford` 가 거짓으로 굳어 있고, 다시 그려질 이유가 없으면 돈이
-        // 다 온 뒤에도 눌러지지 않습니다 — 누를 때 다시 봅니다.
-        if (!this.canPay(item.cost)) return
-        this.pick('shop', slot)
-      })
-      this.tipOn(tile, () => {
-        // 상점의 것은 **가격도 칩으로** 섭니다 — 사는 자리이므로 얼마인지가 이름 옆에
-        // 있어야 합니다.
-        this.tooltip.show(name, kindName(item.kind), rarity, lines,
-          tile.x + tileW / 2, tile.y + tileH, SIZE, item.cost)
-      })
+  private shopCardCell(slot: number, cx: number, cy: number, fit: number): () => void {
+    const item = this.state.shop.cards[slot]
+    const tile = new Container()
+    tile.position.set(cx, cy)
+    tile.scale.set(fit)
+    if (!item) {
+      tile.addChild(cellPlate(CELL_W, CELL_H, UI.hairline, true))
       this.reveal(tile)
+      return () => {}
+    }
+
+    const name = shopLabel(item.kind, item.id, this.data)
+    const lines = this.shopLines(item)
+    const rarity = item.kind === ShopItemKind.Joker
+      ? this.data.tables.joker.findByJokerId(item.id)?.rarity ?? 1 : 0
+    const afford = this.shown.money >= item.cost
+    const room = this.roomFor(item.kind)
+    const border = item.kind === ShopItemKind.Joker ? rarityColor(rarity)
+      : item.kind === ShopItemKind.PlayingCard ? COLOR.cardEdge : 0x9b8fd0
+    tile.addChild(cellPlate(CELL_W, CELL_H, border))
+
+    const card = this.itemCard(item)
+    card.position.set((CELL_W - SIZE.jokerWidth) / 2, 8)
+    const price = priceText(item.cost, afford)
+    price.position.set(CELL_W / 2, CELL_H - 20)
+
+    // **자리가 없으면 그것이 값보다 먼저 읽혀야 합니다.** 눌러 보고 아무 일도 없는 것이
+    // 가장 나쁩니다.
+    const hint = room ? undefined : new Text({
+      text: t('ui.swap.hint'),
+      style: { fontSize: 9, fill: UI.red, fontWeight: '800' },
     })
+    if (hint) {
+      hint.anchor.set(0.5, 0.5)
+      hint.position.set(CELL_W / 2, CELL_H - 36)
+    }
+
+    tile.alpha = afford ? 1 : 0.55
+    tile.eventMode = 'static'
+    tile.hitArea = new Rectangle(0, 0, CELL_W, CELL_H)
+    tile.cursor = afford ? 'pointer' : 'default'
+    const key = `${item.kind}:${item.id}:${item.cost}:${item.edition}`
+    this.shopWas.delete(key)
+    // 팔린 자리는 비어 남으므로 남은 칸이 미끄러질 일이 없습니다.
+    this.shopTiles.set(slot, { tile, baseX: tile.x, baseY: tile.y, price, key, slide: 0,
+                               mid: tile.x + CELL_W * fit / 2 })
+    // **누르면 고르기만 합니다.** 사는 것은 그 밑에 서는 단추가 합니다.
+    tile.on('pointertap', () => {
+      if (this.ate()) return
+      // **밝힐 금액은 지금 금액이 아니라 보이는 금액입니다.** 누를 때 다시 봅니다.
+      if (!this.canPay(item.cost)) return
+      this.pick('shop', slot)
+    })
+    this.tipOn(tile, () => {
+      this.tooltip.show(name, kindName(item.kind), rarity, lines,
+        tile.x + CELL_W * fit / 2, tile.y + CELL_H * fit, SIZE, item.cost)
+    })
+    this.reveal(tile)
+    return () => {
+      this.revealInto(tile, 1, -STOCK_DROP, card)
+      this.revealInto(tile, 0, 0, price)
+      if (hint) this.revealInto(tile, 0, 0, hint)
+    }
   }
 
   /**
@@ -8696,100 +8887,87 @@ export class Game {
    * 그래서 카드가 아니라 **봉지**로 그립니다. 크기는 카드에 맞추되 위가 톱니로 뜯기게 되어
    * 있고, 그 톱니 하나가 「이건 여는 것이다」를 말합니다.
    */
-  private drawPackRow(left: number, top: number, width: number, tileH: number): void {
-    const packs = this.state.shop.packs
-    const tileW = PACK_TILE_W
-    const gap = 26
-    // 상품 줄과 같은 셈입니다 — 팩 칸도 늘어날 수 있습니다.
-    const full = packs.length * tileW + Math.max(0, packs.length - 1) * gap
-    const room = width - 52
-    const fit = full > room ? room / full : 1
-    const span = full * fit
-    const startX = left + (width - span) / 2
-
-    packs.forEach((packId, slot) => {
-      const row = this.data.tables.boosterPack.findByPackId(packId)
-      if (!row) return
-
-      const ink = packInk(row.kind)
-      const afford = this.shown.money >= row.cost
-      const h = SIZE.jokerHeight
-      const tile = new Container()
-      tile.position.set(startX + slot * (tileW + gap) * fit, top)
-      tile.scale.set(fit)
-
-      const bag = new Graphics()
-      bag.roundRect(3, 5, tileW, h, 10).fill({ color: 0x000000, alpha: 0.4 })
-      bag.roundRect(0, 0, tileW, h, 10).fill(shade(ink, 0.45))
-      // 봉지의 몸통. 위쪽이 조금 밝아 빛을 받은 것으로 보입니다.
-      bag.roundRect(0, 0, tileW, h * 0.55, 10).fill({ color: ink, alpha: 0.5 })
-
-      // **뜯는 줄.** 톱니 하나가 봉지를 봉지로 만듭니다.
-      const tearY = 26
-      bag.rect(0, tearY - 7, tileW, 14).fill({ color: 0x0b1018, alpha: 0.35 })
-      const teeth = 13
-      for (let i = 0; i < teeth; i++) {
-        const x = (tileW / teeth) * i
-        bag.moveTo(x, tearY)
-          .lineTo(x + tileW / teeth / 2, tearY - 4)
-          .lineTo(x + tileW / teeth, tearY)
-          .stroke({ color: shade(ink, 0.8), width: 1.4, alpha: 0.9 })
-      }
-
-      bag.roundRect(1.25, 1.25, tileW - 2.5, h - 2.5, 9)
-        .stroke({ color: shade(ink, 0.9), width: 2.5 })
-      tile.addChild(bag)
-
-      const label = new Text({
-        text: packName(row.kind, row.size),
-        style: {
-          fontSize: 12, fill: COLOR.ink, fontWeight: '800', align: 'center',
-          wordWrap: true, wordWrapWidth: tileW - 14, breakWords: true, lineHeight: 15,
-        },
-      })
-      label.anchor.set(0.5, 0.5)
-      label.position.set(tileW / 2, h * 0.52)
-
-      const note = richLine(tf('ui.pack.of', { cards: row.cards, picks: row.picks }), {
-        base: { fontSize: 11, fill: 0xdbe4f0 },
-        number: COLOR.accentNumber,
-        term: COLOR.accentTerm,
-      })
-      note.position.set((tileW - note.width) / 2, h - 30)
-      tile.addChild(label, note)
-
-      const price = new Text({
-        text: `$${row.cost}`,
-        style: {
-          fontSize: 20, fontWeight: '800',
-          fill: afford ? COLOR.money : 0x7a6a45,
-          stroke: { color: 0x0a0f18, width: 4 },
-        },
-      })
-      price.anchor.set(0.5, 0)
-      price.position.set(tileW / 2, h + 8)
-      tile.addChild(price)
-
-      tile.alpha = afford ? 1 : 0.55
-      tile.eventMode = 'static'
-      tile.hitArea = new Rectangle(0, 0, tileW, tileH)
-      tile.cursor = afford ? 'pointer' : 'default'
-      // **누르면 고르기만 합니다.** 뜯는 것은 그 밑에 서는 단추가 합니다 — 상점의
-      // 카드와 같은 규칙이고, 뜯은 팩은 무르지 못합니다.
-      this.packSlotTiles.set(slot, { tile, height: h, baseY: tile.y, price,
-                                     mid: tile.x + tileW * fit / 2 })
-      tile.on('pointertap', () => {
-        if (this.ate()) return
-        if (!this.canPay(row.cost)) return
-        this.pick('pack_slot', slot)
-      })
-      this.tipOn(tile, () => {
-        this.tooltip.show(packName(row.kind, row.size), t('ui.kind.pack'), 0,
-          [packBlurb(row.kind), tf('ui.pack.spread', { cards: row.cards, picks: row.picks })],
-          tile.x + tileW / 2, tile.y + tileH, SIZE)
-      })
+  /**
+   * 팩 칸 하나. 봉지 하나가 카드 크기로 서고 아래에 값입니다.
+   */
+  private shopPackCell(slot: number, cx: number, cy: number, fit: number): () => void {
+    const packId = this.state.shop.packs[slot]
+    const row = packId === undefined ? undefined : this.data.tables.boosterPack.findByPackId(packId)
+    const tile = new Container()
+    tile.position.set(cx, cy)
+    tile.scale.set(fit)
+    if (packId === undefined || !row) {
+      tile.addChild(cellPlate(CELL_W, CELL_H, UI.hairline, true))
       this.reveal(tile)
+      return () => {}
+    }
+
+    const ink = packInk(row.kind)
+    const afford = this.shown.money >= row.cost
+    const w = SIZE.jokerWidth
+    const h = SIZE.jokerHeight
+    tile.addChild(cellPlate(CELL_W, CELL_H, UI.hairline))
+
+    const bag = new Container()
+    bag.position.set((CELL_W - w) / 2, 8)
+    const body = new Graphics()
+    body.roundRect(0, 0, w, h, 9).fill(shade(ink, 0.45))
+    body.roundRect(0, 0, w, h * 0.55, 9).fill({ color: ink, alpha: 0.5 })
+    // **뜯는 줄.** 톱니 하나가 봉지를 봉지로 만듭니다.
+    const tearY = 22
+    body.rect(0, tearY - 6, w, 12).fill({ color: 0x0b1018, alpha: 0.35 })
+    const teeth = 11
+    for (let i = 0; i < teeth; i++) {
+      const tx = (w / teeth) * i
+      body.moveTo(tx, tearY).lineTo(tx + w / teeth / 2, tearY - 4).lineTo(tx + w / teeth, tearY)
+        .stroke({ color: shade(ink, 0.8), width: 1.2, alpha: 0.9 })
+    }
+    body.roundRect(1, 1, w - 2, h - 2, 8).stroke({ color: UI.ink, width: 2 })
+    bag.addChild(body)
+
+    const label = new Text({
+      text: packName(row.kind, row.size),
+      style: {
+        fontSize: 11, fill: COLOR.ink, fontWeight: '800', align: 'center',
+        wordWrap: true, wordWrapWidth: w - 10, breakWords: true, lineHeight: 14,
+      },
     })
+    label.anchor.set(0.5, 0.5)
+    label.position.set(w / 2, h * 0.5)
+    const note = richLine(tf('ui.pack.of', { cards: row.cards, picks: row.picks }), {
+      base: { fontSize: 10, fill: 0xdbe4f0 },
+      number: COLOR.accentNumber,
+      term: COLOR.accentTerm,
+    })
+    note.position.set((w - note.width) / 2, h - 24)
+    bag.addChild(label, note)
+
+    const price = priceText(row.cost, afford)
+    price.position.set(CELL_W / 2, CELL_H - 20)
+
+    tile.alpha = afford ? 1 : 0.55
+    tile.eventMode = 'static'
+    tile.hitArea = new Rectangle(0, 0, CELL_W, CELL_H)
+    tile.cursor = afford ? 'pointer' : 'default'
+    // **누르면 고르기만 합니다.** 뜯는 것은 그 밑에 서는 단추가 합니다 — 뜯은 팩은 무르지
+    // 못합니다.
+    this.packSlotTiles.set(slot, { tile, height: CELL_H, baseY: tile.y, price,
+                                   mid: tile.x + CELL_W * fit / 2 })
+    tile.on('pointertap', () => {
+      if (this.ate()) return
+      if (!this.canPay(row.cost)) return
+      this.pick('pack_slot', slot)
+    })
+    this.tipOn(tile, () => {
+      this.tooltip.show(packName(row.kind, row.size), t('ui.kind.pack'), 0,
+        [packBlurb(row.kind), tf('ui.pack.spread', { cards: row.cards, picks: row.picks })],
+        tile.x + CELL_W * fit / 2, tile.y + CELL_H * fit, SIZE)
+    })
+    this.reveal(tile)
+    return () => {
+      this.revealInto(tile, 1, -STOCK_DROP, bag)
+      this.revealInto(tile, 0, 0, price)
+    }
   }
 
   /**
@@ -8816,74 +8994,98 @@ export class Game {
     this.act({ t: 'buy_pack', slot })
   }
 
-  /** 바우처. 한 안테에 하나이고 런이 끝날 때까지 남습니다. */
-  private drawVoucher(left: number, top: number, width: number, tileH: number): void {
+  /**
+   * 바우처 칸. **바우처도 카드입니다** — 크림색 얼굴에 이름과 한 줄. 상점의 물건이 전부
+   * 카드여야 한 줄에 놓입니다. 한 안테에 하나이고 런이 끝날 때까지 남습니다.
+   */
+  private shopVoucherCell(cx: number, cy: number, fit: number): () => void {
     const id = this.state.shop.voucher
+    const tile = new Container()
+    tile.position.set(cx, cy)
+    tile.scale.set(fit)
     if (!id) {
-      const none = new Text({
-        text: t('ui.shop.voucher_taken'),
-        style: { fontSize: 11, fill: COLOR.inkDim },
-      })
-      none.anchor.set(0.5, 0.5)
-      none.position.set(left + width / 2, top + tileH / 2)
-      this.reveal(none)
-      return
+      tile.addChild(cellPlate(CELL_W, CELL_H, UI.hairline, true))
+      // 산 것은 빈자리가 아니라 적힌 사실입니다.
+      if (this.state.shop.voucherBought) {
+        const none = new Text({
+          text: t('ui.shop.voucher_taken'),
+          style: {
+            fontSize: 10, fill: COLOR.inkDim, fontWeight: '700', align: 'center',
+            wordWrap: true, wordWrapWidth: CELL_W - 16, breakWords: true, lineHeight: 13,
+          },
+        })
+        none.anchor.set(0.5, 0.5)
+        none.position.set(CELL_W / 2, CELL_H / 2)
+        tile.addChild(none)
+      }
+      this.reveal(tile)
+      return () => {}
     }
 
     const row = this.data.tables.voucher.findByVoucherId(id)
     const lines = describe(this.data, this.data.voucherEffects.get(id) ?? [])
     const cost = this.data.economy.voucherCost
     const afford = this.shown.money >= cost
+    const title = nameOf(this.data, 'voucher', id, row?.name ?? '')
+    const w = SIZE.jokerWidth
+    const h = SIZE.jokerHeight
+    tile.addChild(cellPlate(CELL_W, CELL_H, UI.hairline))
 
-    const tileW = 460
-    const tile = new Panel(tileW, tileH, 0x1d3149)
-    tile.position.set(left + (width - tileW) / 2, top)
-
+    const face = new Container()
+    face.position.set((CELL_W - w) / 2, 8)
+    const paper = new Graphics()
+    paper.roundRect(0, 0, w, h, 9).fill(0xefe6d3)
+    paper.roundRect(1, 1, w - 2, h - 2, 8).stroke({ color: UI.ink, width: 2 })
     const label = new Text({
-      text: nameOf(this.data, 'voucher', id, row?.name ?? ''),
-      style: { fontSize: 15, fill: COLOR.ink, fontWeight: '800' },
-    })
-    label.position.set(16, 11)
-
-    const note = richLine(lines[0] ?? t('ui.note.rest_of_run'), {
-      base: { fontSize: 11, fill: 0x9fc4e8 },
-      number: COLOR.accentNumber,
-      term: COLOR.accentTerm,
-    }, width - 110, 14)
-    note.position.set(16, 36)
-
-    const price = new Text({
-      text: `$${cost}`,
+      text: title,
       style: {
-        fontSize: 18, fill: afford ? COLOR.money : 0x7a6a45, fontWeight: '800',
+        fontSize: 13, fill: 0x2a2420, fontWeight: '900', align: 'center',
+        wordWrap: true, wordWrapWidth: w - 12, breakWords: true, lineHeight: 15,
       },
     })
-    price.anchor.set(1, 0.5)
-    price.position.set(tileW - 16, tileH / 2)
+    label.anchor.set(0.5, 0)
+    label.position.set(w / 2, 12)
+    const note = new Text({
+      text: lines[0] ?? t('ui.note.rest_of_run'),
+      style: {
+        fontSize: 9, fill: 0x6b6255, fontWeight: '700', align: 'center',
+        wordWrap: true, wordWrapWidth: w - 12, breakWords: true, lineHeight: 12,
+      },
+    })
+    note.anchor.set(0.5, 0)
+    note.position.set(w / 2, 12 + label.height + 6)
+    face.addChild(paper, label, note)
 
-    tile.addChild(label, note, price)
+    const price = priceText(cost, afford)
+    price.position.set(CELL_W / 2, CELL_H - 20)
+
     tile.alpha = afford ? 1 : 0.55
     tile.eventMode = 'static'
+    tile.hitArea = new Rectangle(0, 0, CELL_W, CELL_H)
     tile.cursor = afford ? 'pointer' : 'default'
+    const middle = () => ({ x: tile.x + CELL_W * fit / 2, y: tile.y + CELL_H * fit / 2 })
     tile.on('pointertap', () => {
       if (this.ate()) return
       if (!this.canPay(cost)) return
       // **바우처는 들어갈 칸이 없습니다.** 규칙으로 들어가므로, 산 자리에서 이름이 뜨는
       // 것이 그것을 얻었다는 유일한 표시입니다.
       this.audio.play('voucher_buy')
-      this.particles.burst(tile.x + tileW / 2, tile.y + tileH / 2, 26, COLOR.money, 1.3, 1.2)
+      const at = middle()
+      this.particles.burst(at.x, at.y, 26, COLOR.money, 1.3, 1.2)
       this.flashPanel(COLOR.money, 0.35)
-      this.popAt({ x: tile.x + tileW / 2, y: tile.y + tileH / 2 },
-        nameOf(this.data, 'voucher', id, row?.name ?? ''), COLOR.money, 0.5)
-      this.boughtFrom = { x: tile.x + tileW / 2, y: tile.y + tileH / 2 }
+      this.popAt(at, title, COLOR.money, 0.5)
+      this.boughtFrom = at
       this.act({ t: 'buy_voucher' })
     })
     this.tipOn(tile, () => {
-      this.tooltip.show(nameOf(this.data, 'voucher', id, row?.name ?? ''),
-        t('ui.kind.voucher'), 0, lines,
-        tile.x + tileW / 2, tile.y + tileH, SIZE)
+      this.tooltip.show(title, t('ui.kind.voucher'), 0, lines,
+        tile.x + CELL_W * fit / 2, tile.y + CELL_H * fit, SIZE)
     })
     this.reveal(tile)
+    return () => {
+      this.revealInto(tile, 1, -STOCK_DROP, face)
+      this.revealInto(tile, 0, 0, price)
+    }
   }
 
   /**
