@@ -21,8 +21,11 @@ export const SECTION_H = 28
  * 정사각형을 45도 돌린 테 하나입니다.
  *
  * @param note 이름 옆에 흐리게 붙는 짧은 글. 개수 따위입니다.
+ * @param rule 아래에 선을 그을 것인가. **줄이 곧바로 이어지는 곳에서는 뺍니다** — 그 줄들이
+ *   저마다 칸을 두르고 있으면 선과 첫 칸의 테가 두 줄로 겹칩니다.
  */
-export function sectionHead(width: number, title: string, note?: string): Container {
+export function sectionHead(width: number, title: string, note?: string,
+                            rule = true): Container {
   const node = new Container()
   const mark = new Graphics()
   mark.rect(-4.5, -4.5, 9, 9).stroke({ color: UI.mark, width: 1.5 })
@@ -36,9 +39,12 @@ export function sectionHead(width: number, title: string, note?: string): Contai
   name.anchor.set(0, 0.5)
   name.position.set(20, SECTION_H / 2 - 1)
 
-  const rule = new Graphics()
-  rule.rect(0, SECTION_H - 1.5, width, 1.5).fill(UI.rule)
-  node.addChild(mark, name, rule)
+  node.addChild(mark, name)
+  if (rule) {
+    const line = new Graphics()
+    line.rect(0, SECTION_H - 1.5, width, 1.5).fill(UI.rule)
+    node.addChild(line)
+  }
 
   if (note) {
     const side = new Text({

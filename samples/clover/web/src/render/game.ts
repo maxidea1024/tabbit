@@ -195,8 +195,14 @@ const LAND_AT = 0.52
  * 보고 난 뒤에 물건이 떠납니다.
  */
 const BUY_LINGER = 0.42
-/** 조커와 소모품이 나란히 서는 줄의 가운데 높이. */
-const JOKER_Y = 108
+/**
+ * 조커와 소모품이 나란히 서는 줄의 가운데 높이.
+ *
+ * **자리의 윗변이 왼쪽 판의 윗변과 같습니다.** 위쪽에 셋이 서 있는데 그중 둘만 18픽셀
+ * 내려와 있으면 그 셋이 한 줄로 읽히지 않습니다 — 가운데 높이가 아니라 윗변을 맞추는
+ * 것이고, 그래서 이 값은 `판의 윗변 + 자리의 절반` 입니다.
+ */
+const JOKER_Y = 22 + (SIZE.jokerHeight + 6 * 2) / 2
 /**
  * 조커와 소모품의 자리.
  *
@@ -2716,7 +2722,9 @@ export class Game {
     // **자리 위입니다.** 아래에 두었더니 고른 것 밑에 서는 「쓴다 · 판다」가 그 글을
     // 덮었습니다 — 그 단추는 카드 아래 가운데에 서고 화면 안으로 당겨지므로, 소모품
     // 줄의 끝 칸을 고르면 단추 줄의 오른쪽 끝이 바로 그 글의 자리입니다.
-    const countY = JOKER_TRAY.y - 19
+    // **개수는 자리 아래입니다.** 위에 두면 그 글이 자리의 머리처럼 붙어 판의 윗변보다
+    // 위로 올라가고, 그러면 왼쪽 판과 윗변을 맞춘 뜻이 없어집니다.
+    const countY = JOKER_TRAY.y + JOKER_TRAY.height + 6
     this.jokerCount.anchor.set(0, 0)
     this.jokerCount.position.set(JOKER_TRAY.x + TRAY_PAD_X, countY)
     this.consumableCount.anchor.set(1, 0)
@@ -2791,13 +2799,12 @@ export class Game {
     const g = this.frames
     g.clear()
 
-    // **둘이 같은 칸입니다.** 조커 자리와 소모품 자리가 저마다의 색이면 화면에 색이 둘
-     // 더 늘고, 무엇을 담는 자리인지는 그 위의 글이 적습니다.
+    // **바탕만 깔고 테는 두지 않습니다.** 이 자리에 서는 것은 카드이고 카드마다 자기 테가
+    // 있으므로, 자리에도 테를 두르면 테가 두 겹으로 겹칩니다 — 비어 있는 자리를 알리는 데는
+    // 한 단 밝은 바탕으로 족합니다.
     for (const tray of [JOKER_TRAY, CONSUMABLE_TRAY]) {
       g.roundRect(tray.x, tray.y, tray.width, tray.height, 6)
         .fill({ color: UI.panel, alpha: 0.5 })
-      g.roundRect(tray.x + 0.5, tray.y + 0.5, tray.width - 1, tray.height - 1, 6)
-        .stroke({ color: UI.hairline, width: 1 })
     }
   }
 
@@ -7467,7 +7474,7 @@ export class Game {
     const shown = Math.min(entries.length, entries.length > 4 ? 3 : 4)
 
     // 구획 머리 하나. 판 안의 다른 구획과 같은 것입니다.
-    const head = sectionHead(PANEL_W, tf('ui.active.count', { n: entries.length }))
+    const head = sectionHead(PANEL_W, tf('ui.active.count', { n: entries.length }), undefined, false)
     head.position.set(LEFT, top - 6)
     this.activeLayer.addChild(head)
 

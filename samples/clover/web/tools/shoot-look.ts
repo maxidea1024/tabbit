@@ -107,7 +107,7 @@ async function shootRun(browser: Browser): Promise<void> {
     await page.mouse.click(here.x, here.y)
   }
   // 판이 올라오고 진열되는 동안을 다섯 장으로.
-  for (const [i, wait] of [420, 350, 450, 600, 1400].entries()) {
+  for (const [i, wait] of [420, 350, 450, 600, 3200].entries()) {
     await pass(page, wait)
     await shot(page, `shop-${i + 1}`)
   }
