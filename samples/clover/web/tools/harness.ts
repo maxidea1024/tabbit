@@ -63,6 +63,14 @@ export interface Peek {
   flyMissed?: number
   /** 최근에 난 소리들. 새것이 뒤입니다. */
   sounds?: string[]
+  /**
+   * 글에 두른 테두리의 굵기.
+   *
+   * **말마다 다릅니다.** 굵기는 그 말의 획 사이 틈에서 나오는 값이고, 한 번 만들고 글만
+   * 갈아 끼우는 것들은 말이 바뀔 때 다시 정해집니다 — 그 길을 지났는지는 눈으로 보이지
+   * 않으므로 값으로 봅니다.
+   */
+  inkWidth?: { hand: number; headline: number; button: number }
   /** 들고 있는 태그와, 딱지에 실제로 그린 칩 수. */
   tags?: string[]
   tagChips?: number

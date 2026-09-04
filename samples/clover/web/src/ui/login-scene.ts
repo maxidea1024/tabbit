@@ -20,6 +20,7 @@ import { language as nowLanguage, LANGUAGE_NAMES, LANGUAGES, setLanguage, t, tf,
 import * as account from '../net/session'
 import type { Provider } from '../net/session'
 import { COLOR, SIZE, UI } from '../render/theme'
+import { outlineOf } from './font'
 import { Button } from './widgets'
 
 /** 제공자 단추의 크기. */
@@ -203,7 +204,8 @@ export class LoginScene extends Container {
       text: 'clover',
       style: {
         fontSize: 76, fill: COLOR.good, fontWeight: '800',
-        stroke: { color: 0x07130b, width: 8 }, letterSpacing: 6,
+        // 타이틀과 같은 이유로 굵기를 손으로 정합니다.
+        stroke: outlineOf(8, 0x07130b), letterSpacing: 6,
       },
     })
     title.anchor.set(0.5, 0)

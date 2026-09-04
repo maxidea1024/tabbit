@@ -25,6 +25,7 @@ import { Container, Graphics, Text } from 'pixi.js'
 import { t } from '../core/strings'
 
 import { COLOR, SIZE, UI } from '../render/theme'
+import { outlineOf } from './font'
 import type { ToolSpot } from './layout'
 import { Tooltip } from './tooltip'
 import { Button, IconButton } from './widgets'
@@ -89,7 +90,10 @@ export class Title extends Container {
     text: 'clover',
     style: {
       fontSize: 128, fill: COLOR.good, fontWeight: '800',
-      stroke: { color: 0x07130b, width: 12 },
+      // **여기만 굵기를 손으로 정합니다.** 배수는 어느 글자가 올지 모르는 자리의 위쪽
+      // 한계이고, 이 글은 `clover` 여섯 자로 고정이라 그 한계보다 굵어도 속이 막히지
+      // 않습니다.
+      stroke: outlineOf(12, 0x07130b),
       letterSpacing: 10,
     },
   })

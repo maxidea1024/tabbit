@@ -32,7 +32,7 @@ import {
 import { language, nameOf, setLanguage, t, text, tf } from '../core/strings'
 import { stakeRow, stakeSlug } from '../core/stake'
 import { SetupPanel, setupLabel, validSetup, type RunSetup } from '../ui/setup'
-import { NUMERALS, useFont } from '../ui/font'
+import { NUMERALS, outline, outlined, strokeWidthOf, useFont } from '../ui/font'
 import { rerollCost, sellValueOf, type ShopItem } from '../core/shop'
 import { bestHand, valueOf } from '../core/suggest'
 import { newCounters, type CardInstance, type GameEvent, type RunState } from '../core/state'
@@ -1133,8 +1133,8 @@ export class Game {
     style: {
       // **12픽셀은 작았습니다.** 지금 고른 것이 무슨 족보인가는 화면에서 점수 다음으로
       // 중요한 글이고, 칩과 배수가 어디서 나온 값인지를 잇는 유일한 줄입니다.
-      fontSize: 17, fill: COLOR.ink, fontWeight: '800', letterSpacing: 0.5,
-      stroke: { color: 0x0a0f18, width: 3 },
+      ...outlined(17, 0x0a0f18),
+      fill: COLOR.ink, fontWeight: '800', letterSpacing: 0.5,
     },
   })
   /**
@@ -1244,8 +1244,8 @@ export class Game {
   private readonly headline = new Text({
     text: '',
     style: {
-      fontSize: 34, fill: COLOR.ink, fontWeight: '800',
-      stroke: { color: 0x0a0f18, width: 5 },
+      ...outlined(34, 0x0a0f18),
+      fill: COLOR.ink, fontWeight: '800',
     },
   })
   private readonly gauge = new Graphics()
@@ -2173,6 +2173,12 @@ export class Game {
     this.sortSuitButton.text = t('ui.button.sort_suit')
     this.infoButton.text = t('ui.run_info.title')
     this.menuButton.text = t('ui.button.menu')
+
+    // **테두리의 굵기도 말을 탑니다.** 굵기는 그 글자의 획 사이 틈에서 나오는 값이고
+    // 한자의 틈이 한글의 절반이므로, 만들 때의 말로 정해 둔 굵기는 말을 바꾸면 어긋납니다.
+    // 단추는 글을 적는 자리에서 스스로 다시 정하고, 한 번 만들고 마는 것이 이 둘입니다.
+    this.handLabel.style.stroke = outline(17, 0x0a0f18)
+    this.headline.style.stroke = outline(34, 0x0a0f18)
 
     this.title.relabel()
     this.login.relabel()
@@ -4180,8 +4186,8 @@ export class Game {
     const label = new Text({
       text,
       style: {
-        fontSize: 20 + intensity * 16, fill: tint, fontWeight: '800',
-        stroke: { color: 0x0a0f18, width: 4 },
+        ...outlined(20 + intensity * 16, 0x0a0f18),
+        fill: tint, fontWeight: '800',
       },
     })
     label.anchor.set(0.5, 1)
@@ -4283,9 +4289,8 @@ export class Game {
 
     if (this.deltas.length < DELTA_POOL) {
       const node = new Text({
-        text: '', style: { fontSize: 23, fontWeight: '800', fill: COLOR.ink,
-                           fontFamily: NUMERALS,
-                           stroke: { color: 0x0a0f18, width: 4 } },
+        text: '', style: { ...outlined(23, 0x0a0f18, true), fontWeight: '800',
+                           fill: COLOR.ink, fontFamily: NUMERALS },
       })
       // 크기와 기준은 뜰 때마다 그 칸의 숫자에서 받습니다. **칸마다 글자 크기가 다르므로**
       // 여기서 정해 두면 어느 칸에서는 그 칸의 수보다 크거나 작게 뜹니다.
@@ -4893,6 +4898,14 @@ export class Game {
       // 「부르지 않았다」인지 「불렀는데 잡을 것이 없었다」인지 갈립니다.**
       flyAsked: this.flyAsked,
       flyMissed: this.flyMissed,
+      // **글에 두른 테두리의 굵기.** 굵기는 그 말의 획 사이 틈에서 나오는 값이라 말마다
+      // 다르고, 한 번 만들고 글만 갈아 끼우는 것들은 말이 바뀔 때 여기서 다시 정합니다 —
+      // 그 길을 지났는지는 눈으로 보이지 않습니다. 굵기 차이가 1픽셀 아래입니다.
+      inkWidth: {
+        hand: strokeWidthOf(this.handLabel),
+        headline: strokeWidthOf(this.headline),
+        button: this.menuButton.inkWidth,
+      },
       // 조커와 소모품의 자리, 그리고 카드가 실제로 그려진 사각형들.
       //
       // **넘어가지 않는다는 것은 이 둘을 견주어야만 확인됩니다.** 눈으로는 몇 개까지
@@ -9234,8 +9247,8 @@ export class Game {
     const title = new Text({
       text: row ? packName(row.kind, row.size) : t('ui.kind.pack'),
       style: {
-        fontSize: 34, fill: ink, fontWeight: '800', letterSpacing: 2,
-        stroke: { color: 0x070a10, width: 6 },
+        ...outlined(34, 0x070a10),
+        fill: ink, fontWeight: '800', letterSpacing: 2,
       },
     })
     title.anchor.set(0.5, 0)

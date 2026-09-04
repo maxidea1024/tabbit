@@ -6,7 +6,7 @@
 import { Container, Graphics, Text } from 'pixi.js'
 import { t, tf } from '../core/strings'
 
-import { NUMERALS } from '../ui/font'
+import { NUMERALS, outline, outlined, outlineOf, outlineWidth } from '../ui/font'
 import { box, BOTTOM, inset, putText, splitY } from '../ui/layout'
 import { mix, plate, slotStyle } from './skin'
 import { COLOR, UI } from './theme'
@@ -50,8 +50,8 @@ export class Slot extends Container {
   private readonly value = new Text({
     text: '0',
     style: {
-      fontSize: 23, fill: COLOR.ink, fontWeight: '800', fontFamily: NUMERALS,
-      stroke: { color: 0x0a0f18, width: 3 },
+      ...outlined(23, 0x0a0f18, true),
+      fill: COLOR.ink, fontWeight: '800', fontFamily: NUMERALS,
     },
   })
 
@@ -99,6 +99,9 @@ export class Slot extends Container {
     this.pull = pull
     this.bare = bare
     this.value.style.fontSize = valueSize
+    // **칸마다 숫자 크기가 다릅니다.** 테두리의 굵기는 크기에서 나오는 값이라 여기서 다시
+    // 정합니다 — 위의 기본값은 23픽셀짜리의 것입니다.
+    this.value.style.stroke = outline(valueSize, 0x0a0f18, true)
     this.addChild(this.plate, this.caption_, this.value)
     this.caption_.text = caption
     // 이름은 위 가운데, 숫자는 그 아래의 남은 자리에. **기울기는 `pull` 이 정합니다** —
@@ -111,9 +114,10 @@ export class Slot extends Container {
     this.caption_.visible = named
     this.row = named && !bare
     // **한 줄 칸의 숫자에는 테를 두르지 않습니다.** 칸의 어두운 바탕 위에 있으므로 테가
-    // 할 일이 없고, 3픽셀 테는 12픽셀 이름 옆에서 숫자만 굵어 보이게 합니다 — 테는 색
-    // 상자 위에 앉는 칩과 배수에만 남습니다.
-    if (this.row) this.value.style.stroke = { color: 0x0a0f18, width: 0 }
+    // 할 일이 없고, 테를 두르면 12픽셀 이름 옆에서 숫자만 굵어 보입니다 — 테는 색 상자
+    // 위에 앉는 칩과 배수에만 남습니다.
+    this.value.style.stroke = outlineOf(
+      this.row ? 0 : outlineWidth(this.value.style.fontSize as number, true), 0x0a0f18)
     if (this.row) {
       // 이름은 왼쪽, 값은 오른쪽. **값은 오른쪽 끝에 붙으므로 `pull` 이 1 입니다** — ±N
       // 글이 같은 자리에 서려면 그 기준이 같아야 합니다.

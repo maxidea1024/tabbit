@@ -7,6 +7,7 @@ import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
 
 import { buttonStyle, mix, panelStyle, plate, type PlateStyle } from '../render/skin'
 import { COLOR, UI } from '../render/theme'
+import { outlined, outlineOf, outlineWidth, strokeWidthOf } from './font'
 import { iconFor, type IconName } from './icon'
 
 export class Panel extends Container {
@@ -35,13 +36,20 @@ function luminance(color: number): number {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b
 }
 
+/**
+ * 단추 글씨의 테두리 색.
+ *
+ * **한 자리에 둡니다.** 글을 적을 때마다 굵기를 다시 정하므로 색을 두 곳에 적게 됩니다.
+ */
+const CAPTION_OUTLINE = 0x0a1610
+
 export class Button extends Container {
   private readonly board = new Graphics()
   private readonly caption = new Text({
     text: '',
     style: {
-      fontSize: 15, fill: COLOR.ink, fontWeight: '800',
-      stroke: { color: 0x0a1610, width: 3 },
+      ...outlined(15, CAPTION_OUTLINE),
+      fill: COLOR.ink, fontWeight: '800',
     },
   })
 
@@ -113,6 +121,32 @@ export class Button extends Container {
       size -= 1
       this.caption.style.fontSize = size
     }
+
+    // **테두리를 여기서 다시 정합니다.** 굵기는 글자 크기와 고른 말에서 나오는 값이고 둘
+    // 다 여기서 바뀝니다 — 위의 줄이기가 크기를 9까지 내리고, 말이 바뀌면 `relabel` 이
+    // 이 자리로 새 글을 넣습니다.
+    this.applyInk()
+  }
+
+  /**
+   * 글의 색과 테두리.
+   *
+   * **단추의 밝기가 정합니다.** 노랑 · 하늘 · 크림 위에 흰 글을 검은 테로 두르면 읽히지
+   * 않으므로, 밝은 단추의 글은 어둡고 테가 없습니다.
+   *
+   * **글자 크기도 봅니다.** 테두리의 굵기는 크기에서 나오는 값이고, 긴 글은 위의 줄이기가
+   * 크기를 9까지 내립니다.
+   */
+  private applyInk(): void {
+    const light = luminance(this.shownBase) > 0.5
+    this.caption.style.fill = light ? UI.onLight : COLOR.ink
+    const size = this.caption.style.fontSize as number
+    this.caption.style.stroke = outlineOf(light ? 0 : outlineWidth(size), CAPTION_OUTLINE)
+  }
+
+  /** 지금 글에 걸려 있는 테두리의 굵기. **검증 도구가 읽습니다.** */
+  get inkWidth(): number {
+    return strokeWidthOf(this.caption)
   }
 
   set enabled(value: boolean) {
@@ -164,11 +198,7 @@ export class Button extends Container {
     const base = this.shownBase
     this.board.clear()
     plate(this.board, this.boxWidth, this.boxHeight, buttonStyle(base, this.lit))
-    // **밝은 단추 위의 글은 어둡고 테가 없습니다.** 노랑 · 하늘 · 크림 위에 흰 글을 검은
-    // 테로 두르면 읽히지 않습니다 — 단추의 밝기가 글의 색을 정합니다.
-    const light = luminance(base) > 0.5
-    this.caption.style.fill = light ? UI.onLight : COLOR.ink
-    this.caption.style.stroke = { color: 0x0a1610, width: light ? 0 : 3 }
+    this.applyInk()
   }
 }
 
