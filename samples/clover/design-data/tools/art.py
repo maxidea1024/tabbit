@@ -65,15 +65,63 @@ TAG_PROMPT = (
 # **보스는 인장입니다.** 태그가 판에 놓는 칩이라면 보스는 그 안테를 막고 선 것이고, 붉은
 # 돌에 표시 하나를 새긴 것이 그것입니다 — 태그의 칩과 한눈에 갈려야 하므로 색과 테두리가
 # 다릅니다.
+# 보스의 인장.
+#
+# **어두운 돌에 어두운 문양을 새기면 스물여덟이 서로 같아 보입니다.** 처음에 그렇게 적었고,
+# 화면에서는 숯덩이 스물여덟 개였습니다 — 작게 놓이는 그림이므로 문양과 바탕의 밝기 차가
+# 가장 먼저 필요합니다. 그래서 셋을 못박습니다.
+#
+# |것|무엇|
+# |--|--|
+# |문양은 밝습니다|뼈흰색이고 원반의 대부분을 채웁니다. 무엇의 인장인지가 그 실루엣 하나로 갈립니다|
+# |원반은 짙은 붉음|테는 금색입니다. 스물여덟이 한 벌로 보이게 하는 것이 이 둘입니다|
+# |바탕은 검정|원반의 둘레가 바탕에 묻히지 않습니다|
 BOSS_PROMPT = (
-    'Bold flat 2D icon of a round dark stone SEAL with %s carved into its centre. '
-    'The seal is a circle with a heavy notched rim and one large carved symbol at its '
-    'centre, seen straight on, centred, filling most of the square frame. '
+    'Bold flat 2D emblem: a round seal with %s at its centre. '
+    'The symbol is LARGE and BRIGHT PALE IVORY with thick clean outlines, filling most of '
+    'the disc so it reads instantly at small size. The disc is DEEP CRIMSON RED with a '
+    'heavy notched rim in WARM GOLD. Seen straight on, centred, filling the square frame. '
+    'Strong contrast between the pale symbol and the dark disc. '
+    'Screen-print poster art, limited flat colour palette, no realism, no photography, '
+    'no gradients, no soft shading, no drop shadow, no vignette. '
+    'Flat BLACK background. Palette: pale ivory, warm gold, deep crimson, black. '
+    'Square composition. No text, no letters, no numbers, no signature.')
+
+# 팩의 포장지.
+#
+# **팩은 그려 두지 않았습니다.** 봉지 몸통과 톱니 한 줄을 화면이 긋고 있었고, 그것은 색칠한
+# 네모입니다 — 상점에 서는 것 중 그림이 없는 것이 팩뿐이었습니다. 담긴 것이 무엇인지가
+# 포장지에 인쇄되어 있어야 뜯고 싶어집니다.
+#
+# **세로 한 장입니다.** 카드와 같은 자리에 같은 크기로 서므로 2:3 이고, 화풍은 조커와 같은
+# 판화입니다 — 상점 한 줄에 카드와 팩이 나란히 서기 때문입니다.
+PACK_PROMPT = (
+    'Bold flat 2D illustration of a sealed foil sachet seen straight on, its top and bottom '
+    'edges cut in a zig-zag serrated seal, and %s filling the centre of the wrapper. '
+    'The wrapper is centred and FILLS THE WHOLE TALL FRAME edge to edge with no margin. '
+    'The wrapper paper is a deep saturated colour — never white, never cream, never grey. '
     'Thick clean outlines, screen-print poster art, limited flat colour palette, no realism, '
-    'no photography, no gradients, no soft shading, no drop shadow. '
-    'Flat DARK CRIMSON background with a fine dot grid. '
-    'Palette: dark crimson, black, cold grey, warm gold. Square composition. '
-    'No text, no letters, no numbers, no signature.')
+    'no photography, no gradients, no soft shading, no drop shadow, no product photo. '
+    'Any area outside the wrapper is flat DEEP NAVY with a fine dot grid. '
+    'The wrapper is blank apart from the symbol: nothing is written or printed on it, no '
+    'label, no band, no caption, no brand mark. '
+    'Portrait composition. The image contains NO TEXT WHATSOEVER — no letters, no words, '
+    'no numbers, no logos, no signature.')
+
+# 팩 다섯 갈래의 인쇄. **크기(보통·점보·메가)로는 갈리지 않습니다** — 담기는 것이 같으므로
+# 포장지도 같고, 몇 장 중 몇 장인지는 화면이 글로 적습니다.
+PACK_SUBJECT = {
+    'Arcana': ('a tarot emblem of a crescent moon crossed with a radiant sun, '
+               'in deep violet, warm gold and pale ivory'),
+    'Celestial': ('a ringed planet with three small stars, '
+                  'in midnight blue, pale cyan and warm gold'),
+    'Standard': ('the four playing-card suit symbols arranged in a diamond, '
+                 'in crimson, pale ivory and charcoal'),
+    'Buffoon': ('a grinning jester mask with a two-pointed cap and bells, '
+                'in crimson, warm gold and pale ivory'),
+    'Spectral': ('a floating hooded ghost with a wisp of a tail, '
+                 'in pale teal, cold grey and pale ivory'),
+}
 
 # 그림의 크기. **카드는 카드의 비율이고 뱃지는 정사각입니다** — 그리고 이 비율을 내는
 # 모델로 뽑아야 합니다. `flux-1-schnell` 은 가로세로를 무시하고 정사각형만 냅니다.
@@ -83,7 +131,7 @@ MODEL = 'lucid-origin'
 
 
 # 갈래마다의 화풍. **여기 없는 갈래는 카드의 화풍으로 갑니다.**
-STYLE = {'tag': TAG_PROMPT, 'boss': BOSS_PROMPT}
+STYLE = {'tag': TAG_PROMPT, 'boss': BOSS_PROMPT, 'pack': PACK_PROMPT}
 # 정사각으로 뽑는 갈래들. 칩과 인장이 그렇습니다.
 SQUARE = ('tag', 'boss')
 
@@ -430,7 +478,26 @@ def entries():
     for identifier, display in read_table('BossBlind.tsv', 'boss_id'):
         out.append(('boss', identifier, display,
                     BOSS_SUBJECT.get(identifier, phrase(identifier))))
+    for identifier, display in pack_kinds():
+        out.append(('pack', identifier, display, PACK_SUBJECT[display]))
     out.extend(card_set_entries())
+    return out
+
+
+def pack_kinds():
+    """팩의 갈래들. **표에는 14줄이 있고 갈래는 다섯입니다** — 크기가 다른 세 줄이 같은
+    포장지를 씁니다. 표의 순서를 지키며 중복을 걷습니다.
+    """
+    path = os.path.join(DESIGN, 'data', 'BoosterPack.tsv')
+    rows = list(csv.reader(io.open(path, encoding='utf-8'), delimiter='	'))
+    at = rows[1].index('kind')
+    out = []
+    seen = set()
+    for row in rows[4:]:
+        if not row or row[at] in seen:
+            continue
+        seen.add(row[at])
+        out.append((row[at].lower(), row[at]))
     return out
 
 
@@ -451,9 +518,12 @@ BOSS_SUBJECT = {
     'the_arm': 'a bent arm flexing',
     'the_fish': 'a fish seen from the side',
     'the_water': 'three stacked wave lines',
-    'the_mouth': 'a closed mouth with sealed lips',
+    # **입을 그리지 않습니다.** 생성기가 「mouth」 도 「zip fastener」 도 NSFW 로 거부합니다.
+    # 이 보스가 하는 일은 패를 잠그는 것이므로, 잠긴 자물쇠가 그 뜻을 그대로 새깁니다.
+    'the_mouth': 'a closed padlock hanging from a horizontal bar',
     'the_needle': 'a sewing needle with thread through its eye',
-    'the_flint': 'a flint stone striking sparks',
+    # **부싯돌은 돌 하나로는 빈 원반이 됩니다.** 실루엣이 남는 것을 적습니다.
+    'the_flint': 'a triangular arrowhead with three straight spark lines above it',
     'the_mark': 'a target with crossed lines',
     'the_eye': 'a single wide-open eye',
     'the_tooth': 'a single pointed tooth',

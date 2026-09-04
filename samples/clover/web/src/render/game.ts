@@ -8972,20 +8972,43 @@ export class Game {
 
     const bag = new Container()
     bag.position.set((CELL_W - w) / 2, 8)
+    // **포장지는 그림입니다.** 봉지 몸통과 톱니 한 줄을 여기서 긋고 있었고, 그것은 색칠한
+    // 네모였습니다 — 상점 한 줄에 카드와 나란히 서는데 그 줄에서 팩만 그림이 없었습니다.
+    // 그림이 아직 오지 않은 기계에서는 그 봉지를 그대로 그립니다.
+    const wrap = artFor('pack', packKindArt(row.kind))
     const body = new Graphics()
-    body.roundRect(0, 0, w, h, 9).fill(shade(ink, 0.45))
-    body.roundRect(0, 0, w, h * 0.55, 9).fill({ color: ink, alpha: 0.5 })
-    // **뜯는 줄.** 톱니 하나가 봉지를 봉지로 만듭니다.
-    const tearY = 22
-    body.rect(0, tearY - 6, w, 12).fill({ color: 0x0b1018, alpha: 0.35 })
-    const teeth = 11
-    for (let i = 0; i < teeth; i++) {
-      const tx = (w / teeth) * i
-      body.moveTo(tx, tearY).lineTo(tx + w / teeth / 2, tearY - 4).lineTo(tx + w / teeth, tearY)
-        .stroke({ color: shade(ink, 0.8), width: 1.2, alpha: 0.9 })
+    if (wrap) {
+      body.roundRect(0, 0, w, h, 9).fill(shade(ink, 0.35))
+    } else {
+      body.roundRect(0, 0, w, h, 9).fill(shade(ink, 0.45))
+      body.roundRect(0, 0, w, h * 0.55, 9).fill({ color: ink, alpha: 0.5 })
+      // **뜯는 줄.** 톱니 하나가 봉지를 봉지로 만듭니다.
+      const tearY = 22
+      body.rect(0, tearY - 6, w, 12).fill({ color: 0x0b1018, alpha: 0.35 })
+      const teeth = 11
+      for (let i = 0; i < teeth; i++) {
+        const tx = (w / teeth) * i
+        body.moveTo(tx, tearY).lineTo(tx + w / teeth / 2, tearY - 4).lineTo(tx + w / teeth, tearY)
+          .stroke({ color: shade(ink, 0.8), width: 1.2, alpha: 0.9 })
+      }
     }
-    body.roundRect(1, 1, w - 2, h - 2, 8).stroke({ color: UI.ink, width: 2 })
     bag.addChild(body)
+    if (wrap) {
+      // **칸을 덮도록 키워 가운데를 씁니다.** 그림의 비율이 칸과 다르면 남는 자리가 생기고
+      // 그 자리는 그림의 바탕색입니다 — 넘치는 쪽을 잘라 냅니다.
+      const sprite = new Sprite(wrap)
+      const scale = Math.max(w / wrap.width, h / wrap.height)
+      sprite.width = wrap.width * scale
+      sprite.height = wrap.height * scale
+      sprite.position.set((w - sprite.width) / 2, (h - sprite.height) / 2)
+      const clip = new Graphics()
+      clip.roundRect(0, 0, w, h, 9).fill(0xffffff)
+      sprite.mask = clip
+      bag.addChild(sprite, clip)
+    }
+    const edge = new Graphics()
+    edge.roundRect(1, 1, w - 2, h - 2, 8).stroke({ color: UI.ink, width: 2 })
+    bag.addChild(edge)
 
     const label = new Text({
       text: packName(row.kind, row.size),
@@ -8995,14 +9018,19 @@ export class Game {
       },
     })
     label.anchor.set(0.5, 0.5)
-    label.position.set(w / 2, h * 0.5)
+    label.position.set(w / 2, h - 32)
     const note = richLine(tf('ui.pack.of', { cards: row.cards, picks: row.picks }), {
       base: { fontSize: 10, fill: COLOR.ink },
       number: COLOR.accentNumber,
       term: COLOR.accentTerm,
     })
-    note.position.set((w - note.width) / 2, h - 24)
-    bag.addChild(label, note)
+    note.position.set((w - note.width) / 2, h - 18)
+    // **글이 앉는 자리를 어둡게 깔아 둡니다.** 포장지의 색이 무엇이든 그 위의 글이 읽혀야
+    // 합니다 — 카드의 이름 띠와 같은 규칙입니다.
+    const band = new Graphics()
+    band.roundRect(0, h - 42, w, 42, 9).fill({ color: 0x0b1018, alpha: 0.86 })
+    band.rect(0, h - 42, w, 30).fill({ color: 0x0b1018, alpha: 0.86 })
+    bag.addChild(band, label, note)
 
     const price = priceText(row.cost, afford)
     price.position.set(CELL_W / 2, CELL_H - 20)
@@ -9794,6 +9822,16 @@ function packBlurb(kind: PackKind): string {
     case PackKind.Buffoon: return t('ui.pack.note.buffoon')
     default: return t('ui.pack.note.standard')
   }
+}
+
+/**
+ * 팩 갈래의 그림 파일 이름.
+ *
+ * **크기로는 갈리지 않습니다.** 보통 · 점보 · 메가가 같은 것을 담으므로 포장지도 같고,
+ * 몇 장 중 몇 장인지는 화면이 글로 적습니다 — `art.py` 의 `pack_kinds` 와 같은 규칙입니다.
+ */
+function packKindArt(kind: PackKind): string {
+  return PackKind[kind].toLowerCase()
 }
 
 function packInk(kind: PackKind): number {

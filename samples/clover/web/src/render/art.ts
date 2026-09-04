@@ -10,6 +10,7 @@
 import { Assets, Texture } from 'pixi.js'
 
 export type ArtKind = 'joker' | 'tarot' | 'planet' | 'spectral' | 'card' | 'tag' | 'boss'
+  | 'pack'
 
 /**
  * 그림이 있는 폴더.
