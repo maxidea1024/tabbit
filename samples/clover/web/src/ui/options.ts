@@ -970,7 +970,7 @@ export class OptionsPanel implements ModalPanel {
       const board = new Graphics()
       board.roundRect(0, 0, width, CARD_ROW_H, 8)
         .fill({ color: here ? 0x1d3a26 : 0x252b36 })
-        .stroke({ color: here ? COLOR.good : 0x3a4658, width: here ? 3 : 2 })
+        .stroke({ color: here ? UI.pick : UI.hairline, width: here ? 2 : 1.5 })
       cell.addChild(board)
 
       // 넉 장이 어긋나 겹쳐 섭니다. 왼쪽 위가 첫 장입니다.

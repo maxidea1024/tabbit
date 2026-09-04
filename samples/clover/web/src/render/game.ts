@@ -5142,7 +5142,7 @@ export class Game {
     this.hint.removeChildren().forEach(child => child.destroy())
     if (text === '') return
     const line = richLine(text, {
-      base: { fontSize: 13, fill: 0x9fb0c6, fontWeight: '700' },
+      base: { fontSize: 13, fill: COLOR.inkDim, fontWeight: '700' },
       number: COLOR.accentNumber,
       term: COLOR.accentTerm,
     })
@@ -5248,7 +5248,7 @@ export class Game {
 
     const width = Math.max(this.previewHand.width, this.previewValue.width) + 40
     this.previewPlate.clear()
-    this.previewPlate.roundRect(0, 0, width, 66, 10).fill({ color: 0x101724, alpha: 0.92 })
+    this.previewPlate.roundRect(0, 0, width, 66, 10).fill({ color: UI.cell, alpha: 0.92 })
     this.previewPlate.roundRect(0.5, 0.5, width - 1, 65, 10)
       .stroke({ color: ink, width: 1.5, alpha: 0.8 })
 
@@ -5465,7 +5465,7 @@ export class Game {
       const row = this.handRows[found]
       if (row) {
         band.roundRect(12, row.y - 4, width - 24, row.height - 2, 6)
-          .fill({ color: 0x4a6ea8, alpha: 0.42 })
+          .fill({ color: UI.pick, alpha: 0.32 })
       }
     }
 
@@ -5502,9 +5502,9 @@ export class Game {
     const boxH = shape ? cardH + 24 : 46
 
     const board = new Graphics()
-    board.roundRect(0, 0, boxW, boxH, 10).fill({ color: 0x0c1320, alpha: 0.98 })
+    board.roundRect(0, 0, boxW, boxH, 8).fill({ color: UI.panel, alpha: 0.98 })
     board.roundRect(0.5, 0.5, boxW - 1, boxH - 1, 10)
-      .stroke({ color: 0x6f7f9a, width: 1.5 })
+      .stroke({ color: UI.panelEdge, width: 1.5 })
     into.addChild(board)
 
     if (!shape) {
@@ -5833,7 +5833,7 @@ export class Game {
 
     const node = new Container()
     const plate = new Graphics()
-    plate.roundRect(0, 0, width, height, 8).fill({ color: 0x1c2436, alpha: 0.95 })
+    plate.roundRect(0, 0, width, height, 8).fill({ color: UI.cell, alpha: 0.95 })
     plate.roundRect(0.5, 0.5, width - 1, height - 1, 8)
       .stroke({ color: COLOR.accentTerm, width: 1.5, alpha: 0.7 })
     node.addChild(plate)
@@ -6111,7 +6111,7 @@ export class Game {
     // **나간 카드도 불투명합니다.** 반투명하면 뒤의 카드가 비쳐 겹친 자리가 지저분해지고,
     // 겹쳐 놓은 줄에서는 그 자리가 카드마다 다릅니다 — 어둡게만 두면 깔끔합니다.
     const body = new Graphics()
-    body.roundRect(0, 0, w, h, 5).fill(alive ? cardPaper() : 0x39414f)
+    body.roundRect(0, 0, w, h, 5).fill(alive ? cardPaper() : UI.locked)
     node.addChild(body)
 
     const ink = alive ? suitInk(card.suit) : 0x5d6879
@@ -6553,7 +6553,7 @@ export class Game {
       const small = new Text({
         text: others,
         style: {
-          fontSize: 11, fill: 0x7d8ca0, wordWrap: true, wordWrapWidth: 420,
+          fontSize: 11, fill: COLOR.inkDim, wordWrap: true, wordWrapWidth: 420,
           align: 'center',
         },
       })
@@ -6676,7 +6676,7 @@ export class Game {
       const texture = artFor('tag', tagId)
       if (!texture) {
         const plate = new Graphics()
-        plate.roundRect(0, 0, size, size, 8).fill({ color: 0x1c2436, alpha: 0.95 })
+        plate.roundRect(0, 0, size, size, 8).fill({ color: UI.cell, alpha: 0.95 })
         plate.roundRect(0.5, 0.5, size - 1, size - 1, 8)
           .stroke({ color: COLOR.accentTerm, width: 1.5, alpha: 0.7 })
         cell.addChild(plate)
@@ -8829,7 +8829,7 @@ export class Game {
     let at = top
     built.forEach((one, index) => {
       const held = one.held
-      const tile = new Panel(width - 48, one.height, held.locked ? 0x241c26 : 0x1b2331)
+      const tile = new Panel(width - 48, one.height, held.locked ? 0x241c26 : UI.cell)
       tile.position.set(24, at)
       // **줄의 자리를 알립니다.** 줄의 높이가 설명글의 길이로 정해지고 그 길이는 말에 따라
       // 달라지므로, 도구가 첫 줄의 자리를 적어 두면 다른 말에서는 줄 사이를 누릅니다.
@@ -8930,7 +8930,7 @@ export class Game {
     label.anchor.set(0.5, 0.5)
     label.position.set(w / 2, h * 0.5)
     const note = richLine(tf('ui.pack.of', { cards: row.cards, picks: row.picks }), {
-      base: { fontSize: 10, fill: 0xdbe4f0 },
+      base: { fontSize: 10, fill: COLOR.ink },
       number: COLOR.accentNumber,
       term: COLOR.accentTerm,
     })
@@ -9150,7 +9150,7 @@ export class Game {
     // 읽히고, 그것은 남은 글자로 보입니다.
     const note = new Text({
       text: this.packLine(open.picksLeft),
-      style: { fontSize: 14, fill: 0xdbe4f0, fontWeight: '700' },
+      style: { fontSize: 14, fill: COLOR.ink, fontWeight: '700' },
     })
     note.anchor.set(0.5, 0)
     note.position.set(POPUP_X, PACK_TITLE_Y + 60)
@@ -9311,7 +9311,7 @@ export class Game {
     const mark = new Container()
     const plate = new Graphics()
     plate.roundRect(4, SIZE.jokerHeight / 2 - 11, w - 8, 22, 5)
-      .fill({ color: 0x1b2331, alpha: 0.95 })
+      .fill({ color: UI.cell, alpha: 0.95 })
     const label = new Text({
       text: '', style: { fontSize: 9, fill: COLOR.ink, fontWeight: '800' },
     })

@@ -143,8 +143,8 @@ export class HandlePanel implements ModalPanel {
     const wobble = Math.sin(this.shake * 24) * this.shake * 6
     const box = new Graphics()
     box.roundRect(60 + wobble, 122, WIDTH - 120, 46, 8)
-      .fill({ color: 0x111823 })
-      .stroke({ color: this.shake > 0 ? COLOR.bad : 0x2c3849, width: 2 })
+      .fill({ color: UI.cell })
+      .stroke({ color: this.shake > 0 ? UI.red : UI.hairline, width: 1.5 })
     this.body.addChild(box)
 
     this.caretShown = this.caret < 0.5
@@ -161,7 +161,7 @@ export class HandlePanel implements ModalPanel {
     if (this.problem !== '') {
       const problem = new Text({
         text: this.problem,
-        style: { fontSize: 12, fill: COLOR.bad, wordWrap: true,
+        style: { fontSize: 12, fill: UI.red, wordWrap: true,
                  wordWrapWidth: WIDTH - 72, align: 'center' },
       })
       problem.anchor.set(0.5, 0)
@@ -266,7 +266,7 @@ export class ProfilePanel implements ModalPanel {
     // 보드별 자리. **기록이 있는 것만입니다.**
     const top = 158
     const line = new Graphics()
-    line.rect(30, top - 10, width - 60, 1).fill({ color: 0x2c3849 })
+    line.rect(30, top - 10, width - 60, 1).fill({ color: UI.hairline })
     this.body.addChild(line)
 
     if (shown.ranks.length === 0) {
@@ -285,13 +285,13 @@ export class ProfilePanel implements ModalPanel {
 
       const label = new Text({
         text: rank.name,
-        style: { fontSize: 13, fill: 0x9fb0c4 },
+        style: { fontSize: 13, fill: COLOR.inkDim },
       })
       label.position.set(40, y)
 
       const place = new Text({
         text: `#${rank.rank}`,
-        style: { fontSize: 13, fill: COLOR.good, fontWeight: '700' },
+        style: { fontSize: 13, fill: UI.green, fontWeight: '700' },
       })
       place.anchor.set(1, 0)
       place.position.set(width - 150, y)
@@ -320,7 +320,7 @@ export class ProfilePanel implements ModalPanel {
     if (shown.devices.length > 0) {
       const devices = new Text({
         text: tf('ui.lb.profile.devices', { n: shown.devices.length }),
-        style: { fontSize: 11, fill: 0x7d8ca0 },
+        style: { fontSize: 11, fill: COLOR.inkDim },
       })
       devices.position.set(40, height - 92)
       this.body.addChild(devices)
@@ -329,7 +329,7 @@ export class ProfilePanel implements ModalPanel {
     if (this.confirming) {
       const warn = new Text({
         text: t('ui.lb.profile.deleteWarn'),
-        style: { fontSize: 12, fill: COLOR.bad, wordWrap: true, wordWrapWidth: width - 80 },
+        style: { fontSize: 12, fill: UI.red, wordWrap: true, wordWrapWidth: width - 80 },
       })
       warn.position.set(40, height - 108)
       this.body.addChild(warn)
@@ -379,6 +379,6 @@ export class ProfilePanel implements ModalPanel {
   private tierColor(tier: string): number {
     const row = this.data.tables.tier.records.find(one => String(one.tier) === tier
       || one.name === tier)
-    return row ? Number.parseInt(row.color.slice(1), 16) : 0x6f7d90
+    return row ? Number.parseInt(row.color.slice(1), 16) : COLOR.inkDim
   }
 }

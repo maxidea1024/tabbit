@@ -37,7 +37,7 @@ function sectionsOf(keys: readonly string[]): Section[] {
 
 /** 이 판의 글에 붙는 강조. */
 const RICH: RichStyle = {
-  base: { fontSize: 14, fill: 0xd2dcea },
+  base: { fontSize: 14, fill: COLOR.ink },
   number: COLOR.accentNumber,
   term: COLOR.accentTerm,
 }
@@ -97,7 +97,7 @@ export class Guide implements ModalPanel {
 
     const lead = new Text({
       text: t('ui.guide.lead'),
-      style: { fontSize: 15, fill: 0xb4c4dc, fontWeight: '700' },
+      style: { fontSize: 15, fill: COLOR.ink, fontWeight: '700' },
     })
     lead.anchor.set(0.5, 0)
     lead.position.set(WIDTH / 2, TITLE_BAR + 18)

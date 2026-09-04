@@ -33,7 +33,13 @@ const VALUE_PAD = 28
  * 좁을수록 세 개가 한 식으로 읽힙니다.
  */
 const BARE_PAD = 12
-/** 숫자가 물러났다 돌아오는 데 걸리는 시간. ±N 글이 그 자리에 서 있는 동안입니다. */
+/**
+ * 숫자가 물러났다 돌아오는 데 걸리는 시간.
+ *
+ * **±N 글이 제자리에 앉아 있는 동안입니다.** 그 글은 `DELTA_LIFE` 의 앞 0.4 를 값의 자리에
+ * 앉아 있다가 떠오르므로, 이 시간은 그 앉아 있는 동안(0.8초 × 0.4)입니다 — 더 길게 두면
+ * 글이 떠난 뒤에도 칸이 비어 있고, 더 짧으면 둘이 같은 자리에 겹칩니다.
+ */
 const MUTE_MS = 320
 
 export class Slot extends Container {
@@ -104,6 +110,10 @@ export class Slot extends Container {
     const named = caption !== ''
     this.caption_.visible = named
     this.row = named && !bare
+    // **한 줄 칸의 숫자에는 테를 두르지 않습니다.** 칸의 어두운 바탕 위에 있으므로 테가
+    // 할 일이 없고, 3픽셀 테는 12픽셀 이름 옆에서 숫자만 굵어 보이게 합니다 — 테는 색
+    // 상자 위에 앉는 칩과 배수에만 남습니다.
+    if (this.row) this.value.style.stroke = { color: 0x0a0f18, width: 0 }
     if (this.row) {
       // 이름은 왼쪽, 값은 오른쪽. **값은 오른쪽 끝에 붙으므로 `pull` 이 1 입니다** — ±N
       // 글이 같은 자리에 서려면 그 기준이 같아야 합니다.
@@ -254,7 +264,14 @@ export class Slot extends Container {
     // 자리에 겹쳐 있고, 겹친 동안에는 어느 것도 읽히지 않습니다.
     if (this.muted > 0) {
       this.muted = Math.max(0, this.muted - deltaMs / MUTE_MS)
-      this.value.alpha = 1 - this.muted * 0.85
+      // **떠 있는 동안은 아예 감추고, 그 글이 떠날 때 돌아옵니다.**
+      //
+      // 옅게 남겨 두면 그 수가 떠 있는 ±N 뒤에 그대로 보여 같은 자리에 수가 둘 있는 것으로
+      // 읽힙니다. 서서히 돌아오게 두어도 같습니다 — ±N 은 앞의 0.4 를 제자리에 앉아 있다가
+      // 떠오르므로, 그 사이에 조금이라도 보이면 둘이 겹칩니다. 그래서 거의 끝까지 감추고
+      // 마지막 짧은 동안에 돌아옵니다.
+      const back = 0.12
+      this.value.alpha = this.muted > back ? 0 : 1 - this.muted / back
     }
 
     const ease = this.pop * this.pop

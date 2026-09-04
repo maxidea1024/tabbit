@@ -42,7 +42,7 @@ const SIDE_H = HEIGHT - GRID_Y - 96
 const RULE_STYLE: RichStyle = {
   base: { fontSize: 13, fill: COLOR.ink },
   number: COLOR.money,
-  term: COLOR.good,
+  term: UI.yellow,
 }
 
 /** 깬 챌린지의 목록. **판이 아니라 저장이 가지는 값입니다.** */
@@ -180,13 +180,13 @@ export class ChallengePanel implements ModalPanel {
 
       const board = new Graphics()
       board.roundRect(0, 0, CELL_W - 10, CELL_H - 10, 8)
-        .fill({ color: beaten ? 0x1d3a26 : open ? 0x201f26 : 0x17161b })
-        .stroke({ color: here ? COLOR.good : beaten ? 0x2f8f52 : 0x33313c, width: here ? 3 : 2 })
+        .fill({ color: beaten ? UI.cell : open ? UI.cell : UI.cell })
+        .stroke({ color: here ? UI.pick : beaten ? UI.green : UI.hairline, width: here ? 2 : 1.5 })
       cell.addChild(board)
 
       const order = new Text({
         text: String(row.sortOrder),
-        style: { fontSize: 12, fill: open ? COLOR.inkDim : 0x4a4854, fontWeight: '800' },
+        style: { fontSize: 12, fill: open ? COLOR.inkDim : UI.locked, fontWeight: '800' },
       })
       order.position.set(8, 6)
       cell.addChild(order)
@@ -195,7 +195,7 @@ export class ChallengePanel implements ModalPanel {
       const name = new Text({
         text: row.name,
         style: {
-          fontSize: 13, fill: open ? COLOR.ink : 0x5a5866, fontWeight: '800',
+          fontSize: 13, fill: open ? COLOR.ink : UI.locked, fontWeight: '800',
           wordWrap: true, wordWrapWidth: CELL_W - 26, align: 'center',
           lineHeight: 16,
         },
@@ -207,7 +207,7 @@ export class ChallengePanel implements ModalPanel {
       if (beaten) {
         const mark = new Text({
           text: '✓',
-          style: { fontSize: 15, fill: COLOR.good, fontWeight: '800' },
+          style: { fontSize: 15, fill: UI.green, fontWeight: '800' },
         })
         mark.anchor.set(1, 0)
         mark.position.set(CELL_W - 18, 4)
@@ -230,8 +230,8 @@ export class ChallengePanel implements ModalPanel {
 
     const board = new Graphics()
     board.roundRect(SIDE_X, GRID_Y, SIDE_W, SIDE_H, 10)
-      .fill({ color: 0x1a1920 })
-      .stroke({ color: 0x33313c, width: 2 })
+      .fill({ color: UI.cell })
+      .stroke({ color: UI.hairline, width: 2 })
     this.side.addChild(board)
 
     const row = this.rows[this.picked]
@@ -258,7 +258,7 @@ export class ChallengePanel implements ModalPanel {
         : open ? t('ui.challenge.open')
         : none ? t('ui.challenge.lockedAll') : (record?.unlock ?? ''),
       style: {
-        fontSize: 13, fill: open ? COLOR.good : COLOR.inkDim, fontWeight: '700',
+        fontSize: 13, fill: open ? UI.green : COLOR.inkDim, fontWeight: '700',
         wordWrap: true, wordWrapWidth: SIDE_W - 36, lineHeight: 18,
       },
     })
@@ -322,7 +322,7 @@ export class ChallengePanel implements ModalPanel {
   private section(label: string, y: number): number {
     const head = new Text({
       text: label,
-      style: { fontSize: 12, fill: COLOR.good, fontWeight: '800', letterSpacing: 1 },
+      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '800', letterSpacing: 1 },
     })
     head.position.set(SIDE_X + 18, y)
     this.side.addChild(head)

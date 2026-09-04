@@ -188,7 +188,7 @@ export class LeaderboardPanel implements ModalPanel {
     // 왼쪽 목록의 바탕. **굴러가는 것은 안쪽이고 바탕은 가만히 있습니다.**
     const listPlate = new Graphics()
     listPlate.roundRect(PAD - 8, BODY_Y - 8, LIST_W + 16, BODY_H + 16, 10)
-      .fill({ color: 0x111823, alpha: 0.72 })
+      .fill({ color: UI.cell, alpha: 0.72 })
     this.listScroll.position.set(PAD, BODY_Y)
 
     this.tableScroll.position.set(TABLE_X, TABLE_TOP)
@@ -348,13 +348,13 @@ export class LeaderboardPanel implements ModalPanel {
     const node = new Container()
     const text = new Text({
       text: label,
-      style: { fontSize: 14, fill: on ? 0x0d1520 : 0x9fb0c4, fontWeight: '700' },
+      style: { fontSize: 14, fill: on ? COLOR.ink : COLOR.inkDim, fontWeight: '700' },
     })
     const width = Math.round(text.width) + 28
     const plate = new Graphics()
     plate.roundRect(0, 0, width, TAB_H, 8)
-      .fill({ color: on ? COLOR.good : 0x1b2431 })
-      .stroke({ color: on ? COLOR.good : 0x2c3849, width: 1.5 })
+      .fill({ color: on ? UI.pick : UI.cell })
+      .stroke({ color: on ? UI.pick : UI.hairline, width: 1.5 })
     text.anchor.set(0.5)
     text.position.set(width / 2, TAB_H / 2)
     node.addChild(plate, text)
@@ -381,14 +381,14 @@ export class LeaderboardPanel implements ModalPanel {
       const row = new Container()
       const back = new Graphics()
       back.roundRect(2, y + 2, LIST_W - 14, LIST_ROW - 4, 7)
-        .fill({ color: on ? 0x24354a : 0xffffff, alpha: on ? 1 : 0.0001 })
-      if (on) back.roundRect(2, y + 7, 3, LIST_ROW - 14, 2).fill(COLOR.good)
+        .fill({ color: on ? UI.rule : 0xffffff, alpha: on ? 1 : 0.0001 })
+      if (on) back.roundRect(2, y + 7, 3, LIST_ROW - 14, 2).fill(UI.pick)
       row.addChild(back)
 
       const label = new Text({
         text: boardLabel(this.data, one),
         style: {
-          fontSize: 13, fill: on ? COLOR.ink : 0x93a3b8,
+          fontSize: 13, fill: on ? COLOR.ink : COLOR.inkDim,
           fontWeight: on ? '700' : '400',
         },
       })
@@ -430,7 +430,7 @@ export class LeaderboardPanel implements ModalPanel {
     ] as [string, number, number][]) {
       const cell = new Text({
         text: label,
-        style: { fontSize: 11, fill: 0x76869b, fontWeight: '700', letterSpacing: 1 },
+        style: { fontSize: 11, fill: COLOR.inkDim, fontWeight: '700', letterSpacing: 1 },
       })
       cell.anchor.set(anchor, 0)
       cell.position.set(TABLE_X + x, BODY_Y + 4)
@@ -438,7 +438,7 @@ export class LeaderboardPanel implements ModalPanel {
     }
 
     const line = new Graphics()
-    line.rect(TABLE_X, BODY_Y + HEAD_H, TABLE_W, 1).fill({ color: 0x2c3849 })
+    line.rect(TABLE_X, BODY_Y + HEAD_H, TABLE_W, 1).fill({ color: UI.hairline })
     this.tableHead.addChild(line)
 
     if (this.problem !== '') {
@@ -486,7 +486,7 @@ export class LeaderboardPanel implements ModalPanel {
   private say(into: Container, message: string): void {
     const text = new Text({
       text: message,
-      style: { fontSize: 14, fill: 0x76869b },
+      style: { fontSize: 14, fill: COLOR.inkDim },
     })
     text.anchor.set(0.5, 0)
     text.position.set(TABLE_W / 2, 90)
@@ -501,8 +501,8 @@ export class LeaderboardPanel implements ModalPanel {
     const back = new Graphics()
     if (mine) {
       back.roundRect(0, y, TABLE_W, ROW_H - 2, 6)
-        .fill({ color: 0x1f3348 })
-        .stroke({ color: COLOR.good, width: 1, alpha: 0.55 })
+        .fill({ color: UI.cell })
+        .stroke({ color: UI.bar, width: 1, alpha: 0.55 })
     } else {
       // **한 줄 걸러 옅게.** 25줄이 붙어 있으면 눈이 줄을 놓칩니다.
       back.roundRect(0, y, TABLE_W, ROW_H - 2, 6)
@@ -515,7 +515,7 @@ export class LeaderboardPanel implements ModalPanel {
     const place = new Text({
       text: String(rank),
       style: {
-        fontSize: 13, fill: mine ? COLOR.good : 0x8a99ad,
+        fontSize: 13, fill: mine ? UI.bar : COLOR.inkDim,
         fontWeight: mine ? '800' : '700',
       },
     })
@@ -536,7 +536,7 @@ export class LeaderboardPanel implements ModalPanel {
     const name = new Text({
       text: handle,
       style: {
-        fontSize: 13, fill: mine ? COLOR.ink : 0xb9c6d8,
+        fontSize: 13, fill: mine ? COLOR.ink : COLOR.ink,
         fontWeight: mine ? '800' : '400',
       },
     })
@@ -568,7 +568,7 @@ export class LeaderboardPanel implements ModalPanel {
       || String(one.tier) === tier)
     if (row) return Number.parseInt(row.color.slice(1), 16)
     // 시트에 없는 이름이면 회색입니다. 화면이 그 이름 때문에 그려지지 않는 일은 없습니다.
-    return 0x6f7d90
+    return COLOR.inkDim
   }
 
   // -------------------------------------------------------------------------
@@ -583,14 +583,14 @@ export class LeaderboardPanel implements ModalPanel {
 
     const plate = new Graphics()
     plate.roundRect(TABLE_X, y, TABLE_W, MINE_H, 9)
-      .fill({ color: 0x16202e })
-      .stroke({ color: shown?.me ? COLOR.good : 0x2c3849, width: 1.5,
+      .fill({ color: UI.cell })
+      .stroke({ color: shown?.me ? UI.pick : UI.hairline, width: 1.5,
                 alpha: shown?.me ? 0.7 : 1 })
     this.mineBar.addChild(plate)
 
     const tag = new Text({
       text: t('ui.lb.mine'),
-      style: { fontSize: 11, fill: COLOR.good, fontWeight: '800', letterSpacing: 1 },
+      style: { fontSize: 11, fill: UI.bar, fontWeight: '800', letterSpacing: 1 },
     })
     tag.anchor.set(0, 0.5)
     tag.position.set(TABLE_X + 12, y + MINE_H / 2)
@@ -602,7 +602,7 @@ export class LeaderboardPanel implements ModalPanel {
       const guest = !loggedIn()
       const none = new Text({
         text: guest ? t('ui.account.needLink') : t('ui.lb.noRecord'),
-        style: { fontSize: 13, fill: 0x76869b },
+        style: { fontSize: 13, fill: COLOR.inkDim },
       })
       none.anchor.set(0, 0.5)
       none.position.set(TABLE_X + 68, y + MINE_H / 2)
@@ -628,7 +628,7 @@ export class LeaderboardPanel implements ModalPanel {
     // 몇 명 중 몇 번째인가. **등수만으로는 그것이 좋은지 알 수 없습니다.**
     const of = new Text({
       text: `/ ${shown.total.toLocaleString('en-US')}`,
-      style: { fontSize: 12, fill: 0x76869b },
+      style: { fontSize: 12, fill: COLOR.inkDim },
     })
     of.anchor.set(0, 0.5)
     of.position.set(TABLE_X + 68 + rank.width + 8, y + MINE_H / 2 + 2)
@@ -671,7 +671,7 @@ export class LeaderboardPanel implements ModalPanel {
 
     const total = new Text({
       text: tf('ui.lb.total', { n: shown.total.toLocaleString('en-US') }),
-      style: { fontSize: 12, fill: 0x76869b },
+      style: { fontSize: 12, fill: COLOR.inkDim },
     })
     total.anchor.set(0, 0.5)
     total.position.set(TABLE_X + 2, middle)
@@ -679,7 +679,7 @@ export class LeaderboardPanel implements ModalPanel {
 
     const label = new Text({
       text: tf('ui.lb.page', { at, all: pages }),
-      style: { fontSize: 13, fill: 0xb9c6d8, fontWeight: '700' },
+      style: { fontSize: 13, fill: COLOR.ink, fontWeight: '700' },
     })
     label.anchor.set(0.5, 0.5)
     label.position.set(TABLE_X + TABLE_W - 52, middle)
@@ -702,11 +702,11 @@ export class LeaderboardPanel implements ModalPanel {
     const node = new Container()
     const plate = new Graphics()
     plate.roundRect(0, 0, 30, 30, 7)
-      .fill({ color: live ? 0x1b2431 : 0x161d28 })
-      .stroke({ color: live ? 0x2c3849 : 0x1f2833, width: 1 })
+      .fill({ color: live ? UI.cell : 0x161d28 })
+      .stroke({ color: live ? UI.hairline : 0x1f2833, width: 1 })
     const text = new Text({
       text: glyph,
-      style: { fontSize: 16, fill: live ? 0xb9c6d8 : 0x4a5568, fontWeight: '700' },
+      style: { fontSize: 16, fill: live ? COLOR.ink : 0x4a5568, fontWeight: '700' },
     })
     text.anchor.set(0.5)
     text.position.set(15, 15)
@@ -731,7 +731,7 @@ export class LeaderboardPanel implements ModalPanel {
 
     const text = new Text({
       text: t('ui.lb.loading'),
-      style: { fontSize: 13, fill: 0x9fb0c4, fontWeight: '700' },
+      style: { fontSize: 13, fill: COLOR.inkDim, fontWeight: '700' },
     })
     text.anchor.set(0.5)
     text.position.set(TABLE_X + TABLE_W / 2, TABLE_TOP + TABLE_H / 2)

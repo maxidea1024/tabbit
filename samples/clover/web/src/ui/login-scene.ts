@@ -351,7 +351,7 @@ export class LoginScene extends Container {
     const plate = new Graphics()
     plate.roundRect(0, 0, width, height, 8)
       .fill({ color: 0x151d2a, alpha: 0.92 })
-      .stroke({ color: this.langOpen ? COLOR.good : 0x2c3849, width: 1.5 })
+      .stroke({ color: this.langOpen ? UI.pick : UI.hairline, width: 1.5 })
     const label = new Text({
       text: LANGUAGE_NAMES[now],
       style: { fontSize: 13, fill: COLOR.ink, fontWeight: '700' },
@@ -380,7 +380,7 @@ export class LoginScene extends Container {
       const back = new Graphics()
       back.roundRect(0, rowY, width, height - 4, 7)
         .fill({ color: on ? 0x24354a : 0x151d2a, alpha: 0.96 })
-        .stroke({ color: on ? COLOR.good : 0x232e3d, width: 1 })
+        .stroke({ color: on ? UI.pick : UI.hairline, width: 1 })
       const text = new Text({
         text: LANGUAGE_NAMES[code],
         style: {

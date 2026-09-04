@@ -348,7 +348,7 @@ export class Title extends Container {
 
     const label = new Text({
       text: this.chipLabel === '' ? t('ui.account.link') : this.chipLabel,
-      style: { fontSize: 12, fill: COLOR.good, fontWeight: '700' },
+      style: { fontSize: 12, fill: UI.bar, fontWeight: '700' },
     })
     label.anchor.set(0.5, 0.5)
     label.position.set(ACCOUNT_W / 2, ACCOUNT_H / 2 + 12)
