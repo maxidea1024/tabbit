@@ -16,6 +16,7 @@
     "check:tray": "tsx tools/check-tray.ts",
     "check:crop": "tsx tools/check-crop.ts",
     "check:shop-rise": "tsx tools/check-shop-rise.ts",
+    "check:euphoria": "tsx tools/check-euphoria.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "headless": "tsx src/headless.ts",

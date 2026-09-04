@@ -244,3 +244,7 @@ samples/clover/design-data/out/sound-packs/
 # 받아 온 배경음 원곡. 같은 이유입니다 — `music.py --fetch` 가 다시 받고, 거기서 떼어 낸
 # 한 바퀴만 `web/public/music/` 에 담습니다. 셋이 24MB 라 담을 것도 아닙니다.
 samples/clover/design-data/out/music-source/
+
+# 환희의 순간에 도는 영상. **확인용이고 배포에 쓰지 않습니다** — 없으면 셰이더가 그 자리를
+# 맡으므로 담지 않습니다. 어느 문턱에 무엇이 도는지는 그 폴더의 readme 에 있습니다.
+samples/clover/web/public/effect/*.mp4

@@ -49,6 +49,7 @@ import {
   type Beat, type Feel,
 } from './juice'
 import { Coins } from './coins'
+import { Euphoria } from './euphoria'
 import { Haptics } from './haptics'
 import { fraction, Motion, Spring } from './motion'
 import { Particles } from './particles'
@@ -116,6 +117,17 @@ const BOARD_X = (LEFT + PANEL_W + 20 + SIZE.width) / 2
  * 정산·옵션·게임 방법은 화면 한가운데에 서므로 뜰 때마다 자리가 달라집니다.
  */
 const POPUP_X = SIZE.width / 2
+
+/**
+ * 칩과 배수가 뜻을 갖는 박자들.
+ *
+ * **정산 뒤의 박자도 그 값을 들고 있습니다.** 박자가 값을 나르는 것이 그 뜻이므로 — 다음
+ * 패를 깔고 돈을 주는 동안에도 마지막 값이 그대로 붙어 있습니다 — 문턱을 보는 자리는
+ * 득점하는 동안으로 한정합니다.
+ */
+const SCORING_BEATS: ReadonlySet<string> = new Set([
+  'HandEvaluated', 'CardScored', 'JokerTriggered', 'RunTriggered', 'JokerFizzled', 'Retriggered',
+])
 
 /** 상점의 것들이 하나씩 서는 간격. */
 const REVEAL_STEP = 0.13
@@ -696,6 +708,13 @@ export class Game {
   private cropRect?: Box
   /** 배경을 칠하는 흰 판. 창 크기를 그대로 받습니다. */
   private readonly sheet = new Sprite(Texture.WHITE)
+  /**
+   * 환희의 순간에 배경을 대신하는 겹.
+   *
+   * **배경 위에 얹힙니다.** 프랙탈을 갈아치우는 것이 아니라 그 위로 올라오므로 넘어가는
+   * 것이 보이고, 겹이 없는 동안에는 스프라이트가 꺼져 있어 필터가 돌지 않습니다.
+   */
+  private readonly euphoria = new Euphoria()
   private readonly board = new Container()
   private readonly overlay = new Container()
   /**
@@ -1716,7 +1735,9 @@ export class Game {
 
     // 배경은 흰 스프라이트 한 장에 셰이더를 얹은 것입니다.
     this.sheet.filters = [this.background]
-    this.backdrop.addChild(this.sheet)
+    this.backdrop.addChild(this.sheet, this.euphoria.view)
+    // 기가 모이는 자리는 낸 카드가 놓인 자리입니다. **판의 좌표는 고정이므로 한 번 적습니다.**
+    this.euphoria.setCenter(BOARD_X / SIZE.width, PLAY_Y / SIZE.height)
 
     // **판 밖은 잘라 냅니다.** 판은 1280 × 800 하나에 맞춰 그려지고, 창의 비율이 다르면
     // 옆이나 아래가 남습니다 — 배경이 그 자리까지 덮고 있었고, 그러면 판이 더 넓은 화면
@@ -2208,6 +2229,10 @@ export class Game {
     this.board.visible = true
     this.overlay.visible = true
     this.audio.unlock()
+    // **환희의 첫 영상을 미리 읽습니다.** 문턱을 넘는 순간에 읽기 시작하면 그 판의
+    // 앞부분이 셰이더로 지나갑니다. 타이틀에서는 읽지 않습니다 — 판을 열지 않는 사람에게
+    // 3MB 를 읽힐 이유가 없습니다.
+    this.euphoria.warm()
     this.applyOptions()
     this.settleShown()
     this.refresh()
@@ -2389,7 +2414,9 @@ export class Game {
     this.wasBusy = false
     this.hintShown = ''
 
-    // 번쩍임과 흔들림. **남겨 두면 타이틀이 흔들린 채로 섭니다.**
+    // 번쩍임과 흔들림. **남겨 두면 타이틀이 흔들린 채로 섭니다.** 환희의 겹도 같습니다 —
+    // 판을 접은 뒤에도 남아 있으면 타이틀에서 기를 모으고 있게 됩니다.
+    this.euphoria.reset()
     this.shake = 0
     this.freeze = 0
     this.panelGlow = 0
@@ -2635,6 +2662,9 @@ export class Game {
     // **비율이 고정입니다.** 배경이 판의 사각형에만 그려지므로 창의 비율과 상관이 없고,
     // 그래서 무늬가 기계마다 달라지지 않습니다.
     this.background.setAspect(SIZE.width / SIZE.height)
+    // 환희의 겹도 같은 사각형입니다. 배경과 어긋나면 넘어가는 동안 한쪽이 삐져나옵니다.
+    this.euphoria.layout(left, top, boxW, boxH)
+    this.euphoria.setAspect(SIZE.width / SIZE.height)
     this.sharpen(scale)
     // 뒷면은 글씨와 같은 배율로 굽습니다.
     bakeCardBacks(this.app.renderer, this.textScale)
@@ -3274,6 +3304,9 @@ export class Game {
       // 낸 카드가 왼쪽부터 한 장씩 판으로 올라갑니다. **이 박자가 끝날 때까지 아무것도
       // 세지 않습니다.**
       case 'HandPlayed':
+        // **지난 판의 겹은 여기서 물러납니다.** 남은 시간으로 저절로 사라지게 두면 다음
+        // 판의 카드가 그 배경 위로 올라옵니다.
+        this.euphoria.done()
         this.shown.hand = this.shown.hand.filter(uid => !event.uids.includes(uid))
         this.liftToPlayArea(event.uids)
         this.refresh()
@@ -3462,6 +3495,8 @@ export class Game {
       }
 
       case 'ScoreResolved':
+        // **모으던 것이 여기서 터집니다.** 문턱을 넘지 않은 판에서는 아무것도 하지 않습니다.
+        this.euphoria.release()
         // **더해집니다.** 이 판의 점수가 아니라 라운드에 쌓인 점수가 칸에 뜹니다.
         this.shown.score += event.score
         this.score.target = this.shown.score
@@ -3541,6 +3576,14 @@ export class Game {
     if (beat.mult !== undefined) this.mult.target = Math.round(beat.mult / 10_000)
     this.chips.emphasize(scaleOf(beat.intensity, this.feel))
     this.mult.emphasize(scaleOf(beat.intensity, this.feel))
+
+    // **환희의 문턱은 득점하는 박자마다 봅니다.** 조커가 배수를 올리는 도중에 넘어가므로
+    // 정산에서 한 번만 보면 모으는 것 없이 터지는 것만 남고, 반대로 **아무 박자에서나 보면
+    // 정산한 다음에 다시 모으기 시작합니다** — 정산 뒤의 박자들(다음 패 · 돈 · 격파)도 그
+    // 판의 칩과 배수를 그대로 들고 있기 때문입니다. 배수는 만 배로 적힌 값입니다.
+    if (SCORING_BEATS.has(event.t) && beat.chips !== undefined && beat.mult !== undefined) {
+      this.euphoria.consider(beat.chips * beat.mult / 10_000)
+    }
   }
 
   /**
@@ -4050,6 +4093,7 @@ export class Game {
     this.decayFlashes(seconds)
 
     this.background.advance(seconds)
+    this.euphoria.advance(seconds)
     this.punch.advance(seconds)
 
     // **필터는 필요할 때만 겁니다.** 늘 걸어 두면 판이 매 프레임 그림으로 한 번 구워지고,
@@ -4626,6 +4670,8 @@ export class Game {
           // 덮개의 짙기. **흐림과 같은 값으로 서고 같은 값으로 없어져야 합니다.**
           cover: Math.round(this.modals.cover * 1000) / 1000,
         }),
+        // 환희의 겹. **문턱을 넘은 판에서만 값이 있습니다.**
+        euphoria: () => this.euphoria.peek(),
         // 소모품 첫 칸이 지금 그려진 자리. 사서 오는 길을 재는 도구가 씁니다.
         itemX: () => this.consumableTiles[this.consumableTiles.length - 1]?.tile.x,
         jokerX: () => {
@@ -4642,6 +4688,17 @@ export class Game {
           this.money.reset(this.state.money)
           this.settleShown()
           this.refresh()
+        },
+        /**
+         * 환희의 겹을 그냥 켭니다.
+         *
+         * **문턱을 넘는 곱은 안티 3~4에서 나옵니다.** 그 판을 두는 동안 도구가 확인하려던
+         * 것과 상관없는 곳에서 멈추므로, 곱만 건네고 겹이 그것을 어떻게 다루는지를 봅니다.
+         * `release` 가 참이면 정산까지 갑니다.
+         */
+        forceEuphoria: (product: number, release = false) => {
+          this.euphoria.consider(product)
+          if (release) this.euphoria.release()
         },
         grantConsumable: (count: number) => {
           const rows = this.data.tables.tarot.records
@@ -6316,6 +6373,17 @@ export class Game {
     this.audio.music.play(phase === 'shop' ? 'shop' : 'round')
   }
 
+  /**
+   * 배경의 색.
+   *
+   * **환희의 겹도 같은 값을 받습니다.** 겹이 라운드의 색을 모르면 보스 라운드에서 배경만
+   * 붉고 그 위의 기는 초록인 화면이 됩니다.
+   */
+  private setMood(ink: [number, number, number], glow: [number, number, number]): void {
+    this.background.setMood(ink, glow)
+    this.euphoria.setMood(ink, glow)
+  }
+
   private syncMood(): void {
     const state = this.state
 
@@ -6323,7 +6391,7 @@ export class Game {
     // 그 겹의 변이 그대로 가로선으로 보입니다 — 어둡게 할 것은 배경이므로 배경을 어둡게
     // 합니다.
     if (this.scene !== 'run') {
-      this.background.setMood([0.012, 0.030, 0.020], [0.10, 0.34, 0.20])
+      this.setMood([0.012, 0.030, 0.020], [0.10, 0.34, 0.20])
       return
     }
 
@@ -6331,27 +6399,27 @@ export class Game {
     if (!this.presented) return
 
     if (state.phase === 'lost') {
-      this.background.setMood([0.05, 0.05, 0.058], [0.55, 0.5, 0.55])
+      this.setMood([0.05, 0.05, 0.058], [0.55, 0.5, 0.55])
       return
     }
     if (state.phase === 'won') {
-      this.background.setMood([0.075, 0.062, 0.026], [1, 0.82, 0.34])
+      this.setMood([0.075, 0.062, 0.026], [1, 0.82, 0.34])
       return
     }
     if (state.phase === 'shop') {
-      this.background.setMood([0.032, 0.062, 0.072], [0.32, 0.86, 0.82])
+      this.setMood([0.032, 0.062, 0.072], [0.32, 0.86, 0.82])
       return
     }
 
     switch (state.blind) {
       case BlindKind.Boss:
-        this.background.setMood([0.082, 0.024, 0.04], [1, 0.26, 0.33])
+        this.setMood([0.082, 0.024, 0.04], [1, 0.26, 0.33])
         break
       case BlindKind.Big:
-        this.background.setMood([0.062, 0.042, 0.082], [0.72, 0.42, 0.98])
+        this.setMood([0.062, 0.042, 0.082], [0.72, 0.42, 0.98])
         break
       default:
-        this.background.setMood([0.042, 0.052, 0.086], [0.30, 0.52, 0.98])
+        this.setMood([0.042, 0.052, 0.086], [0.30, 0.52, 0.98])
         break
     }
   }
