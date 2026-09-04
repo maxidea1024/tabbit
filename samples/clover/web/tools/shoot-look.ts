@@ -11,8 +11,8 @@ import { fileURLToPath } from 'url'
 import { chromium, type Browser, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, clearBlind, clickSpot, closeGuide, pass, peek, pickCards, pressPlay, pressTitle,
-  settle, skipLogin,
+  at, buyAffordablePack, clearBlind, clickSpot, closeGuide, grantMoney, openDeckView,
+  pass, peek, pickCards, pressPlay, pressTitle, settle, skipLogin,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -111,6 +111,20 @@ async function shootRun(browser: Browser): Promise<void> {
     await pass(page, wait)
     await shot(page, `shop-${i + 1}`)
   }
+
+  // 런 정보 판.
+  await openDeckView(page)
+  await pass(page, 700)
+  await shot(page, 'runinfo')
+  await page.keyboard.press('Escape')
+  await pass(page, 500)
+
+  // 팩을 뜯는 판. 돈을 넉넉히 놓고 첫 팩을 뜯습니다.
+  await grantMoney(page, 30)
+  await pass(page, 700)
+  await buyAffordablePack(page)
+  await pass(page, 900)
+  await shot(page, 'pack')
   await page.close()
 }
 

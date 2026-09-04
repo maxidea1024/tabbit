@@ -5409,7 +5409,7 @@ export class Game {
       if (row.here) {
         const band = new Graphics()
         band.roundRect(16, y - 4, width - 32, rowH - 4, 6)
-          .fill({ color: COLOR.accentTerm, alpha: 0.14 })
+          .fill({ color: UI.pick, alpha: 0.22 })
         layer.addChild(band)
       }
 
@@ -8037,8 +8037,12 @@ export class Game {
     const groups: { key: keyof Game['shopRows']; title: string; cells: number }[] = [
       { key: 'items', title: t('ui.shop.wares'), cells: cardCells },
       { key: 'packs', title: t('ui.kind.pack'), cells: packCells },
-      { key: 'voucher', title: t('ui.kind.voucher'), cells: 1 },
     ]
+    // **바우처 구획은 있을 때만 섭니다.** 이번 안테에 바우처가 없고 산 것도 없으면 — 살
+      // 것이 다 떨어진 안테가 그렇습니다 — 그 자리에 빈 칸 하나와 이름만 남습니다.
+    if (state.shop.voucher || state.shop.voucherBought) {
+      groups.push({ key: 'voucher', title: t('ui.kind.voucher'), cells: 1 })
+    }
     const spanOf = (cells: number) => cells * CELL_W + (cells - 1) * CELL_GAP
     const full = groups.reduce((sum, group) => sum + spanOf(group.cells), 0)
       + GROUP_GAP * (groups.length - 1)
