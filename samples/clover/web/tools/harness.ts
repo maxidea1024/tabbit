@@ -64,6 +64,14 @@ export interface Peek {
   /** 최근에 난 소리들. 새것이 뒤입니다. */
   sounds?: string[]
   /**
+   * 카드 앞면을 몇 장 굽고 몇 번 다시 썼는가.
+   *
+   * **다시 쓰는 쪽만 늘어야 맞습니다.** 앞면은 무늬 · 랭크 · 종이색 · 디버프가 같으면 같은
+   * 그림이므로, 카드를 고르고 무르는 동안 구운 장수가 함께 늘면 굽기가 낭비만 됩니다.
+   */
+  faceBakes?: { baked: number; reused: number; held: number
+                dropped: number; bytes: number }
+  /**
    * 글에 두른 테두리의 굵기.
    *
    * **말마다 다릅니다.** 굵기는 그 말의 획 사이 틈에서 나오는 값이고, 한 번 만들고 글만

@@ -15,20 +15,16 @@ import type { CardInstance } from '../core/state'
 import { EditionFilter, type EditionShader } from '../shader/editions'
 import { roundedMask } from '../shader/mask'
 import { PickFilter } from '../shader/pick'
-import { artFor } from './art'
-import { cardArtDir, cardPaper, drawsIndex, suitInk } from './card-set'
-import { cardArtId, cornerSize, drawFace, drawSuit } from './pips'
+import {
+  cardFaceTexture, clearCardFace, drawCardFaceVector, faceInk,
+} from './card-face'
+import { cardPaper, suitInk } from './card-set'
 import { Motion, sway, Spring } from './motion'
 import { cardBack, clearCardBack, drawCardBack } from './card-back'
 import { COLOR, SIZE } from './theme'
 
 /** 족보 도움의 색. **고른 카드의 초록과 달라야 헷갈리지 않습니다.** */
 const HINT_COLOR = 0xffc53d
-
-const RANK_TEXT: Record<number, string> = {
-  2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10',
-  11: 'J', 12: 'Q', 13: 'K', 14: 'A',
-}
 
 /** 강화가 카드 바탕에 주는 색. */
 const ENHANCEMENT_TINT: Partial<Record<EnhancementKind, number>> = {
@@ -110,37 +106,29 @@ export class CardView extends Container {
    * 넓이만 담는 통을 하나 두고 그 넓이를 못박습니다.
    */
   private readonly body = new Container()
-  private readonly paper = new Graphics()
   /**
    * 뒷면이 담기는 통.
    *
-   * **종이와 따로입니다.** 뒷면은 그린 선 하나가 아니라 통 하나입니다 — 무늬가 판 밖으로
+   * **앞면과 따로입니다.** 뒷면은 그린 선 하나가 아니라 통 하나입니다 — 무늬가 판 밖으로
    * 나가지 않게 자르는 것이 마스크이고, 마스크는 자식으로 붙습니다.
    */
   private readonly backNode = new Container()
-  private readonly cornerTop = new Text({
-    text: '', style: { fontSize: 19, fill: COLOR.black, fontWeight: '800' },
-  })
-  private readonly cornerBottom = new Text({
-    text: '', style: { fontSize: 19, fill: COLOR.black, fontWeight: '800' },
-  })
   /**
-   * 카드의 얼굴.
+   * 구워 둔 앞면.
    *
-   * **글자 하나가 아니라 그린 것입니다.** 5는 무늬가 다섯이어야 5로 읽히고, 킹에는 그림이
-   * 있어야 킹으로 읽힙니다 — 큰 무늬 하나로는 랭크가 모서리의 글자에만 남습니다.
+   * **종이 · 얼굴 · 테두리 · 모서리가 한 장에 있습니다.** 그 넷을 정하는 것은 「무늬 ·
+   * 랭크 · 종이색 · 디버프」뿐이고, `card-face.ts` 가 그 열쇠로 한 번 굽습니다 — 그러니
+   * 여기서 하는 일은 그림 하나를 걸어 주는 것입니다. 벡터로 그리던 때는 한 장이 채우기
+   * 명령 약 48개에 글 둘이었고, 그것이 `refresh` 마다 손패 전부에 다시 일어났습니다.
    */
-  private readonly face = new Graphics()
-  /** 카드의 테두리. **그림 위에 섭니다** — 그림이 카드를 덮기 때문입니다. */
-  private readonly edge = new Graphics()
+  private readonly faceSprite = new Sprite()
   /**
-   * 트럼프 그림.
+   * 굽지 못할 때의 앞면.
    *
-   * **있으면 이것이 얼굴 전부입니다.** 트럼프의 얼굴은 몇백 년째 같은 모양이고, 새로
-   * 지어낸 얼굴은 그 낱말을 잃습니다 — 그래서 이 한 벌만 공유 재산을 씁니다
-   * (`public/art/card/readme.md`). 아직 안 읽혔으면 `face` 가 그려서 채웁니다.
+   * **렌더러를 받기 전에도 카드가 그려집니다** — 타이틀의 카드와 미리보기 도구가 그렇습니다.
+   * 그때는 선으로 그리고, 이 통이 그것을 담습니다.
    */
-  private readonly picture = new Sprite()
+  private readonly faceNode = new Container()
   private readonly mark = new Text({
     text: '', style: { fontSize: 10, fill: 0x3a3226, fontWeight: '700' },
   })
@@ -207,11 +195,12 @@ export class CardView extends Container {
   constructor(card: CardInstance, look?: EditionLook) {
     super()
     this.uid = card.uid
-    this.body.addChild(this.paper, this.backNode, this.picture, this.face, this.edge,
-                       this.cornerTop, this.cornerBottom,
-      this.mark, this.seal)
-    this.picture.width = SIZE.cardWidth
-    this.picture.height = SIZE.cardHeight
+    this.body.addChild(this.faceSprite, this.faceNode, this.backNode, this.mark, this.seal)
+    this.faceSprite.setSize(SIZE.cardWidth, SIZE.cardHeight)
+    // **그림자는 한 번만 그립니다.** 카드가 무엇이든 같은 사각형이고, 바뀌는 것은 이 통의
+    // 자리와 알파뿐입니다.
+    this.shadow.roundRect(3, 6, SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius)
+      .fill({ color: 0x000000, alpha: 0.35 })
     // **넓이를 못박습니다.** 그리는 것에 따라 재면 획이 삐져나온 만큼 사각형이 커지고,
     // 그만큼 모양 그림이 밀립니다.
     this.body.boundsArea = new Rectangle(0, 0, SIZE.cardWidth, SIZE.cardHeight)
@@ -233,17 +222,11 @@ export class CardView extends Container {
     const h = SIZE.cardHeight
     const stone = card.enhancement === EnhancementKind.Stone
 
-    this.shadow.clear()
-    this.shadow.roundRect(3, 6, w, h, SIZE.cardRadius).fill({ color: 0x000000, alpha: 0.35 })
-
-    this.paper.clear()
     clearCardBack(this.backNode)
     if (card.faceDown || this.showBack) {
       drawCardBack(this.backNode, w, h, SIZE.cardRadius, cardBack())
-      this.cornerTop.visible = false
-      this.cornerBottom.visible = false
-      this.face.clear()
-      this.picture.visible = false
+      this.faceSprite.visible = false
+      clearCardFace(this.faceNode)
       this.mark.visible = false
       this.seal.clear()
       this.edition = undefined
@@ -252,72 +235,29 @@ export class CardView extends Container {
       return
     }
 
-    const paperColor = ENHANCEMENT_TINT[card.enhancement] ?? cardPaper()
-    this.paper.roundRect(0, 0, w, h, SIZE.cardRadius).fill(paperColor)
-    this.paper.roundRect(3, 3, w - 6, h - 6, SIZE.cardRadius - 3)
-      .stroke({ color: 0xffffff, width: 1, alpha: 0.5 })
-
-    if (card.debuffed) {
-      this.paper.roundRect(0, 0, w, h, SIZE.cardRadius).fill({ color: 0x2a2a2a, alpha: 0.55 })
+    // **앞면은 그림 하나입니다.** 종이 · 얼굴 · 테두리 · 모서리가 그 안에 함께 구워져
+    // 있고, 그것을 정하는 것이 이 다섯입니다.
+    const face = {
+      suit: card.suit,
+      rank: card.rank,
+      paper: ENHANCEMENT_TINT[card.enhancement] ?? cardPaper(),
+      debuffed: card.debuffed,
+      stone,
     }
-
-    const ink = card.debuffed ? 0x9a9a9a : suitInk(card.suit)
-
-    this.face.clear()
-    this.picture.visible = false
-
-    if (stone) {
-      // 석재는 랭크도 무늬도 없습니다. **돌 하나입니다.**
-      this.cornerTop.visible = false
-      this.cornerBottom.visible = false
-      this.face.circle(w / 2, h / 2, 22).fill(0x6f6a60)
-      this.face.circle(w / 2 - 5, h / 2 - 6, 7).fill({ color: 0x8b8578, alpha: 0.6 })
+    const ink = faceInk(card.debuffed, suitInk(card.suit))
+    const baked = cardFaceTexture(w, h, SIZE.cardRadius, face, ink)
+    if (baked) {
+      // **같은 스프라이트를 계속 씁니다.** 다시 만들면 `refresh` 마다 손패만큼의 스프라이트가
+      // 버려지고, 그 값은 벡터를 다시 그리는 것보다 작을 뿐 0이 아닙니다.
+      clearCardFace(this.faceNode)
+      this.faceSprite.texture = baked
+      this.faceSprite.setSize(w, h)
+      this.faceSprite.visible = true
     } else {
-      const dir = cardArtDir()
-      const texture = dir === undefined
-        ? undefined : artFor(dir, cardArtId(card.suit, card.rank))
-      if (texture) {
-        this.picture.texture = texture
-        this.picture.width = w
-        this.picture.height = h
-        this.picture.visible = true
-        // 강화는 그림에 색을 입혀 알립니다 — 그림 위에 덧그리면 얼굴이 가려집니다.
-        this.picture.tint = card.debuffed ? 0x8d8d8d : paperColor
-      } else {
-        drawFace(this.face, card.suit, card.rank, w, h, ink)
-      }
-
-      // **모서리는 그림 위에 그립니다.** 정본 한 벌만 모서리까지 그려져 있고, 우리가 굽는
-      // 세트는 그림 카드 12컷뿐입니다 — 모서리를 그림에 넣게 하면 52컷이 되고, 랭크의
-      // 글자를 그림 생성기가 틀립니다.
-      const index = texture === undefined || drawsIndex()
-      this.cornerTop.visible = index
-      this.cornerBottom.visible = index
-      if (index) {
-        this.cornerTop.text = RANK_TEXT[card.rank] ?? '?'
-        this.cornerBottom.text = this.cornerTop.text
-        this.cornerTop.style.fill = ink
-        this.cornerBottom.style.fill = ink
-        const corner = cornerSize(this.cornerTop.text, 19)
-        this.cornerTop.style.fontSize = corner
-        this.cornerBottom.style.fontSize = corner
-        // 모서리에는 랭크 아래에 작은 무늬가 붙습니다. **트럼프의 모서리가 그렇습니다** —
-        // 손에 부챗살로 쥐었을 때 보이는 것이 그 둘뿐이기 때문입니다.
-        drawSuit(this.face, card.suit, 14, 33, 12, ink)
-        drawSuit(this.face, card.suit, w - 14, h - 33, 12, ink, true)
-      }
+      this.faceSprite.visible = false
+      clearCardFace(this.faceNode)
+      drawCardFaceVector(this.faceNode, w, h, SIZE.cardRadius, face, ink)
     }
-
-    // **테두리는 얼굴 위에 그립니다.** 그림이 카드를 덮으므로 종이에 그으면 그림에 가려지고,
-    // 그림에 구워 넣으면 자른 자리와 그린 자리 사이에 바탕색 한 겹이 남습니다 — 그리고
-    // 구운 선은 디버프의 회색으로 바뀌지 않습니다.
-    this.edge.clear()
-    this.edge.roundRect(0.5, 0.5, w - 1, h - 1, SIZE.cardRadius)
-      .stroke({ color: card.debuffed ? 0x6b6b6b : COLOR.cardEdge, width: 2 })
-
-    this.cornerTop.position.set(8, 5)
-    this.cornerBottom.anchor.set(1, 1)
-    this.cornerBottom.position.set(w - 8, h - 5)
 
     const markKey = ENHANCEMENT_MARK_KEY[card.enhancement]
     this.mark.visible = markKey !== undefined

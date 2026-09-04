@@ -57,6 +57,7 @@ import { artFor, onArtReady, type ArtKind } from './art'
 import { backLookOf, bakeCardBacks, cardBack, drawCardBack, setCardBack } from './card-back'
 import { cardArtDir, cardBackMotif, cardPaper, drawsIndex, setCardSet, setLookOf, suitInk } from './card-set'
 import { drawGlyph, glyphFor, hashOf, hsl, shade } from './glyph'
+import { bakeCardFaces, cardFaceBakes } from './card-face'
 import { cardArtId, drawFace } from './pips'
 import { groove, mix } from './skin'
 import { COLOR, rarityColor, setUiTheme, SIZE, UI } from './theme'
@@ -2847,8 +2848,9 @@ export class Game {
     this.euphoria.layout(left, top, boxW, boxH)
     this.euphoria.setAspect(SIZE.width / SIZE.height)
     this.sharpen(scale)
-    // 뒷면은 글씨와 같은 배율로 굽습니다.
+    // 앞면과 뒷면은 글씨와 같은 배율로 굽습니다.
     bakeCardBacks(this.app.renderer, this.textScale)
+    bakeCardFaces(this.app.renderer, this.textScale)
   }
 
   /**
@@ -4901,6 +4903,10 @@ export class Game {
       // **글에 두른 테두리의 굵기.** 굵기는 그 말의 획 사이 틈에서 나오는 값이라 말마다
       // 다르고, 한 번 만들고 글만 갈아 끼우는 것들은 말이 바뀔 때 여기서 다시 정합니다 —
       // 그 길을 지났는지는 눈으로 보이지 않습니다. 굵기 차이가 1픽셀 아래입니다.
+      // **카드 앞면을 몇 장 굽고 몇 번 다시 썼는가.** 앞면은 「무늬 · 랭크 · 종이색 ·
+      // 디버프」가 같으면 같은 그림이라 한 번만 굽습니다 — 다시 쓰는 쪽만 늘어야 맞고,
+      // 구운 장수가 함께 늘면 열쇠에 매번 바뀌는 값이 섞인 것입니다.
+      faceBakes: cardFaceBakes(),
       inkWidth: {
         hand: strokeWidthOf(this.handLabel),
         headline: strokeWidthOf(this.headline),
