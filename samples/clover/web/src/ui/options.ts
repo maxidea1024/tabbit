@@ -207,9 +207,15 @@ const WHEEL_STEP = 48
 const TAB_H = 36
 /** 탭 줄의 윗변. */
 const TAB_Y = TITLE_BAR + 14
-/** 본문의 바탕. 고른 탭이 같은 색이라 둘이 한 장으로 보입니다. */
-const BODY = 0x1c2431
-const EDGE = 0x55637a
+/**
+ * 본문의 바탕과 테.
+ *
+ * **팔레트에서 읽습니다.** 고정색으로 두었더니 테마를 갈아도 이 판만 옛 색으로 남았습니다 —
+ * 고르는 사람이 보고 있는 것이 바로 이 판이라, 「고쳤는데 아무 일도 없다」로 읽힙니다.
+ * 고른 탭이 같은 색이라 둘이 한 장으로 보입니다.
+ */
+const body = (): number => UI.cell
+const edge = (): number => UI.rule
 /** 값을 고르는 줄 하나의 높이. */
 const ROW = 52
 /** 시드를 적을 수 있는 길이. 주소에 실려 나가므로 길게 둘 이유가 없습니다. */
@@ -751,7 +757,7 @@ export class OptionsPanel implements ModalPanel {
         .quadraticCurveTo(x + tabW, top, x + tabW, top + tr)
         .lineTo(x + tabW, ruleY + 4)
         .closePath()
-        .fill(0x141a24)
+        .fill(UI.panel)
       g.moveTo(x, ruleY + 4)
         .lineTo(x, top + tr)
         .quadraticCurveTo(x, top, x + tr, top)
@@ -779,9 +785,9 @@ export class OptionsPanel implements ModalPanel {
         .closePath()
     }
     merged(g)
-    g.fill(BODY)
+    g.fill(body())
     merged(g)
-    g.stroke({ color: EDGE, width: 1.5 })
+    g.stroke({ color: edge(), width: 1.5 })
 
     this.tabRow.addChild(g)
 

@@ -89,16 +89,33 @@ export function plate(g: Graphics, width: number, height: number, style: PlateSt
 export { gradient }
 
 /**
- * 무리를 가르는 줄 하나.
+ * 무리를 가르는 줄 하나. **양 끝은 실선이고 사이가 대시입니다.**
  *
- * **가로줄 하나는 웹 문서의 것입니다.** 파인 자리로 보이려면 밝은 줄과 그 아래 어두운 줄이
- * 한 쌍이어야 하고, 그 줄에 장식 하나가 박혀 있어야 그은 것이 아니라 만들어 넣은 것으로
- * 보입니다 — 양 끝은 실선이고 사이가 대시이며 가운데에 마름모가 앉습니다.
+ * 실선 한 줄이면 구획 머리의 선과 같은 것이 되는데, 그 둘은 하는 일이 다릅니다 — 구획
+ * 머리의 선은 이름 아래에 붙어 그 아래가 그 구획임을 말하고, 이 줄은 이름 없이 위아래를
+ * 갈라 놓기만 합니다. 대시가 그 차이입니다.
+ *
+ * **표식은 두지 않습니다.** 가르는 데 필요하지 않고, 그것 하나가 판마다 붙으면 디테일이
+ * 아니라 무늬입니다.
  */
 export function groove(g: Graphics, x: number, y: number, width: number,
                        color = UI.rule): void {
-  // **선 하나입니다.** 홈과 대시와 마름모가 있었고, 그것은 판의 장식이었습니다.
-  g.rect(x, y, width, 1.5).fill(color)
+  const cap = 14
+  const dash = 6
+  const gap = 5
+
+  const paint = (from: number, to: number): void => {
+    if (to - from < 0.5) return
+    g.moveTo(from, y).lineTo(to, y).stroke({ color, width: 1 })
+  }
+
+  // 양 끝은 실선입니다. **대시로 시작하면 줄이 흩어진 것으로 보입니다.**
+  paint(x, x + cap)
+  paint(x + width - cap, x + width)
+
+  for (let at = x + cap + gap; at < x + width - cap; at += dash + gap) {
+    paint(at, Math.min(at + dash, x + width - cap))
+  }
 }
 
 /**

@@ -2118,6 +2118,15 @@ export class Game {
    * 손댈 것이 없고, 남는 것이 왼쪽 판과 그 안의 칸들입니다.
    */
   private restyle(): void {
+    // **떠 있는 판들도 다시 세웁니다.** 열 때마다 다시 그리므로 대개는 손댈 것이 없지만,
+    // 테마를 고르는 그 판은 **지금 열려 있습니다** — 고른 사람이 보고 있는 것이 그 판이라,
+    // 그것만 옛 색으로 남으면 「고쳤는데 아무 일도 없다」로 읽힙니다. 말을 바꿀 때와 같은
+    // 자리에서 같은 일을 합니다.
+    this.optionsPanel.relabel()
+    this.guide.relabel()
+    this.jokerPool.relabel()
+    this.setupPanel.relabel()
+    this.challengePanel.relabel()
     this.panelPlate?.resize(PANEL_W + 24, SIZE.height - 44)
     this.drawFrames()
     this.panelGrooves.clear()
