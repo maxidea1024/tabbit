@@ -264,6 +264,14 @@ const PLAY_Y = 366
  */
 const DEALER = { x: SIZE.width + 150, y: PLAY_Y - 190 }
 /**
+ * 마지막 카드가 덱에 닿고 나서 덱이 그 자리에 남는 시간.
+ *
+ * **닿자마자 빠지면 마무리가 덜 된 것으로 보입니다.** 돌아온 카드가 덱에 쌓인 것을
+ * 보고 나서 덱이 물러나야 한 판이 닫힌 것이 됩니다 — 카드가 들어가는 것과 덱이 나가는
+ * 것이 같은 순간이면 마지막 한 장이 어디로 갔는지가 남지 않습니다.
+ */
+const DECK_LINGER = 0.5
+/**
  * 쓴 소모품의 네 마디.
  *
  * **눈이 따라갈 수 있는 길이여야 합니다.** 넷을 합쳐 1.5초 남짓이고, 그 사이에 판이 멈추지는
@@ -856,6 +864,8 @@ export class Game {
    * 중이고, 그 동안에도 마우스가 닿으면 지나가는 카드가 들려 올라갑니다.
    */
   private dealtUntil = 0
+  /** 이 시각까지는 덱이 자리에 남습니다. 마지막 카드가 덱에 닿을 때 정해집니다. */
+  private deckHold = 0
   private readonly jokers = new Map<number, JokerView>()
   /** 타는 중인 조커들. 다 타면 치웁니다. */
   private readonly burning: JokerView[] = []
@@ -904,8 +914,16 @@ export class Game {
    * 새로 만드므로 그때마다 여기도 새로 채웁니다.
    */
   private readonly shopTiles =
-    new Map<number, { tile: Container; baseY: number; price: Container;
-                     mid: number }>()
+    new Map<number, { tile: Container; baseX: number; baseY: number; price: Container;
+                     mid: number; key: string; slide: number }>()
+  /**
+   * 다시 세우기 전에 딱지들이 서 있던 자리. 물건마다 하나입니다.
+   *
+   * **남은 것이 미끄러져 빈자리를 메웁니다.** 상점은 다시 세울 때마다 딱지를 통째로 버리고
+   * 새로 만들므로, 그대로 두면 남은 물건이 새 자리에 툭 나타납니다 — 어느 것이 어디로 간
+   * 것인지가 없고, 산 것의 자리가 메워진 것으로도 읽히지 않습니다.
+   */
+  private readonly shopWas = new Map<string, number>()
   /**
    * 고른 것이 들리는 높이.
    *
@@ -1442,8 +1460,15 @@ export class Game {
   private arriveFrom: { x: number; y: number } | undefined
   /** 산 뒤에도 그 자리에 남아 있는 딱지들. 때가 되면 사라집니다. */
   private readonly leavingTiles: { node: Container; at: number }[] = []
-  /** 산 물건이 제 자리에 나타나기를 미루는 것. 딱지가 남아 있는 동안입니다. */
-  private arriveHold?: { uid: number; until: number }
+  /**
+   * 산 물건이 제 자리에 나타나는 것을 미루는 것. 산 딱지가 남아 있는 동안입니다.
+   *
+   * **번호가 아니라 갈래입니다.** 산 물건의 번호는 코어를 지나야 알 수 있는데, 코어를 지나는
+   * 그 자리에서 화면이 이미 한 번 그려집니다 — 번호를 알고 나서 붙들면 그 물건은 이미 줄에
+   * 서 있고, 다시 그려도 있는 것을 지우지는 않습니다. **사는 것은 줄의 끝에 붙으므로** 갈래와
+   * 시각만 있으면 되고, 그 표시는 액션보다 먼저 세울 수 있습니다.
+   */
+  private arriveHold?: { kind: 'joker' | 'item'; until: number }
 
   /**
    * 판 돈이 나오는 자리.
@@ -2462,6 +2487,7 @@ export class Game {
     this.playLanded = 0
     this.dealtUntil = 0
     this.flipAt.clear()
+    this.deckHold = 0
     this.blindEnter = 0
     this.blindShown = -1
     this.skipping = false
@@ -3159,6 +3185,12 @@ export class Game {
       const here = this.held?.kind === 'shop' && this.held.uid === slot
       one.tile.y = one.baseY - (here ? lift : 0)
       one.price.visible = !here
+      // 지난 자리에서 제자리로. **자리를 묻는 쪽에는 제자리를 답합니다** — 미끄러지는 것은
+      // 눈에 보이는 것뿐이고, 단추가 서는 자리와 동전이 나오는 자리는 닿을 자리입니다.
+      if (one.slide === 0) continue
+      one.slide -= one.slide * fraction(seconds, 14)
+      if (Math.abs(one.slide) < 0.5) one.slide = 0
+      one.tile.x = one.baseX + one.slide
     }
     for (const [slot, one] of this.packSlotTiles) {
       if (one.tile.destroyed) continue
@@ -3303,6 +3335,8 @@ export class Game {
       if (one.motion.x.value > DECK_X + 12) continue
       this.recalls.splice(i, 1)
       one.node.destroy()
+      // 닿은 마지막 한 장이 이 값을 정합니다. 그만큼 덱이 자리에 남습니다.
+      this.deckHold = this.clock + DECK_LINGER
       if (i % 4 === 0) this.audio.play('card_flip', 6 + (i % 5) * 2)
     }
   }
@@ -4067,6 +4101,9 @@ export class Game {
     label.position.set(
       target ? target.x : BOARD_X, (target ? target.y : SIZE.height / 2) - 46)
     label.resolution = this.textScale
+    // **떠오르는 글은 남아 있는 딱지 위입니다.** 산 물건이 그 자리에 잠깐 남으므로, 차례를
+    // 적어 두지 않으면 낸 값이 그 물건 뒤로 들어갑니다.
+    label.zIndex = 2
     this.overlay.addChild(label)
 
     // **그냥 뜨면 심심합니다.** 튀어나왔다가 부르르 떨며 올라갑니다.
@@ -4317,7 +4354,10 @@ export class Game {
     // 시작을 누르면 오른쪽에서 들어옵니다.
     // **화면의 국면입니다.** 코어의 국면을 보면 마지막 핸드를 내는 순간 덱이 빠지기
     // 시작하고, 걷힌 카드가 돌아갈 자리가 없습니다.
-    const away = this.shown.phase !== 'round'
+    //
+    // **돌아온 카드가 쌓인 것을 보고 나서 물러납니다.** 마지막 한 장이 닿는 그 프레임에
+    // 빠지기 시작하면 그 장이 덱에 들어간 것이 보이지 않습니다.
+    const away = this.shown.phase !== 'round' && this.clock >= this.deckHold
     this.deckSlide.target = away ? 300 : 0
     this.deckSlide.advance(seconds)
     this.deckLayer.x = this.deckSlide.value
@@ -4677,6 +4717,13 @@ export class Game {
       tagFly: this.tagFly ? [Math.round(this.tagFly.node.x), Math.round(this.tagFly.node.y)] : null,
       blindBoard: this.blindPick.visible ? `${this.blindShown}:${this.blindGroups.length}` : 'hidden',
       dealing: this.deals.length > 0 || this.clock < this.dealtUntil,
+      deckX: Math.round(this.deckLayer.x),
+      leaving: this.leavingTiles.length,
+      lingering: this.leavingTiles.filter(one => this.clock < one.at).length,
+      drawnItems: this.consumableTiles.length,
+      drawnJokers: this.jokers.size,
+      shopAt: [...this.shopTiles.entries()].map(([slot, one]) =>
+        [slot, Math.round(one.tile.x), Math.round(one.baseX)]),
       // 상점 판이 지금 서 있는 높이. **0 이면 다 선 것이고, 클수록 아래에 있습니다.**
       // 서기 시작하는 프레임에 이 값이 0 이면 다 선 모습이 한 번 그려진 것입니다.
       shopY: Math.round(this.shopLayer.y),
@@ -6752,10 +6799,12 @@ export class Game {
         edition: this.editionLook(joker.edition),
       }
 
+      // 산 딱지가 아직 그 자리에 있는 동안은 세우지 않습니다. 사는 것은 줄의 끝에 붙습니다.
+      if (this.arriveHold?.kind === 'joker' && this.clock < this.arriveHold.until
+          && index === this.state.jokers.length - 1) return
+
       let view = this.jokers.get(joker.uid)
       if (!view) {
-        // 산 딱지가 아직 서 있는 동안은 세우지 않습니다. 자리는 비워 둡니다.
-        if (this.arriveHold?.uid === joker.uid && this.clock < this.arriveHold.until) return
         view = new JokerView(joker, look)
         view.eventMode = 'static'
         view.cursor = 'pointer'
@@ -7547,8 +7596,9 @@ export class Game {
     this.publishRowSpots('item', spots, this.state.consumables.length)
 
     this.state.consumables.forEach((item, index) => {
-      // 산 딱지가 아직 서 있는 동안은 세우지 않습니다. 자리는 비워 둡니다.
-      if (this.arriveHold?.uid === item.uid && this.clock < this.arriveHold.until) return
+      // 산 딱지가 아직 그 자리에 있는 동안은 세우지 않습니다. 사는 것은 줄의 끝에 붙습니다.
+      if (this.arriveHold?.kind === 'item' && this.clock < this.arriveHold.until
+          && index === this.state.consumables.length - 1) return
       const name = this.consumableName(item.kind, item.id)
       const lines = this.consumableLines(item.kind, item.id)
 
@@ -7700,10 +7750,28 @@ export class Game {
    * 놓입니다.
    */
   private syncShop(): void {
+    // **산 딱지가 아직 그 자리에 있는 동안은 다시 세우지 않습니다.** 다시 세우는 것은 남은
+    // 것들을 당겨 빈자리를 메우는 것인데, 그 자리의 물건은 아직 사라지지 않았습니다 — 산
+    // 것이 그대로 보이는 채로 그 옆이 먼저 메워집니다. 딱지가 사라질 때 `advanceLeavingTiles`
+    // 가 다시 부릅니다.
+    //
+    // **상점을 떠났으면 그대로 세웁니다.** 판이 없어져야 하는데 이 길로 돌아가면 떠난 뒤에도
+    // 상점이 0.6초 더 서 있습니다.
+    if (this.state.phase === 'shop' && this.shopStanding && this.leavingTiles.length > 0) return
+
     // **지우는 그 자리에서 함께 비웁니다.** 딱지를 들고 있는 표가 둘 있는데, 그리는 쪽에서
     // 비우면 상점이 서지 않는 프레임에는 그 그리는 쪽에 닿지 않습니다 — 지워진 딱지가
     // 표에 남고, 매 프레임 그것의 자리를 만지는 곳이 그 자리에서 터집니다. 예외는 조용히
     // 삼켜지므로 화면은 멀쩡하고 그 뒤가 통째로 죽습니다.
+    // **버리기 전에 지금 자리를 적어 둡니다.** 새로 만든 딱지가 이 자리에서 출발합니다.
+    // 상점이 서 있지 않았으면 적을 것이 없고, 적어 두면 다음 상점의 첫 딱지가 지난 판의
+    // 자리에서 미끄러져 들어옵니다.
+    this.shopWas.clear()
+    if (this.shopStanding) {
+      for (const [, one] of this.shopTiles) {
+        if (!one.tile.destroyed) this.shopWas.set(one.key, one.tile.x)
+      }
+    }
     this.shopLayer.removeChildren().forEach(child => child.destroy())
     this.shopTiles.clear()
     this.packSlotTiles.clear()
@@ -8017,8 +8085,16 @@ export class Game {
       tile.cursor = afford ? 'pointer' : 'default'
       // **가운데를 딱지가 알고 있습니다.** 단추를 세우는 쪽이 너버를 다시 셀면
       // 배율이 붙을 때 어긋납니다 — 팝의 158 이 그러했습니다.
-      this.shopTiles.set(slot, { tile, baseY: tile.y, price,
+      // **지난 자리에서 미끄러져 옵니다.** 같은 물건이 이 줄에 둘 이상 서면 앞의 것부터
+      // 하나씩 가져갑니다 — 어느 쪽이 어느 쪽인지는 아무도 세지 않고, 둘 다 제자리로
+      // 오는 것으로 족합니다.
+      const key = `${item.kind}:${item.id}:${item.cost}:${item.edition}`
+      const was = this.shopWas.get(key)
+      this.shopWas.delete(key)
+      const slide = was === undefined ? 0 : was - tile.x
+      this.shopTiles.set(slot, { tile, baseX: tile.x, baseY: tile.y, price, key, slide,
                                  mid: tile.x + tileW * fit / 2 })
+      tile.x += slide
       // **누르면 고르기만 합니다.** 사는 것은 그 밑에 서는 단추가 합니다.
       tile.on('pointertap', () => {
         if (this.ate()) return
@@ -8242,8 +8318,8 @@ export class Game {
         this.sellFrom = item.kind === ShopItemKind.Joker
           ? this.jokerSpot(held) : this.itemSpot(held)
         this.boughtFrom = from
-        this.act({ t: 'swap', slot, index: held })
         this.holdArrival(item, from)
+        this.act({ t: 'swap', slot, index: held })
       })
       return
     }
@@ -8270,11 +8346,11 @@ export class Game {
     this.arriveFrom = from
     this.boughtFrom = from
 
-    this.act({ t: 'buy', slot })
-
-    // 물건은 딱지가 사라질 때 떠납니다. 소모품은 산 자리에서 제 칸으로 미끄러지고, 조커는
-    // 뷰가 용수철을 들고 있어 오는 길이 있습니다.
+    // **액션보다 먼저입니다.** 물건은 딱지가 사라질 때 떠나고, 그때까지 제 칸에 서지
+    // 않습니다 — 액션이 지나며 화면을 한 번 그리므로 그 뒤에 붙들면 늦습니다.
     this.holdArrival(item, from)
+
+    this.act({ t: 'buy', slot })
 
     // 날아가 닿는 데까지가 한 박자입니다. 닿는 자리에서 이름과 소리가 납니다.
     this.later.push({ at: this.clock + BUY_LINGER + LAND_AT, run: () => this.landed(item) })
@@ -8295,7 +8371,10 @@ export class Game {
     tile.removeFromParent()
     tile.position.copyFrom(at)
     tile.eventMode = 'none'
-    tile.zIndex = 8_500
+    // **상점 판 위, 떠오르는 글 아래입니다.** 상점 층이 `-1` 이므로 0 이상이면 판을 덮고,
+    // 값이 뜨는 글보다 높으면 그 글이 이 딱지 뒤로 들어갑니다 — 딱지를 남기는 것은 값을
+    // 그 물건 위에 얹기 위해서이므로 그 둘의 차례가 뒤집히면 남긴 뜻이 없어집니다.
+    tile.zIndex = 1
     this.overlay.addChild(tile)
     this.shopTiles.delete(slot)
     this.leavingTiles.push({ node: tile, at: this.clock + BUY_LINGER })
@@ -8303,18 +8382,25 @@ export class Game {
 
   /** 남아 있던 딱지들. 때가 되면 사라집니다. */
   private advanceLeavingTiles(seconds: number): void {
+    if (this.leavingTiles.length === 0) return
+    // **상점을 떠나면 그 자리에서 걷습니다.** 판이 없어지는데 그 위에 딱지 하나가 남습니다.
+    const gone = this.state.phase !== 'shop'
     for (let i = this.leavingTiles.length - 1; i >= 0; i--) {
       const one = this.leavingTiles[i]
       if (one.node.destroyed) {
         this.leavingTiles.splice(i, 1)
         continue
       }
-      if (this.clock < one.at) continue
-      one.node.alpha -= seconds / 0.16
-      if (one.node.alpha > 0) continue
+      if (!gone) {
+        if (this.clock < one.at) continue
+        one.node.alpha -= seconds / 0.16
+        if (one.node.alpha > 0) continue
+      }
       one.node.destroy()
       this.leavingTiles.splice(i, 1)
     }
+    // 다 사라졌습니다. 이제 남은 것들이 당겨져 빈자리를 메웁니다.
+    if (this.leavingTiles.length === 0) this.refresh()
   }
 
   /**
@@ -8325,10 +8411,12 @@ export class Game {
    * 때가 되면 산 자리에서 날아갑니다.
    */
   private holdArrival(item: ShopItem, from: { x: number; y: number }): void {
-    const list = item.kind === ShopItemKind.Joker ? this.state.jokers : this.state.consumables
-    const last = list[list.length - 1]
-    if (!last) return
-    this.arriveHold = { uid: last.uid, until: this.clock + BUY_LINGER }
+    // **줄에 서지 않는 것은 붙들지 않습니다.** 상점의 플레잉 카드는 덱으로 들어가므로 조커
+    // 줄에도 소모품 칸에도 자리가 없고, 그것을 소모품으로 세면 엉뚱한 한 칸이 비어 있습니다.
+    const kind = item.kind === ShopItemKind.Joker ? 'joker' as const
+      : isConsumable(item.kind) ? 'item' as const : undefined
+    if (!kind) return
+    this.arriveHold = { kind, until: this.clock + BUY_LINGER }
     this.later.push({
       at: this.clock + BUY_LINGER,
       run: () => {
