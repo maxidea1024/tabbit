@@ -1029,7 +1029,9 @@ export class OptionsPanel implements ModalPanel {
 
       // 고른 것은 파랑 테 하나로 알립니다 — 판 안의 다른 고른 것과 같은 규칙입니다.
       const frame = new Graphics()
-      frame.roundRect(0, 0, width, THEME_H, 8).fill({ color: look.panel, alpha: look.panelAlpha })
+      // **비치지 않게 채웁니다.** 판의 알파를 그대로 쓰면 뒤에 깔린 이 판의 색이 섞여
+      // 넷의 차이가 그만큼 줄어듭니다 — 미리보기는 그 테마의 색을 보이는 자리입니다.
+      frame.roundRect(0, 0, width, THEME_H, 8).fill(look.panel)
       frame.roundRect(0.75, 0.75, width - 1.5, THEME_H - 1.5, 8)
         .stroke({ color: here ? UI.pick : look.panelEdge, width: here ? 2 : 1.5 })
       cell.addChild(frame)

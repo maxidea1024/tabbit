@@ -94,23 +94,23 @@ export interface UiTheme {
 export const UI_THEMES: Record<string, UiTheme> = {
   /** 기본. 남흑에 따뜻한 갈색 테 — 참고한 카드룸의 것입니다. */
   slate: {
-    panel: 0x1b1d25, panelAlpha: 0.96, panelEdge: 0x4a3f36,
+    panel: 0x1b1d25, panelAlpha: 0.96, panelEdge: 0x6b5a45,
     rule: 0x3a3d4a, hairline: 0x2c2f3a, cell: 0x14161c, well: 0x0f1117,
   },
-  /** 검정. 중성 검정에 회색 테. 색이 가장 적습니다. */
+  /** 검정. 거의 검정에 회색 테. 판이 배경에 잠기고 카드만 남습니다. */
   ink: {
-    panel: 0x17181c, panelAlpha: 0.96, panelEdge: 0x3d3d40,
-    rule: 0x343437, hairline: 0x292a2d, cell: 0x101113, well: 0x0b0c0d,
+    panel: 0x101113, panelAlpha: 0.97, panelEdge: 0x44454b,
+    rule: 0x2e2f33, hairline: 0x212226, cell: 0x08090a, well: 0x000000,
   },
-  /** 남색. 차가운 남색 — 이 게임이 오래 쓰던 색입니다. */
+  /** 남색. 차가운 남색에 푸른 테 — 이 게임이 오래 쓰던 색입니다. */
   navy: {
-    panel: 0x1a2130, panelAlpha: 0.96, panelEdge: 0x3f4a5c,
-    rule: 0x35404f, hairline: 0x28303c, cell: 0x131a26, well: 0x0d121b,
+    panel: 0x18263f, panelAlpha: 0.96, panelEdge: 0x46618f,
+    rule: 0x33486b, hairline: 0x243450, cell: 0x101a2e, well: 0x0a1120,
   },
-  /** 밝은 회색. 판과 선이 한 단 밝아 테두리가 뚜렷합니다. */
+  /** 밝은 회색. 판과 테가 뚜렷하게 밝아 판의 경계가 멀리서도 보입니다. */
   bright: {
-    panel: 0x232733, panelAlpha: 0.98, panelEdge: 0x6a6f7d,
-    rule: 0x4b5160, hairline: 0x3a3f4b, cell: 0x1a1e28, well: 0x12151d,
+    panel: 0x2f353f, panelAlpha: 0.98, panelEdge: 0x8b93a2,
+    rule: 0x5a6273, hairline: 0x454c5a, cell: 0x21252d, well: 0x171a20,
   },
 }
 
