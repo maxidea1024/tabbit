@@ -8363,10 +8363,22 @@ export class Game {
     tile.hitArea = new Rectangle(0, 0, CELL_W, CELL_H)
     tile.cursor = afford ? 'pointer' : 'default'
     const key = `${item.kind}:${item.id}:${item.cost}:${item.edition}`
+    // **지난 자리에서 미끄러져 옵니다.** 상점은 다시 세울 때마다 딱지를 통째로 버리고 새로
+    // 만들므로, 그대로 두면 산 것의 빈자리를 메우는 남은 물건이 새 자리에 툭 나타납니다 —
+    // 어느 것이 어디로 간 것인지가 없고, 산 것의 자리가 메워진 것으로도 읽히지 않습니다.
+    //
+    // **한 번 쓴 자리는 지웁니다.** 같은 물건이 같은 값으로 둘 서 있으면 열쇠가 같으므로,
+    // 지우지 않으면 둘이 같은 자리에서 출발합니다.
+    const baseX = tile.x
+    const was = this.shopWas.get(key)
     this.shopWas.delete(key)
-    // 팔린 자리는 비어 남으므로 남은 칸이 미끄러질 일이 없습니다.
-    this.shopTiles.set(slot, { tile, baseX: tile.x, baseY: tile.y, price, key, slide: 0,
-                               mid: tile.x + CELL_W * fit / 2 })
+    // 처음 서는 물건은 미끄러지지 않습니다 — 그것은 진열이고, `reveal` 이 합니다.
+    const slide = was === undefined ? 0 : was - baseX
+    // **첫 프레임부터 지난 자리에 둡니다.** `advanceShopTiles` 는 다음 프레임에 도므로,
+    // 여기서 옮기지 않으면 새 자리에 한 프레임 보이고 나서 지난 자리로 뛰었다 돌아옵니다.
+    tile.x = baseX + slide
+    this.shopTiles.set(slot, { tile, baseX, baseY: tile.y, price, key, slide,
+                               mid: baseX + CELL_W * fit / 2 })
     // **누르면 고르기만 합니다.** 사는 것은 그 밑에 서는 단추가 합니다.
     tile.on('pointertap', () => {
       if (this.ate()) return
