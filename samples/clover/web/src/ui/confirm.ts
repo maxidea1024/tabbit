@@ -48,7 +48,7 @@ export class ConfirmPanel implements ModalPanel {
     const width = (WIDTH - 60 - gap) / 2
     const y = HEIGHT - 30 - 44
 
-    const no = new Button(t('ui.button.no'), width, 44, UI.slate,
+    const no = new Button(t('ui.button.no'), width, 44, UI.btn,
                           () => this.onClose(), 16)
     no.position.set(30, y)
 

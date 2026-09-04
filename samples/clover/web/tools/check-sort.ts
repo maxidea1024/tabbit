@@ -6,7 +6,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import { BUTTON_Y, at, openRun, pass, peek, skipLogin } from './harness'
+import { clickSpot, openRun, pass, peek, skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 
@@ -32,8 +32,8 @@ async function main(): Promise<number> {
 
   const before = (await peek(page)).hand.map(c => `${c.rank}${c.suit}`).join(' ')
 
-  const rank = await at(page, 16 + 264 + 30 + 46, BUTTON_Y + 7 + 16)
-  await page.mouse.click(rank.x, rank.y)
+  // **자리는 화면이 알립니다.** 셈해 적으면 단추의 크기를 고친 날부터 옆의 빈자리를 누릅니다.
+  await clickSpot(page, 'sort:rank')
   await pass(page, 600)
   const byRank = (await peek(page)).hand
   console.log(`  전     ${before}`)
@@ -41,8 +41,7 @@ async function main(): Promise<number> {
   verdict(byRank.every((c, i) => i === 0 || byRank[i - 1].rank >= c.rank),
     '랭크가 내림차순입니다')
 
-  const suit = await at(page, 16 + 264 + 130 + 46, BUTTON_Y + 7 + 16)
-  await page.mouse.click(suit.x, suit.y)
+  await clickSpot(page, 'sort:suit')
   await pass(page, 600)
   const bySuit = (await peek(page)).hand
   console.log(`  무늬순 ${bySuit.map(c => `${c.rank}${c.suit}`).join(' ')}`)

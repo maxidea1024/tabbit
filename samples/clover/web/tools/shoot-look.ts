@@ -92,13 +92,14 @@ async function shootRun(browser: Browser): Promise<void> {
 
   await clearBlind(page)
   await pass(page, 1400)
+  // 줄이 쌓이는 중. **합계는 아직 $ 낱개입니다** — 「받는다」 는 그 뒤에 열립니다.
+  await pass(page, 900)
+  await shot(page, 'payout-1')
   for (let wait = 0; wait < 60; wait++) {
     if ((await peek(page)).spots?.take) break
     await pass(page, 200)
   }
   await pass(page, 250)
-  await shot(page, 'payout-1')
-  await pass(page, 1400)
   await shot(page, 'payout-2')
 
   const take = (await peek(page)).spots?.take

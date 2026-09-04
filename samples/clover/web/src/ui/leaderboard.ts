@@ -646,7 +646,7 @@ export class LeaderboardPanel implements ModalPanel {
     // 밑단에 두면 눈이 한 번 더 옮겨 갑니다.
     const onPage = shown.rows.some(row => row.rank === shown.me?.rank)
     if (!onPage) {
-      const jump = new Button(t('ui.button.toMe'), 96, 26, UI.sky,
+      const jump = new Button(t('ui.button.toMe'), 96, 26, UI.light,
                               () => this.later(() => void this.loadPage('me')), 12)
       jump.position.set(TABLE_X + COL.value - amount.width - 118, y + (MINE_H - 26) / 2)
       this.mineBar.addChild(jump)

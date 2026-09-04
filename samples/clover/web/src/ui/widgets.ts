@@ -43,6 +43,21 @@ function luminance(color: number): number {
  */
 const CAPTION_OUTLINE = 0x0a1610
 
+/**
+ * 테마를 따라가는 단추의 색들.
+ *
+ * **만들 때 받은 수가 아니라 그 수의 이름을 기억합니다.** 단추는 색을 수로 받고, 겉면을
+ * 갈아 끼우면 그 수는 앞 겉면의 색입니다 — 뜻이 있는 색(노랑 · 붉음)은 고정이므로 그대로
+ * 두고, 판의 색으로 만든 단추만 그때그때 다시 읽습니다.
+ */
+const THEMED = ['btn', 'light', 'cell', 'locked'] as const
+type ThemedKey = typeof THEMED[number]
+
+/** 이 색이 지금 겉면의 어느 색인가. 아니면 `undefined` 입니다. */
+function themedKeyOf(color: number): ThemedKey | undefined {
+  return THEMED.find(key => UI[key] === color)
+}
+
 export class Button extends Container {
   private readonly board = new Graphics()
   private readonly caption = new Text({
@@ -70,6 +85,7 @@ export class Button extends Container {
               private readonly boxHeight: number,
               private readonly base: number, onPress: () => void, textSize = 15) {
     super()
+    this.themed = themedKeyOf(base)
     this.textSize = textSize
     this.caption.style.fontSize = textSize
     this.addChild(this.board, this.caption)
@@ -191,8 +207,23 @@ export class Button extends Container {
    */
   private get shownBase(): number {
     if (!this.enabledState) return UI.locked
-    return this.held ? UI.cream : this.base
+    if (this.held) return UI.light
+    // 판의 색으로 만든 단추는 지금의 겉면에서 다시 읽습니다.
+    return this.themed ? UI[this.themed] : this.base
   }
+
+  /**
+   * 겉면이 바뀌었을 때 다시 그립니다.
+   *
+   * **판때기는 그릴 때의 색으로 삼각화되어 있습니다.** 그래서 색만 갈아 끼워도 이미 그려
+   * 둔 단추는 앞 겉면의 색으로 남습니다 — 화면에 오래 서 있는 단추들이 그렇습니다.
+   */
+  restyle(): void {
+    this.draw()
+  }
+
+  /** 만들 때 받은 색이 겉면의 어느 것이었는가. 뜻이 있는 색이면 없습니다. */
+  private readonly themed?: ThemedKey
 
   private draw(): void {
     const base = this.shownBase
@@ -254,6 +285,11 @@ export class IconButton extends Container {
     if (this.lit === value) return
     this.lit = value
     this.place()
+    this.draw()
+  }
+
+  /** 겉면이 바뀌었을 때 다시 그립니다. 단추와 같은 이유입니다. */
+  restyle(): void {
     this.draw()
   }
 

@@ -233,7 +233,7 @@ export class LoginScene extends Container {
       // **제공자의 색은 작은 네모 하나에만 듭니다.** 단추 넷을 저마다의 색으로 칠하면
       // 어느 것을 고르라는 화면인지가 색으로 정해지지 않고, 화면에 채도가 넷 늘어납니다.
       const chip = new Graphics()
-      chip.roundRect(0, 0, 16, 16, 4).fill(TINT[provider.id] ?? UI.sky)
+      chip.roundRect(0, 0, 16, 16, 4).fill(TINT[provider.id] ?? UI.light)
       chip.position.set(16, (BUTTON_H - 16) / 2)
       button.addChild(chip)
       this.body.addChild(button)
@@ -244,7 +244,7 @@ export class LoginScene extends Container {
     // 동안 매번 제공자를 지나지 않기 위한 것이고, `import.meta.env.DEV` 안에 있으므로
     // 배포 빌드에는 이 코드가 없습니다.
     if (import.meta.env.DEV && this.dev) {
-      const fake = new Button(t('ui.account.devLogin'), BUTTON_W, BUTTON_H - 6, UI.slate,
+      const fake = new Button(t('ui.account.devLogin'), BUTTON_W, BUTTON_H - 6, UI.btn,
                               () => void this.signInAsDev(), 16)
       fake.position.set(SIZE.width / 2 - BUTTON_W / 2, y)
       this.body.addChild(fake)
@@ -286,7 +286,7 @@ export class LoginScene extends Container {
     this.body.addChild(rule, or)
     void y
 
-    const single = new Button(t('ui.account.guestStart'), BUTTON_W, BUTTON_H, UI.cream,
+    const single = new Button(t('ui.account.guestStart'), BUTTON_W, BUTTON_H, UI.light,
                               () => this.onSingle?.(), 18)
     single.position.set(SIZE.width / 2 - BUTTON_W / 2, singleY)
     this.body.addChild(single)

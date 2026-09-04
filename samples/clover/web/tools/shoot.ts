@@ -15,9 +15,9 @@ import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
   at, BOARD_X, buyAffordablePack, buyFirstAffordable, chooseFive, clickPrimary,
-  closeGuide, discardHand, hurry, itemSpot, jokerSpot, openDeckView, peek, pickCards,
-  playHand, pressPlay, rate, settle, shopSlot, skipLogin, spare, STAGE_H, STAGE_W,
-  TITLE_OPTIONS, TITLE_START
+  clickSpot, closeGuide, discardHand, hurry, itemSpot, jokerSpot, openDeckView, peek,
+  pickCards, playHand, pressPlay, rate, settle, shopSlot, skipLogin,
+  shopFront, spare, spot as toolSpot, TITLE_OPTIONS, TITLE_START
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -102,16 +102,21 @@ async function main(): Promise<number> {
   await page.waitForTimeout(500)
 
   // **족보 목록.** 줄에 마우스를 올리면 그 족보가 카드로 보입니다.
-  const listSpot = await at(page, 16 - 2 + 59, 662 + 17)
-  await page.mouse.click(listSpot.x, listSpot.y)
+  //
+  // **자리는 화면이 알린 것만 씁니다.** 단추의 자리와 판의 높이를 여기 베껴 적어 두었고,
+  // 단추가 옮겨지고 판이 자란 뒤로 이 도구는 판을 열지도 못한 채 빈 화면을 찍었습니다 —
+  // 그림에 판이 없는 것은 아무 줄도 실패로 만들지 않으므로 오래 남았습니다.
+  await clickSpot(page, 'runInfo')
   await page.waitForTimeout(600)
-  // 족보 판의 높이는 `game.ts` 의 `drawHandList` 와 같은 계산입니다.
-  const listH = 46 + 20 + 12 * 36 + 14 + 56
-  const rowSpot = await at(page, STAGE_W / 2 - 60,
-    (STAGE_H - listH) / 2 + 46 + 20 + 2 * 36 + 10)
+  const rowSpot = await toolSpot(page, 'handRow:2')
   await page.mouse.move(rowSpot.x, rowSpot.y)
   await page.waitForTimeout(400)
   await shoot('2d-hand-list')
+
+  // **인사이트.** 지금 판을 읽어 다음 한 수에 필요한 것만 줄로 적는 네 번째 갈래입니다.
+  await clickSpot(page, 'runInfoTab:insight')
+  await page.waitForTimeout(700)
+  await shoot('2e-insight')
   await page.keyboard.press('Escape')
   await page.waitForTimeout(500)
 
@@ -184,6 +189,14 @@ async function main(): Promise<number> {
 
   const finished = await peek(page)
   if (finished.phase === 'shop') {
+    // **정산을 받아야 상점이 섭니다.** 코어는 블라인드를 넘긴 그 자리에서 `shop` 이 되지만
+    // 화면은 정산 판을 세우고 기다리므로, 그것을 누르지 않으면 상점 판이 올라오지 않습니다.
+    //
+    // **국면만 보고 찍고 있었습니다.** 그래서 「상점」 이라는 이름의 그림에 라운드가 담겼고,
+    // 그 뒤의 `buyFirstAffordable` 은 상점 칸을 찾지 못해 「상점에 0번 칸이 없습니다」 로
+    // 끝났습니다 — 그림이 틀린 것은 사람이 봐야 알지만, 그 다음 줄이 멈추는 것은 이 도구가
+    // 스스로 말합니다.
+    await shopFront(page)
     await shoot('5-shop')
 
     // 조커를 먼저 삽니다. **조커가 없는 화면은 이 게임의 화면이 아닙니다** — 팩을 먼저
@@ -290,6 +303,10 @@ async function main(): Promise<number> {
     }
 
     if (state.phase === 'shop') {
+      // **여기도 정산을 먼저 받습니다.** 조커가 발동하는 장면을 찍은 그 손이 블라인드를
+      // 넘겼으면 국면은 이미 `shop` 이고, 화면은 정산 판을 세운 채입니다.
+      await shopFront(page)
+
       // 소모품이 아직 없으면 상점의 칸을 사 봅니다. **여러 상점을 지나면 타로나 행성이
       // 나옵니다** — 토스트를 찍으려면 쓸 것이 있어야 합니다.
       if (!shotToast && state.consumables === 0) {

@@ -41,6 +41,14 @@ const TOP = 214
  * 보냅니다 — 쌓아 두면 어느 것이 방금 온 것인지 알 수 없습니다.
  */
 const STACK = 3
+/**
+ * 앞의 것이 선 뒤 다음 것이 서기까지.
+ *
+ * **한꺼번에 밀어 넣어도 하나씩 섭니다.** 소모품 하나가 여러 가지를 하면 그 알림들이 같은
+ * 프레임에 들어오는데, 그것들이 함께 뜨고 함께 사라지면 세 줄이 한 덩어리로 보입니다 —
+ * 무엇이 몇 가지 일어났는지는 하나씩 서는 것으로 읽힙니다.
+ */
+const STAGGER = 0.55
 
 interface Entry {
   box: Container
@@ -56,6 +64,10 @@ interface Entry {
 
 export class Toasts extends Container {
   private readonly live: Entry[] = []
+  /** 아직 서지 않은 것들. 차례로 들여보냅니다. */
+  private readonly pending: Entry[] = []
+  /** 마지막으로 하나를 들여보낸 뒤 지난 시간. 처음 것은 기다리지 않습니다. */
+  private since = STAGGER
 
   /**
    * 줄이 서는 자리의 가운데.
@@ -123,31 +135,51 @@ export class Toasts extends Container {
 
     box.addChild(board, stripe, heading, body)
     box.pivot.set(WIDTH / 2, 0)
-    this.addChild(box)
+    // **아직 붙이지 않습니다.** 차례가 되면 `admit` 이 붙이고, 그때부터 이 줄의 시간이
+    // 흐릅니다 — 여기서 붙이면 같은 프레임에 들어온 것들이 함께 뜨고 함께 사라집니다.
+    this.pending.push({ box, life: seconds, span: seconds, slot: 0, height, shown: TOP })
+  }
+
+  /** 기다리던 것 하나를 세웁니다. */
+  private admit(): void {
+    const next = this.pending.shift()
+    if (!next) return
 
     // **셋까지만 섭니다.** 넘치면 가장 오래된 것을 서둘러 보냅니다.
     for (let i = 0; i < this.live.length - (STACK - 1); i++) {
       this.live[i].life = Math.min(this.live[i].life, 0.22)
     }
 
-    const slot = this.live.length
+    next.slot = this.live.length
     // 처음 뜨는 것은 미끄러지지 않고 제자리에서 시작합니다.
     let shown = TOP
     for (const above of this.live) shown += above.height + GAP
-    this.live.push({ box, life: seconds, span: seconds, slot, height, shown })
+    next.shown = shown
+    this.addChild(next.box)
+    this.live.push(next)
+    this.since = 0
   }
 
   get busy(): boolean {
-    return this.live.length > 0
+    return this.live.length > 0 || this.pending.length > 0
   }
 
   /** 떠 있는 줄을 전부 지웁니다. 판이 없어질 때뿐입니다. */
   clear(): void {
     for (const entry of this.live) entry.box.destroy()
     this.live.length = 0
+    for (const entry of this.pending) entry.box.destroy()
+    this.pending.length = 0
+    this.since = STAGGER
   }
 
   advance(seconds: number): void {
+    // 차례를 기다리는 것 하나를 세웁니다. **자리가 없으면 하나가 빠질 때까지 기다립니다.**
+    this.since += seconds
+    if (this.pending.length > 0 && this.since >= STAGGER && this.live.length < STACK) {
+      this.admit()
+    }
+
     for (let i = this.live.length - 1; i >= 0; i--) {
       const entry = this.live[i]
       entry.life -= seconds

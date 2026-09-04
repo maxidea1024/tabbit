@@ -189,8 +189,15 @@ export class CardView extends Container {
   selected = false
   /** 마우스가 카드 안 어디에 있는가. -1 에서 1 입니다. */
   pointer = 0
-  /** 늘 흔들리는 정도. 낸 카드는 얌전합니다. */
-  idle = 1
+  /**
+   * 늘 흔들리는 정도.
+   *
+   * **손패는 0 입니다.** 여덟 장이 저마다의 박자로 흔들리면 그 위에서 카드 하나를 고르는
+   * 일이 흔들리는 것을 맞히는 일이 됩니다 — 손패에서 눈에 보여야 하는 움직임은 가리킨
+   * 것이 들리는 것과 고른 것이 올라가는 것뿐입니다. 판으로 나간 카드는 값을 내는 동안
+   * 흔들립니다(`0.4` · `0.15`).
+   */
+  idle = 0
 
   constructor(card: CardInstance, look?: EditionLook) {
     super()
@@ -349,12 +356,11 @@ export class CardView extends Container {
     const g = this.hintRing
     g.clear()
     g.visible = false
-    // 두 겹입니다 — 카드에 붙은 선 하나와 그 밖의 옅은 선 하나. 밖의 것이 있어야 선이
-    // 종이의 무늬가 아니라 카드를 두른 것으로 읽힙니다.
-    g.roundRect(-4.5, -4.5, w + 9, h + 9, SIZE.cardRadius + 4)
-      .stroke({ color: HINT_COLOR, width: 2, alpha: 0.4 })
-    g.roundRect(-1.5, -1.5, w + 3, h + 3, SIZE.cardRadius + 1)
-      .stroke({ color: HINT_COLOR, width: 3 })
+    // **카드 아래의 동그라미 하나입니다.** 카드를 두르고 들어 올리던 것을 걷었습니다 —
+    // 그러면 도움을 받는 카드가 이미 고른 카드처럼 보여서, 무엇을 고른 것인지가 갈리지
+    // 않았습니다. 표시는 카드 밖에 있고 카드는 가만히 있습니다.
+    g.circle(w / 2, h + 11, 4.5).fill(HINT_COLOR)
+    g.circle(w / 2, h + 11, 4.5).stroke({ color: 0x0a0f18, width: 1.5 })
   }
 
   /** 1 고름 · -1 고르지 않음 · 0 그대로. */
@@ -504,11 +510,12 @@ export class CardView extends Container {
 
     // 숨쉬듯 밝아집니다. **한 번에 다 밝으면 눈이 가지 않고, 깜빡이면 거슬립니다.**
     if (this.hintRing.visible) {
-      this.hintRing.alpha = 0.42 + 0.42 * (0.5 + 0.5 * Math.sin(time * 3.4))
+      this.hintRing.alpha = 0.6 + 0.4 * (0.5 + 0.5 * Math.sin(time * 3.4))
     }
 
-    // 도움을 받는 카드는 조금만 들립니다. **고른 카드만큼 들리면 이미 고른 것으로 보입니다.**
-    const lift = this.hovered ? 16 : this.selected ? 26 : this.hintRing.visible ? 7 : 0
+    // **도움을 받는 카드는 들리지 않습니다.** 표시는 카드 아래의 동그라미이고, 들리는 것은
+    // 가리킨 것과 고른 것뿐입니다.
+    const lift = this.hovered ? 16 : this.selected ? 26 : 0
     const wobble = sway(time, this.motion.phase, 1.6 * this.idle, 1.4)
     const bob = sway(time, this.motion.phase * 1.7, 2.2 * this.idle, 0.9)
 

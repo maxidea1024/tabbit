@@ -337,13 +337,13 @@ export class ProfilePanel implements ModalPanel {
 
     const gap = 12
     const bw = (width - 80 - gap * 2) / 3
-    const rename = new Button(t('ui.button.confirmName'), bw, 40, UI.sky,
+    const rename = new Button(t('ui.button.confirmName'), bw, 40, UI.light,
                               () => this.onRename?.(), 14)
     rename.position.set(40, height - 62)
 
     // **여기서 곧바로 나가지 않습니다.** 묻는 것과 그 뒤의 화면 전환이 한 곳에 있어야
     // 하므로, 판은 부탁만 하고 화면이 합니다.
-    const out = new Button(t('ui.button.logout'), bw, 40, UI.slate, () => {
+    const out = new Button(t('ui.button.logout'), bw, 40, UI.btn, () => {
       this.onClose()
       this.onSignOut?.()
     }, 14)

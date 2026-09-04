@@ -16,7 +16,8 @@ const OUT = path.resolve(HERE, '../../design-data/out/check')
 const PORT = 5233
 
 /** `UI_SURFACE_KEYS` 와 같은 순서입니다. */
-const SURFACES = ['slate', 'ink', 'navy', 'bright'] as const
+const SURFACES = ['slate', 'ink', 'navy', 'bright',
+                  'green', 'wine', 'brown', 'violet'] as const
 
 const problems: string[] = []
 

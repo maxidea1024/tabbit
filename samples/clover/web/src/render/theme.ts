@@ -62,9 +62,12 @@ export const COLOR = {
 /**
  * 테마 하나가 정하는 것.
  *
- * **일곱입니다.** 바탕 · 테 · 선 둘 · 칸 · 진행 바의 바탕이고, 전부 어두운 무채색입니다 —
- * 강조색은 테마와 무관하게 고정입니다. 그래야 「돈은 노랑」 같은 약속이 테마를 바꿔도
- * 그대로 남습니다.
+ * **열입니다.** 판의 겉면 일곱(바탕 · 테 · 선 둘 · 칸 · 바의 바탕)과 단추 셋입니다.
+ *
+ * **뜻이 있는 색은 테마에 없습니다.** 돈의 노랑, 되돌릴 수 없는 것의 붉음, 고른 것의 파랑,
+ * 승리의 초록은 약속이므로 고정입니다 — 「돈은 노랑」 이 테마마다 달라지면 그것은 약속이
+ * 아닙니다. 뜻이 없는 단추(닫기 · 메뉴 · 타이틀로 · 정렬)는 판의 일부이므로 테마를
+ * 따라갑니다.
  */
 export interface UiTheme {
   /** 판. 배경 위에 얹히므로 조금 비칩니다. */
@@ -80,6 +83,25 @@ export interface UiTheme {
   cell: number
   /** 진행 바의 바탕. */
   well: number
+
+  /**
+   * 그 밖의 단추.
+   *
+   * **일반 단추는 테마를 따라갑니다.** 「닫기」·「메뉴」·「타이틀로」 처럼 뜻이 없는 단추가
+   * 판과 다른 계열의 회색이면 판마다 두 벌의 회색이 섞입니다 — 뜻이 있는 단추(나아감의
+   * 노랑, 되돌릴 수 없는 것의 붉음)만 고정입니다.
+   */
+  btn: number
+  /** 밝은 단추 · 고른 탭. 어두운 단추와 짝입니다. */
+  light: number
+  /**
+   * 잠긴 단추.
+   *
+   * **겉면의 색입니다.** 회색 하나로 고정해 두었더니 잠긴 단추만 판과 다른 계열이 되고,
+   * 잠기는 단추가 많은 화면(낼 수 없는 동안의 「낸다」·「버린다」, 살 수 없는 물건)에서는
+   * 그 회색이 판보다 먼저 보입니다 — 단추의 색을 판 쪽으로 절반쯤 당긴 값입니다.
+   */
+  locked: number
 }
 
 /**
@@ -96,26 +118,55 @@ export const UI_THEMES: Record<string, UiTheme> = {
   slate: {
     panel: 0x1b1d25, panelAlpha: 0.96, panelEdge: 0x6b5a45,
     rule: 0x3a3d4a, hairline: 0x2c2f3a, cell: 0x14161c, well: 0x0f1117,
+    btn: 0x3d4450, light: 0xc9e3ee, locked: 0x2e323d,
   },
   /** 검정. 거의 검정에 회색 테. 판이 배경에 잠기고 카드만 남습니다. */
   ink: {
     panel: 0x101113, panelAlpha: 0.97, panelEdge: 0x44454b,
     rule: 0x2e2f33, hairline: 0x212226, cell: 0x08090a, well: 0x000000,
+    btn: 0x33343a, light: 0xcfcfd4, locked: 0x232428,
   },
   /** 남색. 차가운 남색에 푸른 테 — 이 게임이 오래 쓰던 색입니다. */
   navy: {
     panel: 0x18263f, panelAlpha: 0.96, panelEdge: 0x46618f,
     rule: 0x33486b, hairline: 0x243450, cell: 0x101a2e, well: 0x0a1120,
+    btn: 0x34465f, light: 0xbcd2ea, locked: 0x273751,
   },
   /** 밝은 회색. 판과 테가 뚜렷하게 밝아 판의 경계가 멀리서도 보입니다. */
   bright: {
     panel: 0x2f353f, panelAlpha: 0.98, panelEdge: 0x8b93a2,
     rule: 0x5a6273, hairline: 0x454c5a, cell: 0x21252d, well: 0x171a20,
+    btn: 0x4a5160, light: 0xd7dde8, locked: 0x3e4451,
+  },
+  /** 초록. 카드를 늘어놓는 상의 색입니다 — 이 갈래의 게임에서 가장 오래된 색입니다. */
+  green: {
+    panel: 0x14251c, panelAlpha: 0.96, panelEdge: 0x4f6f52,
+    rule: 0x2c4634, hairline: 0x1e3325, cell: 0x0e1b14, well: 0x081109,
+    btn: 0x304a37, light: 0xc7e2cc, locked: 0x23392b,
+  },
+  /** 와인. 짙은 자주 — 붉음이 뜻을 가진 색이므로 판은 그보다 훨씬 어둡습니다. */
+  wine: {
+    panel: 0x2a1720, panelAlpha: 0.96, panelEdge: 0x86505d,
+    rule: 0x4c2d38, hairline: 0x371f29, cell: 0x1e1017, well: 0x150a10,
+    btn: 0x4e2e3a, light: 0xecc9d2, locked: 0x3e242e,
+  },
+  /** 갈색. 따뜻한 쪽입니다 — 크림색 카드와 같은 계열이라 판과 카드가 한 벌로 보입니다. */
+  brown: {
+    panel: 0x241c15, panelAlpha: 0.96, panelEdge: 0x8a6c48,
+    rule: 0x483a29, hairline: 0x342a1e, cell: 0x1a140f, well: 0x120d09,
+    btn: 0x4d3c29, light: 0xe8d8ba, locked: 0x3b2e20,
+  },
+  /** 자주. 남색보다 한 걸음 더 간 쪽이고, 금색이 가장 잘 서는 바탕입니다. */
+  violet: {
+    panel: 0x1f1b32, panelAlpha: 0.96, panelEdge: 0x6b5f9e,
+    rule: 0x3b3459, hairline: 0x282342, cell: 0x161327, well: 0x0f0c1c,
+    btn: 0x3f376a, light: 0xd2cbf2, locked: 0x312a51,
   },
 }
 
 /** 테마의 이름들. 옵션의 칸이 이 순서로 섭니다. */
-export const UI_THEME_KEYS = ['slate', 'ink', 'navy', 'bright'] as const
+export const UI_THEME_KEYS = ['slate', 'ink', 'navy', 'bright',
+                              'green', 'wine', 'brown', 'violet'] as const
 
 /**
  * 지금 쓰는 색 한 벌.
@@ -136,14 +187,6 @@ export const UI = {
 
   /** 값 · 돈 · 나아가는 단추. */
   yellow: 0xf5c518,
-  /** 그 밖의 단추. */
-  sky: 0xc9e3ee,
-  /** 고른 탭 · 권하지 않는 나아감(계정 없이 시작하기). */
-  cream: 0xefe6d3,
-  /** 물러나는 단추. */
-  slate: 0x3d4450,
-  /** 잠긴 단추. */
-  locked: 0x6a6f78,
   /** 진행 바 · 요구 점수 · 최고 핸드. */
   bar: 0x35c5f0,
   /** 고른 것. 목록의 줄과 물건 칸. */
@@ -152,6 +195,14 @@ export const UI = {
   green: 0x6fe0a8,
   /** 패배 · 모자란 수 · 살 수 없는 값 · 버리기. */
   red: 0xf07a6a,
+  /**
+   * 걸어 보는 것. **블라인드를 건너뛰는 단추입니다.**
+   *
+   * 상금을 버리고 태그 하나를 받는 것이므로 「그 밖의 일」이 아닙니다 — 판의 색으로 두면
+   * 닫기와 같은 무게로 보이고, 노랑으로 두면 나아가는 길로 보입니다. 둘 다 아닌 자리에
+   * 주황이 하나 있습니다.
+   */
+  dare: 0xd9772f,
   /** 밝은 단추 위의 글. */
   onLight: 0x1b1a17,
 }

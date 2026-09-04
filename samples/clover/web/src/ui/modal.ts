@@ -25,8 +25,23 @@ export interface ModalPanel {
   readonly size: { width: number; height: number }
   /** 뒤를 눌러 닫히는가. 적지 않으면 닫힙니다. */
   readonly dismissable?: boolean
+  /**
+   * 뒤를 덮는가. 적지 않으면 덮습니다.
+   *
+   * **판이 다른 자리로 데려가는 것일 때만 덮습니다.** 정산은 판이 도는 그 자리의 한 걸음이고
+   * 뒤에서 카드가 걷히는 것을 보는 중이므로, 덮으면 그 걸음이 끊깁니다 — 덮개가 없으면
+   * 흐림도 없습니다(흐림은 덮개의 짙기를 그대로 씁니다).
+   */
+  readonly covers?: boolean
   /** 닫힌 뒤에 부릅니다. 판이 자기 상태를 되돌릴 자리입니다. */
   onClosed?(): void
+  /**
+   * 프레임마다 부릅니다. 판 안에 움직이는 것이 있으면 여기서 흘립니다.
+   *
+   * **`advance` 가 아닙니다.** 판 스스로 프레임을 받는 것들이 이미 그 이름을 다른 인자로
+   * 쓰고 있어서, 같은 이름이면 그것들이 두 번 흐릅니다.
+   */
+  tick?(seconds: number): void
 }
 
 interface Entry {
@@ -204,6 +219,7 @@ export class Modals extends Container {
 
     for (let i = this.entries.length - 1; i >= 0; i--) {
       const entry = this.entries[i]
+      entry.panel.tick?.(seconds)
       entry.t += ((entry.leaving ? 0 : 1) - entry.t) * step
       entry.rumble = Math.max(0, entry.rumble - seconds * 5.5)
 
@@ -225,7 +241,7 @@ export class Modals extends Container {
 
     let cover = 0
     for (const entry of this.entries) {
-      cover = Math.max(cover, entry.t)
+      if (entry.panel.covers !== false) cover = Math.max(cover, entry.t)
       this.place(entry)
     }
 
@@ -249,14 +265,25 @@ export class Modals extends Container {
     const jitterY = shake === 0 ? 0 : (Math.random() - 0.5) * shake
 
     view.scale.set(scale)
+    // **밑변을 맞춥니다.** 판마다 높이가 다르므로 가운데에 놓으면 밑변이 판마다 다른 자리에
+    // 있고, 판을 잇달아 열면 그 밑변이 위아래로 움직입니다 — 상점은 바닥에 맞춰 서므로
+    // 그것과도 어긋났습니다. 아주 높은 판은 위가 넘치지 않게 그 자리에서 멈춥니다.
+    const bottom = PANEL_BOTTOM - size.height * scale
     view.position.set(
       SIZE.width / 2 - (size.width / 2) * scale + jitterX,
-      SIZE.height / 2 - (size.height / 2) * scale
-        + (1 - entry.t) * 58 - BACK_LIFT * back + jitterY)
+      Math.max(8, bottom) + (1 - entry.t) * 58 - BACK_LIFT * back + jitterY)
     view.alpha = entry.t * (1 - BACK_FADE * back)
     view.visible = entry.t > 0.01
   }
 }
+
+/**
+ * 떠 있는 판의 밑변.
+ *
+ * **모든 판이 이 자리에서 끝납니다.** 상점도 이 자리에 섭니다 — 값이 두 곳에 적혀 있으면
+ * 한쪽을 고칠 때 다른 쪽이 남고, 그러면 판을 바꿀 때마다 밑변이 한두 픽셀 튑니다.
+ */
+export const PANEL_BOTTOM = SIZE.height - 14
 
 /** 판 머리의 높이. **모든 판이 같습니다** — 제목이 판마다 다른 자리에 있으면 한 벌로 보이지 않습니다. */
 export const TITLE_BAR = 46
@@ -318,7 +345,7 @@ export function panelFrame(width: number, height: number, title: string,
   const paint = (lit: boolean) => {
     mark.clear()
     mark.roundRect(0, 0, 28, 28, 6)
-      .fill({ color: lit ? UI.slate : UI.cell })
+      .fill({ color: lit ? UI.btn : UI.cell })
     mark.roundRect(0.75, 0.75, 26.5, 26.5, 6)
       .stroke({ color: UI.rule, width: 1.5 })
     const ink = lit ? COLOR.ink : COLOR.inkDim
@@ -346,7 +373,7 @@ export function panelFrame(width: number, height: number, title: string,
   //
   // 부르는 쪽은 닫기를 만들지 않습니다 — 여기서 답니다. `extra` 는 그 판이 할 일이고,
   // 닫는 것이 아닙니다.
-  const shut = new Button(t('ui.button.close'), 132, 34, UI.slate, onClose)
+  const shut = new Button(t('ui.button.close'), 132, 34, UI.btn, onClose)
   const extraWidth = extra ? extra.width + 12 : 0
   const row = 132 + extraWidth
   // **판보다 넓어지지 않게 잡습니다.** 넘치면 버튼이 판의 좌우로 삐져나가고, 그것은

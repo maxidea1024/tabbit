@@ -15,7 +15,7 @@ import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 
 import {
-  closeGuide, MENU_BUTTON, TITLE_START
+  clickSpot, closeGuide, MENU_BUTTON, TITLE_START
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -126,9 +126,9 @@ async function main(): Promise<number> {
 
   await page.mouse.click(MENU_BUTTON.x, MENU_BUTTON.y)
   await page.waitForTimeout(700)
-  // 메뉴의 첫 줄이 옵션입니다. 판은 화면 가운데에 섭니다.
-  const menuH = 46 + 18 + 3 * 46 + 8
-  await page.mouse.click(640, (800 - menuH) / 2 + 46 + 18 + 19)
+  // 메뉴의 첫 줄이 옵션입니다. **자리는 화면이 알립니다** — 판이 서는 자리를 셈해 적으면
+  // 판의 정렬을 고친 날부터 빈자리를 누릅니다.
+  await clickSpot(page, 'menu:options')
   await page.waitForTimeout(800)
   check('판이 도는 중에 옵션이 열립니다', (await peek(page)).modalUp)
 

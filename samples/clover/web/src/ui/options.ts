@@ -194,8 +194,12 @@ const MIN_HEIGHT = 348 + FOOTER_BAR
  *
  * **판이 내용만큼 자라게 두지 않습니다.** 화면이 800이므로 탭 하나가 길어지면 판이 화면
  * 밖으로 나가고, 그때 마지막 줄은 어디에도 없습니다 — 넘치는 만큼은 본문이 굴러갑니다.
+ *
+ * **700은 아래 변에서 셈한 값입니다.** 판은 다른 판들과 같은 아래 변에 서므로 700이면
+ * 위가 102이고, 그보다 키우면 화면 위로 나갑니다. 620이었고 겉면이 여덟이 되면서 화면
+ * 탭의 마지막 줄 — 겉면의 이름 넷 — 이 창 밖으로 밀렸습니다.
  */
-const MAX_HEIGHT = 620
+const MAX_HEIGHT = 700
 /** 굴림 한 번에 움직이는 거리. */
 const WHEEL_STEP = 48
 /**
@@ -535,6 +539,11 @@ export class OptionsPanel implements ModalPanel {
    * **판 안의 쪽지와 같은 것입니다.** 옵션에만 따로 만들면 모습이 두 가지가 됩니다.
    */
   private readonly tip = new Tooltip()
+
+  /** 설명 쪽지가 튀어나오는 동안. 판 안에서 움직이는 것은 이것뿐입니다. */
+  tick(seconds: number): void {
+    this.tip.advance(seconds)
+  }
 
   private setName(setId: string): string {
     return this.sets.find(one => one.setId === setId)?.name ?? setId
@@ -901,7 +910,7 @@ export class OptionsPanel implements ModalPanel {
       }
 
       if (row.choices === undefined) {
-        const value = new Button(row.read(), 128, 34, UI.slate, () => {
+        const value = new Button(row.read(), 128, 34, UI.btn, () => {
           row.next()
           this.applyLater()
         })
@@ -981,7 +990,7 @@ export class OptionsPanel implements ModalPanel {
     }
 
     if (this.seedEditable) {
-      const dice = new Button(t('ui.button.random'), 96, height, UI.slate, () => {
+      const dice = new Button(t('ui.button.random'), 96, height, UI.btn, () => {
         this.editing = false
         this.buffer = ''
         this.seedText = randomSeed()
@@ -1055,7 +1064,7 @@ export class OptionsPanel implements ModalPanel {
       bits.roundRect(pad + cellW + 12, 41, cellW - 12, 5, 2.5).fill(look.well)
       bits.roundRect(pad + cellW + 12, 41, (cellW - 12) * 0.6, 5, 2.5).fill(UI.bar)
       // 밑단의 단추 둘. 나아가는 것과 그 밖의 것입니다.
-      bits.roundRect(pad, 60, Math.round(inner * 0.42), 14, 4).fill(UI.sky)
+      bits.roundRect(pad, 60, Math.round(inner * 0.42), 14, 4).fill(UI.light)
       bits.roundRect(pad + inner - Math.round(inner * 0.42), 60,
                      Math.round(inner * 0.42), 14, 4).fill(UI.yellow)
       cell.addChild(bits)
@@ -1148,7 +1157,7 @@ export class OptionsPanel implements ModalPanel {
       if (credit !== undefined) {
         cell.on('pointerover', () => this.tip.show(
           one.label, '', 0, [credit],
-          cell.x + width / 2, cell.y + CARD_ROW_H, this.size))
+          { x: cell.x + width / 2, top: cell.y, bottom: cell.y + CARD_ROW_H }, this.size))
         cell.on('pointerout', () => this.tip.hide())
       }
       this.body.addChild(cell)
@@ -1213,7 +1222,7 @@ export class OptionsPanel implements ModalPanel {
       const line = Math.floor(index / columns)
       // **고른 것은 `highlight` 가 알립니다.** 색을 따로 주면 그 색이 화면에 하나 더
       // 늘고, 고른 것을 알리는 방법이 판마다 달라집니다.
-      const button = new Button(choice.label, width, height, UI.slate, () => {
+      const button = new Button(choice.label, width, height, UI.btn, () => {
           row.pick?.(choice.key)
           this.applyLater()
         })

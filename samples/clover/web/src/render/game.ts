@@ -24,7 +24,9 @@ import { SealKind } from '../generated/enums/seal-kind'
 import { ShopItemKind } from '../generated/enums/shop-item-kind'
 import { SuitKind } from '../generated/enums/suit-kind'
 import type { Data } from '../core/data'
-import { describe } from '../core/describe'
+import { describe, valueText } from '../core/describe'
+import { insights, type Insight, type InsightLevel } from '../core/insight'
+import { snapshotHash } from '../core/hash'
 import { evaluate } from '../core/hand'
 import {
   apply, defaultRules, newRun, rewardOf, tagFor, targetOf, type Action,
@@ -59,7 +61,7 @@ import { cardArtDir, cardBackMotif, cardPaper, drawsIndex, setCardSet, setLookOf
 import { drawGlyph, glyphFor, hashOf, hsl, shade } from './glyph'
 import { bakeCardFaces, cardFaceBakes } from './card-face'
 import { cardArtId, drawFace } from './pips'
-import { groove, mix } from './skin'
+import { burst, groove, mix } from './skin'
 import { COLOR, rarityColor, setUiTheme, SIZE, UI } from './theme'
 import { box, type Box, CENTER, pointOf, putText, splitX } from '../ui/layout'
 import { Button, Panel } from '../ui/widgets'
@@ -79,16 +81,17 @@ import { busy as netBusy } from '../net/session'
 import { newMetrics, observe, type MetricsAcc } from '../core/metrics'
 
 import type { Scene } from './scene'
-import { FOOTER_BAR, panelFrame, TITLE_BAR } from '../ui/modal'
+import { FOOTER_BAR, PANEL_BOTTOM, panelFrame, TITLE_BAR } from '../ui/modal'
 import { cellPlate, hairline, priceText, ProgressBar, sectionHead, SECTION_H, valueCell } from '../ui/parts'
 import { Modals, type ModalPanel } from '../ui/modal'
 import type { ToolSpot } from '../ui/layout'
+import { ScrollView } from '../ui/scroll'
 import { richBlock, richLine } from '../ui/rich'
 import {
   chosen, loadOptions, OptionsPanel, saveOptions, type Options,
 } from '../ui/options'
 import { Toasts } from '../ui/toast'
-import { Tooltip } from '../ui/tooltip'
+import { type TipBox, Tooltip } from '../ui/tooltip'
 
 /**
  * 순위 글 안에서 숫자가 있는 자리.
@@ -147,6 +150,18 @@ const PAYOUT_STEP = 0.16
  */
 const PAYOUT_WAIT = 0.52
 /**
+ * 합계가 `$` 낱개로 쌓이는 것.
+ *
+ * **받는 것은 돈이므로 낱개로 보입니다.** 수가 먼저 서면 그것은 셈의 결과이고, 낱개가
+ * 쌓였다가 하나로 뭉치면 그 수가 방금 받은 그 돈이 됩니다.
+ *
+ * `COIN_MAX` 는 한 줄에 세우는 낱개의 한도입니다 — 그보다 많이 받는 판에서는 낱개가
+ * 「많다」 만 알리고 정확한 수는 뭉친 뒤의 글이 알립니다.
+ */
+const COIN_MAX = 28
+const COIN_STEP = 15
+const COIN_MERGE = 0.34
+/**
  * 상점의 바닥이 서는 자리.
  *
  * **바닥이 고정이고 윗변이 움직입니다.** 다 사서 줄이 없어지면 판이 아래에서 줄어들지
@@ -154,14 +169,20 @@ const PAYOUT_WAIT = 0.52
  * 달라집니다. 세 줄이 다 있을 때의 높이가 586 이므로 그때 윗변이 `y` 200 에 서고, 그것이
  * 조커와 소모품 줄(칸 수를 적은 글이 `y` 193 에서 끝납니다)의 바로 아래입니다.
  */
-const SHOP_BOTTOM = SIZE.height - 14
+const SHOP_BOTTOM = PANEL_BOTTOM
 /** 상점 판이 아래에서 올라와 서는 데 걸리는 시간. 줄은 그 뒤부터 채워집니다. */
 const SHOP_RISE = 0.34
 
 /** 뜯은 팩의 이름이 서는 자리. */
-const PACK_TITLE_Y = 236
-/** 펼친 카드의 가운데 높이. */
-const PACK_CARDS_Y = 420
+const PACK_TITLE_Y = 216
+/**
+ * 펼친 카드의 가운데 높이.
+ *
+ * **고른 한 장이 올라와도 지시문에 닿지 않는 자리입니다.** 고른 카드는 22픽셀 올라오고
+ * 1.07배로 커지므로 그만큼 위로 자라고, 그 윗변이 지시문 위로 올라가면 무엇을 하라는
+ * 글이 카드에 덮입니다 — 하나를 고른 그 순간에 가려집니다.
+ */
+const PACK_CARDS_Y = 432
 /**
  * 펼친 카드의 크기.
  *
@@ -256,8 +277,10 @@ function trayRow(tray: Box, count: number): { startX: number; spacing: number } 
   const spacing = count > 1
     ? Math.min(SLOT_STEP, (room - SIZE.jokerWidth) / (count - 1))
     : SLOT_STEP
-  const span = SIZE.jokerWidth + spacing * Math.max(0, count - 1)
-  return { startX: tray.x + (tray.width - span) / 2 + SIZE.jokerWidth / 2, spacing }
+  // **왼쪽부터 채웁니다.** 가운데에 모으면 하나 얻을 때마다 이미 있던 것들이 옆으로
+  // 밀립니다 — 조커는 왼쪽부터 차례로 발동하므로 그 순서가 자리의 순서여야 하고, 첫 칸이
+  // 언제나 같은 자리에 있어야 몇 번째 것을 누르는지가 손에 익습니다.
+  return { startX: tray.x + TRAY_PAD_X + SIZE.jokerWidth / 2, spacing }
 }
 
 /** 고른 것 아래의 단추 줄이 화면 끝에서 남기는 여백. */
@@ -279,6 +302,13 @@ const DEALER = { x: SIZE.width + 150, y: PLAY_Y - 190 }
  * 것이 같은 순간이면 마지막 한 장이 어디로 갔는지가 남지 않습니다.
  */
 const DECK_LINGER = 0.5
+/**
+ * 카드를 다 거둔 뒤 정산이 서기까지의 한 박자.
+ *
+ * **끝난 것을 보는 시간입니다.** 마지막 한 장이 덱에 닿는 그 프레임에 판이 올라오면 거둔
+ * 것과 다음 걸음이 한 동작으로 붙습니다.
+ */
+const SWEEP_REST = 0.5
 /**
  * 쓴 소모품의 네 마디.
  *
@@ -362,13 +392,6 @@ const ITEM_LINGER = 0.22
 const HOLD_TIP = 0.45
 /** 그 사이에 손가락이 이만큼 움직이면 누른 것이 아니라 끈 것입니다. */
 const HOLD_SLACK = 16
-/**
- * 고른 카드가 무슨 족보인지 뜨는 자리.
- *
- * **고른 카드는 줄에서 위로 올라옵니다.** 그만큼 띄워 두지 않으면 이 쪽지가 올라온 카드에
- * 걸터앉습니다.
- */
-const PREVIEW_Y = 430
 const HAND_Y = 608
 /** 버튼 줄. **패 아래입니다** — 패와 겹치면 카드를 고를 수가 없습니다. */
 /**
@@ -382,6 +405,14 @@ const BUTTON_Y = 728
 /** 낸다·버린다의 크기. */
 const PLAY_W = 148
 const PLAY_H = 56
+/**
+ * 정렬 단추 하나의 크기.
+ *
+ * **손가락으로 누를 수 있는 크기입니다.** 모바일에서 이것이 가장 작은 단추였습니다 —
+ * 자리를 세는 쪽이 이 값을 읽으므로, 키워도 둘이 겹치지 않습니다.
+ */
+const SORT_W = 112
+const SORT_H = 42
 /** 취소. 가운데에 서고 그 둘보다 좁습니다. */
 const CLEAR_W = 76
 /** 버튼 사이. **손가락 하나가 들어가야 합니다.** */
@@ -427,11 +458,18 @@ const DELTA_LIFE = 0.8
 const STEP_MS = 1000 / 60
 
 /** 떠오르는 글자가 사라지기까지. 밀리초. */
-const RISER_SPAN = 760
+const RISER_SPAN = 1_050
+/**
+ * 다 옅어지기 전에 온전히 서 있는 동안. `RISER_SPAN` 에 대한 비율입니다.
+ *
+ * **읽을 시간입니다.** 뜨는 순간부터 옅어지기 시작하면 「무엇이 얼마나」 를 읽기 전에
+ * 반쯤 사라지고, 조커가 이어서 발동하는 판에서는 그것이 지나가는 빛으로만 남습니다.
+ */
+const RISER_HOLD = 0.52
 
-/** 떠오르는 글자 하나. */
+/** 떠오르는 글자 하나. **글과 그 뒤의 번쩍임이 한 덩어리입니다.** */
 interface Riser {
-  label: Text
+  node: Container
   life: number
   homeX: number
   homeY: number
@@ -690,6 +728,13 @@ function boxInk(tint: number): number {
 }
 
 const DECK_X = SIZE.width - 62
+/**
+ * 카드를 거두는 동안 덱이 판 쪽으로 나오는 거리.
+ *
+ * **받는 것이 보여야 합니다.** 덱은 화면의 오른쪽 끝에 붙어 있어서, 그 자리에서 받으면
+ * 카드가 화면 밖으로 나가는 것과 구분되지 않습니다.
+ */
+const DECK_MEET = 54
 const DECK_Y = 608
 
 /**
@@ -701,10 +746,26 @@ const DECK_Y = 608
 /**
  * 「런 정보」 의 갈래.
  *
- * **한 판을 도는 동안 궁금해지는 것이 셋입니다** — 어느 족보가 몇 점인지, 이 안테의
- * 블라인드가 무엇인지, 지금 난이도가 무엇을 바꾸는지.
+ * **한 판을 도는 동안 궁금해지는 것이 넷입니다** — 어느 족보가 몇 점인지, 이 안테의
+ * 블라인드가 무엇인지, 지금 난이도가 무엇을 바꾸는지, 그리고 **지금 이 판에서 다음 한 수를
+ * 무엇으로 두어야 하는지**입니다.
+ *
+ * 넷째가 인사이트이고, 규격은 `doc/insight.md` 입니다. 앞의 셋은 표를 읽어 적는 것이고
+ * 그것 하나만 지금의 상태를 셉니다.
  */
-type RunInfoTab = 'hands' | 'blinds' | 'stakes'
+type RunInfoTab = 'hands' | 'blinds' | 'stakes' | 'insight'
+
+/**
+ * 인사이트 줄의 등급이 무슨 색인가.
+ *
+ * **셋뿐입니다** — 지금 손해를 보고 있는 것, 바꾸면 나아지는 것, 알아 두면 되는 것.
+ * 넷째를 두면 색만으로는 갈리지 않고 사람이 범례를 찾게 됩니다.
+ */
+const INSIGHT_COLOR: Record<InsightLevel, number> = {
+  warn: COLOR.bad,
+  advise: COLOR.good,
+  info: COLOR.inkDim,
+}
 
 interface PackFace {
   node: Container
@@ -974,6 +1035,10 @@ export class Game {
    */
   private readonly shopHeight = new Spring(0, 180, 22)
   /** 지금 그려진 상점 판의 틀. 높이가 움직이는 동안 매 프레임 다시 그립니다. */
+  /** 상점 밑단의 단추 둘과 그것이 열리는 시각. */
+  private shopFoot?: { reroll: Button; leave: Button; afford: boolean; readyAt: number }
+  /** 「받는다」 의 자리. **눌릴 수 있게 되면** `spots.take` 로 알립니다. */
+  private takeSpot?: { x: number; y: number }
   private shopFrame?: {
     node?: Container; foot: Container; body: Container
     x: number; width: number; height: number; drawn: number
@@ -1037,6 +1102,9 @@ export class Game {
   private readonly payout: ModalPanel = {
     view: new Container(),
     size: { width: 380, height: 240 },
+    // **뒤를 덮지 않습니다.** 정산은 판이 도는 그 자리의 한 걸음입니다 — 뒤에서 카드가
+    // 걷히고 다음 패가 깔리는 것을 보는 중인데 그것을 덮으면 걸음이 끊깁니다.
+    covers: false,
     // **다 닫힌 뒤에 상점이 섭니다.** 닫기를 누른 그 순간에 그리면 판이 아직 물러나는
     // 중이라 상점이 비어 보입니다.
     onClosed: () => {
@@ -1055,6 +1123,8 @@ export class Game {
    * 카드가 물러나고 나서입니다.
    */
   private payoutWanted = false
+  /** 카드가 다 걷힌 시각. **-1 은 아직 걷히는 중입니다.** */
+  private sweptAt = -1
   /**
    * 정산 판이 지금 떠 있는가.
    *
@@ -1249,9 +1319,6 @@ export class Game {
       fill: COLOR.ink, fontWeight: '800',
     },
   })
-  private readonly gauge = new Graphics()
-  /** 마지막으로 그린 게이지의 모습. 같으면 다시 그리지 않습니다. */
-  private gaugeKey = ''
   private readonly frames = new Graphics()
   /** 덱 더미. 상점에서는 화면 밖으로 밀려 나갑니다. */
   private readonly deckLayer = new Container()
@@ -1361,15 +1428,6 @@ export class Game {
   private readonly consumableLayer = new Container()
   /** 들고 있는 태그의 딱지들. */
   private readonly tagLayer = new Container()
-  /** 고른 카드가 무슨 족보인지. **이것이 없으면 감으로 내야 합니다.** */
-  private readonly preview = new Container()
-  private readonly previewPlate = new Graphics()
-  private readonly previewHand = new Text({
-    text: '', style: { fontSize: 19, fill: COLOR.ink, fontWeight: '800' },
-  })
-  private readonly previewValue = new Text({
-    text: '', style: { fontSize: 16, fill: COLOR.inkDim, fontWeight: '700' },
-  })
   /** 족보 목록. 무엇이 몇 점인지 볼 수 있어야 무엇을 키울지 정합니다. */
   private readonly handList: ModalPanel = {
     view: new Container(),
@@ -1535,6 +1593,21 @@ export class Game {
   private payoutBar?: {
     bar: ProgressBar; begin: number; ratio: number
     sum: Text; shown: number; poppedAt: number; rowAt: number[]; amounts: number[]
+    /**
+     * 합계의 `$` 낱개들.
+     *
+     * **줄이 설 때마다 그만큼 보입니다.** `coinRest` 는 저마다 서는 자리이고, 뭉칠 때
+     * 오른쪽 끝으로 모입니다 — `mergeAt` 가 0 이면 받을 것이 없어 낱개가 없습니다.
+     */
+    coins: Text[]; coinRest: number[]; coinTo: number
+    mergeAt: number; merged: boolean
+    /**
+     * 「받는다」 와 그것이 열리는 시각.
+     *
+     * **줄이 다 서기 전에는 잠깁니다.** 열려 있으면 셈이 도는 중에 눌리고, 그러면 얼마를
+     * 받은 것인지 보지 못한 채 판이 닫힙니다 — 합계가 다 센 뒤가 그 시각입니다.
+     */
+    take: Button; readyAt: number
   }
   /** 게임오버 판의 득점 바. */
   private overBar?: { bar: ProgressBar; begin: number; ratio: number }
@@ -1607,6 +1680,14 @@ export class Game {
   private gameOverShown = false
   private gameOverPop = 0
   private gameOverBoard?: Container
+  /**
+   * 게임오버 판이 앉는 자리.
+   *
+   * **다른 판들과 아래가 같습니다.** 이 판만 화면 가운데에 앉아 있었고, 판의 높이는 랭크
+   * 런인지에 따라 달라지므로 아래 변의 자리는 그때 셈해 둡니다 — 이 판의 아이들은 origin
+   * 을 가운데로 두고 놓이므로 절반을 올린 자리입니다.
+   */
+  private gameOverY = SIZE.height / 2
 
   private shake = 0
   /**
@@ -1632,6 +1713,18 @@ export class Game {
   private artDirty = false
   /** 마지막으로 센 최선의 조합. 패가 같으면 다시 세지 않습니다. `act` 가 비웁니다. */
   private hintCache?: { key: string; best: ReturnType<typeof bestHand> }
+  /**
+   * 마지막으로 센 인사이트.
+   *
+   * **판이 떠 있는 동안 `refresh` 마다 다시 그려지고**, 세는 것은 건식 실행 열몇 번입니다.
+   * 열쇠가 같으면 다시 세지 않습니다 — 열쇠에 담는 것이 답을 바꾸는 것 전부이고, 그
+   * 목록은 `doc/insight.md` 에 있습니다.
+   */
+  private insightCache?: { key: string; rows: Insight[] }
+  /** 인사이트 갈래의 굴림통. **갈래를 오갈 때 굴린 자리를 물려받지 않습니다.** */
+  private insightScroll?: ScrollView
+  /** 굴림통에 지금 그려져 있는 답의 열쇠. 같으면 다시 그리지 않습니다. */
+  private insightDrawn?: string
   /** 블라인드 고르기 판의 카드 셋. 들어오는 동안 자리만 옮깁니다. */
   private blindGroups: BlindGroup[] = []
   private screenDrawn = false
@@ -1692,7 +1785,8 @@ export class Game {
    * 나타내고, 그것은 계속되는 상태입니다 — 설명은 들어온 그 한 번의 사건이므로 무엇을
    * 띄웠는지를 따로 기억해야 합니다.
    */
-  private tipJoker?: JokerView
+  /** 지금 커서 밑에 있어 설명이 뜬 것. 조커 딱지이거나 손패의 카드입니다. */
+  private tipUnder?: Container
 
   /**
    * 꾸욱 누르고 있는 것.
@@ -1919,24 +2013,28 @@ export class Game {
       () => this.discard())
     // **가운데 버튼이 곧 몇 장 골랐는가입니다.** 점 다섯을 따로 두면 같은 것을 두 곳에서
     // 세게 되고, 그 둘 사이를 눈이 오갑니다.
-    this.clearButton = new Button('-', CLEAR_W, PLAY_H, UI.slate, () => this.clearSelection())
+    this.clearButton = new Button('-', CLEAR_W, PLAY_H, UI.btn, () => this.clearSelection())
     this.primaryButton = new Button(t('ui.button.select_blind'), 210, 50, UI.yellow, () => this.primary())
-    this.skipButton = new Button(t('ui.button.skip'), 150, 38, UI.slate,
+    this.skipButton = new Button(t('ui.button.skip'), 150, 38, UI.dare,
       () => {
         this.audio.play('blind_skip')
         this.act({ t: 'skip_blind' })
       })
-    this.rerollButton = new Button(t('ui.button.reroll'), 128, 44, UI.sky, () => this.reroll())
-    this.sortRankButton = new Button(t('ui.button.sort_rank'), 92, 32, UI.slate, () => this.sortHand('rank'))
-    this.sortSuitButton = new Button(t('ui.button.sort_suit'), 92, 32, UI.slate, () => this.sortHand('suit'))
+    this.rerollButton = new Button(t('ui.button.reroll'), 128, 44, UI.light, () => this.reroll())
+    this.sortRankButton = new Button(t('ui.button.sort_rank'), SORT_W, SORT_H, UI.btn, () => this.sortHand('rank'))
+    this.sortSuitButton = new Button(t('ui.button.sort_suit'), SORT_W, SORT_H, UI.btn, () => this.sortHand('suit'))
     // 위의 칸들과 같은 격자입니다 — 너비도 자리도.
     // **「족보 목록」 이 아니라 「런 정보」 입니다.** 족보는 그 안의 한 갈래가 되었습니다.
-    this.infoButton = new Button(t('ui.run_info.title'), 124, 34, UI.slate,
+    this.infoButton = new Button(t('ui.run_info.title'), 124, 34, UI.btn,
       () => this.toggleHandList())
-    this.menuButton = new Button(t('ui.button.menu'), 124, 34, UI.slate, () => this.openMenu())
+    this.menuButton = new Button(t('ui.button.menu'), 124, 34, UI.btn, () => this.openMenu())
     // **자리는 화면이 알립니다.** 도구가 좌표를 베껴 적으면 판을 고칠 때 한쪽만 고쳐집니다.
     this.spotNodes.set('runInfo', { node: this.infoButton, cx: 62, cy: 17 })
     this.spotNodes.set('menu', { node: this.menuButton, cx: 62, cy: 17 })
+    this.spotNodes.set('sort:rank',
+                       { node: this.sortRankButton, cx: SORT_W / 2, cy: SORT_H / 2 })
+    this.spotNodes.set('sort:suit',
+                       { node: this.sortSuitButton, cx: SORT_W / 2, cy: SORT_H / 2 })
 
     // **상점은 판 안에 섭니다.** 조커와 소모품 줄이 그 위로 지나가야 — 무엇을 가지고
     // 있는지를 보면서 사고, 산 것이 줄에 꽂히는 것도 보입니다.
@@ -1946,7 +2044,7 @@ export class Game {
     this.overlay.addChild(this.playButton, this.discardButton, this.primaryButton,
       this.clearButton, this.skipButton, this.rerollButton, this.packLayer,
       this.sortRankButton, this.sortSuitButton, this.infoButton, this.menuButton,
-      this.preview, this.blindPick, this.gameOver, this.heldBar)
+      this.blindPick, this.gameOver, this.heldBar)
     // **뜯은 팩은 판 위의 모든 것을 덮습니다.** 붙인 순서로만 두면 그 뒤에 붙는 버튼들이
     // 덮개 위로 올라옵니다 — 왼쪽 아래 버튼 둘이 팩을 뜯은 화면에 그대로 떠 있었습니다.
     this.overlay.sortableChildren = true
@@ -1956,8 +2054,6 @@ export class Game {
     // 눌러야 합니다.
     this.heldBar.zIndex = 600
 
-    this.preview.addChild(this.previewPlate, this.previewHand, this.previewValue)
-    this.preview.visible = false
     this.gameOver.visible = false
     // 낸다 · 취소 · 버린다. **취소가 가운데인 것이 맞습니다** — 둘 중 어느 쪽으로도
     // 가기 전에 되돌리는 것이기 때문입니다.
@@ -1974,8 +2070,12 @@ export class Game {
     this.skipButton.position.set(BOARD_X - 75, 586)
     this.rerollButton.position.set(BOARD_X - 64, 578)
     // 정렬 둘은 그 줄의 세로 가운데에 섭니다.
-    this.sortRankButton.position.set(LEFT + PANEL_W + 30, BUTTON_Y + (PLAY_H - 32) / 2)
-    this.sortSuitButton.position.set(LEFT + PANEL_W + 130, BUTTON_Y + (PLAY_H - 32) / 2)
+    //
+    // **간격은 단추의 너비에서 셉니다.** 100픽셀을 적어 두었고, 손가락으로 누를 수 있게
+    // 단추를 112픽셀로 키운 날부터 둘이 12픽셀 겹쳐 있었습니다.
+    const sortY = BUTTON_Y + (PLAY_H - SORT_H) / 2
+    this.sortRankButton.position.set(LEFT + PANEL_W + 30, sortY)
+    this.sortSuitButton.position.set(LEFT + PANEL_W + 30 + SORT_W + 10, sortY)
     // **판의 밑단에 붙입니다.** 위에 두면 그 아래가 통째로 빈 자리로 남습니다 — 왼쪽 판은
     // 화면 아래 22픽셀까지 내려오고, 버튼은 그 안쪽에 있으면 됩니다.
     this.infoButton.position.set(LEFT, 726)
@@ -2134,6 +2234,17 @@ export class Game {
     this.jokerPool.relabel()
     this.setupPanel.relabel()
     this.challengePanel.relabel()
+    // **화면에 오래 서 있는 단추들.** 판 안의 단추는 판을 열 때 새로 만들어지지만 이것들은
+    // 처음 한 번 그려지고 그대로 남습니다 — 겉면을 갈아 끼운 뒤에도 앞 겉면의 색이었고,
+    // 타이틀에 다녀와야 바뀌는 것으로 보였습니다.
+    for (const button of [this.playButton, this.discardButton, this.clearButton,
+                          this.primaryButton, this.skipButton, this.rerollButton,
+                          this.sortRankButton, this.sortSuitButton,
+                          this.infoButton, this.menuButton]) {
+      button.restyle()
+    }
+    this.title.restyle()
+    this.login.relabel()
     this.panelPlate?.resize(PANEL_W + 24, SIZE.height - 44)
     this.drawFrames()
     this.panelGrooves.clear()
@@ -2142,8 +2253,6 @@ export class Game {
                         this.hands, this.discards, this.money, this.anteSlot]) {
       slot.restyle()
     }
-    // 게이지는 채운 길이가 같으면 다시 그리지 않으므로, 그 기억을 지웁니다.
-    this.gaugeKey = ''
     this.refresh()
   }
 
@@ -2368,6 +2477,20 @@ export class Game {
     this.modals.open(ask)
   }
 
+  /**
+   * 타이틀로 가도 되는지 묻습니다.
+   *
+   * **런이 사라집니다.** 이어서 하는 길이 없으므로 되돌릴 수 없는 것이고, 메뉴의 줄
+   * 하나를 잘못 누른 사람에게는 그것이 사고입니다.
+   */
+  private askLeaveRun(): void {
+    const ask = new ConfirmPanel(
+      t('ui.title.leaveAsk'), t('ui.title.leaveBody'), t('ui.button.toTitle'), true,
+      () => this.enterTitle(),
+      () => this.modals.close(ask))
+    this.modals.open(ask)
+  }
+
   private async doSignOut(): Promise<void> {
     await this.hub.signOut()
     // **다시 묻습니다.** 「싱글플레이로 정했다」가 아니므로 그 표시를 지웁니다.
@@ -2526,7 +2649,7 @@ export class Game {
     this.hinted.clear()
     this.held = undefined
     this.drag = undefined
-    this.tipJoker = undefined
+    this.tipUnder = undefined
     this.handHovered = -1
     this.handBand = undefined
     this.handPreview = undefined
@@ -2551,6 +2674,7 @@ export class Game {
     this.shopBox = undefined
     this.shopRows = {}
     this.shopFrame = undefined
+    this.shopFoot = undefined
     this.shopSlide.snap(0)
     this.shopLayer.y = 0
     delete this.spots.take
@@ -2574,6 +2698,7 @@ export class Game {
     this.payoutWait = undefined
     this.payoutWanted = false
     this.payoutOpen = false
+    this.sweptAt = -1
 
     // 세고 있던 것들.
     this.playLanded = 0
@@ -2760,16 +2885,15 @@ export class Game {
       if (this.ate()) return
       this.toggleDeckView()
     })
-    this.tipOn(pile, () => {
-      this.tooltip.show(t('ui.button.deck_view'), '', 0, [t('ui.deck.tip')],
-        DECK_X, DECK_Y + 96, SIZE)
+    this.tipOn(pile, at => {
+      this.tooltip.show(t('ui.button.deck_view'), '', 0, [t('ui.deck.tip')], at, SIZE)
     })
 
     this.deckLayer.addChild(pile, this.deckLabel)
 
     // **고른 것의 단추는 판이 아니라 그 위의 층입니다.** 판에 두면 뜯은 팩이 판 전체를
     // 덮으므로 그 팩에서 집는 단추가 자기가 덮은 것 뒤로 들어갑니다.
-    this.board.addChild(this.deckLayer, this.headline, this.gauge, this.jokerCount,
+    this.board.addChild(this.deckLayer, this.headline, this.jokerCount,
       this.consumableCount, this.consumableLayer, this.tagLayer, this.activeLayer,
       this.hint, this.panelFlash)
   }
@@ -3416,7 +3540,7 @@ export class Game {
 
       if (!one.sent) {
         one.sent = true
-        one.motion.to(DECK_X, DECK_Y, 0)
+        one.motion.to(DECK_X - DECK_MEET, DECK_Y, 0)
         one.motion.scale.target = 0.92
       }
       one.motion.advance(seconds)
@@ -3426,7 +3550,7 @@ export class Game {
 
       // 덱에 닿았습니다. **소리는 몇 장에 한 번입니다** — 스무 장이 저마다 소리를 내면
       // 그것은 카드가 쌓이는 소리가 아니라 잡음입니다.
-      if (one.motion.x.value > DECK_X + 12) continue
+      if (one.motion.x.value > DECK_X - DECK_MEET + 12) continue
       this.recalls.splice(i, 1)
       one.node.destroy()
       // 닿은 마지막 한 장이 이 값을 정합니다. 그만큼 덱이 자리에 남습니다.
@@ -4081,7 +4205,11 @@ export class Game {
       const swept = this.playedViews.length === 0 && this.fades.length === 0
         && this.shown.hand.length === 0 && this.deals.length === 0
         && this.recalls.length === 0 && this.retired === 0
-      if (swept && !this.player.busy) {
+      // **다 거둔 그 프레임에 판이 서지 않습니다.** 마지막 한 장이 덱에 닿는 것과 정산이
+      // 올라오는 것이 겹치면 라운드가 끝난 것을 볼 틈이 없습니다 — 한 박자 둡니다.
+      if (!swept || this.player.busy) this.sweptAt = -1
+      else if (this.sweptAt < 0) this.sweptAt = this.clock
+      if (swept && !this.player.busy && this.clock - this.sweptAt >= SWEEP_REST) {
         this.payoutOpen = true
         this.drawPayout()
         this.modals.open(this.payout)
@@ -4192,22 +4320,36 @@ export class Game {
         fill: tint, fontWeight: '800',
       },
     })
-    label.anchor.set(0.5, 1)
-    label.position.set(
-      target ? target.x : BOARD_X, (target ? target.y : SIZE.height / 2) - 46)
+    label.anchor.set(0.5, 0.5)
     label.resolution = this.textScale
+
+    // **글 뒤에 번쩍임 하나를 둡니다.** 판 위에는 카드와 그림이 깔려 있어서, 테를 두른
+    // 글자만으로는 그 위에서 읽히지 않았습니다 — 만화가 소리를 적을 때 쓰는 그 모양이고,
+    // 뾰족함과 크기는 그 사건의 세기가 정합니다.
+    const flare = new Graphics()
+    burst(flare, label.width / 2 + 18 + intensity * 8, label.height / 2 + 12 + intensity * 6,
+          intensity, tint)
+
+    const node = new Container()
+    node.addChild(flare, label)
+    // **조커는 화면 위에 섭니다.** 그 위로 46픽셀 올리면 글이 화면 밖으로 나가고, 남은
+    // 것은 잘린 획 몇 개입니다 — 위가 좁으면 그 물건 아래에 답니다.
+    const x = target ? target.x : BOARD_X
+    const y = target ? target.y : SIZE.height / 2
+    const above = y - 46 - label.height / 2
+    node.position.set(x, above < 150 ? y + SIZE.jokerHeight / 2 + 44 : above)
     // **떠오르는 글은 남아 있는 딱지 위입니다.** 산 물건이 그 자리에 잠깐 남으므로, 차례를
     // 적어 두지 않으면 낸 값이 그 물건 뒤로 들어갑니다.
-    label.zIndex = 2
-    this.overlay.addChild(label)
+    node.zIndex = 2
+    this.overlay.addChild(node)
 
     // **그냥 뜨면 심심합니다.** 튀어나왔다가 부르르 떨며 올라갑니다.
     // **`tick` 을 거칩니다.** 틱커에 자기 콜백을 따로 걸면 히트스톱도 고정 단계도 타지
     // 않는 유일한 자리가 됩니다.
-    label.scale.set(0.4)
+    node.scale.set(0.4)
     this.risers.push({
-      label, life: 0,
-      homeX: label.x, homeY: label.y,
+      node, life: 0,
+      homeX: node.x, homeY: node.y,
       drift: (Math.random() - 0.5) * 34,
       rumble: 3 + intensity * 7,
     })
@@ -4224,17 +4366,18 @@ export class Game {
       const grow = one.life < 120
         ? 0.4 + 0.85 * (one.life / 120)
         : 1.25 - 0.25 * Math.min(1, (one.life - 120) / 220)
-      one.label.scale.set(grow + t * 0.18)
+      one.node.scale.set(grow + t * 0.18)
 
-      const fade = Math.max(0, 1 - t)
-      const shiver = one.rumble * fade * fade
-      one.label.x = one.homeX + one.drift * t + (Math.random() - 0.5) * shiver
-      one.label.y = one.homeY - t * 46 + (Math.random() - 0.5) * shiver
-      one.label.rotation = (Math.random() - 0.5) * 0.05 * fade
-      one.label.alpha = fade
+      // **먼저 서 있고 그다음에 옅어집니다.** 뜨는 순간부터 옅어지면 읽을 시간이 없습니다.
+      const fade = t < RISER_HOLD ? 1 : 1 - (t - RISER_HOLD) / (1 - RISER_HOLD)
+      const shiver = one.rumble * (1 - t) * (1 - t)
+      one.node.x = one.homeX + one.drift * t + (Math.random() - 0.5) * shiver
+      one.node.y = one.homeY - t * 46 + (Math.random() - 0.5) * shiver
+      one.node.rotation = (Math.random() - 0.5) * 0.05 * (1 - t)
+      one.node.alpha = fade
 
       if (one.life < RISER_SPAN) continue
-      one.label.destroy()
+      one.node.destroy()
       this.risers.splice(i, 1)
     }
   }
@@ -4452,7 +4595,11 @@ export class Game {
     // **돌아온 카드가 쌓인 것을 보고 나서 물러납니다.** 마지막 한 장이 닿는 그 프레임에
     // 빠지기 시작하면 그 장이 덱에 들어간 것이 보이지 않습니다.
     const away = this.shown.phase !== 'round' && this.clock >= this.deckHold
-    this.deckSlide.target = away ? 300 : 0
+    // **거둘 때에는 덱이 마주 나옵니다.** 카드가 화면 오른쪽 끝까지 날아가 사라지는
+    // 것으로 보였습니다 — 덱이 판 쪽으로 한 걸음 나와 받고, 다 받은 뒤에 그대로 오른쪽으로
+    // 물러납니다. 나온 자리에서 물러나므로 제자리로 돌아가는 걸음이 없습니다.
+    const meeting = this.recalls.length > 0 || this.clock < this.deckHold
+    this.deckSlide.target = away ? 300 : meeting ? -DECK_MEET : 0
     this.deckSlide.advance(seconds)
     this.deckLayer.x = this.deckSlide.value
     this.deckLayer.visible = this.deckSlide.value < 296
@@ -4465,13 +4612,14 @@ export class Game {
     this.advanceTagFly(seconds)
     this.advanceGameOver(seconds)
     this.title.advance(seconds)
+    this.tooltip.advance(seconds)
     this.modals.advance(seconds)
     // 조커 풀의 카드도 살아 있어야 합니다 — 에디션 무늬가 시간을 읽고 손을 올리면 들립니다.
     this.jokerPool.advance(seconds, this.clock)
 
     // 블라인드 판이 들어오는 동안 매 프레임 자리를 옮깁니다. **다시 만들지 않습니다.**
-    if (this.state.phase === 'blind-select' && this.blindEnter < 1) {
-      this.blindEnter = Math.min(1, this.blindEnter + seconds * 1.5)
+    if (this.state.phase === 'blind-select' && this.blindEnter < 0.999) {
+      this.blindEnter += (1 - this.blindEnter) * fraction(seconds, 9)
       for (const entry of this.blindGroups) this.placeBlindGroup(entry)
     } else if (this.state.phase !== 'blind-select') {
       this.blindEnter = 0
@@ -4492,8 +4640,6 @@ export class Game {
       this.drawGameOver()
     }
 
-    this.gauge.visible = this.shown.phase === 'round'
-    if (this.gauge.visible) this.drawGauge()
 
     if (!this.player.busy) {
       this.chips.emphasize(1)
@@ -4686,17 +4832,34 @@ export class Game {
    * **마우스와 손가락의 길이 다릅니다.** 마우스는 올리면 뜨고 벗어나면 닫히고, 손가락은
    * 꾸욱 누르면 뜹니다 — 부르는 자리마다 그 둘을 따로 적으면 언젠가 한쪽이 빠집니다.
    */
-  private tipOn(node: Container, show: () => void): void {
+  private tipOn(node: Container, show: (at: TipBox) => void): void {
+    // **자리는 여기서 셉니다.** 부르는 쪽마다 자기 지역 좌표를 적고 있었고, 그 물건이
+    // 층 안에 있으면(상점 판은 올라오는 중에 층이 움직입니다) 그만큼 어긋났습니다 —
+    // 물건이 화면에서 차지한 자리를 그 물건에게 물으면 어느 층에 있든 맞습니다.
+    const spot = () => show(this.tipBox(node))
     node.on('pointerover', event => {
       if (event.pointerType !== 'mouse') return
-      show()
+      spot()
     })
-    node.on('pointerdown', event => this.armPress(event, show))
+    node.on('pointerdown', event => this.armPress(event, spot))
     // **꾸욱 눌러 띄운 것은 떼어도 닫지 않습니다.** 손가락을 떼면 「벗어났다」 가 나므로,
     // 그것으로 닫으면 누르고 있는 동안에만 보입니다 — 읽을 시간이 없습니다.
     node.on('pointerout', () => {
       if (!this.pressShown) this.tooltip.hide()
     })
+  }
+
+  /**
+   * 그 물건이 쪽지의 좌표계에서 차지한 자리.
+   *
+   * **테두리를 물어봅니다.** 피벗과 배율과 층의 옮김이 저마다 다르므로, 좌표를 손으로
+   * 더하면 어느 하나에서 어긋납니다.
+   */
+  private tipBox(node: Container): TipBox {
+    const box = node.getBounds()
+    const from = this.world.toLocal({ x: box.x, y: box.y })
+    const to = this.world.toLocal({ x: box.x + box.width, y: box.y + box.height })
+    return { x: (from.x + to.x) / 2, top: from.y, bottom: to.y }
   }
 
   private updateHover(): void {
@@ -4734,16 +4897,25 @@ export class Game {
     //
     // **손가락으로는 이 길을 쓰지 않습니다.** 손가락은 뗀 뒤에도 그 자리가 그대로 남아서,
     // 설명이 떼고 나서도 붙어 있습니다 — 손가락은 꾸욱 눌러서 봅니다.
-    if (joker !== this.tipJoker) {
+    //
+    // **손패의 카드도 이 길을 씁니다.** 손가락으로는 꾸욱 눌러 볼 수 있는 것이 마우스로는
+    // 볼 수 없었습니다 — 강화와 인장이 붙은 카드가 무슨 값을 내는지는 카드의 얼굴만으로
+    // 알 수 없습니다. 겹쳐 있으면 조커가 먼저입니다(조커 자리가 위에 있습니다).
+    const under: Container | undefined = joker ?? card
+    if (under !== this.tipUnder) {
       // 밑에 있는 것이 달라졌으면 앞의 설명은 더 이상 그 자리의 것이 아닙니다. 팔려
       // 없어진 조커의 설명이 남지 않게, 닫는 것은 커서의 움직임을 묻지 않습니다.
-      if (this.tipJoker) {
+      if (this.tipUnder) {
         this.tooltip.hide()
-        this.tipJoker = undefined
+        this.tipUnder = undefined
       }
-      if (joker && this.pointerMoved && !this.touching) {
-        this.showTooltip(joker)
-        this.tipJoker = joker
+      if (under && this.pointerMoved && !this.touching) {
+        if (joker) this.showTooltip(joker)
+        else if (card) {
+          const held = this.state.deck.find(one => one.uid === card.uid)
+          if (held) this.showCardTip(held, false, true, card)
+        }
+        this.tipUnder = under
       }
     }
     // 이 프레임의 움직임은 여기서 다 쓰였습니다. **`updateHover` 가 프레임마다 한 번
@@ -4753,29 +4925,6 @@ export class Game {
 
   private tiltFor(view: Container): number {
     return Math.max(-1, Math.min(1, (this.pointerAt.x - view.x) / 90))
-  }
-
-  private drawGauge(): void {
-    const x = BOARD_X - 220
-    const y = 240
-    const width = 440
-    const height = 12
-
-    const ratio = this.state.target > 0
-      ? this.shown.score / Number(this.state.target) : 0
-    // **채운 길이가 같으면 다시 그리지 않습니다.** 판이 도는 내내 매 프레임 불리는데
-    // 점수는 대부분의 프레임에 그대로입니다.
-    const key = `${Math.round(width * Math.min(1, ratio))}|${ratio >= 1}`
-    if (key === this.gaugeKey) return
-    this.gaugeKey = key
-    this.gauge.clear()
-
-    this.gauge.roundRect(x, y, width, height, height / 2).fill(UI.well)
-    this.gauge.roundRect(x + 1, y + 1, (width - 2) * Math.min(1, ratio), height - 2,
-      (height - 2) / 2)
-      .fill(ratio >= 1 ? UI.green : UI.bar)
-    this.gauge.roundRect(x + 0.5, y + 0.5, width - 1, height - 1, height / 2)
-      .stroke({ color: UI.hairline, width: 1 })
   }
 
   private peek(): unknown {
@@ -4875,9 +5024,20 @@ export class Game {
       // 제자리로 돌아가는데 도구는 통과합니다 — 실제로 그런 결함이 있었습니다.
       // **버튼의 자리도 알립니다.** 도구가 같은 계산을 베껴 적으면 배치를 고칠 때 한쪽만
       // 고쳐지고, 그 도구는 엉뚱한 곳을 눌러 놓고 아무 말도 하지 않습니다.
-      spots: { ...this.spots, ...this.lateSpots(), ...this.optionSpots() },
+      spots: {
+        ...this.spots, ...this.lateSpots(), ...this.optionSpots(),
+        ...this.handRowSpots(),
+      },
       // 아무것도 없는 곳을 누른 횟수. **도구가 자기 좌표를 검사하는 자리입니다.**
       blankTaps: this.blankTaps,
+      // **인사이트 판에 지금 무엇이 서 있는가.** 판이 떠 있을 때만 값이 있습니다.
+      //
+      // 갈래와 열쇠까지 알립니다 — 줄 수만 알리면 「몇 줄 있다」까지이고, 그것은 문장이
+      // 열쇠 그대로 적혀 있어도 같은 답입니다. 열쇠를 알리면 도구가 그것을 시트와 견줄 수
+      // 있고, **그 줄이 어느 국면에 나오지 않아야 하는지도 볼 수 있습니다.**
+      insight: this.modals.has(this.handList) && this.runInfoTab === 'insight'
+        ? { keys: this.insightRows().map(one => one.key) }
+        : undefined,
       // 소리가 비는 자리를 찾을 때 씁니다 — 시계로 재면 배속과 히트스톱에서 어긋납니다.
       coming: this.player.coming ?? '',
       // 최근에 난 소리들. **「이 순간에 왜 이 소리가 나느냐」를 도구가 물을 자리입니다.**
@@ -5120,7 +5280,6 @@ export class Game {
     this.syncButtons()
     this.syncMood()
     this.syncMusic()
-    this.drawPreview()
     this.previewSlots()
     // 떠 있는 판만 다시 그립니다. **닫힌 판을 그리는 것은 낭비이고**, 남은 카드는 덱
     // 52장을 매번 만듭니다.
@@ -5294,47 +5453,6 @@ export class Game {
     this.mult.target = (row?.baseMult ?? 0) + (row?.multPerLevel ?? 0) * (level - 1)
   }
 
-  private drawPreview(): void {
-    const picked = this.orderedSelection()
-      .map(uid => this.state.deck.find(card => card.uid === uid))
-      .filter((card): card is CardInstance => card !== undefined)
-
-    const hinting = picked.length === 0 && this.hinted.size > 0
-    this.preview.visible = this.state.phase === 'round' && (picked.length > 0 || hinting)
-    if (!this.preview.visible) return
-
-    // 고른 것이 없으면 **권하는 조합**을 보여 줍니다. 무엇을 고르면 되는지가 글로도
-    // 적혀 있어야 카드의 표시가 무슨 뜻인지 압니다.
-    const cards = picked.length > 0
-      ? picked
-      : this.state.hand
-        .map(uid => this.state.deck.find(card => card.uid === uid))
-        .filter((card): card is CardInstance => card !== undefined && this.hinted.has(card.uid))
-
-    const { hand } = evaluate(cards, this.state.rules)
-    const row = this.data.tables.pokerHand.findByHand(hand)
-    const level = this.state.handLevels[PokerHandKind[hand]] ?? 1
-    const chips = (row?.baseChips ?? 0) + (row?.chipsPerLevel ?? 0) * (level - 1)
-    const mult = (row?.baseMult ?? 0) + (row?.multPerLevel ?? 0) * (level - 1)
-
-    const ink = hinting ? COLOR.money : COLOR.chips
-    this.previewHand.text = hinting
-      ? tf('ui.hand.preview', { n: cards.length, name: this.handName(hand) })
-      : tf('ui.hand.level', { name: this.handName(hand), level })
-    this.previewHand.style.fill = ink
-    this.previewValue.text = tf('ui.hand.preview_math', { chips, mult, total: chips * mult })
-
-    const width = Math.max(this.previewHand.width, this.previewValue.width) + 40
-    this.previewPlate.clear()
-    this.previewPlate.roundRect(0, 0, width, 66, 10).fill({ color: UI.cell, alpha: 0.92 })
-    this.previewPlate.roundRect(0.5, 0.5, width - 1, 65, 10)
-      .stroke({ color: ink, width: 1.5, alpha: 0.8 })
-
-    this.previewHand.position.set(20, 10)
-    this.previewValue.position.set(20, 36)
-    this.preview.position.set(BOARD_X - width / 2, PREVIEW_Y)
-  }
-
   /**
    * 족보 목록.
    *
@@ -5343,38 +5461,60 @@ export class Game {
    */
   private drawHandList(): void {
     const layer = this.handList.view
+    // **인사이트의 굴림통은 살려 둡니다.** 판이 떠 있는 동안 `refresh` 마다 여기를 지나므로,
+    // 통을 새로 만들면 굴려 내려 둔 자리가 카드를 고를 때마다 맨 위로 돌아갑니다.
+    if (this.insightScroll !== undefined) layer.removeChild(this.insightScroll)
     layer.removeChildren().forEach(child => child.destroy())
     this.handRows.length = 0
 
     const rows = this.data.tables.pokerHand.records
-    const width = 540
     const rowH = 36
     // 갈래 단추가 머리띠 아래 한 줄을 차지합니다.
     const top = TITLE_BAR + 54
-    const height = top + rows.length * rowH + 14 + FOOTER_BAR
+    // **네 갈래가 같은 크기입니다.** 갈래마다 다르면 단추를 누를 때마다 판과 단추가 함께
+    // 자리를 옮기고, 그러면 다음 갈래를 누르려는 손이 빈자리를 누릅니다. 폭은 상수이고
+    // 높이는 족보 목록이 정합니다 — 넷 가운데 가장 긴 것이 그것입니다.
+    const width = 620
+    const body = rows.length * rowH
+    const height = top + body + 14 + FOOTER_BAR
 
     layer.addChild(panelFrame(width, height, t('ui.run_info.title'), () => this.toggleHandList()))
 
-    // 세 갈래. **한 판을 도는 동안 궁금해지는 것이 셋입니다** — 어느 족보가 몇 점인지,
-    // 이 안테의 블라인드가 무엇인지, 지금 난이도가 무엇을 바꾸는지. 판을 셋 만들면 그
-    // 셋을 여는 방법이 저마다 달라지므로 한 판 안의 갈래로 둡니다.
+    // 네 갈래. **한 판을 도는 동안 궁금해지는 것이 넷입니다** — 어느 족보가 몇 점인지,
+    // 이 안테의 블라인드가 무엇인지, 지금 난이도가 무엇을 바꾸는지, 그리고 지금 이 판에서
+    // 다음 한 수를 무엇으로 두어야 하는지. 판을 넷 만들면 그 넷을 여는 방법이 저마다
+    // 달라지므로 한 판 안의 갈래로 둡니다.
     const tabs: { key: RunInfoTab; label: string }[] = [
       { key: 'hands', label: t('ui.kind.poker_hand') },
       { key: 'blinds', label: t('ui.tab.blinds') },
       { key: 'stakes', label: t('ui.tab.stakes') },
+      { key: 'insight', label: t('ui.tab.insight') },
     ]
-    const tabW = 128
+    const tabW = 140
     const tabGap = 8
     const tabsX = (width - (tabs.length * tabW + (tabs.length - 1) * tabGap)) / 2
     tabs.forEach((tab, index) => {
       const here = this.runInfoTab === tab.key
-      const button = new Button(tab.label, tabW, 30, here ? UI.cream : UI.slate, () => {
+      const button = new Button(tab.label, tabW, 30, here ? UI.light : UI.btn, () => {
+        if (this.runInfoTab !== tab.key) this.insightScroll?.toTop()
         this.runInfoTab = tab.key
         this.drawHandList()
       })
       button.position.set(tabsX + index * (tabW + tabGap), TITLE_BAR + 12)
       layer.addChild(button)
+      // **자리는 화면이 알립니다.** 판이 닫히면 이 단추가 지워지고 `lateSpots` 가 그것을
+      // 봅니다 — 도구가 좌표를 적어 두면 폭이 바뀔 때 빈자리를 누르고 통과합니다.
+      this.spotNodes.set(`runInfoTab:${tab.key}`,
+                         { node: button, cx: tabW / 2, cy: 15 })
     })
+
+    if (this.runInfoTab === 'insight') {
+      this.drawInsightRows(layer, width, top, body)
+      this.handList.size.width = width
+      this.handList.size.height = height
+      layer.eventMode = 'static'
+      return
+    }
 
     if (this.runInfoTab !== 'hands') {
       this.drawRunInfoRows(layer, width, top)
@@ -5518,6 +5658,132 @@ export class Game {
   }
 
   /**
+   * 지금 판의 인사이트.
+   *
+   * **판이 떠 있을 때만 셉니다.** 세는 것은 건식 실행 열몇 번이고, 닫힌 판을 위해 그것을
+   * 도는 것은 낭비입니다 — `refresh` 가 떠 있는 판만 다시 그립니다.
+   *
+   * 열쇠가 같으면 앞서 센 답을 그대로 씁니다. **열쇠는 상태의 해시와 고른 카드입니다** —
+   * 답을 바꾸는 것을 손으로 세어 적으면 하나가 빠지고, 빠진 것이 바뀐 판에 낡은 조언을
+   * 남깁니다. 고름은 아직 액션이 아니므로 상태에 없고, 그래서 따로 붙습니다.
+   */
+  private insightRows(): Insight[] {
+    const picked = [...this.selected].sort((a, b) => a - b)
+    const key = `${snapshotHash(this.state)}|${picked.join('.')}`
+    if (this.insightCache?.key !== key) {
+      this.insightCache = { key, rows: insights(this.data, this.state, picked) }
+    }
+    return this.insightCache.rows
+  }
+
+  /**
+   * 인사이트 갈래의 줄들.
+   *
+   * **갈래 머리로 묶어 세웁니다.** 줄만 늘어놓으면 「이 줄이 무엇에 대한 것인가」를 문장에서
+   * 읽어야 하고, 문장에는 그것이 적혀 있지 않습니다.
+   *
+   * 줄이 길어 접히므로 **높이를 미리 세지 않습니다** — 줄마다 그린 뒤에 그 높이만큼
+   * 내립니다. 말을 바꾸면 접히는 자리가 달라지고, 미리 센 높이는 한국어에만 맞습니다.
+   */
+  private drawInsightRows(layer: Container, width: number, top: number,
+                          height: number): void {
+    const rows = this.insightRows()
+    const inner = width - 36
+    const scroll = this.insightScroll ?? new ScrollView(inner, height)
+    this.insightScroll = scroll
+    scroll.position.set(18, top)
+    layer.addChild(scroll)
+
+    // **답이 같으면 다시 그리지 않습니다.** 판이 떠 있는 동안 `refresh` 마다 여기를 지나고,
+    // 줄마다 판과 접힌 글을 만드는 것이 그 비용입니다.
+    const key = this.insightCache?.key ?? ''
+    if (this.insightDrawn === key) return
+    this.insightDrawn = key
+    scroll.content.removeChildren().forEach(child => child.destroy())
+
+    if (rows.length === 0) {
+      const none = new Text({
+        text: t('ui.insight.none'),
+        style: { fontSize: 14, fill: COLOR.inkDim, fontWeight: '700' },
+      })
+      none.anchor.set(0.5, 0)
+      none.position.set(inner / 2, 26)
+      scroll.content.addChild(none)
+      scroll.refresh()
+      return
+    }
+
+    let y = 0
+    let group = ''
+    for (const row of rows) {
+      if (row.group !== group) {
+        // 무리 사이는 10 입니다. 붙여 두면 앞 무리의 마지막 줄이 다음 머리에 닿습니다.
+        if (group !== '') y += 10
+        group = row.group
+        const head = sectionHead(inner, t(`ui.insight.group.${row.group}`), undefined, false)
+        head.position.set(0, y)
+        scroll.content.addChild(head)
+        y += SECTION_H + 2
+      }
+      y += this.drawInsightLine(scroll.content, inner, y, row) + 6
+    }
+
+    scroll.refresh()
+  }
+
+  /**
+   * 줄 하나. 그린 높이를 돌려줍니다.
+   *
+   * **등급은 왼쪽 끝의 띠입니다.** 글의 색으로 알리면 읽는 색이 셋이 되고, 그러면 강조한
+   * 숫자와 구분되지 않습니다.
+   */
+  private drawInsightLine(into: Container, width: number, y: number, row: Insight): number {
+    const text = richBlock([tf(`ui.insight.${row.key}`, row.values)], {
+      base: { fontSize: 13, fill: COLOR.ink, fontWeight: '600' },
+      number: COLOR.accentNumber, term: COLOR.accentTerm,
+    }, 17, width - 46)
+    const wrapped = (text as Container & { rows?: number }).rows ?? 1
+    const rowH = Math.max(30, wrapped * 17 + 13)
+
+    const node = new Container()
+    node.position.set(0, y)
+
+    const plate = new Graphics()
+    plate.roundRect(0, 0, width, rowH, 7).fill(UI.cell)
+    plate.roundRect(0.5, 0.5, width - 1, rowH - 1, 7)
+      .stroke({ color: UI.hairline, width: 1 })
+    plate.roundRect(0, 5, 4, rowH - 10, 2).fill(INSIGHT_COLOR[row.level])
+    node.addChild(plate)
+
+    text.position.set(16, (rowH - wrapped * 17) / 2 + 1)
+    node.addChild(text)
+
+    // 쪽지를 가진 줄에만 표시가 붙습니다. **표시가 없으면 눌러 볼 것이 있는지 알 수 없습니다.**
+    if (row.lines.length > 0) {
+      const mark = new Text({
+        text: '···',
+        style: { fontSize: 14, fill: COLOR.inkDim, fontWeight: '800' },
+      })
+      mark.anchor.set(1, 0.5)
+      mark.position.set(width - 12, rowH / 2)
+      node.addChild(mark)
+
+      node.eventMode = 'static'
+      node.cursor = 'pointer'
+      node.hitArea = new Rectangle(0, 0, width, rowH)
+      const label = t(`ui.insight.group.${row.group}`)
+      // **쪽지는 커서를 따라갑니다.** 줄의 자리로 띄우면 굴린 만큼 어긋나고, 굴린 양은
+      // 이 자리에서 알 수 없습니다.
+      this.tipOn(node, at => {
+        this.tooltip.show(label, '', 0, row.lines, at, SIZE)
+      })
+    }
+
+    into.addChild(node)
+    return rowH
+  }
+
+  /**
    * 어느 줄을 가리키고 있는가.
    *
    * **화면이 이미 재고 있는 커서 자리를 씁니다.** 줄마다 사건을 붙이는 것보다 자리 하나를
@@ -5627,14 +5893,14 @@ export class Game {
   /**
    * 카드 하나를 들어오는 정도에 맞춰 놓습니다.
    *
-   * 왼쪽부터 차례로 아래에서 올라옵니다. 셋이 같이 나타나면 셋이 한 덩어리로 보입니다.
-   * 도구가 누르는 자리도 카드를 따라갑니다.
+   * **떠 있는 판들과 같은 법으로 올라옵니다** — 같은 58픽셀이고 같은 감쇠입니다. 이 판만
+   * 다른 거리와 다른 곡선으로 들어오면, 정산과 상점이 이 자리에서 서고 지므로 판이 갈릴
+   * 때마다 들어오는 방식이 바뀝니다. 도구가 누르는 자리도 카드를 따라갑니다.
    */
   private placeBlindGroup(entry: BlindGroup): void {
-    const enter = Math.max(0, Math.min(1, (this.blindEnter - entry.index * 0.16) / 0.44))
-    const eased = 1 - Math.pow(1 - enter, 3)
-    entry.group.position.set(entry.x, entry.bottom - entry.height + (1 - eased) * 70)
-    entry.group.alpha = (entry.now ? 1 : entry.done ? 0.5 : 0.72) * eased
+    const enter = this.blindEnter
+    entry.group.position.set(entry.x, entry.bottom - entry.height + (1 - enter) * 58)
+    entry.group.alpha = (entry.now ? 1 : entry.done ? 0.5 : 0.72) * Math.min(1, enter * 1.6)
     if (entry.skipY !== undefined) {
       this.spots.skip = { x: entry.x + entry.width / 2, y: entry.group.y + entry.skipY }
     }
@@ -5670,7 +5936,10 @@ export class Game {
     const cardH = 322
     // **아래에 붙입니다.** 조커 줄과 판 사이가 비면 화면이 위로 쏠리고, 판이 서는 자리는
     // 카드를 내는 자리와 같아야 눈이 옮겨 다니지 않습니다.
-    const bottom = 754
+    //
+    // **아래 변은 떠 있는 판들과 같은 자리입니다.** 이 판 셋만 조금 위에 서 있었고, 정산과
+    // 상점이 그 자리에서 나오므로 판이 갈릴 때 아래 변이 한 번 튑니다.
+    const bottom = PANEL_BOTTOM
     const startX = BOARD_X - ((order.length - 1) * (cardW + gap)) / 2 - cardW / 2
 
     order.forEach((blind, index) => {
@@ -5736,10 +6005,14 @@ export class Game {
       const name = label(bossRow
         ? nameOf(this.data, 'boss', state.bossId, bossRow.name)
         : tf('ui.blind.named', { name: blindName(blind) }), 17, COLOR.ink, '800')
-      // **이름은 문양 옆 왼쪽입니다.** 가운데에 두면 문양이 왼쪽의 남은 자리에 얹힌 것으로
-      // 보입니다 — 판의 머리는 다른 판과 같은 규칙이어야 합니다.
-      name.anchor.set(0, 0.5)
-      name.position.set(46, 23)
+      // **이름은 칸의 가운데입니다.** 셋이 나란히 서는 판이고, 이름이 왼쪽에 붙으면
+      // 보스의 긴 이름과 「스몰 블라인드」가 저마다 다른 자리에서 끝납니다 — 문양은 띠의
+      // 왼쪽 끝에 얹히는 것이지 이름과 한 줄로 서는 것이 아닙니다.
+      name.anchor.set(0.5, 0.5)
+      // 문양을 밀지 않는 만큼 줄입니다. 보스의 이름은 말에 따라 두 배로 길어집니다.
+      const nameRoom = cardW - 46 * 2
+      if (name.width > nameRoom) name.scale.set(nameRoom / name.width)
+      name.position.set(cardW / 2, 23)
       group.addChild(name)
 
       // **보스에는 인장이 붙습니다.** 스물여덟이 이름 하나로만 갈리면 어느 것이 나왔는지가
@@ -5836,7 +6109,7 @@ export class Game {
           // 무엇을 하면 무엇을 받는가는 그 차례로 읽혀야 합니다.
           if (tag) place(tag.node, tag.height)
 
-          const skip = new Button(t('ui.button.skip'), cardW - 36, 36, UI.slate,
+          const skip = new Button(t('ui.button.skip'), cardW - 36, 36, UI.dare,
             () => {
               if (this.skipping) return
               this.audio.play('blind_skip')
@@ -5932,10 +6205,9 @@ export class Game {
 
     node.eventMode = 'static'
     node.hitArea = new Rectangle(0, 0, width, height)
-    this.tipOn(node, () => {
-      const spot = this.overlay.toLocal(node.toGlobal({ x: width / 2, y: height }))
+    this.tipOn(node, at => {
       this.tooltip.show(nameOf(this.data, 'tag', tagId, tagId), t('ui.kind.tag'), 0, lines,
-        spot.x, spot.y, SIZE)
+        at, SIZE)
     })
     return { node, height, face }
   }
@@ -6265,9 +6537,8 @@ export class Game {
     }
     if (card.debuffed) lines.push(t('ui.note.disabled_this_round'))
 
-    const spot = this.world.toLocal(at.getGlobalPosition())
     this.tooltip.show(name, alive ? t('ui.kind.deck') : inHand ? t('ui.kind.hand') : t('ui.kind.gone'), alive ? 3 : 1,
-      lines, spot.x + 30, spot.y + 46, { width: SIZE.width, height: SIZE.height })
+      lines, this.tipBox(at), { width: SIZE.width, height: SIZE.height })
   }
 
   /**
@@ -6507,11 +6778,14 @@ export class Game {
     // **둘 다 페이지를 다시 읽지 않습니다.** 판을 접는 것은 화면이 하는 일입니다.
     const again = new Button(t('ui.button.restart'), 140, 40, UI.yellow, () => this.restartRun())
     again.position.set(width / 2 - pad - 140, yy)
-    const home = new Button(t('ui.button.to_title'), 96, 40, UI.slate, () => this.enterTitle())
+    const home = new Button(t('ui.button.to_title'), 96, 40, UI.btn, () => this.enterTitle())
     home.position.set(again.x - 8 - 96, yy)
     board.addChild(home, again)
 
-    board.position.set(POPUP_X, SIZE.height / 2)
+    this.gameOverY = PANEL_BOTTOM - height / 2
+    // **아래에서 시작합니다.** 제자리에 놓고 다음 프레임에 내리면 그 한 프레임 동안 판이
+    // 다 선 자리에 있습니다 — 상점 판에서 같은 것이 한 번 튀는 것으로 보였습니다.
+    board.position.set(POPUP_X, this.gameOverY + 58)
     this.gameOver.addChild(board)
     this.gameOverBoard = board
     // **단추 둘의 자리를 알립니다.** 판의 높이가 랭크 런인지에 따라 달라지므로 도구가
@@ -6651,29 +6925,31 @@ export class Game {
       : tf('ui.over.stopped', { where })
   }
 
-  /** 럼블. 크기가 넘쳤다가 잦아들고, 그동안 판이 조금씩 떱니다. */
+  /**
+   * 끝난 판이 들어오는 동안.
+   *
+   * **떠 있는 판들과 같은 법으로 아래에서 올라옵니다** — 같은 58픽셀이고 같은 감쇠입니다.
+   * 크기가 넘쳤다가 잦아드는 럼블이었는데, 판마다 들어오는 방식이 다르면 이 판만 다른
+   * 갈래의 것으로 보입니다. 들어오는 동안 조금 떠는 것은 남겼습니다 — 판이 선 그 순간의
+   * 무게이고, 떠 있는 판들도 열릴 때 같은 것을 합니다.
+   */
   private advanceGameOver(seconds: number): void {
     this.advanceOverBar()
     const board = this.gameOverBoard
     if (!board || this.gameOverPop <= 0) return
 
-    this.gameOverPop = Math.max(0, this.gameOverPop - seconds / 0.62)
-    const t = 1 - this.gameOverPop
-    // 0.45 에서 1.16 을 지나 1 로.
-    const scale = t < 0.42
-      ? 0.45 + (1.16 - 0.45) * (t / 0.42)
-      : 1.16 - 0.16 * ((t - 0.42) / 0.58)
-    const shiver = this.gameOverPop * this.gameOverPop * 12
+    this.gameOverPop -= this.gameOverPop * fraction(seconds, 9)
+    if (this.gameOverPop < 0.004) this.gameOverPop = 0
+    const shiver = this.gameOverPop * this.gameOverPop * 10
 
-    board.scale.set(scale)
     board.position.set(
       POPUP_X + (Math.random() - 0.5) * shiver,
-      SIZE.height / 2 + (Math.random() - 0.5) * shiver)
+      this.gameOverY + this.gameOverPop * 58 + (Math.random() - 0.5) * shiver)
     board.rotation = (Math.random() - 0.5) * shiver * 0.0022
 
     if (this.gameOverPop <= 0) {
       board.scale.set(1)
-      board.position.set(POPUP_X, SIZE.height / 2)
+      board.position.set(POPUP_X, this.gameOverY)
       board.rotation = 0
     }
   }
@@ -6801,9 +7077,9 @@ export class Game {
 
       cell.eventMode = 'static'
       cell.hitArea = new Rectangle(0, 0, size, size)
-      this.tipOn(cell, () => {
+      this.tipOn(cell, at => {
         this.tooltip.show(nameOf(this.data, 'tag', tagId, tagId), t('ui.kind.tag'), 0, lines,
-          LEFT + cell.x + size / 2, 34 + 38, SIZE)
+          at, SIZE)
       })
       return cell
     })
@@ -6831,6 +7107,13 @@ export class Game {
     // 아직 보이기도 전에 끝난 것으로 들립니다.
     const phase = this.shown.phase
     if (phase === 'lost' || phase === 'won') {
+      this.audio.music.play(undefined)
+      return
+    }
+    // **블라인드를 고르는 동안은 조용합니다.** 무엇과 붙을지 정하는 자리이므로 판이 도는
+    // 중이 아니고, 라운드의 음악이 그 위로 흐르면 고르는 그 순간이 라운드의 일부로
+    // 들립니다 — 고르고 나서 음악이 드는 것이 판이 시작된 것입니다.
+    if (phase === 'blind-select') {
       this.audio.music.play(undefined)
       return
     }
@@ -7186,6 +7469,9 @@ export class Game {
   /** 조커나 소모품 하나를 고릅니다. 같은 것을 다시 누르면 놓습니다. */
   private pick(kind: 'joker' | 'consumable' | 'shop' | 'pack' | 'pack_slot', uid: number): void {
     if (this.player.busy) return
+    // **끝난 판에서는 고를 수 없습니다.** 지고 나서도 소모품의 「쓴다」 가 눌렸고, 그것을
+    // 쓰면 아무 일도 남지 않습니다 — 버리는 것과 같습니다.
+    if (this.state.phase === 'lost' || this.state.phase === 'won') return
     this.held = this.held?.kind === kind && this.held.uid === uid
       ? undefined : { kind, uid }
     this.audio.play('card_select')
@@ -7203,6 +7489,11 @@ export class Game {
     this.heldBox = undefined
     const held = this.held
     if (!held) return
+    // 끝난 판에서는 단추를 세우지 않습니다. 고른 것이 남아 있어도 누를 것이 없습니다.
+    if (this.state.phase === 'lost' || this.state.phase === 'won') {
+      this.held = undefined
+      return
+    }
 
     let anchor = 0
     // **버튼이 서는 높이가 갈립니다.** 조커와 소모품은 자기 줄 밑이고, 상점의 칸과 팩의
@@ -7297,7 +7588,7 @@ export class Game {
         return
       }
       anchor = this.itemSpot(index).x
-      buttons.push(new Button(t('ui.button.use'), 68, 30, UI.sky, () => {
+      buttons.push(new Button(t('ui.button.use'), 68, 30, UI.light, () => {
         this.held = undefined
         // **쓴 것과 판 것은 없어지는 모습이 다릅니다.** 쓴 것은 판 가운데로 나와 번쩍이고,
         // 판 것은 제자리에서 탑니다 — 화면은 어느 쪽인지 모르므로 여기서 적어 둡니다.
@@ -7527,9 +7818,8 @@ export class Game {
       line.eventMode = 'static'
       line.cursor = 'pointer'
       line.hitArea = new Rectangle(0, 0, PANEL_W, rowH - 4)
-      this.tipOn(line, () => {
-        this.tooltip.show(entry.label, entry.value, 0, entry.lines,
-          LEFT + PANEL_W / 2, y + rowH, SIZE)
+      this.tipOn(line, at => {
+        this.tooltip.show(entry.label, entry.value, 0, entry.lines, at, SIZE)
       })
       line.on('pointertap', () => {
         if (this.ate()) return
@@ -7658,7 +7948,11 @@ export class Game {
     ;(this.payout.size as { width: number; height: number }).height = height
     // **「받는다」 의 자리를 도구에 알립니다.** 판은 화면 가운데에 서고 높이는 줄 수를
     // 따르므로, 도구가 줄 수를 짐작해 셈하면 줄이 하나 늘 때마다 빈자리를 누릅니다.
-    this.spots.take = { x: POPUP_X, y: SIZE.height / 2 - height / 2 + buttonTop + 24 }
+    //
+    // **눌릴 수 있게 된 뒤에 알립니다.** 줄이 다 서기 전에는 잠겨 있고, 그때 알리면 도구는
+    // 잠긴 단추를 한 번 누르고 눌렀다고 넘어갑니다 — 그 뒤로 아무것도 진행되지 않습니다.
+    this.takeSpot = { x: POPUP_X, y: PANEL_BOTTOM - height + buttonTop + 24 }
+    delete this.spots.take
 
     const sum = this.payoutRows.reduce((total, row) => total + row.amount, 0)
     // **받을 것이 없으면 없다고 적습니다.** 단추도 「다음」 입니다 — 0원을 받는 것은 받는
@@ -7772,22 +8066,54 @@ export class Game {
     })
     sumText.anchor.set(1, 0.5)
     sumText.position.set(width - pad - 4, sumTop + 28)
-    layer.addChild(sumLabel, sumText)
-    this.payoutBar = {
-      bar, begin: this.clock + PAYOUT_WAIT * 0.5, ratio: target > 0 ? Math.min(1, score / target) : 1,
-      sum: sumText, shown: 0, poppedAt: -1, rowAt, amounts,
+    // **받을 것이 없으면 합계도 없습니다.** 「받을 것이 없습니다」 한 줄 아래에 「합계 $0」
+    // 이 또 서면, 없다는 것을 두 번 적고 그중 하나는 수입니다.
+    if (!empty) layer.addChild(sumLabel, sumText)
+
+    // **낱개가 먼저 쌓입니다.** 줄이 설 때마다 그만큼 `$` 가 오른쪽으로 늘어서고, 다 서면
+    // 오른쪽 끝으로 뭉치면서 그 자리에 수 하나가 남습니다.
+    const coinRight = width - pad - 4
+    const many = Math.min(Math.max(0, sum), COIN_MAX)
+    const coinRoom = coinRight - (pad + 4 + Math.ceil(sumLabel.width) + 16)
+    const coinStep = many > 1 ? Math.min(COIN_STEP, coinRoom / (many - 1)) : 0
+    const coins: Text[] = []
+    const coinRest: number[] = []
+    for (let i = 0; i < many; i++) {
+      const one = new Text({
+        text: '$',
+        style: { fontSize: 24, fill: UI.yellow, fontWeight: '800', fontFamily: NUMERALS },
+      })
+      one.anchor.set(0.5, 0.5)
+      const restX = coinRight - (many - 1 - i) * coinStep
+      one.position.set(restX, sumTop + 28)
+      one.visible = false
+      coins.push(one)
+      coinRest.push(restX)
+      layer.addChild(one)
     }
+    // 낱개가 서는 동안 수는 없습니다. **둘이 같이 있으면 뭉치는 것이 아무 뜻도 아닙니다.**
+    sumText.alpha = many > 0 ? 0 : 1
+    const lastRow = rowAt[rowAt.length - 1] ?? this.clock + PAYOUT_WAIT
+    const mergeAt = many > 0 ? lastRow + 0.3 : 0
+    const readyAt = many > 0 ? mergeAt + COIN_MERGE + 0.14 : lastRow + 0.22
 
     // **닫기 단추가 없습니다.** 받는 것이 이 판의 전부이고, 그것을 누르는 것이 닫는 것입니다.
     const label = empty ? t('ui.payout.next') : tf('ui.payout.take', { n: sum })
-    const take = new Button(label, 240, 48, empty ? UI.slate : UI.yellow, () => {
+    const take = new Button(label, 240, 48, empty ? UI.btn : UI.yellow, () => {
       // **누른 그 자리에서 차례를 지웁니다.** 닫히는 것을 기다리면 그 사이에 다시 섭니다.
       this.payoutWanted = false
       delete this.spots.take
+      this.takeSpot = undefined
       this.modals.close(this.payout)
     }, 16)
     take.position.set((width - 240) / 2, buttonTop)
+    take.enabled = this.clock >= readyAt
     layer.addChild(take)
+    this.payoutBar = {
+      bar, begin: this.clock + PAYOUT_WAIT * 0.5, ratio: target > 0 ? Math.min(1, score / target) : 1,
+      sum: sumText, shown: 0, poppedAt: -1, rowAt, amounts, take, readyAt,
+      coins, coinRest, coinTo: coinRight, mergeAt, merged: many === 0,
+    }
   }
 
   /**
@@ -7809,10 +8135,41 @@ export class Game {
     if (total !== one.shown) {
       one.shown = total
       one.sum.text = `$${total}`
-      one.poppedAt = this.clock
+      // 낱개가 있는 판에서는 뭉치는 그 순간에 한 번 커집니다. 여기서는 셈만 합니다.
+      if (one.merged) one.poppedAt = this.clock
     }
+
+    // 낱개 — 지금까지 선 줄만큼 보이고, 다 서면 오른쪽 끝으로 뭉칩니다.
+    if (one.coins.length > 0) {
+      const shown = Math.max(0, Math.min(one.coins.length, total))
+      const merge = one.mergeAt <= 0
+        ? 0
+        : Math.max(0, Math.min(1, (this.clock - one.mergeAt) / COIN_MERGE))
+      const eased = merge * merge * (3 - 2 * merge)
+      one.coins.forEach((coin, i) => {
+        coin.visible = i < shown && merge < 1
+        if (!coin.visible) return
+        const rest = one.coinRest[i]
+        coin.position.x = rest + (one.coinTo - rest) * eased
+        coin.alpha = 1 - eased * 0.9
+        coin.scale.set(1 - 0.3 * eased)
+      })
+      one.sum.alpha = eased
+      // 뭉친 그 순간에 수가 한 번 커집니다. **낱개가 하나로 모인 것이 그 수입니다.**
+      if (merge >= 1 && !one.merged) {
+        one.merged = true
+        one.poppedAt = this.clock
+        this.audio.play('coin_land', 6)
+      }
+    }
+
     const pop = one.poppedAt < 0 ? 0 : Math.max(0, 1 - (this.clock - one.poppedAt) / 0.18)
     one.sum.scale.set(1 + 0.14 * pop)
+    if (one.take.destroyed) return
+    const ready = this.clock >= one.readyAt
+    one.take.enabled = ready
+    if (ready && this.takeSpot) this.spots.take = this.takeSpot
+    else delete this.spots.take
   }
 
   /**
@@ -7833,7 +8190,7 @@ export class Game {
       { key: 'guide', label: t('ui.button.guide'), press: () => this.modals.open(this.guide) },
       // **타이틀로는 맨 아래입니다.** 판을 접는 것이므로 옵션과 게임 방법과 같은 무게로
       // 가운데에 두면 잘못 누르는 일이 생깁니다.
-      { key: 'toTitle', label: t('ui.button.toTitle'), press: () => this.enterTitle() },
+      { key: 'toTitle', label: t('ui.button.toTitle'), press: () => this.askLeaveRun() },
     ]
     // **밑단이 없습니다.** 머리의 `✕` 와 바깥 누르기와 `Esc` 로 닫히므로, 닫기를 또 두면
     // 같은 일을 하는 것이 판 하나에 둘입니다.
@@ -7844,7 +8201,7 @@ export class Game {
       () => this.modals.close(this.menu), undefined, false))
 
     rows.forEach((row, index) => {
-      const button = new Button(row.label, width - 48, 38, UI.slate, () => {
+      const button = new Button(row.label, width - 48, 38, UI.btn, () => {
         // **닫고 나서 엽니다.** 이 판 위에 또 판이 서면 뒤로 물러난 것이 보이고, 그것은
         // 메뉴가 아니라 판이 쌓인 것으로 보입니다.
         this.modals.close(this.menu)
@@ -7864,7 +8221,7 @@ export class Game {
   private showTooltip(view: JokerView): void {
     const rarityName = ['', t('ui.rarity.common'), t('ui.rarity.uncommon'), t('ui.rarity.rare'), t('ui.rarity.legendary')][view.look.rarity] ?? ''
     this.tooltip.show(view.look.name, rarityName, view.look.rarity, view.look.lines,
-      view.x, view.y + SIZE.jokerHeight / 2, SIZE)
+      this.tipBox(view), SIZE)
   }
 
   private syncConsumables(): void {
@@ -7920,9 +8277,8 @@ export class Game {
         this.pick('consumable', item.uid)
       })
       this.consumableTiles.push({ uid: item.uid, tile, baseX: tile.x, baseY: tile.y })
-      this.tipOn(tile, () => {
-        this.tooltip.show(name, t('ui.kind.consumable'), 0, lines,
-          tile.x + SIZE.jokerWidth / 2, tile.y + SIZE.jokerHeight, SIZE)
+      this.tipOn(tile, at => {
+        this.tooltip.show(name, t('ui.kind.consumable'), 0, lines, at, SIZE)
       })
       // 사서 오는 중인 한 장에만 겁니다. **얼굴에만입니다** — 그림자까지 걸면 카드 옆에
       // 빛나는 얼룩 하나가 따로 남습니다.
@@ -8146,9 +8502,8 @@ export class Game {
     // 밑단 · 선 하나와 단추 둘. **둘은 색도 크기도 다릅니다** — 나아가는 것이 노랑입니다.
     const foot = new Container()
     const cost = rerollCost(this.data, state, state.shop)
-    const reroll = new Button(tf('ui.shop.reroll_cost', { n: cost }), 140, 34, UI.sky,
+    const reroll = new Button(tf('ui.shop.reroll_cost', { n: cost }), 140, 34, UI.light,
       () => this.reroll())
-    reroll.enabled = state.money >= cost
     const leave = new Button(t('ui.button.next_blind'), 190, 34, UI.yellow, () => this.primary())
     const rule = hairline(width - 48)
     rule.position.set(24, footY)
@@ -8208,6 +8563,24 @@ export class Game {
       gx += span + GROUP_GAP * fit
     }
     for (const put of stock) put()
+
+    // **진열이 끝나기 전에는 밑단의 둘이 잠깁니다.** 물건이 내려오는 중에 「다음
+    // 블라인드로」 가 눌리면 무엇을 팔고 있었는지 보지 못한 채 판을 떠나고, 리롤은 아직
+    // 서지도 않은 것을 다시 굴립니다 — 마지막 것이 다 선 시각이 그 시각입니다.
+    this.shopFoot = {
+      reroll, leave, afford: state.money >= cost,
+      readyAt: this.shopRevealAt + this.revealing.slot * REVEAL_STEP + REVEAL_SPAN,
+    }
+    this.gateShopFoot()
+  }
+
+  /** 밑단의 둘을 지금 열 것인가. 진열이 끝나고, 리롤은 돈이 있을 때입니다. */
+  private gateShopFoot(): void {
+    const foot = this.shopFoot
+    if (!foot || foot.leave.destroyed) return
+    const ready = this.clock >= foot.readyAt
+    foot.leave.enabled = ready
+    foot.reroll.enabled = ready && foot.afford
   }
 
   /**
@@ -8242,6 +8615,7 @@ export class Game {
     this.placeShopLayer()
     this.shopHeight.advance(seconds)
     this.redrawShopFrame()
+    this.gateShopFoot()
   }
 
   /**
@@ -8386,9 +8760,8 @@ export class Game {
       if (!this.canPay(item.cost)) return
       this.pick('shop', slot)
     })
-    this.tipOn(tile, () => {
-      this.tooltip.show(name, kindName(item.kind), rarity, lines,
-        tile.x + CELL_W * fit / 2, tile.y + CELL_H * fit, SIZE, item.cost)
+    this.tipOn(tile, at => {
+      this.tooltip.show(name, kindName(item.kind), rarity, lines, at, SIZE, item.cost)
     })
     this.reveal(tile)
     return () => {
@@ -8797,6 +9170,21 @@ export class Game {
   }
 
   /**
+   * 이것이 지금 화면에 붙어 있는가.
+   *
+   * **어버이가 있는 것만으로는 모자랍니다.** 판이 닫히면 그 판의 통 하나가 무대에서
+   * 떼어지고 그 안의 단추들은 그대로 남으므로, 어버이가 있는지만 보면 닫힌 판의 단추 자리가
+   * 계속 알려집니다 — 그 자리는 판이 사라지던 그 프레임의 자리이고, 도구는 화면 가운데의
+   * 빈 곳을 눌러 놓고 눌렀다고 봅니다.
+   */
+  private onStage(node: Container): boolean {
+    for (let at: Container | null = node; at !== null; at = at.parent) {
+      if (at === this.world) return true
+    }
+    return false
+  }
+
+  /**
    * 나중에 세는 자리들이 지금 어디에 있는가.
    *
    * **화면에 붙어 있는 것만 셉니다.** 판이 닫히면 그 판은 무대에서 떼어지므로, 떼어진 것의
@@ -8805,7 +9193,7 @@ export class Game {
   private lateSpots(): Record<string, { x: number; y: number }> {
     const out: Record<string, { x: number; y: number }> = {}
     for (const [key, one] of this.spotNodes) {
-      if (one.node.destroyed || one.node.parent === null) continue
+      if (one.node.destroyed || !this.onStage(one.node)) continue
       out[key] = this.spotOf(one.node, one.cx, one.cy)
     }
     // 타이틀의 단추들. **그 화면이 보일 때만입니다.**
@@ -8815,6 +9203,24 @@ export class Game {
         out[`title:${key}`] = this.spotOf(one.node, one.cx, one.cy)
       }
     }
+    return out
+  }
+
+  /**
+   * 족보 목록의 줄들이 지금 어디에 있는가.
+   *
+   * **판이 떠 있고 그 갈래일 때만 값이 있습니다.** 줄의 자리는 판의 높이와 들어오는 중의
+   * 배율을 따르므로 도구가 셈할 수 없습니다 — 상수를 베껴 적어 둔 도구가 있었고, 판이
+   * 자라고 단추가 옮겨진 뒤로 그 도구는 판을 열지도 못한 채 빈 화면을 찍고 있었습니다.
+   */
+  private handRowSpots(): Record<string, { x: number; y: number }> {
+    if (!this.modals.has(this.handList) || this.runInfoTab !== 'hands') return {}
+    const out: Record<string, { x: number; y: number }> = {}
+    const width = this.handList.size.width
+    this.handRows.forEach((row, index) => {
+      out[`handRow:${index}`] =
+        this.spotOf(this.handList.view, width / 2, row.y + row.height / 2 - 4)
+    })
     return out
   }
 
@@ -9079,10 +9485,10 @@ export class Game {
       if (!this.canPay(row.cost)) return
       this.pick('pack_slot', slot)
     })
-    this.tipOn(tile, () => {
+    this.tipOn(tile, at => {
       this.tooltip.show(packName(row.kind, row.size), t('ui.kind.pack'), 0,
         [packBlurb(row.kind), tf('ui.pack.spread', { cards: row.cards, picks: row.picks })],
-        tile.x + CELL_W * fit / 2, tile.y + CELL_H * fit, SIZE)
+        at, SIZE)
     })
     this.reveal(tile)
     return () => {
@@ -9198,9 +9604,8 @@ export class Game {
       this.boughtFrom = at
       this.act({ t: 'buy_voucher' })
     })
-    this.tipOn(tile, () => {
-      this.tooltip.show(title, t('ui.kind.voucher'), 0, lines,
-        tile.x + CELL_W * fit / 2, tile.y + CELL_H * fit, SIZE)
+    this.tipOn(tile, at => {
+      this.tooltip.show(title, t('ui.kind.voucher'), 0, lines, at, SIZE)
     })
     this.reveal(tile)
     return () => {
@@ -9282,7 +9687,7 @@ export class Game {
     note.position.set(POPUP_X, PACK_TITLE_Y + 60)
     this.packNote = note
 
-    const skip = new Button(t('ui.button.skip'), 160, 40, UI.slate,
+    const skip = new Button(t('ui.button.skip'), 160, 40, UI.btn,
       () => this.act({ t: 'skip_pack' }))
     // **설명 아래입니다.** 카드 바로 밑에 두면 마우스를 올릴 때 뜨는 설명이 그 위를 덮습니다.
     skip.position.set(POPUP_X - 80, PACK_CARDS_Y + PACK_CARD_H / 2 + 130)
@@ -9453,8 +9858,7 @@ export class Game {
     // 카드가 들리는 것과 설명이 뜨는 것이 함께 있어서 `tipOn` 을 쓰지 않습니다 —
     // **손가락으로는 들리는 것만 먼저 일어나고, 설명은 꾸욱 눌러야 뜹니다.**
     const tip = (): void => {
-      this.tooltip.show(name, kindName(item.kind), rarity, lines,
-        node.x, node.y + PACK_CARD_H / 2 + 8, SIZE)
+      this.tooltip.show(name, kindName(item.kind), rarity, lines, this.tipBox(node), SIZE)
     }
     // **마우스를 올리는 것은 설명까지입니다.** 올리기만 해도 카드가 들리면 상점의 칸과
     // 몸짓이 갈립니다 — 상점은 눌러서 고른 것만 들리고, 팩도 그래야 어느 것을 집으려는
@@ -9783,15 +10187,6 @@ const RULE_IS_MULTIPLIER = new Set([
  * **연산마다 읽는 법이 다릅니다** — 곱은 `×`, 가산은 `+`, 돈은 `$` 입니다. 한 자리에서
  * 정하지 않으면 카드와 조커와 런이 각자 다르게 적게 됩니다.
  */
-function valueText(op: string, chips: number, mult: number, money: number): string {
-  if (op === 'MulMult') return `×${(mult / 10_000).toFixed(2)}`
-  if (op === 'GrowSelf') return t('ui.note.grew')
-  if (money !== 0) return `${money > 0 ? '+' : ''}$${money}`
-  if (chips !== 0) return `+${chips}`
-  if (mult !== 0) return `+${(mult / 10_000).toFixed(0)}`
-  return t('ui.label.triggered')
-}
-
 /** `AllCardsScore` 를 `all_cards_score` 로. 글 표의 식별자가 그 모양입니다. */
 function snake(name: string): string {
   return name.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase()

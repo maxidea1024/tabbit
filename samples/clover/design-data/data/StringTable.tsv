@@ -1067,6 +1067,50 @@
 	ui.run_info.title	런 정보	Run Info	ラン情報	本局信息	本局資訊	Rundeninfo
 	ui.tab.blinds	블라인드	Blinds	ブラインド	盲注	盲注	Blinds
 	ui.tab.stakes	스테이크	Stakes	ステーク	难度	難度	Einsätze
+	ui.tab.insight	인사이트	Insight	インサイト	洞察	洞察	Analyse
+	ui.insight.none	지금 알릴 것이 없습니다	Nothing to report right now	今お知らせすることはありません	暂无可提示的内容	暫無可提示的內容	Derzeit nichts zu melden
+	ui.insight.group.round	라운드	Round	ラウンド	回合	回合	Runde
+	ui.insight.group.pick	고른 카드	Selection	選んだカード	已选卡牌	已選卡牌	Auswahl
+	ui.insight.group.option	후보	Options	候補	候选	候選	Optionen
+	ui.insight.group.deck	덱	Deck	デッキ	牌组	牌組	Deck
+	ui.insight.group.joker	조커	Jokers	ジョーカー	小丑	小丑	Joker
+	ui.insight.group.consumable	소모품	Consumables	消費アイテム	消耗品	消耗品	Verbrauchsgüter
+	ui.insight.group.blind	블라인드	Blind	ブラインド	盲注	盲注	Blind
+	ui.insight.group.economy	경제	Economy	経済	经济	經濟	Wirtschaft
+	ui.insight.round.per_hand	남은 {hands}핸드에 핸드당 {need}점이 필요합니다	{need} per hand across the {hands} hands left	残り {hands} ハンドで 1 ハンドあたり {need} 点が必要です	剩余 {hands} 次出牌，每次需要 {need} 分	剩餘 {hands} 次出牌，每次需要 {need} 分	{need} pro Hand bei {hands} verbleibenden Händen
+	ui.insight.round.clears	지금 고른 조합으로 이 라운드가 끝납니다	The current selection clears this round	今の選択でこのラウンドを突破できます	当前选择即可通过本回合	目前的選擇即可通過本回合	Die aktuelle Auswahl schafft diese Runde
+	ui.insight.round.unreachable	최선으로 내도 {short}점이 모자랍니다	Even the best play falls {short} short	最善手でも {short} 点足りません	即使最优出牌也差 {short} 分	即使最佳出牌也差 {short} 分	Auch der beste Zug bleibt {short} zurück
+	ui.insight.round.discards	버리기가 {left}회 남았고 조커 {jokers}개가 그것을 봅니다	{left} discards left and {jokers} jokers read them	捨て札が {left} 回残り、ジョーカー {jokers} 体がそれを見ます	还有 {left} 次弃牌，{jokers} 个小丑与之相关	還有 {left} 次棄牌，{jokers} 個小丑與之相關	{left} Ablagen übrig, {jokers} Joker beachten sie
+	ui.insight.pick.score	예상 {score}점입니다.  {hand}  {chips} × {mult}	Expect {score}.  {hand}  {chips} × {mult}	予想 {score} 点。{hand}  {chips} × {mult}	预计 {score} 分。{hand}  {chips} × {mult}	預計 {score} 分。{hand}  {chips} × {mult}	Erwartet {score}.  {hand}  {chips} × {mult}
+	ui.insight.pick.jokers	조커 {n}개가 이 조합에서 발동합니다	{n} jokers fire on this selection	ジョーカー {n} 体がこの選択で発動します	{n} 个小丑会在此选择下发动	{n} 個小丑會在此選擇下發動	{n} Joker lösen bei dieser Auswahl aus
+	ui.insight.pick.chance	확률로 붙는 것이 {n}개 있습니다.  첫째가 {num}/{den} 입니다	{n} effects ride on chance.  The first is {num}/{den}	確率で乗るものが {n} 件あります。最初は {num}/{den} です	有 {n} 项依赖概率，第一项为 {num}/{den}	有 {n} 項依賴機率，第一項為 {num}/{den}	{n} Effekte hängen am Zufall.  Der erste ist {num}/{den}
+	ui.insight.pick.debuffed	고른 것 가운데 {n}장이 무력화되어 있습니다	{n} of the selected cards are debuffed	選んだうち {n} 枚が無力化されています	所选卡牌中有 {n} 张被削弱	所選卡牌中有 {n} 張被削弱	{n} der gewählten Karten sind geschwächt
+	ui.insight.pick.count	{want}장을 내야 합니다.  지금 {have}장입니다	You must play {want} cards.  {have} selected	{want} 枚出す必要があります。今は {have} 枚です	必须出 {want} 张牌，当前 {have} 张	必須出 {want} 張牌，目前 {have} 張	Du musst {want} Karten spielen.  {have} gewählt
+	ui.insight.option.best	{hand:로} 내면 {score}점입니다.  {delta}점 높습니다	Playing {hand} gives {score}, {delta} more	{hand} で出すと {score} 点で、{delta} 点高くなります	打出 {hand} 得 {score} 分，多 {delta} 分	打出 {hand} 得 {score} 分，多 {delta} 分	{hand} bringt {score}, also {delta} mehr
+	ui.insight.option.alt	{hand}  {score}점	{hand}  {score}	{hand}  {score} 点	{hand}  {score} 分	{hand}  {score} 分	{hand}  {score}
+	ui.insight.option.same	지금 고른 것이 이 패에서 가장 높습니다	The current selection is the best this hand allows	今の選択がこの手札で最も高いです	当前选择是这手牌的最优解	目前的選擇是這手牌的最優解	Die aktuelle Auswahl ist die beste dieser Hand
+	ui.insight.deck.left	덱 {total}장  ·  아직 뽑지 않은 것 {left}장  ·  패 {held}장	Deck {total}  ·  undrawn {left}  ·  hand {held}	デッキ {total} 枚  ·  未ドロー {left} 枚  ·  手札 {held} 枚	牌组 {total} 张  ·  未抽 {left} 张  ·  手牌 {held} 张	牌組 {total} 張  ·  未抽 {left} 張  ·  手牌 {held} 張	Deck {total}  ·  ungezogen {left}  ·  Hand {held}
+	ui.insight.deck.suit	남은 것 가운데 {suit:이} {n}장으로 가장 많습니다.  다음 한 장이 {suit}일 확률은 {pct}% 입니다	{suit} leads the undrawn cards with {n}.  The next card is {suit} {pct}% of the time	未ドローでは {suit} が {n} 枚で最多です。次の 1 枚が {suit} の確率は {pct}% です	未抽卡牌中 {suit} 最多，有 {n} 张。下一张是 {suit} 的概率为 {pct}%	未抽卡牌中 {suit} 最多，有 {n} 張。下一張是 {suit} 的機率為 {pct}%	{suit} führt die ungezogenen Karten mit {n}.  Die nächste Karte ist zu {pct}% {suit}
+	ui.insight.deck.rank_gap	{rank} 한 장이면 스트레이트입니다.  남은 것에 {n}장 있습니다	One {rank} makes a straight.  {n} left undrawn	{rank} が 1 枚あればストレートです。未ドローに {n} 枚あります	再要一张 {rank} 即成顺子，未抽卡牌中还有 {n} 张	再要一張 {rank} 即成順子，未抽卡牌中還有 {n} 張	Eine {rank} ergibt eine Straße.  {n} noch ungezogen
+	ui.insight.deck.enhanced	강화된 카드가 {n}장 있습니다	{n} cards carry an enhancement	強化されたカードが {n} 枚あります	有 {n} 张卡牌带有强化	有 {n} 張卡牌帶有強化	{n} Karten tragen eine Verbesserung
+	ui.insight.joker.suit_focus	조커 {n}개가 {suit:을} 보고 남은 것에 {left}장 있습니다	{n} jokers read {suit} and {left} are undrawn	ジョーカー {n} 体が {suit} を見ており、未ドローに {left} 枚あります	{n} 个小丑关注 {suit}，未抽卡牌中有 {left} 张	{n} 個小丑關注 {suit}，未抽卡牌中有 {left} 張	{n} Joker beachten {suit}, {left} sind ungezogen
+	ui.insight.joker.order	「{left}」 · 「{right}」의 자리를 바꾸면 {delta}점 오릅니다	Swapping {left} and {right} gains {delta}	「{left}」と「{right}」を入れ替えると {delta} 点上がります	交换「{left}」与「{right}」可多得 {delta} 分	交換「{left}」與「{right}」可多得 {delta} 分	Ein Tausch von {left} und {right} bringt {delta} mehr
+	ui.insight.joker.disabled	조커 {n}개가 지금 꺼져 있습니다	{n} jokers are switched off	ジョーカー {n} 体が今は無効です	当前有 {n} 个小丑处于停用状态	目前有 {n} 個小丑處於停用狀態	{n} Joker sind gerade abgeschaltet
+	ui.insight.joker.perish	「{name}」 · {n}라운드 뒤에 꺼집니다	{name} switches off in {n} rounds	「{name}」は {n} ラウンド後に無効になります	「{name}」将在 {n} 回合后停用	「{name}」將在 {n} 回合後停用	{name} schaltet sich in {n} Runden ab
+	ui.insight.joker.idle	조커 {n}개가 이 조합에서 아무것도 하지 않습니다	{n} jokers do nothing on this selection	ジョーカー {n} 体はこの選択では何もしません	{n} 个小丑在此选择下不起作用	{n} 個小丑在此選擇下不起作用	{n} Joker tun bei dieser Auswahl nichts
+	ui.insight.joker.slots	조커 칸 {slots}개가 다 찼습니다	All {slots} joker slots are full	ジョーカー枠 {slots} 個が満杯です	{slots} 个小丑栏位已满	{slots} 個小丑欄位已滿	Alle {slots} Joker-Plätze sind belegt
+	ui.insight.consumable.needs_cards	「{name}」 · 카드 {want}장을 골라야 씁니다.  지금 {have}장입니다	{name} needs {want} cards selected.  {have} selected	「{name}」はカード {want} 枚を選ぶ必要があります。今は {have} 枚です	「{name}」需要选择 {want} 张卡牌，当前 {have} 张	「{name}」需要選擇 {want} 張卡牌，目前 {have} 張	{name} braucht {want} gewählte Karten.  {have} gewählt
+	ui.insight.consumable.planet	「{name}」 · {hand:을} 올립니다.  이 런에서 {n}번 냈습니다	{name} levels {hand}, played {n} times this run	「{name}」は {hand} を上げます。このランで {n} 回出しました	「{name}」提升 {hand}，本局已打出 {n} 次	「{name}」提升 {hand}，本局已打出 {n} 次	{name} steigert {hand}, {n}× in diesem Lauf gespielt
+	ui.insight.consumable.slots	소모품 칸 {slots}개가 다 찼습니다	All {slots} consumable slots are full	消費アイテム枠 {slots} 個が満杯です	{slots} 个消耗品栏位已满	{slots} 個消耗品欄位已滿	Alle {slots} Verbrauchsplätze sind belegt
+	ui.insight.blind.rule	「{name}」의 규칙이 걸립니다	The rules of {name} apply	「{name}」の規則がかかります	「{name}」的规则生效	「{name}」的規則生效	Die Regeln von {name} greifen
+	ui.insight.blind.debuff_suit	보스가 {suit:을} 무력화합니다.  패에 {held}장  ·  남은 것에 {left}장	The boss debuffs {suit}.  {held} in hand  ·  {left} undrawn	ボスが {suit} を無力化します。手札に {held} 枚  ·  未ドローに {left} 枚	Boss 会削弱 {suit}。手牌 {held} 张  ·  未抽 {left} 张	Boss 會削弱 {suit}。手牌 {held} 張  ·  未抽 {left} 張	Der Boss schwächt {suit}.  {held} in der Hand  ·  {left} ungezogen
+	ui.insight.blind.hand_used	이미 낸 족보는 다시 낼 수 없습니다.  {hands}	Hands already played cannot be played again.  {hands}	一度出した役は再び出せません。{hands}	已打出的牌型不能再次打出。{hands}	已打出的牌型不能再次打出。{hands}	Bereits gespielte Blätter sind gesperrt.  {hands}
+	ui.insight.blind.skip	건너뛰면 태그 「{tag}」 하나를 받습니다	Skipping grants {tag}	スキップすると「{tag}」を受け取ります	跳过可获得「{tag}」	跳過可獲得「{tag}」	Überspringen gewährt {tag}
+	ui.insight.blind.target	요구 점수 {target}점  ·  격파 보상 ${reward}	Target {target}  ·  reward ${reward}	要求点数 {target} 点  ·  撃破報酬 ${reward}	目标分数 {target}  ·  击破奖励 ${reward}	目標分數 {target}  ·  擊破獎勵 ${reward}	Ziel {target}  ·  Belohnung ${reward}
+	ui.insight.economy.interest	${need} 더 모으면 다음 상점 이자가 ${gain} 오릅니다	${need} more raises the next shop interest by ${gain}	あと ${need} 貯めると次のショップの利息が ${gain} 増えます	再存 ${need} 可让下次商店利息增加 ${gain}	再存 ${need} 可讓下次商店利息增加 ${gain}	${need} mehr erhöhen den nächsten Laden-Zins um ${gain}
+	ui.insight.economy.interest_cap	이자가 상한 ${cap}에 닿았습니다	Interest has reached its ${cap} cap	利息が上限 ${cap} に達しました	利息已达上限 ${cap}	利息已達上限 ${cap}	Der Zins hat seine Grenze von ${cap} erreicht
+	ui.insight.economy.reroll	재굴림 값이 ${cost} 입니다	A reroll costs ${cost}	リロールの値段は ${cost} です	重掷需要 ${cost}	重擲需要 ${cost}	Ein Neuwurf kostet ${cost}
+	ui.insight.economy.debt	잔액이 ${limit}까지 내려갈 수 있습니다	Your balance can fall to ${limit}	残高は ${limit} まで下がれます	余额最低可到 ${limit}	餘額最低可到 ${limit}	Dein Guthaben darf auf ${limit} fallen
 	ui.run_info.current	지금	Current	現在	当前	當前	Aktuell
 	ui.stake.note	안테 표 {column}열 · 스몰 보상 ${reward} · 버리기 {discards}	Ante col. {column} · Small reward ${reward} · Discards {discards}	アンティ表 {column}列 · スモール報酬 ${reward} · 捨て札 {discards}	底注表第 {column} 列 · 小盲奖励 ${reward} · 弃牌 {discards}	底注表第 {column} 列 · 小盲獎勵 ${reward} · 棄牌 {discards}	Ante-Spalte {column} · Small-Belohnung ${reward} · Ablegen {discards}
 	ui.button.skip	건너뛴다	Skip	スキップ	跳过	跳過	Überspringen
@@ -1440,3 +1484,15 @@
 	ui.over.copy	복사	Copy	コピー	复制	複製	Kopieren
 	ui.over.copied	복사했습니다	Copied	コピーしました	已复制	已複製	Kopiert
 	ui.shop.empty_cell	빈 칸	Empty	空き	空位	空位	Leer
+	ui.title.leaveAsk	타이틀로 갈까요?	Back to title?	タイトルへ戻りますか？	返回标题？	返回標題？	Zum Titel zurück?
+	ui.title.leaveBody	진행 중인 런이 사라집니다. 다시 이어서 할 수 없습니다.	This run will be lost. You cannot resume it.	進行中のランは失われます。再開はできません。	当前对局将会丢失，无法继续。	目前的對局將會遺失，無法繼續。	Der laufende Run wird verworfen und kann nicht fortgesetzt werden.
+	ui.option.uiTheme	테마	Theme	テーマ	主题	主題	Thema
+	ui.option.note.uiTheme	판의 색을 고릅니다	Pick the panel colors	パネルの色を選びます	选择面板配色	選擇面板配色	Farben der Panels
+	ui.theme.slate	기본	Default	標準	默认	預設	Standard
+	ui.theme.ink	검정	Black	ブラック	黑色	黑色	Schwarz
+	ui.theme.navy	남색	Navy	ネイビー	深蓝	深藍	Marine
+	ui.theme.bright	밝은 회색	Light gray	ライトグレー	浅灰	淺灰	Hellgrau
+	ui.theme.green	초록	Green	グリーン	绿色	綠色	Grün
+	ui.theme.wine	와인	Wine	ワイン	酒红	酒紅	Wein
+	ui.theme.brown	갈색	Brown	ブラウン	棕色	棕色	Braun
+	ui.theme.violet	자주	Violet	バイオレット	紫色	紫色	Violett

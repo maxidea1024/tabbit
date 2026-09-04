@@ -192,7 +192,7 @@ export class Title extends Container {
 
     // **밝은 단추는 「시작」 하나입니다.** 넷이 저마다의 색이면 어느 것을 먼저 누를지가
     // 색으로 정해지지 않고, 그러면 색은 장식입니다.
-    const pool = new Button(t('ui.button.jokers'), OTHER_W, ROW_H, UI.slate,
+    const pool = new Button(t('ui.button.jokers'), OTHER_W, ROW_H, UI.btn,
                             hooks.onJokers, 17)
     pool.position.set(x, ROW_Y)
     this.buttons.push({ key: 'ui.button.jokers', button: pool })
@@ -201,7 +201,7 @@ export class Title extends Container {
 
     // **열리기 전에는 비활성입니다.** 눌러서 잠긴 것을 알게 하는 것보다, 눌리지 않는 것이
     // 보이고 올렸을 때 무엇으로 열리는지 적히는 쪽이 그 자리에서 끝납니다.
-    const dare = new Button(t('ui.button.challenges'), OTHER_W, ROW_H, UI.slate,
+    const dare = new Button(t('ui.button.challenges'), OTHER_W, ROW_H, UI.btn,
                             hooks.onChallenges, 17)
     dare.position.set(x, ROW_Y)
     this.buttons.push({ key: 'ui.button.challenges', button: dare })
@@ -210,7 +210,7 @@ export class Title extends Container {
     dare.enabled = false
     x += OTHER_W + BTN_GAP
 
-    const board = new Button(t('ui.button.leaderboard'), OTHER_W, ROW_H, UI.slate,
+    const board = new Button(t('ui.button.leaderboard'), OTHER_W, ROW_H, UI.btn,
                              hooks.onLeaderboard, 17)
     board.position.set(x, ROW_Y)
     this.buttons.push({ key: 'ui.button.leaderboard', button: board })
@@ -219,7 +219,7 @@ export class Title extends Container {
     dare.on('pointerover', () => {
       if (this.locked) {
         this.tip.show(t('ui.button.challenges'), '', 0, [t('ui.challenge.lockedAll')],
-                      dare.x + OTHER_W / 2, ROW_Y + ROW_H, SIZE)
+                      { x: dare.x + OTHER_W / 2, top: ROW_Y, bottom: ROW_Y + ROW_H }, SIZE)
       }
     })
     dare.on('pointerout', () => this.tip.hide())
@@ -235,7 +235,7 @@ export class Title extends Container {
     const setupW = START_W + BTN_GAP + OTHER_W * 2 + BTN_GAP
     const rankedW = OTHER_W
 
-    const setup = new Button('', setupW, UPPER_H, UI.slate, hooks.onSetup, 14)
+    const setup = new Button('', setupW, UPPER_H, UI.btn, hooks.onSetup, 14)
     setup.position.set(left, UPPER_Y)
     this.toolNodes.set('setup', { node: setup, cx: setupW / 2, cy: UPPER_H / 2 })
     this.setupButton = setup
@@ -243,7 +243,7 @@ export class Title extends Container {
     // **랭크는 그 옆입니다.** 시작과 같은 일이고 다만 오르는 판이므로, 아래 줄에 다섯째로
     // 두면 조커 풀과 같은 갈래로 보입니다.
     // **시작보다 조용합니다.** 같은 초록으로 크게 두면 눌러야 하는 것이 둘로 보입니다.
-    const ranked = new Button(t('ui.lb.ranked'), rankedW, UPPER_H, UI.slate,
+    const ranked = new Button(t('ui.lb.ranked'), rankedW, UPPER_H, UI.btn,
                               hooks.onRanked, 13)
     ranked.position.set(left + setupW + BTN_GAP, UPPER_Y)
     this.toolNodes.set('ranked', { node: ranked, cx: rankedW / 2, cy: UPPER_H / 2 })
@@ -254,7 +254,8 @@ export class Title extends Container {
     ranked.on('pointerover', () => {
       if (!this.signedIn) {
         this.tip.show(t('ui.lb.ranked'), '', 0, [t('ui.account.needLink')],
-                      ranked.x + rankedW / 2, UPPER_Y + UPPER_H, SIZE)
+                      { x: ranked.x + rankedW / 2, top: UPPER_Y, bottom: UPPER_Y + UPPER_H },
+                      SIZE)
       }
     })
     ranked.on('pointerout', () => this.tip.hide())
@@ -267,7 +268,7 @@ export class Title extends Container {
     this.chip.cursor = 'pointer'
     this.chip.on('pointertap', () => hooks.onAccount())
 
-    const signOut = new Button(t('ui.button.logout'), ACCOUNT_W, SIGNOUT_H, UI.slate,
+    const signOut = new Button(t('ui.button.logout'), ACCOUNT_W, SIGNOUT_H, UI.btn,
                                hooks.onSignOut, 12)
     signOut.position.set(DOCK_PAD, UPPER_Y + CARD_H + 8)
     signOut.visible = false
@@ -377,6 +378,17 @@ export class Title extends Container {
     this.drawChip()
   }
 
+  /**
+   * 겉면을 갈아 끼운 뒤 다시 그립니다.
+   *
+   * **이 화면은 옵션을 여는 그 자리입니다.** 타이틀에서 겉면을 고르면 그 뒤에 있는 것이
+   * 이 화면이고, 여기가 앞 겉면으로 남으면 고른 사람이 보는 것이 바뀌지 않습니다.
+   */
+  restyle(): void {
+    for (const one of this.buttons) one.button.restyle()
+    this.drawChip()
+  }
+
   /** 네 잎. 원 넷을 돌려 붙인 모양입니다. */
   private drawLeaf(): void {
     const g = this.leaf
@@ -391,6 +403,7 @@ export class Title extends Container {
 
   advance(seconds: number): void {
     if (!this.visible) return
+    this.tip.advance(seconds)
     this.time += seconds
     this.leaf.rotation = Math.sin(this.time * 0.8) * 0.16
     this.leaf.scale.set(1 + Math.sin(this.time * 1.6) * 0.04)

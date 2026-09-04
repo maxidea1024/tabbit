@@ -81,6 +81,33 @@ export function plate(g: Graphics, width: number, height: number, style: PlateSt
     .stroke({ color: style.border, width: weight })
 }
 
+/**
+ * 떠오르는 글 뒤의 번쩍임.
+ *
+ * **만화가 소리를 적을 때 쓰는 그 모양입니다.** 판 위에는 카드와 그림이 깔려 있어서 테를
+ * 두른 글자만으로는 그 위에서 읽히지 않습니다 — 어두운 안쪽이 글의 바탕이 되고, 뾰족한
+ * 테가 그 사건의 세기를 알립니다.
+ *
+ * **세기가 모양을 정합니다.** 조용한 것은 뾰족함이 적고 얕으며, 배수를 곱하는 것처럼 큰
+ * 것은 날카롭습니다. 끝의 길이를 조금씩 달리해 자로 그린 별처럼 보이지 않게 두었고,
+ * 그 값은 난수가 아니라 자리에서 나옵니다 — 한 번 그리고 마는 그림이므로 프레임마다
+ * 달라지면 안 됩니다.
+ */
+export function burst(g: Graphics, halfW: number, halfH: number,
+                      intensity: number, tint: number): void {
+  const heat = Math.min(1.4, Math.max(0, intensity))
+  const spikes = Math.round(9 + heat * 4)
+  const dip = 0.74 - heat * 0.16
+  const points: number[] = []
+  for (let i = 0; i < spikes * 2; i++) {
+    const angle = (Math.PI * i) / spikes - Math.PI / 2
+    const reach = i % 2 === 0 ? 0.9 + ((i * 37) % 21) / 100 : dip
+    points.push(Math.cos(angle) * halfW * reach, Math.sin(angle) * halfH * reach)
+  }
+  g.poly(points).fill({ color: 0x0a0f18, alpha: 0.82 })
+  g.poly(points).stroke({ color: tint, width: 1.5, alpha: 0.85 })
+}
+
 /** 그라디언트를 쓰는 곳이 남아 있을 때를 위해 둡니다. 판때기는 더 쓰지 않습니다. */
 export { gradient }
 

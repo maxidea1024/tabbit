@@ -90,7 +90,7 @@ export class Guide implements ModalPanel {
     // **판 위를 누르는 것으로는 닫히지 않습니다.** 닫는 것은 바깥이거나 `Esc` 입니다.
     // 족보 목록은 이 판에서 바로 열립니다. **판 위에 판이 얹힙니다** — 닫으면 이 판으로
     // 돌아오므로, 규칙을 읽다 말고 처음부터 다시 찾아 들어갈 일이 없습니다.
-    const hands = new Button(t('ui.button.hand_list_open'), 168, 34, UI.slate,
+    const hands = new Button(t('ui.button.hand_list_open'), 168, 34, UI.btn,
       () => this.onHandList())
     this.body.addChild(
       panelFrame(WIDTH, this.height, t('ui.button.guide'), () => this.onClose(), hands))

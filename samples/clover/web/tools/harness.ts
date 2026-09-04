@@ -64,6 +64,13 @@ export interface Peek {
   /** 최근에 난 소리들. 새것이 뒤입니다. */
   sounds?: string[]
   /**
+   * 인사이트 판에 지금 서 있는 줄들의 열쇠.
+   *
+   * **판이 떠 있고 그 갈래일 때만 값이 있습니다.** 줄 수만 알리면 문장이 열쇠 그대로
+   * 적혀 있어도 같은 답이 나오므로, 열쇠를 알려 시트와 견줄 수 있게 합니다.
+   */
+  insight?: { keys: string[] }
+  /**
    * 카드 앞면을 몇 장 굽고 몇 번 다시 썼는가.
    *
    * **다시 쓰는 쪽만 늘어야 맞습니다.** 앞면은 무늬 · 랭크 · 종이색 · 디버프가 같으면 같은
@@ -313,6 +320,36 @@ export async function takePayout(page: Page): Promise<void> {
 }
 
 /**
+ * 상점 판이 다 서기를 기다립니다.
+ *
+ * **`shopUp` 은 올라오기 시작한 것입니다.** 판은 화면 아래에서 밀려 올라오고 `shopY` 가
+ * 그 남은 거리이므로, 그것이 0 이 되어야 다 선 것입니다 — 올라오는 중에 찍으면 판이 화면
+ * 밖으로 반쯤 걸친 그림이 남습니다.
+ */
+export async function shopStanding(page: Page): Promise<void> {
+  for (let wait = 0; wait < 80; wait++) {
+    const now = await peek(page)
+    if (now.shopUp && (now.shopY ?? 1) < 1) return
+    await pass(page, 100)
+  }
+}
+
+/**
+ * 상점을 만질 수 있는 상태로 만듭니다.
+ *
+ * **코어가 `shop` 인 것과 상점 판이 서 있는 것은 다릅니다.** 블라인드를 넘긴 그 자리에서
+ * 국면은 `shop` 이 되지만 화면은 정산 판을 세우고 기다리므로, 받지 않으면 상점 판이
+ * 올라오지 않습니다 — 그 사이에 칸을 짚는 도구는 「상점에 0번 칸이 없습니다」 로 끝납니다.
+ *
+ * **국면만 보고 칸을 짚는 자리가 둘 있었습니다.** 그래서 여기 하나로 둡니다.
+ */
+export async function shopFront(page: Page): Promise<void> {
+  const now = await peek(page)
+  if (now.cleared || now.payout) await takePayout(page)
+  await shopStanding(page)
+}
+
+/**
  * 라운드를 이기고 정산을 받아 상점까지 갑니다.
  *
  * **자동 진행으로 이기지 않습니다.** 다섯 장을 고르는 봇은 안테 1 의 스몰 블라인드도 자주
@@ -469,7 +506,17 @@ export async function packSlot(page: Page, slot: number, count = 2): Promise<{ x
  * 가운데로 모입니다.
  */
 export async function buyFirstAffordable(page: Page): Promise<void> {
-  for (let slot = 0; slot < 4; slot++) {
+  // **몇 번 칸이 서 있는지는 화면이 알립니다.** 넷을 전제로 돌면 상품 줄이 비었을 때 —
+  // 다 팔렸거나 팩만 놓인 상점입니다 — 없는 칸을 짚고 「상점에 0번 칸이 없습니다」 로
+  // 끝납니다. 살 것이 없는 것은 이 도구가 알릴 일이 아닙니다.
+  const slots = ((await peek(page)).shopAt ?? []).map(entry => entry[0])
+
+  for (const slot of slots) {
+    // **산 칸은 없어지고 남은 칸은 제자리입니다.** 그래서 처음 읽어 둔 번호가 아직 서
+    // 있는지를 칸마다 다시 봅니다.
+    const standing = ((await peek(page)).shopAt ?? []).some(entry => entry[0] === slot)
+    if (!standing) continue
+
     const spot = await shopSlot(page, slot)
     await page.mouse.click(spot.x, spot.y)
     await pass(page, 350)

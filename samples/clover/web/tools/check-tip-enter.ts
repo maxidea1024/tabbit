@@ -47,14 +47,13 @@ async function main(): Promise<number> {
 
   // 빈 자리로 옮겨 둡니다.
   //
-  // **조커 둘이 더 오면 앞의 것도 한 칸 왼쪽으로 옮겨 섭니다** — 자리 안에서 가운데로 모이므로
-  // 넷이 되면 첫 장이 지금 첫 장의 한 칸 왼쪽에 섭니다. 그 자리가 지금은 비어 있고, 곧
-  // 카드가 서는 자리입니다.
+  // **자리 둘은 왼쪽부터 채웁니다.** 그러므로 조커 둘이 더 와도 앞의 둘은 그 자리에 그대로
+  // 있고, 빈 칸은 그 오른쪽입니다 — 곧 셋째 장이 서는 자리입니다.
   //
   // **한 칸은 화면이 알린 두 자리의 차입니다.** 자리는 개수마다 달라지므로 셈해서 적으면 그 값은
   // 배치를 고친 날부터 아무것도 없는 곳을 가리킵니다.
   const second = await jokerSpot(page, 1)
-  const empty = { x: first.x - (second.x - first.x), y: first.y }
+  const empty = { x: second.x + (second.x - first.x), y: first.y }
   const away = await trayGap(page, 'joker')
   await page.mouse.move(away.x, away.y)
   await page.mouse.move(empty.x, empty.y)

@@ -142,7 +142,7 @@ export class JokerPoolPanel implements ModalPanel {
     const pw = 200
     for (const [index, choice] of (['base', 'all'] as PoolChoice[]).entries()) {
       const key = choice === 'all' ? 'ui.pool.all' : 'ui.pool.base'
-      const button = new Button(t(key), pw, HEAD_H, UI.slate,
+      const button = new Button(t(key), pw, HEAD_H, UI.btn,
                                 () => this.choose(choice), 17)
       button.position.set(GRID_X + index * (pw + 14), HEAD_Y)
       this.poolButtons.push({ choice, button, key })
@@ -153,24 +153,24 @@ export class JokerPoolPanel implements ModalPanel {
     // 눈으로 훑어서는 풀리지 않습니다.
     const sw = 70
     for (const [index, one] of SORTS.entries()) {
-      const button = new Button(t(one.label), sw, HEAD_H, UI.slate,
+      const button = new Button(t(one.label), sw, HEAD_H, UI.btn,
                                 () => this.sortBy(one.key), 14)
       button.position.set(480 + index * (sw + 6), HEAD_Y)
       this.sortButtons.push({ key: one.key, button, label: one.label })
       this.body.addChild(button)
     }
-    this.order = new Button('', 40, HEAD_H, UI.slate, () => this.flip(), 18)
+    this.order = new Button('', 40, HEAD_H, UI.btn, () => this.flip(), 18)
     this.order.position.set(790, HEAD_Y)
     this.body.addChild(this.order)
 
     this.body.addChild(this.grid)
 
     // 쪽 넘김. 머리의 오른쪽 끝입니다.
-    this.prev = new Button('◀', 56, HEAD_H, UI.slate, () => this.turn(-1), 20)
+    this.prev = new Button('◀', 56, HEAD_H, UI.btn, () => this.turn(-1), 20)
     this.prev.position.set(862, HEAD_Y)
     this.pageLabel.anchor.set(0.5, 0.5)
     this.pageLabel.position.set(950, HEAD_Y + HEAD_H / 2)
-    this.next = new Button('▶', 56, HEAD_H, UI.slate, () => this.turn(1), 20)
+    this.next = new Button('▶', 56, HEAD_H, UI.btn, () => this.turn(1), 20)
     this.next.position.set(982, HEAD_Y)
     this.body.addChild(this.prev, this.next, this.pageLabel)
 
@@ -315,7 +315,8 @@ export class JokerPoolPanel implements ModalPanel {
     this.tooltip.show(
       nameOf(this.data, 'joker', jokerId, row.name),
       t(RARITY_KEYS[row.rarity] ?? ''), row.rarity, lines,
-      x, y + SIZE.jokerHeight / 2, { width: WIDTH, height: HEIGHT }, row.cost)
+      { x, top: y - SIZE.jokerHeight / 2, bottom: y + SIZE.jokerHeight / 2 },
+      { width: WIDTH, height: HEIGHT }, row.cost)
   }
 
   relabel(): void {
@@ -334,6 +335,7 @@ export class JokerPoolPanel implements ModalPanel {
     // 매 프레임 움직이면 한 번 열어 본 뒤로 세션 끝까지 그 값을 냅니다. 그림이 들어왔다는
     // 표시도 다음에 열 때 한 번에 처리합니다.
     if (!this.view.parent) return
+    this.tooltip.advance(seconds)
     if (this.dirty) {
       this.dirty = false
       this.rebuild()

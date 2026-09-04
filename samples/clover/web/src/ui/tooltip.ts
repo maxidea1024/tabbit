@@ -20,10 +20,27 @@ const RICH: RichStyle = {
 }
 
 /** 가장 좁을 때의 너비. 이름과 칩이 길면 여기서 자랍니다. */
+/**
+ * 쪽지가 붙는 자리. **가리킨 것이 차지한 세로 구간입니다.**
+ *
+ * 점 하나가 아니라 위와 아래를 함께 받습니다 — 쪽지는 위를 먼저 쓰므로 그 물건의 윗변을
+ * 알아야 하고, 자리가 없어 아래로 갈 때는 밑변을 알아야 합니다. 값은 **쪽지가 놓이는
+ * 좌표계의 것**입니다 — 부르는 쪽이 자기 지역 좌표를 그대로 넘기면 층이 옮겨진 만큼
+ * 어긋납니다.
+ */
+export interface TipBox {
+  /** 가로 가운데. */
+  x: number
+  top: number
+  bottom: number
+}
+
 const MIN_WIDTH = 240
 /** 가장 넓을 때. 이보다 넓어지면 쪽지가 아니라 판이 됩니다. */
 const MAX_WIDTH = 330
 const PAD = 12
+/** 튀어나오는 데 걸리는 시간. **짧습니다** — 읽으려고 올린 것이므로 기다리게 하지 않습니다. */
+const POP_TIME = 0.15
 /** 칩의 높이. 이름 글자와 가운데가 맞습니다. */
 const CHIP_H = 20
 
@@ -59,6 +76,19 @@ export class Tooltip extends Container {
   /** 설명 줄들. **수와 이름은 다른 색입니다** — 조커가 얼마를 주는지가 먼저 읽혀야 합니다. */
   private readonly body = new Container()
 
+  /**
+   * 튀어나오는 동안. 0에서 1이고, 1이면 다 나왔습니다.
+   *
+   * **그냥 나타나면 어디에서 나온 것인지가 없습니다.** 가리킨 것에 붙은 변에서 자라야
+   * 그 물건의 설명으로 읽힙니다 — 그래서 자라는 기준점을 자리마다 따로 둡니다.
+   */
+  private pop = 1
+  private restX = 0
+  private restY = 0
+  /** 자라는 기준점. 가리킨 것에 붙은 변의 가운데입니다. */
+  private fromX = 0
+  private fromY = 0
+
   constructor() {
     super()
     this.addChild(this.plate, this.title, this.chips, this.body)
@@ -72,7 +102,7 @@ export class Tooltip extends Container {
    * `kindName` 은 종류이거나 희귀도입니다 — 비우면 칩이 서지 않습니다. `cost` 도 같습니다.
    */
   show(name: string, kindName: string, rarityValue: number, lines: string[],
-       x: number, y: number, bounds: { width: number; height: number },
+       at: TipBox, bounds: { width: number; height: number },
        cost?: number): void {
     this.title.text = name
 
@@ -116,14 +146,48 @@ export class Tooltip extends Container {
       .stroke({ color: rarityColor(rarityValue), width: 1.5 })
 
     // 화면 밖으로 나가지 않게 접습니다.
-    const px = Math.min(Math.max(8, x - width / 2), bounds.width - width - 8)
-    const py = y + height + 16 > bounds.height ? y - height - 16 : y + 16
-    this.position.set(px, Math.max(8, py))
+    const px = Math.min(Math.max(8, at.x - width / 2), bounds.width - width - 8)
+    // **위를 먼저 씁니다.** 손가락으로 누르는 화면에서는 아래에 띄운 쪽지가 그 손가락에
+    // 가려집니다 — 가려진 쪽지는 없는 것과 같습니다. 위에 자리가 없을 때만 아래로 갑니다.
+    const above = at.top - height - 12
+    const py = above >= 8 ? above : Math.min(at.bottom + 12, bounds.height - height - 8)
+    this.restX = px
+    this.restY = Math.max(8, py)
+    // 가리킨 것에 가까운 변에서 자랍니다. 위에 떴으면 아래 변, 아래에 떴으면 위 변입니다.
+    this.fromX = Math.min(Math.max(0, at.x - px), width)
+    this.fromY = above >= 8 ? height : 0
+    this.pop = 0
+    this.place()
     this.visible = true
     this.zIndex = 9000
   }
 
+  /**
+   * 튀어나오는 동안을 흘립니다.
+   *
+   * **화면의 시계로 돕니다.** 자기 시계로 돌면 손 시계로 세운 도구가 찍는 순간마다 다른
+   * 크기가 찍힙니다.
+   */
+  advance(seconds: number): void {
+    if (!this.visible || this.pop >= 1) return
+    this.pop = Math.min(1, this.pop + seconds / POP_TIME)
+    this.place()
+  }
+
   hide(): void {
     this.visible = false
+  }
+
+  /** 지금의 `pop` 으로 크기와 자리를 정합니다. 한 번 넘겼다가 돌아옵니다. */
+  private place(): void {
+    const pop = this.pop
+    const scale = pop < 0.6
+      ? 0.78 + (1.06 - 0.78) * (pop / 0.6)
+      : 1.06 - 0.06 * ((pop - 0.6) / 0.4)
+    this.scale.set(scale)
+    // 기준점이 제자리에 남도록 그만큼 밀어 줍니다.
+    this.position.set(this.restX + this.fromX * (1 - scale),
+                      this.restY + this.fromY * (1 - scale))
+    this.alpha = Math.min(1, pop * 3.5)
   }
 }

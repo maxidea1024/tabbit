@@ -419,14 +419,18 @@ export class BlindBadge extends Container {
     this.seal?.destroy()
     this.seal = undefined
 
-    // **이름은 언제나 가운데입니다.** 인장이 붙으면 그만큼 오른쪽으로 비켜세웠는데,
+    // **이름은 언제나 띠의 가운데입니다.** 인장이 붙으면 그만큼 오른쪽으로 비켜세웠는데,
     // 그러면 보스일 때만 이름이 다른 자리에 있습니다 — 띠에 얹히는 것들은 이름의 옆에
     // 서는 것이 아니라 띠의 양 끝에 서는 것이고, 이름은 그것과 무관하게 띠의 가운데입니다.
-    // **이름은 문양 옆 왼쪽입니다.** 가운데에 두면 문양이 그 왼쪽의 남은 자리에 얹힌
-    // 것으로 보이고, 이름 줄은 판의 머리이므로 다른 판의 머리와 같은 규칙이어야 합니다.
+    // 고르기 판의 칸 셋도 같은 규칙입니다.
     this.title.text = name
-    this.title.anchor.set(0, 0.5)
-    this.title.position.set(40, 19)
+    this.title.anchor.set(0.5, 0.5)
+    this.title.scale.set(1)
+    // **문양과 태그를 밀지 않습니다.** 긴 이름은 그 사이에 들어가는 만큼 줄입니다 — 말에
+    // 따라 이름의 길이가 배로 달라집니다.
+    const room = this.boxWidth - 40 * 2
+    if (this.title.width > room) this.title.scale.set(room / this.title.width)
+    this.title.position.set(this.boxWidth / 2, 19)
 
     if (seal) {
       this.seal = seal
