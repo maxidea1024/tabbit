@@ -23,7 +23,7 @@ import { describe } from '../core/describe'
 import { nameOf, t, tf } from '../core/strings'
 import { onArtReady } from '../render/art'
 import { JokerView } from '../render/joker-view'
-import { COLOR, SIZE } from '../render/theme'
+import { COLOR, SIZE, UI } from '../render/theme'
 import { newCounters, type JokerInstance } from '../core/state'
 import type { ModalPanel } from './modal'
 import { panelFrame } from './modal'
@@ -142,7 +142,7 @@ export class JokerPoolPanel implements ModalPanel {
     const pw = 200
     for (const [index, choice] of (['base', 'all'] as PoolChoice[]).entries()) {
       const key = choice === 'all' ? 'ui.pool.all' : 'ui.pool.base'
-      const button = new Button(t(key), pw, HEAD_H, 0x2f5f8f,
+      const button = new Button(t(key), pw, HEAD_H, UI.slate,
                                 () => this.choose(choice), 17)
       button.position.set(GRID_X + index * (pw + 14), HEAD_Y)
       this.poolButtons.push({ choice, button, key })
@@ -153,24 +153,24 @@ export class JokerPoolPanel implements ModalPanel {
     // 눈으로 훑어서는 풀리지 않습니다.
     const sw = 70
     for (const [index, one] of SORTS.entries()) {
-      const button = new Button(t(one.label), sw, HEAD_H, 0x2a3446,
+      const button = new Button(t(one.label), sw, HEAD_H, UI.slate,
                                 () => this.sortBy(one.key), 14)
       button.position.set(480 + index * (sw + 6), HEAD_Y)
       this.sortButtons.push({ key: one.key, button, label: one.label })
       this.body.addChild(button)
     }
-    this.order = new Button('', 40, HEAD_H, 0x2a3446, () => this.flip(), 18)
+    this.order = new Button('', 40, HEAD_H, UI.slate, () => this.flip(), 18)
     this.order.position.set(790, HEAD_Y)
     this.body.addChild(this.order)
 
     this.body.addChild(this.grid)
 
     // 쪽 넘김. 머리의 오른쪽 끝입니다.
-    this.prev = new Button('◀', 56, HEAD_H, 0x2a3446, () => this.turn(-1), 20)
+    this.prev = new Button('◀', 56, HEAD_H, UI.slate, () => this.turn(-1), 20)
     this.prev.position.set(862, HEAD_Y)
     this.pageLabel.anchor.set(0.5, 0.5)
     this.pageLabel.position.set(950, HEAD_Y + HEAD_H / 2)
-    this.next = new Button('▶', 56, HEAD_H, 0x2a3446, () => this.turn(1), 20)
+    this.next = new Button('▶', 56, HEAD_H, UI.slate, () => this.turn(1), 20)
     this.next.position.set(982, HEAD_Y)
     this.body.addChild(this.prev, this.next, this.pageLabel)
 

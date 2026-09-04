@@ -24,7 +24,7 @@
 import { Container, Graphics, Text } from 'pixi.js'
 import { t } from '../core/strings'
 
-import { COLOR, SIZE } from '../render/theme'
+import { COLOR, SIZE, UI } from '../render/theme'
 import type { ToolSpot } from './layout'
 import { Tooltip } from './tooltip'
 import { Button, IconButton } from './widgets'
@@ -170,8 +170,8 @@ export class Title extends Container {
 
     // 바. **하나의 판 위에 전부 얹힙니다.**
     const dock = new Graphics()
-    dock.rect(0, DOCK_Y, SIZE.width, DOCK_H).fill({ color: 0x070d14, alpha: 0.55 })
-    dock.rect(0, DOCK_Y, SIZE.width, 1).fill({ color: 0x2c3849, alpha: 0.8 })
+    dock.rect(0, DOCK_Y, SIZE.width, DOCK_H).fill({ color: UI.panel, alpha: 0.6 })
+    dock.rect(0, DOCK_Y, SIZE.width, 1.5).fill(UI.rule)
 
     // **시작이 가장 큽니다.** 넷이 한 줄에 있어도 눌러야 하는 것 하나는 커야 합니다 —
     // 크기가 같으면 넷 중에서 고르는 일이 되고, 손가락으로는 잘못 누르는 일까지 생깁니다.
@@ -179,14 +179,16 @@ export class Title extends Container {
     const left = Math.round((SIZE.width - total) / 2)
     let x = left
 
-    const start = new Button(t('ui.button.start'), START_W, ROW_H, 0x2f8f52,
+    const start = new Button(t('ui.button.start'), START_W, ROW_H, UI.yellow,
                              hooks.onStart, 26)
     start.position.set(x, ROW_Y)
     this.buttons.push({ key: 'ui.button.start', button: start })
     this.toolNodes.set('start', { node: start, cx: START_W / 2, cy: ROW_H / 2 })
     x += START_W + BTN_GAP
 
-    const pool = new Button(t('ui.button.jokers'), OTHER_W, ROW_H, 0x2f5f8f,
+    // **밝은 단추는 「시작」 하나입니다.** 넷이 저마다의 색이면 어느 것을 먼저 누를지가
+    // 색으로 정해지지 않고, 그러면 색은 장식입니다.
+    const pool = new Button(t('ui.button.jokers'), OTHER_W, ROW_H, UI.slate,
                             hooks.onJokers, 17)
     pool.position.set(x, ROW_Y)
     this.buttons.push({ key: 'ui.button.jokers', button: pool })
@@ -195,7 +197,7 @@ export class Title extends Container {
 
     // **열리기 전에는 비활성입니다.** 눌러서 잠긴 것을 알게 하는 것보다, 눌리지 않는 것이
     // 보이고 올렸을 때 무엇으로 열리는지 적히는 쪽이 그 자리에서 끝납니다.
-    const dare = new Button(t('ui.button.challenges'), OTHER_W, ROW_H, 0x8f5f2f,
+    const dare = new Button(t('ui.button.challenges'), OTHER_W, ROW_H, UI.slate,
                             hooks.onChallenges, 17)
     dare.position.set(x, ROW_Y)
     this.buttons.push({ key: 'ui.button.challenges', button: dare })
@@ -204,7 +206,7 @@ export class Title extends Container {
     dare.enabled = false
     x += OTHER_W + BTN_GAP
 
-    const board = new Button(t('ui.button.leaderboard'), OTHER_W, ROW_H, 0x5f2f8f,
+    const board = new Button(t('ui.button.leaderboard'), OTHER_W, ROW_H, UI.slate,
                              hooks.onLeaderboard, 17)
     board.position.set(x, ROW_Y)
     this.buttons.push({ key: 'ui.button.leaderboard', button: board })
@@ -229,7 +231,7 @@ export class Title extends Container {
     const setupW = START_W + BTN_GAP + OTHER_W * 2 + BTN_GAP
     const rankedW = OTHER_W
 
-    const setup = new Button('', setupW, UPPER_H, 0x2f5f8f, hooks.onSetup, 14)
+    const setup = new Button('', setupW, UPPER_H, UI.slate, hooks.onSetup, 14)
     setup.position.set(left, UPPER_Y)
     this.toolNodes.set('setup', { node: setup, cx: setupW / 2, cy: UPPER_H / 2 })
     this.setupButton = setup
@@ -237,7 +239,7 @@ export class Title extends Container {
     // **랭크는 그 옆입니다.** 시작과 같은 일이고 다만 오르는 판이므로, 아래 줄에 다섯째로
     // 두면 조커 풀과 같은 갈래로 보입니다.
     // **시작보다 조용합니다.** 같은 초록으로 크게 두면 눌러야 하는 것이 둘로 보입니다.
-    const ranked = new Button(t('ui.lb.ranked'), rankedW, UPPER_H, 0x27603f,
+    const ranked = new Button(t('ui.lb.ranked'), rankedW, UPPER_H, UI.slate,
                               hooks.onRanked, 13)
     ranked.position.set(left + setupW + BTN_GAP, UPPER_Y)
     this.toolNodes.set('ranked', { node: ranked, cx: rankedW / 2, cy: UPPER_H / 2 })
@@ -261,7 +263,7 @@ export class Title extends Container {
     this.chip.cursor = 'pointer'
     this.chip.on('pointertap', () => hooks.onAccount())
 
-    const signOut = new Button(t('ui.button.logout'), ACCOUNT_W, SIGNOUT_H, 0x4a5568,
+    const signOut = new Button(t('ui.button.logout'), ACCOUNT_W, SIGNOUT_H, UI.slate,
                                hooks.onSignOut, 12)
     signOut.position.set(DOCK_PAD, UPPER_Y + CARD_H + 8)
     signOut.visible = false

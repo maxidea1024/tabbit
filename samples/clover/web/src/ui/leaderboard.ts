@@ -28,7 +28,7 @@ import { nameOf, t, tf } from '../core/strings'
 import * as board from '../net/leaderboard'
 import { loggedIn } from '../net/session'
 import type { BoardInfo, BoardPage } from '../net/leaderboard'
-import { COLOR } from '../render/theme'
+import { COLOR, UI } from '../render/theme'
 import type { ModalPanel } from './modal'
 import { panelFrame } from './modal'
 import { ScrollView } from './scroll'
@@ -609,7 +609,7 @@ export class LeaderboardPanel implements ModalPanel {
       this.mineBar.addChild(none)
 
       if (guest) {
-        const link = new Button(t('ui.account.link'), 120, 26, 0x2f8f52,
+        const link = new Button(t('ui.account.link'), 120, 26, UI.yellow,
                                 () => this.later(() => this.onNeedAccount?.()), 12)
         link.position.set(TABLE_X + TABLE_W - 132, y + (MINE_H - 26) / 2)
         this.mineBar.addChild(link)
@@ -646,7 +646,7 @@ export class LeaderboardPanel implements ModalPanel {
     // 밑단에 두면 눈이 한 번 더 옮겨 갑니다.
     const onPage = shown.rows.some(row => row.rank === shown.me?.rank)
     if (!onPage) {
-      const jump = new Button(t('ui.button.toMe'), 96, 26, 0x2f5f8f,
+      const jump = new Button(t('ui.button.toMe'), 96, 26, UI.sky,
                               () => this.later(() => void this.loadPage('me')), 12)
       jump.position.set(TABLE_X + COL.value - amount.width - 118, y + (MINE_H - 26) / 2)
       this.mineBar.addChild(jump)

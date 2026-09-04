@@ -4,16 +4,21 @@
 // 얼마인지가 한 덩어리로 붙어 있어야 판단이 됩니다.
 
 import { Container, Graphics, Text } from 'pixi.js'
-import { tf } from '../core/strings'
+import { t, tf } from '../core/strings'
 
 import { NUMERALS } from '../ui/font'
 import { box, BOTTOM, inset, putText, splitY } from '../ui/layout'
 import { mix, plate, slotStyle } from './skin'
-import { COLOR } from './theme'
+import { COLOR, UI } from './theme'
 
 /** 값 하나가 들어가는 칸. */
 /** 이름이 앉는 띠의 높이. 숫자는 그 아래의 남은 자리를 씁니다. */
 const CAPTION_H = 22
+/**
+ * 한 줄 칸의 좌우 여백. 이름은 왼쪽 끝, 값은 오른쪽 끝에서 이만큼 들어옵니다.
+ */
+const ROW_PAD = 12
+
 /**
  * 가장자리에 붙는 숫자가 벽에서 떨어지는 만큼.
  *
@@ -34,7 +39,7 @@ const MUTE_MS = 320
 export class Slot extends Container {
   private readonly plate = new Graphics()
   private readonly caption_ = new Text({
-    text: '', style: { fontSize: 10, fill: COLOR.inkDim, fontWeight: '700' },
+    text: '', style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '700' },
   })
   private readonly value = new Text({
     text: '0',
@@ -62,7 +67,16 @@ export class Slot extends Container {
    * 배수는 왼쪽으로 붙어야 세 개가 한 식으로 읽힙니다 — 가운데로 두면 자릿수가 늘어날
    * 때마다 곱셈표와의 사이가 벌어졌다 좁아집니다.
    */
-  private readonly pull: number
+  private pull: number
+
+  /**
+   * 이름과 값이 한 줄에 있는가.
+   *
+   * **이름 있는 칸은 한 줄입니다.** 이름을 위에 얹고 숫자를 그 아래에 두면 칸의 절반이
+   * 이름 자리가 되어 숫자가 작아지고, 칸마다 색 테를 둘러 무엇의 값인지를 알리던 것도
+   * 그 배치의 산물입니다 — 이름은 왼쪽, 값은 오른쪽 한 줄이면 테는 하나로 족합니다.
+   */
+  private readonly row: boolean
 
   /**
    * 자기 판을 그리지 않는가.
@@ -89,12 +103,22 @@ export class Slot extends Container {
     const inner = box(0, 0, boxWidth, boxHeight)
     const named = caption !== ''
     this.caption_.visible = named
-    const [head, rest] = splitY(inner, [CAPTION_H, boxHeight - CAPTION_H])
-    const body = named ? rest : inner
-    if (named) putText(this.caption_, head, BOTTOM, { y: -2 })
-    // **이름이 없으면 여백이 좁아도 됩니다.** 곱셈표가 상자 밖의 빈 자리에 서므로 숫자가
-    // 그것에 닿지 않습니다.
-    putText(this.value, inset(body, 0, named ? VALUE_PAD : BARE_PAD), { x: pull, y: 0.5 })
+    this.row = named && !bare
+    if (this.row) {
+      // 이름은 왼쪽, 값은 오른쪽. **값은 오른쪽 끝에 붙으므로 `pull` 이 1 입니다** — ±N
+      // 글이 같은 자리에 서려면 그 기준이 같아야 합니다.
+      this.pull = 1
+      const line = inset(inner, 0, ROW_PAD)
+      putText(this.caption_, line, { x: 0, y: 0.5 })
+      putText(this.value, line, { x: 1, y: 0.5 })
+    } else {
+      const [head, rest] = splitY(inner, [CAPTION_H, boxHeight - CAPTION_H])
+      const body = named ? rest : inner
+      if (named) putText(this.caption_, head, BOTTOM, { y: -2 })
+      // **이름이 없으면 여백이 좁아도 됩니다.** 곱셈표가 상자 밖의 빈 자리에 서므로 숫자가
+      // 그것에 닿지 않습니다.
+      putText(this.value, inset(body, 0, BARE_PAD), { x: pull, y: 0.5 })
+    }
     this.baseY = this.value.y
     this.value.style.fill = ink
     this.draw()
@@ -139,6 +163,7 @@ export class Slot extends Container {
   }
 
   private get valueX(): number {
+    if (this.row) return this.boxWidth - ROW_PAD
     // **이름이 있는 칸과 없는 칸의 여백이 다릅니다.** 28은 이름이 붙은 칸의 여백인데
     // 여기서 한 값만 쓰고 있었고, 그래서 칩과 배수의 숫자가 곱셈표 쪽에서 28픽셀 물러나
     // 있었습니다 — 한 자리일 때는 칸 가운데에 있는 것으로 보이고, 자릿수가 늘면 그만큼
@@ -158,10 +183,11 @@ export class Slot extends Container {
     this.plateKey = key
     const style = slotStyle(this.ink)
     this.plate.clear()
+    // **빛나는 것은 바탕뿐입니다.** 테를 굵히면 그 칸만 다른 문법으로 그려진 것이 되고,
+    // 값이 굴러가는 동안 판 왼쪽에서 테 하나가 자랐다 줄어듭니다.
     plate(this.plate, this.boxWidth, this.boxHeight, {
       ...style,
-      top: step > 0 ? mix(style.top, this.ink, step * 0.35) : style.top,
-      weight: 1.5 + step * 2,
+      top: step > 0 ? mix(style.top, this.ink, step * 0.22) : style.top,
     })
   }
 
@@ -284,14 +310,16 @@ export class Slot extends Container {
 export class BlindBadge extends Container {
   private readonly plate = new Graphics()
   private readonly title = new Text({
-    text: '', style: { fontSize: 17, fill: COLOR.ink, fontWeight: '800' },
+    text: '', style: { fontSize: 15, fill: COLOR.ink, fontWeight: '800' },
   })
   private readonly need = new Text({
     text: '',
-    style: {
-      fontSize: 30, fill: COLOR.chips, fontWeight: '800', fontFamily: NUMERALS,
-      stroke: { color: 0x0a0f18, width: 4 },
-    },
+    style: { fontSize: 32, fill: UI.bar, fontWeight: '800', fontFamily: NUMERALS },
+  })
+  /** 요구 점수라는 것을 적는 작은 글. */
+  private readonly caption = new Text({
+    text: '',
+    style: { fontSize: 10, fill: COLOR.inkDim, fontWeight: '700', letterSpacing: 1 },
   })
   private readonly note = new Text({
     text: '',
@@ -315,7 +343,7 @@ export class BlindBadge extends Container {
 
   constructor(private readonly boxWidth: number) {
     super()
-    this.addChild(this.plate, this.title, this.need, this.reward, this.note)
+    this.addChild(this.plate, this.title, this.caption, this.need, this.reward, this.note)
   }
 
   /**
@@ -337,19 +365,23 @@ export class BlindBadge extends Container {
     // **비워 두는 자리가 아까운 것보다 흔들리는 것이 나쁩니다.** 이 딱지는 왼쪽 판의 맨
     // 위이고, 높이가 바뀌면 그 아래가 전부 따라 움직입니다 — 블라인드를 넘길 때마다 판이
     // 한 번씩 출렁이던 것이 그것입니다.
-    const height = 164
+    const height = 156
     this.boxHeight = height
-    const tint = boss ? 0x3d1622 : big ? 0x2a2140 : 0x1b2c44
-    const edge = boss ? COLOR.bad : big ? 0xa279e0 : 0x5d92d6
+    // **판을 물들이지 않습니다.** 셋이 저마다의 바탕색이면 판 셋이 서로 다른 물건이 되고,
+    // 어느 블라인드인지는 이름과 문양이 이미 말합니다 — 색은 이름 앞의 문양 하나에만
+    // 듭니다.
+    const mark = boss ? UI.red : big ? 0xa279e0 : UI.bar
 
     this.plate.clear()
     plate(this.plate, this.boxWidth, height, {
-      top: mix(tint, 0xffffff, 0.14), bottom: mix(tint, 0x000000, 0.3),
-      border: edge, radius: 12, weight: 2, drop: 5, gloss: 0.24,
+      top: UI.cell, bottom: UI.cell, border: UI.hairline, radius: 6, weight: 1,
     })
-    // 이름이 앉는 띠.
-    this.plate.roundRect(6, 6, this.boxWidth - 12, 32, 8)
-      .fill({ color: edge, alpha: 0.28 })
+    // 이름이 앉는 줄. 띠가 아니라 아래에 선 하나입니다.
+    this.plate.rect(1, 38, this.boxWidth - 2, 1).fill(UI.hairline)
+    // **문양은 하나입니다.** 화면이 넘겨주는 딱지가 그 문양이므로 여기서 또 그리면 같은
+    // 것이 둘이고, 그중 하나는 색만 같은 다른 그림입니다. 넘겨주지 않는 판(상점)은
+    // 문양이 없습니다 — `mark` 는 그 딱지가 없을 때의 자리 표시입니다.
+    if (!seal) this.plate.circle(20, 19, 5).stroke({ color: mark, width: 2 })
 
     // 앞의 표시를 걷고 새것을 답니다. **그대로 두면 보스가 바뀌어도 앞의 것이 남습니다.**
     this.seal?.destroy()
@@ -358,27 +390,34 @@ export class BlindBadge extends Container {
     // **이름은 언제나 가운데입니다.** 인장이 붙으면 그만큼 오른쪽으로 비켜세웠는데,
     // 그러면 보스일 때만 이름이 다른 자리에 있습니다 — 띠에 얹히는 것들은 이름의 옆에
     // 서는 것이 아니라 띠의 양 끝에 서는 것이고, 이름은 그것과 무관하게 띠의 가운데입니다.
+    // **이름은 문양 옆 왼쪽입니다.** 가운데에 두면 문양이 그 왼쪽의 남은 자리에 얹힌
+    // 것으로 보이고, 이름 줄은 판의 머리이므로 다른 판의 머리와 같은 규칙이어야 합니다.
     this.title.text = name
-    this.title.anchor.set(0.5, 0)
-    this.title.position.set(this.boxWidth / 2, 12)
+    this.title.anchor.set(0, 0.5)
+    this.title.position.set(40, 19)
 
     if (seal) {
       this.seal = seal
-      seal.position.set(24, 22)
+      seal.position.set(20, 19)
       this.addChild(seal)
     }
 
+    // 요구 점수. **바와 같은 색입니다** — 채워야 하는 것으로 읽힙니다.
+    this.caption.text = t('ui.label.target')
+    this.caption.anchor.set(0.5, 0)
+    this.caption.position.set(this.boxWidth / 2, 52)
+
     this.need.text = target.toLocaleString('en-US')
     this.need.anchor.set(0.5, 0)
-    this.need.position.set(this.boxWidth / 2, 52)
+    this.need.position.set(this.boxWidth / 2, 66)
 
     this.reward.text = tf('ui.blind.reward', { n: reward })
     this.reward.anchor.set(0.5, 0)
-    this.reward.position.set(this.boxWidth / 2, 92)
+    this.reward.position.set(this.boxWidth / 2, 104)
 
     this.note.text = note
     this.note.anchor.set(0.5, 0)
-    this.note.position.set(this.boxWidth / 2, 116)
+    this.note.position.set(this.boxWidth / 2, 126)
 
     this.setTags(tags)
   }

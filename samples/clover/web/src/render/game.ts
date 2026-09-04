@@ -1105,7 +1105,7 @@ export class Game {
   private readonly hinted = new Set<number>()
 
   private readonly badge = new BlindBadge(PANEL_W)
-  private readonly score = new Slot(t('ui.slot.round_score'), PANEL_W, 68, COLOR.ink)
+  private readonly score = new Slot(t('ui.slot.round_score'), PANEL_W, 52, COLOR.ink)
   // **이 둘이 화면에서 가장 큰 두 숫자입니다.** 점수는 이 둘의 곱이고, 나머지 칸들은
   // 그것을 설명하는 것들입니다 — 크기가 그 서열을 그대로 보여야 합니다.
   // 칩은 오른쪽으로, 배수는 왼쪽으로 붙습니다 — 사이의 곱셈표와 함께 한 식으로 읽힙니다.
@@ -1900,26 +1900,26 @@ export class Game {
 
     this.buildPanel()
 
-    this.playButton = new Button(t('ui.button.play'), PLAY_W, PLAY_H, 0x2f6fb5, () => this.play())
-    this.discardButton = new Button(t('ui.button.discard'), PLAY_W, PLAY_H, 0xa63f3f,
+    this.playButton = new Button(t('ui.button.play'), PLAY_W, PLAY_H, UI.yellow, () => this.play())
+    this.discardButton = new Button(t('ui.button.discard'), PLAY_W, PLAY_H, UI.red,
       () => this.discard())
     // **가운데 버튼이 곧 몇 장 골랐는가입니다.** 점 다섯을 따로 두면 같은 것을 두 곳에서
     // 세게 되고, 그 둘 사이를 눈이 오갑니다.
-    this.clearButton = new Button('-', CLEAR_W, PLAY_H, 0x4a5568, () => this.clearSelection())
-    this.primaryButton = new Button(t('ui.button.select_blind'), 210, 50, 0x2f6fb5, () => this.primary())
-    this.skipButton = new Button(t('ui.button.skip'), 150, 38, 0x4a5568,
+    this.clearButton = new Button('-', CLEAR_W, PLAY_H, UI.slate, () => this.clearSelection())
+    this.primaryButton = new Button(t('ui.button.select_blind'), 210, 50, UI.yellow, () => this.primary())
+    this.skipButton = new Button(t('ui.button.skip'), 150, 38, UI.slate,
       () => {
         this.audio.play('blind_skip')
         this.act({ t: 'skip_blind' })
       })
-    this.rerollButton = new Button(t('ui.button.reroll'), 128, 44, 0x3f5f8f, () => this.reroll())
-    this.sortRankButton = new Button(t('ui.button.sort_rank'), 92, 32, 0x333e4e, () => this.sortHand('rank'))
-    this.sortSuitButton = new Button(t('ui.button.sort_suit'), 92, 32, 0x333e4e, () => this.sortHand('suit'))
+    this.rerollButton = new Button(t('ui.button.reroll'), 128, 44, UI.sky, () => this.reroll())
+    this.sortRankButton = new Button(t('ui.button.sort_rank'), 92, 32, UI.slate, () => this.sortHand('rank'))
+    this.sortSuitButton = new Button(t('ui.button.sort_suit'), 92, 32, UI.slate, () => this.sortHand('suit'))
     // 위의 칸들과 같은 격자입니다 — 너비도 자리도.
     // **「족보 목록」 이 아니라 「런 정보」 입니다.** 족보는 그 안의 한 갈래가 되었습니다.
-    this.infoButton = new Button(t('ui.run_info.title'), 124, 34, 0x3a4658,
+    this.infoButton = new Button(t('ui.run_info.title'), 124, 34, UI.slate,
       () => this.toggleHandList())
-    this.menuButton = new Button(t('ui.button.menu'), 124, 34, 0x3a4658, () => this.openMenu())
+    this.menuButton = new Button(t('ui.button.menu'), 124, 34, UI.slate, () => this.openMenu())
 
     // **상점은 판 안에 섭니다.** 조커와 소모품 줄이 그 위로 지나가야 — 무엇을 가지고
     // 있는지를 보면서 사고, 산 것이 줄에 꽂히는 것도 보입니다.
@@ -2739,14 +2739,13 @@ export class Game {
     const g = this.frames
     g.clear()
 
-    for (const [tray, fill, edge] of [
-      [JOKER_TRAY, 0x101724, COLOR.panelEdge],
-      [CONSUMABLE_TRAY, 0x161327, 0x5a4d80],
-    ] as const) {
-      g.roundRect(tray.x, tray.y, tray.width, tray.height, 12)
-        .fill({ color: fill, alpha: 0.55 })
-      g.roundRect(tray.x, tray.y, tray.width, tray.height, 12)
-        .stroke({ color: edge, width: 1.5, alpha: 0.5 })
+    // **둘이 같은 칸입니다.** 조커 자리와 소모품 자리가 저마다의 색이면 화면에 색이 둘
+     // 더 늘고, 무엇을 담는 자리인지는 그 위의 글이 적습니다.
+    for (const tray of [JOKER_TRAY, CONSUMABLE_TRAY]) {
+      g.roundRect(tray.x, tray.y, tray.width, tray.height, 6)
+        .fill({ color: UI.panel, alpha: 0.5 })
+      g.roundRect(tray.x + 0.5, tray.y + 0.5, tray.width - 1, tray.height - 1, 6)
+        .stroke({ color: UI.hairline, width: 1 })
     }
   }
 
@@ -4705,11 +4704,12 @@ export class Game {
     this.gaugeKey = key
     this.gauge.clear()
 
-    this.gauge.roundRect(x, y, width, height, 6).fill(0x101724)
-    this.gauge.roundRect(x, y, width * Math.min(1, ratio), height, 6)
-      .fill(ratio >= 1 ? COLOR.good : COLOR.chips)
-    this.gauge.roundRect(x - 0.5, y - 0.5, width + 1, height + 1, 6)
-      .stroke({ color: COLOR.panelEdge, width: 1 })
+    this.gauge.roundRect(x, y, width, height, height / 2).fill(UI.well)
+    this.gauge.roundRect(x + 1, y + 1, (width - 2) * Math.min(1, ratio), height - 2,
+      (height - 2) / 2)
+      .fill(ratio >= 1 ? UI.green : UI.bar)
+    this.gauge.roundRect(x + 0.5, y + 0.5, width - 1, height - 1, height / 2)
+      .stroke({ color: UI.hairline, width: 1 })
   }
 
   private peek(): unknown {
@@ -5290,7 +5290,7 @@ export class Game {
     const tabsX = (width - (tabs.length * tabW + (tabs.length - 1) * tabGap)) / 2
     tabs.forEach((tab, index) => {
       const here = this.runInfoTab === tab.key
-      const button = new Button(tab.label, tabW, 30, here ? 0x2f6fb5 : 0x333e4e, () => {
+      const button = new Button(tab.label, tabW, 30, here ? UI.cream : UI.slate, () => {
         this.runInfoTab = tab.key
         this.drawHandList()
       })
@@ -5601,7 +5601,6 @@ export class Game {
       const bossRow = boss ? this.data.tables.bossBlind.findByBossId(state.bossId) : undefined
       const now = blind === state.blind
       const done = blind < state.blind
-      const tint = boss ? 0x8e3a5c : blind === BlindKind.Big ? 0x8a6a2e : 0x2f6a52
 
       // 건너뛸 수 있으면 태그 딱지가 들어갑니다. 보스는 건너뛸 수 없고, 이미 지난 것도
       // 건너뛸 것이 없습니다.
@@ -5631,10 +5630,13 @@ export class Game {
       this.blindGroups.push(entry)
       this.placeBlindGroup(entry)
 
+      // **셋이 같은 판입니다.** 머리띠를 저마다의 색으로 칠하면 판 셋이 서로 다른 물건이
+      // 되고, 어느 것을 지금 고르는지는 색이 아니라 자리와 밝기가 말합니다 — 고를 것은
+      // 위로 서고 다음 차례는 옅습니다. 색은 이름 앞의 문양 하나에만 듭니다.
       const plate = new Graphics()
-      const radius = 14
+      const radius = 8
       plate.roundRect(0, 0, cardW, height, radius)
-        .fill({ color: now ? 0x18202e : 0x141a24, alpha: 0.97 })
+        .fill({ color: UI.panel, alpha: UI.panelAlpha })
 
       // 머리 띠. 어느 블라인드인지가 색으로 먼저 읽힙니다.
       //
@@ -5643,18 +5645,11 @@ export class Game {
       //
       // 그리고 **테두리보다 먼저입니다.** 나중에 그리면 띠의 모서리가 테두리 바깥으로
       // 넘칩니다 — 테두리는 반 칸 안쪽에 있어서 두 모서리의 호가 어긋납니다.
-      const band = 46
-      plate.moveTo(0, band)
-        .lineTo(0, radius)
-        .quadraticCurveTo(0, 0, radius, 0)
-        .lineTo(cardW - radius, 0)
-        .quadraticCurveTo(cardW, 0, cardW, radius)
-        .lineTo(cardW, band)
-        .closePath()
-        .fill({ color: tint, alpha: now ? 0.95 : 0.6 })
+      // 이름이 앉는 줄. 띠가 아니라 아래에 선 하나입니다.
+      plate.rect(1, 46, cardW - 2, 1.5).fill(UI.rule)
 
-      plate.roundRect(0.5, 0.5, cardW - 1, height - 1, radius)
-        .stroke({ color: now ? tint : COLOR.panelEdge, width: now ? 3 : 1.5 })
+      plate.roundRect(0.75, 0.75, cardW - 1.5, height - 1.5, radius)
+        .stroke({ color: now ? UI.panelEdge : UI.hairline, width: 1.5 })
       group.addChild(plate)
 
       const label = (text: string, size: number, fill: number, weight = '700') =>
@@ -5663,8 +5658,10 @@ export class Game {
       const name = label(bossRow
         ? nameOf(this.data, 'boss', state.bossId, bossRow.name)
         : tf('ui.blind.named', { name: blindName(blind) }), 17, COLOR.ink, '800')
-      name.anchor.set(0.5, 0.5)
-      name.position.set(cardW / 2, 23)
+      // **이름은 문양 옆 왼쪽입니다.** 가운데에 두면 문양이 왼쪽의 남은 자리에 얹힌 것으로
+      // 보입니다 — 판의 머리는 다른 판과 같은 규칙이어야 합니다.
+      name.anchor.set(0, 0.5)
+      name.position.set(46, 23)
       group.addChild(name)
 
       // **보스에는 인장이 붙습니다.** 스물여덟이 이름 하나로만 갈리면 어느 것이 나왔는지가
@@ -5672,14 +5669,14 @@ export class Game {
       // **이름은 언제나 가운데입니다.** 인장이 붙는 보스만 이름을 오른쪽으로 비켜세웠고,
       // 그러면 셋이 나란히 섰을 때 보스의 이름만 다른 자리에 있습니다 — 인장은 띠의 왼쪽
       // 끝에 얹히는 것이지 이름과 한 줄로 서는 것이 아닙니다.
-      const seal = this.blindFace(blind, 40)
-      seal.position.set(30, 23)
+      const seal = this.blindFace(blind, 24)
+      seal.position.set(28, 23)
       group.addChild(seal)
 
       // **세 자리마다 쉼표를 찍습니다.** 요구 점수는 안테가 오르면 네 자리 다섯 자리가
       // 되고, 쉼표가 없으면 30000 과 300000 을 한눈에 가릴 수 없습니다.
       const need = label(
-        targetOf(this.data, state, blind).toLocaleString('en-US'), 34, COLOR.chips, '800')
+        targetOf(this.data, state, blind).toLocaleString('en-US'), 34, UI.bar, '800')
       need.anchor.set(0.5, 0)
       need.position.set(cardW / 2, 72)
       group.addChild(need)
@@ -5708,7 +5705,7 @@ export class Game {
       // 줄이 된 것이 다음 줄 위에 겹칩니다.
       const noteWidth = cardW - 36
       const noteText = richBlock(note.split(NEWLINE), {
-        base: { fontSize: 12, fill: boss ? 0xffb4c8 : COLOR.inkDim },
+        base: { fontSize: 12, fill: boss ? UI.red : COLOR.inkDim },
         number: COLOR.accentNumber,
         term: COLOR.accentTerm,
       }, 17, noteWidth, 'center')
@@ -5733,7 +5730,7 @@ export class Game {
       }
 
       if (done) {
-        const mark = label(t('ui.label.cleared'), 14, COLOR.good, '800')
+        const mark = label(t('ui.label.cleared'), 14, UI.green, '800')
         mark.anchor.set(0.5, 0)
         mark.position.set(cardW / 2, height - 40)
         group.addChild(mark)
@@ -5747,7 +5744,7 @@ export class Game {
       } else {
         // **이 블라인드로 가는 것이 맨 아래입니다.** 셋 중 지금 차례인 칸에서만 뜨는
         // 단추이고, 밑단에 붙어 있어야 다음 안테에서도 같은 자리입니다.
-        const pick = new Button(t('ui.button.select_blind'), cardW - 36, 44, 0x2f6fb5,
+        const pick = new Button(t('ui.button.select_blind'), cardW - 36, 44, UI.yellow,
           () => this.act({ t: 'select_blind' }))
         place(pick, 44)
         entry.pickY = pick.y + 22
@@ -5761,7 +5758,7 @@ export class Game {
           // 무엇을 하면 무엇을 받는가는 그 차례로 읽혀야 합니다.
           if (tag) place(tag.node, tag.height)
 
-          const skip = new Button(t('ui.button.skip'), cardW - 36, 36, 0x4a5568,
+          const skip = new Button(t('ui.button.skip'), cardW - 36, 36, UI.slate,
             () => {
               if (this.skipping) return
               this.audio.play('blind_skip')
@@ -6636,7 +6633,7 @@ export class Game {
       state.blind === BlindKind.Big,
       // **판이 도는 내내 보이는 자리입니다.** 고르는 판은 한 번 지나가지만 이 딱지는
       // 남습니다 — 어느 보스와 붙고 있는지가 여기 있어야 합니다.
-      this.blindFace(state.blind, 34),
+      this.blindFace(state.blind, 22),
       // 들고 있는 태그. **딱지 안 아래에 가운데로 섭니다** — 화면 구석에 따로 두었더니
       // 무엇에 딸린 것인지가 끊겼고, 조커 줄과 덱 사이에 낀 셋째 줄처럼 보였습니다.
       // **위에서 만든 그 칩들입니다.** 다시 만들면 위의 것을 그 자리에서 버립니다.
@@ -7158,7 +7155,7 @@ export class Game {
         // **값은 적지 않습니다.** 딱지에 이미 크게 적혀 있고, 그 바로 밑의 단추가 같은
         // 값을 한 번 더 적으면 그 둘 중 어느 것이 값인지 잠깐 헷갈립니다.
         swap ? t('ui.button.swap_take') : t('ui.button.buy'),
-        swap ? 118 : 84, 32, room ? 0x2f7a52 : 0x7a5f2f, () => {
+        swap ? 118 : 84, 32, room ? UI.yellow : 0x7a5f2f, () => {
           this.held = undefined
           this.buyFrom(held.uid, item)
         }))
@@ -7174,7 +7171,7 @@ export class Game {
       anchor = spot.mid
       // 카드 딱지와 같은 규칙입니다 — 값이 있던 그 줄.
       baseline = spot.baseY + spot.price.y - 4
-      buttons.push(new Button(t('ui.button.buy'), 84, 32, 0x2f7a52, () => {
+      buttons.push(new Button(t('ui.button.buy'), 84, 32, UI.yellow, () => {
         this.held = undefined
         this.openPackSlot(held.uid)
       }))
@@ -7197,7 +7194,7 @@ export class Game {
       const swap = !room && this.canSwap(view.item)
       buttons.push(new Button(
         t(swap ? 'ui.button.swap_take' : 'ui.button.take'), swap ? 118 : 92, 32,
-        room ? 0x2f7a52 : 0x7a5f2f, () => {
+        room ? UI.yellow : 0x7a5f2f, () => {
           this.held = undefined
           this.takeFromPack(held.uid)
         }))
@@ -7209,7 +7206,7 @@ export class Game {
       }
       anchor = this.jokerSpot(index).x
       const price = sellValueOf(this.data, this.state, this.state.jokers[index])
-      buttons.push(new Button(tf('ui.button.sell', { n: price }), 92, 30, 0x7a3f4a, () => {
+      buttons.push(new Button(tf('ui.button.sell', { n: price }), 92, 30, UI.red, () => {
         this.held = undefined
         this.audio.play('joker_sell')
         this.sellFrom = this.jokerSpot(index)
@@ -7222,14 +7219,14 @@ export class Game {
         return
       }
       anchor = this.itemSpot(index).x
-      buttons.push(new Button(t('ui.button.use'), 68, 30, 0x3f5f8a, () => {
+      buttons.push(new Button(t('ui.button.use'), 68, 30, UI.sky, () => {
         this.held = undefined
         // **쓴 것과 판 것은 없어지는 모습이 다릅니다.** 쓴 것은 판 가운데로 나와 번쩍이고,
         // 판 것은 제자리에서 탑니다 — 화면은 어느 쪽인지 모르므로 여기서 적어 둡니다.
         this.usedItem = held.uid
         this.act({ t: 'use_consumable', index, targets: this.orderedSelection() })
       }))
-      buttons.push(new Button(tf('ui.button.sell', { n: this.data.economy.sellMin }), 92, 30, 0x7a3f4a, () => {
+      buttons.push(new Button(tf('ui.button.sell', { n: this.data.economy.sellMin }), 92, 30, UI.red, () => {
         this.held = undefined
         this.audio.play('joker_sell')
         this.sellFrom = this.itemSpot(index)
@@ -7417,11 +7414,9 @@ export class Game {
     const rowH = 26
     const shown = Math.min(entries.length, entries.length > 4 ? 3 : 4)
 
-    const head = new Text({
-      text: tf('ui.active.count', { n: entries.length }),
-      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '800' },
-    })
-    head.position.set(LEFT + 4, top)
+    // 구획 머리 하나. 판 안의 다른 구획과 같은 것입니다.
+    const head = sectionHead(PANEL_W, tf('ui.active.count', { n: entries.length }))
+    head.position.set(LEFT, top - 6)
     this.activeLayer.addChild(head)
 
     entries.slice(0, shown).forEach((entry, index) => {
@@ -7432,9 +7427,9 @@ export class Game {
       line.position.set(LEFT, y)
 
       const plate = new Graphics()
-      plate.roundRect(0, 0, PANEL_W, rowH - 4, 6).fill({ color: 0x0e1520, alpha: 0.85 })
+      plate.roundRect(0, 0, PANEL_W, rowH - 4, 6).fill(UI.cell)
       plate.roundRect(0.5, 0.5, PANEL_W - 1, rowH - 5, 6)
-        .stroke({ color: COLOR.panelEdge, width: 1 })
+        .stroke({ color: UI.hairline, width: 1 })
       line.addChild(plate)
 
       const name = new Text({
@@ -7771,7 +7766,7 @@ export class Game {
       () => this.modals.close(this.menu), undefined, false))
 
     rows.forEach((row, index) => {
-      const button = new Button(row.label, width - 48, 38, 0x3a4658, () => {
+      const button = new Button(row.label, width - 48, 38, UI.slate, () => {
         // **닫고 나서 엽니다.** 이 판 위에 또 판이 서면 뒤로 물러난 것이 보이고, 그것은
         // 메뉴가 아니라 판이 쌓인 것으로 보입니다.
         this.modals.close(this.menu)
@@ -9161,7 +9156,7 @@ export class Game {
     note.position.set(POPUP_X, PACK_TITLE_Y + 60)
     this.packNote = note
 
-    const skip = new Button(t('ui.button.skip'), 160, 40, 0x4a5568,
+    const skip = new Button(t('ui.button.skip'), 160, 40, UI.slate,
       () => this.act({ t: 'skip_pack' }))
     // **설명 아래입니다.** 카드 바로 밑에 두면 마우스를 올릴 때 뜨는 설명이 그 위를 덮습니다.
     skip.position.set(POPUP_X - 80, PACK_CARDS_Y + PACK_CARD_H / 2 + 130)

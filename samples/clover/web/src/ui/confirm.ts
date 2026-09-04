@@ -9,7 +9,7 @@
 import { Container, Text } from 'pixi.js'
 
 import { t } from '../core/strings'
-import { COLOR } from '../render/theme'
+import { COLOR, UI } from '../render/theme'
 import type { ModalPanel } from './modal'
 import { panelFrame } from './modal'
 import { Button } from './widgets'
@@ -48,11 +48,11 @@ export class ConfirmPanel implements ModalPanel {
     const width = (WIDTH - 60 - gap) / 2
     const y = HEIGHT - 30 - 44
 
-    const no = new Button(t('ui.button.no'), width, 44, 0x39424f,
+    const no = new Button(t('ui.button.no'), width, 44, UI.slate,
                           () => this.onClose(), 16)
     no.position.set(30, y)
 
-    const ok = new Button(yes, width, 44, danger ? 0xa63f3f : 0x2f8f52, () => {
+    const ok = new Button(yes, width, 44, danger ? UI.red : 0x2f8f52, () => {
       this.onClose()
       this.onYes()
     }, 16)

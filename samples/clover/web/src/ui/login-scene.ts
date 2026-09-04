@@ -19,7 +19,7 @@ import { language as nowLanguage, LANGUAGE_NAMES, LANGUAGES, setLanguage, t, tf,
          type Language } from '../core/strings'
 import * as account from '../net/session'
 import type { Provider } from '../net/session'
-import { COLOR, SIZE } from '../render/theme'
+import { COLOR, SIZE, UI } from '../render/theme'
 import { Button } from './widgets'
 
 /** 제공자 단추의 크기. */
@@ -221,13 +221,19 @@ export class LoginScene extends Container {
     let y = 336
     for (const provider of this.list) {
       const button = new Button(tf('ui.account.continueWith', { name: provider.label }),
-                                BUTTON_W, BUTTON_H, TINT[provider.id] ?? 0x2f5f8f, () => {
+                                BUTTON_W, BUTTON_H, UI.cell, () => {
         // **넘어가기 전에 띠를 띄웁니다.** 제공자로 가는 데 한두 박자가 걸리는데, 그동안
         // 아무 표시가 없으면 눌리지 않은 것으로 보입니다.
         this.showBand(t('ui.account.signingIn'))
         account.goToProvider(provider.id)
       }, 18)
       button.position.set(SIZE.width / 2 - BUTTON_W / 2, y)
+      // **제공자의 색은 작은 네모 하나에만 듭니다.** 단추 넷을 저마다의 색으로 칠하면
+      // 어느 것을 고르라는 화면인지가 색으로 정해지지 않고, 화면에 채도가 넷 늘어납니다.
+      const chip = new Graphics()
+      chip.roundRect(0, 0, 16, 16, 4).fill(TINT[provider.id] ?? UI.sky)
+      chip.position.set(16, (BUTTON_H - 16) / 2)
+      button.addChild(chip)
       this.body.addChild(button)
       y += BUTTON_H + GAP
     }
@@ -236,7 +242,7 @@ export class LoginScene extends Container {
     // 동안 매번 제공자를 지나지 않기 위한 것이고, `import.meta.env.DEV` 안에 있으므로
     // 배포 빌드에는 이 코드가 없습니다.
     if (import.meta.env.DEV && this.dev) {
-      const fake = new Button(t('ui.account.devLogin'), BUTTON_W, BUTTON_H - 6, 0x6b4a8f,
+      const fake = new Button(t('ui.account.devLogin'), BUTTON_W, BUTTON_H - 6, UI.slate,
                               () => void this.signInAsDev(), 16)
       fake.position.set(SIZE.width / 2 - BUTTON_W / 2, y)
       this.body.addChild(fake)
@@ -266,9 +272,9 @@ export class LoginScene extends Container {
     const ruleY = singleY - 26
     const half = (BUTTON_W - 46) / 2
     const rule = new Graphics()
-    rule.rect(SIZE.width / 2 - BUTTON_W / 2, ruleY, half, 1).fill({ color: 0x2c3849 })
+    rule.rect(SIZE.width / 2 - BUTTON_W / 2, ruleY, half, 1).fill(UI.hairline)
     rule.rect(SIZE.width / 2 + BUTTON_W / 2 - half, ruleY, half, 1)
-      .fill({ color: 0x2c3849 })
+      .fill(UI.hairline)
     const or = new Text({
       text: t('ui.account.or'),
       style: { fontSize: 12, fill: 0x66748a },
@@ -278,7 +284,7 @@ export class LoginScene extends Container {
     this.body.addChild(rule, or)
     void y
 
-    const single = new Button(t('ui.account.guestStart'), BUTTON_W, BUTTON_H, 0x39424f,
+    const single = new Button(t('ui.account.guestStart'), BUTTON_W, BUTTON_H, UI.cream,
                               () => this.onSingle?.(), 18)
     single.position.set(SIZE.width / 2 - BUTTON_W / 2, singleY)
     this.body.addChild(single)

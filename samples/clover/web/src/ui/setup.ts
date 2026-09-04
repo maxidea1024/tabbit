@@ -20,7 +20,7 @@ import { stakeSlug } from '../core/stake'
 import { nameOf, t, tf } from '../core/strings'
 import { StakeKind } from '../generated/enums/stake-kind'
 import { backLookOf, drawCardBack } from '../render/card-back'
-import { COLOR, SIZE } from '../render/theme'
+import { COLOR, SIZE, UI } from '../render/theme'
 import type { ModalPanel } from './modal'
 import { panelFrame } from './modal'
 import { richBlock, rowsOf, type RichStyle } from './rich'
@@ -53,7 +53,7 @@ const SIDE_H = STAKE_Y + STAKE_H - GRID_Y
 const RULE_STYLE: RichStyle = {
   base: { fontSize: 13, fill: COLOR.ink },
   number: COLOR.money,
-  term: COLOR.good,
+  term: UI.yellow,
 }
 
 /**
@@ -185,7 +185,7 @@ export class SetupPanel implements ModalPanel {
     this.body.addChild(this.grid, this.stakes, this.side)
 
     const bw = SIDE_W - 40
-    this.startButton = new Button(t('ui.setup.start'), bw, 46, 0x2f8f52,
+    this.startButton = new Button(t('ui.setup.start'), bw, 46, UI.yellow,
                                   () => this.onStart?.(this.picked()), 18)
     this.startButton.position.set(SIDE_X + (SIDE_W - bw) / 2, GRID_Y + SIDE_H + 14)
     this.body.addChild(this.startButton)
@@ -213,7 +213,7 @@ export class SetupPanel implements ModalPanel {
 
     const head = new Text({
       text: t('ui.setup.decks'),
-      style: { fontSize: 12, fill: COLOR.good, fontWeight: '800', letterSpacing: 1 },
+      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '800', letterSpacing: 1 },
     })
     head.position.set(GRID_X + 4, GRID_Y - 22)
     this.grid.addChild(head)
@@ -230,7 +230,7 @@ export class SetupPanel implements ModalPanel {
       const board = new Graphics()
       board.roundRect(0, 0, CELL_W - 10, CELL_H - 10, 8)
         .fill({ color: here ? 0x1d3a26 : 0x201f26 })
-        .stroke({ color: here ? COLOR.good : 0x33313c, width: here ? 3 : 2 })
+        .stroke({ color: here ? UI.pick : UI.hairline, width: here ? 2 : 1.5 })
       cell.addChild(board)
 
       const back = new Container()
@@ -263,7 +263,7 @@ export class SetupPanel implements ModalPanel {
 
     const head = new Text({
       text: t('ui.setup.stakes'),
-      style: { fontSize: 12, fill: COLOR.good, fontWeight: '800', letterSpacing: 1 },
+      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '800', letterSpacing: 1 },
     })
     head.position.set(GRID_X + 4, STAKE_Y - 20)
     this.stakes.addChild(head)
@@ -279,7 +279,7 @@ export class SetupPanel implements ModalPanel {
       const board = new Graphics()
       board.roundRect(0, 0, STAKE_W - 10, STAKE_H, 8)
         .fill({ color: 0x201f26 })
-        .stroke({ color: here ? COLOR.good : 0x33313c, width: here ? 3 : 2 })
+        .stroke({ color: here ? UI.pick : UI.hairline, width: here ? 2 : 1.5 })
       // 색 조각 하나. **글자에 색을 입히지 않습니다** — 검은색과 흰색이 글자로는 배경에
       // 묻히고, 조각으로 두면 여덟이 같은 밝기로 읽힙니다.
       board.roundRect((STAKE_W - 10) / 2 - 13, 8, 26, 16, 4)
@@ -326,7 +326,7 @@ export class SetupPanel implements ModalPanel {
     const board = new Graphics()
     board.roundRect(SIDE_X, GRID_Y, SIDE_W, SIDE_H, 10)
       .fill({ color: 0x1a1920 })
-      .stroke({ color: 0x33313c, width: 2 })
+      .stroke({ color: UI.hairline, width: 1.5 })
     this.side.addChild(board)
 
     const deck = this.decks[this.deckAt]
@@ -378,7 +378,7 @@ export class SetupPanel implements ModalPanel {
   private section(label: string, y: number): number {
     const head = new Text({
       text: label,
-      style: { fontSize: 12, fill: COLOR.good, fontWeight: '800', letterSpacing: 1 },
+      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '800', letterSpacing: 1 },
     })
     head.position.set(SIDE_X + 18, y)
     this.side.addChild(head)

@@ -64,12 +64,6 @@ export class Button extends Container {
     super()
     this.textSize = textSize
     this.caption.style.fontSize = textSize
-    // **밝은 단추 위의 글은 어둡고 테가 없습니다.** 노랑 · 하늘 · 크림 위에 흰 글을 검은
-    // 테로 두르면 읽히지 않습니다 — 단추의 밝기가 글의 색을 정합니다.
-    if (luminance(base) > 0.5) {
-      this.caption.style.fill = UI.onLight
-      this.caption.style.stroke = { color: 0x000000, width: 0 }
-    }
     this.addChild(this.board, this.caption)
     this.caption.anchor.set(0.5)
     this.caption.position.set(boxWidth / 2, boxHeight / 2)
@@ -124,7 +118,11 @@ export class Button extends Container {
   set enabled(value: boolean) {
     if (this.enabledState === value) return
     this.enabledState = value
-    this.alpha = value ? 1 : 0.42
+    // **잠긴 단추는 옅어지는 것이 아니라 회색이 됩니다.** 밝은 단추를 알파로 죽이면 뒤의
+    // 배경이 그 색에 섞여 노랑이 흙색으로, 붉음이 자주색으로 보입니다 — 잠긴 것은 잠긴
+    // 것의 색을 가져야 합니다.
+    this.alpha = 1
+    this.caption.alpha = value ? 1 : 0.5
     this.cursor = value ? 'pointer' : 'default'
     this.draw()
   }
@@ -150,9 +148,27 @@ export class Button extends Container {
     this.draw()
   }
 
+  /**
+   * 지금 그릴 색.
+   *
+   * **고른 탭은 크림입니다.** 참고의 탭이 그렇고, 그러면 어느 탭을 보고 있는지가 밝기
+   * 하나로 갈립니다 — 같은 색을 조금 밝히는 것으로는 고른 것이 드러나지 않습니다.
+   * 잠긴 것은 잠긴 색을 가집니다.
+   */
+  private get shownBase(): number {
+    if (!this.enabledState) return UI.locked
+    return this.held ? UI.cream : this.base
+  }
+
   private draw(): void {
+    const base = this.shownBase
     this.board.clear()
-    plate(this.board, this.boxWidth, this.boxHeight, buttonStyle(this.base, this.lit))
+    plate(this.board, this.boxWidth, this.boxHeight, buttonStyle(base, this.lit))
+    // **밝은 단추 위의 글은 어둡고 테가 없습니다.** 노랑 · 하늘 · 크림 위에 흰 글을 검은
+    // 테로 두르면 읽히지 않습니다 — 단추의 밝기가 글의 색을 정합니다.
+    const light = luminance(base) > 0.5
+    this.caption.style.fill = light ? UI.onLight : COLOR.ink
+    this.caption.style.stroke = { color: 0x0a1610, width: light ? 0 : 3 }
   }
 }
 

@@ -14,7 +14,7 @@ import type { Data } from '../core/data'
 import { t, tf } from '../core/strings'
 import * as account from '../net/session'
 import type { Me } from '../net/session'
-import { COLOR } from '../render/theme'
+import { COLOR, UI } from '../render/theme'
 import { valueLabel } from './leaderboard'
 import type { ModalPanel } from './modal'
 import { panelFrame } from './modal'
@@ -169,7 +169,7 @@ export class HandlePanel implements ModalPanel {
       this.body.addChild(problem)
     }
 
-    const done = new Button(t('ui.button.confirmName'), 200, 44, 0x2f8f52,
+    const done = new Button(t('ui.button.confirmName'), 200, 44, UI.yellow,
                             () => void this.submit(), 16)
     done.position.set(WIDTH / 2 - 100, height - 68)
     this.body.addChild(done)
@@ -311,7 +311,7 @@ export class ProfilePanel implements ModalPanel {
 
   private drawFoot(width: number, height: number, shown: Me): void {
     if (!this.mine) {
-      const report = new Button(t('ui.button.report'), 150, 40, 0x8f3f3f, () => undefined, 15)
+      const report = new Button(t('ui.button.report'), 150, 40, UI.red, () => undefined, 15)
       report.position.set(width / 2 - 75, height - 62)
       this.body.addChild(report)
       return
@@ -337,13 +337,13 @@ export class ProfilePanel implements ModalPanel {
 
     const gap = 12
     const bw = (width - 80 - gap * 2) / 3
-    const rename = new Button(t('ui.button.confirmName'), bw, 40, 0x2f5f8f,
+    const rename = new Button(t('ui.button.confirmName'), bw, 40, UI.sky,
                               () => this.onRename?.(), 14)
     rename.position.set(40, height - 62)
 
     // **여기서 곧바로 나가지 않습니다.** 묻는 것과 그 뒤의 화면 전환이 한 곳에 있어야
     // 하므로, 판은 부탁만 하고 화면이 합니다.
-    const out = new Button(t('ui.button.logout'), bw, 40, 0x4a5568, () => {
+    const out = new Button(t('ui.button.logout'), bw, 40, UI.slate, () => {
       this.onClose()
       this.onSignOut?.()
     }, 14)
@@ -351,7 +351,7 @@ export class ProfilePanel implements ModalPanel {
 
     // **두 번 누릅니다.** 되돌리지 않는 것이므로 한 번에 지워지지 않아야 합니다.
     const remove = new Button(t('ui.button.deleteAccount'), bw, 40,
-                              this.confirming ? 0xa63f3f : 0x8f3f3f, () => {
+                              this.confirming ? UI.red : 0x8f3f3f, () => {
       if (!this.confirming) {
         this.confirming = true
         // **누른 그 자리에서 다시 그리지 않습니다.** 눌린 단추를 그 눌림을 처리하는 중에

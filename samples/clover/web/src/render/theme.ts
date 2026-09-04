@@ -89,6 +89,8 @@ export const UI = {
   yellow: 0xf5c518,
   /** 그 밖의 단추. */
   sky: 0xc9e3ee,
+  /** 고른 탭 · 권하지 않는 나아감(계정 없이 시작하기). */
+  cream: 0xefe6d3,
   /** 물러나는 단추. */
   slate: 0x3d4450,
   /** 잠긴 단추. */

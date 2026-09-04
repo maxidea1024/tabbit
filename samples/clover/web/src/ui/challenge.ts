@@ -15,7 +15,7 @@ import { Container, Graphics, Text } from 'pixi.js'
 import type { Data } from '../core/data'
 import { describe } from '../core/describe'
 import { nameOf, t, tf } from '../core/strings'
-import { COLOR, SIZE } from '../render/theme'
+import { COLOR, SIZE, UI } from '../render/theme'
 import type { ModalPanel } from './modal'
 import { panelFrame } from './modal'
 import { richBlock, rowsOf, type RichStyle } from './rich'
@@ -132,7 +132,7 @@ export class ChallengePanel implements ModalPanel {
     // **시작은 판의 아래에 혼자 섭니다.** 격자 옆에 두면 칸 하나를 누르는 것과 판을 여는
     // 것이 같은 무게로 보입니다.
     const bw = 240
-    this.start = new Button(t('ui.challenge.start'), bw, 46, 0x2f8f52,
+    this.start = new Button(t('ui.challenge.start'), bw, 46, UI.yellow,
                             () => this.fire(), 18)
     this.start.position.set(SIDE_X + (SIDE_W - bw) / 2, GRID_Y + SIDE_H + 16)
     this.body.addChild(this.start)

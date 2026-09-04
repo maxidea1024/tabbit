@@ -19,7 +19,7 @@ import { setLookOf, setsOf, type SetLook } from '../render/card-set'
 import { cardArtId, drawFace, drawSuit } from '../render/pips'
 import { SuitKind } from '../generated/enums/suit-kind'
 import { hapticsAvailable } from '../render/haptics'
-import { COLOR, SIZE } from '../render/theme'
+import { COLOR, SIZE, UI } from '../render/theme'
 import type { ToolSpot } from './layout'
 import { FOOTER_BAR, panelFrame, TITLE_BAR, type ModalPanel } from './modal'
 import { richLine, type RichStyle } from './rich'
@@ -846,7 +846,7 @@ export class OptionsPanel implements ModalPanel {
       }
 
       if (row.choices === undefined) {
-        const value = new Button(row.read(), 128, 34, 0x3a4658, () => {
+        const value = new Button(row.read(), 128, 34, UI.slate, () => {
           row.next()
           this.applyLater()
         })
@@ -885,7 +885,7 @@ export class OptionsPanel implements ModalPanel {
       .fill({ color: 0x121a26, alpha: this.seedEditable ? 0.92 : 0.5 })
     plate.roundRect(44.5, top + 0.5, fieldW - 1, height - 1, 8)
       .stroke({
-        color: this.editing ? COLOR.good : COLOR.panelEdge,
+        color: this.editing ? UI.pick : UI.hairline,
         width: 1.5, alpha: this.seedEditable ? 0.9 : 0.4,
       })
     if (this.seedEditable) {
@@ -926,7 +926,7 @@ export class OptionsPanel implements ModalPanel {
     }
 
     if (this.seedEditable) {
-      const dice = new Button(t('ui.button.random'), 96, height, 0x3a4658, () => {
+      const dice = new Button(t('ui.button.random'), 96, height, UI.slate, () => {
         this.editing = false
         this.buffer = ''
         this.seedText = randomSeed()
@@ -1068,8 +1068,9 @@ export class OptionsPanel implements ModalPanel {
     choices.forEach((choice, index) => {
       const column = index % columns
       const line = Math.floor(index / columns)
-      const button = new Button(choice.label, width, height,
-        choice.key === now ? 0x2f6f52 : 0x3a4658, () => {
+      // **고른 것은 `highlight` 가 알립니다.** 색을 따로 주면 그 색이 화면에 하나 더
+      // 늘고, 고른 것을 알리는 방법이 판마다 달라집니다.
+      const button = new Button(choice.label, width, height, UI.slate, () => {
           row.pick?.(choice.key)
           this.applyLater()
         })
