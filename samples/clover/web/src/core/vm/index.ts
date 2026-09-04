@@ -117,6 +117,17 @@ export function runRow(vm: Vm, row: EffectRow, host: EffectHost): void {
 
   if (row.chanceNum !== null && row.chanceDen !== null) {
     const scale = vm.state.rules.probabilityScale
+
+    // **굴리지 않는 갈래가 있습니다.** 상태를 복제해 미리 세어 보는 쪽이 굴리면 난수
+    // 스트림이 소비되어 그 뒤의 판이 달라집니다. 넘어간 것은 적어 두므로 부르는 쪽이
+    // 「확률 1/4 로 무엇이 더 붙는가」를 따로 알릴 수 있습니다.
+    if (vm.chanceMode === 'never') {
+      ;(vm.chanceSkipped ??= []).push({
+        row, host, num: row.chanceNum * scale, den: row.chanceDen,
+      })
+      return
+    }
+
     if (!vm.state.rng.JokerProc.chance(row.chanceNum, row.chanceDen, scale)) {
       if (host.joker) {
         vm.events.push({

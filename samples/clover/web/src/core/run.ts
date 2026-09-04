@@ -537,6 +537,14 @@ function winRound(vm: Vm): void {
 }
 
 /**
+ * `Perishable` 이 꺼지기까지의 라운드.
+ *
+ * **인사이트가 같은 값을 읽어야 합니다** — 남은 라운드를 알리는 자리가 이 수를 다시 적으면,
+ * 둘 가운데 하나만 고쳐진 채로 남습니다.
+ */
+export const PERISH_ROUNDS = 5
+
+/**
  * `Perishable` 은 5라운드 뒤에 무력화되고, `Rental` 은 라운드마다 $3 을 가져갑니다.
  *
  * **임대료도 빚 한도를 넘지 못합니다.** 잔액이 바닥에 닿으면 그만큼만 나가고, 나간 만큼은
@@ -546,7 +554,7 @@ function ageJokers(vm: Vm): void {
   const state = vm.state
   for (const joker of state.jokers) {
     joker.age++
-    if (joker.sticker === 2 && joker.age >= 5) joker.disabled = true
+    if (joker.sticker === 2 && joker.age >= PERISH_ROUNDS) joker.disabled = true
     if (joker.sticker === 3) {
       const rent = Math.max(0, Math.min(3, state.money - state.rules.debtLimit))
       if (rent === 0) continue

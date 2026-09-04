@@ -91,11 +91,11 @@ function describeCondition(data: Data, row: EffectRow): string {
   const template = phrase(data, `cond.${cond.kind}`)
 
   const values: Record<string, string> = {
-    ranks: row.ranks.map(rank => rankText(data, rank)).join(' · '),
+    ranks: row.ranks.map(rank => rankDisplay(data, rank)).join(' · '),
     suits: row.suits.map(suit => named(data, 'suit', suit, enums.SuitKind)).join(' · '),
   }
 
-  if ('hand' in cond) values.hand = handName(data, cond.hand)
+  if ('hand' in cond) values.hand = handDisplay(data, cond.hand)
   if ('suit' in cond) values.suit = named(data, 'suit', cond.suit, enums.SuitKind)
   if ('n' in cond) values.n = String(cond.n)
   if ('num' in cond) values.num = String(cond.num)
@@ -139,7 +139,7 @@ function describeOperation(data: Data, row: EffectRow): string {
       break
     case 'OpPerUnit': {
       values.unit = fill(named(data, 'unit', op.unit, enums.UnitKind), {
-        ranks: row.ranks.map(rank => rankText(data, rank)).join(' · '),
+        ranks: row.ranks.map(rank => rankDisplay(data, rank)).join(' · '),
         enhancement: data.tables.enhancement.findByEnhancement(op.enhancement)?.display ?? '',
         rarity: named(data, 'rarity', op.rarity, enums.Rarity),
       })
@@ -272,11 +272,39 @@ function perUnit(data: Data, mode: PerUnitMode, value: number, base: number): st
   void data
 }
 
-function handName(data: Data, hand: number): string {
+/**
+ * 족보의 이름.
+ *
+ * **효과 설명 밖에서도 씁니다.** 인사이트가 같은 이름을 적어야 하고, 그것을 따로 찾으면
+ * 열쇠가 두 곳에 적히게 됩니다.
+ */
+export function handDisplay(data: Data, hand: number): string {
   const key = data.enumNames.PokerHandKind[hand]
   return text(data, `hand.${key}.name`)
 }
 
-function rankText(data: Data, rank: number): string {
+/** 랭크의 표시 글자. `A` · `10` 처럼 표의 칸에 적힌 그대로입니다. */
+export function rankDisplay(data: Data, rank: number): string {
   return data.tables.rank.findByRank(rank)?.display ?? String(rank)
+}
+
+/** 무늬의 이름. */
+export function suitDisplay(data: Data, suit: number): string {
+  return named(data, 'suit', suit, data.enumNames.SuitKind)
+}
+
+/**
+ * 이벤트 하나가 낸 값의 글.
+ *
+ * **득점 연출과 인사이트가 같은 글을 적습니다.** 곱하기와 더하기가 같은 `mult` 칸으로
+ * 오므로 그 둘을 가르는 규칙이 필요하고, 그 규칙이 두 곳에 있으면 화면에 뜨는 값과 판에
+ * 적히는 값이 어긋납니다.
+ */
+export function valueText(op: string, chips: number, mult: number, money: number): string {
+  if (op === 'MulMult') return `×${(mult / MULT_ONE).toFixed(2)}`
+  if (op === 'GrowSelf') return t('ui.note.grew')
+  if (money !== 0) return `${money > 0 ? '+' : ''}$${money}`
+  if (chips !== 0) return `+${chips}`
+  if (mult !== 0) return `+${(mult / MULT_ONE).toFixed(0)}`
+  return t('ui.label.triggered')
 }
