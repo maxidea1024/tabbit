@@ -1361,7 +1361,7 @@
 	ui.challenge.banBoss	보스	Bosses	ボス	Boss盲注	Boss盲注	Bosse
 	ui.challenge.basePool	챌린지는 기본 조커 150종으로 돕니다. 확장을 켜 두어도 그렇습니다.	Challenges always run on the base 150 jokers, even with the expansion on.	チャレンジは基本ジョーカー150種で回ります。拡張を入れていても同じです。	挑战始终使用基础150种小丑牌，即使开启扩展。	挑戰始終使用基礎150種小丑牌，即使開啟擴充。	Herausforderungen nutzen stets die 150 Basis-Joker.
 	ui.button.challenges	챌린지	Challenges	チャレンジ	挑战	挑戰	Herausforderungen
-	ui.challenge.lockedAll	런을 한 번 이기면 챌린지가 열립니다.	Win a run to unlock challenges.	ランに一度勝つとチャレンジが開きます。	赢下一局后开启挑战。	贏下一局後開啟挑戰。	Gewinne einen Run, um Herausforderungen freizuschalten.
+	ui.challenge.lockedAll	보스 블라인드를 한 번 격파하면 챌린지가 열립니다.	Beat a boss blind to unlock challenges.	ボスブラインドを一度倒すとチャレンジが開きます。	击败一次 Boss 盲注后开启挑战。	擊敗一次 Boss 盲注後開啟挑戰。	Besiege einen Boss-Blind, um Herausforderungen freizuschalten.
 	phrase.rule.NoSmallBlindReward	스몰 블라인드의 보상이 없습니다	small blinds give no reward	スモールブラインドの報酬がありません	小盲注无奖励	小盲注無獎勵	kleine Blinds geben kein Geld
 	phrase.rule.NoBigBlindReward	빅 블라인드의 보상이 없습니다	big blinds give no reward	ビッグブラインドの報酬がありません	大盲注无奖励	大盲注無獎勵	große Blinds geben kein Geld
 	phrase.rule.NoBossBlindReward	보스 블라인드의 보상이 없습니다	boss blinds give no reward	ボスブラインドの報酬がありません	Boss盲注无奖励	Boss盲注無獎勵	Boss-Blinds geben kein Geld

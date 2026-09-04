@@ -23,6 +23,7 @@ import { COLOR, SIZE, UI, UI_THEME_KEYS, UI_THEMES } from '../render/theme'
 import type { ToolSpot } from './layout'
 import { FOOTER_BAR, panelFrame, TITLE_BAR, type ModalPanel } from './modal'
 import { richLine, type RichStyle } from './rich'
+import { Fling } from './scroll'
 import { Tooltip } from './tooltip'
 import { Button } from './widgets'
 import { randomSeed } from './title'
@@ -202,6 +203,8 @@ const MIN_HEIGHT = 348 + FOOTER_BAR
 const MAX_HEIGHT = 700
 /** 굴림 한 번에 움직이는 거리. */
 const WHEEL_STEP = 48
+/** 누른 자리에서 이만큼 움직이면 끈 것입니다. 판의 좌표입니다. */
+const DRAG_SLOP = 10
 /**
  * 탭 하나의 높이. **본문과 이어져 보여야 탭입니다.**
  *
@@ -373,6 +376,13 @@ export class OptionsPanel implements ModalPanel {
   private scroll = 0
   /** 이 탭의 본문이 창보다 얼마나 긴가. 0 이면 굴러갈 것이 없습니다. */
   private over = 0
+  /** 끌기와 관성과 되돌아옴. 목록 통과 같은 셈입니다. */
+  private readonly roll = new Fling()
+
+  /** 방금 끌어서 굴렸는가. 칸을 고르는 자리마다 이것을 봅니다. */
+  private get rolled(): boolean {
+    return this.roll.moved > DRAG_SLOP
+  }
   private tab = 0
 
   /**
@@ -412,10 +422,27 @@ export class OptionsPanel implements ModalPanel {
     this.view.on('wheel', event => {
       if (this.over <= 0) return
       event.preventDefault()
-      this.scroll -= Math.sign(event.deltaY) * WHEEL_STEP
-      this.scroll = Math.max(-this.over, Math.min(0, this.scroll))
-      this.body.y = this.scroll
-      this.fitScroll(this.over + this.windowHeight)
+      this.roll.wheel(-Math.sign(event.deltaY) * WHEEL_STEP)
+      this.place()
+    })
+
+    // **손가락으로는 끌어서 굴립니다.** 바퀴가 없는 기계에서는 이 판의 아래쪽 — 겉면
+    // 여덟과 카드 17벌 — 에 닿을 길이 없었습니다. 관성과 되돌아옴은 목록 통과 같은
+    // 셈(`Fling`)입니다 — 손끝의 느낌이 판마다 다르면 안 됩니다.
+    //
+    // **끈 것과 누른 것을 가릅니다.** 손을 떼는 자리가 어느 줄 위이므로, 가리지 않으면
+    // 굴릴 때마다 무언가가 골라집니다.
+    this.view.on('pointerdown', event => {
+      if (this.over <= 0) return
+      this.roll.grab(this.view.toLocal(event.global).y)
+    })
+    const drop = (): void => this.roll.release()
+    this.view.on('pointerup', drop)
+    this.view.on('pointerupoutside', drop)
+    this.view.on('globalpointermove', event => {
+      if (!this.roll.holding) return
+      this.roll.drag(this.view.toLocal(event.global).y)
+      this.place()
     })
 
     // **적는 동안의 키는 이 판의 것입니다.** 뒤에 있는 화면이 같은 키를 받으면 `Esc` 로
@@ -543,6 +570,14 @@ export class OptionsPanel implements ModalPanel {
   /** 설명 쪽지가 튀어나오는 동안. 판 안에서 움직이는 것은 이것뿐입니다. */
   tick(seconds: number): void {
     this.tip.advance(seconds)
+    if (this.roll.tick(seconds)) this.place()
+  }
+
+  /** 굴린 자리를 본문에 옮기고 막대를 다시 그립니다. */
+  private place(): void {
+    this.scroll = this.roll.offset
+    this.body.y = Math.round(this.scroll)
+    this.fitScroll(this.over + this.windowHeight)
   }
 
   private setName(setId: string): string {
@@ -820,7 +855,7 @@ export class OptionsPanel implements ModalPanel {
       hit.hitArea = new Rectangle(x, top, tabW, ruleY - top)
       hit.cursor = 'pointer'
       hit.on('pointertap', () => {
-        if (this.tab === index) return
+        if (this.rolled || this.tab === index) return
         this.tab = index
         this.buildTabs()
         this.draw()
@@ -853,8 +888,15 @@ export class OptionsPanel implements ModalPanel {
    */
   private fitScroll(content: number): void {
     this.over = Math.max(0, content - this.windowHeight)
-    this.scroll = Math.max(-this.over, Math.min(0, this.scroll))
-    this.body.y = this.scroll
+    // **넘치는 양을 셈이 알아야 합니다.** 모르면 끌어도 0 에 붙어 있습니다.
+    this.roll.over = this.over
+    if (!this.roll.holding) {
+      this.scroll = Math.max(-this.over, Math.min(0, this.roll.offset))
+      this.roll.offset = this.scroll
+    } else {
+      this.scroll = this.roll.offset
+    }
+    this.body.y = Math.round(this.scroll)
 
     this.clip.clear()
     this.clip.rect(6, this.windowTop, WIDTH - 12, this.windowHeight).fill(0xffffff)
@@ -864,7 +906,8 @@ export class OptionsPanel implements ModalPanel {
 
     const track = this.windowHeight - 8
     const height = Math.max(34, track * (this.windowHeight / content))
-    const at = this.over === 0 ? 0 : (-this.scroll / this.over) * (track - height)
+    const held = Math.min(this.over, Math.max(0, -this.scroll))
+    const at = this.over === 0 ? 0 : (held / this.over) * (track - height)
     this.bar.roundRect(WIDTH - 16, this.windowTop + 4, 4, track, 2)
       .fill({ color: 0xffffff, alpha: 0.07 })
     this.bar.roundRect(WIDTH - 16, this.windowTop + 4 + at, 4, height, 2)
@@ -1085,6 +1128,7 @@ export class OptionsPanel implements ModalPanel {
       cell.cursor = 'pointer'
       cell.hitArea = new Rectangle(0, 0, width, THEME_ROW_H)
       cell.on('pointertap', () => {
+        if (this.rolled) return
         row.pick?.(one.key)
         this.applyLater()
       })
@@ -1148,6 +1192,7 @@ export class OptionsPanel implements ModalPanel {
       cell.eventMode = 'static'
       cell.cursor = 'pointer'
       cell.on('pointertap', () => {
+        if (this.rolled) return
         row.pick?.(one.key)
         this.applyLater()
       })

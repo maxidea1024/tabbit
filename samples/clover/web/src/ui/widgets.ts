@@ -44,6 +44,15 @@ function luminance(color: number): number {
 const CAPTION_OUTLINE = 0x0a1610
 
 /**
+ * 누른 자리에서 이만큼 움직이면 끈 것입니다. 화면 픽셀입니다.
+ *
+ * **굴리는 판 안의 단추를 위한 것입니다.** 목록은 줄로 가득하고 그 줄이 단추이므로,
+ * 손가락으로 굴려 손을 떼는 자리는 언제나 어느 단추 위입니다 — 가리지 않으면 굴릴 때마다
+ * 무언가가 눌립니다.
+ */
+const DRAG_SLOP = 12
+
+/**
  * 테마를 따라가는 단추의 색들.
  *
  * **만들 때 받은 수가 아니라 그 수의 이름을 기억합니다.** 단추는 색을 수로 받고, 겉면을
@@ -69,6 +78,8 @@ export class Button extends Container {
   })
 
   private enabledState = true
+  /** 이 누름이 시작된 화면의 자리. 끌기와 누르기를 가르는 데 씁니다. */
+  private downAt?: { x: number; y: number }
   /** 마지막으로 적은 글. 같은 글을 다시 적지 않기 위한 것입니다. */
   private captionShown?: string
   private lit = false
@@ -97,14 +108,25 @@ export class Button extends Container {
     this.cursor = 'pointer'
     // **버튼 소리는 여기 한 자리입니다.** 부르는 쪽마다 걸면 새로 만드는 버튼에서 반드시
     // 하나가 빠지고, 그 버튼만 소리 없이 눌립니다.
-    this.on('pointertap', () => {
+    this.on('pointertap', event => {
       if (!this.enabledState) return
+      // 끌고 와서 이 단추 위에서 손을 뗀 것이면 누른 것이 아닙니다.
+      const from = this.downAt
+      this.downAt = undefined
+      if (from) {
+        const dx = event.global.x - from.x
+        const dy = event.global.y - from.y
+        if (dx * dx + dy * dy > DRAG_SLOP * DRAG_SLOP) return
+      }
       Button.onPressed?.()
       onPress()
     })
     this.on('pointerover', () => { if (this.enabledState) this.setLit(true) })
     this.on('pointerout', () => this.setLit(this.held))
-    this.on('pointerdown', () => { if (this.enabledState) this.caption.y = boxHeight / 2 + 2 })
+    this.on('pointerdown', event => {
+      this.downAt = { x: event.global.x, y: event.global.y }
+      if (this.enabledState) this.caption.y = boxHeight / 2 + 2
+    })
     this.on('pointerup', () => { this.caption.y = boxHeight / 2 })
     this.draw()
   }

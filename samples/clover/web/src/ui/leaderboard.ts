@@ -161,6 +161,12 @@ export class LeaderboardPanel implements ModalPanel {
   private readonly foot = new Container()
   private readonly veil = new Container()
 
+  /** 굴림통 둘의 관성과 되돌아옴. **판이 프레임을 넘겨줍니다.** */
+  tick(seconds: number): void {
+    this.listScroll.tick(seconds)
+    this.tableScroll.tick(seconds)
+  }
+
   private boards: BoardInfo[] = []
   private tab: Tab = 'Main'
   private picked = ''

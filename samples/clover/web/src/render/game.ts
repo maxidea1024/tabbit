@@ -173,6 +173,15 @@ const SHOP_BOTTOM = PANEL_BOTTOM
 /** 상점 판이 아래에서 올라와 서는 데 걸리는 시간. 줄은 그 뒤부터 채워집니다. */
 const SHOP_RISE = 0.34
 
+/**
+ * 블라인드 고르기의 칸 셋이 올라오는 거리.
+ *
+ * **떠 있는 판보다 멉니다.** 판은 덮개가 짙어지는 것과 함께 서므로 58픽셀로도 「올라왔다」로
+ * 읽히는데, 이 칸 셋은 덮개 없이 판 위에 그대로 서므로 그만큼으로는 자리에서 살짝 흔든
+ * 것으로만 보입니다.
+ */
+const BLIND_RISE = 170
+
 /** 뜯은 팩의 이름이 서는 자리. */
 const PACK_TITLE_Y = 216
 /**
@@ -466,6 +475,13 @@ const RISER_SPAN = 1_050
  * 반쯤 사라지고, 조커가 이어서 발동하는 판에서는 그것이 지나가는 빛으로만 남습니다.
  */
 const RISER_HOLD = 0.52
+/**
+ * 화면 위의 것에서 나온 글이 뜨는 높이.
+ *
+ * **판의 가운데보다 조금 위입니다.** 조커 자리는 화면의 맨 위이므로 그 옆에 띄우면 글이
+ * 화면 밖으로 나가고, 그 아래에 붙이면 낸 카드가 오는 자리와 겹칩니다.
+ */
+const RISER_HIGH = 352
 
 /** 떠오르는 글자 하나. **글과 그 뒤의 번쩍임이 한 덩어리입니다.** */
 interface Riser {
@@ -2325,6 +2341,19 @@ export class Game {
    * **챌린지 런이면 그 챌린지가 깬 것으로 들어갑니다.** 다음 하나가 열리는 것이 그
    * 목록의 길이로 정해지므로, 여기 적히지 않으면 20종이 다섯에서 멈춥니다.
    */
+  /**
+   * 챌린지 목록을 엽니다. **한 번만 저장합니다.**
+   *
+   * 보스를 격파한 자리와 판을 이긴 자리 둘이 이것을 부릅니다 — 대개는 앞쪽이고, 뒤쪽은
+   * 챌린지 런으로 이긴 것을 적으러 지나는 길에 함께 엽니다.
+   */
+  private unlockChallenges(): void {
+    if (this.challenges.unlocked) return
+    this.challenges.unlocked = true
+    saveProgress(this.challenges)
+    this.title.setChallengesOpen(true)
+  }
+
   private recordWin(): void {
     let changed = false
     if (!this.challenges.unlocked) {
@@ -3902,6 +3931,10 @@ export class Game {
         break
 
       case 'BlindCleared':
+        // **보스를 격파하면 챌린지가 열립니다.** 안테 8을 넘기는 것이 조건이었고, 그것은
+        // 한 판을 끝까지 이기는 것이라 대개 열리지 않은 채로 남습니다 — 챌린지는 다르게
+        // 한 판 더 하는 것이므로, 이 게임이 무엇인지를 아는 자리에서 열리면 됩니다.
+        if (this.state.blind === BlindKind.Boss) this.unlockChallenges()
         // **정산 판이 상점보다 먼저 섭니다.** 돈이 들어오는 것을 보고 나서 쓰는 것이
         // 순서이고, 상점이 먼저 열리면 그 돈이 어디서 왔는지가 지나가 버립니다.
         this.payoutRows.length = 0
@@ -4333,11 +4366,13 @@ export class Game {
     const node = new Container()
     node.addChild(flare, label)
     // **조커는 화면 위에 섭니다.** 그 위로 46픽셀 올리면 글이 화면 밖으로 나가고, 남은
-    // 것은 잘린 획 몇 개입니다 — 위가 좁으면 그 물건 아래에 답니다.
+    // 것은 잘린 획 몇 개입니다 — 위가 좁은 것에서 나온 글은 판의 가운데보다 조금 위에
+    // 뜁니다. 눈이 카드와 값 칸 사이를 보고 있는 자리이고, 조커 바로 아래는 낸 카드가
+    // 오는 자리입니다.
     const x = target ? target.x : BOARD_X
     const y = target ? target.y : SIZE.height / 2
     const above = y - 46 - label.height / 2
-    node.position.set(x, above < 150 ? y + SIZE.jokerHeight / 2 + 44 : above)
+    node.position.set(x, above < 200 ? RISER_HIGH : above)
     // **떠오르는 글은 남아 있는 딱지 위입니다.** 산 물건이 그 자리에 잠깐 남으므로, 차례를
     // 적어 두지 않으면 낸 값이 그 물건 뒤로 들어갑니다.
     node.zIndex = 2
@@ -4613,13 +4648,19 @@ export class Game {
     this.advanceGameOver(seconds)
     this.title.advance(seconds)
     this.tooltip.advance(seconds)
+    // 인사이트 갈래의 굴림통. 관성과 되돌아옴이 이 프레임을 받습니다.
+    this.insightScroll?.tick(seconds)
     this.modals.advance(seconds)
     // 조커 풀의 카드도 살아 있어야 합니다 — 에디션 무늬가 시간을 읽고 손을 올리면 들립니다.
     this.jokerPool.advance(seconds, this.clock)
 
     // 블라인드 판이 들어오는 동안 매 프레임 자리를 옮깁니다. **다시 만들지 않습니다.**
-    if (this.state.phase === 'blind-select' && this.blindEnter < 0.999) {
-      this.blindEnter += (1 - this.blindEnter) * fraction(seconds, 9)
+    // **상점이 물러나고 덮개가 걷힌 뒤에 올라옵니다.** 국면은 상점이 아직 미끄러지는 중에
+    // 넘어가므로, 그 자리에서 올리면 판 셋이 상점 뒤에서 올라오고 상점이 걷힌 자리에는
+    // 이미 다 서 있습니다 — 올라오는 것을 아무도 보지 못합니다.
+    const roomForBlind = !this.shopLayer.visible && this.modals.cover < 0.2
+    if (this.state.phase === 'blind-select' && this.blindEnter < 0.999 && roomForBlind) {
+      this.blindEnter += (1 - this.blindEnter) * fraction(seconds, 7)
       for (const entry of this.blindGroups) this.placeBlindGroup(entry)
     } else if (this.state.phase !== 'blind-select') {
       this.blindEnter = 0
@@ -4836,7 +4877,15 @@ export class Game {
     // **자리는 여기서 셉니다.** 부르는 쪽마다 자기 지역 좌표를 적고 있었고, 그 물건이
     // 층 안에 있으면(상점 판은 올라오는 중에 층이 움직입니다) 그만큼 어긋났습니다 —
     // 물건이 화면에서 차지한 자리를 그 물건에게 물으면 어느 층에 있든 맞습니다.
-    const spot = () => show(this.tipBox(node))
+    // **다 선 물건에만 뜹니다.** 진열이 도는 동안의 칸은 알파가 0이어도 눌리는 자리는
+    // 그대로 있어서, 아직 물건이 놓이지도 않은 빈 칸이 설명을 띄우고 있었습니다.
+    //
+    // **`eventMode` 로 막지 않습니다.** 세울 것 목록은 `refresh` 가 비우므로, 다 서기
+    // 전에 그 목록에서 빠진 것은 되돌릴 자리를 잃고 영원히 손이 닿지 않습니다.
+    const spot = () => {
+      if (node.alpha < 0.99) return
+      show(this.tipBox(node))
+    }
     node.on('pointerover', event => {
       if (event.pointerType !== 'mouse') return
       spot()
@@ -5899,7 +5948,7 @@ export class Game {
    */
   private placeBlindGroup(entry: BlindGroup): void {
     const enter = this.blindEnter
-    entry.group.position.set(entry.x, entry.bottom - entry.height + (1 - enter) * 58)
+    entry.group.position.set(entry.x, entry.bottom - entry.height + (1 - enter) * BLIND_RISE)
     entry.group.alpha = (entry.now ? 1 : entry.done ? 0.5 : 0.72) * Math.min(1, enter * 1.6)
     if (entry.skipY !== undefined) {
       this.spots.skip = { x: entry.x + entry.width / 2, y: entry.group.y + entry.skipY }
