@@ -59,7 +59,7 @@ import { cardArtDir, cardBackMotif, cardPaper, drawsIndex, setCardSet, setLookOf
 import { drawGlyph, glyphFor, hashOf, hsl, shade } from './glyph'
 import { cardArtId, drawFace } from './pips'
 import { groove, mix } from './skin'
-import { COLOR, rarityColor, setUiSurface, SIZE, UI } from './theme'
+import { COLOR, rarityColor, setUiTheme, SIZE, UI } from './theme'
 import { box, type Box, CENTER, pointOf, putText, splitX } from '../ui/layout'
 import { Button, Panel } from '../ui/widgets'
 import { poolsOf, type PoolChoice } from '../core/pool'
@@ -2103,9 +2103,9 @@ export class Game {
 
     // **판의 겉면.** 고른 그 자리에서 갈아입습니다 — 겉모습이므로 도는 판의 규칙에 닿지
     // 않습니다.
-    if (this.settings.uiTheme !== this.surfaceShown) {
-      this.surfaceShown = this.settings.uiTheme
-      setUiSurface(this.settings.uiTheme)
+    if (this.settings.uiTheme !== this.themeShown) {
+      this.themeShown = this.settings.uiTheme
+      setUiTheme(this.settings.uiTheme)
       this.restyle()
     }
   }
@@ -2132,7 +2132,7 @@ export class Game {
   }
 
   /** 마지막으로 갈아입은 겉면. 같으면 다시 그리지 않습니다. */
-  private surfaceShown = loadOptions().uiTheme
+  private themeShown = loadOptions().uiTheme
 
   /**
    * 말이 바뀌었을 때 글을 다시 읽습니다.

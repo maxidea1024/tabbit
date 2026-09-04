@@ -19,7 +19,7 @@ import { setLookOf, setsOf, type SetLook } from '../render/card-set'
 import { cardArtId, drawFace, drawSuit } from '../render/pips'
 import { SuitKind } from '../generated/enums/suit-kind'
 import { hapticsAvailable } from '../render/haptics'
-import { COLOR, SIZE, UI, UI_SURFACE_KEYS } from '../render/theme'
+import { COLOR, SIZE, UI, UI_THEME_KEYS, UI_THEMES } from '../render/theme'
 import type { ToolSpot } from './layout'
 import { FOOTER_BAR, panelFrame, TITLE_BAR, type ModalPanel } from './modal'
 import { richLine, type RichStyle } from './rich'
@@ -103,7 +103,7 @@ export interface Options {
    */
   pool: PoolChoice
   /**
-   * 판의 겉면. `UI_SURFACES` 의 이름입니다.
+   * 판의 겉면. `UI_THEMES` 의 이름입니다.
    *
    * **겉모습이므로 도는 판의 규칙에 닿지 않습니다.** 고른 그 자리에서 갈아입습니다.
    */
@@ -157,7 +157,7 @@ export function loadOptions(): Options {
           && !LANGUAGES.includes(value as Language)) continue
       if (key === 'pool' && value !== 'base' && value !== 'all') continue
       // 없는 겉면 이름이 저장되어 있으면 기본으로 둡니다.
-      if (key === 'uiTheme' && !UI_SURFACE_KEYS.includes(value as never)) continue
+      if (key === 'uiTheme' && !UI_THEME_KEYS.includes(value as never)) continue
       (options[key] as unknown) = value
     }
   } catch {
@@ -239,6 +239,16 @@ const CARD_ROW_H = CARD_H + 34
  * 없어집니다. 판의 높이는 가장 긴 탭이 정하므로 줄이 늘어나면 판이 자랍니다.
  */
 const CARD_COLUMNS = 3
+
+/**
+ * 테마 미리보기의 치수.
+ *
+ * **넷이 한 줄에 섭니다.** 둘씩 두 줄로 두면 위아래 줄의 색을 견주기 위해 눈이 두 번
+ * 오가고, 고르는 일은 견주는 일입니다.
+ */
+const THEME_COLUMNS = 4
+const THEME_H = 84
+const THEME_ROW_H = THEME_H + 26
 /** 미리보기의 모서리에 적히는 글자. `card-view.ts` 의 것과 같습니다. */
 const RANK_TEXT: Record<number, string> = {
   4: '4', 7: '7', 13: 'K', 14: 'A',
@@ -285,6 +295,14 @@ interface Row {
    * 그래서 칸마다 그 벌의 카드 넉 장을 그립니다.
    */
   cards?: { key: string; label: string }[]
+  /**
+   * 테마를 고르는 줄.
+   *
+   * **이름이 아니라 색으로 고릅니다.** 「검정」·「남색」 같은 이름은 그 판이 어떻게 보이는지를
+   * 말해 주지 않습니다 — 칸마다 그 테마로 작은 판 하나를 그려 두고, 이름은 그 아래의
+   * 딱지입니다.
+   */
+  themes?: { key: string; label: string }[]
 }
 
 interface Tab {
@@ -528,6 +546,11 @@ export class OptionsPanel implements ModalPanel {
         y += 50 + lines * (CARD_ROW_H + CHOICE_GAP)
         continue
       }
+      if (row.themes !== undefined) {
+        const lines = Math.ceil(row.themes.length / THEME_COLUMNS)
+        y += 50 + lines * (THEME_ROW_H + CHOICE_GAP)
+        continue
+      }
       if (row.choices === undefined) {
         y += ROW
         continue
@@ -614,7 +637,7 @@ export class OptionsPanel implements ModalPanel {
             note: t('ui.option.note.uiTheme'),
             read: () => t(`ui.theme.${options.uiTheme}`),
             next: () => undefined,
-            choices: UI_SURFACE_KEYS.map(one => ({ key: one, label: t(`ui.theme.${one}`) })),
+            themes: UI_THEME_KEYS.map(one => ({ key: one, label: t(`ui.theme.${one}`) })),
             current: () => options.uiTheme,
             pick: (key: string) => { options.uiTheme = key },
           },
@@ -866,6 +889,11 @@ export class OptionsPanel implements ModalPanel {
         continue
       }
 
+      if (row.themes !== undefined) {
+        y += this.drawThemeChoices(row, y + 50)
+        continue
+      }
+
       if (row.choices === undefined) {
         const value = new Button(row.read(), 128, 34, UI.slate, () => {
           row.next()
@@ -967,6 +995,92 @@ export class OptionsPanel implements ModalPanel {
    * 세 칸씩 놓습니다. 한 줄에 여섯을 세우면 글씨가 작아지고, 한 줄에 하나면 아래로 길어져
    * 판이 그만큼 커집니다.
    */
+  /**
+   * 테마를 고르는 줄.
+   *
+   * 칸마다 **그 테마의 색으로** 작은 판 하나를 그립니다 — 제목 줄과 구획 선과 값 칸 둘,
+   * 그리고 강조색 둘. 지금 테마의 색으로 넷을 그리면 넷이 같아 보이고, 그러면 글자 단추와
+   * 다를 것이 없습니다.
+   *
+   * **강조색도 함께 그립니다.** 테마가 바꾸지 않는 것이므로 넷에 같은 노랑과 하늘이
+   * 들어가는데, 그 사실이 눈에 보이는 것이 「테마는 판의 색만 바꾼다」는 말보다 짧습니다.
+   */
+  private drawThemeChoices(row: Row, top: number): number {
+    const themes = row.themes ?? []
+    const now = row.current?.()
+    const gap = CHOICE_GAP
+    const width = Math.floor((WIDTH - 88 - gap * (THEME_COLUMNS - 1)) / THEME_COLUMNS)
+    const lines = Math.ceil(themes.length / THEME_COLUMNS)
+
+    themes.forEach((one, index) => {
+      const column = index % THEME_COLUMNS
+      const line = Math.floor(index / THEME_COLUMNS)
+      const here = one.key === now
+      const look = UI_THEMES[one.key] ?? UI_THEMES.slate
+
+      const cell = new Container()
+      cell.position.set(44 + column * (width + gap), top + line * (THEME_ROW_H + gap))
+
+      // 고른 것은 파랑 테 하나로 알립니다 — 판 안의 다른 고른 것과 같은 규칙입니다.
+      const frame = new Graphics()
+      frame.roundRect(0, 0, width, THEME_H, 8).fill({ color: look.panel, alpha: look.panelAlpha })
+      frame.roundRect(0.75, 0.75, width - 1.5, THEME_H - 1.5, 8)
+        .stroke({ color: here ? UI.pick : look.panelEdge, width: here ? 2 : 1.5 })
+      cell.addChild(frame)
+
+      const pad = 10
+      const inner = width - pad * 2
+      const bits = new Graphics()
+      // 제목이 앉는 줄과 그 아래의 선. 판의 머리입니다.
+      bits.rect(pad, 12, Math.round(inner * 0.45), 5).fill(UI.mark)
+      bits.rect(pad, 25, inner, 1.5).fill(look.rule)
+      // 값 칸 둘. 하나에는 돈의 노랑이, 하나에는 진행 바가 들어갑니다.
+      const cellW = Math.floor((inner - 6) / 2)
+      bits.roundRect(pad, 33, cellW, 20, 4).fill(look.cell)
+      bits.roundRect(pad + 0.5, 33.5, cellW - 1, 19, 4)
+        .stroke({ color: look.hairline, width: 1 })
+      bits.rect(pad + 6, 41, 14, 5).fill(COLOR.inkDim)
+      bits.rect(pad + cellW - 20, 40, 14, 6).fill(UI.yellow)
+      bits.roundRect(pad + cellW + 6, 33, cellW, 20, 4).fill(look.cell)
+      bits.roundRect(pad + cellW + 6.5, 33.5, cellW - 1, 19, 4)
+        .stroke({ color: look.hairline, width: 1 })
+      bits.roundRect(pad + cellW + 12, 41, cellW - 12, 5, 2.5).fill(look.well)
+      bits.roundRect(pad + cellW + 12, 41, (cellW - 12) * 0.6, 5, 2.5).fill(UI.bar)
+      // 밑단의 단추 둘. 나아가는 것과 그 밖의 것입니다.
+      bits.roundRect(pad, 60, Math.round(inner * 0.42), 14, 4).fill(UI.sky)
+      bits.roundRect(pad + inner - Math.round(inner * 0.42), 60,
+                     Math.round(inner * 0.42), 14, 4).fill(UI.yellow)
+      cell.addChild(bits)
+
+      const name = new Text({
+        text: one.label,
+        style: {
+          fontSize: 12, fill: here ? COLOR.ink : COLOR.inkDim, fontWeight: '800',
+          wordWrap: true, wordWrapWidth: width - 8, align: 'center', breakWords: true,
+          lineHeight: 13,
+        },
+      })
+      name.anchor.set(0.5, 0)
+      name.position.set(width / 2, THEME_H + 7)
+      cell.addChild(name)
+
+      cell.eventMode = 'static'
+      cell.cursor = 'pointer'
+      cell.hitArea = new Rectangle(0, 0, width, THEME_ROW_H)
+      cell.on('pointertap', () => {
+        row.pick?.(one.key)
+        this.applyLater()
+      })
+      if (row.id !== undefined) {
+        this.choiceNodes.set(`${row.id}:${one.key}`,
+                             { node: cell, cx: width / 2, cy: THEME_H / 2 })
+      }
+      this.body.addChild(cell)
+    })
+
+    return 50 + lines * (THEME_ROW_H + gap)
+  }
+
   /**
    * 겉모습을 고르는 줄.
    *
