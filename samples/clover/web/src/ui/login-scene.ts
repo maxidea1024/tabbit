@@ -4,11 +4,12 @@
 // 들어가기 전에 지나는 자리이고, 판으로 두면 뒤에 타이틀이 비쳐 이미 시작한 것처럼
 // 보입니다. 타이틀이 같은 이유로 화면인 것과 같습니다.
 //
-// **「싱글플레이로 시작」이 제공자와 같은 크기입니다.** 작게 두면 권유가 되고, 이 게임은
+// **「계정 없이 시작하기」가 제공자와 같은 크기입니다.** 작게 두면 권유가 되고, 이 게임은
 // 로그인 없이도 온전합니다 — 권유할 것이 없습니다.
 //
-// **한 번만 지납니다.** 로그인했거나 싱글플레이로 정했으면 다음부터는 곧바로 타이틀이고,
-// 타이틀의 계정 단추가 여기로 되돌립니다.
+// **실행할 때마다 지납니다.** 로그인해 두었으면 세션이 남아 있으므로 곧바로 타이틀이고,
+// 그렇지 않으면 켤 때마다 여기입니다 — 계정 없이 하기로 한 것은 그 실행에만 적용됩니다.
+// 「한 번 물어보고 그다음부터 건너뛰던」 것을 걷었습니다.
 //
 // **되돌아가는 단추가 따로 없습니다.** 「계정 없이 시작하기」가 나가는 길이므로, 구석에
 // 「뒤로」를 하나 더 두면 같은 일을 하는 것이 둘입니다.
@@ -21,6 +22,7 @@ import * as account from '../net/session'
 import type { Provider } from '../net/session'
 import { COLOR, SIZE, UI } from '../render/theme'
 import { outlineOf } from './font'
+import { providerTint } from './provider'
 import { Button } from './widgets'
 
 /** 제공자 단추의 크기. */
@@ -28,7 +30,6 @@ const BUTTON_W = 320
 const BUTTON_H = 52
 const GAP = 12
 
-/** 제공자마다의 색. **알아볼 수 있는 색이어야 고르는 것이 빨라집니다.** */
 /**
  * 진행 띠가 머무는 가장 짧은 시간.
  *
@@ -36,13 +37,6 @@ const GAP = 12
  * 이것이 없으면 눌렀는데 아무 일도 없었던 것처럼 보입니다.
  */
 const BAND_LEAST_MS = 1_500
-
-const TINT: Record<string, number> = {
-  google: 0x3a6ea5,
-  discord: 0x4f5fc4,
-  apple: 0x4a5568,
-  github: 0x3f4a5a,
-}
 
 export class LoginScene extends Container {
   private readonly body = new Container()
@@ -69,8 +63,10 @@ export class LoginScene extends Container {
   private time = 0
   private readonly leaf = new Graphics()
 
-  /** 싱글플레이로 가겠다고 했습니다. */
+  /** 로그인 없이 하겠다고 했습니다. */
   onSingle?: () => void
+  /** 게임을 나갑니다. **묻는 것은 부르는 쪽이 합니다.** */
+  onQuit?: () => void
   /** 개발용 로그인으로 들어왔습니다. 제공자를 지난 것과 같은 자리입니다. */
   onSignedIn?: () => void
   /**
@@ -233,7 +229,7 @@ export class LoginScene extends Container {
       // **제공자의 색은 작은 네모 하나에만 듭니다.** 단추 넷을 저마다의 색으로 칠하면
       // 어느 것을 고르라는 화면인지가 색으로 정해지지 않고, 화면에 채도가 넷 늘어납니다.
       const chip = new Graphics()
-      chip.roundRect(0, 0, 16, 16, 4).fill(TINT[provider.id] ?? UI.light)
+      chip.roundRect(0, 0, 16, 16, 4).fill(providerTint(provider.id))
       chip.position.set(16, (BUTTON_H - 16) / 2)
       button.addChild(chip)
       this.body.addChild(button)
@@ -271,23 +267,28 @@ export class LoginScene extends Container {
     const singleY = SIZE.height - 214
 
     // **가르는 줄 하나.** 위는 계정을 만드는 길이고 아래는 만들지 않는 길입니다.
-    const ruleY = singleY - 26
-    const half = (BUTTON_W - 46) / 2
-    const rule = new Graphics()
-    rule.rect(SIZE.width / 2 - BUTTON_W / 2, ruleY, half, 1).fill(UI.hairline)
-    rule.rect(SIZE.width / 2 + BUTTON_W / 2 - half, ruleY, half, 1)
-      .fill(UI.hairline)
-    const or = new Text({
-      text: t('ui.account.or'),
-      style: { fontSize: 12, fill: 0x66748a },
-    })
-    or.anchor.set(0.5)
-    or.position.set(SIZE.width / 2, ruleY)
-    this.body.addChild(rule, or)
+    //
+    // **가를 것이 없으면 두지 않습니다.** 서버가 없으면 위가 비는데, 그때도 「또는」이
+    // 남아 있으면 무엇과 무엇을 가르는 줄인지 알 수 없습니다.
+    if (this.list.length > 0 || (import.meta.env.DEV && this.dev)) {
+      const ruleY = singleY - 26
+      const half = (BUTTON_W - 46) / 2
+      const rule = new Graphics()
+      rule.rect(SIZE.width / 2 - BUTTON_W / 2, ruleY, half, 1).fill(UI.hairline)
+      rule.rect(SIZE.width / 2 + BUTTON_W / 2 - half, ruleY, half, 1)
+        .fill(UI.hairline)
+      const or = new Text({
+        text: t('ui.account.or'),
+        style: { fontSize: 12, fill: 0x66748a },
+      })
+      or.anchor.set(0.5)
+      or.position.set(SIZE.width / 2, ruleY)
+      this.body.addChild(rule, or)
+    }
     void y
 
     const single = new Button(t('ui.account.guestStart'), BUTTON_W, BUTTON_H, UI.light,
-                              () => this.onSingle?.(), 18)
+                              () => void this.startWithoutAccount(), 18)
     single.position.set(SIZE.width / 2 - BUTTON_W / 2, singleY)
     this.body.addChild(single)
 
@@ -301,6 +302,14 @@ export class LoginScene extends Container {
     singleNote.anchor.set(0.5, 0)
     singleNote.position.set(SIZE.width / 2, singleY + BUTTON_H + 10)
     this.body.addChild(singleNote)
+
+    // 나가기. **이 화면의 마지막 줄입니다** — 로그인도 하지 않고 게임도 하지 않겠다는
+    // 것이므로 목록의 끝입니다.
+    const quitW = 132
+    const quit = new Button(t('ui.button.quit'), quitW, 38, UI.btn,
+                            () => this.onQuit?.(), 14)
+    quit.position.set(SIZE.width / 2 - quitW / 2, singleY + BUTTON_H + 44)
+    this.body.addChild(quit)
 
     // 판 번호. **왼쪽 아래 구석입니다.**
     const version = new Text({
@@ -409,6 +418,18 @@ export class LoginScene extends Container {
     }
     list.position.set(x, y)
     this.body.addChild(list)
+  }
+
+  /**
+   * 로그인 없이 들어갑니다.
+   *
+   * **제공자로 들어가는 것과 같은 띠가 뜹니다.** 하는 일이 없어서 곧바로 넘어가는데, 그러면
+   * 이 단추만 「누르자마자 화면이 바뀌는 것」이 되어 다른 단추와 다른 갈래로 보입니다 —
+   * 어느 쪽으로 들어가도 지나는 자리가 같아야 합니다.
+   */
+  private async startWithoutAccount(): Promise<void> {
+    await this.withBand(t('ui.account.startingSingle'), async () => undefined)
+    this.onSingle?.()
   }
 
   /**

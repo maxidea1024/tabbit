@@ -17,7 +17,7 @@ import {
   at, BOARD_X, buyAffordablePack, buyFirstAffordable, chooseFive, clickPrimary,
   clickSpot, closeGuide, discardHand, hurry, itemSpot, jokerSpot, openDeckView, peek,
   pickCards, playHand, pressPlay, rate, settle, shopSlot, skipLogin,
-  shopFront, spare, spot as toolSpot, TITLE_OPTIONS, TITLE_START
+  pressTitle, shopFront, spare, spot as toolSpot, startNewRun
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -61,14 +61,12 @@ async function main(): Promise<number> {
   // 타이틀. **게임은 여기서 시작합니다.**
   await shoot('0a-title')
   // 옵션. 탭 셋이고 여기 있는 것은 전부 화면에 걸립니다.
-  const optionSpot = await at(page, TITLE_OPTIONS.x, TITLE_OPTIONS.y)
-  await page.mouse.click(optionSpot.x, optionSpot.y)
+  await pressTitle(page, 'options')
   await page.waitForTimeout(700)
   await shoot('0b-options')
   await page.keyboard.press('Escape')
   await page.waitForTimeout(600)
-  const startSpot = await at(page, TITLE_START.x, TITLE_START.y)
-  await page.mouse.click(startSpot.x, startSpot.y)
+  await startNewRun(page)
   await page.waitForTimeout(700)
 
   // 처음 여는 사람에게 저절로 펼쳐지는 판입니다. 찍어 두고 닫습니다.

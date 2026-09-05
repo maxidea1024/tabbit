@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, clickSpot, closeGuide, pass, peek, pickCards, pressTitle, settle, skipLogin,
+  at, clickSpot, closeGuide, pass, peek, pickCards, startNewRun, settle, skipLogin,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -32,7 +32,7 @@ async function main(): Promise<void> {
   await skipLogin(page)
   await page.goto(`http://localhost:${PORT}/?seed=CLOVER-TIP&tick=manual`, { waitUntil: 'networkidle' })
   await pass(page, 1200)
-  await pressTitle(page)
+  await startNewRun(page)
   await settle(page)
   await closeGuide(page)
   await pass(page, 400)

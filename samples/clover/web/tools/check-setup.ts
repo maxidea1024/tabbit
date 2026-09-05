@@ -14,36 +14,11 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 
-import { at, clickPrimary, settle, type Peek, skipLogin, pass, TITLE_SETUP } from './harness'
+import { clickPrimary, confirmYes, settle, type Peek, skipLogin, pass,
+         pressRunPanel, pressTitle } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '..', '..', 'design-data', 'out', 'check')
-
-/** 판이 화면 가운데에 놓이므로 그만큼 옮겨 누릅니다. `ui/setup.ts` 의 값과 같습니다. */
-const PANEL = { width: 1080, height: 640 }
-const LEFT = (1280 - PANEL.width) / 2
-const TOP = (800 - PANEL.height) / 2
-const GRID_X = 30
-const GRID_Y = 92
-const CELL_W = 132
-const CELL_H = 118
-const STAKE_Y = GRID_Y + 3 * CELL_H + 18
-const STAKE_W = 80
-const SIDE_X = GRID_X + 5 * CELL_W + 20
-const SIDE_W = PANEL.width - SIDE_X - 30
-const SIDE_H = STAKE_Y + 58 - GRID_Y
-
-/** 타이틀의 덱 단추. 시작의 왼쪽입니다 — `ui/title.ts` 의 값과 같습니다. */
-function deckCell(index: number): { x: number; y: number } {
-  return {
-    x: LEFT + GRID_X + (index % 5) * CELL_W + (CELL_W - 10) / 2,
-    y: TOP + GRID_Y + Math.floor(index / 5) * CELL_H + (CELL_H - 10) / 2,
-  }
-}
-
-function stakeCell(index: number): { x: number; y: number } {
-  return { x: LEFT + GRID_X + index * STAKE_W + (STAKE_W - 10) / 2, y: TOP + STAKE_Y + 26 }
-}
 
 async function main(): Promise<number> {
   const server = await createServer({ root: path.resolve(HERE, '..'), server: { port: 5198 } })
@@ -80,17 +55,16 @@ async function main(): Promise<number> {
         before?.deck === 'red_deck' && before?.stake === 'White',
         `${before?.deck} · ${before?.stake}`)
 
-  // **자리는 하네스의 상수입니다.** 여기 수로 적어 두면 타이틀의 배치가 바뀐 날에 빈 곳을
-  // 누르고, 그 뒤의 검사가 전부 「저장되지 않았다」로 끝납니다.
-  const setup = await at(page, TITLE_SETUP.x, TITLE_SETUP.y)
-  await page.mouse.click(setup.x, setup.y)
+  // **자리는 화면이 알립니다.** 여기 수로 적어 두면 배치가 바뀐 날에 빈 곳을 누르고,
+  // 그 뒤의 검사가 전부 「저장되지 않았다」로 끝납니다.
+  await pressTitle(page, 'start')
   await pass(page, 900)
   await page.screenshot({ path: path.join(OUT, 'setup-1-panel.png') })
 
   // 검은 덱(다섯째 칸)과 파란 스테이크(다섯째 칸).
-  await page.mouse.click(deckCell(4).x, deckCell(4).y)
+  await pressRunPanel(page, 'deck:4')
   await pass(page, 400)
-  await page.mouse.click(stakeCell(4).x, stakeCell(4).y)
+  await pressRunPanel(page, 'stake:4')
   await pass(page, 500)
   await page.screenshot({ path: path.join(OUT, 'setup-2-picked.png') })
 
@@ -101,17 +75,16 @@ async function main(): Promise<number> {
         `${parsed.deck} · ${parsed.stake}`)
 
   // 마지막 덱까지 눌러 봅니다. **뒷면 무늬 11종이 전부 그려지는 자리는 여기뿐입니다.**
-  await page.mouse.click(deckCell(14).x, deckCell(14).y)
+  await pressRunPanel(page, 'deck:14')
   await pass(page, 400)
   await page.screenshot({ path: path.join(OUT, 'setup-3-last.png') })
-  await page.mouse.click(deckCell(4).x, deckCell(4).y)
+  await pressRunPanel(page, 'deck:4')
   await pass(page, 300)
 
-  const start = {
-    x: LEFT + SIDE_X + SIDE_W / 2,
-    y: TOP + GRID_Y + SIDE_H + 14 + 23,
-  }
-  await page.mouse.click(start.x, start.y)
+  await pressRunPanel(page, 'startNew')
+  // **묻고 나서 시작합니다.** 새 판을 여는 것은 저장된 판을 덮는 일입니다.
+  await pass(page, 500)
+  await confirmYes(page)
   await pass(page, 2000)
   await page.screenshot({ path: path.join(OUT, 'setup-4-run.png') })
 

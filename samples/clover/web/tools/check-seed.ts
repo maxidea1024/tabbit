@@ -5,7 +5,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium, type Browser, type Page } from 'playwright'
 import { createServer } from 'vite'
-import { at, openRun, pass, peek, skipLogin, TITLE_OPTIONS } from './harness'
+import { at, openRun, pass, peek, pressTitle, skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
@@ -40,7 +40,7 @@ async function main(): Promise<number> {
 
   const typed = await firstHand(browser, undefined, async page => {
     // 옵션 → 시드 탭 → 칸을 누르고 새로 적습니다.
-    await tap(page, TITLE_OPTIONS.x, TITLE_OPTIONS.y)
+    await pressTitle(page, 'options')
     await pass(page, 700)
     const tab = await optionSpot(page, 'tab:seed')
     await tap(page, tab.x, tab.y)

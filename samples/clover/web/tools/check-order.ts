@@ -13,7 +13,7 @@ import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
   at, BOARD_X, clickPrimary, closeGuide, grantConsumable, grantJoker, HAND_Y, itemSpot,
-  jokerSpot, pass, peek, settle, skipLogin, TITLE_START
+  jokerSpot, pass, peek, settle, skipLogin, startNewRun
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -43,8 +43,7 @@ async function main(): Promise<number> {
   await pass(page, 1500)
 
   // 타이틀 → 시작 → 안내 닫기 → 블라인드 고르기.
-  const start = await at(page, TITLE_START.x, TITLE_START.y)
-  await page.mouse.click(start.x, start.y)
+  await startNewRun(page)
   await pass(page, 800)
   await closeGuide(page)
   await pass(page, 400)

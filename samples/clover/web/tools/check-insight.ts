@@ -15,7 +15,7 @@ import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 
 import {
-  at, chooseFive, clickSpot, closeGuide, pass, peek, pickCards, pressTitle, skipLogin,
+  at, chooseFive, clickSpot, closeGuide, pass, peek, pickCards, startNewRun, skipLogin,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -105,7 +105,7 @@ async function main(): Promise<number> {
 
   // 블라인드를 고르는 자리. **여기에도 줄이 서야 합니다** — 건너뛸지를 정하는 자리이고,
   // 그것이 이 기능이 답하려는 물음의 하나입니다.
-  await pressTitle(page, 'start')
+  await startNewRun(page)
   await pass(page, 900)
   await closeGuide(page)
   await pass(page, 400)

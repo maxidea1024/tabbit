@@ -9,7 +9,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import { at, clickSpot, closeGuide, pass, peek, pressTitle, settle, skipLogin } from './harness'
+import { clickSpot, confirmYes, closeGuide, pass, peek, startNewRun, settle, skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
@@ -29,7 +29,7 @@ async function main(): Promise<void> {
   await skipLogin(page)
   await page.goto(`http://localhost:${PORT}/?seed=CLOVER-LEAVE&tick=manual`, { waitUntil: 'networkidle' })
   await pass(page, 1200)
-  await pressTitle(page)
+  await startNewRun(page)
   await settle(page)
   await closeGuide(page)
   await pass(page, 400)
@@ -53,9 +53,9 @@ async function main(): Promise<void> {
   await pass(page, 500)
   await clickSpot(page, 'menu:toTitle')
   await pass(page, 700)
-  // 「예」 쪽 단추. 물어보는 판은 460 × 208 이고 다른 판들과 아래 변이 같습니다.
-  const yes = await at(page, 743, 734)
-  await page.mouse.click(yes.x, yes.y)
+  // 「예」 쪽 단추. **자리는 화면이 알립니다** — 물어보는 판의 높이는 그 안에 무엇이
+  // 적히는지에 따라 자랍니다.
+  await confirmYes(page)
   await pass(page, 1200)
   const left = await peek(page)
   if (left.scene !== 'title') problems.push(`예를 눌렀는데 씬이 ${left.scene} 입니다`)

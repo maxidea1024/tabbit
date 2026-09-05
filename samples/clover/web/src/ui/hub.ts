@@ -4,7 +4,7 @@
 // 더해지는 것이 단추 하나와 카드 하나와 끝난 판의 한 줄입니다.
 //
 // **로그아웃 상태에서는 아무것도 하지 않습니다.** 게임은 혼자 하는 것이고 계정은 권유가
-// 아닙니다 — 타이틀 구석이 비어 있는 것이 그 상태입니다.
+// 아닙니다 — 타이틀의 계정 자리에 「계정 연결」 하나가 서 있는 것이 그 상태입니다.
 
 import { Container, Graphics, Text } from 'pixi.js'
 
@@ -19,6 +19,7 @@ import type { Me } from '../net/session'
 import type { Submission } from '../net/leaderboard'
 import { COLOR } from '../render/theme'
 import { HandlePanel, ProfilePanel } from './account'
+import { providerLabel, providerTint } from './provider'
 import { LeaderboardPanel } from './leaderboard'
 import type { Modals } from './modal'
 import type { Toasts } from './toast'
@@ -254,6 +255,22 @@ export class LeaderboardHub {
     this.ranked = undefined
   }
 
+  /** 지금 도는 랭크 런. 랭크가 아니면 `undefined` 입니다. 저장이 이것을 적습니다. */
+  get rankedRun(): RankedRun | undefined {
+    return this.ranked
+  }
+
+  /**
+   * 적어 둔 랭크 런을 되돌립니다.
+   *
+   * **이어하기가 이것을 부릅니다.** 랭크 런은 서버가 준 시드로 시작하는데 그 사실은 이
+   * 객체에만 있으므로, 게임을 다시 켜고 이어서 하면 랭크가 아닌 판이 되어 올라가지
+   * 않았습니다.
+   */
+  restoreRanked(run: RankedRun): void {
+    this.ranked = run
+  }
+
   // -------------------------------------------------------------------------
   // 런이 끝났을 때
   // -------------------------------------------------------------------------
@@ -448,6 +465,22 @@ export class MyCard extends Container {
     name.anchor.set(0, 0.5)
     name.position.set(hasTier ? 32 : 14, 20)
     this.body.addChild(name)
+
+    // 무엇으로 로그인했는가. **오른쪽 끝의 작은 표시 하나입니다** — 로그인 화면에서 누른
+    // 그 색이므로, 다음에 켤 때 어느 단추를 눌러야 하는지가 그 색으로 읽힙니다.
+    const first = profile.providers?.[0]
+    if (first !== undefined) {
+      const label = new Text({
+        text: providerLabel(first),
+        style: { fontSize: 10, fill: 0x8a99ad, fontWeight: '700' },
+      })
+      label.anchor.set(1, 0.5)
+      label.position.set(CARD_W - 14, 20)
+      const dot = new Graphics()
+      dot.roundRect(0, 0, 9, 9, 2).fill(providerTint(first))
+      dot.position.set(CARD_W - 14 - label.width - 12, 20 - 4.5)
+      this.body.addChild(dot, label)
+    }
 
     // 2줄 — 등급과 등정 순위. **등급의 근거인 보드이므로 이것이 첫 줄입니다.**
     const ascent = profile.ranks.find(one => one.metric === 'Ascent')

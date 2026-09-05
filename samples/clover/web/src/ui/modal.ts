@@ -26,6 +26,14 @@ export interface ModalPanel {
   /** 뒤를 눌러 닫히는가. 적지 않으면 닫힙니다. */
   readonly dismissable?: boolean
   /**
+   * 가로로 화면의 가운데에 놓는가. 적지 않으면 왼쪽 판을 비껴 섭니다.
+   *
+   * **비껴 서는 것은 판이 도는 동안의 규칙입니다.** 왼쪽에 지금 몇 점인지가 서 있으므로
+   * 그것을 가리지 않는 것이 완전한 가운데보다 먼저인데, 타이틀에서 열리는 판에는 비껴 설
+   * 대상이 없습니다 — 그 판이 이것을 켭니다.
+   */
+  readonly centered?: boolean
+  /**
    * 뒤를 덮는가. 적지 않으면 덮습니다.
    *
    * **판이 다른 자리로 데려가는 것일 때만 덮습니다.** 정산은 판이 도는 그 자리의 한 걸음이고
@@ -268,7 +276,9 @@ export class Modals extends Container {
     // **가로는 화면의 가운데입니다.** 왼쪽 판을 침범하면 그만큼 오른쪽으로 밀립니다 —
     // 규칙은 `popupLeft` 하나이고, 떠 있지 않은 판들(상점 · 끝난 판 · 고르기)도 같은
     // 것을 씁니다.
-    const left = popupLeft(size.width * scale)
+    const left = entry.panel.centered
+      ? Math.round(SIZE.width / 2 - size.width * scale / 2)
+      : popupLeft(size.width * scale)
     // **밑변을 맞춥니다.** 판마다 높이가 다르므로 가운데에 놓으면 밑변이 판마다 다른 자리에
     // 있고, 판을 잇달아 열면 그 밑변이 위아래로 움직입니다 — 상점은 바닥에 맞춰 서므로
     // 그것과도 어긋났습니다. 아주 높은 판은 위가 넘치지 않게 그 자리에서 멈춥니다.

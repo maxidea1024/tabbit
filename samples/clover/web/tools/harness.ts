@@ -24,6 +24,8 @@ export interface Peek {
   /** 무엇으로 시작한 판인가. `Deck.deck_id` 와 `StakeKind` 의 이름입니다. */
   deck: string
   stake: string
+  /** 지금 상태의 해시. 이어서 한 판이 그만두던 판과 같은지를 이것으로 봅니다. */
+  hash?: string
   /** 지금 칩이 날고 있는가. */
   /** 설명 쪽지가 떠 있는가. */
   tip: boolean
@@ -145,8 +147,8 @@ export interface Peek {
 /**
  * 도구가 여는 판이 곧바로 타이틀이게 합니다.
  *
- * **게임의 첫 화면은 로그인 씬입니다.** 계정을 만들지 말지를 한 번 묻고, 정한 다음부터는
- * 묻지 않습니다 — 도구는 그 물음의 대상이 아니므로 「정해 둔 것」으로 시작합니다.
+ * **게임의 첫 화면은 로그인 씬입니다.** 실행할 때마다 그렇고, 계정 없이 하기로 한 것은 그
+ * 실행에만 적용됩니다 — 도구는 그 물음의 대상이 아니므로 표시 하나로 건너뜁니다.
  *
  * 페이지를 만든 직후에 겁니다.
  *
@@ -154,12 +156,16 @@ export interface Peek {
  *     await skipLogin(page)
  *     await page.goto(...)
  *
+ * **저장소가 아니라 표시 하나입니다.** 「계정 없이 하겠다」를 저장소에 적어 두던 것을
+ * 걷었으므로 — 그것이 곧 실행할 때마다 묻지 않던 원인입니다 — 심을 자리가 없습니다.
+ * 주소에 `?guest=1` 을 붙이는 것과 같은 자리이고, 도구는 주소를 저마다 지으므로 표시 쪽이
+ * 한 줄로 끝납니다.
+ *
  * **로그인 화면 자체를 보는 도구는 부르지 않습니다.** `check-leaderboard` 와
  * `check-relabel` 이 그렇습니다.
  */
 export async function skipLogin(page: Page): Promise<void> {
-  await page.addInitScript(
-    'try { localStorage.setItem("clover.account.mode", "single") } catch {}')
+  await page.addInitScript('window.__cloverGuest = true')
 }
 
 export async function hurry(page: Page, times: number): Promise<void> {
@@ -236,15 +242,53 @@ export async function mustHit(page: Page, what: string,
 /**
  * 타이틀의 단추 하나를 누릅니다.
  *
- * **좌표를 여기 적어 두지 않습니다.** 이 화면의 단추는 아래 바의 폭을 나눠 서므로 바가
- * 다시 짜이면 자리가 전부 옮겨 가고, 베껴 적은 값은 그날부터 빈자리를 가리킵니다 —
- * `check-gaps` 와 `shoot-last` 가 그렇게 아무것도 없는 곳을 눌러 놓고 통과했습니다.
+ * **좌표를 여기 적어 두지 않습니다.** 화면이 그린 자리를 그대로 알리고 도구는 그것을
+ * 조회합니다 — 베껴 적은 값은 배치를 고친 날부터 빈자리를 가리키고, `check-gaps` 와
+ * `shoot-last` 가 그렇게 아무것도 없는 곳을 눌러 놓고 통과했습니다.
  *
- * 이름은 `start` · `jokers` · `challenges` · `leaderboard` · `setup` · `ranked` ·
- * `guide` · `options` 입니다.
+ * 이름은 `start` · `jokers` · `leaderboard` · `guide` · `options` · `signOut` 입니다.
+ *
+ * **`start` 는 판을 여는 자리를 엽니다.** 곧바로 판이 시작되지 않습니다 — 새 런 ·
+ * 이어하기 · 챌린지가 그 안의 탭 셋이고, 판을 여는 것은 `startNewRun` 이 합니다.
  */
 export async function pressTitle(page: Page, name = 'start'): Promise<void> {
   await clickSpot(page, `title:${name}`)
+}
+
+/**
+ * 판을 여는 자리의 단추 하나를 누릅니다.
+ *
+ * 이름은 탭이 `tab:new` · `tab:resume` · `tab:challenge` 이고, 단추가 `startNew` ·
+ * `startRanked` · `startChallenge` · `resume` · `discard` 입니다. 덱과 스테이크의 칸은
+ * `deck:<번호>` · `stake:<번호>` 입니다.
+ */
+export async function pressRunPanel(page: Page, name: string): Promise<void> {
+  await clickSpot(page, `run:${name}`)
+}
+
+/**
+ * 타이틀에서 새 판을 엽니다.
+ *
+ * **두 걸음입니다.** 시작이 여는 것은 판을 고르는 자리이고, 거기서 「이 덱으로 시작」을
+ * 눌러야 판이 열립니다 — 도구가 이 두 걸음을 저마다 적으면 탭이 하나 늘 때마다 전부
+ * 고쳐야 합니다.
+ */
+export async function startNewRun(page: Page): Promise<void> {
+  await pressTitle(page, 'start')
+  await pass(page, 500)
+  await pressRunPanel(page, 'tab:new')
+  await pass(page, 200)
+  await pressRunPanel(page, 'startNew')
+  // **묻고 나서 시작합니다.** 저장된 판이 있으면 그것이 사라지므로, 새 판을 여는 것은
+  // 되돌릴 수 없는 일입니다.
+  await pass(page, 400)
+  await confirmYes(page)
+}
+
+/** 물어보는 판의 「예」를 누릅니다. 떠 있지 않으면 아무것도 하지 않습니다. */
+export async function confirmYes(page: Page): Promise<void> {
+  if ((await peek(page)).spots?.['confirm:yes'] === undefined) return
+  await clickSpot(page, 'confirm:yes')
 }
 
 /**
@@ -269,7 +313,7 @@ export async function closeGuide(page: Page): Promise<void> {
  * 사람에게 펼쳐지는 게임 방법을 닫고, 블라인드를 고르는 순서입니다.
  */
 export async function openRun(page: Page): Promise<void> {
-  await pressTitle(page, 'start')
+  await startNewRun(page)
   await pass(page, 900)
   // 게임 방법이 펼쳐져 있으면 닫습니다. **떠 있지 않으면 누를 것이 없습니다.**
   if ((await peek(page)).modalUp === true) await page.keyboard.press('Escape')
@@ -675,69 +719,12 @@ export const HAND_LIST_BUTTON = { x: 16 - 2 + 59, y: PANEL_BUTTON_Y }
 export const MENU_BUTTON = { x: 16 + 134 + 59, y: PANEL_BUTTON_Y }
 
 /**
- * 타이틀의 자리들.
+ * 타이틀의 자리들은 **여기 없습니다.**
  *
- * **`ui/title.ts` 와 같아야 합니다.** 도구마다 따로 적어 두면 배치를 고칠 때 한쪽만
- * 고쳐지고, 그 도구는 엉뚱한 곳을 눌러 놓고 아무 말도 하지 않습니다.
- *
- * 아래 바 하나에 전부 들어 있습니다 — 바가 216 이고 안쪽 여백이 26, 윗줄이 34, 틈이 10,
- * 아랫줄이 62 입니다.
+ * 화면이 `spots` 로 알리고 도구는 `pressTitle` 로 그것을 조회합니다 — 아래 바의 폭을
+ * 나누던 셈을 여기 베껴 적어 두었었고, 바를 걷어 낸 날에 그 값들은 전부 빈 곳을
+ * 가리켰습니다.
  */
-const DOCK_H = 216
-const DOCK_PAD = 26
-const TITLE_UPPER_H = 34
-const TITLE_ROW_H = 62
-const TITLE_GAP = 10
-const TITLE_UPPER_Y = STAGE_H - DOCK_H + DOCK_PAD
-const TITLE_ROW_Y = TITLE_UPPER_Y + TITLE_UPPER_H + TITLE_GAP
-
-/** 아래 줄의 네 칸. 시작만 넓습니다. */
-const TITLE_START_W = 196
-const TITLE_OTHER_W = 132
-const TITLE_LEFT = Math.round(
-  (STAGE_W - (TITLE_START_W + TITLE_OTHER_W * 3 + TITLE_GAP * 3)) / 2)
-
-/** 「시작」 가운데의 세로 자리. 예전 도구들이 이 이름을 씁니다. */
-export const TITLE_START_Y = TITLE_ROW_Y + TITLE_ROW_H / 2
-/** 「시작」 가운데. **가로도 가운데가 아닙니다** — 왼쪽 첫 칸입니다. */
-export const TITLE_START = {
-  x: TITLE_LEFT + TITLE_START_W / 2,
-  y: TITLE_START_Y,
-}
-export const TITLE_JOKERS = {
-  x: TITLE_LEFT + TITLE_START_W + TITLE_GAP + TITLE_OTHER_W / 2,
-  y: TITLE_START_Y,
-}
-export const TITLE_CHALLENGES = {
-  x: TITLE_LEFT + TITLE_START_W + (TITLE_GAP + TITLE_OTHER_W) * 1 + TITLE_OTHER_W / 2,
-  y: TITLE_START_Y,
-}
-export const TITLE_LEADERBOARD = {
-  x: TITLE_LEFT + TITLE_START_W + (TITLE_GAP + TITLE_OTHER_W) * 2 + TITLE_OTHER_W / 2,
-  y: TITLE_START_Y,
-}
-/** 무엇으로 시작하는가. 시작 위의 줄입니다. */
-export const TITLE_SETUP = {
-  x: TITLE_LEFT + 120,
-  y: TITLE_UPPER_Y + TITLE_UPPER_H / 2,
-}
-/** 랭크. 그 줄의 오른쪽 끝이고 **로그인해야 눌립니다.** */
-export const TITLE_RANKED = {
-  x: TITLE_LEFT + TITLE_START_W + TITLE_GAP + TITLE_OTHER_W * 2 + TITLE_GAP
-     + TITLE_OTHER_W / 2,
-  y: TITLE_UPPER_Y + TITLE_UPPER_H / 2,
-}
-
-/** 타이틀 오른쪽의 아이콘 둘. 왼쪽이 게임 방법, 오른쪽이 옵션입니다. */
-const TITLE_ICON = TITLE_ROW_H
-export const TITLE_GUIDE = {
-  x: STAGE_W - DOCK_PAD - TITLE_ICON * 2 - TITLE_GAP + TITLE_ICON / 2,
-  y: TITLE_ROW_Y + TITLE_ICON / 2,
-}
-export const TITLE_OPTIONS = {
-  x: STAGE_W - DOCK_PAD - TITLE_ICON / 2,
-  y: TITLE_ROW_Y + TITLE_ICON / 2,
-}
 
 /**
  * 가운데 큰 버튼. 블라인드 선택과 상점이 씁니다.

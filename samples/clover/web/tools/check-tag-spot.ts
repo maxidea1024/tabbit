@@ -9,7 +9,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import { at, peek, skipLogin, TITLE_START, pass } from './harness'
+import { peek, skipLogin, startNewRun, pass } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5242
@@ -24,8 +24,7 @@ async function main(): Promise<number> {
 
   await page.goto(`http://localhost:${PORT}/?seed=CLOVER-TAGSPOT&tick=manual`, { waitUntil: 'networkidle' })
   await pass(page, 1500)
-  const start = await at(page, TITLE_START.x, TITLE_START.y)
-  await page.mouse.click(start.x, start.y)
+  await startNewRun(page)
   await pass(page, 1600)
 
   // 태그를 쥐어 줍니다. **개발 서버에서만 있는 손잡이입니다.**

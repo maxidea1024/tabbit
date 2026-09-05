@@ -18,6 +18,7 @@ import { COLOR, UI } from '../render/theme'
 import { valueLabel } from './leaderboard'
 import type { ModalPanel } from './modal'
 import { panelFrame } from './modal'
+import { providerLabel, providerTint } from './provider'
 import { Button } from './widgets'
 
 const WIDTH = 520
@@ -261,6 +262,26 @@ export class ProfilePanel implements ModalPanel {
       })
       last.position.set(40, 128)
       this.body.addChild(last)
+    }
+
+    // 무엇으로 로그인했는가. **내 것에만 옵니다** — 남이 어느 계정으로 들어왔는지는
+    // 순위표에 필요한 값이 아니므로 서버가 주지 않습니다.
+    const linked = shown.providers ?? []
+    if (linked.length > 0) {
+      let px = width - 40
+      for (const id of [...linked].reverse()) {
+        const label = new Text({
+          text: providerLabel(id),
+          style: { fontSize: 12, fill: 0x8a99ad, fontWeight: '700' },
+        })
+        label.anchor.set(1, 0)
+        label.position.set(px, 74)
+        const dot = new Graphics()
+        dot.roundRect(0, 0, 10, 10, 3).fill(providerTint(id))
+        dot.position.set(px - label.width - 12, 76)
+        this.body.addChild(dot, label)
+        px -= label.width + 26
+      }
     }
 
     // 보드별 자리. **기록이 있는 것만입니다.**

@@ -25,6 +25,7 @@ import { ShopItemKind } from '../generated/enums/shop-item-kind'
 import { SuitKind } from '../generated/enums/suit-kind'
 import type { Data } from '../core/data'
 import { describe, valueText } from '../core/describe'
+import { StakeKind } from '../generated/enums/stake-kind'
 import { insights, type Insight, type InsightLevel } from '../core/insight'
 import { snapshotHash } from '../core/hash'
 import { evaluate } from '../core/hand'
@@ -33,7 +34,7 @@ import {
 } from '../core/run'
 import { language, nameOf, setLanguage, t, text, tf } from '../core/strings'
 import { stakeRow, stakeSlug } from '../core/stake'
-import { SetupPanel, setupLabel, validSetup, type RunSetup } from '../ui/setup'
+import { setupLabel, validSetup, type RunSetup } from '../ui/setup'
 import { NUMERALS, outline, outlined, strokeWidthOf, useFont } from '../ui/font'
 import { rerollCost, sellValueOf, type ShopItem } from '../core/shop'
 import { bestHand, valueOf } from '../core/suggest'
@@ -70,17 +71,18 @@ import { Button, Panel } from '../ui/widgets'
 import { poolsOf, type PoolChoice } from '../core/pool'
 import { Guide } from '../ui/guide'
 import { JokerPoolPanel } from '../ui/joker-pool'
-import {
-  ChallengePanel, loadProgress, saveProgress, type ChallengeProgress,
-} from '../ui/challenge'
+import { loadProgress, saveProgress, type ChallengeProgress } from '../ui/challenge'
+import { RunPanel } from '../ui/run-panel'
 import { randomSeed, Title } from '../ui/title'
 import { LeaderboardHub, type EndLine } from '../ui/hub'
 import { NetStatus } from '../ui/net-status'
 import { LoginScene } from '../ui/login-scene'
 import { ConfirmPanel } from '../ui/confirm'
+import { quitGame } from '../ui/quit'
 import * as account from '../net/session'
 import { busy as netBusy } from '../net/session'
 import { newMetrics, observe, type MetricsAcc } from '../core/metrics'
+import { clearRun, loadRun, saveRun, type SavedRun } from '../core/save-run'
 
 import type { Scene } from './scene'
 import { FOOTER_BAR, PANEL_BOTTOM, panelFrame, TITLE_BAR } from '../ui/modal'
@@ -1443,8 +1445,8 @@ export class Game {
   private readonly optionsPanel: OptionsPanel
   /** 조커 풀을 고르고 들여다보는 판. 팀이틀에서만 엽니다. */
   private readonly jokerPool: JokerPoolPanel
-  private readonly challengePanel: ChallengePanel
-  private readonly setupPanel: SetupPanel
+  /** 판을 여는 자리. 새 런 · 이어하기 · 챌린지가 탭 셋으로 들어 있습니다. */
+  private readonly runPanel: RunPanel
   /** 깬 챌린지의 목록. 저장에 남습니다. */
   private readonly challenges: ChallengeProgress = loadProgress()
   /** 지금 도는 판의 챌린지. 빈 문자열이면 챌린지가 아닙니다. */
@@ -1738,6 +1740,9 @@ export class Game {
   private gameOverShown = false
   private gameOverPop = 0
   private gameOverBoard?: Container
+  /** 끝난 판의 단추 둘. **다 선 뒤에 자리를 알리려고 들고 있습니다.** */
+  private gameOverAgain?: Container
+  private gameOverHome?: Container
   /**
    * 게임오버 판이 앉는 자리.
    *
@@ -1919,16 +1924,14 @@ export class Game {
     this.hub = new LeaderboardHub(data, this.modals, this.toasts)
     this.netStatus = new NetStatus(this.toasts)
     this.title = new Title({
-      onStart: () => this.enterRun(),
+      onStart: () => this.openRunPanel(),
       onGuide: () => this.modals.open(this.guide),
       onOptions: () => this.openOptions(),
       onJokers: () => this.modals.open(this.jokerPool),
-      onChallenges: () => this.openChallenges(),
       onLeaderboard: () => this.hub.openLeaderboard(),
-      onRanked: () => void this.startRanked(),
-      onSetup: () => this.openSetup(),
       onAccount: () => this.openAccount(),
       onSignOut: () => this.signOut(),
+      onQuit: () => this.askQuit(),
     })
     this.hub.onAccountChanged = () => this.syncAccount()
     this.hub.onNeedLogin = () => this.enterLogin()
@@ -1941,8 +1944,9 @@ export class Game {
       saveOptions(this.settings)
       this.applyOptions()
     }
+    this.login.onQuit = () => this.askQuit()
     this.login.onSingle = () => {
-      account.chooseSingle()
+      account.playAsGuest()
       this.enterTitle()
     }
     // 개발용 로그인은 제공자를 지난 것과 같은 자리입니다 — 내 것을 읽고 타이틀로 갑니다.
@@ -1959,42 +1963,47 @@ export class Game {
       () => this.modals.close(this.optionsPanel))
     this.optionsPanel.onSeed = next => this.useSeed(next)
 
-    this.setupPanel = new SetupPanel(data, this.setup(),
-      () => this.modals.close(this.setupPanel))
-    // **고른 그 자리에서 저장하고 단추의 글도 함께 맞춥니다.** 다음 판에 적용되는 것이므로
-    // 도는 판은 건드리지 않습니다.
-    this.setupPanel.onPick = (next: RunSetup) => {
-      this.settings.deck = next.deckId
-      this.settings.stake = next.stake
-      saveOptions(this.settings)
-      this.title.setSetupLabel(setupLabel(data, next))
-    }
-    // **고른 것으로 곧바로 판을 엽니다.** 챌린지 판과 같은 이유입니다 — 판을 닫고 시작을
-    // 다시 누르게 하면 무엇으로 시작하는지가 두 화면에 걸쳐 있게 됩니다.
-    this.setupPanel.onStart = (next: RunSetup) => {
-      this.modals.close(this.setupPanel)
-      this.challengeId = ''
-      this.settings.deck = next.deckId
-      this.settings.stake = next.stake
-      saveOptions(this.settings)
-      this.title.setSetupLabel(setupLabel(data, next))
-      this.layRun(randomSeed())
-      this.enterRun()
-    }
-    this.title.setSetupLabel(setupLabel(data, this.setup()))
-
-    this.challengePanel = new ChallengePanel(data, this.challenges,
-      () => this.modals.close(this.challengePanel))
-    // **고른 챌린지로 곧바로 판을 엽니다.** 판을 닫고 시작을 다시 누르게 하면 무엇으로
-    // 시작하는지가 두 화면에 걸쳐 있게 됩니다.
-    // **저장을 읽은 뒤에 알립니다.** 타이틀의 단추가 잠겨 있어야 하는지는 그때 정해집니다.
-    this.title.setChallengesOpen(this.challenges.unlocked)
-    this.challengePanel.onStart = (challengeId: string) => {
-      this.modals.close(this.challengePanel)
-      this.challengeId = challengeId
-      this.layRun(randomSeed())
-      this.enterRun()
-    }
+    // 판을 여는 자리 하나. **탭 셋이 저마다 판을 엽니다.**
+    this.runPanel = new RunPanel(data, this.setup(), this.challenges, {
+      onClose: () => this.modals.close(this.runPanel),
+      // **고른 그 자리에서 저장합니다.** 판을 닫을 때 저장하면 판을 닫지 않고 시작한
+      // 판이 다음 번에 다른 덱으로 열립니다.
+      onPickSetup: (next: RunSetup) => {
+        this.settings.deck = next.deckId
+        this.settings.stake = next.stake
+        saveOptions(this.settings)
+      },
+      // **고른 것으로 곧바로 판을 엽니다.** 판을 닫고 시작을 다시 누르게 하면 무엇으로
+      // 시작하는지가 두 화면에 걸쳐 있게 됩니다.
+      onStartNew: (next: RunSetup) => {
+        this.askStartNew(next, () => {
+          this.modals.closeAll()
+          this.challengeId = ''
+          this.settings.deck = next.deckId
+          this.settings.stake = next.stake
+          saveOptions(this.settings)
+          this.hub.clearRanked()
+          this.layRun(randomSeed())
+          this.enterRun()
+        })
+      },
+      onStartChallenge: (challengeId: string) => {
+        this.modals.close(this.runPanel)
+        this.challengeId = challengeId
+        this.hub.clearRanked()
+        this.layRun(randomSeed())
+        this.enterRun()
+      },
+      onStartRanked: () => {
+        this.modals.close(this.runPanel)
+        void this.startRanked()
+      },
+      onResume: () => {
+        this.modals.close(this.runPanel)
+        this.continueRun()
+      },
+      onDiscard: () => this.askDiscardRun(),
+    })
 
     /**
      * 흐림이 굽는 자리를 **못박아 둡니다.**
@@ -2292,8 +2301,7 @@ export class Game {
     this.optionsPanel.relabel()
     this.guide.relabel()
     this.jokerPool.relabel()
-    this.setupPanel.relabel()
-    this.challengePanel.relabel()
+    this.runPanel.relabel()
     // **화면에 오래 서 있는 단추들.** 판 안의 단추는 판을 열 때 새로 만들어지지만 이것들은
     // 처음 한 번 그려지고 그대로 남습니다 — 겉면을 갈아 끼운 뒤에도 앞 겉면의 색이었고,
     // 타이틀에 다녀와야 바뀌는 것으로 보였습니다.
@@ -2357,8 +2365,7 @@ export class Game {
     this.optionsPanel.relabel()
     this.guide.relabel()
     this.jokerPool.relabel()
-    this.setupPanel.relabel()
-    this.title.setSetupLabel(setupLabel(this.data, this.setup()))
+    this.runPanel.relabel()
     this.refresh()
   }
 
@@ -2395,7 +2402,6 @@ export class Game {
     if (this.challenges.unlocked) return
     this.challenges.unlocked = true
     saveProgress(this.challenges)
-    this.title.setChallengesOpen(true)
   }
 
   private recordWin(): void {
@@ -2408,10 +2414,9 @@ export class Game {
       this.challenges.beaten.push(this.challengeId)
       changed = true
     }
-    if (changed) {
-      saveProgress(this.challenges)
-      this.title.setChallengesOpen(true)
-    }
+    // **판이 그 목록을 그대로 들고 있습니다.** 챌린지 탭이 열렸는지는 판을 열 때
+    // 다시 세므로 여기서 알릴 자리가 없습니다.
+    if (changed) saveProgress(this.challenges)
   }
 
   /**
@@ -2422,20 +2427,94 @@ export class Game {
    * 적히고, 20칸이 잠긴 채로 보이는 것이 무엇이 남았는지를 함께 알립니다.
    */
   /**
-   * 덱과 스테이크를 고르는 판을 엽니다.
+   * 판을 여는 자리를 엽니다.
    *
    * **지금 저장된 것에 표시를 맞춰 엽니다** — 판을 한 번 세워 두고 다시 여는 것이므로,
-   * 맞추지 않으면 처음 열 때의 자리에 표시가 남습니다.
+   * 맞추지 않으면 처음 열 때의 자리에 표시가 남습니다. 저장된 판도 그때 다시 읽습니다.
    */
-  private openSetup(): void {
-    this.setupPanel.relabel()
-    this.setupPanel.setSetup(this.setup())
-    this.modals.open(this.setupPanel)
+  private openRunPanel(): void {
+    this.runPanel.relabel()
+    this.runPanel.setSetup(this.setup())
+    this.runPanel.setSignedIn(this.hub.signedIn)
+    this.runPanel.setSaved(loadRun())
+    this.runPanel.open()
+    this.modals.open(this.runPanel)
   }
 
-  private openChallenges(): void {
-    this.challengePanel.relabel()
-    this.modals.open(this.challengePanel)
+  /**
+   * 저장된 판을 이어서 합니다.
+   *
+   * **되살리지 못하면 그 사실을 적습니다.** 저장이 손상되었거나 규칙이 바뀌어 같은 판이
+   * 다시 만들어지지 않는 경우이고, 그때 아무 일도 일어나지 않으면 눌린 것으로 보이지
+   * 않습니다.
+   */
+  private continueRun(): void {
+    const saved = loadRun()
+    if (saved && this.resumeRun(saved)) return
+    this.runPanel.setSaved(undefined)
+    this.toasts.push(t('ui.run.resumeFailed'), t('ui.run.resumeFailedBody'), COLOR.bad, 3.4)
+  }
+
+  /**
+   * 새 판을 열지 묻습니다.
+   *
+   * **저장된 판이 있으면 그것이 사라집니다.** 판 하나만 적어 두므로 새 판을 열면 앞의
+   * 것이 덮입니다 — 묻는 글이 그것을 적고, 그때는 되돌릴 수 없는 것이므로 붉습니다.
+   */
+  private askStartNew(next: RunSetup, run: () => void): void {
+    const saved = this.runPanel.hasSaved
+    // **무엇이 걸리는지 함께 적힙니다.** 덱과 스테이크의 이름만으로는 그 판이 무엇이
+    // 다른지 알 수 없고, 누르기 직전의 자리가 그것을 읽는 마지막 자리입니다.
+    this.ask(t('ui.run.startAsk'),
+             tf(saved ? 'ui.run.startBodySaved' : 'ui.run.startBody',
+                { what: setupLabel(this.data, next) }),
+             t('ui.button.start'), saved, run, this.setupNotes(next))
+  }
+
+  /**
+   * 이 설정으로 시작하면 무엇이 걸리는가.
+   *
+   * **문장은 데이터에서 나옵니다.** 덱의 시작 조건은 `describe()` 가 효과 행을 읽어
+   * 만들고, 스테이크의 규칙은 런 정보 판과 같은 한 문장입니다 — 여기서 새로 적으면
+   * 같은 것을 두 문장으로 적게 됩니다.
+   */
+  private setupNotes(setup: RunSetup): string[] {
+    const lines = describe(this.data, this.data.deckEffects.get(setup.deckId) ?? [])
+    if (lines.length === 0) lines.push(t('ui.note.no_rules'))
+    const row = this.data.tables.stake.records
+      .find(one => StakeKind[one.stake] === setup.stake)
+    if (row) {
+      const record = this.data.tables.stake.findByStake(row.stake)
+      if (record) {
+        lines.push(tf('ui.stake.note', {
+          column: record.anteColumn,
+          reward: record.smallBlindReward,
+          discards: record.discardsDelta,
+        }))
+      }
+    }
+    return lines
+  }
+
+  /**
+   * 게임을 나갈지 묻습니다. **되돌릴 수 없으므로 반드시 묻습니다.**
+   *
+   * **글이 씬마다 다릅니다.** 판이 도는 중이면 그 판이 저장된다는 것이 알아야 하는 것이고,
+   * 타이틀과 로그인 화면에서는 저장할 판이 없으므로 그 말이 뜻을 갖지 않습니다.
+   */
+  private askQuit(): void {
+    const inRun = this.scene === 'run'
+    this.ask(t('ui.quit.ask'), t(inRun ? 'ui.quit.bodyRun' : 'ui.quit.body'),
+             t('ui.button.quit'), true, () => quitGame())
+  }
+
+  /** 저장된 판을 버립니다. **묻고 나서 합니다** — 되돌릴 수 없습니다. */
+  private askDiscardRun(): void {
+    this.ask(t('ui.run.discardAsk'), t('ui.run.discardBody'), t('ui.run.discard'), true,
+             () => {
+               clearRun()
+               this.runPanel.setSaved(undefined)
+             })
   }
 
   /**
@@ -2472,12 +2551,19 @@ export class Game {
     this.syncCardBack()
     this.settleShown()
     this.refresh()
+    this.writeSeedUrl(seed)
+  }
 
-    // 주소도 함께 바꿉니다. **그 주소를 열면 같은 판입니다** — 지금 페이지를 다시 읽지는
-    // 않으므로 타이틀에 그대로 있습니다.
-    //
-    // **시드만 갈아 끼웁니다.** 물음표 뒤를 통째로 새로 쓰면 함께 실려 있던 것이 지워지고,
-    // `?tick=manual` 로 연 판이 그 자리에서 그것을 잃습니다.
+  /**
+   * 주소에 이 판의 시드를 적습니다.
+   *
+   * **그 주소를 열면 같은 판입니다** — 지금 페이지를 다시 읽지는 않으므로 보고 있는
+   * 화면은 그대로입니다.
+   *
+   * **시드만 갈아 끼웁니다.** 물음표 뒤를 통째로 새로 쓰면 함께 실려 있던 것이 지워지고,
+   * `?tick=manual` 로 연 판이 그 자리에서 그것을 잃습니다.
+   */
+  private writeSeedUrl(seed: string): void {
     try {
       const url = new URL(location.href)
       url.searchParams.set('seed', seed)
@@ -2486,6 +2572,71 @@ export class Game {
     } catch {
       // 주소를 바꿀 수 없는 자리에서는 판만 바뀝니다.
     }
+  }
+
+  /**
+   * 지금 판을 적어 둡니다.
+   *
+   * **액션 목록을 적습니다.** 되살리는 것은 그것을 `apply` 로 다시 돌리는 것이고, 그
+   * 길은 서버의 판정과 `headless` 가 지나는 길과 같습니다 — 이어서 한 판을 랭크에 올려도
+   * 서버가 세는 판과 어긋나지 않습니다.
+   */
+  private rememberRun(): void {
+    if (this.scene !== 'run') return
+    saveRun({
+      seed: this.state.seed,
+      deckId: this.state.deckId,
+      stake: this.state.stake,
+      pool: this.settings.pool,
+      challengeId: this.challengeId,
+      actions: this.actions.slice(),
+      hash: snapshotHash(this.state),
+      ...(this.hub.rankedRun ? { ranked: this.hub.rankedRun } : {}),
+    }, this.state)
+  }
+
+  /**
+   * 저장된 판을 이어서 합니다. 되살리지 못하면 거짓입니다.
+   *
+   * **되살린 것이 적어 둔 것과 같은지 봅니다.** `apply` 는 받을 수 없는 액션을 조용히
+   * 넘기므로 손상된 저장으로도 판 하나가 만들어지고, 그 판은 그만두던 자리와 다릅니다 —
+   * 해시가 어긋나면 저장을 버립니다.
+   */
+  private resumeRun(saved: SavedRun): boolean {
+    this.hintCache = undefined
+    const start = newRun(this.data, saved.seed, saved.deckId, saved.stake,
+                         poolsOf(saved.pool), saved.challengeId)
+    const state = start.state
+    const acc = newMetrics()
+    observe(acc, start.events)
+    for (const action of saved.actions) {
+      observe(acc, apply(this.data, state, action).events)
+      if (state.phase === 'lost' || state.phase === 'won') break
+    }
+
+    if (state.phase === 'lost' || state.phase === 'won'
+        || snapshotHash(state) !== saved.hash) {
+      clearRun()
+      return false
+    }
+
+    this.dropRun()
+    this.challengeId = saved.challengeId
+    this.state = state
+    this.actions = saved.actions.slice()
+    this.metrics = acc
+    this.rankLine = undefined
+    this.rankNode = undefined
+    // **랭크였으면 랭크로 돌아옵니다.** 그 사실은 허브에만 있으므로, 되돌리지 않으면
+    // 이어서 끝낸 판이 올라가지 않습니다.
+    if (saved.ranked) this.hub.restoreRanked(saved.ranked)
+    else this.hub.clearRanked()
+    this.syncCardBack()
+    this.settleShown()
+    this.refresh()
+    this.writeSeedUrl(saved.seed)
+    this.enterRun()
+    return true
   }
 
   /**
@@ -2513,19 +2664,41 @@ export class Game {
   /**
    * 부팅이 끝나고 처음 서는 자리.
    *
-   * **묻지 않은 사람에게만 로그인 화면입니다.** 로그인했거나 싱글플레이로 정했으면
-   * 곧바로 타이틀이고, 타이틀의 계정 칩이 다시 이 화면으로 보냅니다.
+   * **로그인하지 않았으면 로그인 화면입니다.** 실행할 때마다 그렇습니다 — 계정 없이
+   * 하기로 한 것은 그 실행에만 적용되고, 로그아웃한 뒤나 처음 켠 자리도 여기입니다.
+   *
+   * **도구는 `?guest=1` 로 건너뜁니다.** 화면을 눌러 판을 두는 도구 50여 개가 저마다 이
+   * 화면을 지나야 할 이유가 없습니다.
    */
   private openingScene(): void {
     this.syncAccount()
-    if (account.mode() === 'undecided') this.enterLogin()
+    if (guestBoot()) account.playAsGuest()
+    if (account.needsLogin()) this.enterLogin()
     else this.enterTitle()
   }
 
   /** 계정 상태를 화면에 알립니다. 로그인·로그아웃·이름 바꾸기 뒤에 부릅니다. */
   private syncAccount(): void {
-    this.title.setAccount(this.hub.signedIn, this.hub.handle)
+    this.title.setAccount(this.hub.signedIn)
   }
+
+  /**
+   * 물어보는 판 하나를 엽니다.
+   *
+   * **여는 자리가 하나입니다.** 다섯 곳이 저마다 판을 만들어 열고 있었고, 그러면 도구가
+   * 짚을 자리를 알리는 코드도 다섯 곳이 됩니다 — 지금 떠 있는 물음이 무엇인지도 여기서만
+   * 압니다.
+   */
+  private ask(title: string, body: string, yes: string, danger: boolean,
+              onYes: () => void, notes: readonly string[] = []): void {
+    const panel = new ConfirmPanel(title, body, yes, danger, onYes,
+                                   () => this.modals.close(panel), notes)
+    this.confirmUp = panel
+    this.modals.open(panel)
+  }
+
+  /** 지금 떠 있는 물음. 도구가 짚을 자리를 알리는 데 씁니다. */
+  private confirmUp?: ConfirmPanel
 
   /** 계정 칩을 눌렀습니다. */
   private openAccount(): void {
@@ -2543,31 +2716,26 @@ export class Game {
    * 로그인 화면인 것이 그 때문입니다.
    */
   private signOut(): void {
-    const ask = new ConfirmPanel(
-      t('ui.account.signOutAsk'), t('ui.account.signOutBody'), t('ui.button.logout'), false,
-      () => void this.doSignOut(),
-      () => this.modals.close(ask))
-    this.modals.open(ask)
+    this.ask(t('ui.account.signOutAsk'), t('ui.account.signOutBody'),
+             t('ui.button.logout'), false, () => void this.doSignOut())
   }
 
   /**
    * 타이틀로 가도 되는지 묻습니다.
    *
-   * **런이 사라집니다.** 이어서 하는 길이 없으므로 되돌릴 수 없는 것이고, 메뉴의 줄
-   * 하나를 잘못 누른 사람에게는 그것이 사고입니다.
+   * **런은 적혀 있습니다.** 나가면 사라지던 것이 이제 저장되고 타이틀의 「이어하기」로
+   * 돌아옵니다 — 그래도 묻는 것은 판을 접는 것이 그 자리에서 되돌아오는 일이 아니기
+   * 때문이고, 무엇이 일어나는지는 묻는 글이 적습니다.
    */
   private askLeaveRun(): void {
-    const ask = new ConfirmPanel(
-      t('ui.title.leaveAsk'), t('ui.title.leaveBody'), t('ui.button.toTitle'), true,
-      () => this.enterTitle(),
-      () => this.modals.close(ask))
-    this.modals.open(ask)
+    this.ask(t('ui.title.leaveAsk'), t('ui.title.leaveBody'), t('ui.button.toTitle'),
+             false, () => this.enterTitle())
   }
 
   private async doSignOut(): Promise<void> {
     await this.hub.signOut()
-    // **다시 묻습니다.** 「싱글플레이로 정했다」가 아니므로 그 표시를 지웁니다.
-    account.askAgain()
+    // **손님 표시도 걷습니다.** 로그아웃한 다음 화면은 로그인 화면입니다.
+    account.leaveGuest()
     this.syncAccount()
     this.enterLogin()
   }
@@ -2605,10 +2773,17 @@ export class Game {
     this.refresh()
     // **처음 값은 굴러가지 않습니다.** 판에 들어서는 순간의 금액은 「바뀐 것」이 아니라
     // 「원래 그런 것」이고, 0에서 세어 올라가면 무언가를 벌어들인 것으로 보입니다.
-    this.money.reset(this.state.money)
-    this.score.reset(0)
+    //
+    // **화면이 주장하는 것에서 시작합니다.** 이어서 하는 판은 점수가 이미 쌓여 있고,
+    // 0을 적어 두면 들어서는 순간 그 점수까지 세어 올라갑니다.
+    this.money.reset(this.shown.money)
+    this.score.reset(this.shown.score)
     this.chips.reset(0)
     this.mult.reset(0)
+
+    // 들어선 판을 적어 둡니다. **첫 액션을 기다리지 않습니다** — 기다리면 새 판을 열고
+    // 아무것도 두지 않은 채로 껐을 때 지난 판이 이어하기에 남습니다.
+    this.rememberRun()
 
     try {
       if (localStorage.getItem('clover.guide.seen') === null) {
@@ -2803,6 +2978,8 @@ export class Game {
     this.gameOverShown = false
     this.gameOverPop = 0
     this.gameOverBoard = undefined
+    this.gameOverAgain = undefined
+    this.gameOverHome = undefined
   }
 
   // ---------------------------------------------------------------- 뼈대
@@ -3082,6 +3259,9 @@ export class Game {
     this.hintCache = undefined
     // **코어를 지난 액션만 적습니다.** 화면이 막은 것은 런에 들어가지 않았습니다.
     this.actions.push(action)
+    // **액션마다 적어 둡니다.** 판을 접는 자리에서만 적으면 창을 그냥 닫은 사람은
+    // 이어서 할 것이 없습니다.
+    this.rememberRun()
     observe(this.metrics, step.events)
     this.rewind(step.events, before)
     // **판을 떠나는 것만 미룹니다.** 블라인드를 고르고 상점을 나서는 것은 누른 그 자리에서
@@ -5070,6 +5250,9 @@ export class Game {
       // 화면에는 뒷면과 시작 조건으로만 나타나므로 그림으로는 갈리지 않습니다.
       deck: state.deckId,
       stake: state.stake,
+      // 지금 상태의 해시. **이어서 한 판이 그만두던 판과 같은지는 이것으로만 갈립니다** —
+      // 안테와 금액이 같아도 덱의 차례와 난수의 자리가 다르면 다른 판입니다.
+      hash: snapshotHash(state),
       // 상점 판이 지금 서 있는가. 하나 사는 동안 접히지 않는지를 봅니다.
       shopUp: this.shopLayer.visible,
       shownPhase: this.shown.phase,
@@ -5142,7 +5325,7 @@ export class Game {
       // 고쳐지고, 그 도구는 엉뚱한 곳을 눌러 놓고 아무 말도 하지 않습니다.
       spots: {
         ...this.spots, ...this.lateSpots(), ...this.optionSpots(),
-        ...this.handRowSpots(),
+        ...this.handRowSpots(), ...this.runSpots(), ...this.confirmSpots(),
       },
       // 아무것도 없는 곳을 누른 횟수. **도구가 자기 좌표를 검사하는 자리입니다.**
       blankTaps: this.blankTaps,
@@ -6909,10 +7092,13 @@ export class Game {
     board.position.set(this.gameOverX, this.gameOverY + 58)
     this.gameOver.addChild(board)
     this.gameOverBoard = board
-    // **단추 둘의 자리를 알립니다.** 판의 높이가 랭크 런인지에 따라 달라지므로 도구가
-    // 셈할 수 없습니다.
-    this.spots.again = this.spotOf(again, 70, 20)
-    this.spots.home = this.spotOf(home, 48, 20)
+    // **단추 둘의 자리는 다 선 뒤에 알립니다.** 여기서 세면 판이 아직 58픽셀 아래에
+    // 있으므로 그만큼 낮은 자리가 발행되고, 그 자리는 화면 밖입니다 — 도구는 아무것도
+    // 맞히지 못한 채로 눌렀다고 넘어갔습니다. `advanceGameOver` 가 잦아든 자리에서 셉니다.
+    this.gameOverAgain = again
+    this.gameOverHome = home
+    delete this.spots.again
+    delete this.spots.home
 
     if (ranked) void this.judgeRun()
     this.gameOver.zIndex = 10_000
@@ -7072,6 +7258,10 @@ export class Game {
       board.scale.set(1)
       board.position.set(this.gameOverX, this.gameOverY)
       board.rotation = 0
+      // **다 선 자리에서 셉니다.** 떨리는 동안의 자리를 발행하면 도구가 그 프레임의
+      // 흔들린 자리를 짚습니다.
+      if (this.gameOverAgain) this.spots.again = this.spotOf(this.gameOverAgain, 70, 20)
+      if (this.gameOverHome) this.spots.home = this.spotOf(this.gameOverHome, 48, 20)
     }
   }
 
@@ -8309,9 +8499,10 @@ export class Game {
     const rows: { key: string; label: string; press: () => void }[] = [
       { key: 'options', label: t('ui.button.options'), press: () => this.openOptions() },
       { key: 'guide', label: t('ui.button.guide'), press: () => this.modals.open(this.guide) },
-      // **타이틀로는 맨 아래입니다.** 판을 접는 것이므로 옵션과 게임 방법과 같은 무게로
-      // 가운데에 두면 잘못 누르는 일이 생깁니다.
+      // **타이틀로와 나가기가 맨 아래입니다.** 판을 접는 것이므로 옵션과 게임 방법과 같은
+      // 무게로 가운데에 두면 잘못 누르는 일이 생깁니다.
       { key: 'toTitle', label: t('ui.button.toTitle'), press: () => this.askLeaveRun() },
+      { key: 'quit', label: t('ui.button.quit'), press: () => this.askQuit() },
     ]
     // **밑단이 없습니다.** 머리의 `✕` 와 바깥 누르기와 `Esc` 로 닫히므로, 닫기를 또 두면
     // 같은 일을 하는 것이 판 하나에 둘입니다.
@@ -9340,6 +9531,35 @@ export class Game {
       out[`handRow:${index}`] =
         this.spotOf(this.handList.view, width / 2, row.y + row.height / 2 - 4)
     })
+    return out
+  }
+
+  /**
+   * 판을 여는 자리의 탭과 단추들이 지금 어디에 있는가.
+   *
+   * **판이 떠 있을 때만 값이 있습니다.** 탭은 몇 개가 서는지가 저장된 판과 챌린지의
+   * 해금에 따라 달라지므로, 도구가 그 셈을 베껴 적으면 이어할 것이 있는 날과 없는 날에
+   * 다른 곳을 누릅니다.
+   */
+  private runSpots(): Record<string, { x: number; y: number }> {
+    if (!this.modals.has(this.runPanel)) return {}
+    const out: Record<string, { x: number; y: number }> = {}
+    for (const [key, one] of this.runPanel.toolSpots) {
+      if (one.node.destroyed) continue
+      out[`run:${key}`] = this.spotOf(one.node, one.cx, one.cy)
+    }
+    return out
+  }
+
+  /** 물어보는 판의 단추 둘. **떠 있을 때만 값이 있습니다.** */
+  private confirmSpots(): Record<string, { x: number; y: number }> {
+    const panel = this.confirmUp
+    if (!panel || !this.modals.has(panel)) return {}
+    const out: Record<string, { x: number; y: number }> = {}
+    for (const [key, one] of panel.toolSpots) {
+      if (one.node.destroyed) continue
+      out[`confirm:${key}`] = this.spotOf(one.node, one.cx, one.cy)
+    }
     return out
   }
 
@@ -10400,5 +10620,25 @@ function shopLabel(kind: ShopItemKind, id: string, data: Data): string {
     }
 
     default: return id
+  }
+}
+
+/**
+ * 로그인 화면을 건너뛰고 열라고 적혀 있는가.
+ *
+ * **도구를 위한 것입니다.** 화면을 눌러 판을 두는 도구 50여 개가 저마다 로그인 화면을
+ * 지나야 할 이유가 없습니다 — 「계정 없이 시작」을 누른 것과 같은 자리이므로, 사람이 이
+ * 주소로 열어도 게임이 하는 일은 그 단추를 누른 것과 같습니다.
+ *
+ * 주소의 `?guest=1` 과 `window.__cloverGuest` 둘입니다. 도구는 주소를 저마다 짓기 때문에
+ * 페이지를 열기 전에 표시 하나를 심는 쪽이 한 줄로 끝납니다.
+ */
+function guestBoot(): boolean {
+  if ((globalThis as { __cloverGuest?: boolean }).__cloverGuest === true) return true
+  try {
+    return new URLSearchParams(location.search).get('guest') === '1'
+  } catch {
+    // 주소를 읽을 수 없는 자리에서는 로그인 화면부터입니다.
+    return false
   }
 }

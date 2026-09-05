@@ -65,6 +65,19 @@ export async function profileByHandle(db: Db, handle: string): Promise<Profile |
   }
 }
 
+/**
+ * 이 계정에 붙어 있는 제공자들.
+ *
+ * **이름도 이메일도 아닙니다.** 무엇으로 로그인해 두었는지만이고, 그것이 화면에 있어야
+ * 다음에 켤 때 어느 단추를 눌러야 하는지 압니다 — 계정 하나에 둘 이상 붙을 수 있으므로
+ * 목록입니다.
+ */
+export async function providersOf(db: Db, accountId: number): Promise<string[]> {
+  const rows = await db('identity').where('account_id', accountId)
+    .select<{ provider: string }[]>('provider')
+  return [...new Set(rows.map(row => row.provider))].sort()
+}
+
 export type HandleResult = 'ok' | 'shape' | 'taken' | 'cooldown'
 
 /**

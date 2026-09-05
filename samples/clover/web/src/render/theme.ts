@@ -269,7 +269,12 @@ export const SIDE_PANEL = { x: 16, width: 264, gap: 14 } as const
  */
 export function popupLeft(width: number): number {
   const keepOut = SIDE_PANEL.x + SIDE_PANEL.width + SIDE_PANEL.gap
-  return Math.max(keepOut, SIZE.width / 2 - width / 2)
+  const center = SIZE.width / 2 - width / 2
+  if (center >= keepOut) return center
+  // **밀 자리가 없으면 가운데에 그대로 둡니다.** 넓은 판을 왼쪽 판 밖으로 밀면 오른쪽이
+  // 화면을 넘어가고, 넘어간 만큼은 잘려 나갑니다 — 무대에 마스크가 걸려 있습니다.
+  const limit = SIZE.width - width - SIDE_PANEL.x
+  return keepOut <= limit ? keepOut : center
 }
 
 /** 그 판의 가로 가운데. 가운데를 기준으로 놓는 자리가 씁니다. */

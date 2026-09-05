@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, chooseFive, peek, pickCards, pressPlay, skipLogin, TITLE_START, pass,
+  at, chooseFive, peek, pickCards, pressPlay, skipLogin, startNewRun, pass,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -33,7 +33,7 @@ async function main(): Promise<number> {
   // 타이틀의 「시작」. **자리를 적어 두지 않습니다** — 여기 (640, 473) 이 적혀 있었고
   // 아래 바가 새로 짜인 뒤로 그것은 아무것도 없는 곳입니다. 그래서 이 도구는 판에 들어가지
   // 못한 채 타이틀에서 「소리 0번」 을 재고 통과했습니다.
-  await tap(page, TITLE_START.x, TITLE_START.y)
+  await startNewRun(page)
   await pass(page, 1100)
   await tap(page, 20, 20)
   await pass(page, 700)

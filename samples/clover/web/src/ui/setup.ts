@@ -8,6 +8,11 @@
 // 적힌 목록에서는 무엇을 고르는지가 판을 시작한 뒤에야 보입니다. `render/card-back.ts` 의
 // 그리는 함수를 그대로 부르므로 여기서 맞으면 판에서도 맞습니다.
 //
+// **설명은 쪽지입니다.** 고른 것의 시작 조건과 스테이크 규칙을 오른쪽 칸에 늘 펼쳐 두었는데,
+// 그 칸 하나가 판의 3분의 1을 차지하면서 격자와 나란히 서서 「어느 쪽을 보라는 화면인가」가
+// 흐려졌습니다 — 판 안의 조커와 같은 규칙으로 바꾸었습니다. 가리킨 것의 설명이 그 자리에
+// 뜨고, 아무것도 가리키지 않으면 화면에 격자만 남습니다.
+//
 // **잠긴 칸이 없습니다.** 결제가 없는 로그라이트에서 해금은 순수한 지연이므로 15덱과 8종을
 // 처음부터 전부 엽니다 — `Deck.unlock` 은 표시용 문자열로 남아 있고 이 화면은 그것을 읽지
 // 않습니다.
@@ -21,40 +26,40 @@ import { nameOf, t, tf } from '../core/strings'
 import { StakeKind } from '../generated/enums/stake-kind'
 import { backLookOf, drawCardBack } from '../render/card-back'
 import { COLOR, SIZE, UI } from '../render/theme'
-import type { ModalPanel } from './modal'
-import { panelFrame } from './modal'
-import { richBlock, rowsOf, type RichStyle } from './rich'
+import type { ToolSpot } from './layout'
+import type { TipRequest } from './run-panel'
 import { Button } from './widgets'
 
-const WIDTH = 1080
-const HEIGHT = 640
+const WIDTH = 760
 
 /** 덱 격자. 15칸이므로 5 × 3 입니다. */
 const COLUMNS = 5
 const CELL_W = 132
 const CELL_H = 118
-const GRID_X = 30
-const GRID_Y = 92
+const GRID_X = Math.round((WIDTH - COLUMNS * CELL_W) / 2)
+const GRID_Y = 24
 
 /** 칸 안의 뒷면. **손패보다 작지만 무늬가 읽히는 크기입니다.** */
 const BACK_W = Math.round(SIZE.cardWidth * 0.62)
 const BACK_H = Math.round(SIZE.cardHeight * 0.62)
 
 /** 스테이크 줄. 덱 격자 아래에 한 줄로 섭니다. */
-const STAKE_Y = GRID_Y + 3 * CELL_H + 18
+const STAKE_COUNT = 8
 const STAKE_W = 80
 const STAKE_H = 58
+const STAKE_X = Math.round((WIDTH - STAKE_COUNT * STAKE_W) / 2)
+const STAKE_HEAD_Y = GRID_Y + 3 * CELL_H + 14
+const STAKE_Y = STAKE_HEAD_Y + 24
 
-/** 오른쪽의 설명 자리. */
-const SIDE_X = GRID_X + COLUMNS * CELL_W + 20
-const SIDE_W = WIDTH - SIDE_X - 30
-const SIDE_H = STAKE_Y + STAKE_H - GRID_Y
+/** 단추 줄. 시작과 랭크가 나란히 섭니다. */
+const START_W = 400
+const RANKED_W = 160
+const BTN_GAP = 12
+const BTN_H = 48
+const BTN_X = Math.round((WIDTH - (START_W + BTN_GAP + RANKED_W)) / 2)
+const BTN_Y = STAKE_Y + STAKE_H + 26
 
-const RULE_STYLE: RichStyle = {
-  base: { fontSize: 13, fill: COLOR.ink },
-  number: COLOR.money,
-  term: UI.yellow,
-}
+const HEIGHT = BTN_Y + BTN_H
 
 /**
  * 스테이크 여덟의 색.
@@ -99,7 +104,7 @@ export function validSetup(data: Data, setup: RunSetup): RunSetup {
   return { deckId, stake }
 }
 
-/** 그 덱과 스테이크의 표시 이름을 한 줄로. 타이틀의 단추가 이것을 답니다. */
+/** 그 덱과 스테이크의 표시 이름을 한 줄로. 시작을 묻는 판이 이것을 적습니다. */
 export function setupLabel(data: Data, setup: RunSetup): string {
   const deck = data.tables.deck.findByDeckId(setup.deckId)
   const deckName = deck
@@ -110,30 +115,44 @@ export function setupLabel(data: Data, setup: RunSetup): string {
   return `${deckName} · ${stakeName}`
 }
 
-export class SetupPanel implements ModalPanel {
+export class SetupBody {
   readonly view = new Container()
   readonly size = { width: WIDTH, height: HEIGHT }
+  /** 내용이 시작하는 자리. 「덱」이라고 적힌 작은 제목입니다. */
+  readonly top = 0
 
   private readonly body = new Container()
   private readonly grid = new Container()
   private readonly stakes = new Container()
-  private readonly side = new Container()
 
   private readonly decks: { deckId: string; name: string }[]
   private readonly stakeRows: { stake: StakeKind; name: string }[]
 
   private deckAt = 0
   private stakeAt = 0
-  private frame?: Container
   private startButton?: Button
+  private rankedButton?: Button
+  /** 로그인했는가. 랭크로 시작할 수 있는지가 이것으로 갈립니다. */
+  private signedIn = false
+  /** 지금 그려져 있는 칸들. **도구가 이것을 짚습니다** — 다시 그릴 때마다 갈아 끼웁니다. */
+  private deckCells: Container[] = []
+  private stakeCells: Container[] = []
 
   /** 고른 것이 바뀔 때마다 부릅니다. 저장하는 쪽이 받습니다. */
   onPick?: (setup: RunSetup) => void
   /** 고른 것으로 판을 엽니다. */
   onStart?: (setup: RunSetup) => void
+  /**
+   * 랭크로 시작합니다.
+   *
+   * **여기 있습니다.** 타이틀에 단추 하나로 서 있었는데, 서버가 준 시드로 연다는 것 말고는
+   * 새 런과 같은 일이므로 판을 여는 자리에 함께 있어야 합니다.
+   */
+  onStartRanked?: () => void
+  /** 무엇을 가리켰는지 알립니다. 쪽지를 띄우는 것은 판이 합니다. */
+  onTip?: (tip: TipRequest | undefined) => void
 
-  constructor(private readonly data: Data, setup: RunSetup,
-              private readonly onClose: () => void) {
+  constructor(private readonly data: Data, setup: RunSetup) {
     this.decks = data.tables.deck.records
       .slice()
       .sort((one, two) => one.sortOrder - two.sortOrder)
@@ -166,7 +185,7 @@ export class SetupPanel implements ModalPanel {
   }
 
   /** 지금 고른 것. */
-  private picked(): RunSetup {
+  picked(): RunSetup {
     return {
       deckId: this.decks[this.deckAt]?.deckId ?? defaultSetup().deckId,
       stake: StakeKind[this.stakeRows[this.stakeAt]?.stake ?? StakeKind.White],
@@ -180,42 +199,90 @@ export class SetupPanel implements ModalPanel {
   }
 
   private build(): void {
-    this.buildFrame()
     this.view.addChild(this.body)
-    this.body.addChild(this.grid, this.stakes, this.side)
+    this.body.addChild(this.grid, this.stakes)
 
-    const bw = SIDE_W - 40
-    this.startButton = new Button(t('ui.setup.start'), bw, 46, UI.yellow,
-                                  () => this.onStart?.(this.picked()), 18)
-    this.startButton.position.set(SIDE_X + (SIDE_W - bw) / 2, GRID_Y + SIDE_H + 14)
-    this.body.addChild(this.startButton)
+    this.startButton = new Button(t('ui.setup.start'), START_W, BTN_H, UI.yellow,
+                                  () => this.onStart?.(this.picked()), 19)
+    this.startButton.position.set(BTN_X, BTN_Y)
+
+    // **랭크는 조용합니다.** 같은 색으로 같은 크기면 눌러야 하는 것이 둘로 보입니다 —
+    // 이 화면에서 대개 누르는 것은 왼쪽의 하나입니다.
+    this.rankedButton = new Button(t('ui.lb.ranked'), RANKED_W, BTN_H, UI.btn,
+                                   () => this.onStartRanked?.(), 15)
+    this.rankedButton.position.set(BTN_X + START_W + BTN_GAP, BTN_Y)
+
+    // 랭크가 잠긴 이유는 **올렸을 때 적힙니다.** 단추 밑에 한 줄을 늘 두면 로그인한
+    // 사람에게도 그 줄이 남고, 그러면 판의 아래가 한 줄 길어집니다.
+    this.rankedButton.on('pointerover', () => {
+      if (this.signedIn) return
+      this.onTip?.({
+        name: t('ui.lb.ranked'),
+        lines: [t('ui.account.needLink')],
+        x: BTN_X + START_W + BTN_GAP + RANKED_W / 2,
+        top: BTN_Y,
+        bottom: BTN_Y + BTN_H,
+      })
+    })
+    this.rankedButton.on('pointerout', () => this.onTip?.(undefined))
+
+    this.body.addChild(this.startButton, this.rankedButton)
+    this.syncRanked()
   }
 
-  private buildFrame(): void {
-    if (this.frame) {
-      this.view.removeChild(this.frame)
-      this.frame.destroy({ children: true })
+  /**
+   * 도구가 짚을 자리들.
+   *
+   * **단추의 자리를 도구에 적어 두지 않기 위한 것입니다.** 이 몸통은 탭 안에 얹히므로
+   * 화면에서의 자리가 탭 줄의 높이와 판의 크기를 따릅니다.
+   */
+  spots(): [string, ToolSpot][] {
+    const out: [string, ToolSpot][] = []
+    this.deckCells.forEach((cell, at) => {
+      out.push([`deck:${at}`, { node: cell, cx: (CELL_W - 10) / 2, cy: (CELL_H - 10) / 2 }])
+    })
+    this.stakeCells.forEach((cell, at) => {
+      out.push([`stake:${at}`, { node: cell, cx: (STAKE_W - 10) / 2, cy: STAKE_H / 2 }])
+    })
+    if (this.startButton) {
+      out.push(['startNew', { node: this.startButton, cx: START_W / 2, cy: BTN_H / 2 }])
     }
-    this.frame = panelFrame(WIDTH, HEIGHT, t('ui.setup.title'), this.onClose,
-                            undefined, false)
-    this.view.addChildAt(this.frame, 0)
+    if (this.rankedButton) {
+      out.push(['startRanked', { node: this.rankedButton, cx: RANKED_W / 2, cy: BTN_H / 2 }])
+    }
+    return out
+  }
+
+  /** 로그인 상태를 알립니다. 랭크로 시작할 수 있는지가 이것으로 갈립니다. */
+  setSignedIn(signedIn: boolean): void {
+    this.signedIn = signedIn
+    this.syncRanked()
+  }
+
+  private syncRanked(): void {
+    if (this.rankedButton) this.rankedButton.enabled = this.signedIn
   }
 
   private rebuild(): void {
     this.drawGrid()
     this.drawStakes()
-    this.drawSide()
+  }
+
+  /** 작은 제목 하나. */
+  private head(label: string): Text {
+    return new Text({
+      text: label,
+      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '800', letterSpacing: 1 },
+    })
   }
 
   /** 왼쪽의 15칸. 칸마다 그 덱의 뒷면이 섭니다. */
   private drawGrid(): void {
     this.grid.removeChildren().forEach(child => child.destroy({ children: true }))
+    this.deckCells = []
 
-    const head = new Text({
-      text: t('ui.setup.decks'),
-      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '800', letterSpacing: 1 },
-    })
-    head.position.set(GRID_X + 4, GRID_Y - 22)
+    const head = this.head(t('ui.setup.decks'))
+    head.position.set(GRID_X + 4, 0)
     this.grid.addChild(head)
 
     for (let i = 0; i < this.decks.length; i++) {
@@ -224,8 +291,9 @@ export class SetupPanel implements ModalPanel {
       const here = i === this.deckAt
 
       const cell = new Container()
-      cell.position.set(GRID_X + (i % COLUMNS) * CELL_W,
-                        GRID_Y + Math.floor(i / COLUMNS) * CELL_H)
+      const cx = GRID_X + (i % COLUMNS) * CELL_W
+      const cy = GRID_Y + Math.floor(i / COLUMNS) * CELL_H
+      cell.position.set(cx, cy)
 
       const board = new Graphics()
       board.roundRect(0, 0, CELL_W - 10, CELL_H - 10, 8)
@@ -253,19 +321,37 @@ export class SetupPanel implements ModalPanel {
       cell.eventMode = 'static'
       cell.cursor = 'pointer'
       cell.on('pointertap', () => this.pick(i, this.stakeAt))
+      // **손가락에는 마우스 오버가 없으므로 누르는 것도 쪽지를 띄웁니다.** 조커 도감이
+      // 같은 규칙입니다.
+      cell.on('pointerover', () => this.tipDeck(i, cx, cy))
+      cell.on('pointertap', () => this.tipDeck(i, cx, cy))
+      cell.on('pointerout', () => this.onTip?.(undefined))
       this.grid.addChild(cell)
+      this.deckCells.push(cell)
     }
+  }
+
+  /** 그 덱의 시작 조건을 쪽지로. */
+  private tipDeck(index: number, cx: number, cy: number): void {
+    const deck = this.decks[index]
+    if (!deck) return
+    const rules = describe(this.data, this.data.deckEffects.get(deck.deckId) ?? [])
+    this.onTip?.({
+      name: deck.name,
+      lines: rules.length > 0 ? rules : [t('ui.note.no_rules')],
+      x: cx + (CELL_W - 10) / 2,
+      top: cy,
+      bottom: cy + CELL_H - 10,
+    })
   }
 
   /** 스테이크 여덟. 이름이 곧 색이므로 칸을 그 색으로 칠합니다. */
   private drawStakes(): void {
     this.stakes.removeChildren().forEach(child => child.destroy({ children: true }))
+    this.stakeCells = []
 
-    const head = new Text({
-      text: t('ui.setup.stakes'),
-      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '800', letterSpacing: 1 },
-    })
-    head.position.set(GRID_X + 4, STAKE_Y - 20)
+    const head = this.head(t('ui.setup.stakes'))
+    head.position.set(STAKE_X + 4, STAKE_HEAD_Y)
     this.stakes.addChild(head)
 
     for (let i = 0; i < this.stakeRows.length; i++) {
@@ -274,7 +360,8 @@ export class SetupPanel implements ModalPanel {
       const tint = STAKE_COLOR[row.stake] ?? COLOR.inkDim
 
       const cell = new Container()
-      cell.position.set(GRID_X + i * STAKE_W, STAKE_Y)
+      const cx = STAKE_X + i * STAKE_W
+      cell.position.set(cx, STAKE_Y)
 
       const board = new Graphics()
       board.roundRect(0, 0, STAKE_W - 10, STAKE_H, 8)
@@ -306,8 +393,31 @@ export class SetupPanel implements ModalPanel {
       cell.eventMode = 'static'
       cell.cursor = 'pointer'
       cell.on('pointertap', () => this.pick(this.deckAt, i))
+      cell.on('pointerover', () => this.tipStake(i, cx))
+      cell.on('pointertap', () => this.tipStake(i, cx))
+      cell.on('pointerout', () => this.onTip?.(undefined))
       this.stakes.addChild(cell)
+      this.stakeCells.push(cell)
     }
+  }
+
+  /** 그 스테이크의 규칙을 쪽지로. **런 정보 판과 같은 문장입니다.** */
+  private tipStake(index: number, cx: number): void {
+    const row = this.stakeRows[index]
+    if (!row) return
+    const record = this.data.tables.stake.findByStake(row.stake)
+    if (!record) return
+    this.onTip?.({
+      name: row.name,
+      lines: [tf('ui.stake.note', {
+        column: record.anteColumn,
+        reward: record.smallBlindReward,
+        discards: record.discardsDelta,
+      })],
+      x: cx + (STAKE_W - 10) / 2,
+      top: STAKE_Y,
+      bottom: STAKE_Y + STAKE_H,
+    })
   }
 
   private pick(deckAt: number, stakeAt: number): void {
@@ -319,75 +429,8 @@ export class SetupPanel implements ModalPanel {
     this.onPick?.(this.picked())
   }
 
-  /** 오른쪽. 고른 덱의 시작 조건과 고른 스테이크의 규칙입니다. */
-  private drawSide(): void {
-    this.side.removeChildren().forEach(child => child.destroy({ children: true }))
-
-    const board = new Graphics()
-    board.roundRect(SIDE_X, GRID_Y, SIDE_W, SIDE_H, 10)
-      .fill({ color: 0x1a1920 })
-      .stroke({ color: UI.hairline, width: 1.5 })
-    this.side.addChild(board)
-
-    const deck = this.decks[this.deckAt]
-    if (!deck) return
-    let y = GRID_Y + 16
-
-    const title = new Text({
-      text: deck.name,
-      style: { fontSize: 22, fill: COLOR.ink, fontWeight: '800' },
-    })
-    title.position.set(SIDE_X + 18, y)
-    this.side.addChild(title)
-    y += 36
-
-    y = this.section(t('ui.setup.effects'), y)
-    const rules = describe(this.data, this.data.deckEffects.get(deck.deckId) ?? [])
-    const block = richBlock(rules.length > 0 ? rules : [t('ui.note.no_rules')],
-                            RULE_STYLE, 19, SIDE_W - 36)
-    block.position.set(SIDE_X + 18, y)
-    this.side.addChild(block)
-    y += rowsOf(block) * 19 + 20
-
-    const stake = this.stakeRows[this.stakeAt]
-    const record = this.data.tables.stake.findByStake(stake?.stake ?? StakeKind.White)
-    if (!stake || !record) return
-
-    y = this.section(t('ui.setup.stakes'), y)
-
-    const name = new Text({
-      text: stake.name,
-      style: { fontSize: 16, fill: COLOR.ink, fontWeight: '800' },
-    })
-    name.position.set(SIDE_X + 18, y)
-    this.side.addChild(name)
-    y += 24
-
-    // 스테이크의 규칙은 런 정보 패널과 같은 문장을 씁니다. 같은 것을 두 문장으로 적으면
-    // 두 화면의 말이 갈립니다.
-    const note = richBlock([tf('ui.stake.note', {
-      column: record.anteColumn,
-      reward: record.smallBlindReward,
-      discards: record.discardsDelta,
-    })], RULE_STYLE, 18, SIDE_W - 36)
-    note.position.set(SIDE_X + 18, y)
-    this.side.addChild(note)
-  }
-
-  /** 작은 제목 하나. 다음 글이 시작할 `y` 를 돌려줍니다. */
-  private section(label: string, y: number): number {
-    const head = new Text({
-      text: label,
-      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '800', letterSpacing: 1 },
-    })
-    head.position.set(SIDE_X + 18, y)
-    this.side.addChild(head)
-    return y + 20
-  }
-
   /** 말이 바뀌었을 때. 판을 처음 세운 때의 말로 남지 않게 합니다. */
   relabel(): void {
-    this.buildFrame()
     for (const one of this.decks) {
       const row = this.data.tables.deck.findByDeckId(one.deckId)
       if (row) one.name = nameOf(this.data, 'deck', one.deckId, row.name)
@@ -397,6 +440,7 @@ export class SetupPanel implements ModalPanel {
       if (row) one.name = nameOf(this.data, 'stake', stakeSlug(one.stake), row.name)
     }
     if (this.startButton) this.startButton.text = t('ui.setup.start')
+    if (this.rankedButton) this.rankedButton.text = t('ui.lb.ranked')
     this.rebuild()
   }
 }

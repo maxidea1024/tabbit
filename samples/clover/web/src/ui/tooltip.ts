@@ -103,13 +103,20 @@ export class Tooltip extends Container {
    */
   show(name: string, kindName: string, rarityValue: number, lines: string[],
        at: TipBox, bounds: { width: number; height: number },
-       cost?: number): void {
+       cost?: number,
+       /**
+        * 칩의 색을 손으로 정합니다.
+        *
+        * **희귀도가 아닌 것도 칩으로 섭니다.** 챌린지가 열렸는지 · 깼는지가 그것입니다 —
+        * 되풀이되는 한 낱말은 글의 첫 줄이 아니라 이름 옆의 칩입니다.
+        */
+       kindTone?: number): void {
     this.title.text = name
 
     // 칩을 먼저 만듭니다. 너비가 이것에 달려 있습니다.
     this.chips.removeChildren().forEach(child => child.destroy())
     const made: Container[] = []
-    if (kindName !== '') made.push(chip(kindName, rarityColor(rarityValue)))
+    if (kindName !== '') made.push(chip(kindName, kindTone ?? rarityColor(rarityValue)))
     if (cost !== undefined) made.push(chip(`$${cost}`, COLOR.accentNumber))
 
     let chipsWidth = 0

@@ -1443,7 +1443,7 @@
 	ui.lb.end.later	나중에 다시 보냅니다.	We will send it again later.	あとでもう一度送ります。	稍后会再次提交。	稍後會再次提交。	Wir senden es später erneut.
 	ui.lb.end.tierUp	등급이 {tier} 가 되었습니다	You reached {tier}	ティアが {tier} になりました	段位提升到 {tier}	段位提升到 {tier}	Du hast {tier} erreicht
 	ui.lb.fail.title	되지 않았습니다	That did not work	できませんでした	未能完成	未能完成	Das hat nicht funktioniert
-	ui.lb.fail.offline	서버에 닿지 못했습니다. 게임은 그대로 하실 수 있습니다.	Could not reach the server. The game keeps working.	サーバーに届きませんでした。ゲームはそのまま遊べます。	无法连接服务器。游戏仍可继续。	無法連線伺服器。遊戲仍可繼續。	Der Server war nicht erreichbar. Das Spiel läuft weiter.
+	ui.lb.fail.offline	서버에 연결할 수 없습니다. 게임은 그대로 하실 수 있습니다.	Could not connect to the server. The game keeps working.	サーバーに接続できませんでした。ゲームはそのまま遊べます。	无法连接服务器。游戏可以继续。	無法連線伺服器。遊戲可以繼續。	Keine Verbindung zum Server. Das Spiel läuft weiter.
 	ui.lb.fail.unauthorized	다시 로그인해야 합니다.	Please sign in again.	もう一度ログインしてください。	请重新登录。	請重新登入。	Bitte melde dich erneut an.
 	ui.lb.fail.bad_seed	이 시드로 시작한 랭크 런이 아닙니다.	This run did not start from that ranked seed.	そのシードで始めたランクランではありません。	本局并非以该排位种子开始。	本局並非以該排位種子開始。	Dieser Lauf begann nicht mit diesem gewerteten Seed.
 	ui.lb.fail.bad_fingerprint	게임이 낡았습니다. 새로 고치면 다시 올릴 수 있습니다.	This build is out of date. Reload and try again.	ゲームが古いです。読み込み直すと再送できます。	游戏版本过旧。刷新后可重试。	遊戲版本過舊。重新載入後可再試。	Diese Version ist veraltet. Neu laden und erneut versuchen.
@@ -1453,10 +1453,7 @@
 	ui.lb.fail.shape	영문 · 숫자 · 밑줄 3~16자입니다.	Use 3-16 letters, digits or underscores.	英字・数字・アンダースコアで3〜16文字です。	需为字母、数字或下划线，3~16 个字符。	需為字母、數字或底線，3~16 個字元。	3-16 Buchstaben, Zahlen oder Unterstriche.
 	ui.lb.fail.unknown	서버가 이 요청을 받지 않았습니다.	The server refused the request.	サーバーがこの要求を受け付けませんでした。	服务器拒绝了该请求。	伺服器拒絕了該請求。	Der Server hat die Anfrage abgelehnt.
 	ui.lb.cleared	완주	cleared	完走	通关	通關	geschafft
-	ui.account.single	싱글플레이로 시작	Play without an account			
-	ui.account.singleNote	언제든지 나중에 계정을 연결할 수 있습니다.	You can link an account later at any time.			
-	ui.account.chip	계정	Account			
-	ui.account.guest	싱글플레이	Single player			
+	ui.account.singleNote	언제든지 나중에 계정을 연결할 수 있습니다.	You can link an account later at any time.	あとからいつでもアカウントを連携できます。	之后可随时关联账号。	之後可隨時關聯帳號。	Du kannst später jederzeit ein Konto verknüpfen.
 	ui.account.link	계정 연결	Link account			
 	ui.account.needLink	순위표에 오르려면 계정을 연결해야 합니다.	Link an account to appear on the leaderboard.			
 	ui.button.back	뒤로	Back			
@@ -1464,7 +1461,7 @@
 	ui.account.devLogin	개발용 로그인	Dev sign-in			
 	ui.account.continueWith	{name} 로 계속하기	Continue with {name}			
 	ui.account.or	또는	or			
-	ui.account.guestStart	계정 없이 시작하기	Start without an account			
+	ui.account.guestStart	로그인 없이 시작	Play without signing in	ログインせずに始める	不登录直接开始	不登入直接開始	Ohne Anmeldung starten
 	ui.account.legal	계속하면 이용약관과 개인정보처리방침에 동의하는 것으로 봅니다.	By continuing you agree to the Terms of Service and Privacy Policy.			
 	ui.account.signedInAs	{name} 으로 하고 있습니다	Signed in as {name}			
 	ui.lb.rankedStart	랭크 시작	Start ranked			
@@ -1485,7 +1482,7 @@
 	ui.over.copied	복사했습니다	Copied	コピーしました	已复制	已複製	Kopiert
 	ui.shop.empty_cell	빈 칸	Empty	空き	空位	空位	Leer
 	ui.title.leaveAsk	타이틀로 갈까요?	Back to title?	タイトルへ戻りますか？	返回标题？	返回標題？	Zum Titel zurück?
-	ui.title.leaveBody	진행 중인 런이 사라집니다. 다시 이어서 할 수 없습니다.	This run will be lost. You cannot resume it.	進行中のランは失われます。再開はできません。	当前对局将会丢失，无法继续。	目前的對局將會遺失，無法繼續。	Der laufende Run wird verworfen und kann nicht fortgesetzt werden.
+	ui.title.leaveBody	지금까지 둔 것은 저장됩니다. 타이틀의 「이어하기」로 돌아올 수 있습니다.	Your progress is saved. You can come back from Continue on the title screen.	ここまでの進行は保存されます。タイトルの「つづきから」で戻れます。	当前进度会被保存。可从标题画面的「继续」返回。	目前進度會被儲存。可從標題畫面的「繼續」返回。	Dein Fortschritt wird gespeichert. Du kannst über „Fortsetzen“ im Titelbildschirm zurückkehren.
 	ui.option.uiTheme	테마	Theme	テーマ	主题	主題	Thema
 	ui.option.note.uiTheme	판의 색을 고릅니다	Pick the panel colors	パネルの色を選びます	选择面板配色	選擇面板配色	Farben der Panels
 	ui.theme.slate	기본	Default	標準	默认	預設	Standard
@@ -1496,3 +1493,32 @@
 	ui.theme.wine	와인	Wine	ワイン	酒红	酒紅	Wein
 	ui.theme.brown	갈색	Brown	ブラウン	棕色	棕色	Braun
 	ui.theme.violet	자주	Violet	バイオレット	紫色	紫色	Violett
+	ui.run.title	런 시작	Start a Run	ランを始める	开始一局	開始一局	Runde starten
+	ui.run.tab.new	새 런	New Run	新しいラン	新的一局	新的一局	Neue Runde
+	ui.run.tab.resume	이어하기	Continue	つづきから	继续	繼續	Fortsetzen
+	ui.run.tab.challenge	챌린지	Challenge	チャレンジ	挑战	挑戰	Herausforderung
+	ui.run.stopped	{where}에서 그만두었습니다	Stopped at {where}	{where} で中断しました	在{where}中断	在{where}中斷	Bei {where} unterbrochen
+	ui.run.phase.blindSelect	블라인드 고르기	blind select	ブラインド選択	选择盲注	選擇盲注	Blind-Auswahl
+	ui.run.phase.round	라운드	a round	ラウンド	回合	回合	einer Runde
+	ui.run.phase.shop	상점	the shop	ショップ	商店	商店	dem Shop
+	ui.run.resume	이어서 하기	Continue run	つづきから	继续这一局	繼續這一局	Runde fortsetzen
+	ui.run.discard	버리기	Discard	破棄する	丢弃	丟棄	Verwerfen
+	ui.run.discardAsk	저장된 판을 버릴까요?	Discard the saved run?	保存したランを破棄しますか？	要丢弃已保存的一局吗？	要丟棄已儲存的一局嗎？	Gespeicherte Runde verwerfen?
+	ui.run.discardBody	이어서 할 수 없게 됩니다. 되돌릴 수 없습니다.	You will not be able to continue it. This cannot be undone.	つづきから遊べなくなります。元に戻せません。	将无法继续这一局，且不可撤销。	將無法繼續這一局，且不可復原。	Du kannst sie dann nicht mehr fortsetzen. Das lässt sich nicht rückgängig machen.
+	ui.run.resumeFailed	이어서 할 수 없습니다	Cannot continue	つづきから遊べません	无法继续	無法繼續	Fortsetzen nicht möglich
+	ui.run.resumeFailedBody	저장된 판이 지금 규칙으로 다시 만들어지지 않습니다.	The saved run does not rebuild under the current rules.	保存したランを現在のルールで再現できません。	已保存的一局无法在当前规则下重建。	已儲存的一局無法在目前規則下重建。	Die gespeicherte Runde lässt sich mit den aktuellen Regeln nicht wiederherstellen.
+	ui.run.ago.now	방금	just now	たった今	刚刚	剛剛	gerade eben
+	ui.run.ago.minutes	{n}분 전	{n} min ago	{n}分前	{n} 分钟前	{n} 分鐘前	vor {n} Min.
+	ui.run.ago.hours	{n}시간 전	{n} h ago	{n}時間前	{n} 小时前	{n} 小時前	vor {n} Std.
+	ui.run.ago.days	{n}일 전	{n} d ago	{n}日前	{n} 天前	{n} 天前	vor {n} Tg.
+	ui.button.quit	나가기	Quit	終了	退出	退出	Beenden
+	ui.quit.ask	게임을 나갈까요?	Quit the game?	ゲームを終了しますか？	要退出游戏吗？	要退出遊戲嗎？	Spiel beenden?
+	ui.quit.body	게임을 끝냅니다.	This closes the game.	ゲームを終了します。	将关闭游戏。	將關閉遊戲。	Das Spiel wird beendet.
+	ui.run.startAsk	이 덱으로 시작할까요?	Start this run?	これで始めますか？	要以此开始吗？	要以此開始嗎？	Diese Runde starten?
+	ui.run.startBody	{what:로} 새 판을 엽니다.	A new run with {what}.	{what} で新しいランを始めます。	以 {what} 开始新的一局。	以 {what} 開始新的一局。	Eine neue Runde mit {what}.
+	ui.run.startBodySaved	{what:로} 새 판을 엽니다. 저장된 판은 사라지고 되돌릴 수 없습니다.	A new run with {what}. Your saved run is discarded and cannot be recovered.	{what} で新しいランを始めます。保存したランは失われ、元に戻せません。	以 {what} 开始新的一局。已保存的一局将被丢弃且无法恢复。	以 {what} 開始新的一局。已儲存的一局將被丟棄且無法復原。	Eine neue Runde mit {what}. Die gespeicherte Runde wird verworfen und lässt sich nicht wiederherstellen.
+	ui.challenge.chip.open	열림	Unlocked	解放	已开启	已開啟	Frei
+	ui.challenge.chip.beaten	깸	Beaten	クリア	已通过	已通過	Geschlagen
+	ui.challenge.chip.locked	잠김	Locked	未解放	未开启	未開啟	Gesperrt
+	ui.account.startingSingle	시작하는 중	Starting	開始しています	正在开始	正在開始	Wird gestartet
+	ui.quit.bodyRun	지금까지 둔 것은 저장됩니다. 다시 켜면 이어서 할 수 있습니다.	Your progress is saved. You can continue it next time.	ここまでの進行は保存されます。次に起動したらつづきから遊べます。	当前进度会被保存，下次启动可继续。	目前進度會被儲存，下次啟動可繼續。	Dein Fortschritt wird gespeichert. Du kannst beim nächsten Start fortsetzen.

@@ -14,7 +14,7 @@ import { chromium } from 'playwright'
 import { createServer } from 'vite'
 
 import {
-  at, clickPrimary, settle, type Peek, skipLogin, pass, TITLE_OPTIONS, TITLE_START,
+  at, clickPrimary, settle, type Peek, skipLogin, pass, pressTitle, startNewRun,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -62,8 +62,7 @@ async function main(): Promise<number> {
     await pass(page, 2600)
 
     // 시작 · 블라인드 선택 · 손패까지. 카드가 화면에 서야 봅니다.
-    const start = await at(page, TITLE_START.x, TITLE_START.y)
-    await page.mouse.click(start.x, start.y)
+    await startNewRun(page)
     await pass(page, 1600)
     await clickPrimary(page)
     await settle(page)
@@ -93,8 +92,7 @@ async function main(): Promise<number> {
   await pass(page, 2600)
   // 타이틀 오른쪽의 톱니. **자리는 하네스의 상수입니다** — 여기 수로 적어 두면 타이틀의
   // 배치가 바뀐 날에 빈 곳을 누르고 「판의 자리를 알 수 없습니다」 로 끝납니다.
-  const gear = await at(page, TITLE_OPTIONS.x, TITLE_OPTIONS.y)
-  await page.mouse.click(gear.x, gear.y)
+  await pressTitle(page, 'options')
   await pass(page, 900)
   await page.screenshot({ path: path.join(OUT, 'cards-options.png') })
 

@@ -12,7 +12,7 @@ import { chromium, type Browser, type Page } from 'playwright'
 import { createServer } from 'vite'
 import {
   at, buyAffordablePack, clearBlind, clickSpot, closeGuide, grantMoney, openDeckView,
-  pass, peek, pickCards, pressPlay, pressTitle, settle, skipLogin,
+  pass, peek, pickCards, pressPlay, startNewRun, settle, skipLogin,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -79,7 +79,7 @@ async function shootFront(browser: Browser): Promise<void> {
 /** 블라인드 고르기 · 라운드 · 정산 · 상점 진열. */
 async function shootRun(browser: Browser): Promise<void> {
   const page = await open(browser, '?seed=CLOVER-SHOT6&tick=manual')
-  await pressTitle(page, 'start')
+  await startNewRun(page)
   await pass(page, 900)
   await closeGuide(page)
   await pass(page, 600)
@@ -132,7 +132,7 @@ async function shootRun(browser: Browser): Promise<void> {
 /** 게임오버. 한 장씩 내서 집니다. */
 async function shootOver(browser: Browser): Promise<void> {
   const page = await open(browser, '?seed=CLOVER-LOSE1&tick=manual')
-  await pressTitle(page, 'start')
+  await startNewRun(page)
   await pass(page, 900)
   await closeGuide(page)
   await pass(page, 400)

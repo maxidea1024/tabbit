@@ -15,7 +15,7 @@ import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 
 import {
-  clickSpot, closeGuide, MENU_BUTTON, TITLE_START
+  clickSpot, closeGuide, MENU_BUTTON, pressTitle, startNewRun
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -26,11 +26,6 @@ const SINGLE = { x: 640, y: 800 - 214 + 26 }
 const LANG_CHIP = { x: 1280 - 30 - 66, y: 47 }
 /** 펼쳐진 목록의 둘째 줄 — 영어입니다. */
 const LANG_EN = { x: LANG_CHIP.x, y: 30 + 40 + 32 * 1 + 15 }
-
-/** 타이틀의 옵션 아이콘. 바의 오른쪽 끝입니다. */
-const DOCK_Y = 800 - 216
-const ROW_Y = DOCK_Y + 26 + 34 + 10
-const OPTIONS = { x: 1280 - 26 - 31, y: ROW_Y + 31 }
 
 let failed = 0
 
@@ -84,8 +79,11 @@ async function main(): Promise<number> {
   check('로그인 화면에서 말을 바꿔도 삽니다', afterLang.scene === 'login', afterLang.scene)
 
   // **그다음에도 눌립니까.** 멈춘 화면은 그림이 남아 있어도 눌리지 않습니다.
+  //
+  // **띠가 지나가기를 기다립니다.** 로그인 없이 들어가는 것도 제공자로 들어가는 것과 같은
+  // 띠를 지나므로, 누른 그 자리에서 타이틀이 되지 않습니다.
   await page.mouse.click(SINGLE.x, SINGLE.y)
-  await page.waitForTimeout(1_200)
+  await page.waitForTimeout(2_600)
   const onTitle = await peek(page)
   check('그다음 누름이 먹습니다', onTitle.scene === 'title', onTitle.scene)
 
@@ -99,7 +97,9 @@ async function main(): Promise<number> {
   //
   // 남는 것은 「옵션 판 **안에서** 누른 그 순간에 지워지는가」 하나이고, 그것은 사람이
   // 봅니다.
-  await page.mouse.click(OPTIONS.x, OPTIONS.y)
+  // **타이틀의 옵션 자리는 화면이 알립니다.** 여기 수로 적어 두면 타이틀의 배치를
+  // 고친 날부터 이 도구는 빈 곳을 누르고 「열리지 않았다」로 끝납니다.
+  await pressTitle(page, 'options')
   await page.waitForTimeout(1_000)
   check('옵션이 열립니다', (await peek(page)).modalUp)
 
@@ -118,7 +118,7 @@ async function main(): Promise<number> {
   //
   // 칸의 자리는 화면이 알립니다. 좌표를 못박으면 줄이 하나 늘 때마다 빈자리를 누르고
   // 통과합니다 — 이 확인이 한동안 그러했습니다.
-  await page.mouse.click(TITLE_START.x, TITLE_START.y)
+  await startNewRun(page)
   await page.waitForTimeout(1_200)
   await closeGuide(page)
   await page.waitForTimeout(400)

@@ -8,8 +8,8 @@ import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, clickPrimary, clickSpot, closeGuide, pass, peek, pickCards, pressPlay, settle,
-  skipLogin, TITLE_START
+  clickPrimary, clickSpot, closeGuide, pass, peek, pickCards, pressPlay, settle,
+  skipLogin, startNewRun
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -44,8 +44,7 @@ async function main(): Promise<number> {
   const first = await peek(page)
   console.log('처음 씬', first.scene, '· 로딩 줄', bootAfterLoad ? '보임' : '걷힘')
 
-  const start = await at(page, TITLE_START.x, TITLE_START.y)
-  await page.mouse.click(start.x, start.y)
+  await startNewRun(page)
   await pass(page, 900)
   await closeGuide(page)
   await pass(page, 400)
@@ -85,8 +84,7 @@ async function main(): Promise<number> {
   await page.screenshot({ path: path.join(OUT, 'scene-2.png') })
 
   // 다시 시작해서 판이 서는가.
-  const again = await at(page, TITLE_START.x, TITLE_START.y)
-  await page.mouse.click(again.x, again.y)
+  await startNewRun(page)
   await pass(page, 1200)
   const second = await peek(page)
   console.log('두 번째 판', second.scene, '· 국면', second.phase, '· 시드가 바뀌었는가',

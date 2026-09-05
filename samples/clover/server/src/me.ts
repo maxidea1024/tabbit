@@ -4,7 +4,7 @@
 // 것 말고는 판이 하나이고, 판을 둘로 만들면 한쪽만 고쳐지는 날이 옵니다.
 
 import { Router } from 'express'
-import { deleteAccount, profileByHandle, profileOf, setHandle } from './accounts'
+import { deleteAccount, profileByHandle, profileOf, providersOf, setHandle } from './accounts'
 import { fail, guard, requireLogin, type Context } from './http'
 import { listSessions } from './auth/session'
 import { ranksOf } from './boards'
@@ -27,6 +27,9 @@ export function meRouter(context: Context): Router {
       // **기계 목록이 여기 있습니다.** 한 계정이 여러 기계에서 동시에 로그인하므로,
       // 어디에 들어와 있는지를 사람이 볼 수 있어야 합니다.
       devices: await listSessions(db, accountId),
+      // **무엇으로 로그인해 두었는가.** 계정 자리에 그 표시가 있어야 다음에 어느 단추를
+      // 눌러야 하는지 압니다.
+      providers: await providersOf(db, accountId),
       ranks: await ranksOf(context, accountId),
     })
   }))

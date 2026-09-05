@@ -10,7 +10,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import { skipLogin, pass, at, TITLE_CHALLENGES } from './harness'
+import { skipLogin, pass, pressRunPanel, pressTitle } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '..', '..', 'design-data', 'out', 'check')
@@ -42,12 +42,15 @@ async function main(): Promise<number> {
   await pass(page, 2600)
   await page.screenshot({ path: path.join(OUT, 'challenge-0-title.png') })
 
-  // 타이틀의 챌린지 단추. 아래 바의 셋째 칸입니다.
-  // **잠겨 있으면 눌리지 않습니다.** 올려서 쪽지가 뜨는지를 봅니다.
-  const challenges = await at(page, TITLE_CHALLENGES.x, TITLE_CHALLENGES.y)
-  await page.mouse.move(challenges.x, challenges.y)
+  // 챌린지는 판을 여는 자리의 셋째 탭입니다.
+  // **잠겨 있어도 탭은 섭니다.** 열어 보면 무엇으로 열리는지가 판 안에 적혀 있습니다.
+  await pressTitle(page, 'start')
+  await pass(page, 700)
+  await pressRunPanel(page, 'tab:challenge')
   await pass(page, 500)
   await page.screenshot({ path: path.join(OUT, 'challenge-1-locked.png') })
+  await page.keyboard.press('Escape')
+  await pass(page, 400)
 
   // 열어 둔 채로 다시 봅니다.
   await page.evaluate(() => {
@@ -58,22 +61,23 @@ async function main(): Promise<number> {
   })
   await page.reload({ waitUntil: 'domcontentloaded' })
   await pass(page, 2600)
-  await page.mouse.click(challenges.x, challenges.y)
-  await pass(page, 900)
+  await pressTitle(page, 'start')
+  await pass(page, 700)
+  await pressRunPanel(page, 'tab:challenge')
+  await pass(page, 500)
   await page.screenshot({ path: path.join(OUT, 'challenge-2-panel.png') })
 
-  // 칸 하나를 눌러 규칙이 오른쪽에 적히는지 봅니다. 판이 가운데에 놓이므로 그만큼 옮깁니다.
-  const left = (1280 - 1180) / 2
-  const top = (800 - 744) / 2
-  await page.mouse.click(left + 34 + 118 * 2 + 50, top + 108 + 46)
+  // 칸 하나를 눌러 규칙이 오른쪽에 적히는지 봅니다.
+  // **자리는 화면이 알립니다** — 판의 크기와 탭 줄의 높이를 여기서 세면, 그것을 고친
+  // 날부터 이 도구는 빈 곳을 눌러 놓고 통과합니다.
+  await pressRunPanel(page, 'cell:2')
   await pass(page, 500)
   await page.screenshot({ path: path.join(OUT, 'challenge-3-picked.png') })
 
   // 첫 칸으로 돌아가 시작을 누릅니다.
-  await page.mouse.click(left + 34 + 50, top + 108 + 46)
+  await pressRunPanel(page, 'cell:0')
   await pass(page, 400)
-  await page.mouse.click(left + 34 + 118 * 5 + 22 + (1180 - 34 - 118 * 5 - 22 - 30) / 2,
-                         top + 108 + (744 - 108 - 96) + 16 + 23)
+  await pressRunPanel(page, 'startChallenge')
   await pass(page, 1800)
   await page.screenshot({ path: path.join(OUT, 'challenge-4-run.png') })
 

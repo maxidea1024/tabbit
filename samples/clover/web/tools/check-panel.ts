@@ -10,8 +10,7 @@ import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 
 import {
-  chooseFive, clickPrimary, discardHand, pass, peek, pickCards, pressPlay, pressTitle,
-  settle, skipLogin,
+  chooseFive, clickPrimary, discardHand, pass, peek, pickCards, pressPlay, startNewRun, settle, skipLogin,
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -97,7 +96,7 @@ async function main(): Promise<number> {
   await page.waitForTimeout(1500)
 
   // 블라인드 고르는 판. **판을 열기 전에 찍습니다** — 열고 나면 그 화면이 없습니다.
-  await pressTitle(page, 'start')
+  await startNewRun(page)
   await pass(page, 900)
   if ((await peek(page)).modalUp === true) await page.keyboard.press('Escape')
   await pass(page, 700)

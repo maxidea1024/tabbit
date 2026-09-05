@@ -14,7 +14,7 @@ import { chromium, type Browser, type Page } from 'playwright'
 import { createServer } from 'vite'
 
 import { LANGUAGES, type Language } from '../src/core/strings'
-import { clickSpot, closeGuide, pass, peek, pressTitle, skipLogin } from './harness'
+import { clickSpot, closeGuide, pass, peek, startNewRun, skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
@@ -113,7 +113,7 @@ async function main(): Promise<number> {
     const page = await open(browser, language)
     await checkWidths(page, language, `${language} 처음부터`)
     await page.screenshot({ path: path.join(OUT, `outline-${language}-title.png`) })
-    await pressTitle(page, 'start')
+    await startNewRun(page)
     await pass(page, 900)
     await closeGuide(page)
     await pass(page, 400)

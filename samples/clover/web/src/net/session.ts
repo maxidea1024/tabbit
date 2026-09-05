@@ -31,6 +31,13 @@ export interface Me {
   tier: string
   lastSeasonTier: string
   devices: Device[]
+  /**
+   * 무엇으로 로그인해 두었는가.
+   *
+   * **내 것에만 있습니다.** 남의 프로필에는 오지 않습니다 — 어느 계정으로 들어왔는지는
+   * 순위표에 필요한 값이 아닙니다.
+   */
+  providers?: string[]
   ranks: {
     boardId: string; name: string; group: string; metric: string
     rank: number; value: number
@@ -102,49 +109,32 @@ export function forget(): void {
 }
 
 // ---------------------------------------------------------------------------
-// 계정을 만들지 말지의 결정
+// 첫 화면
 // ---------------------------------------------------------------------------
 
 /**
- * 사람이 무엇을 골랐는가.
+ * 켤 때 어느 화면인가.
  *
- * **묻지 않은 것과 「하지 않겠다」는 다릅니다.** 그 둘을 가르지 않으면 로그인 화면이
- * 켤 때마다 뜨거나, 아니면 한 번도 뜨지 않습니다.
+ * **세션이 있으면 타이틀이고 없으면 로그인 화면입니다.** 「계정 없이 하겠다」를 적어 두고
+ * 그다음부터 건너뛰던 것을 걷었습니다 — 온라인 게임의 첫 화면은 로그인 화면이고, 계정
+ * 없이 하는 것은 그 화면에서 매번 고르는 것입니다.
+ *
+ * 계정 없이 시작한 것은 **이번 실행에만** 적용됩니다. 그래서 저장소에 적지 않습니다.
  */
-export type Mode = 'undecided' | 'single' | 'social'
-
-const MODE_KEY = 'clover.account.mode'
-
-export function mode(): Mode {
-  if (session !== undefined) return 'social'
-  try {
-    return localStorage.getItem(MODE_KEY) === 'single' ? 'single' : 'undecided'
-  } catch {
-    // 저장소가 막혀 있으면 켤 때마다 묻게 됩니다. 그 브라우저에서는 그것이 맞습니다.
-    return 'undecided'
-  }
+export function needsLogin(): boolean {
+  return session === undefined && !guestNow
 }
 
-/**
- * 로그인 없이 하기로 정했습니다.
- *
- * **되돌릴 수 있습니다.** 타이틀의 계정 단추가 다시 로그인 화면으로 갑니다.
- */
-export function chooseSingle(): void {
-  try {
-    localStorage.setItem(MODE_KEY, 'single')
-  } catch {
-    // 적어 두지 못하면 다음에 다시 묻습니다.
-  }
+let guestNow = false
+
+/** 이번 실행은 계정 없이 합니다. **적어 두지 않습니다** — 다음에 켜면 다시 묻습니다. */
+export function playAsGuest(): void {
+  guestNow = true
 }
 
-/** 다시 묻습니다. 로그아웃할 때 이것을 함께 부르지 않습니다 — 로그아웃은 싱글플레이입니다. */
-export function askAgain(): void {
-  try {
-    localStorage.removeItem(MODE_KEY)
-  } catch {
-    // 지우지 못해도 화면은 지금 상태로 갑니다.
-  }
+/** 로그아웃했습니다. 다음 화면이 로그인 화면이어야 하므로 손님 표시도 함께 걷습니다. */
+export function leaveGuest(): void {
+  guestNow = false
 }
 
 // ---------------------------------------------------------------------------
@@ -212,12 +202,21 @@ function leave(): void {
   if (inFlight === 0) for (const watcher of watchers) watcher(false)
 }
 
-export async function once<T>(path: string, init: RequestInit, token?: string): Promise<T> {
+/**
+ * 한 번 부릅니다.
+ *
+ * `quiet` 를 켜면 실패해도 전역 알림이 뜨지 않습니다. **부른 자리가 그 실패를 화면에
+ * 적는 길입니다** — `HANDLED_INLINE` 과 같은 규칙이고, 다만 갈래가 아니라 부르는 자리로
+ * 가릅니다. 제공자 목록 조회가 그렇습니다: 서버가 없으면 로그인 화면이 그 사실을 화면
+ * 안에 적으므로, 알림까지 뜨면 같은 말이 두 번입니다.
+ */
+export async function once<T>(path: string, init: RequestInit, token?: string,
+                              quiet = false): Promise<T> {
   enter()
   try {
     return await send<T>(path, init, token)
   } catch (error) {
-    if (error instanceof ApiError) reportFail(error)
+    if (error instanceof ApiError && !quiet) reportFail(error)
     throw error
   } finally {
     leave()
@@ -302,9 +301,16 @@ export interface Offered {
   dev: boolean
 }
 
-/** 서버가 켜 둔 제공자. **빌드에 단추가 있는 것만 그립니다.** */
+/**
+ * 서버가 켜 둔 제공자. **빌드에 단추가 있는 것만 그립니다.**
+ *
+ * **실패해도 알림이 뜨지 않습니다.** 로그인 화면이 열릴 때마다 지나는 길이고, 서버가 없는
+ * 자리에서는 켤 때마다 「서버에 연결할 수 없습니다」가 떴습니다 — 그 사실은 이 화면 안에
+ * 이미 적혀 있고, 계정 없이 하는 사람에게는 알릴 일도 아닙니다.
+ */
 export async function providers(): Promise<Offered> {
-  const body = await once<{ providers?: Provider[]; dev?: boolean }>('/auth/providers', {})
+  const body = await once<{ providers?: Provider[]; dev?: boolean }>(
+    '/auth/providers', {}, undefined, true)
   return { providers: body.providers ?? [], dev: body.dev === true }
 }
 
