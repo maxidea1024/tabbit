@@ -225,6 +225,13 @@ const PACK_CARD_H = SIZE.jokerHeight * PACK_SCALE
  */
 const LAND_AT = 0.52
 /**
+ * 바꿔 집을 때 파는 값이 뜨기까지.
+ *
+ * **덮개가 걷힌 뒤입니다.** 팩을 뜯은 채로 바꿔 집으면 파는 값이 그 덮개 뒤에서 뜹니다 —
+ * 그리고 새 물건의 이름은 `LAND_AT` 이므로, 파는 것과 오는 것이 그 차례로 읽힙니다.
+ */
+const SELL_WAIT = 0.24
+/**
  * 산 딱지가 그 자리에 남는 시간.
  *
  * **값을 치른 것이 보이려면 물건이 그 자리에 있어야 합니다.** 값이 뜨고 동전이 나가는 것을
@@ -3948,7 +3955,15 @@ export class Game {
             const line = `${why}  ${event.delta > 0 ? '+' : ''}$${event.delta}`
             const tint = event.delta > 0 ? COLOR.money : COLOR.bad
             // 카드의 윗변에 걸쳐 뜹니다. 다른 값들과 같은 규칙입니다.
-            if (sold) this.popAt({ x: sold.x, y: sold.y - RISER_ON_CARD }, line, tint, 0.7)
+            //
+            // **뜯은 팩 뒤에서는 기다립니다.** 바꿔 집는 것은 파는 것과 집는 것이 한
+            // 누름에 일어나는데, 파는 값이 그 자리에서 뜨면 아직 덮여 있는 팩 뒤에
+            // 가려집니다 — 팩이 걷힌 뒤에 뜨고, 새 물건의 이름은 그다음입니다.
+            if (sold && this.packLayer.visible) {
+              const at = { x: sold.x, y: sold.y - RISER_ON_CARD }
+              this.later.push({ at: this.clock + SELL_WAIT, run: () => this.popAt(at, line, tint, 0.7) })
+            }
+            else if (sold) this.popAt({ x: sold.x, y: sold.y - RISER_ON_CARD }, line, tint, 0.7)
             else if (bought) {
               this.popAt({ x: bought.x, y: bought.y - RISER_ON_CARD }, line, tint, 0.5)
             }
