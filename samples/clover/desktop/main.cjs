@@ -62,6 +62,23 @@ function seedFromArgv(argv) {
   return inline ? inline.slice('--seed='.length) : undefined
 }
 
+/**
+ * 환희의 문턱을 내려서 엽니다. **구운 창에는 주소창이 없습니다.**
+ *
+ * 40만은 안티 3~4에서 나오는 값이라, 연출이 도는 것을 보려면 그때까지 판을 두어야 합니다.
+ *
+ *     clover.exe --euphoria=100
+ *     CLOVER_EUPHORIA=100 clover.exe
+ */
+function euphoriaFromArgv(argv) {
+  if (process.env.CLOVER_EUPHORIA) return process.env.CLOVER_EUPHORIA
+
+  const at = argv.findIndex(arg => arg === '--euphoria')
+  if (at >= 0 && at + 1 < argv.length) return argv[at + 1]
+  const inline = argv.find(arg => arg.startsWith('--euphoria='))
+  return inline ? inline.slice('--euphoria='.length) : undefined
+}
+
 function createWindow() {
   const window = new BrowserWindow({
     width: 1440,
@@ -121,8 +138,14 @@ function createWindow() {
     return { action: 'deny' }
   })
 
+  // 주소에 붙는 것들. **게임은 웹과 같은 주소 매개변수를 읽습니다** — 창에 주소창이
+  // 없을 뿐이므로, 명령줄에서 받은 것을 여기서 주소로 옮깁니다.
+  const asked = new URLSearchParams()
   const seed = seedFromArgv(process.argv)
-  const query = seed ? `?seed=${encodeURIComponent(seed)}` : ''
+  if (seed) asked.set('seed', seed)
+  const euphoria = euphoriaFromArgv(process.argv)
+  if (euphoria) asked.set('euphoria', euphoria)
+  const query = asked.size > 0 ? `?${asked.toString()}` : ''
   void window.loadURL(`${SCHEME}://game/index.html${query}`)
 
   return window

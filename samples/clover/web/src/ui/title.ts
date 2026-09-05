@@ -19,6 +19,10 @@
 // **단추가 셋입니다.** 무엇으로 시작하는가(덱 · 스테이크) · 챌린지 · 랭크가 저마다 단추
 // 하나씩을 차지하고 있었는데, 셋 다 판을 여는 일이므로 「시작」이 여는 판 안으로
 // 들어갔습니다.
+//
+// **가운데의 넷은 세로로 쌓입니다.** 「시작」 아래에 둘을 나란히 두었더니 그 둘이 서로의
+// 옆에서 한 덩어리가 되었고, 그러면 「시작」과 그것들이 다른 갈래라는 것이 자리로 읽히지
+// 않습니다. 「시작」과 그 아래 사이만 줄 사이보다 넓습니다.
 
 import { Container, Graphics, Text } from 'pixi.js'
 import { t } from '../core/strings'
@@ -26,6 +30,7 @@ import { t } from '../core/strings'
 import { COLOR, SIZE, UI } from '../render/theme'
 import { outlineOf } from './font'
 import type { ToolSpot } from './layout'
+import { Tooltip } from './tooltip'
 import { Button, IconButton } from './widgets'
 
 /**
@@ -57,24 +62,39 @@ const NOTE_Y = 394
 
 const START_W = 300
 const START_H = 72
-const START_Y = 528
+const START_Y = 470
 
-const SECOND_W = 186
-const SECOND_H = 52
-const SECOND_GAP = 12
-const SECOND_Y = START_Y + START_H + 16
+/**
+ * 「시작」 아래의 단추들. **세로로 쌓입니다.**
+ *
+ * 나란히 두었더니 두 단추가 서로의 옆에 서서 한 덩어리가 되었고, 그러면 「시작」과 그 둘이
+ * 서로 다른 갈래의 것이라는 것이 자리로 읽히지 않습니다 — 하나씩 아래로 쌓으면 눈이 위에서
+ * 아래로 한 번만 지납니다.
+ */
+const SECOND_W = 240
+const SECOND_H = 48
+const SECOND_GAP = 10
 
-/** 나가기. **맨 아래이고 작습니다** — 여기서 누를 일이 가장 드뭅니다. */
-const QUIT_W = 132
+/**
+ * 「시작」과 그 아래 사이의 틈.
+ *
+ * **줄 사이보다 넓습니다.** 같으면 넷이 한 줄로 이어진 목록이 되고, 그 목록에서는 「시작」이
+ * 그저 첫째 칸입니다 — 눌러야 하는 것 하나가 따로 서 있어야 그것이 먼저 읽힙니다.
+ */
+const SECOND_GULF = 34
+const SECOND_Y = START_Y + START_H + SECOND_GULF
+
+/** 나가기. **맨 아래이고 낮습니다** — 여기서 누를 일이 가장 드뭅니다. */
+const QUIT_W = SECOND_W
 const QUIT_H = 40
-const QUIT_Y = SECOND_Y + SECOND_H + 18
+const QUIT_Y = SECOND_Y + (SECOND_H + SECOND_GAP) * 2 + 8
 
 export interface TitleHooks {
   /** 판을 여는 자리. 새 런 · 이어하기 · 챌린지가 그 안에 있습니다. */
   onStart: () => void
   onGuide: () => void
   onOptions: () => void
-  onJokers: () => void
+  onCollection: () => void
   onLeaderboard: () => void
   /** 계정 자리. 로그인이면 프로필, 아니면 로그인 화면입니다. */
   onAccount: () => void
@@ -136,6 +156,14 @@ export class Title extends Container {
   private readonly icons: IconButton[] = []
 
   /**
+   * 아이콘 둘의 쪽지.
+   *
+   * **판때기를 걷었으므로 이름이 남지 않았습니다.** 그림 하나만 서 있으면 처음 보는 사람은
+   * 물음표와 톱니가 무엇을 여는지를 눌러 봐야 압니다 — 가리키면 그 자리에 뜹니다.
+   */
+  private readonly tooltip = new Tooltip()
+
+  /**
    * 로그인했을 때 그 자리에 놓이는 것.
    *
    * **카드가 단추를 대신합니다.** 이름을 두 곳에 적으면 같은 것을 두 번 보게 되고, 카드에는
@@ -171,25 +199,23 @@ export class Title extends Container {
     this.buttons.push({ key: 'ui.button.start', button: start })
     this.toolNodes.set('start', { node: start, cx: START_W / 2, cy: START_H / 2 })
 
-    // 그 아래 한 줄. **판을 여는 일이 아닌 것들입니다.**
-    const secondTotal = SECOND_W * 2 + SECOND_GAP
-    let x = Math.round((SIZE.width - secondTotal) / 2)
+    // 그 아래로 쌓입니다. **판을 여는 일이 아닌 것들입니다.**
+    const secondX = Math.round((SIZE.width - SECOND_W) / 2)
 
-    const pool = new Button(t('ui.button.jokers'), SECOND_W, SECOND_H, UI.btn,
-                            hooks.onJokers, 17)
-    pool.position.set(x, SECOND_Y)
-    this.buttons.push({ key: 'ui.button.jokers', button: pool })
-    this.toolNodes.set('jokers', { node: pool, cx: SECOND_W / 2, cy: SECOND_H / 2 })
-    x += SECOND_W + SECOND_GAP
+    const pool = new Button(t('ui.button.collection'), SECOND_W, SECOND_H, UI.btn,
+                            hooks.onCollection, 17)
+    pool.position.set(secondX, SECOND_Y)
+    this.buttons.push({ key: 'ui.button.collection', button: pool })
+    this.toolNodes.set('collection', { node: pool, cx: SECOND_W / 2, cy: SECOND_H / 2 })
 
     const board = new Button(t('ui.button.leaderboard'), SECOND_W, SECOND_H, UI.btn,
                              hooks.onLeaderboard, 17)
-    board.position.set(x, SECOND_Y)
+    board.position.set(secondX, SECOND_Y + SECOND_H + SECOND_GAP)
     this.buttons.push({ key: 'ui.button.leaderboard', button: board })
     this.toolNodes.set('leaderboard', { node: board, cx: SECOND_W / 2, cy: SECOND_H / 2 })
 
-    // 나가기. **가장 아래에 혼자 섭니다** — 같은 줄에 두면 세 칸 중 하나가 되고, 게임을
-    // 끝내는 것이 조커 도감을 여는 것과 같은 무게가 됩니다.
+    // 나가기. **가장 아래이고 낮습니다** — 위의 둘과 같은 높이로 두면 게임을 끝내는 것이
+    // 도감을 여는 것과 같은 무게가 됩니다.
     const quit = new Button(t('ui.button.quit'), QUIT_W, QUIT_H, UI.btn, hooks.onQuit, 14)
     quit.position.set(Math.round((SIZE.width - QUIT_W) / 2), QUIT_Y)
     this.buttons.push({ key: 'ui.button.quit', button: quit })
@@ -220,9 +246,11 @@ export class Title extends Container {
     const guide = new IconButton(ICON, 'circle-question-mark', hooks.onGuide)
     guide.position.set(SIZE.width - EDGE - ICON * 2 - ICON_GAP, EDGE)
     this.toolNodes.set('guide', { node: guide, cx: ICON / 2, cy: ICON / 2 })
+    this.tipOn(guide, 'ui.button.guide')
     const option = new IconButton(ICON, 'settings', hooks.onOptions)
     option.position.set(SIZE.width - EDGE - ICON, EDGE)
     this.toolNodes.set('options', { node: option, cx: ICON / 2, cy: ICON / 2 })
+    this.tipOn(option, 'ui.button.options')
     this.icons.push(guide, option)
 
     // 판 번호. **로그인 화면과 같은 구석입니다.**
@@ -232,6 +260,9 @@ export class Title extends Container {
     })
     version.anchor.set(0, 1)
     version.position.set(EDGE, SIZE.height - 14)
+
+    // **쪽지는 맨 위입니다.** 아이콘 아래에 떠야 하므로 마지막에 얹습니다.
+    this.addChild(this.tooltip)
 
     this.addChild(this.leaf, this.logo, this.tagline, this.note, version,
                   start, pool, board, quit,
@@ -271,6 +302,22 @@ export class Title extends Container {
     for (const one of this.icons) one.restyle()
   }
 
+  /**
+   * 그 아이콘의 이름을 쪽지로.
+   *
+   * **이름 하나뿐입니다.** 무엇을 여는 단추인지가 그 한 낱말이고, 그 아래에 설명을 더하면
+   * 쪽지가 아이콘보다 커집니다.
+   */
+  private tipOn(node: IconButton, key: string): void {
+    const show = (): void => {
+      this.tooltip.show(t(key), '', 0, [], {
+        x: node.x + ICON / 2, top: node.y, bottom: node.y + ICON,
+      }, SIZE)
+    }
+    node.on('pointerover', show)
+    node.on('pointerout', () => this.tooltip.hide())
+  }
+
   /** 네 잎. 원 넷을 돌려 붙인 모양입니다. */
   private drawLeaf(): void {
     const g = this.leaf
@@ -286,6 +333,7 @@ export class Title extends Container {
   advance(seconds: number): void {
     if (!this.visible) return
     this.time += seconds
+    this.tooltip.advance(seconds)
     this.leaf.rotation = Math.sin(this.time * 0.8) * 0.16
     this.leaf.scale.set(1 + Math.sin(this.time * 1.6) * 0.04)
   }

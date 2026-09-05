@@ -36,7 +36,7 @@ async function open(browser: Browser, query: string, login = false): Promise<Pag
   return page
 }
 
-/** 로그인 · 타이틀 · 덱과 스테이크 · 옵션 · 조커 도감. */
+/** 로그인 · 타이틀 · 덱과 스테이크 · 옵션 · 도감. */
 async function shootFront(browser: Browser): Promise<void> {
   // **로그인은 건너뛰지 않습니다.** 그 화면을 보려는 것이므로 여기서만 그대로 둡니다.
   const login = await open(browser, '?tick=manual', true)
@@ -45,7 +45,10 @@ async function shootFront(browser: Browser): Promise<void> {
 
   const page = await open(browser, '?seed=CLOVER-SHOT6&tick=manual')
   await shot(page, 'title')
-  await clickSpot(page, 'title:setup')
+  // **판을 여는 자리는 「시작」 하나입니다.** 덱과 챌린지가 타이틀의 단추 셋으로 흩어져
+  // 있던 때의 이름(`title:setup` · `title:challenges`)이 여기 남아 있었고, 그 자리를
+  // 알리지 않으므로 이 도구는 타이틀 두 장만 굽고 멈춰 있었습니다.
+  await clickSpot(page, 'title:start')
   await pass(page, 700)
   await shot(page, 'setup')
   await page.keyboard.press('Escape')
@@ -55,9 +58,9 @@ async function shootFront(browser: Browser): Promise<void> {
   await shot(page, 'options')
   await page.keyboard.press('Escape')
   await pass(page, 500)
-  await clickSpot(page, 'title:jokers')
+  await clickSpot(page, 'title:collection')
   await pass(page, 900)
-  await shot(page, 'jokers')
+  await shot(page, 'collection')
   await page.keyboard.press('Escape')
   await pass(page, 500)
   await clickSpot(page, 'title:leaderboard')
@@ -65,7 +68,10 @@ async function shootFront(browser: Browser): Promise<void> {
   await shot(page, 'leaderboard')
   await page.keyboard.press('Escape')
   await pass(page, 500)
-  await clickSpot(page, 'title:challenges')
+  // 챌린지는 그 판의 셋째 탭입니다.
+  await clickSpot(page, 'title:start')
+  await pass(page, 700)
+  await clickSpot(page, 'run:tab:challenge')
   await pass(page, 800)
   await shot(page, 'challenges')
   await page.keyboard.press('Escape')

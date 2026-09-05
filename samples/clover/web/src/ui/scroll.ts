@@ -13,6 +13,14 @@ import { Container, Graphics, type FederatedWheelEvent, type FederatedPointerEve
 /** 막대의 굵기. */
 const BAR_W = 5
 
+/**
+ * 막대를 잡는 자리의 폭.
+ *
+ * **손가락은 5픽셀을 맞히지 못합니다.** 보이는 막대는 가늘게 두고 잡히는 자리만 넓힙니다 —
+ * 굵게 그리면 목록의 오른쪽 끝이 그만큼 좁아집니다.
+ */
+const BAR_GRIP = 22
+
 /** 한 번 굴릴 때 움직이는 거리. */
 const STEP = 52
 
@@ -95,6 +103,17 @@ export class Fling {
     this.offset = Math.min(0, Math.max(-this.over, this.offset + delta))
   }
 
+  /**
+   * 그 자리로 곧장 옮깁니다. **막대를 끌 때 씁니다.**
+   *
+   * 관성을 지웁니다 — 미끄러지는 도중에 막대를 잡으면 손가락이 잡고 있는 동안에도 목록이
+   * 저 혼자 흐릅니다.
+   */
+  jump(next: number): void {
+    this.velocity = 0
+    this.offset = Math.min(0, Math.max(-this.over, next))
+  }
+
   /** 내용이 바뀌었을 때. 넘치는 양이 줄면 지금 자리가 그 밖일 수 있습니다. */
   clamp(): void {
     this.offset = Math.min(0, Math.max(-this.over, this.offset))
@@ -144,7 +163,18 @@ export class ScrollView extends Container {
   private readonly window = new Container()
   private readonly shade = new Graphics()
   private readonly bar = new Graphics()
+  /** 막대를 잡는 자리. **보이는 막대보다 넓습니다.** */
+  private readonly grip = new Graphics()
   private readonly roll = new Fling()
+  /**
+   * 막대를 잡고 있는가. 잡은 자리가 손잡이의 어디인가입니다.
+   *
+   * **내용을 끄는 것과 갈라 둡니다.** 목록을 끄는 것은 손가락을 따라 같은 쪽으로 가고
+   * 막대를 끄는 것은 목록이 반대로 갑니다 — 둘이 한 손끝을 쓰면 그 둘을 가릴 수 없습니다.
+   */
+  private gripAt?: number
+  /** 끄는 동안 붙잡아 둔 손가락. 놓을 때 풀어 줍니다. */
+  private captured?: { element: Element; pointerId: number }
 
   /**
    * @param width  보이는 폭
@@ -166,7 +196,11 @@ export class ScrollView extends Container {
     hit.rect(0, 0, width_, height_).fill({ color: 0x000000, alpha: 0 })
     hit.eventMode = 'static'
 
-    this.addChild(hit, mask, this.window, this.shade, this.bar)
+    // **막대는 맨 위입니다.** 목록의 줄 아래에 있으면 그 줄이 손끝을 먼저 받습니다.
+    this.grip.eventMode = 'static'
+    this.grip.cursor = 'pointer'
+    this.grip.visible = false
+    this.addChild(hit, mask, this.window, this.shade, this.bar, this.grip)
 
     // **듣는 것은 이 컨테이너입니다.** 빈 자리 위에서 시작한 것은 `hit` 에서, 줄 위에서
     // 시작한 것은 그 줄에서 올라옵니다 — 둘 다 여기를 지납니다. `hit` 에서만 들으면 줄은
@@ -181,16 +215,104 @@ export class ScrollView extends Container {
     })
 
     this.on('pointerdown', (event: FederatedPointerEvent) => {
+      // 막대에서 시작한 것은 막대가 받습니다.
+      if (event.target === this.grip) return
+      this.capture(event)
       this.roll.grab(this.localY(event))
     })
-    const release = (): void => this.roll.release()
+    const release = (): void => {
+      this.roll.release()
+      this.gripAt = undefined
+      this.freeCapture()
+    }
     this.on('pointerup', release)
     this.on('pointerupoutside', release)
     this.on('globalpointermove', (event: FederatedPointerEvent) => {
+      if (this.gripAt !== undefined) {
+        this.slide(this.localY(event) - this.gripAt)
+        return
+      }
       if (!this.roll.holding) return
       this.roll.drag(this.localY(event))
       this.place(false)
     })
+
+    // 막대를 잡는 자리. **손잡이 밖을 누르면 그 자리로 옮겨 갑니다** — 긴 목록에서
+    // 아래쪽을 보려고 막대를 몇 번씩 끄는 것이 한 번이 됩니다.
+    this.grip.on('pointerdown', (event: FederatedPointerEvent) => {
+      const over = this.roll.over
+      if (over <= 0) return
+      const y = this.localY(event)
+      const barH = this.barHeight()
+      const top = this.barTop(barH)
+      this.capture(event)
+      if (y >= top && y <= top + barH) {
+        this.gripAt = y - top
+      } else {
+        this.gripAt = barH / 2
+        this.slide(y - barH / 2)
+      }
+      event.stopPropagation()
+    })
+  }
+
+  /**
+   * 끄는 동안 이 손가락을 붙잡습니다.
+   *
+   * **캔버스 밖으로 나가면 움직임이 끊깁니다.** 붙잡지 않으면 창 밖이나 다른 요소 위로
+   * 지나간 순간부터 목록이 손끝을 따라오지 않고, 그 자리에서 놓아도 놓은 것을 받지 못해
+   * 끌고 있는 채로 남습니다 — 목록을 빠르게 쓸어 올릴 때 손가락은 곧잘 판 밖으로 나갑니다.
+   */
+  private capture(event: FederatedPointerEvent): void {
+    const native = event.nativeEvent as PointerEvent | undefined
+    const target = native?.target
+    if (!native || !(target instanceof Element)) return
+    try {
+      target.setPointerCapture(native.pointerId)
+      this.captured = { element: target, pointerId: native.pointerId }
+    } catch {
+      // 붙잡지 못하는 브라우저가 있습니다. 그때는 캔버스 안에서만 끌립니다.
+    }
+  }
+
+  /** 붙잡은 것을 놓습니다. **놓는 자리가 하나여야** 붙잡힌 채로 남지 않습니다. */
+  private freeCapture(): void {
+    const held = this.captured
+    this.captured = undefined
+    if (!held) return
+    try {
+      held.element.releasePointerCapture(held.pointerId)
+    } catch {
+      // 이미 풀렸으면 그대로 둡니다.
+    }
+  }
+
+  /**
+   * 손잡이의 윗변을 그 자리로 옮깁니다.
+   *
+   * **목록은 반대로 갑니다.** 손잡이를 아래로 끌면 목록이 위로 올라가고, 움직이는 비율은
+   * 넘치는 양을 막대가 갈 수 있는 거리로 나눈 것입니다.
+   */
+  private slide(top: number): void {
+    const over = this.roll.over
+    const room = this.height_ - this.barHeight()
+    if (over <= 0 || room <= 0) return
+    const at = Math.min(1, Math.max(0, top / room))
+    this.roll.jump(-at * over)
+    this.place(false)
+  }
+
+  /** 손잡이의 길이. 보이는 만큼이 전체에서 차지하는 비율입니다. */
+  private barHeight(): number {
+    return Math.max(28, this.height_ * (this.height_ / this.contentH))
+  }
+
+  /** 손잡이의 윗변. 지금 굴린 만큼이 정합니다. */
+  private barTop(barH: number): number {
+    const over = this.roll.over
+    if (over <= 0) return 0
+    const held = Math.min(over, Math.max(0, -this.roll.offset))
+    return (held / over) * (this.height_ - barH)
   }
 
   /**
@@ -221,6 +343,32 @@ export class ScrollView extends Container {
    */
   get dragged(): boolean {
     return this.roll.moved > DRAG_SLOP
+  }
+
+  /**
+   * 지금 끌고 있는가.
+   *
+   * **가리킨 것을 알리는 쪽이 이것을 봅니다.** `dragged` 는 손을 뗀 뒤에도 다음 누름까지
+   * 참으로 남으므로, 그것으로 막으면 한 번 굴린 뒤로는 마우스를 올려도 쪽지가 뜨지
+   * 않습니다.
+   */
+  get holding(): boolean {
+    return this.roll.holding
+  }
+
+  /**
+   * 막대를 잡는 자리. **굴릴 것이 있을 때만 보입니다.**
+   *
+   * 검증 도구가 이것을 짚습니다 — 막대의 자리는 판의 폭과 굵기가 정하므로, 도구가 그 셈을
+   * 베껴 적으면 굵기를 고친 날부터 빈자리를 끕니다.
+   */
+  get handle(): Container {
+    return this.grip
+  }
+
+  /** 손잡이의 지금 윗변. 도구가 그 위를 잡습니다. */
+  get handleTop(): number {
+    return this.barTop(this.barHeight())
   }
 
   /** 내용이 바뀌었으면 부릅니다. 넘치는 양이 달라지므로 막대를 다시 그립니다. */
@@ -273,19 +421,24 @@ export class ScrollView extends Container {
     bar.clear()
     const shade = this.shade
     shade.clear()
+    this.grip.visible = over > 0
 
     if (over <= 0) return
 
-    const ratio = this.height_ / this.contentH
-    const barH = Math.max(28, this.height_ * ratio)
+    const barH = this.barHeight()
     // 끝을 넘긴 자리에서도 막대는 끝에 붙어 있습니다.
-    const held = Math.min(over, Math.max(0, -this.roll.offset))
-    const at = (held / over) * (this.height_ - barH)
+    const at = this.barTop(barH)
 
     bar.roundRect(this.width_ - BAR_W - 2, 0, BAR_W, this.height_, BAR_W / 2)
       .fill({ color: 0x1b2431 })
     bar.roundRect(this.width_ - BAR_W - 2, at, BAR_W, barH, BAR_W / 2)
-      .fill({ color: 0x46566d })
+      .fill({ color: this.gripAt === undefined ? 0x46566d : 0x6a7f9d })
+
+    // **잡히는 자리는 보이는 막대보다 넓습니다.** 그리는 것은 한 번뿐이지만 폭이 바뀌지
+    // 않으므로 여기서 함께 세웁니다.
+    this.grip.clear()
+    this.grip.rect(this.width_ - BAR_GRIP, 0, BAR_GRIP, this.height_)
+      .fill({ color: 0x000000, alpha: 0 })
 
     const fade = 22
     if (this.roll.offset < 0) {

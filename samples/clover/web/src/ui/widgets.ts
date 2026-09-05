@@ -263,20 +263,27 @@ export class Button extends Container {
  *
  * 아이콘은 **가져온 것**입니다(`ui/icon.ts`). 직접 그려 보았는데 톱니가 해처럼 보였습니다.
  */
+/**
+ * 아이콘 하나짜리 단추.
+ *
+ * **판때기가 없습니다.** 네모 칸에 담아 두었더니 글이 있는 단추들과 같은 무게로 서서, 판
+ * 바깥의 일인 도움말과 옵션이 게임의 단추들과 한 벌로 보였습니다 — 아이콘만 두면 그 둘이
+ * 화면의 구석에 놓인 표시가 됩니다.
+ *
+ * **누르는 자리는 그대로 넓습니다.** 보이는 것이 작아졌다고 맞혀야 하는 자리까지 작아지면
+ * 손가락으로는 누르지 못합니다.
+ */
 export class IconButton extends Container {
-  private readonly board = new Graphics()
   private readonly mark?: Sprite
   private lit = false
 
   constructor(private readonly box: number, icon: IconName, onPress: () => void) {
     super()
-    this.addChild(this.board)
 
     const texture = iconFor(icon)
     if (texture) {
-      // **아이콘은 칸의 절반 조금 넘게.** 꽉 채우면 테두리에 붙어 답답하고, 작으면 무엇인지
-      // 읽히지 않습니다.
-      const size = box * 0.52
+      // **칸이 없으므로 그만큼 큽니다.** 테두리에 붙어 답답할 자리가 없어졌습니다.
+      const size = box * 0.66
       this.mark = new Sprite(texture)
       this.mark.width = size
       this.mark.height = size
@@ -316,8 +323,7 @@ export class IconButton extends Container {
   }
 
   private draw(): void {
-    this.board.clear()
-    plate(this.board, this.box, this.box, buttonStyle(UI.cell, this.lit))
+    // 밝기 하나로만 답합니다. **가리킨 것이 밝아지는 것은 다른 단추들과 같습니다.**
     if (this.mark) this.mark.tint = this.lit ? COLOR.ink : COLOR.inkDim
   }
 }

@@ -24,8 +24,8 @@ const PORT = 5269
 /** 한 프레임. `game.ts` 의 `STEP_MS` 와 같습니다. */
 const STEP_MS = 1000 / 60
 /** 문턱. `render/euphoria.ts` 의 첫 줄입니다. */
-const OVER = 400_000
-const UNDER = 399_999
+const OVER = 40
+const UNDER = 39
 
 interface Look {
   phase: string

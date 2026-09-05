@@ -36,15 +36,42 @@ export interface EuphoriaTier {
  * 되고, 그때 이 배열이 없어집니다 — 유니티도 같은 문턱을 읽어야 하므로 값이 코드에 남아
  * 있을 자리가 아닙니다.
  *
- * 첫 줄이 낮은 것은 **확인용**입니다. 40만은 안티 3~4에서 나오는 값이라 연출이 제대로 도는지를
- * 눈으로 확인할 수 있고, 문턱을 정하는 것은 그다음 일입니다. 열 배씩 올라갑니다.
+ * 지금 값은 **확인용이고 실제 문턱이 아닙니다.** 40 은 첫 판의 하이카드에서도 넘는 값이라
+ * 거의 모든 판에서 연출이 돕니다 — 네 단을 다 보려는 값입니다. 안티 1에서 곱이 15~300,
+ * 안티 3~4에서 수십만이므로, 실제 문턱은 그 분포를 보고 정합니다. 열 배씩 올라갑니다.
  */
-const TIERS: readonly EuphoriaTier[] = [
-  { atLeast: 400_000, visual: 'ki_gather' },
-  { atLeast: 4_000_000, visual: 'ki_wave' },
-  { atLeast: 40_000_000, visual: 'ki_burst' },
-  { atLeast: 400_000_000, visual: 'ki_roar' },
+const LADDER: readonly EuphoriaTier[] = [
+  { atLeast: 40, visual: 'ki_gather' },
+  { atLeast: 400, visual: 'ki_wave' },
+  { atLeast: 4_000, visual: 'ki_burst' },
+  { atLeast: 40_000, visual: 'ki_roar' },
 ]
+
+/**
+ * 주소에서 받은 값 하나.
+ *
+ * **주소가 없는 곳에서도 읽습니다** — 독립 실행 창은 주소창이 없으므로 `main.cjs` 가
+ * 명령줄의 값을 주소에 붙입니다.
+ */
+function asked(key: string): string | null {
+  if (typeof location === 'undefined') return null
+  return new URLSearchParams(location.search).get(key)
+}
+
+/**
+ * 문턱 전체를 옮깁니다. `?euphoria=400000` 이면 40만 · 400만 · 4000만 · 4억 이 됩니다.
+ *
+ * **구운 앱에서 문턱을 바꿔 보는 유일한 길입니다.** 개발용 손잡이는 구운 것에 들어가지
+ * 않으므로, 실제 문턱을 정할 때 이 값으로 여러 번 두어 봅니다. 네 단을 같은 비율로
+ * 옮기므로 **사다리가 그대로 남습니다** — 첫 단만 옮기면 그 위를 볼 수 없고, 전부 같은
+ * 값으로 두면 작은 곱이 마지막 단을 집습니다.
+ */
+const FLOOR = Number(asked('euphoria'))
+const TIERS: readonly EuphoriaTier[] = !Number.isFinite(FLOOR) || FLOOR <= 0
+  ? LADDER
+  : LADDER.map(tier => ({
+    ...tier, atLeast: Math.max(1, Math.round(tier.atLeast * FLOOR / LADDER[0].atLeast)),
+  }))
 
 /** 이 곱이 어느 줄에 드는가. 문턱을 넘지 않으면 아무 줄도 아닙니다. */
 export function euphoriaTierOf(product: number): EuphoriaTier | undefined {
@@ -99,8 +126,7 @@ const REEL_MOST = 0.55
  * 그대로 봐야 하고, 그때는 밝기도 누르지 않습니다 — 눌러 놓고 「어둡다」로 판단하면 영상을
  * 잘못 고릅니다.
  */
-const ASKED = typeof location === 'undefined'
-  ? null : new URLSearchParams(location.search).get('reel')
+const ASKED = asked('reel')
 const REEL_ALPHA = ASKED !== null && Number.isFinite(Number(ASKED))
   ? Math.max(0, Math.min(1, Number(ASKED))) : REEL_MOST
 /** 주소로 짙기를 정했으면 밝기는 그대로 둡니다. */

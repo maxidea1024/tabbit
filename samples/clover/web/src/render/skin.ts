@@ -75,10 +75,25 @@ export function plate(g: Graphics, width: number, height: number, style: PlateSt
   const radius = style.radius ?? 8
   const weight = style.weight ?? 1.5
   const alpha = style.alpha ?? 1
+  const inset = weight / 2
 
   g.roundRect(0, 0, width, height, radius).fill({ color: style.top, alpha })
-  g.roundRect(weight / 2, weight / 2, width - weight, height - weight, radius)
+  g.roundRect(inset, inset, width - weight, height - weight, insetRadius(radius, inset))
     .stroke({ color: style.border, width: weight })
+}
+
+/**
+ * 안쪽으로 들여 그리는 테의 반지름.
+ *
+ * **들여 그린 만큼 반지름도 줄어듭니다.** 같은 반지름으로 그리면 네 귀퉁이에서만 테가
+ * 채움의 가장자리보다 안쪽으로 물러나고, 그 사이로 채움의 모서리가 삐져나옵니다 — 변에서는
+ * 맞고 귀퉁이에서만 어긋나므로 모서리가 깎여 나간 것처럼 보입니다. 큰 화면에서만 눈에
+ * 들었습니다.
+ *
+ * 음수가 되지 않게 0에서 멈춥니다 — 테가 반지름보다 굵으면 귀퉁이가 직각입니다.
+ */
+export function insetRadius(radius: number, inset: number): number {
+  return Math.max(0, radius - inset)
 }
 
 /**

@@ -70,12 +70,18 @@ interface Entry {
  * **덮는 것이지 지우는 것이 아닙니다.** 0.82 였고, 그 값에서는 뒤의 판이 검은 벽이 되어
  * 판 하나가 뜰 때마다 게임이 사라졌습니다. 뒤가 무엇이었는지 알아볼 만큼은 남겨 두어야
  * 판이 그 위에 얹힌 것으로 보입니다 — 판 하나가 얹힐 때마다 뒤가 물러나는
- * `BACK_SCALE`·`BACK_LIFT`·`BACK_FADE` 도 뒤가 보여야 값을 합니다.
+ * `BACK_FADE` 도 뒤가 보여야 값을 합니다.
  */
 const VEIL = 0.62
 /** 판 하나가 얹힐 때마다 아래의 것이 물러나는 정도. */
-const BACK_SCALE = 0.055
-const BACK_LIFT = 16
+/**
+ * 아래에 깔린 판을 얼마나 옅게 하는가.
+ *
+ * **옅어지기만 합니다.** 뒤로 물러난 것을 크기와 자리로도 알리고 있었는데, 그러면 묻는 판이
+ * 열리고 닫힐 때마다 아래의 판이 작아졌다 돌아옵니다 — 덱을 고르고 「이 덱으로 시작」을
+ * 누르면 판을 여는 자리가 한 번 줄었다가 커졌습니다. 무엇이 위인지는 막과 밝기가 이미
+ * 알리므로, 자리와 크기는 건드리지 않습니다.
+ */
 const BACK_FADE = 0.34
 
 export class Modals extends Container {
@@ -265,7 +271,7 @@ export class Modals extends Container {
     // 넘쳤다가 자리에 앉습니다. `t` 가 1에 가까워질수록 넘침이 잦아듭니다.
     const overshoot = Math.sin(Math.min(1, entry.t) * Math.PI) * 0.06
     const back = entry.depth
-    const scale = (0.9 + 0.1 * entry.t + overshoot) * (1 - BACK_SCALE * back)
+    const scale = 0.9 + 0.1 * entry.t + overshoot
 
     // 들어올 때의 떨림. **짧게, 그리고 잦아듭니다** — 오래 떨면 흔들리는 판이 됩니다.
     const shake = entry.rumble * entry.rumble * 5
@@ -285,7 +291,7 @@ export class Modals extends Container {
     const bottom = PANEL_BOTTOM - size.height * scale
     view.position.set(
       left + jitterX,
-      Math.max(8, bottom) + (1 - entry.t) * 58 - BACK_LIFT * back + jitterY)
+      Math.max(8, bottom) + (1 - entry.t) * 58 + jitterY)
     view.alpha = entry.t * (1 - BACK_FADE * back)
     view.visible = entry.t > 0.01
   }

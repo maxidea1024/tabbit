@@ -60,7 +60,7 @@
 |카드 뒷면을 인스턴스마다 벡터로 그리기|`generateTexture` 로 무늬·색·크기·밀도별 한 번 굽고 `Sprite` 를 냅니다. 렌더러를 받기 전에는 벡터로 그립니다|`render/card-back.ts` `bakeCardBacks`|
 |카드 앞면을 `set()` 마다 벡터로 다시 그리기. 한 장이 `Graphics` 6개에 `Text` 3개이고 10♣ 한 장이 채우기 명령 약 48개인데, `set()` 은 `refresh` 마다 손패 전부에 불립니다|「무늬 · 랭크 · 종이색 · 디버프」와 세트·그림 유무·밀도를 열쇠로 한 번 굽고, 카드는 `Sprite` 하나에 그림을 갈아 낍니다. 그림자도 한 번만 그립니다|`render/card-face.ts` `bakeCardFaces`|
 |파티클이 0개일 때도 매 프레임 `clear()`, 죽은 조각마다 `splice`, 합계 상한 없음|비어 있으면 손대지 않습니다. 앞으로 당겨 쓰고, 합계는 400개입니다|`render/particles.ts`|
-|닫힌 판을 계속 `advance` 하기|`view.parent` 가 없으면 돌아갑니다(조커 풀). 닉네임 판은 닫히면 `hub.typing` 을 놓습니다|`ui/joker-pool.ts` · `ui/hub.ts`|
+|닫힌 판을 계속 `advance` 하기|`view.parent` 가 없으면 돌아갑니다(도감). 닉네임 판은 닫히면 `hub.typing` 을 놓습니다|`ui/collection.ts` · `ui/hub.ts`|
 |커서 깜빡임을 위해 판 전체를 매 프레임 다시 만들기|글 하나의 글자만 바꿉니다. 흔들리는 0.3초만 다시 그립니다|`ui/account.ts` `HandlePanel.advance`|
 |낱말마다 `new TextStyle` 과 누적 문자열 재측정|모습마다 `TextStyle` 하나를 `WeakMap` 에 두고, 조각의 너비를 더해 갑니다|`ui/rich.ts`|
 |휠 한 칸마다 `content.height` 로 자식 전부의 경계 세기|내용이 바뀌는 길(`refresh` · `toTop` · `reveal`)에서만 재고 굴릴 때는 그 값을 씁니다|`ui/scroll.ts` `setOffset`|
@@ -79,7 +79,7 @@
 |무엇|지금|하는 방법|
 |--|--|--|
 |**카드마다 필터 한 장씩**|카드 하나를 고르면 손패 8장 전부에 `PickFilter` 가 걸려 프레임마다 FBO 8개(여백 32, 해상도 inherit)입니다. 득점 모드의 둘레 흐림은 픽셀당 28회 샘플링인데 카드의 실루엣은 고정입니다|앞면이 이제 `Sprite` 하나이므로 **FBO 없이 그 스프라이트의 셰이더로** 갈 수 있습니다. 둘레 흐림은 `roundedMask` 처럼 텍스처로 한 번 구워 샘플링하고, `PickFilter` 인스턴스는 고름·물러남 둘만 공유합니다(색과 시간은 이미 전역입니다)|
-|**스텐실 마스크**|조커 아트 클립 · 상점 `faceCard` 컷아웃 · 태그와 보스의 원형이 `Graphics` 마스크입니다. 보통 판에서 12개, 조커 풀 한 쪽에서 40개이고 마스크마다 배치가 끊깁니다|`fill({ texture, matrix })` 텍스처 채우기로 바꾸거나, 둥근 아트를 조커별로 한 번 굽습니다|
+|**스텐실 마스크**|조커 아트 클립 · 상점 `itemFace` 컷아웃 · 태그와 보스의 원형이 `Graphics` 마스크입니다. 보통 판에서 12개, 도감 한 화면에서 30개이고 마스크마다 배치가 끊깁니다|`fill({ texture, matrix })` 텍스처 채우기로 바꾸거나, 둥근 아트를 조커별로 한 번 굽습니다|
 |**`syncShop` · `syncConsumables` · `syncActive` · `drawDeckView`**|`refresh` 마다 층을 통째로 버리고 다시 만듭니다. 상점에서는 카드를 누를 때마다이고, 덱 보기는 고를 때마다 52장입니다|`syncJokers` 처럼 uid 로 diff 합니다. 상점은 `state.shop` 의 서명이 바뀌었을 때만 다시 세웁니다|
 |**파티클**|`Graphics` 하나에 조각마다 `circle().fill()` 을 매 프레임 다시 적습니다|원 텍스처 하나를 나누는 `ParticleContainer`|
 |**글 해상도 상한**|`Text.resolution` 이 배율 × 픽셀 밀도로 최대 3입니다. 글 굽기가 1배 대비 9배 픽셀입니다|상한을 2로. 위의 모든 글 굽기 비용이 절반 아래로 내려갑니다|

@@ -9,6 +9,7 @@
 import { Container, Graphics, Text } from 'pixi.js'
 
 import { NUMERALS } from './font'
+import { insetRadius } from '../render/skin'
 import { COLOR, UI } from '../render/theme'
 
 /** 구획 머리의 높이. 마름모 · 이름 · 아래 선 하나입니다. */
@@ -69,7 +70,8 @@ export function valueCell(width: number, height: number, label: string,
   const node = new Container()
   const box = new Graphics()
   box.roundRect(0, 0, width, height, 6).fill(UI.cell)
-  box.roundRect(0.5, 0.5, width - 1, height - 1, 6).stroke({ color: UI.hairline, width: 1 })
+  box.roundRect(0.5, 0.5, width - 1, height - 1, insetRadius(6, 0.5))
+    .stroke({ color: UI.hairline, width: 1 })
 
   const name = new Text({
     text: label,
@@ -103,7 +105,7 @@ export class ProgressBar extends Container {
     super()
     const back = new Graphics()
     back.roundRect(0, 0, boxWidth, boxHeight, boxHeight / 2).fill(UI.well)
-    back.roundRect(0.5, 0.5, boxWidth - 1, boxHeight - 1, boxHeight / 2)
+    back.roundRect(0.5, 0.5, boxWidth - 1, boxHeight - 1, insetRadius(boxHeight / 2, 0.5))
       .stroke({ color: UI.hairline, width: 1 })
     this.addChild(back, this.fill)
     this.set(0)
@@ -132,7 +134,7 @@ export function cellPlate(width: number, height: number, border: number,
                           empty = false): Graphics {
   const g = new Graphics()
   g.roundRect(0, 0, width, height, 6).fill({ color: UI.cell, alpha: empty ? 0.6 : 1 })
-  g.roundRect(0.75, 0.75, width - 1.5, height - 1.5, 6)
+  g.roundRect(0.75, 0.75, width - 1.5, height - 1.5, insetRadius(6, 0.75))
     .stroke({ color: border, width: 1.5, alpha: empty ? 0.45 : 1 })
   return g
 }

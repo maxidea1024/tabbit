@@ -14,6 +14,7 @@ import type { JokerInstance } from '../core/state'
 import { DissolveFilter } from '../shader/dissolve'
 import { ArriveFilter } from '../shader/arrive'
 import { EditionFilter, type EditionShader } from '../shader/editions'
+import { insetRadius } from './skin'
 import { roundedMask } from '../shader/mask'
 import { artFor } from './art'
 import { drawGlyph, glyphFor, hashOf, hsl, shade, tintUp } from './glyph'
@@ -211,9 +212,9 @@ export class JokerView extends Container {
 
     // 테두리. **희귀도가 테두리입니다** — 줄에 여럿이 서면 그 색이 먼저 읽힙니다.
     this.frame.clear()
-    this.frame.roundRect(1.25, 1.25, w - 2.5, h - 2.5, RADIUS - 1)
+    this.frame.roundRect(1.25, 1.25, w - 2.5, h - 2.5, insetRadius(RADIUS, 1.25))
       .stroke({ color: edge, width: 2.5 })
-    this.frame.roundRect(4, 4, w - 8, h - 8, RADIUS - 3)
+    this.frame.roundRect(4, 4, w - 8, h - 8, insetRadius(RADIUS, 4))
       .stroke({ color: 0xffffff, width: 1, alpha: 0.10 })
 
     this.nameText.text = look.name

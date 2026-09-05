@@ -68,11 +68,22 @@ async function main(): Promise<number> {
   await pass(page, 500)
   await page.screenshot({ path: path.join(OUT, 'setup-2-picked.png') })
 
+  // 조커 풀도 여기서 고릅니다. **덱 · 스테이크와 같은 런의 설정입니다** — 도감 안에
+  // 있었을 때는 무엇으로 시작하는가가 두 화면에 걸쳐 있었습니다.
+  await pressRunPanel(page, 'pool:all')
+  await pass(page, 400)
+
   const saved = await page.evaluate(() => localStorage.getItem('clover.options'))
-  const parsed = JSON.parse(saved ?? '{}') as { deck?: string; stake?: string }
+  const parsed = JSON.parse(saved ?? '{}') as
+    { deck?: string; stake?: string; pool?: string }
   check('고른 것이 저장됩니다',
         parsed.deck === 'black_deck' && parsed.stake === 'Blue',
         `${parsed.deck} · ${parsed.stake}`)
+  check('고른 풀이 저장됩니다', parsed.pool === 'all', String(parsed.pool))
+
+  // 되돌려 둡니다. **아래에서 시작하는 판이 기본 풀이어야** 구워 둔 리플레이와 같습니다.
+  await pressRunPanel(page, 'pool:base')
+  await pass(page, 400)
 
   // 마지막 덱까지 눌러 봅니다. **뒷면 무늬 11종이 전부 그려지는 자리는 여기뿐입니다.**
   await pressRunPanel(page, 'deck:14')
@@ -93,6 +104,10 @@ async function main(): Promise<number> {
         after?.deck === 'black_deck' && after?.stake === 'Blue',
         `${after?.deck} · ${after?.stake}`)
   check('판으로 들어갔습니다', after?.scene === 'run', after?.scene)
+
+  const run = await page.evaluate(() => localStorage.getItem('clover.run'))
+  const kept = JSON.parse(run ?? '{}') as { pool?: string }
+  check('시작한 판의 풀이 세이브에 적힙니다', kept.pool === 'base', String(kept.pool))
 
   // **블라인드를 하나 골라야 핸드와 버리기에 수가 들어갑니다.** 판이 서기만 한 자리에서는
   // 둘이 0이고, 0으로는 시작 조건이 걸렸는지 갈리지 않습니다.

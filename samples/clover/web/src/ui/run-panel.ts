@@ -32,7 +32,7 @@ import { COLOR, UI } from '../render/theme'
 import { ChallengeBody, openCount, type ChallengeProgress } from './challenge'
 import type { ToolSpot } from './layout'
 import { panelFrame, TITLE_BAR, type ModalPanel } from './modal'
-import { SetupBody, type RunSetup } from './setup'
+import { SetupBody, SETUP_HEIGHT, type RunSetup } from './setup'
 import { Tooltip } from './tooltip'
 import { Button } from './widgets'
 
@@ -47,8 +47,13 @@ const TAB_GAP = 6
 /** 몸통의 내용이 시작하는 자리. */
 const BODY_TOP = TAB_Y + TAB_H + 22
 
-/** 가장 높은 몸통은 새 런입니다. **판의 높이가 탭마다 바뀌면 밑변이 움직입니다.** */
-const BODY_H = 548
+/**
+ * 가장 높은 몸통은 새 런입니다. **판의 높이가 탭마다 바뀌면 밑변이 움직입니다.**
+ *
+ * **그 몸통에게 묻습니다.** 수로 베껴 적어 두면 몸통에 한 줄을 더한 날부터 그 줄이 판의
+ * 밑변 아래에 그려지고, 거기를 누르는 것은 판 바깥을 누르는 것이라 판이 닫힙니다.
+ */
+const BODY_H = SETUP_HEIGHT
 const HEIGHT = BODY_TOP + BODY_H + 26
 
 /** 탭 하나의 이름. */

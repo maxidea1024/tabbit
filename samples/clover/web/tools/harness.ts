@@ -52,6 +52,12 @@ export interface Peek {
   coins: boolean
   cleared: boolean
   consumables: number
+  /**
+   * 도감이 지금 무엇을 몇 개 세우고 있는가. **판이 떠 있을 때만 값이 있습니다.**
+   *
+   * 화면의 칸을 세면 한 쪽에 40개까지이므로, 갈래의 수는 이 값으로만 확인됩니다.
+   */
+  collection?: { tab: string; cells: number; found: number; offset: number }
   /** 상점 칸마다 무엇이 서 있는가. `ShopItemKind` 의 값입니다 — 조커가 1, 소모품이 2~5. */
   shopKinds?: number[]
   /** 상점의 줄마다 몸통이 시작하는 `y`. 판이 서 있지 않으면 비어 있습니다. */
@@ -246,7 +252,7 @@ export async function mustHit(page: Page, what: string,
  * 조회합니다 — 베껴 적은 값은 배치를 고친 날부터 빈자리를 가리키고, `check-gaps` 와
  * `shoot-last` 가 그렇게 아무것도 없는 곳을 눌러 놓고 통과했습니다.
  *
- * 이름은 `start` · `jokers` · `leaderboard` · `guide` · `options` · `signOut` 입니다.
+ * 이름은 `start` · `collection` · `leaderboard` · `guide` · `options` · `signOut` 입니다.
  *
  * **`start` 는 판을 여는 자리를 엽니다.** 곧바로 판이 시작되지 않습니다 — 새 런 ·
  * 이어하기 · 챌린지가 그 안의 탭 셋이고, 판을 여는 것은 `startNewRun` 이 합니다.

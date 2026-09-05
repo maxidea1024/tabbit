@@ -1522,3 +1522,17 @@
 	ui.challenge.chip.locked	잠김	Locked	未解放	未开启	未開啟	Gesperrt
 	ui.account.startingSingle	시작하는 중	Starting	開始しています	正在开始	正在開始	Wird gestartet
 	ui.quit.bodyRun	지금까지 둔 것은 저장됩니다. 다시 켜면 이어서 할 수 있습니다.	Your progress is saved. You can continue it next time.	ここまでの進行は保存されます。次に起動したらつづきから遊べます。	当前进度会被保存，下次启动可继续。	目前進度會被儲存，下次啟動可繼續。	Dein Fortschritt wird gespeichert. Du kannst beim nächsten Start fortsetzen.
+	ui.button.collection	콜렉션	Collection	コレクション	收藏	收藏	Sammlung
+	ui.collection.title	콜렉션	Collection	コレクション	收藏	收藏	Sammlung
+	ui.collection.found	발견 {at} / {of}	{at} / {of} found	発見 {at} / {of}	已发现 {at} / {of}	已發現 {at} / {of}	{at} / {of} entdeckt
+	ui.collection.hint	만나 본 것이 앞면입니다. 가리키면 설명이 뜹니다.	What you have met shows its face. Point at one to see it.	出会ったものが表になります。指すと説明が出ます。	遇到过的会翻到正面。指向即可查看说明。	遇過的會翻到正面。指向即可查看說明。	Was du getroffen hast, zeigt sein Gesicht. Zeige darauf für Details.
+	ui.collection.unseen	아직 만나지 못했습니다	Not met yet	まだ出会っていません	尚未遇到	尚未遇到	Noch nicht getroffen
+	ui.kind.joker	조커	Joker	ジョーカー	小丑牌	小丑牌	Joker
+	ui.kind.enhancement	강화	Enhancement	強化	强化	強化	Verbesserung
+	ui.kind.seal	인장	Seal	封蝋	蜡封	蠟封	Siegel
+	ui.kind.edition	에디션	Edition	エディション	版本	版本	Edition
+	ui.kind.blind	블라인드	Blind	ブラインド	盲注	盲注	Blind
+	ui.kind.boss	보스	Boss	ボス	Boss	Boss	Boss
+	ui.kind.stake	스테이크	Stake	ステーク	底注	底注	Einsatz
+	ui.quit.browser	탭은 스스로 닫히지 않습니다	This tab cannot close itself	タブは自分で閉じられません	标签页无法自行关闭	分頁無法自行關閉	Dieser Tab kann sich nicht selbst schließen
+	ui.quit.browserBody	브라우저에서 탭을 닫아 주십시오.	Close the tab in your browser.	ブラウザでタブを閉じてください。	请在浏览器中关闭标签页。	請在瀏覽器中關閉分頁。	Schließe den Tab in deinem Browser.
