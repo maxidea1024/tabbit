@@ -85,6 +85,15 @@ export interface UiTheme {
   well: number
 
   /**
+   * 설명 쪽지의 바탕과 테.
+   *
+   * **판보다 어둡습니다.** 쪽지는 판 위에 뜨는 것이라 판과 같은 색이면 어디까지가 쪽지인지가
+   * 흐려집니다. 테는 희귀도가 있는 것에만 그 색이 들고, 없는 것은 이 색입니다.
+   */
+  tipBack: number
+  tipEdge: number
+
+  /**
    * 그 밖의 단추.
    *
    * **일반 단추는 테마를 따라갑니다.** 「닫기」·「메뉴」·「타이틀로」 처럼 뜻이 없는 단추가
@@ -116,48 +125,56 @@ export interface UiTheme {
 export const UI_THEMES: Record<string, UiTheme> = {
   /** 기본. 남흑에 따뜻한 갈색 테 — 참고한 카드룸의 것입니다. */
   slate: {
+    tipBack: 0x12141a, tipEdge: 0x6b5a45,
     panel: 0x1b1d25, panelAlpha: 0.96, panelEdge: 0x6b5a45,
     rule: 0x3a3d4a, hairline: 0x2c2f3a, cell: 0x14161c, well: 0x0f1117,
     btn: 0x3d4450, light: 0xc9e3ee, locked: 0x2e323d,
   },
   /** 검정. 거의 검정에 회색 테. 판이 배경에 잠기고 카드만 남습니다. */
   ink: {
+    tipBack: 0x0a0b0d, tipEdge: 0x44454b,
     panel: 0x101113, panelAlpha: 0.97, panelEdge: 0x44454b,
     rule: 0x2e2f33, hairline: 0x212226, cell: 0x08090a, well: 0x000000,
     btn: 0x33343a, light: 0xcfcfd4, locked: 0x232428,
   },
   /** 남색. 차가운 남색에 푸른 테 — 이 게임이 오래 쓰던 색입니다. */
   navy: {
+    tipBack: 0x101a2c, tipEdge: 0x46618f,
     panel: 0x18263f, panelAlpha: 0.96, panelEdge: 0x46618f,
     rule: 0x33486b, hairline: 0x243450, cell: 0x101a2e, well: 0x0a1120,
     btn: 0x34465f, light: 0xbcd2ea, locked: 0x273751,
   },
   /** 밝은 회색. 판과 테가 뚜렷하게 밝아 판의 경계가 멀리서도 보입니다. */
   bright: {
+    tipBack: 0x1f232b, tipEdge: 0x8b93a2,
     panel: 0x2f353f, panelAlpha: 0.98, panelEdge: 0x8b93a2,
     rule: 0x5a6273, hairline: 0x454c5a, cell: 0x21252d, well: 0x171a20,
     btn: 0x4a5160, light: 0xd7dde8, locked: 0x3e4451,
   },
   /** 초록. 카드를 늘어놓는 상의 색입니다 — 이 갈래의 게임에서 가장 오래된 색입니다. */
   green: {
+    tipBack: 0x0d1913, tipEdge: 0x4f6f52,
     panel: 0x14251c, panelAlpha: 0.96, panelEdge: 0x4f6f52,
     rule: 0x2c4634, hairline: 0x1e3325, cell: 0x0e1b14, well: 0x081109,
     btn: 0x304a37, light: 0xc7e2cc, locked: 0x23392b,
   },
   /** 와인. 짙은 자주 — 붉음이 뜻을 가진 색이므로 판은 그보다 훨씬 어둡습니다. */
   wine: {
+    tipBack: 0x1c0f16, tipEdge: 0x86505d,
     panel: 0x2a1720, panelAlpha: 0.96, panelEdge: 0x86505d,
     rule: 0x4c2d38, hairline: 0x371f29, cell: 0x1e1017, well: 0x150a10,
     btn: 0x4e2e3a, light: 0xecc9d2, locked: 0x3e242e,
   },
   /** 갈색. 따뜻한 쪽입니다 — 크림색 카드와 같은 계열이라 판과 카드가 한 벌로 보입니다. */
   brown: {
+    tipBack: 0x18120d, tipEdge: 0x8a6c48,
     panel: 0x241c15, panelAlpha: 0.96, panelEdge: 0x8a6c48,
     rule: 0x483a29, hairline: 0x342a1e, cell: 0x1a140f, well: 0x120d09,
     btn: 0x4d3c29, light: 0xe8d8ba, locked: 0x3b2e20,
   },
   /** 자주. 남색보다 한 걸음 더 간 쪽이고, 금색이 가장 잘 서는 바탕입니다. */
   violet: {
+    tipBack: 0x151222, tipEdge: 0x6b5f9e,
     panel: 0x1f1b32, panelAlpha: 0.96, panelEdge: 0x6b5f9e,
     rule: 0x3b3459, hairline: 0x282342, cell: 0x161327, well: 0x0f0c1c,
     btn: 0x3f376a, light: 0xd2cbf2, locked: 0x312a51,
@@ -235,6 +252,30 @@ export const SIZE = {
   jokerWidth: 88,
   jokerHeight: 124,
 } as const
+
+/**
+ * 왼쪽 판이 차지한 자리.
+ *
+ * **화면의 붙박이입니다.** 판이 도는 동안 늘 거기 있고, 떠 있는 판은 그것을 덮지
+ * 않습니다 — 덮으면 지금 몇 점인지와 무엇이 걸려 있는지가 판을 여는 동안 사라집니다.
+ */
+export const SIDE_PANEL = { x: 16, width: 264, gap: 14 } as const
+
+/**
+ * 떠 있는 판의 왼쪽 변.
+ *
+ * **화면의 가로 가운데입니다.** 다만 가운데에 두었을 때 왼쪽 판을 침범하면 그만큼
+ * 오른쪽으로 밀어 둡니다 — 완전한 가운데보다 왼쪽 판이 보이는 것이 먼저입니다.
+ */
+export function popupLeft(width: number): number {
+  const keepOut = SIDE_PANEL.x + SIDE_PANEL.width + SIDE_PANEL.gap
+  return Math.max(keepOut, SIZE.width / 2 - width / 2)
+}
+
+/** 그 판의 가로 가운데. 가운데를 기준으로 놓는 자리가 씁니다. */
+export function popupCenter(width: number): number {
+  return popupLeft(width) + width / 2
+}
 
 /** 희귀도 하나의 색. */
 export function rarityColor(rarity: number): number {

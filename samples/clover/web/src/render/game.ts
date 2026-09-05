@@ -62,7 +62,9 @@ import { drawGlyph, glyphFor, hashOf, hsl, shade } from './glyph'
 import { bakeCardFaces, cardFaceBakes } from './card-face'
 import { cardArtId, drawFace } from './pips'
 import { burst, groove, mix } from './skin'
-import { COLOR, rarityColor, setUiTheme, SIZE, UI } from './theme'
+import {
+  COLOR, popupCenter, popupLeft, rarityColor, setUiTheme, SIDE_PANEL, SIZE, UI,
+} from './theme'
 import { box, type Box, CENTER, pointOf, putText, splitX } from '../ui/layout'
 import { Button, Panel } from '../ui/widgets'
 import { poolsOf, type PoolChoice } from '../core/pool'
@@ -103,8 +105,8 @@ const RANK_MARK = /#\d+/
 
 // 화면의 자리. **원작의 배치를 따릅니다** — 왼쪽에 판돈과 점수가 세로로 쌓이고, 위에 조커와
 // 소모품이 나란히 서고, 가운데에서 카드를 내고, 아래에 패가 부챗살로 펴집니다.
-const LEFT = 16
-const PANEL_W = 264
+const LEFT = SIDE_PANEL.x
+const PANEL_W = SIDE_PANEL.width
 /**
  * 왼쪽 판의 오른쪽 칸이 시작하는 자리.
  *
@@ -120,6 +122,9 @@ const BOARD_X = (LEFT + PANEL_W + 20 + SIZE.width) / 2
  *
  * 판의 한가운데에 두면 왼쪽 패널만큼 오른쪽으로 밀린 자리에 서고, 같은 화면에 뜨는
  * 정산·옵션·게임 방법은 화면 한가운데에 서므로 뜰 때마다 자리가 달라집니다.
+ *
+ * **넓이를 아는 자리는 `popupCenter(width)` 를 씁니다** — 가운데에 두었을 때 왼쪽 판을
+ * 침범하는 판은 그만큼 오른쪽으로 밀어야 하고, 그 판정에는 넓이가 필요합니다.
  */
 const POPUP_X = SIZE.width / 2
 
@@ -294,6 +299,21 @@ function trayRow(tray: Box, count: number): { startX: number; spacing: number } 
 
 /** 고른 것 아래의 단추 줄이 화면 끝에서 남기는 여백. */
 const HELD_EDGE = 10
+/**
+ * 고른 것 밑에 서는 단추의 높이.
+ *
+ * **단추의 아랫변이 그 물건이 서던 자리의 아랫변입니다.** 물건은 그만큼 위로 밀려
+ * 올라가고, 단추는 바닥에 그대로 있습니다 — 고를 때마다 단추가 다른 높이에 서면 두 번째
+ * 누름이 매번 다른 자리입니다.
+ */
+const HELD_H = 32
+/**
+ * 고른 상점 칸이 밀려 올라가는 거리.
+ *
+ * **단추가 값보다 높은 만큼입니다.** 단추는 값이 있던 자리를 그대로 대신하므로, 그 차이만큼만
+ * 물건이 비켜서면 됩니다.
+ */
+const SHOP_LIFT = 14
 const PLAY_Y = 366
 /**
  * 딜러의 자리. 화면 오른쪽 위 밖입니다.
@@ -475,18 +495,23 @@ const RISER_SPAN = 1_050
  * 반쯤 사라지고, 조커가 이어서 발동하는 판에서는 그것이 지나가는 빛으로만 남습니다.
  */
 const RISER_HOLD = 0.52
+/** 떠오르는 글이 올라가는 거리. 위에 자리가 없으면 그만큼만 올라갑니다. */
+const RISER_LIFT = 46
 /**
- * 화면 위의 것에서 나온 글이 뜨는 높이.
+ * 카드에서 나오는 글이 그 카드의 가운데에서 얼마나 위인가.
  *
- * **판의 가운데보다 조금 위입니다.** 조커 자리는 화면의 맨 위이므로 그 옆에 띄우면 글이
- * 화면 밖으로 나가고, 그 아래에 붙이면 낸 카드가 오는 자리와 겹칩니다.
+ * **윗변에 살짝 걸칩니다.** 카드의 얼굴은 아래쪽이 무늬이고 위쪽은 랭크 한 글자이므로,
+ * 걸쳐도 가리는 것이 적습니다 — 카드 밖으로 완전히 나가면 그것이 그 카드의 값이라는 것이
+ * 흐려집니다.
  */
-const RISER_HIGH = 352
+const RISER_ON_CARD = SIZE.cardHeight / 2 - 12
 
 /** 떠오르는 글자 하나. **글과 그 뒤의 번쩍임이 한 덩어리입니다.** */
 interface Riser {
   node: Container
   life: number
+  /** 이 글이 떠오르는 거리. 위에 남은 자리만큼입니다. */
+  lift: number
   homeX: number
   homeY: number
   drift: number
@@ -786,9 +811,6 @@ const INSIGHT_COLOR: Record<InsightLevel, number> = {
 interface PackFace {
   node: Container
   card: Container
-  mark: Container
-  plate: Graphics
-  label: Text
 }
 
 /** 펼친 팩의 카드 한 장. 얼굴과, 그 한 장이 자기만 아는 것들입니다. */
@@ -1019,7 +1041,16 @@ export class Game {
    */
   private readonly shopTiles =
     new Map<number, { tile: Container; baseX: number; baseY: number; price: Container;
-                     mid: number; key: string; slide: number }>()
+                     mid: number; key: string; slide: number
+                     /** 단추가 서는 자리. 올라간 물건의 아랫변 바로 밑입니다. */
+                     holdY: number
+                     /**
+                      * 고르면 올라가는 것.
+                      *
+                      * **칸의 테두리는 그대로 있습니다.** 칸은 상점의 자리이고 올라가는 것은
+                      * 그 자리에 놓인 물건이므로, 통째로 올리면 진열대가 함께 들립니다.
+                      */
+                     lift: Container }>()
   /**
    * 다시 세우기 전에 딱지들이 서 있던 자리. 물건마다 하나입니다.
    *
@@ -1062,7 +1093,11 @@ export class Game {
   /** 상점의 팩 딱지들. 카드 딱지와 높이가 달라 그것도 함께 들고 있습니다. */
   private readonly packSlotTiles =
     new Map<number, { tile: Container; height: number; baseY: number;
-                     price: Container; mid: number }>()
+                     price: Container; mid: number
+                     /** 단추가 서는 자리. 올라간 봉지의 아랫변 바로 밑입니다. */
+                     holdY: number
+                     /** 고르면 올라가는 것. 칸의 테두리는 그대로 있습니다. */
+                     lift: Container }>()
   /**
    * 소모품이 들린 높이.
    *
@@ -1704,6 +1739,8 @@ export class Game {
    * 을 가운데로 두고 놓이므로 절반을 올린 자리입니다.
    */
   private gameOverY = SIZE.height / 2
+  /** 그 판의 가로 가운데. 넓이를 알아야 왼쪽 판을 침범하는지가 정해집니다. */
+  private gameOverX = POPUP_X
 
   private shake = 0
   /**
@@ -3414,7 +3451,10 @@ export class Game {
    * 조커와 소모품을 고를 때와 같은 몸짓이고, 같은 용수철입니다.
    */
   private advanceShopLift(seconds: number): void {
-    this.shopLift.target = this.held?.kind === 'shop' || this.held?.kind === 'pack_slot' ? 10 : 0
+    // **단추가 설 자리만큼 밀어 올립니다.** 단추는 그 칸이 서던 자리의 바닥에 서므로,
+    // 물건이 그 위로 비켜서지 않으면 단추가 그림 위에 얹힙니다.
+    this.shopLift.target =
+      this.held?.kind === 'shop' || this.held?.kind === 'pack_slot' ? SHOP_LIFT : 0
     this.shopLift.advance(seconds)
     this.hub.advance(seconds)
     this.login.advance(seconds)
@@ -3430,7 +3470,8 @@ export class Game {
     for (const [slot, one] of this.shopTiles) {
       if (one.tile.destroyed) continue
       const here = this.held?.kind === 'shop' && this.held.uid === slot
-      one.tile.y = one.baseY - (here ? lift : 0)
+      // **칸이 아니라 그 안의 물건이 올라갑니다.** 칸은 상점의 자리이므로 그대로 있습니다.
+      one.lift.y = here ? -lift : 0
       one.price.visible = !here
       // 지난 자리에서 제자리로. **자리를 묻는 쪽에는 제자리를 답합니다** — 미끄러지는 것은
       // 눈에 보이는 것뿐이고, 단추가 서는 자리와 동전이 나오는 자리는 닿을 자리입니다.
@@ -3442,7 +3483,7 @@ export class Game {
     for (const [slot, one] of this.packSlotTiles) {
       if (one.tile.destroyed) continue
       const here = this.held?.kind === 'pack_slot' && this.held.uid === slot
-      one.tile.y = one.baseY - (here ? lift : 0)
+      one.lift.y = here ? -lift : 0
       one.price.visible = !here
     }
   }
@@ -3569,9 +3610,11 @@ export class Game {
 
       if (!one.sent) {
         one.sent = true
-        one.motion.to(DECK_X - DECK_MEET, DECK_Y, 0)
         one.motion.scale.target = 0.92
       }
+      // **덱이 지금 있는 자리로 갑니다.** 덱은 카드를 받으러 나오는 중이라 용수철로
+      // 움직이고 있어서, 떠날 때의 자리 하나를 적어 두면 카드가 그 옆에서 사라집니다.
+      one.motion.to(DECK_X + this.deckSlide.value, DECK_Y, 0)
       one.motion.advance(seconds)
       one.node.position.set(one.motion.x.value, one.motion.y.value)
       one.node.rotation = one.motion.rotation.value * (Math.PI / 180)
@@ -3579,7 +3622,7 @@ export class Game {
 
       // 덱에 닿았습니다. **소리는 몇 장에 한 번입니다** — 스무 장이 저마다 소리를 내면
       // 그것은 카드가 쌓이는 소리가 아니라 잡음입니다.
-      if (one.motion.x.value > DECK_X - DECK_MEET + 12) continue
+      if (one.motion.x.value > one.motion.x.target + 6) continue
       this.recalls.splice(i, 1)
       one.node.destroy()
       // 닿은 마지막 한 장이 이 값을 정합니다. 그만큼 덱이 자리에 남습니다.
@@ -3762,7 +3805,11 @@ export class Game {
           view.pop(0.5 + beat.intensity * 0.4 + step * 0.25 + (mul ? 0.35 : 0))
           view.shine(rgbOf(tint), 1)
         }
-        this.popAt(view, valueText(event.op, event.chips, event.mult, event.money),
+        // **다섯 장이 한 높이에서 뜁니다.** 낸 카드는 부챗살로 놓여 저마다 높이가 다르고,
+        // 카드마다 그 높이에서 띄우면 오른쪽으로 갈수록 글이 아래에서 나옵니다 — 값이
+        // 차례로 오르는 것을 읽는 자리이므로 그 줄이 흔들리면 안 됩니다.
+        this.popAt(view && { x: view.x, y: PLAY_Y - RISER_ON_CARD },
+          valueText(event.op, event.chips, event.mult, event.money),
           tint, beat.intensity + step * 0.4 + (mul ? 0.5 : 0))
         // 랭크의 칩과 강화·인장·에디션이 낸 것은 소리가 달라야 갈립니다.
         // **카드가 낸 것과 조커가 낸 것은 소리가 갈립니다.** 같은 배수라도 어디서 온
@@ -3796,7 +3843,8 @@ export class Game {
         // **조각을 터뜨리지 않습니다.** 조커는 한 판에 열 번도 발동하고, 그때마다 조각이
         // 터지면 화면이 시끄러워집니다 — 좌우로 흔들리는 것 하나로 충분합니다.
         if (view) view.pop(mul ? 1.6 : 1.1)
-        this.popAt(view, text, tint, beat.intensity + (mul ? 0.6 : 0.2))
+        this.popAt(view && { x: view.x, y: view.y - RISER_ON_CARD }, text, tint,
+          beat.intensity + (mul ? 0.6 : 0.2))
         this.audio.play(cue, semitones + this.chain)
         // **조커가 웅얼거립니다.** 값이 오르는 소리만으로는 그것이 누가 낸 값인지가 남지
         // 않습니다 — 목소리는 조커마다 고정이라, 같은 조커가 두 번 발동하면 같은 목소리로
@@ -3841,7 +3889,8 @@ export class Game {
 
       case 'JokerFizzled': {
         const view = this.jokers.get(this.jokerUidAt(event.slot))
-        this.popAt(view, `${event.num}/${event.den}`, COLOR.inkDim, 0)
+        this.popAt(view && { x: view.x, y: view.y - RISER_ON_CARD },
+          `${event.num}/${event.den}`, COLOR.inkDim, 0)
         this.audio.play('joker_fizzle')
         break
       }
@@ -3853,7 +3902,8 @@ export class Game {
           view.pop(1)
           view.shine(rgbOf(COLOR.good), 0.9)
         }
-        this.popAt(view, t('ui.button.again'), COLOR.good, beat.intensity + 0.3)
+        this.popAt(view && { x: view.x, y: view.y - RISER_ON_CARD },
+          t('ui.button.again'), COLOR.good, beat.intensity + 0.3)
         this.audio.play('retrigger', semitones + this.chain * 2)
         this.jolt(5, 0.9, 0.2)
         this.flashPanel(COLOR.good, 0.5)
@@ -3897,12 +3947,11 @@ export class Game {
             // 자리에서 잇달아 떠서 뒤의 것이 앞의 것을 덮습니다.
             const line = `${why}  ${event.delta > 0 ? '+' : ''}$${event.delta}`
             const tint = event.delta > 0 ? COLOR.money : COLOR.bad
-            // **칸 아래에서 올라옵니다.** 조커와 소모품 줄은 화면 맨 위라, 칸의 가운데에서
-            // 시작하면 글이 화면 밖으로 올라가 잘립니다.
-            if (sold) this.popAt({ x: sold.x, y: sold.y + SIZE.jokerHeight }, line, tint, 0.7)
-            // **산 것은 그 물건의 가운데에서 올라옵니다.** `popAt` 이 46 위에서 시작하므로
-            // 그만큼 내려 잡아야 글의 밑이 물건의 가운데에 옵니다.
-            else if (bought) this.popAt({ x: bought.x, y: bought.y + 46 }, line, tint, 0.5)
+            // 카드의 윗변에 걸쳐 뜹니다. 다른 값들과 같은 규칙입니다.
+            if (sold) this.popAt({ x: sold.x, y: sold.y - RISER_ON_CARD }, line, tint, 0.7)
+            else if (bought) {
+              this.popAt({ x: bought.x, y: bought.y - RISER_ON_CARD }, line, tint, 0.5)
+            }
             else this.popAt(this.moneyLabelAnchor(), line, tint, 0.3)
           }
         }
@@ -4365,14 +4414,17 @@ export class Game {
 
     const node = new Container()
     node.addChild(flare, label)
-    // **조커는 화면 위에 섭니다.** 그 위로 46픽셀 올리면 글이 화면 밖으로 나가고, 남은
-    // 것은 잘린 획 몇 개입니다 — 위가 좁은 것에서 나온 글은 판의 가운데보다 조금 위에
-    // 뜁니다. 눈이 카드와 값 칸 사이를 보고 있는 자리이고, 조커 바로 아래는 낸 카드가
-    // 오는 자리입니다.
+    // **그 물건에서 나옵니다.** 부르는 쪽이 넘겨주는 자리가 곧 뜨는 자리이고, 카드에서
+    // 나오는 것은 그 카드의 윗변에 살짝 걸치는 자리입니다(`RISER_ON_CARD`) — 값을 낸 것이
+    // 무엇인지는 자리로만 읽히므로, 옆이나 아래에 띄우면 어느 것이 낸 값인지 끊깁니다.
+    //
+    // **떠오르는 거리는 위에 남은 자리만큼입니다.** 조커 줄은 화면의 맨 위라, 늘 46픽셀을
+    // 올리면 글이 화면 밖으로 나가고 남는 것은 잘린 획 몇 개입니다.
     const x = target ? target.x : BOARD_X
     const y = target ? target.y : SIZE.height / 2
-    const above = y - 46 - label.height / 2
-    node.position.set(x, above < 200 ? RISER_HIGH : above)
+    node.position.set(x, y)
+    const half = (flare.height || label.height) / 2
+    const lift = Math.max(10, Math.min(RISER_LIFT, y - half - 10))
     // **떠오르는 글은 남아 있는 딱지 위입니다.** 산 물건이 그 자리에 잠깐 남으므로, 차례를
     // 적어 두지 않으면 낸 값이 그 물건 뒤로 들어갑니다.
     node.zIndex = 2
@@ -4383,7 +4435,7 @@ export class Game {
     // 않는 유일한 자리가 됩니다.
     node.scale.set(0.4)
     this.risers.push({
-      node, life: 0,
+      node, life: 0, lift,
       homeX: node.x, homeY: node.y,
       drift: (Math.random() - 0.5) * 34,
       rumble: 3 + intensity * 7,
@@ -4407,7 +4459,7 @@ export class Game {
       const fade = t < RISER_HOLD ? 1 : 1 - (t - RISER_HOLD) / (1 - RISER_HOLD)
       const shiver = one.rumble * (1 - t) * (1 - t)
       one.node.x = one.homeX + one.drift * t + (Math.random() - 0.5) * shiver
-      one.node.y = one.homeY - t * 46 + (Math.random() - 0.5) * shiver
+      one.node.y = one.homeY - t * one.lift + (Math.random() - 0.5) * shiver
       one.node.rotation = (Math.random() - 0.5) * 0.05 * (1 - t)
       one.node.alpha = fade
 
@@ -5989,7 +6041,11 @@ export class Game {
     // **아래 변은 떠 있는 판들과 같은 자리입니다.** 이 판 셋만 조금 위에 서 있었고, 정산과
     // 상점이 그 자리에서 나오므로 판이 갈릴 때 아래 변이 한 번 튑니다.
     const bottom = PANEL_BOTTOM
-    const startX = BOARD_X - ((order.length - 1) * (cardW + gap)) / 2 - cardW / 2
+    // **가로는 다른 판들과 같은 규칙입니다** — 화면의 가운데이고, 왼쪽 판을 침범하면
+    // 그만큼 오른쪽입니다. 판이 도는 자리의 가운데에 두었더니 이 셋만 오른쪽에 쏠려 있었고,
+    // 정산과 상점이 그 자리에서 나옵니다.
+    const spread = order.length * cardW + (order.length - 1) * gap
+    const startX = popupLeft(spread) + cardW / 2
 
     order.forEach((blind, index) => {
       const row = this.data.tables.blind.getByBlindOrThrow(blind)
@@ -6831,10 +6887,11 @@ export class Game {
     home.position.set(again.x - 8 - 96, yy)
     board.addChild(home, again)
 
+    this.gameOverX = popupCenter(width)
     this.gameOverY = PANEL_BOTTOM - height / 2
     // **아래에서 시작합니다.** 제자리에 놓고 다음 프레임에 내리면 그 한 프레임 동안 판이
     // 다 선 자리에 있습니다 — 상점 판에서 같은 것이 한 번 튀는 것으로 보였습니다.
-    board.position.set(POPUP_X, this.gameOverY + 58)
+    board.position.set(this.gameOverX, this.gameOverY + 58)
     this.gameOver.addChild(board)
     this.gameOverBoard = board
     // **단추 둘의 자리를 알립니다.** 판의 높이가 랭크 런인지에 따라 달라지므로 도구가
@@ -6992,13 +7049,13 @@ export class Game {
     const shiver = this.gameOverPop * this.gameOverPop * 10
 
     board.position.set(
-      POPUP_X + (Math.random() - 0.5) * shiver,
+      this.gameOverX + (Math.random() - 0.5) * shiver,
       this.gameOverY + this.gameOverPop * 58 + (Math.random() - 0.5) * shiver)
     board.rotation = (Math.random() - 0.5) * shiver * 0.0022
 
     if (this.gameOverPop <= 0) {
       board.scale.set(1)
-      board.position.set(POPUP_X, this.gameOverY)
+      board.position.set(this.gameOverX, this.gameOverY)
       board.rotation = 0
     }
   }
@@ -7559,13 +7616,13 @@ export class Game {
         return
       }
       anchor = one.mid
-      // **값이 있던 그 줄입니다.** 고른 칸은 값을 감추고 그 자리를 단추가 대신하므로,
-      // 자리를 따로 세지 않고 **값에게 묻습니다** — 따로 세면 딱지의 높이가 바뀔 때마다
-      // 어긋나고, 실제로 어긋나 있었습니다.
+      // **물건 바로 밑입니다.** 값이 있던 자리를 단추가 그대로 대신하고, 단추가 값보다
+      // 높은 만큼만 물건이 밀려 올라갑니다 — 값이 있던 줄에 맞추었더니 단추가 그림 위에
+      // 얹혔고, 칸의 바닥에 맞추었더니 물건과 단추 사이가 벌어졌습니다.
       //
       // **쉬는 자리로 셉니다.** 고른 딱지는 들려 있고, 들린 만큼 단추도 따라 올라가면
       // 단추가 딱지 안으로 파고듭니다.
-      baseline = one.baseY + one.price.y - 4
+      baseline = one.holdY
       const room = this.roomFor(item.kind)
       const swap = !room && this.canSwap(item)
       // 자리가 없으면 무엇과 바꿀지를 묻는 판이 뜹니다. 그 말은 단추에 적힙니다.
@@ -7587,8 +7644,8 @@ export class Game {
       // **가운데를 딱지가 들고 있습니다.** 상점 카드의 158 을 쓰고 있어서 단추가 27px
       // 오른쪽으로 밀려 옆 팩의 값에 걸쳤습니다.
       anchor = spot.mid
-      // 카드 딱지와 같은 규칙입니다 — 값이 있던 그 줄.
-      baseline = spot.baseY + spot.price.y - 4
+      // 카드 딱지와 같은 규칙입니다 — 봉지 바로 밑.
+      baseline = spot.holdY
       buttons.push(new Button(t('ui.button.buy'), 84, 32, UI.yellow, () => {
         this.held = undefined
         this.openPackSlot(held.uid)
@@ -7665,7 +7722,7 @@ export class Game {
     this.spots.held = { x: x + (buttons[0]?.width ?? 0) / 2, y: baseline + 16 }
     // **단추 줄이 화면 안에 있는지는 이 사각형으로만 확인됩니다.** 첫 단추의 가운데만
     // 알리면 줄이 얼마나 긴지 알 수 없고, 잘린 것은 줄의 오른쪽 끝입니다.
-    this.heldBox = box(x, baseline, span, 32)
+    this.heldBox = box(x, baseline, span, HELD_H)
     for (const button of buttons) {
       button.position.set(x, baseline)
       x += button.width + gap
@@ -8000,7 +8057,7 @@ export class Game {
     //
     // **눌릴 수 있게 된 뒤에 알립니다.** 줄이 다 서기 전에는 잠겨 있고, 그때 알리면 도구는
     // 잠긴 단추를 한 번 누르고 눌렀다고 넘어갑니다 — 그 뒤로 아무것도 진행되지 않습니다.
-    this.takeSpot = { x: POPUP_X, y: PANEL_BOTTOM - height + buttonTop + 24 }
+    this.takeSpot = { x: popupCenter(width), y: PANEL_BOTTOM - height + buttonTop + 24 }
     delete this.spots.take
 
     const sum = this.payoutRows.reduce((total, row) => total + row.amount, 0)
@@ -8544,7 +8601,7 @@ export class Game {
     const height = footY + 12 + 34 + 16
 
     // **바닥에 맞춰 섭니다.** 높이가 고정이므로 윗변도 고정입니다.
-    const x = POPUP_X - width / 2
+    const x = popupLeft(width)
     const y = SHOP_BOTTOM - height
     this.shopBox = { x, y, width, height }
 
@@ -8760,26 +8817,20 @@ export class Game {
     const rarity = item.kind === ShopItemKind.Joker
       ? this.data.tables.joker.findByJokerId(item.id)?.rarity ?? 1 : 0
     const afford = this.shown.money >= item.cost
-    const room = this.roomFor(item.kind)
     const border = item.kind === ShopItemKind.Joker ? rarityColor(rarity)
       : item.kind === ShopItemKind.PlayingCard ? COLOR.cardEdge : 0x9b8fd0
     tile.addChild(cellPlate(CELL_W, CELL_H, border))
+    // **올라가는 것만 담습니다.** 테두리는 이 통 밖에 있으므로 제자리에 남습니다.
+    const lift = new Container()
+    tile.addChild(lift)
 
     const card = this.itemCard(item)
     card.position.set((CELL_W - SIZE.jokerWidth) / 2, 8)
     const price = priceText(item.cost, afford)
     price.position.set(CELL_W / 2, CELL_H - 20)
 
-    // **자리가 없으면 그것이 값보다 먼저 읽혀야 합니다.** 눌러 보고 아무 일도 없는 것이
-    // 가장 나쁩니다.
-    const hint = room ? undefined : new Text({
-      text: t('ui.swap.hint'),
-      style: { fontSize: 9, fill: UI.red, fontWeight: '800' },
-    })
-    if (hint) {
-      hint.anchor.set(0.5, 0.5)
-      hint.position.set(CELL_W / 2, CELL_H - 36)
-    }
+    // **자리가 없다는 것은 적지 않습니다.** 누르면 그 밑에 「바꿔 집는다」 가 서고, 그것이
+    // 이미 그 말입니다 — 칸마다 붉은 글 한 줄을 더 두면 값보다 그것이 먼저 읽힙니다.
 
     tile.alpha = afford ? 1 : 0.55
     tile.eventMode = 'static'
@@ -8800,8 +8851,9 @@ export class Game {
     // **첫 프레임부터 지난 자리에 둡니다.** `advanceShopTiles` 는 다음 프레임에 도므로,
     // 여기서 옮기지 않으면 새 자리에 한 프레임 보이고 나서 지난 자리로 뛰었다 돌아옵니다.
     tile.x = baseX + slide
-    this.shopTiles.set(slot, { tile, baseX, baseY: tile.y, price, key, slide,
-                               mid: baseX + CELL_W * fit / 2 })
+    this.shopTiles.set(slot, { tile, baseX, baseY: tile.y, price, key, slide, lift,
+                               mid: baseX + CELL_W * fit / 2,
+                               holdY: tile.y + (8 + SIZE.jokerHeight - SHOP_LIFT + 4) * fit })
     // **누르면 고르기만 합니다.** 사는 것은 그 밑에 서는 단추가 합니다.
     tile.on('pointertap', () => {
       if (this.ate()) return
@@ -8814,9 +8866,8 @@ export class Game {
     })
     this.reveal(tile)
     return () => {
-      this.revealInto(tile, 1, -STOCK_DROP, card)
+      this.revealInto(lift, 1, -STOCK_DROP, card)
       this.revealInto(tile, 0, 0, price)
-      if (hint) this.revealInto(tile, 0, 0, hint)
     }
   }
 
@@ -9167,8 +9218,8 @@ export class Game {
     this.audio.play('joker_add')
     // **여기서도 조각이 없습니다.** 자리에 닿은 것은 카드 전체가 한 번 번쩍이는 것으로
     // 알립니다 — 그것이 그 카드에 관한 일이라는 것이 조각보다 분명합니다.
-    this.popAt({ x: spot.x, y: spot.y }, shopLabel(item.kind, item.id, this.data),
-      COLOR.money, 0.5)
+    this.popAt({ x: spot.x, y: spot.y - RISER_ON_CARD },
+      shopLabel(item.kind, item.id, this.data), COLOR.money, 0.5)
   }
 
   /** 줄에 선 카드 한 장이 차지하는 사각형. 가운데의 `x` 하나로 정해집니다. */
@@ -9455,6 +9506,9 @@ export class Game {
     const w = SIZE.jokerWidth
     const h = SIZE.jokerHeight
     tile.addChild(cellPlate(CELL_W, CELL_H, UI.hairline))
+    // **올라가는 것만 담습니다.** 테두리는 이 통 밖에 있으므로 제자리에 남습니다.
+    const lift = new Container()
+    tile.addChild(lift)
 
     const bag = new Container()
     bag.position.set((CELL_W - w) / 2, 8)
@@ -9527,8 +9581,9 @@ export class Game {
     tile.cursor = afford ? 'pointer' : 'default'
     // **누르면 고르기만 합니다.** 뜯는 것은 그 밑에 서는 단추가 합니다 — 뜯은 팩은 무르지
     // 못합니다.
-    this.packSlotTiles.set(slot, { tile, height: CELL_H, baseY: tile.y, price,
-                                   mid: tile.x + CELL_W * fit / 2 })
+    this.packSlotTiles.set(slot, { tile, height: CELL_H, baseY: tile.y, price, lift,
+                                   mid: tile.x + CELL_W * fit / 2,
+                                   holdY: tile.y + (8 + SIZE.jokerHeight - SHOP_LIFT + 4) * fit })
     tile.on('pointertap', () => {
       if (this.ate()) return
       if (!this.canPay(row.cost)) return
@@ -9541,7 +9596,7 @@ export class Game {
     })
     this.reveal(tile)
     return () => {
-      this.revealInto(tile, 1, -STOCK_DROP, bag)
+      this.revealInto(lift, 1, -STOCK_DROP, bag)
       this.revealInto(tile, 0, 0, price)
     }
   }
@@ -9884,22 +9939,9 @@ export class Game {
     const card = this.itemCard(item)
     node.addChild(card)
 
-    // **자리가 있는지가 카드에 보여야 합니다.** 눌러 보고서야 아는 것은 「고르는 것」이
-    // 아니라 「찍는 것」입니다. 띠는 미리 만들어 두고 매 프레임 켜고 끕니다 — 팩이 열려
-    // 있는 동안 소모품을 쓰거나 조커를 팔면 자리가 생기기 때문입니다.
-    const w = SIZE.jokerWidth
-    const mark = new Container()
-    const plate = new Graphics()
-    plate.roundRect(4, SIZE.jokerHeight / 2 - 11, w - 8, 22, 5)
-      .fill({ color: UI.cell, alpha: 0.95 })
-    const label = new Text({
-      text: '', style: { fontSize: 9, fill: COLOR.ink, fontWeight: '800' },
-    })
-    label.anchor.set(0.5)
-    label.position.set(w / 2, SIZE.jokerHeight / 2)
-    mark.addChild(plate, label)
-    mark.visible = false
-    node.addChild(mark)
+    // **자리가 없다는 것은 카드에 적지 않습니다.** 고르면 그 밑에 「바꿔 집는다」 가
+    // 서고 그것이 이미 그 말입니다 — 카드 한가운데를 띠가 가로지르면 무엇을 고르는
+    // 자리인지가 그 띠에 덮입니다. 자리가 없는 카드는 조금 옅게 둡니다.
 
     node.eventMode = 'static'
     node.cursor = 'pointer'
@@ -9926,7 +9968,7 @@ export class Game {
       this.tooltip.hide()
       this.pick('pack', index)
     })
-    return { node, card, mark, plate, label }
+    return { node, card }
   }
 
 
@@ -9989,23 +10031,9 @@ export class Game {
    * 어긋납니다.
    */
   private markPackFace(face: PackFace, item: ShopItem): void {
-    const room = this.roomFor(item.kind)
-    face.card.alpha = room ? 1 : 0.62
-    face.mark.visible = !room
-    if (room) return
-
-    const swap = this.canSwap(item)
-    const want = t(swap ? 'ui.pack.swap_mark' : 'ui.pack.full_mark')
-    if (face.label.text === want) return
-
-    const w = SIZE.jokerWidth
-    face.label.text = want
-    face.label.style.fill = swap ? COLOR.ink : 0xffc4cc
-    face.plate.clear()
-    face.plate.roundRect(4, SIZE.jokerHeight / 2 - 11, w - 8, 22, 5)
-      .fill({ color: swap ? 0x2f3a4e : 0x4a1f28, alpha: 0.95 })
-    face.plate.roundRect(4.5, SIZE.jokerHeight / 2 - 10.5, w - 9, 21, 5)
-      .stroke({ color: swap ? COLOR.accentTerm : COLOR.bad, width: 1.2, alpha: 0.9 })
+    // 자리가 없는 것은 조금 옅습니다. **그 이상은 적지 않습니다** — 무엇을 하게 되는지는
+    // 고른 뒤에 서는 단추에 적힙니다.
+    face.card.alpha = this.roomFor(item.kind) ? 1 : 0.62
   }
 
   /**

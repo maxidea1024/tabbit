@@ -15,7 +15,7 @@ import { plate, floatingStyle } from '../render/skin'
 import { UI } from '../render/theme'
 import { fraction } from '../render/motion'
 import { Button } from './widgets'
-import { COLOR, SIZE } from '../render/theme'
+import { COLOR, popupLeft, SIZE } from '../render/theme'
 
 /** 쌓을 수 있는 판 하나. */
 export interface ModalPanel {
@@ -265,12 +265,16 @@ export class Modals extends Container {
     const jitterY = shake === 0 ? 0 : (Math.random() - 0.5) * shake
 
     view.scale.set(scale)
+    // **가로는 화면의 가운데입니다.** 왼쪽 판을 침범하면 그만큼 오른쪽으로 밀립니다 —
+    // 규칙은 `popupLeft` 하나이고, 떠 있지 않은 판들(상점 · 끝난 판 · 고르기)도 같은
+    // 것을 씁니다.
+    const left = popupLeft(size.width * scale)
     // **밑변을 맞춥니다.** 판마다 높이가 다르므로 가운데에 놓으면 밑변이 판마다 다른 자리에
     // 있고, 판을 잇달아 열면 그 밑변이 위아래로 움직입니다 — 상점은 바닥에 맞춰 서므로
     // 그것과도 어긋났습니다. 아주 높은 판은 위가 넘치지 않게 그 자리에서 멈춥니다.
     const bottom = PANEL_BOTTOM - size.height * scale
     view.position.set(
-      SIZE.width / 2 - (size.width / 2) * scale + jitterX,
+      left + jitterX,
       Math.max(8, bottom) + (1 - entry.t) * 58 - BACK_LIFT * back + jitterY)
     view.alpha = entry.t * (1 - BACK_FADE * back)
     view.visible = entry.t > 0.01

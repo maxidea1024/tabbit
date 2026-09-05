@@ -9,7 +9,7 @@
 
 import { Container, Graphics, Text } from 'pixi.js'
 
-import { COLOR, rarityColor } from '../render/theme'
+import { COLOR, rarityColor, UI } from '../render/theme'
 import { richBlock, type RichStyle } from './rich'
 
 /** 이 쪽지의 글에 붙는 강조. */
@@ -140,10 +140,13 @@ export class Tooltip extends Container {
     this.body.position.set(PAD, headTop + headHeight + 10)
 
     const height = headTop + headHeight + 10 + this.body.height + 12
+    // **바탕과 테는 겉면을 따라갑니다.** 희귀도가 있는 것만 테에 그 색이 듭니다 —
+    // 희귀도는 뜻이 있는 색이고, 그것이 없는 쪽지까지 한 가지 색으로 두르면 그 색이
+    // 뜻을 잃습니다.
     this.plate.clear()
-    this.plate.roundRect(0, 0, width, height, 10).fill({ color: 0x0d1a14, alpha: 0.96 })
+    this.plate.roundRect(0, 0, width, height, 10).fill({ color: UI.tipBack, alpha: 0.96 })
     this.plate.roundRect(0.5, 0.5, width - 1, height - 1, 10)
-      .stroke({ color: rarityColor(rarityValue), width: 1.5 })
+      .stroke({ color: rarityValue > 0 ? rarityColor(rarityValue) : UI.tipEdge, width: 1.5 })
 
     // 화면 밖으로 나가지 않게 접습니다.
     const px = Math.min(Math.max(8, at.x - width / 2), bounds.width - width - 8)

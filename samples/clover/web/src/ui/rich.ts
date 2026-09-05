@@ -10,7 +10,11 @@
 // **넓이를 주면 접습니다.** 주지 않으면 한 줄이 한 줄로 나갑니다 — 부르는 쪽이 이미 줄을
 // 나누어 둔 자리가 있기 때문입니다.
 
-import { CanvasTextMetrics, Container, Text, TextStyle, type TextStyleOptions } from 'pixi.js'
+import {
+  CanvasTextMetrics, Container, Graphics, Text, TextStyle, type TextStyleOptions,
+} from 'pixi.js'
+
+import { UI } from '../render/theme'
 
 /**
  * 강조할 자리를 찾는 규칙.
@@ -21,6 +25,24 @@ import { CanvasTextMetrics, Container, Text, TextStyle, type TextStyleOptions } 
  */
 const MARK = /(「[^」]*」)|([$×+\-]?\d+(?:[./]\d+)*\s*(?:회|장|개|%|배)?)|(Lv\.\d+)/g
 
+/**
+ * 마크다운의 줄 안 표기.
+ *
+ * **글은 데이터입니다.** 시트에 적는 사람이 쓰는 표기가 화면에도 통해야 하고, 그 표기는
+ * 마크다운입니다 — 굵게 · 기울임 · 지움 · 그리고 ```` 로 묶은 짧은 것입니다.
+ * 표기 그대로 화면에 나오면 그것은 글이 아니라 원고입니다.
+ *
+ * **줄 안의 것만 봅니다.** 제목 · 목록 · 인용은 판이 정하는 것이지 한 줄이 정하는 것이
+ * 아닙니다.
+ */
+/** 감싸는 표기 하나. 여는 것과 닫는 것이 같습니다. */
+const TICK = String.fromCharCode(96)
+const SPAN = new RegExp(
+  '(' + TICK + '[^' + TICK + ']+' + TICK + ')'
+  + '|(\\*\\*[^*]+\\*\\*)|(__[^_]+__)|(~~[^~]+~~)'
+  + '|(\\*[^*\\n]+\\*)|(_[^_\\n]+_)',
+  'g')
+
 export interface RichStyle {
   /** 글의 바탕 모습. */
   base: TextStyleOptions
@@ -30,14 +52,48 @@ export interface RichStyle {
   term: number
 }
 
-/** 같은 색으로 이어지는 글 한 토막. */
-interface Run {
-  text: string
+/** 한 토막에 걸리는 것들. 색과 마크다운의 표기입니다. */
+interface Mark {
   fill?: number
+  bold?: boolean
+  italic?: boolean
+  strike?: boolean
+  /** 칩으로 섭니다. 바탕이 깔리고 글자가 그 위에 놓입니다. */
+  code?: boolean
 }
 
-/** 글을 색이 같은 토막들로 나눕니다. */
+/** 같은 모습으로 이어지는 글 한 토막. */
+interface Run extends Mark {
+  text: string
+}
+
+/** 마크다운 표기를 걷고 색을 입혀 토막으로 나눕니다. */
 function runsOf(text: string, style: RichStyle): Run[] {
+  const runs: Run[] = []
+  let cursor = 0
+
+  for (const found of text.matchAll(SPAN)) {
+    const at = found.index ?? 0
+    runs.push(...colored(text.slice(cursor, at), style))
+    const body = found[0]
+    if (found[1] !== undefined) {
+      runs.push({ text: body.slice(1, -1), code: true, fill: style.number })
+    } else if (found[2] !== undefined || found[3] !== undefined) {
+      runs.push(...colored(body.slice(2, -2), style).map(one => ({ ...one, bold: true })))
+    } else if (found[4] !== undefined) {
+      runs.push(...colored(body.slice(2, -2), style).map(one => ({ ...one, strike: true })))
+    } else {
+      runs.push(...colored(body.slice(1, -1), style).map(one => ({ ...one, italic: true })))
+    }
+    cursor = at + body.length
+  }
+  runs.push(...colored(text.slice(cursor), style))
+
+  return runs
+}
+
+/** 수와 「」 로 묶은 이름에 색을 입힙니다. */
+function colored(text: string, style: RichStyle): Run[] {
   const runs: Run[] = []
   let cursor = 0
 
@@ -90,24 +146,28 @@ function splitWords(text: string): string[] {
 }
 
 /** 그 토막의 모습. 강조는 굵게 갑니다. */
-function styleOf(style: RichStyle, fill?: number): TextStyleOptions {
-  if (fill === undefined) return style.base
-  // **바탕과 색이 같으면 같은 객체입니다.** 그래야 아래의 재는 스타일이 그것을 열쇠로
-  // 다시 쓸 수 있습니다.
-  let byFill = FILLED.get(style.base)
-  if (!byFill) {
-    byFill = new Map()
-    FILLED.set(style.base, byFill)
+function styleOf(style: RichStyle, mark: Mark): TextStyleOptions {
+  const { fill, bold, italic, code } = mark
+  if (fill === undefined && !bold && !italic && !code) return style.base
+  // **같은 모습이면 같은 객체입니다.** 그래야 아래의 재는 스타일이 그것을 열쇠로 다시
+  // 쓸 수 있습니다.
+  let byKey = FILLED.get(style.base)
+  if (!byKey) {
+    byKey = new Map()
+    FILLED.set(style.base, byKey)
   }
-  let found = byFill.get(fill)
+  const key = `${fill ?? ''}|${bold ? 'b' : ''}${italic ? 'i' : ''}${code ? 'c' : ''}`
+  let found = byKey.get(key)
   if (!found) {
-    found = { ...style.base, fill, fontWeight: '800' }
-    byFill.set(fill, found)
+    found = { ...style.base, fontWeight: '800' }
+    if (fill !== undefined) found.fill = fill
+    if (italic) found.fontStyle = 'italic'
+    byKey.set(key, found)
   }
   return found
 }
 
-const FILLED = new WeakMap<TextStyleOptions, Map<number, TextStyleOptions>>()
+const FILLED = new WeakMap<TextStyleOptions, Map<string, TextStyleOptions>>()
 
 /**
  * 글자를 세지 않고 넓이만 잽니다.
@@ -204,29 +264,48 @@ function place(runs: Run[], style: RichStyle, into: Container,
   // **줄마다 무엇이 놓였는지 들고 있습니다.** 가운데로 모으려면 그 줄이 얼마나 넓은지를
   // 알아야 하는데, 그것은 그 줄을 다 놓아 본 뒤에야 알 수 있습니다 — 조각을 놓으면서
   // 가운데로 밀 수는 없습니다.
-  const rows: { nodes: Text[]; width: number }[] = []
+  const rows: { nodes: Container[]; width: number }[] = []
 
-  const put = (part: string, fill?: number) => {
+  const put = (part: string, mark: Mark) => {
     if (part === '') return
-    const node = new Text({ text: part, style: styleOf(style, fill) })
-    node.position.set(x, top + row * lineHeight)
-    into.addChild(node)
-    x += node.width
     const line = rows[row] ?? (rows[row] = { nodes: [], width: 0 })
+    const y = top + row * lineHeight
+    const node = new Text({ text: part, style: styleOf(style, mark) })
+    // 칩은 글보다 먼저 놓입니다. **뒤에 놓으면 글을 덮습니다.**
+    if (mark.code) {
+      const chip = new Graphics()
+      chip.roundRect(x - 3, y - 1, node.width + 6, lineHeight - 2, 4)
+        .fill({ color: UI.cell, alpha: 0.9 })
+        .stroke({ color: UI.hairline, width: 1 })
+      into.addChild(chip)
+      line.nodes.push(chip)
+    }
+    node.position.set(x, y)
+    into.addChild(node)
     line.nodes.push(node)
+    if (mark.strike) {
+      const cross = new Graphics()
+      cross.rect(x, y + lineHeight / 2 - 1, node.width, 1.5)
+        .fill({ color: (style.base.fill as number) ?? 0xffffff, alpha: 0.7 })
+      into.addChild(cross)
+      line.nodes.push(cross)
+    }
+    x += node.width + (mark.code ? 6 : 0)
     line.width = x
   }
 
   for (const run of runs) {
     if (maxWidth === undefined) {
-      put(run.text, run.fill)
+      put(run.text, run)
       continue
     }
 
-    const shape = styleOf(style, run.fill)
-    // **「」 로 묶은 이름은 쪼개지 않습니다.** 「리롤」 이 「리 / 롤」 로 끊기면 그것이 한
-    // 낱말이라는 것이 사라집니다 — 통보다 넓을 때만 어쩔 수 없이 나눕니다.
-    const whole = run.fill === style.term && widthOf(run.text, shape) <= maxWidth
+    const shape = styleOf(style, run)
+    // **「」 로 묶은 이름과 칩은 쪼개지 않습니다.** 「리롤」 이 「리 / 롤」 로 끊기면 그것이
+    // 한 낱말이라는 것이 사라지고, 칩이 끊기면 바탕이 둘로 갈라집니다 — 통보다 넓을 때만
+    // 어쩔 수 없이 나눕니다.
+    const whole = (run.fill === style.term || run.code === true)
+      && widthOf(run.text, shape) <= maxWidth
     let buffer = ''
     // **조각의 너비를 더해 갑니다.** 쌓인 글을 조각마다 다시 재면 조각 수 × 줄 길이만큼
     // 캔버스를 재고, 글자 사이 간격의 차이는 한 픽셀에 못 미칩니다.
@@ -235,7 +314,7 @@ function place(runs: Run[], style: RichStyle, into: Container,
       const pieceW = widthOf(piece, shape)
       if (x + bufferW + pieceW > maxWidth && (buffer !== '' || x > 0)) {
         // **줄 끝의 빈칸은 버립니다.** 남겨 두면 다음 줄이 한 칸 밀려 시작합니다.
-        put(buffer.replace(/\s+$/, ''), run.fill)
+        put(buffer.replace(/\s+$/, ''), run)
         buffer = ''
         bufferW = 0
         x = 0
@@ -244,7 +323,7 @@ function place(runs: Run[], style: RichStyle, into: Container,
       buffer += piece
       bufferW += pieceW
     }
-    put(buffer, run.fill)
+    put(buffer, run)
   }
 
   // 가운데로 모읍니다. **줄마다 따로입니다** — 접혀서 둘이 된 글은 두 줄의 너비가 다르고,
