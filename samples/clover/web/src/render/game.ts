@@ -9092,6 +9092,10 @@ export class Game {
         this.boughtFrom = from
         this.holdArrival(item, from)
         this.act({ t: 'swap', slot, index: held })
+        // 파는 것 · 오는 것 · 이름의 차례입니다. 바꾼 것도 무엇이 들어왔는지 적힙니다.
+        this.later.push({
+          at: this.clock + BUY_LINGER + LAND_AT, run: () => this.landed(item),
+        })
       })
       return
     }
@@ -10020,8 +10024,14 @@ export class Game {
         this.arriveFrom = from
         this.sellFrom = item.kind === ShopItemKind.Joker
           ? this.jokerSpot(held) : this.itemSpot(held)
+        // **파는 것이 먼저 보입니다.** 상점에서 바꿔 사는 길과 같은 붙듦입니다 — 이 길에만
+        // 없어서, 내놓은 것이 타는 것과 새것이 오는 것이 한 프레임에 겹쳤습니다.
+        // 소모품이 날아오는 것도 `holdArrival` 이 그때 시작합니다.
+        this.holdArrival(item, from)
         this.act({ t: 'swap_pack', index, held })
-        if (isConsumable(item.kind)) this.itemFlying(from)
+        this.later.push({
+          at: this.clock + BUY_LINGER + LAND_AT, run: () => this.landed(item),
+        })
       })
       return
     }
