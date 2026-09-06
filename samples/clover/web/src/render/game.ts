@@ -151,11 +151,12 @@ const SCORING_BEATS: ReadonlySet<string> = new Set([
 
 /** 상점의 것들이 하나씩 서는 간격. */
 /**
- * 손패 누르기가 연타로 이어지는 사이. 이보다 뜸하면 사다리가 처음으로 돌아갑니다.
+ * 세는 소리가 나는 가장 짧은 간격.
+ *
+ * **숫자가 바뀌는 것과 소리가 나는 것이 같은 일이 아닙니다.** 프레임마다 값이 바뀌는
+ * 구간에서 그 둘을 묶으면 초당 예순 번이 됩니다.
  */
-const PICK_LINK = 0.6
-/** 그 사다리가 오르는 끝. 손패가 여덟 장이므로 그만큼입니다. */
-const PICK_MOST = 7
+const RANK_TICK = 0.055
 
 const REVEAL_STEP = 0.13
 /** 하나가 다 서는 데 걸리는 시간. */
@@ -1071,7 +1072,16 @@ export class Game {
   /** 깔린 카드가 뒤집힐 시각. `syncCards` 가 새 뷰를 만들 때 가져갑니다. */
   private readonly flipAt = new Map<number, number>()
   /** 카드 소리를 마지막으로 낸 시각. 여덟 장이 저마다 내면 소리가 아니라 잡음입니다. */
-  private cardSoundAt = { draw: -1, flip: -1 }
+  /**
+   * 여럿이 움직이는 세 자리가 지금 도는가.
+   *
+   * **맺음을 한 번만 내기 위한 것입니다.** 지속 보이스는 잦아들 뿐 끝을 알리지 않으므로,
+   * 마지막 한 장이 닿은 자리에 원샷 하나가 있어야 「끝났다」로 읽힙니다 — 그 하나를
+   * 프레임마다 내지 않으려면 돌고 있었는지를 기억해야 합니다.
+   */
+  private dealing = false
+  private sweepingOut = false
+  private recalling = false
   /**
    * 마지막 장이 자리를 잡을 때까지.
    *
@@ -1974,16 +1984,6 @@ export class Game {
    * 한 번 오른 칸이 다음 사건에서 내려가면 오르는 것으로 들리지 않습니다.
    */
   private rung = 0
-  /**
-   * 손패를 잇달아 누른 수.
-   *
-   * **연타가 이 게임에서 가장 자주 하는 동작입니다.** 고르는 소리가 늘 같은 음이면 여덟
-   * 번을 눌러도 여덟 번 같은 소리이고, 한 칸씩 오르면 그 여덟 번이 하나로 이어집니다.
-   * 빼는 것은 한 칸 내려갑니다 — 집었다 놓는 것이 소리로도 되돌아갑니다.
-   */
-  private pickNote = 0
-  /** 마지막으로 손패를 누른 시각. 이보다 뜸하면 연타가 끊긴 것입니다. */
-  private pickAt = -1
   /** 왼쪽 패널의 번쩍임. 숫자가 바뀌는 자리를 파티클 대신 이것이 알립니다. */
   private panelGlow = 0
   private panelTint: number = COLOR.ink
@@ -2130,6 +2130,8 @@ export class Game {
   private rankNode?: Container
   /** 굴러 내려가는 중의 값. */
   private rankRoll = 0
+  /** 순위의 세는 소리가 마지막으로 난 시각. */
+  private rankTickAt = -1
 
   constructor(private readonly app: Application, private readonly data: Data, seed: string,
               pools: JokerPool[] = [JokerPool.Base],
@@ -3371,7 +3373,6 @@ export class Game {
     this.build = 0
     this.chain = 0
     this.rung = 0
-    this.pickNote = 0
     this.holdAfterScore = 0
     this.wasBusy = false
     this.hintShown = ''
@@ -3880,11 +3881,7 @@ export class Game {
   private clearSelection(): void {
     if (this.selected.size === 0 || this.player.busy) return
     this.selected.clear()
-    // **한꺼번에 놓는 것이므로 사다리의 맨 밑입니다.** 한 장씩 뺀 것과 갈립니다.
-    this.pickNote = 0
-    this.pickAt = this.clock
-    this.audio.play('card_select', 0)
-    this.audio.tone('wood', -12, 0.45)
+    this.audio.play('card_select', -6)
     this.refresh()
   }
 
@@ -3907,8 +3904,7 @@ export class Game {
     const seen = new Set(this.shown.hand)
     this.shown.hand = this.state.hand.filter(uid => seen.has(uid))
 
-    // **정렬은 고르는 것이 아닙니다.** 사다리에 얹으면 정렬 한 번이 연타의 한 칸이 됩니다.
-    this.audio.play('card_select', -4)
+    this.audio.play('card_select')
     this.refresh()
   }
 
@@ -3932,39 +3928,20 @@ export class Game {
     this.modals.open(this.deckView)
   }
 
+  /**
+   * 손패 한 장을 집거나 놓습니다.
+   *
+   * **소리는 하나입니다.** 한동안 여기에 음계 사다리를 얹었는데, 그것은 잘못 놓인
+   * 것이었습니다 — 음계가 「값이 쌓이고 있다」를 뜻하는 자리는 낸 카드가 하나씩 득점하는
+   * 그곳이고, 무엇을 낼지 고르는 것은 값이 쌓이는 일이 아닙니다. 고르는 자리에까지 음이
+   * 오르면 그 뜻이 묽어지고, 정작 득점의 사다리가 특별하지 않게 됩니다.
+   */
   private toggle(uid: number): void {
     if (this.player.busy) return
-    let took = false
     if (this.selected.has(uid)) this.selected.delete(uid)
-    else if (this.selected.size < this.data.run.maxPlayedCards) {
-      this.selected.add(uid)
-      took = true
-    }
-    this.pickSound(took)
+    else if (this.selected.size < this.data.run.maxPlayedCards) this.selected.add(uid)
+    this.audio.play('card_select')
     this.refresh()
-  }
-
-  /**
-   * 손패를 누른 소리.
-   *
-   * **집으면 한 칸 오르고 놓으면 한 칸 내려갑니다.** 한동안 넷 다 — 고르기 · 빼기 ·
-   * 전체 해제 · 정렬 — 같은 음원을 같은 음높이로 냈습니다. 그런데 여기가 이 게임에서 가장
-   * 자주 누르는 자리이고, 연타가 늘 같은 소리이면 여덟 번 누른 것이 여덟 번 같은 소리로
-   * 남습니다.
-   *
-   * **뜸하면 처음부터입니다.** 한참 뒤에 누른 한 번은 연타가 아니라 새로 시작하는 것이므로,
-   * 그것이 높은 음으로 나면 앞뒤가 이어지지 않습니다.
-   */
-  private pickSound(took: boolean): void {
-    if (this.clock - this.pickAt > PICK_LINK) this.pickNote = 0
-    else this.pickNote = Math.max(0, Math.min(PICK_MOST, this.pickNote + (took ? 1 : -1)))
-    this.pickAt = this.clock
-
-    const step = ladder(this.pickNote)
-    this.audio.play('card_select', step)
-    // **집는 것과 놓는 것이 갈립니다.** 놓는 것은 한 옥타브 아래로 내려 두어, 음높이가
-    // 같아도 되돌린 것으로 들립니다.
-    this.audio.tone('wood', took ? step : step - 12, took ? 0.55 : 0.4)
   }
 
   /**
@@ -4027,16 +4004,6 @@ export class Game {
     })
   }
 
-  /**
-   * 카드 소리 하나. **같은 소리는 60ms 에 한 번입니다.** 여덟 장이 35ms 간격으로 나오고
-   * 25ms 간격으로 뒤집히므로, 장마다 내면 그것은 카드 소리가 아니라 드르륵입니다.
-   */
-  private cardSound(kind: 'draw' | 'flip'): void {
-    if (this.clock - this.cardSoundAt[kind] < 0.06) return
-    this.cardSoundAt[kind] = this.clock
-    this.audio.play(kind === 'draw' ? 'card_draw' : 'card_flip')
-  }
-
   /** 예약해 둔 깔기. */
   private advanceDeals(seconds: number): void {
     // **끝난 판에는 깔지 않습니다.** 다음 패는 득점 연출이 끝난 뒤에 한 장씩 깔리는데,
@@ -4075,6 +4042,19 @@ export class Game {
       this.dealtUntil = Math.max(this.dealtUntil, next.flipAt + 0.14)
       dealt = true
     }
+
+    // **깔리는 동안 하나만 냅니다.** 여덟 장이 35ms 간격으로 나오고 25ms 간격으로
+    // 뒤집히므로, 낱장마다 내면 0.28초에 16개입니다 — 같은 소리를 60ms 에 한 번으로
+    // 줄여 두었어도 0.6초짜리 음원 다섯이 겹치는 것은 그대로였습니다.
+    if (this.deals.length > 0 || this.clock < this.dealtUntil) {
+      this.audio.sweep('deal', 0.14)
+      this.dealing = true
+    } else if (this.dealing) {
+      // **다 깔린 자리에 맺음 하나.** 지속 보이스는 끝을 알리지 않습니다.
+      this.dealing = false
+      this.audio.play('card_place', -3)
+    }
+
     if (!dealt) return
     this.refresh()
   }
@@ -4301,14 +4281,29 @@ export class Game {
       one.node.rotation = one.motion.rotation.value * (Math.PI / 180)
       one.node.scale.set(one.motion.scale.value)
 
-      // 덱에 닿았습니다. **소리는 몇 장에 한 번입니다** — 스무 장이 저마다 소리를 내면
-      // 그것은 카드가 쌓이는 소리가 아니라 잡음입니다.
+      // 덱에 닿았습니다. **닿는 소리를 장마다 내지 않습니다** — 그것은 아래의 한
+      // 보이스가 통째로 냅니다.
       if (one.motion.x.value > one.motion.x.target + 6) continue
       this.recalls.splice(i, 1)
       one.node.destroy()
       // 닿은 마지막 한 장이 이 값을 정합니다. 그만큼 덱이 자리에 남습니다.
       this.deckHold = this.clock + DECK_LINGER
-      if (i % 4 === 0) this.audio.play('card_flip', 6 + (i % 5) * 2)
+    }
+
+    // **도는 동안 하나만 냅니다.** 프레임마다 부르되 `sweep` 이 끝나는 시각만 미루므로
+    // 보이스는 하나이고, 장수가 스물이든 쉰이든 크기가 같습니다.
+    //
+    // 낱장마다 냈을 때가 문제였습니다: 스무 장이 0.4초 안에 들어오므로 보이스가 스물이고
+    // 합은 13dB 위입니다. 몇 장에 한 번으로 줄여도 0.6초짜리 음원 다섯이 겹쳐 남는 것은
+    // 「드르르륵」이었고, 그것은 카드가 쌓이는 소리가 아닙니다.
+    if (this.recalls.length > 0) {
+      this.audio.sweep('recall', 0.14)
+      this.recalling = true
+    } else if (this.recalling) {
+      // **마지막 한 장이 닿은 자리에 맺음 하나.** 지속 보이스는 끝을 알리지 않으므로,
+      // 그것만으로는 잦아든 것이 「끝났다」로 읽히지 않습니다.
+      this.recalling = false
+      this.audio.play('card_place', -5)
     }
   }
 
@@ -4326,7 +4321,17 @@ export class Game {
       // **조용히 나갑니다.** 버린 카드에만 조각을 흩뿌렸는데, 그러면 버리는 것과 득점하고
       // 물러나는 것이 화면에서 다른 일로 보입니다 — 둘 다 그 카드가 이 판에서 없어지는
       // 것이고, 무엇이 없어졌는지는 카드가 나가는 것으로 이미 보입니다.
-      this.audio.play('card_destroy')
+    }
+
+    // **나가는 동안 하나만 냅니다.** 장마다 `card_destroy` 를 냈고 그 음원이 0.693초라,
+    // 여덟 장이 나가면 여덟이 겹쳤습니다 — 회수가 그 뒤에 이어지므로 둘이 함께 「드르르륵」
+    // 이 되던 자리입니다.
+    if (this.fades.length > 0) {
+      this.audio.sweep('retire', 0.16)
+      this.sweepingOut = true
+    } else if (this.sweepingOut) {
+      this.sweepingOut = false
+      this.audio.play('card_destroy', -7)
     }
   }
 
@@ -7761,8 +7766,14 @@ export class Game {
 
     const now = Math.round(this.rankRoll)
     if (now !== before) {
-      const step = 1 - Math.abs(now - line.to) / span
-      this.audio.play('coin_land', Math.floor(step * 12))
+      // **숫자가 바뀔 때마다 내지 않습니다.** 용수철이 수렴하는 동안 값은 프레임마다
+      // 바뀌므로 초당 예순 번이고, 그것은 세는 소리가 아니라 잡음입니다 — 세는 소리로
+      // 들리는 간격이 있고 그것이 문턱입니다.
+      if (this.clock - this.rankTickAt >= RANK_TICK) {
+        this.rankTickAt = this.clock
+        const step = 1 - Math.abs(now - line.to) / span
+        this.audio.play('coin_land', ladder(Math.floor(step * 6)))
+      }
       this.drawRankLine()
     }
   }
@@ -8177,8 +8188,8 @@ export class Game {
         this.board.addChild(view)
         // 덱에서 날아옵니다. **곧바로 자리에 있으면 뽑았다는 느낌이 없습니다.**
         view.placeNow(DECK_X, DECK_Y)
-        view.onFlipped = () => this.cardSound('flip')
-        this.cardSound('draw')
+        // **낱장마다 소리를 내지 않습니다.** 깔리는 동안은 `advanceDeals` 의 지속
+        // 보이스 하나가 통째로 냅니다 — 장마다 내면 개수가 곧 보이스 수입니다.
       } else {
         view.set(card, this.editionLook(card.edition))
       }

@@ -115,6 +115,21 @@ const WOBBLE_GAIN = 0.07
 /** 좌우로 벌리는 끝. **끝까지 밀면 한쪽 귀에서만 납니다.** */
 const PAN_MOST = 0.45
 
+/**
+ * 다 난 뒤에 마디를 끊기까지의 여유.
+ *
+ * **끊지 않으면 쌓입니다.** 소리 하나가 이득 마디를 만들어 마스터에 붙이는데, 그것을
+ * 끊지 않으면 소리가 끝난 뒤에도 그래프에 남습니다 — 마스터에서 출력까지 이어져 있는 한
+ * 기계는 그 마디를 살아 있는 것으로 보고 렌더 블록마다 계산합니다.
+ *
+ * 재어 보니 손 하나에 58개씩 늘어 넷째 손에서 272개였습니다. 판을 오래 돌리면 오디오
+ * 스레드가 블록을 못 맞추고, 그때 나는 것은 「소리가 작아진다」가 아니라 **끊김과 무음**
+ * 입니다.
+ *
+ * 마스터에서 끊으면 그 위의 것들이 통째로 도달 불가가 되어 함께 회수됩니다.
+ */
+const REAP = 0.25
+
 export class Audio {
   private context?: AudioContext
   private master?: GainNode
@@ -157,6 +172,17 @@ export class Audio {
    * 대신 가장 오래된 것을 물러나게 하려면 그것을 붙잡고 있어야 합니다.
    */
   private readonly voices = new Map<string, { until: number; gain: GainNode }[]>()
+  /**
+   * 지금 도는 지속 보이스들. **이름마다 하나입니다.**
+   *
+   * **다시 부르면 늘립니다.** 새로 시작하면 그 순간 둘이 겹치고, 프레임마다 부르는
+   * 벌크 오퍼레이션에서 그것은 곧 프레임 수만큼의 보이스입니다.
+   */
+  private readonly running = new Map<string, {
+    source: AudioBufferSourceNode
+    level: GainNode
+    until: number
+  }>()
 
   /**
    * 재우기로 걸어 둔 것.
@@ -398,28 +424,31 @@ export class Audio {
     const shape = SHAPE[cueId] ?? DEFAULT_SHAPE
     const span = sample ? sample.span : shape.length
 
-    // **소리 하나가 이득 마디 하나를 갖습니다.** 겹치는 만큼 줄이는 것과, 넘칠 때 앞의
-    // 것을 물러나게 하는 것이 그 마디 하나에서 됩니다 — 음원이든 파형이든 같습니다.
-    const voice = context.createGain()
-    voice.gain.value = this.room(cueId, now, span, voice)
-      * (1 + (Math.random() - 0.5) * 2 * WOBBLE_GAIN)
-    this.spread(voice, pan)
-
     const follows = this.follows.get(cueId) ?? false
     const shift = follows ? semitones : 0
+    // **음원은 조금만 따라 올라갑니다.** 재생 속도로 올리면 그만큼 짧아지므로, 그대로
+    // 따라가게 두면 사슬의 끝에서 음원이 없어집니다 — 밝아지는 정도까지만 맡기고 가락은
+    // 위에 겹치는 음이 냅니다.
+    const tilt = Math.max(-SAMPLE_TILT_MOST, Math.min(SAMPLE_TILT_MOST, shift / SAMPLE_TILT))
+    // **같은 자리에서 두 번 내지 않습니다.** 반음의 5분의 1 안에서 흔듭니다.
+    const wobble = tilt + (Math.random() - 0.5) * 2 * WOBBLE_PITCH
+    const rate = Math.pow(2, wobble / 12)
+    // 이 소리가 실제로 나는 시간. **그만큼 뒤에 마디를 끊습니다.**
+    const heard = sample ? sample.span / rate
+      : Math.max(shape.length, shape.noise?.length ?? 0)
+
+    // **소리 하나가 이득 마디 하나를 갖습니다.** 겹치는 만큼 줄이는 것과, 넘칠 때 앞의
+    // 것을 물러나게 하는 것이 그 마디 하나에서 됩니다 — 음원이든 파형이든 같습니다.
+    const voice = this.lane(pan, heard)
+    if (!voice) return
+    voice.gain.value = this.room(cueId, now, span, voice)
+      * (1 + (Math.random() - 0.5) * 2 * WOBBLE_GAIN)
 
     // **녹음된 것이 있으면 그것입니다.**
     if (sample) {
       const source = context.createBufferSource()
       source.buffer = sample.buffer
-      // **음원은 조금만 따라 올라갑니다.** 재생 속도로 올리면 그만큼 짧아지므로, 그대로
-      // 따라가게 두면 사슬의 끝에서 음원이 없어집니다 — 밝아지는 정도까지만 맡기고 가락은
-      // 위에 겹치는 음이 냅니다.
-      const tilt = Math.max(-SAMPLE_TILT_MOST,
-        Math.min(SAMPLE_TILT_MOST, shift / SAMPLE_TILT))
-      // **같은 자리에서 두 번 내지 않습니다.** 반음의 5분의 1 안에서 흔듭니다.
-      const wobble = tilt + (Math.random() - 0.5) * 2 * WOBBLE_PITCH
-      source.playbackRate.value = Math.pow(2, wobble / 12)
+      source.playbackRate.value = rate
 
       const gain = context.createGain()
       gain.gain.value = sample.gain
@@ -463,17 +492,24 @@ export class Audio {
    * **끝까지 밀지 않습니다.** 한쪽 귀에서만 나는 소리는 이어폰에서 어긋난 것으로 들리고,
    * 한쪽 귀로만 듣는 사람에게는 아예 없는 소리가 됩니다.
    */
-  private spread(voice: GainNode, pan: number): void {
+  private lane(pan: number, seconds: number): GainNode | undefined {
     const context = this.context
     const master = this.master
-    if (!context || !master) return
-    if (pan === 0 || typeof context.createStereoPanner !== 'function') {
-      voice.connect(master)
-      return
+    if (!context || !master) return undefined
+
+    const voice = context.createGain()
+    let tail: AudioNode = voice
+    if (pan !== 0 && typeof context.createStereoPanner === 'function') {
+      const side = context.createStereoPanner()
+      side.pan.value = Math.max(-PAN_MOST, Math.min(PAN_MOST, pan))
+      voice.connect(side)
+      tail = side
     }
-    const side = context.createStereoPanner()
-    side.pan.value = Math.max(-PAN_MOST, Math.min(PAN_MOST, pan))
-    voice.connect(side).connect(master)
+    tail.connect(master)
+    // **소리가 끝나면 끊습니다.** 마스터에서 끊긴 마디는 출력에 닿지 않으므로 그 위의
+    // 것들과 함께 회수됩니다 — 끊지 않으면 판을 도는 동안 계속 쌓입니다.
+    setTimeout(() => tail.disconnect(), (seconds + REAP) * 1000)
+    return voice
   }
 
   /**
@@ -520,12 +556,15 @@ export class Audio {
     const now = context.currentTime
     const hz = BASE_HZ * Math.pow(2, (timbre.offset + semitones) / 12)
 
+    // 부분음 중 가장 오래 남는 것이 이 음의 길이입니다.
+    const heard = timbre.decay * Math.max(...timbre.parts.map(part => part[2]))
+
     // **음색마다 따로 셉니다.** 같은 음색이 잇달아 나면 그것이 겹치는 것이고, 다른
     // 음색이 함께 나는 것은 화음이라 겹치는 것이 아닙니다.
-    const voice = context.createGain()
+    const voice = this.lane(pan, heard)
+    if (!voice) return
     voice.gain.value = strength * timbre.gain
       * this.room(`tone:${name}`, now, timbre.decay, voice)
-    this.spread(voice, pan)
 
     let out: AudioNode = voice
     if (timbre.cut > 0) {
@@ -556,6 +595,94 @@ export class Audio {
       osc.start(now)
       osc.stop(now + decay + 0.02)
     }
+  }
+
+  /**
+   * 여럿이 움직이는 동안 하나만 냅니다.
+   *
+   * **프레임마다 불러도 됩니다.** 이미 도는 것이 있으면 끝나는 시각만 뒤로 미루므로,
+   * 부르는 쪽은 「지금도 움직이는 중」만 알리면 됩니다 — 시작과 끝을 세는 자리를 따로
+   * 두면 그중 하나가 반드시 빠지고, 빠진 쪽은 소리가 영영 남거나 아예 안 납니다.
+   *
+   * `seconds` 는 **지금부터 얼마나 더** 도는가입니다.
+   */
+  sweep(name: SweepName, seconds: number, strength = 1): void {
+    const context = this.context
+    const master = this.master
+    if (!context || !master || !this.hiss || this.muted) return
+
+    const shape = SWEEP[name]
+    const now = context.currentTime
+    const live = this.running.get(name)
+    const level = shape.gain * strength
+
+    // **도는 것이 있으면 늘리고 끝냅니다.**
+    if (live && live.until > now) {
+      live.until = Math.max(live.until, now + seconds)
+      this.closeAt(live, level, shape, now)
+      return
+    }
+
+    const source = context.createBufferSource()
+    source.buffer = this.hiss
+    source.loop = true
+
+    const band = context.createBiquadFilter()
+    band.type = 'bandpass'
+    band.Q.value = shape.q
+    band.frequency.setValueAtTime(shape.from, now)
+    // 대역이 이 시간에 걸쳐 옮겨 갑니다. 늘어나면 옮겨 간 자리에 머무릅니다 — 결이
+    // 잦아드는 것이 「거의 다 들어왔다」로 들립니다.
+    band.frequency.exponentialRampToValueAtTime(shape.to, now + Math.max(0.08, seconds))
+
+    // 낱장이 지나가는 결. **대역만 남긴 잡음은 바람이고, 끊으면 카드가 됩니다.**
+    const grain = context.createGain()
+    grain.gain.value = 1 - shape.depth / 2
+    const flick = context.createOscillator()
+    flick.type = 'sawtooth'
+    flick.frequency.value = shape.rate
+    const depth = context.createGain()
+    depth.gain.value = shape.depth / 2
+    flick.connect(depth).connect(grain.gain)
+    flick.start(now)
+
+    const gate = context.createGain()
+    gate.gain.setValueAtTime(0, now)
+    gate.gain.linearRampToValueAtTime(level, now + shape.attack)
+
+    source.connect(band).connect(grain).connect(gate).connect(master)
+    source.start(now)
+
+    const one = { source, level: gate, until: now + seconds }
+    this.running.set(name, one)
+    this.closeAt(one, level, shape, now)
+    // **결을 내는 것도 함께 멈추고 마디를 끊습니다.** 두고 가면 그 오실레이터 하나가
+    // 판이 끝날 때까지 돌고, 끊지 않은 마디는 그래프에 남아 렌더 블록마다 계산됩니다.
+    source.onended = () => {
+      flick.stop()
+      gate.disconnect()
+      if (this.running.get(name) === one) this.running.delete(name)
+    }
+  }
+
+  /**
+   * 그 지속 보이스가 언제 어떻게 끝나는가를 다시 예약합니다.
+   *
+   * **예약된 것을 걷고 새로 답니다.** 늘릴 때마다 앞의 잦아듦이 남아 있으면 그것이 먼저
+   * 도착해서, 아직 움직이는 중에 소리가 사라집니다.
+   */
+  private closeAt(
+    one: { source: AudioBufferSourceNode; level: GainNode; until: number },
+    level: number, shape: Sweep, now: number,
+  ): void {
+    const gain = one.level.gain
+    gain.cancelScheduledValues(now)
+    gain.setValueAtTime(gain.value, now)
+    gain.linearRampToValueAtTime(level, now + shape.attack)
+    gain.setValueAtTime(level, one.until)
+    gain.linearRampToValueAtTime(0, one.until + shape.release)
+    // **0 에 닿은 다음에 멈춥니다.** 나는 중에 멈추면 잘린 자리에서 소리가 납니다.
+    one.source.stop(one.until + shape.release + 0.02)
   }
 
   /**
@@ -676,6 +803,55 @@ export type ToneName = keyof typeof TIMBRE
 
 /** 조커에 돌아가는 음색들. **`chime` 은 사슬의 것이므로 빠집니다.** */
 export const JOKER_TIMBRES: readonly ToneName[] = ['marimba', 'glass', 'bell', 'pluck', 'wood']
+
+/**
+ * 여럿이 한꺼번에 움직이는 동안의 소리 하나.
+ *
+ * **개수만큼 트리거하지 않습니다.** 스무 장이 0.4초 안에 덱으로 들어올 때 장마다 원샷을
+ * 내면 보이스가 스물이고, 소리는 힘으로 더해지므로 합이 한 장의 √20배 — 13dB 위입니다.
+ * 몇 장에 한 번으로 줄여도 남는 것은 같습니다: 0.6초짜리 음원 다섯이 겹쳐 「드르르륵」이
+ * 되고, 그것은 카드가 쌓이는 소리가 아닙니다.
+ *
+ * **그래서 지속 보이스 하나로 냅니다.** 장수와 무관하게 하나이고, 크기가 개수를 따라
+ * 오르지 않습니다. 알릴 것은 「지금 돌려받는 중이다」 하나이므로 그것으로 충분합니다.
+ */
+interface Sweep {
+  gain: number
+  /** 대역의 처음과 끝. 올라가면 펼치는 쪽이고 내려가면 쌓이는 쪽입니다. */
+  from: number
+  to: number
+  q: number
+  /**
+   * 스치는 결. 초당 몇 번인가와 그 깊이입니다.
+   *
+   * **이것이 잡음과 카드를 가릅니다.** 대역만 남긴 잡음은 바람이고, 그것을 초당 40~60번
+   * 끊으면 낱장이 지나가는 소리가 됩니다.
+   */
+  rate: number
+  depth: number
+  attack: number
+  release: number
+}
+
+const SWEEP = {
+  /** 패가 깔립니다. 펼치는 쪽이라 대역이 올라갑니다. */
+  deal: {
+    gain: 0.15, from: 1500, to: 2600, q: 0.9, rate: 40, depth: 0.55,
+    attack: 0.02, release: 0.10,
+  },
+  /** 카드가 덱으로 돌아옵니다. 쌓이는 쪽이라 대역이 내려갑니다. */
+  recall: {
+    gain: 0.17, from: 2400, to: 1100, q: 0.8, rate: 58, depth: 0.6,
+    attack: 0.015, release: 0.12,
+  },
+  /** 판의 카드가 딜러에게 쓸려 나갑니다. 회수보다 앞이고 더 가볍습니다. */
+  retire: {
+    gain: 0.14, from: 1900, to: 950, q: 0.85, rate: 46, depth: 0.5,
+    attack: 0.02, release: 0.14,
+  },
+} as const satisfies Record<string, Sweep>
+
+export type SweepName = keyof typeof SWEEP
 
 /** 잡음 층 하나. `sweep` 은 끝날 때 대역이 몇 배가 되는가입니다. */
 interface Noise {
