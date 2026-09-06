@@ -26,6 +26,7 @@
     "check:gaps": "tsx tools/check-gaps.ts",
     "check:joker-voice": "tsx tools/check-joker-voice.ts",
     "check:stock-notes": "tsx tools/check-stock-notes.ts",
+    "check:wake": "tsx tools/check-wake.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "headless": "tsx src/headless.ts",

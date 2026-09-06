@@ -158,6 +158,14 @@ export class Audio {
    */
   private readonly voices = new Map<string, { until: number; gain: GainNode }[]>()
 
+  /**
+   * 재우기로 걸어 둔 것.
+   *
+   * **걷을 수 있어야 합니다.** 내려놓는 데 걸리는 0.05초 안에 돌아오는 일이 있고, 그때
+   * 이 예약이 남아 있으면 깨운 길을 다시 재웁니다.
+   */
+  private holding?: ReturnType<typeof setTimeout>
+
   /** 소리를 끄는가. 옵션이 정합니다. */
   muted = false
 
@@ -263,7 +271,9 @@ export class Audio {
     // **내려놓고 재웁니다.** 나는 중에 재우면 파형이 잘린 자리에서 「퍽」 소리가 나고,
     // 그것이 앱을 뒤로 보낸 사람이 마지막으로 듣는 소리가 됩니다.
     if (this.master) glide(this.master.gain, 0, context.currentTime)
-    window.setTimeout(() => {
+    if (this.holding !== undefined) clearTimeout(this.holding)
+    this.holding = setTimeout(() => {
+      this.holding = undefined
       this.music.hold()
       void context.suspend().catch(() => undefined)
       // **다시 올려 둡니다.** 재운 뒤이므로 들리지 않고, 깨울 때 음량이 0 인 채로
@@ -281,6 +291,16 @@ export class Audio {
   wake(): void {
     const context = this.context
     if (!context) return
+    // **재우기로 걸어 둔 것을 먼저 걷습니다.** 내려놓는 0.05초 안에 돌아오면 그 예약이
+    // 깨운 뒤에 도착해서, 방금 깨운 길을 다시 재웁니다 — 데스크탑에서는 창을 내렸다 올릴
+    // 때까지 `visibilitychange` 가 다시 오지 않으므로, 그 판이 끝날 때까지 소리가
+    // 없어집니다.
+    if (this.holding !== undefined) {
+      clearTimeout(this.holding)
+      this.holding = undefined
+      // 예약이 하려던 것 중 이것만 지금 합니다. 재우지 않으므로 음량은 되돌립니다.
+      if (this.master) glide(this.master.gain, this.level, context.currentTime)
+    }
     if (context.state === 'running') {
       this.music.resume()
       return
