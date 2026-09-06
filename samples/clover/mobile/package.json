@@ -7,10 +7,10 @@
     "web": "cd ../web && npm run build",
     "sync": "cap sync android",
     "prepare:android": "npm run web && npm run sync",
-    "apk": "npm run prepare:android && cd android && ./gradlew assembleDebug",
-    "apk:win": "npm run prepare:android && cd android && .\\gradlew assembleDebug",
-    "apk:release": "npm run prepare:android && cd android && ./gradlew assembleRelease",
-    "apk:release:win": "npm run prepare:android && cd android && .\\gradlew assembleRelease",
+    "apk": "npm run prepare:android && cd android && ./gradlew assembleRelease",
+    "apk:win": "npm run prepare:android && cd android && .\\gradlew assembleRelease",
+    "apk:debug": "npm run prepare:android && cd android && ./gradlew assembleDebug",
+    "apk:debug:win": "npm run prepare:android && cd android && .\\gradlew assembleDebug",
     "open": "cap open android"
   },
   "devDependencies": {

@@ -6,12 +6,12 @@
 
 ```
 npm install
-npm run apk              # 웹 빌드 → 동기화 → 디버그 APK
-npm run apk:release      # 서명하지 않은 릴리스 APK
+npm run apk              # 웹 빌드 → 동기화 → 서명하지 않은 릴리스 APK
+npm run apk:debug        # 디버그 APK. 지금은 쓰지 않습니다
 npm run open             # 안드로이드 스튜디오로 열기
 ```
 
-**윈도우에서는 `:win` 을 붙입니다** — `npm run apk:win` · `npm run apk:release:win`.
+**윈도우에서는 `:win` 을 붙입니다** — `npm run apk:win` · `npm run apk:debug:win`.
 래퍼를 부르는 방법이 갈리기 때문입니다: POSIX 셸은 `./gradlew` 라야 현재 폴더의 것을
 찾고, `cmd.exe` 는 `./gradlew` 를 알아듣지 못하고 `gradlew` 라야 `gradlew.bat` 를 찾습니다.
 **한 줄로 둘 다 되는 표기가 없어서** 두 줄입니다.
@@ -21,8 +21,8 @@ npm run open             # 안드로이드 스튜디오로 열기
 
 |무엇|파일|
 |--|--|
-|디버그|`out/clover-<판>.apk`. 그 자리의 이름은 `android/app/build/outputs/apk/debug/app-debug.apk` 이고, **빌드가 끝나면 저 이름으로 베껴 둡니다** — `app/build.gradle` 이 합니다|
-|릴리스(서명 없음)|`out/clover-<판>-release.apk`. 그 자리의 이름은 `android/app/build/outputs/apk/release/app-release-unsigned.apk` 입니다|
+|릴리스(서명 없음)|`out/clover-<판>.apk`. 그 자리의 이름은 `android/app/build/outputs/apk/release/app-release-unsigned.apk` 이고, **빌드가 끝나면 저 이름으로 베껴 둡니다** — `app/build.gradle` 이 합니다. **짧은 이름이 이쪽입니다** — 손에 쥐고 옮기는 것이 이것입니다|
+|디버그|`out/clover-<판>-debug.apk`. 그 자리의 이름은 `android/app/build/outputs/apk/debug/app-debug.apk` 입니다. **지금은 쓰지 않습니다**|
 
 ## 필요한 것
 
