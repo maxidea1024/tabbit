@@ -183,8 +183,6 @@ def output_checks():
     targets = [
         ('웹 TypeScript', 'web/src/generated/clover-data.ts'),
         ('웹 바이너리', 'web/public/data/Joker.tcb'),
-        ('유니티 C#', 'unity/Assets/Clover/Generated/CloverData.cs'),
-        ('유니티 바이너리', 'unity/Assets/StreamingAssets/tables/Joker.bytes'),
         ('사람이 읽는 문서', 'design-data/out/html/index.html'),
         ('인코딩 보고서', 'design-data/out/encoding-report.txt'),
         ('스키마 기준선', 'design-data/out/schema-baseline.json'),
@@ -193,10 +191,7 @@ def output_checks():
         check(name + ' 산출물', os.path.exists(os.path.join(SAMPLE, rel)), rel)
 
     tcb = [f for f in os.listdir(os.path.join(SAMPLE, 'web/public/data')) if f.endswith('.tcb')]
-    bytes_ = [f for f in os.listdir(os.path.join(SAMPLE, 'unity/Assets/StreamingAssets/tables'))
-              if f.endswith('.bytes')]
-    check('두 플랫폼의 테이블 수가 같습니다', len(tcb) == len(bytes_),
-          '%d개 / %d개' % (len(tcb), len(bytes_)))
+    check('테이블이 전부 나왔습니다', len(tcb) >= 46, '%d개' % len(tcb))
 
 
 # ---------------------------------------------------------------------------
@@ -229,7 +224,7 @@ def workaround_checks():
 def doc_checks():
     """문서가 선언을 따라오는가.
 
-    변종을 하나 더하고 문서를 잊으면 두 구현이 문서만 보고 만들다가 갈라집니다.
+    변종을 하나 더하고 문서를 잊으면 시트에 적을 수 있는 것이 문서에 없게 됩니다.
     """
     effect = read(os.path.join(DESIGN, 'schemas', 'effect.tbs'))
     opcodes = read(os.path.join(SAMPLE, 'doc', 'effect-vm', 'opcodes.md'))
@@ -277,7 +272,7 @@ def core_checks():
                if f.endswith('.json')]
     check('구운 리플레이가 있습니다', len(replays) >= 10, '%d개' % len(replays))
 
-    # 리플레이가 같은 해시를 다시 냅니다. **여기가 유니티와 대조할 자리입니다.**
+    # 리플레이가 같은 해시를 다시 냅니다. **코어의 회귀를 보는 자리입니다.**
     #
     # **한 번에 열셋을 봅니다.** 리플레이마다 `npx tsx` 를 따로 띄웠고, 그 열셋의 값은
     # 판을 도는 값이 아니라 **띄우는 값**이었습니다 — 한 번 띄우는 데 npx 가 프로그램을

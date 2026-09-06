@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Const.xlsx · Feel.xlsx · Text.xlsx — 상수셋 · 연출 수치 · 번역 대조본.
 
-**연출 수치도 데이터입니다.** 웹과 유니티가 같은 문턱을 읽어야 같은 세기로 보입니다.
+**연출 수치도 데이터입니다.** 문턱이 코드에 있으면 기획이 세기를 고칠 수 없습니다.
 """
 
 from . import cards, consumables, jokers, phrases, progression, setup_, shop
@@ -233,7 +233,7 @@ def seed():
           constants('RunConst', '런 하나의 시작값과 상한입니다.', RUN))
     write('Const_Score',
           constants('ScoreConst',
-                    '득점의 단위와 규격입니다. **두 구현이 같아야 하는 값들입니다.**', SCORE))
+                    '득점의 단위와 규격입니다. **코드가 아니라 여기 있어야 하는 값들입니다.**', SCORE))
     write('Const_Economy',
           constants('EconomyConst', '금액에 관한 값입니다.', ECONOMY))
 
@@ -246,7 +246,7 @@ def seed():
 
     write('Const_Feel',
           constants('FeelConst',
-                    '연출의 길이와 문턱입니다. **두 런타임이 같은 값을 읽습니다.**', FEEL))
+                    '연출의 길이와 문턱입니다. **연출 수치도 데이터입니다.**', FEEL))
 
     write('Transition', table(
         'Transition(key=transition_id)',
@@ -263,7 +263,7 @@ def seed():
 
     write('EditionVisual', table(
         'EditionVisual(key=edition)',
-        '에디션 셰이더의 파라미터입니다. 웹 GLSL과 유니티 HLSL이 같은 수식에 이 값을 넣습니다.',
+        '에디션 셰이더의 파라미터입니다. 값이 코드가 아니라 여기 있어야 기획이 고칠 수 있습니다.',
         ['edition', 'shader', 'strength', 'flow_speed', 'noise'],
         ['EditionKind', 'string', 'int (min=0)', 'int (min=0)', 'int (min=0)'],
         ['에디션', '셰이더 이름', '세기. 만분율', '흐르는 속도. 만분율', '노이즈. 만분율'],

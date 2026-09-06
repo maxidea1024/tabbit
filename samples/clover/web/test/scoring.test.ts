@@ -1,7 +1,7 @@
 // 득점과 효과 VM.
 //
 // **값이 정확히 얼마인지를 봅니다.** 「대충 늘었다」가 아니라 「28 이 84 가 되었다」여야,
-// 유니티 쪽이 같은 답을 냈는지 판정할 수 있습니다.
+// 효과 VM 규격과 어긋난 것을 판정할 수 있습니다.
 
 import { beforeAll, describe, expect, it } from 'vitest'
 import * as path from 'path'

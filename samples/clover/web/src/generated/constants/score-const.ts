@@ -7,7 +7,7 @@
 
 
 // Generated from samples/clover/design-data/xlsx/Const.xlsx : Const_Score : A1
-/** 득점의 단위와 규격입니다. **두 구현이 같아야 하는 값들입니다.** */
+/** 득점의 단위와 규격입니다. **코드가 아니라 여기 있어야 하는 값들입니다.** */
 export class ScoreConst {
   /** 배수의 단위. 10000이 ×1 */
   public static readonly multScale: number = 10000

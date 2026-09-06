@@ -1,13 +1,13 @@
-# clover — 같은 데이터셋으로 두 플랫폼
+# clover — 시트 한 벌로 게임 한 편
 
 [`sprout`](../sprout)과 [`canopy`](../canopy)는 **남의 규칙으로 쓰인 시트를 읽어낸다**의
 증거이고, [`wildling`](../wildling)은 **우리 규칙으로 적은 데이터로 게임이 돈다**의 증거입니다.
 
-`clover`가 두는 것은 그다음 질문입니다 — **같은 데이터셋이 서로 다른 두 런타임에서 같은
-게임이 되는가.**
+`clover`가 두는 것은 그다음 질문입니다 — **상용 규모의 기획 데이터 전부가 시트에 있어도
+게임 한 편이 도는가.**
 
-포커 로그라이크 한 편을 **규칙과 수치까지 그대로** 재현하고, 그것을 웹과 유니티에 각각
-만듭니다. 규칙은 시트에 있고, 두 구현은 그 시트를 읽는 서로 독립된 프로그램입니다.
+포커 로그라이크 한 편을 **규칙과 수치까지 그대로** 재현합니다. 조커 500종과 테이블 46개가
+시트에 있고, 코드는 그것을 해석합니다.
 
 ```
 dotnet run --project src/Tabbit.csproj -- --recipe samples/clover/design-data/recipe.jsonc
@@ -19,7 +19,6 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/clover/design-data/re
 |--|--|
 |기획 데이터 전부|`design-data/` — 워크북 10개 · 테이블 46개 · `.tbs` 4개 · 검증 규칙 3개 · recipe|
 |웹 게임|`web/` — 코어 · 화면 · 연출. PixiJS v8 · Vite · TypeScript|
-|유니티 게임|`unity/` — URP 2D|
 |독립 실행|[desktop/](desktop/readme.md) — 웹 빌드를 담은 일렉트론 창. 포터블 exe 와 설치본|
 |안드로이드|[mobile/](mobile/readme.md) — 같은 웹 빌드를 담은 APK. Capacitor|
 |문서|[doc/](doc/readme.md)|
@@ -30,11 +29,11 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/clover/design-data/re
 
 |기준|측정|
 |--|--|
-|**리플레이 대조**|시드와 액션 배열 하나가 웹과 유니티에서 **같은 점수와 같은 상태 해시**를 냅니다|
+|**리플레이 회귀**|구워 둔 리플레이 21개가 **같은 점수와 같은 상태 해시**를 다시 냅니다|
 |**원작 대조**|[대조표](doc/parity.md)의 규칙·수치 항목마다 우리 데이터의 자리가 있고 빈 칸이 없습니다|
 |**출시 형태**|세이브 · 이어하기 · 옵션 · 사운드 · 지역화 2종 · 도전과제 · 빌드 산출물|
 
-두 구현이 같다는 것이 데이터가 맞다는 뜻은 아니므로 **대조가 둘**입니다.
+해시가 재현되는 것이 데이터가 맞다는 뜻은 아니므로 **대조가 둘**입니다.
 
 ## 모작의 경계
 
@@ -53,13 +52,13 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/clover/design-data/re
 원작의 그림을 보지 않고 만듭니다. **트럼프만 예외입니다** — 그 얼굴은 몇백 년째 같은 모양이고
 누구의 것도 아니라서, 새로 지어내면 「이것은 트럼프다」라는 낱말을 잃습니다.
 
-## 코어를 두 번 쓰는 것
+## 규칙이 있는 곳
 
-트랜스파일도 공용 WebAssembly도 쓰지 않습니다. **규칙이 한 곳에 있으면 갈라질 수 없고,
-갈라질 수 없으면 대조가 아무것도 증명하지 않습니다.**
+[효과 VM](doc/effect-vm.md)이 정본입니다. 조커 500종의 효과가 시트의 행으로 적혀 있고 코드에
+남은 것은 `Custom` 1건입니다 — **효과의 99% 이상이 데이터에 있습니다.**
 
-[효과 VM](doc/effect-vm.md)이 정본이고 구현이 둘입니다. 한쪽을 보고 다른 쪽을 옮기지
-않습니다 — [그 이유](doc/architecture.md#코어를-두-번-쓰는-이유)가 있습니다.
+코어는 하나이고 데스크탑과 안드로이드도 같은 웹 빌드를 담습니다 —
+[그 구조](doc/architecture.md)가 있습니다.
 
 ## 지금의 상태
 
@@ -72,9 +71,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/clover/design-data/re
 |P2 데이터 저작|**끝**|
 |P3 코어 (TypeScript)|**끝**|
 |P4 웹 게임|**끝**|
-|P5 유니티|대기|
-|P6 대조 게이트|대기|
-|P7 출시 형태|대기|
+|P5 출시 형태|대기|
 
 ---
 

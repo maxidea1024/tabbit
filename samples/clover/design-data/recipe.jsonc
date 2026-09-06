@@ -1,6 +1,6 @@
 {
-  // 포커 로그라이크 한 편의 기획 데이터 전부입니다. 규칙과 수치가 여기 있고, 웹과 유니티는
-  // 이것을 읽는 서로 독립된 두 구현입니다.
+  // 포커 로그라이크 한 편의 기획 데이터 전부입니다. 규칙과 수치가 여기 있고, 웹이
+  // 이것을 읽습니다.
   //
   //     dotnet run --project src/Tabbit.csproj -- --recipe samples/clover/design-data/recipe.jsonc
 
@@ -31,11 +31,7 @@
     "OnViolation": "error"
   },
 
-  // 조커 150종의 그림. **웹과 유니티가 같은 파일을 씁니다** — 그림은 한 벌이고 두 플랫폼이
-  // 각자 자기 형식으로 가져갑니다.
-  //
-  // 그림은 `web/public/art/` 에 있습니다. 웹이 그대로 서빙하는 자리이고, 유니티는
-  // 임포트할 때 거기서 가져갑니다 — 한 벌을 두 곳에 두지 않기 위해서입니다.
+  // 조커 150종의 그림. `web/public/art/` 에 있고 웹이 그대로 서빙합니다.
   //
   // **604장이 전부 들어왔으므로 `error` 입니다.** 확장 350종을 굽는 동안만 `warn` 으로
   // 한 칸 내려 두었고, 그때는 `verify.py` 가 「빠진 것이 정확히 확장 350종」을 셀습니다.
@@ -67,21 +63,6 @@
       "Path": "samples/clover/web/public/data",
       "EncodingReport": "samples/clover/design-data/out/encoding-report.txt",
       "SchemaBaseline": "samples/clover/design-data/out/schema-baseline.json"
-    },
-    {
-      "Type": "csharp",
-      "Path": "samples/clover/unity/Assets/Clover/Generated",
-      "Namespace": "Clover.Data",
-      "AccessorName": "CloverData",
-      "BinaryTableFileExtension": ".bytes",
-      "WriteUpdater": true
-    },
-    {
-      // 유니티가 TextAsset 으로 포함합니다. 위의 `.tcb` 와 **같은 바이트**입니다 —
-      // 확장자만 다릅니다.
-      "Type": "binary",
-      "Path": "samples/clover/unity/Assets/StreamingAssets/tables",
-      "FileExtension": ".bytes"
     },
     {
       // 값이 제대로 들어갔는지 눈으로 보는 자리. 게임이 로드하지 않고 사람이 읽습니다.

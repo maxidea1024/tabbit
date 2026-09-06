@@ -25,7 +25,7 @@ interface IDataRow {
 }
 
 // Generated from samples/clover/design-data/xlsx/Feel.xlsx : EditionVisual : A1
-/** 에디션 셰이더의 파라미터입니다. 웹 GLSL과 유니티 HLSL이 같은 수식에 이 값을 넣습니다. */
+/** 에디션 셰이더의 파라미터입니다. 값이 코드가 아니라 여기 있어야 기획이 고칠 수 있습니다. */
 export class EditionVisualRecord {
   /** Default constructor */
   constructor() {
@@ -73,7 +73,7 @@ export class EditionVisualRecord {
 }
 
 // Generated from samples/clover/design-data/xlsx/Feel.xlsx : EditionVisual : A1
-/** 에디션 셰이더의 파라미터입니다. 웹 GLSL과 유니티 HLSL이 같은 수식에 이 값을 넣습니다. */
+/** 에디션 셰이더의 파라미터입니다. 값이 코드가 아니라 여기 있어야 기획이 고칠 수 있습니다. */
 export class EditionVisualTable {
   /** Default constructor. */
   constructor() {

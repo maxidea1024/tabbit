@@ -123,9 +123,8 @@ design-data/data/*.tsv          격자. 사람이 고치는 정본
         ↓  tools/Authoring      서식만 얹습니다
 design-data/xlsx/*.xlsx         워크북 10개
         ↓  recipe.jsonc
-web/src/generated · web/public/data          typescript · binary
-unity/Assets/Clover/Generated · StreamingAssets   csharp · binary
-design-data/out/html                          사람이 읽는 문서
+web/src/generated · web/public/data     typescript · binary
+design-data/out/html                    사람이 읽는 문서
 ```
 
 ---

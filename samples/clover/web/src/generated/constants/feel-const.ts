@@ -7,7 +7,7 @@
 
 
 // Generated from samples/clover/design-data/xlsx/Feel.xlsx : Const_Feel : A1
-/** 연출의 길이와 문턱입니다. **두 런타임이 같은 값을 읽습니다.** */
+/** 연출의 길이와 문턱입니다. **연출 수치도 데이터입니다.** */
 export class FeelConst {
   /** 득점 카드 하나의 연출 길이 */
   public static readonly scoreStepMs: number = 230

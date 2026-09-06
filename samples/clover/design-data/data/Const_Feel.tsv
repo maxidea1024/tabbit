@@ -1,4 +1,4 @@
-:const FeelConst	연출의 길이와 문턱입니다. **두 런타임이 같은 값을 읽습니다.**
+:const FeelConst	연출의 길이와 문턱입니다. **연출 수치도 데이터입니다.**
 :field	name	type	value	desc
 	ScoreStepMs	int	230	득점 카드 하나의 연출 길이
 	JokerStepMs	int	280	조커 하나의 연출 길이

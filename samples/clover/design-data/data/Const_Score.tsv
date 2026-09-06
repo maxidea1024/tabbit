@@ -1,4 +1,4 @@
-:const ScoreConst	득점의 단위와 규격입니다. **두 구현이 같아야 하는 값들입니다.**
+:const ScoreConst	득점의 단위와 규격입니다. **코드가 아니라 여기 있어야 하는 값들입니다.**
 :field	name	type	value	desc
 	MultScale	int	10000	배수의 단위. 10000이 ×1
 	MultDefault	int	10000	곱 누적값의 시작값
