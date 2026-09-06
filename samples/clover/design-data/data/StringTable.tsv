@@ -1281,7 +1281,7 @@
 	ui.hand.preview_math	칩 {chips}  ×  배수 {mult}   =   {total}	Chips {chips}  ×  Mult {mult}   =   {total}	チップ {chips}  ×  倍率 {mult}   =   {total}	筹码 {chips}  ×  倍率 {mult}   =   {total}	籌碼 {chips}  ×  倍率 {mult}   =   {total}	Chips {chips}  ×  Mult {mult}   =   {total}
 	ui.hint.selected	{n}장 골랐습니다   ·   「낸다」 로 점수를 내거나	{n} picked   ·   press Play to score, or	{n} 枚選びました   ·   「出す」で得点するか	已选 {n} 张   ·   按「出牌」得分，或	已選 {n} 張   ·   按「出牌」得分，或	{n} gewählt   ·   Ausspielen zum Werten, oder
 	ui.hint.pick_cards	카드를 눌러 고릅니다 — 최대 {n}장	Tap cards to pick — up to {n}	カードを押して選びます — 最大 {n} 枚	点击卡牌选择 — 最多 {n} 张	點擊卡牌選擇 — 最多 {n} 張	Karten antippen — bis zu {n}
-	ui.hint.best_hand	테두리가 도는 {n}장이 지금 가장 높은 족보입니다	The {n} outlined cards make the best hand right now	枠が付いた {n} 枚が今いちばん高い役です	带边框的 {n} 张是当前最高的牌型	帶邊框的 {n} 張是當前最高的牌型	Die {n} umrandeten Karten ergeben gerade das beste Blatt
+	ui.hint.best_hand	아래에 점이 찍힌 {n}장이 지금 가장 높은 족보입니다	The {n} cards marked with a dot make the best hand right now	下に点が付いた {n} 枚が今いちばん高い役です	标有圆点的 {n} 张是当前最高的牌型	標有圓點的 {n} 張是當前最高的牌型	Die {n} mit einem Punkt markierten Karten ergeben gerade das beste Blatt
 	ui.over.short	{where}에서 {n}점이 모자랐습니다.	You were {n} short at {where}.	{where} で {n} 点足りませんでした。	在{where}还差 {n} 分。	在{where}還差 {n} 分。	Bei {where} fehlten dir {n} Punkte.
 	ui.over.stopped	{where}에서 멈췄습니다.	You stopped at {where}.	{where} で止まりました。	在{where}停下了。	在{where}停下了。	Bei {where} war Schluss.
 	ui.over.won	안테 {n}까지 넘겼습니다.	You cleared through Ante {n}.	アンティ {n} まで突破しました。	通过了底注 {n}。	通過了底注 {n}。	Du hast bis Ante {n} geschafft.
