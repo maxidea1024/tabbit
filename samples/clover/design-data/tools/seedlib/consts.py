@@ -21,6 +21,32 @@ RUN = [
                                       '**원작의 값을 수집하지 못했으므로 우리 값입니다**'),
 ]
 
+# 씬이 갈리는 자리마다 어떻게 지우는가.
+#
+# **방향이 뜻입니다.** 판으로 들어가는 것과 나오는 것은 같은 방법에 방향만 반대이고, 계정
+# 화면은 옆으로 갑니다 — 들어가고 나오는 것과 옆으로 가는 것이 다른 일이기 때문입니다.
+#
+# 규격은 `doc/ui/transition.md` 입니다.
+INK = '#05070d'
+LIGHT = '#f4ecd8'
+TRANSITION = [
+    ('title_run', 'Push', 340, 70, 420, INK, True, '-', '판으로 들어갑니다'),
+    ('run_title', 'Push', 300, 60, 360, INK, False, '-', '판에서 나옵니다'),
+    ('run_lost', 'Burn', 520, 80, 340, INK, True, 'joker_burn',
+     '진 판이 그 자리에서 타 없어집니다'),
+    ('run_won', 'Fade', 300, 60, 380, LIGHT, True, 'voucher_buy',
+     '이긴 판만 밝은 쪽으로 나갑니다'),
+    ('run_restart', 'Blocks', 260, 60, 300, INK, True, '-',
+     '접고 곧바로 펴는 것이므로 짧고 건조합니다'),
+    ('login_title', 'Slide', 260, 50, 300, INK, True, '-', '로그인 화면에서 타이틀로'),
+    ('title_login', 'Slide', 260, 50, 300, INK, False, '-', '타이틀에서 로그인 화면으로'),
+    ('boot_first', 'Fade', 0, 0, 520, INK, True, '-',
+     '로딩에서 첫 화면으로. **지울 앞 화면이 없으므로 되돌리기만 합니다**'),
+    ('quiet', 'Fade', 120, 0, 120, INK, True, '-',
+     '전환을 줄였을 때. **0이 아닙니다** — 갈아 끼우는 프레임은 어느 설정에서도 '
+     '보이면 안 됩니다'),
+]
+
 SCORE = [
     ('MultScale', 'int', 10000, '배수의 단위. 10000이 ×1'),
     ('MultDefault', 'int', 10000, '곱 누적값의 시작값'),
@@ -222,6 +248,19 @@ def seed():
           constants('FeelConst',
                     '연출의 길이와 문턱입니다. **두 런타임이 같은 값을 읽습니다.**', FEEL))
 
+    write('Transition', table(
+        'Transition(key=transition_id)',
+        '씬이 갈릴 때 화면을 어떻게 지우는가입니다. **덮개를 그리는 것이 아니라 화면 자체를 '
+        '처리합니다.**',
+        ['transition_id', 'kind', 'out_ms', 'hold_ms', 'in_ms', 'ink', 'toward', 'cue', 'note'],
+        ['string (regex="^[a-z][a-z0-9_]*$")', 'TransitionKind', 'int (min=0, max=2000)',
+         'int (min=0, max=2000)', 'int (min=0, max=2000)',
+         'string (regex="^#[0-9a-f]{6}$")', 'bool', 'string?', 'string'],
+        ['갈리는 자리', '지우는 방법', '지우는 시간. 밀리초', '아무것도 보이지 않는 채로 머무는 시간',
+         '되돌리는 시간', '다 지워진 자리에 남는 색', '다가오는가. 밀림과 옆으로가 이 값을 봅니다',
+         '시작할 때 나는 소리. `SoundCue` 의 이름', '어느 자리인가'],
+        [list(t) for t in TRANSITION]))
+
     write('EditionVisual', table(
         'EditionVisual(key=edition)',
         '에디션 셰이더의 파라미터입니다. 웹 GLSL과 유니티 HLSL이 같은 수식에 이 값을 넣습니다.',
@@ -254,4 +293,4 @@ def seed():
         ['식별자', '표시 이름', '조건', '표시 순서'],
         [[a[0], a[1], a[2], i + 1] for i, a in enumerate(ACHIEVEMENT)]))
 
-    return 9
+    return 10

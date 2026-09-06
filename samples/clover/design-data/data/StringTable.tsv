@@ -1182,6 +1182,7 @@
 	ui.option.shake	화면 흔들림	Screen Shake	画面の揺れ	画面震动	畫面震動	Bildschirmwackeln
 	ui.option.particles	파티클	Particles	パーティクル	粒子	粒子	Partikel
 	ui.option.chromatic	색수차	Chromatic	色収差	色差	色差	Farbsaum
+	ui.option.transition	화면 전환	Scene Transitions	画面切り替え	场景切换	場景切換	Szenenübergänge
 	ui.option.speed	연출 속도	Animation Speed	演出速度	动画速度	動畫速度	Tempo
 	ui.option.hints	족보 도움	Hand Hints	役ヒント	牌型提示	牌型提示	Blatt-Hinweise
 	ui.option.haptics	진동	Vibration	振動	振动	振動	Vibration
@@ -1199,6 +1200,7 @@
 	ui.option.note.particles	카드 뒤에서 터지는 조각들입니다	Bits that burst behind the cards	カードの後ろではじける粒です	卡牌后方迸出的碎片	卡牌後方迸出的碎片	Teilchen, die hinter den Karten aufplatzen
 	ui.option.note.shake	큰 값에서 판이 흔들립니다	The board shakes on big values	大きな値で盤が揺れます	数值大时画面会震动	數值大時畫面會震動	Das Feld wackelt bei großen Werten
 	ui.option.note.chromatic	한 방 먹을 때 색이 갈라집니다	Colours split apart on a big hit	大きな一撃で色がずれます	大幅得分时颜色分离	大幅得分時顏色分離	Farben trennen sich bei einem großen Treffer
+	ui.option.note.transition	씬이 갈릴 때 화면이 지워졌다 돌아옵니다	The screen wipes out and back when scenes change	シーンが変わるとき画面が消えて戻ります	切换场景时画面会消失后返回	切換場景時畫面會消失後返回	Beim Szenenwechsel blendet der Bildschirm aus und wieder ein
 	ui.option.note.haptics	중요한 순간에 기계가 떱니다	The device buzzes at the moments that matter	大事な場面で端末が震えます	关键时刻设备会振动	關鍵時刻裝置會震動	Das Gerät vibriert in wichtigen Momenten
 	ui.deck.left	덱에 남아 있습니다	Still in the deck	デッキに残っています	仍在牌组中	仍在牌組中	Noch im Deck
 	ui.deck.in_hand	지금 손에 있습니다	In your hand now	今、手札にあります	现在在手牌中	現在在手牌中	Jetzt auf der Hand

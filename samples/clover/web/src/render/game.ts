@@ -89,6 +89,9 @@ import { newMetrics, observe, type MetricsAcc } from '../core/metrics'
 import { clearRun, loadRun, saveRun, type SavedRun } from '../core/save-run'
 
 import type { Scene } from './scene'
+import {
+  readCrossings, Transition, type Crossings, type TransitionId,
+} from './transition'
 import { FOOTER_BAR, PANEL_BOTTOM, panelFrame, TITLE_BAR } from '../ui/modal'
 import { cellPlate, hairline, priceText, ProgressBar, sectionHead, SECTION_H, valueCell } from '../ui/parts'
 import { Modals, type ModalPanel } from '../ui/modal'
@@ -859,6 +862,14 @@ interface PackView {
 
 export class Game {
   private readonly world = new Container()
+  /**
+   * 화면 전부.
+   *
+   * **배경과 판이 한 통에 있습니다.** 씬이 갈릴 때 들어오는 화면에 필터를 거는데, 그
+   * 대상이 판만이면 배경만 처리되지 않은 채로 남습니다 — 화면이 갈리는 것은 판에만
+   * 일어나는 일이 아닙니다.
+   */
+  private readonly screen = new Container()
   private readonly backdrop = new Container()
   /**
    * 판 밖을 잘라 내는 사각형.
@@ -1478,6 +1489,24 @@ export class Game {
    * 몫이고, 여기서는 타이틀과 판 사이를 오갑니다.
    */
   private scene: Scene = 'title'
+  /**
+   * 화면과 화면 사이.
+   *
+   * **규격은 `doc/ui/transition.md` 입니다.** 씬을 바꾸는 자리는 「무엇을 할지」만 넘기고,
+   * 언제 할지는 그쪽이 정합니다 — 완전히 덮인 프레임입니다.
+   */
+  private readonly transition = new Transition({
+    shoot: () => this.shoot(),
+    play: cue => this.audio.play(cue),
+    screen: this.screen,
+  })
+  /**
+   * 자리마다 화면을 어떻게 지우는가. **시트가 정합니다.**
+   *
+   * 생성자에서 채웁니다 — 필드의 초기식은 생성자 본문보다 먼저 도는데 그 자리에는 아직
+   * 표가 없습니다.
+   */
+  private crossings!: Crossings
   /** 옵션. 타이틀이 고치고 화면이 읽습니다. */
   private readonly settings: Options = loadOptions()
 
@@ -1935,6 +1964,9 @@ export class Game {
               /** 시간이 `__clover.advance` 로만 흐릅니다. 검증 도구가 `?tick=manual` 로 켭니다. */
               private readonly manualTick = false) {
     this.feel = readFeel(data.feel)
+    // **씬이 갈리는 방법도 시트에 있습니다.** 화면을 세우기 전에 읽어 둡니다 — 첫 전환은
+    // 부팅이 끝나는 그 자리입니다.
+    this.crossings = readCrossings(data)
     this.bootSeed = seed
     this.audio = new Audio(data.tables)
     const first = this.setup()
@@ -1953,7 +1985,7 @@ export class Game {
       onQuit: () => this.askQuit(),
     })
     this.hub.onAccountChanged = () => this.syncAccount()
-    this.hub.onNeedLogin = () => this.enterLogin()
+    this.hub.onNeedLogin = () => this.cross('title_login', () => this.enterLogin())
     this.hub.onSignOut = () => this.signOut()
     this.login = new LoginScene()
     // **로그인 화면에서 고른 말이 옵션에도 남습니다.** 그러지 않으면 다음에 켤 때
@@ -1966,10 +1998,11 @@ export class Game {
     this.login.onQuit = () => this.askQuit()
     this.login.onSingle = () => {
       account.playAsGuest()
-      this.enterTitle()
+      this.cross('login_title', () => this.enterTitle())
     }
     // 개발용 로그인은 제공자를 지난 것과 같은 자리입니다 — 내 것을 읽고 타이틀로 갑니다.
-    this.login.onSignedIn = () => void this.hub.refresh().then(() => this.enterTitle())
+    this.login.onSignedIn = () =>
+      void this.hub.refresh().then(() => this.cross('login_title', () => this.enterTitle()))
     // 도감. **보는 곳이고 고르는 곳이 아닙니다** — 다음 판의 풀은 판을 여는 자리에서
     // 고릅니다. 처음 열 때 조커 탭이 보여 주는 범위만 그 값을 따릅니다.
     this.collection = new CollectionPanel(data, this.collected, this.settings.pool,
@@ -2001,16 +2034,20 @@ export class Game {
           this.settings.stake = next.stake
           saveOptions(this.settings)
           this.hub.clearRanked()
-          this.layRun(randomSeed())
-          this.enterRun()
+          this.cross('title_run', () => {
+            this.layRun(randomSeed())
+            this.enterRun()
+          })
         })
       },
       onStartChallenge: (challengeId: string) => {
         this.modals.close(this.runPanel)
         this.challengeId = challengeId
         this.hub.clearRanked()
-        this.layRun(randomSeed())
-        this.enterRun()
+        this.cross('title_run', () => {
+          this.layRun(randomSeed())
+          this.enterRun()
+        })
       },
       onStartRanked: () => {
         this.modals.close(this.runPanel)
@@ -2018,7 +2055,7 @@ export class Game {
       },
       onResume: () => {
         this.modals.close(this.runPanel)
-        this.continueRun()
+        this.cross('title_run', () => this.continueRun())
       },
       onDiscard: () => this.askDiscardRun(),
     })
@@ -2051,7 +2088,10 @@ export class Game {
     //
     // 마스크 하나로 무대 전체를 자릅니다. 판 밖으로 나가는 것이 배경만이 아니기
     // 때문입니다 — 번쩍임은 `-2000` 부터 그리고 모달의 막은 판의 3배입니다.
-    app.stage.addChild(this.backdrop, this.world, this.cropBox)
+    this.screen.addChild(this.backdrop, this.world)
+    // **전환은 화면 위입니다.** 나가는 화면의 사진이 그 화면 위에 놓여야 하고, 들어오는
+    // 화면에 걸리는 필터가 이 층까지 처리하면 안 됩니다.
+    app.stage.addChild(this.screen, this.transition.view, this.cropBox)
     app.stage.mask = this.cropBox
 
     // **타이틀은 독립된 화면입니다.** 시작을 누르기 전에는 판도 조각들도 그리지 않습니다 —
@@ -2687,8 +2727,10 @@ export class Game {
     if (seed === undefined) return
 
     this.challengeId = ''
-    this.layRun(seed)
-    this.enterRun()
+    this.cross('title_run', () => {
+      this.layRun(seed)
+      this.enterRun()
+    })
     this.toasts.push(t('ui.lb.ranked'), t('ui.lb.ranked.on'), COLOR.good, 2.6)
   }
 
@@ -2706,6 +2748,50 @@ export class Game {
     if (guestBoot()) account.playAsGuest()
     if (account.needsLogin()) this.enterLogin()
     else this.enterTitle()
+    // **덮을 앞 화면이 없으므로 걷기만 합니다.** 로딩은 DOM 한 줄이고 무대 밖입니다 —
+    // 그 줄이 걷히는 자리에서 첫 화면이 덮개 밑에서 드러납니다.
+    this.transition.open('boot_first', this.settings.transition
+      ? this.crossings.of('boot_first') : this.crossings.quiet)
+  }
+
+  /**
+   * 씬을 갈아 끼웁니다. **그 사이를 덮습니다.**
+   *
+   * 넘긴 것이 실제로 씬을 바꾸는 일이고, 그것이 불리는 자리는 화면이 완전히 덮인
+   * 프레임입니다 — `enterRun` 은 뷰 수십 개를 만들고 앞면을 굽느라 한 프레임을 넘기므로,
+   * 덮지 않으면 그 프레임이 멈춘 화면으로 보입니다.
+   *
+   * **줄여 두었으면 짧은 덮개입니다.** 0이 아닙니다 — 갈아 끼우는 프레임은 어느 설정에서도
+   * 보이면 안 됩니다.
+   */
+  private cross(id: TransitionId, swap: () => void): void {
+    this.transition.play(
+      id, this.settings.transition ? this.crossings.of(id) : this.crossings.quiet, swap)
+  }
+
+  /**
+   * 앞 화면을 그림 한 장으로 굽습니다.
+   *
+   * **타서 사라지는 전환 하나만 씁니다.** 그것도 덮기가 시작되는 그 프레임에 한 번뿐이고,
+   * 걷는 자리에서 버립니다.
+   *
+   * **전환 층은 이 통 밖입니다.** 그래서 사진에 자기 자신이 찍히지 않습니다.
+   */
+  private shoot(): Texture | undefined {
+    const crop = this.cropRect
+    if (!crop) return undefined
+    try {
+      return this.app.renderer.extract.texture({
+        target: this.screen,
+        frame: new Rectangle(crop.x, crop.y, crop.width, crop.height),
+        // **화면 배율보다 촘촘하게 굽지 않습니다.** 한 장이 그대로 메모리이고, 이 그림은
+        // 타는 동안에만 있습니다.
+        resolution: Math.min(2, this.app.renderer.resolution ?? 1),
+      })
+    } catch {
+      // 굽지 못하면 남는 색만 보입니다. 화면이 갈리는 것 자체는 그대로 됩니다.
+      return undefined
+    }
   }
 
   /** 계정 상태를 화면에 알립니다. 로그인·로그아웃·이름 바꾸기 뒤에 부릅니다. */
@@ -2734,7 +2820,7 @@ export class Game {
   /** 계정 칩을 눌렀습니다. */
   private openAccount(): void {
     if (this.hub.signedIn) this.hub.openProfile()
-    else this.enterLogin()
+    else this.cross('title_login', () => this.enterLogin())
   }
 
   /**
@@ -2760,7 +2846,7 @@ export class Game {
    */
   private askLeaveRun(): void {
     this.ask(t('ui.title.leaveAsk'), t('ui.title.leaveBody'), t('ui.button.toTitle'),
-             false, () => this.enterTitle())
+             false, () => this.cross('run_title', () => this.enterTitle()))
   }
 
   private async doSignOut(): Promise<void> {
@@ -2768,7 +2854,7 @@ export class Game {
     // **손님 표시도 걷습니다.** 로그아웃한 다음 화면은 로그인 화면입니다.
     account.leaveGuest()
     this.syncAccount()
-    this.enterLogin()
+    this.cross('title_login', () => this.enterLogin())
   }
 
   /** 로그인 화면으로. **나가는 길은 「계정 없이 시작하기」 하나입니다.** */
@@ -2870,8 +2956,10 @@ export class Game {
    * 접는 길은 타이틀로 가는 것과 같은 길이고, 다른 것은 곧바로 다시 편다는 것뿐입니다.
    */
   private restartRun(): void {
-    this.enterTitle()
-    this.enterRun()
+    this.cross('run_restart', () => {
+      this.enterTitle()
+      this.enterRun()
+    })
   }
 
   /**
@@ -3255,6 +3343,11 @@ export class Game {
     // **비율이 고정입니다.** 배경이 판의 사각형에만 그려지므로 창의 비율과 상관이 없고,
     // 그래서 무늬가 기계마다 달라지지 않습니다.
     this.background.setAspect(SIZE.width / SIZE.height)
+    // 씬이 갈리는 층도 같은 사각형입니다. 판 밖은 잘라 낸 자리이므로 건드리지 않습니다.
+    this.transition.layout(left, top, boxW, boxH)
+    // **필터가 굽는 자리를 못박아 둡니다.** 정하지 않으면 Pixi 가 이 통에 든 것들의 경계를
+    // 매 프레임 재고, 그 경계는 카드와 조각이 움직일 때마다 달라집니다.
+    this.screen.filterArea = new Rectangle(left, top, boxW, boxH)
     // 환희의 겹도 같은 사각형입니다. 배경과 어긋나면 넘어가는 동안 한쪽이 삐져나옵니다.
     this.euphoria.layout(left, top, boxW, boxH)
     this.euphoria.setAspect(SIZE.width / SIZE.height)
@@ -4972,6 +5065,9 @@ export class Game {
     this.modals.advance(seconds)
     // 도감의 쪽지도 이 프레임을 받습니다.
     this.collection.advance(seconds)
+    // **씬을 갈아 끼우는 것이 이 안에서 일어납니다.** 화면의 시계로 도므로 수동 틱으로
+    // 세운 도구가 그대로 지납니다.
+    this.transition.tick(seconds)
 
     // 블라인드 판이 들어오는 동안 매 프레임 자리를 옮깁니다. **다시 만들지 않습니다.**
     // **상점이 물러나고 덮개가 걷힌 뒤에 올라옵니다.** 국면은 상점이 아직 미끄러지는 중에
@@ -5395,11 +5491,15 @@ export class Game {
       // 제자리로 돌아가는데 도구는 통과합니다 — 실제로 그런 결함이 있었습니다.
       // **버튼의 자리도 알립니다.** 도구가 같은 계산을 베껴 적으면 배치를 고칠 때 한쪽만
       // 고쳐지고, 그 도구는 엉뚱한 곳을 눌러 놓고 아무 말도 하지 않습니다.
-      spots: {
+      // **전환이 도는 동안에는 누를 자리를 알리지 않습니다.** 층이 눌림을 삼키므로 그
+      // 자리는 눌리지 않고, 눌리지 않는 자리를 알리면 도구는 한 번 누르고 넘어갑니다.
+      spots: this.transition.busy ? {} : {
         ...this.spots, ...this.lateSpots(), ...this.optionSpots(),
         ...this.handRowSpots(), ...this.runSpots(), ...this.confirmSpots(),
         ...this.collectionSpots(),
       },
+      // 화면과 화면 사이. **어느 걸음에서 씬이 갈렸는지를 도구가 이것으로 봅니다.**
+      transition: this.transition.peek(),
       // **도감이 지금 무엇을 몇 개 세우고 있는가.** 판이 떠 있을 때만 값이 있습니다 —
       // 갈래마다 칸의 수가 표의 행 수와 같은지를 도구가 이것으로 봅니다.
       collection: this.modals.has(this.collection) ? this.collection.census : undefined,
@@ -5559,6 +5659,16 @@ export class Game {
         // **소리는 조용히 실패합니다.** WebAudio 는 잘못된 값에 예외를 내는데 그것을 받는
         // 곳이 없어서, 웅얼거림이 안 나는 것과 예외로 죽은 것을 화면에서 가릴 수 없습니다.
         mumble: (voice: number) => this.audio.mumble(voice),
+        /**
+         * 전환 하나를 그냥 돌립니다. **씬은 그대로입니다.**
+         *
+         * 여덟 자리를 눈으로 보려면 저마다 그 자리까지 판을 두어야 하고, 이긴 판은 안테
+         * 8입니다 — 그림을 찍는 도구가 확인하려는 것은 덮개의 모습이지 거기까지 가는 길이
+         * 아닙니다. **갈아 끼우는 것이 없으므로 화면은 그 자리에 남습니다.**
+         */
+        cross: (id: string) => {
+          this.transition.play(id, this.crossings.of(id), () => {})
+        },
         grantMoney: (amount: number) => {
           this.state.money += amount
           this.money.reset(this.state.money)
@@ -7050,7 +7160,8 @@ export class Game {
     // **둘 다 페이지를 다시 읽지 않습니다.** 판을 접는 것은 화면이 하는 일입니다.
     const again = new Button(t('ui.button.restart'), 140, 40, UI.yellow, () => this.restartRun())
     again.position.set(width / 2 - pad - 140, yy)
-    const home = new Button(t('ui.button.to_title'), 96, 40, UI.btn, () => this.enterTitle())
+    const home = new Button(t('ui.button.to_title'), 96, 40, UI.btn,
+      () => this.cross(won ? 'run_won' : 'run_lost', () => this.enterTitle()))
     home.position.set(again.x - 8 - 96, yy)
     board.addChild(home, again)
 

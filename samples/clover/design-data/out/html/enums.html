@@ -593,11 +593,11 @@ tbody [data-pick] { cursor: pointer; }
 <div class="page">
 <main class="fill">
 <h1>enum</h1>
-<p class="lead">enum 40개 · 레이블 328개</p>
+<p class="lead">enum 41개 · 레이블 333개</p>
 <div data-table>
 <div class="tools">
 <input type="search" data-filter="rows" placeholder="enum 필터">
-<span class="hint" data-shown>40행 중 40행</span>
+<span class="hint" data-shown>41행 중 41행</span>
 <span class="hint">제목을 누르면 정렬됩니다.</span>
 </div>
 <div class="scroll">
@@ -670,6 +670,11 @@ tbody [data-pick] { cursor: pointer; }
 <tr><td><a href="enums/suit-kind.html#enum_SuitKind" data-enum="SuitKind"><svg class="i"><use href="#i-enum"></use></svg>SuitKind</a></td><td class="num">4</td><td class="num">34</td><td><span class="book" title="card.tbs"><svg class="i"><use href="#i-workbook"></use></svg>card.tbs</span></td><td>무늬. 값은 정렬 순서입니다.</td></tr>
 <tr><td><a href="enums/target-kind.html#enum_TargetKind" data-enum="TargetKind"><svg class="i"><use href="#i-enum"></use></svg>TargetKind</a></td><td class="num">4</td><td class="num">10</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>라운드마다 바뀌는 지정 대상.</td></tr>
 <tr><td><a href="enums/tier-kind.html#enum_TierKind" data-enum="TierKind"><svg class="i"><use href="#i-enum"></use></svg>TierKind</a></td><td class="num">7</td><td class="num">1</td><td><span class="book" title="meta.tbs"><svg class="i"><use href="#i-workbook"></use></svg>meta.tbs</span></td><td>시즌 순위에서 나오는 등급. <b>백분위이지 절대값이 아닙니다.</b></td></tr>
+<tr><td><a href="enums/transition-kind.html#enum_TransitionKind" data-enum="TransitionKind"><svg class="i"><use href="#i-enum"></use></svg>TransitionKind</a></td><td class="num">5</td><td class="num">1</td><td><span class="book" title="meta.tbs"><svg class="i"><use href="#i-workbook"></use></svg>meta.tbs</span></td><td>씬이 갈릴 때 화면을 지우는 방법.
+
+<b>덮개를 그리는 것이 아니라 화면 자체를 처리합니다.</b> 나가는 화면은 구운 사진에 걸고
+들어오는 화면은 살아 있는 그대로에 걸며, 같은 식에 값만 거꾸로 넣습니다.
+규격은 <code>doc/ui/transition.md</code> 입니다.</td></tr>
 <tr><td><a href="enums/trigger.html#enum_Trigger" data-enum="Trigger"><svg class="i"><use href="#i-enum"></use></svg>Trigger</a></td><td class="num">24</td><td class="num">10</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>효과를 언제 보는가.</td></tr>
 <tr><td><a href="enums/unit-kind.html#enum_UnitKind" data-enum="UnitKind"><svg class="i"><use href="#i-enum"></use></svg>UnitKind</a></td><td class="num">21</td><td class="num">10</td><td><span class="book" title="effect.tbs"><svg class="i"><use href="#i-workbook"></use></svg>effect.tbs</span></td><td>「무엇마다」의 단위. <code>PerUnit</code> 이 이 개수만큼 값을 넣습니다.</td></tr>
 </tbody>
@@ -1174,6 +1179,20 @@ tbody [data-pick] { cursor: pointer; }
 <tr data-label="Platinum"><td>Platinum</td><td class="num">4</td><td class="hint"></td></tr>
 <tr data-label="Diamond"><td>Diamond</td><td class="num">5</td><td class="hint"></td></tr>
 <tr data-label="Clover"><td>Clover</td><td class="num">6</td><td class="hint">가장 위. 시즌 등정 보드의 1%입니다.</td></tr>
+</tbody></table>
+</div>
+<div data-enum-def="TransitionKind">
+<p class="lead"><b>enum.TransitionKind</b> <span class="hint">씬이 갈릴 때 화면을 지우는 방법.
+
+<b>덮개를 그리는 것이 아니라 화면 자체를 처리합니다.</b> 나가는 화면은 구운 사진에 걸고
+들어오는 화면은 살아 있는 그대로에 걸며, 같은 식에 값만 거꾸로 넣습니다.
+규격은 <code>doc/ui/transition.md</code> 입니다.</span></p>
+<table><tbody>
+<tr data-label="Fade"><td>Fade</td><td class="num">0</td><td class="hint">남는 색으로 잦아듭니다. 가운데가 조금 늦게 남습니다.</td></tr>
+<tr data-label="Blocks"><td>Blocks</td><td class="num">1</td><td class="hint">칸이 커지며 뭉개집니다.</td></tr>
+<tr data-label="Push"><td>Push</td><td class="num">2</td><td class="hint">가운데에서 바깥으로 밀리며 결이 늘어납니다. 방향이 있습니다.</td></tr>
+<tr data-label="Burn"><td>Burn</td><td class="num">3</td><td class="hint">노이즈 문턱으로 지워지고 가장자리가 탑니다.</td></tr>
+<tr data-label="Slide"><td>Slide</td><td class="num">4</td><td class="hint">옆으로 밀려 나가고 뒤에 결이 남습니다. 방향이 있습니다.</td></tr>
 </tbody></table>
 </div>
 <div data-enum-def="Trigger">

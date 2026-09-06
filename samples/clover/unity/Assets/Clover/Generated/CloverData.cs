@@ -133,6 +133,7 @@ namespace Clover.Data
             public SpectralEffectTable SpectralEffect = new SpectralEffectTable();
             public EditionVisualTable EditionVisual = new EditionVisualTable();
             public SoundCueTable SoundCue = new SoundCueTable();
+            public TransitionTable Transition = new TransitionTable();
             public CardSetTable CardSet = new CardSetTable();
             public CardSetSuitTable CardSetSuit = new CardSetSuitTable();
             public JokerTable Joker = new JokerTable();
@@ -255,6 +256,11 @@ namespace Clover.Data
         /// Property for SoundCue table.
         /// </summary>
         public static SoundCueTable SoundCue => Current.SoundCue;
+
+        /// <summary>
+        /// Property for Transition table.
+        /// </summary>
+        public static TransitionTable Transition => Current.Transition;
 
         /// <summary>
         /// Property for CardSet table.
@@ -421,6 +427,7 @@ namespace Clover.Data
             tasks.Add(snapshot.SpectralEffect.ReadAsync(System.IO.Path.Combine(basePath, $"SpectralEffect{fileExtension}")));
             tasks.Add(snapshot.EditionVisual.ReadAsync(System.IO.Path.Combine(basePath, $"EditionVisual{fileExtension}")));
             tasks.Add(snapshot.SoundCue.ReadAsync(System.IO.Path.Combine(basePath, $"SoundCue{fileExtension}")));
+            tasks.Add(snapshot.Transition.ReadAsync(System.IO.Path.Combine(basePath, $"Transition{fileExtension}")));
             tasks.Add(snapshot.CardSet.ReadAsync(System.IO.Path.Combine(basePath, $"CardSet{fileExtension}")));
             tasks.Add(snapshot.CardSetSuit.ReadAsync(System.IO.Path.Combine(basePath, $"CardSetSuit{fileExtension}")));
             tasks.Add(snapshot.Joker.ReadAsync(System.IO.Path.Combine(basePath, $"Joker{fileExtension}")));

@@ -72,6 +72,12 @@ export interface Peek {
   /** 최근에 난 소리들. 새것이 뒤입니다. */
   sounds?: string[]
   /**
+   * 화면과 화면 사이. **씬이 갈리는 동안에만 걸음이 `off` 가 아닙니다.**
+   *
+   * 규격은 `doc/ui/transition.md` 이고, 도는 동안에는 누를 자리가 알려지지 않습니다.
+   */
+  transition?: { id: string; stage: string; cover: number; shots: number }
+  /**
    * 인사이트 판에 지금 서 있는 줄들의 열쇠.
    *
    * **판이 떠 있고 그 갈래일 때만 값이 있습니다.** 줄 수만 알리면 문장이 열쇠 그대로
@@ -141,6 +147,8 @@ export interface Peek {
   coming: string
   /** 정산 판이 떠 있는가. */
   payout: boolean
+  /** 끝난 판이 떠 있는가. **카드가 다 걷힌 뒤에 섭니다.** */
+  gameOver?: boolean
 }
 
 /**
@@ -289,6 +297,8 @@ export async function startNewRun(page: Page): Promise<void> {
   // 되돌릴 수 없는 일입니다.
   await pass(page, 400)
   await confirmYes(page)
+  // 판에 들어서는 것은 화면이 덮인 프레임입니다. 그 사이가 끝나기를 기다립니다.
+  await crossed(page)
 }
 
 /** 물어보는 판의 「예」를 누릅니다. 떠 있지 않으면 아무것도 하지 않습니다. */
@@ -307,6 +317,10 @@ export async function confirmYes(page: Page): Promise<void> {
  * 떠 있지 않으면 아무것도 하지 않습니다.
  */
 export async function closeGuide(page: Page): Promise<void> {
+  // **씬이 갈리는 동안에는 아직 열리지 않았습니다.** 판에 들어서는 것은 화면이 덮인
+  // 프레임에 일어나므로, 그 전에 물으면 「떠 있는 판이 없다」가 나오고 게임 방법은 그
+  // 뒤에 열려 그대로 남습니다.
+  await crossed(page)
   if ((await peek(page)).modalUp !== true) return
   await page.keyboard.press('Escape')
   await pass(page, 400)
@@ -448,9 +462,25 @@ export async function peek(page: Page): Promise<Peek> {
 
 /** 연출이 끝날 때까지 기다립니다. */
 export async function settle(page: Page): Promise<void> {
+  await crossed(page)
   for (let wait = 0; wait < 60; wait++) {
     if (!(await peek(page)).busy) return
     await pass(page, 200)
+  }
+}
+
+/**
+ * 씬이 다 갈리기를 기다립니다.
+ *
+ * **`settle` 과 다릅니다.** 그쪽은 연출이 끝난 것이고, 이것은 화면과 화면 사이가 끝난
+ * 것입니다 — 도는 동안에는 누를 자리가 알려지지 않으므로, 그림을 찍는 도구는 이것을
+ * 지나고 나서 찍습니다.
+ */
+export async function crossed(page: Page): Promise<void> {
+  for (let wait = 0; wait < 60; wait++) {
+    const stage = (await peek(page)).transition?.stage
+    if (stage === undefined || stage === 'off') return
+    await pass(page, 100)
   }
 }
 

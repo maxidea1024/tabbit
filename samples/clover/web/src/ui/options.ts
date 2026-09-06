@@ -66,6 +66,16 @@ export interface Options {
   /** 어느 카드를 고르면 좋은지 표시하는가. */
   hints: boolean
   /**
+   * 화면과 화면 사이를 덮는가.
+   *
+   * **꺼도 0이 되지는 않습니다.** 씬을 갈아 끼우는 프레임은 어느 설정에서도 보이면 안
+   * 되므로, 껐을 때는 짧은 덮개 하나가 남습니다 — `render/transition.ts` 의 `QUIET`.
+   *
+   * **처음 값은 기계가 정합니다.** 움직임을 줄이라고 설정해 둔 기계에서는 꺼진 채로
+   * 시작합니다.
+   */
+  transition: boolean
+  /**
    * 중요한 순간에 기계가 떠는가.
    *
    * **폰에서만 뜻이 있습니다.** 데스크탑에는 진동자가 없으므로 「입력」 탭이 아예 서지
@@ -112,6 +122,21 @@ export interface Options {
 }
 
 /**
+ * 이 기계가 움직임을 줄이라고 하는가.
+ *
+ * **접근성 설정입니다.** 어지럼을 느끼는 사람이 기계에 한 번 적어 두면 모든 앱이 그것을
+ * 봅니다 — 게임마다 다시 찾아 끄게 하지 않습니다.
+ */
+function quietMotion(): boolean {
+  try {
+    return globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
+  } catch {
+    // 이 질의를 모르는 브라우저에서는 줄이지 않습니다.
+    return false
+  }
+}
+
+/**
  * 처음 켰을 때의 값.
  *
  * **음량 둘이 같은 숫자인 것은 같은 크기라는 뜻이 아닙니다.** 배경음 파일은 효과음보다
@@ -122,6 +147,7 @@ export function defaultOptions(): Options {
   return {
     sound: true, volume: 60, music: true, musicVolume: 60, speed: 1,
     shake: true, particles: true, chromatic: true, hints: true, haptics: true,
+    transition: !quietMotion(),
     language: '', deck: 'red_deck', stake: 'White', cardSet: 'classic', pool: 'base',
     uiTheme: 'slate',
   }
@@ -614,6 +640,7 @@ export class OptionsPanel implements ModalPanel {
   private tabs(): Tab[] {
     const options = this.options
     type Switch = 'sound' | 'music' | 'shake' | 'particles' | 'chromatic' | 'hints'
+      | 'transition'
       | 'haptics'
     const flip = (key: Switch) => () => {
       options[key] = !options[key]
@@ -678,6 +705,12 @@ export class OptionsPanel implements ModalPanel {
           {
             label: t('ui.option.chromatic'), read: onOff('chromatic'), next: flip('chromatic'),
             note: t('ui.option.note.chromatic'),
+          },
+          // **꺼도 0이 되지는 않습니다.** 씬을 갈아 끼우는 프레임은 어느 설정에서도 보이면
+          // 안 되므로, 껐을 때는 짧은 잦아듦 하나가 남습니다.
+          {
+            label: t('ui.option.transition'), read: onOff('transition'),
+            next: flip('transition'), note: t('ui.option.note.transition'),
           },
           // **켜고 끄는 것들 아래에 고르는 것 하나입니다.** 판의 겉면이고, 값과 단추의
           // 색은 바뀌지 않으므로 「돈은 노랑」 같은 약속은 그대로 남습니다.
