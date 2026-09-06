@@ -302,9 +302,13 @@ function changeRule(vm: Vm, rule: RuleKind, value: number, absolute: boolean,
   const keys = Object.keys(rules) as (keyof typeof rules)[]
   const moved = keys.find(key => rules[key] !== before[key])
 
+  // **바뀐 필드의 이름으로 알립니다.** 화면의 「적용 중」 목록은 `Rules` 를 훑으므로 그
+  // 이름으로 글과 단위를 찾고, 쪽지가 `RuleKind` 의 이름으로 알리면 같은 규칙이 두 이름을
+  // 가지게 됩니다 — `BlindSizeScale` 과 `blindSizeScaleBp` 가 그렇게 갈라져 있었습니다.
+  // 값을 남기지 않는 규칙만 `RuleKind` 의 이름입니다. 그것들은 `Rules` 에 필드가 없습니다.
   vm.events.push({
     t: 'RuleChanged',
-    rule: RuleKind[rule],
+    rule: moved ?? RuleKind[rule],
     before: moved === undefined ? null : Number(before[moved]),
     after: moved === undefined ? null : Number(rules[moved]),
     flag: moved !== undefined && typeof before[moved] === 'boolean',

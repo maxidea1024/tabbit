@@ -12,7 +12,8 @@
 import type { PoolChoice } from '../core/pool'
 import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
 
-import { detectLanguage, type Language, LANGUAGE_NAMES, LANGUAGES, t, tf } from '../core/strings'
+import { detectLanguage, type Language, LANGUAGE_NAMES, LANGUAGES, nameOf, t, tf }
+  from '../core/strings'
 import type { Data } from '../core/data'
 import { artFor, onArtReady } from '../render/art'
 import { setLookOf, setsOf, type SetLook } from '../render/card-set'
@@ -455,7 +456,7 @@ export class OptionsPanel implements ModalPanel {
   /** 시드가 정해졌을 때. 화면이 판을 다시 만듭니다. */
   onSeed?: (seed: string) => void
 
-  constructor(data: Data, private readonly options: Options,
+  constructor(private readonly data: Data, private readonly options: Options,
               private readonly onChange: () => void,
               private readonly onClose: () => void) {
     // **표를 먼저 읽습니다.** 탭을 세우는 것이 `relabel` 이고 카드 탭이 이 목록을 씁니다.
@@ -637,8 +638,15 @@ export class OptionsPanel implements ModalPanel {
     this.fitScroll(this.over + this.windowHeight)
   }
 
+  /**
+   * 카드 세트 하나의 이름.
+   *
+   * **글 표에서 옵니다.** `CardSet.name` 은 기획자가 시트에서 읽는 이름이고 한국어
+   * 하나뿐입니다 — 그것을 그대로 적으면 어느 말로 켜도 세트 이름만 한국어로 남습니다.
+   */
   private setName(setId: string): string {
-    return this.sets.find(one => one.setId === setId)?.name ?? setId
+    const one = this.sets.find(row => row.setId === setId)
+    return one === undefined ? setId : nameOf(this.data, 'cardset', one.setId, one.name)
   }
 
   private measure(tab: Tab): number {
@@ -780,7 +788,7 @@ export class OptionsPanel implements ModalPanel {
             note: t('ui.option.note.cardSet'),
             read: () => this.setName(options.cardSet),
             next: () => undefined,
-            cards: this.sets.map(one => ({ key: one.setId, label: one.name })),
+            cards: this.sets.map(one => ({ key: one.setId, label: this.setName(one.setId) })),
             current: () => options.cardSet,
             pick: (key: string) => { options.cardSet = key },
           },

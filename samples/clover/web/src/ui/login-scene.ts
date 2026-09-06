@@ -16,7 +16,7 @@
 
 import { Container, Graphics, Text } from 'pixi.js'
 
-import { language as nowLanguage, LANGUAGE_NAMES, LANGUAGES, setLanguage, t, tf,
+import { language as nowLanguage, LANGUAGE_NAMES, LANGUAGES, t, tf,
          type Language } from '../core/strings'
 import * as account from '../net/session'
 import type { Provider } from '../net/session'
@@ -408,9 +408,9 @@ export class LoginScene extends Container {
         this.langOpen = false
         this.dirty = true
         if (code !== now) {
-          setLanguage(code)
-          // **부르는 쪽이 화면 전체를 다시 그립니다.** 그 안에 이 화면도 들어 있으므로
-          // 여기서 또 그리지 않습니다.
+          // **여기서 말을 바꾸지 않습니다.** 부르는 쪽이 「고른 말이 지금 말과 다른가」로
+          // 화면 전체를 다시 그릴지 정하는데, 여기서 미리 바꿔 두면 그 판정이 항상 거짓이
+          // 되어 타이틀과 판이 앞의 말로 남습니다 — 글꼴도 그때 바뀝니다.
           this.onLanguage?.(code)
         }
       })

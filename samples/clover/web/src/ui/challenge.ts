@@ -249,7 +249,6 @@ export class ChallengeBody {
     if (!row) return
 
     const at = { x: cx + (CELL_W - 10) / 2, top: cy, bottom: cy + CELL_H - 10 }
-    const record = this.data.tables.challenge.findByChallengeId(row.challengeId)
     const open = this.isOpen(index)
     const none = openCount(this.progress) === 0
 
@@ -258,7 +257,10 @@ export class ChallengeBody {
         name: row.name,
         chip: t('ui.challenge.chip.locked'),
         chipTone: UI.locked,
-        lines: [none ? t('ui.challenge.lockedAll') : (record?.unlock ?? '')],
+        // **`Challenge.unlock` 을 적지 않습니다.** 그 칸은 기획자가 시트에서 읽는 글이고
+        // 한국어 하나뿐이며, 여는 조건은 `openCount` 가 정합니다 — 시트의 글과 실제 조건이
+        // 어긋날 수도 있습니다.
+        lines: [none ? t('ui.challenge.lockedAll') : t('ui.challenge.locked')],
         ...at,
       })
       return

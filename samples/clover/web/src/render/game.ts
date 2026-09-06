@@ -7449,8 +7449,12 @@ export class Game {
   /**
    * 규칙 하나의 이름.
    *
-   * **글 표에서 옵니다.** `RuleKind` 의 이름은 `AllCardsScore` 같은 식별자이고, 그것이
-   * 화면에 그대로 뜨면 무엇이 바뀐 것인지 읽을 수 없습니다.
+   * **글 표에서 옵니다.** 규칙의 이름은 `allCardsScore` 같은 식별자이고, 그것이 화면에
+   * 그대로 뜨면 무엇이 바뀐 것인지 읽을 수 없습니다.
+   *
+   * 받는 이름은 `Rules` 의 필드 이름입니다 — 「적용 중」 목록도 쪽지도 그것으로 부릅니다.
+   * 값을 남기지 않는 규칙만 `RuleKind` 의 이름이고, 그것들은 `Rules` 에 필드가 없어서
+   * 두 이름이 겹치지 않습니다.
    */
   private ruleName(rule: string): string {
     return text(this.data, `rule.${snake(rule)}.name`)
@@ -11269,7 +11273,7 @@ function ruleChange(event: { before: number | null; after: number | null;
   }
 
   // 할인은 만분율이고 **낮을수록 좋습니다.** 배수로 적으면 그 방향이 뒤집혀 읽힙니다.
-  if (event.rule === 'ShopDiscount') {
+  if (event.rule === 'shopDiscount') {
     return tf('ui.rule.discount', { n: (event.after / 100).toFixed(0) })
   }
 
@@ -11295,9 +11299,13 @@ function ruleValue(rule: string, value: number): string {
  *
  * 값의 단위는 규칙의 성질이지만 **읽는 법은 화면의 몫이라** 여기 있습니다 —
  * `moneyReason` · `valueText` 와 같은 자리입니다.
+ *
+ * **`Rules` 의 필드 이름입니다.** `RuleKind` 의 이름(`BlindSizeScale`)이 아닙니다 —
+ * 「적용 중」 목록이 `Rules` 를 훑으며 이 표를 보므로, 한쪽 이름을 적으면 아무것도 걸리지
+ * 않고 배수가 날값으로 적힙니다. `ruleName` 의 열쇠도 같은 이름에서 나옵니다.
  */
 const RULE_IS_SCALE = new Set([
-  'BlindSizeScale', 'PlanetGivesMult',
+  'blindSizeScaleBp', 'planetGivesMultBp',
 ])
 
 /**
@@ -11307,7 +11315,7 @@ const RULE_IS_SCALE = new Set([
  * 1이고 2가 되면 두 배라는 뜻입니다. 단위를 지레짐작하면 `1 → 2` 가 `×0.00` 으로 뜹니다.
  */
 const RULE_IS_MULTIPLIER = new Set([
-  'ShopWeightTarot', 'ShopWeightPlanet', 'ProbabilityScale', 'EditionWeightScale',
+  'shopWeightTarotScale', 'shopWeightPlanetScale', 'probabilityScale', 'editionWeightScale',
 ])
 
 /**

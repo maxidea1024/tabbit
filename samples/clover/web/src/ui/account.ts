@@ -12,6 +12,7 @@ import { Container, Graphics, Text } from 'pixi.js'
 
 import type { Data } from '../core/data'
 import { t, tf } from '../core/strings'
+import { tierName as tierNameOf, tierRow } from '../core/tier'
 import * as account from '../net/session'
 import type { Me } from '../net/session'
 import { COLOR, UI } from '../render/theme'
@@ -392,14 +393,11 @@ export class ProfilePanel implements ModalPanel {
   }
 
   private tierName(tier: string): string {
-    const row = this.data.tables.tier.records.find(one => String(one.tier) === tier
-      || one.name === tier)
-    return row ? row.name : tier
+    return tierNameOf(this.data, tier)
   }
 
   private tierColor(tier: string): number {
-    const row = this.data.tables.tier.records.find(one => String(one.tier) === tier
-      || one.name === tier)
+    const row = tierRow(this.data, tier)
     return row ? Number.parseInt(row.color.slice(1), 16) : COLOR.inkDim
   }
 }

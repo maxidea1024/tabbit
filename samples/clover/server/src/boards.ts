@@ -421,6 +421,7 @@ export function boardsRouter(context: Context): Router {
  */
 export async function ranksOf(context: Context, accountId: number): Promise<{
   boardId: string; name: string; group: string; metric: string
+  pool: string; split: string; splitRef: string
   rank: number; value: number
 }[]> {
   const boards = loadBoards(context.env.dataPath)
@@ -445,6 +446,11 @@ export async function ranksOf(context: Context, accountId: number): Promise<{
       group: BoardGroup[boards[at].group],
       // 화면이 값을 사람이 읽는 꼴로 적으려면 어느 지표인지를 알아야 합니다.
       metric: LeaderboardMetric[boards[at].metric],
+      // **표시 이름도 화면이 조립합니다.** `name` 은 기획자가 시트에서 읽는 이름이고
+      // 한국어 하나뿐입니다 — 그것을 그대로 적으면 어느 말로 켜도 한국어가 보입니다.
+      pool: boards[at].pool,
+      split: SplitKind[boards[at].split],
+      splitRef: boards[at].splitRef,
       rank: Number(rank) + 1,
       value: valueFromScore(boards[at].metric, Number(score)),
     })

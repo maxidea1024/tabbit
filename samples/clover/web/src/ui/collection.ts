@@ -872,9 +872,9 @@ export class CollectionPanel implements ModalPanel {
 function editionLines(row: { chips: number; multAdd: number; multMul: number;
                              jokerSlots: number }): string[] {
   const out: string[] = []
-  if (row.chips !== 0) out.push(`+${row.chips} ${t('ui.label.chips')}`)
-  if (row.multAdd !== 0) out.push(`+${row.multAdd} ${t('ui.label.mult')}`)
-  if (row.multMul !== 10000) out.push(`×${(row.multMul / 10000).toFixed(1)} ${t('ui.label.mult')}`)
+  if (row.chips !== 0) out.push(`+${row.chips} ${t('ui.slot.chips')}`)
+  if (row.multAdd !== 0) out.push(`+${row.multAdd} ${t('ui.slot.mult')}`)
+  if (row.multMul !== 10000) out.push(`×${(row.multMul / 10000).toFixed(1)} ${t('ui.slot.mult')}`)
   if (row.jokerSlots !== 0) out.push(`+${row.jokerSlots} ${t('ui.kind.joker')}`)
   return out
 }

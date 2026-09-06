@@ -13,6 +13,7 @@ import type { Action } from '../core/run'
 import type { RunState } from '../core/state'
 import { seal, type MetricsAcc } from '../core/metrics'
 import { t, tf } from '../core/strings'
+import { tierName, tierRow } from '../core/tier'
 import * as account from '../net/session'
 import * as board from '../net/leaderboard'
 import type { Me } from '../net/session'
@@ -20,7 +21,7 @@ import type { Submission } from '../net/leaderboard'
 import { COLOR } from '../render/theme'
 import { HandlePanel, ProfilePanel } from './account'
 import { providerLabel, providerTint } from './provider'
-import { LeaderboardPanel } from './leaderboard'
+import { boardLabel, LeaderboardPanel } from './leaderboard'
 import type { Modals } from './modal'
 import type { Toasts } from './toast'
 
@@ -385,7 +386,7 @@ export class LeaderboardHub {
   otherRanks(limit = 3): string {
     const now = this.profile?.ranks ?? []
     return now.slice(0, limit)
-      .map(one => `${one.name} #${one.rank}`)
+      .map(one => `${boardLabel(this.data, one)} #${one.rank}`)
       .join(' · ')
   }
 
@@ -444,9 +445,8 @@ export class MyCard extends Container {
       .stroke({ color: 0x2c3849, width: 1.5 })
     this.body.addChild(plate)
 
-    const tierRow = this.data.tables.tier.records.find(one =>
-      one.name === profile.tier || String(one.tier) === profile.tier)
-    const color = tierRow ? Number.parseInt(tierRow.color.slice(1), 16) : 0x6f7d90
+    const row = tierRow(this.data, profile.tier)
+    const color = row ? Number.parseInt(row.color.slice(1), 16) : 0x6f7d90
 
     const hasTier = profile.tier !== '' && profile.tier !== 'None'
 
@@ -484,12 +484,12 @@ export class MyCard extends Container {
 
     // 2줄 — 등급과 등정 순위. **등급의 근거인 보드이므로 이것이 첫 줄입니다.**
     const ascent = profile.ranks.find(one => one.metric === 'Ascent')
-    const tierName = profile.tier === '' || profile.tier === 'None'
+    const tier = profile.tier === '' || profile.tier === 'None'
       ? t('ui.lb.card.noTier')
-      : tierRow?.name ?? profile.tier
+      : tierName(this.data, profile.tier)
 
     const second = ascent
-      ? `${tierName} · ${boardLabel2(ascent.name)} #${ascent.rank}`
+      ? `${tier} · ${boardLabel2(boardLabel(this.data, ascent))} #${ascent.rank}`
       : t('ui.lb.noRecord')
     const line2 = new Text({
       text: second,
@@ -505,7 +505,7 @@ export class MyCard extends Container {
       .sort((one, two) => one.rank - two.rank)[0]
     if (other) {
       const line3 = new Text({
-        text: `${boardLabel2(other.name)} #${other.rank}`,
+        text: `${boardLabel2(boardLabel(this.data, other))} #${other.rank}`,
         style: { fontSize: 11, fill: 0x8a99ad },
       })
       line3.anchor.set(0, 0.5)
@@ -522,7 +522,8 @@ export class MyCard extends Container {
   }
 }
 
-/** 시트의 이름은 기획자가 읽는 것이라 길 수 있습니다. 카드에서는 줄입니다. */
+/** 보드의 이름은 지표와 축을 이은 것이라 길 수 있습니다. 카드에서는 줄입니다. */
 function boardLabel2(name: string): string {
   return name.length > 10 ? `${name.slice(0, 9)}…` : name
 }
+

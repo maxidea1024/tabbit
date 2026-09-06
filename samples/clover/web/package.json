@@ -22,6 +22,7 @@
     "check:euphoria": "tsx tools/check-euphoria.ts",
     "check:insight": "tsx tools/check-insight.ts",
     "check:shell": "tsx tools/check-shell.ts",
+    "check:lang": "tsx tools/check-lang.ts",
     "check:sound": "tsx tools/check-sound.ts",
     "check:gaps": "tsx tools/check-gaps.ts",
     "check:joker-voice": "tsx tools/check-joker-voice.ts",

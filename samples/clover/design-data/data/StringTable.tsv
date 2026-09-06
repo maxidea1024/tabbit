@@ -681,6 +681,12 @@
 	stake.purple.name	보라색	Purple Stake	パープルステーク	紫色赌注	紫色賭注	Violetter Einsatz
 	stake.orange.name	주황색	Orange Stake	オレンジステーク	橙色赌注	橙色賭注	Oranger Einsatz
 	stake.gold.name	황금색	Gold Stake	ゴールドステーク	金色赌注	金色賭注	Goldener Einsatz
+	tier.bronze.name	브론즈	Bronze	ブロンズ	青铜	青銅	Bronze
+	tier.silver.name	실버	Silver	シルバー	白银	白銀	Silber
+	tier.gold.name	골드	Gold	ゴールド	黄金	黃金	Gold
+	tier.platinum.name	플래티넘	Platinum	プラチナ	铂金	白金	Platin
+	tier.diamond.name	다이아몬드	Diamond	ダイヤモンド	钻石	鑽石	Diamant
+	tier.clover.name	클로버	Clover	クローバー	三叶草	三葉草	Klee
 	enhancement.none.name	없음	None	なし	无	無	Keine
 	enhancement.bonus.name	보너스	Bonus	ボーナス	奖励	獎勵	Bonus
 	enhancement.mult.name	배수	Mult	マルチ	倍率	倍率	Mult
@@ -998,8 +1004,8 @@
 	rule.shop_discount.name	상점 할인	Shop discount	ショップ割引	商店折扣	商店折扣	Ladenrabatt
 	rule.shop_allows_playing_cards.name	상점에 플레잉 카드가 나옴	Playing cards in shop	ショップにトランプが並ぶ	商店出售扑克牌	商店出售撲克牌	Spielkarten im Laden
 	rule.shop_allows_spectral.name	상점에 유령 카드가 나옴	Spectral cards in shop	ショップにスペクトルが並ぶ	商店出售幻灵牌	商店出售幻靈牌	Spektralkarten im Laden
-	rule.shop_weight_tarot.name	상점의 타로 가중치	Tarot weight in shop	ショップのタロット重み	商店塔罗权重	商店塔羅權重	Tarot-Gewicht im Laden
-	rule.shop_weight_planet.name	상점의 행성 가중치	Planet weight in shop	ショップのプラネット重み	商店星球权重	商店星球權重	Planeten-Gewicht im Laden
+	rule.shop_weight_tarot_scale.name	상점의 타로 가중치	Tarot weight in shop	ショップのタロット重み	商店塔罗权重	商店塔羅權重	Tarot-Gewicht im Laden
+	rule.shop_weight_planet_scale.name	상점의 행성 가중치	Planet weight in shop	ショップのプラネット重み	商店星球权重	商店星球權重	Planeten-Gewicht im Laden
 	rule.free_planets.name	상점의 행성이 공짜	Free planets	ショップのプラネットが無料	商店星球牌免费	商店星球牌免費	Planeten gratis
 	rule.all_cards_score.name	족보에 들지 않은 카드도 득점	All played cards score	役に入らないカードも得点	未组成牌型的牌也得分	未組成牌型的牌也得分	Alle gespielten Karten werten
 	rule.all_cards_are_face.name	모든 카드를 그림 카드로 봄	All cards count as face	すべてのカードを絵札として扱う	所有牌视为人头牌	所有牌視為人頭牌	Alle Karten gelten als Bildkarten
@@ -1012,14 +1018,14 @@
 	rule.boss_rerolls_per_ante.name	안테마다의 보스 리롤	Boss rerolls per ante	アンティごとのボスリロール	每底注的 Boss 刷新次数	每底注的 Boss 刷新次數	Boss-Neumischen pro Ante
 	rule.ante_delta.name	안테	Ante	アンティ	底注	底注	Ante
 	rule.edition_weight_scale.name	에디션이 붙을 확률	Edition chance	エディションが付く確率	版本出现概率	版本出現機率	Editions-Chance
-	rule.planet_gives_mult.name	행성이 배수도 올림	Planets raise mult too	プラネットが倍率も上げる	星球牌也提升倍率	星球牌也提升倍率	Planeten erhöhen auch Mult
+	rule.planet_gives_mult_bp.name	행성이 배수도 올림	Planets raise mult too	プラネットが倍率も上げる	星球牌也提升倍率	星球牌也提升倍率	Planeten erhöhen auch Mult
 	rule.starting_money.name	시작 금액	Starting money	開始時の所持金	初始金钱	初始金錢	Startgeld
 	rule.no_interest.name	이자를 받지 않음	No interest	利息が付かない	不产生利息	不產生利息	Keine Zinsen
 	rule.money_per_hand_left.name	남긴 핸드마다 받는 금액	Money per unused hand	残したハンドごとの金額	每剩余一次出牌的金钱	每剩餘一次出牌的金錢	Geld je ungenutzter Hand
 	rule.money_per_discard_left.name	남긴 버리기마다 받는 금액	Money per unused discard	残した捨て札ごとの金額	每剩余一次弃牌的金钱	每剩餘一次棄牌的金錢	Geld je ungenutzter Ablage
 	rule.randomize_deck.name	시작 덱의 랭크와 무늬를 다시 뽑음	Deck ranks and suits randomized	開始デッキの数字とスートを引き直す	初始牌组的点数与花色重新随机	初始牌組的點數與花色重新隨機	Werte und Farben des Startdecks zufällig
 	rule.double_tag_on_boss_defeat.name	보스를 깨면 태그를 둘 받음	Two tags on boss defeat	ボスを倒すとタグを二つ得る	击败 Boss 获得两个标签	擊敗 Boss 獲得兩個標籤	Zwei Marken beim Boss-Sieg
-	rule.blind_size_scale.name	블라인드의 요구 점수	Blind requirement	ブラインドの目標点	盲注目标分	盲注目標分	Blind-Anforderung
+	rule.blind_size_scale_bp.name	블라인드의 요구 점수	Blind requirement	ブラインドの目標点	盲注目标分	盲注目標分	Blind-Anforderung
 	rule.set_discards_zero.name	버리기 횟수가 0이 됨	Discards set to zero	捨て札の回数が 0 になる	弃牌次数归零	棄牌次數歸零	Ablagen auf null
 	rule.spectral_in_arcana_packs.name	아르카나 팩에 유령 카드가 섞임	Spectral cards in arcana packs	アルカナパックにスペクトルが混じる	奥秘卡包中混入幻灵牌	奧秘卡包中混入幻靈牌	Spektralkarten in Arkana-Päckchen
 	rule.celestial_has_most_played.name	천체 팩에 가장 많이 낸 족보의 행성	Most-played planet in celestial packs	セレスティアルパックに一番出した役のプラネット	天体卡包含最常打出牌型的星球牌	天體卡包含最常打出牌型的星球牌	Meistgespielter Planet in Himmels-Päckchen
@@ -1431,7 +1437,6 @@
 	ui.lb.page	{at} / {all}	{at} / {all}	{at} / {all}	{at} / {all}	{at} / {all}	{at} / {all}
 	ui.lb.hands	{n} 핸드	{n} hands	{n} ハンド	{n} 次出牌	{n} 次出牌	{n} Hände
 	ui.lb.beaten	{at} / {all}	{at} / {all}	{at} / {all}	{at} / {all}	{at} / {all}	{at} / {all}
-	ui.lb.card.signedOut					
 	ui.lb.card.noTier	등급 없음	Unranked	ティアなし	无段位	無段位	Ohne Stufe
 	ui.lb.profile.lastSeason	지난 시즌 {tier}	Last season {tier}	前シーズン {tier}	上赛季 {tier}	上賽季 {tier}	Letzte Saison {tier}
 	ui.lb.profile.devices	로그인된 기계 {n}대	{n} signed-in devices	ログイン中の端末 {n}台	已登录设备 {n} 台	已登入裝置 {n} 台	{n} angemeldete Geräte
@@ -1457,26 +1462,29 @@
 	ui.lb.fail.cooldown	아직 이름을 바꿀 수 없습니다.	You cannot change the name yet.	まだ名前を変えられません。	暂时无法更改名称。	暫時無法更改名稱。	Der Name kann noch nicht geändert werden.
 	ui.lb.fail.shape	영문 · 숫자 · 밑줄 3~16자입니다.	Use 3-16 letters, digits or underscores.	英字・数字・アンダースコアで3〜16文字です。	需为字母、数字或下划线，3~16 个字符。	需為字母、數字或底線，3~16 個字元。	3-16 Buchstaben, Zahlen oder Unterstriche.
 	ui.lb.fail.unknown	서버가 이 요청을 받지 않았습니다.	The server refused the request.	サーバーがこの要求を受け付けませんでした。	服务器拒绝了该请求。	伺服器拒絕了該請求。	Der Server hat die Anfrage abgelehnt.
+	ui.lb.fail.invalid_action	다시 돌려 보니 맞지 않는 수가 있습니다.	The run did not replay cleanly.	再生したところ、通らない手がありました。	重放时发现无法执行的操作。	重播時發現無法執行的操作。	Beim Nachspielen gab es einen ungültigen Zug.
+	ui.lb.fail.unfinished	끝나지 않은 런입니다.	The run did not finish.	完走していないランです。	这局没有完成。	這局沒有完成。	Der Lauf wurde nicht beendet.
+	ui.lb.fail.too_long	수가 너무 많습니다.	Too many moves in the run.	手数が多すぎます。	操作数过多。	操作數過多。	Zu viele Züge im Lauf.
 	ui.lb.cleared	완주	cleared	完走	通关	通關	geschafft
 	ui.account.singleNote	언제든지 나중에 계정을 연결할 수 있습니다.	You can link an account later at any time.	あとからいつでもアカウントを連携できます。	之后可随时关联账号。	之後可隨時關聯帳號。	Du kannst später jederzeit ein Konto verknüpfen.
-	ui.account.link	계정 연결	Link account			
-	ui.account.needLink	순위표에 오르려면 계정을 연결해야 합니다.	Link an account to appear on the leaderboard.			
-	ui.button.back	뒤로	Back			
-	ui.account.why	계정이 있으면 순위표에 오르고, 기록이 이 기계에만 남지 않습니다.	An account puts you on the leaderboard and keeps your records off this device alone.			
-	ui.account.devLogin	개발용 로그인	Dev sign-in			
-	ui.account.continueWith	{name} 로 계속하기	Continue with {name}			
-	ui.account.or	또는	or			
+	ui.account.link	계정 연결	Link account	アカウント連携	关联账号	連結帳號	Konto verknüpfen
+	ui.account.needLink	순위표에 오르려면 계정을 연결해야 합니다.	Link an account to appear on the leaderboard.	ランキングに載るにはアカウントの連携が必要です。	关联账号后才能进入排行榜。	連結帳號後才能進入排行榜。	Verknüpfe ein Konto, um in der Bestenliste zu erscheinen.
+	ui.button.back	뒤로	Back	戻る	返回	返回	Zurück
+	ui.account.why	계정이 있으면 순위표에 오르고, 기록이 이 기계에만 남지 않습니다.	An account puts you on the leaderboard and keeps your records off this device alone.	アカウントがあればランキングに載り、記録がこの端末だけに残りません。	有账号就能进入排行榜，记录也不会只留在这台设备上。	有帳號就能進入排行榜，記錄也不會只留在這台裝置上。	Mit einem Konto erscheinst du in der Bestenliste und deine Ergebnisse liegen nicht nur auf diesem Gerät.
+	ui.account.devLogin	개발용 로그인	Dev sign-in	開発用ログイン	开发用登录	開發用登入	Dev-Anmeldung
+	ui.account.continueWith	{name} 로 계속하기	Continue with {name}	{name} で続ける	使用 {name} 继续	使用 {name} 繼續	Weiter mit {name}
+	ui.account.or	또는	or	または	或	或	oder
 	ui.account.guestStart	로그인 없이 시작	Play without signing in	ログインせずに始める	不登录直接开始	不登入直接開始	Ohne Anmeldung starten
-	ui.account.legal	계속하면 이용약관과 개인정보처리방침에 동의하는 것으로 봅니다.	By continuing you agree to the Terms of Service and Privacy Policy.			
-	ui.account.signedInAs	{name} 으로 하고 있습니다	Signed in as {name}			
-	ui.lb.rankedStart	랭크 시작	Start ranked			
-	ui.lb.rankedOff	랭크	Ranked			
-	ui.button.no	아니오	No			
-	ui.button.yes	예	Yes			
-	ui.account.signOutAsk	로그아웃할까요?	Sign out?			
-	ui.account.signOutBody	이 기계에서만 로그아웃합니다. 다시 로그인하면 기록이 그대로 있습니다.	Signs out on this device only. Your records stay when you sign back in.			
-	ui.account.signingIn	로그인 중	Signing in			
-	ui.account.signingOut	로그아웃 중	Signing out			
+	ui.account.legal	계속하면 이용약관과 개인정보처리방침에 동의하는 것으로 봅니다.	By continuing you agree to the Terms of Service and Privacy Policy.	続けると利用規約とプライバシーポリシーに同意したものとみなします。	继续即表示同意服务条款与隐私政策。	繼續即表示同意服務條款與隱私權政策。	Mit dem Fortfahren stimmst du den Nutzungsbedingungen und der Datenschutzerklärung zu.
+	ui.account.signedInAs	{name} 으로 하고 있습니다	Signed in as {name}	{name} でログイン中	已登录为 {name}	已登入為 {name}	Angemeldet als {name}
+	ui.lb.rankedStart	랭크 시작	Start ranked	ランク戦を始める	开始排位	開始排位	Gewertet starten
+	ui.lb.rankedOff	랭크	Ranked	ランク戦	排位	排位	Gewertet
+	ui.button.no	아니오	No	いいえ	否	否	Nein
+	ui.button.yes	예	Yes	はい	是	是	Ja
+	ui.account.signOutAsk	로그아웃할까요?	Sign out?	ログアウトしますか？	要退出登录吗？	要登出嗎？	Abmelden?
+	ui.account.signOutBody	이 기계에서만 로그아웃합니다. 다시 로그인하면 기록이 그대로 있습니다.	Signs out on this device only. Your records stay when you sign back in.	この端末だけログアウトします。もう一度ログインすれば記録はそのままです。	只在这台设备上退出登录。重新登录后记录仍在。	只在這台裝置上登出。重新登入後記錄仍在。	Meldet nur auf diesem Gerät ab. Deine Ergebnisse bleiben, wenn du dich wieder anmeldest.
+	ui.account.signingIn	로그인 중	Signing in	ログイン中	正在登录	正在登入	Anmeldung läuft
+	ui.account.signingOut	로그아웃 중	Signing out	ログアウト中	正在退出	正在登出	Abmeldung läuft
 	ui.payout.earned	받는 돈	Earned	受け取る額	所得	所得	Erhalten
 	ui.payout.sum	합계	Total	合計	合计	合計	Summe
 	ui.stat.score	득점	Scored	得点	得分	得分	Punkte

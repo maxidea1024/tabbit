@@ -38,8 +38,15 @@ export interface Me {
    * 순위표에 필요한 값이 아닙니다.
    */
   providers?: string[]
+  /**
+   * 보드마다의 자리.
+   *
+   * `name` 은 기획자가 시트에서 읽는 이름입니다 — **화면에 적는 이름은 `boardLabel` 이
+   * 지표와 축에서 조립합니다.** `pool` · `split` · `splitRef` 가 그것에 드는 값입니다.
+   */
   ranks: {
     boardId: string; name: string; group: string; metric: string
+    pool: 'base' | 'all'; split: string; splitRef: string
     rank: number; value: number
   }[]
 }

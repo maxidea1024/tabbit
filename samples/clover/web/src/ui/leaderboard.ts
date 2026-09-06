@@ -24,6 +24,8 @@ import { Container, Graphics, Text } from 'pixi.js'
 
 import type { Data } from '../core/data'
 import { ascentPerStake } from '../core/metrics'
+import { stakeSlug } from '../core/stake'
+import { tierRow } from '../core/tier'
 import { nameOf, t, tf } from '../core/strings'
 import * as board from '../net/leaderboard'
 import { loggedIn } from '../net/session'
@@ -103,7 +105,12 @@ type Tab = (typeof TABS)[number]
  * 챌린지의 이름이 판에서 보이는 것과 같아야 하고, 여기서만 쓰는 이름을 두면 한 곳이
  * 남습니다.
  */
-export function boardLabel(data: Data, one: BoardInfo): string {
+export function boardLabel(
+  data: Data,
+  // **보드 한 줄 전체를 받지 않습니다.** 내 자리 목록(`Me.ranks`)에도 이 넷은 오는데
+  // 나머지는 오지 않으므로, 넷만 받으면 두 곳이 같은 이름을 씁니다.
+  one: { metric: string; pool: string; split: string; splitRef: string },
+): string {
   const metric = t(`ui.lb.metric.${one.metric}`)
   const pool = one.pool === 'all' ? ` · ${t('ui.lb.pool.all')}` : ''
 
@@ -133,7 +140,7 @@ export function valueLabel(data: Data, metric: string, value: number): string {
       const stake = Math.min(Math.floor(value / perStake) + 1, rows.length)
       const progress = value % perStake
       const row = rows.find(one => Number(one.stake) === stake)
-      const name = row ? nameOf(data, 'stake', String(row.stake), row.name) : ''
+      const name = row ? nameOf(data, 'stake', stakeSlug(row.stake), row.name) : ''
       return progress >= perStake - 1
         ? `${name} · ${t('ui.lb.cleared')}`
         : `${name} · ${progress}`
@@ -570,8 +577,7 @@ export class LeaderboardPanel implements ModalPanel {
   }
 
   private tierColor(tier: string): number {
-    const row = this.data.tables.tier.records.find(one => one.name === tier
-      || String(one.tier) === tier)
+    const row = tierRow(this.data, tier)
     if (row) return Number.parseInt(row.color.slice(1), 16)
     // 시트에 없는 이름이면 회색입니다. 화면이 그 이름 때문에 그려지지 않는 일은 없습니다.
     return COLOR.inkDim
