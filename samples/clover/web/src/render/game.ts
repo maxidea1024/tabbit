@@ -5877,6 +5877,9 @@ export class Game {
       artBytes: artBytes(),
       // 배경음이 무엇을 어떻게 내고 있는가.
       music: this.audio.music.report(),
+      // **소리가 안 나는 그 순간에 읽을 자리입니다.** 원인이 넷이고 서로 구별됩니다 —
+      // 소리 길이 잠들었는가 · 마스터가 내려가 있는가 · 꺼져 있는가 · 겹침이 막는가.
+      audio: this.audio.report(),
       // 지금까지 그린 프레임 수. 물러나면 더 늘지 않아야 합니다.
       drawn: this.drawn,
       // 설명 쪽지가 지금 떠 있는가. 꾸욱 누르기를 재는 도구가 씁니다.

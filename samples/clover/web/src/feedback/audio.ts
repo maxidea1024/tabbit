@@ -686,6 +686,49 @@ export class Audio {
   }
 
   /**
+   * 지금 소리가 어떤 상태인가.
+   *
+   * **소리는 조용히 실패합니다.** 안 나는 자리를 화면에서 굽어 볼 수가 없어서, 안 나는
+   * 그 순간에 무엇이 어긋났는지를 한 자리에서 읽어야 합니다 — 원인이 넷이고 고치는 자리가
+   * 저마다 다릅니다.
+   *
+   * |읽히는 것|뜻|
+   * |--|--|
+   * |`state` 가 `suspended`|소리 길이 잠들었습니다. 뒤로 물러난 뒤 깨우지 못한 것입니다|
+   * |`master` 가 0 에 가까움|내려놓은 것이 돌아오지 않았습니다|
+   * |`muted` 가 참|옵션이 꺼 놓았습니다|
+   * |`voices` 가 크고 `played` 는 도는데 소리가 없음|겹침 계수기가 막고 있습니다|
+   *
+   * 판이 도는 중에 `__clover.audio` 로 읽습니다.
+   */
+  report(): {
+    open: boolean; state: string; time: number; master: number; level: number
+    muted: boolean; holding: boolean; voices: number; sweeps: string[]
+    samples: number; played: string[]
+  } {
+    const context = this.context
+    const now = context?.currentTime ?? 0
+    let held = 0
+    for (const list of this.voices.values()) {
+      held += list.filter(one => one.until > now).length
+    }
+    return {
+      open: context !== undefined,
+      state: context?.state ?? 'none',
+      time: Number(now.toFixed(2)),
+      master: this.master ? Number(this.master.gain.value.toFixed(3)) : -1,
+      level: this.level,
+      muted: this.muted,
+      // 재우기로 걸어 두고 아직 도착하지 않은 것이 있는가.
+      holding: this.holding !== undefined,
+      voices: held,
+      sweeps: [...this.running.keys()],
+      samples: this.samples.size,
+      played: this.played.slice(-6),
+    }
+  }
+
+  /**
    * 조커 하나가 내는 음.
    *
    * **목소리를 걷고 악기로 바꿨습니다.** 한동안 웅얼거리는 소리를 냈는데, 그것이 카지노
