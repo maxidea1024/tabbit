@@ -821,7 +821,10 @@ export function apply(data: Data, state: RunState, action: Action): Step {
 
       const sold = joker ? sellJoker(vm, action.index) : sellConsumable(vm, action.index)
       if (!sold) break
-      if (!takeItem(vm, item)) break
+      // **판 그 자리에 놓습니다.** 줄의 끝에 붙이면 판 것이 사라진 자리를 오른쪽의 것들이
+      // 메우고 새것이 맨 뒤에 붙습니다 — 한 자리를 갈아 끼운 것인데 줄 전체가 한 칸씩
+      // 움직입니다.
+      if (!takeItem(vm, item, action.index)) break
       state.money -= item.cost
       state.priceRise += state.rules.priceRisePerPurchase
       vm.events.push({ t: 'MoneyChanged', delta: -item.cost, reason: 'shop' })
@@ -932,18 +935,34 @@ export function apply(data: Data, state: RunState, action: Action): Step {
   return { state, events: vm.events }
 }
 
-/** 산 것을 실제로 받습니다. 자리가 없으면 사지 못합니다. */
+/**
+ * 산 것을 실제로 받습니다. 자리가 없으면 사지 못합니다.
+ *
+ * `at` 은 줄의 어디에 넣을 것인가입니다. **비워 두면 줄의 끝입니다** — 대개 그렇고,
+ * 하나를 팔고 그 자리에 놓는 `swap` 만 자리를 지정합니다.
+ */
 function takeItem(vm: Vm, item: {
   kind: ShopItemKind; id: string; edition: number
   enhancement?: EnhancementKind; seal?: SealKind
-}): boolean {
+}, at?: number): boolean {
   const state = vm.state
+
+  /**
+   * 줄에 넣습니다. **자리를 받았으면 그 자리, 아니면 끝입니다.**
+   *
+   * 조커의 차례가 곧 득점의 차례이므로, 넣고 나서 옮기는 것과 넣을 때 넣는 것이 다릅니다 —
+   * 규칙을 다시 세우는 것이 넣은 직후에 돌기 때문입니다.
+   */
+  const put = <T>(row: T[], one: T): void => {
+    if (at === undefined || at < 0 || at > row.length) row.push(one)
+    else row.splice(at, 0, one)
+  }
 
   switch (item.kind) {
     case ShopItemKind.Joker: {
       const negative = item.edition === 4
       if (!negative && state.jokers.length >= state.rules.jokerSlots) return false
-      state.jokers.push({
+      put(state.jokers, {
         uid: state.nextUid++,
         jokerId: item.id,
         edition: item.edition as never,
@@ -964,7 +983,7 @@ function takeItem(vm: Vm, item: {
     case ShopItemKind.Spectral: {
       if (state.consumables.length >= state.rules.consumableSlots) return false
       const kind = item.kind === ShopItemKind.Tarot ? 1 : item.kind === ShopItemKind.Planet ? 2 : 3
-      state.consumables.push({
+      put(state.consumables, {
         uid: state.nextUid++, kind: kind as never, id: item.id, edition: item.edition as never,
       })
       vm.events.push({ t: 'ConsumableAdded', uid: state.nextUid - 1, id: item.id })
