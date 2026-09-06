@@ -120,6 +120,15 @@ async function main(): Promise<number> {
   const slow = await stateOf(page)
   console.log(`뜸하게 돌아온 뒤 ${slow}`)
 
+  // **출력에 값이 흐르는가.** 소리 길이 돌고 있다는 것과 들린다는 것이 다른 일이라,
+  // 소리를 한 번 내 보고 잰 값을 봅니다.
+  const heard = await page.evaluate(`(() => {
+    var c = window.__clover || {};
+    return c.audio ? c.audio.peak : -1;
+  })()`) as number
+  console.log(`출력에 흐른 봉우리 ${heard}`)
+  if (heard <= 0) problems.push(`소리를 냈는데 출력에 흐른 값이 ${heard} 입니다`)
+
   if (quick !== 'running') problems.push(`곧바로 돌아왔는데 ${quick} 입니다`)
   if (away !== 'suspended') problems.push(`물러났는데 ${away} 입니다`)
   if (slow !== 'running') problems.push(`돌아왔는데 ${slow} 입니다`)

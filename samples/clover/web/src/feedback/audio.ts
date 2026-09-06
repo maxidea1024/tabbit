@@ -133,6 +133,29 @@ const REAP = 0.25
 export class Audio {
   private context?: AudioContext
   private master?: GainNode
+  /**
+   * 마스터의 압축기.
+   *
+   * **들고 있어야 합니다.** WebAudio 의 수명 규칙에서 마디는 출력에 이어져 있다는 것만으로는
+   * 살아 있지 않습니다 — JS 참조가 없고 입력이 흐르지 않는 동안은 회수 대상입니다. 지역
+   * 변수로 두었더니 `master → 출력` 길이 끊겨 **소리가 통째로 없어졌습니다.**
+   *
+   * 소리 마디는 만들어지고 소리 길은 `running` 이고 마스터의 이득도 살아 있는데 아무것도
+   * 들리지 않는 것이 그 모습입니다 — 끊긴 자리가 그 둘 사이라 어느 쪽을 보아도 멀쩡합니다.
+   */
+  private squeeze?: DynamicsCompressorNode
+  /**
+   * 출력에 실제로 흐르는 값을 재는 것.
+   *
+   * **소리 마디가 뜨는 것과 들리는 것이 다른 일입니다.** 소리 길이 `running` 이고 마스터의
+   * 이득이 살아 있고 마디가 만들어져도, 들리지 않는 일이 있습니다 — 그때 「게임이 소리를
+   * 내지 않는 것」과 「기계가 소리를 내지 않는 것」을 가리는 것이 이것입니다. 여기 값이
+   * 0 이 아니면 게임은 내고 있는 것이고, 그다음은 기계 쪽입니다.
+   */
+  private look?: AnalyserNode
+  /** 그 봉우리. 잰 값이 서서히 내려갑니다 — 누른 그 순간을 지나쳐도 읽힙니다. */
+  private loudest = 0
+  private looking?: ReturnType<typeof setInterval>
   private readonly follows = new Map<string, boolean>()
   /** 신호마다의 크기. 데이터가 정합니다. */
   private readonly wanted = new Map<string, number>()
@@ -263,15 +286,26 @@ export class Audio {
     this.master.gain.value = this.level
     // **효과음만 압축기를 지납니다.** 배경음까지 함께 넣으면 득점이 길어질 때마다 곡이
     // 눌렸다 돌아오고, 그 오르내림이 득점보다 크게 들립니다.
-    const squeeze = this.context.createDynamicsCompressor()
-    squeeze.threshold.value = SQUEEZE.threshold
-    squeeze.knee.value = SQUEEZE.knee
-    squeeze.ratio.value = SQUEEZE.ratio
-    squeeze.attack.value = SQUEEZE.attack
-    squeeze.release.value = SQUEEZE.release
-    this.master.connect(squeeze).connect(this.context.destination)
+    //
+    // **필드에 둡니다.** 지역 변수로 두면 회수되고, 회수되면 마스터에서 출력까지의 길이
+    // 끊깁니다 — 그 끊긴 자리는 소리 길의 상태에도 마스터의 이득에도 나타나지 않습니다.
+    this.squeeze = this.context.createDynamicsCompressor()
+    this.squeeze.threshold.value = SQUEEZE.threshold
+    this.squeeze.knee.value = SQUEEZE.knee
+    this.squeeze.ratio.value = SQUEEZE.ratio
+    this.squeeze.attack.value = SQUEEZE.attack
+    this.squeeze.release.value = SQUEEZE.release
+    this.master.connect(this.squeeze).connect(this.context.destination)
     // **배경음도 같은 길을 씁니다.** 소리 길은 하나이고, 음량만 따로입니다.
     this.music.open(this.context, this.context.destination)
+
+    // **출력에 흐르는 값을 나란히 잽니다.** 길에 끼우지 않고 갈라 받으므로 소리에 닿지
+    // 않습니다 — 효과음과 배경음 둘 다 여기로 함께 옵니다.
+    this.look = this.context.createAnalyser()
+    this.look.fftSize = 2048
+    this.squeeze.connect(this.look)
+    this.music.tap(this.look)
+    this.watch()
 
     const seconds = 0.5
     const frames = Math.floor(this.context.sampleRate * seconds)
@@ -286,6 +320,26 @@ export class Audio {
   }
 
   /**
+   * 출력에 흐르는 값을 재기 시작합니다.
+   *
+   * 잰 값은 서서히 내려갑니다 — 누른 그 순간을 지나쳐도 읽을 수 있어야 합니다.
+   */
+  private watch(): void {
+    const look = this.look
+    if (!look || this.looking !== undefined) return
+    const frame = new Float32Array(look.fftSize)
+    this.looking = setInterval(() => {
+      look.getFloatTimeDomainData(frame)
+      let top = 0
+      for (let i = 0; i < frame.length; i++) {
+        const size = Math.abs(frame[i])
+        if (size > top) top = size
+      }
+      this.loudest = Math.max(top, this.loudest * 0.92)
+    }, 50)
+  }
+
+  /**
    * 뒤로 물러났습니다.
    *
    * **소리 길을 재웁니다.** 안드로이드는 화면이 없는 동안에도 소리 길을 그대로 두므로,
@@ -294,6 +348,12 @@ export class Audio {
   hold(): void {
     const context = this.context
     if (!context) return
+    // **재는 것도 멈춥니다.** 물러난 동안 흐르는 값이 없으므로 재도 0 이고, 그 0 이
+    // 「소리를 내지 않는다」로 읽힙니다.
+    if (this.looking !== undefined) {
+      clearInterval(this.looking)
+      this.looking = undefined
+    }
     // **내려놓고 재웁니다.** 나는 중에 재우면 파형이 잘린 자리에서 「퍽」 소리가 나고,
     // 그것이 앱을 뒤로 보낸 사람이 마지막으로 듣는 소리가 됩니다.
     if (this.master) glide(this.master.gain, 0, context.currentTime)
@@ -317,6 +377,7 @@ export class Audio {
   wake(): void {
     const context = this.context
     if (!context) return
+    if (this.looking === undefined && this.look) this.watch()
     // **재우기로 걸어 둔 것을 먼저 걷습니다.** 내려놓는 0.05초 안에 돌아오면 그 예약이
     // 깨운 뒤에 도착해서, 방금 깨운 길을 다시 재웁니다 — 데스크탑에서는 창을 내렸다 올릴
     // 때까지 `visibilitychange` 가 다시 오지 않으므로, 그 판이 끝날 때까지 소리가
@@ -704,7 +765,7 @@ export class Audio {
   report(): {
     open: boolean; state: string; time: number; master: number; level: number
     muted: boolean; holding: boolean; voices: number; sweeps: string[]
-    samples: number; played: string[]
+    samples: number; played: string[]; squeeze: number; peak: number
   } {
     const context = this.context
     const now = context?.currentTime ?? 0
@@ -725,6 +786,10 @@ export class Audio {
       sweeps: [...this.running.keys()],
       samples: this.samples.size,
       played: this.played.slice(-6),
+      // **압축기가 살아 있는가.** 지금 깎고 있는 정도(dB)이고, 마디가 없어졌으면 -1 입니다.
+      squeeze: this.squeeze ? Number(this.squeeze.reduction.toFixed(2)) : -1,
+      // **출력에 실제로 흐르는 값.** 0 이 아니면 게임은 소리를 내고 있습니다.
+      peak: Number(this.loudest.toFixed(4)),
     }
   }
 
