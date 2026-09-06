@@ -54,7 +54,8 @@ async function main(): Promise<number> {
   // 자리와 상점이 서 있는지를 함께 봅니다.
   const track: { at: number; x: number; shop: boolean }[] = []
   const began = await now(page)
-  for (let i = 0; i < 40; i++) {
+  // 값을 치르는 박자(1.15초) 뒤에 떠나므로 그만큼 더 봅니다.
+  for (let i = 0; i < 90; i++) {
     const sample = await page.evaluate(() => {
       const hook = (window as unknown as {
         __clover: { jokerX?(): number | undefined; shopUp?: boolean; clock?: number }

@@ -35,6 +35,15 @@ export interface Peek {
   shopUp: boolean
   /** 상점 판이 서 있는 높이. 0 이 다 선 자리이고, 클수록 화면 아래입니다. */
   shopY?: number
+  /** 상점이 자리를 비켜 내려가 있어야 하는가. 팩을 뜯었거나 자리를 비우는 중입니다. */
+  shopParked?: boolean
+  /** 자리를 비우는 화면(줄에서 내놓을 것을 고르는 것)이 들었는가 · 든 정도. */
+  focus?: boolean
+  focusEnter?: number
+  /** 펼쳐 놓은 팩의 카드 수. 상점이 물러난 뒤에야 0 이 아닙니다. */
+  packCards?: number
+  /** 덱이 팩의 카드를 받으려고 나와 있는가. */
+  deckPeek?: boolean
   /** 연출의 시계. 초입니다. */
   clock: number
   phase: string
@@ -48,6 +57,17 @@ export interface Peek {
   hands: number
   packOpen: boolean
   packs: number
+  /** 팩 칸마다 어느 팩인가. */
+  packIds?: string[]
+  /** 뽑을 패와 덱의 크기. 라운드 사이에는 같습니다. */
+  drawLeft?: number
+  deckSize?: number
+  /** 칸 수 글이 강조되어 있는가. */
+  countPulse?: boolean
+  /** 산 뒤 그 자리에 남아 있는 딱지의 수. */
+  leaving?: number
+  /** 덱 층의 가로 어긋남. 0 이면 제자리이고 300 이면 물러난 것입니다. */
+  deckX?: number
   played: number
   coins: boolean
   cleared: boolean

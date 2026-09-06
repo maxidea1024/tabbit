@@ -1538,3 +1538,11 @@
 	ui.kind.stake	스테이크	Stake	ステーク	底注	底注	Einsatz
 	ui.quit.browser	탭은 스스로 닫히지 않습니다	This tab cannot close itself	タブは自分で閉じられません	标签页无法自行关闭	分頁無法自行關閉	Dieser Tab kann sich nicht selbst schließen
 	ui.quit.browserBody	브라우저에서 탭을 닫아 주십시오.	Close the tab in your browser.	ブラウザでタブを閉じてください。	请在浏览器中关闭标签页。	請在瀏覽器中關閉分頁。	Schließe den Tab in deinem Browser.
+	ui.button.give_up	내놓는다 +${n}	Give up +${n}	手放す +${n}	放弃 +${n}	放棄 +${n}	Abgeben +${n}
+	ui.focus.pick_joker	위 줄에서 내놓을 조커를 누르십시오. 누른 것 밑의 단추가 내놓습니다	Tap a Joker in the row above; the button under it gives it up	上の列から手放すジョーカーを押してください。下のボタンで手放します	点击上方一排中要放弃的小丑牌，其下方按钮确认放弃	點擊上方一排中要放棄的小丑牌，其下方按鈕確認放棄	Tippe oben einen Joker an; der Knopf darunter gibt ihn ab
+	ui.focus.pick_item	위 줄에서 내놓을 소모품을 누르십시오. 누른 것 밑의 단추가 내놓습니다	Tap a consumable in the row above; the button under it gives it up	上の列から手放す消費アイテムを押してください。下のボタンで手放します	点击上方一排中要放弃的消耗品，其下方按钮确认放弃	點擊上方一排中要放棄的消耗品，其下方按鈕確認放棄	Tippe oben einen Verbrauchsgegenstand an; der Knopf darunter gibt ihn ab
+	ui.focus.cancel	그만둔다	Never mind	やめる	算了	算了	Doch nicht
+	ui.badge.next	다음은 {name}	Next: {name}	次は {name}	下一个：{name}	下一個：{name}	Als Nächstes: {name}
+	ui.badge.next_target	요구 점수 {n}	Target {n}	要求スコア {n}	要求分数 {n}	要求分數 {n}	Ziel {n}
+	ui.badge.pack_note	마음에 안 들면 건너뜁니다	Skip it if you would rather not	気に入らなければスキップします	不满意可以跳过	不滿意可以跳過	Überspringen, wenn nichts passt
+	ui.badge.pick_note	판 위에서 이 블라인드를 고르거나 건너뜁니다	Pick this blind on the table, or skip it	盤上でこのブラインドを選ぶかスキップします	在牌桌上选择此盲注或跳过	在牌桌上選擇此盲注或跳過	Wähle diesen Blind auf dem Tisch oder überspringe ihn

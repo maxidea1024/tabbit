@@ -9,6 +9,7 @@ import { t, tf } from '../core/strings'
 import { NUMERALS, outline, outlined, outlineOf, outlineWidth } from '../ui/font'
 import { box, BOTTOM, inset, putText, splitY } from '../ui/layout'
 import { mix, plate, slotStyle } from './skin'
+import { Spring } from './motion'
 import { COLOR, UI } from './theme'
 
 /** 값 하나가 들어가는 칸. */
@@ -341,6 +342,33 @@ export class Slot extends Container {
  */
 export class BlindBadge extends Container {
   private readonly plate = new Graphics()
+  /**
+   * 판 위의 글 전부. 태그 칩은 여기 있지 않습니다.
+   *
+   * **내용이 바뀌면 이 통이 살짝 위에서 내려와 앉습니다.** 왼쪽 판의 맨 위는 상황마다 다른
+   * 것을 적는 자리이고, 글자가 제자리에서 바뀌면 바뀐 것을 알아채지 못합니다 — 한 번
+   * 튕기며 앉는 것이 「여기가 바뀌었다」입니다.
+   */
+  private readonly body = new Container()
+  private readonly bodyY = new Spring(0, 240, 14)
+  private bodyFade = 1
+  /** 지금 적힌 것의 요약. 같은 것을 다시 적으면 튕기지 않습니다. */
+  private shownKey = ''
+  /** 상황을 적는 판의 글 둘. 요구 점수 대신 서는 것입니다. */
+  private readonly lead = new Text({
+    text: '',
+    style: {
+      fontSize: 13, fill: COLOR.ink, fontWeight: '800', lineHeight: 18,
+      wordWrap: true, wordWrapWidth: 234, breakWords: true,
+    },
+  })
+  private readonly info = new Text({
+    text: '',
+    style: {
+      fontSize: 11, fill: COLOR.inkDim, lineHeight: 16,
+      wordWrap: true, wordWrapWidth: 234, breakWords: true,
+    },
+  })
   private readonly title = new Text({
     text: '', style: { fontSize: 15, fill: COLOR.ink, fontWeight: '800' },
   })
@@ -375,7 +403,89 @@ export class BlindBadge extends Container {
 
   constructor(private readonly boxWidth: number) {
     super()
-    this.addChild(this.plate, this.title, this.caption, this.need, this.reward, this.note)
+    this.body.addChild(this.title, this.caption, this.need, this.reward, this.note,
+      this.lead, this.info)
+    this.addChild(this.plate, this.body)
+  }
+
+  /**
+   * 내용이 바뀌었으면 글 통이 살짝 위에서 내려와 앉습니다.
+   *
+   * **탄력이 있습니다.** 감쇠를 낮춰 한 번 넘치고 돌아오게 두었고, 그동안 글도 함께
+   * 짙어집니다 — 같은 내용을 다시 적는 것은 다시 그리는 것뿐이므로 움직이지 않습니다.
+   */
+  private settle(key: string): void {
+    if (key === this.shownKey) return
+    this.shownKey = key
+    this.bodyY.snap(-18)
+    this.bodyY.target = 0
+    this.bodyFade = 0
+    this.body.alpha = 0
+    this.body.y = -18
+  }
+
+  /** 글 통의 움직임을 한 단계 진행합니다. 화면의 틱이 부릅니다. */
+  advance(seconds: number): void {
+    if (this.bodyFade >= 1 && this.bodyY.settled) return
+    this.bodyY.advance(seconds)
+    this.bodyFade = Math.min(1, this.bodyFade + seconds / 0.22)
+    this.body.y = this.bodyY.value
+    this.body.alpha = this.bodyFade
+  }
+
+  /**
+   * 상황을 적습니다 — 상점 · 뜯은 팩 · 자리 비우기처럼 요구 점수가 뜻을 갖지 않는 때입니다.
+   *
+   * **틀은 같고 안의 글만 다릅니다.** 이름 띠는 그대로이고, 요구 점수와 격파 보상 자리에
+   * 굵은 한 줄(`lead`)과 옅은 몇 줄(`info`)이 섭니다 — 같은 딱지가 상황을 따라 다른 것을
+   * 적는 것이어야 왼쪽 판이 여러 판으로 보이지 않습니다.
+   */
+  setInfo(name: string, lead: string, lines: string[], mark: number, seal?: Container,
+          tags: Container[] = []): void {
+    this.settle(`info|${name}|${lead}|${lines.join('|')}`)
+    const height = 156
+    this.boxHeight = height
+
+    this.plate.clear()
+    plate(this.plate, this.boxWidth, height, {
+      top: UI.cell, bottom: UI.cell, border: UI.hairline, radius: 6, weight: 1,
+    })
+    this.plate.rect(1, 38, this.boxWidth - 2, 1).fill(UI.hairline)
+    if (!seal) this.plate.circle(20, 19, 5).stroke({ color: mark, width: 2 })
+
+    this.seal?.destroy()
+    this.seal = undefined
+    if (seal) {
+      this.seal = seal
+      seal.position.set(20, 19)
+      this.body.addChild(seal)
+    }
+
+    this.title.text = name
+    this.title.anchor.set(0.5, 0.5)
+    this.title.scale.set(1)
+    const room = this.boxWidth - 40 * 2
+    if (this.title.width > room) this.title.scale.set(room / this.title.width)
+    this.title.position.set(this.boxWidth / 2, 19)
+
+    // 요구 점수 쪽은 비웁니다. 자리는 그대로이고 글만 없습니다.
+    this.caption.text = ''
+    this.need.text = ''
+    this.reward.text = ''
+    this.note.text = ''
+
+    this.lead.text = lead
+    this.lead.anchor.set(0.5, 0)
+    this.lead.position.set(this.boxWidth / 2, 50)
+    this.lead.style.align = 'center'
+
+    this.info.text = lines.join('\n')
+    this.info.anchor.set(0.5, 0)
+    this.info.style.align = 'center'
+    // 굵은 줄 바로 아래입니다. 굵은 줄이 두 줄이면 그만큼 내려섭니다.
+    this.info.position.set(this.boxWidth / 2, 50 + this.lead.height + 10)
+
+    this.setTags(tags)
   }
 
   /**
@@ -388,6 +498,9 @@ export class BlindBadge extends Container {
 
   set(name: string, target: number, reward: number, note: string,
       boss: boolean, big = false, seal?: Container, tags: Container[] = []): void {
+    this.settle(`blind|${name}|${target}|${reward}|${note}`)
+    this.lead.text = ''
+    this.info.text = ''
     // **딱지는 자라지 않습니다.**
     //
     // 두 가지가 키우고 있었습니다 — 들고 있는 태그를 아래에 한 줄로 세운 것과, 보스의
@@ -435,7 +548,7 @@ export class BlindBadge extends Container {
     if (seal) {
       this.seal = seal
       seal.position.set(20, 19)
-      this.addChild(seal)
+      this.body.addChild(seal)
     }
 
     // 요구 점수. **바와 같은 색입니다** — 채워야 하는 것으로 읽힙니다.

@@ -18,6 +18,7 @@
     "check:outline": "tsx tools/check-outline.ts",
     "check:face-bake": "tsx tools/check-face-bake.ts",
     "check:shop-rise": "tsx tools/check-shop-rise.ts",
+    "check:shop-flow": "tsx tools/check-shop-flow.ts",
     "check:euphoria": "tsx tools/check-euphoria.ts",
     "check:insight": "tsx tools/check-insight.ts",
     "check:shell": "tsx tools/check-shell.ts",

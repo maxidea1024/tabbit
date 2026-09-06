@@ -35,7 +35,9 @@ async function main(): Promise<number> {
   }
 
   // 펼쳐지는 동안을 석 장으로.
-  for (const [index, wait] of [180, 260, 500].entries()) {
+  // **상점이 내려간 뒤에 카드가 나옵니다.** 뜯은 직후에는 판이 내려가는 중이고, 카드는 그
+  // 뒤에 아래에서 올라옵니다 — 첫 장은 그 내려가는 판을 찍습니다.
+  for (const [index, wait] of [200, 500, 700].entries()) {
     await page.waitForTimeout(wait)
     await shot(page, `pack-${index + 1}`)
   }

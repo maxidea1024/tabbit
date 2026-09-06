@@ -6,7 +6,9 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
-import { at, grantMoney, openRun, pass, peek, settle, shopSlot, skipLogin, winRound } from './harness'
+import {
+  at, clickSpot, grantMoney, openRun, pass, peek, settle, shopSlot, skipLogin, winRound,
+} from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5218
@@ -51,13 +53,25 @@ async function main(): Promise<number> {
   // **네 칸을 차례로 눌러 보고 있었습니다.** 조커만 선 상점에서는 넷 다 사지 못하고
   // 「사지 못했습니다」 로 끝났고, 그 말은 오는 길이 있는지 없는지를 말해 주지 않습니다 —
   // 상점이 무엇을 세워 두었는지는 화면이 알려 주면 되는 것입니다.
-  const kinds = (await peek(page)).shopKinds ?? []
-  const wanted = kinds
-    .map((kind, slot) => ({ kind, slot }))
-    .filter(one => one.kind !== 1)
-    .map(one => one.slot)
+  //
+  // **없으면 리롤합니다.** 무엇이 서는지는 시드가 정하고, 같은 시드로도 판마다 다를 수
+  // 있어서 「시드를 바꿔야 합니다」 로 끝나던 것이 이 도구가 재려던 것과 무관하게 빨갔습니다.
+  let kinds: number[] = []
+  let wanted: number[] = []
+  for (let roll = 0; roll < 8; roll++) {
+    kinds = (await peek(page)).shopKinds ?? []
+    wanted = kinds
+      .map((kind, slot) => ({ kind, slot }))
+      .filter(one => one.kind !== 1)
+      .map(one => one.slot)
+    if (wanted.length > 0) break
+    await grantMoney(page, 30)
+    await settle(page)
+    await clickSpot(page, 'reroll')
+    await pass(page, 900)
+  }
   if (wanted.length === 0) {
-    console.log('상점에 소모품이 없습니다. 시드를 바꿔야 합니다:', kinds.join(' '))
+    console.log('리롤을 여덟 번 해도 소모품이 서지 않습니다:', kinds.join(' '))
     await browser.close()
     await server.close()
     return 1
@@ -84,7 +98,8 @@ async function main(): Promise<number> {
     await page.mouse.click(at2.x, at2.y)
 
     // 오는 길을 잽니다. **가로와 세로 둘 다입니다.**
-    for (let i = 0; i < 24; i++) {
+    // **값을 치르는 박자(1.15초)가 지난 뒤에 떠납니다.** 그동안의 표본은 비어 있습니다.
+    for (let i = 0; i < 80; i++) {
       const spot = await page.evaluate(() => {
         const hook = (window as unknown as { __clover: { fly?: Fly | null } }).__clover
         return hook.fly ?? null
@@ -124,9 +139,17 @@ async function main(): Promise<number> {
     console.log('자리를 잡아 준 횟수', last.flyAsked, '· 잡지 못한 횟수', last.flyMissed)
   }
 
+  // **첫 프레임부터 산 자리입니다.** 칸을 만든 그 틱에 오는 길을 얹지 않으면 제 칸에 한
+  // 프레임 보이고 나서 산 자리로 뛰었다 돌아옵니다 — 오는 길이 보이는 것과는 따로 봅니다.
+  const last = track[track.length - 1]
+  const early = track.slice(0, -1).filter(one => one.travel < 0.7)
+  const flashed = last !== undefined && early.some(one =>
+    Math.abs(one.x - last.x) < 2 && Math.abs(one.y - last.y) < 2)
+  console.log(flashed ? '제 칸에 먼저 한 번 보였습니다' : '제 칸에 먼저 보이지 않습니다')
+
   await browser.close()
   await server.close()
-  const good = moves >= 4
+  const good = moves >= 4 && !flashed
   console.log(good ? '오는 길이 보입니다' : '툭 나타납니다')
   return good ? 0 : 1
 }
