@@ -8,6 +8,7 @@ import { t, tf } from '../core/strings'
 
 import { NUMERALS, outline, outlined, outlineOf, outlineWidth } from '../ui/font'
 import { box, BOTTOM, inset, putText, splitY } from '../ui/layout'
+import { richBlock, rowsOf, type RichStyle } from '../ui/rich'
 import { mix, plate, slotStyle } from './skin'
 import { Spring } from './motion'
 import { COLOR, UI } from './theme'
@@ -354,21 +355,15 @@ export class BlindBadge extends Container {
   private bodyFade = 1
   /** 지금 적힌 것의 요약. 같은 것을 다시 적으면 튕기지 않습니다. */
   private shownKey = ''
-  /** 상황을 적는 판의 글 둘. 요구 점수 대신 서는 것입니다. */
-  private readonly lead = new Text({
-    text: '',
-    style: {
-      fontSize: 13, fill: COLOR.ink, fontWeight: '800', lineHeight: 18,
-      wordWrap: true, wordWrapWidth: 234, breakWords: true,
-    },
-  })
-  private readonly info = new Text({
-    text: '',
-    style: {
-      fontSize: 11, fill: COLOR.inkDim, lineHeight: 16,
-      wordWrap: true, wordWrapWidth: 234, breakWords: true,
-    },
-  })
+  /**
+   * 상황을 적는 판의 글 둘. 요구 점수 대신 서는 것입니다.
+   *
+   * **통입니다.** 「요구 점수 1,200 · 격파 보상 $5」 에서 사람이 찾는 것은 두 수이고,
+   * 그것이 문장과 같은 색이면 문장을 처음부터 읽어야 찾습니다 — 쪽지와 판이 이미 같은
+   * 규칙으로 강조하므로 이 자리만 민글이면 여기가 다른 물건으로 보입니다.
+   */
+  private readonly lead = new Container()
+  private readonly info = new Container()
   private readonly title = new Text({
     text: '', style: { fontSize: 15, fill: COLOR.ink, fontWeight: '800' },
   })
@@ -381,13 +376,8 @@ export class BlindBadge extends Container {
     text: '',
     style: { fontSize: 10, fill: COLOR.inkDim, fontWeight: '700', letterSpacing: 1 },
   })
-  private readonly note = new Text({
-    text: '',
-    style: {
-      fontSize: 11, fill: COLOR.inkDim, lineHeight: 15,
-      wordWrap: true, wordWrapWidth: 234, breakWords: true,
-    },
-  })
+  /** 보스의 규칙 한 줄. 수가 그 규칙의 요점이라 여기도 강조가 붙습니다. */
+  private readonly note = new Container()
   private readonly reward = new Text({
     text: '', style: { fontSize: 13, fill: COLOR.money, fontWeight: '700' },
   })
@@ -400,6 +390,35 @@ export class BlindBadge extends Container {
    * 냅니다 — 그림이 어디서 오는지를 여기가 알 이유가 없습니다.
    */
   private seal?: Container
+
+  /** 굵은 한 줄 · 옅은 몇 줄 · 규칙 한 줄. 크기만 다르고 강조의 색은 같습니다. */
+  private static readonly LEAD_RICH: RichStyle = {
+    base: { fontSize: 13, fill: COLOR.ink, fontWeight: '800' },
+    number: COLOR.accentNumber,
+    term: COLOR.accentTerm,
+  }
+
+  private static readonly INFO_RICH: RichStyle = {
+    base: { fontSize: 11, fill: COLOR.inkDim },
+    number: COLOR.accentNumber,
+    term: COLOR.accentTerm,
+  }
+
+  /**
+   * 통 하나를 다시 세우고 몇 줄을 썼는지 돌려줍니다.
+   *
+   * **줄 수는 세어서 받습니다.** 접힌 줄까지 세어야 그 아래의 글이 겹치지 않는데, 통의
+   * 높이는 마지막 줄의 글자 높이까지라 그것으로 재면 줄마다 조금씩 어긋납니다.
+   */
+  private fill(into: Container, lines: readonly string[], style: RichStyle,
+               lineHeight: number, top: number): number {
+    into.removeChildren().forEach(child => child.destroy({ children: true }))
+    if (lines.length === 0 || lines.every(one => one === '')) return 0
+    const block = richBlock(lines, style, lineHeight, this.boxWidth - 22, 'center')
+    into.addChild(block)
+    into.position.set(11, top)
+    return rowsOf(block)
+  }
 
   constructor(private readonly boxWidth: number) {
     super()
@@ -472,18 +491,11 @@ export class BlindBadge extends Container {
     this.caption.text = ''
     this.need.text = ''
     this.reward.text = ''
-    this.note.text = ''
+    this.fill(this.note, [], BlindBadge.INFO_RICH, 15, 0)
 
-    this.lead.text = lead
-    this.lead.anchor.set(0.5, 0)
-    this.lead.position.set(this.boxWidth / 2, 50)
-    this.lead.style.align = 'center'
-
-    this.info.text = lines.join('\n')
-    this.info.anchor.set(0.5, 0)
-    this.info.style.align = 'center'
+    const rows = this.fill(this.lead, [lead], BlindBadge.LEAD_RICH, 18, 50)
     // 굵은 줄 바로 아래입니다. 굵은 줄이 두 줄이면 그만큼 내려섭니다.
-    this.info.position.set(this.boxWidth / 2, 50 + this.lead.height + 10)
+    this.fill(this.info, lines, BlindBadge.INFO_RICH, 16, 50 + rows * 18 + 10)
 
     this.setTags(tags)
   }
@@ -499,8 +511,8 @@ export class BlindBadge extends Container {
   set(name: string, target: number, reward: number, note: string,
       boss: boolean, big = false, seal?: Container, tags: Container[] = []): void {
     this.settle(`blind|${name}|${target}|${reward}|${note}`)
-    this.lead.text = ''
-    this.info.text = ''
+    this.fill(this.lead, [], BlindBadge.LEAD_RICH, 18, 0)
+    this.fill(this.info, [], BlindBadge.INFO_RICH, 16, 0)
     // **딱지는 자라지 않습니다.**
     //
     // 두 가지가 키우고 있었습니다 — 들고 있는 태그를 아래에 한 줄로 세운 것과, 보스의
@@ -564,9 +576,7 @@ export class BlindBadge extends Container {
     this.reward.anchor.set(0.5, 0)
     this.reward.position.set(this.boxWidth / 2, 104)
 
-    this.note.text = note
-    this.note.anchor.set(0.5, 0)
-    this.note.position.set(this.boxWidth / 2, 126)
+    this.fill(this.note, [note], BlindBadge.INFO_RICH, 15, 126)
 
     this.setTags(tags)
   }

@@ -39,6 +39,23 @@ const ENHANCEMENT_TINT: Partial<Record<EnhancementKind, number>> = {
 }
 
 /**
+ * 칩의 글씨색.
+ *
+ * **종이색과 짝입니다.** 칩의 바탕이 어두우므로 글씨는 그 강화의 밝은 쪽이고, 그러면
+ * 무엇이 붙었는지가 글을 읽기 전에 색으로 먼저 읽힙니다.
+ */
+const ENHANCEMENT_INK: Partial<Record<EnhancementKind, number>> = {
+  [EnhancementKind.Bonus]: 0x9ecbff,
+  [EnhancementKind.Mult]: 0xff9fae,
+  [EnhancementKind.Wild]: 0xd5aef7,
+  [EnhancementKind.Glass]: 0x9fe4f0,
+  [EnhancementKind.Steel]: 0xdadada,
+  [EnhancementKind.Stone]: 0xd8d0bf,
+  [EnhancementKind.Gold]: 0xffd873,
+  [EnhancementKind.Lucky]: 0xa6ea8e,
+}
+
+/**
  * 강화가 카드에 다는 글의 열쇠.
  *
  * **글이 아니라 열쇠를 둡니다.** 모듈의 상수는 임포트할 때 만들어지고 그것은 `useStrings`
@@ -129,8 +146,16 @@ export class CardView extends Container {
    * 그때는 선으로 그리고, 이 통이 그것을 담습니다.
    */
   private readonly faceNode = new Container()
+  /**
+   * 강화를 적는 칩.
+   *
+   * **글만 얹어 두면 읽히지 않습니다.** 종이색이 강화마다 다르고 그 위에 얼굴의 획까지
+   * 지나가므로, 같은 어두운 글씨가 어떤 종이 위에서는 배경으로 묻힙니다 — 어두운 판을
+   * 깔고 그 위에 밝은 글씨를 얹으면 종이가 무엇이든 같은 정도로 읽힙니다.
+   */
+  private readonly markPlate = new Graphics()
   private readonly mark = new Text({
-    text: '', style: { fontSize: 10, fill: 0x3a3226, fontWeight: '700' },
+    text: '', style: { fontSize: 10, fill: 0xf2f6fb, fontWeight: '800' },
   })
   private readonly seal = new Graphics()
   /**
@@ -202,7 +227,8 @@ export class CardView extends Container {
   constructor(card: CardInstance, look?: EditionLook) {
     super()
     this.uid = card.uid
-    this.body.addChild(this.faceSprite, this.faceNode, this.backNode, this.mark, this.seal)
+    this.body.addChild(this.faceSprite, this.faceNode, this.backNode,
+                       this.markPlate, this.mark, this.seal)
     this.faceSprite.setSize(SIZE.cardWidth, SIZE.cardHeight)
     // **그림자는 한 번만 그립니다.** 카드가 무엇이든 같은 사각형이고, 바뀌는 것은 이 통의
     // 자리와 알파뿐입니다.
@@ -235,6 +261,7 @@ export class CardView extends Container {
       this.faceSprite.visible = false
       clearCardFace(this.faceNode)
       this.mark.visible = false
+      this.markPlate.clear()
       this.seal.clear()
       this.edition = undefined
       this.editionKind = undefined
@@ -268,10 +295,30 @@ export class CardView extends Container {
 
     const markKey = ENHANCEMENT_MARK_KEY[card.enhancement]
     this.mark.visible = markKey !== undefined
+    this.markPlate.clear()
     if (markKey !== undefined) {
+      const ink = ENHANCEMENT_INK[card.enhancement] ?? 0xf2f6fb
+      this.mark.style.fill = card.debuffed ? 0x9aa3ad : ink
       this.mark.text = t(markKey)
-      this.mark.anchor.set(0.5, 0)
-      this.mark.position.set(w / 2, h - 22)
+      this.mark.anchor.set(0.5, 0.5)
+      this.mark.scale.set(1)
+
+      // **글의 넓이가 칩의 넓이입니다.** 말에 따라 「+칩」이 `+Chips` 가 되고 독일어는 더
+      // 깁니다 — 못박아 두면 그 말에서 글자가 칩 밖으로 나갑니다.
+      //
+      // **모서리의 인덱스는 남깁니다.** 칩이 카드의 폭을 다 쓰면 아래 오른쪽의 랭크와
+      // 무늬를 덮고, 그러면 겹친 손패에서 무슨 카드인지가 사라집니다 — 그 안에 들어가지
+      // 않는 말은 글씨를 줄입니다.
+      const chipH = 15
+      const room = w - 30
+      if (this.mark.width > room) this.mark.scale.set(room / this.mark.width)
+      const chipW = Math.round(this.mark.width * this.mark.scale.x) + 12
+      const cy = h - 21
+      this.mark.position.set(w / 2, cy)
+      this.markPlate
+        .roundRect(Math.round((w - chipW) / 2), cy - chipH / 2, chipW, chipH, chipH / 2)
+        .fill({ color: 0x141b26, alpha: 0.86 })
+        .stroke({ color: ink, width: 1, alpha: card.debuffed ? 0.3 : 0.75 })
     }
 
     this.seal.clear()
@@ -281,8 +328,10 @@ export class CardView extends Container {
       this.seal.circle(w - 15, 16, 7).stroke({ color: 0xffffff, width: 1, alpha: 0.6 })
     }
 
+    // **덧붙은 칩은 강화 칩의 왼쪽입니다.** 가운데는 강화가 쓰므로, 아래 변에 가로로
+    // 길게 두면 그 둘이 겹칩니다 — 둘 다 붙는 카드가 드물지 않습니다.
     if (card.bonusChips > 0) {
-      this.seal.roundRect(7, h - 20, 30, 13, 4).fill({ color: COLOR.chips, alpha: 0.9 })
+      this.seal.roundRect(8, h - 27, 12, 12, 3).fill({ color: COLOR.chips, alpha: 0.9 })
     }
 
     this.applyEdition(card.edition, look)

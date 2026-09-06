@@ -15,13 +15,14 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       // 나란히 놓고 보는 페이지들도 같이 굽습니다 — 에디션 셰이더 · 덱 15종의 뒷면 ·
-      // 그림 없이 그린 얼굴 52장.
+      // 그림 없이 그린 얼굴 52장 · 카드에 붙는 표시.
       input: {
         main: new URL('./index.html', import.meta.url).pathname,
         editions: new URL('./editions.html', import.meta.url).pathname,
         backs: new URL('./backs.html', import.meta.url).pathname,
         faces: new URL('./faces.html', import.meta.url).pathname,
         artcheck: new URL('./artcheck.html', import.meta.url).pathname,
+        marks: new URL('./marks.html', import.meta.url).pathname,
       },
     },
   },
