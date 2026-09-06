@@ -50,6 +50,8 @@
 |블라인드 판이 들어오는 1초 동안 매 프레임 카드 셋과 글 25개를 다시 만들기|`drawBlindPick` 이 만들고 `BlindGroup` 을 남깁니다. 프레임마다는 `placeBlindGroup` 이 자리와 알파만 옮깁니다|`render/game.ts` `placeBlindGroup`|
 |판때기를 그릴 때마다 `new FillGradient`|높이와 두 색이 같으면 같은 그라디언트입니다. `Map` 에 둡니다|`render/skin.ts` `gradient`|
 |점수가 굴러가는 동안 단계마다 판때기 재삼각화|빛의 세기를 16단계로 끊어 열쇠가 바뀔 때만 그립니다|`render/hud.ts` `Slot.draw`|
+|글자마다 물결이 도는 수를 자릿수가 바뀔 때마다 `Text` 를 만들고 버리기|글자 통은 만들어 두고 돌려 씁니다. 자릿수가 줄면 남는 것을 숨기고, **바뀐 글자에만 새 글을 넣습니다** — 넣는 순간 그 글자가 캔버스에 다시 구워지므로 「1,234」 가 「1,235」 가 될 때 굽는 것이 다섯이 아니라 하나입니다. 글자 폭은 글자와 크기마다 한 번만 잽니다|`render/hud.ts` `Digits`|
+|칩 × 배수의 바탕 번쩍임을 매 프레임 `clear()` 후 다시 그리기|두 칸의 세기를 8단계로 끊어 열쇠가 바뀔 때만 그립니다|`render/game.ts` `paintScoreFlash`|
 |게이지를 매 프레임 `clear()` 후 3개 `roundRect`|채운 길이(픽셀)가 같으면 돌아갑니다|`render/game.ts` `drawGauge`|
 |번쩍임의 모양을 매 프레임 다시 그려 잦아들게 하기|모양은 테두리 굵기 8단계로만 다시 그리고, 잦아드는 것은 컨테이너의 `alpha` 입니다|`render/game.ts` `decayFlashes`|
 |`refresh` 마다 `world` 아래 노드 전부를 걷어 `Text` 해상도 맞추기|화면 배율이 1 이하면 새 글은 이미 렌더러 해상도입니다. 배율이 1을 넘을 때만 걷습니다|`render/game.ts` `refresh`|

@@ -27,18 +27,18 @@ const CROP = { x: 0, y: 14, width: 300, height: 772 }
  * 그보다 좁다」를 검사하기 위한 것이고, 그 규칙이 깨지는 것을 잡는 것이 목적입니다.
  */
 const ROWS: { name: string; top: number; bottom: number; group: number }[] = [
-  { name: '블라인드 딱지', top: 34, bottom: 198, group: 1 },
-  { name: '라운드 득점', top: 210, bottom: 278, group: 1 },
+  { name: '블라인드 딱지', top: 34, bottom: 190, group: 1 },
+  { name: '라운드 득점', top: 200, bottom: 252, group: 1 },
   { name: '족보 이름', top: 304, bottom: 328, group: 2 },
   { name: '칩 × 배수', top: 336, bottom: 394, group: 2 },
   { name: '핸드 · 버리기', top: 420, bottom: 472, group: 3 },
   { name: '소지금 · 안티', top: 484, bottom: 536, group: 3 },
   { name: '적용 중', top: 562, bottom: 692, group: 4 },
-  { name: '런 정보 · 메뉴', top: 726, bottom: 760, group: 5 },
+  { name: '런 정보 · 메뉴', top: 714, bottom: 770, group: 5 },
 ]
 
 /** 무리를 가르는 줄들. */
-const GROOVES = [291, 407, 549]
+const GROOVES = [278, 407, 549]
 
 const GROUP_GAP = 26
 
@@ -62,8 +62,11 @@ function measure(): string[] {
     }
     // 마지막 무리와 아래 버튼 사이는 적용 중이 몇 줄인지에 따르므로 넓어도 됩니다.
     if (below.group === 5) continue
-    if (gap !== GROUP_GAP) {
-      bad.push(`${above.name} 과 ${below.name} 사이가 ${gap}입니다 — ${GROUP_GAP}이어야 합니다`)
+    // **26의 배수입니다.** 대개 26 하나이고, 족보 이름 앞만 그 두 배입니다 — 그 글은
+    // 카드를 골랐을 때만 서므로 위의 26픽셀 한 칸이 대개 비어 있습니다.
+    if (gap < GROUP_GAP || gap % GROUP_GAP !== 0) {
+      bad.push(`${above.name} 과 ${below.name} 사이가 ${gap}입니다`
+        + ` — ${GROUP_GAP}의 배수여야 합니다`)
     }
   }
 

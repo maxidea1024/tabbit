@@ -3,11 +3,12 @@
 // **눈이 여기부터 갑니다.** 블라인드가 무엇을 요구하는지, 지금 점수가 얼마인지, 칩과 배수가
 // 얼마인지가 한 덩어리로 붙어 있어야 판단이 됩니다.
 
-import { Container, Graphics, Text } from 'pixi.js'
+import { Container, Graphics, Text, TextStyle } from 'pixi.js'
 import { t, tf } from '../core/strings'
 
 import { NUMERALS, outline, outlined, outlineOf, outlineWidth } from '../ui/font'
-import { box, BOTTOM, inset, putText, splitY } from '../ui/layout'
+import { type Anchor, type Box, box, BOTTOM, inset, pointOf, putText, splitY }
+  from '../ui/layout'
 import { richBlock, rowsOf, type RichStyle } from '../ui/rich'
 import { mix, plate, slotStyle } from './skin'
 import { Spring } from './motion'
@@ -38,24 +39,190 @@ const BARE_PAD = 12
 /**
  * 숫자가 물러났다 돌아오는 데 걸리는 시간.
  *
- * **±N 글이 제자리에 앉아 있는 동안입니다.** 그 글은 `DELTA_LIFE` 의 앞 0.4 를 값의 자리에
- * 앉아 있다가 떠오르므로, 이 시간은 그 앉아 있는 동안(0.8초 × 0.4)입니다 — 더 길게 두면
- * 글이 떠난 뒤에도 칸이 비어 있고, 더 짧으면 둘이 같은 자리에 겹칩니다.
+ * **±N 글이 앉아 있는 동안에 떠오르기 시작하는 동안까지입니다.**
+ *
+ * 그 글은 `DELTA_LIFE`(0.8초) 의 앞 0.4 를 값의 자리에 앉아 있다가 떠오릅니다. 앉아 있는
+ * 동안(320밀리초)에 딱 맞춰 두었더니, 돌아오는 것이 그 글이 아직 제자리에 있는 동안에
+ * 끝나 마지막 짧은 동안 둘이 겹쳤습니다 — 떠오르는 것은 이차 곡선이라 앞부분이 느리고,
+ * 320밀리초 시점의 그 글은 1픽셀도 올라가 있지 않습니다.
+ *
+ * 620밀리초면 돌아오기 시작할 때 그 글이 5픽셀 올라가 있고 다 돌아왔을 때 13픽셀에
+ * 옅어지는 중입니다.
  */
-const MUTE_MS = 320
+const MUTE_MS = 620
+
+/**
+ * 오른 것과 내린 것의 색.
+ *
+ * **바탕색이 그 방향을 나타냅니다.** 칸의 숫자는 언제나 지금 값이고 ±N 글은 0.8초 뒤에
+ * 사라지므로, 그 글을 놓치면 무엇이 늘었고 무엇이 줄었는지가 남지 않습니다 — 판때기가
+ * 초록으로 밝았는가 붉게 밝았는가는 눈 구석으로도 읽힙니다.
+ */
+const UP_INK = COLOR.good
+const DOWN_INK = COLOR.bad
+
+/** 글자 하나가 튀었다 앉는 데 걸리는 시간. */
+const WAVE_MS = 300
+/** 옆 글자가 뒤따르기까지의 사이. **글자 수가 늘면 그만큼 물결이 깁니다.** */
+const WAVE_STAGGER_MS = 34
+/** 튀어오르는 높이와 부푸는 정도. */
+const WAVE_LIFT = 12
+const WAVE_SWELL = 0.35
+/**
+ * 값이 바뀐 뒤 바탕이 밝은 동안.
+ *
+ * **튐과 따로입니다.** 튐의 세기는 얼마나 크게 바뀌었는가를 따르므로, 그것으로 바탕을
+ * 밝히면 조금 바뀐 값은 색이 거의 들지 않습니다 — 바뀌었다는 것은 크기와 무관하게
+ * 같은 세기로 보여야 합니다. 글자 물결이 도는 동안과 대략 같은 길이입니다.
+ */
+const FLARE_MS = 420
+
+/**
+ * 글자 폭. **글자 하나와 크기 하나마다 한 번만 잽니다.**
+ *
+ * 재는 것은 글자를 캔버스에 구워 그 넓이를 읽는 일입니다 — 수가 굴러가는 동안 매 단계
+ * 다시 재면 그 값이 초당 60번입니다.
+ */
+const GLYPH_W = new Map<string, number>()
+
+/**
+ * 수 하나를 글자별로 세우는 통.
+ *
+ * **글자마다 따로 움직여야 할 때만 씁니다.** `Text` 하나는 통째로만 움직이므로, 왼쪽
+ * 글자부터 차례로 튀어오르는 물결을 만들 수 없습니다.
+ *
+ * **글자는 만들고 버리지 않습니다.** 수가 굴러가는 동안 자릿수가 늘었다 줄었다 하므로,
+ * 그때마다 만들면 만드는 값이 보여 주는 값보다 커집니다 — 남는 것은 숨겨 둡니다.
+ */
+class Digits extends Container {
+  private readonly glyphs: Text[] = []
+  private shown = ''
+  /**
+   * 물결이 돈 지 지난 시간. 음수면 돌고 있지 않습니다.
+   *
+   * **끝난 뒤에는 음수로 되돌립니다.** 그러지 않으면 다 앉은 글자들의 자리를 매 프레임
+   * 다시 셉니다.
+   */
+  private life = -1
+  private fromLeft = true
+
+  /**
+   * @param style 글자 전부가 나눠 쓰는 모습. **하나입니다** — 크기나 색을 고치면 글자
+   *   전부가 함께 바뀌어야 하고, 글자마다 사본을 두면 그중 하나만 남습니다.
+   * @param pull 0 이면 왼쪽 끝에서 오른쪽으로 자라고, 1 이면 오른쪽 끝에서 왼쪽으로
+   *   자랍니다. `Text` 의 `anchor.x` 와 같은 뜻입니다.
+   */
+  constructor(readonly style: TextStyle, private readonly pull: number) {
+    super()
+  }
+
+  get text(): string { return this.shown }
+
+  set text(value: string) {
+    if (value === this.shown) return
+    this.shown = value
+    this.relay()
+  }
+
+  /**
+   * 물결을 한 번 보냅니다.
+   *
+   * **바깥쪽 끝에서 시작해 곱셈표 쪽으로 갑니다.** 어느 쪽이 바깥인지는 `pull` 이 이미
+   * 알고 있습니다 — 오른쪽 끝에 붙은 수(칩)의 바깥은 왼쪽입니다.
+   */
+  wave(): void {
+    this.life = 0
+    this.fromLeft = this.pull >= 0.5
+  }
+
+  /** 물결을 한 단계 진행합니다. 돌고 있지 않으면 아무것도 하지 않습니다. */
+  advance(deltaMs: number): void {
+    if (this.life < 0) return
+    this.life += deltaMs
+
+    const count = this.shown.length
+    const span = WAVE_MS + Math.max(0, count - 1) * WAVE_STAGGER_MS
+    const done = this.life >= span
+    for (let i = 0; i < count; i++) {
+      const glyph = this.glyphs[i]
+      if (!glyph) continue
+      if (done) {
+        glyph.y = 0
+        glyph.scale.set(1)
+        continue
+      }
+      const order = this.fromLeft ? i : count - 1 - i
+      const at = (this.life - order * WAVE_STAGGER_MS) / WAVE_MS
+      if (at <= 0 || at >= 1) {
+        glyph.y = 0
+        glyph.scale.set(1)
+        continue
+      }
+      // 올라갔다 내려옵니다. 한가운데가 가장 높습니다.
+      const bounce = Math.sin(at * Math.PI)
+      glyph.y = -WAVE_LIFT * bounce
+      glyph.scale.set(1 + WAVE_SWELL * bounce)
+    }
+    if (done) this.life = -1
+  }
+
+  /**
+   * 글자들을 다시 세웁니다.
+   *
+   * **바뀐 글자에만 새 글을 넣습니다.** 넣는 순간 그 글자가 캔버스에 다시 구워지므로,
+   * 「1,234」 가 「1,235」 가 될 때 다섯 번 굽는 것과 한 번 굽는 것의 차이입니다.
+   */
+  private relay(): void {
+    const size = this.style.fontSize as number
+    let total = 0
+    const widths: number[] = []
+    for (let i = 0; i < this.shown.length; i++) {
+      const ch = this.shown[i]
+      let glyph = this.glyphs[i]
+      if (!glyph) {
+        glyph = new Text({ text: ch, style: this.style })
+        glyph.anchor.set(0.5, 0.5)
+        this.glyphs.push(glyph)
+        this.addChild(glyph)
+      }
+      glyph.visible = true
+      if (glyph.text !== ch) glyph.text = ch
+      const key = `${ch}|${size}`
+      let width = GLYPH_W.get(key)
+      if (width === undefined) {
+        width = glyph.width
+        GLYPH_W.set(key, width)
+      }
+      widths.push(width)
+      total += width
+    }
+    for (let i = this.shown.length; i < this.glyphs.length; i++) {
+      this.glyphs[i].visible = false
+    }
+
+    // **자라는 방향이 `pull` 입니다.** 오른쪽 끝에 붙는 수는 통째로 왼쪽으로 물러섭니다.
+    let at = -total * this.pull
+    for (let i = 0; i < widths.length; i++) {
+      this.glyphs[i].x = at + widths[i] / 2
+      at += widths[i]
+    }
+  }
+}
 
 export class Slot extends Container {
   private readonly plate = new Graphics()
   private readonly caption_ = new Text({
     text: '', style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '700' },
   })
-  private readonly value = new Text({
-    text: '0',
-    style: {
-      ...outlined(23, 0x0a0f18, true),
-      fill: COLOR.ink, fontWeight: '800', fontFamily: NUMERALS,
-    },
-  })
+  /**
+   * 값이 앉는 것.
+   *
+   * **글자별로 움직여야 하는 칸만 통입니다.** 나머지는 `Text` 하나이고, 그 편이 굽는
+   * 것도 재는 것도 한 번입니다 — 통은 글자 수만큼입니다.
+   */
+  private readonly value: Text | Digits
+  /** 값의 모습. **통이든 글 하나든 이것 하나를 봅니다.** */
+  private readonly valueStyle: TextStyle
 
   private shown = 0
   private wanted = 0
@@ -67,6 +234,22 @@ export class Slot extends Container {
   private settledLook = true
   /** 마지막으로 그린 판때기의 모습. 같으면 다시 그리지 않습니다. */
   private plateKey = ''
+
+  /**
+   * 바탕이 오르내림을 따라 물드는가.
+   *
+   * **자원 칸만 그렇습니다.** 핸드 · 버리기 · 소지금 · 안티는 늘었는지 줄었는지가 곧
+   * 좋은 소식인지 나쁜 소식인지입니다. 라운드 득점은 오르기만 하므로 그 색이 아무것도
+   * 가르지 않고, 매 판 초록으로 밝으면 그것이 판의 기본 모습이 됩니다.
+   */
+  signed = false
+
+  /**
+   * 지금 번쩍임에 쓸 색. **기본은 칸의 색입니다.**
+   *
+   * `signed` 인 칸에서는 오르내림이 이것을 갈아 끼웁니다.
+   */
+  private glowInk: number
 
   /**
    * 값이 놓이는 가로 자리. 0 이면 왼쪽, 0.5 면 가운데, 1 이면 오른쪽입니다.
@@ -96,14 +279,22 @@ export class Slot extends Container {
 
   constructor(caption: string, private readonly boxWidth: number,
               private readonly boxHeight: number, private readonly ink: number,
-              valueSize = 23, pull = 0.5, bare = false) {
+              valueSize = 23, pull = 0.5, bare = false, wave = false) {
     super()
     this.pull = pull
     this.bare = bare
-    this.value.style.fontSize = valueSize
-    // **칸마다 숫자 크기가 다릅니다.** 테두리의 굵기는 크기에서 나오는 값이라 여기서 다시
-    // 정합니다 — 위의 기본값은 23픽셀짜리의 것입니다.
-    this.value.style.stroke = outline(valueSize, 0x0a0f18, true)
+    this.glowInk = ink
+    // **칸마다 숫자 크기가 다릅니다.** 테두리의 굵기는 크기에서 나오는 값이므로 크기와
+    // 함께 정합니다.
+    this.valueStyle = new TextStyle({
+      ...outlined(valueSize, 0x0a0f18, true),
+      fill: COLOR.ink, fontWeight: '800', fontFamily: NUMERALS,
+    })
+    this.valueStyle.fontSize = valueSize
+    this.valueStyle.stroke = outline(valueSize, 0x0a0f18, true)
+    this.value = wave
+      ? new Digits(this.valueStyle, pull)
+      : new Text({ text: '0', style: this.valueStyle })
     this.addChild(this.plate, this.caption_, this.value)
     this.caption_.text = caption
     // 이름은 위 가운데, 숫자는 그 아래의 남은 자리에. **기울기는 `pull` 이 정합니다** —
@@ -118,26 +309,38 @@ export class Slot extends Container {
     // **한 줄 칸의 숫자에는 테를 두르지 않습니다.** 칸의 어두운 바탕 위에 있으므로 테가
     // 할 일이 없고, 테를 두르면 12픽셀 이름 옆에서 숫자만 굵어 보입니다 — 테는 색 상자
     // 위에 앉는 칩과 배수에만 남습니다.
-    this.value.style.stroke = outlineOf(
-      this.row ? 0 : outlineWidth(this.value.style.fontSize as number, true), 0x0a0f18)
+    this.valueStyle.stroke = outlineOf(
+      this.row ? 0 : outlineWidth(valueSize, true), 0x0a0f18)
     if (this.row) {
       // 이름은 왼쪽, 값은 오른쪽. **값은 오른쪽 끝에 붙으므로 `pull` 이 1 입니다** — ±N
       // 글이 같은 자리에 서려면 그 기준이 같아야 합니다.
       this.pull = 1
       const line = inset(inner, 0, ROW_PAD)
       putText(this.caption_, line, { x: 0, y: 0.5 })
-      putText(this.value, line, { x: 1, y: 0.5 })
+      this.putValue(line, { x: 1, y: 0.5 })
     } else {
       const [head, rest] = splitY(inner, [CAPTION_H, boxHeight - CAPTION_H])
       const body = named ? rest : inner
       if (named) putText(this.caption_, head, BOTTOM, { y: -2 })
       // **이름이 없으면 여백이 좁아도 됩니다.** 곱셈표가 상자 밖의 빈 자리에 서므로 숫자가
       // 그것에 닿지 않습니다.
-      putText(this.value, inset(body, 0, BARE_PAD), { x: pull, y: 0.5 })
+      this.putValue(inset(body, 0, BARE_PAD), { x: pull, y: 0.5 })
     }
     this.baseY = this.value.y
-    this.value.style.fill = ink
+    this.valueStyle.fill = ink
     this.draw()
+  }
+
+  /**
+   * 값을 사각형 안의 한 자리에 붙입니다.
+   *
+   * **`putText` 를 대신합니다.** 그것은 `Text` 의 `anchor` 를 만지는데, 글자별 통에는
+   * 그런 것이 없습니다 — 통은 만들 때 받은 `pull` 로 스스로 자라는 방향을 압니다.
+   */
+  private putValue(area: Box, at: Anchor): void {
+    if (this.value instanceof Text) this.value.anchor.set(at.x, at.y)
+    const spot = pointOf(area, at)
+    this.value.position.set(spot.x, spot.y)
   }
 
   /**
@@ -168,7 +371,7 @@ export class Slot extends Container {
     return {
       x: this.valueX,
       y: this.baseY,
-      size: this.value.style.fontSize as number,
+      size: this.valueStyle.fontSize as number,
       pull: this.pull,
     }
   }
@@ -176,6 +379,18 @@ export class Slot extends Container {
   /** 숫자를 잠깐 물러나게 합니다. ±N 글이 그 자리를 씁니다. */
   mute(): void {
     this.muted = 1
+  }
+
+  /**
+   * 바탕을 오른 색 · 내린 색으로 한 번 밝힙니다.
+   *
+   * **글로 들어오는 값의 방향은 여기서만 압니다.** 핸드와 버리기는 「4」 같은 글을 받으므로
+   * 칸이 스스로 늘었는지 줄었는지를 셀 수 없고, 그것을 세는 쪽이 ±N 을 띄우는 쪽입니다.
+   */
+  flash(up: boolean): void {
+    if (!this.signed) return
+    this.glowInk = up ? UP_INK : DOWN_INK
+    this.pop = Math.max(this.pop, 1)
   }
 
   private get valueX(): number {
@@ -194,7 +409,9 @@ export class Slot extends Container {
     // 세기를 16단계로 끊어 그 단계가 바뀔 때만 판때기를 다시 만듭니다 — 눈에는 같고,
     // 초당 240번이던 재삼각화가 몇 번으로 줍니다.
     const step = Math.round(glow * 16) / 16
-    const key = `${step}`
+    // **색도 열쇠입니다.** 세기만 보면 같은 세기로 오른 것과 내린 것이 같은 모습으로
+    // 남습니다 — 줄어든 다음 곧바로 같은 만큼 늘어나면 붉은 채로 밝습니다.
+    const key = `${step}|${this.glowInk}`
     if (key === this.plateKey) return
     this.plateKey = key
     const style = slotStyle(this.ink)
@@ -203,7 +420,11 @@ export class Slot extends Container {
     // 값이 굴러가는 동안 판 왼쪽에서 테 하나가 자랐다 줄어듭니다.
     plate(this.plate, this.boxWidth, this.boxHeight, {
       ...style,
-      top: step > 0 ? mix(style.top, this.ink, step * 0.22) : style.top,
+      // **오르내림이 드러나는 칸은 더 물듭니다.** 0.22 는 칸의 색으로 한 번 밝히는 세기이고,
+      // 그 세기의 초록과 붉음은 어두운 바탕에서 서로 구분되지 않습니다.
+      top: step > 0
+        ? mix(style.top, this.glowInk, step * (this.signed ? 0.42 : 0.22))
+        : style.top,
     })
   }
 
@@ -227,11 +448,28 @@ export class Slot extends Container {
   set text(value: string) {
     this.numeric = false
     if (this.value.text !== value) {
-      if (this.lastText !== '') this.pop = 1
+      if (this.lastText !== '') {
+        this.pop = 1
+        this.ripple()
+      }
       this.lastText = value
     }
     this.value.text = value
   }
+
+  /**
+   * 글자별 물결을 한 번 보냅니다. **글자별 통이 아닌 칸에서는 아무 일도 없습니다.**
+   *
+   * 값이 새 목표를 받는 그 순간에 한 번입니다 — 굴러가는 매 단계마다 보내면 물결이 아니라
+   * 내내 떠는 것이 됩니다.
+   */
+  private ripple(): void {
+    this.flare = 1
+    if (this.value instanceof Digits) this.value.wave()
+  }
+
+  /** 값이 바뀐 뒤로 남은 밝기. 1 에서 0 으로 갑니다. */
+  private flare = 0
 
   reset(value: number): void {
     this.numeric = true
@@ -245,11 +483,28 @@ export class Slot extends Container {
 
   set target(value: number) {
     this.numeric = true
-    if (value !== this.wanted) this.pop = Math.min(1, Math.abs(value - this.shown) / 400 + 0.35)
+    if (value !== this.wanted) {
+      this.pop = Math.min(1, Math.abs(value - this.shown) / 400 + 0.35)
+      this.ripple()
+      // **굴러가는 값은 방향을 스스로 압니다.** 소지금이 그렇습니다 — 지금 보이는 수와
+      // 가려는 수를 견주면 되므로 부르는 쪽이 알려 줄 것이 없습니다.
+      if (this.signed) this.glowInk = value > this.shown ? UP_INK : DOWN_INK
+    }
     this.wanted = value
   }
 
   get settled(): boolean { return this.shown === this.wanted }
+
+  /**
+   * 지금 이 칸이 얼마나 들떠 있는가. 0 이면 조용합니다.
+   *
+   * **자기 판을 그리지 않는 칸이 있습니다.** 칩과 배수의 바탕은 화면이 통째로 그리므로,
+   * 그 바탕을 밝히는 쪽이 이 값을 읽습니다 — 그러지 않으면 밝히는 쪽이 값이 바뀌었는지를
+   * 따로 세게 되고, 그 셈이 칸의 셈과 어긋납니다.
+   */
+  get lit(): number {
+    return Math.min(1, Math.max(this.flare, this.rolling))
+  }
 
   /**
    * 굴러가는 정도. 0 이면 다 왔고 1 이면 아직 멉니다.
@@ -270,12 +525,14 @@ export class Slot extends Container {
    * 큰 수가 굴러갈 때 크게 떨고, 다 굴러가면 조용히 제자리에 섭니다.
    */
   advance(deltaMs: number): void {
+    if (this.value instanceof Digits) this.value.advance(deltaMs)
     const rolling = this.numeric && this.shown !== this.wanted
     const heat = rolling
       ? Math.min(1, Math.abs(this.wanted - this.shown) / 240 + 0.4)
       : 0
 
     if (this.pop > 0) this.pop = Math.max(0, this.pop - deltaMs / 260)
+    if (this.flare > 0) this.flare = Math.max(0, this.flare - deltaMs / FLARE_MS)
 
     // **곧바로 물러나고 천천히 돌아옵니다.** 옅어지는 데 시간을 쓰면 그 사이 두 수가 같은
     // 자리에 겹쳐 있고, 겹친 동안에는 어느 것도 읽히지 않습니다.
@@ -287,12 +544,17 @@ export class Slot extends Container {
       // 읽힙니다. 서서히 돌아오게 두어도 같습니다 — ±N 은 앞의 0.4 를 제자리에 앉아 있다가
       // 떠오르므로, 그 사이에 조금이라도 보이면 둘이 겹칩니다. 그래서 거의 끝까지 감추고
       // 마지막 짧은 동안에 돌아옵니다.
-      const back = 0.12
+      const back = 0.18
       this.value.alpha = this.muted > back ? 0 : 1 - this.muted / back
     }
 
     const ease = this.pop * this.pop
     const shake = Math.max(heat, ease)
+    // **바탕이 밝은 동안은 ±N 이 떠 있는 동안입니다.**
+    //
+    // 튐은 0.26초에 잦아드는데 그 글은 0.62초를 서 있습니다 — 튐에만 맞추면 글이 아직
+    // 떠 있는데 색이 먼저 빠지고, 눈이 칸에 닿았을 때는 이미 아무 색도 없습니다.
+    const glow = Math.min(1, Math.max(shake, this.signed ? this.muted : 0))
     if (shake > 0.002) {
       // 튀는 것과 떠는 것을 같이 얹습니다.
       this.value.scale.set(1 + ease * 0.42 + heat * 0.14)
@@ -301,15 +563,16 @@ export class Slot extends Container {
       // 그 둘의 기준선이 서로 어긋나 보입니다.
       this.value.y = this.baseY - ease * 4 + (Math.random() - 0.5) * 2.4 * shake
       this.value.rotation = (Math.random() - 0.5) * 0.13 * shake
-      this.draw(Math.min(1, shake))
+      this.settledLook = false
     } else if (this.settledLook !== true) {
       this.settledLook = true
       this.value.scale.set(1)
       this.value.position.set(this.valueX, this.baseY)
       this.value.rotation = 0
-      this.draw()
     }
-    if (shake > 0.002) this.settledLook = false
+    // **모습이 같으면 돌아갑니다.** 열쇠를 보는 것이 이 함수의 첫 줄이므로 매번 불러도
+    // 됩니다 — 조건마다 따로 부르면 그중 하나에서 색이 빠지지 않은 채로 남습니다.
+    this.draw(glow)
 
     if (!rolling) return
     const gap = this.wanted - this.shown

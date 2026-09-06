@@ -64,7 +64,7 @@ import {
   packName, shopLabel, SUIT_PIP, tagFace, voucherFace,
 } from './faces'
 import { cardArtId, drawFace } from './pips'
-import { burst, groove, mix } from './skin'
+import { burst, groove, insetRadius, mix, slotStyle } from './skin'
 import {
   COLOR, popupCenter, popupLeft, rarityColor, setUiTheme, SIDE_PANEL, SIZE, UI,
 } from './theme'
@@ -493,6 +493,22 @@ const SORT_W = 112
 const SORT_H = 42
 /** 정렬 단추가 숨을 때 내려가는 거리. 화면 아래 밖까지입니다. */
 const SORT_HIDE = 120
+/**
+ * 판의 밑단에 서는 단추의 높이.
+ *
+ * **낸다·버린다와 같습니다.** 왼쪽 판의 런 정보·메뉴와 상점의 리롤·다음 블라인드가
+ * 그것들입니다 — 34픽셀짜리들이 56픽셀짜리 줄과 한 화면에 있으면 아래 변에 높이가 다른
+ * 단추 줄이 여럿 있는 것이 되고, 손가락으로 누르는 크기도 그만큼 갈립니다.
+ */
+const FOOT_BTN_H = PLAY_H
+/**
+ * 왼쪽 판의 밑단에 서는 단추 둘 — 런 정보와 메뉴.
+ *
+ * **윗변은 판의 밑변에서 셉니다.** 판은 화면 아래 22픽셀까지 내려오고, 그 안쪽으로
+ * 8픽셀을 둡니다 — 적어 두면 단추를 키운 날에 판 밖으로 밀려납니다.
+ */
+const PANEL_BTN_W = 124
+const PANEL_FOOT_Y = SIZE.height - 22 - 8 - FOOT_BTN_H
 /** 취소. 가운데에 서고 그 둘보다 좁습니다. */
 const CLEAR_W = 76
 /** 버튼 사이. **손가락 하나가 들어가야 합니다.** */
@@ -615,18 +631,25 @@ const CHIPS_Y = 336
  * 제각각이었고, 그러면 여섯 칸이 한 덩어리로 보입니다 — 어느 둘이 한 벌인지는 사이의
  * 넓이가 말하는 것이고, 그 넓이가 고르지 않으면 아무것도 말하지 않습니다.
  *
+ * **첫 사이만 두 배입니다.** 족보 이름은 카드를 골랐을 때만 서는 글이라 그 위가 대개
+ * 비어 있고, 그 빈 자리까지가 26 + 26 입니다 — 줄은 그 한가운데인 278 에 섭니다.
+ *
  * |무리|담기는 것|
  * |--|--|
- * |블라인드|딱지 34–198 · 라운드 득점 210–278|
+ * |블라인드|딱지 34–190 · 라운드 득점 200–252|
  * |이번 손|족보 이름 304–328 · 칩 × 배수 336–394|
  * |자원|핸드 · 버리기 420–472 · 소지금 · 안티 484–536|
  * |적용 중|562부터|
  *
  * 딱지와 칩 × 배수와 아래 버튼은 자리가 그대로입니다 — 움직인 것은 족보 이름과 아래 넷,
  * 그리고 적용 중입니다.
+ *
+ * **라운드 득점은 딱지에 붙습니다.** 그 둘은 한 무리이고 무리 안의 사이는 무리 사이보다
+ * 좁아야 하는데, 20픽셀이면 아래의 무리 사이(26)와 구분되지 않아 여섯 칸이 고르게 늘어선
+ * 것으로 보입니다 — 절반인 10픽셀입니다.
  */
 const PANEL_ROWS = {
-  score: 210,
+  score: 200,
   /** 족보 이름이 앉는 띠의 윗변. 높이는 24 입니다. */
   handLabel: 304,
   hands: 420,
@@ -634,17 +657,23 @@ const PANEL_ROWS = {
   /** 적용 중 목록의 머리글. */
   active: 562,
 } as const
-/** 무리를 가르는 줄들. 각 사이의 한가운데입니다. */
-const PANEL_GROOVES = [291, 407, 549] as const
+/**
+ * 무리를 가르는 줄들. **각 사이의 한가운데입니다.**
+ *
+ * 첫 줄이 291 이었습니다 — 라운드 득점의 밑변을 278 로 잡고 셋던 값인데 그 칸은 52픽셀
+ * 높이라 262 에서 끝났고, 줄이 한가운데에서 13픽셀 비켜서 있었습니다.
+ */
+const PANEL_GROOVES = [278, 407, 549] as const
 /**
  * 칩 × 배수 덩어리.
  *
- * **하나입니다.** 칸 둘이 각자 테두리를 두르고 있었고, 곱셈표가 그 사이의 빈 자리에 글자
- * 하나로 떠 있어서 어디에도 속하지 않은 채 걸쳐 보였습니다 — 바탕을 색으로 갈라 두면
- * 테두리가 할 일이 없어지고, 곱셈표는 두 색이 만나는 자리에 앉습니다.
+ * **판의 다른 칸 둘과 같은 한 벌입니다** — 핸드와 버리기가 그렇듯 같은 바탕의 상자 둘이
+ * 나란히 서고, 그 사이에 곱셈표가 섭니다. 파랑과 붉음은 값이 움직이는 동안에만 들고,
+ * 조용할 때의 왼쪽 판은 같은 색의 칸들입니다.
  */
 const CHIPS_H = 58
-const CHIPS_R = 10
+/** 두 상자의 모서리. **판의 다른 칸과 같습니다** — 바탕색을 맞추었으므로 모서리도 같습니다. */
+const CHIPS_R = 6
 /** 두 상자 사이. **곱셈표가 그 사이에 섭니다.** */
 const CHIPS_GAP = 34
 /** 구분선 하나가 차지하는 높이. 줄은 그 한가운데입니다. */
@@ -806,10 +835,22 @@ const BLUR_PX = 3
 const BLUR_BACK_PX = 2
 
 /**
- * 칩·배수 상자의 채움색.
+ * 칩·배수 상자가 밝을 때의 채움색.
  *
  * **짙게 눌러 씁니다.** 원색 그대로는 흰 숫자가 눌러앉지 못합니다.
  */
+/**
+ * 가장 나중에 받은 것. **번호가 가장 큰 것입니다.**
+ *
+ * 줄의 끝으로 보면 안 됩니다 — 자리를 갈아 끼우는 것(`swap`)은 판 그 자리에 들어오므로
+ * 끝이 아닙니다.
+ */
+function newest<T extends { uid: number }>(rows: readonly T[]): T | undefined {
+  let found: T | undefined
+  for (const one of rows) if (!found || one.uid > found.uid) found = one
+  return found
+}
+
 function boxInk(tint: number): number {
   return mix(tint, 0x0a1018, 0.52)
 }
@@ -1369,21 +1410,35 @@ export class Game {
   /**
    * 칩 × 배수의 바탕.
    *
-   * **칸이 아니라 이것이 테두리를 대신합니다.** 색이 갈리면 경계가 색으로 읽히므로 선이
-   * 필요 없습니다.
+   * **판의 다른 칸과 같은 바탕입니다.** 파랑과 붉음 둘로 칠해 두었더니 왼쪽 판에서 이
+   * 둘만 다른 문법으로 그려진 물건이었습니다 — 색은 조용할 때가 아니라 값이 바뀔 때
+   * 듭니다(`scoreFlash`).
    */
   private readonly scoreBox = new Graphics()
   /**
+   * 칩 × 배수가 바뀔 때 그 위에 드는 색.
+   *
+   * **원래 그 상자의 색입니다.** 파랑과 붉음이 사라진 것이 아니라, 늘 켜져 있던 것이
+   * 값이 움직이는 동안에만 켜집니다.
+   */
+  private readonly scoreFlash = new Graphics()
+  /** 두 상자가 놓인 자리. 겉면을 갈아입을 때와 번쩍임이 다시 씁니다. */
+  private scoreBoxes?: { chips: Box; mult: Box }
+  /** 마지막으로 그린 번쩍임의 세기. 같으면 다시 그리지 않습니다. */
+  private scoreFlashKey = ''
+  /**
    * 칩과 배수.
    *
-   * **이름이 없습니다.** 파란 상자의 수와 붉은 상자의 수 사이에 `×` 가 있으면 그것이 무엇인지
-   * 더 적을 것이 없습니다 — 이름은 자리만 잡아먹고 숫자를 아래로 밀어냅니다.
+   * **이름이 없습니다.** 두 수 사이에 `×` 가 있으면 그것이 무엇인지 더 적을 것이 없습니다 —
+   * 이름은 자리만 잡아먹고 숫자를 아래로 밀어냅니다.
    *
-   * 숫자는 흰색입니다. 상자의 색이 이미 칩과 배수를 가르므로, 숫자까지 그 색이면 색만
-   * 남고 수가 흐려집니다.
+   * 숫자는 흰색입니다. 바탕은 값이 움직이는 동안에만 파랑과 붉음으로 밝으므로, 숫자까지
+   * 그 색이면 밝은 동안 색만 남고 수가 흐려집니다.
    */
-  private readonly chips = new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, COLOR.ink, 34, 1, true)
-  private readonly mult = new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, COLOR.ink, 34, 0, true)
+  private readonly chips =
+    new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, COLOR.ink, 34, 1, true, true)
+  private readonly mult =
+    new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, COLOR.ink, 34, 0, true, true)
   /**
    * 왼쪽 판의 칸들이 마지막으로 보여 준 수.
    *
@@ -1469,6 +1524,17 @@ export class Game {
   private readonly discards = new Slot(t('ui.slot.discards'), 124, 52, 0xff9d5c)
   private readonly money = new Slot(t('ui.slot.money'), 124, 52, COLOR.money)
   private readonly anteSlot = new Slot(t('ui.slot.ante'), 124, 52, COLOR.ink)
+  /**
+   * 왼쪽 판의 값 칸 전부.
+   *
+   * **한 곳에 적어 둡니다.** 매 단계 나아가게 하는 곳과 겉면을 갈아입는 곳 둘이 각자
+   * 칸을 세어 적고 있었고, 그중 한쪽에서 셋이 빠져 있었습니다 — 칸을 하나 더하는 날에
+   * 두 곳을 다 고쳐야 하는 것이 그 원인입니다.
+   */
+  private readonly panelSlots: readonly Slot[] = [
+    this.score, this.chips, this.mult,
+    this.hands, this.discards, this.money, this.anteSlot,
+  ]
 
   private readonly headline = new Text({
     text: '',
@@ -2329,12 +2395,15 @@ export class Game {
     this.sortSuitButton = new Button(t('ui.button.sort_suit'), SORT_W, SORT_H, UI.btn, () => this.sortHand('suit'))
     // 위의 칸들과 같은 격자입니다 — 너비도 자리도.
     // **「족보 목록」 이 아니라 「런 정보」 입니다.** 족보는 그 안의 한 갈래가 되었습니다.
-    this.infoButton = new Button(t('ui.run_info.title'), 124, 34, UI.btn,
+    this.infoButton = new Button(t('ui.run_info.title'), PANEL_BTN_W, FOOT_BTN_H, UI.btn,
       () => this.toggleHandList())
-    this.menuButton = new Button(t('ui.button.menu'), 124, 34, UI.btn, () => this.openMenu())
+    this.menuButton = new Button(t('ui.button.menu'), PANEL_BTN_W, FOOT_BTN_H, UI.btn,
+      () => this.openMenu())
     // **자리는 화면이 알립니다.** 도구가 좌표를 베껴 적으면 판을 고칠 때 한쪽만 고쳐집니다.
-    this.spotNodes.set('runInfo', { node: this.infoButton, cx: 62, cy: 17 })
-    this.spotNodes.set('menu', { node: this.menuButton, cx: 62, cy: 17 })
+    const footCx = PANEL_BTN_W / 2
+    const footCy = FOOT_BTN_H / 2
+    this.spotNodes.set('runInfo', { node: this.infoButton, cx: footCx, cy: footCy })
+    this.spotNodes.set('menu', { node: this.menuButton, cx: footCx, cy: footCy })
     this.spotNodes.set('sort:rank',
                        { node: this.sortRankButton, cx: SORT_W / 2, cy: SORT_H / 2 })
     this.spotNodes.set('sort:suit',
@@ -2383,8 +2452,8 @@ export class Game {
     this.sortSuitButton.position.set(LEFT + PANEL_W + 30 + SORT_W + 10, sortY)
     // **판의 밑단에 붙입니다.** 위에 두면 그 아래가 통째로 빈 자리로 남습니다 — 왼쪽 판은
     // 화면 아래 22픽셀까지 내려오고, 버튼은 그 안쪽에 있으면 됩니다.
-    this.infoButton.position.set(LEFT, 726)
-    this.menuButton.position.set(RIGHT_COL, 726)
+    this.infoButton.position.set(LEFT, PANEL_FOOT_Y)
+    this.menuButton.position.set(RIGHT_COL, PANEL_FOOT_Y)
 
     app.canvas.addEventListener('pointerdown', () => this.audio.unlock())
     // **앱에서는 기다리지 않습니다.** 소리 길이 사람의 조작 뒤에만 열리는 것은 브라우저의
@@ -2581,10 +2650,11 @@ export class Game {
     this.drawFrames()
     this.panelGrooves.clear()
     for (const at of PANEL_GROOVES) groove(this.panelGrooves, LEFT, at, PANEL_W)
-    for (const slot of [this.score, this.chips, this.mult,
-                        this.hands, this.discards, this.money, this.anteSlot]) {
-      slot.restyle()
-    }
+    for (const slot of this.panelSlots) slot.restyle()
+    // **칩 × 배수의 바탕도 겉면을 따릅니다.** 파랑·붉음 단색이던 동안은 겉면과 무관해서
+    // 여기서 다시 그릴 것이 없었고, 판의 칸 색을 쓰기 시작하면 이 둘만 앞 겉면으로 남습니다.
+    const boxes = this.scoreBoxes
+    if (boxes) this.paintScoreBox(boxes.chips, boxes.mult)
     this.refresh()
   }
 
@@ -3449,6 +3519,11 @@ export class Game {
 
     this.badge.position.set(LEFT, 34)
     this.score.position.set(LEFT, PANEL_ROWS.score)
+    // **자원 넷은 오르내림이 바탕색에 드러납니다.** 라운드 득점과 칩·배수는 오르기만 하므로
+    // 그 색이 아무것도 가르지 않습니다.
+    for (const slot of [this.hands, this.discards, this.money, this.anteSlot]) {
+      slot.signed = true
+    }
     // **네 무리이고 사이가 26입니다.** 이 넷은 판이 도는 동안 가끔 보는 것이고 칩과 배수는
     // 매 순간 보는 것인데, 사이가 12·30·12로 제각각이면 여섯 칸이 한 덩어리로 보여서
     // 그중 어느 둘이 지금 중요한지가 자리로 드러나지 않습니다.
@@ -3475,8 +3550,8 @@ export class Game {
     // **곱셈표는 글자가 아니라 그림입니다.** 글꼴마다 `×` 의 굵기와 세로 자리가 달라서,
     // 글자로 두면 말을 바꿀 때마다 두 칸 사이에서 비뚤어집니다.
     //
-    // **두 색이 만나는 자리에 딱지로 앉습니다.** 사이의 빈 자리에 글자 하나로 두면 어느
-    // 칸의 것도 아닌 것이 되고, 그것이 애매하게 걸쳐 보이던 까닭입니다.
+    // **두 상자 사이의 한가운데입니다.** 식의 연산자이므로 어느 상자에도 속하지 않는
+    // 것이 맞습니다.
     const times = new Graphics()
     for (const angle of [Math.PI / 4, -Math.PI / 4]) {
       const dx = Math.cos(angle) * 8.5
@@ -3502,7 +3577,7 @@ export class Game {
     // 하고 그중 하나를 빠뜨리면 그것만 겹칩니다.
     //
     this.panelStack.addChild(this.panelGrooves, this.score, this.scoreBox,
-      this.chips, this.mult, times, this.handLabel,
+      this.scoreFlash, this.chips, this.mult, times, this.handLabel,
       this.hands, this.discards, this.money, this.anteSlot)
     this.board.addChild(this.badge, this.panelStack)
 
@@ -3567,14 +3642,56 @@ export class Game {
    * 광택이나 그라디언트를 얹으면 그 위에 앉는 흰 숫자가 자리마다 다른 바탕을 만납니다.
    */
   private paintScoreBox(chipsBox: Box, multBox: Box): void {
+    this.scoreBoxes = { chips: chipsBox, mult: multBox }
     const g = this.scoreBox
     g.clear()
-    for (const [area, tint] of [[chipsBox, COLOR.chips], [multBox, COLOR.mult]] as const) {
-      // 짙게 눌러 씁니다. **원색 그대로는 흰 숫자가 눌러앉지 못합니다.**
-      // **단색 하나입니다.** 광택이나 그라디언트를 얹으면 그 위에 앉는 흰 숫자가 자리마다
-      // 다른 바탕을 만나 흐릿해집니다 — 숫자가 앉는 자리는 조용해야 합니다.
+    const style = slotStyle(COLOR.ink)
+    for (const area of [chipsBox, multBox]) {
+      // **판의 다른 칸과 같은 채움과 같은 테입니다.** `plate()` 가 그리는 것과 같은 것을
+      // 절대 좌표에 그립니다 — 그 함수는 원점에서 그리고, 이 둘은 한 `Graphics` 안의 서로
+      // 다른 자리에 있습니다.
       g.roundRect(area.x, area.y, area.width, area.height, CHIPS_R)
-        .fill(boxInk(tint))
+        .fill(style.top)
+      g.roundRect(area.x + 0.5, area.y + 0.5, area.width - 1, area.height - 1,
+        insetRadius(CHIPS_R, 0.5))
+        .stroke({ color: style.border, width: 1 })
+    }
+    this.scoreFlashKey = ''
+    this.paintScoreFlash()
+  }
+
+  /**
+   * 칩과 배수가 움직이는 동안 그 바탕에 드는 색.
+   *
+   * **칸마다 따로입니다.** 칩만 오르는 대목과 배수만 곱해지는 대목이 갈려 있고, 둘을 함께
+   * 밝히면 어느 쪽이 움직인 것인지가 사라집니다.
+   *
+   * **세기는 8단계로 끊습니다.** 값이 굴러가는 동안 매 단계 불리므로, 그대로 그리면 초당
+   * 60번 다시 삼각화됩니다 — 눈에는 같습니다.
+   */
+  private paintScoreFlash(): void {
+    const boxes = this.scoreBoxes
+    if (!boxes) return
+    const step = (value: number) => Math.round(value * 8) / 8
+    const level = { chips: step(this.chips.lit), mult: step(this.mult.lit) }
+    const key = `${level.chips}|${level.mult}`
+    if (key === this.scoreFlashKey) return
+    this.scoreFlashKey = key
+
+    const g = this.scoreFlash
+    g.clear()
+    for (const [area, tint, lit] of [
+      [boxes.chips, COLOR.chips, level.chips],
+      [boxes.mult, COLOR.mult, level.mult],
+    ] as const) {
+      if (lit <= 0) continue
+      // 짙게 눌러 씁니다. **원색 그대로는 흰 숫자가 눌러앉지 못합니다.**
+      g.roundRect(area.x, area.y, area.width, area.height, CHIPS_R)
+        .fill({ color: boxInk(tint), alpha: lit })
+      // 테는 원색입니다. **다 밝았을 때 그 상자의 윤곽이 색으로 남습니다.**
+      g.roundRect(area.x + 0.75, area.y + 0.75, area.width - 1.5, area.height - 1.5,
+        insetRadius(CHIPS_R, 0.75))
+        .stroke({ color: tint, width: 1.5, alpha: lit })
     }
   }
 
@@ -5267,6 +5384,9 @@ export class Game {
     // 같은 자리에 같은 크기의 수가 둘이면 어느 것도 읽히지 않습니다. 칸의 숫자가 그동안
     // 물러납니다.
     slot.mute()
+    // **바탕도 그 방향으로 밝습니다.** 떠오르는 글은 0.8초 뒤에 없어지므로 그것을 놓치면
+    // 무엇이 줄었는지가 남지 않습니다.
+    slot.flash(delta > 0)
   }
 
   /**
@@ -5610,10 +5730,13 @@ export class Game {
    * `tick` 에 있습니다.
    */
   private step(stepMs: number): void {
-    this.score.advance(stepMs)
-    this.chips.advance(stepMs)
-    this.mult.advance(stepMs)
-    this.money.advance(stepMs)
+    // **왼쪽 판의 칸 전부입니다.** 굴러가는 넷만 여기 있었고, 핸드·버리기·안티는 값이
+    // 글로 들어와 굴러갈 것이 없다는 이유로 빠져 있었습니다 — 그런데 ±N 이 뜨는 동안
+    // 숫자가 물러나는 것도, 값이 바뀔 때 한 번 튀는 것도 이 단계에서 돕니다. 빠져 있는
+    // 동안 그 셋은 `mute()` 를 받고도 그대로 서 있었고, 그래서 같은 자리에 수가 둘
+    // 겹쳤습니다.
+    for (const slot of this.panelSlots) slot.advance(stepMs)
+    this.paintScoreFlash()
     this.advanceRisers(stepMs)
 
     // 흔들림은 줄어듭니다. **판만 흔들고 배경은 가만히 둡니다** — 둘 다 흔들면 무엇이
@@ -8253,9 +8376,13 @@ export class Game {
         edition: this.editionLook(joker.edition),
       }
 
-      // 산 딱지가 아직 그 자리에 있는 동안은 세우지 않습니다. 사는 것은 줄의 끝에 붙습니다.
+      // 산 딱지가 아직 그 자리에 있는 동안은 세우지 않습니다.
+      //
+      // **아직 뷰가 없는 것이 방금 들어온 것입니다.** 줄의 끝인지로 보았는데, 자리를
+      // 갈아 끼우는 것은 판 그 자리에 들어오므로 끝이 아닙니다 — 그러면 그 하나가
+      // 딱지보다 먼저 줄에 서고, 딱지는 이미 서 있는 것 위로 날아갑니다.
       if (this.arriveHold?.kind === 'joker' && this.clock < this.arriveHold.until
-          && index === this.state.jokers.length - 1) return
+          && !this.jokers.has(joker.uid)) return
 
       let view = this.jokers.get(joker.uid)
       if (!view) {
@@ -8629,7 +8756,7 @@ export class Game {
    */
   private itemFlying(from: { x: number; y: number }): void {
     this.flyAsked++
-    const last = this.state.consumables[this.state.consumables.length - 1]
+    const last = newest(this.state.consumables)
     if (!last) {
       this.flyMissed++
       return
@@ -9269,10 +9396,14 @@ export class Game {
     const spots = trayRow(CONSUMABLE_TRAY, this.state.consumables.length)
     this.publishRowSpots('item', spots, this.state.consumables.length)
 
+    // 방금 들어온 것. **줄의 끝이 아닙니다** — 자리를 갈아 끼우는 것은 판 그 자리에
+    // 들어옵니다. 소모품 칸은 다시 그릴 때마다 새로 만들어져 조커처럼 「뷰가 없는 것」으로
+    // 가릴 수 없으므로, 가장 나중에 받은 번호로 봅니다.
+    const arriving = newest(this.state.consumables)?.uid
     this.state.consumables.forEach((item, index) => {
-      // 산 딱지가 아직 그 자리에 있는 동안은 세우지 않습니다. 사는 것은 줄의 끝에 붙습니다.
+      // 산 딱지가 아직 그 자리에 있는 동안은 세우지 않습니다.
       if (this.arriveHold?.kind === 'item' && this.clock < this.arriveHold.until
-          && index === this.state.consumables.length - 1) return
+          && item.uid === arriving) return
       const name = this.consumableName(item.kind, item.id)
       const lines = this.consumableLines(item.kind, item.id)
 
@@ -9530,7 +9661,7 @@ export class Game {
     const headY = TITLE_BAR + 16
     const cellY = headY + SECTION_H + 10
     const footY = cellY + CELL_H * fit + 14
-    const height = footY + 12 + 34 + 16
+    const height = footY + 12 + FOOT_BTN_H + 16
 
     // **바닥에 맞춰 섭니다.** 높이가 고정이므로 윗변도 고정입니다.
     const x = popupLeft(width)
@@ -9540,16 +9671,22 @@ export class Game {
     // 밑단 · 선 하나와 단추 둘. **둘은 색도 크기도 다릅니다** — 나아가는 것이 노랑입니다.
     const foot = new Container()
     const cost = rerollCost(this.data, state, state.shop)
-    const reroll = new Button(tf('ui.shop.reroll_cost', { n: cost }), 140, 34, UI.light,
-      () => this.reroll())
-    const leave = new Button(t('ui.button.next_blind'), 190, 34, UI.yellow, () => this.primary())
+    // **높이는 판 밑단의 단추와 같습니다.** 왼쪽 판의 런 정보·메뉴와 판 아래의
+    // 낸다·버린다가 같은 높이이므로, 상점의 이 둘만 낮으면 아래 변에 세 가지 높이가
+    // 섭니다.
+    const rerollW = 140
+    const leaveW = 190
+    const reroll = new Button(tf('ui.shop.reroll_cost', { n: cost }), rerollW, FOOT_BTN_H,
+      UI.light, () => this.reroll())
+    const leave = new Button(t('ui.button.next_blind'), leaveW, FOOT_BTN_H, UI.yellow,
+      () => this.primary())
     const rule = hairline(width - 48)
     rule.position.set(24, footY)
     reroll.position.set(24, footY + 12)
-    leave.position.set(width - 24 - 190, footY + 12)
+    leave.position.set(width - 24 - leaveW, footY + 12)
     foot.addChild(rule, reroll, leave)
-    this.spotNodes.set('reroll', { node: reroll, cx: 70, cy: 17 })
-    this.spotNodes.set('nextBlind', { node: leave, cx: 95, cy: 17 })
+    this.spotNodes.set('reroll', { node: reroll, cx: rerollW / 2, cy: FOOT_BTN_H / 2 })
+    this.spotNodes.set('nextBlind', { node: leave, cx: leaveW / 2, cy: FOOT_BTN_H / 2 })
 
     // **틀과 몸통이 갈립니다.** 틀은 판이 올라오는 동안 자리만 따라가고, 몸통은 한 번 그립니다.
     const inner = new Container()
@@ -10152,9 +10289,11 @@ export class Game {
     let spot: { x: number; y: number } | undefined
 
     if (joker) {
-      const last = this.state.jokers[this.state.jokers.length - 1]
+      // **방금 들어온 것입니다. 줄의 끝이 아닙니다** — 자리를 갈아 끼우면 판 그 자리에
+      // 들어오고, 끝으로 보면 이름이 엉뚱한 카드 위에 뜹니다.
+      const last = newest(this.state.jokers)
       const view = last ? this.jokers.get(last.uid) : undefined
-      if (view) {
+      if (last && view) {
         // **발동이 아니라 도착입니다.** 흔들리면 아무 이유 없이 난리치는 것으로 보입니다.
         view.bounce(1.2)
         view.landing()
@@ -10163,10 +10302,11 @@ export class Game {
         // 조커는 용수철로 날아오므로 `LAND_AT` 이 지난 뒤에도 아직 오는 중이고, 뷰의
         // 자리를 그대로 읽으면 이름이 그 카드가 지나가던 중간에 뜹니다 — 산 것의 이름이
         // 판 한가운데에 한 번 흘리고 가던 것이 그것입니다.
-        spot = this.jokerSpot(this.state.jokers.length - 1)
+        spot = this.jokerSpot(this.state.jokers.indexOf(last))
       }
     } else {
-      const last = this.consumableTiles[this.consumableTiles.length - 1]
+      const uid = newest(this.state.consumables)?.uid
+      const last = this.consumableTiles.find(one => one.uid === uid)
       if (last) spot = this.spotOf(last.tile, SIZE.jokerWidth / 2, SIZE.jokerHeight / 2)
       if (this.itemArrive) {
         this.itemArrive.glow = 1
