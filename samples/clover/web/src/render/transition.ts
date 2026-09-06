@@ -18,8 +18,8 @@ import type { Data } from '../core/data'
 import { TransitionKind as Kind } from '../generated/enums/transition-kind'
 import { CROSS, CrossFilter } from '../shader/cross'
 
-/** 화면을 지우는 방법 다섯. */
-export type TransitionKind = 'fade' | 'blocks' | 'push' | 'burn' | 'slide'
+/** 화면을 지우는 방법. */
+export type TransitionKind = 'fade' | 'blocks' | 'push' | 'burn' | 'slide' | 'ash'
 
 /** 지금 어느 걸음인가. */
 export type TransitionStage = 'off' | 'out' | 'hold' | 'in'
@@ -57,13 +57,14 @@ const KINDS: Record<number, TransitionKind> = {
   [Kind.Push]: 'push',
   [Kind.Burn]: 'burn',
   [Kind.Slide]: 'slide',
+  [Kind.Ash]: 'ash',
 }
 
 /**
  * 자리마다의 전환을 시트에서 읽습니다.
  *
  * **방법도 길이도 데이터입니다.** 연출의 길이가 `Const_Feel` 인 것과 같은 규칙이고, 자리마다
- * 다섯 중 하나를 고르는 것이므로 상수가 아니라 표입니다 — 시트에서 `kind` 를 바꾸면 화면이
+ * 어느 방법인지를 고르는 것이므로 상수가 아니라 표입니다 — 시트에서 `kind` 를 바꾸면 화면이
  * 바뀝니다.
  *
  * **없는 자리는 짧은 잦아듦입니다.** 표에 줄이 빠져도 씬은 갈려야 하고, 갈아 끼우는 프레임은

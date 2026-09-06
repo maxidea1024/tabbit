@@ -38,6 +38,10 @@ namespace Clover.Data
         /// <summary>
         /// 옆으로 밀려 나가고 뒤에 결이 남습니다. 방향이 있습니다.
         /// </summary>
-        Slide = 4
+        Slide = 4,
+        /// <summary>
+        /// 조각으로 부서져 흩어져 오릅니다. 방향이 있습니다.
+        /// </summary>
+        Ash = 5
     }
 } // namespace Clover.Data

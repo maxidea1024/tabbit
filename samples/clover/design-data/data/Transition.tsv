@@ -4,7 +4,7 @@
 :desc	갈리는 자리	지우는 방법	지우는 시간. 밀리초	아무것도 보이지 않는 채로 머무는 시간	되돌리는 시간	다 지워진 자리에 남는 색	다가오는가. 밀림과 옆으로가 이 값을 봅니다	시작할 때 나는 소리. `SoundCue` 의 이름	어느 자리인가
 	title_run	Push	340	70	420	#05070d	true	-	판으로 들어갑니다
 	run_title	Push	300	60	360	#05070d	false	-	판에서 나옵니다
-	run_lost	Burn	520	80	340	#05070d	true	joker_burn	진 판이 그 자리에서 타 없어집니다
+	run_lost	Ash	600	70	340	#05070d	true	joker_burn	진 판이 조각으로 부서져 흩어집니다
 	run_won	Fade	300	60	380	#f4ecd8	true	voucher_buy	이긴 판만 밝은 쪽으로 나갑니다
 	run_restart	Blocks	260	60	300	#05070d	true	-	접고 곧바로 펴는 것이므로 짧고 건조합니다
 	login_title	Slide	260	50	300	#05070d	true	-	로그인 화면에서 타이틀로

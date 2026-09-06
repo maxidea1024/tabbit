@@ -83,3 +83,5 @@ enum TransitionKind
     value Burn   = 3
     /// 옆으로 밀려 나가고 뒤에 결이 남습니다. 방향이 있습니다.
     value Slide  = 4
+    /// 조각으로 부서져 흩어져 오릅니다. 방향이 있습니다.
+    value Ash    = 5

@@ -12,7 +12,7 @@
 
 import { Filter, GlProgram } from 'pixi.js'
 
-/** 처리하는 방법 넷. 셰이더의 `uKind` 에 그대로 들어갑니다. */
+/** 처리하는 방법. 셰이더의 `uKind` 에 그대로 들어갑니다. */
 export const CROSS = {
   /** 색으로 잦아듭니다. */
   fade: 0,
@@ -24,6 +24,8 @@ export const CROSS = {
   burn: 3,
   /** 옆으로 밀려 나갑니다. 나간 자리에 결이 남습니다. */
   slide: 4,
+  /** 조각으로 부서져 흩어져 오릅니다. */
+  ash: 5,
 } as const
 
 const VERTEX = `#version 300 es
@@ -58,7 +60,7 @@ uniform sampler2D uTexture;
 uniform vec4 uInputClamp;
 /** 0 이면 그대로이고 1 이면 아무것도 남지 않습니다. */
 uniform float uAmount;
-/** 방법. 0 잦아듦 · 1 조각 · 2 밀림 · 3 탐 · 4 옆으로 */
+/** 방법. 0 잦아듦 · 1 조각 · 2 밀림 · 3 탐 · 4 옆으로 · 5 재 */
 uniform float uKind;
 /** 남는 색. 다 지워진 자리가 이 색입니다. */
 uniform vec3 uInk;
@@ -96,6 +98,75 @@ float noise(vec2 p) {
 /** 층 셋. 지워지는 가장자리가 톱니처럼 되어야 종이가 탄 것으로 보입니다. */
 float layers(vec2 p) {
   return noise(p) * 0.6 + noise(p * 2.3 + 7.0) * 0.28 + noise(p * 5.1 + 19.0) * 0.12;
+}
+
+// ------------------------------------------------------------------------- 재
+//
+// **부서지는 것과 삭는 것은 다릅니다.** 문턱 하나로 지우면 자리마다 구멍이 나고 넓어지는
+// 것이고, 그것은 화면이 삭는 모습입니다. 재가 되는 것은 **조각이 떨어져 나와 딴 데로 가는
+// 것**이고, 그래서 성한 몸통과 떠 있는 조각이 한 화면에 같이 있어야 합니다.
+//
+// 조각을 그릴 수는 없으므로 거꾸로 찾습니다. 이 픽셀에 놓인 조각은 어딘가에서 떨어져 나와
+// 여기까지 온 것이고, **나이가 곧 거리이므로** 뒤로 몇 자리를 짚어 그 자리의 나이를 재고
+// 그 나이로 날아갔을 때 여기에 닿는 것만 셉니다.
+
+/** 조각의 격자. 가로로 몇 칸인가. */
+const float ASH_CELLS = 240.0;
+/**
+ * 부서지는 앞이 지나가는 데 쓰는 몫. 나머지가 조각 하나가 사는 길이입니다.
+ *
+ * **앞이 지나가는 데 대부분을 씁니다.** 조각이 오래 살면 앞이 그만큼 일찍 끝나야 하고,
+ * 그러면 화면의 절반에서 이미 성한 곳이 없습니다 — 부서지는 것을 보려면 아직 성한
+ * 몸통이 화면에 오래 남아 있어야 합니다.
+ */
+const float ASH_SPREAD = 0.88;
+const float ASH_LIFE = 0.20;
+/** 조각이 갈 수 있는 가장 먼 거리. 화면 높이의 몫입니다. */
+const float ASH_REACH = 0.42;
+
+/**
+ * 조각 하나의 성질 넷.
+ *
+ * **해시 한 번에서 갈라 씁니다.** 성질마다 따로 부르면 뒤로 짚는 자리마다 네 번이 되고,
+ * 그것은 픽셀 하나에 마흔 번이 넘습니다.
+ */
+vec4 ashTraits(vec2 cell) {
+  float r = hash(cell + 0.5);
+  return vec4(r, fract(r * 57.31), fract(r * 191.73), fract(r * 13.71));
+}
+
+/** 그 자리가 부서지기 시작하는 때. */
+float ashStart(vec2 uv, float speck) {
+  float sweep = uPush > 0.0 ? uv.x : 1.0 - uv.x;
+  // **아래가 먼저 부서집니다.** 재가 위로 오르므로, 아래에서 시작해야 아직 성한 위쪽을
+  // 재가 지나갑니다 — 조각이 제 자리에서만 사라지면 그것은 그냥 지워진 것입니다.
+  float axis = (1.0 - uv.y) * 0.58 + sweep * 0.42;
+  // 앞이 톱니처럼 되도록 굴곡 둘. 결을 쓰면 뒤로 짚는 자리마다 열두 번을 더 읽습니다.
+  float wave = sin(uv.x * 7.0 + uv.y * 4.0) * 0.042 + sin(uv.x * 17.0 - uv.y * 9.0) * 0.021
+             + sin(uv.y * 23.0 + uv.x * 3.0) * 0.012;
+  return clamp(axis + wave + speck * 0.07, 0.0, 1.0) * ASH_SPREAD;
+}
+
+/** 지금 얼마나 지났는가. 0 이면 막 떨어져 나왔고 1 이면 남지 않습니다. */
+float ashAge(vec2 uv, float speck, float amount) {
+  return (amount - ashStart(uv, speck)) / ASH_LIFE;
+}
+
+/**
+ * 나이가 거리로.
+ *
+ * **떨어져 나오자마자 갑니다.** 천천히 붙었다 떠나면 부서진 자리에 조각이 그대로 얹혀
+ * 있는 구간이 생기고, 그 구간은 재가 아니라 화면을 칸으로 나눈 것으로 보입니다.
+ */
+float ashTravel(float age) {
+  return age * (0.80 + 0.20 * age);
+}
+
+/** 조각이 날아가는 곳. 화면의 자로 잰 벡터입니다. */
+vec2 ashDrift(vec4 traits) {
+  float speed = 0.45 + traits.y * 0.85;
+  float fan = (traits.z - 0.5) * 0.85;
+  return normalize(vec2(uPush * 0.42 + fan, -1.0)) * speed * ASH_REACH;
 }
 
 void main(void) {
@@ -149,7 +220,7 @@ void main(void) {
     float ring = (1.0 - smoothstep(0.0, 0.10, level - (edge - 0.12))) * (1.0 - gone);
     color = mix(color, vec3(1.0, 0.55, 0.18), ring * 0.9);
     color += vec3(1.0, 0.55, 0.18) * ring * 0.5;
-  } else {
+  } else if (uKind < 4.5) {
     // 옆으로. **나간 자리에 결이 남습니다** — 그냥 옮기면 판때기 하나가 옆으로 미끄러지는
     // 것이고, 뒤로 늘어나야 화면이 지나간 것이 됩니다.
     float shift = amount * 1.15 * uPush;
@@ -168,6 +239,97 @@ void main(void) {
     vec2 came = uv - vec2(shift, 0.0);
     float outside = came.x < 0.0 || came.x > 1.0 ? 1.0 : 0.0;
     gone = max(outside, smoothstep(0.85, 1.0, amount));
+  } else {
+    // 재. **조각으로 부서져 흩어져 오릅니다.**
+    //
+    // 이 픽셀에 무엇이 있는지는 둘로 나뉩니다 — **아직 성한 몸통**과 **딴 데서 날아온
+    // 조각**입니다. 둘은 같은 화면에 겹쳐 있고, 그래서 재가 아직 성한 부분 위를 지납니다.
+
+    // 화면의 자. uv 는 가로세로가 다른 자이므로 방향을 그대로 재면 비스듬해집니다.
+    vec2 here = vec2(uv.x * uAspect, uv.y);
+    vec2 grid = vec2(ASH_CELLS, ASH_CELLS / uAspect);
+    // 칸 하나의 크기. 조각이 이 자리에 닿았는지를 이것으로 봅니다.
+    float chipSize = uAspect / ASH_CELLS;
+
+    // 아직 성한 몸통. **가장자리가 뭉개지지 않습니다** — 부서지는 것은 조각으로 갈리는
+    // 것이고, 흐려지는 것은 초점이 나간 것입니다.
+    vec4 mine = ashTraits(floor(uv * grid));
+    float body = 1.0 - smoothstep(0.0, 0.05, ashAge(uv, mine.x, amount));
+
+    vec3 sum = plain(grab(uv)) * body;
+    float total = body;
+    float cover = body;
+    // 막 떨어져 나온 조각. 잠깐 밝습니다.
+    float fresh = 0.0;
+
+    // 뒤로 짚는 방향. 조각마다 흩어지므로 옆으로도 흔들어 가며 짚습니다.
+    //
+    // **짚는 자리는 픽셀마다 같습니다.** 픽셀마다 흔들면 이웃한 두 픽셀이 서로 다른 조각을
+    // 찾아내고, 그러면 조각이 아니라 잡티가 됩니다 — 조각 하나가 여러 픽셀을 함께 덮어야
+    // 부서진 것으로 보입니다.
+    vec2 lead = normalize(vec2(uPush * 0.42, -1.0));
+    vec2 side = vec2(-lead.y, lead.x);
+    for (int i = 0; i < 14; i++) {
+      float k = (float(i) + 0.5) / 14.0;
+      float far = ashTravel(k) * ASH_REACH * 1.4;
+      float sway = (fract(float(i) * 0.618) - 0.5) * 0.30 * far;
+      vec2 fromS = here - lead * far + side * sway;
+      vec2 from = vec2(fromS.x / uAspect, fromS.y);
+      // **화면 밖에서 온 조각은 없습니다.** 거기에는 부서질 것이 없었습니다.
+      if (from.x < 0.0 || from.x > 1.0 || from.y < 0.0 || from.y > 1.0) continue;
+
+      vec2 cell = floor(from * grid);
+      vec4 traits = ashTraits(cell);
+      float age = ashAge(from, traits.x, amount);
+      if (age <= 0.0 || age >= 1.0) continue;
+
+      // **조각은 칸 안의 제자리에서 떠납니다.** 짚은 자리에서 떠나면 조각이 픽셀을
+      // 따라다니고, 그러면 칸 하나가 통째로 덮여 격자가 눈에 보입니다.
+      vec2 home = (cell + vec2(fract(traits.x * 97.0), fract(traits.y * 61.0))) / grid;
+      vec2 drift = ashDrift(traits);
+      vec2 landed = vec2(home.x * uAspect, home.y) + drift * ashTravel(age);
+
+      // 그 조각이 지금 놓인 자리에서 여기까지가 얼마인가. **가는 쪽으로 늘여서 잽니다** —
+      // 늘이지 않으면 어느 조각이나 동그랗고, 동그란 것이 모여 있으면 흩날리는 것이
+      // 아니라 알갱이가 깔린 것입니다.
+      vec2 off = landed - here;
+      vec2 along = normalize(drift);
+      float ahead = dot(off, along) / (1.0 + age * 2.2);
+      float aside = dot(off, vec2(-along.y, along.x));
+
+      // **조각은 칸보다 잡니다.** 칸을 채우는 크기면 덮인 자리가 칸의 모양이 되고, 그것은
+      // 화면을 칸으로 나눈 것이지 부서진 것이 아닙니다. 가면서 더 잘아집니다.
+      //
+      // **가운데는 꽉 찹니다.** 가운데에서부터 옅어지면 조각이 저마다 반투명해지고, 그러면
+      // 부서진 조각이 아니라 얼룩이 낀 것으로 보입니다.
+      float grain = chipSize * (0.95 - age * 0.45) * (0.70 + (1.0 - traits.y) * 0.60);
+      float match = 1.0 - smoothstep(grain * 0.45, grain, length(vec2(ahead, aside)));
+      // **조각마다 버티는 길이가 다릅니다.** 같으면 재가 한 켜로 걷힙니다.
+      float span = 0.55 + traits.w * 0.45;
+      float live = 1.0 - smoothstep(span * 0.45, span, age);
+      float weight = match * live;
+      if (weight <= 0.0) continue;
+
+      // **조각 하나는 한 색입니다.** 떠나온 자리의 색을 그대로 가지고 갑니다.
+      sum += plain(grab(home)) * weight;
+      total += weight;
+      cover = max(cover, weight);
+      fresh += weight * (1.0 - smoothstep(0.0, 0.22, age));
+    }
+
+    color = total > 0.0001 ? sum / total : uInk;
+
+    // 이 자리에 놓인 것 가운데 재의 몫. **성한 몸통 위에 떠 있는 재도 재입니다** — 제
+    // 자리가 부서졌는가로 가르면 아직 성한 곳 위를 지나는 재가 판의 색 그대로입니다.
+    float dust = clamp((total - body) / max(total, 0.0001), 0.0, 1.0);
+    // 재는 빛깔이 빠지고 조금 따뜻해집니다. **어두운 데서 온 조각도 재의 밝기를 가집니다** —
+    // 떠나온 자리의 색 그대로면 어두운 판에서 나온 재는 배경에 묻혀 보이지 않습니다.
+    float grey = dot(color, vec3(0.30, 0.59, 0.11));
+    vec3 tone = (vec3(0.20, 0.17, 0.14) + vec3(grey) * 0.72) * vec3(1.06, 0.99, 0.88);
+    color = mix(color, tone, dust * 0.75);
+    // 막 떨어져 나온 조각이 잠깐 밝습니다.
+    color += vec3(0.95, 0.84, 0.68) * clamp(fresh, 0.0, 1.0) * 0.22;
+    gone = 1.0 - clamp(cover, 0.0, 1.0);
   }
 
   // **지워졌다는 것은 한 픽셀도 남지 않았다는 뜻입니다.** 어느 방법이든 마지막 6%에서

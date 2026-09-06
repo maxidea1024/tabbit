@@ -4,15 +4,15 @@ TCB encoding report
 Totals
   tables    45
   columns   813
-  unencoded 364,250
-  encoded   216,630  (59.5 % of unencoded)
-  deflated  141,996  (65.5 % of encoded)  - what a compression layer over the chosen blocks would come to
+  unencoded 364,252
+  encoded   216,632  (59.5 % of unencoded)
+  deflated  142,000  (65.5 % of encoded)  - what a compression layer over the chosen blocks would come to
 
 By encoding
   encoding        columns        bytes    share
   DICT_FRONT          16      111,750   51.6 %
   DICT_SEG            11       77,747   35.9 %
-  RAW                 58       17,314    8.0 %
+  RAW                 58       17,316    8.0 %
   RLE                540        4,403    2.0 %
   BITPACK             92        2,894    1.3 %
   DICT_RLE            22          918    0.4 %
@@ -25,7 +25,7 @@ By encoding
 
 By element
   element         columns    unencoded        bytes    share
-  string              96      246,958      208,417   96.2 %
+  string              96      246,960      208,419   96.2 %
   i32                289       82,856        4,177    1.9 %
   varint             367       29,002        3,534    1.6 %
   bool                60        5,282          419    0.2 %
@@ -102,8 +102,8 @@ Largest columns (40 of 813)
     candidates RAW 510  ·  DICT 517  ·  DICT_RLE 559  ·  DICT_FRONT 528  ·  DICT_FRONT_RLE 570  ·  DICT_SEG 586  ·  DICT_SEG_RLE 628
 
   Transition.Note  [string]  9 rows
-    chosen RAW  501  (100.0 % of unencoded)
-    candidates RAW 501  ·  DICT 511  ·  DICT_RLE 520  ·  DICT_FRONT 508  ·  DICT_FRONT_RLE 517  ·  DICT_SEG 557  ·  DICT_SEG_RLE 566
+    chosen RAW  503  (100.0 % of unencoded)
+    candidates RAW 503  ·  DICT 513  ·  DICT_RLE 522  ·  DICT_FRONT 510  ·  DICT_FRONT_RLE 519  ·  DICT_SEG 562  ·  DICT_SEG_RLE 571
 
   JokerEffect.Operation.Mult  [i32]  589 rows
     chosen RLE  455  (19.3 % of unencoded)
@@ -292,7 +292,7 @@ String dictionary headroom
         20          755          725          671          757          757          411  Achievement.Condition
         68          740          681          874          823          823          487  ChallengeBan.RefId
         64          978          636          738          766          766          421  Leaderboard.BoardId
-         9          502          499          548          520          520          319  Transition.Note
+         9          504          501          553          522          522          322  Transition.Note
         44          453          464          522          553          553          311  Leaderboard.SplitRef
         24          378          377          319          428          428          217  Tag.Name
         32          361          349          418          414          414          255  Voucher.VoucherId
@@ -318,14 +318,14 @@ String dictionary headroom
         17          184          197          238          232          232          155  Voucher.UpgradesFrom
 
   Over all 96 string columns:
-    plain      236,980
-    front      186,061  (78.5 % of plain)
-    segment    203,338  (109.3 % of front)
-    template   225,651  (121.3 % of front)
-    delta      225,651  (121.3 % of front)
-    deflate    110,420  (59.3 % of front)
+    plain      236,982
+    front      186,063  (78.5 % of plain)
+    segment    203,343  (109.3 % of front)
+    template   225,653  (121.3 % of front)
+    delta      225,653  (121.3 % of front)
+    deflate    110,423  (59.3 % of front)
 
-  Best per column, layout chosen per column: 182,503  (98.1 % of front)
+  Best per column, layout chosen per column: 182,505  (98.1 % of front)
   Headroom against what is in the format today: 3,558
 
   Where each layout wins, and what it saves against front coding
