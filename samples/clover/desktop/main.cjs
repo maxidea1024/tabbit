@@ -52,6 +52,21 @@ function shotPathFromArgv(argv) {
   return inline ? inline.slice('--shot='.length) : undefined
 }
 
+/**
+ * 개발자 도구를 켠 채로 열 것인가.
+ *
+ * **키에만 의존하지 않습니다.** `before-input-event` 는 창으로 들어온 실제 입력에만 서고,
+ * 검증 도구가 CDP 로 넣는 키는 그 자리를 지나지 않습니다 — 그래서 키가 도는지를 자동으로
+ * 확인할 길이 없습니다. 이 길이 있으면 도구가 확인할 수 있고, 키가 막힌 기계에서도 콘솔을
+ * 볼 수 있습니다.
+ *
+ *     CLOVER_DEVTOOLS=1 clover.exe
+ */
+function devToolsWanted(argv) {
+  if (process.env.CLOVER_DEVTOOLS) return true
+  return argv.includes('--devtools')
+}
+
 /** 주소에서 시드를 받습니다. 같은 시드는 같은 판이므로 대조할 때 씁니다. */
 function seedFromArgv(argv) {
   if (process.env.CLOVER_SEED) return process.env.CLOVER_SEED
@@ -98,7 +113,10 @@ function createWindow() {
     },
   })
 
-  window.once('ready-to-show', () => window.show())
+  window.once('ready-to-show', () => {
+    window.show()
+    if (devToolsWanted(process.argv)) window.webContents.openDevTools()
+  })
 
   // 페이지를 읽지 못하면 한 번 다시 읽습니다.
   //
@@ -186,10 +204,23 @@ app.whenReady().then(() => {
 
   const window = createWindow()
 
-  // F11 전체 화면. 다른 단축키는 게임이 받습니다.
+  // F11 전체 화면, F12 개발자 도구. 다른 단축키는 게임이 받습니다.
+  //
+  // **메뉴를 없애면 개발자 도구를 여는 길이 함께 없어집니다.** 게임 창에 파일·편집 메뉴가
+  // 있을 이유는 없지만, 창 안에서 무슨 일이 일어나는지 볼 길도 같이 사라집니다 — 소리가
+  // 안 나는 자리를 `__clover.audio` 로 읽으려면 콘솔이 있어야 하고, 그것을 여는 자리가
+  // 여기뿐입니다.
   window.webContents.on('before-input-event', (event, input) => {
-    if (input.type === 'keyDown' && input.key === 'F11') {
+    if (input.type !== 'keyDown') return
+    if (input.key === 'F11') {
       window.setFullScreen(!window.isFullScreen())
+      event.preventDefault()
+      return
+    }
+    // F12 와 Ctrl+Shift+I 둘 다 받습니다. 기계와 습관에 따라 한쪽만 오는 자리가 있습니다.
+    if (input.key === 'F12'
+        || (input.control && input.shift && input.key.toLowerCase() === 'i')) {
+      window.webContents.toggleDevTools()
       event.preventDefault()
     }
   })
