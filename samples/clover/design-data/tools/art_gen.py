@@ -27,6 +27,11 @@ import urllib.error
 import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+# **크기는 `art.py` 가 정합니다.** 여기에 하나를 적어 두었더니 카드의 비율이 모든 갈래에
+# 걸렸고, 정사각으로 뽑아야 하는 태그와 보스가 세로로 긴 채로 구워졌습니다 — 그것들은
+# 동그라미로 오려 내어 쓰므로, 세로로 길면 화면에서 타원이 됩니다.
+from art import size_for  # noqa: E402
 DESIGN = os.path.dirname(HERE)
 SAMPLE = os.path.dirname(DESIGN)
 
@@ -34,8 +39,6 @@ if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 MODEL = '@cf/leonardo/lucid-origin'
-# `art.py` 의 `SIZE` 와 같아야 합니다. 카드의 비율입니다.
-WIDTH, HEIGHT = 640, 960
 #: 실패했을 때 다시 시도하는 횟수. 429 와 5xx 는 기다렸다 다시 부릅니다.
 TRIES = 4
 MCP_DIR = os.path.join(os.path.expanduser('~'), '.claude', 'mcp-servers', 'cf-image')
@@ -75,12 +78,12 @@ def credentials():
     return account, token
 
 
-def generate(account, token, prompt):
+def generate(account, token, prompt, size):
     """그림 하나의 바이트. 실패하면 예외입니다."""
     url = ('https://api.cloudflare.com/client/v4/accounts/%s/ai/run/%s'
            % (account, MODEL))
     payload = json.dumps({
-        'prompt': prompt, 'width': WIDTH, 'height': HEIGHT,
+        'prompt': prompt, 'width': size[0], 'height': size[1],
     }).encode('utf-8')
     request = urllib.request.Request(url, data=payload, method='POST')
     request.add_header('Authorization', 'Bearer %s' % token)
@@ -300,12 +303,12 @@ def is_card_set(path):
     return os.sep + 'card' + os.sep in path
 
 
-def save(raw, path):
+def save(raw, path, size):
     """webp 로 굽습니다. `art.py` 의 `target()` 이 정한 확장자입니다."""
     from PIL import Image
     image = Image.open(io.BytesIO(raw)).convert('RGB')
-    if image.size != (WIDTH, HEIGHT):
-        image = image.resize((WIDTH, HEIGHT), Image.LANCZOS)
+    if image.size != size:
+        image = image.resize(size, Image.LANCZOS)
     if is_card_set(path):
         image = round_card(neutral_ground(image))
     folder = os.path.dirname(path)
@@ -382,7 +385,7 @@ def main():
     if limit:
         todo = todo[:limit]
 
-    print('구울 것 %d장 · %s · %d × %d' % (len(todo), MODEL, WIDTH, HEIGHT))
+    print('구울 것 %d장 · %s' % (len(todo), MODEL))
     if not todo:
         return 0
 
@@ -392,7 +395,8 @@ def main():
     for index, (kind, identifier, prompt, path) in enumerate(todo, 1):
         for attempt in range(1, TRIES + 1):
             try:
-                size = save(generate(account, token, prompt), path)
+                want = size_for(kind)
+                size = save(generate(account, token, prompt, want), path, want)
                 done += 1
                 spent = time.time() - started
                 left = (spent / done) * (len(todo) - done)

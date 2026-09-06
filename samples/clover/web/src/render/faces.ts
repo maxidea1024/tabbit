@@ -8,7 +8,7 @@
 // **여기 있는 것은 얼굴뿐입니다.** 값도 누름도 진열 움직임도 상점의 일이므로 상점에
 // 남습니다 — 이 파일의 함수는 상태를 읽지 않고 받은 것만 그립니다.
 
-import { Container, Graphics, Sprite, Text } from 'pixi.js'
+import { Container, Graphics, Sprite, Text, Texture } from 'pixi.js'
 
 import type { Data } from '../core/data'
 import { nameOf, t, text, tf } from '../core/strings'
@@ -116,25 +116,37 @@ export function shopLabel(kind: ShopItemKind, id: string, data: Data): string {
  *
  * 그림이 있으면 그림, 없으면 문양입니다 — 색이 식별자에서 나오므로 태그마다 다릅니다.
  */
+/**
+ * 동그라미 안에 그림 하나.
+ *
+ * **비율을 지켜 덮습니다.** 너비와 높이에 같은 값을 넣으면 정사각이 아닌 그림이 눌립니다 —
+ * 보스의 그림이 세로로 길게 구워져 있었고, 화면에서 그 동그라미가 전부 타원이었습니다.
+ * 덮어서 넘치는 쪽은 동그라미가 오려 냅니다.
+ */
+function roundArt(texture: Texture, size: number): Container {
+  const face = new Container()
+  // 그림의 여백이 저마다 조금씩 달라서, 조금 키워 넣으면 그 차이가 덜 보입니다.
+  const grown = size * 1.16
+  const scale = Math.max(grown / texture.width, grown / texture.height)
+  const sprite = new Sprite(texture)
+  sprite.width = texture.width * scale
+  sprite.height = texture.height * scale
+  sprite.position.set(-sprite.width / 2, -sprite.height / 2)
+
+  const round = new Graphics()
+  round.circle(0, 0, size / 2).fill(0xffffff)
+  sprite.mask = round
+
+  face.addChild(round, sprite)
+  return face
+}
+
 export function tagFace(tagId: string, size: number): Container {
   const face = new Container()
   const texture = artFor('tag', tagId)
-  if (texture) {
-    // **동그라미로 오려 냅니다.** 그림마다 바탕의 여백이 조금씩 달라서 그대로 넣으면
-    // 어떤 것은 네모 액자에 든 칩으로 보입니다 — 칩만 남기면 그 차이가 없어집니다.
-    const grown = size * 1.16
-    const sprite = new Sprite(texture)
-    sprite.width = grown
-    sprite.height = grown
-    sprite.position.set(-grown / 2, -grown / 2)
-
-    const round = new Graphics()
-    round.circle(0, 0, size / 2).fill(0xffffff)
-    sprite.mask = round
-
-    face.addChild(round, sprite)
-    return face
-  }
+  // **동그라미로 오려 냅니다.** 그림마다 바탕의 여백이 조금씩 달라서 그대로 넣으면
+  // 어떤 것은 네모 액자에 든 칩으로 보입니다 — 칩만 남기면 그 차이가 없어집니다.
+  if (texture) return roundArt(texture, size)
 
   // 문양 하나와 그 태그의 색. 색은 이름에서 나오므로 태그마다 다릅니다.
   const hue = hashOf(tagId) % 360
@@ -160,20 +172,7 @@ export function tagFace(tagId: string, size: number): Container {
 export function bossFace(bossId: string, size: number): Container {
   const face = new Container()
   const texture = artFor('boss', bossId)
-  if (texture) {
-    const grown = size * 1.16
-    const sprite = new Sprite(texture)
-    sprite.width = grown
-    sprite.height = grown
-    sprite.position.set(-grown / 2, -grown / 2)
-
-    const round = new Graphics()
-    round.circle(0, 0, size / 2).fill(0xffffff)
-    sprite.mask = round
-
-    face.addChild(round, sprite)
-    return face
-  }
+  if (texture) return roundArt(texture, size)
 
   // 붉은 돌 하나에 새긴 표시. **색은 식별자에서 나오므로 보스마다 다릅니다.**
   const hue = 320 + (hashOf(bossId) % 60)
