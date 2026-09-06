@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!--
+        구글 백업에 담지 않습니다.
+
+        이 앱이 저장소에 두는 것은 판 하나 · 옵션 · 도감, 그리고 **로그인한 계정의
+        표딱지**입니다. 백업은 그것을 계정의 드라이브에 올리고 다른 기계에서 되돌리는데,
+        표딱지가 그렇게 옮겨 가면 그 기계는 로그인한 적이 없는 채로 로그인되어 있습니다.
+
+        판과 도감은 서버에 있고, 그 길로 옮겨 갑니다.
+    -->
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"

@@ -41,6 +41,14 @@ const MAX_WIDTH = 330
 const PAD = 12
 /** 튀어나오는 데 걸리는 시간. **짧습니다** — 읽으려고 올린 것이므로 기다리게 하지 않습니다. */
 const POP_TIME = 0.15
+
+/**
+ * 판보다 크게 그리는 정도의 상한.
+ *
+ * 폰의 배율이 0.6 이므로 1.67 이면 화면에서 데스크탑과 같은 크기입니다. 그보다 작은
+ * 창에서는 상한이 걸립니다.
+ */
+const GROW_MOST = 1.7
 /** 칩의 높이. 이름 글자와 가운데가 맞습니다. */
 const CHIP_H = 20
 
@@ -155,16 +163,20 @@ export class Tooltip extends Container {
     this.plate.roundRect(0.5, 0.5, width - 1, height - 1, 10)
       .stroke({ color: rarityValue > 0 ? rarityColor(rarityValue) : UI.tipEdge, width: 1.5 })
 
-    // 화면 밖으로 나가지 않게 접습니다.
-    const px = Math.min(Math.max(8, at.x - width / 2), bounds.width - width - 8)
+    // 화면 밖으로 나가지 않게 접습니다. **자란 크기로 셉니다** — 폰에서는 이 쪽지가
+    // 판보다 덜 줄어들므로, 자라기 전의 크기로 세면 오른쪽과 아래가 화면 밖으로 나갑니다.
+    const grown = width * this.grow
+    const tall = height * this.grow
+    const px = Math.min(Math.max(8, at.x - grown / 2), bounds.width - grown - 8)
     // **위를 먼저 씁니다.** 손가락으로 누르는 화면에서는 아래에 띄운 쪽지가 그 손가락에
     // 가려집니다 — 가려진 쪽지는 없는 것과 같습니다. 위에 자리가 없을 때만 아래로 갑니다.
-    const above = at.top - height - 12
-    const py = above >= 8 ? above : Math.min(at.bottom + 12, bounds.height - height - 8)
+    const above = at.top - tall - 12
+    const py = above >= 8 ? above : Math.min(at.bottom + 12, bounds.height - tall - 8)
     this.restX = px
     this.restY = Math.max(8, py)
     // 가리킨 것에 가까운 변에서 자랍니다. 위에 떴으면 아래 변, 아래에 떴으면 위 변입니다.
-    this.fromX = Math.min(Math.max(0, at.x - px), width)
+    // **쪽지 안의 자리이므로 자라기 전의 크기입니다.**
+    this.fromX = Math.min(Math.max(0, at.x - px), grown) / this.grow
     this.fromY = above >= 8 ? height : 0
     this.pop = 0
     this.place()
@@ -188,16 +200,37 @@ export class Tooltip extends Container {
     this.visible = false
   }
 
+  /**
+   * 판이 얼마나 줄어 있는가.
+   *
+   * **이 쪽지는 그만큼 덜 줄어듭니다.** 판은 1280 × 800 하나에 맞춰 그려지고 폰에서는
+   * 0.6배로 들어가는데, 그 배율이 설명글에 그대로 걸리면 12픽셀 글이 화면에서 7픽셀이
+   * 됩니다 — 읽을 수 없는 크기입니다.
+   *
+   * **판 안의 것에는 이렇게 할 수 없습니다.** 카드와 단추는 서로의 자리가 정해져 있어서
+   * 하나만 키우면 배치가 어긋납니다. 이 쪽지는 아무것도 밀어내지 않는 겹이라 혼자 커질
+   * 수 있고, 그래서 **화면에서의 크기가 어느 기계에서나 같습니다.**
+   *
+   * 상한을 둡니다 — 아주 작은 창에서 쪽지가 판을 통째로 덮는 것은 읽기 편한 것이 아닙니다.
+   */
+  setBoardScale(scale: number): void {
+    this.grow = Math.min(GROW_MOST, Math.max(1, 1 / Math.max(0.001, scale)))
+  }
+
   /** 지금의 `pop` 으로 크기와 자리를 정합니다. 한 번 넘겼다가 돌아옵니다. */
   private place(): void {
     const pop = this.pop
-    const scale = pop < 0.6
+    const bounce = pop < 0.6
       ? 0.78 + (1.06 - 0.78) * (pop / 0.6)
       : 1.06 - 0.06 * ((pop - 0.6) / 0.4)
+    const scale = this.grow * bounce
     this.scale.set(scale)
-    // 기준점이 제자리에 남도록 그만큼 밀어 줍니다.
-    this.position.set(this.restX + this.fromX * (1 - scale),
-                      this.restY + this.fromY * (1 - scale))
+    // 기준점이 제자리에 남도록 그만큼 밀어 줍니다. **자란 크기가 제자리입니다.**
+    this.position.set(this.restX + this.fromX * (this.grow - scale),
+                      this.restY + this.fromY * (this.grow - scale))
     this.alpha = Math.min(1, pop * 3.5)
   }
+
+  /** 판보다 얼마나 크게 그리는가. 1 이면 판과 같습니다. */
+  private grow = 1
 }

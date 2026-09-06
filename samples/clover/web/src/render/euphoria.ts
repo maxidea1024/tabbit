@@ -366,6 +366,43 @@ export class Euphoria {
   }
 
   /**
+   * 판을 접었습니다. **읽어 둔 영상을 놓습니다.**
+   *
+   * 넷이 11MB 이고, 타이틀과 도감에는 이것이 나올 자리가 없습니다 — 판에 들어설 때
+   * `warm` 이 다시 읽습니다. **그림이 가장 많이 올라가는 화면이 도감이므로**, 거기서
+   * 이만큼을 들고 있을 이유가 없습니다.
+   */
+  forget(): void {
+    for (const one of this.reels.values()) {
+      one.video.pause()
+      one.video.removeAttribute('src')
+      one.video.load()
+      one.sprite.destroy({ texture: true, textureSource: true })
+    }
+    this.reels.clear()
+  }
+
+  /**
+   * 뒤로 물러났습니다. **영상도 멈춥니다.**
+   *
+   * 화면이 멈춰도 영상은 스스로 돕니다 — 보이지 않는 영상을 계속 푸는 것이 그대로
+   * 배터리입니다.
+   */
+  hold(): void {
+    for (const one of this.reels.values()) {
+      if (!one.failed) one.video.pause()
+    }
+  }
+
+  /** 다시 앞으로 나왔습니다. 돌고 있던 것이 있으면 그것부터 이어 갑니다. */
+  wake(): void {
+    const reel = this.tier ? this.reels.get(this.tier.visual) : undefined
+    if (reel && !reel.failed && this.fade > 0.002) {
+      void reel.video.play().catch(() => { reel.failed = true })
+    }
+  }
+
+  /**
    * 영상 하나를 읽습니다. 이미 읽었으면 그것을 돌려줍니다.
    *
    * **소리는 끕니다.** 게임에 이미 배경음과 효과음이 있고, 영상의 소리까지 나면 그 둘이

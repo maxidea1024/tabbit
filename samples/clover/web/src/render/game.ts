@@ -54,10 +54,11 @@ import { Euphoria } from './euphoria'
 import { Haptics } from './haptics'
 import { fraction, Motion, Spring } from './motion'
 import { Particles } from './particles'
-import { artFor, onArtReady } from './art'
-import { backLookOf, bakeCardBacks, cardBack, drawCardBack, setCardBack } from './card-back'
+import { artBytes, artFor, artTick, onArtReady } from './art'
+import { backLookOf, bakeCardBacks, cardBack, drawCardBack, forgetCardBacks,
+         setCardBack } from './card-back'
 import { cardArtDir, cardBackMotif, cardPaper, drawsIndex, setCardSet, setLookOf, suitInk } from './card-set'
-import { bakeCardFaces, cardFaceBakes } from './card-face'
+import { bakeCardFaces, cardFaceBakes, forgetCardFaces } from './card-face'
 import {
   blindFace, faceOf, itemFace, kindName, MINI_RANK, packBlurb, packFace, packInk,
   packName, shopLabel, SUIT_PIP, tagFace, voucherFace,
@@ -82,7 +83,7 @@ import { LeaderboardHub, type EndLine } from '../ui/hub'
 import { NetStatus } from '../ui/net-status'
 import { LoginScene } from '../ui/login-scene'
 import { ConfirmPanel } from '../ui/confirm'
-import { canQuit, quitGame } from '../ui/quit'
+import { canQuit, inApp, keepAwake, onAppState, onBackButton, quitGame } from '../ui/shell'
 import * as account from '../net/session'
 import { busy as netBusy } from '../net/session'
 import { newMetrics, observe, type MetricsAcc } from '../core/metrics'
@@ -859,6 +860,14 @@ interface PackView {
   /** 반짝이는 동안에만 붙습니다. 다 반짝이면 떼어 냅니다 — 필터 하나가 곧 텍스처 하나입니다. */
   arrive?: ArriveFilter
 }
+
+/**
+ * 판을 적어 두는 사이의 가장 짧은 간격.
+ *
+ * **연출 하나보다 짧습니다.** 눌러서 다음 것을 누르기까지가 그보다 길므로, 사람이 손을
+ * 멈추는 자리마다 적혀 있습니다.
+ */
+const SAVE_GAP = 400
 
 export class Game {
   private readonly world = new Container()
@@ -2212,6 +2221,11 @@ export class Game {
     this.menuButton.position.set(RIGHT_COL, 726)
 
     app.canvas.addEventListener('pointerdown', () => this.audio.unlock())
+    // **앱에서는 기다리지 않습니다.** 소리 길이 사람의 조작 뒤에만 열리는 것은 브라우저의
+    // 규칙이고, 앱의 WebView 는 그 규칙을 끄고 섭니다 — 그래서 타이틀의 음악이 첫 화면부터
+    // 납니다. 걸어 두지 않으면 첫 조작이 대개 판을 여는 단추라, 타이틀 곡이 그 순간에
+    // 시작해서 다음 화면에서 곧바로 잦아들었습니다.
+    if (inApp()) this.audio.unlock()
     // **누르는 순간 툴팁이 닫힙니다.** 툴팁은 마우스가 그것에서 벗어날 때 닫히는데, 누른
     // 것이 사라지면(사거나 팔거나 쓰거나) 벗어나는 일이 영영 없어서 그 자리에 남습니다.
     //
@@ -2261,19 +2275,37 @@ export class Game {
     })
     window.addEventListener('keydown', event => {
       this.audio.unlock()
-      // 판이 떠 있으면 맨 위의 것을 닫습니다. **연출을 넘기는 것보다 앞섭니다** — 판을
-      // 보고 있는 사람에게 아무 키나는 「닫기」입니다.
-      if (this.modals.busy) {
-        if (event.key === 'Escape') this.modals.closeTop()
+      if (event.key === 'Escape') {
+        this.back()
         return
       }
-      // 고른 조커를 놓습니다. **판이 없을 때의 ESC 는 「무르기」입니다.**
-      if (event.key === 'Escape' && this.held) {
-        this.held = undefined
-        this.refresh()
-        return
-      }
+      // 판이 떠 있으면 아무 키도 연출을 넘기지 않습니다. **판을 보고 있는 사람에게
+      // 아무 키나는 「닫기」이고, 닫는 것은 위에서 `Escape` 가 이미 했습니다.**
+      if (this.modals.busy) return
       if (this.player.busy) this.player.hurry(this.feel)
+    })
+    // **안드로이드의 뒤로 가기.** 키 사건을 만들지 않으므로 위의 줄이 보지 못합니다.
+    onBackButton(() => this.back())
+    // **뒤로 물러나면 멈춥니다.** 안드로이드는 WebView 를 대신 멈춰 주지 않으므로, 걸어
+    // 두지 않으면 화면이 없는 동안에도 그리고 소리를 냅니다.
+    onAppState(active => this.setAwake(active))
+    // **창을 떠날 때는 기다리지 않고 적습니다.** 탭을 닫는 것과 앱이 끝나는 것이 여기로
+    // 옵니다 — `beforeunload` 는 손전화에서 오지 않는 자리가 있어 `pagehide` 를 씁니다.
+    window.addEventListener('pagehide', () => this.flushRun(true))
+
+    // **GPU 의 자리를 기계가 회수할 수 있습니다.** 오래 물러나 있으면 안드로이드가 그렇게
+    // 하고, 돌아오면 Pixi 가 컨텍스트를 다시 세웁니다 — 그런데 **구워 둔 것은 그림이
+    // 없는 채로 돌아옵니다.** 원본이 GPU 에만 있던 것들이라 다시 올릴 곳이 없습니다.
+    // 놓아 두면 다음에 그릴 때 다시 굽습니다.
+    app.canvas.addEventListener('webglcontextlost', () => {
+      if (!this.manualTick) app.ticker.stop()
+    })
+    app.canvas.addEventListener('webglcontextrestored', () => {
+      forgetCardFaces()
+      forgetCardBacks()
+      if (!this.manualTick && this.awake) app.ticker.start()
+      this.repaintPack()
+      this.refresh()
     })
 
     // 그림이 새로 들어오면 다시 그립니다. 문양이 그림으로 바뀝니다.
@@ -2558,6 +2590,32 @@ export class Game {
   }
 
   /**
+   * 뒤로.
+   *
+   * **`ESC` 와 안드로이드의 뒤로 가기가 같은 자리입니다.** 둘은 같은 뜻이므로 하는 일도
+   * 같아야 하고, 두 곳에 따로 적으면 언젠가 한쪽만 고쳐집니다.
+   *
+   * 차례가 셋입니다 — 떠 있는 판을 닫고, 없으면 들고 있는 것을 놓고, 그것도 없으면
+   * 나갈지 묻습니다.
+   *
+   * **나갈 수 없는 자리에서는 마지막 줄이 아무 일도 하지 않습니다.** 브라우저의 탭은
+   * 스크립트가 닫지 못하므로, 거기서 `ESC` 를 누를 때마다 「나갈 수 없습니다」가 뜨면
+   * 그것은 알림이 아니라 방해입니다.
+   */
+  private back(): void {
+    if (this.modals.busy) {
+      this.modals.closeTop()
+      return
+    }
+    if (this.held) {
+      this.held = undefined
+      this.refresh()
+      return
+    }
+    if (canQuit()) this.askQuit()
+  }
+
+  /**
    * 게임을 나갈지 묻습니다. **되돌릴 수 없으므로 반드시 묻습니다.**
    *
    * **글이 씬마다 다릅니다.** 판이 도는 중이면 그 판이 저장된다는 것이 알아야 하는 것이고,
@@ -2654,6 +2712,26 @@ export class Game {
    */
   private rememberRun(): void {
     if (this.scene !== 'run') return
+    this.saveDue = true
+  }
+
+  /**
+   * 적어 둘 것이 있으면 적습니다.
+   *
+   * **액션마다 적지 않습니다.** 적는 것은 판의 액션 기록을 통째로 글로 만들어 저장소에
+   * 넣는 일이고, 저장소는 디스크에 있습니다 — 안드로이드에서는 액션마다 그 기다림이
+   * 눌린 자리에서 그대로 보입니다. 기록은 판이 길어질수록 길어지므로 뒤로 갈수록 커집니다.
+   *
+   * **묶어도 잃는 것이 없습니다.** 뒤로 물러날 때와 판을 떠날 때는 기다리지 않고 바로
+   * 적으므로(`force`), 묶여 있다가 사라지는 것은 앱이 그 사이에 죽었을 때의 액션 하나
+   * 뿐입니다.
+   */
+  private flushRun(force = false): void {
+    if (!this.saveDue || this.scene !== 'run') return
+    const now = typeof performance === 'undefined' ? Date.now() : performance.now()
+    if (!force && now - this.saveAt < SAVE_GAP) return
+    this.saveDue = false
+    this.saveAt = now
     saveRun({
       seed: this.state.seed,
       deckId: this.state.deckId,
@@ -2860,6 +2938,7 @@ export class Game {
   /** 로그인 화면으로. **나가는 길은 「계정 없이 시작하기」 하나입니다.** */
   private enterLogin(): void {
     this.scene = 'login'
+    keepAwake(false)
     // **알림이 서는 자리가 씬마다 다릅니다.** 판 안에서는 낸 카드를 덮지 않으려고
     // 오른쪽에 붙지만, 카드가 없는 화면에서는 그냥 구석에 붙은 것이 됩니다.
     this.toasts.setCenter(Toasts.OUT_RUN)
@@ -2881,6 +2960,9 @@ export class Game {
     this.board.visible = true
     this.overlay.visible = true
     this.audio.unlock()
+    // **판이 도는 동안만 화면을 켜 둡니다.** 낼 카드를 고르는 사이는 손이 화면에 닿지
+    // 않는 시간이고, 이 게임에는 그 시간을 재는 것이 없습니다.
+    keepAwake(true)
     // **환희의 첫 영상을 미리 읽습니다.** 문턱을 넘는 순간에 읽기 시작하면 그 판의
     // 앞부분이 셰이더로 지나갑니다. 타이틀에서는 읽지 않습니다 — 판을 열지 않는 사람에게
     // 3MB 를 읽힐 이유가 없습니다.
@@ -2926,8 +3008,12 @@ export class Game {
    * 접는 것은 `dropRun` 이 하고, 읽어 둔 것은 그대로 둡니다.
    */
   private enterTitle(): void {
+    // **판을 접기 전에 적어 둡니다.** 적는 것을 묶어 두었으므로 밀려 있는 것이 있을 수
+    // 있고, 씬이 바뀌고 나면 적을 자리가 아닙니다.
+    this.flushRun(true)
     this.dropRun()
     this.scene = 'title'
+    keepAwake(false)
     this.toasts.setCenter(Toasts.OUT_RUN)
     this.login.visible = false
     this.title.visible = true
@@ -3096,6 +3182,9 @@ export class Game {
     // 번쩍임과 흔들림. **남겨 두면 타이틀이 흔들린 채로 섭니다.** 환희의 겹도 같습니다 —
     // 판을 접은 뒤에도 남아 있으면 타이틀에서 기를 모으고 있게 됩니다.
     this.euphoria.reset()
+    // **읽어 둔 영상도 놓습니다.** 타이틀과 도감에는 나올 자리가 없고, 도감이 그림을
+    // 가장 많이 올리는 화면입니다.
+    this.euphoria.forget()
     this.shake = 0
     this.freeze = 0
     this.panelGlow = 0
@@ -3317,6 +3406,9 @@ export class Game {
   layout(width: number, height: number): void {
     const scale = Math.min(width / SIZE.width, height / SIZE.height)
     this.world.scale.set(scale)
+    // **설명 쪽지는 판만큼 줄어들지 않습니다.** 폰에서 판이 0.6배로 들어가면 12픽셀
+    // 설명글이 화면에서 7픽셀이 되고, 그 크기는 읽는 크기가 아닙니다.
+    this.tooltip.setBoardScale(scale)
     // 자리를 정수로 맞춥니다. 반 픽셀이 남으면 글씨가 흐려집니다.
     const left = Math.round((width - SIZE.width * scale) / 2)
     const top = Math.round((height - SIZE.height * scale) / 2)
@@ -3364,7 +3456,10 @@ export class Game {
    * 쓰는 것이라, 구울 때의 배율이 화면 배율보다 작으면 늘려 놓은 그림이 됩니다.
    */
   private sharpen(scale: number): void {
-    const want = Math.min(3, Math.max(1, scale) * (this.app.renderer.resolution ?? 1))
+    // **화면에 실제로 놓이는 픽셀만큼입니다.** 배율과 밀도의 곱이 그것이고, 배율이
+    // 1보다 작은 자리 — 손전화가 그렇습니다 — 에서 배율을 1로 올려 버리면 필요한 것의
+    // 갑절이 넘게 굽습니다. 굽는 값은 픽셀 수만큼입니다.
+    const want = Math.min(3, Math.max(1, scale * (this.app.renderer.resolution ?? 1)))
     const walk = (node: Container) => {
       if (node instanceof Text && node.resolution !== want) node.resolution = want
       for (const child of node.children) walk(child as Container)
@@ -4929,11 +5024,62 @@ export class Game {
     return this.state.jokers[slot]?.uid ?? -1
   }
 
+  // ---------------------------------------------------------------- 앞뒤
+
+  /**
+   * 앞으로 나왔는가 · 뒤로 물러났는가.
+   *
+   * **물러난 동안에는 아무것도 하지 않습니다.** 그리는 것 · 소리 · 영상 셋이 저마다
+   * 스스로 도는 것이라 하나만 멈추면 나머지가 남습니다 — 화면이 없는 동안의 그 셋이
+   * 그대로 배터리입니다.
+   *
+   * **검증 도구의 수동 틱에서는 티커를 만지지 않습니다.** 거기서는 시간이 도구의 부름으로만
+   * 흐르므로, 티커를 세우고 다시 세우면 그 판이 두 번 흐릅니다.
+   */
+  private setAwake(active: boolean): void {
+    if (this.awake === active) return
+    this.awake = active
+
+    if (active) {
+      if (!this.manualTick) this.app.ticker.start()
+      this.audio.wake()
+      this.euphoria.wake()
+      // **물러나면 기계가 스스로 놓습니다.** 돌아온 자리에서 다시 잡습니다.
+      keepAwake(this.scene === 'run')
+      return
+    }
+    if (!this.manualTick) this.app.ticker.stop()
+    this.audio.hold()
+    this.euphoria.hold()
+    keepAwake(false)
+    // **물러나기 전에 적어 둡니다.** 물러난 앱은 기계가 언제든 끝낼 수 있고, 그때
+    // 밀려 있던 것은 사라집니다.
+    this.flushRun(true)
+  }
+
+  /** 지금 앞에 나와 있는가. */
+  private awake = true
+
+  /** 지금까지 그린 프레임 수. **검증 도구가 물러난 동안 멈추는지를 이것으로 봅니다.** */
+  private drawn = 0
+
+  /** 적어 둘 것이 밀려 있는가. */
+  private saveDue = false
+  /** 마지막으로 적은 때. */
+  private saveAt = -Infinity
+
   // ---------------------------------------------------------------- 매 프레임
 
   private tick(deltaMs: number): void {
     const seconds = deltaMs / 1000
     this.clock += seconds
+    this.drawn++
+
+    // **놓은 그림을 버리는 자리입니다.** 놓는 것은 `art.ts` 가 넘칠 때 스스로 하고,
+    // 여기서는 그것이 몇 틱 지났는지만 세어 줍니다 — 놓자마자 버리면 그 그림을 쓰고 있던
+    // 스프라이트가 다시 그려지기 전의 한 프레임에 없는 텍스처를 가리킵니다.
+    artTick()
+    this.flushRun()
 
     if (this.artDirty) {
       this.artDirty = false
@@ -5396,6 +5542,12 @@ export class Game {
     return {
       // 어느 씬인가. **판을 접고 타이틀로 갔는지를 이것으로 봅니다.**
       scene: this.scene,
+      // 지금 들고 있는 그림의 크기. **상한이 실제로 도는지를 이것으로 봅니다.**
+      artBytes: artBytes(),
+      // 배경음이 무엇을 어떻게 내고 있는가.
+      music: this.audio.music.report(),
+      // 지금까지 그린 프레임 수. 물러나면 더 늘지 않아야 합니다.
+      drawn: this.drawn,
       // 설명 쪽지가 지금 떠 있는가. 꾸욱 누르기를 재는 도구가 씁니다.
       tip: this.tooltip.visible,
       // 지금 몇 장 골라 두었는가. 꾸욱 눌렀을 때 골라지지 않는지를 봅니다.

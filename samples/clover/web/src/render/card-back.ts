@@ -121,6 +121,13 @@ export function bakeCardBacks(renderer: Renderer, density: number): void {
   baker = { renderer, density: Math.min(3, Math.max(1, density)) }
 }
 
+/**
+ * 구운 것을 전부 놓습니다. **컨텍스트가 회수되면 그림이 빈 채로 돌아옵니다.**
+ */
+export function forgetCardBacks(): void {
+  BAKED.clear()
+}
+
 function bakedBack(width: number, height: number, radius: number,
                    look: BackLook): Texture | undefined {
   if (!baker) return undefined

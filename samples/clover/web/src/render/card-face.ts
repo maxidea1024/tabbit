@@ -159,6 +159,19 @@ export function bakeCardFaces(renderer: Renderer, density: number): void {
 }
 
 /**
+ * 구운 것을 전부 놓습니다.
+ *
+ * **그림 데이터가 GPU 에만 있는 것들입니다.** 컨텍스트가 회수되면 그 자리가 비어서
+ * 돌아오고, 캐시는 그것을 그대로 다시 씁니다 — 카드가 빈 사각형이 됩니다. 놓으면 다음에
+ * 그릴 때 다시 굽습니다.
+ */
+export function forgetCardFaces(): void {
+  droppedCount += BAKED.size
+  BAKED.clear()
+  heldBytes = 0
+}
+
+/**
  * 구운 장수와 다시 쓴 횟수.
  *
  * **다시 쓰는 쪽이 크게 늘어야 맞습니다.** 카드를 고르고 무르는 동안 구운 장수가 함께

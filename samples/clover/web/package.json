@@ -20,6 +20,7 @@
     "check:shop-rise": "tsx tools/check-shop-rise.ts",
     "check:euphoria": "tsx tools/check-euphoria.ts",
     "check:insight": "tsx tools/check-insight.ts",
+    "check:shell": "tsx tools/check-shell.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "headless": "tsx src/headless.ts",

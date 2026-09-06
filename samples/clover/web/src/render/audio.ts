@@ -153,6 +153,24 @@ export class Audio {
   }
 
   /**
+   * 뒤로 물러났습니다.
+   *
+   * **소리 길을 재웁니다.** 안드로이드는 화면이 없는 동안에도 소리 길을 그대로 두므로,
+   * 재우지 않으면 배경음이 계속 나고 그것을 끄는 길이 앱을 끝내는 것뿐입니다.
+   */
+  hold(): void {
+    this.music.hold()
+    void this.context?.suspend().catch(() => undefined)
+  }
+
+  /** 다시 앞으로 나왔습니다. */
+  wake(): void {
+    const context = this.context
+    if (!context) return
+    void context.resume().then(() => this.music.resume()).catch(() => undefined)
+  }
+
+  /**
    * 소리를 읽어 둡니다.
    *
    * **하나가 없어도 나머지는 읽습니다.** 파일 하나가 빠졌다고 소리가 통째로 없어지면,

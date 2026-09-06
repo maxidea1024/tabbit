@@ -22,6 +22,22 @@ import { JokerPool } from './generated/enums/joker-pool'
 import { Game } from './render/game'
 import { COLOR, setUiTheme } from './render/theme'
 
+/**
+ * 몇 배로 그릴 것인가.
+ *
+ * **2 에서 끊습니다.** 화면의 밀도를 그대로 쓰면 손전화에서 3이 되는데, 판은 1280 × 800
+ * 하나에 맞춰 그려지고 그 판이 손전화에서는 0.6배로 들어갑니다 — 화면에 실제로 필요한
+ * 것은 그 곱이고, 3은 그보다 훨씬 큽니다. 값은 픽셀 수만큼 늘어납니다.
+ */
+function density(): number {
+  return Math.min(2, window.devicePixelRatio || 1)
+}
+
+/** 손가락으로 짚는 화면인가. */
+function coarsePointer(): boolean {
+  return typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches
+}
+
 async function main(): Promise<void> {
   const canvas = document.getElementById('stage') as HTMLCanvasElement
   const boot = new Boot()
@@ -32,13 +48,19 @@ async function main(): Promise<void> {
     // **판 밖에 보이는 색입니다.** 판은 기준 해상도 하나에 맞춰 그려지고 그 밖은
     // 잘라 내므로, 지우는 색이 곧 잘라 낸 자리의 색입니다.
     background: COLOR.crop,
-    antialias: true,
-    // 글씨가 뿌옇지 않게 화면의 픽셀 밀도를 그대로 씁니다.
-    resolution: Math.min(3, window.devicePixelRatio || 1),
+    // **손가락으로 짚는 화면에서는 끕니다.** 카드의 앞뒤와 글은 이미 그림으로 구워
+    // 쓰므로 MSAA 가 다듬을 것이 판때기의 모서리뿐인데, 그 값은 화면 전체에 걸립니다 —
+    // 손전화는 그 화면이 200만 픽셀이 넘고 GPU 는 데스크탑의 것이 아닙니다.
+    antialias: !coarsePointer(),
+    resolution: density(),
     autoDensity: true,
     resizeTo: window,
     preference: 'webgl',
   })
+  // **초당 60을 넘기지 않습니다.** 요즘 손전화의 화면은 120Hz 이고, 걸어 두지 않으면
+  // 정지 화면에서도 초당 120번을 그립니다 — 카드 게임에서 그 60번이 더 보여 주는 것은
+  // 없고 값은 두 배입니다.
+  app.ticker.maxFPS = 60
 
   boot.step('data')
   const data = await loadFromUrl('./data')
@@ -91,9 +113,9 @@ async function main(): Promise<void> {
   const relayout = () => {
     // 전체 화면으로 가면 다른 모니터의 밀도가 될 수 있습니다. 밀도가 바뀌었으면 렌더러의
     // 것도 함께 바꿉니다 — 그러지 않으면 전체 화면에서 글씨가 뿌옇게 됩니다.
-    const density = Math.min(3, window.devicePixelRatio || 1)
-    if (Math.abs(app.renderer.resolution - density) > 0.01) {
-      app.renderer.resolution = density
+    const want = density()
+    if (Math.abs(app.renderer.resolution - want) > 0.01) {
+      app.renderer.resolution = want
     }
     game.layout(app.renderer.screen.width, app.renderer.screen.height)
   }
