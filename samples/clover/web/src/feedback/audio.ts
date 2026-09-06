@@ -15,6 +15,7 @@
 // 원작의 음원을 쓰지 않습니다. 가져온 것은 CC0 이고 `public/sound/readme.md` 에 적혀 있습니다.
 
 import type { CloverData } from '../generated/clover-data'
+import { glide, GLIDE } from './gain'
 import { Music } from './music'
 
 /**
@@ -37,14 +38,82 @@ const TARGET_RMS = 0.09
 const GAIN_RANGE = [0.05, 6] as const
 
 /**
- * 겹친 것으로 세는 시간.
+ * 겹친 것으로 세는 시간을 **음원 길이에서 정합니다.**
  *
- * **소리 하나가 그만큼 남아 있다고 봅니다.** 카드 소리는 0.1초 남짓이고, 잇달아 나는
- * 것들의 사이가 그보다 짧으면 귀에는 한 덩어리입니다.
+ * 한동안 0.18초 하나로 두었는데, 재어 보니 음원 38개 중 19개가 0.4초를 넘습니다 —
+ * `card_place` 는 0.689초이고 `card_select` 는 0.601초입니다. 0.13초 간격으로 나는 상점
+ * 진열에서 실제로는 6개가 함께 울리는데 계수기는 2개로 세고 있었고, 그래서 줄이는 계산이
+ * 걸리지 않았습니다.
+ *
+ * 꼬리는 앞머리보다 작으므로 길이를 다 세지 않습니다. 60%가 「아직 들린다」의 자리입니다.
  */
-const CROWD_SPAN = 0.18
-/** 이 수를 넘으면 내지 않습니다. */
+const CROWD_SHARE = 0.6
+/** 그 시간의 하한과 상한. 아주 긴 음원 하나가 자기 신호를 오래 막지 않게 합니다. */
+const CROWD_SPAN = [0.10, 0.45] as const
+/** 한 신호가 동시에 낼 수 있는 수. */
 const CROWD_MOST = 4
+/** 뺏긴 소리가 잦아드는 시간. **끊지 않고 물러나게 합니다.** */
+const STEAL_FADE = 0.05
+
+/**
+ * 마스터의 압축기.
+ *
+ * **사슬이 길면 합이 1을 넘습니다.** 카드 다섯 장과 조커 넷이 잇달아 득점할 때 소리는
+ * 힘으로 더해지고, 넘긴 만큼은 기계가 깎아 냅니다 — 그 깎인 자리가 찌그러진 소리입니다.
+ * 겹침 계수기가 신호 하나 안에서 줄이는 것과 달리, 이것은 서로 다른 신호가 함께 날 때를
+ * 봅니다.
+ */
+const SQUEEZE = {
+  threshold: -14, knee: 6, ratio: 4, attack: 0.003, release: 0.12,
+} as const
+
+/**
+ * 사슬이 오르는 음계. 5음 음계의 계단입니다.
+ *
+ * **반음을 그대로 쌓지 않습니다.** 한동안 사건마다 2반음씩 올렸는데, 반음 사다리는
+ * 「올라간다」로만 들리고 선율로는 들리지 않습니다 — 어느 두 음도 협화음이 아니기
+ * 때문입니다. 5음 음계는 어느 두 음을 집어도 어긋나지 않아, 순서가 어떻든 가락이 됩니다.
+ */
+const LADDER = [0, 2, 4, 7, 9] as const
+/** 사다리가 오르는 옥타브 수. 그 위는 맨 위 옥타브 안에서 돕니다. */
+const LADDER_OCTAVES = 2
+
+/**
+ * 사슬의 몇 번째인가를 반음 몇 개로.
+ *
+ * **끝이 있습니다.** 상한 없이 올리던 것이 문제였습니다 — 세기 12에 사슬 10이면 32반음이고,
+ * 재생 속도로 6.3배입니다. 0.172초인 칩 소리가 0.027초가 되어, 칩이 아니라 딱 소리로
+ * 납니다. 두 옥타브를 다 오르면 위 옥타브 안에서만 계속 돕니다.
+ */
+export function ladder(step: number): number {
+  const wide = LADDER.length * LADDER_OCTAVES
+  const at = step < wide ? step
+    : LADDER.length + ((step - wide) % LADDER.length)
+  return LADDER[at % LADDER.length] + 12 * Math.floor(at / LADDER.length)
+}
+
+/**
+ * 음원이 음높이를 따라 움직이는 정도.
+ *
+ * **음원은 재생 속도로만 음을 올릴 수 있고, 그러면 짧아집니다.** 그래서 음원에는 밝아지는
+ * 정도만 맡기고 — 상한이 3반음입니다 — 가락은 위에 겹치는 음 하나가 맡습니다. 그 둘이
+ * 갈리고 나서야 사슬을 끝까지 올려도 소리가 남습니다.
+ */
+const SAMPLE_TILT = 6
+const SAMPLE_TILT_MOST = 3
+
+/**
+ * 같은 소리를 두 번 낼 때 흔드는 정도.
+ *
+ * **녹음은 반복이 들립니다.** 같은 파일을 같은 음높이와 같은 크기로 열 번 내면 열 번째에는
+ * 그 파일이 들립니다 — 실제로 두드린 것은 매번 조금씩 다르기 때문입니다. 반음의 5분의 1과
+ * 크기의 7%면 무엇이 달라졌는지는 알아채지 못하면서 같은 것으로는 들리지 않습니다.
+ */
+const WOBBLE_PITCH = 0.2
+const WOBBLE_GAIN = 0.07
+
+/** 좌우로 벌리는 끝. **끝까지 밀면 한쪽 귀에서만 납니다.** */
+const PAN_MOST = 0.45
 
 export class Audio {
   private context?: AudioContext
@@ -59,7 +128,7 @@ export class Audio {
    * 합성으로 나고, 읽힌 다음부터 녹음된 것으로 바뀝니다.
    */
   private readonly samples = new Map<string,
-    { buffer: AudioBuffer; gain: number; lead: number }>()
+    { buffer: AudioBuffer; gain: number; lead: number; span: number }>()
   /**
    * 아직 풀지 않은 소리의 바이트.
    *
@@ -78,13 +147,16 @@ export class Audio {
    */
   private hiss?: AudioBuffer
   /**
-   * 신호마다 마지막으로 난 시각들.
+   * 신호마다 지금 울리고 있는 것들.
    *
    * **같은 소리가 겹치면 커집니다.** 카드 다섯 장이 잇달아 사라질 때 그 소리가 다섯 번
    * 나는데, 소리는 힘으로 더해지므로 다섯이면 하나보다 곱절 넘게 큽니다 — 그것이 「볼륨
    * 게이지가 올라가는」 느낌이고, 그 순간만 화면의 다른 소리를 다 덮습니다.
+   *
+   * 시각만 적던 것을 **이득 마디까지 들고 있는 것**으로 바꿨습니다. 넘칠 때 새것을 버리는
+   * 대신 가장 오래된 것을 물러나게 하려면 그것을 붙잡고 있어야 합니다.
    */
-  private readonly recent = new Map<string, number[]>()
+  private readonly voices = new Map<string, { until: number; gain: GainNode }[]>()
 
   /** 소리를 끄는가. 옵션이 정합니다. */
   muted = false
@@ -99,10 +171,12 @@ export class Audio {
    *
    * **이미 열려 있는 소리 길에도 바로 걸립니다** — 값만 두고 다음 소리부터 적용하면, 옵션을
    * 만지는 동안에는 무엇이 바뀌었는지 들리지 않습니다.
+   *
+   * 대입하지 않고 옮깁니다. 눈금이 20%씩 뛰므로 소리가 나는 중에 그만큼의 불연속이 생깁니다.
    */
   set volume(value: number) {
     this.level = Math.max(0, Math.min(1, value))
-    if (this.master) this.master.gain.value = this.level
+    if (this.master && this.context) glide(this.master.gain, this.level, this.context.currentTime)
   }
 
   get volume(): number {
@@ -153,7 +227,15 @@ export class Audio {
     this.context = new Ctor()
     this.master = this.context.createGain()
     this.master.gain.value = this.level
-    this.master.connect(this.context.destination)
+    // **효과음만 압축기를 지납니다.** 배경음까지 함께 넣으면 득점이 길어질 때마다 곡이
+    // 눌렸다 돌아오고, 그 오르내림이 득점보다 크게 들립니다.
+    const squeeze = this.context.createDynamicsCompressor()
+    squeeze.threshold.value = SQUEEZE.threshold
+    squeeze.knee.value = SQUEEZE.knee
+    squeeze.ratio.value = SQUEEZE.ratio
+    squeeze.attack.value = SQUEEZE.attack
+    squeeze.release.value = SQUEEZE.release
+    this.master.connect(squeeze).connect(this.context.destination)
     // **배경음도 같은 길을 씁니다.** 소리 길은 하나이고, 음량만 따로입니다.
     this.music.open(this.context, this.context.destination)
 
@@ -176,8 +258,18 @@ export class Audio {
    * 재우지 않으면 배경음이 계속 나고 그것을 끄는 길이 앱을 끝내는 것뿐입니다.
    */
   hold(): void {
-    this.music.hold()
-    void this.context?.suspend().catch(() => undefined)
+    const context = this.context
+    if (!context) return
+    // **내려놓고 재웁니다.** 나는 중에 재우면 파형이 잘린 자리에서 「퍽」 소리가 나고,
+    // 그것이 앱을 뒤로 보낸 사람이 마지막으로 듣는 소리가 됩니다.
+    if (this.master) glide(this.master.gain, 0, context.currentTime)
+    window.setTimeout(() => {
+      this.music.hold()
+      void context.suspend().catch(() => undefined)
+      // **다시 올려 둡니다.** 재운 뒤이므로 들리지 않고, 깨울 때 음량이 0 인 채로
+      // 시작하지 않습니다.
+      if (this.master) this.master.gain.value = this.level
+    }, (GLIDE + 0.01) * 1000)
   }
 
   /**
@@ -211,10 +303,14 @@ export class Audio {
       try {
         // **한 번만 풉니다.** `decodeAudioData` 는 넘긴 버퍼를 비우므로 베껴 넘깁니다.
         const buffer = await context.decodeAudioData(raw.slice(0))
+        const lead = this.leadOf(buffer)
         this.samples.set(cue, {
           buffer,
           gain: this.levelFor(buffer) * (this.wanted.get(cue) ?? 1),
-          lead: this.leadOf(buffer),
+          lead,
+          // **앞의 묵음을 뺀 길이입니다.** 재생은 그 자리부터 시작하므로, 실제로 소리가
+          // 나는 시간이 그만큼입니다.
+          span: buffer.duration - lead,
         })
       } catch {
         // 풀지 못한 것은 합성으로 갑니다.
@@ -268,7 +364,7 @@ export class Audio {
    */
   readonly played: string[] = []
 
-  play(cueId: string, semitones = 0): void {
+  play(cueId: string, semitones = 0, pan = 0): void {
     const context = this.context
     const master = this.master
     // **꺼져 있어도 적습니다.** 무엇이 부르려 했는지가 물음의 답이고, 실제로 울렸는지는
@@ -277,31 +373,43 @@ export class Audio {
     if (this.played.length > 48) this.played.shift()
     if (!context || !master || this.muted) return
 
-    // **겹치는 만큼 줄입니다.** 넘치면 아예 내지 않습니다 — 이미 넉이 울리고 있으면 다섯째는
-    // 들리지 않고 크기만 보탭니다.
-    const room = this.crowding(cueId, context.currentTime)
-    if (room <= 0) return
+    const now = context.currentTime
+    const sample = this.samples.get(cueId)
+    const shape = SHAPE[cueId] ?? DEFAULT_SHAPE
+    const span = sample ? sample.span : shape.length
+
+    // **소리 하나가 이득 마디 하나를 갖습니다.** 겹치는 만큼 줄이는 것과, 넘칠 때 앞의
+    // 것을 물러나게 하는 것이 그 마디 하나에서 됩니다 — 음원이든 파형이든 같습니다.
+    const voice = context.createGain()
+    voice.gain.value = this.room(cueId, now, span, voice)
+      * (1 + (Math.random() - 0.5) * 2 * WOBBLE_GAIN)
+    this.spread(voice, pan)
 
     const follows = this.follows.get(cueId) ?? false
+    const shift = follows ? semitones : 0
 
-    // **녹음된 것이 있으면 그것입니다.** 음높이는 재생 속도로 올립니다.
-    const sample = this.samples.get(cueId)
+    // **녹음된 것이 있으면 그것입니다.**
     if (sample) {
       const source = context.createBufferSource()
       source.buffer = sample.buffer
-      source.playbackRate.value = Math.pow(2, (follows ? semitones : 0) / 12)
+      // **음원은 조금만 따라 올라갑니다.** 재생 속도로 올리면 그만큼 짧아지므로, 그대로
+      // 따라가게 두면 사슬의 끝에서 음원이 없어집니다 — 밝아지는 정도까지만 맡기고 가락은
+      // 위에 겹치는 음이 냅니다.
+      const tilt = Math.max(-SAMPLE_TILT_MOST,
+        Math.min(SAMPLE_TILT_MOST, shift / SAMPLE_TILT))
+      // **같은 자리에서 두 번 내지 않습니다.** 반음의 5분의 1 안에서 흔듭니다.
+      const wobble = tilt + (Math.random() - 0.5) * 2 * WOBBLE_PITCH
+      source.playbackRate.value = Math.pow(2, wobble / 12)
 
       const gain = context.createGain()
-      gain.gain.value = sample.gain * room
-      source.connect(gain).connect(master)
+      gain.gain.value = sample.gain
+      source.connect(gain).connect(voice)
       // **묵음을 건너뛰고 시작합니다.** 그것이 곧 「소리가 그림과 같이 난다」입니다.
-      source.start(context.currentTime, sample.lead)
+      source.start(now, sample.lead)
       return
     }
 
-    const shape = SHAPE[cueId] ?? DEFAULT_SHAPE
-    const now = context.currentTime
-    const hz = BASE_HZ * Math.pow(2, ((follows ? semitones : 0) + shape.offset) / 12)
+    const hz = BASE_HZ * Math.pow(2, (shift + shape.offset) / 12)
 
     if (shape.gain > 0) {
       const osc = context.createOscillator()
@@ -314,88 +422,137 @@ export class Audio {
 
       const gain = context.createGain()
       gain.gain.setValueAtTime(0, now)
-      gain.gain.linearRampToValueAtTime(shape.gain * room, now + 0.006)
+      gain.gain.linearRampToValueAtTime(shape.gain, now + 0.006)
       gain.gain.exponentialRampToValueAtTime(0.0001, now + shape.length)
 
-      osc.connect(gain).connect(master)
+      osc.connect(gain).connect(voice)
       osc.start(now)
       osc.stop(now + shape.length + 0.02)
     }
 
-    if (shape.noise !== undefined) this.hissAt(shape.noise, now, room)
+    if (shape.noise !== undefined) this.hissAt(shape.noise, now, voice)
   }
 
   /**
-   * 이 신호가 지금 몇 개나 겹쳐 있는가.
+   * 소리 하나를 마스터에 붙입니다. 좌우로 벌릴 것이 있으면 벌립니다.
+   *
+   * **카드는 왼쪽부터 차례로 득점합니다.** 그것이 전부 가운데에서 나면 다섯 번이 한 자리에
+   * 쌓이고, 그 자리에서 서로를 덮습니다 — 소리가 난 자리가 카드가 있는 자리이면 다섯이
+   * 겹쳐도 각각이 들리고, 사슬이 왼쪽에서 오른쪽으로 지나가는 것으로도 들립니다.
+   *
+   * **끝까지 밀지 않습니다.** 한쪽 귀에서만 나는 소리는 이어폰에서 어긋난 것으로 들리고,
+   * 한쪽 귀로만 듣는 사람에게는 아예 없는 소리가 됩니다.
+   */
+  private spread(voice: GainNode, pan: number): void {
+    const context = this.context
+    const master = this.master
+    if (!context || !master) return
+    if (pan === 0 || typeof context.createStereoPanner !== 'function') {
+      voice.connect(master)
+      return
+    }
+    const side = context.createStereoPanner()
+    side.pan.value = Math.max(-PAN_MOST, Math.min(PAN_MOST, pan))
+    voice.connect(side).connect(master)
+  }
+
+  /**
+   * 이 신호를 지금 얼마나 크게 낼 것인가. 그리고 넘치면 자리를 냅니다.
    *
    * **소리는 힘으로 더해집니다.** 같은 소리 넷이 겹치면 하나보다 두 배쯤 큰데, 각자를
    * 겹친 수의 제곱근으로 나누면 합이 하나만큼으로 남습니다 — 개수로 나누면 도리어 작아지고,
    * 그러면 한 장씩 사라지는 소리가 들리지 않습니다.
    *
-   * 넷을 넘기면 0 입니다. 다섯째는 들리지 않고 크기만 보탭니다.
+   * **넘칠 때 새것을 버리지 않습니다.** 다섯째를 내지 않던 것을 가장 오래된 것이 물러나는
+   * 것으로 바꿨습니다 — 버리면 그 순간에 누른 것이 소리 없이 지나가고, 그것은 「눌렀는데
+   * 아무 일도 없다」로 들립니다. 오래된 것은 이미 꼬리이므로 물러나도 알아채지 못합니다.
    */
-  private crowding(cueId: string, now: number): number {
-    const times = (this.recent.get(cueId) ?? []).filter(at => now - at < CROWD_SPAN)
-    times.push(now)
-    this.recent.set(cueId, times)
-    if (times.length > CROWD_MOST) return 0
-    return 1 / Math.sqrt(times.length)
+  private room(cueId: string, now: number, span: number, mine: GainNode): number {
+    // 이 음원이 얼마 동안 들리는가. 음원마다 다릅니다.
+    const heard = Math.min(CROWD_SPAN[1], Math.max(CROWD_SPAN[0], span * CROWD_SHARE))
+    const live = (this.voices.get(cueId) ?? []).filter(one => one.until > now)
+
+    while (live.length >= CROWD_MOST) {
+      const oldest = live.shift()
+      if (oldest) glide(oldest.gain.gain, 0, now, STEAL_FADE)
+    }
+
+    live.push({ until: now + heard, gain: mine })
+    this.voices.set(cueId, live)
+    return 1 / Math.sqrt(live.length)
   }
 
   /**
-   * 조커가 웅얼거리는 소리.
+   * 음 하나.
    *
-   * **말이 아닙니다.** 무슨 말인지 알아들을 수 있으면 그때부터 그 말이 매번 같은 말이 되고,
-   * 한 판에 열 번 발동하는 조커에서 그것은 곧 지겨움입니다 — 알아들을 수 없는 웅얼거림은
-   * 매번 달라도 같은 것으로 들립니다.
+   * **음원이 못 하는 것을 합니다.** 음원의 음높이는 재생 속도이므로 높이 갈수록 짧아지고,
+   * 사슬의 끝에서는 소리가 아니라 딱 소리가 됩니다 — 그래서 질감은 음원이, 가락은 이것이
+   * 맡습니다. 겹쳐 나는 둘이지 갈아 끼우는 둘이 아닙니다.
    *
-   * 만드는 것이지 녹음이 아닙니다. **녹음은 반복이 들립니다** — 같은 파일이 열 번 나면
-   * 열 번째에는 그 파일이 들립니다. 목청 하나(톱니파)를 입 모양(띠 통과 여과기) 뒤에 두고
-   * 음절마다 그 입 모양을 옮기면 「아」 와 「우」 사이의 무엇이 되고, 그 값을 매번 조금씩
-   * 흔들면 같은 조커가 같은 목소리로 다른 말을 합니다.
-   *
-   * `voice` 는 그 조커를 가리키는 수입니다 — **목소리는 조커마다 고정입니다.** 발동할 때마다
-   * 목소리가 바뀌면 누가 말한 것인지 남지 않습니다.
+   * `semitones` 는 `ladder` 가 낸 값입니다.
    */
-  mumble(voice: number, strength = 1): void {
+  tone(name: ToneName, semitones: number, strength = 1, pan = 0): void {
     const context = this.context
     const master = this.master
     if (!context || !master || this.muted) return
 
-    // 그 조커의 목소리. 낮게도 높게도 갑니다 — 한 옥타브 안입니다.
-    const tone = ((voice * 2_654_435_761) % 12) / 12
-    const base = 112 * Math.pow(2, tone)
-    // 음절 둘에서 넷. **하나는 「윽」 이고 다섯이면 문장입니다.**
-    const beats = 2 + (voice % 3)
-
-    const osc = context.createOscillator()
-    osc.type = 'sawtooth'
-    // 입. **띠 하나만 남깁니다** — 그 띠가 어디냐가 모음을 가릅니다.
-    const mouth = context.createBiquadFilter()
-    mouth.type = 'bandpass'
-    mouth.Q.value = 5.5
-    const gain = context.createGain()
-    gain.gain.setValueAtTime(0, context.currentTime)
-    osc.connect(mouth).connect(gain).connect(master)
-
+    const timbre: Timbre = TIMBRE[name]
     const now = context.currentTime
-    let at = now
-    for (let i = 0; i < beats; i++) {
-      const span = 0.062 + Math.random() * 0.05
-      // 모음 하나. 낮으면 「우」 쪽이고 높으면 「애」 쪽입니다.
-      const vowel = 480 + Math.random() * 760
-      osc.frequency.setValueAtTime(base * (0.92 + Math.random() * 0.2), at)
-      osc.frequency.linearRampToValueAtTime(base * (0.84 + Math.random() * 0.3), at + span)
-      mouth.frequency.setValueAtTime(vowel, at)
-      mouth.frequency.linearRampToValueAtTime(vowel * (0.68 + Math.random() * 0.7), at + span)
-      // 음절의 앞이 서고 뒤가 눕습니다. 네모난 봉투는 말이 아니라 신호음입니다.
-      gain.gain.linearRampToValueAtTime(0.135 * strength, at + 0.018)
-      gain.gain.linearRampToValueAtTime(0.0001, at + span)
-      at += span + 0.026
+    const hz = BASE_HZ * Math.pow(2, (timbre.offset + semitones) / 12)
+
+    // **음색마다 따로 셉니다.** 같은 음색이 잇달아 나면 그것이 겹치는 것이고, 다른
+    // 음색이 함께 나는 것은 화음이라 겹치는 것이 아닙니다.
+    const voice = context.createGain()
+    voice.gain.value = strength * timbre.gain
+      * this.room(`tone:${name}`, now, timbre.decay, voice)
+    this.spread(voice, pan)
+
+    let out: AudioNode = voice
+    if (timbre.cut > 0) {
+      const lid = context.createBiquadFilter()
+      lid.type = 'lowpass'
+      lid.frequency.setValueAtTime(timbre.cut * 2.4, now)
+      // **앞이 밝고 곧 둥글어집니다.** 뜯은 줄이 그렇습니다.
+      lid.frequency.exponentialRampToValueAtTime(timbre.cut * 0.5, now + timbre.decay)
+      lid.connect(voice)
+      out = lid
     }
 
-    osc.start(now)
-    osc.stop(at + 0.05)
+    for (const [ratio, level, span] of timbre.parts) {
+      // **들리는 데까지만 만듭니다.** 사람이 듣는 위쪽 끝을 넘긴 부분음은 값만 쓰고
+      // 아무것도 더하지 않습니다.
+      if (hz * ratio > 16_000) continue
+      const osc = context.createOscillator()
+      osc.type = timbre.wave
+      osc.frequency.value = hz * ratio
+
+      const decay = timbre.decay * span
+      const gain = context.createGain()
+      gain.gain.setValueAtTime(0, now)
+      gain.gain.linearRampToValueAtTime(level, now + 0.004)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + decay)
+
+      osc.connect(gain).connect(out)
+      osc.start(now)
+      osc.stop(now + decay + 0.02)
+    }
+  }
+
+  /**
+   * 조커 하나가 내는 음.
+   *
+   * **목소리를 걷고 악기로 바꿨습니다.** 한동안 웅얼거리는 소리를 냈는데, 그것이 카지노
+   * 소리 위에 얹혀 어긋나 들렸습니다. 원인이 다듬기의 문제가 아니라 갈래의 문제입니다 —
+   * 이 게임의 득점 소리는 값이 오르는 가락이고, 웅얼거림은 음높이가 정해지지 않아 그
+   * 가락의 한 음이 될 수 없습니다.
+   *
+   * **음색이 그 조커를 가리킵니다.** 누가 낸 값인지는 음색으로 남고 값이 얼마나 큰지는
+   * 음높이로 남으므로, 둘이 함께 들려도 서로를 덮지 않습니다. 목소리가 하던 역할을
+   * 그대로 받되 가락 위에 있습니다.
+   */
+  jokerVoice(uid: number, semitones: number, strength = 1, pan = 0): void {
+    const at = Math.abs(uid * 2_654_435_761) % JOKER_TIMBRES.length
+    this.tone(JOKER_TIMBRES[at], semitones, strength, pan)
   }
 
   /**
@@ -404,10 +561,9 @@ export class Audio {
    * 좁은 대역만 남깁니다 — 그 대역이 어디냐가 「종이」와 「금속」과 「바람」을 가릅니다.
    * 대역이 움직이면 쓸리는 소리가 됩니다.
    */
-  private hissAt(noise: Noise, now: number, room = 1): void {
+  private hissAt(noise: Noise, now: number, into: AudioNode): void {
     const context = this.context
-    const master = this.master
-    if (!context || !master || !this.hiss) return
+    if (!context || !this.hiss) return
 
     const source = context.createBufferSource()
     source.buffer = this.hiss
@@ -424,14 +580,82 @@ export class Audio {
 
     const gain = context.createGain()
     gain.gain.setValueAtTime(0, now)
-    gain.gain.linearRampToValueAtTime(noise.gain * room, now + 0.004)
+    gain.gain.linearRampToValueAtTime(noise.gain, now + 0.004)
     gain.gain.exponentialRampToValueAtTime(0.0001, now + noise.length)
 
-    source.connect(band).connect(gain).connect(master)
+    source.connect(band).connect(gain).connect(into)
     source.start(now)
     source.stop(now + noise.length + 0.02)
   }
 }
+
+/**
+ * 음 하나의 음색.
+ *
+ * **부분음을 쌓아 만듭니다.** 어느 배수의 음이 얼마나 크고 얼마나 오래 남는가가 마림바와
+ * 종을 가릅니다 — 마림바는 4배음이 잠깐 있다 사라지고, 종은 정수배가 아닌 부분음이 오래
+ * 남습니다. 그 표가 이것입니다.
+ */
+export interface Timbre {
+  /** 기준음에서 반음 몇 개 위인가. */
+  offset: number
+  /**
+   * 부분음들. `[기본음의 몇 배, 크기, 감쇠가 기본의 몇 배]` 입니다.
+   *
+   * **높은 부분음일수록 빨리 사라집니다.** 그것이 「때린 것」과 「분 것」을 가릅니다.
+   */
+  parts: readonly (readonly [number, number, number])[]
+  wave: OscillatorType
+  /** 기본음이 잦아드는 데 걸리는 시간. */
+  decay: number
+  gain: number
+  /** 위쪽을 깎는 자리. 0 이면 깎지 않습니다. */
+  cut: number
+}
+
+/**
+ * 음색들.
+ *
+ * **조커마다 하나씩 돌아갑니다.** 어느 조커가 낸 값인지가 음색으로 남고, 값이 얼마나
+ * 큰지는 음높이로 남습니다 — 둘이 다른 채널이라 함께 들려도 서로를 덮지 않습니다.
+ */
+export const TIMBRE = {
+  /** 나무 채. 짧고 둥급니다. */
+  marimba: {
+    offset: 24, wave: 'sine', decay: 0.42, gain: 0.30, cut: 0,
+    parts: [[1, 1, 1], [4, 0.26, 0.42], [9.2, 0.07, 0.22]],
+  },
+  /** 쇠 판. 밝고 오래 남습니다. */
+  glass: {
+    offset: 31, wave: 'sine', decay: 0.85, gain: 0.22, cut: 0,
+    parts: [[1, 1, 1], [2.76, 0.38, 0.7], [5.4, 0.16, 0.42]],
+  },
+  /** 종. 정수배가 아닌 부분음이 섞여 웅웅거립니다. */
+  bell: {
+    offset: 12, wave: 'sine', decay: 1.2, gain: 0.24, cut: 0,
+    parts: [[1, 1, 1], [2.01, 0.45, 0.82], [2.98, 0.28, 0.6], [4.14, 0.13, 0.4]],
+  },
+  /** 뜯은 줄. 앞이 거칠고 곧 둥글어집니다. */
+  pluck: {
+    offset: 19, wave: 'sawtooth', decay: 0.34, gain: 0.20, cut: 2400,
+    parts: [[1, 1, 1]],
+  },
+  /** 나무 토막. 거의 타점만 남습니다. */
+  wood: {
+    offset: 26, wave: 'triangle', decay: 0.15, gain: 0.26, cut: 0,
+    parts: [[1, 1, 1], [3.1, 0.44, 0.32]],
+  },
+  /** 득점 사슬이 오르는 소리. 음원 위에 겹치는 것이라 얇습니다. */
+  chime: {
+    offset: 28, wave: 'triangle', decay: 0.26, gain: 0.16, cut: 0,
+    parts: [[1, 1, 1], [3, 0.2, 0.5]],
+  },
+} as const satisfies Record<string, Timbre>
+
+export type ToneName = keyof typeof TIMBRE
+
+/** 조커에 돌아가는 음색들. **`chime` 은 사슬의 것이므로 빠집니다.** */
+export const JOKER_TIMBRES: readonly ToneName[] = ['marimba', 'glass', 'bell', 'pluck', 'wood']
 
 /** 잡음 층 하나. `sweep` 은 끝날 때 대역이 몇 배가 되는가입니다. */
 interface Noise {

@@ -1,20 +1,40 @@
-// 소리 38개가 읽히는가, 그리고 크기가 고르게 맞는가.
+// 소리 38개가 읽히는가, 크기가 고르게 맞는가, 그리고 두 신호가 한 파일이 아닌가.
 //
 // **들어 보고 판단할 수 없는 것을 재서 판단합니다.** 꾸러미에서 온 파일은 저마다 음량이
 // 달라서, 그대로 두면 어떤 신호는 들리지 않고 어떤 신호는 귀를 찌릅니다 — `audio.ts` 가
 // 읽을 때 맞추는 그 배수를 여기서 같은 식으로 재어, 원래 지나치게 크거나 작은 것을
 // 이름으로 보고합니다.
+//
+// **같은 파일이 두 이름으로 있는 것도 봅니다.** `coin_land` 와 `joker_add` 가 실제로
+// 그랬습니다 — 지도에서 둘 다 `chip-lay-2` 를 가리켰고, 이름이 다르니 지도를 읽어서는
+// 눈에 띄지 않았습니다. 나온 파일을 재야 보입니다.
+//
+// **사다리의 상한도 여기서 봅니다.** 음높이가 얼마까지 오르는가는 음원과 함께 정해지는
+// 것이라 — 재생 속도로 올리므로 높이 갈수록 짧아집니다 — 파일을 재는 이 자리가 그것을
+// 볼 자리입니다.
+import * as crypto from 'crypto'
 import * as fs from 'fs'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
+import { ladder } from '../src/feedback/audio'
 import { skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5206
 /** `audio.ts` 의 `TARGET_RMS` 와 같은 값이어야 합니다. */
 const TARGET_RMS = 0.09
+
+/**
+ * 사다리가 넘어서는 안 되는 반음.
+ *
+ * **음원은 재생 속도로만 음을 올릴 수 있습니다.** 24반음이면 4배속이고, 0.17초짜리 칩
+ * 소리가 0.043초가 됩니다 — 그 길이는 칩이 아니라 딱 소리입니다. 지금 음원이 그 정도만
+ * 따라 오르지만(3반음이 상한), 겹치는 음 하나까지 그 위로 올라가면 가락이 사람이 듣는
+ * 위쪽 끝에 붙습니다.
+ */
+const LADDER_MOST = 24
 
 /** `SoundCue` 표의 신호들. **표가 기준입니다.** */
 function cues(): string[] {
@@ -24,8 +44,38 @@ function cues(): string[] {
     .filter((one): one is string => Boolean(one))
 }
 
+/** 두 신호가 한 파일인가. **내용을 재서 봅니다** — 이름은 다릅니다. */
+function twins(ids: string[]): string[] {
+  const here = path.resolve(HERE, '../public/sound')
+  const seen = new Map<string, string[]>()
+  for (const cue of ids) {
+    const file = path.join(here, cue + '.ogg')
+    if (!fs.existsSync(file)) continue
+    const key = crypto.createHash('md5').update(fs.readFileSync(file)).digest('hex')
+    seen.set(key, [...(seen.get(key) ?? []), cue])
+  }
+  return [...seen.values()].filter(one => one.length > 1).map(one => one.join(' = '))
+}
+
+/** 사다리가 어디까지 오르는가. **끝이 있어야 합니다.** */
+function ladderTop(): number {
+  let top = 0
+  for (let step = 0; step < 200; step++) top = Math.max(top, ladder(step))
+  return top
+}
+
 async function main(): Promise<number> {
   const ids = cues()
+
+  const same = twins(ids)
+  if (same.length > 0) {
+    console.log(`한 파일을 두 이름으로 쓰는 것 ${same.length}쌍: ` + same.join(' · '))
+  } else {
+    console.log('신호마다 다른 파일입니다')
+  }
+
+  const top = ladderTop()
+  console.log(`사다리의 끝 ${top}반음 (상한 ${LADDER_MOST})`)
   const server = await createServer({ root: path.resolve(HERE, '..'), server: { port: PORT } })
   await server.listen()
   const browser = await chromium.launch()
@@ -106,7 +156,7 @@ async function main(): Promise<number> {
 
   await browser.close()
   await server.close()
-  return bad.length === 0 ? 0 : 1
+  return bad.length === 0 && same.length === 0 && top <= LADDER_MOST ? 0 : 1
 }
 
 main().then(code => process.exit(code))

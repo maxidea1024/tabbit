@@ -18,6 +18,19 @@ const PORT = 5215
 const HOLE_MS = 400
 /** 낸 뒤 몇 초를 보는가. */
 const WATCH_MS = 8000
+/** 촘촘한 정도를 재는 창. */
+const DENSE_MS = 200
+/**
+ * 그 창 안에서 나도 되는 소리 마디의 수.
+ *
+ * **비는 자리의 반대편입니다.** 소리가 몰리는 자리는 각각이 들리지 않고 크기만 보태므로,
+ * 빈 자리와 같은 정도로 나쁩니다 — 그런데 들어 보면 「시끄럽다」로만 남아 어디를 고쳐야
+ * 하는지 정할 수 없습니다.
+ *
+ * 소리 하나가 마디를 여럿 만듭니다 — 음 하나에 부분음이 넷까지이므로, 마디 수는 소리
+ * 수의 서너 곱절입니다.
+ */
+const DENSE_MOST = 60
 
 async function main(): Promise<number> {
   const server = await createServer({ root: path.resolve(HERE, '..'), server: { port: PORT } })
@@ -89,7 +102,18 @@ async function main(): Promise<number> {
     return { sound: one.__sound, wait: one.__wait }
   })
 
-  console.log(`낸 뒤 ${WATCH_MS / 1000}초 동안 소리 ${sound.length}번`)
+  console.log(`낸 뒤 ${WATCH_MS / 1000}초 동안 소리 마디 ${sound.length}개`)
+
+  // **가장 몰린 자리.** 그 창 안에 몇 개가 시작했는가입니다.
+  let dense = 0
+  let denseAt = 0
+  for (let i = 0; i < sound.length; i++) {
+    let count = 0
+    while (i + count < sound.length && sound[i + count] - sound[i] < DENSE_MS) count++
+    if (count > dense) { dense = count; denseAt = sound[i] }
+  }
+  console.log(`가장 몰린 자리 ${denseAt}ms 에서 ${DENSE_MS}ms 동안 ${dense}개`
+    + ` (상한 ${DENSE_MOST})`)
 
   const holes: string[] = []
   for (let i = 1; i < sound.length; i++) {
@@ -108,7 +132,7 @@ async function main(): Promise<number> {
   if (errors.length > 0) console.log('오류: ' + errors.slice(0, 3).join(' | '))
   await browser.close()
   await server.close()
-  return errors.length === 0 ? 0 : 1
+  return errors.length === 0 && dense <= DENSE_MOST ? 0 : 1
 }
 
 /** 한 번 누릅니다. `mouse.click` 은 너무 빨라 `pointertap` 이 서지 않는 자리가 있습니다. */

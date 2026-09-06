@@ -14,6 +14,8 @@
 //
 // 가져온 것은 CC0 이고 `public/music/readme.md` 에 적혀 있습니다.
 
+import { glide } from './gain'
+
 /** 겹쳐서 넘어가는 데 걸리는 시간. */
 const CROSS = 1.4
 
@@ -32,6 +34,9 @@ const LEAVE = 0.2
 
 /** 잦아든 다음 실제로 멈추기까지의 여유. */
 const SETTLE = 0.05
+
+/** 숙일 때 내려가는 데 걸리는 시간. **내려가는 것은 빨라야 자리를 냅니다.** */
+const DUCK_DOWN = 0.06
 
 interface Track {
   element: HTMLAudioElement
@@ -90,20 +95,59 @@ export class Music {
     if (this.wanted) this.swap(this.wanted)
   }
 
-  /** 음량. 0 에서 1 입니다. */
+  /**
+   * 음량. 0 에서 1 입니다.
+   *
+   * **대입하지 않고 옮깁니다.** 눈금이 20%씩 뛰므로 곡이 도는 중에 그만큼의 불연속이
+   * 생기고, 그것이 「퍽」 소리로 들립니다.
+   */
   set volume(value: number) {
     this.level = Math.max(0, Math.min(1, value))
-    if (this.master) this.master.gain.value = this.off ? 0 : this.level
+    if (this.master && this.context) {
+      glide(this.master.gain, this.off ? 0 : this.level, this.context.currentTime)
+    }
   }
 
   get volume(): number {
     return this.level
   }
 
-  /** 배경음을 끕니다. **효과음과 따로입니다.** */
+  /**
+   * 배경음을 끕니다. **효과음과 따로입니다.**
+   *
+   * **잦아들게 하고 끕니다.** 0 을 대입하면 파형이 잘린 자리에서 「퍽」 소리가 납니다 —
+   * `fadeOut` 이 곡마다 하는 것과 같은 이유이고, 여기만 그 경로를 지나가고 있었습니다.
+   */
   set muted(value: boolean) {
     this.off = value
-    if (this.master) this.master.gain.value = value ? 0 : this.level
+    if (this.master && this.context) {
+      glide(this.master.gain, value ? 0 : this.level, this.context.currentTime)
+    }
+  }
+
+  /**
+   * 잠깐 숙입니다.
+   *
+   * **큰 사건 하나가 크게 들리게 하는 가장 적은 작업입니다.** 격파와 승패의 소리를 아무리
+   * 키워도 그 순간에 곡이 같은 크기로 흐르고 있으면 둘이 자리를 다툽니다 — 곡이 잠깐
+   * 물러나면 그 소리를 키우지 않고도 크게 들립니다.
+   *
+   * `depth` 는 얼마나 내려가는가입니다. 0.5 면 절반입니다.
+   */
+  duck(depth: number, span: number): void {
+    const context = this.context
+    const master = this.master
+    // **꺼져 있으면 숙일 것이 없습니다.** 숙였다 올리면 그 올리는 것이 꺼진 배경음을
+    // 켜는 것이 됩니다.
+    if (!context || !master || this.off) return
+
+    const now = context.currentTime
+    const low = this.level * Math.max(0, 1 - depth)
+    master.gain.cancelScheduledValues(now)
+    master.gain.setValueAtTime(master.gain.value, now)
+    master.gain.linearRampToValueAtTime(low, now + DUCK_DOWN)
+    // 올라오는 것은 천천히입니다. 빨리 돌아오면 돌아온 것이 들립니다.
+    master.gain.linearRampToValueAtTime(this.level, now + DUCK_DOWN + span)
   }
 
   /**

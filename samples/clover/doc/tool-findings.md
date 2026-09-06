@@ -223,6 +223,12 @@ if (typeof shim.require === 'undefined') shim.require = createRequire(import.met
 바뀐 것입니다. 브라우저 쪽 `load.ts` 는 접근자의 프로퍼티를 걷어 테이블 이름을 뽑던 것을
 생성된 `readAllBinary(loader)` 한 줄로 바꿨습니다.
 
+**브라우저 쪽 심도 함께 없어졌습니다.** `vite.config.ts` 가 `fs`·`path`·`module` 을 빈
+모듈로 바꿔 두던 별칭 셋과 그 자리에 놓이던 `src/shim/empty.ts`·`src/shim/path.ts` 가
+그것입니다 — 생성 코드가 그 셋을 임포트하지 않게 되었으므로 바꿔 둘 것이 없습니다. 남은
+임포터는 Node 전용인 `load-node.ts` 와 `headless.ts` 둘뿐이고, 그 둘은 브라우저 번들에
+들어가지 않습니다.
+
 ---
 
 ## 7. 병렬 검증에서의 공유 컬렉션

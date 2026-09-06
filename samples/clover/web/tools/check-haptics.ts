@@ -26,7 +26,7 @@ import {
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5211
 
-/** 받아 적은 파형이 어느 순간인가. `render/haptics.ts` 의 `BEATS` 와 같아야 합니다. */
+/** 받아 적은 파형이 어느 순간인가. `feedback/haptics.ts` 의 `BEATS` 와 같아야 합니다. */
 const BEATS: { name: string; web: string }[] = [
   { name: 'play', web: '20' },
   { name: 'boss', web: '43' },

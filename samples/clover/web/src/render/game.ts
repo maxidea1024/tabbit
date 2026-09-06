@@ -41,7 +41,7 @@ import { BackgroundFilter } from '../shader/background'
 import { PunchFilter } from '../shader/punch'
 import { ArriveFilter } from '../shader/arrive'
 import { DissolveFilter } from '../shader/dissolve'
-import { Audio } from './audio'
+import { Audio, ladder } from '../feedback/audio'
 import { CardView, type EditionLook } from './card-view'
 import { BlindBadge, Slot } from './hud'
 import { JokerView } from './joker-view'
@@ -51,7 +51,7 @@ import {
 } from './juice'
 import { Coins } from './coins'
 import { Euphoria } from './euphoria'
-import { Haptics } from './haptics'
+import { Haptics } from '../feedback/haptics'
 import { fraction, Motion, Spring } from './motion'
 import { Particles } from './particles'
 import { artBytes, artFor, artTick, onArtReady } from './art'
@@ -150,6 +150,13 @@ const SCORING_BEATS: ReadonlySet<string> = new Set([
 ])
 
 /** 상점의 것들이 하나씩 서는 간격. */
+/**
+ * 손패 누르기가 연타로 이어지는 사이. 이보다 뜸하면 사다리가 처음으로 돌아갑니다.
+ */
+const PICK_LINK = 0.6
+/** 그 사다리가 오르는 끝. 손패가 여덟 장이므로 그만큼입니다. */
+const PICK_MOST = 7
+
 const REVEAL_STEP = 0.13
 /** 하나가 다 서는 데 걸리는 시간. */
 const REVEAL_SPAN = 0.28
@@ -1659,6 +1666,13 @@ export class Game {
 
   /** 예약해 둔 소리. 음이 하나씩 올라가는 아르페지오를 이것으로 냅니다. */
   private readonly chimes: { at: number; cue: string; semitones: number }[] = []
+  /**
+   * 상점에 물건이 앉는 소리. **음원 없이 음 하나입니다.**
+   *
+   * 여기 쓰던 `card_place` 는 0.689초라 꼬리가 다음 물건까지 남았고, 일곱 번이 같은
+   * 음이었습니다. 진열은 물건이 하나씩 놓이는 것이므로 소리도 하나씩 올라가야 합니다.
+   */
+  private readonly stockNotes: { at: number; step: number }[] = []
 
   /**
    * 상점의 것들이 하나씩 서는 것.
@@ -1669,7 +1683,15 @@ export class Game {
    */
   private readonly reveals: { node: Container; at: number; from: number; rise?: number }[] = []
   /** 지금 무엇을 세우고 있는가. 판이 그리기 전에 정합니다. */
-  private revealing = { layer: this.shopLayer, base: 0, slot: 0, sound: false }
+  private revealing = { layer: this.shopLayer, base: 0, slot: 0, sound: false, note: 0 }
+  /**
+   * 지금 세우는 것이 **물건인가.**
+   *
+   * 소리를 여기서 가릅니다. 칸과 값에는 소리를 두지 않습니다 — 한동안 세우는 것마다
+   * 하나씩 냈는데, 진열 한 번에 24번이었습니다(칸 7 · 물건 7 · 값 7 · 구획 머리 3).
+   * 게다가 그 음원이 0.689초라 여섯이 함께 울렸습니다.
+   */
+  private stocking = false
   /**
    * 잠시 뒤에 한 번 할 것.
    *
@@ -1942,8 +1964,26 @@ export class Game {
    * 보이지 않습니다.
    */
   private freeze = 0
-  /** 이번 득점에서 몇 번째 사건인가. 소리의 음과 세기가 이것으로 올라갑니다. */
+  /** 이번 득점에서 몇 번째 사건인가. 화면의 세기가 이것으로 올라갑니다. */
   private chain = 0
+  /**
+   * 이번 득점에서 소리가 오른 칸 수. **`chain` 과 따로 셉니다.**
+   *
+   * 사건 수를 그대로 음높이로 쓰던 것을 나눴습니다 — 큰 사건은 두 칸을 오르고 작은 것은
+   * 한 칸을 오르므로, 세는 것과 오르는 것이 같은 수가 아닙니다. **되돌아가지 않습니다**:
+   * 한 번 오른 칸이 다음 사건에서 내려가면 오르는 것으로 들리지 않습니다.
+   */
+  private rung = 0
+  /**
+   * 손패를 잇달아 누른 수.
+   *
+   * **연타가 이 게임에서 가장 자주 하는 동작입니다.** 고르는 소리가 늘 같은 음이면 여덟
+   * 번을 눌러도 여덟 번 같은 소리이고, 한 칸씩 오르면 그 여덟 번이 하나로 이어집니다.
+   * 빼는 것은 한 칸 내려갑니다 — 집었다 놓는 것이 소리로도 되돌아갑니다.
+   */
+  private pickNote = 0
+  /** 마지막으로 손패를 누른 시각. 이보다 뜸하면 연타가 끊긴 것입니다. */
+  private pickAt = -1
   /** 왼쪽 패널의 번쩍임. 숫자가 바뀌는 자리를 파티클 대신 이것이 알립니다. */
   private panelGlow = 0
   private panelTint: number = COLOR.ink
@@ -3330,6 +3370,8 @@ export class Game {
     this.ratchet = 0
     this.build = 0
     this.chain = 0
+    this.rung = 0
+    this.pickNote = 0
     this.holdAfterScore = 0
     this.wasBusy = false
     this.hintShown = ''
@@ -3838,7 +3880,11 @@ export class Game {
   private clearSelection(): void {
     if (this.selected.size === 0 || this.player.busy) return
     this.selected.clear()
-    this.audio.play('card_select', -6)
+    // **한꺼번에 놓는 것이므로 사다리의 맨 밑입니다.** 한 장씩 뺀 것과 갈립니다.
+    this.pickNote = 0
+    this.pickAt = this.clock
+    this.audio.play('card_select', 0)
+    this.audio.tone('wood', -12, 0.45)
     this.refresh()
   }
 
@@ -3861,7 +3907,8 @@ export class Game {
     const seen = new Set(this.shown.hand)
     this.shown.hand = this.state.hand.filter(uid => seen.has(uid))
 
-    this.audio.play('card_select')
+    // **정렬은 고르는 것이 아닙니다.** 사다리에 얹으면 정렬 한 번이 연타의 한 칸이 됩니다.
+    this.audio.play('card_select', -4)
     this.refresh()
   }
 
@@ -3887,10 +3934,37 @@ export class Game {
 
   private toggle(uid: number): void {
     if (this.player.busy) return
+    let took = false
     if (this.selected.has(uid)) this.selected.delete(uid)
-    else if (this.selected.size < this.data.run.maxPlayedCards) this.selected.add(uid)
-    this.audio.play('card_select')
+    else if (this.selected.size < this.data.run.maxPlayedCards) {
+      this.selected.add(uid)
+      took = true
+    }
+    this.pickSound(took)
     this.refresh()
+  }
+
+  /**
+   * 손패를 누른 소리.
+   *
+   * **집으면 한 칸 오르고 놓으면 한 칸 내려갑니다.** 한동안 넷 다 — 고르기 · 빼기 ·
+   * 전체 해제 · 정렬 — 같은 음원을 같은 음높이로 냈습니다. 그런데 여기가 이 게임에서 가장
+   * 자주 누르는 자리이고, 연타가 늘 같은 소리이면 여덟 번 누른 것이 여덟 번 같은 소리로
+   * 남습니다.
+   *
+   * **뜸하면 처음부터입니다.** 한참 뒤에 누른 한 번은 연타가 아니라 새로 시작하는 것이므로,
+   * 그것이 높은 음으로 나면 앞뒤가 이어지지 않습니다.
+   */
+  private pickSound(took: boolean): void {
+    if (this.clock - this.pickAt > PICK_LINK) this.pickNote = 0
+    else this.pickNote = Math.max(0, Math.min(PICK_MOST, this.pickNote + (took ? 1 : -1)))
+    this.pickAt = this.clock
+
+    const step = ladder(this.pickNote)
+    this.audio.play('card_select', step)
+    // **집는 것과 놓는 것이 갈립니다.** 놓는 것은 한 옥타브 아래로 내려 두어, 음높이가
+    // 같아도 되돌린 것으로 들립니다.
+    this.audio.tone('wood', took ? step : step - 12, took ? 0.55 : 0.4)
   }
 
   /**
@@ -4421,9 +4495,18 @@ export class Game {
         // 랭크의 칩과 강화·인장·에디션이 낸 것은 소리가 달라야 갈립니다.
         // **카드가 낸 것과 조커가 낸 것은 소리가 갈립니다.** 같은 배수라도 어디서 온
         // 것인지가 들려야 무엇을 세는 중인지 따라갈 수 있습니다.
+        // **음원과 가락이 두 층입니다.** 음원은 칩이 놓이는 질감이고 — 음높이를 따라
+        // 크게 움직이면 짧아져 없어집니다 — 오르는 가락은 그 위에 겹치는 음 하나가
+        // 냅니다. 그 둘을 갈라 놓고 나서야 사슬을 끝까지 올려도 소리가 남습니다.
+        // **소리가 난 자리가 카드가 있는 자리입니다.** 다섯 장이 한 자리에서 나면 서로를
+        // 덮는데, 저마다의 자리에서 나면 겹쳐도 각각이 들리고 사슬이 왼쪽에서 오른쪽으로
+        // 지나가는 것으로도 들립니다.
+        const side = this.panOf(view?.x)
+        const rise = this.stepUp(beat.intensity + (mul ? 0.5 : 0))
         this.audio.play(event.source === 'rank' ? 'card_chip'
           : event.chips !== 0 ? 'card_chip'
-            : mul ? 'card_mult' : 'joker_add', semitones + this.chain * 2)
+            : mul ? 'card_mult' : 'joker_add', rise, side)
+        this.audio.tone('chime', rise, 0.55 + beat.intensity * 0.5, side)
         // **화면은 흔들지 않습니다.** 한 장이 점수를 내는 것은 다섯 번, 여덟 번 이어지는
         // 일이고, 그때마다 화면이 흔들리면 카드 위의 숫자를 읽을 수 없습니다 — 일어난 자리를
         // 가리키는 것은 그 카드에 도는 빛 하나로 충분합니다.
@@ -4452,14 +4535,18 @@ export class Game {
         if (view) view.pop(mul ? 1.6 : 1.1)
         this.popAt(view && { x: view.x, y: view.y - RISER_ON_CARD }, text, tint,
           beat.intensity + (mul ? 0.6 : 0.2))
-        this.audio.play(cue, semitones + this.chain)
-        // **조커가 웅얼거립니다.** 값이 오르는 소리만으로는 그것이 누가 낸 값인지가 남지
-        // 않습니다 — 목소리는 조커마다 고정이라, 같은 조커가 두 번 발동하면 같은 목소리로
-        // 두 번 웅얼거립니다.
+        const side = this.panOf(view?.x)
+        const rise = this.stepUp(beat.intensity + (mul ? 0.6 : 0))
+        this.audio.play(cue, rise, side)
+        // **조커마다 악기가 하나입니다.** 값이 오르는 소리만으로는 그것이 누가 낸 값인지가
+        // 남지 않습니다 — 음색은 조커마다 고정이라, 같은 조커가 두 번 발동하면 같은
+        // 악기로 두 번 냅니다.
         //
         // 이어질수록 잦아듭니다. 한 판에 열 번 발동하는 것이라, 매번 같은 크기로 나면
-        // 웅얼거림이 득점 소리를 덮습니다.
-        if (view) this.audio.mumble(view.uid, Math.max(0.35, 1 - this.chain * 0.12))
+        // 조커가 카드의 득점 소리를 덮습니다.
+        if (view) {
+          this.audio.jokerVoice(view.uid, rise, Math.max(0.45, 1 - this.chain * 0.07), side)
+        }
 
         // **배수를 곱하는 것이 이 게임에서 가장 큰 사건입니다.** 그 하나만 크게 다룹니다.
         if (mul) {
@@ -4487,7 +4574,11 @@ export class Game {
           : event.chips !== 0 ? COLOR.chips : COLOR.mult
         this.popAt(this.badge, valueText(event.op, event.chips, event.mult, event.money),
           tint, beat.intensity + (mul ? 0.5 : 0.1))
-        this.audio.play(mul ? 'joker_mul' : 'joker_add', semitones)
+        // **조커가 아닌 것도 사슬에 얹힙니다.** 덱과 바우처와 보스가 낸 값이고, 그것도
+        // 값이 오르는 그 가락의 한 음입니다.
+        const from = this.stepUp(beat.intensity + (mul ? 0.5 : 0))
+        this.audio.play(mul ? 'joker_mul' : 'joker_add', from)
+        this.audio.tone('pluck', from, 0.5 + beat.intensity * 0.3)
         this.jolt(4 + beat.intensity * 5, 0.7 + beat.intensity, 0.2)
         this.flashPanel(tint, 0.6)
         this.stop(mul ? 90 : 40)
@@ -4511,7 +4602,12 @@ export class Game {
         }
         this.popAt(view && { x: view.x, y: view.y - RISER_ON_CARD },
           t('ui.button.again'), COLOR.good, beat.intensity + 0.3)
-        this.audio.play('retrigger', semitones + this.chain * 2)
+        // **재발동은 같은 카드가 한 번 더 세는 것입니다.** 사슬을 이어 올리는 것이 맞고,
+        // 음색은 카드의 것과 같아야 「같은 카드가 또」 로 들립니다.
+        const again = this.stepUp(beat.intensity)
+        const where = this.panOf(view?.x)
+        this.audio.play('retrigger', again, where)
+        this.audio.tone('chime', again, 0.5 + beat.intensity * 0.4, where)
         this.jolt(5, 0.9, 0.2)
         this.flashPanel(COLOR.good, 0.5)
         this.stop(40)
@@ -4580,6 +4676,9 @@ export class Game {
         this.shown.score += event.score
         this.score.target = this.shown.score
         this.audio.play('score_settle', semitones)
+        // **곡이 잠깐 물러납니다.** 이 한 방이 앞의 것들보다 확실히 커야 하는데, 소리를
+        // 키우는 것보다 자리를 내는 편이 낫습니다.
+        this.audio.music.duck(0.45, 0.9)
         this.haptics.play('settle')
 
         // **마지막 한 방이 앞의 것들보다 확실히 커야 합니다.** 그것이 없으면 득점이
@@ -4592,6 +4691,7 @@ export class Game {
         // 낸 카드가 멈춘 자리에서 크게 터집니다.
         this.burstAcrossPlayArea(26 + dust * 4, COLOR.mult, 1.8 + beat.intensity)
         this.chain = 0
+        this.rung = 0
         break
 
       case 'BlindCleared':
@@ -4609,6 +4709,7 @@ export class Game {
         // **글은 적지 않습니다.** 곧 정산 판이 서서 무엇을 얼마나 받는지가 적히므로,
         // 「넘겼습니다」는 그 판이 할 말을 한 번 미리 하는 것일 뿐입니다.
         this.audio.play('blind_clear')
+        this.audio.music.duck(0.55, 1.3)
         this.haptics.play('clear')
         this.chime('coin_land', 6, 3, 0.07)
         this.burstAcrossPlayArea(46, COLOR.good, 2.4, 2.6)
@@ -4621,6 +4722,7 @@ export class Game {
         this.flashScreen(COLOR.good, 0.46)
         this.stop(280)
         this.chain = 0
+        this.rung = 0
         break
 
       // 건너뛰어 받은 태그. **카드에 적혀 있던 칩이 커져서 머리띠로 날아가 앉습니다.**
@@ -4641,6 +4743,7 @@ export class Game {
         // **글은 적지 않습니다.** 끝났다는 판이 곧 서고 거기에 몇 점이 모자랐는지까지
         // 적히므로, 머리글은 그 판이 할 말을 미리 하는 것입니다.
         this.audio.play('blind_fail')
+        this.audio.music.duck(0.5, 1.2)
         this.jolt(5, 1.6, 0.5)
         this.flashScreen(COLOR.bad, 0.2)
         this.stop(160)
@@ -4840,6 +4943,31 @@ export class Game {
     this.headline.alpha = Math.min(1, (1 - gone) / 0.35)
   }
 
+  /**
+   * 화면의 가로 자리를 좌우로.
+   *
+   * **판의 가운데가 0 입니다.** 화면의 가운데가 아닙니다 — 왼쪽에 패널이 있어서 카드가
+   * 노는 자리는 화면의 오른쪽으로 치우쳐 있고, 화면의 가운데를 기준으로 잡으면 다섯 장이
+   * 전부 오른쪽에서만 납니다.
+   */
+  private panOf(x: number | undefined): number {
+    if (x === undefined) return 0
+    return Math.max(-1, Math.min(1, (x - BOARD_X) / (SIZE.width - BOARD_X)))
+  }
+
+  /**
+   * 사슬을 한 칸(큰 사건이면 두 칸) 올리고 그 음높이를 냅니다.
+   *
+   * **반음이 아니라 5음 음계의 계단입니다.** 사건마다 2반음씩 올리던 것은 「올라간다」로만
+   * 들리고 가락으로는 들리지 않았습니다 — 어느 두 음도 협화음이 아니기 때문입니다. 그리고
+   * 상한이 없어서 사슬이 길면 32반음까지 갔고, 그 높이에서 음원은 재생 속도 6배라
+   * 0.027초짜리 딱 소리가 되었습니다. `ladder` 가 그 둘을 함께 답합니다.
+   */
+  private stepUp(intensity: number): number {
+    this.rung += intensity > 0.55 ? 2 : 1
+    return ladder(this.rung)
+  }
+
   /** 음이 하나씩 올라가는 소리 여러 개. **오르는 음이 「해냈다」로 읽힙니다.** */
   private chime(cue: string, count: number, step = 3, gap = 0.075): void {
     for (let i = 0; i < count; i++) {
@@ -4851,6 +4979,15 @@ export class Game {
     while (this.chimes.length > 0 && this.chimes[0].at <= this.clock) {
       const next = this.chimes.shift()
       if (next) this.audio.play(next.cue, next.semitones)
+    }
+    while (this.stockNotes.length > 0 && this.stockNotes[0].at <= this.clock) {
+      const next = this.stockNotes.shift()
+      // **왼쪽부터 앉으므로 소리도 왼쪽부터입니다.** 진열이 어느 쪽까지 왔는지가
+      // 화면을 보지 않아도 들립니다.
+      if (next) {
+        this.audio.tone('marimba', ladder(next.step), 0.7,
+          -0.35 + Math.min(1, next.step / 6) * 0.7)
+      }
     }
   }
 
@@ -4871,7 +5008,9 @@ export class Game {
       if (this.ratchet > 0) return
       this.build = Math.min(1, this.build + 0.12)
       this.ratchet = 0.10 - this.build * 0.055
-      this.audio.play('score_count', Math.round(this.build * 16) - 4)
+      // **여기도 같은 음계입니다.** 조여드는 자리만 반음으로 오르면 그 구간에서 조성이
+      // 바뀌고, 이어지는 득점 소리와 어긋납니다.
+      this.audio.tone('chime', ladder(Math.round(this.build * 9)), 0.32)
       return
     }
     this.build = 0
@@ -4886,7 +5025,7 @@ export class Game {
     this.ratchet -= seconds
     if (this.ratchet > 0) return
     this.ratchet = 0.05 + rolling * 0.06
-    this.audio.play('score_count', Math.round((1 - rolling) * 14) - 4)
+    this.audio.tone('chime', ladder(Math.round((1 - rolling) * 8)), 0.28)
   }
 
   /**
@@ -6021,7 +6160,7 @@ export class Game {
         // 쪽을 보려면 돈은 걸림돌이 아니어야 합니다.
         // **소리는 조용히 실패합니다.** WebAudio 는 잘못된 값에 예외를 내는데 그것을 받는
         // 곳이 없어서, 웅얼거림이 안 나는 것과 예외로 죽은 것을 화면에서 가릴 수 없습니다.
-        mumble: (voice: number) => this.audio.mumble(voice),
+        jokerVoice: (uid: number) => this.audio.jokerVoice(uid, 0),
         /**
          * 전환 하나를 그냥 돌립니다. **씬은 그대로입니다.**
          *
@@ -6781,6 +6920,7 @@ export class Game {
       // 눈으로만 알리면, 안테의 마지막이라는 것이 지나가 버립니다.
       if (state.blind === BlindKind.Boss) {
         this.audio.play('boss_reveal')
+        this.audio.music.duck(0.5, 1.1)
         this.haptics.play('boss')
       }
     }
@@ -7548,6 +7688,7 @@ export class Game {
 
     // 럼블. **판이 그냥 나타나면 아무 무게가 없습니다.**
     this.audio.play(won ? 'run_win' : 'run_lose')
+    this.audio.music.duck(0.6, 1.6)
     this.haptics.play(won ? 'win' : 'lose')
     this.jolt(won ? 8 : 6, won ? 3.4 : 2.6, 1)
     this.flashScreen(won ? COLOR.money : COLOR.bad, won ? 0.5 : 0.34)
@@ -9609,7 +9750,7 @@ export class Game {
    * 한꺼번에 다시 납니다.
    */
   private beginReveal(layer: Container, base: number, sound: boolean): void {
-    this.revealing = { layer, base, slot: 0, sound }
+    this.revealing = { layer, base, slot: 0, sound, note: 0 }
   }
 
   /**
@@ -9633,7 +9774,13 @@ export class Game {
     this.revealing.slot += pause
     const at = this.revealing.base + this.revealing.slot * REVEAL_STEP
     this.revealing.slot += 1
-    if (this.revealing.sound) this.chimes.push({ at, cue: 'card_place', semitones: 0 })
+    // **물건이 앉을 때만 냅니다.** 그리고 앉는 차례마다 음이 한 계단 오릅니다 — 같은
+    // 음을 일곱 번 내면 그것은 진열이 아니라 같은 소리 일곱 번이고, 오르면 진열 전체가
+    // 한 소절로 들립니다.
+    if (this.revealing.sound && this.stocking) {
+      this.stockNotes.push({ at, step: this.revealing.note })
+      this.revealing.note++
+    }
 
     for (const node of nodes) {
       parent.addChild(node)
@@ -9641,6 +9788,18 @@ export class Game {
       this.reveals.push(one)
       this.advanceOne(one)
     }
+  }
+
+  /**
+   * 물건 하나가 칸에 앉습니다. **소리가 나는 것은 이 자리 하나입니다.**
+   *
+   * 값이 적히는 것은 이것 바로 뒤라, 둘 다 소리를 내면 0.13초 사이로 두 번 납니다 —
+   * 그것이 「두 번씩 나는 느낌」이었습니다.
+   */
+  private revealStock(parent: Container, rise: number, ...nodes: Container[]): void {
+    this.stocking = true
+    this.revealInto(parent, 1, rise, ...nodes)
+    this.stocking = false
   }
 
   /** 하나가 지금 어디까지 섰는가. */
@@ -9732,7 +9891,7 @@ export class Game {
     })
     this.reveal(tile)
     return () => {
-      this.revealInto(lift, 1, -STOCK_DROP, card)
+      this.revealStock(lift, -STOCK_DROP, card)
       this.revealInto(tile, 0, 0, price)
     }
   }
@@ -10460,7 +10619,7 @@ export class Game {
     })
     this.reveal(tile)
     return () => {
-      this.revealInto(lift, 1, -STOCK_DROP, bag)
+      this.revealStock(lift, -STOCK_DROP, bag)
       this.revealInto(tile, 0, 0, price)
     }
   }
@@ -10565,7 +10724,7 @@ export class Game {
     })
     this.reveal(tile)
     return () => {
-      this.revealInto(tile, 1, -STOCK_DROP, face)
+      this.revealStock(tile, -STOCK_DROP, face)
       this.revealInto(tile, 0, 0, price)
     }
   }

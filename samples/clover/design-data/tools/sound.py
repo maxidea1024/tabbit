@@ -73,7 +73,10 @@ MAP = {
     'card_destroy': ('casino', 'card-shove-3'),
 
     # 돈과 칩.
-    'coin_land': ('casino', 'chip-lay-2'),
+    # **`joker_add` 와 같은 파일이었습니다.** 둘 다 `chip-lay-2` 를 가리켜서, 조커가
+    # 돈을 줄 때 나는 소리와 조커가 가산할 때 나는 소리가 한 소리였습니다 — 「같은 계열을
+    # 두 신호에 쓰지 않습니다」 가 이 저장소의 규약인데 계열이 아니라 파일이 같았습니다.
+    'coin_land': ('casino', 'chips-stack-6'),
     'coin_lose': ('casino', 'chips-collide-4'),
 
     # 상점.
@@ -165,6 +168,18 @@ def main():
     empty = [cue for cue in known if cue not in MAP]
 
     print('신호 %d개 · 지도 %d개' % (len(known), len(MAP)))
+
+    # **두 신호가 한 파일을 가리키는 것을 봅니다.** 이름이 다르니 지도만 보아서는 눈에
+    # 띄지 않고, 나온 파일을 재야 보입니다 — 실제로 `coin_land` 와 `joker_add` 가 그랬습니다.
+    taken = {}
+    for cue, where in MAP.items():
+        taken.setdefault(where, []).append(cue)
+    shared = {k: v for k, v in taken.items() if len(v) > 1}
+    if shared:
+        print('한 파일을 가리키는 신호 %d쌍:' % len(shared))
+        for (pack, base), cues_here in sorted(shared.items()):
+            print('  %s/%s ← %s' % (pack, base, ' '.join(sorted(cues_here))))
+        return 1
     if unknown:
         print('표에 없는 신호를 가리킵니다: %s' % ' '.join(unknown))
     if empty:

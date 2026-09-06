@@ -168,7 +168,7 @@ npx tsx tools/shoot.ts     # 화면을 굽습니다
 |카드와 조커의 그림|`render/card-view.ts` · `render/joker-view.ts`. **그림 파일이 없습니다** — 그립니다|
 |에디션 셰이더 4종|`shader/editions.ts`. 파라미터가 `EditionVisual` 테이블입니다|
 |연출|`render/juice.ts`. 이벤트를 박자로 만드는 것과 재생하는 것이 갈려 있습니다|
-|소리|`render/audio.ts`. **음원 파일이 없습니다** — 파형을 만듭니다|
+|소리|`feedback/audio.ts`. **음원 파일이 없습니다** — 파형을 만듭니다|
 |화면|`render/game.ts` · `ui/widgets.ts`|
 
 ### 판정
