@@ -518,8 +518,13 @@ function winRound(vm: Vm): void {
 
   // 라운드가 끝나면 패를 치웁니다. **여기서 비우지 않으면 상점에 카드가 남습니다** —
   // 화면이 `state.hand` 를 그대로 그리기 때문입니다.
+  //
+  // **뽑을 패는 비우지 않고 덱 전체로 되돌립니다.** 라운드가 끝나면 낸 것도 버린 것도
+  // 손에 있던 것도 전부 덱으로 돌아가므로, 상점에서 보는 덱은 모두 다음 라운드에 쓸 수
+  // 있는 카드입니다 — 비워 두면 덱 판이 53장 전부를 「이미 나간 카드」로 그렸습니다.
+  // 차례는 라운드가 시작될 때 다시 섞으므로 여기서는 덱의 차례 그대로입니다.
   state.hand = []
-  state.drawPile = []
+  state.drawPile = state.deck.map(card => card.uid)
   state.played = []
   state.discarded = []
 
@@ -741,6 +746,9 @@ export function apply(data: Data, state: RunState, action: Action): Step {
     }
 
     case 'use_consumable': {
+      // **라운드 중에만 씁니다.** 손패를 앞에 두고 쓰는 것이 소모품이고, 상점에서 쓰면 카드를
+      // 고르는 타로가 고른 것 없이 그대로 사라집니다 — 화면도 그때만 「사용」을 세웁니다.
+      if (state.phase !== 'round') break
       const item = state.consumables[action.index]
       if (!item) break
       vm.selection = (action.targets ?? [])
@@ -978,6 +986,9 @@ function takeItem(vm: Vm, item: {
         debuffed: false,
         faceDown: false,
       })
+      // **라운드 밖에서 들어온 카드는 뽑을 패에도 있습니다.** 라운드 사이의 뽑을 패는 덱
+      // 전체이므로, 여기 넣지 않으면 상점에서 산 그 한 장만 「이미 나간 카드」로 보입니다.
+      if (state.phase !== 'round') state.drawPile.push(state.nextUid - 1)
       vm.events.push({ t: 'CardAdded', uid: state.nextUid - 1 })
       runTrigger(vm, Trigger.OnCardAdded)
       return true

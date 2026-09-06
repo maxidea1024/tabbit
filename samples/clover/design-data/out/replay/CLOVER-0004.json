@@ -151,34 +151,29 @@
       "slot": 0
     },
     {
-      "t": "use_consumable",
-      "index": 0
-    },
-    {
       "t": "buy",
       "slot": 0
-    },
-    {
-      "t": "use_consumable",
-      "index": 0
     },
     {
       "t": "buy_pack",
       "slot": 0
     },
     {
-      "t": "pick_pack",
-      "index": 0
-    },
-    {
-      "t": "use_consumable",
-      "index": 0
+      "t": "skip_pack"
     },
     {
       "t": "leave_shop"
     },
     {
       "t": "select_blind"
+    },
+    {
+      "t": "use_consumable",
+      "index": 0
+    },
+    {
+      "t": "use_consumable",
+      "index": 0
     },
     {
       "t": "discard",
@@ -273,10 +268,6 @@
       "slot": 0
     },
     {
-      "t": "use_consumable",
-      "index": 0
-    },
-    {
       "t": "buy",
       "slot": 0
     },
@@ -285,6 +276,10 @@
     },
     {
       "t": "select_blind"
+    },
+    {
+      "t": "use_consumable",
+      "index": 0
     },
     {
       "t": "discard",
@@ -412,61 +407,60 @@
     "7b391727",
     "94785f1d",
     "3fa6892b",
-    "0580def3",
-    "10fc0e14",
-    "ae3024e6",
+    "f868764c",
+    "391778bb",
+    "57380fdd",
     "74d6142c",
     "45cc5031",
     "f36e170f",
     "416ae42b",
     "43a1d206",
     "1f053084",
-    "7733aa20",
-    "baa0c8ef",
-    "d72075e7",
-    "bcf3d1ec",
-    "2a07760b",
-    "c72fd93b",
-    "c1c1db88",
-    "b1f708f2",
-    "d0fdeeb7",
-    "7309d609",
-    "c1a83211",
-    "ff5ec7df",
-    "53f5a45a",
-    "267143f6",
-    "92ca3d0f",
-    "5d18d427",
-    "59a9466e",
-    "aab7c695",
-    "0610b1c3",
-    "431af1ca",
-    "31fbdd4e",
-    "db13b804",
-    "69d56b73",
-    "33d303b3",
-    "54d41992",
-    "4c0ec729",
-    "fc0e7f36",
-    "c5cbb935",
-    "35356cb9",
-    "8408cee1",
-    "5ed7248a",
-    "4cbb214f",
-    "a6ffda5d",
-    "afe50900",
-    "9be75485",
-    "fd598e47",
-    "eef67aab",
-    "a5b56135",
-    "4a04dee9",
-    "210eeba1",
-    "252ba9ba",
-    "6c4f8f5a"
+    "27eb9d77",
+    "b41a027a",
+    "d1919589",
+    "c0a993a9",
+    "d6b3ce73",
+    "735f442a",
+    "11f4612b",
+    "51070115",
+    "bd608c46",
+    "8f60031e",
+    "3cfc54d4",
+    "6071c2c3",
+    "cd8b4f3f",
+    "dd51c4eb",
+    "a9fccdb6",
+    "14060369",
+    "af3643c5",
+    "1c644fdb",
+    "aaecebd2",
+    "7af5bb5e",
+    "7dc37ee9",
+    "189bfd66",
+    "e97a7978",
+    "3056df03",
+    "66beb9c1",
+    "38849681",
+    "3f7a1936",
+    "3801aeb2",
+    "88a0d6aa",
+    "c4373471",
+    "7bd0de74",
+    "3a8b13a8",
+    "abe171cd",
+    "01a53048",
+    "ccd28bf6",
+    "8a9644a2",
+    "e04d91f8",
+    "d0057568",
+    "e33acad4",
+    "2e49a353",
+    "5d376a13"
   ],
   "metrics": {
     "ascent": 5,
-    "bestHand": 2500,
+    "bestHand": 1540,
     "handsPlayed": 16,
     "money": 3,
     "skips": 0,

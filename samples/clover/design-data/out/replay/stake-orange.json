@@ -96,10 +96,6 @@
       "slot": 0
     },
     {
-      "t": "use_consumable",
-      "index": 0
-    },
-    {
       "t": "buy",
       "slot": 0
     },
@@ -108,6 +104,10 @@
     },
     {
       "t": "select_blind"
+    },
+    {
+      "t": "use_consumable",
+      "index": 0
     },
     {
       "t": "discard",
@@ -143,10 +143,6 @@
       "slot": 0
     },
     {
-      "t": "use_consumable",
-      "index": 0
-    },
-    {
       "t": "buy",
       "slot": 0
     },
@@ -155,6 +151,10 @@
     },
     {
       "t": "select_blind"
+    },
+    {
+      "t": "use_consumable",
+      "index": 0
     },
     {
       "t": "discard",
@@ -287,10 +287,6 @@
       "slot": 0
     },
     {
-      "t": "use_consumable",
-      "index": 0
-    },
-    {
       "t": "buy_pack",
       "slot": 0
     },
@@ -310,6 +306,10 @@
     },
     {
       "t": "select_blind"
+    },
+    {
+      "t": "use_consumable",
+      "index": 0
     },
     {
       "t": "discard",
@@ -350,14 +350,14 @@
       "slot": 0
     },
     {
-      "t": "use_consumable",
-      "index": 0
-    },
-    {
       "t": "leave_shop"
     },
     {
       "t": "select_blind"
+    },
+    {
+      "t": "use_consumable",
+      "index": 0
     },
     {
       "t": "discard",
@@ -679,87 +679,87 @@
     "8b8ba5c0",
     "9bec9849",
     "c6d03f9a",
-    "a1b3d986",
-    "976092be",
-    "274c87e5",
+    "0698132d",
+    "5cc9df77",
+    "660f1c18",
     "50c82086",
     "d8995354",
     "611df03b",
     "90ab8592",
     "1f6061e7",
-    "34697e63",
-    "e15fdd4a",
-    "e22fb321",
-    "ddd9138f",
-    "f2f19690",
+    "c2e230de",
+    "6a6a724b",
+    "04d327a7",
+    "1f79bd10",
+    "3ff8e26c",
     "1b08e161",
     "35e1f807",
     "e3ab9739",
-    "8a84f6f3",
-    "fd7ecb58",
-    "e7ecb6e0",
-    "75a0fdc1",
-    "f9f5687f",
+    "885c4824",
+    "70180d7d",
+    "5a3c25d4",
+    "6779a5ba",
+    "4206f793",
     "f0c0406b",
     "07f6a014",
     "415c9de7",
     "2e5ac792",
-    "981d1c17",
-    "e84b243e",
-    "69ad52fb",
+    "84316be2",
+    "45d54bf7",
+    "0fa950d2",
     "dcf19ce9",
     "67475c72",
     "03040a70",
     "75bfbe8d",
-    "c478e93b",
-    "f08adbcb",
-    "846a6354",
+    "09d4522e",
+    "a7ac050c",
+    "fd5fdd2f",
     "0b2a3694",
     "d8271f74",
     "6dbb0b3d",
     "deeacffd",
-    "4086dcb4",
-    "2bfa349e",
-    "c87f6d9e",
-    "08161fa2",
-    "d84cc6a8",
-    "7c567942",
-    "38b7c4b6",
-    "5e2eedec",
+    "b4b3efe5",
+    "f043c5c7",
+    "5993eeb1",
+    "da1678cd",
+    "11870d81",
+    "39f1b05c",
+    "696381d4",
+    "f7b16247",
     "477e8caf",
     "dd76c62e",
     "1da73e13",
     "fd2c54eb",
-    "db9c30bb",
-    "1131aae3",
-    "d3b95457",
-    "a6ce25e4",
+    "ca16aef5",
+    "c24aee2b",
+    "9442a634",
+    "aca9deb6",
     "6af86108",
     "1760561d",
     "3853a05a",
     "1d44af6a",
-    "88dfba1f",
-    "13c4326b",
-    "7c6b75df",
+    "a20d7dd9",
+    "2881d4b3",
+    "4f6e64bd",
     "5417591a",
     "ccea959c",
     "43cd371c",
     "c0f3a688",
     "463fbbd8",
-    "5e5d52ae",
-    "70c74dc4",
-    "e12c125a",
-    "2ce6b869",
-    "40c5e41a",
-    "79368876",
-    "1d0bc3d7",
+    "1d34a634",
+    "ef2db71c",
+    "73ee3076",
+    "871b2245",
+    "147c1606",
+    "c600e65a",
+    "3a41d31f",
     "a390a26f",
     "426b5221",
     "d29b0ac5",
     "dbe3672f",
     "222e241d",
-    "b4dc5dd7",
-    "3d683776",
+    "9f63fca7",
+    "83a910d2",
     "082284c0",
     "958347bd",
     "2a155db0",
@@ -767,10 +767,10 @@
     "00a2532b",
     "d2359ddd",
     "ff5882a1",
-    "276aab0e",
-    "b534d66a",
-    "7973a8a4",
-    "84d1119d",
+    "870aaeee",
+    "155ced56",
+    "b39f3c70",
+    "f76ba445",
     "08fd9fcc",
     "f5d3b8be",
     "438c6843",

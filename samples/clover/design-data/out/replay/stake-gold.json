@@ -96,10 +96,6 @@
       "slot": 0
     },
     {
-      "t": "use_consumable",
-      "index": 0
-    },
-    {
       "t": "buy",
       "slot": 0
     },
@@ -108,6 +104,10 @@
     },
     {
       "t": "select_blind"
+    },
+    {
+      "t": "use_consumable",
+      "index": 0
     },
     {
       "t": "discard",
@@ -143,10 +143,6 @@
       "slot": 0
     },
     {
-      "t": "use_consumable",
-      "index": 0
-    },
-    {
       "t": "buy",
       "slot": 0
     },
@@ -155,6 +151,10 @@
     },
     {
       "t": "select_blind"
+    },
+    {
+      "t": "use_consumable",
+      "index": 0
     },
     {
       "t": "discard",
@@ -287,10 +287,6 @@
       "slot": 0
     },
     {
-      "t": "use_consumable",
-      "index": 0
-    },
-    {
       "t": "buy_pack",
       "slot": 0
     },
@@ -302,6 +298,10 @@
     },
     {
       "t": "select_blind"
+    },
+    {
+      "t": "use_consumable",
+      "index": 0
     },
     {
       "t": "discard",
@@ -354,22 +354,22 @@
       "slot": 0
     },
     {
-      "t": "use_consumable",
-      "index": 0
-    },
-    {
       "t": "buy",
       "slot": 0
-    },
-    {
-      "t": "use_consumable",
-      "index": 0
     },
     {
       "t": "leave_shop"
     },
     {
       "t": "select_blind"
+    },
+    {
+      "t": "use_consumable",
+      "index": 0
+    },
+    {
+      "t": "use_consumable",
+      "index": 0
     },
     {
       "t": "discard",
@@ -481,10 +481,6 @@
       "index": 0
     },
     {
-      "t": "use_consumable",
-      "index": 1
-    },
-    {
       "t": "buy_pack",
       "slot": 0
     },
@@ -501,6 +497,10 @@
     },
     {
       "t": "select_blind"
+    },
+    {
+      "t": "use_consumable",
+      "index": 1
     },
     {
       "t": "discard",
@@ -711,92 +711,92 @@
     "8b8ba5c0",
     "9bec9849",
     "c6d03f9a",
-    "a1b3d986",
-    "976092be",
-    "274c87e5",
+    "0698132d",
+    "5cc9df77",
+    "660f1c18",
     "50c82086",
     "d8995354",
     "611df03b",
     "90ab8592",
     "1f6061e7",
-    "34697e63",
-    "e15fdd4a",
-    "e22fb321",
-    "ddd9138f",
-    "f2f19690",
+    "c2e230de",
+    "6a6a724b",
+    "04d327a7",
+    "1f79bd10",
+    "3ff8e26c",
     "1b08e161",
     "35e1f807",
     "e3ab9739",
-    "8a84f6f3",
-    "fd7ecb58",
-    "e7ecb6e0",
-    "75a0fdc1",
-    "f9f5687f",
+    "885c4824",
+    "70180d7d",
+    "5a3c25d4",
+    "6779a5ba",
+    "4206f793",
     "f0c0406b",
     "07f6a014",
     "415c9de7",
     "2e5ac792",
-    "981d1c17",
-    "e84b243e",
-    "69ad52fb",
+    "84316be2",
+    "45d54bf7",
+    "0fa950d2",
     "dcf19ce9",
     "67475c72",
     "03040a70",
     "75bfbe8d",
-    "c478e93b",
-    "65470fe4",
-    "d70a23af",
+    "09d4522e",
+    "3ec957b3",
+    "aac01cd4",
     "e52572b7",
     "078cfb97",
     "ffa263ba",
     "5cee777a",
-    "67f8941a",
-    "640aa606",
-    "38240076",
-    "c52a4d5a",
-    "bc799810",
-    "b1496314",
+    "e434d4cf",
+    "3548cedf",
+    "80d86869",
+    "9ca715d5",
+    "6e9e4ddf",
+    "49e602f1",
     "ae248ae9",
     "745086d4",
     "57a74763",
     "0d7b41da",
     "6f55b02a",
-    "e36bd252",
-    "a16ed5a6",
-    "7c693a56",
-    "3298773e",
-    "188b275a",
-    "a510c7a1",
+    "c43f025b",
+    "7e0fb629",
+    "1c42acbd",
+    "7b4ea652",
+    "cc0c38fd",
+    "cd5bc20d",
     "27ac3da9",
     "514a9308",
     "40f14ca2",
     "64551312",
     "4d7e9125",
-    "4e5d6c08",
-    "282978c0",
-    "94a5770c",
+    "5d362483",
+    "0aeb567b",
+    "3c990467",
     "4514e741",
     "0a97cd5b",
     "c22e988a",
     "53ac66b2",
     "1d39237b",
-    "619b043d",
-    "0184132f",
-    "70094a05",
-    "78334f93",
-    "f0368f51",
-    "ba6ed642",
-    "68cd77a5",
-    "5ab71d6e",
+    "fb6967d0",
+    "d0cb2992",
+    "0f3c4c7a",
+    "b60f0ba8",
+    "acdac042",
+    "c5682451",
+    "15927d8e",
+    "e2aa1e48",
     "d09094e2",
     "fea0cfc9",
     "33c32803",
     "22ef242f",
     "90ab8b2a",
     "3cc15d3b",
-    "19762a5d",
-    "dd98d76f",
-    "c61f3a90",
+    "ccd14ad3",
+    "ce1dd375",
+    "3241d706",
     "95e8fe59",
     "a1fa2eb1",
     "0816f3c2",
@@ -804,10 +804,10 @@
     "e7f0c13f",
     "d0dd39a2",
     "8a953e11",
-    "9042cbf4",
-    "f3126457",
-    "eceee89d",
-    "64f6fb4c",
+    "defc7c0a",
+    "cab04a65",
+    "1eba9dab",
+    "c4611110",
     "9e411fbc",
     "e85733fd",
     "a11cbfe3",

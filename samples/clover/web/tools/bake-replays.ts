@@ -44,7 +44,11 @@ function main(argv: string[]): number {
     const after = report.finalHash
     // **지표도 함께 봅니다.** 상태가 같아도 지표를 세는 셈이 바뀌면 순위가 달라지고,
     // 해시만 보면 그것이 지나갑니다.
+    // **액션도 봅니다.** 봇이 같은 자리에 다른 길로 닿으면 끝의 해시는 같은데 적힌 액션은
+    // 낡은 것이고, 그 액션을 그대로 되감는 테스트는 다른 끝에 닿습니다 — 상점에서 쓰던
+    // 행성을 라운드로 옮겼을 때 그렇게 지나갔습니다.
     const same = before === after && sameMetrics(was.metrics, report.metrics)
+      && JSON.stringify(was.actions) === JSON.stringify(replay.actions)
     if (!same) moved++
 
     if (!same && !checkOnly) {

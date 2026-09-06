@@ -187,10 +187,6 @@ function shopMove(data: Data, state: RunState): Action {
     return index >= 0 ? { t: 'pick_pack', index } : { t: 'skip_pack' }
   }
 
-  // 행성 카드가 있으면 먼저 씁니다 — 족보 레벨이 안테를 넘기는 가장 싼 길입니다.
-  const planet = state.consumables.findIndex(item => item.kind === 2)
-  if (planet >= 0) return { t: 'use_consumable', index: planet }
-
   for (let slot = 0; slot < state.shop.cards.length; slot++) {
     const item = state.shop.cards[slot]
     if (item.cost > state.money - 1) continue
@@ -221,6 +217,12 @@ function hasRoom(state: RunState, item: { kind: ShopItemKind }): boolean {
 function roundMove(data: Data, state: RunState): Action | undefined {
   if (state.hand.length === 0) return undefined
   if (state.handsLeft <= 0) return undefined
+
+  // 행성 카드가 있으면 손패를 앞에 두고 먼저 씁니다 — 족보 레벨이 안테를 넘기는 가장 싼
+  // 길입니다. **소모품은 라운드 중에만 쓸 수 있습니다** — 상점에서 쓰던 것은 이제 코어가
+  // 받지 않습니다.
+  const planet = state.consumables.findIndex(item => item.kind === 2)
+  if (planet >= 0) return { t: 'use_consumable', index: planet }
 
   const held = state.hand
     .map(uid => state.deck.find(card => card.uid === uid))
