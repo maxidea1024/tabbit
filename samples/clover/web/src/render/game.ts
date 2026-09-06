@@ -2474,6 +2474,9 @@ export class Game {
     this.player.base = this.settings.speed
     this.particles.enabled = this.settings.particles
     this.haptics.enabled = this.settings.haptics
+    // **초당 몇 프레임까지 그리는가.** 0 은 화면이 정하는 대로입니다 — 티커에 0 을 넣으면
+    // 문턱이 없어집니다.
+    this.app.ticker.maxFPS = this.settings.frameCap
 
     // **말이 바뀌면 화면을 다시 그립니다.** 글은 그릴 때 한 번 읽히므로, 다시 그리지 않으면
     // 고른 그 순간에는 아무것도 바뀌지 않고 다음 판부터 바뀝니다.
@@ -5917,6 +5920,8 @@ export class Game {
       // **판을 끝까지 두는 도구를 위한 손잡이입니다.** 사람이 보라고 넣은 뜸이 도구에게는
       // 기다림일 뿐이고, 그 기다림이 실행 시간의 대부분입니다. 옵션의 속도와 같은 값입니다.
       hurry: (times: number) => { this.player.base = times },
+      // **프레임 상한을 재는 도구의 손잡이입니다.** 옵션을 거치지 않고 값만 갈아 끼웁니다.
+      frameCap: (value: number) => { this.app.ticker.maxFPS = value },
       // **틱을 정해진 수만큼 돌립니다.** `?tick=manual` 로 열었을 때만 있습니다 — 하네스의
       // `pass` 가 이것이 있으면 틱을 돌리고 없으면 실제로 기다립니다.
       ...(this.manualTick ? { advance: (ms: number) => this.advanceManually(ms) } : {}),

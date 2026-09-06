@@ -131,9 +131,23 @@ export class Audio {
     return out
   }
 
-  /** 브라우저는 사람이 무언가를 누른 뒤에만 소리를 냅니다. */
+  /**
+   * 소리 길을 엽니다.
+   *
+   * **여는 것과 깨우는 것이 다른 일입니다.** 브라우저는 사람이 누르기 전에도 소리 길을
+   * 만들게 해 주지만, 그렇게 만든 것은 잠든 채(`suspended`)로 나옵니다 — 만들었다는 것과
+   * 소리가 난다는 것이 같지 않습니다.
+   *
+   * **그래서 이미 있어도 그냥 돌아가지 않습니다.** 돌아가게 두었더니 앱에서는 켤 때 잠든
+   * 길이 하나 만들어지고, 그 뒤의 누름은 전부 첫 줄에서 되돌아가 아무것도 깨우지 못했습니다.
+   * 부르는 자리가 여럿인 것은 「그중 하나는 사람이 누른 순간이다」를 노린 것이므로, 그때마다
+   * 깨울 것이 있는지 보아야 합니다.
+   */
   unlock(): void {
-    if (this.context) return
+    if (this.context) {
+      this.wake()
+      return
+    }
     const Ctor = (window.AudioContext
       ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)
     this.context = new Ctor()
@@ -150,6 +164,9 @@ export class Audio {
     for (let i = 0; i < frames; i++) wave[i] = Math.random() * 2 - 1
 
     void this.load()
+    // **만든 그 자리에서 깨웁니다.** 사람이 누른 뒤라면 이미 깨어 있고, 그 전이라면
+    // 이 부름이 되든 안 되든 다음 누름이 다시 옵니다.
+    this.wake()
   }
 
   /**
@@ -163,10 +180,19 @@ export class Audio {
     void this.context?.suspend().catch(() => undefined)
   }
 
-  /** 다시 앞으로 나왔습니다. */
+  /**
+   * 잠든 소리 길을 깨웁니다.
+   *
+   * **뒤로 갔다 돌아온 자리와 켤 때가 같은 일입니다** — 둘 다 「길은 있는데 잠들어 있다」
+   * 입니다. 깨어 있으면 `resume` 은 아무 일도 하지 않습니다.
+   */
   wake(): void {
     const context = this.context
     if (!context) return
+    if (context.state === 'running') {
+      this.music.resume()
+      return
+    }
     void context.resume().then(() => this.music.resume()).catch(() => undefined)
   }
 

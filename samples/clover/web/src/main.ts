@@ -57,17 +57,16 @@ async function main(): Promise<void> {
     resizeTo: window,
     preference: 'webgl',
   })
-  // **초당 60을 넘기지 않습니다.** 요즘 손전화의 화면은 120Hz 이고, 걸어 두지 않으면
-  // 정지 화면에서도 초당 120번을 그립니다 — 카드 게임에서 그 60번이 더 보여 주는 것은
-  // 없고 값은 두 배입니다.
-  app.ticker.maxFPS = 60
-
   boot.step('data')
   const data = await loadFromUrl('./data')
   // **화면을 만들기 전에 글 표를 넘깁니다.** 클래스의 필드는 생성자 본문보다 먼저 만들어지고,
   // 그 자리에서 이미 글을 읽습니다 — 생성자 안에서 넘기면 그것들이 열쇠를 그대로 답니다.
   useStrings(data)
   const saved = loadOptions()
+  // **프레임 상한은 사람이 정합니다.** 옵션의 「화면」 탭이고, 처음 값은 「무제한」입니다 —
+  // 걸어 두었더니 120Hz 화면에서 움직임이 절반이 되었고, 그것은 배터리를 아낀 것이 아니라
+  // 눈이 먼저 알아채는 손해였습니다. 판이 서고 나서는 `Game.applyOptions` 가 겁니다.
+  app.ticker.maxFPS = saved.frameCap
   const language = chosen(saved)
   setLanguage(language)
   // **판의 겉면도 화면을 세우기 전에 정합니다.** 판때기는 그릴 때의 색으로 삼각화되므로,

@@ -1185,6 +1185,9 @@
 	ui.option.transition	화면 전환	Scene Transitions	画面切り替え	场景切换	場景切換	Szenenübergänge
 	ui.option.speed	연출 속도	Animation Speed	演出速度	动画速度	動畫速度	Tempo
 	ui.option.hints	족보 도움	Hand Hints	役ヒント	牌型提示	牌型提示	Blatt-Hinweise
+	ui.option.frames	프레임 상한	Frame Cap	フレーム上限	帧率上限	幀率上限	Bildratenlimit
+	ui.option.frames_free	무제한	Unlimited	無制限	无限制	無限制	Unbegrenzt
+	ui.option.note.frames	초당 몇 장까지 그릴지입니다. 낮추면 배터리가 덜 듭니다	How many frames are drawn each second. Lower uses less battery	毎秒何枚まで描くかです。下げると電池が長持ちします	每秒最多绘制多少帧。调低更省电	每秒最多繪製多少幀。調低更省電	Wie viele Bilder pro Sekunde gezeichnet werden. Niedriger schont den Akku
 	ui.option.haptics	진동	Vibration	振動	振动	振動	Vibration
 	ui.option.language	화면의 글	Language	言語	语言	語言	Sprache
 	ui.hint.skip_if_unwanted	   ·   마음에 안 들면 건너뜁니다	   ·   skip it if you would rather not	   ·   気に入らなければスキップ	   ·   不满意可以跳过	   ·   不滿意可以跳過	   ·   überspringen, wenn er nicht passt

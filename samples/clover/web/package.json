@@ -2,7 +2,7 @@
   "name": "clover",
   "private": true,
   "type": "module",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "포커 로그라이크 한 편. 규칙은 시트에 있고 여기는 그것을 읽는 한쪽 구현입니다.",
   "scripts": {
     "check": "tsc -b",

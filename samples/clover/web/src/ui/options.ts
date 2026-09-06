@@ -57,6 +57,14 @@ export interface Options {
   musicVolume: number
   /** 연출의 배속. 1 · 2 · 4 중 하나입니다. */
   speed: number
+  /**
+   * 초당 몇 프레임까지 그리는가. **0 은 화면이 정하는 대로입니다.**
+   *
+   * **처음 값이 0 인 이유가 있습니다.** 120Hz 화면에서 60으로 자르면 움직임이 절반으로
+   * 줄고, 그것은 부드러움이 아니라 눈이 먼저 알아챕니다 — 배터리를 아끼는 것은 그것을
+   * 겪은 사람이 고르는 것이지 처음부터 걸어 둘 것이 아닙니다.
+   */
+  frameCap: number
   /** 화면이 흔들리는가. */
   shake: boolean
   /** 카드 뒤에서 파티클이 터지는가. */
@@ -145,7 +153,7 @@ function quietMotion(): boolean {
  */
 export function defaultOptions(): Options {
   return {
-    sound: true, volume: 60, music: true, musicVolume: 60, speed: 1,
+    sound: true, volume: 60, music: true, musicVolume: 60, speed: 1, frameCap: 0,
     shake: true, particles: true, chromatic: true, hints: true, haptics: true,
     transition: !quietMotion(),
     language: '', deck: 'red_deck', stake: 'White', cardSet: 'classic', pool: 'base',
@@ -163,6 +171,27 @@ export function chosen(options: Options): Language {
   if (options.language !== '') return options.language
   return detectLanguage(typeof navigator === 'undefined'
     ? [] : [...(navigator.languages ?? []), navigator.language ?? ''])
+}
+
+/**
+ * 고를 수 있는 프레임 상한. **0 은 화면이 정하는 대로입니다.**
+ *
+ * **60 이 아니라 62.5 이고, 30 이 아니라 30.3 입니다.** 티커는 지난 시간이 문턱을 넘었을
+ * 때만 그리는데, 60을 적으면 그 문턱(16.667ms)이 60Hz 화면 한 칸의 길이와 같습니다 —
+ * 같은 자리에 놓인 값이라 셈이 조금만 어긋나도 그 칸이 문턱에 닿지 못하고 한 칸을 더
+ * 기다립니다.
+ *
+ * **평균으로는 티가 나지 않고 걸음으로 드러납니다.** 3초를 재면 60은 59.3fps 인데,
+ * 그 안에서 두 프레임이 한 칸씩 늦습니다. 62.5는 60.0fps 이고 늦는 것이 하나도 없습니다.
+ * 사람이 알아채는 것은 평균이 아니라 그 늦는 한 칸입니다.
+ *
+ * `test/frame-cap.test.ts` 가 이 값들을 지킵니다.
+ */
+export const FRAME_CAPS: readonly number[] = [0, 30.3, 62.5]
+
+/** 그 상한을 사람에게 보이는 수로. **0 은 「무제한」입니다.** */
+export function frameCapLabel(cap: number): string {
+  return cap === 0 ? t('ui.option.frames_free') : String(Math.round(cap))
 }
 
 const KEY = 'clover.options'
@@ -183,6 +212,8 @@ export function loadOptions(): Options {
       if (key === 'language' && value !== ''
           && !LANGUAGES.includes(value as Language)) continue
       if (key === 'pool' && value !== 'base' && value !== 'all') continue
+      // 목록에 없는 상한이 저장되어 있으면 화면이 정하는 대로 둡니다.
+      if (key === 'frameCap' && !FRAME_CAPS.includes(value as number)) continue
       // 없는 겉면 이름이 저장되어 있으면 기본으로 둡니다.
       if (key === 'uiTheme' && !UI_THEME_KEYS.includes(value as never)) continue
       (options[key] as unknown) = value
@@ -705,6 +736,18 @@ export class OptionsPanel implements ModalPanel {
           {
             label: t('ui.option.chromatic'), read: onOff('chromatic'), next: flip('chromatic'),
             note: t('ui.option.note.chromatic'),
+          },
+          // **처음 값이 「무제한」입니다.** 자르는 것은 배터리를 아끼려는 사람이 고르는
+          // 것이고, 걸어 두면 120Hz 화면에서 움직임이 절반이 됩니다.
+          {
+            id: 'frameCap',
+            label: t('ui.option.frames'),
+            note: t('ui.option.note.frames'),
+            read: () => frameCapLabel(options.frameCap),
+            next: () => {
+              const at = FRAME_CAPS.indexOf(options.frameCap)
+              options.frameCap = FRAME_CAPS[(at + 1) % FRAME_CAPS.length]
+            },
           },
           // **꺼도 0이 되지는 않습니다.** 씬을 갈아 끼우는 프레임은 어느 설정에서도 보이면
           // 안 되므로, 껐을 때는 짧은 잦아듦 하나가 남습니다.
