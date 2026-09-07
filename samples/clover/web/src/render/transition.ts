@@ -179,6 +179,12 @@ export class Transition {
     this.coming.setAspect(aspect)
   }
 
+  /** 값을 아끼는 몫으로. **기계가 정한 것을 도구가 뒤집는 자리입니다.** */
+  set lite(value: boolean) {
+    this.leaving.lite = value
+    this.coming.lite = value
+  }
+
   get busy(): boolean {
     return this.stage !== 'off'
   }

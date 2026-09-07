@@ -813,9 +813,9 @@ function edgeBlur(): BlurFilter {
 /**
  * 흐림을 굽는 해상도. **화면 해상도의 절반입니다.**
  *
- * `0.5` 를 못박아 두었더니 **손전화에서 흐림이 뭉개졌습니다.** 필터의 `resolution` 은
- * 비율이 아니라 절대값이고, 화면은 픽셀 밀도만큼 — 손전화는 2에서 3 — 굽습니다. 그래서
- * 0.5 는 데스크탑에서 2분의 1이지만 손전화에서는 **4분의 1에서 6분의 1**이었습니다.
+ * `0.5` 를 못박아 두었더니 **핸드폰에서 흐림이 뭉개졌습니다.** 필터의 `resolution` 은
+ * 비율이 아니라 절대값이고, 화면은 픽셀 밀도만큼 — 핸드폰은 2에서 3 — 굽습니다. 그래서
+ * 0.5 는 데스크탑에서 2분의 1이지만 핸드폰에서는 **4분의 1에서 6분의 1**이었습니다.
  *
  * 뭉갠 그림 위에 판이 떠 있다가 판이 사라질 때 필터를 놓으면, 그 순간 화면이 뭉갠 것에서
  * 온전한 것으로 한 프레임에 돌아옵니다 — 흐림이 잦아드는 것이 아니라 뚝 끊기는 것으로
@@ -2592,7 +2592,7 @@ export class Game {
     // 두지 않으면 화면이 없는 동안에도 그리고 소리를 냅니다.
     onAppState(active => this.setAwake(active))
     // **창을 떠날 때는 기다리지 않고 적습니다.** 탭을 닫는 것과 앱이 끝나는 것이 여기로
-    // 옵니다 — `beforeunload` 는 손전화에서 오지 않는 자리가 있어 `pagehide` 를 씁니다.
+    // 옵니다 — `beforeunload` 는 핸드폰에서 오지 않는 자리가 있어 `pagehide` 를 씁니다.
     window.addEventListener('pagehide', () => this.flushRun(true))
 
     // **GPU 의 자리를 기계가 회수할 수 있습니다.** 오래 물러나 있으면 안드로이드가 그렇게
@@ -3842,7 +3842,7 @@ export class Game {
    */
   private sharpen(scale: number): void {
     // **화면에 실제로 놓이는 픽셀만큼입니다.** 배율과 밀도의 곱이 그것이고, 배율이
-    // 1보다 작은 자리 — 손전화가 그렇습니다 — 에서 배율을 1로 올려 버리면 필요한 것의
+    // 1보다 작은 자리 — 핸드폰이 그렇습니다 — 에서 배율을 1로 올려 버리면 필요한 것의
     // 갑절이 넘게 굽습니다. 굽는 값은 픽셀 수만큼입니다.
     const want = Math.min(3, Math.max(1, scale * (this.app.renderer.resolution ?? 1)))
     const walk = (node: Container) => {
@@ -6456,7 +6456,7 @@ export class Game {
                this.recede.filterArea.width, this.recede.filterArea.height]
             : undefined,
           filtered: ((this.recede.filters as unknown[] | null)?.length ?? 0) > 0,
-          // 굽는 해상도와 화면의 해상도. **손전화에서 흐림이 뭉개지던 것을 재는 자리입니다.**
+          // 굽는 해상도와 화면의 해상도. **핸드폰에서 흐림이 뭉개지던 것을 재는 자리입니다.**
           density: this.blurDensity,
           rendered: this.app.renderer.resolution ?? 1,
           // 덮개의 짙기. **흐림과 같은 값으로 서고 같은 값으로 없어져야 합니다.**
@@ -6484,6 +6484,15 @@ export class Game {
          */
         cross: (id: string) => {
           this.transition.play(id, this.crossings.of(id), () => {})
+        },
+        /**
+         * 값을 아끼는 몫으로 돌립니다. **기계가 정하는 것을 손으로 뒤집는 자리입니다.**
+         *
+         * 재는 짚는 수를 모바일에서 줄이는데, 그 길은 그 기계에서만 도므로 데스크탑에서는
+         * 성기어진 모습을 볼 길이 없습니다 — 아무도 보지 않은 모습이 그 기계에 나갑니다.
+         */
+        crossLite: (on: boolean) => {
+          this.transition.lite = on
         },
         grantMoney: (amount: number) => {
           this.state.money += amount
