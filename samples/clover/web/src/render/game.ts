@@ -402,19 +402,6 @@ const STOCK_DROP = 22
  * 집으면 아무 상관 없는 소모품 하나가 팩에서 날아오는 연출이 붙었습니다 — 카드는 덱으로
  * 들어가고 소모품 칸은 그대로인데 화면만 그렇게 보였습니다.
  */
-/**
- * 그 자리에서 잔액이 바뀌어야 하는 돈인가.
- *
- * **플레이어가 직접 낸 돈과 받은 돈입니다** — 사는 것과 파는 것. 그것은 누른 그 순간의
- * 일이므로 잔액이 바로 따라야 하고, 동전은 그 뒤로 날아가면 됩니다.
- *
- * 블라인드 보상과 이자와 조커가 주는 돈은 아닙니다 — 그것들은 하나씩 세어 올리는 것이
- * 정산의 몫이고, 미리 합계를 보여 주면 무엇으로 번 돈인지가 사라집니다.
- */
-function paidNow(reason: string): boolean {
-  return reason === 'shop' || reason === 'sell'
-}
-
 function isConsumable(kind: ShopItemKind): boolean {
   return kind === ShopItemKind.Tarot || kind === ShopItemKind.Planet
     || kind === ShopItemKind.Spectral
@@ -1841,6 +1828,16 @@ export class Game {
   private boughtFrom: { x: number; y: number } | undefined
 
   /**
+   * 조커·카드·판돈이 낸 돈이 나오는 자리.
+   *
+   * **코어는 돈을 둘로 알립니다** — 누가 냈는지(`JokerTriggered`·`CardScored`·`RunTriggered`)와
+   * 얼마가 들어왔는지(`MoneyChanged`). 동전은 뒤의 것이 날리고 자리는 앞의 것이 적어 둡니다.
+   * 한 효과가 돈을 여러 번 내면 같은 자리에서 여러 번 나오므로 쓴 뒤에도 남겨 두고,
+   * 타임라인이 시작할 때 비웁니다.
+   */
+  private moneyFrom: { x: number; y: number } | undefined
+
+  /**
    * 지금 서 있는 상점 판의 자리.
    *
    * 딱지가 이미 없어졌을 때의 예비 자리이고, 도구가 줄의 자리를 읽는 곳입니다 — 바닥이
@@ -2343,11 +2340,13 @@ export class Game {
     this.overlay.visible = false
     // **타이틀은 판 바깥입니다.** 판과 조각들을 통째로 끄고 그 위에 홀로 섭니다.
     this.recede.addChild(this.board, this.particles, this.overlay,
-      this.coins, this.screenFlash, this.title)
+      this.screenFlash, this.title)
     // **알림은 판 위입니다.** 흐려지는 층 안에 있어서 판이 열려 있는 동안의 알림이 그 판
     // 뒤에서 흐린 채로 떴습니다 — 순위표를 열었을 때의 「서버가 받지 않았습니다」가 정확히
     // 그 자리였고, 알림은 무엇이 열려 있든 읽혀야 하는 것입니다.
-    this.world.addChild(this.recede, this.modals, this.toasts, this.tooltip)
+    // **동전은 모달 위입니다.** 정산 판에서 금액 칸으로 날아가므로 그 판보다 위여야 하고,
+    // 모달이 열려 흐려지는 층 안에 있으면 그 동전도 함께 흐려집니다.
+    this.world.addChild(this.recede, this.modals, this.coins, this.toasts, this.tooltip)
 
     // **내 카드가 계정 칩의 자리에 놓입니다.** 이름을 두 곳에 적으면 같은 것을 두 번 보게
     // 되고, 카드에는 순위까지 있으므로 칩이 남을 이유가 없습니다.
@@ -2362,11 +2361,14 @@ export class Game {
     // 갈지가 정해집니다 — **로그인했거나 싱글플레이로 정했으면 타이틀입니다.**
     void this.hub.boot().then(() => this.openingScene())
 
-    // 동전이 꽂힐 때마다 금액 칸이 튀고 음이 하나 올라갑니다.
-    this.coins.onLand = (index, gain) => {
+    // **잔액은 동전이 닿는 그 순간에 그 몫만큼 바뀝니다.** 동전이 뜨는 순간에 바뀌면 동전은
+    // 이미 끝난 일을 뒤따라가는 그림이고, 첫 동전에 끝값으로 뛰면 나머지 동전은 뜻이
+    // 없습니다. 닿을 때마다 칸이 튀고 음이 하나 올라갑니다.
+    this.coins.onLand = (index, gain, share) => {
+      this.shown.money += share
+      this.money.target = this.shown.money
       this.audio.play(gain ? 'coin_land' : 'coin_lose', index * 2)
-      this.money.target = this.state.money
-      if (gain) this.flashPanel(COLOR.money, 0.5)
+      this.flashPanel(gain ? COLOR.money : COLOR.bad, 0.5)
     }
     this.board.sortableChildren = true
 
@@ -3399,6 +3401,7 @@ export class Game {
     this.arriveFrom = undefined
     this.sellFrom = undefined
     this.boughtFrom = undefined
+    this.moneyFrom = undefined
     this.shopBox = undefined
     this.shopRows = {}
     this.shopFrame = undefined
@@ -3839,13 +3842,16 @@ export class Game {
    * 하나씩 도로 채웁니다.
    */
   private rewind(events: readonly GameEvent[], before: readonly number[]): void {
-    let money = this.state.money
+    // **아직 닿지 않은 동전의 몫도 뺍니다.** 앞 액션의 동전이 날고 있는 채로 다음 액션이
+    // 들어오면 코어의 잔액에는 그 동전들의 돈이 이미 있습니다 — 빼지 않으면 닿을 때 한 번
+    // 더 더해집니다.
+    let money = this.state.money - this.moneyInFlight()
     let score = Number(this.state.score)
     const drawn = new Set<number>()
 
     for (const event of events) {
       switch (event.t) {
-        case 'MoneyChanged': if (!paidNow(event.reason)) money -= event.delta; break
+        case 'MoneyChanged': money -= event.delta; break
         case 'ScoreResolved': score -= event.score; break
         case 'HandDrawn': for (const uid of event.uids) drawn.add(uid); break
         default: break
@@ -3871,11 +3877,23 @@ export class Game {
     this.deals.length = 0
     this.dealtUntil = 0
     this.shown = {
-      money: this.state.money,
+      // **정산 판에 올라 있는 돈은 아직 화면의 것이 아닙니다.** 「받는다」 를 누를 때
+      // 날아가 닿으면서 더해집니다.
+      money: this.state.money - this.moneyInFlight(),
       score: Number(this.state.score),
       hand: this.state.hand.slice(),
       phase: this.state.phase,
     }
+  }
+
+  /**
+   * 코어에는 들어갔지만 화면에는 아직 닿지 않은 돈.
+   *
+   * **날고 있는 동전의 몫과 정산 판에 올라 있는 줄입니다.** 화면의 잔액은 이것을 뺀 값에서
+   * 시작해야 동전이 닿을 때마다 그만큼 오르고, 마지막 동전이 닿으면 코어와 같아집니다.
+   */
+  private moneyInFlight(): number {
+    return this.coins.pending + this.payoutRows.reduce((sum, row) => sum + row.amount, 0)
   }
 
   /**
@@ -4536,6 +4554,7 @@ export class Game {
   // ---------------------------------------------------------------- 연출
 
   private startTimeline(events: GameEvent[]): void {
+    this.moneyFrom = undefined
     const beats = buildTimeline(events, this.feel)
     if (beats.length === 0) {
       this.settleShown()
@@ -4638,9 +4657,11 @@ export class Game {
         // 가리키는 것은 그 카드에 도는 빛 하나로 충분합니다.
         this.flashPanel(tint, 0.4 + step * 0.3)
         this.stop(28 + step * 26 + (mul ? 60 : 0))
-        if (event.money !== 0 && view) {
-          this.coins.fly(event.money, { x: view.x, y: view.y }, this.moneySpot())
-        }
+        // **동전은 뒤따르는 `MoneyChanged` 가 날립니다.** 코어는 돈을 둘로 알립니다 — 누가
+        // 냈는지(이 이벤트)와 얼마가 실제로 들어왔는지(`MoneyChanged`, 빚 한도가 깎은 뒤의
+        // 값). 여기서도 날리면 같은 돈에 동전이 두 무리이고, 그중 하나는 판 가운데에서
+        // 나옵니다. 이 자리는 그 동전이 어디서 나올지만 적어 둡니다.
+        if (event.money !== 0 && view) this.moneyFrom = { x: view.x, y: view.y }
         break
       }
 
@@ -4686,9 +4707,8 @@ export class Game {
           this.stop(48)
         }
 
-        if (money && event.money !== 0 && view) {
-          this.coins.fly(event.money, { x: view.x, y: view.y }, this.moneySpot())
-        }
+        // 동전은 뒤따르는 `MoneyChanged` 가 이 자리에서 날립니다. `CardScored` 와 같습니다.
+        if (money && event.money !== 0 && view) this.moneyFrom = { x: view.x, y: view.y }
         break
       }
 
@@ -4708,6 +4728,14 @@ export class Game {
         this.jolt(4 + beat.intensity * 5, 0.7 + beat.intensity, 0.2)
         this.flashPanel(tint, 0.6)
         this.stop(mul ? 90 : 40)
+        // 판돈 딱지가 낸 돈은 그 딱지의 가운데에서 나옵니다.
+        if (event.money !== 0) {
+          const bounds = this.badge.getLocalBounds()
+          this.moneyFrom = {
+            x: this.badge.x + bounds.x + bounds.width / 2,
+            y: this.badge.y + bounds.y + bounds.height / 2,
+          }
+        }
         break
       }
 
@@ -4742,55 +4770,60 @@ export class Game {
 
       case 'MoneyChanged': {
         if (event.delta === 0) break
-        // **상점에서 오간 돈은 되감지 않았으니 다시 더하지도 않습니다.** 상점은 누른
-        // 그 자리에서 잡액이 바뀌어야 하므로 `rewind` 가 그만큼을 되돌리지 않습니다 —
-        // 동전은 그대로 날아가고, 잡액만 발보다 먼저 갑니다.
-        if (!paidNow(event.reason)) this.shown.money += event.delta
-        this.money.target = this.shown.money
-        const spot = this.moneySpot()
+        // **잔액은 여기서 바뀌지 않습니다.** 동전이 닿는 순간에 그 몫만큼 바뀝니다(`onLand`).
+        // 상점에서 낸 값도 같습니다 — 누른 자리에서 즉시 빼고 동전을 뒤따르게 하던 것은
+        // 동전이 하는 일이 없는 그림이었습니다.
+        //
+        // **정산에 오를 돈은 지금 날지 않습니다.** 카드가 걷히는 판 가운데에는 나올 자리가
+        // 없고, 그 돈이 어디서 온 것인지는 정산 판의 줄이 적습니다 — 「받는다」 를 누르면
+        // 그 판에서 금액 칸으로 날아가고, 그때 잔액이 셉니다.
+        if (this.payoutWanted) {
+          this.payoutRows.push({ reason: event.reason, amount: event.delta })
+          if (this.modals.has(this.payout)) this.drawPayout()
+          break
+        }
         // **판 돈은 내놓은 그 자리에서 나옵니다.** 그것이 어느 것을 내놓아 들어온 돈인지를
-        // 말하는 유일한 표시입니다.
+        // 가리키는 유일한 표시입니다.
         const sold = event.reason === 'sell' ? this.sellFrom : undefined
         if (event.reason === 'sell') this.sellFrom = undefined
-        // **산 값은 산 물건의 가운데에서 나갑니다.** 같은 이유입니다.
+        // **산 값은 산 물건의 가운데에서 금액 칸으로 갑니다.** 같은 이유입니다.
         const bought = event.reason === 'shop' ? this.boughtFrom : undefined
         if (event.reason === 'shop') this.boughtFrom = undefined
+        // **조커·카드·판돈이 낸 돈은 그것에서 나옵니다.** 그 이벤트가 적어 둔 자리입니다.
+        const hosted = this.moneyFrom
         // **건너뛰어 받은 태그의 돈은 그 칩이 앉은 자리에서 나옵니다.** 판 가운데에서
         // 나오면 어느 것이 낸 돈인지가 없습니다.
-        const from = sold ?? bought ?? (this.skipping ? this.tagLanded ?? this.skipFrom : undefined)
+        const tag = this.skipping ? this.tagLanded ?? this.skipFrom : undefined
+        const from = sold ?? bought ?? hosted ?? tag
           ?? (this.state.phase === 'shop' ? this.shopMiddle() : { x: BOARD_X, y: PLAY_Y })
-        this.coins.fly(event.delta, from, spot)
-        this.flashPanel(event.delta > 0 ? COLOR.money : COLOR.bad, 0.7)
-        this.audio.play(event.delta > 0 ? 'joker_money' : 'shop_reroll')
-        if (event.delta > 0) this.jolt(3, 0.6, 0.18)
+        // 태그의 자리만 덧층의 좌표이고 나머지는 판의 좌표입니다.
+        const layer = from === tag ? this.overlay : this.board
+        this.coins.fly(event.delta, this.coinSpot(layer, from), this.moneySpot())
+        // **소리는 낸 쪽이 이미 냈습니다.** 조커·카드가 낸 돈은 그 이벤트가 소리를 냈고,
+        // 여기서 또 내면 같은 돈에 소리가 둘입니다. 닿는 소리는 동전마다 따로 납니다.
+        if (!hosted) this.audio.play(event.delta > 0 ? 'joker_money' : 'shop_reroll')
 
         // **무엇으로 번 돈인가**를 적습니다. 합계만 굴러가면 이유를 알 수 없습니다.
+        // **판 돈은 내놓은 자리에 뜹니다.** 금액 칸 옆에 뜨면 사는 것과 파는 것이 같은
+        // 자리에서 잇달아 떠서 뒤의 것이 앞의 것을 덮습니다.
         const why = moneyReason(event.reason)
         if (why) {
-          // 정산에 오를 것이면 그 판의 한 줄이 됩니다. 아니면 그 자리에 한 번 뜹니다.
-          if (this.payoutWanted) {
-            this.payoutRows.push({ reason: event.reason, amount: event.delta })
-            if (this.modals.has(this.payout)) this.drawPayout()
-          } else {
-            // **판 돈은 내놓은 자리에 뜹니다.** 금액 칸 옆에 뜨면 사는 것과 파는 것이 같은
-            // 자리에서 잇달아 떠서 뒤의 것이 앞의 것을 덮습니다.
-            const line = `${why}  ${event.delta > 0 ? '+' : ''}$${event.delta}`
-            const tint = event.delta > 0 ? COLOR.money : COLOR.bad
-            // 카드의 윗변에 걸쳐 뜹니다. 다른 값들과 같은 규칙입니다.
-            //
-            // **뜯은 팩 뒤에서는 기다립니다.** 바꿔 집는 것은 파는 것과 집는 것이 한
-            // 누름에 일어나는데, 파는 값이 그 자리에서 뜨면 아직 덮여 있는 팩 뒤에
-            // 가려집니다 — 팩이 걷힌 뒤에 뜨고, 새 물건의 이름은 그다음입니다.
-            if (sold && this.packLayer.visible) {
-              const at = { x: sold.x, y: sold.y - RISER_ON_CARD }
-              this.later.push({ at: this.clock + SELL_WAIT, run: () => this.popAt(at, line, tint, 0.7) })
-            }
-            else if (sold) this.popAt({ x: sold.x, y: sold.y - RISER_ON_CARD }, line, tint, 0.7)
-            else if (bought) {
-              this.popAt({ x: bought.x, y: bought.y - RISER_ON_CARD }, line, tint, 0.5)
-            }
-            else this.popAt(this.moneyLabelAnchor(), line, tint, 0.3)
+          const line = `${why}  ${event.delta > 0 ? '+' : ''}$${event.delta}`
+          const tint = event.delta > 0 ? COLOR.money : COLOR.bad
+          // 카드의 윗변에 걸쳐 뜹니다. 다른 값들과 같은 규칙입니다.
+          //
+          // **뜯은 팩 뒤에서는 기다립니다.** 바꿔 집는 것은 파는 것과 집는 것이 한
+          // 누름에 일어나는데, 파는 값이 그 자리에서 뜨면 아직 덮여 있는 팩 뒤에
+          // 가려집니다 — 팩이 걷힌 뒤에 뜨고, 새 물건의 이름은 그다음입니다.
+          if (sold && this.packLayer.visible) {
+            const at = { x: sold.x, y: sold.y - RISER_ON_CARD }
+            this.later.push({ at: this.clock + SELL_WAIT, run: () => this.popAt(at, line, tint, 0.7) })
           }
+          else if (sold) this.popAt({ x: sold.x, y: sold.y - RISER_ON_CARD }, line, tint, 0.7)
+          else if (bought) {
+            this.popAt({ x: bought.x, y: bought.y - RISER_ON_CARD }, line, tint, 0.5)
+          }
+          else this.popAt(this.moneyLabelAnchor(), line, tint, 0.3)
         }
         break
       }
@@ -4980,10 +5013,19 @@ export class Game {
     return anchor
   }
 
-  /** 금액 칸의 가운데. 동전이 여기로 꽂힙니다. */
-
+  /** 금액 칸의 가운데. 동전이 여기로 꽂힙니다. **동전 층의 좌표입니다.** */
   private moneySpot(): { x: number; y: number } {
-    return { x: this.money.x + 62, y: this.money.y + 26 }
+    return this.coinSpot(this.money, { x: 62, y: 26 })
+  }
+
+  /**
+   * 어느 층 안의 자리를 동전 층의 자리로 옮깁니다.
+   *
+   * **동전은 판 위, 모달 위에 있습니다.** 그래서 판 안의 좌표를 그대로 넘길 수 없고, 판이
+   * 흔들리는 동안의 어긋남도 이것이 맞춥니다.
+   */
+  private coinSpot(layer: Container, at: { x: number; y: number }): { x: number; y: number } {
+    return this.coins.toLocal(layer.toGlobal(at))
   }
 
   /** 낸 카드가 늘어선 폭 전체에서 터뜨립니다. 한 점에서 터지면 찔끔 나온 것으로 보입니다. */
@@ -5531,6 +5573,13 @@ export class Game {
     this.advancePayout(seconds)
     this.advanceRatchet(seconds)
     this.advanceBurningItems(seconds)
+    // **동전은 모달 바로 위에 섭니다.** 층들이 보일 때 스스로 맨 위로 올라가는 일이 있어
+    // (`addChild` 는 이미 있는 것을 끝으로 옮깁니다) 처음 정한 차례가 그대로 남지 않습니다 —
+    // 정산 판 위로 날아가야 하므로, 나는 동안은 모달 바로 위로 다시 세웁니다.
+    if (this.coins.busy) {
+      const want = this.world.getChildIndex(this.modals) + 1
+      if (this.world.getChildIndex(this.coins) !== want) this.world.setChildIndex(this.coins, want)
+    }
     this.coins.advance(seconds)
     this.toasts.advance(seconds)
     this.decayFlashes(seconds)
@@ -9277,6 +9326,13 @@ export class Game {
       this.payoutWanted = false
       delete this.spots.take
       this.takeSpot = undefined
+      // **받는 순간에 돈이 판에서 금액 칸으로 날아갑니다.** 합계가 선 자리에서 나오고, 닿는
+      // 만큼 잔액이 오릅니다 — 판이 서 있는 동안 잔액은 판 앞의 값 그대로입니다.
+      if (sum !== 0) {
+        const at = layer.toGlobal({ x: sumText.x - sumText.width / 2, y: sumText.y })
+        this.coins.fly(sum, this.coins.toLocal(at), this.moneySpot())
+      }
+      this.payoutRows.length = 0
       this.modals.close(this.payout)
     }, 16)
     take.position.set((width - 240) / 2, buttonTop)

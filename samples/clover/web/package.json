@@ -28,6 +28,7 @@
     "check:joker-voice": "tsx tools/check-joker-voice.ts",
     "check:stock-notes": "tsx tools/check-stock-notes.ts",
     "check:wake": "tsx tools/check-wake.ts",
+    "check:coins": "tsx tools/check-coins.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "headless": "tsx src/headless.ts",
