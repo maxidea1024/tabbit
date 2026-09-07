@@ -797,6 +797,8 @@ export class Audio {
     muted: boolean; holding: boolean; voices: number; sweeps: string[]
     samples: number; played: string[]; squeeze: number; peak: number
     calls: Record<string, number>
+    outLatency?: number; baseLatency?: number; stamp?: number
+    rate?: number; channels?: number
   } {
     const context = this.context
     const now = context?.currentTime ?? 0
@@ -823,6 +825,18 @@ export class Audio {
       squeeze: this.squeeze ? Number(this.squeeze.reduction.toFixed(2)) : -1,
       // **출력에 실제로 흐르는 값.** 0 이 아니면 게임은 소리를 내고 있습니다.
       peak: Number(this.loudest.toFixed(4)),
+      // **소리가 기계까지 가고 있는가.**
+      //
+      // 그래프 안에서 값이 흐르는 것과 그것이 스피커로 나가는 것은 다른 일입니다. 여기
+      // 셋이 그것을 가릅니다 — `outLatency` 가 0 이면 실제 출력 스트림이 없는 것이고,
+      // `stamp` 가 늘지 않으면 오디오 스레드가 프레임을 내보내지 않는 것입니다.
+      ...(context ? {
+        outLatency: Number((context.outputLatency ?? 0).toFixed(4)),
+        baseLatency: Number((context.baseLatency ?? 0).toFixed(4)),
+        stamp: Number((context.getOutputTimestamp?.().contextTime ?? 0).toFixed(2)),
+        rate: context.sampleRate,
+        channels: context.destination.channelCount,
+      } : {}),
     }
   }
 

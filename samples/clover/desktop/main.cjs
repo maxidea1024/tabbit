@@ -105,6 +105,21 @@ protocol.registerSchemesAsPrivileged([{
 }])
 
 /**
+ * 소리를 이 프로세스 안에서 냅니다.
+ *
+ * **크로미움은 소리를 별도의 오디오 서비스 프로세스에서 냅니다.** 그 프로세스는 출력 장치가
+ * 바뀌면 스트림을 다시 엽니다 — 원격 데스크탑은 세션이 붙고 떨어질 때마다 그것을 바꾸고,
+ * 그때 스트림이 아무 데도 가지 않는 자리로 열리는 일이 있습니다. **소리 길은 `running`
+ * 이고 표본율도 채널 수도 멀쩡한데 아무것도 들리지 않습니다** — `destination` 에 곧바로
+ * 붙인 오실레이터까지 안 들리므로 게임 쪽에서 고칠 것이 없습니다.
+ *
+ * 한 프로세스 안에서 내면 그 갈아 끼우기를 지나지 않습니다.
+ *
+ * **`app.whenReady()` 앞이어야 합니다.** 스위치는 소리 길이 세워지기 전에 읽힙니다.
+ */
+app.commandLine.appendSwitch('disable-features', 'AudioServiceOutOfProcess,AudioServiceSandbox')
+
+/**
  * 화면을 굽고 끝냅니다.
  *
  * **웹의 `tools/shoot.ts` 와 같은 이유로 있습니다** — 창이 뜨는 것과 그 안이 제대로 그려지는
