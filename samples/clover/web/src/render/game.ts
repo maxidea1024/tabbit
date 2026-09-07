@@ -41,7 +41,7 @@ import { BackgroundFilter } from '../shader/background'
 import { PunchFilter } from '../shader/punch'
 import { ArriveFilter } from '../shader/arrive'
 import { DissolveFilter } from '../shader/dissolve'
-import { Audio, ladder } from '../feedback/audio'
+import { Audio, ladder, type ToneName } from '../feedback/audio'
 import { CardView, type EditionLook } from './card-view'
 import { BlindBadge, Slot } from './hud'
 import { JokerView } from './joker-view'
@@ -351,6 +351,21 @@ const DEALER = { x: SIZE.width + 150, y: PLAY_Y - 190 }
  * 것이 같은 순간이면 마지막 한 장이 어디로 갔는지가 남지 않습니다.
  */
 const DECK_LINGER = 0.5
+/** 회수하는 카드가 한 장씩 떠나는 간격. */
+const RECALL_STEP = 0.018
+/**
+ * 걷는 소리와 회수 소리 사이의 쉼.
+ *
+ * **둘이 붙어 있으면 한 몸짓으로 들립니다.** 마지막 카드가 나간 그 프레임에 회수가
+ * 시작되어 사이가 0.07초였고, 걷는 것과 쌓이는 것이 이어진 하나로 들렸습니다.
+ */
+const RECALL_REST = 0.24
+/**
+ * 내보낸 카드 한 장이 화면을 떠나기까지.
+ *
+ * **예약이 빈 것과 나가는 것이 끝난 것이 다르므로** 그 차이를 이 값으로 셉니다.
+ */
+const RETIRE_TAIL = 0.3
 /**
  * 카드를 다 거둔 뒤 정산이 서기까지의 한 박자.
  *
@@ -442,6 +457,19 @@ const HOLD_TIP = 0.45
 const HOLD_SLACK = 16
 const HAND_Y = 608
 /**
+ * 줄에 선 것들이 서로를 덮는 차례.
+ *
+ * **`addChild` 순서로는 정해지지 않습니다.** 판은 `zIndex` 로 정렬하므로 값이 같은 것들은
+ * 들어온 순서로 남고, 그 순서는 깔린 순서입니다 — 정렬 단추가 배열의 차례를 바꾸어도
+ * 겹침은 그대로였고, 그것이 「정렬했는데 겹침이 뒤죽박죽」의 원인이었습니다.
+ *
+ * **배열의 색인이 곧 이 값입니다.** 차례를 바꾸는 자리마다 겹침을 따로 되돌리지 않도록,
+ * 다시 그릴 때 한 자리에서 정합니다.
+ */
+const ROW_Z = 10
+/** 끄는 동안 들어 올리는 자리. **줄의 어느 것보다 위, 낸 카드보다 아래입니다.** */
+const DRAG_Z = 90
+/**
  * 펼친 팩의 카드가 서는 자리.
  *
  * **손패가 서는 그 줄입니다.** 상점에서는 손패가 비어 있고, 뜯은 팩에서 고르는 것은 그
@@ -480,6 +508,14 @@ const SORT_W = 112
 const SORT_H = 42
 /** 정렬 단추가 숨을 때 내려가는 거리. 화면 아래 밖까지입니다. */
 const SORT_HIDE = 120
+/**
+ * 블라인드를 고르는 동안 배경음을 낮추는 정도. 설정값에 대한 비율입니다.
+ *
+ * **곡을 끊지 않습니다.** 무엇과 붙을지 정하는 자리는 판이 도는 중이 아니므로 물러나야
+ * 하지만, 조용해지면 판이 화면마다 토막나고 고르는 자리에서 분위기가 한 번 없어집니다 —
+ * 절반이면 물러난 것으로 들리면서 그 곡이 이어지고 있는 것으로도 들립니다.
+ */
+const BLIND_MUSIC_DIM = 0.5
 /**
  * 판의 밑단에 서는 단추의 높이.
  *
@@ -1133,8 +1169,26 @@ export class Game {
    * 중이고, 그 동안에도 마우스가 닿으면 지나가는 카드가 들려 올라갑니다.
    */
   private dealtUntil = 0
+  /**
+   * 마지막으로 내보낸 카드가 화면을 떠날 때까지.
+   *
+   * **예약이 빈 것과 나가는 것이 끝난 것은 다릅니다.** 나가기는 예약을 꺼내는 그 프레임에
+   * 시작되므로, 한 장을 버리면 예약이 그 프레임에 비고 남은 것이 하나도 없습니다 —
+   * 「남은 것이 있는 동안 지속 보이스를 낸다」로만 보고 있어서, **한 장을 버릴 때는
+   * 나가는 소리도 맺음도 나지 않았습니다.** 깔기 쪽은 `dealtUntil` 이 그것을 막고
+   * 있었고 여기만 없었습니다.
+   */
+  private fadeUntil = 0
   /** 이 시각까지는 덱이 자리에 남습니다. 마지막 카드가 덱에 닿을 때 정해집니다. */
   private deckHold = 0
+  /**
+   * 이 시각이 지나야 덱으로 돌려보냅니다.
+   *
+   * **걷는 것과 회수가 붙어 있으면 한 몸짓으로 들립니다.** 마지막 카드가 나간 그 프레임에
+   * 회수가 시작되어 두 지속 보이스의 사이가 0.07초였고, 그러면 뒤의 것이 앞의 것의
+   * 이어짐이 됩니다 — 걷는 소리가 잦아들 자리를 줍니다.
+   */
+  private recallRest = 0
   private readonly jokers = new Map<number, JokerView>()
   /** 타는 중인 조커들. 다 타면 치웁니다. */
   private readonly burning: JokerView[] = []
@@ -1764,12 +1818,22 @@ export class Game {
   /** 예약해 둔 소리. 음이 하나씩 올라가는 아르페지오를 이것으로 냅니다. */
   private readonly chimes: { at: number; cue: string; semitones: number }[] = []
   /**
-   * 상점에 물건이 앉는 소리. **음원 없이 음 하나입니다.**
+   * 예약해 둔 음. **음원 없이 음 하나씩입니다.**
    *
-   * 여기 쓰던 `card_place` 는 0.689초라 꼬리가 다음 물건까지 남았고, 일곱 번이 같은
-   * 음이었습니다. 진열은 물건이 하나씩 놓이는 것이므로 소리도 하나씩 올라가야 합니다.
+   * 상점의 진열이 여기 쓰던 `card_place` 는 0.689초라 꼬리가 다음 물건까지 남았고, 일곱
+   * 번이 같은 음이었습니다. 진열은 물건이 하나씩 놓이는 것이므로 소리도 하나씩 올라가야
+   * 합니다.
+   *
+   * **오르는 것을 음원으로 내지 않습니다.** 음원의 음높이는 재생 속도이고 그것은 3반음이
+   * 상한이라(`SAMPLE_TILT_MOST`), 여섯 계단을 음원으로 내면 여섯이 거의 같은 음입니다 —
+   * 격파의 여섯 음이 실제로 그랬고, 0.35초 안에 같은 음원 여섯이 겹쳐 겹침 계수기가 그중
+   * 둘을 물러나게 했습니다.
    */
-  private readonly stockNotes: { at: number; step: number }[] = []
+  private readonly notes: {
+    at: number; name: ToneName; step: number; strength: number; pan: number
+    /** 다음 음까지의 간격. **밀린 소절을 다시 벌리는 데 씁니다.** */
+    gap: number
+  }[] = []
 
   /**
    * 상점의 것들이 하나씩 서는 것.
@@ -1992,6 +2056,17 @@ export class Game {
   }
   /** 자리를 비우는 화면이 든 정도. 0 에서 1 로 갑니다. */
   private focusEnter = 0
+  /**
+   * 자리를 비우는 판이 이 시각까지는 서 있습니다.
+   *
+   * **치른 값이 그 판의 카드 위에 뜹니다.** 교체하는 동안 상점은 내려가 있고 산 것은 아직
+   * 줄에 없으므로, 화면에서 그 물건을 가리키는 것은 판 옆에 세운 카드 하나뿐입니다 —
+   * 고른 그 프레임에 판을 걷었더니 값이 아무것도 없는 자리에서 났습니다.
+   *
+   * **상점의 딱지가 그 자리에 남는 것과 같은 일이고 같은 시간입니다**(`BUY_LINGER`).
+   * 물건은 그 시각에 이 카드에서 날아가므로, 판은 물건이 떠날 때까지 서 있습니다.
+   */
+  private focusHold = 0
   /**
    * 상점이 이 시각까지는 내려가 있습니다.
    *
@@ -2553,7 +2628,12 @@ export class Game {
     // 오늘만 그런 자리가 다섯 곳이었고, 그중 하나는 「소리 0번」을 타이틀 화면에서 재고
     // 있었습니다. 눌린 것이 무대 자신이면 그 누름은 아무것도 맞히지 못한 것입니다.
     app.stage.on('pointerdown', event => {
-      if (event.target === app.stage) this.blankTaps++
+      if (event.target !== app.stage) return
+      this.blankTaps++
+      // **아무것도 없는 곳을 누르면 고른 것을 놓습니다.** 설명 쪽지가 사라지는 것과 같은
+      // 처리입니다 — 조커를 눌러 「판다」가 서 있는 채로 다른 일을 하러 가면 그 단추가
+      // 화면에 남고, 그것이 지금 누를 것으로 보입니다.
+      this.dismissOnBlank()
     })
     app.stage.on('globalpointermove', event => {
       const at = this.world.toLocal(event.global)
@@ -2913,6 +2993,26 @@ export class Game {
    * 스크립트가 닫지 못하므로, 거기서 `ESC` 를 누를 때마다 「나갈 수 없습니다」가 뜨면
    * 그것은 알림이 아니라 방해입니다.
    */
+  /**
+   * 아무것도 없는 곳을 눌렀습니다. **한 단계만 놓습니다.**
+   *
+   * `back` 과 같은 사다리를 쓰되 맨 아래 한 칸이 없습니다 — 그쪽은 사람이 「나가기」를
+   * 뜻하고 누른 것이므로 판을 접을지 묻지만, 빈자리를 누른 것은 그 뜻이 아닙니다.
+   *
+   * **고른 것 · 자리를 비우는 판이 모두 같은 규칙입니다.** 상점의 칸도 팩의 카드도 조커
+   * 줄도 한 번 누르면 그 밑에 단추가 서는 같은 문법이므로, 놓는 길도 하나여야 합니다.
+   */
+  private dismissOnBlank(): void {
+    if (this.modals.busy) return
+    if (this.held) {
+      this.held = undefined
+      this.audio.play('card_select', 0, 0, -8)
+      this.refresh()
+      return
+    }
+    if (this.focus) this.leaveFocus()
+  }
+
   private back(): void {
     if (this.modals.busy) {
       this.modals.closeTop()
@@ -3399,6 +3499,8 @@ export class Game {
     for (const one of this.recalls) one.node.destroy()
     this.recalls.length = 0
     this.retired = 0
+    this.fadeUntil = 0
+    this.recallRest = 0
     // 떠오르던 차이 글. **글은 두고 상태만 되돌립니다** — 풀이므로 다시 쓰입니다.
     for (const one of this.deltas) one.node.visible = false
     this.panelShown = { hands: -1, discards: -1, ante: -1 }
@@ -3444,6 +3546,7 @@ export class Game {
     this.packPending = false
     this.focus = undefined
     this.focusEnter = 0
+    this.focusHold = 0
     this.shopHoldUntil = 0
     this.shopStayUntil = 0
     this.sortSlide.snap(SORT_HIDE)
@@ -3462,6 +3565,7 @@ export class Game {
     this.reveals.length = 0
     this.later.length = 0
     this.chimes.length = 0
+    this.notes.length = 0
     this.arriveFrom = undefined
     this.sellFrom = undefined
     this.boughtFrom = undefined
@@ -3591,9 +3695,15 @@ export class Game {
     this.score.position.set(LEFT, PANEL_ROWS.score)
     // **자원 넷은 오르내림이 바탕색에 드러납니다.** 라운드 득점과 칩·배수는 오르기만 하므로
     // 그 색이 아무것도 가르지 않습니다.
-    for (const slot of [this.hands, this.discards, this.money, this.anteSlot]) {
-      slot.signed = true
-    }
+    //
+    // **금액만입니다.** 핸드 · 버리기 · 안티는 늘고 주는 것이 ±N 글로 이미 적히고, 그
+    // 위에 바탕까지 물들면 판이 도는 동안 왼쪽 판의 칸 넷이 번갈아 밝습니다 — 그러면
+    // 밝은 것이 무엇도 가리지 않습니다. 돈은 이 게임에서 늘 중요하므로 남깁니다.
+    this.money.signed = true
+    // **칩과 배수는 오를 때만 들뜹니다.** 판이 끝나 0으로 되돌아가는 것은 알릴 일이
+    // 아닌데도 바탕이 밝고 숫자가 떨었습니다.
+    this.chips.quietOnDrop = true
+    this.mult.quietOnDrop = true
     // **네 무리이고 사이가 26입니다.** 이 넷은 판이 도는 동안 가끔 보는 것이고 칩과 배수는
     // 매 순간 보는 것인데, 사이가 12·30·12로 제각각이면 여섯 칸이 한 덩어리로 보여서
     // 그중 어느 둘이 지금 중요한지가 자리로 드러나지 않습니다.
@@ -3758,10 +3868,9 @@ export class Game {
       // 짙게 눌러 씁니다. **원색 그대로는 흰 숫자가 눌러앉지 못합니다.**
       g.roundRect(area.x, area.y, area.width, area.height, CHIPS_R)
         .fill({ color: boxInk(tint), alpha: lit })
-      // 테는 원색입니다. **다 밝았을 때 그 상자의 윤곽이 색으로 남습니다.**
-      g.roundRect(area.x + 0.75, area.y + 0.75, area.width - 1.5, area.height - 1.5,
-        insetRadius(CHIPS_R, 0.75))
-        .stroke({ color: tint, width: 1.5, alpha: lit })
+      // **테는 건드리지 않습니다.** 색을 얹으면 밝은 동안 그 상자만 다른 문법으로 그려진
+      // 것이 되고, 값이 굴러가는 내내 테 하나가 색을 바꾸며 굵어졌다 가늘어집니다 —
+      // 알릴 것은 바탕 하나로 족합니다.
     }
   }
 
@@ -4061,7 +4170,7 @@ export class Game {
   }
 
   private play(): void {
-    if (this.selected.size === 0 || this.player.busy) return
+    if (this.selected.size === 0 || !this.handReady) return
     const cards = this.orderedSelection()
     this.selected.clear()
     // **카드를 올리는 것도 박자입니다.** 여기서 올리고 득점을 따로 세면 둘의 간격이 코드에
@@ -4070,7 +4179,7 @@ export class Game {
   }
 
   private discard(): void {
-    if (this.selected.size === 0 || this.player.busy) return
+    if (this.selected.size === 0 || !this.handReady) return
     const cards = this.orderedSelection()
     this.selected.clear()
     // 버리는 것도 한 장씩입니다. **한 덩어리로 사라지면 몇 장을 버렸는지가 남지 않습니다.**
@@ -4084,14 +4193,14 @@ export class Game {
 
   /** 패를 정렬합니다. **낼 것을 고르는 일이 훨씬 쉬워집니다.** */
   private clearSelection(): void {
-    if (this.selected.size === 0 || this.player.busy) return
+    if (this.selected.size === 0 || !this.handReady) return
     this.selected.clear()
-    this.audio.play('card_select', -6)
+    this.audio.play('card_select', 0, 0, -6)
     this.refresh()
   }
 
   private sortHand(by: 'rank' | 'suit'): void {
-    if (this.player.busy) return
+    if (!this.handReady) return
     const before = this.state.hand.slice()
     const cards = this.state.hand
       .map(uid => this.state.deck.find(card => card.uid === uid))
@@ -4144,7 +4253,7 @@ export class Game {
    * 오르면 그 뜻이 묽어지고, 정작 득점의 사다리가 특별하지 않게 됩니다.
    */
   private toggle(uid: number): void {
-    if (this.player.busy) return
+    if (!this.handReady) return
     if (this.selected.has(uid)) this.selected.delete(uid)
     else if (this.selected.size < this.data.run.maxPlayedCards) this.selected.add(uid)
     this.audio.play('card_select')
@@ -4259,7 +4368,7 @@ export class Game {
     } else if (this.dealing) {
       // **다 깔린 자리에 맺음 하나.** 지속 보이스는 끝을 알리지 않습니다.
       this.dealing = false
-      this.audio.play('card_place', -3)
+      this.audio.play('card_place', 0, 0, -3)
     }
 
     if (!dealt) return
@@ -4306,7 +4415,7 @@ export class Game {
       // 덱과 같은 층입니다. 덱이 물러나기 시작해도 돌아오는 카드가 그것을 따라갑니다 —
       // 판이 끝나면 덱은 오른쪽으로 빠지는데, 층이 다르면 카드만 빈자리로 들어갑니다.
       this.deckLayer.addChild(sheet)
-      this.recalls.push({ node: sheet, motion, at: this.clock + i * 0.018, sent: false })
+      this.recalls.push({ node: sheet, motion, at: this.clock + i * RECALL_STEP, sent: false })
     }
   }
 
@@ -4504,13 +4613,14 @@ export class Game {
     // 합은 13dB 위입니다. 몇 장에 한 번으로 줄여도 0.6초짜리 음원 다섯이 겹쳐 남는 것은
     // 「드르르륵」이었고, 그것은 카드가 쌓이는 소리가 아닙니다.
     if (this.recalls.length > 0) {
-      this.audio.sweep('recall', 0.14)
+      this.audio.sweep('recall', 0.14, 1,
+        Math.max(0.14, this.recalls.length * RECALL_STEP + 0.14))
       this.recalling = true
     } else if (this.recalling) {
       // **마지막 한 장이 닿은 자리에 맺음 하나.** 지속 보이스는 끝을 알리지 않으므로,
       // 그것만으로는 잦아든 것이 「끝났다」로 읽히지 않습니다.
       this.recalling = false
-      this.audio.play('card_place', -5)
+      this.audio.play('card_place', 0, 0, -5)
     }
   }
 
@@ -4525,6 +4635,8 @@ export class Game {
       // 보였습니다.
       next.view.retire(DEALER.x, DEALER.y)
       this.retired++
+      // 이 한 장이 화면을 떠날 때까지가 아직 「나가는 중」입니다.
+      this.fadeUntil = Math.max(this.fadeUntil, this.clock + RETIRE_TAIL)
       // **조용히 나갑니다.** 버린 카드에만 조각을 흩뿌렸는데, 그러면 버리는 것과 득점하고
       // 물러나는 것이 화면에서 다른 일로 보입니다 — 둘 다 그 카드가 이 판에서 없어지는
       // 것이고, 무엇이 없어졌는지는 카드가 나가는 것으로 이미 보입니다.
@@ -4533,12 +4645,21 @@ export class Game {
     // **나가는 동안 하나만 냅니다.** 장마다 `card_destroy` 를 냈고 그 음원이 0.693초라,
     // 여덟 장이 나가면 여덟이 겹쳤습니다 — 회수가 그 뒤에 이어지므로 둘이 함께 「드르르륵」
     // 이 되던 자리입니다.
-    if (this.fades.length > 0) {
-      this.audio.sweep('retire', 0.16)
+    //
+    // **예약이 빈 뒤에도 나가는 중입니다.** 한 장만 버리면 예약이 꺼내는 그 프레임에
+    // 비므로, 남은 개수만 보면 그 한 장은 소리 없이 나갔습니다.
+    if (this.fades.length > 0 || this.clock < this.fadeUntil) {
+      // 대역은 남은 장수만큼 걸려 옮겨 갑니다. **몸짓의 길이와 소리의 길이가 같아야
+      // 어디까지 왔는지가 들립니다.**
+      this.audio.sweep('retire', 0.16, 1,
+        Math.max(0.16, this.fades.length * (this.feel.playStaggerMs / 1000) + RETIRE_TAIL))
       this.sweepingOut = true
     } else if (this.sweepingOut) {
       this.sweepingOut = false
-      this.audio.play('card_destroy', -7)
+      this.audio.play('card_destroy', 0, 0, -7)
+      // **걷는 소리가 잦아들 자리를 줍니다.** 이 뒤에 회수가 이어지는데, 붙어 있으면
+      // 두 몸짓이 하나로 들립니다.
+      this.recallRest = this.clock + RECALL_REST
     }
   }
 
@@ -4943,7 +5064,9 @@ export class Game {
         this.audio.play('blind_clear')
         this.audio.music.duck(0.55, 1.3)
         this.haptics.play('clear')
-        this.chime('coin_land', 6, 3, 0.07)
+        // **격파의 소리가 지나간 뒤에 오릅니다.** 같은 순간에 시작하면 첫 음이 그 소리
+        // 밑에 묻히고, 그러면 오르는 것이 다섯 계단으로 들립니다.
+        this.flourish('glass', 6, { gap: 0.11, after: 0.18, strength: 0.85 })
         this.burstAcrossPlayArea(46, COLOR.good, 2.4, 2.6)
         this.particles.burst(BOARD_X, PLAY_Y - 60, 70, COLOR.money, 2.6, 2.8)
         this.particles.burst(BOARD_X, 210, 44, COLOR.good, 2.2, 2.4)
@@ -4987,8 +5110,8 @@ export class Game {
         // 이기는 것을 조건으로 둡니다.
         this.recordWin()
         this.say(t('ui.label.all_cleared'), COLOR.money, 2.8)
-        this.chime('coin_land', 10, 2, 0.06)
         this.audio.play('blind_clear')
+        this.flourish('bell', 10, { gap: 0.13, after: 0.18, strength: 0.8 })
         this.particles.burst(BOARD_X, SIZE.height / 2, 120, COLOR.money, 2.6)
         this.jolt(8, 3.4, 1)
         this.flashScreen(COLOR.money, 0.44)
@@ -5222,10 +5345,25 @@ export class Game {
     return ladder(this.rung)
   }
 
-  /** 음이 하나씩 올라가는 소리 여러 개. **오르는 음이 「해냈다」로 읽힙니다.** */
-  private chime(cue: string, count: number, step = 3, gap = 0.075): void {
+  /**
+   * 음이 하나씩 올라가는 한 소절. **오르는 음이 「해냈다」로 읽힙니다.**
+   *
+   * **음원이 아니라 음입니다.** 음원으로 내면 재생 속도가 3반음에서 멈추므로 여섯 계단이
+   * 여섯 번 같은 소리이고, 짧은 음원 여섯이 0.35초 안에 겹쳐 겹침 계수기에 걸립니다 —
+   * 질감은 그 자리의 큰 신호 하나가 이미 내고 있고, 여기서 낼 것은 가락입니다.
+   *
+   * `after` 는 첫 음까지 기다리는 시간입니다. **큰 신호의 앞머리를 비켜 갑니다** —
+   * 격파의 소리와 첫 음이 같은 순간에 나면 그 음은 들리지 않습니다.
+   */
+  private flourish(name: ToneName, count: number,
+                   { gap = 0.1, after = 0, strength = 0.8, step = 1 } = {}): void {
     for (let i = 0; i < count; i++) {
-      this.chimes.push({ at: this.clock + i * gap, cue, semitones: i * step })
+      this.notes.push({
+        at: this.clock + after + i * gap,
+        name, step: i * step, strength, gap,
+        // 왼쪽에서 오른쪽으로 지나갑니다. 오르는 것이 자리로도 읽힙니다.
+        pan: count > 1 ? -0.3 + (i / (count - 1)) * 0.6 : 0,
+      })
     }
   }
 
@@ -5234,13 +5372,24 @@ export class Game {
       const next = this.chimes.shift()
       if (next) this.audio.play(next.cue, next.semitones)
     }
-    while (this.stockNotes.length > 0 && this.stockNotes[0].at <= this.clock) {
-      const next = this.stockNotes.shift()
-      // **왼쪽부터 앉으므로 소리도 왼쪽부터입니다.** 진열이 어느 쪽까지 왔는지가
-      // 화면을 보지 않아도 들립니다.
+    // **한 프레임에 한 음이고, 밀렸으면 다시 벌립니다.**
+    //
+    // 오르는 소절은 음 사이의 간격이 곧 그 소절이므로, 밀린 것이 한 번에 나오면 소절이
+    // 화음 하나가 됩니다 — 여섯 음이 0.11초 간격으로 예약되어 있는데 그 사이에 프레임이
+    // 길어지면(그림을 굽느나 멈추거나 히트스톱이 이어지면) 전부 지난 시각이 되고, 한
+    // 프레임에 하나씩 내보내도 0.017초 간격입니다.
+    //
+    // **남은 것을 통째로 밀어 둡니다.** 그러면 소절이 늦게 시작하더라도 간격은 그대로이고,
+    // 늦게 시작한 것은 들리지 않습니다.
+    if (this.notes.length > 0 && this.notes[0].at <= this.clock) {
+      const next = this.notes.shift()
       if (next) {
-        this.audio.tone('marimba', ladder(next.step), 0.7,
-          -0.35 + Math.min(1, next.step / 6) * 0.7)
+        this.audio.tone(next.name, ladder(next.step), next.strength, next.pan)
+        const ahead = this.notes[0]
+        if (ahead && ahead.at <= this.clock) {
+          const push = this.clock + next.gap - ahead.at
+          for (const one of this.notes) one.at += push
+        }
       }
     }
   }
@@ -5746,8 +5895,12 @@ export class Game {
     // **판이 끝났고 카드가 다 나갔으면 덱으로 돌아옵니다.** 한 판을 도는 동안 나간 카드
     // 전부가 한 번에 돌아옵니다 — 격파한 그 박자에 그때까지 나간 것만 돌려보내면, 낸 카드와
     // 손패는 다음 판의 격파에 가서야 돌아옵니다.
+    //
+    // **걷는 소리가 잦아든 뒤입니다**(`recallRest`) — 마지막 카드가 나간 그 프레임에
+    // 시작하면 걷는 것과 쌓이는 것이 한 몸짓으로 들립니다.
     if (this.state.phase !== 'round' && this.retired > 0 && !this.player.busy
-        && this.playedViews.length === 0 && this.fades.length === 0) {
+        && this.playedViews.length === 0 && this.fades.length === 0
+        && !this.sweepingOut && this.clock >= this.recallRest) {
       this.recallToDeck()
     }
 
@@ -5931,22 +6084,22 @@ export class Game {
 
   /** 번쩍임은 줄어듭니다. 패널은 빠르게, 화면은 더 빠르게 — 오래 남으면 눈이 아픕니다. */
   private decayFlashes(seconds: number): void {
-    // **모양은 몇 번만, 밝기는 매 프레임.** 지오메트리를 다시 만드는 것이 비싼 쪽이고 알파는
-    // 값 하나입니다 — 테두리 굵기만 모양에 들어가므로 그것을 8단계로 끊어 단계가 바뀔 때만
-    // 다시 그리고, 잦아드는 것은 알파로 합니다. 득점 중에는 카드마다 번쩍이므로 이것이
-    // 사실상 매 프레임 돌던 것입니다.
+    // **모양은 색이 바뀔 때만, 밝기는 매 프레임.** 지오메트리를 다시 만드는 것이 비싼
+    // 쪽이고 알파는 값 하나입니다 — 잦아드는 것은 알파로 합니다. 득점 중에는 카드마다
+    // 번쩍이므로 이것이 사실상 매 프레임 돌던 것입니다.
+    //
+    // **테는 두르지 않습니다.** 굵기와 색이 함께 움직이는 테는 카드가 하나씩 득점하는
+    // 동안 판의 윤곽이 내내 자랐다 줄어드는 것이 되고, 그 움직임이 정작 읽어야 하는
+    // 숫자보다 큽니다 — 그것을 걷고 나서 모양은 색 하나에만 달립니다.
     if (this.panelGlow > 0.002) {
       this.panelGlow = Math.max(0, this.panelGlow - seconds * 3.6)
       const ease = this.panelGlow * this.panelGlow
-      const step = Math.round(ease * 8) / 8
-      const key = `${this.panelTint}|${step}`
+      const key = String(this.panelTint)
       if (key !== this.panelKey) {
         this.panelKey = key
         this.panelFlash.clear()
         this.panelFlash.roundRect(LEFT - 12, 22, PANEL_W + 24, SIZE.height - 44, 12)
           .fill({ color: this.panelTint, alpha: 0.3 })
-        this.panelFlash.roundRect(LEFT - 11, 23, PANEL_W + 22, SIZE.height - 46, 11)
-          .stroke({ color: this.panelTint, width: 1 + step * 4, alpha: 1 })
       }
       this.panelFlash.alpha = ease
       this.panelDrawn = true
@@ -6092,10 +6245,16 @@ export class Game {
     // 내려왔습니다.
     const blocked = this.touching || this.modals.busy
       || this.shown.phase === 'lost' || this.shown.phase === 'won'
-    // **뽑는 동안에는 카드에 올려지지 않습니다.** 마우스가 나오는 길목에 있으면 지나가는
-    // 카드마다 차례로 들려 올라가고, 그것은 고르는 것으로도 지나가는 것으로도 읽히지
-    // 않습니다.
-    const dealing = this.deals.length > 0 || this.clock < this.dealtUntil
+    // **손패를 만질 수 있는 때만 카드에 올려집니다.**
+    //
+    // 뽑는 동안이 그 하나였습니다 — 마우스가 나오는 길목에 있으면 지나가는 카드마다 차례로
+    // 들려 올라가고, 그것은 고르는 것으로도 지나가는 것으로도 읽히지 않습니다. **득점이
+    // 도는 동안도 같습니다** — 그때 보는 것은 판에 올라간 카드이고, 밑에 남은 손패가
+    // 커서를 따라 들리면 눈이 그쪽으로 끌립니다.
+    //
+    // **조커 줄은 막지 않습니다.** 득점이 도는 동안 어느 조커가 무엇을 내는지는 그 설명으로
+    // 읽으므로, 그쪽은 그때가 오히려 볼 때입니다.
+    const quiet = !this.handReady
     // **뜯은 팩은 판 위에 펼쳐집니다.** 그 아래의 손패까지 커서를 받으면 펼친 카드 뒤에서
     // 카드가 들립니다 — 조커 줄은 팩 위쪽에 그대로 서 있으므로 그쪽은 막지 않습니다.
     // 조커의 설명이 이 길로만 뜨고, 무엇을 집을지는 지금 든 조커를 읽고 정합니다.
@@ -6106,7 +6265,7 @@ export class Game {
 
     if (!blocked) {
       for (const view of this.cards.values()) {
-        if (dealing || overlaid) break
+        if (quiet || overlaid) break
         if (!near(this.pointerAt, view.motion, SIZE.cardWidth, SIZE.cardHeight)) continue
         if (!card || view.motion.x.target > card.motion.x.target) card = view
       }
@@ -8366,6 +8525,7 @@ export class Game {
    */
   private syncMusic(): void {
     if (this.scene !== 'run') {
+      this.audio.music.dim = 1
       this.audio.music.play('title')
       return
     }
@@ -8377,13 +8537,17 @@ export class Game {
       this.audio.music.play(undefined)
       return
     }
-    // **블라인드를 고르는 동안은 조용합니다.** 무엇과 붙을지 정하는 자리이므로 판이 도는
-    // 중이 아니고, 라운드의 음악이 그 위로 흐르면 고르는 그 순간이 라운드의 일부로
-    // 들립니다 — 고르고 나서 음악이 드는 것이 판이 시작된 것입니다.
-    if (phase === 'blind-select') {
-      this.audio.music.play(undefined)
-      return
-    }
+    // **블라인드를 고르는 동안은 반만 냅니다.** 무엇과 붙을지 정하는 자리이므로 판이 도는
+    // 중이 아니고, 고르고 나서 곡이 제 크기로 드는 것이 판이 시작된 것입니다.
+    //
+    // 한동안 여기서 곡을 끊었는데, 그러면 고르는 자리마다 분위기가 한 번 없어지고 판이
+    // 여러 화면으로 토막납니다 — 같은 곡이 낮게 흐르고 있으면 고르는 것이 그 판의 앞부분이
+    // 됩니다. **곡을 바꾸지 않고 이득만 옮깁니다** — 갈아 끼우면 고른 그 순간에 곡이
+    // 처음으로 돌아갑니다.
+    //
+    // **낮춤을 먼저 정하고 나서 켭니다.** 판이 열리는 첫 프레임이 곧 이 자리이므로,
+    // 순서가 바뀌면 그 한 프레임에 제 크기가 나고 그것이 「퍽」으로 들립니다.
+    this.audio.music.dim = phase === 'blind-select' ? BLIND_MUSIC_DIM : 1
     this.audio.music.play(phase === 'shop' ? 'shop' : 'round')
   }
 
@@ -8494,6 +8658,10 @@ export class Game {
     const startX = BOARD_X - ((hand.length - 1) * spacing) / 2
     this.handSpots = { startX, spacing }
 
+    // **만질 수 있는 때가 아니면 눌리지도 않습니다.** 부르는 자리에서 되돌려 보내는
+    // 것만으로는 커서가 손가락 모양으로 바뀌고, 바뀐 커서는 「눌러도 된다」입니다.
+    const live = this.handReady
+
     hand.forEach((card, index) => {
       let view = this.cards.get(card.uid)
       const fresh = view === undefined
@@ -8517,6 +8685,9 @@ export class Game {
         view.set(card, this.editionLook(card.edition))
       }
 
+      view.eventMode = live ? 'static' : 'none'
+      view.cursor = live ? 'pointer' : 'default'
+
       const chosen = this.selected.has(card.uid)
       view.selected = chosen
       // 고른 것이 하나도 없으면 아무것도 물러나지 않습니다 — 고르기 전에 화면이 어두워지면
@@ -8534,6 +8705,9 @@ export class Game {
       const tilt = 0
       // 끌고 있는 카드는 손가락이 자리를 정합니다. 여기서 다시 놓으면 커서에서 떨어집니다.
       if (this.drag?.kind === 'hand' && this.drag.uid === card.uid && this.drag.moved) return
+      // **겹치는 차례도 여기서 정합니다.** 손패는 9장부터 서로 겹치므로(간격이 카드보다
+      // 좁아집니다) 이 값이 없으면 정렬한 뒤의 겹침이 깔린 순서로 남습니다.
+      view.zIndex = ROW_Z + index
       // 갓 뽑힌 카드는 **절도 있게** 자리에 붙고, 나머지는 부드럽게 자리를 옮깁니다.
       // 뒤집는 시각은 깔기가 예약한 것입니다. 예약 없이 온 카드(판을 이어서 열 때)는
       // 닿을 즈음에 뒤집힙니다.
@@ -8607,6 +8781,9 @@ export class Game {
 
       if (this.drag?.kind === 'joker' && this.drag.uid === joker.uid && this.drag.moved) return
       const lifted = this.held?.kind === 'joker' && this.held.uid === joker.uid ? 12 : 0
+      // 손패와 같습니다 — 줄이 자리를 넘칠 만큼 차면 겹치므로, 겹치는 차례가 발동하는
+      // 차례와 같아야 합니다.
+      view.zIndex = ROW_Z + index
       view.place(spots.startX + index * spots.spacing, JOKER_Y - lifted)
     })
 
@@ -8621,6 +8798,11 @@ export class Game {
   private beginDrag(kind: 'hand' | 'joker', uid: number, view: Container,
                     event?: FederatedPointerEvent): void {
     if (this.player.busy || this.modals.busy) return
+    // **득점이 도는 동안 손패는 만질 수 없습니다.** 그때는 낸 카드가 하나씩 세어지는
+    // 것을 보는 자리이고, 밑에 남은 손패는 아직 그 판에 쓸 것이 아닙니다 — `player.busy`
+    // 만으로는 박자가 다 지난 뒤부터 다음 패가 깔리기까지가 열려 있어서, 그 사이에 고른
+    // 것이 새 패에 그대로 남았습니다.
+    if (kind === 'hand' && !this.handReady) return
 
     // **누른 그 자리에서 시작합니다.** 마우스는 누르기 전에 움직이므로 마지막으로 지나간
     // 자리가 곧 누른 자리이지만, **손가락은 누르는 그 순간에 처음 나타납니다** — 그때의
@@ -8704,10 +8886,14 @@ export class Game {
 
     // 끌리는 것은 커서를 따라오고 조금 들립니다. **다른 것들 위에 있어야** 어디로 가는지
     // 보입니다.
+    //
+    // **`zIndex` 로 올립니다.** 판은 `zIndex` 로 정렬하므로 자식 순서를 옮기는 것은 값이
+    // 같은 것들 사이에서만 듣고, 줄에 선 것들은 이제 저마다 값을 가집니다. 놓으면 다시
+    // 그리기가 색인대로 되돌립니다.
     const view = drag.kind === 'hand'
       ? this.cards.get(drag.uid) : this.jokers.get(drag.uid)
     if (view) {
-      this.board.setChildIndex(view, this.board.children.length - 1)
+      view.zIndex = DRAG_Z
       view.place(x, (drag.kind === 'hand' ? HAND_Y : JOKER_Y) - 22, 0)
     }
   }
@@ -8748,21 +8934,10 @@ export class Game {
     }
     this.audio.play(drag.kind === 'hand' ? 'card_place' : 'joker_move')
     this.recordOrder(drag.kind, drag.order)
+    // **겹치는 차례는 다시 그리기가 되돌립니다.** 끄는 동안 `DRAG_Z` 로 올렸고, 다시
+    // 그리면 `ROW_Z + 색인` 이 다시 걸립니다 — 여기서 자식 순서를 손으로 되돌리던 것이
+    // 겹침을 정하는 두 번째 자리였고, 정렬 단추는 그 자리를 지나지 않았습니다.
     this.refresh()
-
-    // **겹치는 차례도 되돌립니다.** 끄는 동안 맨 위로 올렸으므로, 그대로 두면 놓은 카드가
-    // 이웃을 계속 가려 부챗살이 한 장만 어긋나 보입니다.
-    if (drag.kind === 'hand') {
-      for (const uid of this.state.hand) {
-        const view = this.cards.get(uid)
-        if (view) this.board.addChild(view)
-      }
-    } else {
-      for (const joker of this.state.jokers) {
-        const view = this.jokers.get(joker.uid)
-        if (view) this.board.addChild(view)
-      }
-    }
   }
 
   /** 조커나 소모품 하나를 고릅니다. 같은 것을 다시 누르면 놓습니다. */
@@ -10165,7 +10340,13 @@ export class Game {
     // 음을 일곱 번 내면 그것은 진열이 아니라 같은 소리 일곱 번이고, 오르면 진열 전체가
     // 한 소절로 들립니다.
     if (this.revealing.sound && this.stocking) {
-      this.stockNotes.push({ at, step: this.revealing.note })
+      // **왼쪽부터 앉으므로 소리도 왼쪽부터입니다.** 진열이 어느 쪽까지 왔는지가 화면을
+      // 보지 않아도 들립니다.
+      const step = this.revealing.note
+      this.notes.push({
+        at, name: 'marimba', step, strength: 0.7, gap: REVEAL_STEP,
+        pan: -0.35 + Math.min(1, step / 6) * 0.7,
+      })
       this.revealing.note++
     }
 
@@ -10400,6 +10581,11 @@ export class Game {
         this.sellFrom = item.kind === ShopItemKind.Joker
           ? this.jokerSpot(held) : this.itemSpot(held)
         this.boughtFrom = from
+        // **판은 물건이 떠날 때까지 서 있습니다.** 치른 값이 `from` 에 뜨는데 그것은 이
+        // 판 옆에 세운 카드이고, 물건도 그 자리에서 날아갑니다 — 고른 그 프레임에 판을
+        // 걷었더니 값이 아무것도 없는 자리에서 났습니다. 상점의 딱지가 그 자리에 남는
+        // 것과 같은 일이고 같은 시간입니다.
+        this.focusHold = this.clock + BUY_LINGER
         this.holdArrival(item, from)
         // 상점은 새것이 닿는 것을 보고 나서 올라옵니다.
         this.holdShop(BUY_LINGER + LAND_AT + SHOP_RETURN_REST)
@@ -10899,9 +11085,12 @@ export class Game {
 
   /** 자리를 비우는 화면이 드는 것과 걷히는 것. 글이 아래에서 조금 올라오며 짙어집니다. */
   private advanceFocus(seconds: number): void {
-    const on = this.focus ? 1 : 0
+    // **고른 뒤에도 잠깐 서 있습니다.** 값을 읽을 시간이고, 물건이 이 판에서 떠나는
+    // 시간입니다 — 그만두어 걷는 것은 붙듦이 없으므로 그 자리에서 내려갑니다.
+    const held = this.clock < this.focusHold
+    const on = this.focus || held ? 1 : 0
     this.focusEnter += (on - this.focusEnter) * fraction(seconds, 12)
-    if (!this.focus && this.focusEnter < 0.03) {
+    if (!this.focus && !held && this.focusEnter < 0.03) {
       this.focusEnter = 0
       if (this.focusLayer.children.length > 0) {
         this.focusLayer.removeChildren().forEach(child => child.destroy())

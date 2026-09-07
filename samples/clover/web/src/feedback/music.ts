@@ -38,6 +38,16 @@ const SETTLE = 0.05
 /** 숙일 때 내려가는 데 걸리는 시간. **내려가는 것은 빨라야 자리를 냅니다.** */
 const DUCK_DOWN = 0.06
 
+/**
+ * 낮춤이 내려가는 데 · 올라오는 데 걸리는 시간.
+ *
+ * **올라오는 것이 사건입니다.** 블라인드를 고르고 나서 곡이 제 크기로 드는 것이 「판이
+ * 시작되었다」이므로, 그것은 알아챌 만큼 길어야 합니다 — 내려가는 것은 화면이 바뀌는
+ * 그 자리에 얹히므로 짧습니다.
+ */
+const DIM_DOWN = 0.35
+const DIM_UP = 1.2
+
 interface Track {
   element: HTMLAudioElement
   /** 소리 길이 열린 뒤에 생깁니다. **원소마다 한 번만 만들 수 있습니다.** */
@@ -50,12 +60,28 @@ interface Track {
 export class Music {
   private context?: AudioContext
   private master?: GainNode
+  /**
+   * 낮춤 마디. **트랙과 마스터 사이에 있습니다.**
+   *
+   * **마스터에 함께 쓰지 않습니다.** `duck` 과 `volume` 과 `muted` 가 마스터의 이득을
+   * `cancelScheduledValues` 하고 자기 값으로 되돌리므로, 낮춤을 거기에 쓰면 그중 하나가
+   * 지나는 순간에 풀립니다 — 득점의 숙임이 다섯 자리에서 불리고, 그 하나만으로도
+   * 블라인드를 고르는 자리의 곡이 제 크기로 돌아왔습니다.
+   */
+  private dimNode?: GainNode
   private readonly tracks = new Map<string, Track>()
   /** 지금 나야 하는 곡. 소리 길이 열리기 전에 정해지면 열린 뒤에 시작합니다. */
   private wanted?: string
 
   private level = 0.5
   private off = false
+  /**
+   * 지금 얼마나 낮춰 두는가. 1 이 제 크기입니다.
+   *
+   * **소리 길이 열리기 전에도 정해집니다.** 판이 열리는 첫 프레임이 곧 블라인드를 고르는
+   * 자리라, 곡이 시작된 뒤에 낮추면 그 사이에 제 크기가 한 번 지나갑니다.
+   */
+  private dimAt = 1
 
   constructor(names: readonly string[]) {
     // **받는 것은 누르기를 기다리지 않습니다.** 소리 길은 사람이 무언가를 누른 뒤에만
@@ -91,6 +117,11 @@ export class Music {
     this.master = context.createGain()
     this.master.gain.value = this.off ? 0 : this.level
     this.master.connect(destination)
+    // **곡이 시작되기 전에 세웁니다.** 값도 지금 정합니다 — 한 프레임 뒤에 정하면 그
+    // 프레임에 제 크기가 나고, 그 불연속이 「퍽」으로 들립니다.
+    this.dimNode = context.createGain()
+    this.dimNode.gain.value = this.dimAt
+    this.dimNode.connect(this.master)
 
     if (this.wanted) this.swap(this.wanted)
   }
@@ -133,6 +164,29 @@ export class Music {
     if (this.master && this.context) {
       glide(this.master.gain, value ? 0 : this.level, this.context.currentTime)
     }
+  }
+
+  /**
+   * 얼마나 낮춰 둘 것인가. 1 이 제 크기이고 0.5 면 절반입니다.
+   *
+   * **`duck` 과 다릅니다.** 그것은 큰 사건 하나에 잠깐 물러났다 스스로 돌아오는 것이고,
+   * 이것은 그 화면에 있는 동안 계속 낮은 것입니다 — 되돌리는 것은 부르는 쪽입니다.
+   *
+   * **같은 값이면 아무것도 하지 않습니다.** 화면이 다시 그려질 때마다 불리므로, 여기서
+   * 램프를 다시 걸면 프레임마다 다시 시작해 값이 목표에 닿지 않습니다.
+   */
+  set dim(value: number) {
+    const want = Math.max(0, Math.min(1, value))
+    if (want === this.dimAt) return
+    const up = want > this.dimAt
+    this.dimAt = want
+    if (this.dimNode && this.context) {
+      glide(this.dimNode.gain, want, this.context.currentTime, up ? DIM_UP : DIM_DOWN)
+    }
+  }
+
+  get dim(): number {
+    return this.dimAt
   }
 
   /**
@@ -192,7 +246,9 @@ export class Music {
     if (!track.source) {
       track.source = context.createMediaElementSource(track.element)
       track.gain = context.createGain()
-      track.source.connect(track.gain).connect(master)
+      // **낮춤 마디를 지납니다.** 그것이 없는 판(소리 길을 열기 전에 만든 트랙)은
+      // 마스터로 곧장 갑니다.
+      track.source.connect(track.gain).connect(this.dimNode ?? master)
     }
     const gain = track.gain
     if (!gain) return
@@ -265,9 +321,15 @@ export class Music {
    * 원소는 문서에 붙이지 않으므로 밖에서 찾을 수 없습니다 — 소리 길에만 이어져 있으면
    * 되고, 문서에 붙이면 브라우저가 그 자리에 조작 막대를 그립니다.
    */
-  report(): { wanted?: string; tracks: { name: string; playing: boolean; at: number }[] } {
+  report(): {
+    wanted?: string; dim: number
+    tracks: { name: string; playing: boolean; at: number }[]
+  } {
     return {
       ...(this.wanted ? { wanted: this.wanted } : {}),
+      // **정한 값과 실제로 걸린 값을 함께 알립니다.** 둘이 갈라지면 램프가 아직 도는
+      // 중이거나 마디가 없는 것입니다.
+      dim: Math.round((this.dimNode?.gain.value ?? this.dimAt) * 100) / 100,
       tracks: [...this.tracks].map(([name, track]) => ({
         name,
         playing: !track.element.paused,

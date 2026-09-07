@@ -245,6 +245,15 @@ export class Slot extends Container {
   signed = false
 
   /**
+   * 값이 줄어드는 동안은 들뜨지 않는가.
+   *
+   * **칩과 배수가 그렇습니다.** 그 둘은 한 판에서 쌓이기만 하고, 줄어드는 것은 판이 끝나
+   * 0으로 되돌아가는 것뿐입니다 — 그것은 알릴 일이 아닌데도 바탕이 밝고 숫자가 떨어서,
+   * 판이 끝날 때마다 무언가 일어난 것으로 보였습니다.
+   */
+  quietOnDrop = false
+
+  /**
    * 지금 번쩍임에 쓸 색. **기본은 칸의 색입니다.**
    *
    * `signed` 인 칸에서는 오르내림이 이것을 갈아 끼웁니다.
@@ -526,6 +535,7 @@ export class Slot extends Container {
    */
   get rolling(): number {
     if (!this.numeric || this.shown === this.wanted) return 0
+    if (this.quietOnDrop && this.wanted < this.shown) return 0
     return Math.min(1, Math.abs(this.wanted - this.shown) / 400)
   }
 
@@ -539,7 +549,9 @@ export class Slot extends Container {
   advance(deltaMs: number): void {
     if (this.value instanceof Digits) this.value.advance(deltaMs)
     const rolling = this.numeric && this.shown !== this.wanted
-    const heat = rolling
+    // **줄어드는 동안 떨지 않는 칸이 있습니다.** 굴러가는 것은 그대로이고 들뜨는 것만
+    // 없습니다 — 숫자는 0으로 내려가되 그것이 사건으로 보이지는 않습니다.
+    const heat = rolling && !(this.quietOnDrop && this.wanted < this.shown)
       ? Math.min(1, Math.abs(this.wanted - this.shown) / 240 + 0.4)
       : 0
 
@@ -595,9 +607,11 @@ export class Slot extends Container {
     this.redraw()
   }
 
-  /** 값이 클수록 크게, 그리고 테두리가 밝아집니다. */
+  /** 값이 클수록 크게, 그리고 바탕이 밝아집니다. */
   emphasize(scale: number): void {
     if (this.pop > 0) return
+    // **줄어드는 값은 강조하지 않습니다.** 부르는 쪽은 박자마다 부르므로 방향을 모릅니다.
+    if (this.quietOnDrop && this.wanted < this.shown) return
     this.value.scale.set(scale)
     this.draw(Math.max(0, Math.min(1, (scale - 1) * 2)))
   }

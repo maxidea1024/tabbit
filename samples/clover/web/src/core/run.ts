@@ -907,7 +907,10 @@ export function apply(data: Data, state: RunState, action: Action): Step {
       const joker = item.kind === ShopItemKind.Joker
       const sold = joker ? sellJoker(vm, action.held) : sellConsumable(vm, action.held)
       if (!sold) break
-      if (!takeItem(vm, item)) break
+      // **내놓은 그 자리에 놓습니다.** 상점의 `swap` 과 같은 규칙이고, 여기만 자리를
+      // 넘기지 않아 줄의 끝에 붙었습니다 — 한 자리를 갈아 끼운 것인데 오른쪽의 것들이
+      // 한 칸씩 왼쪽으로 옮겨지고, 판 값이 이웃 위에 떴습니다.
+      if (!takeItem(vm, item, action.held)) break
 
       open.taken[action.index] = true
       open.picksLeft--

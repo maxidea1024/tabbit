@@ -461,6 +461,14 @@ export class Audio {
    *
    * `semitones` 는 값의 크기에서 옵니다 — `SoundCue.pitch_follows_value` 가 참인 것만
    * 그것을 씁니다.
+   *
+   * `db` 는 이 한 번만 줄이거나 키우는 정도입니다. **맺음으로 붙는 소리에 씁니다** —
+   * 한 무리의 끝을 알리는 것이라 그 무리보다 작아야 합니다. 표의 `gain` 은 그 신호가
+   * 늘 갖는 크기이고, 이것은 부르는 자리마다 다릅니다.
+   *
+   * **음높이 인자에 dB 를 넘기고 있었습니다.** 네 자리가 `-3` · `-5` · `-6` · `-7` 을
+   * `semitones` 에 넘겼고, 그 신호들은 `pitch_follows_value` 가 거짓이라 값이 버려졌습니다 —
+   * 작게 내려던 네 소리가 전부 제 크기로 났습니다.
    */
   /**
    * 최근에 난 소리들. 새것이 뒤입니다.
@@ -471,7 +479,7 @@ export class Audio {
    */
   readonly played: string[] = []
 
-  play(cueId: string, semitones = 0, pan = 0): void {
+  play(cueId: string, semitones = 0, pan = 0, db = 0): void {
     const context = this.context
     const master = this.master
     // **꺼져 있어도 적습니다.** 무엇이 부르려 했는지가 물음의 답이고, 실제로 울렸는지는
@@ -504,6 +512,7 @@ export class Audio {
     if (!voice) return
     voice.gain.value = this.room(cueId, now, span, voice)
       * (1 + (Math.random() - 0.5) * 2 * WOBBLE_GAIN)
+      * (db === 0 ? 1 : Math.pow(10, db / 20))
 
     // **녹음된 것이 있으면 그것입니다.**
     if (sample) {
@@ -609,6 +618,12 @@ export class Audio {
    * `semitones` 는 `ladder` 가 낸 값입니다.
    */
   tone(name: ToneName, semitones: number, strength = 1, pan = 0): void {
+    // **음도 적습니다.** 「이 순간에 왜 이 소리가 나느냐」의 절반이 음이고, 음원만 적으면
+    // 오르는 가락이 실제로 났는지를 코드에서 눈으로 찾아야 합니다 — 겹침 계수기의 열쇠와
+    // 같은 이름으로 둡니다. `play` 와 같이 **꺼져 있어도 적습니다.**
+    this.played.push(`tone:${name}`)
+    if (this.played.length > 48) this.played.shift()
+
     const context = this.context
     const master = this.master
     if (!context || !master || this.muted) return
@@ -666,8 +681,13 @@ export class Audio {
    * 두면 그중 하나가 반드시 빠지고, 빠진 쪽은 소리가 영영 남거나 아예 안 납니다.
    *
    * `seconds` 는 **지금부터 얼마나 더** 도는가입니다.
+   *
+   * `span` 은 대역이 처음에서 끝까지 옮겨 가는 데 걸리는 시간입니다. **`seconds` 와 다른
+   * 값입니다** — 그쪽은 프레임마다 조금씩 미루는 목숨이고, 이쪽은 그 몸짓 전체의 길이라
+   * 첫 부름에서 한 번 정해집니다. 둘을 같은 값으로 두었더니 스무 장이 들어오는 0.4초 동안
+   * 대역이 0.14초에 끝 자리에 닿아 그 뒤로는 가만히 있었습니다.
    */
-  sweep(name: SweepName, seconds: number, strength = 1): void {
+  sweep(name: SweepName, seconds: number, strength = 1, span = seconds): void {
     const context = this.context
     const master = this.master
     if (!context || !master || !this.hiss || this.muted) return
@@ -694,7 +714,7 @@ export class Audio {
     band.frequency.setValueAtTime(shape.from, now)
     // 대역이 이 시간에 걸쳐 옮겨 갑니다. 늘어나면 옮겨 간 자리에 머무릅니다 — 결이
     // 잦아드는 것이 「거의 다 들어왔다」로 들립니다.
-    band.frequency.exponentialRampToValueAtTime(shape.to, now + Math.max(0.08, seconds))
+    band.frequency.exponentialRampToValueAtTime(shape.to, now + Math.max(0.08, span))
 
     // 낱장이 지나가는 결. **대역만 남긴 잡음은 바람이고, 끊으면 카드가 됩니다.**
     const grain = context.createGain()
@@ -947,10 +967,17 @@ const SWEEP = {
     gain: 0.15, from: 1500, to: 2600, q: 0.9, rate: 40, depth: 0.55,
     attack: 0.02, release: 0.10,
   },
-  /** 카드가 덱으로 돌아옵니다. 쌓이는 쪽이라 대역이 내려갑니다. */
+  /**
+   * 카드가 덱으로 돌아옵니다. 쌓이는 쪽이라 대역이 내려갑니다.
+   *
+   * **걷는 것과 갈려야 합니다.** 회수는 판이 걷힌 바로 뒤에 오는데, `retire` 와 대역도
+   * 결도 비슷해서 두 몸짓이 하나로 들렸습니다 — 그러면 뒤의 것이 앞의 것의 이어짐이
+   * 되고, 「카드가 덱에 쌓인다」가 남지 않습니다. 낮고, 좁고, 느리게 끊습니다: 대역만
+   * 남긴 잡음을 초당 26번 깊게 끊으면 미끄러지는 것이 아니라 낱장이 떨어지는 것입니다.
+   */
   recall: {
-    gain: 0.17, from: 2400, to: 1100, q: 0.8, rate: 58, depth: 0.6,
-    attack: 0.015, release: 0.12,
+    gain: 0.19, from: 1400, to: 620, q: 1.5, rate: 26, depth: 0.78,
+    attack: 0.012, release: 0.14,
   },
   /** 판의 카드가 딜러에게 쓸려 나갑니다. 회수보다 앞이고 더 가볍습니다. */
   retire: {
