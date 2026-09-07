@@ -1,7 +1,7 @@
 // 동전이 닿을 때 잔액이 바뀌는가 — 정산과 상점 구매.
 //
 // **잔액은 동전이 뜨는 순간이 아니라 닿는 순간에 바뀌어야 합니다.** 정산은 「받는다」 를 누른
-// 뒤에, 구매는 산 자리에서 동전이 날아가 닿는 만큼 줄어듭니다. 40ms 마다 화면의 잔액과 코어의
+// 뒤에, 구매는 금액 숫자에서 동전이 빠져나가는 만큼 줄어듭니다. 40ms 마다 화면의 잔액과 코어의
 // 잔액과 동전이 나는 중인지를 적고, 처음 바뀐 프레임이 동전이 뜬 뒤인지와 다 닿은 뒤 코어와
 // 같은지를 봅니다.
 import * as path from 'path'
@@ -102,8 +102,9 @@ async function main(): Promise<number> {
   check(bought[0].money < s0.money, `코어의 잔액은 누른 자리에서 줄었습니다 (${s0.money} → ${bought[0].money})`)
   check(bought[0].shown === s0.money, '화면의 잔액은 누른 프레임에 그대로입니다')
   check(bought.some(one => one.coins), '동전이 날았습니다')
+  // **나가는 돈은 동전이 나오는 그 순간에 줄어듭니다.** 날아가 닿기를 기다리지 않습니다.
   const firstDrop = bought.findIndex(one => one.shown !== s0.money)
-  check(firstDrop > 0 && bought[firstDrop - 1].coins, `처음 줄어든 것은 동전이 뜬 뒤입니다 (${firstDrop}번 프레임)`)
+  check(firstDrop > 0 && bought[firstDrop].coins, `줄어드는 것은 동전이 나오는 동안입니다 (${firstDrop}번 프레임)`)
   check(bought.every((one, i) => i === 0 || one.shown <= bought[i - 1].shown), '줄기만 합니다')
   const end = bought[bought.length - 1]
   check(end.shown === end.money && !end.coins, `다 닿은 뒤 코어와 같습니다 (${end.shown} / ${end.money})`)

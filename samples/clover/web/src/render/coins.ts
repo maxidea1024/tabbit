@@ -8,13 +8,18 @@
 // 넘깁니다(`onLand`). 동전이 뜨는 순간에 잔액이 먼저 바뀌면 동전은 이미 끝난 일을 뒤따라
 // 가는 그림이고, 그 그림은 아무것도 알리지 않습니다.
 //
-// **잃는 돈도 같은 길입니다.** 낸 자리에서 금액 칸으로 붉은 동전이 날아가 닿고, 닿는 만큼
-// 줄어듭니다. 금액 칸에서 튀어나가 화면 밖으로 떨어지던 것은 「닿았다가 튕겨 나갔다」로
-// 읽혔고, 어디서 나간 돈인지도 남지 않았습니다.
+// **나가는 돈은 어디로도 날아가지 않습니다.** 금액 숫자에서 붉은 동전이 짧게 튀어 오르며
+// 사라지고, 나오는 그 순간에 그 몫만큼 줄어듭니다(`spend`). 물건 쪽으로 날리면 색은
+// 「잃었다」인데 움직임은 「들어왔다」의 문법이고, 남은 돈을 보러 간 눈이 물건까지 따라가야
+// 합니다 — 무엇에 낸 돈인지는 그 물건 위에 뜨는 값이 적습니다. 리롤·임대료처럼 갈 곳이
+// 없는 지출도 이 하나로 같은 그림입니다. 규칙은 하나입니다 — **들어오는 돈은 온 곳에서
+// 날아들고, 나가는 돈은 곳간에서 사라집니다.**
 
 import { Container, Graphics } from 'pixi.js'
 
 interface Coin {
+  /** 날아드는 것인가, 곳간에서 빠져나가는 것인가. */
+  kind: 'fly' | 'spend'
   from: { x: number; y: number }
   to: { x: number; y: number }
   /** 곡선의 가운데. 여기가 있어야 직선으로 날지 않습니다. */
@@ -38,6 +43,8 @@ const LOSS_EDGE = 0x7a2a2a
 
 /** 닿은 뒤 커지며 사라지는 데 걸리는 시간(초). */
 const POP = 0.16
+/** 빠져나가는 동전 하나가 튀어 올라 사라지는 시간(초). */
+const SPEND = 0.32
 const RADIUS = 7
 
 export class Coins extends Container {
@@ -59,24 +66,14 @@ export class Coins extends Container {
   }
 
   /**
-   * 동전을 날립니다. 얻든 잃든 `from` 에서 `to` 로입니다.
-   *
-   * **개수는 금액이 아니라 금액의 눈금입니다** — $30을 30개로 날리면 화면이 동전으로 덮이고
-   * 하나씩 꽂히는 소리도 뜻을 잃습니다. 금액은 동전들에 나누어 싣고, 나누어지지 않는
-   * 나머지는 앞의 동전부터 하나씩 더 듭니다 — 몫의 합이 금액과 같아야 마지막 동전이 닿은
-   * 잔액이 코어와 같습니다.
+   * 동전을 `from` 에서 `to` 로 날립니다. 들어오는 돈입니다 — 온 곳에서 금액 칸으로.
    */
   fly(amount: number, from: { x: number; y: number }, to: { x: number; y: number }): void {
     if (amount === 0) return
     const gain = amount > 0
-    const size = Math.abs(amount)
-    const count = Math.max(1, Math.min(12, Math.round(size / 2) + 1))
-    const base = Math.floor(size / count)
-    const extra = size - base * count
-
-    for (let i = 0; i < count; i++) {
-      const share = (base + (i < extra ? 1 : 0)) * (gain ? 1 : -1)
+    for (const [i, share] of this.shares(amount).entries()) {
       this.live.push({
+        kind: 'fly',
         from: { x: from.x + (Math.random() - 0.5) * 36, y: from.y + (Math.random() - 0.5) * 26 },
         to: { x: to.x + (Math.random() - 0.5) * 18, y: to.y + (Math.random() - 0.5) * 12 },
         // **좌우로 많이 벌리지 않습니다.** 열두 개가 제각각의 길로 날면 어디서 어디로 가는
@@ -95,6 +92,52 @@ export class Coins extends Container {
         landed: false,
       })
     }
+  }
+
+  /**
+   * 곳간에서 돈이 빠져나갑니다. `at` 은 금액 숫자의 자리입니다.
+   *
+   * 동전이 숫자에서 짧게 튀어 오르며 커지다 사라집니다 — 화면 어디로도 가지 않습니다. 몫은
+   * **나오는 그 순간에** 넘깁니다. 숫자와 동전이 같은 자리에 있으므로 「빠져나간 만큼
+   * 줄었다」가 한눈에 읽힙니다.
+   */
+  spend(amount: number, at: { x: number; y: number }): void {
+    if (amount >= 0) return
+    for (const [i, share] of this.shares(amount).entries()) {
+      const dx = (Math.random() - 0.5) * 56
+      this.live.push({
+        kind: 'spend',
+        from: { x: at.x + dx * 0.3, y: at.y },
+        to: { x: at.x + dx, y: at.y - 30 - Math.random() * 16 },
+        bend: { x: 0, y: 0 },
+        delay: i * 0.055,
+        life: 0,
+        span: SPEND,
+        spin: 6 + Math.random() * 6,
+        gain: false,
+        share,
+        index: i,
+        landed: false,
+      })
+    }
+  }
+
+  /**
+   * 금액을 동전들에 나눕니다.
+   *
+   * **개수는 금액이 아니라 금액의 눈금입니다** — $30을 30개로 날리면 화면이 동전으로 덮이고
+   * 하나씩 꽂히는 소리도 뜻을 잃습니다. 나누어지지 않는 나머지는 앞의 동전부터 하나씩 더
+   * 듭니다 — 몫의 합이 금액과 같아야 마지막 동전이 닿은 잔액이 코어와 같습니다.
+   */
+  private shares(amount: number): number[] {
+    const size = Math.abs(amount)
+    const sign = amount > 0 ? 1 : -1
+    const count = Math.max(1, Math.min(12, Math.round(size / 2) + 1))
+    const base = Math.floor(size / count)
+    const extra = size - base * count
+    const out: number[] = []
+    for (let i = 0; i < count; i++) out.push((base + (i < extra ? 1 : 0)) * sign)
+    return out
   }
 
   get busy(): boolean {
@@ -132,6 +175,26 @@ export class Coins extends Container {
 
       const face = coin.gain ? GOLD : LOSS
       const edge = coin.gain ? GOLD_EDGE : LOSS_EDGE
+
+      // **빠져나가는 동전.** 나오는 첫 프레임에 몫을 넘기고, 튀어 오르며 커지다 사라집니다.
+      if (coin.kind === 'spend') {
+        if (!coin.landed) {
+          coin.landed = true
+          this.onLand?.(coin.index, false, coin.share)
+        }
+        if (t >= 1) {
+          this.live.splice(i, 1)
+          continue
+        }
+        const ease = 1 - (1 - t) * (1 - t)
+        const x = coin.from.x + (coin.to.x - coin.from.x) * ease
+        const y = coin.from.y + (coin.to.y - coin.from.y) * ease
+        const fade = 1 - t * t
+        const radius = RADIUS * (0.9 + ease * 0.7)
+        this.canvas.circle(x, y, radius).fill({ color: face, alpha: fade })
+        this.canvas.circle(x, y, radius).stroke({ color: edge, width: 1.5, alpha: fade })
+        continue
+      }
 
       // **닿은 자리에서 커지며 사라집니다.** 닿는 프레임에 그냥 지우면 닿았다는 것이 없고,
       // 잔액이 오른 것과 동전이 없어진 것이 같은 일로 읽히지 않습니다.
