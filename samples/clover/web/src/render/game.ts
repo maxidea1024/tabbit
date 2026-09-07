@@ -559,6 +559,22 @@ const RISER_LIFT = 46
  * 흐려집니다.
  */
 const RISER_ON_CARD = SIZE.cardHeight / 2 - 12
+/**
+ * 떠오르는 글이 화면 변에서 남겨 두는 자리.
+ *
+ * **글은 자기가 어디에 뜨는지 정하지 않습니다.** 부르는 쪽이 넘겨주는 것은 그 물건의
+ * 자리이고, 물건은 화면 변에 붙어 설 수 있습니다 — 위 줄은 화면 맨 위이고 블라인드 딱지는
+ * 왼쪽 위 모서리라, 받은 자리에 그대로 두면 글과 그 번쩍임의 절반이 화면 밖입니다.
+ */
+const RISER_MARGIN = 8
+
+/** `half` 반지름의 것이 `span` 안에 온전히 들어가는, `at` 에서 가장 가까운 자리. */
+function within(at: number, half: number, span: number): number {
+  const room = half + RISER_MARGIN
+  // 판보다 넓은 것은 옮길 자리가 없습니다. 가운데에 둡니다.
+  if (room * 2 > span) return span / 2
+  return Math.max(room, Math.min(span - room, at))
+}
 
 /** 떠오르는 글자 하나. **글과 그 뒤의 번쩍임이 한 덩어리입니다.** */
 interface Riser {
@@ -1295,6 +1311,15 @@ export class Game {
     onClosed: () => {
       this.payoutOpen = false
       this.payoutWanted = false
+      this.payoutTaking = false
+      // **받지 않고 닫힌 판의 돈은 그 자리에서 잔액에 들어갑니다.** 줄이 남아 있으면 화면의
+      // 잔액이 그만큼 코어보다 뒤에 머문 채로 남습니다.
+      const left = this.payoutRows.reduce((sum, row) => sum + row.amount, 0)
+      this.payoutRows.length = 0
+      if (left !== 0) {
+        this.shown.money += left
+        this.money.target = this.shown.money
+      }
       this.refresh()
     },
   }
@@ -1309,6 +1334,13 @@ export class Game {
    * 카드가 물러나고 나서입니다.
    */
   private payoutWanted = false
+  /**
+   * 「받는다」 를 눌러 동전이 금액 칸으로 날아가는 중인가.
+   *
+   * **판은 동전이 다 닿은 뒤에 닫힙니다.** 누른 자리에서 닫으면 동전은 아무 데서도 나오지
+   * 않은 것이 되고, 그동안 단추는 「받는 중」으로 잠깁니다.
+   */
+  private payoutTaking = false
   /** 카드가 다 걷힌 시각. **-1 은 아직 걷히는 중입니다.** */
   private sweptAt = -1
   /**
@@ -2094,6 +2126,15 @@ export class Game {
 
   /** 떠오르는 글자들. `popAt` 이 만들고 고정 단계가 올립니다. */
   private readonly risers: Riser[] = []
+  /**
+   * 떠오른 글이 어디에서 떴는가. 뒤가 새것이고 16개까지 남습니다.
+   *
+   * **자리가 틀린 것은 값으로만 확인됩니다.** 글은 0.8초 뒤에 없어지므로 스크린샷은 그
+   * 순간을 잡지 못하고, 판 밖이나 왼쪽 위에 뜬 것은 사람이 그 프레임을 보고 있어야만
+   * 보입니다 — 뜬 자리를 그대로 알려 도구가 판 안인지 판정합니다.
+   */
+  private readonly popLog:
+    { text: string; x: number; y: number; w: number; h: number }[] = []
   /**
    * 화면이 지금 주장하고 있는 것.
    *
@@ -3433,6 +3474,7 @@ export class Game {
     this.payoutWait = undefined
     this.payoutWanted = false
     this.payoutOpen = false
+    this.payoutTaking = false
     this.sweptAt = -1
 
     // 세고 있던 것들.
@@ -4722,7 +4764,10 @@ export class Game {
         const mul = event.op === 'MulMult'
         const tint = event.money !== 0 ? COLOR.money
           : event.chips !== 0 ? COLOR.chips : COLOR.mult
-        this.popAt(this.badge, valueText(event.op, event.chips, event.mult, event.money),
+        // **딱지의 가운데입니다.** 딱지 자체를 넘기면 그것의 자리는 왼쪽 위 모서리이므로,
+        // 값이 화면의 왼쪽 위 구석에 뜹니다 — 딱지가 낸 돈은 이미 가운데를 셈해 쓰고
+        // 있었고 값 쪽만 빠져 있었습니다.
+        this.popAt(this.badgeMiddle(), valueText(event.op, event.chips, event.mult, event.money),
           tint, beat.intensity + (mul ? 0.5 : 0.1))
         // **조커가 아닌 것도 사슬에 얹힙니다.** 덱과 바우처와 보스가 낸 값이고, 그것도
         // 값이 오르는 그 가락의 한 음입니다.
@@ -4733,13 +4778,7 @@ export class Game {
         this.flashPanel(tint, 0.6)
         this.stop(mul ? 90 : 40)
         // 판돈 딱지가 낸 돈은 그 딱지의 가운데에서 나옵니다.
-        if (event.money !== 0) {
-          const bounds = this.badge.getLocalBounds()
-          this.moneyFrom = {
-            x: this.badge.x + bounds.x + bounds.width / 2,
-            y: this.badge.y + bounds.y + bounds.height / 2,
-          }
-        }
+        if (event.money !== 0) this.moneyFrom = this.badgeMiddle()
         break
       }
 
@@ -5010,16 +5049,29 @@ export class Game {
    * 무엇이 바뀌었는지가 가려지지 않고 눈에 들어옵니다.
    */
   /** 금액이 왜 바뀌었는지를 띄울 자리. 판 가운데입니다. */
-  private moneyLabelAnchor(): Container {
-    const anchor = new Container()
+  private moneyLabelAnchor(): { x: number; y: number } {
     // 낸 카드 아래입니다. **카드 위에 겹치면 흰 종이에 흰 글씨가 됩니다.**
-    anchor.position.set(BOARD_X, PLAY_Y + 200)
-    return anchor
+    return { x: BOARD_X, y: PLAY_Y + 200 }
   }
 
-  /** 금액 칸의 가운데. 동전이 여기로 꽂힙니다. **동전 층의 좌표입니다.** */
+  /**
+   * 블라인드 딱지의 가운데.
+   *
+   * **딱지의 자리는 그것의 왼쪽 위입니다.** 그래서 딱지를 그대로 넘기면 거기서 나오는
+   * 것이 화면의 왼쪽 위 구석에서 납니다 — 덱 · 바우처 · 보스 · 태그가 낸 값과 돈이 전부
+   * 이 딱지에서 나오므로, 그 한 자리를 여기서 셉니다.
+   */
+  private badgeMiddle(): { x: number; y: number } {
+    const bounds = this.badge.getLocalBounds()
+    return {
+      x: this.badge.x + bounds.x + bounds.width / 2,
+      y: this.badge.y + bounds.y + bounds.height / 2,
+    }
+  }
+
+  /** 금액 칸의 숫자 한가운데. 동전이 여기로 꽂힙니다. **동전 층의 좌표입니다.** */
   private moneySpot(): { x: number; y: number } {
-    return this.coinSpot(this.money, { x: 62, y: 26 })
+    return this.coinSpot(this.money, this.money.valueMiddle)
   }
 
   /**
@@ -5209,6 +5261,12 @@ export class Game {
   private advancePayout(seconds: number): void {
     void seconds
 
+    // 「받는다」 의 동전이 다 닿았으면 판을 닫습니다.
+    if (this.payoutTaking && !this.coins.busy) {
+      this.payoutTaking = false
+      this.modals.close(this.payout)
+    }
+
     if (this.payoutWanted && !this.payoutOpen) {
       const swept = this.playedViews.length === 0 && this.fades.length === 0
         && this.shown.hand.length === 0 && this.deals.length === 0
@@ -5346,10 +5404,20 @@ export class Game {
     //
     // **떠오르는 거리는 위에 남은 자리만큼입니다.** 조커 줄은 화면의 맨 위라, 늘 46픽셀을
     // 올리면 글이 화면 밖으로 나가고 남는 것은 잘린 획 몇 개입니다.
-    const x = target ? target.x : BOARD_X
-    const y = target ? target.y : SIZE.height / 2
-    node.position.set(x, y)
+    //
+    // **판 안으로 들여 세웁니다.** 넘겨받은 자리를 그대로 쓰면 화면 변에 붙어 선 것에서
+    // 나오는 글이 절반쯤 화면 밖입니다 — 그 물건에서 나온다는 것이 남으려면 글이 온전히
+    // 보여야 하므로, 번쩍임까지 들어가는 가장 가까운 자리로 옮깁니다.
+    const halfW = (flare.width || label.width) / 2
     const half = (flare.height || label.height) / 2
+    const x = within(target ? target.x : BOARD_X, halfW, SIZE.width)
+    const y = within(target ? target.y : SIZE.height / 2, half, SIZE.height)
+    node.position.set(x, y)
+    this.popLog.push({
+      text, x: Math.round(x), y: Math.round(y),
+      w: Math.round(halfW), h: Math.round(half),
+    })
+    if (this.popLog.length > 24) this.popLog.shift()
     const lift = Math.max(10, Math.min(RISER_LIFT, y - half - 10))
     // **떠오르는 글은 남아 있는 딱지 위입니다.** 산 물건이 그 자리에 잠깐 남으므로, 차례를
     // 적어 두지 않으면 낸 값이 그 물건 뒤로 들어갑니다.
@@ -6116,6 +6184,11 @@ export class Game {
       // 상점 판이 지금 서 있는 높이. **0 이면 다 선 것이고, 클수록 아래에 있습니다.**
       // 서기 시작하는 프레임에 이 값이 0 이면 다 선 모습이 한 번 그려진 것입니다.
       shopY: Math.round(this.shopLayer.y),
+      // 상점 몸통이 판 안에서 얼마나 밀려 있는가. 딱지의 자리가 이만큼 어긋납니다.
+      shopBodyY: Math.round(this.shopFrame?.body.y ?? 0),
+      // 떠오른 글이 뜬 자리들. 뒤가 새것입니다.
+      pops: this.popLog.map(one =>
+        [one.text, one.x, one.y, one.w, one.h] as [string, number, number, number, number]),
       // 상점이 자리를 비켜 내려가 있어야 하는가. 팩을 뜯었거나 자리를 비우는 중입니다.
       shopParked: this.shopParked,
       // 자리를 비우는 중인가 · 그 화면이 든 정도.
@@ -6264,12 +6337,16 @@ export class Game {
       // 하는데, 그것을 사려고 판을 열 판 두는 동안 확인하려던 것과 상관없는 곳에서 도구가
       // 멈춥니다. 구운 것에는 이 줄이 들어가지 않습니다.
       ...(import.meta.env.DEV ? {
-        grantJoker: (count: number) => {
+        // 수를 주면 표의 앞에서 그만큼이고, **id 를 주면 그 조커 하나입니다** — 상점을
+        // 나설 때 발동하는 것처럼 특정 조커가 있어야만 지나는 길을 보려면 지목해야 합니다.
+        grantJoker: (want: number | string) => {
           const rows = this.data.tables.joker.records
-          for (let i = 0; i < count && i < rows.length; i++) {
+          const picked = typeof want === 'string'
+            ? rows.filter(row => row.jokerId === want) : rows.slice(0, want)
+          for (const row of picked) {
             this.state.jokers.push({
               uid: this.state.nextUid++,
-              jokerId: rows[i].jokerId,
+              jokerId: row.jokerId,
               edition: 0 as never,
               sticker: 0 as never,
               counters: newCounters(),
@@ -6284,6 +6361,13 @@ export class Game {
         stockPack: (packId: string) => {
           if (this.state.phase !== 'shop' || this.state.shop.packs.length === 0) return
           this.state.shop.packs[0] = packId
+          this.refresh()
+        },
+        // **태그 하나를 들고 있는 것으로 칩니다.** 태그는 블라인드를 건너뛰어야 들어오고,
+        // 무엇이 들어오는지는 시드가 정하므로 도구가 고를 수 없습니다 — 돈을 내놓는 태그가
+        // 그 값을 어디에 띄우는지를 보려면 그 태그 하나를 지목해야 합니다.
+        grantTag: (tagId: string) => {
+          this.state.tagsPending.push(tagId)
           this.refresh()
         },
         // **블라인드를 넘긴 것으로 칩니다.** 상점에서 도는 코드를 재려면 상점에 닿아야
@@ -9334,14 +9418,20 @@ export class Game {
       this.payoutWanted = false
       delete this.spots.take
       this.takeSpot = undefined
-      // **받는 순간에 돈이 판에서 금액 칸으로 날아갑니다.** 합계가 선 자리에서 나오고, 닿는
-      // 만큼 잔액이 오릅니다 — 판이 서 있는 동안 잔액은 판 앞의 값 그대로입니다.
-      if (sum !== 0) {
-        const at = layer.toGlobal({ x: sumText.x - sumText.width / 2, y: sumText.y })
-        this.coins.fly(sum, this.coins.toLocal(at), this.moneySpot())
-      }
       this.payoutRows.length = 0
-      this.modals.close(this.payout)
+      // **받는 순간에 돈이 단추에서 금액 칸으로 날아가고, 다 닿은 뒤에 판이 닫힙니다.**
+      // 판이 먼저 닫히면 동전은 아무 데서도 나오지 않은 것이 되고, 그동안 단추는 「받는 중」
+      // 으로 잠깁니다 — 두 번 눌리지 않고, 무엇을 기다리는지가 적힙니다. 닫는 것은
+      // `advancePayout` 이 동전이 다 닿은 것을 보고 합니다.
+      if (sum !== 0) {
+        const at = layer.toGlobal({ x: take.x + 120, y: take.y + 24 })
+        this.coins.fly(sum, this.coins.toLocal(at), this.moneySpot())
+        take.enabled = false
+        take.text = t('ui.payout.taking')
+        this.payoutTaking = true
+      } else {
+        this.modals.close(this.payout)
+      }
     }, 16)
     take.position.set((width - 240) / 2, buttonTop)
     take.enabled = this.clock >= readyAt
@@ -10192,7 +10282,21 @@ export class Game {
     // **카드의 가운데입니다.** 조커 뷰의 피벗이 가운데이고, 소모품이 오는 길은 `itemFlying`
     // 이 가운데를 받아 제 셈으로 옮깁니다. 딱지에 배율이 붙어 있으면 그만큼 줄어든 카드의
     // 가운데입니다.
-    return { x: one.mid, y: tile.y + SIZE.jokerHeight / 2 * tile.scale.x }
+    return this.fromShop({ x: one.mid, y: tile.y + SIZE.jokerHeight / 2 * tile.scale.x })
+  }
+
+  /**
+   * 상점 판 안의 자리를 판의 자리로 옮깁니다.
+   *
+   * **딱지의 `x`·`y` 는 상점 판 안의 값입니다.** 상점 판은 산 것을 다루는 동안 화면 아래로
+   * 내려가고 그 몸통도 판이 자라는 동안 판 안에서 밀리므로, 딱지에게 물은 자리를 그대로
+   * 넘기면 그만큼 어긋난 곳에서 값이 뜨고 동전이 나갑니다 — 받는 쪽은 전부 판의 좌표를
+   * 씁니다(조커 줄 · 낸 카드 · 덱).
+   */
+  private fromShop(at: { x: number; y: number }): { x: number; y: number } {
+    const body = this.shopFrame?.body
+    if (!body) return at
+    return this.board.toLocal(body.toGlobal(at))
   }
 
   /** 상점 판의 한가운데. 딱지가 이미 없어졌을 때의 예비 자리입니다. */
@@ -10888,7 +10992,7 @@ export class Game {
     // **조각과 값이 이 딱지에서 납니다.** 어느 것을 뜯었는지가 거기에 남습니다. 딱지가
     // 이미 지워졌으면 상점 한가운데입니다.
     const from = spot
-      ? { x: spot.mid, y: spot.baseY + spot.height / 2 }
+      ? this.fromShop({ x: spot.mid, y: spot.baseY + spot.height / 2 })
       : this.shopMiddle()
     const row = this.data.tables.boosterPack.findByPackId(this.state.shop.packs[slot])
     this.particles.burst(from.x, from.y, 20, row ? packInk(row.kind) : COLOR.ink, 1.2)
@@ -10951,7 +11055,8 @@ export class Game {
     tile.eventMode = 'static'
     tile.hitArea = new Rectangle(0, 0, CELL_W, CELL_H)
     tile.cursor = afford ? 'pointer' : 'default'
-    const middle = () => ({ x: tile.x + CELL_W * fit / 2, y: tile.y + CELL_H * fit / 2 })
+    const middle = (): { x: number; y: number } =>
+      this.fromShop({ x: tile.x + CELL_W * fit / 2, y: tile.y + CELL_H * fit / 2 })
     tile.on('pointertap', () => {
       if (this.ate()) return
       if (!this.canPay(cost)) return

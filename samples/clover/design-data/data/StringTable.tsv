@@ -1312,6 +1312,7 @@
 	ui.counter.chips	+{n}칩	+{n} chips	+{n} チップ	+{n} 筹码	+{n} 籌碼	+{n} Chips
 	ui.payout.title	정산	Cash Out	精算	结算	結算	Auszahlung
 	ui.payout.take	받는다  ${n}	Cash Out  ${n}	受け取る  ${n}	收下  ${n}	收下  ${n}	Kassieren  ${n}
+	ui.payout.taking	받는 중	Cashing Out	受け取り中	收取中	收取中	Kassiert
 	ui.payout.counting	정산 중	Counting up	精算中	正在结算	正在結算	Wird abgerechnet
 	ui.payout.nothing	받을 것이 없습니다	Nothing to cash out	受け取るものがありません	没有可收下的	沒有可收下的	Nichts zu kassieren
 	ui.payout.next	다음	Next	次へ	下一步	下一步	Weiter

@@ -376,6 +376,18 @@ export class Slot extends Container {
     }
   }
 
+  /**
+   * 숫자의 한가운데.
+   *
+   * **동전이 여기로 꽂힙니다.** 칸의 가운데로 보내면 이름과 숫자 사이의 빈자리에 닿아
+   * 숫자에서 한참 떨어져 보입니다 — 오르는 것은 숫자이므로 닿는 자리도 숫자입니다.
+   * 숫자는 `pull` 쪽 끝에 붙어 있으므로 그 너비의 절반만큼 되돌아옵니다.
+   */
+  get valueMiddle(): { x: number; y: number } {
+    const width = this.value.width / (this.value.scale.x || 1)
+    return { x: this.valueX + width * (0.5 - this.pull), y: this.baseY }
+  }
+
   /** 숫자를 잠깐 물러나게 합니다. ±N 글이 그 자리를 씁니다. */
   mute(): void {
     this.muted = 1
