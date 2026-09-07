@@ -30,6 +30,7 @@
     "check:wake": "tsx tools/check-wake.ts",
     "check:coins": "tsx tools/check-coins.ts",
     "check:pop-spot": "tsx tools/check-pop-spot.ts",
+    "check:blind-pick": "tsx tools/check-blind-pick.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "headless": "tsx src/headless.ts",

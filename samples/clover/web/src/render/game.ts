@@ -2045,7 +2045,20 @@ export class Game {
   /** 뜯은 팩의 이름. 덮개와 함께 들고 납니다. */
   private packTitle?: Text
   private packSkip?: Button
-  private wasBusy = false
+  /**
+   * 액션의 연출이 끝나면 화면을 상태에 맞춰야 한다는 표시.
+   *
+   * **걸쇠입니다.** 연출이 도는 중에 액션이 들어오면 켜지고, 연출이 다 끝난(`presented`)
+   * 첫 프레임에 `settleShown` 과 `refresh` 를 하면서 꺼집니다 — 정산의 `payoutWanted` 와
+   * 같은 꼴입니다. 끄기 전에는 켜진 채로 남으므로, 그 사이가 몇 프레임이든 0 프레임이든
+   * 놓치지 않습니다.
+   *
+   * **프레임마다 표본을 떠서 「바쁨→안 바쁨」 전환을 잡던 것을 대신합니다.** 그 방식은 한
+   * 프레임 안에서 시작해 끝나는 연출을 보지 못했습니다 — 상점을 나설 때 발동하는 조커의
+   * 박자 하나가 그랬고, 그때 블라인드 판은 조커나 소모품을 눌러 `refresh` 가 불릴 때까지
+   * 서지 않았습니다.
+   */
+  private settleOwed = false
   private gameOverShown = false
   private gameOverPop = 0
   private gameOverBoard?: Container
@@ -3495,7 +3508,7 @@ export class Game {
     this.chain = 0
     this.rung = 0
     this.holdAfterScore = 0
-    this.wasBusy = false
+    this.settleOwed = false
     this.hintShown = ''
 
     // 번쩍임과 흔들림. **남겨 두면 타이틀이 흔들린 채로 섭니다.** 환희의 겹도 같습니다 —
@@ -3864,6 +3877,9 @@ export class Game {
     this.startTimeline(step.events)
     this.note()
     this.refresh()
+    // **연출이 도는 중이면 표시를 켭니다.** 다 끝난 첫 프레임에 `tick` 이 화면을 상태에
+    // 맞추고 다시 그립니다 — 그때가 다음 국면의 판을 세울 때입니다.
+    if (!this.presented) this.settleOwed = true
   }
 
   /**
@@ -4829,19 +4845,27 @@ export class Game {
         // 가리키는 유일한 표시입니다.
         const sold = event.reason === 'sell' ? this.sellFrom : undefined
         if (event.reason === 'sell') this.sellFrom = undefined
-        // **산 값은 산 물건의 가운데에서 금액 칸으로 갑니다.** 같은 이유입니다.
+        // **산 값이 뜨는 자리는 산 물건 위입니다.** 동전은 거기서 나오지 않습니다 — 아래를
+        // 보십시오.
         const bought = event.reason === 'shop' ? this.boughtFrom : undefined
         if (event.reason === 'shop') this.boughtFrom = undefined
         // **조커·카드·판돈이 낸 돈은 그것에서 나옵니다.** 그 이벤트가 적어 둔 자리입니다.
         const hosted = this.moneyFrom
-        // **건너뛰어 받은 태그의 돈은 그 칩이 앉은 자리에서 나옵니다.** 판 가운데에서
-        // 나오면 어느 것이 낸 돈인지가 없습니다.
-        const tag = this.skipping ? this.tagLanded ?? this.skipFrom : undefined
-        const from = sold ?? bought ?? hosted ?? tag
-          ?? (this.state.phase === 'shop' ? this.shopMiddle() : { x: BOARD_X, y: PLAY_Y })
-        // 태그의 자리만 덧층의 좌표이고 나머지는 판의 좌표입니다.
-        const layer = from === tag ? this.overlay : this.board
-        this.coins.fly(event.delta, this.coinSpot(layer, from), this.moneySpot())
+        if (event.delta < 0) {
+          // **나가는 돈은 곳간에서 사라집니다.** 물건 쪽과 동전을 오가게 하면 색은 「잃었다」
+          // 인데 움직임은 「들어왔다」이고, 남은 돈을 보러 간 눈이 물건까지 따라가야 합니다.
+          // 리롤·임대료처럼 갈 곳이 없는 지출도 이 하나로 같은 그림입니다.
+          this.coins.spend(event.delta, this.moneySpot())
+        } else {
+          // **들어오는 돈은 온 곳에서 날아듭니다.** 건너뛰어 받은 태그의 돈은 그 칩이 앉은
+          // 자리에서 — 판 가운데에서 나오면 어느 것이 낸 돈인지가 없습니다.
+          const tag = this.skipping ? this.tagLanded ?? this.skipFrom : undefined
+          const from = sold ?? hosted ?? tag
+            ?? (this.state.phase === 'shop' ? this.shopMiddle() : { x: BOARD_X, y: PLAY_Y })
+          // 태그의 자리만 덧층의 좌표이고 나머지는 판의 좌표입니다.
+          const layer = from === tag ? this.overlay : this.board
+          this.coins.fly(event.delta, this.coinSpot(layer, from), this.moneySpot())
+        }
         // **소리는 낸 쪽이 이미 냈습니다.** 조커·카드가 낸 돈은 그 이벤트가 소리를 냈고,
         // 여기서 또 내면 같은 돈에 소리가 둘입니다. 닿는 소리는 동전마다 따로 납니다.
         if (!hosted) this.audio.play(event.delta > 0 ? 'joker_money' : 'shop_reroll')
@@ -5262,9 +5286,12 @@ export class Game {
     void seconds
 
     // 「받는다」 의 동전이 다 닿았으면 판을 닫습니다.
+    // **닫은 자리에서 다시 그립니다.** 상점은 정산 판이 없어야 서므로, 닫힌 것을 그리는
+    // 쪽이 알아야 합니다.
     if (this.payoutTaking && !this.coins.busy) {
       this.payoutTaking = false
       this.modals.close(this.payout)
+      this.refresh()
     }
 
     if (this.payoutWanted && !this.payoutOpen) {
@@ -5724,17 +5751,24 @@ export class Game {
       this.recallToDeck()
     }
 
-    // 연출이 끝난 순간에 한 번 다시 그립니다. **그때가 다음 국면의 화면을 띄울 때입니다.**
-    const busyNow = !this.presented
-    if (this.wasBusy && !busyNow) {
-      // 건너뛰기 연출이 끝났습니다. 이제 판이 다음 블라인드로 넘어가고 팩이 열립니다.
+    // 건너뛰기 연출이 끝났습니다. 이제 판이 다음 블라인드로 넘어가고 팩이 열립니다.
+    // **`skipping` 자체가 걸쇠입니다** — 단추가 걸고, 연출이 다 끝난 첫 프레임에 풉니다.
+    if (this.skipping && this.presented) {
       this.skipping = false
       this.skipFrom = undefined
       this.tagLanded = undefined
+      this.settleOwed = true
+    }
+    // 연출이 끝났으면 화면을 상태에 맞춥니다. **그때가 다음 국면의 화면을 띄울 때입니다.**
+    if (this.settleOwed && this.presented) {
+      this.settleOwed = false
       this.settleShown()
       this.refresh()
     }
-    this.wasBusy = busyNow
+    // **블라인드 판은 서야 하는가와 서 있는가를 프레임마다 맞춥니다.** 정산 · 게임 오버와
+    // 같은 규칙입니다 — `refresh` 가 어느 순간에 불렸는가에 판이 서는 것을 맡기지
+    // 않습니다. 건너뛰는 동안은 서 있는 판을 그대로 둡니다.
+    if (!this.skipping && this.blindWanted !== this.blindPick.visible) this.drawBlindPick()
 
     this.advanceHeadline(seconds)
     this.advanceChimes()
@@ -7183,13 +7217,18 @@ export class Game {
     }
   }
 
+  /** 블라인드 판이 서 있어야 하는가. 고르는 국면이고, 연출이 다 끝났고, 건너뛰는 중이 아닐 때입니다. */
+  private get blindWanted(): boolean {
+    return this.state.phase === 'blind-select' && this.presented && !this.skipping
+  }
+
   private drawBlindPick(): void {
     this.blindPick.removeChildren().forEach(child => child.destroy())
     this.blindGroups = []
     delete this.spots.pick
     delete this.spots.skip
     const state = this.state
-    this.blindPick.visible = state.phase === 'blind-select' && this.presented
+    this.blindPick.visible = this.blindWanted
     if (!this.blindPick.visible) return
 
     // 블라인드가 바뀌면 처음부터 다시 들어옵니다.
@@ -9425,12 +9464,14 @@ export class Game {
       // `advancePayout` 이 동전이 다 닿은 것을 보고 합니다.
       if (sum !== 0) {
         const at = layer.toGlobal({ x: take.x + 120, y: take.y + 24 })
-        this.coins.fly(sum, this.coins.toLocal(at), this.moneySpot())
+        if (sum > 0) this.coins.fly(sum, this.coins.toLocal(at), this.moneySpot())
+        else this.coins.spend(sum, this.moneySpot())
         take.enabled = false
         take.text = t('ui.payout.taking')
         this.payoutTaking = true
       } else {
         this.modals.close(this.payout)
+        this.refresh()
       }
     }, 16)
     take.position.set((width - 240) / 2, buttonTop)
