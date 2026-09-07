@@ -1069,7 +1069,6 @@
 	ui.button.use	사용	Use	使う	使用	使用	Benutzen
 	ui.button.buy	산다	Buy	買う	购买	購買	Kaufen
 	ui.button.take	집는다	Take	取る	拿取	拿取	Nehmen
-	ui.button.swap_take	바꿔 집는다	Swap for It	入れ替える	换取	換取	Tauschen
 	ui.run_info.title	런 정보	Run Info	ラン情報	本局信息	本局資訊	Rundeninfo
 	ui.tab.blinds	블라인드	Blinds	ブラインド	盲注	盲注	Blinds
 	ui.tab.stakes	스테이크	Stakes	ステーク	难度	難度	Einsätze

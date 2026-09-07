@@ -61,7 +61,7 @@ import { cardArtDir, cardBackMotif, cardPaper, drawsIndex, setCardSet, setLookOf
 import { bakeCardFaces, cardFaceBakes, forgetCardFaces } from './card-face'
 import {
   blindFace, faceOf, itemFace, kindName, MINI_RANK, packBlurb, packFace, packInk,
-  packName, shopLabel, SUIT_PIP, tagFace, voucherFace,
+  packInkLit, packName, shopLabel, SUIT_PIP, tagFace, voucherFace,
 } from './faces'
 import { cardArtId, drawFace } from './pips'
 import { burst, groove, insetRadius, mix, slotStyle } from './skin'
@@ -2138,6 +2138,9 @@ export class Game {
   /** 지금 커서 밑에 있어 설명이 뜬 것. 조커 딱지이거나 손패의 카드입니다. */
   private tipUnder?: Container
 
+  /** 그때 띄운 쪽지가 몇 번째 것이었는가. **닫을 때 남의 쪽지를 걷지 않으려고 들고 있습니다.** */
+  private tipOpen = -1
+
   /**
    * 꾸욱 누르고 있는 것.
    *
@@ -3367,6 +3370,7 @@ export class Game {
     this.held = undefined
     this.drag = undefined
     this.tipUnder = undefined
+    this.tipOpen = -1
     this.handHovered = -1
     this.handBand = undefined
     this.handPreview = undefined
@@ -5984,19 +5988,23 @@ export class Game {
     // 지나간 자리로 남으므로, 누른 조커가 계속 올려진 것으로 셉니다 — 골랐다가 다시 눌러
     // 놓아도 그 카드만 조금 들린 채로 있었고, 다른 카드를 눌러 그 자리가 옮겨질 때에야
     // 내려왔습니다.
-    const blocked = this.touching || this.modals.busy || this.state.pack !== null
+    const blocked = this.touching || this.modals.busy
       || this.shown.phase === 'lost' || this.shown.phase === 'won'
     // **뽑는 동안에는 카드에 올려지지 않습니다.** 마우스가 나오는 길목에 있으면 지나가는
     // 카드마다 차례로 들려 올라가고, 그것은 고르는 것으로도 지나가는 것으로도 읽히지
     // 않습니다.
     const dealing = this.deals.length > 0 || this.clock < this.dealtUntil
+    // **뜯은 팩은 판 위에 펼쳐집니다.** 그 아래의 손패까지 커서를 받으면 펼친 카드 뒤에서
+    // 카드가 들립니다 — 조커 줄은 팩 위쪽에 그대로 서 있으므로 그쪽은 막지 않습니다.
+    // 조커의 설명이 이 길로만 뜨고, 무엇을 집을지는 지금 든 조커를 읽고 정합니다.
+    const overlaid = this.state.pack !== null
 
     let card: CardView | undefined
     let joker: JokerView | undefined
 
     if (!blocked) {
       for (const view of this.cards.values()) {
-        if (dealing) break
+        if (dealing || overlaid) break
         if (!near(this.pointerAt, view.motion, SIZE.cardWidth, SIZE.cardHeight)) continue
         if (!card || view.motion.x.target > card.motion.x.target) card = view
       }
@@ -6023,7 +6031,10 @@ export class Game {
       // 밑에 있는 것이 달라졌으면 앞의 설명은 더 이상 그 자리의 것이 아닙니다. 팔려
       // 없어진 조커의 설명이 남지 않게, 닫는 것은 커서의 움직임을 묻지 않습니다.
       if (this.tipUnder) {
-        this.tooltip.hide()
+        // **내가 띄운 그 쪽지일 때만 닫습니다.** 조커에서 커서를 떼어 펼친 팩의 카드나
+        // 상점의 칸으로 옮기면, 그것이 자기 노드로 띄운 쪽지가 이 프레임 끝의 닫음에
+        // 함께 걷혔습니다 — 옮겨 간 그 자리의 설명은 남아 있어야 합니다.
+        if (this.tooltip.opens === this.tipOpen) this.tooltip.hide()
         this.tipUnder = undefined
       }
       if (under && this.pointerMoved && !this.touching) {
@@ -6033,6 +6044,7 @@ export class Game {
           if (held) this.showCardTip(held, false, true, card)
         }
         this.tipUnder = under
+        this.tipOpen = this.tooltip.opens
       }
     }
     // 이 프레임의 움직임은 여기서 다 쓰였습니다. **`updateHover` 가 프레임마다 한 번
@@ -8688,14 +8700,13 @@ export class Game {
       // **쉬는 자리로 셉니다.** 고른 딱지는 들려 있고, 들린 만큼 단추도 따라 올라가면
       // 단추가 딱지 안으로 파고듭니다.
       baseline = one.holdY
-      const room = this.roomFor(item.kind)
-      const swap = !room && this.canSwap(item)
-      // 자리가 없으면 무엇과 바꿀지를 묻는 판이 뜹니다. 그 말은 단추에 적힙니다.
+      // **자리가 찼는지는 단추에 나타내지 않습니다.** 말도 색도 하나입니다 — 자리가 없으면
+      // 누른 다음에 무엇과 바꿀지 고르는 화면이 서고, 그 화면이 이미 그 말을 합니다.
+      // 단추에 미리 적어 두면 같은 것을 두 번 알리는 것이 됩니다.
       buttons.push(new Button(
         // **값은 적지 않습니다.** 딱지에 이미 크게 적혀 있고, 그 바로 밑의 단추가 같은
         // 값을 한 번 더 적으면 그 둘 중 어느 것이 값인지 잠깐 헷갈립니다.
-        swap ? t('ui.button.swap_take') : t('ui.button.buy'),
-        swap ? 118 : 84, 32, room ? UI.yellow : 0x7a5f2f, () => {
+        t('ui.button.buy'), 84, 32, UI.yellow, () => {
           this.held = undefined
           this.buyFrom(held.uid, item)
         }))
@@ -8730,14 +8741,11 @@ export class Game {
       // 덩이로 읽히지 않습니다 — 상점의 칸은 값이 있던 자리(카드 밑 4px)에 단추가 섭니다.
       anchor = view.face.node.x
       baseline = PACK_CARDS_Y + PACK_CARD_H / 2 + 4
-      const room = this.roomFor(view.item.kind)
-      const swap = !room && this.canSwap(view.item)
-      buttons.push(new Button(
-        t(swap ? 'ui.button.swap_take' : 'ui.button.take'), swap ? 118 : 92, 32,
-        room ? UI.yellow : 0x7a5f2f, () => {
-          this.held = undefined
-          this.takeFromPack(held.uid)
-        }))
+      // 상점의 칸과 같은 규칙입니다 — 자리가 찼는지는 단추가 아니라 그 다음 화면이 적습니다.
+      buttons.push(new Button(t('ui.button.take'), 92, 32, UI.yellow, () => {
+        this.held = undefined
+        this.takeFromPack(held.uid)
+      }))
     } else if (held.kind === 'joker') {
       const index = this.state.jokers.findIndex(joker => joker.uid === held.uid)
       if (index < 0) {
@@ -10093,7 +10101,7 @@ export class Game {
     const price = priceText(item.cost, afford)
     price.position.set(CELL_W / 2, CELL_H - 20)
 
-    // **자리가 없다는 것은 적지 않습니다.** 누르면 그 밑에 「바꿔 집는다」 가 서고, 그것이
+    // **자리가 없다는 것은 적지 않습니다.** 사면 무엇과 바꿀지 고르는 화면이 서고 그것이
     // 이미 그 말입니다 — 칸마다 붉은 글 한 줄을 더 두면 값보다 그것이 먼저 읽힙니다.
 
     tile.alpha = afford ? 1 : 0.55
@@ -11026,11 +11034,14 @@ export class Game {
     // **뜯은 것의 이름입니다.** 26픽셀에 자간 없이 두었더니 그 아래의 지시문과 굵기만
     // 다른 두 줄이 되어서, 무엇을 뜯었는지가 읽히지 않고 지나갔습니다 — 이름은 크게,
     // 자간을 벌려서, 그리고 지시문과 사이를 두어야 이름으로 읽힙니다.
+    //
+    // **색은 밝힌 쪽입니다.** 팩의 색을 그대로 쓰면 어두운 판과 밝기가 거의 같아서, 크게
+    // 굵게 적어도 이름으로 읽히지 않습니다 — `packInkLit` 이 색조를 그대로 두고 밝힙니다.
     const title = new Text({
       text: row ? packName(row.kind, row.size) : t('ui.kind.pack'),
       style: {
         ...outlined(34, 0x070a10),
-        fill: ink, fontWeight: '800', letterSpacing: 2,
+        fill: packInkLit(open.kind), fontWeight: '800', letterSpacing: 2,
       },
     })
     title.anchor.set(0.5, 0)
@@ -11156,8 +11167,8 @@ export class Game {
    */
   private repaintPack(): void {
     for (const one of this.packViews.values()) {
-      // **띠는 두고 카드만 갈아 끼웁니다.** 통째로 비우면 띠까지 지워지고, 그러면 자리가
-      // 없다는 표시가 그림이 들어오는 순간에 사라집니다.
+      // **통을 두고 카드만 갈아 끼웁니다.** 자리와 배율과 반짝임은 그 통에 걸려 있어서,
+      // 통째로 비우면 그림이 들어오는 순간에 그것들이 처음으로 돌아갑니다.
       const fresh = this.itemCard(one.item)
       one.face.node.removeChild(one.face.card)
       one.face.card.destroy({ children: true })
@@ -11200,9 +11211,9 @@ export class Game {
     const card = this.itemCard(item)
     node.addChild(card)
 
-    // **자리가 없다는 것은 카드에 적지 않습니다.** 고르면 그 밑에 「바꿔 집는다」 가
-    // 서고 그것이 이미 그 말입니다 — 카드 한가운데를 띠가 가로지르면 무엇을 고르는
-    // 자리인지가 그 띠에 덮입니다. 자리가 없는 카드는 조금 옅게 둡니다.
+    // **자리가 없다는 것은 카드에 적지도 카드를 옅게 하지도 않습니다.** 집으면 무엇과
+    // 바꿀지 고르는 화면이 서고 그것이 이미 그 말입니다 — 카드 한가운데를 띠가 가로지르면
+    // 무엇을 고르는 자리인지가 그 띠에 덮이고, 옅게 하면 펼친 것이 전부 옅어집니다.
 
     node.eventMode = 'static'
     node.cursor = 'pointer'
@@ -11309,19 +11320,6 @@ export class Game {
   }
 
   /**
-   * 자리가 없는 카드에 띠를 답니다.
-   *
-   * **매 프레임 다시 정합니다.** 팩이 열려 있는 동안에도 소모품을 쓰거나 조커를 팔 수 있고,
-   * 그러면 방금까지 못 집던 것을 집을 수 있게 됩니다 — 그릴 때 한 번 정하면 그 띠가 실제와
-   * 어긋납니다.
-   */
-  private markPackFace(face: PackFace, item: ShopItem): void {
-    // 자리가 없는 것은 조금 옅습니다. **그 이상은 적지 않습니다** — 무엇을 하게 되는지는
-    // 고른 뒤에 서는 단추에 적힙니다.
-    face.card.alpha = this.roomFor(item.kind) ? 1 : 0.62
-  }
-
-  /**
    * 나오는 한 장이 반짝이는 것.
    *
    * **팩에서 나오는 그 순간의 한 장에만 붙습니다.** 카드가 자기 자리로 미끄러지는 것은
@@ -11420,7 +11418,9 @@ export class Game {
       node.rotation = (one.motion.rotation.value + tilt) * (Math.PI / 180)
       node.scale.set(one.motion.scale.value)
       node.zIndex = up ? 10 : 0
-      this.markPackFace(one.face, one.item)
+      // **자리가 차 있어도 옅게 두지 않습니다.** 소모품 칸이 찬 팩은 펼친 것이 전부 옅어지고,
+      // 전부 옅으면 옅음이 무엇도 구별하지 않습니다 — 남는 것은 「무엇이 잘못되었다」
+      // 하나이고, 자리가 없다는 것은 고른 다음에 서는 화면이 적습니다.
       this.advancePackGlow(one, seconds)
       // 닫히는 동안에는 카드도 함께 물러납니다. 자리를 비우는 동안은 한 단 옅습니다 —
       // 아직 나오지 않은 카드(0)는 그대로 둡니다.

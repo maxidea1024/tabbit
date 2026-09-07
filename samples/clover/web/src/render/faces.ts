@@ -80,6 +80,18 @@ export function packInk(kind: PackKind): number {
   }
 }
 
+/**
+ * 팩의 색을 글자에 쓸 때.
+ *
+ * **`packInk` 는 바탕에 깔리는 색입니다.** 봉지와 칩의 판이 그 색이고, 어두운 판 위에
+ * 그대로 글을 적으면 글자와 바탕의 밝기가 거의 같습니다 — 뜯은 팩의 이름을 34픽셀에
+ * 굵게 적어 두었는데도 읽히지 않았고, 모자란 것은 크기가 아니라 밝기였습니다.
+ * 색조는 그대로 두고 밝히기만 합니다.
+ */
+export function packInkLit(kind: PackKind): number {
+  return mix(packInk(kind), 0xffffff, 0.62)
+}
+
 export function kindName(kind: ShopItemKind): string {
   switch (kind) {
     case ShopItemKind.Joker: return t('ui.guide.joker.head')

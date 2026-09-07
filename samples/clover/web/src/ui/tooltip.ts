@@ -97,6 +97,16 @@ export class Tooltip extends Container {
   private fromX = 0
   private fromY = 0
 
+  /**
+   * 몇 번째로 뜬 쪽지인가.
+   *
+   * **닫는 자리가 여럿이라 셉니다.** 커서 밑을 재어 띄우는 쪽과 노드에 달아 띄우는 쪽이
+   * 이 쪽지 하나를 나눠 쓰는데, 재는 쪽은 프레임 끝에 닫습니다 — 그 사이에 다른 것이 띄운
+   * 쪽지까지 그 닫음이 함께 걷습니다. 띄운 때의 이 수를 들고 있으면 「내가 띄운 그
+   * 쪽지인가」가 갈립니다.
+   */
+  opens = 0
+
   constructor() {
     super()
     this.addChild(this.plate, this.title, this.chips, this.body)
@@ -119,6 +129,7 @@ export class Tooltip extends Container {
         * 되풀이되는 한 낱말은 글의 첫 줄이 아니라 이름 옆의 칩입니다.
         */
        kindTone?: number): void {
+    this.opens += 1
     this.title.text = name
 
     // 칩을 먼저 만듭니다. 너비가 이것에 달려 있습니다.
