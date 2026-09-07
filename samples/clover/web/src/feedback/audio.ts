@@ -478,6 +478,14 @@ export class Audio {
    * 자리가 쉰 곳이 넘습니다.
    */
   readonly played: string[] = []
+  /**
+   * 이 판이 켜진 뒤로 신호마다 몇 번을 불렀는가.
+   *
+   * **`played` 는 마지막 것들만 남습니다.** 판이 도는 동안 UI 소리 몇 개가 그 창을 채우면
+   * 그 앞의 카드 소리가 밀려 나가고, 그러면 「부르지 않았다」와 「밀려 나갔다」가 갈리지
+   * 않습니다 — 이 계수기는 밀려 나가지 않습니다.
+   */
+  readonly calls = new Map<string, number>()
 
   play(cueId: string, semitones = 0, pan = 0, db = 0): void {
     const context = this.context
@@ -486,6 +494,7 @@ export class Audio {
     // 그다음입니다.
     this.played.push(cueId)
     if (this.played.length > 48) this.played.shift()
+    this.calls.set(cueId, (this.calls.get(cueId) ?? 0) + 1)
     if (!context || !master || this.muted) return
 
     const now = context.currentTime
@@ -623,6 +632,7 @@ export class Audio {
     // 같은 이름으로 둡니다. `play` 와 같이 **꺼져 있어도 적습니다.**
     this.played.push(`tone:${name}`)
     if (this.played.length > 48) this.played.shift()
+    this.calls.set(`tone:${name}`, (this.calls.get(`tone:${name}`) ?? 0) + 1)
 
     const context = this.context
     const master = this.master
@@ -786,6 +796,7 @@ export class Audio {
     open: boolean; state: string; time: number; master: number; level: number
     muted: boolean; holding: boolean; voices: number; sweeps: string[]
     samples: number; played: string[]; squeeze: number; peak: number
+    calls: Record<string, number>
   } {
     const context = this.context
     const now = context?.currentTime ?? 0
@@ -806,6 +817,8 @@ export class Audio {
       sweeps: [...this.running.keys()],
       samples: this.samples.size,
       played: this.played.slice(-6),
+      // **밀려 나가지 않는 셈.** 어느 신호를 몇 번 불렀는지가 켠 뒤로 다 남습니다.
+      calls: Object.fromEntries([...this.calls].sort((a, b) => b[1] - a[1])),
       // **압축기가 살아 있는가.** 지금 깎고 있는 정도(dB)이고, 마디가 없어졌으면 -1 입니다.
       squeeze: this.squeeze ? Number(this.squeeze.reduction.toFixed(2)) : -1,
       // **출력에 실제로 흐르는 값.** 0 이 아니면 게임은 소리를 내고 있습니다.

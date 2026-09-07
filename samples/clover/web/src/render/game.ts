@@ -6763,6 +6763,37 @@ export class Game {
       handLive: this.handLive,
       lastPointer: this.lastPointer ?? null,
       errors: this.errors.slice(),
+      /**
+       * 손패의 자리를 하나씩 짚어 **그 자리에서 무엇이 잡히는가**를 돌려줍니다.
+       *
+       * **사람이 조준할 필요가 없습니다.** 「카드를 눌렀는데 안 된다」를 확인하려면 카드가
+       * 정확히 어디에 있는지 알아야 하는데, 그것을 아는 것은 화면입니다 — 화면이 자기
+       * 자리를 짚어 보고 잡히는 것의 이름을 적습니다. `CardView` 가 아니면 그 이름이
+       * 무엇을 덮고 있는지입니다.
+       */
+      probeHand: () => {
+        const found = this.app.renderer.events?.rootBoundary
+        const row = this.handSpots
+        return this.shown.hand.map((uid, index) => {
+          const view = this.cards.get(uid)
+          const world = { x: row.startX + index * row.spacing, y: HAND_Y }
+          const at = this.world.toGlobal(world)
+          let hit = 'no-boundary'
+          if (found) {
+            const target = found.hitTest(at.x, at.y) as
+              { constructor: { name: string } } | null
+            hit = target === null ? 'none'
+              : target === this.app.stage ? 'stage' : target.constructor.name
+          }
+          return {
+            uid, 자리: [Math.round(world.x), Math.round(world.y)],
+            화면: [Math.round(at.x), Math.round(at.y)],
+            뷰: view ? `${view.constructor.name} eventMode=${String(view.eventMode)} z=${view.zIndex}`
+              + ` 보임=${view.visible} 알파=${Math.round(view.alpha * 100) / 100}` : '없음',
+            잡힌것: hit,
+          }
+        })
+      },
       // 캔버스 위에 DOM 이 서 있는가. 가운데 점에서 맨 위에 있는 원소입니다.
       topAtCenter: (() => {
         const el = document.elementFromPoint(window.innerWidth / 2, window.innerHeight * 0.76)
