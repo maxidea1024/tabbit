@@ -2470,6 +2470,9 @@ export class Game {
     // 흐려집니다.
     this.board.visible = false
     this.overlay.visible = false
+    // **켤 때 옵션을 겁니다.** 판을 열 때만 걸고 있어서, 타이틀과 로그인 화면의 소리는
+    // 만들 때의 기본값으로 났습니다 — 옵션에 적힌 값과 실제로 나는 값이 달랐습니다.
+    this.applyQuietOptions()
     // **타이틀은 판 바깥입니다.** 판과 조각들을 통째로 끄고 그 위에 홀로 섭니다.
     this.recede.addChild(this.board, this.particles, this.overlay,
       this.screenFlash, this.title)
@@ -2724,7 +2727,19 @@ export class Game {
    * **여기 있는 것은 전부 실제로 무언가를 합니다.** 값만 저장하고 아무 데도 쓰지 않으면
    * 그것은 옵션이 아니라 장식입니다.
    */
-  private applyOptions(): void {
+  /**
+   * 옵션이 정한 것 중 **화면을 세우지 않아도 걸리는 것들.**
+   *
+   * **켤 때 한 번 걸어야 합니다.** `applyOptions` 는 옵션을 만졌을 때와 판을 열 때만
+   * 불리므로, 그 전까지 소리는 만들 때의 기본값으로 났습니다 — 효과음 0.35 · 배경음
+   * 0.5 이고, 옵션에는 60 · 60 이 적혀 있습니다. **음악만 들리고 효과음은 거의 들리지
+   * 않는 것이 그 차이입니다**(4.7dB). 소리를 꺼 두었어도 판을 열기 전까지 났습니다.
+   *
+   * 나머지 절반(말 · 글꼴 · 카드 세트 · 겉면)은 화면이 선 뒤에야 걸 수 있으므로 갈라
+   * 둡니다 — 여기 있는 것은 값 하나를 옮기는 것뿐이라 언제 불러도 됩니다. 소리 길이
+   * 열리기 전에 정해 두면 열 때 그 값으로 시작합니다.
+   */
+  private applyQuietOptions(): void {
     this.audio.muted = !this.settings.sound
     this.audio.volume = this.settings.volume / 100
     this.audio.music.muted = !this.settings.music
@@ -2735,6 +2750,10 @@ export class Game {
     // **초당 몇 프레임까지 그리는가.** 0 은 화면이 정하는 대로입니다 — 티커에 0 을 넣으면
     // 문턱이 없어집니다.
     this.app.ticker.maxFPS = this.settings.frameCap
+  }
+
+  private applyOptions(): void {
+    this.applyQuietOptions()
 
     // **말이 바뀌면 화면을 다시 그립니다.** 글은 그릴 때 한 번 읽히므로, 다시 그리지 않으면
     // 고른 그 순간에는 아무것도 바뀌지 않고 다음 판부터 바뀝니다.
