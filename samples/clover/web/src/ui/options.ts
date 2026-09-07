@@ -42,6 +42,17 @@ const RICH: RichStyle = {
  * **판단은 사람마다 다르고 그래서 여기 있습니다.** 흔들림이 거슬리는 사람과 흔들림이 없으면
  * 심심한 사람이 같은 값을 쓸 이유가 없습니다.
  */
+/**
+ * 전환을 켜는가.
+ *
+ * **`auto` 가 처음 값입니다.** 기계가 움직임을 줄이라고 하는지를 그때그때 봅니다 — 한 번
+ * 재어 저장하지 않습니다.
+ */
+export type Motion = 'auto' | 'on' | 'off'
+
+/** `Motion` 의 세 값. 옵션의 줄이 이 순서로 돕니다. */
+const MOTIONS: Motion[] = ['auto', 'on', 'off']
+
 export interface Options {
   /** 소리를 내는가. */
   sound: boolean
@@ -78,12 +89,17 @@ export interface Options {
    * 화면과 화면 사이를 덮는가.
    *
    * **꺼도 0이 되지는 않습니다.** 씬을 갈아 끼우는 프레임은 어느 설정에서도 보이면 안
-   * 되므로, 껐을 때는 짧은 덮개 하나가 남습니다 — `render/transition.ts` 의 `QUIET`.
+   * 되므로, 껐을 때는 짧은 덮개 하나가 남습니다 — `render/transition.ts` 의 `quiet`.
    *
-   * **처음 값은 기계가 정합니다.** 움직임을 줄이라고 설정해 둔 기계에서는 꺼진 채로
-   * 시작합니다.
+   * **참·거짓이 아니라 셋입니다.** 참·거짓이던 때에는 기계가 정한 값이 저장소에 그대로
+   * 적혔고, 그 뒤로는 그것이 사람이 고른 것과 구분되지 않았습니다 — 기계 설정을 되돌려도
+   * 꺼진 채로 남고, 사람은 옵션에서 그 줄을 찾아 손으로 켜야 했습니다. 실제로 데스크탑
+   * 앱에서 그렇게 꺼져 있었습니다.
+   *
+   * `auto` 는 **값이 아니라 기계에 묻겠다는 표시**입니다. 그래서 저장되어도 뜻이 바뀌지
+   * 않습니다.
    */
-  transition: boolean
+  transition: Motion
   /**
    * 중요한 순간에 기계가 떠는가.
    *
@@ -156,7 +172,7 @@ export function defaultOptions(): Options {
   return {
     sound: true, volume: 60, music: true, musicVolume: 60, speed: 1, frameCap: 0,
     shake: true, particles: true, chromatic: true, hints: true, haptics: true,
-    transition: !quietMotion(),
+    transition: 'auto',
     language: '', deck: 'red_deck', stake: 'White', cardSet: 'classic', pool: 'base',
     uiTheme: 'slate',
   }
@@ -197,6 +213,18 @@ export function frameCapLabel(cap: number): string {
 
 const KEY = 'clover.options'
 
+/**
+ * 지금 전환을 걸어야 하는가.
+ *
+ * **쓰는 자리에서 잽니다.** 기계 설정은 게임이 도는 동안에도 바뀔 수 있고, 한 번 재어
+ * 저장해 두면 그 값이 사람이 고른 것처럼 남습니다.
+ */
+export function transitionWanted(options: Options): boolean {
+  if (options.transition === 'on') return true
+  if (options.transition === 'off') return false
+  return !quietMotion()
+}
+
 /** 지난번에 정한 것. 저장소가 막힌 브라우저에서는 기본값입니다. */
 export function loadOptions(): Options {
   const options = defaultOptions()
@@ -213,6 +241,10 @@ export function loadOptions(): Options {
       if (key === 'language' && value !== ''
           && !LANGUAGES.includes(value as Language)) continue
       if (key === 'pool' && value !== 'base' && value !== 'all') continue
+      // **참·거짓이던 값은 여기서 걸러집니다.** 위의 타입 검사가 참·거짓을 글과 다른
+      // 것으로 보므로, 예전 판에서 저장된 값은 통째로 버려지고 `auto` 로 돌아옵니다 —
+      // 그것이 이 바꿈의 되돌리기이기도 합니다.
+      if (key === 'transition' && !MOTIONS.includes(value as Motion)) continue
       // 목록에 없는 상한이 저장되어 있으면 화면이 정하는 대로 둡니다.
       if (key === 'frameCap' && !FRAME_CAPS.includes(value as number)) continue
       // 없는 겉면 이름이 저장되어 있으면 기본으로 둡니다.
@@ -679,7 +711,6 @@ export class OptionsPanel implements ModalPanel {
   private tabs(): Tab[] {
     const options = this.options
     type Switch = 'sound' | 'music' | 'shake' | 'particles' | 'chromatic' | 'hints'
-      | 'transition'
       | 'haptics'
     const flip = (key: Switch) => () => {
       options[key] = !options[key]
@@ -760,8 +791,18 @@ export class OptionsPanel implements ModalPanel {
           // **꺼도 0이 되지는 않습니다.** 씬을 갈아 끼우는 프레임은 어느 설정에서도 보이면
           // 안 되므로, 껐을 때는 짧은 잦아듦 하나가 남습니다.
           {
-            label: t('ui.option.transition'), read: onOff('transition'),
-            next: flip('transition'), note: t('ui.option.note.transition'),
+            label: t('ui.option.transition'),
+            // **세 값입니다.** 「자동」 이 기계에 묻는 것이고, 나머지 둘이 사람이 고른
+            // 것입니다 — 켠 것과 「기계가 켜라고 했다」를 가르지 않으면, 기계 설정을
+            // 되돌려도 꺼진 채로 남습니다.
+            read: () => options.transition === 'auto'
+              ? `${t('ui.option.auto')} · ${quietMotion() ? t('ui.option.off') : t('ui.option.on')}`
+              : options.transition === 'on' ? t('ui.option.on') : t('ui.option.off'),
+            next: () => {
+              const at = MOTIONS.indexOf(options.transition)
+              options.transition = MOTIONS[(at + 1) % MOTIONS.length]
+            },
+            note: t('ui.option.note.transition'),
           },
           // **켜고 끄는 것들 아래에 고르는 것 하나입니다.** 판의 겉면이고, 값과 단추의
           // 색은 바뀌지 않으므로 「돈은 노랑」 같은 약속은 그대로 남습니다.

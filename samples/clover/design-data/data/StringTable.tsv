@@ -1181,6 +1181,7 @@
 	ui.pack.size.jumbo	점보 	Jumbo 	ジャンボ	巨型	巨型	Jumbo-
 	ui.option.on	켜짐	On	オン	开	開	An
 	ui.option.off	꺼짐	Off	オフ	关	關	Aus
+	ui.option.auto	자동	Auto	自動	自动	自動	Auto
 	ui.option.volume	음량	Volume	音量	音量	音量	Lautstärke
 	ui.option.music	배경음	Music	BGM	背景音乐	背景音樂	Musik
 	ui.option.music_volume	배경음 크기	Music volume	BGM 音量	背景音乐音量	背景音樂音量	Musiklautstärke

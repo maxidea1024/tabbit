@@ -100,7 +100,7 @@ import type { ToolSpot } from '../ui/layout'
 import { ScrollView } from '../ui/scroll'
 import { richBlock, richLine } from '../ui/rich'
 import {
-  chosen, loadOptions, OptionsPanel, saveOptions, type Options,
+  chosen, loadOptions, OptionsPanel, saveOptions, transitionWanted, type Options,
 } from '../ui/options'
 import { Toasts } from '../ui/toast'
 import { type TipBox, Tooltip } from '../ui/tooltip'
@@ -3149,7 +3149,7 @@ export class Game {
     else this.enterTitle()
     // **덮을 앞 화면이 없으므로 걷기만 합니다.** 로딩은 DOM 한 줄이고 무대 밖입니다 —
     // 그 줄이 걷히는 자리에서 첫 화면이 덮개 밑에서 드러납니다.
-    this.transition.open('boot_first', this.settings.transition
+    this.transition.open('boot_first', transitionWanted(this.settings)
       ? this.crossings.of('boot_first') : this.crossings.quiet)
   }
 
@@ -3165,7 +3165,7 @@ export class Game {
    */
   private cross(id: TransitionId, swap: () => void): void {
     this.transition.play(
-      id, this.settings.transition ? this.crossings.of(id) : this.crossings.quiet, swap)
+      id, transitionWanted(this.settings) ? this.crossings.of(id) : this.crossings.quiet, swap)
   }
 
   /**

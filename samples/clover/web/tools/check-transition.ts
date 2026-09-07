@@ -1,5 +1,9 @@
 // 씬이 갈릴 때 그 사이가 덮이는가.
 //
+// **끄는 자리도 봅니다.** 전환 스위치는 한때 참·거짓이었고 처음 값을 기계에서 재어 넣었는데,
+// 그 값이 저장소에 그대로 적히면서 사람이 고른 것과 구분되지 않았습니다 — 데스크탑 앱에서
+// 그렇게 꺼진 채로 남아 있었습니다. 예전 판의 값이 저장되어 있어도 전환이 도는 것을 봅니다.
+//
 // **눈으로는 갈아 끼운 자리를 볼 수 없습니다.** 반쯤 지워진 한 프레임에 새 화면이
 // 비쳤는지는 그 프레임을 잡아야 알 수 있고, 그 프레임은 60분의 1초입니다. 그래서 40밀리초
 // 마다 걸음과 지워진 정도와 씬을 함께 읽고, **씬이 바뀐 그 프레임의 지워진 정도**를 봅니다.
@@ -207,6 +211,35 @@ async function main(): Promise<number> {
     const home = await watch(page, () => clickSpot(page, 'home'), 60, 'burn')
     judge('진 판 → 타이틀', 'run_lost', home)
   }
+
+  // 6. **예전 판의 값이 저장되어 있어도 전환이 돕니다.**
+  //
+  // 참·거짓이던 때의 값(`false`)이 남아 있으면 그것을 사람이 고른 「끔」으로 읽어서는 안
+  // 됩니다 — 그 값은 기계에 물어 넣은 것이었고, 기계 설정을 되돌려도 꺼진 채로 남았습니다.
+  // 지금은 값의 종류가 달라서 통째로 버려지고 `auto` 로 돌아옵니다.
+  const stale = await browser.newPage({ viewport: { width: 1280, height: 800 } })
+  await skipLogin(stale)
+  await stale.addInitScript(
+    'localStorage.setItem("clover.options", JSON.stringify({ transition: false }))')
+  await stale.goto(`http://localhost:${PORT}/?seed=CLOVER-STALE&tick=manual`,
+    { waitUntil: 'networkidle' })
+  await pass(stale, 1500)
+  await crossed(stale)
+  const revived = await watch(stale, async () => {
+    await pressTitle(stale, 'start')
+    await pass(stale, 500)
+    await pressRunPanel(stale, 'tab:new')
+    await pass(stale, 200)
+    await pressRunPanel(stale, 'startNew')
+    await pass(stale, 400)
+    await confirmYes(stale)
+  }, 60)
+  const ran = revived.filter(one => one.stage !== 'off')
+  // 줄여 둔 것은 240밀리초이므로 40밀리초마다 읽으면 열 칸을 넘지 못합니다.
+  if (ran.length <= 10) {
+    problems.push(`예전 판의 값이 전환을 끈 채로 두었습니다 — ${ran.length}칸뿐입니다`)
+  } else console.log(`예전 판의 값: ${ran[0].id} · ${ran.length}칸 · 줄이지 않았습니다`)
+  await stale.close()
 
   await browser.close()
   await server.close()

@@ -22,7 +22,7 @@ const STEP_MS = 16
 /** 어느 정도 지워진 자리를 보는가. */
 const MARKS = [0.10, 0.22, 0.36, 0.50, 0.64, 0.78, 0.92]
 
-async function shoot(page: Page, id: string, lite: boolean): Promise<string> {
+async function shoot(page: Page, id: string, lite: boolean, gpuTag = ''): Promise<string> {
   await page.evaluate(name => {
     (window as unknown as { __clover: { cross?(id: string): void } }).__clover.cross?.(name)
   }, id)
@@ -32,7 +32,7 @@ async function shoot(page: Page, id: string, lite: boolean): Promise<string> {
   for (let i = 0; i < 300 && next < MARKS.length; i++) {
     const now = (await peek(page)).transition
     if (now && now.stage === 'out' && now.cover >= MARKS[next]) {
-      const name = `${id}${lite ? '-lite' : ''}-${String(Math.round(MARKS[next] * 100)).padStart(2, '0')}`
+      const name = `${id}${lite ? '-lite' : ''}${gpuTag}-${String(Math.round(MARKS[next] * 100)).padStart(2, '0')}`
       await page.screenshot({ path: path.join(OUT, `${name}.png`) })
       took.push(`${Math.round(now.cover * 100)}%`)
       next++
@@ -90,7 +90,7 @@ async function main(): Promise<number> {
   const server = await createServer({ root: path.resolve(HERE, '..'), server: { port: PORT } })
   await server.listen()
   await fs.mkdir(OUT, { recursive: true })
-  // **값을 재려면 실제 GPU 여야 합니다.** 머리 없는 크로미움은 소프트웨어로 그리므로 픽셀
+  // **값을 재려면 실제 GPU 여야 합니다.** 헤드리스 크로미움은 소프트웨어로 그리므로 픽셀
   // 하나의 셈이 몇십 배로 커지고, 그 값으로는 어느 것이 무거운지도 뒤집힙니다 — 그림만
   // 찍을 때는 머리가 없어도 같은 그림이 나옵니다.
   // 값을 재는 두 자리. **둘 다 봐야 합니다.**
@@ -104,7 +104,11 @@ async function main(): Promise<number> {
   //
   // 그 기계에서의 실제 값은 `check-android.ts` 가 붙어서 잽니다.
   const soft = process.argv.includes('--soft')
-  const browser = await chromium.launch(timing && !soft
+  // **그림도 실제 GPU 에서 한 번 봅니다.** 헤드리스 크로미움은 소프트웨어로 그리는데,
+  // 그쪽은 셰이더를 받아 주고 ANGLE/D3D11 은 받아 주지 않는 자리가 있습니다 — 그 차이는
+  // 그림으로만 드러납니다.
+  const gpu = process.argv.includes('--gpu')
+  const browser = await chromium.launch(gpu || (timing && !soft)
     // **수직 동기를 켠 채로 놓친 프레임을 셉니다.** 끊으면 프레임 값이 GPU 를 기다리지
     // 않아 0.3ms 로 나오고, 그것은 GPU 가 얼마나 걸리는지와 아무 상관이 없습니다 —
     // 1.7초에 100프레임이면 놓친 것이 없고, 그것이 보아야 하는 값입니다.
@@ -151,7 +155,7 @@ async function main(): Promise<number> {
       await pass(page, 200)
     }
   } else {
-    console.log(`${id}${lite ? ' (모바일 몫)' : ''}: ${await shoot(page, id, lite)}`)
+    console.log(`${id}${lite ? ' (모바일 몫)' : ''}: ${await shoot(page, id, lite, gpu ? '-gpu' : '')}`)
   }
 
   await browser.close()
