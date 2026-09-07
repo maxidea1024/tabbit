@@ -5420,7 +5420,8 @@ export class Game {
     // 글자만으로는 그 위에서 읽히지 않았습니다 — 만화가 소리를 적을 때 쓰는 그 모양이고,
     // 뾰족함과 크기는 그 사건의 세기가 정합니다.
     const flare = new Graphics()
-    burst(flare, label.width / 2 + 18 + intensity * 8, label.height / 2 + 12 + intensity * 6,
+    // 넘기는 것은 몸통의 반지름입니다. 뾰족한 끝은 `burst` 가 그 바깥으로 더 그립니다.
+    burst(flare, label.width / 2 + 12 + intensity * 5, label.height / 2 + 9 + intensity * 4,
           intensity, tint)
 
     const node = new Container()

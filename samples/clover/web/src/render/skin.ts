@@ -97,28 +97,80 @@ export function insetRadius(radius: number, inset: number): number {
 }
 
 /**
+ * 캡슐의 둘레를 걷습니다. `at` 은 둘레를 따라 잰 거리이고, 돌려주는 것은 그 자리와
+ * 바깥을 향한 방향입니다.
+ *
+ * **글이 짧으면 원이고 길면 양 끝이 둥근 띠입니다.** 곧은 변의 길이 `straight` 가 0이면
+ * 반지름 `cap` 의 원이 됩니다.
+ */
+function onCapsule(at: number, straight: number, cap: number):
+    [number, number, number, number] {
+  const flat = 2 * straight
+  const round = Math.PI * cap
+  let left = at
+
+  // 윗변. 왼쪽에서 오른쪽으로.
+  if (left < flat) return [-straight + left, -cap, 0, -1]
+  left -= flat
+
+  // 오른쪽 끝. 위에서 아래로 반 바퀴.
+  if (left < round) {
+    const angle = -Math.PI / 2 + left / cap
+    return [straight + Math.cos(angle) * cap, Math.sin(angle) * cap,
+            Math.cos(angle), Math.sin(angle)]
+  }
+  left -= round
+
+  // 아랫변. 오른쪽에서 왼쪽으로.
+  if (left < flat) return [straight - left, cap, 0, 1]
+  left -= flat
+
+  // 왼쪽 끝.
+  const angle = Math.PI / 2 + left / cap
+  return [-straight + Math.cos(angle) * cap, Math.sin(angle) * cap,
+          Math.cos(angle), Math.sin(angle)]
+}
+
+/**
  * 떠오르는 글 뒤의 번쩍임.
  *
  * **만화가 소리를 적을 때 쓰는 그 모양입니다.** 판 위에는 카드와 그림이 깔려 있어서 테를
  * 두른 글자만으로는 그 위에서 읽히지 않습니다 — 어두운 안쪽이 글의 바탕이 되고, 뾰족한
  * 테가 그 사건의 세기를 알립니다.
  *
- * **세기가 모양을 정합니다.** 조용한 것은 뾰족함이 적고 얕으며, 배수를 곱하는 것처럼 큰
- * 것은 날카롭습니다. 끝의 길이를 조금씩 달리해 자로 그린 별처럼 보이지 않게 두었고,
- * 그 값은 난수가 아니라 자리에서 나옵니다 — 한 번 그리고 마는 그림이므로 프레임마다
- * 달라지면 안 됩니다.
+ * **끝의 길이는 픽셀로 정합니다.** 몸통은 글을 감싸야 하므로 긴 글에서는 가로로 깁니다.
+ * 그런데 전에는 단위원의 별에 가로 반지름과 세로 반지름을 각각 곱해 만들었고, 그러면
+ * 끝의 길이까지 그 비율로 늘어났습니다 — 숫자 하나는 거의 둥근 별이었고 낱말 두 개짜리
+ * 이름은 가로세로가 2.5 대 1인 별이었습니다. 몸통만 글을 따라 길어지고 끝은 어느
+ * 쪽에서나 같은 길이입니다.
+ *
+ * **끝의 자리는 둘레를 따라 고릅니다.** 각도로 고르면 가로로 긴 몸통에서 양 끝에만
+ * 몰리고 위아래 변에는 거의 서지 않습니다.
+ *
+ * **세기가 모양을 정합니다.** 조용한 것은 끝이 짧고 성글며, 배수를 곱하는 것처럼 큰 것은
+ * 길고 촘촘합니다. 끝의 길이를 조금씩 달리해 자로 그린 별처럼 보이지 않게 두었고, 그 값은
+ * 난수가 아니라 자리에서 나옵니다 — 한 번 그리고 마는 그림이므로 프레임마다 달라지면
+ * 안 됩니다.
+ *
+ * `halfW` · `halfH` 는 몸통의 반지름입니다. 끝은 그 바깥으로 더 나갑니다.
  */
 export function burst(g: Graphics, halfW: number, halfH: number,
                       intensity: number, tint: number): void {
   const heat = Math.min(1.4, Math.max(0, intensity))
-  const spikes = Math.round(9 + heat * 4)
-  const dip = 0.74 - heat * 0.16
+  const cap = Math.max(1, halfH)
+  const straight = Math.max(0, halfW - cap)
+  const spike = 9 + heat * 9
+  const around = 4 * straight + 2 * Math.PI * cap
+  // 끝과 끝 사이가 늘 비슷하게 벌어지도록 둘레로 셉니다.
+  const spikes = Math.min(28, Math.max(9, Math.round(around / (15 - heat * 2))))
+
   const points: number[] = []
   for (let i = 0; i < spikes * 2; i++) {
-    const angle = (Math.PI * i) / spikes - Math.PI / 2
-    const reach = i % 2 === 0 ? 0.9 + ((i * 37) % 21) / 100 : dip
-    points.push(Math.cos(angle) * halfW * reach, Math.sin(angle) * halfH * reach)
+    const [x, y, nx, ny] = onCapsule((around * i) / (spikes * 2), straight, cap)
+    const out = i % 2 === 0 ? spike * (0.85 + ((i * 37) % 21) / 70) : 0
+    points.push(x + nx * out, y + ny * out)
   }
+
   g.poly(points).fill({ color: 0x0a0f18, alpha: 0.82 })
   g.poly(points).stroke({ color: tint, width: 1.5, alpha: 0.85 })
 }
