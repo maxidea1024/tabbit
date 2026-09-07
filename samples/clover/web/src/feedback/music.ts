@@ -323,7 +323,11 @@ export class Music {
    */
   report(): {
     wanted?: string; dim: number
-    tracks: { name: string; playing: boolean; at: number }[]
+    tracks: {
+      name: string; playing: boolean; at: number
+      /** 읽힌 정도(`readyState`) · 읽는 중인가(`networkState`) · 실패한 까닫(`error`). */
+      ready: number; net: number; err: number
+    }[]
   } {
     return {
       ...(this.wanted ? { wanted: this.wanted } : {}),
@@ -334,6 +338,11 @@ export class Music {
         name,
         playing: !track.element.paused,
         at: track.element.currentTime,
+        // **원소가 왜 못 나는지는 원소만 압니다.** 「도는 곡이 없다」로는 읽지 못한 것과
+        // 읽고도 멈춘 것이 갈리지 않습니다.
+        ready: track.element.readyState,
+        net: track.element.networkState,
+        err: track.element.error?.code ?? 0,
       })),
     }
   }
