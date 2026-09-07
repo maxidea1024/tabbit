@@ -245,25 +245,25 @@ export class Coins extends Container {
       const x = u * u * coin.from.x + 2 * u * t * coin.bend.x + t * t * coin.to.x
       const y = u * u * coin.from.y + 2 * u * t * coin.bend.y + t * t * coin.to.y
 
-      // 앞뒤로 돌아가는 것처럼 가로만 눌립니다. **원판이 도는 것으로 읽힙니다.**
-      const squash = Math.abs(Math.cos(coin.life * coin.spin))
+      // 앞뒤로 돌아가는 것처럼 가로가 조금 눌립니다. **눌림은 조금뿐입니다.** 옆면까지
+      // 돌리면 반지름 7픽셀에서는 도는 동전이 아니라 세로로 긴 알로 읽힙니다 — 둥근 것이
+      // 먼저이고 도는 것은 그 위에 얹히는 흔들림입니다.
+      const squash = 0.82 + 0.18 * Math.abs(Math.cos(coin.life * coin.spin))
       // 나가는 동전은 조금 큽니다. 어디에도 닿지 않으므로 공중에서 읽혀야 합니다.
       const radius = RADIUS * (coin.gain ? 1 : 1.15)
-      const width = Math.max(1.2, radius * squash)
+      const width = radius * squash
 
-      this.canvas.ellipse(x, y + 3, width, radius).fill({ color: 0x000000, alpha: 0.25 * fade })
+      // 그림자는 아래로 조금 비켜 같은 크기로. 더 내리면 둘이 겹쳐 세로로 긴 덩어리가 됩니다.
+      this.canvas.ellipse(x + 1, y + 2, width, radius).fill({ color: 0x000000, alpha: 0.22 * fade })
       this.canvas.ellipse(x, y, width, radius).fill({ color: face, alpha: fade })
       this.canvas.ellipse(x, y, width, radius).stroke({ color: edge, width: 1.5, alpha: fade })
-      // 앞면이 보일 때만 `$` 가 보입니다. 옆으로 돌아간 동전에 글이 서 있으면 판이 아니라
-      // 종이입니다.
-      if (squash > 0.3) {
-        const mark = this.mark(shown++)
-        mark.visible = true
-        mark.position.set(x, y)
-        mark.scale.set(squash * radius / RADIUS, radius / RADIUS)
-        mark.alpha = fade * Math.min(1, (squash - 0.3) / 0.3)
-        mark.tint = edge
-      }
+      // 눌림이 조금뿐이므로 `$` 는 내내 보입니다. 가로만 그만큼 함께 눌립니다.
+      const mark = this.mark(shown++)
+      mark.visible = true
+      mark.position.set(x, y)
+      mark.scale.set(squash * radius / RADIUS, radius / RADIUS)
+      mark.alpha = fade
+      mark.tint = edge
     }
   }
 }
