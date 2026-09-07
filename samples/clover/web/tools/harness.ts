@@ -35,6 +35,15 @@ export interface Peek {
   shopUp: boolean
   /** 상점 판이 서 있는 높이. 0 이 다 선 자리이고, 클수록 화면 아래입니다. */
   shopY?: number
+  /** 상점 몸통이 판 안에서 밀린 정도. 0 이 아니면 딱지의 자리가 그만큼 어긋납니다. */
+  shopBodyY?: number
+  /**
+   * 떠오른 글이 뜬 자리들. `[글, x, y, 반너비, 반높이]` 이고 뒤가 새것입니다.
+   *
+   * 반너비·반높이는 글 뒤의 번쩍임까지 합한 것입니다 — 그것이 화면 밖으로 나가는지가
+   * 판정 대상입니다.
+   */
+  pops?: [string, number, number, number, number][]
   /** 상점이 자리를 비켜 내려가 있어야 하는가. 팩을 뜯었거나 자리를 비우는 중입니다. */
   shopParked?: boolean
   /** 자리를 비우는 화면(줄에서 내놓을 것을 고르는 것)이 들었는가 · 든 정도. */
@@ -214,13 +223,13 @@ export async function hurry(page: Page, times: number): Promise<void> {
  * 자리를 바꾸는 것이 되는지 보려면 조커가 둘 있어야 하는데, 그것을 사려고 판을 열 판 두는
  * 동안 도구가 확인하려던 것과 상관없는 곳에서 멈춥니다.
  */
-export async function grantJoker(page: Page, count: number): Promise<void> {
+export async function grantJoker(page: Page, want: number | string): Promise<void> {
   await page.evaluate(many => {
     const hook = (window as unknown as {
-      __clover: { grantJoker?(count: number): void }
+      __clover: { grantJoker?(want: number | string): void }
     }).__clover
     hook.grantJoker?.(many)
-  }, count)
+  }, want)
 }
 
 /**
@@ -446,6 +455,21 @@ export async function winRound(page: Page): Promise<void> {
   await takePayout(page)
   // 판이 아래에서 올라와 줄을 채우는 동안입니다.
   await pass(page, 1400)
+}
+
+/**
+ * 태그 하나를 그냥 들립니다. **개발 서버에서만 됩니다.**
+ *
+ * 태그는 블라인드를 건너뛰어야 들어오고 무엇이 들어오는지는 시드가 정하므로, 지목한 태그
+ * 하나가 하는 일을 보려면 이 자리가 필요합니다.
+ */
+export async function grantTag(page: Page, tagId: string): Promise<void> {
+  await page.evaluate(id => {
+    const hook = (window as unknown as {
+      __clover: { grantTag?(tagId: string): void }
+    }).__clover
+    hook.grantTag?.(id)
+  }, tagId)
 }
 
 /** 돈을 그냥 놓습니다. **개발 서버에서만 됩니다.** */
