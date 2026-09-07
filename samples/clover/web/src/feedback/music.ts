@@ -83,7 +83,11 @@ export class Music {
    */
   private dimAt = 1
 
+  /** 곡의 이름들. **다시 열 때 원소를 새로 만들어야 하므로 들고 있습니다.** */
+  private readonly names: readonly string[]
+
   constructor(names: readonly string[]) {
+    this.names = names
     // **받는 것은 누르기를 기다리지 않습니다.** 소리 길은 사람이 무언가를 누른 뒤에만
     // 열리지만 파일을 받는 것은 그 전에 됩니다.
     for (const name of names) this.make(name)
@@ -113,6 +117,8 @@ export class Music {
   /** 소리 길이 열렸습니다. 정해진 곡이 있으면 시작합니다. */
   open(context: AudioContext, destination: AudioNode): void {
     if (this.context) return
+    // **다시 여는 자리에서는 무엇이 나야 하는지가 이미 정해져 있습니다.** 그것을 그대로
+    // 이어서 틉니다 — 아래에서 `swap` 이 그 일을 합니다.
     this.context = context
     this.master = context.createGain()
     this.master.gain.value = this.off ? 0 : this.level
@@ -139,6 +145,28 @@ export class Music {
   /** 배경음의 마스터. **소리 길을 짚어 보는 도구가 여기에 붙습니다.** */
   get node(): GainNode | undefined {
     return this.master
+  }
+
+  /**
+   * 소리 길을 놓고 원소를 새로 만듭니다. **소리 길을 다시 열 때 씁니다.**
+   *
+   * **원소를 돌려쓸 수 없습니다.** `MediaElementAudioSourceNode` 는 원소마다 한 번,
+   * 그리고 그 소리 길에만 만들 수 있으므로 — 새 소리 길에 옛 원소를 붙일 수 없습니다 —
+   * 원소째로 버리고 다시 만듭니다. 받아 둔 것은 브라우저의 캐시에 있으므로 다시 받지
+   * 않습니다.
+   */
+  close(): void {
+    for (const track of this.tracks.values()) {
+      if (track.stopping !== undefined) clearTimeout(track.stopping)
+      track.element.pause()
+      track.element.removeAttribute('src')
+      track.element.load()
+    }
+    this.tracks.clear()
+    this.context = undefined
+    this.master = undefined
+    this.dimNode = undefined
+    for (const name of this.names) this.make(name)
   }
 
   /**

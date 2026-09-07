@@ -6765,6 +6765,8 @@ export class Game {
       errors: this.errors.slice(),
       /** 소리 길의 세 지점에 삐 소리를 냅니다 — `'out'` · `'master'` · `'music'`. */
       beep: (where?: 'out' | 'master' | 'music') => this.audio.beep(where),
+      /** 출력 장치를 다시 잡습니다. **스트림은 건강한데 소리가 안 나는 자리를 고칩니다.** */
+      rebind: () => this.audio.rebind(),
       /**
        * 손패의 자리를 하나씩 짚어 **그 자리에서 무엇이 잡히는가**를 돌려줍니다.
        *

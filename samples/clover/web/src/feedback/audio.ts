@@ -155,6 +155,8 @@ export class Audio {
   private look?: AnalyserNode
   /** 그 봉우리. 잰 값이 서서히 내려갑니다 — 누른 그 순간을 지나쳐도 읽힙니다. */
   private loudest = 0
+  /** 장치가 바뀌는 것을 이미 듣고 있는가. **한 번만 겁니다.** */
+  private watchingDevices = false
   private looking?: ReturnType<typeof setInterval>
   private readonly follows = new Map<string, boolean>()
   /** 신호마다의 크기. 데이터가 정합니다. */
@@ -314,6 +316,21 @@ export class Audio {
     for (let i = 0; i < frames; i++) wave[i] = Math.random() * 2 - 1
 
     void this.load()
+
+    // **장치가 바뀌면 스스로 다시 잡습니다.**
+    //
+    // 원격 데스크탑이 붙고 떨어지는 것이 곧 장치가 바뀌는 것입니다. 크로미움은 그때 스트림을
+    // 갈아 끼우지만 그 스트림이 아무 데도 가지 않는 자리로 열리는 일이 있습니다 — 그때
+    // 기본 장치에 다시 붙이면 됩니다. **한 번만 겁니다** — 소리 길을 다시 열어도 이 등록은
+    // 남습니다.
+    if (!this.watchingDevices && typeof navigator !== 'undefined') {
+      const media = navigator.mediaDevices as EventTarget | undefined
+      if (media?.addEventListener) {
+        this.watchingDevices = true
+        media.addEventListener('devicechange', () => { void this.rebind() })
+      }
+    }
+
     // **만든 그 자리에서 깨웁니다.** 사람이 누른 뒤라면 이미 깨어 있고, 그 전이라면
     // 이 부름이 되든 안 되든 다음 누름이 다시 옵니다.
     this.wake()
@@ -838,6 +855,67 @@ export class Audio {
         channels: context.destination.channelCount,
       } : {}),
     }
+  }
+
+  /**
+   * 출력 장치를 다시 잡습니다.
+   *
+   * **스트림이 살아 있는데 소리가 안 나는 자리가 있습니다.** 원격 데스크탑이 붙으면 그
+   * 기계의 기본 출력이 「원격 오디오」로 바뀌는데, 크로미움은 그 전에 잡은 스트림을 그대로
+   * 씁니다 — `state` 는 `running` 이고 `outputLatency` 도 정상인데 소리는 그 기계 쪽으로
+   * 갑니다. 원격에 앉은 사람에게는 무음이고, **게임 안에서는 고칠 것이 하나도 없습니다.**
+   *
+   * 두 단계입니다. `setSinkId('')` 로 기본 장치에 다시 붙여 보고, 그것이 없거나 되지
+   * 않으면 **소리 길을 통째로 다시 엽니다** — 새 소리 길은 지금의 기본 장치에 스트림을
+   * 새로 엽니다.
+   */
+  async rebind(): Promise<string> {
+    const context = this.context
+    if (!context) return '소리 길이 아직 없습니다'
+    const able = context as AudioContext & { setSinkId?: (id: string) => Promise<void> }
+    if (typeof able.setSinkId === 'function') {
+      try {
+        await able.setSinkId('')
+        this.wake()
+        return `기본 장치에 다시 붙였습니다 (outLatency=${context.outputLatency ?? -1})`
+      } catch (error) {
+        // 되지 않으면 아래에서 통째로 다시 엽니다.
+        void error
+      }
+    }
+    return this.reopen()
+  }
+
+  /**
+   * 소리 길을 통째로 다시 엽니다. **읽어 둔 음원은 다시 풉니다.**
+   *
+   * 푼 버퍼는 그 소리 길의 것이라 새 길에서 쓸 수 없습니다 — 받아 둔 바이트는 남아 있으므로
+   * 파일을 다시 받지는 않습니다.
+   */
+  private reopen(): string {
+    const old = this.context
+    this.music.close()
+    this.samples.clear()
+    this.voices.clear()
+    this.running.clear()
+    if (this.looking !== undefined) {
+      clearInterval(this.looking)
+      this.looking = undefined
+    }
+    if (this.holding !== undefined) {
+      clearTimeout(this.holding)
+      this.holding = undefined
+    }
+    this.context = undefined
+    this.master = undefined
+    this.squeeze = undefined
+    this.look = undefined
+    this.loudest = 0
+    if (old) void old.close().catch(() => undefined)
+    this.unlock()
+    const now = this.context as AudioContext | undefined
+    return now === undefined ? '소리 길을 다시 열지 못했습니다'
+      : `소리 길을 다시 열었습니다 (state=${now.state}, outLatency=${now.outputLatency ?? -1})`
   }
 
   /**
