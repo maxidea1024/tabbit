@@ -4184,7 +4184,7 @@ export class Game {
   }
 
   private play(): void {
-    if (this.selected.size === 0 || !this.handReady) return
+    if (this.selected.size === 0 || !this.handLive) return
     const cards = this.orderedSelection()
     this.selected.clear()
     // **카드를 올리는 것도 박자입니다.** 여기서 올리고 득점을 따로 세면 둘의 간격이 코드에
@@ -4193,7 +4193,7 @@ export class Game {
   }
 
   private discard(): void {
-    if (this.selected.size === 0 || !this.handReady) return
+    if (this.selected.size === 0 || !this.handLive) return
     const cards = this.orderedSelection()
     this.selected.clear()
     // 버리는 것도 한 장씩입니다. **한 덩어리로 사라지면 몇 장을 버렸는지가 남지 않습니다.**
@@ -4207,14 +4207,14 @@ export class Game {
 
   /** 패를 정렬합니다. **낼 것을 고르는 일이 훨씬 쉬워집니다.** */
   private clearSelection(): void {
-    if (this.selected.size === 0 || !this.handReady) return
+    if (this.selected.size === 0 || !this.handLive) return
     this.selected.clear()
     this.audio.play('card_select', 0, 0, -6)
     this.refresh()
   }
 
   private sortHand(by: 'rank' | 'suit'): void {
-    if (!this.handReady) return
+    if (!this.handLive) return
     const before = this.state.hand.slice()
     const cards = this.state.hand
       .map(uid => this.state.deck.find(card => card.uid === uid))
@@ -4267,7 +4267,7 @@ export class Game {
    * 오르면 그 뜻이 묽어지고, 정작 득점의 사다리가 특별하지 않게 됩니다.
    */
   private toggle(uid: number): void {
-    if (!this.handReady) return
+    if (!this.handLive) return
     if (this.selected.has(uid)) this.selected.delete(uid)
     else if (this.selected.size < this.data.run.maxPlayedCards) this.selected.add(uid)
     this.audio.play('card_select')
@@ -6272,7 +6272,7 @@ export class Game {
     //
     // **조커 줄은 막지 않습니다.** 득점이 도는 동안 어느 조커가 무엇을 내는지는 그 설명으로
     // 읽으므로, 그쪽은 그때가 오히려 볼 때입니다.
-    const quiet = !this.handReady
+    const quiet = !this.handLive
     // **뜯은 팩은 판 위에 펼쳐집니다.** 그 아래의 손패까지 커서를 받으면 펼친 카드 뒤에서
     // 카드가 들립니다 — 조커 줄은 팩 위쪽에 그대로 서 있으므로 그쪽은 막지 않습니다.
     // 조커의 설명이 이 길로만 뜨고, 무엇을 집을지는 지금 든 조커를 읽고 정합니다.
@@ -6705,6 +6705,24 @@ export class Game {
       // 도구가 이 값을 보고 기다리는 것이 맞습니다 — 박자는 첫 장이 나올 때 이미 끝났습니다.
       busy: this.player.busy || !this.score.settled || this.coins.busy
         || this.deals.length > 0 || this.clock < this.dealtUntil,
+      /**
+       * 손패의 걸쇠와 그것이 거짓인 까닫.
+       *
+       * **보이지 않는 채로 죽는 자리였습니다.** 카드가 눌리지 않고 소리도 나지 않는데
+       * 화면에는 아무것도 적히지 않아서, 어느 조건이 거짓인지 코드에서 눈으로 찾아야
+       * 했습니다 — 그 조건이 여섯입니다.
+       */
+      handLive: this.handLive,
+      handWhy: [
+        state.phase !== 'round' ? 'phase:' + state.phase : '',
+        this.shown.phase !== 'round' ? 'shown:' + this.shown.phase : '',
+        this.player.busy ? 'timeline' : '',
+        this.modals.busy ? 'modal' : '',
+        this.playedViews.length > 0 ? 'played:' + this.playedViews.length : '',
+        this.fades.length > 0 ? 'fades:' + this.fades.length : '',
+        this.deals.length > 0 ? 'deals:' + this.deals.length : '',
+        this.clock < this.dealtUntil ? 'dealing' : '',
+      ].filter(one => one !== '').join(' '),
       // **화면이 주장하는 패입니다.** 도구가 눌러야 하는 것은 지금 그려져 있는 카드입니다.
       hand: this.shown.hand.map(uid => {
         const card = state.deck.find(entry => entry.uid === uid)
@@ -8678,7 +8696,7 @@ export class Game {
 
     // **만질 수 있는 때가 아니면 눌리지도 않습니다.** 부르는 자리에서 되돌려 보내는
     // 것만으로는 커서가 손가락 모양으로 바뀌고, 바뀐 커서는 「눌러도 된다」입니다.
-    const live = this.handReady
+    const live = this.handLive
 
     hand.forEach((card, index) => {
       let view = this.cards.get(card.uid)
@@ -8820,7 +8838,7 @@ export class Game {
     // 것을 보는 자리이고, 밑에 남은 손패는 아직 그 판에 쓸 것이 아닙니다 — `player.busy`
     // 만으로는 박자가 다 지난 뒤부터 다음 패가 깔리기까지가 열려 있어서, 그 사이에 고른
     // 것이 새 패에 그대로 남았습니다.
-    if (kind === 'hand' && !this.handReady) return
+    if (kind === 'hand' && !this.handLive) return
 
     // **누른 그 자리에서 시작합니다.** 마우스는 누르기 전에 움직이므로 마지막으로 지나간
     // 자리가 곧 누른 자리이지만, **손가락은 누르는 그 순간에 처음 나타납니다** — 그때의
@@ -10254,6 +10272,25 @@ export class Game {
       && this.shown.hand.length === this.state.hand.length
     return this.state.phase === 'round' && this.shown.phase === 'round'
       && this.shown.hand.length > 0 && dealt && !this.player.busy && !this.modals.busy
+  }
+
+  /**
+   * 손패를 만질 수 있는 때인가. **누르기 · 끌기 · 올려두기 · 소리가 이것을 봅니다.**
+   *
+   * **`handReady` 와 갈라 둡니다.** 그쪽은 단추가 올라와 있을 때를 정하는 자리라 「전부
+   * 가라앉았는가」를 묻고, 그중 `shown.hand.length === state.hand.length` 는 연출이 한 장이라도
+   * 어긋나면 거짓이 됩니다 — 단추가 내려가 있는 것은 그때 눈에 보이지만, **그것을 조작과
+   * 소리의 걸쇠로 쓰면 그 라운드가 통째로 죽습니다.** 카드가 눌리지도 않고 소리도 나지
+   * 않고, 왜 그런지 화면에 아무것도 적히지 않습니다. 실제로 그렇게 되었습니다.
+   *
+   * 여기서 막는 것은 **지금 무언가가 도는 중인 것**뿐입니다 — 박자가 돌거나, 낸 카드가
+   * 아직 판에 있거나, 나가는 중이거나, 깔리는 중입니다. 개수가 맞는지는 묻지 않습니다.
+   */
+  private get handLive(): boolean {
+    return this.state.phase === 'round' && this.shown.phase === 'round'
+      && !this.player.busy && !this.modals.busy
+      && this.playedViews.length === 0 && this.fades.length === 0
+      && this.deals.length === 0 && this.clock >= this.dealtUntil
   }
 
   /**
