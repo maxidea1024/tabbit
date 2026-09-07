@@ -6,7 +6,7 @@
 
 ```
 npm install
-npm run apk              # 웹 빌드 → 동기화 → 서명하지 않은 릴리스 APK
+npm run apk              # 웹 빌드 → 동기화 → 릴리스 APK
 npm run apk:debug        # 디버그 APK. 지금은 쓰지 않습니다
 npm run open             # 안드로이드 스튜디오로 열기
 ```
@@ -21,8 +21,22 @@ npm run open             # 안드로이드 스튜디오로 열기
 
 |무엇|파일|
 |--|--|
-|릴리스(서명 없음)|`out/clover-<판>.apk`. 그 자리의 이름은 `android/app/build/outputs/apk/release/app-release-unsigned.apk` 이고, **빌드가 끝나면 저 이름으로 베껴 둡니다** — `app/build.gradle` 이 합니다. **짧은 이름이 이쪽입니다** — 손에 쥐고 옮기는 것이 이것입니다|
+|릴리스|`out/clover-<판>.apk`. 그 자리의 이름은 `android/app/build/outputs/apk/release/app-release.apk` 이고, **빌드가 끝나면 저 이름으로 베껴 둡니다** — `app/build.gradle` 이 합니다. **짧은 이름이 이쪽입니다** — 손에 쥐고 옮기는 것이 이것입니다|
 |디버그|`out/clover-<판>-debug.apk`. 그 자리의 이름은 `android/app/build/outputs/apk/debug/app-debug.apk` 입니다. **지금은 쓰지 않습니다**|
+
+## 서명
+
+**서명이 없는 APK 는 설치되지 않습니다.** 폰이 「앱이 설치되지 않았습니다」로 거절하고,
+왜인지는 화면에 적히지 않습니다 — 서명이 다른 APK 로 덮으려 할 때도 같은 말이 나옵니다.
+
+|열쇠|언제 쓰이는가|
+|--|--|
+|`android/keystore.properties` 의 것|그 파일이 있으면. `storeFile` · `storePassword` · `keyAlias` · `keyPassword` 넉 줄입니다. **담지 않습니다** — 저장소에 들어간 열쇠는 더 이상 열쇠가 아닙니다|
+|이 기계의 디버그 열쇠|위의 파일이 없으면. `~/.android/debug.keystore` 이고, 손에 쥐고 옮기던 APK 를 그때까지 서명해 온 것이 이 열쇠입니다 — **그래서 폰의 것을 지우지 않고 덮어 설치됩니다**|
+|없음|열쇠가 하나도 없는 기계에서만. 이름이 `app-release-unsigned.apk` 로 나오고 폰에는 들어가지 않습니다|
+
+제 열쇠로 처음 덮을 때는 **한 번 지워야 합니다.** 서명이 바뀌면 폰이 덮어 설치하지 않고,
+지우면 그 기계에 저장된 판도 함께 없어집니다.
 
 ## 필요한 것
 

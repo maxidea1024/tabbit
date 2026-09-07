@@ -7,6 +7,11 @@ android/app/src/main/assets/capacitor.plugins.json
 # 기계마다 다른 것. SDK 의 자리는 사람마다 다릅니다.
 android/local.properties
 
+# 서명 열쇠. **저장소에 들어가면 그 열쇠는 더 이상 열쇠가 아닙니다.**
+android/keystore.properties
+*.jks
+*.keystore
+
 # 낸 APK. `desktop/out/` 과 같습니다 — 산출물은 담지 않습니다.
 out/
 
