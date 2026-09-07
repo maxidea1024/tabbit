@@ -827,6 +827,46 @@ export class Audio {
   }
 
   /**
+   * 소리 길의 세 지점에 직접 삐 소리를 냅니다. **어디까지 소리가 가는지를 귀로 가릅니다.**
+   *
+   * 게임의 소리가 부르는 것까지는 확인되었는데 들리지 않을 때, 부른 뒤의 길이 어디서
+   * 끊겼는지를 코드로는 볼 수 없습니다 — 마디는 다 살아 있고 값도 멀쩡한데 들리지 않는
+   * 일이 있습니다(기계가 소리를 내지 않는 자리로 흘려 보내는 것이 그런 경우입니다).
+   *
+   * `where` 는 어디에 붙일 것인가입니다.
+   *
+   * |값|붙는 자리|들리면|
+   * |--|--|--|
+   * |`out`|`destination` 에 곧바로|소리 길의 출력은 살아 있습니다|
+   * |`master`|효과음의 마스터(압축기를 지납니다)|마스터와 압축기가 살아 있습니다|
+   * |`music`|배경음의 마스터|배경음 쪽 길이 살아 있습니다|
+   */
+  beep(where: 'out' | 'master' | 'music' = 'out'): string {
+    const context = this.context
+    if (!context) return '소리 길이 아직 없습니다'
+    const into = where === 'master' ? this.master
+      : where === 'music' ? this.music.node
+        : context.destination
+    if (!into) return `${where} 마디가 없습니다`
+
+    const now = context.currentTime
+    const osc = context.createOscillator()
+    osc.type = 'sine'
+    osc.frequency.value = 660
+    const gain = context.createGain()
+    gain.gain.setValueAtTime(0, now)
+    gain.gain.linearRampToValueAtTime(0.25, now + 0.01)
+    gain.gain.setValueAtTime(0.25, now + 0.28)
+    gain.gain.linearRampToValueAtTime(0.0001, now + 0.34)
+    osc.connect(gain).connect(into)
+    osc.start(now)
+    osc.stop(now + 0.36)
+    return `${where} 로 0.3초 냈습니다 (state=${context.state}, `
+      + `master=${this.master?.gain.value ?? -1}, 출력채널=${context.destination.channelCount}, `
+      + `표본율=${context.sampleRate})`
+  }
+
+  /**
    * 조커 하나가 내는 음.
    *
    * **목소리를 걷고 악기로 바꿨습니다.** 한동안 웅얼거리는 소리를 냈는데, 그것이 카지노

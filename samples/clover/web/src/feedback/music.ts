@@ -136,6 +136,11 @@ export class Music {
     this.master?.connect(into)
   }
 
+  /** 배경음의 마스터. **소리 길을 짚어 보는 도구가 여기에 붙습니다.** */
+  get node(): GainNode | undefined {
+    return this.master
+  }
+
   /**
    * 음량. 0 에서 1 입니다.
    *
