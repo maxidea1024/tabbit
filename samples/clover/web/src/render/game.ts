@@ -8694,9 +8694,6 @@ export class Game {
     const startX = BOARD_X - ((hand.length - 1) * spacing) / 2
     this.handSpots = { startX, spacing }
 
-    // **만질 수 있는 때가 아니면 눌리지도 않습니다.** 부르는 자리에서 되돌려 보내는
-    // 것만으로는 커서가 손가락 모양으로 바뀌고, 바뀐 커서는 「눌러도 된다」입니다.
-    const live = this.handLive
 
     hand.forEach((card, index) => {
       let view = this.cards.get(card.uid)
@@ -8721,8 +8718,11 @@ export class Game {
         view.set(card, this.editionLook(card.edition))
       }
 
-      view.eventMode = live ? 'static' : 'none'
-      view.cursor = live ? 'pointer' : 'default'
+      // **여기서 `eventMode` 를 끄지 않습니다.** 한동안 `handLive` 가 거짓이면 `'none'` 으로
+      // 두었는데, 이 값은 `refresh()` 가 불린 그 순간에 굳습니다 — 깔기의 마지막 `refresh()`
+      // 는 카드가 아직 뒤집히는 중에 오므로 `'none'` 이 찍히고, 그 뒤로 다시 그릴 일이 없으면
+      // **카드가 영영 눌리지 않습니다.** 판을 열고 닫아야 살아났고, 30fps 로 도는 데스크탑에서
+      // 그렇게 되었습니다. 만질 수 있는지는 누르는 그 순간에 `beginDrag` 가 봅니다.
 
       const chosen = this.selected.has(card.uid)
       view.selected = chosen
