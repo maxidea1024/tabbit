@@ -1860,6 +1860,11 @@ export class Game {
    * 일도 없는 것을 곧 알아채지만, 도구는 그다음 줄로 그냥 넘어갑니다.
    */
   private blankTaps = 0
+  /** 마지막 누름이 어디까지 닿았는가. 캔버스(DOM)와 무대(Pixi) 둘입니다. */
+  private lastPointer?: {
+    dom?: { type: string; x: number; y: number; at: number }
+    stage?: { type: string; target: string; x: number; y: number; at: number }
+  }
 
   /**
    * 나중에 세는 자리들.
@@ -2586,7 +2591,17 @@ export class Game {
     this.infoButton.position.set(LEFT, PANEL_FOOT_Y)
     this.menuButton.position.set(RIGHT_COL, PANEL_FOOT_Y)
 
-    app.canvas.addEventListener('pointerdown', () => this.audio.unlock())
+    app.canvas.addEventListener('pointerdown', event => {
+      this.audio.unlock()
+      // **누름이 캔버스에 닿았는가.** Pixi 가 받기 전의 자리입니다 — 여기 적히고 아래의
+      // 무대에 적히지 않으면 Pixi 의 길이 막힌 것이고, 여기에도 적히지 않으면 캔버스 위에
+      // 무언가가 서 있는 것입니다. 원격 데스크탑에서 판 안의 카드만 눌리지 않아 넣었습니다.
+      this.lastPointer = {
+        dom: { type: event.pointerType, x: Math.round(event.clientX), y: Math.round(event.clientY),
+               at: Math.round(performance.now()) },
+        stage: this.lastPointer?.stage,
+      }
+    })
     // **껍데기 안에서는 기다리지 않습니다.** 소리 길이 사람의 조작 뒤에만 열리는 것은
     // 브라우저의 규칙이고, 앱의 WebView 와 일렉트론은 둘 다 그 규칙을 끄고 섭니다 —
     // 그래서 타이틀의 음악이 첫 화면부터 납니다. 걸어 두지 않으면 첫 조작이 대개 판을
@@ -2606,6 +2621,13 @@ export class Game {
     // 그냥 받으면 그 물건이 방금 걸어 둔 꾸욱 누르기를 이 줄이 곧바로 걷어냅니다 —
     // 잡는 단계는 그 반대로 화면에서 물건으로 내려가므로 여기가 먼저입니다.
     app.stage.addEventListener('pointerdown', event => {
+      const hit = event.target as { label?: string; constructor: { name: string } } | null
+      this.lastPointer = {
+        dom: this.lastPointer?.dom,
+        stage: { type: event.pointerType, at: Math.round(performance.now()),
+                 target: hit === app.stage ? 'stage' : `${hit?.constructor.name}${hit?.label ? ':' + hit.label : ''}`,
+                 x: Math.round(event.global.x), y: Math.round(event.global.y) },
+      }
       this.touching = event.pointerType !== 'mouse'
       this.pressAte = false
       this.pressShown = false
@@ -6713,6 +6735,12 @@ export class Game {
        * 했습니다 — 그 조건이 여섯입니다.
        */
       handLive: this.handLive,
+      lastPointer: this.lastPointer ?? null,
+      // 캔버스 위에 DOM 이 서 있는가. 가운데 점에서 맨 위에 있는 원소입니다.
+      topAtCenter: (() => {
+        const el = document.elementFromPoint(window.innerWidth / 2, window.innerHeight * 0.76)
+        return el ? `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}` : 'none'
+      })(),
       handWhy: [
         state.phase !== 'round' ? 'phase:' + state.phase : '',
         this.shown.phase !== 'round' ? 'shown:' + this.shown.phase : '',
