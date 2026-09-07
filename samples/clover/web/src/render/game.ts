@@ -2403,6 +2403,12 @@ export class Game {
     // 그 자리였고, 알림은 무엇이 열려 있든 읽혀야 하는 것입니다.
     // **동전은 모달 위입니다.** 정산 판에서 금액 칸으로 날아가므로 그 판보다 위여야 하고,
     // 모달이 열려 흐려지는 층 안에 있으면 그 동전도 함께 흐려집니다.
+    //
+    // **차례는 `zIndex` 가 정합니다.** Pixi 는 `zIndex` 가 0 이 아닌 자식이 들어오면 그 부모를
+    // 정렬하는 것으로 바꾸므로(`depthOfChildModified`), 모달(9,500)이 들어온 순간부터 이 층의
+    // `addChild` 순서는 그림의 차례가 아닙니다 — 동전도 값을 받아야 모달 위에 섭니다. 통신
+    // 표시(9,800)보다는 아래입니다.
+    this.coins.zIndex = 9_600
     this.world.addChild(this.recede, this.modals, this.coins, this.toasts, this.tooltip)
 
     // **내 카드가 계정 칩의 자리에 놓입니다.** 이름을 두 곳에 적으면 같은 것을 두 번 보게
@@ -5673,13 +5679,6 @@ export class Game {
     this.advancePayout(seconds)
     this.advanceRatchet(seconds)
     this.advanceBurningItems(seconds)
-    // **동전은 모달 바로 위에 섭니다.** 층들이 보일 때 스스로 맨 위로 올라가는 일이 있어
-    // (`addChild` 는 이미 있는 것을 끝으로 옮깁니다) 처음 정한 차례가 그대로 남지 않습니다 —
-    // 정산 판 위로 날아가야 하므로, 나는 동안은 모달 바로 위로 다시 세웁니다.
-    if (this.coins.busy) {
-      const want = this.world.getChildIndex(this.modals) + 1
-      if (this.world.getChildIndex(this.coins) !== want) this.world.setChildIndex(this.coins, want)
-    }
     this.coins.advance(seconds)
     this.toasts.advance(seconds)
     this.decayFlashes(seconds)
