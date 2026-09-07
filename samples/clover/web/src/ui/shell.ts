@@ -29,15 +29,31 @@ export function inApp(): boolean {
 }
 
 /**
+ * 브라우저의 자동 재생 규칙이 걸리지 않는 자리인가.
+ *
+ * **껍데기 안에서는 걸리지 않습니다.** 소리 길이 사람의 조작 뒤에만 열리는 것은 브라우저의
+ * 규칙이고, 안드로이드의 WebView 와 일렉트론은 둘 다 그 규칙을 끄고 섭니다.
+ *
+ * **`inApp` 만 보고 있었습니다.** 그것은 커패시터의 표시라 데스크탑에서는 거짓이었습니다 —
+ * 그래서 **모바일은 첫 화면부터 소리가 나고 데스크탑은 캔버스를 한 번 눌러야 났습니다.**
+ * 창을 눌러 포커스를 준 것은 대개 창 테두리이고 그 누름은 캔버스에 닿지 않으므로, 판을
+ * 열고 나서야 소리가 나거나 그대로 조용했습니다.
+ *
+ * 일렉트론은 자기 표시를 `userAgent` 에 남깁니다 — `canQuit` 이 쓰던 것과 같은 표시입니다.
+ */
+export function nativeShell(): boolean {
+  if (inApp()) return true
+  return typeof navigator !== 'undefined' && navigator.userAgent.includes('Electron')
+}
+
+/**
  * 나갈 수 있는 자리인가.
  *
  * **묻기 전에 봅니다.** 할 수 없는 것을 물어 놓고 「예」를 눌렀을 때 아무 일도 일어나지
  * 않으면, 누른 사람에게는 그것이 고장입니다.
  */
 export function canQuit(): boolean {
-  if (inApp()) return true
-  // Electron 은 자기 표시를 `userAgent` 에 남깁니다.
-  return navigator.userAgent.includes('Electron')
+  return nativeShell()
 }
 
 /**

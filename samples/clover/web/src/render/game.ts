@@ -83,7 +83,7 @@ import { LeaderboardHub, type EndLine } from '../ui/hub'
 import { NetStatus } from '../ui/net-status'
 import { LoginScene } from '../ui/login-scene'
 import { ConfirmPanel } from '../ui/confirm'
-import { canQuit, inApp, keepAwake, onAppState, onBackButton, quitGame } from '../ui/shell'
+import { canQuit, keepAwake, nativeShell, onAppState, onBackButton, quitGame } from '../ui/shell'
 import * as account from '../net/session'
 import { busy as netBusy } from '../net/session'
 import { newMetrics, observe, type MetricsAcc } from '../core/metrics'
@@ -2601,11 +2601,15 @@ export class Game {
     this.menuButton.position.set(RIGHT_COL, PANEL_FOOT_Y)
 
     app.canvas.addEventListener('pointerdown', () => this.audio.unlock())
-    // **앱에서는 기다리지 않습니다.** 소리 길이 사람의 조작 뒤에만 열리는 것은 브라우저의
-    // 규칙이고, 앱의 WebView 는 그 규칙을 끄고 섭니다 — 그래서 타이틀의 음악이 첫 화면부터
-    // 납니다. 걸어 두지 않으면 첫 조작이 대개 판을 여는 단추라, 타이틀 곡이 그 순간에
-    // 시작해서 다음 화면에서 곧바로 잦아들었습니다.
-    if (inApp()) this.audio.unlock()
+    // **껍데기 안에서는 기다리지 않습니다.** 소리 길이 사람의 조작 뒤에만 열리는 것은
+    // 브라우저의 규칙이고, 앱의 WebView 와 일렉트론은 둘 다 그 규칙을 끄고 섭니다 —
+    // 그래서 타이틀의 음악이 첫 화면부터 납니다. 걸어 두지 않으면 첫 조작이 대개 판을
+    // 여는 단추라, 타이틀 곡이 그 순간에 시작해서 다음 화면에서 곧바로 잦아들었습니다.
+    //
+    // **`inApp` 만 보고 있었습니다.** 그것은 커패시터의 표시이므로 데스크탑에서는 거짓이고,
+    // 데스크탑은 캔버스를 한 번 눌러야 소리가 났습니다 — 창을 눌러 포커스를 준 것은 대개
+    // 창 테두리라 그 누름이 캔버스에 닿지 않습니다.
+    if (nativeShell()) this.audio.unlock()
     // **누르는 순간 툴팁이 닫힙니다.** 툴팁은 마우스가 그것에서 벗어날 때 닫히는데, 누른
     // 것이 사라지면(사거나 팔거나 쓰거나) 벗어나는 일이 영영 없어서 그 자리에 남습니다.
     //
