@@ -7,10 +7,10 @@
 // 크로미움은 `file://` 에서의 `fetch` 를 막습니다. 그래서 사설 스킴 하나를 등록하고 그 스킴의
 // 요청을 파일로 돌려줍니다. **그러면 웹에서 쓰는 상대 경로가 그대로 맞습니다.**
 
-const { app, BrowserWindow, Menu, protocol, net, shell } = require('electron')
+const { app, BrowserWindow, Menu, protocol, shell } = require('electron')
 const fs = require('node:fs')
 const path = require('node:path')
-const { pathToFileURL } = require('node:url')
+const { Readable } = require('node:stream')
 
 /**
  * 웹 빌드가 있는 곳. 묶으면 `resources/web` 이 됩니다.
@@ -24,6 +24,69 @@ const ROOT = app.isPackaged
   : path.join(__dirname, '..', 'web', 'dist')
 
 const SCHEME = 'clover'
+
+/**
+ * 확장자마다의 갈래.
+ *
+ * **직접 적습니다.** 토막을 돌려주려면 응답을 손으로 만들어야 하고, 그러면 갈래도 손으로
+ * 붙여야 합니다 — 크로미움은 갈래가 없으면 그 파일을 무엇으로 다룰지 모릅니다.
+ */
+const TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.map': 'application/json; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.gif': 'image/gif',
+  '.ico': 'image/x-icon',
+  '.ogg': 'audio/ogg',
+  '.oga': 'audio/ogg',
+  '.mp3': 'audio/mpeg',
+  '.wav': 'audio/wav',
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
+  '.otf': 'font/otf',
+  '.wasm': 'application/wasm',
+}
+
+/** 그 파일의 갈래. 모르는 것은 바이트 덩어리입니다. */
+function typeOf(file) {
+  return TYPES[path.extname(file).toLowerCase()] ?? 'application/octet-stream'
+}
+
+/**
+ * `Range` 헤더를 읽습니다. **없거나 알아듣지 못하면 `null` 입니다.**
+ *
+ * `bytes=100-200` · `bytes=100-`(그 뒤 전부) · `bytes=-200`(마지막 200바이트) 셋입니다.
+ * 여러 토막을 한 번에 요구하는 형태는 쓰지 않으므로 받지 않습니다 — 미디어 원소는 늘
+ * 한 토막만 요구합니다.
+ */
+function rangeOf(header, size) {
+  if (typeof header !== 'string') return null
+  const found = /^bytes=(\d*)-(\d*)$/.exec(header.trim())
+  if (!found) return null
+  const [, from, to] = found
+  if (from === '' && to === '') return null
+  if (from === '') {
+    const want = Number(to)
+    if (want <= 0) return { bad: true }
+    return { start: Math.max(0, size - want), end: size - 1 }
+  }
+  const start = Number(from)
+  const end = to === '' ? size - 1 : Math.min(Number(to), size - 1)
+  if (start > end || start >= size) return { bad: true }
+  return { start, end }
+}
 
 // 사설 스킴을 표준 스킴으로 등록합니다. **이것이 없으면 상대 경로와 `fetch` 가 동작하지
 // 않습니다** — 표준이 아닌 스킴은 오리진이 없는 것으로 다뤄지기 때문입니다.
@@ -195,8 +258,46 @@ app.whenReady().then(() => {
       return new Response('Not found: ' + wanted, { status: 404 })
     }
 
+    // **토막으로 돌려줄 수 있어야 합니다.**
+    //
+    // 통째로 돌려주고 있었습니다. `fetch` 로 읽는 테이블과 그림은 그래도 되지만, **미디어
+    // 원소는 다릅니다** — `<video>` 와 `<audio>` 는 `Range` 를 보내고 206 을 기다리며,
+    // 그것이 오지 않으면 되감기와 이어 재생을 할 수 없습니다. 그래서 데스크탑에서는
+    // 곡을 갈아 끼울 때(`currentTime = 0` 뒤의 `play()`) 그 자리에서 멈추고, 환희의
+    // 영상은 한 바퀴를 돌지 못한 채 처음으로 되돌아갔습니다 — **판에 들어가면 소리가
+    // 없어지고 그 연출이 진행되지 않던 것이 이 하나입니다.** 모바일은 커패시터가 http
+    // 로 얹으므로 토막이 되었고, 그래서 거기서는 멀쩡했습니다.
     try {
-      return await net.fetch(pathToFileURL(target).toString())
+      const size = fs.statSync(target).size
+      const type = typeOf(target)
+      const head = request.method === 'HEAD'
+      const want = rangeOf(request.headers.get('range'), size)
+
+      if (want && want.bad) {
+        return new Response(null, {
+          status: 416,
+          headers: { 'Content-Range': `bytes */${size}`, 'Accept-Ranges': 'bytes' },
+        })
+      }
+
+      const start = want ? want.start : 0
+      const end = want ? want.end : size - 1
+      const length = size === 0 ? 0 : end - start + 1
+      const headers = {
+        'Content-Type': type,
+        'Content-Length': String(length),
+        // **언제나 알립니다.** 이 표시가 없으면 크로미움은 토막을 요구하지 않고, 요구하지
+        // 않으면 되감기가 통째로 다시 읽는 것이 됩니다.
+        'Accept-Ranges': 'bytes',
+        'Cache-Control': 'no-cache',
+      }
+      if (want) headers['Content-Range'] = `bytes ${start}-${end}/${size}`
+
+      if (head || length === 0) {
+        return new Response(null, { status: want ? 206 : 200, headers })
+      }
+      const stream = fs.createReadStream(target, { start, end })
+      return new Response(Readable.toWeb(stream), { status: want ? 206 : 200, headers })
     } catch (error) {
       return new Response('Read failed: ' + String(error), { status: 500 })
     }
