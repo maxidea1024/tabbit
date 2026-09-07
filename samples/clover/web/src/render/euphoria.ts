@@ -86,6 +86,17 @@ export function euphoriaTierOf(product: number): EuphoriaTier | undefined {
 /** 영상이 놓인 곳. */
 const REEL_DIR = './effect'
 
+/**
+ * 영상을 쓸 수 있는 자리인가.
+ *
+ * **일렉트론에서는 쓰지 않습니다.** 원격 데스크탑 위의 크로미움은 GPU 영상 디코딩이 없어서
+ * `<video>` 가 WebGL 텍스처로 오르는 길이 매 프레임 예외를 내거나 GPU 프로세스를 세웠고,
+ * 그 예외가 프레임의 나머지(카드가 판에 닿는 것 · 깔리는 것 · 소리)를 통째로 막았습니다 —
+ * 판에 들어가면 연출이 되돌아가기만 하고 소리가 하나도 나지 않던 것이 그것입니다. 셰이더는
+ * 같은 자리에서 같은 일을 하므로 겉으로 잃는 것은 영상의 질감 하나입니다.
+ */
+const VIDEO_ALLOWED = typeof navigator === 'undefined' || !navigator.userAgent.includes('Electron')
+
 /** 겹이 오르는 시간. **빠르면 갈아치운 것으로 보입니다.** */
 const FADE_IN = 0.42
 /** 물러나는 시간. 오르는 것보다 느립니다 — 끝난 것은 서두를 이유가 없습니다. */
@@ -411,7 +422,7 @@ export class Euphoria {
   private load(name: string): Reel | undefined {
     const seen = this.reels.get(name)
     if (seen) return seen
-    if (typeof document === 'undefined') return undefined
+    if (typeof document === 'undefined' || !VIDEO_ALLOWED) return undefined
 
     const video = document.createElement('video')
     video.src = `${REEL_DIR}/${name}.mp4`

@@ -1860,6 +1860,23 @@ export class Game {
    * 일도 없는 것을 곧 알아채지만, 도구는 그다음 줄로 그냥 넘어갑니다.
    */
   private blankTaps = 0
+  /** 프레임 안에서 던진 것들. 새것이 뒤입니다. **소리 없이 멈춘 판의 까닭이 여기 적힙니다.** */
+  private readonly errors: string[] = []
+
+  /** 한 자리가 던져도 프레임의 나머지가 돌게 합니다. 던진 것은 적어 둡니다. */
+  private guard(where: string, run: () => void): void {
+    try {
+      run()
+    } catch (error) {
+      this.note_(`${where}: ${String(error).slice(0, 160)}`)
+    }
+  }
+
+  private note_(line: string): void {
+    if (this.errors[this.errors.length - 1] === line) return
+    this.errors.push(line)
+    if (this.errors.length > 8) this.errors.shift()
+  }
   /** 마지막 누름이 어디까지 닿았는가. 캔버스(DOM)와 무대(Pixi) 둘입니다. */
   private lastPointer?: {
     dom?: { type: string; x: number; y: number; at: number }
@@ -2590,6 +2607,11 @@ export class Game {
     // 화면 아래 22픽셀까지 내려오고, 버튼은 그 안쪽에 있으면 됩니다.
     this.infoButton.position.set(LEFT, PANEL_FOOT_Y)
     this.menuButton.position.set(RIGHT_COL, PANEL_FOOT_Y)
+
+    // **창 전체의 예외도 받아 둡니다.** F12 를 열지 않아도 `__clover.errors` 로 읽힙니다.
+    window.addEventListener('error', event => this.note_(`window: ${String(event.message).slice(0, 160)}`))
+    window.addEventListener('unhandledrejection', event =>
+      this.note_(`promise: ${String((event as PromiseRejectionEvent).reason).slice(0, 160)}`))
 
     app.canvas.addEventListener('pointerdown', event => {
       this.audio.unlock()
@@ -5871,9 +5893,13 @@ export class Game {
     this.toasts.advance(seconds)
     this.decayFlashes(seconds)
 
-    this.background.advance(seconds)
-    this.euphoria.advance(seconds)
-    this.punch.advance(seconds)
+    // **하나가 던져도 프레임의 나머지는 돕니다.** 이 셋은 겉모습이고, 그 뒤에 오는 것이
+    // 카드가 판에 닿는 것 · 깔리는 것 · 소리입니다 — 겉모습 하나가 그것들을 통째로 막으면
+    // 판이 소리 없이 멈추고, 왜인지는 아무 데도 적히지 않습니다. 던진 것은 `__clover.errors`
+    // 에 적힙니다.
+    this.guard('background', () => this.background.advance(seconds))
+    this.guard('euphoria', () => this.euphoria.advance(seconds))
+    this.guard('punch', () => this.punch.advance(seconds))
 
     // **필터는 필요할 때만 겁니다.** 늘 걸어 두면 판이 매 프레임 그림으로 한 번 구워지고,
     // 그 그림이 화면 배율에 늘어나 글씨가 뿌옇게 됩니다.
@@ -6736,6 +6762,7 @@ export class Game {
        */
       handLive: this.handLive,
       lastPointer: this.lastPointer ?? null,
+      errors: this.errors.slice(),
       // 캔버스 위에 DOM 이 서 있는가. 가운데 점에서 맨 위에 있는 원소입니다.
       topAtCenter: (() => {
         const el = document.elementFromPoint(window.innerWidth / 2, window.innerHeight * 0.76)
