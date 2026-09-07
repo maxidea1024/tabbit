@@ -9,11 +9,11 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
-import { chromium, type Page } from 'playwright'
+import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import {
-  at, BOARD_X, clickPrimary, closeGuide, grantConsumable, grantJoker, HAND_Y, itemSpot,
-  jokerSpot, pass, peek, settle, skipLogin, startNewRun
+  at, BOARD_X, clickPrimary, closeGuide, dragBy, grantConsumable, grantJoker, HAND_Y,
+  itemSpot, jokerSpot, pass, peek, settle, skipLogin, startNewRun
 } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -134,28 +134,6 @@ async function main(): Promise<number> {
   for (const problem of problems.slice(0, 8)) console.error('오류: ' + problem)
   console.log(failed === 0 && problems.length === 0 ? '\n다 통과했습니다' : `\n${failed}개 실패`)
   return failed > 0 || problems.length > 0 ? 1 : 0
-}
-
-/**
- * 한 자리에서 다른 자리로 끕니다.
- *
- * **한 번에 옮기지 않습니다** — 눌렀다 뗀 것과 끈 것은 손가락이 움직였는지로 갈리므로,
- * 곧바로 옮기면 화면이 그것을 누른 것으로 봅니다. 끝나면 커서를 치웁니다. 놓은 것 위에
- * 남아 있으면 그것만 들린 채로 찍힙니다.
- */
-async function dragBy(page: Page, from: { x: number; y: number },
-                      to: { x: number; y: number }): Promise<void> {
-  await page.mouse.move(from.x, from.y)
-  await page.mouse.down()
-  for (let step = 1; step <= 12; step++) {
-    await page.mouse.move(from.x + (to.x - from.x) * step / 12,
-      from.y + (to.y - from.y) * step / 12 - 14)
-    await pass(page, 30)
-  }
-  await page.mouse.up()
-  await pass(page, 300)
-  await page.mouse.move(40, 40)
-  await pass(page, 800)
 }
 
 main().then(code => process.exit(code))

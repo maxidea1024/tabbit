@@ -70,7 +70,7 @@ import {
 } from './theme'
 import { box, type Box, CENTER, pointOf, putText, splitX } from '../ui/layout'
 import { Button, Panel } from '../ui/widgets'
-import { poolsOf } from '../core/pool'
+import { choiceOf, poolsOf } from '../core/pool'
 import { Guide } from '../ui/guide'
 import { CollectionPanel } from '../ui/collection'
 import { loadProgress, saveProgress, type ChallengeProgress } from '../ui/challenge'
@@ -1377,6 +1377,8 @@ export class Game {
     startY: number
     grabX: number
     moved: boolean
+    /** 끌기 시작할 때의 줄. **되돌아왔으면 적지 않습니다** — 한 수가 헛되이 쌓입니다. */
+    order: number[]
     /** 누른 것과 끈 것을 가르는 거리. **손가락은 마우스보다 넉넉해야 합니다.** */
     slack: number
   }
@@ -2990,8 +2992,8 @@ export class Game {
       seed: this.state.seed,
       deckId: this.state.deckId,
       stake: this.state.stake,
-      pool: this.settings.pool,
-      challengeId: this.challengeId,
+      pool: choiceOf(this.state.pools),
+      challengeId: this.state.challengeId,
       actions: this.actions.slice(),
       hash: snapshotHash(this.state),
       ...(this.hub.rankedRun ? { ranked: this.hub.rankedRun } : {}),
@@ -4004,6 +4006,7 @@ export class Game {
 
   private sortHand(by: 'rank' | 'suit'): void {
     if (this.player.busy) return
+    const before = this.state.hand.slice()
     const cards = this.state.hand
       .map(uid => this.state.deck.find(card => card.uid === uid))
       .filter((card): card is CardInstance => card !== undefined)
@@ -4021,6 +4024,7 @@ export class Game {
     const seen = new Set(this.shown.hand)
     this.shown.hand = this.state.hand.filter(uid => seen.has(uid))
 
+    this.recordOrder('hand', before)
     this.audio.play('card_select')
     this.refresh()
   }
@@ -8433,6 +8437,8 @@ export class Game {
 
     this.drag = {
       kind, uid, moved: false,
+      order: kind === 'hand'
+        ? this.state.hand.slice() : this.state.jokers.map(joker => joker.uid),
       startX: this.pointerAt.x, startY: this.pointerAt.y,
       grabX: this.pointerAt.x - view.x,
       // **손가락은 가만히 있어도 흔들립니다.** 마우스와 같은 문턱을 두면 누르려던 것이
@@ -8513,6 +8519,27 @@ export class Game {
     }
   }
 
+  /**
+   * 바뀐 차례를 런에 적습니다.
+   *
+   * **자리를 옮기는 것도 액션입니다.** 화면에서만 옮기면 이어서 하는 판이 옮기기 전의
+   * 차례로 되살아나고, 조커의 차례는 점수를 바꾸므로 그것은 다른 판입니다. 적어 두지
+   * 않은 채로 다음 액션이 저장되면 해시가 어긋나 저장이 통째로 버려집니다.
+   *
+   * **잇달아 옮긴 것은 하나로 묶습니다.** 사이에 아무 액션도 없는 두 수는 뒤의 것만
+   * 남겨도 같은 판이고, 묶지 않으면 제출의 상한이 자리를 옮긴 횟수로 찹니다.
+   */
+  private recordOrder(what: 'hand' | 'joker', before: number[]): void {
+    if (this.scene !== 'run') return
+    const order = what === 'hand'
+      ? this.state.hand.slice() : this.state.jokers.map(joker => joker.uid)
+    if (order.join(',') === before.join(',')) return
+    const last = this.actions[this.actions.length - 1]
+    if (last?.t === 'reorder' && last.what === what) this.actions.pop()
+    this.actions.push({ t: 'reorder', what, order })
+    this.rememberRun()
+  }
+
   /** 손을 뗍니다. 움직이지 않았으면 끈 것이 아니라 누른 것입니다. */
   private endDrag(): void {
     const drag = this.drag
@@ -8527,6 +8554,7 @@ export class Game {
       return
     }
     this.audio.play(drag.kind === 'hand' ? 'card_place' : 'joker_move')
+    this.recordOrder(drag.kind, drag.order)
     this.refresh()
 
     // **겹치는 차례도 되돌립니다.** 끄는 동안 맨 위로 올렸으므로, 그대로 두면 놓은 카드가

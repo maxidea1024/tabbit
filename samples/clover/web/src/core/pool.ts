@@ -45,7 +45,7 @@ export function jokerPool(data: Data, state: RunState, rarity?: Rarity): JokerRe
 const POOL_CACHE = new WeakMap<Data, Map<string, JokerRecord[]>>()
 
 /**
- * 사람이 고를는 것. 옵션에 이 값이 적혀 다음 판에 쓰입니다.
+ * 사람이 고르는 것. 옵션에 이 값이 적혀 다음 판에 쓰입니다.
  *
  * **풀의 목록이 아니라 둘 중 하나입니다.** 확장만 켜고 기본을 끄는 조합은 둔
  * 이유가 없습니다 — 기본 150종이 원작 대조본이고 그것이 한 토대이기 때문입니다.
@@ -54,6 +54,16 @@ export type PoolChoice = 'base' | 'all'
 
 export function poolsOf(choice: PoolChoice): JokerPool[] {
   return choice === 'all' ? [JokerPool.Base, JokerPool.Greenhouse] : [JokerPool.Base]
+}
+
+/**
+ * 이 판이 어느 갈래로 열렸는가.
+ *
+ * **옵션이 아니라 판을 봅니다.** 옵션은 판이 도는 동안에도 바뀌고, 바뀐 값으로 적어 둔
+ * 판은 다른 풀로 되살아납니다 — 상점에 다른 조커가 서므로 그때부터 다른 판입니다.
+ */
+export function choiceOf(pools: JokerPool[]): PoolChoice {
+  return pools.includes(JokerPool.Greenhouse) ? 'all' : 'base'
 }
 
 /**

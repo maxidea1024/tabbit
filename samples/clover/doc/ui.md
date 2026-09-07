@@ -199,7 +199,7 @@
 |`tools/check-tip-enter.ts`|설명이 커서가 들어올 때에만 뜨는가|
 |`tools/check-shop-rise.ts`|상점 판이 아래에서 곧게 올라오는가|
 |`tools/check-shop-flow.ts`|팩을 뜯거나 자리를 비울 때 상점이 내려가 있는가 · 줄에서 내놓으면 화면이 걷히고 상점이 돌아오는가 · 플레잉 카드를 집으면 덱이 나오는가|
-|`tools/check-resume.ts`|그만둔 판이 상태 해시까지 같게 이어지는가|
+|`tools/check-resume.ts`|그만둔 판이 상태 해시까지 같게 이어지는가. **끌어서 옮긴 손패의 차례가 그대로 이어지는지도 따로 봅니다** — 해시만으로는 보이지 않던 자리입니다|
 |`tools/check-collection.ts`|도감의 탭마다 칸의 수가 격자와 같은가 · 굴림이 네 길로 되는가|
 
 ## 글의 표기

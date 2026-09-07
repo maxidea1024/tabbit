@@ -706,6 +706,41 @@ export async function at(page: Page, x: number, y: number): Promise<{ x: number;
   return { x: originX + x * scale, y: originY + y * scale }
 }
 
+/**
+ * 한 자리에서 다른 자리로 끕니다.
+ *
+ * **한 번에 옮기지 않습니다** — 눌렀다 뗀 것과 끈 것은 손가락이 움직였는지로 갈리므로,
+ * 곧바로 옮기면 화면이 그것을 누른 것으로 봅니다. 끝나면 커서를 치웁니다. 놓은 것 위에
+ * 남아 있으면 그것만 들린 채로 남습니다.
+ */
+export async function dragBy(page: Page, from: { x: number; y: number },
+                             to: { x: number; y: number }): Promise<void> {
+  await page.mouse.move(from.x, from.y)
+  await page.mouse.down()
+  for (let step = 1; step <= 12; step++) {
+    await page.mouse.move(from.x + (to.x - from.x) * step / 12,
+      from.y + (to.y - from.y) * step / 12 - 14)
+    await pass(page, 30)
+  }
+  await page.mouse.up()
+  await pass(page, 300)
+  await page.mouse.move(40, 40)
+  await pass(page, 800)
+}
+
+/**
+ * 손패 한 장이 지금 그려진 자리.
+ *
+ * **개수마다 간격이 달라집니다.** 카드는 정해진 넓이 안에서 가운데로 모이므로 몇 번째
+ * 칸의 좌표를 상수로 셈할 수 없습니다 — `game.ts` 가 재는 것과 같은 셈입니다.
+ */
+export async function handSpot(page: Page, index: number, held: number):
+    Promise<{ x: number; y: number }> {
+  const spacing = Math.min(CARD_SPACING, 720 / Math.max(1, held))
+  const startX = BOARD_X - ((held - 1) * spacing) / 2
+  return at(page, startX + index * spacing, HAND_Y)
+}
+
 // 화면의 자리들. `render/game.ts` 의 상수와 같아야 합니다.
 export const STAGE_W = 1280
 export const STAGE_H = 800

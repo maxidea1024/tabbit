@@ -52,6 +52,18 @@ export type Action =
   | { t: 'buy_voucher' }
   | { t: 'reroll' }
   | { t: 'leave_shop' }
+  /**
+   * 손패나 조커의 자리를 옮깁니다. `order` 는 바뀐 차례의 `uid` 전부입니다.
+   *
+   * **자리가 규칙이므로 런에 남습니다.** 득점은 낸 카드의 왼쪽부터이고 조커도 왼쪽부터
+   * 도므로, 자리를 옮긴 것을 적어 두지 않으면 되살린 판이 그만두던 판과 다른 점수를
+   * 냅니다.
+   *
+   * **옮긴 칸이 아니라 바뀐 차례를 적습니다.** 「몇 번째를 몇 번째로」로 적으면 정렬
+   * 한 번이 여러 수가 되고, 되살린 차례가 적어 둔 것과 같은지를 그 자리에서 볼 수
+   * 없습니다.
+   */
+  | { t: 'reorder'; what: 'hand' | 'joker'; order: number[] }
 
 export interface Step {
   state: RunState
@@ -634,6 +646,22 @@ function sellConsumable(vm: Vm, index: number): boolean {
   return true
 }
 
+/**
+ * 같은 것들을 자리만 바꾼 것인가.
+ *
+ * **아니면 받지 않습니다.** 손으로 고친 저장과 제출이 이리로 오고, 거르지 않으면
+ * 없는 `uid` 하나로 손패를 비우거나 조커 하나를 지울 수 있습니다.
+ */
+function samePieces(current: number[], next: number[]): boolean {
+  if (next.length !== current.length) return false
+  const left = new Set(current)
+  if (left.size !== current.length) return false
+  for (const uid of next) {
+    if (!left.delete(uid)) return false
+  }
+  return true
+}
+
 /** 액션 하나. **코어의 표면이 이것 하나입니다.** */
 export function apply(data: Data, state: RunState, action: Action): Step {
   const vm = newVm(data, state)
@@ -918,6 +946,19 @@ export function apply(data: Data, state: RunState, action: Action): Step {
       state.shop.rerollsUsed++
       runTrigger(vm, Trigger.OnReroll)
       stock(vm, state.shop)
+      break
+    }
+
+    case 'reorder': {
+      const current = action.what === 'hand'
+        ? state.hand : state.jokers.map(joker => joker.uid)
+      if (!samePieces(current, action.order)) break
+      if (action.what === 'hand') {
+        state.hand = action.order.slice()
+      } else {
+        const at = new Map(state.jokers.map(joker => [joker.uid, joker]))
+        state.jokers = action.order.map(uid => at.get(uid) as JokerInstance)
+      }
       break
     }
 
