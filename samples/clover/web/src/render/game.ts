@@ -354,18 +354,12 @@ const DECK_LINGER = 0.5
 /** 회수하는 카드가 한 장씩 떠나는 간격. */
 const RECALL_STEP = 0.018
 /**
- * 걷는 소리와 회수 소리 사이의 쉼.
- *
- * **둘이 붙어 있으면 한 몸짓으로 들립니다.** 마지막 카드가 나간 그 프레임에 회수가
- * 시작되어 사이가 0.07초였고, 걷는 것과 쌓이는 것이 이어진 하나로 들렸습니다.
- */
-const RECALL_REST = 0.24
-/**
  * 내보낸 카드 한 장이 화면을 떠나기까지.
  *
- * **예약이 빈 것과 나가는 것이 끝난 것이 다르므로** 그 차이를 이 값으로 셉니다.
+ * **예약이 빈 것과 나가는 것이 끝난 것이 다르므로** 그 차이를 이 값으로 셉니다. 이 뒤에
+ * 걷는 소리가 맺히고, 회수 소리는 그것을 기다립니다 — 그래서 짧습니다.
  */
-const RETIRE_TAIL = 0.3
+const RETIRE_TAIL = 0.18
 /**
  * 카드를 다 거둔 뒤 정산이 서기까지의 한 박자.
  *
@@ -1181,14 +1175,6 @@ export class Game {
   private fadeUntil = 0
   /** 이 시각까지는 덱이 자리에 남습니다. 마지막 카드가 덱에 닿을 때 정해집니다. */
   private deckHold = 0
-  /**
-   * 이 시각이 지나야 덱으로 돌려보냅니다.
-   *
-   * **걷는 것과 회수가 붙어 있으면 한 몸짓으로 들립니다.** 마지막 카드가 나간 그 프레임에
-   * 회수가 시작되어 두 지속 보이스의 사이가 0.07초였고, 그러면 뒤의 것이 앞의 것의
-   * 이어짐이 됩니다 — 걷는 소리가 잦아들 자리를 줍니다.
-   */
-  private recallRest = 0
   private readonly jokers = new Map<number, JokerView>()
   /** 타는 중인 조커들. 다 타면 치웁니다. */
   private readonly burning: JokerView[] = []
@@ -3523,7 +3509,6 @@ export class Game {
     this.recalls.length = 0
     this.retired = 0
     this.fadeUntil = 0
-    this.recallRest = 0
     // 떠오르던 차이 글. **글은 두고 상태만 되돌립니다** — 풀이므로 다시 쓰입니다.
     for (const one of this.deltas) one.node.visible = false
     this.panelShown = { hands: -1, discards: -1, ante: -1 }
@@ -3719,10 +3704,16 @@ export class Game {
     // **자원 넷은 오르내림이 바탕색에 드러납니다.** 라운드 득점과 칩·배수는 오르기만 하므로
     // 그 색이 아무것도 가르지 않습니다.
     //
-    // **금액만입니다.** 핸드 · 버리기 · 안티는 늘고 주는 것이 ±N 글로 이미 적히고, 그
-    // 위에 바탕까지 물들면 판이 도는 동안 왼쪽 판의 칸 넷이 번갈아 밝습니다 — 그러면
-    // 밝은 것이 무엇도 가리지 않습니다. 돈은 이 게임에서 늘 중요하므로 남깁니다.
-    this.money.signed = true
+    // **넷 다 바탕이 물들지 않습니다.** 늘고 주는 것이 ±N 글로 이미 적히고, 그 위에
+    // 바탕까지 물들면 판이 도는 동안 왼쪽 판의 칸 넷이 번갈아 밝습니다 — 그러면 밝은
+    // 것이 무엇도 가리지 않습니다.
+    //
+    // **`signed` 를 걷는 것만으로는 모자랐습니다.** 그 값은 오르내림의 색을 정할 뿐이고,
+    // 판때기가 밝아지는 것은 숫자가 굴러가는 동안의 열기가 정합니다 — 색만 빠지고 밝기는
+    // 그대로였습니다.
+    for (const slot of [this.hands, this.discards, this.money, this.anteSlot]) {
+      slot.plateGlow = false
+    }
     // **칩과 배수는 오를 때만 들뜹니다.** 판이 끝나 0으로 되돌아가는 것은 알릴 일이
     // 아닌데도 바탕이 밝고 숫자가 떨었습니다.
     this.chips.quietOnDrop = true
@@ -4635,10 +4626,16 @@ export class Game {
     // 낱장마다 냈을 때가 문제였습니다: 스무 장이 0.4초 안에 들어오므로 보이스가 스물이고
     // 합은 13dB 위입니다. 몇 장에 한 번으로 줄여도 0.6초짜리 음원 다섯이 겹쳐 남는 것은
     // 「드르르륵」이었고, 그것은 카드가 쌓이는 소리가 아닙니다.
+    //
+    // **걷는 소리가 잦아든 뒤에 냅니다.** 카드는 이미 오고 있고 소리만 한 박자 늦습니다 —
+    // 둘이 같은 순간에 시작하면 두 몸짓이 하나로 들립니다. 걷는 소리가 아직 도는 동안
+    // 회수가 끝나면 이 소리는 나지 않고, 그때는 걷는 소리가 그 자리를 채웁니다.
     if (this.recalls.length > 0) {
-      this.audio.sweep('recall', 0.14, 1,
-        Math.max(0.14, this.recalls.length * RECALL_STEP + 0.14))
-      this.recalling = true
+      if (!this.sweepingOut) {
+        this.audio.sweep('recall', 0.14, 1,
+          Math.max(0.14, this.recalls.length * RECALL_STEP + 0.14))
+        this.recalling = true
+      }
     } else if (this.recalling) {
       // **마지막 한 장이 닿은 자리에 맺음 하나.** 지속 보이스는 끝을 알리지 않으므로,
       // 그것만으로는 잦아든 것이 「끝났다」로 읽히지 않습니다.
@@ -4680,9 +4677,6 @@ export class Game {
     } else if (this.sweepingOut) {
       this.sweepingOut = false
       this.audio.play('card_destroy', 0, 0, -7)
-      // **걷는 소리가 잦아들 자리를 줍니다.** 이 뒤에 회수가 이어지는데, 붙어 있으면
-      // 두 몸짓이 하나로 들립니다.
-      this.recallRest = this.clock + RECALL_REST
     }
   }
 
@@ -5919,11 +5913,12 @@ export class Game {
     // 전부가 한 번에 돌아옵니다 — 격파한 그 박자에 그때까지 나간 것만 돌려보내면, 낸 카드와
     // 손패는 다음 판의 격파에 가서야 돌아옵니다.
     //
-    // **걷는 소리가 잦아든 뒤입니다**(`recallRest`) — 마지막 카드가 나간 그 프레임에
-    // 시작하면 걷는 것과 쌓이는 것이 한 몸짓으로 들립니다.
+    // **늦추지 않습니다.** 걷는 소리와 겹치는 것을 갈라 놓으려고 이 자리를 0.5초 늦춘
+    // 적이 있는데, 그동안 정산 판과 끝난 판이 먼저 서므로 **카드와 덱이 그 판 위로 한 번
+    // 들어왔다가 사라졌습니다.** 소리를 위해 화면을 늦추는 것은 값이 맞지 않습니다 —
+    // 갈라 놓는 것은 소리 쪽에서 합니다(`advanceRecalls`).
     if (this.state.phase !== 'round' && this.retired > 0 && !this.player.busy
-        && this.playedViews.length === 0 && this.fades.length === 0
-        && !this.sweepingOut && this.clock >= this.recallRest) {
+        && this.playedViews.length === 0 && this.fades.length === 0) {
       this.recallToDeck()
     }
 

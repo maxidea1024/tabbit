@@ -26,6 +26,15 @@ const ROOT = app.isPackaged
 const SCHEME = 'clover'
 
 /**
+ * 판의 크기. `web/src/render/theme.ts` 의 `SIZE.width` · `SIZE.height` 와 같은 값입니다.
+ *
+ * **창의 비율이 이것입니다.** 판은 이 사각형을 짧은 쪽에 맞춰 넣고 남는 자리는 잘라 낸
+ * 자리로 두므로, 창이 이 비율이면 남는 자리가 없습니다.
+ */
+const BOARD_W = 1280
+const BOARD_H = 800
+
+/**
  * 확장자마다의 갈래.
  *
  * **직접 적습니다.** 토막을 돌려주려면 응답을 손으로 만들어야 하고, 그러면 갈래도 손으로
@@ -163,6 +172,14 @@ function createWindow() {
     height: 900,
     minWidth: 960,
     minHeight: 600,
+    /**
+     * **넘긴 크기가 내용 자리입니다.**
+     *
+     * 기본값은 테두리를 포함한 창 전체입니다 — 1440 × 900 은 정확히 16:10 인데 그 안의
+     * 내용 자리는 1424 × 861 이 되어 비율이 1.654 로 어긋났고, 판은 짧은 쪽에 맞춰
+     * 들어가므로 **좌우에 23픽셀씩 검은 자리가 남았습니다.**
+     */
+    useContentSize: true,
     // 판 밖의 색. `web/src/render/theme.ts` 의 `COLOR.crop` 과 같은 값입니다.
     backgroundColor: '#000000',
     // 창이 다 만들어지기 전에 흰 화면이 번쩍이지 않게 합니다.
@@ -176,8 +193,42 @@ function createWindow() {
     },
   })
 
+  /**
+   * 창의 비율을 판의 비율로 묶습니다.
+   *
+   * **처음 크기만 맞춰 두면 한 번 끌자마자 어긋납니다.** 판은 1280 × 800 을 짧은 쪽에
+   * 맞춰 넣으므로, 창이 그 비율이 아니면 남는 쪽이 잘라 낸 자리로 남습니다 — 그 자리는
+   * 배경이 덮지 않습니다(`game.ts` 의 `layout`).
+   *
+   * **테두리는 비율에서 뺍니다.** 넘기지 않으면 창 전체가 그 비율이 되고, 그러면 내용
+   * 자리가 다시 어긋납니다 — 1440 으로 정해 둔 것이 1486 으로 늘어나 좌우에 23픽셀이
+   * 그대로 남았습니다.
+   *
+   * **창이 뜬 뒤에 잽니다.** 뜨기 전에는 테두리가 아직 없어서 창의 크기와 내용의 크기가
+   * 같게 나오고, 그러면 뺄 것이 0 이 되어 위와 같은 일이 그대로 일어납니다. 테두리의
+   * 크기는 기계와 겉면 설정에 따라 다르므로 상수로 적을 수 없습니다.
+   *
+   * **비율을 걸고 나서 크기를 다시 정합니다.** 거는 것만으로는 지금 크기가 맞춰지지
+   * 않습니다 — 다음에 끌 때부터 걸립니다.
+   *
+   * **전체 화면과 최대화에서는 걸리지 않습니다.** 그때는 화면의 비율이 창의 비율이므로
+   * 16:9 화면에서는 위아래가 남고, 그 자리는 판 밖의 색입니다.
+   */
+  const fitToBoard = () => {
+    const outer = window.getSize()
+    const inner = window.getContentSize()
+    window.setAspectRatio(BOARD_W / BOARD_H, {
+      width: outer[0] - inner[0],
+      height: outer[1] - inner[1],
+    })
+    // 처음 크기를 판의 비율로 되돌립니다. 높이를 지키고 너비를 그것에서 셉니다.
+    const height = inner[1]
+    window.setContentSize(Math.round(height * (BOARD_W / BOARD_H)), height)
+  }
+
   window.once('ready-to-show', () => {
     window.show()
+    fitToBoard()
     if (devToolsWanted(process.argv)) window.webContents.openDevTools()
   })
 
