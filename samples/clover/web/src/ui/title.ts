@@ -23,15 +23,24 @@
 // **가운데의 넷은 세로로 쌓입니다.** 「시작」 아래에 둘을 나란히 두었더니 그 둘이 서로의
 // 옆에서 한 덩어리가 되었고, 그러면 「시작」과 그것들이 다른 갈래라는 것이 자리로 읽히지
 // 않습니다. 「시작」과 그 아래 사이만 줄 사이보다 넓습니다.
+//
+// **이름 위의 도안을 걷었습니다.** 네 잎을 원 넷으로 그려 얹어 두었는데, 원 넷은 어느
+// 배율에서도 잎으로 읽히지 않고 이름과 겹쳐 덩어리 하나가 되었습니다 — 이름 자체가
+// 표식이므로 그 위에 표식을 하나 더 둘 자리가 없습니다. 이름은 [`wordmark.ts`](wordmark.ts)
+// 이고 로그인 화면이 같은 것을 씁니다.
+//
+// **배경이 이 화면의 절반입니다.** 판이 없고 이름과 단추 몇 개가 전부이므로, 어둡게 낮춘
+// 무늬 하나를 깔면 그 어두움이 곧 화면입니다 — 판 밖의 배경은 따로 있습니다
+// ([`shader/front.ts`](../shader/front.ts)).
 
 import { Container, Graphics, Text } from 'pixi.js'
 import { t } from '../core/strings'
 
 import { COLOR, SIZE, UI } from '../render/theme'
-import { outlineOf } from './font'
 import type { ToolSpot } from './layout'
 import { Tooltip } from './tooltip'
 import { Button, IconButton } from './widgets'
+import { Wordmark } from './wordmark'
 
 /**
  * 무작위 시드 하나.
@@ -56,13 +65,25 @@ const ICON = 56
 const ICON_GAP = 10
 
 /** 가운데. 이름과 그 아래의 단추들입니다. */
-const LOGO_Y = 214
-const TAGLINE_Y = 358
-const NOTE_Y = 394
+const LOGO_SIZE = 138
+const LOGO_Y = 168
+const TAGLINE_Y = 334
+const NOTE_Y = 374
 
-const START_W = 300
-const START_H = 72
-const START_Y = 470
+const START_W = 320
+const START_H = 76
+const START_Y = 446
+
+/**
+ * 「시작」을 둘러싼 빛.
+ *
+ * **누를 것 하나를 가리킵니다.** 색과 크기로 이미 갈라 두었지만 멈춰 있는 화면에서는 넷이
+ * 다 같은 무게로 보이고, 이 화면에서 다음에 할 일은 언제나 하나입니다.
+ *
+ * **한 번 그리고 알파와 배율만 움직입니다.** 매 프레임 다시 그리면 그때마다 다시
+ * 삼각화됩니다.
+ */
+const GLOW_RINGS = 14
 
 /**
  * 「시작」 아래의 단추들. **세로로 쌓입니다.**
@@ -105,27 +126,25 @@ export interface TitleHooks {
 }
 
 export class Title extends Container {
-  private readonly logo = new Text({
-    text: 'clover',
-    style: {
-      fontSize: 128, fill: COLOR.good, fontWeight: '800',
-      // **여기만 굵기를 손으로 정합니다.** 배수는 어느 글자가 올지 모르는 자리의 위쪽
-      // 한계이고, 이 글은 `clover` 여섯 자로 고정이라 그 한계보다 굵어도 속이 막히지
-      // 않습니다.
-      stroke: outlineOf(12, 0x07130b),
-      letterSpacing: 10,
-    },
-  })
+  private readonly logo = new Wordmark(LOGO_SIZE, 4)
+  /** 한 줄 소개. **금색이 아니라 따뜻한 흰색입니다** — 금색은 값과 나아감의 색입니다. */
   private readonly tagline = new Text({
     text: t('ui.title.tagline'),
-    style: { fontSize: 20, fill: COLOR.ink, fontWeight: '700', letterSpacing: 4 },
+    style: { fontSize: 20, fill: 0xf1e7d2, fontWeight: '700', letterSpacing: 5 },
   })
   private readonly note = new Text({
     text: t('ui.title.note'),
     style: { fontSize: 13, fill: COLOR.inkDim },
   })
-  /** 클로버 잎. 이름 위에서 천천히 흔들립니다. */
-  private readonly leaf = new Graphics()
+  /**
+   * 한 줄 소개의 양옆에 서는 선.
+   *
+   * **글의 폭에서 자리를 냅니다.** 말마다 길이가 다르므로 수로 적어 두면 어느 말에서는
+   * 글자에 닿고 어느 말에서는 멀리 떨어집니다 — `relabel` 이 다시 그립니다.
+   */
+  private readonly rule = new Graphics()
+  /** 「시작」을 둘러싼 빛. 알파와 배율만 움직입니다. */
+  private readonly startGlow = new Graphics()
   private time = 0
 
   /**
@@ -179,14 +198,11 @@ export class Title extends Container {
     //
     // `game.ts` 의 `syncMood` 가 타이틀에서 그렇게 넘깁니다.
 
-    this.drawLeaf()
-    this.leaf.position.set(SIZE.width / 2, 172)
-
-    this.logo.anchor.set(0.5, 0)
     this.logo.position.set(SIZE.width / 2, LOGO_Y)
 
     this.tagline.anchor.set(0.5, 0)
     this.tagline.position.set(SIZE.width / 2, TAGLINE_Y)
+    this.drawRule()
 
     this.note.anchor.set(0.5, 0)
     this.note.position.set(SIZE.width / 2, NOTE_Y)
@@ -198,6 +214,7 @@ export class Title extends Container {
     start.position.set(Math.round((SIZE.width - START_W) / 2), START_Y)
     this.buttons.push({ key: 'ui.button.start', button: start })
     this.toolNodes.set('start', { node: start, cx: START_W / 2, cy: START_H / 2 })
+    this.drawStartGlow()
 
     // 그 아래로 쌓입니다. **판을 여는 일이 아닌 것들입니다.**
     const secondX = Math.round((SIZE.width - SECOND_W) / 2)
@@ -264,8 +281,8 @@ export class Title extends Container {
     // **쪽지는 맨 위입니다.** 아이콘 아래에 떠야 하므로 마지막에 얹습니다.
     this.addChild(this.tooltip)
 
-    this.addChild(this.leaf, this.logo, this.tagline, this.note, version,
-                  start, pool, board, quit,
+    this.addChild(this.logo, this.tagline, this.rule, this.note, version,
+                  this.startGlow, start, pool, board, quit,
                   link, this.accountSlot, signOut, guide, option)
 
     // 뒤를 눌러도 아무 일도 없습니다. **시작은 눌러서 시작하는 것입니다.**
@@ -288,6 +305,7 @@ export class Title extends Container {
   relabel(): void {
     this.tagline.text = t('ui.title.tagline')
     this.note.text = t('ui.title.note')
+    this.drawRule()
     for (const one of this.buttons) one.button.text = t(one.key)
   }
 
@@ -318,23 +336,52 @@ export class Title extends Container {
     node.on('pointerout', () => this.tooltip.hide())
   }
 
-  /** 네 잎. 원 넷을 돌려 붙인 모양입니다. */
-  private drawLeaf(): void {
-    const g = this.leaf
+  /**
+   * 한 줄 소개의 양옆에 서는 선.
+   *
+   * **바깥쪽이 더 옅습니다.** 같은 굵기의 선 하나면 글에 밑줄을 그은 것이 되고, 옅어지며
+   * 끝나면 글이 그 사이에 놓인 것이 됩니다.
+   */
+  private drawRule(): void {
+    const g = this.rule
     g.clear()
-    for (let i = 0; i < 4; i++) {
-      const angle = (Math.PI / 2) * i + Math.PI / 4
-      g.circle(Math.cos(angle) * 19, Math.sin(angle) * 19, 16)
-        .fill({ color: COLOR.good, alpha: 0.92 })
+    const middle = SIZE.width / 2
+    const half = this.tagline.width / 2
+    const y = Math.round(TAGLINE_Y + this.tagline.height / 2)
+    for (const side of [-1, 1]) {
+      const from = middle + side * (half + 20)
+      g.moveTo(from, y).lineTo(from + side * 34, y)
+        .stroke({ color: UI.yellow, width: 1.5, alpha: 0.55 })
+      g.moveTo(from + side * 34, y).lineTo(from + side * 72, y)
+        .stroke({ color: UI.yellow, width: 1.5, alpha: 0.18 })
     }
-    g.rect(-2, 16, 4, 28).fill({ color: 0x2f8f52 })
+  }
+
+  /** 「시작」을 둘러싼 빛. **테 셋이고 바깥일수록 옅습니다.** */
+  private drawStartGlow(): void {
+    const g = this.startGlow
+    g.clear()
+    // **테 하나가 아니라 여럿입니다.** 셋을 성기게 두었더니 테 셋이 그대로 보였습니다 —
+    // 촘촘히 겹치고 바깥으로 갈수록 제곱으로 옅어지면 번짐 하나로 보입니다.
+    for (let ring = 0; ring < GLOW_RINGS; ring++) {
+      const part = ring / (GLOW_RINGS - 1)
+      const out = 2 + part * 16
+      const fade = (1 - part) * (1 - part)
+      g.roundRect(-out, -out, START_W + out * 2, START_H + out * 2, 6 + out)
+        .stroke({ color: UI.yellow, width: 2.5, alpha: 0.03 + fade * 0.085 })
+    }
+    g.pivot.set(START_W / 2, START_H / 2)
+    g.position.set(SIZE.width / 2, START_Y + START_H / 2)
   }
 
   advance(seconds: number): void {
     if (!this.visible) return
     this.time += seconds
     this.tooltip.advance(seconds)
-    this.leaf.rotation = Math.sin(this.time * 0.8) * 0.16
-    this.leaf.scale.set(1 + Math.sin(this.time * 1.6) * 0.04)
+    this.logo.advance(seconds)
+    // **숨 쉬듯 오르내립니다.** 값만 만지므로 다시 그리는 것이 없습니다.
+    const breath = 0.5 + 0.5 * Math.sin(this.time * 1.9)
+    this.startGlow.alpha = 0.45 + 0.55 * breath
+    this.startGlow.scale.set(1 + breath * 0.012)
   }
 }

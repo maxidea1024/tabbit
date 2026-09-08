@@ -14,16 +14,20 @@
 // **되돌아가는 단추가 따로 없습니다.** 「계정 없이 시작하기」가 나가는 길이므로, 구석에
 // 「뒤로」를 하나 더 두면 같은 일을 하는 것이 둘입니다.
 
-import { Container, Graphics, Text } from 'pixi.js'
+import { BlurFilter, Container, FillGradient, Graphics, Text } from 'pixi.js'
 
 import { language as nowLanguage, LANGUAGE_NAMES, LANGUAGES, t, tf,
          type Language } from '../core/strings'
 import * as account from '../net/session'
 import type { Provider } from '../net/session'
 import { COLOR, SIZE, UI } from '../render/theme'
-import { outlineOf } from './font'
 import { providerTint } from './provider'
 import { Button } from './widgets'
+import { Wordmark } from './wordmark'
+
+/** 이름과 그 아래 한 줄. **타이틀보다 위입니다** — 아래에 단추가 더 섭니다. */
+const LOGO_Y = 132
+const WHY_Y = 276
 
 /** 제공자 단추의 크기. */
 const BUTTON_W = 320
@@ -38,10 +42,41 @@ const GAP = 12
  */
 const BAND_LEAST_MS = 1_500
 
+/**
+ * 띠가 떴을 때 그 뒤를 흐리는 정도. 화면 픽셀입니다.
+ *
+ * **뒤가 무엇인지는 알아볼 수 있어야 합니다.** 띠는 이 화면이 지금 무엇을 하는 중인가를
+ * 알리는 것이지 다른 화면이 아니고, 뒤가 통째로 사라지면 화면이 갈린 것으로 보입니다.
+ */
+const BAND_BLUR_PX = 5
+
+/** 띠가 뜨고 지는 데 걸리는 시간. */
+const BAND_FADE = 0.18
+
+/** 띠의 높이와, 그 안을 지나는 빛의 폭. */
+const BAND_H = 92
+const SWEEP_W = 300
+
 export class LoginScene extends Container {
+  /**
+   * 띠 뒤에서 흐려지는 것들.
+   *
+   * **띠는 이 통 밖입니다.** 흐림을 화면 전체에 걸면 알리는 글까지 흐려지고, 그러면 무엇을
+   * 하는 중인지가 적혀 있지 않은 것과 같습니다.
+   */
+  private readonly under = new Container()
   private readonly body = new Container()
   /** 무언가 진행 중일 때 화면을 가로지르는 띠. */
   private readonly band = new Container()
+  private readonly haze = new BlurFilter({ strength: 0, quality: 3, resolution: 0.5 })
+  /**
+   * 띠가 얼마나 떠 있는가. 0에서 1입니다.
+   *
+   * **뚝 뜨고 뚝 지지 않습니다.** 흐림이 한 프레임에 걸리고 한 프레임에 풀리면 그것은
+   * 흐려지는 것이 아니라 화면이 두 번 갈리는 것으로 보입니다.
+   */
+  private bandLevel = 0
+  private bandWanted = false
   /** 띠 안에서 도는 것들. `advance` 가 움직입니다. */
   private bandText?: Text
   private bandSweep?: Graphics
@@ -61,8 +96,24 @@ export class LoginScene extends Container {
   private dev = false
   private note = t('ui.lb.loading')
   private time = 0
-  private readonly leaf = new Graphics()
+  /**
+   * 이름.
+   *
+   * **타이틀과 같은 것입니다**([`wordmark.ts`](wordmark.ts)) — 크기만 다릅니다. 이름 위에
+   * 얹어 두었던 네 잎은 둘 다에서 걷었습니다.
+   *
+   * **다시 그리는 것 밖에 있습니다.** `redraw` 는 판을 통째로 버리고 다시 만드는데,
+   * 이름은 말이 바뀌어도 그대로이고 떠오르는 것도 이어져야 합니다.
+   */
+  private readonly mark = new Wordmark(84, 3)
 
+  /**
+   * 띠 뒤의 배경을 흐릴 만큼.
+   *
+   * **배경은 이 화면 밖입니다.** 셰이더가 그리는 판 한 장이고 씬들이 함께 쓰는 것이므로,
+   * 이 화면은 얼마나 흐릴지만 알리고 거는 것은 `game.ts` 가 합니다.
+   */
+  onBusy?: (level: number) => void
   /** 로그인 없이 하겠다고 했습니다. */
   onSingle?: () => void
   /** 게임을 나갑니다. **묻는 것은 부르는 쪽이 합니다.** */
@@ -79,9 +130,9 @@ export class LoginScene extends Container {
 
   constructor() {
     super()
-    this.addChild(this.leaf, this.body, this.band)
-    this.drawLeaf()
-    this.leaf.position.set(SIZE.width / 2, 150)
+    this.under.addChild(this.mark, this.body)
+    this.addChild(this.under, this.band)
+    this.mark.position.set(SIZE.width / 2, LOGO_Y)
     this.redraw()
     void this.load()
   }
@@ -95,23 +146,40 @@ export class LoginScene extends Container {
   private showBand(message: string): void {
     this.band.removeChildren().forEach(child => child.destroy({ children: true }))
 
-    const height = 92
-    const y = SIZE.height / 2 - height / 2
+    const y = SIZE.height / 2 - BAND_H / 2
 
     // **누르는 것을 막습니다.** 진행 중에 제공자를 또 누르면 요청이 둘이 됩니다.
+    //
+    // **뒤가 흐려져 있습니다**(`stepBand`). 덮개는 그 위에 한 겹 더 얹는 어두움이고,
+    // 흐림만으로는 띠 위의 글이 뒤의 밝은 자리와 겹칠 때 읽히지 않습니다.
     const block = new Graphics()
-    block.rect(0, 0, SIZE.width, SIZE.height).fill({ color: 0x05080e, alpha: 0.42 })
+    block.rect(0, 0, SIZE.width, SIZE.height).fill({ color: 0x05060f, alpha: 0.52 })
     block.eventMode = 'static'
     block.on('pointertap', () => undefined)
 
     const strip = new Graphics()
-    strip.rect(0, y, SIZE.width, height).fill({ color: 0x0a1018, alpha: 0.95 })
-    strip.rect(0, y, SIZE.width, 1).fill({ color: 0x2c3849 })
-    strip.rect(0, y + height - 1, SIZE.width, 1).fill({ color: 0x2c3849 })
+    strip.rect(0, y, SIZE.width, BAND_H).fill({ color: 0x080d1a, alpha: 0.94 })
+    strip.rect(0, y, SIZE.width, 1).fill({ color: UI.yellow, alpha: 0.34 })
+    strip.rect(0, y + BAND_H - 1, SIZE.width, 1).fill({ color: UI.yellow, alpha: 0.34 })
 
     // **띠 안을 빛 한 줄이 지나갑니다.** 글만 있으면 멈춘 화면과 구분되지 않습니다 —
     // 무언가 도는 중이라는 것은 움직이는 것으로만 읽힙니다.
+    //
+    // **한 번 그리고 자리만 옮깁니다.** 조각 열둘로 나눠 조각마다 알파를 달리해 매 프레임
+    // 다시 그리고 있었고, 알파가 조각 안에서 한 값이라 빛 하나가 아니라 막대 열둘로
+    // 보였습니다 — 그라디언트 하나면 값이 이어집니다.
     const sweep = new Graphics()
+    sweep.rect(0, 0, SWEEP_W, BAND_H - 2).fill(new FillGradient({
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 0 },
+      colorStops: [
+        { offset: 0, color: 'rgba(118, 239, 169, 0)' },
+        { offset: 0.5, color: 'rgba(118, 239, 169, 0.14)' },
+        { offset: 1, color: 'rgba(118, 239, 169, 0)' },
+      ],
+      textureSpace: 'local',
+    }))
+    sweep.position.set(-SWEEP_W, y + 1)
     this.bandSweep = sweep
 
     const text = new Text({
@@ -126,7 +194,49 @@ export class LoginScene extends Container {
 
     this.band.addChild(block, strip, sweep, text)
     this.band.visible = true
+    this.band.interactiveChildren = true
+    this.bandWanted = true
     this.spinBand(0)
+  }
+
+  /**
+   * 띠가 뜨고 지는 것을 한 걸음.
+   *
+   * **보이지 않을 때도 돕니다.** 띠를 띄운 채로 씬이 갈리므로, 여기서 멈추면 흐림이 그
+   * 값에 머물러 다음 화면에 남습니다.
+   */
+  private stepBand(seconds: number): void {
+    if (!this.visible) this.bandWanted = false
+    const want = this.bandWanted ? 1 : 0
+    if (this.bandLevel === want) {
+      this.onBusy?.(this.bandLevel)
+      return
+    }
+
+    const step = seconds / BAND_FADE
+    this.bandLevel = want > this.bandLevel
+      ? Math.min(1, this.bandLevel + step)
+      : Math.max(0, this.bandLevel - step)
+
+    this.band.alpha = this.bandLevel
+    // **지는 동안에는 누름을 받지 않습니다.** 아직 보이지만 이미 끝난 것이고, 그 위를
+    // 누르면 그 아래의 단추가 눌리지 않습니다.
+    this.band.interactiveChildren = this.bandWanted
+
+    const on = this.bandLevel > 0.004
+    const filtered = (this.under.filters as unknown[] | null)?.length ?? 0
+    if (on && filtered === 0) this.under.filters = [this.haze]
+    else if (!on && filtered > 0) this.under.filters = []
+    if (on) this.haze.strength = this.bandLevel * BAND_BLUR_PX * 0.5
+
+    // 다 졌으면 띠를 걷습니다.
+    if (!on && !this.bandWanted && this.band.visible) {
+      this.band.visible = false
+      this.bandText = undefined
+      this.bandSweep = undefined
+      this.band.removeChildren().forEach(child => child.destroy({ children: true }))
+    }
+    this.onBusy?.(this.bandLevel)
   }
 
   /** 띠 안의 글과 빛을 한 걸음 움직입니다. */
@@ -141,27 +251,13 @@ export class LoginScene extends Container {
     const sweep = this.bandSweep
     if (!sweep) return
 
-    const height = 92
-    const y = SIZE.height / 2 - height / 2
-    const band = 260
     // 한 바퀴에 1.6초. 화면을 다 지나면 왼쪽에서 다시 들어옵니다.
-    const at = ((this.bandClock / 1.6) % 1) * (SIZE.width + band) - band
-
-    sweep.clear()
-    for (let step = 0; step < 12; step++) {
-      const part = step / 11
-      // 가운데가 밝고 양끝이 잦아드는 띠 하나를 조각으로 그립니다.
-      const alpha = Math.sin(part * Math.PI) * 0.09
-      sweep.rect(at + part * band, y + 1, band / 11 + 1, height - 2)
-        .fill({ color: COLOR.good, alpha })
-    }
+    sweep.x = ((this.bandClock / 1.6) % 1) * (SIZE.width + SWEEP_W) - SWEEP_W
   }
 
+  /** 걷습니다. **그 자리에서 지우지 않습니다** — `stepBand` 가 잦아든 뒤에 지웁니다. */
   private hideBand(): void {
-    this.band.visible = false
-    this.bandText = undefined
-    this.bandSweep = undefined
-    this.band.removeChildren().forEach(child => child.destroy({ children: true }))
+    this.bandWanted = false
   }
 
   /** 띠를 띄운 채로 하나를 합니다. **적어도 얼마간은 머뭅니다.** */
@@ -196,27 +292,15 @@ export class LoginScene extends Container {
   private redraw(): void {
     this.body.removeChildren().forEach(child => child.destroy({ children: true }))
 
-    const title = new Text({
-      text: 'clover',
-      style: {
-        fontSize: 76, fill: COLOR.good, fontWeight: '800',
-        // 타이틀과 같은 이유로 굵기를 손으로 정합니다.
-        stroke: outlineOf(8, 0x07130b), letterSpacing: 6,
-      },
-    })
-    title.anchor.set(0.5, 0)
-    title.position.set(SIZE.width / 2, 186)
-    this.body.addChild(title)
-
     const why = new Text({
       text: t('ui.account.why'),
-      style: { fontSize: 15, fill: COLOR.ink, fontWeight: '700' },
+      style: { fontSize: 15, fill: 0xf1e7d2, fontWeight: '700' },
     })
     why.anchor.set(0.5, 0)
-    why.position.set(SIZE.width / 2, 292)
+    why.position.set(SIZE.width / 2, WHY_Y)
     this.body.addChild(why)
 
-    let y = 336
+    let y = WHY_Y + 44
     for (const provider of this.list) {
       const button = new Button(tf('ui.account.continueWith', { name: provider.label }),
                                 BUTTON_W, BUTTON_H, UI.cell, () => {
@@ -247,6 +331,11 @@ export class LoginScene extends Container {
       y += BUTTON_H - 6 + GAP
     }
 
+    // **싱글플레이는 자리가 고정입니다.** 제공자가 몇이든 같은 자리에 있어야 합니다 —
+    // 제공자 하나가 늘고 줄 때마다 이 단추가 오르내리면, 늘 같은 것을 누르는 사람이
+    // 매번 찾아야 합니다.
+    const singleY = SIZE.height - 214
+
     if (this.note !== '') {
       const note = new Text({
         text: this.note,
@@ -255,16 +344,16 @@ export class LoginScene extends Container {
           wordWrapWidth: BUTTON_W + 80, align: 'center',
         },
       })
-      note.anchor.set(0.5, 0)
-      note.position.set(SIZE.width / 2, y + 2)
+      // **위가 비었으면 아래에 붙습니다.** 서버가 없으면 제공자 단추가 하나도 서지
+      // 않는데, 그때 이 글이 소개 글 바로 밑에 남으면 그 아래로 화면의 3분의 1이 빈
+      // 채로 남습니다 — 이 글이 말하는 것은 「위에 아무것도 없는 까닭」이므로 그 빈자리가
+      // 아니라 다음에 누를 것 위에 있어야 합니다.
+      const alone = this.list.length === 0 && !(import.meta.env.DEV && this.dev)
+      note.anchor.set(0.5, alone ? 1 : 0)
+      note.position.set(SIZE.width / 2, alone ? singleY - 26 : y + 2)
       this.body.addChild(note)
       y += note.height + 14
     }
-
-    // **싱글플레이는 자리가 고정입니다.** 제공자가 몇이든 같은 자리에 있어야 합니다 —
-    // 제공자 하나가 늘고 줄 때마다 이 단추가 오르내리면, 늘 같은 것을 누르는 사람이
-    // 매번 찾아야 합니다.
-    const singleY = SIZE.height - 214
 
     // **가르는 줄 하나.** 위는 계정을 만드는 길이고 아래는 만들지 않는 길입니다.
     //
@@ -452,18 +541,6 @@ export class LoginScene extends Container {
     this.dirty = true
   }
 
-  /** 네 잎. 타이틀의 것과 같은 모양입니다 — 같은 게임의 화면입니다. */
-  private drawLeaf(): void {
-    const g = this.leaf
-    g.clear()
-    for (let i = 0; i < 4; i++) {
-      const angle = (Math.PI / 2) * i + Math.PI / 4
-      g.circle(Math.cos(angle) * 15, Math.sin(angle) * 15, 13)
-        .fill({ color: COLOR.good, alpha: 0.92 })
-    }
-    g.rect(-2, 13, 4, 22).fill({ color: 0x2f8f52 })
-  }
-
   advance(seconds: number): void {
     // **다시 그리는 것은 여기 한 자리입니다.** 보이지 않을 때도 그려야 합니다 — 말이
     // 바뀐 것을 이 화면이 다음에 뜰 때까지 모르고 있으면 안 됩니다.
@@ -471,9 +548,12 @@ export class LoginScene extends Container {
       this.dirty = false
       this.redraw()
     }
+    // **띠는 보이지 않을 때도 잦아듭니다.** 띠를 띄운 채로 씬이 갈리므로, 여기 아래에
+    // 두면 흐림이 그 값에 머물러 다음 화면에 남습니다.
+    this.stepBand(seconds)
     if (!this.visible) return
     this.time += seconds
-    this.leaf.rotation = Math.sin(this.time * 0.8) * 0.16
+    this.mark.advance(seconds)
     this.spinBand(seconds)
   }
 }

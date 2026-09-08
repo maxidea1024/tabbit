@@ -38,6 +38,7 @@ import { rerollCost, sellValueOf, type ShopItem } from '../core/shop'
 import { bestHand, valueOf } from '../core/suggest'
 import { newCounters, type CardInstance, type GameEvent, type RunState } from '../core/state'
 import { BackgroundFilter } from '../shader/background'
+import { FrontFilter } from '../shader/front'
 import { PunchFilter } from '../shader/punch'
 import { ArriveFilter } from '../shader/arrive'
 import { DissolveFilter } from '../shader/dissolve'
@@ -1067,6 +1068,13 @@ export class Game {
   /** 지금 흐린 정도. 판이 열리고 닫힐 때 잦아듭니다. */
   private blurShown = 0
   /**
+   * 로그인 화면의 진행 띠가 배경을 흐리는 정도.
+   *
+   * **그 화면이 정하고 여기가 겁니다.** 배경은 씬들이 함께 쓰는 판 한 장이라 로그인
+   * 화면 안에서 만질 수 있는 것이 아닙니다.
+   */
+  private frontHaze = 0
+  /**
    * 흐림을 굽는 해상도. `layout` 이 화면의 픽셀 밀도에서 냅니다.
    *
    * **반지름을 셈할 때 씁니다.** 필터의 `resolution` 은 `'inherit'` 일 수도 있는 값이라
@@ -1085,6 +1093,18 @@ export class Game {
   private readonly audio: Audio
   private readonly player: TimelinePlayer
   private readonly background = new BackgroundFilter()
+  /**
+   * 판에 들어가기 전의 배경.
+   *
+   * **로그인 화면과 타이틀에서만 돕니다.** 프랙탈은 카드 뒤에 깔릴 것이라 대비가 낮고
+   * 어두운데, 카드가 없는 화면에서는 그 어두움이 화면 전체가 됩니다 — 그 두 화면은
+   * 이름과 단추 몇 개가 전부이므로 배경이 곧 화면입니다.
+   *
+   * **둘 중 하나만 그립니다.** 이것이 보이는 동안 프랙탈의 스프라이트는 꺼져 있습니다 —
+   * 덮여서 보이지 않는 화면 한 장을 매 프레임 셰이더로 굽는 것이므로.
+   */
+  private readonly front = new FrontFilter()
+  private readonly frontSheet = new Sprite(Texture.WHITE)
   private readonly particles = new Particles()
   /**
    * 진동.
@@ -2390,6 +2410,7 @@ export class Game {
       this.applyOptions()
     }
     this.login.onQuit = () => this.askQuit()
+    this.login.onBusy = level => { this.frontHaze = level }
     this.login.onSingle = () => {
       account.playAsGuest()
       this.cross('login_title', () => this.enterTitle())
@@ -2468,7 +2489,9 @@ export class Game {
 
     // 배경은 흰 스프라이트 한 장에 셰이더를 얹은 것입니다.
     this.sheet.filters = [this.background]
-    this.backdrop.addChild(this.sheet, this.euphoria.view)
+    this.frontSheet.filters = [this.front]
+    this.backdrop.addChild(this.sheet, this.frontSheet, this.euphoria.view)
+    this.syncBackdrop()
     // 기가 모이는 자리는 낸 카드가 놓인 자리입니다. **판의 좌표는 고정이므로 한 번 적습니다.**
     this.euphoria.setCenter(BOARD_X / SIZE.width, PLAY_Y / SIZE.height)
 
@@ -3464,6 +3487,7 @@ export class Game {
   /** 로그인 화면으로. **나가는 길은 「계정 없이 시작하기」 하나입니다.** */
   private enterLogin(): void {
     this.scene = 'login'
+    this.syncBackdrop()
     keepAwake(false)
     // **알림이 서는 자리가 씬마다 다릅니다.** 판 안에서는 낸 카드를 덮지 않으려고
     // 오른쪽에 붙지만, 카드가 없는 화면에서는 그냥 구석에 붙은 것이 됩니다.
@@ -3480,6 +3504,7 @@ export class Game {
   private enterRun(): void {
     if (this.scene === 'run') return
     this.scene = 'run'
+    this.syncBackdrop()
     this.toasts.setCenter(Toasts.IN_RUN)
     this.login.visible = false
     this.title.visible = false
@@ -3539,6 +3564,7 @@ export class Game {
     this.flushRun(true)
     this.dropRun()
     this.scene = 'title'
+    this.syncBackdrop()
     keepAwake(false)
     this.toasts.setCenter(Toasts.OUT_RUN)
     this.login.visible = false
@@ -4041,6 +4067,11 @@ export class Game {
     this.sheet.position.set(left, top)
     this.sheet.width = boxW
     this.sheet.height = boxH
+    // 앞 배경도 같은 사각형입니다. 하나만 보이지만 자리는 둘 다 맞춰 둡니다.
+    this.frontSheet.position.set(left, top)
+    this.frontSheet.width = boxW
+    this.frontSheet.height = boxH
+    this.front.setAspect(SIZE.width / SIZE.height)
     // **비율이 고정입니다.** 배경이 판의 사각형에만 그려지므로 창의 비율과 상관이 없고,
     // 그래서 무늬가 기계마다 달라지지 않습니다.
     this.background.setAspect(SIZE.width / SIZE.height)
@@ -5297,19 +5328,21 @@ export class Game {
     // 없어져야 한 가지 일로 보입니다.
     const on = this.blurShown > 0.01
     const filtered = (this.recede.filters as unknown[] | null)?.length ?? 0
-    if (on && filtered === 0) {
-      this.recede.filters = [this.blur]
-      this.backdrop.filters = [this.blurBack]
-    } else if (!on && filtered > 0) {
-      this.recede.filters = []
-      this.backdrop.filters = []
-    }
+    if (on && filtered === 0) this.recede.filters = [this.blur]
+    else if (!on && filtered > 0) this.recede.filters = []
     // **약하게.** 뒤가 무엇인지는 알아볼 수 있어야 합니다 — 판을 닫고 어디로 돌아가는지가
     // 보이지 않으면 판이 화면을 갈아치운 것으로 보입니다.
-    if (on) {
-      this.blur.strength = this.blurShown * BLUR_PX * this.blurDensity
-      this.blurBack.strength = this.blurShown * BLUR_BACK_PX * this.blurDensity
-    }
+    if (on) this.blur.strength = this.blurShown * BLUR_PX * this.blurDensity
+
+    // **배경은 판 말고도 흐릴 일이 있습니다.** 로그인 화면의 진행 띠가 그것입니다 — 그
+    // 화면에는 떠 있는 판이 없으므로 위의 값은 0이고, 배경만 그대로 또렷하면 띠가 배경
+    // 위에 놓인 막대 하나로 보입니다. 흐리는 층이 둘로 갈린 까닭입니다.
+    const back = Math.max(this.blurShown, this.frontHaze)
+    const backOn = back > 0.01
+    const backFiltered = (this.backdrop.filters as unknown[] | null)?.length ?? 0
+    if (backOn && backFiltered === 0) this.backdrop.filters = [this.blurBack]
+    else if (!backOn && backFiltered > 0) this.backdrop.filters = []
+    if (backOn) this.blurBack.strength = back * BLUR_BACK_PX * this.blurDensity
   }
 
   /** 한 방. 흔들림과 색수차를 함께 겁니다. */
@@ -5955,6 +5988,7 @@ export class Game {
     // 판이 소리 없이 멈추고, 왜인지는 아무 데도 적히지 않습니다. 던진 것은 `__clover.errors`
     // 에 적힙니다.
     this.guard('background', () => this.background.advance(seconds))
+    if (this.frontSheet.visible) this.guard('front', () => this.front.advance(seconds))
     this.guard('euphoria', () => this.euphoria.advance(seconds))
     this.guard('punch', () => this.punch.advance(seconds))
     // **파형의 흐름은 실제 초로 잇습니다.** `step` 은 초당 60번 고정이므로 프레임이 그보다
@@ -8807,12 +8841,28 @@ export class Game {
     this.euphoria.setMood(ink, glow)
   }
 
+  /**
+   * 어느 배경을 그릴 것인가.
+   *
+   * **씬이 갈릴 때마다 부릅니다.** 판 밖의 두 화면은 [앞 배경](../shader/front.ts)이고
+   * 판은 프랙탈입니다 — 덮여서 보이지 않는 쪽은 스프라이트를 끕니다. 스프라이트 하나가
+   * 곧 화면 한 장을 셰이더로 굽는 일이므로, 켜 둔 채로 가리면 그 값이 그대로 나갑니다.
+   */
+  private syncBackdrop(): void {
+    const front = this.scene !== 'run'
+    this.frontSheet.visible = front
+    this.sheet.visible = !front
+    // **빛이 나오는 자리는 이름 뒤입니다.** 두 화면의 이름이 서로 다른 높이에 있으므로,
+    // 한 자리로 두면 한쪽에서는 이름 아래에서 빛이 퍼집니다.
+    if (front) this.front.setOrigin(0.5, this.scene === 'login' ? 0.24 : 0.33)
+  }
+
   private syncMood(): void {
     const state = this.state
 
-    // **타이틀에서는 배경 자체가 어둡습니다.** 글을 읽히게 하려고 반투명 사각형을 얹으면
-    // 그 겹의 변이 그대로 가로선으로 보입니다 — 어둡게 할 것은 배경이므로 배경을 어둡게
-    // 합니다.
+    // **판 밖의 두 화면은 프랙탈이 아닙니다.** 색을 정할 것이 없습니다 — `syncBackdrop`
+    // 이 앞 배경으로 갈아 끼웁니다. 다만 판으로 들어갈 때 프랙탈이 앞 국면의 색으로
+    // 남아 있지 않도록 값은 그대로 넣어 둡니다.
     if (this.scene !== 'run') {
       this.setMood([0.012, 0.030, 0.020], [0.10, 0.34, 0.20])
       return
