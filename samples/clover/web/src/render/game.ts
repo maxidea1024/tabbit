@@ -10089,8 +10089,13 @@ export class Game {
     const dissolve = new DissolveFilter()
     face.filters = [arrive]
     tile.filters = [dissolve]
-    // **판 위의 버튼들보다 위입니다.** 판 가운데로 나오는 길에 그것들을 지나갑니다.
-    tile.zIndex = 400
+    // **판 위의 버튼들보다 위, 떠오르는 글 아래입니다.** 판 가운데로 나오는 길에 버튼들을
+    // 지나가므로 0보다 높아야 하고, 파는 값이 이 딱지 위에 얹혀야 하므로 그 글(`popAt` 의
+    // 2)보다는 낮아야 합니다 — 남긴 딱지(`lingerNode`)와 같은 규칙이고 같은 값입니다.
+    //
+    // **400 이었습니다.** 그 값에는 버튼을 지난다는 것 말고 다른 뜻이 없었고, 바꿔 집을 때
+    // 파는 값이 그 카드 뒤로 들어갔습니다.
+    tile.zIndex = 1
     this.overlay.addChild(tile)
     this.burningItems.push({
       tile, face, arrive, dissolve,
