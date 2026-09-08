@@ -216,7 +216,7 @@ Bit-width packing headroom
   element     columns        today       packed        saved
   bool             60          419          541         -122
   varint          349        3,411        4,168         -757
-  i32             289        4,180        8,299       -4,119
+  i32             289        4,180        8,300       -4,120
 
   Keeping the smaller of the two per column: 8,010 → 7,911 · saved 99 over 4 of 698 columns.
 

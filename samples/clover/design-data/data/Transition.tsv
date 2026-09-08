@@ -1,12 +1,12 @@
 :table Transition(key=transition_id)	씬이 갈릴 때 화면을 어떻게 지우는가입니다. **덮개를 그리는 것이 아니라 화면 자체를 처리합니다.**
 :field	transition_id	kind	out_ms	hold_ms	in_ms	ink	toward	cue	note
-:type	string (regex="^[a-z][a-z0-9_]*$")	TransitionKind	int (min=0, max=2000)	int (min=0, max=2000)	int (min=0, max=2000)	string (regex="^#[0-9a-f]{6}$")	bool	string?	string
+:type	string (regex="^[a-z][a-z0-9_]*$")	TransitionKind	int (min=0, max=4000)	int (min=0, max=2000)	int (min=0, max=2000)	string (regex="^#[0-9a-f]{6}$")	bool	string?	string
 :desc	갈리는 자리	지우는 방법	지우는 시간. 밀리초	아무것도 보이지 않는 채로 머무는 시간	되돌리는 시간	다 지워진 자리에 남는 색	다가오는가. 밀림과 옆으로가 이 값을 봅니다	시작할 때 나는 소리. `SoundCue` 의 이름	어느 자리인가
 	title_run	Push	510	70	504	#05070d	true	-	판으로 들어갑니다
 	run_title	Push	450	60	432	#05070d	false	-	판에서 나옵니다
-	run_lost	Ash	1725	80	456	#05070d	true	joker_burn	진 판이 조각으로 부서져 흩어집니다
+	run_lost	Ash	3450	80	456	#05070d	true	joker_burn	진 판이 조각으로 부서져 흩어집니다
 	run_won	Fade	450	60	456	#f4ecd8	true	voucher_buy	이긴 판만 밝은 쪽으로 나갑니다
-	run_restart	Ash	840	60	360	#05070d	true	joker_burn	접고 곧바로 펴는 것이므로 진 판과 같은 몸짓을 짧게 씁니다
+	run_restart	Ash	1680	60	360	#05070d	true	joker_burn	접고 곧바로 펴는 것이므로 진 판과 같은 몸짓을 짧게 씁니다
 	login_title	Slide	390	50	360	#05070d	true	-	로그인 화면에서 타이틀로
 	title_login	Slide	390	50	360	#05070d	false	-	타이틀에서 로그인 화면으로
 	boot_first	Fade	0	0	624	#05070d	true	-	로딩에서 첫 화면으로. **지울 앞 화면이 없으므로 되돌리기만 합니다**

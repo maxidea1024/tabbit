@@ -200,7 +200,11 @@ async function main(): Promise<number> {
   if ((await peek(page)).gameOver !== true) {
     problems.push('진 판이 서지 않아 나가는 길 둘을 보지 못했습니다')
   } else {
-    const again = await watch(page, () => clickSpot(page, 'again'), 60, 'blocks')
+    // **재는 다른 넷보다 오래 지웁니다.** 다시 시작이 2.1초이고 진 판은 4초이므로,
+    // 40밀리초마다 읽으면 그만큼 칸이 필요합니다 — 60칸(2.4초)에서는 진 판의 걸음이
+    // `out` 에서 끝나 「덮인 자리를 보지 못했다」로 끝났습니다. 다 끝나면 일찍 멈추므로
+    // 짧은 자리에는 값이 없습니다.
+    const again = await watch(page, () => clickSpot(page, 'again'), 120, 'blocks')
     judge('다시 시작', 'run_restart', again, one => one.seed)
     await crossed(page)
     await pass(page, 400)
@@ -208,7 +212,7 @@ async function main(): Promise<number> {
     await clickPrimary(page)
     await settle(page)
     await lose(page)
-    const home = await watch(page, () => clickSpot(page, 'home'), 60, 'burn')
+    const home = await watch(page, () => clickSpot(page, 'home'), 120, 'burn')
     judge('진 판 → 타이틀', 'run_lost', home)
   }
 

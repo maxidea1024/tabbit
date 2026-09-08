@@ -2410,6 +2410,16 @@ export class Game {
   }
   /** 배경이 지금 그리고 있는 열기. 목표로 천천히 따라갑니다. */
   private heatShown = 0.1
+  /**
+   * 이 판의 점수가 이미 정산되었는가. **환희의 문턱을 다시 보지 않기 위한 것입니다.**
+   *
+   * 정산(`ScoreResolved`) 뒤에도 득점하는 갈래의 박자가 옵니다 — 라운드가 끝날 때 도는
+   * 조커가 그것입니다. 그 박자들도 그 판의 칩과 배수를 그대로 들고 있으므로, 문턱을 다시
+   * 보면 **터진 뒤에 다시 모으기 시작합니다** — 그러면 겹이 12초(`HOLD_MOST`)를 채울 때까지
+   * 남고, 그동안 정산과 상점이 그 위에 섭니다. 박자의 갈래로만 가리고 있었고, 그 목록에
+   * 있는 갈래가 정산 뒤에도 오는 것이 이 자리였습니다.
+   */
+  private scoreSettled = false
   private clock = 0
   private pointerAt = { x: 0, y: 0 }
   /**
@@ -3944,6 +3954,7 @@ export class Game {
     // 번쩍임과 흔들림. **남겨 두면 타이틀이 흔들린 채로 섭니다.** 환희의 겹도 같습니다 —
     // 판을 접은 뒤에도 남아 있으면 타이틀에서 기를 모으고 있게 됩니다.
     this.euphoria.reset()
+    this.scoreSettled = false
     // **읽어 둔 영상도 놓습니다.** 타이틀과 도감에는 나올 자리가 없고, 도감이 그림을
     // 가장 많이 올리는 화면입니다.
     this.euphoria.forget()
@@ -5132,6 +5143,7 @@ export class Game {
         // **지난 판의 겹은 여기서 물러납니다.** 남은 시간으로 저절로 사라지게 두면 다음
         // 판의 카드가 그 배경 위로 올라옵니다.
         this.euphoria.done()
+        this.scoreSettled = false
         this.shown.hand = this.shown.hand.filter(uid => !event.uids.includes(uid))
         this.liftToPlayArea(event.uids)
         this.refresh()
@@ -5386,6 +5398,8 @@ export class Game {
       case 'ScoreResolved':
         // **모으던 것이 여기서 터집니다.** 문턱을 넘지 않은 판에서는 아무것도 하지 않습니다.
         this.euphoria.release()
+        // **이 판의 문턱은 여기까지입니다.** 뒤에 오는 박자로 다시 모으지 않습니다.
+        this.scoreSettled = true
         // **더해집니다.** 이 판의 점수가 아니라 라운드에 쌓인 점수가 칸에 뜹니다.
         this.shown.score += event.score
         this.score.target = this.shown.score
@@ -5496,7 +5510,8 @@ export class Game {
     // 정산에서 한 번만 보면 모으는 것 없이 터지는 것만 남고, 반대로 **아무 박자에서나 보면
     // 정산한 다음에 다시 모으기 시작합니다** — 정산 뒤의 박자들(다음 패 · 돈 · 격파)도 그
     // 판의 칩과 배수를 그대로 들고 있기 때문입니다. 배수는 만 배로 적힌 값입니다.
-    if (SCORING_BEATS.has(event.t) && beat.chips !== undefined && beat.mult !== undefined) {
+    if (!this.scoreSettled && SCORING_BEATS.has(event.t)
+        && beat.chips !== undefined && beat.mult !== undefined) {
       this.euphoria.consider(beat.chips * beat.mult / 10_000)
     }
   }
@@ -5829,6 +5844,10 @@ export class Game {
       else if (this.sweptAt < 0) this.sweptAt = this.clock
       if (swept && !this.player.busy && this.clock - this.sweptAt >= SWEEP_REST) {
         this.payoutOpen = true
+        // **정산이 서는 것이 그 판의 끝입니다.** 환희의 겹이 남아 있으면 정산과 상점을 보는
+        // 동안에도 그 판의 기가 화면에 깔려 있습니다 — 터지는 것은 이미 한참 전에 지났고
+        // (정산은 카드를 다 걷은 뒤에 섭니다), 여기서 남은 것은 물러납니다.
+        this.euphoria.done()
         this.drawPayout()
         this.modals.open(this.payout)
         // **상점은 정산 뒤입니다.** 판이 열린 것을 상점이 알아야 물러납니다 — 카드가

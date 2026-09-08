@@ -30,21 +30,18 @@ RUN = [
 INK = '#05070d'
 LIGHT = '#f4ecd8'
 TRANSITION = [
-    ('title_run', 'Push', 340, 70, 420, INK, True, '-', '판으로 들어갑니다'),
-    ('run_title', 'Push', 300, 60, 360, INK, False, '-', '판에서 나옵니다'),
-    ('run_lost', 'Burn', 520, 80, 340, INK, True, 'joker_burn',
-     '진 판이 그 자리에서 타 없어집니다'),
-    ('run_won', 'Fade', 300, 60, 380, LIGHT, True, 'voucher_buy',
-     '이긴 판만 밝은 쪽으로 나갑니다'),
-    ('run_restart', 'Blocks', 260, 60, 300, INK, True, '-',
-     '접고 곧바로 펴는 것이므로 짧고 건조합니다'),
-    ('login_title', 'Slide', 260, 50, 300, INK, True, '-', '로그인 화면에서 타이틀로'),
-    ('title_login', 'Slide', 260, 50, 300, INK, False, '-', '타이틀에서 로그인 화면으로'),
-    ('boot_first', 'Fade', 0, 0, 520, INK, True, '-',
+    ('title_run', 'Push', 510, 70, 504, INK, True, '-', '판으로 들어갑니다'),
+    ('run_title', 'Push', 450, 60, 432, INK, False, '-', '판에서 나옵니다'),
+    ('run_lost', 'Ash', 3450, 80, 456, INK, True, 'joker_burn', '진 판이 조각으로 부서져 흩어집니다'),
+    ('run_won', 'Fade', 450, 60, 456, LIGHT, True, 'voucher_buy', '이긴 판만 밝은 쪽으로 나갑니다'),
+    ('run_restart', 'Ash', 1680, 60, 360, INK, True, 'joker_burn',
+     '접고 곧바로 펴는 것이므로 진 판과 같은 몸짓을 짧게 씁니다'),
+    ('login_title', 'Slide', 390, 50, 360, INK, True, '-', '로그인 화면에서 타이틀로'),
+    ('title_login', 'Slide', 390, 50, 360, INK, False, '-', '타이틀에서 로그인 화면으로'),
+    ('boot_first', 'Fade', 0, 0, 624, INK, True, '-',
      '로딩에서 첫 화면으로. **지울 앞 화면이 없으므로 되돌리기만 합니다**'),
     ('quiet', 'Fade', 120, 0, 120, INK, True, '-',
-     '전환을 줄였을 때. **0이 아닙니다** — 갈아 끼우는 프레임은 어느 설정에서도 '
-     '보이면 안 됩니다'),
+     '전환을 줄였을 때. **0이 아닙니다** — 갈아 끼우는 프레임은 어느 설정에서도 보이면 안 됩니다'),
 ]
 
 SCORE = [
@@ -253,7 +250,7 @@ def seed():
         '씬이 갈릴 때 화면을 어떻게 지우는가입니다. **덮개를 그리는 것이 아니라 화면 자체를 '
         '처리합니다.**',
         ['transition_id', 'kind', 'out_ms', 'hold_ms', 'in_ms', 'ink', 'toward', 'cue', 'note'],
-        ['string (regex="^[a-z][a-z0-9_]*$")', 'TransitionKind', 'int (min=0, max=2000)',
+        ['string (regex="^[a-z][a-z0-9_]*$")', 'TransitionKind', 'int (min=0, max=4000)',
          'int (min=0, max=2000)', 'int (min=0, max=2000)',
          'string (regex="^#[0-9a-f]{6}$")', 'bool', 'string?', 'string'],
         ['갈리는 자리', '지우는 방법', '지우는 시간. 밀리초', '아무것도 보이지 않는 채로 머무는 시간',
