@@ -53,6 +53,17 @@ const GROW_MOST = 1.7
 const CHIP_H = 20
 
 /**
+ * 쪽지가 서는 층.
+ *
+ * **떠 있는 판보다 위입니다.** 9,000 이었고, 모달이 9,500 이므로 판 안의 것을 가리켜 띄운
+ * 쪽지가 그 판 뒤로 들어갔습니다 — 덱을 열어 카드 한 장을 눌렀을 때가 그것입니다. 동전
+ * (9,600)보다도 위이고, 통신 표시(9,800)보다는 아래입니다.
+ *
+ * **판 안에 달린 쪽지에는 아무 영향이 없습니다** — 그 안에서는 이 값이 그저 「맨 위」입니다.
+ */
+const TIP_Z = 9_700
+
+/**
  * 칩 하나.
  *
  * **테두리와 옅은 바탕입니다.** 꽉 찬 색으로 두면 이름보다 먼저 눈에 들어오고, 종류는
@@ -109,6 +120,7 @@ export class Tooltip extends Container {
 
   constructor() {
     super()
+    this.zIndex = TIP_Z
     this.addChild(this.plate, this.title, this.chips, this.body)
     this.visible = false
     this.eventMode = 'none'
@@ -192,7 +204,7 @@ export class Tooltip extends Container {
     this.pop = 0
     this.place()
     this.visible = true
-    this.zIndex = 9000
+    this.zIndex = TIP_Z
   }
 
   /**
