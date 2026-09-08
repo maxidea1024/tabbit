@@ -4,7 +4,10 @@
 // 보는 데는 그것으로 충분하지만, **모습 하나를 고치는 동안에는 세 컷으로 모자랍니다.**
 // 조각이 어디서 떨어져 나와 어디까지 가는지는 지워지는 동안을 촘촘히 봐야 합니다.
 //
-//     npx tsx tools/shoot-ash.ts [자리]
+//     npx tsx tools/shoot-ash.ts [자리] [--quality high|medium|low] [--time] [--soft] [--gpu]
+//
+// **판 안에서 찍습니다.** 진 판의 전환은 카드가 놓인 판에서 시작하므로, 블라인드를 고르고
+// 패가 깔린 뒤에 돌립니다 — 카드가 없는 화면이 부서지는 것은 볼 것이 아닙니다.
 
 import * as fs from 'fs/promises'
 import * as path from 'path'
@@ -12,7 +15,7 @@ import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 
-import { closeGuide, crossed, pass, peek, settle, skipLogin, startNewRun } from './harness'
+import { crossed, openRun, pass, peek, settle, skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check/ash')
@@ -22,7 +25,7 @@ const STEP_MS = 16
 /** 어느 정도 지워진 자리를 보는가. */
 const MARKS = [0.10, 0.22, 0.36, 0.50, 0.64, 0.78, 0.92]
 
-async function shoot(page: Page, id: string, lite: boolean, gpuTag = ''): Promise<string> {
+async function shoot(page: Page, id: string, tag: string, gpuTag = ''): Promise<string> {
   await page.evaluate(name => {
     (window as unknown as { __clover: { cross?(id: string): void } }).__clover.cross?.(name)
   }, id)
@@ -32,7 +35,7 @@ async function shoot(page: Page, id: string, lite: boolean, gpuTag = ''): Promis
   for (let i = 0; i < 300 && next < MARKS.length; i++) {
     const now = (await peek(page)).transition
     if (now && now.stage === 'out' && now.cover >= MARKS[next]) {
-      const name = `${id}${lite ? '-lite' : ''}${gpuTag}-${String(Math.round(MARKS[next] * 100)).padStart(2, '0')}`
+      const name = `${id}${tag}${gpuTag}-${String(Math.round(MARKS[next] * 100)).padStart(2, '0')}`
       await page.screenshot({ path: path.join(OUT, `${name}.png`) })
       took.push(`${Math.round(now.cover * 100)}%`)
       next++
@@ -82,9 +85,16 @@ async function timeIt(page: Page, id: string): Promise<string> {
 
 async function main(): Promise<number> {
   const id = process.argv[2] ?? 'run_lost'
-  // **모바일 몫도 눈으로 봅니다.** 짚는 수를 줄인 쪽은 그 기계에서만 도는 길이라, 여기서
-  // 켜 보지 않으면 성기어진 모습을 아무도 보지 않은 채로 나갑니다.
-  const lite = process.argv.includes('--lite')
+  // **품질 셋을 다 눈으로 봅니다.** 「낮음」은 핸드폰에서만 도는 셰이더라 여기서 켜 보지
+  // 않으면 그 모습을 아무도 보지 않은 채로 나가고, 「높음」의 파티클은 실제 GPU 에서만
+  // 나옵니다. 주지 않으면 기계가 정한 대로입니다.
+  const at = process.argv.indexOf('--quality')
+  const quality = at >= 0 ? process.argv[at + 1] : process.argv.includes('--lite') ? 'low' : ''
+  // **파라미터를 바꿔 봅니다.** JSON 하나이고 `AshParams` 의 열쇠입니다 — 어느 파라미터가 어느
+  // 모습을 만드는지는 돌려 보지 않고는 알 수 없습니다. 파일 이름에 `-tuned` 가 붙습니다.
+  const tuneAt = process.argv.indexOf('--tune')
+  const tune = tuneAt >= 0 ? process.argv[tuneAt + 1] : ''
+  const tag = `${quality === '' ? '' : `-${quality}`}${tune === '' ? '' : '-tuned'}`
   // **시계를 손으로 돌리면 값을 잴 수 없습니다.** 재는 자리에서는 화면의 시계로 돕니다.
   const timing = process.argv.includes('--time')
   const server = await createServer({ root: path.resolve(HERE, '..'), server: { port: PORT } })
@@ -130,20 +140,26 @@ async function main(): Promise<number> {
   await skipLogin(page)
   await page.goto(`http://localhost:${PORT}/?seed=CLOVER-ASH${timing ? '' : '&tick=manual'}`,
     { waitUntil: 'networkidle' })
-  if (lite) {
-    await page.evaluate(() => {
-      (window as unknown as { __clover: { crossLite?(on: boolean): void } })
-        .__clover.crossLite?.(true)
-    })
+  if (quality !== '') {
+    await page.evaluate(level => {
+      (window as unknown as { __clover: { crossQuality?(level: string): void } })
+        .__clover.crossQuality?.(level)
+    }, quality)
+  }
+  if (tune !== '') {
+    await page.evaluate(json => {
+      (window as unknown as { __clover: { tuneAsh?(params: unknown): void } })
+        .__clover.tuneAsh?.(JSON.parse(json))
+    }, tune)
   }
   await pass(page, 1500)
   await crossed(page)
-  await startNewRun(page)
-  await crossed(page)
-  await pass(page, 500)
-  await closeGuide(page)
+  // 블라인드를 고르고 패가 깔릴 때까지. **카드가 놓인 판이어야 합니다.**
+  await openRun(page)
   await settle(page)
-  await pass(page, 300)
+  await pass(page, 600)
+  const got = (await peek(page)).transition as { quality?: string; particles?: boolean } | undefined
+  console.log(`품질 ${got?.quality ?? '?'} · 파티클 ${got?.particles ? '있음' : '없음'}`)
 
   if (timing) {
     // 견줄 것들. **재만 재면 그 값이 큰지 작은지 알 수 없습니다.**
@@ -151,11 +167,11 @@ async function main(): Promise<number> {
     // 판을 그리는 값이 함께 들어 있으면 두 전환의 배수가 1에 가깝게 보입니다.
     for (const one of ['', 'run_title', 'run_restart', id]) {
       const label = one === '' ? '(전환 없음)' : one
-      console.log(`${label}${lite ? ' (모바일 몫)' : ''}: ${await timeIt(page, one)}`)
+      console.log(`${label}${tag}: ${await timeIt(page, one)}`)
       await pass(page, 200)
     }
   } else {
-    console.log(`${id}${lite ? ' (모바일 몫)' : ''}: ${await shoot(page, id, lite, gpu ? '-gpu' : '')}`)
+    console.log(`${id}${tag}: ${await shoot(page, id, tag, gpu ? '-gpu' : '')}`)
   }
 
   await browser.close()

@@ -13,6 +13,8 @@
 
 import { Filter, GlProgram } from 'pixi.js'
 
+import { noiseResources } from './noise'
+
 const VERTEX = `#version 300 es
 in vec2 aPosition;
 out vec2 vTextureCoord;
@@ -49,18 +51,21 @@ uniform vec3  uInk;      // 바탕색. 배경과 같은 값을 받습니다.
 uniform vec3  uGlow;     // 기의 색
 uniform float uAspect;
 
+uniform sampler2D uLarge;
+
 float hash(vec2 p) {
   vec3 q = fract(vec3(p.xyx) * 0.1031);
   q += dot(q, q.yzx + 33.33);
   return fract((q.x + q.y) * q.z);
 }
 
+/**
+ * 노이즈 그림 한 번. 격자 노이즈이던 자리입니다 — 그쪽은 해시 넷이고, 각도를 축으로 쓰면
+ * 각도가 -π 에서 π 로 넘어가는 자리에 이음이 있었습니다. 그림은 이어 붙여도 이음이 없으므로
+ * 각도 한 바퀴를 그림 한 바퀴에 맞추면 이음이 없습니다.
+ */
 float noise(vec2 p) {
-  vec2 i = floor(p);
-  vec2 f = fract(p);
-  f = f * f * (3.0 - 2.0 * f);
-  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),
-             mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
+  return clamp((texture(uLarge, p).r - 0.384) * 2.4 + 0.5, 0.0, 1.0);
 }
 
 const float TAU = 6.28318530718;
@@ -72,7 +77,7 @@ void main(void) {
   float a = atan(p.y, p.x);
 
   // 핵의 둘레가 고르게 둥글면 그려 놓은 원으로 보입니다. 각도에 따라 조금 일그러뜨립니다.
-  float wobble = noise(vec2(a * 2.4, uTime * 1.3)) - 0.5;
+  float wobble = noise(vec2(a / TAU * 2.0, uTime * 0.11)) - 0.5;
   float rc = r * (1.0 + 0.16 * wobble);
 
   // **집중선.** 각도를 96칸으로 나누고 칸마다 다른 빠르기로 안쪽으로 흐릅니다.
@@ -108,7 +113,7 @@ void main(void) {
   //
   // **각도로 잘게 흔듭니다.** 낮은 배율로 두면 화면을 가로지르는 굵은 곡선 하나가 되고,
   // 그것은 번개가 아니라 그려 놓은 줄로 보입니다.
-  float bolt = noise(vec2(a * 13.0, uTime * 3.2));
+  float bolt = noise(vec2(a / TAU * 6.0, uTime * 0.27));
   float arc = smoothstep(0.014, 0.0, abs(r - (grown * 1.8 + 0.20 * bolt))) * uCharge;
 
   // 기의 색. 라운드의 색에 흰빛을 섞습니다 — 순색만 쓰면 붉은 라운드에서 피처럼 보입니다.
@@ -157,6 +162,7 @@ export class SurgeFilter extends Filter {
           uInk: { value: new Float32Array([0.031, 0.075, 0.055]), type: 'vec3<f32>' },
           uGlow: { value: new Float32Array([0.25, 0.85, 0.55]), type: 'vec3<f32>' },
         },
+        ...noiseResources({ uLarge: 'large' }),
       },
     })
   }

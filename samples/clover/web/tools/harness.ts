@@ -105,7 +105,11 @@ export interface Peek {
    *
    * 규격은 `doc/ui/transition.md` 이고, 도는 동안에는 누를 자리가 알려지지 않습니다.
    */
-  transition?: { id: string; stage: string; cover: number; shots: number }
+  transition?: {
+    id: string; stage: string; cover: number; shots: number
+    /** 그래픽 품질과 파티클이 실제로 있는가. `high` 인데 없으면 기계가 못 하는 것입니다. */
+    quality?: string; particles?: boolean
+  }
   /**
    * 인사이트 판에 지금 서 있는 줄들의 열쇠.
    *

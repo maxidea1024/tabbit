@@ -11,6 +11,7 @@
 
 import type { PoolChoice } from '../core/pool'
 import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
+import { coarsePointer } from '../shader/device'
 
 import { detectLanguage, type Language, LANGUAGE_NAMES, LANGUAGES, nameOf, t, tf }
   from '../core/strings'
@@ -52,6 +53,22 @@ export type Motion = 'auto' | 'on' | 'off'
 
 /** `Motion` 의 세 값. 옵션의 줄이 이 순서로 돕니다. */
 const MOTIONS: Motion[] = ['auto', 'on', 'off']
+
+/**
+ * 그래픽 품질.
+ *
+ * **지금 갈리는 것은 진 판이 재가 되는 전환 하나입니다.** 「높음」이 데스크탑 셰이더에
+ * 파티클을 얹은 것, 「보통」이 셰이더만, 「낮음」이 핸드폰의 셰이더입니다 — 낮음은 값을 줄인
+ * 것이 아니라 다른 셰이더입니다(`shader/ash.ts`).
+ *
+ * **`auto` 가 처음 값입니다.** 손가락으로 짚는 화면이면 낮음, 아니면 높음이고, 전환과 같은
+ * 이유로 그때그때 봅니다. 높음인데 기계가 파티클을 못 하면 파티클만 빠집니다 — 셰이더가
+ * 컴파일되는지를 쓰기 전에 보고, 안 되면 보통과 같은 화면입니다.
+ */
+export type Quality = 'auto' | 'high' | 'medium' | 'low'
+
+/** `Quality` 의 네 값. 옵션의 줄이 이 순서로 돕니다. */
+const QUALITIES: Quality[] = ['auto', 'high', 'medium', 'low']
 
 export interface Options {
   /** 소리를 내는가. */
@@ -100,6 +117,8 @@ export interface Options {
    * 않습니다.
    */
   transition: Motion
+  /** 그래픽 품질. 위의 `Quality`. */
+  graphics: Quality
   /**
    * 중요한 순간에 기계가 떠는가.
    *
@@ -173,6 +192,7 @@ export function defaultOptions(): Options {
     sound: true, volume: 60, music: true, musicVolume: 60, speed: 1, frameCap: 0,
     shake: true, particles: true, chromatic: true, hints: true, haptics: true,
     transition: 'auto',
+    graphics: 'auto',
     language: '', deck: 'red_deck', stake: 'White', cardSet: 'classic', pool: 'base',
     uiTheme: 'slate',
   }
@@ -225,6 +245,17 @@ export function transitionWanted(options: Options): boolean {
   return !quietMotion()
 }
 
+/**
+ * 지금의 그래픽 품질. `auto` 를 푼 값입니다.
+ *
+ * **쓰는 자리에서 잽니다.** 전환과 같은 이유입니다 — 한 번 재어 저장하면 그 값이 사람이
+ * 고른 것처럼 남습니다.
+ */
+export function graphicsLevel(options: Options): 'high' | 'medium' | 'low' {
+  if (options.graphics !== 'auto') return options.graphics
+  return coarsePointer() ? 'low' : 'high'
+}
+
 /** 지난번에 정한 것. 저장소가 막힌 브라우저에서는 기본값입니다. */
 export function loadOptions(): Options {
   const options = defaultOptions()
@@ -245,6 +276,7 @@ export function loadOptions(): Options {
       // 것으로 보므로, 예전 판에서 저장된 값은 통째로 버려지고 `auto` 로 돌아옵니다 —
       // 그것이 이 바꿈의 되돌리기이기도 합니다.
       if (key === 'transition' && !MOTIONS.includes(value as Motion)) continue
+      if (key === 'graphics' && !QUALITIES.includes(value as Quality)) continue
       // 목록에 없는 상한이 저장되어 있으면 화면이 정하는 대로 둡니다.
       if (key === 'frameCap' && !FRAME_CAPS.includes(value as number)) continue
       // 없는 겉면 이름이 저장되어 있으면 기본으로 둡니다.
@@ -803,6 +835,20 @@ export class OptionsPanel implements ModalPanel {
               options.transition = MOTIONS[(at + 1) % MOTIONS.length]
             },
             note: t('ui.option.note.transition'),
+          },
+          // **재가 되는 전환의 값입니다.** 「자동」 이 기계에 묻는 것이고, 나머지 셋이 사람이
+          // 고른 것입니다. 높음인데 파티클이 없으면 기계가 못 하는 것입니다.
+          {
+            id: 'graphics',
+            label: t('ui.option.graphics'),
+            read: () => options.graphics === 'auto'
+              ? `${t('ui.option.auto')} · ${t(`ui.quality.${graphicsLevel(options)}`)}`
+              : t(`ui.quality.${options.graphics}`),
+            next: () => {
+              const at = QUALITIES.indexOf(options.graphics)
+              options.graphics = QUALITIES[(at + 1) % QUALITIES.length]
+            },
+            note: t('ui.option.note.graphics'),
           },
           // **켜고 끄는 것들 아래에 고르는 것 하나입니다.** 판의 겉면이고, 값과 단추의
           // 색은 바뀌지 않으므로 「돈은 노랑」 같은 약속은 그대로 남습니다.

@@ -1182,6 +1182,9 @@
 	ui.option.on	켜짐	On	オン	开	開	An
 	ui.option.off	꺼짐	Off	オフ	关	關	Aus
 	ui.option.auto	자동	Auto	自動	自动	自動	Auto
+	ui.quality.high	높음	High	高	高	高	Hoch
+	ui.quality.medium	보통	Medium	中	中	中	Mittel
+	ui.quality.low	낮음	Low	低	低	低	Niedrig
 	ui.option.volume	음량	Volume	音量	音量	音量	Lautstärke
 	ui.option.music	배경음	Music	BGM	背景音乐	背景音樂	Musik
 	ui.option.music_volume	배경음 크기	Music volume	BGM 音量	背景音乐音量	背景音樂音量	Musiklautstärke
@@ -1189,6 +1192,7 @@
 	ui.option.particles	파티클	Particles	パーティクル	粒子	粒子	Partikel
 	ui.option.chromatic	색수차	Chromatic	色収差	色差	色差	Farbsaum
 	ui.option.transition	화면 전환	Scene Transitions	画面切り替え	场景切换	場景切換	Szenenübergänge
+	ui.option.graphics	그래픽 품질	Graphics Quality	グラフィック品質	画质	畫質	Grafikqualität
 	ui.option.speed	연출 속도	Animation Speed	演出速度	动画速度	動畫速度	Tempo
 	ui.option.hints	족보 도움	Hand Hints	役ヒント	牌型提示	牌型提示	Blatt-Hinweise
 	ui.option.frames	프레임 상한	Frame Cap	フレーム上限	帧率上限	幀率上限	Bildratenlimit
@@ -1210,6 +1214,7 @@
 	ui.option.note.shake	큰 값에서 판이 흔들립니다	The board shakes on big values	大きな値で盤が揺れます	数值大时画面会震动	數值大時畫面會震動	Das Feld wackelt bei großen Werten
 	ui.option.note.chromatic	한 방 먹을 때 색이 갈라집니다	Colours split apart on a big hit	大きな一撃で色がずれます	大幅得分时颜色分离	大幅得分時顏色分離	Farben trennen sich bei einem großen Treffer
 	ui.option.note.transition	씬이 갈릴 때 화면이 지워졌다 돌아옵니다	The screen wipes out and back when scenes change	シーンが変わるとき画面が消えて戻ります	切换场景时画面会消失后返回	切換場景時畫面會消失後返回	Beim Szenenwechsel blendet der Bildschirm aus und wieder ein
+	ui.option.note.graphics	높음은 진 판이 부서질 때 GPU 파티클을 더합니다. 기계가 못 하면 파티클만 빠집니다	High adds GPU particles when a lost run breaks apart. Devices that cannot run them skip only the particles	「高」は負けた回が崩れるときGPUパーティクルを加えます。端末が対応しない場合はパーティクルだけ省きます	“高”会在失败局崩解时加入 GPU 粒子。设备不支持时只省略粒子	「高」會在失敗局崩解時加入 GPU 粒子。裝置不支援時只省略粒子	Hoch fügt GPU-Partikel hinzu, wenn ein verlorener Lauf zerfällt. Geräte ohne Unterstützung lassen nur die Partikel weg
 	ui.option.note.haptics	중요한 순간에 기계가 떱니다	The device buzzes at the moments that matter	大事な場面で端末が震えます	关键时刻设备会振动	關鍵時刻裝置會震動	Das Gerät vibriert in wichtigen Momenten
 	ui.deck.left	덱에 남아 있습니다	Still in the deck	デッキに残っています	仍在牌组中	仍在牌組中	Noch im Deck
 	ui.deck.in_hand	지금 손에 있습니다	In your hand now	今、手札にあります	现在在手牌中	現在在手牌中	Jetzt auf der Hand

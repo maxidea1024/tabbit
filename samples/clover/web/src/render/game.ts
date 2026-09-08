@@ -100,7 +100,7 @@ import type { ToolSpot } from '../ui/layout'
 import { ScrollView } from '../ui/scroll'
 import { richBlock, richLine } from '../ui/rich'
 import {
-  chosen, loadOptions, OptionsPanel, saveOptions, transitionWanted, type Options,
+  chosen, graphicsLevel, loadOptions, OptionsPanel, saveOptions, transitionWanted, type Options,
 } from '../ui/options'
 import { Toasts } from '../ui/toast'
 import { type TipBox, Tooltip } from '../ui/tooltip'
@@ -1702,6 +1702,9 @@ export class Game {
     shoot: () => this.shoot(),
     play: cue => this.audio.play(cue),
     screen: this.screen,
+    // **닫힘으로 넘깁니다.** 필드의 초기식이 도는 자리에는 `app` 이 아직 없습니다 — 생성자의
+    // 매개변수 프로퍼티는 필드 다음에 놓입니다.
+    renderer: () => this.app?.renderer,
   })
   /**
    * 자리마다 화면을 어떻게 지우는가. **시트가 정합니다.**
@@ -1710,6 +1713,8 @@ export class Game {
    * 표가 없습니다.
    */
   private crossings!: Crossings
+  /** 도구가 손으로 정한 그래픽 품질. **옵션을 다시 걸어도 남습니다** — 없으면 옵션이 정합니다. */
+  private qualityOverride?: 'high' | 'medium' | 'low'
   /** 옵션. 타이틀이 고치고 화면이 읽습니다. */
   private readonly settings: Options = loadOptions()
 
@@ -2784,6 +2789,9 @@ export class Game {
     // **초당 몇 프레임까지 그리는가.** 0 은 화면이 정하는 대로입니다 — 티커에 0 을 넣으면
     // 문턱이 없어집니다.
     this.app.ticker.maxFPS = this.settings.frameCap
+    // **그래픽 품질.** 지금 갈리는 것은 재가 되는 전환 하나입니다 — 셰이더 둘 가운데 어느
+    // 것인지와 파티클을 얹는지가 여기서 정해집니다.
+    this.transition.quality = this.qualityOverride ?? graphicsLevel(this.settings)
   }
 
   private applyOptions(): void {
@@ -4384,11 +4392,11 @@ export class Game {
     // 그 예약이 이미 잡혀 있는 채로 판이 끝날 수 있습니다 — 그러면 「패배」 판이 선 뒤에
     // 그 밑으로 새 패가 마저 깔립니다. 코어는 진 판의 손패를 비우지 않으므로 화면이
     // 걷어야 하고, 걷은 다음에 깔리면 걷은 것이 헛일이 됩니다.
+    //
+    // **손패는 그대로 둡니다.** 끝난 판의 카드는 그 자리에 남아 판의 마지막 모습이 됩니다 —
+    // 예약된 깔기만 버립니다.
     if (this.shown.phase === 'lost' || this.shown.phase === 'won') {
-      if (this.deals.length === 0 && this.shown.hand.length === 0) return
       this.deals.length = 0
-      this.shown.hand = []
-      this.refresh()
       return
     }
 
@@ -4777,11 +4785,11 @@ export class Game {
   }
 
   /**
-   * 판이 끝났습니다. 손에 남은 카드를 걷습니다.
+   * 라운드가 끝났습니다. 손에 남은 카드를 걷습니다.
    *
-   * **끝났다는 판은 빈 자리 위에 섭니다.** 손에 카드가 그대로 있는데 그 위에 판이 덮이면,
-   * 끝난 것과 아직 쥐고 있는 것이 한 화면에 겹칩니다 — 코어는 진 판의 손패를 비우지 않으므로
-   * 화면이 걷습니다.
+   * **정산 판은 빈 자리 위에 섭니다.** 손에 카드가 그대로 있는데 그 위에 판이 덮이면, 끝난
+   * 것과 아직 쥐고 있는 것이 한 화면에 겹칩니다. **끝난 판(패배·승리)에서는 부르지
+   * 않습니다** — 그쪽은 카드가 그 자리에 남아 판의 마지막 모습이 됩니다.
    *
    * 태우지 않고 물러나게 합니다. 버리는 것은 없애는 것이고, 이것은 치우는 것입니다.
    */
@@ -6060,13 +6068,16 @@ export class Game {
 
     // **끝났다는 판은 연출이 다 끝난 뒤에 띄웁니다.** 마지막 카드의 결과를 보기 전에 덮이면
     // 무엇 때문에 끝난 것인지 알 수 없습니다.
-    // **카드가 다 걷힌 뒤에 섭니다.** 손패와 낸 카드가 물러나는 중인데 그 위에 판이 덮이면,
-    // 끝난 것과 끝나는 중인 것이 한 화면에 겹칩니다 — 정산 판과 같은 규칙입니다.
+    //
+    // **카드는 걷지 않습니다.** 끝난 판의 손패와 낸 카드는 그 자리에 남고, 판이 그 위에
+    // 섭니다 — 진 판은 재가 되어 바람에 실려 가는데, 카드를 먼저 걷으면 사진에 카드가 없어
+    // 빈 판때기만 부서집니다. 남는 것은 그 판의 마지막 모습이어야 합니다. 그래서 여기서
+    // 기다리는 것은 **움직이는 것이 없는가**와 **결과를 읽을 시간이 지났는가**입니다.
     const finished = this.state.phase === 'lost' || this.state.phase === 'won'
-    const swept = this.playedViews.length === 0 && this.fades.length === 0
-      && this.cards.size === 0 && this.deals.length === 0 && this.recalls.length === 0
-      && this.retired === 0
-    if (finished && swept && !this.gameOverShown
+    const still = this.fades.length === 0 && this.deals.length === 0
+      && this.recalls.length === 0 && this.retired === 0
+    const read = this.playedViews.length === 0 || this.holdAfterScore > 1_100
+    if (finished && still && read && !this.gameOverShown
         && !this.player.busy && this.score.settled && !this.coins.busy) {
       this.drawGameOver()
     }
@@ -6079,7 +6090,9 @@ export class Game {
       // 무엇을 냈고 얼마가 되었는지가 보입니다.
       if (this.playedViews.length > 0 && this.score.settled) {
         this.holdAfterScore += deltaMs
-        if (this.holdAfterScore > 1_100 && !this.leaving(this.playedViews[0])) {
+        // **끝난 판은 걷지 않습니다.** 위의 「카드는 걷지 않습니다」.
+        const over = this.state.phase === 'lost' || this.state.phase === 'won'
+        if (this.holdAfterScore > 1_100 && !over && !this.leaving(this.playedViews[0])) {
           this.clearPlayArea()
           // **판이 끝났으면 손패도 뒤따라 걷힙니다.** 낸 카드와 손패가 따로 나가면 걷는
           // 것이 두 번이고, 그 사이에 손에 카드가 남은 채로 결과만 보입니다.
@@ -6711,13 +6724,18 @@ export class Game {
           this.transition.play(id, this.crossings.of(id), () => {})
         },
         /**
-         * 값을 아끼는 몫으로 돌립니다. **기계가 정하는 것을 손으로 뒤집는 자리입니다.**
+         * 그래픽 품질을 손으로 돌립니다. **옵션이 정하는 것을 도구가 뒤집는 자리입니다.**
          *
-         * 재는 짚는 수를 모바일에서 줄이는데, 그 길은 그 기계에서만 도므로 데스크탑에서는
-         * 성기어진 모습을 볼 길이 없습니다 — 아무도 보지 않은 모습이 그 기계에 나갑니다.
+         * 재의 핸드폰 셰이더는 그 기계에서만 도는 길이라, 데스크탑에서 켜 보지 않으면 그
+         * 모습을 아무도 보지 않은 채로 나갑니다. 「높음」의 파티클도 같은 자리에서 봅니다.
          */
-        crossLite: (on: boolean) => {
-          this.transition.lite = on
+        crossQuality: (level: 'high' | 'medium' | 'low') => {
+          this.qualityOverride = level
+          this.transition.quality = level
+        },
+        /** 재의 손잡이를 돌립니다. 고르는 동안 쓰는 자리입니다. */
+        tuneAsh: (params: Record<string, number | [number, number]>) => {
+          this.transition.tuneAsh(params)
         },
         grantMoney: (amount: number) => {
           this.state.money += amount
@@ -8764,10 +8782,11 @@ export class Game {
   private syncCards(): void {
     // **화면이 주장하는 패입니다.** 다음 패는 득점 연출이 끝난 뒤에 깔립니다.
     //
-    // **끝난 판에서는 아무것도 깔지 않습니다.** 코어는 진 판의 손패를 비우지 않으므로,
-    // 걷어 낸 뒤에 다시 그리면 그 카드들이 도로 손에 섭니다.
+    // **끝난 판에서는 손대지 않습니다.** 있는 카드는 그 자리에 남고 새로 깔리는 것도
+    // 없습니다 — 그 카드들이 판의 마지막 모습이고, 진 판은 그 모습 그대로 재가 됩니다.
     const over = this.shown.phase === 'lost' || this.shown.phase === 'won'
-    const wanted = new Set(over ? [] : this.shown.hand)
+    if (over) return
+    const wanted = new Set(this.shown.hand)
 
     for (const [uid, view] of this.cards) {
       if (!wanted.has(uid)) {

@@ -3,10 +3,17 @@
 // **화면이 멈춰 있으면 게임이 죽어 보입니다.** 배경은 늘 흐르고, 국면에 따라 색과 세기가
 // 바뀝니다 — 보스 라운드에서 붉어지고, 점수가 커지면 빨라집니다.
 //
-// 값싼 도메인 워핑 노이즈입니다. 프랙탈처럼 보이는 것은 노이즈를 자기 자신으로 두 번
+// 도메인 워핑 노이즈입니다. 프랙탈처럼 보이는 것은 노이즈를 자기 자신으로 두 번
 // 접기 때문이고, 그것이 화면 전체를 채우면서도 프레임을 먹지 않는 방법입니다.
+//
+// **노이즈는 그림으로 읽습니다.** 격자 노이즈 한 번이 해시 넷이고 옥타브 넷을 일곱 번
+// 접으면 픽셀마다 해시 112번이었습니다 — 화면 전체에 매 프레임입니다. 같은 자리를 그림
+// 열네 번 읽는 것으로 바꿨고, 그림이 이미 결을 여러 겹 가지고 있어 옥타브는 둘로 됩니다.
+// 어디서 온 그림인지는 `public/noise/readme.md` 에 있습니다.
 
 import { Filter, GlProgram } from 'pixi.js'
+
+import { noiseResources } from './noise'
 
 const VERTEX = `#version 300 es
 in vec2 aPosition;
@@ -42,35 +49,18 @@ uniform vec3  uInk;        // 바탕색
 uniform vec3  uGlow;       // 무늬의 색
 uniform float uAspect;
 
-// 값싼 2D 노이즈. 격자에서 보간합니다.
-//
-// **좌표가 커져도 고르게 흩어져야 합니다.** 앞서 쓰던 fract(p.x * p.y) 꼴은 좌표가
-// 커질수록 값이 한쪽으로 몰리는데, 도메인 워핑이 좌표를 오른쪽 위로 밀어내므로 화면
-// 오른쪽이 늘 더 조밀해 보였습니다.
-float hash(vec2 p) {
-  vec3 q = fract(vec3(p.xyx) * 0.1031);
-  q += dot(q, q.yzx + 33.33);
-  return fract((q.x + q.y) * q.z);
-}
+uniform sampler2D uSoft;
 
+// 노이즈 그림 한 번. **값을 펴서 씁니다** — 그림은 0.17~0.61 에 몰려 있고, 아래의 등고선
+// 문턱은 0..1 에 고르게 퍼진 값을 전제로 잡은 것입니다.
 float noise(vec2 p) {
-  vec2 i = floor(p);
-  vec2 f = fract(p);
-  f = f * f * (3.0 - 2.0 * f);
-  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),
-             mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
+  return clamp((texture(uSoft, p * 0.16).r - 0.384) * 2.0 + 0.5, 0.0, 1.0);
 }
 
-// 옥타브 넷. **여기가 프랙탈로 보이는 자리입니다** — 같은 노이즈를 배율을 올려 겹칩니다.
+// 옥타브 둘. **여기가 프랙탈로 보이는 자리입니다** — 같은 그림을 배율을 올려 겹칩니다.
+// 그림이 이미 결을 여러 겹 가지고 있어 둘로 충분합니다.
 float fbm(vec2 p) {
-  float value = 0.0;
-  float amplitude = 0.5;
-  for (int i = 0; i < 4; i++) {
-    value += amplitude * noise(p);
-    p *= 2.03;
-    amplitude *= 0.5;
-  }
-  return value;
+  return noise(p) * 0.64 + noise(p * 2.03 + 3.7) * 0.36;
 }
 
 void main(void) {
@@ -123,6 +113,7 @@ export class BackgroundFilter extends Filter {
           uInk: { value: new Float32Array([0.031, 0.075, 0.055]), type: 'vec3<f32>' },
           uGlow: { value: new Float32Array([0.25, 0.85, 0.55]), type: 'vec3<f32>' },
         },
+        ...noiseResources({ uSoft: 'soft' }),
       },
     })
   }

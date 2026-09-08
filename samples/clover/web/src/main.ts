@@ -21,6 +21,8 @@ import { loadIcons } from './ui/icon'
 import { JokerPool } from './generated/enums/joker-pool'
 import { Game } from './render/game'
 import { COLOR, setUiTheme } from './render/theme'
+import { coarsePointer } from './shader/device'
+import { loadNoise } from './shader/noise'
 
 /**
  * 몇 배로 그릴 것인가.
@@ -31,11 +33,6 @@ import { COLOR, setUiTheme } from './render/theme'
  */
 function density(): number {
   return Math.min(2, window.devicePixelRatio || 1)
-}
-
-/** 손가락으로 짚는 화면인가. */
-function coarsePointer(): boolean {
-  return typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches
 }
 
 async function main(): Promise<void> {
@@ -85,6 +82,9 @@ async function main(): Promise<void> {
   // 아이콘 둘. 화면을 세우기 전에 읽습니다 — 그리는 자리에서 읽으면 첫 프레임에 빈 칸이
   // 한 번 보입니다.
   await loadIcons('./icon')
+  // 셰이더가 읽는 노이즈 그림. **필터가 만들어지기 전에 있어야 합니다** — 필터는 만들어질
+  // 때 그림을 잡고, 그 뒤에 온 그림은 어느 필터에도 들어가지 않습니다.
+  await loadNoise('./noise')
 
   // 시드는 주소에서 받습니다 — 같은 주소를 열면 같은 판입니다. 대조할 때 그 편이 편합니다.
   const seed = new URLSearchParams(location.search).get('seed') ?? randomSeed()

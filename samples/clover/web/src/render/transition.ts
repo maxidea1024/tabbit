@@ -11,18 +11,51 @@
 // **갈아 끼우는 함수는 이 파일이 부릅니다.** 씬을 바꾸는 쪽은 「무엇을 할지」를 함수 하나로
 // 넘기고, 「언제 할지」만 여기서 정합니다. 그러지 않으면 뷰 수십 개를 만드는 그 프레임이
 // 멈춘 화면으로 보입니다.
+//
+// **필터가 둘 벌입니다.** 다섯은 `CrossFilter` 하나가 `uKind` 로 가르고, 재는 `AshFilter` 가
+// 따로입니다 — 셰이더가 둘(데스크탑·핸드폰)이고 그 위에 파티클이 얹힐 수 있어서, 하나의
+// 유니폼으로는 갈 수 없습니다. 어느 것인지는 그래픽 품질이 정합니다.
 
 import { Container, Rectangle, Sprite, Texture } from 'pixi.js'
+import type { Filter, Renderer } from 'pixi.js'
 
 import type { Data } from '../core/data'
 import { TransitionKind as Kind } from '../generated/enums/transition-kind'
+import { AshFilter } from '../shader/ash'
+import type { AshParams } from '../shader/ash'
 import { CROSS, CrossFilter } from '../shader/cross'
+import { coarsePointer } from '../shader/device'
+import { AshEmbers, embersSupported } from '../shader/embers'
+
+/**
+ * 알갱이가 있을 때 셰이더가 물러나는 몫.
+ *
+ * **둘이 같은 것을 그리면 안 됩니다.** 알갱이 8만 개가 고운 재를 그리는데 셰이더가 제
+ * 굵은 재를 그 위에 겹치면, 고운 것 위에 굵은 것이 얹혀 굵은 쪽만 보입니다 — 셰이더는
+ * 성한 판과 삭아 뚫리는 앞만 맡고 날아가는 것은 알갱이에게 넘깁니다.
+ */
+const WITH_EMBERS: Partial<AshParams> = {
+  fragmentAmount: 0,
+  ashAmount: 0.10,
+  smokeAmount: 0.35,
+}
 
 /** 화면을 지우는 방법. */
 export type TransitionKind = 'fade' | 'blocks' | 'push' | 'burn' | 'slide' | 'ash'
 
 /** 지금 어느 걸음인가. */
 export type TransitionStage = 'off' | 'out' | 'hold' | 'in'
+
+/**
+ * 그래픽 품질. **옵션의 `auto` 를 푼 뒤의 값입니다.**
+ *
+ * |값|재|
+ * |--|--|
+ * |`high`|데스크탑 셰이더 + 파티클. 기계가 파티클을 못 하면 파티클만 빠집니다|
+ * |`medium`|데스크탑 셰이더|
+ * |`low`|핸드폰 셰이더. 되풀이가 없고 그림이 둘입니다|
+ */
+export type QualityLevel = 'high' | 'medium' | 'low'
 
 /** 갈리는 자리. **이름은 코드가 정하고 무엇을 할지는 아래 표가 정합니다.** */
 export type TransitionId =
@@ -111,6 +144,20 @@ export interface TransitionPeek {
   cover: number
   /** 앞 화면을 몇 번 구웠는가. **한 전환에 많아야 한 번입니다.** */
   shots: number
+  /** 지금의 그래픽 품질 */
+  quality: QualityLevel
+  /** 파티클이 실제로 있는가. `high` 인데 거짓이면 기계가 못 하는 것입니다 */
+  particles: boolean
+}
+
+/**
+ * 화면을 처리하는 필터가 갖추어야 하는 것. `CrossFilter` 와 `AshFilter` 가 둘 다 이것입니다.
+ */
+interface Wipe extends Filter {
+  amount: number
+  ink: number
+  toward: boolean
+  setAspect(value: number): void
 }
 
 /**
@@ -136,6 +183,15 @@ export class Transition {
   private readonly leaving = new CrossFilter()
   /** 들어오는 화면에 거는 것. **살아 있는 화면에 그대로 걸립니다.** */
   private readonly coming = new CrossFilter()
+  /** 재. 품질이 바뀌면 새로 만듭니다 — 셰이더가 둘이라 유니폼으로 오갈 수 없습니다. */
+  private ashOut!: AshFilter
+  private ashIn!: AshFilter
+  /** 재의 파티클. `high` 이고 기계가 되는 때에만 있습니다. */
+  private embers?: AshEmbers
+  private level: QualityLevel = coarsePointer() ? 'low' : 'high'
+  private tuned: Partial<AshParams> = {}
+  /** 렌더러가 있는 채로 파티클을 물어봤는가. **처음 만들어질 때는 렌더러가 아직 없습니다.** */
+  private probed = false
 
   private stage: TransitionStage = 'off'
   private spec: TransitionSpec = FALLBACK
@@ -154,12 +210,15 @@ export class Transition {
     play: (cue: string) => void
     /** 들어오는 화면. **여기에 필터가 걸립니다.** */
     screen: Container
+    /** 렌더러. 파티클을 그릴 수 있는 기계인지를 이것으로 봅니다. 없으면 파티클이 없습니다. */
+    renderer?: () => Renderer | undefined
   }) {
     this.view.addChild(this.backdrop)
     // **도는 동안에는 눌림을 삼킵니다.** 보이지 않는 화면 뒤의 단추가 눌리면 사람은 자기가
     // 무엇을 눌렀는지 볼 수 없습니다.
     this.view.eventMode = 'static'
     this.view.visible = false
+    this.rebuildAsh()
   }
 
   /** 화면이 놓인 사각형을 받습니다. **판 밖은 잘라 낸 자리이므로 건드리지 않습니다.** */
@@ -175,14 +234,33 @@ export class Transition {
       this.shot.height = height
     }
     const aspect = width / Math.max(1, height)
-    this.leaving.setAspect(aspect)
-    this.coming.setAspect(aspect)
+    for (const filter of this.wipes()) filter.setAspect(aspect)
+    this.embers?.layout(x, y, width, height)
   }
 
-  /** 값을 아끼는 몫으로. **기계가 정한 것을 도구가 뒤집는 자리입니다.** */
-  set lite(value: boolean) {
-    this.leaving.lite = value
-    this.coming.lite = value
+  /**
+   * 그래픽 품질.
+   *
+   * **옵션이 정하고, 도구가 뒤집습니다.** 핸드폰의 셰이더는 그 기계에서만 도는 길이라, 여기서
+   * 켜 보지 않으면 그 모습을 아무도 보지 않은 채로 나갑니다.
+   */
+  set quality(level: QualityLevel) {
+    // 같은 값이어도 「높음」인데 아직 렌더러 없이 물어본 채라면 다시 만듭니다.
+    if (level === this.level && (level !== 'high' || this.probed)) return
+    this.level = level
+    this.rebuildAsh()
+  }
+
+  get quality(): QualityLevel {
+    return this.level
+  }
+
+  /** 재의 파라미터를 바꿉니다. 고르는 동안 쓰는 자리이고, 품질이 바뀌어도 남습니다. */
+  tuneAsh(params: Partial<AshParams>): void {
+    this.tuned = { ...this.tuned, ...params }
+    this.ashOut.tune(params)
+    this.ashIn.tune(params)
+    this.embers?.tune(params)
   }
 
   get busy(): boolean {
@@ -195,7 +273,10 @@ export class Transition {
   }
 
   peek(): TransitionPeek {
-    return { id: this.id, stage: this.stage, cover: this.amount(), shots: this.shots }
+    return {
+      id: this.id, stage: this.stage, cover: this.amount(), shots: this.shots,
+      quality: this.level, particles: this.embers !== undefined,
+    }
   }
 
   /**
@@ -286,6 +367,53 @@ export class Transition {
 
   // ------------------------------------------------------------------ 안쪽
 
+  /** 재의 필터 둘과 파티클을 품질에 맞게 다시 만듭니다. */
+  private rebuildAsh(): void {
+    const aspect = this.box.width / Math.max(1, this.box.height)
+    const busyOnAsh = this.busy && this.spec.kind === 'ash'
+    // **도는 중이면 끝내고 바꿉니다.** 걸려 있는 필터를 버리면 그 프레임이 비어 보입니다.
+    if (busyOnAsh) this.finish()
+    if (this.ashOut) this.ashOut.destroy()
+    if (this.ashIn) this.ashIn.destroy()
+    if (this.embers) {
+      this.embers.view.removeFromParent()
+      this.embers.destroy()
+      this.embers = undefined
+    }
+    // **파티클은 「높음」이고 기계가 되는 때에만입니다.** 못 하는 기계에서는 셰이더만으로
+    // 갑니다 — 그것만으로도 화면은 같은 모습으로 부서지고, 파티클은 그 위에 얹는 것입니다.
+    const renderer = this.hooks.renderer?.()
+    this.probed = renderer !== undefined
+    if (this.level === 'high' && embersSupported(renderer)) {
+      try {
+        this.embers = new AshEmbers(undefined, this.tuned)
+        this.embers.layout(this.box.x, this.box.y, this.box.width, this.box.height)
+      } catch {
+        this.embers = undefined
+      }
+    }
+
+    // **알갱이가 있으면 셰이더가 물러납니다.** 위의 `WITH_EMBERS`.
+    const shaped = this.embers ? { ...this.tuned, ...WITH_EMBERS } : this.tuned
+    this.ashOut = new AshFilter(this.level === 'low', shaped)
+    this.ashIn = new AshFilter(this.level === 'low', shaped)
+    this.ashOut.setAspect(aspect)
+    this.ashIn.setAspect(aspect)
+  }
+
+  private wipes(): Wipe[] {
+    return [this.leaving, this.coming, this.ashOut, this.ashIn]
+  }
+
+  /** 이 전환의 나가는 쪽 필터. 재면 재의 것입니다. */
+  private outFilter(): Wipe {
+    return this.spec.kind === 'ash' ? this.ashOut : this.leaving
+  }
+
+  private inFilter(): Wipe {
+    return this.spec.kind === 'ash' ? this.ashIn : this.coming
+  }
+
   /** 아무것도 보이지 않는 자리. **갈아 끼우기는 여기서 일어납니다.** */
   private crossOver(): void {
     this.stage = 'hold'
@@ -311,12 +439,19 @@ export class Transition {
   }
 
   private prepare(): void {
-    const kind = CROSS[this.spec.kind]
-    for (const filter of [this.leaving, this.coming]) {
-      filter.kind = kind
+    const kind = this.spec.kind
+    if (kind !== 'ash') {
+      this.leaving.kind = CROSS[kind]
+      this.coming.kind = CROSS[kind]
+    }
+    for (const filter of [this.outFilter(), this.inFilter()]) {
       filter.ink = this.spec.ink
       filter.toward = this.spec.toward
       filter.amount = 0
+    }
+    if (this.embers) {
+      this.embers.ink = this.spec.ink
+      this.embers.toward = this.spec.toward
     }
     this.backdrop.tint = this.spec.ink
     this.backdrop.alpha = 1
@@ -332,6 +467,9 @@ export class Transition {
    * 것이고, 그것은 지워지는 동안 내내입니다.
    *
    * **굽지 못하면 바탕만 남습니다.** 화면이 갈리는 것 자체는 그대로 됩니다.
+   *
+   * **재의 파티클은 사진 위에 얹힙니다.** 파티클의 색이 그 사진에서 오므로 사진이 없으면
+   * 파티클도 없습니다.
    */
   private takeShot(): void {
     const texture = this.hooks.shoot()
@@ -345,12 +483,22 @@ export class Transition {
     sprite.position.set(this.box.x, this.box.y)
     sprite.width = this.box.width
     sprite.height = this.box.height
-    sprite.filters = [this.leaving]
+    sprite.filters = [this.outFilter()]
     this.shot = sprite
     this.view.addChild(sprite)
+    if (this.spec.kind === 'ash' && this.embers) {
+      this.embers.shot = texture
+      this.embers.amount = 0
+      this.view.addChild(this.embers.view)
+    }
   }
 
   private dropShot(): void {
+    if (this.embers) {
+      // **사진을 버리기 전에 놓습니다.** 버려진 그림을 가리키는 채로 그리면 안 됩니다.
+      this.embers.shot = undefined
+      this.embers.view.removeFromParent()
+    }
     if (!this.shot) return
     this.view.removeChild(this.shot)
     this.shot.destroy({ texture: true })
@@ -359,8 +507,9 @@ export class Transition {
 
   /** 들어오는 화면에 필터를 겁니다. **걸린 동안에는 화면 전체가 한 번 더 그려집니다.** */
   private attach(): void {
-    this.coming.amount = 1
-    this.hooks.screen.filters = [this.coming]
+    const filter = this.inFilter()
+    filter.amount = 1
+    this.hooks.screen.filters = [filter]
   }
 
   private detach(): void {
@@ -371,13 +520,14 @@ export class Transition {
   private paint(): void {
     const amount = this.amount()
     if (this.stage === 'out') {
-      this.leaving.amount = amount
+      this.outFilter().amount = amount
+      if (this.embers && this.spec.kind === 'ash') this.embers.amount = amount
       // 사진을 굽지 못한 판에서는 바탕이 그 자리를 대신합니다.
       if (!this.shot) this.backdrop.alpha = amount
       return
     }
     this.backdrop.alpha = 1
-    this.coming.amount = amount
+    this.inFilter().amount = amount
   }
 }
 

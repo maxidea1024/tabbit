@@ -6,8 +6,13 @@
 //
 // 노이즈 하나를 문턱으로 깎습니다. 문턱이 올라가면 구멍이 뚫리고 넓어지며, 그 가장자리가
 // 잠깐 타오릅니다 — 종이가 타는 모습이 그렇습니다.
+//
+// **노이즈는 그림으로 읽습니다.** 층 셋이 해시 열두 번이던 자리를 그림 두 번으로 바꿨습니다.
+// 어디서 온 그림인지는 `public/noise/readme.md` 에 있습니다.
 
 import { Filter, GlProgram } from 'pixi.js'
+
+import { noiseResources } from './noise'
 
 const VERTEX = `#version 300 es
 in vec2 aPosition;
@@ -42,26 +47,16 @@ uniform float uBurn;
 /** 불의 색. 안쪽이 밝고 바깥이 붉습니다. */
 uniform vec3 uEmber;
 
-float hash(vec2 p) {
-  vec3 q = fract(vec3(p.xyx) * 0.1031);
-  q += dot(q, q.yzx + 33.33);
-  return fract((q.x + q.y) * q.z);
-}
+/** 부드러운 결의 노이즈 그림. 구멍의 자리입니다. */
+uniform sampler2D uSoft;
+/** 모래알의 노이즈 그림. 구멍의 가장자리가 톱니처럼 되어야 종이가 탄 것으로 보입니다. */
+uniform sampler2D uGrain;
 
-float noise(vec2 p) {
-  vec2 cell = floor(p);
-  vec2 f = fract(p);
-  f = f * f * (3.0 - 2.0 * f);
-  float a = hash(cell);
-  float b = hash(cell + vec2(1.0, 0.0));
-  float c = hash(cell + vec2(0.0, 1.0));
-  float d = hash(cell + vec2(1.0, 1.0));
-  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
-}
-
-/** 층 셋. 구멍의 가장자리가 톱니처럼 되어야 종이가 탄 것으로 보입니다. */
+/** 층 둘. 부드러운 결이 자리를 정하고 모래알이 가장자리를 톱니로 만듭니다. */
 float layers(vec2 p) {
-  return noise(p) * 0.6 + noise(p * 2.3 + 7.0) * 0.28 + noise(p * 5.1 + 19.0) * 0.12;
+  float big = (texture(uSoft, p * 0.11 + 0.37).r - 0.38) * 3.4 + 0.5;
+  float fine = texture(uGrain, p * 0.10 + 0.8).r;
+  return clamp(big * 0.76 + fine * 0.24, 0.0, 1.0);
 }
 
 void main(void) {
@@ -106,6 +101,7 @@ export class DissolveFilter extends Filter {
           uBurn: { value: 0, type: 'f32' },
           uEmber: { value: new Float32Array(ember), type: 'vec3<f32>' },
         },
+        ...noiseResources({ uSoft: 'soft', uGrain: 'grain' }),
       },
     })
   }
