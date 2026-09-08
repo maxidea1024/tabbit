@@ -6229,6 +6229,9 @@ export class Game {
     // 파형만 먼저 최대가 됩니다.
     this.scoreWave.setSurge(this.chips.surge, this.mult.surge,
       payoutLevel(this.chips.amount, this.mult.amount))
+    // **0 인 칸은 사라집니다.** 쌓인 것이 없으면 그 줄이 무엇을 나타내는지도 없습니다 —
+    // 판이 서기 전과 판이 끝난 뒤의 두 상자가 그 자리입니다.
+    this.scoreWave.setLive(stepMs, this.chips.amount > 0, this.mult.amount > 0)
     this.advanceRisers(stepMs)
 
     // 흔들림은 줄어듭니다. **판만 흔들고 배경은 가만히 둡니다** — 둘 다 흔들면 무엇이
@@ -6805,6 +6808,9 @@ export class Game {
             box: this.scoreWave.box,
             // **빠르기는 위상의 차이로 봅니다.** 그림으로는 확인되지 않습니다.
             phase: Math.round(now.phase * 1000) / 1000,
+            // 칸마다 얼마나 나타나 있는가. 0 이면 그 상자에 아무것도 없습니다.
+            live: [Math.round(now.live[0] * 1000) / 1000,
+              Math.round(now.live[1] * 1000) / 1000],
           }
         },
         blurRegion: () => ({

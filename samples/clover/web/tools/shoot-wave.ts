@@ -50,9 +50,11 @@ async function shot(page: Page, name: string): Promise<string> {
   const span = (from: number, to: number) => from === to
     ? from.toFixed(2)
     : `${from.toFixed(2)}~${to.toFixed(2)}`
-  return `${name}  칩 ${span(before.chips, after.chips)}`
+  return `${name.padEnd(13)} 칩 ${span(before.chips, after.chips)}`
     + ` · 배수 ${span(before.mult, after.mult)}`
-    + ` · 배당 ${span(before.level, after.level)}${before.shown ? '' : ' · 꺼짐'}`
+    + ` · 배당 ${span(before.level, after.level)}`
+    + ` · 나타남 ${after.live[0].toFixed(2)}/${after.live[1].toFixed(2)}`
+    + `${after.shown ? '' : ' · 층 없음'}`
 }
 
 /**
@@ -62,10 +64,13 @@ async function shot(page: Page, name: string): Promise<string> {
  * 컷마다 같은 무늬를 찾아 그 이동을 세야 하고, 파형에는 같은 무늬가 없습니다 — 위상의
  * 차이를 그 사이의 시간으로 나눈 것이 곧 빠르기입니다.
  *
- * **비만 봅니다.** 겨누는 값은 조용한 자리에서 초당 1.9 이고 마지막 단에서 9.5 이므로 비가
- * 5.0 인데, 헤드리스에서 나오는 절대값은 그 0.70배쯤입니다 — 이 도구는 GPU 없이 돌아서
- * 프레임이 60에 못 미치고, Pixi 의 티커가 `minFPS` 로 한 프레임의 길이를 100밀리초에서
- * 끊으므로 그만큼의 시간이 누적되지 않습니다. 실제 기계에서는 끊기는 자리가 없습니다.
+ * **판의 시계로 나눕니다.** 손 시계로 나누면 값이 프레임 수에 흔들립니다 — 이 도구는 GPU
+ * 없이 돌아서 프레임이 60에 못 미치고, Pixi 의 티커가 `minFPS` 로 한 프레임의 길이를
+ * 100밀리초에서 끊으므로 그만큼의 시간이 누적되지 않습니다. 게다가 그 손실이 배당마다 다릅니다
+ * — 요동치는 화면이 더 비싸므로 프레임이 더 적고, 그러면 빠른 자리가 느리게 측정됩니다.
+ *
+ * 위상을 올리는 쪽도 같은 시계를 쓰므로, 그 시계로 나눈 값은 겨눈 값과 같아야 합니다 —
+ * 조용한 자리에서 초당 1.9 이고 마지막 단에서 9.5 입니다.
  */
 async function speeds(page: Page): Promise<string[]> {
   const out: string[] = []
@@ -82,9 +87,12 @@ async function speeds(page: Page): Promise<string[]> {
     // 그 사이에 바뀝니다.
     await pass(page, 3200)
     const from = await scoreWave(page)
+    const fromClock = (await peek(page)).clock
     await pass(page, 1000)
     const to = await scoreWave(page)
-    out.push(`${name}(배당 ${to.level.toFixed(2)}) 초당 ${(to.phase - from.phase).toFixed(2)}`)
+    const span = (await peek(page)).clock - fromClock
+    const rate = span > 0 ? (to.phase - from.phase) / span : 0
+    out.push(`${name}(배당 ${to.level.toFixed(2)}) 초당 ${rate.toFixed(2)}`)
   }
   return out
 }
@@ -109,23 +117,27 @@ async function main(): Promise<number> {
   await page.waitForTimeout(2000)
 
   const said: string[] = []
-  // **조용한 자리입니다.** 여기서 가운데 줄이 보여야 하고, 노이즈가 없어야 합니다.
-  said.push(await shot(page, 'wave-1-quiet'))
+  // **아무것도 없어야 하는 자리입니다.** 두 칸이 0 이므로 나타남이 0 이고 층은 화면에
+  // 없습니다 — 0 에 줄 하나가 흐르고 있으면 그 줄이 무엇을 나타내는지가 없어집니다.
+  said.push(await shot(page, 'wave-1-empty'))
 
   const state = await peek(page)
   await pickCards(page, chooseFive(state.hand))
-  await page.waitForTimeout(400)
+  await page.waitForTimeout(900)
+  // **값이 있고 조용한 자리입니다.** 고른 족보의 칩과 배수가 칸에 서 있고 아직 아무것도
+  // 더해지지 않았으므로, 여기가 가운데 줄 하나만 얕게 흐르는 자리입니다.
+  said.push(await shot(page, 'wave-2-picked'))
+
   await pressPlay(page)
 
   // 더해지는 동안을 촘촘히. **여기가 요동치는 자리입니다.**
+  //
+  // 뒤쪽 컷은 판이 이미 넘어간 뒤입니다 — 라운드를 떠나면 두 칸이 0 으로 되돌아가므로
+  // 파형도 사라집니다. 그 사라짐이 이 자리에서도 보입니다.
   for (const [index, wait] of [520, 260, 260, 260, 260].entries()) {
     await page.waitForTimeout(wait)
-    said.push(await shot(page, `wave-2-add-${index + 1}`))
+    said.push(await shot(page, `wave-3-add-${index + 1}`))
   }
-
-  // 잦아든 뒤. **배당이 작으면 조용한 자리로 돌아가야 합니다.**
-  await page.waitForTimeout(2400)
-  said.push(await shot(page, 'wave-3-after'))
 
   // 배당이 큰 두 자리. **잦아들지 않고 계속 요동쳐야 합니다.**
   //
@@ -149,6 +161,19 @@ async function main(): Promise<number> {
     await pass(page, wait)
     said.push(await shot(page, name))
   }
+
+  // 0 으로 되돌린 뒤. **사라져 있어야 합니다.**
+  //
+  // 두 컷입니다 — 사라지는 도중과 사라진 뒤입니다. 사라지는 데 0.2초이고 그 앞에 수가
+  // 굴러 내려가는 동안이 있으므로, 첫 컷은 그 굴러가는 동안입니다.
+  await page.evaluate(() => {
+    (window as unknown as { __clover: { forceScore?(c: number, m: number): void } })
+      .__clover.forceScore?.(0, 0)
+  })
+  await pass(page, 120)
+  said.push(await shot(page, 'wave-6-going'))
+  await pass(page, 2400)
+  said.push(await shot(page, 'wave-7-gone'))
 
   console.log(said.join('\n'))
   console.log(`\n빠르기 — ${(await speeds(page)).join(' · ')}`)

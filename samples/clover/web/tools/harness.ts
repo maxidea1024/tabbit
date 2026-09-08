@@ -528,6 +528,8 @@ export interface Wave {
   box: [number, number, number, number]
   /** 파형의 위상. **빠르기는 두 컷의 차이를 그 사이의 시간으로 나눈 것입니다** */
   phase: number
+  /** 칸마다 얼마나 나타나 있는가. **0 이면 그 상자에 아무것도 없습니다** */
+  live: [number, number]
 }
 
 export async function scoreWave(page: Page): Promise<Wave> {
