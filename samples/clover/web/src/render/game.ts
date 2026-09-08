@@ -2801,14 +2801,13 @@ export class Game {
     this.app.ticker.maxFPS = this.settings.frameCap
     // **그래픽 품질.** 지금 갈리는 것은 재가 되는 전환 하나입니다 — 셰이더 둘 가운데 어느
     // 것인지와 파티클을 얹는지가 여기서 정해집니다.
-    const level = this.qualityOverride ?? graphicsLevel(this.settings)
-    this.transition.quality = level
-    // **가장 낮은 화질에서는 파형이 없습니다.** 값 때문이 아닙니다 — 그 설정을 고른 사람이
-    // 연출을 덜 보겠다고 한 것입니다. 상자는 파형이 없던 때의 모습 그대로입니다.
+    this.transition.quality = this.qualityOverride ?? graphicsLevel(this.settings)
+    // **칩과 배수의 파형은 화질을 보지 않습니다.** 그 둘은 판이 도는 내내 눈이 머무는
+    // 자리이고, 파형은 그 상자가 살아 있다는 표시입니다 — 화질을 낮춘 화면에서 그 자리만
+    // 죽은 상자가 되면 그것은 연출이 덜 보이는 것이 아니라 다른 게임입니다.
     //
-    // 여기서 정하는 이유는 화질을 판이 도는 동안에도 바꿀 수 있기 때문입니다. 만들 때 한 번
-    // 정하면 그 뒤에 바꾼 설정이 이 층에 닿지 않습니다.
-    this.scoreWave.view.visible = level !== 'low'
+    // **값이 그것을 허락합니다.** 판의 1.50%에 그림 읽기 1회이므로 배경 셰이더 하나의 1%
+    // 아래이고, 화질로 아낄 것이 있는 자리가 아닙니다.
   }
 
   private applyOptions(): void {
@@ -6793,7 +6792,6 @@ export class Game {
         crossQuality: (level: 'high' | 'medium' | 'low') => {
           this.qualityOverride = level
           this.transition.quality = level
-          this.scoreWave.view.visible = level !== 'low'
         },
         /** 재의 손잡이를 돌립니다. 고르는 동안 쓰는 자리입니다. */
         tuneAsh: (params: Record<string, number | [number, number]>) => {
