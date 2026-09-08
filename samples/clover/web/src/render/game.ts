@@ -54,7 +54,7 @@ import {
 import { Coins } from './coins'
 import { Euphoria } from './euphoria'
 import { Haptics } from '../feedback/haptics'
-import { fraction, Motion, Spring } from './motion'
+import { fraction, Motion, Spring, sway } from './motion'
 import { Particles } from './particles'
 import { artBytes, artFor, artTick, onArtReady } from './art'
 import { backLookOf, bakeCardBacks, cardBack, drawCardBack, forgetCardBacks,
@@ -230,11 +230,14 @@ const PACK_CARD_H = SIZE.jokerHeight * PACK_SCALE
 /**
  * 산 것이 자리에 닿는 데까지.
  *
- * **오는 길이 보여야 합니다.** 0.3초는 사는 순간과 닿는 순간이 겹쳐 보이고, 그러면
- * 「울렁이다 · 오다 · 닿다」 셋 중 가운데가 없어집니다. 용수철의 빠르기(`Motion.drift`)와
- * 같이 정해지는 값입니다.
+ * **오는 길이 보여야 합니다.** 사는 순간과 닿는 순간이 겹쳐 보이면 「울렁이다 · 오다 ·
+ * 닿다」 셋 중 가운데가 없어집니다. 용수철의 빠르기(`Motion.drift`)와 같이 정해지는
+ * 값이므로, 이것을 고치면 그쪽도 같은 비율로 고칩니다.
+ *
+ * **0.52초였습니다.** 사고 나서 물건이 칸에 들어가기까지가 그 앞의 박자(`BUY_LINGER`)와
+ * 합쳐 1.67초였고, 상점에서 여러 개를 살 때 그 기다림이 사는 재미보다 길었습니다.
  */
-const LAND_AT = 0.52
+const LAND_AT = 0.26
 /**
  * 바꿔 집을 때 파는 값이 뜨기까지.
  *
@@ -251,8 +254,16 @@ const SELL_WAIT = 0.24
  * 동전은 마지막 것이 0.6초 뒤에 떠나 0.6초를 날므로 1.2초 안에 다 꽂힙니다.
  */
 const PAY_BEAT = 1.15
-/** 산 딱지가 그 자리에 남는 시간. 값을 치르는 박자 그대로입니다. */
-const BUY_LINGER = PAY_BEAT
+/**
+ * 산 딱지가 그 자리에 남는 시간.
+ *
+ * **값을 치르는 박자의 절반입니다.** 동전은 그 뒤로도 지갑을 향해 날고 있고, 딱지는 값이
+ * 그 위에 뜬 것을 보여 주는 몫만 하면 됩니다 — 박자 그대로(1.15초) 두었더니 누른 다음
+ * 물건이 떠나기까지가 멈춰 있는 시간이 되었고, 그 뒤의 비행(`LAND_AT`)까지 합쳐 1.67초를
+ * 기다렸습니다. 팩과 바우처의 딱지는 그대로 `PAY_BEAT` 입니다 — 그 둘은 그 자리에서
+ * 뜯거나 규칙으로 들어가므로 기다리는 것이 곧 그 사건입니다.
+ */
+const BUY_LINGER = PAY_BEAT / 2
 /**
  * 조커와 소모품이 나란히 서는 줄의 가운데 높이.
  *
@@ -336,6 +347,24 @@ const HELD_H = 32
  * 물건이 비켜서면 됩니다.
  */
 const SHOP_LIFT = 14
+/**
+ * 줄에서 고른 조커 · 소모품이 밀려 올라가는 거리.
+ *
+ * **단추가 그 딱지의 아랫변에 붙어 서기 위한 거리입니다.** 상점의 칸과 같은 규칙이고,
+ * 다른 것은 여기에 칸의 테두리가 없다는 것뿐입니다 — 12픽셀만 들고 단추는 자리의 아랫변
+ * 밑에 세웠더니 딱지와 단추 사이가 22픽셀 벌어져, 그 단추가 어느 카드의 것인지가 자리로
+ * 읽히지 않았습니다.
+ *
+ * **줄이 화면의 맨 위입니다.** 딱지의 윗변이 28이고 커서를 올린 딱지는 10픽셀 더 들리므로,
+ * 이보다 더 올리면 딱지의 윗변이 화면 밖으로 나갑니다 — 18이었고, 그 값에서 커서 밑의
+ * 딱지가 화면 윗변에 닿아 잘렸습니다.
+ *
+ * 상점의 칸이 밀려 올라가는 거리와 같습니다. 같아야 할 이유는 없고, 두 줄이 같은 몸짓을
+ * 하는 것으로 읽히면 그것으로 넉넉합니다.
+ */
+const HELD_RISE = SHOP_LIFT
+/** 고른 딱지의 아랫변과 그 밑의 단추 사이. **상점의 칸과 같은 4픽셀입니다.** */
+const HELD_GAP = 4
 const PLAY_Y = 366
 /**
  * 딜러의 자리. 화면 오른쪽 위 밖입니다.
@@ -905,6 +934,15 @@ const DECK_Y = 608
  */
 const FOCUS_Y = JOKER_TRAY.y + JOKER_TRAY.height + 36
 /**
+ * 자리를 비우는 글의 판 크기.
+ *
+ * **치른 값이 이 판의 가운데에 뜹니다.** 그래서 세우는 자리와 그 자리를 세는 자리 둘이
+ * 이 값을 읽습니다 — 세우는 쪽의 지역 값이었고, 값이 뜨는 자리는 그것을 알 수 없어서
+ * 판 옆의 작은 카드에서 났습니다.
+ */
+const FOCUS_W = 600
+const FOCUS_H = 98
+/**
  * 팩의 카드를 받으려고 덱이 나와 있는 시간.
  *
  * 카드가 닿는 데 `LAND_AT` 이고, 닿은 뒤에 덱이 눌리고 이름이 뜨는 것을 보는 데 나머지입니다.
@@ -1218,6 +1256,18 @@ export class Game {
    * 자리는 상점이 다시 그려질 때마다 새로 만들어지므로 개체로는 가리킬 것이 없습니다.
    */
   private held?: { kind: 'joker' | 'consumable' | 'shop' | 'pack' | 'pack_slot'; uid: number }
+  /**
+   * 지금 고른 그것이 화면에서 어느 통인가. `syncHeldBar` 이 세울 때 적습니다.
+   *
+   * **누름이 그것의 안이었는지를 이것으로 봅니다.** 갈래마다 통을 찾는 길이 다르므로
+   * (조커는 뷰, 소모품과 상점의 칸은 다시 그릴 때마다 새로 만드는 딱지입니다) 누를 때마다
+   * 다시 찾으면 그 다섯 갈래를 누름을 다루는 자리에 한 번 더 적게 됩니다.
+   */
+  private heldNode?: Container
+  /** 누르기 시작할 때 고른 것이 무엇이었는가. 손을 뗄 때 그대로인지 봅니다. */
+  private heldAtPress?: { kind: string; uid: number }
+  /** 그 누름이 고른 것과 그 단추 줄의 밖이었는가. */
+  private pressOutsideHeld = false
   /** 고른 것 밑에 서는 버튼들. */
   private readonly heldBar = new Container()
   /**
@@ -2089,13 +2139,16 @@ export class Game {
    * 그동안 다른 갈래의 것은 옅어지고, 무엇을 하라는 글이 그 줄 아래에 섭니다.
    *
    * `from` 은 새 물건이 오는 자리입니다 — 팩에서는 그 카드이고, 상점에서는 상점이 이미
-   * 물러났으므로 글 옆에 세운 그 카드입니다.
+   * 물러났으므로 글 옆에 세운 그 카드입니다. `middle` 은 그 판의 가운데이고, 치른 값이
+   * 뜨는 자리입니다 — 새 물건이 오는 그 작은 카드 위에 뜨면 판의 글에 얹힙니다.
    */
   private focus?: {
     item: ShopItem
     kind: 'joker' | 'consumable'
     card: Container
-    commit: (held: number, from: { x: number; y: number }) => void
+    panel: Container
+    commit: (held: number, from: { x: number; y: number },
+             middle: { x: number; y: number }) => void
   }
   /** 자리를 비우는 화면이 든 정도. 0 에서 1 로 갑니다. */
   private focusEnter = 0
@@ -2690,9 +2743,24 @@ export class Game {
       }
       this.touching = event.pointerType !== 'mouse'
       this.pressAte = false
+      // **서 있는 쪽지가 있으면 이 누름은 그것을 닫는 누름입니다.**
+      //
+      // 꾸욱 눌러 세운 쪽지는 손을 떼도 남습니다(읽을 시간입니다). 그 상태에서 누른 것이
+      // 고르기까지 되면 한 누름이 두 일을 하고, 조커를 읽고 나서 손을 떼는 그 자리에
+      // 「판매」가 서 있습니다 — 닫는 것과 고르는 것을 한 누름에 겹치지 않습니다.
+      //
+      // **마우스에는 이것이 없습니다.** 마우스의 쪽지는 커서를 따라 뜨고 벗어나면 닫히므로
+      // 서 있는 쪽지가 없고(`pressShown` 은 꾸욱 누르기만 세웁니다), 올린 채로 누르는 것이
+      // 곧 고르는 것입니다.
+      if (this.pressShown) this.pressAte = true
       this.pressShown = false
       this.press = undefined
       this.tooltip.hide()
+      // **이 누름이 고른 것의 밖이었는가**를 적어 둡니다. 놓는 것은 손을 뗄 때입니다 —
+      // 여기서 놓으면 화면을 다시 그리게 되고, 다시 그리는 것은 지금 눌린 딱지를 통째로
+      // 없애는 것이라 그 누름이 어디에도 닿지 못한 채 사라집니다.
+      this.heldAtPress = this.held
+      this.pressOutsideHeld = this.held !== undefined && !this.pressedHeld(event.target)
     }, { capture: true })
     app.stage.eventMode = 'static'
     app.stage.hitArea = { contains: () => true }
@@ -2730,6 +2798,14 @@ export class Game {
       this.endDrag()
       this.press = undefined
     })
+    // **고른 것 밖을 누르면 놓습니다.** 아무것도 없는 곳뿐이 아니라 아무 곳이나입니다 —
+    // 조커를 눌러 「판매」가 서 있는 채로 손패를 고르러 가면 그 단추가 화면에 남고, 그것이
+    // 지금 누를 것으로 보입니다.
+    //
+    // **손을 뗄 때 봅니다.** 누른 그 물건의 차례가 이미 지나갔으므로, 그 누름이 다른 것을
+    // 골랐거나(다른 조커) 그것을 놓았으면(같은 조커를 다시) 여기서 할 일이 없습니다 —
+    // 고른 것이 누를 때와 그대로일 때만 놓습니다.
+    app.stage.on('pointertap', () => this.dismissAfterTap())
     window.addEventListener('keydown', event => {
       this.audio.unlock()
       if (event.key === 'Escape') {
@@ -3094,6 +3170,43 @@ export class Game {
    * 그것은 알림이 아니라 방해입니다.
    */
   /**
+   * 이 누름이 고른 것이나 그 단추 줄의 안이었는가.
+   *
+   * **그 둘은 놓는 자리가 아닙니다.** 고른 딱지를 다시 누르는 것은 놓는 것이고(`pick` 이
+   * 합니다), 단추는 그 단추가 하는 일이 곧 놓는 것입니다 — 여기서 먼저 놓아 버리면 같은
+   * 딱지를 다시 눌러도 놓이지 않고 다시 골라집니다.
+   */
+  private pressedHeld(target: unknown): boolean {
+    const node = target as Container | null
+    if (!node) return false
+    for (let at: Container | null = node; at !== null; at = at.parent) {
+      if (at === this.heldBar) return true
+      if (this.heldNode && !this.heldNode.destroyed && at === this.heldNode) return true
+    }
+    return false
+  }
+
+  /**
+   * 손을 뗐습니다. **고른 것 밖을 누른 것이면 놓습니다.**
+   *
+   * 고른 것이 누를 때와 달라졌으면 그 누름이 이미 다른 것을 골랐거나 놓은 것입니다.
+   */
+  private dismissAfterTap(): void {
+    const was = this.heldAtPress
+    const outside = this.pressOutsideHeld
+    this.heldAtPress = undefined
+    this.pressOutsideHeld = false
+    // **판이 떠 있어도 놓습니다.** 그 판을 연 누름이 바로 이 누름일 수 있고, 판 뒤에
+    // 남은 단추 줄은 판을 닫는 순간 다시 눌러야 할 것으로 보입니다.
+    if (!was || !outside) return
+    const now = this.held
+    if (!now || now.kind !== was.kind || now.uid !== was.uid) return
+    this.held = undefined
+    this.audio.play('card_select', 0, 0, -8)
+    this.refresh()
+  }
+
+  /**
    * 아무것도 없는 곳을 눌렀습니다. **한 단계만 놓습니다.**
    *
    * `back` 과 같은 사다리를 쓰되 맨 아래 한 칸이 없습니다 — 그쪽은 사람이 「나가기」를
@@ -3101,6 +3214,9 @@ export class Game {
    *
    * **고른 것 · 자리를 비우는 판이 모두 같은 규칙입니다.** 상점의 칸도 팩의 카드도 조커
    * 줄도 한 번 누르면 그 밑에 단추가 서는 같은 문법이므로, 놓는 길도 하나여야 합니다.
+   *
+   * **고른 것을 놓는 것은 여기만이 아닙니다.** 빈자리가 아닌 곳을 눌러도 놓이므로
+   * (`dismissAfterTap`) 이 줄에 남은 몫은 자리를 비우던 것을 그만두는 쪽입니다.
    */
   private dismissOnBlank(): void {
     if (this.modals.busy) return
@@ -4578,6 +4694,15 @@ export class Game {
     this.shopLift.target =
       this.held?.kind === 'shop' || this.held?.kind === 'pack_slot' ? SHOP_LIFT : 0
     this.shopLift.advance(seconds)
+    // **단추가 칸 수를 대신합니다.** 상점의 칸에서 단추가 값을 대신하는 것(아래의
+    // `price.visible`)과 같은 자리이고 같은 이유입니다 — 단추 줄이 칸 수를 적은 글과 같은
+    // 높이에 서므로, 남겨 두면 단추 아래로 글자의 아랫부분만 삐죽 보입니다.
+    //
+    // **프레임마다 정합니다.** 다시 그리는 자리에서 굳히면 그 뒤로 다시 그리지 않는 동안
+    // 칸 수가 감춰진 채로 남습니다 — 세우는 자리는 고른 것을 놓고 그대로 빠져나오는 길이
+    // 셋 있습니다(끝난 판 · 없어진 물건 · 없어진 칸).
+    this.jokerCount.visible = this.held?.kind !== 'joker'
+    this.consumableCount.visible = this.held?.kind !== 'consumable'
     this.hub.advance(seconds)
     this.login.advance(seconds)
     this.netStatus.advance(seconds)
@@ -5151,7 +5276,8 @@ export class Game {
         // 자리에서 잇달아 떠서 뒤의 것이 앞의 것을 덮습니다.
         const why = moneyReason(event.reason)
         if (why) {
-          const line = `${why}  ${event.delta > 0 ? '+' : ''}$${event.delta}`
+          // **부호는 달러 앞입니다.** 값 그대로 이어 적어서 나가는 돈이 `$-2` 로 났습니다.
+          const line = `${why}  ${event.delta > 0 ? '+' : '-'}$${Math.abs(event.delta)}`
           const tint = event.delta > 0 ? COLOR.money : COLOR.bad
           // 카드의 윗변에 걸쳐 뜹니다. 다른 값들과 같은 규칙입니다.
           //
@@ -6037,7 +6163,8 @@ export class Game {
         const ok = this.focus.kind === 'joker' && this.focusEligible('joker', view.uid)
         view.alpha = ok ? 1 : 0.3
         if (ok && !(this.drag?.kind === 'joker' && this.drag.uid === view.uid)) {
-          const lifted = this.held?.kind === 'joker' && this.held.uid === view.uid ? 12 : 0
+          const lifted = this.held?.kind === 'joker' && this.held.uid === view.uid
+            ? HELD_RISE : 0
           view.motion.y.target =
             JOKER_Y - lifted - 6 - Math.sin(this.clock * 3 + view.motion.phase) * 3
         }
@@ -7043,6 +7170,10 @@ export class Game {
     this.syncShop()
     // 건너뛰기 연출 중에는 판과 팩이 그대로입니다. 연출이 끝나는 자리가 다시 세웁니다.
     if (!this.skipping) this.syncPack()
+    // **줄과 상점과 팩이 다 선 뒤입니다.** 고른 것이 어느 통인지를 이 줄이 적어 두는데,
+    // 그 통들은 다시 그릴 때마다 새로 만들어집니다 — 조커 줄 끝에서 부르고 있어서 상점과
+    // 팩의 딱지는 이미 없어진 통이 적혔습니다.
+    this.syncHeldBar()
     this.syncButtons()
     this.syncMood()
     this.syncMusic()
@@ -9094,14 +9225,12 @@ export class Game {
       }
 
       if (this.drag?.kind === 'joker' && this.drag.uid === joker.uid && this.drag.moved) return
-      const lifted = this.held?.kind === 'joker' && this.held.uid === joker.uid ? 12 : 0
+      const lifted = this.held?.kind === 'joker' && this.held.uid === joker.uid ? HELD_RISE : 0
       // 손패와 같습니다 — 줄이 자리를 넘칠 만큼 차면 겹치므로, 겹치는 차례가 발동하는
       // 차례와 같아야 합니다.
       view.zIndex = ROW_Z + index
       view.place(spots.startX + index * spots.spacing, JOKER_Y - lifted)
     })
-
-    this.syncHeldBar()
   }
 
   /**
@@ -9291,6 +9420,7 @@ export class Game {
     this.heldBar.removeChildren().forEach(child => child.destroy())
     delete this.spots.held
     this.heldBox = undefined
+    this.heldNode = undefined
     const held = this.held
     if (!held) return
     // 끝난 판에서는 단추를 세우지 않습니다. 고른 것이 남아 있어도 누를 것이 없습니다.
@@ -9303,7 +9433,11 @@ export class Game {
     // **버튼이 서는 높이가 갈립니다.** 조커와 소모품은 자기 줄 밑이고, 상점의 칸과 팩의
     // 카드는 화면 가운데에 있으므로 그 밑입니다 — 한 높이로 두면 무엇에 대한 버튼인지가
     // 끊깁니다.
-    let baseline = JOKER_Y + SIZE.jokerHeight / 2 + 10
+    //
+    // **들린 딱지의 아랫변에 붙습니다.** 상점의 칸과 같은 규칙입니다 — 딱지가 `HELD_RISE`
+    // 만큼 올라가고 단추가 그 밑 `HELD_GAP` 에 섭니다. 줄의 어느 것을 고르든 이 높이는
+    // 같으므로 두 번째 누름은 늘 같은 자리입니다.
+    let baseline = JOKER_Y + SIZE.jokerHeight / 2 - HELD_RISE + HELD_GAP
     const buttons: Button[] = []
 
     if (held.kind === 'shop') {
@@ -9314,6 +9448,7 @@ export class Game {
         return
       }
       anchor = one.mid
+      this.heldNode = one.tile
       // **물건 바로 밑입니다.** 값이 있던 자리를 단추가 그대로 대신하고, 단추가 값보다
       // 높은 만큼만 물건이 밀려 올라갑니다 — 값이 있던 줄에 맞추었더니 단추가 그림 위에
       // 얹혔고, 칸의 바닥에 맞추었더니 물건과 단추 사이가 벌어졌습니다.
@@ -9341,6 +9476,7 @@ export class Game {
       // **가운데를 딱지가 들고 있습니다.** 상점 카드의 158 을 쓰고 있어서 단추가 27px
       // 오른쪽으로 밀려 옆 팩의 값에 걸쳤습니다.
       anchor = spot.mid
+      this.heldNode = spot.tile
       // 카드 딱지와 같은 규칙입니다 — 봉지 바로 밑.
       baseline = spot.holdY
       buttons.push(new Button(t('ui.button.buy'), 84, 32, UI.yellow, () => {
@@ -9361,6 +9497,7 @@ export class Game {
       // **간격은 상점과 같은 4px 입니다.** 66px 였고, 그만큼 떨어지면 카드와 단추가 한
       // 덩이로 읽히지 않습니다 — 상점의 칸은 값이 있던 자리(카드 밑 4px)에 단추가 섭니다.
       anchor = view.face.node.x
+      this.heldNode = view.face.node
       baseline = PACK_CARDS_Y + PACK_CARD_H / 2 + 4
       // 상점의 칸과 같은 규칙입니다 — 자리가 찼는지는 단추가 아니라 그 다음 화면이 적습니다.
       buttons.push(new Button(t('ui.button.take'), 92, 32, UI.yellow, () => {
@@ -9374,6 +9511,7 @@ export class Game {
         return
       }
       anchor = this.jokerSpot(index).x
+      this.heldNode = this.jokers.get(held.uid)
       const price = sellValueOf(this.data, this.state, this.state.jokers[index])
       // **자리를 비우는 중이면 단추가 하나입니다.** 파는 것과 같은 값이 들어오지만 하는
       // 일은 「이것을 내놓고 그것을 받는다」이므로, 판다가 아니라 그 말로 적습니다.
@@ -9395,13 +9533,18 @@ export class Game {
         return
       }
       anchor = this.itemSpot(index).x
+      this.heldNode = this.consumableTiles.find(one => one.uid === held.uid)?.tile
       if (this.focus) {
         buttons.push(new Button(
           tf('ui.button.give_up', { n: this.data.economy.sellMin }), 118, 30, UI.yellow,
           () => this.commitFocus(index)))
       // **「사용」은 손패를 앞에 두었을 때만 섭니다.** 상점과 블라인드 고르기에서는 팔 수만
       // 있습니다 — 쓸 수 없는 때에 단추가 서 있으면 눌러서 카드를 버리게 됩니다.
-      } else if (this.handReady) buttons.push(new Button(t('ui.button.use'), 68, 30, UI.light, () => {
+      //
+      // **나아가는 단추의 노랑입니다.** 판의 색(`UI.light`)이었고, 그 색은 겉면을 따라가므로
+      // 무채색 겉면에서는 회색 단추 하나였습니다 — 하는 일은 「낸다」와 같은 갈래이고,
+      // 그 옆의 「판매」가 붉음이므로 둘이 색으로 갈립니다.
+      } else if (this.handReady) buttons.push(new Button(t('ui.button.use'), 68, 30, UI.yellow, () => {
         this.held = undefined
         // **쓴 것과 판 것은 없어지는 모습이 다릅니다.** 쓴 것은 판 가운데로 나와 번쩍이고,
         // 판 것은 제자리에서 탑니다 — 화면은 어느 쪽인지 모르므로 여기서 적어 둡니다.
@@ -9535,9 +9678,20 @@ export class Game {
         spring = new Spring()
         this.consumableLift.set(one.uid, spring)
       }
-      spring.target = this.held?.kind === 'consumable' && this.held.uid === one.uid ? 12 : 0
+      spring.target =
+        this.held?.kind === 'consumable' && this.held.uid === one.uid ? HELD_RISE : 0
       spring.advance(seconds)
-      one.tile.y = one.baseY - spring.value
+
+      // **조커와 같이 늘 조금씩 흔들립니다.** 나란히 선 줄에서 한쪽만 멈춰 있으면 그것이
+      // 그림이 아니라 화면에 붙은 딱지로 보입니다 — 값과 빠르기가 `JokerView.advance` 와
+      // 같고, 위상만 카드마다 다릅니다(그래서 줄이 한 몸으로 출렁이지 않습니다).
+      //
+      // **위상은 번호에서 옵니다.** 칸은 다시 그릴 때마다 새로 만들어지므로, 만들 때 뽑은
+      // 무작위 값은 다시 그릴 때마다 흔들림을 처음으로 되돌립니다.
+      const phase = one.uid * 1.7
+      const face = one.tile.children[0]
+      if (face) face.rotation = sway(this.clock, phase, 1.1, 1.1) * (Math.PI / 180)
+      one.tile.y = one.baseY - spring.value + sway(this.clock, phase * 1.3, 1.8, 0.7)
 
       // **자리를 비우는 동안.** 내놓을 수 있는 것은 조금 떠서 살짝 오르내리고, 그 갈래가
       // 아니면 물러납니다 — 어느 줄에서 고르라는 것인지가 글보다 먼저 보여야 합니다.
@@ -10135,13 +10289,21 @@ export class Game {
         spots.startX + index * spots.spacing - SIZE.jokerWidth / 2,
         JOKER_Y - SIZE.jokerHeight / 2)
 
-      tile.addChild(itemFace(this.data, {
+      const face = itemFace(this.data, {
         kind: (item.kind === 1 ? ShopItemKind.Tarot
           : item.kind === 2 ? ShopItemKind.Planet : ShopItemKind.Spectral) as ShopItemKind,
         id: item.id,
         cost: 0,
         edition: item.edition as never,
-      } as ShopItem))
+      } as ShopItem)
+      // **가운데를 축으로 돕니다.** 조커와 같이 살짝 기울며 오가야 하고(`advanceConsumableLift`),
+      // 왼쪽 위를 축으로 돌면 그 기울기가 카드를 옆으로 밀어 버립니다.
+      //
+      // **칸이 아니라 얼굴을 돌립니다.** 칸의 자리는 이 줄 밖의 여럿이 읽고 쓰므로
+      // (`spotOf` · `placeArriving` · 태우기) 축을 옮기면 그 값들의 뜻이 함께 바뀝니다.
+      face.pivot.set(SIZE.jokerWidth / 2, SIZE.jokerHeight / 2)
+      face.position.set(SIZE.jokerWidth / 2, SIZE.jokerHeight / 2)
+      tile.addChild(face)
       tile.hitArea = new Rectangle(0, 0, SIZE.jokerWidth, SIZE.jokerHeight)
       tile.eventMode = 'static'
       tile.cursor = 'pointer'
@@ -10914,15 +11076,22 @@ export class Game {
       this.tooltip.hide()
       // **상점이 물러나고 줄에서 고릅니다.** 상점은 그동안 화면 아래로 내려가 있으므로 산
       // 딱지를 남길 것이 없고, 새 물건은 글 옆에 세운 그 카드에서 옵니다.
-      this.enterFocus(item, (held, from) => {
+      this.enterFocus(item, (held, from, middle) => {
         this.audio.play('joker_buy')
         this.sellFrom = item.kind === ShopItemKind.Joker
           ? this.jokerSpot(held) : this.itemSpot(held)
-        this.boughtFrom = from
-        // **판은 물건이 떠날 때까지 서 있습니다.** 치른 값이 `from` 에 뜨는데 그것은 이
-        // 판 옆에 세운 카드이고, 물건도 그 자리에서 날아갑니다 — 고른 그 프레임에 판을
-        // 걷었더니 값이 아무것도 없는 자리에서 났습니다. 상점의 딱지가 그 자리에 남는
-        // 것과 같은 일이고 같은 시간입니다.
+        // **치른 값은 이 판의 가운데에 뜹니다.** 사는 것은 자리가 상점의 딱지이고 파는 것은
+        // 내놓은 그 자리인데, 바꿔 사는 것에는 그 둘이 다 없습니다 — 상점은 내려가 있고
+        // 내놓은 자리는 이미 파는 값이 쓰고 있습니다. 판 옆에 세운 작은 카드 위에 띄우고
+        // 있었고, 그 카드는 새 물건이 날아가는 자리라 값이 판의 글에 얹혀 났습니다.
+        //
+        // **가운데에 뜨게 하려면 그만큼 내려 줍니다.** 값이 뜨는 자리는 넘겨받은 자리의
+        // 윗변에 걸치는 규칙(`RISER_ON_CARD`)이고, 그것은 카드에서 나오는 값의 규칙입니다 —
+        // 여기서 넘기는 것은 카드가 아니라 판이고, 판에는 가릴 무늬가 없습니다.
+        this.boughtFrom = { x: middle.x, y: middle.y + RISER_ON_CARD }
+        // **판은 물건이 떠날 때까지 서 있습니다.** 치른 값이 그 판 위에 뜨고 물건은 판 옆의
+        // 카드에서 날아갑니다 — 고른 그 프레임에 판을 걷었더니 값이 아무것도 없는 자리에서
+        // 났습니다. 상점의 딱지가 그 자리에 남는 것과 같은 일이고 같은 시간입니다.
         this.focusHold = this.clock + BUY_LINGER
         this.holdArrival(item, from)
         // 상점은 새것이 닿는 것을 보고 나서 올라옵니다.
@@ -11335,7 +11504,8 @@ export class Game {
    * 되돌릴 수 없는 일이 손이 미끄러진 한 번으로 일어나지 않습니다.
    */
   private enterFocus(item: ShopItem,
-                     commit: (held: number, from: { x: number; y: number }) => void): void {
+                     commit: (held: number, from: { x: number; y: number },
+                              middle: { x: number; y: number }) => void): void {
     const kind = item.kind === ShopItemKind.Joker ? 'joker' as const : 'consumable' as const
     this.held = undefined
     this.tooltip.hide()
@@ -11343,8 +11513,8 @@ export class Game {
 
     // **줄 바로 아래입니다.** 화면 가운데에 두면 어느 줄에서 고르라는 것인지가 글로만 남고,
     // 줄 밑에 붙어 있으면 그 줄에 대한 글로 읽힙니다.
-    const width = 600
-    const height = 98
+    const width = FOCUS_W
+    const height = FOCUS_H
     const x = PACK_X - width / 2
     const y = FOCUS_Y
     const panel = new Panel(width, height)
@@ -11393,7 +11563,7 @@ export class Game {
     this.focusLayer.addChild(panel)
     this.focusLayer.alpha = 0
 
-    this.focus = { item, kind, card, commit }
+    this.focus = { item, kind, card, panel, commit }
     this.audio.play('card_select')
     this.refresh()
   }
@@ -11417,8 +11587,11 @@ export class Game {
     const focus = this.focus
     if (!focus) return
     const from = this.spotOf(focus.card, SIZE.jokerWidth / 2, SIZE.jokerHeight / 2)
+    // **판의 가운데도 함께 셉니다.** 판은 이 뒤로 잠깐 더 서 있다가(`focusHold`) 걷히므로
+    // 치른 값이 그 위에 뜰 수 있고, 걷은 뒤에는 이 자리를 다시 셀 수 없습니다.
+    const middle = this.spotOf(focus.panel, FOCUS_W / 2, FOCUS_H / 2)
     this.leaveFocus()
-    focus.commit(index, from)
+    focus.commit(index, from, middle)
   }
 
   /** 자리를 비우는 화면이 드는 것과 걷히는 것. 글이 아래에서 조금 올라오며 짙어집니다. */
