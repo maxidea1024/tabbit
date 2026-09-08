@@ -508,6 +508,35 @@ export async function peek(page: Page): Promise<Peek> {
   throw new Error('화면이 상태를 알리지 않습니다')
 }
 
+/**
+ * 칩과 배수의 파형이 지금 얼마나 요동치는가.
+ *
+ * **세기는 값으로 봅니다.** 그림으로 판정하려면 흐르는 한가운데를 잡아야 하고, 그 순간을
+ * 그림에서 고르는 것은 세기를 판정하는 방법이 아닙니다 — 모습은 `shoot-wave.ts` 가 굽고
+ * 세기는 이것으로 봅니다.
+ *
+ * `box` 는 이 층이 덮은 사각형이고 **화면의 좌표입니다.** 오려 보는 도구가 이것을 씁니다 —
+ * 좌표를 도구에 적으면 판의 자리를 고친 그날 그 도구만 낡습니다.
+ *
+ * 규격은 `doc/ui/wave.md` 입니다.
+ */
+export interface Wave {
+  chips: number
+  mult: number
+  level: number
+  shown: boolean
+  box: [number, number, number, number]
+  /** 파형의 위상. **빠르기는 두 컷의 차이를 그 사이의 시간으로 나눈 것입니다** */
+  phase: number
+}
+
+export async function scoreWave(page: Page): Promise<Wave> {
+  return page.evaluate(() => {
+    const hook = (window as unknown as { __clover: { scoreWave?(): unknown } }).__clover
+    return hook.scoreWave?.() as never
+  })
+}
+
 /** 연출이 끝날 때까지 기다립니다. */
 export async function settle(page: Page): Promise<void> {
   await crossed(page)

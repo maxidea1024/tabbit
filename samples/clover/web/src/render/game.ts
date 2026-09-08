@@ -41,6 +41,7 @@ import { BackgroundFilter } from '../shader/background'
 import { PunchFilter } from '../shader/punch'
 import { ArriveFilter } from '../shader/arrive'
 import { DissolveFilter } from '../shader/dissolve'
+import { payoutLevel, ScoreWave } from '../shader/wave'
 import { Audio, ladder, type ToneName } from '../feedback/audio'
 import { CardView, type EditionLook } from './card-view'
 import { BlindBadge, Slot } from './hud'
@@ -1483,6 +1484,15 @@ export class Game {
    * 값이 움직이는 동안에만 켜집니다.
    */
   private readonly scoreFlash = new Graphics()
+  /**
+   * 두 상자의 바탕에 흐르는 파형.
+   *
+   * **번쩍임 위, 숫자 아래입니다.** 위로 올리면 숫자를 덮고, 아래로 내리면 번쩍임이
+   * 덮습니다 — 이 순서에서는 배치가 한 번 끊기고, 그것이 이 층의 값 전부입니다.
+   *
+   * 규격은 `doc/ui/wave.md` 입니다.
+   */
+  private readonly scoreWave = new ScoreWave()
   /** 두 상자가 놓인 자리. 겉면을 갈아입을 때와 번쩍임이 다시 씁니다. */
   private scoreBoxes?: { chips: Box; mult: Box }
   /** 마지막으로 그린 번쩍임의 세기. 같으면 다시 그리지 않습니다. */
@@ -2791,7 +2801,14 @@ export class Game {
     this.app.ticker.maxFPS = this.settings.frameCap
     // **그래픽 품질.** 지금 갈리는 것은 재가 되는 전환 하나입니다 — 셰이더 둘 가운데 어느
     // 것인지와 파티클을 얹는지가 여기서 정해집니다.
-    this.transition.quality = this.qualityOverride ?? graphicsLevel(this.settings)
+    const level = this.qualityOverride ?? graphicsLevel(this.settings)
+    this.transition.quality = level
+    // **가장 낮은 화질에서는 파형이 없습니다.** 값 때문이 아닙니다 — 그 설정을 고른 사람이
+    // 연출을 덜 보겠다고 한 것입니다. 상자는 파형이 없던 때의 모습 그대로입니다.
+    //
+    // 여기서 정하는 이유는 화질을 판이 도는 동안에도 바꿀 수 있기 때문입니다. 만들 때 한 번
+    // 정하면 그 뒤에 바꾼 설정이 이 층에 닿지 않습니다.
+    this.scoreWave.view.visible = level !== 'low'
   }
 
   private applyOptions(): void {
@@ -3823,7 +3840,7 @@ export class Game {
     // 하고 그중 하나를 빠뜨리면 그것만 겹칩니다.
     //
     this.panelStack.addChild(this.panelGrooves, this.score, this.scoreBox,
-      this.scoreFlash, this.chips, this.mult, times, this.handLabel,
+      this.scoreFlash, this.scoreWave.view, this.chips, this.mult, times, this.handLabel,
       this.hands, this.discards, this.money, this.anteSlot)
     this.board.addChild(this.badge, this.panelStack)
 
@@ -3889,6 +3906,11 @@ export class Game {
    */
   private paintScoreBox(chipsBox: Box, multBox: Box): void {
     this.scoreBoxes = { chips: chipsBox, mult: multBox }
+    // **파형이 덮는 사각형은 두 상자와 그 사이를 합친 것입니다.** 상자에서 셈합니다 — 자리를
+    // 베껴 적으면 상자의 크기나 사이를 고친 자리에서 이것만 낡습니다.
+    this.scoreWave.layout(chipsBox.x, chipsBox.y, chipsBox.width, chipsBox.height,
+      multBox.x + multBox.width - chipsBox.x, CHIPS_R)
+    this.scoreWave.ink(COLOR.chips, COLOR.mult)
     const g = this.scoreBox
     g.clear()
     const style = slotStyle(COLOR.ink)
@@ -5908,6 +5930,10 @@ export class Game {
     this.guard('background', () => this.background.advance(seconds))
     this.guard('euphoria', () => this.euphoria.advance(seconds))
     this.guard('punch', () => this.punch.advance(seconds))
+    // **파형의 흐름은 실제 초로 잇습니다.** `step` 은 초당 60번 고정이므로 프레임이 그보다
+    // 적게 나오는 화면에서는 그 안에서 여러 번 돌고, 위상을 거기서 올리면 화면에 보이는
+    // 흐름이 프레임 수와 어긋납니다.
+    this.guard('wave', () => this.scoreWave.advance(seconds))
 
     // **필터는 필요할 때만 겁니다.** 늘 걸어 두면 판이 매 프레임 그림으로 한 번 구워지고,
     // 그 그림이 화면 배율에 늘어나 글씨가 뿌옇게 됩니다.
@@ -6074,8 +6100,12 @@ export class Game {
     // 빈 판때기만 부서집니다. 남는 것은 그 판의 마지막 모습이어야 합니다. 그래서 여기서
     // 기다리는 것은 **움직이는 것이 없는가**와 **결과를 읽을 시간이 지났는가**입니다.
     const finished = this.state.phase === 'lost' || this.state.phase === 'won'
+    // **거둔 것은 세지 않습니다.** `retired` 는 딜러에게 간 카드가 덱으로 돌아오기를
+    // 기다리는 수이고, 그 돌아오기(`recallToDeck`)는 **낸 카드가 다 걷힌 뒤에만 돕니다** —
+    // 끝난 판은 낸 카드를 그대로 두므로 그 수가 영원히 0이 되지 않습니다. 조건에 넣어
+    // 두었더니 패배 판이 서지 않고 그 자리에서 멈췄습니다.
     const still = this.fades.length === 0 && this.deals.length === 0
-      && this.recalls.length === 0 && this.retired === 0
+      && this.recalls.length === 0
     const read = this.playedViews.length === 0 || this.holdAfterScore > 1_100
     if (finished && still && read && !this.gameOverShown
         && !this.player.busy && this.score.settled && !this.coins.busy) {
@@ -6128,6 +6158,14 @@ export class Game {
     // 겹쳤습니다.
     for (const slot of this.panelSlots) slot.advance(stepMs)
     this.paintScoreFlash()
+    // **파형의 세기입니다.** 얹히는 것은 칸이 세고(더해질 때만), 바닥은 지금의 배당입니다 —
+    // 바닥을 두 상자가 나누므로 배당이 크면 둘이 함께 요동치고, 얹히는 것은 칸마다 따로이므로
+    // 어느 쪽이 지금 움직였는지가 그대로 남습니다.
+    //
+    // **여기서 읽는 것은 화면에 있는 수입니다.** 상태의 값을 쓰면 숫자가 아직 굴러가는 동안
+    // 파형만 먼저 최대가 됩니다.
+    this.scoreWave.setSurge(this.chips.surge, this.mult.surge,
+      payoutLevel(this.chips.amount, this.mult.amount))
     this.advanceRisers(stepMs)
 
     // 흔들림은 줄어듭니다. **판만 흔들고 배경은 가만히 둡니다** — 둘 다 흔들면 무엇이
@@ -6685,6 +6723,27 @@ export class Game {
           // 배경이 덮은 자리. **판의 사각형과 같아야 합니다.**
           sheet: [this.sheet.x, this.sheet.y, this.sheet.width, this.sheet.height],
         }),
+        /**
+         * 칩과 배수의 파형이 지금 얼마나 요동치는가.
+         *
+         * **화면을 굽지 않고 확인하는 자리입니다.** 세기는 값이므로 여기서 확인하고, 모습은
+         * `tools/shoot-wave.ts` 가 굽습니다.
+         */
+        scoreWave: () => {
+          const now = this.scoreWave.surge
+          // **자리도 함께 냅니다.** 그림을 오려 보는 도구가 좌표를 베껴 적으면 판의 자리를
+          // 고친 그날 그 도구만 낡습니다. **판의 좌표이므로 도구가 `at` 으로 환산합니다** —
+          // 판이 창의 가운데에 놓이고 남는 자리는 배경이 덮으므로 그 환산이 있어야 합니다.
+          return {
+            chips: Math.round(now.chips * 1000) / 1000,
+            mult: Math.round(now.mult * 1000) / 1000,
+            level: Math.round(now.level * 1000) / 1000,
+            shown: this.scoreWave.view.visible,
+            box: this.scoreWave.box,
+            // **빠르기는 위상의 차이로 봅니다.** 그림으로는 확인되지 않습니다.
+            phase: Math.round(now.phase * 1000) / 1000,
+          }
+        },
         blurRegion: () => ({
           padding: this.blur.padding,
           backPadding: this.blurBack.padding,
@@ -6732,6 +6791,7 @@ export class Game {
         crossQuality: (level: 'high' | 'medium' | 'low') => {
           this.qualityOverride = level
           this.transition.quality = level
+          this.scoreWave.view.visible = level !== 'low'
         },
         /** 재의 손잡이를 돌립니다. 고르는 동안 쓰는 자리입니다. */
         tuneAsh: (params: Record<string, number | [number, number]>) => {
@@ -6753,6 +6813,19 @@ export class Game {
         forceEuphoria: (product: number, release = false) => {
           this.euphoria.consider(product)
           if (release) this.euphoria.release()
+        },
+        /**
+         * 칩과 배수의 칸에 수를 그냥 넣습니다.
+         *
+         * **파형의 바닥이 배당을 따라가는 것을 보는 자리입니다.** 그 배당은 안티 5~6에서
+         * 나오고, 거기까지 판을 굴리는 것은 그 연출을 보려는 도구가 할 일이 아닙니다.
+         *
+         * 칸에 넣을 뿐이므로 상태의 점수는 그대로입니다 — 다음 `refresh` 가 칸을 다시
+         * 맞추므로 이 값은 그 사이에만 있습니다.
+         */
+        forceScore: (chips: number, mult: number) => {
+          this.chips.target = chips
+          this.mult.target = mult
         },
         grantConsumable: (count: number) => {
           const rows = this.data.tables.tarot.records

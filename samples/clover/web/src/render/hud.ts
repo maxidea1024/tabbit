@@ -76,6 +76,13 @@ const WAVE_SWELL = 0.35
  * 같은 세기로 보여야 합니다. 글자 물결이 도는 동안과 대략 같은 길이입니다.
  */
 const FLARE_MS = 420
+/**
+ * 값이 더해진 것이 잦아드는 데 걸리는 시간.
+ *
+ * **`FLARE_MS` 와 같은 값이고 하는 일이 다릅니다.** 그것은 바탕의 번쩍임이고 이것은 파형의
+ * 세기입니다 — 하나로 묶으면 둘 중 하나를 고칠 수 없게 됩니다.
+ */
+const SURGE_MS = 420
 
 /**
  * 글자 폭. **글자 하나와 크기 하나마다 한 번만 잽니다.**
@@ -503,13 +510,25 @@ export class Slot extends Container {
 
   /** 값이 바뀐 뒤로 남은 밝기. 1 에서 0 으로 갑니다. */
   private flare = 0
+  /**
+   * 값이 **더해진** 뒤로 남은 것. 더해질 때마다 얹히고 잦아듭니다.
+   *
+   * **`flare` 와 따로입니다.** 그것은 값이 바뀌기만 하면 서므로 판이 끝나 0 으로 되돌아갈
+   * 때도 0 이 아니고, 이 값은 그 대목에 서지 않습니다 — 「더해질 때만」 이 필요한 쪽이
+   * 파형이고, 바탕의 번쩍임은 지금대로 둡니다.
+   *
+   * **쌓입니다.** 조커가 연달아 더하면 그 수만큼 얹히고, 그것이 한 판에서 세기가 오르는
+   * 모습입니다.
+   */
+  private surged = 0
 
   reset(value: number): void {
     this.numeric = true
     this.shown = value
     this.wanted = value
-    // 판을 새로 깔면 물러나 있던 것도 돌아옵니다.
+    // 판을 새로 깔면 물러나 있던 것도 돌아오고, 파형도 조용해집니다.
     this.muted = 0
+    this.surged = 0
     this.value.alpha = 1
     this.redraw()
   }
@@ -519,6 +538,15 @@ export class Slot extends Container {
     if (value !== this.wanted) {
       this.pop = Math.min(1, Math.abs(value - this.shown) / 400 + 0.35)
       this.ripple()
+      // **더해질 때만 얹습니다.** 판이 끝나 0 으로 되돌아가는 것은 알릴 일이 아닙니다.
+      //
+      // 얹는 크기는 「한 번 더해졌다」의 몫 0.28 에 상대적인 크기를 더한 것입니다. 절대값으로
+      // 세면 칩이 다섯 자리인 대목에서만 세기가 오르고, 상대값만 쓰면 큰 수에 조금 더해진
+      // 것이 아무것도 아니게 됩니다 — 어느 쪽도 「지금 하나 더해졌다」를 내지 못합니다.
+      if (value > this.shown) {
+        const relative = Math.abs(value - this.shown) / Math.max(1, Math.abs(value))
+        this.surged = Math.min(1, this.surged + 0.28 + Math.min(0.42, relative * 0.9))
+      }
       // **굴러가는 값은 방향을 스스로 압니다.** 소지금이 그렇습니다 — 지금 보이는 수와
       // 가려는 수를 견주면 되므로 부르는 쪽이 알려 줄 것이 없습니다.
       if (this.signed) this.glowInk = value > this.shown ? UP_INK : DOWN_INK
@@ -538,6 +566,22 @@ export class Slot extends Container {
   get lit(): number {
     return Math.min(1, Math.max(this.flare, this.rolling))
   }
+
+  /**
+   * 값이 더해진 뒤로 남은 것. 0 이면 조용합니다.
+   *
+   * **`lit` 이 아닙니다.** 그것은 값이 바뀌기만 하면 서므로 판이 끝나 0 으로 되돌아가는
+   * 대목에도 0 이 아닙니다.
+   */
+  get surge(): number { return this.surged }
+
+  /**
+   * 지금 화면에 있는 수. **굴러가는 동안은 그 중간값입니다.**
+   *
+   * 파형의 세기가 배당을 따라가므로 그것을 셈하는 쪽이 이 값을 읽습니다 — 상태의 값을 쓰면
+   * 숫자가 아직 굴러가는 동안 파형만 먼저 최대가 됩니다.
+   */
+  get amount(): number { return this.shown }
 
   /**
    * 굴러가는 정도. 0 이면 다 왔고 1 이면 아직 멉니다.
@@ -569,6 +613,12 @@ export class Slot extends Container {
 
     if (this.pop > 0) this.pop = Math.max(0, this.pop - deltaMs / 260)
     if (this.flare > 0) this.flare = Math.max(0, this.flare - deltaMs / FLARE_MS)
+    // **곱으로 잦아듭니다.** 얹히는 것이 쌓이는 값이므로, 처음에 빨리 빠지고 꼬리가 길어야
+    // 연달아 더해지는 동안 끊기지 않고 이어집니다. 곱은 0 에 닿지 않으므로 문턱에서 끊습니다.
+    if (this.surged > 0) {
+      this.surged *= Math.exp(-deltaMs / SURGE_MS)
+      if (this.surged < 0.004) this.surged = 0
+    }
 
     // **곧바로 물러나고 천천히 돌아옵니다.** 옅어지는 데 시간을 쓰면 그 사이 두 수가 같은
     // 자리에 겹쳐 있고, 겹친 동안에는 어느 것도 읽히지 않습니다.
