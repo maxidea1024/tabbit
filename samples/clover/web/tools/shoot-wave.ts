@@ -76,8 +76,8 @@ async function speeds(page: Page): Promise<string[]> {
   const out: string[] = []
   for (const [name, chips, mult] of [
     ['조용', 0, 0],
-    ['중간', 90_000, 250],
-    ['마지막', 4_000_000, 100],
+    ['중간', 1_000, 30],
+    ['마지막', 200_000, 40],
   ] as const) {
     await page.evaluate(([c, m]) => {
       (window as unknown as { __clover: { forceScore?(c: number, m: number): void } })
@@ -149,8 +149,8 @@ async function main(): Promise<number> {
   // 숫자가 상자 밖으로 나갑니다 — 파형과 무관한 것이고, 그래서 칸에 들어가는 자리도 함께
   // 굽습니다.
   for (const [name, chips, mult, wait] of [
-    ['wave-4-high', 90_000, 250, 3200],
-    ['wave-5-top', 4_000_000, 100, 3200],
+    ['wave-4-high', 1_000, 30, 3200],
+    ['wave-5-top', 200_000, 40, 3200],
   ] as const) {
     await page.evaluate(([c, m]) => {
       (window as unknown as { __clover: { forceScore?(c: number, m: number): void } })

@@ -69,6 +69,14 @@ const WAVE_STAGGER_MS = 34
 const WAVE_LIFT = 12
 const WAVE_SWELL = 0.35
 /**
+ * 글자별로 세우는 수에서 글자끼리 겹치는 만큼. 글자 크기의 몫입니다.
+ *
+ * **두른 테의 굵기입니다.** 재는 값에 테가 양쪽으로 들어 있어 그대로 붙이면 사이가 그만큼
+ * 벌어지고, 테는 획 밖으로 나간 것이므로 이만큼 겹쳐도 획끼리는 닿지 않습니다. 라틴·숫자의
+ * 테가 크기의 0.075이므로 그 값입니다.
+ */
+const TUCK_RATIO = 0.075
+/**
  * 값이 바뀐 뒤 바탕이 밝은 동안.
  *
  * **튐과 따로입니다.** 튐의 세기는 얼마나 크게 바뀌었는가를 따르므로, 그것으로 바탕을
@@ -111,6 +119,25 @@ const GLYPH_W = new Map<string, number>()
 class Digits extends Container {
   private readonly glyphs: Text[] = []
   private shown = ''
+  /**
+   * 넘지 않아야 하는 너비. 0 이면 재지 않습니다.
+   *
+   * 칸이 이것을 넣습니다 — 통은 자기가 어느 칸에 앉아 있는지 모릅니다.
+   */
+  private room = 0
+  /**
+   * 칸에 들어가려고 줄인 배율. 1 이면 그대로입니다.
+   *
+   * **여기서 `scale` 을 만지지 않습니다.** 값이 바뀔 때의 튐도 같은 `scale` 을 쓰므로, 둘이
+   * 저마다 적으면 나중에 적은 것이 앞의 것을 지웁니다 — 칸이 둘을 곱해 넣습니다.
+   */
+  fitScale = 1
+
+  set fit(width: number) {
+    if (width === this.room) return
+    this.room = width
+    this.relay()
+  }
   /**
    * 물결이 돈 지 지난 시간. 음수면 돌고 있지 않습니다.
    *
@@ -214,11 +241,27 @@ class Digits extends Container {
       this.glyphs[i].visible = false
     }
 
+    // **잰 너비끼리 붙이면 사이가 넓습니다.**
+    //
+    // 재는 값은 그 글자를 캔버스에 구운 그림의 너비이고, 그 그림에는 **두른 테가 양쪽으로
+    // 들어 있습니다** — 34픽셀 숫자의 테가 2.55픽셀이므로 글자마다 5픽셀이 붙어 있고, 그
+    // 둘을 나란히 두면 사이가 5픽셀 벌어집니다. 글 하나로 그리는 칸에는 이 일이 없습니다 —
+    // 글꼴이 정한 자리에 붙고 테는 그 위에 덧그려집니다.
+    //
+    // 테의 굵기만큼 겹쳐 놓습니다. 테는 글자의 획 밖으로 나간 것이므로 그만큼 겹쳐도
+    // 획끼리는 닿지 않습니다.
+    const tuck = size * TUCK_RATIO
+    const span = Math.max(0, total - tuck * Math.max(0, widths.length - 1))
+
+    // **칸을 넘으면 통째로 줄입니다.** 넘은 만큼만 잘려 보이면 그것은 자릿수가 사라진
+    // 것이고, 몇 자리인지가 이 게임에서 가장 중요한 수입니다.
+    this.fitScale = this.room > 0 && span > this.room ? this.room / span : 1
+
     // **자라는 방향이 `pull` 입니다.** 오른쪽 끝에 붙는 수는 통째로 왼쪽으로 물러섭니다.
-    let at = -total * this.pull
+    let at = -span * this.pull
     for (let i = 0; i < widths.length; i++) {
       this.glyphs[i].x = at + widths[i] / 2
-      at += widths[i]
+      at += widths[i] - tuck
     }
   }
 }
@@ -358,7 +401,12 @@ export class Slot extends Container {
       if (named) putText(this.caption_, head, BOTTOM, { y: -2 })
       // **이름이 없으면 여백이 좁아도 됩니다.** 곱셈표가 상자 밖의 빈 자리에 서므로 숫자가
       // 그것에 닿지 않습니다.
-      this.putValue(inset(body, 0, BARE_PAD), { x: pull, y: 0.5 })
+      const body2 = inset(body, 0, BARE_PAD)
+      this.putValue(body2, { x: pull, y: 0.5 })
+      // **칸을 넘으면 통째로 줄입니다.** 칩이 여섯 자리가 되면 34픽셀 숫자가 상자보다
+      // 넓어지고, 지금까지는 그만큼 상자 밖으로 나가 있었습니다 — 넘은 자리가 잘려 보이면
+      // 그것은 자릿수가 사라진 것이고, 몇 자리인지가 이 게임에서 가장 중요한 수입니다.
+      if (this.value instanceof Digits) this.value.fit = body2.width
     }
     this.baseY = this.value.y
     this.valueStyle.fill = ink
@@ -667,7 +715,9 @@ export class Slot extends Container {
     if (shake > 0.002 || lift > 0) {
       // 튀는 것과 떠는 것과 얹힌 것을 같이 씁니다. **흔드는 것은 `shake` 뿐입니다** —
       // 얹힌 것만 남은 대목에서는 그 값이 0 이므로 숫자가 제자리에서 커졌다 줄어듭니다.
-      this.value.scale.set(1 + ease * 0.42 + heat * 0.14 + lift)
+      // **칸에 들어가려 줄인 배율을 곱합니다.** 튐이 그것을 지우면 여섯 자리 수가 튀는
+      // 동안에만 상자 밖으로 나갔다 돌아옵니다.
+      this.value.scale.set(this.fitScale * (1 + ease * 0.42 + heat * 0.14 + lift))
       this.value.x = this.valueX + (Math.random() - 0.5) * 7 * shake
       // **세로로는 조금만 흔듭니다.** 두 칸의 숫자가 나란히 서 있어서, 세로로 크게 흔들면
       // 그 둘의 기준선이 서로 어긋나 보입니다.
@@ -676,7 +726,7 @@ export class Slot extends Container {
       this.settledLook = false
     } else if (this.settledLook !== true) {
       this.settledLook = true
-      this.value.scale.set(1)
+      this.value.scale.set(this.fitScale)
       this.value.position.set(this.valueX, this.baseY)
       this.value.rotation = 0
     }
@@ -712,6 +762,20 @@ export class Slot extends Container {
     this.value.text = shown >= 1_000_000
       ? shown.toExponential(2).replace('e+', 'e')
       : shown.toLocaleString('en-US')
+    // **자릿수가 바뀌면 조용한 모습을 다시 앉힙니다.** 칸에 들어가려 줄인 배율은 글자 수가
+    // 정하는 값이고, 조용한 모습은 「이미 앉혔다」로 한 번만 적용됩니다 — 다시 적지 않으면
+    // 여섯 자리가 된 수가 앞의 배율로 그려집니다.
+    this.settledLook = false
+  }
+
+  /**
+   * 칸에 들어가려고 줄인 배율. 1 이면 그대로입니다.
+   *
+   * **글 하나로 그리는 칸에는 없습니다.** 그쪽은 이름 옆의 한 줄이고 자릿수가 칸을 넘지
+   * 않습니다 — 넘는 것은 칩과 배수뿐이고 그 둘이 글자별로 세우는 통입니다.
+   */
+  private get fitScale(): number {
+    return this.value instanceof Digits ? this.value.fitScale : 1
   }
 }
 
