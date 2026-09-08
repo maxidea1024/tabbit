@@ -530,6 +530,13 @@ export interface Wave {
   phase: number
   /** 칸마다 얼마나 나타나 있는가. **0 이면 그 상자에 아무것도 없습니다** */
   live: [number, number]
+  /**
+   * 바탕의 번쩍임. **파형과 다른 층입니다.**
+   *
+   * 0 으로 되돌아가는 동안에는 둘 다 0 이어야 합니다 — 그 대목에 두 상자가 파랑과 붉음으로
+   * 한 번 빛나고 있었습니다.
+   */
+  lit: [number, number]
 }
 
 export async function scoreWave(page: Page): Promise<Wave> {

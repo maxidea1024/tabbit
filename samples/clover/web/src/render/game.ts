@@ -6811,6 +6811,10 @@ export class Game {
             // 칸마다 얼마나 나타나 있는가. 0 이면 그 상자에 아무것도 없습니다.
             live: [Math.round(now.live[0] * 1000) / 1000,
               Math.round(now.live[1] * 1000) / 1000],
+            // **바탕의 번쩍임입니다.** 파형과 다른 층이고, 0 으로 되돌아가는 동안에는 둘 다
+            // 0 이어야 합니다 — 그 대목에 두 상자가 파랑과 붉음으로 한 번 빛나고 있었습니다.
+            lit: [Math.round(this.chips.lit * 1000) / 1000,
+              Math.round(this.mult.lit * 1000) / 1000],
           }
         },
         blurRegion: () => ({
@@ -6895,6 +6899,14 @@ export class Game {
           this.chips.target = chips
           this.mult.target = mult
         },
+        /**
+         * 파형의 위상을 이 값에 세우고 붙잡습니다.
+         *
+         * **흐르는 쪽을 확인하는 도구가 쓰는 자리입니다.** 그림 한 장을 굽는 데 1초쯤 들어서
+         * 컷 사이의 위상 차이를 시간으로는 정할 수 없습니다 — 잡아 두고 값을 손으로 옮기면
+         * 두 컷의 차이가 정확히 그만큼입니다. **한 번 잡으면 이 판에서는 놓지 않습니다.**
+         */
+        holdWave: (phase: number) => this.scoreWave.hold(phase),
         grantConsumable: (count: number) => {
           const rows = this.data.tables.tarot.records
           for (let i = 0; i < count && i < rows.length; i++) {

@@ -54,6 +54,7 @@ async function shot(page: Page, name: string): Promise<string> {
     + ` · 배수 ${span(before.mult, after.mult)}`
     + ` · 배당 ${span(before.level, after.level)}`
     + ` · 나타남 ${after.live[0].toFixed(2)}/${after.live[1].toFixed(2)}`
+    + ` · 번쩍임 ${after.lit[0].toFixed(2)}/${after.lit[1].toFixed(2)}`
     + `${after.shown ? '' : ' · 층 없음'}`
 }
 

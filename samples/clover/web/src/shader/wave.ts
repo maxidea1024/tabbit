@@ -62,6 +62,21 @@ const LEVEL_SPAN = Math.log10(LEVEL_TOP / LEVEL_FLOOR)
 const LIVE_RISE_MS = 90
 const LIVE_FALL_MS = 200
 
+/**
+ * 위상이 초당 얼마나 오르는가. **한 자리를 스쳐 가는 주파수가 이것입니다.**
+ *
+ * 무늬가 흐르는 빠르기는 이 값을 산의 수로 나눈 것입니다 — 조용한 자리에서 초당 57픽셀이고
+ * 마지막 단에서 87픽셀입니다. 115픽셀 상자를 2.0초와 1.3초에 건넙니다.
+ */
+function phaseRate(level: number): number {
+  return 7.5 + level * 21.0
+}
+
+/** 노이즈를 읽는 자리가 초당 얼마나 가는가. **파형과 같은 빠르기로 맞춘 값입니다.** */
+function driftRate(level: number): number {
+  return 1.30 + level * 0.85
+}
+
 export function payoutLevel(chips: number, mult: number): number {
   const product = chips * mult
   if (product <= LEVEL_FLOOR) return 0
@@ -135,10 +150,30 @@ void main(void) {
   // 두어 개의 무늬가 되어 프레임마다 반짝입니다. 0.45배로 올리면 마지막 단에서 7.5픽셀입니다.
   float fine = 1.0 + (freq - 1.0) * 0.45;
 
-  // 파형. **주기와 빠르기가 서로 나누어떨어지지 않습니다** — 그래야 되풀이가 보이지 않습니다.
-  float w = sin(u * TAU * 1.0 * freq + uPhase * 1.00)
-          + sin(u * TAU * 2.3 * freq - uPhase * 0.68 + 1.7) * 0.647
-          + sin(u * TAU * 4.7 * fine + uPhase * 1.42 + 4.1) * 0.324;
+  // 항 셋의 주기.
+  float k1 = TAU * 1.0 * freq;
+  float k2 = TAU * 2.3 * freq;
+  float k3 = TAU * 4.7 * fine;
+
+  // 파형. **항 셋이 같은 빠르기로 한쪽으로 흐릅니다.**
+  //
+  // 여기에 두 가지가 잘못 있었습니다. 하나는 둘째 항의 위상이 **부호가 반대**여서 그 항이
+  // 거꾸로 흐른 것이고(무게가 0.647이라 첫 항을 거의 상쇄했습니다), 또 하나는 위상 계수가
+  // 그 항의 주기와 무관한 값이어서 **항마다 다른 빠르기로 흐른** 것입니다. 그 둘이 겹쳐
+  // 파형이 어느 쪽으로도 가지 않고 제자리에서 들썩였습니다.
+  //
+  // **위상 속도는 위상 계수를 주기로 나눈 값입니다.** 셋이 같은 쪽으로 같은 빠르기로 가려면
+  // 계수가 그 항의 주기에 비례해야 하고, 그래서 k2/k1 과 k3/k1 을 곱합니다.
+  //
+  // **0.94 와 1.06 은 일부러 어긋낸 것입니다.** 정확히 같은 빠르기로 두면 셋이 한 덩어리로
+  // 굳어 그려 놓은 그림 하나가 미끄러지는 것이 되고, 6%를 어긋내면 흐르는 동안 모습이
+  // 천천히 바뀝니다.
+  //
+  // 되풀이가 보이지 않는 것은 부호가 아니라 **주기 1 · 2.3 · 4.7 이 서로 나누어떨어지지
+  // 않는 것**에서 옵니다.
+  float w = sin(u * k1 + uPhase)
+          + sin(u * k2 + uPhase * (k2 / k1) * 0.94 + 1.7) * 0.647
+          + sin(u * k3 + uPhase * (k3 / k1) * 1.06 + 4.1) * 0.324;
   w /= 1.971;
 
   // 노이즈. **값이 오를 때만 얹힙니다.**
@@ -146,8 +181,14 @@ void main(void) {
   // n 과 jag 의 곱이 요점입니다 — 잔 떨림의 진폭을 노이즈가 정하므로 거친 자리가 가로로
   // 뭉쳐서 옵니다. jag 만 얹으면 상자 전체에 같은 굵기의 빗살이 서고, 그것은 파형이 아니라
   // 무늬로 보입니다.
-  float n = texture(uSoft, vec2(u * 2.6 - uDrift, uDrift * 0.31)).r - 0.5;
-  float jag = sin(u * TAU * 19.0 - uPhase * 4.4) * uJag;
+  // **읽는 자리도 같은 쪽으로 갑니다.** 빼고 있었고, 그러면 무늬가 파형과 반대로 흐릅니다 —
+  // 더해지는 동안에는 이 항이 가장 크게 보이므로 그 대목의 흐름이 통째로 거꾸로였습니다.
+  float n = texture(uSoft, vec2(u * 2.6 + uDrift, uDrift * 0.31)).r - 0.5;
+  // 잔 떨림도 같은 빠르기로. 19주기이므로 계수가 19 / freq 입니다.
+  // **잔 떨림만 절반 빠르기입니다.** 19주기는 115픽셀에서 한 주기가 6픽셀이고, 같은
+  // 빠르기로 흐르면 한 프레임에 0.26주기를 지나 되감기는 것으로 보입니다 — 이 항이 하는
+  // 일은 거칠기이지 흐름이 아니므로 절반으로 둡니다.
+  float jag = sin(u * TAU * 19.0 + uPhase * (19.0 / freq) * 0.5) * uJag;
   // **진폭이 주파수를 따라 함께 커집니다.** 촘촘해지기만 하면 잔 물결이 되고, 진폭이 함께
   // 커져야 요동칩니다. 배당의 몫이 세기의 몫과 따로인 이유는 **잦아들지 않아야** 하기
   // 때문입니다 — 세기 쪽은 더해진 뒤 0.42초에 빠집니다.
@@ -306,9 +347,30 @@ export class ScoreWave {
    * 한 번 끊깁니다. 누적하면 빠르기만 바뀝니다.
    */
   advance(seconds: number): void {
+    if (this.held) return
     const level = this.payout
-    this.uniforms.uPhase = (this.uniforms.uPhase as number) + seconds * (4.5 + level * 14.0)
-    this.uniforms.uDrift = (this.uniforms.uDrift as number) + seconds * (0.60 + level * 2.4)
+    this.uniforms.uPhase = (this.uniforms.uPhase as number) + seconds * phaseRate(level)
+    this.uniforms.uDrift = (this.uniforms.uDrift as number) + seconds * driftRate(level)
+  }
+
+  /** 위상을 손으로 잡고 있는가. **확인 도구만 잡습니다.** */
+  private held = false
+
+  /**
+   * 위상을 이 값에 세우고 붙잡습니다.
+   *
+   * **흐르는 쪽을 확인하는 도구가 쓰는 자리입니다.** 그 도구는 컷 둘을 견주는데, 그림 한 장을
+   * 굽는 데 1초쯤 들어서 시간으로는 컷 사이의 위상 차이를 정할 수 없습니다 — 800라디안이
+   * 넘게 가고, 그것은 파장의 여러 배이므로 어느 골을 골랐는지 알 수 없습니다.
+   *
+   * **노이즈도 같은 비로 함께 세웁니다.** 그러지 않으면 더해지는 동안 가장 크게 보이는 항이
+   * 저 혼자 흐릅니다.
+   */
+  hold(phase: number): void {
+    this.held = true
+    const level = this.payout
+    this.uniforms.uPhase = phase
+    this.uniforms.uDrift = phase * (driftRate(level) / phaseRate(level))
   }
 
   /**

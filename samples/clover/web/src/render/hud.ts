@@ -600,8 +600,17 @@ export class Slot extends Container {
   set target(value: number) {
     this.numeric = true
     if (value !== this.wanted) {
-      this.pop = Math.min(1, Math.abs(value - this.shown) / 400 + 0.35)
-      this.ripple()
+      // **줄어드는 동안 조용한 칸은 여기서도 조용합니다.**
+      //
+      // `quietOnDrop` 이 `rolling` 만 막고 있었고, 번쩍임과 튐과 글자 물결은 `ripple()` 이
+      // 세우므로 값이 바뀌기만 하면 섰습니다 — 그래서 판이 끝나 칩과 배수가 0 으로
+      // 되돌아갈 때마다 두 상자가 파랑과 붉음으로 한 번 빛났습니다. 그것은 알릴 일이
+      // 아니고, 그 대목에 필요한 것은 조용히 없어지는 것뿐입니다.
+      const quiet = this.quietOnDrop && value < this.shown
+      if (!quiet) {
+        this.pop = Math.min(1, Math.abs(value - this.shown) / 400 + 0.35)
+        this.ripple()
+      }
       // **더해질 때만 얹습니다.** 판이 끝나 0 으로 되돌아가는 것은 알릴 일이 아닙니다.
       //
       // 얹는 크기는 「한 번 더해졌다」의 몫 0.28 에 상대적인 크기를 더한 것입니다. 절대값으로
