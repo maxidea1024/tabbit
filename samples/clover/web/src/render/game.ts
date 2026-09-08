@@ -186,6 +186,18 @@ const PAYOUT_WAIT = 0.52
 const COIN_MAX = 28
 const COIN_STEP = 15
 const COIN_MERGE = 0.34
+/** 받을 때 뭉쳐 있던 낱개가 다시 펼쳐지는 데 걸리는 시간. */
+const COIN_SPREAD = 0.22
+/** 펼친 낱개가 하나씩 사라지는 간격. */
+const COIN_LAUNCH = 0.06
+/**
+ * 정산에서 뜨는 동전의 수 상한.
+ *
+ * **낱개는 28까지이지만 동전은 열둘까지입니다.** 그보다 많이 날면 하나씩 꽂히는 소리가
+ * 뜻을 잃고(음이 순번마다 오릅니다) 금액 칸 앞이 동전으로 덮입니다 — `Coins.shares` 가
+ * 한 자리에서 날릴 때 쓰는 상한과 같은 값입니다.
+ */
+const COIN_FLIGHTS = 12
 /**
  * 상점의 바닥이 서는 자리.
  *
@@ -225,6 +237,8 @@ const MENU_PAD = 18
 const PACK_SCALE = 1
 const PACK_CARD_W = SIZE.jokerWidth * PACK_SCALE
 const PACK_CARD_H = SIZE.jokerHeight * PACK_SCALE
+/** 펼친 팩에서 고른 한 장이 올라오는 거리. */
+const PACK_HOLD_RISE = 22
 
 /** 산 것이 제자리에 닿기까지. 용수철이 그만큼에 잦아듭니다. */
 /**
@@ -348,23 +362,42 @@ const HELD_H = 32
  */
 const SHOP_LIFT = 14
 /**
+ * 줄에서 고른 조커 · 소모품 밑에 서는 단추의 높이.
+ *
+ * **24픽셀입니다. 다른 단추 줄보다 낮습니다.**
+ *
+ * 아래 변이 딱지가 서던 자리의 아랫변(152)에 묶여 있고 위로는 화면의 윗변이 있습니다 —
+ * 딱지의 윗변이 28이므로 딱지와 단추가 함께 쓸 수 있는 것이 **152픽셀뿐**이고, 딱지가
+ * 124를 쓰므로 남는 것이 26입니다. 단추 24와 사이 2가 그 26입니다.
+ *
+ * 상점의 칸에서 32을 쓸 수 있는 것은 그 칸에 값이 적히던 한 줄이 딱지 아래에 더 있기
+ * 때문입니다. 줄에는 그 한 줄이 없습니다 — 딱지의 아랫변이 곧 줄의 아랫변입니다.
+ */
+const ROW_BTN_H = 24
+/**
+ * 그 단추와 딱지의 아랫변 사이.
+ *
+ * **2픽셀입니다.** 상점의 칸은 4를 쓰지만 여기에는 그만큼이 없습니다(위의 셈) — 4로 두면
+ * 딱지가 2픽셀 더 올라가고, 그러면 늘 조금씩 흔들리는 그 폭(±1.8)에서 윗변이 화면 밖으로
+ * 나갑니다.
+ */
+const ROW_GAP = 2
+/**
  * 줄에서 고른 조커 · 소모품이 밀려 올라가는 거리.
  *
- * **단추가 그 딱지의 아랫변에 붙어 서기 위한 거리입니다.** 상점의 칸과 같은 규칙이고,
- * 다른 것은 여기에 칸의 테두리가 없다는 것뿐입니다 — 12픽셀만 들고 단추는 자리의 아랫변
- * 밑에 세웠더니 딱지와 단추 사이가 22픽셀 벌어져, 그 단추가 어느 카드의 것인지가 자리로
- * 읽히지 않았습니다.
+ * **단추가 그 자리에 들어갈 만큼입니다.** 딱지는 위로 그만큼 비켜서고 단추의 아랫변이
+ * 딱지가 서던 자리의 아랫변에 그대로 섭니다 — 아래로 내려가는 것이 하나도 없습니다.
+ * 상점의 칸과 같은 규칙이고, 다른 것은 여기에 칸의 테두리가 없다는 것뿐입니다.
  *
- * **줄이 화면의 맨 위입니다.** 딱지의 윗변이 28이고 커서를 올린 딱지는 10픽셀 더 들리므로,
- * 이보다 더 올리면 딱지의 윗변이 화면 밖으로 나갑니다 — 18이었고, 그 값에서 커서 밑의
- * 딱지가 화면 윗변에 닿아 잘렸습니다.
+ * **12픽셀이었습니다.** 단추는 자리의 아랫변 아래에 세우고 딱지는 12만 들려서, 단추 줄이
+ * 딱지가 서던 자리보다 18픽셀 아래로 내려가 있었고 딱지와 단추 사이는 22픽셀 벌어져
+ * 있었습니다.
  *
- * 상점의 칸이 밀려 올라가는 거리와 같습니다. 같아야 할 이유는 없고, 두 줄이 같은 몸짓을
- * 하는 것으로 읽히면 그것으로 넉넉합니다.
+ * **커서를 올려도 더 들리지 않습니다.** 고른 딱지는 이미 올라가 있고, 여기에 커서의
+ * 10픽셀과 1.1배가 더 얹히면 윗변이 화면 밖으로 나갑니다 — `JokerView.held` 가 그것을
+ * 막습니다.
  */
-const HELD_RISE = SHOP_LIFT
-/** 고른 딱지의 아랫변과 그 밑의 단추 사이. **상점의 칸과 같은 4픽셀입니다.** */
-const HELD_GAP = 4
+const HELD_RISE = ROW_BTN_H + ROW_GAP
 const PLAY_Y = 366
 /**
  * 딜러의 자리. 화면 오른쪽 위 밖입니다.
@@ -1012,6 +1045,13 @@ interface PackFace {
 interface PackView {
   face: PackFace
   motion: Motion
+  /**
+   * 고른 한 장이 올라온 높이.
+   *
+   * **용수철입니다.** 고른 것인지로 자리를 바로 정하면 놓는 순간 카드가 툭 내려앉습니다 —
+   * 줄에서 고른 조커와 상점의 칸이 같은 몸짓이고 같은 용수철입니다.
+   */
+  lift: Spring
   index: number
   item: ShopItem
   /**
@@ -1321,13 +1361,22 @@ export class Game {
    */
   private readonly shopWas = new Map<string, number>()
   /**
-   * 고른 것이 들리는 높이.
+   * 상점의 칸과 팩의 칸마다 들리는 높이. 열쇠가 `card:<칸>` · `pack:<칸>` 입니다.
    *
    * **누른 것이 올라와야 골랐다는 것이 됩니다.** 단추가 그 밑에 서는 것만으로는 어느 칸을
    * 고른 것인지가 단추의 자리로만 읽히고, 칸 자체는 아무 일도 없었던 것처럼 남습니다 —
-   * 조커와 소모품이 들리는 것과 같은 몸짓입니다.
+   * 조커와 소모품이 들리는 것과 같은 몸짓이고 같은 용수철입니다.
+   *
+   * **칸마다 하나입니다.** 용수철 하나를 모든 칸이 나눠 쓰고 있었고, 놓는 순간 「고른 칸」이
+   * 아니게 되므로 그 칸의 높이가 한 프레임에 0 이 되었습니다 — 용수철은 그 뒤에 혼자
+   * 잦아들었고 그것을 그리는 칸이 없었습니다. 그래서 놓을 때만 카드가 툭 내려앉았습니다.
+   * 다른 칸으로 옮겨 고를 때도 같습니다 — 앞의 칸이 툭 내려가고 새 칸이 툭 올라옵니다.
+   *
+   * **칸은 다시 그릴 때마다 새로 만들어지므로 이 표는 그 밖에 있습니다**(`consumableLift`
+   * 와 같은 이유입니다). 그 프레임에 만지지 않은 열쇠는 지웁니다 — 없어진 칸의 용수철은
+   * 다시 도는 자리가 없어 그 값에 멈춰 있습니다.
    */
-  private readonly shopLift = new Spring()
+  private readonly shopLifts = new Map<string, Spring>()
   /**
    * 상점 판이 화면 아래에서 올라오는 동안의 세로 어긋남. 0 이면 제자리입니다.
    *
@@ -1425,8 +1474,17 @@ export class Game {
       this.payoutTaking = false
       // **받지 않고 닫힌 판의 돈은 그 자리에서 잔액에 들어갑니다.** 줄이 남아 있으면 화면의
       // 잔액이 그만큼 코어보다 뒤에 머문 채로 남습니다.
-      const left = this.payoutRows.reduce((sum, row) => sum + row.amount, 0)
+      let left = this.payoutRows.reduce((sum, row) => sum + row.amount, 0)
       this.payoutRows.length = 0
+      // **뜨지 못한 낱개의 몫도 같습니다.** 받는 중에 판이 걷히면(`Esc`) 남은 낱개는 뜰
+      // 자리가 없어졌으므로 그 자리에서 잔액에 들어갑니다. **뜬 것으로 셈해 둡니다** —
+      // 판을 닫는 자리가 「아직 뜰 것이 남았는가」를 이 값으로 보므로, 그대로 두면 다음
+      // 판을 받을 때 그 자리가 영영 오지 않습니다.
+      const taking = this.payoutBar?.taking
+      if (taking) {
+        for (let i = taking.launched; i < taking.share.length; i++) left += taking.share[i]
+        taking.launched = taking.share.length
+      }
       if (left !== 0) {
         this.shown.money += left
         this.money.target = this.shown.money
@@ -2055,6 +2113,17 @@ export class Game {
     coins: Text[]; coinRest: number[]; coinTo: number
     mergeAt: number; merged: boolean
     /**
+     * 「받는다」 를 누른 뒤.
+     *
+     * **뭉쳐 있던 낱개가 다시 펼쳐지고, 하나씩 사라지면서 그 자리에서 동전이 뜹니다.**
+     * 한 자리에서 열두 개가 함께 뜨면 그것은 곧게 그은 선 하나이고, 낱개가 이미 줄로
+     * 펼쳐져 있으므로 그 자리를 쓰면 열두 갈래가 됩니다.
+     *
+     * `share` 가 0 인 낱개는 동전 없이 사라집니다 — 동전의 수는 열둘까지이고(그보다 많이
+     * 날면 하나씩 꽂히는 소리가 뜻을 잃습니다) 낱개는 28까지입니다.
+     */
+    taking?: { at: number; share: number[]; launched: number; flights: number }
+    /**
      * 「받는다」 와 그것이 열리는 시각.
      *
      * **줄이 다 서기 전에는 잠깁니다.** 열려 있으면 셈이 도는 중에 눌리고, 그러면 얼마를
@@ -2546,7 +2615,12 @@ export class Game {
     this.backdrop.addChild(this.sheet, this.frontSheet, this.euphoria.view)
     this.syncBackdrop()
     // 기가 모이는 자리는 낸 카드가 놓인 자리입니다. **판의 좌표는 고정이므로 한 번 적습니다.**
+    //
+    // **배경의 고리도 같은 자리에서 퍼집니다.** 왼쪽 판이 280픽셀을 쓰므로 카드가 놓이는
+    // 자리의 가운데는 화면의 가운데가 아니고, 화면 가운데에서 퍼지는 고리는 그 한 방이
+    // 카드에서 난 것으로 읽히지 않습니다.
     this.euphoria.setCenter(BOARD_X / SIZE.width, PLAY_Y / SIZE.height)
+    this.background.setCenter(BOARD_X / SIZE.width, PLAY_Y / SIZE.height)
 
     // **판 밖은 잘라 냅니다.** 판은 1280 × 800 하나에 맞춰 그려지고, 창의 비율이 다르면
     // 옆이나 아래가 남습니다 — 배경이 그 자리까지 덮고 있었고, 그러면 판이 더 넓은 화면
@@ -4689,25 +4763,32 @@ export class Game {
    * 조커와 소모품을 고를 때와 같은 몸짓이고, 같은 용수철입니다.
    */
   private advanceShopLift(seconds: number): void {
-    // **단추가 설 자리만큼 밀어 올립니다.** 단추는 그 칸이 서던 자리의 바닥에 서므로,
-    // 물건이 그 위로 비켜서지 않으면 단추가 그림 위에 얹힙니다.
-    this.shopLift.target =
-      this.held?.kind === 'shop' || this.held?.kind === 'pack_slot' ? SHOP_LIFT : 0
-    this.shopLift.advance(seconds)
-    // **단추가 칸 수를 대신합니다.** 상점의 칸에서 단추가 값을 대신하는 것(아래의
-    // `price.visible`)과 같은 자리이고 같은 이유입니다 — 단추 줄이 칸 수를 적은 글과 같은
-    // 높이에 서므로, 남겨 두면 단추 아래로 글자의 아랫부분만 삐죽 보입니다.
-    //
-    // **프레임마다 정합니다.** 다시 그리는 자리에서 굳히면 그 뒤로 다시 그리지 않는 동안
-    // 칸 수가 감춰진 채로 남습니다 — 세우는 자리는 고른 것을 놓고 그대로 빠져나오는 길이
-    // 셋 있습니다(끝난 판 · 없어진 물건 · 없어진 칸).
-    this.jokerCount.visible = this.held?.kind !== 'joker'
-    this.consumableCount.visible = this.held?.kind !== 'consumable'
     this.hub.advance(seconds)
     this.login.advance(seconds)
     this.netStatus.advance(seconds)
     this.rollRank(seconds)
-    const lift = this.shopLift.value
+
+    // 지금 올라와 있어야 하는 칸 하나. 없으면 전부 제자리로 내려옵니다.
+    const up = this.held?.kind === 'shop' ? `card:${this.held.uid}`
+      : this.held?.kind === 'pack_slot' ? `pack:${this.held.uid}` : undefined
+    const seen = new Set<string>()
+    /**
+     * 이 칸이 지금 얼마나 올라와 있는가. **한 프레임에 칸마다 한 번씩 돕니다.**
+     *
+     * **단추가 설 자리만큼 밀어 올립니다.** 단추는 그 칸이 서던 자리의 바닥에 서므로,
+     * 물건이 그 위로 비켜서지 않으면 단추가 그림 위에 얹힙니다.
+     */
+    const liftOf = (key: string): number => {
+      let spring = this.shopLifts.get(key)
+      if (!spring) {
+        spring = new Spring()
+        this.shopLifts.set(key, spring)
+      }
+      spring.target = key === up ? SHOP_LIFT : 0
+      spring.advance(seconds)
+      seen.add(key)
+      return spring.value
+    }
 
     // 표를 지우는 자리와 여기가 갈라져 있으므로 한 겹 더 막습니다 — 지워진 것의 자리를
     // 만지면 그 프레임의 나머지가 통째로 죽습니다.
@@ -4716,10 +4797,10 @@ export class Game {
     // 고른 다음에 필요한 것은 살지 말지뿐입니다.
     for (const [slot, one] of this.shopTiles) {
       if (one.tile.destroyed) continue
-      const here = this.held?.kind === 'shop' && this.held.uid === slot
+      const key = `card:${slot}`
       // **칸이 아니라 그 안의 물건이 올라갑니다.** 칸은 상점의 자리이므로 그대로 있습니다.
-      one.lift.y = here ? -lift : 0
-      one.price.visible = !here
+      one.lift.y = -liftOf(key)
+      one.price.visible = key !== up
       // 지난 자리에서 제자리로. **자리를 묻는 쪽에는 제자리를 답합니다** — 미끄러지는 것은
       // 눈에 보이는 것뿐이고, 단추가 서는 자리와 동전이 나오는 자리는 닿을 자리입니다.
       if (one.slide === 0) continue
@@ -4729,9 +4810,14 @@ export class Game {
     }
     for (const [slot, one] of this.packSlotTiles) {
       if (one.tile.destroyed) continue
-      const here = this.held?.kind === 'pack_slot' && this.held.uid === slot
-      one.lift.y = here ? -lift : 0
-      one.price.visible = !here
+      const key = `pack:${slot}`
+      one.lift.y = -liftOf(key)
+      one.price.visible = key !== up
+    }
+
+    // 이 프레임에 만지지 않은 것은 없어진 칸입니다. 그 높이는 버립니다.
+    for (const key of [...this.shopLifts.keys()]) {
+      if (!seen.has(key)) this.shopLifts.delete(key)
     }
   }
 
@@ -5343,7 +5429,9 @@ export class Game {
         // 밑에 묻히고, 그러면 오르는 것이 다섯 계단으로 들립니다.
         this.flourish('glass', 6, { gap: 0.11, after: 0.18, strength: 0.85 })
         this.burstAcrossPlayArea(46, COLOR.good, 2.4, 2.6)
-        this.particles.burst(BOARD_X, PLAY_Y - 60, 70, COLOR.money, 2.6, 2.8)
+        // **돈은 지폐로 뿌립니다.** 격파의 보상이 이 자리에서 들어오므로, 그 한 방이
+        // 불티가 아니라 뿌린 돈으로 보여야 합니다 — 점보다 크므로 개수는 절반입니다.
+        this.particles.bills(BOARD_X, PLAY_Y - 60, 34, COLOR.money, 1.2, 1)
         this.particles.burst(BOARD_X, 210, 44, COLOR.good, 2.2, 2.4)
         // **국면이 넘어가는 자리입니다.** 흔들림은 판 전체를 움직이므로, 여기서 큰 값을
         // 쓰면 격파한 것이 아니라 땅이 흔들린 것으로 읽힙니다 — 알릴 것은 이미 터지는
@@ -5387,7 +5475,7 @@ export class Game {
         this.say(t('ui.label.all_cleared'), COLOR.money, 2.8)
         this.audio.play('blind_clear')
         this.flourish('bell', 10, { gap: 0.13, after: 0.18, strength: 0.8 })
-        this.particles.burst(BOARD_X, SIZE.height / 2, 120, COLOR.money, 2.6)
+        this.particles.bills(BOARD_X, SIZE.height / 2, 54, COLOR.money, 1.3, 1.1)
         this.jolt(8, 3.4, 1)
         this.flashScreen(COLOR.money, 0.44)
         this.stop(220)
@@ -5720,7 +5808,12 @@ export class Game {
     // 「받는다」 의 동전이 다 닿았으면 판을 닫습니다.
     // **닫은 자리에서 다시 그립니다.** 상점은 정산 판이 없어야 서므로, 닫힌 것을 그리는
     // 쪽이 알아야 합니다.
-    if (this.payoutTaking && !this.coins.busy) {
+    // **낱개가 아직 남아 있으면 닫지 않습니다.** 펼치는 0.22초 동안에는 뜬 동전이 하나도
+    // 없으므로, 동전만 보고 닫으면 그 자리에서 판이 사라집니다.
+    const taking = this.payoutBar?.taking
+    const launching = taking !== undefined
+      && taking.launched < (this.payoutBar?.coins.length ?? 0)
+    if (this.payoutTaking && !launching && !this.coins.busy) {
       this.payoutTaking = false
       this.modals.close(this.payout)
       this.refresh()
@@ -6163,10 +6256,13 @@ export class Game {
         const ok = this.focus.kind === 'joker' && this.focusEligible('joker', view.uid)
         view.alpha = ok ? 1 : 0.3
         if (ok && !(this.drag?.kind === 'joker' && this.drag.uid === view.uid)) {
-          const lifted = this.held?.kind === 'joker' && this.held.uid === view.uid
-            ? HELD_RISE : 0
-          view.motion.y.target =
-            JOKER_Y - lifted - 6 - Math.sin(this.clock * 3 + view.motion.phase) * 3
+          // **고른 것에는 오르내림을 얹지 않습니다.** 고른 것은 이미 `HELD_RISE` 만큼
+          // 올라가 그 밑에 단추를 세운 것이고, 거기에 9픽셀이 더 얹히면 윗변이 화면 밖으로
+          // 나갑니다 — 오르내리는 것은 「이 줄에서 고르십시오」의 몸짓이므로 아직 고르지
+          // 않은 것들의 것입니다.
+          const bob = this.held?.kind === 'joker' && this.held.uid === view.uid
+            ? HELD_RISE : 6 + Math.sin(this.clock * 3 + view.motion.phase) * 3
+          view.motion.y.target = JOKER_Y - bob
         }
       }
       view.advance(seconds, this.clock)
@@ -8611,7 +8707,7 @@ export class Game {
     this.haptics.play(won ? 'win' : 'lose')
     this.jolt(won ? 8 : 6, won ? 3.4 : 2.6, 1)
     this.flashScreen(won ? COLOR.money : COLOR.bad, won ? 0.5 : 0.34)
-    if (won) this.particles.burst(POPUP_X, SIZE.height / 2, 90, COLOR.money, 2.6)
+    if (won) this.particles.bills(POPUP_X, SIZE.height / 2, 44, COLOR.money, 1.3, 1.1)
   }
 
   /** 게임오버 판의 득점 바를 한 단계 진행합니다. 0.6초에 걸쳐 득점까지 찹니다. */
@@ -8645,7 +8741,7 @@ export class Game {
       this.audio.play('blind_clear')
       this.jolt(4, 2.2, 1)
       if (line.moved >= 25) {
-        this.particles.burst(POPUP_X, SIZE.height / 2, 40, COLOR.money, 2.2)
+        this.particles.bills(POPUP_X, SIZE.height / 2, 22, COLOR.money, 1.1, 1)
       }
     }
     if (line.tier !== undefined) {
@@ -9225,7 +9321,9 @@ export class Game {
       }
 
       if (this.drag?.kind === 'joker' && this.drag.uid === joker.uid && this.drag.moved) return
-      const lifted = this.held?.kind === 'joker' && this.held.uid === joker.uid ? HELD_RISE : 0
+      // **고른 딱지는 커서에 반응하지 않습니다.** 까닭은 `HELD_RISE` 에 있습니다.
+      view.held = this.held?.kind === 'joker' && this.held.uid === joker.uid
+      const lifted = view.held ? HELD_RISE : 0
       // 손패와 같습니다 — 줄이 자리를 넘칠 만큼 차면 겹치므로, 겹치는 차례가 발동하는
       // 차례와 같아야 합니다.
       view.zIndex = ROW_Z + index
@@ -9434,10 +9532,13 @@ export class Game {
     // 카드는 화면 가운데에 있으므로 그 밑입니다 — 한 높이로 두면 무엇에 대한 버튼인지가
     // 끊깁니다.
     //
-    // **들린 딱지의 아랫변에 붙습니다.** 상점의 칸과 같은 규칙입니다 — 딱지가 `HELD_RISE`
-    // 만큼 올라가고 단추가 그 밑 `HELD_GAP` 에 섭니다. 줄의 어느 것을 고르든 이 높이는
-    // 같으므로 두 번째 누름은 늘 같은 자리입니다.
-    let baseline = JOKER_Y + SIZE.jokerHeight / 2 - HELD_RISE + HELD_GAP
+    // **줄에서는 단추가 딱지가 서던 자리 안에 들어갑니다.** 아랫변이 딱지의 아랫변이고,
+    // 딱지가 `HELD_RISE` 만큼 위로 비켜섭니다 — 아래로 내려가는 것이 하나도 없습니다.
+    // 어느 것을 고르든 이 높이는 같으므로 두 번째 누름은 늘 같은 자리입니다.
+    let baseline = JOKER_Y + SIZE.jokerHeight / 2 - ROW_BTN_H
+    // **줄의 단추만 낮습니다.** 그 까닭은 `ROW_BTN_H` 에 있습니다 — 상점의 칸과 팩은 값이
+    // 적히던 한 줄을 단추가 대신하므로 그 줄의 높이를 그대로 씁니다.
+    let height = ROW_BTN_H
     const buttons: Button[] = []
 
     if (held.kind === 'shop') {
@@ -9456,6 +9557,7 @@ export class Game {
       // **쉬는 자리로 셉니다.** 고른 딱지는 들려 있고, 들린 만큼 단추도 따라 올라가면
       // 단추가 딱지 안으로 파고듭니다.
       baseline = one.holdY
+      height = HELD_H
       // **자리가 찼는지는 단추에 나타내지 않습니다.** 말도 색도 하나입니다 — 자리가 없으면
       // 누른 다음에 무엇과 바꿀지 고르는 화면이 서고, 그 화면이 이미 그 말을 합니다.
       // 단추에 미리 적어 두면 같은 것을 두 번 알리는 것이 됩니다.
@@ -9479,6 +9581,7 @@ export class Game {
       this.heldNode = spot.tile
       // 카드 딱지와 같은 규칙입니다 — 봉지 바로 밑.
       baseline = spot.holdY
+      height = HELD_H
       buttons.push(new Button(t('ui.button.buy'), 84, 32, UI.yellow, () => {
         this.held = undefined
         this.openPackSlot(held.uid)
@@ -9499,6 +9602,7 @@ export class Game {
       anchor = view.face.node.x
       this.heldNode = view.face.node
       baseline = PACK_CARDS_Y + PACK_CARD_H / 2 + 4
+      height = HELD_H
       // 상점의 칸과 같은 규칙입니다 — 자리가 찼는지는 단추가 아니라 그 다음 화면이 적습니다.
       buttons.push(new Button(t('ui.button.take'), 92, 32, UI.yellow, () => {
         this.held = undefined
@@ -9516,10 +9620,10 @@ export class Game {
       // **자리를 비우는 중이면 단추가 하나입니다.** 파는 것과 같은 값이 들어오지만 하는
       // 일은 「이것을 내놓고 그것을 받는다」이므로, 판다가 아니라 그 말로 적습니다.
       if (this.focus) {
-        buttons.push(new Button(tf('ui.button.give_up', { n: price }), 118, 30, UI.yellow,
+        buttons.push(new Button(tf('ui.button.give_up', { n: price }), 118, ROW_BTN_H, UI.yellow,
           () => this.commitFocus(index)))
       } else {
-        buttons.push(new Button(tf('ui.button.sell', { n: price }), 92, 30, UI.red, () => {
+        buttons.push(new Button(tf('ui.button.sell', { n: price }), 92, ROW_BTN_H, UI.red, () => {
           this.held = undefined
           this.audio.play('joker_sell')
           this.sellFrom = this.jokerSpot(index)
@@ -9536,7 +9640,7 @@ export class Game {
       this.heldNode = this.consumableTiles.find(one => one.uid === held.uid)?.tile
       if (this.focus) {
         buttons.push(new Button(
-          tf('ui.button.give_up', { n: this.data.economy.sellMin }), 118, 30, UI.yellow,
+          tf('ui.button.give_up', { n: this.data.economy.sellMin }), 118, ROW_BTN_H, UI.yellow,
           () => this.commitFocus(index)))
       // **「사용」은 손패를 앞에 두었을 때만 섭니다.** 상점과 블라인드 고르기에서는 팔 수만
       // 있습니다 — 쓸 수 없는 때에 단추가 서 있으면 눌러서 카드를 버리게 됩니다.
@@ -9544,7 +9648,7 @@ export class Game {
       // **나아가는 단추의 노랑입니다.** 판의 색(`UI.light`)이었고, 그 색은 겉면을 따라가므로
       // 무채색 겉면에서는 회색 단추 하나였습니다 — 하는 일은 「낸다」와 같은 갈래이고,
       // 그 옆의 「판매」가 붉음이므로 둘이 색으로 갈립니다.
-      } else if (this.handReady) buttons.push(new Button(t('ui.button.use'), 68, 30, UI.yellow, () => {
+      } else if (this.handReady) buttons.push(new Button(t('ui.button.use'), 68, ROW_BTN_H, UI.yellow, () => {
         this.held = undefined
         // **쓴 것과 판 것은 없어지는 모습이 다릅니다.** 쓴 것은 판 가운데로 나와 번쩍이고,
         // 판 것은 제자리에서 탑니다 — 화면은 어느 쪽인지 모르므로 여기서 적어 둡니다.
@@ -9552,7 +9656,7 @@ export class Game {
         this.act({ t: 'use_consumable', index, targets: this.orderedSelection() })
       }))
       if (!this.focus) {
-        buttons.push(new Button(tf('ui.button.sell', { n: this.data.economy.sellMin }), 92, 30, UI.red, () => {
+        buttons.push(new Button(tf('ui.button.sell', { n: this.data.economy.sellMin }), 92, ROW_BTN_H, UI.red, () => {
           this.held = undefined
           this.audio.play('joker_sell')
           this.sellFrom = this.itemSpot(index)
@@ -9571,10 +9675,10 @@ export class Game {
     // **첫 단추의 자리를 알립니다.** 이제 사는 것도 집는 것도 두 번 눌러야 하므로, 도구가
     // 두 번째 누를 자리를 알아야 합니다 — 계산을 도구가 베껴 적으면 배치를 고칠 때
     // 한쪽만 고쳐지고 그 도구는 엉뚱한 곳을 눌러 놓고 아무 말도 하지 않습니다.
-    this.spots.held = { x: x + (buttons[0]?.width ?? 0) / 2, y: baseline + 16 }
+    this.spots.held = { x: x + (buttons[0]?.width ?? 0) / 2, y: baseline + height / 2 }
     // **단추 줄이 화면 안에 있는지는 이 사각형으로만 확인됩니다.** 첫 단추의 가운데만
     // 알리면 줄이 얼마나 긴지 알 수 없고, 잘린 것은 줄의 오른쪽 끝입니다.
-    this.heldBox = box(x, baseline, span, HELD_H)
+    this.heldBox = box(x, baseline, span, height)
     for (const button of buttons) {
       button.position.set(x, baseline)
       x += button.width + gap
@@ -9698,7 +9802,10 @@ export class Game {
       if (this.focus) {
         const ok = this.focus.kind === 'consumable'
         one.tile.alpha = ok ? 1 : 0.3
-        if (ok) one.tile.y -= 6 + Math.sin(this.clock * 3 + one.uid) * 3
+        // **고른 것에는 얹지 않습니다.** 조커 줄과 같은 이유입니다 — 용수철이 이미
+        // `HELD_RISE` 만큼 들어 올렸고 그 밑에 단추가 섰습니다.
+        const picked = this.held?.kind === 'consumable' && this.held.uid === one.uid
+        if (ok && !picked) one.tile.y -= 6 + Math.sin(this.clock * 3 + one.uid) * 3
       } else one.tile.alpha = 1
 
       // 사서 오는 중인 한 장은 산 자리에서 제 칸으로 미끄러집니다.
@@ -10115,9 +10222,17 @@ export class Game {
       // 으로 잠깁니다 — 두 번 눌리지 않고, 무엇을 기다리는지가 적힙니다. 닫는 것은
       // `advancePayout` 이 동전이 다 닿은 것을 보고 합니다.
       if (sum !== 0) {
-        const at = layer.toGlobal({ x: take.x + 120, y: take.y + 24 })
-        if (sum > 0) this.coins.fly(sum, this.coins.toLocal(at), this.moneySpot())
-        else this.coins.spend(sum, this.moneySpot())
+        // **낱개가 있으면 그 자리에서 하나씩 뜹니다.** 뭉쳐 둔 것을 다시 펼치고, 하나씩
+        // 사라지면서 그 자리에서 동전이 날아갑니다 — 단추 한 자리에서 열두 개가 함께
+        // 뜨는 것은 곧게 그은 선 하나였습니다. 낱개가 없는 판(빚)에서는 앞의 길입니다.
+        const bar = this.payoutBar
+        if (sum > 0 && bar && bar.coins.length > 0) {
+          bar.taking = { at: this.clock, share: this.launchShares(sum, bar.coins.length),
+                         launched: 0, flights: 0 }
+        } else if (sum > 0) {
+          const at = layer.toGlobal({ x: take.x + 120, y: take.y + 24 })
+          this.coins.fly(sum, this.coins.toLocal(at), this.moneySpot())
+        } else this.coins.spend(sum, this.moneySpot())
         take.enabled = false
         take.text = t('ui.payout.taking')
         this.payoutTaking = true
@@ -10145,6 +10260,49 @@ export class Game {
   private advancePayoutBar(): void {
     const one = this.payoutBar
     if (!one || one.sum.destroyed) return
+
+    // **받는 중.** 뭉쳐 있던 낱개가 다시 펼쳐지고, 하나씩 사라지면서 그 자리에서 동전이
+    // 뜹니다 — 바와 합계는 이미 다 셌으므로 여기서 할 일이 없습니다.
+    const take = one.taking
+    if (take) {
+      const back = Math.max(0, Math.min(1, (this.clock - take.at) / COIN_SPREAD))
+      const eased = back * back * (3 - 2 * back)
+      one.sum.alpha = 1 - eased
+      one.coins.forEach((coin, i) => {
+        if (coin.destroyed) return
+        // 이미 뜬 것은 없습니다.
+        if (i < take.launched) {
+          coin.visible = false
+          return
+        }
+        coin.visible = true
+        const rest = one.coinRest[i]
+        coin.position.x = one.coinTo + (rest - one.coinTo) * eased
+        coin.alpha = eased
+        coin.scale.set(0.7 + 0.3 * eased)
+      })
+      // 다 펼친 뒤에 하나씩 뜹니다. **한 프레임에 여럿이 밀려 있으면 그만큼 함께 띄웁니다** —
+      // 프레임이 늦은 기계에서 마지막 동전만 남지 않게 합니다.
+      if (back >= 1) {
+        const due = Math.floor((this.clock - take.at - COIN_SPREAD) / COIN_LAUNCH) + 1
+        while (take.launched < Math.min(due, one.coins.length)) {
+          const i = take.launched++
+          const coin = one.coins[i]
+          if (coin.destroyed) continue
+          coin.visible = false
+          const share = take.share[i]
+          if (share === 0) continue
+          // **낱개가 서 있던 자리입니다.** 지금 그린 자리가 아니라 쉬는 자리입니다 —
+          // 펼치는 중에 눌리는 일은 없지만, 자리를 묻는 쪽에는 늘 닿을 자리를 답합니다.
+          const layer = coin.parent
+          if (!layer) continue
+          const at = layer.toGlobal({ x: one.coinRest[i], y: coin.y })
+          this.coins.one(share, take.flights++, this.coins.toLocal(at), this.moneySpot())
+        }
+      }
+      return
+    }
+
     const step = Math.max(0, Math.min(1, (this.clock - one.begin) / 0.42))
     one.bar.set(one.ratio * (1 - (1 - step) * (1 - step)))
 
@@ -10190,6 +10348,28 @@ export class Game {
     one.take.enabled = ready
     if (ready && this.takeSpot) this.spots.take = this.takeSpot
     else delete this.spots.take
+  }
+
+  /**
+   * 낱개마다 실을 금액. **동전이 뜨지 않는 낱개는 0 입니다.**
+   *
+   * 동전은 `COIN_FLIGHTS` 까지이고 낱개는 `COIN_MAX` 까지이므로, 많이 받는 판에서는 낱개
+   * 몇 개가 동전 없이 사라집니다 — 뜰 것을 줄에 고르게 흩습니다. 앞의 열둘만 쓰면 줄의
+   * 왼쪽에서만 동전이 뜨고 오른쪽은 그냥 사라집니다.
+   *
+   * **몫의 합이 금액과 같습니다.** 나누어지지 않는 나머지는 앞의 것부터 하나씩 더 듭니다 —
+   * 마지막 동전이 닿은 잔액이 코어와 같아야 합니다.
+   */
+  private launchShares(sum: number, many: number): number[] {
+    const count = Math.max(1, Math.min(many, COIN_FLIGHTS))
+    const base = Math.floor(sum / count)
+    const extra = sum - base * count
+    const out = new Array<number>(many).fill(0)
+    for (let j = 0; j < count; j++) {
+      const at = count === 1 ? 0 : Math.round(j * (many - 1) / (count - 1))
+      out[at] = base + (j < extra ? 1 : 0)
+    }
+    return out
   }
 
   /**
@@ -11942,7 +12122,7 @@ export class Game {
       node.alpha = 0
 
       this.packViews.set(index, {
-        face, motion, index, item,
+        face, motion, index, item, lift: new Spring(),
         // 황금비만큼씩 벌려 둡니다. 정수 배로 벌리면 장수가 짝수일 때 두 장씩 같은 자리가
         // 됩니다.
         sway: index * 2.399_96,
@@ -12257,19 +12437,25 @@ export class Game {
       // 올라오는 것은 **고른 것 하나**입니다. 상점의 칸과 같은 규칙이고, 고른 카드는 손을
       // 떼어도 올라와 있어야 무엇을 집으려는 중인지가 남습니다.
       const up = this.held?.kind === 'pack' && this.held.uid === one.index
+      // **용수철로 오르내립니다.** 고른 것인지로 자리를 바로 정하면 놓는 순간 카드가 툭
+      // 내려앉습니다 — 줄의 조커와 상점의 칸이 같은 몸짓입니다.
+      one.lift.target = up ? PACK_HOLD_RISE : 0
+      one.lift.advance(seconds)
+      const risen = one.lift.value / PACK_HOLD_RISE
 
       // **펼쳐 놓은 카드는 가만히 있지 않습니다.** 자리에 닿은 뒤로 아무것도 움직이지
       // 않으면 고르는 화면이 그림 한 장이 됩니다. 살짝 갸웃거리고 아주 조금 떠 있습니다 —
       // 눈에 띄면 그것은 이미 큰 것이라, 각도는 1.6도이고 높이는 2픽셀입니다.
       //
       // **올린 한 장은 잦아듭니다.** 들여다보는 중인 카드가 계속 흔들리면 읽기 어렵고,
-      // 멈추는 것 자체가 「이것을 보고 있다」가 됩니다.
-      const alive = up ? 0.22 : 1
+      // 멈추는 것 자체가 「이것을 보고 있다」가 됩니다. 올라오는 만큼 잦아듭니다 — 켜고
+      // 끄면 그 순간에 흔들림의 폭이 한 번 튑니다.
+      const alive = 1 - 0.78 * risen
       const tilt = Math.sin(this.clock * 1.15 + one.sway) * 1.6 * alive
       const bob = Math.sin(this.clock * 0.83 + one.sway * 1.6) * 2 * alive
 
       one.motion.scale.target = up ? PACK_SCALE * 1.07 : PACK_SCALE
-      node.position.set(one.motion.x.value, one.motion.y.value - (up ? 22 : 0) + bob)
+      node.position.set(one.motion.x.value, one.motion.y.value - one.lift.value + bob)
       node.rotation = (one.motion.rotation.value + tilt) * (Math.PI / 180)
       node.scale.set(one.motion.scale.value)
       node.zIndex = up ? 10 : 0

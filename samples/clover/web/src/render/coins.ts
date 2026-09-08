@@ -128,6 +128,38 @@ export class Coins extends Container {
   }
 
   /**
+   * 동전 한 개를 그 자리에서 날립니다.
+   *
+   * **부르는 쪽이 자리를 정합니다.** `fly` 는 한 자리에서 여러 개를 흩어 날리는 것이고,
+   * 이것은 이미 여러 자리에 놓인 것들이 저마다 하나씩 뜨는 자리입니다 — 정산의 `$` 낱개가
+   * 그렇습니다. 자리를 흩지 않습니다(이미 흩어져 있습니다).
+   *
+   * `index` 는 소리의 음을 올리는 순번이므로 부르는 쪽이 셉니다.
+   */
+  one(share: number, index: number, from: { x: number; y: number },
+      to: { x: number; y: number }): void {
+    if (share === 0) return
+    this.live.push({
+      kind: 'fly',
+      from: { x: from.x, y: from.y },
+      to: { x: to.x + (Math.random() - 0.5) * 18, y: to.y + (Math.random() - 0.5) * 12 },
+      // 뜨는 자리가 저마다 다르므로 곡선은 그 자리와 금액 칸 사이에서 셉니다.
+      bend: {
+        x: (from.x + to.x) / 2 + (Math.random() - 0.5) * 90,
+        y: Math.min(from.y, to.y) - 70 - Math.random() * 70,
+      },
+      delay: 0,
+      life: 0,
+      span: 0.42 + Math.random() * 0.18,
+      spin: 6 + Math.random() * 6,
+      gain: share > 0,
+      share,
+      index,
+      landed: false,
+    })
+  }
+
+  /**
    * 곳간에서 돈이 빠져나갑니다. `at` 은 금액 숫자의 자리입니다.
    *
    * **동전이 숫자에서 던져져 솟았다가 떨어지면서 사라집니다.** 위로 80~120px 솟아 좌우로

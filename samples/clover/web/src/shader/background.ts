@@ -48,6 +48,7 @@ uniform float uPulse;      // 0..1. 한 방 먹으면 1이 되고 곧 줄어듭�
 uniform vec3  uInk;        // 바탕색
 uniform vec3  uGlow;       // 무늬의 색
 uniform float uAspect;
+uniform vec2  uCenter;     // 고리가 퍼져 나가는 자리. 0..1 의 화면 좌표입니다.
 
 uniform sampler2D uSoft;
 
@@ -87,8 +88,14 @@ void main(void) {
   // **한 방.** 무늬가 통째로 밝아지고 고리가 가운데에서 바깥으로 퍼집니다. 화면 흔들림만
   // 있으면 「움직였다」로 읽히고, 배경이 같이 밝아지면 「터졌다」로 읽힙니다.
   if (uPulse > 0.002) {
-    float d = length(vec2((uv.x - 0.5) * uAspect, uv.y - 0.5));
-    float ring = smoothstep(0.09, 0.0, abs(d - (1.0 - uPulse) * 1.05));
+    // **화면의 가운데가 아니라 판의 가운데입니다.** 왼쪽 판이 280픽셀을 쓰므로 카드가
+    // 놓이는 자리의 가운데는 화면의 가운데보다 오른쪽이고, 고리가 화면 가운데에서 퍼지면
+    // 그 한 방이 카드에서 난 것으로 읽히지 않습니다 — 환희의 기가 모이는 자리와 같은
+    // 자리이고, 부르는 쪽이 그 둘에 같은 값을 넘깁니다.
+    float d = length(vec2((uv.x - uCenter.x) * uAspect, uv.y - uCenter.y));
+    // 퍼져 나가는 끝은 1.25 입니다. **가운데가 옮겨진 만큼 늘립니다** — 판의 가운데에서
+    // 화면의 왼쪽 아래 귀퉁이까지가 1.19 이고, 1.05 로는 고리가 그 앞에서 멈춥니다.
+    float ring = smoothstep(0.09, 0.0, abs(d - (1.0 - uPulse) * 1.25));
     color += uGlow * (uPulse * (0.45 + 1.1 * bands) + ring * uPulse * 1.5);
   }
 
@@ -110,6 +117,7 @@ export class BackgroundFilter extends Filter {
           uHeat: { value: 0, type: 'f32' },
           uPulse: { value: 0, type: 'f32' },
           uAspect: { value: 16 / 9, type: 'f32' },
+          uCenter: { value: new Float32Array([0.5, 0.5]), type: 'vec2<f32>' },
           uInk: { value: new Float32Array([0.031, 0.075, 0.055]), type: 'vec3<f32>' },
           uGlow: { value: new Float32Array([0.25, 0.85, 0.55]), type: 'vec3<f32>' },
         },
@@ -125,6 +133,15 @@ export class BackgroundFilter extends Filter {
   advance(seconds: number): void {
     this.uniforms.uTime = (this.uniforms.uTime as number) + seconds
     this.uniforms.uPulse = Math.max(0, (this.uniforms.uPulse as number) - seconds * 2.4)
+  }
+
+  /**
+   * 고리가 퍼져 나가는 자리. **판의 가운데입니다.**
+   *
+   * 화면의 좌표가 아니라 0..1 의 비율이고, 부르는 쪽이 판의 자리를 화면 크기로 나눠 넘깁니다.
+   */
+  setCenter(x: number, y: number): void {
+    (this.uniforms.uCenter as Float32Array).set([x, y])
   }
 
   /** 한 방. 큰 값이 들어오면 배경이 밝아지고 고리가 퍼집니다. */

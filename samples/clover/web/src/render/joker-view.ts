@@ -128,6 +128,14 @@ export class JokerView extends Container {
   private glow = 0
 
   hovered = false
+  /**
+   * 고른 것인가. **그러면 커서에 반응하지 않습니다.**
+   *
+   * 고른 딱지는 이미 `HELD_RISE` 만큼 올라가 있고 그 밑에 단추가 섰습니다 — 거기에 커서의
+   * 10픽셀과 1.1배가 더 얹히면 조커 줄은 화면의 맨 위라 윗변이 화면 밖으로 나갑니다.
+   * 그리고 커서를 단추로 옮기는 동안 딱지가 10픽셀 내려앉는 것도 없어집니다.
+   */
+  held = false
   pointer = 0
   /** 발동해서 흔들리는 정도. 0 이면 조용합니다. */
   private rattle = 0
@@ -398,14 +406,15 @@ export class JokerView extends Container {
     const aside = Math.sin(this.shiver) * 15 * shake
       + Math.sin(this.shiver * 2.7) * 7 * shake
 
+    const lifts = this.hovered && !this.held
     const wobble = sway(time, this.motion.phase, 1.1, 1.1)
     this.x = this.motion.x.value + aside
-    this.y = this.motion.y.value - (this.hovered ? 10 : 0)
+    this.y = this.motion.y.value - (lifts ? 10 : 0)
       + sway(time, this.motion.phase * 1.3, 1.8, 0.7)
     this.rotation = (this.motion.rotation.value + wobble
       + Math.sin(this.shiver * 1.3) * 8 * shake) * (Math.PI / 180)
 
-    const want = this.hovered ? 1.1 : 1
+    const want = lifts ? 1.1 : 1
     if (Math.abs(this.motion.scale.target - want) > 0.001) this.motion.scale.target = want
     this.scale.set(this.motion.scale.value)
     this.zIndex = this.hovered ? 300 : 0
