@@ -7,7 +7,7 @@
 // 시선이 왼쪽에서 오른쪽으로 한 번 흐르게 두었습니다.
 
 import {
-  BlurFilter, Container, Graphics, Rectangle, Sprite, Text, Texture,
+  BlurFilter, Container, Graphics, Matrix, Rectangle, Sprite, Text, Texture,
   type FederatedPointerEvent,
   type Application,
 } from 'pixi.js'
@@ -3357,13 +3357,41 @@ export class Game {
     const crop = this.cropRect
     if (!crop) return undefined
     try {
-      return this.app.renderer.extract.texture({
+      const texture = this.app.renderer.extract.texture({
         target: this.screen,
         frame: new Rectangle(crop.x, crop.y, crop.width, crop.height),
         // **화면 배율보다 촘촘하게 굽지 않습니다.** 한 장이 그대로 메모리이고, 이 그림은
         // 타는 동안에만 있습니다.
         resolution: Math.min(2, this.app.renderer.resolution ?? 1),
       })
+      // **같은 그림에 한 번 더 그립니다.** 이유가 스텐실입니다.
+      //
+      // 마스크를 쓰는 것(상점 딱지의 컷아웃 · 조커 아트의 클립 · 태그와 보스의 원형)은
+      // 스텐실 버퍼로 잘립니다. 화면에는 그 버퍼가 처음부터 있고 프레임마다 지워지지만,
+      // **구울 그림에는 없습니다** — Pixi 가 `extract` 용 렌더 타깃을 색 텍스처 하나로만
+      // 만들고, 마스크가 처음 쓰이는 순간에 스텐실을 붙입니다(`ensureDepthStencil`). 그
+      // 자리에서 패스를 다시 여는데 **지우지 않고** 열므로, 갓 붙은 스텐실의 값은 정해져
+      // 있지 않습니다.
+      //
+      // 그 값이 0으로 오는 기계에서는 마스크가 맞고, 그렇지 않은 기계에서는 마스크가 통째로
+      // 어긋나 **그 그림이 아예 그려지지 않습니다.** 구운 그림의 그 자리는 알파가 0이고,
+      // 지우는 셰이더는 알파 0을 「없는 자리」로 읽어 남는 색으로 칠합니다 — 상점 카드가
+      // 검은 구멍으로 남던 것이 이것입니다. 재를 넣기 전(`burn`)에도 같았고 핸드폰에서도
+      // 같았던 것이 그 증거입니다.
+      //
+      // 두 번째 패스에서는 스텐실이 이미 붙어 있고, 패스를 여는 기본값이 「전부 지움」이므로
+      // 스텐실도 지워집니다. 그래서 이 패스의 마스크는 맞습니다. 값은 화면 한 장을 한 번 더
+      // 그리는 것이고, **한 전환에 한 번**입니다.
+      this.app.renderer.render({
+        container: this.screen,
+        // `generateTexture` 가 쓰는 것과 같은 옮김입니다 — 잘라 낸 자리를 원점으로.
+        transform: new Matrix().translate(-crop.x, -crop.y),
+        target: texture,
+        // **투명으로 지웁니다.** 넘기지 않으면 렌더러의 배경색으로 지워지고, 그것은 판
+        // 밖에 보이는 색입니다.
+        clearColor: [0, 0, 0, 0],
+      })
+      return texture
     } catch {
       // 굽지 못하면 남는 색만 보입니다. 화면이 갈리는 것 자체는 그대로 됩니다.
       return undefined
