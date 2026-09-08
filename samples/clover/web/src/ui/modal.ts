@@ -279,19 +279,27 @@ export class Modals extends Container {
     const jitterY = shake === 0 ? 0 : (Math.random() - 0.5) * shake
 
     view.scale.set(scale)
+    // **자리는 다 나온 크기로 셈합니다.** 커지는 중의 크기로 셈하면 판이 자라는 동안 자리도
+    // 함께 움직이고, `popupLeft` 가 왼쪽 변을 한 자리에 붙여 두는 넓은 판에서는 그 움직임이
+    // 통째로 옆으로 흐르는 것이 됩니다 — 아래에서 올라오는 것이 아니라 비스듬히 들어오는
+    // 것으로 보였습니다.
+    //
     // **가로는 화면의 가운데입니다.** 왼쪽 판을 침범하면 그만큼 오른쪽으로 밀립니다 —
     // 규칙은 `popupLeft` 하나이고, 떠 있지 않은 판들(상점 · 끝난 판 · 고르기)도 같은
     // 것을 씁니다.
     const left = entry.panel.centered
-      ? Math.round(SIZE.width / 2 - size.width * scale / 2)
-      : popupLeft(size.width * scale)
+      ? Math.round(SIZE.width / 2 - size.width / 2)
+      : popupLeft(size.width)
     // **밑변을 맞춥니다.** 판마다 높이가 다르므로 가운데에 놓으면 밑변이 판마다 다른 자리에
     // 있고, 판을 잇달아 열면 그 밑변이 위아래로 움직입니다 — 상점은 바닥에 맞춰 서므로
     // 그것과도 어긋났습니다. 아주 높은 판은 위가 넘치지 않게 그 자리에서 멈춥니다.
-    const bottom = PANEL_BOTTOM - size.height * scale
+    const top = Math.max(8, PANEL_BOTTOM - size.height)
+    // **커지는 것은 판의 가운데를 축으로 합니다.** 축이 왼쪽 위 모서리이므로 그만큼을
+    // 되돌려 놓습니다 — 그래야 넘침이 좌우로도 위아래로도 고르게 퍼집니다.
+    const grow = (1 - scale) / 2
     view.position.set(
-      left + jitterX,
-      Math.max(8, bottom) + (1 - entry.t) * 58 + jitterY)
+      left + size.width * grow + jitterX,
+      top + size.height * grow + (1 - entry.t) * 58 + jitterY)
     view.alpha = entry.t * (1 - BACK_FADE * back)
     view.visible = entry.t > 0.01
   }
