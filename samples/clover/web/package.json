@@ -31,6 +31,7 @@
     "check:coins": "tsx tools/check-coins.ts",
     "check:pop-spot": "tsx tools/check-pop-spot.ts",
     "check:blind-pick": "tsx tools/check-blind-pick.ts",
+    "check:shot": "tsx tools/check-shot.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "headless": "tsx src/headless.ts",

@@ -284,7 +284,10 @@ vec3 crumble(vec3 color, float k, float crack, float grain, inout float body) {
   // 중인 판이 아니라 금이 그려진 판입니다 — 카드가 실제로 그렇게 보였습니다.
   float line = 1.0 - crack;
   color *= 1.0 - line * 0.80 * k * k;
-  body *= 1.0 - smoothstep(0.92 - 0.40 * k, 1.00 - 0.40 * k, line);
+  // **k 가 0 이면 한 픽셀도 뚫리지 않아야 합니다.** 창을 1 위에서 시작해야 그렇습니다 —
+  // 「0.92」 로 두었더니 금이 깊은 자리가 **지워짐 0 에서 이미 뚫려** 있었습니다. 금 그림에서는
+  // 얇은 선 몇 개였으나, 핸드폰은 그 자리에 큰 얼룩 그림을 넣으므로 큰 구멍이 됩니다.
+  body *= 1.0 - smoothstep(1.02 - 0.42 * k, 1.10 - 0.42 * k, line);
   // **모래알이 빠집니다.** 문턱이 내려오며 뚫린 자리가 넓어집니다.
   body *= 1.0 - smoothstep(1.00 - 0.56 * k, 1.08 - 0.56 * k, grain);
   return color;
