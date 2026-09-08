@@ -83,6 +83,13 @@ const FLARE_MS = 420
  * 세기입니다 — 하나로 묶으면 둘 중 하나를 고칠 수 없게 됩니다.
  */
 const SURGE_MS = 420
+/**
+ * 박자에 얹힌 크기가 잦아드는 데 걸리는 시간.
+ *
+ * **박자의 간격보다 깁니다.** 짧으면 박자와 박자 사이에서 숫자가 한 번씩 제 크기로
+ * 돌아와, 커지는 것이 이어지지 않고 매번 끊깁니다.
+ */
+const EMPHASIS_MS = 220
 
 /**
  * 글자 폭. **글자 하나와 크기 하나마다 한 번만 잽니다.**
@@ -521,6 +528,14 @@ export class Slot extends Container {
    * 모습입니다.
    */
   private surged = 0
+  /**
+   * 박자에 얹힌 크기. 1 을 넘는 몫만 들고 있고 0 이면 제 크기입니다.
+   *
+   * **얹기만 하고 내리지는 않습니다.** 부르는 쪽은 박자마다 부르므로 그 값이 오르내리는데,
+   * 받는 대로 크기를 정하면 낮은 박자 하나에 숫자가 도로 줄었다가 다음 박자에 다시 커집니다.
+   * 큰 것만 남기고 잦아드는 것은 시간이 맡습니다.
+   */
+  private lifted = 0
 
   reset(value: number): void {
     this.numeric = true
@@ -529,6 +544,7 @@ export class Slot extends Container {
     // 판을 새로 깔면 물러나 있던 것도 돌아오고, 파형도 조용해집니다.
     this.muted = 0
     this.surged = 0
+    this.lifted = 0
     this.value.alpha = 1
     this.redraw()
   }
@@ -619,6 +635,12 @@ export class Slot extends Container {
       this.surged *= Math.exp(-deltaMs / SURGE_MS)
       if (this.surged < 0.004) this.surged = 0
     }
+    // **얹힌 크기도 곱으로 잦아듭니다.** 박자가 연달아 오는 동안은 얹히는 것이 잦아드는
+    // 것보다 빠르므로 숫자가 이어서 커지고, 박자가 끊기면 그 자리에서 제 크기로 내려옵니다.
+    if (this.lifted > 0) {
+      this.lifted *= Math.exp(-deltaMs / EMPHASIS_MS)
+      if (this.lifted < 0.004) this.lifted = 0
+    }
 
     // **곧바로 물러나고 천천히 돌아옵니다.** 옅어지는 데 시간을 쓰면 그 사이 두 수가 같은
     // 자리에 겹쳐 있고, 겹친 동안에는 어느 것도 읽히지 않습니다.
@@ -636,14 +658,16 @@ export class Slot extends Container {
 
     const ease = this.pop * this.pop
     const shake = Math.max(heat, ease)
+    const lift = this.lifted
     // **바탕이 밝은 동안은 ±N 이 떠 있는 동안입니다.**
     //
     // 튐은 0.26초에 잦아드는데 그 글은 0.62초를 서 있습니다 — 튐에만 맞추면 글이 아직
     // 떠 있는데 색이 먼저 빠지고, 눈이 칸에 닿았을 때는 이미 아무 색도 없습니다.
-    const glow = Math.min(1, Math.max(shake, this.signed ? this.muted : 0))
-    if (shake > 0.002) {
-      // 튀는 것과 떠는 것을 같이 얹습니다.
-      this.value.scale.set(1 + ease * 0.42 + heat * 0.14)
+    const glow = Math.min(1, Math.max(shake, lift * 2, this.signed ? this.muted : 0))
+    if (shake > 0.002 || lift > 0) {
+      // 튀는 것과 떠는 것과 얹힌 것을 같이 씁니다. **흔드는 것은 `shake` 뿐입니다** —
+      // 얹힌 것만 남은 대목에서는 그 값이 0 이므로 숫자가 제자리에서 커졌다 줄어듭니다.
+      this.value.scale.set(1 + ease * 0.42 + heat * 0.14 + lift)
       this.value.x = this.valueX + (Math.random() - 0.5) * 7 * shake
       // **세로로는 조금만 흔듭니다.** 두 칸의 숫자가 나란히 서 있어서, 세로로 크게 흔들면
       // 그 둘의 기준선이 서로 어긋나 보입니다.
@@ -669,13 +693,18 @@ export class Slot extends Container {
     this.redraw()
   }
 
-  /** 값이 클수록 크게, 그리고 바탕이 밝아집니다. */
+  /**
+   * 값이 클수록 크게, 그리고 바탕이 밝아집니다.
+   *
+   * **크기를 여기서 정하지 않고 얹기만 합니다.** 여기서 `scale` 을 그대로 앉히면 그 크기가
+   * 다음에 부를 때까지 그대로 서 있고, 박자가 끊긴 자리에서 커진 채로 멈췄다가 한 프레임에
+   * 제 크기로 돌아옵니다 — 잦아드는 것은 `advance` 가 시간으로 합니다.
+   */
   emphasize(scale: number): void {
     if (this.pop > 0) return
     // **줄어드는 값은 강조하지 않습니다.** 부르는 쪽은 박자마다 부르므로 방향을 모릅니다.
     if (this.quietOnDrop && this.wanted < this.shown) return
-    this.value.scale.set(scale)
-    this.draw(Math.max(0, Math.min(1, (scale - 1) * 2)))
+    this.lifted = Math.max(this.lifted, scale - 1)
   }
 
   private redraw(): void {

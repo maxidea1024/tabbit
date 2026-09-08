@@ -6114,8 +6114,10 @@ export class Game {
 
 
     if (!this.player.busy) {
-      this.chips.emphasize(1)
-      this.mult.emphasize(1)
+      // **박자가 끝난 뒤에 크기를 되돌리지 않습니다.** 얹힌 크기는 칸에서 시간으로
+      // 잦아드므로, 여기서 1 을 다시 앉히면 마지막 박자의 크기가 그대로 서 있다가
+      // 박자가 끝나는 프레임에 한 번에 줄어듭니다.
+
       // **결과를 읽을 시간을 둡니다.** 점수가 다 굴러간 뒤에도 잠깐 남아 있어야
       // 무엇을 냈고 얼마가 되었는지가 보입니다.
       if (this.playedViews.length > 0 && this.score.settled) {
