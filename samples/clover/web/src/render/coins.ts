@@ -46,7 +46,15 @@ const LOSS_EDGE = 0x7a2a2a
 const POP = 0.16
 /** 빠져나가는 동전 하나가 던져져 사라지는 시간(초). */
 const SPEND = 0.55
-const RADIUS = 7
+/**
+ * 동전 원판의 반지름.
+ *
+ * **그림자와 테와 `$` 가 여기에 딸립니다.** 원판만 키우면 테가 가늘어지고 글이 원판
+ * 가운데의 작은 점으로 남아, 커진 것이 아니라 흐려진 것으로 보입니다.
+ */
+const RADIUS = 11
+/** 동전 위의 `$` 크기. */
+const MARK_SIZE = Math.round(RADIUS * 1.6)
 
 export class Coins extends Container {
   private readonly canvas = new Graphics()
@@ -78,7 +86,9 @@ export class Coins extends Container {
     while (this.marks.length <= n) {
       const one = new Text({
         text: '$',
-        style: { fontSize: 11, fontWeight: '900', fontFamily: NUMERALS, fill: 0xffffff },
+        style: {
+          fontSize: MARK_SIZE, fontWeight: '900', fontFamily: NUMERALS, fill: 0xffffff,
+        },
       })
       one.anchor.set(0.5, 0.52)
       one.visible = false
@@ -236,7 +246,7 @@ export class Coins extends Container {
         const grow = RADIUS * (1 + pop * 0.9)
         this.canvas.circle(coin.to.x, coin.to.y, grow).fill({ color: face, alpha: fade * 0.9 })
         this.canvas.circle(coin.to.x, coin.to.y, RADIUS * (1 + pop * 2.2))
-          .stroke({ color: face, width: 1.5, alpha: fade * 0.6 })
+          .stroke({ color: face, width: RADIUS * 0.21, alpha: fade * 0.6 })
         continue
       }
 
@@ -246,7 +256,7 @@ export class Coins extends Container {
       const y = u * u * coin.from.y + 2 * u * t * coin.bend.y + t * t * coin.to.y
 
       // 앞뒤로 돌아가는 것처럼 가로가 조금 눌립니다. **눌림은 조금뿐입니다.** 옆면까지
-      // 돌리면 반지름 7픽셀에서는 도는 동전이 아니라 세로로 긴 알로 읽힙니다 — 둥근 것이
+      // 돌리면 이만한 원판에서는 도는 동전이 아니라 세로로 긴 알로 읽힙니다 — 둥근 것이
       // 먼저이고 도는 것은 그 위에 얹히는 흔들림입니다.
       const squash = 0.82 + 0.18 * Math.abs(Math.cos(coin.life * coin.spin))
       // 나가는 동전은 조금 큽니다. 어디에도 닿지 않으므로 공중에서 읽혀야 합니다.
@@ -254,9 +264,13 @@ export class Coins extends Container {
       const width = radius * squash
 
       // 그림자는 아래로 조금 비켜 같은 크기로. 더 내리면 둘이 겹쳐 세로로 긴 덩어리가 됩니다.
-      this.canvas.ellipse(x + 1, y + 2, width, radius).fill({ color: 0x000000, alpha: 0.22 * fade })
+      // **비끼는 거리와 테의 굵기가 반지름을 따릅니다** — 고정된 픽셀로 두면 원판을 키울
+      // 때마다 그림자가 원판 뒤로 숨고 테만 가늘어집니다.
+      this.canvas.ellipse(x + RADIUS * 0.14, y + RADIUS * 0.29, width, radius)
+        .fill({ color: 0x000000, alpha: 0.22 * fade })
       this.canvas.ellipse(x, y, width, radius).fill({ color: face, alpha: fade })
-      this.canvas.ellipse(x, y, width, radius).stroke({ color: edge, width: 1.5, alpha: fade })
+      this.canvas.ellipse(x, y, width, radius)
+        .stroke({ color: edge, width: RADIUS * 0.21, alpha: fade })
       // 눌림이 조금뿐이므로 `$` 는 내내 보입니다. 가로만 그만큼 함께 눌립니다.
       const mark = this.mark(shown++)
       mark.visible = true
