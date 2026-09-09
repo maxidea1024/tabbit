@@ -8,7 +8,8 @@ import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
 
 import { contrast } from '../render/color'
 import type { Surface } from '../render/palette'
-import { LIP, mix, panelStyle, plate, pressable, type PlateStyle } from '../render/skin'
+import { LIP, mix, panelStyle, plate, pressable,
+         type ButtonLook, type PlateStyle } from '../render/skin'
 import { UI, TEXT, WEIGHT } from '../render/theme'
 import { outlined, outlineOf, outlineWidth, strokeWidthOf } from './font'
 import { iconFor, type IconName } from './icon'
@@ -100,16 +101,31 @@ export function restyleButtons(): void {
   for (const one of LIVE) one.restyle()
 }
 
-/** 갈래마다 쉴 때 · 가리켰을 때 · 눌렸을 때의 색 이름. */
-const INTENTS: Record<Intent, [keyof Surface, keyof Surface, keyof Surface]> = {
-  neutral: ['btn', 'btnHover', 'btnPress'],
-  primary: ['yellow', 'yellowHover', 'yellowPress'],
-  danger: ['red', 'redHover', 'redPress'],
-  dare: ['dare', 'dareHover', 'darePress'],
-  confirm: ['confirm', 'confirmHover', 'confirmPress'],
-  caution: ['caution', 'cautionHover', 'cautionPress'],
-  select: ['light', 'lightHover', 'lightPress'],
-  quiet: ['quiet', 'quietHover', 'quietPress'],
+/**
+ * 갈래마다 쉴 때 · 가리켰을 때 · 눌렸을 때의 채움, 그리고 테.
+ *
+ * **판 계열의 갈래만 테를 가집니다.** 뜻이 있는 색은 그 색이 이미 모양을 잡으므로 테 대신
+ * 두께를 가집니다 — `skin.ts` 의 `pressable`.
+ */
+interface Look {
+  rest: keyof Surface
+  hover: keyof Surface
+  press: keyof Surface
+  edge?: keyof Surface
+  edgeHover?: keyof Surface
+}
+
+const INTENTS: Record<Intent, Look> = {
+  neutral: { rest: 'btn', hover: 'btnHover', press: 'btnPress',
+             edge: 'btnEdge', edgeHover: 'btnEdgeHover' },
+  quiet: { rest: 'quiet', hover: 'quietHover', press: 'quietPress',
+           edge: 'quietEdge', edgeHover: 'btnEdge' },
+  primary: { rest: 'yellow', hover: 'yellowHover', press: 'yellowPress' },
+  danger: { rest: 'red', hover: 'redHover', press: 'redPress' },
+  dare: { rest: 'dare', hover: 'dareHover', press: 'darePress' },
+  confirm: { rest: 'confirm', hover: 'confirmHover', press: 'confirmPress' },
+  caution: { rest: 'caution', hover: 'cautionHover', press: 'cautionPress' },
+  select: { rest: 'light', hover: 'lightHover', press: 'lightPress' },
 }
 
 export class Button extends Container {
@@ -145,7 +161,7 @@ export class Button extends Container {
     this.caption.style.fontSize = textSize
     this.addChild(this.board, this.caption)
     this.caption.anchor.set(0.5)
-    this.caption.position.set(boxWidth / 2, (boxHeight - LIP) / 2)
+    this.caption.position.set(boxWidth / 2, this.captionY(false))
     this.text = text
 
     this.eventMode = 'static'
@@ -277,13 +293,22 @@ export class Button extends Container {
    * 하나로 갈립니다 — 같은 색을 조금 밝히는 것으로는 고른 것이 드러나지 않습니다.
    * 잠긴 것은 잠긴 색을 가집니다.
    */
+  /**
+   * 지금 그릴 모습.
+   *
+   * **색이 아니라 이름을 들고 있으므로 지금 겉면에서 읽습니다.**
+   */
+  private get shown(): ButtonLook {
+    const look = INTENTS[this.intent]
+    if (!this.enabledState) return { face: UI.locked, edge: UI.lockedEdge }
+    if (this.held) return { face: UI.light }
+    const face = this.pushed ? UI[look.press] : this.lit ? UI[look.hover] : UI[look.rest]
+    if (look.edge === undefined) return { face }
+    return { face, edge: this.lit ? UI[look.edgeHover ?? look.edge] : UI[look.edge] }
+  }
+
   private get shownBase(): number {
-    if (!this.enabledState) return UI.locked
-    if (this.held) return UI.light
-    const [rest, hover, press] = INTENTS[this.intent]
-    // **색이 아니라 이름을 들고 있으므로 지금 겉면에서 읽습니다.**
-    if (this.pushed) return UI[press]
-    return this.lit ? UI[hover] : UI[rest]
+    return this.shown.face
   }
 
   /** 지금 눌려 있는가. 손을 뗄 때까지입니다. */
@@ -293,12 +318,24 @@ export class Button extends Container {
     if (this.pushed === value) return
     this.pushed = value
     // 글도 얼굴을 따라 내려앉습니다. **얼굴만 내려가면 글이 턱 위에 떠 있습니다.**
-    this.caption.y = (this.boxHeight - LIP) / 2 + (value ? LIP : 0)
+    this.caption.y = this.captionY(value)
     this.draw()
   }
 
   private release(): void {
     this.setPushed(false)
+  }
+
+  /**
+   * 글이 앉는 높이.
+   *
+   * **테가 있는 단추는 가운데입니다.** 두께가 없으므로 누를 때 1픽셀만 내려갑니다 —
+   * 두꺼운 단추는 얼굴이 턱 안으로 내려앉는 만큼 함께 갑니다.
+   */
+  private captionY(pushed: boolean): number {
+    const flat = INTENTS[this.intent].edge !== undefined || !this.enabledState
+    if (flat) return this.boxHeight / 2 + (pushed ? 1 : 0)
+    return (this.boxHeight - LIP) / 2 + (pushed ? LIP : 0)
   }
 
   /**
@@ -313,7 +350,7 @@ export class Button extends Container {
 
   private draw(): void {
     this.board.clear()
-    pressable(this.board, this.boxWidth, this.boxHeight, this.shownBase, this.pushed)
+    pressable(this.board, this.boxWidth, this.boxHeight, this.shown, this.pushed)
     this.applyInk()
   }
 }

@@ -12,9 +12,12 @@ import { buildSurface, type Surface, type SurfaceSeed } from './palette'
 /**
  * 겉면 여덟.
  *
- * **판은 천이고 테는 테두리입니다.** 카드를 늘어놓는 상이 초록 천에 나무 테인 것처럼,
- * 겉면마다 판의 색과 테·단추의 색이 따로입니다 — 판의 색을 밝혀 단추로 쓰면 여덟이 전부
- * 「조금 밝은 판」 을 단추 자리에 놓은 것이 되고, 그것이 회색 슬래브로 보입니다.
+ * **한 겉면이 계열 둘입니다.** 판 계열(판 · 칸 · 선 · 단추 · 글) 하나와 강조색(판의 테 ·
+ * 고른 것 · 진행 바) 하나이고, 그 밖의 색은 게임의 약속뿐입니다 — 돈의 금색, 칩의 파랑,
+ * 배수와 위험의 붉음, 승리의 초록입니다.
+ *
+ * 자리마다 색을 고르던 동안 한 화면에 서로 무관한 색상각이 다섯에서 여섯이었고, 그러면
+ * 판을 아무리 맞춰도 어울리지 않습니다.
  *
  * **넷은 무채색에 가깝고 넷은 색이 있습니다.** 여덟 다 어두운 이유는 카드가 크림색
  * 종이이기 때문입니다 — 판이 밝으면 카드가 판에 묻힙니다.
@@ -29,7 +32,7 @@ const SEEDS: Record<string, SurfaceSeed> = {
   /** 기본. 남흑에 따뜻한 갈색 테 — 참고한 카드룸의 것입니다. */
   slate: {
     hue: 274, chroma: 0.018, level: 0.0165, alpha: 0.96,
-    trim: { hue: 73, chroma: 0.048 },
+    accent: { hue: 62, chroma: 0.075 },
   },
   /**
    * 검정. **판이 배경에 잠기고 카드만 남습니다.**
@@ -40,17 +43,19 @@ const SEEDS: Record<string, SurfaceSeed> = {
    */
   ink: {
     hue: 264, chroma: 0.004, level: 0.0042, alpha: 0.97, vivid: 1.1,
-    trim: { hue: 264, chroma: 0.012 },
+    accent: { hue: 238, chroma: 0.045 },
     tune: {
       panelEdge: 4.6, rule: 3.4, groove: 2.5, hairline: 1.9,
-      btn: 2.6, quiet: 1.7, locked: 1.32, track: 1.55, grip: 3.3,
-      tipEdge: 2.4,
+      btn: 1.45, btnHover: 2.05, btnPress: 1.25, btnEdge: 2.70, btnEdgeHover: 3.70,
+      quiet: 1.28, quietHover: 1.70, quietPress: 1.14, quietEdge: 2.05,
+      locked: 1.14, lockedEdge: 1.75,
+      track: 1.55, grip: 3.3, tipEdge: 2.4,
     },
   },
   /** 남색. 차가운 남색에 푸른 테 — 이 게임이 오래 쓰던 색입니다. */
   navy: {
     hue: 261, chroma: 0.055, level: 0.0245, alpha: 0.96,
-    trim: { hue: 250, chroma: 0.078 },
+    accent: { hue: 205, chroma: 0.090 },
   },
   /**
    * 밝은 회색. **판과 테가 뚜렷하게 밝아 판의 경계가 멀리서도 보입니다.**
@@ -60,7 +65,7 @@ const SEEDS: Record<string, SurfaceSeed> = {
    */
   bright: {
     hue: 261, chroma: 0.030, level: 0.0470, alpha: 0.98,
-    trim: { hue: 258, chroma: 0.034 },
+    accent: { hue: 210, chroma: 0.095 },
     tune: {
       panelEdge: 3.8, yellow: 6.4, money: 6.8, green: 6.4, good: 5.8,
       accentTerm: 7.6, bar: 5.4, mark: 5.0,
@@ -69,22 +74,22 @@ const SEEDS: Record<string, SurfaceSeed> = {
   /** 초록. 카드를 늘어놓는 상의 색입니다 — 이 갈래의 게임에서 가장 오래된 색입니다. */
   green: {
     hue: 160, chroma: 0.033, level: 0.0180, alpha: 0.96,
-    trim: { hue: 62, chroma: 0.055 },
+    accent: { hue: 48, chroma: 0.085 },
   },
   /** 와인. 짙은 자주 — 붉음이 뜻을 가진 색이므로 판은 그보다 훨씬 어둡습니다. */
   wine: {
     hue: 350, chroma: 0.038, level: 0.0155, alpha: 0.96,
-    trim: { hue: 45, chroma: 0.058 },
+    accent: { hue: 42, chroma: 0.085 },
   },
   /** 갈색. 따뜻한 쪽입니다 — 크림색 카드와 같은 계열이라 판과 카드가 한 벌로 보입니다. */
   brown: {
     hue: 63, chroma: 0.022, level: 0.0170, alpha: 0.96,
-    trim: { hue: 58, chroma: 0.056 },
+    accent: { hue: 196, chroma: 0.075 },
   },
   /** 자주. 남색보다 한 걸음 더 간 쪽이고, 금색이 가장 잘 서는 바탕입니다. */
   violet: {
     hue: 291, chroma: 0.048, level: 0.0175, alpha: 0.96,
-    trim: { hue: 80, chroma: 0.052 },
+    accent: { hue: 78, chroma: 0.080 },
   },
 }
 

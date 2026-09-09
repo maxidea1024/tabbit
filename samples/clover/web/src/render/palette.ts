@@ -33,19 +33,19 @@ export interface SurfaceSeed {
   /** 판이 배경 위에서 얼마나 비치는가. */
   alpha: number
   /**
-   * 테와 단추의 색.
+   * 이 겉면의 강조색.
    *
-   * **판은 천이고 이것은 테두리입니다.** 카드를 늘어놓는 상은 초록 천에 나무 테이고,
-   * 그 둘은 같은 색의 밝기 차이가 아니라 다른 재료입니다 — 판의 색을 밝혀 단추로 쓰면
-   * 여덟 겉면이 전부 「조금 밝은 판」 하나를 단추 자리에 놓은 것이 되고, 그것이 회색
-   * 슬래브로 보이던 까닭입니다.
+   * **한 화면에 계열은 둘입니다.** 판 계열 하나와 이것 하나이고, 그 밖의 색은 게임의
+   * 약속(돈의 금색 · 칩의 파랑 · 배수와 위험의 붉음 · 승리의 초록)뿐입니다 — 자리마다
+   * 색을 고르면 한 화면에 서로 무관한 색상각이 여섯이 되고, 그러면 판을 아무리 맞춰도
+   * 어울리지 않습니다.
    *
-   * 테 · 구획선 · 가르는 줄 · 단추 · 스크롤 손잡이가 이 색을 씁니다. 판 · 칸 · 진행 바의
-   * 바탕 · 쪽지 · 글은 판의 색입니다.
+   * 판의 바깥 테 · 고른 것 · 진행 바가 이 색을 씁니다. **단추는 판 계열입니다** — 누르는
+   * 것이 판마다 다른 색이면 그 색이 뜻을 가진 것으로 읽힙니다.
    *
-   * **적지 않으면 판과 같습니다** — 한 재료로 된 겉면입니다.
+   * **적지 않으면 판과 같습니다** — 강조가 없는 겉면입니다.
    */
-  trim?: { hue: number; chroma: number }
+  accent?: { hue: number; chroma: number }
   /** 강조색의 채도 배율. 1이 표에 적힌 그대로입니다. */
   vivid?: number
   /**
@@ -120,18 +120,18 @@ const SURFACES: Record<string, Ratio> = {
  */
 const LINES: Record<string, Ratio> = {
   /** 구획 머리 아래의 선. **이름에 딸린 선이므로 가장 뚜렷합니다.** */
-  rule: { ratio: 2.60, tint: 2.4 },
+  rule: { ratio: 2.60, tint: 2.0 },
   /**
    * 무리를 가르는 줄(`groove`).
    *
    * **구획선보다 한 단 낮습니다.** 이름 없이 위아래를 가르기만 하므로 약한 표시이고,
    * 대시가 그 차이를 한 번 더 알립니다.
    */
-  groove: { ratio: 2.05, tint: 2.4 },
+  groove: { ratio: 2.05, tint: 2.0 },
   /** 칸의 테. **칸을 바탕으로 재어 1.95 입니다**(0.741 × 1.95). */
   hairline: { ratio: 1.445, tint: 2.0 },
   /** 판의 바깥 테. */
-  panelEdge: { ratio: 3.35, tint: 3.0 },
+  panelEdge: { ratio: 3.35, tint: 2.4 },
   /** 쪽지의 테. **쪽지를 바탕으로 재어 2.85 입니다**(0.69 × 2.85). */
   tipEdge: { ratio: 1.967, tint: 2.6 },
 }
@@ -150,16 +150,36 @@ const LINES: Record<string, Ratio> = {
  * 죽은 것으로 보입니다.
  */
 const CONTROLS: Record<string, Ratio> = {
-  /** 잠긴 단추. **판 쪽으로 당겨 둡니다** — 잠긴 것이 판보다 먼저 보이면 안 됩니다. */
-  locked: { ratio: 1.22, tint: 0.45 },
-  /** 보통 단추. */
-  btn: { ratio: 2.05, tint: 1.7 },
-  /** 판 위에 조용히 놓이는 단추. 칸과 같은 층입니다. */
-  quiet: { ratio: 1.48, tint: 1.4 },
+  /**
+   * 보통 단추의 채움. **판에 거의 붙어 있습니다.**
+   *
+   * 판보다 두 배 밝게 두었더니 회색 판때기가 되었습니다. 잘 만든 웹의 어두운 화면을 재어
+   * 보면 반대입니다 — GitHub 의 어두운 단추는 바탕 대비 1.24 이고 Radix 의 단추 단계는
+   * 1.12 입니다. **단추를 단추로 보이게 하는 것은 채움이 아니라 테입니다.**
+   */
+  btn: { ratio: 1.24, tint: 2.0 },
+  btnHover: { ratio: 1.58, tint: 2.0 },
+  btnPress: { ratio: 1.12, tint: 2.0 },
+  /**
+   * 보통 단추의 테. **단추에서 가장 밝은 부분입니다.**
+   *
+   * 잉크색으로 두르던 동안 어두운 판 위의 검은 테는 테가 아니라 틈으로 보였고, 그 안의
+   * 회색 채움이 떠 있는 판때기가 되었습니다. GitHub 는 1.55, Radix 는 1.53~1.92 입니다.
+   */
+  btnEdge: { ratio: 2.00, tint: 2.6 },
+  btnEdgeHover: { ratio: 2.75, tint: 2.6 },
+  /** 잠긴 단추. **판 쪽으로 당기고 채도를 걷습니다.** */
+  locked: { ratio: 1.08, tint: 0.4 },
+  lockedEdge: { ratio: 1.38, tint: 0.5 },
+  /** 판 위에 조용히 놓이는 단추. 보통 단추보다 한 단 낮습니다. */
+  quiet: { ratio: 1.14, tint: 2.0 },
+  quietHover: { ratio: 1.40, tint: 2.0 },
+  quietPress: { ratio: 1.06, tint: 2.0 },
+  quietEdge: { ratio: 1.62, tint: 2.4 },
   /** 스크롤 막대의 홈. */
   track: { ratio: 1.40, tint: 1.4 },
   /** 스크롤 막대의 손잡이. */
-  grip: { ratio: 2.70, tint: 1.6 },
+  grip: { ratio: 2.70, tint: 2.4 },
 }
 
 /**
@@ -177,14 +197,20 @@ const INTENTS: Record<string, Ratio> = {
   yellow: { ratio: 8.0, chroma: 0.168, hue: 88, max: 0.88 },
   /** 돈의 금색. 노랑보다 반 단 밝습니다. */
   money: { ratio: 8.4, chroma: 0.158, hue: 85, max: 0.9 },
-  /** 진행 바 · 요구 점수. */
-  bar: { ratio: 6.4, chroma: 0.131, hue: 223, max: 0.84 },
+  /**
+   * 진행 바 · 요구 점수.
+   *
+   * **칩과 한 계열입니다.** 요구 점수는 칩으로 채우는 값이므로 그 둘이 다른 색이면 무엇을
+   * 채우는 것인지가 색으로 읽히지 않습니다. 겉면의 강조색으로 두어 보았고, 따뜻한 강조를
+   * 가진 겉면에서 요구 점수가 바로 옆의 격파 보상과 같은 색이 되었습니다.
+   */
+  bar: { ratio: 6.4, chroma: 0.140, hue: 245, max: 0.84 },
   /** 칩. */
   chips: { ratio: 4.2, chroma: 0.20, hue: 251, max: 0.76 },
   /** 배수. */
   mult: { ratio: 4.3, chroma: 0.205, hue: 27, max: 0.75 },
-  /** 고른 것. 목록의 줄과 물건 칸의 테입니다. */
-  pick: { ratio: 3.8, chroma: 0.168, hue: 253, max: 0.76 },
+  /** 고른 것. **겉면의 강조색입니다** — 목록의 줄과 물건 칸의 테입니다. */
+  pick: { ratio: 3.8, tint: 3.2, max: 0.76 },
   /** 승리 · 핸드 수. */
   green: { ratio: 8.0, chroma: 0.132, hue: 160, max: 0.88 },
   /** 된 것. */
@@ -272,10 +298,10 @@ interface Made {
 }
 
 function makeRatio(panel: number, seed: SurfaceSeed, spec: Ratio, name?: string,
-                   trim = false): Made {
+                   accent = false): Made {
   const tuned = name !== undefined ? seed.tune?.[name] : undefined
   if (tuned !== undefined) spec = { ...spec, ratio: tuned }
-  const family = trim && seed.trim !== undefined ? seed.trim : seed
+  const family = accent && seed.accent !== undefined ? seed.accent : seed
   const hue = spec.hue ?? family.hue
   const chroma = spec.chroma !== undefined
     ? spec.chroma * (seed.vivid ?? 1)
@@ -324,20 +350,24 @@ export interface Surface {
   /** 칸의 테. */
   hairline: number
 
-  /** 보통 단추. */
+  /** 보통 단추. **테가 채움보다 밝습니다.** */
   btn: number
   btnHover: number
   btnPress: number
+  btnEdge: number
+  btnEdgeHover: number
   /** 조용한 단추. */
   quiet: number
   quietHover: number
   quietPress: number
+  quietEdge: number
   /** 밝은 단추 · 고른 탭. */
   light: number
   lightHover: number
   lightPress: number
   /** 잠긴 단추. */
   locked: number
+  lockedEdge: number
 
   /** 스크롤 막대. */
   track: number
@@ -400,14 +430,12 @@ export function buildSurface(seed: SurfaceSeed): Surface {
     for (const [key, spec] of Object.entries(table)) named.set(spec, key)
   }
   const at = (spec: Ratio): Made => makeRatio(panel, seed, spec, named.get(spec))
-  /** 테두리의 재료로 만듭니다. */
-  const trim = (spec: Ratio): Made => makeRatio(panel, seed, spec, named.get(spec), true)
+  /** 이 겉면의 강조색으로 만듭니다. */
+  const lead = (spec: Ratio): Made => makeRatio(panel, seed, spec, named.get(spec), true)
   const flat = (spec: Level): Made => makeLevel(seed, spec)
 
-  const btn = trim(CONTROLS.btn)
-  const quiet = trim(CONTROLS.quiet)
   const light = flat(LEVELS.light)
-  const grip = trim(CONTROLS.grip)
+  const grip = at(CONTROLS.grip)
   const yellow = at(INTENTS.yellow)
   const red = at(INTENTS.red)
   const dare = at(INTENTS.dare)
@@ -419,7 +447,7 @@ export function buildSurface(seed: SurfaceSeed): Surface {
   return {
     panel: oklch(solveLevel(panel, seed.chroma, seed.hue), seed.chroma, seed.hue),
     panelAlpha: seed.alpha,
-    panelEdge: trim(LINES.panelEdge).color,
+    panelEdge: lead(LINES.panelEdge).color,
     ground: plain(SURFACES.ground),
     cell: plain(SURFACES.cell),
     well: plain(SURFACES.well),
@@ -427,22 +455,26 @@ export function buildSurface(seed: SurfaceSeed): Surface {
     tipEdge: plain(LINES.tipEdge),
     scrim: plain(SURFACES.scrim),
 
-    rule: trim(LINES.rule).color,
-    groove: trim(LINES.groove).color,
+    rule: plain(LINES.rule),
+    groove: plain(LINES.groove),
     hairline: plain(LINES.hairline),
 
-    btn: btn.color,
-    btnHover: shift(btn, HOVER),
-    btnPress: shift(btn, PRESS),
-    quiet: quiet.color,
-    quietHover: shift(quiet, HOVER),
-    quietPress: shift(quiet, PRESS),
+    btn: plain(CONTROLS.btn),
+    btnHover: plain(CONTROLS.btnHover),
+    btnPress: plain(CONTROLS.btnPress),
+    btnEdge: plain(CONTROLS.btnEdge),
+    btnEdgeHover: plain(CONTROLS.btnEdgeHover),
+    quiet: plain(CONTROLS.quiet),
+    quietHover: plain(CONTROLS.quietHover),
+    quietPress: plain(CONTROLS.quietPress),
+    quietEdge: plain(CONTROLS.quietEdge),
     light: light.color,
     lightHover: shift(light, HOVER),
     lightPress: shift(light, PRESS),
-    locked: trim(CONTROLS.locked).color,
+    locked: plain(CONTROLS.locked),
+    lockedEdge: plain(CONTROLS.lockedEdge),
 
-    track: trim(CONTROLS.track).color,
+    track: plain(CONTROLS.track),
     grip: grip.color,
     gripHot: shift(grip, HOVER + 0.05),
 
@@ -461,7 +493,7 @@ export function buildSurface(seed: SurfaceSeed): Surface {
     bar: plain(INTENTS.bar),
     chips: plain(INTENTS.chips),
     mult: plain(INTENTS.mult),
-    pick: plain(INTENTS.pick),
+    pick: lead(INTENTS.pick).color,
     green: plain(INTENTS.green),
     good: plain(INTENTS.good),
     red: red.color,
@@ -515,16 +547,22 @@ export const CONTRAST_GATE: {
   // 두 선을 가르는 데 필요한 값이 아닙니다.
   { what: '구획선과 가르는 줄', a: 'rule', b: 'groove', least: 1.20 },
 
-  { what: '판과 단추', a: 'btn', b: 'panel', least: 1.95 },
-  { what: '단추와 잠긴 단추', a: 'btn', b: 'locked', least: 1.65 },
-  { what: '단추와 가리킨 단추', a: 'btnHover', b: 'btn', least: 1.35 },
-  { what: '단추와 눌린 단추', a: 'btn', b: 'btnPress', least: 1.15 },
-  { what: '판과 잠긴 단추', a: 'locked', b: 'panel', least: 1.20 },
-  { what: '판과 조용한 단추', a: 'quiet', b: 'panel', least: 1.40 },
-  { what: '조용한 단추와 잠긴 단추', a: 'quiet', b: 'locked', least: 1.18 },
-  { what: '단추와 밝은 단추', a: 'light', b: 'btn', least: 2.70 },
+  { what: '판과 단추', a: 'btn', b: 'panel', least: 1.15 }
+  // **단추를 단추로 보이게 하는 것은 테입니다.** 채움이 아니라 이 줄이 요점입니다.
+  ,{ what: '판과 단추의 테', a: 'btnEdge', b: 'panel', least: 1.85 }
+  ,{ what: '단추와 그 테', a: 'btnEdge', b: 'btn', least: 1.50 }
+  ,{ what: '가리킨 단추와 그 테', a: 'btnEdgeHover', b: 'btnHover', least: 1.35 }
+  ,{ what: '잠긴 단추와 그 테', a: 'lockedEdge', b: 'locked', least: 1.20 }
+  ,{ what: '단추의 테와 잠긴 단추의 테', a: 'btnEdge', b: 'lockedEdge', least: 1.35 }
+  ,{ what: '판과 조용한 단추의 테', a: 'quietEdge', b: 'panel', least: 1.45 },
+  { what: '단추와 잠긴 단추', a: 'btn', b: 'locked', least: 1.12 },
+  { what: '단추와 가리킨 단추', a: 'btnHover', b: 'btn', least: 1.22 },
+  { what: '단추와 눌린 단추', a: 'btn', b: 'btnPress', least: 1.08 },
+  { what: '판과 잠긴 단추', a: 'locked', b: 'panel', least: 1.04 },
+  { what: '판과 조용한 단추', a: 'quiet', b: 'panel', least: 1.10 },
+  { what: '조용한 단추의 테와 잠긴 단추의 테', a: 'quietEdge', b: 'lockedEdge', least: 1.12 },
+  { what: '단추와 밝은 단추', a: 'light', b: 'btn', least: 4.50 },
   { what: '밝은 단추와 가리킨 것', a: 'lightHover', b: 'light', least: 1.10 },
-  { what: '단추 테와 단추', a: 'btn', b: 'outline', least: 1.80, line: true },
   { what: '밝은 단추와 그 위의 글', a: 'light', b: 'onLight', least: 7.00 },
 
   { what: '판과 홈', a: 'track', b: 'panel', least: 1.35 },

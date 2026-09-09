@@ -19,12 +19,18 @@ const OUT = path.resolve(HERE, '../../design-data/out/check')
 
 const hex = (color: number): string => '#' + color.toString(16).padStart(6, '0')
 
-/** 단추 하나. `skin.ts` 의 `pressable` 과 같은 층 넷입니다. */
-function button(look: Surface, fill: number, label: string, ink: number): string {
-  return `<div class="btn" style="background:${hex(shade(fill, -0.14))};
-    border-color:${hex(look.outline)}">
-    <span style="background:linear-gradient(${hex(shade(fill, 0.055))},${hex(fill)});
-      border-top:1px solid ${hex(shade(fill, 0.14))};color:${hex(ink)}">${label}</span>
+/** 판 계열의 단추. **바탕에 붙은 채움과 밝은 테입니다.** */
+function flat(fill: number, edge: number, label: string, ink: number): string {
+  return `<div class="flat" style="background:${hex(fill)};border-color:${hex(edge)};
+    color:${hex(ink)}">${label}</div>`
+}
+
+/** 뜻이 있는 색의 단추. **테 대신 두께를 가집니다.** */
+function solid(fill: number, label: string, ink: number): string {
+  return `<div class="btn" style="background:${hex(shade(fill, -0.13))};
+    border-color:${hex(shade(fill, -0.24))}">
+    <span style="background:linear-gradient(${hex(shade(fill, 0.05))},${hex(fill)});
+      border-top:1px solid ${hex(shade(fill, 0.13))};color:${hex(ink)}">${label}</span>
   </div>`
 }
 
@@ -48,21 +54,21 @@ function card(name: string, look: Surface): string {
       <i style="background:${hex(look.bar)}"></i></div>
   </div>
   <div class="row">
-    ${button(look, look.btn, '메뉴', look.ink)}
-    ${button(look, look.btnHover, '가리킴', look.ink)}
-    ${button(look, look.btnPress, '눌림', look.ink)}
-    ${button(look, look.locked, '잠김', look.ink)}
+    ${flat(look.btn, look.btnEdge, '메뉴', look.ink)}
+    ${flat(look.btnHover, look.btnEdgeHover, '가리킴', look.ink)}
+    ${flat(look.btnPress, look.btnEdge, '눌림', look.ink)}
+    ${flat(look.locked, look.lockedEdge, '잠김', look.inkDim)}
   </div>
   <div class="row">
-    ${button(look, look.yellow, '낸다', look.onLight)}
-    ${button(look, look.red, '버린다', look.onLight)}
-    ${button(look, look.dare, '건너뛴다', look.onLight)}
-    ${button(look, look.light, '고른 탭', look.onLight)}
+    ${solid(look.yellow, '낸다', look.onLight)}
+    ${solid(look.red, '버린다', look.onLight)}
+    ${solid(look.dare, '건너뛴다', look.onLight)}
+    ${solid(look.light, '고른 탭', look.onLight)}
   </div>
   <div class="row">
-    ${button(look, look.quiet, '조용한 것', look.ink)}
-    ${button(look, look.confirm, '그렇게', look.ink)}
-    ${button(look, look.caution, '지운다', look.ink)}
+    ${flat(look.quiet, look.quietEdge, '조용한 것', look.ink)}
+    ${solid(look.confirm, '그렇게', look.ink)}
+    ${solid(look.caution, '지운다', look.ink)}
     <div class="tip" style="background:${hex(look.tipBack)};border-color:${hex(look.tipEdge)};
       color:${hex(look.ink)}">쪽지</div>
   </div>
@@ -90,6 +96,8 @@ const PAGE = `<!doctype html><meta charset="utf-8"><style>
   .well { flex: 1; height: 10px; border: 1px solid; border-radius: 5px; overflow: hidden; }
   .well i { display: block; height: 100%; width: 62%; border-radius: 5px; }
   .btn { flex: 1; border: 1.5px solid; border-radius: 6px; }
+  .flat { flex: 1; border: 1.5px solid; border-radius: 6px; padding: 8px 4px;
+          text-align: center; font-weight: 800; font-size: 11px; }
   .btn span { display: block; border-radius: 5px; margin-bottom: 4px; padding: 8px 4px;
               text-align: center; font-weight: 800; font-size: 11px; }
   .tip { flex: 1; border: 1.5px solid; border-radius: 8px; padding: 8px 4px;

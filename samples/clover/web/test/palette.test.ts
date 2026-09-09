@@ -58,7 +58,7 @@ describe('겉면의 대비', () => {
    * 색상각이 따라 움직이면 갈색 겉면의 노랑과 남색 겉면의 노랑이 다른 색이 됩니다.
    */
   it('뜻이 있는 색의 색상각이 겉면마다 같습니다', () => {
-    const named = ['yellow', 'money', 'bar', 'chips', 'mult', 'pick', 'green', 'good',
+    const named = ['yellow', 'money', 'bar', 'chips', 'mult', 'green', 'good',
                    'red', 'bad', 'dare', 'discard', 'confirm', 'caution',
                    'uncommon', 'rare', 'legendary'] as const
     for (const name of named) {
@@ -66,6 +66,21 @@ describe('겉면의 대비', () => {
       const spread = Math.max(...hues) - Math.min(...hues)
       // 8비트로 반올림한 만큼만 벌어집니다. 1도 아래는 같은 색입니다.
       expect(`${name} ${spread < 1.5}`).toBe(`${name} true`)
+    }
+  })
+
+  /**
+   * **한 겉면이 계열 둘입니다.**
+   *
+   * 판의 테와 고른 것이 그 겉면의 강조색이고, 둘이 같은 색상각이어야 화면에 계열이 하나
+   * 더 늘지 않습니다 — 자리마다 고르던 동안 한 화면에 서로 무관한 색상각이 여섯이었습니다.
+   */
+  it('판의 테와 고른 것이 한 계열입니다', () => {
+    for (const key of UI_THEME_KEYS) {
+      const look = UI_THEMES[key]
+      const hues = [look.panelEdge, look.pick].map(one => hueOf(one) ?? -1)
+      const spread = Math.max(...hues) - Math.min(...hues)
+      expect(`${key} ${spread < 12}`).toBe(`${key} true`)
     }
   })
 

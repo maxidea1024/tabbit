@@ -294,29 +294,45 @@ export const LIP = 4
  * 판과 칸은 그대로 납작합니다. 두께가 필요한 것은 누르는 것뿐입니다.
  */
 export function pressable(g: Graphics, width: number, height: number,
-                          base: number, pushed: boolean): void {
+                          look: ButtonLook, pushed: boolean): void {
   const radius = RADIUS.small
+  const half = STROKE.base / 2
+
+  if (look.edge !== undefined) {
+    // **바탕에 붙은 채움과 밝은 테.** 잘 만든 웹의 어두운 화면이 이렇게 합니다 — 단추를
+    // 단추로 보이게 하는 것은 밝은 채움이 아니라 테이고, 검은 테를 두른 회색 채움은
+    // 판때기가 떠 있는 것으로 보입니다. 두께는 두지 않습니다.
+    g.roundRect(0, 0, width, height, radius).fill(look.face)
+    g.roundRect(half, half, width - STROKE.base, height - STROKE.base,
+                insetRadius(radius, half))
+      .stroke({ color: look.edge, width: STROKE.base })
+    return
+  }
+
+  // **꽉 찬 단추는 두께를 가집니다.** 나아가는 것과 되돌릴 수 없는 것이고, 그 둘은 화면에
+  // 하나나 둘뿐이므로 두께가 무늬가 되지 않습니다 — 판 안의 그 밖의 단추까지 두꺼우면
+  // 화면이 단추로 가득한 것으로 보입니다.
   const faceH = height - LIP
   const top = pushed ? LIP : 0
-
-  // 1. 턱. 실루엣 전체입니다.
-  g.roundRect(0, 0, width, height, radius).fill(shade(base, -0.14))
-
-  // 2. 얼굴. 눌리면 턱 안으로 내려앉습니다.
+  g.roundRect(0, 0, width, height, radius).fill(shade(look.face, -0.13))
   g.roundRect(0, top, width, faceH, radius)
-    .fill(faceFill(faceH, shade(base, 0.055), base))
-
-  // 3. 베벨. **위쪽만입니다** — 네 변을 다 두르면 테가 두 겹이 되고 안이 좁아 보입니다.
-  const inset = 1.5
-  g.moveTo(radius, top + inset)
-    .lineTo(width - radius, top + inset)
-    .stroke({ color: shade(base, 0.14), width: STROKE.hair, alpha: 0.7 })
-
-  // 4. 테.
-  const half = STROKE.base / 2
+    .fill(faceFill(faceH, shade(look.face, 0.05), look.face))
+  g.moveTo(radius, top + 1.5).lineTo(width - radius, top + 1.5)
+    .stroke({ color: shade(look.face, 0.13), width: STROKE.hair, alpha: 0.7 })
   g.roundRect(half, half, width - STROKE.base, height - STROKE.base,
               insetRadius(radius, half))
-    .stroke({ color: UI.outline, width: STROKE.base })
+    .stroke({ color: shade(look.face, -0.24), width: STROKE.base })
+}
+
+/**
+ * 단추 하나의 모습.
+ *
+ * **테가 있으면 납작하고 없으면 두껍습니다.** 판 계열의 단추는 밝은 테가 모양을 잡고,
+ * 뜻이 있는 색의 단추는 그 색이 이미 모양을 잡으므로 테 대신 두께를 가집니다.
+ */
+export interface ButtonLook {
+  face: number
+  edge?: number
 }
 
 /** 얼굴의 그라디언트. **높이와 두 색이 같으면 같은 것을 다시 씁니다.** */
