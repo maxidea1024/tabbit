@@ -8,7 +8,7 @@
 // **여기 있는 것은 얼굴뿐입니다.** 값도 누름도 진열 움직임도 상점의 일이므로 상점에
 // 남습니다 — 이 파일의 함수는 상태를 읽지 않고 받은 것만 그립니다.
 
-import { Container, Graphics, Rectangle, Sprite, Text, Texture } from 'pixi.js'
+import { Container, Graphics, Sprite, Text, Texture } from 'pixi.js'
 
 import type { Data } from '../core/data'
 import { nameOf, t, text, tf } from '../core/strings'
@@ -24,6 +24,7 @@ import { EditionKind } from '../generated/enums/edition-kind'
 import { artFor, type ArtKind } from './art'
 import { cardArtDir, suitInk } from './card-set'
 import { drawGlyph, glyphFor, hashOf, hsl, shade } from './glyph'
+import { pinBox } from './pin'
 import { cardArtId, drawFace } from './pips'
 import { insetRadius, mix } from './skin'
 import { COLOR, SIZE, UI } from './theme'
@@ -314,8 +315,10 @@ export function itemFace(data: Data, item: ItemFace): Container {
   // 뒤집어 그 위의 밝은 글자가 읽히지 않습니다.
   const body = new Container()
   const text = new Container()
-  body.boundsArea = new Rectangle(0, 0, w, h)
-  paper.boundsArea = new Rectangle(0, 0, w, h)
+  // **둘 다 필터가 걸리는 통입니다.** 경계와 필터 사각형을 함께 고정합니다 — 하나만 두면
+  // 구운 사진에서 이 통이 빠집니다(`pin.ts`).
+  pinBox(body, w, h)
+  pinBox(paper, w, h)
   paper.addChild(body, text)
 
   const plate = new Graphics()

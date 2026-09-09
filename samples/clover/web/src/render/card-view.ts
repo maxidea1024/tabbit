@@ -5,7 +5,7 @@
 // 움직임이 절반입니다 — 카드는 늘 조금씩 흔들리고, 마우스를 따라 기울고, 골라지면
 // 튀어오르고, 득점하면 한 번 커집니다. 곧바로 목표 자리로 가는 카드는 죽어 보입니다.
 
-import { Container, Graphics, Rectangle, Sprite, Text, type Filter } from 'pixi.js'
+import { Container, Graphics, Sprite, Text, type Filter } from 'pixi.js'
 import { t } from '../core/strings'
 
 import { EditionKind } from '../generated/enums/edition-kind'
@@ -20,6 +20,7 @@ import {
 } from './card-face'
 import { cardPaper, suitInk } from './card-set'
 import { Motion, sway, Spring } from './motion'
+import { pinBox } from './pin'
 import { cardBack, clearCardBack, drawCardBack } from './card-back'
 import { COLOR, SIZE } from './theme'
 
@@ -233,9 +234,10 @@ export class CardView extends Container {
     // 자리와 알파뿐입니다.
     this.shadow.roundRect(3, 6, SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius)
       .fill({ color: 0x000000, alpha: 0.35 })
-    // **넓이를 못박습니다.** 그리는 것에 따라 재면 획이 삐져나온 만큼 사각형이 커지고,
-    // 그만큼 모양 그림이 밀립니다.
-    this.body.boundsArea = new Rectangle(0, 0, SIZE.cardWidth, SIZE.cardHeight)
+    // **넓이를 고정합니다.** 그리는 것에 따라 재면 획이 삐져나온 만큼 사각형이 커지고,
+    // 그만큼 모양 그림이 밀립니다. **필터 사각형도 함께 고정합니다** — 이 통에 에디션과
+    // 득점의 빛이 걸리고, 경계만 고정하면 구운 사진에서 이 통이 빠집니다(`pin.ts`).
+    pinBox(this.body, SIZE.cardWidth, SIZE.cardHeight)
     this.addChild(this.shadow, this.body, this.hintRing)
     this.drawHintRing()
     this.pivot.set(SIZE.cardWidth / 2, SIZE.cardHeight / 2)

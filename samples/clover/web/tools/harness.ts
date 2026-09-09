@@ -226,14 +226,19 @@ export async function hurry(page: Page, times: number): Promise<void> {
  *
  * 자리를 바꾸는 것이 되는지 보려면 조커가 둘 있어야 하는데, 그것을 사려고 판을 열 판 두는
  * 동안 도구가 확인하려던 것과 상관없는 곳에서 멈춥니다.
+ *
+ * `edition` 이 0이 아니면 판이 걸린 것을 셋씩 돌려 가며 놓습니다. **셰이더가 걸린 딱지는
+ * 필터의 사각형을 재는 길을 지나므로**, 굽는 자리를 보는 도구는 맨 딱지로는 그 길을 한
+ * 번도 지나지 않습니다 — `check-lost-look.ts` 의 머리글에 그 규격이 있습니다.
  */
-export async function grantJoker(page: Page, want: number | string): Promise<void> {
-  await page.evaluate(many => {
+export async function grantJoker(page: Page, want: number | string,
+                                 edition = 0): Promise<void> {
+  await page.evaluate(([many, mark]) => {
     const hook = (window as unknown as {
-      __clover: { grantJoker?(want: number | string): void }
+      __clover: { grantJoker?(want: number | string, edition?: number): void }
     }).__clover
-    hook.grantJoker?.(many)
-  }, want)
+    hook.grantJoker?.(many, mark as number)
+  }, [want, edition] as [number | string, number])
 }
 
 /**
@@ -904,7 +909,16 @@ export async function clickPrimary(page: Page): Promise<void> {
   }
   // 블라인드 선택은 **화면이 알린 자리를 누릅니다.** 판의 밑단이 글의 길이에 따라 자라므로
   // 여기서 다시 계산하면 말을 바꾼 날에 어긋납니다.
-  const pick = (await peek(page)).spots?.pick
+  //
+  // **자리가 알려지기를 기다립니다.** 판이 서는 프레임과 그 자리가 알려지는 프레임이
+  // 다르고, 창을 띄워 돌리는 자리에서는 첫 판이 한두 프레임 늦습니다 — 곧바로 조회하고
+  // 없으면 던지고 있어서, 게이트가 판정 대신 이 오류로 끝나는 일이 있었습니다.
+  // `spot` 과 같은 기다림입니다.
+  let pick = (await peek(page)).spots?.pick
+  for (let wait = 0; wait < 20 && !pick; wait++) {
+    await pass(page, 100)
+    pick = (await peek(page)).spots?.pick
+  }
   if (!pick) throw new Error('블라인드 판의 버튼 자리를 화면이 알리지 않았습니다')
   const spot = await at(page, pick.x, pick.y)
   await page.mouse.move(spot.x, spot.y)

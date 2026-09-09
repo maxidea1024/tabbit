@@ -37,6 +37,7 @@
     "check:press": "tsx tools/check-press.ts",
     "check:wave-flow": "tsx tools/check-wave-flow.ts",
     "check:shot": "tsx tools/check-shot.ts",
+    "check:pin": "tsx tools/check-pin.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "headless": "tsx src/headless.ts",

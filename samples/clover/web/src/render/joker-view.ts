@@ -6,7 +6,7 @@
 // 그림 파일이 아직 없으므로 식별자에서 만든 문양으로 그립니다. 같은 조커는 언제나 같은
 // 모양이고, 희귀도가 테두리 색입니다.
 
-import { Container, type Filter, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
+import { Container, type Filter, Graphics, Sprite, Text } from 'pixi.js'
 import { tf } from '../core/strings'
 
 import { EditionKind } from '../generated/enums/edition-kind'
@@ -19,6 +19,7 @@ import { roundedMask } from '../shader/mask'
 import { artFor } from './art'
 import { drawGlyph, glyphFor, hashOf, hsl, shade, tintUp } from './glyph'
 import { Motion, sway } from './motion'
+import { pinBox } from './pin'
 import { COLOR, rarityColor, SIZE } from './theme'
 
 /** 카드의 모서리와 이름 띠의 높이. */
@@ -140,8 +141,10 @@ export class JokerView extends Container {
     this.look = look
     this.body.addChild(this.plate, this.emblem, this.clip)
     this.face.addChild(this.band, this.frame, this.nameText, this.counterPlate, this.counter)
-    this.body.boundsArea = new Rectangle(0, 0, SIZE.jokerWidth, SIZE.jokerHeight)
-    this.sheet.boundsArea = new Rectangle(0, 0, SIZE.jokerWidth, SIZE.jokerHeight)
+    // **둘 다 필터가 걸리는 통입니다.** 경계와 필터 사각형을 함께 고정합니다 — 하나만
+    // 두면 구운 사진에서 이 통이 빠집니다(`pin.ts`).
+    pinBox(this.body, SIZE.jokerWidth, SIZE.jokerHeight)
+    pinBox(this.sheet, SIZE.jokerWidth, SIZE.jokerHeight)
     this.sheet.addChild(this.body, this.face)
     this.addChild(this.shadow, this.sheet)
     this.pivot.set(SIZE.jokerWidth / 2, SIZE.jokerHeight / 2)
