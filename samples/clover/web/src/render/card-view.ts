@@ -174,7 +174,18 @@ export class CardView extends Container {
    * **고른 것을 밝히는 것만으로는 부족합니다** — 고르지 않은 것이 물러나야 몇 장을 골랐는지가
    * 한눈에 읽힙니다. 그 둘을 한 필터가 합니다.
    */
-  private readonly pick = new PickFilter()
+  private pick?: PickFilter
+  /**
+   * 고름 표시가 필요해진 자리. **없으면 만듭니다.**
+   *
+   * 카드 하나가 살아 있는 동안 내내 들고 있을 것이 아닙니다 — 덱 보기가 52장이고 도감의
+   * 카드 탭도 카드로 그리는데, 그 가운데 고르거나 득점하는 것은 없습니다. `edition` 과
+   * 같은 규약입니다.
+   */
+  private picker(): PickFilter {
+    this.pick ??= new PickFilter()
+    return this.pick
+  }
   /** 1 고름 · -1 고르지 않음 · 0 그대로. */
   private pickMode = 0
   /**
@@ -365,7 +376,8 @@ export class CardView extends Container {
   private restack(): void {
     const lit = this.pickMode !== 0 || this.glow > 0
     // 득점의 빛이 도는 동안은 그 모드가 앞섭니다 — 득점하는 카드는 물러나 있지 않습니다.
-    this.pick.mode = this.glow > 0 ? 2 : this.pickMode
+    // **걸지 않을 것이면 만들지도 않습니다.**
+    if (lit || this.pick) this.picker().mode = this.glow > 0 ? 2 : this.pickMode
 
     // **둘 다 종이에만 겁니다.** 카드 전체에 걸면 그림자까지 함께 빛나고, 득점하는 카드가
     // 들려 있는 동안에는 그 그림자가 카드에서 떨어져 있어 빛나는 얼룩 하나가 따로 남습니다.
@@ -373,7 +385,7 @@ export class CardView extends Container {
     // 차례가 있습니다 — 무늬를 먼저 얹고 그 결과의 둘레에 빛을 두릅니다.
     const stack: Filter[] = []
     if (this.edition) stack.push(this.edition)
-    if (lit) stack.push(this.pick)
+    if (lit) stack.push(this.picker())
     this.body.filters = stack
     this.filters = []
   }
@@ -385,8 +397,9 @@ export class CardView extends Container {
    */
   shine(tint: [number, number, number], strength = 1): void {
     this.glow = Math.max(this.glow, Math.min(1, strength))
-    this.pick.setTint(tint[0], tint[1], tint[2])
-    this.pick.glow = this.glow
+    const pick = this.picker()
+    pick.setTint(tint[0], tint[1], tint[2])
+    pick.glow = this.glow
     this.restack()
   }
 
@@ -414,10 +427,12 @@ export class CardView extends Container {
 
   /** 1 고름 · -1 고르지 않음 · 0 그대로. */
   setPick(mode: number, tint: [number, number, number]): void {
-    this.pick.setTint(tint[0], tint[1], tint[2])
+    // **색은 걸려 있을 때만 넣습니다.** 이 함수는 `refresh` 마다 손패 전부에 불리므로,
+    // 여기서 필터를 찾으면 고르지 않은 카드도 하나씩 갖게 됩니다.
+    if (mode !== 0 || this.pick) this.picker().setTint(tint[0], tint[1], tint[2])
     if (mode === this.pickMode) return
     this.pickMode = mode
-    this.pick.mode = mode
+    this.picker().mode = mode
     this.restack()
   }
 
@@ -549,11 +564,11 @@ export class CardView extends Container {
     this.body.y = -this.lift.value
 
     this.edition?.at(time, this.pointer)
-    if (this.pickMode !== 0 || this.glow > 0) this.pick.time = time
+    if (this.pick && (this.pickMode !== 0 || this.glow > 0)) this.pick.time = time
 
     if (this.glow > 0) {
       this.glow = Math.max(0, this.glow - seconds * 1.5)
-      this.pick.glow = this.glow
+      this.picker().glow = this.glow
       if (this.glow === 0) this.restack()
     }
 

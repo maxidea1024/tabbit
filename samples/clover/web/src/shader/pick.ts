@@ -19,6 +19,40 @@
 
 import { Filter, GlProgram } from 'pixi.js'
 
+/** 둘레를 훑는 표본의 수. */
+const TAPS = 28
+
+/**
+ * 표본의 자리와 무게를 GLSL 의 상수 배열로.
+ *
+ * **되풀이 안에서 셈하던 것입니다.** 자리도 무게도 걸음의 번호만으로 정해지므로 픽셀에 따라
+ * 달라지는 것이 하나도 없는데, 픽셀마다 `sqrt` · `sin` · `cos` · `exp` 를 28번씩 세고
+ * 있었습니다 — 드라이버가 되풀이를 펴면 접히지만 그것은 드라이버에 달린 것이고, 손가락으로
+ * 짚는 화면의 드라이버가 그렇게 하리라는 보장이 없습니다.
+ *
+ * **여기서 한 번 셈해 셰이더 글에 박아 넣습니다.** 수를 손으로 적어 두지 않는 것은, 적어
+ * 두면 위의 식을 고쳤을 때 그 수가 따라오지 않기 때문입니다.
+ *
+ * 표본은 원판 위에 황금각으로 흩습니다. 고리를 몇 겹 두르면 그 고리가 그대로 줄무늬로
+ * 보이고, 격자로 두면 네모가 비칩니다.
+ */
+function tapTable(): string {
+  const rows: string[] = []
+  let total = 0
+  for (let i = 0; i < TAPS; i++) {
+    const t = (i + 0.5) / TAPS
+    const radius = Math.sqrt(t) * 26
+    const angle = i * 2.39996323
+    const weight = Math.exp(-(radius * radius) / 320)
+    total += weight
+    rows.push(`  vec3(${(Math.cos(angle) * radius).toFixed(5)}, `
+      + `${(Math.sin(angle) * radius).toFixed(5)}, ${weight.toFixed(6)})`)
+  }
+  const table = rows.join(',\n')
+  return `const vec3 TAP[${TAPS}] = vec3[${TAPS}](\n${table}\n);`
+    + `\nconst float TAP_SCALE = ${(1 / total).toFixed(8)};`
+}
+
 const VERTEX = `#version 300 es
 in vec2 aPosition;
 out vec2 vTextureCoord;
@@ -53,6 +87,8 @@ uniform float uTime;
 uniform vec3  uTint;
 uniform float uGlow;    // 0..1. 득점의 빛이 잦아드는 정도입니다.
 
+${tapTable()}
+
 /**
  * 카드 모양을 뭉갠 것.
  *
@@ -60,21 +96,16 @@ uniform float uGlow;    // 0..1. 득점의 빛이 잦아드는 정도입니다.
  * 투명해서, 그 기울기는 모서리의 1px 뿐입니다. 그래서 카드 모양 자체를 흐리게 뭉개고, 그
  * 뭉개진 그림을 빛으로 씁니다. 안쪽에서 1 이고 바깥으로 부드럽게 0 이 되는 값입니다.
  *
- * 표본은 원판 위에 황금각으로 흩습니다. 고리를 몇 겹 두르면 그 고리가 그대로 줄무늬로
- * 보이고, 격자로 두면 네모가 비칩니다.
+ * 표본의 자리와 무게는 위의 상수 배열이고, 어떻게 나온 값인지는 tapTable 에 있습니다.
+ * **셰이더 글은 템플릿 문자열 안이므로 주석에 백틱을 쓸 수 없습니다** — 하나가 문자열을
+ * 끊고, 끊긴 자리부터 GLSL 이 아니라 타입스크립트로 읽힙니다.
  */
 float blurredShape(vec2 uv, vec2 texel) {
   float sum = 0.0;
-  float total = 0.0;
-  for (int i = 0; i < 28; i++) {
-    float t = (float(i) + 0.5) / 28.0;
-    float radius = sqrt(t) * 26.0;
-    float angle = float(i) * 2.39996323;
-    float weight = exp(-radius * radius / 320.0);
-    sum += texture(uTexture, uv + vec2(cos(angle), sin(angle)) * radius * texel).a * weight;
-    total += weight;
+  for (int i = 0; i < ${TAPS}; i++) {
+    sum += texture(uTexture, uv + TAP[i].xy * texel).a * TAP[i].z;
   }
-  return sum / total;
+  return sum * TAP_SCALE;
 }
 
 void main(void) {

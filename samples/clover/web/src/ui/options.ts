@@ -489,6 +489,13 @@ export class OptionsPanel implements ModalPanel {
   private readonly body = new Container()
   private readonly tabRow = new Container()
   /** 본문이 담기는 창. 이 밖으로 나간 줄은 잘립니다. */
+  /**
+   * 미리보기가 쓰는 그림의 열쇠. `<폴더>/<식별자>` 입니다.
+   *
+   * **`art.ts` 가 도착을 알릴 때 넘기는 열쇠와 같은 꼴입니다.** 이 판과 상관없는 그림이
+   * 도착해도 탭을 다시 만들던 것을 막습니다.
+   */
+  private readonly previewKeys = new Set<string>()
   private readonly viewport = new Container()
   /** 창의 모양. `viewport` 의 마스크입니다. */
   private readonly clip = new Graphics()
@@ -526,16 +533,28 @@ export class OptionsPanel implements ModalPanel {
     // **표를 먼저 읽습니다.** 탭을 세우는 것이 `relabel` 이고 카드 탭이 이 목록을 씁니다.
     for (const one of setsOf(data)) {
       this.sets.push(one)
-      this.looks.set(one.setId, setLookOf(data, one.setId))
+      const look = setLookOf(data, one.setId)
+      this.looks.set(one.setId, look)
+      // **이 판이 쓰는 그림의 열쇠.** 도착한 것이 이 안에 있을 때만 다시 그립니다.
+      if (look.artDir === undefined) continue
+      for (const want of PREVIEW) {
+        this.previewKeys.add(`${look.artDir}/${cardArtId(want.suit, want.rank)}`)
+      }
     }
-    // **그림은 나중에 옵니다.** `artFor` 는 처음에 없다고 답하고 읽기를 시작하므로, 다시
+    // **그림은 나중에 옵니다.** `artFor` 는 처음에 없다고 하고 읽기를 시작하므로, 다시
     // 그리지 않으면 미리보기가 영원히 그린 얼굴로 남습니다 — 판에서 카드가 그렇게 그려지는
     // 것과 같은 규약이고, 판은 매 프레임 다시 그리지만 이 판은 그렇지 않습니다.
-    for (const look of this.looks.values()) {
-      if (look.artDir === undefined) continue
-      for (const want of PREVIEW) artFor(look.artDir, cardArtId(want.suit, want.rank))
-    }
-    onArtReady(() => { if (this.view.parent) this.draw() })
+    //
+    // **미리 부탁하지 않습니다.** 생성자에서 68장을 부탁하고 있었는데, `previewCard` 가
+    // 그릴 때 같은 것을 부탁하므로 그 줄이 하는 일은 「더 일찍」뿐이었습니다 — 옵션을 한
+    // 번도 열지 않은 사람도 68장을 읽었고, 그 68장이 그림의 상한을 차지해 판에 서는 조커가
+    // 그만큼 밀려납니다.
+    //
+    // **어느 그림이 왔는지를 봅니다.** 도착 하나에 탭을 통째로 다시 만들면 미리보기 68장이
+    // 하나씩 들어오는 동안 68번입니다 — 도감을 굴리는 중에 도착한 조커 그림도 그랬습니다.
+    onArtReady(key => {
+      if (this.view.parent && this.previewKeys.has(key)) this.draw()
+    })
     this.relabel()
 
     // **바퀴는 판 위에서만 받습니다.** 화면 전체에 걸면 판이 닫힌 뒤에도 받게 되고, 뒤의

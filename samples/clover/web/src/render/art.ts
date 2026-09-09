@@ -59,8 +59,14 @@ let base = './art'
 const known = new Set<string>()
 const ready = new Map<string, Held>()
 const loading = new Set<string>()
-/** 그림이 새로 들어올 때마다 부릅니다. 화면이 그때 다시 그립니다. */
-const listeners: (() => void)[] = []
+/**
+ * 그림이 새로 들어올 때마다 부릅니다. 화면이 그때 다시 그립니다.
+ *
+ * **어느 그림인지를 넘깁니다.** 받는 쪽이 자기가 쓰는 것인지 가릴 수 있어야 합니다 —
+ * 넘기지 않으면 도감을 굴리는 중에 도착한 조커 그림 하나가 옵션 판과 상점을 함께 다시
+ * 그리게 합니다.
+ */
+const listeners: ((key: string) => void)[] = []
 
 /** 지금 들고 있는 크기의 합. */
 let heldBytes = 0
@@ -100,7 +106,7 @@ function extensionOf(kind: ArtDir): string {
   return kind === 'card' ? 'png' : 'webp'
 }
 
-export function onArtReady(listener: () => void): void {
+export function onArtReady(listener: (key: string) => void): void {
   listeners.push(listener)
 }
 
@@ -129,7 +135,7 @@ export function artFor(kind: ArtDir, id: string): Texture | undefined {
     ready.set(key, { texture, url, bytes, used: ++clock })
     heldBytes += bytes
     trim()
-    for (const listener of listeners) listener()
+    for (const listener of listeners) listener(key)
   }).catch(() => {
     loading.delete(key)
     // 한 번 실패하면 다시 시도하지 않습니다. 문양으로 남습니다.

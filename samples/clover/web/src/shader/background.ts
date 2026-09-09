@@ -67,6 +67,8 @@ float fbm(vec2 p) {
 void main(void) {
   vec2 uv = vTextureCoord;
   vec2 p = vec2((uv.x - 0.5) * uAspect, uv.y - 0.5) * 2.4;
+  // 가운데에서의 거리. **아래의 가장자리 떨굼이 같은 길이를 다시 재고 있었습니다.**
+  float middle = length(p) * (1.0 / 2.4);
 
   // 흐르는 빠르기. **열기가 올라도 조금만 빨라집니다** — 크게 걸면 점수가 오를 때마다
   // 배경이 딴 화면처럼 됩니다.
@@ -100,7 +102,7 @@ void main(void) {
   }
 
   // 가운데가 밝고 가장자리가 어둡습니다. 시선이 판에 머무릅니다.
-  float vignette = 1.0 - smoothstep(0.35, 0.95, length(vec2((uv.x - 0.5) * uAspect, uv.y - 0.5)));
+  float vignette = 1.0 - smoothstep(0.35, 0.95, middle);
   color *= 0.55 + 0.75 * vignette;
 
   finalColor = vec4(color, 1.0);

@@ -163,8 +163,14 @@ export class ScrollView extends Container {
   private readonly window = new Container()
   private readonly shade = new Graphics()
   private readonly bar = new Graphics()
+  /** 막대가 지나는 길. **굴려도 그대로이므로 한 번만 그립니다.** */
+  private readonly track = new Graphics()
   /** 막대를 잡는 자리. **보이는 막대보다 넓습니다.** */
   private readonly grip = new Graphics()
+  /** 길과 잡는 자리를 이미 그렸는가. */
+  private trackDrawn = false
+  /** 손잡이와 그늘이 그려져 있는가. 비었으면 손대지 않기 위한 것입니다. */
+  private barDrawn = false
   private readonly roll = new Fling()
   /**
    * 막대를 잡고 있는가. 잡은 자리가 손잡이의 어디인가입니다.
@@ -190,6 +196,15 @@ export class ScrollView extends Container {
     this.window.mask = mask
     this.window.addChild(this.content)
 
+    // **내용을 렌더 그룹으로 둡니다.** 굴리는 것은 이 통의 y 하나를 옮기는 일인데, 보통
+    // 통이면 Pixi 가 그 아래 자식 전부의 정점을 다시 변환해 배치에 적습니다 — 순위표
+    // 125개, 도감 60칸이 굴리는 매 프레임 그렇습니다. 렌더 그룹은 변환이 GPU 에서
+    // 걸리므로 옮기는 데 자식마다 셈하지 않습니다.
+    //
+    // **묶이지 않는 것이 값입니다.** 렌더 그룹끼리는 배치가 함께 묶이지 않습니다 — 굴림통
+    // 하나가 하나이고, 그 안의 것은 어차피 다른 판의 것과 묶일 일이 없었습니다.
+    this.content.enableRenderGroup()
+
     // 눌리는 자리. **투명해도 자리는 있어야 합니다** — 없으면 빈 곳에서 굴리는 것이
     // 뒤로 지나갑니다.
     const hit = new Graphics()
@@ -200,7 +215,8 @@ export class ScrollView extends Container {
     this.grip.eventMode = 'static'
     this.grip.cursor = 'pointer'
     this.grip.visible = false
-    this.addChild(hit, mask, this.window, this.shade, this.bar, this.grip)
+    this.track.visible = false
+    this.addChild(hit, mask, this.window, this.shade, this.track, this.bar, this.grip)
 
     // **듣는 것은 이 컨테이너입니다.** 빈 자리 위에서 시작한 것은 `hit` 에서, 줄 위에서
     // 시작한 것은 그 줄에서 올라옵니다 — 둘 다 여기를 지납니다. `hit` 에서만 들으면 줄은
@@ -418,27 +434,41 @@ export class ScrollView extends Container {
    */
   private drawBar(over: number): void {
     const bar = this.bar
-    bar.clear()
     const shade = this.shade
-    shade.clear()
     this.grip.visible = over > 0
+    this.track.visible = over > 0
 
-    if (over <= 0) return
+    if (over <= 0) {
+      // **비었으면 손대지 않습니다.** `clear()` 는 지오메트리를 더럽혀 다시 만들게 합니다.
+      if (this.barDrawn) {
+        bar.clear()
+        shade.clear()
+        this.barDrawn = false
+      }
+      return
+    }
 
     const barH = this.barHeight()
     // 끝을 넘긴 자리에서도 막대는 끝에 붙어 있습니다.
     const at = this.barTop(barH)
 
-    bar.roundRect(this.width_ - BAR_W - 2, 0, BAR_W, this.height_, BAR_W / 2)
-      .fill({ color: 0x1b2431 })
+    // **길과 잡는 자리는 한 번만 그립니다.** 굴려도 폭도 높이도 그대로이므로, 프레임마다
+    // 다시 그리는 것은 손잡이 하나입니다.
+    if (!this.trackDrawn) {
+      this.trackDrawn = true
+      this.track.clear()
+      this.track.roundRect(this.width_ - BAR_W - 2, 0, BAR_W, this.height_, BAR_W / 2)
+        .fill({ color: 0x1b2431 })
+      this.grip.clear()
+      this.grip.rect(this.width_ - BAR_GRIP, 0, BAR_GRIP, this.height_)
+        .fill({ color: 0x000000, alpha: 0.0001 })
+    }
+
+    bar.clear()
+    shade.clear()
+    this.barDrawn = true
     bar.roundRect(this.width_ - BAR_W - 2, at, BAR_W, barH, BAR_W / 2)
       .fill({ color: this.gripAt === undefined ? 0x46566d : 0x6a7f9d })
-
-    // **잡히는 자리는 보이는 막대보다 넓습니다.** 그리는 것은 한 번뿐이지만 폭이 바뀌지
-    // 않으므로 여기서 함께 세웁니다.
-    this.grip.clear()
-    this.grip.rect(this.width_ - BAR_GRIP, 0, BAR_GRIP, this.height_)
-      .fill({ color: 0x000000, alpha: 0 })
 
     const fade = 22
     if (this.roll.offset < 0) {

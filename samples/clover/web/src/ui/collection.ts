@@ -137,7 +137,13 @@ interface Cell {
   id: string
   name: string
   kind: string
-  lines: string[]
+  /**
+   * 설명 줄. **읽는 순간에 만듭니다.**
+   *
+   * 읽는 곳이 쪽지 하나뿐인데 미리 만들면 조커 탭 하나에 `describe()` 가 500번이고, 그
+   * 가운데 사람이 보는 것은 가리킨 한 칸뿐입니다. `face` 와 같은 규약입니다.
+   */
+  lines: () => string[]
   rarity: number
   cost?: number
   /** 앞면일 때 그리는 것. */
@@ -187,7 +193,13 @@ export class CollectionPanel implements ModalPanel {
   private order?: Button
   private frame?: Container
 
-  private views: Container[] = []
+  /**
+   * 지어 둔 칸. **자리와 그 칸의 내용을 함께 들고 있습니다.**
+   *
+   * 그림이 도착했을 때 **그 칸 하나만 다시 짓기 위한 것**입니다 — 격자를 통째로 다시
+   * 지으면 그림 60장이 도착하는 동안 60번을 다시 짓게 됩니다.
+   */
+  private placed: { cell: Cell; node: Container; x: number; y: number }[] = []
   private tab: TabKey = 'joker'
   /** 지금 지어 둔 줄의 범위. 굴려서 이 밖으로 나가면 다시 짓습니다. */
   private built = { from: -1, to: -1 }
@@ -196,7 +208,8 @@ export class CollectionPanel implements ModalPanel {
   /** 조커 탭에서 무엇까지 보는가. **옵션을 바꾸지 않습니다** — 보는 범위일 뿐입니다. */
   private range: PoolChoice
   /** 다음에 세울 때 다시 지어야 하는가. 그림이 들어오면 켜집니다. */
-  private dirty = false
+  /** 그림이 도착한 칸의 식별자. **한 프레임에 모아서 처리합니다.** */
+  private readonly artWaiting = new Set<string>()
 
   /**
    * 검증 도구가 짚을 자리.
@@ -248,9 +261,20 @@ export class CollectionPanel implements ModalPanel {
     this.build()
     this.rebuild()
 
-    // **그림은 늦게 들어옵니다.** 그림 하나마다 다시 세우면 한 쪽을 여는 데 카드가 수백
-    // 장이므로, 표시만 남기고 다음 프레임에 한 번 세웁니다.
-    onArtReady(() => { this.dirty = true })
+    // **그림은 늦게 들어옵니다.**
+    //
+    // **어느 그림이 왔는지를 봅니다.** 도착 하나에 격자를 통째로 다시 지으면, 한 줄을
+    // 굴려 부탁한 그림 60장이 하나씩 들어오는 동안 60칸 짓기를 60번 하게 됩니다 — 판에
+    // 서 있는 조커의 그림이 도착해도 그랬습니다. 지금 지어 둔 칸의 것만 받고, 받은 것도
+    // 그 칸 하나만 다시 짓습니다.
+    //
+    // **모아서 다음 프레임에 처리합니다.** 한 프레임에 여럿이 도착하면 그만큼 짓는 것이
+    // 아니라 한 번입니다.
+    onArtReady(key => {
+      if (!this.view.parent) return
+      const id = key.slice(key.indexOf('/') + 1)
+      if (this.placed.some(one => one.cell.id === id)) this.artWaiting.add(id)
+    })
   }
 
   /** 발견이 늘었습니다. **떠 있으면 그 자리에서 다시 세웁니다.** */
@@ -393,29 +417,32 @@ export class CollectionPanel implements ModalPanel {
   private jokerCells(): Cell[] {
     const pools = poolsOf(this.range)
     const rows = this.data.tables.joker.records.filter(row => pools.includes(row.pool))
-    const name = (id: string, fallback: string) => nameOf(this.data, 'joker', id, fallback)
 
-    const sorted = [...rows]
+    // **이름을 한 번만 뽑습니다.** 비교 안에서 부르면 500행 정렬에 비교가 4,500번이고
+    // 이름 조회가 그 두 배입니다 — 뽑아 두면 500번입니다. 아래의 칸도 이 이름을 씁니다.
+    const sorted = rows.map(row => ({
+      row, name: nameOf(this.data, 'joker', row.jokerId, row.name),
+    }))
     if (this.sort === 'rarity') {
-      sorted.sort((a, b) => a.rarity - b.rarity || a.sortOrder - b.sortOrder)
+      sorted.sort((a, b) => a.row.rarity - b.row.rarity || a.row.sortOrder - b.row.sortOrder)
     } else if (this.sort === 'cost') {
-      sorted.sort((a, b) => a.cost - b.cost || a.sortOrder - b.sortOrder)
+      sorted.sort((a, b) => a.row.cost - b.row.cost || a.row.sortOrder - b.row.sortOrder)
     } else if (this.sort === 'name') {
-      sorted.sort((a, b) => name(a.jokerId, a.name).localeCompare(name(b.jokerId, b.name)))
+      sorted.sort((a, b) => a.name.localeCompare(b.name))
     } else {
-      sorted.sort((a, b) => a.sortOrder - b.sortOrder)
+      sorted.sort((a, b) => a.row.sortOrder - b.row.sortOrder)
     }
     if (!this.ascending) sorted.reverse()
 
-    return sorted.map(row => ({
+    return sorted.map(({ row, name }) => ({
       group: 'joker' as CollectionGroup,
       id: row.jokerId,
-      name: name(row.jokerId, row.name),
+      name,
       kind: t(RARITY_KEYS[row.rarity] ?? ''),
-      lines: describe(this.data, this.data.jokerEffects.get(row.jokerId) ?? []),
+      lines: () => describe(this.data, this.data.jokerEffects.get(row.jokerId) ?? []),
       rarity: row.rarity,
       cost: row.cost,
-      face: () => this.jokerView(row.jokerId, name(row.jokerId, row.name), row.rarity),
+      face: () => this.jokerView(row.jokerId, name, row.rarity),
     }))
   }
 
@@ -440,7 +467,7 @@ export class CollectionPanel implements ModalPanel {
         group: 'tarot', id: row.tarotId,
         name: nameOf(this.data, 'tarot', row.tarotId, row.name),
         kind: t('ui.kind.tarot'), rarity: 0,
-        lines: describe(this.data, this.data.tarotEffects.get(row.tarotId) ?? []),
+        lines: () => describe(this.data, this.data.tarotEffects.get(row.tarotId) ?? []),
         face: () => itemFace(this.data, { kind: ShopItemKind.Tarot, id: row.tarotId }),
       })
     }
@@ -450,7 +477,7 @@ export class CollectionPanel implements ModalPanel {
         name: nameOf(this.data, 'planet', row.planetId, row.name),
         kind: t('ui.kind.planet'), rarity: 0,
         // **행성은 효과 표가 없습니다.** 어느 족보를 올리는지가 그 행성의 전부입니다.
-        lines: [handDisplay(this.data, row.hand)],
+        lines: () => [handDisplay(this.data, row.hand)],
         face: () => itemFace(this.data, { kind: ShopItemKind.Planet, id: row.planetId }),
       })
     }
@@ -459,7 +486,7 @@ export class CollectionPanel implements ModalPanel {
         group: 'spectral', id: row.spectralId,
         name: nameOf(this.data, 'spectral', row.spectralId, row.name),
         kind: t('ui.kind.spectral'), rarity: 0,
-        lines: describe(this.data, this.data.spectralEffects.get(row.spectralId) ?? []),
+        lines: () => describe(this.data, this.data.spectralEffects.get(row.spectralId) ?? []),
         face: () => itemFace(this.data, { kind: ShopItemKind.Spectral, id: row.spectralId }),
       })
     }
@@ -471,7 +498,11 @@ export class CollectionPanel implements ModalPanel {
     return [...this.data.tables.voucher.records]
       .sort((a, b) => a.sortOrder - b.sortOrder)
       .map(row => {
-        const lines = describe(this.data, this.data.voucherEffects.get(row.voucherId) ?? [])
+        // **얼굴과 쪽지가 같은 줄을 씁니다.** 한 번 만들고 나눠 쓰되, 둘 다 부르지 않으면
+        // 만들지 않습니다 — 얼굴은 보이는 칸만, 쪽지는 가리킨 칸만 부릅니다.
+        let made: string[] | undefined
+        const lines = (): string[] =>
+          (made ??= describe(this.data, this.data.voucherEffects.get(row.voucherId) ?? []))
         return {
           group: 'voucher' as CollectionGroup,
           id: row.voucherId,
@@ -479,7 +510,7 @@ export class CollectionPanel implements ModalPanel {
           kind: t('ui.kind.voucher'), rarity: 0, lines,
           cost: row.cost,
           face: () => voucherFace(this.data, row.voucherId,
-                                  lines[0] ?? t('ui.note.rest_of_run')),
+                                  lines()[0] ?? t('ui.note.rest_of_run')),
         }
       })
   }
@@ -499,7 +530,7 @@ export class CollectionPanel implements ModalPanel {
         group: 'enhancement', id: EnhancementKind[row.enhancement],
         name: nameOf(this.data, 'enhancement', slug, row.display),
         kind: t('ui.kind.enhancement'), rarity: 0,
-        lines: describe(this.data, this.data.enhancementEffects.get(
+        lines: () => describe(this.data, this.data.enhancementEffects.get(
           String(row.enhancement)) ?? []),
         face: () => this.markFace(nameOf(this.data, 'enhancement', slug, row.display),
                                   t('ui.kind.enhancement')),
@@ -512,7 +543,7 @@ export class CollectionPanel implements ModalPanel {
         group: 'seal', id: SealKind[row.seal],
         name: nameOf(this.data, 'seal', slug, row.display),
         kind: t('ui.kind.seal'), rarity: 0,
-        lines: describe(this.data, this.data.sealEffects.get(String(row.seal)) ?? []),
+        lines: () => describe(this.data, this.data.sealEffects.get(String(row.seal)) ?? []),
         face: () => this.markFace(nameOf(this.data, 'seal', slug, row.display),
                                   t('ui.kind.seal')),
       })
@@ -524,7 +555,7 @@ export class CollectionPanel implements ModalPanel {
         group: 'edition', id: EditionKind[row.edition],
         name: nameOf(this.data, 'edition', slug, row.display),
         kind: t('ui.kind.edition'), rarity: 0,
-        lines: editionLines(row),
+        lines: () => editionLines(row),
         face: () => this.markFace(nameOf(this.data, 'edition', slug, row.display),
                                   t('ui.kind.edition')),
       })
@@ -571,7 +602,7 @@ export class CollectionPanel implements ModalPanel {
       name: packName(row.kind, row.size),
       kind: t('ui.kind.pack'), rarity: 0,
       cost: row.cost,
-      lines: [tf('ui.pack.spread', { cards: row.cards, picks: row.picks })],
+      lines: () => [tf('ui.pack.spread', { cards: row.cards, picks: row.picks })],
       face: () => packFace(row),
     }))
   }
@@ -584,7 +615,7 @@ export class CollectionPanel implements ModalPanel {
         id: row.tagId,
         name: nameOf(this.data, 'tag', row.tagId, row.name),
         kind: t('ui.kind.tag'), rarity: 0,
-        lines: describe(this.data, this.data.tagEffects.get(row.tagId) ?? []),
+        lines: () => describe(this.data, this.data.tagEffects.get(row.tagId) ?? []),
         face: () => tagFace(row.tagId, ROUND),
       }))
   }
@@ -597,7 +628,7 @@ export class CollectionPanel implements ModalPanel {
         group: 'blind', id: BlindKind[row.blind],
         name: nameOf(this.data, 'blind', slug, row.name),
         kind: t('ui.kind.blind'), rarity: 0,
-        lines: [t('ui.note.no_rules')],
+        lines: () => [t('ui.note.no_rules')],
         // **보스 칸은 인장을 그리지 않습니다** — 어느 보스인지는 그 아래의 28칸입니다.
         face: () => blindFace(row.blind, ROUND, ''),
       })
@@ -608,7 +639,7 @@ export class CollectionPanel implements ModalPanel {
         group: 'boss', id: row.bossId,
         name: nameOf(this.data, 'boss', row.bossId, row.name),
         kind: t('ui.kind.boss'), rarity: 0,
-        lines: describe(this.data, this.data.bossEffects.get(row.bossId) ?? []),
+        lines: () => describe(this.data, this.data.bossEffects.get(row.bossId) ?? []),
         face: () => blindFace(BlindKind.Boss, ROUND, row.bossId),
       })
     }
@@ -621,7 +652,7 @@ export class CollectionPanel implements ModalPanel {
       id: StakeKind[row.stake],
       name: nameOf(this.data, 'stake', stakeSlug(row.stake), row.name),
       kind: t('ui.kind.stake'), rarity: 0,
-      lines: [tf('ui.stake.note', {
+      lines: () => [tf('ui.stake.note', {
         column: row.anteColumn, reward: row.smallBlindReward, discards: row.discardsDelta,
       })],
       face: () => this.markFace(nameOf(this.data, 'stake', stakeSlug(row.stake), row.name),
@@ -638,7 +669,7 @@ export class CollectionPanel implements ModalPanel {
         name: nameOf(this.data, 'deck', row.deckId, row.name),
         kind: t('ui.kind.deck'), rarity: 0,
         // 해금 조건은 표시입니다 — 이 게임은 덱을 잠그지 않습니다.
-        lines: describe(this.data, this.data.deckEffects.get(row.deckId) ?? []),
+        lines: () => describe(this.data, this.data.deckEffects.get(row.deckId) ?? []),
         face: () => {
           const node = new Container()
           drawCardBack(node, SIZE.jokerWidth, SIZE.jokerHeight, 9, backLookOf(row))
@@ -750,15 +781,36 @@ export class CollectionPanel implements ModalPanel {
         const index = row * COLUMNS + column
         const cell = all[index]
         if (!cell) break
-        this.grid.addChild(this.cellNode(cell, column * CELL_X, row * CELL_Y))
+        const x = column * CELL_X
+        const y = row * CELL_Y
+        const node = this.cellNode(cell, x, y)
+        this.grid.addChild(node)
+        this.placed.push({ cell, node, x, y })
       }
+    }
+  }
+
+  /**
+   * 그림이 도착한 칸 하나만 다시 짓습니다.
+   *
+   * **자리는 그대로입니다.** 격자에서 그 칸이 있던 차례에 새것을 넣으므로 겹치는 순서도
+   * 바뀌지 않습니다 — 다시 짓는 것이 한 칸이므로 굴리는 중에도 프레임을 놓치지 않습니다.
+   */
+  private repaint(id: string): void {
+    for (const one of this.placed) {
+      if (one.cell.id !== id) continue
+      const at = this.grid.getChildIndex(one.node)
+      one.node.destroy({ children: true })
+      one.node = this.cellNode(one.cell, one.x, one.y)
+      this.grid.addChildAt(one.node, at)
     }
   }
 
   /** 지어 둔 칸을 치웁니다. */
   private clearCells(): void {
-    for (const view of this.views) view.destroy({ children: true })
-    this.views = []
+    for (const one of this.placed) one.node.destroy({ children: true })
+    this.placed = []
+    this.artWaiting.clear()
     this.grid.removeChildren()
   }
 
@@ -802,7 +854,6 @@ export class CollectionPanel implements ModalPanel {
       this.hover(cell, met, x, y)
     })
     node.on('pointerout', () => this.tooltip.hide())
-    this.views.push(node)
     return node
   }
 
@@ -829,7 +880,7 @@ export class CollectionPanel implements ModalPanel {
                         { width: WIDTH, height: HEIGHT })
       return
     }
-    this.tooltip.show(cell.name, cell.kind, cell.rarity, cell.lines, at,
+    this.tooltip.show(cell.name, cell.kind, cell.rarity, cell.lines(), at,
                       { width: WIDTH, height: HEIGHT }, cell.cost)
   }
 
@@ -855,10 +906,10 @@ export class CollectionPanel implements ModalPanel {
     // 굴려서 보이는 줄이 달라졌으면 그만큼 짓습니다. **달라지지 않았으면 수 둘을 견주고
     // 끝납니다.**
     this.draw()
-    if (this.dirty) {
-      this.dirty = false
-      this.built = { from: -1, to: -1 }
-      this.draw()
+    // 그림이 도착한 칸만 다시 짓습니다. **격자는 그대로 둡니다.**
+    if (this.artWaiting.size > 0) {
+      for (const id of this.artWaiting) this.repaint(id)
+      this.artWaiting.clear()
     }
   }
 }

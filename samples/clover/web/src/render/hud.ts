@@ -108,6 +108,17 @@ const EMPHASIS_MS = 220
 const GLYPH_W = new Map<string, number>()
 
 /**
+ * 천 단위를 끊는 것.
+ *
+ * **한 번 만들어 둡니다.** `Number.prototype.toLocaleString` 은 부를 때마다 Intl 을
+ * 거치는데, 점수가 굴러가는 동안 칸마다 초당 60번입니다.
+ *
+ * **말과 무관하게 `en-US` 입니다.** 숫자의 자리 표기가 말을 따라가면 같은 판의 점수가
+ * 사람마다 다르게 적히고, 이 게임의 수는 자릿수를 세는 수입니다.
+ */
+const COMMAS = new Intl.NumberFormat('en-US')
+
+/**
  * 수 하나를 글자별로 세우는 통.
  *
  * **글자마다 따로 움직여야 할 때만 씁니다.** `Text` 하나는 통째로만 움직이므로, 왼쪽
@@ -290,7 +301,9 @@ export class Slot extends Container {
   /** 이미 조용한 모습으로 돌려놓았는가. 매 프레임 다시 그리지 않기 위한 것입니다. */
   private settledLook = true
   /** 마지막으로 그린 판때기의 모습. 같으면 다시 그리지 않습니다. */
-  private plateKey = ''
+  /** 마지막으로 그린 판때기의 빛과 색. **모습이 같으면 다시 그리지 않습니다.** */
+  private plateStep = -1
+  private plateInk = -1
 
   /**
    * 바탕이 오르내림을 따라 물드는가.
@@ -506,9 +519,11 @@ export class Slot extends Container {
     const step = Math.round(glow * 16) / 16
     // **색도 열쇠입니다.** 세기만 보면 같은 세기로 오른 것과 내린 것이 같은 모습으로
     // 남습니다 — 줄어든 다음 곧바로 같은 만큼 늘어나면 붉은 채로 밝습니다.
-    const key = `${step}|${this.glowInk}`
-    if (key === this.plateKey) return
-    this.plateKey = key
+    // **열쇠는 수 둘입니다.** 문자열로 만들면 칸마다 초당 60번 문자열 하나가 생기고,
+    // 견주는 것은 어느 쪽이나 같습니다.
+    if (step === this.plateStep && this.glowInk === this.plateInk) return
+    this.plateStep = step
+    this.plateInk = this.glowInk
     const style = slotStyle(this.ink)
     this.plate.clear()
     // **빛나는 것은 바탕뿐입니다.** 테를 굵히면 그 칸만 다른 문법으로 그려진 것이 되고,
@@ -530,7 +545,8 @@ export class Slot extends Container {
    * 바뀐 것을 알지 못합니다.
    */
   restyle(): void {
-    this.plateKey = ''
+    this.plateStep = -1
+    this.plateInk = -1
     this.draw()
   }
 
@@ -770,7 +786,7 @@ export class Slot extends Container {
     const shown = Math.round(this.shown)
     this.value.text = shown >= 1_000_000
       ? shown.toExponential(2).replace('e+', 'e')
-      : shown.toLocaleString('en-US')
+      : COMMAS.format(shown)
     // **자릿수가 바뀌면 조용한 모습을 다시 앉힙니다.** 칸에 들어가려 줄인 배율은 글자 수가
     // 정하는 값이고, 조용한 모습은 「이미 앉혔다」로 한 번만 적용됩니다 — 다시 적지 않으면
     // 여섯 자리가 된 수가 앞의 배율로 그려집니다.

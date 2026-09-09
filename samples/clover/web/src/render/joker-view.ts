@@ -112,7 +112,7 @@ export class JokerView extends Container {
    * **팔린 조커는 미끄러져 나가지 않습니다.** 나가는 것은 「치웠다」이고, 판 것은 없앤
    * 것입니다 — 종이가 타는 모습이 그 둘을 가릅니다.
    */
-  private readonly dissolve = new DissolveFilter()
+  private dissolve?: DissolveFilter
   private burn = 0
   private burning = false
   /**
@@ -288,6 +288,10 @@ export class JokerView extends Container {
    */
   private restack(): void {
     if (this.burning) {
+      // **타기 시작할 때 만듭니다.** 딱지 하나가 살아 있는 동안 내내 들고 있을 것이
+      // 아닙니다 — 도감 한 화면이 딱지 60개이고 그 가운데 타는 것은 없습니다. 바로 위의
+      // `arrive` 와 같은 규약입니다.
+      this.dissolve ??= new DissolveFilter()
       this.body.filters = []
       this.sheet.filters = [this.dissolve]
       return
@@ -388,7 +392,7 @@ export class JokerView extends Container {
     if (this.burning) {
       // **아래에서 위로, 그리고 조금 떠오릅니다.** 종이가 타면 가벼워집니다.
       this.burn = Math.min(1, this.burn + seconds * 1.6)
-      this.dissolve.burn = this.burn
+      if (this.dissolve) this.dissolve.burn = this.burn
       this.y -= seconds * 26
       this.rotation += seconds * 0.12
       return
@@ -402,9 +406,12 @@ export class JokerView extends Container {
     } else {
       this.shiver = 0
     }
+    // **흔들리지 않으면 세지 않습니다.** 답이 0인데 `Math.sin` 셋을 부르고 있었고,
+    // 도감 한 화면이면 딱지 60개에 프레임마다 180번입니다.
     const shake = this.rattle * this.rattle
-    const aside = Math.sin(this.shiver) * 15 * shake
-      + Math.sin(this.shiver * 2.7) * 7 * shake
+    const aside = shake > 0
+      ? (Math.sin(this.shiver) * 15 + Math.sin(this.shiver * 2.7) * 7) * shake
+      : 0
 
     const lifts = this.hovered && !this.held
     const wobble = sway(time, this.motion.phase, 1.1, 1.1)
@@ -412,7 +419,7 @@ export class JokerView extends Container {
     this.y = this.motion.y.value - (lifts ? 10 : 0)
       + sway(time, this.motion.phase * 1.3, 1.8, 0.7)
     this.rotation = (this.motion.rotation.value + wobble
-      + Math.sin(this.shiver * 1.3) * 8 * shake) * (Math.PI / 180)
+      + (shake > 0 ? Math.sin(this.shiver * 1.3) * 8 * shake : 0)) * (Math.PI / 180)
 
     const want = lifts ? 1.1 : 1
     if (Math.abs(this.motion.scale.target - want) > 0.001) this.motion.scale.target = want

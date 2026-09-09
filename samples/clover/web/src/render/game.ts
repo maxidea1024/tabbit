@@ -1629,8 +1629,9 @@ export class Game {
   private readonly scoreWave = new ScoreWave()
   /** 두 상자가 놓인 자리. 겉면을 갈아입을 때와 번쩍임이 다시 씁니다. */
   private scoreBoxes?: { chips: Box; mult: Box }
-  /** 마지막으로 그린 번쩍임의 세기. 같으면 다시 그리지 않습니다. */
-  private scoreFlashKey = ''
+  /** 마지막으로 그린 번쩍임의 세기 둘. 같으면 다시 그리지 않습니다. */
+  private flashChips = -1
+  private flashMult = -1
   /**
    * 칩과 배수.
    *
@@ -2346,8 +2347,8 @@ export class Game {
   /** 화면 전체의 번쩍임. 큰 것에만 씁니다. */
   private screenGlow = 0
   private panelDrawn = false
-  /** 마지막으로 그린 패널 번쩍임의 모양(색과 테두리 굵기 단계). 밝기는 알파로 따로 갑니다. */
-  private panelKey = ''
+  /** 마지막으로 그린 패널 번쩍임의 색. 밝기는 알파로 따로 갑니다. */
+  private panelKey = -1
   /** 마지막으로 그린 화면 번쩍임의 색. */
   private screenKey = -1
   /** 그림이 새로 들어왔는가. `tick` 이 한 프레임에 한 번 처리합니다. */
@@ -4188,7 +4189,8 @@ export class Game {
         insetRadius(CHIPS_R, 0.5))
         .stroke({ color: style.border, width: 1 })
     }
-    this.scoreFlashKey = ''
+    this.flashChips = -1
+    this.flashMult = -1
     this.paintScoreFlash()
   }
 
@@ -4206,9 +4208,10 @@ export class Game {
     if (!boxes) return
     const step = (value: number) => Math.round(value * 8) / 8
     const level = { chips: step(this.chips.lit), mult: step(this.mult.lit) }
-    const key = `${level.chips}|${level.mult}`
-    if (key === this.scoreFlashKey) return
-    this.scoreFlashKey = key
+    // **열쇠는 수 둘입니다.** 문자열로 만들면 초당 60번 문자열 하나가 생깁니다.
+    if (level.chips === this.flashChips && level.mult === this.flashMult) return
+    this.flashChips = level.chips
+    this.flashMult = level.mult
 
     const g = this.scoreFlash
     g.clear()
@@ -4788,6 +4791,12 @@ export class Game {
     this.login.advance(seconds)
     this.netStatus.advance(seconds)
     this.rollRank(seconds)
+
+    // **딱지가 없으면 여기서 끝입니다.**
+    if (this.shopTiles.size === 0 && this.packSlotTiles.size === 0) {
+      if (this.shopLifts.size > 0) this.shopLifts.clear()
+      return
+    }
 
     // 지금 올라와 있어야 하는 칸 하나. 없으면 전부 제자리로 내려옵니다.
     const up = this.held?.kind === 'shop' ? `card:${this.held.uid}`
@@ -6529,9 +6538,8 @@ export class Game {
     if (this.panelGlow > 0.002) {
       this.panelGlow = Math.max(0, this.panelGlow - seconds * 3.6)
       const ease = this.panelGlow * this.panelGlow
-      const key = String(this.panelTint)
-      if (key !== this.panelKey) {
-        this.panelKey = key
+      if (this.panelTint !== this.panelKey) {
+        this.panelKey = this.panelTint
         this.panelFlash.clear()
         this.panelFlash.roundRect(LEFT - 12, 22, PANEL_W + 24, SIZE.height - 44, 12)
           .fill({ color: this.panelTint, alpha: 0.3 })
@@ -6540,7 +6548,7 @@ export class Game {
       this.panelDrawn = true
     } else if (this.panelDrawn) {
       this.panelFlash.clear()
-      this.panelKey = ''
+      this.panelKey = -1
       this.panelDrawn = false
     }
 

@@ -124,6 +124,17 @@ uniform float uAmount;
 /** 가로세로 비. 화면의 자는 높이가 1 이고 가로가 이것입니다. */
 uniform float uAspect;
 uniform vec2 uWindDir;
+/**
+ * 바람의 단위 벡터와, 그 쪽으로 잰 화면의 너비.
+ *
+ * **셈해서 넘깁니다.** 셰이더 안에서 normalize(uWindDir) 을 부르던 자리가 front 17회 ·
+ * windAt 21회 · main 2회로 **픽셀마다 40번**이고 답이 전부 같았습니다. 「span」 도 바람과
+ * 가로세로 비로만 정해지므로 프레임 상수입니다.
+ *
+ * **주석에 백틱을 쓰지 않습니다** — 이 글이 템플릿 문자열 안입니다.
+ */
+uniform vec2 uWindUnit;
+uniform float uSpan;
 uniform float uWindStrength;
 uniform float uTurbulence;
 uniform float uNoiseScale;
@@ -145,6 +156,16 @@ uniform sampler2D uLarge;
 uniform sampler2D uGrain;
 /** 모래알 그림이 몇 개의 텍셀인가. **칸마다 한 값으로 읽는 자리가 씁니다.** */
 uniform float uGrainTexels;
+/**
+ * 위의 셋의 역수.
+ *
+ * **유니폼으로 나누지 않습니다.** 칸을 찾는 자리가 픽셀마다 speckAt 32회 · cellHome
+ * 16회 · dustAt 의 fract 10회이고, 그 전부가 값이 바뀌지 않는 유니폼으로 나누는
+ * 나눗셈이었습니다.
+ */
+uniform float uGrainTexelsInv;
+uniform float uAshSizeInv;
+uniform float uFragmentSizeInv;
 `
 
 /**
@@ -173,9 +194,7 @@ const vec3 LUMA = vec3(0.30, 0.59, 0.11);
  * 어떤 자리는 늦게까지 남습니다.
  */
 float front(vec2 p) {
-  vec2 w = normalize(uWindDir);
-  float span = abs(w.x) * uAspect + abs(w.y);
-  float axis = 0.5 + dot(p - vec2(uAspect * 0.5, 0.5), w) / span;
+  float axis = 0.5 + dot(p - vec2(uAspect * 0.5, 0.5), uWindUnit) / uSpan;
   float blob = texture(uLarge, p * uNoiseScale + 0.13).r;
   return START + (END - START) * clamp(axis * 0.56 + blob * 0.50 - 0.03, 0.0, 1.0);
 }
@@ -187,12 +206,14 @@ float front(vec2 p) {
  * 시간의 뒤쪽이 아무것도 없는 검은 화면이 됩니다.
  */
 float run(float s) {
-  return s / (1.0 + s / SLOW);
+  // 나눗셈 하나입니다. s / (1.0 + s / SLOW) 와 같은 값이고 그쪽은 나눗셈이 둘입니다 —
+  // 이 함수는 픽셀마다 29번 불립니다.
+  return s * SLOW / (SLOW + s);
 }
 
-/** 그 칸의 가운데. 알갱이가 떠난 자리입니다. */
-vec2 cellHome(vec2 p, float size) {
-  return (floor(p / size) + 0.5) * size;
+/** 그 칸의 가운데. 알갱이가 떠난 자리입니다. 「inv」 는 「size」 의 역수입니다. */
+vec2 cellHome(vec2 p, float size, float inv) {
+  return (floor(p * inv) + 0.5) * size;
 }
 
 /**
@@ -205,9 +226,9 @@ vec2 cellHome(vec2 p, float size) {
  * **0층을 짚습니다.** 칸의 경계에서 좌표가 뛰므로 기울기가 커지고, 밉맵을 그대로 두면 GPU 가
  * 흐린 층을 골라 칸 안이 한 값이 아니게 됩니다.
  */
-float speckAt(vec2 p, float size, vec2 nudge) {
-  vec2 cell = floor(p / size) + 0.5 + nudge;
-  return textureLod(uGrain, cell / uGrainTexels, 0.0).r;
+float speckAt(vec2 p, float inv, vec2 nudge) {
+  vec2 cell = floor(p * inv) + 0.5 + nudge;
+  return textureLod(uGrain, cell * uGrainTexelsInv, 0.0).r;
 }
 
 /**
@@ -384,7 +405,7 @@ const int LAYERS = 10;
  * 바람 쪽으로 밀어 읽으므로 결이 시간과 함께 흘러갑니다.
  */
 vec2 windAt(vec2 p, float t) {
-  vec2 w = normalize(uWindDir);
+  vec2 w = uWindUnit;
   vec2 q = p * uNoiseScale * 0.5 - w * t * uNoiseSpeed * 0.55 + 0.2;
   float e = 0.012;
   float c = texture(uFlow, q).r;
@@ -402,9 +423,9 @@ vec2 windAt(vec2 p, float t) {
 vec4 flakeAt(vec2 here, vec2 home, vec2 dir, float a) {
   vec2 uv = toUv(home);
   if (!inside(uv)) return vec4(0.0);
-  float roll = speckAt(home, uFragmentSize, vec2(0.0));
+  float roll = speckAt(home, uFragmentSizeInv, vec2(0.0));
   if (roll < 0.56) return vec4(0.0);
-  float pace = speckAt(home, uFragmentSize, vec2(37.0, 11.0));
+  float pace = speckAt(home, uFragmentSizeInv, vec2(37.0, 11.0));
   // **칸의 가운데에 두지 않습니다.** 그러면 조각이 칸의 격자 위에 서서 13픽셀 간격의 점의
   // 줄로 보입니다 — 실제로 그렇게 보였습니다. 성질은 칸에서 읽고 자리만 흔듭니다.
   vec2 seat = home + (vec2(roll, pace) - 0.5) * uFragmentSize * 0.75;
@@ -413,7 +434,7 @@ vec4 flakeAt(vec2 here, vec2 home, vec2 dir, float a) {
   if (s <= 0.0 || s >= hold) return vec4(0.0);
   // 지금 그 조각이 있는 자리. 이 픽셀이 거기서 얼마나 떨어져 있는가를 봅니다.
   vec2 now = seat + dir * (run(s) * uFragmentSpeed * (0.70 + 0.65 * pace));
-  vec2 local = (here - now) / uFragmentSize;
+  vec2 local = (here - now) * uFragmentSizeInv;
   if (dot(local, local) > 0.36) return vec4(0.0);
 
   float aged = s / hold;
@@ -450,10 +471,10 @@ vec4 flakeAt(vec2 here, vec2 home, vec2 dir, float a) {
 vec4 dustAt(vec2 origin, float went, float band, float a) {
   vec2 uv = toUv(origin);
   if (!inside(uv)) return vec4(0.0);
-  float roll = speckAt(origin, uAshSize, vec2(0.0));
+  float roll = speckAt(origin, uAshSizeInv, vec2(0.0));
   if (roll < 0.50) return vec4(0.0);
-  float pace = speckAt(origin, uAshSize, vec2(53.0, 29.0));
-  float s = a - front(cellHome(origin, uAshSize));
+  float pace = speckAt(origin, uAshSizeInv, vec2(53.0, 29.0));
+  float s = a - front(cellHome(origin, uAshSize, uAshSizeInv));
   if (s <= 0.0) return vec4(0.0);
   float life = uAshLife * (0.45 + 1.10 * pace);
   if (s >= life) return vec4(0.0);
@@ -466,7 +487,7 @@ vec4 dustAt(vec2 origin, float went, float band, float a) {
   //
   // **점의 자리를 칸 안에서 흔듭니다.** 칸의 가운데에 두면 점들이 격자에 맞춰 서고, 그러면
   // 알갱이가 아니라 눈금으로 보입니다. 이미 읽은 두 값으로 밀므로 값이 들지 않습니다.
-  vec2 spot = fract(origin / uAshSize) - 0.5 - (vec2(pace, roll) - 0.5) * 0.80;
+  vec2 spot = fract(origin * uAshSizeInv) - 0.5 - (vec2(pace, roll) - 0.5) * 0.80;
   float wide = 0.30 + roll * 0.22;
   float blob = 1.0 - smoothstep(wide * 0.35, wide, length(spot));
   float alpha = fits * blob * (1.0 - aged) * (1.0 - aged) * 1.30 * uAshAmount;
@@ -483,7 +504,7 @@ void main(void) {
     return;
   }
   vec2 here = toHere(uv);
-  vec2 straight = normalize(uWindDir);
+  vec2 straight = uWindUnit;
 
   // ---- 표면. 아직 성한 판과 삭는 중인 판.
   float s0 = a - front(here);
@@ -502,7 +523,7 @@ void main(void) {
 
   // ---- 갓 된 재. **아직 떠나지 않은 것입니다.**
   if (s0 > 0.0) {
-    acc = over(justAsh(plain(src), s0, here - normalize(uWindDir) * run(s0) * 0.35, uGrain), acc);
+    acc = over(justAsh(plain(src), s0, here - uWindUnit * run(s0) * 0.35, uGrain), acc);
   }
 
   // ---- 연기. **앞의 바로 뒤에만 아주 옅게.** 재를 받치는 것이지 볼거리가 아닙니다 —
@@ -522,7 +543,7 @@ void main(void) {
     if (arc > able) break;
     // **같은 칸을 두 번 겹치지 않습니다.** 짚는 간격이 칸보다 좁으면 같은 조각이 두 번
     // 얹혀 가장자리가 진해집니다.
-    vec2 home = cellHome(here - dir * arc, uFragmentSize);
+    vec2 home = cellHome(here - dir * arc, uFragmentSize, uFragmentSizeInv);
     if (distance(home, last) < uFragmentSize * 0.5) continue;
     last = home;
     acc = over(flakeAt(here, home, dir, a), acc);
@@ -579,7 +600,7 @@ const int LAYERS = 4;
  * 흐름은 발산이 없고, 위상이 시간만큼 밀리므로 같은 자리의 바람이 계속 돕니다.
  */
 vec2 windAt(vec2 p, float t) {
-  vec2 w = normalize(uWindDir);
+  vec2 w = uWindUnit;
   float u = p.x * 3.1;
   float v = p.y * 2.3 - t * uNoiseSpeed * 1.6;
   vec2 curl = vec2(-2.3 * sin(u) * sin(v), -3.1 * cos(u) * cos(v));
@@ -590,15 +611,15 @@ vec2 windAt(vec2 p, float t) {
 vec4 flakeAt(vec2 here, vec2 home, vec2 dir, float a) {
   vec2 uv = toUv(home);
   if (!inside(uv)) return vec4(0.0);
-  float roll = speckAt(home, uFragmentSize, vec2(0.0));
+  float roll = speckAt(home, uFragmentSizeInv, vec2(0.0));
   if (roll < 0.56) return vec4(0.0);
-  float pace = speckAt(home, uFragmentSize, vec2(37.0, 11.0));
+  float pace = speckAt(home, uFragmentSizeInv, vec2(37.0, 11.0));
   vec2 seat = home + (vec2(roll, pace) - 0.5) * uFragmentSize * 0.75;
   float s = a - front(seat);
   float hold = uFragmentLife * (0.55 + 0.95 * pace);
   if (s <= 0.0 || s >= hold) return vec4(0.0);
   vec2 now = seat + dir * (run(s) * uFragmentSpeed * (0.70 + 0.65 * pace));
-  vec2 local = (here - now) / uFragmentSize;
+  vec2 local = (here - now) * uFragmentSizeInv;
   if (dot(local, local) > 0.36) return vec4(0.0);
   float aged = s / hold;
   // 가장자리를 흔듭니다. **도는 것이 없을 뿐 데스크탑의 것과 같습니다.**
@@ -614,9 +635,9 @@ vec4 flakeAt(vec2 here, vec2 home, vec2 dir, float a) {
 vec4 dustAt(vec2 origin, float went, float band, float a) {
   vec2 uv = toUv(origin);
   if (!inside(uv)) return vec4(0.0);
-  float roll = speckAt(origin, uAshSize, vec2(0.0));
-  float pace = speckAt(origin, uAshSize, vec2(53.0, 29.0));
-  float s = a - front(cellHome(origin, uAshSize));
+  float roll = speckAt(origin, uAshSizeInv, vec2(0.0));
+  float pace = speckAt(origin, uAshSizeInv, vec2(53.0, 29.0));
+  float s = a - front(cellHome(origin, uAshSize, uAshSizeInv));
   if (s <= 0.0) return vec4(0.0);
   float life = uAshLife * (0.45 + 1.10 * pace);
   if (s >= life) return vec4(0.0);
@@ -624,7 +645,7 @@ vec4 dustAt(vec2 origin, float went, float band, float a) {
   float fits = 1.0 - smoothstep(0.0, band, abs(mine - went));
   if (fits <= 0.004) return vec4(0.0);
   float aged = s / life;
-  vec2 spot = fract(origin / uAshSize) - 0.5 - (vec2(pace, roll) - 0.5) * 0.80;
+  vec2 spot = fract(origin * uAshSizeInv) - 0.5 - (vec2(pace, roll) - 0.5) * 0.80;
   // 알갱이 하나와, 그 둘레의 옅은 것. **그림 하나로 둘을 냅니다** — 연기가 따로 없습니다.
   float wide = 0.30 + roll * 0.22;
   float blob = 1.0 - smoothstep(wide * 0.35, wide, length(spot));
@@ -660,7 +681,7 @@ void main(void) {
 
   // ---- 갓 된 재. **아직 떠나지 않은 것입니다.** 데스크탑의 것과 같은 함수입니다.
   if (s0 > 0.0) {
-    acc = over(justAsh(plain(src), s0, here - normalize(uWindDir) * run(s0) * 0.35, uGrain), acc);
+    acc = over(justAsh(plain(src), s0, here - uWindUnit * run(s0) * 0.35, uGrain), acc);
   }
 
   // ---- 조각. 자리 셋.
@@ -670,7 +691,7 @@ void main(void) {
   for (int j = 0; j < FLAKES; j++) {
     float arc = reach * (float(j) + 0.5) / float(FLAKES);
     if (arc > able) break;
-    acc = over(flakeAt(here, cellHome(here - dir * arc, uFragmentSize), dir, a), acc);
+    acc = over(flakeAt(here, cellHome(here - dir * arc, uFragmentSize, uFragmentSizeInv), dir, a), acc);
   }
 
   // ---- 알갱이. 겹 넷이고 겹마다 한 걸음으로 거슬러 갑니다.
@@ -714,7 +735,30 @@ export function ashUniforms(p: AshParams): Record<string, { value: number | Floa
     // **그림의 텍셀 수입니다.** 칸마다 한 값으로 읽는 자리가 이 수로 텍셀의 가운데를 찾으므로,
     // 틀리면 칸 안이 한 값이 아니게 되고 알갱이가 번집니다.
     uGrainTexels: { value: grainTexels(), type: 'f32' },
+    // **셰이더가 나누지 않게 역수를 함께 넘깁니다.** `tuneUniforms` 와 `refreshWind` 가
+    // 값이 바뀔 때마다 다시 셈합니다.
+    uGrainTexelsInv: { value: 1 / grainTexels(), type: 'f32' },
+    uAshSizeInv: { value: 1 / p.ashSize, type: 'f32' },
+    uFragmentSizeInv: { value: 1 / p.fragmentSize, type: 'f32' },
+    // 바람에서 나오는 값 둘. `refreshWind` 가 채웁니다.
+    uWindUnit: { value: new Float32Array([0, -1]), type: 'vec2<f32>' },
+    uSpan: { value: 1, type: 'f32' },
   }
+}
+
+/**
+ * 바람과 가로세로 비에서 나오는 값을 다시 셈합니다.
+ *
+ * **`uWindDir` 이나 `uAspect` 를 바꾼 자리는 전부 이것을 불러야 합니다.** 부르지 않으면
+ * 앞의 바람으로 그린 앞이 그대로 남습니다 — 셰이더가 스스로 셈하지 않기 때문입니다.
+ */
+export function refreshWind(uniforms: Record<string, number | Float32Array>): void {
+  const dir = uniforms.uWindDir as Float32Array
+  const length = Math.hypot(dir[0], dir[1]) || 1
+  const x = dir[0] / length
+  const y = dir[1] / length
+  ;(uniforms.uWindUnit as Float32Array).set([x, y])
+  uniforms.uSpan = Math.abs(x) * (uniforms.uAspect as number) + Math.abs(y)
 }
 
 /**
@@ -732,7 +776,12 @@ export function tuneUniforms(uniforms: Record<string, number | Float32Array>,
       continue
     }
     uniforms[`u${key[0].toUpperCase()}${key.slice(1)}`] = value as number
+    // **역수도 함께 갑니다.** 크기만 바꾸고 역수를 두면 칸을 찾는 자리가 앞의 크기로
+    // 셈합니다 — 고르는 동안 쓰는 자리라 그 어긋남이 화면에 그대로 나옵니다.
+    if (key === 'ashSize') uniforms.uAshSizeInv = 1 / (value as number)
+    if (key === 'fragmentSize') uniforms.uFragmentSizeInv = 1 / (value as number)
   }
+  refreshWind(uniforms)
 }
 
 /**
@@ -764,6 +813,7 @@ export class AshFilter extends Filter {
     })
     this.lite = lite
     this.direction = p.windDir
+    refreshWind(this.uniforms)
   }
 
   private direction: [number, number]
@@ -786,6 +836,7 @@ export class AshFilter extends Filter {
     const dir = this.uniforms.uWindDir as Float32Array
     dir[0] = Math.abs(this.direction[0]) * (value ? 1 : -1)
     dir[1] = this.direction[1]
+    refreshWind(this.uniforms)
   }
 
   set ink(color: number) {
@@ -797,6 +848,8 @@ export class AshFilter extends Filter {
 
   setAspect(value: number): void {
     this.uniforms.uAspect = value
+    // 「span」 이 가로세로 비를 쓰므로 함께 다시 셈합니다.
+    refreshWind(this.uniforms)
   }
 
   /** 파라미터를 바꿉니다. 고르는 동안 쓰는 자리입니다. */

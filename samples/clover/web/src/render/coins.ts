@@ -58,6 +58,8 @@ const MARK_SIZE = Math.round(RADIUS * 1.6)
 
 export class Coins extends Container {
   private readonly canvas = new Graphics()
+  /** 캔버스에 무엇이 그려져 있는가. 비어 있으면 손대지 않기 위한 것입니다. */
+  private drawn = false
   private readonly live: Coin[] = []
   /**
    * 동전 위의 `$`.
@@ -229,14 +231,26 @@ export class Coins extends Container {
   clear(): void {
     this.live.length = 0
     this.canvas.clear()
+    this.drawn = false
     for (const mark of this.marks) mark.visible = false
   }
 
   advance(seconds: number): void {
+    if (this.live.length === 0) {
+      // **비어 있으면 손대지 않습니다.** `clear()` 는 지오메트리를 더럽혀 매 프레임 빈 것을
+      // 다시 만들게 하고, 판이 도는 시간의 대부분이 동전 하나 없는 상태입니다.
+      // `particles.ts` 와 같은 걸쇠입니다.
+      if (this.drawn) {
+        this.canvas.clear()
+        for (const mark of this.marks) mark.visible = false
+        this.drawn = false
+      }
+      return
+    }
     this.canvas.clear()
+    this.drawn = true
     let shown = 0
     for (const mark of this.marks) mark.visible = false
-    if (this.live.length === 0) return
 
     for (let i = this.live.length - 1; i >= 0; i--) {
       const coin = this.live[i]

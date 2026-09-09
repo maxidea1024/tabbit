@@ -31,7 +31,9 @@
 import { Geometry, Mesh, Shader, Texture } from 'pixi.js'
 import type { Renderer } from 'pixi.js'
 
-import { ASH_DEFAULTS, ASH_FIELD_GLSL, ASH_PARAMS_GLSL, ashUniforms, tuneUniforms } from './ash'
+import {
+  ASH_DEFAULTS, ASH_FIELD_GLSL, ASH_PARAMS_GLSL, ashUniforms, refreshWind, tuneUniforms,
+} from './ash'
 import type { AshParams } from './ash'
 import { noiseResources } from './noise'
 
@@ -107,7 +109,7 @@ void main(void) {
 
   // 간 거리. 알갱이마다 다섯 배까지 다릅니다 — **어떤 것은 날아가고 어떤 것은 떠 있습니다.**
   float reach = run(s) * uAshSpeed * (0.35 + 2.30 * r2);
-  vec2 w = normalize(uWindDir);
+  vec2 w = uWindUnit;
   // **바람 쪽으로, 그리고 가운데에서 바깥으로.** 한 방향으로만 밀면 화면이 밀린 것입니다.
   vec2 away = origin - vec2(uAspect * 0.5, 0.5);
   vec2 at = origin + w * (reach * uWindStrength) + away * (reach * 0.55);
@@ -266,6 +268,7 @@ export class AshEmbers {
     // 미리 곱한 알파로 냅니다. Pixi 의 보통 섞기가 그것을 전제합니다.
     this.view.state.blendMode = 'normal'
     this.view.eventMode = 'none'
+    refreshWind(this.uniforms)
   }
 
   private get uniforms(): Record<string, number | Float32Array> {
@@ -289,6 +292,8 @@ export class AshEmbers {
     this.view.position.set(x, y)
     ;(this.uniforms.uBox as Float32Array).set([width, height])
     this.uniforms.uAspect = width / Math.max(1, height)
+    // 「span」 이 가로세로 비를 쓰므로 함께 다시 셈합니다.
+    refreshWind(this.uniforms)
   }
 
   set amount(value: number) {
@@ -299,6 +304,7 @@ export class AshEmbers {
     const dir = this.uniforms.uWindDir as Float32Array
     dir[0] = Math.abs(this.direction[0]) * (value ? 1 : -1)
     dir[1] = this.direction[1]
+    refreshWind(this.uniforms)
   }
 
   set ink(color: number) {

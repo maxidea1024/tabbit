@@ -172,10 +172,19 @@ export class Particles extends Container {
     const rad = p.angle * (Math.PI / 180)
     const c = Math.cos(rad)
     const s = Math.sin(rad)
-    const at = (dx: number, dy: number): number[] => [p.x + dx * c - dy * s, p.y + dx * s + dy * c]
-    this.canvas
-      .poly([...at(-half, -tall), ...at(half, -tall), ...at(half, tall), ...at(-half, tall)])
-      .fill({ color: p.tint, alpha })
+    // **네모 하나가 배열 하나입니다.** 귀퉁이마다 배열을 만들어 펼치면 지폐 한 장에
+    // 배열 15개이고, 상한 400장이면 프레임마다 6,000개입니다 — 셋으로 줍니다.
+    //
+    // **통 하나를 돌려 쓰지는 않습니다.** `Graphics.poly` 는 넘긴 배열을 베끼지 않고
+    // 그대로 들고 있다가 그릴 때 읽으므로, 돌려 쓰면 그 프레임의 지폐 전부가 마지막
+    // 네모의 자리에 겹쳐 그려집니다 — Pixi 의 `Polygon` 이 `this.points = flat` 입니다.
+    const quad = (w: number, h: number): number[] => [
+      p.x - w * c + h * s, p.y - w * s - h * c,
+      p.x + w * c + h * s, p.y + w * s - h * c,
+      p.x + w * c - h * s, p.y + w * s + h * c,
+      p.x - w * c - h * s, p.y - w * s + h * c,
+    ]
+    this.canvas.poly(quad(half, tall)).fill({ color: p.tint, alpha })
     // 안쪽 테와 가운데의 점. **지폐가 좁게 돌아 있을 때는 그리지 않습니다** — 두 선이
     // 겹쳐 한 줄이 되고, 점은 그 줄을 덮습니다.
     //
@@ -185,12 +194,9 @@ export class Particles extends Container {
     if (half < 2.4) return
     const inx = half - 1.4
     const iny = tall - 2
-    this.canvas
-      .poly([...at(-inx, -iny), ...at(inx, -iny), ...at(inx, iny), ...at(-inx, iny)])
+    this.canvas.poly(quad(inx, iny))
       .stroke({ color: 0x000000, alpha: alpha * 0.45, width: 1 })
-    this.canvas
-      .poly([...at(-inx * 0.5, -iny * 0.34), ...at(inx * 0.5, -iny * 0.34),
-             ...at(inx * 0.5, iny * 0.34), ...at(-inx * 0.5, iny * 0.34)])
+    this.canvas.poly(quad(inx * 0.5, iny * 0.34))
       .fill({ color: 0x000000, alpha: alpha * 0.22 })
   }
 
@@ -205,6 +211,11 @@ export class Particles extends Container {
       return
     }
 
+    // **감속은 프레임마다 한 번 셉니다.** `seconds` 가 그 프레임의 모든 조각에 같으므로
+    // 조각마다 `Math.exp` 를 부르면 상한 400개에 400번입니다.
+    const billDrag = Math.exp(-BILL_DRAG * seconds)
+    const dotDrag = Math.exp(-1.2 * seconds)
+
     // **남는 것을 앞으로 당겨 씁니다.** 죽은 것마다 `splice` 하면 한 번에 수백 개가 함께
     // 꺼질 때 n² 입니다. 차례는 그대로여야 겹치는 색이 흔들리지 않습니다.
     let keep = 0
@@ -217,7 +228,7 @@ export class Particles extends Container {
       // 퍼지지 못합니다. 60Hz 에서 프레임당 0.98 이던 것과 같은 값입니다.
       if (p.bill) {
         p.vy = Math.min(BILL_FALL, p.vy + BILL_GRAVITY * seconds)
-        p.vx *= Math.exp(-BILL_DRAG * seconds)
+        p.vx *= billDrag
         p.angle += p.turn * seconds
         p.flap += p.flapAt * seconds
         // **펄럭임에 딸린 좌우 흔들림.** 한쪽으로 미는 것이 아니라 오가는 것이므로 옮겨
@@ -225,7 +236,7 @@ export class Particles extends Container {
         p.x += Math.sin(p.flap) * 34 * seconds
       } else {
         p.vy += 900 * seconds
-        p.vx *= Math.exp(-1.2 * seconds)
+        p.vx *= dotDrag
       }
       p.x += p.vx * seconds
       p.y += p.vy * seconds
