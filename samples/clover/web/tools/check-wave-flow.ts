@@ -7,7 +7,7 @@
 //     npx tsx tools/check-wave-flow.ts
 //
 // 칩은 음수(왼쪽), 배수는 양수(오른쪽)여야 합니다. **한쪽이라도 0 에 가까우면 실패입니다** —
-// 성분들이 서로 반대로 흘러 상쇄되면 그 값이 0 근처에 섭니다. 실제로 그렇게 있었습니다.
+// 성분들이 서로 반대로 흘러 상쇄되면 그 값이 0 근처에 머뭅니다. 실제로 그렇게 있었습니다.
 
 import * as fs from 'fs/promises'
 import * as path from 'path'

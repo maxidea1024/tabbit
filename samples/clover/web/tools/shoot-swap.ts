@@ -26,7 +26,7 @@ async function main(): Promise<number> {
   // 조커 칸을 꽉 채우고 조커를 삽니다.
   await grantJoker(page, 5)
   await page.waitForTimeout(600)
-  // **조커가 선 칸을 짚습니다.** 0번 칸을 짚고 있어서 소모품이 서 있으면 그냥 샀고, 그다음
+  // **조커가 놓인 칸을 짚습니다.** 0번 칸을 짚고 있어서 소모품이 놓여 있으면 그냥 샀고, 그다음
   // 줄의 조커를 눌러 팔았습니다 — 자리를 비우는 화면은 한 장도 찍히지 않았습니다.
   const kinds = (await peek(page)).shopKinds ?? []
   const slot = kinds.indexOf(1)
@@ -50,7 +50,7 @@ async function main(): Promise<number> {
   await page.waitForTimeout(900)
   await shot(page, 'swap-1')
 
-  // 줄의 첫 조커를 고릅니다. 그 밑에 내놓는 단추가 섭니다.
+  // 줄의 첫 조커를 고릅니다. 그 밑에 내놓는 단추가 놓입니다.
   const first = await spot(page, 'joker:0')
   await page.mouse.click(first.x, first.y)
   await page.waitForTimeout(400)

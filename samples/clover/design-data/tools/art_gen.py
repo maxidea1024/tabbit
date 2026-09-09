@@ -197,7 +197,7 @@ def neutral_ground(image):
     w, h = rgba.size
     pixels = rgba.load()
 
-    # 테두리 바로 안쪽의 고리. 모서리는 둥글게 잘려 있을 수 있으므로 변의 가운데를 봅니다.
+    # 테두리 바로 안쪽의 고리. 모서리는 둥글게 잘려 있을 수 있으므로 변의 가운데를 씁니다.
     inset = max(4, int(round(w * 0.035)))
     ring = []
     for x in range(inset, w - inset, 7):

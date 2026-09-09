@@ -10,7 +10,7 @@
 // 갑자기 사라진 것으로 보입니다.** 진 판의 판이 그런 자리였습니다 — 한 번 세우고 다시
 // 세우지 않으므로 `refresh` 가 닿지 않습니다.
 //
-// 진 판의 판을 봅니다. 그 판의 조커가 굽는 자리에서 빠진다는 보고가 여러 번 있었습니다.
+// 진 판의 판을 확인합니다. 그 판의 조커가 굽는 자리에서 빠진다는 보고가 여러 번 있었습니다.
 // **판이 걸린 딱지도 세웁니다** — 맨 딱지만으로는 에디션 셰이더가 마스크를 감싸는 길을
 // 한 번도 지나지 않습니다.
 import * as fs from 'fs/promises'
@@ -98,7 +98,7 @@ async function main(): Promise<number> {
     + ` · 득점 ${now.score} / ${now.target} · 핸드 ${now.hands}`)
 
   // **시계를 멈춘 채로 굽습니다.** `?tick=manual` 이므로 `pass` 를 부르지 않는 동안
-  // 화면은 한 프레임에 서 있고, 두 그림이 같은 시각의 것입니다.
+  // 화면은 한 프레임에 멈춰 있고, 두 그림이 같은 시각의 것입니다.
   const holes = await page.evaluate(`window.__clover.shotHoles()`) as
     { holes: number; total: number }
   check(holes.holes === 0, `구운 화면에 빈 자리가 없습니다 (${holes.holes} / ${holes.total})`)

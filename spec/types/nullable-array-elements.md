@@ -86,7 +86,7 @@ nullable이며, `int?[]?`는 둘 다입니다. 생성 코드를 받는 언어들
 ### 그 읽기가 하고 있던 일
 
 첫 컬럼의 `?`를 배열 전체의 것으로 읽는 동안, **배열의 존재 여부를 원소 0의 셀이 정하고
-있었습니다.** JSON과 presence 비트맵이 같은 자리를 봅니다.
+있었습니다.** JSON과 presence 비트맵이 같은 자리를 가리킵니다.
 
 ```csharp
 // JsonExporter — 접힌 배열
@@ -321,7 +321,7 @@ nullability와 직교하므로, 한 자리를 쓰고도 조합을 표현하지 �
 
 1·2단계의 게이트는 `NullableArrayElementTests`이고, 픽스처는 `nullable-elements` 하나에 표기
 4종과 `string?[]`을 함께 담았습니다. `no-value-element`는 원소가 필수인 배열의 거부를,
-`nullable-elements-binary`는 아직 담지 못하는 타깃의 거부를 봅니다.
+`nullable-elements-binary`는 아직 담지 못하는 타깃의 거부를 확인합니다.
 
 ## 12. 딸린 정리 — 생성 코드의 고정 길이
 

@@ -462,7 +462,7 @@ export class Audio {
   /** 그 소리를 한 크기로 맞추는 배수. 실효값을 재서 정합니다. */
   private levelFor(buffer: AudioBuffer): number {
     const wave = buffer.getChannelData(0)
-    // **묵음 다음부터 0.4초를 봅니다.** 앞의 빈 자리까지 세면 그만큼 작게 재어져,
+    // **묵음 다음부터 0.4초를 씁니다.** 앞의 빈 자리까지 세면 그만큼 작게 재어져,
     // 묵음이 긴 파일이 더 크게 나옵니다.
     const from = Math.floor(this.leadOf(buffer) * buffer.sampleRate)
     const span = Math.min(wave.length - from, Math.floor(buffer.sampleRate * 0.4))

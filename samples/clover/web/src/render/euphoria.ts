@@ -435,7 +435,7 @@ export class Euphoria {
     const reel: Reel = { video, sprite, ready: false, failed: false }
     this.reels.set(name, reel)
     // **첫 프레임이 온 다음부터 그립니다.** 그 전에 그리면 빈 텍스처가 한 프레임 보이고,
-    // 파일이 없으면 셰이더가 그 자리를 맡습니다 — **화면이 서지 않는 일은 없습니다.**
+    // 파일이 없으면 셰이더가 그 자리를 맡습니다 — **화면이 뜨지 않는 일은 없습니다.**
     void source.load().then(() => {
       reel.ready = true
       this.fit(reel)

@@ -1,6 +1,6 @@
 // 콜렉션 — 물건 전부의 도감.
 //
-// **판 하나에 갈래 9개입니다.** 조커만 볼 수 있는 판이 따로 서 있었고, 그러면 소모품과
+// **판 하나에 갈래 9개입니다.** 조커만 볼 수 있는 판이 따로 떠 있었고, 그러면 소모품과
 // 바우처와 태그와 보스는 판에서 만나기 전에는 볼 길이 없습니다 — 도감은 「이 게임에 무엇이
 // 있는가」를 답하는 자리이므로 한 갈래만 담을 수 없습니다.
 //
@@ -263,9 +263,9 @@ export class CollectionPanel implements ModalPanel {
 
     // **그림은 늦게 들어옵니다.**
     //
-    // **어느 그림이 왔는지를 봅니다.** 도착 하나에 격자를 통째로 다시 지으면, 한 줄을
+    // **어느 그림이 왔는지를 확인합니다.** 도착 하나에 격자를 통째로 다시 지으면, 한 줄을
     // 굴려 부탁한 그림 60장이 하나씩 들어오는 동안 60칸 짓기를 60번 하게 됩니다 — 판에
-    // 서 있는 조커의 그림이 도착해도 그랬습니다. 지금 지어 둔 칸의 것만 받고, 받은 것도
+    // 놓여 있는 조커의 그림이 도착해도 그랬습니다. 지금 지어 둔 칸의 것만 받고, 받은 것도
     // 그 칸 하나만 다시 짓습니다.
     //
     // **모아서 다음 프레임에 처리합니다.** 한 프레임에 여럿이 도착하면 그만큼 짓는 것이
@@ -327,7 +327,7 @@ export class CollectionPanel implements ModalPanel {
       this.body.addChild(button)
     }
 
-    // 줄 세우기. **조커 탭에만 섭니다** — 500종이면 눈으로 훑어서는 찾지 못합니다.
+    // 줄 세우기. **조커 탭에만 놓입니다** — 500종이면 눈으로 훑어서는 찾지 못합니다.
     const sw = 70
     for (const [index, one] of SORTS.entries()) {
       const button = new Button(t(one.label), sw, HEAD_H, UI.btn,
@@ -497,7 +497,7 @@ export class CollectionPanel implements ModalPanel {
   }
 
   private voucherCells(): Cell[] {
-    // **상위는 하위 다음에 섭니다.** 16쌍이므로 표의 순서가 곧 그 짝입니다.
+    // **상위는 하위 다음에 놓입니다.** 16쌍이므로 표의 순서가 곧 그 짝입니다.
     return [...this.data.tables.voucher.records]
       .sort((a, b) => a.sortOrder - b.sortOrder)
       .map(row => {

@@ -120,7 +120,7 @@ describe('태그', () => {
       state.tagsPending = [row.tagId]
       state.phase = 'blind-select'
       state.blind = 1
-      // 상점까지 가지 않고, 즉시 갈래만 뽑는 자리에서 도는 것을 봅니다.
+      // 상점까지 가지 않고, 즉시 갈래만 뽑는 자리에서 도는 것을 확인합니다.
       apply(data, state, { t: 'skip_blind' })
 
       const left = state.tagsPending.filter(one => one === row.tagId).length

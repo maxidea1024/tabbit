@@ -44,7 +44,7 @@ function noise(line: string): boolean {
  *
  * **서는 중의 자리는 마지막 자리가 아닙니다.** 판은 아래에서 밀려 올라와 한 번 넘치고,
  * 그 동안 화면이 알리는 단추의 자리는 프레임마다 다릅니다 — 그 자리를 누르면 판 옆의
- * 빈 곳을 누릅니다. `modalBox` 는 다 선 판에만 값이 있으므로 그것을 봅니다.
+ * 빈 곳을 누릅니다. `modalBox` 는 다 뜬 판에만 값이 있으므로 그것을 확인합니다.
  */
 async function settled(page: Page): Promise<void> {
   for (let wait = 0; wait < 40; wait++) {
@@ -81,7 +81,7 @@ async function shut(page: Page): Promise<void> {
   await pass(page, 700)
 }
 
-/** 지금 서 있는 줄들의 열쇠. 판이 닫혀 있으면 비어 있습니다. */
+/** 지금 놓여 있는 줄들의 열쇠. 판이 닫혀 있으면 비어 있습니다. */
 async function shownKeys(page: Page): Promise<string[]> {
   return (await peek(page)).insight?.keys ?? []
 }

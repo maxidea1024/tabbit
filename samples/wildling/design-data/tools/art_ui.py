@@ -23,7 +23,7 @@ def rounded_plate(canvas, top, bottom, edge, radius, inset=2.0, size=UI):
                 edge, radius=radius + 2)
     canvas.gradient_rect(inset, inset, size - inset, size - inset,
                          top, bottom, radius=radius)
-    # 위쪽 안쪽에 밝은 선 하나. 판이 서 있는 것처럼 보이게 합니다.
+    # 위쪽 안쪽에 밝은 선 하나. 판이 솟아 있는 것처럼 보이게 합니다.
     canvas.gradient_rect(inset + 2, inset + 2, size - inset - 2, inset + 8,
                          shade(top, 0.30), top, radius=radius, alpha=0.55)
 

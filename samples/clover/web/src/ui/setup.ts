@@ -44,7 +44,7 @@ const GRID_Y = 24
 const BACK_W = Math.round(SIZE.cardWidth * 0.62)
 const BACK_H = Math.round(SIZE.cardHeight * 0.62)
 
-/** 스테이크 줄. 덱 격자 아래에 한 줄로 섭니다. */
+/** 스테이크 줄. 덱 격자 아래에 한 줄로 놓입니다. */
 const STAKE_COUNT = 8
 const STAKE_W = 80
 const STAKE_H = 58
@@ -55,7 +55,7 @@ const STAKE_Y = STAKE_HEAD_Y + 24
 /**
  * 조커 풀 줄. 스테이크 아래에 단추 둘입니다.
  *
- * **런의 설정이므로 여기입니다.** 도감 안에 하나만 서 있었는데, 풀은 덱 · 스테이크와 같이
+ * **런의 설정이므로 여기입니다.** 도감 안에 하나만 놓여 있었는데, 풀은 덱 · 스테이크와 같이
  * 판을 시작할 때 정해져 세이브와 제출에 함께 적히는 값입니다 — 무엇으로 시작하는가가 한
  * 자리에 모여 있어야 챌린지 탭이 기본 150종으로 고정인 이유도 그 옆에서 읽힙니다.
  */
@@ -67,7 +67,7 @@ const POOL_X = Math.round((WIDTH - (POOL_COUNT * POOL_W + POOL_GAP)) / 2)
 const POOL_HEAD_Y = STAKE_Y + STAKE_H + 14
 const POOL_Y = POOL_HEAD_Y + 20
 
-/** 단추 줄. 시작과 랭크가 나란히 섭니다. */
+/** 단추 줄. 시작과 랭크가 나란히 놓입니다. */
 const START_W = 400
 const RANKED_W = 160
 const BTN_GAP = 12
@@ -182,7 +182,7 @@ export class SetupBody {
   /**
    * 랭크로 시작합니다.
    *
-   * **여기 있습니다.** 타이틀에 단추 하나로 서 있었는데, 서버가 준 시드로 연다는 것 말고는
+   * **여기 있습니다.** 타이틀에 단추 하나로 놓여 있었는데, 서버가 준 시드로 연다는 것 말고는
    * 새 런과 같은 일이므로 판을 여는 자리에 함께 있어야 합니다.
    */
   onStartRanked?: () => void
@@ -367,7 +367,7 @@ export class SetupBody {
     })
   }
 
-  /** 왼쪽의 15칸. 칸마다 그 덱의 뒷면이 섭니다. */
+  /** 왼쪽의 15칸. 칸마다 그 덱의 뒷면이 놓입니다. */
   private drawGrid(): void {
     this.grid.removeChildren().forEach(child => child.destroy({ children: true }))
     this.deckCells = []

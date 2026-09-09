@@ -6,7 +6,7 @@
 // 박자 하나가 그랬고, 그때 판은 조커나 소모품을 눌러 `refresh` 가 불릴 때까지 서지
 // 않았습니다.
 //
-// 넷을 봅니다. 모두 **아무것도 누르지 않고** 판이 서야 합니다.
+// 넷을 확인합니다. 모두 **아무것도 누르지 않고** 판이 떠야 합니다.
 // 1. 조커 없이 상점을 나섬 — 누른 그 자리에서 서는가.
 // 2. 건너뛰기 — 태그 칩이 날아가 앉고 발동한 뒤에 다음 블라인드의 판이 서는가.
 // 3. 박자 하나짜리 조커(`spent_note`, OnShopExit · GrowSelf)를 들고 나섬.
@@ -32,10 +32,10 @@ function check(ok: boolean, what: string): void {
 }
 
 /**
- * 블라인드 판이 서기까지 걸린 시간(밀리초). 한도 안에 서지 않으면 -1 입니다.
+ * 블라인드 판이 뜨기까지 걸린 시간(밀리초). 한도 안에 뜨지 않으면 -1 입니다.
  *
  * `blindBoard` 는 `블라인드:칸수` 이고 블라인드는 스몰 1 · 빅 2 · 보스 3 입니다. 건너뛰는
- * 동안은 지난 판이 그대로 서 있으므로, `was` 를 주면 그것과 다른 판이 설 때까지 봅니다.
+ * 동안은 지난 판이 그대로 떠 있으므로, `was` 를 주면 그것과 다른 판이 뜰 때까지 기다립니다.
  */
 async function untilBoard(page: Page, limitMs: number, was = 'hidden'):
     Promise<{ ms: number; board: string }> {
@@ -98,7 +98,7 @@ async function main(): Promise<number> {
   await openRun(page)
   await pass(page, 900)
 
-  // 1. 조커 없이. 누른 그 자리에서 섭니다. **`openRun` 이 스몰을 이미 골라 두었습니다.**
+  // 1. 조커 없이. 누른 그 자리에서 뜹니다. **`openRun` 이 스몰을 이미 골라 두었습니다.**
   await winRound(page)
   await leaveShop(page)
   const plain = await untilBoard(page, 2000)
@@ -111,10 +111,10 @@ async function main(): Promise<number> {
   const skipped = await untilBoard(page, 6000, plain.board)
   check(skipped.ms >= 0 && skipped.board.startsWith('3:'),
     `건너뛴 뒤 보스의 판이 스스로 섭니다 (${skipped.ms}ms, ${skipped.board})`)
-  // 태그 칩이 날아가 앉는 동안은 판이 서지 않아야 합니다.
+  // 태그 칩이 날아가 앉는 동안은 판이 뜨지 않아야 합니다.
   check(skipped.ms >= 400, `건너뛰기 연출이 끝난 뒤에 섭니다 (${skipped.ms}ms)`)
 
-  // 3. 박자 하나짜리 조커. 전에는 여기서 판이 서지 않았습니다.
+  // 3. 박자 하나짜리 조커. 전에는 여기서 판이 뜨지 않았습니다.
   await clickSpot(page, 'pick')
   await pass(page, 1500)
   await winRound(page)

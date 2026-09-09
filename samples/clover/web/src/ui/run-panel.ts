@@ -38,7 +38,7 @@ import { Button } from './widgets'
 
 const WIDTH = 760
 
-/** 탭 줄. 제목 아래에 섭니다. */
+/** 탭 줄. 제목 아래에 놓입니다. */
 const TAB_Y = TITLE_BAR + 12
 const TAB_H = 40
 const TAB_W = 168
@@ -117,9 +117,9 @@ export class RunPanel implements ModalPanel {
   /**
    * 가로 가운데에 놓입니다.
    *
-   * **왼쪽 판을 비껴 서지 않습니다.** 그 규칙은 판이 도는 동안 왼쪽에 있는 것을 가리지
+   * **왼쪽 판을 비껴 놓이지 않습니다.** 그 규칙은 판이 도는 동안 왼쪽에 있는 것을 가리지
    * 않기 위한 것이고, 이 판은 타이틀에서만 열리므로 비껴 설 대상이 없습니다 — 비껴 서면
-   * 가운데에서 오른쪽으로 밀린 자리에 섭니다.
+   * 가운데에서 오른쪽으로 밀린 자리에 놓입니다.
    */
   readonly centered = true
 

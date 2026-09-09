@@ -181,7 +181,7 @@ export const UI_THEMES: Record<string, UiTheme> = {
   },
 }
 
-/** 테마의 이름들. 옵션의 칸이 이 순서로 섭니다. */
+/** 테마의 이름들. 옵션의 칸이 이 순서로 놓입니다. */
 export const UI_THEME_KEYS = ['slate', 'ink', 'navy', 'bright',
                               'green', 'wine', 'brown', 'violet'] as const
 

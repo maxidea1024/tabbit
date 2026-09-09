@@ -61,7 +61,7 @@ interface Mark {
   bold?: boolean
   italic?: boolean
   strike?: boolean
-  /** 칩으로 섭니다. 바탕이 깔리고 글자가 그 위에 놓입니다. */
+  /** 칩으로 놓입니다. 바탕이 깔리고 글자가 그 위에 놓입니다. */
   code?: boolean
 }
 

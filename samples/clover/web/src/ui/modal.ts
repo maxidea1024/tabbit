@@ -26,9 +26,9 @@ export interface ModalPanel {
   /** 뒤를 눌러 닫히는가. 적지 않으면 닫힙니다. */
   readonly dismissable?: boolean
   /**
-   * 가로로 화면의 가운데에 놓는가. 적지 않으면 왼쪽 판을 비껴 섭니다.
+   * 가로로 화면의 가운데에 놓는가. 적지 않으면 왼쪽 판을 비껴 놓입니다.
    *
-   * **비껴 서는 것은 판이 도는 동안의 규칙입니다.** 왼쪽에 지금 몇 점인지가 서 있으므로
+   * **비껴 놓이는 것은 판이 도는 동안의 규칙입니다.** 왼쪽에 지금 몇 점인지가 놓여 있으므로
    * 그것을 가리지 않는 것이 완전한 가운데보다 먼저인데, 타이틀에서 열리는 판에는 비껴 설
    * 대상이 없습니다 — 그 판이 이것을 켭니다.
    */
@@ -308,7 +308,7 @@ export class Modals extends Container {
 /**
  * 떠 있는 판의 밑변.
  *
- * **모든 판이 이 자리에서 끝납니다.** 상점도 이 자리에 섭니다 — 값이 두 곳에 적혀 있으면
+ * **모든 판이 이 자리에서 끝납니다.** 상점도 이 자리에 뜹니다 — 값이 두 곳에 적혀 있으면
  * 한쪽을 고칠 때 다른 쪽이 남고, 그러면 판을 바꿀 때마다 밑변이 한두 픽셀 튑니다.
  */
 export const PANEL_BOTTOM = SIZE.height - 14
@@ -335,7 +335,7 @@ export function panelFrame(width: number, height: number, title: string,
   plate(board, width, height, floatingStyle())
 
   // 머리. **띠가 아니라 선 하나입니다.** 제목 아래의 선이 머리와 몸통을 가르고, 밑단은
-  // 단추가 있을 때만 그 위에 선 하나가 섭니다 — 띠 둘로 위아래를 물리던 것을 걷었습니다.
+  // 단추가 있을 때만 그 위에 선 하나가 놓입니다 — 띠 둘로 위아래를 물리던 것을 걷었습니다.
   const bars = new Graphics()
   bars.rect(1.5, TITLE_BAR, width - 3, 1.5).fill(UI.rule)
 

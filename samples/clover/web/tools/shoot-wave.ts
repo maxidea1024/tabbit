@@ -125,7 +125,7 @@ async function main(): Promise<number> {
   const state = await peek(page)
   await pickCards(page, chooseFive(state.hand))
   await page.waitForTimeout(900)
-  // **값이 있고 조용한 자리입니다.** 고른 족보의 칩과 배수가 칸에 서 있고 아직 아무것도
+  // **값이 있고 조용한 자리입니다.** 고른 족보의 칩과 배수가 칸에 놓여 있고 아직 아무것도
   // 더해지지 않았으므로, 여기가 가운데 줄 하나만 얕게 흐르는 자리입니다.
   said.push(await shot(page, 'wave-2-picked'))
 

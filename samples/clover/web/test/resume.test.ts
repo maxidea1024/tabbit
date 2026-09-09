@@ -159,7 +159,7 @@ describe('판의 설정은 판에서 읽습니다', () => {
   it('풀의 갈래가 오갑니다', () => {
     expect(choiceOf(poolsOf('base'))).toBe('base')
     expect(choiceOf(poolsOf('all'))).toBe('all')
-    // **옵션이 아니라 판을 봅니다.** 판이 도는 동안 옵션이 바뀌어도 저장은 그대로여야
+    // **옵션이 아니라 판을 읽습니다.** 판이 도는 동안 옵션이 바뀌어도 저장은 그대로여야
     // 합니다 — 다른 풀로 되살아난 판은 상점부터 다릅니다.
     const state = newRun(data, 'CLOVER-0001', 'red_deck', 'White', poolsOf('all'), '').state
     expect(choiceOf(state.pools)).toBe('all')

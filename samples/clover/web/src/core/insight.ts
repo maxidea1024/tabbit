@@ -226,7 +226,7 @@ function watchesDiscard(row: EffectRow): boolean {
   }
 }
 
-/** 이 효과가 보는 무늬들. 컬럼의 무늬 목록과 카드 무늬 조건 둘을 봅니다. */
+/** 이 효과가 보는 무늬들. 컬럼의 무늬 목록과 카드 무늬 조건 둘을 씁니다. */
 function suitsWatched(row: EffectRow): SuitKind[] {
   const out = [...row.suits]
   if (row.condition.kind === 'CondCardSuit') out.push(row.condition.suit)

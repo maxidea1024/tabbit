@@ -325,7 +325,7 @@ Write one, or type the column `int?` so that a row may say it has none.
 
 ## 11. 검증
 
-`BlankAndNullCellTests`가 규칙 전체를 봅니다. 픽스처는 4개입니다.
+`BlankAndNullCellTests`가 규칙 전체를 확인합니다. 픽스처는 4개입니다.
 
 |픽스처|무엇|
 |--|--|

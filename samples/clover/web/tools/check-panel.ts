@@ -1,7 +1,7 @@
 // 왼쪽 판이 정돈되어 있는가.
 //
 // **자리를 재는 도구입니다.** 무리 사이가 고른지, 겹치는 것이 없는지, 아래 버튼까지 남는
-// 자리가 있는지를 봅니다 — 눈으로 보아야 하는 것은 판때기의 테두리와 불의 뿌리이므로 그
+// 자리가 있는지 확인합니다 — 눈으로 보아야 하는 것은 판때기의 테두리와 불의 뿌리이므로 그
 // 둘은 판을 오려 낸 그림으로 남깁니다.
 import * as path from 'path'
 import { fileURLToPath } from 'url'
@@ -105,14 +105,14 @@ async function main(): Promise<number> {
   await pass(page, 700)
   await page.screenshot({ path: path.join(OUT, 'blind-pick.png') })
 
-  // 그 판에서 블라인드를 고르면 라운드가 섭니다.
+  // 그 판에서 블라인드를 고르면 라운드가 열립니다.
   await clickPrimary(page)
   await settle(page)
   await page.waitForTimeout(600)
 
   await shot(page, 'panel-idle')
 
-  // 다섯 장을 고르면 족보 이름과 칩 · 배수가 함께 섭니다.
+  // 다섯 장을 고르면 족보 이름과 칩 · 배수가 함께 놓입니다.
   const state = await peek(page)
   await pickCards(page, chooseFive(state.hand))
   await page.waitForTimeout(500)

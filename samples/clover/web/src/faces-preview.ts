@@ -130,7 +130,7 @@ async function main(): Promise<void> {
     x += SIZE.cardWidth * big + 12
   }
 
-  // 3. 4색. **클럽과 다이아만 색이 다릅니다** — 그 둘이 검정·빨강과 갈리는지를 봅니다.
+  // 3. 4색. **클럽과 다이아만 색이 다릅니다** — 그 둘이 검정·빨강과 갈리는지 확인합니다.
   x += 30
   world.addChild(heading('4색 — 클럽과 다이아', x, y - 20))
   for (const suit of [SuitKind.Club, SuitKind.Diamond]) {

@@ -44,7 +44,7 @@ const STACK = 3
 /**
  * 앞의 것이 선 뒤 다음 것이 서기까지.
  *
- * **한꺼번에 밀어 넣어도 하나씩 섭니다.** 소모품 하나가 여러 가지를 하면 그 알림들이 같은
+ * **한꺼번에 밀어 넣어도 하나씩 놓입니다.** 소모품 하나가 여러 가지를 하면 그 알림들이 같은
  * 프레임에 들어오는데, 그것들이 함께 뜨고 함께 사라지면 세 줄이 한 덩어리로 보입니다 —
  * 무엇이 몇 가지 일어났는지는 하나씩 서는 것으로 읽힙니다.
  */
@@ -64,7 +64,7 @@ interface Entry {
 
 export class Toasts extends Container {
   private readonly live: Entry[] = []
-  /** 아직 서지 않은 것들. 차례로 들여보냅니다. */
+  /** 아직 놓이지 않은 것들. 차례로 들여보냅니다. */
   private readonly pending: Entry[] = []
   /** 마지막으로 하나를 들여보낸 뒤 지난 시간. 처음 것은 기다리지 않습니다. */
   private since = STAGGER
@@ -145,7 +145,7 @@ export class Toasts extends Container {
     const next = this.pending.shift()
     if (!next) return
 
-    // **셋까지만 섭니다.** 넘치면 가장 오래된 것을 서둘러 보냅니다.
+    // **셋까지만 놓입니다.** 넘치면 가장 오래된 것을 서둘러 보냅니다.
     for (let i = 0; i < this.live.length - (STACK - 1); i++) {
       this.live[i].life = Math.min(this.live[i].life, 0.22)
     }

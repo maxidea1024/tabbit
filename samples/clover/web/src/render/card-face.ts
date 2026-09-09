@@ -306,7 +306,7 @@ export function drawCardFaceVector(node: Container, width: number, height: numbe
 
   // **아랫쪽 글자는 뒤집힙니다.** 트럼프는 어느 쪽에서 집어도 읽히도록 반대편 모서리의
   // 글자가 180도 돌아 있습니다 — 돌리지 않으면 그 카드는 한쪽에서만 읽히는 종이가 되고,
-  // 무늬는 이미 뒤집어 그리고 있어서 글자만 바로 서 있었습니다.
+  // 무늬는 이미 뒤집어 그리고 있어서 글자만 바로 놓여 있었습니다.
   const bottom = new Text({
     text: label, style: { fontSize: size, fill: ink, fontWeight: '800' },
   })

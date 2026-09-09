@@ -1,9 +1,9 @@
 // 누름 하나가 하는 일. **규격은 `doc/ui.md` 의 「누름과 그 밑의 단추」입니다.**
 //
-// 두 가지를 봅니다.
+// 두 가지를 확인합니다.
 //
-// 1. **서 있는 쪽지가 있으면 그 누름은 닫는 누름입니다** — 꾸욱 눌러 세운 쪽지 위에서 누르면
-//    쪽지만 닫히고 단추는 서지 않습니다. 한 번 더 눌러야 섭니다.
+// 1. **떠 있는 쪽지가 있으면 그 누름은 닫는 누름입니다** — 꾸욱 눌러 세운 쪽지 위에서 누르면
+//    쪽지만 닫히고 단추는 놓이지 않습니다. 한 번 더 눌러야 놓입니다.
 // 2. **고른 것 밖을 누르면 놓습니다** — 빈자리뿐 아니라 다른 물건과 다른 단추도 같습니다.
 //
 // 조커와 소모품 둘을 같은 순서로 봅니다. **갈래마다 다르게 적으면 어느 것은 한 번에 팔리고
@@ -31,7 +31,7 @@ async function main(): Promise<number> {
   await server.listen()
   const browser = await chromium.launch()
   // **손가락으로 엽니다.** 꾸욱 누르기는 손가락에만 있습니다 — 마우스의 쪽지는 커서를 따라
-  // 뜨고 벗어나면 닫히므로 서 있는 쪽지가 없습니다.
+  // 뜨고 벗어나면 닫히므로 떠 있는 쪽지가 없습니다.
   const context = await browser.newContext({
     viewport: { width: 1280, height: 800 }, hasTouch: true, isMobile: false,
   })
@@ -50,7 +50,7 @@ async function main(): Promise<number> {
     console.log(name === 'joker:0' ? '조커' : '소모품')
     const one = await spot(page, name)
 
-    // 1. 꾸욱 누릅니다. 쪽지가 서고 단추는 서지 않습니다.
+    // 1. 꾸욱 누릅니다. 쪽지가 뜨고 단추는 놓이지 않습니다.
     await press(page, one, 'down')
     await pass(page, 900)
     await press(page, one, 'up')
@@ -59,14 +59,14 @@ async function main(): Promise<number> {
     check(now.tip && !bar(now), '꾸욱 누르면 쪽지가 서고 단추는 서지 않습니다',
       `쪽지 ${now.tip} · 단추 ${bar(now)}`)
 
-    // 2. 한 번 누릅니다. **닫는 누름입니다** — 쪽지가 닫히고 단추는 서지 않습니다.
+    // 2. 한 번 누릅니다. **닫는 누름입니다** — 쪽지가 닫히고 단추는 놓이지 않습니다.
     await tap(page, one)
     await pass(page, 300)
     now = await peek(page)
     check(!now.tip && !bar(now), '쪽지가 서 있을 때의 누름은 닫기만 합니다',
       `쪽지 ${now.tip} · 단추 ${bar(now)}`)
 
-    // 3. 다시 누릅니다. 이제 단추가 섭니다.
+    // 3. 다시 누릅니다. 이제 단추가 놓입니다.
     await tap(page, one)
     await pass(page, 300)
     now = await peek(page)
@@ -116,7 +116,7 @@ async function main(): Promise<number> {
   return failed === 0 ? 0 : 1
 }
 
-/** 고른 것 밑에 단추 줄이 서 있는가. **화면이 알린 자리로 봅니다.** */
+/** 고른 것 밑에 단추 줄이 놓여 있는가. **화면이 알린 자리로 확인합니다.** */
 function bar(now: { spots?: Record<string, unknown> }): boolean {
   return now.spots?.held !== undefined
 }

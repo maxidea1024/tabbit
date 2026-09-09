@@ -59,7 +59,7 @@ export function poolsOf(choice: PoolChoice): JokerPool[] {
 /**
  * 이 판이 어느 갈래로 열렸는가.
  *
- * **옵션이 아니라 판을 봅니다.** 옵션은 판이 도는 동안에도 바뀌고, 바뀐 값으로 적어 둔
+ * **옵션이 아니라 판을 읽습니다.** 옵션은 판이 도는 동안에도 바뀌고, 바뀐 값으로 적어 둔
  * 판은 다른 풀로 되살아납니다 — 상점에 다른 조커가 서므로 그때부터 다른 판입니다.
  */
 export function choiceOf(pools: JokerPool[]): PoolChoice {

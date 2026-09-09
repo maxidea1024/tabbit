@@ -3,7 +3,7 @@
 // **잔액은 동전이 뜨는 순간이 아니라 닿는 순간에 바뀌어야 합니다.** 정산은 「받는다」 를 누른
 // 뒤에, 구매는 금액 숫자에서 동전이 빠져나가는 만큼 줄어듭니다. 40ms 마다 화면의 잔액과 코어의
 // 잔액과 동전이 나는 중인지를 적고, 처음 바뀐 프레임이 동전이 뜬 뒤인지와 다 닿은 뒤 코어와
-// 같은지를 봅니다.
+// 같은지 확인합니다.
 import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'

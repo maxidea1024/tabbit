@@ -1,7 +1,7 @@
 // 콜렉션 — 무엇을 만나 보았는가.
 //
 // **판이 아니라 저장이 가지는 값입니다.** 챌린지의 깬 목록과 같은 자리이고, `RunState` 에
-// 들어가지 않습니다 — 코어는 결정론이고 해시가 그것을 봅니다. 발견은 진행이지 규칙이
+// 들어가지 않습니다 — 코어는 결정론이고 해시가 그것을 확인합니다. 발견은 진행이지 규칙이
 // 아니므로, 여기에 두면 구워 둔 리플레이가 그대로 같은 해시를 냅니다.
 //
 // **손에 들어왔거나 진열된 것이 발견입니다.** 상점에서 본 것도 발견이고, 사지 않아도
@@ -100,7 +100,7 @@ export function sightings(state: RunState): Sighting[] {
   add('deck', state.deckId)
   add('stake', state.stake)
 
-  // **블라인드 셋은 함께 보입니다.** 고르는 판에 스몰과 빅과 보스가 한 화면에 섭니다.
+  // **블라인드 셋은 함께 보입니다.** 고르는 판에 스몰과 빅과 보스가 한 화면에 놓입니다.
   add('blind', BlindKind[BlindKind.Small])
   add('blind', BlindKind[BlindKind.Big])
   add('blind', BlindKind[BlindKind.Boss])

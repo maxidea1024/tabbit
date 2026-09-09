@@ -21,7 +21,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/wildling/design-data/
 
 기획 데이터를 폴더 하나에 모은 것은 **그것이 게임의 한 부분**이기 때문입니다. 그림은 기획
 데이터가 아니라 게임 애셋이므로 유니티 안에 있고, 그래서 `asset` 검사가 자리표가 아니라 실제로
-게임이 로드할 파일을 봅니다.
+게임이 로드할 파일을 읽습니다.
 
 ## 문서
 
@@ -137,7 +137,7 @@ Unity.exe -batchmode -quit -nographics -projectPath samples/wildling/unity      
 python samples/wildling/design-data/tools/verify.py
 ```
 
-**되는지가 아니라 맞는지를 봅니다.** 변환이 성공으로 끝나도 확인되지 않는 것이 있습니다 —
+**되는지가 아니라 맞는지를 확인합니다.** 변환이 성공으로 끝나도 확인되지 않는 것이 있습니다 —
 `csharp` 타깃은 파일을 쓰기만 하고 컴파일하지 않고, 리더가 와이어를 무엇으로 검사하는지는
 언어마다 따로 적힙니다.
 

@@ -34,7 +34,7 @@ async function main(): Promise<number> {
   await openRun(page)
   await pass(page, 1200)
 
-  // 조커 둘. 왼쪽부터 0번·1번 칸에 섭니다.
+  // 조커 둘. 왼쪽부터 0번·1번 칸에 놓입니다.
   await grantJoker(page, 2)
   await pass(page, 2000)
 

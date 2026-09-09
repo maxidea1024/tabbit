@@ -31,9 +31,9 @@ export interface Peek {
   tip: boolean
   /** 지금 골라 둔 카드의 수. */
   picked: number
-  /** 상점 판이 지금 서 있는가. */
+  /** 상점 판이 지금 떠 있는가. */
   shopUp: boolean
-  /** 상점 판이 서 있는 높이. 0 이 다 선 자리이고, 클수록 화면 아래입니다. */
+  /** 상점 판이 떠 있는 높이. 0 이 다 뜬 자리이고, 클수록 화면 아래입니다. */
   shopY?: number
   /** 상점 몸통이 판 안에서 밀린 정도. 0 이 아니면 딱지의 자리가 그만큼 어긋납니다. */
   shopBodyY?: number
@@ -87,9 +87,9 @@ export interface Peek {
    * 화면의 칸을 세면 한 쪽에 40개까지이므로, 갈래의 수는 이 값으로만 확인됩니다.
    */
   collection?: { tab: string; cells: number; found: number; offset: number }
-  /** 상점 칸마다 무엇이 서 있는가. `ShopItemKind` 의 값입니다 — 조커가 1, 소모품이 2~5. */
+  /** 상점 칸마다 무엇이 놓여 있는가. `ShopItemKind` 의 값입니다 — 조커가 1, 소모품이 2~5. */
   shopKinds?: number[]
-  /** 상점의 줄마다 몸통이 시작하는 `y`. 판이 서 있지 않으면 비어 있습니다. */
+  /** 상점의 줄마다 몸통이 시작하는 `y`. 판이 떠 있지 않으면 비어 있습니다. */
   shopRows?: { items?: number; packs?: number; voucher?: number }
   /** 상점 칸마다 `[칸, x, 쉬는 x, 가운데 x, 가운데 y]`. 도구가 칸을 짚는 값입니다. */
   shopAt?: number[][]
@@ -111,7 +111,7 @@ export interface Peek {
     quality?: string; particles?: boolean
   }
   /**
-   * 인사이트 판에 지금 서 있는 줄들의 열쇠.
+   * 인사이트 판에 지금 놓여 있는 줄들의 열쇠.
    *
    * **판이 떠 있고 그 갈래일 때만 값이 있습니다.** 줄 수만 알리면 문장이 열쇠 그대로
    * 적혀 있어도 같은 답이 나오므로, 열쇠를 알려 시트와 견줄 수 있게 합니다.
@@ -149,7 +149,7 @@ export interface Peek {
    * 줄에 선 카드들이 차지한 사각형.
    *
    * **자리를 넘어가지 않는지는 이 둘을 견주어야만 확인됩니다** — 눈으로는 몇 개까지
-   * 담기는지 세어 볼 수 없고, 넘어간 한 장은 옆 줄이나 화면 밖에 섭니다.
+   * 담기는지 세어 볼 수 없고, 넘어간 한 장은 옆 줄이나 화면 밖에 놓입니다.
    */
   trayCards?: { joker: Rect[]; item: Rect[] }
   /** 고른 것 아래에 선 단추 줄이 차지한 사각형. 고른 것이 없으면 없습니다. */
@@ -180,7 +180,7 @@ export interface Peek {
   coming: string
   /** 정산 판이 떠 있는가. */
   payout: boolean
-  /** 끝난 판이 떠 있는가. **카드가 다 걷힌 뒤에 섭니다.** */
+  /** 끝난 판이 떠 있는가. **카드가 다 걷힌 뒤에 뜹니다.** */
   gameOver?: boolean
 }
 
@@ -256,7 +256,7 @@ export async function spot(page: Page, name: string, tries = 20):
  * 화면이 알린 자리를 누릅니다. **맞혔는지 확인합니다.**
  *
  * 화면이 알린 자리는 늘 무언가가 있는 자리이므로, 눌러서 아무것도 맞히지 못했다면 그것은
- * 이 도구의 결함입니다 — 판이 아직 서지 않았거나, 눌린 것이 다른 판에 덮여 있습니다.
+ * 이 도구의 결함입니다 — 판이 아직 뜨지 않았거나, 눌린 것이 다른 판에 덮여 있습니다.
  * 그것을 여기서 말하지 않으면 도구는 그다음 줄로 넘어가 통과합니다.
  */
 export async function clickSpot(page: Page, name: string): Promise<void> {
@@ -434,7 +434,7 @@ export async function shopStanding(page: Page): Promise<void> {
 /**
  * 상점을 만질 수 있는 상태로 만듭니다.
  *
- * **코어가 `shop` 인 것과 상점 판이 서 있는 것은 다릅니다.** 블라인드를 넘긴 그 자리에서
+ * **코어가 `shop` 인 것과 상점 판이 떠 있는 것은 다릅니다.** 블라인드를 넘긴 그 자리에서
  * 국면은 `shop` 이 되지만 화면은 정산 판을 세우고 기다리므로, 받지 않으면 상점 판이
  * 올라오지 않습니다 — 그 사이에 칸을 짚는 도구는 「상점에 0번 칸이 없습니다」 로 끝납니다.
  *
@@ -608,7 +608,7 @@ export async function pass(page: Page, ms: number): Promise<void> {
     if (state === 'stepped') return
     // **수동 틱이 아닌 판이면 실제로 기다립니다.** 전에는 손잡이가 생기기를 기다리며 자기를
     // 다시 불렀고, `?tick=manual` 없이 연 판에서는 그 손잡이가 영영 없어서 호출 스택이
-    // 바닥날 때까지 돌았습니다 — `check-setup` 이 10분을 그렇게 서 있었습니다.
+    // 바닥날 때까지 돌았습니다 — `check-setup` 이 10분을 그렇게 돌았습니다.
     if (state === 'realtime' || wait >= 50) {
       await page.waitForTimeout(ms)
       return
@@ -672,7 +672,7 @@ export async function packSlot(page: Page, slot: number, count = 2): Promise<{ x
  * 가운데로 모입니다.
  */
 export async function buyFirstAffordable(page: Page): Promise<void> {
-  // **몇 번 칸이 서 있는지는 화면이 알립니다.** 넷을 전제로 돌면 상품 줄이 비었을 때 —
+  // **몇 번 칸이 놓여 있는지는 화면이 알립니다.** 넷을 전제로 돌면 상품 줄이 비었을 때 —
   // 다 팔렸거나 팩만 놓인 상점입니다 — 없는 칸을 짚고 「상점에 0번 칸이 없습니다」 로
   // 끝납니다. 살 것이 없는 것은 이 도구가 알릴 일이 아닙니다.
   const slots = ((await peek(page)).shopAt ?? []).map(entry => entry[0])

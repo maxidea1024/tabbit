@@ -101,7 +101,7 @@ export function collect(vm: Vm, trigger: Trigger): Array<[EffectRow, EffectHost]
 }
 
 /**
- * 효과 행 하나를 봅니다.
+ * 효과 행 하나를 처리합니다.
  *
  * 조건이 성립해도 확률에 걸리면 아무 일도 일어나지 않고, **그 사실이 이벤트로 나갑니다** —
  * 보여주지 않으면 플레이어가 그 조커가 무엇을 하는지 배우지 못합니다.

@@ -9,7 +9,7 @@ import { build } from '../src/app'
 import { accountFor } from '../src/accounts'
 import { startSession } from '../src/auth/session'
 
-/** 길마다 몇 번 재는가. 첫 번째는 연결을 여는 값이 섞이므로 중앙값을 봅니다. */
+/** 길마다 몇 번 재는가. 첫 번째는 연결을 여는 값이 섞이므로 중앙값을 씁니다. */
 const ROUNDS = 20
 
 const PATHS = [

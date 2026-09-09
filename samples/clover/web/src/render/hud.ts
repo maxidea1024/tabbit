@@ -289,7 +289,7 @@ export class Slot extends Container {
    * 것도 재는 것도 한 번입니다 — 통은 글자 수만큼입니다.
    */
   private readonly value: Text | Digits
-  /** 값의 모습. **통이든 글 하나든 이것 하나를 봅니다.** */
+  /** 값의 모습. **통이든 글 하나든 이것 하나를 씁니다.** */
   private readonly valueStyle: TextStyle
 
   private shown = 0
@@ -448,7 +448,7 @@ export class Slot extends Container {
   /**
    * 숫자가 물러나 있는 정도. 1 에서 0 으로 갑니다.
    *
-   * **±N 글이 숫자와 같은 자리, 같은 크기로 뜹니다.** 그 둘이 함께 서 있으면 어느 것이
+   * **±N 글이 숫자와 같은 자리, 같은 크기로 뜹니다.** 그 둘이 함께 놓여 있으면 어느 것이
    * 지금 값인지 알 수 없으므로, 뜬 동안 칸의 숫자가 옅어졌다 돌아옵니다.
    */
   private muted = 0
@@ -585,7 +585,7 @@ export class Slot extends Container {
    * 값이 **더해진** 뒤로 남은 것. 더해질 때마다 얹히고 잦아듭니다.
    *
    * **`flare` 와 따로입니다.** 그것은 값이 바뀌기만 하면 서므로 판이 끝나 0 으로 되돌아갈
-   * 때도 0 이 아니고, 이 값은 그 대목에 서지 않습니다 — 「더해질 때만」 이 필요한 쪽이
+   * 때도 0 이 아니고, 이 값은 그 대목에 쓰이지 않습니다 — 「더해질 때만」 이 필요한 쪽이
    * 파형이고, 바탕의 번쩍임은 지금대로 둡니다.
    *
    * **쌓입니다.** 조커가 연달아 더하면 그 수만큼 얹히고, 그것이 한 판에서 세기가 오르는
@@ -619,7 +619,7 @@ export class Slot extends Container {
       // **줄어드는 동안 조용한 칸은 여기서도 조용합니다.**
       //
       // `quietOnDrop` 이 `rolling` 만 막고 있었고, 번쩍임과 튐과 글자 물결은 `ripple()` 이
-      // 세우므로 값이 바뀌기만 하면 섰습니다 — 그래서 판이 끝나 칩과 배수가 0 으로
+      // 세우므로 값이 바뀌기만 하면 떴습니다 — 그래서 판이 끝나 칩과 배수가 0 으로
       // 되돌아갈 때마다 두 상자가 파랑과 붉음으로 한 번 빛났습니다. 그것은 알릴 일이
       // 아니고, 그 대목에 필요한 것은 조용히 없어지는 것뿐입니다.
       const quiet = this.quietOnDrop && value < this.shown
@@ -689,7 +689,7 @@ export class Slot extends Container {
    *
    * **굴러가는 동안 숫자가 떱니다.** 값이 매끄럽게 올라가기만 하면 「바뀌었다」로 읽히고,
    * 흔들리면서 올라가면 「쌓이고 있다」로 읽힙니다. 흔드는 세기는 남은 거리에 따릅니다 —
-   * 큰 수가 굴러갈 때 크게 떨고, 다 굴러가면 조용히 제자리에 섭니다.
+   * 큰 수가 굴러갈 때 크게 떨고, 다 굴러가면 조용히 제자리에 멎습니다.
    */
   advance(deltaMs: number): void {
     if (this.value instanceof Digits) this.value.advance(deltaMs)
@@ -734,7 +734,7 @@ export class Slot extends Container {
     const lift = this.lifted
     // **바탕이 밝은 동안은 ±N 이 떠 있는 동안입니다.**
     //
-    // 튐은 0.26초에 잦아드는데 그 글은 0.62초를 서 있습니다 — 튐에만 맞추면 글이 아직
+    // 튐은 0.26초에 잦아드는데 그 글은 0.62초를 머뭅니다 — 튐에만 맞추면 글이 아직
     // 떠 있는데 색이 먼저 빠지고, 눈이 칸에 닿았을 때는 이미 아무 색도 없습니다.
     const glow = Math.min(1, Math.max(shake, lift * 2, this.signed ? this.muted : 0))
     if (shake > 0.002 || lift > 0) {
@@ -744,7 +744,7 @@ export class Slot extends Container {
       // 동안에만 상자 밖으로 나갔다 돌아옵니다.
       this.value.scale.set(this.fitScale * (1 + ease * 0.42 + heat * 0.14 + lift))
       this.value.x = this.valueX + (Math.random() - 0.5) * 7 * shake
-      // **세로로는 조금만 흔듭니다.** 두 칸의 숫자가 나란히 서 있어서, 세로로 크게 흔들면
+      // **세로로는 조금만 흔듭니다.** 두 칸의 숫자가 나란히 놓여 있어서, 세로로 크게 흔들면
       // 그 둘의 기준선이 서로 어긋나 보입니다.
       this.value.y = this.baseY - ease * 4 + (Math.random() - 0.5) * 2.4 * shake
       this.value.rotation = (Math.random() - 0.5) * 0.13 * shake
@@ -772,7 +772,7 @@ export class Slot extends Container {
    * 값이 클수록 크게, 그리고 바탕이 밝아집니다.
    *
    * **크기를 여기서 정하지 않고 얹기만 합니다.** 여기서 `scale` 을 그대로 앉히면 그 크기가
-   * 다음에 부를 때까지 그대로 서 있고, 박자가 끊긴 자리에서 커진 채로 멈췄다가 한 프레임에
+   * 다음에 부를 때까지 그대로 남아 있고, 박자가 끊긴 자리에서 커진 채로 멈췄다가 한 프레임에
    * 제 크기로 돌아옵니다 — 잦아드는 것은 `advance` 가 시간으로 합니다.
    */
   emphasize(scale: number): void {
@@ -925,7 +925,7 @@ export class BlindBadge extends Container {
    * 상황을 적습니다 — 상점 · 뜯은 팩 · 자리 비우기처럼 요구 점수가 뜻을 갖지 않는 때입니다.
    *
    * **틀은 같고 안의 글만 다릅니다.** 이름 띠는 그대로이고, 요구 점수와 격파 보상 자리에
-   * 굵은 한 줄(`lead`)과 옅은 몇 줄(`info`)이 섭니다 — 같은 딱지가 상황을 따라 다른 것을
+   * 굵은 한 줄(`lead`)과 옅은 몇 줄(`info`)이 놓입니다 — 같은 딱지가 상황을 따라 다른 것을
    * 적는 것이어야 왼쪽 판이 여러 판으로 보이지 않습니다.
    */
   setInfo(name: string, lead: string, lines: string[], mark: number, seal?: Container,

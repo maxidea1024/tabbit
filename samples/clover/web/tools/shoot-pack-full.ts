@@ -63,7 +63,7 @@ async function main(): Promise<number> {
   // 고른 한 장이 올라온 자리. **위의 지시문에 닿지 않아야 합니다.**
   await shot(page, 'packfull-picked')
   // **누르는 것은 고르는 것까지입니다.** 집는 것은 그 밑에 서는 「집는다」 이고, 그 자리는
-  // 화면이 알립니다. 자리가 없으므로 그것을 누르면 바꾸기 판이 섭니다.
+  // 화면이 알립니다. 자리가 없으므로 그것을 누르면 바꾸기 판이 뜹니다.
   await clickSpot(page, 'held')
   await page.waitForTimeout(700)
   await shot(page, 'packfull-2')

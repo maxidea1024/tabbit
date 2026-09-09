@@ -103,7 +103,7 @@ async function firstHand(browser: Browser, seed?: string,
   return { title, hand }
 }
 
-/** 한 번 누릅니다. `mouse.click` 은 너무 빨라 `pointertap` 이 서지 않는 자리가 있습니다. */
+/** 한 번 누릅니다. `mouse.click` 은 너무 빨라 `pointertap` 이 나지 않는 자리가 있습니다. */
 async function tap(page: Page, x: number, y: number): Promise<void> {
   const spot = await at(page, x, y)
   await page.mouse.move(spot.x, spot.y)

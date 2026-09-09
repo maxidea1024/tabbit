@@ -39,7 +39,7 @@ async function main(): Promise<number> {
   const login = await open(browser, '?tick=manual', true)
   await login.screenshot({ path: path.join(OUT, 'front-login.png') })
 
-  // 진행 띠. **뒤가 흐려진 그 상태를 봅니다** — 「로그인 없이 시작」이 그 띠를 지납니다.
+  // 진행 띠. **뒤가 흐려진 그 상태를 확인합니다** — 「로그인 없이 시작」이 그 띠를 지납니다.
   // **자리를 수로 적습니다.** 이 화면은 도구가 짚을 자리를 알리지 않고, 「로그인 없이
   // 시작」은 판의 가로 가운데에 자리가 고정입니다(`login-scene.ts` 의 `singleY`).
   await login.mouse.click(640, 612)

@@ -122,7 +122,7 @@ async function main(): Promise<void> {
   app.renderer.on('resize', relayout)
   relayout()
 
-  // 제대로 섰으니 다시 읽기 셈을 지웁니다. index.html 의 감시가 이것을 봅니다.
+  // 제대로 떴으니 다시 읽기 셈을 지웁니다. index.html 의 감시가 이것을 확인합니다.
   try {
     sessionStorage.removeItem('clover.retry')
   } catch {

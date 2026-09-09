@@ -43,7 +43,7 @@ async function main(): Promise<void> {
   await pass(page, 400)
   await page.screenshot({ path: path.join(OUT, 'cardtip-picked.png') })
 
-  // 마우스를 첫 장 위로. 움직임 두 번이어야 「움직였다」 가 섭니다.
+  // 마우스를 첫 장 위로. 움직임 두 번이어야 「움직였다」 가 성립합니다.
   const held = (await peek(page)).hand.length
   const spacing = Math.min(CARD_SPACING, 720 / Math.max(1, held))
   const startX = BOARD_X - ((held - 1) * spacing) / 2

@@ -16,7 +16,7 @@ import { drawGlyph, shade, type GlyphName } from './glyph'
  * 무늬 하나. `(cx, cy)` 가 가운데이고 `size` 가 높이입니다.
  *
  * 좌표는 -1..1 의 상자 안이므로 어느 크기에서도 같은 모양이 됩니다. `flip` 이 참이면
- * 거꾸로 그립니다 — 카드 아래쪽 절반의 무늬는 거꾸로 서 있습니다.
+ * 거꾸로 그립니다 — 카드 아래쪽 절반의 무늬는 거꾸로 놓입니다.
  */
 export function drawSuit(g: Graphics, suit: SuitKind, cx: number, cy: number,
                          size: number, color: number, flip = false): void {
@@ -80,7 +80,7 @@ export function drawSuit(g: Graphics, suit: SuitKind, cx: number, cy: number,
  * 랭크마다의 무늬 자리.
  *
  * 값은 **안쪽 상자 안의 0..1** 입니다 — 가로는 왼쪽 칸이 0, 오른쪽 칸이 1, 가운데가 0.5.
- * 세로도 같습니다. **아래 절반의 무늬는 거꾸로** 섭니다.
+ * 세로도 같습니다. **아래 절반의 무늬는 거꾸로** 놓입니다.
  */
 const LAYOUT: Record<number, [number, number][]> = {
   2: [[0.5, 0], [0.5, 1]],

@@ -70,7 +70,7 @@ async function main(): Promise<number> {
 
     // 덱 보기도 함께 봅니다. **작은 카드가 따로 그려지므로** 손패만 맞고 여기가 틀릴 수
     // 있습니다 — 실제로 색을 고르는 자리가 넷이고 그중 둘이 이 화면입니다.
-    // 덱 더미를 누르면 남은 카드가 무늬별로 섭니다. `game.ts` 의 `DECK_X`·`DECK_Y` 입니다.
+    // 덱 더미를 누르면 남은 카드가 무늬별로 놓입니다. `game.ts` 의 `DECK_X`·`DECK_Y` 입니다.
     const pile = await at(page, 1280 - 62, 608)
     await page.mouse.click(pile.x, pile.y)
     await pass(page, 900)

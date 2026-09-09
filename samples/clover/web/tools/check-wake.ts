@@ -8,7 +8,7 @@
 // `visibilitychange` 가 다시 오지 않으므로, 소리가 돌아올 자리가 없습니다. 핸드폰은 앱을
 // 자주 오가므로 다음 왕복에 저절로 돌아오고, 그래서 이 결함은 데스크탑에서만 남습니다.
 //
-// 셋을 봅니다. 곧바로 돌아오면 도는가, 뜸하게 돌아와도 도는가, 그리고 물러난 동안에는
+// 셋을 확인합니다. 곧바로 돌아오면 도는가, 뜸하게 돌아와도 도는가, 그리고 물러난 동안에는
 // 실제로 재워지는가.
 import * as path from 'path'
 import { fileURLToPath } from 'url'
@@ -121,7 +121,7 @@ async function main(): Promise<number> {
   console.log(`뜸하게 돌아온 뒤 ${slow}`)
 
   // **출력에 값이 흐르는가.** 소리 길이 돌고 있다는 것과 들린다는 것이 다른 일이라,
-  // 소리를 한 번 내 보고 잰 값을 봅니다.
+  // 소리를 한 번 내 보고 잰 값을 확인합니다.
   const heard = await page.evaluate(`(() => {
     var c = window.__clover || {};
     return c.audio ? c.audio.peak : -1;

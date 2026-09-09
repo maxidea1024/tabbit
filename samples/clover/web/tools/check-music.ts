@@ -68,7 +68,7 @@ async function main(): Promise<number> {
           if (Math.abs(wave[i]) > quiet) { trail = (wave.length - 1 - i) / rate; break }
         }
 
-        // 0.2초씩 끊어 음량을 재고, 첫 토막과 마지막 토막의 층을 봅니다.
+        // 0.2초씩 끊어 음량을 재고, 첫 토막과 마지막 토막의 층을 확인합니다.
         const span = Math.floor(rate * 0.2)
         const loud: number[] = []
         for (let at = 0; at + span <= wave.length; at += span) {

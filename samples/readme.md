@@ -59,7 +59,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/canopy/recipe.jsonc
 
 **그리고 그 데이터로 도는 게임이 함께 있습니다.** 생성된 C#과 `.bytes`를 읽어 탐사 · 육성 ·
 각성 · 자동 전투 · 지역 해금이 실제로 돌아가고, Windows standalone 으로 빌드됩니다. `asset`
-검사가 자리표가 아니라 게임이 화면에 띄우는 파일을 봅니다.
+검사가 자리표가 아니라 게임이 화면에 띄우는 파일을 읽습니다.
 
 **그렇게 만든 것이 값입니다.** 변환이 끝까지 돌고 값이 시트대로여도 게임은 돌지 않을 수
 있습니다 — 실제로 지역 2가 열리지 않아 첫 지역에서 끝나는 상태였고, 그 결함은 변환의 어느
@@ -70,7 +70,7 @@ dotnet run --project src/Tabbit.csproj -- --recipe samples/canopy/recipe.jsonc
 ## clover — 같은 데이터셋으로 두 플랫폼
 
 포커 로그라이크 한 편을 규칙과 수치까지 재현하고, 그것을 웹과 유니티에 각각 만듭니다.
-그리고 **같은 리플레이를 양쪽에 먹여 결과가 같은지를 봅니다.**
+그리고 **같은 리플레이를 양쪽에 먹여 결과가 같은지 확인합니다.**
 
 ```
 dotnet run --project src/Tabbit.csproj -- --recipe samples/clover/design-data/recipe.jsonc

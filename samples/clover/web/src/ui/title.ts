@@ -14,7 +14,7 @@
 // |--|--|--|
 // |위 왼쪽|계정|「지금 누구로 하고 있는가」. 게임의 내용이 아니므로 단추들과 섞이지 않습니다|
 // |위 오른쪽|도움말 · 옵션|판 바깥의 일. 아이콘이므로 글이 있는 것들과 갈립니다|
-// |가운데|이름과 「시작」|눌러야 하는 것 하나가 가장 크고, 그 아래에 그 밖의 것들이 한 줄로 섭니다|
+// |가운데|이름과 「시작」|눌러야 하는 것 하나가 가장 크고, 그 아래에 그 밖의 것들이 한 줄로 놓입니다|
 //
 // **단추가 셋입니다.** 무엇으로 시작하는가(덱 · 스테이크) · 챌린지 · 랭크가 저마다 단추
 // 하나씩을 차지하고 있었는데, 셋 다 판을 여는 일이므로 「시작」이 여는 판 안으로
@@ -100,7 +100,7 @@ const SECOND_GAP = 10
  * 「시작」과 그 아래 사이의 틈.
  *
  * **줄 사이보다 넓습니다.** 같으면 넷이 한 줄로 이어진 목록이 되고, 그 목록에서는 「시작」이
- * 그저 첫째 칸입니다 — 눌러야 하는 것 하나가 따로 서 있어야 그것이 먼저 읽힙니다.
+ * 그저 첫째 칸입니다 — 눌러야 하는 것 하나가 따로 놓여 있어야 그것이 먼저 읽힙니다.
  */
 const SECOND_GULF = 34
 const SECOND_Y = START_Y + START_H + SECOND_GULF
@@ -177,7 +177,7 @@ export class Title extends Container {
   /**
    * 아이콘 둘의 쪽지.
    *
-   * **판때기를 걷었으므로 이름이 남지 않았습니다.** 그림 하나만 서 있으면 처음 보는 사람은
+   * **판때기를 걷었으므로 이름이 남지 않았습니다.** 그림 하나만 놓여 있으면 처음 보는 사람은
    * 물음표와 톱니가 무엇을 여는지를 눌러 봐야 압니다 — 가리키면 그 자리에 뜹니다.
    */
   private readonly tooltip = new Tooltip()
@@ -208,7 +208,7 @@ export class Title extends Container {
     this.note.position.set(SIZE.width / 2, NOTE_Y)
 
     // **시작 하나가 가장 큽니다.** 눌러야 하는 것이 하나이면 그것 하나만 크고 밝습니다 —
-    // 나머지는 그 아래에서 같은 크기로 섭니다.
+    // 나머지는 그 아래에서 같은 크기로 놓입니다.
     const start = new Button(t('ui.button.start'), START_W, START_H, UI.yellow,
                              hooks.onStart, 30)
     start.position.set(Math.round((SIZE.width - START_W) / 2), START_Y)
@@ -241,7 +241,7 @@ export class Title extends Container {
     // 계정. **위 왼쪽 구석입니다.**
     //
     // **싱글에서는 단추 하나입니다.** 「싱글플레이」라고 적힌 이름 줄과 「계정 연결」이
-    // 함께 서 있었는데, 계정이 없다는 것은 계정 자리가 비어 있는 것으로 이미 읽힙니다.
+    // 함께 놓여 있었는데, 계정이 없다는 것은 계정 자리가 비어 있는 것으로 이미 읽힙니다.
     this.accountSlot.position.set(EDGE, EDGE)
     this.accountSlot.visible = false
 

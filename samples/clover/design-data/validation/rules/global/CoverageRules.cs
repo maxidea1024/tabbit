@@ -1,7 +1,7 @@
 using Tabbit.Rules;
 using Tabbit.Validation;
 
-// 무엇이 빠졌는가를 봅니다. 이 샘플은 원작을 재현하는 것이므로 **개수가 규격**이고, 개수가
+// 무엇이 빠졌는가를 확인합니다. 이 샘플은 원작을 재현하는 것이므로 **개수가 규격**이고, 개수가
 // 어긋나면 옮기다 빠뜨린 것입니다. 타입으로는 표현되지 않습니다.
 
 internal static class CoverageRules

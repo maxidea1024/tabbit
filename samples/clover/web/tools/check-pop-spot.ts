@@ -119,7 +119,7 @@ async function main(): Promise<number> {
 /**
  * 블라인드를 고르는 자리에 설 때까지 나아갑니다.
  *
- * **국면이 `shop` 인 것과 상점 판이 서 있는 것과 고르는 자리에 선 것이 다 다릅니다.**
+ * **국면이 `shop` 인 것과 상점 판이 떠 있는 것과 고르는 자리에 놓인 것이 다 다릅니다.**
  * 셋 중 어디에 있는지를 보고 한 걸음씩 나아갑니다.
  */
 async function atBlindPick(page: Page): Promise<void> {

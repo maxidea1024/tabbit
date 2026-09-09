@@ -21,7 +21,7 @@ async function main(): Promise<number> {
 
   await openRun(page)
 
-  // 봇이 이기기를 기다리지 않습니다. 훅으로 이기고 정산 판이 서는 것을 봅니다.
+  // 봇이 이기기를 기다리지 않습니다. 훅으로 이기고 정산 판이 뜨는 것을 확인합니다.
   await clearBlind(page)
   await page.waitForTimeout(1400)
   await shot(page, 'order-1')

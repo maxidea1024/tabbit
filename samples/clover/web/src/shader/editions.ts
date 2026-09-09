@@ -16,7 +16,7 @@ import { EditionKind } from '../generated/enums/edition-kind'
 /**
  * 에디션마다 어느 셰이더인가. **`Base` 에는 없습니다.**
  *
- * 카드 · 조커 · 소모품이 같은 표를 봅니다 — 셋이 저마다 적어 두면 하나를 더할 때 두 곳만
+ * 카드 · 조커 · 소모품이 같은 표를 씁니다 — 셋이 저마다 적어 두면 하나를 더할 때 두 곳만
  * 고쳐지고, 빠진 하나는 아무 셰이더도 걸리지 않은 채로 지나갑니다.
  */
 export const EDITION_SHADER: Partial<Record<EditionKind, EditionShader>> = {
@@ -252,7 +252,7 @@ export class EditionFilter extends Filter {
   }
 
   /**
-   * 지금 보고 있는 시각과 기울기. **도구가 봅니다.**
+   * 지금 보고 있는 시각과 기울기. **도구가 조회합니다.**
    *
    * 둘 다 무늬의 위상에 그대로 들어갑니다 — 흐르지 않는 것은 시각이 멈춘 것이고, 튀는
    * 것은 기울기가 뛴 것입니다. **눈으로는 그 둘이 갈리지 않습니다.**

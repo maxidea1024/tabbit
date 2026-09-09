@@ -46,7 +46,7 @@ namespace Wildling.Check
         /// **보고를 파일로 씁니다.** `EditorApplication.Exit` 를 `-executeMethod` 안에서 부르면
         /// 이 기계의 에디터가 셧다운 경로에서 크래시합니다(`SubsystemManager::CleanupInstances`).
         /// 그래서 종료는 `-quit` 에 맡기고, 판정은 파일의 첫 줄이 합니다 — 읽는 쪽이 종료 코드
-        /// 대신 그것을 봅니다. 로그만 남기면 크래시와 실패를 구별할 수 없습니다.
+        /// 대신 그것을 확인합니다. 로그만 남기면 크래시와 실패를 구별할 수 없습니다.
         /// </remarks>
         public static void RunFromCommandLine()
         {

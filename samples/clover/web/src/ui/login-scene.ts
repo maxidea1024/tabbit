@@ -25,7 +25,7 @@ import { providerTint } from './provider'
 import { Button } from './widgets'
 import { Wordmark } from './wordmark'
 
-/** 이름과 그 아래 한 줄. **타이틀보다 위입니다** — 아래에 단추가 더 섭니다. */
+/** 이름과 그 아래 한 줄. **타이틀보다 위입니다** — 아래에 단추가 더 놓입니다. */
 const LOGO_Y = 132
 const WHY_Y = 276
 

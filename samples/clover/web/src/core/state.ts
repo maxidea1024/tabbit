@@ -72,7 +72,7 @@ export interface ConsumableInstance {
   edition: EditionKind
 }
 
-/** 라운드마다 바뀌는 지정 대상. `chore_list` 계열이 봅니다. */
+/** 라운드마다 바뀌는 지정 대상. `chore_list` 계열이 씁니다. */
 export interface RoundTargets {
   hand: PokerHandKind
   rank: RankKind

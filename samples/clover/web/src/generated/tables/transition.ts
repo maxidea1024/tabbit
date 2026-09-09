@@ -53,7 +53,7 @@ export class TransitionRecord {
   /** 다 지워진 자리에 남는 색 */
   public get ink(): string { return this._ink }
 
-  /** 다가오는가. 밀림과 옆으로가 이 값을 봅니다 */
+  /** 다가오는가. 밀림과 옆으로가 이 값을 씁니다 */
   public get toward(): boolean { return this._toward }
 
   /** 시작할 때 나는 소리. `SoundCue` 의 이름 */

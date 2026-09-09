@@ -43,7 +43,7 @@ async function main(): Promise<number> {
   await page.screenshot({ path: path.join(OUT, 'challenge-0-title.png') })
 
   // 챌린지는 판을 여는 자리의 셋째 탭입니다.
-  // **잠겨 있어도 탭은 섭니다.** 열어 보면 무엇으로 열리는지가 판 안에 적혀 있습니다.
+  // **잠겨 있어도 탭은 놓입니다.** 열어 보면 무엇으로 열리는지가 판 안에 적혀 있습니다.
   await pressTitle(page, 'start')
   await pass(page, 700)
   await pressRunPanel(page, 'tab:challenge')

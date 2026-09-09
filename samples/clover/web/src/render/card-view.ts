@@ -86,7 +86,7 @@ export type { EditionLook }
  * 득점한 카드가 내려올 때의 용수철.
  *
  * 올라갈 때는 380·39 입니다. **네 배 강성이 두 배 빠르기**이고, 감쇠는 그 비율을 지켜야
- * 튀지 않고 자리에 섭니다.
+ * 튀지 않고 자리에 멎습니다.
  */
 const LIFT_DOWN_K = 1_520
 const LIFT_DOWN_D = 78
@@ -208,7 +208,7 @@ export class CardView extends Container {
   /** 마지막으로 받은 카드. 뒤집을 때 다시 그립니다. */
   private last?: { card: CardInstance; look?: EditionLook }
 
-  /** 마우스가 올라와 있는가. 기울기와 크기가 이것을 봅니다. */
+  /** 마우스가 올라와 있는가. 기울기와 크기가 이것을 확인합니다. */
   hovered = false
   selected = false
   /** 마우스가 카드 안 어디에 있는가. -1 에서 1 입니다. */

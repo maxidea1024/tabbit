@@ -284,7 +284,7 @@ export function loadOptions(): Options {
       (options[key] as unknown) = value
     }
   } catch {
-    // 저장소가 막혀 있으면 기본값으로 갑니다. 옵션 하나 때문에 화면이 서지 않습니다.
+    // 저장소가 막혀 있으면 기본값으로 갑니다. 옵션 하나 때문에 화면이 뜨지 않습니다.
   }
   return options
 }
@@ -349,7 +349,7 @@ const edge = (): number => UI.rule
 const ROW = 52
 /** 시드를 적을 수 있는 길이. 주소에 실려 나가므로 길게 둘 이유가 없습니다. */
 const SEED_MAX = 28
-/** 시드 줄의 높이. 칸과 「무작위」 가 나란히 섭니다. */
+/** 시드 줄의 높이. 칸과 「무작위」 가 나란히 놓입니다. */
 const SEED_ROW = 96
 /** 고를 것들이 서는 격자. 세 칸씩입니다. */
 const CHOICE_COLUMNS = 3
@@ -378,7 +378,7 @@ const CARD_COLUMNS = 3
 /**
  * 테마 미리보기의 치수.
  *
- * **넷이 한 줄에 섭니다.** 둘씩 두 줄로 두면 위아래 줄의 색을 견주기 위해 눈이 두 번
+ * **넷이 한 줄에 놓입니다.** 둘씩 두 줄로 두면 위아래 줄의 색을 견주기 위해 눈이 두 번
  * 오가고, 고르는 일은 견주는 일입니다.
  */
 const THEME_COLUMNS = 4
@@ -499,7 +499,7 @@ export class OptionsPanel implements ModalPanel {
   private readonly viewport = new Container()
   /** 창의 모양. `viewport` 의 마스크입니다. */
   private readonly clip = new Graphics()
-  /** 오른쪽의 손잡이. 넘치는 만큼만 섭니다. */
+  /** 오른쪽의 손잡이. 넘치는 만큼만 놓입니다. */
   private readonly bar = new Graphics()
   /** 본문이 얼마나 굴러갔는가. 0 이 맨 위입니다. */
   private scroll = 0
@@ -508,7 +508,7 @@ export class OptionsPanel implements ModalPanel {
   /** 끌기와 관성과 되돌아옴. 목록 통과 같은 셈입니다. */
   private readonly roll = new Fling()
 
-  /** 방금 끌어서 굴렸는가. 칸을 고르는 자리마다 이것을 봅니다. */
+  /** 방금 끌어서 굴렸는가. 칸을 고르는 자리마다 이것을 확인합니다. */
   private get rolled(): boolean {
     return this.roll.moved > DRAG_SLOP
   }
@@ -550,7 +550,7 @@ export class OptionsPanel implements ModalPanel {
     // 번도 열지 않은 사람도 68장을 읽었고, 그 68장이 그림의 상한을 차지해 판에 서는 조커가
     // 그만큼 밀려납니다.
     //
-    // **어느 그림이 왔는지를 봅니다.** 도착 하나에 탭을 통째로 다시 만들면 미리보기 68장이
+    // **어느 그림이 왔는지를 확인합니다.** 도착 하나에 탭을 통째로 다시 만들면 미리보기 68장이
     // 하나씩 들어오는 동안 68번입니다 — 도감을 굴리는 중에 도착한 조커 그림도 그랬습니다.
     onArtReady(key => {
       if (this.view.parent && this.previewKeys.has(key)) this.draw()
@@ -1073,7 +1073,7 @@ export class OptionsPanel implements ModalPanel {
   /**
    * 굴러갈 것이 얼마인지 재고 손잡이를 세웁니다.
    *
-   * **넘치지 않으면 손잡이가 없습니다.** 늘 서 있으면 굴릴 것이 없는 탭에서도 굴릴 수 있는
+   * **넘치지 않으면 손잡이가 없습니다.** 늘 놓여 있으면 굴릴 것이 없는 탭에서도 굴릴 수 있는
    * 것으로 보입니다.
    */
   private fitScroll(content: number): void {
@@ -1359,7 +1359,7 @@ export class OptionsPanel implements ModalPanel {
         .stroke({ color: here ? UI.pick : UI.hairline, width: here ? 2 : 1.5 })
       cell.addChild(board)
 
-      // 넉 장이 어긋나 겹쳐 섭니다. 왼쪽 위가 첫 장입니다.
+      // 넉 장이 어긋나 겹쳐 놓입니다. 왼쪽 위가 첫 장입니다.
       const fan = CARD_W + CARD_STEP * (PREVIEW.length - 1)
       PREVIEW.forEach((want, at) => {
         const card = this.previewCard(look, want.suit, want.rank)

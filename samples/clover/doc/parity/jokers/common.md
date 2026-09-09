@@ -75,7 +75,7 @@
 |무엇|왜 걸리는가|
 |--|--|
 |`smudge` 의 `+0 ~ +23`|**난수가 득점 안에 있습니다.** 리플레이 대조가 여기서 갈라지면 PRNG 스트림 분리가 잘못된 것입니다|
-|`low_branch`|패의 최저 랭크를 봅니다 — 득점 카드가 아니라 **패에 남은 카드**입니다|
+|`low_branch`|패의 최저 랭크를 씁니다 — 득점 카드가 아니라 **패에 남은 카드**입니다|
 |`frost_pane` · `puffball` · `green_shoot`|**감소하는 누적**입니다. `GrowSelf`가 음수 증분을 받아야 합니다|
 |`chore_list` · `rebate_slip`|**라운드마다 대상이 바뀝니다.** 그 대상이 런 상태이고 세이브에 들어갑니다|
 |`downpour` · `spinner` · `tippler` · `ledger_note` · `muddle`|`ChangeRule` 입니다 — 득점에 값을 더하지 않고 **규칙 자체를 바꿉니다**|

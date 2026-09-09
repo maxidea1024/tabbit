@@ -389,7 +389,7 @@ export class ScoreWave {
     const into = this.uniforms.uSurge as Float32Array
     into[0] = Math.min(1, floor + Math.max(0, chips))
     into[1] = Math.min(1, floor + Math.max(0, mult))
-    // **얹히는 것만 따로 냅니다.** 상자 전체가 밝아지는 겹이 이것을 봅니다 — 바닥까지 보면
+    // **얹히는 것만 따로 냅니다.** 상자 전체가 밝아지는 겹이 이것을 씁니다 — 바닥까지 보면
     // 고배당에서는 늘 밝아 있고, 그러면 더해진 순간이 드러나지 않습니다.
     const pulse = this.uniforms.uPulse as Float32Array
     pulse[0] = Math.max(0, Math.min(1, chips))

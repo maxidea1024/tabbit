@@ -3,7 +3,7 @@
 // 조커 위에 마우스를 올리면 무엇을 하는지 뜹니다. **문장은 데이터에서 나옵니다** —
 // `core/describe.ts` 가 효과 행을 읽어 만듭니다.
 //
-// **종류와 가격은 이름과 같은 줄의 오른쪽 끝에 칩으로 섭니다.** 이름 아래에 한 줄을 더
+// **종류와 가격은 이름과 같은 줄의 오른쪽 끝에 칩으로 놓입니다.** 이름 아래에 한 줄을 더
 // 두면 쪽지가 그만큼 길어지고, 정작 읽어야 하는 효과가 아래로 밀립니다 — 종류는 한 낱말
 // 이고 가격은 두어 글자이므로 이름의 남는 자리에 들어갑니다.
 
@@ -129,7 +129,7 @@ export class Tooltip extends Container {
   /**
    * 쪽지를 띄웁니다.
    *
-   * `kindName` 은 종류이거나 희귀도입니다 — 비우면 칩이 서지 않습니다. `cost` 도 같습니다.
+   * `kindName` 은 종류이거나 희귀도입니다 — 비우면 칩이 놓이지 않습니다. `cost` 도 같습니다.
    */
   show(name: string, kindName: string, rarityValue: number, lines: string[],
        at: TipBox, bounds: { width: number; height: number },
@@ -137,7 +137,7 @@ export class Tooltip extends Container {
        /**
         * 칩의 색을 손으로 정합니다.
         *
-        * **희귀도가 아닌 것도 칩으로 섭니다.** 챌린지가 열렸는지 · 깼는지가 그것입니다 —
+        * **희귀도가 아닌 것도 칩으로 놓입니다.** 챌린지가 열렸는지 · 깼는지가 그것입니다 —
         * 되풀이되는 한 낱말은 글의 첫 줄이 아니라 이름 옆의 칩입니다.
         */
        kindTone?: number): void {
