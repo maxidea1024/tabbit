@@ -21,6 +21,7 @@
     "check:shop-flow": "tsx tools/check-shop-flow.ts",
     "check:shop-slide": "tsx tools/check-shop-slide.ts",
     "check:lost-look": "tsx tools/check-lost-look.ts",
+    "check:edition-clock": "tsx tools/check-edition-clock.ts",
     "check:euphoria": "tsx tools/check-euphoria.ts",
     "check:insight": "tsx tools/check-insight.ts",
     "check:shell": "tsx tools/check-shell.ts",

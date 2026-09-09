@@ -285,7 +285,17 @@ const BUY_LINGER = PAY_BEAT / 2
  * 내려와 있으면 그 셋이 한 줄로 읽히지 않습니다 — 가운데 높이가 아니라 윗변을 맞추는
  * 것이고, 그래서 이 값은 `판의 윗변 + 자리의 절반` 입니다.
  */
-const JOKER_Y = 22 + (SIZE.jokerHeight + 6 * 2) / 2
+/**
+ * 조커·소모품 줄의 가운데.
+ *
+ * **32픽셀에서 시작합니다.** 22였습니다 — 그 자리에서는 딱지와 단추가 함께 쓸 수 있는 것이
+ * 152픽셀뿐이라, 상점의 칸과 같은 단추(32)를 세우면 고른 딱지의 윗변이 화면 밖으로
+ * 나갔습니다. 10을 내리면 딱지 124 · 사이 4 · 단추 32 가 들어가고 고른 딱지의 윗변이 2에
+ * 섭니다 — **늘 조금씩 흔들리는 폭(±1.8)까지 화면 안입니다.**
+ *
+ * 아래로는 자리의 아랫변이 168, 칸 수를 적은 글이 174, 상점 판의 윗변이 200입니다.
+ */
+const JOKER_Y = 32 + (SIZE.jokerHeight + 6 * 2) / 2
 /**
  * 조커와 소모품의 자리.
  *
@@ -362,26 +372,16 @@ const HELD_H = 32
  */
 const SHOP_LIFT = 14
 /**
- * 줄에서 고른 조커 · 소모품 밑에 서는 단추의 높이.
+ * 딱지와 그 밑에 서는 단추 사이.
  *
- * **24픽셀입니다. 다른 단추 줄보다 낮습니다.**
+ * **4픽셀입니다. 상점의 칸과 같습니다.**
  *
- * 아래 변이 딱지가 서던 자리의 아랫변(152)에 묶여 있고 위로는 화면의 윗변이 있습니다 —
- * 딱지의 윗변이 28이므로 딱지와 단추가 함께 쓸 수 있는 것이 **152픽셀뿐**이고, 딱지가
- * 124를 쓰므로 남는 것이 26입니다. 단추 24와 사이 2가 그 26입니다.
- *
- * 상점의 칸에서 32을 쓸 수 있는 것은 그 칸에 값이 적히던 한 줄이 딱지 아래에 더 있기
- * 때문입니다. 줄에는 그 한 줄이 없습니다 — 딱지의 아랫변이 곧 줄의 아랫변입니다.
+ * 줄에서는 2였습니다 — 그 자리에서는 딱지와 단추가 함께 쓸 수 있는 것이 152픽셀뿐이었고,
+ * 4로 두면 고른 딱지의 윗변이 화면 밖으로 나갔습니다. 줄을 10픽셀 내려(`JOKER_Y`) 그
+ * 자리를 만들었습니다 — **한 화면에 두 가지 높이의 단추가 서는 것보다 줄이 10픽셀 내려가는
+ * 쪽이 낫습니다.**
  */
-const ROW_BTN_H = 24
-/**
- * 그 단추와 딱지의 아랫변 사이.
- *
- * **2픽셀입니다.** 상점의 칸은 4를 쓰지만 여기에는 그만큼이 없습니다(위의 셈) — 4로 두면
- * 딱지가 2픽셀 더 올라가고, 그러면 늘 조금씩 흔들리는 그 폭(±1.8)에서 윗변이 화면 밖으로
- * 나갑니다.
- */
-const ROW_GAP = 2
+const ROW_GAP = 4
 /**
  * 줄에서 고른 조커 · 소모품이 밀려 올라가는 거리.
  *
@@ -397,7 +397,7 @@ const ROW_GAP = 2
  * 10픽셀과 1.1배가 더 얹히면 윗변이 화면 밖으로 나갑니다 — `JokerView.held` 가 그것을
  * 막습니다.
  */
-const HELD_RISE = ROW_BTN_H + ROW_GAP
+const HELD_RISE = HELD_H + ROW_GAP
 const PLAY_Y = 366
 /**
  * 딜러의 자리. 화면 오른쪽 위 밖입니다.
@@ -1285,6 +1285,17 @@ export class Game {
    * 실제로 버려지는 두 틱 뒤에 그 프레임이 예외로 죽습니다.
    */
   private readonly gameOverJokers: { view: JokerView; joker: JokerInstance }[] = []
+  /**
+   * 줄 밖에 선 딱지들. **겉면만 틱을 받습니다.**
+   *
+   * 상점의 칸 · 팩에 펼친 카드 · 진 판의 판에 선 것이 여기 들어옵니다. 이것들은
+   * `this.jokers` 에 없으므로 `advance` 를 받지 못했고, 그래서 **판의 셰이더가 `uTime` 0 에
+   * 굳어 무늬가 흐르지 않았습니다.**
+   *
+   * **지워진 것은 스스로 빠집니다.** 이 셋은 다시 그릴 때마다 통째로 버려지고 새로
+   * 만들어지므로, 담는 쪽에서 수명을 따라다니면 반드시 한 곳을 빠뜨립니다.
+   */
+  private readonly lookTicks: JokerView[] = []
   private readonly selected = new Set<number>()
   /**
    * 고른 조커나 소모품 하나.
@@ -6322,6 +6333,16 @@ export class Game {
       this.burning.splice(i, 1)
     }
 
+    // 줄 밖에 선 딱지들. **겉면만 돌리고, 지워진 것은 여기서 빠집니다.**
+    for (let i = this.lookTicks.length - 1; i >= 0; i--) {
+      const view = this.lookTicks[i]
+      if (view.destroyed) {
+        this.lookTicks.splice(i, 1)
+        continue
+      }
+      view.lookAt(this.clock)
+    }
+
     // **판이 끝났고 카드가 다 나갔으면 덱으로 돌아옵니다.** 한 판을 도는 동안 나간 카드
     // 전부가 한 번에 돌아옵니다 — 격파한 그 박자에 그때까지 나간 것만 돌려보내면, 낸 카드와
     // 손패는 다음 판의 격파에 가서야 돌아옵니다.
@@ -6982,6 +7003,17 @@ export class Game {
         hand: strokeWidthOf(this.handLabel),
         headline: strokeWidthOf(this.headline),
         button: this.menuButton.inkWidth,
+      },
+      // **판의 셰이더가 지금 몇 초를 보고 있는가.** 통마다 하나씩입니다.
+      //
+      // **눈으로도 그림으로도 잡히지 않습니다.** 무늬가 멈춘 것과 흐르는 것은 컷 한 장에서
+      // 같아 보이고, 「누를 때마다 처음으로 돌아간다」는 컷 두 장을 나란히 놓아도 그 사이에
+      // 무엇이 있었는지가 없습니다 — 값이 판의 시계를 따라가는지로 봅니다.
+      editionAt: {
+        tray: [...this.jokers.values()].map(one => one.editionAt)
+          .filter(one => one !== undefined),
+        look: this.lookTicks.filter(one => !one.destroyed).map(one => one.editionAt)
+          .filter(one => one !== undefined),
       },
       // 조커와 소모품의 자리, 그리고 카드가 실제로 그려진 사각형들.
       //
@@ -8769,6 +8801,7 @@ export class Game {
       view.scale.set(small)
       board.addChild(view)
       this.gameOverJokers.push({ view, joker })
+      this.lookTicks.push(view)
     }
     yy += 84 + 14
 
@@ -9698,10 +9731,11 @@ export class Game {
     // **줄에서는 단추가 딱지가 서던 자리 안에 들어갑니다.** 아랫변이 딱지의 아랫변이고,
     // 딱지가 `HELD_RISE` 만큼 위로 비켜섭니다 — 아래로 내려가는 것이 하나도 없습니다.
     // 어느 것을 고르든 이 높이는 같으므로 두 번째 누름은 늘 같은 자리입니다.
-    let baseline = JOKER_Y + SIZE.jokerHeight / 2 - ROW_BTN_H
-    // **줄의 단추만 낮습니다.** 그 까닭은 `ROW_BTN_H` 에 있습니다 — 상점의 칸과 팩은 값이
-    // 적히던 한 줄을 단추가 대신하므로 그 줄의 높이를 그대로 씁니다.
-    let height = ROW_BTN_H
+    //
+    // **높이는 어디서나 같습니다.** 줄만 24였고 상점과 팩이 32였습니다 — 한 화면 안에서
+    // 두 가지 높이의 단추가 서면 같은 일을 하는 것으로 읽히지 않습니다.
+    let baseline = JOKER_Y + SIZE.jokerHeight / 2 - HELD_H
+    let height = HELD_H
     const buttons: Button[] = []
 
     if (held.kind === 'shop') {
@@ -9783,10 +9817,10 @@ export class Game {
       // **자리를 비우는 중이면 단추가 하나입니다.** 파는 것과 같은 값이 들어오지만 하는
       // 일은 「이것을 내놓고 그것을 받는다」이므로, 판다가 아니라 그 말로 적습니다.
       if (this.focus) {
-        buttons.push(new Button(tf('ui.button.give_up', { n: price }), 118, ROW_BTN_H, UI.yellow,
+        buttons.push(new Button(tf('ui.button.give_up', { n: price }), 118, HELD_H, UI.yellow,
           () => this.commitFocus(index)))
       } else {
-        buttons.push(new Button(tf('ui.button.sell', { n: price }), 92, ROW_BTN_H, UI.red, () => {
+        buttons.push(new Button(tf('ui.button.sell', { n: price }), 92, HELD_H, UI.red, () => {
           this.held = undefined
           this.audio.play('joker_sell')
           this.sellFrom = this.jokerSpot(index)
@@ -9803,7 +9837,7 @@ export class Game {
       this.heldNode = this.consumableTiles.find(one => one.uid === held.uid)?.tile
       if (this.focus) {
         buttons.push(new Button(
-          tf('ui.button.give_up', { n: this.data.economy.sellMin }), 118, ROW_BTN_H, UI.yellow,
+          tf('ui.button.give_up', { n: this.data.economy.sellMin }), 118, HELD_H, UI.yellow,
           () => this.commitFocus(index)))
       // **「사용」은 손패를 앞에 두었을 때만 섭니다.** 상점과 블라인드 고르기에서는 팔 수만
       // 있습니다 — 쓸 수 없는 때에 단추가 서 있으면 눌러서 카드를 버리게 됩니다.
@@ -9811,7 +9845,7 @@ export class Game {
       // **나아가는 단추의 노랑입니다.** 판의 색(`UI.light`)이었고, 그 색은 겉면을 따라가므로
       // 무채색 겉면에서는 회색 단추 하나였습니다 — 하는 일은 「낸다」와 같은 갈래이고,
       // 그 옆의 「판매」가 붉음이므로 둘이 색으로 갈립니다.
-      } else if (this.handReady) buttons.push(new Button(t('ui.button.use'), 68, ROW_BTN_H, UI.yellow, () => {
+      } else if (this.handReady) buttons.push(new Button(t('ui.button.use'), 68, HELD_H, UI.yellow, () => {
         this.held = undefined
         // **쓴 것과 판 것은 없어지는 모습이 다릅니다.** 쓴 것은 판 가운데로 나와 번쩍이고,
         // 판 것은 제자리에서 탑니다 — 화면은 어느 쪽인지 모르므로 여기서 적어 둡니다.
@@ -9819,7 +9853,7 @@ export class Game {
         this.act({ t: 'use_consumable', index, targets: this.orderedSelection() })
       }))
       if (!this.focus) {
-        buttons.push(new Button(tf('ui.button.sell', { n: this.data.economy.sellMin }), 92, ROW_BTN_H, UI.red, () => {
+        buttons.push(new Button(tf('ui.button.sell', { n: this.data.economy.sellMin }), 92, HELD_H, UI.red, () => {
           this.held = undefined
           this.audio.play('joker_sell')
           this.sellFrom = this.itemSpot(index)
@@ -9833,8 +9867,11 @@ export class Game {
     // **화면 안으로 당깁니다.** 고른 것이 자기 줄의 끝에 서 있으면 그 아래에 가운데를
     // 맞춘 단추 줄이 화면 밖으로 나갑니다 — 소모품 줄은 화면 오른쪽에 붙어 있어서
     // 마지막 칸의 「쓴다 · 판다」가 30픽셀쯤 잘렸습니다.
-    let x = Math.max(HELD_EDGE,
-      Math.min(SIZE.width - HELD_EDGE - span, anchor - span / 2))
+    // **픽셀에 맞춥니다.** 줄의 간격은 칸 수로 나눈 값이라 소수입니다 — 소모품 줄의 단추가
+    // `x` 1002.29 에 서 있었고, 그 반 픽셀이 조커 줄과 상점의 단추와 견주었을 때
+    // 「자리가 미묘하게 다르다」로 보입니다.
+    let x = Math.round(Math.max(HELD_EDGE,
+      Math.min(SIZE.width - HELD_EDGE - span, anchor - span / 2)))
     // **첫 단추의 자리를 알립니다.** 이제 사는 것도 집는 것도 두 번 눌러야 하므로, 도구가
     // 두 번째 누를 자리를 알아야 합니다 — 계산을 도구가 베껴 적으면 배치를 고칠 때
     // 한쪽만 고쳐지고 그 도구는 엉뚱한 곳을 눌러 놓고 아무 말도 하지 않습니다.
@@ -11349,6 +11386,8 @@ export class Game {
       // 상점의 카드는 흔들리지 않습니다. 줄에 선 것과 달리 고를 것이지 도는 것이 아닙니다.
       view.pivot.set(0, 0)
       view.position.set(0, 0)
+      // **겉면은 흐릅니다.** 흔들지 않는 것과 무늬가 멈추는 것은 다른 일입니다.
+      this.lookTicks.push(view)
       return view
     }
 

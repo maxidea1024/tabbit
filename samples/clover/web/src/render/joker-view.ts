@@ -370,6 +370,32 @@ export class JokerView extends Container {
     this.restack()
   }
 
+  /**
+   * 겉면만 한 틱. **자리는 건드리지 않습니다.**
+   *
+   * 줄에 선 딱지는 `advance` 가 자리와 겉면을 함께 돌리지만, **상점의 칸 · 팩에 펼친 카드 ·
+   * 진 판의 판에 선 것은 자리를 부르는 쪽이 정합니다** — 그것들에까지 `advance` 를 부르면
+   * 용수철이 딱지를 제 목표(0, 0)로 끌어갑니다. 그렇다고 아무것도 부르지 않으면 판의
+   * 셰이더가 시각을 받지 못해 `uTime` 이 0 에 굳고, 무늬가 흐르지 않습니다.
+   */
+  lookAt(time: number): void {
+    this.edition?.at(time, this.pointer)
+  }
+
+  /**
+   * 판의 셰이더가 지금 보고 있는 시각과 기울기. 없으면 `undefined`. **도구가 봅니다.**
+   *
+   * 둘 다 무늬의 위상에 그대로 들어갑니다 — 흐르지 않는 것은 시각이 멈춘 것이고, 튀는
+   * 것은 기울기가 뛴 것입니다. **눈으로는 그 둘이 갈리지 않습니다.**
+   */
+  get editionAt(): { time: number; tilt: number } | undefined {
+    if (!this.edition) return undefined
+    const uniforms = (this.edition as unknown as {
+      resources: { editionUniforms: { uniforms: Record<string, number> } }
+    }).resources.editionUniforms.uniforms
+    return { time: uniforms.uTime, tilt: uniforms.uTilt }
+  }
+
   advance(seconds: number, time: number): void {
     this.motion.advance(seconds)
     this.edition?.at(time, this.pointer)
