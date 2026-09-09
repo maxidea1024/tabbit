@@ -20,6 +20,7 @@
     "check:shop-rise": "tsx tools/check-shop-rise.ts",
     "check:shop-flow": "tsx tools/check-shop-flow.ts",
     "check:shop-slide": "tsx tools/check-shop-slide.ts",
+    "check:lost-look": "tsx tools/check-lost-look.ts",
     "check:euphoria": "tsx tools/check-euphoria.ts",
     "check:insight": "tsx tools/check-insight.ts",
     "check:shell": "tsx tools/check-shell.ts",

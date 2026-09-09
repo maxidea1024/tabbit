@@ -8,7 +8,12 @@ const pkg = JSON.parse(
 
 export default defineConfig({
   base: './',
-  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
+  // **`CLOVER_DEV_HOOKS=1` 은 데스크탑을 확인할 때만 씁니다.** 검증 손잡이(`__clover` 의
+  // `grantJoker`·`loseRound`·`shotHoles` …)는 개발 서버에만 있는데, 어떤 것은 데스크탑
+  // (ANGLE/D3D11)에서만 드러납니다 — 그 자리를 재려면 구운 판에도 손잡이가 있어야 합니다.
+  // `tools/check-desk-shot.ts` 가 그 길입니다. **내보내는 빌드에는 붙이지 않습니다.**
+  define: { __APP_VERSION__: JSON.stringify(pkg.version),
+    ...(process.env.CLOVER_DEV_HOOKS ? { 'import.meta.env.DEV': 'true' } : {}) },
   build: {
     target: 'es2022',
     outDir: 'dist',

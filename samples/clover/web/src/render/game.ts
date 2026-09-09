@@ -36,7 +36,7 @@ import { setupLabel, validSetup, type RunSetup } from '../ui/setup'
 import { NUMERALS, outline, outlined, strokeWidthOf, useFont } from '../ui/font'
 import { rerollCost, sellValueOf, type ShopItem } from '../core/shop'
 import { bestHand, valueOf } from '../core/suggest'
-import { newCounters, type CardInstance, type GameEvent, type RunState } from '../core/state'
+import { newCounters, type CardInstance, type GameEvent, type JokerInstance, type RunState } from '../core/state'
 import { BackgroundFilter } from '../shader/background'
 import { FrontFilter } from '../shader/front'
 import { PunchFilter } from '../shader/punch'
@@ -46,7 +46,7 @@ import { payoutLevel, ScoreWave } from '../shader/wave'
 import { Audio, ladder, type ToneName } from '../feedback/audio'
 import { CardView, type EditionLook } from './card-view'
 import { BlindBadge, Slot } from './hud'
-import { JokerView } from './joker-view'
+import { JokerView, type JokerLook } from './joker-view'
 import {
   buildTimeline, particlesOf, readFeel, scaleOf, semitonesOf, shakeOf, TimelinePlayer,
   type Beat, type Feel,
@@ -56,7 +56,7 @@ import { Euphoria } from './euphoria'
 import { Haptics } from '../feedback/haptics'
 import { fraction, Motion, Spring, sway } from './motion'
 import { Particles } from './particles'
-import { artBytes, artFor, artTick, onArtReady } from './art'
+import { artBytes, artFor, artTick, dropAllArt, onArtReady } from './art'
 import { backLookOf, bakeCardBacks, cardBack, drawCardBack, forgetCardBacks,
          setCardBack } from './card-back'
 import { cardArtDir, cardBackMotif, cardPaper, drawsIndex, setCardSet, setLookOf, suitInk } from './card-set'
@@ -1277,6 +1277,14 @@ export class Game {
   private readonly jokers = new Map<number, JokerView>()
   /** 타는 중인 조커들. 다 타면 치웁니다. */
   private readonly burning: JokerView[] = []
+  /**
+   * 진 판의 판에 선 조커들. **그림이 오갈 때 다시 그리려고 들고 있습니다.**
+   *
+   * 이 판은 한 번 세우고 다시 세우지 않으므로(`gameOverShown`), 다른 통들과 달리
+   * `refresh` 가 닿지 않습니다 — 그림이 놓이면 그것을 가리킨 채로 남고, 놓인 그림이
+   * 실제로 버려지는 두 틱 뒤에 그 프레임이 예외로 죽습니다.
+   */
+  private readonly gameOverJokers: { view: JokerView; joker: JokerInstance }[] = []
   private readonly selected = new Set<number>()
   /**
    * 고른 조커나 소모품 하나.
@@ -6217,6 +6225,7 @@ export class Game {
     if (this.artDirty) {
       this.artDirty = false
       this.repaintPack()
+      this.repaintGameOver()
       this.refresh()
     }
 
@@ -7004,15 +7013,17 @@ export class Game {
       ...(import.meta.env.DEV ? {
         // 수를 주면 표의 앞에서 그만큼이고, **id 를 주면 그 조커 하나입니다** — 상점을
         // 나설 때 발동하는 것처럼 특정 조커가 있어야만 지나는 길을 보려면 지목해야 합니다.
-        grantJoker: (want: number | string) => {
+        grantJoker: (want: number | string, edition = 0) => {
           const rows = this.data.tables.joker.records
           const picked = typeof want === 'string'
             ? rows.filter(row => row.jokerId === want) : rows.slice(0, want)
-          for (const row of picked) {
+          for (const [at, row] of picked.entries()) {
             this.state.jokers.push({
               uid: this.state.nextUid++,
               jokerId: row.jokerId,
-              edition: 0 as never,
+              // **판을 돌려 가며 겁니다.** 0 이면 전부 맨 것입니다 — 맨 것만으로는 판이
+              // 걸린 딱지를 굽는 길을 한 번도 지나지 않습니다.
+              edition: (edition === 0 ? 0 : 1 + (at + edition - 1) % 3) as never,
               sticker: 0 as never,
               counters: newCounters(),
               age: 0,
@@ -7044,9 +7055,16 @@ export class Game {
           this.shown.score = this.state.score
           this.act({ t: 'play', cards: this.state.hand.slice(0, 1) })
         },
-        /** 마지막 핸드 한 장을 내어 그 자리에서 집니다. 끝나는 순서를 보는 도구가 씁니다. */
+        /**
+         * 마지막 핸드 한 장을 내어 그 자리에서 집니다. 끝나는 순서를 보는 도구가 씁니다.
+         *
+         * **요구 점수를 닿지 못할 자리에 둡니다.** 한 장이면 진다고 여겼는데, 판이 걸린
+         * 조커 셋이면 한 장으로도 1,462점이 나옵니다 — 지는 자리를 보려던 도구가 상점에
+         * 서 있었고 그 도구는 「판이 서지 않았습니다」로만 끝났습니다.
+         */
         loseRound: () => {
           this.state.handsLeft = 1
+          this.state.target = this.state.score + 1_000_000
           this.act({ t: 'play', cards: this.state.hand.slice(0, 1) })
         },
         grantActive: () => {
@@ -7134,6 +7152,13 @@ export class Game {
         // **소리는 조용히 실패합니다.** WebAudio 는 잘못된 값에 예외를 내는데 그것을 받는
         // 곳이 없어서, 웅얼거림이 안 나는 것과 예외로 죽은 것을 화면에서 가릴 수 없습니다.
         jokerVoice: (uid: number) => this.audio.jokerVoice(uid, 0),
+        /**
+         * 들고 있는 그림을 전부 놓습니다. **상한이 넘쳤을 때와 같은 길입니다.**
+         *
+         * 놓인 그림을 쓰고 있던 쪽이 `onArtReady` 로 다시 그리지 않으면 그 카드는 그대로
+         * 빈 채로 남습니다 — 그 자리를 도구가 만들 수 있어야 합니다.
+         */
+        dropArt: () => dropAllArt().length,
         /**
          * GPU 에 올라와 있는 그림의 수와 몫.
          *
@@ -8599,6 +8624,7 @@ export class Game {
     const done = this.state.phase === 'lost' || this.state.phase === 'won'
     if (!done) {
       this.gameOver.removeChildren().forEach(child => child.destroy())
+      this.gameOverJokers.length = 0
       this.gameOver.visible = false
       this.gameOverShown = false
       this.overBar = undefined
@@ -8615,6 +8641,7 @@ export class Game {
 
     const won = this.state.phase === 'won'
     this.gameOver.removeChildren().forEach(child => child.destroy())
+    this.gameOverJokers.length = 0
     this.gameOver.visible = true
 
     // 판 하나가 뜨는 것과 같은 정도로 덮습니다.
@@ -8736,17 +8763,12 @@ export class Game {
         board.addChild(empty)
         continue
       }
-      const row = this.data.tables.joker.findByJokerId(joker.jokerId)
-      const view = new JokerView(joker, {
-        name: row?.name ?? joker.jokerId,
-        rarity: row?.rarity ?? 1,
-        lines: describe(this.data, this.data.jokerEffects.get(joker.jokerId) ?? []),
-        edition: this.editionLook(joker.edition as EditionKind),
-      })
+      const view = new JokerView(joker, this.gameOverLook(joker))
       view.pivot.set(0, 0)
       view.position.set(jx, yy)
       view.scale.set(small)
       board.addChild(view)
+      this.gameOverJokers.push({ view, joker })
     }
     yy += 84 + 14
 
@@ -8820,6 +8842,35 @@ export class Game {
     this.jolt(won ? 8 : 6, won ? 3.4 : 2.6, 1)
     this.flashScreen(won ? COLOR.money : COLOR.bad, won ? 0.5 : 0.34)
     if (won) this.particles.bills(POPUP_X, SIZE.height / 2, 44, COLOR.money, 1.3, 1.1)
+  }
+
+  /** 진 판의 판에 선 조커 하나의 모습. 세울 때와 다시 그릴 때가 같아야 합니다. */
+  private gameOverLook(joker: JokerInstance): JokerLook {
+    const row = this.data.tables.joker.findByJokerId(joker.jokerId)
+    return {
+      name: nameOf(this.data, 'joker', joker.jokerId, row?.name ?? joker.jokerId),
+      rarity: row?.rarity ?? 1,
+      lines: describe(this.data, this.data.jokerEffects.get(joker.jokerId) ?? []),
+      edition: this.editionLook(joker.edition as EditionKind),
+    }
+  }
+
+  /**
+   * 진 판의 판에 선 조커들을 다시 그립니다.
+   *
+   * **그림이 오갈 때 이 판만 남습니다.** 줄과 상점과 팩은 `refresh` 가 다시 세우지만 이
+   * 판은 한 번 세우고 다시 세우지 않으므로(`gameOverShown`), 놓인 그림을 가리킨 채로
+   * 남습니다 — 그림이 실제로 버려지는 두 틱 뒤에 그 프레임이 예외로 죽고, 예외는 조용히
+   * 삼켜지므로 **카드가 갑자기 사라진 것처럼 보입니다.**
+   *
+   * 다시 그리면 그림을 다시 부탁하므로 차례도 최근이 됩니다 — 화면에 서 있는 동안에는
+   * 상한에 걸려 놓이지 않습니다.
+   */
+  private repaintGameOver(): void {
+    for (const one of this.gameOverJokers) {
+      if (one.view.destroyed) continue
+      one.view.set(one.joker, this.gameOverLook(one.joker))
+    }
   }
 
   /** 게임오버 판의 득점 바를 한 단계 진행합니다. 0.6초에 걸쳐 득점까지 찹니다. */

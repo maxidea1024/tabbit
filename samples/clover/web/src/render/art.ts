@@ -198,6 +198,27 @@ export function artTick(): void {
   }
 }
 
+/**
+ * 들고 있는 것을 전부 놓습니다. **상한이 넘쳤을 때와 같은 길입니다.**
+ *
+ * 넘치는 자리는 그림을 수백 장 읽고 나서야 오므로 도구가 거기까지 가지 않습니다 — 그런데
+ * 놓인 그림을 쓰고 있던 쪽이 다시 그리지 않으면 그 카드는 그대로 빈 채로 남습니다.
+ * **그 자리를 여기서 만듭니다.**
+ */
+export function dropAllArt(): string[] {
+  const dropped: string[] = []
+  for (const [key, one] of ready) {
+    retiring.push({ texture: one.texture, url: one.url, at: frame })
+    dropped.push(key)
+  }
+  ready.clear()
+  heldBytes = 0
+  for (const one of dropped) {
+    for (const listener of listeners) listener(one)
+  }
+  return dropped
+}
+
 /** 지금 들고 있는 그림의 크기. **검증 도구가 이것으로 상한이 도는지 봅니다.** */
 export function artBytes(): number {
   return heldBytes

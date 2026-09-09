@@ -393,10 +393,16 @@ export class Transition {
       }
     }
 
-    // **알갱이가 있으면 셰이더가 물러납니다.** 위의 `WITH_EMBERS`.
+    // **알갱이가 있으면 나가는 쪽의 셰이더가 물러납니다.** 위의 `WITH_EMBERS`.
+    //
+    // **되돌아오는 쪽은 물러나지 않습니다.** 알갱이는 사진 위에 얹히는 것이고 되돌아오는
+    // 걸음에는 사진이 없습니다(`dropShot`) — 알갱이가 색을 읽을 자리가 없으므로 그 걸음은
+    // 셰이더 혼자입니다. 그런데 나가는 쪽과 같은 값을 주고 있어서, 고운 재와 조각이 0 인
+    // 채로 굵은 덮개만 남았습니다 — **사라질 때는 자연스럽고 다시 나올 때만 투박한** 것이
+    // 이것입니다.
     const shaped = this.embers ? { ...this.tuned, ...WITH_EMBERS } : this.tuned
     this.ashOut = new AshFilter(this.level === 'low', shaped)
-    this.ashIn = new AshFilter(this.level === 'low', shaped)
+    this.ashIn = new AshFilter(this.level === 'low', this.tuned)
     this.ashOut.setAspect(aspect)
     this.ashIn.setAspect(aspect)
   }

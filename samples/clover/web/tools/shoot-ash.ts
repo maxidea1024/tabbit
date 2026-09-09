@@ -4,7 +4,11 @@
 // 보는 데는 그것으로 충분하지만, **모습 하나를 고치는 동안에는 세 컷으로 모자랍니다.**
 // 조각이 어디서 떨어져 나와 어디까지 가는지는 지워지는 동안을 촘촘히 봐야 합니다.
 //
-//     npx tsx tools/shoot-ash.ts [자리] [--quality high|medium|low] [--time] [--soft] [--gpu]
+//     npx tsx tools/shoot-ash.ts [자리] [--quality high|medium|low] [--in] [--time] [--soft] [--gpu]
+//
+// **`--in` 은 되돌아오는 걸음입니다.** 지우는 걸음과 같은 식에 값만 거꾸로 넣은 것이지만
+// 모습은 같지 않습니다 — 지우는 쪽에는 알갱이가 사진 위에 얹히고 되돌아오는 쪽에는 사진이
+// 없으므로 셰이더 혼자입니다. 그 차이를 보려면 이쪽도 찍어야 합니다.
 //
 // **판 안에서 찍습니다.** 진 판의 전환은 카드가 놓인 판에서 시작하므로, 블라인드를 고르고
 // 패가 깔린 뒤에 돌립니다 — 카드가 없는 화면이 부서지는 것은 볼 것이 아닙니다.
@@ -26,23 +30,30 @@ const STEP_MS = 16
 const MARKS = [0.10, 0.22, 0.36, 0.50, 0.64, 0.78, 0.92]
 
 async function shoot(page: Page, id: string, tag: string, gpuTag = ''): Promise<string> {
+  // **되돌아오는 걸음은 지워짐이 1 에서 0 으로 갑니다.** 같은 차례로 찍으려면 거꾸로 봅니다.
+  const back = process.argv.includes('--in')
+  const want = back ? 'in' : 'out'
+  const marks = back ? [...MARKS].reverse() : MARKS
   await page.evaluate(name => {
     (window as unknown as { __clover: { cross?(id: string): void } }).__clover.cross?.(name)
   }, id)
 
   const took: string[] = []
   let next = 0
-  for (let i = 0; i < 300 && next < MARKS.length; i++) {
+  for (let i = 0; i < 900 && next < marks.length; i++) {
     const now = (await peek(page)).transition
-    if (now && now.stage === 'out' && now.cover >= MARKS[next]) {
-      const name = `${id}${tag}${gpuTag}-${String(Math.round(MARKS[next] * 100)).padStart(2, '0')}`
+    const hit = now && now.stage === want
+      && (back ? now.cover <= marks[next] : now.cover >= marks[next])
+    if (hit && now) {
+      const name = `${id}${tag}${gpuTag}${back ? '-in' : ''}`
+        + `-${String(Math.round(marks[next] * 100)).padStart(2, '0')}`
       await page.screenshot({ path: path.join(OUT, `${name}.png`) })
       took.push(`${Math.round(now.cover * 100)}%`)
       next++
       continue
     }
-    if (now && (now.stage === 'hold' || now.stage === 'off') && took.length > 0) break
-    await pass(page, STEP_MS)
+    if (now && now.stage === 'off' && took.length > 0) break
+    await pass(page, back ? 8 : STEP_MS)
   }
   await crossed(page)
   return took.join(' · ')
