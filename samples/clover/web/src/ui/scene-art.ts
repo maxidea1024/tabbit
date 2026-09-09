@@ -15,6 +15,12 @@ import { Assets, Container, Sprite, Texture } from 'pixi.js'
 
 import { SIZE } from '../render/theme'
 
+/** 밝기 하나를 회색 하나로. 물들이기는 색을 곱하는 것이므로 이것이 그림을 누릅니다. */
+function gray(level: number): number {
+  const one = Math.max(0, Math.min(255, Math.round(level * 255)))
+  return (one << 16) | (one << 8) | one
+}
+
 let ready: Texture | undefined
 
 /**
@@ -41,11 +47,17 @@ export function sceneArtReady(): boolean {
  * **넓이에 맞추고 남는 세로를 가운데에서 자릅니다.** 그림이 화면과 같은 비율(16 대 10)로
  * 구워져 있으므로 실제로는 잘리지 않지만, 화면 크기가 바뀌어도 여백이 생기지 않습니다.
  */
-export function sceneArt(): Container | undefined {
+export function sceneArt(dim = 1): Container | undefined {
   if (ready === undefined) return undefined
 
   const node = new Container()
   const sprite = new Sprite(ready)
+  // **그림을 눌러 깝니다.** 로그인 화면은 글이 여섯 줄이고 그림의 밝기가 2에서 246까지를
+  // 다 가지므로, 글마다 테두리를 두르는 것으로는 읽히지 않습니다 — 뒤에 사각형을 깔면
+  // 그림 위에 판이 하나 놓인 것이 되므로, 그림 자체를 어둡게 합니다.
+  // **누르지 않을 때는 손대지 않습니다.** 흰색을 적어 두면 색을 손으로 적은 것이 되고,
+  // 게이트가 그것을 잡습니다 — 물들이지 않는 것이 곧 원래 색입니다.
+  if (dim < 1) sprite.tint = gray(dim)
   const scale = Math.max(SIZE.width / ready.width, SIZE.height / ready.height)
   sprite.width = ready.width * scale
   sprite.height = ready.height * scale
