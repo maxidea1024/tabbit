@@ -7,7 +7,7 @@
 // 시선이 왼쪽에서 오른쪽으로 한 번 흐르게 두었습니다.
 
 import {
-  BlurFilter, Container, Graphics, Matrix, Rectangle, Sprite, Text, Texture,
+  BlurFilter, Container, Graphics, Matrix, Rectangle, RenderTexture, Sprite, Text, Texture,
   type FederatedPointerEvent,
   type Application,
 } from 'pixi.js'
@@ -1353,13 +1353,19 @@ export class Game {
                       */
                      lift: Container }>()
   /**
-   * 다시 세우기 전에 딱지들이 서 있던 자리. 물건마다 하나입니다.
+   * 다시 세우기 전에 딱지들이 서 있던 자리. **칸의 차례대로 한 줄입니다.**
    *
    * **남은 것이 미끄러져 빈자리를 메웁니다.** 상점은 다시 세울 때마다 딱지를 통째로 버리고
    * 새로 만들므로, 그대로 두면 남은 물건이 새 자리에 툭 나타납니다 — 어느 것이 어디로 간
    * 것인지가 없고, 산 것의 자리가 메워진 것으로도 읽히지 않습니다.
+   *
+   * **물건마다 하나인 표가 아닙니다.** 같은 물건이 같은 값으로 둘 서 있으면 열쇠가 같아서,
+   * 표 하나에는 뒤엣것의 자리만 남습니다 — 그 자리를 앞엣것이 받아 오른쪽에서 미끄러져
+   * 들어왔습니다. `shopSpotWas` 가 차례를 지키며 하나씩 짚습니다.
    */
-  private readonly shopWas = new Map<string, number>()
+  private shopWas: { key: string; x: number }[] = []
+  /** 위 줄에서 어디까지 짚었는가. 다시 세울 때마다 0 입니다. */
+  private shopWasAt = 0
   /**
    * 상점의 칸과 팩의 칸마다 들리는 높이. 열쇠가 `card:<칸>` · `pack:<칸>` 입니다.
    *
@@ -3580,31 +3586,35 @@ export class Game {
     const crop = this.cropRect
     if (!crop) return undefined
     try {
-      const texture = this.app.renderer.extract.texture({
-        target: this.screen,
-        frame: new Rectangle(crop.x, crop.y, crop.width, crop.height),
+      // **그림 한 장을 손으로 만듭니다.** `extract.texture` 가 만드는 것과 같은 것이지만,
+      // 그리기 전에 스텐실을 붙일 자리가 그 안에는 없습니다.
+      const texture = RenderTexture.create({
+        width: crop.width,
+        height: crop.height,
         // **화면 배율보다 촘촘하게 굽지 않습니다.** 한 장이 그대로 메모리이고, 이 그림은
         // 타는 동안에만 있습니다.
         resolution: Math.min(2, this.app.renderer.resolution ?? 1),
+        // **다중 표본을 쓰지 않습니다.** 아래에서 붙이는 스텐실은 표본 하나짜리이고, 표본
+        // 수가 다른 것을 한 틀에 붙이면 그 틀이 성립하지 않습니다. 이 그림은 재로 삭는
+        // 동안에만 있으므로 가장자리의 계단은 알갱이와 연기에 묻힙니다.
+        antialias: false,
       })
-      // **같은 그림에 한 번 더 그립니다.** 이유가 스텐실입니다.
+      // **그리기 전에 스텐실을 붙입니다.** 이유는 이렇습니다.
       //
       // 마스크를 쓰는 것(상점 딱지의 컷아웃 · 조커 아트의 클립 · 태그와 보스의 원형)은
       // 스텐실 버퍼로 잘립니다. 화면에는 그 버퍼가 처음부터 있고 프레임마다 지워지지만,
-      // **구울 그림에는 없습니다** — Pixi 가 `extract` 용 렌더 타깃을 색 텍스처 하나로만
-      // 만들고, 마스크가 처음 쓰이는 순간에 스텐실을 붙입니다(`ensureDepthStencil`). 그
-      // 자리에서 패스를 다시 여는데 **지우지 않고** 열므로, 갓 붙은 스텐실의 값은 정해져
-      // 있지 않습니다.
+      // **구울 그림에는 없습니다** — Pixi 는 그림을 색 텍스처 하나로만 만들고, 마스크가
+      // 처음 쓰이는 순간에 스텐실을 붙입니다(`ensureDepthStencil`). 그 자리에서 패스를
+      // 다시 여는데 **지우지 않고** 열므로, 갓 붙은 스텐실의 값은 정해져 있지 않습니다.
       //
       // 그 값이 0으로 오는 기계에서는 마스크가 맞고, 그렇지 않은 기계에서는 마스크가 통째로
       // 어긋나 **그 그림이 아예 그려지지 않습니다.** 구운 그림의 그 자리는 알파가 0이고,
-      // 지우는 셰이더는 알파 0을 「없는 자리」로 읽어 남는 색으로 칠합니다 — 상점 카드가
-      // 검은 구멍으로 남던 것이 이것입니다. 재를 넣기 전(`burn`)에도 같았고 핸드폰에서도
-      // 같았던 것이 그 증거입니다.
+      // 지우는 셰이더는 알파 0을 「없는 자리」로 읽어 남는 색으로 칠합니다(`ash.ts` 의
+      // `plain`) — 카드가 검은 구멍으로 남던 것이 이것입니다.
       //
-      // 두 번째 패스에서는 스텐실이 이미 붙어 있고, 패스를 여는 기본값이 「전부 지움」이므로
-      // 스텐실도 지워집니다. 그래서 이 패스의 마스크는 맞습니다. 값은 화면 한 장을 한 번 더
-      // 그리는 것이고, **한 전환에 한 번**입니다.
+      // 여기서 먼저 붙이면 패스를 열 때의 지움이 스텐실도 함께 지우므로, 첫 마스크부터
+      // 값이 0입니다. **화면 한 장을 두 번 그려 뒤엣것만 쓰던 것을 이 한 줄이 대신합니다.**
+      this.app.renderer.renderTarget.getRenderTarget(texture).ensureDepthStencilTexture()
       this.app.renderer.render({
         container: this.screen,
         // `generateTexture` 가 쓰는 것과 같은 옮김입니다 — 잘라 낸 자리를 원점으로.
@@ -7087,6 +7097,52 @@ export class Game {
         // **소리는 조용히 실패합니다.** WebAudio 는 잘못된 값에 예외를 내는데 그것을 받는
         // 곳이 없어서, 웅얼거림이 안 나는 것과 예외로 죽은 것을 화면에서 가릴 수 없습니다.
         jokerVoice: (uid: number) => this.audio.jokerVoice(uid, 0),
+        /**
+         * GPU 에 올라와 있는 그림의 수와 몫.
+         *
+         * **전환이 화면 한 장을 남기고 가는지를 이것으로 봅니다.** 구운 사진은 렌더
+         * 텍스처라 Pixi 의 그림 수거 대상이 아니고, 놓지 않으면 전환마다 그만큼 쌓이기만
+         * 합니다 — 눈으로는 보이지 않고 오래 켜 둔 판에서만 드러납니다.
+         */
+        gpuTextures: () => {
+          const kept = (this.app.renderer as unknown as {
+            texture: { managedTextures: ({ pixelWidth: number; pixelHeight: number } | null)[] }
+          }).texture.managedTextures
+          let bytes = 0
+          let count = 0
+          for (const one of kept) {
+            if (!one) continue
+            count++
+            bytes += one.pixelWidth * one.pixelHeight * 4
+          }
+          return { count, mb: Math.round(bytes / 1048576) }
+        },
+        /**
+         * 지금 화면을 굽고 **빈 자리가 몇 픽셀인지**를 셉니다.
+         *
+         * 화면의 바탕이 잘라 낸 자리를 다 덮으므로 **성한 사진에는 빈 자리가 없습니다.**
+         * 마스크가 어긋나 그려지지 않은 것이 있으면 그 자리의 알파가 0 이고, 지우는
+         * 셰이더는 그것을 남는 색으로 칠합니다 — 눈으로는 「검은 구멍」입니다.
+         */
+        shotHoles: async () => {
+          const texture = this.shoot()
+          if (!texture) return { holes: -1, total: 0 }
+          const got = await this.app.renderer.extract.pixels({ target: texture })
+          let holes = 0
+          for (let i = 3; i < got.pixels.length; i += 4) {
+            if (got.pixels[i] === 0) holes++
+          }
+          texture.destroy(true)
+          return { holes, total: got.pixels.length / 4 }
+        },
+        /** 구운 사진 한 장을 그대로. **눈으로 보는 자리입니다.** */
+        shotDump: async () => {
+          const texture = this.shoot()
+          if (!texture) return ''
+          const out = await this.app.renderer.extract.base64({ target: texture })
+          texture.destroy(true)
+          return out
+        },
         /**
          * 전환 하나를 그냥 돌립니다. **씬은 그대로입니다.**
          *
@@ -10672,10 +10728,11 @@ export class Game {
     // **버리기 전에 지금 자리를 적어 둡니다.** 새로 만든 딱지가 이 자리에서 출발합니다.
     // 상점이 서 있지 않았으면 적을 것이 없고, 적어 두면 다음 상점의 첫 딱지가 지난 판의
     // 자리에서 미끄러져 들어옵니다.
-    this.shopWas.clear()
+    this.shopWas = []
+    this.shopWasAt = 0
     if (this.shopStanding) {
       for (const [, one] of this.shopTiles) {
-        if (!one.tile.destroyed) this.shopWas.set(one.key, one.tile.x)
+        if (!one.tile.destroyed) this.shopWas.push({ key: one.key, x: one.tile.x })
       }
     }
     this.shopLayer.removeChildren().forEach(child => child.destroy())
@@ -11084,6 +11141,27 @@ export class Game {
   }
 
   /**
+   * 이 물건이 다시 세우기 전에 서 있던 자리. 없으면 `undefined` 입니다.
+   *
+   * **왼쪽 칸부터 차례로 짚고, 한 번 짚은 자리는 지나갑니다.** 열쇠는 갈래·이름·값·판이라
+   * 같은 물건이 같은 값으로 둘 서 있으면 두 칸의 열쇠가 같습니다 — 표 하나에 자리 하나만
+   * 담으면 그 열쇠에는 오른쪽 칸의 자리만 남고, 그것을 왼쪽 칸이 받아 오른쪽에서
+   * 미끄러져 들어옵니다. **줄의 조커를 누르기만 해도 그렇게 보였습니다** — 누름이 상점을
+   * 다시 세우고, 다시 세울 때마다 그 한 칸이 오른쪽으로 갔다가 제자리로 왔습니다.
+   *
+   * 차례를 지키므로 산 자리를 메우는 것은 그대로입니다 — 앞의 것을 사면 뒤엣것의 열쇠가
+   * 커서보다 뒤에 있고, 그 자리에서 왼쪽으로 미끄러집니다.
+   */
+  private shopSpotWas(key: string): number | undefined {
+    for (let i = this.shopWasAt; i < this.shopWas.length; i++) {
+      if (this.shopWas[i].key !== key) continue
+      this.shopWasAt = i + 1
+      return this.shopWas[i].x
+    }
+    return undefined
+  }
+
+  /**
    * 상품 칸 하나.
    *
    * **줄에 서는 것은 카드입니다.** 아이콘을 얹은 딱지로 두면 살 때와 산 뒤의 모습이 달라
@@ -11133,11 +11211,10 @@ export class Game {
     // 만들므로, 그대로 두면 산 것의 빈자리를 메우는 남은 물건이 새 자리에 툭 나타납니다 —
     // 어느 것이 어디로 간 것인지가 없고, 산 것의 자리가 메워진 것으로도 읽히지 않습니다.
     //
-    // **한 번 쓴 자리는 지웁니다.** 같은 물건이 같은 값으로 둘 서 있으면 열쇠가 같으므로,
-    // 지우지 않으면 둘이 같은 자리에서 출발합니다.
+    // **한 번 쓴 자리는 다시 쓰지 않습니다.** 같은 물건이 같은 값으로 둘 서 있으면 열쇠가
+    // 같으므로, 짝을 하나씩 지어 주지 않으면 둘이 같은 자리에서 출발합니다.
     const baseX = tile.x
-    const was = this.shopWas.get(key)
-    this.shopWas.delete(key)
+    const was = this.shopSpotWas(key)
     // 처음 서는 물건은 미끄러지지 않습니다 — 그것은 진열이고, `reveal` 이 합니다.
     const slide = was === undefined ? 0 : was - baseX
     // **첫 프레임부터 지난 자리에 둡니다.** `advanceShopTiles` 는 다음 프레임에 도므로,

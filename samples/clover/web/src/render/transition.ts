@@ -501,7 +501,13 @@ export class Transition {
     }
     if (!this.shot) return
     this.view.removeChild(this.shot)
-    this.shot.destroy({ texture: true })
+    // **바탕까지 버립니다.** `texture` 만 참이면 Pixi 는 `Texture` 만 버리고 그 바탕
+    // (`TextureSource`)은 그대로 둡니다 — 그 바탕이 곧 GPU 의 그림 한 장과 그것을 그리는
+    // 틀이고, 그것을 버려야 스텐실 버퍼까지 함께 풀립니다. 두지 않았더니 전환 한 번마다
+    // 화면 한 장이 GPU 에 남았습니다: 배율 1에서 4MB, 2에서 16MB이고, 렌더 텍스처는
+    // Pixi 의 그림 수거 대상이 아니므로(`autoGarbageCollect` 가 거짓) 판을 접었다 펼
+    // 때마다 그만큼 쌓이기만 했습니다.
+    this.shot.destroy({ texture: true, textureSource: true })
     this.shot = undefined
   }
 

@@ -10,6 +10,14 @@
 // **핸드폰 몫도 봅니다.** 손가락으로 짚는 화면이면 다른 셰이더가 돌고 그림도 다른 것을
 // 읽으므로, 데스크탑에서 멀쩡한 것이 그쪽에서 뚫릴 수 있습니다 — 실제로 그랬습니다.
 //
+// **빈 픽셀도 셉니다.** 견주기는 문턱이 있어야 하는 셈이지만, 「빠진 것이 있는가」에는 문턱이
+// 없습니다 — 화면의 바탕이 잘라 낸 자리를 다 덮으므로 **성한 사진에는 알파 0인 픽셀이 하나도
+// 없어야 합니다.** 마스크가 어긋나 빠진 것이 있으면 그 자리가 곧 알파 0이고, 지우는 셰이더는
+// 그것을 남는 색으로 칠합니다.
+//
+// **놓고 가는지도 봅니다.** 구운 사진은 렌더 텍스처라 Pixi 의 그림 수거 대상이 아니고, 바탕
+// (`TextureSource`)까지 버리지 않으면 전환 한 번에 화면 한 장이 GPU 에 그대로 남습니다.
+//
 //     npx tsx tools/check-shot.ts
 //
 // **실제 GPU 로 띄웁니다.** 소프트웨어 그리기는 스텐실과 렌더 타깃을 다르게 다룹니다.
@@ -39,6 +47,8 @@ const APART = 30
  * 움직입니다. 잰 값은 멀쩡한 화면이 0.0~0.1%이고, 금이 뚫던 때의 핸드폰 몫이 1.6%였습니다.
  */
 const ALLOW = 0.004
+/** 전환 다섯 번에 GPU 의 그림이 얼마나 늘어도 되는가. 메가바이트입니다. */
+const SLACK_MB = 1
 
 const problems: string[] = []
 
@@ -125,6 +135,14 @@ async function measure(browser: Browser, lite: boolean, url: string): Promise<vo
   const seen = await peek(page)
   const items = (seen.shopKinds ?? []).length
 
+  // **빈 픽셀 셈은 견주기와 따로입니다.** 문턱이 없는 판정이고, 굽는 길만 봅니다.
+  const holes = await page.evaluate(`window.__clover.shotHoles()`) as
+    { holes: number; total: number }
+  if (holes.holes !== 0) {
+    problems.push(`${tag}: 구운 화면에 빈 자리가 ${holes.holes}픽셀 있습니다`
+      + ` (${holes.total}픽셀 중)`)
+  }
+
   const live = await grab(page, path.join(OUT, `${lite ? 'lite' : 'desk'}-live.png`))
   await page.evaluate(`window.__clover.cross('run_lost')`)
   let shot: string | undefined
@@ -146,10 +164,24 @@ async function measure(browser: Browser, lite: boolean, url: string): Promise<vo
     return
   }
   const share = await apart(page, live, shot)
+  // **놓고 가는가.** 한 번 돌리고 나서 잽니다 — 첫 전환은 재의 알갱이와 흐림이 쓸 그림을
+  // 그때 만들고, 그것은 두 번째부터 다시 쓰이는 것이지 쌓이는 것이 아닙니다.
+  const held = async () =>
+    (await page.evaluate(`window.__clover.gpuTextures()`) as { mb: number }).mb
+  const before = await held()
+  for (let i = 0; i < 5; i++) {
+    await page.evaluate(`window.__clover.cross('run_restart')`)
+    await crossed(page)
+  }
+  const after = await held()
+  if (after - before > SLACK_MB) {
+    problems.push(`${tag}: 전환 5번에 GPU 의 그림이 ${before}MB 에서 ${after}MB 로 늘었습니다`)
+  }
   await page.close()
   const ok = share <= ALLOW
   console.log(`${tag} · 상점 ${items}칸 · 조커 ${seen.jokers}개 · 지워짐 `
-    + `${Math.round(cover * 100)}% · 다른 픽셀 ${(share * 100).toFixed(2)}% ${ok ? '' : '←'}`)
+    + `${Math.round(cover * 100)}% · 다른 픽셀 ${(share * 100).toFixed(2)}% ${ok ? '' : '←'}`
+    + ` · 빈 픽셀 ${holes.holes} · GPU ${before}→${after}MB`)
   if (!ok) {
     problems.push(`${tag}: 구운 화면이 살아 있는 화면과 다릅니다 — `
       + `다른 픽셀 ${(share * 100).toFixed(2)}% (${(ALLOW * 100).toFixed(1)}% 까지)`)
@@ -166,7 +198,7 @@ async function main(): Promise<number> {
   await browser.close()
   await server.close()
   console.log(problems.length === 0
-    ? '\n전환이 시작되는 자리에서 구운 화면이 살아 있는 화면과 같습니다'
+    ? '\n구운 화면이 살아 있는 화면과 같고, 빈 자리도 놓고 가는 것도 없습니다'
     : '\n' + problems.join('\n'))
   return problems.length === 0 ? 0 : 1
 }
