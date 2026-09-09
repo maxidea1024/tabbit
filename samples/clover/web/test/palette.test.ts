@@ -19,7 +19,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { contrast, hueOf } from '../src/render/color'
+import { contrast, hueOf, luminance } from '../src/render/color'
 import { buildSurface, CONTRAST_GATE } from '../src/render/palette'
 import { UI_THEMES, UI_THEME_KEYS } from '../src/render/theme'
 
@@ -32,8 +32,12 @@ describe('겉면의 대비', () => {
     for (const key of UI_THEME_KEYS) {
       const look = UI_THEMES[key]
       for (const rule of CONTRAST_GATE) {
-        const least = rule.least + (rule.line ? THIN : 0)
         const got = contrast(look[rule.a], look[rule.b])
+        // 판보다 어두운 자리는 낼 수 있는 만큼까지만 요구합니다.
+        const room = 0.95 * (luminance(look[rule.b]) + 0.05) / 0.05
+        const least = rule.room
+          ? Math.min(rule.least, room)
+          : rule.least + (rule.line ? THIN : 0)
         if (got + 1e-9 < least) {
           short.push(`${key} · ${rule.what} · ${got.toFixed(2)} < ${least.toFixed(2)}`)
         }

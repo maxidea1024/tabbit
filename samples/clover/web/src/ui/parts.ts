@@ -9,7 +9,7 @@
 import { Container, Graphics, Text } from 'pixi.js'
 
 import { NUMERALS } from './font'
-import { insetRadius } from '../render/skin'
+import { carve, insetRadius } from '../render/skin'
 import { RADIUS, SPACE, STROKE, TEXT, UI, WEIGHT } from '../render/theme'
 
 /** 구획 머리의 높이. 마름모 · 이름 · 아래 선 하나입니다. */
@@ -44,8 +44,12 @@ export function sectionHead(width: number, title: string, note?: string,
 
   node.addChild(mark, name)
   if (rule) {
+    // **새깁니다.** 밝은 줄 아래에 어두운 줄 하나이고, 그 둘이 판에 파인 홈으로 보입니다 —
+    // 한 줄이면 판 위에 얹힌 띠입니다.
     const line = new Graphics()
-    line.rect(0, SECTION_H - STROKE.base, width, STROKE.base).fill(UI.rule)
+    line.rect(0, SECTION_H - STROKE.base * 2, width, STROKE.base).fill(UI.rule)
+    line.rect(0, SECTION_H - STROKE.base, width, STROKE.hair)
+      .fill({ color: UI.outline, alpha: 0.65 })
     node.addChild(line)
   }
 
@@ -72,6 +76,7 @@ export function valueCell(width: number, height: number, label: string,
   const node = new Container()
   const box = new Graphics()
   box.roundRect(0, 0, width, height, RADIUS.small).fill(UI.cell)
+  carve(box, width, height, UI.cell)
   box.roundRect(0.5, 0.5, width - 1, height - 1, insetRadius(RADIUS.small, 0.5))
     .stroke({ color: UI.hairline, width: STROKE.hair })
 
@@ -107,6 +112,7 @@ export class ProgressBar extends Container {
     super()
     const back = new Graphics()
     back.roundRect(0, 0, boxWidth, boxHeight, boxHeight / 2).fill(UI.well)
+    carve(back, boxWidth, boxHeight, UI.well, boxHeight / 2)
     back.roundRect(0.5, 0.5, boxWidth - 1, boxHeight - 1, insetRadius(boxHeight / 2, 0.5))
       .stroke({ color: UI.hairline, width: STROKE.hair })
     this.addChild(back, this.fill)
@@ -137,6 +143,7 @@ export function cellPlate(width: number, height: number, border: number,
   const g = new Graphics()
   g.roundRect(0, 0, width, height, RADIUS.small)
     .fill({ color: UI.cell, alpha: empty ? 0.6 : 1 })
+  if (!empty) carve(g, width, height, UI.cell)
   g.roundRect(0.75, 0.75, width - 1.5, height - 1.5, insetRadius(RADIUS.small, 0.75))
     .stroke({ color: border, width: STROKE.base, alpha: empty ? 0.45 : 1 })
   return g

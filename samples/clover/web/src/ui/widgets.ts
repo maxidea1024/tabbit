@@ -8,7 +8,7 @@ import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
 
 import { contrast } from '../render/color'
 import type { Surface } from '../render/palette'
-import { buttonStyle, mix, panelStyle, plate, type PlateStyle } from '../render/skin'
+import { LIP, mix, panelStyle, plate, pressable, type PlateStyle } from '../render/skin'
 import { UI, TEXT, WEIGHT } from '../render/theme'
 import { outlined, outlineOf, outlineWidth, strokeWidthOf } from './font'
 import { iconFor, type IconName } from './icon'
@@ -145,7 +145,7 @@ export class Button extends Container {
     this.caption.style.fontSize = textSize
     this.addChild(this.board, this.caption)
     this.caption.anchor.set(0.5)
-    this.caption.position.set(boxWidth / 2, boxHeight / 2)
+    this.caption.position.set(boxWidth / 2, (boxHeight - LIP) / 2)
     this.text = text
 
     this.eventMode = 'static'
@@ -170,7 +170,6 @@ export class Button extends Container {
     this.on('pointerdown', event => {
       this.downAt = { x: event.global.x, y: event.global.y }
       if (!this.enabledState) return
-      this.caption.y = boxHeight / 2 + 2
       this.setPushed(true)
     })
     // **밖에서 손을 떼는 것도 받습니다.** 누른 채로 단추를 벗어나면 `pointerup` 이 오지
@@ -268,7 +267,6 @@ export class Button extends Container {
     if (this.held && !value) return
     if (this.lit === value) return
     this.lit = value
-    this.caption.y = this.boxHeight / 2
     this.draw()
   }
 
@@ -294,11 +292,12 @@ export class Button extends Container {
   private setPushed(value: boolean): void {
     if (this.pushed === value) return
     this.pushed = value
+    // 글도 얼굴을 따라 내려앉습니다. **얼굴만 내려가면 글이 턱 위에 떠 있습니다.**
+    this.caption.y = (this.boxHeight - LIP) / 2 + (value ? LIP : 0)
     this.draw()
   }
 
   private release(): void {
-    this.caption.y = this.boxHeight / 2
     this.setPushed(false)
   }
 
@@ -314,7 +313,7 @@ export class Button extends Container {
 
   private draw(): void {
     this.board.clear()
-    plate(this.board, this.boxWidth, this.boxHeight, buttonStyle(this.shownBase))
+    pressable(this.board, this.boxWidth, this.boxHeight, this.shownBase, this.pushed)
     this.applyInk()
   }
 }

@@ -15,6 +15,7 @@
 
 import { FillGradient, Graphics } from 'pixi.js'
 
+import { shade } from './color'
 import { UI, RADIUS, STROKE } from './theme'
 
 export interface PlateStyle {
@@ -75,11 +76,34 @@ export function plate(g: Graphics, width: number, height: number, style: PlateSt
   const radius = style.radius ?? RADIUS.base
   const weight = style.weight ?? STROKE.base
   const alpha = style.alpha ?? 1
-  const inset = weight / 2
+  const half = weight / 2
 
-  g.roundRect(0, 0, width, height, radius).fill({ color: style.top, alpha })
-  g.roundRect(inset, inset, width - weight, height - weight, insetRadius(radius, inset))
+  // **위가 아주 조금 밝습니다.** 빛이 위에서 오는 판입니다 — 단색으로 두면 판이 종이가
+  // 아니라 오려 붙인 색면으로 보입니다. 0.02는 나란히 놓고 보아야 아는 차이이고, 그
+  // 정도가 판을 판으로 보이게 하는 만큼입니다.
+  const fill = style.top === style.bottom
+    ? { color: style.top, alpha }
+    : { fill: faceFill(height, style.top, style.bottom), alpha }
+  g.roundRect(0, 0, width, height, radius).fill(fill)
+  g.roundRect(half, half, width - weight, height - weight, insetRadius(radius, half))
     .stroke({ color: style.border, width: weight })
+}
+
+/**
+ * 파인 칸.
+ *
+ * **위 안쪽에 어두운 줄, 아래 안쪽에 밝은 줄입니다.** 빛이 위에서 오므로 파인 것은 위가
+ * 그늘이고 아래가 밝습니다 — 그 두 줄이 없으면 칸은 어두운 색면 하나이고, 값이 그 위에
+ * 얹힌 것으로 보이지 파인 자리에 들어간 것으로 보이지 않습니다.
+ *
+ * **판 안의 자리를 빼앗지 않습니다.** 테 안쪽에 1픽셀씩입니다.
+ */
+export function carve(g: Graphics, width: number, height: number,
+                      face: number, radius: number = RADIUS.small): void {
+  g.moveTo(radius, 1.5).lineTo(width - radius, 1.5)
+    .stroke({ color: shade(face, -0.05), width: STROKE.hair, alpha: 0.9 })
+  g.moveTo(radius, height - 1.5).lineTo(width - radius, height - 1.5)
+    .stroke({ color: shade(face, 0.06), width: STROKE.hair, alpha: 0.55 })
 }
 
 /**
@@ -203,6 +227,7 @@ export function groove(g: Graphics, x: number, y: number, width: number,
   paint(x, x + cap)
   paint(x + width - cap, x + width)
 
+
   for (let at = x + cap + gap; at < x + width - cap; at += dash + gap) {
     paint(at, Math.min(at + dash, x + width - cap))
   }
@@ -238,17 +263,78 @@ export function slotStyle(ink: number): PlateStyle {
 }
 
 /**
+ * 단추의 아래 턱.
+ *
+ * **누르면 이만큼 내려앉습니다.** 판때기 하나로 그리던 동안 단추는 색이 칠해진 네모였고,
+ * 누르는 것과 놓인 것의 차이가 색뿐이었습니다 — 턱이 있으면 그 위의 얼굴이 실제로 내려가고,
+ * 그것이 누른 것으로 읽힙니다.
+ *
+ * **판 안의 자리를 빼앗지 않습니다.** 글은 턱 위의 얼굴에 가운데로 놓이므로 단추의 바깥
+ * 크기는 그대로입니다.
+ */
+export const LIP = 4
+
+/**
  * 누를 수 있는 것.
  *
- * **넘어오는 색이 이미 그 상태의 색입니다.** 흰색을 섞어 밝히던 동안은 어두운 단추가 대비
- * 1.30~1.36 밖에 움직이지 않아 가리킨 것이 드러나지 않았습니다 — 쉴 때 · 가리켰을 때 ·
- * 눌렸을 때가 겉면에 색 셋으로 있고, 부르는 쪽이 그중 하나를 골라 넘깁니다.
+ * **판때기가 아니라 물건입니다.** 채움 하나와 테 하나로 그리던 동안 단추는 색이 칠해진
+ * 네모였고, 그것은 웹의 단추이지 게임의 단추가 아닙니다. 층이 넷입니다.
  *
- * **납작합니다.** 테는 잉크색 하나이고, 그 어두운 테가 단추를 선과 가릅니다 — 어두운 중립
- * 계열에서 선과 단추가 같은 밝기 띠에 놓이는 것은 피할 수 없습니다.
+ * |층|무엇|
+ * |--|--|
+ * |턱|얼굴보다 어두운 같은 색. 단추의 두께입니다|
+ * |얼굴|위가 밝고 아래가 바탕색인 세로 그라디언트|
+ * |베벨|얼굴의 위쪽 안쪽에 한 줄. 빛이 위에서 옵니다|
+ * |테|잉크색. 실루엣 전체를 두릅니다|
+ *
+ * **어두운 쪽과 밝은 쪽은 OKLCH 로 만듭니다.** 검정과 흰색을 섞으면 채도가 함께 빠져
+ * 턱이 잿빛이 되고 베벨이 바랩니다 — 같은 색의 다른 면으로 보이려면 색상각과 채도가
+ * 그대로여야 합니다.
+ *
+ * 판과 칸은 그대로 납작합니다. 두께가 필요한 것은 누르는 것뿐입니다.
  */
-export function buttonStyle(base: number): PlateStyle {
-  return { top: base, bottom: base, border: UI.outline, radius: RADIUS.small, weight: STROKE.base }
+export function pressable(g: Graphics, width: number, height: number,
+                          base: number, pushed: boolean): void {
+  const radius = RADIUS.small
+  const faceH = height - LIP
+  const top = pushed ? LIP : 0
+
+  // 1. 턱. 실루엣 전체입니다.
+  g.roundRect(0, 0, width, height, radius).fill(shade(base, -0.14))
+
+  // 2. 얼굴. 눌리면 턱 안으로 내려앉습니다.
+  g.roundRect(0, top, width, faceH, radius)
+    .fill(faceFill(faceH, shade(base, 0.055), base))
+
+  // 3. 베벨. **위쪽만입니다** — 네 변을 다 두르면 테가 두 겹이 되고 안이 좁아 보입니다.
+  const inset = 1.5
+  g.moveTo(radius, top + inset)
+    .lineTo(width - radius, top + inset)
+    .stroke({ color: shade(base, 0.14), width: STROKE.hair, alpha: 0.7 })
+
+  // 4. 테.
+  const half = STROKE.base / 2
+  g.roundRect(half, half, width - STROKE.base, height - STROKE.base,
+              insetRadius(radius, half))
+    .stroke({ color: UI.outline, width: STROKE.base })
+}
+
+/** 얼굴의 그라디언트. **높이와 두 색이 같으면 같은 것을 다시 씁니다.** */
+const FACES = new Map<string, FillGradient>()
+
+function faceFill(height: number, top: number, bottom: number): FillGradient {
+  const key = `${height}|${top}|${bottom}`
+  let found = FACES.get(key)
+  if (!found) {
+    found = new FillGradient({
+      start: { x: 0, y: 0 },
+      end: { x: 0, y: 1 },
+      colorStops: [{ offset: 0, color: top }, { offset: 1, color: bottom }],
+      textureSpace: 'local',
+    })
+    FACES.set(key, found)
+  }
+  return found
 }
 
 export function mix(a: number, b: number, t: number): number {

@@ -181,3 +181,23 @@ export function chromaOf(color: number): number {
   const [, a, b] = oklabOf(...rgbOf(color))
   return Math.hypot(a, b)
 }
+
+/** 그 색의 OKLCH 세 값. */
+export function oklchOf(color: number): [number, number, number] {
+  const [lightness, a, b] = oklabOf(...rgbOf(color))
+  const chroma = Math.hypot(a, b)
+  const hue = chroma < 1e-4 ? 0 : ((Math.atan2(b, a) * 180) / Math.PI + 360) % 360
+  return [lightness, chroma, hue]
+}
+
+/**
+ * 같은 색의 밝은 쪽과 어두운 쪽.
+ *
+ * **색상각과 채도를 잡아 둡니다.** 흰색이나 검정을 섞으면 채도가 함께 빠져, 밝힌 쪽은
+ * 바래고 어둡힌 쪽은 잿빛이 됩니다 — 단추의 턱과 베벨이 그 색의 다른 면으로 보이려면
+ * 같은 색이어야 합니다.
+ */
+export function shade(color: number, by: number): number {
+  const [lightness, chroma, hue] = oklchOf(color)
+  return oklch(Math.min(0.985, Math.max(0.02, lightness + by)), chroma, hue)
+}

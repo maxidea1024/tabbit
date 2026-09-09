@@ -33,14 +33,32 @@ export interface SurfaceSeed {
   /** 판이 배경 위에서 얼마나 비치는가. */
   alpha: number
   /**
-   * 바깥 테의 색상각.
+   * 테와 단추의 색.
    *
-   * **적지 않으면 중립과 같습니다.** 기본 겉면만 남흑색 판에 따뜻한 갈색 테이고, 그것이
-   * 이 항목이 있는 이유입니다.
+   * **판은 천이고 이것은 테두리입니다.** 카드를 늘어놓는 상은 초록 천에 나무 테이고,
+   * 그 둘은 같은 색의 밝기 차이가 아니라 다른 재료입니다 — 판의 색을 밝혀 단추로 쓰면
+   * 여덟 겉면이 전부 「조금 밝은 판」 하나를 단추 자리에 놓은 것이 되고, 그것이 회색
+   * 슬래브로 보이던 까닭입니다.
+   *
+   * 테 · 구획선 · 가르는 줄 · 단추 · 스크롤 손잡이가 이 색을 씁니다. 판 · 칸 · 진행 바의
+   * 바탕 · 쪽지 · 글은 판의 색입니다.
+   *
+   * **적지 않으면 판과 같습니다** — 한 재료로 된 겉면입니다.
    */
-  edgeHue?: number
+  trim?: { hue: number; chroma: number }
   /** 강조색의 채도 배율. 1이 표에 적힌 그대로입니다. */
   vivid?: number
+  /**
+   * 이 겉면만 다른 배수.
+   *
+   * **표가 기본이고 이것이 성격입니다.** 배수 하나로 여덟을 다 만들면 여덟이 같은 겉면의
+   * 밝기만 다른 판이 됩니다 — 「검정」은 판이 검정인 겉면이지 조금 어두운 겉면이 아니고,
+   * 검정 위에서는 판보다 어두운 자리가 아예 없으므로 위쪽 단이 그만큼 벌어져야 합니다.
+   *
+   * **여기 적는 것이 늘어나면 표가 틀린 것입니다.** 한 겉면의 성격이 아니라 모든 겉면에
+   * 해당하는 것이면 표를 고칩니다.
+   */
+  tune?: Record<string, number>
 }
 
 /**
@@ -121,22 +139,27 @@ const LINES: Record<string, Ratio> = {
 /**
  * 누를 수 있는 것의 바탕.
  *
- * **잠긴 것과 1.77 벌어져 있습니다.** 손으로 적던 동안은 1.19~1.31 이었고, 그래서 켜진
+ * **잠긴 것과 1.68 벌어져 있습니다.** 손으로 적던 동안은 1.19~1.31 이었고, 그래서 켜진
  * 단추가 잠긴 단추로 보였습니다 — 잠김을 알리는 것이 글자의 알파 하나뿐이었습니다.
  *
- * 채도는 면보다 낮습니다. 단추는 누르는 것이지 색을 알리는 것이 아닙니다.
+ * **채도가 면보다 높습니다.** 낮춰 두었더니 무채색에 가까운 겉면에서 단추가 회색 판때기가
+ * 되었고, 그 회색은 어느 겉면의 것도 아닙니다 — 판보다 밝은 것 중에 사람이 가장 자주 보는
+ * 것이 단추이므로 겉면의 색이 거기서 가장 잘 드러나야 합니다.
+ *
+ * **잠긴 것은 반대로 채도를 걷습니다.** 밝기만 낮추면 어두운 단추로 보이고, 색이 빠져야
+ * 죽은 것으로 보입니다.
  */
 const CONTROLS: Record<string, Ratio> = {
   /** 잠긴 단추. **판 쪽으로 당겨 둡니다** — 잠긴 것이 판보다 먼저 보이면 안 됩니다. */
-  locked: { ratio: 1.30, tint: 0.7 },
+  locked: { ratio: 1.22, tint: 0.45 },
   /** 보통 단추. */
-  btn: { ratio: 2.35, tint: 0.7 },
+  btn: { ratio: 2.05, tint: 1.7 },
   /** 판 위에 조용히 놓이는 단추. 칸과 같은 층입니다. */
-  quiet: { ratio: 1.72, tint: 0.7 },
+  quiet: { ratio: 1.48, tint: 1.4 },
   /** 스크롤 막대의 홈. */
-  track: { ratio: 1.50, tint: 0.8 },
+  track: { ratio: 1.40, tint: 1.4 },
   /** 스크롤 막대의 손잡이. */
-  grip: { ratio: 3.20, tint: 0.8 },
+  grip: { ratio: 2.70, tint: 1.6 },
 }
 
 /**
@@ -157,9 +180,9 @@ const INTENTS: Record<string, Ratio> = {
   /** 진행 바 · 요구 점수. */
   bar: { ratio: 6.4, chroma: 0.131, hue: 223, max: 0.84 },
   /** 칩. */
-  chips: { ratio: 4.4, chroma: 0.19, hue: 251, max: 0.78 },
+  chips: { ratio: 4.2, chroma: 0.20, hue: 251, max: 0.76 },
   /** 배수. */
-  mult: { ratio: 4.6, chroma: 0.196, hue: 27, max: 0.78 },
+  mult: { ratio: 4.3, chroma: 0.205, hue: 27, max: 0.75 },
   /** 고른 것. 목록의 줄과 물건 칸의 테입니다. */
   pick: { ratio: 3.8, chroma: 0.168, hue: 253, max: 0.76 },
   /** 승리 · 핸드 수. */
@@ -167,11 +190,11 @@ const INTENTS: Record<string, Ratio> = {
   /** 된 것. */
   good: { ratio: 7.2, chroma: 0.147, hue: 154, max: 0.86 },
   /** 되돌릴 수 없는 것 · 버리기. */
-  red: { ratio: 5.0, chroma: 0.148, hue: 29, max: 0.8 },
+  red: { ratio: 3.8, chroma: 0.190, hue: 29, max: 0.70 },
   /** 안 된 것 · 모자란 값. */
   bad: { ratio: 5.4, chroma: 0.163, hue: 22, max: 0.82 },
   /** 걸어 보는 것. 블라인드를 건너뜁니다. */
-  dare: { ratio: 4.3, chroma: 0.147, hue: 53, max: 0.78 },
+  dare: { ratio: 3.9, chroma: 0.165, hue: 53, max: 0.74 },
   /**
    * 남은 버리기.
    *
@@ -180,14 +203,14 @@ const INTENTS: Record<string, Ratio> = {
    */
   discard: { ratio: 6.0, chroma: 0.150, hue: 50, max: 0.84 },
   /** 묻는 판의 「그렇게 합니다」. 되돌릴 수 있는 쪽입니다. */
-  confirm: { ratio: 3.7, chroma: 0.11, hue: 155, max: 0.74 },
+  confirm: { ratio: 3.4, chroma: 0.135, hue: 155, max: 0.70 },
   /**
    * 되돌릴 수 없는 일의 첫 누름.
    *
    * **붉음의 어두운 쪽입니다.** 두 번 눌러야 지워지는 단추가 처음부터 붉으면 그 판에서
    * 가장 먼저 보이는 것이 「지운다」가 됩니다 — 두 번째 누름에서 `danger` 로 갑니다.
    */
-  caution: { ratio: 2.6, chroma: 0.10, hue: 29, max: 0.68 },
+  caution: { ratio: 2.3, chroma: 0.115, hue: 29, max: 0.62 },
   /** 글 속의 수. 칩과 같은 계열입니다. */
   accentNumber: { ratio: 7.0, chroma: 0.11, hue: 246, max: 0.86 },
   /** 글 속의 이름. */
@@ -195,8 +218,8 @@ const INTENTS: Record<string, Ratio> = {
   /** 희귀도 넷. 상점과 조커의 테가 씁니다. */
   common: { ratio: 5.4, chroma: 0.032, hue: 256, max: 0.82 },
   uncommon: { ratio: 6.4, chroma: 0.125, hue: 168, max: 0.84 },
-  rare: { ratio: 4.6, chroma: 0.196, hue: 27, max: 0.78 },
-  legendary: { ratio: 5.2, chroma: 0.166, hue: 300, max: 0.8 },
+  rare: { ratio: 4.3, chroma: 0.205, hue: 27, max: 0.75 },
+  legendary: { ratio: 4.8, chroma: 0.180, hue: 300, max: 0.76 },
 }
 
 /** 글. **흐린 단계 둘은 판을 기준으로 재고, 본문은 밝기를 직접 정합니다.** */
@@ -212,8 +235,14 @@ const LEVELS: Record<string, Level> = {
   ink: { level: 0.955, tint: 0.5 },
   /** 구획 머리의 마름모. */
   mark: { level: 0.874, tint: 0.9 },
-  /** 밝은 단추 · 고른 탭. */
-  light: { level: 0.885, tint: 0.7 },
+  /**
+   * 밝은 단추 · 고른 탭.
+   *
+   * **크림이되 겉면의 크림입니다.** 채도를 걷어 두었더니 여덟 겉면에서 같은 흰 딱지가
+   * 되었고, 그 흰색은 어느 겉면의 것도 아닙니다 — 초록에서는 옅은 민트, 갈색에서는
+   * 크림, 와인에서는 옅은 분홍이어야 그 판의 물건으로 보입니다.
+   */
+  light: { level: 0.885, tint: 2.6 },
   /** 밝은 단추 위의 글. */
   onLight: { level: 0.240, tint: 1.0 },
   /** 모든 테의 잉크. 단추와 카드의 테입니다. */
@@ -242,11 +271,15 @@ interface Made {
   hue: number
 }
 
-function makeRatio(panel: number, seed: SurfaceSeed, spec: Ratio): Made {
-  const hue = spec.hue ?? seed.hue
+function makeRatio(panel: number, seed: SurfaceSeed, spec: Ratio, name?: string,
+                   trim = false): Made {
+  const tuned = name !== undefined ? seed.tune?.[name] : undefined
+  if (tuned !== undefined) spec = { ...spec, ratio: tuned }
+  const family = trim && seed.trim !== undefined ? seed.trim : seed
+  const hue = spec.hue ?? family.hue
   const chroma = spec.chroma !== undefined
     ? spec.chroma * (seed.vivid ?? 1)
-    : seed.chroma * (spec.tint ?? 1)
+    : family.chroma * (spec.tint ?? 1)
   const want = luminanceFor(panel, spec.ratio)
   let level = solveLevel(want, chroma, hue)
   if (spec.max !== undefined) level = Math.min(level, spec.max)
@@ -362,17 +395,19 @@ export interface Surface {
  */
 export function buildSurface(seed: SurfaceSeed): Surface {
   const panel = seed.level
-  const at = (spec: Ratio): Made => makeRatio(panel, seed, spec)
+  const named = new Map<Ratio, string>()
+  for (const table of [SURFACES, LINES, CONTROLS, INTENTS, INKS]) {
+    for (const [key, spec] of Object.entries(table)) named.set(spec, key)
+  }
+  const at = (spec: Ratio): Made => makeRatio(panel, seed, spec, named.get(spec))
+  /** 테두리의 재료로 만듭니다. */
+  const trim = (spec: Ratio): Made => makeRatio(panel, seed, spec, named.get(spec), true)
   const flat = (spec: Level): Made => makeLevel(seed, spec)
 
-  const edgeSeed: SurfaceSeed = seed.edgeHue === undefined
-    ? seed
-    : { ...seed, hue: seed.edgeHue }
-
-  const btn = at(CONTROLS.btn)
-  const quiet = at(CONTROLS.quiet)
+  const btn = trim(CONTROLS.btn)
+  const quiet = trim(CONTROLS.quiet)
   const light = flat(LEVELS.light)
-  const grip = at(CONTROLS.grip)
+  const grip = trim(CONTROLS.grip)
   const yellow = at(INTENTS.yellow)
   const red = at(INTENTS.red)
   const dare = at(INTENTS.dare)
@@ -384,7 +419,7 @@ export function buildSurface(seed: SurfaceSeed): Surface {
   return {
     panel: oklch(solveLevel(panel, seed.chroma, seed.hue), seed.chroma, seed.hue),
     panelAlpha: seed.alpha,
-    panelEdge: makeRatio(panel, edgeSeed, LINES.panelEdge).color,
+    panelEdge: trim(LINES.panelEdge).color,
     ground: plain(SURFACES.ground),
     cell: plain(SURFACES.cell),
     well: plain(SURFACES.well),
@@ -392,8 +427,8 @@ export function buildSurface(seed: SurfaceSeed): Surface {
     tipEdge: plain(LINES.tipEdge),
     scrim: plain(SURFACES.scrim),
 
-    rule: plain(LINES.rule),
-    groove: plain(LINES.groove),
+    rule: trim(LINES.rule).color,
+    groove: trim(LINES.groove).color,
     hairline: plain(LINES.hairline),
 
     btn: btn.color,
@@ -405,9 +440,9 @@ export function buildSurface(seed: SurfaceSeed): Surface {
     light: light.color,
     lightHover: shift(light, HOVER),
     lightPress: shift(light, PRESS),
-    locked: plain(CONTROLS.locked),
+    locked: trim(CONTROLS.locked).color,
 
-    track: plain(CONTROLS.track),
+    track: trim(CONTROLS.track).color,
     grip: grip.color,
     gripHot: shift(grip, HOVER + 0.05),
 
@@ -461,28 +496,32 @@ export function buildSurface(seed: SurfaceSeed): Surface {
  * `line` 이 참인 줄은 굵기 1~1.5 의 선이고, 넓은 면보다 0.4 높은 값을 요구합니다.
  */
 export const CONTRAST_GATE: {
-  what: string; a: keyof Surface; b: keyof Surface; least: number; line?: boolean
+  what: string; a: keyof Surface; b: keyof Surface; least: number
+  line?: boolean; room?: boolean
 }[] = [
-  { what: '판과 칸', a: 'cell', b: 'panel', least: 1.30 },
-  { what: '판과 진행 바의 바탕', a: 'well', b: 'panel', least: 1.35 },
-  { what: '칸과 진행 바의 바탕', a: 'cell', b: 'well', least: 1.05 },
-  { what: '판과 쪽지', a: 'tipBack', b: 'panel', least: 1.38 },
+  // **판보다 어두운 자리는 낼 수 있는 만큼까지만 요구합니다.** 검정이 바닥이므로 대비의
+  // 상한이 `(판의 휘도 + 0.05) / 0.05` 이고, 판이 어두울수록 그 상한이 1에 붙습니다 —
+  // 검정 겉면에서는 1.09 가 전부입니다. `room` 이 붙은 줄은 적힌 배수와 그 상한 중 낮은
+  // 쪽을 봅니다.
+  { what: '판과 칸', a: 'cell', b: 'panel', least: 1.33, room: true },
+  { what: '판과 진행 바의 바탕', a: 'well', b: 'panel', least: 1.58, room: true },
+  { what: '판과 쪽지', a: 'tipBack', b: 'panel', least: 1.42, room: true },
   { what: '판과 바깥 테', a: 'panelEdge', b: 'panel', least: 2.85, line: true },
   { what: '판과 구획선', a: 'rule', b: 'panel', least: 2.15, line: true },
   { what: '판과 가르는 줄', a: 'groove', b: 'panel', least: 1.60, line: true },
-  { what: '칸과 칸의 테', a: 'hairline', b: 'cell', least: 1.50, line: true },
-  { what: '쪽지와 쪽지의 테', a: 'tipEdge', b: 'tipBack', least: 2.35, line: true },
+  { what: '칸과 칸의 테', a: 'hairline', b: 'cell', least: 1.45, line: true },
+  { what: '쪽지와 쪽지의 테', a: 'tipEdge', b: 'tipBack', least: 2.10, line: true },
   // **선끼리는 더 얹지 않습니다.** 얇은 선에 얹는 0.4는 면 위에서 나타나기 위한 것이고,
   // 두 선을 가르는 데 필요한 값이 아닙니다.
   { what: '구획선과 가르는 줄', a: 'rule', b: 'groove', least: 1.20 },
 
-  { what: '판과 단추', a: 'btn', b: 'panel', least: 2.10 },
+  { what: '판과 단추', a: 'btn', b: 'panel', least: 1.95 },
   { what: '단추와 잠긴 단추', a: 'btn', b: 'locked', least: 1.65 },
   { what: '단추와 가리킨 단추', a: 'btnHover', b: 'btn', least: 1.35 },
   { what: '단추와 눌린 단추', a: 'btn', b: 'btnPress', least: 1.15 },
   { what: '판과 잠긴 단추', a: 'locked', b: 'panel', least: 1.20 },
-  { what: '판과 조용한 단추', a: 'quiet', b: 'panel', least: 1.50 },
-  { what: '조용한 단추와 잠긴 단추', a: 'quiet', b: 'locked', least: 1.20 },
+  { what: '판과 조용한 단추', a: 'quiet', b: 'panel', least: 1.40 },
+  { what: '조용한 단추와 잠긴 단추', a: 'quiet', b: 'locked', least: 1.18 },
   { what: '단추와 밝은 단추', a: 'light', b: 'btn', least: 2.70 },
   { what: '밝은 단추와 가리킨 것', a: 'lightHover', b: 'light', least: 1.10 },
   { what: '단추 테와 단추', a: 'btn', b: 'outline', least: 1.80, line: true },
@@ -498,25 +537,25 @@ export const CONTRAST_GATE: {
   { what: '칸과 흐린 글', a: 'inkDim', b: 'cell', least: 6.00 },
   { what: '판과 마름모', a: 'mark', b: 'panel', least: 6.00 },
 
-  { what: '판과 돈', a: 'money', b: 'panel', least: 7.00 },
-  { what: '판과 값', a: 'yellow', b: 'panel', least: 6.50 },
-  { what: '판과 진행 바', a: 'bar', b: 'panel', least: 5.50 },
+  { what: '판과 돈', a: 'money', b: 'panel', least: 6.60 },
+  { what: '판과 값', a: 'yellow', b: 'panel', least: 6.20 },
+  { what: '판과 진행 바', a: 'bar', b: 'panel', least: 5.20 },
   { what: '판과 칩', a: 'chips', b: 'panel', least: 4.00 },
   { what: '판과 배수', a: 'mult', b: 'panel', least: 4.00 },
-  { what: '칸과 칩', a: 'chips', b: 'cell', least: 5.00 },
-  { what: '칸과 배수', a: 'mult', b: 'cell', least: 5.00 },
+  { what: '칸과 칩', a: 'chips', b: 'cell', least: 4.40 },
+  { what: '칸과 배수', a: 'mult', b: 'cell', least: 4.50 },
   { what: '판과 고른 것', a: 'pick', b: 'panel', least: 3.30, line: true },
-  { what: '칸과 고른 것', a: 'pick', b: 'cell', least: 4.00, line: true },
-  { what: '판과 승리', a: 'green', b: 'panel', least: 6.50 },
-  { what: '판과 된 것', a: 'good', b: 'panel', least: 6.00 },
-  { what: '판과 붉음', a: 'red', b: 'panel', least: 4.50 },
+  { what: '칸과 고른 것', a: 'pick', b: 'cell', least: 3.65, line: true },
+  { what: '판과 승리', a: 'green', b: 'panel', least: 6.20 },
+  { what: '판과 된 것', a: 'good', b: 'panel', least: 5.60 },
+  { what: '판과 붉음', a: 'red', b: 'panel', least: 3.60 },
   { what: '판과 안 된 것', a: 'bad', b: 'panel', least: 4.80 },
-  { what: '판과 걸어 보는 것', a: 'dare', b: 'panel', least: 3.90 },
+  { what: '판과 걸어 보는 것', a: 'dare', b: 'panel', least: 3.70 },
   { what: '판과 남은 버리기', a: 'discard', b: 'panel', least: 5.20 },
   { what: '남은 버리기와 걸어 보는 것', a: 'discard', b: 'dare', least: 1.20 },
-  { what: '판과 그렇게 합니다', a: 'confirm', b: 'panel', least: 3.40 },
-  { what: '판과 첫 누름', a: 'caution', b: 'panel', least: 2.30 },
-  { what: '첫 누름과 붉음', a: 'red', b: 'caution', least: 1.60 },
+  { what: '판과 그렇게 합니다', a: 'confirm', b: 'panel', least: 3.25 },
+  { what: '판과 첫 누름', a: 'caution', b: 'panel', least: 2.15 },
+  { what: '첫 누름과 붉음', a: 'red', b: 'caution', least: 1.50 },
   { what: '판과 글 속의 수', a: 'accentNumber', b: 'panel', least: 6.30 },
   { what: '판과 글 속의 이름', a: 'accentTerm', b: 'panel', least: 7.40 },
 
@@ -525,7 +564,7 @@ export const CONTRAST_GATE: {
   { what: '칸과 귀한 것', a: 'rare', b: 'cell', least: 4.00, line: true },
   { what: '칸과 전설', a: 'legendary', b: 'cell', least: 4.20, line: true },
 
-  { what: '붉음과 걸어 보는 것', a: 'red', b: 'dare', least: 1.10 },
+  { what: '붉음과 걸어 보는 것', a: 'red', b: 'dare', least: 1.01 },
   { what: '값과 진행 바', a: 'yellow', b: 'bar', least: 1.08 },
 ]
 

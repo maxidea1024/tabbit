@@ -12,6 +12,10 @@ import { buildSurface, type Surface, type SurfaceSeed } from './palette'
 /**
  * 겉면 여덟.
  *
+ * **판은 천이고 테는 테두리입니다.** 카드를 늘어놓는 상이 초록 천에 나무 테인 것처럼,
+ * 겉면마다 판의 색과 테·단추의 색이 따로입니다 — 판의 색을 밝혀 단추로 쓰면 여덟이 전부
+ * 「조금 밝은 판」 을 단추 자리에 놓은 것이 되고, 그것이 회색 슬래브로 보입니다.
+ *
  * **넷은 무채색에 가깝고 넷은 색이 있습니다.** 여덟 다 어두운 이유는 카드가 크림색
  * 종이이기 때문입니다 — 판이 밝으면 카드가 판에 묻힙니다.
  *
@@ -23,21 +27,65 @@ import { buildSurface, type Surface, type SurfaceSeed } from './palette'
  */
 const SEEDS: Record<string, SurfaceSeed> = {
   /** 기본. 남흑에 따뜻한 갈색 테 — 참고한 카드룸의 것입니다. */
-  slate: { hue: 274, chroma: 0.016, level: 0.0300, alpha: 0.96, edgeHue: 73 },
-  /** 검정. 거의 검정에 회색 테. 판이 배경에 잠기고 카드만 남습니다. */
-  ink: { hue: 264, chroma: 0.005, level: 0.0240, alpha: 0.97 },
+  slate: {
+    hue: 274, chroma: 0.018, level: 0.0165, alpha: 0.96,
+    trim: { hue: 73, chroma: 0.048 },
+  },
+  /**
+   * 검정. **판이 배경에 잠기고 카드만 남습니다.**
+   *
+   * 판이 거의 검정이므로 그 아래에 자리가 없습니다 — 칸도 진행 바의 바탕도 검정에 붙고,
+   * 갈리는 것은 테 하나입니다. 그래서 위쪽 단을 표보다 벌려 둡니다. 강조색은 반대로
+   * 진하게 갑니다(`vivid`) — 검정 위에서는 옅은 색이 뜨는 것으로 보입니다.
+   */
+  ink: {
+    hue: 264, chroma: 0.004, level: 0.0042, alpha: 0.97, vivid: 1.1,
+    trim: { hue: 264, chroma: 0.012 },
+    tune: {
+      panelEdge: 4.6, rule: 3.4, groove: 2.5, hairline: 1.9,
+      btn: 2.6, quiet: 1.7, locked: 1.32, track: 1.55, grip: 3.3,
+      tipEdge: 2.4,
+    },
+  },
   /** 남색. 차가운 남색에 푸른 테 — 이 게임이 오래 쓰던 색입니다. */
-  navy: { hue: 261, chroma: 0.051, level: 0.0400, alpha: 0.96 },
-  /** 밝은 회색. 판과 테가 뚜렷하게 밝아 판의 경계가 멀리서도 보입니다. */
-  bright: { hue: 261, chroma: 0.020, level: 0.0580, alpha: 0.98 },
+  navy: {
+    hue: 261, chroma: 0.055, level: 0.0245, alpha: 0.96,
+    trim: { hue: 250, chroma: 0.078 },
+  },
+  /**
+   * 밝은 회색. **판과 테가 뚜렷하게 밝아 판의 경계가 멀리서도 보입니다.**
+   *
+   * 판이 밝으므로 강조색을 표대로 올리면 흰색에 부딪혀 바랩니다 — 노랑과 초록과 금색을
+   * 그만큼 내려 판 위에서 같은 무게로 놓이게 합니다.
+   */
+  bright: {
+    hue: 261, chroma: 0.030, level: 0.0470, alpha: 0.98,
+    trim: { hue: 258, chroma: 0.034 },
+    tune: {
+      panelEdge: 3.8, yellow: 6.4, money: 6.8, green: 6.4, good: 5.8,
+      accentTerm: 7.6, bar: 5.4, mark: 5.0,
+    },
+  },
   /** 초록. 카드를 늘어놓는 상의 색입니다 — 이 갈래의 게임에서 가장 오래된 색입니다. */
-  green: { hue: 160, chroma: 0.029, level: 0.0320, alpha: 0.96 },
+  green: {
+    hue: 160, chroma: 0.033, level: 0.0180, alpha: 0.96,
+    trim: { hue: 62, chroma: 0.055 },
+  },
   /** 와인. 짙은 자주 — 붉음이 뜻을 가진 색이므로 판은 그보다 훨씬 어둡습니다. */
-  wine: { hue: 350, chroma: 0.034, level: 0.0290, alpha: 0.96 },
+  wine: {
+    hue: 350, chroma: 0.038, level: 0.0155, alpha: 0.96,
+    trim: { hue: 45, chroma: 0.058 },
+  },
   /** 갈색. 따뜻한 쪽입니다 — 크림색 카드와 같은 계열이라 판과 카드가 한 벌로 보입니다. */
-  brown: { hue: 63, chroma: 0.018, level: 0.0300, alpha: 0.96 },
+  brown: {
+    hue: 63, chroma: 0.022, level: 0.0170, alpha: 0.96,
+    trim: { hue: 58, chroma: 0.056 },
+  },
   /** 자주. 남색보다 한 걸음 더 간 쪽이고, 금색이 가장 잘 서는 바탕입니다. */
-  violet: { hue: 291, chroma: 0.044, level: 0.0310, alpha: 0.96 },
+  violet: {
+    hue: 291, chroma: 0.048, level: 0.0175, alpha: 0.96,
+    trim: { hue: 80, chroma: 0.052 },
+  },
 }
 
 /** 겉면의 이름들. 옵션의 칸이 이 순서로 놓입니다. */
