@@ -13,25 +13,17 @@ import { EditionKind } from '../generated/enums/edition-kind'
 import type { JokerInstance } from '../core/state'
 import { DissolveFilter } from '../shader/dissolve'
 import { ArriveFilter } from '../shader/arrive'
-import { EditionFilter, type EditionShader } from '../shader/editions'
+import { EDITION_SHADER, EditionFilter, type EditionLook } from '../shader/editions'
 import { insetRadius } from './skin'
 import { roundedMask } from '../shader/mask'
 import { artFor } from './art'
 import { drawGlyph, glyphFor, hashOf, hsl, shade, tintUp } from './glyph'
 import { Motion, sway } from './motion'
 import { COLOR, rarityColor, SIZE } from './theme'
-import type { EditionLook } from './card-view'
 
 /** 카드의 모서리와 이름 띠의 높이. */
 const RADIUS = 9
 const BAND = 26
-
-const EDITION_SHADER: Partial<Record<EditionKind, EditionShader>> = {
-  [EditionKind.Foil]: 'foil',
-  [EditionKind.Holographic]: 'holo',
-  [EditionKind.Polychrome]: 'poly',
-  [EditionKind.Negative]: 'negative',
-}
 
 /** 식별자에서 색상 하나. 같은 조커는 언제나 같은 색입니다. */
 function hueOf(text: string): number {
@@ -389,11 +381,7 @@ export class JokerView extends Container {
    * 것은 기울기가 뛴 것입니다. **눈으로는 그 둘이 갈리지 않습니다.**
    */
   get editionAt(): { time: number; tilt: number } | undefined {
-    if (!this.edition) return undefined
-    const uniforms = (this.edition as unknown as {
-      resources: { editionUniforms: { uniforms: Record<string, number> } }
-    }).resources.editionUniforms.uniforms
-    return { time: uniforms.uTime, tilt: uniforms.uTilt }
+    return this.edition?.seen
   }
 
   advance(seconds: number, time: number): void {

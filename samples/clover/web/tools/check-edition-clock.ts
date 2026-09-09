@@ -59,6 +59,9 @@ async function main(): Promise<number> {
   await openRun(page)
   // 판이 걸린 조커 셋. **맨 것에는 셰이더가 없습니다.**
   await page.evaluate(`window.__clover.grantJoker(3, 1)`)
+  // 판이 걸린 소모품 둘. **줄 밖과 같은 길로 시각을 받습니다** — 얼굴은 `refresh` 마다
+  // 새로 만들어지므로 셰이더도 새것이고, 넣어 줄 자리가 없으면 0 에 굳습니다.
+  await page.evaluate(`window.__clover.grantConsumable(2, 1)`)
   await pass(page, 1200)
 
   const one = await sample(page)
@@ -78,6 +81,7 @@ async function main(): Promise<number> {
   await pass(page, 1000)
   const four = await sample(page)
   console.log(`  줄 ${four.at.tray.length}개 · 줄 밖 ${four.at.look.length}개`)
+  check(four.at.look.length >= 2, `줄 밖에 판이 걸린 것이 섰습니다 (${four.at.look.length}개)`)
   const lookGap = follows(three, four, 'look')
   check(lookGap === '', `줄 밖의 판이 시계를 따라갑니다${lookGap === '' ? '' : ` — ${lookGap}`}`)
   check(four.at.look.every(spot => spot.time > 0), '줄 밖의 시각이 0 에 굳어 있지 않습니다')

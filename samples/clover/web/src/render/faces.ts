@@ -8,7 +8,7 @@
 // **여기 있는 것은 얼굴뿐입니다.** 값도 누름도 진열 움직임도 상점의 일이므로 상점에
 // 남습니다 — 이 파일의 함수는 상태를 읽지 않고 받은 것만 그립니다.
 
-import { Container, Graphics, Sprite, Text, Texture } from 'pixi.js'
+import { Container, Graphics, Rectangle, Sprite, Text, Texture } from 'pixi.js'
 
 import type { Data } from '../core/data'
 import { nameOf, t, text, tf } from '../core/strings'
@@ -18,6 +18,9 @@ import { PackSize } from '../generated/enums/pack-size'
 import { ShopItemKind } from '../generated/enums/shop-item-kind'
 import { SuitKind } from '../generated/enums/suit-kind'
 import { richLine } from '../ui/rich'
+import { EDITION_SHADER, EditionFilter, type EditionLook } from '../shader/editions'
+import { roundedMask } from '../shader/mask'
+import { EditionKind } from '../generated/enums/edition-kind'
 import { artFor, type ArtKind } from './art'
 import { cardArtDir, suitInk } from './card-set'
 import { drawGlyph, glyphFor, hashOf, hsl, shade } from './glyph'
@@ -248,6 +251,35 @@ export function blindFace(blind: BlindKind, size: number, bossId: string): Conta
 export interface ItemFace {
   kind: ShopItemKind
   id: string
+  /** 판. 없으면 맨 것입니다 — 도감처럼 판을 다루지 않는 자리는 넘기지 않습니다. */
+  edition?: EditionKind
+}
+
+/**
+ * 판 하나의 셰이더 파라미터. **시트의 `EditionVisual` 한 줄입니다.**
+ *
+ * 읽는 자리가 셋(카드 · 조커 · 소모품)이므로 한 곳에 둡니다.
+ */
+export function editionLookOf(data: Data, edition: EditionKind): EditionLook | undefined {
+  const row = data.tables.editionVisual.findByEdition(edition)
+  if (!row || row.shader === 'none') return undefined
+  return {
+    shader: row.shader as EditionLook['shader'],
+    strength: row.strength, flowSpeed: row.flowSpeed, noise: row.noise,
+  }
+}
+
+/**
+ * 얼굴에 걸린 판의 셰이더. **시각을 넣어 주는 쪽이 찾습니다.**
+ *
+ * 얼굴은 통 하나를 돌려주므로 필터를 함께 돌려줄 자리가 없고, 그렇다고 자식을 뒤져 찾으면
+ * 구조를 고치는 날에 조용히 못 찾게 됩니다.
+ */
+const EDITIONS = new WeakMap<Container, EditionFilter>()
+
+/** 이 얼굴에 걸린 판의 셰이더. 없으면 `undefined`. */
+export function faceEdition(node: Container): EditionFilter | undefined {
+  return EDITIONS.get(node)
 }
 
 /**
@@ -269,9 +301,26 @@ export function itemFace(data: Data, item: ItemFace): Container {
   const paper = new Container()
   node.addChild(shadow, paper)
 
+  // **얼굴 안이 또 둘로 갈립니다. 조커와 같은 갈래입니다.**
+  //
+  // |통|걸리는 것|
+  // |--|--|
+  // |`body` — 그림|판(에디션)의 셰이더|
+  // |`paper` — 그림과 글 전부|사서 올 때의 울렁임 · 탈 때의 삭음|
+  //
+  // 갈라 두지 않으면 둘이 `filters` 배열 하나를 나눠 쓰게 되고, 그 배열은 여섯 자리에서
+  // 통째로 대입됩니다 — 하나가 다른 하나를 조용히 지웁니다. **글이 셰이더 밖인 까닭도
+  // 조커와 같습니다**: 셰이더를 거치면 글자의 가장자리가 흐려지고, 네거티브는 띠를 밝게
+  // 뒤집어 그 위의 밝은 글자가 읽히지 않습니다.
+  const body = new Container()
+  const text = new Container()
+  body.boundsArea = new Rectangle(0, 0, w, h)
+  paper.boundsArea = new Rectangle(0, 0, w, h)
+  paper.addChild(body, text)
+
   const plate = new Graphics()
   plate.roundRect(0, 0, w, h, 9).fill(0x141b26)
-  paper.addChild(plate)
+  body.addChild(plate)
 
   /**
    * 그림을 카드 모양으로 자르는 것.
@@ -282,7 +331,7 @@ export function itemFace(data: Data, item: ItemFace): Container {
   const cutout = (): Graphics => {
     const clip = new Graphics()
     clip.roundRect(0, 0, w, h, 9).fill(0xffffff)
-    paper.addChild(clip)
+    body.addChild(clip)
     return clip
   }
 
@@ -296,12 +345,12 @@ export function itemFace(data: Data, item: ItemFace): Container {
         const picture = new Sprite(texture)
         picture.width = w
         picture.height = h
-        paper.addChild(picture)
+        body.addChild(picture)
       } else {
         const face = new Graphics()
         face.roundRect(0, 0, w, h, 9).fill(COLOR.cardFace)
         drawFace(face, row.suit, row.rank, w, h, suitInk(row.suit))
-        paper.addChild(face)
+        body.addChild(face)
       }
     }
   } else {
@@ -316,7 +365,7 @@ export function itemFace(data: Data, item: ItemFace): Container {
       sprite.height = texture.height * scale
       sprite.position.set((w - sprite.width) / 2, (h - sprite.height) / 2)
       sprite.mask = cutout()
-      paper.addChild(sprite)
+      body.addChild(sprite)
     }
   }
 
@@ -325,7 +374,7 @@ export function itemFace(data: Data, item: ItemFace): Container {
   band.roundRect(0, h - 26, w, 26, 9).fill({ color: 0x0b1018, alpha: 0.88 })
   band.rect(0, h - 26, w, 17).fill({ color: 0x0b1018, alpha: 0.88 })
   band.rect(0, h - 26, w, 1.5).fill({ color: tint, alpha: 0.9 })
-  paper.addChild(band)
+  text.addChild(band)
 
   const label = new Text({
     text: shopLabel(item.kind, item.id, data),
@@ -336,12 +385,25 @@ export function itemFace(data: Data, item: ItemFace): Container {
   })
   label.anchor.set(0.5, 0.5)
   label.position.set(w / 2, h - 13)
-  paper.addChild(label)
+  text.addChild(label)
 
   const frame = new Graphics()
   frame.roundRect(1.25, 1.25, w - 2.5, h - 2.5, insetRadius(9, 1.25))
     .stroke({ color: tint, width: 2.5 })
-  paper.addChild(frame)
+  text.addChild(frame)
+
+  // **판이 걸린 것은 그림이 흐릅니다.** 값은 여기까지 오고 있었고 쓰지 않았습니다 —
+  // `createConsumable` 이 `Negative` 를 붙이므로 실제로 들어오는 값입니다.
+  const shader = item.edition === undefined ? undefined : EDITION_SHADER[item.edition]
+  const look = item.edition === undefined ? undefined : editionLookOf(data, item.edition)
+  if (shader && look) {
+    const edition = new EditionFilter(shader, {
+      strength: look.strength, flowSpeed: look.flowSpeed, noise: look.noise,
+      shape: roundedMask(w, h, 9),
+    })
+    body.filters = [edition]
+    EDITIONS.set(node, edition)
+  }
 
   return node
 }

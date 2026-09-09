@@ -62,7 +62,8 @@ import { backLookOf, bakeCardBacks, cardBack, drawCardBack, forgetCardBacks,
 import { cardArtDir, cardBackMotif, cardPaper, drawsIndex, setCardSet, setLookOf, suitInk } from './card-set'
 import { bakeCardFaces, cardFaceBakes, forgetCardFaces } from './card-face'
 import {
-  blindFace, faceOf, itemFace, kindName, MINI_RANK, packBlurb, packFace, packInk,
+  blindFace, editionLookOf, faceEdition, faceOf, itemFace, kindName, MINI_RANK, packBlurb,
+  packFace, packInk,
   packInkLit, packName, shopLabel, SUIT_PIP, tagFace, voucherFace,
 } from './faces'
 import { cardArtId, drawFace } from './pips'
@@ -1041,9 +1042,23 @@ interface PackFace {
   card: Container
 }
 
+/**
+ * 겉면만 시각을 받는 것 하나.
+ *
+ * 판(에디션)의 셰이더는 판 전체의 시계를 받아 씁니다 — 넣어 주는 자리가 없으면 `uTime` 이
+ * 0 에 굳어 무늬가 흐르지 않습니다.
+ */
+interface LookTick {
+  at(time: number): void
+  /** 지금 보고 있는 시각과 기울기. **도구가 봅니다.** */
+  seen(): { time: number; tilt: number } | undefined
+}
+
 /** 펼친 팩의 카드 한 장. 얼굴과, 그 한 장이 자기만 아는 것들입니다. */
 interface PackView {
   face: PackFace
+  /** 이 카드의 겉면. 판이 걸린 것만 있습니다. */
+  look?: LookTick
   motion: Motion
   /**
    * 고른 한 장이 올라온 높이.
@@ -1286,16 +1301,17 @@ export class Game {
    */
   private readonly gameOverJokers: { view: JokerView; joker: JokerInstance }[] = []
   /**
-   * 줄 밖에 선 딱지들. **겉면만 틱을 받습니다.**
+   * 겉면만 시각을 받는 것. **딱지 하나이거나 얼굴에 걸린 셰이더 하나입니다.**
    *
-   * 상점의 칸 · 팩에 펼친 카드 · 진 판의 판에 선 것이 여기 들어옵니다. 이것들은
-   * `this.jokers` 에 없으므로 `advance` 를 받지 못했고, 그래서 **판의 셰이더가 `uTime` 0 에
-   * 굳어 무늬가 흐르지 않았습니다.**
+   * 줄에 선 딱지는 `advance` 가 자리와 겉면을 함께 돌리지만, 상점의 칸 · 팩에 펼친 카드 ·
+   * 소모품 칸 · 진 판의 판에 선 것은 자리를 부르는 쪽이 정합니다 — 그것들에까지 `advance`
+   * 를 부르면 용수철이 딱지를 제 목표(0, 0)로 끌어갑니다. 그렇다고 아무것도 부르지 않으면
+   * 판의 셰이더가 시각을 받지 못해 `uTime` 이 0 에 굳고, 무늬가 흐르지 않습니다.
    *
-   * **지워진 것은 스스로 빠집니다.** 이 셋은 다시 그릴 때마다 통째로 버려지고 새로
-   * 만들어지므로, 담는 쪽에서 수명을 따라다니면 반드시 한 곳을 빠뜨립니다.
+   * **이 넷은 저마다 자기 표에 담아 둡니다.** 따로 목록을 두고 「지워진 것」으로 걷어내려
+   * 했는데, Pixi 의 `destroy()` 는 자식까지 지우지 않으므로 그 표시가 서지 않습니다 —
+   * 통을 버려도 그 안의 딱지는 `destroyed` 가 거짓인 채로 남습니다.
    */
-  private readonly lookTicks: JokerView[] = []
   private readonly selected = new Set<number>()
   /**
    * 고른 조커나 소모품 하나.
@@ -1370,7 +1386,9 @@ export class Game {
                       * **칸의 테두리는 그대로 있습니다.** 칸은 상점의 자리이고 올라가는 것은
                       * 그 자리에 놓인 물건이므로, 통째로 올리면 진열대가 함께 들립니다.
                       */
-                     lift: Container }>()
+                     lift: Container
+                     /** 이 칸에 선 물건의 겉면. 판이 걸린 것만 있습니다. */
+                     look?: LookTick }>()
   /**
    * 다시 세우기 전에 딱지들이 서 있던 자리. **칸의 차례대로 한 줄입니다.**
    *
@@ -1445,6 +1463,8 @@ export class Game {
   private readonly consumableTiles: {
     uid: number
     tile: Container
+    /** 이 칸의 겉면. 판이 걸린 것만 있습니다. */
+    look?: LookTick
     /** 이 칸의 제자리. 들리는 것과 오는 것이 이 자리를 기준으로 얹힙니다. */
     baseX: number
     baseY: number
@@ -6333,15 +6353,8 @@ export class Game {
       this.burning.splice(i, 1)
     }
 
-    // 줄 밖에 선 딱지들. **겉면만 돌리고, 지워진 것은 여기서 빠집니다.**
-    for (let i = this.lookTicks.length - 1; i >= 0; i--) {
-      const view = this.lookTicks[i]
-      if (view.destroyed) {
-        this.lookTicks.splice(i, 1)
-        continue
-      }
-      view.lookAt(this.clock)
-    }
+    // 줄 밖에 선 것들. **겉면만 돌립니다.**
+    this.advanceLooks()
 
     // **판이 끝났고 카드가 다 나갔으면 덱으로 돌아옵니다.** 한 판을 도는 동안 나간 카드
     // 전부가 한 번에 돌아옵니다 — 격파한 그 박자에 그때까지 나간 것만 돌려보내면, 낸 카드와
@@ -6786,8 +6799,38 @@ export class Game {
     this.pointerMoved = false
   }
 
+  /**
+   * 이 통의 겉면을 시계에 붙일 것. 붙일 것이 없으면 `undefined` 입니다.
+   *
+   * 딱지(`JokerView`)이면 그것이 알아서 돌고, 얼굴이면 거기 걸린 판의 셰이더 하나입니다 —
+   * `itemCard` 가 둘 중 하나를 돌려주므로 부르는 쪽은 가리지 않습니다.
+   */
+  private lookOf(node: Container, tilt?: () => number): LookTick | undefined {
+    if (node instanceof JokerView) {
+      return { at: time => node.lookAt(time), seen: () => node.editionAt }
+    }
+    const one = faceEdition(node)
+    if (!one) return undefined
+    return { at: time => one.at(time, tilt?.() ?? 0), seen: () => one.seen }
+  }
+
+  /** 줄 밖에 선 것들의 겉면을 한 틱. **표 넷을 그대로 걷습니다.** */
+  private advanceLooks(): void {
+    for (const [, one] of this.shopTiles) one.look?.at(this.clock)
+    for (const one of this.packViews.values()) one.look?.at(this.clock)
+    for (const one of this.consumableTiles) one.look?.at(this.clock)
+    for (const one of this.gameOverJokers) {
+      if (!one.view.destroyed) one.view.lookAt(this.clock)
+    }
+  }
+
+  /** 이 가로 자리에서의 기울기. 커서가 가까울수록 0 에 가깝습니다. */
+  private tiltAt(x: number): number {
+    return Math.max(-1, Math.min(1, (this.pointerAt.x - x) / 90))
+  }
+
   private tiltFor(view: Container): number {
-    return Math.max(-1, Math.min(1, (this.pointerAt.x - view.x) / 90))
+    return this.tiltAt(view.x)
   }
 
   /**
@@ -7012,8 +7055,12 @@ export class Game {
       editionAt: {
         tray: [...this.jokers.values()].map(one => one.editionAt)
           .filter(one => one !== undefined),
-        look: this.lookTicks.filter(one => !one.destroyed).map(one => one.editionAt)
-          .filter(one => one !== undefined),
+        look: [
+          ...[...this.shopTiles.values()].map(one => one.look?.seen()),
+          ...[...this.packViews.values()].map(one => one.look?.seen()),
+          ...this.consumableTiles.map(one => one.look?.seen()),
+          ...this.gameOverJokers.map(one => one.view.editionAt),
+        ].filter(one => one !== undefined),
       },
       // 조커와 소모품의 자리, 그리고 카드가 실제로 그려진 사각형들.
       //
@@ -7299,14 +7346,15 @@ export class Game {
          * 두 컷의 차이가 정확히 그만큼입니다. **한 번 잡으면 이 판에서는 놓지 않습니다.**
          */
         holdWave: (phase: number) => this.scoreWave.hold(phase),
-        grantConsumable: (count: number) => {
+        grantConsumable: (count: number, edition = 0) => {
           const rows = this.data.tables.tarot.records
           for (let i = 0; i < count && i < rows.length; i++) {
             this.state.consumables.push({
               uid: this.state.nextUid++,
               kind: 1 as never,
               id: rows[i].tarotId,
-              edition: 0 as never,
+              // 판을 돌려 가며 겁니다. `grantJoker` 와 같은 규칙입니다.
+              edition: (edition === 0 ? 0 : 1 + (i + edition - 1) % 4) as never,
             })
           }
           this.refresh()
@@ -7387,12 +7435,7 @@ export class Game {
   // ---------------------------------------------------------------- 다시 그리기
 
   private editionLook(edition: EditionKind): EditionLook | undefined {
-    const row = this.data.tables.editionVisual.findByEdition(edition)
-    if (!row || row.shader === 'none') return undefined
-    return {
-      shader: row.shader as EditionLook['shader'],
-      strength: row.strength, flowSpeed: row.flowSpeed, noise: row.noise,
-    }
+    return editionLookOf(this.data, edition)
   }
 
   private refresh(): void {
@@ -8801,7 +8844,6 @@ export class Game {
       view.scale.set(small)
       board.addChild(view)
       this.gameOverJokers.push({ view, joker })
-      this.lookTicks.push(view)
     }
     yy += 84 + 14
 
@@ -10683,6 +10725,7 @@ export class Game {
       // (`spotOf` · `placeArriving` · 태우기) 축을 옮기면 그 값들의 뜻이 함께 바뀝니다.
       face.pivot.set(SIZE.jokerWidth / 2, SIZE.jokerHeight / 2)
       face.position.set(SIZE.jokerWidth / 2, SIZE.jokerHeight / 2)
+
       tile.addChild(face)
       tile.hitArea = new Rectangle(0, 0, SIZE.jokerWidth, SIZE.jokerHeight)
       tile.eventMode = 'static'
@@ -10693,7 +10736,12 @@ export class Game {
         if (this.ate()) return
         this.pick('consumable', item.uid)
       })
-      const entry = { uid: item.uid, tile, baseX: tile.x, baseY: tile.y }
+      // **줄에 서는 것은 기울기도 따라갑니다.** 옆에 선 조커가 커서를 따라 기우는데
+      // 소모품만 굳어 있으면 한 줄에 두 가지 규칙이 섭니다. 칸은 다시 그릴 때마다 새로
+      // 만들어지므로 자리는 값 하나로 잡아 둡니다.
+      const anchorX = tile.x + SIZE.jokerWidth / 2
+      const entry = { uid: item.uid, tile, baseX: tile.x, baseY: tile.y,
+                      look: this.lookOf(face, () => this.tiltAt(anchorX)) }
       this.consumableTiles.push(entry)
       // **오는 중인 것은 첫 프레임부터 오는 자리에 둡니다.** 칸은 다시 그릴 때마다 새로
       // 만들어지고 오는 길을 얹는 것은 다음 틱이라, 그 사이 한 프레임 동안 제 칸에 보입니다 —
@@ -11346,6 +11394,7 @@ export class Game {
     // 여기서 옮기지 않으면 새 자리에 한 프레임 보이고 나서 지난 자리로 뛰었다 돌아옵니다.
     tile.x = baseX + slide
     this.shopTiles.set(slot, { tile, baseX, baseY: tile.y, price, key, slide, lift,
+                               look: this.lookOf(card),
                                mid: baseX + CELL_W * fit / 2,
                                holdY: tile.y + (8 + SIZE.jokerHeight - SHOP_LIFT + 4) * fit })
     // **누르면 고르기만 합니다.** 사는 것은 그 밑에 서는 단추가 합니다.
@@ -11386,8 +11435,6 @@ export class Game {
       // 상점의 카드는 흔들리지 않습니다. 줄에 선 것과 달리 고를 것이지 도는 것이 아닙니다.
       view.pivot.set(0, 0)
       view.position.set(0, 0)
-      // **겉면은 흐릅니다.** 흔들지 않는 것과 무늬가 멈추는 것은 다른 일입니다.
-      this.lookTicks.push(view)
       return view
     }
 
@@ -12346,6 +12393,7 @@ export class Game {
 
       this.packViews.set(index, {
         face, motion, index, item, lift: new Spring(),
+        look: this.lookOf(face.card),
         // 황금비만큼씩 벌려 둡니다. 정수 배로 벌리면 장수가 짝수일 때 두 장씩 같은 자리가
         // 됩니다.
         sway: index * 2.399_96,

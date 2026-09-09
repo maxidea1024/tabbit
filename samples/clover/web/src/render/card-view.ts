@@ -12,7 +12,7 @@ import { EditionKind } from '../generated/enums/edition-kind'
 import { EnhancementKind } from '../generated/enums/enhancement-kind'
 import { SealKind } from '../generated/enums/seal-kind'
 import type { CardInstance } from '../core/state'
-import { EditionFilter, type EditionShader } from '../shader/editions'
+import { EDITION_SHADER, EditionFilter, type EditionLook } from '../shader/editions'
 import { roundedMask } from '../shader/mask'
 import { PickFilter } from '../shader/pick'
 import {
@@ -80,19 +80,7 @@ const SEAL_COLOR: Partial<Record<SealKind, number>> = {
   [SealKind.Purple]: 0x9a5bd2,
 }
 
-const EDITION_SHADER: Partial<Record<EditionKind, EditionShader>> = {
-  [EditionKind.Foil]: 'foil',
-  [EditionKind.Holographic]: 'holo',
-  [EditionKind.Polychrome]: 'poly',
-  [EditionKind.Negative]: 'negative',
-}
-
-export interface EditionLook {
-  shader: EditionShader
-  strength: number
-  flowSpeed: number
-  noise: number
-}
+export type { EditionLook }
 
 /**
  * 득점한 카드가 내려올 때의 용수철.

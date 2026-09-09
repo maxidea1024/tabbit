@@ -11,6 +11,33 @@
 
 import { Filter, GlProgram, Texture } from 'pixi.js'
 
+import { EditionKind } from '../generated/enums/edition-kind'
+
+/**
+ * 에디션마다 어느 셰이더인가. **`Base` 에는 없습니다.**
+ *
+ * 카드 · 조커 · 소모품이 같은 표를 봅니다 — 셋이 저마다 적어 두면 하나를 더할 때 두 곳만
+ * 고쳐지고, 빠진 하나는 아무 셰이더도 걸리지 않은 채로 지나갑니다.
+ */
+export const EDITION_SHADER: Partial<Record<EditionKind, EditionShader>> = {
+  [EditionKind.Foil]: 'foil',
+  [EditionKind.Holographic]: 'holo',
+  [EditionKind.Polychrome]: 'poly',
+  [EditionKind.Negative]: 'negative',
+}
+
+/**
+ * 셰이더 하나에 넘기는 것. **`EditionVisual` 표의 한 줄입니다.**
+ *
+ * 세기를 고치는 것이 코드가 아니라 시트이므로, 읽는 쪽은 이 모양으로만 받습니다.
+ */
+export interface EditionLook {
+  shader: EditionShader
+  strength: number
+  flowSpeed: number
+  noise: number
+}
+
 /**
  * Pixi v8 의 필터가 요구하는 정점 셰이더. 네 필터가 공유합니다.
  *
@@ -222,5 +249,16 @@ export class EditionFilter extends Filter {
     const uniforms = this.resources.editionUniforms.uniforms as Record<string, number>
     uniforms.uTime = time
     uniforms.uTilt = tilt
+  }
+
+  /**
+   * 지금 보고 있는 시각과 기울기. **도구가 봅니다.**
+   *
+   * 둘 다 무늬의 위상에 그대로 들어갑니다 — 흐르지 않는 것은 시각이 멈춘 것이고, 튀는
+   * 것은 기울기가 뛴 것입니다. **눈으로는 그 둘이 갈리지 않습니다.**
+   */
+  get seen(): { time: number; tilt: number } {
+    const uniforms = this.resources.editionUniforms.uniforms as Record<string, number>
+    return { time: uniforms.uTime, tilt: uniforms.uTilt }
   }
 }
