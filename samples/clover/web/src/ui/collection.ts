@@ -270,6 +270,9 @@ export class CollectionPanel implements ModalPanel {
     //
     // **모아서 다음 프레임에 처리합니다.** 한 프레임에 여럿이 도착하면 그만큼 짓는 것이
     // 아니라 한 번입니다.
+    // **들어온 것과 놓은 것을 가리지 않습니다.** `art.ts` 가 둘 다 같은 길로 알리고,
+    // 이쪽이 할 일도 둘 다 같습니다 — 그 칸을 다시 짓는 것입니다. 놓은 것을 흘리면 그
+    // 칸이 두 틱 뒤에 버려진 그림을 가리킨 채로 남습니다.
     onArtReady(key => {
       if (!this.view.parent) return
       const id = key.slice(key.indexOf('/') + 1)
@@ -799,7 +802,10 @@ export class CollectionPanel implements ModalPanel {
   private repaint(id: string): void {
     for (const one of this.placed) {
       if (one.cell.id !== id) continue
-      const at = this.grid.getChildIndex(one.node)
+      // **격자에 없으면 건너뜁니다.** `getChildIndex` 는 없는 자식에 예외를 던지는데,
+      // 이 함수는 판의 `advance` 안이라 그 예외가 그 프레임의 나머지를 통째로 죽입니다.
+      const at = this.grid.children.indexOf(one.node)
+      if (at < 0) continue
       one.node.destroy({ children: true })
       one.node = this.cellNode(one.cell, one.x, one.y)
       this.grid.addChildAt(one.node, at)

@@ -6760,6 +6760,33 @@ export class Game {
     return Math.max(-1, Math.min(1, (this.pointerAt.x - view.x) / 90))
   }
 
+  /**
+   * 버려진 그림을 가리키고 있는 스프라이트의 수.
+   *
+   * **`art.ts` 의 규약이 지켜지는지를 재는 값입니다.** 상한을 넘으면 오래된 것부터 놓고
+   * 두 틱 뒤에 버리는데, 그 사이에 알림을 받은 쪽이 다시 그려 그 그림을 놓아야 합니다 —
+   * 놓지 않으면 버려진 그림을 가리킨 채로 그리게 되고, 그 자리는 기계에 따라 빈 칸이
+   * 되거나 그리기가 통째로 죽습니다.
+   *
+   * **눈으로는 갈리지 않습니다.** 데스크탑에서는 빈 칸조차 나오지 않았고 도감은 멀쩡해
+   * 보였습니다. 수로 세지 않으면 알 길이 없는 자리입니다.
+   *
+   * 값을 읽는 순간에만 걷습니다 — `peek` 이 getter 입니다.
+   */
+  private deadArt(): [number, number] {
+    let dead = 0
+    let all = 0
+    const walk = (node: Container): void => {
+      if (node instanceof Sprite) {
+        all++
+        if (node.texture.source.destroyed) dead++
+      }
+      for (const child of node.children) walk(child as Container)
+    }
+    walk(this.app.stage)
+    return [dead, all]
+  }
+
   private peek(): unknown {
     const state = this.state
     return {
@@ -6767,6 +6794,8 @@ export class Game {
       scene: this.scene,
       // 지금 들고 있는 그림의 크기. **상한이 실제로 도는지를 이것으로 봅니다.**
       artBytes: artBytes(),
+      // 버려진 그림을 가리키고 있는 스프라이트의 수와 전체 수. **앞엣것이 늘 0 이어야 합니다.**
+      deadArt: this.deadArt(),
       // 배경음이 무엇을 어떻게 내고 있는가.
       music: this.audio.music.report(),
       // **소리가 안 나는 그 순간에 읽을 자리입니다.** 원인이 넷이고 서로 구별됩니다 —

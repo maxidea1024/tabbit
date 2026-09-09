@@ -60,11 +60,19 @@ const known = new Set<string>()
 const ready = new Map<string, Held>()
 const loading = new Set<string>()
 /**
- * 그림이 새로 들어올 때마다 부릅니다. 화면이 그때 다시 그립니다.
+ * 그림이 들어오거나 놓일 때마다 부릅니다. 화면이 그때 다시 그립니다.
  *
  * **어느 그림인지를 넘깁니다.** 받는 쪽이 자기가 쓰는 것인지 가릴 수 있어야 합니다 —
  * 넘기지 않으면 도감을 굴리는 중에 도착한 조커 그림 하나가 옵션 판과 상점을 함께 다시
  * 그리게 합니다.
+ *
+ * **들어온 것과 놓은 것을 가리지 않고 알립니다.** 받는 쪽이 해야 하는 일이 둘 다 같기
+ * 때문입니다 — 그 열쇠의 그림을 쓰는 자리를 다시 그리는 것입니다. 들어온 것이면 문양이
+ * 그림으로 바뀌고, 놓은 것이면 그림이 문양으로 돌아가며 **버려질 그림을 가리키지 않게
+ * 됩니다.**
+ *
+ * **열쇠를 보고 거르는 쪽은 놓은 것도 받아야 합니다.** 걸러 놓고 들어온 것만 처리하면,
+ * 놓인 그림을 쓰던 자리가 두 틱 뒤에 버려진 그림을 가리킨 채로 남습니다.
  */
 const listeners: ((key: string) => void)[] = []
 
@@ -134,8 +142,13 @@ export function artFor(kind: ArtDir, id: string): Texture | undefined {
     const bytes = texture.source.pixelWidth * texture.source.pixelHeight * 4
     ready.set(key, { texture, url, bytes, used: ++clock })
     heldBytes += bytes
-    trim()
-    for (const listener of listeners) listener(key)
+    // **놓은 것도 함께 알립니다.** 놓는 것과 버리는 것이 두 틱 떨어져 있는 것은 그 사이에
+    // 받는 쪽이 다시 그려 그 그림을 놓으라는 뜻입니다 — 놓은 열쇠를 알리지 않으면 받는
+    // 쪽은 자기가 그 그림을 쓰고 있다는 것을 알 길이 없고, 두 틱 뒤에 버려진 그림을
+    // 가리킨 채로 그립니다.
+    for (const one of [key, ...trim()]) {
+      for (const listener of listeners) listener(one)
+    }
   }).catch(() => {
     loading.delete(key)
     // 한 번 실패하면 다시 시도하지 않습니다. 문양으로 남습니다.
@@ -155,16 +168,19 @@ export function artFor(kind: ArtDir, id: string): Texture | undefined {
  * **화면에 있는 것은 거의 걸리지 않습니다.** 보이는 것은 다시 그릴 때마다 부탁받으므로
  * 차례가 늘 최근이고, 오래된 쪽은 지나쳐 온 것들입니다.
  */
-function trim(): void {
-  if (heldBytes <= BUDGET) return
+function trim(): string[] {
+  if (heldBytes <= BUDGET) return []
 
+  const dropped: string[] = []
   const order = [...ready].sort((one, other) => one[1].used - other[1].used)
   for (const [key, one] of order) {
     if (heldBytes <= BUDGET) break
     ready.delete(key)
     heldBytes -= one.bytes
     retiring.push({ texture: one.texture, url: one.url, at: frame })
+    dropped.push(key)
   }
+  return dropped
 }
 
 /**
