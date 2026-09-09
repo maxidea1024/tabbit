@@ -6,6 +6,7 @@
 // 스프라이트를 쓰지 않고 `Graphics` 하나에 매 프레임 다시 그립니다 — 수십 개짜리에는
 // 그것이 더 싸고, 그림 파일이 없다는 이 샘플의 성질과도 맞습니다.
 
+import { PAINT } from './ink'
 import { Container, Graphics } from 'pixi.js'
 
 interface Particle {
@@ -195,9 +196,9 @@ export class Particles extends Container {
     const inx = half - 1.4
     const iny = tall - 2
     this.canvas.poly(quad(inx, iny))
-      .stroke({ color: 0x000000, alpha: alpha * 0.45, width: 1 })
+      .stroke({ color: PAINT.veil, alpha: alpha * 0.45, width: 1 })
     this.canvas.poly(quad(inx * 0.5, iny * 0.34))
-      .fill({ color: 0x000000, alpha: alpha * 0.22 })
+      .fill({ color: PAINT.veil, alpha: alpha * 0.22 })
   }
 
   advance(seconds: number): void {

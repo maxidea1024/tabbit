@@ -78,9 +78,12 @@ export interface TransitionSpec {
   cue: string
 }
 
+/** 갈아 끼우는 동안 덮는 색. **거의 검정입니다** — 화면이 지워졌다 돌아옵니다. */
+const FADE_INK = 0x05070d
+
 /** 시트가 정하지 않은 자리에 쓰는 것. **표를 읽지 못해도 화면은 갈립니다.** */
 const FALLBACK: TransitionSpec = {
-  kind: 'fade', outMs: 160, holdMs: 0, inMs: 160, ink: 0x05070d, toward: true, cue: '',
+  kind: 'fade', outMs: 160, holdMs: 0, inMs: 160, ink: FADE_INK, toward: true, cue: '',
 }
 
 /** 시트의 갈래를 화면의 이름으로. */
@@ -134,7 +137,7 @@ export interface Crossings {
 /** `#rrggbb` 를 수로. */
 function colorOf(text: string): number {
   const value = Number.parseInt(text.replace('#', ''), 16)
-  return Number.isFinite(value) ? value : 0x05070d
+  return Number.isFinite(value) ? value : FADE_INK
 }
 
 export interface TransitionPeek {

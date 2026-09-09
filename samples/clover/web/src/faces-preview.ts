@@ -9,11 +9,12 @@
 // **큰 것과 작은 것을 함께 세웁니다.** 손패의 크기에서 뭉개지는 것은 큰 그림에서 보이지
 // 않고, 큰 그림에서 엉성한 것은 작은 그림에서 보이지 않습니다.
 
+import { COLOR } from './render/ink'
 import { Application, Container, Graphics, Text } from 'pixi.js'
 
 import { SuitKind } from './generated/enums/suit-kind'
 import { cornerSize, drawFace, drawSuit } from './render/pips'
-import { COLOR, SIZE } from './render/theme'
+import { UI, SIZE } from './render/theme'
 
 /** 왼쪽에서 오른쪽으로. 랭크의 순서입니다. */
 const RANKS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
@@ -81,7 +82,7 @@ function card(suit: SuitKind, rank: number, ink: number, scale: number): Contain
 function heading(text: string, x: number, y: number): Text {
   const node = new Text({
     text,
-    style: { fontSize: 13, fill: COLOR.good, fontWeight: '800', letterSpacing: 1 },
+    style: { fontSize: 13, fill: UI.good, fontWeight: '800', letterSpacing: 1 },
   })
   node.position.set(x, y)
   return node
@@ -91,7 +92,7 @@ async function main(): Promise<void> {
   const app = new Application()
   await app.init({
     canvas: document.getElementById('stage') as HTMLCanvasElement,
-    background: COLOR.ground,
+    background: UI.ground,
     antialias: true,
     resolution: Math.min(3, window.devicePixelRatio || 1),
     autoDensity: true,

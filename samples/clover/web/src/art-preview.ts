@@ -16,7 +16,7 @@ import { loadFromUrl } from './core/load'
 import { loadArtIndex, onArtReady } from './render/art'
 import { BackgroundFilter } from './shader/background'
 import { JokerView } from './render/joker-view'
-import { COLOR, SIZE } from './render/theme'
+import { UI, SIZE } from './render/theme'
 import type { JokerInstance } from './core/state'
 
 const COLUMNS = 10
@@ -34,7 +34,7 @@ async function main(): Promise<void> {
   const app = new Application()
   await app.init({
     canvas: document.getElementById('stage') as HTMLCanvasElement,
-    background: COLOR.ground,
+    background: UI.ground,
     antialias: true,
     resolution: Math.min(3, window.devicePixelRatio || 1),
     autoDensity: true,
@@ -66,7 +66,7 @@ async function main(): Promise<void> {
   const heading = new Text({
     text: `조커 ${all.length}종 · ${at} / ${pages} 쪽 · 풀 ${pool}`
       + `   ·   그림이 있는 것 ${have}개`,
-    style: { fontSize: 18, fill: COLOR.ink, fontWeight: '800' },
+    style: { fontSize: 18, fill: UI.ink, fontWeight: '800' },
   })
   heading.position.set(24, 20)
   world.addChild(heading)

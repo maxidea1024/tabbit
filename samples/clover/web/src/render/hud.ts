@@ -9,10 +9,10 @@ import { t, tf } from '../core/strings'
 import { NUMERALS, outline, outlined, outlineOf, outlineWidth } from '../ui/font'
 import { type Anchor, type Box, box, BOTTOM, inset, pointOf, putText, splitY }
   from '../ui/layout'
-import { richBlock, rowsOf, type RichStyle } from '../ui/rich'
+import { richLeading, richStyle, richBlock, rowsOf, type RichStyle } from '../ui/rich'
 import { mix, plate, slotStyle } from './skin'
 import { Spring } from './motion'
-import { COLOR, UI } from './theme'
+import { UI, TEXT, WEIGHT } from './theme'
 
 /** 값 하나가 들어가는 칸. */
 /** 이름이 앉는 띠의 높이. 숫자는 그 아래의 남은 자리를 씁니다. */
@@ -58,8 +58,8 @@ const MUTE_MS = 620
  * 사라지므로, 그 글을 놓치면 무엇이 늘었고 무엇이 줄었는지가 남지 않습니다 — 판때기가
  * 초록으로 밝았는가 붉게 밝았는가는 눈 구석으로도 읽힙니다.
  */
-const UP_INK = COLOR.good
-const DOWN_INK = COLOR.bad
+const UP_INK = UI.good
+const DOWN_INK = UI.bad
 
 /** 글자 하나가 튀었다 앉는 데 걸리는 시간. */
 const WAVE_MS = 300
@@ -280,7 +280,7 @@ class Digits extends Container {
 export class Slot extends Container {
   private readonly plate = new Graphics()
   private readonly caption_ = new Text({
-    text: '', style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '700' },
+    text: '', style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
   })
   /**
    * 값이 앉는 것.
@@ -377,11 +377,11 @@ export class Slot extends Container {
     // **칸마다 숫자 크기가 다릅니다.** 테두리의 굵기는 크기에서 나오는 값이므로 크기와
     // 함께 정합니다.
     this.valueStyle = new TextStyle({
-      ...outlined(valueSize, 0x0a0f18, true),
-      fill: COLOR.ink, fontWeight: '800', fontFamily: NUMERALS,
+      ...outlined(valueSize, UI.outline, true),
+      fill: UI.ink, fontWeight: WEIGHT.bold, fontFamily: NUMERALS,
     })
     this.valueStyle.fontSize = valueSize
-    this.valueStyle.stroke = outline(valueSize, 0x0a0f18, true)
+    this.valueStyle.stroke = outline(valueSize, UI.outline, true)
     this.value = wave
       ? new Digits(this.valueStyle, pull)
       : new Text({ text: '0', style: this.valueStyle })
@@ -400,7 +400,7 @@ export class Slot extends Container {
     // 할 일이 없고, 테를 두르면 12픽셀 이름 옆에서 숫자만 굵어 보입니다 — 테는 색 상자
     // 위에 앉는 칩과 배수에만 남습니다.
     this.valueStyle.stroke = outlineOf(
-      this.row ? 0 : outlineWidth(valueSize, true), 0x0a0f18)
+      this.row ? 0 : outlineWidth(valueSize, true), UI.outline)
     if (this.row) {
       // 이름은 왼쪽, 값은 오른쪽. **값은 오른쪽 끝에 붙으므로 `pull` 이 1 입니다** — ±N
       // 글이 같은 자리에 서려면 그 기준이 같아야 합니다.
@@ -834,21 +834,21 @@ export class BlindBadge extends Container {
   private readonly lead = new Container()
   private readonly info = new Container()
   private readonly title = new Text({
-    text: '', style: { fontSize: 15, fill: COLOR.ink, fontWeight: '800' },
+    text: '', style: { fontSize: TEXT.base, fill: UI.ink, fontWeight: WEIGHT.bold },
   })
   private readonly need = new Text({
     text: '',
-    style: { fontSize: 32, fill: UI.bar, fontWeight: '800', fontFamily: NUMERALS },
+    style: { fontSize: TEXT.banner, fill: UI.bar, fontWeight: WEIGHT.bold, fontFamily: NUMERALS },
   })
   /** 요구 점수라는 것을 적는 작은 글. */
   private readonly caption = new Text({
     text: '',
-    style: { fontSize: 10, fill: COLOR.inkDim, fontWeight: '700', letterSpacing: 1 },
+    style: { fontSize: TEXT.micro, fill: UI.inkDim, fontWeight: WEIGHT.normal, letterSpacing: 1 },
   })
   /** 보스의 규칙 한 줄. 수가 그 규칙의 요점이라 여기도 강조가 붙습니다. */
   private readonly note = new Container()
   private readonly reward = new Text({
-    text: '', style: { fontSize: 13, fill: COLOR.money, fontWeight: '700' },
+    text: '', style: { fontSize: TEXT.body, fill: UI.money, fontWeight: WEIGHT.normal },
   })
 
   /**
@@ -861,16 +861,13 @@ export class BlindBadge extends Container {
   private seal?: Container
 
   /** 굵은 한 줄 · 옅은 몇 줄 · 규칙 한 줄. 크기만 다르고 강조의 색은 같습니다. */
-  private static readonly LEAD_RICH: RichStyle = {
-    base: { fontSize: 13, fill: COLOR.ink, fontWeight: '800' },
-    number: COLOR.accentNumber,
-    term: COLOR.accentTerm,
+  private static leadRich(): RichStyle {
+    const style = richStyle('body')
+    return { ...style, base: { ...style.base, fontWeight: WEIGHT.bold } }
   }
 
-  private static readonly INFO_RICH: RichStyle = {
-    base: { fontSize: 11, fill: COLOR.inkDim },
-    number: COLOR.accentNumber,
-    term: COLOR.accentTerm,
+  private static infoRich(): RichStyle {
+    return richStyle('note')
   }
 
   /**
@@ -960,11 +957,11 @@ export class BlindBadge extends Container {
     this.caption.text = ''
     this.need.text = ''
     this.reward.text = ''
-    this.fill(this.note, [], BlindBadge.INFO_RICH, 15, 0)
+    this.fill(this.note, [], BlindBadge.infoRich(), richLeading('note'), 0)
 
-    const rows = this.fill(this.lead, [lead], BlindBadge.LEAD_RICH, 18, 50)
+    const rows = this.fill(this.lead, [lead], BlindBadge.leadRich(), richLeading('body'), 50)
     // 굵은 줄 바로 아래입니다. 굵은 줄이 두 줄이면 그만큼 내려섭니다.
-    this.fill(this.info, lines, BlindBadge.INFO_RICH, 16, 50 + rows * 18 + 10)
+    this.fill(this.info, lines, BlindBadge.infoRich(), richLeading('note'), 50 + rows * richLeading('body') + 10)
 
     this.setTags(tags)
   }
@@ -980,8 +977,8 @@ export class BlindBadge extends Container {
   set(name: string, target: number, reward: number, note: string,
       boss: boolean, big = false, seal?: Container, tags: Container[] = []): void {
     this.settle(`blind|${name}|${target}|${reward}|${note}`)
-    this.fill(this.lead, [], BlindBadge.LEAD_RICH, 18, 0)
-    this.fill(this.info, [], BlindBadge.INFO_RICH, 16, 0)
+    this.fill(this.lead, [], BlindBadge.leadRich(), richLeading('body'), 0)
+    this.fill(this.info, [], BlindBadge.infoRich(), richLeading('note'), 0)
     // **딱지는 자라지 않습니다.**
     //
     // 두 가지가 키우고 있었습니다 — 들고 있는 태그를 아래에 한 줄로 세운 것과, 보스의
@@ -996,7 +993,7 @@ export class BlindBadge extends Container {
     // **판을 물들이지 않습니다.** 셋이 저마다의 바탕색이면 판 셋이 서로 다른 물건이 되고,
     // 어느 블라인드인지는 이름과 문양이 이미 말합니다 — 색은 이름 앞의 문양 하나에만
     // 듭니다.
-    const mark = boss ? UI.red : big ? 0xa279e0 : UI.bar
+    const mark = boss ? UI.red : big ? UI.legendary : UI.bar
 
     this.plate.clear()
     plate(this.plate, this.boxWidth, height, {
@@ -1045,7 +1042,7 @@ export class BlindBadge extends Container {
     this.reward.anchor.set(0.5, 0)
     this.reward.position.set(this.boxWidth / 2, 104)
 
-    this.fill(this.note, [note], BlindBadge.INFO_RICH, 15, 126)
+    this.fill(this.note, [note], BlindBadge.infoRich(), richLeading('note'), 126)
 
     this.setTags(tags)
   }

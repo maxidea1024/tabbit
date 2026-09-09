@@ -7,6 +7,8 @@
 // **쪽 넘김이 아니라 굴림인 이유**는 목록이 고르는 자리이기 때문입니다. 쪽을 넘기면 지금
 // 고른 것이 어느 쪽에 있었는지를 사람이 기억해야 합니다.
 
+import { PAINT } from '../render/ink'
+import { UI } from '../render/theme'
 import { Container, Graphics, type FederatedWheelEvent, type FederatedPointerEvent }
   from 'pixi.js'
 
@@ -192,7 +194,7 @@ export class ScrollView extends Container {
     // **자르는 것은 마스크입니다.** 넘친 것을 지우면 굴렸을 때 다시 만들어야 하고, 그러면
     // 굴리는 동안 매 프레임 목록을 다시 짓게 됩니다.
     const mask = new Graphics()
-    mask.rect(0, 0, width_, height_).fill(0xffffff)
+    mask.rect(0, 0, width_, height_).fill(PAINT.mask)
     this.window.mask = mask
     this.window.addChild(this.content)
 
@@ -211,7 +213,7 @@ export class ScrollView extends Container {
     // 눌리는 자리. **투명해도 자리는 있어야 합니다** — 없으면 빈 곳에서 굴리는 것이
     // 뒤로 지나갑니다.
     const hit = new Graphics()
-    hit.rect(0, 0, width_, height_).fill({ color: 0x000000, alpha: 0 })
+    hit.rect(0, 0, width_, height_).fill({ color: PAINT.hit, alpha: 0 })
     hit.eventMode = 'static'
 
     // **막대는 맨 위입니다.** 목록의 줄 아래에 있으면 그 줄이 손끝을 먼저 받습니다.
@@ -461,25 +463,25 @@ export class ScrollView extends Container {
       this.trackDrawn = true
       this.track.clear()
       this.track.roundRect(this.width_ - BAR_W - 2, 0, BAR_W, this.height_, BAR_W / 2)
-        .fill({ color: 0x1b2431 })
+        .fill({ color: UI.track })
       this.grip.clear()
       this.grip.rect(this.width_ - BAR_GRIP, 0, BAR_GRIP, this.height_)
-        .fill({ color: 0x000000, alpha: 0.0001 })
+        .fill({ color: PAINT.hit, alpha: 0.0001 })
     }
 
     bar.clear()
     shade.clear()
     this.barDrawn = true
     bar.roundRect(this.width_ - BAR_W - 2, at, BAR_W, barH, BAR_W / 2)
-      .fill({ color: this.gripAt === undefined ? 0x46566d : 0x6a7f9d })
+      .fill({ color: this.gripAt === undefined ? UI.grip : UI.gripHot })
 
     const fade = 22
     if (this.roll.offset < 0) {
-      shade.rect(0, 0, this.width_, fade).fill({ color: 0x0c121b, alpha: 0.55 })
+      shade.rect(0, 0, this.width_, fade).fill({ color: UI.scrim, alpha: 0.55 })
     }
     if (-this.roll.offset < over) {
       shade.rect(0, this.height_ - fade, this.width_, fade)
-        .fill({ color: 0x0c121b, alpha: 0.55 })
+        .fill({ color: UI.scrim, alpha: 0.55 })
     }
   }
 }

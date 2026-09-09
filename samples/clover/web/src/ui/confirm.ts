@@ -13,22 +13,22 @@
 import { Container, Graphics, Text } from 'pixi.js'
 
 import { t } from '../core/strings'
-import { COLOR, UI } from '../render/theme'
+import { UI, TEXT, WEIGHT } from '../render/theme'
 import type { ToolSpot } from './layout'
 import type { ModalPanel } from './modal'
 import { panelFrame } from './modal'
-import { richBlock, rowsOf, type RichStyle } from './rich'
+import { richLeading, richStyle, richBlock, rowsOf, type RichStyle } from './rich'
 import { Button } from './widgets'
 
 const WIDTH = 460
 const BODY_Y = 74
-const LINE = 19
+const LINE = richLeading('body')
 
 /** 아래에 붙는 목록의 강조. **판 안의 쪽지와 같은 색입니다.** */
-const NOTE_STYLE: RichStyle = {
-  base: { fontSize: 13, fill: COLOR.ink },
-  number: COLOR.money,
-  term: UI.yellow,
+/** 묻는 판의 설명. **수가 돈의 색입니다** — 이 판이 묻는 것이 대개 값이기 때문입니다. */
+function noteStyle(): RichStyle {
+  const style = richStyle('body')
+  return { ...style, number: UI.money, term: UI.yellow }
 }
 
 export class ConfirmPanel implements ModalPanel {
@@ -59,7 +59,7 @@ export class ConfirmPanel implements ModalPanel {
     const text = new Text({
       text: body,
       style: {
-        fontSize: 14, fill: COLOR.ink, wordWrap: true, wordWrapWidth: WIDTH - 72,
+        fontSize: TEXT.copy, fill: UI.ink, wordWrap: true, wordWrapWidth: WIDTH - 72,
         align: 'center', lineHeight: 21,
       },
     })
@@ -69,7 +69,7 @@ export class ConfirmPanel implements ModalPanel {
     // **높이는 내용이 정합니다.** 못박아 두면 두 줄짜리 물음에서는 아래가 비고 목록이
     // 붙은 물음에서는 단추를 덮습니다.
     const block = notes.length > 0
-      ? richBlock(notes.slice(), NOTE_STYLE, LINE, WIDTH - 72) : undefined
+      ? richBlock(notes.slice(), noteStyle(), LINE, WIDTH - 72) : undefined
     const blockTop = BODY_Y + Math.ceil(text.height) + 20
     const blockH = block ? 24 + rowsOf(block) * LINE : 0
     const height = Math.max(208, blockTop + blockH + 22 + 44 + 30)
@@ -83,7 +83,7 @@ export class ConfirmPanel implements ModalPanel {
       rule.rect(36, blockTop, WIDTH - 72, 1).fill(UI.hairline)
       const head = new Text({
         text: notesHead === '' ? t('ui.setup.effects') : notesHead,
-        style: { fontSize: 11, fill: COLOR.inkDim, fontWeight: '800', letterSpacing: 1 },
+        style: { fontSize: TEXT.mini, fill: UI.inkDim, fontWeight: WEIGHT.bold, letterSpacing: 1 },
       })
       head.position.set(36, blockTop + 8)
       block.position.set(36, blockTop + 26)
@@ -95,11 +95,11 @@ export class ConfirmPanel implements ModalPanel {
     const width = (WIDTH - 60 - gap) / 2
     const y = height - 30 - 44
 
-    const no = new Button(t('ui.button.no'), width, 44, UI.btn,
+    const no = new Button(t('ui.button.no'), width, 44, 'neutral',
                           () => this.onClose(), 16)
     no.position.set(30, y)
 
-    const ok = new Button(yes, width, 44, danger ? UI.red : 0x2f8f52, () => {
+    const ok = new Button(yes, width, 44, danger ? 'danger' : 'confirm', () => {
       this.onClose()
       this.onYes()
     }, 16)

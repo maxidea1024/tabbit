@@ -17,6 +17,7 @@
 // **겹 하나를 따로 두는 이유**는 넘어가는 것이 보여야 하기 때문입니다. 배경 셰이더 안에
 // 넣으면 유니폼 하나로 갈아치우는 것이 되어 한 프레임에 딴 화면이 됩니다.
 
+import { PAINT } from './ink'
 import { Container, Sprite, Texture, VideoSource } from 'pixi.js'
 
 import { SurgeFilter } from '../shader/surge'
@@ -131,7 +132,7 @@ const ASKED = asked('reel')
 const REEL_ALPHA = ASKED !== null && Number.isFinite(Number(ASKED))
   ? Math.max(0, Math.min(1, Number(ASKED))) : REEL_MOST
 /** 주소로 짙기를 정했으면 밝기는 그대로 둡니다. */
-const REEL_SHADE = ASKED !== null ? 0xffffff : REEL_TINT
+const REEL_SHADE = ASKED !== null ? PAINT.sheen : REEL_TINT
 
 /** 지금 무엇을 하고 있는가. 검증 도구가 읽습니다. */
 export type EuphoriaPhase = 'off' | 'charge' | 'burst' | 'fade'

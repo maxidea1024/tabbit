@@ -14,10 +14,10 @@
 // 그림 파일이 아닌 이유는 앞면과 같습니다 — 크기가 여럿(손패 · 덱 더미 · 남은 카드 보기)이고,
 // 선화라 어느 크기에서도 다시 그리는 편이 낫습니다.
 
+import { COLOR, PAINT } from './ink'
 import { Container, Graphics, Rectangle, Sprite, type Renderer, type Texture } from 'pixi.js'
 
 import { CardBackKind } from '../generated/enums/card-back-kind'
-import { COLOR } from './theme'
 
 /**
  * 뒷면 하나가 정해지는 것. **무늬 하나와 색 두 개입니다** — 셋째 색이 들어가면 선화가
@@ -208,7 +208,8 @@ function drawCardBackVector(node: Container, width: number, height: number,
   // 있고**, 그래야 무늬가 판에 가득 찬 것으로 보입니다 — 판 안에 얌전히 들어가게 그리면
   // 무늬가 아니라 판 가운데 놓인 그림이 됩니다.
   const clip = new Graphics()
-  clip.rect(inset + hair, inset + hair, panelW - hair * 2, panelH - hair * 2).fill(0xffffff)
+  clip.rect(inset + hair, inset + hair, panelW - hair * 2, panelH - hair * 2)
+    .fill(PAINT.mask)
   field.mask = clip
   node.addChild(clip, field)
 }
@@ -572,5 +573,6 @@ function diamond(g: Graphics, x: number, y: number, size: number): Graphics {
 
 /** 보색. 적청 겹침의 둘째 색이고, 그 하나뿐이라 여기 있습니다. */
 function complement(color: number): number {
+  // 비트를 뒤집는 것이지 색을 고른 것이 아닙니다.
   return 0xffffff - color
 }

@@ -17,6 +17,7 @@
 // 처음부터 전부 엽니다 — `Deck.unlock` 은 표시용 문자열로 남아 있고 이 화면은 그것을 읽지
 // 않습니다.
 
+import { STAKE_INK } from '../render/ink'
 import { Container, Graphics, Text } from 'pixi.js'
 
 import type { Data } from '../core/data'
@@ -26,7 +27,7 @@ import { stakeSlug } from '../core/stake'
 import { nameOf, t, tf } from '../core/strings'
 import { StakeKind } from '../generated/enums/stake-kind'
 import { backLookOf, drawCardBack } from '../render/card-back'
-import { COLOR, SIZE, UI } from '../render/theme'
+import { UI, SIZE, TEXT, WEIGHT } from '../render/theme'
 import type { ToolSpot } from './layout'
 import type { TipRequest } from './run-panel'
 import { Button } from './widgets'
@@ -92,16 +93,6 @@ export const SETUP_HEIGHT = HEIGHT
  * **데이터가 아니라 표시입니다.** 스테이크의 이름이 곧 색이므로 칸을 그 색으로 칠하면
  * 이름을 읽지 않고도 어느 것인지 보이고, 여덟이 한 줄에 섰을 때 순서가 색으로 읽힙니다.
  */
-const STAKE_COLOR: Record<number, number> = {
-  [StakeKind.White]: 0xf2ece0,
-  [StakeKind.Red]: 0xc0392f,
-  [StakeKind.Green]: 0x3d8b52,
-  [StakeKind.Black]: 0x26262c,
-  [StakeKind.Blue]: 0x2f6fc0,
-  [StakeKind.Purple]: 0x9a5bd2,
-  [StakeKind.Orange]: 0xd07a2f,
-  [StakeKind.Gold]: 0xe0b53b,
-}
 
 /** 이 판을 무엇으로 시작하는가. **판이 아니라 저장이 가지는 값입니다.** */
 export interface RunSetup {
@@ -249,7 +240,7 @@ export class SetupBody {
 
     for (const [index, choice] of (['base', 'all'] as PoolChoice[]).entries()) {
       const key = choice === 'all' ? 'ui.pool.all' : 'ui.pool.base'
-      const button = new Button(t(key), POOL_W, POOL_H, UI.btn,
+      const button = new Button(t(key), POOL_W, POOL_H, 'neutral',
                                 () => this.pickPool(choice), 16)
       button.position.set(POOL_X + index * (POOL_W + POOL_GAP), POOL_Y)
       // 무엇이 늘어나는지는 도감에서 봅니다. 여기서는 무엇으로 시작할지만 정합니다.
@@ -265,13 +256,13 @@ export class SetupBody {
       this.body.addChild(button)
     }
 
-    this.startButton = new Button(t('ui.setup.start'), START_W, BTN_H, UI.yellow,
+    this.startButton = new Button(t('ui.setup.start'), START_W, BTN_H, 'primary',
                                   () => this.onStart?.(this.picked()), 19)
     this.startButton.position.set(BTN_X, BTN_Y)
 
     // **랭크는 조용합니다.** 같은 색으로 같은 크기면 눌러야 하는 것이 둘로 보입니다 —
     // 이 화면에서 대개 누르는 것은 왼쪽의 하나입니다.
-    this.rankedButton = new Button(t('ui.lb.ranked'), RANKED_W, BTN_H, UI.btn,
+    this.rankedButton = new Button(t('ui.lb.ranked'), RANKED_W, BTN_H, 'neutral',
                                    () => this.onStartRanked?.(), 15)
     this.rankedButton.position.set(BTN_X + START_W + BTN_GAP, BTN_Y)
 
@@ -363,7 +354,7 @@ export class SetupBody {
   private head(label: string): Text {
     return new Text({
       text: label,
-      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '800', letterSpacing: 1 },
+      style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.bold, letterSpacing: 1 },
     })
   }
 
@@ -407,7 +398,7 @@ export class SetupBody {
       const name = new Text({
         text: this.decks[i].name,
         style: {
-          fontSize: 12, fill: here ? COLOR.ink : COLOR.inkDim, fontWeight: '800',
+          fontSize: TEXT.small, fill: here ? UI.ink : UI.inkDim, fontWeight: WEIGHT.bold,
           wordWrap: true, wordWrapWidth: CELL_W - 22, align: 'center', lineHeight: 14,
         },
       })
@@ -454,7 +445,7 @@ export class SetupBody {
     for (let i = 0; i < this.stakeRows.length; i++) {
       const row = this.stakeRows[i]
       const here = i === this.stakeAt
-      const tint = STAKE_COLOR[row.stake] ?? COLOR.inkDim
+      const tint = STAKE_INK[row.stake] ?? UI.inkDim
 
       const cell = new Container()
       const cx = STAKE_X + i * STAKE_W
@@ -472,7 +463,7 @@ export class SetupBody {
       // 묻히고, 조각으로 두면 여덟이 같은 밝기로 읽힙니다.
       board.roundRect((STAKE_W - 10) / 2 - 13, 8, 26, 16, 4)
         .fill({ color: tint })
-        .stroke({ color: UI.ink, width: 1 })
+        .stroke({ color: UI.outline, width: 1 })
       cell.addChild(board)
 
       // **두 줄까지 접힙니다.** 한국어의 이름은 색 하나(`흰색`)이지만 다른 말에는
@@ -480,7 +471,7 @@ export class SetupBody {
       const name = new Text({
         text: row.name,
         style: {
-          fontSize: 10, fill: here ? COLOR.ink : COLOR.inkDim, fontWeight: '800',
+          fontSize: TEXT.micro, fill: here ? UI.ink : UI.inkDim, fontWeight: WEIGHT.bold,
           wordWrap: true, wordWrapWidth: STAKE_W - 18, align: 'center', lineHeight: 12,
           // **글자 단위로 끊습니다.** 일본어와 중국어에는 공백이 없어 낱말 단위로만
           // 접으면 `ホワイトステーク` 가 한 줄로 남아 옆 칸을 덮습니다.

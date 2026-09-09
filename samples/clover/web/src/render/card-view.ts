@@ -5,12 +5,12 @@
 // 움직임이 절반입니다 — 카드는 늘 조금씩 흔들리고, 마우스를 따라 기울고, 골라지면
 // 튀어오르고, 득점하면 한 번 커집니다. 곧바로 목표 자리로 가는 카드는 죽어 보입니다.
 
+import { COLOR, DEAD, ENHANCEMENT_INK, ENHANCEMENT_PAPER, ENHANCEMENT_PLAIN, HINT_INK, PAINT, SEAL_INK } from './ink'
 import { Container, Graphics, Sprite, Text, type Filter } from 'pixi.js'
 import { t } from '../core/strings'
 
 import { EditionKind } from '../generated/enums/edition-kind'
 import { EnhancementKind } from '../generated/enums/enhancement-kind'
-import { SealKind } from '../generated/enums/seal-kind'
 import type { CardInstance } from '../core/state'
 import { EDITION_SHADER, EditionFilter, type EditionLook } from '../shader/editions'
 import { roundedMask } from '../shader/mask'
@@ -22,39 +22,7 @@ import { cardPaper, suitInk } from './card-set'
 import { Motion, sway, Spring } from './motion'
 import { pinBox } from './pin'
 import { cardBack, clearCardBack, drawCardBack } from './card-back'
-import { COLOR, SIZE } from './theme'
-
-/** 족보 도움의 색. **고른 카드의 초록과 달라야 헷갈리지 않습니다.** */
-const HINT_COLOR = 0xffc53d
-
-/** 강화가 카드 바탕에 주는 색. */
-const ENHANCEMENT_TINT: Partial<Record<EnhancementKind, number>> = {
-  [EnhancementKind.Bonus]: 0xcfe0f5,
-  [EnhancementKind.Mult]: 0xf5ccd2,
-  [EnhancementKind.Wild]: 0xe6d6f5,
-  [EnhancementKind.Glass]: 0xd8f0f5,
-  [EnhancementKind.Steel]: 0xd6d6d6,
-  [EnhancementKind.Stone]: 0xa9a396,
-  [EnhancementKind.Gold]: 0xf3dc99,
-  [EnhancementKind.Lucky]: 0xd2f0c6,
-}
-
-/**
- * 칩의 글씨색.
- *
- * **종이색과 짝입니다.** 칩의 바탕이 어두우므로 글씨는 그 강화의 밝은 쪽이고, 그러면
- * 무엇이 붙었는지가 글을 읽기 전에 색으로 먼저 읽힙니다.
- */
-const ENHANCEMENT_INK: Partial<Record<EnhancementKind, number>> = {
-  [EnhancementKind.Bonus]: 0x9ecbff,
-  [EnhancementKind.Mult]: 0xff9fae,
-  [EnhancementKind.Wild]: 0xd5aef7,
-  [EnhancementKind.Glass]: 0x9fe4f0,
-  [EnhancementKind.Steel]: 0xdadada,
-  [EnhancementKind.Stone]: 0xd8d0bf,
-  [EnhancementKind.Gold]: 0xffd873,
-  [EnhancementKind.Lucky]: 0xa6ea8e,
-}
+import { UI, SIZE } from './theme'
 
 /**
  * 강화가 카드에 다는 글의 열쇠.
@@ -74,12 +42,6 @@ const ENHANCEMENT_MARK_KEY: Partial<Record<EnhancementKind, string>> = {
   [EnhancementKind.Lucky]: 'ui.enhancement.lucky',
 }
 
-const SEAL_COLOR: Partial<Record<SealKind, number>> = {
-  [SealKind.Red]: 0xd23b3b,
-  [SealKind.Blue]: 0x3b7fd2,
-  [SealKind.Gold]: 0xe0b53b,
-  [SealKind.Purple]: 0x9a5bd2,
-}
 
 export type { EditionLook }
 
@@ -144,7 +106,7 @@ export class CardView extends Container {
    */
   private readonly markPlate = new Graphics()
   private readonly mark = new Text({
-    text: '', style: { fontSize: 10, fill: 0xf2f6fb, fontWeight: '800' },
+    text: '', style: { fontSize: 10, fill: ENHANCEMENT_PLAIN, fontWeight: '800' },
   })
   private readonly seal = new Graphics()
   /**
@@ -233,7 +195,7 @@ export class CardView extends Container {
     // **그림자는 한 번만 그립니다.** 카드가 무엇이든 같은 사각형이고, 바뀌는 것은 이 통의
     // 자리와 알파뿐입니다.
     this.shadow.roundRect(3, 6, SIZE.cardWidth, SIZE.cardHeight, SIZE.cardRadius)
-      .fill({ color: 0x000000, alpha: 0.35 })
+      .fill({ color: PAINT.veil, alpha: 0.35 })
     // **넓이를 고정합니다.** 그리는 것에 따라 재면 획이 삐져나온 만큼 사각형이 커지고,
     // 그만큼 모양 그림이 밀립니다. **필터 사각형도 함께 고정합니다** — 이 통에 에디션과
     // 득점의 빛이 걸리고, 경계만 고정하면 구운 사진에서 이 통이 빠집니다(`pin.ts`).
@@ -275,7 +237,7 @@ export class CardView extends Container {
     const face = {
       suit: card.suit,
       rank: card.rank,
-      paper: ENHANCEMENT_TINT[card.enhancement] ?? cardPaper(),
+      paper: ENHANCEMENT_PAPER[card.enhancement] ?? cardPaper(),
       debuffed: card.debuffed,
       stone,
     }
@@ -298,8 +260,8 @@ export class CardView extends Container {
     this.mark.visible = markKey !== undefined
     this.markPlate.clear()
     if (markKey !== undefined) {
-      const ink = ENHANCEMENT_INK[card.enhancement] ?? 0xf2f6fb
-      this.mark.style.fill = card.debuffed ? 0x9aa3ad : ink
+      const ink = ENHANCEMENT_INK[card.enhancement] ?? ENHANCEMENT_PLAIN
+      this.mark.style.fill = card.debuffed ? DEAD.mark : ink
       this.mark.text = t(markKey)
       this.mark.anchor.set(0.5, 0.5)
       this.mark.scale.set(1)
@@ -318,21 +280,21 @@ export class CardView extends Container {
       this.mark.position.set(w / 2, cy)
       this.markPlate
         .roundRect(Math.round((w - chipW) / 2), cy - chipH / 2, chipW, chipH, chipH / 2)
-        .fill({ color: 0x141b26, alpha: 0.86 })
+        .fill({ color: COLOR.slate, alpha: 0.86 })
         .stroke({ color: ink, width: 1, alpha: card.debuffed ? 0.3 : 0.75 })
     }
 
     this.seal.clear()
-    const sealColor = SEAL_COLOR[card.seal]
+    const sealColor = SEAL_INK[card.seal]
     if (sealColor !== undefined) {
       this.seal.circle(w - 15, 16, 7).fill(sealColor)
-      this.seal.circle(w - 15, 16, 7).stroke({ color: 0xffffff, width: 1, alpha: 0.6 })
+      this.seal.circle(w - 15, 16, 7).stroke({ color: PAINT.sheen, width: 1, alpha: 0.6 })
     }
 
     // **덧붙은 칩은 강화 칩의 왼쪽입니다.** 가운데는 강화가 쓰므로, 아래 변에 가로로
     // 길게 두면 그 둘이 겹칩니다 — 둘 다 붙는 카드가 드물지 않습니다.
     if (card.bonusChips > 0) {
-      this.seal.roundRect(8, h - 27, 12, 12, 3).fill({ color: COLOR.chips, alpha: 0.9 })
+      this.seal.roundRect(8, h - 27, 12, 12, 3).fill({ color: UI.chips, alpha: 0.9 })
     }
 
     this.applyEdition(card.edition, look)
@@ -411,8 +373,8 @@ export class CardView extends Container {
     // **카드 아래의 동그라미 하나입니다.** 카드를 두르고 들어 올리던 것을 걷었습니다 —
     // 그러면 도움을 받는 카드가 이미 고른 카드처럼 보여서, 무엇을 고른 것인지가 갈리지
     // 않았습니다. 표시는 카드 밖에 있고 카드는 가만히 있습니다.
-    g.circle(w / 2, h + 11, 4.5).fill(HINT_COLOR)
-    g.circle(w / 2, h + 11, 4.5).stroke({ color: 0x0a0f18, width: 1.5 })
+    g.circle(w / 2, h + 11, 4.5).fill(HINT_INK)
+    g.circle(w / 2, h + 11, 4.5).stroke({ color: UI.outline, width: 1.5 })
   }
 
   /** 1 고름 · -1 고르지 않음 · 0 그대로. */

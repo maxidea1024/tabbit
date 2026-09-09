@@ -15,7 +15,7 @@ import { t, tf } from '../core/strings'
 import { tierName as tierNameOf, tierRow } from '../core/tier'
 import * as account from '../net/session'
 import type { Me } from '../net/session'
-import { COLOR, UI } from '../render/theme'
+import { UI, TEXT, WEIGHT } from '../render/theme'
 import { valueLabel } from './leaderboard'
 import type { ModalPanel } from './modal'
 import { panelFrame } from './modal'
@@ -134,7 +134,7 @@ export class HandlePanel implements ModalPanel {
 
     const rule = new Text({
       text: t('ui.lb.handle.rule'),
-      style: { fontSize: 12, fill: COLOR.inkDim, wordWrap: true,
+      style: { fontSize: TEXT.small, fill: UI.inkDim, wordWrap: true,
                wordWrapWidth: WIDTH - 72, align: 'center' },
     })
     rule.anchor.set(0.5, 0)
@@ -153,7 +153,7 @@ export class HandlePanel implements ModalPanel {
     const shown = this.typed + (this.caretShown ? '|' : ' ')
     const value = new Text({
       text: shown,
-      style: { fontSize: 20, fill: COLOR.ink, fontWeight: '700' },
+      style: { fontSize: TEXT.lead, fill: UI.ink, fontWeight: WEIGHT.normal },
     })
     value.anchor.set(0.5, 0.5)
     value.position.set(WIDTH / 2 + wobble, 145)
@@ -163,7 +163,7 @@ export class HandlePanel implements ModalPanel {
     if (this.problem !== '') {
       const problem = new Text({
         text: this.problem,
-        style: { fontSize: 12, fill: UI.red, wordWrap: true,
+        style: { fontSize: TEXT.small, fill: UI.red, wordWrap: true,
                  wordWrapWidth: WIDTH - 72, align: 'center' },
       })
       problem.anchor.set(0.5, 0)
@@ -171,7 +171,7 @@ export class HandlePanel implements ModalPanel {
       this.body.addChild(problem)
     }
 
-    const done = new Button(t('ui.button.confirmName'), 200, 44, UI.yellow,
+    const done = new Button(t('ui.button.confirmName'), 200, 44, 'primary',
                             () => void this.submit(), 16)
     done.position.set(WIDTH / 2 - 100, height - 68)
     this.body.addChild(done)
@@ -230,7 +230,7 @@ export class ProfilePanel implements ModalPanel {
     if (!shown) {
       const note = new Text({
         text: this.note,
-        style: { fontSize: 14, fill: COLOR.inkDim },
+        style: { fontSize: TEXT.copy, fill: UI.inkDim },
       })
       note.anchor.set(0.5, 0)
       note.position.set(width / 2, 160)
@@ -241,7 +241,7 @@ export class ProfilePanel implements ModalPanel {
     // 이름과 등급.
     const name = new Text({
       text: shown.handle,
-      style: { fontSize: 30, fill: COLOR.ink, fontWeight: '800' },
+      style: { fontSize: TEXT.banner, fill: UI.ink, fontWeight: WEIGHT.bold },
     })
     name.position.set(38, 68)
     this.body.addChild(name)
@@ -250,7 +250,7 @@ export class ProfilePanel implements ModalPanel {
       text: shown.tier === '' || shown.tier === 'None'
         ? t('ui.lb.card.noTier') : this.tierName(shown.tier),
       style: {
-        fontSize: 15, fill: this.tierColor(shown.tier), fontWeight: '700',
+        fontSize: TEXT.base, fill: this.tierColor(shown.tier), fontWeight: WEIGHT.normal,
       },
     })
     tier.position.set(40, 106)
@@ -259,7 +259,7 @@ export class ProfilePanel implements ModalPanel {
     if (shown.lastSeasonTier !== '' && shown.lastSeasonTier !== 'None') {
       const last = new Text({
         text: tf('ui.lb.profile.lastSeason', { tier: this.tierName(shown.lastSeasonTier) }),
-        style: { fontSize: 12, fill: COLOR.inkDim },
+        style: { fontSize: TEXT.small, fill: UI.inkDim },
       })
       last.position.set(40, 128)
       this.body.addChild(last)
@@ -273,7 +273,7 @@ export class ProfilePanel implements ModalPanel {
       for (const id of [...linked].reverse()) {
         const label = new Text({
           text: providerLabel(id),
-          style: { fontSize: 12, fill: 0x8a99ad, fontWeight: '700' },
+          style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
         })
         label.anchor.set(1, 0)
         label.position.set(px, 74)
@@ -294,7 +294,7 @@ export class ProfilePanel implements ModalPanel {
     if (shown.ranks.length === 0) {
       const none = new Text({
         text: t('ui.lb.noRecord'),
-        style: { fontSize: 13, fill: COLOR.inkDim },
+        style: { fontSize: TEXT.body, fill: UI.inkDim },
       })
       none.position.set(40, top + 6)
       this.body.addChild(none)
@@ -307,20 +307,20 @@ export class ProfilePanel implements ModalPanel {
 
       const label = new Text({
         text: rank.name,
-        style: { fontSize: 13, fill: COLOR.inkDim },
+        style: { fontSize: TEXT.body, fill: UI.inkDim },
       })
       label.position.set(40, y)
 
       const place = new Text({
         text: `#${rank.rank}`,
-        style: { fontSize: 13, fill: UI.green, fontWeight: '700' },
+        style: { fontSize: TEXT.body, fill: UI.green, fontWeight: WEIGHT.normal },
       })
       place.anchor.set(1, 0)
       place.position.set(width - 150, y)
 
       const value = new Text({
         text: valueLabel(this.data, rank.metric, rank.value),
-        style: { fontSize: 13, fill: COLOR.money },
+        style: { fontSize: TEXT.body, fill: UI.money },
       })
       value.anchor.set(1, 0)
       value.position.set(width - 40, y)
@@ -333,7 +333,7 @@ export class ProfilePanel implements ModalPanel {
 
   private drawFoot(width: number, height: number, shown: Me): void {
     if (!this.mine) {
-      const report = new Button(t('ui.button.report'), 150, 40, UI.red, () => undefined, 15)
+      const report = new Button(t('ui.button.report'), 150, 40, 'danger', () => undefined, 15)
       report.position.set(width / 2 - 75, height - 62)
       this.body.addChild(report)
       return
@@ -342,7 +342,7 @@ export class ProfilePanel implements ModalPanel {
     if (shown.devices.length > 0) {
       const devices = new Text({
         text: tf('ui.lb.profile.devices', { n: shown.devices.length }),
-        style: { fontSize: 11, fill: COLOR.inkDim },
+        style: { fontSize: TEXT.mini, fill: UI.inkDim },
       })
       devices.position.set(40, height - 92)
       this.body.addChild(devices)
@@ -351,7 +351,7 @@ export class ProfilePanel implements ModalPanel {
     if (this.confirming) {
       const warn = new Text({
         text: t('ui.lb.profile.deleteWarn'),
-        style: { fontSize: 12, fill: UI.red, wordWrap: true, wordWrapWidth: width - 80 },
+        style: { fontSize: TEXT.small, fill: UI.red, wordWrap: true, wordWrapWidth: width - 80 },
       })
       warn.position.set(40, height - 108)
       this.body.addChild(warn)
@@ -359,13 +359,13 @@ export class ProfilePanel implements ModalPanel {
 
     const gap = 12
     const bw = (width - 80 - gap * 2) / 3
-    const rename = new Button(t('ui.button.confirmName'), bw, 40, UI.light,
+    const rename = new Button(t('ui.button.confirmName'), bw, 40, 'select',
                               () => this.onRename?.(), 14)
     rename.position.set(40, height - 62)
 
     // **여기서 곧바로 나가지 않습니다.** 묻는 것과 그 뒤의 화면 전환이 한 곳에 있어야
     // 하므로, 판은 부탁만 하고 화면이 합니다.
-    const out = new Button(t('ui.button.logout'), bw, 40, UI.btn, () => {
+    const out = new Button(t('ui.button.logout'), bw, 40, 'neutral', () => {
       this.onClose()
       this.onSignOut?.()
     }, 14)
@@ -373,7 +373,7 @@ export class ProfilePanel implements ModalPanel {
 
     // **두 번 누릅니다.** 되돌리지 않는 것이므로 한 번에 지워지지 않아야 합니다.
     const remove = new Button(t('ui.button.deleteAccount'), bw, 40,
-                              this.confirming ? UI.red : 0x8f3f3f, () => {
+                              this.confirming ? 'danger' : 'caution', () => {
       if (!this.confirming) {
         this.confirming = true
         // **누른 그 자리에서 다시 그리지 않습니다.** 눌린 단추를 그 눌림을 처리하는 중에
@@ -398,6 +398,6 @@ export class ProfilePanel implements ModalPanel {
 
   private tierColor(tier: string): number {
     const row = tierRow(this.data, tier)
-    return row ? Number.parseInt(row.color.slice(1), 16) : COLOR.inkDim
+    return row ? Number.parseInt(row.color.slice(1), 16) : UI.inkDim
   }
 }

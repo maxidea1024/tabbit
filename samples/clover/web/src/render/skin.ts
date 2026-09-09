@@ -15,7 +15,7 @@
 
 import { FillGradient, Graphics } from 'pixi.js'
 
-import { UI } from './theme'
+import { UI, RADIUS, STROKE } from './theme'
 
 export interface PlateStyle {
   /** 바탕. 위에서 아래로 흐릅니다. */
@@ -72,8 +72,8 @@ function gradient(width: number, height: number, top: number, bottom: number): F
  * `gloss` 는 부르는 쪽이 아직 넘기므로 받되 쓰지 않습니다.
  */
 export function plate(g: Graphics, width: number, height: number, style: PlateStyle): void {
-  const radius = style.radius ?? 8
-  const weight = style.weight ?? 1.5
+  const radius = style.radius ?? RADIUS.base
+  const weight = style.weight ?? STROKE.base
   const alpha = style.alpha ?? 1
   const inset = weight / 2
 
@@ -171,7 +171,7 @@ export function burst(g: Graphics, halfW: number, halfH: number,
     points.push(x + nx * out, y + ny * out)
   }
 
-  g.poly(points).fill({ color: 0x0a0f18, alpha: 0.82 })
+  g.poly(points).fill({ color: UI.outline, alpha: 0.82 })
   g.poly(points).stroke({ color: tint, width: 1.5, alpha: 0.85 })
 }
 
@@ -189,14 +189,14 @@ export { gradient }
  * 아니라 무늬입니다.
  */
 export function groove(g: Graphics, x: number, y: number, width: number,
-                       color = UI.rule): void {
+                       color = UI.groove): void {
   const cap = 14
   const dash = 6
   const gap = 5
 
   const paint = (from: number, to: number): void => {
     if (to - from < 0.5) return
-    g.moveTo(from, y).lineTo(to, y).stroke({ color, width: 1 })
+    g.moveTo(from, y).lineTo(to, y).stroke({ color, width: STROKE.hair })
   }
 
   // 양 끝은 실선입니다. **대시로 시작하면 줄이 흩어진 것으로 보입니다.**
@@ -216,7 +216,7 @@ export function groove(g: Graphics, x: number, y: number, width: number,
  */
 export function floatingStyle(): PlateStyle {
   return {
-    top: UI.panel, bottom: UI.panel, border: UI.panelEdge, alpha: UI.panelAlpha, radius: 8,
+    top: UI.panel, bottom: UI.panel, border: UI.panelEdge, alpha: UI.panelAlpha, radius: RADIUS.base,
   }
 }
 
@@ -234,22 +234,21 @@ export function panelStyle(): PlateStyle {
  */
 export function slotStyle(ink: number): PlateStyle {
   void ink
-  return { top: UI.cell, bottom: UI.cell, border: UI.hairline, weight: 1, radius: 6 }
+  return { top: UI.cell, bottom: UI.cell, border: UI.hairline, weight: STROKE.hair, radius: RADIUS.small }
 }
 
 /**
- * 누를 수 있는 것. 색은 그 버튼의 성격이 정합니다.
+ * 누를 수 있는 것.
  *
- * **납작합니다.** 위에 마우스가 오면 조금 밝아지는 것이 전부이고, 테는 잉크색 하나입니다.
+ * **넘어오는 색이 이미 그 상태의 색입니다.** 흰색을 섞어 밝히던 동안은 어두운 단추가 대비
+ * 1.30~1.36 밖에 움직이지 않아 가리킨 것이 드러나지 않았습니다 — 쉴 때 · 가리켰을 때 ·
+ * 눌렸을 때가 겉면에 색 셋으로 있고, 부르는 쪽이 그중 하나를 골라 넘깁니다.
+ *
+ * **납작합니다.** 테는 잉크색 하나이고, 그 어두운 테가 단추를 선과 가릅니다 — 어두운 중립
+ * 계열에서 선과 단추가 같은 밝기 띠에 놓이는 것은 피할 수 없습니다.
  */
-export function buttonStyle(base: number, lit: boolean): PlateStyle {
-  return {
-    top: lit ? mix(base, 0xffffff, 0.1) : base,
-    bottom: base,
-    border: UI.ink,
-    radius: 6,
-    weight: 1.5,
-  }
+export function buttonStyle(base: number): PlateStyle {
+  return { top: base, bottom: base, border: UI.outline, radius: RADIUS.small, weight: STROKE.base }
 }
 
 export function mix(a: number, b: number, t: number): number {

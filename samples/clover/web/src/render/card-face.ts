@@ -11,6 +11,7 @@
 // 뒷면(`card-back.ts`)과 같은 얼개입니다. 렌더러를 받기 전(타이틀 · 미리보기 도구)에는
 // 선으로 그립니다.
 
+import { COLOR, PAINT } from './ink'
 import {
   Container, Graphics, Rectangle, Sprite, Text, type Renderer, type Texture,
 } from 'pixi.js'
@@ -19,7 +20,6 @@ import type { SuitKind } from '../generated/enums/suit-kind'
 import { artFor } from './art'
 import { cardArtDir, drawsIndex } from './card-set'
 import { cardArtId, cornerSize, drawFace, drawSuit } from './pips'
-import { COLOR } from './theme'
 
 /** 모서리에 적히는 랭크. */
 const RANK_TEXT: Record<number, string> = {
@@ -51,6 +51,13 @@ export interface FaceLook {
 const DEBUFF_INK = 0x9a9a9a
 /** 디버프된 카드의 테두리 색. */
 const DEBUFF_EDGE = 0x6b6b6b
+/** 디버프된 카드에 덮는 잿빛. */
+const DEBUFF_VEIL = 0x2a2a2a
+/** 디버프된 카드의 그림에 입히는 색. */
+const DEBUFF_ART = 0x8d8d8d
+/** 석재. 돌 하나와 그 위의 빛입니다. */
+const STONE = 0x6f6a60
+const STONE_LIT = 0x8b8578
 
 /**
  * 이 앞면의 그림.
@@ -256,17 +263,17 @@ export function drawCardFaceVector(node: Container, width: number, height: numbe
   // 1. 종이.
   g.roundRect(0, 0, width, height, radius).fill(look.paper)
   g.roundRect(3, 3, width - 6, height - 6, radius - 3)
-    .stroke({ color: 0xffffff, width: 1, alpha: 0.5 })
+    .stroke({ color: PAINT.sheen, width: 1, alpha: 0.5 })
   if (look.debuffed) {
-    g.roundRect(0, 0, width, height, radius).fill({ color: 0x2a2a2a, alpha: 0.55 })
+    g.roundRect(0, 0, width, height, radius).fill({ color: DEBUFF_VEIL, alpha: 0.55 })
   }
 
   // 2. 얼굴.
   let index = true
   if (look.stone) {
     // 석재는 랭크도 무늬도 없습니다. **돌 하나입니다.**
-    g.circle(width / 2, height / 2, 22).fill(0x6f6a60)
-    g.circle(width / 2 - 5, height / 2 - 6, 7).fill({ color: 0x8b8578, alpha: 0.6 })
+    g.circle(width / 2, height / 2, 22).fill(STONE)
+    g.circle(width / 2 - 5, height / 2 - 6, 7).fill({ color: STONE_LIT, alpha: 0.6 })
     index = false
   } else {
     const dir = cardArtDir()
@@ -277,7 +284,7 @@ export function drawCardFaceVector(node: Container, width: number, height: numbe
       picture.width = width
       picture.height = height
       // 강화는 그림에 색을 입혀 알립니다 — 그림 위에 덧그리면 얼굴이 가려집니다.
-      picture.tint = look.debuffed ? 0x8d8d8d : look.paper
+      picture.tint = look.debuffed ? DEBUFF_ART : look.paper
       node.addChild(picture)
       // **정본 한 벌만 모서리까지 그려져 있습니다.** 우리가 굽는 세트는 그림 카드 12컷
       // 뿐이라 모서리를 그 위에 그립니다 — 그림에 넣게 하면 52컷이 되고, 랭크의 글자를

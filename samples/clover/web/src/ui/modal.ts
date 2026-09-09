@@ -12,10 +12,9 @@ import { Container, Graphics, Rectangle, Text } from 'pixi.js'
 import { t } from '../core/strings'
 
 import { plate, floatingStyle } from '../render/skin'
-import { UI } from '../render/theme'
+import { UI, SIZE, popupLeft, TEXT, WEIGHT } from '../render/theme'
 import { fraction } from '../render/motion'
 import { Button } from './widgets'
-import { COLOR, popupLeft, SIZE } from '../render/theme'
 
 /** 쌓을 수 있는 판 하나. */
 export interface ModalPanel {
@@ -96,7 +95,7 @@ export class Modals extends Container {
     // **뒤를 덮지 않으면 뒤의 카드가 눌립니다.** 기준 넓이 밖까지 덮어야 창이 넓을 때
     // 옆이 뚫리지 않습니다.
     this.veil.rect(-SIZE.width, -SIZE.height, SIZE.width * 3, SIZE.height * 3)
-      .fill({ color: 0x070a10, alpha: 1 })
+      .fill({ color: UI.scrim, alpha: 1 })
     this.veil.eventMode = 'static'
     this.veil.cursor = 'pointer'
     this.veil.zIndex = 0
@@ -348,7 +347,7 @@ export function panelFrame(width: number, height: number, title: string,
 
   const heading = new Text({
     text: title,
-    style: { fontSize: 16, fill: COLOR.ink, fontWeight: '800', letterSpacing: 1 },
+    style: { fontSize: TEXT.big, fill: UI.ink, fontWeight: WEIGHT.bold, letterSpacing: 1 },
   })
   heading.anchor.set(0.5, 0.5)
   heading.position.set(width / 2, TITLE_BAR / 2)
@@ -376,7 +375,7 @@ export function panelFrame(width: number, height: number, title: string,
       .fill({ color: lit ? UI.btn : UI.cell })
     mark.roundRect(0.75, 0.75, 26.5, 26.5, 6)
       .stroke({ color: UI.rule, width: 1.5 })
-    const ink = lit ? COLOR.ink : COLOR.inkDim
+    const ink = lit ? UI.ink : UI.inkDim
     mark.moveTo(9.5, 9.5).lineTo(18.5, 18.5).stroke({ color: ink, width: 2 })
     mark.moveTo(18.5, 9.5).lineTo(9.5, 18.5).stroke({ color: ink, width: 2 })
   }
@@ -401,7 +400,7 @@ export function panelFrame(width: number, height: number, title: string,
   //
   // 부르는 쪽은 닫기를 만들지 않습니다 — 여기서 답니다. `extra` 는 그 판이 할 일이고,
   // 닫는 것이 아닙니다.
-  const shut = new Button(t('ui.button.close'), 132, 34, UI.btn, onClose)
+  const shut = new Button(t('ui.button.close'), 132, 34, 'neutral', onClose)
   const extraWidth = extra ? extra.width + 12 : 0
   const row = 132 + extraWidth
   // **판보다 넓어지지 않게 잡습니다.** 넘치면 버튼이 판의 좌우로 삐져나가고, 그것은

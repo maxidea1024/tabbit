@@ -15,7 +15,7 @@ import { BackgroundFilter } from './shader/background'
 import { loadArtIndex, onArtReady } from './render/art'
 import { JokerView } from './render/joker-view'
 import { CardView, type EditionLook } from './render/card-view'
-import { COLOR } from './render/theme'
+import { UI } from './render/theme'
 import type { CardInstance, JokerInstance } from './core/state'
 
 const NAMES: Record<number, string> = {
@@ -30,7 +30,7 @@ async function main(): Promise<void> {
   const app = new Application()
   await app.init({
     canvas: document.getElementById('stage') as HTMLCanvasElement,
-    background: COLOR.ground,
+    background: UI.ground,
     antialias: true,
     resolution: Math.min(3, window.devicePixelRatio || 1),
     autoDensity: true,
@@ -107,7 +107,7 @@ async function main(): Promise<void> {
 
     const label = new Text({
       text: NAMES[edition] ?? String(edition),
-      style: { fontSize: 15, fill: COLOR.ink, fontWeight: '800' },
+      style: { fontSize: 15, fill: UI.ink, fontWeight: '800' },
     })
     label.anchor.set(0.5, 0)
     label.position.set(x, 500)
@@ -116,7 +116,7 @@ async function main(): Promise<void> {
 
   const heading = new Text({
     text: '에디션 셰이더 — 조커와 카드',
-    style: { fontSize: 20, fill: COLOR.ink, fontWeight: '800' },
+    style: { fontSize: 20, fill: UI.ink, fontWeight: '800' },
   })
   heading.anchor.set(0.5, 0)
   heading.position.set(560, 50)

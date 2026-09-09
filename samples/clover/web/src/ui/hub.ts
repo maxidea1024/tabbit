@@ -18,7 +18,7 @@ import * as account from '../net/session'
 import * as board from '../net/leaderboard'
 import type { Me } from '../net/session'
 import type { Submission } from '../net/leaderboard'
-import { COLOR } from '../render/theme'
+import { UI, TEXT, WEIGHT } from '../render/theme'
 import { HandlePanel, ProfilePanel } from './account'
 import { providerLabel, providerTint } from './provider'
 import { boardLabel, LeaderboardPanel } from './leaderboard'
@@ -242,7 +242,7 @@ export class LeaderboardHub {
       }
       return issued.seed
     } catch {
-      this.toasts.push(t('ui.lb.fail.title'), t('ui.lb.ranked.cannot'), COLOR.bad, 3)
+      this.toasts.push(t('ui.lb.fail.title'), t('ui.lb.ranked.cannot'), UI.bad, 3)
       return undefined
     }
   }
@@ -309,22 +309,22 @@ export class LeaderboardHub {
       const kind = error instanceof account.ApiError ? error.kind : 'unknown'
       if (kind === 'offline') {
         board.keepPending(run)
-        return { text: t('ui.lb.end.later'), tone: COLOR.inkDim }
+        return { text: t('ui.lb.end.later'), tone: UI.inkDim }
       }
       return { text: tf('ui.lb.end.rejected', { why: t(account.failKey(error)) }),
-               tone: COLOR.inkDim }
+               tone: UI.inkDim }
     }
 
     if (verdict.status === 'pending') {
       // **아직 세지 못한 것은 실패가 아닙니다.** 다음에 타이틀로 돌아가면 순위가 갱신되어
       // 있습니다 — 서버는 이미 받아 두었습니다.
-      return { text: t('ui.lb.end.judging'), tone: COLOR.inkDim }
+      return { text: t('ui.lb.end.judging'), tone: UI.inkDim }
     }
 
     if (verdict.status === 'rejected') {
       // **붉지 않습니다. 벌이 아닙니다.**
       return { text: tf('ui.lb.end.rejected', { why: t(`ui.lb.fail.${verdict.reason}`) }),
-               tone: COLOR.inkDim }
+               tone: UI.inkDim }
     }
 
     await this.refresh()
@@ -358,7 +358,7 @@ export class LeaderboardHub {
       const first = now[0]
       return {
         text: tf('ui.lb.end.same', { name: first.name, rank: first.rank }),
-        tone: COLOR.inkDim,
+        tone: UI.inkDim,
         moved: 0,
         tier: tierChanged ? tier : undefined,
       }
@@ -367,14 +367,14 @@ export class LeaderboardHub {
     if (best.from === undefined) {
       return {
         text: tf('ui.lb.end.first', { name: best.name, rank: best.rank }),
-        tone: COLOR.money,
+        tone: UI.money,
         tier: tierChanged ? tier : undefined,
       }
     }
 
     return {
       text: tf('ui.lb.end.up', { name: best.name, rank: best.rank, by: best.moved }),
-      tone: COLOR.money,
+      tone: UI.money,
       moved: best.moved,
       from: best.from,
       to: best.rank,
@@ -441,12 +441,12 @@ export class MyCard extends Container {
 
     const plate = new Graphics()
     plate.roundRect(0, 0, CARD_W, CARD_H, 10)
-      .fill({ color: 0x151d2a, alpha: 0.9 })
-      .stroke({ color: 0x2c3849, width: 1.5 })
+      .fill({ color: UI.cell, alpha: 0.9 })
+      .stroke({ color: UI.hairline, width: 1.5 })
     this.body.addChild(plate)
 
     const row = tierRow(this.data, profile.tier)
-    const color = row ? Number.parseInt(row.color.slice(1), 16) : 0x6f7d90
+    const color = row ? Number.parseInt(row.color.slice(1), 16) : UI.inkFaint
 
     const hasTier = profile.tier !== '' && profile.tier !== 'None'
 
@@ -460,7 +460,7 @@ export class MyCard extends Container {
 
     const name = new Text({
       text: profile.handle,
-      style: { fontSize: 15, fill: COLOR.ink, fontWeight: '800' },
+      style: { fontSize: TEXT.base, fill: UI.ink, fontWeight: WEIGHT.bold },
     })
     name.anchor.set(0, 0.5)
     name.position.set(hasTier ? 32 : 14, 20)
@@ -472,7 +472,7 @@ export class MyCard extends Container {
     if (first !== undefined) {
       const label = new Text({
         text: providerLabel(first),
-        style: { fontSize: 10, fill: 0x8a99ad, fontWeight: '700' },
+        style: { fontSize: TEXT.micro, fill: UI.inkDim, fontWeight: WEIGHT.normal },
       })
       label.anchor.set(1, 0.5)
       label.position.set(CARD_W - 14, 20)
@@ -493,7 +493,7 @@ export class MyCard extends Container {
       : t('ui.lb.noRecord')
     const line2 = new Text({
       text: second,
-      style: { fontSize: 12, fill: color },
+      style: { fontSize: TEXT.small, fill: color },
     })
     line2.anchor.set(0, 0.5)
     line2.position.set(14, 40)
@@ -506,7 +506,7 @@ export class MyCard extends Container {
     if (other) {
       const line3 = new Text({
         text: `${boardLabel2(boardLabel(this.data, other))} #${other.rank}`,
-        style: { fontSize: 11, fill: 0x8a99ad },
+        style: { fontSize: TEXT.mini, fill: UI.inkDim },
       })
       line3.anchor.set(0, 0.5)
       line3.position.set(14, 58)

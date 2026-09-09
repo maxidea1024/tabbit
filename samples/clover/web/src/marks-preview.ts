@@ -21,7 +21,7 @@ import { SealKind } from './generated/enums/seal-kind'
 import { SuitKind } from './generated/enums/suit-kind'
 import { setCardSet, setLookOf } from './render/card-set'
 import { CardView } from './render/card-view'
-import { COLOR, SIZE } from './render/theme'
+import { UI, SIZE } from './render/theme'
 
 /** 강화 8종. `EnhancementKind` 의 차례입니다. */
 const ENHANCEMENTS: [EnhancementKind, string][] = [
@@ -63,7 +63,7 @@ function cardOf(over: Partial<CardInstance>): CardInstance {
 
 function heading(text: string, x: number, y: number): Text {
   const label = new Text({
-    text, style: { fontSize: 13, fill: COLOR.inkDim, fontWeight: '700' },
+    text, style: { fontSize: 13, fill: UI.inkDim, fontWeight: '700' },
   })
   label.position.set(x, y)
   return label
@@ -104,7 +104,7 @@ async function main(): Promise<void> {
   const app = new Application()
   await app.init({
     canvas: document.getElementById('stage') as HTMLCanvasElement,
-    background: 0x0e1420,
+    background: UI.ground,
     antialias: true,
     resolution: Math.min(3, window.devicePixelRatio || 1),
     autoDensity: true,

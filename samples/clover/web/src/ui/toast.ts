@@ -10,15 +10,11 @@ import { Container, Graphics, Text } from 'pixi.js'
 
 import { plate, floatingStyle } from '../render/skin'
 import { fraction } from '../render/motion'
-import { COLOR, SIZE } from '../render/theme'
-import { richBlock, type RichStyle } from './rich'
+import { UI, SIZE, TEXT, WEIGHT, RADIUS, STROKE } from '../render/theme'
+import { richLeading, richStyle, richBlock, type RichStyle } from './rich'
 
 /** 이 줄의 글에 붙는 강조. */
-const RICH: RichStyle = {
-  base: { fontSize: 12, fill: 0xb4c4dc },
-  number: COLOR.accentNumber,
-  term: COLOR.accentTerm,
-}
+const rich = (): RichStyle => richStyle('note')
 
 const NEWLINE = String.fromCharCode(10)
 
@@ -111,14 +107,14 @@ export class Toasts extends Container {
     const heading = new Text({
       text: title,
       style: {
-        fontSize: 15, fill: COLOR.ink, fontWeight: '800', lineHeight: 21,
+        fontSize: TEXT.base, fill: UI.ink, fontWeight: WEIGHT.bold, lineHeight: 21,
         wordWrap: true, wordWrapWidth: WIDTH - 40, breakWords: true,
       },
     })
     heading.position.set(20, 8)
 
     // **수와 이름은 다른 색입니다.** 「8 → 10」 에서 사람이 보는 것은 그 둘입니다.
-    const body = richBlock(note.split(NEWLINE), RICH, 15, WIDTH - 30)
+    const body = richBlock(note.split(NEWLINE), rich(), richLeading('note'), WIDTH - 30)
     body.position.set(20, 10 + heading.height)
 
     const height = Math.max(HEIGHT, body.y + body.height + 12)
@@ -126,7 +122,7 @@ export class Toasts extends Container {
     const board = new Graphics()
     plate(board, WIDTH, height, {
       ...floatingStyle(),
-      top: 0x212b3a, bottom: 0x141b26, border: tint, radius: 12, weight: 2, gloss: 0.1,
+      top: UI.tipBack, bottom: UI.tipBack, border: tint, radius: RADIUS.large, weight: STROKE.picked, gloss: 0.1,
     })
 
     // 왼쪽에 색 띠 하나. 무엇에 관한 것인지가 색으로 먼저 읽힙니다.

@@ -9,15 +9,12 @@
 
 import { Container, Graphics, Text } from 'pixi.js'
 
-import { COLOR, rarityColor, UI } from '../render/theme'
-import { richBlock, type RichStyle } from './rich'
+import { insetRadius } from '../render/skin'
+import { RADIUS, SPACE, STROKE, TEXT, UI, WEIGHT, rarityColor } from '../render/theme'
+import { richLeading, richStyle, richBlock, type RichStyle } from './rich'
 
 /** 이 쪽지의 글에 붙는 강조. */
-const RICH: RichStyle = {
-  base: { fontSize: 12, fill: 0xd8ecdc },
-  number: COLOR.accentNumber,
-  term: COLOR.accentTerm,
-}
+const rich = (): RichStyle => richStyle('body')
 
 /** 가장 좁을 때의 너비. 이름과 칩이 길면 여기서 자랍니다. */
 /**
@@ -38,7 +35,7 @@ export interface TipBox {
 const MIN_WIDTH = 240
 /** 가장 넓을 때. 이보다 넓어지면 쪽지가 아니라 판이 됩니다. */
 const MAX_WIDTH = 330
-const PAD = 12
+const PAD = SPACE.wide
 /** 튀어나오는 데 걸리는 시간. **짧습니다** — 읽으려고 올린 것이므로 기다리게 하지 않습니다. */
 const POP_TIME = 0.15
 
@@ -73,7 +70,7 @@ function chip(label: string, color: number): Container {
   const node = new Container()
   const text = new Text({
     text: label,
-    style: { fontSize: 11, fill: color, fontWeight: '800' },
+    style: { fontSize: TEXT.mini, fill: color, fontWeight: WEIGHT.bold },
   })
   const width = Math.ceil(text.width) + 16
   const plate = new Graphics()
@@ -88,7 +85,7 @@ function chip(label: string, color: number): Container {
 export class Tooltip extends Container {
   private readonly plate = new Graphics()
   private readonly title = new Text({
-    text: '', style: { fontSize: 14, fill: COLOR.ink, fontWeight: '800' },
+    text: '', style: { fontSize: TEXT.copy, fill: UI.ink, fontWeight: WEIGHT.bold },
   })
   /** 종류와 가격의 칩. 뜰 때마다 다시 만듭니다. */
   private readonly chips = new Container()
@@ -148,7 +145,7 @@ export class Tooltip extends Container {
     this.chips.removeChildren().forEach(child => child.destroy())
     const made: Container[] = []
     if (kindName !== '') made.push(chip(kindName, kindTone ?? rarityColor(rarityValue)))
-    if (cost !== undefined) made.push(chip(`$${cost}`, COLOR.accentNumber))
+    if (cost !== undefined) made.push(chip(`$${cost}`, UI.accentNumber))
 
     let chipsWidth = 0
     for (const one of made) {
@@ -168,7 +165,7 @@ export class Tooltip extends Container {
 
     this.body.removeChildren().forEach(child => child.destroy())
     const shown = lines.length > 0 ? lines.map(line => `· ${line}`) : ['—']
-    this.body.addChild(richBlock(shown, RICH, 17, width - PAD * 2))
+    this.body.addChild(richBlock(shown, rich(), richLeading('body'), width - PAD * 2))
 
     const headTop = 11
     const headHeight = Math.max(this.title.height, made.length > 0 ? CHIP_H : 0)
@@ -182,9 +179,12 @@ export class Tooltip extends Container {
     // 희귀도는 뜻이 있는 색이고, 그것이 없는 쪽지까지 한 가지 색으로 두르면 그 색이
     // 뜻을 잃습니다.
     this.plate.clear()
-    this.plate.roundRect(0, 0, width, height, 10).fill({ color: UI.tipBack, alpha: 0.96 })
-    this.plate.roundRect(0.5, 0.5, width - 1, height - 1, 10)
-      .stroke({ color: rarityValue > 0 ? rarityColor(rarityValue) : UI.tipEdge, width: 1.5 })
+    this.plate.roundRect(0, 0, width, height, RADIUS.base)
+      .fill({ color: UI.tipBack, alpha: 0.96 })
+    this.plate.roundRect(0.5, 0.5, width - 1, height - 1,
+                         insetRadius(RADIUS.base, 0.5))
+      .stroke({ color: rarityValue > 0 ? rarityColor(rarityValue) : UI.tipEdge,
+                width: STROKE.base })
 
     // 화면 밖으로 나가지 않게 접습니다. **자란 크기로 셉니다** — 폰에서는 이 쪽지가
     // 판보다 덜 줄어들므로, 자라기 전의 크기로 세면 오른쪽과 아래가 화면 밖으로 나갑니다.

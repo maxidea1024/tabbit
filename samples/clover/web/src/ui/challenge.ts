@@ -19,7 +19,7 @@ import { Container, Graphics, Text } from 'pixi.js'
 import type { Data } from '../core/data'
 import { describe } from '../core/describe'
 import { nameOf, t, tf } from '../core/strings'
-import { COLOR, UI } from '../render/theme'
+import { UI, TEXT, WEIGHT } from '../render/theme'
 import type { ToolSpot } from './layout'
 import type { TipRequest } from './run-panel'
 import { Button } from './widgets'
@@ -133,7 +133,7 @@ export class ChallengeBody {
     this.view.addChild(this.body)
     this.body.addChild(this.grid)
 
-    this.start = new Button(t('ui.challenge.start'), BTN_W, BTN_H, UI.yellow,
+    this.start = new Button(t('ui.challenge.start'), BTN_W, BTN_H, 'primary',
                             () => this.fire(), 19)
     this.start.position.set(BTN_X, BTN_Y)
     this.body.addChild(this.start)
@@ -195,7 +195,7 @@ export class ChallengeBody {
 
       const order = new Text({
         text: String(row.sortOrder),
-        style: { fontSize: 12, fill: open ? COLOR.inkDim : UI.locked, fontWeight: '800' },
+        style: { fontSize: TEXT.small, fill: open ? UI.inkDim : UI.locked, fontWeight: WEIGHT.bold },
       })
       order.position.set(8, 6)
       cell.addChild(order)
@@ -204,7 +204,7 @@ export class ChallengeBody {
       const name = new Text({
         text: row.name,
         style: {
-          fontSize: 13, fill: open ? COLOR.ink : UI.locked, fontWeight: '800',
+          fontSize: TEXT.body, fill: open ? UI.ink : UI.locked, fontWeight: WEIGHT.bold,
           wordWrap: true, wordWrapWidth: CELL_W - 26, align: 'center',
           lineHeight: 16,
         },
@@ -216,7 +216,7 @@ export class ChallengeBody {
       if (beaten) {
         const mark = new Text({
           text: '✓',
-          style: { fontSize: 15, fill: UI.green, fontWeight: '800' },
+          style: { fontSize: TEXT.base, fill: UI.green, fontWeight: WEIGHT.bold },
         })
         mark.anchor.set(1, 0)
         mark.position.set(CELL_W - 18, 4)

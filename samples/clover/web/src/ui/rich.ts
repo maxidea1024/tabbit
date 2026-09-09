@@ -10,11 +10,12 @@
 // **넓이를 주면 접습니다.** 주지 않으면 한 줄이 한 줄로 나갑니다 — 부르는 쪽이 이미 줄을
 // 나누어 둔 자리가 있기 때문입니다.
 
+import { PAINT } from '../render/ink'
 import {
   CanvasTextMetrics, Container, Graphics, Text, TextStyle, type TextStyleOptions,
 } from 'pixi.js'
 
-import { UI } from '../render/theme'
+import { TEXT, UI, WEIGHT, leading } from '../render/theme'
 
 /**
  * 강조할 자리를 찾는 규칙.
@@ -53,6 +54,53 @@ export interface RichStyle {
   number: number
   /** 「」 로 묶은 이름의 색. */
   term: number
+}
+
+/**
+ * 설명하는 글의 단계.
+ *
+ * **셋입니다.** 같은 갈래의 글 — 데이터에서 나오는 설명문 — 이 자리마다 11 · 12 · 13 · 14로
+ * 적혀 있었습니다. 어느 것이 옳은지는 나란히 놓아야 보이는데 그 넷은 서로 다른 화면에
+ * 있으므로, 나란히 놓이지 않는 한 아무도 알아보지 못합니다.
+ */
+export type RichLevel =
+  /** 판 위에 뜨는 한 줄. 힌트와 머리글입니다. */
+  | 'title'
+  /** 읽으려고 연 판의 본문. 도움말이 그것입니다. */
+  | 'lead'
+  /** 쪽지 · 묻는 판. 판을 보는 김에 읽는 글입니다. */
+  | 'body'
+  /** 곁들이는 글. 옵션의 설명과 알림입니다. */
+  | 'note'
+
+const LEVELS: Record<RichLevel, { size: number; dim: boolean }> = {
+  title: { size: TEXT.base, dim: false },
+  lead: { size: TEXT.copy, dim: false },
+  body: { size: TEXT.body, dim: false },
+  note: { size: TEXT.mini, dim: true },
+}
+
+/**
+ * 그 단계의 모습 한 벌.
+ *
+ * **상수가 아니라 함수입니다.** 겉면을 갈아 끼우면 글의 색도 바뀌므로, 불러올 때 베껴 둔
+ * 상수는 앞 겉면의 색으로 남습니다.
+ *
+ * @param tweak 그 자리에서만 다른 것. **굵기와 색까지입니다** — 크기를 여기서 바꾸면
+ *   단계를 나눈 뜻이 없어집니다.
+ */
+export function richStyle(level: RichLevel, tweak?: TextStyleOptions): RichStyle {
+  const step = LEVELS[level]
+  return {
+    base: { fontSize: step.size, fill: step.dim ? UI.inkDim : UI.ink, ...tweak },
+    number: UI.accentNumber,
+    term: UI.accentTerm,
+  }
+}
+
+/** 그 단계의 줄 사이. */
+export function richLeading(level: RichLevel): number {
+  return leading(LEVELS[level].size)
 }
 
 /** 한 토막에 걸리는 것들. 색과 마크다운의 표기입니다. */
@@ -162,7 +210,7 @@ function styleOf(style: RichStyle, mark: Mark): TextStyleOptions {
   const key = `${fill ?? ''}|${bold ? 'b' : ''}${italic ? 'i' : ''}${code ? 'c' : ''}`
   let found = byKey.get(key)
   if (!found) {
-    found = { ...style.base, fontWeight: '800' }
+    found = { ...style.base, fontWeight: WEIGHT.bold }
     if (fill !== undefined) found.fill = fill
     if (italic) found.fontStyle = 'italic'
     byKey.set(key, found)
@@ -289,7 +337,7 @@ function place(runs: Run[], style: RichStyle, into: Container,
     if (mark.strike) {
       const cross = new Graphics()
       cross.rect(x, y + lineHeight / 2 - 1, node.width, 1.5)
-        .fill({ color: (style.base.fill as number) ?? 0xffffff, alpha: 0.7 })
+        .fill({ color: (style.base.fill as number) ?? PAINT.sheen, alpha: 0.7 })
       into.addChild(cross)
       line.nodes.push(cross)
     }

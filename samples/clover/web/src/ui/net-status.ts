@@ -13,7 +13,7 @@ import { Container, Graphics } from 'pixi.js'
 
 import { t } from '../core/strings'
 import { failKey, onBusy, onFail, type ApiError } from '../net/session'
-import { COLOR, SIZE } from '../render/theme'
+import { UI, SIZE } from '../render/theme'
 import type { Toasts } from './toast'
 
 /**
@@ -60,7 +60,7 @@ export class NetStatus extends Container {
 
     // **넓게 그립니다.** 화면이 늘어나도 가장자리가 남지 않아야 합니다.
     this.blocker.rect(-4_000, -4_000, SIZE.width + 8_000, SIZE.height + 8_000)
-      .fill({ color: 0x05080e })
+      .fill({ color: UI.scrim })
     this.blocker.eventMode = 'static'
     // 위에 아무것도 지나가지 않게 합니다. 눌러도 아무 일도 하지 않습니다.
     this.blocker.on('pointertap', () => undefined)
@@ -97,7 +97,7 @@ export class NetStatus extends Container {
    * 나오고, 그 하나가 한국어도 아닙니다.
    */
   private report(error: ApiError): void {
-    this.toasts.push(t('ui.lb.fail.title'), t(failKey(error)), COLOR.bad, 3.4)
+    this.toasts.push(t('ui.lb.fail.title'), t(failKey(error)), UI.bad, 3.4)
   }
 
   advance(seconds: number): void {
@@ -125,8 +125,8 @@ export class NetStatus extends Container {
     const g = this.ring
     g.clear()
     g.circle(0, 0, RADIUS)
-      .stroke({ color: 0x27324a, width: THICKNESS, alpha: 0.9 })
+      .stroke({ color: UI.groove, width: THICKNESS, alpha: 0.9 })
     g.arc(0, 0, RADIUS, this.spin, this.spin + Math.PI * 0.6)
-      .stroke({ color: COLOR.good, width: THICKNESS, cap: 'round' })
+      .stroke({ color: UI.good, width: THICKNESS, cap: 'round' })
   }
 }

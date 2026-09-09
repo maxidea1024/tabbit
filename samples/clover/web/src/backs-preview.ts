@@ -13,7 +13,7 @@ import { Application, Container, Text } from 'pixi.js'
 
 import { loadFromUrl } from './core/load'
 import { backLookOf, drawCardBack } from './render/card-back'
-import { COLOR, SIZE } from './render/theme'
+import { UI, SIZE } from './render/theme'
 
 const BIG = 2.1
 const COLS = 5
@@ -22,7 +22,7 @@ async function main(): Promise<void> {
   const app = new Application()
   await app.init({
     canvas: document.getElementById('stage') as HTMLCanvasElement,
-    background: COLOR.ground,
+    background: UI.ground,
     antialias: true,
     resolution: Math.min(3, window.devicePixelRatio || 1),
     autoDensity: true,
@@ -61,7 +61,7 @@ async function main(): Promise<void> {
 
     const label = new Text({
       text: `${row.name}  ·  ${row.back}`,
-      style: { fontSize: 14, fill: COLOR.ink, fontWeight: '800' },
+      style: { fontSize: 14, fill: UI.ink, fontWeight: '800' },
     })
     label.position.set(x, y + SIZE.cardHeight * BIG + 10)
     world.addChild(label)

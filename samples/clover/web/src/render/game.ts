@@ -6,6 +6,7 @@
 // 배치는 왼쪽에 판돈과 점수, 위에 조커와 소모품, 가운데에 낸 카드, 아래에 패입니다.
 // 시선이 왼쪽에서 오른쪽으로 한 번 흐르게 두었습니다.
 
+import { COLOR, DEAD, ENHANCEMENT_PAPER, PAINT, SEAL_INK } from './ink'
 import {
   BlurFilter, Container, Graphics, Matrix, Rectangle, RenderTexture, Sprite, Text, Texture,
   type FederatedPointerEvent,
@@ -68,11 +69,9 @@ import {
 } from './faces'
 import { cardArtId, drawFace } from './pips'
 import { burst, groove, insetRadius, mix, slotStyle } from './skin'
-import {
-  COLOR, popupCenter, popupLeft, rarityColor, setUiTheme, SIDE_PANEL, SIZE, UI,
-} from './theme'
+import { UI, SIZE, SIDE_PANEL, setUiTheme, popupLeft, popupCenter, rarityColor, TEXT, WEIGHT } from './theme'
 import { box, type Box, CENTER, pointOf, putText, splitX } from '../ui/layout'
-import { Button, Panel } from '../ui/widgets'
+import { Button, Panel, restyleButtons } from '../ui/widgets'
 import { choiceOf, poolsOf } from '../core/pool'
 import { Guide } from '../ui/guide'
 import { CollectionPanel } from '../ui/collection'
@@ -101,7 +100,7 @@ import { cellPlate, hairline, priceText, ProgressBar, sectionHead, SECTION_H, va
 import { Modals, type ModalPanel } from '../ui/modal'
 import type { ToolSpot } from '../ui/layout'
 import { ScrollView } from '../ui/scroll'
-import { richBlock, richLine } from '../ui/rich'
+import { richBlock, richLeading, richLine, richStyle } from '../ui/rich'
 import {
   chosen, graphicsLevel, loadOptions, OptionsPanel, saveOptions, transitionWanted, type Options,
 } from '../ui/options'
@@ -617,7 +616,6 @@ const TAG_FIRE = 0.6
 /** 나오는 번쩍임이 잦아들기를 기다리는 동안. 그 자리에서 쓰이는 태그에만 걸립니다. */
 const TAG_FIRE_WAIT = 0.5
 
-
 const DELTA_POOL = 8
 /**
  * ±N 글 하나가 화면에 있는 시간.
@@ -777,18 +775,6 @@ const CHIPS_GAP = 34
 /** 구분선 하나가 차지하는 높이. 줄은 그 한가운데입니다. */
 const RULE_H = 14
 
-
-const MINI_TINT: Partial<Record<number, number>> = {
-  [EnhancementKind.Bonus]: 0xcfe0f5,
-  [EnhancementKind.Mult]: 0xf5ccd2,
-  [EnhancementKind.Wild]: 0xe6d6f5,
-  [EnhancementKind.Glass]: 0xd8f0f5,
-  [EnhancementKind.Steel]: 0xd6d6d6,
-  [EnhancementKind.Stone]: 0xa9a396,
-  [EnhancementKind.Gold]: 0xf3dc99,
-  [EnhancementKind.Lucky]: 0xd2f0c6,
-}
-
 /**
  * 족보 하나가 어떤 모양인가.
  *
@@ -884,13 +870,6 @@ const HAND_SHAPE: Partial<Record<PokerHandKind, { rank: number; suit: SuitKind;
   ],
 }
 
-const MINI_SEAL: Partial<Record<number, number>> = {
-  [SealKind.Red]: 0xd23b3b,
-  [SealKind.Blue]: 0x3b7fd2,
-  [SealKind.Gold]: 0xe0b53b,
-  [SealKind.Purple]: 0x9a5bd2,
-}
-
 /**
  * 가장자리 픽셀을 늘려 쓰는 흐림 하나.
  *
@@ -950,7 +929,7 @@ function newest<T extends { uid: number }>(rows: readonly T[]): T | undefined {
 }
 
 function boxInk(tint: number): number {
-  return mix(tint, 0x0a1018, 0.52)
+  return mix(tint, UI.outline, 0.52)
 }
 
 const DECK_X = SIZE.width - 62
@@ -1032,9 +1011,9 @@ type RunInfoTab = 'hands' | 'blinds' | 'stakes' | 'insight'
  * 넷째를 두면 색만으로는 갈리지 않고 사람이 범례를 찾게 됩니다.
  */
 const INSIGHT_COLOR: Record<InsightLevel, number> = {
-  warn: COLOR.bad,
-  advise: COLOR.good,
-  info: COLOR.inkDim,
+  warn: UI.bad,
+  advise: UI.good,
+  info: UI.inkDim,
 }
 
 interface PackFace {
@@ -1623,7 +1602,7 @@ export class Game {
   private readonly hinted = new Set<number>()
 
   private readonly badge = new BlindBadge(PANEL_W)
-  private readonly score = new Slot(t('ui.slot.round_score'), PANEL_W, 52, COLOR.ink)
+  private readonly score = new Slot(t('ui.slot.round_score'), PANEL_W, 52, UI.ink)
   // **이 둘이 화면에서 가장 큰 두 숫자입니다.** 점수는 이 둘의 곱이고, 나머지 칸들은
   // 그것을 설명하는 것들입니다 — 크기가 그 서열을 그대로 보여야 합니다.
   // 칩은 오른쪽으로, 배수는 왼쪽으로 붙습니다 — 사이의 곱셈표와 함께 한 식으로 읽힙니다.
@@ -1638,8 +1617,8 @@ export class Game {
     style: {
       // **12픽셀은 작았습니다.** 지금 고른 것이 무슨 족보인가는 화면에서 점수 다음으로
       // 중요한 글이고, 칩과 배수가 어디서 나온 값인지를 잇는 유일한 줄입니다.
-      ...outlined(17, 0x0a0f18),
-      fill: COLOR.ink, fontWeight: '800', letterSpacing: 0.5,
+      ...outlined(TEXT.big, UI.outline),
+      fill: UI.ink, fontWeight: WEIGHT.bold, letterSpacing: 0.5,
     },
   })
   /**
@@ -1681,9 +1660,9 @@ export class Game {
    * 그 색이면 밝은 동안 색만 남고 수가 흐려집니다.
    */
   private readonly chips =
-    new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, COLOR.ink, 34, 1, true, true)
+    new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, UI.ink, 34, 1, true, true)
   private readonly mult =
-    new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, COLOR.ink, 34, 0, true, true)
+    new Slot('', (PANEL_W - CHIPS_GAP) / 2, CHIPS_H, UI.ink, 34, 0, true, true)
   /**
    * 왼쪽 판의 칸들이 마지막으로 보여 준 수.
    *
@@ -1765,10 +1744,10 @@ export class Game {
    * 보이는 글을 다시 쓰거나 노는 글이 영영 노는 채로 남습니다.
    */
   private readonly deltas: { node: Text; life: number; homeY: number }[] = []
-  private readonly hands = new Slot(t('ui.slot.hands'), 124, 52, COLOR.good)
-  private readonly discards = new Slot(t('ui.slot.discards'), 124, 52, 0xff9d5c)
-  private readonly money = new Slot(t('ui.slot.money'), 124, 52, COLOR.money)
-  private readonly anteSlot = new Slot(t('ui.slot.ante'), 124, 52, COLOR.ink)
+  private readonly hands = new Slot(t('ui.slot.hands'), 124, 52, UI.good)
+  private readonly discards = new Slot(t('ui.slot.discards'), 124, 52, UI.discard)
+  private readonly money = new Slot(t('ui.slot.money'), 124, 52, UI.money)
+  private readonly anteSlot = new Slot(t('ui.slot.ante'), 124, 52, UI.ink)
   /**
    * 왼쪽 판의 값 칸 전부.
    *
@@ -1784,8 +1763,8 @@ export class Game {
   private readonly headline = new Text({
     text: '',
     style: {
-      ...outlined(34, 0x0a0f18),
-      fill: COLOR.ink, fontWeight: '800',
+      ...outlined(TEXT.hero, UI.outline),
+      fill: UI.ink, fontWeight: WEIGHT.bold,
     },
   })
   private readonly frames = new Graphics()
@@ -1810,13 +1789,13 @@ export class Game {
    * 줄에 관한 것 말고 다른 것일 수 없습니다.
    */
   private readonly jokerCount = new Text({
-    text: '', style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '800' },
+    text: '', style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.bold },
   })
   private readonly consumableCount = new Text({
-    text: '', style: { fontSize: 12, fill: 0x9b8fd0, fontWeight: '800' },
+    text: '', style: { fontSize: TEXT.small, fill: UI.legendary, fontWeight: WEIGHT.bold },
   })
   private readonly deckLabel = new Text({
-    text: '', style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '700' },
+    text: '', style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
   })
 
   private readonly playButton: Button
@@ -2382,7 +2361,7 @@ export class Game {
   private rung = 0
   /** 왼쪽 패널의 번쩍임. 숫자가 바뀌는 자리를 파티클 대신 이것이 알립니다. */
   private panelGlow = 0
-  private panelTint: number = COLOR.ink
+  private panelTint: number = UI.ink
   /** 화면 전체의 번쩍임. 큰 것에만 씁니다. */
   private screenGlow = 0
   private panelDrawn = false
@@ -2409,7 +2388,7 @@ export class Game {
   /** 블라인드 고르기 판의 카드 셋. 들어오는 동안 자리만 옮깁니다. */
   private blindGroups: BlindGroup[] = []
   private screenDrawn = false
-  private screenTint: number = COLOR.ink
+  private screenTint: number = UI.ink
   /** 점수가 멈춘 뒤 낸 카드를 얼마나 붙잡아 두었는가. */
   private holdAfterScore = 0
 
@@ -2738,7 +2717,7 @@ export class Game {
       this.shown.money += share
       this.money.target = this.shown.money
       this.audio.play(gain ? 'coin_land' : 'coin_lose', index * 2)
-      this.flashPanel(gain ? COLOR.money : COLOR.bad, 0.5)
+      this.flashPanel(gain ? UI.money : UI.bad, 0.5)
     }
     this.board.sortableChildren = true
 
@@ -2752,26 +2731,26 @@ export class Game {
 
     this.buildPanel()
 
-    this.playButton = new Button(t('ui.button.play'), PLAY_W, PLAY_H, UI.yellow, () => this.play())
-    this.discardButton = new Button(t('ui.button.discard'), PLAY_W, PLAY_H, UI.red,
+    this.playButton = new Button(t('ui.button.play'), PLAY_W, PLAY_H, 'primary', () => this.play())
+    this.discardButton = new Button(t('ui.button.discard'), PLAY_W, PLAY_H, 'danger',
       () => this.discard())
     // **가운데 버튼이 곧 몇 장 골랐는가입니다.** 점 다섯을 따로 두면 같은 것을 두 곳에서
     // 세게 되고, 그 둘 사이를 눈이 오갑니다.
-    this.clearButton = new Button('-', CLEAR_W, PLAY_H, UI.btn, () => this.clearSelection())
-    this.primaryButton = new Button(t('ui.button.select_blind'), 210, 50, UI.yellow, () => this.primary())
-    this.skipButton = new Button(t('ui.button.skip'), 150, 38, UI.dare,
+    this.clearButton = new Button('-', CLEAR_W, PLAY_H, 'neutral', () => this.clearSelection())
+    this.primaryButton = new Button(t('ui.button.select_blind'), 210, 50, 'primary', () => this.primary())
+    this.skipButton = new Button(t('ui.button.skip'), 150, 38, 'dare',
       () => {
         this.audio.play('blind_skip')
         this.act({ t: 'skip_blind' })
       })
-    this.rerollButton = new Button(t('ui.button.reroll'), 128, 44, UI.light, () => this.reroll())
-    this.sortRankButton = new Button(t('ui.button.sort_rank'), SORT_W, SORT_H, UI.btn, () => this.sortHand('rank'))
-    this.sortSuitButton = new Button(t('ui.button.sort_suit'), SORT_W, SORT_H, UI.btn, () => this.sortHand('suit'))
+    this.rerollButton = new Button(t('ui.button.reroll'), 128, 44, 'select', () => this.reroll())
+    this.sortRankButton = new Button(t('ui.button.sort_rank'), SORT_W, SORT_H, 'neutral', () => this.sortHand('rank'))
+    this.sortSuitButton = new Button(t('ui.button.sort_suit'), SORT_W, SORT_H, 'neutral', () => this.sortHand('suit'))
     // 위의 칸들과 같은 격자입니다 — 너비도 자리도.
     // **「족보 목록」 이 아니라 「런 정보」 입니다.** 족보는 그 안의 한 갈래가 되었습니다.
-    this.infoButton = new Button(t('ui.run_info.title'), PANEL_BTN_W, FOOT_BTN_H, UI.btn,
+    this.infoButton = new Button(t('ui.run_info.title'), PANEL_BTN_W, FOOT_BTN_H, 'neutral',
       () => this.toggleHandList())
-    this.menuButton = new Button(t('ui.button.menu'), PANEL_BTN_W, FOOT_BTN_H, UI.btn,
+    this.menuButton = new Button(t('ui.button.menu'), PANEL_BTN_W, FOOT_BTN_H, 'neutral',
       () => this.openMenu())
     // **자리는 화면이 알립니다.** 도구가 좌표를 베껴 적으면 판을 고칠 때 한쪽만 고쳐집니다.
     const footCx = PANEL_BTN_W / 2
@@ -3090,13 +3069,9 @@ export class Game {
     if (this.modals.has(this.payout)) this.drawPayout()
     // **화면에 오래 남아 있는 단추들.** 판 안의 단추는 판을 열 때 새로 만들어지지만 이것들은
     // 처음 한 번 그려지고 그대로 남습니다 — 겉면을 갈아 끼운 뒤에도 앞 겉면의 색이었고,
-    // 타이틀에 다녀와야 바뀌는 것으로 보였습니다.
-    for (const button of [this.playButton, this.discardButton, this.clearButton,
-                          this.primaryButton, this.skipButton, this.rerollButton,
-                          this.sortRankButton, this.sortSuitButton,
-                          this.infoButton, this.menuButton]) {
-      button.restyle()
-    }
+    // 타이틀에 다녀와야 바뀌는 것으로 보였습니다. **이름으로 세지 않습니다** — 단추가 스스로
+    // 무대에 붙을 때 등록합니다(`ui/widgets.ts` 의 `restyleButtons`).
+    restyleButtons()
     this.title.restyle()
     this.login.relabel()
     this.panelPlate?.resize(PANEL_W + 24, SIZE.height - 44)
@@ -3142,8 +3117,8 @@ export class Game {
     // **테두리의 굵기도 말을 탑니다.** 굵기는 그 글자의 획 사이 틈에서 나오는 값이고
     // 한자의 틈이 한글의 절반이므로, 만들 때의 말로 정해 둔 굵기는 말을 바꾸면 어긋납니다.
     // 단추는 글을 적는 자리에서 스스로 다시 정하고, 한 번 만들고 마는 것이 이 둘입니다.
-    this.handLabel.style.stroke = outline(17, 0x0a0f18)
-    this.headline.style.stroke = outline(34, 0x0a0f18)
+    this.handLabel.style.stroke = outline(TEXT.big, UI.outline)
+    this.headline.style.stroke = outline(TEXT.hero, UI.outline)
 
     this.title.relabel()
     this.login.relabel()
@@ -3242,7 +3217,7 @@ export class Game {
     const saved = loadRun()
     if (saved && this.resumeRun(saved)) return
     this.runPanel.setSaved(undefined)
-    this.toasts.push(t('ui.run.resumeFailed'), t('ui.run.resumeFailedBody'), COLOR.bad, 3.4)
+    this.toasts.push(t('ui.run.resumeFailed'), t('ui.run.resumeFailedBody'), UI.bad, 3.4)
   }
 
   /**
@@ -3392,7 +3367,7 @@ export class Game {
     // **나갈 수 없는 자리에서는 묻지 않습니다.** 브라우저의 탭은 스크립트가 닫지 못하므로,
     // 물어 놓고 「예」를 눌렀을 때 아무 일도 일어나지 않으면 그것은 고장으로 보입니다.
     if (!canQuit()) {
-      this.toasts.push(t('ui.quit.browser'), t('ui.quit.browserBody'), COLOR.inkDim, 3.6)
+      this.toasts.push(t('ui.quit.browser'), t('ui.quit.browserBody'), UI.inkDim, 3.6)
       return
     }
     const inRun = this.scene === 'run'
@@ -3400,7 +3375,7 @@ export class Game {
              t('ui.button.quit'), true, () => {
                if (quitGame()) return
                this.toasts.push(t('ui.quit.browser'), t('ui.quit.browserBody'),
-                                COLOR.inkDim, 3.6)
+                                UI.inkDim, 3.6)
              })
   }
 
@@ -3576,7 +3551,7 @@ export class Game {
       this.layRun(seed)
       this.enterRun()
     })
-    this.toasts.push(t('ui.lb.ranked'), t('ui.lb.ranked.on'), COLOR.good, 2.6)
+    this.toasts.push(t('ui.lb.ranked'), t('ui.lb.ranked.on'), UI.good, 2.6)
   }
 
   /**
@@ -4124,7 +4099,7 @@ export class Game {
       const dx = Math.cos(angle) * 8.5
       const dy = Math.sin(angle) * 8.5
       times.moveTo(-dx, -dy).lineTo(dx, dy)
-        .stroke({ color: 0xdfe8f5, width: 4, cap: 'round' })
+        .stroke({ color: UI.ink, width: 4, cap: 'round' })
     }
     const seam = pointOf(gapBox, CENTER)
     times.position.set(seam.x, seam.y)
@@ -4214,10 +4189,10 @@ export class Game {
     // 베껴 적으면 상자의 크기나 사이를 고친 자리에서 이것만 낡습니다.
     this.scoreWave.layout(chipsBox.x, chipsBox.y, chipsBox.width, chipsBox.height,
       multBox.x + multBox.width - chipsBox.x, CHIPS_R)
-    this.scoreWave.ink(COLOR.chips, COLOR.mult)
+    this.scoreWave.ink(UI.chips, UI.mult)
     const g = this.scoreBox
     g.clear()
-    const style = slotStyle(COLOR.ink)
+    const style = slotStyle(UI.ink)
     for (const area of [chipsBox, multBox]) {
       // **판의 다른 칸과 같은 채움과 같은 테입니다.** `plate()` 가 그리는 것과 같은 것을
       // 절대 좌표에 그립니다 — 그 함수는 원점에서 그리고, 이 둘은 한 `Graphics` 안의 서로
@@ -4255,8 +4230,8 @@ export class Game {
     const g = this.scoreFlash
     g.clear()
     for (const [area, tint, lit] of [
-      [boxes.chips, COLOR.chips, level.chips],
-      [boxes.mult, COLOR.mult, level.mult],
+      [boxes.chips, UI.chips, level.chips],
+      [boxes.mult, UI.mult, level.mult],
     ] as const) {
       if (lit <= 0) continue
       // 짙게 눌러 씁니다. **원색 그대로는 흰 숫자가 눌러앉지 못합니다.**
@@ -4307,7 +4282,7 @@ export class Game {
     const boxW = Math.ceil(SIZE.width * scale)
     const boxH = Math.ceil(SIZE.height * scale)
     this.cropBox.clear()
-    this.cropBox.rect(left, top, boxW, boxH).fill(0xffffff)
+    this.cropBox.rect(left, top, boxW, boxH).fill(PAINT.sheen)
     this.cropRect = box(left, top, boxW, boxH)
 
     // **흐림은 화면 해상도의 절반으로 굽습니다.** 픽셀 밀도는 창을 다른 화면으로 옮기면
@@ -4493,13 +4468,13 @@ export class Game {
           const name = this.consumableName(kind ?? 1, event.id)
           this.toasts.push(tf('ui.toast.used', { name }),
             this.consumableLines(kind ?? 1, event.id).join(' · ') || t('ui.note.applied'),
-            0xb9a8ff, 3)
+            UI.legendary, 3)
           break
         }
 
         case 'HandLevelled':
           this.toasts.push(tf('ui.hand.level', { name: this.handName(event.hand), level: event.level }),
-            t('ui.hand.leveled'), COLOR.chips, 2.8)
+            t('ui.hand.leveled'), UI.chips, 2.8)
           break
 
         // **태그를 받은 것이 보여야 합니다.** 받은 것이 화면 어디에도 나타나지 않으면
@@ -4523,14 +4498,14 @@ export class Game {
           this.toasts.push(tf('ui.toast.destroyed',
             { name: nameOf(this.data, 'joker', event.jokerId, event.jokerId) }),
           t('ui.note.joker_slot_free'),
-            COLOR.bad, 2.6)
+            UI.bad, 2.6)
           break
         }
 
         // **무엇이 어떻게 바뀌었는가**가 두 줄입니다. 「규칙이 바뀌었습니다」와 식별자
         // 하나로는 무엇을 얻은 것인지 알 수 없습니다.
         case 'RuleChanged':
-          this.toasts.push(this.ruleName(event.rule), ruleChange(event), COLOR.money, 2.8)
+          this.toasts.push(this.ruleName(event.rule), ruleChange(event), UI.money, 2.8)
           break
 
         case 'CardModified': modified++; break
@@ -4542,13 +4517,13 @@ export class Game {
 
     if (modified > 0) {
       this.toasts.push(tf('ui.toast.cards_changed', { n: modified }), t('ui.deck.changed'),
-        COLOR.good, 2.4)
+        UI.good, 2.4)
     }
     if (destroyed > 0) {
-      this.toasts.push(tf('ui.toast.cards_destroyed', { n: destroyed }), t('ui.deck.removed'), COLOR.bad, 2.4)
+      this.toasts.push(tf('ui.toast.cards_destroyed', { n: destroyed }), t('ui.deck.removed'), UI.bad, 2.4)
     }
     if (added > 0) {
-      this.toasts.push(tf('ui.toast.cards_added', { n: added }), t('ui.deck.added'), COLOR.good, 2.4)
+      this.toasts.push(tf('ui.toast.cards_added', { n: added }), t('ui.deck.added'), UI.good, 2.4)
     }
   }
 
@@ -5231,9 +5206,9 @@ export class Game {
         // **득점하지 않는 카드는 물러납니다.** 다섯 장을 냈는데 셋만 세는 것이 화면에
         // 보이지 않으면, 점수가 왜 그것뿐인지 알 수 없습니다.
         this.dimNonScoring(event.cards)
-        this.say(tf('ui.hand.level', { name: this.handName(event.hand), level: event.level }), COLOR.ink, 3, 0.35)
+        this.say(tf('ui.hand.level', { name: this.handName(event.hand), level: event.level }), UI.ink, 3, 0.35)
         this.audio.play('score_count', semitones)
-        this.flashPanel(COLOR.ink, 0.5)
+        this.flashPanel(UI.ink, 0.5)
         break
 
       case 'CardScored': {
@@ -5241,8 +5216,8 @@ export class Game {
         // 카드가 차례로 득점할수록 세집니다. **뒤로 갈수록 커지는 것이 기대를 만듭니다.**
         const step = Math.min(1, this.chain / 5)
         const mul = event.op === 'MulMult'
-        const tint = event.source === 'rank' || event.chips !== 0 ? COLOR.chips
-          : event.money !== 0 ? COLOR.money : COLOR.mult
+        const tint = event.source === 'rank' || event.chips !== 0 ? UI.chips
+          : event.money !== 0 ? UI.money : UI.mult
         this.chain++
         if (view) {
           // **조각을 터뜨리지 않고 빛을 돌립니다.** 카드가 차례로 터지면 화면이 시끄러워지고,
@@ -5291,9 +5266,9 @@ export class Game {
         const grow = event.op === 'GrowSelf'
         const cue = mul ? 'joker_mul' : money ? 'joker_money' : 'joker_add'
         const text = valueText(event.op, event.chips, event.mult, event.money)
-        const tint = grow ? COLOR.good
-          : money ? COLOR.money
-            : mul || event.chips === 0 ? COLOR.mult : COLOR.chips
+        const tint = grow ? UI.good
+          : money ? UI.money
+            : mul || event.chips === 0 ? UI.mult : UI.chips
 
         this.chain++
         // **조각을 터뜨리지 않습니다.** 조커는 한 판에 열 번도 발동하고, 그때마다 조각이
@@ -5317,8 +5292,8 @@ export class Game {
         // **배수를 곱하는 것이 이 게임에서 가장 큰 사건입니다.** 그 하나만 크게 다룹니다.
         if (mul) {
           this.jolt(12 + beat.intensity * 10, 2 + beat.intensity * 2, 0.62)
-          this.flashScreen(COLOR.mult, 0.2 + beat.intensity * 0.16)
-          this.flashPanel(COLOR.mult, 1)
+          this.flashScreen(UI.mult, 0.2 + beat.intensity * 0.16)
+          this.flashPanel(UI.mult, 1)
           this.stop(120)
         } else {
           this.jolt(5 + beat.intensity * 6, 0.8 + beat.intensity, 0.24)
@@ -5335,8 +5310,8 @@ export class Game {
       // 그 자리입니다.
       case 'RunTriggered': {
         const mul = event.op === 'MulMult'
-        const tint = event.money !== 0 ? COLOR.money
-          : event.chips !== 0 ? COLOR.chips : COLOR.mult
+        const tint = event.money !== 0 ? UI.money
+          : event.chips !== 0 ? UI.chips : UI.mult
         // **딱지의 가운데입니다.** 딱지 자체를 넘기면 그것의 자리는 왼쪽 위 모서리이므로,
         // 값이 화면의 왼쪽 위 구석에 뜹니다 — 딱지가 낸 돈은 이미 가운데를 셈해 쓰고
         // 있었고 값 쪽만 빠져 있었습니다.
@@ -5358,7 +5333,7 @@ export class Game {
       case 'JokerFizzled': {
         const view = this.jokers.get(this.jokerUidAt(event.slot))
         this.popAt(view && { x: view.x, y: view.y - RISER_ON_CARD },
-          `${event.num}/${event.den}`, COLOR.inkDim, 0)
+          `${event.num}/${event.den}`, UI.inkDim, 0)
         this.audio.play('joker_fizzle')
         break
       }
@@ -5368,10 +5343,10 @@ export class Game {
         this.chain++
         if (view) {
           view.pop(1)
-          view.shine(rgbOf(COLOR.good), 0.9)
+          view.shine(rgbOf(UI.good), 0.9)
         }
         this.popAt(view && { x: view.x, y: view.y - RISER_ON_CARD },
-          t('ui.button.again'), COLOR.good, beat.intensity + 0.3)
+          t('ui.button.again'), UI.good, beat.intensity + 0.3)
         // **재발동은 같은 카드가 한 번 더 세는 것입니다.** 사슬을 이어 올리는 것이 맞고,
         // 음색은 카드의 것과 같아야 「같은 카드가 또」 로 들립니다.
         const again = this.stepUp(beat.intensity)
@@ -5379,7 +5354,7 @@ export class Game {
         this.audio.play('retrigger', again, where)
         this.audio.tone('chime', again, 0.5 + beat.intensity * 0.4, where)
         this.jolt(5, 0.9, 0.2)
-        this.flashPanel(COLOR.good, 0.5)
+        this.flashPanel(UI.good, 0.5)
         this.stop(40)
         break
       }
@@ -5434,7 +5409,7 @@ export class Game {
         if (why) {
           // **부호는 달러 앞입니다.** 값 그대로 이어 적어서 나가는 돈이 `$-2` 로 났습니다.
           const line = `${why}  ${event.delta > 0 ? '+' : '-'}$${Math.abs(event.delta)}`
-          const tint = event.delta > 0 ? COLOR.money : COLOR.bad
+          const tint = event.delta > 0 ? UI.money : UI.bad
           // 카드의 윗변에 걸쳐 뜹니다. 다른 값들과 같은 규칙입니다.
           //
           // **뜯은 팩 뒤에서는 기다립니다.** 바꿔 집는 것은 파는 것과 집는 것이 한
@@ -5470,12 +5445,12 @@ export class Game {
         // **마지막 한 방이 앞의 것들보다 확실히 커야 합니다.** 그것이 없으면 득점이
         // 어디서 끝났는지 읽히지 않습니다.
         this.jolt(14 + shakeOf(beat.intensity, this.feel), 2.4 + beat.intensity * 2, 0.9)
-        this.flashScreen(COLOR.ink, 0.26 + beat.intensity * 0.2)
-        this.flashPanel(COLOR.ink, 1)
+        this.flashScreen(UI.ink, 0.26 + beat.intensity * 0.2)
+        this.flashPanel(UI.ink, 1)
         this.stop(150)
 
         // 낸 카드가 멈춘 자리에서 크게 터집니다.
-        this.burstAcrossPlayArea(26 + dust * 4, COLOR.mult, 1.8 + beat.intensity)
+        this.burstAcrossPlayArea(26 + dust * 4, UI.mult, 1.8 + beat.intensity)
         this.chain = 0
         this.rung = 0
         break
@@ -5500,16 +5475,16 @@ export class Game {
         // **격파의 소리가 지나간 뒤에 오릅니다.** 같은 순간에 시작하면 첫 음이 그 소리
         // 밑에 묻히고, 그러면 오르는 것이 다섯 계단으로 들립니다.
         this.flourish('glass', 6, { gap: 0.11, after: 0.18, strength: 0.85 })
-        this.burstAcrossPlayArea(46, COLOR.good, 2.4, 2.6)
+        this.burstAcrossPlayArea(46, UI.good, 2.4, 2.6)
         // **돈은 지폐로 뿌립니다.** 격파의 보상이 이 자리에서 들어오므로, 그 한 방이
         // 불티가 아니라 뿌린 돈으로 보여야 합니다 — 점보다 크므로 개수는 절반입니다.
-        this.particles.bills(BOARD_X, PLAY_Y - 60, 34, COLOR.money, 1.2, 1)
-        this.particles.burst(BOARD_X, 210, 44, COLOR.good, 2.2, 2.4)
+        this.particles.bills(BOARD_X, PLAY_Y - 60, 34, UI.money, 1.2, 1)
+        this.particles.burst(BOARD_X, 210, 44, UI.good, 2.2, 2.4)
         // **국면이 넘어가는 자리입니다.** 흔들림은 판 전체를 움직이므로, 여기서 큰 값을
         // 쓰면 격파한 것이 아니라 땅이 흔들린 것으로 읽힙니다 — 알릴 것은 이미 터지는
         // 것과 번쩍이는 것과 소리 셋이 하고 있습니다.
         this.jolt(9, 4.2, 1)
-        this.flashScreen(COLOR.good, 0.46)
+        this.flashScreen(UI.good, 0.46)
         this.stop(280)
         this.chain = 0
         this.rung = 0
@@ -5535,7 +5510,7 @@ export class Game {
         this.audio.play('blind_fail')
         this.audio.music.duck(0.5, 1.2)
         this.jolt(5, 1.6, 0.5)
-        this.flashScreen(COLOR.bad, 0.2)
+        this.flashScreen(UI.bad, 0.2)
         this.stop(160)
         break
 
@@ -5544,12 +5519,12 @@ export class Game {
         // 여러 종으로 이겨야 열리지만 우리에게는 덱을 고르는 화면이 아직 없으므로, 한 번
         // 이기는 것을 조건으로 둡니다.
         this.recordWin()
-        this.say(t('ui.label.all_cleared'), COLOR.money, 2.8)
+        this.say(t('ui.label.all_cleared'), UI.money, 2.8)
         this.audio.play('blind_clear')
         this.flourish('bell', 10, { gap: 0.13, after: 0.18, strength: 0.8 })
-        this.particles.bills(BOARD_X, SIZE.height / 2, 54, COLOR.money, 1.3, 1.1)
+        this.particles.bills(BOARD_X, SIZE.height / 2, 54, UI.money, 1.3, 1.1)
         this.jolt(8, 3.4, 1)
-        this.flashScreen(COLOR.money, 0.44)
+        this.flashScreen(UI.money, 0.44)
         this.stop(220)
         break
 
@@ -5685,7 +5660,7 @@ export class Game {
     for (const view of this.playedViews) {
       this.particles.burst(view.x, view.y, perCard, tint, power, linger)
       this.particles.burst(view.x, view.y - 40, Math.round(perCard * 0.6),
-        COLOR.chips, power * 0.8, linger)
+        UI.chips, power * 0.8, linger)
     }
   }
 
@@ -5946,9 +5921,9 @@ export class Game {
       const alpha = fade * wave
       const y = wait.top + i * wait.rowH + 8
       // 왼쪽이 이유, 오른쪽이 금액. 실제 줄과 같은 자리입니다.
-      wait.bones.roundRect(24, y, 132, 15, 7).fill({ color: 0x8ea2bd, alpha })
+      wait.bones.roundRect(24, y, 132, 15, 7).fill({ color: UI.inkFaint, alpha })
       wait.bones.roundRect(wait.width - 24 - 62, y, 62, 15, 7)
-        .fill({ color: 0x8ea2bd, alpha: alpha * 0.86 })
+        .fill({ color: UI.inkFaint, alpha: alpha * 0.86 })
     }
 
     wait.head.alpha = Math.max(0, Math.min(1, (wait.begin - this.clock) / 0.2))
@@ -6011,8 +5986,8 @@ export class Game {
     const label = new Text({
       text,
       style: {
-        ...outlined(20 + intensity * 16, 0x0a0f18),
-        fill: tint, fontWeight: '800',
+        ...outlined(20 + intensity * 16, UI.outline),
+        fill: tint, fontWeight: WEIGHT.bold,
       },
     })
     label.anchor.set(0.5, 0.5)
@@ -6122,7 +6097,7 @@ export class Game {
     one.life = 0
     one.homeY = slot.y + spot.y
     one.node.text = `${delta > 0 ? '+' : ''}${delta}`
-    one.node.style.fill = delta > 0 ? tint : COLOR.bad
+    one.node.style.fill = delta > 0 ? tint : UI.bad
     one.node.style.fontSize = spot.size
     one.node.anchor.set(spot.pull, 0.5)
     one.node.position.set(slot.x + spot.x, one.homeY)
@@ -6148,8 +6123,8 @@ export class Game {
 
     if (this.deltas.length < DELTA_POOL) {
       const node = new Text({
-        text: '', style: { ...outlined(23, 0x0a0f18, true), fontWeight: '800',
-                           fill: COLOR.ink, fontFamily: NUMERALS },
+        text: '', style: { ...outlined(TEXT.head, UI.outline, true), fontWeight: WEIGHT.bold,
+                           fill: UI.ink, fontFamily: NUMERALS },
       })
       // 크기와 기준은 뜰 때마다 그 칸의 숫자에서 받습니다. **칸마다 글자 크기가 다르므로**
       // 여기서 정해 두면 어느 칸에서는 그 칸의 수보다 크거나 작게 뜹니다.
@@ -6476,7 +6451,6 @@ export class Game {
         && !this.player.busy && this.score.settled && !this.coins.busy) {
       this.drawGameOver()
     }
-
 
     if (!this.player.busy) {
       // **박자가 끝난 뒤에 크기를 되돌리지 않습니다.** 얹힌 크기는 칸에서 시간으로
@@ -7450,9 +7424,9 @@ export class Game {
     //
     // 돈은 여기서 세지 않습니다 — 동전이 날아가 꽂히는 것이 이미 그 일을 하고 있고,
     // 둘이 겹치면 같은 말이 한 자리에서 두 번입니다.
-    this.slotDelta(this.hands, this.panelShown.hands, state.handsLeft, COLOR.good)
-    this.slotDelta(this.discards, this.panelShown.discards, state.discardsLeft, 0xff9d5c)
-    this.slotDelta(this.anteSlot, this.panelShown.ante, state.ante, COLOR.ink)
+    this.slotDelta(this.hands, this.panelShown.hands, state.handsLeft, UI.good)
+    this.slotDelta(this.discards, this.panelShown.discards, state.discardsLeft, UI.discard)
+    this.slotDelta(this.anteSlot, this.panelShown.ante, state.ante, UI.ink)
     this.panelShown.hands = state.handsLeft
     this.panelShown.discards = state.discardsLeft
     this.panelShown.ante = state.ante
@@ -7586,11 +7560,9 @@ export class Game {
     // **배경 위에 그대로 놓이는 글입니다.** 판때기가 없으므로 배경의 무늬가 밝은 자리에서
     // 회색 글이 반투명한 것처럼 보였습니다 — 테를 두르고 밝기를 한 칸 올립니다. 작은
     // 화면에서 특히 그랬으므로 크기도 두 칸 키웁니다.
-    const line = richLine(text, {
-      base: { ...outlined(15, 0x0a0f18), fill: COLOR.ink, fontWeight: '700' },
-      number: COLOR.accentNumber,
-      term: COLOR.accentTerm,
-    })
+    const line = richLine(text, richStyle('title', {
+      ...outlined(TEXT.base, UI.outline), fontWeight: WEIGHT.normal,
+    }))
     line.position.set(-line.width / 2, 0)
     this.hint.addChild(line)
   }
@@ -7703,7 +7675,7 @@ export class Game {
     const tabsX = (width - (tabs.length * tabW + (tabs.length - 1) * tabGap)) / 2
     tabs.forEach((tab, index) => {
       const here = this.runInfoTab === tab.key
-      const button = new Button(tab.label, tabW, 30, here ? UI.light : UI.btn, () => {
+      const button = new Button(tab.label, tabW, 30, here ? 'select' : 'neutral', () => {
         if (this.runInfoTab !== tab.key) this.insightScroll?.toTop()
         this.runInfoTab = tab.key
         this.drawHandList()
@@ -7745,25 +7717,25 @@ export class Game {
 
       const name = new Text({
         text: seen ? this.handName(row.hand) : '???',
-        style: { fontSize: 15, fill: seen ? COLOR.ink : COLOR.inkDim, fontWeight: '700' },
+        style: { fontSize: TEXT.base, fill: seen ? UI.ink : UI.inkDim, fontWeight: WEIGHT.normal },
       })
       name.position.set(28, y + 2)
 
       const lv = new Text({
         text: `Lv.${level}`,
-        style: { fontSize: 13, fill: level > 1 ? COLOR.good : COLOR.inkDim, fontWeight: '700' },
+        style: { fontSize: TEXT.body, fill: level > 1 ? UI.good : UI.inkDim, fontWeight: WEIGHT.normal },
       })
       lv.position.set(246, y + 3)
 
       const value = new Text({
         text: seen ? `${chips}  ×  ${mult}` : '—',
-        style: { fontSize: 15, fill: seen ? COLOR.chips : COLOR.inkDim, fontWeight: '700' },
+        style: { fontSize: TEXT.base, fill: seen ? UI.chips : UI.inkDim, fontWeight: WEIGHT.normal },
       })
       value.position.set(318, y + 2)
 
       const played = new Text({
         text: tf('ui.hand.times', { n: this.state.handPlayCounts[key] ?? 0 }),
-        style: { fontSize: 12, fill: COLOR.inkDim },
+        style: { fontSize: TEXT.small, fill: UI.inkDim },
       })
       played.anchor.set(1, 0)
       played.position.set(width - 28, y + 4)
@@ -7841,14 +7813,14 @@ export class Game {
 
       const name = new Text({
         text: row.name,
-        style: { fontSize: 15, fill: row.here ? COLOR.ink : COLOR.inkDim, fontWeight: '800' },
+        style: { fontSize: TEXT.base, fill: row.here ? UI.ink : UI.inkDim, fontWeight: WEIGHT.bold },
       })
       name.position.set(28, y)
 
       const note = new Text({
         text: row.note,
         style: {
-          fontSize: 11, fill: COLOR.inkDim,
+          fontSize: TEXT.mini, fill: UI.inkDim,
           wordWrap: true, wordWrapWidth: width - 220, breakWords: true, lineHeight: 13,
         },
       })
@@ -7856,7 +7828,7 @@ export class Game {
 
       const value = new Text({
         text: row.value,
-        style: { fontSize: 14, fill: COLOR.chips, fontWeight: '700' },
+        style: { fontSize: TEXT.copy, fill: UI.chips, fontWeight: WEIGHT.normal },
       })
       value.anchor.set(1, 0)
       value.position.set(width - 28, y + 2)
@@ -7912,7 +7884,7 @@ export class Game {
     if (rows.length === 0) {
       const none = new Text({
         text: t('ui.insight.none'),
-        style: { fontSize: 14, fill: COLOR.inkDim, fontWeight: '700' },
+        style: { fontSize: TEXT.copy, fill: UI.inkDim, fontWeight: WEIGHT.normal },
       })
       none.anchor.set(0.5, 0)
       none.position.set(inner / 2, 26)
@@ -7946,12 +7918,11 @@ export class Game {
    * 숫자와 구분되지 않습니다.
    */
   private drawInsightLine(into: Container, width: number, y: number, row: Insight): number {
-    const text = richBlock([tf(`ui.insight.${row.key}`, row.values)], {
-      base: { fontSize: 13, fill: COLOR.ink, fontWeight: '600' },
-      number: COLOR.accentNumber, term: COLOR.accentTerm,
-    }, 17, width - 46)
+    const step = richLeading('body')
+    const text = richBlock([tf(`ui.insight.${row.key}`, row.values)],
+                           richStyle('body'), step, width - 46)
     const wrapped = (text as Container & { rows?: number }).rows ?? 1
-    const rowH = Math.max(30, wrapped * 17 + 13)
+    const rowH = Math.max(30, wrapped * step + 13)
 
     const node = new Container()
     node.position.set(0, y)
@@ -7970,7 +7941,7 @@ export class Game {
     if (row.lines.length > 0) {
       const mark = new Text({
         text: '···',
-        style: { fontSize: 14, fill: COLOR.inkDim, fontWeight: '800' },
+        style: { fontSize: TEXT.copy, fill: UI.inkDim, fontWeight: WEIGHT.bold },
       })
       mark.anchor.set(1, 0.5)
       mark.position.set(width - 12, rowH / 2)
@@ -8062,7 +8033,7 @@ export class Game {
     if (!shape) {
       const veiled = new Text({
         text: t('ui.hand.never_played'),
-        style: { fontSize: 12, fill: COLOR.inkDim },
+        style: { fontSize: TEXT.small, fill: UI.inkDim },
       })
       veiled.anchor.set(0.5, 0.5)
       veiled.position.set(boxW / 2, boxH / 2)
@@ -8226,7 +8197,7 @@ export class Game {
 
       const name = label(bossRow
         ? nameOf(this.data, 'boss', state.bossId, bossRow.name)
-        : tf('ui.blind.named', { name: blindName(blind) }), 17, COLOR.ink, '800')
+        : tf('ui.blind.named', { name: blindName(blind) }), 17, UI.ink, '800')
       // **이름은 칸의 가운데입니다.** 셋이 나란히 서는 판이고, 이름이 왼쪽에 붙으면
       // 보스의 긴 이름과 「스몰 블라인드」가 저마다 다른 자리에서 끝납니다 — 문양은 띠의
       // 왼쪽 끝에 얹히는 것이지 이름과 한 줄로 서는 것이 아닙니다.
@@ -8254,13 +8225,13 @@ export class Game {
       need.position.set(cardW / 2, 72)
       group.addChild(need)
 
-      const needCaption = label(t('ui.label.target'), 11, COLOR.inkDim)
+      const needCaption = label(t('ui.label.target'), 11, UI.inkDim)
       needCaption.anchor.set(0.5, 0)
       needCaption.position.set(cardW / 2, 114)
       group.addChild(needCaption)
 
       const reward = label(tf('ui.blind.reward',
-        { n: rewardOf(this.data, this.state, row.blind) }), 13, COLOR.money, '800')
+        { n: rewardOf(this.data, this.state, row.blind) }), 13, UI.money, '800')
       reward.anchor.set(0.5, 0)
       reward.position.set(cardW / 2, 138)
       group.addChild(reward)
@@ -8277,11 +8248,9 @@ export class Game {
       // 그리고 **`richBlock` 으로 쌓습니다.** 줄마다 따로 그려 17픽셀씩 내리면, 접혀서 두
       // 줄이 된 것이 다음 줄 위에 겹칩니다.
       const noteWidth = cardW - 36
-      const noteText = richBlock(note.split(NEWLINE), {
-        base: { fontSize: 12, fill: boss ? UI.red : COLOR.inkDim },
-        number: COLOR.accentNumber,
-        term: COLOR.accentTerm,
-      }, 17, noteWidth, 'center')
+      const noteText = richBlock(note.split(NEWLINE),
+                                 richStyle('note', boss ? { fill: UI.red } : undefined),
+                                 richLeading('note'), noteWidth, 'center')
       noteText.position.set((cardW - noteWidth) / 2, 172)
       group.addChild(noteText)
 
@@ -8308,7 +8277,7 @@ export class Game {
         mark.position.set(cardW / 2, height - 40)
         group.addChild(mark)
       } else if (!now) {
-        const mark = label(t('ui.label.next_up'), 13, COLOR.inkDim, '700')
+        const mark = label(t('ui.label.next_up'), 13, UI.inkDim, '700')
         mark.anchor.set(0.5, 0)
         mark.position.set(cardW / 2, height - 32)
         group.addChild(mark)
@@ -8317,7 +8286,7 @@ export class Game {
       } else {
         // **이 블라인드로 가는 것이 맨 아래입니다.** 셋 중 지금 차례인 칸에서만 뜨는
         // 단추이고, 밑단에 붙어 있어야 다음 안테에서도 같은 자리입니다.
-        const pick = new Button(t('ui.button.select_blind'), cardW - 36, 44, UI.yellow,
+        const pick = new Button(t('ui.button.select_blind'), cardW - 36, 44, 'primary',
           () => this.act({ t: 'select_blind' }))
         place(pick, 44)
         entry.pickY = pick.y + 22
@@ -8331,7 +8300,7 @@ export class Game {
           // 무엇을 하면 무엇을 받는가는 그 차례로 읽혀야 합니다.
           if (tag) place(tag.node, tag.height)
 
-          const skip = new Button(t('ui.button.skip'), cardW - 36, 36, UI.dare,
+          const skip = new Button(t('ui.button.skip'), cardW - 36, 36, 'dare',
             () => {
               if (this.skipping) return
               this.audio.play('blind_skip')
@@ -8397,7 +8366,7 @@ export class Game {
     const note = new Text({
       text: lines.join(' · '),
       style: {
-        fontSize: 10, fill: COLOR.inkDim,
+        fontSize: TEXT.micro, fill: UI.inkDim,
         wordWrap: true, wordWrapWidth: width - textLeft - 8, breakWords: true,
         lineHeight: 12,
       },
@@ -8408,7 +8377,7 @@ export class Game {
     const plate = new Graphics()
     plate.roundRect(0, 0, width, height, 8).fill({ color: UI.cell, alpha: 0.95 })
     plate.roundRect(0.5, 0.5, width - 1, height - 1, 8)
-      .stroke({ color: COLOR.accentTerm, width: 1.5, alpha: 0.7 })
+      .stroke({ color: UI.accentTerm, width: 1.5, alpha: 0.7 })
     node.addChild(plate)
 
     const face = tagFace(tagId, FACE)
@@ -8417,7 +8386,7 @@ export class Game {
 
     const name = new Text({
       text: nameOf(this.data, 'tag', tagId, tagId),
-      style: { fontSize: 12, fill: COLOR.ink, fontWeight: '800' },
+      style: { fontSize: TEXT.small, fill: UI.ink, fontWeight: WEIGHT.bold },
     })
     name.position.set(textLeft, 6)
     node.addChild(name)
@@ -8490,12 +8459,12 @@ export class Game {
     const label = (text: string, size: number, fill: number, weight = '700') =>
       new Text({ text, style: { fontSize: size, fill, fontWeight: weight as never } })
 
-    const total = label(`${state.drawPile.length} / ${state.deck.length}`, 15, COLOR.chips, '800')
+    const total = label(`${state.drawPile.length} / ${state.deck.length}`, 15, UI.chips, '800')
     total.anchor.set(0.5, 0)
     total.position.set(width / 2, TITLE_BAR + 12)
     const legend = label(
       t('ui.deck_view.note'),
-      11, COLOR.inkDim, '600')
+      11, UI.inkDim, '600')
     legend.anchor.set(0.5, 0)
     legend.position.set(width / 2, TITLE_BAR + 34)
     layer.addChild(total, legend)
@@ -8508,10 +8477,10 @@ export class Game {
       // 무늬는 이 판에서 보이지 않습니다.
       const dark = suitInk(row.suit.suit) === COLOR.black
       const mark = label(SUIT_PIP[row.suit.suit] ?? row.suit.letter, 26,
-        dark ? COLOR.ink : suitInk(row.suit.suit), '800')
+        dark ? UI.ink : suitInk(row.suit.suit), '800')
       mark.anchor.set(0.5, 0)
       mark.position.set(34, y + 16)
-      const count = label(`${leftIn}/${row.cards.length}`, 11, COLOR.inkDim, '700')
+      const count = label(`${leftIn}/${row.cards.length}`, 11, UI.inkDim, '700')
       count.anchor.set(0.5, 0)
       count.position.set(34, y + 50)
       layer.addChild(mark, count)
@@ -8547,7 +8516,7 @@ export class Game {
 
     const foot = label(
       tf('ui.deck_view.counts', { faces, aces, enhanced, sealed }),
-      12, COLOR.inkDim)
+      12, UI.inkDim)
     foot.anchor.set(0.5, 1)
     foot.position.set(width / 2, height - FOOTER_BAR - 10)
     layer.addChild(foot)
@@ -8564,7 +8533,7 @@ export class Game {
    */
   private miniCard(card: CardInstance, alive: boolean, w: number, h: number): Container {
     const node = new Container()
-    const paint = MINI_TINT[card.enhancement] ?? cardPaper()
+    const paint = ENHANCEMENT_PAPER[card.enhancement] ?? cardPaper()
 
     // **나간 카드도 불투명합니다.** 반투명하면 뒤의 카드가 비쳐 겹친 자리가 지저분해지고,
     // 겹쳐 놓은 줄에서는 그 자리가 카드마다 다릅니다 — 어둡게만 두면 깔끔합니다.
@@ -8572,7 +8541,7 @@ export class Game {
     body.roundRect(0, 0, w, h, 5).fill(alive ? cardPaper() : UI.locked)
     node.addChild(body)
 
-    const ink = alive ? suitInk(card.suit) : 0x5d6879
+    const ink = alive ? suitInk(card.suit) : DEAD.ink
     const dir = cardArtDir()
     const texture = dir === undefined
       ? undefined : artFor(dir, cardArtId(card.suit, card.rank))
@@ -8580,7 +8549,7 @@ export class Game {
       const picture = new Sprite(texture)
       picture.width = w
       picture.height = h
-      picture.tint = alive ? paint : 0x4c5566
+      picture.tint = alive ? paint : DEAD.art
       node.addChild(picture)
     }
 
@@ -8592,7 +8561,7 @@ export class Game {
       if (texture === undefined) drawFace(face, card.suit, card.rank, w, h, ink)
       const rank = new Text({
         text: MINI_RANK[card.rank] ?? '?',
-        style: { fontSize: 11, fill: ink, fontWeight: '800' },
+        style: { fontSize: TEXT.mini, fill: ink, fontWeight: WEIGHT.bold },
       })
       rank.position.set(3, 1)
       node.addChild(face, rank)
@@ -8601,19 +8570,19 @@ export class Game {
     // **테두리는 그림 위에 그립니다.** 그림이 카드를 덮으므로 종이에 그으면 가려집니다.
     const edge = new Graphics()
     edge.roundRect(0.5, 0.5, w - 1, h - 1, 5)
-      .stroke({ color: alive ? COLOR.cardEdge : 0x2a3140, width: 1 })
+      .stroke({ color: alive ? COLOR.cardEdge : DEAD.edge, width: 1 })
     node.addChild(edge)
 
     if (card.seal !== SealKind.None) {
       const seal = new Graphics()
       seal.circle(w - 9, 9, 4.5)
-        .fill({ color: MINI_SEAL[card.seal] ?? COLOR.ink, alpha: alive ? 1 : 0.4 })
+        .fill({ color: SEAL_INK[card.seal] ?? UI.ink, alpha: alive ? 1 : 0.4 })
       node.addChild(seal)
     }
     if (card.edition !== EditionKind.Base) {
       const spark = new Graphics()
       spark.roundRect(3, h - 8, w - 6, 4, 2)
-        .fill({ color: COLOR.mult, alpha: alive ? 0.9 : 0.3 })
+        .fill({ color: UI.mult, alpha: alive ? 0.9 : 0.3 })
       node.addChild(spark)
     }
 
@@ -8722,7 +8691,7 @@ export class Game {
     // 판 하나가 뜨는 것과 같은 정도로 덮습니다.
     const veil = new Graphics()
     veil.rect(-2000, -2000, SIZE.width + 4000, SIZE.height + 4000)
-      .fill({ color: 0x070a10, alpha: 0.66 })
+      .fill({ color: UI.scrim, alpha: 0.66 })
     this.gameOver.addChild(veil)
 
     const board = new Container()
@@ -8756,7 +8725,7 @@ export class Game {
     // 결과 한 낱말. **색은 여기와 바에만 듭니다** — 판 전체를 붉게 물들이지 않습니다.
     const title = new Text({
       text: won ? t('ui.label.won') : t('ui.label.lost'),
-      style: { fontSize: 22, fill: tone, fontWeight: '900', letterSpacing: 4 },
+      style: { fontSize: TEXT.head, fill: tone, fontWeight: WEIGHT.heavy, letterSpacing: 4 },
     })
     title.anchor.set(0.5)
     title.position.set(0, top + headH / 2)
@@ -8776,13 +8745,13 @@ export class Game {
     const barY = yy + 23
     const scored = new Text({
       text: `${t('ui.stat.score')}  ${score.toLocaleString('en-US')}`,
-      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '700' },
+      style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
     })
     scored.anchor.set(0, 0.5)
     scored.position.set(left, barY)
     const wanted = new Text({
       text: `${t('ui.label.target')}  ${target.toLocaleString('en-US')}`,
-      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '700' },
+      style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
     })
     wanted.anchor.set(1, 0.5)
     wanted.position.set(left + inner, barY)
@@ -8793,7 +8762,7 @@ export class Game {
     const lead = new Text({
       text: this.endLine(won),
       style: {
-        fontSize: 13, fill: tone, fontWeight: '700',
+        fontSize: TEXT.body, fill: tone, fontWeight: WEIGHT.normal,
         wordWrap: true, wordWrapWidth: inner, breakWords: true, align: 'center',
       },
     })
@@ -8809,8 +8778,8 @@ export class Game {
     yy += SECTION_H + 10
     const cellW = (inner - 8) / 2
     const cells: [string, string, number][] = [
-      [t('ui.slot.ante'), `${state.ante} / ${this.data.run.winAnte}`, COLOR.ink],
-      [tf('ui.stat.hands_played', { n: '' }).trim(), `${state.handsPlayedThisRun}`, COLOR.ink],
+      [t('ui.slot.ante'), `${state.ante} / ${this.data.run.winAnte}`, UI.ink],
+      [tf('ui.stat.hands_played', { n: '' }).trim(), `${state.handsPlayedThisRun}`, UI.ink],
       [t('ui.over.best_hand'), this.metrics.bestHand.toLocaleString('en-US'), UI.bar],
       [t('ui.over.money'), `$${state.money}`, UI.yellow],
     ]
@@ -8865,18 +8834,18 @@ export class Game {
     yy += 16 + 1 + 14
     const seedLabel = new Text({
       text: t('ui.title.seed'),
-      style: { fontSize: 11, fill: COLOR.inkDim, fontWeight: '700' },
+      style: { fontSize: TEXT.mini, fill: UI.inkDim, fontWeight: WEIGHT.normal },
     })
     seedLabel.anchor.set(0, 0.5)
     seedLabel.position.set(left, yy + 20)
     const seed = new Text({
       text: state.seed,
-      style: { fontSize: 13, fill: UI.mark, fontWeight: '700', fontFamily: NUMERALS, letterSpacing: 1 },
+      style: { fontSize: TEXT.body, fill: UI.mark, fontWeight: WEIGHT.normal, fontFamily: NUMERALS, letterSpacing: 1 },
     })
     seed.anchor.set(0, 0.5)
     seed.position.set(left + seedLabel.width + 8, yy + 20)
     // **시드는 다시 돌리려고 적는 것입니다.** 손으로 옮겨 적게 두지 않습니다.
-    const copy = new Button(t('ui.over.copy'), 52, 24, UI.cell, () => {
+    const copy = new Button(t('ui.over.copy'), 52, 24, 'quiet', () => {
       const clip = globalThis.navigator?.clipboard
       if (!clip) return
       void clip.writeText(state.seed).then(() => { copy.text = t('ui.over.copied') })
@@ -8885,9 +8854,9 @@ export class Game {
     board.addChild(seedLabel, seed, copy)
 
     // **둘 다 페이지를 다시 읽지 않습니다.** 판을 접는 것은 화면이 하는 일입니다.
-    const again = new Button(t('ui.button.restart'), 140, 40, UI.yellow, () => this.restartRun())
+    const again = new Button(t('ui.button.restart'), 140, 40, 'primary', () => this.restartRun())
     again.position.set(width / 2 - pad - 140, yy)
-    const home = new Button(t('ui.button.to_title'), 96, 40, UI.btn,
+    const home = new Button(t('ui.button.to_title'), 96, 40, 'neutral',
       () => this.cross(won ? 'run_won' : 'run_lost', () => this.enterTitle()))
     home.position.set(again.x - 8 - 96, yy)
     board.addChild(home, again)
@@ -8915,8 +8884,8 @@ export class Game {
     this.audio.music.duck(0.6, 1.6)
     this.haptics.play(won ? 'win' : 'lose')
     this.jolt(won ? 8 : 6, won ? 3.4 : 2.6, 1)
-    this.flashScreen(won ? COLOR.money : COLOR.bad, won ? 0.5 : 0.34)
-    if (won) this.particles.bills(POPUP_X, SIZE.height / 2, 44, COLOR.money, 1.3, 1.1)
+    this.flashScreen(won ? UI.money : UI.bad, won ? 0.5 : 0.34)
+    if (won) this.particles.bills(POPUP_X, SIZE.height / 2, 44, UI.money, 1.3, 1.1)
   }
 
   /** 진 판의 판에 선 조커 하나의 모습. 세울 때와 다시 그릴 때가 같아야 합니다. */
@@ -8964,7 +8933,7 @@ export class Game {
   private async judgeRun(): Promise<void> {
     if (!this.hub.isRanked(this.state.seed)) return
 
-    this.rankLine = { text: t('ui.lb.end.judging'), tone: COLOR.inkDim }
+    this.rankLine = { text: t('ui.lb.end.judging'), tone: UI.inkDim }
     this.drawRankLine()
 
     const line = await this.hub.finishRun(this.state, this.actions, this.metrics)
@@ -8979,14 +8948,14 @@ export class Game {
       this.audio.play('blind_clear')
       this.jolt(4, 2.2, 1)
       if (line.moved >= 25) {
-        this.particles.bills(POPUP_X, SIZE.height / 2, 22, COLOR.money, 1.1, 1)
+        this.particles.bills(POPUP_X, SIZE.height / 2, 22, UI.money, 1.1, 1)
       }
     }
     if (line.tier !== undefined) {
       this.audio.play('run_win')
-      this.flashScreen(COLOR.money, 0.3)
+      this.flashScreen(UI.money, 0.3)
       this.toasts.push(t('ui.lb.title'), tf('ui.lb.end.tierUp', { tier: line.tier }),
-                       COLOR.money, 3.4)
+                       UI.money, 3.4)
     }
   }
 
@@ -9042,7 +9011,7 @@ export class Game {
     const text = new Text({
       text: shown,
       style: {
-        fontSize: 14, fill: line.tone, fontWeight: '700',
+        fontSize: TEXT.copy, fill: line.tone, fontWeight: WEIGHT.normal,
         wordWrap: true, wordWrapWidth: 420, align: 'center',
       },
     })
@@ -9055,7 +9024,7 @@ export class Game {
       const small = new Text({
         text: others,
         style: {
-          fontSize: 11, fill: COLOR.inkDim, wordWrap: true, wordWrapWidth: 420,
+          fontSize: TEXT.mini, fill: UI.inkDim, wordWrap: true, wordWrapWidth: 420,
           align: 'center',
         },
       })
@@ -9220,7 +9189,7 @@ export class Game {
         const plate = new Graphics()
         plate.roundRect(0, 0, size, size, 8).fill({ color: UI.cell, alpha: 0.95 })
         plate.roundRect(0.5, 0.5, size - 1, size - 1, 8)
-          .stroke({ color: COLOR.accentTerm, width: 1.5, alpha: 0.7 })
+          .stroke({ color: UI.accentTerm, width: 1.5, alpha: 0.7 })
         cell.addChild(plate)
       }
       const face = tagFace(tagId, texture ? size : size - 10)
@@ -9436,7 +9405,6 @@ export class Game {
     const spacing = Math.min(SIZE.cardWidth + 12, 720 / Math.max(1, hand.length))
     const startX = BOARD_X - ((hand.length - 1) * spacing) / 2
     this.handSpots = { startX, spacing }
-
 
     hand.forEach((card, index) => {
       let view = this.cards.get(card.uid)
@@ -9803,7 +9771,7 @@ export class Game {
       buttons.push(new Button(
         // **값은 적지 않습니다.** 딱지에 이미 크게 적혀 있고, 그 바로 밑의 단추가 같은
         // 값을 한 번 더 적으면 그 둘 중 어느 것이 값인지 잠깐 헷갈립니다.
-        t('ui.button.buy'), 84, 32, UI.yellow, () => {
+        t('ui.button.buy'), 84, 32, 'primary', () => {
           this.held = undefined
           this.buyFrom(held.uid, item)
         }))
@@ -9821,7 +9789,7 @@ export class Game {
       // 카드 딱지와 같은 규칙입니다 — 봉지 바로 밑.
       baseline = spot.holdY
       height = HELD_H
-      buttons.push(new Button(t('ui.button.buy'), 84, 32, UI.yellow, () => {
+      buttons.push(new Button(t('ui.button.buy'), 84, 32, 'primary', () => {
         this.held = undefined
         this.openPackSlot(held.uid)
       }))
@@ -9843,7 +9811,7 @@ export class Game {
       baseline = PACK_CARDS_Y + PACK_CARD_H / 2 + 4
       height = HELD_H
       // 상점의 칸과 같은 규칙입니다 — 자리가 찼는지는 단추가 아니라 그 다음 화면이 적습니다.
-      buttons.push(new Button(t('ui.button.take'), 92, 32, UI.yellow, () => {
+      buttons.push(new Button(t('ui.button.take'), 92, 32, 'primary', () => {
         this.held = undefined
         this.takeFromPack(held.uid)
       }))
@@ -9859,10 +9827,10 @@ export class Game {
       // **자리를 비우는 중이면 단추가 하나입니다.** 파는 것과 같은 값이 들어오지만 하는
       // 일은 「이것을 내놓고 그것을 받는다」이므로, 판다가 아니라 그 말로 적습니다.
       if (this.focus) {
-        buttons.push(new Button(tf('ui.button.give_up', { n: price }), 118, HELD_H, UI.yellow,
+        buttons.push(new Button(tf('ui.button.give_up', { n: price }), 118, HELD_H, 'primary',
           () => this.commitFocus(index)))
       } else {
-        buttons.push(new Button(tf('ui.button.sell', { n: price }), 92, HELD_H, UI.red, () => {
+        buttons.push(new Button(tf('ui.button.sell', { n: price }), 92, HELD_H, 'danger', () => {
           this.held = undefined
           this.audio.play('joker_sell')
           this.sellFrom = this.jokerSpot(index)
@@ -9879,7 +9847,7 @@ export class Game {
       this.heldNode = this.consumableTiles.find(one => one.uid === held.uid)?.tile
       if (this.focus) {
         buttons.push(new Button(
-          tf('ui.button.give_up', { n: this.data.economy.sellMin }), 118, HELD_H, UI.yellow,
+          tf('ui.button.give_up', { n: this.data.economy.sellMin }), 118, HELD_H, 'primary',
           () => this.commitFocus(index)))
       // **「사용」은 손패를 앞에 두었을 때만 놓입니다.** 상점과 블라인드 고르기에서는 팔 수만
       // 있습니다 — 쓸 수 없는 때에 단추가 놓여 있으면 눌러서 카드를 버리게 됩니다.
@@ -9887,7 +9855,7 @@ export class Game {
       // **나아가는 단추의 노랑입니다.** 판의 색(`UI.light`)이었고, 그 색은 겉면을 따라가므로
       // 무채색 겉면에서는 회색 단추 하나였습니다 — 하는 일은 「낸다」와 같은 갈래이고,
       // 그 옆의 「판매」가 붉음이므로 둘이 색으로 갈립니다.
-      } else if (this.handReady) buttons.push(new Button(t('ui.button.use'), 68, HELD_H, UI.yellow, () => {
+      } else if (this.handReady) buttons.push(new Button(t('ui.button.use'), 68, HELD_H, 'primary', () => {
         this.held = undefined
         // **쓴 것과 판 것은 없어지는 모습이 다릅니다.** 쓴 것은 판 가운데로 나와 번쩍이고,
         // 판 것은 제자리에서 탑니다 — 화면은 어느 쪽인지 모르므로 여기서 적어 둡니다.
@@ -9895,7 +9863,7 @@ export class Game {
         this.act({ t: 'use_consumable', index, targets: this.orderedSelection() })
       }))
       if (!this.focus) {
-        buttons.push(new Button(tf('ui.button.sell', { n: this.data.economy.sellMin }), 92, HELD_H, UI.red, () => {
+        buttons.push(new Button(tf('ui.button.sell', { n: this.data.economy.sellMin }), 92, HELD_H, 'danger', () => {
           this.held = undefined
           this.audio.play('joker_sell')
           this.sellFrom = this.itemSpot(index)
@@ -10148,24 +10116,22 @@ export class Game {
       // 것인지가 없었습니다.
       if (glow && entry.label === glow.label) {
         const lit = new Graphics()
-        lit.roundRect(0, 0, PANEL_W, rowH - 4, 6).fill({ color: COLOR.money, alpha: 0.18 })
+        lit.roundRect(0, 0, PANEL_W, rowH - 4, 6).fill({ color: UI.money, alpha: 0.18 })
         lit.roundRect(0.5, 0.5, PANEL_W - 1, rowH - 5, 6)
-          .stroke({ color: COLOR.money, width: 1.5 })
+          .stroke({ color: UI.money, width: 1.5 })
         line.addChild(lit)
         glow.plate = lit
       }
 
       const name = new Text({
         text: entry.label,
-        style: { fontSize: 12, fill: COLOR.ink, fontWeight: '700' },
+        style: { fontSize: TEXT.small, fill: UI.ink, fontWeight: WEIGHT.normal },
       })
       name.position.set(8, 4)
       line.addChild(name)
 
-      const value = richLine(entry.value, {
-        base: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '700' },
-        number: COLOR.accentNumber, term: COLOR.accentTerm,
-      })
+      const value = richLine(entry.value,
+                             richStyle('note', { fontWeight: WEIGHT.normal }))
       value.position.set(PANEL_W - 8 - value.width, 4)
       line.addChild(value)
 
@@ -10185,7 +10151,7 @@ export class Game {
     if (entries.length > shown) {
       const more = new Text({
         text: tf('ui.active.more', { n: entries.length - shown }),
-        style: { fontSize: 11, fill: COLOR.inkDim, fontWeight: '700' },
+        style: { fontSize: TEXT.mini, fill: UI.inkDim, fontWeight: WEIGHT.normal },
       })
       more.position.set(LEFT + 4, top + 22 + shown * rowH + 4)
       more.eventMode = 'static'
@@ -10222,15 +10188,14 @@ export class Game {
       const line = new Container()
       const name = new Text({
         text: entry.label,
-        style: { fontSize: 14, fill: COLOR.ink, fontWeight: '800' },
+        style: { fontSize: TEXT.copy, fill: UI.ink, fontWeight: WEIGHT.bold },
       })
       name.position.set(20, 6)
       line.addChild(name)
 
-      const value = richLine(entry.value, {
-        base: { fontSize: 13, fill: COLOR.inkDim, fontWeight: '700' },
-        number: COLOR.accentNumber, term: COLOR.accentTerm,
-      })
+      const value = richLine(entry.value,
+                             richStyle('body', { fill: UI.inkDim,
+                                                 fontWeight: WEIGHT.normal }))
       value.position.set(width - 20 - value.width, 7)
       line.addChild(value)
 
@@ -10238,10 +10203,8 @@ export class Game {
       // 무엇을 하는 것인지는 그 줄 아래에. **이름만으로는 왜 걸렸는지 모릅니다.**
       if (entry.lines.length > 0) {
         // **값 칸을 피해 접습니다.** 오른쪽 끝에 값이 놓여 있으므로 거기까지 가면 겹칩니다.
-        const note = richLine(entry.lines[0], {
-          base: { fontSize: 11, fill: COLOR.inkDim },
-          number: COLOR.accentNumber, term: COLOR.accentTerm,
-        }, width - 130, 13)
+        const note = richLine(entry.lines[0], richStyle('note'),
+                              width - 130, richLeading('note'))
         note.position.set(20, 22)
         line.addChild(note)
         height = 26 + note.height
@@ -10258,7 +10221,7 @@ export class Game {
     if (entries.length === 0) {
       const empty = new Text({
         text: t('ui.active.empty'),
-        style: { fontSize: 13, fill: COLOR.inkDim },
+        style: { fontSize: TEXT.body, fill: UI.inkDim },
       })
       empty.anchor.set(0.5, 0)
       empty.position.set(width / 2, top + 6)
@@ -10324,13 +10287,13 @@ export class Game {
     const barY = barTop + SECTION_H + 22
     const scored = new Text({
       text: `${t('ui.stat.score')}  ${score.toLocaleString('en-US')}`,
-      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '700' },
+      style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
     })
     scored.anchor.set(0, 0.5)
     scored.position.set(pad, barY)
     const wanted = new Text({
       text: `${t('ui.label.target')}  ${target.toLocaleString('en-US')}`,
-      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '700' },
+      style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
     })
     wanted.anchor.set(1, 0.5)
     wanted.position.set(width - pad, barY)
@@ -10356,7 +10319,7 @@ export class Game {
 
       const label = new Text({
         text: moneyReason(row.reason),
-        style: { fontSize: 14, fill: COLOR.ink, fontWeight: '700' },
+        style: { fontSize: TEXT.copy, fill: UI.ink, fontWeight: WEIGHT.normal },
       })
       label.anchor.set(0, 0.5)
       label.position.set(pad + 4, y + rowH / 2)
@@ -10364,7 +10327,7 @@ export class Game {
       const amount = new Text({
         text: `${row.amount > 0 ? '+' : ''}$${row.amount}`,
         style: {
-          fontSize: 16, fill: row.amount > 0 ? UI.yellow : UI.red, fontWeight: '800',
+          fontSize: TEXT.big, fill: row.amount > 0 ? UI.yellow : UI.red, fontWeight: WEIGHT.bold,
           fontFamily: NUMERALS,
         },
       })
@@ -10387,7 +10350,7 @@ export class Game {
     if (empty) {
       const none = new Text({
         text: t('ui.payout.nothing'),
-        style: { fontSize: 14, fill: COLOR.inkDim, fontWeight: '700' },
+        style: { fontSize: TEXT.copy, fill: UI.inkDim, fontWeight: WEIGHT.normal },
       })
       none.anchor.set(0.5, 0.5)
       none.position.set(width / 2, rowsTop + rowH / 2)
@@ -10410,13 +10373,13 @@ export class Game {
     // 합계. **줄이 설 때마다 그만큼 셉니다.** 큰 수 하나가 이 판의 무게입니다.
     const sumLabel = new Text({
       text: t('ui.payout.sum'),
-      style: { fontSize: 13, fill: COLOR.inkDim, fontWeight: '700' },
+      style: { fontSize: TEXT.body, fill: UI.inkDim, fontWeight: WEIGHT.normal },
     })
     sumLabel.anchor.set(0, 0.5)
     sumLabel.position.set(pad + 4, sumTop + 28)
     const sumText = new Text({
       text: '$0',
-      style: { fontSize: 40, fill: UI.yellow, fontWeight: '800', fontFamily: NUMERALS },
+      style: { fontSize: TEXT.giant, fill: UI.yellow, fontWeight: WEIGHT.bold, fontFamily: NUMERALS },
     })
     sumText.anchor.set(1, 0.5)
     sumText.position.set(width - pad - 4, sumTop + 28)
@@ -10435,7 +10398,7 @@ export class Game {
     for (let i = 0; i < many; i++) {
       const one = new Text({
         text: '$',
-        style: { fontSize: 24, fill: UI.yellow, fontWeight: '800', fontFamily: NUMERALS },
+        style: { fontSize: TEXT.head, fill: UI.yellow, fontWeight: WEIGHT.bold, fontFamily: NUMERALS },
       })
       one.anchor.set(0.5, 0.5)
       const restX = coinRight - (many - 1 - i) * coinStep
@@ -10453,7 +10416,7 @@ export class Game {
 
     // **닫기 단추가 없습니다.** 받는 것이 이 판의 전부이고, 그것을 누르는 것이 닫는 것입니다.
     const label = empty ? t('ui.payout.next') : tf('ui.payout.take', { n: sum })
-    const take = new Button(label, 240, 48, empty ? UI.btn : UI.yellow, () => {
+    const take = new Button(label, 240, 48, empty ? 'neutral' : 'primary', () => {
       // **누른 그 자리에서 차례를 지웁니다.** 닫히는 것을 기다리면 그 사이에 다시 뜹니다.
       this.payoutWanted = false
       delete this.spots.take
@@ -10648,7 +10611,7 @@ export class Game {
       () => this.modals.close(this.menu), undefined, false))
 
     rows.forEach((row, index) => {
-      const button = new Button(row.label, width - 48, 38, UI.btn, () => {
+      const button = new Button(row.label, width - 48, 38, 'neutral', () => {
         // **닫고 나서 엽니다.** 이 판 위에 또 판이 서면 뒤로 물러난 것이 보이고, 그것은
         // 메뉴가 아니라 판이 쌓인 것으로 보입니다.
         this.modals.close(this.menu)
@@ -10833,7 +10796,7 @@ export class Game {
         one.flashed = true
         this.audio.play('card_slam')
         this.jolt(7, 1.4, 0.3)
-        this.flashPanel(0x9b8fd0, 0.6)
+        this.flashPanel(UI.legendary, 0.6)
       }
       const since = one.life - ITEM_ARRIVE
       const glow = one.flashed ? Math.max(0, 1 - since / ITEM_FLASH) : 0
@@ -10994,8 +10957,8 @@ export class Game {
     const rerollW = 140
     const leaveW = 190
     const reroll = new Button(tf('ui.shop.reroll_cost', { n: cost }), rerollW, FOOT_BTN_H,
-      UI.light, () => this.reroll())
-    const leave = new Button(t('ui.button.next_blind'), leaveW, FOOT_BTN_H, UI.yellow,
+      'select', () => this.reroll())
+    const leave = new Button(t('ui.button.next_blind'), leaveW, FOOT_BTN_H, 'primary',
       () => this.primary())
     const rule = hairline(width - 48)
     rule.position.set(24, footY)
@@ -11027,7 +10990,7 @@ export class Game {
     wallet.addChild(cellPlate(80, 30, UI.rule))
     const money = new Text({
       text: `$${this.shown.money}`,
-      style: { fontSize: 16, fill: COLOR.ink, fontWeight: '800', fontFamily: NUMERALS },
+      style: { fontSize: TEXT.big, fill: UI.ink, fontWeight: WEIGHT.bold, fontFamily: NUMERALS },
     })
     money.anchor.set(0.5, 0.5)
     money.position.set(40, 15)
@@ -11361,7 +11324,7 @@ export class Game {
       ? this.data.tables.joker.findByJokerId(item.id)?.rarity ?? 1 : 0
     const afford = this.shown.money >= item.cost
     const border = item.kind === ShopItemKind.Joker ? rarityColor(rarity)
-      : item.kind === ShopItemKind.PlayingCard ? COLOR.cardEdge : 0x9b8fd0
+      : item.kind === ShopItemKind.PlayingCard ? COLOR.cardEdge : UI.legendary
     tile.addChild(cellPlate(CELL_W, CELL_H, border))
     // **올라가는 것만 담습니다.** 테두리는 이 통 밖에 있으므로 제자리에 남습니다.
     const lift = new Container()
@@ -11561,7 +11524,7 @@ export class Game {
     this.audio.play(item.kind === ShopItemKind.Joker ? 'joker_buy' : 'shop_buy')
     // **조각을 터뜨리지 않습니다.** 조각은 산 물건 뒤에서 흩어질 뿐이라 무엇을 산 것인지가
     // 남지 않습니다 — 산 그 물건이 울렁이며 날아가 자리에서 번쩍이는 것이 「샀다」입니다.
-    this.flashPanel(COLOR.money, 0.35)
+    this.flashPanel(UI.money, 0.35)
 
     // **산 자리를 액션보다 먼저 적어 둡니다.**
     //
@@ -11708,7 +11671,7 @@ export class Game {
     // **여기서도 조각이 없습니다.** 자리에 닿은 것은 카드 전체가 한 번 번쩍이는 것으로
     // 알립니다 — 그것이 그 카드에 관한 일이라는 것이 조각보다 분명합니다.
     this.popAt({ x: spot.x, y: spot.y - RISER_ON_CARD },
-      shopLabel(item.kind, item.id, this.data), COLOR.money, 0.5)
+      shopLabel(item.kind, item.id, this.data), UI.money, 0.5)
     // **칸 수도 알립니다.** 자리가 몇 남았는지는 물건이 닿는 순간에 눈이 가지 않습니다.
     this.pulseCount(joker ? this.jokerCount : this.consumableCount)
   }
@@ -11724,7 +11687,7 @@ export class Game {
     if (!this.countPulse) {
       this.countPulse = { node, base: node.style.fill as number, until: this.clock + COUNT_PULSE }
     } else this.countPulse.until = this.clock + COUNT_PULSE
-    node.style.fill = COLOR.money
+    node.style.fill = UI.money
     this.countScale.target = 1.28
     this.countScale.kick(4)
   }
@@ -11980,16 +11943,13 @@ export class Game {
 
     const left = 14 + SIZE.jokerWidth * fit + 16
     const lead = richLine(
-      tf('ui.swap.lead', { name: shopLabel(item.kind, item.id, this.data) }), {
-        base: { fontSize: 15, fill: COLOR.ink, fontWeight: '800' },
-        number: COLOR.accentNumber,
-        term: COLOR.accentTerm,
-      }, width - left - 140)
+      tf('ui.swap.lead', { name: shopLabel(item.kind, item.id, this.data) }),
+      richStyle('title', { fontWeight: WEIGHT.bold }), width - left - 140)
     lead.position.set(left, 14)
 
     const how = new Text({
       text: t(kind === 'joker' ? 'ui.focus.pick_joker' : 'ui.focus.pick_item'),
-      style: { fontSize: 13, fill: COLOR.ink, fontWeight: '700',
+      style: { fontSize: TEXT.body, fill: UI.ink, fontWeight: WEIGHT.normal,
         wordWrap: true, wordWrapWidth: width - left - 140 },
     })
     how.position.set(left, 40)
@@ -11998,11 +11958,11 @@ export class Game {
     // 「이만큼 받는다」인지 「이만큼 버린다」인지는 적혀 있지 않으면 알 수 없습니다.
     const paid = new Text({
       text: t('ui.swap.paid'),
-      style: { fontSize: 11, fill: COLOR.money, fontWeight: '700' },
+      style: { fontSize: TEXT.mini, fill: UI.money, fontWeight: WEIGHT.normal },
     })
     paid.position.set(left, 66)
 
-    const cancel = new Button(t('ui.focus.cancel'), 100, 34, UI.btn, () => {
+    const cancel = new Button(t('ui.focus.cancel'), 100, 34, 'neutral', () => {
       if (this.ate()) return
       this.leaveFocus()
     })
@@ -12113,7 +12073,7 @@ export class Game {
     this.deckBump.kick(240)
     this.audio.play('card_place')
     this.particles.burst(DECK_X, DECK_Y, 14, COLOR.cardEdge, 0.9, 0.7)
-    this.popAt({ x: DECK_X - 36, y: DECK_Y - RISER_ON_CARD }, t('ui.deck.added'), COLOR.good, 0.5)
+    this.popAt({ x: DECK_X - 36, y: DECK_Y - RISER_ON_CARD }, t('ui.deck.added'), UI.good, 0.5)
   }
 
   /**
@@ -12195,7 +12155,7 @@ export class Game {
       ? this.fromShop({ x: spot.mid, y: spot.baseY + spot.height / 2 })
       : this.shopMiddle()
     const row = this.data.tables.boosterPack.findByPackId(this.state.shop.packs[slot])
-    this.particles.burst(from.x, from.y, 20, row ? packInk(row.kind) : COLOR.ink, 1.2)
+    this.particles.burst(from.x, from.y, 20, row ? packInk(row.kind) : UI.ink, 1.2)
     this.jolt(5, 3)
     this.boughtFrom = from
     // **값을 치르는 것이 먼저입니다.** 뜯은 딱지가 그 자리에 남아 값이 그 위에 뜨고 동전이
@@ -12224,7 +12184,7 @@ export class Game {
         const none = new Text({
           text: t('ui.shop.voucher_taken'),
           style: {
-            fontSize: 10, fill: COLOR.inkDim, fontWeight: '700', align: 'center',
+            fontSize: TEXT.micro, fill: UI.inkDim, fontWeight: WEIGHT.normal, align: 'center',
             wordWrap: true, wordWrapWidth: CELL_W - 16, breakWords: true, lineHeight: 13,
           },
         })
@@ -12264,9 +12224,9 @@ export class Game {
       // 것이 그것을 얻었다는 유일한 표시입니다.
       this.audio.play('voucher_buy')
       const at = middle()
-      this.particles.burst(at.x, at.y, 26, COLOR.money, 1.3, 1.2)
-      this.flashPanel(COLOR.money, 0.35)
-      this.popAt(at, title, COLOR.money, 0.5)
+      this.particles.burst(at.x, at.y, 26, UI.money, 1.3, 1.2)
+      this.flashPanel(UI.money, 0.35)
+      this.popAt(at, title, UI.money, 0.5)
       this.boughtFrom = at
       // 왼쪽 판의 「적용 중」에 이 줄이 밝게 뜹니다. 그것이 규칙으로 들어갔다는 표시입니다.
       this.activeGlow = { label: title, until: this.clock + ACTIVE_GLOW }
@@ -12345,8 +12305,8 @@ export class Game {
     const title = new Text({
       text: row ? packName(row.kind, row.size) : t('ui.kind.pack'),
       style: {
-        ...outlined(34, 0x070a10),
-        fill: packInkLit(open.kind), fontWeight: '800', letterSpacing: 2,
+        ...outlined(TEXT.hero, UI.scrim),
+        fill: packInkLit(open.kind), fontWeight: WEIGHT.bold, letterSpacing: 2,
       },
     })
     title.anchor.set(0.5, 0)
@@ -12356,7 +12316,7 @@ export class Game {
     // 읽히고, 그것은 남은 글자로 보입니다.
     const note = new Text({
       text: this.packLine(open.picksLeft),
-      style: { fontSize: 14, fill: COLOR.ink, fontWeight: '700' },
+      style: { fontSize: TEXT.copy, fill: UI.ink, fontWeight: WEIGHT.normal },
     })
     note.anchor.set(0.5, 0)
     note.position.set(PACK_X, PACK_TITLE_Y + 46)
@@ -12364,7 +12324,7 @@ export class Game {
 
     // **판 아래 단추 줄입니다.** 라운드에서 낸다·취소·버린다가 놓이는 그 줄이고, 그 크기입니다 —
     // 팩에서 고르는 것은 손패를 한 번 더 치는 것이므로 단추도 그 자리에 놓입니다.
-    const skip = new Button(t('ui.button.skip'), PLAY_W, PLAY_H, UI.btn,
+    const skip = new Button(t('ui.button.skip'), PLAY_W, PLAY_H, 'neutral',
       () => this.act({ t: 'skip_pack' }))
     skip.position.set(PACK_X - PLAY_W / 2, BUTTON_Y)
     this.packSkip = skip
@@ -12549,7 +12509,6 @@ export class Game {
     return { node, card }
   }
 
-
   /**
    * 팩에서 한 장을 집습니다.
    *
@@ -12575,7 +12534,7 @@ export class Game {
         // 내놓을 것도 없습니다. **왜 안 되는지는 적혀야 합니다.**
         this.audio.play('joker_fizzle')
         // **줄로 알립니다.** 머리글은 팩의 제목과 같은 자리라 둘이 겹칩니다.
-        this.toasts.push(t('ui.swap.title'), this.fullNote(item.kind), COLOR.bad, 3)
+        this.toasts.push(t('ui.swap.title'), this.fullNote(item.kind), UI.bad, 3)
         return
       }
       // **줄에서 고릅니다.** 펼친 카드는 막 뒤로 물러나 있고, 집은 것은 그 자리에서 옵니다 —
@@ -12601,7 +12560,7 @@ export class Game {
 
     this.audio.play('pack_pick')
     this.particles.burst(node.x, node.y, 26, ink, 1.4, 1.2)
-    this.particles.burst(node.x, node.y, 12, 0xffffff, 0.8, 0.7)
+    this.particles.burst(node.x, node.y, 12, PAINT.sheen, 0.8, 0.7)
     this.jolt(4, 3)
 
     // **플레잉 카드는 덱으로 갑니다.** 줄에 꽂히는 자리가 없으므로, 펼쳐 있던 그 카드가
@@ -12772,7 +12731,7 @@ export class Game {
  */
 function glare(size: number, strength: number): Graphics {
   const lit = new Graphics()
-  lit.circle(size / 2, size / 2, size / 2).fill({ color: 0xffffff, alpha: strength })
+  lit.circle(size / 2, size / 2, size / 2).fill({ color: PAINT.sheen, alpha: strength })
   lit.blendMode = 'add'
   return lit
 }
@@ -12906,8 +12865,6 @@ function moneyReason(reason: string): string {
 function blindName(blind: BlindKind): string {
   return blind === BlindKind.Small ? t('ui.blind.small') : blind === BlindKind.Big ? t('ui.blind.big') : t('ui.blind.boss')
 }
-
-
 
 /**
  * 로그인 화면을 건너뛰고 열라고 적혀 있는가.

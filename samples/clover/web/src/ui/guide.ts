@@ -8,9 +8,9 @@
 
 import { Container, Graphics, Text } from 'pixi.js'
 
-import { COLOR, UI } from '../render/theme'
+import { UI, TEXT, WEIGHT } from '../render/theme'
 import { FOOTER_BAR, panelFrame, TITLE_BAR, type ModalPanel } from './modal'
-import { richBlock, type RichStyle } from './rich'
+import { richLeading, richStyle, richBlock, type RichStyle } from './rich'
 import { t } from '../core/strings'
 import { Button } from './widgets'
 
@@ -36,11 +36,7 @@ function sectionsOf(keys: readonly string[]): Section[] {
 }
 
 /** 이 판의 글에 붙는 강조. */
-const RICH: RichStyle = {
-  base: { fontSize: 14, fill: COLOR.ink },
-  number: COLOR.accentNumber,
-  term: COLOR.accentTerm,
-}
+const rich = (): RichStyle => richStyle('lead')
 
 const WIDTH = 940
 /** 판의 가장 낮은 높이. 글이 길면 그만큼 자랍니다. */
@@ -90,14 +86,14 @@ export class Guide implements ModalPanel {
     // **판 위를 누르는 것으로는 닫히지 않습니다.** 닫는 것은 바깥이거나 `Esc` 입니다.
     // 족보 목록은 이 판에서 바로 열립니다. **판 위에 판이 얹힙니다** — 닫으면 이 판으로
     // 돌아오므로, 규칙을 읽다 말고 처음부터 다시 찾아 들어갈 일이 없습니다.
-    const hands = new Button(t('ui.button.hand_list_open'), 168, 34, UI.btn,
+    const hands = new Button(t('ui.button.hand_list_open'), 168, 34, 'neutral',
       () => this.onHandList())
     this.body.addChild(
       panelFrame(WIDTH, this.height, t('ui.button.guide'), () => this.onClose(), hands))
 
     const lead = new Text({
       text: t('ui.guide.lead'),
-      style: { fontSize: 15, fill: COLOR.ink, fontWeight: '700' },
+      style: { fontSize: TEXT.base, fill: UI.ink, fontWeight: WEIGHT.normal },
     })
     lead.anchor.set(0.5, 0)
     lead.position.set(WIDTH / 2, TITLE_BAR + 18)
@@ -109,11 +105,11 @@ export class Guide implements ModalPanel {
     let y = TITLE_BAR + 58
     for (const section of sections) {
       const rule = new Graphics()
-      rule.roundRect(x, y + 6, 4, 17, 2).fill(COLOR.chips)
+      rule.roundRect(x, y + 6, 4, 17, 2).fill(UI.chips)
 
       const head = new Text({
         text: section.head,
-        style: { fontSize: 18, fill: COLOR.ink, fontWeight: '800' },
+        style: { fontSize: TEXT.big, fill: UI.ink, fontWeight: WEIGHT.bold },
       })
       head.position.set(x + 14, y)
 
@@ -121,7 +117,7 @@ export class Guide implements ModalPanel {
       // 같은 색이면 문장을 처음부터 읽어야 찾습니다.
       // **단이 둘이라 좁습니다.** 왼쪽 단의 글이 오른쪽 단의 글머리(`WIDTH / 2 + 8` 에서
       // 다시 14) 앞에서 끝나야 하므로, 반쪽 넓이에서 두 단의 안쪽 여백을 다 뺍니다.
-      const text = richBlock([section.body], RICH, 23, WIDTH / 2 - 72)
+      const text = richBlock([section.body], rich(), richLeading('lead'), WIDTH / 2 - 72)
       text.position.set(x + 14, y + 30)
 
       into.addChild(rule, head, text)

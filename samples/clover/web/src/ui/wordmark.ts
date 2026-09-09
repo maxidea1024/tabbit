@@ -21,10 +21,13 @@ import { outlineOf } from './font'
  * 어느 쪽도 아닌 색입니다 — 가운데에 가장 밝은 초록을 두면 글자가 안에서 빛나는 것으로
  * 보입니다.
  */
+const TOP = 0xeafff3
+const MIDDLE = 0x76efa9
+const BOTTOM = 0x27a35f
 const STOPS = [
-  { offset: 0, color: 0xeafff3 },
-  { offset: 0.42, color: 0x76efa9 },
-  { offset: 1, color: 0x27a35f },
+  { offset: 0, color: TOP },
+  { offset: 0.42, color: MIDDLE },
+  { offset: 1, color: BOTTOM },
 ] as const
 
 /** 테두리. **남보라 바탕과 같은 계열의 어두움입니다** — 검정이면 글자만 오려 붙인 것이 됩니다. */

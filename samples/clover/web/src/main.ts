@@ -8,6 +8,7 @@
 // 타이틀로 가는 데 이 파일을 다시 지날 일이 없습니다 — **다시 지나면 데이터를 처음부터
 // 읽고 로딩이 한 번 더 보입니다.**
 
+import { COLOR } from './render/ink'
 import { Application } from 'pixi.js'
 
 import { loadFromUrl } from './core/load'
@@ -20,7 +21,7 @@ import { Boot } from './ui/boot'
 import { loadIcons } from './ui/icon'
 import { JokerPool } from './generated/enums/joker-pool'
 import { Game } from './render/game'
-import { COLOR, setUiTheme } from './render/theme'
+import { setUiTheme } from './render/theme'
 import { coarsePointer } from './shader/device'
 import { loadNoise } from './shader/noise'
 

@@ -36,7 +36,7 @@
 import { Container, Graphics, Text } from 'pixi.js'
 import { t } from '../core/strings'
 
-import { COLOR, SIZE, UI } from '../render/theme'
+import { UI, SIZE, TEXT, WEIGHT } from '../render/theme'
 import type { ToolSpot } from './layout'
 import { Tooltip } from './tooltip'
 import { Button, IconButton } from './widgets'
@@ -130,11 +130,11 @@ export class Title extends Container {
   /** 한 줄 소개. **금색이 아니라 따뜻한 흰색입니다** — 금색은 값과 나아감의 색입니다. */
   private readonly tagline = new Text({
     text: t('ui.title.tagline'),
-    style: { fontSize: 20, fill: 0xf1e7d2, fontWeight: '700', letterSpacing: 5 },
+    style: { fontSize: TEXT.lead, fill: UI.light, fontWeight: WEIGHT.normal, letterSpacing: 5 },
   })
   private readonly note = new Text({
     text: t('ui.title.note'),
-    style: { fontSize: 13, fill: COLOR.inkDim },
+    style: { fontSize: TEXT.body, fill: UI.inkDim },
   })
   /**
    * 한 줄 소개의 양옆에 서는 선.
@@ -209,7 +209,7 @@ export class Title extends Container {
 
     // **시작 하나가 가장 큽니다.** 눌러야 하는 것이 하나이면 그것 하나만 크고 밝습니다 —
     // 나머지는 그 아래에서 같은 크기로 놓입니다.
-    const start = new Button(t('ui.button.start'), START_W, START_H, UI.yellow,
+    const start = new Button(t('ui.button.start'), START_W, START_H, 'primary',
                              hooks.onStart, 30)
     start.position.set(Math.round((SIZE.width - START_W) / 2), START_Y)
     this.buttons.push({ key: 'ui.button.start', button: start })
@@ -219,13 +219,13 @@ export class Title extends Container {
     // 그 아래로 쌓입니다. **판을 여는 일이 아닌 것들입니다.**
     const secondX = Math.round((SIZE.width - SECOND_W) / 2)
 
-    const pool = new Button(t('ui.button.collection'), SECOND_W, SECOND_H, UI.btn,
+    const pool = new Button(t('ui.button.collection'), SECOND_W, SECOND_H, 'neutral',
                             hooks.onCollection, 17)
     pool.position.set(secondX, SECOND_Y)
     this.buttons.push({ key: 'ui.button.collection', button: pool })
     this.toolNodes.set('collection', { node: pool, cx: SECOND_W / 2, cy: SECOND_H / 2 })
 
-    const board = new Button(t('ui.button.leaderboard'), SECOND_W, SECOND_H, UI.btn,
+    const board = new Button(t('ui.button.leaderboard'), SECOND_W, SECOND_H, 'neutral',
                              hooks.onLeaderboard, 17)
     board.position.set(secondX, SECOND_Y + SECOND_H + SECOND_GAP)
     this.buttons.push({ key: 'ui.button.leaderboard', button: board })
@@ -233,7 +233,7 @@ export class Title extends Container {
 
     // 나가기. **가장 아래이고 낮습니다** — 위의 둘과 같은 높이로 두면 게임을 끝내는 것이
     // 도감을 여는 것과 같은 무게가 됩니다.
-    const quit = new Button(t('ui.button.quit'), QUIT_W, QUIT_H, UI.btn, hooks.onQuit, 14)
+    const quit = new Button(t('ui.button.quit'), QUIT_W, QUIT_H, 'neutral', hooks.onQuit, 14)
     quit.position.set(Math.round((SIZE.width - QUIT_W) / 2), QUIT_Y)
     this.buttons.push({ key: 'ui.button.quit', button: quit })
     this.toolNodes.set('quit', { node: quit, cx: QUIT_W / 2, cy: QUIT_H / 2 })
@@ -245,13 +245,13 @@ export class Title extends Container {
     this.accountSlot.position.set(EDGE, EDGE)
     this.accountSlot.visible = false
 
-    const link = new Button(t('ui.account.link'), ACCOUNT_W, ACCOUNT_H - 20, UI.cell,
+    const link = new Button(t('ui.account.link'), ACCOUNT_W, ACCOUNT_H - 20, 'quiet',
                             hooks.onAccount, 15)
     link.position.set(EDGE, EDGE)
     this.linkButton = link
     this.buttons.push({ key: 'ui.account.link', button: link })
 
-    const signOut = new Button(t('ui.button.logout'), ACCOUNT_W, SIGNOUT_H, UI.btn,
+    const signOut = new Button(t('ui.button.logout'), ACCOUNT_W, SIGNOUT_H, 'neutral',
                                hooks.onSignOut, 13)
     signOut.position.set(EDGE, EDGE + ACCOUNT_H + 8)
     signOut.visible = false
@@ -273,7 +273,7 @@ export class Title extends Container {
     // 판 번호. **로그인 화면과 같은 구석입니다.**
     const version = new Text({
       text: `v${__APP_VERSION__}`,
-      style: { fontSize: 11, fill: 0x4f5c6d, fontWeight: '700' },
+      style: { fontSize: TEXT.mini, fill: UI.inkFaint, fontWeight: WEIGHT.normal },
     })
     version.anchor.set(0, 1)
     version.position.set(EDGE, SIZE.height - 14)

@@ -9,6 +9,7 @@
 // **탭 하나는 기계에 따라 서고 없어집니다.** 「입력」이 그렇습니다 — 진동자가 없는 기계에서
 // 진동을 켜고 끄는 자리는 옵션이 아니라 장식입니다.
 
+import { COLOR, PAINT } from '../render/ink'
 import type { PoolChoice } from '../core/pool'
 import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
 import { coarsePointer } from '../shader/device'
@@ -21,21 +22,18 @@ import { setLookOf, setsOf, type SetLook } from '../render/card-set'
 import { cardArtId, drawFace, drawSuit } from '../render/pips'
 import { SuitKind } from '../generated/enums/suit-kind'
 import { hapticsAvailable } from '../feedback/haptics'
-import { COLOR, SIZE, UI, UI_THEME_KEYS, UI_THEMES } from '../render/theme'
+import { RADIUS, SIZE, STROKE, TEXT, UI, UI_THEMES, UI_THEME_KEYS, WEIGHT }
+  from '../render/theme'
 import type { ToolSpot } from './layout'
 import { FOOTER_BAR, panelFrame, TITLE_BAR, type ModalPanel } from './modal'
-import { richLine, type RichStyle } from './rich'
+import { richLeading, richStyle, richLine, type RichStyle } from './rich'
 import { Fling } from './scroll'
 import { Tooltip } from './tooltip'
 import { Button } from './widgets'
 import { randomSeed } from './title'
 
 /** 이 판의 설명 줄에 붙는 강조. */
-const RICH: RichStyle = {
-  base: { fontSize: 11, fill: COLOR.inkDim },
-  number: COLOR.accentNumber,
-  term: COLOR.accentTerm,
-}
+const rich = (): RichStyle => richStyle('note')
 
 /**
  * 화면과 소리와 연출에 관한 것들.
@@ -642,7 +640,6 @@ export class OptionsPanel implements ModalPanel {
     this.draw()
   }
 
-
   /**
    * 고른 것을 적용하고 다시 그립니다. **한 박자 뒤입니다.**
    *
@@ -998,7 +995,7 @@ export class OptionsPanel implements ModalPanel {
         .lineTo(x + tabW - tr, top)
         .quadraticCurveTo(x + tabW, top, x + tabW, top + tr)
         .lineTo(x + tabW, ruleY + 4)
-        .stroke({ color: 0x2b3646, width: 1.5 })
+        .stroke({ color: UI.hairline, width: 1.5 })
     })
 
     // 2. 고른 탭과 본문. **길 하나입니다.**
@@ -1032,7 +1029,7 @@ export class OptionsPanel implements ModalPanel {
       const label = new Text({
         text: name,
         style: {
-          fontSize: 14, fill: chosen ? COLOR.ink : COLOR.inkDim,
+          fontSize: TEXT.copy, fill: chosen ? UI.ink : UI.inkDim,
           fontWeight: chosen ? '800' : '700',
         },
       })
@@ -1089,7 +1086,7 @@ export class OptionsPanel implements ModalPanel {
     this.body.y = Math.round(this.scroll)
 
     this.clip.clear()
-    this.clip.rect(6, this.windowTop, WIDTH - 12, this.windowHeight).fill(0xffffff)
+    this.clip.rect(6, this.windowTop, WIDTH - 12, this.windowHeight).fill(PAINT.sheen)
 
     this.bar.clear()
     if (this.over <= 0) return
@@ -1099,9 +1096,9 @@ export class OptionsPanel implements ModalPanel {
     const held = Math.min(this.over, Math.max(0, -this.scroll))
     const at = this.over === 0 ? 0 : (held / this.over) * (track - height)
     this.bar.roundRect(WIDTH - 16, this.windowTop + 4, 4, track, 2)
-      .fill({ color: 0xffffff, alpha: 0.07 })
+      .fill({ color: PAINT.sheen, alpha: 0.07 })
     this.bar.roundRect(WIDTH - 16, this.windowTop + 4 + at, 4, height, 2)
-      .fill({ color: 0xffffff, alpha: 0.30 })
+      .fill({ color: PAINT.sheen, alpha: 0.30 })
   }
 
   private draw(): void {
@@ -1115,13 +1112,13 @@ export class OptionsPanel implements ModalPanel {
     for (const row of rows) {
       const label = new Text({
         text: row.label,
-        style: { fontSize: 15, fill: COLOR.ink, fontWeight: '700' },
+        style: { fontSize: TEXT.base, fill: UI.ink, fontWeight: WEIGHT.normal },
       })
       label.position.set(44, y + 4)
       this.body.addChild(label)
 
       if (row.note !== undefined) {
-        const note = richLine(row.note, RICH, WIDTH - 220, 14)
+        const note = richLine(row.note, rich(), WIDTH - 220, richLeading('note'))
         note.position.set(44, y + 24)
         this.body.addChild(note)
       }
@@ -1143,7 +1140,7 @@ export class OptionsPanel implements ModalPanel {
       }
 
       if (row.choices === undefined) {
-        const value = new Button(row.read(), 128, 34, UI.btn, () => {
+        const value = new Button(row.read(), 128, 34, 'neutral', () => {
           row.next()
           this.applyLater()
         })
@@ -1179,7 +1176,7 @@ export class OptionsPanel implements ModalPanel {
 
     const plate = new Graphics()
     plate.roundRect(44, top, fieldW, height, 8)
-      .fill({ color: 0x121a26, alpha: this.seedEditable ? 0.92 : 0.5 })
+      .fill({ color: UI.cell, alpha: this.seedEditable ? 0.92 : 0.5 })
     plate.roundRect(44.5, top + 0.5, fieldW - 1, height - 1, 8)
       .stroke({
         color: this.editing ? UI.pick : UI.hairline,
@@ -1205,8 +1202,8 @@ export class OptionsPanel implements ModalPanel {
     const value = new Text({
       text: this.editing ? this.buffer : this.seedText,
       style: {
-        fontSize: 15, fill: this.seedEditable ? COLOR.ink : COLOR.inkDim,
-        fontWeight: '800', letterSpacing: 1,
+        fontSize: TEXT.base, fill: this.seedEditable ? UI.ink : UI.inkDim,
+        fontWeight: WEIGHT.bold, letterSpacing: 1,
       },
     })
     value.anchor.set(0, 0.5)
@@ -1217,13 +1214,13 @@ export class OptionsPanel implements ModalPanel {
     if (this.editing) {
       const caret = new Graphics()
       caret.rect(value.x + value.width + 2, top + 9, 2, height - 18)
-        .fill({ color: COLOR.ink, alpha: 0.9 })
+        .fill({ color: UI.ink, alpha: 0.9 })
       caret.eventMode = 'none'
       this.body.addChild(caret)
     }
 
     if (this.seedEditable) {
-      const dice = new Button(t('ui.button.random'), 96, height, UI.btn, () => {
+      const dice = new Button(t('ui.button.random'), 96, height, 'neutral', () => {
         this.editing = false
         this.buffer = ''
         this.seedText = randomSeed()
@@ -1247,11 +1244,15 @@ export class OptionsPanel implements ModalPanel {
    * 테마를 고르는 줄.
    *
    * 칸마다 **그 테마의 색으로** 작은 판 하나를 그립니다 — 제목 줄과 구획 선과 값 칸 둘,
-   * 그리고 강조색 둘. 지금 테마의 색으로 넷을 그리면 넷이 같아 보이고, 그러면 글자 단추와
-   * 다를 것이 없습니다.
+   * 그리고 강조색 둘. 지금 겉면의 색으로 여덟을 그리면 여덟이 같아 보이고, 그러면 글자
+   * 단추와 다를 것이 없습니다.
    *
-   * **강조색도 함께 그립니다.** 테마가 바꾸지 않는 것이므로 넷에 같은 노랑과 하늘이
-   * 들어가는데, 그 사실이 눈에 보이는 것이 「테마는 판의 색만 바꾼다」는 말보다 짧습니다.
+   * **한 획도 `UI` 에서 읽지 않습니다.** `look` 이 그 겉면이고 `UI` 는 지금 고른 겉면이라,
+   * 하나라도 `UI` 로 그리면 여덟 칸에 지금 고른 겉면의 색이 섞여 들어갑니다 — 밝은 단추와
+   * 마름모와 노랑이 실제로 그랬습니다.
+   *
+   * **단추 셋을 함께 그립니다.** 겉면이 정하는 것 중 사람이 가장 자주 누르는 것이 단추이고,
+   * 켜진 것과 잠긴 것의 사이가 그 겉면에서 어떻게 보이는지가 여기서 갈립니다.
    */
   private drawThemeChoices(row: Row, top: number): number {
     const themes = row.themes ?? []
@@ -1282,30 +1283,31 @@ export class OptionsPanel implements ModalPanel {
       const inner = width - pad * 2
       const bits = new Graphics()
       // 제목이 앉는 줄과 그 아래의 선. 판의 머리입니다.
-      bits.rect(pad, 12, Math.round(inner * 0.45), 5).fill(UI.mark)
-      bits.rect(pad, 25, inner, 1.5).fill(look.rule)
+      bits.rect(pad, 12, Math.round(inner * 0.45), 5).fill(look.mark)
+      bits.rect(pad, 25, inner, STROKE.base).fill(look.rule)
       // 값 칸 둘. 하나에는 돈의 노랑이, 하나에는 진행 바가 들어갑니다.
       const cellW = Math.floor((inner - 6) / 2)
-      bits.roundRect(pad, 33, cellW, 20, 4).fill(look.cell)
-      bits.roundRect(pad + 0.5, 33.5, cellW - 1, 19, 4)
-        .stroke({ color: look.hairline, width: 1 })
-      bits.rect(pad + 6, 41, 14, 5).fill(COLOR.inkDim)
-      bits.rect(pad + cellW - 20, 40, 14, 6).fill(UI.yellow)
-      bits.roundRect(pad + cellW + 6, 33, cellW, 20, 4).fill(look.cell)
-      bits.roundRect(pad + cellW + 6.5, 33.5, cellW - 1, 19, 4)
-        .stroke({ color: look.hairline, width: 1 })
+      bits.roundRect(pad, 33, cellW, 20, RADIUS.tight).fill(look.cell)
+      bits.roundRect(pad + 0.5, 33.5, cellW - 1, 19, RADIUS.tight)
+        .stroke({ color: look.hairline, width: STROKE.hair })
+      bits.rect(pad + 6, 41, 14, 5).fill(look.inkDim)
+      bits.rect(pad + cellW - 20, 40, 14, 6).fill(look.money)
+      bits.roundRect(pad + cellW + 6, 33, cellW, 20, RADIUS.tight).fill(look.cell)
+      bits.roundRect(pad + cellW + 6.5, 33.5, cellW - 1, 19, RADIUS.tight)
+        .stroke({ color: look.hairline, width: STROKE.hair })
       bits.roundRect(pad + cellW + 12, 41, cellW - 12, 5, 2.5).fill(look.well)
-      bits.roundRect(pad + cellW + 12, 41, (cellW - 12) * 0.6, 5, 2.5).fill(UI.bar)
-      // 밑단의 단추 둘. 나아가는 것과 그 밖의 것입니다.
-      bits.roundRect(pad, 60, Math.round(inner * 0.42), 14, 4).fill(UI.light)
-      bits.roundRect(pad + inner - Math.round(inner * 0.42), 60,
-                     Math.round(inner * 0.42), 14, 4).fill(UI.yellow)
+      bits.roundRect(pad + cellW + 12, 41, (cellW - 12) * 0.6, 5, 2.5).fill(look.bar)
+      // 밑단의 단추 셋. 나아가는 것과 그 밖의 것과 잠긴 것입니다.
+      const btnW = Math.round(inner * 0.30)
+      bits.roundRect(pad, 60, btnW, 14, RADIUS.tight).fill(look.btn)
+      bits.roundRect(pad + (inner - btnW) / 2, 60, btnW, 14, RADIUS.tight).fill(look.locked)
+      bits.roundRect(pad + inner - btnW, 60, btnW, 14, RADIUS.tight).fill(look.yellow)
       cell.addChild(bits)
 
       const name = new Text({
         text: one.label,
         style: {
-          fontSize: 12, fill: here ? COLOR.ink : COLOR.inkDim, fontWeight: '800',
+          fontSize: TEXT.small, fill: here ? UI.ink : UI.inkDim, fontWeight: WEIGHT.bold,
           wordWrap: true, wordWrapWidth: width - 8, align: 'center', breakWords: true,
           lineHeight: 13,
         },
@@ -1355,7 +1357,7 @@ export class OptionsPanel implements ModalPanel {
 
       const board = new Graphics()
       board.roundRect(0, 0, width, CARD_ROW_H, 8)
-        .fill({ color: here ? 0x1d3a26 : 0x252b36 })
+        .fill({ color: here ? UI.confirm : UI.quiet })
         .stroke({ color: here ? UI.pick : UI.hairline, width: here ? 2 : 1.5 })
       cell.addChild(board)
 
@@ -1370,7 +1372,7 @@ export class OptionsPanel implements ModalPanel {
       const name = new Text({
         text: one.label,
         style: {
-          fontSize: 12, fill: here ? COLOR.ink : COLOR.inkDim, fontWeight: '800',
+          fontSize: TEXT.small, fill: here ? UI.ink : UI.inkDim, fontWeight: WEIGHT.bold,
           wordWrap: true, wordWrapWidth: width - 10, align: 'center', breakWords: true,
           lineHeight: 13,
         },
@@ -1434,7 +1436,7 @@ export class OptionsPanel implements ModalPanel {
       const scale = CARD_H / SIZE.cardHeight
       const mark = new Text({
         text: RANK_TEXT[rank] ?? '?',
-        style: { fontSize: Math.round(19 * scale), fill: ink, fontWeight: '800' },
+        style: { fontSize: Math.round(19 * scale), fill: ink, fontWeight: WEIGHT.bold },
       })
       mark.position.set(Math.round(8 * scale), Math.round(5 * scale))
       node.addChild(mark)
@@ -1457,7 +1459,7 @@ export class OptionsPanel implements ModalPanel {
       const line = Math.floor(index / columns)
       // **고른 것은 `highlight` 가 알립니다.** 색을 따로 주면 그 색이 화면에 하나 더
       // 늘고, 고른 것을 알리는 방법이 판마다 달라집니다.
-      const button = new Button(choice.label, width, height, UI.btn, () => {
+      const button = new Button(choice.label, width, height, 'neutral', () => {
           row.pick?.(choice.key)
           this.applyLater()
         })

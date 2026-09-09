@@ -3,10 +3,13 @@
 // 그리는 규칙은 `render/skin.ts` 에 있고 여기는 그것을 쓰는 자리입니다. **버튼과 패널이 같은
 // 손으로 그려져야 화면이 한 벌로 보입니다.**
 
+import { PAINT } from '../render/ink'
 import { Container, Graphics, Rectangle, Sprite, Text } from 'pixi.js'
 
+import { contrast } from '../render/color'
+import type { Surface } from '../render/palette'
 import { buttonStyle, mix, panelStyle, plate, type PlateStyle } from '../render/skin'
-import { COLOR, UI } from '../render/theme'
+import { UI, TEXT, WEIGHT } from '../render/theme'
 import { outlined, outlineOf, outlineWidth, strokeWidthOf } from './font'
 import { iconFor, type IconName } from './icon'
 
@@ -22,26 +25,24 @@ export class Panel extends Container {
   resize(width: number, height: number, tint?: number): void {
     const style: PlateStyle = tint === undefined
       ? panelStyle()
-      : { ...panelStyle(), top: mix(tint, 0xffffff, 0.1), bottom: tint }
+      : { ...panelStyle(), top: mix(tint, PAINT.sheen, 0.1), bottom: tint }
     this.board.clear()
     plate(this.board, width, height, style)
   }
 }
 
-/** 색의 밝기. 0 이 검정, 1 이 흰색입니다. */
-function luminance(color: number): number {
-  const r = ((color >> 16) & 0xff) / 255
-  const g = ((color >> 8) & 0xff) / 255
-  const b = (color & 0xff) / 255
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b
-}
-
 /**
- * 단추 글씨의 테두리 색.
+ * 단추 위의 글을 어느 색으로 적는가.
  *
- * **한 자리에 둡니다.** 글을 적을 때마다 굵기를 다시 정하므로 색을 두 곳에 적게 됩니다.
+ * **재어서 고릅니다.** 밝기 한 값으로 가르던 동안은 그 문턱에 걸친 단추 — 붉음과 초록이
+ * 그렇습니다 — 가 겉면마다 다른 쪽으로 넘어갔습니다.
+ *
+ * **흰 쪽으로 기울여 둡니다.** 어두운 글이 15% 넘게 더 잘 읽힐 때에만 그쪽입니다 — 두 값이
+ * 비슷하면 흰 글이 단추의 관례이고, 게임 안에서도 그 편이 한 벌로 보입니다.
  */
-const CAPTION_OUTLINE = 0x0a1610
+function captionInk(base: number): number {
+  return contrast(UI.onLight, base) > contrast(UI.ink, base) * 1.15 ? UI.onLight : UI.ink
+}
 
 /**
  * 누른 자리에서 이만큼 움직이면 끈 것입니다. 화면 픽셀입니다.
@@ -53,18 +54,62 @@ const CAPTION_OUTLINE = 0x0a1610
 const DRAG_SLOP = 12
 
 /**
- * 테마를 따라가는 단추의 색들.
+ * 단추가 무엇을 하는 단추인가.
  *
- * **만들 때 받은 수가 아니라 그 수의 이름을 기억합니다.** 단추는 색을 수로 받고, 겉면을
- * 갈아 끼우면 그 수는 앞 겉면의 색입니다 — 뜻이 있는 색(노랑 · 붉음)은 고정이므로 그대로
- * 두고, 판의 색으로 만든 단추만 그때그때 다시 읽습니다.
+ * **색이 아니라 이것을 받습니다.** 색을 수로 받던 동안은 만들 때의 수가 앞 겉면의 색이라,
+ * 그 수를 겉면의 색들과 견주어 어느 이름이었는지 되찾아야 했습니다 — 되찾기가 어긋나면 그
+ * 단추만 옛 색으로 남고, 되찾는 목록에 없는 색은 겉면을 아예 따라가지 않았습니다.
+ *
+ * 이름을 받으면 그 일이 없어집니다. 그릴 때마다 지금 겉면에서 읽습니다.
  */
-const THEMED = ['btn', 'light', 'cell', 'locked'] as const
-type ThemedKey = typeof THEMED[number]
+export type Intent =
+  /** 그 밖의 단추. 닫기 · 메뉴 · 타이틀로 · 정렬입니다. */
+  | 'neutral'
+  /** 나아가는 단추. 시작 · 사기 · 다음 블라인드입니다. */
+  | 'primary'
+  /** 되돌릴 수 없는 것. 팔기 · 버리기 · 지우기입니다. */
+  | 'danger'
+  /** 걸어 보는 것. 블라인드를 건너뜁니다. */
+  | 'dare'
+  /** 묻는 판의 「그렇게 합니다」. 되돌릴 수 있는 쪽입니다. */
+  | 'confirm'
+  /** 되돌릴 수 없는 일의 첫 누름. 두 번째 누름에서 `danger` 로 갑니다. */
+  | 'caution'
+  /** 고른 탭 · 밝은 단추. */
+  | 'select'
+  /** 판 위에 조용히 놓이는 것. 곁들이는 단추입니다. */
+  | 'quiet'
 
-/** 이 색이 지금 겉면의 어느 색인가. 아니면 `undefined` 입니다. */
-function themedKeyOf(color: number): ThemedKey | undefined {
-  return THEMED.find(key => UI[key] === color)
+/**
+ * 지금 화면에 붙어 있는 단추들.
+ *
+ * **이름으로 세어 두지 않습니다.** 겉면을 갈아입은 뒤 다시 그릴 단추 10개를 손으로 적어
+ * 두었고, 붙박이 단추를 하나 더할 때 그 목록에 더하는 것을 잊으면 그 단추만 앞 겉면의 색으로
+ * 남았습니다 — 그것을 확인하는 게이트가 없습니다.
+ *
+ * 무대에 붙고 떨어지는 것을 받아 두면 목록이 저절로 맞습니다.
+ */
+const LIVE = new Set<Restyleable>()
+
+interface Restyleable {
+  restyle(): void
+}
+
+/** 겉면을 갈아입은 뒤 화면에 남아 있는 단추를 전부 다시 그립니다. */
+export function restyleButtons(): void {
+  for (const one of LIVE) one.restyle()
+}
+
+/** 갈래마다 쉴 때 · 가리켰을 때 · 눌렸을 때의 색 이름. */
+const INTENTS: Record<Intent, [keyof Surface, keyof Surface, keyof Surface]> = {
+  neutral: ['btn', 'btnHover', 'btnPress'],
+  primary: ['yellow', 'yellowHover', 'yellowPress'],
+  danger: ['red', 'redHover', 'redPress'],
+  dare: ['dare', 'dareHover', 'darePress'],
+  confirm: ['confirm', 'confirmHover', 'confirmPress'],
+  caution: ['caution', 'cautionHover', 'cautionPress'],
+  select: ['light', 'lightHover', 'lightPress'],
+  quiet: ['quiet', 'quietHover', 'quietPress'],
 }
 
 export class Button extends Container {
@@ -72,8 +117,8 @@ export class Button extends Container {
   private readonly caption = new Text({
     text: '',
     style: {
-      ...outlined(15, CAPTION_OUTLINE),
-      fill: COLOR.ink, fontWeight: '800',
+      ...outlined(TEXT.base, UI.outline),
+      fill: UI.ink, fontWeight: WEIGHT.bold,
     },
   })
 
@@ -94,9 +139,8 @@ export class Button extends Container {
    */
   constructor(text: string, private readonly boxWidth: number,
               private readonly boxHeight: number,
-              private readonly base: number, onPress: () => void, textSize = 15) {
+              private readonly intent: Intent, onPress: () => void, textSize = 15) {
     super()
-    this.themed = themedKeyOf(base)
     this.textSize = textSize
     this.caption.style.fontSize = textSize
     this.addChild(this.board, this.caption)
@@ -125,9 +169,16 @@ export class Button extends Container {
     this.on('pointerout', () => this.setLit(this.held))
     this.on('pointerdown', event => {
       this.downAt = { x: event.global.x, y: event.global.y }
-      if (this.enabledState) this.caption.y = boxHeight / 2 + 2
+      if (!this.enabledState) return
+      this.caption.y = boxHeight / 2 + 2
+      this.setPushed(true)
     })
-    this.on('pointerup', () => { this.caption.y = boxHeight / 2 })
+    // **밖에서 손을 떼는 것도 받습니다.** 누른 채로 단추를 벗어나면 `pointerup` 이 오지
+    // 않고, 그러면 그 단추만 눌린 색으로 남습니다.
+    this.on('pointerup', () => this.release())
+    this.on('pointerupoutside', () => this.release())
+    this.on('added', () => LIVE.add(this))
+    this.on('removed', () => LIVE.delete(this))
     this.draw()
   }
 
@@ -176,10 +227,11 @@ export class Button extends Container {
    * 크기를 9까지 내립니다.
    */
   private applyInk(): void {
-    const light = luminance(this.shownBase) > 0.5
-    this.caption.style.fill = light ? UI.onLight : COLOR.ink
+    const ink = captionInk(this.shownBase)
+    this.caption.style.fill = ink
     const size = this.caption.style.fontSize as number
-    this.caption.style.stroke = outlineOf(light ? 0 : outlineWidth(size), CAPTION_OUTLINE)
+    const width = ink === UI.onLight ? 0 : outlineWidth(size)
+    this.caption.style.stroke = outlineOf(width, UI.outline)
   }
 
   /** 지금 글에 걸려 있는 테두리의 굵기. **검증 도구가 읽습니다.** */
@@ -230,8 +282,24 @@ export class Button extends Container {
   private get shownBase(): number {
     if (!this.enabledState) return UI.locked
     if (this.held) return UI.light
-    // 판의 색으로 만든 단추는 지금의 겉면에서 다시 읽습니다.
-    return this.themed ? UI[this.themed] : this.base
+    const [rest, hover, press] = INTENTS[this.intent]
+    // **색이 아니라 이름을 들고 있으므로 지금 겉면에서 읽습니다.**
+    if (this.pushed) return UI[press]
+    return this.lit ? UI[hover] : UI[rest]
+  }
+
+  /** 지금 눌려 있는가. 손을 뗄 때까지입니다. */
+  private pushed = false
+
+  private setPushed(value: boolean): void {
+    if (this.pushed === value) return
+    this.pushed = value
+    this.draw()
+  }
+
+  private release(): void {
+    this.caption.y = this.boxHeight / 2
+    this.setPushed(false)
   }
 
   /**
@@ -244,13 +312,9 @@ export class Button extends Container {
     this.draw()
   }
 
-  /** 만들 때 받은 색이 겉면의 어느 것이었는가. 뜻이 있는 색이면 없습니다. */
-  private readonly themed?: ThemedKey
-
   private draw(): void {
-    const base = this.shownBase
     this.board.clear()
-    plate(this.board, this.boxWidth, this.boxHeight, buttonStyle(base, this.lit))
+    plate(this.board, this.boxWidth, this.boxHeight, buttonStyle(this.shownBase))
     this.applyInk()
   }
 }
@@ -302,6 +366,8 @@ export class IconButton extends Container {
     this.on('pointerout', () => this.setLit(false))
     this.on('pointerdown', () => { if (this.mark) this.mark.y += 2 })
     this.on('pointerup', () => this.place())
+    this.on('added', () => LIVE.add(this))
+    this.on('removed', () => LIVE.delete(this))
     this.draw()
   }
 
@@ -324,6 +390,6 @@ export class IconButton extends Container {
 
   private draw(): void {
     // 밝기 하나로만 답합니다. **가리킨 것이 밝아지는 것은 다른 단추들과 같습니다.**
-    if (this.mark) this.mark.tint = this.lit ? COLOR.ink : COLOR.inkDim
+    if (this.mark) this.mark.tint = this.lit ? UI.ink : UI.inkDim
   }
 }

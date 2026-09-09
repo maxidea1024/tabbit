@@ -8,10 +8,10 @@
 // 저마다 「어느 세트인가」를 알아야 하면 그 넷 중 하나만 놓쳐도 그 자리의 카드가 다른 벌이
 // 됩니다. 뒷면을 `card-back.ts` 한 곳에 둔 것과 같은 이유입니다.
 
+import { COLOR } from './ink'
 import type { Data } from '../core/data'
 import type { CardBackKind } from '../generated/enums/card-back-kind'
 import { SuitKind } from '../generated/enums/suit-kind'
-import { COLOR } from './theme'
 
 export interface SetLook {
   setId: string

@@ -7,6 +7,7 @@
 // 그림이 들어오면 이 파일을 스프라이트로 갈아 끼웁니다. **그때 지워지는 것은 이 파일 하나
 // 입니다** — 부르는 쪽은 「식별자와 자리와 색」만 넘기기 때문입니다.
 
+import { PAINT } from './ink'
 import { Graphics } from 'pixi.js'
 
 export type GlyphName =
@@ -87,7 +88,7 @@ export function drawGlyph(g: Graphics, name: GlyphName,
     case 'eye': {
       g.ellipse(cx, cy, r * 0.95, r * 0.58).fill(fill).stroke(stroke)
       g.circle(cx, cy, r * 0.30).fill({ color: line })
-      g.circle(cx + r * 0.10, cy - r * 0.10, r * 0.10).fill({ color: 0xffffff, alpha: 0.8 })
+      g.circle(cx + r * 0.10, cy - r * 0.10, r * 0.10).fill({ color: PAINT.sheen, alpha: 0.8 })
       break
     }
 
@@ -160,7 +161,7 @@ export function drawGlyph(g: Graphics, name: GlyphName,
         .quadraticCurveTo(cx + r * 0.34, cy + r * 0.24, cx, cy + r * 0.62)
         .quadraticCurveTo(cx - r * 0.34, cy + r * 0.24, cx, cy - r * 0.24)
         .closePath()
-        .fill({ color: 0xffffff, alpha: 0.35 })
+        .fill({ color: PAINT.sheen, alpha: 0.35 })
       break
     }
 
@@ -279,7 +280,7 @@ export function drawGlyph(g: Graphics, name: GlyphName,
       g.circle(cx, cy, r * 0.62).fill(fill).stroke(stroke)
       // 밝은 쪽과 어두운 쪽. 구로 보이게 합니다.
       g.circle(cx - r * 0.18, cy - r * 0.18, r * 0.34)
-        .fill({ color: 0xffffff, alpha: 0.22 })
+        .fill({ color: PAINT.sheen, alpha: 0.22 })
       g.ellipse(cx, cy + r * 0.06, r * 0.98, r * 0.26)
         .stroke({ color: line, width: weight * 1.6 })
       break

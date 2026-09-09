@@ -28,7 +28,7 @@ import type { SavedRun } from '../core/save-run'
 import { nameOf, t, tf } from '../core/strings'
 import { StakeKind } from '../generated/enums/stake-kind'
 import { stakeSlug } from '../core/stake'
-import { COLOR, UI } from '../render/theme'
+import { UI, TEXT, WEIGHT } from '../render/theme'
 import { ChallengeBody, openCount, type ChallengeProgress } from './challenge'
 import type { ToolSpot } from './layout'
 import { panelFrame, TITLE_BAR, type ModalPanel } from './modal'
@@ -295,7 +295,7 @@ export class RunPanel implements ModalPanel {
 
       const plate = new Graphics()
       plate.roundRect(0, 0, TAB_W, TAB_H, 9)
-        .fill({ color: here ? UI.cell : 0x14131a })
+        .fill({ color: here ? UI.cell : UI.well })
         .stroke({ color: here ? UI.pick : UI.hairline, width: here ? 2 : 1.5 })
       cell.addChild(plate)
 
@@ -304,9 +304,9 @@ export class RunPanel implements ModalPanel {
       const label = new Text({
         text: row.label,
         style: {
-          fontSize: 15,
-          fill: here ? COLOR.ink : row.locked ? UI.locked : COLOR.inkDim,
-          fontWeight: '800',
+          fontSize: TEXT.base,
+          fill: here ? UI.ink : row.locked ? UI.locked : UI.inkDim,
+          fontWeight: WEIGHT.bold,
         },
       })
       label.anchor.set(0.5)
@@ -401,7 +401,7 @@ class ResumeBody {
 
     const title = new Text({
       text: `${deckName} · ${stakeName}`,
-      style: { fontSize: 22, fill: COLOR.ink, fontWeight: '800' },
+      style: { fontSize: TEXT.head, fill: UI.ink, fontWeight: WEIGHT.bold },
     })
     title.position.set(24, 22)
     this.body.addChild(title)
@@ -412,14 +412,14 @@ class ResumeBody {
       const name = new Text({
         text: row ? nameOf(this.data, 'challenge', saved.challengeId, row.name)
                   : saved.challengeId,
-        style: { fontSize: 13, fill: UI.yellow, fontWeight: '800' },
+        style: { fontSize: TEXT.body, fill: UI.yellow, fontWeight: WEIGHT.bold },
       })
       name.position.set(24, 52)
       this.body.addChild(name)
     } else if (saved.ranked) {
       const mark = new Text({
         text: t('ui.lb.ranked'),
-        style: { fontSize: 13, fill: UI.yellow, fontWeight: '800' },
+        style: { fontSize: TEXT.body, fill: UI.yellow, fontWeight: WEIGHT.bold },
       })
       mark.position.set(24, 52)
       this.body.addChild(mark)
@@ -436,12 +436,12 @@ class ResumeBody {
       const x = 24 + i * 160
       const head = new Text({
         text: facts[i][0],
-        style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '800', letterSpacing: 1 },
+        style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.bold, letterSpacing: 1 },
       })
       head.position.set(x, 92)
       const value = new Text({
         text: facts[i][1],
-        style: { fontSize: 26, fill: COLOR.ink, fontWeight: '800' },
+        style: { fontSize: TEXT.display, fill: UI.ink, fontWeight: WEIGHT.bold },
       })
       value.position.set(x, 110)
       this.body.addChild(head, value)
@@ -450,21 +450,21 @@ class ResumeBody {
     const where = new Text({
       text: tf('ui.run.stopped',
                { where: t(PHASE_KEYS[saved.phase] ?? 'ui.run.phase.round') }),
-      style: { fontSize: 13, fill: COLOR.inkDim },
+      style: { fontSize: TEXT.body, fill: UI.inkDim },
     })
     where.position.set(24, 158)
     this.body.addChild(where)
 
     const seed = new Text({
       text: saved.seed,
-      style: { fontSize: 12, fill: 0x6f7d90, fontWeight: '700', letterSpacing: 1 },
+      style: { fontSize: TEXT.small, fill: UI.inkFaint, fontWeight: WEIGHT.normal, letterSpacing: 1 },
     })
     seed.position.set(24, 182)
     this.body.addChild(seed)
 
     const when = new Text({
       text: agoText(saved.savedAt),
-      style: { fontSize: 12, fill: 0x6f7d90 },
+      style: { fontSize: TEXT.small, fill: UI.inkFaint },
     })
     when.anchor.set(1, 0)
     when.position.set(CARD_W - 24, 182)
@@ -472,12 +472,12 @@ class ResumeBody {
 
     // **이어서 하기가 큽니다.** 버리는 것은 되돌릴 수 없으므로 같은 크기로 나란히 두면
     // 잘못 누르는 일이 생깁니다.
-    const resume = new Button(t('ui.run.resume'), 320, 48, UI.yellow,
+    const resume = new Button(t('ui.run.resume'), 320, 48, 'primary',
                               () => this.onResume?.(), 18)
     resume.position.set(24, CARD_H - 72)
     this.resumeButton = resume
 
-    const discard = new Button(t('ui.run.discard'), 132, 48, UI.btn,
+    const discard = new Button(t('ui.run.discard'), 132, 48, 'neutral',
                                () => this.onDiscard?.(), 15)
     discard.position.set(CARD_W - 24 - 132, CARD_H - 72)
     this.discardButton = discard

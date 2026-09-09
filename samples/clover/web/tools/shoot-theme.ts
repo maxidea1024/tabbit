@@ -9,7 +9,7 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
-import { clickSpot, closeGuide, pass, pressTitle, settle, skipLogin } from './harness'
+import { clickSpot, openRun, pass, skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.resolve(HERE, '../../design-data/out/check')
@@ -40,12 +40,11 @@ async function main(): Promise<number> {
   await pass(page, 1500)
 
   // 판이 도는 화면에서 고릅니다 — 왼쪽 판이 그 자리에서 갈아입는지가 여기서만 보입니다.
-  await pressTitle(page, 'start')
-  await pass(page, 900)
-  await closeGuide(page)
-  await pass(page, 500)
-  await clickSpot(page, 'pick')
-  await settle(page)
+  //
+  // **`openRun` 을 씁니다.** 시작 · 도움말 닫기 · 블라인드 고르기를 여기서 따로 적어
+  // 두었더니, 도움말이 떠 있지 않은 판에서 그 누름이 빈자리로 갔고 그다음 자리를 찾지
+  // 못했습니다 — 그 셋은 판을 여는 한 가지 일이고 하네스에 이미 있습니다.
+  await openRun(page)
   await pass(page, 400)
 
   for (const surface of SURFACES) {

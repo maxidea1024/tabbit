@@ -20,7 +20,7 @@ import { language as nowLanguage, LANGUAGE_NAMES, LANGUAGES, t, tf,
          type Language } from '../core/strings'
 import * as account from '../net/session'
 import type { Provider } from '../net/session'
-import { COLOR, SIZE, UI } from '../render/theme'
+import { UI, SIZE, TEXT, WEIGHT } from '../render/theme'
 import { providerTint } from './provider'
 import { Button } from './widgets'
 import { Wordmark } from './wordmark'
@@ -153,12 +153,12 @@ export class LoginScene extends Container {
     // **뒤가 흐려져 있습니다**(`stepBand`). 덮개는 그 위에 한 겹 더 얹는 어두움이고,
     // 흐림만으로는 띠 위의 글이 뒤의 밝은 자리와 겹칠 때 읽히지 않습니다.
     const block = new Graphics()
-    block.rect(0, 0, SIZE.width, SIZE.height).fill({ color: 0x05060f, alpha: 0.52 })
+    block.rect(0, 0, SIZE.width, SIZE.height).fill({ color: UI.scrim, alpha: 0.52 })
     block.eventMode = 'static'
     block.on('pointertap', () => undefined)
 
     const strip = new Graphics()
-    strip.rect(0, y, SIZE.width, BAND_H).fill({ color: 0x080d1a, alpha: 0.94 })
+    strip.rect(0, y, SIZE.width, BAND_H).fill({ color: UI.ground, alpha: 0.94 })
     strip.rect(0, y, SIZE.width, 1).fill({ color: UI.yellow, alpha: 0.34 })
     strip.rect(0, y + BAND_H - 1, SIZE.width, 1).fill({ color: UI.yellow, alpha: 0.34 })
 
@@ -184,7 +184,7 @@ export class LoginScene extends Container {
 
     const text = new Text({
       text: message,
-      style: { fontSize: 20, fill: COLOR.ink, fontWeight: '800', letterSpacing: 3 },
+      style: { fontSize: TEXT.lead, fill: UI.ink, fontWeight: WEIGHT.bold, letterSpacing: 3 },
     })
     text.anchor.set(0.5)
     text.position.set(SIZE.width / 2, SIZE.height / 2)
@@ -294,7 +294,7 @@ export class LoginScene extends Container {
 
     const why = new Text({
       text: t('ui.account.why'),
-      style: { fontSize: 15, fill: 0xf1e7d2, fontWeight: '700' },
+      style: { fontSize: TEXT.base, fill: UI.light, fontWeight: WEIGHT.normal },
     })
     why.anchor.set(0.5, 0)
     why.position.set(SIZE.width / 2, WHY_Y)
@@ -303,7 +303,7 @@ export class LoginScene extends Container {
     let y = WHY_Y + 44
     for (const provider of this.list) {
       const button = new Button(tf('ui.account.continueWith', { name: provider.label }),
-                                BUTTON_W, BUTTON_H, UI.cell, () => {
+                                BUTTON_W, BUTTON_H, 'quiet', () => {
         // **넘어가기 전에 띠를 띄웁니다.** 제공자로 가는 데 한두 박자가 걸리는데, 그동안
         // 아무 표시가 없으면 눌리지 않은 것으로 보입니다.
         this.showBand(t('ui.account.signingIn'))
@@ -324,7 +324,7 @@ export class LoginScene extends Container {
     // 동안 매번 제공자를 지나지 않기 위한 것이고, `import.meta.env.DEV` 안에 있으므로
     // 배포 빌드에는 이 코드가 없습니다.
     if (import.meta.env.DEV && this.dev) {
-      const fake = new Button(t('ui.account.devLogin'), BUTTON_W, BUTTON_H - 6, UI.btn,
+      const fake = new Button(t('ui.account.devLogin'), BUTTON_W, BUTTON_H - 6, 'neutral',
                               () => void this.signInAsDev(), 16)
       fake.position.set(SIZE.width / 2 - BUTTON_W / 2, y)
       this.body.addChild(fake)
@@ -340,7 +340,7 @@ export class LoginScene extends Container {
       const note = new Text({
         text: this.note,
         style: {
-          fontSize: 13, fill: COLOR.inkDim, wordWrap: true,
+          fontSize: TEXT.body, fill: UI.inkDim, wordWrap: true,
           wordWrapWidth: BUTTON_W + 80, align: 'center',
         },
       })
@@ -368,7 +368,7 @@ export class LoginScene extends Container {
         .fill(UI.hairline)
       const or = new Text({
         text: t('ui.account.or'),
-        style: { fontSize: 12, fill: 0x66748a },
+        style: { fontSize: TEXT.small, fill: UI.inkFaint },
       })
       or.anchor.set(0.5)
       or.position.set(SIZE.width / 2, ruleY)
@@ -376,7 +376,7 @@ export class LoginScene extends Container {
     }
     void y
 
-    const single = new Button(t('ui.account.guestStart'), BUTTON_W, BUTTON_H, UI.light,
+    const single = new Button(t('ui.account.guestStart'), BUTTON_W, BUTTON_H, 'select',
                               () => void this.startWithoutAccount(), 18)
     single.position.set(SIZE.width / 2 - BUTTON_W / 2, singleY)
     this.body.addChild(single)
@@ -384,7 +384,7 @@ export class LoginScene extends Container {
     const singleNote = new Text({
       text: t('ui.account.singleNote'),
       style: {
-        fontSize: 12, fill: 0x7d8ca0, wordWrap: true,
+        fontSize: TEXT.small, fill: UI.inkDim, wordWrap: true,
         wordWrapWidth: BUTTON_W + 120, align: 'center',
       },
     })
@@ -395,7 +395,7 @@ export class LoginScene extends Container {
     // 나가기. **이 화면의 마지막 줄입니다** — 로그인도 하지 않고 게임도 하지 않겠다는
     // 것이므로 목록의 끝입니다.
     const quitW = 132
-    const quit = new Button(t('ui.button.quit'), quitW, 38, UI.btn,
+    const quit = new Button(t('ui.button.quit'), quitW, 38, 'neutral',
                             () => this.onQuit?.(), 14)
     quit.position.set(SIZE.width / 2 - quitW / 2, singleY + BUTTON_H + 44)
     this.body.addChild(quit)
@@ -403,7 +403,7 @@ export class LoginScene extends Container {
     // 판 번호. **왼쪽 아래 구석입니다.**
     const version = new Text({
       text: `v${__APP_VERSION__}`,
-      style: { fontSize: 12, fill: 0x5c6a7d, fontWeight: '700' },
+      style: { fontSize: TEXT.small, fill: UI.inkFaint, fontWeight: WEIGHT.normal },
     })
     version.anchor.set(0, 1)
     version.position.set(30, SIZE.height - 20)
@@ -415,7 +415,7 @@ export class LoginScene extends Container {
     const legal = new Text({
       text: t('ui.account.legal'),
       style: {
-        fontSize: 11, fill: 0x5c6a7d, wordWrap: true,
+        fontSize: TEXT.mini, fill: UI.inkFaint, wordWrap: true,
         wordWrapWidth: 620, align: 'center',
       },
     })
@@ -426,7 +426,7 @@ export class LoginScene extends Container {
     const keep = new Text({
       text: t('ui.lb.login.keep'),
       style: {
-        fontSize: 11, fill: 0x66748a, wordWrap: true,
+        fontSize: TEXT.mini, fill: UI.inkFaint, wordWrap: true,
         wordWrapWidth: 560, align: 'center',
       },
     })
@@ -450,11 +450,11 @@ export class LoginScene extends Container {
     const chip = new Container()
     const plate = new Graphics()
     plate.roundRect(0, 0, width, height, 8)
-      .fill({ color: 0x151d2a, alpha: 0.92 })
+      .fill({ color: UI.cell, alpha: 0.92 })
       .stroke({ color: this.langOpen ? UI.pick : UI.hairline, width: 1.5 })
     const label = new Text({
       text: LANGUAGE_NAMES[now],
-      style: { fontSize: 13, fill: COLOR.ink, fontWeight: '700' },
+      style: { fontSize: TEXT.body, fill: UI.ink, fontWeight: WEIGHT.normal },
     })
     label.anchor.set(0.5)
     label.position.set(width / 2, height / 2)
@@ -479,12 +479,12 @@ export class LoginScene extends Container {
       const row = new Container()
       const back = new Graphics()
       back.roundRect(0, rowY, width, height - 4, 7)
-        .fill({ color: on ? 0x24354a : 0x151d2a, alpha: 0.96 })
+        .fill({ color: on ? UI.quiet : UI.cell, alpha: 0.96 })
         .stroke({ color: on ? UI.pick : UI.hairline, width: 1 })
       const text = new Text({
         text: LANGUAGE_NAMES[code],
         style: {
-          fontSize: 13, fill: on ? COLOR.ink : 0x9fb0c4,
+          fontSize: TEXT.body, fill: on ? UI.ink : UI.inkDim,
           fontWeight: on ? '700' : '400',
         },
       })

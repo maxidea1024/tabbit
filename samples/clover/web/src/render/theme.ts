@@ -2,230 +2,76 @@
 //
 // **연출의 수치는 여기 없습니다** — 그것은 `Const_Feel` 이고 데이터입니다. 여기 있는 것은
 // 팔레트와 카드의 크기처럼 데이터가 아닌 것들입니다.
+//
+// **색을 손으로 적는 자리는 아래의 씨앗 8개뿐입니다.** 겉면 하나가 색상각 하나와 채도
+// 하나와 밝기 하나이고, 나머지는 `palette.ts` 의 표가 만듭니다 — 그 이유와 배수는 그쪽에
+// 적혀 있습니다.
 
-export const COLOR = {
-  /**
-   * 글 속에서 강조하는 색.
-   *
-   * **수는 칩과 같은 파랑, 이름은 금색입니다.** 화면의 다른 곳에서 수를 파랗게 쓰고 있으므로
-   * 글 속의 수도 같은 파랑이어야 같은 것으로 읽힙니다.
-   */
-  accentNumber: 0x7fc4ff,
-  accentTerm: 0xffd479,
-  /** 배경. **짙은 남색입니다** — 초록 단색이면 화면이 한 가지 색으로 눌립니다. */
-  ground: 0x0e1420,
-  /**
-   * 판 밖. **검정입니다.**
-   *
-   * 판은 1280 × 800 하나이고 창의 비율은 기계마다 다릅니다 — 남는 자리는 화면의 일부가
-   * 아니라 잘라 낸 자리이므로, 배경과 가까운 색으로 두면 판의 끝이 어디인지가 흐려집니다.
-   *
-   * **같은 값이 세 곳에 있습니다** — 렌더러가 지우는 색, `index.html` 의 쪽 배경,
-   * 데스크탑 창의 배경입니다. 셋 다 판 밖에 보이는 색이고, 하나만 다르면 그 기계에서만
-   * 판의 옆에 다른 색 한 줄이 남습니다.
-   */
-  crop: 0x000000,
-  panel: 0x232b38,
-  panelEdge: 0x3f4a5c,
-
-  ink: 0xeef2f7,
-  inkDim: 0x93a1b5,
-
-  /** 칩은 파랑, 배수는 빨강, 돈은 금색. **이 셋만 채도가 높습니다.** */
-  chips: 0x0093ff,
-  mult: 0xfe5f55,
-  money: 0xffc53d,
-
-  cardFace: 0xf6f2e8,
-  cardEdge: 0x2b2a26,
-  /**
-   * 뒷면.
-   *
-   * **바탕은 크림이고 무늬가 붉습니다.** 붉은 바탕에 무늬를 얹으면 앞면과 뒤집힌 관계가
-   * 되어, 뒤집히는 순간 종이가 바뀐 것으로 보입니다 — 같은 종이의 반대쪽이어야 합니다.
-   */
-  cardBack: 0xf2ece0,
-  cardBackEdge: 0xc0392f,
-  red: 0xd7343f,
-  black: 0x1f2024,
-
-  /** 희귀도. 상점과 조커 테두리가 씁니다. */
-  common: 0x9aa8bb,
-  uncommon: 0x4ec9a0,
-  rare: 0xfe5f55,
-  legendary: 0xb98cff,
-
-  good: 0x63d68f,
-  bad: 0xff7a7a,
-} as const
+import { buildSurface, type Surface, type SurfaceSeed } from './palette'
 
 /**
- * 테마 하나가 정하는 것.
+ * 겉면 여덟.
  *
- * **열입니다.** 판의 겉면 일곱(바탕 · 테 · 선 둘 · 칸 · 바의 바탕)과 단추 셋입니다.
+ * **넷은 무채색에 가깝고 넷은 색이 있습니다.** 여덟 다 어두운 이유는 카드가 크림색
+ * 종이이기 때문입니다 — 판이 밝으면 카드가 판에 묻힙니다.
  *
- * **뜻이 있는 색은 테마에 없습니다.** 돈의 노랑, 되돌릴 수 없는 것의 붉음, 고른 것의 파랑,
- * 승리의 초록은 약속이므로 고정입니다 — 「돈은 노랑」 이 테마마다 달라지면 그것은 약속이
- * 아닙니다. 뜻이 없는 단추(닫기 · 메뉴 · 타이틀로 · 정렬)는 판의 일부이므로 테마를
- * 따라갑니다.
+ * **이름으로 고르는 것이 아닙니다.** 옵션은 겉면마다 작은 판 하나를 그려 보여 주고, 고르는
+ * 사람은 그 색을 보고 고릅니다 — 이름은 그 아래에 붙는 딱지입니다.
+ *
+ * `level` 은 판의 상대휘도입니다. **겉면 하나의 밝기가 이 숫자 하나입니다** — 칸도 단추도
+ * 선도 이 값에서 배수로 나오므로, 밝기를 바꾸려면 여기만 고칩니다.
  */
-export interface UiTheme {
-  /** 판. 배경 위에 얹히므로 조금 비칩니다. */
-  panel: number
-  panelAlpha: number
-  /** 판의 바깥 테. */
-  panelEdge: number
-  /** 구획을 나누는 선. */
-  rule: number
-  /** 줄과 줄을 가르는 더 옅은 선 · 칸의 테. */
-  hairline: number
-  /** 칸 · 입력 · 물건 칸의 바탕. 판보다 한 단 어둡습니다. */
-  cell: number
-  /** 진행 바의 바탕. */
-  well: number
-
-  /**
-   * 설명 쪽지의 바탕과 테.
-   *
-   * **판보다 어둡습니다.** 쪽지는 판 위에 뜨는 것이라 판과 같은 색이면 어디까지가 쪽지인지가
-   * 흐려집니다. 테는 희귀도가 있는 것에만 그 색이 들고, 없는 것은 이 색입니다.
-   */
-  tipBack: number
-  tipEdge: number
-
-  /**
-   * 그 밖의 단추.
-   *
-   * **일반 단추는 테마를 따라갑니다.** 「닫기」·「메뉴」·「타이틀로」 처럼 뜻이 없는 단추가
-   * 판과 다른 계열의 회색이면 판마다 두 벌의 회색이 섞입니다 — 뜻이 있는 단추(나아감의
-   * 노랑, 되돌릴 수 없는 것의 붉음)만 고정입니다.
-   */
-  btn: number
-  /** 밝은 단추 · 고른 탭. 어두운 단추와 짝입니다. */
-  light: number
-  /**
-   * 잠긴 단추.
-   *
-   * **겉면의 색입니다.** 회색 하나로 고정해 두었더니 잠긴 단추만 판과 다른 계열이 되고,
-   * 잠기는 단추가 많은 화면(낼 수 없는 동안의 「낸다」·「버린다」, 살 수 없는 물건)에서는
-   * 그 회색이 판보다 먼저 보입니다 — 단추의 색을 판 쪽으로 절반쯤 당긴 값입니다.
-   */
-  locked: number
-}
-
-/**
- * 고를 수 있는 테마들.
- *
- * **넷 다 어둡습니다.** 밝은 테마를 두지 않은 이유는 카드가 크림색 종이이기 때문입니다 —
- * 판이 밝으면 카드가 판에 묻히고, 이 게임에서 가장 먼저 읽혀야 하는 것이 카드입니다.
- *
- * **이름으로 고르는 것이 아닙니다.** 옵션은 테마마다 작은 판 하나를 그려 보여 주고,
- * 고르는 사람은 그 색을 보고 고릅니다 — 이름은 그 아래에 붙는 딱지입니다.
- */
-export const UI_THEMES: Record<string, UiTheme> = {
+const SEEDS: Record<string, SurfaceSeed> = {
   /** 기본. 남흑에 따뜻한 갈색 테 — 참고한 카드룸의 것입니다. */
-  slate: {
-    tipBack: 0x12141a, tipEdge: 0x6b5a45,
-    panel: 0x1b1d25, panelAlpha: 0.96, panelEdge: 0x6b5a45,
-    rule: 0x3a3d4a, hairline: 0x2c2f3a, cell: 0x14161c, well: 0x0f1117,
-    btn: 0x3d4450, light: 0xc9e3ee, locked: 0x2e323d,
-  },
+  slate: { hue: 274, chroma: 0.016, level: 0.0300, alpha: 0.96, edgeHue: 73 },
   /** 검정. 거의 검정에 회색 테. 판이 배경에 잠기고 카드만 남습니다. */
-  ink: {
-    tipBack: 0x0a0b0d, tipEdge: 0x44454b,
-    panel: 0x101113, panelAlpha: 0.97, panelEdge: 0x44454b,
-    rule: 0x2e2f33, hairline: 0x212226, cell: 0x08090a, well: 0x000000,
-    btn: 0x33343a, light: 0xcfcfd4, locked: 0x232428,
-  },
+  ink: { hue: 264, chroma: 0.005, level: 0.0240, alpha: 0.97 },
   /** 남색. 차가운 남색에 푸른 테 — 이 게임이 오래 쓰던 색입니다. */
-  navy: {
-    tipBack: 0x101a2c, tipEdge: 0x46618f,
-    panel: 0x18263f, panelAlpha: 0.96, panelEdge: 0x46618f,
-    rule: 0x33486b, hairline: 0x243450, cell: 0x101a2e, well: 0x0a1120,
-    btn: 0x34465f, light: 0xbcd2ea, locked: 0x273751,
-  },
+  navy: { hue: 261, chroma: 0.051, level: 0.0400, alpha: 0.96 },
   /** 밝은 회색. 판과 테가 뚜렷하게 밝아 판의 경계가 멀리서도 보입니다. */
-  bright: {
-    tipBack: 0x1f232b, tipEdge: 0x8b93a2,
-    panel: 0x2f353f, panelAlpha: 0.98, panelEdge: 0x8b93a2,
-    rule: 0x5a6273, hairline: 0x454c5a, cell: 0x21252d, well: 0x171a20,
-    btn: 0x4a5160, light: 0xd7dde8, locked: 0x3e4451,
-  },
+  bright: { hue: 261, chroma: 0.020, level: 0.0580, alpha: 0.98 },
   /** 초록. 카드를 늘어놓는 상의 색입니다 — 이 갈래의 게임에서 가장 오래된 색입니다. */
-  green: {
-    tipBack: 0x0d1913, tipEdge: 0x4f6f52,
-    panel: 0x14251c, panelAlpha: 0.96, panelEdge: 0x4f6f52,
-    rule: 0x2c4634, hairline: 0x1e3325, cell: 0x0e1b14, well: 0x081109,
-    btn: 0x304a37, light: 0xc7e2cc, locked: 0x23392b,
-  },
+  green: { hue: 160, chroma: 0.029, level: 0.0320, alpha: 0.96 },
   /** 와인. 짙은 자주 — 붉음이 뜻을 가진 색이므로 판은 그보다 훨씬 어둡습니다. */
-  wine: {
-    tipBack: 0x1c0f16, tipEdge: 0x86505d,
-    panel: 0x2a1720, panelAlpha: 0.96, panelEdge: 0x86505d,
-    rule: 0x4c2d38, hairline: 0x371f29, cell: 0x1e1017, well: 0x150a10,
-    btn: 0x4e2e3a, light: 0xecc9d2, locked: 0x3e242e,
-  },
+  wine: { hue: 350, chroma: 0.034, level: 0.0290, alpha: 0.96 },
   /** 갈색. 따뜻한 쪽입니다 — 크림색 카드와 같은 계열이라 판과 카드가 한 벌로 보입니다. */
-  brown: {
-    tipBack: 0x18120d, tipEdge: 0x8a6c48,
-    panel: 0x241c15, panelAlpha: 0.96, panelEdge: 0x8a6c48,
-    rule: 0x483a29, hairline: 0x342a1e, cell: 0x1a140f, well: 0x120d09,
-    btn: 0x4d3c29, light: 0xe8d8ba, locked: 0x3b2e20,
-  },
+  brown: { hue: 63, chroma: 0.018, level: 0.0300, alpha: 0.96 },
   /** 자주. 남색보다 한 걸음 더 간 쪽이고, 금색이 가장 잘 서는 바탕입니다. */
-  violet: {
-    tipBack: 0x151222, tipEdge: 0x6b5f9e,
-    panel: 0x1f1b32, panelAlpha: 0.96, panelEdge: 0x6b5f9e,
-    rule: 0x3b3459, hairline: 0x282342, cell: 0x161327, well: 0x0f0c1c,
-    btn: 0x3f376a, light: 0xd2cbf2, locked: 0x312a51,
-  },
+  violet: { hue: 291, chroma: 0.044, level: 0.0310, alpha: 0.96 },
 }
 
-/** 테마의 이름들. 옵션의 칸이 이 순서로 놓입니다. */
+/** 겉면의 이름들. 옵션의 칸이 이 순서로 놓입니다. */
 export const UI_THEME_KEYS = ['slate', 'ink', 'navy', 'bright',
                               'green', 'wine', 'brown', 'violet'] as const
+
+/**
+ * 만들어 둔 겉면 여덟.
+ *
+ * **불러올 때 한 번 만듭니다.** 겉면 하나가 색 50 남짓이고 색 하나가 이분법 24회이므로 전부
+ * 합해 밀리초 단위입니다 — 갈아입을 때마다 다시 만들 이유가 없습니다.
+ */
+export const UI_THEMES: Record<string, Surface> = Object.fromEntries(
+  Object.entries(SEEDS).map(([key, seed]) => [key, buildSurface(seed)]),
+)
+
+/** 겉면 하나가 정하는 색들. 이름은 `palette.ts` 의 `Surface` 에 있습니다. */
+export type UiTheme = Surface
 
 /**
  * 지금 쓰는 색 한 벌.
  *
  * **객체 하나를 계속 씁니다.** `setUiTheme` 가 그 안의 값만 갈아 끼우므로, 그리는 자리는
- * `UI.panel` 처럼 그때그때 읽으면 됩니다 — 값을 미리 베껴 둔 자리는 테마를 바꿔도 옛 색을
+ * `UI.panel` 처럼 그때그때 읽으면 됩니다 — 값을 미리 베껴 둔 자리는 겉면을 바꿔도 옛 색을
  * 그대로 씁니다(그래서 `skin.ts` 의 판때기 규격이 상수가 아니라 함수입니다).
  *
- * **강조색은 테마에 없습니다.** 값 · 돈 · 고른 것 · 잠긴 것의 색은 약속이므로 고정입니다.
+ * **뜻이 있는 색도 여기 있습니다.** 돈의 노랑과 되돌릴 수 없는 것의 붉음은 약속이지만,
+ * 약속인 것은 계열이지 값 하나가 아닙니다 — 색상각은 겉면과 무관하게 고정이고 밝기만
+ * 판을 따라갑니다.
  */
-export const UI = {
-  ...UI_THEMES.slate,
-
-  /** 구획 머리의 마름모. */
-  mark: 0xcfd6e2,
-  /** 모든 테의 잉크. 단추와 카드의 테입니다. */
-  ink: 0x15171d,
-
-  /** 값 · 돈 · 나아가는 단추. */
-  yellow: 0xf5c518,
-  /** 진행 바 · 요구 점수 · 최고 핸드. */
-  bar: 0x35c5f0,
-  /** 고른 것. 목록의 줄과 물건 칸. */
-  pick: 0x1a7ad9,
-  /** 승리 · 핸드 수. */
-  green: 0x6fe0a8,
-  /** 패배 · 모자란 수 · 살 수 없는 값 · 버리기. */
-  red: 0xf07a6a,
-  /**
-   * 걸어 보는 것. **블라인드를 건너뛰는 단추입니다.**
-   *
-   * 상금을 버리고 태그 하나를 받는 것이므로 「그 밖의 일」이 아닙니다 — 판의 색으로 두면
-   * 닫기와 같은 무게로 보이고, 노랑으로 두면 나아가는 길로 보입니다. 둘 다 아닌 자리에
-   * 주황이 하나 있습니다.
-   */
-  dare: 0xd9772f,
-  /** 밝은 단추 위의 글. */
-  onLight: 0x1b1a17,
-}
+export const UI: Surface = { ...UI_THEMES.slate }
 
 /**
- * 테마를 갈아 끼웁니다. 없는 이름이면 기본입니다.
+ * 겉면을 갈아 끼웁니다. 없는 이름이면 기본입니다.
  *
  * **그린 것이 저절로 바뀌지는 않습니다.** 이미 그려 둔 판때기는 그때의 색으로 삼각화되어
  * 있으므로, 부르는 쪽이 다시 그려야 합니다.
@@ -233,6 +79,113 @@ export const UI = {
 export function setUiTheme(key: string): void {
   Object.assign(UI, UI_THEMES[key] ?? UI_THEMES.slate)
 }
+
+/**
+ * 글자 크기.
+ *
+ * **자리마다 적던 수를 이름으로 바꾼 것입니다.** 화면 전체에 18가지 크기가 있었고 그중
+ * 12·13·14·15가 절반이었습니다 — 자리마다 고르다 보면 13이어야 할 자리에 12가 들어가고,
+ * 그 둘의 차이는 고친 사람 말고는 아무도 알아보지 못합니다.
+ *
+ * **카드는 이 표를 쓰지 않습니다.** 카드 얼굴의 인덱스와 무늬는 종이 위의 인쇄물이고,
+ * 화면의 글과 같은 단계를 나눌 이유가 없습니다 — `COLOR` 가 카드의 색을 따로 두는 것과
+ * 같은 갈래입니다.
+ */
+export const TEXT = {
+  /** 곁들이는 수 · 칸 아래의 개수. */
+  micro: 10,
+  /** 칩 · 딱지. */
+  mini: 11,
+  /** 이름표 · 흐린 설명. */
+  small: 12,
+  /** 본문. **가장 많이 쓰는 크기입니다.** */
+  body: 13,
+  /** 조금 큰 본문. 줄이 그 자리의 주인공일 때입니다. */
+  copy: 14,
+  /** 단추의 글. */
+  base: 15,
+  /** 판의 제목 줄 · 핸드의 이름. */
+  big: 17,
+  /** 판의 큰 제목. */
+  lead: 20,
+  /** 점수 · 끝난 판의 머리. */
+  head: 23,
+  /** 값 하나가 그 판의 주인공일 때. */
+  display: 26,
+  /** 굴러가는 점수. */
+  banner: 30,
+  /** 뒤에 옅게 깔리는 큰 글자. */
+  hero: 34,
+  /** 정산의 합계. */
+  giant: 40,
+} as const
+
+/**
+ * 줄 사이.
+ *
+ * **글자 크기에서 나옵니다.** 자리마다 적던 동안은 12픽셀 글에 12와 16이 함께 있었고,
+ * 그 둘은 같은 문단이 다른 밀도로 놓이는 것입니다. 1.45는 한글의 받침이 윗줄에 닿지 않는
+ * 가장 좁은 값입니다.
+ */
+export function leading(size: number): number {
+  return Math.round(size * 1.45)
+}
+
+/** 글자의 굵기. **셋뿐입니다** — 넷째를 더하면 어느 것이 더 무거운지가 보이지 않습니다. */
+export const WEIGHT = {
+  /** 곁들이는 글. */
+  normal: '700',
+  /** 본문과 이름. */
+  bold: '800',
+  /** 그 판에서 가장 큰 것 하나. */
+  heavy: '900',
+} as const
+
+/**
+ * 모서리.
+ *
+ * **네 단계입니다.** 4·6·8·12 이고, 그 사이의 값(5·7·9·10)은 들여 그린 테가 계산해
+ * 내는 것이지 고르는 것이 아닙니다 — `insetRadius()` 가 그 일을 합니다.
+ */
+export const RADIUS = {
+  /** 칩 · 작은 딱지. */
+  tight: 4,
+  /** 칸 · 단추. */
+  small: 6,
+  /** 판. */
+  base: 8,
+  /** 크게 뜨는 판 · 알림. */
+  large: 12,
+} as const
+
+/**
+ * 테의 굵기.
+ *
+ * **셋입니다.** 1은 옅은 선, 1.5는 판과 단추의 테, 2는 고른 것입니다 — 고른 것이 굵어지는
+ * 것은 색과 함께 두 가지로 알리기 위한 것이고, 색만으로 알리면 색을 가리기 어려운 사람에게
+ * 아무것도 알리지 않는 것이 됩니다.
+ */
+export const STROKE = {
+  hair: 1,
+  base: 1.5,
+  picked: 2,
+} as const
+
+/**
+ * 사이의 자리.
+ *
+ * **8을 기준으로 오르내립니다.** 판 안의 여백과 줄 사이가 이 표에서 나옵니다 — 자리마다
+ * 고르면 같은 갈래의 판 둘이 10과 12로 갈라지고, 그 차이는 나란히 놓았을 때만 보입니다.
+ */
+export const SPACE = {
+  hair: 2,
+  tight: 4,
+  small: 6,
+  base: 8,
+  wide: 12,
+  large: 16,
+  huge: 24,
+} as const
 
 export const SIZE = {
   /** 기준 해상도. 화면이 이보다 크면 통째로 키웁니다. */
@@ -285,9 +238,9 @@ export function popupCenter(width: number): number {
 /** 희귀도 하나의 색. */
 export function rarityColor(rarity: number): number {
   switch (rarity) {
-    case 2: return COLOR.uncommon
-    case 3: return COLOR.rare
-    case 4: return COLOR.legendary
-    default: return COLOR.common
+    case 2: return UI.uncommon
+    case 3: return UI.rare
+    case 4: return UI.legendary
+    default: return UI.common
   }
 }

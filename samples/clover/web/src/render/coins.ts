@@ -15,6 +15,8 @@
 // 없는 지출도 이 하나로 같은 그림입니다. 규칙은 하나입니다 — **들어오는 돈은 온 곳에서
 // 날아들고, 나가는 돈은 곳간에서 사라집니다.**
 
+import { PAINT } from './ink'
+import { WEIGHT } from './theme'
 import { Container, Graphics, Text } from 'pixi.js'
 import { NUMERALS } from '../ui/font'
 
@@ -89,7 +91,7 @@ export class Coins extends Container {
       const one = new Text({
         text: '$',
         style: {
-          fontSize: MARK_SIZE, fontWeight: '900', fontFamily: NUMERALS, fill: 0xffffff,
+          fontSize: MARK_SIZE, fontWeight: WEIGHT.heavy, fontFamily: NUMERALS, fill: PAINT.sheen,
         },
       })
       one.anchor.set(0.5, 0.52)
@@ -313,7 +315,7 @@ export class Coins extends Container {
       // **비끼는 거리와 테의 굵기가 반지름을 따릅니다** — 고정된 픽셀로 두면 원판을 키울
       // 때마다 그림자가 원판 뒤로 숨고 테만 가늘어집니다.
       this.canvas.ellipse(x + RADIUS * 0.14, y + RADIUS * 0.29, width, radius)
-        .fill({ color: 0x000000, alpha: 0.22 * fade })
+        .fill({ color: PAINT.veil, alpha: 0.22 * fade })
       this.canvas.ellipse(x, y, width, radius).fill({ color: face, alpha: fade })
       this.canvas.ellipse(x, y, width, radius)
         .stroke({ color: edge, width: RADIUS * 0.21, alpha: fade })

@@ -6,6 +6,7 @@
 // 그림 파일이 아직 없으므로 식별자에서 만든 문양으로 그립니다. 같은 조커는 언제나 같은
 // 모양이고, 희귀도가 테두리 색입니다.
 
+import { COLOR, PAINT } from './ink'
 import { Container, type Filter, Graphics, Sprite, Text } from 'pixi.js'
 import { tf } from '../core/strings'
 
@@ -20,7 +21,7 @@ import { artFor } from './art'
 import { drawGlyph, glyphFor, hashOf, hsl, shade, tintUp } from './glyph'
 import { Motion, sway } from './motion'
 import { pinBox } from './pin'
-import { COLOR, rarityColor, SIZE } from './theme'
+import { UI, SIZE, rarityColor } from './theme'
 
 /** 카드의 모서리와 이름 띠의 높이. */
 const RADIUS = 9
@@ -81,7 +82,7 @@ export class JokerView extends Container {
   private readonly nameText = new Text({
     text: '',
     style: {
-      fontSize: 11, fill: COLOR.ink, align: 'center', fontWeight: '800',
+      fontSize: 11, fill: UI.ink, align: 'center', fontWeight: '800',
       // **낙말을 중간에서 자르지 않습니다.** 자르면 독일어의 합성어가
       // 「Messinggewic / ht」처럼 끝어져 읽힐 수 없게 됩니다 — 넘치는 것은
       // 아래에서 글자를 줄여 맞춥니다.
@@ -89,7 +90,7 @@ export class JokerView extends Container {
     },
   })
   private readonly counter = new Text({
-    text: '', style: { fontSize: 12, fill: COLOR.mult, fontWeight: '800' },
+    text: '', style: { fontSize: 12, fill: UI.mult, fontWeight: '800' },
   })
   private edition?: EditionFilter
   /**
@@ -159,7 +160,7 @@ export class JokerView extends Container {
     const edge = rarityColor(look.rarity)
 
     this.shadow.clear()
-    this.shadow.roundRect(3, 5, w, h, RADIUS).fill({ color: 0x000000, alpha: 0.4 })
+    this.shadow.roundRect(3, 5, w, h, RADIUS).fill({ color: PAINT.veil, alpha: 0.4 })
 
     // 카드의 바탕. **그림이 덮으므로 보이는 것은 모서리뿐입니다** — 그림이 아직 안 읽혔을
     // 때 흰 자리가 번쩍이지 않게 어두운 색을 깝니다.
@@ -180,7 +181,7 @@ export class JokerView extends Container {
       this.art.destroy()
       this.art = undefined
     }
-    if (texture) this.clip.roundRect(0, 0, w, h, RADIUS).fill(0xffffff)
+    if (texture) this.clip.roundRect(0, 0, w, h, RADIUS).fill(PAINT.sheen)
     if (texture && !this.art) {
       const sprite = new Sprite(texture)
       // 넓이에 맞추고 남는 세로를 가운데에서 자릅니다. 그림에 테두리가 있으므로 조금
@@ -209,8 +210,8 @@ export class JokerView extends Container {
     // 이름 띠. **그림 위에 얹힙니다** — 카드 아래를 덮어야 이름이 그림의 일부가 아니라
     // 이 카드의 이름으로 읽힙니다.
     this.band.clear()
-    this.band.roundRect(0, h - BAND, w, BAND, RADIUS).fill({ color: 0x0b1018, alpha: 0.88 })
-    this.band.rect(0, h - BAND, w, BAND - RADIUS).fill({ color: 0x0b1018, alpha: 0.88 })
+    this.band.roundRect(0, h - BAND, w, BAND, RADIUS).fill({ color: COLOR.band, alpha: 0.88 })
+    this.band.rect(0, h - BAND, w, BAND - RADIUS).fill({ color: COLOR.band, alpha: 0.88 })
     this.band.rect(0, h - BAND, w, 1.5).fill({ color: edge, alpha: 0.9 })
 
     // 테두리. **희귀도가 테두리입니다** — 줄에 여럿이 서면 그 색이 먼저 읽힙니다.
@@ -218,7 +219,7 @@ export class JokerView extends Container {
     this.frame.roundRect(1.25, 1.25, w - 2.5, h - 2.5, insetRadius(RADIUS, 1.25))
       .stroke({ color: edge, width: 2.5 })
     this.frame.roundRect(4, 4, w - 8, h - 8, insetRadius(RADIUS, 4))
-      .stroke({ color: 0xffffff, width: 1, alpha: 0.10 })
+      .stroke({ color: PAINT.sheen, width: 1, alpha: 0.10 })
 
     this.nameText.text = look.name
     this.nameText.anchor.set(0.5, 0.5)
@@ -245,7 +246,7 @@ export class JokerView extends Container {
       const pad = 6
       const width = this.counter.width + pad * 2
       this.counterPlate.roundRect((w - width) / 2, 5, width, 18, 6)
-        .fill({ color: 0x0b1018, alpha: 0.85 })
+        .fill({ color: COLOR.band, alpha: 0.85 })
     }
     this.counter.anchor.set(0.5, 0)
     this.counter.position.set(w / 2, 7)

@@ -10,10 +10,12 @@ import { Container, Graphics, Text } from 'pixi.js'
 
 import { NUMERALS } from './font'
 import { insetRadius } from '../render/skin'
-import { COLOR, UI } from '../render/theme'
+import { RADIUS, SPACE, STROKE, TEXT, UI, WEIGHT } from '../render/theme'
 
 /** 구획 머리의 높이. 마름모 · 이름 · 아래 선 하나입니다. */
 export const SECTION_H = 28
+/** 마름모 다음에 이름이 앉는 자리. */
+const SECTION_INDENT = 20
 
 /**
  * 구획 머리. 「◈ 이름」 과 그 아래 선 하나.
@@ -29,31 +31,31 @@ export function sectionHead(width: number, title: string, note?: string,
                             rule = true): Container {
   const node = new Container()
   const mark = new Graphics()
-  mark.rect(-4.5, -4.5, 9, 9).stroke({ color: UI.mark, width: 1.5 })
+  mark.rect(-4.5, -4.5, 9, 9).stroke({ color: UI.mark, width: STROKE.base })
   mark.rotation = Math.PI / 4
-  mark.position.set(6, SECTION_H / 2 - 1)
+  mark.position.set(SPACE.small, SECTION_H / 2 - 1)
 
   const name = new Text({
     text: title,
-    style: { fontSize: 13, fill: COLOR.ink, fontWeight: '800' },
+    style: { fontSize: TEXT.body, fill: UI.ink, fontWeight: WEIGHT.bold },
   })
   name.anchor.set(0, 0.5)
-  name.position.set(20, SECTION_H / 2 - 1)
+  name.position.set(SECTION_INDENT, SECTION_H / 2 - 1)
 
   node.addChild(mark, name)
   if (rule) {
     const line = new Graphics()
-    line.rect(0, SECTION_H - 1.5, width, 1.5).fill(UI.rule)
+    line.rect(0, SECTION_H - STROKE.base, width, STROKE.base).fill(UI.rule)
     node.addChild(line)
   }
 
   if (note) {
     const side = new Text({
       text: note,
-      style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '700' },
+      style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
     })
     side.anchor.set(0, 0.5)
-    side.position.set(20 + name.width + 8, SECTION_H / 2 - 1)
+    side.position.set(SECTION_INDENT + name.width + SPACE.base, SECTION_H / 2 - 1)
     node.addChild(side)
   }
   return node
@@ -66,26 +68,26 @@ export function sectionHead(width: number, title: string, note?: string,
  * 무엇의 값인지는 값의 색이 말합니다.
  */
 export function valueCell(width: number, height: number, label: string,
-                          value: string, ink: number = COLOR.ink, valueSize = 16): Container {
+                          value: string, ink: number = UI.ink, valueSize = 16): Container {
   const node = new Container()
   const box = new Graphics()
-  box.roundRect(0, 0, width, height, 6).fill(UI.cell)
-  box.roundRect(0.5, 0.5, width - 1, height - 1, insetRadius(6, 0.5))
-    .stroke({ color: UI.hairline, width: 1 })
+  box.roundRect(0, 0, width, height, RADIUS.small).fill(UI.cell)
+  box.roundRect(0.5, 0.5, width - 1, height - 1, insetRadius(RADIUS.small, 0.5))
+    .stroke({ color: UI.hairline, width: STROKE.hair })
 
   const name = new Text({
     text: label,
-    style: { fontSize: 12, fill: COLOR.inkDim, fontWeight: '700' },
+    style: { fontSize: TEXT.small, fill: UI.inkDim, fontWeight: WEIGHT.normal },
   })
   name.anchor.set(0, 0.5)
-  name.position.set(12, height / 2)
+  name.position.set(SPACE.wide, height / 2)
 
   const amount = new Text({
     text: value,
-    style: { fontSize: valueSize, fill: ink, fontWeight: '800', fontFamily: NUMERALS },
+    style: { fontSize: valueSize, fill: ink, fontWeight: WEIGHT.bold, fontFamily: NUMERALS },
   })
   amount.anchor.set(1, 0.5)
-  amount.position.set(width - 12, height / 2)
+  amount.position.set(width - SPACE.wide, height / 2)
   node.addChild(box, name, amount)
   return node
 }
@@ -106,7 +108,7 @@ export class ProgressBar extends Container {
     const back = new Graphics()
     back.roundRect(0, 0, boxWidth, boxHeight, boxHeight / 2).fill(UI.well)
     back.roundRect(0.5, 0.5, boxWidth - 1, boxHeight - 1, insetRadius(boxHeight / 2, 0.5))
-      .stroke({ color: UI.hairline, width: 1 })
+      .stroke({ color: UI.hairline, width: STROKE.hair })
     this.addChild(back, this.fill)
     this.set(0)
   }
@@ -133,9 +135,10 @@ export class ProgressBar extends Container {
 export function cellPlate(width: number, height: number, border: number,
                           empty = false): Graphics {
   const g = new Graphics()
-  g.roundRect(0, 0, width, height, 6).fill({ color: UI.cell, alpha: empty ? 0.6 : 1 })
-  g.roundRect(0.75, 0.75, width - 1.5, height - 1.5, insetRadius(6, 0.75))
-    .stroke({ color: border, width: 1.5, alpha: empty ? 0.45 : 1 })
+  g.roundRect(0, 0, width, height, RADIUS.small)
+    .fill({ color: UI.cell, alpha: empty ? 0.6 : 1 })
+  g.roundRect(0.75, 0.75, width - 1.5, height - 1.5, insetRadius(RADIUS.small, 0.75))
+    .stroke({ color: border, width: STROKE.base, alpha: empty ? 0.45 : 1 })
   return g
 }
 
@@ -144,7 +147,7 @@ export function priceText(cost: number, afford: boolean, size = 15): Text {
   const text = new Text({
     text: `$${cost}`,
     style: {
-      fontSize: size, fontWeight: '800', fontFamily: NUMERALS,
+      fontSize: size, fontWeight: WEIGHT.bold, fontFamily: NUMERALS,
       fill: afford ? UI.yellow : UI.red,
     },
   })

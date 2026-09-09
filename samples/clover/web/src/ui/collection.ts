@@ -13,6 +13,7 @@
 // **잠그지 않습니다.** 발견은 표시일 뿐이고 아무것도 여닫지 않습니다 — 결제가 없는
 // 로그라이트에서 해금은 순수한 지연이라는 `ui/setup.ts` 의 결정과 같습니다.
 
+import { COLOR, PAINT } from '../render/ink'
 import { Container, Graphics, Text } from 'pixi.js'
 
 import type { Data } from '../core/data'
@@ -34,7 +35,7 @@ import {
   blindFace, itemFace, packFace, packName, tagFace, voucherFace,
 } from '../render/faces'
 import { JokerView } from '../render/joker-view'
-import { COLOR, SIZE, UI } from '../render/theme'
+import { UI, SIZE, TEXT, WEIGHT } from '../render/theme'
 import type { ToolSpot } from './layout'
 import { panelFrame, type ModalPanel } from './modal'
 import { ScrollView } from './scroll'
@@ -181,10 +182,10 @@ export class CollectionPanel implements ModalPanel {
   private readonly tooltip = new Tooltip()
 
   private readonly foundLabel = new Text({
-    text: '', style: { fontSize: 15, fill: COLOR.ink, fontWeight: '800' },
+    text: '', style: { fontSize: TEXT.base, fill: UI.ink, fontWeight: WEIGHT.bold },
   })
   private readonly hint = new Text({
-    text: '', style: { fontSize: 13, fill: COLOR.inkDim },
+    text: '', style: { fontSize: TEXT.body, fill: UI.inkDim },
   })
 
   private readonly tabButtons: { key: TabKey; button: Button; label: string }[] = []
@@ -305,7 +306,7 @@ export class CollectionPanel implements ModalPanel {
     const tabGap = 8
     const tabsX = Math.round((WIDTH - (TABS.length * tabW + (TABS.length - 1) * tabGap)) / 2)
     for (const [index, one] of TABS.entries()) {
-      const button = new Button(t(one.label), tabW, TAB_H, UI.btn,
+      const button = new Button(t(one.label), tabW, TAB_H, 'neutral',
                                 () => this.choose(one.key), 15)
       button.position.set(tabsX + index * (tabW + tabGap), TAB_Y)
       this.tabButtons.push({ key: one.key, button, label: one.label })
@@ -318,7 +319,7 @@ export class CollectionPanel implements ModalPanel {
     const rw = 150
     for (const [index, choice] of (['base', 'all'] as PoolChoice[]).entries()) {
       const key = choice === 'all' ? 'ui.pool.all' : 'ui.pool.base'
-      const button = new Button(t(key), rw, HEAD_H, UI.btn,
+      const button = new Button(t(key), rw, HEAD_H, 'neutral',
                                 () => this.setRange(choice), 15)
       button.position.set(GRID_X + index * (rw + 10), HEAD_Y)
       this.rangeButtons.push({ choice, button, key })
@@ -330,13 +331,13 @@ export class CollectionPanel implements ModalPanel {
     // 줄 세우기. **조커 탭에만 놓입니다** — 500종이면 눈으로 훑어서는 찾지 못합니다.
     const sw = 70
     for (const [index, one] of SORTS.entries()) {
-      const button = new Button(t(one.label), sw, HEAD_H, UI.btn,
+      const button = new Button(t(one.label), sw, HEAD_H, 'neutral',
                                 () => this.sortBy(one.key), 14)
       button.position.set(480 + index * (sw + 6), HEAD_Y)
       this.sortButtons.push({ key: one.key, button, label: one.label })
       this.body.addChild(button)
     }
-    this.order = new Button('', 40, HEAD_H, UI.btn, () => this.flip(), 18)
+    this.order = new Button('', 40, HEAD_H, 'neutral', () => this.flip(), 18)
     this.order.position.set(790, HEAD_Y)
     this.body.addChild(this.order)
 
@@ -577,12 +578,12 @@ export class CollectionPanel implements ModalPanel {
     const h = SIZE.jokerHeight
     const node = new Container()
     const paper = new Graphics()
-    paper.roundRect(0, 0, w, h, 9).fill(0xefe6d3)
-    paper.roundRect(1, 1, w - 2, h - 2, 8).stroke({ color: UI.ink, width: 2 })
+    paper.roundRect(0, 0, w, h, 9).fill(COLOR.slip)
+    paper.roundRect(1, 1, w - 2, h - 2, 8).stroke({ color: UI.outline, width: 2 })
     const label = new Text({
       text: name,
       style: {
-        fontSize: 14, fill: 0x2a2420, fontWeight: '900', align: 'center',
+        fontSize: TEXT.copy, fill: COLOR.slipInk, fontWeight: WEIGHT.heavy, align: 'center',
         wordWrap: true, wordWrapWidth: w - 12, breakWords: true, lineHeight: 16,
       },
     })
@@ -590,7 +591,7 @@ export class CollectionPanel implements ModalPanel {
     label.position.set(w / 2, h / 2)
     const head = new Text({
       text: kind,
-      style: { fontSize: 9, fill: 0x6b6255, fontWeight: '800' },
+      style: { fontSize: 9, fill: COLOR.slipDim, fontWeight: WEIGHT.bold },
     })
     head.anchor.set(0.5, 0)
     head.position.set(w / 2, 10)
@@ -687,10 +688,10 @@ export class CollectionPanel implements ModalPanel {
     const w = SIZE.jokerWidth
     const h = SIZE.jokerHeight
     const back = new Container()
-    drawCardBack(back, w, h, 9, { motif: 0 as never, ground: 0x1b2431, ink: 0x2f3d50 })
+    drawCardBack(back, w, h, 9, { motif: 0 as never, ground: COLOR.unseen, ink: COLOR.unseenInk })
     const mark = new Text({
       text: '?',
-      style: { fontSize: 34, fill: 0x51637c, fontWeight: '900' },
+      style: { fontSize: TEXT.hero, fill: UI.inkFaint, fontWeight: WEIGHT.heavy },
     })
     mark.anchor.set(0.5, 0.5)
     mark.position.set(w / 2, h / 2)
@@ -746,7 +747,7 @@ export class CollectionPanel implements ModalPanel {
     const rows = Math.ceil(all.length / COLUMNS)
     this.spacer.clear()
     this.spacer.rect(0, 0, VIEW_W, Math.max(VIEW_H, rows * CELL_Y - (CELL_Y - LINE_H)))
-      .fill({ color: 0x000000, alpha: 0 })
+      .fill({ color: PAINT.hit, alpha: 0 })
 
     // **앞 탭의 칸을 먼저 치웁니다.** 굴릴 길이는 지어 둔 것을 재어 나오므로, 남겨 둔 채로
     // 재면 앞 탭이 길었던 만큼 막대가 서고 그 막대는 아무 데도 굴러가지 않습니다.
@@ -837,7 +838,7 @@ export class CollectionPanel implements ModalPanel {
     const label = new Text({
       text: met ? cell.name : '???',
       style: {
-        fontSize: 11, fill: met ? COLOR.ink : COLOR.inkDim, fontWeight: '700',
+        fontSize: TEXT.mini, fill: met ? UI.ink : UI.inkDim, fontWeight: WEIGHT.normal,
         align: 'center', wordWrap: true, wordWrapWidth: CELL_X - 8,
         breakWords: true, lineHeight: 13,
       },
