@@ -35,6 +35,7 @@ import { language, nameOf, setLanguage, t, text, tf } from '../core/strings'
 import { stakeRow, stakeSlug } from '../core/stake'
 import { setupLabel, validSetup, type RunSetup } from '../ui/setup'
 import { NUMERALS, outline, outlined, strokeWidthOf, useFont } from '../ui/font'
+import { cornerPiece, frameTint } from '../ui/chrome'
 import { rerollCost, sellValueOf, type ShopItem } from '../core/shop'
 import { bestHand, valueOf } from '../core/suggest'
 import { newCounters, type CardInstance, type GameEvent, type JokerInstance, type RunState } from '../core/state'
@@ -8191,6 +8192,15 @@ export class Game {
       plate.roundRect(0.75, 0.75, cardW - 1.5, height - 1.5, radius)
         .stroke({ color: now ? UI.panelEdge : UI.hairline, width: 1.5 })
       group.addChild(plate)
+
+      // **네 귀의 꺾쇠.** 얇은 테 위에 얹힙니다.
+      const rim = cornerPiece(cardW, height, frameTint())
+      if (rim !== undefined) {
+        // **고를 차례가 아닌 판은 꺾쇠도 옅습니다.** 판만 옅고 꺾쇠가 또렷하면 그 판이
+        // 앞으로 나온 것으로 보입니다.
+        rim.alpha = now ? 1 : 0.55
+        group.addChild(rim)
+      }
 
       const label = (text: string, size: number, fill: number, weight = '700') =>
         new Text({ text, style: { fontSize: size, fill, fontWeight: weight as never } })

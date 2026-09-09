@@ -297,6 +297,22 @@ interface Made {
   hue: number
 }
 
+/**
+ * 무채색에 가까운 채도를 0으로 내립니다.
+ *
+ * **판이 무채색이면 테도 무채색이어야 합니다.** 씨앗의 색상각은 `spec.hue` 를 적지 않은
+ * 색 전부가 물려받는데, 검정 겉면의 씨앗은 채도가 0.004 이고 색상각이 264(청자색)입니다 —
+ * 판에서는 검정으로 보이지만 대비를 4.6배로 벌리는 `panelEdge` 에서는 밝기가 크게
+ * 올라가고, OKLCH 에서 밝은 색은 같은 채도라도 색으로 읽히므로 파란 테가 나왔습니다.
+ *
+ * **색상각을 지우는 것이 아니라 채도를 지웁니다.** 채도가 0이면 색상각은 뜻이 없으므로
+ * 결과가 완전한 회색이 됩니다. 문턱은 씨앗 값에서 나옵니다 — 무채색으로 둔 겉면들이
+ * 0.004 이고 색이 있는 겉면들은 그보다 한 자리 큽니다.
+ */
+function neutralize(chroma: number): number {
+  return chroma < 0.012 ? 0 : chroma
+}
+
 function makeRatio(panel: number, seed: SurfaceSeed, spec: Ratio, name?: string,
                    accent = false): Made {
   const tuned = name !== undefined ? seed.tune?.[name] : undefined
@@ -305,7 +321,7 @@ function makeRatio(panel: number, seed: SurfaceSeed, spec: Ratio, name?: string,
   const hue = spec.hue ?? family.hue
   const chroma = spec.chroma !== undefined
     ? spec.chroma * (seed.vivid ?? 1)
-    : family.chroma * (spec.tint ?? 1)
+    : neutralize(family.chroma * (spec.tint ?? 1))
   const want = luminanceFor(panel, spec.ratio)
   let level = solveLevel(want, chroma, hue)
   if (spec.max !== undefined) level = Math.min(level, spec.max)
@@ -447,7 +463,15 @@ export function buildSurface(seed: SurfaceSeed): Surface {
   return {
     panel: oklch(solveLevel(panel, seed.chroma, seed.hue), seed.chroma, seed.hue),
     panelAlpha: seed.alpha,
-    panelEdge: lead(LINES.panelEdge).color,
+    // **판의 테는 강조색이 아닙니다.**
+    //
+    // `lead` 로 뽑으면 씨앗이 아니라 `seed.accent` 를 쓰므로, 검정 겉면(`ink`)에서 파란
+    // 테가 나왔습니다 — 그 겉면의 강조색이 `hue: 238` 이기 때문입니다. 판이 검정인데 테가
+    // 파란 것은 그 겉면을 고른 뜻과 어긋납니다.
+    //
+    // `at` 은 씨앗의 색상각을 쓰고, 무채색 씨앗은 `neutralize` 가 채도를 지웁니다.
+    // 강조색은 단추와 뜻이 있는 색들이 그대로 씁니다.
+    panelEdge: at(LINES.panelEdge).color,
     ground: plain(SURFACES.ground),
     cell: plain(SURFACES.cell),
     well: plain(SURFACES.well),

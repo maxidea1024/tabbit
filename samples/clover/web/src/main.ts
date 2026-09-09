@@ -19,6 +19,8 @@ import { chosen, loadOptions } from './ui/options'
 import { loadArtIndex } from './render/art'
 import { Boot } from './ui/boot'
 import { loadIcons } from './ui/icon'
+import { loadChrome } from './ui/chrome'
+import { loadSceneArt } from './ui/scene-art'
 import { JokerPool } from './generated/enums/joker-pool'
 import { Game } from './render/game'
 import { setUiTheme } from './render/theme'
@@ -83,6 +85,8 @@ async function main(): Promise<void> {
   // 아이콘 둘. 화면을 세우기 전에 읽습니다 — 그리는 자리에서 읽으면 첫 프레임에 빈 칸이
   // 한 번 보입니다.
   await loadIcons('./icon')
+  await loadChrome('./ui')
+  await loadSceneArt('./ui')
   // 셰이더가 읽는 노이즈 그림. **필터가 만들어지기 전에 있어야 합니다** — 필터는 만들어질
   // 때 그림을 잡고, 그 뒤에 온 그림은 어느 필터에도 들어가지 않습니다.
   await loadNoise('./noise')

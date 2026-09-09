@@ -40,6 +40,7 @@ import { UI, SIZE, TEXT, WEIGHT } from '../render/theme'
 import type { ToolSpot } from './layout'
 import { Tooltip } from './tooltip'
 import { Button, IconButton } from './widgets'
+import { sceneArt } from './scene-art'
 import { Wordmark } from './wordmark'
 
 /**
@@ -65,14 +66,47 @@ const ICON = 56
 const ICON_GAP = 10
 
 /** 가운데. 이름과 그 아래의 단추들입니다. */
-const LOGO_SIZE = 138
-const LOGO_Y = 168
-const TAGLINE_Y = 334
-const NOTE_Y = 374
+/**
+ * 로고와 단추의 자리. **2026-09-10에 오른쪽 세로줄로 옮겼습니다.**
+ *
+ * 배경이 그림 한 장이 되었으므로 로고와 단추가 그림의 어디에 놓이는지가 그림의 구성을
+ * 정합니다 — 주인공이 왼쪽에 서고 오른쪽이 열려 있으므로 로고는 왼쪽 위, 단추는 오른쪽에
+ * 세로로 내려옵니다. 규격은 `notes/hypephoria-rebrand-plan.md` 에 있습니다.
+ */
+const COLUMN_W = 260
+/**
+ * 단추 줄의 왼쪽 변.
+ *
+ * **화면 오른쪽 변에서 108픽셀 들여놓습니다.** 56이었을 때 단추가 변에 붙어 보였습니다 —
+ * 그림의 오른쪽에 어두운 근경이 있으므로 그 안쪽에 놓여야 판 위에 얹힌 것으로 보입니다.
+ */
+const COLUMN_X = SIZE.width - COLUMN_W - 108
+const COLUMN_TOP = 232
+const COLUMN_GAP = 14
+/**
+ * 단추 한 칸의 높이.
+ *
+ * **넷이 다 같습니다.** 시작만 크고 밝던 것을 걷었습니다 — 타이틀의 단추는 등급이 같고,
+ * 무엇을 먼저 누를지는 자리가 정합니다(맨 위가 시작). 크기·서체·색을 달리하면 화면에
+ * 등급이 넷 생깁니다.
+ */
+const ROW_H = 56
+/**
+ * 단추 글자 크기.
+ *
+ * **넷이 다 같습니다.** 콜렉션과 리더보드에만 17이 넘어가 있었고 시작과 나가기는 기본값
+ * 15였습니다 — 재어 보니 글자 높이가 18과 14로 갈렸습니다. 같은 등급의 단추이므로 크기를
+ * 한 자리에 둡니다.
+ */
+const ROW_TEXT = 17
 
-const START_W = 320
-const START_H = 76
-const START_Y = 446
+const LOGO_SIZE = 76
+const LOGO_Y = 96
+const TAGLINE_Y = 334
+
+const START_W = COLUMN_W
+const START_H = ROW_H
+const START_Y = COLUMN_TOP
 
 /**
  * 「시작」을 둘러싼 빛.
@@ -92,9 +126,8 @@ const GLOW_RINGS = 14
  * 서로 다른 갈래의 것이라는 것이 자리로 읽히지 않습니다 — 하나씩 아래로 쌓으면 눈이 위에서
  * 아래로 한 번만 지납니다.
  */
-const SECOND_W = 240
-const SECOND_H = 48
-const SECOND_GAP = 10
+const SECOND_W = COLUMN_W
+const SECOND_H = ROW_H
 
 /**
  * 「시작」과 그 아래 사이의 틈.
@@ -102,13 +135,12 @@ const SECOND_GAP = 10
  * **줄 사이보다 넓습니다.** 같으면 넷이 한 줄로 이어진 목록이 되고, 그 목록에서는 「시작」이
  * 그저 첫째 칸입니다 — 눌러야 하는 것 하나가 따로 놓여 있어야 그것이 먼저 읽힙니다.
  */
-const SECOND_GULF = 34
-const SECOND_Y = START_Y + START_H + SECOND_GULF
+const SECOND_Y = START_Y + START_H + COLUMN_GAP
 
 /** 나가기. **맨 아래이고 낮습니다** — 여기서 누를 일이 가장 드뭅니다. */
 const QUIT_W = SECOND_W
-const QUIT_H = 40
-const QUIT_Y = SECOND_Y + (SECOND_H + SECOND_GAP) * 2 + 8
+const QUIT_H = ROW_H
+const QUIT_Y = SECOND_Y + (SECOND_H + COLUMN_GAP) * 2
 
 export interface TitleHooks {
   /** 판을 여는 자리. 새 런 · 이어하기 · 챌린지가 그 안에 있습니다. */
@@ -130,11 +162,19 @@ export class Title extends Container {
   /** 한 줄 소개. **금색이 아니라 따뜻한 흰색입니다** — 금색은 값과 나아감의 색입니다. */
   private readonly tagline = new Text({
     text: t('ui.title.tagline'),
-    style: { fontSize: TEXT.lead, fill: UI.light, fontWeight: WEIGHT.normal, letterSpacing: 5 },
-  })
-  private readonly note = new Text({
-    text: t('ui.title.note'),
-    style: { fontSize: TEXT.body, fill: UI.inkDim },
+    // **그림 위에 놓이는 글입니다.** 얇고 옅게 두었더니 배경의 붓질에 묻혔습니다 — 굵게
+    // 하고 테두리를 둘러야 읽힙니다. 자간은 슬로건이므로 넓게 둡니다.
+    style: {
+      // **그림 위의 글입니다.** 이 그림의 왼쪽은 밝기가 2에서 246까지이므로 어느 한 색으로도
+      // 읽히지 않습니다 — 뒤에 사각형을 깔아 보았고 그림 위에 회색 판이 놓인 것이 되었습니다.
+      // **글 자체에 두꺼운 테두리와 떨어지는 그림자를 둡니다.** 판이 생기지 않습니다.
+      fontSize: TEXT.big,
+      stroke: { color: UI.outline, width: 5, join: 'round' as const },
+      fill: UI.ink, fontWeight: WEIGHT.heavy, letterSpacing: 4,
+      dropShadow: {
+        color: UI.outline, alpha: 0.85, blur: 6, distance: 3, angle: Math.PI / 2,
+      },
+    },
   })
   /**
    * 한 줄 소개의 양옆에 서는 선.
@@ -198,43 +238,48 @@ export class Title extends Container {
     //
     // `game.ts` 의 `syncMood` 가 타이틀에서 그렇게 넘깁니다.
 
-    this.logo.position.set(SIZE.width / 2, LOGO_Y)
+    // **왼쪽 영역의 가운데입니다.** `Wordmark` 의 기준점이 가운데이므로 왼쪽 변에 맞추면
+    // 글의 절반이 화면 밖으로 나갑니다. 단추 줄이 시작되는 자리까지가 그 영역입니다.
+    this.logo.position.set(Math.round(COLUMN_X / 2), LOGO_Y)
 
     this.tagline.anchor.set(0.5, 0)
-    this.tagline.position.set(SIZE.width / 2, TAGLINE_Y)
+    this.tagline.position.set(Math.round(COLUMN_X / 2), TAGLINE_Y)
     this.drawRule()
 
-    this.note.anchor.set(0.5, 0)
-    this.note.position.set(SIZE.width / 2, NOTE_Y)
 
     // **시작 하나가 가장 큽니다.** 눌러야 하는 것이 하나이면 그것 하나만 크고 밝습니다 —
     // 나머지는 그 아래에서 같은 크기로 놓입니다.
+    // **넷이 같은 갈래입니다.** 나가기만 색을 달리 합니다 — 되돌릴 수 없는 것이므로
+    // 그것 하나만 눈에 다르게 보이면 됩니다.
+    // **시작만 금색입니다.** 넷이 다 회색이면 무엇을 누를지가 화면에 없습니다 — 크기와
+    // 서체는 같게 두고 색으로만 가릅니다. 나가기는 붉은빛입니다.
     const start = new Button(t('ui.button.start'), START_W, START_H, 'primary',
-                             hooks.onStart, 30)
-    start.position.set(Math.round((SIZE.width - START_W) / 2), START_Y)
+                             hooks.onStart, ROW_TEXT)
+    start.position.set(COLUMN_X, START_Y)
     this.buttons.push({ key: 'ui.button.start', button: start })
     this.toolNodes.set('start', { node: start, cx: START_W / 2, cy: START_H / 2 })
     this.drawStartGlow()
 
     // 그 아래로 쌓입니다. **판을 여는 일이 아닌 것들입니다.**
-    const secondX = Math.round((SIZE.width - SECOND_W) / 2)
+    const secondX = COLUMN_X
 
     const pool = new Button(t('ui.button.collection'), SECOND_W, SECOND_H, 'neutral',
-                            hooks.onCollection, 17)
+                            hooks.onCollection, ROW_TEXT)
     pool.position.set(secondX, SECOND_Y)
     this.buttons.push({ key: 'ui.button.collection', button: pool })
     this.toolNodes.set('collection', { node: pool, cx: SECOND_W / 2, cy: SECOND_H / 2 })
 
     const board = new Button(t('ui.button.leaderboard'), SECOND_W, SECOND_H, 'neutral',
-                             hooks.onLeaderboard, 17)
-    board.position.set(secondX, SECOND_Y + SECOND_H + SECOND_GAP)
+                             hooks.onLeaderboard, ROW_TEXT)
+    board.position.set(secondX, SECOND_Y + SECOND_H + COLUMN_GAP)
     this.buttons.push({ key: 'ui.button.leaderboard', button: board })
     this.toolNodes.set('leaderboard', { node: board, cx: SECOND_W / 2, cy: SECOND_H / 2 })
 
     // 나가기. **가장 아래이고 낮습니다** — 위의 둘과 같은 높이로 두면 게임을 끝내는 것이
     // 도감을 여는 것과 같은 무게가 됩니다.
-    const quit = new Button(t('ui.button.quit'), QUIT_W, QUIT_H, 'neutral', hooks.onQuit, 14)
-    quit.position.set(Math.round((SIZE.width - QUIT_W) / 2), QUIT_Y)
+    const quit = new Button(t('ui.button.quit'), QUIT_W, QUIT_H, 'danger',
+                            hooks.onQuit, ROW_TEXT)
+    quit.position.set(COLUMN_X, QUIT_Y)
     this.buttons.push({ key: 'ui.button.quit', button: quit })
     this.toolNodes.set('quit', { node: quit, cx: QUIT_W / 2, cy: QUIT_H / 2 })
 
@@ -278,10 +323,15 @@ export class Title extends Container {
     version.anchor.set(0, 1)
     version.position.set(EDGE, SIZE.height - 14)
 
+    // **배경 그림이 맨 아래입니다.** 없으면 지금까지의 배경으로 갑니다 — 판 밖의 셰이더는
+    // 판이 도는 동안 쓰는 것이므로 건드리지 않고, 이 그림이 그 위를 덮습니다.
+    const art = sceneArt()
+    if (art !== undefined) this.addChild(art)
+
     // **쪽지는 맨 위입니다.** 아이콘 아래에 떠야 하므로 마지막에 얹습니다.
     this.addChild(this.tooltip)
 
-    this.addChild(this.logo, this.tagline, this.rule, this.note, version,
+    this.addChild(this.logo, this.tagline, this.rule, version,
                   this.startGlow, start, pool, board, quit,
                   link, this.accountSlot, signOut, guide, option)
 
@@ -304,7 +354,6 @@ export class Title extends Container {
 
   relabel(): void {
     this.tagline.text = t('ui.title.tagline')
-    this.note.text = t('ui.title.note')
     this.drawRule()
     for (const one of this.buttons) one.button.text = t(one.key)
   }
@@ -345,7 +394,7 @@ export class Title extends Container {
   private drawRule(): void {
     const g = this.rule
     g.clear()
-    const middle = SIZE.width / 2
+    const middle = Math.round(COLUMN_X / 2)
     const half = this.tagline.width / 2
     const y = Math.round(TAGLINE_Y + this.tagline.height / 2)
     for (const side of [-1, 1]) {

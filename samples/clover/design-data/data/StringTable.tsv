@@ -1242,7 +1242,7 @@
 	ui.swap.hint	자리 없음 — 눌러서 교체	No room — tap to swap	空きなし — 押して入れ替え	没有空位 — 点击替换	沒有空位 — 點擊替換	Kein Platz — antippen zum Tauschen
 	ui.deck_view.note	밝은 것이 덱에 남은 카드입니다. 카드를 누르면 그 한 장의 설명이 뜹니다.	The bright ones are still in the deck. Tap a card to read it.	明るいものがデッキに残っているカードです。カードを押すとその一枚の説明が出ます。	较亮的是仍在牌组中的牌。点击一张牌可查看说明。	較亮的是仍在牌組中的牌。點擊一張牌可查看說明。	Die hellen Karten sind noch im Deck. Tippe eine Karte an, um sie zu lesen.
 	ui.shop.note	조커와 소모품을 삽니다. 바우처는 런 내내 남습니다.	Buy Jokers and consumables. Vouchers last the whole run.	ジョーカーと消耗品を買います。バウチャーはラン中ずっと残ります。	购买小丑与消耗品。优惠券在本次运行内一直有效。	購買小丑與消耗品。優惠券在本次運行內一直有效。	Kaufe Joker und Verbrauchsgegenstände. Gutscheine gelten den ganzen Lauf.
-	ui.title.tagline	숫자가 미쳐 날뛰는 포커 로그라이크	The poker roguelike where the numbers go feral	数字が暴れ出すポーカーローグライク	数字疯狂飙升的扑克 Roguelike	數字瘋狂飆升的撲克 Roguelike	Das Poker-Roguelike, in dem die Zahlen durchdrehen
+	ui.title.tagline	GET HYPED. GET LUCKY.	GET HYPED. GET LUCKY.	GET HYPED. GET LUCKY.	GET HYPED. GET LUCKY.	GET HYPED. GET LUCKY.	GET HYPED. GET LUCKY.
 	ui.title.note	조커 하나가 배수를 두 배로, 그다음 조커가 또 두 배로. 한 판이면 안 멈춥니다.	One Joker doubles the mult. The next one doubles it again. One run is never one run.	ジョーカー1枚が倍率を2倍に、次の1枚がまた2倍に。1ランでは終わりません。	一个小丑让倍率翻倍，下一个再翻一倍。一局根本停不下来。	一個小丑讓倍率翻倍，下一個再翻一倍。一局根本停不下來。	Ein Joker verdoppelt den Mult. Der nächste verdoppelt ihn wieder. Ein Lauf bleibt nie einer.
 	ui.title.seed	시드	Seed	シード	种子	種子	Seed
 	ui.title.seed_hint	같은 시드를 넣으면 같은 판이 나옵니다	The same seed gives the same run	同じシードなら同じゲームになります	相同的种子会生成相同的一局	相同的種子會生成相同的一局	Derselbe Seed ergibt denselben Durchgang

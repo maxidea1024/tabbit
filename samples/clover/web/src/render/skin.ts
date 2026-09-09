@@ -18,6 +18,9 @@ import { FillGradient, Graphics } from 'pixi.js'
 import { shade } from './color'
 import { UI, RADIUS, STROKE } from './theme'
 
+/** `border` 에 이 값을 넘기면 테를 그리지 않습니다. 금속 테 그림이 그 일을 합니다. */
+export const NO_BORDER = -1
+
 export interface PlateStyle {
   /** 바탕. 위에서 아래로 흐릅니다. */
   top: number
@@ -85,8 +88,12 @@ export function plate(g: Graphics, width: number, height: number, style: PlateSt
     ? { color: style.top, alpha }
     : { fill: faceFill(height, style.top, style.bottom), alpha }
   g.roundRect(0, 0, width, height, radius).fill(fill)
-  g.roundRect(half, half, width - weight, height - weight, insetRadius(radius, half))
-    .stroke({ color: style.border, width: weight })
+  // **테를 그리지 않는 경우가 있습니다.** 금속 테 그림이 판 경계에 걸쳐 놓이면 이 선이 그
+  // 안쪽에 한 줄 더 그려지고, 강조색의 얇은 선이 곧 웹 화면의 인상입니다.
+  if (style.border !== NO_BORDER) {
+    g.roundRect(half, half, width - weight, height - weight, insetRadius(radius, half))
+      .stroke({ color: style.border, width: weight })
+  }
 }
 
 /**
@@ -100,10 +107,21 @@ export function plate(g: Graphics, width: number, height: number, style: PlateSt
  */
 export function carve(g: Graphics, width: number, height: number,
                       face: number, radius: number = RADIUS.small): void {
-  g.moveTo(radius, 1.5).lineTo(width - radius, 1.5)
-    .stroke({ color: shade(face, -0.05), width: STROKE.hair, alpha: 0.9 })
+  // **밝은 턱이 파임을 만듭니다.**
+  //
+  // 칸의 채움을 밝히고 어둡혀 두 줄을 두었고, 보이지 않았습니다 — 칸은 거의 검정이라
+  // 거기서 0.10 을 더하거나 빼도 화면에서 같은 검정입니다. 파임이 보이는 것은 칸이 아니라
+  // **판이 그 구멍의 아래 벽에서 빛을 받는 것**이므로, 밝은 쪽을 판의 색에서 뽑습니다.
+  //
+  // 빛이 위에서 오므로 아래와 오른쪽이 밝습니다. 위와 왼쪽의 그늘은 칸이 이미 검정이라
+  // 따로 그리지 않습니다 — 그것이 그늘 자체입니다.
+  void face
+  const light = shade(UI.panel, 0.16)
+
   g.moveTo(radius, height - 1.5).lineTo(width - radius, height - 1.5)
-    .stroke({ color: shade(face, 0.06), width: STROKE.hair, alpha: 0.55 })
+    .stroke({ color: light, width: STROKE.base, alpha: 0.85 })
+  g.moveTo(width - 1.5, radius).lineTo(width - 1.5, height - radius)
+    .stroke({ color: light, width: STROKE.hair, alpha: 0.5 })
 }
 
 /**
@@ -227,7 +245,6 @@ export function groove(g: Graphics, x: number, y: number, width: number,
   paint(x, x + cap)
   paint(x + width - cap, x + width)
 
-
   for (let at = x + cap + gap; at < x + width - cap; at += dash + gap) {
     paint(at, Math.min(at + dash, x + width - cap))
   }
@@ -298,20 +315,13 @@ export function pressable(g: Graphics, width: number, height: number,
   const radius = RADIUS.small
   const half = STROKE.base / 2
 
-  if (look.edge !== undefined) {
-    // **바탕에 붙은 채움과 밝은 테.** 잘 만든 웹의 어두운 화면이 이렇게 합니다 — 단추를
-    // 단추로 보이게 하는 것은 밝은 채움이 아니라 테이고, 검은 테를 두른 회색 채움은
-    // 판때기가 떠 있는 것으로 보입니다. 두께는 두지 않습니다.
-    g.roundRect(0, 0, width, height, radius).fill(look.face)
-    g.roundRect(half, half, width - STROKE.base, height - STROKE.base,
-                insetRadius(radius, half))
-      .stroke({ color: look.edge, width: STROKE.base })
-    return
-  }
-
-  // **꽉 찬 단추는 두께를 가집니다.** 나아가는 것과 되돌릴 수 없는 것이고, 그 둘은 화면에
-  // 하나나 둘뿐이므로 두께가 무늬가 되지 않습니다 — 판 안의 그 밖의 단추까지 두꺼우면
-  // 화면이 단추로 가득한 것으로 보입니다.
+  // **단추는 전부 두께를 가집니다.**
+  //
+  // 한때 길이 둘이었습니다 — 테가 있는 것은 바탕에 붙은 평면이고 꽉 찬 것만 턱을
+  // 가졌습니다. 그것이 「잘 만든 웹의 어두운 화면」의 문법이고, 이 게임의 그림 화풍과는
+  // 어긋납니다. 조용한 단추도 눌러서 내려앉는 물건이므로 턱이 있어야 합니다.
+  //
+  // 층이 넷입니다 — 아래의 턱 · 얼굴 · 얼굴 위의 밝은 줄 · 테.
   const faceH = height - LIP
   const top = pushed ? LIP : 0
   g.roundRect(0, 0, width, height, radius).fill(shade(look.face, -0.13))
@@ -319,9 +329,16 @@ export function pressable(g: Graphics, width: number, height: number,
     .fill(faceFill(faceH, shade(look.face, 0.05), look.face))
   g.moveTo(radius, top + 1.5).lineTo(width - radius, top + 1.5)
     .stroke({ color: shade(look.face, 0.13), width: STROKE.hair, alpha: 0.7 })
-  g.roundRect(half, half, width - STROKE.base, height - STROKE.base,
-              insetRadius(radius, half))
-    .stroke({ color: shade(look.face, -0.24), width: STROKE.base })
+
+  // **테를 두르지 않습니다.**
+  //
+  // 밝은 테를 한 줄 둘러 보았고 답답했습니다 — 단추가 이미 턱으로 두께를 가지므로 테는
+  // 그 두께를 한 줄로 가두는 것이 되고, 판 안에 단추가 여럿이면 그 줄들이 겹쳐 화면이
+  // 좁아 보입니다. 단추의 윤곽은 아래의 턱과 얼굴의 경사가 만듭니다.
+  //
+  // `look.edge` 는 부르는 쪽이 아직 넘기므로 받되 쓰지 않습니다.
+  void look.edge
+  void half
 }
 
 /**

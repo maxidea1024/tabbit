@@ -23,6 +23,7 @@ import type { Provider } from '../net/session'
 import { UI, SIZE, TEXT, WEIGHT } from '../render/theme'
 import { providerTint } from './provider'
 import { Button } from './widgets'
+import { sceneArt } from './scene-art'
 import { Wordmark } from './wordmark'
 
 /** 이름과 그 아래 한 줄. **타이틀보다 위입니다** — 아래에 단추가 더 놓입니다. */
@@ -130,6 +131,11 @@ export class LoginScene extends Container {
 
   constructor() {
     super()
+    // **배경 그림이 맨 아래입니다.** 타이틀과 같은 그림 한 장을 씁니다(`ui/scene-art.ts`).
+    // 이 통은 띠 뒤에서 흐려지므로 그림도 함께 흐려집니다 — 로그인 띠에 초점이 갑니다.
+    // **0.34로 눌러 깝니다.** 글이 여섯 줄이므로 타이틀보다 더 낮춥니다.
+    const art = sceneArt(0.34)
+    if (art !== undefined) this.under.addChild(art)
     this.under.addChild(this.mark, this.body)
     this.addChild(this.under, this.band)
     this.mark.position.set(SIZE.width / 2, LOGO_Y)

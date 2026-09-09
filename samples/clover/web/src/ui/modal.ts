@@ -15,6 +15,7 @@ import { plate, floatingStyle } from '../render/skin'
 import { UI, SIZE, popupLeft, TEXT, WEIGHT } from '../render/theme'
 import { fraction } from '../render/motion'
 import { Button } from './widgets'
+import { cornerPiece, frameTint } from './chrome'
 
 /** 쌓을 수 있는 판 하나. */
 export interface ModalPanel {
@@ -331,7 +332,12 @@ export function panelFrame(width: number, height: number, title: string,
   const node = new Container()
 
   const board = new Graphics()
-  plate(board, width, height, floatingStyle())
+  // **금속 테 그림이 있으면 강조색 테를 그리지 않습니다.** 둘이 겹치면 금속 안쪽에 주황
+  // 선이 한 줄 더 놓입니다.
+  const style = floatingStyle()
+  plate(board, width, height, style)
+  // **네 귀의 꺾쇠.** 얇은 테 위에 얹힙니다.
+  const frame = cornerPiece(width, height, frameTint())
 
   // 머리. **띠가 아니라 선 하나입니다.** 제목 아래의 선이 머리와 몸통을 가르고, 밑단은
   // 단추가 있을 때만 그 위에 선 하나가 놓입니다 — 띠 둘로 위아래를 물리던 것을 걷었습니다.
@@ -352,7 +358,9 @@ export function panelFrame(width: number, height: number, title: string,
   heading.anchor.set(0.5, 0.5)
   heading.position.set(width / 2, TITLE_BAR / 2)
 
-  node.addChild(board, bars, heading)
+  node.addChild(board)
+  if (frame !== undefined) node.addChild(frame)
+  node.addChild(bars, heading)
 
   // **닫을 수 없는 판도 있습니다.** 상점이 그렇습니다 — 닫으면 갈 곳이 없으므로 닫기가
   // 없고, 밑단에는 그 판이 할 일이 대신 놓입니다.
