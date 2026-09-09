@@ -6,6 +6,7 @@
 //
 // 그리는 것은 단색 채우기와 테와 글뿐입니다 — 그라디언트 · 그림자 · 두께가 없습니다.
 
+import { shade } from '../render/color'
 import { Container, Graphics, Text } from 'pixi.js'
 
 import { NUMERALS } from './font'
@@ -143,7 +144,13 @@ export function cellPlate(width: number, height: number, border: number,
   const g = new Graphics()
   g.roundRect(0, 0, width, height, RADIUS.small)
     .fill({ color: UI.cell, alpha: empty ? 0.6 : 1 })
-  if (!empty) carve(g, width, height, UI.cell)
+  // **빈 칸도 파입니다.** 채워진 것에만 파인 줄을 두었더니 빈 자리가 얇은 사각형 하나로
+  // 남아, 판 위에 놓인 물건의 자리가 아니라 그려 둔 선으로 보였습니다 — 자리는 판을 파낸
+  // 것이므로 비어 있을 때 오히려 그 파임이 보여야 합니다.
+  carve(g, width, height, UI.cell)
+  // 파인 자리의 그늘. **위 안쪽에만 둡니다** — 빛이 위에서 오므로 파인 것은 위가 어둡습니다.
+  g.roundRect(1.5, 1.5, width - 3, height - 3, insetRadius(RADIUS.small, 1.5))
+    .stroke({ color: shade(UI.cell, -0.06), width: STROKE.base, alpha: 0.75 })
   g.roundRect(0.75, 0.75, width - 1.5, height - 1.5, insetRadius(RADIUS.small, 0.75))
     .stroke({ color: border, width: STROKE.base, alpha: empty ? 0.45 : 1 })
   return g

@@ -13,9 +13,12 @@ import { LIP, mix, panelStyle, plate, pressable,
 import { UI, TEXT, WEIGHT } from '../render/theme'
 import { outlined, outlineOf, outlineWidth, strokeWidthOf } from './font'
 import { iconFor, type IconName } from './icon'
+import { cornerPiece, frameTint } from './chrome'
 
 export class Panel extends Container {
   private readonly board = new Graphics()
+  /** 네 귀의 꺾쇠. 판 크기와 무관한 고정 크기입니다. */
+  private frame?: Container
 
   constructor(width: number, height: number, tint?: number) {
     super()
@@ -24,25 +27,21 @@ export class Panel extends Container {
   }
 
   resize(width: number, height: number, tint?: number): void {
+    // **금속 테 그림이 있으면 강조색 테를 그리지 않습니다.** 둘이 겹치면 금속 안쪽에 주황
+    // 선이 한 줄 더 놓이고, 그 선이 웹 화면의 인상을 만듭니다.
+    const border = panelStyle().border
     const style: PlateStyle = tint === undefined
-      ? panelStyle()
-      : { ...panelStyle(), top: mix(tint, PAINT.sheen, 0.1), bottom: tint }
+      ? { ...panelStyle(), border }
+      : { ...panelStyle(), top: mix(tint, PAINT.sheen, 0.1), bottom: tint, border }
     this.board.clear()
     plate(this.board, width, height, style)
-  }
-}
 
-/**
- * 단추 위의 글을 어느 색으로 적는가.
- *
- * **재어서 고릅니다.** 밝기 한 값으로 가르던 동안은 그 문턱에 걸친 단추 — 붉음과 초록이
- * 그렇습니다 — 가 겉면마다 다른 쪽으로 넘어갔습니다.
- *
- * **흰 쪽으로 기울여 둡니다.** 어두운 글이 15% 넘게 더 잘 읽힐 때에만 그쪽입니다 — 두 값이
- * 비슷하면 흰 글이 단추의 관례이고, 게임 안에서도 그 편이 한 벌로 보입니다.
- */
-function captionInk(base: number): number {
-  return contrast(UI.onLight, base) > contrast(UI.ink, base) * 1.15 ? UI.onLight : UI.ink
+    // **네 귀의 꺾쇠.** 얇은 테 위에 얹혀 단조로움을 덜어 냅니다 — 테 전체를 그림으로
+    // 두르면 판이 도스 시절의 대화상자가 됩니다.
+    this.frame?.destroy()
+    this.frame = cornerPiece(width, height, frameTint())
+    if (this.frame !== undefined) this.addChild(this.frame)
+  }
 }
 
 /**
@@ -126,6 +125,19 @@ const INTENTS: Record<Intent, Look> = {
   confirm: { rest: 'confirm', hover: 'confirmHover', press: 'confirmPress' },
   caution: { rest: 'caution', hover: 'cautionHover', press: 'cautionPress' },
   select: { rest: 'light', hover: 'lightHover', press: 'lightPress' },
+}
+
+/**
+ * 단추 위의 글을 어느 색으로 적는가.
+ *
+ * **재어서 고릅니다.** 밝기 한 값으로 가르던 동안은 그 문턱에 걸친 단추 — 붉음과 초록이
+ * 그렇습니다 — 가 겉면마다 다른 쪽으로 넘어갔습니다.
+ *
+ * **흰 쪽으로 기울여 둡니다.** 어두운 글이 15% 넘게 더 잘 읽힐 때에만 그쪽입니다 — 두 값이
+ * 비슷하면 흰 글이 단추의 관례이고, 게임 안에서도 그 편이 한 벌로 보입니다.
+ */
+function captionInk(base: number): number {
+  return contrast(UI.onLight, base) > contrast(UI.ink, base) * 1.15 ? UI.onLight : UI.ink
 }
 
 export class Button extends Container {
@@ -350,7 +362,13 @@ export class Button extends Container {
 
   private draw(): void {
     this.board.clear()
+    // **금속 단추 그림이 있으면 그것을 씁니다.** 코드로 그린 채움과 테는 잘 만든 웹 화면의
+    // 문법이고, 이 게임의 그림 화풍과는 어긋납니다.
+    //
+    // **회색조 그림에 갈래의 색을 물들입니다.** 갈래 8개 × 상태 3개를 그림으로 두면 24장이
+    // 되므로, 그림은 한 장이고 색은 지금까지의 토큰에서 그대로 옵니다.
     pressable(this.board, this.boxWidth, this.boxHeight, this.shown, this.pushed)
+
     this.applyInk()
   }
 }

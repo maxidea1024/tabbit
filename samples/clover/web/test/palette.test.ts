@@ -70,17 +70,27 @@ describe('겉면의 대비', () => {
   })
 
   /**
-   * **한 겉면이 계열 둘입니다.**
+   * **판의 테는 판의 계열입니다.**
    *
-   * 판의 테와 고른 것이 그 겉면의 강조색이고, 둘이 같은 색상각이어야 화면에 계열이 하나
-   * 더 늘지 않습니다 — 자리마다 고르던 동안 한 화면에 서로 무관한 색상각이 여섯이었습니다.
+   * 한때 판의 테도 그 겉면의 강조색이었고, 이 게이트는 테와 고른 것이 한 색상각인지를
+   * 확인하였습니다. **검정 겉면에서 파란 테가 나왔습니다** — 그 겉면의 강조색이 `hue: 238`
+   * 이기 때문입니다. 판이 검정인데 테가 파란 것은 그 겉면을 고른 뜻과 어긋나므로, 테를
+   * 강조색에서 떼어 판의 계열로 옮겼습니다.
+   *
+   * 그래서 확인하는 것이 **테가 판과 한 계열인가**로 바뀌었습니다. 무채색 겉면에서는
+   * 채도가 0이므로 색상각이 없고, 그때는 판과 견줄 것이 없으므로 통과입니다.
+   *
+   * 강조색끼리의 계열은 「뜻이 있는 색의 색상각이 겉면마다 같습니다」가 이미 확인합니다.
    */
-  it('판의 테와 고른 것이 한 계열입니다', () => {
+  it('판의 테가 판과 한 계열입니다', () => {
     for (const key of UI_THEME_KEYS) {
       const look = UI_THEMES[key]
-      const hues = [look.panelEdge, look.pick].map(one => hueOf(one) ?? -1)
-      const spread = Math.max(...hues) - Math.min(...hues)
-      expect(`${key} ${spread < 12}`).toBe(`${key} true`)
+      const edge = hueOf(look.panelEdge)
+      const panel = hueOf(look.panel)
+      // 색상각이 없는 것은 무채색입니다. 검정 겉면의 테가 그렇습니다.
+      const same = edge === undefined || panel === undefined
+        || Math.abs(edge - panel) < 12
+      expect(`${key} ${same}`).toBe(`${key} true`)
     }
   })
 

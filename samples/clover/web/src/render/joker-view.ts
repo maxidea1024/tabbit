@@ -32,6 +32,58 @@ function hueOf(text: string): number {
   return hashOf(text) % 360
 }
 
+/**
+ * 카드의 테두리. **금속 테 하나에 리벳 넷입니다.**
+ *
+ * `skin.ts` 의 판때기 문법은 「채우기 하나와 테 하나」이고, 두께를 내는 것을 한 번 얹었다가
+ * 되돌린 기록이 그 파일 머리에 있습니다 — 되돌린 이유는 테가 두 겹이 되면 판 안의 글과
+ * 칸이 그만큼 좁아진다는 것이었습니다.
+ *
+ * **카드에는 그 이유가 걸리지 않습니다.** 카드 안쪽은 글이 아니라 그림이고, 이름은 아래
+ * 띠에 놓입니다. 그래서 여기서만 두께를 냅니다. 판때기는 그 문법을 그대로 지킵니다.
+ *
+ * 층이 다섯입니다 — 바깥 어두운 윤곽 · 금속 테의 어두운 쪽 · 밝은 쪽 · 안쪽 어두운 선 ·
+ * 네 귀의 리벳. **밝은 쪽을 안쪽에 두는 것이 경사를 만듭니다**: 빛이 위에서 오는 판이므로
+ * 테의 안쪽 면이 밝고 바깥 면이 어둡습니다.
+ */
+function drawCardFrame(g: Graphics, w: number, h: number, edge: number): void {
+  g.clear()
+
+  // 바깥 윤곽. **이 화풍의 그림이 굵은 어두운 윤곽을 가지므로 카드도 같아야 합니다.**
+  g.roundRect(0.75, 0.75, w - 1.5, h - 1.5, insetRadius(RADIUS, 0.75))
+    .stroke({ color: FRAME_INK, width: 1.5 })
+
+  // 금속 테. 어두운 쪽이 바깥, 밝은 쪽이 안쪽입니다.
+  g.roundRect(2.75, 2.75, w - 5.5, h - 5.5, insetRadius(RADIUS, 2.75))
+    .stroke({ color: shade(edge, 0.58), width: 2.5 })
+  g.roundRect(4.5, 4.5, w - 9, h - 9, insetRadius(RADIUS, 4.5))
+    .stroke({ color: tintUp(edge, 0.32), width: 1.5 })
+
+  // 안쪽 선. 테와 그림을 갈라 줍니다 — 없으면 밝은 그림에서 테가 그림에 섞입니다.
+  g.roundRect(5.75, 5.75, w - 11.5, h - 11.5, insetRadius(RADIUS, 5.75))
+    .stroke({ color: FRAME_INK, width: 1, alpha: 0.75 })
+
+  // 네 귀의 리벳. **이 하나가 웹 테두리와 게임 테두리를 가릅니다.**
+  const inset = 6.5
+  for (const [x, y] of [[inset, inset], [w - inset, inset],
+                        [inset, h - inset], [w - inset, h - inset]]) {
+    g.circle(x, y, 2.1).fill(shade(edge, 0.5))
+    g.circle(x - 0.35, y - 0.35, 1.35).fill(tintUp(edge, 0.5))
+  }
+}
+
+/** 테두리의 어두운 층. **겉면을 따라가지 않습니다** — 카드는 판 위에 놓이는 물건입니다. */
+const FRAME_INK = 0x0a0d14
+
+/**
+ * 테두리의 안쪽 경계.
+ *
+ * **이름 띠가 이 선 안에 들어와야 합니다.** 띠를 카드 폭 전체로 그리면 왼쪽과 오른쪽에서
+ * 테두리를 덮어 끊고, 그 자리만 두께가 사라져 카드가 한 벌로 보이지 않습니다.
+ * `drawCardFrame` 의 안쪽 선과 같은 값입니다.
+ */
+const FRAME_IN = 5.75
+
 export interface JokerLook {
   name: string
   rarity: number
@@ -164,8 +216,10 @@ export class JokerView extends Container {
 
     // 카드의 바탕. **그림이 덮으므로 보이는 것은 모서리뿐입니다** — 그림이 아직 안 읽혔을
     // 때 흰 자리가 번쩍이지 않게 어두운 색을 깝니다.
+    // **조커마다의 색조를 걷었습니다.** 그림의 배경이 이제 소재마다 다른 색이므로, 판까지
+    // 색을 돌리면 두 색이 겹쳐 부딪칩니다. 중립으로 둡니다.
     this.plate.clear()
-    this.plate.roundRect(0, 0, w, h, RADIUS).fill(hsl(hue, 0.35, 0.14))
+    this.plate.roundRect(0, 0, w, h, RADIUS).fill(FRAME_INK)
 
     // 그림이 앉을 자리를 오려 냅니다. 카드의 둥근 모서리를 그림도 따릅니다.
     // **그림이 있을 때만 채웁니다** — 마스크로 쓰이지 않는 동안에는 이것이 그대로 흰
@@ -209,21 +263,29 @@ export class JokerView extends Container {
 
     // 이름 띠. **그림 위에 얹힙니다** — 카드 아래를 덮어야 이름이 그림의 일부가 아니라
     // 이 카드의 이름으로 읽힙니다.
+    // **테두리 안쪽에 들어옵니다.** 아래 모서리만 카드의 곡률을 따르고 윗변은 직선입니다.
     this.band.clear()
-    this.band.roundRect(0, h - BAND, w, BAND, RADIUS).fill({ color: COLOR.band, alpha: 0.88 })
-    this.band.rect(0, h - BAND, w, BAND - RADIUS).fill({ color: COLOR.band, alpha: 0.88 })
-    this.band.rect(0, h - BAND, w, 1.5).fill({ color: edge, alpha: 0.9 })
+    const bandX = FRAME_IN
+    const bandW = w - FRAME_IN * 2
+    const bandTop = h - BAND
+    const bandH = BAND - FRAME_IN
+    const bandRadius = insetRadius(RADIUS, FRAME_IN)
+    this.band.roundRect(bandX, bandTop, bandW, bandH, bandRadius)
+      .fill({ color: COLOR.band, alpha: 0.92 })
+    this.band.rect(bandX, bandTop, bandW, bandH - bandRadius)
+      .fill({ color: COLOR.band, alpha: 0.92 })
+    // 띠의 윗변. **테두리와 같은 문법입니다** — 어두운 선 위에 희귀도 색이 얹힙니다.
+    this.band.rect(bandX, bandTop, bandW, 1).fill({ color: FRAME_INK, alpha: 0.9 })
+    this.band.rect(bandX, bandTop + 1, bandW, 1.5).fill({ color: edge, alpha: 0.95 })
 
     // 테두리. **희귀도가 테두리입니다** — 줄에 여럿이 서면 그 색이 먼저 읽힙니다.
-    this.frame.clear()
-    this.frame.roundRect(1.25, 1.25, w - 2.5, h - 2.5, insetRadius(RADIUS, 1.25))
-      .stroke({ color: edge, width: 2.5 })
-    this.frame.roundRect(4, 4, w - 8, h - 8, insetRadius(RADIUS, 4))
-      .stroke({ color: PAINT.sheen, width: 1, alpha: 0.10 })
+    drawCardFrame(this.frame, w, h, edge)
 
     this.nameText.text = look.name
     this.nameText.anchor.set(0.5, 0.5)
-    this.nameText.position.set(w / 2, h - BAND / 2)
+    // **띠의 가운데입니다.** 띠가 테두리 안쪽으로 들어와 아래가 짧아졌으므로, 카드 기준으로
+    // 두면 이름이 띠보다 3픽셀 아래에 앉습니다.
+    this.nameText.position.set(w / 2, (bandTop + bandTop + bandH) / 2)
     // 한 낙말이 카드보다 길면 줄바꿈으로는 들어가지 않습니다. 그때만 줄입니다.
     this.nameText.scale.set(1)
     const room = w - 8

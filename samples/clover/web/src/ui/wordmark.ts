@@ -21,9 +21,16 @@ import { outlineOf } from './font'
  * 어느 쪽도 아닌 색입니다 — 가운데에 가장 밝은 초록을 두면 글자가 안에서 빛나는 것으로
  * 보입니다.
  */
-const TOP = 0xeafff3
-const MIDDLE = 0x76efa9
-const BOTTOM = 0x27a35f
+/**
+ * **브랜드 색입니다.** `COLOR.good`(승리의 초록)과 떼어 놓습니다 — 그 초록은 게임 안의
+ * 약속이므로 브랜드를 그 위에 얹으면 승리 표시가 함께 바뀝니다.
+ *
+ * 초록이던 동안 배경 그림의 밝은 크림색 붓질과 붙어 이름이 묻혔습니다. 자홍 계열은 그
+ * 크림과 어긋나므로 밝은 자리에서도 떨어져 보입니다.
+ */
+const TOP = 0xfff0fb
+const MIDDLE = 0xff5fc8
+const BOTTOM = 0x9c1c6b
 const STOPS = [
   { offset: 0, color: TOP },
   { offset: 0.42, color: MIDDLE },
@@ -36,6 +43,14 @@ const EDGE = 0x0a1024
 /** 그림자. 이름 하나에만 걸립니다 — 판때기의 문법과는 다른 자리입니다. */
 const SHADOW = 0x05030f
 
+/**
+ * 브랜드 이름.
+ *
+ * **한 자리에 둡니다.** 타이틀과 로그인이 같은 것을 쓰므로, 이름이 바뀔 때 고치는 자리가
+ * 하나여야 합니다. 리브랜딩 계획은 `notes/hypephoria-rebrand-plan.md` 에 있습니다.
+ */
+export const BRAND = 'HYPEPHORIA'
+
 export class Wordmark extends Container {
   private readonly word: Text
   private time = 0
@@ -47,11 +62,13 @@ export class Wordmark extends Container {
   constructor(size: number, private readonly float = 0) {
     super()
     this.word = new Text({
-      text: 'clover',
+      text: BRAND,
       style: {
         fontSize: size,
         fontWeight: '800',
-        letterSpacing: Math.round(size * 0.07),
+        // **10글자에 맞춘 자간입니다.** `clover` 6글자 때는 0.07 이었고, 그 값으로
+        // `HYPEPHORIA` 를 적으면 화면 폭을 넘습니다.
+        letterSpacing: Math.round(size * 0.02),
         fill: new FillGradient({
           start: { x: 0, y: 0 },
           end: { x: 0, y: 1 },
@@ -61,9 +78,9 @@ export class Wordmark extends Container {
         // **여기만 굵기를 손으로 정합니다.** 배수는 어느 글자가 올지 모르는 자리의 위쪽
         // 한계이고, 이 글은 `clover` 여섯 자로 고정이라 그 한계보다 굵어도 속이 막히지
         // 않습니다.
-        stroke: outlineOf(Math.round(size * 0.093), EDGE),
+        stroke: outlineOf(Math.round(size * 0.13), EDGE),
         dropShadow: {
-          color: SHADOW, alpha: 0.55, blur: 7,
+          color: SHADOW, alpha: 0.9, blur: 12,
           distance: Math.round(size * 0.05), angle: Math.PI / 2,
         },
       },

@@ -925,6 +925,22 @@ export class BlindBadge extends Container {
    * 굵은 한 줄(`lead`)과 옅은 몇 줄(`info`)이 놓입니다 — 같은 딱지가 상황을 따라 다른 것을
    * 적는 것이어야 왼쪽 판이 여러 판으로 보이지 않습니다.
    */
+  /**
+   * 판때기. **금속 테를 두르지 않습니다.**
+   *
+   * 판때기의 금속 테 그림을 여기에도 걸어 보았고, 이 칸은 왼쪽 판 안에 놓이므로 테 안에
+   * 테가 되었습니다 — 그리고 이 크기에서 네 귀의 볼트판이 과합니다. 바깥 판의 테를
+   * 안쪽 칸에 그대로 쓸 수 없습니다.
+   *
+   * **안쪽 칸에는 따로 그린 테가 필요합니다.** 볼트가 없고 더 얇은 것입니다. 그것이
+   * 생기기 전까지는 파인 줄과 얇은 테로 둡니다.
+   */
+  private dressPlate(height: number): void {
+    plate(this.plate, this.boxWidth, height, {
+      top: UI.cell, bottom: UI.cell, border: UI.hairline, radius: 6, weight: 1,
+    })
+  }
+
   setInfo(name: string, lead: string, lines: string[], mark: number, seal?: Container,
           tags: Container[] = []): void {
     this.settle(`info|${name}|${lead}|${lines.join('|')}`)
@@ -932,9 +948,7 @@ export class BlindBadge extends Container {
     this.boxHeight = height
 
     this.plate.clear()
-    plate(this.plate, this.boxWidth, height, {
-      top: UI.cell, bottom: UI.cell, border: UI.hairline, radius: 6, weight: 1,
-    })
+    this.dressPlate(height)
     this.plate.rect(1, 38, this.boxWidth - 2, 1).fill(UI.hairline)
     if (!seal) this.plate.circle(20, 19, 5).stroke({ color: mark, width: 2 })
 
@@ -996,9 +1010,7 @@ export class BlindBadge extends Container {
     const mark = boss ? UI.red : big ? UI.legendary : UI.bar
 
     this.plate.clear()
-    plate(this.plate, this.boxWidth, height, {
-      top: UI.cell, bottom: UI.cell, border: UI.hairline, radius: 6, weight: 1,
-    })
+    this.dressPlate(height)
     // 이름이 앉는 줄. 띠가 아니라 아래에 선 하나입니다.
     this.plate.rect(1, 38, this.boxWidth - 2, 1).fill(UI.hairline)
     // **문양은 하나입니다.** 화면이 넘겨주는 딱지가 그 문양이므로 여기서 또 그리면 같은
