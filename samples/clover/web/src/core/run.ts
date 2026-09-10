@@ -399,7 +399,11 @@ function beginRound(vm: Vm): void {
   state.pendingRules = []
   // **보스가 여기서 규칙에 들어옵니다.** 보스는 자기 블라인드에서만 `collect` 에 잡히므로,
   // 블라인드가 정해진 다음에 다시 세워야 그 효과가 걸립니다.
-  rebuildRules(vm)
+  //
+  // **알리지 않습니다.** 라운드마다 보스의 규칙이 들어오고 나가므로, 알리면 같은 두세 줄이
+  // 판마다 되풀이됩니다 — 보스가 무엇을 거는지는 블라인드 딱지에 그 라운드 내내 적혀
+  // 있고, 알림 판은 플레이어가 방금 한 일에만 씁니다.
+  rebuildRules(vm, true)
 
   state.handsLeft = state.rules.handsPerRound
   state.discardsLeft = state.rules.discardsPerRound
@@ -573,8 +577,11 @@ function winRound(vm: Vm): void {
 
   // **이번 라운드에만 걸린 것과 보스가 여기서 빠집니다.** 단계가 바뀐 다음이어야 합니다 —
   // 보스는 판을 두는 동안에만 `collect` 에 잡히므로, 그 전에 세우면 아직 남아 있습니다.
+  //
+  // **알리지 않습니다.** 걸렸던 것이 빠지는 것은 라운드가 끝났다는 것이지 규칙이 바뀐
+  // 일이 아닙니다 — 들어올 때와 나갈 때를 다 알리면 판마다 두 번입니다.
   state.roundRules = []
-  rebuildRules(vm)
+  rebuildRules(vm, true)
 
   runTrigger(vm, Trigger.OnShopEnter)
   useTags(vm, Trigger.OnShopEnter)

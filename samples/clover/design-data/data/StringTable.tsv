@@ -1286,6 +1286,7 @@
 	phrase.chance	{num}/{den} 확률로 	with a {num}/{den} chance, 	{num}/{den} の確率で 	有 {num}/{den} 的概率 	有 {num}/{den} 的機率 	mit {num}/{den} Chance 
 	ui.hand.level	{name}   레벨 {level}	{name}   Level {level}	{name}   レベル {level}	{name}   等级 {level}	{name}   等級 {level}	{name}   Stufe {level}
 	ui.hand.level_up	{name} 레벨 +1	{name} Level +1	{name} レベル +1	{name} 等级 +1	{name} 等級 +1	{name} Stufe +1
+	ui.hand.level_short	레벨 {level}	Lv. {level}	レベル {level}	等级 {level}	等級 {level}	Stufe {level}
 	ui.hand.times	{n}회	{n}×	{n} 回	{n} 次	{n} 次	{n}×
 	ui.hand.preview	이 {n}장이면  {name}	These {n} make  {name}	この {n} 枚なら  {name}	这 {n} 张是  {name}	這 {n} 張是  {name}	Diese {n} ergeben  {name}
 	ui.hand.preview_math	칩 {chips}  ×  배수 {mult}   =   {total}	Chips {chips}  ×  Mult {mult}   =   {total}	チップ {chips}  ×  倍率 {mult}   =   {total}	筹码 {chips}  ×  倍率 {mult}   =   {total}	籌碼 {chips}  ×  倍率 {mult}   =   {total}	Chips {chips}  ×  Mult {mult}   =   {total}

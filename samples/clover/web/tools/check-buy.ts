@@ -34,6 +34,13 @@ async function main(): Promise<number> {
   await grantMoney(page, 40)
   await settle(page)
   await pass(page, 600)
+  // **상점이 채워지기를 기다립니다.** 국면이 상점이 되는 것과 물건이 놓이는 것은 다른
+  // 순간이고, 그 사이는 연출의 길이에 따라 달라집니다 — 기다리지 않으면 빈 상점을 보고
+  // 「조커가 없습니다」로 끝나며, 그 말은 이 도구가 재려던 것과 무관합니다.
+  for (let wait = 0; wait < 40; wait++) {
+    if (((await peek(page)).shopKinds ?? []).length > 0) break
+    await pass(page, 200)
+  }
   const slot = ((await peek(page)).shopKinds ?? []).indexOf(1)
   if (slot < 0) {
     console.log('상점에 조커가 없습니다. 시드를 바꿔야 합니다')

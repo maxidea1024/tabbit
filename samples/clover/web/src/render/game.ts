@@ -5927,7 +5927,8 @@ export class Game {
       } else if (one.t === 'HandLevelled') {
         notes.push({
           title: this.handName(one.hand),
-          change: `Lv.${one.level}`,
+          // **말이 코드에 고정되어 있었습니다.** `Lv.` 는 어느 말에서나 같지 않습니다.
+          change: tf('ui.hand.level_short', { level: one.level }),
           good: true,
         })
       }
@@ -5936,6 +5937,14 @@ export class Game {
 
     this.ruleBanner.show(notes, this.actorName)
     this.placeRuleBanner()
+    // **왼쪽 판의 그 줄이 함께 밝아집니다.**
+    //
+    // 두 자리가 하는 일이 다릅니다 — 「적용 중」 목록은 지금 걸려 있는 것이고, 가운데
+    // 판은 그것이 방금 얼마에서 얼마로 달라졌는가입니다. 목록은 그 델타를 담을 수 없고,
+    // 판은 목록을 대신할 수 없습니다. 둘을 잇지 않으면 같은 글이 두 번 적힌 것으로
+    // 읽히므로, 판이 뜨는 그 순간에 목록의 그 줄이 밝아져 어디로 들어갔는지를 말합니다.
+    this.activeGlow = { label: notes[0].title, until: this.clock + ACTIVE_GLOW }
+    this.syncActive()
     this.audio.play('voucher_buy')
     // **판이 서는 소리가 값의 소리와 갈립니다.** 규칙은 값이 아니라 셈법이 바뀌는 것이고,
     // 그 둘이 같은 소리면 무엇이 일어난 것인지 귀로 갈리지 않습니다.
@@ -8519,7 +8528,7 @@ export class Game {
       name.position.set(28, y + 2)
 
       const lv = new Text({
-        text: `Lv.${level}`,
+        text: tf('ui.hand.level_short', { level }),
         style: { fontSize: TEXT.body, fill: level > 1 ? UI.good : UI.inkDim, fontWeight: WEIGHT.normal },
       })
       lv.position.set(246, y + 3)
@@ -13127,6 +13136,9 @@ export class Game {
     tile.eventMode = 'static'
     tile.hitArea = new Rectangle(0, 0, CELL_W, CELL_H)
     tile.cursor = afford ? 'pointer' : 'default'
+    // **자리는 화면이 알립니다.** 바우처는 규칙으로 들어가는 유일한 물건이므로, 규칙이
+    // 바뀌는 것을 재는 도구가 눌러야 하는 자리입니다 — 카드 칸만 알리고 있었습니다.
+    this.spotNodes.set('voucher', { node: tile, cx: CELL_W * fit / 2, cy: CELL_H * fit / 2 })
     const middle = (): { x: number; y: number } =>
       this.fromShop({ x: tile.x + CELL_W * fit / 2, y: tile.y + CELL_H * fit / 2 })
     tile.on('pointertap', () => {

@@ -7,6 +7,11 @@
 // **한 번에 하나입니다.** 규칙은 한 액션에 여럿 걸릴 수 있고(챌린지 · 보스 · 바우처),
 // 그것들이 판 여럿으로 뜨면 어느 것이 방금 온 것인지 알 수 없습니다 — 한 판에 담고
 // 넘치면 몇 개가 더 있는지만 적습니다.
+//
+// **왼쪽 판의 「적용 중」 목록과 하는 일이 다릅니다.** 목록은 지금 걸려 있는 것이고 이
+// 판은 그것이 방금 얼마에서 얼마로 달라졌는가입니다 — 목록은 그 델타를 담을 수 없습니다.
+// 그래서 **바뀐 값이 크고 규칙의 이름이 그 위에 작게** 놓입니다. 이름을 크게 두면 목록의
+// 한 줄과 같은 모양이 되고, 그러면 같은 글이 두 번 적힌 것으로 읽힙니다.
 
 import { Container, Graphics, Text } from 'pixi.js'
 
@@ -29,8 +34,8 @@ export interface RuleNote {
 /** 판의 넓이. **손패보다 좁습니다** — 판 위에 얹힌 것이지 판을 덮는 것이 아닙니다. */
 const WIDTH = 470
 const PAD = 16
-/** 줄 하나의 높이. 이름과 값이 한 줄에 나란히 놓입니다. */
-const ROW = 26
+/** 줄 하나의 높이. 이름이 작게 위에, 바뀐 값이 크게 아래에 놓입니다. */
+const ROW = 40
 /** 한 판에 적는 규칙의 수. 넘치면 몇 개가 더 있는지만 적습니다. */
 const ROWS = 4
 
@@ -92,21 +97,26 @@ export class RuleBanner extends Container {
     }
 
     for (const note of shown) {
-      // 이름은 왼쪽, 바뀐 값은 오른쪽. **한 줄에 나란히 놓습니다** — 위아래로 두면 규칙
-      // 넷이 여덟 줄이 되고, 판이 손패를 덮습니다.
+      // 규칙의 이름은 작게 위에. **이것은 왼쪽 목록에도 있는 것입니다** — 여기서 크게
+      // 두면 목록의 한 줄과 같은 모양이 되고, 그러면 되풀이로 읽힙니다.
       const name = new Text({
         text: note.title,
-        style: { ...outlined(TEXT.body, UI.outline), fill: UI.ink, fontWeight: WEIGHT.bold },
+        style: { ...outlined(TEXT.mini, UI.outline), fill: UI.inkDim, fontWeight: WEIGHT.bold },
       })
-      name.anchor.set(0, 0.5)
-      name.position.set(PAD, y + ROW / 2)
+      name.anchor.set(0.5, 0)
+      name.position.set(WIDTH / 2, y)
 
-      // 값은 강조가 붙습니다 — 수는 칩의 파랑입니다.
+      // 바뀐 값이 주인공입니다. **목록이 담을 수 없는 것이 이것입니다.**
+      // **수까지 그 색입니다.** 강조의 규칙은 수를 칩의 파랑으로 두는 것인데, 여기서는
+      // 좋아졌는지 나빠졌는지가 그 색이므로 파랑으로 두면 그 뜻이 사라집니다.
+      const tint = note.good ? UI.good : UI.bad
       const value = richLine(note.change, {
         ...style,
-        base: { ...style.base, fill: note.good ? UI.good : UI.bad, fontWeight: WEIGHT.bold },
-      })
-      value.position.set(WIDTH - PAD - value.width, y + (ROW - TEXT.body) / 2 - 2)
+        number: tint,
+        term: tint,
+        base: { ...style.base, fontSize: TEXT.lead, fill: tint, fontWeight: WEIGHT.bold },
+      }, undefined, 24)
+      value.position.set((WIDTH - value.width) / 2, y + TEXT.mini + 4)
 
       this.body.addChild(name, value)
       y += ROW
