@@ -22,7 +22,7 @@ import {
   cardFaceTexture, clearCardFace, drawCardFaceVector, faceInk,
 } from './card-face'
 import { cardPaper, suitInk } from './card-set'
-import { Motion, sway, Spring } from './motion'
+import { fraction, Motion, sway, Spring } from './motion'
 import { pinBox } from './pin'
 import { cardBack, clearCardBack, drawCardBack } from './card-back'
 import { UI, SIZE } from './theme'
@@ -177,8 +177,29 @@ export class CardView extends Container {
   /** 마우스가 올라와 있는가. 기울기와 크기가 이것을 확인합니다. */
   hovered = false
   selected = false
-  /** 마우스가 카드 안 어디에 있는가. -1 에서 1 입니다. */
-  pointer = 0
+  /**
+   * 커서가 어느 쪽에 있는가. −1 에서 1 입니다.
+   *
+   * **넘겨받는 것은 목표이고, 실제로 쓰는 것은 그쪽으로 따라가는 값입니다.** 커서는
+   * 프레임마다 껑충 뛰므로 받은 값을 그대로 무늬의 위상에 더하면 무늬가 그만큼 순간
+   * 이동합니다 — 무늬가 밀리는 것으로 보이는 것이 그것입니다. 기울어지는 데 시간이
+   * 걸려야 「기울었다」로 읽힙니다.
+   */
+  set pointer(value: number) {
+    this.pointerAim = value
+  }
+
+  get pointer(): number {
+    return this.pointerAt
+  }
+
+  private pointerAim = 0
+  private pointerAt = 0
+
+  /** 목표 쪽으로 한 단계 따라갑니다. */
+  private easePointer(seconds: number): void {
+    this.pointerAt += (this.pointerAim - this.pointerAt) * fraction(seconds, 9)
+  }
   /**
    * 늘 흔들리는 정도.
    *
@@ -610,6 +631,7 @@ export class CardView extends Container {
   }
 
   advance(seconds: number, time: number): void {
+    this.easePointer(seconds)
     this.motion.advance(seconds)
 
     if (this.burning) {

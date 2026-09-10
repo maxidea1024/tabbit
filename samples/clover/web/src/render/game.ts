@@ -609,6 +609,13 @@ const ROW_Z = 10
 /** 끄는 동안 들어 올리는 자리. **줄의 어느 것보다 위, 낸 카드보다 아래입니다.** */
 const DRAG_Z = 90
 /**
+ * 커서의 기울기가 닿는 거리. 카드 한 장 너비를 1 로 센 값입니다.
+ *
+ * **이 밖은 0 입니다.** 값을 잘라 두기만 하면 멀리 있는 것까지 최대로 기운 채이고, 커서가
+ * 지나갈 때 그 값이 한꺼번에 뒤집힙니다.
+ */
+const TILT_REACH = 3
+/**
  * 고른 것과 가리킨 것의 그리기 차례.
  *
  * **줄이 차면 겹칩니다.** 손패는 9장부터, 조커와 소모품은 자리가 좁아지면 겹치는데 그때
@@ -7571,7 +7578,20 @@ export class Game {
     }
     const one = faceEdition(node)
     if (!one) return undefined
-    return { at: time => one.at(time, tilt?.() ?? 0), seen: () => one.seen }
+    // **기울기가 한 프레임에 뛰지 않습니다.** 줄에 선 딱지는 뷰가 스스로 따라가는데
+    // (`JokerView.easePointer`) 이쪽은 뷰가 아니라 얼굴이므로 그 몫을 여기서 듭니다 —
+    // 받은 값을 그대로 위상에 더하면 커서가 뛴 만큼 무늬가 순간 이동합니다.
+    //
+    // **한 프레임의 몫이 고정입니다.** 이 표들은 `advanceLooks` 가 프레임마다 한 번
+    // 돌리므로 초를 받지 않고, 60Hz 에서 뷰와 같은 빠르기가 되는 값입니다.
+    let eased = tilt?.() ?? 0
+    return {
+      at: time => {
+        eased += ((tilt?.() ?? 0) - eased) * 0.14
+        one.at(time, eased)
+      },
+      seen: () => one.seen,
+    }
   }
 
   /** 줄 밖에 선 것들의 겉면을 한 틱. **표 넷을 그대로 걷습니다.** */
@@ -7586,7 +7606,19 @@ export class Game {
 
   /** 이 가로 자리에서의 기울기. 커서가 가까울수록 0 에 가깝습니다. */
   private tiltAt(x: number): number {
-    return Math.max(-1, Math.min(1, (this.pointerAt.x - x) / 90))
+    // 카드 한 장 너비를 1 로 셉니다.
+    const away = (this.pointerAt.x - x) / 90
+    // **멀면 0 입니다.**
+    //
+    // 잘라 두기만 했더니 한 장 너비를 넘어선 것이 전부 ±1 이었습니다 — 커서가 화면
+    // 반대쪽에 있으면 줄에 선 것이 다 최대로 기운 채이고, 커서가 줄을 지나가면 그 값이
+    // +1 에서 −1 로 한꺼번에 뒤집혀 무늬의 위상이 1.2 라디안 뜁니다. 그것이 마우스를
+    // 움직일 때 무늬가 밀리는 것으로 보였습니다.
+    //
+    // **닿는 거리는 세 장입니다.** 그보다 멀면 그 딱지는 커서와 상관없이 제 위상으로
+    // 흐르고, 가까울수록 커서 쪽으로 기웁니다.
+    const reach = Math.max(0, 1 - Math.abs(away) / TILT_REACH)
+    return Math.max(-1, Math.min(1, away)) * reach
   }
 
   private tiltFor(view: Container): number {

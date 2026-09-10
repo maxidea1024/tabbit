@@ -20,7 +20,7 @@ import { insetRadius } from './skin'
 import { roundedMask } from '../shader/mask'
 import { artFor } from './art'
 import { drawGlyph, glyphFor, hashOf, hsl, shade, tintUp } from './glyph'
-import { Motion, sway } from './motion'
+import { fraction, Motion, sway } from './motion'
 import { pinBox } from './pin'
 import { UI, SIZE, rarityColor } from './theme'
 
@@ -192,7 +192,29 @@ export class JokerView extends Container {
    * 그리고 커서를 단추로 옮기는 동안 딱지가 10픽셀 내려앉는 것도 없어집니다.
    */
   held = false
-  pointer = 0
+  /**
+   * 커서가 어느 쪽에 있는가. −1 에서 1 입니다.
+   *
+   * **넘겨받는 것은 목표이고, 실제로 쓰는 것은 그쪽으로 따라가는 값입니다.** 커서는
+   * 프레임마다 껑충 뛰므로 받은 값을 그대로 무늬의 위상에 더하면 무늬가 그만큼 순간
+   * 이동합니다 — 무늬가 밀리는 것으로 보이는 것이 그것입니다. 기울어지는 데 시간이
+   * 걸려야 「기울었다」로 읽힙니다.
+   */
+  set pointer(value: number) {
+    this.pointerAim = value
+  }
+
+  get pointer(): number {
+    return this.pointerAt
+  }
+
+  private pointerAim = 0
+  private pointerAt = 0
+
+  /** 목표 쪽으로 한 단계 따라갑니다. */
+  private easePointer(seconds: number): void {
+    this.pointerAt += (this.pointerAim - this.pointerAt) * fraction(seconds, 9)
+  }
   /** 발동해서 흔들리는 정도. 0 이면 조용합니다. */
   private rattle = 0
   /** 흔들리는 위상. 잦아드는 동안 좌우로 오갑니다. */
@@ -485,6 +507,7 @@ export class JokerView extends Container {
   }
 
   advance(seconds: number, time: number): void {
+    this.easePointer(seconds)
     this.motion.advance(seconds)
     this.edition?.at(time, this.pointer)
 

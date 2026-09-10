@@ -10,11 +10,16 @@
 // |--|--|
 // |줄|`this.jokers`. `advance` 가 자리와 겉면을 함께 돌립니다|
 // |줄 밖|상점의 칸 · 팩에 펼친 카드 · 진 판의 판. **`lookAt` 이 겉면만 돌립니다** — 이쪽이 틱을 못 받아 `uTime` 0 에 굳어 있었습니다|
+//
+// **기울기도 같은 자리에서 봅니다.** 값을 잘라 두기만 했더니 한 장 너비를 넘어선 것이 전부
+// ±1 이었고, 커서가 줄을 지나가면 그 값이 한꺼번에 뒤집혀 무늬의 위상이 1.2 라디안 뛰었습니다 —
+// 마우스를 움직이면 무늬가 밀리는 것으로 보였습니다. 멀면 0 이고, 옮기는 동안 한 프레임에
+// 뛰지 않아야 합니다.
 import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
-import { openRun, pass, peek, skipLogin } from './harness'
+import { at, openRun, pass, peek, skipLogin } from './harness'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5298
@@ -95,6 +100,32 @@ async function main(): Promise<number> {
     '다시 그려도 줄의 시각이 뒤로 가지 않습니다')
   console.log(`  기울기 줄 ${four.at.tray.map(one => one.tilt.toFixed(2)).join(' ')}`
     + ` · 줄 밖 ${four.at.look.map(one => one.tilt.toFixed(2)).join(' ')}`)
+
+  // **커서가 멀면 기울기가 0 입니다.** 줄에 선 것이 전부 최대로 기운 채이면, 커서가
+  // 그 줄을 지나갈 때 그 값이 한꺼번에 뒤집힙니다.
+  const corner = await at(page, 20, 780)
+  await page.mouse.move(corner.x, corner.y)
+  await pass(page, 600)
+  const far = await sample(page)
+  const worstFar = Math.max(...far.at.tray.map(one => Math.abs(one.tilt)), 0)
+  console.log(`  커서가 먼 자리 · 기울기 ${far.at.tray.map(one => one.tilt.toFixed(2)).join(' ')}`)
+  check(worstFar < 0.1, `커서가 멀면 기울기가 0 입니다 (가장 큰 것 ${worstFar.toFixed(2)})`)
+
+  // **옮기는 동안 한 프레임에 뛰지 않습니다.** 줄을 왼쪽에서 오른쪽으로 지나갑니다.
+  let jump = 0
+  let last = far.at.tray.map(one => one.tilt)
+  for (let step = 0; step <= 12; step++) {
+    const here = await at(page, 200 + step * 70, 90)
+    await page.mouse.move(here.x, here.y)
+    await pass(page, 34)
+    const now = (await sample(page)).at.tray.map(one => one.tilt)
+    for (let i = 0; i < now.length; i++) {
+      jump = Math.max(jump, Math.abs(now[i] - (last[i] ?? now[i])))
+    }
+    last = now
+  }
+  console.log(`  줄을 지나가는 동안 한 프레임의 가장 큰 변화 ${jump.toFixed(2)}`)
+  check(jump < 0.35, `기울기가 한 프레임에 뛰지 않습니다 (${jump.toFixed(2)})`)
 
   await browser.close()
   await server.close()

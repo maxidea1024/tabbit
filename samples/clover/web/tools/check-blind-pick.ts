@@ -83,6 +83,23 @@ async function leaveShop(page: Page): Promise<void> {
 }
 
 /** 실패했을 때 무엇이 어떤 상태였는지. */
+/**
+ * 블라인드를 고릅니다. **국면이 바뀔 때까지 다시 누릅니다.**
+ *
+ * `act` 는 연출이 도는 동안의 누름을 버리고 그 버림은 화면 어디에도 적히지 않습니다 —
+ * 도구가 그것을 「골랐다」로 보고 다음 줄로 넘어가면, 라운드에 들지 못한 채로 이기려
+ * 하다가 상점을 기다리며 멈춥니다. `leaveShop` 과 같은 자리이고 같은 까닭입니다.
+ */
+async function pickBlind(page: Page): Promise<void> {
+  for (let tries = 0; tries < 12; tries++) {
+    if ((await peek(page)).phase === 'round') return
+    await settle(page)
+    await clickSpot(page, 'pick')
+    await pass(page, 400)
+  }
+  throw new Error(`블라인드를 고르지 못했습니다 — ${await where(page)}`)
+}
+
 async function where(page: Page): Promise<string> {
   const now = await peek(page) as unknown as Record<string, unknown>
   return `phase=${now.phase} shown=${now.shownPhase} busy=${now.busy} coins=${now.coins}`
@@ -120,11 +137,7 @@ async function main(): Promise<number> {
   check(skipped.ms >= 400, `건너뛰기 연출이 끝난 뒤에 섭니다 (${skipped.ms}ms)`)
 
   // 3. 박자 하나짜리 조커. 전에는 여기서 판이 뜨지 않았습니다.
-  // **고르기 전에 연출이 끝나기를 기다립니다.** 도는 중에 누르면 `act` 가 그 누름을
-  // 버리고, 버렸다는 것은 화면 어디에도 적히지 않습니다 — 판이 선 것과 누를 수 있는 것은
-  // 다른 순간이고, 이 게이트가 재는 것은 앞엣것입니다.
-  await settle(page)
-  await clickSpot(page, 'pick')
+  await pickBlind(page)
   await pass(page, 1500)
   await winRound(page)
   await grantJoker(page, 'spent_note')
@@ -136,8 +149,7 @@ async function main(): Promise<number> {
   if (one.ms < 0) console.log('    ', await where(page))
 
   // 4. 박자 둘과 동전. 동전이 닿은 뒤에 서야 합니다.
-  await settle(page)
-  await clickSpot(page, 'pick')
+  await pickBlind(page)
   await pass(page, 1500)
   await winRound(page)
   await grantJoker(page, 'paper_bag')
